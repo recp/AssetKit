@@ -81,9 +81,6 @@ aio_load_collada_asset(xmlNode * __restrict xml_node, ...) {
               contributor->copyright = aio_strdup(node_content);
             else if (AIO_IS_EQ_CASE(node_name, "source_data"))
               contributor->source_data = aio_strdup(node_content);
-            else {
-              /* TODO: DEGUB Log */
-            } /* if elm */
           } /* if type */
 
           curr_node = curr_node->next;
@@ -296,9 +293,7 @@ aio_load_collada_asset(xmlNode * __restrict xml_node, ...) {
         _AIO_TREE_LOAD_TO(curr_node->children,
                           (*ast_inf)->extra,
                           NULL);
-      } else {
-        /* TODO: DEGUB Log */
-      } /* if elm */
+      }
     } /* if type */
 
     if (!curr_node->next) {
