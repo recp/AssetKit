@@ -1,0 +1,13 @@
+*.xcodeproj
+*.xcworkspace
+*.sln
+*.vcxproj
+*.vcxproj.*
+*.suo
+*.sdf
+*.opensdf
+ipch/
+Debug/
+Release/
+.DS_Store
+.vs
