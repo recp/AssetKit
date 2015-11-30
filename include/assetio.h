@@ -324,10 +324,24 @@ struct aio_assetinf_s {
   aio_upaxis        upaxis;
 };
 
+/*
+ * TODO:
+ * There should be an option (aio_load) to prevent optional 
+ * load unsed / non-portable techniques. 
+ * This may increase parse performance and reduce memory usage
+ */
 typedef struct aio_technique_s aio_technique;
 struct aio_technique_s {
   aio_tree   * next;
   const char * profile;
+
+  /**
+   * @brief
+   * COLLADA Specs 1.5:
+   * This XML Schema namespace attribute identifies an additional schema 
+   * to use for validating the content of this instance document. Optional.
+   */
+  const char * xmlns;
 };
 
 typedef struct aio_technique_common_s aio_technique_common;

@@ -18,14 +18,8 @@
 #include <string.h>
 
 int _assetio_hide
-aio_load_collada_technique(xmlNode * xml_node,
-                           aio_technique ** technique) {
-  return -1;
-}
-
-int _assetio_hide
-aio_load_collada_techniquec(xmlNode * xml_node,
-                            aio_technique_common ** techniquec) {
+aio_load_collada_techniquec(xmlNode * __restrict xml_node,
+                            aio_technique_common ** __restrict dest) {
   xmlNode              * curr_node;
   aio_technique_common * techc;
 
@@ -43,7 +37,7 @@ aio_load_collada_techniquec(xmlNode * xml_node,
       } else {
         techc = aio_malloc(sizeof(*techc));
         memset(techc, '\0', sizeof(*techc));
-        *techniquec = techc;
+        *dest = techc;
       }
 
       const char * node_name;

@@ -13,11 +13,11 @@
 typedef struct _xmlNode xmlNode;
 
 int _assetio_hide
-aio_load_collada_technique(xmlNode * xml_node,
-                           aio_technique ** technique);
+aio_load_collada_technique(xmlNode * __restrict xml_node,
+                           aio_technique ** __restrict dest);
 
 int _assetio_hide
-aio_load_collada_techniquec(xmlNode * xml_node,
-                            aio_technique_common ** techniquec);
+aio_load_collada_techniquec(xmlNode * __restrict xml_node,
+                            aio_technique_common ** __restrict dest);
 
 #endif /* __libassetio__aio_collada_technique__h_ */
