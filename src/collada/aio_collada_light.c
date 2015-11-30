@@ -82,6 +82,8 @@ aio_load_collada_light(xmlNode * __restrict xml_node,
     
     curr_node = curr_node->next;
   }
-  
-  return -1;
+
+  *dest = light;
+
+  return 0;
 }

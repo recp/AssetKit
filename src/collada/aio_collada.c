@@ -120,6 +120,7 @@ aio_load_collada(aio_doc ** __restrict dest,
       } else if (AIO_IS_EQ_CASE(node_name, "library_lights")) {
         xmlNode       * prev_node;
         aio_lib_light * light_lib;
+        aio_light     * prev_light;
 
         light_lib = &asst_doc->lib.lights;
 
@@ -129,7 +130,8 @@ aio_load_collada(aio_doc ** __restrict dest,
 
         prev_node = curr_node;
         curr_node = curr_node->children;
-
+        prev_light = light_lib->next;
+        
         while (curr_node) {
           if (curr_node->type == XML_ELEMENT_NODE) {
             node_name = (const char *)curr_node->name;
@@ -144,15 +146,12 @@ aio_load_collada(aio_doc ** __restrict dest,
 
               ret = aio_load_collada_light(curr_node, &alight);
               if (ret == 0) {
-                if (light_lib->next) {
-                  alight->prev = light_lib->next;
-                  alight->next = NULL;
-
-                  light_lib->next = alight;
+                if (prev_light) {
+                  alight->prev = prev_light;
+                  prev_light->next = alight;
+                  prev_light = alight;
                 } else {
-                  alight->prev = NULL;
-                  alight->next = NULL;
-
+                  prev_light = alight;
                   light_lib->next = alight;
                 }
               }
