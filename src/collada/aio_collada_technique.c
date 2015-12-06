@@ -27,6 +27,8 @@ aio_load_collada_technique(xmlNode * __restrict xml_node,
 
   curr_node = xml_node;
   technique = aio_malloc(sizeof(*technique));
+  memset(technique, '\0', sizeof(*technique));
+
   curr_attr = curr_node->properties;
 
   /* parse camera attributes */
@@ -49,7 +51,7 @@ aio_load_collada_technique(xmlNode * __restrict xml_node,
 
   
   _AIO_TREE_LOAD_TO(curr_node->children,
-                    technique->next,
+                    technique->chld,
                     NULL);
 
   *dest = technique;

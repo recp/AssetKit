@@ -342,6 +342,10 @@ struct aio_technique_s {
    * to use for validating the content of this instance document. Optional.
    */
   const char * xmlns;
+  aio_tree   * chld;
+
+  aio_technique * prev;
+  aio_technique * next;
 };
 
 typedef struct aio_technique_common_s aio_technique_common;

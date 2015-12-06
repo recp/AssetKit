@@ -21,9 +21,10 @@
 int _assetio_hide
 aio_load_collada_light(xmlNode * __restrict xml_node,
                        aio_light ** __restrict  dest) {
-  xmlNode   * curr_node;
-  xmlAttr   * curr_attr;
-  aio_light * light;
+  xmlNode       * curr_node;
+  xmlAttr       * curr_attr;
+  aio_light     * light;
+  aio_technique * last_technique;
 
   curr_node = xml_node;
   light = aio_malloc(sizeof(*light));
@@ -48,6 +49,8 @@ aio_load_collada_light(xmlNode * __restrict xml_node,
     curr_attr = curr_attr->next;
   }
 
+  last_technique = light->technique;
+  
   /* parse childrens */
   curr_node = xml_node->children;
   while (curr_node) {
@@ -72,7 +75,21 @@ aio_load_collada_light(xmlNode * __restrict xml_node,
           light->technique_common = technique_c;
 
       } else if (AIO_IS_EQ_CASE(node_name, "technique")) {
-        /* TODO: */
+        aio_technique * technique;
+        int             ret;
+
+        ret = aio_load_collada_technique(curr_node, &technique);
+        if (ret == 0) {
+          if (last_technique) {
+            technique->prev = last_technique;
+            last_technique->next = technique;
+          } else {
+            light->technique = technique;
+          }
+
+          last_technique = technique;
+        }
+
       } else if (AIO_IS_EQ_CASE(node_name, "extra")) {
         _AIO_TREE_LOAD_TO(curr_node->children,
                           light->extra,

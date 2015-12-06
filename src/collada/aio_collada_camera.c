@@ -62,6 +62,13 @@ aio_load_collada_camera(xmlNode * __restrict xml_node,
                            camera->inf);
 
       } else if (AIO_IS_EQ_CASE(node_name, "optics")) {
+        aio_optics    * optics;
+        aio_technique * last_technique;
+
+        optics = aio_malloc(sizeof(*optics));
+        memset(optics, '\0', sizeof(*optics));
+
+        last_technique = optics->technique;
 
         prev_node = curr_node;
         curr_node = curr_node->children;
@@ -77,10 +84,23 @@ aio_load_collada_camera(xmlNode * __restrict xml_node,
                                                 &technique_c);
 
               if (ret == 0)
-                camera->optics.technique_common = technique_c;
+                optics->technique_common = technique_c;
 
             } else if (AIO_IS_EQ_CASE(node_name, "technique")) {
-              /* TODO: */
+              aio_technique * technique;
+              int             ret;
+
+              ret = aio_load_collada_technique(curr_node, &technique);
+              if (ret == 0) {
+                if (last_technique) {
+                  technique->prev = last_technique;
+                  last_technique->next = technique;
+                } else {
+                  optics->technique = technique;
+                }
+
+                last_technique = technique;
+              }
             }
 
           } // if elm
@@ -92,10 +112,13 @@ aio_load_collada_camera(xmlNode * __restrict xml_node,
         curr_node = prev_node;
 
       } else if (AIO_IS_EQ_CASE(node_name, "imager")) {
-        aio_imager * imager;
+        aio_imager    * imager;
+        aio_technique * last_technique;
 
         imager = aio_malloc(sizeof(*imager));
         memset(imager, '\0', sizeof(*imager));
+
+        last_technique = imager->technique;
 
         prev_node = curr_node;
         curr_node = curr_node->children;
@@ -103,7 +126,20 @@ aio_load_collada_camera(xmlNode * __restrict xml_node,
           if (curr_node->type == XML_ELEMENT_NODE) {
             node_name = (const char *)curr_node->name;
             if (AIO_IS_EQ_CASE(node_name, "technique")) {
-             /* TODO: */
+              aio_technique * technique;
+              int             ret;
+
+              ret = aio_load_collada_technique(curr_node, &technique);
+              if (ret == 0) {
+                if (last_technique) {
+                  technique->prev = last_technique;
+                  last_technique->next = technique;
+                } else {
+                  imager->technique = technique;
+                }
+
+                last_technique = technique;
+              }
             } else if (AIO_IS_EQ_CASE(node_name, "extra")) {
               _AIO_TREE_LOAD_TO(curr_node->children,
                                 imager->extra,
