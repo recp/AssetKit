@@ -173,6 +173,39 @@ typedef time_t aio_time_t;
 #define AIO_ALTITUDE_RELATIVETOGROUND                                   0x00
 #define AIO_ALTITUDE_ABSOLUTE                                           0x01
 
+/* FX */
+#define aio_opaque long
+#define AIO_OPAQUE_A_ONE                                                0x00
+#define AIO_OPAQUE_RGB_ZERO                                             0x01
+#define AIO_OPAQUE_A_ZERO                                               0x02
+#define AIO_OPAQUE_RGB_ONE                                              0x03
+
+#define aio_param_type long
+#define AIO_PARAM_TYPE_REF                                              0x00
+#define AIO_PARAM_TYPE_EXTENDED                                         0x01
+#define AIO_PARAM_TYPE_MIN                                              0x02
+
+#define aio_wrap_mode long
+#define AIO_WRAP_MODE_WRAP                                              0x00
+#define AIO_WRAP_MODE_MIRROR                                            0x01
+#define AIO_WRAP_MODE_CLAMP                                             0x02
+#define AIO_WRAP_MODE_BORDER                                            0x03
+#define AIO_WRAP_MODE_MIRROR_ONCE                                       0x04
+
+#define aio_minfilter long
+#define AIO_MINFILTER_LINEAR                                            0x00
+#define AIO_MINFILTER_NEAREST                                           0x01
+#define AIO_MINFILTER_ANISOTROPIC                                       0x02
+
+#define aio_magfilter long
+#define AIO_MAGFILTER_LINEAR                                            0x00
+#define AIO_MAGFILTER_NEAREST                                           0x01
+
+#define aio_mipfilter long
+#define AIO_MIPFILTER_LINEAR                                            0x00
+#define AIO_MIPFILTER_NONE                                              0x01
+#define AIO_MIPFILTER_NEAREST                                           0x02
+
 #define aio_face long
 #define AIO_FACE_POSITIVE_X                                             0x01
 #define AIO_FACE_NEGATIVE_X                                             0x02
@@ -496,6 +529,41 @@ struct aio_light_s {
 
 /* FX */
 /* Effects */
+/*
+ * base type of param
+ */
+#define _AIO_PARAM_BASE_                                                      \
+  aio_param_type  param_type;                                                 \
+  aio_param     * prev;                                                       \
+  aio_param     * next
+
+typedef struct aio_param_s aio_param;
+struct aio_param_s {
+  _AIO_PARAM_BASE_;
+};
+
+typedef struct aio_param_ref_s aio_param_ref;
+struct aio_param_ref_s {
+  _AIO_PARAM_BASE_;
+};
+
+typedef struct aio_param_basic_s aio_param_basic;
+struct aio_param_basic_s {
+  _AIO_PARAM_BASE_;
+  const char * val;
+};
+
+typedef struct aio_param_extended_s aio_param_extended;
+struct aio_param_extended_s {
+  _AIO_PARAM_BASE_;
+  const char     * val;
+  const char     * name;
+  const char     * sid;
+  const char     * semantic;
+  const char     * type_name;
+  aio_value_type   type;
+};
+
 typedef struct aio_hex_data_s aio_hex_data;
 struct aio_hex_data_s {
   const char * format;
@@ -615,6 +683,97 @@ struct aio_image_instance_s {
 
   aio_tree * extra;
 };
+
+/*!
+ * base type for these types:
+ * sampler1D
+ * sampler2D
+ * sampler3D
+ * samplerCUBE
+ * samplerDEPTH
+ * samplerRECT
+ * samplerStates
+ */
+#define _AIO_FX_SAMPLER_COMMON                                                \
+  aio_asset_base;                                                             \
+  aio_image_instance * image;                                                 \
+                                                                              \
+  struct {                                                                    \
+    const char * semantic;                                                    \
+  } texcoord;                                                                 \
+                                                                              \
+  aio_wrap_mode wrap_s;                                                       \
+  aio_wrap_mode wrap_t;                                                       \
+  aio_wrap_mode wrap_p;                                                       \
+                                                                              \
+  aio_minfilter minfilter;                                                    \
+  aio_magfilter magfilter;                                                    \
+  aio_mipfilter mipfilter;                                                    \
+                                                                              \
+  unsigned long mip_max_level;                                                \
+  unsigned long mip_min_level;                                                \
+  float         mip_bias;                                                     \
+  unsigned long max_anisotropy;                                               \
+                                                                              \
+  aio_color * border_color;                                                   \
+  aio_tree  * extra;
+
+typedef struct aio_fx_sampler_common_s aio_fx_sampler_common;
+struct aio_fx_sampler_common_s {
+  _AIO_FX_SAMPLER_COMMON;
+};
+
+typedef struct aio_sampler1D_s aio_sampler1D;
+struct aio_sampler1D_s {
+  _AIO_FX_SAMPLER_COMMON;
+};
+
+typedef struct aio_sampler2D_s aio_sampler2D;
+struct aio_sampler2D_s {
+  _AIO_FX_SAMPLER_COMMON;
+};
+
+typedef struct aio_sampler3D_s aio_sampler3D;
+struct aio_sampler3D_s {
+  _AIO_FX_SAMPLER_COMMON;
+};
+
+typedef struct aio_samplerCUBE_s aio_samplerCUBE;
+struct aio_samplerCUBE_s {
+  _AIO_FX_SAMPLER_COMMON;
+};
+
+typedef struct aio_samplerDEPTH_s aio_samplerDEPTH;
+struct aio_samplerDEPTH_s {
+  _AIO_FX_SAMPLER_COMMON;
+};
+
+typedef struct aio_samplerRECT_s aio_samplerRECT;
+struct aio_samplerRECT_s {
+  _AIO_FX_SAMPLER_COMMON;
+};
+
+typedef struct aio_samplerStates_s aio_samplerStates;
+struct aio_samplerStates_s {
+  _AIO_FX_SAMPLER_COMMON;
+};
+
+#undef _AIO_FX_SAMPLER_COMMON
+
+typedef struct aio_fx_color_or_tex_s aio_fx_color_or_tex;
+struct aio_fx_color_or_tex_s {
+  aio_opaque  opaque;
+  aio_color   color;
+  aio_param * param;
+
+  struct {
+    const char * texture;
+    const char * texcoord;
+
+    aio_tree * extra;
+  } * texture;
+};
+
 typedef struct aio_annotate_s aio_annotate;
 struct aio_annotate_s {
   const char     * name;
