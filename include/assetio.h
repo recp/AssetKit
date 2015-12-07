@@ -173,6 +173,36 @@ typedef time_t aio_time_t;
 #define AIO_ALTITUDE_RELATIVETOGROUND                                   0x00
 #define AIO_ALTITUDE_ABSOLUTE                                           0x01
 
+#define aio_face long
+#define AIO_FACE_POSITIVE_X                                             0x01
+#define AIO_FACE_NEGATIVE_X                                             0x02
+#define AIO_FACE_POSITIVE_Y                                             0x03
+#define AIO_FACE_NEGATIVE_Y                                             0x04
+#define AIO_FACE_POSITIVE_Z                                             0x05
+#define AIO_FACE_NEGATIVE_Z                                             0x06
+
+#define aio_format_channel long
+#define AIO_FORMAT_CHANNEL_RGB                                          0x01
+#define AIO_FORMAT_CHANNEL_RGBA                                         0x02
+#define AIO_FORMAT_CHANNEL_RGBE                                         0x03
+#define AIO_FORMAT_CHANNEL_L                                            0x04
+#define AIO_FORMAT_CHANNEL_LA                                           0x05
+#define AIO_FORMAT_CHANNEL_D                                            0x06
+
+#define aio_format_range long
+#define AIO_FORMAT_RANGE_SNORM                                          0x01
+#define AIO_FORMAT_RANGE_UNORM                                          0x02
+#define AIO_FORMAT_RANGE_SINT                                           0x03
+#define AIO_FORMAT_RANGE_UINT                                           0x04
+#define AIO_FORMAT_RANGE_FLOAT                                          0x05
+
+#define aio_format_precision long
+#define AIO_FORMAT_PRECISION_DEFAULT                                    0x01
+#define AIO_FORMAT_PRECISION_LOW                                        0x01
+#define AIO_FORMAT_PRECISION_MID                                        0x01
+#define AIO_FORMAT_PRECISION_HIGHT                                      0x01
+#define AIO_FORMAT_PRECISION_MAX                                        0x01
+
 /**
  * Almost all assets includes this fields. 
  * This macro defines base fields of assets
@@ -462,8 +492,121 @@ struct aio_light_s {
   aio_light * prev;
 };
 
+#pragma mark -
+#pragma mark FX
+
 /* FX */
 /* Effects */
+typedef struct aio_hex_data_s aio_hex_data;
+struct aio_hex_data_s {
+  const char * format;
+  const char * val;
+};
+
+typedef struct aio_init_from_s aio_init_from;
+struct aio_init_from_s {
+  const char   * ref;
+  aio_hex_data * hex;
+  
+  aio_face     face;
+  aio_uint     mip_index;
+  aio_uint     depth;
+  aio_int      array_index;
+  aio_bool     mips_generate;
+
+  aio_init_from * prev;
+  aio_init_from * next;
+};
+
+typedef struct aio_size_exact_s aio_size_exact;
+struct aio_size_exact_s {
+  aio_float width;
+  aio_float height;
+};
+
+typedef struct aio_size_ratio_s aio_size_ratio;
+struct aio_size_ratio_s {
+  aio_float width;
+  aio_float height;
+};
+
+typedef struct aio_mips_s aio_mips;
+struct aio_mips_s {
+  aio_uint levels;
+  aio_bool auto_generate;
+};
+
+typedef struct aio_image_format_s aio_image_format;
+struct aio_image_format_s {
+  struct {
+    aio_format_channel    channel;
+    aio_format_range      range;
+    aio_format_precision  precision;
+    const char          * space;
+  } hint;
+
+  const char * exact;
+};
+
+typedef struct aio_image2d_s aio_image2d;
+struct aio_image2d_s {
+  aio_size_exact   * size_exact;
+  aio_size_ratio   * size_ratio;
+  aio_mips         * mips;
+  const char       * unnormalized;
+  long               array_len;
+  aio_image_format * format;
+  aio_init_from    * init_from;
+};
+
+typedef struct aio_image3d_s aio_image3d;
+struct aio_image3d_s {
+  struct {
+    aio_uint width;
+    aio_uint height;
+    aio_uint depth;
+  } size;
+
+  aio_mips           mips;
+  long               array_len;
+  aio_image_format * format;
+  aio_init_from    * init_from;
+};
+
+typedef struct aio_image_cube_s aio_image_cube;
+struct aio_image_cube_s {
+  struct {
+    aio_uint width;
+  } size;
+
+  aio_mips           mips;
+  long               array_len;
+  aio_image_format * format;
+  aio_init_from    * init_from;
+};
+
+typedef struct aio_image_s aio_image;
+struct aio_image_s {
+  aio_asset_base;
+  
+  const char * id;
+  const char * sid;
+  const char * name;
+
+  aio_init_from  * init_from;
+  aio_image2d    * image2d;
+  aio_image3d    * image3d;
+  aio_image_cube * cube;
+  aio_tree       * extra;
+
+  aio_image * prev;
+  aio_image * next;
+  
+  struct {
+    aio_bool share;
+  } renderable;
+
+};
 typedef struct aio_annotate_s aio_annotate;
 struct aio_annotate_s {
   const char     * name;
@@ -594,6 +737,8 @@ struct aio_effect_s {
   aio_effect * next;
 };
 
+#pragma mark -
+#pragma mark define library
 
 #undef _AIO_DEF_LIB
 
@@ -611,6 +756,7 @@ struct aio_effect_s {
 _AIO_DEF_LIB(camera);
 _AIO_DEF_LIB(light);
 _AIO_DEF_LIB(effect);
+_AIO_DEF_LIB(image);
 
 #undef _AIO_DEF_LIB
 
@@ -619,7 +765,10 @@ struct aio_lib_s {
   aio_lib_camera cameras;
   aio_lib_light  lights;
   aio_lib_effect effects;
+  aio_lib_image  images;
 };
+
+#pragma mark -
 
 typedef struct aio_doc_s aio_doc;
 struct aio_doc_s {

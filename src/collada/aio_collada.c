@@ -21,6 +21,7 @@
 #include "aio_collada_camera.h"
 #include "aio_collada_light.h"
 #include "fx/aio_collada_fx_effect.h"
+#include "fx/aio_collada_fx_image.h"
 
 int
 _assetio_hide
@@ -216,6 +217,54 @@ aio_load_collada(aio_doc ** __restrict dest,
           curr_node = curr_node->next;
         } /* while library_cameras */
         
+        node_name = NULL;
+        curr_node = prev_node;
+
+      } else if (AIO_IS_EQ_CASE(node_name, "library_images")) {
+        xmlNode       * prev_node;
+        aio_lib_image * image_lib;
+
+        image_lib = &asst_doc->lib.images;
+
+        aio_xml_collada_read_id_name(curr_node,
+                                     &image_lib->id,
+                                     &image_lib->name);
+
+        prev_node = curr_node;
+        curr_node = curr_node->children;
+
+        while (curr_node) {
+          if (curr_node->type == XML_ELEMENT_NODE) {
+            node_name = (const char *)curr_node->name;
+
+            if (AIO_IS_EQ_CASE(node_name, "asset")) {
+              _AIO_ASSET_LOAD_TO(curr_node,
+                                 asst_doc->lib.images.inf);
+
+            } else if (AIO_IS_EQ_CASE(node_name, "image")) {
+              aio_image * an_image;
+              int         ret;
+
+              ret = aio_load_collada_image(curr_node, &an_image);
+              if (ret == 0) {
+                if (image_lib->next) {
+                  an_image->prev = image_lib->next;
+                  image_lib->next = an_image;
+                } else {
+                  image_lib->next = an_image;
+                }
+              }
+
+            } else if (AIO_IS_EQ_CASE(node_name, "extra")) {
+              _AIO_TREE_LOAD_TO(curr_node->children,
+                                asst_doc->lib.images.extra,
+                                NULL);
+            }
+          }
+
+          curr_node = curr_node->next;
+        } /* while library_cameras */
+
         node_name = NULL;
         curr_node = prev_node;
       }
