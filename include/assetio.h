@@ -774,6 +774,13 @@ struct aio_fx_color_or_tex_s {
   } * texture;
 };
 
+typedef aio_fx_color_or_tex aio_ambient_fx;
+typedef aio_fx_color_or_tex aio_diffuse;
+typedef aio_fx_color_or_tex aio_emission;
+typedef aio_fx_color_or_tex aio_reflective;
+typedef aio_fx_color_or_tex aio_specular;
+typedef aio_fx_color_or_tex aio_transparent;
+
 typedef struct aio_annotate_s aio_annotate;
 struct aio_annotate_s {
   const char     * name;
