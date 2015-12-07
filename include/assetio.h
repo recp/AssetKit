@@ -781,6 +781,17 @@ typedef aio_fx_color_or_tex aio_reflective;
 typedef aio_fx_color_or_tex aio_specular;
 typedef aio_fx_color_or_tex aio_transparent;
 
+typedef struct aio_fx_float_or_param_s aio_fx_float_or_param;
+struct aio_fx_float_or_param_s {
+  aio_basic_attrf * val;
+  aio_param_ref   * param;
+};
+
+typedef aio_fx_float_or_param aio_index_of_refraction;
+typedef aio_fx_float_or_param aio_reflectivity;
+typedef aio_fx_float_or_param aio_shininess;
+typedef aio_fx_float_or_param aio_transparency;
+
 typedef struct aio_annotate_s aio_annotate;
 struct aio_annotate_s {
   const char     * name;
@@ -822,6 +833,19 @@ struct aio_include_s {
   aio_include * next;
 };
 
+typedef struct aio_blinn_s aio_blinn;
+struct aio_blinn_s {
+  aio_emission            * emission;
+  aio_ambient_fx          * ambient;
+  aio_diffuse             * diffuse;
+  aio_specular            * specular;
+  aio_shininess           * shininess;
+  aio_reflective          * reflective;
+  aio_reflectivity        * reflectivity;
+  aio_transparent         * transparent;
+  aio_transparency        * transparency;
+  aio_index_of_refraction * index_of_refraction;
+};
 #ifdef _AIO_PROFILE_BASE_
 #  undef _AIO_PROFILE_BASE_
 #endif
