@@ -139,7 +139,7 @@ aio_load_collada(aio_doc ** __restrict dest,
 
             if (AIO_IS_EQ_CASE(node_name, "asset")) {
               _AIO_ASSET_LOAD_TO(curr_node,
-                                 asst_doc->lib.cameras.inf);
+                                 asst_doc->lib.lights.inf);
 
             } else if (AIO_IS_EQ_CASE(node_name, "light")) {
               aio_light * alight;
@@ -160,7 +160,7 @@ aio_load_collada(aio_doc ** __restrict dest,
               /* TODO: */
             } else if (AIO_IS_EQ_CASE(node_name, "extra")) {
               _AIO_TREE_LOAD_TO(curr_node->children,
-                                asst_doc->lib.cameras.extra,
+                                asst_doc->lib.lights.extra,
                                 NULL);
             }
           }
@@ -192,7 +192,7 @@ aio_load_collada(aio_doc ** __restrict dest,
 
             if (AIO_IS_EQ_CASE(node_name, "asset")) {
               _AIO_ASSET_LOAD_TO(curr_node,
-                                 asst_doc->lib.cameras.inf);
+                                 asst_doc->lib.effects.inf);
 
             } else if (AIO_IS_EQ_CASE(node_name, "effect")) {
               aio_effect * an_effect;
@@ -209,7 +209,7 @@ aio_load_collada(aio_doc ** __restrict dest,
               }
             } else if (AIO_IS_EQ_CASE(node_name, "extra")) {
               _AIO_TREE_LOAD_TO(curr_node->children,
-                                asst_doc->lib.cameras.extra,
+                                asst_doc->lib.effects.extra,
                                 NULL);
             }
           }

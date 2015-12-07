@@ -7,6 +7,7 @@
 
 
 #ifndef __libassetio__aio_collada_fx_profile__h_
+#define __libassetio__aio_collada_fx_profile__h_
 
 #include "../../../include/assetio.h"
 

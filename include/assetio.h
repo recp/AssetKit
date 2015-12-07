@@ -362,7 +362,6 @@ struct aio_assetinf_s {
  */
 typedef struct aio_technique_s aio_technique;
 struct aio_technique_s {
-  aio_tree   * next;
   const char * profile;
 
   /**
@@ -426,7 +425,7 @@ struct aio_camera_s {
   const char * id;
   const char * name;
 
-  aio_optics   optics;
+  aio_optics * optics;
   aio_imager * imager;
   aio_tree   * extra;
 
