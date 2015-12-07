@@ -606,6 +606,15 @@ struct aio_image_s {
   } renderable;
 
 };
+
+typedef struct aio_image_instance_s aio_image_instance;
+struct aio_image_instance_s {
+  const char * url;
+  const char * sid;
+  const char * name;
+
+  aio_tree * extra;
+};
 typedef struct aio_annotate_s aio_annotate;
 struct aio_annotate_s {
   const char     * name;

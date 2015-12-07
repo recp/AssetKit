@@ -17,4 +17,8 @@ int _assetio_hide
 aio_load_collada_image(xmlNode * __restrict xml_node,
                        aio_image ** __restrict dest);
 
+int _assetio_hide
+aio_load_collada_image_instance(xmlNode * __restrict xml_node,
+                                aio_image_instance ** __restrict dest);
+
 #endif /* __libassetio__aio_collada_fx_image__h_ */

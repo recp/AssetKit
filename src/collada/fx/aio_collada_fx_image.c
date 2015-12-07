@@ -767,3 +767,61 @@ aio_load_collada_image_cube(xmlNode * __restrict xml_node,
   
   return 0;
 }
+
+int _assetio_hide
+aio_load_collada_image_instance(xmlNode * __restrict xml_node,
+                                aio_image_instance ** __restrict dest) {
+  xmlNode            * curr_node;
+  xmlAttr            * curr_attr;
+  aio_image_instance * image_instance;
+
+  curr_node = xml_node;
+  image_instance = aio_malloc(sizeof(*image_instance));
+  memset(image_instance, '\0', sizeof(*image_instance));
+
+  curr_attr = curr_node->properties;
+
+  /* parse attributes */
+  while (curr_attr) {
+    if (curr_attr->type == XML_ATTRIBUTE_NODE) {
+      const char * attr_name;
+      const char * attr_val;
+
+      attr_name = (const char *)curr_attr->name;
+      attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+
+      if (AIO_IS_EQ_CASE(attr_name, "url"))
+        image_instance->url = aio_strdup(attr_val);
+      else if (AIO_IS_EQ_CASE(attr_name, "sid"))
+        image_instance->sid = aio_strdup(attr_val);
+      else if (AIO_IS_EQ_CASE(attr_name, "name"))
+        image_instance->name = aio_strdup(attr_val);
+
+    }
+
+    curr_attr = curr_attr->next;
+  }
+
+  curr_attr = NULL;
+
+  /* parse childrens */
+  curr_node = xml_node->children;
+  while (curr_node) {
+    if (curr_node->type == XML_ELEMENT_NODE) {
+      const char * node_name;
+      node_name = (const char *)curr_node->name;
+
+      if (AIO_IS_EQ_CASE(node_name, "extra")) {
+        _AIO_TREE_LOAD_TO(curr_node->children,
+                          image_instance->extra,
+                          NULL);
+      }
+    }
+    
+    curr_node = curr_node->next;
+  }
+  
+  *dest = image_instance;
+  
+  return 0;
+}
