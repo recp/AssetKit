@@ -846,6 +846,42 @@ struct aio_blinn_s {
   aio_transparency        * transparency;
   aio_index_of_refraction * index_of_refraction;
 };
+
+typedef struct aio_constant_fx_s aio_constant_fx;
+struct aio_constant_fx_s {
+  aio_emission            * emission;
+  aio_reflective          * reflective;
+  aio_reflectivity        * reflectivity;
+  aio_transparent         * transparent;
+  aio_transparency        * transparency;
+  aio_index_of_refraction * index_of_refraction;
+};
+
+typedef struct aio_lambert_s aio_lambert;
+struct aio_lambert_s {
+  aio_emission            * emission;
+  aio_ambient_fx          * ambient;
+  aio_diffuse             * diffuse;
+  aio_reflective          * reflective;
+  aio_reflectivity        * reflectivity;
+  aio_transparent         * transparent;
+  aio_transparency        * transparency;
+  aio_index_of_refraction * index_of_refraction;
+};
+
+typedef struct aio_phong_s aio_phong;
+struct aio_phong_s {
+  aio_emission            * emission;
+  aio_ambient_fx          * ambient;
+  aio_diffuse             * diffuse;
+  aio_specular            * specular;
+  aio_shininess           * shininess;
+  aio_reflective          * reflective;
+  aio_reflectivity        * reflectivity;
+  aio_transparent         * transparent;
+  aio_transparency        * transparency;
+  aio_index_of_refraction * index_of_refraction;
+};
 #ifdef _AIO_PROFILE_BASE_
 #  undef _AIO_PROFILE_BASE_
 #endif
