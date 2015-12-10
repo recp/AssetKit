@@ -111,6 +111,8 @@ aio_load_collada_camera(xmlNode * __restrict xml_node,
         node_name = NULL;
         curr_node = prev_node;
 
+        camera->optics = optics;
+
       } else if (AIO_IS_EQ_CASE(node_name, "imager")) {
         aio_imager    * imager;
         aio_technique * last_technique;
@@ -155,6 +157,7 @@ aio_load_collada_camera(xmlNode * __restrict xml_node,
         curr_node = prev_node;
 
         camera->imager = imager;
+
       } else if (AIO_IS_EQ_CASE(node_name, "extra")) {
         _AIO_TREE_LOAD_TO(curr_node->children,
                           camera->extra,
@@ -167,5 +170,7 @@ aio_load_collada_camera(xmlNode * __restrict xml_node,
     curr_node = curr_node->next;
   }
 
-  return -1;
+  *dest = camera;
+  
+  return 0;
 }
