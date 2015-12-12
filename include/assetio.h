@@ -15,7 +15,7 @@
 #include <stdbool.h>
 
 #ifdef __cplusplus
-//extern "C" {
+extern "C" {
 #endif
 
 #if defined(_WIN32)
@@ -1022,6 +1022,6 @@ int aio_load(aio_doc ** __restrict dest,
              const char * __restrict file, ...);
 
 #ifdef __cplusplus
-//}
+}
 #endif
 #endif /* __libassetio__assetio__h_ */
