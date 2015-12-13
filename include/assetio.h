@@ -231,10 +231,11 @@ typedef time_t aio_time_t;
 
 #define aio_format_precision long
 #define AIO_FORMAT_PRECISION_DEFAULT                                    0x01
-#define AIO_FORMAT_PRECISION_LOW                                        0x01
-#define AIO_FORMAT_PRECISION_MID                                        0x01
-#define AIO_FORMAT_PRECISION_HIGHT                                      0x01
-#define AIO_FORMAT_PRECISION_MAX                                        0x01
+#define AIO_FORMAT_PRECISION_LOW                                        0x02
+#define AIO_FORMAT_PRECISION_MID                                        0x03
+#define AIO_FORMAT_PRECISION_HIGHT                                      0x04
+#define AIO_FORMAT_PRECISION_MAX                                        0x05
+
 /*
  * Render states
  */
