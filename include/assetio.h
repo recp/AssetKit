@@ -235,6 +235,212 @@ typedef time_t aio_time_t;
 #define AIO_FORMAT_PRECISION_MID                                        0x01
 #define AIO_FORMAT_PRECISION_HIGHT                                      0x01
 #define AIO_FORMAT_PRECISION_MAX                                        0x01
+/*
+ * Render states
+ */
+#define aio_render_state_type long
+#define AIO_RENDER_STATE_ALPHA_FUNC                                   0x0001
+#define AIO_RENDER_STATE_BLEND_FUNC_SEPARATE                          0x0002
+#define AIO_RENDER_STATE_BLEND_EQUATION                               0x0003
+#define AIO_RENDER_STATE_BLEND_EQUATION_SEPARATE                      0x0004
+#define AIO_RENDER_STATE_COLOR_MATERIAL                               0x0005
+#define AIO_RENDER_STATE_CULL_FACE                                    0x0006
+#define AIO_RENDER_STATE_DEPTH_FUNC                                   0x0007
+#define AIO_RENDER_STATE_FOG_MODE                                     0x0008
+#define AIO_RENDER_STATE_FOG_COORD_SRC                                0x0009
+#define AIO_RENDER_STATE_FRONT_FACE                                   0x0010
+#define AIO_RENDER_STATE_LIGHT_MODEL_COLOR_CONTROL                    0x0011
+#define AIO_RENDER_STATE_LOGIC_OP                                     0x0012
+#define AIO_RENDER_STATE_POLYGON_MODE                                 0x0013
+#define AIO_RENDER_STATE_SHADE_MODEL                                  0x0014
+#define AIO_RENDER_STATE_STENCIL_FUNC                                 0x0015
+#define AIO_RENDER_STATE_STENCIL_OP                                   0x0016
+#define AIO_RENDER_STATE_STENCIL_FUNC_SEPARATE                        0x0017
+#define AIO_RENDER_STATE_STENCIL_OP_SEPARATE                          0x0018
+#define AIO_RENDER_STATE_STENCIL_MASK_SEPARATE                        0x0019
+#define AIO_RENDER_STATE_LIGHT_ENABLE                                 0x0020
+#define AIO_RENDER_STATE_LIGHT_AMBIENT                                0x0021
+#define AIO_RENDER_STATE_LIGHT_DIFFUSE                                0x0022
+#define AIO_RENDER_STATE_LIGHT_SPECULAR                               0x0023
+#define AIO_RENDER_STATE_LIGHT_POSITION                               0x0024
+#define AIO_RENDER_STATE_LIGHT_CONSTANT_ATTENUATION                   0x0025
+#define AIO_RENDER_STATE_LIGHT_LINEAR_ATTENUATION                     0x0026
+#define AIO_RENDER_STATE_LIGHT_QUADRIC_ATTENUATION                    0x0027
+#define AIO_RENDER_STATE_LIGHT_SPOT_CUTOFF                            0x0028
+#define AIO_RENDER_STATE_LIGHT_SPOT_DIRECTION                         0x0029
+#define AIO_RENDER_STATE_LIGHT_SPOT_EXPONENT                          0x0030
+#define AIO_RENDER_STATE_TEXTURE1D                                    0x0031
+#define AIO_RENDER_STATE_TEXTURE2D                                    0x0032
+#define AIO_RENDER_STATE_TEXTURE3D                                    0x0033
+#define AIO_RENDER_STATE_TEXTURECUBE                                  0x0034
+#define AIO_RENDER_STATE_TEXTURERECT                                  0x0035
+#define AIO_RENDER_STATE_TEXTUREDEPTH                                 0x0036
+#define AIO_RENDER_STATE_TEXTURE1D_ENABLE                             0x0037
+#define AIO_RENDER_STATE_TEXTURE2D_ENABLE                             0x0038
+#define AIO_RENDER_STATE_TEXTURE3D_ENABLE                             0x0039
+#define AIO_RENDER_STATE_TEXTURECUBE_ENABLE                           0x0040
+#define AIO_RENDER_STATE_TEXTURERECT_ENABLE                           0x0041
+#define AIO_RENDER_STATE_TEXTUREDEPTH_ENABLE                          0x0042
+#define AIO_RENDER_STATE_TEXTURE_ENV_COLOR                            0x0043
+#define AIO_RENDER_STATE_TEXTURE_ENV_MODE                             0x0044
+#define AIO_RENDER_STATE_CLIP_PLANE                                   0x0045
+#define AIO_RENDER_STATE_CLIP_PLANE_ENABLE                            0x0046
+#define AIO_RENDER_STATE_BLEND_COLOR                                  0x0047
+#define AIO_RENDER_STATE_COLOR_MASK                                   0x0048
+#define AIO_RENDER_STATE_DEPTH_BOUNDS                                 0x0049
+#define AIO_RENDER_STATE_DEPTH_MASK                                   0x0050
+#define AIO_RENDER_STATE_DEPTH_RANGE                                  0x0051
+#define AIO_RENDER_STATE_FOG_DENSITY                                  0x0052
+#define AIO_RENDER_STATE_FOG_START                                    0x0053
+#define AIO_RENDER_STATE_FOG_END                                      0x0054
+#define AIO_RENDER_STATE_FOG_COLOR                                    0x0055
+#define AIO_RENDER_STATE_LIGHT_MODEL_AMBIENT                          0x0056
+#define AIO_RENDER_STATE_LIGHTING_ENABLE                              0x0057
+#define AIO_RENDER_STATE_LINE_STIPPLE                                 0x0058
+#define AIO_RENDER_STATE_LINE_WIDTH                                   0x0059
+#define AIO_RENDER_STATE_MATERIAL_AMBIENT                             0x0060
+#define AIO_RENDER_STATE_MATERIAL_DIFFUSE                             0x0061
+#define AIO_RENDER_STATE_MATERIAL_EMISSION                            0x0062
+#define AIO_RENDER_STATE_MATERIAL_SHININESS                           0x0063
+#define AIO_RENDER_STATE_MATERIAL_SPECULAR                            0x0064
+#define AIO_RENDER_STATE_MODEL_VIEW_MATRIX                            0x0065
+#define AIO_RENDER_STATE_POINT_DISTANCE_ATTENUATION                   0x0066
+#define AIO_RENDER_STATE_POINT_FADE_THRESOLD_SIZE                     0x0067
+#define AIO_RENDER_STATE_POINT_SIZE                                   0x0068
+#define AIO_RENDER_STATE_POINT_SIZE_MIN                               0x0069
+#define AIO_RENDER_STATE_POINT_SIZE_MAX                               0x0070
+#define AIO_RENDER_STATE_POLYGON_OFFSET                               0x0071
+#define AIO_RENDER_STATE_PROJECTION_MATRIX                            0x0072
+#define AIO_RENDER_STATE_SCISSOR                                      0x0073
+#define AIO_RENDER_STATE_STENCIL_MASK                                 0x0074
+#define AIO_RENDER_STATE_ALPHA_TEST_ENABLE                            0x0075
+#define AIO_RENDER_STATE_BLEND_ENABLE                                 0x0076
+#define AIO_RENDER_STATE_COLOR_LOGIC_OP_ENABLE                        0x0077
+#define AIO_RENDER_STATE_COLOR_MATERIAL_ENABLE                        0x0078
+#define AIO_RENDER_STATE_CULL_FACE_ENABLE                             0x0079
+#define AIO_RENDER_STATE_DEPTH_BOUNDS_ENABLE                          0x0080
+#define AIO_RENDER_STATE_DEPTH_CLAMP_ENABLE                           0x0081
+#define AIO_RENDER_STATE_DEPTH_TEST_ENABLE                            0x0082
+#define AIO_RENDER_STATE_DITHER_ENABLE                                0x0083
+#define AIO_RENDER_STATE_FOG_ENABLE                                   0x0084
+#define AIO_RENDER_STATE_LIGTH_MODEL_LOCAL_VIEWER_ENABLE              0x0085
+#define AIO_RENDER_STATE_LIGTH_MODEL_TWO_SIDE_ENABLE                  0x0086
+#define AIO_RENDER_STATE_LINE_SMOOTH_ENABLE                           0x0088
+#define AIO_RENDER_STATE_LINE_STIPPLE_ENABLE                          0x0089
+#define AIO_RENDER_STATE_LOGIC_OP_ENABLE                              0x0090
+#define AIO_RENDER_STATE_MULTISAMPLE_ENABLE                           0x0091
+#define AIO_RENDER_STATE_NORMALIZE_ENABLE                             0x0092
+#define AIO_RENDER_STATE_POINT_SMOOTH_ENABLE                          0x0093
+#define AIO_RENDER_STATE_POLYGON_OFFSET_FILL_ENABLE                   0x0094
+#define AIO_RENDER_STATE_POLYGON_OFFSET_LINE_ENABLE                   0x0095
+#define AIO_RENDER_STATE_POLYGON_OFFSET_POINT_ENABLE                  0x0096
+#define AIO_RENDER_STATE_POLYGON_SMOOTH_ENABLE                        0x0097
+#define AIO_RENDER_STATE_POLYGON_STIPPLE_ENABLE                       0x0098
+#define AIO_RENDER_STATE_RESCALE_NORMAL_ENABLE                        0x0099
+#define AIO_RENDER_STATE_SAMPLE_ALPHA_TO_COVERAGE_ENABLE              0x0100
+#define AIO_RENDER_STATE_SAMPLE_ALPHA_TO_ONE_ENABLE                   0x0101
+#define AIO_RENDER_STATE_SAMPLE_COVERAGE_ENABLE                       0x0102
+#define AIO_RENDER_STATE_SCISSOR_TEST_ENABLE                          0x0103
+#define AIO_RENDER_STATE_STENCIL_TEST_ENABLE                          0x0104
+
+#define aio_gl_func long
+#define AIO_GL_FUNC_NEVER                                             0x0200
+#define AIO_GL_FUNC_LESS                                              0x0201
+#define AIO_GL_FUNC_EQUAL                                             0x0202
+#define AIO_GL_FUNC_LEQUAL                                            0x0203
+#define AIO_GL_FUNC_GREATER                                           0x0204
+#define AIO_GL_FUNC_NOTEQUAL                                          0x0205
+#define AIO_GL_FUNC_GEQUAL                                            0x0206
+#define AIO_GL_FUNC_ALWAYS                                            0x0207
+
+#define aio_gl_blend long
+#define AIO_GL_BLEND_ZERO                                             0x00
+#define AIO_GL_BLEND_ONE                                              0x01
+#define AIO_GL_BLEND_SRC_COLOR                                        0x0300
+#define AIO_GL_BLEND_ONE_MINUS_SRC_COLOR                              0x0301
+#define AIO_GL_BLEND_DEST_COLOR                                       0x0306
+#define AIO_GL_BLEND_ONE_MINUS_DEST_COLOR                             0x0307
+#define AIO_GL_BLEND_SRC_ALPHA                                        0x0302
+#define AIO_GL_BLEND_ONE_MINUS_SRC_ALPHA                              0x0303
+#define AIO_GL_BLEND_DST_ALPHA                                        0x0304
+#define AIO_GL_BLEND_ONE_MINUS_DST_ALPHA                              0x0305
+#define AIO_GL_BLEND_CONSTANT_COLOR                                   0x8001
+#define AIO_GL_BLEND_ONE_MINUS_CONSTANT_COLOR                         0x8002
+#define AIO_GL_BLEND_CONSTANT_ALPHA                                   0x8003
+#define AIO_GL_BLEND_ONE_MINUS_CONSTANT_ALPHA                         0x8004
+#define AIO_GL_BLEND_SRC_ALPHA_SATURATE                               0x0308
+
+#define aio_gl_blend_equation long
+#define AIO_GL_BLEND_EQUATION_FUNC_ADD                                0x8006
+#define AIO_GL_BLEND_EQUATION_FUNC_SUBTRACT                           0x800A
+#define AIO_GL_BLEND_EQUATION_FUNC_REVERSE_SUBTRACT                   0x800B
+#define AIO_GL_BLEND_EQUATION_MIN                                     0x8007
+#define AIO_GL_BLEND_EQUATION_MAX                                     0x8008
+
+#define aio_gl_face long
+#define AIO_GL_FACE_FRONT                                             0x0404
+#define AIO_GL_FACE_BACK                                              0x0405
+#define AIO_GL_FRONT_AND_BACK                                         0x0408
+
+#define aio_gl_front_face long
+#define AIO_GL_FRONT_FACE_CW                                          0x0900
+#define AIO_GL_FRONT_FACE_CCW                                         0x0901
+
+#define aio_gl_material long
+#define AIO_GL_MATERIAL_EMISSION                                      0x1600
+#define AIO_GL_MATERIAL_AMBIENT                                       0x1200
+#define AIO_GL_MATERIAL_DIFFUSE                                       0x1201
+#define AIO_GL_MATERIAL_SPECULAR                                      0x1202
+#define AIO_GL_MATERIAL_AMBIENT_AND_DIFFUSE                           0x1602
+
+#define aio_gl_fog long
+#define AIO_GL_FOG_LINEAR                                             0x2601
+#define AIO_GL_FOG_EXP                                                0x0800
+#define AIO_GL_FOG_EXP2                                               0x0801
+
+#define aio_gl_fog_coord_src long
+#define AIO_GL_FOG_COORD_SRC_FOG_COORDINATE                           0x8451
+#define AIO_GL_FOG_COORD_SRC_FRAGMENT_DEPTH                           0x8452
+
+#define aio_gl_light_model_color_control long
+#define AIO_GL_LIGHT_MODEL_COLOR_CONTROL_SINGLE_COLOR                 0x81F9
+#define AIO_GL_LIGHT_MODEL_COLOR_CONTROL_SEPARATE_SPECULAR_COLOR      0x81FA
+
+#define aio_gl_logic_op long
+#define AIO_GL_LOGIC_OP_CLEAR                                         0x1500
+#define AIO_GL_LOGIC_OP_AND                                           0x1501
+#define AIO_GL_LOGIC_OP_AND_REVERSE                                   0x1502
+#define AIO_GL_LOGIC_OP_COPY                                          0x1503
+#define AIO_GL_LOGIC_OP_AND_INVERTED                                  0x1504
+#define AIO_GL_LOGIC_OP_NOOP                                          0x1505
+#define AIO_GL_LOGIC_OP_XOR                                           0x1506
+#define AIO_GL_LOGIC_OP_OR                                            0x1507
+#define AIO_GL_LOGIC_OP_NOR                                           0x1508
+#define AIO_GL_LOGIC_OP_EQUIV                                         0x1509
+#define AIO_GL_LOGIC_OP_INVERT                                        0x150A
+#define AIO_GL_LOGIC_OP_OR_REVERSE                                    0x150B
+#define AIO_GL_LOGIC_OP_COPY_INVERTED                                 0x150C
+#define AIO_GL_LOGIC_OP_COPY_NAND                                     0x150E
+#define AIO_GL_LOGIC_OP_COPY_SET                                      0x150F
+
+#define aio_gl_polygon_mode long
+#define AIO_GL_POLYGON_MODE_POINT                                     0x1B00
+#define AIO_GL_POLYGON_MODE_LINE                                      0x1B01
+#define AIO_GL_POLYGON_MODE_FILL                                      0x1B02
+
+#define aio_gl_shade_model long
+#define AIO_GL_SHADE_MODEL_FLAT                                       0x1D00
+#define AIO_GL_SHADE_MODEL_SMOOTH                                     0x1D01
+
+#define aio_gl_stencil_op long
+#define AIO_GL_STENCIL_OP_KEEP                                        0x1E00
+#define AIO_GL_STENCIL_OP_ZERO                                        0x0
+#define AIO_GL_STENCIL_OP_REPLACE                                     0x1E01
+#define AIO_GL_STENCIL_OP_INCR                                        0x1E02
+#define AIO_GL_STENCIL_OP_DECR                                        0x1E03
+#define AIO_GL_STENCIL_OP_INVERT                                      0x150A
+#define AIO_GL_STENCIL_OP_INCR_WRAP                                   0x8507
+#define AIO_GL_STENCIL_OP_DECR_WRAP                                   0x8508
 
 /**
  * Almost all assets includes this fields. 
@@ -882,6 +1088,14 @@ struct aio_phong_s {
   aio_transparency        * transparency;
   aio_index_of_refraction * index_of_refraction;
 };
+
+typedef struct aio_render_state_s aio_render_state;
+typedef struct aio_states_s aio_states;
+struct aio_states_s {
+  aio_render_state * next;
+  long               count;
+};
+
 #ifdef _AIO_PROFILE_BASE_
 #  undef _AIO_PROFILE_BASE_
 #endif
@@ -1015,6 +1229,8 @@ struct aio_asset_s {
   aio_asset_base;
   void * aio_data;
 };
+
+#include "assetio-states.h"
 
 extern void aio_cleanup();
 
