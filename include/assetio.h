@@ -443,6 +443,16 @@ typedef time_t aio_time_t;
 #define AIO_GL_STENCIL_OP_INCR_WRAP                                   0x8507
 #define AIO_GL_STENCIL_OP_DECR_WRAP                                   0x8508
 
+/* DRAW */
+#define aio_draw_enum long
+#define AIO_DRAW_READ_STR_VAL                                         0x0000
+#define AIO_DRAW_GEOMETRY                                             0x0001
+#define AIO_DRAW_SCENE_GEOMETRY                                       0x0002
+#define AIO_DRAW_SCENE_IMAGE                                          0x0003
+#define AIO_DRAW_FULL_SCREEN_QUAD                                     0x0004
+#define AIO_DRAW_FULL_SCREEN_QUAD_PLUS_HALF_PIXEL                     0x0005
+/* users can extend the draw enum elsewhere by custom values */
+
 /**
  * Almost all assets includes this fields. 
  * This macro defines base fields of assets
@@ -1097,6 +1107,73 @@ struct aio_states_s {
   long               count;
 };
 
+typedef struct aio_color_target_s aio_color_target;
+struct aio_color_target {
+  unsigned long index;
+  unsigned long slice;
+  unsigned long mip;
+  aio_face      face;
+
+  aio_param          * param;
+  aio_image_instance * image_instance;
+};
+
+typedef struct aio_depth_target_s aio_depth_target;
+struct aio_depth_target_s {
+  unsigned long index;
+  unsigned long slice;
+  unsigned long mip;
+  aio_face      face;
+
+  aio_param          * param;
+  aio_image_instance * image_instance;
+};
+
+typedef struct aio_stencil_target_s aio_stencil_target;
+struct aio_stencil_target_s {
+  unsigned long index;
+  unsigned long slice;
+  unsigned long mip;
+  aio_face      face;
+
+  aio_param          * param;
+  aio_image_instance * image_instance;
+};
+
+typedef struct aio_color_clear_s aio_color_clear;
+struct aio_color_clear_s {
+  unsigned long index;
+  aio_color     val;
+};
+
+typedef struct aio_depth_clear_s aio_depth_clear;
+struct aio_depth_clear_s {
+  unsigned long index;
+  aio_float     val;
+};
+
+typedef struct aio_stencil_clear_s aio_stencil_clear;
+struct aio_stencil_clear_s {
+  unsigned long index;
+  unsigned long val;
+};
+
+typedef struct aio_draw_s aio_draw;
+struct aio_draw_s {
+  aio_draw_enum enum_draw;
+  const char    * str_val;
+};
+
+typedef struct aio_evaluate_s aio_evaluate;
+struct aio_evaluate_s {
+  aio_color_target   * color_target;
+  aio_depth_target   * depth_target;
+  aio_stencil_target * stencil_target;
+  aio_color_clear    * color_clear;
+  aio_depth_clear    * depth_clear;
+  aio_stencil_clear  * stencil_clear;
+  aio_draw             draw;
+};
 #ifdef _AIO_PROFILE_BASE_
 #  undef _AIO_PROFILE_BASE_
 #endif
