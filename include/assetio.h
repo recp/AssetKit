@@ -1311,8 +1311,8 @@ struct aio_technique_fx_s {
 
   aio_tree        * extra;
 
-  aio_technique * prev;
-  aio_technique * next;
+  aio_technique_fx * prev;
+  aio_technique_fx * next;
 };
 
 #ifdef _AIO_PROFILE_BASE_
