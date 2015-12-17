@@ -453,6 +453,12 @@ typedef time_t aio_time_t;
 #define AIO_DRAW_FULL_SCREEN_QUAD_PLUS_HALF_PIXEL                     0x0005
 /* users can extend the draw enum elsewhere by custom values */
 
+#define aio_pipeline_stage long
+#define AIO_PIPELINE_STAGE_TESSELATION                                  0x0000
+#define AIO_PIPELINE_STAGE_VERTEX                                       0x0000
+#define AIO_PIPELINE_STAGE_GEOMETRY                                         0x0000
+#define AIO_PIPELINE_STAGE_FRAGMENT                                         0x0000
+
 /**
  * Almost all assets includes this fields. 
  * This macro defines base fields of assets
@@ -1174,6 +1180,141 @@ struct aio_evaluate_s {
   aio_stencil_clear  * stencil_clear;
   aio_draw             draw;
 };
+
+typedef struct aio_inline_s aio_inline;
+struct aio_inline_s {
+  const char * val;
+
+  aio_inline * prev;
+  aio_inline * next;
+};
+
+typedef struct aio_import_s aio_import;
+struct aio_import_s {
+  const char * ref;
+
+  aio_import * prev;
+  aio_import * next;
+};
+
+typedef struct aio_sources_s aio_sources;
+struct aio_sources_s {
+  const char * entry;
+
+  aio_inline * inlines;
+  aio_import * imports;
+};
+
+typedef struct aio_binary_s aio_binary;
+struct aio_binary_s {
+  const char * ref;
+  aio_hex_data * hex;
+
+  aio_binary * prev;
+  aio_binary * next;
+};
+
+typedef struct aio_compiler_s aio_compiler;
+struct aio_compiler_s {
+  const char * platform;
+  const char * target;
+  const char * options;
+
+  aio_binary * binary;
+  const char * text;
+
+  aio_compiler * prev;
+  aio_compiler * next;
+};
+
+typedef struct aio_bind_uniform_s aio_bind_uniform;
+struct aio_bind_uniform_s {
+  const char * symbol;
+
+  aio_param      * param;
+  void           * val;
+  aio_value_type   val_type;
+
+  aio_bind_uniform * prev;
+  aio_bind_uniform * next;
+};
+
+typedef struct aio_bind_attrib_s aio_bind_attrib;
+struct aio_bind_attrib_s {
+  const char * symbol;
+  const char * semantic;
+
+  aio_bind_uniform * prev;
+  aio_bind_uniform * next;
+};
+
+typedef struct aio_shader_s aio_shader;
+struct aio_shader_s {
+  aio_pipeline_stage stage;
+
+  aio_sources      * sources;
+  aio_compiler     * compiler;
+  aio_bind_uniform * bind_uniform;
+  aio_tree         * extra;
+
+  aio_shader * prev;
+  aio_shader * next;
+};
+
+typedef struct aio_linker_s aio_linker;
+struct aio_linker_s {
+  const char * platform;
+  const char * target;
+  const char * options;
+
+  aio_binary * binary;
+
+  aio_linker * prev;
+  aio_linker * next;
+};
+
+typedef struct aio_program_s aio_program;
+struct aio_program_s {
+  aio_shader       * shader;
+  aio_bind_attrib  * bind_attrib;
+  aio_bind_uniform * bind_uniform;
+  aio_linker       * linker;
+};
+
+typedef struct aio_pass_s aio_pass;
+struct aio_pass_s {
+  const char * sid;
+
+  aio_annotate     * annotate;
+  aio_render_state * states;
+  aio_evaluate     * evaluate;
+  aio_program      * program;
+  aio_tree         * extra;
+
+  aio_pass * prev;
+  aio_pass * next;
+};
+
+typedef struct aio_technique_fx_s aio_technique_fx;
+struct aio_technique_fx_s {
+  aio_asset_base;
+
+  const char * id;
+  const char * sid;
+
+  aio_annotate    * annotate;
+  aio_blinn       * blinn;
+  aio_constant_fx * constant;
+  aio_lambert     * lambert;
+  aio_phong       * phong;
+  aio_pass        * pass;
+
+  aio_tree        * extra;
+
+  aio_technique * prev;
+  aio_technique * next;
+};
+
 #ifdef _AIO_PROFILE_BASE_
 #  undef _AIO_PROFILE_BASE_
 #endif
@@ -1186,7 +1327,7 @@ struct aio_evaluate_s {
   aio_profile_type   profile_type;                                            \
   const char       * id;                                                      \
   aio_newparam     * newparam;                                                \
-  aio_technique    * technique;                                               \
+  aio_technique_fx * technique;                                               \
   aio_tree         * extra;                                                   \
   aio_profile      * prev;                                                    \
   aio_profile      * next;
