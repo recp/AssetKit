@@ -16,6 +16,8 @@
 #include "../../aio_tree.h"
 #include "../aio_collada_param.h"
 
+#include "aio_collada_fx_technique.h"
+
 #include <libxml/tree.h>
 #include <libxml/parser.h>
 #include <string.h>
@@ -156,7 +158,25 @@ aio_load_collada_profile(xmlNode * __restrict xml_node,
           profile->newparam = newparam;
 
       } else if (AIO_IS_EQ_CASE(node_name, "technique")) {
-        /* TODO: */
+        aio_technique_fx * technique_fx;
+        aio_technique_fx * last_technique_fx;
+        int                ret;
+
+        technique_fx      = NULL;
+        last_technique_fx = profile->technique;
+
+        ret = aio_load_collada_technique_fx(curr_node,
+                                            &technique_fx);
+
+        if (ret == 0) {
+          if (last_technique_fx) {
+            last_technique_fx->next = technique_fx;
+            technique_fx->prev = last_technique_fx;
+          } else {
+            profile->technique = technique_fx;
+          }
+        }
+        
       } else if (AIO_IS_EQ_CASE(node_name, "extra")) {
         _AIO_TREE_LOAD_TO(curr_node->children,
                           profile->extra,
