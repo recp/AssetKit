@@ -156,8 +156,6 @@ aio_load_collada(aio_doc ** __restrict dest,
                   light_lib->next = alight;
                 }
               }
-            } else if (AIO_IS_EQ_CASE(node_name, "technique")) {
-              /* TODO: */
             } else if (AIO_IS_EQ_CASE(node_name, "extra")) {
               _AIO_TREE_LOAD_TO(curr_node->children,
                                 asst_doc->lib.lights.extra,
