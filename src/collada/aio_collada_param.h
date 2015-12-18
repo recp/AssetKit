@@ -14,6 +14,11 @@ typedef struct _xmlNode xmlNode;
 
 int _assetio_hide
 aio_load_collada_newparam(xmlNode * __restrict xml_node,
-                         aio_newparam ** __restrict dest);
+                          aio_newparam ** __restrict dest);
+
+int _assetio_hide
+aio_load_collada_param(xmlNode * __restrict xml_node,
+                       aio_param_type param_type,
+                       aio_param ** __restrict dest);
 
 #endif /* __libassetio__aio_collada_param__h_ */

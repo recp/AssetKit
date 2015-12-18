@@ -96,3 +96,66 @@ aio_load_collada_newparam(xmlNode * __restrict xml_node,
 
   return 0;
 }
+
+int _assetio_hide
+aio_load_collada_param(xmlNode * __restrict xml_node,
+                       aio_param_type param_type,
+                       aio_param ** __restrict dest) {
+  xmlNode    * curr_node;
+  xmlAttr    * curr_attr;
+  aio_param  * param;
+  const char * node_content;
+  aio_param_extended * param_ex;
+  size_t      param_size;
+
+  if (param_type == AIO_PARAM_TYPE_BASIC)
+    param_size = sizeof(aio_param_basic);
+  else if (param_type == AIO_PARAM_TYPE_EXTENDED)
+    param_size = sizeof(aio_param_extended);
+  else
+    goto err;
+
+  param_ex = (aio_param_extended *)param;
+  curr_node = xml_node;
+  param = aio_malloc(param_size);
+  memset(param, '\0', param_size);
+
+  curr_attr = curr_node->properties;
+
+  /* parse camera attributes */
+  while (curr_attr) {
+    if (curr_attr->type == XML_ATTRIBUTE_NODE) {
+      const char * attr_name;
+      const char * attr_val;
+
+      attr_name = (const char *)curr_attr->name;
+      attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+
+      if (AIO_IS_EQ_CASE(attr_name, "ref"))
+        param_ex->val = aio_strdup(attr_val);
+      else if (AIO_IS_EQ_CASE(attr_name, "name"))
+        param_ex->name = aio_strdup(attr_val);
+      else if (AIO_IS_EQ_CASE(attr_name, "sid"))
+        param_ex->sid = aio_strdup(attr_val);
+      else if (AIO_IS_EQ_CASE(attr_name, "semantic"))
+        param_ex->semantic = aio_strdup(attr_val);
+      else if (AIO_IS_EQ_CASE(attr_name, "type"))
+        param_ex->type_name = aio_strdup(attr_val);
+
+    }
+
+    curr_attr = curr_attr->next;
+  }
+  
+  curr_attr = NULL;
+
+  node_content = aio_xml_node_content(curr_node);
+  if (node_content && strlen(node_content) > 0)
+    param_ex->val = node_content;
+
+  *dest = param;
+
+  return 0;
+err:
+  return -1;
+}

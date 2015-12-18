@@ -181,9 +181,8 @@ typedef time_t aio_time_t;
 #define AIO_OPAQUE_RGB_ONE                                              0x03
 
 #define aio_param_type long
-#define AIO_PARAM_TYPE_REF                                              0x00
+#define AIO_PARAM_TYPE_BASIC                                            0x00
 #define AIO_PARAM_TYPE_EXTENDED                                         0x01
-#define AIO_PARAM_TYPE_MIN                                              0x02
 
 #define aio_wrap_mode long
 #define AIO_WRAP_MODE_WRAP                                              0x00
@@ -765,15 +764,13 @@ struct aio_param_s {
   _AIO_PARAM_BASE_;
 };
 
-typedef struct aio_param_ref_s aio_param_ref;
-struct aio_param_ref_s {
-  _AIO_PARAM_BASE_;
-};
-
 typedef struct aio_param_basic_s aio_param_basic;
 struct aio_param_basic_s {
   _AIO_PARAM_BASE_;
-  const char * val;
+  union {
+    const char * val;
+    const char * ref;
+  };
 };
 
 typedef struct aio_param_extended_s aio_param_extended;
@@ -983,18 +980,19 @@ struct aio_samplerStates_s {
 
 #undef _AIO_FX_SAMPLER_COMMON
 
+typedef struct aio_fx_texture_s aio_fx_texture;
+struct aio_fx_texture_s {
+  const char * texture;
+  const char * texcoord;
+  aio_tree   * extra;
+};
+
 typedef struct aio_fx_color_or_tex_s aio_fx_color_or_tex;
 struct aio_fx_color_or_tex_s {
-  aio_opaque  opaque;
-  aio_color   color;
-  aio_param * param;
-
-  struct {
-    const char * texture;
-    const char * texcoord;
-
-    aio_tree * extra;
-  } * texture;
+  aio_opaque        opaque;
+  aio_color       * color;
+  aio_param_basic * param;
+  aio_fx_texture  * texture;
 };
 
 typedef aio_fx_color_or_tex aio_ambient_fx;
@@ -1007,7 +1005,7 @@ typedef aio_fx_color_or_tex aio_transparent;
 typedef struct aio_fx_float_or_param_s aio_fx_float_or_param;
 struct aio_fx_float_or_param_s {
   aio_basic_attrf * val;
-  aio_param_ref   * param;
+  aio_param_basic * param;
 };
 
 typedef aio_fx_float_or_param aio_index_of_refraction;
