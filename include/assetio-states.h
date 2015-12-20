@@ -175,8 +175,8 @@ struct aio_logic_op_s {
   const char * param;
 };
 
-typedef struct aio_poylgon_mode_s aio_poylgon_mode;
-struct aio_poylgon_mode_s {
+typedef struct aio_polygon_mode_s aio_polygon_mode;
+struct aio_polygon_mode_s {
   _AIO_RENDER_STATE_BASE_;
 
   struct{
