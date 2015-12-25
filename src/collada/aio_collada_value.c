@@ -64,7 +64,9 @@ aio_load_collada_value(xmlNode * __restrict xml_node,
     pstr = node_content;
 
     val = aio_calloc(sizeof(*val), 2);
-
+    i = 0;
+    idx = 0;
+    
     for (; i < slen - 1; i++) {
       if (*pstr == '\0' || idx > 1)
         break;
@@ -86,6 +88,8 @@ aio_load_collada_value(xmlNode * __restrict xml_node,
     pstr = node_content;
 
     val = aio_calloc(sizeof(*val), 3);
+    i = 0;
+    idx = 0;
 
     for (; i < slen - 1; i++) {
       if (*pstr == '\0' || idx > 2)
@@ -108,6 +112,8 @@ aio_load_collada_value(xmlNode * __restrict xml_node,
     pstr = node_content;
 
     val = aio_calloc(sizeof(*val), 4);
+    i = 0;
+    idx = 0;
 
     for (; i < slen - 1; i++) {
       if (*pstr == '\0' || idx > 3)
@@ -136,6 +142,7 @@ aio_load_collada_value(xmlNode * __restrict xml_node,
 
     raw_val = strdup(node_content);
     tok = strtok(raw_val, " ");
+    tok_idx = 0;
 
     if (tok) {
       val = aio_calloc(sizeof(*val), 2);
@@ -164,6 +171,7 @@ aio_load_collada_value(xmlNode * __restrict xml_node,
 
     raw_val = strdup(node_content);
     tok = strtok(raw_val, " ");
+    tok_idx = 0;
 
     if (tok) {
       val = aio_calloc(sizeof(*val), 3);
@@ -192,6 +200,7 @@ aio_load_collada_value(xmlNode * __restrict xml_node,
 
     raw_val = strdup(node_content);
     tok = strtok(raw_val, " ");
+    tok_idx = 0;
 
     if (tok) {
       val = aio_calloc(sizeof(*val), 4);
@@ -229,6 +238,7 @@ aio_load_collada_value(xmlNode * __restrict xml_node,
 
     raw_val = strdup(node_content);
     tok = strtok(raw_val, " ");
+    tok_idx = 0;
 
     if (tok) {
       val = aio_calloc(sizeof(*val), 2);
@@ -257,6 +267,7 @@ aio_load_collada_value(xmlNode * __restrict xml_node,
 
     raw_val = strdup(node_content);
     tok = strtok(raw_val, " ");
+    tok_idx = 0;
 
     if (tok) {
       val = aio_calloc(sizeof(*val), 3);
@@ -285,6 +296,7 @@ aio_load_collada_value(xmlNode * __restrict xml_node,
 
     raw_val = strdup(node_content);
     tok = strtok(raw_val, " ");
+    tok_idx = 0;
 
     if (tok) {
       val = aio_calloc(sizeof(*val), 4);
@@ -318,6 +330,7 @@ aio_load_collada_value(xmlNode * __restrict xml_node,
 
     m = 0;
     n = 0;
+    tok_idx = 0;
 
     if (tok) {
       val[m][n++] = strtod(tok, NULL);
@@ -358,6 +371,7 @@ aio_load_collada_value(xmlNode * __restrict xml_node,
 
     m = 0;
     n = 0;
+    tok_idx = 0;
 
     if (tok) {
       val[m][n++] = strtod(tok, NULL);
@@ -398,6 +412,7 @@ aio_load_collada_value(xmlNode * __restrict xml_node,
 
     m = 0;
     n = 0;
+    tok_idx = 0;
 
     if (tok) {
       val[m][n++] = strtod(tok, NULL);

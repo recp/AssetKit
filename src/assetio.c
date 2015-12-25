@@ -42,6 +42,7 @@ aio_load(aio_doc ** __restrict dest,
     {"dae", aio_load_collada}
   };
 
+  floader = NULL;
   if (file_type == AIO_FILE_TYPE_AUTO) {
     char * file_ext = strrchr(file, '.');
     if (file_ext) {

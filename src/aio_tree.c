@@ -139,7 +139,4 @@ aio_tree_load_from_xml(xmlNode * __restrict xml_node,
   }
 
   return 0;
-
-err:
-  return -1;
 }

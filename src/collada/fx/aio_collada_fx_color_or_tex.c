@@ -45,14 +45,19 @@ aio_load_color_or_tex(xmlNode * __restrict xml_node,
       if (AIO_IS_EQ_CASE(attr_name, "opaque")) {
         long opaque;
 
-        if (AIO_IS_EQ_CASE(attr_val, "A_ONE"))
-          opaque = AIO_OPAQUE_A_ONE;
-        else if (AIO_IS_EQ_CASE(attr_val, "RGB_ZERO"))
+
+        if (AIO_IS_EQ_CASE(attr_val, "RGB_ZERO"))
           opaque = AIO_OPAQUE_RGB_ZERO;
         else if (AIO_IS_EQ_CASE(attr_val, "A_ZERO"))
           opaque = AIO_OPAQUE_A_ZERO;
         else if (AIO_IS_EQ_CASE(attr_val, "RGB_ONE"))
           opaque = AIO_OPAQUE_RGB_ONE;
+        else
+          /* 
+           No need to AIO_IS_EQ_CASE(attr_val, "A_ONE")) 
+           because A_ONE is default
+           */
+          opaque = AIO_OPAQUE_A_ONE;
 
         color_or_tex->opaque = opaque;
       }

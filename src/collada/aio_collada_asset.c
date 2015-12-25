@@ -131,6 +131,8 @@ aio_load_collada_asset(xmlNode * __restrict xml_node, ...) {
 
                     aio_altitude_mode mode_enum;
 
+                    /* AIO_ALTITUDE_RELATIVETOGROUND is default. */
+                    mode_enum = AIO_ALTITUDE_RELATIVETOGROUND;
                     curr_attr = curr_node->properties;
                     while (curr_attr) {
                       attr_name = (const char *)curr_attr->name;
@@ -139,9 +141,11 @@ aio_load_collada_asset(xmlNode * __restrict xml_node, ...) {
                           const char * mode_str;
                           mode_str = aio_xml_node_content((xmlNode *)curr_attr);
 
-                          if (AIO_IS_EQ_CASE(mode_str, "relativeToGround"))
-                            mode_enum = AIO_ALTITUDE_RELATIVETOGROUND;
-                          else if (AIO_IS_EQ_CASE(mode_str, "absolute"))
+                          /*
+                           AIO_IS_EQ_CASE(mode_str, "relativeToGround")
+                           AIO_ALTITUDE_RELATIVETOGROUND is default
+                           */
+                          if (AIO_IS_EQ_CASE(mode_str, "absolute"))
                             mode_enum = AIO_ALTITUDE_ABSOLUTE;
 
                           /* single attr */

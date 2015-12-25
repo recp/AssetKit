@@ -115,12 +115,12 @@ aio_load_collada_param(xmlNode * __restrict xml_node,
   else
     goto err;
 
-  param_ex = (aio_param_extended *)param;
-  curr_node = xml_node;
   param = aio_malloc(param_size);
   memset(param, '\0', param_size);
 
+  curr_node = xml_node;
   curr_attr = curr_node->properties;
+  param_ex  = (aio_param_extended *)param;
 
   /* parse camera attributes */
   while (curr_attr) {
