@@ -123,8 +123,9 @@ aio_load_color_or_tex(xmlNode * __restrict xml_node,
         color_or_tex->color = color;
 
       } else if (AIO_IS_EQ_CASE(node_name, "texture")) {
+        xmlNode        * prev_node;
         aio_fx_texture * tex;
-
+        
         tex = aio_malloc(sizeof(*tex));
         memset(tex, '\0', sizeof(*tex));
 
@@ -151,7 +152,9 @@ aio_load_color_or_tex(xmlNode * __restrict xml_node,
         curr_attr = NULL;
 
         /* parse childrens */
+        prev_node = curr_node;
         curr_node = xml_node->children;
+
         while (curr_node) {
           if (curr_node->type == XML_ELEMENT_NODE) {
             const char * node_name;
@@ -169,9 +172,6 @@ aio_load_color_or_tex(xmlNode * __restrict xml_node,
                                            &extra,
                                            NULL);
 
-              if (ret == 0)
-                tex->extra = extra;
-
               if (ret == 0) {
                 if (last_extra) {
                   last_extra->next = extra;
@@ -180,7 +180,6 @@ aio_load_color_or_tex(xmlNode * __restrict xml_node,
                   tex->extra = extra;
                 }
               }
-
             }
           }
 
@@ -188,7 +187,7 @@ aio_load_color_or_tex(xmlNode * __restrict xml_node,
         } /* while */
 
         color_or_tex->texture = tex;
-        curr_node = NULL;
+        curr_node = prev_node;
 
       } else if (AIO_IS_EQ_CASE(node_name, "param")) {
         aio_param * param;
@@ -215,7 +214,7 @@ aio_load_color_or_tex(xmlNode * __restrict xml_node,
         }
       } /* if */
     }
-    
+
     curr_node = curr_node->next;
   }
 

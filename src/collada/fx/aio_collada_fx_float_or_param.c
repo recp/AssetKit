@@ -26,7 +26,6 @@ aio_load_float_or_param(xmlNode * __restrict xml_node,
   xmlNode               * curr_node;
   aio_fx_float_or_param * float_or_param;
 
-  curr_node = xml_node;
   float_or_param = aio_malloc(sizeof(*float_or_param));
   memset(float_or_param, '\0', sizeof(*float_or_param));
 

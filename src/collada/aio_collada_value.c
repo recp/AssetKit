@@ -26,12 +26,10 @@ aio_load_collada_value(xmlNode * __restrict xml_node,
 
   const char * node_name;
   const char * node_content;
-  void       * pval;
 
   if (xml_node->type != XML_ELEMENT_NODE)
     return 0;
 
-  pval = *dest;
   node_name = (const char *)xml_node->name;
 
   node_content = aio_xml_node_content(xml_node);

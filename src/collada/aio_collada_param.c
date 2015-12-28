@@ -28,7 +28,6 @@ aio_load_collada_newparam(xmlNode * __restrict xml_node,
   xmlNode      * curr_node;
   aio_newparam * newparam;
 
-  curr_node = xml_node;
   newparam = aio_malloc(sizeof(*newparam));
   memset(newparam, '\0', sizeof(*newparam));
 

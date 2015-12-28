@@ -145,6 +145,7 @@ aio_realloc(void * __restrict mem, size_t size) {
 char *
 aio_strdup(const char * __restrict s) {
   aio_memnode * mn;
+  void        * mem;
   size_t        size;
   size_t        len;
   size_t        null_size;
@@ -162,7 +163,7 @@ aio_strdup(const char * __restrict s) {
   mn->mn_next      = NULL;
   mn->mn_prev      = NULL;
 
-  void * mem = _AIO_ALIGN_AS(mn);
+  mem = _AIO_ALIGN_AS(mn);
   memcpy(mem, s, size - null_size);
 
   // NULL
@@ -194,8 +195,13 @@ aio_cleanup() {
 
   mem_node = _AIO_MEM_LST->ml_back;
 
-  for (; mem_node; mem_node = mem_node->mn_prev)
+  while (mem_node) {
+    aio_memnode * tmp;
+    tmp = mem_node->mn_prev;
+
     free(mem_node);
+    mem_node = tmp;
+  }
 
   free(_AIO_MEM_LST);
 }

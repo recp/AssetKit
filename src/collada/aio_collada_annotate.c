@@ -25,7 +25,6 @@ aio_load_collada_annotate(xmlNode * __restrict xml_node,
   xmlNode      * curr_node;
   xmlAttr      * curr_attr;
   aio_annotate * annotate;
-  const char   * node_content;
   int            ret;
 
   curr_node = xml_node;
@@ -51,8 +50,6 @@ aio_load_collada_annotate(xmlNode * __restrict xml_node,
 
     curr_attr = curr_attr->next;
   }
-
-  node_content = aio_xml_node_content(curr_node);
 
   ret = aio_load_collada_value(curr_node->children,
                                &annotate->val,

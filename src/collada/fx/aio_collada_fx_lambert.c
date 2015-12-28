@@ -27,7 +27,6 @@ aio_load_lambert(xmlNode * __restrict xml_node,
   xmlNode     * curr_node;
   aio_lambert * lambert;
 
-  curr_node = xml_node;
   lambert = aio_malloc(sizeof(*lambert));
   memset(lambert, '\0', sizeof(*lambert));
 

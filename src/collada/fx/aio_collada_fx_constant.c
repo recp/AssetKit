@@ -27,7 +27,6 @@ aio_load_constant_fx(xmlNode * __restrict xml_node,
   xmlNode         * curr_node;
   aio_constant_fx * constant_fx;
 
-  curr_node = xml_node;
   constant_fx = aio_malloc(sizeof(*constant_fx));
   memset(constant_fx, '\0', sizeof(*constant_fx));
 

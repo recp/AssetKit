@@ -67,7 +67,6 @@ aio_tree_load_from_xml(xmlNode * __restrict xml_node,
       xml_curr_attr  = curr_node->properties;
 
       while (xml_curr_attr) {
-        xml_attr_name = (const char *)xml_curr_attr->name;
         if (xml_curr_attr->type == XML_ATTRIBUTE_NODE) {
           aio_tree_node_attr * tree_node_attr;
           const char         * tree_attr_val;

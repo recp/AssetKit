@@ -293,7 +293,6 @@ aio_load_collada_image_format(xmlNode * __restrict xml_node,
   xmlNode          * curr_node;
   aio_image_format * format;
 
-  curr_node = xml_node;
   format = aio_malloc(sizeof(*format));
   memset(format, '\0', sizeof(*format));
 
@@ -307,12 +306,9 @@ aio_load_collada_image_format(xmlNode * __restrict xml_node,
       if (AIO_IS_EQ_CASE(node_name, "hint")) {
         xmlAttr        * curr_attr;
         aio_size_exact * size_exact;
-        const char     * node_content;
 
         size_exact = aio_malloc(sizeof(*size_exact));
         memset(size_exact, '\0', sizeof(*size_exact));
-
-        node_content = aio_xml_node_content(curr_node);
 
         curr_attr = curr_node->properties;
 
@@ -396,7 +392,6 @@ aio_load_collada_image_2d(xmlNode * __restrict xml_node,
   xmlNode     * curr_node;
   aio_image2d * image2d;
 
-  curr_node = xml_node;
   image2d = aio_malloc(sizeof(*image2d));
   memset(image2d, '\0', sizeof(*image2d));
 
@@ -410,12 +405,9 @@ aio_load_collada_image_2d(xmlNode * __restrict xml_node,
       if (AIO_IS_EQ_CASE(node_name, "size_exact")) {
         xmlAttr        * curr_attr;
         aio_size_exact * size_exact;
-        const char     * node_content;
 
         size_exact = aio_malloc(sizeof(*size_exact));
         memset(size_exact, '\0', sizeof(*size_exact));
-
-        node_content = aio_xml_node_content(curr_node);
 
         curr_attr = curr_node->properties;
 
@@ -441,12 +433,9 @@ aio_load_collada_image_2d(xmlNode * __restrict xml_node,
       } else if (AIO_IS_EQ_CASE(node_name, "size_ratio")) {
         xmlAttr        * curr_attr;
         aio_size_ratio * size_ratio;
-        const char     * node_content;
 
         size_ratio = aio_malloc(sizeof(*size_ratio));
         memset(size_ratio, '\0', sizeof(*size_ratio));
-
-        node_content = aio_xml_node_content(curr_node);
 
         curr_attr = curr_node->properties;
 
@@ -471,12 +460,9 @@ aio_load_collada_image_2d(xmlNode * __restrict xml_node,
       } else if (AIO_IS_EQ_CASE(node_name, "mips")) {
         xmlAttr    * curr_attr;
         aio_mips   * mips;
-        const char * node_content;
 
         mips = aio_malloc(sizeof(*mips));
         memset(mips, '\0', sizeof(*mips));
-
-        node_content = aio_xml_node_content(curr_node);
 
         curr_attr = curr_node->properties;
 
@@ -505,9 +491,7 @@ aio_load_collada_image_2d(xmlNode * __restrict xml_node,
         image2d->unnormalized = aio_strdup(node_content);
       } else if (AIO_IS_EQ_CASE(node_name, "array")) {
         xmlAttr    * curr_attr;
-        const char * node_content;
 
-        node_content = aio_xml_node_content(curr_node);
         curr_attr = curr_node->properties;
 
         while (curr_attr) {
@@ -560,7 +544,6 @@ aio_load_collada_image_3d(xmlNode * __restrict xml_node,
   xmlNode     * curr_node;
   aio_image3d * image3d;
 
-  curr_node = xml_node;
   image3d = aio_malloc(sizeof(*image3d));
   memset(image3d, '\0', sizeof(*image3d));
 
@@ -670,7 +653,6 @@ aio_load_collada_image_cube(xmlNode * __restrict xml_node,
   xmlNode        * curr_node;
   aio_image_cube * image_cube;
 
-  curr_node = xml_node;
   image_cube = aio_malloc(sizeof(*image_cube));
   memset(image_cube, '\0', sizeof(*image_cube));
 

@@ -27,7 +27,6 @@ aio_load_blinn_phong(xmlNode * __restrict xml_node,
   xmlNode   * curr_node;
   aio_blinn * blinn;
 
-  curr_node = xml_node;
   blinn = aio_malloc(sizeof(*blinn));
   memset(blinn, '\0', sizeof(*blinn));
 
