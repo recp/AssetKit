@@ -5,15 +5,14 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "assetio.h"
-#include "aio_utils.h"
+#include "../include/assetio.h"
 
+#include "aio_utils.h"
 #include "collada/aio_collada.h"
 
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#include <regex.h>
 #include <libxml/tree.h>
 
 int

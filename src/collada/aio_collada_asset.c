@@ -6,10 +6,11 @@
  */
 
 #include "aio_collada_asset.h"
-#include "aio_libxml.h"
-#include "aio_types.h"
-#include "aio_memory.h"
-#include "aio_utils.h"
+
+#include "../aio_libxml.h"
+#include "../aio_types.h"
+#include "../aio_memory.h"
+#include "../aio_utils.h"
 #include "../aio_tree.h"
 
 #include <libxml/tree.h>

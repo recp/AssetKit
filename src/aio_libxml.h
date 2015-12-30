@@ -10,6 +10,7 @@
 
 #include <libxml/tree.h>
 
+extern
 const char *
 aio_xml_node_content(xmlNode * xml_node);
 

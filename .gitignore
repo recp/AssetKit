@@ -12,3 +12,5 @@ Release/
 .DS_Store
 .vs
 *.nupkg
+*.opendb
+packages.config

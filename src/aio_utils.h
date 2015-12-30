@@ -8,7 +8,7 @@
 #ifndef __libassetio__aioutils__h_
 #define __libassetio__aioutils__h_
 
-#include <assetio.h>
+#include "../include/assetio.h"
 
 int
 aio_readfile(const char * __restrict file,

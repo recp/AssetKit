@@ -10,11 +10,13 @@
 
 typedef struct _xmlNode xmlNode;
 
+extern
 int
 aio_xml_collada_read_attr(xmlNode * __restrict xml_node,
                           const char * __restrict attr_name,
                           char ** __restrict val);
 
+extern
 int
 aio_xml_collada_read_id_name(xmlNode * __restrict xml_node,
                              const char ** __restrict id,

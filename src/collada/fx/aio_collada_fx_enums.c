@@ -6,6 +6,7 @@
  */
 
 #include "aio_collada_fx_enums.h"
+#include "../../aio_types.h"
 #include <string.h>
 
 typedef struct {

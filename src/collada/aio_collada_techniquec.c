@@ -366,7 +366,7 @@ aio_load_collada_techniquec(xmlNode * __restrict xml_node,
               node_content_dup = strdup(node_content);
 
               color_comp = strtok(node_content_dup, " ");
-              color_vec[color_comp_idx] = strtod(color_comp, NULL);
+              color_vec[color_comp_idx] = strtof(color_comp, NULL);
 
               while (color_comp && ++color_comp_idx < 4) {
                 color_comp = strtok(NULL, " ");
@@ -376,7 +376,7 @@ aio_load_collada_techniquec(xmlNode * __restrict xml_node,
                   continue;
                 }
 
-                color_vec[color_comp_idx] = strtod(color_comp, NULL);
+                color_vec[color_comp_idx] = strtof(color_comp, NULL);
               }
 
               /* make alpha channel to 1.0 as default */
@@ -433,7 +433,7 @@ aio_load_collada_techniquec(xmlNode * __restrict xml_node,
               node_content_dup = strdup(node_content);
 
               color_comp = strtok(node_content_dup, " ");
-              color_vec[color_comp_idx] = strtod(color_comp, NULL);
+              color_vec[color_comp_idx] = strtof(color_comp, NULL);
 
               while (color_comp && ++color_comp_idx < 4) {
                 color_comp = strtok(NULL, " ");
@@ -443,7 +443,7 @@ aio_load_collada_techniquec(xmlNode * __restrict xml_node,
                   continue;
                 }
 
-                color_vec[color_comp_idx] = strtod(color_comp, NULL);
+                color_vec[color_comp_idx] = strtof(color_comp, NULL);
               }
 
               /* make alpha channel to 1.0 as default */
@@ -569,7 +569,7 @@ aio_load_collada_techniquec(xmlNode * __restrict xml_node,
               node_content_dup = strdup(node_content);
 
               color_comp = strtok(node_content_dup, " ");
-              color_vec[color_comp_idx] = strtod(color_comp, NULL);
+              color_vec[color_comp_idx] = strtof(color_comp, NULL);
 
               while (color_comp && ++color_comp_idx < 4) {
                 color_comp = strtok(NULL, " ");
@@ -579,7 +579,7 @@ aio_load_collada_techniquec(xmlNode * __restrict xml_node,
                   continue;
                 }
 
-                color_vec[color_comp_idx] = strtod(color_comp, NULL);
+                color_vec[color_comp_idx] = strtof(color_comp, NULL);
               }
 
               /* make alpha channel to 1.0 as default */

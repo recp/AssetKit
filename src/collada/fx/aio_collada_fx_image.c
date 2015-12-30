@@ -567,11 +567,11 @@ aio_load_collada_image_3d(xmlNode * __restrict xml_node,
             attr_val = aio_xml_node_content((xmlNode *)curr_attr);
 
             if (AIO_IS_EQ_CASE(attr_name, "width"))
-              image3d->size.width = strtof(attr_val, NULL);
+              image3d->size.width = strtol(attr_val, NULL, 10);
             else if (AIO_IS_EQ_CASE(attr_name, "height"))
-              image3d->size.height = strtof(attr_val, NULL);
+              image3d->size.height = strtol(attr_val, NULL, 10);
             else if (AIO_IS_EQ_CASE(attr_name, "depth"))
-              image3d->size.depth = strtof(attr_val, NULL);
+              image3d->size.depth = strtol(attr_val, NULL, 10);
           }
 
           curr_attr = curr_attr->next;
@@ -676,7 +676,7 @@ aio_load_collada_image_cube(xmlNode * __restrict xml_node,
             attr_val = aio_xml_node_content((xmlNode *)curr_attr);
 
             if (AIO_IS_EQ_CASE(attr_name, "width"))
-              image_cube->size.width = strtof(attr_val, NULL);
+              image_cube->size.width = strtol(attr_val, NULL, 10);
           }
 
           curr_attr = curr_attr->next;

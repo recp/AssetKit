@@ -8,6 +8,10 @@
 #ifndef aio_types_h
 #define aio_types_h
 
+#include <stddef.h>
+#include <sys/types.h>
+#include <string.h>
+
 typedef const char * aio_str;
 typedef char       * aio_mutstr;
 
@@ -15,5 +19,10 @@ typedef char       * aio_mutstr;
 #define aio_false 0x0
 
 #define AIO_IS_EQ_CASE(s1, s2) strcasecmp(s1, s2) == 0
+
+#ifdef _MSC_VER
+#define strncasecmp _strnicmp
+#define strcasecmp _stricmp
+#endif
 
 #endif /* aio_types_h */

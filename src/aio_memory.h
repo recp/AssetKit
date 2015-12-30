@@ -8,6 +8,7 @@
 #ifndef __libassetio__memory__h_
 #define __libassetio__memory__h_
 
+#include <stddef.h>
 #include <sys/types.h>
 
 void   aio_init();

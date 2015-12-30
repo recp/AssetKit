@@ -747,9 +747,6 @@ struct aio_light_s {
   aio_light * prev;
 };
 
-#pragma mark -
-#pragma mark FX
-
 /* FX */
 /* Effects */
 /*
@@ -1405,9 +1402,6 @@ struct aio_effect_s {
   aio_effect * next;
 };
 
-#pragma mark -
-#pragma mark define library
-
 #undef _AIO_DEF_LIB
 
 #define _AIO_DEF_LIB(T)                                                       \
@@ -1435,8 +1429,6 @@ struct aio_lib_s {
   aio_lib_effect effects;
   aio_lib_image  images;
 };
-
-#pragma mark -
 
 typedef struct aio_doc_s aio_doc;
 struct aio_doc_s {

@@ -54,7 +54,7 @@ aio_load_collada_value(xmlNode * __restrict xml_node,
   } else if (AIO_IS_EQ_CASE(node_name, "bool2")) {
     aio_bool      * val;
     const char    * pstr;
-    unsigned long   slen;
+    size_t          slen;
     unsigned long   idx;
     unsigned long   i;
 
@@ -78,7 +78,7 @@ aio_load_collada_value(xmlNode * __restrict xml_node,
   } else if (AIO_IS_EQ_CASE(node_name, "bool3")) {
     aio_bool      * val;
     const char    * pstr;
-    unsigned long   slen;
+    size_t          slen;
     unsigned long   idx;
     unsigned long   i;
 
@@ -102,7 +102,7 @@ aio_load_collada_value(xmlNode * __restrict xml_node,
   } else if (AIO_IS_EQ_CASE(node_name, "bool4")) {
     aio_bool      * val;
     const char    * pstr;
-    unsigned long   slen;
+    size_t          slen;
     unsigned long   idx;
     unsigned long   i;
 
@@ -144,7 +144,7 @@ aio_load_collada_value(xmlNode * __restrict xml_node,
 
     if (tok) {
       val = aio_calloc(sizeof(*val), 2);
-      val[tok_idx] = strtod(tok, NULL);
+      val[tok_idx] = (aio_int)strtol(tok, NULL, 10);
 
       while (tok && tok_idx < 2) {
         tok = strtok(NULL, " ");
@@ -173,7 +173,7 @@ aio_load_collada_value(xmlNode * __restrict xml_node,
 
     if (tok) {
       val = aio_calloc(sizeof(*val), 3);
-      val[tok_idx] = strtod(tok, NULL);
+      val[tok_idx] = (aio_int)strtol(tok, NULL, 10);
 
       while (tok && tok_idx < 3) {
         tok = strtok(NULL, " ");
@@ -202,7 +202,7 @@ aio_load_collada_value(xmlNode * __restrict xml_node,
 
     if (tok) {
       val = aio_calloc(sizeof(*val), 4);
-      val[tok_idx] = strtod(tok, NULL);
+      val[tok_idx] = (aio_int)strtol(tok, NULL, 10);
 
       while (tok && tok_idx < 4) {
         tok = strtok(NULL, " ");
