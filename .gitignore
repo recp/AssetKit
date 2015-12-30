@@ -11,3 +11,4 @@ Debug/
 Release/
 .DS_Store
 .vs
+*.nupkg
