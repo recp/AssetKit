@@ -30,8 +30,8 @@ aio_readfile(const char * __restrict file,
   *dest = malloc(fcontents_size + 1);
   memset(*dest + fcontents_size, '\0', 1);
 
-  size_t total_read = 0;
-  size_t nread = 0;
+  off_t total_read = 0;
+  off_t nread = 0;
   do {
     nread = fread(*dest + total_read,
                   sizeof(**dest),

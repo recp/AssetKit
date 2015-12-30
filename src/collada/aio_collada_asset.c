@@ -218,9 +218,9 @@ aio_load_collada_asset(xmlNode * __restrict xml_node, ...) {
         node_content = aio_xml_node_content(curr_node);
 
         if (load_as == _AIO_ASSET_LOAD_AS_DOCINF)
-          (*doc_inf)->revision = strtod(node_content, NULL);
+          (*doc_inf)->revision = strtoul(node_content, NULL, 10);
         else
-          (*ast_inf)->revision = strtod(node_content, NULL);
+          (*ast_inf)->revision = strtoul(node_content, NULL, 10);
 
       } else if (AIO_IS_EQ_CASE(node_name, "subject")) {
         const char * node_content;

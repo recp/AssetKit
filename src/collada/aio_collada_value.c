@@ -55,8 +55,8 @@ aio_load_collada_value(xmlNode * __restrict xml_node,
     aio_bool      * val;
     const char    * pstr;
     unsigned long   slen;
-    long            idx;
-    long            i;
+    unsigned long   idx;
+    unsigned long   i;
 
     slen = strlen(node_content);
     pstr = node_content;
@@ -79,8 +79,8 @@ aio_load_collada_value(xmlNode * __restrict xml_node,
     aio_bool      * val;
     const char    * pstr;
     unsigned long   slen;
-    long            idx;
-    long            i;
+    unsigned long   idx;
+    unsigned long   i;
 
     slen = strlen(node_content);
     pstr = node_content;
@@ -103,8 +103,8 @@ aio_load_collada_value(xmlNode * __restrict xml_node,
     aio_bool      * val;
     const char    * pstr;
     unsigned long   slen;
-    long            idx;
-    long            i;
+    unsigned long   idx;
+    unsigned long   i;
 
     slen = strlen(node_content);
     pstr = node_content;

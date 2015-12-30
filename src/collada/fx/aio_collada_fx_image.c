@@ -196,9 +196,9 @@ aio_load_collada_image_init_from(xmlNode * __restrict xml_node,
       else if (AIO_IS_EQ_CASE(attr_name, "array_index"))
         init_from->array_index = (int)strtol(attr_val, NULL, 10);
       else if (AIO_IS_EQ_CASE(attr_name, "mip_index"))
-        init_from->mip_index = (int)strtol(attr_val, NULL, 10);
+        init_from->mip_index = (aio_uint)strtol(attr_val, NULL, 10);
       else if (AIO_IS_EQ_CASE(attr_name, "depth"))
-        init_from->depth = (int)strtol(attr_val, NULL, 10);
+        init_from->depth = (aio_uint)strtol(attr_val, NULL, 10);
       else if (AIO_IS_EQ_CASE(attr_name, "face")) {
         if (AIO_IS_EQ_CASE(attr_val, "POSITIVE_X"))
           init_from->face = AIO_FACE_POSITIVE_X;
@@ -475,7 +475,7 @@ aio_load_collada_image_2d(xmlNode * __restrict xml_node,
             attr_val = aio_xml_node_content((xmlNode *)curr_attr);
 
             if (AIO_IS_EQ_CASE(attr_name, "levels"))
-              mips->levels = (int)strtol(attr_val, NULL, 10);
+              mips->levels = (aio_uint)strtol(attr_val, NULL, 10);
             else if (AIO_IS_EQ_CASE(attr_name, "auto_generate"))
               mips->auto_generate = (int)strtol(attr_val, NULL, 10);
           }

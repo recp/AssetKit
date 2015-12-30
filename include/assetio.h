@@ -514,7 +514,7 @@ typedef struct aio_basic_attr ## P ## _s aio_basic_attr ## P;                 \
 struct aio_basic_attr ## P ## _s {                                            \
   const char * sid;                                                           \
   T            val;                                                           \
-};
+}
 
 _AIO_DEF_BASIC_ATTR(float, f);
 _AIO_DEF_BASIC_ATTR(double, d);
@@ -676,7 +676,7 @@ struct aio_imager_s {
  */
 typedef struct aio_camera_s aio_camera;
 struct aio_camera_s {
-  aio_asset_base;
+  aio_asset_base
 
   const char * id;
   const char * name;
@@ -734,7 +734,7 @@ struct aio_spot_s {
  */
 typedef struct aio_light_s aio_light;
 struct aio_light_s {
-  aio_asset_base;
+  aio_asset_base
 
   const char * id;
   const char * name;
@@ -875,7 +875,7 @@ struct aio_image_cube_s {
 
 typedef struct aio_image_s aio_image;
 struct aio_image_s {
-  aio_asset_base;
+  aio_asset_base
   
   const char * id;
   const char * sid;
@@ -916,7 +916,7 @@ struct aio_image_instance_s {
  * samplerStates
  */
 #define _AIO_FX_SAMPLER_COMMON                                                \
-  aio_asset_base;                                                             \
+  aio_asset_base                                                             \
   aio_image_instance * image;                                                 \
                                                                               \
   struct {                                                                    \
@@ -941,42 +941,42 @@ struct aio_image_instance_s {
 
 typedef struct aio_fx_sampler_common_s aio_fx_sampler_common;
 struct aio_fx_sampler_common_s {
-  _AIO_FX_SAMPLER_COMMON;
+  _AIO_FX_SAMPLER_COMMON
 };
 
 typedef struct aio_sampler1D_s aio_sampler1D;
 struct aio_sampler1D_s {
-  _AIO_FX_SAMPLER_COMMON;
+  _AIO_FX_SAMPLER_COMMON
 };
 
 typedef struct aio_sampler2D_s aio_sampler2D;
 struct aio_sampler2D_s {
-  _AIO_FX_SAMPLER_COMMON;
+  _AIO_FX_SAMPLER_COMMON
 };
 
 typedef struct aio_sampler3D_s aio_sampler3D;
 struct aio_sampler3D_s {
-  _AIO_FX_SAMPLER_COMMON;
+  _AIO_FX_SAMPLER_COMMON
 };
 
 typedef struct aio_samplerCUBE_s aio_samplerCUBE;
 struct aio_samplerCUBE_s {
-  _AIO_FX_SAMPLER_COMMON;
+  _AIO_FX_SAMPLER_COMMON
 };
 
 typedef struct aio_samplerDEPTH_s aio_samplerDEPTH;
 struct aio_samplerDEPTH_s {
-  _AIO_FX_SAMPLER_COMMON;
+  _AIO_FX_SAMPLER_COMMON
 };
 
 typedef struct aio_samplerRECT_s aio_samplerRECT;
 struct aio_samplerRECT_s {
-  _AIO_FX_SAMPLER_COMMON;
+  _AIO_FX_SAMPLER_COMMON
 };
 
 typedef struct aio_samplerStates_s aio_samplerStates;
 struct aio_samplerStates_s {
-  _AIO_FX_SAMPLER_COMMON;
+  _AIO_FX_SAMPLER_COMMON
 };
 
 #undef _AIO_FX_SAMPLER_COMMON
@@ -1282,7 +1282,7 @@ struct aio_program_s {
 
 typedef struct aio_pass_s aio_pass;
 struct aio_pass_s {
-  aio_asset_base;
+  aio_asset_base
 
   const char * sid;
 
@@ -1298,7 +1298,7 @@ struct aio_pass_s {
 
 typedef struct aio_technique_fx_s aio_technique_fx;
 struct aio_technique_fx_s {
-  aio_asset_base;
+  aio_asset_base
 
   const char * id;
   const char * sid;
@@ -1324,7 +1324,7 @@ struct aio_technique_fx_s {
  * Common properties of all profiles
  */
 #define _AIO_PROFILE_BASE_                                                    \
-  aio_asset_base;                                                             \
+  aio_asset_base                                                             \
   aio_profile_type   profile_type;                                            \
   const char       * id;                                                      \
   aio_newparam     * newparam;                                                \
@@ -1335,17 +1335,17 @@ struct aio_technique_fx_s {
 
 typedef struct aio_profile_s aio_profile;
 struct aio_profile_s {
-  _AIO_PROFILE_BASE_;
+  _AIO_PROFILE_BASE_
 };
 
 typedef struct aio_profile_common_s aio_profile_common;
 struct aio_profile_common_s {
-  _AIO_PROFILE_BASE_;
+  _AIO_PROFILE_BASE_
 };
 
 typedef struct aio_profile_cg_s aio_profile_CG;
 struct aio_profile_cg_s {
-  _AIO_PROFILE_BASE_;
+  _AIO_PROFILE_BASE_
 
   const char    * platform;
   aio_code      * code;
@@ -1354,14 +1354,14 @@ struct aio_profile_cg_s {
 
 typedef struct aio_profile_gles_s aio_profile_GLES;
 struct aio_profile_gles_s {
-  _AIO_PROFILE_BASE_;
+  _AIO_PROFILE_BASE_
 
   const char * platform;
 };
 
 typedef struct aio_profile_gles2_s aio_profile_GLES2;
 struct aio_profile_gles2_s {
-  _AIO_PROFILE_BASE_;
+  _AIO_PROFILE_BASE_
 
   const char  * language;
   aio_code    * code;
@@ -1371,7 +1371,7 @@ struct aio_profile_gles2_s {
 
 typedef struct aio_profile_glsl_s aio_profile_GLSL;
 struct aio_profile_glsl_s {
-  _AIO_PROFILE_BASE_;
+  _AIO_PROFILE_BASE_
 
   const char  * platform;
   aio_code    * code;
@@ -1380,7 +1380,7 @@ struct aio_profile_glsl_s {
 
 typedef struct aio_profile_bridge_s aio_profile_BRIDGE;
 struct aio_profile_bridge_s {
-  _AIO_PROFILE_BASE_;
+  _AIO_PROFILE_BASE_
   
   const char * platform;
   const char * url;
@@ -1390,7 +1390,7 @@ struct aio_profile_bridge_s {
 
 typedef struct aio_effect_s aio_effect;
 struct aio_effect_s {
-  aio_asset_base;
+  aio_asset_base
 
   const char * id;
   const char * name;
@@ -1419,7 +1419,7 @@ struct aio_effect_s {
     aio_##T       * next;                                                     \
     aio_tree      * extra;                                                    \
     unsigned long   count;                                                    \
-  };
+  }
 
 _AIO_DEF_LIB(camera);
 _AIO_DEF_LIB(light);
@@ -1446,11 +1446,12 @@ struct aio_doc_s {
 
 typedef struct aio_asset_s aio_asset;
 struct aio_asset_s {
-  aio_asset_base;
+  aio_asset_base
   void * aio_data;
 };
 
 #include "assetio-states.h"
+#include "assetio-string.h"
 
 extern void aio_cleanup();
 
