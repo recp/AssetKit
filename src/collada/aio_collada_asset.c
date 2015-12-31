@@ -295,9 +295,10 @@ aio_load_collada_asset(xmlNode * __restrict xml_node, ...) {
           (*ast_inf)->upaxis = upaxis;
 
       } else if (AIO_IS_EQ_CASE(node_name, "extra")) {
-        _AIO_TREE_LOAD_TO(curr_node->children,
-                          (*ast_inf)->extra,
-                          NULL);
+        if (ast_inf)
+          _AIO_TREE_LOAD_TO(curr_node->children,
+                            (*ast_inf)->extra,
+                            NULL);
       }
     } /* if type */
 
