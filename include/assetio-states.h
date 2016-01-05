@@ -81,14 +81,6 @@ struct aio_blend_func_separate_s {
   } dest_alpha;
 };
 
-typedef struct aio_blend_equation_s aio_blend_equation;
-struct aio_blend_equation_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_gl_blend_equation val;
-  const char * param;
-};
-
 typedef struct aio_blend_equation_separate_s aio_blend_equation_separate;
 struct aio_blend_equation_separate_s {
   _AIO_RENDER_STATE_BASE_
@@ -119,62 +111,6 @@ struct aio_color_material_s {
   } mode;
 };
 
-typedef struct aio_cull_face_s aio_cull_face;
-struct aio_cull_face_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_gl_face  val;
-  const char * param;
-};
-
-typedef struct aio_depth_func_s aio_depth_func;
-struct aio_depth_func_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_gl_func  val;
-  const char * param;
-};
-
-typedef struct aio_fog_mode_s aio_fog_mode;
-struct aio_fog_mode_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_gl_fog   val;
-  const char * param;
-};
-
-typedef struct aio_fog_coord_src_s aio_fog_coord_src;
-struct aio_fog_coord_src_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_gl_fog_coord_src val;
-  const char * param;
-};
-
-typedef struct aio_front_face_s aio_front_face;
-struct aio_front_face_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_gl_front_face val;
-  const char * param;
-};
-
-typedef struct aio_light_model_color_control_s aio_light_model_color_control;
-struct aio_light_model_color_control_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_gl_light_model_color_control val;
-  const char * param;
-};
-
-typedef struct aio_logic_op_s aio_logic_op;
-struct aio_logic_op_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_gl_logic_op val;
-  const char * param;
-};
-
 typedef struct aio_polygon_mode_s aio_polygon_mode;
 struct aio_polygon_mode_s {
   _AIO_RENDER_STATE_BASE_
@@ -188,14 +124,6 @@ struct aio_polygon_mode_s {
     aio_gl_polygon_mode val;
     const char * param;
   } mode;
-};
-
-typedef struct aio_shade_model_s aio_shade_model;
-struct aio_shade_model_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_gl_shade_model val;
-  const char * param;
 };
 
 typedef struct aio_stencil_func_s aio_stencil_func;
@@ -303,712 +231,130 @@ struct aio_stencil_mask_separate_s {
   } mask;
 };
 
-typedef struct aio_light_enable_s aio_light_enable;
-struct aio_light_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-  unsigned long index;
-};
-
-typedef struct aio_light_ambient_s aio_light_ambient;
-struct aio_light_ambient_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float4 val;
-  const char * param;
-  unsigned long index;
-};
-
-typedef struct aio_light_diffuse_s aio_light_diffuse;
-struct aio_light_diffuse_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float4 val;
-  const char * param;
-  unsigned long index;
-};
-
-typedef struct aio_light_specular_s aio_light_specular;
-struct aio_light_specular_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float4 val;
-  const char * param;
-  unsigned long index;
-};
-
-typedef struct aio_light_position_s aio_light_position;
-struct aio_light_position_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float4 val;
-  const char * param;
-  unsigned long index;
-};
-
-typedef struct aio_light_constant_attenuation_s aio_light_constant_attenuation;
-struct aio_light_constant_attenuation_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float4 val;
-  const char * param;
-  unsigned long index;
-};
-
-typedef struct aio_light_linear_attenuation_s aio_light_linear_attenuation;
-struct aio_light_linear_attenuation_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float val;
-  const char * param;
-  unsigned long index;
-};
-
-typedef struct aio_light_quadratic_attenuation_s
-  aio_light_quadratic_attenuation;
-struct aio_light_quadratic_attenuation_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float val;
-  const char * param;
-  unsigned long index;
-};
-
-typedef struct aio_light_spot_cutoff_s aio_light_spot_cutoff;
-struct aio_light_spot_cutoff_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float val;
-  const char * param;
-  unsigned long index;
-};
-
-typedef struct aio_light_spot_direction_s aio_light_spot_direction;
-struct aio_light_spot_direction_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float3 val;
-  const char * param;
-  unsigned long index;
-};
-
-typedef struct aio_light_spot_exponent_s aio_light_spot_exponent;
-struct aio_light_spot_exponent_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float val;
-  const char * param;
-  unsigned long index;
-};
-
-typedef struct aio_texture1D_s aio_texture1D;
-struct aio_texture1D_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_sampler1D * val;
-  const char * param;
-  unsigned long index;
-};
-
-typedef struct aio_texture2D_s aio_texture2D;
-struct aio_texture2D_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_sampler2D * val;
-  const char * param;
-  unsigned long index;
-};
-
-typedef struct aio_texture3D_s aio_texture3D;
-struct aio_texture3D_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_sampler3D * val;
-  const char * param;
-  unsigned long index;
-};
-
-typedef struct aio_textureCUBE_s aio_textureCUBE;
-struct aio_textureCUBE_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_samplerCUBE * val;
-  const char * param;
-  unsigned long index;
-};
-
-typedef struct aio_textureRECT_s aio_textureRECT;
-struct aio_textureRECT_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_samplerRECT * val;
-  const char * param;
-  unsigned long index;
-};
-
-typedef struct aio_textureDEPTH_s aio_textureDEPTH;
-struct aio_textureDEPTH_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_samplerDEPTH * val;
-  const char * param;
-  unsigned long index;
-};
-
-typedef struct aio_texture1D_enable_s aio_texture1D_enable;
-struct aio_texture1D_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-  unsigned long index;
-};
-
-typedef struct aio_texture2D_enable_s aio_texture2D_enable;
-struct aio_texture2D_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-  unsigned long index;
-};
-
-typedef struct aio_texture3D_enable_s aio_texture3D_enable;
-struct aio_texture3D_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-  unsigned long index;
-};
-
-typedef struct aio_textureCUBE_enable_s aio_textureCUBE_enable;
-struct aio_textureCUBE_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-  unsigned long index;
-};
-
-typedef struct aio_textureRECT_enable_s aio_textureRECT_enable;
-struct aio_textureRECT_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-  unsigned long index;
-};
-
-typedef struct aio_textureDEPTH_enable_s aio_textureDEPTH_enable;
-struct aio_textureDEPTH_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-  unsigned long index;
-};
-
-typedef struct aio_texture_env_color_s aio_texture_env_color;
-struct aio_texture_env_color_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float4 val;
-  const char * param;
-  unsigned long index;
-};
-
-typedef struct aio_texture_env_mode_s aio_texture_env_mode;
-struct aio_texture_env_mode_s {
-  _AIO_RENDER_STATE_BASE_
-
-  const char * val;
-  const char * param;
-  unsigned long index;
-};
-
-typedef struct aio_clip_plane_s aio_clip_plane;
-struct aio_clip_plane_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float4 val;
-  const char * param;
-  unsigned long index;
-};
-
-typedef struct aio_clip_plane_enable_s aio_clip_plane_enable;
-struct aio_clip_plane_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-  unsigned long index;
-};
-
-typedef struct aio_blend_color_s aio_blend_color;
-struct aio_blend_color_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float4 val;
-  const char * param;
-};
-
-typedef struct aio_color_mask_s aio_color_mask;
-struct aio_color_mask_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_bool4 val;
-  const char * param;
-};
-
-typedef struct aio_depth_bounds_s aio_depth_bounds;
-struct aio_depth_bounds_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float2 val;
-  const char * param;
-};
-
-typedef struct aio_depth_mask_s aio_depth_mask;
-struct aio_depth_mask_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_depth_range_s aio_depth_range;
-struct aio_depth_range_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float2 val;
-  const char * param;
-};
-
-typedef struct aio_fog_density_s aio_fog_density;
-struct aio_fog_density_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float val;
-  const char * param;
-};
-
-typedef struct aio_fog_start_s aio_fog_start;
-struct aio_fog_start_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float val;
-  const char * param;
-};
-
-typedef struct aio_fog_end_s aio_fog_end;
-struct aio_fog_end_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float val;
-  const char * param;
-};
-
-typedef struct aio_fog_color_s aio_fog_color;
-struct aio_fog_color_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float4 val;
-  const char * param;
-};
-
-typedef struct aio_light_model_ambient_s aio_light_model_ambient;
-struct aio_light_model_ambient_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float4 val;
-  const char * param;
-};
-
-typedef struct aio_lighting_enable_s aio_lighting_enable;
-struct aio_lighting_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_line_stipple_s aio_line_stipple;
-struct aio_line_stipple_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_int2 val;
-  const char * param;
-};
-
-typedef struct aio_line_width_s aio_line_width;
-struct aio_line_width_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float val;
-  const char * param;
-};
-
-typedef struct aio_material_ambient_s aio_material_ambient;
-struct aio_material_ambient_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float4 val;
-  const char * param;
-};
-
-typedef struct aio_material_diffuse_s aio_material_diffuse;
-struct aio_material_diffuse_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float4 val;
-  const char * param;
-};
-
-typedef struct aio_material_emission_s aio_material_emission;
-struct aio_material_emission_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float4 val;
-  const char * param;
-};
-
-typedef struct aio_material_shininess_s aio_material_shininess;
-struct aio_material_shininess_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float val;
-  const char * param;
-};
-
-typedef struct aio_material_specular_s aio_material_specular;
-struct aio_material_specular_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float4 val;
-  const char * param;
-};
-
-typedef struct aio_model_view_matrix_s aio_model_view_matrix;
-struct aio_model_view_matrix_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float4x4 val;
-  const char * param;
-};
-
-typedef struct aio_point_distance_attenuation_s aio_point_distance_attenuation;
-struct aio_point_distance_attenuation_s {
-  _AIO_RENDER_STATE_BASE_
-  
-  aio_float3 val;
-  const char * param;
-};
-
-typedef struct aio_point_fade_threshold_size_s aio_point_fade_threshold_size;
-struct aio_point_fade_threshold_size_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float val;
-  const char * param;
-};
-
-typedef struct aio_point_size_s aio_point_size;
-struct aio_point_size_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float val;
-  const char * param;
-};
-
-typedef struct aio_point_size_min_s aio_point_size_min;
-struct aio_point_size_min_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float val;
-  const char * param;
-};
-
-typedef struct aio_point_size_max_s aio_point_size_max;
-struct aio_point_size_max_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float val;
-  const char * param;
-};
-
-typedef struct aio_polygon_offset_s aio_polygon_offset;
-struct aio_polygon_offset_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float2 val;
-  const char * param;
-};
-
-typedef struct aio_projection_matrix_s aio_projection_matrix;
-struct aio_projection_matrix_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_float4x4 val;
-  const char * param;
-};
-
-typedef struct aio_scissor_s aio_scissor;
-struct aio_scissor_s {
-  _AIO_RENDER_STATE_BASE_
-
-  aio_int4 val;
-  const char * param;
-};
-
-typedef struct aio_stencil_mask_s aio_stencil_mask;
-struct aio_stencil_mask_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_alpha_test_enable_s aio_alpha_test_enable;
-struct aio_alpha_test_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_blend_enable_s aio_blend_enable;
-struct aio_blend_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_color_logic_op_enable_s aio_color_logic_op_enable;
-struct aio_color_logic_op_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_color_material_enable_s aio_color_material_enable;
-struct aio_color_material_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_cull_face_enable_s aio_cull_face_enable;
-struct aio_cull_face_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_depth_bounds_enable_s aio_depth_bounds_enable;
-struct aio_depth_bounds_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_depth_clamp_enable_s aio_depth_clamp_enable;
-struct aio_depth_clamp_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_depth_test_enable_s aio_depth_test_enable;
-struct aio_depth_test_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_dither_enable_s aio_dither_enable;
-struct aio_dither_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_fog_enable_s aio_fog_enable;
-struct aio_fog_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_light_model_local_viewer_enable_s
-  aio_light_model_local_viewer_enable;
-struct aio_light_model_local_viewer_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_light_model_two_side_enable_s
-  aio_light_model_two_side_enable;
-struct aio_light_model_two_side_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_line_smooth_enable_s aio_line_smooth_enable;
-struct aio_line_smooth_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_line_stipple_enable_s aio_line_stipple_enable;
-struct aio_line_stipple_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_logic_op_enable_s aio_logic_op_enable;
-struct aio_logic_op_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_multisample_enable_s aio_multisample_enable;
-struct aio_multisample_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_normalize_enable_s aio_normalize_enable;
-struct aio_normalize_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_point_smooth_enable_s aio_point_smooth_enable;
-struct aio_point_smooth_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_polygon_offset_fill_enable_s
-  aio_polygon_offset_fill_enable;
-struct aio_polygon_offset_fill_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_polygon_offset_line_enable_s
-  aio_polygon_offset_line_enable;
-struct aio_polygon_offset_line_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_polygon_offset_point_enable_s
-  aio_polygon_offset_point_enable;
-struct aio_polygon_offset_point_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_polygon_smooth_enable_s aio_polygon_smooth_enable;
-struct aio_polygon_smooth_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_polygon_stipple_enable_s aio_polygon_stipple_enable;
-struct aio_polygon_stipple_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_rescale_normal_enable_s aio_rescale_normal_enable;
-struct aio_rescale_normal_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_sample_alpha_to_coverage_enable_s
-  aio_sample_alpha_to_coverage_enable;
-struct aio_sample_alpha_to_coverage_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_sample_alpha_to_one_enable_s
-  aio_sample_alpha_to_one_enable;
-struct aio_sample_alpha_to_one_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_sample_coverage_enable_s aio_sample_coverage_enable;
-struct aio_sample_coverage_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_scissor_test_enable_s aio_scissor_test_enable;
-struct aio_scissor_test_enable_s {
-  _AIO_RENDER_STATE_BASE_
-
-  unsigned long val;
-  const char * param;
-};
-
-typedef struct aio_stencil_test_enable_s aio_stencil_test_enable;
-struct aio_stencil_test_enable_s {
-  _AIO_RENDER_STATE_BASE_
-  
-  unsigned long val;
-  const char * param;
-};
+#define _AIO_DEF_STATE_T1(P, T)                                               \
+  typedef struct aio_ ## P ## _s aio_ ## P;                                   \
+  struct aio_ ## P ## _s {                                                    \
+    _AIO_RENDER_STATE_BASE_                                                   \
+    T val;                                                                    \
+    const char * param;                                                       \
+  };
+
+#define _AIO_DEF_STATE_T2(P, T)                                               \
+  typedef struct aio_ ## P ## _s aio_ ## P;                                   \
+  struct aio_ ## P ## _s {                                                    \
+    _AIO_RENDER_STATE_BASE_                                                   \
+    T val;                                                                    \
+    const char * param;                                                       \
+    unsigned long index;                                                      \
+  };
+
+_AIO_DEF_STATE_T1(blend_equation,             aio_gl_blend_equation)
+_AIO_DEF_STATE_T1(cull_face,                  aio_gl_face)
+_AIO_DEF_STATE_T1(depth_func,                 aio_gl_func)
+_AIO_DEF_STATE_T1(fog_mode,                   aio_gl_fog)
+_AIO_DEF_STATE_T1(fog_coord_src,              aio_gl_fog_coord_src)
+_AIO_DEF_STATE_T1(front_face,                 aio_gl_front_face)
+_AIO_DEF_STATE_T1(light_model_color_control,  aio_gl_light_model_color_control)
+_AIO_DEF_STATE_T1(logic_op,                   aio_gl_logic_op)
+_AIO_DEF_STATE_T1(shade_model,                aio_gl_shade_model)
+_AIO_DEF_STATE_T1(color_mask,                 aio_bool4)
+_AIO_DEF_STATE_T1(line_stipple,               aio_int2)
+_AIO_DEF_STATE_T1(scissor,                    aio_int4)
+_AIO_DEF_STATE_T2(state_t_enable2,            unsigned long )
+_AIO_DEF_STATE_T1(state_t_ul,                 unsigned long )
+_AIO_DEF_STATE_T1(state_t_float,              aio_float)
+_AIO_DEF_STATE_T2(state_t_float_i,            aio_float)
+_AIO_DEF_STATE_T1(state_t_float2,             aio_float2)
+_AIO_DEF_STATE_T1(point_distance_attenuation, aio_float3)
+_AIO_DEF_STATE_T1(state_t_float4,             aio_float4)
+_AIO_DEF_STATE_T2(state_t_float4_i,           aio_float4)
+_AIO_DEF_STATE_T1(state_t_matrix4x4,          aio_float4x4)
+
+_AIO_DEF_STATE_T2(light_spot_direction,       aio_float3)
+_AIO_DEF_STATE_T2(texture1D,                  aio_sampler1D *)
+_AIO_DEF_STATE_T2(texture2D,                  aio_sampler2D *)
+_AIO_DEF_STATE_T2(texture3D,                  aio_sampler3D *)
+_AIO_DEF_STATE_T2(textureCUBE,                aio_samplerCUBE *)
+_AIO_DEF_STATE_T2(textureRECT,                aio_samplerRECT *)
+_AIO_DEF_STATE_T2(textureDEPTH,               aio_samplerDEPTH *)
+_AIO_DEF_STATE_T2(texture_env_mode,           const char *)
+
+#undef _AIO_DEF_STATE_T
+#undef _AIO_DEF_STATE_T2
+
+typedef aio_state_t_ul        aio_state_t_enable;
+typedef aio_state_t_ul        aio_depth_mask;
+typedef aio_state_t_ul        aio_stencil_mask;
+typedef aio_state_t_float     aio_fog_density;
+typedef aio_state_t_float     aio_fog_start;
+typedef aio_state_t_float     aio_fog_end;
+typedef aio_state_t_float     aio_line_width;
+typedef aio_state_t_float     aio_material_shininess;
+typedef aio_state_t_float     aio_point_fade_threshold_size;
+typedef aio_state_t_float     aio_point_size;
+typedef aio_state_t_float     aio_point_size_min;
+typedef aio_state_t_float     aio_point_size_max;
+typedef aio_state_t_float_i   aio_light_linear_attenuation;
+typedef aio_state_t_float_i   aio_light_quadratic_attenuation;
+typedef aio_state_t_float_i   aio_light_spot_cutoff;
+typedef aio_state_t_float_i   aio_light_spot_exponent;
+typedef aio_state_t_float2    aio_polygon_offset;
+typedef aio_state_t_float2    aio_depth_range;
+typedef aio_state_t_float2    aio_depth_bounds;
+typedef aio_state_t_float4    aio_blend_color;
+typedef aio_state_t_float4    aio_fog_color;
+typedef aio_state_t_float4    aio_light_model_ambient;
+typedef aio_state_t_float4    aio_material_ambient;
+typedef aio_state_t_float4    aio_material_diffuse;
+typedef aio_state_t_float4    aio_material_emission;
+typedef aio_state_t_float4    aio_material_specular;
+typedef aio_state_t_float4_i  aio_texture_env_color;
+typedef aio_state_t_float4_i  aio_clip_plane;
+typedef aio_state_t_float4_i  aio_light_ambient;
+typedef aio_state_t_float4_i  aio_light_diffuse;
+typedef aio_state_t_float4_i  aio_light_specular;
+typedef aio_state_t_float4_i  aio_light_position;
+typedef aio_state_t_float4_i  aio_light_constant_attenuation;
+typedef aio_state_t_matrix4x4 aio_model_view_matrix;
+typedef aio_state_t_matrix4x4 aio_projection_matrix;
+typedef aio_state_t_enable    aio_lighting_enable;
+typedef aio_state_t_enable    aio_alpha_test_enable;
+typedef aio_state_t_enable    aio_blend_enable;
+typedef aio_state_t_enable    aio_color_logic_op_enable;
+typedef aio_state_t_enable    aio_color_material_enable;
+typedef aio_state_t_enable    aio_cull_face_enable;
+typedef aio_state_t_enable    aio_depth_bounds_enable;
+typedef aio_state_t_enable    aio_depth_clamp_enable;
+typedef aio_state_t_enable    aio_depth_test_enable;
+typedef aio_state_t_enable    aio_dither_enable;
+typedef aio_state_t_enable    aio_fog_enable;
+typedef aio_state_t_enable    aio_light_model_local_viewer_enable;
+typedef aio_state_t_enable    aio_light_model_two_side_enable;
+typedef aio_state_t_enable    aio_line_smooth_enable;
+typedef aio_state_t_enable    aio_line_stipple_enable;
+typedef aio_state_t_enable    aio_logic_op_enable;
+typedef aio_state_t_enable    aio_multisample_enable;
+typedef aio_state_t_enable    aio_normalize_enable;
+typedef aio_state_t_enable    aio_point_smooth_enable;
+typedef aio_state_t_enable    aio_polygon_offset_fill_enable;
+typedef aio_state_t_enable    aio_polygon_offset_line_enable;
+typedef aio_state_t_enable    aio_polygon_offset_point_enable;
+typedef aio_state_t_enable    aio_polygon_smooth_enable;
+typedef aio_state_t_enable    aio_polygon_stipple_enable;
+typedef aio_state_t_enable    aio_rescale_normal_enable;
+typedef aio_state_t_enable    aio_sample_alpha_to_coverage_enable;
+typedef aio_state_t_enable    aio_sample_alpha_to_one_enable;
+typedef aio_state_t_enable    aio_sample_coverage_enable;
+typedef aio_state_t_enable    aio_scissor_test_enable;
+typedef aio_state_t_enable    aio_stencil_test_enable;
+typedef aio_state_t_enable2   aio_texture1D_enable;
+typedef aio_state_t_enable2   aio_texture2D_enable;
+typedef aio_state_t_enable2   aio_texture3D_enable;
+typedef aio_state_t_enable2   aio_textureCUBE_enable;
+typedef aio_state_t_enable2   aio_textureRECT_enable;
+typedef aio_state_t_enable2   aio_textureDEPTH_enable;
+typedef aio_state_t_enable2   aio_light_enable;
+typedef aio_state_t_enable2   aio_clip_plane_enable;
 
 #undef _AIO_RENDER_STATE_BASE_
 
