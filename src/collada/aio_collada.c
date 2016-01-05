@@ -46,6 +46,7 @@ aio_load_collada(aio_doc ** __restrict dest,
     goto err;
 
   asst_doc = aio_malloc(sizeof(*asst_doc));
+  memset(asst_doc, '\0', sizeof(*asst_doc));
 
   do {
     if (curr_node->type == XML_ELEMENT_NODE) {
