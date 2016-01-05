@@ -9,13 +9,13 @@
 #include <stdlib.h>
 
 inline
-const char *
+char *
 aio_xml_node_content(xmlNode * xml_node) {
   if (!xml_node)
     return NULL;
 
   if (!xml_node->children)
-    return (const char *)xml_node->content;
+    return (char *)xml_node->content;
 
-  return (const char *)xml_node->children->content;
+  return (char *)xml_node->children->content;
 }

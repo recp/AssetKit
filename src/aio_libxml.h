@@ -11,7 +11,7 @@
 #include <libxml/tree.h>
 
 extern
-const char *
+char *
 aio_xml_node_content(xmlNode * xml_node);
 
 #endif /* __libassetio__libxml__h_ */
