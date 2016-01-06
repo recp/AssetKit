@@ -14,10 +14,10 @@ aio_strtof(char ** __restrict src,
            unsigned long n);
 
 int
-aio_strtof_nxn(char ** __restrict src,
-               aio_float * __restrict dest,
-               unsigned long m,
-               unsigned long n);
+aio_strtomf(char ** __restrict src,
+            aio_float * __restrict dest,
+            unsigned long m,
+            unsigned long n);
 
 int
 aio_strtof_s(const char * __restrict src,

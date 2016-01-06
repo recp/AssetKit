@@ -28,10 +28,10 @@ aio_strtof(char ** __restrict src,
 }
 
 int
-aio_strtof_nxn(char ** __restrict src,
-               aio_float * __restrict dest,
-               unsigned long m,
-               unsigned long n) {
+aio_strtomf(char ** __restrict src,
+            aio_float * __restrict dest,
+            unsigned long m,
+            unsigned long n) {
   char * tok;
   unsigned long idx;
 
