@@ -375,3 +375,104 @@ aio_dae_fxEnumStencilOp(const char * name) {
 
   return val;
 }
+
+long _assetio_hide
+aio_dae_fxEnumWrap(const char * name) {
+  long val;
+  long glenums_len;
+  long i;
+
+  aio_dae_enum glenums[] = {
+    {"WRAP",        AIO_WRAP_MODE_WRAP},
+    {"CLAMP",       AIO_WRAP_MODE_CLAMP},
+    {"BORDER",      AIO_WRAP_MODE_BORDER},
+    {"MIRROR",      AIO_WRAP_MODE_MIRROR},
+    {"MIRROR_ONCE", AIO_WRAP_MODE_MIRROR_ONCE}
+  };
+
+  val = -1;
+  glenums_len = AIO_ARRAY_LEN(glenums);
+
+  for (i = 0; i < glenums_len; i++) {
+    if (strcasecmp(name, glenums[i].name) == 0) {
+      val = glenums[i].val;
+      break;
+    }
+  }
+
+  return val;
+}
+
+long _assetio_hide
+aio_dae_fxEnumMinfilter(const char * name) {
+  long val;
+  long glenums_len;
+  long i;
+
+  aio_dae_enum glenums[] = {
+    {"NEAREST",     AIO_MINFILTER_NEAREST},
+    {"LINEAR",      AIO_MINFILTER_LINEAR},
+    {"ANISOTROPIC", AIO_MINFILTER_ANISOTROPIC}
+  };
+
+  val = -1;
+  glenums_len = AIO_ARRAY_LEN(glenums);
+
+  for (i = 0; i < glenums_len; i++) {
+    if (strcasecmp(name, glenums[i].name) == 0) {
+      val = glenums[i].val;
+      break;
+    }
+  }
+
+  return val;
+}
+
+long _assetio_hide
+aio_dae_fxEnumMipfilter(const char * name) {
+  long val;
+  long glenums_len;
+  long i;
+
+  aio_dae_enum glenums[] = {
+    {"NONE",    AIO_MIPFILTER_NONE},
+    {"NEAREST", AIO_MIPFILTER_NEAREST},
+    {"LINEAR",  AIO_MIPFILTER_LINEAR}
+  };
+
+  val = -1;
+  glenums_len = AIO_ARRAY_LEN(glenums);
+
+  for (i = 0; i < glenums_len; i++) {
+    if (strcasecmp(name, glenums[i].name) == 0) {
+      val = glenums[i].val;
+      break;
+    }
+  }
+
+  return val;
+}
+
+long _assetio_hide
+aio_dae_fxEnumMagfilter(const char * name) {
+  long val;
+  long glenums_len;
+  long i;
+
+  aio_dae_enum glenums[] = {
+    {"NEAREST", AIO_MAGFILTER_NEAREST},
+    {"LINEAR",  AIO_MAGFILTER_LINEAR}
+  };
+
+  val = -1;
+  glenums_len = AIO_ARRAY_LEN(glenums);
+
+  for (i = 0; i < glenums_len; i++) {
+    if (strcasecmp(name, glenums[i].name) == 0) {
+      val = glenums[i].val;
+      break;
+    }
+  }
+
+  return val;
+}

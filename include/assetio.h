@@ -912,71 +912,39 @@ struct aio_image_instance_s {
  * samplerRECT
  * samplerStates
  */
-#define _AIO_FX_SAMPLER_COMMON                                                \
-  aio_asset_base                                                             \
-  aio_image_instance * image;                                                 \
-                                                                              \
-  struct {                                                                    \
-    const char * semantic;                                                    \
-  } texcoord;                                                                 \
-                                                                              \
-  aio_wrap_mode wrap_s;                                                       \
-  aio_wrap_mode wrap_t;                                                       \
-  aio_wrap_mode wrap_p;                                                       \
-                                                                              \
-  aio_minfilter minfilter;                                                    \
-  aio_magfilter magfilter;                                                    \
-  aio_mipfilter mipfilter;                                                    \
-                                                                              \
-  unsigned long mip_max_level;                                                \
-  unsigned long mip_min_level;                                                \
-  float         mip_bias;                                                     \
-  unsigned long max_anisotropy;                                               \
-                                                                              \
-  aio_color * border_color;                                                   \
-  aio_tree  * extra;
-
 typedef struct aio_fx_sampler_common_s aio_fx_sampler_common;
 struct aio_fx_sampler_common_s {
-  _AIO_FX_SAMPLER_COMMON
+  aio_asset_base
+  aio_image_instance * image_inst;
+
+  struct {
+    const char * semantic;
+  } texcoord;
+
+  aio_wrap_mode wrap_s;
+  aio_wrap_mode wrap_t;
+  aio_wrap_mode wrap_p;
+
+  aio_minfilter minfilter;
+  aio_magfilter magfilter;
+  aio_mipfilter mipfilter;
+
+  unsigned long mip_max_level;
+  unsigned long mip_min_level;
+  float         mip_bias;
+  unsigned long max_anisotropy;
+
+  aio_color * border_color;
+  aio_tree  * extra;
 };
 
-typedef struct aio_sampler1D_s aio_sampler1D;
-struct aio_sampler1D_s {
-  _AIO_FX_SAMPLER_COMMON
-};
-
-typedef struct aio_sampler2D_s aio_sampler2D;
-struct aio_sampler2D_s {
-  _AIO_FX_SAMPLER_COMMON
-};
-
-typedef struct aio_sampler3D_s aio_sampler3D;
-struct aio_sampler3D_s {
-  _AIO_FX_SAMPLER_COMMON
-};
-
-typedef struct aio_samplerCUBE_s aio_samplerCUBE;
-struct aio_samplerCUBE_s {
-  _AIO_FX_SAMPLER_COMMON
-};
-
-typedef struct aio_samplerDEPTH_s aio_samplerDEPTH;
-struct aio_samplerDEPTH_s {
-  _AIO_FX_SAMPLER_COMMON
-};
-
-typedef struct aio_samplerRECT_s aio_samplerRECT;
-struct aio_samplerRECT_s {
-  _AIO_FX_SAMPLER_COMMON
-};
-
-typedef struct aio_samplerStates_s aio_samplerStates;
-struct aio_samplerStates_s {
-  _AIO_FX_SAMPLER_COMMON
-};
-
-#undef _AIO_FX_SAMPLER_COMMON
+typedef aio_fx_sampler_common aio_sampler1D;
+typedef aio_fx_sampler_common aio_sampler2D;
+typedef aio_fx_sampler_common aio_sampler3D;
+typedef aio_fx_sampler_common aio_samplerCUBE;
+typedef aio_fx_sampler_common aio_samplerDEPTH;
+typedef aio_fx_sampler_common aio_samplerRECT;
+typedef aio_fx_sampler_common aio_samplerStates;
 
 typedef struct aio_fx_texture_s aio_fx_texture;
 struct aio_fx_texture_s {

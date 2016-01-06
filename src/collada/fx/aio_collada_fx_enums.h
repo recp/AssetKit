@@ -49,4 +49,16 @@ aio_dae_fxEnumShadeModel(const char * name);
 long _assetio_hide
 aio_dae_fxEnumStencilOp(const char * name);
 
+long _assetio_hide
+aio_dae_fxEnumWrap(const char * name);
+
+long _assetio_hide
+aio_dae_fxEnumMinfilter(const char * name);
+
+long _assetio_hide
+aio_dae_fxEnumMipfilter(const char * name);
+
+long _assetio_hide
+aio_dae_fxEnumMagfilter(const char * name);
+
 #endif /* __libassetio__aio_collada_fx_enums_h_ */
