@@ -47,6 +47,44 @@ aio_strtomf(char ** __restrict src,
 }
 
 int
+aio_strtomb(char ** __restrict src,
+            aio_bool * __restrict dest,
+            unsigned long m,
+            unsigned long n) {
+  char * tok;
+  unsigned long idx;
+
+  idx = m * n;
+  dest = dest + idx - 1ul;
+
+  for (tok = strtok(*src, " ");
+       tok && idx > 0ul;
+       tok = strtok(NULL, " "))
+    *(dest - --idx) = (bool)strtol(tok, NULL, 10);
+
+  return 0;
+}
+
+int
+aio_strtomi(char ** __restrict src,
+            aio_int * __restrict dest,
+            unsigned long m,
+            unsigned long n) {
+  char * tok;
+  unsigned long idx;
+
+  idx = m * n;
+  dest = dest + idx - 1ul;
+
+  for (tok = strtok(*src, " ");
+       tok && idx > 0ul;
+       tok = strtok(NULL, " "))
+    *(dest - --idx) = (aio_int)strtol(tok, NULL, 10);
+
+  return 0;
+}
+
+int
 aio_strtof_s(const char * __restrict src,
              aio_float * __restrict dest,
              unsigned long n) {

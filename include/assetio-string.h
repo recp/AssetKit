@@ -14,6 +14,18 @@ aio_strtof(char ** __restrict src,
            unsigned long n);
 
 int
+aio_strtomb(char ** __restrict src,
+            aio_bool * __restrict dest,
+            unsigned long m,
+            unsigned long n);
+
+int
+aio_strtomi(char ** __restrict src,
+            aio_int * __restrict dest,
+            unsigned long m,
+            unsigned long n);
+
+int
 aio_strtomf(char ** __restrict src,
             aio_float * __restrict dest,
             unsigned long m,
