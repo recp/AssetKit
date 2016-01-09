@@ -476,3 +476,29 @@ aio_dae_fxEnumMagfilter(const char * name) {
 
   return val;
 }
+
+long _assetio_hide
+aio_dae_fxEnumShaderStage(const char * name) {
+  long val;
+  long glenums_len;
+  long i;
+
+  aio_dae_enum glenums[] = {
+    {"VERTEX",      AIO_PIPELINE_STAGE_VERTEX},
+    {"FRAGMENT",    AIO_PIPELINE_STAGE_FRAGMENT},
+    {"TESSELATION", AIO_PIPELINE_STAGE_TESSELATION},
+    {"GEOMETRY",    AIO_PIPELINE_STAGE_GEOMETRY}
+  };
+
+  val = -1;
+  glenums_len = AIO_ARRAY_LEN(glenums);
+
+  for (i = 0; i < glenums_len; i++) {
+    if (strcasecmp(name, glenums[i].name) == 0) {
+      val = glenums[i].val;
+      break;
+    }
+  }
+
+  return val;
+}

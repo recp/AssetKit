@@ -117,6 +117,8 @@ aio_load_collada_param(xmlNode * __restrict xml_node,
   param = aio_malloc(param_size);
   memset(param, '\0', param_size);
 
+  param->param_type = param_type;
+
   curr_node = xml_node;
   curr_attr = curr_node->properties;
   param_ex  = (aio_param_extended *)param;

@@ -61,4 +61,7 @@ aio_dae_fxEnumMipfilter(const char * name);
 long _assetio_hide
 aio_dae_fxEnumMagfilter(const char * name);
 
+long _assetio_hide
+aio_dae_fxEnumShaderStage(const char * name);
+
 #endif /* __libassetio__aio_collada_fx_enums_h_ */
