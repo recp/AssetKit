@@ -92,7 +92,7 @@ aio_load_collada_technique_fx(xmlNode * __restrict xml_node,
 
         pass = NULL;
 
-        ret = aio_load_fx_pass(curr_node, &pass);
+        ret = aio_dae_fxPass(curr_node, &pass);
         if (ret == 0)
           technique_fx->pass = pass;
 

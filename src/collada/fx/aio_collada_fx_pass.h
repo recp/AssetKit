@@ -13,7 +13,7 @@
 typedef struct _xmlNode xmlNode;
 
 int _assetio_hide
-aio_load_fx_pass(xmlNode * __restrict xml_node,
-                 aio_pass ** __restrict dest);
+aio_dae_fxPass(xmlNode * __restrict xml_node,
+               aio_pass ** __restrict dest);
 
 #endif /* __libassetio__aio_collada_fx_pass_h_ */

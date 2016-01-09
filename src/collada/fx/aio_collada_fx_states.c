@@ -35,8 +35,8 @@ int _assetio_hide
 state_pair_cmp2(const void *, const void *);
 
 int _assetio_hide
-aio_load_fx_state(xmlNode * __restrict xml_node,
-                  aio_states ** __restrict dest) {
+aio_dae_fxState(xmlNode * __restrict xml_node,
+                aio_states ** __restrict dest) {
   xmlNode          * curr_node;
   aio_states       * states;
   aio_render_state * last_state;
