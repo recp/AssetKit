@@ -20,6 +20,7 @@
 #include "aio_collada_fx_blinn_phong.h"
 #include "aio_collada_fx_constant.h"
 #include "aio_collada_fx_lambert.h"
+#include "aio_collada_fx_pass.h"
 
 #include <libxml/tree.h>
 #include <libxml/parser.h>
@@ -86,6 +87,15 @@ aio_load_collada_technique_fx(xmlNode * __restrict xml_node,
 
         }
       } else if (AIO_IS_EQ_CASE(node_name, "pass")) {
+        aio_pass * pass;
+        int        ret;
+
+        pass = NULL;
+
+        ret = aio_load_fx_pass(curr_node, &pass);
+        if (ret == 0)
+          technique_fx->pass = pass;
+
       } else if (AIO_IS_EQ_CASE(node_name, "blinn")) {
         aio_blinn * blinn;
         int         ret;

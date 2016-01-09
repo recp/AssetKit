@@ -324,8 +324,8 @@ typedef time_t aio_time_t;
 #define AIO_RENDER_STATE_DEPTH_TEST_ENABLE                            0x0083
 #define AIO_RENDER_STATE_DITHER_ENABLE                                0x0084
 #define AIO_RENDER_STATE_FOG_ENABLE                                   0x0085
-#define AIO_RENDER_STATE_LIGTH_MODEL_LOCAL_VIEWER_ENABLE              0x0086
-#define AIO_RENDER_STATE_LIGTH_MODEL_TWO_SIDE_ENABLE                  0x0087
+#define AIO_RENDER_STATE_LIGHT_MODEL_LOCAL_VIEWER_ENABLE              0x0086
+#define AIO_RENDER_STATE_LIGHT_MODEL_TWO_SIDE_ENABLE                  0x0087
 #define AIO_RENDER_STATE_LINE_SMOOTH_ENABLE                           0x0088
 #define AIO_RENDER_STATE_LINE_STIPPLE_ENABLE                          0x0089
 #define AIO_RENDER_STATE_LOGIC_OP_ENABLE                              0x0090

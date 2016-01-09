@@ -123,7 +123,7 @@ aio_dae_fxSampler(xmlNode * __restrict xml_node,
       sampler->mip_max_level = strtoul(node_content, &tmp, 10);
 
       if (*tmp == '\0')
-        sampler->mip_max_level = 1.0;
+        sampler->mip_max_level = 1;
     } else if (AIO_IS_EQ_CASE(node_name, "extra")) {
       aio_tree_node * extra;
       aio_tree_node * last_extra;
