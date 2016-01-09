@@ -676,7 +676,7 @@ aio_load_collada_image_cube(xmlNode * __restrict xml_node,
             attr_val = aio_xml_node_content((xmlNode *)curr_attr);
 
             if (AIO_IS_EQ_CASE(attr_name, "width"))
-              image_cube->size.width = strtol(attr_val, NULL, 10);
+              image_cube->size.width = (aio_int)strtol(attr_val, NULL, 10);
           }
 
           curr_attr = curr_attr->next;

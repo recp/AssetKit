@@ -23,15 +23,19 @@ aio_readfile(const char * __restrict file,
   if (fstat(infile_no, &infile_st) != 0)
     goto err;
 
+#ifndef _MSC_VER
   blksize_t blksize = infile_st.st_blksize;
-  off_t fsize = infile_st.st_size;
+#else
+  size_t blksize = 512;
+#endif
 
+  size_t fsize = infile_st.st_size;
   size_t fcontents_size = sizeof(char) * fsize;
   *dest = malloc(fcontents_size + 1);
   memset(*dest + fcontents_size, '\0', 1);
 
-  off_t total_read = 0;
-  off_t nread = 0;
+  size_t total_read = 0;
+  size_t nread = 0;
   do {
     nread = fread(*dest + total_read,
                   sizeof(**dest),
@@ -56,10 +60,11 @@ aio_parse_date(const char * __restrict input,
 
   memset(&_tm, '\0', sizeof(_tm));
 
-
+#ifndef _MSC_VER
   cp = strptime(input,
                 "%Y-%m-%dT%T%Z",
                 &_tm);
+#endif
 
   if (ret)
     *ret = cp;
