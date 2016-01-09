@@ -195,9 +195,6 @@ aio_load_color_or_tex(xmlNode * __restrict xml_node,
         aio_param * last_param;
         int         ret;
 
-        aio_param_extended * h;
-        h = NULL;
-
         param = NULL;
         last_param = (aio_param *)color_or_tex->param;
         

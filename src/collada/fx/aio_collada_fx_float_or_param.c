@@ -55,9 +55,6 @@ aio_load_float_or_param(xmlNode * __restrict xml_node,
         aio_param * last_param;
         int         ret;
 
-        aio_param_extended * h;
-        h = NULL;
-
         param = NULL;
         last_param = (aio_param *)float_or_param->param;
 
