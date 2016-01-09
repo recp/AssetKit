@@ -66,7 +66,7 @@ aio_load_collada_asset(xmlNode * __restrict xml_node, ...) {
           if (curr_node->type == XML_ELEMENT_NODE) {
             const char * node_content;
 
-            node_content = aio_xml_node_content(curr_node);
+            node_content = aio_xml_content(curr_node);
 
             if (AIO_IS_EQ_CASE(node_name, "author"))
               contributor->author = aio_strdup(node_content);
@@ -120,7 +120,7 @@ aio_load_collada_asset(xmlNode * __restrict xml_node, ...) {
                 if (curr_node->type == XML_ELEMENT_NODE) {
                   const char * node_content;
 
-                  node_content = aio_xml_node_content(curr_node);
+                  node_content = aio_xml_content(curr_node);
 
                   if (AIO_IS_EQ_CASE(node_name, "longitude")) {
                     coverage->geo_loc.lng = strtod(node_content, NULL);
@@ -140,7 +140,7 @@ aio_load_collada_asset(xmlNode * __restrict xml_node, ...) {
                       if (curr_attr->type == XML_ATTRIBUTE_NODE) {
                         if (AIO_IS_EQ_CASE(attr_name, "mode")) {
                           const char * mode_str;
-                          mode_str = aio_xml_node_content((xmlNode *)curr_attr);
+                          mode_str = aio_xml_content((xmlNode *)curr_attr);
 
                           /*
                            AIO_IS_EQ_CASE(mode_str, "relativeToGround")
@@ -183,7 +183,7 @@ aio_load_collada_asset(xmlNode * __restrict xml_node, ...) {
         const char * node_content;
         time_t       created_time;
 
-        node_content = aio_xml_node_content(curr_node);
+        node_content = aio_xml_content(curr_node);
         created_time = aio_parse_date(node_content, NULL);
 
         if (load_as == _AIO_ASSET_LOAD_AS_DOCINF)
@@ -195,7 +195,7 @@ aio_load_collada_asset(xmlNode * __restrict xml_node, ...) {
         const char * node_content;
         time_t       modified_time;
 
-        node_content = aio_xml_node_content(curr_node);
+        node_content = aio_xml_content(curr_node);
         modified_time = aio_parse_date(node_content, NULL);
 
         if (load_as == _AIO_ASSET_LOAD_AS_DOCINF)
@@ -206,7 +206,7 @@ aio_load_collada_asset(xmlNode * __restrict xml_node, ...) {
       } else if (AIO_IS_EQ_CASE(node_name, "keywords")) {
         const char * node_content;
 
-        node_content = aio_xml_node_content(curr_node);
+        node_content = aio_xml_content(curr_node);
 
         if (load_as == _AIO_ASSET_LOAD_AS_DOCINF)
           (*doc_inf)->keywords = aio_strdup(node_content);
@@ -216,7 +216,7 @@ aio_load_collada_asset(xmlNode * __restrict xml_node, ...) {
       } else if (AIO_IS_EQ_CASE(node_name, "revision")) {
         const char * node_content;
 
-        node_content = aio_xml_node_content(curr_node);
+        node_content = aio_xml_content(curr_node);
 
         if (load_as == _AIO_ASSET_LOAD_AS_DOCINF)
           (*doc_inf)->revision = strtoul(node_content, NULL, 10);
@@ -226,7 +226,7 @@ aio_load_collada_asset(xmlNode * __restrict xml_node, ...) {
       } else if (AIO_IS_EQ_CASE(node_name, "subject")) {
         const char * node_content;
 
-        node_content = aio_xml_node_content(curr_node);
+        node_content = aio_xml_content(curr_node);
 
         if (load_as == _AIO_ASSET_LOAD_AS_DOCINF)
           (*doc_inf)->subject = aio_strdup(node_content);
@@ -236,7 +236,7 @@ aio_load_collada_asset(xmlNode * __restrict xml_node, ...) {
       } else if (AIO_IS_EQ_CASE(node_name, "title")) {
         const char * node_content;
 
-        node_content = aio_xml_node_content(curr_node);
+        node_content = aio_xml_content(curr_node);
 
         if (load_as == _AIO_ASSET_LOAD_AS_DOCINF)
           (*doc_inf)->title = aio_strdup(node_content);
@@ -256,12 +256,12 @@ aio_load_collada_asset(xmlNode * __restrict xml_node, ...) {
           if (curr_attr->type == XML_ATTRIBUTE_NODE) {
             if (AIO_IS_EQ_CASE(attr_name, "name")) {
               const char * unit_name;
-              unit_name = aio_xml_node_content((xmlNode *)curr_attr);
+              unit_name = aio_xml_content((xmlNode *)curr_attr);
 
               ast_unit->name = aio_strdup(unit_name);
             } else if (AIO_IS_EQ_CASE(attr_name, "meter")) {
               const char * meter_val;
-              meter_val = aio_xml_node_content((xmlNode *)curr_attr);
+              meter_val = aio_xml_content((xmlNode *)curr_attr);
 
               ast_unit->dist = strtod(meter_val, NULL);
             }
@@ -279,7 +279,7 @@ aio_load_collada_asset(xmlNode * __restrict xml_node, ...) {
         const char * node_content;
         aio_upaxis   upaxis;
 
-        node_content = aio_xml_node_content(curr_node);
+        node_content = aio_xml_content(curr_node);
 
         if (AIO_IS_EQ_CASE(node_content, "Z_UP"))
           upaxis = AIO_UP_AXIS_Z;

@@ -74,7 +74,7 @@ aio_load_collada_profile(xmlNode * __restrict xml_node,
       const char * attr_val;
 
       attr_name = (const char *)curr_attr->name;
-      attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+      attr_val = aio_xml_content((xmlNode *)curr_attr);
 
       if (AIO_IS_EQ_CASE(attr_name, "id")) {
         switch (profile_type) {
@@ -196,7 +196,7 @@ aio_load_collada_profile(xmlNode * __restrict xml_node,
             if (AIO_IS_EQ_CASE(attr_name, "sid")) {
               const char * attr_val;
 
-              attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+              attr_val = aio_xml_content((xmlNode *)curr_attr);
               code->sid = aio_strdup(attr_val);
 
               break;
@@ -207,7 +207,7 @@ aio_load_collada_profile(xmlNode * __restrict xml_node,
         } /* while */
 
 
-        node_val = aio_xml_node_content(curr_node);
+        node_val = aio_xml_content(curr_node);
         code->val = aio_strdup(node_val);
 
         switch (profile_type) {
@@ -275,12 +275,12 @@ aio_load_collada_profile(xmlNode * __restrict xml_node,
             if (AIO_IS_EQ_CASE(attr_name, "sid")) {
               const char * attr_val;
 
-              attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+              attr_val = aio_xml_content((xmlNode *)curr_attr);
               include->sid = aio_strdup(attr_val);
             } else if (AIO_IS_EQ_CASE(attr_name, "url")) {
               const char * attr_val;
 
-              attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+              attr_val = aio_xml_content((xmlNode *)curr_attr);
               include->url = aio_strdup(attr_val);
             }
           }
@@ -289,7 +289,7 @@ aio_load_collada_profile(xmlNode * __restrict xml_node,
         } /* while */
 
 
-        node_val = aio_xml_node_content(curr_node);
+        node_val = aio_xml_content(curr_node);
         if (!include->url && node_val)
           include->url = aio_strdup(node_val);
 

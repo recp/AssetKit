@@ -58,12 +58,12 @@ aio_load_collada_newparam(xmlNode * __restrict xml_node,
       } else if (AIO_IS_EQ_CASE(node_name, "semantic")) {
         const char * node_content;
 
-        node_content = aio_xml_node_content(curr_node);
+        node_content = aio_xml_content(curr_node);
         newparam->semantic = aio_strdup(node_content);
       } else if (AIO_IS_EQ_CASE(node_name, "modifier")) {
         const char * node_content;
 
-        node_content = aio_xml_node_content(curr_node);
+        node_content = aio_xml_content(curr_node);
 
         newparam->modifier = strtol(node_content, NULL, 10);
       }
@@ -128,7 +128,7 @@ aio_load_collada_param(xmlNode * __restrict xml_node,
       const char * attr_val;
 
       attr_name = (const char *)curr_attr->name;
-      attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+      attr_val = aio_xml_content((xmlNode *)curr_attr);
 
       if (AIO_IS_EQ_CASE(attr_name, "ref"))
         param_ex->val = aio_strdup(attr_val);
@@ -148,7 +148,7 @@ aio_load_collada_param(xmlNode * __restrict xml_node,
   
   curr_attr = NULL;
 
-  node_content = aio_xml_node_content(curr_node);
+  node_content = aio_xml_content(curr_node);
   if (node_content && strlen(node_content) > 0)
     param_ex->val = node_content;
 

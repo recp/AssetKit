@@ -87,7 +87,7 @@ aio_tree_load_from_xml(xmlNode * __restrict xml_node,
           tree_node_attr->name = aio_malloc(sizeof(*tree_node_attr->name));
           strcpy((char *)tree_node_attr->name, xml_attr_name);
 
-          tree_attr_val = aio_xml_node_content((xmlNode *)xml_curr_attr);
+          tree_attr_val = aio_xml_content((xmlNode *)xml_curr_attr);
 
           tree_node_attr->val = aio_malloc(sizeof(*tree_node_attr->val));
           strcpy(tree_node_attr->val, tree_attr_val);

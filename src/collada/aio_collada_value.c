@@ -32,7 +32,7 @@ aio_load_collada_value(xmlNode * __restrict xml_node,
 
   node_name = (const char *)xml_node->name;
 
-  node_content = aio_xml_node_content(xml_node);
+  node_content = aio_xml_content(xml_node);
 
   if (AIO_IS_EQ_CASE(node_name, "string")) {
     char * val;

@@ -7,7 +7,6 @@
 
 #include "aio_collada_fx_sampler.h"
 
-
 #include "../../aio_libxml.h"
 #include "../../aio_types.h"
 #include "../../aio_memory.h"
@@ -62,7 +61,7 @@ aio_dae_fxSampler(xmlNode * __restrict xml_node,
         const char * attr_val;
 
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
 
         if (AIO_IS_EQ_CASE(attr_name, "texture")) {
           sampler->texcoord.semantic = aio_strdup(attr_val);
@@ -71,27 +70,27 @@ aio_dae_fxSampler(xmlNode * __restrict xml_node,
       }
     } else if (AIO_IS_EQ_CASE(node_name, "wrap_s")) {
       char * node_content;
-      node_content = aio_xml_node_content(curr_node);
+      node_content = aio_xml_content(curr_node);
       sampler->wrap_s = aio_dae_fxEnumWrap(node_content);
     } else if (AIO_IS_EQ_CASE(node_name, "wrap_t")) {
       char * node_content;
-      node_content = aio_xml_node_content(curr_node);
+      node_content = aio_xml_content(curr_node);
       sampler->wrap_t = aio_dae_fxEnumWrap(node_content);
     } else if (AIO_IS_EQ_CASE(node_name, "wrap_p")) {
       char * node_content;
-      node_content = aio_xml_node_content(curr_node);
+      node_content = aio_xml_content(curr_node);
       sampler->wrap_p = aio_dae_fxEnumWrap(node_content);
     } else if (AIO_IS_EQ_CASE(node_name, "minfilter")) {
       char * node_content;
-      node_content = aio_xml_node_content(curr_node);
+      node_content = aio_xml_content(curr_node);
       sampler->minfilter = aio_dae_fxEnumMinfilter(node_content);
     } else if (AIO_IS_EQ_CASE(node_name, "magfilter")) {
       char * node_content;
-      node_content = aio_xml_node_content(curr_node);
+      node_content = aio_xml_content(curr_node);
       sampler->magfilter = aio_dae_fxEnumMagfilter(node_content);
     } else if (AIO_IS_EQ_CASE(node_name, "mipfilter")) {
       char * node_content;
-      node_content = aio_xml_node_content(curr_node);
+      node_content = aio_xml_content(curr_node);
       sampler->mipfilter = aio_dae_fxEnumMipfilter(node_content);
     } else if (AIO_IS_EQ_CASE(node_name, "border_color")) {
       aio_color * color;
@@ -101,24 +100,24 @@ aio_dae_fxSampler(xmlNode * __restrict xml_node,
       aio_dae_color(curr_node, color);
     } else if (AIO_IS_EQ_CASE(node_name, "mip_max_level")) {
       char * node_content;
-      node_content = aio_xml_node_content(curr_node);
+      node_content = aio_xml_content(curr_node);
 
       sampler->mip_max_level = strtoul(node_content, NULL, 10);
     } else if (AIO_IS_EQ_CASE(node_name, "mip_min_level")) {
       char * node_content;
-      node_content = aio_xml_node_content(curr_node);
+      node_content = aio_xml_content(curr_node);
 
       sampler->mip_max_level = strtoul(node_content, NULL, 10);
     } else if (AIO_IS_EQ_CASE(node_name, "mip_bias")) {
       char * node_content;
-      node_content = aio_xml_node_content(curr_node);
+      node_content = aio_xml_content(curr_node);
 
       sampler->mip_max_level = strtoul(node_content, NULL, 10);
     } else if (AIO_IS_EQ_CASE(node_name, "max_anisotropy")) {
       char * node_content;
       char * tmp;
 
-      node_content = aio_xml_node_content(curr_node);
+      node_content = aio_xml_content(curr_node);
 
       sampler->mip_max_level = strtoul(node_content, &tmp, 10);
 

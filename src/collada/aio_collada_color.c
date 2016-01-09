@@ -39,7 +39,7 @@ aio_dae_color(xmlNode * __restrict xml_node,
   color_vec = dest->vec;
   color_comp_idx = 0;
 
-  color_comp = strtok(aio_xml_node_content(xml_node), " ");
+  color_comp = strtok(aio_xml_content(xml_node), " ");
   color_vec[color_comp_idx] = strtof(color_comp, NULL);
 
   while (color_comp && ++color_comp_idx < 4) {

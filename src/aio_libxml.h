@@ -12,6 +12,6 @@
 
 extern
 char *
-aio_xml_node_content(xmlNode * xml_node);
+aio_xml_content(xmlNode * xml_node);
 
 #endif /* __libassetio__libxml__h_ */

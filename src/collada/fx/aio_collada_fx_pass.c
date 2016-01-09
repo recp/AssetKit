@@ -40,7 +40,7 @@ aio_dae_fxPass(xmlNode * __restrict xml_node,
     const char * attr_val;
 
     attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+    attr_val = aio_xml_content((xmlNode *)curr_attr);
 
     if (AIO_IS_EQ_CASE(attr_name, "sid")) {
       pass->sid = aio_strdup(attr_val);

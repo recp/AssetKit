@@ -55,7 +55,7 @@ aio_dae_fxState_enum(xmlNode * __restrict xml_node,
     const char * attr_val;
 
     attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+    attr_val = aio_xml_content((xmlNode *)curr_attr);
 
     if (AIO_IS_EQ_CASE(attr_name, "value")) {
       long val;
@@ -97,7 +97,7 @@ aio_dae_fxState_bool4(xmlNode * __restrict xml_node,
     char * attr_val;
 
     attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+    attr_val = aio_xml_content((xmlNode *)curr_attr);
 
     if (AIO_IS_EQ_CASE(attr_name, "value")) {
       if (!attr_val && defaultVal)
@@ -136,7 +136,7 @@ aio_dae_fxState_int2(xmlNode * __restrict xml_node,
     char * attr_val;
 
     attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+    attr_val = aio_xml_content((xmlNode *)curr_attr);
 
     if (AIO_IS_EQ_CASE(attr_name, "value")) {
       if (!attr_val && defaultVal)
@@ -175,7 +175,7 @@ aio_dae_fxState_int4(xmlNode * __restrict xml_node,
     char * attr_val;
 
     attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+    attr_val = aio_xml_content((xmlNode *)curr_attr);
 
     if (AIO_IS_EQ_CASE(attr_name, "value")) {
       if (!attr_val && defaultVal)
@@ -213,7 +213,7 @@ aio_dae_fxState_ul(xmlNode * __restrict xml_node,
     const char * attr_val;
 
     attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+    attr_val = aio_xml_content((xmlNode *)curr_attr);
 
     if (AIO_IS_EQ_CASE(attr_name, "value")) {
       long val;
@@ -255,7 +255,7 @@ aio_dae_fxState_ul_i(xmlNode * __restrict xml_node,
     const char * attr_val;
 
     attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+    attr_val = aio_xml_content((xmlNode *)curr_attr);
 
     if (AIO_IS_EQ_CASE(attr_name, "value")) {
       long val;
@@ -299,7 +299,7 @@ aio_dae_fxState_float(xmlNode * __restrict xml_node,
     char * attr_val;
 
     attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+    attr_val = aio_xml_content((xmlNode *)curr_attr);
 
     if (AIO_IS_EQ_CASE(attr_name, "value")) {
       if (!attr_val)
@@ -337,7 +337,7 @@ aio_dae_fxState_float_i(xmlNode * __restrict xml_node,
     char * attr_val;
 
     attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+    attr_val = aio_xml_content((xmlNode *)curr_attr);
 
     if (AIO_IS_EQ_CASE(attr_name, "value")) {
       if (!attr_val)
@@ -378,7 +378,7 @@ aio_dae_fxState_float2(xmlNode * __restrict xml_node,
     char * attr_val;
 
     attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+    attr_val = aio_xml_content((xmlNode *)curr_attr);
 
     if (AIO_IS_EQ_CASE(attr_name, "value")) {
       if (!attr_val && defaultVal)
@@ -417,7 +417,7 @@ aio_dae_fxState_float3(xmlNode * __restrict xml_node,
     char * attr_val;
 
     attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+    attr_val = aio_xml_content((xmlNode *)curr_attr);
 
     if (AIO_IS_EQ_CASE(attr_name, "value")) {
       if (!attr_val && defaultVal)
@@ -456,7 +456,7 @@ aio_dae_fxState_float3_i(xmlNode * __restrict xml_node,
     char * attr_val;
 
     attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+    attr_val = aio_xml_content((xmlNode *)curr_attr);
 
     if (AIO_IS_EQ_CASE(attr_name, "value")) {
       if (!attr_val && defaultVal)
@@ -497,7 +497,7 @@ aio_dae_fxState_float4(xmlNode * __restrict xml_node,
     char * attr_val;
 
     attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+    attr_val = aio_xml_content((xmlNode *)curr_attr);
 
     if (AIO_IS_EQ_CASE(attr_name, "value")) {
       if (!attr_val && defaultVal)
@@ -536,7 +536,7 @@ aio_dae_fxState_float4_i(xmlNode * __restrict xml_node,
     char * attr_val;
 
     attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+    attr_val = aio_xml_content((xmlNode *)curr_attr);
 
     if (AIO_IS_EQ_CASE(attr_name, "value")) {
       if (!attr_val && defaultVal)
@@ -577,7 +577,7 @@ aio_dae_fxState_float4x4(xmlNode * __restrict xml_node,
     char * attr_val;
 
     attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+    attr_val = aio_xml_content((xmlNode *)curr_attr);
 
     if (AIO_IS_EQ_CASE(attr_name, "value")) {
       if (!attr_val && defaultVal)
@@ -615,7 +615,7 @@ aio_dae_fxState_sampler(xmlNode * __restrict xml_node,
     char * attr_val;
 
     attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+    attr_val = aio_xml_content((xmlNode *)curr_attr);
 
     if (AIO_IS_EQ_CASE(attr_name, "index")) {
       state->index = strtol(attr_val, NULL, 10);
@@ -642,7 +642,7 @@ aio_dae_fxState_sampler(xmlNode * __restrict xml_node,
     } else if (AIO_IS_EQ_CASE(node_name, "param")) {
       char * node_content;
 
-      node_content = aio_xml_node_content(curr_node);
+      node_content = aio_xml_content(curr_node);
       state->param = aio_strdup(node_content);
     }
   }
@@ -672,7 +672,7 @@ aio_dae_fxState_str(xmlNode * __restrict xml_node,
     char * attr_val;
 
     attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+    attr_val = aio_xml_content((xmlNode *)curr_attr);
 
     if (AIO_IS_EQ_CASE(attr_name, "value")) {
       state->val = aio_strdup(attr_val);
@@ -717,7 +717,7 @@ aio_dae_fxStateAlphaFunc(xmlNode * __restrict xml_node,
         const char * attr_val;
 
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
 
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           long val;
@@ -742,7 +742,7 @@ aio_dae_fxStateAlphaFunc(xmlNode * __restrict xml_node,
         const char * attr_val;
 
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
 
         if (AIO_IS_EQ_CASE(attr_name, "value"))
           state->val.val = strtof(attr_val, NULL);
@@ -786,7 +786,7 @@ aio_dae_fxStateBlend(xmlNode * __restrict xml_node,
         const char * attr_val;
 
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
 
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           long val;
@@ -811,7 +811,7 @@ aio_dae_fxStateBlend(xmlNode * __restrict xml_node,
         const char * attr_val;
 
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
 
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           long val;
@@ -862,7 +862,7 @@ aio_dae_fxStateBlendSep(xmlNode * __restrict xml_node,
         const char * attr_val;
 
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
 
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           long val;
@@ -887,7 +887,7 @@ aio_dae_fxStateBlendSep(xmlNode * __restrict xml_node,
         const char * attr_val;
 
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
 
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           long val;
@@ -911,7 +911,7 @@ aio_dae_fxStateBlendSep(xmlNode * __restrict xml_node,
         const char * attr_val;
 
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
 
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           long val;
@@ -936,7 +936,7 @@ aio_dae_fxStateBlendSep(xmlNode * __restrict xml_node,
         const char * attr_val;
 
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
 
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           long val;
@@ -987,7 +987,7 @@ aio_dae_fxStateBlendEqSep(xmlNode * __restrict xml_node,
         const char * attr_val;
 
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
 
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           long val;
@@ -1012,7 +1012,7 @@ aio_dae_fxStateBlendEqSep(xmlNode * __restrict xml_node,
         const char * attr_val;
 
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
 
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           long val;
@@ -1063,7 +1063,7 @@ aio_dae_fxStateColorMaterial(xmlNode * __restrict xml_node,
         const char * attr_val;
 
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
 
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           long val;
@@ -1088,7 +1088,7 @@ aio_dae_fxStateColorMaterial(xmlNode * __restrict xml_node,
         const char * attr_val;
 
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
 
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           long val;
@@ -1139,7 +1139,7 @@ aio_dae_fxStatePolyMode(xmlNode * __restrict xml_node,
         const char * attr_val;
 
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
 
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           long val;
@@ -1164,7 +1164,7 @@ aio_dae_fxStatePolyMode(xmlNode * __restrict xml_node,
         const char * attr_val;
 
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
 
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           long val;
@@ -1215,7 +1215,7 @@ aio_dae_fxStateStencilFunc(xmlNode * __restrict xml_node,
         const char * attr_val;
 
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
 
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           long val;
@@ -1240,7 +1240,7 @@ aio_dae_fxStateStencilFunc(xmlNode * __restrict xml_node,
         const char * attr_val;
 
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
 
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           state->ref.val = strtoul(attr_val, NULL, 10);
@@ -1258,7 +1258,7 @@ aio_dae_fxStateStencilFunc(xmlNode * __restrict xml_node,
         const char * attr_val;
 
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
 
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           char * tmp;
@@ -1310,7 +1310,7 @@ aio_dae_fxStateStencilOp(xmlNode * __restrict xml_node,
         const char * attr_val;
 
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
 
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           long val;
@@ -1335,7 +1335,7 @@ aio_dae_fxStateStencilOp(xmlNode * __restrict xml_node,
         const char * attr_val;
 
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
 
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           long val;
@@ -1359,7 +1359,7 @@ aio_dae_fxStateStencilOp(xmlNode * __restrict xml_node,
         const char * attr_val;
 
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
 
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           long val;
@@ -1411,7 +1411,7 @@ aio_dae_fxStateStencilFuncSep(xmlNode * __restrict xml_node,
         const char * attr_val;
 
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
 
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           long val;
@@ -1436,7 +1436,7 @@ aio_dae_fxStateStencilFuncSep(xmlNode * __restrict xml_node,
         const char * attr_val;
 
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
 
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           long val;
@@ -1460,7 +1460,7 @@ aio_dae_fxStateStencilFuncSep(xmlNode * __restrict xml_node,
         const char * attr_val;
 
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
 
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           state->ref.val = strtoul(attr_val, NULL, 10);
@@ -1478,7 +1478,7 @@ aio_dae_fxStateStencilFuncSep(xmlNode * __restrict xml_node,
         const char * attr_val;
 
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
 
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           char * tmp;
@@ -1531,7 +1531,7 @@ aio_dae_fxStateStencilOpSep(xmlNode * __restrict xml_node,
         const char * attr_val;
 
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
 
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           long val;
@@ -1556,7 +1556,7 @@ aio_dae_fxStateStencilOpSep(xmlNode * __restrict xml_node,
         const char * attr_val;
 
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
 
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           long val;
@@ -1580,7 +1580,7 @@ aio_dae_fxStateStencilOpSep(xmlNode * __restrict xml_node,
         const char * attr_val;
 
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
 
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           long val;
@@ -1604,7 +1604,7 @@ aio_dae_fxStateStencilOpSep(xmlNode * __restrict xml_node,
         const char * attr_val;
 
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
 
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           long val;
@@ -1656,7 +1656,7 @@ aio_dae_fxStateStencilMaskSep(xmlNode * __restrict xml_node,
         const char * attr_val;
         
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
         
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           long val;
@@ -1681,7 +1681,7 @@ aio_dae_fxStateStencilMaskSep(xmlNode * __restrict xml_node,
         const char * attr_val;
         
         attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
         
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           char * tmp;

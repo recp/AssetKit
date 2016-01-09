@@ -10,7 +10,7 @@
 
 inline
 char *
-aio_xml_node_content(xmlNode * xml_node) {
+aio_xml_content(xmlNode * xml_node) {
   if (!xml_node)
     return NULL;
 

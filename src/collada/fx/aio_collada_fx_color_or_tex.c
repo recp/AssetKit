@@ -40,7 +40,7 @@ aio_load_color_or_tex(xmlNode * __restrict xml_node,
       const char * attr_val;
 
       attr_name = (const char *)curr_attr->name;
-      attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+      attr_val = aio_xml_content((xmlNode *)curr_attr);
 
       if (AIO_IS_EQ_CASE(attr_name, "opaque")) {
         long opaque;
@@ -97,7 +97,7 @@ aio_load_color_or_tex(xmlNode * __restrict xml_node,
         color_vec = color->vec;
         color_comp_idx = 0;
 
-        node_content = aio_xml_node_content(curr_node);
+        node_content = aio_xml_content(curr_node);
         node_content_dup = strdup(node_content);
 
         color_comp = strtok(node_content_dup, " ");
@@ -138,7 +138,7 @@ aio_load_color_or_tex(xmlNode * __restrict xml_node,
             const char * attr_val;
 
             attr_name = (const char *)curr_attr->name;
-            attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+            attr_val = aio_xml_content((xmlNode *)curr_attr);
 
             if (AIO_IS_EQ_CASE(attr_name, "texture"))
               tex->texture = aio_strdup(attr_val);

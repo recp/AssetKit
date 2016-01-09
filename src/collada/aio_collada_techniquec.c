@@ -58,7 +58,7 @@ aio_load_collada_techniquec(xmlNode * __restrict xml_node,
             const char * node_content;
             double       node_val;
             
-            node_content = aio_xml_node_content(curr_node);
+            node_content = aio_xml_content(curr_node);
 
             if (node_content)
               node_val = strtod(node_content, NULL);
@@ -167,7 +167,7 @@ aio_load_collada_techniquec(xmlNode * __restrict xml_node,
             const char * node_content;
             double       node_val;
 
-            node_content = aio_xml_node_content(curr_node);
+            node_content = aio_xml_content(curr_node);
 
             if (node_content)
               node_val = strtod(node_content, NULL);
@@ -277,7 +277,7 @@ aio_load_collada_techniquec(xmlNode * __restrict xml_node,
           if (curr_node->type == XML_ELEMENT_NODE) {
             const char * node_content;
 
-            node_content = aio_xml_node_content(curr_node);
+            node_content = aio_xml_content(curr_node);
 
             if (AIO_IS_EQ_CASE(node_name, "color")) {
               char  * sid;
@@ -344,7 +344,7 @@ aio_load_collada_techniquec(xmlNode * __restrict xml_node,
           if (curr_node->type == XML_ELEMENT_NODE) {
             const char * node_content;
 
-            node_content = aio_xml_node_content(curr_node);
+            node_content = aio_xml_content(curr_node);
 
             if (AIO_IS_EQ_CASE(node_name, "color")) {
               char  * sid;
@@ -411,7 +411,7 @@ aio_load_collada_techniquec(xmlNode * __restrict xml_node,
           if (curr_node->type == XML_ELEMENT_NODE) {
             const char * node_content;
 
-            node_content = aio_xml_node_content(curr_node);
+            node_content = aio_xml_content(curr_node);
 
             if (AIO_IS_EQ_CASE(node_name, "color")) {
               char  * sid;
@@ -456,7 +456,7 @@ aio_load_collada_techniquec(xmlNode * __restrict xml_node,
               char            * sid;
               double            node_val;
 
-              node_content = aio_xml_node_content(curr_node);
+              node_content = aio_xml_content(curr_node);
 
               if (node_content)
                 node_val = strtod(node_content, NULL);
@@ -479,7 +479,7 @@ aio_load_collada_techniquec(xmlNode * __restrict xml_node,
               char            * sid;
               double            node_val;
 
-              node_content = aio_xml_node_content(curr_node);
+              node_content = aio_xml_content(curr_node);
 
               if (node_content)
                 node_val = strtod(node_content, NULL);
@@ -502,7 +502,7 @@ aio_load_collada_techniquec(xmlNode * __restrict xml_node,
               char            * sid;
               double            node_val;
 
-              node_content = aio_xml_node_content(curr_node);
+              node_content = aio_xml_content(curr_node);
 
               if (node_content)
                 node_val = strtod(node_content, NULL);
@@ -547,7 +547,7 @@ aio_load_collada_techniquec(xmlNode * __restrict xml_node,
           if (curr_node->type == XML_ELEMENT_NODE) {
             const char * node_content;
 
-            node_content = aio_xml_node_content(curr_node);
+            node_content = aio_xml_content(curr_node);
 
             if (AIO_IS_EQ_CASE(node_name, "color")) {
               char  * sid;
@@ -592,7 +592,7 @@ aio_load_collada_techniquec(xmlNode * __restrict xml_node,
               char            * sid;
               double            node_val;
 
-              node_content = aio_xml_node_content(curr_node);
+              node_content = aio_xml_content(curr_node);
 
               if (node_content)
                 node_val = strtod(node_content, NULL);
@@ -615,7 +615,7 @@ aio_load_collada_techniquec(xmlNode * __restrict xml_node,
               char            * sid;
               double            node_val;
 
-              node_content = aio_xml_node_content(curr_node);
+              node_content = aio_xml_content(curr_node);
 
               if (node_content)
                 node_val = strtod(node_content, NULL);
@@ -638,7 +638,7 @@ aio_load_collada_techniquec(xmlNode * __restrict xml_node,
               char            * sid;
               double            node_val;
 
-              node_content = aio_xml_node_content(curr_node);
+              node_content = aio_xml_content(curr_node);
 
               if (node_content)
                 node_val = strtod(node_content, NULL);
@@ -661,7 +661,7 @@ aio_load_collada_techniquec(xmlNode * __restrict xml_node,
               char            * sid;
               double            node_val;
 
-              node_content = aio_xml_node_content(curr_node);
+              node_content = aio_xml_content(curr_node);
 
               if (node_content)
                 node_val = strtod(node_content, NULL);
@@ -684,7 +684,7 @@ aio_load_collada_techniquec(xmlNode * __restrict xml_node,
               char            * sid;
               double            node_val;
 
-              node_content = aio_xml_node_content(curr_node);
+              node_content = aio_xml_content(curr_node);
 
               if (node_content)
                 node_val = strtod(node_content, NULL);

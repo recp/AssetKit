@@ -33,7 +33,7 @@ aio_xml_collada_read_attr(xmlNode * __restrict xml_node,
       if (AIO_IS_EQ_CASE(curr_attr_name, attr_name)) {
         const char * attr_val;
 
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
         *val = aio_strdup(attr_val);
 
         /* single attr */
@@ -61,12 +61,12 @@ aio_xml_collada_read_id_name(xmlNode * __restrict xml_node,
       if (AIO_IS_EQ_CASE(curr_attr_name, "id")) {
         const char * attr_val;
 
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
         *id = aio_strdup(attr_val);
       } else if (AIO_IS_EQ_CASE(curr_attr_name, "name")) {
         const char * attr_val;
 
-        attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+        attr_val = aio_xml_content((xmlNode *)curr_attr);
         *name = aio_strdup(attr_val);
       }
     } /* if elm */

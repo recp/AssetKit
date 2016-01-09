@@ -65,7 +65,7 @@ aio_load_collada_image(xmlNode * __restrict xml_node,
       const char * attr_val;
 
       attr_name = (const char *)curr_attr->name;
-      attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+      attr_val = aio_xml_content((xmlNode *)curr_attr);
 
       if (AIO_IS_EQ_CASE(attr_name, "id"))
         image->id = aio_strdup(attr_val);
@@ -102,7 +102,7 @@ aio_load_collada_image(xmlNode * __restrict xml_node,
             const char * attr_val;
 
             attr_name = (const char *)curr_attr->name;
-            attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+            attr_val = aio_xml_content((xmlNode *)curr_attr);
 
             if (AIO_IS_EQ_CASE(attr_name, "share")) {
               if (AIO_IS_EQ_CASE(attr_val, "true"))
@@ -189,7 +189,7 @@ aio_load_collada_image_init_from(xmlNode * __restrict xml_node,
       const char * attr_val;
 
       attr_name = (const char *)curr_attr->name;
-      attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+      attr_val = aio_xml_content((xmlNode *)curr_attr);
 
       if (AIO_IS_EQ_CASE(attr_name, "mips_generate"))
         init_from->mips_generate = (int)strtol(attr_val, NULL, 10);
@@ -230,7 +230,7 @@ aio_load_collada_image_init_from(xmlNode * __restrict xml_node,
       if (AIO_IS_EQ_CASE(node_name, "ref")) {
         const char * node_content;
 
-        node_content = aio_xml_node_content(curr_node);
+        node_content = aio_xml_content(curr_node);
         init_from->ref = aio_strdup(node_content);
 
       } else if (AIO_IS_EQ_CASE(node_name, "hex")) {
@@ -240,7 +240,7 @@ aio_load_collada_image_init_from(xmlNode * __restrict xml_node,
         hex = aio_malloc(sizeof(*hex));
         memset(hex, '\0', sizeof(*hex));
 
-        node_content = aio_xml_node_content(curr_node);
+        node_content = aio_xml_content(curr_node);
 
         curr_attr = curr_node->properties;
 
@@ -250,7 +250,7 @@ aio_load_collada_image_init_from(xmlNode * __restrict xml_node,
             const char * attr_val;
 
             attr_name = (const char *)curr_attr->name;
-            attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+            attr_val = aio_xml_content((xmlNode *)curr_attr);
 
             if (AIO_IS_EQ_CASE(attr_name, "format")) {
               hex->format = aio_strdup(attr_val);
@@ -318,7 +318,7 @@ aio_load_collada_image_format(xmlNode * __restrict xml_node,
             const char * attr_val;
 
             attr_name = (const char *)curr_attr->name;
-            attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+            attr_val = aio_xml_content((xmlNode *)curr_attr);
 
             if (AIO_IS_EQ_CASE(attr_name, "channels")) {
 
@@ -371,7 +371,7 @@ aio_load_collada_image_format(xmlNode * __restrict xml_node,
       } else if (AIO_IS_EQ_CASE(node_name, "exact")) {
         const char * node_content;
 
-        node_content = aio_xml_node_content(curr_node);
+        node_content = aio_xml_content(curr_node);
         format->exact = aio_strdup(node_content);
       }
     }
@@ -417,7 +417,7 @@ aio_load_collada_image_2d(xmlNode * __restrict xml_node,
             const char * attr_val;
 
             attr_name = (const char *)curr_attr->name;
-            attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+            attr_val = aio_xml_content((xmlNode *)curr_attr);
 
             if (AIO_IS_EQ_CASE(attr_name, "width"))
               size_exact->width = strtof(attr_val, NULL);
@@ -445,7 +445,7 @@ aio_load_collada_image_2d(xmlNode * __restrict xml_node,
             const char * attr_val;
 
             attr_name = (const char *)curr_attr->name;
-            attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+            attr_val = aio_xml_content((xmlNode *)curr_attr);
 
             if (AIO_IS_EQ_CASE(attr_name, "width"))
               size_ratio->height = strtof(attr_val, NULL);
@@ -472,7 +472,7 @@ aio_load_collada_image_2d(xmlNode * __restrict xml_node,
             const char * attr_val;
 
             attr_name = (const char *)curr_attr->name;
-            attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+            attr_val = aio_xml_content((xmlNode *)curr_attr);
 
             if (AIO_IS_EQ_CASE(attr_name, "levels"))
               mips->levels = (aio_uint)strtol(attr_val, NULL, 10);
@@ -487,7 +487,7 @@ aio_load_collada_image_2d(xmlNode * __restrict xml_node,
       } else if (AIO_IS_EQ_CASE(node_name, "unnormalized")) {
         const char * node_content;
 
-        node_content = aio_xml_node_content(curr_node);
+        node_content = aio_xml_content(curr_node);
         image2d->unnormalized = aio_strdup(node_content);
       } else if (AIO_IS_EQ_CASE(node_name, "array")) {
         xmlAttr    * curr_attr;
@@ -500,7 +500,7 @@ aio_load_collada_image_2d(xmlNode * __restrict xml_node,
             const char * attr_val;
 
             attr_name = (const char *)curr_attr->name;
-            attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+            attr_val = aio_xml_content((xmlNode *)curr_attr);
 
             if (AIO_IS_EQ_CASE(attr_name, "length")) {
               image2d->array_len = strtol(attr_val, NULL, 10);
@@ -564,7 +564,7 @@ aio_load_collada_image_3d(xmlNode * __restrict xml_node,
             const char * attr_val;
 
             attr_name = (const char *)curr_attr->name;
-            attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+            attr_val = aio_xml_content((xmlNode *)curr_attr);
 
             if (AIO_IS_EQ_CASE(attr_name, "width"))
               image3d->size.width = (aio_int)strtol(attr_val, NULL, 10);
@@ -588,7 +588,7 @@ aio_load_collada_image_3d(xmlNode * __restrict xml_node,
             const char * attr_val;
 
             attr_name = (const char *)curr_attr->name;
-            attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+            attr_val = aio_xml_content((xmlNode *)curr_attr);
 
             if (AIO_IS_EQ_CASE(attr_name, "levels"))
               image3d->mips.levels = (int)strtol(attr_val, NULL, 10);
@@ -609,7 +609,7 @@ aio_load_collada_image_3d(xmlNode * __restrict xml_node,
             const char * attr_val;
 
             attr_name = (const char *)curr_attr->name;
-            attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+            attr_val = aio_xml_content((xmlNode *)curr_attr);
 
             if (AIO_IS_EQ_CASE(attr_name, "length")) {
               image3d->array_len = strtol(attr_val, NULL, 10);
@@ -673,7 +673,7 @@ aio_load_collada_image_cube(xmlNode * __restrict xml_node,
             const char * attr_val;
 
             attr_name = (const char *)curr_attr->name;
-            attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+            attr_val = aio_xml_content((xmlNode *)curr_attr);
 
             if (AIO_IS_EQ_CASE(attr_name, "width"))
               image_cube->size.width = (aio_int)strtol(attr_val, NULL, 10);
@@ -693,7 +693,7 @@ aio_load_collada_image_cube(xmlNode * __restrict xml_node,
             const char * attr_val;
 
             attr_name = (const char *)curr_attr->name;
-            attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+            attr_val = aio_xml_content((xmlNode *)curr_attr);
 
             if (AIO_IS_EQ_CASE(attr_name, "levels"))
               image_cube->mips.levels = (int)strtol(attr_val, NULL, 10);
@@ -714,7 +714,7 @@ aio_load_collada_image_cube(xmlNode * __restrict xml_node,
             const char * attr_val;
 
             attr_name = (const char *)curr_attr->name;
-            attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+            attr_val = aio_xml_content((xmlNode *)curr_attr);
 
             if (AIO_IS_EQ_CASE(attr_name, "length")) {
               image_cube->array_len = strtol(attr_val, NULL, 10);
@@ -770,7 +770,7 @@ aio_load_collada_image_instance(xmlNode * __restrict xml_node,
       const char * attr_val;
 
       attr_name = (const char *)curr_attr->name;
-      attr_val = aio_xml_node_content((xmlNode *)curr_attr);
+      attr_val = aio_xml_content((xmlNode *)curr_attr);
 
       if (AIO_IS_EQ_CASE(attr_name, "url"))
         image_instance->url = aio_strdup(attr_val);
