@@ -100,18 +100,18 @@ aio_dae_fxShader(xmlNode * __restrict xml_node,
            curr_node = curr_node->next) {
         node_name = (const char *)curr_node->name;
         if (AIO_IS_EQ_CASE(node_name, "inline")) {
-          aio_inline * _inline;
+          aio_inline * n_inline;
 
-          _inline = aio_malloc(sizeof(*_inline));
-          memset(_inline, '\0', sizeof(*_inline));
+          n_inline = aio_malloc(sizeof(*n_inline));
+          memset(n_inline, '\0', sizeof(*n_inline));
 
-          _inline->val = aio_strdup(aio_xml_content(curr_node));
+          n_inline->val = aio_strdup(aio_xml_content(curr_node));
            if (last_inline)
-             last_inline->next = _inline;
+             last_inline->next = n_inline;
            else
-             sources->inlines = _inline;
+             sources->inlines = n_inline;
 
-          last_inline = _inline;
+          last_inline = n_inline;
         } else if (AIO_IS_EQ_CASE(node_name, "import")) {
           aio_import * _import;
 
