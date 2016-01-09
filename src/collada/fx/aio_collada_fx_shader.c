@@ -194,8 +194,14 @@ aio_dae_fxShader(xmlNode * __restrict xml_node,
       bind_uniform = NULL;
       ret = aio_dae_fxBindUniform(curr_node, &bind_uniform);
 
-      if (ret == 0)
-        shader->bind_uniform = bind_uniform;
+      if (ret == 0) {
+        if (last_bind_uniform)
+          last_bind_uniform->next = bind_uniform;
+        else
+          shader->bind_uniform = bind_uniform;
+
+        last_bind_uniform = bind_uniform;
+      }
 
     } else if (AIO_IS_EQ_CASE(node_name, "extra")) {
       _AIO_TREE_LOAD_TO(curr_node->children,

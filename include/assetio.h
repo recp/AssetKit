@@ -1167,7 +1167,6 @@ struct aio_binary_s {
   const char * ref;
   aio_hex_data * hex;
 
-  aio_binary * prev;
   aio_binary * next;
 };
 
@@ -1199,7 +1198,7 @@ struct aio_bind_attrib_s {
   const char * symbol;
   const char * semantic;
 
-  aio_bind_uniform * next;
+  aio_bind_attrib * next;
 };
 
 typedef struct aio_shader_s aio_shader;
