@@ -1074,37 +1074,15 @@ struct aio_states_s {
   long               count;
 };
 
-typedef struct aio_color_target_s aio_color_target;
-struct aio_color_target {
+typedef struct aio_evaluate_target_s aio_evaluate_target;
+struct aio_evaluate_target_s {
   unsigned long index;
   unsigned long slice;
   unsigned long mip;
   aio_face      face;
 
   aio_param          * param;
-  aio_image_instance * image_instance;
-};
-
-typedef struct aio_depth_target_s aio_depth_target;
-struct aio_depth_target_s {
-  unsigned long index;
-  unsigned long slice;
-  unsigned long mip;
-  aio_face      face;
-
-  aio_param          * param;
-  aio_image_instance * image_instance;
-};
-
-typedef struct aio_stencil_target_s aio_stencil_target;
-struct aio_stencil_target_s {
-  unsigned long index;
-  unsigned long slice;
-  unsigned long mip;
-  aio_face      face;
-
-  aio_param          * param;
-  aio_image_instance * image_instance;
+  aio_image_instance * image_inst;
 };
 
 typedef struct aio_color_clear_s aio_color_clear;
@@ -1133,13 +1111,13 @@ struct aio_draw_s {
 
 typedef struct aio_evaluate_s aio_evaluate;
 struct aio_evaluate_s {
-  aio_color_target   * color_target;
-  aio_depth_target   * depth_target;
-  aio_stencil_target * stencil_target;
-  aio_color_clear    * color_clear;
-  aio_depth_clear    * depth_clear;
-  aio_stencil_clear  * stencil_clear;
-  aio_draw             draw;
+  aio_evaluate_target * color_target;
+  aio_evaluate_target * depth_target;
+  aio_evaluate_target * stencil_target;
+  aio_color_clear     * color_clear;
+  aio_depth_clear     * depth_clear;
+  aio_stencil_clear   * stencil_clear;
+  aio_draw              draw;
 };
 
 typedef struct aio_inline_s aio_inline;

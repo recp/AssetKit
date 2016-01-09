@@ -210,7 +210,7 @@ aio_dae_fxState(xmlNode * __restrict xml_node,
                              &states,
                              AIO_RENDER_STATE_CULL_FACE,
                              AIO_GL_FACE_BACK,
-                             aio_dae_fxEnumFace);
+                             aio_dae_fxEnumGLFace);
         break;
       case AIO_RENDER_STATE_DEPTH_FUNC:
         aio_dae_fxState_enum(curr_node,

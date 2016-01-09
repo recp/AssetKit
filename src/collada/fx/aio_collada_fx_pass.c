@@ -19,6 +19,7 @@
 
 #include "aio_collada_fx_states.h"
 #include "aio_collada_fx_program.h"
+#include "aio_collada_fx_evaluate.h"
 
 #include <libxml/tree.h>
 #include <libxml/parser.h>
@@ -98,6 +99,15 @@ aio_dae_fxPass(xmlNode * __restrict xml_node,
         pass->program = prog;
 
     } else if (AIO_IS_EQ_CASE(node_name, "evaluate")) {
+      aio_evaluate * evaluate;
+      int ret;
+
+      evaluate = NULL;
+      ret = aio_dae_fxEvaluate(curr_node, &evaluate);
+
+      if (ret == 0)
+        pass->evaluate = evaluate;
+
     } else if (AIO_IS_EQ_CASE(node_name, "extra")) {
 
       _AIO_TREE_LOAD_TO(curr_node->children,

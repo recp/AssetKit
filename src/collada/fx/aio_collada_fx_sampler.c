@@ -97,7 +97,7 @@ aio_dae_fxSampler(xmlNode * __restrict xml_node,
       color = aio_malloc(sizeof(*color));
       memset(color, '\0', sizeof(*color));
 
-      aio_dae_color(curr_node, color);
+      aio_dae_color(curr_node, 1, color);
     } else if (AIO_IS_EQ_CASE(node_name, "mip_max_level")) {
       char * node_content;
       node_content = aio_xml_content(curr_node);

@@ -1068,7 +1068,7 @@ aio_dae_fxStateColorMaterial(xmlNode * __restrict xml_node,
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           long val;
 
-          val = aio_dae_fxEnumFace(attr_val);
+          val = aio_dae_fxEnumGLFace(attr_val);
           if (val == -1)
             val = AIO_GL_FACE_FRONT_AND_BACK;
 
@@ -1536,7 +1536,7 @@ aio_dae_fxStateStencilOpSep(xmlNode * __restrict xml_node,
         if (AIO_IS_EQ_CASE(attr_name, "value")) {
           long val;
 
-          val = aio_dae_fxEnumFace(attr_val);
+          val = aio_dae_fxEnumGLFace(attr_val);
           if (val == -1)
             val = AIO_GL_FACE_FRONT_AND_BACK;
 

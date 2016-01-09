@@ -21,20 +21,24 @@
 
 int _assetio_hide
 aio_dae_color(xmlNode * __restrict xml_node,
+              int read_sid,
               aio_color * __restrict dest) {
 
-  char  * sid;
   char  * color_comp;
   float * color_vec;
   int     color_comp_idx;
 
-  sid = NULL;
-  aio_xml_collada_read_attr(xml_node, "sid", &sid);
+  if (read_sid == 0) {
+    char  * sid;
 
-  if (sid)
-    dest->sid = sid;
-  else
-    dest->sid = NULL;
+    sid = NULL;
+    aio_xml_collada_read_attr(xml_node, "sid", &sid);
+
+    if (sid)
+      dest->sid = sid;
+    else
+      dest->sid = NULL;
+  }
 
   color_vec = dest->vec;
   color_comp_idx = 0;

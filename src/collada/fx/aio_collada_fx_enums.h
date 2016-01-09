@@ -20,7 +20,7 @@ long _assetio_hide
 aio_dae_fxEnumBlendEq(const char * name);
 
 long _assetio_hide
-aio_dae_fxEnumFace(const char * name);
+aio_dae_fxEnumGLFace(const char * name);
 
 long _assetio_hide
 aio_dae_fxEnumMaterial(const char * name);
@@ -63,5 +63,11 @@ aio_dae_fxEnumMagfilter(const char * name);
 
 long _assetio_hide
 aio_dae_fxEnumShaderStage(const char * name);
+
+long _assetio_hide
+aio_dae_fxEnumFace(const char * name);
+
+long _assetio_hide
+aio_dae_fxEnumDraw(const char * name);
 
 #endif /* __libassetio__aio_collada_fx_enums_h_ */
