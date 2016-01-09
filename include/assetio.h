@@ -752,19 +752,16 @@ struct aio_light_s {
 /*
  * base type of param
  */
-#define _AIO_PARAM_BASE_                                                      \
-  aio_param_type  param_type;                                                 \
-  aio_param     * prev;                                                       \
-  aio_param     * next
-
 typedef struct aio_param_s aio_param;
 struct aio_param_s {
-  _AIO_PARAM_BASE_;
+  aio_param_type  param_type;
+  aio_param     * prev;
+  aio_param     * next;
 };
 
 typedef struct aio_param_basic_s aio_param_basic;
 struct aio_param_basic_s {
-  _AIO_PARAM_BASE_;
+  aio_param base;
   union {
     const char * val;
     const char * ref;
@@ -773,7 +770,7 @@ struct aio_param_basic_s {
 
 typedef struct aio_param_extended_s aio_param_extended;
 struct aio_param_extended_s {
-  _AIO_PARAM_BASE_;
+  aio_param        base;
   const char     * val;
   const char     * name;
   const char     * sid;
@@ -1148,16 +1145,12 @@ struct aio_evaluate_s {
 typedef struct aio_inline_s aio_inline;
 struct aio_inline_s {
   const char * val;
-
-  aio_inline * prev;
   aio_inline * next;
 };
 
 typedef struct aio_import_s aio_import;
 struct aio_import_s {
   const char * ref;
-
-  aio_import * prev;
   aio_import * next;
 };
 
@@ -1187,7 +1180,6 @@ struct aio_compiler_s {
   aio_binary * binary;
   const char * text;
 
-  aio_compiler * prev;
   aio_compiler * next;
 };
 
@@ -1195,11 +1187,10 @@ typedef struct aio_bind_uniform_s aio_bind_uniform;
 struct aio_bind_uniform_s {
   const char * symbol;
 
-  aio_param      * param;
-  void           * val;
-  aio_value_type   val_type;
+  aio_param_basic * param;
+  void            * val;
+  aio_value_type    val_type;
 
-  aio_bind_uniform * prev;
   aio_bind_uniform * next;
 };
 
@@ -1208,7 +1199,6 @@ struct aio_bind_attrib_s {
   const char * symbol;
   const char * semantic;
 
-  aio_bind_uniform * prev;
   aio_bind_uniform * next;
 };
 
