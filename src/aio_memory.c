@@ -104,13 +104,13 @@ aio_calloc(size_t size, size_t count) {
   if (_AIO_MEM_INITIALIZED == 0)
     aio_init();
 
-  memsize = _AIO_MEM_NODE_SIZE * count;
-  mn = malloc(memsize);
+  memsize = size * count;
+  mn = malloc(_AIO_MEM_NODE_SIZE + memsize);
 
-  memset((char *)mn, '\0', sizeof(memsize));
+  memset(_AIO_ALIGN_AS(mn), '\0', memsize);
 
   mn->mn_ref_count = 1;
-  mn->mn_size      = size * count;
+  mn->mn_size      = memsize;
   mn->mn_next      = NULL;
   mn->mn_prev      = NULL;
 
