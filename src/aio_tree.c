@@ -17,124 +17,105 @@
 #include <string.h>
 
 int _assetio_hide
-aio_tree_load_from_xml(xmlNode * __restrict xml_node,
-                       aio_tree_node ** __restrict dest,
-                       aio_tree_node * __restrict parent) {
+aio_tree_fromXmlNode(xmlNode * __restrict xml_node,
+                     aio_tree_node ** __restrict dest,
+                     aio_tree_node * __restrict parent) {
 
-  xmlNode       * curr_node;
-  aio_tree_node * tree_curr_node;
+  xmlNode       * currNode;
+  aio_tree_node * tree_currNode;
 
-  tree_curr_node = NULL;
-  curr_node      = xml_node;
+  tree_currNode = NULL;
+  currNode = xml_node->children;
 
-  while (curr_node) {
+  /* extra is text node */
+  if (currNode && currNode->type == XML_TEXT_NODE) {
+    if (currNode->content) {
+      tree_currNode = aio_calloc(sizeof(*tree_currNode), 1);
+      tree_currNode->val = aio_strdup((const char *)currNode->content);
 
-    if (curr_node->type == XML_ELEMENT_NODE) {
-      const char         * node_name;
-      aio_tree_node      * tree_node;
-      const xmlAttr      * xml_curr_attr;
-      const char         * xml_attr_name;
-      aio_tree_node_attr * tree_curr_attr;
+      *dest = tree_currNode;
+      return 0;
+    }
+  }
 
-      node_name = (const char *)curr_node->name;
-      tree_node = aio_malloc(sizeof(*tree_curr_node));
-      memset(tree_node, '\0', sizeof(*tree_curr_node));
+  for (;
+       currNode && currNode->type == XML_ELEMENT_NODE;
+       currNode = currNode->next) {
+    aio_tree_node      * tree_nNode;
+    aio_tree_node_attr * tree_currAttr;
+    const xmlAttr      * xml_currAttr;
 
-      tree_node->parent = parent;
+    tree_nNode = aio_calloc(sizeof(*tree_currNode), 1);
+    tree_nNode->parent = parent;
+    tree_nNode->name = aio_strdup((const char *)currNode->name);
 
-      if (tree_curr_node) {
-        tree_node->prev      = tree_curr_node;
-        tree_curr_node->next = tree_node;
+    if (tree_currNode) {
+      tree_nNode->prev    = tree_currNode;
+      tree_currNode->next = tree_nNode;
+    }
+
+    tree_currNode = tree_nNode;
+
+    /*
+     If the destination is NULL then set it as the first node
+     */
+    if (!(*dest))
+      *dest = tree_nNode;
+
+    /* Children count */
+    if (parent)
+      ++parent->chldc;
+
+    /* Load attributes */
+    tree_currAttr = NULL;
+    for (xml_currAttr = currNode->properties;
+         xml_currAttr && xml_currAttr->type == XML_ATTRIBUTE_NODE;
+         xml_currAttr = xml_currAttr->next) {
+      aio_tree_node_attr * tree_nodeAttr;
+
+      tree_nodeAttr = aio_calloc(sizeof(*tree_nodeAttr), 1);
+      tree_nodeAttr->name = aio_strdup((const char *)xml_currAttr->name);
+      tree_nodeAttr->val =
+        aio_strdup(((const char *)xml_currAttr->children->content));
+
+      if (tree_currAttr) {
+        tree_nodeAttr->prev = tree_currAttr;
+        tree_currAttr->next = tree_nodeAttr;
+      } else {
+        tree_nNode->attr = tree_nodeAttr;
       }
 
-      tree_curr_node = tree_node;
+      tree_currAttr = tree_nodeAttr;
+      ++tree_nNode->attrc;
+    }
 
-      /* 
-        If the destination is NULL then set it as the first node
-       */
-      if (!(*dest))
-        *dest = tree_node;
-
-      tree_node->name = aio_malloc(sizeof(*tree_node->name));
-      strcpy((char *)tree_node->name, node_name);
-
-      /* Children count */
-      if (parent)
-        ++parent->chldc;
-
-      /* Load attributes */
-      tree_curr_attr = NULL;
-      xml_curr_attr  = curr_node->properties;
-
-      while (xml_curr_attr) {
-        if (xml_curr_attr->type == XML_ATTRIBUTE_NODE) {
-          aio_tree_node_attr * tree_node_attr;
-          const char         * tree_attr_val;
-
-          xml_attr_name = (const char *)xml_curr_attr->name;
-          tree_node_attr = aio_malloc(sizeof(*tree_node_attr));
-          memset(tree_node_attr, '\0', sizeof(*tree_node_attr));
-
-          if (tree_curr_attr) {
-            tree_node_attr->prev = tree_curr_attr;
-            tree_curr_attr->next = tree_node_attr;
-          } else {
-            tree_node->attr = tree_node_attr;
-          }
-
-          tree_curr_attr = tree_node_attr;
-
-          tree_node_attr->name = aio_malloc(sizeof(*tree_node_attr->name));
-          strcpy((char *)tree_node_attr->name, xml_attr_name);
-
-          tree_attr_val = aio_xml_content((xmlNode *)xml_curr_attr);
-
-          tree_node_attr->val = aio_malloc(sizeof(*tree_node_attr->val));
-          strcpy(tree_node_attr->val, tree_attr_val);
-
-          ++tree_node->attrc;
-        }
-
-        xml_curr_attr = xml_curr_attr->next;
-      } /* while */
-
-      /* Load children and content if available */
-      if (curr_node->children) {
-        switch (curr_node->children->type) {
-          /* 
-            According to XML_PARSE_NOBLANKS option TEXT NODE is the content.
-            Without the XML_PARSE_NOBLANKS option leading spaces, white spaces,
-            new lines, tabs... would be cause libxml to yields extra TEXT NODE
+    /* Load children and content if available */
+    if (currNode->children) {
+      switch (currNode->children->type) {
+          /*
+           According to XML_PARSE_NOBLANKS option TEXT NODE is the content.
+           Without the XML_PARSE_NOBLANKS option leading spaces, white spaces,
+           new lines, tabs... would be cause libxml to yields extra TEXT NODE
            */
-          case XML_TEXT_NODE:
-            tree_node->val = aio_malloc(sizeof(*tree_node->val));
-            strcpy(tree_node->val,
-                   (const char *)curr_node->children->content);
-            break;
+        case XML_TEXT_NODE:
+          tree_nNode->val =
+            aio_strdup((const char *)currNode->children->content);
+          break;
 
           /* Load child nodes */
-          case XML_ELEMENT_NODE:
+        case XML_ELEMENT_NODE:
+          aio_tree_fromXmlNode(currNode,
+                               &tree_nNode->chld,
+                               tree_nNode);
 
-            _AIO_TREE_LOAD_TO(curr_node->children,
-                              tree_node->chld,
-                              tree_node);
-
-            break;
-
-          default:
-            break;
-        } // switch
-      } else {
-        if (curr_node->content) {
-          tree_node->val = aio_malloc(sizeof(*tree_node->val));
-          strcpy(tree_node->val,
-                 (const char *)curr_node->content);
-        }
-      }
-
-    } // if
-
-    curr_node = curr_node->next;
+          break;
+        default:
+          break;
+      } // switch
+    } else {
+      if (currNode->content)
+        tree_nNode->val = aio_strdup((const char *)currNode->content);
+    }
   }
 
   return 0;
