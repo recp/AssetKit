@@ -25,4 +25,6 @@ typedef char       * aio_mutstr;
 #define strcasecmp _stricmp
 #endif
 
+#define UNUSED(x) (void)(x)
+
 #endif /* aio_types_h */
