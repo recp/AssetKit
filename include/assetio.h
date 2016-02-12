@@ -93,19 +93,19 @@ typedef time_t aio_time_t;
 #define AIO_VALUE_TYPE_BOOL                                             0x01
 #define AIO_VALUE_TYPE_BOOL2                                            0x02
 #define AIO_VALUE_TYPE_BOOL3                                            0x03
-#define AIO_VALUE_TYPE_BOOL4                                            0x03
-#define AIO_VALUE_TYPE_INT                                              0x04
-#define AIO_VALUE_TYPE_INT2                                             0x05
-#define AIO_VALUE_TYPE_INT3                                             0x06
-#define AIO_VALUE_TYPE_INT4                                             0x07
-#define AIO_VALUE_TYPE_FLOAT                                            0x08
-#define AIO_VALUE_TYPE_FLOAT2                                           0x09
-#define AIO_VALUE_TYPE_FLOAT3                                           0x10
-#define AIO_VALUE_TYPE_FLOAT4                                           0x11
-#define AIO_VALUE_TYPE_FLOAT2x2                                         0x12
-#define AIO_VALUE_TYPE_FLOAT3x3                                         0x13
-#define AIO_VALUE_TYPE_FLOAT4x4                                         0x14
-#define AIO_VALUE_TYPE_STRING                                           0x15
+#define AIO_VALUE_TYPE_BOOL4                                            0x04
+#define AIO_VALUE_TYPE_INT                                              0x05
+#define AIO_VALUE_TYPE_INT2                                             0x06
+#define AIO_VALUE_TYPE_INT3                                             0x07
+#define AIO_VALUE_TYPE_INT4                                             0x08
+#define AIO_VALUE_TYPE_FLOAT                                            0x09
+#define AIO_VALUE_TYPE_FLOAT2                                           0x10
+#define AIO_VALUE_TYPE_FLOAT3                                           0x11
+#define AIO_VALUE_TYPE_FLOAT4                                           0x12
+#define AIO_VALUE_TYPE_FLOAT2x2                                         0x13
+#define AIO_VALUE_TYPE_FLOAT3x3                                         0x14
+#define AIO_VALUE_TYPE_FLOAT4x4                                         0x15
+#define AIO_VALUE_TYPE_STRING                                           0x16
 
 /*
  * Modifiers
