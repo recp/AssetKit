@@ -6,99 +6,91 @@
  */
 
 #include "aio_collada_light.h"
+#include "aio_collada_common.h"
 #include "aio_collada_asset.h"
 #include "aio_collada_technique.h"
-#include "../aio_libxml.h"
-#include "../aio_types.h"
-#include "../aio_memory.h"
-#include "../aio_utils.h"
-#include "../aio_tree.h"
-
-#include <libxml/tree.h>
-#include <libxml/parser.h>
-#include <string.h>
 
 int _assetio_hide
-aio_load_collada_light(xmlNode * __restrict xml_node,
-                       aio_light ** __restrict  dest) {
-  xmlNode       * curr_node;
-  xmlAttr       * curr_attr;
-  aio_light     * light;
-  aio_technique * last_technique;
+aio_dae_light(xmlTextReaderPtr __restrict reader,
+              aio_light ** __restrict dest) {
+  aio_light            *light;
+  aio_technique        *last_tq;
+  aio_technique_common *last_tc;
+  const xmlChar        *nodeName;
+  int nodeType;
+  int nodeRet;
 
-  curr_node = xml_node;
-  light = aio_malloc(sizeof(*light));
-  curr_attr = curr_node->properties;
+  light = aio_calloc(sizeof(*light), 1);
 
-  /* parse camera attributes */
-  while (curr_attr) {
-    if (curr_attr->type == XML_ATTRIBUTE_NODE) {
-      const char * attr_name;
-      const char * attr_val;
+  _xml_readAttr(light->id, _s_dae_id);
+  _xml_readAttr(light->name, _s_dae_name);
 
-      attr_name = (const char *)curr_attr->name;
-      attr_val = aio_xml_content((xmlNode *)curr_attr);
+  last_tq = light->technique;
+  last_tc = light->technique_common;
 
-      if (AIO_IS_EQ_CASE(attr_name, "id"))
-        light->id = aio_strdup(attr_val);
-      else if (AIO_IS_EQ_CASE(attr_name, "name"))
-        light->name = aio_strdup(attr_val);
+  do {
+    _xml_beginElement(_s_dae_light);
 
-    }
+    if (_xml_eqElm(_s_dae_asset)) {
+      aio_assetinf *assetInf;
+      int ret;
 
-    curr_attr = curr_attr->next;
-  }
+      assetInf = NULL;
+      ret = aio_dae_assetInf(reader, &assetInf);
+      if (ret == 0)
+        light->inf = assetInf;
 
-  last_technique = light->technique;
-  
-  /* parse childrens */
-  curr_node = xml_node->children;
-  while (curr_node) {
-    if (curr_node->type == XML_ELEMENT_NODE) {
-      const char * node_name;
-      node_name = (const char *)curr_node->name;
+    } if (_xml_eqElm(_s_dae_techniquec)) {
+      aio_technique_common *tc;
+      int                   ret;
 
-      if (AIO_IS_EQ_CASE(node_name, "asset")) {
+      tc = NULL;
+      ret = aio_dae_techniquec(reader, &tc);
+      if (ret == 0) {
+        light->technique_common = tc;
 
-        _AIO_ASSET_LOAD_TO(curr_node,
-                           light->inf);
+        if (last_tc)
+          last_tc->next = tc;
+        else
+          light->technique_common = tc;
 
-      } else if (AIO_IS_EQ_CASE(node_name, "technique_common")) {
-
-        aio_technique_common * technique_c;
-        int                    ret;
-
-        ret = aio_load_collada_techniquec(curr_node,
-                                          &technique_c);
-
-        if (ret == 0)
-          light->technique_common = technique_c;
-
-      } else if (AIO_IS_EQ_CASE(node_name, "technique")) {
-        aio_technique * technique;
-        int             ret;
-
-        ret = aio_load_collada_technique(curr_node, &technique);
-        if (ret == 0) {
-          if (last_technique) {
-            technique->prev = last_technique;
-            last_technique->next = technique;
-          } else {
-            light->technique = technique;
-          }
-
-          last_technique = technique;
-        }
-
-      } else if (AIO_IS_EQ_CASE(node_name, "extra")) {
-        _AIO_TREE_LOAD_TO(curr_node->children,
-                          light->extra,
-                          NULL);
+        last_tc = tc;
       }
+
+    } else if (_xml_eqElm(_s_dae_technique)) {
+      aio_technique *tq;
+      int            ret;
+
+      tq = NULL;
+      ret = aio_dae_technique(reader, &tq);
+      if (ret == 0) {
+        light->technique = tq;
+
+        if (last_tq)
+          last_tq->next = tq;
+        else
+          light->technique = tq;
+
+        last_tq = tq;
+      }
+    } else if (_xml_eqElm(_s_dae_extra)) {
+      xmlNodePtr nodePtr;
+      aio_tree  *tree;
+
+      nodePtr = xmlTextReaderExpand(reader);
+      tree = NULL;
+
+      aio_tree_fromXmlNode(nodePtr, &tree, NULL);
+      light->extra = tree;
+
+      _xml_skipElement;
+    } else {
+      _xml_skipElement;
     }
-    
-    curr_node = curr_node->next;
-  }
+
+    /* end element */
+    _xml_endElement;
+  } while (nodeRet);
 
   *dest = light;
 
