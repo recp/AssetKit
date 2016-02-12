@@ -15,41 +15,40 @@
 #include <stdarg.h>
 #include <libxml/tree.h>
 
+typedef struct {
+  const char * fext;
+  int (*floader_fn)(aio_doc ** __restrict,
+                    const char * __restrict);
+} floader_t;
+
 int
 aio_load(aio_doc ** __restrict dest,
          const char * __restrict file, ...) {
-  int _err_no = 0;
-
-  typedef struct {
-    const char * fext;
-    int (*floader_fn)(aio_doc ** __restrict,
-                      const char * __restrict);
-  } floader_t;
+  floader_t * floader;
+  int         file_type;
+  int         _err_no;
 
   va_list pref_args;
   va_start(pref_args, file);
-  int file_type = va_arg(pref_args, int);
+  file_type = va_arg(pref_args, int);
   va_end(pref_args);
 
-  char * fcontents;
-  floader_t * floader;
-
-  if (aio_readfile(file, "rb", &fcontents) != 0)
-    goto err;
-
   floader_t floaders[] = {
-    {"dae", aio_load_collada}
+    {"dae", aio_dae_doc}
   };
 
   floader = NULL;
-  if (file_type == AIO_FILE_TYPE_AUTO) {
-    char * file_ext = strrchr(file, '.');
-    if (file_ext) {
-      ++file_ext;
 
-      int i = 0;
-      int floader_len = AIO_ARRAY_LEN(floaders);
-      for (; i < floader_len; i++) {
+  if (file_type == AIO_FILE_TYPE_AUTO) {
+    char * file_ext;
+    file_ext = strrchr(file, '.');
+    if (file_ext) {
+      int floader_len;
+      int i;
+
+      ++file_ext;
+      floader_len = AIO_ARRAY_LEN(floaders);
+      for (i = 0; i < floader_len; i++) {
         if (strcmp(file_ext, floaders[i].fext) == 0) {
           floader = &floaders[i];
           break;
@@ -75,13 +74,12 @@ aio_load(aio_doc ** __restrict dest,
   }
 
   if (floader)
-    _err_no = floader->floader_fn(dest, fcontents);
+    _err_no = floader->floader_fn(dest, file);
   else
-    *dest = NULL;
+    goto err;
 
-  free(fcontents);
-  
   return _err_no;
 err:
+  *dest = NULL;
   return -1;
 }
