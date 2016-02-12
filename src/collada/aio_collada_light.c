@@ -47,8 +47,6 @@ aio_dae_light(xmlTextReaderPtr __restrict reader,
       tc = NULL;
       ret = aio_dae_techniquec(reader, &tc);
       if (ret == 0) {
-        light->technique_common = tc;
-
         if (last_tc)
           last_tc->next = tc;
         else
@@ -64,8 +62,6 @@ aio_dae_light(xmlTextReaderPtr __restrict reader,
       tq = NULL;
       ret = aio_dae_technique(reader, &tq);
       if (ret == 0) {
-        light->technique = tq;
-
         if (last_tq)
           last_tq->next = tq;
         else
