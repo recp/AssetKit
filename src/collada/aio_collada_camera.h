@@ -10,10 +10,10 @@
 
 #include "../../include/assetio.h"
 
-typedef struct _xmlNode xmlNode;
+typedef struct _xmlTextReader *xmlTextReaderPtr;
 
 int _assetio_hide
-aio_load_collada_camera(xmlNode * __restrict xml_node,
-                        aio_camera ** __restrict  dest);
+aio_dae_camera(xmlTextReaderPtr __restrict reader,
+               aio_camera ** __restrict  dest);
 
 #endif /* __libassetio__aio_collada_camera__h_ */

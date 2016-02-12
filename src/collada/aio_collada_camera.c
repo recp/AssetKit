@@ -6,171 +6,154 @@
  */
 
 #include "aio_collada_camera.h"
+#include "aio_collada_common.h"
 #include "aio_collada_asset.h"
 #include "aio_collada_technique.h"
-#include "../aio_libxml.h"
-#include "../aio_types.h"
-#include "../aio_memory.h"
-#include "../aio_utils.h"
-#include "../aio_tree.h"
-
-#include <libxml/tree.h>
-#include <libxml/parser.h>
-#include <string.h>
 
 int _assetio_hide
-aio_load_collada_camera(xmlNode * __restrict xml_node,
-                        aio_camera ** __restrict  dest) {
-  xmlNode         * curr_node;
-  xmlNode         * prev_node;
-  xmlAttr         * curr_attr;
-  aio_camera      * camera;
+aio_dae_camera(xmlTextReaderPtr __restrict reader,
+               aio_camera ** __restrict  dest) {
+  aio_camera    *camera;
+  const xmlChar *nodeName;
+  int            nodeType;
+  int            nodeRet;
 
-  curr_node = xml_node;
-  camera = aio_malloc(sizeof(*camera));
-  curr_attr = curr_node->properties;
+  camera = aio_calloc(sizeof(*camera), 1);
 
-  /* parse camera attributes */
-  while (curr_attr) {
-    if (curr_attr->type == XML_ATTRIBUTE_NODE) {
-      const char * attr_name;
-      const char * attr_val;
+  _xml_readAttr(camera->id, _s_dae_id);
+  _xml_readAttr(camera->name, _s_dae_name);
 
-      attr_name = (const char *)curr_attr->name;
-      attr_val = aio_xml_content((xmlNode *)curr_attr);
+  do {
+    _xml_beginElement(_s_dae_camera);
 
-      if (AIO_IS_EQ_CASE(attr_name, "id"))
-        camera->id = aio_strdup(attr_val);
-      else if (AIO_IS_EQ_CASE(attr_name, "name"))
-        camera->name = aio_strdup(attr_val);
+    if (_xml_eqElm(_s_dae_asset)) {
+      aio_assetinf *assetInf;
+      int ret;
 
-    }
+      assetInf = NULL;
+      ret = aio_dae_assetInf(reader, &assetInf);
+      if (ret == 0)
+        camera->inf = assetInf;
 
-    curr_attr = curr_attr->next;
-  }
+    } else if (_xml_eqElm(_s_dae_optics)) {
+      aio_optics           *optics;
+      aio_technique        *last_tq;
+      aio_technique_common *last_tc;
 
-  /* parse childrens */
-  curr_node = xml_node->children;
-  while (curr_node) {
-    if (curr_node->type == XML_ELEMENT_NODE) {
-      const char * node_name;
-      node_name = (const char *)curr_node->name;
+      optics = aio_calloc(sizeof(*optics), 1);
 
-      if (AIO_IS_EQ_CASE(node_name, "asset")) {
+      last_tq = optics->technique;
+      last_tc = optics->technique_common;
 
-        _AIO_ASSET_LOAD_TO(curr_node,
-                           camera->inf);
+      do {
+        _xml_beginElement(_s_dae_optics);
 
-      } else if (AIO_IS_EQ_CASE(node_name, "optics")) {
-        aio_optics    * optics;
-        aio_technique * last_technique;
+        if (_xml_eqElm(_s_dae_techniquec)) {
+          aio_technique_common *tc;
+          int                   ret;
 
-        optics = aio_malloc(sizeof(*optics));
-        memset(optics, '\0', sizeof(*optics));
+          tc = NULL;
+          ret = aio_dae_techniquec(reader, &tc);
+          if (ret == 0) {
+            optics->technique_common = tc;
 
-        last_technique = optics->technique;
+            if (last_tc)
+              last_tc->next = tc;
+            else
+              optics->technique_common = tc;
 
-        prev_node = curr_node;
-        curr_node = curr_node->children;
-        while (curr_node) {
-          if (curr_node->type == XML_ELEMENT_NODE) {
-            node_name = (const char *)curr_node->name;
-            if (AIO_IS_EQ_CASE(node_name, "technique_common")) {
+            last_tc = tc;
+          }
 
-              aio_technique_common * technique_c;
-              int                    ret;
+        } else if (_xml_eqElm(_s_dae_technique)) {
+          aio_technique *tq;
+          int            ret;
 
-              ret = aio_load_collada_techniquec(curr_node,
-                                                &technique_c);
+          tq = NULL;
+          ret = aio_dae_technique(reader, &tq);
+          if (ret == 0) {
+            optics->technique = tq;
 
-              if (ret == 0)
-                optics->technique_common = technique_c;
+            if (last_tq)
+              last_tq->next = tq;
+            else
+              optics->technique = tq;
 
-            } else if (AIO_IS_EQ_CASE(node_name, "technique")) {
-              aio_technique * technique;
-              int             ret;
-
-              ret = aio_load_collada_technique(curr_node, &technique);
-              if (ret == 0) {
-                if (last_technique) {
-                  technique->prev = last_technique;
-                  last_technique->next = technique;
-                } else {
-                  optics->technique = technique;
-                }
-
-                last_technique = technique;
-              }
-            }
-
-          } // if elm
-          
-          curr_node = curr_node->next;
+            last_tq = tq;
+          }
+        } else {
+          _xml_skipElement;
         }
 
-        node_name = NULL;
-        curr_node = prev_node;
+        /* end element */
+        _xml_endElement;
+      } while (nodeRet);
 
-        camera->optics = optics;
+      camera->optics = optics;
+    } else if (_xml_eqElm(_s_dae_imager)) {
+      aio_imager    *imager;
+      aio_technique *last_tq;
 
-      } else if (AIO_IS_EQ_CASE(node_name, "imager")) {
-        aio_imager    * imager;
-        aio_technique * last_technique;
+      imager  = aio_calloc(sizeof(*imager), 1);
+      last_tq = imager->technique;
 
-        imager = aio_malloc(sizeof(*imager));
-        memset(imager, '\0', sizeof(*imager));
+      do {
+        _xml_beginElement(_s_dae_imager);
 
-        last_technique = imager->technique;
+        if (_xml_eqElm(_s_dae_technique)) {
+          aio_technique *tq;
+          int            ret;
 
-        prev_node = curr_node;
-        curr_node = curr_node->children;
-        while (curr_node) {
-          if (curr_node->type == XML_ELEMENT_NODE) {
-            node_name = (const char *)curr_node->name;
-            if (AIO_IS_EQ_CASE(node_name, "technique")) {
-              aio_technique * technique;
-              int             ret;
+          tq = NULL;
+          ret = aio_dae_technique(reader, &tq);
+          if (ret == 0) {
+            imager->technique = tq;
 
-              ret = aio_load_collada_technique(curr_node, &technique);
-              if (ret == 0) {
-                if (last_technique) {
-                  technique->prev = last_technique;
-                  last_technique->next = technique;
-                } else {
-                  imager->technique = technique;
-                }
+            if (last_tq)
+              last_tq->next = tq;
+            else
+              imager->technique = tq;
 
-                last_technique = technique;
-              }
-            } else if (AIO_IS_EQ_CASE(node_name, "extra")) {
-              _AIO_TREE_LOAD_TO(curr_node->children,
-                                imager->extra,
-                                NULL);
-            }
+            last_tq = tq;
+          }
+        } else if (_xml_eqElm(_s_dae_extra)) {
+          xmlNodePtr nodePtr;
+          aio_tree  *tree;
 
-          } // if elm
+          nodePtr = xmlTextReaderExpand(reader);
+          tree = NULL;
 
-          curr_node = curr_node->next;
+          aio_tree_fromXmlNode(nodePtr, &tree, NULL);
+          imager->extra = tree;
+
+          _xml_skipElement;
+        } else {
+          _xml_skipElement;
         }
         
-        node_name = NULL;
-        curr_node = prev_node;
+        /* end element */
+        _xml_endElement;
+      } while (nodeRet);
 
-        camera->imager = imager;
+      camera->imager = imager;
+    } else if (_xml_eqElm(_s_dae_extra)) {
+      xmlNodePtr nodePtr;
+      aio_tree  *tree;
 
-      } else if (AIO_IS_EQ_CASE(node_name, "extra")) {
-        _AIO_TREE_LOAD_TO(curr_node->children,
-                          camera->extra,
-                          NULL);
-      } else {
+      nodePtr = xmlTextReaderExpand(reader);
+      tree = NULL;
 
-      }
+      aio_tree_fromXmlNode(nodePtr, &tree, NULL);
+      camera->extra = tree;
+
+      _xml_skipElement;
     }
 
-    curr_node = curr_node->next;
-  }
+    /* end element */
+    _xml_endElement;
+  } while (nodeRet);
 
   *dest = camera;
-  
+
   return 0;
 }

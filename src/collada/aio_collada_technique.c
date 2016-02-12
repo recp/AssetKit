@@ -14,9 +14,37 @@
 
 #include "aio_collada_common.h"
 
-#include <libxml/tree.h>
-#include <libxml/parser.h>
-#include <string.h>
+int _assetio_hide
+aio_dae_technique(xmlTextReaderPtr __restrict reader,
+                  aio_technique ** __restrict dest) {
+
+  aio_technique *technique;
+  aio_tree      *tree;
+  xmlNodePtr     nodePtr;
+  const xmlChar *nodeName;
+  int            nodeType;
+  int            nodeRet;
+
+  technique = aio_calloc(sizeof(*technique), 1);
+
+  _xml_readAttr(technique->profile, _s_dae_profile);
+  _xml_readAttr(technique->xmlns, _s_dae_xmlns);
+
+  nodePtr = xmlTextReaderExpand(reader);
+  tree = NULL;
+
+  aio_tree_fromXmlNode(nodePtr, &tree, NULL);
+  technique->chld = tree;
+
+  nodeName = xmlTextReaderConstName(reader);
+  nodeType = xmlTextReaderNodeType(reader);
+  
+  _xml_skipElement;
+
+  *dest = technique;
+
+  return 0;
+}
 
 int _assetio_hide
 aio_load_collada_technique(xmlNode * __restrict xml_node,

@@ -10,14 +10,14 @@
 
 #include "../../include/assetio.h"
 
-typedef struct _xmlNode xmlNode;
+typedef struct _xmlTextReader *xmlTextReaderPtr;
 
 int _assetio_hide
-aio_load_collada_technique(xmlNode * __restrict xml_node,
-                           aio_technique ** __restrict dest);
+aio_dae_technique(xmlTextReaderPtr __restrict reader,
+                  aio_technique ** __restrict dest);
 
 int _assetio_hide
-aio_load_collada_techniquec(xmlNode * __restrict xml_node,
-                            aio_technique_common ** __restrict dest);
+aio_dae_techniquec(xmlTextReaderPtr __restrict reader,
+                   aio_technique_common ** __restrict dest);
 
 #endif /* __libassetio__aio_collada_technique__h_ */

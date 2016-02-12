@@ -13,713 +13,429 @@
 
 #include "aio_collada_common.h"
 
-#include <libxml/tree.h>
-#include <libxml/parser.h>
-#include <string.h>
-
 int _assetio_hide
-aio_load_collada_techniquec(xmlNode * __restrict xml_node,
-                            aio_technique_common ** __restrict dest) {
-  xmlNode              * curr_node;
-  aio_technique_common * techc;
-
-  techc = NULL;
-
-  curr_node = xml_node->children;
-  while (curr_node) {
-    if (curr_node->type == XML_ELEMENT_NODE) {
-
-      if (techc) {
-        techc->next = aio_malloc(sizeof(*techc));
-        memset(techc->next, '\0', sizeof(*techc));
-
-        techc = techc->next;
-      } else {
-        techc = aio_malloc(sizeof(*techc));
-        memset(techc, '\0', sizeof(*techc));
-        *dest = techc;
-      }
-
-      const char * node_name;
-      node_name = (const char *)curr_node->name;
-
-      /* optics -> perspective */
-      if (AIO_IS_EQ_CASE(node_name, "perspective")) {
-        xmlNode         * perspective_curr_node;
-        aio_perspective * perspective;
-
-        perspective = aio_malloc(sizeof(*perspective));
-
-        perspective_curr_node = curr_node;
-        curr_node = curr_node->children;
-        while (curr_node) {
-          node_name = (const char *)curr_node->name;
-          if (curr_node->type == XML_ELEMENT_NODE) {
-            const char * node_content;
-            double       node_val;
-            
-            node_content = aio_xml_content(curr_node);
-
-            if (node_content)
-              node_val = strtod(node_content, NULL);
-            else
-              node_val = 0.0;
-
-            if (AIO_IS_EQ_CASE(node_name, "xfov")) {
-              aio_basic_attrd * xfov;
-              char            * sid;
-
-              xfov = aio_malloc(sizeof(*xfov));
-              xfov->val = node_val;
-
-              aio_xml_collada_read_attr(curr_node, "sid", &sid);
-
-              if (sid)
-                xfov->sid = sid;
-              else
-                xfov->sid = NULL;
-
-              perspective->xfov = xfov;
-            } else if (AIO_IS_EQ_CASE(node_name, "yfov")) {
-              aio_basic_attrd * yfov;
-              char            * sid;
-
-              yfov = aio_malloc(sizeof(*yfov));
-              yfov->val = node_val;
-
-              aio_xml_collada_read_attr(curr_node, "sid", &sid);
-
-              if (sid)
-                yfov->sid = sid;
-              else
-                yfov->sid = NULL;
-              
-              perspective->yfov = yfov;
-            } else if (AIO_IS_EQ_CASE(node_name, "aspect_ratio")) {
-              aio_basic_attrd * aspect_ratio;
-              char            * sid;
-
-              aspect_ratio = aio_malloc(sizeof(*aspect_ratio));
-              aspect_ratio->val = node_val;
-
-              aio_xml_collada_read_attr(curr_node, "sid", &sid);
-
-              if (sid)
-                aspect_ratio->sid = sid;
-              else
-                aspect_ratio->sid = NULL;
-
-              perspective->aspect_ratio = aspect_ratio;
-            } else if (AIO_IS_EQ_CASE(node_name, "znear")) {
-              aio_basic_attrd * znear;
-              char            * sid;
-
-              znear = aio_malloc(sizeof(*znear));
-              znear->val = node_val;
-
-              aio_xml_collada_read_attr(curr_node, "sid", &sid);
-
-              if (sid)
-                znear->sid = sid;
-              else
-                znear->sid = NULL;
-
-              perspective->znear = znear;
-            } else if (AIO_IS_EQ_CASE(node_name, "zfar")) {
-              aio_basic_attrd * zfar;
-              char            * sid;
-
-              zfar = aio_malloc(sizeof(*zfar));
-              zfar->val = node_val;
-
-              aio_xml_collada_read_attr(curr_node, "sid", &sid);
-
-              if (sid)
-                zfar->sid = sid;
-              else
-                zfar->sid = NULL;
-
-              perspective->zfar = zfar;
-            }
-          }
-
-          curr_node = curr_node->next;
-        } /* while */
-
-        techc->technique = perspective;
-        techc->technique_type = AIO_TECHNIQUE_COMMON_CAMERA_PERSPECTIVE;
-
-        curr_node = perspective_curr_node;
-        node_name = NULL;
-      }
-      /* optics -> orthographic */
-      else if (AIO_IS_EQ_CASE(node_name, "orthographic")) {
-        xmlNode          * orthographic_curr_node;
-        aio_orthographic * orthographic;
-
-        orthographic = aio_malloc(sizeof(*orthographic));
-
-        orthographic_curr_node = curr_node;
-        curr_node = curr_node->children;
-        while (curr_node) {
-          node_name = (const char *)curr_node->name;
-          if (curr_node->type == XML_ELEMENT_NODE) {
-            const char * node_content;
-            double       node_val;
-
-            node_content = aio_xml_content(curr_node);
-
-            if (node_content)
-              node_val = strtod(node_content, NULL);
-            else
-              node_val = 0.0;
-
-            if (AIO_IS_EQ_CASE(node_name, "xmag")) {
-              aio_basic_attrd * xmag;
-              char            * sid;
-
-              xmag = aio_malloc(sizeof(*xmag));
-              xmag->val = node_val;
-
-              aio_xml_collada_read_attr(curr_node, "sid", &sid);
-
-              if (sid)
-                xmag->sid = sid;
-              else
-                xmag->sid = NULL;
-
-              orthographic->xmag = xmag;
-            } else if (AIO_IS_EQ_CASE(node_name, "ymag")) {
-              aio_basic_attrd * ymag;
-              char            * sid;
-
-              ymag = aio_malloc(sizeof(*ymag));
-              ymag->val = node_val;
-
-              aio_xml_collada_read_attr(curr_node, "sid", &sid);
-
-              if (sid)
-                ymag->sid = sid;
-              else
-                ymag->sid = NULL;
-
-              orthographic->ymag = ymag;
-            } else if (AIO_IS_EQ_CASE(node_name, "aspect_ratio")) {
-              aio_basic_attrd * aspect_ratio;
-              char            * sid;
-
-              aspect_ratio = aio_malloc(sizeof(*aspect_ratio));
-              aspect_ratio->val = node_val;
-
-              aio_xml_collada_read_attr(curr_node, "sid", &sid);
-
-              if (sid)
-                aspect_ratio->sid = sid;
-              else
-                aspect_ratio->sid = NULL;
-
-              orthographic->aspect_ratio = aspect_ratio;
-            } else if (AIO_IS_EQ_CASE(node_name, "znear")) {
-              aio_basic_attrd * znear;
-              char            * sid;
-
-              znear = aio_malloc(sizeof(*znear));
-              znear->val = node_val;
-
-              aio_xml_collada_read_attr(curr_node, "sid", &sid);
-
-              if (sid)
-                znear->sid = sid;
-              else
-                znear->sid = NULL;
-
-              orthographic->znear = znear;
-            } else if (AIO_IS_EQ_CASE(node_name, "zfar")) {
-              aio_basic_attrd * zfar;
-              char            * sid;
-
-              zfar = aio_malloc(sizeof(*zfar));
-              zfar->val = node_val;
-
-              aio_xml_collada_read_attr(curr_node, "sid", &sid);
-
-              if (sid)
-                zfar->sid = sid;
-              else
-                zfar->sid = NULL;
-              
-              orthographic->zfar = zfar;
-            }
-          }
-          
-          curr_node = curr_node->next;
-        } /* while */
-
-        techc->technique = orthographic;
-        techc->technique_type = AIO_TECHNIQUE_COMMON_CAMERA_ORTHOGRAPHIC;
-        
-        curr_node = orthographic_curr_node;
-        node_name = NULL;
-
-      }
-
-      /* light -> ambient */
-      else if (AIO_IS_EQ_CASE(node_name, "ambient")) {
-        xmlNode     * ambient_curr_node;
-        aio_ambient * ambient;
-
-        ambient = aio_malloc(sizeof(*ambient));
-
-        ambient_curr_node = curr_node;
-        curr_node = curr_node->children;
-        while (curr_node) {
-          node_name = (const char *)curr_node->name;
-          if (curr_node->type == XML_ELEMENT_NODE) {
-            const char * node_content;
-
-            node_content = aio_xml_content(curr_node);
-
-            if (AIO_IS_EQ_CASE(node_name, "color")) {
-              char  * sid;
-              char  * node_content_dup;
-              char  * color_comp;
-              float * color_vec;
-              int     color_comp_idx;
-
-              sid = NULL;
-              aio_xml_collada_read_attr(curr_node, "sid", &sid);
-
-              if (sid)
-                ambient->color.sid = sid;
-              else
-                ambient->color.sid = NULL;
-
-              color_vec = ambient->color.vec;
-              color_comp_idx = 0;
-              node_content_dup = strdup(node_content);
-
-              color_comp = strtok(node_content_dup, " ");
-              color_vec[color_comp_idx] = strtof(color_comp, NULL);
-
-              while (color_comp && ++color_comp_idx < 4) {
-                color_comp = strtok(NULL, " ");
-
-                if (!color_comp) {
-                  --color_comp_idx;
-                  continue;
-                }
-
-                color_vec[color_comp_idx] = strtof(color_comp, NULL);
-              }
-
-              /* make alpha channel to 1.0 as default */
-              if (color_comp_idx < 3)
-                color_vec[3] = 1.0;
-
-              free(node_content_dup);
-            }
-          }
-
-          curr_node = curr_node->next;
-        } /* while */
-
-        techc->technique = ambient;
-        techc->technique_type = AIO_TECHNIQUE_COMMON_LIGHT_AMBIENT;
-
-        curr_node = ambient_curr_node;
-        node_name = NULL;
-      }
-
-      /* light -> directional */
-      else if (AIO_IS_EQ_CASE(node_name, "directional")) {
-        xmlNode         * directional_curr_node;
-        aio_directional * directional;
-
-        directional = aio_malloc(sizeof(*directional));
-
-        directional_curr_node = curr_node;
-        curr_node = curr_node->children;
-        while (curr_node) {
-          node_name = (const char *)curr_node->name;
-          if (curr_node->type == XML_ELEMENT_NODE) {
-            const char * node_content;
-
-            node_content = aio_xml_content(curr_node);
-
-            if (AIO_IS_EQ_CASE(node_name, "color")) {
-              char  * sid;
-              char  * node_content_dup;
-              char  * color_comp;
-              float * color_vec;
-              int     color_comp_idx;
-
-              sid = NULL;
-              aio_xml_collada_read_attr(curr_node, "sid", &sid);
-
-              if (sid)
-                directional->color.sid = sid;
-              else
-                directional->color.sid = NULL;
-
-              color_vec = directional->color.vec;
-              color_comp_idx = 0;
-              node_content_dup = strdup(node_content);
-
-              color_comp = strtok(node_content_dup, " ");
-              color_vec[color_comp_idx] = strtof(color_comp, NULL);
-
-              while (color_comp && ++color_comp_idx < 4) {
-                color_comp = strtok(NULL, " ");
-
-                if (!color_comp) {
-                  --color_comp_idx;
-                  continue;
-                }
-
-                color_vec[color_comp_idx] = strtof(color_comp, NULL);
-              }
-
-              /* make alpha channel to 1.0 as default */
-              if (color_comp_idx < 3)
-                color_vec[3] = 1.0;
-
-              free(node_content_dup);
-            }
-          }
-
-          curr_node = curr_node->next;
-        } /* while */
-        
-        techc->technique = directional;
-        techc->technique_type = AIO_TECHNIQUE_COMMON_LIGHT_DIRECTIONAL;
-        
-        curr_node = directional_curr_node;
-        node_name = NULL;
-      }
-
-      /* light -> point */
-      else if (AIO_IS_EQ_CASE(node_name, "point")) {
-        xmlNode   * point_curr_node;
-        aio_point * point;
-
-        point = aio_malloc(sizeof(*point));
-
-        point_curr_node = curr_node;
-        curr_node = curr_node->children;
-        while (curr_node) {
-          node_name = (const char *)curr_node->name;
-          if (curr_node->type == XML_ELEMENT_NODE) {
-            const char * node_content;
-
-            node_content = aio_xml_content(curr_node);
-
-            if (AIO_IS_EQ_CASE(node_name, "color")) {
-              char  * sid;
-              char  * node_content_dup;
-              char  * color_comp;
-              float * color_vec;
-              int     color_comp_idx;
-
-              sid = NULL;
-              aio_xml_collada_read_attr(curr_node, "sid", &sid);
-
-              if (sid)
-                point->color.sid = sid;
-              else
-                point->color.sid = NULL;
-
-              color_vec = point->color.vec;
-              color_comp_idx = 0;
-              node_content_dup = strdup(node_content);
-
-              color_comp = strtok(node_content_dup, " ");
-              color_vec[color_comp_idx] = strtof(color_comp, NULL);
-
-              while (color_comp && ++color_comp_idx < 4) {
-                color_comp = strtok(NULL, " ");
-
-                if (!color_comp) {
-                  --color_comp_idx;
-                  continue;
-                }
-
-                color_vec[color_comp_idx] = strtof(color_comp, NULL);
-              }
-
-              /* make alpha channel to 1.0 as default */
-              if (color_comp_idx < 3)
-                color_vec[3] = 1.0;
-
-              free(node_content_dup);
-            } else if (AIO_IS_EQ_CASE(node_name, "constant_attenuation")) {
-              aio_basic_attrd * constant_attenuation;
-              char            * sid;
-              double            node_val;
-
-              node_content = aio_xml_content(curr_node);
-
-              if (node_content)
-                node_val = strtod(node_content, NULL);
-              else
-                node_val = 0.0;
-
-              constant_attenuation = aio_malloc(sizeof(*constant_attenuation));
-              constant_attenuation->val = node_val;
-
-              aio_xml_collada_read_attr(curr_node, "sid", &sid);
-
-              if (sid)
-                constant_attenuation->sid = sid;
-              else
-                constant_attenuation->sid = NULL;
-
-              point->constant_attenuation = constant_attenuation;
-            } else if (AIO_IS_EQ_CASE(node_name, "linear_attenuation")) {
-              aio_basic_attrd * linear_attenuation;
-              char            * sid;
-              double            node_val;
-
-              node_content = aio_xml_content(curr_node);
-
-              if (node_content)
-                node_val = strtod(node_content, NULL);
-              else
-                node_val = 0.0;
-
-              linear_attenuation = aio_malloc(sizeof(*linear_attenuation));
-              linear_attenuation->val = node_val;
-
-              aio_xml_collada_read_attr(curr_node, "sid", &sid);
-
-              if (sid)
-                linear_attenuation->sid = sid;
-              else
-                linear_attenuation->sid = NULL;
-
-              point->linear_attenuation = linear_attenuation;
-            } else if (AIO_IS_EQ_CASE(node_name, "quadratic_attenuation")) {
-              aio_basic_attrd * quadratic_attenuation;
-              char            * sid;
-              double            node_val;
-
-              node_content = aio_xml_content(curr_node);
-
-              if (node_content)
-                node_val = strtod(node_content, NULL);
-              else
-                node_val = 0.0;
-
-              quadratic_attenuation = aio_malloc(sizeof(*quadratic_attenuation));
-              quadratic_attenuation->val = node_val;
-
-              aio_xml_collada_read_attr(curr_node, "sid", &sid);
-
-              if (sid)
-                quadratic_attenuation->sid = sid;
-              else
-                quadratic_attenuation->sid = NULL;
-
-              point->quadratic_attenuation = quadratic_attenuation;
-            }
-          }
-
-          curr_node = curr_node->next;
-        } /* while */
-
-        techc->technique = point;
-        techc->technique_type = AIO_TECHNIQUE_COMMON_LIGHT_POINT;
-        
-        curr_node = point_curr_node;
-        node_name = NULL;
-      }
-
-      /* light -> spot */
-      else if (AIO_IS_EQ_CASE(node_name, "spot")) {
-        xmlNode  * spot_curr_node;
-        aio_spot * spot;
-
-        spot = aio_malloc(sizeof(*spot));
-
-        spot_curr_node = curr_node;
-        curr_node = curr_node->children;
-        while (curr_node) {
-          node_name = (const char *)curr_node->name;
-          if (curr_node->type == XML_ELEMENT_NODE) {
-            const char * node_content;
-
-            node_content = aio_xml_content(curr_node);
-
-            if (AIO_IS_EQ_CASE(node_name, "color")) {
-              char  * sid;
-              char  * node_content_dup;
-              char  * color_comp;
-              float * color_vec;
-              int     color_comp_idx;
-
-              sid = NULL;
-              aio_xml_collada_read_attr(curr_node, "sid", &sid);
-
-              if (sid)
-                spot->color.sid = sid;
-              else
-                spot->color.sid = NULL;
-
-              color_vec = spot->color.vec;
-              color_comp_idx = 0;
-              node_content_dup = strdup(node_content);
-
-              color_comp = strtok(node_content_dup, " ");
-              color_vec[color_comp_idx] = strtof(color_comp, NULL);
-
-              while (color_comp && ++color_comp_idx < 4) {
-                color_comp = strtok(NULL, " ");
-
-                if (!color_comp) {
-                  --color_comp_idx;
-                  continue;
-                }
-
-                color_vec[color_comp_idx] = strtof(color_comp, NULL);
-              }
-
-              /* make alpha channel to 1.0 as default */
-              if (color_comp_idx < 3)
-                color_vec[3] = 1.0;
-
-              free(node_content_dup);
-            } else if (AIO_IS_EQ_CASE(node_name, "constant_attenuation")) {
-              aio_basic_attrd * constant_attenuation;
-              char            * sid;
-              double            node_val;
-
-              node_content = aio_xml_content(curr_node);
-
-              if (node_content)
-                node_val = strtod(node_content, NULL);
-              else
-                node_val = 0.0;
-
-              constant_attenuation = aio_malloc(sizeof(*constant_attenuation));
-              constant_attenuation->val = node_val;
-
-              aio_xml_collada_read_attr(curr_node, "sid", &sid);
-
-              if (sid)
-                constant_attenuation->sid = sid;
-              else
-                constant_attenuation->sid = NULL;
-
-              spot->constant_attenuation = constant_attenuation;
-            } else if (AIO_IS_EQ_CASE(node_name, "linear_attenuation")) {
-              aio_basic_attrd * linear_attenuation;
-              char            * sid;
-              double            node_val;
-
-              node_content = aio_xml_content(curr_node);
-
-              if (node_content)
-                node_val = strtod(node_content, NULL);
-              else
-                node_val = 0.0;
-
-              linear_attenuation = aio_malloc(sizeof(*linear_attenuation));
-              linear_attenuation->val = node_val;
-
-              aio_xml_collada_read_attr(curr_node, "sid", &sid);
-
-              if (sid)
-                linear_attenuation->sid = sid;
-              else
-                linear_attenuation->sid = NULL;
-
-              spot->linear_attenuation = linear_attenuation;
-            } else if (AIO_IS_EQ_CASE(node_name, "quadratic_attenuation")) {
-              aio_basic_attrd * quadratic_attenuation;
-              char            * sid;
-              double            node_val;
-
-              node_content = aio_xml_content(curr_node);
-
-              if (node_content)
-                node_val = strtod(node_content, NULL);
-              else
-                node_val = 0.0;
-
-              quadratic_attenuation = aio_malloc(sizeof(*quadratic_attenuation));
-              quadratic_attenuation->val = node_val;
-
-              aio_xml_collada_read_attr(curr_node, "sid", &sid);
-
-              if (sid)
-                quadratic_attenuation->sid = sid;
-              else
-                quadratic_attenuation->sid = NULL;
-              
-              spot->quadratic_attenuation = quadratic_attenuation;
-            } else if (AIO_IS_EQ_CASE(node_name, "falloff_angle")) {
-              aio_basic_attrd * falloff_angle;
-              char            * sid;
-              double            node_val;
-
-              node_content = aio_xml_content(curr_node);
-
-              if (node_content)
-                node_val = strtod(node_content, NULL);
-              else
-                node_val = 0.0;
-
-              falloff_angle = aio_malloc(sizeof(*falloff_angle));
-              falloff_angle->val = node_val;
-
-              aio_xml_collada_read_attr(curr_node, "sid", &sid);
-
-              if (sid)
-                falloff_angle->sid = sid;
-              else
-                falloff_angle->sid = NULL;
-
-              spot->falloff_angle = falloff_angle;
-            } else if (AIO_IS_EQ_CASE(node_name, "falloff_exponent")) {
-              aio_basic_attrd * falloff_exponent;
-              char            * sid;
-              double            node_val;
-
-              node_content = aio_xml_content(curr_node);
-
-              if (node_content)
-                node_val = strtod(node_content, NULL);
-              else
-                node_val = 0.0;
-
-              falloff_exponent = aio_malloc(sizeof(*falloff_exponent));
-              falloff_exponent->val = node_val;
-
-              aio_xml_collada_read_attr(curr_node, "sid", &sid);
-
-              if (sid)
-                falloff_exponent->sid = sid;
-              else
-                falloff_exponent->sid = NULL;
-              
-              spot->falloff_angle = falloff_exponent;
-            }
-
-          }
-          
-          curr_node = curr_node->next;
-        } /* while */
-        
-        techc->technique = spot;
-        techc->technique_type = AIO_TECHNIQUE_COMMON_LIGHT_SPOT;
-
-        curr_node = spot_curr_node;
-        node_name = NULL;
-      }
-
+aio_dae_techniquec(xmlTextReaderPtr __restrict reader,
+                   aio_technique_common ** __restrict dest) {
+
+  aio_technique_common *techc;
+  const xmlChar * nodeName;
+  int             nodeType;
+  int             nodeRet;
+
+  techc = aio_calloc(sizeof(*techc), 1);
+
+  do {
+    _xml_beginElement(_s_dae_techniquec);
+
+    /* optics -> perspective */
+    if (_xml_eqElm(_s_dae_perspective)) {
+      aio_perspective * perspective;
+      perspective = aio_calloc(sizeof(*perspective), 1);
+      
+      do {
+        _xml_beginElement(_s_dae_perspective);
+
+        if (_xml_eqElm(_s_dae_xfov)) {
+          aio_basic_attrd * xfov;
+          xfov = aio_calloc(sizeof(*xfov), 1);
+
+          _xml_readAttr(xfov->sid, _s_dae_sid);
+          _xml_readTextUsingFn(xfov->val, strtod, NULL);
+
+          perspective->xfov = xfov;
+        } else if (_xml_eqElm(_s_dae_yfov)) {
+          aio_basic_attrd * yfov;
+          yfov = aio_calloc(sizeof(*yfov), 1);
+
+          _xml_readAttr(yfov->sid, _s_dae_sid);
+          _xml_readTextUsingFn(yfov->val, strtod, NULL);
+
+          perspective->yfov = yfov;
+        } else if (_xml_eqElm(_s_dae_aspect_ratio)) {
+          aio_basic_attrd * aspect_ratio;
+          aspect_ratio = aio_calloc(sizeof(*aspect_ratio), 1);
+
+          _xml_readAttr(aspect_ratio->sid, _s_dae_sid);
+          _xml_readTextUsingFn(aspect_ratio->val, strtod, NULL);
+
+          perspective->aspect_ratio = aspect_ratio;
+        } else if (_xml_eqElm(_s_dae_znear)) {
+          aio_basic_attrd * znear;
+          znear = aio_calloc(sizeof(*znear), 1);
+
+          _xml_readAttr(znear->sid, _s_dae_sid);
+          _xml_readTextUsingFn(znear->val, strtod, NULL);
+
+          perspective->znear = znear;
+        } else if (_xml_eqElm(_s_dae_zfar)) {
+          aio_basic_attrd * zfar;
+          zfar = aio_calloc(sizeof(*zfar), 1);
+
+          _xml_readAttr(zfar->sid, _s_dae_sid);
+          _xml_readTextUsingFn(zfar->val, strtod, NULL);
+
+          perspective->zfar = zfar;
+        } else {
+          _xml_skipElement;
+        }
+
+        /* end element */
+        _xml_endElement;
+      } while (nodeRet);
+
+      techc->technique = perspective;
+      techc->technique_type = AIO_TECHNIQUE_COMMON_CAMERA_PERSPECTIVE;
     }
 
-    curr_node = curr_node->next;
-  } /* while */
+    /* optics -> orthographic */
+    else if (_xml_eqElm(_s_dae_orthographic)) {
+      aio_orthographic * orthographic;
+      orthographic = aio_calloc(sizeof(*orthographic), 1);
+
+      do {
+        _xml_beginElement(_s_dae_orthographic);
+
+        if (_xml_eqElm(_s_dae_xmag)) {
+          aio_basic_attrd * xmag;
+          xmag = aio_calloc(sizeof(*xmag), 1);
+
+          _xml_readAttr(xmag->sid, _s_dae_sid);
+          _xml_readTextUsingFn(xmag->val, strtod, NULL);
+
+          orthographic->xmag = xmag;
+        } else if (_xml_eqElm(_s_dae_ymag)) {
+          aio_basic_attrd * ymag;
+          ymag = aio_calloc(sizeof(*ymag), 1);
+
+          _xml_readAttr(ymag->sid, _s_dae_sid);
+          _xml_readTextUsingFn(ymag->val, strtod, NULL);
+
+          orthographic->ymag = ymag;
+        } else if (_xml_eqElm(_s_dae_aspect_ratio)) {
+          aio_basic_attrd * aspect_ratio;
+          aspect_ratio = aio_calloc(sizeof(*aspect_ratio), 1);
+
+          _xml_readAttr(aspect_ratio->sid, _s_dae_sid);
+          _xml_readTextUsingFn(aspect_ratio->val, strtod, NULL);
+
+          orthographic->aspect_ratio = aspect_ratio;
+        } else if (_xml_eqElm(_s_dae_znear)) {
+          aio_basic_attrd * znear;
+          znear = aio_calloc(sizeof(*znear), 1);
+
+          _xml_readAttr(znear->sid, _s_dae_sid);
+          _xml_readTextUsingFn(znear->val, strtod, NULL);
+
+          orthographic->znear = znear;
+        } else if (_xml_eqElm(_s_dae_zfar)) {
+          aio_basic_attrd * zfar;
+          zfar = aio_calloc(sizeof(*zfar), 1);
+
+          _xml_readAttr(zfar->sid, _s_dae_sid);
+          _xml_readTextUsingFn(zfar->val, strtod, NULL);
+
+          orthographic->zfar = zfar;
+        } else {
+          _xml_skipElement;
+        }
+
+        /* end element */
+        _xml_endElement;
+      } while (nodeRet);
+
+      techc->technique = orthographic;
+      techc->technique_type = AIO_TECHNIQUE_COMMON_CAMERA_ORTHOGRAPHIC;
+    }
+
+    /* light -> ambient */
+    else if (_xml_eqElm(_s_dae_ambient)) {
+      aio_ambient * ambient;
+      ambient = aio_calloc(sizeof(*ambient), 1);
+
+      do {
+        _xml_beginElement(_s_dae_ambient);
+
+        if (_xml_eqElm(_s_dae_color)) {
+          char  * sid;
+          char  * content;
+          float * colorv;
+          char  * comp;
+          int     comp_idx;
+
+          _xml_readAttr(sid, _s_dae_sid);
+
+          colorv = ambient->color.vec;
+          comp_idx = 0;
+
+          _xml_readText(content);
+
+          comp = strtok(content, _s_dae_space);
+          colorv[comp_idx] = strtof(comp, NULL);
+
+          while (comp && ++comp_idx < 4) {
+            comp = strtok(NULL, _s_dae_space);
+
+            if (!comp) {
+              --comp_idx;
+              continue;
+            }
+
+            colorv[comp_idx] = strtof(comp, NULL);
+          }
+
+          /* make alpha channel to 1.0 as default */
+          if (comp_idx < 3)
+            colorv[3] = 1.0;
+
+          aio_free(content);
+        } else {
+          _xml_skipElement;
+        }
+
+        /* end element */
+        _xml_endElement;
+      } while (nodeRet);
+
+      techc->technique = ambient;
+      techc->technique_type = AIO_TECHNIQUE_COMMON_LIGHT_AMBIENT;
+    }
+
+    /* light -> directional */
+    else if (_xml_eqElm(_s_dae_directional)) {
+      aio_directional * directional;
+      directional = aio_calloc(sizeof(*directional), 1);
+
+      do {
+        _xml_beginElement(_s_dae_directional);
+
+        if (_xml_eqElm(_s_dae_color)) {
+          char  * sid;
+          char  * content;
+          float * colorv;
+          char  * comp;
+          int     comp_idx;
+
+          _xml_readAttr(sid, _s_dae_sid);
+
+          colorv = directional->color.vec;
+          comp_idx = 0;
+
+          _xml_readText(content);
+
+          comp = strtok(content, _s_dae_space);
+          colorv[comp_idx] = strtof(comp, NULL);
+
+          while (comp && ++comp_idx < 4) {
+            comp = strtok(NULL, _s_dae_space);
+
+            if (!comp) {
+              --comp_idx;
+              continue;
+            }
+
+            colorv[comp_idx] = strtof(comp, NULL);
+          }
+
+          /* make alpha channel to 1.0 as default */
+          if (comp_idx < 3)
+            colorv[3] = 1.0;
+
+          aio_free(content);
+        } else {
+          _xml_skipElement;
+        }
+
+        /* end element */
+        _xml_endElement;
+      } while (nodeRet);
+
+      techc->technique = directional;
+      techc->technique_type = AIO_TECHNIQUE_COMMON_LIGHT_DIRECTIONAL;
+    }
+
+    /* light -> point */
+    else if (_xml_eqElm(_s_dae_point)) {
+      aio_point * point;
+      point = aio_calloc(sizeof(*point), 1);
+
+      do {
+        _xml_beginElement(_s_dae_point);
+
+        if (_xml_eqElm(_s_dae_color)) {
+          char  * sid;
+          char  * content;
+          float * colorv;
+          char  * comp;
+          int     comp_idx;
+
+          _xml_readAttr(sid, _s_dae_sid);
+
+          colorv = point->color.vec;
+          comp_idx = 0;
+
+          _xml_readText(content);
+
+          comp = strtok(content, _s_dae_space);
+          colorv[comp_idx] = strtof(comp, NULL);
+
+          while (comp && ++comp_idx < 4) {
+            comp = strtok(NULL, _s_dae_space);
+
+            if (!comp) {
+              --comp_idx;
+              continue;
+            }
+
+            colorv[comp_idx] = strtof(comp, NULL);
+          }
+
+          /* make alpha channel to 1.0 as default */
+          if (comp_idx < 3)
+            colorv[3] = 1.0;
+
+          aio_free(content);
+        } else if (_xml_eqElm(_s_dae_constant_attenuation)) {
+          aio_basic_attrd * constant_attenuation;
+
+          constant_attenuation = aio_calloc(sizeof(*constant_attenuation), 1);
+
+          _xml_readTextUsingFn(constant_attenuation->val, strtod, NULL);
+          _xml_readAttr(constant_attenuation->sid, _s_dae_sid);
+
+          point->constant_attenuation = constant_attenuation;
+        } else if (_xml_eqElm(_s_dae_linear_attenuation)) {
+          aio_basic_attrd * linear_attenuation;
+
+          linear_attenuation = aio_calloc(sizeof(*linear_attenuation), 1);
+
+          _xml_readTextUsingFn(linear_attenuation->val, strtod, NULL);
+          _xml_readAttr(linear_attenuation->sid, _s_dae_sid);
+
+          point->linear_attenuation = linear_attenuation;
+        } else if (_xml_eqElm(_s_dae_quadratic_attenuation)) {
+          aio_basic_attrd * quadratic_attenuation;
+
+          quadratic_attenuation = aio_calloc(sizeof(*quadratic_attenuation), 1);
+
+          _xml_readTextUsingFn(quadratic_attenuation->val, strtod, NULL);
+          _xml_readAttr(quadratic_attenuation->sid, _s_dae_sid);
+
+          point->quadratic_attenuation = quadratic_attenuation;
+        } else {
+          _xml_skipElement;
+        }
+
+        /* end element */
+        _xml_endElement;
+      } while (nodeRet);
+      
+      techc->technique = point;
+      techc->technique_type = AIO_TECHNIQUE_COMMON_LIGHT_POINT;
+    }
+
+    /* light -> spot */
+    else if (_xml_eqElm(_s_dae_point)) {
+      aio_spot * spot;
+      spot = aio_calloc(sizeof(*spot), 1);
+
+      do {
+        _xml_beginElement(_s_dae_spot);
+
+        if (_xml_eqElm(_s_dae_color)) {
+          char  * sid;
+          char  * content;
+          float * colorv;
+          char  * comp;
+          int     comp_idx;
+
+          _xml_readAttr(sid, _s_dae_sid);
+
+          colorv = spot->color.vec;
+          comp_idx = 0;
+
+          _xml_readText(content);
+
+          comp = strtok(content, _s_dae_space);
+          colorv[comp_idx] = strtof(comp, NULL);
+
+          while (comp && ++comp_idx < 4) {
+            comp = strtok(NULL, _s_dae_space);
+
+            if (!comp) {
+              --comp_idx;
+              continue;
+            }
+
+            colorv[comp_idx] = strtof(comp, NULL);
+          }
+
+          /* make alpha channel to 1.0 as default */
+          if (comp_idx < 3)
+            colorv[3] = 1.0;
+
+          aio_free(content);
+        } else if (_xml_eqElm(_s_dae_constant_attenuation)) {
+          aio_basic_attrd * constant_attenuation;
+
+          constant_attenuation = aio_calloc(sizeof(*constant_attenuation), 1);
+
+          _xml_readTextUsingFn(constant_attenuation->val, strtod, NULL);
+          _xml_readAttr(constant_attenuation->sid, _s_dae_sid);
+
+          spot->constant_attenuation = constant_attenuation;
+        } else if (_xml_eqElm(_s_dae_linear_attenuation)) {
+          aio_basic_attrd * linear_attenuation;
+
+          linear_attenuation = aio_calloc(sizeof(*linear_attenuation), 1);
+
+          _xml_readTextUsingFn(linear_attenuation->val, strtod, NULL);
+          _xml_readAttr(linear_attenuation->sid, _s_dae_sid);
+
+          spot->linear_attenuation = linear_attenuation;
+        } else if (_xml_eqElm(_s_dae_quadratic_attenuation)) {
+          aio_basic_attrd * quadratic_attenuation;
+
+          quadratic_attenuation = aio_calloc(sizeof(*quadratic_attenuation), 1);
+
+          _xml_readTextUsingFn(quadratic_attenuation->val, strtod, NULL);
+          _xml_readAttr(quadratic_attenuation->sid, _s_dae_sid);
+
+          spot->quadratic_attenuation = quadratic_attenuation;
+        } else if (_xml_eqElm(_s_dae_falloff_angle)) {
+          aio_basic_attrd * falloff_angle;
+
+          falloff_angle = aio_calloc(sizeof(*falloff_angle), 1);
+
+          _xml_readTextUsingFn(falloff_angle->val, strtod, NULL);
+          _xml_readAttr(falloff_angle->sid, _s_dae_sid);
+
+          spot->falloff_angle = falloff_angle;
+        } else if (_xml_eqElm(_s_dae_falloff_exponent)) {
+          aio_basic_attrd * falloff_exponent;
+
+          falloff_exponent = aio_calloc(sizeof(*falloff_exponent), 1);
+
+          _xml_readTextUsingFn(falloff_exponent->val, strtod, NULL);
+          _xml_readAttr(falloff_exponent->sid, _s_dae_sid);
+
+          spot->falloff_exponent = falloff_exponent;
+        } else {
+          _xml_skipElement;
+        }
+        
+        /* end element */
+        _xml_endElement;
+      } while (nodeRet);
+      
+      techc->technique = spot;
+      techc->technique_type = AIO_TECHNIQUE_COMMON_LIGHT_SPOT;
+    }
+    
+    /* end element */
+    _xml_endElement;
+  } while (nodeRet);
+
+  *dest = techc;
 
   return 0;
 }
