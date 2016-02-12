@@ -34,12 +34,12 @@ static int           _AIO_MEM_INITIALIZED = 0;
 struct aio_memlist_s {
   size_t        ml_nodeCount;
   size_t        ml_memUsage;
-  aio_memnode * ml_front;
   aio_memnode * ml_back;
 };
 
 struct aio_memnode_s {
   aio_memnode * mn_prev;
+  aio_memnode * mn_next;
   aio_memnode * mn_chld;
   size_t        mn_size;
   unsigned long mn_refCount;
@@ -57,7 +57,7 @@ aio_init() {
   tmpNode = calloc(sizeof(*tmpNode), 1);
 
   _AIO_MEM_LST = calloc(sizeof(*_AIO_MEM_LST), 1);
-  _AIO_MEM_LST->ml_front = tmpNode;
+  _AIO_MEM_LST->ml_back = tmpNode;
   _AIO_MEM_INITIALIZED = 1;
 }
 
@@ -67,9 +67,28 @@ aio_memlst_append(aio_memnode * __restrict mem_node) {
   assert(mem_node && "mem_node connot be NULL");
 
   mem_node->mn_prev = _AIO_MEM_LST->ml_back;
+  _AIO_MEM_LST->ml_back->mn_next = mem_node;
   _AIO_MEM_LST->ml_back = mem_node;
 
   _AIO_MEM_LST->ml_nodeCount += 1;
+}
+
+static
+void
+aio_memlst_rm(aio_memnode * __restrict mem_node) {
+  aio_memnode * prev_node;
+
+  assert(mem_node && "mem_node connot be NULL");
+
+  prev_node = mem_node->mn_prev;
+
+  if (prev_node)
+    prev_node->mn_next = mem_node->mn_next;
+
+  if (_AIO_MEM_LST->ml_back == mem_node)
+    _AIO_MEM_LST->ml_back = prev_node;
+
+  _AIO_MEM_LST->ml_nodeCount -= 1;
 }
 
 void *
@@ -107,6 +126,7 @@ aio_calloc(size_t size, size_t count) {
   mn->mn_refCount = 1;
   mn->mn_size     = memsize;
   mn->mn_prev     = NULL;
+  mn->mn_next     = NULL;
   mn->mn_chld     = NULL;
 
   aio_memlst_append(mn);
@@ -156,6 +176,7 @@ aio_strdup(const char * __restrict s) {
   mn->mn_refCount = 1;
   mn->mn_size     = size;
   mn->mn_prev     = NULL;
+  mn->mn_next     = NULL;
   mn->mn_chld     = NULL;
 
   mem = _AIO_ALIGN_AS(mn);
@@ -177,6 +198,8 @@ aio_free(void * __restrict mem) {
     aio_init();
 
   mn = _AIO_ALIGN_OF(mem);
+  aio_memlst_rm(mn);
+
   if (mn)
     free(mn);
 }
