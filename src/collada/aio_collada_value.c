@@ -6,439 +6,151 @@
  */
 
 #include "aio_collada_value.h"
+#include "aio_collada_common.h"
 
-#include "aio_collada_asset.h"
-#include "aio_collada_technique.h"
-#include "../aio_libxml.h"
-#include "../aio_types.h"
-#include "../aio_memory.h"
-#include "../aio_utils.h"
-#include "../aio_tree.h"
+typedef struct {
+  const char * key;
+  aio_value_type val;
+  int m;
+  int n;
+} aio_value_pair;
 
-#include <libxml/tree.h>
-#include <libxml/parser.h>
-#include <string.h>
+static
+int _assetio_hide
+valuePairCmp(const void *, const void *);
+
+static
+int _assetio_hide
+valuePairCmp2(const void *, const void *);
+
+#define n1x1 1, 1
+static aio_value_pair valueMap[] = {
+  {_s_dae_string,   AIO_VALUE_TYPE_STRING,   1, 1},
+  {_s_dae_bool,     AIO_VALUE_TYPE_BOOL,     1, 1},
+  {_s_dae_bool2,    AIO_VALUE_TYPE_BOOL2,    1, 2},
+  {_s_dae_bool3,    AIO_VALUE_TYPE_BOOL3,    1, 3},
+  {_s_dae_bool4,    AIO_VALUE_TYPE_BOOL4,    1, 4},
+  {_s_dae_int,      AIO_VALUE_TYPE_INT,      1, 1},
+  {_s_dae_int2,     AIO_VALUE_TYPE_INT2,     1, 2},
+  {_s_dae_int3,     AIO_VALUE_TYPE_INT3,     1, 3},
+  {_s_dae_int4,     AIO_VALUE_TYPE_INT4,     1, 4},
+  {_s_dae_float,    AIO_VALUE_TYPE_FLOAT,    1, 1},
+  {_s_dae_float2,   AIO_VALUE_TYPE_FLOAT2,   1, 2},
+  {_s_dae_float3,   AIO_VALUE_TYPE_FLOAT3,   1, 3},
+  {_s_dae_float4,   AIO_VALUE_TYPE_FLOAT4,   1, 4},
+  {_s_dae_float2x2, AIO_VALUE_TYPE_FLOAT2x2, 2, 2},
+  {_s_dae_float3x3, AIO_VALUE_TYPE_FLOAT3x3, 3, 3},
+  {_s_dae_float4x4, AIO_VALUE_TYPE_FLOAT4x4, 4, 4}
+};
+
+static size_t valueMapLen = 0;
+
+int _assetio_hide
+aio_dae_value(xmlTextReaderPtr __restrict reader,
+              void ** __restrict dest,
+              aio_value_type * __restrict val_type) {
+  aio_value_pair *found;
+  char           *nodeVal;
+  const xmlChar  *nodeName;
+  int nodeType;
+  int nodeRet;
+
+  _xml_readText(nodeVal);
+
+  if (valueMapLen == 0) {
+    valueMapLen = AIO_ARRAY_LEN(valueMap);
+    qsort(valueMap,
+          valueMapLen,
+          sizeof(valueMap[0]),
+          valuePairCmp);
+  }
+
+  found = bsearch(nodeName,
+                  valueMap,
+                  valueMapLen,
+                  sizeof(valueMap[0]),
+                  valuePairCmp2);
+
+  *val_type = found->val;
+
+  switch (found->val) {
+    case AIO_VALUE_TYPE_STRING:
+      *dest = nodeVal;
+      break;
+    case AIO_VALUE_TYPE_BOOL:
+    case AIO_VALUE_TYPE_BOOL2:
+    case AIO_VALUE_TYPE_BOOL3:
+    case AIO_VALUE_TYPE_BOOL4:{
+      aio_bool * val;
+
+      val = aio_malloc(sizeof(*val) * found->m * found->n);
+      aio_strtomb(&nodeVal, val, found->m, found->n);
+
+      aio_free(nodeVal);
+
+      *dest = val;
+      break;
+    }
+    case AIO_VALUE_TYPE_INT:
+    case AIO_VALUE_TYPE_INT2:
+    case AIO_VALUE_TYPE_INT3:
+    case AIO_VALUE_TYPE_INT4:{
+      aio_int * val;
+
+      val = aio_malloc(sizeof(*val) * found->m * found->n);
+      aio_strtomi(&nodeVal, val, found->m, found->n);
+
+      aio_free(nodeVal);
+
+      *dest = val;
+      break;
+    }
+    case AIO_VALUE_TYPE_FLOAT:
+    case AIO_VALUE_TYPE_FLOAT2:
+    case AIO_VALUE_TYPE_FLOAT3:
+    case AIO_VALUE_TYPE_FLOAT4:
+    case AIO_VALUE_TYPE_FLOAT2x2:
+    case AIO_VALUE_TYPE_FLOAT3x3:
+    case AIO_VALUE_TYPE_FLOAT4x4:{
+      aio_float * val;
+
+      val = aio_malloc(sizeof(*val) * found->m * found->n);
+      aio_strtomf(&nodeVal, val, found->m, found->n);
+
+      aio_free(nodeVal);
+
+      *dest = val;
+      break;
+    }
+  }
+
+  /* end element */
+  _xml_endElement;
+
+  return 0;
+}
 
 int _assetio_hide
 aio_load_collada_value(xmlNode * __restrict xml_node,
                        void ** __restrict dest,
                        aio_value_type * __restrict val_type) {
-
-  const char * node_name;
-  const char * node_content;
-
-  if (xml_node->type != XML_ELEMENT_NODE)
-    return 0;
-
-  node_name = (const char *)xml_node->name;
-
-  node_content = aio_xml_content(xml_node);
-
-  if (AIO_IS_EQ_CASE(node_name, "string")) {
-    char * val;
-
-    val = aio_strdup(node_content);
-    *val_type = AIO_VALUE_TYPE_STRING;
-
-    *dest = val;
-
-  } else if (AIO_IS_EQ_CASE(node_name, "bool")) {
-    aio_bool * val;
-
-    val = aio_malloc(sizeof(*val));
-    *val = (int)strtol(node_content, NULL, 10);
-
-    *dest = val;
-    *val_type = AIO_VALUE_TYPE_BOOL;
-
-  } else if (AIO_IS_EQ_CASE(node_name, "bool2")) {
-    aio_bool      * val;
-    const char    * pstr;
-    size_t          slen;
-    unsigned long   idx;
-    unsigned long   i;
-
-    slen = strlen(node_content);
-    pstr = node_content;
-
-    val = aio_calloc(sizeof(*val), 2);
-    i = 0;
-    idx = 0;
-    
-    for (; i < slen - 1; i++) {
-      if (*pstr == '\0' || idx > 1)
-        break;
-
-      *(val + idx++)= (bool)*pstr;
-    }
-
-    *dest = val;
-    *val_type = AIO_VALUE_TYPE_BOOL2;
-
-  } else if (AIO_IS_EQ_CASE(node_name, "bool3")) {
-    aio_bool      * val;
-    const char    * pstr;
-    size_t          slen;
-    unsigned long   idx;
-    unsigned long   i;
-
-    slen = strlen(node_content);
-    pstr = node_content;
-
-    val = aio_calloc(sizeof(*val), 3);
-    i = 0;
-    idx = 0;
-
-    for (; i < slen - 1; i++) {
-      if (*pstr == '\0' || idx > 2)
-        break;
-
-      *(val + idx++)= (bool)*pstr;
-    }
-
-    *val = val;
-    *val_type = AIO_VALUE_TYPE_BOOL3;
-
-  } else if (AIO_IS_EQ_CASE(node_name, "bool4")) {
-    aio_bool      * val;
-    const char    * pstr;
-    size_t          slen;
-    unsigned long   idx;
-    unsigned long   i;
-
-    slen = strlen(node_content);
-    pstr = node_content;
-
-    val = aio_calloc(sizeof(*val), 4);
-    i = 0;
-    idx = 0;
-
-    for (; i < slen - 1; i++) {
-      if (*pstr == '\0' || idx > 3)
-        break;
-
-      *(val + idx++)= (bool)*pstr;
-    }
-
-    *dest = val;
-    *val_type = AIO_VALUE_TYPE_BOOL4;
-
-  } else if (AIO_IS_EQ_CASE(node_name, "int")) {
-    aio_int * val;
-
-    val = aio_malloc(sizeof(*val));
-    *val = (int)strtol(node_content, NULL, 10);
-
-    *dest = val;
-    *val_type = AIO_VALUE_TYPE_INT;
-
-  } else if (AIO_IS_EQ_CASE(node_name, "int2")) {
-    aio_int    * val;
-    const char * tok;
-    char       * raw_val;
-    long         tok_idx;
-
-    raw_val = strdup(node_content);
-    tok = strtok(raw_val, " ");
-    tok_idx = 0;
-
-    if (tok) {
-      val = aio_calloc(sizeof(*val), 2);
-      val[tok_idx] = (aio_int)strtol(tok, NULL, 10);
-
-      while (tok && tok_idx < 2) {
-        tok = strtok(NULL, " ");
-
-        if (!tok)
-          continue;
-
-        val[++tok_idx] = (int)strtol(tok, NULL, 10);
-      }
-
-      *dest = val;
-    }
-
-    *val_type = AIO_VALUE_TYPE_INT2;
-    free(raw_val);
-
-  } else if (AIO_IS_EQ_CASE(node_name, "int3")) {
-    aio_int    * val;
-    const char * tok;
-    char       * raw_val;
-    long         tok_idx;
-
-    raw_val = strdup(node_content);
-    tok = strtok(raw_val, " ");
-    tok_idx = 0;
-
-    if (tok) {
-      val = aio_calloc(sizeof(*val), 3);
-      val[tok_idx] = (aio_int)strtol(tok, NULL, 10);
-
-      while (tok && tok_idx < 3) {
-        tok = strtok(NULL, " ");
-
-        if (!tok)
-          continue;
-
-        val[++tok_idx] = (int)strtol(tok, NULL, 10);
-      }
-
-      *dest = val;
-    }
-
-    *val_type = AIO_VALUE_TYPE_INT3;
-    free(raw_val);
-
-  } else if (AIO_IS_EQ_CASE(node_name, "int4")) {
-    aio_int    * val;
-    const char * tok;
-    char       * raw_val;
-    long         tok_idx;
-
-    raw_val = strdup(node_content);
-    tok = strtok(raw_val, " ");
-    tok_idx = 0;
-
-    if (tok) {
-      val = aio_calloc(sizeof(*val), 4);
-      val[tok_idx] = (aio_int)strtol(tok, NULL, 10);
-
-      while (tok && tok_idx < 4) {
-        tok = strtok(NULL, " ");
-
-        if (!tok)
-          continue;
-
-        val[++tok_idx] = (int)strtol(tok, NULL, 10);
-      }
-
-      *dest = val;
-    }
-
-    *val_type = AIO_VALUE_TYPE_INT4;
-    free(raw_val);
-
-  } else if (AIO_IS_EQ_CASE(node_name, "float")) {
-    aio_float * val;
-
-    val = aio_malloc(sizeof(*val));
-    *val = strtof(node_content, NULL);
-
-    *dest = val;
-    *val_type = AIO_VALUE_TYPE_FLOAT;
-
-  } else if (AIO_IS_EQ_CASE(node_name, "float2")) {
-    aio_float  * val;
-    const char * tok;
-    char       * raw_val;
-    long         tok_idx;
-
-    raw_val = strdup(node_content);
-    tok = strtok(raw_val, " ");
-    tok_idx = 0;
-
-    if (tok) {
-      val = aio_calloc(sizeof(*val), 2);
-      val[tok_idx] = strtod(tok, NULL);
-
-      while (tok && tok_idx < 2) {
-        tok = strtok(NULL, " ");
-
-        if (!tok)
-          continue;
-
-        val[++tok_idx] = strtof(tok, NULL);
-      }
-
-      *dest = val;
-    }
-
-    *val_type = AIO_VALUE_TYPE_FLOAT2;
-    free(raw_val);
-
-  } else if (AIO_IS_EQ_CASE(node_name, "float3")) {
-    aio_float  * val;
-    const char * tok;
-    char       * raw_val;
-    long         tok_idx;
-
-    raw_val = strdup(node_content);
-    tok = strtok(raw_val, " ");
-    tok_idx = 0;
-
-    if (tok) {
-      val = aio_calloc(sizeof(*val), 3);
-      val[tok_idx] = strtod(tok, NULL);
-
-      while (tok && tok_idx < 3) {
-        tok = strtok(NULL, " ");
-
-        if (!tok)
-          continue;
-
-        val[++tok_idx] = strtof(tok, NULL);
-      }
-
-      *dest = val;
-    }
-
-    *val_type = AIO_VALUE_TYPE_FLOAT3;
-    free(raw_val);
-    
-  } else if (AIO_IS_EQ_CASE(node_name, "float4")) {
-    aio_float  * val;
-    const char * tok;
-    char       * raw_val;
-    long         tok_idx;
-
-    raw_val = strdup(node_content);
-    tok = strtok(raw_val, " ");
-    tok_idx = 0;
-
-    if (tok) {
-      val = aio_calloc(sizeof(*val), 4);
-      val[tok_idx] = strtod(tok, NULL);
-
-      while (tok && tok_idx < 4) {
-        tok = strtok(NULL, " ");
-
-        if (!tok)
-          continue;
-
-        val[++tok_idx] = strtof(tok, NULL);
-      }
-
-      *dest = val;
-    }
-
-    *val_type = AIO_VALUE_TYPE_FLOAT4;
-    free(raw_val);
-    
-  } else if (AIO_IS_EQ_CASE(node_name, "float2x2")) {
-    aio_float2x2 val;
-    const char * tok;
-    char       * raw_val;
-    long         tok_idx;
-    long         m;
-    long         n;
-
-    raw_val = strdup(node_content);
-    tok = strtok(raw_val, " ");
-
-    m = 0;
-    n = 0;
-    tok_idx = 0;
-
-    if (tok) {
-      val[m][n++] = strtod(tok, NULL);
-
-      while (tok && tok_idx < 4) {
-        tok = strtok(NULL, " ");
-
-        if (!tok)
-          continue;
-
-        if (n > 1) {
-          n = 0;
-          ++m;
-        }
-
-        val[m][n] = strtof(tok, NULL);
-
-        ++n;
-      }
-
-      *dest = aio_calloc(sizeof(val), 1);
-      memcpy(*dest, val, sizeof(val));
-    }
-
-    *val_type = AIO_VALUE_TYPE_FLOAT2x2;
-    free(raw_val);
-
-  } else if (AIO_IS_EQ_CASE(node_name, "float3x3")) {
-    aio_float3x3 val;
-    const char * tok;
-    char       * raw_val;
-    long         tok_idx;
-    long         m;
-    long         n;
-
-    raw_val = strdup(node_content);
-    tok = strtok(raw_val, " ");
-
-    m = 0;
-    n = 0;
-    tok_idx = 0;
-
-    if (tok) {
-      val[m][n++] = strtod(tok, NULL);
-
-      while (tok && tok_idx < 9) {
-        tok = strtok(NULL, " ");
-
-        if (!tok)
-          continue;
-
-        if (n > 2) {
-          n = 0;
-          ++m;
-        }
-
-        val[m][n] = strtof(tok, NULL);
-
-        ++n;
-      }
-
-      *dest = aio_calloc(sizeof(val), 1);
-      memcpy(*dest, val, sizeof(val));
-    }
-
-    *val_type = AIO_VALUE_TYPE_FLOAT3x3;
-    free(raw_val);
-
-  } else if (AIO_IS_EQ_CASE(node_name, "float4x4")) {
-    aio_float4x4 val;
-    const char * tok;
-    char       * raw_val;
-    long         tok_idx;
-    long         m;
-    long         n;
-
-    raw_val = strdup(node_content);
-    tok = strtok(raw_val, " ");
-
-    m = 0;
-    n = 0;
-    tok_idx = 0;
-
-    if (tok) {
-      val[m][n++] = strtod(tok, NULL);
-
-      while (tok && tok_idx < 16) {
-        tok = strtok(NULL, " ");
-
-        if (!tok)
-          continue;
-
-        if (n > 3) {
-          n = 0;
-          ++m;
-        }
-
-        val[m][n] = strtof(tok, NULL);
-
-        ++n;
-      }
-
-      *dest = aio_calloc(sizeof(val), 1);
-      memcpy(*dest, val, sizeof(val));
-    }
-
-    *val_type = AIO_VALUE_TYPE_FLOAT4x4;
-    free(raw_val);
-
-  }
-
   return 0;
+}
+
+static
+int _assetio_hide
+valuePairCmp(const void * a, const void * b) {
+  const aio_value_pair * _a = a;
+  const aio_value_pair * _b = b;
+
+  return strcmp(_a->key, _b->key);
+}
+
+static
+int _assetio_hide
+valuePairCmp2(const void * a, const void * b) {
+  const char * _a = a;
+  const aio_value_pair * _b = b;
+
+  return strcmp(_a, _b->key);
 }
