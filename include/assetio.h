@@ -44,6 +44,9 @@ extern "C" {
 
 typedef const char *  aio_string;
 typedef char       *  aio_mut_string;
+typedef const char *  aio_str;
+typedef char       *  aio_mutstr;
+typedef unsigned const char * aio_ustr;
 typedef bool          aio_bool;
 typedef aio_bool      aio_bool2[2];
 typedef aio_bool      aio_bool3[3];
@@ -558,24 +561,6 @@ struct aio_contributor_s {
   aio_contributor * prev;
 };
 
-typedef struct aio_docinf_s aio_docinf;
-struct aio_docinf_s {
-  aio_contributor * contributor;
-  aio_unit        * unit;
-  const char      * subject;
-  const char      * title;
-  const char      * keywords;
-  const char      * copyright;
-  const char      * comments;
-  const char      * tooldesc;
-  const char      * fname;
-  aio_time_t        created;
-  aio_time_t        modified;
-  unsigned long     revision;
-  aio_upaxis        upaxis;
-  aio_filetype      ftype;
-};
-
 typedef struct aio_altitude_s aio_altitude;
 struct aio_altitude_s {
   aio_altitude_mode mode;
@@ -608,6 +593,13 @@ struct aio_assetinf_s {
   aio_time_t        modified;
   unsigned long     revision;
   aio_upaxis        upaxis;
+};
+
+typedef struct aio_docinf_s aio_docinf;
+struct aio_docinf_s {
+  aio_assetinf   base;
+  const char   * fname;
+  aio_filetype   ftype;
 };
 
 /*
@@ -686,7 +678,6 @@ struct aio_camera_s {
   aio_tree   * extra;
 
   aio_camera * next;
-  aio_camera * prev;
 };
 
 /**
@@ -744,7 +735,6 @@ struct aio_light_s {
   aio_tree             * extra;
 
   aio_light * next;
-  aio_light * prev;
 };
 
 /* FX */

@@ -12,9 +12,6 @@
 #include <sys/types.h>
 #include <string.h>
 
-typedef const char * aio_str;
-typedef char       * aio_mutstr;
-
 #define aio_true  0x1
 #define aio_false 0x0
 

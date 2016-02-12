@@ -13,7 +13,7 @@
 #include <stdlib.h>
 
 int _assetio_hide
-  aio_load_collada(aio_doc ** __restrict dest,
-                   const char * __restrict);
+aio_dae_doc(aio_doc ** __restrict dest,
+            const char * __restrict file);
 
 #endif /* __libassetio__aio_collada__h_ */
