@@ -91,5 +91,11 @@
   "static": "STATIC",
   "volatile": "VOLATILE",
   "extern": "EXTERN",
-  "shared": "SHARED"
+  "shared": "SHARED",
+  "platform": "platform",
+  "platforms": "platforms",
+  "language": "language",
+  "url": "url",
+  "code": "code",
+  "include": "include"
 }

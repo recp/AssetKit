@@ -106,6 +106,12 @@ const char _s_dae_pool[] =
 "VOLATILE\0"
 "EXTERN\0"
 "SHARED\0"
+"platform\0"
+"platforms\0"
+"language\0"
+"url\0"
+"code\0"
+"include\0"
 ;
 
 #undef _AIO_DAE_STRPOOL_

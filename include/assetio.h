@@ -92,7 +92,8 @@ typedef time_t aio_time_t;
 /*
  * Value Types
  */
-#define aio_value_type int
+#define aio_value_type long
+#define AIO_VALUE_TYPE_UNKNOWN                                          0x00
 #define AIO_VALUE_TYPE_BOOL                                             0x01
 #define AIO_VALUE_TYPE_BOOL2                                            0x02
 #define AIO_VALUE_TYPE_BOOL3                                            0x03
@@ -126,6 +127,7 @@ typedef time_t aio_time_t;
  * Profiles
  */
 #define aio_profile_type long
+#define AIO_PROFILE_TYPE_UNKOWN                                         0x00
 #define AIO_PROFILE_TYPE_COMMON                                         0x01
 #define AIO_PROFILE_TYPE_CG                                             0x02
 #define AIO_PROFILE_TYPE_GLES                                           0x03
@@ -745,23 +747,15 @@ struct aio_light_s {
 typedef struct aio_param_s aio_param;
 struct aio_param_s {
   aio_param_type  param_type;
-  aio_param     * prev;
-  aio_param     * next;
+  const char * ref;
+
+  aio_param * prev;
+  aio_param * next;
 };
 
-typedef struct aio_param_basic_s aio_param_basic;
-struct aio_param_basic_s {
-  aio_param base;
-  union {
-    const char * val;
-    const char * ref;
-  };
-};
-
-typedef struct aio_param_extended_s aio_param_extended;
-struct aio_param_extended_s {
+typedef struct aio_param_ex_s aio_param_ex;
+struct aio_param_ex_s {
   aio_param        base;
-  const char     * val;
   const char     * name;
   const char     * sid;
   const char     * semantic;
@@ -942,10 +936,10 @@ struct aio_fx_texture_s {
 
 typedef struct aio_fx_color_or_tex_s aio_fx_color_or_tex;
 struct aio_fx_color_or_tex_s {
-  aio_opaque        opaque;
-  aio_color       * color;
-  aio_param_basic * param;
-  aio_fx_texture  * texture;
+  aio_opaque       opaque;
+  aio_color      * color;
+  aio_param      * param;
+  aio_fx_texture * texture;
 };
 
 typedef aio_fx_color_or_tex aio_ambient_fx;
@@ -958,7 +952,7 @@ typedef aio_fx_color_or_tex aio_transparent;
 typedef struct aio_fx_float_or_param_s aio_fx_float_or_param;
 struct aio_fx_float_or_param_s {
   aio_basic_attrf * val;
-  aio_param_basic * param;
+  aio_param       * param;
 };
 
 typedef aio_fx_float_or_param aio_index_of_refraction;
@@ -973,7 +967,6 @@ struct aio_annotate_s {
   aio_value_type   val_type;
 
   aio_annotate * next;
-  aio_annotate * prev;
 };
 
 typedef struct aio_newparam_s aio_newparam;
@@ -985,7 +978,6 @@ struct aio_newparam_s {
   void           * val;
   aio_value_type   val_type;
 
-  aio_newparam * prev;
   aio_newparam * next;
 };
 
@@ -994,7 +986,6 @@ struct aio_code_s {
   const char * sid;
   const char * val;
 
-  aio_code * prev;
   aio_code * next;
 };
 
@@ -1003,7 +994,6 @@ struct aio_include_s {
   const char * sid;
   const char * url;
 
-  aio_include * prev;
   aio_include * next;
 };
 
@@ -1154,7 +1144,7 @@ typedef struct aio_bind_uniform_s aio_bind_uniform;
 struct aio_bind_uniform_s {
   const char * symbol;
 
-  aio_param_basic * param;
+  aio_param       * param;
   void            * val;
   aio_value_type    val_type;
 
@@ -1234,81 +1224,65 @@ struct aio_technique_fx_s {
 
   aio_tree        * extra;
 
-  aio_technique_fx * prev;
   aio_technique_fx * next;
 };
 
-#ifdef _AIO_PROFILE_BASE_
-#  undef _AIO_PROFILE_BASE_
-#endif
-
-/*
- * Common properties of all profiles
- */
-#define _AIO_PROFILE_BASE_                                                    \
-  aio_asset_base                                                             \
-  aio_profile_type   profile_type;                                            \
-  const char       * id;                                                      \
-  aio_newparam     * newparam;                                                \
-  aio_technique_fx * technique;                                               \
-  aio_tree         * extra;                                                   \
-  aio_profile      * prev;                                                    \
-  aio_profile      * next;
-
 typedef struct aio_profile_s aio_profile;
 struct aio_profile_s {
-  _AIO_PROFILE_BASE_
+  aio_asset_base                                                           
+  aio_profile_type   profile_type;
+  const char       * id;
+  aio_newparam     * newparam;
+  aio_technique_fx * technique;
+  aio_tree         * extra;
+  aio_profile      * prev;
+  aio_profile      * next;
 };
 
-typedef struct aio_profile_common_s aio_profile_common;
-struct aio_profile_common_s {
-  _AIO_PROFILE_BASE_
-};
+typedef aio_profile aio_profile_common;
 
 typedef struct aio_profile_cg_s aio_profile_CG;
 struct aio_profile_cg_s {
-  _AIO_PROFILE_BASE_
+  aio_profile base;
 
-  const char    * platform;
   aio_code      * code;
   aio_include   * include;
+  const char    * platform;
 };
 
 typedef struct aio_profile_gles_s aio_profile_GLES;
 struct aio_profile_gles_s {
-  _AIO_PROFILE_BASE_
+  aio_profile base;
 
   const char * platform;
 };
 
 typedef struct aio_profile_gles2_s aio_profile_GLES2;
 struct aio_profile_gles2_s {
-  _AIO_PROFILE_BASE_
+  aio_profile base;
 
-  const char  * language;
   aio_code    * code;
   aio_include * include;
+  const char  * language;
   const char  * platforms;
 };
 
 typedef struct aio_profile_glsl_s aio_profile_GLSL;
 struct aio_profile_glsl_s {
-  _AIO_PROFILE_BASE_
+  aio_profile base;
 
-  const char  * platform;
   aio_code    * code;
   aio_include * include;
+  const char  * platform;
 };
 
 typedef struct aio_profile_bridge_s aio_profile_BRIDGE;
 struct aio_profile_bridge_s {
-  _AIO_PROFILE_BASE_
+  aio_profile base;
   
   const char * platform;
   const char * url;
 };
-
-#undef _AIO_PROFILE_BASE_
 
 typedef struct aio_effect_s aio_effect;
 struct aio_effect_s {

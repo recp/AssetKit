@@ -11,11 +11,10 @@
 
 #include "../../../include/assetio.h"
 
-typedef struct _xmlNode xmlNode;
+typedef struct _xmlTextReader *xmlTextReaderPtr;
 
 int _assetio_hide
-aio_load_collada_effect(xmlNode * __restrict xml_node,
-                        aio_effect ** __restrict dest);
-
+aio_dae_effect(xmlTextReaderPtr __restrict reader,
+               aio_effect ** __restrict  dest);
 
 #endif /* __libassetio__aio_collada_fx_effect__h_ */

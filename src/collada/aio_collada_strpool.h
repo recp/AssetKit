@@ -110,5 +110,11 @@ const char _s_dae_pool[];
 #define _s_dae_volatile _s_dae(789)
 #define _s_dae_extern _s_dae(798)
 #define _s_dae_shared _s_dae(805)
+#define _s_dae_platform _s_dae(812)
+#define _s_dae_platforms _s_dae(821)
+#define _s_dae_language _s_dae(831)
+#define _s_dae_url _s_dae(840)
+#define _s_dae_code _s_dae(844)
+#define _s_dae_include _s_dae(849)
 
 #endif /* __libassetio__collada_strpool__h_ */

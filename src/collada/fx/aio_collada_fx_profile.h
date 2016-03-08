@@ -11,11 +11,10 @@
 
 #include "../../../include/assetio.h"
 
-typedef struct _xmlNode xmlNode;
+typedef struct _xmlTextReader *xmlTextReaderPtr;
 
 int _assetio_hide
-aio_load_collada_profile(xmlNode * __restrict xml_node,
-                         aio_profile_type profile_type,
-                         aio_profile ** __restrict dest);
+aio_dae_profile(xmlTextReaderPtr __restrict reader,
+                aio_profile ** __restrict dest);
 
 #endif /* __libassetio__aio_collada_fx_profile__h_ */

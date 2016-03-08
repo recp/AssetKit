@@ -6,350 +6,241 @@
  */
 
 #include "aio_collada_fx_profile.h"
-
-#include "../aio_collada_asset.h"
-#include "../aio_collada_technique.h"
-#include "../../aio_libxml.h"
-#include "../../aio_types.h"
-#include "../../aio_memory.h"
-#include "../../aio_utils.h"
-#include "../../aio_tree.h"
+#include "../aio_collada_common.h"
 #include "../aio_collada_param.h"
-
+#include "../aio_collada_annotate.h"
+#include "../aio_collada_asset.h"
 #include "aio_collada_fx_technique.h"
 
-#include <libxml/tree.h>
-#include <libxml/parser.h>
-#include <string.h>
+static aio_enumpair profileMap[] = {
+  {_s_dae_prfl_common, AIO_PROFILE_TYPE_COMMON},
+  {_s_dae_prfl_glsl,   AIO_PROFILE_TYPE_GLSL},
+  {_s_dae_prfl_gles2,  AIO_PROFILE_TYPE_GLES2},
+  {_s_dae_prfl_gles,   AIO_PROFILE_TYPE_GLES},
+  {_s_dae_prfl_cg,     AIO_PROFILE_TYPE_CG},
+  {_s_dae_prfl_bridge, AIO_PROFILE_TYPE_BRIDGE}
+};
+
+static size_t profileMapLen = 0;
 
 int _assetio_hide
-aio_load_collada_profile(xmlNode * __restrict xml_node,
-                         aio_profile_type profile_type,
-                         aio_profile ** __restrict dest) {
-  xmlNode     * curr_node;
-  xmlAttr     * curr_attr;
-  aio_profile * profile;
+aio_dae_profile(xmlTextReaderPtr __restrict reader,
+                aio_profile ** __restrict dest) {
+  aio_profile  *profile;
+  aio_newparam *last_newparam;
+  aio_code     *last_code;
+  aio_include  *last_inc;
+  aio_technique_fx *last_techfx;
 
-  curr_node = xml_node;
+  const aio_enumpair *found;
+  const xmlChar *nodeName;
+  int nodeType;
+  int nodeRet;
 
-  switch (profile_type) {
+  nodeName = xmlTextReaderConstName(reader);
+
+  if (profileMapLen == 0) {
+    profileMapLen = AIO_ARRAY_LEN(profileMap);
+    qsort(profileMap,
+          profileMapLen,
+          sizeof(profileMap[0]),
+          aio_enumpair_cmp);
+  }
+
+  found = bsearch(nodeName,
+                  profileMap,
+                  profileMapLen,
+                  sizeof(profileMap[0]),
+                  aio_enumpair_cmp2);
+
+  switch (found->val) {
     case AIO_PROFILE_TYPE_COMMON:
       profile = aio_malloc(sizeof(aio_profile_common));
-      memset(profile, '\0', sizeof(aio_profile_common));
       break;
-    case AIO_PROFILE_TYPE_GLSL:
-      profile = aio_malloc(sizeof(aio_profile_GLSL));
-      memset(profile, '\0', sizeof(aio_profile_GLSL));
+    case AIO_PROFILE_TYPE_GLSL: {
+      aio_profile_GLSL *glslProfile;
+      glslProfile = aio_malloc(sizeof(aio_profile_GLSL));
+
+      _xml_readAttr(glslProfile->platform, _s_dae_platform);
+
+      profile = &glslProfile->base;
       break;
-    case AIO_PROFILE_TYPE_GLES2:
-      profile = aio_malloc(sizeof(aio_profile_GLES2));
-      memset(profile, '\0', sizeof(aio_profile_GLES2));
-      break;
-    case AIO_PROFILE_TYPE_GLES:
-      profile = aio_malloc(sizeof(aio_profile_GLES));
-      memset(profile, '\0', sizeof(aio_profile_GLES));
-      break;
-    case AIO_PROFILE_TYPE_CG:
-      profile = aio_malloc(sizeof(aio_profile_CG));
-      memset(profile, '\0', sizeof(aio_profile_CG));
-      break;
-    case AIO_PROFILE_TYPE_BRIDGE:
-      profile = aio_malloc(sizeof(aio_profile_BRIDGE));
-      memset(profile, '\0', sizeof(aio_profile_BRIDGE));
-      break;
-    default:
-      profile = NULL;
-      break;
-  }
-
-  if (!profile)
-    return -1;
-
-  curr_attr = curr_node->properties;
-
-  /* parse camera attributes */
-  while (curr_attr) {
-    if (curr_attr->type == XML_ATTRIBUTE_NODE) {
-      const char * attr_name;
-      const char * attr_val;
-
-      attr_name = (const char *)curr_attr->name;
-      attr_val = aio_xml_content((xmlNode *)curr_attr);
-
-      if (AIO_IS_EQ_CASE(attr_name, "id")) {
-        switch (profile_type) {
-          case AIO_PROFILE_TYPE_GLSL:
-            ((aio_profile_GLSL *)profile)->id = aio_strdup(attr_val);
-            break;
-          case AIO_PROFILE_TYPE_GLES:
-            ((aio_profile_GLES *)profile)->id = aio_strdup(attr_val);
-            break;
-          case AIO_PROFILE_TYPE_GLES2:
-            ((aio_profile_GLES2 *)profile)->id = aio_strdup(attr_val);
-            break;
-          case AIO_PROFILE_TYPE_CG:
-            ((aio_profile_CG *)profile)->id = aio_strdup(attr_val);
-            break;
-          case AIO_PROFILE_TYPE_BRIDGE:
-            ((aio_profile_BRIDGE *)profile)->id = aio_strdup(attr_val);
-            break;
-          case AIO_PROFILE_TYPE_COMMON:
-            ((aio_profile_common *)profile)->id = aio_strdup(attr_val);
-            break;
-          default:
-            break;
-        }
-
-      } else if (AIO_IS_EQ_CASE(attr_name, "platform")) {
-        switch (profile_type) {
-          case AIO_PROFILE_TYPE_GLSL:
-            ((aio_profile_GLSL *)profile)->platform = aio_strdup(attr_val);
-            break;
-          case AIO_PROFILE_TYPE_GLES:
-            ((aio_profile_GLES *)profile)->platform = aio_strdup(attr_val);
-            break;
-          case AIO_PROFILE_TYPE_CG:
-            ((aio_profile_CG *)profile)->platform = aio_strdup(attr_val);
-            break;
-          case AIO_PROFILE_TYPE_BRIDGE:
-            ((aio_profile_BRIDGE *)profile)->platform = aio_strdup(attr_val);
-            break;
-          default:
-            break;
-        }
-      } else if (AIO_IS_EQ_CASE(attr_name, "language")) {
-        /* only GLES2 */
-        if (profile_type == AIO_PROFILE_TYPE_GLES2)
-          ((aio_profile_GLES2 *)profile)->language = aio_strdup(attr_val);
-      } else if (AIO_IS_EQ_CASE(attr_name, "platforms")) {
-        /* only GLES2 */
-        if (profile_type == AIO_PROFILE_TYPE_GLES2)
-          ((aio_profile_GLES2 *)profile)->platforms = aio_strdup(attr_val);
-     } else if (AIO_IS_EQ_CASE(attr_name, "platforms")) {
-        /* only BRIDGE */
-       if (profile_type == AIO_PROFILE_TYPE_BRIDGE)
-         ((aio_profile_BRIDGE *)profile)->url = aio_strdup(attr_val);
-     }
-
     }
+    case AIO_PROFILE_TYPE_GLES2: {
+      aio_profile_GLES2 *gles2Profile;
+      gles2Profile = aio_malloc(sizeof(aio_profile_GLES2));
 
-    curr_attr = curr_attr->next;
+      _xml_readAttr(gles2Profile->language, _s_dae_language);
+      _xml_readAttr(gles2Profile->platforms, _s_dae_platforms);
+
+      profile = &gles2Profile->base;
+      break;
+    }
+    case AIO_PROFILE_TYPE_GLES: {
+      aio_profile_GLES *glesProfile;
+      glesProfile = aio_malloc(sizeof(aio_profile_GLES));
+
+      _xml_readAttr(glesProfile->platform, _s_dae_platform);
+
+      profile = &glesProfile->base;
+      break;
+    }
+    case AIO_PROFILE_TYPE_CG: {
+      aio_profile_CG *cgProfile;
+      cgProfile = aio_malloc(sizeof(aio_profile_GLES2));
+
+      _xml_readAttr(cgProfile->platform, _s_dae_platform);
+
+      profile = &cgProfile->base;
+      break;
+    }
+    case AIO_PROFILE_TYPE_BRIDGE: {
+      aio_profile_BRIDGE *bridgeProfile;
+      bridgeProfile = aio_malloc(sizeof(aio_profile_GLES2));
+
+      _xml_readAttr(bridgeProfile->platform, _s_dae_platform);
+      _xml_readAttr(bridgeProfile->url, _s_dae_url);
+
+      profile = &bridgeProfile->base;
+      break;
+    }
+    default:
+      goto err;
+      break;
   }
-  
-  /* parse childrens */
-  curr_node = xml_node->children;
-  while (curr_node) {
-    if (curr_node->type == XML_ELEMENT_NODE) {
-      const char * node_name;
-      node_name = (const char *)curr_node->name;
 
-      if (AIO_IS_EQ_CASE(node_name, "asset")) {
+  profile->profile_type = found->val;
+  _xml_readAttr(profile->id, _s_dae_id);
 
-        _AIO_ASSET_LOAD_TO(curr_node,
-                           profile->inf);
+  last_newparam = NULL;
+  last_code     = NULL;
+  last_inc      = NULL;
+  last_techfx   = NULL;
 
-      } else if (AIO_IS_EQ_CASE(node_name, "newparam")) {
-        aio_newparam * newparam;
-        int            ret;
+  do {
+    _xml_beginElement(found->key);
 
-        ret = aio_load_collada_newparam(curr_node, &newparam);
+    if (_xml_eqElm(_s_dae_asset)) {
+      aio_assetinf *assetInf;
+      int ret;
 
-        if (ret == 0)
+      assetInf = NULL;
+      ret = aio_dae_assetInf(reader, &assetInf);
+      if (ret == 0)
+        profile->inf = assetInf;
+    } else if (_xml_eqElm(_s_dae_newparam)) {
+      aio_newparam *newparam;
+      int            ret;
+
+      ret = aio_dae_newparam(reader, &newparam);
+
+      if (ret == 0) {
+        if (last_newparam)
+          last_newparam->next = newparam;
+        else
           profile->newparam = newparam;
 
-      } else if (AIO_IS_EQ_CASE(node_name, "technique")) {
-        aio_technique_fx * technique_fx;
-        aio_technique_fx * last_technique_fx;
-        int                ret;
+        last_newparam = newparam;
+      }
+    } else if (_xml_eqElm(_s_dae_technique)) {
+      aio_technique_fx * technique_fx;
+      int                ret;
 
-        technique_fx      = NULL;
-        last_technique_fx = profile->technique;
+      last_techfx = profile->technique;
 
-        ret = aio_load_collada_technique_fx(curr_node,
-                                            &technique_fx);
+      ret = aio_dae_techniqueFx(reader, &technique_fx);
 
-        if (ret == 0) {
-          if (last_technique_fx) {
-            last_technique_fx->next = technique_fx;
-            technique_fx->prev = last_technique_fx;
-          } else {
-            profile->technique = technique_fx;
-          }
-        }
-        
-      } else if (AIO_IS_EQ_CASE(node_name, "extra")) {
-        _AIO_TREE_LOAD_TO(curr_node->children,
-                          profile->extra,
-                          NULL);
-      } else if (AIO_IS_EQ_CASE(node_name, "code")) {
-        aio_code   * code;
-        const char * attr_name;
-        const char * node_val;
+      if (ret == 0) {
+        if (last_techfx)
+          last_techfx->next = technique_fx;
+        else
+          profile->technique = technique_fx;
 
-        code = aio_malloc(sizeof(*code));
-        memset(code, '\0', sizeof(*code));
+        last_techfx = technique_fx;
+      }
 
-        curr_attr = curr_node->properties;
-        while (curr_attr) {
-          attr_name = (const char *)curr_attr->name;
-          if (curr_attr->type == XML_ATTRIBUTE_NODE) {
-            if (AIO_IS_EQ_CASE(attr_name, "sid")) {
-              const char * attr_val;
+    } else if (_xml_eqElm(_s_dae_extra)) {
+      xmlNodePtr nodePtr;
+      aio_tree  *tree;
 
-              attr_val = aio_xml_content((xmlNode *)curr_attr);
-              code->sid = aio_strdup(attr_val);
+      nodePtr = xmlTextReaderExpand(reader);
+      tree = NULL;
 
-              break;
-            }
-          }
-          
-          curr_attr = curr_attr->next;
-        } /* while */
+      aio_tree_fromXmlNode(nodePtr, &tree, NULL);
+      profile->extra = tree;
 
+      _xml_skipElement;
+    } else if (_xml_eqElm(_s_dae_code)) {
+      aio_code *code;
 
-        node_val = aio_xml_content(curr_node);
-        code->val = aio_strdup(node_val);
+      code = aio_calloc(sizeof(*code), 1);
+      _xml_readAttr(code->sid, _s_dae_sid);
+      _xml_readConstText(code->val);
 
-        switch (profile_type) {
-          case AIO_PROFILE_TYPE_CG: {
-            aio_profile_CG * profile_cg;
-            aio_code       * last_code;
-
-            profile_cg = (aio_profile_CG *)profile;
-            last_code = profile_cg->code;
-
-            if (last_code) {
-              last_code->next = code;
-              code->prev = last_code;
-            } else {
-              profile_cg->code = code;
-            }
-
+      if (last_code) {
+        last_code->next = code;
+      } else {
+        switch (found->val) {
+          case AIO_PROFILE_TYPE_GLSL:
+            ((aio_profile_GLSL *)profile)->code = code;
             break;
-          } case AIO_PROFILE_TYPE_GLSL: {
-            aio_profile_GLSL * profile_glsl;
-            aio_code         * last_code;
-
-            profile_glsl = (aio_profile_GLSL *)profile;
-            last_code = profile_glsl->code;
-
-            if (last_code) {
-              last_code->next = code;
-              code->prev = last_code;
-            } else {
-              profile_glsl->code = code;
-            }
-
+          case AIO_PROFILE_TYPE_GLES2:
+            ((aio_profile_GLES2 *)profile)->code = code;
             break;
-          } case AIO_PROFILE_TYPE_GLES2: {
-            aio_profile_GLES2 * profile_gles2;
-            aio_code          * last_code;
-
-            profile_gles2 = (aio_profile_GLES2 *)profile;
-            last_code = profile_gles2->code;
-
-            if (last_code) {
-              last_code->next = code;
-              code->prev = last_code;
-            } else {
-              profile_gles2->code = code;
-            }
-            
+          case AIO_PROFILE_TYPE_CG:
+            ((aio_profile_CG *)profile)->code = code;
             break;
-          }
           default:
-            break;
-        }
-      } else if (AIO_IS_EQ_CASE(node_name, "include")) {
-        aio_include * include;
-        const char  * attr_name;
-        const char  * node_val;
-
-        include = aio_malloc(sizeof(*include));
-        memset(include, '\0', sizeof(*include));
-
-        curr_attr = curr_node->properties;
-        while (curr_attr) {
-          attr_name = (const char *)curr_attr->name;
-          if (curr_attr->type == XML_ATTRIBUTE_NODE) {
-            if (AIO_IS_EQ_CASE(attr_name, "sid")) {
-              const char * attr_val;
-
-              attr_val = aio_xml_content((xmlNode *)curr_attr);
-              include->sid = aio_strdup(attr_val);
-            } else if (AIO_IS_EQ_CASE(attr_name, "url")) {
-              const char * attr_val;
-
-              attr_val = aio_xml_content((xmlNode *)curr_attr);
-              include->url = aio_strdup(attr_val);
-            }
-          }
-
-          curr_attr = curr_attr->next;
-        } /* while */
-
-
-        node_val = aio_xml_content(curr_node);
-        if (!include->url && node_val)
-          include->url = aio_strdup(node_val);
-
-        switch (profile_type) {
-          case AIO_PROFILE_TYPE_CG: {
-            aio_profile_CG * profile_cg;
-            aio_include    * last_inc;
-
-            profile_cg = (aio_profile_CG *)profile;
-            last_inc = profile_cg->include;
-
-            if (last_inc) {
-              last_inc->next = include;
-              include->prev = last_inc;
-            } else {
-              profile_cg->include = include;
-            }
-
-            break;
-          } case AIO_PROFILE_TYPE_GLSL: {
-            aio_profile_GLSL * profile_glsl;
-            aio_include      * last_inc;
-
-            profile_glsl = (aio_profile_GLSL *)profile;
-            last_inc = profile_glsl->include;
-
-            if (last_inc) {
-              last_inc->next = include;
-              include->prev = last_inc;
-            } else {
-              profile_glsl->include = include;
-            }
-
-            break;
-          } case AIO_PROFILE_TYPE_GLES2: {
-            aio_profile_GLES2 * profile_gles2;
-            aio_include       * last_inc;
-
-            profile_gles2 = (aio_profile_GLES2 *)profile;
-            last_inc = profile_gles2->include;
-
-            if (last_inc) {
-              last_inc->next = include;
-              include->prev = last_inc;
-            } else {
-              profile_gles2->include = include;
-            }
-
-            break;
-          }
-          default:
+            free(code);
+            code = last_code;
             break;
         }
       }
-    }
-    
-    curr_node = curr_node->next;
-  }
+
+      last_code = code;
+
+    } else if (_xml_eqElm(_s_dae_include)) {
+      aio_include *inc;
+
+      inc = aio_calloc(sizeof(*inc), 1);
+      _xml_readAttr(inc->sid, _s_dae_sid);
+      _xml_readAttr(inc->url, _s_dae_url);
+
+      if (!inc->url)
+        _xml_readConstText(inc->url);
+
+      if (last_inc) {
+        last_inc->next = inc;
+      } else {
+        switch (found->val) {
+          case AIO_PROFILE_TYPE_GLSL:
+            ((aio_profile_GLSL *)profile)->include = inc;
+            break;
+          case AIO_PROFILE_TYPE_GLES2:
+            ((aio_profile_GLES2 *)profile)->include = inc;
+            break;
+          case AIO_PROFILE_TYPE_CG:
+            ((aio_profile_CG *)profile)->include = inc;
+            break;
+          default:
+            free(inc);
+            inc = last_inc;
+            break;
+        }
+      }
+
+      last_inc = inc;
+    } else {
+      _xml_skipElement;
+    } 
+
+    /* end element */
+    _xml_endElement;
+  } while (nodeRet);
 
   *dest = profile;
 
   return 0;
+err:
+  return -1;
 }
