@@ -8,6 +8,7 @@
 #ifndef aio_types_h
 #define aio_types_h
 
+#include "../include/assetio.h"
 #include <stddef.h>
 #include <sys/types.h>
 #include <string.h>
@@ -23,5 +24,26 @@
 #endif
 
 #define UNUSED(x) (void)(x)
+
+typedef struct aio_enumpair_s aio_enumpair;
+struct aio_enumpair_s {
+  const char * key;
+  long val;
+};
+
+static
+inline
+int _assetio_hide
+aio_enumpair_cmp(const void * a, const void * b) {
+  return strcmp(((const aio_enumpair *)a)->key,
+                ((const aio_enumpair *)b)->key);
+}
+
+static
+inline
+int _assetio_hide
+aio_enumpair_cmp2(const void * a, const void * b) {
+  return strcmp(((const aio_enumpair *)b)->key, a);
+}
 
 #endif /* aio_types_h */
