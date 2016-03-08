@@ -23,7 +23,6 @@ static
 int _assetio_hide
 valuePairCmp2(const void *, const void *);
 
-#define n1x1 1, 1
 static aio_value_pair valueMap[] = {
   {_s_dae_string,   AIO_VALUE_TYPE_STRING,   1, 1},
   {_s_dae_bool,     AIO_VALUE_TYPE_BOOL,     1, 1},
@@ -44,6 +43,30 @@ static aio_value_pair valueMap[] = {
 };
 
 static size_t valueMapLen = 0;
+
+long _assetio_hide
+aio_dae_valueType(const char * typeName) {
+  aio_value_pair *found;
+
+  if (valueMapLen == 0) {
+    valueMapLen = AIO_ARRAY_LEN(valueMap);
+    qsort(valueMap,
+          valueMapLen,
+          sizeof(valueMap[0]),
+          valuePairCmp);
+  }
+
+  found = bsearch(typeName,
+                  valueMap,
+                  valueMapLen,
+                  sizeof(valueMap[0]),
+                  valuePairCmp2);
+
+  if (!found)
+    return AIO_VALUE_TYPE_UNKNOWN;
+
+  return found->val;
+}
 
 int _assetio_hide
 aio_dae_value(xmlTextReaderPtr __restrict reader,
@@ -127,13 +150,6 @@ aio_dae_value(xmlTextReaderPtr __restrict reader,
   /* end element */
   _xml_endElement;
 
-  return 0;
-}
-
-int _assetio_hide
-aio_load_collada_value(xmlNode * __restrict xml_node,
-                       void ** __restrict dest,
-                       aio_value_type * __restrict val_type) {
   return 0;
 }
 

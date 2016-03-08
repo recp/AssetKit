@@ -17,4 +17,7 @@ aio_dae_value(xmlTextReaderPtr __restrict reader,
               void ** __restrict dest,
               aio_value_type * __restrict val_type);
 
+long _assetio_hide
+aio_dae_valueType(const char * typeName);
+
 #endif /* __libassetio__aio_collada_value__h_ */
