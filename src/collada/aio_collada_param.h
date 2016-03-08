@@ -10,15 +10,15 @@
 
 #include "../../include/assetio.h"
 
-typedef struct _xmlNode xmlNode;
+typedef struct _xmlTextReader *xmlTextReaderPtr;
 
 int _assetio_hide
-aio_load_collada_newparam(xmlNode * __restrict xml_node,
-                          aio_newparam ** __restrict dest);
+aio_dae_newparam(xmlTextReaderPtr __restrict reader,
+                 aio_newparam ** __restrict dest);
 
 int _assetio_hide
-aio_load_collada_param(xmlNode * __restrict xml_node,
-                       aio_param_type param_type,
-                       aio_param ** __restrict dest);
+aio_dae_param(xmlTextReaderPtr __restrict reader,
+              aio_param_type param_type,
+              aio_param ** __restrict dest);
 
 #endif /* __libassetio__aio_collada_param__h_ */

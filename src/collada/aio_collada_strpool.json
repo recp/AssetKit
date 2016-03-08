@@ -80,5 +80,16 @@
   "float4": "float4",
   "float2x2": "float2x2",
   "float3x3": "float3x3",
-  "float4x4": "float4x4"
+  "float4x4": "float4x4",
+  "semantic": "semantic",
+  "modifier": "modifier",
+  "ref": "ref",
+  "type": "type",
+  "const": "CONST",
+  "uniform": "UNIFORM",
+  "varying": "VARYING",
+  "static": "STATIC",
+  "volatile": "VOLATILE",
+  "extern": "EXTERN",
+  "shared": "SHARED"
 }

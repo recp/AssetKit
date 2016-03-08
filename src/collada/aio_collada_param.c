@@ -6,90 +6,94 @@
  */
 
 #include "aio_collada_param.h"
-
-#include "aio_collada_asset.h"
-#include "aio_collada_technique.h"
-#include "../aio_libxml.h"
-#include "../aio_types.h"
-#include "../aio_memory.h"
-#include "../aio_utils.h"
-#include "../aio_tree.h"
-
-#include "aio_collada_value.h"
+#include "aio_collada_common.h"
 #include "aio_collada_annotate.h"
+#include "aio_collada_value.h"
 
-#include <libxml/tree.h>
-#include <libxml/parser.h>
-#include <string.h>
+static aio_enumpair modifierMap[] = {
+  {_s_dae_const,    AIO_MODIFIER_CONST},
+  {_s_dae_uniform,  AIO_MODIFIER_UNIFORM},
+  {_s_dae_varying,  AIO_MODIFIER_VARYING},
+  {_s_dae_static,   AIO_MODIFIER_STATIC},
+  {_s_dae_volatile, AIO_MODIFIER_VOLATILE},
+  {_s_dae_extern,   AIO_MODIFIER_EXTERN},
+  {_s_dae_shared,   AIO_MODIFIER_SHARED}
+};
+
+static size_t modifierMapLen = 0;
 
 int _assetio_hide
-aio_load_collada_newparam(xmlNode * __restrict xml_node,
-                          aio_newparam ** __restrict dest) {
-  xmlNode      * curr_node;
-  aio_newparam * newparam;
+aio_dae_newparam(xmlTextReaderPtr __restrict reader,
+                 aio_newparam ** __restrict dest) {
+  aio_newparam  *newparam;
+  aio_annotate  *last_annotate;
+  const xmlChar *nodeName;
+  int nodeType;
+  int nodeRet;
 
-  newparam = aio_malloc(sizeof(*newparam));
-  memset(newparam, '\0', sizeof(*newparam));
+  newparam = aio_calloc(sizeof(*newparam), 1);
+  last_annotate = NULL;
 
-  /* parse childrens */
-  curr_node = xml_node->children;
-  while (curr_node) {
-    if (curr_node->type == XML_ELEMENT_NODE) {
-      const char * node_name;
-      node_name = (const char *)curr_node->name;
+  if (modifierMapLen == 0) {
+    modifierMapLen = AIO_ARRAY_LEN(modifierMap);
+    qsort(modifierMap,
+          modifierMapLen,
+          sizeof(modifierMap[0]),
+          aio_enumpair_cmp);
+  }
 
-      if (AIO_IS_EQ_CASE(node_name, "annotate")) {
-        aio_annotate * annotate;
-        aio_annotate * last_annotate;
-        int            ret;
+  do {
+    _xml_beginElement(_s_dae_newparam);
 
-        ret = aio_load_collada_annotate(curr_node, &annotate);
+    if (_xml_eqElm(_s_dae_annotate)) {
+      aio_annotate *annotate;
+      int ret;
+
+      ret = aio_dae_annotate(reader, &annotate);
+      if (ret == 0) {
+        if (last_annotate)
+          last_annotate->next = annotate;
+        else
+          newparam->annotate = annotate;
+
+        last_annotate = annotate;
+      }
+    } if (_xml_eqElm(_s_dae_semantic)) {
+      _xml_readText(newparam->semantic);
+    } if (_xml_eqElm(_s_dae_modifier)) {
+      const aio_enumpair *found;
+      const char *val;
+
+      _xml_readConstText(val);
+
+      found = bsearch(nodeName,
+                      modifierMap,
+                      modifierMapLen,
+                      sizeof(modifierMap[0]),
+                      aio_enumpair_cmp2);
+
+      newparam->modifier = found->val;
+    } else {
+      /* load once */
+      if (!newparam->val) {
+        void           * val;
+        aio_value_type   val_type;
+        int              ret;
+
+        ret = aio_dae_value(reader,
+                            &val,
+                            &val_type);
 
         if (ret == 0) {
-          last_annotate = newparam->annotate;
-          if (last_annotate) {
-            annotate->prev = last_annotate;
-            last_annotate->next = annotate;
-          } else {
-            newparam->annotate = annotate;
-          }
-          
-        }
-      } else if (AIO_IS_EQ_CASE(node_name, "semantic")) {
-        const char * node_content;
-
-        node_content = aio_xml_content(curr_node);
-        newparam->semantic = aio_strdup(node_content);
-      } else if (AIO_IS_EQ_CASE(node_name, "modifier")) {
-        const char * node_content;
-
-        node_content = aio_xml_content(curr_node);
-
-        newparam->modifier = strtol(node_content, NULL, 10);
-      }
-
-      /* look for parameter type element */
-      else {
-        /* load once */
-        if (!newparam->val) {
-          void           * val;
-          aio_value_type   val_type;
-          int              ret;
-
-          ret = aio_load_collada_value(curr_node,
-                                       &val,
-                                       &val_type);
-
-          if (ret == 0) {
-            newparam->val = val;
-            newparam->val_type = val_type;
-          }
+          newparam->val = val;
+          newparam->val_type = val_type;
         }
       }
     }
-
-    curr_node = curr_node->next;
-  } /* while */
+    
+    /* end element */
+    _xml_endElement;
+  } while (nodeRet);
 
   *dest = newparam;
 
@@ -97,66 +101,46 @@ aio_load_collada_newparam(xmlNode * __restrict xml_node,
 }
 
 int _assetio_hide
-aio_load_collada_param(xmlNode * __restrict xml_node,
-                       aio_param_type param_type,
-                       aio_param ** __restrict dest) {
-  xmlNode    * curr_node;
-  xmlAttr    * curr_attr;
-  aio_param  * param;
-  const char * node_content;
-  aio_param_extended * param_ex;
-  size_t      param_size;
+aio_dae_param(xmlTextReaderPtr __restrict reader,
+              aio_param_type param_type,
+              aio_param ** __restrict dest) {
+  aio_param  *param;
 
-  if (param_type == AIO_PARAM_TYPE_BASIC)
-    param_size = sizeof(aio_param_basic);
-  else if (param_type == AIO_PARAM_TYPE_EXTENDED)
-    param_size = sizeof(aio_param_extended);
-  else
+  const xmlChar *nodeName;
+  int nodeType;
+  int nodeRet;
+
+  nodeType = xmlTextReaderNodeType(reader);
+  nodeName = xmlTextReaderConstName(reader);
+
+  if (param_type == AIO_PARAM_TYPE_BASIC) {
+    param = calloc(sizeof(aio_param), 1);
+
+    _xml_readAttr(param->ref, _s_dae_ref);
+  } else if (param_type == AIO_PARAM_TYPE_EXTENDED) {
+    aio_param_ex *param_ex;
+    param_ex = calloc(sizeof(aio_param_ex), 1);
+
+    _xml_readAttr(param_ex->name, _s_dae_name);
+    _xml_readAttr(param_ex->sid, _s_dae_sid);
+    _xml_readAttr(param_ex->name, _s_dae_semantic);
+    _xml_readAttr(param_ex->type_name, _s_dae_type);
+
+    if (param_ex->type_name)
+      param_ex->type = aio_dae_valueType(param_ex->type_name);
+
+    param = &param_ex->base;
+  } else {
     goto err;
-
-  param = aio_malloc(param_size);
-  memset(param, '\0', param_size);
-
-  param->param_type = param_type;
-
-  curr_node = xml_node;
-  curr_attr = curr_node->properties;
-  param_ex  = (aio_param_extended *)param;
-
-  /* parse camera attributes */
-  while (curr_attr) {
-    if (curr_attr->type == XML_ATTRIBUTE_NODE) {
-      const char * attr_name;
-      const char * attr_val;
-
-      attr_name = (const char *)curr_attr->name;
-      attr_val = aio_xml_content((xmlNode *)curr_attr);
-
-      if (AIO_IS_EQ_CASE(attr_name, "ref"))
-        param_ex->val = aio_strdup(attr_val);
-      else if (AIO_IS_EQ_CASE(attr_name, "name"))
-        param_ex->name = aio_strdup(attr_val);
-      else if (AIO_IS_EQ_CASE(attr_name, "sid"))
-        param_ex->sid = aio_strdup(attr_val);
-      else if (AIO_IS_EQ_CASE(attr_name, "semantic"))
-        param_ex->semantic = aio_strdup(attr_val);
-      else if (AIO_IS_EQ_CASE(attr_name, "type"))
-        param_ex->type_name = aio_strdup(attr_val);
-
-    }
-
-    curr_attr = curr_attr->next;
   }
-  
-  curr_attr = NULL;
-
-  node_content = aio_xml_content(curr_node);
-  if (node_content && strlen(node_content) > 0)
-    param_ex->val = node_content;
 
   *dest = param;
+  _xml_endElement;
 
   return 0;
+
 err:
+
+  _xml_endElement;
   return -1;
 }

@@ -95,6 +95,17 @@ const char _s_dae_pool[] =
 "float2x2\0"
 "float3x3\0"
 "float4x4\0"
+"semantic\0"
+"modifier\0"
+"ref\0"
+"type\0"
+"CONST\0"
+"UNIFORM\0"
+"VARYING\0"
+"STATIC\0"
+"VOLATILE\0"
+"EXTERN\0"
+"SHARED\0"
 ;
 
 #undef _AIO_DAE_STRPOOL_

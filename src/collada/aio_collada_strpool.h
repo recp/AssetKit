@@ -99,5 +99,16 @@ const char _s_dae_pool[];
 #define _s_dae_float2x2 _s_dae(706)
 #define _s_dae_float3x3 _s_dae(715)
 #define _s_dae_float4x4 _s_dae(724)
+#define _s_dae_semantic _s_dae(733)
+#define _s_dae_modifier _s_dae(742)
+#define _s_dae_ref _s_dae(751)
+#define _s_dae_type _s_dae(755)
+#define _s_dae_const _s_dae(760)
+#define _s_dae_uniform _s_dae(766)
+#define _s_dae_varying _s_dae(774)
+#define _s_dae_static _s_dae(782)
+#define _s_dae_volatile _s_dae(789)
+#define _s_dae_extern _s_dae(798)
+#define _s_dae_shared _s_dae(805)
 
 #endif /* __libassetio__collada_strpool__h_ */
