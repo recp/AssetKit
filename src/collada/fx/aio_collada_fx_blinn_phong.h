@@ -10,10 +10,16 @@
 
 #include "../../../include/assetio.h"
 
-typedef struct _xmlNode xmlNode;
+typedef union {
+  aio_blinn blinn;
+  aio_phong phong;
+} aio_blinn_phong;
+
+typedef struct _xmlTextReader *xmlTextReaderPtr;
 
 int _assetio_hide
-aio_load_blinn_phong(xmlNode * __restrict xml_node,
-                     aio_blinn ** __restrict dest);
+aio_dae_blinn_phong(xmlTextReaderPtr __restrict reader,
+                    const char * elm,
+                    aio_blinn_phong ** __restrict dest);
 
 #endif /* __libassetio__aio_collada_blinn_phong__h_ */

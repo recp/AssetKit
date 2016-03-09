@@ -26,7 +26,13 @@
 #include <string.h>
 
 int _assetio_hide
-aio_dae_fxPass(xmlNode * __restrict xml_node,
+aio_dae_fxPass(xmlTextReaderPtr __restrict reader,
+               aio_pass ** __restrict dest) {
+  return 0;
+}
+
+int _assetio_hide
+aio_dae_fxPass0(xmlNode * __restrict xml_node,
                aio_pass ** __restrict dest) {
   xmlNode  * curr_node;
   xmlAttr  * curr_attr;
@@ -66,12 +72,12 @@ aio_dae_fxPass(xmlNode * __restrict xml_node,
       aio_annotate * last_annotate;
       int            ret;
 
-      ret = aio_load_collada_annotate(curr_node, &annotate);
+//      ret = aio_load_collada_annotate(curr_node, &annotate);
 
       if (ret == 0) {
         last_annotate = pass->annotate;
         if (last_annotate) {
-          annotate->prev = last_annotate;
+//          annotate->prev = last_annotate;
           last_annotate->next = annotate;
         } else {
           pass->annotate = annotate;

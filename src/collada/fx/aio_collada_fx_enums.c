@@ -559,3 +559,29 @@ aio_dae_fxEnumDraw(const char * name) {
 
   return val;
 }
+
+long _assetio_hide
+aio_dae_fxEnumOpaque(const char * name) {
+  long val;
+  long glenums_len;
+  long i;
+
+  aio_dae_enum glenums[] = {
+    {"A_ONE",    AIO_OPAQUE_A_ONE},
+    {"RGB_ZERO", AIO_OPAQUE_RGB_ZERO},
+    {"A_ZERO",   AIO_OPAQUE_A_ZERO},
+    {"RGB_ONE",  AIO_OPAQUE_RGB_ONE}
+  };
+
+  val = 0;
+  glenums_len = AIO_ARRAY_LEN(glenums);
+
+  for (i = 0; i < glenums_len; i++) {
+    if (strcasecmp(name, glenums[i].name) == 0) {
+      val = glenums[i].val;
+      break;
+    }
+  }
+
+  return val;
+}

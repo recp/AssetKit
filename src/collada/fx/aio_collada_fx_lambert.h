@@ -10,10 +10,10 @@
 
 #include "../../../include/assetio.h"
 
-typedef struct _xmlNode xmlNode;
+typedef struct _xmlTextReader *xmlTextReaderPtr;
 
 int _assetio_hide
-aio_load_lambert(xmlNode * __restrict xml_node,
-                 aio_lambert ** __restrict dest);
+aio_dae_fxLambert(xmlTextReaderPtr __restrict reader,
+                  aio_lambert ** __restrict dest);
 
 #endif /* __libassetio__aio_collada_fx_lambert__h_ */

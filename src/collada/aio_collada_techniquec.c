@@ -156,38 +156,15 @@ aio_dae_techniquec(xmlTextReaderPtr __restrict reader,
         _xml_beginElement(_s_dae_ambient);
 
         if (_xml_eqElm(_s_dae_color)) {
-          char  * sid;
-          char  * content;
-          float * colorv;
-          char  * comp;
-          int     comp_idx;
+          char *colorStr;
 
-          _xml_readAttr(sid, _s_dae_sid);
+          _xml_readAttr(ambient->color.sid, _s_dae_sid);
+          _xml_readMutText(colorStr);
 
-          colorv = ambient->color.vec;
-          comp_idx = 0;
-
-          _xml_readText(content);
-
-          comp = strtok(content, _s_dae_space);
-          colorv[comp_idx] = strtof(comp, NULL);
-
-          while (comp && ++comp_idx < 4) {
-            comp = strtok(NULL, _s_dae_space);
-
-            if (!comp) {
-              --comp_idx;
-              continue;
-            }
-
-            colorv[comp_idx] = strtof(comp, NULL);
+          if (colorStr) {
+            aio_strtof4(&colorStr, &ambient->color.vec);
+            free(colorStr);
           }
-
-          /* make alpha channel to 1.0 as default */
-          if (comp_idx < 3)
-            colorv[3] = 1.0;
-
-          aio_free(content);
         } else {
           _xml_skipElement;
         }

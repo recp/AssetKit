@@ -97,6 +97,14 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
          aio_strdup((const char *)xmlTextReaderConstValue(reader)) : NULL;    \
   } while (0)
 
+#define _xml_readMutText(x)                                                   \
+  do {                                                                        \
+    /* read text element*/                                                    \
+    _xml_readNext;                                                            \
+    x = nodeType == XML_TEXT_NODE ?                                           \
+         (char *)xmlTextReaderValue(reader) : NULL;                           \
+  } while (0)
+
 #define _xml_readConstText(x)                                                 \
   do {                                                                        \
     /* read text element*/                                                    \
@@ -124,7 +132,7 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
     if (attrVal) {                                                            \
       D = aio_strdup(attrVal);                                                \
       free(attrVal);                                                          \
-    }                                                                         \
+    } else D = NULL;                                                          \
   } while (0);
 
 #define _xml_readAttrUsingFn(D, X, Fn, ...)                                   \

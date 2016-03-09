@@ -10,10 +10,11 @@
 
 #include "../../../include/assetio.h"
 
-typedef struct _xmlNode xmlNode;
+typedef struct _xmlTextReader *xmlTextReaderPtr;
 
 int _assetio_hide
-aio_load_color_or_tex(xmlNode * __restrict xml_node,
-                      aio_fx_color_or_tex ** __restrict dest);
+aio_dae_colorOrTex(xmlTextReaderPtr __restrict reader,
+                   const char * elm,
+                   aio_fx_color_or_tex ** __restrict dest);
 
 #endif /* __libassetio__aio_collada_color_or_tex__h_ */

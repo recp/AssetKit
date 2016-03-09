@@ -538,7 +538,7 @@ typedef struct aio_color_s aio_color;
 struct aio_color_s {
   const char * sid;
   union {
-    float vec[4];
+    aio_float4 vec;
 
     struct {
       float R;
@@ -749,7 +749,6 @@ struct aio_param_s {
   aio_param_type  param_type;
   const char * ref;
 
-  aio_param * prev;
   aio_param * next;
 };
 

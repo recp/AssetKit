@@ -7,14 +7,8 @@
 
 #include "aio_collada_fx_technique.h"
 
-#include "../../aio_libxml.h"
-#include "../../aio_types.h"
-#include "../../aio_memory.h"
-#include "../../aio_utils.h"
-#include "../../aio_tree.h"
-
-#include "../aio_collada_asset.h"
 #include "../aio_collada_common.h"
+#include "../aio_collada_asset.h"
 #include "../aio_collada_annotate.h"
 
 #include "aio_collada_fx_blinn_phong.h"
@@ -22,133 +16,112 @@
 #include "aio_collada_fx_lambert.h"
 #include "aio_collada_fx_pass.h"
 
-#include <libxml/tree.h>
-#include <libxml/parser.h>
-#include <string.h>
-
 int _assetio_hide
-aio_load_collada_technique_fx(xmlNode * __restrict xml_node,
-                              aio_technique_fx ** __restrict dest) {
-  xmlNode          * curr_node;
-  xmlAttr          * curr_attr;
-  aio_technique_fx * technique_fx;
+aio_dae_techniqueFx(xmlTextReaderPtr __restrict reader,
+               aio_technique_fx ** __restrict dest) {
+  aio_technique_fx *technique;
+  aio_annotate     *last_annotate;
+  const xmlChar *nodeName;
+  int            nodeType;
+  int            nodeRet;
 
-  curr_node = xml_node;
-  technique_fx = aio_malloc(sizeof(*technique_fx));
-  memset(technique_fx, '\0', sizeof(*technique_fx));
+  technique = aio_calloc(sizeof(*technique), 1);
 
-  curr_attr = curr_node->properties;
+  _xml_readAttr(technique->id, _s_dae_id);
+  _xml_readAttr(technique->sid, _s_dae_sid);
 
-  /* parse camera attributes */
-  while (curr_attr) {
-    if (curr_attr->type == XML_ATTRIBUTE_NODE) {
-      const char * attr_name;
-      const char * attr_val;
+  last_annotate = NULL;
 
-      attr_name = (const char *)curr_attr->name;
-      attr_val = aio_xml_content((xmlNode *)curr_attr);
+  do {
+    _xml_beginElement(_s_dae_technique);
 
-      if (AIO_IS_EQ_CASE(attr_name, "id"))
-        technique_fx->id = aio_strdup(attr_val);
-      else if (AIO_IS_EQ_CASE(attr_name, "sid"))
-        technique_fx->sid = aio_strdup(attr_val);
-    }
+    if (_xml_eqElm(_s_dae_asset)) {
+      aio_assetinf *assetInf;
+      int ret;
 
-    curr_attr = curr_attr->next;
-  }
+      assetInf = NULL;
+      ret = aio_dae_assetInf(reader, &assetInf);
+      if (ret == 0)
+        technique->inf = assetInf;
+    } else if (_xml_eqElm(_s_dae_annotate)) {
+      aio_annotate *annotate;
+      int           ret;
 
-  /* parse childrens */
-  curr_node = xml_node->children;
-  while (curr_node) {
-    if (curr_node->type == XML_ELEMENT_NODE) {
-      const char * node_name;
-      node_name = (const char *)curr_node->name;
+      ret = aio_dae_annotate(reader, &annotate);
 
-      if (AIO_IS_EQ_CASE(node_name, "asset")) {
+      if (ret == 0) {
+        if (last_annotate)
+          last_annotate->next = annotate;
+        else
+          technique->annotate = annotate;
 
-        _AIO_ASSET_LOAD_TO(curr_node,
-                           technique_fx->inf);
-
-      } else if (AIO_IS_EQ_CASE(node_name, "annotate")) {
-        aio_annotate * annotate;
-        aio_annotate * last_annotate;
-        int            ret;
-
-        ret = aio_load_collada_annotate(curr_node, &annotate);
-
-        if (ret == 0) {
-          last_annotate = technique_fx->annotate;
-          if (last_annotate) {
-            annotate->prev = last_annotate;
-            last_annotate->next = annotate;
-          } else {
-            technique_fx->annotate = annotate;
-          }
-
-        }
-      } else if (AIO_IS_EQ_CASE(node_name, "pass")) {
-        aio_pass * pass;
-        int        ret;
-
-        pass = NULL;
-
-        ret = aio_dae_fxPass(curr_node, &pass);
-        if (ret == 0)
-          technique_fx->pass = pass;
-
-      } else if (AIO_IS_EQ_CASE(node_name, "blinn")) {
-        aio_blinn * blinn;
-        int         ret;
-
-        blinn = NULL;
-
-        ret = aio_load_blinn_phong(curr_node, &blinn);
-        if (ret == 0)
-          technique_fx->blinn = blinn;
-        
-      } else if (AIO_IS_EQ_CASE(node_name, "constant")) {
-        aio_constant_fx * constant_fx;
-        int ret;
-
-        constant_fx = NULL;
-
-        ret = aio_load_constant_fx(curr_node, &constant_fx);
-        if (ret == 0)
-          technique_fx->constant = constant_fx;
-
-      } else if (AIO_IS_EQ_CASE(node_name, "lambert")) {
-        aio_lambert * lambert;
-        int ret;
-
-        lambert = NULL;
-
-        ret = aio_load_lambert(curr_node, &lambert);
-        if (ret == 0)
-          technique_fx->lambert = lambert;
-
-      } else if (AIO_IS_EQ_CASE(node_name, "phong")) {
-        aio_blinn * blinn;
-        int         ret;
-
-        blinn = NULL;
-
-        ret = aio_load_blinn_phong(curr_node, &blinn);
-        if (ret == 0)
-          technique_fx->phong = (aio_phong *)blinn;
-
-      } else if (AIO_IS_EQ_CASE(node_name, "extra")) {
-
-        _AIO_TREE_LOAD_TO(curr_node->children,
-                          technique_fx->extra,
-                          NULL);
-
+        last_annotate = annotate;
       }
+    } else if (_xml_eqElm(_s_dae_pass)) {
+      aio_pass * pass;
+      int        ret;
+
+      ret = aio_dae_fxPass(reader, &pass);
+      if (ret == 0)
+        technique->pass = pass;
+
+    } else if (_xml_eqElm(_s_dae_blinn)) {
+      aio_blinn_phong * blinn_phong;
+      int ret;
+
+      ret = aio_dae_blinn_phong(reader,
+                                (const char *)nodeName,
+                                &blinn_phong);
+      if (ret == 0)
+        technique->blinn = (aio_blinn *)blinn_phong;
+
+    } else if (_xml_eqElm(_s_dae_constant)) {
+      aio_constant_fx * constant_fx;
+      int ret;
+
+      ret = aio_dae_fxConstant(reader, &constant_fx);
+      if (ret == 0)
+        technique->constant = constant_fx;
+
+    } else if (_xml_eqElm(_s_dae_lambert)) {
+      aio_lambert * lambert;
+      int ret;
+
+      ret = aio_dae_fxLambert(reader, &lambert);
+      if (ret == 0)
+        technique->lambert = lambert;
+
+    } else if (_xml_eqElm(_s_dae_phong)) {
+      aio_blinn_phong * blinn_phong;
+      int ret;
+
+      ret = aio_dae_blinn_phong(reader,
+                                (const char *)nodeName,
+                                &blinn_phong);
+      if (ret == 0)
+        technique->phong = (aio_phong *)blinn_phong;
+
+    } else if (_xml_eqElm(_s_dae_extra)) {
+      xmlNodePtr nodePtr;
+      aio_tree  *tree;
+
+      nodePtr = xmlTextReaderExpand(reader);
+      tree = NULL;
+
+      aio_tree_fromXmlNode(nodePtr, &tree, NULL);
+      technique->extra = tree;
+
+      _xml_skipElement;
+    } else {
+      _xml_skipElement;
     }
-    
-    curr_node = curr_node->next;
-  }
 
-  *dest = technique_fx;
-
+    /* end element */
+    _xml_endElement;
+  } while (nodeRet);
+  
+  *dest = technique;
+  
   return 0;
+
 }
