@@ -114,12 +114,12 @@ aio_dae_param(xmlTextReaderPtr __restrict reader,
   nodeName = xmlTextReaderConstName(reader);
 
   if (param_type == AIO_PARAM_TYPE_BASIC) {
-    param = calloc(sizeof(aio_param), 1);
+    param = aio_calloc(sizeof(aio_param), 1);
 
     _xml_readAttr(param->ref, _s_dae_ref);
   } else if (param_type == AIO_PARAM_TYPE_EXTENDED) {
     aio_param_ex *param_ex;
-    param_ex = calloc(sizeof(aio_param_ex), 1);
+    param_ex = aio_calloc(sizeof(aio_param_ex), 1);
 
     _xml_readAttr(param_ex->name, _s_dae_name);
     _xml_readAttr(param_ex->sid, _s_dae_sid);

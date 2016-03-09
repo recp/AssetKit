@@ -71,7 +71,7 @@ aio_dae_assetInf(xmlTextReaderPtr __restrict reader,
       _xml_readText((*dest)->title);
     } else if (_xml_eqElm(_s_dae_unit)) {
       aio_unit * unit;
-      unit = calloc(sizeof(*unit), 1);
+      unit = aio_calloc(sizeof(*unit), 1);
 
       _xml_readAttr(unit->name, _s_dae_name);
       _xml_readAttrUsingFn(unit->dist, _s_dae_meter, strtod, NULL);
