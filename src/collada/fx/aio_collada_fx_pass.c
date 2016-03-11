@@ -31,7 +31,7 @@ aio_dae_fxPass(xmlTextReaderPtr __restrict reader,
   last_annotate = NULL;
 
   do {
-    _xml_beginElement(_s_dae_effect);
+    _xml_beginElement(_s_dae_pass);
 
     if (_xml_eqElm(_s_dae_asset)) {
       aio_assetinf *assetInf;

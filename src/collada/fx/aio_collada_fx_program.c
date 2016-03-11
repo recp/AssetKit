@@ -96,7 +96,7 @@ aio_dae_fxProg(xmlTextReaderPtr __restrict reader,
       _xml_readAttr(bind_attrib->symbol, _s_dae_symbol);
 
       do {
-        _xml_beginElement(_s_dae_linker);
+        _xml_beginElement(_s_dae_bind_attribute);
 
         if (_xml_eqElm(_s_dae_semantic)) {
           if (!bind_attrib->semantic)

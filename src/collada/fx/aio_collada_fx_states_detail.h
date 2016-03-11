@@ -125,6 +125,7 @@ aio_dae_fxState_float4x4(xmlTextReaderPtr __restrict reader,
 
 int _assetio_hide
 aio_dae_fxState_sampler(xmlTextReaderPtr __restrict reader,
+                        const char *elm,
                         aio_render_state ** __restrict last_state,
                         aio_states ** __restrict states,
                         long state_type);

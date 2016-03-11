@@ -356,36 +356,42 @@ aio_dae_fxState(xmlTextReaderPtr __restrict reader,
         break;
       case AIO_RENDER_STATE_TEXTURE1D:
         aio_dae_fxState_sampler(reader,
+                                (const char *)nodeName,
                                 &last_state,
                                 &states,
                                 AIO_RENDER_STATE_TEXTURE1D);
         break;
       case AIO_RENDER_STATE_TEXTURE2D:
         aio_dae_fxState_sampler(reader,
+                                (const char *)nodeName,
                                 &last_state,
                                 &states,
                                 AIO_RENDER_STATE_TEXTURE2D);
         break;
       case AIO_RENDER_STATE_TEXTURE3D:
         aio_dae_fxState_sampler(reader,
+                                (const char *)nodeName,
                                 &last_state,
                                 &states,
                                 AIO_RENDER_STATE_TEXTURE3D);
         break;
       case AIO_RENDER_STATE_TEXTURECUBE:
         aio_dae_fxState_sampler(reader,
+                                (const char *)nodeName,
                                 &last_state,
                                 &states,
                                 AIO_RENDER_STATE_TEXTURECUBE);
         break;
       case AIO_RENDER_STATE_TEXTURERECT:
         aio_dae_fxState_sampler(reader,
+                                (const char *)nodeName,
                                 &last_state,
                                 &states,
                                 AIO_RENDER_STATE_TEXTURERECT);
         break;
       case AIO_RENDER_STATE_TEXTUREDEPTH:
         aio_dae_fxState_sampler(reader,
+                                (const char *)nodeName,
                                 &last_state,
                                 &states,
                                 AIO_RENDER_STATE_TEXTUREDEPTH);

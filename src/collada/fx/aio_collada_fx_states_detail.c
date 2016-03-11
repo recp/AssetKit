@@ -460,6 +460,7 @@ aio_dae_fxState_float4x4(xmlTextReaderPtr __restrict reader,
 
 int _assetio_hide
 aio_dae_fxState_sampler(xmlTextReaderPtr __restrict reader,
+                        const char *elm,
                         aio_render_state ** __restrict last_state,
                         aio_states ** __restrict states,
                         long state_type) {
@@ -471,10 +472,12 @@ aio_dae_fxState_sampler(xmlTextReaderPtr __restrict reader,
   state = aio_calloc(sizeof(*state), 1);
   state->base.state_type = state_type;
 
-  _xml_readAttrUsingFn(state->index, _s_dae_index, strtol, NULL, 10);
+  _xml_readAttrUsingFn(state->index,
+                       _s_dae_index,
+                       strtol, NULL, 10);
 
   do {
-    _xml_beginElement(_s_dae_alpha_func);
+    _xml_beginElement(elm);
 
     if (_xml_eqElm(_s_dae_value)) {
       aio_fx_sampler_common * sampler;
