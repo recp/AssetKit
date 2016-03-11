@@ -7,7 +7,7 @@
 
 #include "aio_collada_technique.h"
 #include "../aio_libxml.h"
-#include "../aio_types.h"
+#include "../aio_common.h"
 #include "../aio_memory.h"
 #include "../aio_utils.h"
 #include "../aio_tree.h"

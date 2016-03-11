@@ -6,6 +6,7 @@
  */
 
 #include "aio_memory.h"
+#include "aio_common.h"
 
 #include <stdlib.h>
 #include <stdio.h>

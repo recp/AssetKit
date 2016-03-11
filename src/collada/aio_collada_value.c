@@ -98,6 +98,7 @@ aio_dae_value(xmlTextReaderPtr __restrict reader,
 
   switch (found->val) {
     case AIO_VALUE_TYPE_STRING:
+      
       *dest = nodeVal;
       break;
     case AIO_VALUE_TYPE_BOOL:

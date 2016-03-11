@@ -8,7 +8,7 @@
 #include "aio_tree.h"
 
 #include "aio_libxml.h"
-#include "aio_types.h"
+#include "aio_common.h"
 #include "aio_memory.h"
 #include "aio_utils.h"
 
