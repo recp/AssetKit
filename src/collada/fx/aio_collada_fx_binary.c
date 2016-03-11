@@ -6,75 +6,44 @@
  */
 
 #include "aio_collada_fx_binary.h"
-
-#include "../../aio_libxml.h"
-#include "../../aio_types.h"
-#include "../../aio_memory.h"
-#include "../../aio_utils.h"
-#include "../../aio_tree.h"
-
 #include "../aio_collada_common.h"
 
-#include <libxml/tree.h>
-#include <libxml/parser.h>
-#include <string.h>
-
 int _assetio_hide
-aio_dae_fxBinary(xmlNode * __restrict xml_node,
+aio_dae_fxBinary(xmlTextReaderPtr __restrict reader,
                  aio_binary ** __restrict dest) {
-  xmlNode * curr_node;
-  aio_binary * binary;
+  aio_binary    *binary;
+  const xmlChar *nodeName;
+  int            nodeType;
+  int            nodeRet;
 
-  binary = aio_malloc(sizeof(*binary));
-  memset(binary, '\0', sizeof(*binary));
+  binary = aio_calloc(sizeof(*binary), 1);
 
-  for (curr_node = xml_node->children;
-       curr_node && curr_node->type == XML_ELEMENT_NODE;
-       curr_node = curr_node->next) {
-    const char * node_name;
-    node_name = (const char *)curr_node->name;
+  do {
+    _xml_beginElement(_s_dae_binary);
 
-    if (AIO_IS_EQ_CASE(node_name, "ref")) {
-      binary->ref = aio_strdup(aio_xml_content(curr_node));
-    } else if (AIO_IS_EQ_CASE(node_name, "hex")) {
-      xmlAttr      * curr_attr;
-      aio_hex_data * hex;
+    if (_xml_eqElm(_s_dae_ref)) {
+      _xml_readText(binary->ref);
+    } else if (_xml_eqElm(_s_dae_hex)) {
+      aio_hex_data *hex;
+      hex = aio_calloc(sizeof(*hex), 1);
 
-      hex = aio_malloc(sizeof(*hex));
-      memset(hex, '\0', sizeof(*hex));
+      _xml_readAttr(hex->format, _s_dae_format);
 
-      for (curr_attr = xml_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        char * attr_val;
-
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
-
-        if (AIO_IS_EQ_CASE(attr_name, "format")) {
-          hex->format = aio_strdup(attr_val);
-          
-          break;
-        }
-      }
-
-      curr_attr = NULL;
-
-      /* hex data should specify format */
-      if (!hex->format) {
+      if (hex->format) {
+        _xml_readText(hex->val);
+        binary->hex = hex;
+      } else {
         aio_free(hex);
-        goto err;
       }
-
-      hex->val = aio_strdup(aio_xml_content(curr_node));
+    } else {
+      _xml_skipElement;
     }
-  }
+
+    /* end element */
+    _xml_endElement;
+  } while (nodeRet);
 
   *dest = binary;
+  
   return 0;
-err:
-  return -1;
 }
-
-

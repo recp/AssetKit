@@ -8,13 +8,8 @@
 #ifndef __libassetio__libxml__h_
 #define __libassetio__libxml__h_
 
-#include <libxml/tree.h>
 #include <stdbool.h>
 #include <libxml/xmlreader.h>
-
-extern
-char *
-aio_xml_content(xmlNode * xml_node);
 
 #define _xml_eq(a, b) (xmlStrcasecmp((xmlChar *)a, (xmlChar *)b) == 0)
 
@@ -144,5 +139,44 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
       free(attrVal);                                                          \
     }                                                                         \
   } while (0);
+
+#define _xml_readTextAsEnum(D, X, FN)                                         \
+  do {                                                                        \
+    char *attrValStr;                                                         \
+    attrValStr = (char *)xmlTextReaderGetAttribute(reader,                    \
+                                                   (const xmlChar *)X);       \
+    if (attrValStr) {                                                         \
+      long attrVal;                                                           \
+      attrVal = FN(attrValStr);                                               \
+      D = attrVal != -1 ? attrVal: 0;                                         \
+      free(attrValStr);                                                       \
+    } else D = 0;                                                             \
+  } while(0);
+
+#define _xml_readAttrAsEnum(D, X, FN)                                         \
+  do {                                                                        \
+    char *attrValStr;                                                         \
+    attrValStr = (char *)xmlTextReaderGetAttribute(reader,                    \
+                                                   (const xmlChar *)X);       \
+    if (attrValStr) {                                                         \
+      long attrVal;                                                           \
+      attrVal = FN(attrValStr);                                               \
+      D = attrVal != -1 ? attrVal: 0;                                         \
+      free(attrValStr);                                                       \
+    } else D = 0;                                                             \
+  } while(0);
+
+#define _xml_readAttrAsEnumWithDef(D, X, FN, DEF)                             \
+  do {                                                                        \
+    char *attrValStr;                                                         \
+    attrValStr = (char *)xmlTextReaderGetAttribute(reader,                    \
+                                                   (const xmlChar *)X);       \
+    if (attrValStr) {                                                         \
+      long attrVal;                                                           \
+      attrVal = FN(attrValStr);                                               \
+      D = attrVal != -1 ? attrVal: DEF;                                       \
+      free(attrValStr);                                                       \
+    } else D = DEF;                                                           \
+  } while(0);
 
 #endif /* __libassetio__libxml__h_ */

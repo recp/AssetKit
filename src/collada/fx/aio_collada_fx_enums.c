@@ -585,3 +585,85 @@ aio_dae_fxEnumOpaque(const char * name) {
 
   return val;
 }
+
+long _assetio_hide
+aio_dae_fxEnumChannel(const char * name) {
+  long val;
+  long glenums_len;
+  long i;
+
+  aio_dae_enum glenums[] = {
+    {"RGB",  AIO_FORMAT_CHANNEL_RGB},
+    {"RGBA", AIO_FORMAT_CHANNEL_RGBA},
+    {"RGBE", AIO_FORMAT_CHANNEL_RGBE},
+    {"L",    AIO_FORMAT_CHANNEL_L},
+    {"LA",   AIO_FORMAT_CHANNEL_LA},
+    {"D",    AIO_FORMAT_CHANNEL_D}
+  };
+
+  val = 0;
+  glenums_len = AIO_ARRAY_LEN(glenums);
+
+  for (i = 0; i < glenums_len; i++) {
+    if (strcasecmp(name, glenums[i].name) == 0) {
+      val = glenums[i].val;
+      break;
+    }
+  }
+
+  return val;
+}
+
+long _assetio_hide
+aio_dae_fxEnumRange(const char * name) {
+  long val;
+  long glenums_len;
+  long i;
+
+  aio_dae_enum glenums[] = {
+    {"SNORM", AIO_FORMAT_RANGE_SNORM},
+    {"UNORM", AIO_FORMAT_RANGE_UNORM},
+    {"SINT",  AIO_FORMAT_RANGE_SINT},
+    {"UINT",  AIO_FORMAT_RANGE_UINT},
+    {"FLOAT", AIO_FORMAT_RANGE_FLOAT}
+  };
+
+  val = 0;
+  glenums_len = AIO_ARRAY_LEN(glenums);
+
+  for (i = 0; i < glenums_len; i++) {
+    if (strcasecmp(name, glenums[i].name) == 0) {
+      val = glenums[i].val;
+      break;
+    }
+  }
+
+  return val;
+}
+
+long _assetio_hide
+aio_dae_fxEnumPrecision(const char * name) {
+  long val;
+  long glenums_len;
+  long i;
+
+  aio_dae_enum glenums[] = {
+    {"DEFAULT", AIO_FORMAT_PRECISION_DEFAULT},
+    {"LOW",     AIO_FORMAT_PRECISION_LOW},
+    {"MID",     AIO_FORMAT_PRECISION_MID},
+    {"HIGH",    AIO_FORMAT_PRECISION_HIGHT},
+    {"MAX",     AIO_FORMAT_PRECISION_MAX}
+  };
+
+  val = 0;
+  glenums_len = AIO_ARRAY_LEN(glenums);
+
+  for (i = 0; i < glenums_len; i++) {
+    if (strcasecmp(name, glenums[i].name) == 0) {
+      val = glenums[i].val;
+      break;
+    }
+  }
+
+  return val;
+}

@@ -6,60 +6,31 @@
  */
 
 #include "aio_collada_color.h"
-
-#include "../aio_libxml.h"
-#include "../aio_types.h"
-#include "../aio_memory.h"
-#include "../aio_utils.h"
-#include "../aio_tree.h"
-
 #include "aio_collada_common.h"
 
-#include <libxml/tree.h>
-#include <libxml/parser.h>
-#include <string.h>
-
 int _assetio_hide
-aio_dae_color(xmlNode * __restrict xml_node,
-              int read_sid,
+aio_dae_color(xmlTextReaderPtr __restrict reader,
+              bool read_sid,
               aio_color * __restrict dest) {
+  char      *colorStr;
+  const xmlChar *nodeName;
+  int            nodeType;
+  int            nodeRet;
 
-  char  * color_comp;
-  float * color_vec;
-  int     color_comp_idx;
+  nodeName = xmlTextReaderName(reader);
+  nodeType = xmlTextReaderNodeType(reader);
 
-  if (read_sid == 0) {
-    char  * sid;
+  if (read_sid)
+    _xml_readAttr(dest->sid, _s_dae_sid);
 
-    sid = NULL;
-    aio_xml_collada_read_attr(xml_node, "sid", &sid);
+  _xml_readMutText(colorStr);
 
-    if (sid)
-      dest->sid = sid;
-    else
-      dest->sid = NULL;
+  if (colorStr) {
+    aio_strtof4(&colorStr, &dest->vec);
+    free(colorStr);
+
+    return 0;
+  } else {
+    return -1;
   }
-
-  color_vec = dest->vec;
-  color_comp_idx = 0;
-
-  color_comp = strtok(aio_xml_content(xml_node), " ");
-  color_vec[color_comp_idx] = strtof(color_comp, NULL);
-
-  while (color_comp && ++color_comp_idx < 4) {
-    color_comp = strtok(NULL, " ");
-
-    if (!color_comp) {
-      --color_comp_idx;
-      continue;
-    }
-
-    color_vec[color_comp_idx] = strtof(color_comp, NULL);
-  }
-
-  /* make alpha channel to 1.0 as default */
-  if (color_comp_idx < 3)
-    color_vec[3] = 1.0;
-
-  return 0;
 }

@@ -6,13 +6,7 @@
  */
 
 #include "aio_collada_fx_pass.h"
-
-#include "../../aio_libxml.h"
-#include "../../aio_types.h"
-#include "../../aio_memory.h"
-#include "../../aio_utils.h"
-#include "../../aio_tree.h"
-
+#include "../aio_collada_common.h"
 #include "../aio_collada_asset.h"
 #include "../aio_collada_common.h"
 #include "../aio_collada_annotate.h"
@@ -21,107 +15,86 @@
 #include "aio_collada_fx_program.h"
 #include "aio_collada_fx_evaluate.h"
 
-#include <libxml/tree.h>
-#include <libxml/parser.h>
-#include <string.h>
-
 int _assetio_hide
 aio_dae_fxPass(xmlTextReaderPtr __restrict reader,
                aio_pass ** __restrict dest) {
-  return 0;
-}
+  aio_pass      *pass;
+  aio_annotate  *last_annotate;
+  const xmlChar *nodeName;
+  int            nodeType;
+  int            nodeRet;
 
-int _assetio_hide
-aio_dae_fxPass0(xmlNode * __restrict xml_node,
-               aio_pass ** __restrict dest) {
-  xmlNode  * curr_node;
-  xmlAttr  * curr_attr;
-  aio_pass * pass;
+  pass = aio_calloc(sizeof(*pass), 1);
 
-  pass = aio_malloc(sizeof(*pass));
-  memset(pass, '\0', sizeof(*pass));
+  _xml_readAttr(pass->sid, _s_dae_sid);
 
-  for (curr_attr = xml_node->properties;
-       curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-       curr_attr = curr_attr->next) {
-    const char * attr_name;
-    const char * attr_val;
+  last_annotate = NULL;
 
-    attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_content((xmlNode *)curr_attr);
+  do {
+    _xml_beginElement(_s_dae_effect);
 
-    if (AIO_IS_EQ_CASE(attr_name, "sid")) {
-      pass->sid = aio_strdup(attr_val);
-      break;
-    }
-  }
+    if (_xml_eqElm(_s_dae_asset)) {
+      aio_assetinf *assetInf;
+      int ret;
 
-  for (curr_node = xml_node;
-       curr_node && curr_node->type == XML_ELEMENT_NODE;
-       curr_node = curr_node->next) {
-    const char * node_name;
-    node_name = (const char *)curr_node->name;
+      assetInf = NULL;
+      ret = aio_dae_assetInf(reader, &assetInf);
+      if (ret == 0)
+        pass->inf = assetInf;
+    } else if (_xml_eqElm(_s_dae_annotate)) {
+      aio_annotate *annotate;
+      int           ret;
 
-    if (AIO_IS_EQ_CASE(node_name, "asset")) {
-
-      _AIO_ASSET_LOAD_TO(curr_node,
-                         pass->inf);
-
-    } else if (AIO_IS_EQ_CASE(node_name, "annotate")) {
-      aio_annotate * annotate;
-      aio_annotate * last_annotate;
-      int            ret;
-
-//      ret = aio_load_collada_annotate(curr_node, &annotate);
+      ret = aio_dae_annotate(reader, &annotate);
 
       if (ret == 0) {
-        last_annotate = pass->annotate;
-        if (last_annotate) {
-//          annotate->prev = last_annotate;
+        if (last_annotate)
           last_annotate->next = annotate;
-        } else {
+        else
           pass->annotate = annotate;
-        }
+
+        last_annotate = annotate;
       }
+    } else if (_xml_eqElm(_s_dae_states)) {
+      aio_states *states;
+      int         ret;
 
-    } else if (AIO_IS_EQ_CASE(node_name, "states")) {
-      aio_states * states;
-      int          ret;
-
-      states = NULL;
-      ret = aio_dae_fxState(curr_node, &states);
-
+      ret = aio_dae_fxState(reader, &states);
       if (ret == 0)
         pass->states = states;
 
-    } else if (AIO_IS_EQ_CASE(node_name, "program")) {
-      aio_program * prog;
-      int           ret;
+    } else if (_xml_eqElm(_s_dae_program)) {
+      aio_program *prog;
+      int          ret;
 
-      prog = NULL;
-      ret = aio_dae_fxProg(curr_node, &prog);
-
+      ret = aio_dae_fxProg(reader, &prog);
       if (ret == 0)
         pass->program = prog;
-
-    } else if (AIO_IS_EQ_CASE(node_name, "evaluate")) {
+    } else if (_xml_eqElm(_s_dae_evaluate)) {
       aio_evaluate * evaluate;
       int ret;
 
-      evaluate = NULL;
-      ret = aio_dae_fxEvaluate(curr_node, &evaluate);
-
+      ret = aio_dae_fxEvaluate(reader, &evaluate);
       if (ret == 0)
         pass->evaluate = evaluate;
+    } else if (_xml_eqElm(_s_dae_extra)) {
+      xmlNodePtr nodePtr;
+      aio_tree  *tree;
 
-    } else if (AIO_IS_EQ_CASE(node_name, "extra")) {
+      nodePtr = xmlTextReaderExpand(reader);
+      tree = NULL;
 
-      _AIO_TREE_LOAD_TO(curr_node->children,
-                        pass->extra,
-                        NULL);
-      
+      aio_tree_fromXmlNode(nodePtr, &tree, NULL);
+      pass->extra = tree;
+
+      _xml_skipElement;
+    } else {
+      _xml_skipElement;
     }
-  }
+
+    /* end element */
+    _xml_endElement;
+  } while (nodeRet);
   
   *dest = pass;
   

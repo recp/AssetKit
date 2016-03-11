@@ -73,4 +73,13 @@ aio_dae_fxEnumDraw(const char * name);
 long _assetio_hide
 aio_dae_fxEnumOpaque(const char * name);
 
+long _assetio_hide
+aio_dae_fxEnumChannel(const char * name);
+
+long _assetio_hide
+aio_dae_fxEnumRange(const char * name);
+
+long _assetio_hide
+aio_dae_fxEnumPrecision(const char * name);
+
 #endif /* __libassetio__aio_collada_fx_enums_h_ */

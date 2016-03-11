@@ -6,12 +6,8 @@
  */
 
 #include "aio_collada_technique.h"
-#include "../aio_libxml.h"
-#include "../aio_types.h"
-#include "../aio_memory.h"
-#include "../aio_utils.h"
-
 #include "aio_collada_common.h"
+#include "aio_collada_color.h"
 
 int _assetio_hide
 aio_dae_techniquec(xmlTextReaderPtr __restrict reader,
@@ -186,38 +182,7 @@ aio_dae_techniquec(xmlTextReaderPtr __restrict reader,
         _xml_beginElement(_s_dae_directional);
 
         if (_xml_eqElm(_s_dae_color)) {
-          char  * sid;
-          char  * content;
-          float * colorv;
-          char  * comp;
-          int     comp_idx;
-
-          _xml_readAttr(sid, _s_dae_sid);
-
-          colorv = directional->color.vec;
-          comp_idx = 0;
-
-          _xml_readText(content);
-
-          comp = strtok(content, _s_dae_space);
-          colorv[comp_idx] = strtof(comp, NULL);
-
-          while (comp && ++comp_idx < 4) {
-            comp = strtok(NULL, _s_dae_space);
-
-            if (!comp) {
-              --comp_idx;
-              continue;
-            }
-
-            colorv[comp_idx] = strtof(comp, NULL);
-          }
-
-          /* make alpha channel to 1.0 as default */
-          if (comp_idx < 3)
-            colorv[3] = 1.0;
-
-          aio_free(content);
+          aio_dae_color(reader, true, &directional->color);
         } else {
           _xml_skipElement;
         }
@@ -239,38 +204,7 @@ aio_dae_techniquec(xmlTextReaderPtr __restrict reader,
         _xml_beginElement(_s_dae_point);
 
         if (_xml_eqElm(_s_dae_color)) {
-          char  * sid;
-          char  * content;
-          float * colorv;
-          char  * comp;
-          int     comp_idx;
-
-          _xml_readAttr(sid, _s_dae_sid);
-
-          colorv = point->color.vec;
-          comp_idx = 0;
-
-          _xml_readText(content);
-
-          comp = strtok(content, _s_dae_space);
-          colorv[comp_idx] = strtof(comp, NULL);
-
-          while (comp && ++comp_idx < 4) {
-            comp = strtok(NULL, _s_dae_space);
-
-            if (!comp) {
-              --comp_idx;
-              continue;
-            }
-
-            colorv[comp_idx] = strtof(comp, NULL);
-          }
-
-          /* make alpha channel to 1.0 as default */
-          if (comp_idx < 3)
-            colorv[3] = 1.0;
-
-          aio_free(content);
+          aio_dae_color(reader, true, &point->color);
         } else if (_xml_eqElm(_s_dae_constant_attenuation)) {
           aio_basic_attrd * constant_attenuation;
 
@@ -319,38 +253,7 @@ aio_dae_techniquec(xmlTextReaderPtr __restrict reader,
         _xml_beginElement(_s_dae_spot);
 
         if (_xml_eqElm(_s_dae_color)) {
-          char  * sid;
-          char  * content;
-          float * colorv;
-          char  * comp;
-          int     comp_idx;
-
-          _xml_readAttr(sid, _s_dae_sid);
-
-          colorv = spot->color.vec;
-          comp_idx = 0;
-
-          _xml_readText(content);
-
-          comp = strtok(content, _s_dae_space);
-          colorv[comp_idx] = strtof(comp, NULL);
-
-          while (comp && ++comp_idx < 4) {
-            comp = strtok(NULL, _s_dae_space);
-
-            if (!comp) {
-              --comp_idx;
-              continue;
-            }
-
-            colorv[comp_idx] = strtof(comp, NULL);
-          }
-
-          /* make alpha channel to 1.0 as default */
-          if (comp_idx < 3)
-            colorv[3] = 1.0;
-
-          aio_free(content);
+          aio_dae_color(reader, true, &spot->color);
         } else if (_xml_eqElm(_s_dae_constant_attenuation)) {
           aio_basic_attrd * constant_attenuation;
 
