@@ -6,28 +6,13 @@
  */
 
 #include "aio_collada.h"
-#include <stdlib.h>
-#include <string.h>
-#include <libxml/parser.h>
-#include <libxml/tree.h>
-
-#include "../aio_memory.h"
-#include "../aio_libxml.h"
-#include "../aio_types.h"
-#include "../aio_tree.h"
 #include "aio_collada_common.h"
-
 #include "aio_collada_asset.h"
 #include "aio_collada_camera.h"
 #include "aio_collada_light.h"
+
 #include "fx/aio_collada_fx_effect.h"
 #include "fx/aio_collada_fx_image.h"
-
-#include <unistd.h>
-#include <libxml/xmlreader.h>
-
-#include <stdio.h>
-#include <sys/stat.h>
 
 int
 _assetio_hide
@@ -162,7 +147,7 @@ aio_dae_doc(aio_doc ** __restrict dest,
           assetInf = NULL;
           ret = aio_dae_assetInf(reader, &assetInf);
           if (ret == 0)
-            doc->lib.cameras.inf = assetInf;
+            doc->lib.lights.inf = assetInf;
 
         } else if (_xml_eqElm(_s_dae_light)) {
           aio_light *alight;
@@ -199,7 +184,114 @@ aio_dae_doc(aio_doc ** __restrict dest,
 
     /* COLLADA FX */
     } else if (_xml_eqElm(_s_dae_lib_effects)) {
-      
+      aio_lib_effect *libeffect;
+      aio_effect     *lasteffect;
+
+      libeffect = &doc->lib.effects;
+
+      _xml_readAttr(libeffect->id, _s_dae_id);
+      _xml_readAttr(libeffect->name, _s_dae_name);
+
+      lasteffect = libeffect->next;
+
+      do {
+        _xml_beginElement(_s_dae_lib_effects);
+
+        if (_xml_eqElm(_s_dae_asset)) {
+          aio_assetinf *assetInf;
+          int ret;
+
+          assetInf = NULL;
+          ret = aio_dae_assetInf(reader, &assetInf);
+          if (ret == 0)
+            doc->lib.effects.inf = assetInf;
+
+        } else if (_xml_eqElm(_s_dae_effect)) {
+          aio_effect *anEffect;
+          int         ret;
+
+          ret = aio_dae_effect(reader, &anEffect);
+          if (ret == 0) {
+            if (lasteffect)
+              lasteffect->next = anEffect;
+            else
+              libeffect->next = anEffect;
+
+            lasteffect = anEffect;
+          }
+        } else if (_xml_eqElm(_s_dae_extra)) {
+          xmlNodePtr nodePtr;
+          aio_tree  *tree;
+
+          nodePtr = xmlTextReaderExpand(reader);
+          tree = NULL;
+
+          aio_tree_fromXmlNode(nodePtr, &tree, NULL);
+          libeffect->extra = tree;
+
+          _xml_skipElement;
+        } else {
+          _xml_skipElement;
+        }
+        
+        /* end element */
+        _xml_endElement;
+      } while (nodeRet);
+
+    } else if (_xml_eqElm(_s_dae_lib_images)) {
+      aio_lib_image *libimg;
+      aio_image     *lastimg;
+
+      libimg = &doc->lib.images;
+
+      _xml_readAttr(libimg->id, _s_dae_id);
+      _xml_readAttr(libimg->name, _s_dae_name);
+
+      lastimg = libimg->next;
+
+      do {
+        _xml_beginElement(_s_dae_lib_images);
+
+        if (_xml_eqElm(_s_dae_asset)) {
+          aio_assetinf *assetInf;
+          int ret;
+
+          assetInf = NULL;
+          ret = aio_dae_assetInf(reader, &assetInf);
+          if (ret == 0)
+            doc->lib.images.inf = assetInf;
+
+        } else if (_xml_eqElm(_s_dae_image)) {
+          aio_image *anImg;
+          int        ret;
+          
+          ret = aio_dae_fxImage(reader, &anImg);
+          if (ret == 0) {
+            if (lastimg)
+              lastimg->next = anImg;
+            else
+              libimg->next = anImg;
+
+            lastimg = anImg;
+          }
+        } else if (_xml_eqElm(_s_dae_extra)) {
+          xmlNodePtr nodePtr;
+          aio_tree  *tree;
+
+          nodePtr = xmlTextReaderExpand(reader);
+          tree = NULL;
+
+          aio_tree_fromXmlNode(nodePtr, &tree, NULL);
+          libimg->extra = tree;
+
+          _xml_skipElement;
+        } else {
+          _xml_skipElement;
+        }
+        
+        /* end element */
+        _xml_endElement;
+      } while (nodeRet);
     }
 
     /* end element */
@@ -213,113 +305,7 @@ aio_dae_doc(aio_doc ** __restrict dest,
     return -1;
   }
 
-
-//  do {
-
-//      /* COLLADA Core */
-//      if (AIO_IS_EQ_CASE(node_name, "asset")) {
-//      } else if (AIO_IS_EQ_CASE(node_name, "library_cameras")) {
-//      } else if (AIO_IS_EQ_CASE(node_name, "library_lights")) {
-//      /* COLLADA FX */
-//      else if (AIO_IS_EQ_CASE(node_name, "library_effects")) {
-//        xmlNode        * prev_node;
-//        aio_lib_effect * effect_lib;
-//
-//        effect_lib = &asst_doc->lib.effects;
-//
-//        aio_xml_collada_read_id_name(curr_node,
-//                                     &effect_lib->id,
-//                                     &effect_lib->name);
-//
-//        prev_node = curr_node;
-//        curr_node = curr_node->children;
-//
-//        while (curr_node) {
-//          if (curr_node->type == XML_ELEMENT_NODE) {
-//            node_name = (const char *)curr_node->name;
-//
-//            if (AIO_IS_EQ_CASE(node_name, "asset")) {
-//              _AIO_ASSET_LOAD_TO(curr_node,
-//                                 asst_doc->lib.effects.inf);
-//
-//            } else if (AIO_IS_EQ_CASE(node_name, "effect")) {
-//              aio_effect * an_effect;
-//              int          ret;
-//
-//              ret = aio_load_collada_effect(curr_node, &an_effect);
-//              if (ret == 0) {
-//                if (effect_lib->next) {
-//                  an_effect->prev = effect_lib->next;
-//                  effect_lib->next = an_effect;
-//                } else {
-//                  effect_lib->next = an_effect;
-//                }
-//              }
-//            } else if (AIO_IS_EQ_CASE(node_name, "extra")) {
-//              _AIO_TREE_LOAD_TO(curr_node->children,
-//                                asst_doc->lib.effects.extra,
-//                                NULL);
-//            }
-//          }
-//
-//          curr_node = curr_node->next;
-//        } /* while library_cameras */
-//        
-//        node_name = NULL;
-//        curr_node = prev_node;
-//
-//      } else if (AIO_IS_EQ_CASE(node_name, "library_images")) {
-//        xmlNode       * prev_node;
-//        aio_lib_image * image_lib;
-//
-//        image_lib = &asst_doc->lib.images;
-//
-//        aio_xml_collada_read_id_name(curr_node,
-//                                     &image_lib->id,
-//                                     &image_lib->name);
-//
-//        prev_node = curr_node;
-//        curr_node = curr_node->children;
-//
-//        while (curr_node) {
-//          if (curr_node->type == XML_ELEMENT_NODE) {
-//            node_name = (const char *)curr_node->name;
-//
-//            if (AIO_IS_EQ_CASE(node_name, "asset")) {
-//              _AIO_ASSET_LOAD_TO(curr_node,
-//                                 asst_doc->lib.images.inf);
-//
-//            } else if (AIO_IS_EQ_CASE(node_name, "image")) {
-//              aio_image * an_image;
-//              int         ret;
-//
-//              ret = aio_load_collada_image(curr_node, &an_image);
-//              if (ret == 0) {
-//                if (image_lib->next) {
-//                  an_image->prev = image_lib->next;
-//                  image_lib->next = an_image;
-//                } else {
-//                  image_lib->next = an_image;
-//                }
-//              }
-//
-//            } else if (AIO_IS_EQ_CASE(node_name, "extra")) {
-//              _AIO_TREE_LOAD_TO(curr_node->children,
-//                                asst_doc->lib.images.extra,
-//                                NULL);
-//            }
-//          }
-//
-//          curr_node = curr_node->next;
-//        } /* while library_cameras */
-//
-//        node_name = NULL;
-//        curr_node = prev_node;
-//      }
-//    }
-
+  *dest = doc;
 
   return 0;
-err:
-  return -1;
 }

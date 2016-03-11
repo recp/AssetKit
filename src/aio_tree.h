@@ -20,21 +20,4 @@ aio_tree_fromXmlNode(xmlNode * __restrict xml_node,
                        aio_tree_node ** __restrict dest,
                        aio_tree_node * __restrict parent);
 
-#define aio_tree_load_from_xml(a, b, c) aio_tree_fromXmlNode(a, b, c)
-
-#define _AIO_TREE_LOAD_TO(NODE, TREE, PARENT)                                 \
-  do {                                                                        \
-    aio_tree_node * tree_root_node;                                           \
-    int             ret;                                                      \
-                                                                              \
-    tree_root_node = NULL;                                                    \
-                                                                              \
-    ret = aio_tree_load_from_xml(NODE,                                        \
-                                 &tree_root_node,                             \
-                                 PARENT);                                     \
-                                                                              \
-    if (ret == 0)                                                             \
-      TREE = tree_root_node;                                                  \
-  } while(0)
-
 #endif /* __libassetio__tree__h_ */

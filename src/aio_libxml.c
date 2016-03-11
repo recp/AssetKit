@@ -6,16 +6,3 @@
  */
 
 #include "aio_libxml.h"
-#include <stdlib.h>
-
-inline
-char *
-aio_xml_content(xmlNode * xml_node) {
-  if (!xml_node)
-    return NULL;
-
-  if (!xml_node->children)
-    return (char *)xml_node->content;
-
-  return (char *)xml_node->children->content;
-}

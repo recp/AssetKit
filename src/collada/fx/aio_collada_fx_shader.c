@@ -6,176 +6,106 @@
  */
 
 #include "aio_collada_fx_shader.h"
-
-#include "../../aio_libxml.h"
-#include "../../aio_types.h"
-#include "../../aio_memory.h"
-#include "../../aio_utils.h"
-#include "../../aio_tree.h"
-
 #include "../aio_collada_common.h"
-
 #include "aio_collada_fx_enums.h"
 #include "aio_collada_fx_binary.h"
 #include "aio_collada_fx_uniform.h"
 
-#include <libxml/tree.h>
-#include <libxml/parser.h>
-#include <string.h>
-
 int _assetio_hide
-aio_dae_fxShader(xmlNode * __restrict xml_node,
+aio_dae_fxShader(xmlTextReaderPtr __restrict reader,
                  aio_shader ** __restrict dest) {
-  xmlNode      * curr_node;
-  xmlAttr      * curr_attr;
-  aio_shader   * shader;
-  aio_compiler * last_compiler;
-  aio_bind_uniform * last_bind_uniform;
+  aio_shader       *shader;
+  aio_compiler     *last_compiler;
+  aio_bind_uniform *last_bind_uniform;
+  const xmlChar *nodeName;
+  int            nodeType;
+  int            nodeRet;
 
-  shader = aio_malloc(sizeof(*shader));
-  memset(shader, '\0', sizeof(*shader));
+  shader = aio_calloc(sizeof(*shader), 1);
 
-  last_compiler = NULL;
+  _xml_readAttrAsEnum(shader->stage,
+                      _s_dae_stage,
+                      aio_dae_fxEnumShaderStage);
+
+  last_compiler     = NULL;
   last_bind_uniform = NULL;
 
-  for (curr_attr = xml_node->properties;
-       curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-       curr_attr = curr_attr->next) {
-    const char * attr_name;
-    char * attr_val;
+  do {
+    _xml_beginElement(_s_dae_shader);
 
-    attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_content((xmlNode *)curr_attr);
+    if (_xml_eqElm(_s_dae_sources)) {
+      aio_sources *sources;
+      aio_inline  *last_inline;
+      aio_import  *last_import;
 
-    if (AIO_IS_EQ_CASE(attr_name, "stage")) {
-      long val;
-      val = aio_dae_fxEnumShaderStage(attr_val);
-      if (val == 0)
-        shader->stage = val;
-
-      break;
-    }
-  }
-
-  curr_attr = NULL;
-
-  for (curr_node = xml_node->children;
-       curr_node && curr_node->type == XML_ELEMENT_NODE;
-       curr_node = curr_node->next) {
-    const char * node_name;
-    node_name = (const char *)curr_node->name;
-
-    if (AIO_IS_EQ_CASE(node_name, "sources")) {
-      xmlNode * prev_node;
-      aio_sources * sources;
-      aio_inline * last_inline;
-      aio_import * last_import;
-
-      sources = aio_malloc(sizeof(*sources));
-      memset(sources, '\0', sizeof(*sources));
-
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        char * attr_val;
-
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
-
-        if (AIO_IS_EQ_CASE(attr_name, "entry")) {
-          sources->entry = aio_strdup(attr_val);
-          break;
-        }
-      }
-
-      curr_attr = NULL;
+      sources = aio_calloc(sizeof(*sources), 1);
+      _xml_readAttr(sources->entry, _s_dae_entry);
 
       last_inline = NULL;
       last_import = NULL;
-      prev_node = curr_node;
 
-      for (curr_node = curr_node->children;
-           curr_node && curr_node->type == XML_ELEMENT_NODE;
-           curr_node = curr_node->next) {
-        node_name = (const char *)curr_node->name;
-        if (AIO_IS_EQ_CASE(node_name, "inline")) {
-          aio_inline * n_inline;
+      do {
+        _xml_beginElement(_s_dae_sources);
 
-          n_inline = aio_malloc(sizeof(*n_inline));
-          memset(n_inline, '\0', sizeof(*n_inline));
+        if (_xml_eqElm(_s_dae_inline)) {
+          aio_inline *nInline;
 
-          n_inline->val = aio_strdup(aio_xml_content(curr_node));
-           if (last_inline)
-             last_inline->next = n_inline;
-           else
-             sources->inlines = n_inline;
+          nInline = aio_calloc(sizeof(*nInline), 1);
+          _xml_readText(nInline->val);
 
-          last_inline = n_inline;
-        } else if (AIO_IS_EQ_CASE(node_name, "import")) {
-          aio_import * _import;
-
-          _import = aio_malloc(sizeof(*_import));
-          memset(_import, '\0', sizeof(*_import));
-
-          _import->ref = aio_strdup(aio_xml_content(curr_node));
-          if (last_import)
-            last_import->next = _import;
+          if (last_inline)
+            last_inline->next = nInline;
           else
-            sources->imports = _import;
+            sources->inlines = nInline;
 
-          last_import = _import;
+          last_inline = nInline;
+        } else if (_xml_eqElm(_s_dae_import)) {
+          aio_import *nImport;
+
+          nImport = aio_calloc(sizeof(*nImport), 1);
+          _xml_readText(nImport->ref);
+
+          if (last_import)
+            last_import->next = nImport;
+          else
+            sources->imports = nImport;
+
+          last_import = nImport;
+        } else {
+          _xml_skipElement;
         }
-      }
+        
+        /* end element */
+        _xml_endElement;
+      } while (nodeRet);
 
-      node_name = NULL;
-      curr_node = prev_node;
+      shader->sources = sources;
+    } else if (_xml_eqElm(_s_dae_compiler)) {
+      aio_compiler *compiler;
 
-    } else if (AIO_IS_EQ_CASE(node_name, "compiler")) {
-      aio_compiler * compiler;
-      xmlNode      * prev_node;
+      compiler = aio_calloc(sizeof(*compiler), 1);
 
-      compiler = aio_malloc(sizeof(*compiler));
-      memset(compiler, '\0', sizeof(*compiler));
+      _xml_readAttr(compiler->platform, _s_dae_platform);
+      _xml_readAttr(compiler->target, _s_dae_target);
+      _xml_readAttr(compiler->options, _s_dae_options);
 
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        char * attr_val;
+      do {
+        _xml_beginElement(_s_dae_compiler);
 
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
+        if (_xml_eqElm(_s_dae_binary)) {
+          aio_binary *binary;
+          int         ret;
 
-        if (AIO_IS_EQ_CASE(attr_name, "platform")) {
-          compiler->platform = aio_strdup(attr_val);
-        } else if (AIO_IS_EQ_CASE(node_name, "target")) {
-          compiler->target = aio_strdup(attr_val);
-        } else if (AIO_IS_EQ_CASE(node_name, "options")) {
-          compiler->options = aio_strdup(attr_val);
-        }
-      }
-
-      curr_attr = NULL;
-      prev_node = curr_node;
-
-      for (curr_node = curr_node->children;
-           curr_node && curr_node->type == XML_ELEMENT_NODE;
-           curr_node = curr_node->next) {
-        node_name = (const char *)curr_node->name;
-        if (AIO_IS_EQ_CASE(node_name, "binary")) {
-          aio_binary * binary;
-          int          ret;
-
-          binary = NULL;
-          ret = aio_dae_fxBinary(curr_node, &binary);
-
+          ret = aio_dae_fxBinary(reader, &binary);
           if (ret == 0)
             compiler->binary = binary;
-
-          break;
+        } else {
+          _xml_skipElement;
         }
-      }
+
+        /* end element */
+        _xml_endElement;
+      } while (nodeRet);
 
       if (last_compiler)
         last_compiler->next = compiler;
@@ -183,17 +113,11 @@ aio_dae_fxShader(xmlNode * __restrict xml_node,
         shader->compiler = compiler;
 
       last_compiler = compiler;
-
-      node_name = NULL;
-      curr_node = prev_node;
-
-    } else if (AIO_IS_EQ_CASE(node_name, "bind_uniform")) {
-      aio_bind_uniform * bind_uniform;
+    } else if (_xml_eqElm(_s_dae_bind_uniform)) {
+      aio_bind_uniform *bind_uniform;
       int ret;
 
-      bind_uniform = NULL;
-      ret = aio_dae_fxBindUniform(curr_node, &bind_uniform);
-
+      ret = aio_dae_fxBindUniform(reader, &bind_uniform);
       if (ret == 0) {
         if (last_bind_uniform)
           last_bind_uniform->next = bind_uniform;
@@ -202,13 +126,24 @@ aio_dae_fxShader(xmlNode * __restrict xml_node,
 
         last_bind_uniform = bind_uniform;
       }
+    } else if (_xml_eqElm(_s_dae_extra)) {
+      xmlNodePtr nodePtr;
+      aio_tree  *tree;
 
-    } else if (AIO_IS_EQ_CASE(node_name, "extra")) {
-      _AIO_TREE_LOAD_TO(curr_node->children,
-                        shader->extra,
-                        NULL);
+      nodePtr = xmlTextReaderExpand(reader);
+      tree = NULL;
+
+      aio_tree_fromXmlNode(nodePtr, &tree, NULL);
+      shader->extra = tree;
+
+      _xml_skipElement;
+    } else {
+      _xml_skipElement;
     }
-  }
+
+    /* end element */
+    _xml_endElement;
+  } while (nodeRet);
 
   *dest = shader;
   

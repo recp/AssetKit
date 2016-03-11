@@ -16,6 +16,4 @@ int _assetio_hide
 aio_dae_assetInf(xmlTextReaderPtr __restrict reader,
                  aio_assetinf ** __restrict dest);
 
-#define _AIO_ASSET_LOAD_TO(NODE, ASSET_INF)
-
 #endif /* __libassetio__aio_collada_asset__h_ */

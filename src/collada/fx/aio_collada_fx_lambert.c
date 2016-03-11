@@ -40,7 +40,6 @@ aio_dae_fxLambert(xmlTextReaderPtr __restrict reader,
   int            nodeType;
   int            nodeRet;
 
-
   lambert = aio_calloc(sizeof(*lambert), 1);
 
   if (lambertMapLen == 0) {

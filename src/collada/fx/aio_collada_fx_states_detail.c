@@ -6,21 +6,10 @@
  */
 
 #include "aio_collada_fx_states_detail.h"
-
-#include "../../aio_libxml.h"
-#include "../../aio_types.h"
-#include "../../aio_memory.h"
-#include "../../aio_utils.h"
-#include "../../aio_tree.h"
-
 #include "../aio_collada_common.h"
 #include "../aio_collada_value.h"
 #include "aio_collada_fx_enums.h"
 #include "aio_collada_fx_sampler.h"
-
-#include <libxml/tree.h>
-#include <libxml/parser.h>
-#include <string.h>
 
 #define _AIO_APPEND_STATE(last_state, state)                                  \
   do {                                                                        \
@@ -34,41 +23,33 @@
   } while (0)
 
 int _assetio_hide
-aio_dae_fxState_enum(xmlNode * __restrict xml_node,
+aio_dae_fxState_enum(xmlTextReaderPtr __restrict reader,
                      aio_render_state ** __restrict last_state,
                      aio_states ** __restrict states,
                      long state_type,
                      long defaultEnumVal,
                      aio_dae_fxEnumFn_t enumFn) {
-  aio_state_t_ul * state;
-  xmlAttr        * curr_attr;
+  aio_state_t_ul *state;
+  char *attrValStr;
 
-  state = aio_malloc(sizeof(*state));
-  memset(state, '\0', sizeof(*state));
+  state = aio_calloc(sizeof(*state), 1);
 
   state->base.state_type = state_type;
+  attrValStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
+  if (attrValStr) {
+    long enumVal;
+    enumVal = enumFn(attrValStr);
+    if (enumVal == -1)
+      enumVal = defaultEnumVal;
 
-  for (curr_attr = xml_node->properties;
-       curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-       curr_attr = curr_attr->next) {
-    const char * attr_name;
-    const char * attr_val;
-
-    attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_content((xmlNode *)curr_attr);
-
-    if (AIO_IS_EQ_CASE(attr_name, "value")) {
-      long val;
-
-      val = enumFn(attr_val);
-      if (val == -1)
-        val = defaultEnumVal;
-
-      state->val = val;
-    } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-      state->param = aio_strdup(attr_val);
-    }
+    state->val = enumVal;
+    free(attrValStr);
+  } else {
+    state->val = defaultEnumVal;
   }
+
+  _xml_readAttr(state->param, _s_dae_param);
 
   _AIO_APPEND_STATE(last_state, state);
 
@@ -76,38 +57,29 @@ aio_dae_fxState_enum(xmlNode * __restrict xml_node,
 }
 
 int _assetio_hide
-aio_dae_fxState_bool4(xmlNode * __restrict xml_node,
+aio_dae_fxState_bool4(xmlTextReaderPtr __restrict reader,
                       aio_render_state ** __restrict last_state,
                       aio_states ** __restrict states,
                       long state_type,
                       aio_bool * defaultVal,
                       size_t defaultValSize) {
-  aio_state_t_bool4 * state;
-  xmlAttr * curr_attr;
+  aio_state_t_bool4 *state;
+  char *attrValStr;
 
-  state = aio_malloc(sizeof(*state));
-  memset(state, '\0', sizeof(*state));
+  state = aio_calloc(sizeof(*state), 1);
 
   state->base.state_type = state_type;
-
-  for (curr_attr = xml_node->properties;
-       curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-       curr_attr = curr_attr->next) {
-    const char * attr_name;
-    char * attr_val;
-
-    attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_content((xmlNode *)curr_attr);
-
-    if (AIO_IS_EQ_CASE(attr_name, "value")) {
-      if (!attr_val && defaultVal)
-        memcpy(state->val, defaultVal, defaultValSize);
-      else
-        aio_strtomb(&attr_val, state->val, 1, 4);
-    } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-      state->param = aio_strdup(attr_val);
-    }
+  attrValStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
+  if (attrValStr) {
+    aio_strtomb(&attrValStr, state->val, 1, 4);
+    free(attrValStr);
+  } else {
+    if (defaultVal)
+      memcpy(state->val, defaultVal, defaultValSize);
   }
+
+  _xml_readAttr(state->param, _s_dae_param);
 
   _AIO_APPEND_STATE(last_state, state);
 
@@ -115,38 +87,29 @@ aio_dae_fxState_bool4(xmlNode * __restrict xml_node,
 }
 
 int _assetio_hide
-aio_dae_fxState_int2(xmlNode * __restrict xml_node,
+aio_dae_fxState_int2(xmlTextReaderPtr __restrict reader,
                      aio_render_state ** __restrict last_state,
                      aio_states ** __restrict states,
                      long state_type,
                      aio_int * defaultVal,
                      size_t defaultValSize) {
-  aio_state_t_int2 * state;
-  xmlAttr * curr_attr;
+  aio_state_t_int2 *state;
+  char *attrValStr;
 
-  state = aio_malloc(sizeof(*state));
-  memset(state, '\0', sizeof(*state));
+  state = aio_calloc(sizeof(*state), 1);
 
   state->base.state_type = state_type;
-
-  for (curr_attr = xml_node->properties;
-       curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-       curr_attr = curr_attr->next) {
-    const char * attr_name;
-    char * attr_val;
-
-    attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_content((xmlNode *)curr_attr);
-
-    if (AIO_IS_EQ_CASE(attr_name, "value")) {
-      if (!attr_val && defaultVal)
-        memcpy(state->val, defaultVal, defaultValSize);
-      else
-        aio_strtomi(&attr_val, state->val, 1, 2);
-    } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-      state->param = aio_strdup(attr_val);
-    }
+  attrValStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
+  if (attrValStr) {
+    aio_strtomi(&attrValStr, state->val, 1, 2);
+    free(attrValStr);
+  } else {
+    if (defaultVal)
+      memcpy(state->val, defaultVal, defaultValSize);
   }
+
+  _xml_readAttr(state->param, _s_dae_param);
 
   _AIO_APPEND_STATE(last_state, state);
 
@@ -154,38 +117,29 @@ aio_dae_fxState_int2(xmlNode * __restrict xml_node,
 }
 
 int _assetio_hide
-aio_dae_fxState_int4(xmlNode * __restrict xml_node,
+aio_dae_fxState_int4(xmlTextReaderPtr __restrict reader,
                      aio_render_state ** __restrict last_state,
                      aio_states ** __restrict states,
                      long state_type,
                      aio_int * defaultVal,
                      size_t defaultValSize) {
-  aio_state_t_int4 * state;
-  xmlAttr * curr_attr;
+  aio_state_t_int4 *state;
+  char *attrValStr;
 
-  state = aio_malloc(sizeof(*state));
-  memset(state, '\0', sizeof(*state));
+  state = aio_calloc(sizeof(*state), 1);
 
   state->base.state_type = state_type;
-
-  for (curr_attr = xml_node->properties;
-       curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-       curr_attr = curr_attr->next) {
-    const char * attr_name;
-    char * attr_val;
-
-    attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_content((xmlNode *)curr_attr);
-
-    if (AIO_IS_EQ_CASE(attr_name, "value")) {
-      if (!attr_val && defaultVal)
-        memcpy(state->val, defaultVal, defaultValSize);
-      else
-        aio_strtomi(&attr_val, state->val, 1, 4);
-    } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-      state->param = aio_strdup(attr_val);
-    }
+  attrValStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
+  if (attrValStr) {
+    aio_strtomi(&attrValStr, state->val, 1, 4);
+    free(attrValStr);
+  } else {
+    if (defaultVal)
+      memcpy(state->val, defaultVal, defaultValSize);
   }
+
+  _xml_readAttr(state->param, _s_dae_param);
 
   _AIO_APPEND_STATE(last_state, state);
 
@@ -193,41 +147,31 @@ aio_dae_fxState_int4(xmlNode * __restrict xml_node,
 }
 
 int _assetio_hide
-aio_dae_fxState_ul(xmlNode * __restrict xml_node,
+aio_dae_fxState_ul(xmlTextReaderPtr __restrict reader,
                    aio_render_state ** __restrict last_state,
                    aio_states ** __restrict states,
                    long state_type,
                    unsigned long defaultVal) {
-  aio_state_t_ul * state;
-  xmlAttr        * curr_attr;
+  aio_state_t_ul *state;
+  char *attrValStr;
 
-  state = aio_malloc(sizeof(*state));
-  memset(state, '\0', sizeof(*state));
+  state = aio_calloc(sizeof(*state), 1);
 
   state->base.state_type = state_type;
+  attrValStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
+  if (attrValStr) {
+    char *tmp;
+    state->val = strtol(attrValStr, &tmp, 10);
+    if (*tmp == '\0')
+      state->val = defaultVal;
 
-  for (curr_attr = xml_node->properties;
-       curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-       curr_attr = curr_attr->next) {
-    const char * attr_name;
-    const char * attr_val;
-
-    attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_content((xmlNode *)curr_attr);
-
-    if (AIO_IS_EQ_CASE(attr_name, "value")) {
-      long val;
-      char * tmp;
-
-      val = strtoul(attr_val, &tmp, 10);
-      if (*tmp == '\0')
-        val = defaultVal;
-
-      state->val = val;
-    } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-      state->param = aio_strdup(attr_val);
-    }
+    free(attrValStr);
+  } else {
+    state->val = defaultVal;
   }
+
+  _xml_readAttr(state->param, _s_dae_param);
 
   _AIO_APPEND_STATE(last_state, state);
 
@@ -235,43 +179,34 @@ aio_dae_fxState_ul(xmlNode * __restrict xml_node,
 }
 
 int _assetio_hide
-aio_dae_fxState_ul_i(xmlNode * __restrict xml_node,
+aio_dae_fxState_ul_i(xmlTextReaderPtr __restrict reader,
                      aio_render_state ** __restrict last_state,
                      aio_states ** __restrict states,
                      long state_type,
                      unsigned long defaultVal) {
   aio_state_t_ul_i * state;
-  xmlAttr          * curr_attr;
+  char *attrValStr;
 
-  state = aio_malloc(sizeof(*state));
-  memset(state, '\0', sizeof(*state));
+  state = aio_calloc(sizeof(*state), 1);
 
   state->base.state_type = state_type;
+  attrValStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
+  if (attrValStr) {
+    char *tmp;
+    state->val = strtol(attrValStr, &tmp, 10);
+    if (*tmp == '\0')
+      state->val = defaultVal;
 
-  for (curr_attr = xml_node->properties;
-       curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-       curr_attr = curr_attr->next) {
-    const char * attr_name;
-    const char * attr_val;
-
-    attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_content((xmlNode *)curr_attr);
-
-    if (AIO_IS_EQ_CASE(attr_name, "value")) {
-      long val;
-      char * tmp;
-
-      val = strtoul(attr_val, &tmp, 10);
-      if (*tmp == '\0')
-        val = defaultVal;
-
-      state->val = val;
-    } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-      state->param = aio_strdup(attr_val);
-    } else if (AIO_IS_EQ_CASE(attr_name, "index")) {
-      state->index = strtol(attr_val, NULL, 10);
-    }
+    free(attrValStr);
+  } else {
+    state->val = defaultVal;
   }
+
+  _xml_readAttr(state->param, _s_dae_param);
+  _xml_readAttrUsingFn(state->index,
+                       _s_dae_index,
+                       strtol, NULL, 10);
 
   _AIO_APPEND_STATE(last_state, state);
 
@@ -279,37 +214,27 @@ aio_dae_fxState_ul_i(xmlNode * __restrict xml_node,
 }
 
 int _assetio_hide
-aio_dae_fxState_float(xmlNode * __restrict xml_node,
+aio_dae_fxState_float(xmlTextReaderPtr __restrict reader,
                       aio_render_state ** __restrict last_state,
                       aio_states ** __restrict states,
                       long state_type,
                       aio_float defaultVal) {
   aio_state_t_float * state;
-  xmlAttr * curr_attr;
+  char *attrValStr;
 
-  state = aio_malloc(sizeof(*state));
-  memset(state, '\0', sizeof(*state));
+  state = aio_calloc(sizeof(*state), 1);
 
   state->base.state_type = state_type;
-
-  for (curr_attr = xml_node->properties;
-       curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-       curr_attr = curr_attr->next) {
-    const char * attr_name;
-    char * attr_val;
-
-    attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_content((xmlNode *)curr_attr);
-
-    if (AIO_IS_EQ_CASE(attr_name, "value")) {
-      if (!attr_val)
-        state->val = defaultVal;
-      else
-        state->val = strtof(attr_val, NULL);
-    } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-      state->param = aio_strdup(attr_val);
-    }
+  attrValStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
+  if (attrValStr) {
+    state->val = strtof(attrValStr, NULL);
+    free(attrValStr);
+  } else {
+    state->val = defaultVal;
   }
+
+  _xml_readAttr(state->param, _s_dae_param);
 
   _AIO_APPEND_STATE(last_state, state);
 
@@ -317,39 +242,30 @@ aio_dae_fxState_float(xmlNode * __restrict xml_node,
 }
 
 int _assetio_hide
-aio_dae_fxState_float_i(xmlNode * __restrict xml_node,
+aio_dae_fxState_float_i(xmlTextReaderPtr __restrict reader,
                         aio_render_state ** __restrict last_state,
                         aio_states ** __restrict states,
                         long state_type,
                         aio_float defaultVal) {
   aio_state_t_float_i * state;
-  xmlAttr * curr_attr;
+  char *attrValStr;
 
-  state = aio_malloc(sizeof(*state));
-  memset(state, '\0', sizeof(*state));
+  state = aio_calloc(sizeof(*state), 1);
 
   state->base.state_type = state_type;
-
-  for (curr_attr = xml_node->properties;
-       curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-       curr_attr = curr_attr->next) {
-    const char * attr_name;
-    char * attr_val;
-
-    attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_content((xmlNode *)curr_attr);
-
-    if (AIO_IS_EQ_CASE(attr_name, "value")) {
-      if (!attr_val)
-        state->val = defaultVal;
-      else
-        state->val = strtof(attr_val, NULL);
-    } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-      state->param = aio_strdup(attr_val);
-    } else if (AIO_IS_EQ_CASE(attr_name, "index")) {
-      state->index = strtol(attr_val, NULL, 10);
-    }
+  attrValStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
+  if (attrValStr) {
+    state->val = strtof(attrValStr, NULL);
+    free(attrValStr);
+  } else {
+    state->val = defaultVal;
   }
+
+  _xml_readAttr(state->param, _s_dae_param);
+  _xml_readAttrUsingFn(state->index,
+                       _s_dae_index,
+                       strtol, NULL, 10);
 
   _AIO_APPEND_STATE(last_state, state);
 
@@ -357,38 +273,29 @@ aio_dae_fxState_float_i(xmlNode * __restrict xml_node,
 }
 
 int _assetio_hide
-aio_dae_fxState_float2(xmlNode * __restrict xml_node,
+aio_dae_fxState_float2(xmlTextReaderPtr __restrict reader,
                        aio_render_state ** __restrict last_state,
                        aio_states ** __restrict states,
                        long state_type,
                        aio_float * defaultVal,
                        size_t defaultValSize) {
-  aio_state_t_float2 * state;
-  xmlAttr * curr_attr;
+  aio_state_t_float2 *state;
+  char *attrValStr;
 
-  state = aio_malloc(sizeof(*state));
-  memset(state, '\0', sizeof(*state));
+  state = aio_calloc(sizeof(*state), 1);
 
   state->base.state_type = state_type;
-
-  for (curr_attr = xml_node->properties;
-       curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-       curr_attr = curr_attr->next) {
-    const char * attr_name;
-    char * attr_val;
-
-    attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_content((xmlNode *)curr_attr);
-
-    if (AIO_IS_EQ_CASE(attr_name, "value")) {
-      if (!attr_val && defaultVal)
-        memcpy(state->val, defaultVal, defaultValSize);
-      else
-        aio_strtomf(&attr_val, state->val, 1, 2);
-    } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-      state->param = aio_strdup(attr_val);
-    }
+  attrValStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
+  if (attrValStr) {
+    aio_strtomf(&attrValStr, state->val, 1, 2);
+    free(attrValStr);
+  } else {
+    if (defaultVal)
+      memcpy(state->val, defaultVal, defaultValSize);
   }
+
+  _xml_readAttr(state->param, _s_dae_param);
 
   _AIO_APPEND_STATE(last_state, state);
 
@@ -396,38 +303,29 @@ aio_dae_fxState_float2(xmlNode * __restrict xml_node,
 }
 
 int _assetio_hide
-aio_dae_fxState_float3(xmlNode * __restrict xml_node,
+aio_dae_fxState_float3(xmlTextReaderPtr __restrict reader,
                        aio_render_state ** __restrict last_state,
                        aio_states ** __restrict states,
                        long state_type,
                        aio_float * defaultVal,
                        size_t defaultValSize) {
-  aio_state_t_float3 * state;
-  xmlAttr * curr_attr;
+  aio_state_t_float3 *state;
+  char *attrValStr;
 
-  state = aio_malloc(sizeof(*state));
-  memset(state, '\0', sizeof(*state));
+  state = aio_calloc(sizeof(*state), 1);
 
   state->base.state_type = state_type;
-
-  for (curr_attr = xml_node->properties;
-       curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-       curr_attr = curr_attr->next) {
-    const char * attr_name;
-    char * attr_val;
-
-    attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_content((xmlNode *)curr_attr);
-
-    if (AIO_IS_EQ_CASE(attr_name, "value")) {
-      if (!attr_val && defaultVal)
-        memcpy(state->val, defaultVal, defaultValSize);
-      else
-        aio_strtomf(&attr_val, state->val, 1, 3);
-    } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-      state->param = aio_strdup(attr_val);
-    }
+  attrValStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
+  if (attrValStr) {
+    aio_strtomf(&attrValStr, state->val, 1, 3);
+    free(attrValStr);
+  } else {
+    if (defaultVal)
+      memcpy(state->val, defaultVal, defaultValSize);
   }
+
+  _xml_readAttr(state->param, _s_dae_param);
 
   _AIO_APPEND_STATE(last_state, state);
 
@@ -435,40 +333,32 @@ aio_dae_fxState_float3(xmlNode * __restrict xml_node,
 }
 
 int _assetio_hide
-aio_dae_fxState_float3_i(xmlNode * __restrict xml_node,
+aio_dae_fxState_float3_i(xmlTextReaderPtr __restrict reader,
                          aio_render_state ** __restrict last_state,
                          aio_states ** __restrict states,
                          long state_type,
                          aio_float * defaultVal,
                          size_t defaultValSize) {
-  aio_state_t_float3_i * state;
-  xmlAttr * curr_attr;
+  aio_state_t_float3_i *state;
+  char *attrValStr;
 
-  state = aio_malloc(sizeof(*state));
-  memset(state, '\0', sizeof(*state));
+  state = aio_calloc(sizeof(*state), 1);
 
   state->base.state_type = state_type;
-
-  for (curr_attr = xml_node->properties;
-       curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-       curr_attr = curr_attr->next) {
-    const char * attr_name;
-    char * attr_val;
-
-    attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_content((xmlNode *)curr_attr);
-
-    if (AIO_IS_EQ_CASE(attr_name, "value")) {
-      if (!attr_val && defaultVal)
-        memcpy(state->val, defaultVal, defaultValSize);
-      else
-        aio_strtomf(&attr_val, state->val, 1, 3);
-    } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-      state->param = aio_strdup(attr_val);
-    } else if (AIO_IS_EQ_CASE(attr_name, "index")) {
-      state->index = strtol(attr_val, NULL, 10);
-    }
+  attrValStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
+  if (attrValStr) {
+    aio_strtomf(&attrValStr, state->val, 1, 3);
+    free(attrValStr);
+  } else {
+    if (defaultVal)
+      memcpy(state->val, defaultVal, defaultValSize);
   }
+
+  _xml_readAttr(state->param, _s_dae_param);
+  _xml_readAttrUsingFn(state->index,
+                       _s_dae_index,
+                       strtol, NULL, 10);
 
   _AIO_APPEND_STATE(last_state, state);
 
@@ -476,38 +366,29 @@ aio_dae_fxState_float3_i(xmlNode * __restrict xml_node,
 }
 
 int _assetio_hide
-aio_dae_fxState_float4(xmlNode * __restrict xml_node,
+aio_dae_fxState_float4(xmlTextReaderPtr __restrict reader,
                        aio_render_state ** __restrict last_state,
                        aio_states ** __restrict states,
                        long state_type,
                        aio_float * defaultVal,
                        size_t defaultValSize) {
-  aio_state_t_float4 * state;
-  xmlAttr * curr_attr;
+  aio_state_t_float4 *state;
+  char *attrValStr;
 
-  state = aio_malloc(sizeof(*state));
-  memset(state, '\0', sizeof(*state));
+  state = aio_calloc(sizeof(*state), 1);
 
   state->base.state_type = state_type;
-
-  for (curr_attr = xml_node->properties;
-       curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-       curr_attr = curr_attr->next) {
-    const char * attr_name;
-    char * attr_val;
-
-    attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_content((xmlNode *)curr_attr);
-
-    if (AIO_IS_EQ_CASE(attr_name, "value")) {
-      if (!attr_val && defaultVal)
-        memcpy(state->val, defaultVal, defaultValSize);
-      else
-        aio_strtomf(&attr_val, state->val, 1, 4);
-    } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-      state->param = aio_strdup(attr_val);
-    }
+  attrValStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
+  if (attrValStr) {
+    aio_strtomf(&attrValStr, state->val, 1, 4);
+    free(attrValStr);
+  } else {
+    if (defaultVal)
+      memcpy(state->val, defaultVal, defaultValSize);
   }
+
+  _xml_readAttr(state->param, _s_dae_param);
 
   _AIO_APPEND_STATE(last_state, state);
 
@@ -515,40 +396,32 @@ aio_dae_fxState_float4(xmlNode * __restrict xml_node,
 }
 
 int _assetio_hide
-aio_dae_fxState_float4_i(xmlNode * __restrict xml_node,
+aio_dae_fxState_float4_i(xmlTextReaderPtr __restrict reader,
                          aio_render_state ** __restrict last_state,
                          aio_states ** __restrict states,
                          long state_type,
                          aio_float * defaultVal,
                          size_t defaultValSize) {
-  aio_state_t_float4_i * state;
-  xmlAttr * curr_attr;
+  aio_state_t_float4_i *state;
+  char *attrValStr;
 
-  state = aio_malloc(sizeof(*state));
-  memset(state, '\0', sizeof(*state));
+  state = aio_calloc(sizeof(*state), 1);
 
   state->base.state_type = state_type;
-
-  for (curr_attr = xml_node->properties;
-       curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-       curr_attr = curr_attr->next) {
-    const char * attr_name;
-    char * attr_val;
-
-    attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_content((xmlNode *)curr_attr);
-
-    if (AIO_IS_EQ_CASE(attr_name, "value")) {
-      if (!attr_val && defaultVal)
-        memcpy(state->val, defaultVal, defaultValSize);
-      else
-        aio_strtomf(&attr_val, state->val, 1, 4);
-    } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-      state->param = aio_strdup(attr_val);
-    } else if (AIO_IS_EQ_CASE(attr_name, "index")) {
-      state->index = strtol(attr_val, NULL, 10);
-    }
+  attrValStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
+  if (attrValStr) {
+    aio_strtomf(&attrValStr, state->val, 1, 4);
+    free(attrValStr);
+  } else {
+    if (defaultVal)
+      memcpy(state->val, defaultVal, defaultValSize);
   }
+
+  _xml_readAttr(state->param, _s_dae_param);
+  _xml_readAttrUsingFn(state->index,
+                       _s_dae_index,
+                       strtol, NULL, 10);
 
   _AIO_APPEND_STATE(last_state, state);
 
@@ -556,38 +429,29 @@ aio_dae_fxState_float4_i(xmlNode * __restrict xml_node,
 }
 
 int _assetio_hide
-aio_dae_fxState_float4x4(xmlNode * __restrict xml_node,
+aio_dae_fxState_float4x4(xmlTextReaderPtr __restrict reader,
                          aio_render_state ** __restrict last_state,
                          aio_states ** __restrict states,
                          long state_type,
                          aio_float * defaultVal,
                          size_t defaultValSize) {
-  aio_state_t_float4x4 * state;
-  xmlAttr * curr_attr;
+  aio_state_t_float4x4 *state;
+  char *attrValStr;
 
-  state = aio_malloc(sizeof(*state));
-  memset(state, '\0', sizeof(*state));
+  state = aio_calloc(sizeof(*state), 1);
 
   state->base.state_type = state_type;
-
-  for (curr_attr = xml_node->properties;
-       curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-       curr_attr = curr_attr->next) {
-    const char * attr_name;
-    char * attr_val;
-
-    attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_content((xmlNode *)curr_attr);
-
-    if (AIO_IS_EQ_CASE(attr_name, "value")) {
-      if (!attr_val && defaultVal)
-        memcpy(*state->val, defaultVal, defaultValSize);
-      else
-        aio_strtomf(&attr_val, *state->val, 4, 4);
-    } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-      state->param = aio_strdup(attr_val);
-    }
+  attrValStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
+  if (attrValStr) {
+    aio_strtomf(&attrValStr, *state->val, 4, 4);
+    free(attrValStr);
+  } else {
+    if (defaultVal)
+      memcpy(*state->val, defaultVal, defaultValSize);
   }
+
+  _xml_readAttr(state->param, _s_dae_param);
 
   _AIO_APPEND_STATE(last_state, state);
 
@@ -595,57 +459,45 @@ aio_dae_fxState_float4x4(xmlNode * __restrict xml_node,
 }
 
 int _assetio_hide
-aio_dae_fxState_sampler(xmlNode * __restrict xml_node,
+aio_dae_fxState_sampler(xmlTextReaderPtr __restrict reader,
                         aio_render_state ** __restrict last_state,
                         aio_states ** __restrict states,
                         long state_type) {
   aio_state_t_sampler * state;
-  xmlAttr * curr_attr;
-  xmlNode * curr_node;
+  const xmlChar  *nodeName;
+  int             nodeType;
+  int             nodeRet;
 
-  state = aio_malloc(sizeof(*state));
-  memset(state, '\0', sizeof(*state));
-
+  state = aio_calloc(sizeof(*state), 1);
   state->base.state_type = state_type;
 
-  for (curr_attr = xml_node->properties;
-       curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-       curr_attr = curr_attr->next) {
-    const char * attr_name;
-    char * attr_val;
+  _xml_readAttrUsingFn(state->index, _s_dae_index, strtol, NULL, 10);
 
-    attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_content((xmlNode *)curr_attr);
+  do {
+    _xml_beginElement(_s_dae_alpha_func);
 
-    if (AIO_IS_EQ_CASE(attr_name, "index")) {
-      state->index = strtol(attr_val, NULL, 10);
-      break;
-    }
-  }
-
-  for (curr_node = xml_node->children;
-       curr_node && curr_node->type == XML_ELEMENT_NODE;
-       curr_node = curr_node->next) {
-
-    const char * node_name;
-    node_name = (const char *)curr_node->name;
-
-    if (AIO_IS_EQ_CASE(node_name, "value")) {
+    if (_xml_eqElm(_s_dae_value)) {
       aio_fx_sampler_common * sampler;
       int ret;
 
       sampler = NULL;
-      ret = aio_dae_fxSampler(curr_node, &sampler);
+      ret = aio_dae_fxSampler(reader,
+                              (const char *)nodeName,
+                              &sampler);
 
       if (ret == 0)
         state->val = sampler;
-    } else if (AIO_IS_EQ_CASE(node_name, "param")) {
-      char * node_content;
-
-      node_content = aio_xml_content(curr_node);
-      state->param = aio_strdup(node_content);
+    } else if (_xml_eqElm(_s_dae_param)) {
+      _xml_readText(state->param);
+    } else if (_xml_eqElm(_s_dae_index)) {
+      _xml_readTextUsingFn(state->index, strtol, NULL, 10);
+    } else {
+      _xml_skipElement;
     }
-  }
+
+    /* end element */
+    _xml_endElement;
+  } while (nodeRet);
 
   _AIO_APPEND_STATE(last_state, state);
 
@@ -653,35 +505,18 @@ aio_dae_fxState_sampler(xmlNode * __restrict xml_node,
 }
 
 int _assetio_hide
-aio_dae_fxState_str(xmlNode * __restrict xml_node,
+aio_dae_fxState_str(xmlTextReaderPtr __restrict reader,
                     aio_render_state ** __restrict last_state,
                     aio_states ** __restrict states,
                     long state_type) {
   aio_state_t_str * state;
-  xmlAttr * curr_attr;
 
-  state = aio_malloc(sizeof(*state));
-  memset(state, '\0', sizeof(*state));
-
+  state = aio_calloc(sizeof(*state), 1);
   state->base.state_type = state_type;
 
-  for (curr_attr = xml_node->properties;
-       curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-       curr_attr = curr_attr->next) {
-    const char * attr_name;
-    char * attr_val;
-
-    attr_name = (const char *)curr_attr->name;
-    attr_val = aio_xml_content((xmlNode *)curr_attr);
-
-    if (AIO_IS_EQ_CASE(attr_name, "value")) {
-      state->val = aio_strdup(attr_val);
-    } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-      state->param = aio_strdup(attr_val);
-    } else if (AIO_IS_EQ_CASE(attr_name, "index")) {
-      state->index = strtol(attr_val, NULL, 10);
-    }
-  }
+  _xml_readAttr(state->val, _s_dae_value);
+  _xml_readAttr(state->param, _s_dae_param);
+  _xml_readAttrUsingFn(state->index, _s_dae_index, strtol, NULL, 10);
 
   _AIO_APPEND_STATE(last_state, state);
 
@@ -689,68 +524,48 @@ aio_dae_fxState_str(xmlNode * __restrict xml_node,
 }
 
 int _assetio_hide
-aio_dae_fxStateAlphaFunc(xmlNode * __restrict xml_node,
+aio_dae_fxStateAlphaFunc(xmlTextReaderPtr __restrict reader,
                          aio_render_state ** __restrict last_state,
                          aio_states ** __restrict states) {
-  aio_alpha_func * state;
-  xmlNode        * curr_node;
-
-  state = aio_malloc(sizeof(*state));
-  memset(state, '\0', sizeof(*state));
-
+  aio_alpha_func *state;
+  const xmlChar  *nodeName;
+  int             nodeType;
+  int             nodeRet;
+  
+  state = aio_calloc(sizeof(*state), 1);
   state->base.state_type = AIO_RENDER_STATE_ALPHA_FUNC;
 
-  for (curr_node = xml_node->children;
-       curr_node && curr_node->type == XML_ELEMENT_NODE;
-       curr_node = curr_node->next) {
+  do {
+    _xml_beginElement(_s_dae_alpha_func);
 
-    const char * node_name;
-    node_name = (const char *)curr_node->name;
+    if (_xml_eqElm(_s_dae_func)) {
+      char *valStr;
 
-    if (AIO_IS_EQ_CASE(node_name, "func")) {
-      xmlAttr * curr_attr;
+      _xml_readAttr(state->func.param, _s_dae_param);
+      valStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
 
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        const char * attr_val;
+      state->func.val = AIO_GL_FUNC_ALWAYS;
+      if (valStr) {
+        long enumVal;
+        enumVal = aio_dae_fxEnumGlFunc(valStr);
 
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
+        if (enumVal != -1)
+          state->func.val = enumVal;
 
-        if (AIO_IS_EQ_CASE(attr_name, "value")) {
-          long val;
-
-          val = aio_dae_fxEnumGlFunc(attr_val);
-          if (val == -1)
-            val = AIO_GL_FUNC_ALWAYS;
-
-          state->func.val = val;
-        } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-          state->func.param = aio_strdup(attr_val);
-        }
+        free(valStr);
       }
 
-    } else if (AIO_IS_EQ_CASE(node_name, "value")) {
-      xmlAttr * curr_attr;
-
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        const char * attr_val;
-
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
-
-        if (AIO_IS_EQ_CASE(attr_name, "value"))
-          state->val.val = strtof(attr_val, NULL);
-        else if (AIO_IS_EQ_CASE(attr_name, "param"))
-          state->val.param = aio_strdup(attr_val);
-      }
+    } else if (_xml_eqElm(_s_dae_value)) {
+      _xml_readAttrUsingFn(state->val.val, _s_dae_value, strtof, NULL);
+      _xml_readAttr(state->val.param, _s_dae_param);
+    } else {
+      _xml_skipElement;
     }
-  } /* for */
+
+    /* end element */
+    _xml_endElement;
+  } while (nodeRet);
 
   _AIO_APPEND_STATE(last_state, state);
 
@@ -758,947 +573,752 @@ aio_dae_fxStateAlphaFunc(xmlNode * __restrict xml_node,
 }
 
 int _assetio_hide
-aio_dae_fxStateBlend(xmlNode * __restrict xml_node,
+aio_dae_fxStateBlend(xmlTextReaderPtr __restrict reader,
                      aio_render_state ** __restrict last_state,
                      aio_states ** __restrict states) {
   aio_blend_func * state;
-  xmlNode        * curr_node;
+  const xmlChar *nodeName;
+  int            nodeType;
+  int            nodeRet;
 
-  state = aio_malloc(sizeof(*state));
-  memset(state, '\0', sizeof(*state));
-
+  state = aio_calloc(sizeof(*state), 1);
   state->base.state_type = AIO_RENDER_STATE_BLEND_FUNC;
 
-  for (curr_node = xml_node->children;
-       curr_node && curr_node->type == XML_ELEMENT_NODE;
-       curr_node = curr_node->next) {
+  do {
+    _xml_beginElement(_s_dae_blend_func);
 
-    const char * node_name;
-    node_name = (const char *)curr_node->name;
+    if (_xml_eqElm(_s_dae_src)) {
+      char *valStr;
 
-    if (AIO_IS_EQ_CASE(node_name, "src")) {
-      xmlAttr * curr_attr;
+      _xml_readAttr(state->src.param, _s_dae_param);
+      valStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
 
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        const char * attr_val;
+      state->src.val = AIO_GL_BLEND_ONE;
+      if (valStr) {
+        long enumVal;
+        enumVal = aio_dae_fxEnumBlend(valStr);
 
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
+        if (enumVal != -1)
+          state->src.val = enumVal;
 
-        if (AIO_IS_EQ_CASE(attr_name, "value")) {
-          long val;
-
-          val = aio_dae_fxEnumBlend(attr_val);
-          if (val == -1)
-            val = AIO_GL_BLEND_ONE;
-
-          state->src.val = val;
-        } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-          state->src.param = aio_strdup(attr_val);
-        }
+        free(valStr);
       }
 
-    } else if (AIO_IS_EQ_CASE(node_name, "desc")) {
-      xmlAttr * curr_attr;
+    } else if (_xml_eqElm(_s_dae_dest)) {
+      char *valStr;
 
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        const char * attr_val;
+      _xml_readAttr(state->src.param, _s_dae_param);
+      valStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
 
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
+      state->src.val = AIO_GL_BLEND_ZERO;
+      if (valStr) {
+        long enumVal;
+        enumVal = aio_dae_fxEnumBlend(valStr);
 
-        if (AIO_IS_EQ_CASE(attr_name, "value")) {
-          long val;
+        if (enumVal != -1)
+          state->src.val = enumVal;
 
-          val = aio_dae_fxEnumBlend(attr_val);
-          if (val == -1)
-            val = AIO_GL_BLEND_ZERO;
-
-          state->dest.val = val;
-        } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-          state->dest.param = aio_strdup(attr_val);
-        }
+        free(valStr);
       }
+    } else {
+      _xml_skipElement;
     }
-  } /* for */
 
+    /* end element */
+    _xml_endElement;
+  } while (nodeRet);
+  
   _AIO_APPEND_STATE(last_state, state);
-
+  
   return 0;
 }
 
 int _assetio_hide
-aio_dae_fxStateBlendSep(xmlNode * __restrict xml_node,
+aio_dae_fxStateBlendSep(xmlTextReaderPtr __restrict reader,
                         aio_render_state ** __restrict last_state,
                         aio_states ** __restrict states) {
-  aio_blend_func_separate * state;
-  xmlNode                 * curr_node;
+  aio_blend_func_separate *state;
+  const xmlChar *nodeName;
+  int            nodeType;
+  int            nodeRet;
 
-  state = aio_malloc(sizeof(*state));
-  memset(state, '\0', sizeof(*state));
-
+  state = aio_calloc(sizeof(*state), 1);
   state->base.state_type = AIO_RENDER_STATE_BLEND_FUNC_SEPARATE;
 
-  for (curr_node = xml_node->children;
-       curr_node && curr_node->type == XML_ELEMENT_NODE;
-       curr_node = curr_node->next) {
+  do {
+    _xml_beginElement(_s_dae_blend_func_separate);
 
-    const char * node_name;
-    node_name = (const char *)curr_node->name;
+    if (_xml_eqElm(_s_dae_src_rgb)) {
+      char *valStr;
 
-    if (AIO_IS_EQ_CASE(node_name, "src_rgb")) {
-      xmlAttr * curr_attr;
+      _xml_readAttr(state->src_rgb.param, _s_dae_param);
+      valStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
 
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        const char * attr_val;
+      state->src_rgb.val = AIO_GL_BLEND_ONE;
+      if (valStr) {
+        long enumVal;
+        enumVal = aio_dae_fxEnumBlend(valStr);
 
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
+        if (enumVal != -1)
+          state->src_rgb.val = enumVal;
 
-        if (AIO_IS_EQ_CASE(attr_name, "value")) {
-          long val;
-
-          val = aio_dae_fxEnumBlend(attr_val);
-          if (val == -1)
-            val = AIO_GL_BLEND_ONE;
-
-          state->src_rgb.val = val;
-        } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-          state->src_rgb.param = aio_strdup(attr_val);
-        }
+        free(valStr);
       }
 
-    } else if (AIO_IS_EQ_CASE(node_name, "dest_rgb")) {
-      xmlAttr * curr_attr;
+    } else if (_xml_eqElm(_s_dae_dest_rgb)) {
+      char *valStr;
 
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        const char * attr_val;
+      _xml_readAttr(state->dest_rgb.param, _s_dae_param);
+      valStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
 
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
+      state->dest_rgb.val = AIO_GL_BLEND_ZERO;
+      if (valStr) {
+        long enumVal;
+        enumVal = aio_dae_fxEnumBlend(valStr);
 
-        if (AIO_IS_EQ_CASE(attr_name, "value")) {
-          long val;
+        if (enumVal != -1)
+          state->dest_rgb.val = enumVal;
 
-          val = aio_dae_fxEnumBlend(attr_val);
-          if (val == -1)
-            val = AIO_GL_BLEND_ZERO;
-
-          state->dest_rgb.val = val;
-        } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-          state->dest_rgb.param = aio_strdup(attr_val);
-        }
-      }
-    } else if (AIO_IS_EQ_CASE(node_name, "src_alpha")) {
-      xmlAttr * curr_attr;
-
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        const char * attr_val;
-
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
-
-        if (AIO_IS_EQ_CASE(attr_name, "value")) {
-          long val;
-
-          val = aio_dae_fxEnumBlend(attr_val);
-          if (val == -1)
-            val = AIO_GL_BLEND_ONE;
-
-          state->src_alpha.val = val;
-        } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-          state->src_alpha.param = aio_strdup(attr_val);
-        }
+        free(valStr);
       }
 
-    } else if (AIO_IS_EQ_CASE(node_name, "dest_alpha")) {
-      xmlAttr * curr_attr;
+    } else if (_xml_eqElm(_s_dae_src_alpha)) {
+      char *valStr;
 
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        const char * attr_val;
+      _xml_readAttr(state->src_alpha.param, _s_dae_param);
+      valStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
 
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
+      state->src_alpha.val = AIO_GL_BLEND_ONE;
+      if (valStr) {
+        long enumVal;
+        enumVal = aio_dae_fxEnumBlend(valStr);
 
-        if (AIO_IS_EQ_CASE(attr_name, "value")) {
-          long val;
+        if (enumVal != -1)
+          state->src_alpha.val = enumVal;
 
-          val = aio_dae_fxEnumBlend(attr_val);
-          if (val == -1)
-            val = AIO_GL_BLEND_ZERO;
-
-          state->dest_alpha.val = val;
-        } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-          state->dest_alpha.param = aio_strdup(attr_val);
-        }
+        free(valStr);
       }
+
+    } else if (_xml_eqElm(_s_dae_dest_alpha)) {
+      char *valStr;
+
+      _xml_readAttr(state->dest_alpha.param, _s_dae_param);
+      valStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
+
+      state->dest_alpha.val = AIO_GL_BLEND_ZERO;
+      if (valStr) {
+        long enumVal;
+        enumVal = aio_dae_fxEnumBlend(valStr);
+
+        if (enumVal != -1)
+          state->dest_alpha.val = enumVal;
+
+        free(valStr);
+      }
+
+    } else {
+      _xml_skipElement;
     }
-  } /* for */
 
+    /* end element */
+    _xml_endElement;
+  } while (nodeRet);
+  
   _AIO_APPEND_STATE(last_state, state);
-
+  
   return 0;
 }
 
 int _assetio_hide
-aio_dae_fxStateBlendEqSep(xmlNode * __restrict xml_node,
+aio_dae_fxStateBlendEqSep(xmlTextReaderPtr __restrict reader,
                           aio_render_state ** __restrict last_state,
                           aio_states ** __restrict states) {
-  aio_blend_equation_separate * state;
-  xmlNode * curr_node;
+  aio_blend_equation_separate *state;
+  const xmlChar *nodeName;
+  int            nodeType;
+  int            nodeRet;
 
-  state = aio_malloc(sizeof(*state));
-  memset(state, '\0', sizeof(*state));
-
+  state = aio_calloc(sizeof(*state), 1);
   state->base.state_type = AIO_RENDER_STATE_BLEND_EQUATION_SEPARATE;
 
-  for (curr_node = xml_node->children;
-       curr_node && curr_node->type == XML_ELEMENT_NODE;
-       curr_node = curr_node->next) {
+  do {
+    _xml_beginElement(_s_dae_blend_equation_separate);
 
-    const char * node_name;
-    node_name = (const char *)curr_node->name;
+    if (_xml_eqElm(_s_dae_rgb)) {
+      char *valStr;
 
-    if (AIO_IS_EQ_CASE(node_name, "rgb")) {
-      xmlAttr * curr_attr;
+      _xml_readAttr(state->rgb.param, _s_dae_param);
+      valStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
 
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        const char * attr_val;
+      state->rgb.val = AIO_GL_BLEND_EQUATION_FUNC_ADD;
+      if (valStr) {
+        long enumVal;
+        enumVal = aio_dae_fxEnumBlendEq(valStr);
 
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
+        if (enumVal != -1)
+          state->rgb.val = enumVal;
 
-        if (AIO_IS_EQ_CASE(attr_name, "value")) {
-          long val;
-
-          val = aio_dae_fxEnumBlendEq(attr_val);
-          if (val == -1)
-            val = AIO_GL_BLEND_EQUATION_FUNC_ADD;
-
-          state->rgb.val = val;
-        } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-          state->rgb.param = aio_strdup(attr_val);
-        }
+        free(valStr);
       }
 
-    } else if (AIO_IS_EQ_CASE(node_name, "alpha")) {
-      xmlAttr * curr_attr;
+    } else if (_xml_eqElm(_s_dae_alpha)) {
+      char *valStr;
 
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        const char * attr_val;
+      _xml_readAttr(state->alpha.param, _s_dae_param);
+      valStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
 
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
+      state->alpha.val = AIO_GL_BLEND_EQUATION_FUNC_ADD;
+      if (valStr) {
+        long enumVal;
+        enumVal = aio_dae_fxEnumBlendEq(valStr);
 
-        if (AIO_IS_EQ_CASE(attr_name, "value")) {
-          long val;
+        if (enumVal != -1)
+          state->alpha.val = enumVal;
 
-          val = aio_dae_fxEnumBlendEq(attr_val);
-          if (val == -1)
-            val = AIO_GL_BLEND_EQUATION_FUNC_ADD;
-
-          state->alpha.val = val;
-        } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-          state->alpha.param = aio_strdup(attr_val);
-        }
+        free(valStr);
       }
+    } else {
+      _xml_skipElement;
     }
-  } /* for */
 
+    /* end element */
+    _xml_endElement;
+  } while (nodeRet);
+  
   _AIO_APPEND_STATE(last_state, state);
-
+  
   return 0;
 }
 
 int _assetio_hide
-aio_dae_fxStateColorMaterial(xmlNode * __restrict xml_node,
+aio_dae_fxStateColorMaterial(xmlTextReaderPtr __restrict reader,
                              aio_render_state ** __restrict last_state,
                              aio_states ** __restrict states) {
-  aio_color_material * state;
-  xmlNode            * curr_node;
+  aio_color_material *state;
+  const xmlChar *nodeName;
+  int            nodeType;
+  int            nodeRet;
 
-  state = aio_malloc(sizeof(*state));
-  memset(state, '\0', sizeof(*state));
-
+  state = aio_calloc(sizeof(*state), 1);
   state->base.state_type = AIO_RENDER_STATE_COLOR_MATERIAL;
 
-  for (curr_node = xml_node->children;
-       curr_node && curr_node->type == XML_ELEMENT_NODE;
-       curr_node = curr_node->next) {
+  do {
+    _xml_beginElement(_s_dae_color_material);
 
-    const char * node_name;
-    node_name = (const char *)curr_node->name;
+    if (_xml_eqElm(_s_dae_face)) {
+      char *valStr;
 
-    if (AIO_IS_EQ_CASE(node_name, "face")) {
-      xmlAttr * curr_attr;
+      _xml_readAttr(state->face.param, _s_dae_param);
+      valStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
 
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        const char * attr_val;
+      state->face.val = AIO_GL_FACE_FRONT_AND_BACK;
+      if (valStr) {
+        long enumVal;
+        enumVal = aio_dae_fxEnumGLFace(valStr);
 
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
+        if (enumVal != -1)
+          state->face.val = enumVal;
 
-        if (AIO_IS_EQ_CASE(attr_name, "value")) {
-          long val;
-
-          val = aio_dae_fxEnumGLFace(attr_val);
-          if (val == -1)
-            val = AIO_GL_FACE_FRONT_AND_BACK;
-
-          state->face.val = val;
-        } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-          state->face.param = aio_strdup(attr_val);
-        }
+        free(valStr);
       }
 
-    } else if (AIO_IS_EQ_CASE(node_name, "mode")) {
-      xmlAttr * curr_attr;
+    } else if (_xml_eqElm(_s_dae_mode)) {
+      char *valStr;
 
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        const char * attr_val;
+      _xml_readAttr(state->mode.param, _s_dae_param);
+      valStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
 
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
+      state->mode.val = AIO_GL_MATERIAL_AMBIENT_AND_DIFFUSE;
+      if (valStr) {
+        long enumVal;
+        enumVal = aio_dae_fxEnumMaterial(valStr);
 
-        if (AIO_IS_EQ_CASE(attr_name, "value")) {
-          long val;
+        if (enumVal != -1)
+          state->mode.val = enumVal;
 
-          val = aio_dae_fxEnumMaterial(attr_val);
-          if (val == -1)
-            val = AIO_GL_MATERIAL_AMBIENT_AND_DIFFUSE;
-
-          state->mode.val = val;
-        } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-          state->mode.param = aio_strdup(attr_val);
-        }
+        free(valStr);
       }
+    } else {
+      _xml_skipElement;
     }
-  } /* for */
 
+    /* end element */
+    _xml_endElement;
+  } while (nodeRet);
+  
   _AIO_APPEND_STATE(last_state, state);
-
+  
   return 0;
 }
 
 int _assetio_hide
-aio_dae_fxStatePolyMode(xmlNode * __restrict xml_node,
+aio_dae_fxStatePolyMode(xmlTextReaderPtr __restrict reader,
                         aio_render_state ** __restrict last_state,
                         aio_states ** __restrict states) {
-  aio_polygon_mode * state;
-  xmlNode          * curr_node;
+  aio_polygon_mode *state;
+  const xmlChar *nodeName;
+  int            nodeType;
+  int            nodeRet;
 
-  state = aio_malloc(sizeof(*state));
-  memset(state, '\0', sizeof(*state));
-
+  state = aio_calloc(sizeof(*state), 1);
   state->base.state_type = AIO_RENDER_STATE_POLYGON_MODE;
 
-  for (curr_node = xml_node->children;
-       curr_node && curr_node->type == XML_ELEMENT_NODE;
-       curr_node = curr_node->next) {
+  do {
+    _xml_beginElement(_s_dae_polygon_mode);
 
-    const char * node_name;
-    node_name = (const char *)curr_node->name;
+    if (_xml_eqElm(_s_dae_face)) {
+      char *valStr;
 
-    if (AIO_IS_EQ_CASE(node_name, "face")) {
-      xmlAttr * curr_attr;
+      _xml_readAttr(state->face.param, _s_dae_param);
+      valStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
 
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        const char * attr_val;
+      state->face.val = AIO_GL_FACE_FRONT_AND_BACK;
+      if (valStr) {
+        long enumVal;
+        enumVal = aio_dae_fxEnumGLFace(valStr);
 
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
+        if (enumVal != -1)
+          state->face.val = enumVal;
 
-        if (AIO_IS_EQ_CASE(attr_name, "value")) {
-          long val;
-
-          val = aio_dae_fxEnumLogicOp(attr_val);
-          if (val == -1)
-            val = AIO_GL_FACE_FRONT_AND_BACK;
-
-          state->face.val = val;
-        } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-          state->face.param = aio_strdup(attr_val);
-        }
+        free(valStr);
       }
 
-    } else if (AIO_IS_EQ_CASE(node_name, "value")) {
-      xmlAttr * curr_attr;
+    } else if (_xml_eqElm(_s_dae_mode)) {
+      char *valStr;
 
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        const char * attr_val;
+      _xml_readAttr(state->mode.param, _s_dae_param);
+      valStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
 
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
+      state->mode.val = AIO_GL_POLYGON_MODE_FILL;
+      if (valStr) {
+        long enumVal;
+        enumVal = aio_dae_fxEnumPolyMode(valStr);
 
-        if (AIO_IS_EQ_CASE(attr_name, "value")) {
-          long val;
+        if (enumVal != -1)
+          state->mode.val = enumVal;
 
-          val = aio_dae_fxEnumPolyMode(attr_val);
-          if (val == -1)
-            val = AIO_GL_POLYGON_MODE_FILL;
-
-          state->face.val = val;
-        } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-          state->face.param = aio_strdup(attr_val);
-        }
+        free(valStr);
       }
+    } else {
+      _xml_skipElement;
     }
-  } /* for */
 
+    /* end element */
+    _xml_endElement;
+  } while (nodeRet);
+  
   _AIO_APPEND_STATE(last_state, state);
-
+  
   return 0;
 }
 
 int _assetio_hide
-aio_dae_fxStateStencilFunc(xmlNode * __restrict xml_node,
+aio_dae_fxStateStencilFunc(xmlTextReaderPtr __restrict reader,
                            aio_render_state ** __restrict last_state,
                            aio_states ** __restrict states) {
-  aio_stencil_func * state;
-  xmlNode          * curr_node;
+  aio_stencil_func *state;
+  const xmlChar *nodeName;
+  int            nodeType;
+  int            nodeRet;
 
-  state = aio_malloc(sizeof(*state));
-  memset(state, '\0', sizeof(*state));
-
+  state = aio_calloc(sizeof(*state), 1);
   state->base.state_type = AIO_RENDER_STATE_STENCIL_FUNC;
 
-  for (curr_node = xml_node->children;
-       curr_node && curr_node->type == XML_ELEMENT_NODE;
-       curr_node = curr_node->next) {
+  do {
+    _xml_beginElement(_s_dae_stencil_func);
 
-    const char * node_name;
-    node_name = (const char *)curr_node->name;
+    if (_xml_eqElm(_s_dae_stencil_func)) {
+      char *valStr;
 
-    if (AIO_IS_EQ_CASE(node_name, "func")) {
-      xmlAttr * curr_attr;
+      _xml_readAttr(state->func.param, _s_dae_param);
+      valStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
 
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        const char * attr_val;
+      state->func.val = AIO_GL_FUNC_ALWAYS;
+      if (valStr) {
+        long enumVal;
+        enumVal = aio_dae_fxEnumGlFunc(valStr);
 
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
+        if (enumVal != -1)
+          state->func.val = enumVal;
 
-        if (AIO_IS_EQ_CASE(attr_name, "value")) {
-          long val;
-
-          val = aio_dae_fxEnumGlFunc(attr_val);
-          if (val == -1)
-            val = AIO_GL_FUNC_ALWAYS;
-
-          state->func.val = val;
-        } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-          state->func.param = aio_strdup(attr_val);
-        }
+        free(valStr);
       }
 
-    } else if (AIO_IS_EQ_CASE(node_name, "ref")) {
-      xmlAttr * curr_attr;
+    } else if (_xml_eqElm(_s_dae_ref)) {
+      char *valStr;
 
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        const char * attr_val;
+      _xml_readAttr(state->ref.param, _s_dae_param);
+      valStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
 
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
-
-        if (AIO_IS_EQ_CASE(attr_name, "value")) {
-          state->ref.val = strtoul(attr_val, NULL, 10);
-        } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-          state->ref.param = aio_strdup(attr_val);
-        }
+      if (valStr) {
+        state->mask.val = strtol(valStr, NULL, 10);
+        free(valStr);
       }
-    } else if (AIO_IS_EQ_CASE(node_name, "mask")) {
-      xmlAttr * curr_attr;
+    } else if (_xml_eqElm(_s_dae_mask)) {
+      char *valStr;
 
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        const char * attr_val;
+      _xml_readAttr(state->mask.param, _s_dae_param);
+      valStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
+      if (valStr) {
+        char * tmp;
+        long   val;
 
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
+        val = strtol(valStr, &tmp, 10);
+        if (*tmp == '\0')
+          val = 255;
 
-        if (AIO_IS_EQ_CASE(attr_name, "value")) {
-          char * tmp;
-          long   val;
-
-          val = strtol(attr_val, &tmp, 10);
-          if (*tmp == '\0')
-            val = 255;
-
-          state->mask.val = val;
-        } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-          state->mask.param = aio_strdup(attr_val);
-        }
+        state->mask.val = val;
+        free(valStr);
       }
+    } else {
+      _xml_skipElement;
     }
-  } /* for */
 
+    /* end element */
+    _xml_endElement;
+  } while (nodeRet);
+  
   _AIO_APPEND_STATE(last_state, state);
-
+  
   return 0;
 }
 
 int _assetio_hide
-aio_dae_fxStateStencilOp(xmlNode * __restrict xml_node,
+aio_dae_fxStateStencilOp(xmlTextReaderPtr __restrict reader,
                          aio_render_state ** __restrict last_state,
                          aio_states ** __restrict states) {
-  aio_stencil_op * state;
-  xmlNode        * curr_node;
+  aio_stencil_op *state;
+  const xmlChar *nodeName;
+  int            nodeType;
+  int            nodeRet;
 
-  state = aio_malloc(sizeof(*state));
-  memset(state, '\0', sizeof(*state));
-
+  state = aio_calloc(sizeof(*state), 1);
   state->base.state_type = AIO_RENDER_STATE_STENCIL_OP;
 
-  for (curr_node = xml_node->children;
-       curr_node && curr_node->type == XML_ELEMENT_NODE;
-       curr_node = curr_node->next) {
+  do {
+    _xml_beginElement(_s_dae_stencil_op);
 
-    const char * node_name;
-    node_name = (const char *)curr_node->name;
+    if (_xml_eqElm(_s_dae_fail)) {
+      char *valStr;
 
-    if (AIO_IS_EQ_CASE(node_name, "fail")) {
-      xmlAttr * curr_attr;
+      _xml_readAttr(state->fail.param, _s_dae_param);
+      valStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
 
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        const char * attr_val;
+      state->fail.val = AIO_GL_STENCIL_OP_KEEP;
+      if (valStr) {
+        long enumVal;
+        enumVal = aio_dae_fxEnumStencilOp(valStr);
 
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
+        if (enumVal != -1)
+          state->fail.val = enumVal;
 
-        if (AIO_IS_EQ_CASE(attr_name, "value")) {
-          long val;
-
-          val = aio_dae_fxEnumStencilOp(attr_val);
-          if (val == -1)
-            val = AIO_GL_STENCIL_OP_KEEP;
-
-          state->fail.val = val;
-        } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-          state->fail.param = aio_strdup(attr_val);
-        }
+        free(valStr);
       }
+    } else if (_xml_eqElm(_s_dae_zfail)) {
+      char *valStr;
 
-    } else if (AIO_IS_EQ_CASE(node_name, "zfail")) {
-      xmlAttr * curr_attr;
+      _xml_readAttr(state->zfail.param, _s_dae_param);
+      valStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
 
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        const char * attr_val;
+      state->zfail.val = AIO_GL_STENCIL_OP_KEEP;
+      if (valStr) {
+        long enumVal;
+        enumVal = aio_dae_fxEnumStencilOp(valStr);
 
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
+        if (enumVal != -1)
+          state->zfail.val = enumVal;
 
-        if (AIO_IS_EQ_CASE(attr_name, "value")) {
-          long val;
-
-          val = aio_dae_fxEnumStencilOp(attr_val);
-          if (val == -1)
-            val = AIO_GL_STENCIL_OP_KEEP;
-
-          state->zfail.val = val;
-        } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-          state->zfail.param = aio_strdup(attr_val);
-        }
+        free(valStr);
       }
-    } else if (AIO_IS_EQ_CASE(node_name, "zpass")) {
-      xmlAttr * curr_attr;
+    } else if (_xml_eqElm(_s_dae_zpass)) {
+      char *valStr;
 
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        const char * attr_val;
+      _xml_readAttr(state->zpass.param, _s_dae_param);
+      valStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
 
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
+      state->zpass.val = AIO_GL_STENCIL_OP_KEEP;
+      if (valStr) {
+        long enumVal;
+        enumVal = aio_dae_fxEnumStencilOp(valStr);
 
-        if (AIO_IS_EQ_CASE(attr_name, "value")) {
-          long val;
+        if (enumVal != -1)
+          state->zpass.val = enumVal;
 
-          val = aio_dae_fxEnumStencilOp(attr_val);
-          if (val == -1)
-            val = AIO_GL_STENCIL_OP_KEEP;
-
-          state->zpass.val = val;
-        } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-          state->zpass.param = aio_strdup(attr_val);
-        }
+        free(valStr);
       }
-
+    } else {
+      _xml_skipElement;
     }
-  } /* for */
 
+    /* end element */
+    _xml_endElement;
+  } while (nodeRet);
+  
   _AIO_APPEND_STATE(last_state, state);
-
+  
   return 0;
 }
 
 int _assetio_hide
-aio_dae_fxStateStencilFuncSep(xmlNode * __restrict xml_node,
+aio_dae_fxStateStencilFuncSep(xmlTextReaderPtr __restrict reader,
                               aio_render_state ** __restrict last_state,
                               aio_states ** __restrict states) {
-  aio_stencil_func_separate * state;
-  xmlNode * curr_node;
+  aio_stencil_func_separate *state;
+  const xmlChar *nodeName;
+  int            nodeType;
+  int            nodeRet;
 
-  state = aio_malloc(sizeof(*state));
-  memset(state, '\0', sizeof(*state));
-
+  state = aio_calloc(sizeof(*state), 1);
   state->base.state_type = AIO_RENDER_STATE_STENCIL_FUNC_SEPARATE;
 
-  for (curr_node = xml_node->children;
-       curr_node && curr_node->type == XML_ELEMENT_NODE;
-       curr_node = curr_node->next) {
+  do {
+    _xml_beginElement(_s_dae_stencil_func_separate);
 
-    const char * node_name;
-    node_name = (const char *)curr_node->name;
+    if (_xml_eqElm(_s_dae_front)) {
+      char *valStr;
 
-    if (AIO_IS_EQ_CASE(node_name, "front")) {
-      xmlAttr * curr_attr;
+      _xml_readAttr(state->front.param, _s_dae_param);
+      valStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
 
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        const char * attr_val;
+      state->front.val = AIO_GL_FUNC_ALWAYS;
+      if (valStr) {
+        long enumVal;
+        enumVal = aio_dae_fxEnumGlFunc(valStr);
 
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
+        if (enumVal != -1)
+          state->front.val = enumVal;
 
-        if (AIO_IS_EQ_CASE(attr_name, "value")) {
-          long val;
-
-          val = aio_dae_fxEnumGlFunc(attr_val);
-          if (val == -1)
-            val = AIO_GL_FUNC_ALWAYS;
-
-          state->front.val = val;
-        } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-          state->front.param = aio_strdup(attr_val);
-        }
+        free(valStr);
       }
+    } else if (_xml_eqElm(_s_dae_back)) {
+      char *valStr;
 
-    } else if (AIO_IS_EQ_CASE(node_name, "back")) {
-      xmlAttr * curr_attr;
+      _xml_readAttr(state->back.param, _s_dae_param);
+      valStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
 
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        const char * attr_val;
+      state->back.val = AIO_GL_FUNC_ALWAYS;
+      if (valStr) {
+        long enumVal;
+        enumVal = aio_dae_fxEnumGlFunc(valStr);
 
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
+        if (enumVal != -1)
+          state->back.val = enumVal;
 
-        if (AIO_IS_EQ_CASE(attr_name, "value")) {
-          long val;
-
-          val = aio_dae_fxEnumGlFunc(attr_val);
-          if (val == -1)
-            val = AIO_GL_FUNC_ALWAYS;
-
-          state->back.val = val;
-        } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-          state->back.param = aio_strdup(attr_val);
-        }
+        free(valStr);
       }
-    } else if (AIO_IS_EQ_CASE(node_name, "ref")) {
-      xmlAttr * curr_attr;
+    } else if (_xml_eqElm(_s_dae_ref)) {
+      char *valStr;
 
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        const char * attr_val;
+      _xml_readAttr(state->ref.param, _s_dae_param);
+      valStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
 
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
-
-        if (AIO_IS_EQ_CASE(attr_name, "value")) {
-          state->ref.val = strtoul(attr_val, NULL, 10);
-        } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-          state->ref.param = aio_strdup(attr_val);
-        }
+      if (valStr) {
+        state->mask.val = strtol(valStr, NULL, 10);
+        free(valStr);
       }
-    } else if (AIO_IS_EQ_CASE(node_name, "mask")) {
-      xmlAttr * curr_attr;
+    } else if (_xml_eqElm(_s_dae_mask)) {
+      char *valStr;
 
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        const char * attr_val;
+      _xml_readAttr(state->mask.param, _s_dae_param);
+      valStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
+      if (valStr) {
+        char * tmp;
+        long   val;
 
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
+        val = strtol(valStr, &tmp, 10);
+        if (*tmp == '\0')
+          val = 255;
 
-        if (AIO_IS_EQ_CASE(attr_name, "value")) {
-          char * tmp;
-          long   val;
-
-          val = strtol(attr_val, &tmp, 10);
-          if (*tmp == '\0')
-            val = 255;
-
-          state->mask.val = val;
-        } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-          state->mask.param = aio_strdup(attr_val);
-        }
+        state->mask.val = val;
+        free(valStr);
       }
+    } else {
+      _xml_skipElement;
     }
 
-  } /* for */
-
+    /* end element */
+    _xml_endElement;
+  } while (nodeRet);
+  
   _AIO_APPEND_STATE(last_state, state);
-
+  
   return 0;
 }
 
 int _assetio_hide
-aio_dae_fxStateStencilOpSep(xmlNode * __restrict xml_node,
+aio_dae_fxStateStencilOpSep(xmlTextReaderPtr __restrict reader,
                             aio_render_state ** __restrict last_state,
                             aio_states ** __restrict states) {
-  aio_stencil_op_separate * state;
-  xmlNode * curr_node;
+  aio_stencil_op_separate *state;
+  const xmlChar *nodeName;
+  int            nodeType;
+  int            nodeRet;
 
-  state = aio_malloc(sizeof(*state));
-  memset(state, '\0', sizeof(*state));
-
+  state = aio_calloc(sizeof(*state), 1);
   state->base.state_type = AIO_RENDER_STATE_STENCIL_OP_SEPARATE;
 
-  for (curr_node = xml_node->children;
-       curr_node && curr_node->type == XML_ELEMENT_NODE;
-       curr_node = curr_node->next) {
+  do {
+    _xml_beginElement(_s_dae_stencil_op_separate);
 
-    const char * node_name;
-    node_name = (const char *)curr_node->name;
+    if (_xml_eqElm(_s_dae_face)) {
+      char *valStr;
 
-    if (AIO_IS_EQ_CASE(node_name, "face")) {
-      xmlAttr * curr_attr;
+      _xml_readAttr(state->face.param, _s_dae_param);
+      valStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
 
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        const char * attr_val;
+      state->face.val = AIO_GL_FACE_FRONT_AND_BACK;
+      if (valStr) {
+        long enumVal;
+        enumVal = aio_dae_fxEnumGLFace(valStr);
 
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
+        if (enumVal != -1)
+          state->face.val = enumVal;
 
-        if (AIO_IS_EQ_CASE(attr_name, "value")) {
-          long val;
-
-          val = aio_dae_fxEnumGLFace(attr_val);
-          if (val == -1)
-            val = AIO_GL_FACE_FRONT_AND_BACK;
-
-          state->face.val = val;
-        } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-          state->face.param = aio_strdup(attr_val);
-        }
+        free(valStr);
       }
+    } else if (_xml_eqElm(_s_dae_fail)) {
+      char *valStr;
 
-    } else if (AIO_IS_EQ_CASE(node_name, "fail")) {
-      xmlAttr * curr_attr;
+      _xml_readAttr(state->fail.param, _s_dae_param);
+      valStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
 
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        const char * attr_val;
+      state->fail.val = AIO_GL_STENCIL_OP_KEEP;
+      if (valStr) {
+        long enumVal;
+        enumVal = aio_dae_fxEnumStencilOp(valStr);
 
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
+        if (enumVal != -1)
+          state->fail.val = enumVal;
 
-        if (AIO_IS_EQ_CASE(attr_name, "value")) {
-          long val;
-
-          val = aio_dae_fxEnumStencilOp(attr_val);
-          if (val == -1)
-            val = AIO_GL_STENCIL_OP_KEEP;
-
-          state->fail.val = val;
-        } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-          state->fail.param = aio_strdup(attr_val);
-        }
+        free(valStr);
       }
-    } else if (AIO_IS_EQ_CASE(node_name, "zfail")) {
-      xmlAttr * curr_attr;
+    } else if (_xml_eqElm(_s_dae_zfail)) {
+      char *valStr;
 
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        const char * attr_val;
+      _xml_readAttr(state->zfail.param, _s_dae_param);
+      valStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
 
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
+      state->zfail.val = AIO_GL_STENCIL_OP_KEEP;
+      if (valStr) {
+        long enumVal;
+        enumVal = aio_dae_fxEnumStencilOp(valStr);
 
-        if (AIO_IS_EQ_CASE(attr_name, "value")) {
-          long val;
+        if (enumVal != -1)
+          state->zfail.val = enumVal;
 
-          val = aio_dae_fxEnumStencilOp(attr_val);
-          if (val == -1)
-            val = AIO_GL_STENCIL_OP_KEEP;
-
-          state->zfail.val = val;
-        } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-          state->zfail.param = aio_strdup(attr_val);
-        }
+        free(valStr);
       }
-    } else if (AIO_IS_EQ_CASE(node_name, "zpass")) {
-      xmlAttr * curr_attr;
+    } else if (_xml_eqElm(_s_dae_zpass)) {
+      char *valStr;
 
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        const char * attr_val;
+      _xml_readAttr(state->zpass.param, _s_dae_param);
+      valStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
 
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
+      state->zpass.val = AIO_GL_STENCIL_OP_KEEP;
+      if (valStr) {
+        long enumVal;
+        enumVal = aio_dae_fxEnumStencilOp(valStr);
 
-        if (AIO_IS_EQ_CASE(attr_name, "value")) {
-          long val;
+        if (enumVal != -1)
+          state->zpass.val = enumVal;
 
-          val = aio_dae_fxEnumStencilOp(attr_val);
-          if (val == -1)
-            val = AIO_GL_STENCIL_OP_KEEP;
-
-          state->zpass.val = val;
-        } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-          state->zpass.param = aio_strdup(attr_val);
-        }
+        free(valStr);
       }
+    } else {
+      _xml_skipElement;
     }
 
-  } /* for */
-
+    /* end element */
+    _xml_endElement;
+  } while (nodeRet);
+  
   _AIO_APPEND_STATE(last_state, state);
-
+  
   return 0;
 }
 
 int _assetio_hide
-aio_dae_fxStateStencilMaskSep(xmlNode * __restrict xml_node,
+aio_dae_fxStateStencilMaskSep(xmlTextReaderPtr __restrict reader,
                               aio_render_state ** __restrict last_state,
                               aio_states ** __restrict states) {
-  aio_stencil_mask_separate * state;
-  xmlNode * curr_node;
+  aio_stencil_mask_separate *state;
+  const xmlChar *nodeName;
+  int            nodeType;
+  int            nodeRet;
 
-  state = aio_malloc(sizeof(*state));
-  memset(state, '\0', sizeof(*state));
-
+  state = aio_calloc(sizeof(*state), 1);
   state->base.state_type = AIO_RENDER_STATE_STENCIL_MASK_SEPARATE;
 
-  for (curr_node = xml_node->children;
-       curr_node && curr_node->type == XML_ELEMENT_NODE;
-       curr_node = curr_node->next) {
+  do {
+    _xml_beginElement(_s_dae_stencil_mask_separate);
 
-    const char * node_name;
-    node_name = (const char *)curr_node->name;
+    if (_xml_eqElm(_s_dae_face)) {
+      char *valStr;
 
-    if (AIO_IS_EQ_CASE(node_name, "face")) {
-      xmlAttr * curr_attr;
-      
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        const char * attr_val;
-        
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
-        
-        if (AIO_IS_EQ_CASE(attr_name, "value")) {
-          long val;
-          
-          val = aio_dae_fxEnumGlFunc(attr_val);
-          if (val == -1)
-            val = AIO_GL_FUNC_ALWAYS;
-          
-          state->face.val = val;
-        } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-          state->mask.param = aio_strdup(attr_val);
-        }
+      _xml_readAttr(state->face.param, _s_dae_param);
+      valStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
+
+      state->face.val = AIO_GL_FACE_FRONT_AND_BACK;
+      if (valStr) {
+        long enumVal;
+        enumVal = aio_dae_fxEnumGLFace(valStr);
+
+        if (enumVal != -1)
+          state->face.val = enumVal;
+
+        free(valStr);
       }
-      
-    } else if (AIO_IS_EQ_CASE(node_name, "mask")) {
-      xmlAttr * curr_attr;
-      
-      for (curr_attr = curr_node->properties;
-           curr_attr && curr_attr->type == XML_ATTRIBUTE_NODE;
-           curr_attr = curr_attr->next) {
-        const char * attr_name;
-        const char * attr_val;
-        
-        attr_name = (const char *)curr_attr->name;
-        attr_val = aio_xml_content((xmlNode *)curr_attr);
-        
-        if (AIO_IS_EQ_CASE(attr_name, "value")) {
-          char * tmp;
-          long   val;
-          
-          val = strtol(attr_val, &tmp, 10);
-          if (*tmp == '\0')
-            val = 255;
-          
-          state->mask.val = val;
-        } else if (AIO_IS_EQ_CASE(attr_name, "param")) {
-          state->mask.param = aio_strdup(attr_val);
-        }
+    } else if (_xml_eqElm(_s_dae_mask)) {
+      char *valStr;
+
+      _xml_readAttr(state->mask.param, _s_dae_param);
+      valStr = (char *)xmlTextReaderGetAttribute(reader,
+                                    (const xmlChar *)_s_dae_value);
+      if (valStr) {
+        char * tmp;
+        long   val;
+
+        val = strtol(valStr, &tmp, 10);
+        if (*tmp == '\0')
+          val = 255;
+
+        state->mask.val = val;
+        free(valStr);
       }
+    } else {
+      _xml_skipElement;
     }
-    
-  } /* for */
+
+    /* end element */
+    _xml_endElement;
+  } while (nodeRet);
   
   _AIO_APPEND_STATE(last_state, state);
   

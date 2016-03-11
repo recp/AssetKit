@@ -1132,9 +1132,7 @@ struct aio_compiler_s {
   const char * platform;
   const char * target;
   const char * options;
-
   aio_binary * binary;
-  const char * text;
 
   aio_compiler * next;
 };
