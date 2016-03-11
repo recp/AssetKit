@@ -40,7 +40,7 @@ aio_dae_light(xmlTextReaderPtr __restrict reader,
       if (ret == 0)
         light->inf = assetInf;
 
-    } if (_xml_eqElm(_s_dae_techniquec)) {
+    } else if (_xml_eqElm(_s_dae_techniquec)) {
       aio_technique_common *tc;
       int                   ret;
 

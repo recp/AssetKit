@@ -58,9 +58,9 @@ aio_dae_newparam(xmlTextReaderPtr __restrict reader,
 
         last_annotate = annotate;
       }
-    } if (_xml_eqElm(_s_dae_semantic)) {
+    } else if (_xml_eqElm(_s_dae_semantic)) {
       _xml_readText(newparam->semantic);
-    } if (_xml_eqElm(_s_dae_modifier)) {
+    } else if (_xml_eqElm(_s_dae_modifier)) {
       const aio_enumpair *found;
       const char *val;
 
