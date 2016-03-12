@@ -9,217 +9,149 @@
 #include "aio_common.h"
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 #include <assert.h>
 
-typedef struct aio_memlist_s aio_memlist;
-typedef struct aio_memnode_s aio_memnode;
-
-#ifdef _AIO_ALIGN_SIZE
-#  undef _AIO_ALIGN_SIZE
-#endif
-
-#define _AIO_ALIGN_SIZE        8
-#define _AIO_MEM_NODE_SIZE     sizeof(aio_memnode)
-
-#define _AIO_ALIGNED_NODE_SIZE ((_AIO_MEM_NODE_SIZE + _AIO_ALIGN_SIZE - 1)    \
-            &~ (uintptr_t)(_AIO_ALIGN_SIZE - 1))
-
-#define _AIO_ALIGN_OF(p) ((aio_memnode *)(((char *)p)-_AIO_ALIGNED_NODE_SIZE))
-#define _AIO_ALIGN_AS(m)        ((void *)(((char *)m)+_AIO_ALIGNED_NODE_SIZE))
-
-static aio_memlist * _AIO_MEM_LST = NULL;
-static int           _AIO_MEM_INITIALIZED = 0;
-
-struct aio_memlist_s {
-  size_t        ml_nodeCount;
-  size_t        ml_memUsage;
-  aio_memnode * ml_back;
+static aio_heap aio__heap = {
+  .root = NULL
 };
 
-struct aio_memnode_s {
-  aio_memnode * mn_prev;
-  aio_memnode * mn_next;
-  aio_memnode * mn_chld;
-  size_t        mn_size;
-  unsigned long mn_refCount;
+void*
+aio_heap_alloc(aio_heap *heap,
+               void * __restrict parent,
+               size_t size) {
+  aio_heapnode *currNode;
+  aio_heapnode *parentNode;
 
-  char data[];
-};
+  currNode = malloc(aio__heapnode_size + size);
 
-void
-aio_init() {
-  aio_memnode * tmpNode;
+  currNode->chld = NULL;
+  parentNode     = NULL;
 
-  if (_AIO_MEM_INITIALIZED == 1)
-    return;
+  if (parent) {
+    aio_heapnode *chldNode;
 
-  tmpNode = calloc(sizeof(*tmpNode), 1);
+    parentNode = aio__alignof(parent);
+    chldNode   = parentNode->chld;
 
-  _AIO_MEM_LST = calloc(sizeof(*_AIO_MEM_LST), 1);
-  _AIO_MEM_LST->ml_back = tmpNode;
-  _AIO_MEM_INITIALIZED = 1;
+    parentNode->chld = currNode;
+    if (chldNode) {
+      chldNode->prev = currNode;
+      currNode->next = chldNode;
+    } else {
+      currNode->next = NULL;
+    }
+
+    currNode->prev = parentNode;
+  } else {
+    if (heap->root) {
+      heap->root->prev = currNode;
+      currNode->next   = heap->root;
+    } else {
+      currNode->next = NULL;
+    }
+
+    heap->root = currNode;
+    currNode->prev = NULL;
+  }
+
+  return aio__alignas(currNode);
 }
 
-static
 void
-aio_memlst_append(aio_memnode * __restrict mem_node) {
-  assert(mem_node && "mem_node connot be NULL");
+aio_heap_free(aio_heapnode * __restrict heapNode) {
+  if (heapNode->chld)
+    aio_heap_free(heapNode->chld);
 
-  mem_node->mn_prev = _AIO_MEM_LST->ml_back;
-  _AIO_MEM_LST->ml_back->mn_next = mem_node;
-  _AIO_MEM_LST->ml_back = mem_node;
+  if (heapNode->next)
+    aio_heap_free(heapNode->next);
 
-  _AIO_MEM_LST->ml_nodeCount += 1;
-}
+  heapNode->chld = NULL;
+  heapNode->next = NULL;
 
-static
-void
-aio_memlst_rm(aio_memnode * __restrict mem_node) {
-  aio_memnode * prev_node;
-
-  assert(mem_node && "mem_node connot be NULL");
-
-  prev_node = mem_node->mn_prev;
-
-  if (prev_node)
-    prev_node->mn_next = mem_node->mn_next;
-
-  if (_AIO_MEM_LST->ml_back == mem_node)
-    _AIO_MEM_LST->ml_back = prev_node;
-
-  _AIO_MEM_LST->ml_nodeCount -= 1;
+  free(heapNode);
 }
 
 void *
 aio_malloc(size_t size) {
-  aio_memnode * mn;
-
-  if (_AIO_MEM_INITIALIZED == 0)
-    aio_init();
-
-  mn = malloc(_AIO_MEM_NODE_SIZE + size);
-
-  mn->mn_refCount = 1;
-  mn->mn_size     = size;
-  mn->mn_prev     = NULL;
-  mn->mn_chld     = NULL;
-
-  aio_memlst_append(mn);
-
-  return _AIO_ALIGN_AS(mn);
+  return aio_heap_alloc(&aio__heap,
+                        NULL,
+                        size);
 }
 
 void *
 aio_calloc(size_t size, size_t count) {
-  aio_memnode * mn;
-  size_t        memsize;
-
-  if (_AIO_MEM_INITIALIZED == 0)
-    aio_init();
+  void  *memptr;
+  size_t memsize;
 
   memsize = size * count;
-  mn = malloc(_AIO_MEM_NODE_SIZE + memsize);
+  memptr  = aio_heap_alloc(&aio__heap,
+                           NULL,
+                           memsize);
+  memset(memptr, '\0', memsize);
 
-  memset(_AIO_ALIGN_AS(mn), '\0', memsize);
-
-  mn->mn_refCount = 1;
-  mn->mn_size     = memsize;
-  mn->mn_prev     = NULL;
-  mn->mn_next     = NULL;
-  mn->mn_chld     = NULL;
-
-  aio_memlst_append(mn);
-
-  return _AIO_ALIGN_AS(mn);
+  return memptr;
 }
 
 void *
-aio_realloc(void * __restrict mem, size_t size) {
-  aio_memnode * old_mn;
-  aio_memnode * new_mn;
+aio_realloc(void * __restrict memptr, size_t size) {
+  aio_heapnode *oldNode;
+  aio_heapnode *newNode;
 
-  if (_AIO_MEM_INITIALIZED == 0)
-    aio_init();
-
-  if (mem == NULL)
+  if (!memptr)
     return aio_malloc(size);
 
   if (size == 0) {
-    aio_free(mem);
+    aio_free(memptr);
     return NULL;
   }
 
-  old_mn = _AIO_ALIGN_OF(mem);
-  new_mn = realloc(old_mn, _AIO_MEM_NODE_SIZE + size);
-  new_mn->mn_size = size;
+  oldNode = aio__alignof(memptr);
+  newNode = realloc(oldNode, aio__aligned_node_size + size);
 
-  return _AIO_ALIGN_AS(new_mn);
+  return aio__alignas(newNode);
 }
 
 char *
-aio_strdup(const char * __restrict s) {
-  aio_memnode * mn;
-  void        * mem;
-  size_t        size;
-  size_t        len;
-  size_t        null_size;
+aio_strdup(const char * __restrict str) {
+  void  *memptr;
+  size_t memsize;
 
-  if (_AIO_MEM_INITIALIZED == 0)
-    aio_init();
+  memsize = strlen(str);
+  memptr  = aio_heap_alloc(&aio__heap,
+                           NULL,
+                           memsize + 1);
 
-  null_size = sizeof(char);
-  len = strlen(s) + null_size; // +1 for NULL
-  size = len * sizeof(*s);
-  mn = malloc(_AIO_MEM_NODE_SIZE + size);
+  memcpy(memptr, str, memsize);
 
-  mn->mn_refCount = 1;
-  mn->mn_size     = size;
-  mn->mn_prev     = NULL;
-  mn->mn_next     = NULL;
-  mn->mn_chld     = NULL;
+  /* NULL */
+  memset((char *)memptr + memsize, '\0', 1);
 
-  mem = _AIO_ALIGN_AS(mn);
-  memcpy(mem, s, size - null_size);
-
-  // NULL
-  memset(((char *)mem) + size - null_size, '\0', 1);
-
-  aio_memlst_append(mn);
-
-  return mem;
+  return memptr;
 }
 
 void
-aio_free(void * __restrict mem) {
-  aio_memnode * mn;
+aio_free(void * __restrict memptr) {
+  aio_heapnode *heapNode;
+  aio_heapnode *chldNode;
 
-  if (_AIO_MEM_INITIALIZED == 0)
-    aio_init();
+  heapNode = aio__alignof(memptr);
+  chldNode = heapNode->chld;
 
-  mn = _AIO_ALIGN_OF(mem);
-  aio_memlst_rm(mn);
+  if (!chldNode)
+    goto freeSelf;
 
-  if (mn)
-    free(mn);
+  aio_heap_free(chldNode);
+
+freeSelf:
+  if (heapNode->next)
+    heapNode->next->prev = heapNode->prev;
+
+  free(heapNode);
 }
 
 void
+AIO_DESTRUCTOR
 aio_cleanup() {
-  aio_memnode * mem_node;
-
-  if (_AIO_MEM_INITIALIZED == 0)
-    return;
-
-  mem_node = _AIO_MEM_LST->ml_back;
-
-  while (mem_node) {
-    aio_memnode * tmp;
-    tmp = mem_node->mn_prev;
-    free(mem_node);
-    mem_node = tmp;
-  }
-
-  free(_AIO_MEM_LST);
+  aio_heap_free(aio__heap.root);
 }
