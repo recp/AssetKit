@@ -159,7 +159,7 @@ aio_dae_techniquec(xmlTextReaderPtr __restrict reader,
 
           if (colorStr) {
             aio_strtof4(&colorStr, &ambient->color.vec);
-            free(colorStr);
+            xmlFree(colorStr);
           }
         } else {
           _xml_skipElement;

@@ -24,7 +24,7 @@ aio_dae_color(xmlTextReaderPtr __restrict reader,
 
   if (colorStr) {
     aio_strtof4(&colorStr, &dest->vec);
-    free(colorStr);
+    xmlFree(colorStr);
 
     return 0;
   } else {

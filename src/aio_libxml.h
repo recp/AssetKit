@@ -126,7 +126,7 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
     attrVal = (char *)xmlTextReaderGetAttribute(reader, (const xmlChar *)X);  \
     if (attrVal) {                                                            \
       D = aio_strdup(attrVal);                                                \
-      free(attrVal);                                                          \
+      xmlFree(attrVal);                                                       \
     } else D = NULL;                                                          \
   } while (0);
 
@@ -136,7 +136,7 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
     attrVal = (char *)xmlTextReaderGetAttribute(reader, (const xmlChar *)X);  \
     if (attrVal) {                                                            \
       D = Fn(attrVal, __VA_ARGS__);                                           \
-      free(attrVal);                                                          \
+      xmlFree(attrVal);                                                       \
     }                                                                         \
   } while (0);
 
@@ -149,7 +149,7 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
       long attrVal;                                                           \
       attrVal = FN(attrValStr);                                               \
       D = attrVal != -1 ? attrVal: 0;                                         \
-      free(attrValStr);                                                       \
+      xmlFree(attrValStr);                                                    \
     } else D = 0;                                                             \
   } while(0);
 
@@ -162,7 +162,7 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
       long attrVal;                                                           \
       attrVal = FN(attrValStr);                                               \
       D = attrVal != -1 ? attrVal: 0;                                         \
-      free(attrValStr);                                                       \
+      xmlFree(attrValStr);                                                    \
     } else D = 0;                                                             \
   } while(0);
 
@@ -175,7 +175,7 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
       long attrVal;                                                           \
       attrVal = FN(attrValStr);                                               \
       D = attrVal != -1 ? attrVal: DEF;                                       \
-      free(attrValStr);                                                       \
+      xmlFree(attrValStr);                                                    \
     } else D = DEF;                                                           \
   } while(0);
 

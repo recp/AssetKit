@@ -201,7 +201,7 @@ aio_dae_fxImage_initFrom(xmlTextReaderPtr __restrict reader,
     if (attrVal != -1)
       initFrom->face = attrVal;
 
-    free(attrValStr);
+    xmlFree(attrValStr);
   }
 
   do {
@@ -260,7 +260,7 @@ aio_dae_fxImage_format(xmlTextReaderPtr __restrict reader,
         if (attrVal != -1)
           format->hint.channel = attrVal;
 
-        free(attrValStr);
+        xmlFree(attrValStr);
         attrValStr = NULL;
       }
 
@@ -272,7 +272,7 @@ aio_dae_fxImage_format(xmlTextReaderPtr __restrict reader,
         if (attrVal != -1)
           format->hint.range = attrVal;
 
-        free(attrValStr);
+        xmlFree(attrValStr);
         attrValStr = NULL;
       }
 
@@ -284,7 +284,7 @@ aio_dae_fxImage_format(xmlTextReaderPtr __restrict reader,
         if (attrVal != -1)
           format->hint.range = attrVal;
 
-        free(attrValStr);
+        xmlFree(attrValStr);
         attrValStr = NULL;
       }
 

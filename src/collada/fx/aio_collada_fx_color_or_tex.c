@@ -47,7 +47,7 @@ aio_dae_colorOrTex(xmlTextReaderPtr __restrict reader,
       if (colorStr) {
         aio_strtof4(&colorStr, &color->vec);
         colorOrTex->color = color;
-        free(colorStr);
+        xmlFree(colorStr);
       }
     } else if (_xml_eqElm(_s_dae_texture)) {
       aio_fx_texture *tex;

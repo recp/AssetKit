@@ -44,7 +44,7 @@ aio_dae_fxState_enum(xmlTextReaderPtr __restrict reader,
       enumVal = defaultEnumVal;
 
     state->val = enumVal;
-    free(attrValStr);
+    xmlFree(attrValStr);
   } else {
     state->val = defaultEnumVal;
   }
@@ -73,7 +73,7 @@ aio_dae_fxState_bool4(xmlTextReaderPtr __restrict reader,
                                     (const xmlChar *)_s_dae_value);
   if (attrValStr) {
     aio_strtomb(&attrValStr, state->val, 1, 4);
-    free(attrValStr);
+    xmlFree(attrValStr);
   } else {
     if (defaultVal)
       memcpy(state->val, defaultVal, defaultValSize);
@@ -103,7 +103,7 @@ aio_dae_fxState_int2(xmlTextReaderPtr __restrict reader,
                                     (const xmlChar *)_s_dae_value);
   if (attrValStr) {
     aio_strtomi(&attrValStr, state->val, 1, 2);
-    free(attrValStr);
+    xmlFree(attrValStr);
   } else {
     if (defaultVal)
       memcpy(state->val, defaultVal, defaultValSize);
@@ -133,7 +133,7 @@ aio_dae_fxState_int4(xmlTextReaderPtr __restrict reader,
                                     (const xmlChar *)_s_dae_value);
   if (attrValStr) {
     aio_strtomi(&attrValStr, state->val, 1, 4);
-    free(attrValStr);
+    xmlFree(attrValStr);
   } else {
     if (defaultVal)
       memcpy(state->val, defaultVal, defaultValSize);
@@ -166,7 +166,7 @@ aio_dae_fxState_ul(xmlTextReaderPtr __restrict reader,
     if (*tmp == '\0')
       state->val = defaultVal;
 
-    free(attrValStr);
+    xmlFree(attrValStr);
   } else {
     state->val = defaultVal;
   }
@@ -198,7 +198,7 @@ aio_dae_fxState_ul_i(xmlTextReaderPtr __restrict reader,
     if (*tmp == '\0')
       state->val = defaultVal;
 
-    free(attrValStr);
+    xmlFree(attrValStr);
   } else {
     state->val = defaultVal;
   }
@@ -229,7 +229,7 @@ aio_dae_fxState_float(xmlTextReaderPtr __restrict reader,
                                     (const xmlChar *)_s_dae_value);
   if (attrValStr) {
     state->val = strtof(attrValStr, NULL);
-    free(attrValStr);
+    xmlFree(attrValStr);
   } else {
     state->val = defaultVal;
   }
@@ -257,7 +257,7 @@ aio_dae_fxState_float_i(xmlTextReaderPtr __restrict reader,
                                     (const xmlChar *)_s_dae_value);
   if (attrValStr) {
     state->val = strtof(attrValStr, NULL);
-    free(attrValStr);
+    xmlFree(attrValStr);
   } else {
     state->val = defaultVal;
   }
@@ -289,7 +289,7 @@ aio_dae_fxState_float2(xmlTextReaderPtr __restrict reader,
                                     (const xmlChar *)_s_dae_value);
   if (attrValStr) {
     aio_strtomf(&attrValStr, state->val, 1, 2);
-    free(attrValStr);
+    xmlFree(attrValStr);
   } else {
     if (defaultVal)
       memcpy(state->val, defaultVal, defaultValSize);
@@ -319,7 +319,7 @@ aio_dae_fxState_float3(xmlTextReaderPtr __restrict reader,
                                     (const xmlChar *)_s_dae_value);
   if (attrValStr) {
     aio_strtomf(&attrValStr, state->val, 1, 3);
-    free(attrValStr);
+    xmlFree(attrValStr);
   } else {
     if (defaultVal)
       memcpy(state->val, defaultVal, defaultValSize);
@@ -349,7 +349,7 @@ aio_dae_fxState_float3_i(xmlTextReaderPtr __restrict reader,
                                     (const xmlChar *)_s_dae_value);
   if (attrValStr) {
     aio_strtomf(&attrValStr, state->val, 1, 3);
-    free(attrValStr);
+    xmlFree(attrValStr);
   } else {
     if (defaultVal)
       memcpy(state->val, defaultVal, defaultValSize);
@@ -382,7 +382,7 @@ aio_dae_fxState_float4(xmlTextReaderPtr __restrict reader,
                                     (const xmlChar *)_s_dae_value);
   if (attrValStr) {
     aio_strtomf(&attrValStr, state->val, 1, 4);
-    free(attrValStr);
+    xmlFree(attrValStr);
   } else {
     if (defaultVal)
       memcpy(state->val, defaultVal, defaultValSize);
@@ -412,7 +412,7 @@ aio_dae_fxState_float4_i(xmlTextReaderPtr __restrict reader,
                                     (const xmlChar *)_s_dae_value);
   if (attrValStr) {
     aio_strtomf(&attrValStr, state->val, 1, 4);
-    free(attrValStr);
+    xmlFree(attrValStr);
   } else {
     if (defaultVal)
       memcpy(state->val, defaultVal, defaultValSize);
@@ -445,7 +445,7 @@ aio_dae_fxState_float4x4(xmlTextReaderPtr __restrict reader,
                                     (const xmlChar *)_s_dae_value);
   if (attrValStr) {
     aio_strtomf(&attrValStr, *state->val, 4, 4);
-    free(attrValStr);
+    xmlFree(attrValStr);
   } else {
     if (defaultVal)
       memcpy(*state->val, defaultVal, defaultValSize);
@@ -556,7 +556,7 @@ aio_dae_fxStateAlphaFunc(xmlTextReaderPtr __restrict reader,
         if (enumVal != -1)
           state->func.val = enumVal;
 
-        free(valStr);
+        xmlFree(valStr);
       }
 
     } else if (_xml_eqElm(_s_dae_value)) {
@@ -605,7 +605,7 @@ aio_dae_fxStateBlend(xmlTextReaderPtr __restrict reader,
         if (enumVal != -1)
           state->src.val = enumVal;
 
-        free(valStr);
+        xmlFree(valStr);
       }
 
     } else if (_xml_eqElm(_s_dae_dest)) {
@@ -623,7 +623,7 @@ aio_dae_fxStateBlend(xmlTextReaderPtr __restrict reader,
         if (enumVal != -1)
           state->src.val = enumVal;
 
-        free(valStr);
+        xmlFree(valStr);
       }
     } else {
       _xml_skipElement;
@@ -668,7 +668,7 @@ aio_dae_fxStateBlendSep(xmlTextReaderPtr __restrict reader,
         if (enumVal != -1)
           state->src_rgb.val = enumVal;
 
-        free(valStr);
+        xmlFree(valStr);
       }
 
     } else if (_xml_eqElm(_s_dae_dest_rgb)) {
@@ -686,7 +686,7 @@ aio_dae_fxStateBlendSep(xmlTextReaderPtr __restrict reader,
         if (enumVal != -1)
           state->dest_rgb.val = enumVal;
 
-        free(valStr);
+        xmlFree(valStr);
       }
 
     } else if (_xml_eqElm(_s_dae_src_alpha)) {
@@ -704,7 +704,7 @@ aio_dae_fxStateBlendSep(xmlTextReaderPtr __restrict reader,
         if (enumVal != -1)
           state->src_alpha.val = enumVal;
 
-        free(valStr);
+        xmlFree(valStr);
       }
 
     } else if (_xml_eqElm(_s_dae_dest_alpha)) {
@@ -722,7 +722,7 @@ aio_dae_fxStateBlendSep(xmlTextReaderPtr __restrict reader,
         if (enumVal != -1)
           state->dest_alpha.val = enumVal;
 
-        free(valStr);
+        xmlFree(valStr);
       }
 
     } else {
@@ -768,7 +768,7 @@ aio_dae_fxStateBlendEqSep(xmlTextReaderPtr __restrict reader,
         if (enumVal != -1)
           state->rgb.val = enumVal;
 
-        free(valStr);
+        xmlFree(valStr);
       }
 
     } else if (_xml_eqElm(_s_dae_alpha)) {
@@ -786,7 +786,7 @@ aio_dae_fxStateBlendEqSep(xmlTextReaderPtr __restrict reader,
         if (enumVal != -1)
           state->alpha.val = enumVal;
 
-        free(valStr);
+        xmlFree(valStr);
       }
     } else {
       _xml_skipElement;
@@ -831,7 +831,7 @@ aio_dae_fxStateColorMaterial(xmlTextReaderPtr __restrict reader,
         if (enumVal != -1)
           state->face.val = enumVal;
 
-        free(valStr);
+        xmlFree(valStr);
       }
 
     } else if (_xml_eqElm(_s_dae_mode)) {
@@ -849,7 +849,7 @@ aio_dae_fxStateColorMaterial(xmlTextReaderPtr __restrict reader,
         if (enumVal != -1)
           state->mode.val = enumVal;
 
-        free(valStr);
+        xmlFree(valStr);
       }
     } else {
       _xml_skipElement;
@@ -894,7 +894,7 @@ aio_dae_fxStatePolyMode(xmlTextReaderPtr __restrict reader,
         if (enumVal != -1)
           state->face.val = enumVal;
 
-        free(valStr);
+        xmlFree(valStr);
       }
 
     } else if (_xml_eqElm(_s_dae_mode)) {
@@ -912,7 +912,7 @@ aio_dae_fxStatePolyMode(xmlTextReaderPtr __restrict reader,
         if (enumVal != -1)
           state->mode.val = enumVal;
 
-        free(valStr);
+        xmlFree(valStr);
       }
     } else {
       _xml_skipElement;
@@ -957,7 +957,7 @@ aio_dae_fxStateStencilFunc(xmlTextReaderPtr __restrict reader,
         if (enumVal != -1)
           state->func.val = enumVal;
 
-        free(valStr);
+        xmlFree(valStr);
       }
 
     } else if (_xml_eqElm(_s_dae_ref)) {
@@ -969,7 +969,7 @@ aio_dae_fxStateStencilFunc(xmlTextReaderPtr __restrict reader,
 
       if (valStr) {
         state->mask.val = strtol(valStr, NULL, 10);
-        free(valStr);
+        xmlFree(valStr);
       }
     } else if (_xml_eqElm(_s_dae_mask)) {
       char *valStr;
@@ -986,7 +986,7 @@ aio_dae_fxStateStencilFunc(xmlTextReaderPtr __restrict reader,
           val = 255;
 
         state->mask.val = val;
-        free(valStr);
+        xmlFree(valStr);
       }
     } else {
       _xml_skipElement;
@@ -1031,7 +1031,7 @@ aio_dae_fxStateStencilOp(xmlTextReaderPtr __restrict reader,
         if (enumVal != -1)
           state->fail.val = enumVal;
 
-        free(valStr);
+        xmlFree(valStr);
       }
     } else if (_xml_eqElm(_s_dae_zfail)) {
       char *valStr;
@@ -1048,7 +1048,7 @@ aio_dae_fxStateStencilOp(xmlTextReaderPtr __restrict reader,
         if (enumVal != -1)
           state->zfail.val = enumVal;
 
-        free(valStr);
+        xmlFree(valStr);
       }
     } else if (_xml_eqElm(_s_dae_zpass)) {
       char *valStr;
@@ -1065,7 +1065,7 @@ aio_dae_fxStateStencilOp(xmlTextReaderPtr __restrict reader,
         if (enumVal != -1)
           state->zpass.val = enumVal;
 
-        free(valStr);
+        xmlFree(valStr);
       }
     } else {
       _xml_skipElement;
@@ -1110,7 +1110,7 @@ aio_dae_fxStateStencilFuncSep(xmlTextReaderPtr __restrict reader,
         if (enumVal != -1)
           state->front.val = enumVal;
 
-        free(valStr);
+        xmlFree(valStr);
       }
     } else if (_xml_eqElm(_s_dae_back)) {
       char *valStr;
@@ -1127,7 +1127,7 @@ aio_dae_fxStateStencilFuncSep(xmlTextReaderPtr __restrict reader,
         if (enumVal != -1)
           state->back.val = enumVal;
 
-        free(valStr);
+        xmlFree(valStr);
       }
     } else if (_xml_eqElm(_s_dae_ref)) {
       char *valStr;
@@ -1138,7 +1138,7 @@ aio_dae_fxStateStencilFuncSep(xmlTextReaderPtr __restrict reader,
 
       if (valStr) {
         state->mask.val = strtol(valStr, NULL, 10);
-        free(valStr);
+        xmlFree(valStr);
       }
     } else if (_xml_eqElm(_s_dae_mask)) {
       char *valStr;
@@ -1155,7 +1155,7 @@ aio_dae_fxStateStencilFuncSep(xmlTextReaderPtr __restrict reader,
           val = 255;
 
         state->mask.val = val;
-        free(valStr);
+        xmlFree(valStr);
       }
     } else {
       _xml_skipElement;
@@ -1200,7 +1200,7 @@ aio_dae_fxStateStencilOpSep(xmlTextReaderPtr __restrict reader,
         if (enumVal != -1)
           state->face.val = enumVal;
 
-        free(valStr);
+        xmlFree(valStr);
       }
     } else if (_xml_eqElm(_s_dae_fail)) {
       char *valStr;
@@ -1217,7 +1217,7 @@ aio_dae_fxStateStencilOpSep(xmlTextReaderPtr __restrict reader,
         if (enumVal != -1)
           state->fail.val = enumVal;
 
-        free(valStr);
+        xmlFree(valStr);
       }
     } else if (_xml_eqElm(_s_dae_zfail)) {
       char *valStr;
@@ -1234,7 +1234,7 @@ aio_dae_fxStateStencilOpSep(xmlTextReaderPtr __restrict reader,
         if (enumVal != -1)
           state->zfail.val = enumVal;
 
-        free(valStr);
+        xmlFree(valStr);
       }
     } else if (_xml_eqElm(_s_dae_zpass)) {
       char *valStr;
@@ -1251,7 +1251,7 @@ aio_dae_fxStateStencilOpSep(xmlTextReaderPtr __restrict reader,
         if (enumVal != -1)
           state->zpass.val = enumVal;
 
-        free(valStr);
+        xmlFree(valStr);
       }
     } else {
       _xml_skipElement;
@@ -1296,7 +1296,7 @@ aio_dae_fxStateStencilMaskSep(xmlTextReaderPtr __restrict reader,
         if (enumVal != -1)
           state->face.val = enumVal;
 
-        free(valStr);
+        xmlFree(valStr);
       }
     } else if (_xml_eqElm(_s_dae_mask)) {
       char *valStr;
@@ -1313,7 +1313,7 @@ aio_dae_fxStateStencilMaskSep(xmlTextReaderPtr __restrict reader,
           val = 255;
 
         state->mask.val = val;
-        free(valStr);
+        xmlFree(valStr);
       }
     } else {
       _xml_skipElement;
