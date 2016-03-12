@@ -12,15 +12,27 @@
 int _assetio_hide
 aio_dae_annotate(xmlTextReaderPtr __restrict reader,
                  aio_annotate ** __restrict dest) {
-  aio_annotate * annotate;
+  aio_annotate  *annotate;
+  const xmlChar *nodeName;
+  int nodeType;
+  int nodeRet;
 
   annotate = aio_calloc(sizeof(*annotate), 1);
 
   _xml_readAttr(annotate->name, _s_dae_name);
 
-  aio_dae_value(reader,
-                &annotate->val,
-                &annotate->val_type);
+  do {
+    _xml_beginElement(_s_dae_annotate);
+
+    /* load once */
+    if (!annotate->val)
+      aio_dae_value(reader,
+                    &annotate->val,
+                    &annotate->val_type);
+
+    /* end element */
+    _xml_endElement;
+  } while (nodeRet);
 
   *dest = annotate;
 
