@@ -109,7 +109,7 @@ aio_dae_value(xmlTextReaderPtr __restrict reader,
     case AIO_VALUE_TYPE_BOOL4:{
       aio_bool * val;
 
-      val = aio_malloc(sizeof(*val) * found->m * found->n);
+      val = aio_calloc(sizeof(*val) * found->m * found->n, 1);
       aio_strtomb(&nodeVal, val, found->m, found->n);
 
       *dest = val;
@@ -121,7 +121,7 @@ aio_dae_value(xmlTextReaderPtr __restrict reader,
     case AIO_VALUE_TYPE_INT4:{
       aio_int * val;
 
-      val = aio_malloc(sizeof(*val) * found->m * found->n);
+      val = aio_calloc(sizeof(*val) * found->m * found->n, 1);
       aio_strtomi(&nodeVal, val, found->m, found->n);
 
       *dest = val;
@@ -136,7 +136,7 @@ aio_dae_value(xmlTextReaderPtr __restrict reader,
     case AIO_VALUE_TYPE_FLOAT4x4:{
       aio_float * val;
 
-      val = aio_malloc(sizeof(*val) * found->m * found->n);
+      val = aio_calloc(sizeof(*val) * found->m * found->n, 1);
       aio_strtomf(&nodeVal, val, found->m, found->n);
 
       *dest = val;

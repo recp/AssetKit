@@ -55,11 +55,11 @@ aio_dae_profile(xmlTextReaderPtr __restrict reader,
 
   switch (found->val) {
     case AIO_PROFILE_TYPE_COMMON:
-      profile = aio_malloc(sizeof(aio_profile_common));
+      profile = aio_calloc(sizeof(aio_profile_common), 1);
       break;
     case AIO_PROFILE_TYPE_GLSL: {
       aio_profile_GLSL *glslProfile;
-      glslProfile = aio_malloc(sizeof(aio_profile_GLSL));
+      glslProfile = aio_calloc(sizeof(aio_profile_GLSL), 1);
 
       _xml_readAttr(glslProfile->platform, _s_dae_platform);
 
@@ -68,7 +68,7 @@ aio_dae_profile(xmlTextReaderPtr __restrict reader,
     }
     case AIO_PROFILE_TYPE_GLES2: {
       aio_profile_GLES2 *gles2Profile;
-      gles2Profile = aio_malloc(sizeof(aio_profile_GLES2));
+      gles2Profile = aio_calloc(sizeof(aio_profile_GLES2), 1);
 
       _xml_readAttr(gles2Profile->language, _s_dae_language);
       _xml_readAttr(gles2Profile->platforms, _s_dae_platforms);
@@ -78,7 +78,7 @@ aio_dae_profile(xmlTextReaderPtr __restrict reader,
     }
     case AIO_PROFILE_TYPE_GLES: {
       aio_profile_GLES *glesProfile;
-      glesProfile = aio_malloc(sizeof(aio_profile_GLES));
+      glesProfile = aio_calloc(sizeof(aio_profile_GLES), 1);
 
       _xml_readAttr(glesProfile->platform, _s_dae_platform);
 
@@ -87,7 +87,7 @@ aio_dae_profile(xmlTextReaderPtr __restrict reader,
     }
     case AIO_PROFILE_TYPE_CG: {
       aio_profile_CG *cgProfile;
-      cgProfile = aio_malloc(sizeof(aio_profile_GLES2));
+      cgProfile = aio_calloc(sizeof(aio_profile_GLES2), 1);
 
       _xml_readAttr(cgProfile->platform, _s_dae_platform);
 
@@ -96,7 +96,7 @@ aio_dae_profile(xmlTextReaderPtr __restrict reader,
     }
     case AIO_PROFILE_TYPE_BRIDGE: {
       aio_profile_BRIDGE *bridgeProfile;
-      bridgeProfile = aio_malloc(sizeof(aio_profile_GLES2));
+      bridgeProfile = aio_calloc(sizeof(aio_profile_GLES2), 1);
 
       _xml_readAttr(bridgeProfile->platform, _s_dae_platform);
       _xml_readAttr(bridgeProfile->url, _s_dae_url);
