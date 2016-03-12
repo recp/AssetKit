@@ -78,7 +78,7 @@ aio_dae_value(xmlTextReaderPtr __restrict reader,
   int nodeType;
   int nodeRet;
 
-  _xml_readText(nodeVal);
+  nodeName = xmlTextReaderConstName(reader);
 
   if (valueMapLen == 0) {
     valueMapLen = AIO_ARRAY_LEN(valueMap);
@@ -95,6 +95,8 @@ aio_dae_value(xmlTextReaderPtr __restrict reader,
                   valuePairCmp2);
 
   *val_type = found->val;
+
+  _xml_readText(nodeVal);
 
   switch (found->val) {
     case AIO_VALUE_TYPE_STRING:
