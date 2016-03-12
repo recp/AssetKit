@@ -12,13 +12,10 @@ int _assetio_hide
 aio_dae_color(xmlTextReaderPtr __restrict reader,
               bool read_sid,
               aio_color * __restrict dest) {
-  char      *colorStr;
+  char          *colorStr;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
-
-  nodeName = xmlTextReaderName(reader);
-  nodeType = xmlTextReaderNodeType(reader);
 
   if (read_sid)
     _xml_readAttr(dest->sid, _s_dae_sid);

@@ -111,7 +111,6 @@ aio_dae_param(xmlTextReaderPtr __restrict reader,
   int nodeRet;
 
   nodeType = xmlTextReaderNodeType(reader);
-  nodeName = xmlTextReaderConstName(reader);
 
   if (param_type == AIO_PARAM_TYPE_BASIC) {
     param = aio_calloc(sizeof(aio_param), 1);

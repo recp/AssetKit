@@ -146,10 +146,7 @@ aio_dae_profile(xmlTextReaderPtr __restrict reader,
       aio_technique_fx * technique_fx;
       int                ret;
 
-      last_techfx = profile->technique;
-
       ret = aio_dae_techniqueFx(reader, &technique_fx);
-
       if (ret == 0) {
         if (last_techfx)
           last_techfx->next = technique_fx;
