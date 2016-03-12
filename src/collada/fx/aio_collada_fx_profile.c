@@ -188,7 +188,7 @@ aio_dae_profile(xmlTextReaderPtr __restrict reader,
             ((aio_profile_CG *)profile)->code = code;
             break;
           default:
-            free(code);
+            aio_free(code);
             code = last_code;
             break;
         }
@@ -220,7 +220,7 @@ aio_dae_profile(xmlTextReaderPtr __restrict reader,
             ((aio_profile_CG *)profile)->include = inc;
             break;
           default:
-            free(inc);
+            aio_free(inc);
             inc = last_inc;
             break;
         }
