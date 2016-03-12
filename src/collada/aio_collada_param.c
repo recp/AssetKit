@@ -66,7 +66,7 @@ aio_dae_newparam(xmlTextReaderPtr __restrict reader,
 
       _xml_readConstText(val);
 
-      found = bsearch(nodeName,
+      found = bsearch(val,
                       modifierMap,
                       modifierMapLen,
                       sizeof(modifierMap[0]),
