@@ -15,5 +15,5 @@ aio_enumpair_cmp(const void * a, const void * b) {
 
 int _assetio_hide
 aio_enumpair_cmp2(const void * a, const void * b) {
-  return strcmp(((const aio_enumpair *)b)->key, a);
+  return strcmp(a, ((const aio_enumpair *)b)->key);
 }
