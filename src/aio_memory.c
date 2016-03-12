@@ -17,7 +17,7 @@ static aio_heap aio__heap = {
 };
 
 void*
-aio_heap_alloc(aio_heap *heap,
+aio_heap_alloc(aio_heap * __restrict heap,
                void * __restrict parent,
                size_t size) {
   aio_heapnode *currNode;
@@ -59,12 +59,32 @@ aio_heap_alloc(aio_heap *heap,
 }
 
 void
-aio_heap_free(aio_heapnode * __restrict heapNode) {
+aio_heap_freeChld(aio_heap * __restrict heap,
+                  aio_heapnode * __restrict heapNode) {
   if (heapNode->chld)
-    aio_heap_free(heapNode->chld);
+    aio_heap_free(heap, heapNode->chld);
 
   if (heapNode->next)
-    aio_heap_free(heapNode->next);
+    aio_heap_free(heap, heapNode->next);
+
+  heapNode->chld = NULL;
+  heapNode->next = NULL;
+  heapNode->prev = NULL;
+
+  free(heapNode);
+}
+
+void
+aio_heap_free(aio_heap * __restrict heap,
+              aio_heapnode * __restrict heapNode) {
+  if (heapNode->chld)
+    aio_heap_freeChld(heap, heapNode->chld);
+
+  if (heapNode->prev)
+    heapNode->prev->next = heapNode->next;
+
+  if (heap->root == heapNode)
+    heap->root = heapNode->next;
 
   heapNode->chld = NULL;
   heapNode->next = NULL;
@@ -141,7 +161,7 @@ aio_free(void * __restrict memptr) {
   if (!chldNode)
     goto freeSelf;
 
-  aio_heap_free(chldNode);
+  aio_heap_free(&aio__heap, chldNode);
 
 freeSelf:
   if (heapNode->next)
@@ -153,5 +173,5 @@ freeSelf:
 void
 AIO_DESTRUCTOR
 aio_cleanup() {
-  aio_heap_free(aio__heap.root);
+  aio_heap_free(&aio__heap, aio__heap.root);
 }

@@ -40,12 +40,17 @@ struct aio_heap_s {
 };
 
 void*
-aio_heap_alloc(aio_heap *heap,
+aio_heap_alloc(aio_heap * __restrict heap,
                void * __restrict parent,
                size_t size);
 
 void
-aio_heap_free(aio_heapnode * __restrict heapNode);
+aio_heap_free(aio_heap * __restrict heap,
+              aio_heapnode * __restrict heapNode);
+
+void
+aio_heap_freeChld(aio_heap * __restrict heap,
+                  aio_heapnode * __restrict heapNode);
 
 void* aio_malloc(size_t size);
 void* aio_calloc(size_t size, size_t count);
