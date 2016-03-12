@@ -62,10 +62,10 @@ void
 aio_heap_freeChld(aio_heap * __restrict heap,
                   aio_heapnode * __restrict heapNode) {
   if (heapNode->chld)
-    aio_heap_free(heap, heapNode->chld);
+    aio_heap_freeChld(heap, heapNode->chld);
 
   if (heapNode->next)
-    aio_heap_free(heap, heapNode->next);
+    aio_heap_freeChld(heap, heapNode->next);
 
   heapNode->chld = NULL;
   heapNode->next = NULL;
@@ -90,6 +90,12 @@ aio_heap_free(aio_heap * __restrict heap,
   heapNode->next = NULL;
 
   free(heapNode);
+}
+
+void
+aio_heap_cleanup(aio_heap * __restrict heap) {
+  while (heap->root)
+    aio_heap_free(heap, heap->root);
 }
 
 void *
@@ -152,26 +158,12 @@ aio_strdup(const char * __restrict str) {
 
 void
 aio_free(void * __restrict memptr) {
-  aio_heapnode *heapNode;
-  aio_heapnode *chldNode;
-
-  heapNode = aio__alignof(memptr);
-  chldNode = heapNode->chld;
-
-  if (!chldNode)
-    goto freeSelf;
-
-  aio_heap_free(&aio__heap, chldNode);
-
-freeSelf:
-  if (heapNode->next)
-    heapNode->next->prev = heapNode->prev;
-
-  free(heapNode);
+  aio_heap_free(&aio__heap,
+                aio__alignof(memptr));
 }
 
 void
 AIO_DESTRUCTOR
 aio_cleanup() {
-  aio_heap_free(&aio__heap, aio__heap.root);
+  aio_heap_cleanup(&aio__heap);
 }

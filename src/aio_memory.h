@@ -45,12 +45,15 @@ aio_heap_alloc(aio_heap * __restrict heap,
                size_t size);
 
 void
+aio_heap_freeChld(aio_heap * __restrict heap,
+                  aio_heapnode * __restrict heapNode);
+
+void
 aio_heap_free(aio_heap * __restrict heap,
               aio_heapnode * __restrict heapNode);
 
 void
-aio_heap_freeChld(aio_heap * __restrict heap,
-                  aio_heapnode * __restrict heapNode);
+aio_heap_cleanup(aio_heap * __restrict heap);
 
 void* aio_malloc(size_t size);
 void* aio_calloc(size_t size, size_t count);
