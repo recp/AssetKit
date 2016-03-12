@@ -112,8 +112,6 @@ aio_dae_value(xmlTextReaderPtr __restrict reader,
       val = aio_malloc(sizeof(*val) * found->m * found->n);
       aio_strtomb(&nodeVal, val, found->m, found->n);
 
-      aio_free(nodeVal);
-
       *dest = val;
       break;
     }
@@ -125,8 +123,6 @@ aio_dae_value(xmlTextReaderPtr __restrict reader,
 
       val = aio_malloc(sizeof(*val) * found->m * found->n);
       aio_strtomi(&nodeVal, val, found->m, found->n);
-
-      aio_free(nodeVal);
 
       *dest = val;
       break;
@@ -143,12 +139,15 @@ aio_dae_value(xmlTextReaderPtr __restrict reader,
       val = aio_malloc(sizeof(*val) * found->m * found->n);
       aio_strtomf(&nodeVal, val, found->m, found->n);
 
-      aio_free(nodeVal);
-
       *dest = val;
       break;
     }
+    default:
+      break;
   }
+
+  if (nodeVal)
+    aio_free(nodeVal);
 
   /* end element */
   _xml_endElement;
