@@ -152,7 +152,7 @@ aio_dae_fxSampler(xmlTextReaderPtr __restrict reader,
         _xml_readTextUsingFn(sampler->max_anisotropy,
                              strtol, &tmp, 10);
 
-        if (*tmp == '\0')
+        if (tmp && *tmp == '\0')
           sampler->mip_max_level = 1;
         break;
       }
