@@ -56,28 +56,29 @@ aio_dae_colorOrTex(xmlTextReaderPtr __restrict reader,
       _xml_readAttr(tex->texture, _s_dae_texture);
       _xml_readAttr(tex->texcoord, _s_dae_texcoord);
 
-      do {
-        _xml_beginElement(_s_dae_texture);
+      if (!xmlTextReaderIsEmptyElement(reader)) {
+        do {
+          _xml_beginElement(_s_dae_texture);
 
-        if (_xml_eqElm(_s_dae_extra)) {
-          xmlNodePtr nodePtr;
-          aio_tree  *tree;
+          if (_xml_eqElm(_s_dae_extra)) {
+            xmlNodePtr nodePtr;
+            aio_tree  *tree;
 
-          nodePtr = xmlTextReaderExpand(reader);
-          tree = NULL;
+            nodePtr = xmlTextReaderExpand(reader);
+            tree = NULL;
 
-          aio_tree_fromXmlNode(nodePtr, &tree, NULL);
-          tex->extra = tree;
-          
-          _xml_skipElement;
-        } else {
-          _xml_skipElement;
-        }
+            aio_tree_fromXmlNode(nodePtr, &tree, NULL);
+            tex->extra = tree;
 
-        /* end element */
-        _xml_endElement;
-      } while (nodeRet);
+            _xml_skipElement;
+          } else {
+            _xml_skipElement;
+          }
 
+          /* end element */
+          _xml_endElement;
+        } while (nodeRet);
+      }
     } else if (_xml_eqElm(_s_dae_param)) {
       aio_param * param;
       int         ret;
