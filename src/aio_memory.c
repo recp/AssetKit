@@ -50,7 +50,8 @@ aio_heap_destroy(aio_heap * __restrict heap) {
   aio_heap_cleanup(&aio__heap);
 #endif
 
-  if (heap->flags & AIO_HEAP_FLAGS_DYNAMIC)
+  if (heap->flags & AIO_HEAP_FLAGS_DYNAMIC
+      && heap != &aio__heap)
     free(heap);
 }
 
