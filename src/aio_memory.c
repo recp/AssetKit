@@ -103,6 +103,9 @@ aio_heap_setp(aio_heap * __restrict heap,
   if (heapNode->prev)
     heapNode->prev->next = heapNode->next;
 
+  if (heapNode->next)
+    heapNode->next->prev = heapNode->prev;
+
   if (heapNode == heap->root)
     heap->root = heapNode->next;
 
