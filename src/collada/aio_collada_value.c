@@ -69,7 +69,8 @@ aio_dae_valueType(const char * typeName) {
 }
 
 int _assetio_hide
-aio_dae_value(xmlTextReaderPtr __restrict reader,
+aio_dae_value(void * __restrict memParent,
+              xmlTextReaderPtr __restrict reader,
               void ** __restrict dest,
               aio_value_type * __restrict val_type) {
   aio_value_pair *found;
@@ -101,7 +102,7 @@ aio_dae_value(xmlTextReaderPtr __restrict reader,
   
   *val_type = found->val;
 
-  _xml_readText(nodeVal);
+  _xml_readText(NULL, nodeVal);
 
   switch (found->val) {
     case AIO_VALUE_TYPE_STRING:
@@ -114,7 +115,7 @@ aio_dae_value(xmlTextReaderPtr __restrict reader,
     case AIO_VALUE_TYPE_BOOL4:{
       aio_bool * val;
 
-      val = aio_calloc(sizeof(*val) * found->m * found->n, 1);
+      val = aio_calloc(memParent, sizeof(*val) * found->m * found->n, 1);
       aio_strtomb(&nodeVal, val, found->m, found->n);
 
       *dest = val;
@@ -126,7 +127,7 @@ aio_dae_value(xmlTextReaderPtr __restrict reader,
     case AIO_VALUE_TYPE_INT4:{
       aio_int * val;
 
-      val = aio_calloc(sizeof(*val) * found->m * found->n, 1);
+      val = aio_calloc(memParent, sizeof(*val) * found->m * found->n, 1);
       aio_strtomi(&nodeVal, val, found->m, found->n);
 
       *dest = val;
@@ -141,7 +142,7 @@ aio_dae_value(xmlTextReaderPtr __restrict reader,
     case AIO_VALUE_TYPE_FLOAT4x4:{
       aio_float * val;
 
-      val = aio_calloc(sizeof(*val) * found->m * found->n, 1);
+      val = aio_calloc(memParent, sizeof(*val) * found->m * found->n, 1);
       aio_strtomf(&nodeVal, val, found->m, found->n);
 
       *dest = val;

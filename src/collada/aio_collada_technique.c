@@ -15,7 +15,8 @@
 #include "aio_collada_common.h"
 
 int _assetio_hide
-aio_dae_technique(xmlTextReaderPtr __restrict reader,
+aio_dae_technique(void * __restrict memParent,
+                  xmlTextReaderPtr __restrict reader,
                   aio_technique ** __restrict dest) {
 
   aio_technique *technique;
@@ -25,15 +26,15 @@ aio_dae_technique(xmlTextReaderPtr __restrict reader,
   int            nodeType;
   int            nodeRet;
 
-  technique = aio_calloc(sizeof(*technique), 1);
+  technique = aio_calloc(memParent, sizeof(*technique), 1);
 
-  _xml_readAttr(technique->profile, _s_dae_profile);
-  _xml_readAttr(technique->xmlns, _s_dae_xmlns);
+  _xml_readAttr(technique, technique->profile, _s_dae_profile);
+  _xml_readAttr(technique, technique->xmlns, _s_dae_xmlns);
 
   nodePtr = xmlTextReaderExpand(reader);
   tree = NULL;
 
-  aio_tree_fromXmlNode(nodePtr, &tree, NULL);
+  aio_tree_fromXmlNode(technique, nodePtr, &tree, NULL);
   technique->chld = tree;
 
   nodeName = xmlTextReaderConstName(reader);

@@ -18,7 +18,7 @@ aio_dae_color(xmlTextReaderPtr __restrict reader,
   int            nodeRet;
 
   if (read_sid)
-    _xml_readAttr(dest->sid, _s_dae_sid);
+    _xml_readAttr(dest, dest->sid, _s_dae_sid);
 
   _xml_readMutText(colorStr);
 

@@ -135,7 +135,8 @@ static aio_enumpair stateMap[] = {
 static size_t stateMapLen = 0;
 
 int _assetio_hide
-aio_dae_fxState(xmlTextReaderPtr __restrict reader,
+aio_dae_fxState(void * __restrict memParent,
+                xmlTextReaderPtr __restrict reader,
                 aio_states ** __restrict dest) {
   aio_states       *states;
   aio_render_state *last_state;
@@ -143,7 +144,7 @@ aio_dae_fxState(xmlTextReaderPtr __restrict reader,
   int            nodeType;
   int            nodeRet;
 
-  states = aio_calloc(sizeof(*states), 1);
+  states = aio_calloc(memParent, sizeof(*states), 1);
 
   if (stateMapLen == 0) {
     stateMapLen = AIO_ARRAY_LEN(stateMap);

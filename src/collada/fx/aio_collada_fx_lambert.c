@@ -33,14 +33,15 @@ static aio_enumpair lambertMap[] = {
 static size_t lambertMapLen = 0;
 
 int _assetio_hide
-aio_dae_fxLambert(xmlTextReaderPtr __restrict reader,
+aio_dae_fxLambert(void * __restrict memParent,
+                  xmlTextReaderPtr __restrict reader,
                   aio_lambert ** __restrict dest) {
   aio_lambert   *lambert;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
 
-  lambert = aio_calloc(sizeof(*lambert), 1);
+  lambert = aio_calloc(memParent, sizeof(*lambert), 1);
 
   if (lambertMapLen == 0) {
     lambertMapLen = AIO_ARRAY_LEN(lambertMap);
@@ -70,7 +71,8 @@ aio_dae_fxLambert(xmlTextReaderPtr __restrict reader,
         aio_fx_color_or_tex *colorOrTex;
         int ret;
 
-        ret = aio_dae_colorOrTex(reader,
+        ret = aio_dae_colorOrTex(lambert,
+                                 reader,
                                  (const char *)nodeName,
                                  &colorOrTex);
         if (ret == 0) {
@@ -102,7 +104,8 @@ aio_dae_fxLambert(xmlTextReaderPtr __restrict reader,
         aio_fx_float_or_param * floatOrParam;
         int ret;
 
-        ret = aio_dae_floatOrParam(reader,
+        ret = aio_dae_floatOrParam(lambert,
+                                   reader,
                                    (const char *)nodeName,
                                    &floatOrParam);
 

@@ -16,7 +16,8 @@
 #include "aio_collada_fx_evaluate.h"
 
 int _assetio_hide
-aio_dae_fxPass(xmlTextReaderPtr __restrict reader,
+aio_dae_fxPass(void * __restrict memParent,
+               xmlTextReaderPtr __restrict reader,
                aio_pass ** __restrict dest) {
   aio_pass      *pass;
   aio_annotate  *last_annotate;
@@ -24,9 +25,9 @@ aio_dae_fxPass(xmlTextReaderPtr __restrict reader,
   int            nodeType;
   int            nodeRet;
 
-  pass = aio_calloc(sizeof(*pass), 1);
+  pass = aio_calloc(memParent, sizeof(*pass), 1);
 
-  _xml_readAttr(pass->sid, _s_dae_sid);
+  _xml_readAttr(pass, pass->sid, _s_dae_sid);
 
   last_annotate = NULL;
 
@@ -38,14 +39,14 @@ aio_dae_fxPass(xmlTextReaderPtr __restrict reader,
       int ret;
 
       assetInf = NULL;
-      ret = aio_dae_assetInf(reader, &assetInf);
+      ret = aio_dae_assetInf(pass, reader, &assetInf);
       if (ret == 0)
         pass->inf = assetInf;
     } else if (_xml_eqElm(_s_dae_annotate)) {
       aio_annotate *annotate;
       int           ret;
 
-      ret = aio_dae_annotate(reader, &annotate);
+      ret = aio_dae_annotate(pass, reader, &annotate);
 
       if (ret == 0) {
         if (last_annotate)
@@ -59,7 +60,7 @@ aio_dae_fxPass(xmlTextReaderPtr __restrict reader,
       aio_states *states;
       int         ret;
 
-      ret = aio_dae_fxState(reader, &states);
+      ret = aio_dae_fxState(pass, reader, &states);
       if (ret == 0)
         pass->states = states;
 
@@ -67,14 +68,14 @@ aio_dae_fxPass(xmlTextReaderPtr __restrict reader,
       aio_program *prog;
       int          ret;
 
-      ret = aio_dae_fxProg(reader, &prog);
+      ret = aio_dae_fxProg(pass, reader, &prog);
       if (ret == 0)
         pass->program = prog;
     } else if (_xml_eqElm(_s_dae_evaluate)) {
       aio_evaluate * evaluate;
       int ret;
 
-      ret = aio_dae_fxEvaluate(reader, &evaluate);
+      ret = aio_dae_fxEvaluate(pass, reader, &evaluate);
       if (ret == 0)
         pass->evaluate = evaluate;
     } else if (_xml_eqElm(_s_dae_extra)) {
@@ -84,7 +85,7 @@ aio_dae_fxPass(xmlTextReaderPtr __restrict reader,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      aio_tree_fromXmlNode(nodePtr, &tree, NULL);
+      aio_tree_fromXmlNode(pass, nodePtr, &tree, NULL);
       pass->extra = tree;
 
       _xml_skipElement;

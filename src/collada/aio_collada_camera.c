@@ -11,17 +11,18 @@
 #include "aio_collada_technique.h"
 
 int _assetio_hide
-aio_dae_camera(xmlTextReaderPtr __restrict reader,
+aio_dae_camera(void * __restrict memParent,
+               xmlTextReaderPtr __restrict reader,
                aio_camera ** __restrict  dest) {
   aio_camera    *camera;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
 
-  camera = aio_calloc(sizeof(*camera), 1);
+  camera = aio_calloc(memParent, sizeof(*camera), 1);
 
-  _xml_readAttr(camera->id, _s_dae_id);
-  _xml_readAttr(camera->name, _s_dae_name);
+  _xml_readAttr(camera, camera->id, _s_dae_id);
+  _xml_readAttr(camera, camera->name, _s_dae_name);
 
   do {
     _xml_beginElement(_s_dae_camera);
@@ -31,7 +32,7 @@ aio_dae_camera(xmlTextReaderPtr __restrict reader,
       int ret;
 
       assetInf = NULL;
-      ret = aio_dae_assetInf(reader, &assetInf);
+      ret = aio_dae_assetInf(camera, reader, &assetInf);
       if (ret == 0)
         camera->inf = assetInf;
 
@@ -40,7 +41,7 @@ aio_dae_camera(xmlTextReaderPtr __restrict reader,
       aio_technique        *last_tq;
       aio_technique_common *last_tc;
 
-      optics = aio_calloc(sizeof(*optics), 1);
+      optics = aio_calloc(camera, sizeof(*optics), 1);
 
       last_tq = optics->technique;
       last_tc = optics->technique_common;
@@ -53,7 +54,7 @@ aio_dae_camera(xmlTextReaderPtr __restrict reader,
           int                   ret;
 
           tc = NULL;
-          ret = aio_dae_techniquec(reader, &tc);
+          ret = aio_dae_techniquec(optics, reader, &tc);
           if (ret == 0) {
             if (last_tc)
               last_tc->next = tc;
@@ -68,7 +69,7 @@ aio_dae_camera(xmlTextReaderPtr __restrict reader,
           int            ret;
 
           tq = NULL;
-          ret = aio_dae_technique(reader, &tq);
+          ret = aio_dae_technique(optics, reader, &tq);
           if (ret == 0) {
             if (last_tq)
               last_tq->next = tq;
@@ -90,7 +91,7 @@ aio_dae_camera(xmlTextReaderPtr __restrict reader,
       aio_imager    *imager;
       aio_technique *last_tq;
 
-      imager  = aio_calloc(sizeof(*imager), 1);
+      imager  = aio_calloc(camera, sizeof(*imager), 1);
       last_tq = imager->technique;
 
       do {
@@ -101,7 +102,7 @@ aio_dae_camera(xmlTextReaderPtr __restrict reader,
           int            ret;
 
           tq = NULL;
-          ret = aio_dae_technique(reader, &tq);
+          ret = aio_dae_technique(imager, reader, &tq);
           if (ret == 0) {
             if (last_tq)
               last_tq->next = tq;
@@ -117,7 +118,7 @@ aio_dae_camera(xmlTextReaderPtr __restrict reader,
           nodePtr = xmlTextReaderExpand(reader);
           tree = NULL;
 
-          aio_tree_fromXmlNode(nodePtr, &tree, NULL);
+          aio_tree_fromXmlNode(imager, nodePtr, &tree, NULL);
           imager->extra = tree;
 
           _xml_skipElement;
@@ -137,7 +138,7 @@ aio_dae_camera(xmlTextReaderPtr __restrict reader,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      aio_tree_fromXmlNode(nodePtr, &tree, NULL);
+      aio_tree_fromXmlNode(camera, nodePtr, &tree, NULL);
       camera->extra = tree;
 
       _xml_skipElement;

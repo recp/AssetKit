@@ -73,12 +73,29 @@ aio_heap_free(aio_heap * __restrict heap,
 void
 aio_heap_cleanup(aio_heap * __restrict heap);
 
-void* aio_malloc(size_t size);
-void* aio_calloc(size_t size, size_t count);
-char* aio_strdup(const char * __restrict str);
-void* aio_realloc(void * __restrict memptr, size_t newsize);
-void  aio_mem_setp(void *memptr, void *parent);
-void  aio_free(void * __restrict memptr);
-void  aio_cleanup();
+void*
+aio_malloc(void * __restrict parent,
+           size_t size);
+
+void*
+aio_calloc(void * __restrict parent,
+           size_t size,
+           size_t count);
+
+char*
+aio_strdup(void * __restrict parent,
+           const char * __restrict str);
+
+void*
+aio_realloc(void * __restrict parent,
+            void * __restrict memptr,
+            size_t newsize);
+
+void
+aio_mem_setp(void * __restrict memptr,
+             void * __restrict parent);
+
+void
+aio_free(void * __restrict memptr);
 
 #endif /* __libassetio__memory__h_ */

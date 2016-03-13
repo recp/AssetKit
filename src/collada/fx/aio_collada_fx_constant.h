@@ -13,7 +13,8 @@
 typedef struct _xmlTextReader *xmlTextReaderPtr;
 
 int _assetio_hide
-aio_dae_fxConstant(xmlTextReaderPtr __restrict reader,
+aio_dae_fxConstant(void * __restrict memParent,
+                   xmlTextReaderPtr __restrict reader,
                    aio_constant_fx ** __restrict dest);
 
 #endif /* __libassetio__aio_collada_fx_constant__h_ */

@@ -12,7 +12,8 @@
 #include "aio_collada_fx_binary.h"
 
 int _assetio_hide
-aio_dae_fxProg(xmlTextReaderPtr __restrict reader,
+aio_dae_fxProg(void * __restrict memParent,
+               xmlTextReaderPtr __restrict reader,
                aio_program ** __restrict dest) {
   aio_program      *prog;
   aio_bind_uniform *last_bind_uniform;
@@ -24,7 +25,7 @@ aio_dae_fxProg(xmlTextReaderPtr __restrict reader,
   int            nodeType;
   int            nodeRet;
 
-  prog = aio_calloc(sizeof(*prog), 1);
+  prog = aio_calloc(memParent, sizeof(*prog), 1);
 
   last_bind_uniform = NULL;
   last_bind_attrib  = NULL;
@@ -38,7 +39,7 @@ aio_dae_fxProg(xmlTextReaderPtr __restrict reader,
       aio_shader *shader;
       int         ret;
 
-      ret = aio_dae_fxShader(reader, &shader);
+      ret = aio_dae_fxShader(prog, reader, &shader);
       if (ret == 0) {
         if (last_shader)
           last_shader->next = shader;
@@ -51,11 +52,11 @@ aio_dae_fxProg(xmlTextReaderPtr __restrict reader,
       aio_linker *linker;
       aio_binary *last_binary;
 
-      linker = aio_calloc(sizeof(*linker), 1);
+      linker = aio_calloc(prog, sizeof(*linker), 1);
 
-      _xml_readAttr(linker->platform, _s_dae_platform);
-      _xml_readAttr(linker->target, _s_dae_target);
-      _xml_readAttr(linker->options, _s_dae_options);
+      _xml_readAttr(linker, linker->platform, _s_dae_platform);
+      _xml_readAttr(linker, linker->target, _s_dae_target);
+      _xml_readAttr(linker, linker->options, _s_dae_options);
 
       last_binary = NULL;
 
@@ -66,7 +67,7 @@ aio_dae_fxProg(xmlTextReaderPtr __restrict reader,
           aio_binary *binary;
           int         ret;
 
-          ret = aio_dae_fxBinary(reader, &binary);
+          ret = aio_dae_fxBinary(linker, reader, &binary);
           if (ret == 0) {
             if (last_shader)
               last_binary->next = binary;
@@ -92,15 +93,15 @@ aio_dae_fxProg(xmlTextReaderPtr __restrict reader,
     } else if (_xml_eqElm(_s_dae_bind_attribute)) {
       aio_bind_attrib *bind_attrib;
 
-      bind_attrib = aio_calloc(sizeof(*bind_attrib), 1);
-      _xml_readAttr(bind_attrib->symbol, _s_dae_symbol);
+      bind_attrib = aio_calloc(prog, sizeof(*bind_attrib), 1);
+      _xml_readAttr(bind_attrib, bind_attrib->symbol, _s_dae_symbol);
 
       do {
         _xml_beginElement(_s_dae_bind_attribute);
 
         if (_xml_eqElm(_s_dae_semantic)) {
           if (!bind_attrib->semantic)
-            _xml_readText(bind_attrib->semantic);
+            _xml_readText(bind_attrib, bind_attrib->semantic);
         } else {
           _xml_skipElement;
         }
@@ -119,7 +120,7 @@ aio_dae_fxProg(xmlTextReaderPtr __restrict reader,
       aio_bind_uniform *bind_uniform;
       int ret;
 
-      ret = aio_dae_fxBindUniform(reader, &bind_uniform);
+      ret = aio_dae_fxBindUniform(prog, reader, &bind_uniform);
       if (ret == 0) {
         if (last_bind_uniform)
           last_bind_uniform->next = bind_uniform;

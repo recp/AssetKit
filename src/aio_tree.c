@@ -17,7 +17,8 @@
 #include <string.h>
 
 int _assetio_hide
-aio_tree_fromXmlNode(xmlNode * __restrict xml_node,
+aio_tree_fromXmlNode(void * __restrict memParent,
+                     xmlNode * __restrict xml_node,
                      aio_tree_node ** __restrict dest,
                      aio_tree_node * __restrict parent) {
 
@@ -30,8 +31,9 @@ aio_tree_fromXmlNode(xmlNode * __restrict xml_node,
   /* extra is text node */
   if (currNode && currNode->type == XML_TEXT_NODE) {
     if (currNode->content) {
-      tree_currNode = aio_calloc(sizeof(*tree_currNode), 1);
-      tree_currNode->val = aio_strdup((const char *)currNode->content);
+      tree_currNode = aio_calloc(memParent, sizeof(*tree_currNode), 1);
+      tree_currNode->val = aio_strdup(tree_currNode,
+                                      (const char *)currNode->content);
 
       *dest = tree_currNode;
       return 0;
@@ -45,9 +47,10 @@ aio_tree_fromXmlNode(xmlNode * __restrict xml_node,
     aio_tree_node_attr * tree_currAttr;
     const xmlAttr      * xml_currAttr;
 
-    tree_nNode = aio_calloc(sizeof(*tree_currNode), 1);
+    tree_nNode = aio_calloc(parent, sizeof(*tree_currNode), 1);
     tree_nNode->parent = parent;
-    tree_nNode->name = aio_strdup((const char *)currNode->name);
+    tree_nNode->name = aio_strdup(tree_nNode,
+                                  (const char *)currNode->name);
 
     if (tree_currNode) {
       tree_nNode->prev    = tree_currNode;
@@ -73,10 +76,12 @@ aio_tree_fromXmlNode(xmlNode * __restrict xml_node,
          xml_currAttr = xml_currAttr->next) {
       aio_tree_node_attr * tree_nodeAttr;
 
-      tree_nodeAttr = aio_calloc(sizeof(*tree_nodeAttr), 1);
-      tree_nodeAttr->name = aio_strdup((const char *)xml_currAttr->name);
+      tree_nodeAttr = aio_calloc(tree_nNode, sizeof(*tree_nodeAttr), 1);
+      tree_nodeAttr->name = aio_strdup(tree_nodeAttr,
+                                       (const char *)xml_currAttr->name);
       tree_nodeAttr->val =
-        aio_strdup(((const char *)xml_currAttr->children->content));
+        aio_strdup(tree_nodeAttr,
+                   ((const char *)xml_currAttr->children->content));
 
       if (tree_currAttr) {
         tree_nodeAttr->prev = tree_currAttr;
@@ -99,12 +104,14 @@ aio_tree_fromXmlNode(xmlNode * __restrict xml_node,
            */
         case XML_TEXT_NODE:
           tree_nNode->val =
-            aio_strdup((const char *)currNode->children->content);
+            aio_strdup(tree_nNode,
+                       (const char *)currNode->children->content);
           break;
 
           /* Load child nodes */
         case XML_ELEMENT_NODE:
-          aio_tree_fromXmlNode(currNode,
+          aio_tree_fromXmlNode(tree_nNode,
+                               currNode,
                                &tree_nNode->chld,
                                tree_nNode);
 
@@ -114,7 +121,8 @@ aio_tree_fromXmlNode(xmlNode * __restrict xml_node,
       } // switch
     } else {
       if (currNode->content)
-        tree_nNode->val = aio_strdup((const char *)currNode->content);
+        tree_nNode->val = aio_strdup(tree_nNode,
+                                     (const char *)currNode->content);
     }
   }
 

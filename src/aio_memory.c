@@ -164,54 +164,61 @@ aio_mem_setp(void *memptr, void *parent) {
                 aio__alignof(parent));
 }
 
-void *
-aio_malloc(size_t size) {
+void*
+aio_malloc(void * __restrict parent,
+           size_t size) {
   return aio_heap_alloc(&aio__heap,
-                        NULL,
+                        parent,
                         size);
 }
 
-void *
-aio_calloc(size_t size, size_t count) {
+void*
+aio_calloc(void * __restrict parent,
+           size_t size,
+           size_t count) {
   void  *memptr;
   size_t memsize;
 
   memsize = size * count;
   memptr  = aio_heap_alloc(&aio__heap,
-                           NULL,
+                           parent,
                            memsize);
   memset(memptr, '\0', memsize);
 
   return memptr;
 }
 
-void *
-aio_realloc(void * __restrict memptr, size_t size) {
+void*
+aio_realloc(void * __restrict parent,
+            void * __restrict memptr,
+            size_t newsize) {
   aio_heapnode *oldNode;
   aio_heapnode *newNode;
 
   if (!memptr)
-    return aio_malloc(size);
+    return aio_malloc(parent, newsize);
 
-  if (size == 0) {
+  if (newsize == 0) {
     aio_free(memptr);
     return NULL;
   }
 
   oldNode = aio__alignof(memptr);
-  newNode = realloc(oldNode, aio__aligned_node_size + size);
+  newNode = realloc(oldNode,
+                    aio__aligned_node_size + newsize);
 
   return aio__alignas(newNode);
 }
 
-char *
-aio_strdup(const char * __restrict str) {
+char*
+aio_strdup(void * __restrict parent,
+           const char * __restrict str) {
   void  *memptr;
   size_t memsize;
 
   memsize = strlen(str);
   memptr  = aio_heap_alloc(&aio__heap,
-                           NULL,
+                           parent,
                            memsize + 1);
 
   memcpy(memptr, str, memsize);
@@ -236,6 +243,6 @@ aio__init() {
 
 void
 AIO_DESTRUCTOR
-aio_cleanup() {
+aio__cleanup() {
   aio_heap_destroy(&aio__heap);
 }

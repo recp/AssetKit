@@ -11,7 +11,8 @@
 #include "../aio_collada_value.h"
 
 int _assetio_hide
-aio_dae_fxBindUniform(xmlTextReaderPtr __restrict reader,
+aio_dae_fxBindUniform(void * __restrict memParent,
+                      xmlTextReaderPtr __restrict reader,
                       aio_bind_uniform ** __restrict dest) {
   aio_bind_uniform *bind_uniform;
   aio_param        *last_param;
@@ -19,9 +20,9 @@ aio_dae_fxBindUniform(xmlTextReaderPtr __restrict reader,
   int            nodeType;
   int            nodeRet;
 
-  bind_uniform = aio_calloc(sizeof(*bind_uniform), 1);
+  bind_uniform = aio_calloc(memParent, sizeof(*bind_uniform), 1);
 
-  _xml_readAttr(bind_uniform->symbol, _s_dae_symbol);
+  _xml_readAttr(bind_uniform, bind_uniform->symbol, _s_dae_symbol);
 
   last_param = NULL;
 
@@ -32,7 +33,8 @@ aio_dae_fxBindUniform(xmlTextReaderPtr __restrict reader,
       aio_param * param;
       int         ret;
 
-      ret = aio_dae_param(reader,
+      ret = aio_dae_param(bind_uniform,
+                          reader,
                           AIO_PARAM_TYPE_BASIC,
                           &param);
 
@@ -51,7 +53,8 @@ aio_dae_fxBindUniform(xmlTextReaderPtr __restrict reader,
         aio_value_type   val_type;
         int              ret;
 
-        ret = aio_dae_value(reader,
+        ret = aio_dae_value(bind_uniform,
+                            reader,
                             &val,
                             &val_type);
 

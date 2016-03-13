@@ -12,7 +12,8 @@
 #include "aio_collada_fx_uniform.h"
 
 int _assetio_hide
-aio_dae_fxShader(xmlTextReaderPtr __restrict reader,
+aio_dae_fxShader(void * __restrict memParent,
+                 xmlTextReaderPtr __restrict reader,
                  aio_shader ** __restrict dest) {
   aio_shader       *shader;
   aio_compiler     *last_compiler;
@@ -21,7 +22,7 @@ aio_dae_fxShader(xmlTextReaderPtr __restrict reader,
   int            nodeType;
   int            nodeRet;
 
-  shader = aio_calloc(sizeof(*shader), 1);
+  shader = aio_calloc(memParent, sizeof(*shader), 1);
 
   _xml_readAttrAsEnum(shader->stage,
                       _s_dae_stage,
@@ -38,8 +39,8 @@ aio_dae_fxShader(xmlTextReaderPtr __restrict reader,
       aio_inline  *last_inline;
       aio_import  *last_import;
 
-      sources = aio_calloc(sizeof(*sources), 1);
-      _xml_readAttr(sources->entry, _s_dae_entry);
+      sources = aio_calloc(shader, sizeof(*sources), 1);
+      _xml_readAttr(sources, sources->entry, _s_dae_entry);
 
       last_inline = NULL;
       last_import = NULL;
@@ -50,8 +51,8 @@ aio_dae_fxShader(xmlTextReaderPtr __restrict reader,
         if (_xml_eqElm(_s_dae_inline)) {
           aio_inline *nInline;
 
-          nInline = aio_calloc(sizeof(*nInline), 1);
-          _xml_readText(nInline->val);
+          nInline = aio_calloc(shader, sizeof(*nInline), 1);
+          _xml_readText(nInline, nInline->val);
 
           if (last_inline)
             last_inline->next = nInline;
@@ -62,8 +63,8 @@ aio_dae_fxShader(xmlTextReaderPtr __restrict reader,
         } else if (_xml_eqElm(_s_dae_import)) {
           aio_import *nImport;
 
-          nImport = aio_calloc(sizeof(*nImport), 1);
-          _xml_readText(nImport->ref);
+          nImport = aio_calloc(shader, sizeof(*nImport), 1);
+          _xml_readText(nImport, nImport->ref);
 
           if (last_import)
             last_import->next = nImport;
@@ -83,11 +84,11 @@ aio_dae_fxShader(xmlTextReaderPtr __restrict reader,
     } else if (_xml_eqElm(_s_dae_compiler)) {
       aio_compiler *compiler;
 
-      compiler = aio_calloc(sizeof(*compiler), 1);
+      compiler = aio_calloc(shader, sizeof(*compiler), 1);
 
-      _xml_readAttr(compiler->platform, _s_dae_platform);
-      _xml_readAttr(compiler->target, _s_dae_target);
-      _xml_readAttr(compiler->options, _s_dae_options);
+      _xml_readAttr(compiler, compiler->platform, _s_dae_platform);
+      _xml_readAttr(compiler, compiler->target, _s_dae_target);
+      _xml_readAttr(compiler, compiler->options, _s_dae_options);
 
       do {
         _xml_beginElement(_s_dae_compiler);
@@ -96,7 +97,7 @@ aio_dae_fxShader(xmlTextReaderPtr __restrict reader,
           aio_binary *binary;
           int         ret;
 
-          ret = aio_dae_fxBinary(reader, &binary);
+          ret = aio_dae_fxBinary(compiler, reader, &binary);
           if (ret == 0)
             compiler->binary = binary;
         } else {
@@ -117,7 +118,7 @@ aio_dae_fxShader(xmlTextReaderPtr __restrict reader,
       aio_bind_uniform *bind_uniform;
       int ret;
 
-      ret = aio_dae_fxBindUniform(reader, &bind_uniform);
+      ret = aio_dae_fxBindUniform(shader, reader, &bind_uniform);
       if (ret == 0) {
         if (last_bind_uniform)
           last_bind_uniform->next = bind_uniform;
@@ -133,7 +134,7 @@ aio_dae_fxShader(xmlTextReaderPtr __restrict reader,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      aio_tree_fromXmlNode(nodePtr, &tree, NULL);
+      aio_tree_fromXmlNode(shader, nodePtr, &tree, NULL);
       shader->extra = tree;
 
       _xml_skipElement;

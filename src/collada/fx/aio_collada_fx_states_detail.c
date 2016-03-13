@@ -32,7 +32,7 @@ aio_dae_fxState_enum(xmlTextReaderPtr __restrict reader,
   aio_state_t_ul *state;
   char *attrValStr;
 
-  state = aio_calloc(sizeof(*state), 1);
+  state = aio_calloc(*states, sizeof(*state), 1);
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
@@ -49,7 +49,7 @@ aio_dae_fxState_enum(xmlTextReaderPtr __restrict reader,
     state->val = defaultEnumVal;
   }
 
-  _xml_readAttr(state->param, _s_dae_param);
+  _xml_readAttr(state, state->param, _s_dae_param);
 
   _AIO_APPEND_STATE(last_state, state);
 
@@ -66,7 +66,7 @@ aio_dae_fxState_bool4(xmlTextReaderPtr __restrict reader,
   aio_state_t_bool4 *state;
   char *attrValStr;
 
-  state = aio_calloc(sizeof(*state), 1);
+  state = aio_calloc(*states, sizeof(*state), 1);
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
@@ -79,7 +79,7 @@ aio_dae_fxState_bool4(xmlTextReaderPtr __restrict reader,
       memcpy(state->val, defaultVal, defaultValSize);
   }
 
-  _xml_readAttr(state->param, _s_dae_param);
+  _xml_readAttr(state, state->param, _s_dae_param);
 
   _AIO_APPEND_STATE(last_state, state);
 
@@ -96,7 +96,7 @@ aio_dae_fxState_int2(xmlTextReaderPtr __restrict reader,
   aio_state_t_int2 *state;
   char *attrValStr;
 
-  state = aio_calloc(sizeof(*state), 1);
+  state = aio_calloc(*states, sizeof(*state), 1);
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
@@ -109,7 +109,7 @@ aio_dae_fxState_int2(xmlTextReaderPtr __restrict reader,
       memcpy(state->val, defaultVal, defaultValSize);
   }
 
-  _xml_readAttr(state->param, _s_dae_param);
+  _xml_readAttr(state, state->param, _s_dae_param);
 
   _AIO_APPEND_STATE(last_state, state);
 
@@ -126,7 +126,7 @@ aio_dae_fxState_int4(xmlTextReaderPtr __restrict reader,
   aio_state_t_int4 *state;
   char *attrValStr;
 
-  state = aio_calloc(sizeof(*state), 1);
+  state = aio_calloc(*states, sizeof(*state), 1);
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
@@ -139,7 +139,7 @@ aio_dae_fxState_int4(xmlTextReaderPtr __restrict reader,
       memcpy(state->val, defaultVal, defaultValSize);
   }
 
-  _xml_readAttr(state->param, _s_dae_param);
+  _xml_readAttr(state, state->param, _s_dae_param);
 
   _AIO_APPEND_STATE(last_state, state);
 
@@ -155,7 +155,7 @@ aio_dae_fxState_ul(xmlTextReaderPtr __restrict reader,
   aio_state_t_ul *state;
   char *attrValStr;
 
-  state = aio_calloc(sizeof(*state), 1);
+  state = aio_calloc(*states, sizeof(*state), 1);
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
@@ -171,7 +171,7 @@ aio_dae_fxState_ul(xmlTextReaderPtr __restrict reader,
     state->val = defaultVal;
   }
 
-  _xml_readAttr(state->param, _s_dae_param);
+  _xml_readAttr(state, state->param, _s_dae_param);
 
   _AIO_APPEND_STATE(last_state, state);
 
@@ -187,7 +187,7 @@ aio_dae_fxState_ul_i(xmlTextReaderPtr __restrict reader,
   aio_state_t_ul_i * state;
   char *attrValStr;
 
-  state = aio_calloc(sizeof(*state), 1);
+  state = aio_calloc(*states, sizeof(*state), 1);
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
@@ -203,7 +203,7 @@ aio_dae_fxState_ul_i(xmlTextReaderPtr __restrict reader,
     state->val = defaultVal;
   }
 
-  _xml_readAttr(state->param, _s_dae_param);
+  _xml_readAttr(state, state->param, _s_dae_param);
   _xml_readAttrUsingFn(state->index,
                        _s_dae_index,
                        strtol, NULL, 10);
@@ -222,7 +222,7 @@ aio_dae_fxState_float(xmlTextReaderPtr __restrict reader,
   aio_state_t_float * state;
   char *attrValStr;
 
-  state = aio_calloc(sizeof(*state), 1);
+  state = aio_calloc(*states, sizeof(*state), 1);
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
@@ -234,7 +234,7 @@ aio_dae_fxState_float(xmlTextReaderPtr __restrict reader,
     state->val = defaultVal;
   }
 
-  _xml_readAttr(state->param, _s_dae_param);
+  _xml_readAttr(state, state->param, _s_dae_param);
 
   _AIO_APPEND_STATE(last_state, state);
 
@@ -250,7 +250,7 @@ aio_dae_fxState_float_i(xmlTextReaderPtr __restrict reader,
   aio_state_t_float_i * state;
   char *attrValStr;
 
-  state = aio_calloc(sizeof(*state), 1);
+  state = aio_calloc(*states, sizeof(*state), 1);
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
@@ -262,7 +262,7 @@ aio_dae_fxState_float_i(xmlTextReaderPtr __restrict reader,
     state->val = defaultVal;
   }
 
-  _xml_readAttr(state->param, _s_dae_param);
+  _xml_readAttr(state, state->param, _s_dae_param);
   _xml_readAttrUsingFn(state->index,
                        _s_dae_index,
                        strtol, NULL, 10);
@@ -282,7 +282,7 @@ aio_dae_fxState_float2(xmlTextReaderPtr __restrict reader,
   aio_state_t_float2 *state;
   char *attrValStr;
 
-  state = aio_calloc(sizeof(*state), 1);
+  state = aio_calloc(*states, sizeof(*state), 1);
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
@@ -295,7 +295,7 @@ aio_dae_fxState_float2(xmlTextReaderPtr __restrict reader,
       memcpy(state->val, defaultVal, defaultValSize);
   }
 
-  _xml_readAttr(state->param, _s_dae_param);
+  _xml_readAttr(state, state->param, _s_dae_param);
 
   _AIO_APPEND_STATE(last_state, state);
 
@@ -312,7 +312,7 @@ aio_dae_fxState_float3(xmlTextReaderPtr __restrict reader,
   aio_state_t_float3 *state;
   char *attrValStr;
 
-  state = aio_calloc(sizeof(*state), 1);
+  state = aio_calloc(*states, sizeof(*state), 1);
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
@@ -325,7 +325,7 @@ aio_dae_fxState_float3(xmlTextReaderPtr __restrict reader,
       memcpy(state->val, defaultVal, defaultValSize);
   }
 
-  _xml_readAttr(state->param, _s_dae_param);
+  _xml_readAttr(state, state->param, _s_dae_param);
 
   _AIO_APPEND_STATE(last_state, state);
 
@@ -342,7 +342,7 @@ aio_dae_fxState_float3_i(xmlTextReaderPtr __restrict reader,
   aio_state_t_float3_i *state;
   char *attrValStr;
 
-  state = aio_calloc(sizeof(*state), 1);
+  state = aio_calloc(*states, sizeof(*state), 1);
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
@@ -355,7 +355,7 @@ aio_dae_fxState_float3_i(xmlTextReaderPtr __restrict reader,
       memcpy(state->val, defaultVal, defaultValSize);
   }
 
-  _xml_readAttr(state->param, _s_dae_param);
+  _xml_readAttr(state, state->param, _s_dae_param);
   _xml_readAttrUsingFn(state->index,
                        _s_dae_index,
                        strtol, NULL, 10);
@@ -375,7 +375,7 @@ aio_dae_fxState_float4(xmlTextReaderPtr __restrict reader,
   aio_state_t_float4 *state;
   char *attrValStr;
 
-  state = aio_calloc(sizeof(*state), 1);
+  state = aio_calloc(*states, sizeof(*state), 1);
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
@@ -388,7 +388,7 @@ aio_dae_fxState_float4(xmlTextReaderPtr __restrict reader,
       memcpy(state->val, defaultVal, defaultValSize);
   }
 
-  _xml_readAttr(state->param, _s_dae_param);
+  _xml_readAttr(state, state->param, _s_dae_param);
 
   _AIO_APPEND_STATE(last_state, state);
 
@@ -405,7 +405,7 @@ aio_dae_fxState_float4_i(xmlTextReaderPtr __restrict reader,
   aio_state_t_float4_i *state;
   char *attrValStr;
 
-  state = aio_calloc(sizeof(*state), 1);
+  state = aio_calloc(*states, sizeof(*state), 1);
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
@@ -418,7 +418,7 @@ aio_dae_fxState_float4_i(xmlTextReaderPtr __restrict reader,
       memcpy(state->val, defaultVal, defaultValSize);
   }
 
-  _xml_readAttr(state->param, _s_dae_param);
+  _xml_readAttr(state, state->param, _s_dae_param);
   _xml_readAttrUsingFn(state->index,
                        _s_dae_index,
                        strtol, NULL, 10);
@@ -438,7 +438,7 @@ aio_dae_fxState_float4x4(xmlTextReaderPtr __restrict reader,
   aio_state_t_float4x4 *state;
   char *attrValStr;
 
-  state = aio_calloc(sizeof(*state), 1);
+  state = aio_calloc(*states, sizeof(*state), 1);
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
@@ -451,7 +451,7 @@ aio_dae_fxState_float4x4(xmlTextReaderPtr __restrict reader,
       memcpy(*state->val, defaultVal, defaultValSize);
   }
 
-  _xml_readAttr(state->param, _s_dae_param);
+  _xml_readAttr(state, state->param, _s_dae_param);
 
   _AIO_APPEND_STATE(last_state, state);
 
@@ -469,7 +469,7 @@ aio_dae_fxState_sampler(xmlTextReaderPtr __restrict reader,
   int             nodeType;
   int             nodeRet;
 
-  state = aio_calloc(sizeof(*state), 1);
+  state = aio_calloc(*states, sizeof(*state), 1);
   state->base.state_type = state_type;
 
   _xml_readAttrUsingFn(state->index,
@@ -484,14 +484,15 @@ aio_dae_fxState_sampler(xmlTextReaderPtr __restrict reader,
       int ret;
 
       sampler = NULL;
-      ret = aio_dae_fxSampler(reader,
+      ret = aio_dae_fxSampler(state,
+                              reader,
                               (const char *)nodeName,
                               &sampler);
 
       if (ret == 0)
         state->val = sampler;
     } else if (_xml_eqElm(_s_dae_param)) {
-      _xml_readText(state->param);
+      _xml_readText(state, state->param);
     } else if (_xml_eqElm(_s_dae_index)) {
       _xml_readTextUsingFn(state->index, strtol, NULL, 10);
     } else {
@@ -514,11 +515,11 @@ aio_dae_fxState_str(xmlTextReaderPtr __restrict reader,
                     long state_type) {
   aio_state_t_str * state;
 
-  state = aio_calloc(sizeof(*state), 1);
+  state = aio_calloc(*states, sizeof(*state), 1);
   state->base.state_type = state_type;
 
-  _xml_readAttr(state->val, _s_dae_value);
-  _xml_readAttr(state->param, _s_dae_param);
+  _xml_readAttr(state, state->val, _s_dae_value);
+  _xml_readAttr(state, state->param, _s_dae_param);
   _xml_readAttrUsingFn(state->index, _s_dae_index, strtol, NULL, 10);
 
   _AIO_APPEND_STATE(last_state, state);
@@ -535,7 +536,7 @@ aio_dae_fxStateAlphaFunc(xmlTextReaderPtr __restrict reader,
   int             nodeType;
   int             nodeRet;
   
-  state = aio_calloc(sizeof(*state), 1);
+  state = aio_calloc(*states, sizeof(*state), 1);
   state->base.state_type = AIO_RENDER_STATE_ALPHA_FUNC;
 
   do {
@@ -544,7 +545,7 @@ aio_dae_fxStateAlphaFunc(xmlTextReaderPtr __restrict reader,
     if (_xml_eqElm(_s_dae_func)) {
       char *valStr;
 
-      _xml_readAttr(state->func.param, _s_dae_param);
+      _xml_readAttr(state, state->func.param, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -561,7 +562,7 @@ aio_dae_fxStateAlphaFunc(xmlTextReaderPtr __restrict reader,
 
     } else if (_xml_eqElm(_s_dae_value)) {
       _xml_readAttrUsingFn(state->val.val, _s_dae_value, strtof, NULL);
-      _xml_readAttr(state->val.param, _s_dae_param);
+      _xml_readAttr(state, state->val.param, _s_dae_param);
     } else {
       _xml_skipElement;
     }
@@ -584,7 +585,7 @@ aio_dae_fxStateBlend(xmlTextReaderPtr __restrict reader,
   int            nodeType;
   int            nodeRet;
 
-  state = aio_calloc(sizeof(*state), 1);
+  state = aio_calloc(*states, sizeof(*state), 1);
   state->base.state_type = AIO_RENDER_STATE_BLEND_FUNC;
 
   do {
@@ -593,7 +594,7 @@ aio_dae_fxStateBlend(xmlTextReaderPtr __restrict reader,
     if (_xml_eqElm(_s_dae_src)) {
       char *valStr;
 
-      _xml_readAttr(state->src.param, _s_dae_param);
+      _xml_readAttr(state, state->src.param, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -611,7 +612,7 @@ aio_dae_fxStateBlend(xmlTextReaderPtr __restrict reader,
     } else if (_xml_eqElm(_s_dae_dest)) {
       char *valStr;
 
-      _xml_readAttr(state->src.param, _s_dae_param);
+      _xml_readAttr(state, state->src.param, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -647,7 +648,7 @@ aio_dae_fxStateBlendSep(xmlTextReaderPtr __restrict reader,
   int            nodeType;
   int            nodeRet;
 
-  state = aio_calloc(sizeof(*state), 1);
+  state = aio_calloc(*states, sizeof(*state), 1);
   state->base.state_type = AIO_RENDER_STATE_BLEND_FUNC_SEPARATE;
 
   do {
@@ -656,7 +657,7 @@ aio_dae_fxStateBlendSep(xmlTextReaderPtr __restrict reader,
     if (_xml_eqElm(_s_dae_src_rgb)) {
       char *valStr;
 
-      _xml_readAttr(state->src_rgb.param, _s_dae_param);
+      _xml_readAttr(state, state->src_rgb.param, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -674,7 +675,7 @@ aio_dae_fxStateBlendSep(xmlTextReaderPtr __restrict reader,
     } else if (_xml_eqElm(_s_dae_dest_rgb)) {
       char *valStr;
 
-      _xml_readAttr(state->dest_rgb.param, _s_dae_param);
+      _xml_readAttr(state, state->dest_rgb.param, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -692,7 +693,7 @@ aio_dae_fxStateBlendSep(xmlTextReaderPtr __restrict reader,
     } else if (_xml_eqElm(_s_dae_src_alpha)) {
       char *valStr;
 
-      _xml_readAttr(state->src_alpha.param, _s_dae_param);
+      _xml_readAttr(state, state->src_alpha.param, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -710,7 +711,7 @@ aio_dae_fxStateBlendSep(xmlTextReaderPtr __restrict reader,
     } else if (_xml_eqElm(_s_dae_dest_alpha)) {
       char *valStr;
 
-      _xml_readAttr(state->dest_alpha.param, _s_dae_param);
+      _xml_readAttr(state, state->dest_alpha.param, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -747,7 +748,7 @@ aio_dae_fxStateBlendEqSep(xmlTextReaderPtr __restrict reader,
   int            nodeType;
   int            nodeRet;
 
-  state = aio_calloc(sizeof(*state), 1);
+  state = aio_calloc(*states, sizeof(*state), 1);
   state->base.state_type = AIO_RENDER_STATE_BLEND_EQUATION_SEPARATE;
 
   do {
@@ -756,7 +757,7 @@ aio_dae_fxStateBlendEqSep(xmlTextReaderPtr __restrict reader,
     if (_xml_eqElm(_s_dae_rgb)) {
       char *valStr;
 
-      _xml_readAttr(state->rgb.param, _s_dae_param);
+      _xml_readAttr(state, state->rgb.param, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -774,7 +775,7 @@ aio_dae_fxStateBlendEqSep(xmlTextReaderPtr __restrict reader,
     } else if (_xml_eqElm(_s_dae_alpha)) {
       char *valStr;
 
-      _xml_readAttr(state->alpha.param, _s_dae_param);
+      _xml_readAttr(state, state->alpha.param, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -810,7 +811,7 @@ aio_dae_fxStateColorMaterial(xmlTextReaderPtr __restrict reader,
   int            nodeType;
   int            nodeRet;
 
-  state = aio_calloc(sizeof(*state), 1);
+  state = aio_calloc(*states, sizeof(*state), 1);
   state->base.state_type = AIO_RENDER_STATE_COLOR_MATERIAL;
 
   do {
@@ -819,7 +820,7 @@ aio_dae_fxStateColorMaterial(xmlTextReaderPtr __restrict reader,
     if (_xml_eqElm(_s_dae_face)) {
       char *valStr;
 
-      _xml_readAttr(state->face.param, _s_dae_param);
+      _xml_readAttr(state, state->face.param, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -837,7 +838,7 @@ aio_dae_fxStateColorMaterial(xmlTextReaderPtr __restrict reader,
     } else if (_xml_eqElm(_s_dae_mode)) {
       char *valStr;
 
-      _xml_readAttr(state->mode.param, _s_dae_param);
+      _xml_readAttr(state, state->mode.param, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -873,7 +874,7 @@ aio_dae_fxStatePolyMode(xmlTextReaderPtr __restrict reader,
   int            nodeType;
   int            nodeRet;
 
-  state = aio_calloc(sizeof(*state), 1);
+  state = aio_calloc(*states, sizeof(*state), 1);
   state->base.state_type = AIO_RENDER_STATE_POLYGON_MODE;
 
   do {
@@ -882,7 +883,7 @@ aio_dae_fxStatePolyMode(xmlTextReaderPtr __restrict reader,
     if (_xml_eqElm(_s_dae_face)) {
       char *valStr;
 
-      _xml_readAttr(state->face.param, _s_dae_param);
+      _xml_readAttr(state, state->face.param, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -900,7 +901,7 @@ aio_dae_fxStatePolyMode(xmlTextReaderPtr __restrict reader,
     } else if (_xml_eqElm(_s_dae_mode)) {
       char *valStr;
 
-      _xml_readAttr(state->mode.param, _s_dae_param);
+      _xml_readAttr(state, state->mode.param, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -936,7 +937,7 @@ aio_dae_fxStateStencilFunc(xmlTextReaderPtr __restrict reader,
   int            nodeType;
   int            nodeRet;
 
-  state = aio_calloc(sizeof(*state), 1);
+  state = aio_calloc(*states, sizeof(*state), 1);
   state->base.state_type = AIO_RENDER_STATE_STENCIL_FUNC;
 
   do {
@@ -945,7 +946,7 @@ aio_dae_fxStateStencilFunc(xmlTextReaderPtr __restrict reader,
     if (_xml_eqElm(_s_dae_stencil_func)) {
       char *valStr;
 
-      _xml_readAttr(state->func.param, _s_dae_param);
+      _xml_readAttr(state, state->func.param, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -963,7 +964,7 @@ aio_dae_fxStateStencilFunc(xmlTextReaderPtr __restrict reader,
     } else if (_xml_eqElm(_s_dae_ref)) {
       char *valStr;
 
-      _xml_readAttr(state->ref.param, _s_dae_param);
+      _xml_readAttr(state, state->ref.param, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -974,7 +975,7 @@ aio_dae_fxStateStencilFunc(xmlTextReaderPtr __restrict reader,
     } else if (_xml_eqElm(_s_dae_mask)) {
       char *valStr;
 
-      _xml_readAttr(state->mask.param, _s_dae_param);
+      _xml_readAttr(state, state->mask.param, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
       if (valStr) {
@@ -1010,7 +1011,7 @@ aio_dae_fxStateStencilOp(xmlTextReaderPtr __restrict reader,
   int            nodeType;
   int            nodeRet;
 
-  state = aio_calloc(sizeof(*state), 1);
+  state = aio_calloc(*states, sizeof(*state), 1);
   state->base.state_type = AIO_RENDER_STATE_STENCIL_OP;
 
   do {
@@ -1019,7 +1020,7 @@ aio_dae_fxStateStencilOp(xmlTextReaderPtr __restrict reader,
     if (_xml_eqElm(_s_dae_fail)) {
       char *valStr;
 
-      _xml_readAttr(state->fail.param, _s_dae_param);
+      _xml_readAttr(state, state->fail.param, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -1036,7 +1037,7 @@ aio_dae_fxStateStencilOp(xmlTextReaderPtr __restrict reader,
     } else if (_xml_eqElm(_s_dae_zfail)) {
       char *valStr;
 
-      _xml_readAttr(state->zfail.param, _s_dae_param);
+      _xml_readAttr(state, state->zfail.param, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -1053,7 +1054,7 @@ aio_dae_fxStateStencilOp(xmlTextReaderPtr __restrict reader,
     } else if (_xml_eqElm(_s_dae_zpass)) {
       char *valStr;
 
-      _xml_readAttr(state->zpass.param, _s_dae_param);
+      _xml_readAttr(state, state->zpass.param, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -1089,7 +1090,7 @@ aio_dae_fxStateStencilFuncSep(xmlTextReaderPtr __restrict reader,
   int            nodeType;
   int            nodeRet;
 
-  state = aio_calloc(sizeof(*state), 1);
+  state = aio_calloc(*states, sizeof(*state), 1);
   state->base.state_type = AIO_RENDER_STATE_STENCIL_FUNC_SEPARATE;
 
   do {
@@ -1098,7 +1099,7 @@ aio_dae_fxStateStencilFuncSep(xmlTextReaderPtr __restrict reader,
     if (_xml_eqElm(_s_dae_front)) {
       char *valStr;
 
-      _xml_readAttr(state->front.param, _s_dae_param);
+      _xml_readAttr(state, state->front.param, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -1115,7 +1116,7 @@ aio_dae_fxStateStencilFuncSep(xmlTextReaderPtr __restrict reader,
     } else if (_xml_eqElm(_s_dae_back)) {
       char *valStr;
 
-      _xml_readAttr(state->back.param, _s_dae_param);
+      _xml_readAttr(state, state->back.param, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -1132,7 +1133,7 @@ aio_dae_fxStateStencilFuncSep(xmlTextReaderPtr __restrict reader,
     } else if (_xml_eqElm(_s_dae_ref)) {
       char *valStr;
 
-      _xml_readAttr(state->ref.param, _s_dae_param);
+      _xml_readAttr(state, state->ref.param, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -1143,7 +1144,7 @@ aio_dae_fxStateStencilFuncSep(xmlTextReaderPtr __restrict reader,
     } else if (_xml_eqElm(_s_dae_mask)) {
       char *valStr;
 
-      _xml_readAttr(state->mask.param, _s_dae_param);
+      _xml_readAttr(state, state->mask.param, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
       if (valStr) {
@@ -1179,7 +1180,7 @@ aio_dae_fxStateStencilOpSep(xmlTextReaderPtr __restrict reader,
   int            nodeType;
   int            nodeRet;
 
-  state = aio_calloc(sizeof(*state), 1);
+  state = aio_calloc(*states, sizeof(*state), 1);
   state->base.state_type = AIO_RENDER_STATE_STENCIL_OP_SEPARATE;
 
   do {
@@ -1188,7 +1189,7 @@ aio_dae_fxStateStencilOpSep(xmlTextReaderPtr __restrict reader,
     if (_xml_eqElm(_s_dae_face)) {
       char *valStr;
 
-      _xml_readAttr(state->face.param, _s_dae_param);
+      _xml_readAttr(state, state->face.param, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -1205,7 +1206,7 @@ aio_dae_fxStateStencilOpSep(xmlTextReaderPtr __restrict reader,
     } else if (_xml_eqElm(_s_dae_fail)) {
       char *valStr;
 
-      _xml_readAttr(state->fail.param, _s_dae_param);
+      _xml_readAttr(state, state->fail.param, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -1222,7 +1223,7 @@ aio_dae_fxStateStencilOpSep(xmlTextReaderPtr __restrict reader,
     } else if (_xml_eqElm(_s_dae_zfail)) {
       char *valStr;
 
-      _xml_readAttr(state->zfail.param, _s_dae_param);
+      _xml_readAttr(state, state->zfail.param, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -1239,7 +1240,7 @@ aio_dae_fxStateStencilOpSep(xmlTextReaderPtr __restrict reader,
     } else if (_xml_eqElm(_s_dae_zpass)) {
       char *valStr;
 
-      _xml_readAttr(state->zpass.param, _s_dae_param);
+      _xml_readAttr(state, state->zpass.param, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -1275,7 +1276,7 @@ aio_dae_fxStateStencilMaskSep(xmlTextReaderPtr __restrict reader,
   int            nodeType;
   int            nodeRet;
 
-  state = aio_calloc(sizeof(*state), 1);
+  state = aio_calloc(*states, sizeof(*state), 1);
   state->base.state_type = AIO_RENDER_STATE_STENCIL_MASK_SEPARATE;
 
   do {
@@ -1284,7 +1285,7 @@ aio_dae_fxStateStencilMaskSep(xmlTextReaderPtr __restrict reader,
     if (_xml_eqElm(_s_dae_face)) {
       char *valStr;
 
-      _xml_readAttr(state->face.param, _s_dae_param);
+      _xml_readAttr(state, state->face.param, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -1301,7 +1302,7 @@ aio_dae_fxStateStencilMaskSep(xmlTextReaderPtr __restrict reader,
     } else if (_xml_eqElm(_s_dae_mask)) {
       char *valStr;
 
-      _xml_readAttr(state->mask.param, _s_dae_param);
+      _xml_readAttr(state, state->mask.param, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
       if (valStr) {

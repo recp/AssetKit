@@ -49,7 +49,7 @@ aio_dae_doc(aio_doc ** __restrict dest,
     return -1;
   }
 
-  doc = aio_calloc(sizeof(*doc), 1);
+  doc = aio_calloc(NULL, sizeof(*doc), 1);
   memset(doc, '\0', sizeof(*doc));
 
   _xml_readNext;
@@ -63,10 +63,10 @@ aio_dae_doc(aio_doc ** __restrict dest,
       aio_docinf   * docInf;
       int          ret;
 
-      docInf = aio_calloc(sizeof(*docInf), 1);
+      docInf = aio_calloc(doc, sizeof(*docInf), 1);
       assetInf = &docInf->base;
 
-      ret = aio_dae_assetInf(reader, &assetInf);
+      ret = aio_dae_assetInf(docInf, reader, &assetInf);
       if (ret == 0) {
         docInf->ftype = AIO_FILE_TYPE_COLLADA;
         doc->docinf = *docInf;
@@ -77,8 +77,8 @@ aio_dae_doc(aio_doc ** __restrict dest,
 
       libcam = &doc->lib.cameras;
 
-      _xml_readAttr(libcam->id, _s_dae_id);
-      _xml_readAttr(libcam->name, _s_dae_name);
+      _xml_readAttr(libcam, libcam->id, _s_dae_id);
+      _xml_readAttr(libcam, libcam->name, _s_dae_name);
 
       lastcam = libcam->next;
 
@@ -90,7 +90,7 @@ aio_dae_doc(aio_doc ** __restrict dest,
           int ret;
 
           assetInf = NULL;
-          ret = aio_dae_assetInf(reader, &assetInf);
+          ret = aio_dae_assetInf(doc, reader, &assetInf);
           if (ret == 0)
             doc->lib.cameras.inf = assetInf;
 
@@ -99,7 +99,7 @@ aio_dae_doc(aio_doc ** __restrict dest,
           int         ret;
 
           acamera = NULL;
-          ret = aio_dae_camera(reader, &acamera);
+          ret = aio_dae_camera(doc, reader, &acamera);
           if (ret == 0) {
             if (lastcam)
               lastcam->next = acamera;
@@ -115,7 +115,7 @@ aio_dae_doc(aio_doc ** __restrict dest,
           nodePtr = xmlTextReaderExpand(reader);
           tree = NULL;
 
-          aio_tree_fromXmlNode(nodePtr, &tree, NULL);
+          aio_tree_fromXmlNode(doc, nodePtr, &tree, NULL);
           libcam->extra = tree;
 
           _xml_skipElement;
@@ -132,8 +132,8 @@ aio_dae_doc(aio_doc ** __restrict dest,
 
       liblight = &doc->lib.lights;
 
-      _xml_readAttr(liblight->id, _s_dae_id);
-      _xml_readAttr(liblight->name, _s_dae_name);
+      _xml_readAttr(liblight, liblight->id, _s_dae_id);
+      _xml_readAttr(liblight, liblight->name, _s_dae_name);
 
       lastlight = liblight->next;
 
@@ -145,7 +145,7 @@ aio_dae_doc(aio_doc ** __restrict dest,
           int ret;
 
           assetInf = NULL;
-          ret = aio_dae_assetInf(reader, &assetInf);
+          ret = aio_dae_assetInf(doc, reader, &assetInf);
           if (ret == 0)
             doc->lib.lights.inf = assetInf;
 
@@ -154,7 +154,7 @@ aio_dae_doc(aio_doc ** __restrict dest,
           int        ret;
 
           alight = NULL;
-          ret = aio_dae_light(reader, &alight);
+          ret = aio_dae_light(doc, reader, &alight);
           if (ret == 0) {
             if (lastlight)
               lastlight->next = alight;
@@ -170,7 +170,7 @@ aio_dae_doc(aio_doc ** __restrict dest,
           nodePtr = xmlTextReaderExpand(reader);
           tree = NULL;
 
-          aio_tree_fromXmlNode(nodePtr, &tree, NULL);
+          aio_tree_fromXmlNode(doc, nodePtr, &tree, NULL);
           liblight->extra = tree;
 
           _xml_skipElement;
@@ -189,8 +189,8 @@ aio_dae_doc(aio_doc ** __restrict dest,
 
       libeffect = &doc->lib.effects;
 
-      _xml_readAttr(libeffect->id, _s_dae_id);
-      _xml_readAttr(libeffect->name, _s_dae_name);
+      _xml_readAttr(libeffect, libeffect->id, _s_dae_id);
+      _xml_readAttr(libeffect, libeffect->name, _s_dae_name);
 
       lasteffect = libeffect->next;
 
@@ -202,7 +202,7 @@ aio_dae_doc(aio_doc ** __restrict dest,
           int ret;
 
           assetInf = NULL;
-          ret = aio_dae_assetInf(reader, &assetInf);
+          ret = aio_dae_assetInf(doc, reader, &assetInf);
           if (ret == 0)
             doc->lib.effects.inf = assetInf;
 
@@ -210,7 +210,7 @@ aio_dae_doc(aio_doc ** __restrict dest,
           aio_effect *anEffect;
           int         ret;
 
-          ret = aio_dae_effect(reader, &anEffect);
+          ret = aio_dae_effect(doc, reader, &anEffect);
           if (ret == 0) {
             if (lasteffect)
               lasteffect->next = anEffect;
@@ -226,7 +226,7 @@ aio_dae_doc(aio_doc ** __restrict dest,
           nodePtr = xmlTextReaderExpand(reader);
           tree = NULL;
 
-          aio_tree_fromXmlNode(nodePtr, &tree, NULL);
+          aio_tree_fromXmlNode(doc, nodePtr, &tree, NULL);
           libeffect->extra = tree;
 
           _xml_skipElement;
@@ -244,8 +244,8 @@ aio_dae_doc(aio_doc ** __restrict dest,
 
       libimg = &doc->lib.images;
 
-      _xml_readAttr(libimg->id, _s_dae_id);
-      _xml_readAttr(libimg->name, _s_dae_name);
+      _xml_readAttr(libimg, libimg->id, _s_dae_id);
+      _xml_readAttr(libimg, libimg->name, _s_dae_name);
 
       lastimg = libimg->next;
 
@@ -257,7 +257,7 @@ aio_dae_doc(aio_doc ** __restrict dest,
           int ret;
 
           assetInf = NULL;
-          ret = aio_dae_assetInf(reader, &assetInf);
+          ret = aio_dae_assetInf(doc, reader, &assetInf);
           if (ret == 0)
             doc->lib.images.inf = assetInf;
 
@@ -265,7 +265,7 @@ aio_dae_doc(aio_doc ** __restrict dest,
           aio_image *anImg;
           int        ret;
           
-          ret = aio_dae_fxImage(reader, &anImg);
+          ret = aio_dae_fxImage(doc, reader, &anImg);
           if (ret == 0) {
             if (lastimg)
               lastimg->next = anImg;
@@ -281,7 +281,7 @@ aio_dae_doc(aio_doc ** __restrict dest,
           nodePtr = xmlTextReaderExpand(reader);
           tree = NULL;
 
-          aio_tree_fromXmlNode(nodePtr, &tree, NULL);
+          aio_tree_fromXmlNode(doc, nodePtr, &tree, NULL);
           libimg->extra = tree;
 
           _xml_skipElement;

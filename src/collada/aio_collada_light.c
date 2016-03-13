@@ -11,7 +11,8 @@
 #include "aio_collada_technique.h"
 
 int _assetio_hide
-aio_dae_light(xmlTextReaderPtr __restrict reader,
+aio_dae_light(void * __restrict memParent,
+              xmlTextReaderPtr __restrict reader,
               aio_light ** __restrict dest) {
   aio_light            *light;
   aio_technique        *last_tq;
@@ -20,10 +21,10 @@ aio_dae_light(xmlTextReaderPtr __restrict reader,
   int nodeType;
   int nodeRet;
 
-  light = aio_calloc(sizeof(*light), 1);
+  light = aio_calloc(memParent, sizeof(*light), 1);
 
-  _xml_readAttr(light->id, _s_dae_id);
-  _xml_readAttr(light->name, _s_dae_name);
+  _xml_readAttr(light, light->id, _s_dae_id);
+  _xml_readAttr(light, light->name, _s_dae_name);
 
   last_tq = light->technique;
   last_tc = light->technique_common;
@@ -36,7 +37,7 @@ aio_dae_light(xmlTextReaderPtr __restrict reader,
       int ret;
 
       assetInf = NULL;
-      ret = aio_dae_assetInf(reader, &assetInf);
+      ret = aio_dae_assetInf(light, reader, &assetInf);
       if (ret == 0)
         light->inf = assetInf;
 
@@ -45,7 +46,7 @@ aio_dae_light(xmlTextReaderPtr __restrict reader,
       int                   ret;
 
       tc = NULL;
-      ret = aio_dae_techniquec(reader, &tc);
+      ret = aio_dae_techniquec(light, reader, &tc);
       if (ret == 0) {
         if (last_tc)
           last_tc->next = tc;
@@ -60,7 +61,7 @@ aio_dae_light(xmlTextReaderPtr __restrict reader,
       int            ret;
 
       tq = NULL;
-      ret = aio_dae_technique(reader, &tq);
+      ret = aio_dae_technique(light, reader, &tq);
       if (ret == 0) {
         if (last_tq)
           last_tq->next = tq;
@@ -76,7 +77,7 @@ aio_dae_light(xmlTextReaderPtr __restrict reader,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      aio_tree_fromXmlNode(nodePtr, &tree, NULL);
+      aio_tree_fromXmlNode(light, nodePtr, &tree, NULL);
       light->extra = tree;
 
       _xml_skipElement;

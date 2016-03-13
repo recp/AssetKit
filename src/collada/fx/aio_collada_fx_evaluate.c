@@ -33,14 +33,15 @@ static aio_enumpair evaluateMap[] = {
 static size_t evaluateMapLen = 0;
 
 int _assetio_hide
-aio_dae_fxEvaluate(xmlTextReaderPtr __restrict reader,
+aio_dae_fxEvaluate(void * __restrict memParent,
+                   xmlTextReaderPtr __restrict reader,
                    aio_evaluate ** __restrict dest) {
   aio_evaluate  *evaluate;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
 
-  evaluate = aio_calloc(sizeof(*evaluate), 1);
+  evaluate = aio_calloc(memParent, sizeof(*evaluate), 1);
 
   if (evaluateMapLen == 0) {
     evaluateMapLen = AIO_ARRAY_LEN(evaluateMap);
@@ -68,7 +69,7 @@ aio_dae_fxEvaluate(xmlTextReaderPtr __restrict reader,
         aio_evaluate_target *evaluate_target;
         const xmlChar *targetNodeName;
 
-        evaluate_target = aio_calloc(sizeof(*evaluate_target), 1);
+        evaluate_target = aio_calloc(evaluate, sizeof(*evaluate_target), 1);
 
         _xml_readAttrUsingFn(evaluate_target->index,
                              _s_dae_index,
@@ -95,7 +96,8 @@ aio_dae_fxEvaluate(xmlTextReaderPtr __restrict reader,
             aio_param * param;
             int         ret;
 
-            ret = aio_dae_param(reader,
+            ret = aio_dae_param(evaluate_target,
+                                reader,
                                 AIO_PARAM_TYPE_BASIC,
                                 &param);
 
@@ -105,7 +107,9 @@ aio_dae_fxEvaluate(xmlTextReaderPtr __restrict reader,
             aio_image_instance *imageInst;
             int ret;
 
-            ret = aio_dae_fxImageInstance(reader, &imageInst);
+            ret = aio_dae_fxImageInstance(evaluate_target,
+                                          reader,
+                                          &imageInst);
 
             if (ret == 0)
               evaluate_target->image_inst = imageInst;
@@ -132,7 +136,7 @@ aio_dae_fxEvaluate(xmlTextReaderPtr __restrict reader,
       }
       case k_s_dae_color_clear: {
         aio_color_clear *color_clear;
-        color_clear = aio_calloc(sizeof(*color_clear), 1);
+        color_clear = aio_calloc(evaluate, sizeof(*color_clear), 1);
 
         _xml_readAttrUsingFn(color_clear->index,
                              _s_dae_index,
@@ -145,7 +149,7 @@ aio_dae_fxEvaluate(xmlTextReaderPtr __restrict reader,
       }
       case k_s_dae_depth_clear:{
         aio_depth_clear *depth_clear;
-        depth_clear = aio_calloc(sizeof(*depth_clear), 1);
+        depth_clear = aio_calloc(evaluate, sizeof(*depth_clear), 1);
 
         _xml_readAttrUsingFn(depth_clear->index,
                              _s_dae_index,
@@ -159,7 +163,7 @@ aio_dae_fxEvaluate(xmlTextReaderPtr __restrict reader,
       }
       case k_s_dae_stencil_clear:{
         aio_stencil_clear *stencil_clear;
-        stencil_clear = aio_calloc(sizeof(*stencil_clear), 1);
+        stencil_clear = aio_calloc(evaluate, sizeof(*stencil_clear), 1);
 
         _xml_readAttrUsingFn(stencil_clear->index,
                              _s_dae_index,
@@ -173,7 +177,7 @@ aio_dae_fxEvaluate(xmlTextReaderPtr __restrict reader,
       }
       case k_s_dae_draw: {
         char *strVal;
-        _xml_readText(strVal);
+        _xml_readText(evaluate, strVal);
 
         if (strVal) {
           evaluate->draw.str_val = strVal;

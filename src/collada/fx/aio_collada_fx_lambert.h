@@ -13,7 +13,8 @@
 typedef struct _xmlTextReader *xmlTextReaderPtr;
 
 int _assetio_hide
-aio_dae_fxLambert(xmlTextReaderPtr __restrict reader,
+aio_dae_fxLambert(void * __restrict memParent,
+                  xmlTextReaderPtr __restrict reader,
                   aio_lambert ** __restrict dest);
 
 #endif /* __libassetio__aio_collada_fx_lambert__h_ */

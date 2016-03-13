@@ -13,7 +13,8 @@
 typedef struct _xmlTextReader *xmlTextReaderPtr;
 
 int _assetio_hide
-aio_dae_value(xmlTextReaderPtr __restrict reader,
+aio_dae_value(void * __restrict memParent,
+              xmlTextReaderPtr __restrict reader,
               void ** __restrict dest,
               aio_value_type * __restrict val_type);
 

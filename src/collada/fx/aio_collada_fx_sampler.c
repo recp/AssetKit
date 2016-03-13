@@ -46,7 +46,8 @@ static aio_enumpair fxSamplerCMap[] = {
 static size_t fxSamplerCMapLen = 0;
 
 int _assetio_hide
-aio_dae_fxSampler(xmlTextReaderPtr __restrict reader,
+aio_dae_fxSampler(void * __restrict memParent,
+                  xmlTextReaderPtr __restrict reader,
                   const char *elm,
                   aio_fx_sampler_common ** __restrict dest) {
   aio_fx_sampler_common *sampler;
@@ -54,7 +55,7 @@ aio_dae_fxSampler(xmlTextReaderPtr __restrict reader,
   int            nodeType;
   int            nodeRet;
 
-  sampler = aio_calloc(sizeof(*sampler), 1);
+  sampler = aio_calloc(memParent, sizeof(*sampler), 1);
 
   if (fxSamplerCMapLen == 0) {
     fxSamplerCMapLen = AIO_ARRAY_LEN(fxSamplerCMap);
@@ -80,14 +81,15 @@ aio_dae_fxSampler(xmlTextReaderPtr __restrict reader,
         aio_image_instance * imageInst;
         int ret;
 
-        ret = aio_dae_fxImageInstance(reader, &imageInst);
+        ret = aio_dae_fxImageInstance(sampler, reader, &imageInst);
 
         if (ret == 0)
           sampler->image_inst = imageInst;
         break;
       }
       case k_s_dae_texcoord:
-        _xml_readAttr(sampler->texcoord.semantic,
+        _xml_readAttr(sampler,
+                      sampler->texcoord.semantic,
                       _s_dae_semantic);
         break;
       case k_s_dae_wrap_s:
@@ -124,7 +126,7 @@ aio_dae_fxSampler(xmlTextReaderPtr __restrict reader,
         aio_color *color;
         int        ret;
 
-        color = aio_calloc(sizeof(*color), 1);
+        color = aio_calloc(sampler, sizeof(*color), 1);
         ret   = aio_dae_color(reader, true, color);
 
         if (ret == 0)
@@ -163,7 +165,7 @@ aio_dae_fxSampler(xmlTextReaderPtr __restrict reader,
         nodePtr = xmlTextReaderExpand(reader);
         tree = NULL;
 
-        aio_tree_fromXmlNode(nodePtr, &tree, NULL);
+        aio_tree_fromXmlNode(sampler, nodePtr, &tree, NULL);
         sampler->extra = tree;
 
         _xml_skipElement;

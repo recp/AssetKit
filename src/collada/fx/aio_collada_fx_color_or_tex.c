@@ -11,7 +11,8 @@
 #include "aio_collada_fx_enums.h"
 
 int _assetio_hide
-aio_dae_colorOrTex(xmlTextReaderPtr __restrict reader,
+aio_dae_colorOrTex(void * __restrict memParent,
+                   xmlTextReaderPtr __restrict reader,
                    const char * elm,
                    aio_fx_color_or_tex ** __restrict dest) {
   aio_fx_color_or_tex *colorOrTex;
@@ -22,9 +23,9 @@ aio_dae_colorOrTex(xmlTextReaderPtr __restrict reader,
   int            nodeType;
   int            nodeRet;
 
-  colorOrTex = aio_calloc(sizeof(*colorOrTex), 1);
+  colorOrTex = aio_calloc(memParent, sizeof(*colorOrTex), 1);
 
-  _xml_readAttr(opaque, _s_dae_opaque);
+  _xml_readAttr(colorOrTex, opaque, _s_dae_opaque);
   if (opaque) {
     colorOrTex->opaque = aio_dae_fxEnumOpaque(opaque);
     aio_free(opaque);
@@ -39,9 +40,9 @@ aio_dae_colorOrTex(xmlTextReaderPtr __restrict reader,
       aio_color *color;
       char *colorStr;
 
-      color = aio_calloc(sizeof(*color), 1);
+      color = aio_calloc(colorOrTex, sizeof(*color), 1);
 
-      _xml_readAttr(color->sid, _s_dae_sid);
+      _xml_readAttr(color, color->sid, _s_dae_sid);
       _xml_readMutText(colorStr);
 
       if (colorStr) {
@@ -52,9 +53,9 @@ aio_dae_colorOrTex(xmlTextReaderPtr __restrict reader,
     } else if (_xml_eqElm(_s_dae_texture)) {
       aio_fx_texture *tex;
 
-      tex = aio_calloc(sizeof(*tex), 1);
-      _xml_readAttr(tex->texture, _s_dae_texture);
-      _xml_readAttr(tex->texcoord, _s_dae_texcoord);
+      tex = aio_calloc(colorOrTex, sizeof(*tex), 1);
+      _xml_readAttr(tex, tex->texture, _s_dae_texture);
+      _xml_readAttr(tex, tex->texcoord, _s_dae_texcoord);
 
       if (!xmlTextReaderIsEmptyElement(reader)) {
         do {
@@ -67,7 +68,7 @@ aio_dae_colorOrTex(xmlTextReaderPtr __restrict reader,
             nodePtr = xmlTextReaderExpand(reader);
             tree = NULL;
 
-            aio_tree_fromXmlNode(nodePtr, &tree, NULL);
+            aio_tree_fromXmlNode(tex, nodePtr, &tree, NULL);
             tex->extra = tree;
 
             _xml_skipElement;
@@ -83,7 +84,8 @@ aio_dae_colorOrTex(xmlTextReaderPtr __restrict reader,
       aio_param * param;
       int         ret;
 
-      ret = aio_dae_param(reader,
+      ret = aio_dae_param(colorOrTex,
+                          reader,
                           AIO_PARAM_TYPE_BASIC,
                           &param);
 

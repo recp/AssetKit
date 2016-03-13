@@ -37,7 +37,8 @@ static aio_enumpair blinnPhongMap[] = {
 static size_t blinnPhongMapLen = 0;
 
 int _assetio_hide
-aio_dae_blinn_phong(xmlTextReaderPtr __restrict reader,
+aio_dae_blinn_phong(void * __restrict memParent,
+                    xmlTextReaderPtr __restrict reader,
                     const char * elm,
                     aio_blinn_phong ** __restrict dest) {
   aio_blinn_phong *blinn_phong;
@@ -46,7 +47,7 @@ aio_dae_blinn_phong(xmlTextReaderPtr __restrict reader,
   int            nodeRet;
 
 
-  blinn_phong = aio_calloc(sizeof(*blinn_phong), 1);
+  blinn_phong = aio_calloc(memParent, sizeof(*blinn_phong), 1);
 
   if (blinnPhongMapLen == 0) {
     blinnPhongMapLen = AIO_ARRAY_LEN(blinnPhongMap);
@@ -77,7 +78,8 @@ aio_dae_blinn_phong(xmlTextReaderPtr __restrict reader,
         aio_fx_color_or_tex *colorOrTex;
         int ret;
 
-        ret = aio_dae_colorOrTex(reader,
+        ret = aio_dae_colorOrTex(blinn_phong,
+                                 reader,
                                  (const char *)nodeName,
                                  &colorOrTex);
         if (ret == 0) {
@@ -113,7 +115,8 @@ aio_dae_blinn_phong(xmlTextReaderPtr __restrict reader,
         aio_fx_float_or_param * floatOrParam;
         int ret;
 
-        ret = aio_dae_floatOrParam(reader,
+        ret = aio_dae_floatOrParam(blinn_phong,
+                                   reader,
                                    (const char *)nodeName,
                                    &floatOrParam);
 

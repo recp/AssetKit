@@ -10,7 +10,8 @@
 #include "../aio_collada_param.h"
 
 int _assetio_hide
-aio_dae_floatOrParam(xmlTextReaderPtr __restrict reader,
+aio_dae_floatOrParam(void * __restrict memParent,
+                     xmlTextReaderPtr __restrict reader,
                      const char * elm,
                      aio_fx_float_or_param ** __restrict dest) {
   aio_fx_float_or_param *floatOrParam;
@@ -20,7 +21,7 @@ aio_dae_floatOrParam(xmlTextReaderPtr __restrict reader,
   int            nodeType;
   int            nodeRet;
 
-  floatOrParam = aio_calloc(sizeof(*floatOrParam), 1);
+  floatOrParam = aio_calloc(memParent, sizeof(*floatOrParam), 1);
   last_param = NULL;
 
   do {
@@ -30,8 +31,8 @@ aio_dae_floatOrParam(xmlTextReaderPtr __restrict reader,
       aio_basic_attrf * valuef;
       const char * floatStr;
 
-      valuef = aio_calloc(sizeof(*valuef), 1);
-      _xml_readAttr(valuef->sid, _s_dae_sid);
+      valuef = aio_calloc(floatOrParam, sizeof(*valuef), 1);
+      _xml_readAttr(valuef, valuef->sid, _s_dae_sid);
       _xml_readConstText(floatStr);
       if (floatStr)
         valuef->val = strtof(floatStr, NULL);
@@ -41,7 +42,8 @@ aio_dae_floatOrParam(xmlTextReaderPtr __restrict reader,
       aio_param * param;
       int         ret;
 
-      ret = aio_dae_param(reader,
+      ret = aio_dae_param(floatOrParam,
+                          reader,
                           AIO_PARAM_TYPE_BASIC,
                           &param);
 

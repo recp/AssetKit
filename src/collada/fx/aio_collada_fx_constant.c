@@ -29,7 +29,8 @@ static aio_enumpair constantMap[] = {
 static size_t constantMapLen = 0;
 
 int _assetio_hide
-aio_dae_fxConstant(xmlTextReaderPtr __restrict reader,
+aio_dae_fxConstant(void * __restrict memParent,
+                   xmlTextReaderPtr __restrict reader,
                    aio_constant_fx ** __restrict dest) {
   aio_constant_fx *constant;
   const xmlChar *nodeName;
@@ -37,7 +38,7 @@ aio_dae_fxConstant(xmlTextReaderPtr __restrict reader,
   int            nodeRet;
 
 
-  constant = aio_calloc(sizeof(*constant), 1);
+  constant = aio_calloc(memParent, sizeof(*constant), 1);
 
   if (constantMapLen == 0) {
     constantMapLen = AIO_ARRAY_LEN(constantMap);
@@ -65,7 +66,8 @@ aio_dae_fxConstant(xmlTextReaderPtr __restrict reader,
         aio_fx_color_or_tex *colorOrTex;
         int ret;
 
-        ret = aio_dae_colorOrTex(reader,
+        ret = aio_dae_colorOrTex(constant,
+                                 reader,
                                  (const char *)nodeName,
                                  &colorOrTex);
         if (ret == 0) {
@@ -91,7 +93,8 @@ aio_dae_fxConstant(xmlTextReaderPtr __restrict reader,
         aio_fx_float_or_param * floatOrParam;
         int ret;
 
-        ret = aio_dae_floatOrParam(reader,
+        ret = aio_dae_floatOrParam(constant,
+                                   reader,
                                    (const char *)nodeName,
                                    &floatOrParam);
 

@@ -13,7 +13,8 @@
 typedef struct _xmlTextReader *xmlTextReaderPtr;
 
 int _assetio_hide
-aio_dae_floatOrParam(xmlTextReaderPtr __restrict reader,
+aio_dae_floatOrParam(void * __restrict memParent,
+                     xmlTextReaderPtr __restrict reader,
                      const char * elm,
                      aio_fx_float_or_param ** __restrict dest);
 

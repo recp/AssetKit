@@ -17,18 +17,19 @@
 #include "aio_collada_fx_pass.h"
 
 int _assetio_hide
-aio_dae_techniqueFx(xmlTextReaderPtr __restrict reader,
-               aio_technique_fx ** __restrict dest) {
+aio_dae_techniqueFx(void * __restrict memParent,
+                    xmlTextReaderPtr __restrict reader,
+                    aio_technique_fx ** __restrict dest) {
   aio_technique_fx *technique;
   aio_annotate     *last_annotate;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
 
-  technique = aio_calloc(sizeof(*technique), 1);
+  technique = aio_calloc(memParent, sizeof(*technique), 1);
 
-  _xml_readAttr(technique->id, _s_dae_id);
-  _xml_readAttr(technique->sid, _s_dae_sid);
+  _xml_readAttr(technique, technique->id, _s_dae_id);
+  _xml_readAttr(technique, technique->sid, _s_dae_sid);
 
   last_annotate = NULL;
 
@@ -40,14 +41,14 @@ aio_dae_techniqueFx(xmlTextReaderPtr __restrict reader,
       int ret;
 
       assetInf = NULL;
-      ret = aio_dae_assetInf(reader, &assetInf);
+      ret = aio_dae_assetInf(technique, reader, &assetInf);
       if (ret == 0)
         technique->inf = assetInf;
     } else if (_xml_eqElm(_s_dae_annotate)) {
       aio_annotate *annotate;
       int           ret;
 
-      ret = aio_dae_annotate(reader, &annotate);
+      ret = aio_dae_annotate(technique, reader, &annotate);
 
       if (ret == 0) {
         if (last_annotate)
@@ -61,7 +62,7 @@ aio_dae_techniqueFx(xmlTextReaderPtr __restrict reader,
       aio_pass * pass;
       int        ret;
 
-      ret = aio_dae_fxPass(reader, &pass);
+      ret = aio_dae_fxPass(technique, reader, &pass);
       if (ret == 0)
         technique->pass = pass;
 
@@ -69,7 +70,8 @@ aio_dae_techniqueFx(xmlTextReaderPtr __restrict reader,
       aio_blinn_phong * blinn_phong;
       int ret;
 
-      ret = aio_dae_blinn_phong(reader,
+      ret = aio_dae_blinn_phong(technique,
+                                reader,
                                 (const char *)nodeName,
                                 &blinn_phong);
       if (ret == 0)
@@ -79,7 +81,7 @@ aio_dae_techniqueFx(xmlTextReaderPtr __restrict reader,
       aio_constant_fx * constant_fx;
       int ret;
 
-      ret = aio_dae_fxConstant(reader, &constant_fx);
+      ret = aio_dae_fxConstant(technique, reader, &constant_fx);
       if (ret == 0)
         technique->constant = constant_fx;
 
@@ -87,7 +89,7 @@ aio_dae_techniqueFx(xmlTextReaderPtr __restrict reader,
       aio_lambert * lambert;
       int ret;
 
-      ret = aio_dae_fxLambert(reader, &lambert);
+      ret = aio_dae_fxLambert(technique, reader, &lambert);
       if (ret == 0)
         technique->lambert = lambert;
 
@@ -95,7 +97,8 @@ aio_dae_techniqueFx(xmlTextReaderPtr __restrict reader,
       aio_blinn_phong * blinn_phong;
       int ret;
 
-      ret = aio_dae_blinn_phong(reader,
+      ret = aio_dae_blinn_phong(technique,
+                                reader,
                                 (const char *)nodeName,
                                 &blinn_phong);
       if (ret == 0)
@@ -108,7 +111,7 @@ aio_dae_techniqueFx(xmlTextReaderPtr __restrict reader,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      aio_tree_fromXmlNode(nodePtr, &tree, NULL);
+      aio_tree_fromXmlNode(technique, nodePtr, &tree, NULL);
       technique->extra = tree;
 
       _xml_skipElement;

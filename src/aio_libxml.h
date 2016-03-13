@@ -84,12 +84,13 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
      }                                                                        \
   } while (0)
 
-#define _xml_readText(x)                                                      \
+#define _xml_readText(PARENT, TARGET)                                         \
   do {                                                                        \
     /* read text element*/                                                    \
     _xml_readNext;                                                            \
-    x = nodeType == XML_TEXT_NODE ?                                           \
-         aio_strdup((const char *)xmlTextReaderConstValue(reader)) : NULL;    \
+    TARGET = nodeType == XML_TEXT_NODE ?                                      \
+         aio_strdup(PARENT,                                                   \
+                    (const char *)xmlTextReaderConstValue(reader)) : NULL;    \
   } while (0)
 
 #define _xml_readMutText(x)                                                   \
@@ -120,14 +121,15 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
       X = Fn(val, __VA_ARGS__);                                               \
   } while (0)
 
-#define _xml_readAttr(D, X)                                                   \
+#define _xml_readAttr(PARENT, TARGET, ATTR)                                   \
   do {                                                                        \
     char * attrVal;                                                           \
-    attrVal = (char *)xmlTextReaderGetAttribute(reader, (const xmlChar *)X);  \
+    attrVal = (char *)xmlTextReaderGetAttribute(reader,                       \
+                                                (const xmlChar *)ATTR);       \
     if (attrVal) {                                                            \
-      D = aio_strdup(attrVal);                                                \
+      TARGET = aio_strdup(PARENT, attrVal);                                   \
       xmlFree(attrVal);                                                       \
-    } else D = NULL;                                                          \
+    } else TARGET = NULL;                                                     \
   } while (0);
 
 #define _xml_readAttrUsingFn(D, X, Fn, ...)                                   \

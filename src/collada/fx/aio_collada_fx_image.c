@@ -12,43 +12,49 @@
 
 static
 int _assetio_hide
-aio_dae_fxImage_initFrom(xmlTextReaderPtr __restrict reader,
+aio_dae_fxImage_initFrom(void * __restrict memParent,
+                         xmlTextReaderPtr __restrict reader,
                          aio_init_from ** __restrict dest);
 
 static
 int _assetio_hide
-aio_dae_fxImage_format(xmlTextReaderPtr __restrict reader,
+aio_dae_fxImage_format(void * __restrict memParent,
+                       xmlTextReaderPtr __restrict reader,
                        aio_image_format ** __restrict dest);
 
 static
 int _assetio_hide
-aio_dae_fxImage_create2d(xmlTextReaderPtr __restrict reader,
+aio_dae_fxImage_create2d(void * __restrict memParent,
+                         xmlTextReaderPtr __restrict reader,
                          aio_image2d ** __restrict dest);
 
 static
 int _assetio_hide
-aio_dae_fxImage_create3d(xmlTextReaderPtr __restrict reader,
+aio_dae_fxImage_create3d(void * __restrict memParent,
+                         xmlTextReaderPtr __restrict reader,
                          aio_image3d ** __restrict dest);
 
 static
 int _assetio_hide
-aio_dae_fxImage_createCube(xmlTextReaderPtr __restrict reader,
+aio_dae_fxImage_createCube(void * __restrict memParent,
+                           xmlTextReaderPtr __restrict reader,
                            aio_image_cube ** __restrict dest);
 
 
 int _assetio_hide
-aio_dae_fxImage(xmlTextReaderPtr __restrict reader,
+aio_dae_fxImage(void * __restrict memParent,
+                xmlTextReaderPtr __restrict reader,
                 aio_image ** __restrict dest) {
   aio_image *img;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
 
-  img = aio_calloc(sizeof(*img), 1);
+  img = aio_calloc(memParent, sizeof(*img), 1);
 
-  _xml_readAttr(img->id, _s_dae_id);
-  _xml_readAttr(img->sid, _s_dae_sid);
-  _xml_readAttr(img->name, _s_dae_name);
+  _xml_readAttr(img, img->id, _s_dae_id);
+  _xml_readAttr(img, img->sid, _s_dae_sid);
+  _xml_readAttr(img, img->name, _s_dae_name);
 
   do {
     _xml_beginElement(_s_dae_image);
@@ -58,7 +64,7 @@ aio_dae_fxImage(xmlTextReaderPtr __restrict reader,
       int ret;
 
       assetInf = NULL;
-      ret = aio_dae_assetInf(reader, &assetInf);
+      ret = aio_dae_assetInf(img, reader, &assetInf);
       if (ret == 0)
         img->inf = assetInf;
     } else if (_xml_eqElm(_s_dae_renderable)) {
@@ -76,28 +82,28 @@ aio_dae_fxImage(xmlTextReaderPtr __restrict reader,
       aio_init_from *init_from;
       int            ret;
 
-      ret = aio_dae_fxImage_initFrom(reader, &init_from);
+      ret = aio_dae_fxImage_initFrom(img, reader, &init_from);
       if (ret == 0)
         img->init_from = init_from;
     } else if (_xml_eqElm(_s_dae_create_2d)) {
       aio_image2d *image2d;
       int          ret;
 
-      ret = aio_dae_fxImage_create2d(reader, &image2d);
+      ret = aio_dae_fxImage_create2d(img, reader, &image2d);
       if (ret == 0)
         img->image2d = image2d;
     } else if (_xml_eqElm(_s_dae_create_3d)) {
       aio_image3d *image3d;
       int          ret;
 
-      ret = aio_dae_fxImage_create3d(reader, &image3d);
+      ret = aio_dae_fxImage_create3d(img, reader, &image3d);
       if (ret == 0)
         img->image3d = image3d;
     } else if (_xml_eqElm(_s_dae_create_cube)) {
       aio_image_cube *imageCube;
       int ret;
 
-      ret = aio_dae_fxImage_createCube(reader, &imageCube);
+      ret = aio_dae_fxImage_createCube(img, reader, &imageCube);
       if (ret == 0)
         img->cube = imageCube;
     } else if (_xml_eqElm(_s_dae_extra)) {
@@ -107,7 +113,7 @@ aio_dae_fxImage(xmlTextReaderPtr __restrict reader,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      aio_tree_fromXmlNode(nodePtr, &tree, NULL);
+      aio_tree_fromXmlNode(img, nodePtr, &tree, NULL);
       img->extra = tree;
 
       _xml_skipElement;
@@ -125,18 +131,19 @@ aio_dae_fxImage(xmlTextReaderPtr __restrict reader,
 }
 
 int _assetio_hide
-aio_dae_fxImageInstance(xmlTextReaderPtr __restrict reader,
+aio_dae_fxImageInstance(void * __restrict memParent,
+                        xmlTextReaderPtr __restrict reader,
                         aio_image_instance ** __restrict dest) {
   aio_image_instance *imgInst;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
 
-  imgInst = aio_calloc(sizeof(*imgInst), 1);
+  imgInst = aio_calloc(memParent, sizeof(*imgInst), 1);
 
-  _xml_readAttr(imgInst->url, _s_dae_url);
-  _xml_readAttr(imgInst->sid, _s_dae_sid);
-  _xml_readAttr(imgInst->name, _s_dae_name);
+  _xml_readAttr(imgInst, imgInst->url, _s_dae_url);
+  _xml_readAttr(imgInst, imgInst->sid, _s_dae_sid);
+  _xml_readAttr(imgInst, imgInst->name, _s_dae_name);
 
   do {
     _xml_beginElement(_s_dae_instance_image);
@@ -148,7 +155,7 @@ aio_dae_fxImageInstance(xmlTextReaderPtr __restrict reader,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      aio_tree_fromXmlNode(nodePtr, &tree, NULL);
+      aio_tree_fromXmlNode(imgInst, nodePtr, &tree, NULL);
       imgInst->extra = tree;
 
       _xml_skipElement;
@@ -167,7 +174,8 @@ aio_dae_fxImageInstance(xmlTextReaderPtr __restrict reader,
 
 static
 int _assetio_hide
-aio_dae_fxImage_initFrom(xmlTextReaderPtr __restrict reader,
+aio_dae_fxImage_initFrom(void * __restrict memParent,
+                         xmlTextReaderPtr __restrict reader,
                          aio_init_from ** __restrict dest) {
   aio_init_from *initFrom;
   char          *attrValStr;
@@ -175,7 +183,7 @@ aio_dae_fxImage_initFrom(xmlTextReaderPtr __restrict reader,
   int            nodeType;
   int            nodeRet;
 
-  initFrom = aio_calloc(sizeof(*initFrom), 1);
+  initFrom = aio_calloc(memParent, sizeof(*initFrom), 1);
 
   _xml_readAttrUsingFn(initFrom->mips_generate,
                        _s_dae_mips_generate,
@@ -194,7 +202,7 @@ aio_dae_fxImage_initFrom(xmlTextReaderPtr __restrict reader,
                        (aio_int)strtol, NULL, 10);
 
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
-                                                 (const xmlChar *)_s_dae_face);
+                                    (const xmlChar *)_s_dae_face);
   if (attrValStr) {
     long attrVal;
     attrVal = aio_dae_fxEnumFace(attrValStr);
@@ -208,15 +216,15 @@ aio_dae_fxImage_initFrom(xmlTextReaderPtr __restrict reader,
     _xml_beginElement(_s_dae_init_from);
 
     if (_xml_eqElm(_s_dae_ref)) {
-      _xml_readText(initFrom->ref);
+      _xml_readText(initFrom, initFrom->ref);
     } else if (_xml_eqElm(_s_dae_hex)) {
       aio_hex_data *hex;
-      hex = aio_calloc(sizeof(*hex), 1);
+      hex = aio_calloc(initFrom, sizeof(*hex), 1);
 
-      _xml_readAttr(hex->format, _s_dae_format);
+      _xml_readAttr(hex, hex->format, _s_dae_format);
 
       if (hex->format) {
-        _xml_readText(hex->val);
+        _xml_readText(hex, hex->val);
         initFrom->hex = hex;
       } else {
         aio_free(hex);
@@ -236,7 +244,8 @@ aio_dae_fxImage_initFrom(xmlTextReaderPtr __restrict reader,
 
 static
 int _assetio_hide
-aio_dae_fxImage_format(xmlTextReaderPtr __restrict reader,
+aio_dae_fxImage_format(void * __restrict memParent,
+                       xmlTextReaderPtr __restrict reader,
                        aio_image_format ** __restrict dest) {
 
   aio_image_format *format;
@@ -244,7 +253,7 @@ aio_dae_fxImage_format(xmlTextReaderPtr __restrict reader,
   int            nodeType;
   int            nodeRet;
 
-  format = aio_calloc(sizeof(*format), 1);
+  format = aio_calloc(memParent, sizeof(*format), 1);
 
   do {
     _xml_beginElement(_s_dae_format);
@@ -288,9 +297,9 @@ aio_dae_fxImage_format(xmlTextReaderPtr __restrict reader,
         attrValStr = NULL;
       }
 
-      _xml_readAttr(format->hint.space, _s_dae_space);
+      _xml_readAttr(format, format->hint.space, _s_dae_space);
     } else if (_xml_eqElm(_s_dae_exact)) {
-      _xml_readText(format->exact);
+      _xml_readText(format, format->exact);
     } else {
       _xml_skipElement;
     }
@@ -306,7 +315,8 @@ aio_dae_fxImage_format(xmlTextReaderPtr __restrict reader,
 
 static
 int _assetio_hide
-aio_dae_fxImage_create2d(xmlTextReaderPtr __restrict reader,
+aio_dae_fxImage_create2d(void * __restrict memParent,
+                         xmlTextReaderPtr __restrict reader,
                          aio_image2d ** __restrict dest) {
 
   aio_image2d   *image2d;
@@ -314,7 +324,7 @@ aio_dae_fxImage_create2d(xmlTextReaderPtr __restrict reader,
   int            nodeType;
   int            nodeRet;
 
-  image2d = aio_calloc(sizeof(*image2d), 1);
+  image2d = aio_calloc(memParent, sizeof(*image2d), 1);
 
   do {
     _xml_beginElement(_s_dae_create_2d);
@@ -322,7 +332,7 @@ aio_dae_fxImage_create2d(xmlTextReaderPtr __restrict reader,
     if (_xml_eqElm(_s_dae_size_exact)) {
       aio_size_exact *size_exact;
 
-      size_exact = aio_calloc(sizeof(*size_exact), 1);
+      size_exact = aio_calloc(image2d, sizeof(*size_exact), 1);
 
       _xml_readAttrUsingFn(size_exact->width,
                            _s_dae_width,
@@ -336,7 +346,7 @@ aio_dae_fxImage_create2d(xmlTextReaderPtr __restrict reader,
     } else if (_xml_eqElm(_s_dae_size_ratio)) {
       aio_size_ratio *size_ratio;
 
-      size_ratio = aio_calloc(sizeof(*size_ratio), 1);
+      size_ratio = aio_calloc(image2d, sizeof(*size_ratio), 1);
 
       _xml_readAttrUsingFn(size_ratio->width,
                            _s_dae_width,
@@ -350,7 +360,7 @@ aio_dae_fxImage_create2d(xmlTextReaderPtr __restrict reader,
     } else if (_xml_eqElm(_s_dae_mips)) {
       aio_mips *mips;
 
-      mips = aio_calloc(sizeof(*mips), 1);
+      mips = aio_calloc(image2d, sizeof(*mips), 1);
 
       _xml_readAttrUsingFn(mips->levels,
                            _s_dae_width,
@@ -362,7 +372,7 @@ aio_dae_fxImage_create2d(xmlTextReaderPtr __restrict reader,
 
       image2d->mips = mips;
     } else if (_xml_eqElm(_s_dae_unnormalized)) {
-      _xml_readText(image2d->unnormalized);
+      _xml_readText(image2d, image2d->unnormalized);
     } else if (_xml_eqElm(_s_dae_array)) {
       _xml_readAttrUsingFn(image2d->array_len,
                            _s_dae_length,
@@ -371,14 +381,14 @@ aio_dae_fxImage_create2d(xmlTextReaderPtr __restrict reader,
       aio_image_format *imageFormat;
       int               ret;
 
-      ret = aio_dae_fxImage_format(reader, &imageFormat);
+      ret = aio_dae_fxImage_format(image2d, reader, &imageFormat);
       if (ret == 0)
         image2d->format = imageFormat;
     } else if (_xml_eqElm(_s_dae_size_exact)) {
       aio_init_from *initFrom;
       int            ret;
 
-      ret = aio_dae_fxImage_initFrom(reader, &initFrom);
+      ret = aio_dae_fxImage_initFrom(image2d, reader, &initFrom);
       if (ret == 0)
         image2d->init_from = initFrom;
     } else {
@@ -396,14 +406,15 @@ aio_dae_fxImage_create2d(xmlTextReaderPtr __restrict reader,
 
 static
 int _assetio_hide
-aio_dae_fxImage_create3d(xmlTextReaderPtr __restrict reader,
+aio_dae_fxImage_create3d(void * __restrict memParent,
+                         xmlTextReaderPtr __restrict reader,
                          aio_image3d ** __restrict dest) {
   aio_image3d   *image3d;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
 
-  image3d = aio_calloc(sizeof(*image3d), 1);
+  image3d = aio_calloc(memParent, sizeof(*image3d), 1);
 
   do {
     _xml_beginElement(_s_dae_create_3d);
@@ -436,14 +447,14 @@ aio_dae_fxImage_create3d(xmlTextReaderPtr __restrict reader,
       aio_image_format *imageFormat;
       int               ret;
 
-      ret = aio_dae_fxImage_format(reader, &imageFormat);
+      ret = aio_dae_fxImage_format(image3d, reader, &imageFormat);
       if (ret == 0)
         image3d->format = imageFormat;
     } else if (_xml_eqElm(_s_dae_size_exact)) {
       aio_init_from *initFrom;
       int            ret;
 
-      ret = aio_dae_fxImage_initFrom(reader, &initFrom);
+      ret = aio_dae_fxImage_initFrom(image3d, reader, &initFrom);
       if (ret == 0)
         image3d->init_from = initFrom;
     } else {
@@ -461,14 +472,15 @@ aio_dae_fxImage_create3d(xmlTextReaderPtr __restrict reader,
 
 static
 int _assetio_hide
-aio_dae_fxImage_createCube(xmlTextReaderPtr __restrict reader,
-                          aio_image_cube ** __restrict dest) {
+aio_dae_fxImage_createCube(void * __restrict memParent,
+                           xmlTextReaderPtr __restrict reader,
+                           aio_image_cube ** __restrict dest) {
   aio_image_cube *imageCube;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
 
-  imageCube = aio_calloc(sizeof(*imageCube), 1);
+  imageCube = aio_calloc(memParent, sizeof(*imageCube), 1);
 
   do {
     _xml_beginElement(_s_dae_create_cube);
@@ -493,14 +505,14 @@ aio_dae_fxImage_createCube(xmlTextReaderPtr __restrict reader,
       aio_image_format *imageFormat;
       int               ret;
 
-      ret = aio_dae_fxImage_format(reader, &imageFormat);
+      ret = aio_dae_fxImage_format(imageCube, reader, &imageFormat);
       if (ret == 0)
         imageCube->format = imageFormat;
     } else if (_xml_eqElm(_s_dae_size_exact)) {
       aio_init_from *initFrom;
       int            ret;
 
-      ret = aio_dae_fxImage_initFrom(reader, &initFrom);
+      ret = aio_dae_fxImage_initFrom(imageCube, reader, &initFrom);
       if (ret == 0)
         imageCube->init_from = initFrom;
     } else {

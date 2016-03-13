@@ -16,7 +16,8 @@
 #include "aio_collada_fx_profile.h"
 
 int _assetio_hide
-aio_dae_effect(xmlTextReaderPtr __restrict reader,
+aio_dae_effect(void * __restrict memParent,
+               xmlTextReaderPtr __restrict reader,
                aio_effect ** __restrict  dest) {
   aio_effect   *effect;
   aio_annotate *last_annotate;
@@ -26,14 +27,14 @@ aio_dae_effect(xmlTextReaderPtr __restrict reader,
   int            nodeType;
   int            nodeRet;
 
-  effect = aio_calloc(sizeof(*effect), 1);
+  effect = aio_calloc(memParent, sizeof(*effect), 1);
 
   last_annotate = NULL;
   last_newparam = NULL;
   last_profile  = NULL;
   
-  _xml_readAttr(effect->id, _s_dae_id);
-  _xml_readAttr(effect->name, _s_dae_name);
+  _xml_readAttr(effect, effect->id, _s_dae_id);
+  _xml_readAttr(effect, effect->name, _s_dae_name);
 
   do {
     _xml_beginElement(_s_dae_effect);
@@ -43,14 +44,14 @@ aio_dae_effect(xmlTextReaderPtr __restrict reader,
       int ret;
 
       assetInf = NULL;
-      ret = aio_dae_assetInf(reader, &assetInf);
+      ret = aio_dae_assetInf(effect, reader, &assetInf);
       if (ret == 0)
         effect->inf = assetInf;
     } else if (_xml_eqElm(_s_dae_annotate)) {
       aio_annotate *annotate;
       int           ret;
 
-      ret = aio_dae_annotate(reader, &annotate);
+      ret = aio_dae_annotate(effect, reader, &annotate);
 
       if (ret == 0) {
         if (last_annotate)
@@ -64,7 +65,7 @@ aio_dae_effect(xmlTextReaderPtr __restrict reader,
       aio_newparam *newparam;
       int            ret;
 
-      ret = aio_dae_newparam(reader, &newparam);
+      ret = aio_dae_newparam(effect, reader, &newparam);
 
       if (ret == 0) {
         if (last_newparam)
@@ -83,7 +84,7 @@ aio_dae_effect(xmlTextReaderPtr __restrict reader,
       aio_profile *profile;
       int          ret;
 
-      ret = aio_dae_profile(reader, &profile);
+      ret = aio_dae_profile(effect, reader, &profile);
 
       if (ret == 0) {
         if (last_profile)
@@ -100,7 +101,7 @@ aio_dae_effect(xmlTextReaderPtr __restrict reader,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      aio_tree_fromXmlNode(nodePtr, &tree, NULL);
+      aio_tree_fromXmlNode(effect, nodePtr, &tree, NULL);
       effect->extra = tree;
 
       _xml_skipElement;

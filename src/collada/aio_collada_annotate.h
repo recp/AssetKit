@@ -13,7 +13,8 @@
 typedef struct _xmlTextReader *xmlTextReaderPtr;
 
 int _assetio_hide
-aio_dae_annotate(xmlTextReaderPtr __restrict reader,
+aio_dae_annotate(void * __restrict memParent,
+                 xmlTextReaderPtr __restrict reader,
                  aio_annotate ** __restrict dest);
 
 #endif /* __libassetio__aio_collada_annotate__h_ */

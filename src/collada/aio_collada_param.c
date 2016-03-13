@@ -23,7 +23,8 @@ static aio_enumpair modifierMap[] = {
 static size_t modifierMapLen = 0;
 
 int _assetio_hide
-aio_dae_newparam(xmlTextReaderPtr __restrict reader,
+aio_dae_newparam(void * __restrict memParent,
+                 xmlTextReaderPtr __restrict reader,
                  aio_newparam ** __restrict dest) {
   aio_newparam  *newparam;
   aio_annotate  *last_annotate;
@@ -31,7 +32,7 @@ aio_dae_newparam(xmlTextReaderPtr __restrict reader,
   int nodeType;
   int nodeRet;
 
-  newparam = aio_calloc(sizeof(*newparam), 1);
+  newparam = aio_calloc(memParent, sizeof(*newparam), 1);
   last_annotate = NULL;
 
   if (modifierMapLen == 0) {
@@ -49,7 +50,7 @@ aio_dae_newparam(xmlTextReaderPtr __restrict reader,
       aio_annotate *annotate;
       int ret;
 
-      ret = aio_dae_annotate(reader, &annotate);
+      ret = aio_dae_annotate(newparam, reader, &annotate);
       if (ret == 0) {
         if (last_annotate)
           last_annotate->next = annotate;
@@ -59,7 +60,7 @@ aio_dae_newparam(xmlTextReaderPtr __restrict reader,
         last_annotate = annotate;
       }
     } else if (_xml_eqElm(_s_dae_semantic)) {
-      _xml_readText(newparam->semantic);
+      _xml_readText(newparam, newparam->semantic);
     } else if (_xml_eqElm(_s_dae_modifier)) {
       const aio_enumpair *found;
       const char *val;
@@ -80,7 +81,8 @@ aio_dae_newparam(xmlTextReaderPtr __restrict reader,
         aio_value_type   val_type;
         int              ret;
 
-        ret = aio_dae_value(reader,
+        ret = aio_dae_value(newparam,
+                            reader,
                             &val,
                             &val_type);
 
@@ -101,7 +103,8 @@ aio_dae_newparam(xmlTextReaderPtr __restrict reader,
 }
 
 int _assetio_hide
-aio_dae_param(xmlTextReaderPtr __restrict reader,
+aio_dae_param(void * __restrict memParent,
+              xmlTextReaderPtr __restrict reader,
               aio_param_type param_type,
               aio_param ** __restrict dest) {
   aio_param  *param;
@@ -113,17 +116,17 @@ aio_dae_param(xmlTextReaderPtr __restrict reader,
   nodeType = xmlTextReaderNodeType(reader);
 
   if (param_type == AIO_PARAM_TYPE_BASIC) {
-    param = aio_calloc(sizeof(aio_param), 1);
+    param = aio_calloc(memParent, sizeof(aio_param), 1);
 
-    _xml_readAttr(param->ref, _s_dae_ref);
+    _xml_readAttr(param, param->ref, _s_dae_ref);
   } else if (param_type == AIO_PARAM_TYPE_EXTENDED) {
     aio_param_ex *param_ex;
-    param_ex = aio_calloc(sizeof(aio_param_ex), 1);
+    param_ex = aio_calloc(memParent, sizeof(aio_param_ex), 1);
 
-    _xml_readAttr(param_ex->name, _s_dae_name);
-    _xml_readAttr(param_ex->sid, _s_dae_sid);
-    _xml_readAttr(param_ex->name, _s_dae_semantic);
-    _xml_readAttr(param_ex->type_name, _s_dae_type);
+    _xml_readAttr(param_ex, param_ex->name, _s_dae_name);
+    _xml_readAttr(param_ex, param_ex->sid, _s_dae_sid);
+    _xml_readAttr(param_ex, param_ex->name, _s_dae_semantic);
+    _xml_readAttr(param_ex, param_ex->type_name, _s_dae_type);
 
     if (param_ex->type_name)
       param_ex->type = aio_dae_valueType(param_ex->type_name);
