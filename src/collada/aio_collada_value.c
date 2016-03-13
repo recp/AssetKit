@@ -94,6 +94,11 @@ aio_dae_value(xmlTextReaderPtr __restrict reader,
                   sizeof(valueMap[0]),
                   valuePairCmp2);
 
+  if (!found) {
+    *val_type = AIO_VALUE_TYPE_UNKNOWN;
+    return -1;
+  }
+  
   *val_type = found->val;
 
   _xml_readText(nodeVal);
