@@ -97,6 +97,24 @@ aio_heap_alloc(aio_heap * __restrict heap,
 }
 
 void
+aio_heap_setp(aio_heap * __restrict heap,
+              aio_heapnode * __restrict heapNode,
+              aio_heapnode * __restrict newParent) {
+  if (heapNode->prev)
+    heapNode->prev->next = heapNode->next;
+
+  if (heapNode == heap->root)
+    heap->root = heapNode->next;
+
+  if (newParent->chld) {
+    newParent->chld->prev = heapNode;
+    heapNode->next = newParent->chld;
+  }
+
+  newParent->chld = heapNode;
+}
+
+void
 aio_heap_freeChld(aio_heap * __restrict heap,
                   aio_heapnode * __restrict heapNode) {
   if (heapNode->chld)
@@ -134,6 +152,13 @@ void
 aio_heap_cleanup(aio_heap * __restrict heap) {
   while (heap->root)
     aio_heap_free(heap, heap->root);
+}
+
+void
+aio_mem_setp(void *memptr, void *parent) {
+  aio_heap_setp(&aio__heap,
+                aio__alignof(memptr),
+                aio__alignof(parent));
 }
 
 void *

@@ -58,6 +58,11 @@ aio_heap_alloc(aio_heap * __restrict heap,
                size_t size);
 
 void
+aio_heap_setp(aio_heap * __restrict heap,
+              aio_heapnode * __restrict heapNode,
+              aio_heapnode * __restrict newParent);
+
+void
 aio_heap_freeChld(aio_heap * __restrict heap,
                   aio_heapnode * __restrict heapNode);
 
@@ -72,7 +77,7 @@ void* aio_malloc(size_t size);
 void* aio_calloc(size_t size, size_t count);
 char* aio_strdup(const char * __restrict str);
 void* aio_realloc(void * __restrict memptr, size_t newsize);
-
+void  aio_mem_setp(void *memptr, void *parent);
 void  aio_free(void * __restrict memptr);
 void  aio_cleanup();
 
