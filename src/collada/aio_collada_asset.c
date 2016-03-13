@@ -103,8 +103,6 @@ aio_dae_assetInf(void * __restrict memParent,
       aio_tree_fromXmlNode(*dest, nodePtr, &tree, NULL);
       (*dest)->extra = tree;
 
-      aio_mem_setp(tree, *dest);
-
       _xml_skipElement;
     } else {
       _xml_skipElement;
