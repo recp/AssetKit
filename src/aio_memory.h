@@ -27,6 +27,10 @@ typedef struct aio_heap_s     aio_heap;
 #define aio__alignof(p) ((aio_heapnode *)(((char *)p)-aio__aligned_node_size))
 #define aio__alignas(m) ((void *)(((char *)m)+aio__aligned_node_size))
 
+#define AIO_HEAP_FLAGS_NONE        0
+#define AIO_HEAP_FLAGS_INITIALIZED 1 << 0
+#define AIO_HEAP_FLAGS_DYNAMIC     1 << 1
+
 struct aio_heapnode_s {
   aio_heapnode *prev; /* parent */
   aio_heapnode *next; /* right  */
@@ -37,7 +41,16 @@ struct aio_heapnode_s {
 
 struct aio_heap_s {
   aio_heapnode *root;
+  aio_heapnode *trash;
+  void         *alloc_zone;
+  uint64_t      flags;
 };
+
+void
+aio_heap_init(aio_heap * __restrict heap);
+
+void
+aio_heap_destroy(aio_heap * __restrict heap);
 
 void*
 aio_heap_alloc(aio_heap * __restrict heap,

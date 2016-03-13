@@ -21,9 +21,11 @@
 #endif
 
 #ifdef __GNUC__
-# define AIO_DESTRUCTOR __attribute__((destructor))
+#  define AIO_DESTRUCTOR __attribute__((destructor))
+#  define AIO_CONSTRUCTOR __attribute__((constructor))
 #else
-# define AIO_DESTRUCTOR
+#  define AIO_DESTRUCTOR
+#  define AIO_CONSTRUCTOR
 #endif
 
 #define UNUSED(x) (void)(x)

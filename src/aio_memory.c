@@ -12,9 +12,47 @@
 #include <string.h>
 #include <assert.h>
 
+#ifdef __APPLE__
+#include <malloc/malloc.h>
+#endif
+
 static aio_heap aio__heap = {
-  .root = NULL
+  .root       = NULL,
+  .trash      = NULL,
+  .alloc_zone = NULL,
+  .flags      = 0
 };
+
+void
+aio_heap_init(aio_heap * __restrict heap) {
+  if (!(heap->flags & AIO_HEAP_FLAGS_INITIALIZED))
+    return;
+
+  heap->root  = NULL;
+  heap->trash = NULL;
+  heap->flags |= AIO_HEAP_FLAGS_INITIALIZED;
+
+#ifdef __APPLE__
+  heap->alloc_zone = malloc_create_zone(PAGE_SIZE, 0);
+#endif
+}
+
+void
+aio_heap_destroy(aio_heap * __restrict heap) {
+  if (!(heap->flags & AIO_HEAP_FLAGS_INITIALIZED))
+    return;
+
+#ifdef __APPLE__
+  malloc_destroy_zone(heap->alloc_zone);
+  heap->root  = NULL;
+  heap->trash = NULL;
+#else
+  aio_heap_cleanup(&aio__heap);
+#endif
+
+  if (heap->flags & AIO_HEAP_FLAGS_DYNAMIC)
+    free(heap);
+}
 
 void*
 aio_heap_alloc(aio_heap * __restrict heap,
@@ -163,7 +201,13 @@ aio_free(void * __restrict memptr) {
 }
 
 void
+AIO_CONSTRUCTOR
+aio__init() {
+  aio_heap_init(&aio__heap);
+}
+
+void
 AIO_DESTRUCTOR
 aio_cleanup() {
-  aio_heap_cleanup(&aio__heap);
+  aio_heap_destroy(&aio__heap);
 }
