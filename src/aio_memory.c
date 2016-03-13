@@ -158,10 +158,11 @@ aio_heap_cleanup(aio_heap * __restrict heap) {
 }
 
 void
-aio_mem_setp(void *memptr, void *parent) {
+aio_mem_setp(void * __restrict memptr,
+             void * __restrict newparent) {
   aio_heap_setp(&aio__heap,
                 aio__alignof(memptr),
-                aio__alignof(parent));
+                aio__alignof(newparent));
 }
 
 void*

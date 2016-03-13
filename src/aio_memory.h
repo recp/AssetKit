@@ -93,7 +93,7 @@ aio_realloc(void * __restrict parent,
 
 void
 aio_mem_setp(void * __restrict memptr,
-             void * __restrict parent);
+             void * __restrict newparent);
 
 void
 aio_free(void * __restrict memptr);
