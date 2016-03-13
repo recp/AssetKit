@@ -50,7 +50,6 @@ aio_dae_doc(aio_doc ** __restrict dest,
   }
 
   doc = aio_calloc(NULL, sizeof(*doc), 1);
-  memset(doc, '\0', sizeof(*doc));
 
   _xml_readNext;
 
