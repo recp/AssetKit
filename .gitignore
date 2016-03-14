@@ -37,3 +37,4 @@ Makefile.in
 m4/*.m4
 .buildstamp
 .dirstamp
+packages/
