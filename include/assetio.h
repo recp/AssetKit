@@ -459,10 +459,10 @@ typedef time_t aio_time_t;
 /* users can extend the draw enum elsewhere by custom values */
 
 #define aio_pipeline_stage long
-#define AIO_PIPELINE_STAGE_TESSELATION                                  0x0000
-#define AIO_PIPELINE_STAGE_VERTEX                                       0x0000
-#define AIO_PIPELINE_STAGE_GEOMETRY                                         0x0000
-#define AIO_PIPELINE_STAGE_FRAGMENT                                         0x0000
+#define AIO_PIPELINE_STAGE_VERTEX                                       0x0001
+#define AIO_PIPELINE_STAGE_FRAGMENT                                     0x0002
+#define AIO_PIPELINE_STAGE_TESSELATION                                  0x0003
+#define AIO_PIPELINE_STAGE_GEOMETRY                                     0x0004
 
 /**
  * Almost all assets includes this fields. 
