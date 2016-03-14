@@ -62,10 +62,9 @@ aio_heap_alloc(aio_heap * __restrict heap,
   aio_heapnode *currNode;
   aio_heapnode *parentNode;
 
-  currNode = malloc(aio__heapnode_size + size);
+  currNode = malloc(aio__heapnd_sz_algnd + size);
 
   currNode->chld = NULL;
-  parentNode     = NULL;
 
   if (parent) {
     aio_heapnode *chldNode;
@@ -143,26 +142,60 @@ aio_heap_setp(aio_heap * __restrict heap,
 }
 
 void
-aio_heap_freeChld(aio_heap * __restrict heap,
-                  aio_heapnode * __restrict heapNode) {
-  if (heapNode->chld)
-    aio_heap_freeChld(heap, heapNode->chld);
-
-  if (heapNode->next)
-    aio_heap_freeChld(heap, heapNode->next);
-
-  heapNode->chld = NULL;
-  heapNode->next = NULL;
-  heapNode->prev = NULL;
-
-  free(heapNode);
-}
-
-void
 aio_heap_free(aio_heap * __restrict heap,
               aio_heapnode * __restrict heapNode) {
-  if (heapNode->chld)
-    aio_heap_freeChld(heap, heapNode->chld);
+  /* free all child nodes */
+  if (heapNode->chld) {
+    aio_heapnode *toFree;
+    aio_heapnode *nextFree;
+
+    toFree = heapNode->chld;
+
+    do {
+      nextFree = toFree->next;
+      if (nextFree)
+        nextFree->prev = NULL;
+
+      if (heap->trash == toFree)
+        heap->trash = nextFree;
+
+      if (toFree->chld) {
+        if (heap->trash) {
+          aio_heapnode *lastNode;
+
+          lastNode = toFree->chld;
+          while (lastNode->next)
+            lastNode = lastNode->next;
+
+          heap->trash->prev = lastNode;
+          lastNode->next = heap->trash;
+        }
+
+        heap->trash = toFree->chld;
+        toFree->chld->prev = NULL;
+      }
+
+      /* connect prev and next */
+      if (toFree->prev) {
+        toFree->prev->next = nextFree;
+
+        if (nextFree)
+          nextFree->prev = toFree->prev;
+      }
+      
+      free(toFree);
+      toFree = nextFree;
+
+      /* empty trash */
+      if (!toFree && heap->trash) {
+        toFree = heap->trash;
+        heap->trash = nextFree;
+      }
+
+    } while (toFree);
+    
+    heapNode->chld = NULL;
+  }
 
   if (heapNode->prev)
     heapNode->prev->next = heapNode->next;
@@ -170,8 +203,8 @@ aio_heap_free(aio_heap * __restrict heap,
   if (heap->root == heapNode)
     heap->root = heapNode->next;
 
-  heapNode->chld = NULL;
   heapNode->next = NULL;
+  heapNode->prev = NULL;
 
   free(heapNode);
 }

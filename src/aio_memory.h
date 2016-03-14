@@ -19,13 +19,13 @@ typedef struct aio_heap_s     aio_heap;
 #endif
 
 #define aio__align_size    8
-#define aio__heapnode_size sizeof(aio_heapnode)
+#define aio__heapnd_sz sizeof(aio_heapnode)
 
-#define aio__aligned_node_size ((aio__heapnode_size + aio__align_size - 1)    \
-            &~ (uintptr_t)(aio__align_size - 1))
+#define aio__heapnd_sz_algnd ((aio__heapnd_sz + aio__align_size - 1)          \
+         &~ (uintptr_t)(aio__align_size - 1))
 
-#define aio__alignof(p) ((aio_heapnode *)(((char *)p)-aio__aligned_node_size))
-#define aio__alignas(m) ((void *)(((char *)m)+aio__aligned_node_size))
+#define aio__alignof(p) ((aio_heapnode *)(((char *)p)-aio__heapnd_sz_algnd))
+#define aio__alignas(m) ((void *)(((char *)m)+aio__heapnd_sz_algnd))
 
 #define AIO_HEAP_FLAGS_NONE        0
 #define AIO_HEAP_FLAGS_INITIALIZED 1 << 0
@@ -67,10 +67,6 @@ void
 aio_heap_setp(aio_heap * __restrict heap,
               aio_heapnode * __restrict heapNode,
               aio_heapnode * __restrict newParent);
-
-void
-aio_heap_freeChld(aio_heap * __restrict heap,
-                  aio_heapnode * __restrict heapNode);
 
 void
 aio_heap_free(aio_heap * __restrict heap,
