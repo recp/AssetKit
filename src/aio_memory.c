@@ -25,7 +25,7 @@ static aio_heap aio__heap = {
 
 void
 aio_heap_init(aio_heap * __restrict heap) {
-  if (!(heap->flags & AIO_HEAP_FLAGS_INITIALIZED))
+  if (heap->flags & AIO_HEAP_FLAGS_INITIALIZED)
     return;
 
   heap->root  = NULL;
