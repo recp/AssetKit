@@ -17,19 +17,15 @@ aio_dae_colorOrTex(void * __restrict memParent,
                    aio_fx_color_or_tex ** __restrict dest) {
   aio_fx_color_or_tex *colorOrTex;
   aio_param *last_param;
-  char *opaque;
 
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
 
   colorOrTex = aio_calloc(memParent, sizeof(*colorOrTex), 1);
-
-  _xml_readAttr(colorOrTex, opaque, _s_dae_opaque);
-  if (opaque) {
-    colorOrTex->opaque = aio_dae_fxEnumOpaque(opaque);
-    aio_free(opaque);
-  }
+  _xml_readAttrAsEnum(colorOrTex->opaque,
+                      _s_dae_opaque,
+                      aio_dae_fxEnumOpaque);
 
   last_param = NULL;
 
