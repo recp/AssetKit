@@ -57,6 +57,12 @@ aio_heap_alloc(aio_heap * __restrict heap,
                void * __restrict parent,
                size_t size);
 
+void*
+aio_heap_realloc(aio_heap * __restrict heap,
+                 void * __restrict parent,
+                 void * __restrict memptr,
+                 size_t newsize);
+
 void
 aio_heap_setp(aio_heap * __restrict heap,
               aio_heapnode * __restrict heapNode,

@@ -97,6 +97,30 @@ aio_heap_alloc(aio_heap * __restrict heap,
   return aio__alignas(currNode);
 }
 
+void*
+aio_heap_realloc(aio_heap * __restrict heap,
+                 void * __restrict parent,
+                 void * __restrict memptr,
+                 size_t newsize) {
+  aio_heapnode *oldNode;
+  aio_heapnode *newNode;
+
+  if (!memptr)
+    return aio_malloc(parent, newsize);
+
+  oldNode = aio__alignof(memptr);
+
+  if (newsize == 0) {
+    aio_heap_free(heap, oldNode);
+    return NULL;
+  }
+
+  newNode = realloc(oldNode,
+                    aio__heapnd_sz_algnd + newsize);
+
+  return aio__alignas(newNode);
+}
+
 void
 aio_heap_setp(aio_heap * __restrict heap,
               aio_heapnode * __restrict heapNode,
@@ -194,22 +218,10 @@ void*
 aio_realloc(void * __restrict parent,
             void * __restrict memptr,
             size_t newsize) {
-  aio_heapnode *oldNode;
-  aio_heapnode *newNode;
-
-  if (!memptr)
-    return aio_malloc(parent, newsize);
-
-  if (newsize == 0) {
-    aio_free(memptr);
-    return NULL;
-  }
-
-  oldNode = aio__alignof(memptr);
-  newNode = realloc(oldNode,
-                    aio__aligned_node_size + newsize);
-
-  return aio__alignas(newNode);
+  return aio_heap_realloc(&aio__heap,
+                          parent,
+                          memptr,
+                          newsize);
 }
 
 char*
