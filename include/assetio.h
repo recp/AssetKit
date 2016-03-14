@@ -1343,8 +1343,10 @@ struct aio_asset_s {
 
 extern void aio_cleanup();
 
-int aio_load(aio_doc ** __restrict dest,
-             const char * __restrict file, ...);
+int
+_assetio_export
+aio_load(aio_doc ** __restrict dest,
+         const char * __restrict file, ...);
 
 #ifdef __cplusplus
 }

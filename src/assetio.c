@@ -22,6 +22,7 @@ typedef struct {
 } floader_t;
 
 int
+_assetio_export
 aio_load(aio_doc ** __restrict dest,
          const char * __restrict file, ...) {
   floader_t * floader;
