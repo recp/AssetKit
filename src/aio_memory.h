@@ -9,6 +9,7 @@
 #define __libassetio__memory__h_
 
 #include <stddef.h>
+#include <stdint.h>
 #include <sys/types.h>
 
 typedef struct aio_heapnode_s aio_heapnode;
