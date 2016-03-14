@@ -16,6 +16,8 @@
 #include <malloc/malloc.h>
 #endif
 
+#include <jemalloc/jemalloc.h>
+
 static aio_heap aio__heap = {
   .root       = NULL,
   .trash      = NULL,
@@ -144,6 +146,7 @@ aio_heap_setp(aio_heap * __restrict heap,
 void
 aio_heap_free(aio_heap * __restrict heap,
               aio_heapnode * __restrict heapNode) {
+
   /* free all child nodes */
   if (heapNode->chld) {
     aio_heapnode *toFree;
