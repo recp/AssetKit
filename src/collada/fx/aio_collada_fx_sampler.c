@@ -145,7 +145,7 @@ aio_dae_fxSampler(void * __restrict memParent,
         break;
       case k_s_dae_mip_bias:
         _xml_readTextUsingFn(sampler->mip_bias,
-                             strtol, NULL, 10);
+                             strtof, NULL);
         break;
       case k_s_dae_max_anisotropy: {
         char *tmp;
