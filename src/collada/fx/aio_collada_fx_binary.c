@@ -10,7 +10,7 @@
 
 int _assetio_hide
 aio_dae_fxBinary(void * __restrict memParent,
-                 xmlTextReaderPtr __restrict reader,
+                 xmlTextReaderPtr reader,
                  aio_binary ** __restrict dest) {
   aio_binary    *binary;
   const xmlChar *nodeName;

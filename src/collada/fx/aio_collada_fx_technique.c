@@ -18,7 +18,7 @@
 
 int _assetio_hide
 aio_dae_techniqueFx(void * __restrict memParent,
-                    xmlTextReaderPtr __restrict reader,
+                    xmlTextReaderPtr reader,
                     aio_technique_fx ** __restrict dest) {
   aio_technique_fx *technique;
   aio_annotate     *last_annotate;

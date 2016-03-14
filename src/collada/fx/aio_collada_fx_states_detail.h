@@ -16,7 +16,7 @@ typedef struct _xmlTextReader *xmlTextReaderPtr;
 typedef long (*aio_dae_fxEnumFn_t)(const char * name);
 
 int _assetio_hide
-aio_dae_fxState_enum(xmlTextReaderPtr __restrict reader,
+aio_dae_fxState_enum(xmlTextReaderPtr reader,
                      aio_render_state ** __restrict last_state,
                      aio_states ** __restrict states,
                      long state_type,
@@ -24,7 +24,7 @@ aio_dae_fxState_enum(xmlTextReaderPtr __restrict reader,
                      aio_dae_fxEnumFn_t enumFn);
 
 int _assetio_hide
-aio_dae_fxState_bool4(xmlTextReaderPtr __restrict reader,
+aio_dae_fxState_bool4(xmlTextReaderPtr reader,
                       aio_render_state ** __restrict last_state,
                       aio_states ** __restrict states,
                       long state_type,
@@ -32,21 +32,21 @@ aio_dae_fxState_bool4(xmlTextReaderPtr __restrict reader,
                       size_t defaultValSize);
 
 int _assetio_hide
-aio_dae_fxState_ul(xmlTextReaderPtr __restrict reader,
+aio_dae_fxState_ul(xmlTextReaderPtr reader,
                    aio_render_state ** __restrict last_state,
                    aio_states ** __restrict states,
                    long state_type,
                    unsigned long defaultVal);
 
 int _assetio_hide
-aio_dae_fxState_ul_i(xmlTextReaderPtr __restrict reader,
+aio_dae_fxState_ul_i(xmlTextReaderPtr reader,
                      aio_render_state ** __restrict last_state,
                      aio_states ** __restrict states,
                      long state_type,
                      unsigned long defaultVal);
 
 int _assetio_hide
-aio_dae_fxState_int2(xmlTextReaderPtr __restrict reader,
+aio_dae_fxState_int2(xmlTextReaderPtr reader,
                      aio_render_state ** __restrict last_state,
                      aio_states ** __restrict states,
                      long state_type,
@@ -54,7 +54,7 @@ aio_dae_fxState_int2(xmlTextReaderPtr __restrict reader,
                      size_t defaultValSize);
 
 int _assetio_hide
-aio_dae_fxState_int4(xmlTextReaderPtr __restrict reader,
+aio_dae_fxState_int4(xmlTextReaderPtr reader,
                      aio_render_state ** __restrict last_state,
                      aio_states ** __restrict states,
                      long state_type,
@@ -62,21 +62,21 @@ aio_dae_fxState_int4(xmlTextReaderPtr __restrict reader,
                      size_t defaultValSize);
 
 int _assetio_hide
-aio_dae_fxState_float(xmlTextReaderPtr __restrict reader,
+aio_dae_fxState_float(xmlTextReaderPtr reader,
                       aio_render_state ** __restrict last_state,
                       aio_states ** __restrict states,
                       long state_type,
                       aio_float defaultVal);
 
 int _assetio_hide
-aio_dae_fxState_float_i(xmlTextReaderPtr __restrict reader,
+aio_dae_fxState_float_i(xmlTextReaderPtr reader,
                         aio_render_state ** __restrict last_state,
                         aio_states ** __restrict states,
                         long state_type,
                         aio_float defaultVal);
 
 int _assetio_hide
-aio_dae_fxState_float2(xmlTextReaderPtr __restrict reader,
+aio_dae_fxState_float2(xmlTextReaderPtr reader,
                        aio_render_state ** __restrict last_state,
                        aio_states ** __restrict states,
                        long state_type,
@@ -84,7 +84,7 @@ aio_dae_fxState_float2(xmlTextReaderPtr __restrict reader,
                        size_t defaultValSize);
 
 int _assetio_hide
-aio_dae_fxState_float3(xmlTextReaderPtr __restrict reader,
+aio_dae_fxState_float3(xmlTextReaderPtr reader,
                        aio_render_state ** __restrict last_state,
                        aio_states ** __restrict states,
                        long state_type,
@@ -92,7 +92,7 @@ aio_dae_fxState_float3(xmlTextReaderPtr __restrict reader,
                        size_t defaultValSize);
 
 int _assetio_hide
-aio_dae_fxState_float3_i(xmlTextReaderPtr __restrict reader,
+aio_dae_fxState_float3_i(xmlTextReaderPtr reader,
                          aio_render_state ** __restrict last_state,
                          aio_states ** __restrict states,
                          long state_type,
@@ -100,7 +100,7 @@ aio_dae_fxState_float3_i(xmlTextReaderPtr __restrict reader,
                          size_t defaultValSize);
 
 int _assetio_hide
-aio_dae_fxState_float4(xmlTextReaderPtr __restrict reader,
+aio_dae_fxState_float4(xmlTextReaderPtr reader,
                        aio_render_state ** __restrict last_state,
                        aio_states ** __restrict states,
                        long state_type,
@@ -108,7 +108,7 @@ aio_dae_fxState_float4(xmlTextReaderPtr __restrict reader,
                        size_t defaultValSize);
 
 int _assetio_hide
-aio_dae_fxState_float4_i(xmlTextReaderPtr __restrict reader,
+aio_dae_fxState_float4_i(xmlTextReaderPtr reader,
                          aio_render_state ** __restrict last_state,
                          aio_states ** __restrict states,
                          long state_type,
@@ -116,7 +116,7 @@ aio_dae_fxState_float4_i(xmlTextReaderPtr __restrict reader,
                          size_t defaultValSize);
 
 int _assetio_hide
-aio_dae_fxState_float4x4(xmlTextReaderPtr __restrict reader,
+aio_dae_fxState_float4x4(xmlTextReaderPtr reader,
                          aio_render_state ** __restrict last_state,
                          aio_states ** __restrict states,
                          long state_type,
@@ -124,21 +124,21 @@ aio_dae_fxState_float4x4(xmlTextReaderPtr __restrict reader,
                          size_t defaultValSize);
 
 int _assetio_hide
-aio_dae_fxState_sampler(xmlTextReaderPtr __restrict reader,
+aio_dae_fxState_sampler(xmlTextReaderPtr reader,
                         const char *elm,
                         aio_render_state ** __restrict last_state,
                         aio_states ** __restrict states,
                         long state_type);
 
 int _assetio_hide
-aio_dae_fxState_str(xmlTextReaderPtr __restrict reader,
+aio_dae_fxState_str(xmlTextReaderPtr reader,
                     aio_render_state ** __restrict last_state,
                     aio_states ** __restrict states,
                     long state_type);
 
 #define _AIO_DAE_ST_FUN_(ST_FN)                                               \
 int _assetio_hide                                                             \
-ST_FN(xmlTextReaderPtr __restrict,                                            \
+ST_FN(xmlTextReaderPtr,                                                       \
       aio_render_state ** __restrict,                                         \
       aio_states ** __restrict)
 

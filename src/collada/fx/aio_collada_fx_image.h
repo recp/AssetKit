@@ -15,12 +15,12 @@ typedef struct _xmlTextReader *xmlTextReaderPtr;
 
 int _assetio_hide
 aio_dae_fxImage(void * __restrict memParent,
-                xmlTextReaderPtr __restrict reader,
+                xmlTextReaderPtr reader,
                 aio_image ** __restrict dest);
 
 int _assetio_hide
 aio_dae_fxImageInstance(void * __restrict memParent,
-                        xmlTextReaderPtr __restrict reader,
+                        xmlTextReaderPtr reader,
                         aio_image_instance ** __restrict dest);
 
 #endif /* __libassetio__aio_collada_fx_image__h_ */

@@ -13,37 +13,37 @@
 static
 int _assetio_hide
 aio_dae_fxImage_initFrom(void * __restrict memParent,
-                         xmlTextReaderPtr __restrict reader,
+                         xmlTextReaderPtr reader,
                          aio_init_from ** __restrict dest);
 
 static
 int _assetio_hide
 aio_dae_fxImage_format(void * __restrict memParent,
-                       xmlTextReaderPtr __restrict reader,
+                       xmlTextReaderPtr reader,
                        aio_image_format ** __restrict dest);
 
 static
 int _assetio_hide
 aio_dae_fxImage_create2d(void * __restrict memParent,
-                         xmlTextReaderPtr __restrict reader,
+                         xmlTextReaderPtr reader,
                          aio_image2d ** __restrict dest);
 
 static
 int _assetio_hide
 aio_dae_fxImage_create3d(void * __restrict memParent,
-                         xmlTextReaderPtr __restrict reader,
+                         xmlTextReaderPtr reader,
                          aio_image3d ** __restrict dest);
 
 static
 int _assetio_hide
 aio_dae_fxImage_createCube(void * __restrict memParent,
-                           xmlTextReaderPtr __restrict reader,
+                           xmlTextReaderPtr reader,
                            aio_image_cube ** __restrict dest);
 
 
 int _assetio_hide
 aio_dae_fxImage(void * __restrict memParent,
-                xmlTextReaderPtr __restrict reader,
+                xmlTextReaderPtr reader,
                 aio_image ** __restrict dest) {
   aio_image *img;
   const xmlChar *nodeName;
@@ -132,7 +132,7 @@ aio_dae_fxImage(void * __restrict memParent,
 
 int _assetio_hide
 aio_dae_fxImageInstance(void * __restrict memParent,
-                        xmlTextReaderPtr __restrict reader,
+                        xmlTextReaderPtr reader,
                         aio_image_instance ** __restrict dest) {
   aio_image_instance *imgInst;
   const xmlChar *nodeName;
@@ -175,7 +175,7 @@ aio_dae_fxImageInstance(void * __restrict memParent,
 static
 int _assetio_hide
 aio_dae_fxImage_initFrom(void * __restrict memParent,
-                         xmlTextReaderPtr __restrict reader,
+                         xmlTextReaderPtr reader,
                          aio_init_from ** __restrict dest) {
   aio_init_from *initFrom;
   char          *attrValStr;
@@ -245,7 +245,7 @@ aio_dae_fxImage_initFrom(void * __restrict memParent,
 static
 int _assetio_hide
 aio_dae_fxImage_format(void * __restrict memParent,
-                       xmlTextReaderPtr __restrict reader,
+                       xmlTextReaderPtr reader,
                        aio_image_format ** __restrict dest) {
 
   aio_image_format *format;
@@ -316,7 +316,7 @@ aio_dae_fxImage_format(void * __restrict memParent,
 static
 int _assetio_hide
 aio_dae_fxImage_create2d(void * __restrict memParent,
-                         xmlTextReaderPtr __restrict reader,
+                         xmlTextReaderPtr reader,
                          aio_image2d ** __restrict dest) {
 
   aio_image2d   *image2d;
@@ -407,7 +407,7 @@ aio_dae_fxImage_create2d(void * __restrict memParent,
 static
 int _assetio_hide
 aio_dae_fxImage_create3d(void * __restrict memParent,
-                         xmlTextReaderPtr __restrict reader,
+                         xmlTextReaderPtr reader,
                          aio_image3d ** __restrict dest) {
   aio_image3d   *image3d;
   const xmlChar *nodeName;
@@ -473,7 +473,7 @@ aio_dae_fxImage_create3d(void * __restrict memParent,
 static
 int _assetio_hide
 aio_dae_fxImage_createCube(void * __restrict memParent,
-                           xmlTextReaderPtr __restrict reader,
+                           xmlTextReaderPtr reader,
                            aio_image_cube ** __restrict dest) {
   aio_image_cube *imageCube;
   const xmlChar *nodeName;

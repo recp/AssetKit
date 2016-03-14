@@ -70,7 +70,7 @@ aio_dae_valueType(const char * typeName) {
 
 int _assetio_hide
 aio_dae_value(void * __restrict memParent,
-              xmlTextReaderPtr __restrict reader,
+              xmlTextReaderPtr reader,
               void ** __restrict dest,
               aio_value_type * __restrict val_type) {
   aio_value_pair *found;

@@ -14,7 +14,7 @@ typedef struct _xmlTextReader *xmlTextReaderPtr;
 
 int _assetio_hide
 aio_dae_colorOrTex(void * __restrict memParent,
-                   xmlTextReaderPtr __restrict reader,
+                   xmlTextReaderPtr reader,
                    const char * elm,
                    aio_fx_color_or_tex ** __restrict dest);
 

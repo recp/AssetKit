@@ -30,7 +30,7 @@ static size_t constantMapLen = 0;
 
 int _assetio_hide
 aio_dae_fxConstant(void * __restrict memParent,
-                   xmlTextReaderPtr __restrict reader,
+                   xmlTextReaderPtr reader,
                    aio_constant_fx ** __restrict dest) {
   aio_constant_fx *constant;
   const xmlChar *nodeName;

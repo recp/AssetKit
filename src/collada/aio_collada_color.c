@@ -9,7 +9,7 @@
 #include "aio_collada_common.h"
 
 int _assetio_hide
-aio_dae_color(xmlTextReaderPtr __restrict reader,
+aio_dae_color(xmlTextReaderPtr reader,
               bool read_sid,
               aio_color * __restrict dest) {
   char          *colorStr;

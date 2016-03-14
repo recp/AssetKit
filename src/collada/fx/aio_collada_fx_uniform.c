@@ -12,7 +12,7 @@
 
 int _assetio_hide
 aio_dae_fxBindUniform(void * __restrict memParent,
-                      xmlTextReaderPtr __restrict reader,
+                      xmlTextReaderPtr reader,
                       aio_bind_uniform ** __restrict dest) {
   aio_bind_uniform *bind_uniform;
   aio_param        *last_param;

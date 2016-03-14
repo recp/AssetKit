@@ -17,7 +17,7 @@
 
 int _assetio_hide
 aio_dae_effect(void * __restrict memParent,
-               xmlTextReaderPtr __restrict reader,
+               xmlTextReaderPtr reader,
                aio_effect ** __restrict  dest) {
   aio_effect   *effect;
   aio_annotate *last_annotate;

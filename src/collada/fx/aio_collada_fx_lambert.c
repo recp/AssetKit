@@ -34,7 +34,7 @@ static size_t lambertMapLen = 0;
 
 int _assetio_hide
 aio_dae_fxLambert(void * __restrict memParent,
-                  xmlTextReaderPtr __restrict reader,
+                  xmlTextReaderPtr reader,
                   aio_lambert ** __restrict dest) {
   aio_lambert   *lambert;
   const xmlChar *nodeName;

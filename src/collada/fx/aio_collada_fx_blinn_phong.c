@@ -38,7 +38,7 @@ static size_t blinnPhongMapLen = 0;
 
 int _assetio_hide
 aio_dae_blinn_phong(void * __restrict memParent,
-                    xmlTextReaderPtr __restrict reader,
+                    xmlTextReaderPtr reader,
                     const char * elm,
                     aio_blinn_phong ** __restrict dest) {
   aio_blinn_phong *blinn_phong;

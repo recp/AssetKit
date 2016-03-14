@@ -11,7 +11,7 @@
 
 int _assetio_hide
 aio_dae_techniquec(void * __restrict memParent,
-                   xmlTextReaderPtr __restrict reader,
+                   xmlTextReaderPtr reader,
                    aio_technique_common ** __restrict dest) {
 
   aio_technique_common *techc;

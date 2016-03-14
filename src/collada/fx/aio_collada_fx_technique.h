@@ -14,7 +14,7 @@ typedef struct _xmlTextReader *xmlTextReaderPtr;
 
 int _assetio_hide
 aio_dae_techniqueFx(void * __restrict memParent,
-                    xmlTextReaderPtr __restrict reader,
+                    xmlTextReaderPtr reader,
                     aio_technique_fx ** __restrict dest);
 
 #endif /* __libassetio__aio_collada_technique_fx__h_ */

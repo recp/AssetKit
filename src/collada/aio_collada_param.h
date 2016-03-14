@@ -14,12 +14,12 @@ typedef struct _xmlTextReader *xmlTextReaderPtr;
 
 int _assetio_hide
 aio_dae_newparam(void * __restrict memParent,
-                 xmlTextReaderPtr __restrict reader,
+                 xmlTextReaderPtr reader,
                  aio_newparam ** __restrict dest);
 
 int _assetio_hide
 aio_dae_param(void * __restrict memParent,
-              xmlTextReaderPtr __restrict reader,
+              xmlTextReaderPtr reader,
               aio_param_type param_type,
               aio_param ** __restrict dest);
 

@@ -11,7 +11,7 @@
 
 int _assetio_hide
 aio_dae_annotate(void * __restrict memParent,
-                 xmlTextReaderPtr __restrict reader,
+                 xmlTextReaderPtr reader,
                  aio_annotate ** __restrict dest) {
   aio_annotate  *annotate;
   const xmlChar *nodeName;

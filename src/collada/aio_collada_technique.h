@@ -14,12 +14,12 @@ typedef struct _xmlTextReader *xmlTextReaderPtr;
 
 int _assetio_hide
 aio_dae_technique(void * __restrict memParent,
-                  xmlTextReaderPtr __restrict reader,
+                  xmlTextReaderPtr reader,
                   aio_technique ** __restrict dest);
 
 int _assetio_hide
 aio_dae_techniquec(void * __restrict memParent,
-                   xmlTextReaderPtr __restrict reader,
+                   xmlTextReaderPtr reader,
                    aio_technique_common ** __restrict dest);
 
 #endif /* __libassetio__aio_collada_technique__h_ */

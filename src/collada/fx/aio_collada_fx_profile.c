@@ -25,7 +25,7 @@ static size_t profileMapLen = 0;
 
 int _assetio_hide
 aio_dae_profile(void * __restrict memParent,
-                xmlTextReaderPtr __restrict reader,
+                xmlTextReaderPtr reader,
                 aio_profile ** __restrict dest) {
   aio_profile  *profile;
   aio_newparam *last_newparam;

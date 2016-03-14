@@ -136,7 +136,7 @@ static size_t stateMapLen = 0;
 
 int _assetio_hide
 aio_dae_fxState(void * __restrict memParent,
-                xmlTextReaderPtr __restrict reader,
+                xmlTextReaderPtr reader,
                 aio_states ** __restrict dest) {
   aio_states       *states;
   aio_render_state *last_state;

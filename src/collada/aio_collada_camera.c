@@ -12,7 +12,7 @@
 
 int _assetio_hide
 aio_dae_camera(void * __restrict memParent,
-               xmlTextReaderPtr __restrict reader,
+               xmlTextReaderPtr reader,
                aio_camera ** __restrict  dest) {
   aio_camera    *camera;
   const xmlChar *nodeName;

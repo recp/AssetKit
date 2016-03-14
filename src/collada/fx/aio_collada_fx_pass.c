@@ -17,7 +17,7 @@
 
 int _assetio_hide
 aio_dae_fxPass(void * __restrict memParent,
-               xmlTextReaderPtr __restrict reader,
+               xmlTextReaderPtr reader,
                aio_pass ** __restrict dest) {
   aio_pass      *pass;
   aio_annotate  *last_annotate;

@@ -14,7 +14,7 @@ typedef struct _xmlTextReader *xmlTextReaderPtr;
 
 int _assetio_hide
 aio_dae_fxSampler(void * __restrict memParent,
-                  xmlTextReaderPtr __restrict reader,
+                  xmlTextReaderPtr reader,
                   const char *elm,
                   aio_fx_sampler_common ** __restrict dest);
 

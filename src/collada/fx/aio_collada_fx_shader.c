@@ -13,7 +13,7 @@
 
 int _assetio_hide
 aio_dae_fxShader(void * __restrict memParent,
-                 xmlTextReaderPtr __restrict reader,
+                 xmlTextReaderPtr reader,
                  aio_shader ** __restrict dest) {
   aio_shader       *shader;
   aio_compiler     *last_compiler;

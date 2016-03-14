@@ -34,7 +34,7 @@ static size_t evaluateMapLen = 0;
 
 int _assetio_hide
 aio_dae_fxEvaluate(void * __restrict memParent,
-                   xmlTextReaderPtr __restrict reader,
+                   xmlTextReaderPtr reader,
                    aio_evaluate ** __restrict dest) {
   aio_evaluate  *evaluate;
   const xmlChar *nodeName;

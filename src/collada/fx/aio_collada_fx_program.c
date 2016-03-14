@@ -13,7 +13,7 @@
 
 int _assetio_hide
 aio_dae_fxProg(void * __restrict memParent,
-               xmlTextReaderPtr __restrict reader,
+               xmlTextReaderPtr reader,
                aio_program ** __restrict dest) {
   aio_program      *prog;
   aio_bind_uniform *last_bind_uniform;
