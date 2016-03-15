@@ -13,8 +13,6 @@
 #include <sys/types.h>
 #include <string.h>
 
-#define AIO_IS_EQ_CASE(s1, s2) strcasecmp(s1, s2) == 0
-
 #ifdef _MSC_VER
 #  define strncasecmp _strnicmp
 #  define strcasecmp _stricmp
@@ -27,8 +25,6 @@
 #  define AIO_DESTRUCTOR
 #  define AIO_CONSTRUCTOR
 #endif
-
-#define UNUSED(x) (void)(x)
 
 typedef struct aio_enumpair_s aio_enumpair;
 struct aio_enumpair_s {
