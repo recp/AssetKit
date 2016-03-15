@@ -21,6 +21,12 @@ aio_dae_doc(aio_doc ** __restrict dest,
             const char * __restrict file) {
 
   aio_doc          *doc;
+  aio_lib_camera   *last_libCam;
+  aio_lib_light    *last_libLight;
+  aio_lib_effect   *last_libEffect;
+  aio_lib_image    *last_libImage;
+  aio_lib_material *last_libMaterial;
+
   xmlTextReaderPtr  reader;
   const xmlChar    *nodeName;
   int nodeType;
@@ -54,6 +60,12 @@ aio_dae_doc(aio_doc ** __restrict dest,
 
   _xml_readNext;
 
+  last_libCam      = NULL;
+  last_libLight    = NULL;
+  last_libEffect   = NULL;
+  last_libImage    = NULL;
+  last_libMaterial = NULL;
+
   do {
     _xml_beginElement(_s_dae_collada);
 
@@ -75,12 +87,18 @@ aio_dae_doc(aio_doc ** __restrict dest,
       aio_lib_camera *libcam;
       aio_camera     *lastcam;
 
-      libcam = &doc->lib.cameras;
+      libcam = aio_calloc(doc, sizeof(*libcam), 1);
+      if (last_libCam)
+        last_libCam->next = libcam;
+      else
+        doc->lib.cameras = libcam;
+
+      last_libCam = libcam;
 
       _xml_readAttr(libcam, libcam->id, _s_dae_id);
       _xml_readAttr(libcam, libcam->name, _s_dae_name);
 
-      lastcam = libcam->next;
+      lastcam = NULL;
 
       do {
         _xml_beginElement(_s_dae_lib_cameras);
@@ -92,7 +110,7 @@ aio_dae_doc(aio_doc ** __restrict dest,
           assetInf = NULL;
           ret = aio_dae_assetInf(doc, reader, &assetInf);
           if (ret == 0)
-            doc->lib.cameras.inf = assetInf;
+            libcam->inf = assetInf;
 
         } else if (_xml_eqElm(_s_dae_camera)) {
           aio_camera *acamera;
@@ -104,7 +122,7 @@ aio_dae_doc(aio_doc ** __restrict dest,
             if (lastcam)
               lastcam->next = acamera;
             else
-              libcam->next = acamera;
+              libcam->chld = acamera;
 
             lastcam = acamera;
           }
@@ -130,12 +148,18 @@ aio_dae_doc(aio_doc ** __restrict dest,
       aio_lib_light *liblight;
       aio_light     *lastlight;
 
-      liblight = &doc->lib.lights;
+      liblight = aio_calloc(doc, sizeof(*liblight), 1);
+      if (last_libLight)
+        last_libLight->next = liblight;
+      else
+        doc->lib.lights = liblight;
+
+      last_libLight = liblight;
 
       _xml_readAttr(liblight, liblight->id, _s_dae_id);
       _xml_readAttr(liblight, liblight->name, _s_dae_name);
 
-      lastlight = liblight->next;
+      lastlight = NULL;
 
       do {
         _xml_beginElement(_s_dae_lib_lights);
@@ -147,7 +171,7 @@ aio_dae_doc(aio_doc ** __restrict dest,
           assetInf = NULL;
           ret = aio_dae_assetInf(doc, reader, &assetInf);
           if (ret == 0)
-            doc->lib.lights.inf = assetInf;
+            liblight->inf = assetInf;
 
         } else if (_xml_eqElm(_s_dae_light)) {
           aio_light *alight;
@@ -159,7 +183,7 @@ aio_dae_doc(aio_doc ** __restrict dest,
             if (lastlight)
               lastlight->next = alight;
             else
-              liblight->next = alight;
+              liblight->chld = alight;
 
             lastlight = alight;
           }
@@ -187,12 +211,18 @@ aio_dae_doc(aio_doc ** __restrict dest,
       aio_lib_effect *libeffect;
       aio_effect     *lasteffect;
 
-      libeffect = &doc->lib.effects;
+      libeffect = aio_calloc(doc, sizeof(*libeffect), 1);
+      if (last_libEffect)
+        last_libEffect->next = libeffect;
+      else
+        doc->lib.effects = libeffect;
+
+      last_libEffect = libeffect;
 
       _xml_readAttr(libeffect, libeffect->id, _s_dae_id);
       _xml_readAttr(libeffect, libeffect->name, _s_dae_name);
 
-      lasteffect = libeffect->next;
+      lasteffect = NULL;
 
       do {
         _xml_beginElement(_s_dae_lib_effects);
@@ -204,7 +234,7 @@ aio_dae_doc(aio_doc ** __restrict dest,
           assetInf = NULL;
           ret = aio_dae_assetInf(doc, reader, &assetInf);
           if (ret == 0)
-            doc->lib.effects.inf = assetInf;
+            libeffect->inf = assetInf;
 
         } else if (_xml_eqElm(_s_dae_effect)) {
           aio_effect *anEffect;
@@ -215,7 +245,7 @@ aio_dae_doc(aio_doc ** __restrict dest,
             if (lasteffect)
               lasteffect->next = anEffect;
             else
-              libeffect->next = anEffect;
+              libeffect->chld = anEffect;
 
             lasteffect = anEffect;
           }
@@ -242,12 +272,18 @@ aio_dae_doc(aio_doc ** __restrict dest,
       aio_lib_image *libimg;
       aio_image     *lastimg;
 
-      libimg = &doc->lib.images;
+      libimg = aio_calloc(doc, sizeof(*libimg), 1);
+      if (last_libImage)
+        last_libImage->next = libimg;
+      else
+        doc->lib.images = libimg;
+
+      last_libImage = libimg;
 
       _xml_readAttr(libimg, libimg->id, _s_dae_id);
       _xml_readAttr(libimg, libimg->name, _s_dae_name);
 
-      lastimg = libimg->next;
+      lastimg = NULL;
 
       do {
         _xml_beginElement(_s_dae_lib_images);
@@ -259,7 +295,7 @@ aio_dae_doc(aio_doc ** __restrict dest,
           assetInf = NULL;
           ret = aio_dae_assetInf(doc, reader, &assetInf);
           if (ret == 0)
-            doc->lib.images.inf = assetInf;
+            libimg->inf = assetInf;
 
         } else if (_xml_eqElm(_s_dae_image)) {
           aio_image *anImg;
@@ -270,7 +306,7 @@ aio_dae_doc(aio_doc ** __restrict dest,
             if (lastimg)
               lastimg->next = anImg;
             else
-              libimg->next = anImg;
+              libimg->chld = anImg;
 
             lastimg = anImg;
           }
@@ -296,12 +332,18 @@ aio_dae_doc(aio_doc ** __restrict dest,
       aio_lib_material *libmaterial;
       aio_material     *lastmaterial;
 
-      libmaterial = &doc->lib.materials;
+      libmaterial = aio_calloc(doc, sizeof(*libmaterial), 1);
+      if (last_libMaterial)
+        last_libMaterial->next = libmaterial;
+      else
+        doc->lib.materials = libmaterial;
+
+      last_libMaterial = libmaterial;
 
       _xml_readAttr(libmaterial, libmaterial->id, _s_dae_id);
       _xml_readAttr(libmaterial, libmaterial->name, _s_dae_name);
 
-      lastmaterial = libmaterial->next;
+      lastmaterial = NULL;
 
       do {
         _xml_beginElement(_s_dae_lib_materials);
@@ -313,7 +355,7 @@ aio_dae_doc(aio_doc ** __restrict dest,
           assetInf = NULL;
           ret = aio_dae_assetInf(doc, reader, &assetInf);
           if (ret == 0)
-            doc->lib.materials.inf = assetInf;
+            libmaterial->inf = assetInf;
 
         } else if (_xml_eqElm(_s_dae_material)) {
           aio_material *material;
@@ -325,7 +367,7 @@ aio_dae_doc(aio_doc ** __restrict dest,
             if (lastmaterial)
               lastmaterial->next = material;
             else
-              libmaterial->next = material;
+              libmaterial->chld = material;
 
             lastmaterial = material;
           }

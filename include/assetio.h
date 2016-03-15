@@ -1347,9 +1347,10 @@ struct aio_material_s {
     aio_assetinf  * inf;                                                      \
     const char    * id;                                                       \
     const char    * name;                                                     \
-    aio_##T       * next;                                                     \
+    aio_##T       * chld;                                                     \
     aio_tree      * extra;                                                    \
     unsigned long   count;                                                    \
+    aio_lib_##T   * next;                                                     \
   }
 
 _AIO_DEF_LIB(camera);
@@ -1362,11 +1363,11 @@ _AIO_DEF_LIB(material);
 
 typedef struct aio_lib_s aio_lib;
 struct aio_lib_s {
-  aio_lib_camera   cameras;
-  aio_lib_light    lights;
-  aio_lib_effect   effects;
-  aio_lib_image    images;
-  aio_lib_material materials;
+  aio_lib_camera   * cameras;
+  aio_lib_light    * lights;
+  aio_lib_effect   * effects;
+  aio_lib_image    * images;
+  aio_lib_material * materials;
 };
 
 typedef struct aio_doc_s aio_doc;
