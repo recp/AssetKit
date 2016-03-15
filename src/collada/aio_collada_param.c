@@ -146,3 +146,51 @@ err:
   _xml_endElement;
   return -1;
 }
+
+int _assetio_hide
+aio_dae_setparam(void * __restrict memParent,
+                 xmlTextReaderPtr reader,
+                 aio_setparam ** __restrict dest) {
+  aio_setparam  *setparam;
+  const xmlChar *nodeName;
+  int nodeType;
+  int nodeRet;
+
+  setparam = aio_calloc(memParent, sizeof(*setparam), 1);
+
+  if (modifierMapLen == 0) {
+    modifierMapLen = AIO_ARRAY_LEN(modifierMap);
+    qsort(modifierMap,
+          modifierMapLen,
+          sizeof(modifierMap[0]),
+          aio_enumpair_cmp);
+  }
+
+  do {
+    _xml_beginElement(_s_dae_setparam);
+
+    /* load once */
+    if (!setparam->val) {
+      void           * val;
+      aio_value_type   val_type;
+      int              ret;
+
+      ret = aio_dae_value(setparam,
+                          reader,
+                          &val,
+                          &val_type);
+
+      if (ret == 0) {
+        setparam->val = val;
+        setparam->val_type = val_type;
+      }
+    }
+
+    /* end element */
+    _xml_endElement;
+  } while (nodeRet);
+
+  *dest = setparam;
+  
+  return 0;
+}

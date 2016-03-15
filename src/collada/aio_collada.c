@@ -13,6 +13,7 @@
 
 #include "fx/aio_collada_fx_effect.h"
 #include "fx/aio_collada_fx_image.h"
+#include "fx/aio_collada_fx_material.h"
 
 int
 _assetio_hide
@@ -282,6 +283,61 @@ aio_dae_doc(aio_doc ** __restrict dest,
 
           aio_tree_fromXmlNode(doc, nodePtr, &tree, NULL);
           libimg->extra = tree;
+
+          _xml_skipElement;
+        } else {
+          _xml_skipElement;
+        }
+        
+        /* end element */
+        _xml_endElement;
+      } while (nodeRet);
+    } else if (_xml_eqElm(_s_dae_lib_materials)) {
+      aio_lib_material *libmaterial;
+      aio_material     *lastmaterial;
+
+      libmaterial = &doc->lib.materials;
+
+      _xml_readAttr(libmaterial, libmaterial->id, _s_dae_id);
+      _xml_readAttr(libmaterial, libmaterial->name, _s_dae_name);
+
+      lastmaterial = libmaterial->next;
+
+      do {
+        _xml_beginElement(_s_dae_lib_materials);
+
+        if (_xml_eqElm(_s_dae_asset)) {
+          aio_assetinf *assetInf;
+          int ret;
+
+          assetInf = NULL;
+          ret = aio_dae_assetInf(doc, reader, &assetInf);
+          if (ret == 0)
+            doc->lib.materials.inf = assetInf;
+
+        } else if (_xml_eqElm(_s_dae_material)) {
+          aio_material *material;
+          int ret;
+
+          material = NULL;
+          ret = aio_dae_material(doc, reader, &material);
+          if (ret == 0) {
+            if (lastmaterial)
+              lastmaterial->next = material;
+            else
+              libmaterial->next = material;
+
+            lastmaterial = material;
+          }
+        } else if (_xml_eqElm(_s_dae_extra)) {
+          xmlNodePtr nodePtr;
+          aio_tree  *tree;
+
+          nodePtr = xmlTextReaderExpand(reader);
+          tree = NULL;
+
+          aio_tree_fromXmlNode(doc, nodePtr, &tree, NULL);
+          libmaterial->extra = tree;
 
           _xml_skipElement;
         } else {

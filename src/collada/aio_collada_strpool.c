@@ -324,6 +324,11 @@ const char _s_dae_pool[] =
 "stencil_clear\0"
 "draw\0"
 "library_images\0"
+"library_materials\0"
+"instance_effect\0"
+"technique_hint\0"
+"setparam\0"
+"material\0"
 ;
 
 #undef _AIO_DAE_STRPOOL_

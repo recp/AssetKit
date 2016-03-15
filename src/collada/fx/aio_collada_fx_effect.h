@@ -16,6 +16,11 @@ typedef struct _xmlTextReader *xmlTextReaderPtr;
 int _assetio_hide
 aio_dae_effect(void * __restrict memParent,
                xmlTextReaderPtr reader,
-               aio_effect ** __restrict  dest);
+               aio_effect ** __restrict dest);
+
+int _assetio_hide
+aio_dae_fxEffectInstance(void * __restrict memParent,
+                         xmlTextReaderPtr reader,
+                         aio_effect_instance ** __restrict dest);
 
 #endif /* __libassetio__aio_collada_fx_effect__h_ */

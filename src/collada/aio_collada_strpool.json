@@ -312,5 +312,10 @@
   "depth_clear": "depth_clear",
   "stencil_clear": "stencil_clear",
   "draw": "draw",
-  "lib_images": "library_images"
+  "lib_images": "library_images",
+  "lib_materials": "library_materials",
+  "inst_effect": "instance_effect",
+  "technique_hint": "technique_hint",
+  "setparam": "setparam",
+  "material": "material"
 }

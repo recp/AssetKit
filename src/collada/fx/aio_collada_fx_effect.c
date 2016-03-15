@@ -117,3 +117,81 @@ aio_dae_effect(void * __restrict memParent,
 
   return 0;
 }
+
+int _assetio_hide
+aio_dae_fxEffectInstance(void * __restrict memParent,
+                         xmlTextReaderPtr reader,
+                         aio_effect_instance ** __restrict dest) {
+  aio_effect_instance *effectInst;
+  aio_technique_hint  *last_techHint;
+  aio_setparam        *last_setparam;
+  const xmlChar *nodeName;
+  int            nodeType;
+  int            nodeRet;
+
+  effectInst = aio_calloc(memParent, sizeof(*effectInst), 1);
+
+  _xml_readAttr(effectInst, effectInst->url, _s_dae_url);
+  _xml_readAttr(effectInst, effectInst->sid, _s_dae_sid);
+  _xml_readAttr(effectInst, effectInst->name, _s_dae_name);
+
+  last_techHint = NULL;
+  last_setparam = NULL;
+
+  if (!xmlTextReaderIsEmptyElement(reader)) {
+    do {
+      _xml_beginElement(_s_dae_inst_effect);
+
+      if (_xml_eqElm(_s_dae_technique_hint)) {
+        aio_technique_hint *techHint;
+
+        techHint = aio_calloc(effectInst, sizeof(*techHint), 1);
+
+        _xml_readAttr(techHint, techHint->ref, _s_dae_ref);
+        _xml_readAttr(techHint, techHint->profile, _s_dae_profile);
+        _xml_readAttr(techHint, techHint->platform, _s_dae_platform);
+
+        if (last_techHint)
+          last_techHint->next = techHint;
+        else
+          effectInst->techniqueHint = techHint;
+
+        last_techHint = techHint;
+      } else if (_xml_eqElm(_s_dae_setparam)) {
+        aio_setparam *setparam;
+        int ret;
+
+        ret = aio_dae_setparam(effectInst, reader, &setparam);
+
+        if (ret == 0) {
+          if (last_setparam)
+            last_setparam->next = setparam;
+          else
+            effectInst->setparam = setparam;
+
+          last_setparam = setparam;
+        }
+      } else if (_xml_eqElm(_s_dae_extra)) {
+        xmlNodePtr nodePtr;
+        aio_tree  *tree;
+
+        nodePtr = xmlTextReaderExpand(reader);
+        tree = NULL;
+
+        aio_tree_fromXmlNode(effectInst, nodePtr, &tree, NULL);
+        effectInst->extra = tree;
+
+        _xml_skipElement;
+      } else {
+        _xml_skipElement;
+      }
+
+      /* end element */
+      _xml_endElement;
+    } while (nodeRet);
+  }
+
+  *dest = effectInst;
+  
+  return 0;
+}

@@ -980,6 +980,15 @@ struct aio_newparam_s {
   aio_newparam * next;
 };
 
+typedef struct aio_setparam_s aio_setparam;
+struct aio_setparam_s {
+  const char     * ref;
+  void           * val;
+  aio_value_type   val_type;
+
+  aio_setparam * next;
+};
+
 typedef struct aio_code_s aio_code;
 struct aio_code_s {
   const char * sid;
@@ -1298,6 +1307,38 @@ struct aio_effect_s {
   aio_effect * next;
 };
 
+typedef struct aio_technique_hint_s aio_technique_hint;
+struct aio_technique_hint_s {
+  const char * platform;
+  const char * ref;
+  const char * profile;
+
+  aio_technique_hint * next;
+};
+
+typedef struct aio_effect_instance_s aio_effect_instance;
+struct aio_effect_instance_s {
+  const char * url;
+  const char * sid;
+  const char * name;
+
+  aio_technique_hint *techniqueHint;
+  aio_setparam       *setparam;
+
+  aio_tree * extra;
+};
+
+typedef struct aio_material_s aio_material;
+struct aio_material_s {
+  aio_asset_base
+  const char * id;
+  const char * name;
+  aio_effect_instance *effect_inst;
+  aio_tree * extra;
+
+  aio_material * next;
+};
+
 #undef _AIO_DEF_LIB
 
 #define _AIO_DEF_LIB(T)                                                       \
@@ -1315,15 +1356,17 @@ _AIO_DEF_LIB(camera);
 _AIO_DEF_LIB(light);
 _AIO_DEF_LIB(effect);
 _AIO_DEF_LIB(image);
+_AIO_DEF_LIB(material);
 
 #undef _AIO_DEF_LIB
 
 typedef struct aio_lib_s aio_lib;
 struct aio_lib_s {
-  aio_lib_camera cameras;
-  aio_lib_light  lights;
-  aio_lib_effect effects;
-  aio_lib_image  images;
+  aio_lib_camera   cameras;
+  aio_lib_light    lights;
+  aio_lib_effect   effects;
+  aio_lib_image    images;
+  aio_lib_material materials;
 };
 
 typedef struct aio_doc_s aio_doc;

@@ -23,4 +23,9 @@ aio_dae_param(void * __restrict memParent,
               aio_param_type param_type,
               aio_param ** __restrict dest);
 
+int _assetio_hide
+aio_dae_setparam(void * __restrict memParent,
+                 xmlTextReaderPtr reader,
+                 aio_setparam ** __restrict dest);
+
 #endif /* __libassetio__aio_collada_param__h_ */

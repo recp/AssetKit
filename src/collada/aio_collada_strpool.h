@@ -328,5 +328,10 @@ const char _s_dae_pool[];
 #define _s_dae_stencil_clear _s_dae(3529)
 #define _s_dae_draw _s_dae(3543)
 #define _s_dae_lib_images _s_dae(3548)
+#define _s_dae_lib_materials _s_dae(3563)
+#define _s_dae_inst_effect _s_dae(3581)
+#define _s_dae_technique_hint _s_dae(3597)
+#define _s_dae_setparam _s_dae(3612)
+#define _s_dae_material _s_dae(3621)
 
 #endif /* __libassetio__collada_strpool__h_ */
