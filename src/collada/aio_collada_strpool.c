@@ -329,6 +329,23 @@ const char _s_dae_pool[] =
 "technique_hint\0"
 "setparam\0"
 "material\0"
+"library_geometries\0"
+"geometry\0"
+"mesh\0"
+"source\0"
+"float_array\0"
+"count\0"
+"accessor\0"
+"stride\0"
+"X\0"
+"Y\0"
+"Z\0"
+"vertices\0"
+"input\0"
+"offset\0"
+"polylist\0"
+"vcount\0"
+"p\0"
 ;
 
 #undef _AIO_DAE_STRPOOL_

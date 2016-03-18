@@ -317,5 +317,22 @@
   "inst_effect": "instance_effect",
   "technique_hint": "technique_hint",
   "setparam": "setparam",
-  "material": "material"
+  "material": "material",
+  "lib_geometries": "library_geometries",
+  "geometry": "geometry",
+  "mesh": "mesh",
+  "source": "source",
+  "float_array": "float_array",
+  "count": "count",
+  "accessor": "accessor",
+  "stride": "stride",
+  "X": "X",
+  "Y": "Y",
+  "Z": "Z",
+  "vertices": "vertices",
+  "input": "input",
+  "offset": "offset",
+  "polylist": "polylist",
+  "vcount": "vcount",
+  "p": "p"
 }
