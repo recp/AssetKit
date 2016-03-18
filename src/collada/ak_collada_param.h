@@ -1,0 +1,31 @@
+/*
+ * Copyright (c), Recep Aslantas.
+ *
+ * MIT License (MIT), http://opensource.org/licenses/MIT
+ * Full license can be found in the LICENSE file
+ */
+
+#ifndef __libassetkit__ak_collada_param__h_
+#define __libassetkit__ak_collada_param__h_
+
+#include "../../include/assetkit.h"
+
+typedef struct _xmlTextReader *xmlTextReaderPtr;
+
+int _assetkit_hide
+ak_dae_newparam(void * __restrict memParent,
+                 xmlTextReaderPtr reader,
+                 ak_newparam ** __restrict dest);
+
+int _assetkit_hide
+ak_dae_param(void * __restrict memParent,
+              xmlTextReaderPtr reader,
+              ak_param_type param_type,
+              ak_param ** __restrict dest);
+
+int _assetkit_hide
+ak_dae_setparam(void * __restrict memParent,
+                 xmlTextReaderPtr reader,
+                 ak_setparam ** __restrict dest);
+
+#endif /* __libassetkit__ak_collada_param__h_ */

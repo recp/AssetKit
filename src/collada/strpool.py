@@ -14,12 +14,12 @@ from os.path import dirname
 
 destdir = dirname(realpath(__file__))
 
-fspoolJSON = open(destdir + "/aio_collada_strpool.json")
+fspoolJSON = open(destdir + "/ak_collada_strpool.json")
 spool = json.loads(fspoolJSON.read(), object_pairs_hook=OrderedDict)
 fspoolJSON.close()
 
-fspool_h = open(destdir + "/aio_collada_strpool.h", "wb");
-fspool_c = open(destdir + "/aio_collada_strpool.c", "wb");
+fspool_h = open(destdir + "/ak_collada_strpool.h", "wb");
+fspool_c = open(destdir + "/ak_collada_strpool.c", "wb");
 
 copyright = """\
 /*
@@ -34,10 +34,10 @@ fspool_h.write(copyright)
 fspool_c.write(copyright)
 
 fspool_h.write("""
-#ifndef __libassetio__collada_strpool__h_
-#define __libassetio__collada_strpool__h_
+#ifndef __libassetkit__collada_strpool__h_
+#define __libassetkit__collada_strpool__h_
 
-#ifndef _AIO_DAE_STRPOOL_
+#ifndef _ak_DAE_STRPOOL_
 extern
 #endif
 const char _s_dae_pool[];
@@ -49,11 +49,11 @@ const char _s_dae_pool[];
 """)
 
 fspool_c.write("""
-#ifndef _AIO_DAE_STRPOOL_
-#define _AIO_DAE_STRPOOL_
+#ifndef _ak_DAE_STRPOOL_
+#define _ak_DAE_STRPOOL_
 #endif
 
-#include "aio_collada_strpool.h"
+#include "ak_collada_strpool.h"
 #include <string.h>
 
 const char _s_dae_pool[] =
@@ -74,12 +74,12 @@ for name, val in spool.iteritems():
   pos += len(val) + 1
 
 fspool_h.write("""
-#endif /* __libassetio__collada_strpool__h_ */
+#endif /* __libassetkit__collada_strpool__h_ */
 """)
 
 fspool_c.write(""";
 
-#undef _AIO_DAE_STRPOOL_
+#undef _ak_DAE_STRPOOL_
 """)
 
 fspool_h.close()
