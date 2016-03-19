@@ -64,7 +64,7 @@ ak_heap_alloc(ak_heap * __restrict heap,
   ak_heapnode *currNode;
   ak_heapnode *parentNode;
 
-  currNode = malloc(ak__heapnd_sz_algnd + size);
+  currNode = je_malloc(ak__heapnd_sz_algnd + size);
 
   currNode->chld = NULL;
 
@@ -186,7 +186,7 @@ ak_heap_free(ak_heap * __restrict heap,
           nextFree->prev = toFree->prev;
       }
       
-      free(toFree);
+      je_free(toFree);
       toFree = nextFree;
 
       /* empty trash */
