@@ -1,4 +1,8 @@
-[submodule "jemalloc"]
-	path = jemalloc
-	url = http://github.com/jemalloc/jemalloc
+[submodule "lib/libxml2"]
+	path = lib/libxml2
+	url = git://git.gnome.org/libxml2
+	branch = master
+[submodule "lib/jemalloc"]
+	path = lib/jemalloc
+	url = https://github.com/jemalloc/jemalloc.git
 	branch = master
