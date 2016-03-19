@@ -12,7 +12,7 @@
 
 typedef struct _xmlTextReader *xmlTextReaderPtr;
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxBindUniform(void * __restrict memParent,
                       xmlTextReaderPtr reader,
                       ak_bind_uniform ** __restrict dest);

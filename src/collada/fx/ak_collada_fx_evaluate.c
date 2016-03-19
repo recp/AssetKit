@@ -32,7 +32,7 @@ static ak_enumpair evaluateMap[] = {
 
 static size_t evaluateMapLen = 0;
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxEvaluate(void * __restrict memParent,
                    xmlTextReaderPtr reader,
                    ak_evaluate ** __restrict dest) {
@@ -101,7 +101,7 @@ ak_dae_fxEvaluate(void * __restrict memParent,
                                 AK_PARAM_TYPE_BASIC,
                                 &param);
 
-            if (ret == 0)
+            if (ret == AK_OK)
               evaluate_target->param = param;
           } else if (_xml_eqElm(_s_dae_instance_image)) {
             ak_image_instance *imageInst;
@@ -111,7 +111,7 @@ ak_dae_fxEvaluate(void * __restrict memParent,
                                           reader,
                                           &imageInst);
 
-            if (ret == 0)
+            if (ret == AK_OK)
               evaluate_target->image_inst = imageInst;
           } else {
             _xml_skipElement;
@@ -195,5 +195,5 @@ ak_dae_fxEvaluate(void * __restrict memParent,
 
   *dest = evaluate;
   
-  return 0;
+  return AK_OK;
 }

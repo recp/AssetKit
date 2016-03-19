@@ -11,7 +11,7 @@
 #include "ak_collada_fx_binary.h"
 #include "ak_collada_fx_uniform.h"
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxShader(void * __restrict memParent,
                  xmlTextReaderPtr reader,
                  ak_shader ** __restrict dest) {
@@ -98,7 +98,7 @@ ak_dae_fxShader(void * __restrict memParent,
           int         ret;
 
           ret = ak_dae_fxBinary(compiler, reader, &binary);
-          if (ret == 0)
+          if (ret == AK_OK)
             compiler->binary = binary;
         } else {
           _xml_skipElement;
@@ -119,7 +119,7 @@ ak_dae_fxShader(void * __restrict memParent,
       int ret;
 
       ret = ak_dae_fxBindUniform(shader, reader, &bind_uniform);
-      if (ret == 0) {
+      if (ret == AK_OK) {
         if (last_bind_uniform)
           last_bind_uniform->next = bind_uniform;
         else
@@ -148,5 +148,5 @@ ak_dae_fxShader(void * __restrict memParent,
 
   *dest = shader;
   
-  return 0;
+  return AK_OK;
 }

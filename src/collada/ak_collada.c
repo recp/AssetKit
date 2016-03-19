@@ -15,7 +15,7 @@
 #include "fx/ak_collada_fx_image.h"
 #include "fx/ak_collada_fx_material.h"
 
-int
+AkResult
 _assetkit_hide
 ak_dae_doc(ak_doc ** __restrict dest,
             const char * __restrict file) {
@@ -53,7 +53,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
   reader = xmlReaderForFile(file, NULL, xmlReaderFlags);
   if (!reader) {
     fprintf(stderr, "assetkit: Unable to open %s\n", file);
-    return -1;
+    return AK_ERR;
   }
 
   doc = ak_calloc(NULL, sizeof(*doc), 1);
@@ -79,7 +79,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
       assetInf = &docInf->base;
 
       ret = ak_dae_assetInf(docInf, reader, &assetInf);
-      if (ret == 0) {
+      if (ret == AK_OK) {
         docInf->ftype = AK_FILE_TYPE_COLLADA;
         doc->docinf = *docInf;
       }
@@ -109,7 +109,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
 
           assetInf = NULL;
           ret = ak_dae_assetInf(doc, reader, &assetInf);
-          if (ret == 0)
+          if (ret == AK_OK)
             libcam->inf = assetInf;
 
         } else if (_xml_eqElm(_s_dae_camera)) {
@@ -118,7 +118,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
 
           acamera = NULL;
           ret = ak_dae_camera(doc, reader, &acamera);
-          if (ret == 0) {
+          if (ret == AK_OK) {
             if (lastcam)
               lastcam->next = acamera;
             else
@@ -170,7 +170,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
 
           assetInf = NULL;
           ret = ak_dae_assetInf(doc, reader, &assetInf);
-          if (ret == 0)
+          if (ret == AK_OK)
             liblight->inf = assetInf;
 
         } else if (_xml_eqElm(_s_dae_light)) {
@@ -179,7 +179,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
 
           alight = NULL;
           ret = ak_dae_light(doc, reader, &alight);
-          if (ret == 0) {
+          if (ret == AK_OK) {
             if (lastlight)
               lastlight->next = alight;
             else
@@ -233,7 +233,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
 
           assetInf = NULL;
           ret = ak_dae_assetInf(doc, reader, &assetInf);
-          if (ret == 0)
+          if (ret == AK_OK)
             libeffect->inf = assetInf;
 
         } else if (_xml_eqElm(_s_dae_effect)) {
@@ -241,7 +241,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
           int         ret;
 
           ret = ak_dae_effect(doc, reader, &anEffect);
-          if (ret == 0) {
+          if (ret == AK_OK) {
             if (lasteffect)
               lasteffect->next = anEffect;
             else
@@ -294,7 +294,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
 
           assetInf = NULL;
           ret = ak_dae_assetInf(doc, reader, &assetInf);
-          if (ret == 0)
+          if (ret == AK_OK)
             libimg->inf = assetInf;
 
         } else if (_xml_eqElm(_s_dae_image)) {
@@ -302,7 +302,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
           int        ret;
           
           ret = ak_dae_fxImage(doc, reader, &anImg);
-          if (ret == 0) {
+          if (ret == AK_OK) {
             if (lastimg)
               lastimg->next = anImg;
             else
@@ -354,7 +354,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
 
           assetInf = NULL;
           ret = ak_dae_assetInf(doc, reader, &assetInf);
-          if (ret == 0)
+          if (ret == AK_OK)
             libmaterial->inf = assetInf;
 
         } else if (_xml_eqElm(_s_dae_material)) {
@@ -363,7 +363,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
 
           material = NULL;
           ret = ak_dae_material(doc, reader, &material);
-          if (ret == 0) {
+          if (ret == AK_OK) {
             if (lastmaterial)
               lastmaterial->next = material;
             else
@@ -399,10 +399,10 @@ ak_dae_doc(ak_doc ** __restrict dest,
 
   if (nodeRet == -1) {
     fprintf(stderr, "%s : failed to parse\n", file);
-    return -1;
+    return AK_ERR;
   }
 
   *dest = doc;
 
-  return 0;
+  return AK_OK;
 }

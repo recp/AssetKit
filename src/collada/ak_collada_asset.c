@@ -8,7 +8,7 @@
 #include "ak_collada_asset.h"
 #include "ak_collada_common.h"
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_assetInf(void * __restrict memParent,
                  xmlTextReaderPtr reader,
                  ak_assetinf ** __restrict dest) {
@@ -112,5 +112,5 @@ ak_dae_assetInf(void * __restrict memParent,
     _xml_endElement;
   } while (nodeRet);
 
-  return 0;
+  return AK_OK;
 }

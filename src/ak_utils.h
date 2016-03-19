@@ -10,7 +10,7 @@
 
 #include "../include/assetkit.h"
 
-int
+AkResult
 ak_readfile(const char * __restrict file,
              const char * __restrict modes,
              char ** __restrict dest);

@@ -15,7 +15,7 @@
 #include "ak_collada_fx_program.h"
 #include "ak_collada_fx_evaluate.h"
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxPass(void * __restrict memParent,
                xmlTextReaderPtr reader,
                ak_pass ** __restrict dest) {
@@ -40,7 +40,7 @@ ak_dae_fxPass(void * __restrict memParent,
 
       assetInf = NULL;
       ret = ak_dae_assetInf(pass, reader, &assetInf);
-      if (ret == 0)
+      if (ret == AK_OK)
         pass->inf = assetInf;
     } else if (_xml_eqElm(_s_dae_annotate)) {
       ak_annotate *annotate;
@@ -48,7 +48,7 @@ ak_dae_fxPass(void * __restrict memParent,
 
       ret = ak_dae_annotate(pass, reader, &annotate);
 
-      if (ret == 0) {
+      if (ret == AK_OK) {
         if (last_annotate)
           last_annotate->next = annotate;
         else
@@ -61,7 +61,7 @@ ak_dae_fxPass(void * __restrict memParent,
       int         ret;
 
       ret = ak_dae_fxState(pass, reader, &states);
-      if (ret == 0)
+      if (ret == AK_OK)
         pass->states = states;
 
     } else if (_xml_eqElm(_s_dae_program)) {
@@ -69,14 +69,14 @@ ak_dae_fxPass(void * __restrict memParent,
       int          ret;
 
       ret = ak_dae_fxProg(pass, reader, &prog);
-      if (ret == 0)
+      if (ret == AK_OK)
         pass->program = prog;
     } else if (_xml_eqElm(_s_dae_evaluate)) {
       ak_evaluate * evaluate;
       int ret;
 
       ret = ak_dae_fxEvaluate(pass, reader, &evaluate);
-      if (ret == 0)
+      if (ret == AK_OK)
         pass->evaluate = evaluate;
     } else if (_xml_eqElm(_s_dae_extra)) {
       xmlNodePtr nodePtr;
@@ -99,5 +99,5 @@ ak_dae_fxPass(void * __restrict memParent,
   
   *dest = pass;
   
-  return 0;
+  return AK_OK;
 }

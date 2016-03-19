@@ -10,7 +10,7 @@
 #include "ak_collada_asset.h"
 #include "ak_collada_technique.h"
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_light(void * __restrict memParent,
               xmlTextReaderPtr reader,
               ak_light ** __restrict dest) {
@@ -38,7 +38,7 @@ ak_dae_light(void * __restrict memParent,
 
       assetInf = NULL;
       ret = ak_dae_assetInf(light, reader, &assetInf);
-      if (ret == 0)
+      if (ret == AK_OK)
         light->inf = assetInf;
 
     } else if (_xml_eqElm(_s_dae_techniquec)) {
@@ -47,7 +47,7 @@ ak_dae_light(void * __restrict memParent,
 
       tc = NULL;
       ret = ak_dae_techniquec(light, reader, &tc);
-      if (ret == 0) {
+      if (ret == AK_OK) {
         if (last_tc)
           last_tc->next = tc;
         else
@@ -62,7 +62,7 @@ ak_dae_light(void * __restrict memParent,
 
       tq = NULL;
       ret = ak_dae_technique(light, reader, &tq);
-      if (ret == 0) {
+      if (ret == AK_OK) {
         if (last_tq)
           last_tq->next = tq;
         else
@@ -91,5 +91,5 @@ ak_dae_light(void * __restrict memParent,
 
   *dest = light;
 
-  return 0;
+  return AK_OK;
 }

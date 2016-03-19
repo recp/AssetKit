@@ -12,7 +12,7 @@
 
 typedef struct _xmlTextReader *xmlTextReaderPtr;
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_color(xmlTextReaderPtr reader,
               bool read_sid,
               ak_color * __restrict dest);

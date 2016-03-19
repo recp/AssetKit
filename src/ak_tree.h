@@ -15,7 +15,7 @@ typedef struct _xmlNode xmlNode;
 /**
  * @brief load a tree from xml
  */
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_tree_fromXmlNode(void * __restrict memParent,
                      xmlNode * __restrict xml_node,
                      AkTreeNode ** __restrict dest,

@@ -12,7 +12,7 @@
 #include <string.h>
 #include <sys/stat.h>
 
-int
+AkResult
 ak_readfile(const char * __restrict file,
              const char * __restrict modes,
              char ** __restrict dest) {
@@ -47,9 +47,9 @@ ak_readfile(const char * __restrict file,
 
   fclose(infile);
 
-  return 0;
+  return AK_OK;
 err:
-  return -1;
+  return AK_ERR;
 }
 
 time_t

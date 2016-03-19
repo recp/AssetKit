@@ -90,6 +90,11 @@ typedef ak_string  * ak_list_of_string;
  */
 typedef time_t ak_time_t;
 
+typedef enum AkResult {
+  AK_ERR = -1,
+  AK_OK  = 0
+} AkResult;
+
 typedef enum AkValueType {
   AK_VALUE_TYPE_UNKNOWN  = 0,
   AK_VALUE_TYPE_BOOL     = 1,
@@ -1158,7 +1163,7 @@ struct ak_asset_s {
 
 extern void ak_cleanup();
 
-int
+AkResult
 _assetkit_export
 ak_load(ak_doc ** __restrict dest,
          const char * __restrict file, ...);

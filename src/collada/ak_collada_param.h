@@ -12,18 +12,18 @@
 
 typedef struct _xmlTextReader *xmlTextReaderPtr;
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_newparam(void * __restrict memParent,
                  xmlTextReaderPtr reader,
                  ak_newparam ** __restrict dest);
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_param(void * __restrict memParent,
               xmlTextReaderPtr reader,
               AkParamType param_type,
               ak_param ** __restrict dest);
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_setparam(void * __restrict memParent,
                  xmlTextReaderPtr reader,
                  ak_setparam ** __restrict dest);

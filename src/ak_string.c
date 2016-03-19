@@ -11,7 +11,7 @@
 #include "../include/assetkit.h"
 #include "ak_memory.h"
 
-int
+AkResult
 ak_strtof(char ** __restrict src,
            ak_float * __restrict dest,
            unsigned long n) {
@@ -24,10 +24,10 @@ ak_strtof(char ** __restrict src,
        tok = strtok(NULL, " "))
     *(dest - --n) = strtof(tok, NULL);
 
-  return 0;
+  return AK_OK;
 }
 
-int
+AkResult
 ak_strtomf(char ** __restrict src,
             ak_float * __restrict dest,
             unsigned long m,
@@ -43,10 +43,10 @@ ak_strtomf(char ** __restrict src,
        tok = strtok(NULL, " "))
     *(dest - --idx) = strtof(tok, NULL);
 
-  return 0;
+  return AK_OK;
 }
 
-int
+AkResult
 ak_strtomb(char ** __restrict src,
             ak_bool * __restrict dest,
             unsigned long m,
@@ -62,10 +62,10 @@ ak_strtomb(char ** __restrict src,
        tok = strtok(NULL, " "))
     *(dest - --idx) = (bool)strtol(tok, NULL, 10);
 
-  return 0;
+  return AK_OK;
 }
 
-int
+AkResult
 ak_strtomi(char ** __restrict src,
             ak_int * __restrict dest,
             unsigned long m,
@@ -81,10 +81,10 @@ ak_strtomi(char ** __restrict src,
        tok = strtok(NULL, " "))
     *(dest - --idx) = (ak_int)strtol(tok, NULL, 10);
 
-  return 0;
+  return AK_OK;
 }
 
-int
+AkResult
 ak_strtof_s(const char * __restrict src,
              ak_float * __restrict dest,
              unsigned long n) {
@@ -95,18 +95,18 @@ ak_strtof_s(const char * __restrict src,
   ret = ak_strtof(&raw, dest, n);
   free(raw);
 
-  return ret;
+  return AK_OK;
 }
 
 inline
-int
+AkResult
 ak_strtof4(char ** __restrict src,
             ak_float4 * __restrict dest) {
   return ak_strtof(src, *dest, 4);
 }
 
 inline
-int
+AkResult
 ak_strtof4_s(const char * __restrict src,
               ak_float4 * __restrict dest) {
   return ak_strtof_s(src, *dest, 4);

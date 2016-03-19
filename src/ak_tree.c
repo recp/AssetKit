@@ -16,7 +16,7 @@
 #include <libxml/parser.h>
 #include <string.h>
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_tree_fromXmlNode(void * __restrict memParent,
                      xmlNode * __restrict xml_node,
                      AkTreeNode ** __restrict dest,
@@ -36,7 +36,7 @@ ak_tree_fromXmlNode(void * __restrict memParent,
                                       (const char *)currNode->content);
 
       *dest = tree_currNode;
-      return 0;
+      return AK_OK;
     }
   }
 
@@ -126,5 +126,5 @@ ak_tree_fromXmlNode(void * __restrict memParent,
     }
   }
 
-  return 0;
+  return AK_OK;
 }

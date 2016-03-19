@@ -22,7 +22,7 @@
     (*last_state) = (AkRenderState *)state;                                \
   } while (0)
 
-AkEnum _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxState_enum(xmlTextReaderPtr reader,
                      AkRenderState ** __restrict last_state,
                      ak_states ** __restrict states,
@@ -53,10 +53,10 @@ ak_dae_fxState_enum(xmlTextReaderPtr reader,
 
   _ak_APPEND_STATE(last_state, state);
 
-  return 0;
+  return AK_OK;
 }
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxState_bool4(xmlTextReaderPtr reader,
                       AkRenderState ** __restrict last_state,
                       ak_states ** __restrict states,
@@ -83,10 +83,10 @@ ak_dae_fxState_bool4(xmlTextReaderPtr reader,
 
   _ak_APPEND_STATE(last_state, state);
 
-  return 0;
+  return AK_OK;
 }
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxState_int2(xmlTextReaderPtr reader,
                      AkRenderState ** __restrict last_state,
                      ak_states ** __restrict states,
@@ -113,10 +113,10 @@ ak_dae_fxState_int2(xmlTextReaderPtr reader,
 
   _ak_APPEND_STATE(last_state, state);
 
-  return 0;
+  return AK_OK;
 }
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxState_int4(xmlTextReaderPtr reader,
                      AkRenderState ** __restrict last_state,
                      ak_states ** __restrict states,
@@ -143,10 +143,10 @@ ak_dae_fxState_int4(xmlTextReaderPtr reader,
 
   _ak_APPEND_STATE(last_state, state);
 
-  return 0;
+  return AK_OK;
 }
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxState_ul(xmlTextReaderPtr reader,
                    AkRenderState ** __restrict last_state,
                    ak_states ** __restrict states,
@@ -175,10 +175,10 @@ ak_dae_fxState_ul(xmlTextReaderPtr reader,
 
   _ak_APPEND_STATE(last_state, state);
 
-  return 0;
+  return AK_OK;
 }
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxState_ul_i(xmlTextReaderPtr reader,
                      AkRenderState ** __restrict last_state,
                      ak_states ** __restrict states,
@@ -210,10 +210,10 @@ ak_dae_fxState_ul_i(xmlTextReaderPtr reader,
 
   _ak_APPEND_STATE(last_state, state);
 
-  return 0;
+  return AK_OK;
 }
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxState_float(xmlTextReaderPtr reader,
                       AkRenderState ** __restrict last_state,
                       ak_states ** __restrict states,
@@ -238,10 +238,10 @@ ak_dae_fxState_float(xmlTextReaderPtr reader,
 
   _ak_APPEND_STATE(last_state, state);
 
-  return 0;
+  return AK_OK;
 }
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxState_float_i(xmlTextReaderPtr reader,
                         AkRenderState ** __restrict last_state,
                         ak_states ** __restrict states,
@@ -269,10 +269,10 @@ ak_dae_fxState_float_i(xmlTextReaderPtr reader,
 
   _ak_APPEND_STATE(last_state, state);
 
-  return 0;
+  return AK_OK;
 }
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxState_float2(xmlTextReaderPtr reader,
                        AkRenderState ** __restrict last_state,
                        ak_states ** __restrict states,
@@ -299,10 +299,10 @@ ak_dae_fxState_float2(xmlTextReaderPtr reader,
 
   _ak_APPEND_STATE(last_state, state);
 
-  return 0;
+  return AK_OK;
 }
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxState_float3(xmlTextReaderPtr reader,
                        AkRenderState ** __restrict last_state,
                        ak_states ** __restrict states,
@@ -329,10 +329,10 @@ ak_dae_fxState_float3(xmlTextReaderPtr reader,
 
   _ak_APPEND_STATE(last_state, state);
 
-  return 0;
+  return AK_OK;
 }
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxState_float3_i(xmlTextReaderPtr reader,
                          AkRenderState ** __restrict last_state,
                          ak_states ** __restrict states,
@@ -362,10 +362,10 @@ ak_dae_fxState_float3_i(xmlTextReaderPtr reader,
 
   _ak_APPEND_STATE(last_state, state);
 
-  return 0;
+  return AK_OK;
 }
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxState_float4(xmlTextReaderPtr reader,
                        AkRenderState ** __restrict last_state,
                        ak_states ** __restrict states,
@@ -392,10 +392,10 @@ ak_dae_fxState_float4(xmlTextReaderPtr reader,
 
   _ak_APPEND_STATE(last_state, state);
 
-  return 0;
+  return AK_OK;
 }
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxState_float4_i(xmlTextReaderPtr reader,
                          AkRenderState ** __restrict last_state,
                          ak_states ** __restrict states,
@@ -425,10 +425,10 @@ ak_dae_fxState_float4_i(xmlTextReaderPtr reader,
 
   _ak_APPEND_STATE(last_state, state);
 
-  return 0;
+  return AK_OK;
 }
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxState_float4x4(xmlTextReaderPtr reader,
                          AkRenderState ** __restrict last_state,
                          ak_states ** __restrict states,
@@ -455,10 +455,10 @@ ak_dae_fxState_float4x4(xmlTextReaderPtr reader,
 
   _ak_APPEND_STATE(last_state, state);
 
-  return 0;
+  return AK_OK;
 }
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxState_sampler(xmlTextReaderPtr reader,
                         const char *elm,
                         AkRenderState ** __restrict last_state,
@@ -489,7 +489,7 @@ ak_dae_fxState_sampler(xmlTextReaderPtr reader,
                               (const char *)nodeName,
                               &sampler);
 
-      if (ret == 0)
+      if (ret == AK_OK)
         state->val = sampler;
     } else if (_xml_eqElm(_s_dae_param)) {
       _xml_readText(state, state->param);
@@ -505,10 +505,10 @@ ak_dae_fxState_sampler(xmlTextReaderPtr reader,
 
   _ak_APPEND_STATE(last_state, state);
 
-  return 0;
+  return AK_OK;
 }
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxState_str(xmlTextReaderPtr reader,
                     AkRenderState ** __restrict last_state,
                     ak_states ** __restrict states,
@@ -524,10 +524,10 @@ ak_dae_fxState_str(xmlTextReaderPtr reader,
 
   _ak_APPEND_STATE(last_state, state);
 
-  return 0;
+  return AK_OK;
 }
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxStateAlphaFunc(xmlTextReaderPtr reader,
                          AkRenderState ** __restrict last_state,
                          ak_states ** __restrict states) {
@@ -573,10 +573,10 @@ ak_dae_fxStateAlphaFunc(xmlTextReaderPtr reader,
 
   _ak_APPEND_STATE(last_state, state);
 
-  return 0;
+  return AK_OK;
 }
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxStateBlend(xmlTextReaderPtr reader,
                      AkRenderState ** __restrict last_state,
                      ak_states ** __restrict states) {
@@ -636,10 +636,10 @@ ak_dae_fxStateBlend(xmlTextReaderPtr reader,
   
   _ak_APPEND_STATE(last_state, state);
   
-  return 0;
+  return AK_OK;
 }
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxStateBlendSep(xmlTextReaderPtr reader,
                         AkRenderState ** __restrict last_state,
                         ak_states ** __restrict states) {
@@ -736,10 +736,10 @@ ak_dae_fxStateBlendSep(xmlTextReaderPtr reader,
   
   _ak_APPEND_STATE(last_state, state);
   
-  return 0;
+  return AK_OK;
 }
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxStateBlendEqSep(xmlTextReaderPtr reader,
                           AkRenderState ** __restrict last_state,
                           ak_states ** __restrict states) {
@@ -799,10 +799,10 @@ ak_dae_fxStateBlendEqSep(xmlTextReaderPtr reader,
   
   _ak_APPEND_STATE(last_state, state);
   
-  return 0;
+  return AK_OK;
 }
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxStateColorMaterial(xmlTextReaderPtr reader,
                              AkRenderState ** __restrict last_state,
                              ak_states ** __restrict states) {
@@ -862,10 +862,10 @@ ak_dae_fxStateColorMaterial(xmlTextReaderPtr reader,
   
   _ak_APPEND_STATE(last_state, state);
   
-  return 0;
+  return AK_OK;
 }
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxStatePolyMode(xmlTextReaderPtr reader,
                         AkRenderState ** __restrict last_state,
                         ak_states ** __restrict states) {
@@ -925,10 +925,10 @@ ak_dae_fxStatePolyMode(xmlTextReaderPtr reader,
   
   _ak_APPEND_STATE(last_state, state);
   
-  return 0;
+  return AK_OK;
 }
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxStateStencilFunc(xmlTextReaderPtr reader,
                            AkRenderState ** __restrict last_state,
                            ak_states ** __restrict states) {
@@ -999,10 +999,10 @@ ak_dae_fxStateStencilFunc(xmlTextReaderPtr reader,
   
   _ak_APPEND_STATE(last_state, state);
   
-  return 0;
+  return AK_OK;
 }
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxStateStencilOp(xmlTextReaderPtr reader,
                          AkRenderState ** __restrict last_state,
                          ak_states ** __restrict states) {
@@ -1078,10 +1078,10 @@ ak_dae_fxStateStencilOp(xmlTextReaderPtr reader,
   
   _ak_APPEND_STATE(last_state, state);
   
-  return 0;
+  return AK_OK;
 }
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxStateStencilFuncSep(xmlTextReaderPtr reader,
                               AkRenderState ** __restrict last_state,
                               ak_states ** __restrict states) {
@@ -1168,10 +1168,10 @@ ak_dae_fxStateStencilFuncSep(xmlTextReaderPtr reader,
   
   _ak_APPEND_STATE(last_state, state);
   
-  return 0;
+  return AK_OK;
 }
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxStateStencilOpSep(xmlTextReaderPtr reader,
                             AkRenderState ** __restrict last_state,
                             ak_states ** __restrict states) {
@@ -1264,10 +1264,10 @@ ak_dae_fxStateStencilOpSep(xmlTextReaderPtr reader,
   
   _ak_APPEND_STATE(last_state, state);
   
-  return 0;
+  return AK_OK;
 }
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxStateStencilMaskSep(xmlTextReaderPtr reader,
                               AkRenderState ** __restrict last_state,
                               ak_states ** __restrict states) {
@@ -1326,5 +1326,5 @@ ak_dae_fxStateStencilMaskSep(xmlTextReaderPtr reader,
   
   _ak_APPEND_STATE(last_state, state);
   
-  return 0;
+  return AK_OK;
 }

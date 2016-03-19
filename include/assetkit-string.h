@@ -8,41 +8,41 @@
 #ifndef __libassetkit__assetkit_string__h_
 #define __libassetkit__assetkit_string__h_
 
-int
+AkResult
 ak_strtof(char ** __restrict src,
            ak_float * __restrict dest,
            unsigned long n);
 
-int
+AkResult
 ak_strtomb(char ** __restrict src,
             ak_bool * __restrict dest,
             unsigned long m,
             unsigned long n);
 
-int
+AkResult
 ak_strtomi(char ** __restrict src,
             ak_int * __restrict dest,
             unsigned long m,
             unsigned long n);
 
-int
+AkResult
 ak_strtomf(char ** __restrict src,
             ak_float * __restrict dest,
             unsigned long m,
             unsigned long n);
 
-int
+AkResult
 ak_strtof_s(const char * __restrict src,
              ak_float * __restrict dest,
              unsigned long n);
 
 extern
-int
+AkResult
 ak_strtof4(char ** __restrict src,
             ak_float4 * __restrict dest);
 
 extern
-int
+AkResult
 ak_strtof4_s(const char * __restrict src,
               ak_float4 * __restrict dest);
 

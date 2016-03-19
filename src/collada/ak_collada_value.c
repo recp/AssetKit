@@ -68,7 +68,7 @@ ak_dae_valueType(const char * typeName) {
   return found->val;
 }
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_value(void * __restrict memParent,
               xmlTextReaderPtr reader,
               void ** __restrict dest,
@@ -97,7 +97,7 @@ ak_dae_value(void * __restrict memParent,
 
   if (!found) {
     *val_type = AK_VALUE_TYPE_UNKNOWN;
-    return -1;
+    return AK_ERR;
   }
   
   *val_type = found->val;
@@ -158,7 +158,7 @@ ak_dae_value(void * __restrict memParent,
   /* end element */
   _xml_endElement;
 
-  return 0;
+  return AK_OK;
 }
 
 static

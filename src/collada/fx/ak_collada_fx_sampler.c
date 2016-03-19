@@ -45,7 +45,7 @@ static ak_enumpair fxSamplerCMap[] = {
 
 static size_t fxSamplerCMapLen = 0;
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxSampler(void * __restrict memParent,
                   xmlTextReaderPtr reader,
                   const char *elm,
@@ -83,7 +83,7 @@ ak_dae_fxSampler(void * __restrict memParent,
 
         ret = ak_dae_fxImageInstance(sampler, reader, &imageInst);
 
-        if (ret == 0)
+        if (ret == AK_OK)
           sampler->image_inst = imageInst;
         break;
       }
@@ -129,7 +129,7 @@ ak_dae_fxSampler(void * __restrict memParent,
         color = ak_calloc(sampler, sizeof(*color), 1);
         ret   = ak_dae_color(reader, true, color);
 
-        if (ret == 0)
+        if (ret == AK_OK)
           sampler->border_color = color;
         else
           ak_free(color);
@@ -182,5 +182,5 @@ ak_dae_fxSampler(void * __restrict memParent,
 
   *dest = sampler;
   
-  return 0;
+  return AK_OK;
 }

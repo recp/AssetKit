@@ -12,7 +12,7 @@
 
 #include <stdlib.h>
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_doc(ak_doc ** __restrict dest,
             const char * __restrict file);
 

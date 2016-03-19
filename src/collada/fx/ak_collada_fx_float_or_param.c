@@ -9,7 +9,7 @@
 #include "../ak_collada_common.h"
 #include "../ak_collada_param.h"
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_floatOrParam(void * __restrict memParent,
                      xmlTextReaderPtr reader,
                      const char * elm,
@@ -47,7 +47,7 @@ ak_dae_floatOrParam(void * __restrict memParent,
                           AK_PARAM_TYPE_BASIC,
                           &param);
 
-      if (ret == 0) {
+      if (ret == AK_OK) {
         if (last_param)
           last_param->next = param;
         else
@@ -65,5 +65,5 @@ ak_dae_floatOrParam(void * __restrict memParent,
   
   *dest = floatOrParam;
 
-  return 0;
+  return AK_OK;
 }

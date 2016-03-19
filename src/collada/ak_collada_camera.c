@@ -10,7 +10,7 @@
 #include "ak_collada_asset.h"
 #include "ak_collada_technique.h"
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_camera(void * __restrict memParent,
                xmlTextReaderPtr reader,
                ak_camera ** __restrict  dest) {
@@ -33,7 +33,7 @@ ak_dae_camera(void * __restrict memParent,
 
       assetInf = NULL;
       ret = ak_dae_assetInf(camera, reader, &assetInf);
-      if (ret == 0)
+      if (ret == AK_OK)
         camera->inf = assetInf;
 
     } else if (_xml_eqElm(_s_dae_optics)) {
@@ -55,7 +55,7 @@ ak_dae_camera(void * __restrict memParent,
 
           tc = NULL;
           ret = ak_dae_techniquec(optics, reader, &tc);
-          if (ret == 0) {
+          if (ret == AK_OK) {
             if (last_tc)
               last_tc->next = tc;
             else
@@ -70,7 +70,7 @@ ak_dae_camera(void * __restrict memParent,
 
           tq = NULL;
           ret = ak_dae_technique(optics, reader, &tq);
-          if (ret == 0) {
+          if (ret == AK_OK) {
             if (last_tq)
               last_tq->next = tq;
             else
@@ -103,7 +103,7 @@ ak_dae_camera(void * __restrict memParent,
 
           tq = NULL;
           ret = ak_dae_technique(imager, reader, &tq);
-          if (ret == 0) {
+          if (ret == AK_OK) {
             if (last_tq)
               last_tq->next = tq;
             else
@@ -150,5 +150,5 @@ ak_dae_camera(void * __restrict memParent,
 
   *dest = camera;
 
-  return 0;
+  return AK_OK;
 }

@@ -23,7 +23,7 @@ static ak_enumpair profileMap[] = {
 
 static size_t profileMapLen = 0;
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_profile(void * __restrict memParent,
                 xmlTextReaderPtr reader,
                 ak_profile ** __restrict dest) {
@@ -127,7 +127,7 @@ ak_dae_profile(void * __restrict memParent,
 
       assetInf = NULL;
       ret = ak_dae_assetInf(profile, reader, &assetInf);
-      if (ret == 0)
+      if (ret == AK_OK)
         profile->inf = assetInf;
     } else if (_xml_eqElm(_s_dae_newparam)) {
       ak_newparam *newparam;
@@ -137,7 +137,7 @@ ak_dae_profile(void * __restrict memParent,
                              reader,
                              &newparam);
 
-      if (ret == 0) {
+      if (ret == AK_OK) {
         if (last_newparam)
           last_newparam->next = newparam;
         else
@@ -150,7 +150,7 @@ ak_dae_profile(void * __restrict memParent,
       int                ret;
 
       ret = ak_dae_techniqueFx(profile, reader, &technique_fx);
-      if (ret == 0) {
+      if (ret == AK_OK) {
         if (last_techfx)
           last_techfx->next = technique_fx;
         else
@@ -240,7 +240,7 @@ ak_dae_profile(void * __restrict memParent,
 
   *dest = profile;
 
-  return 0;
+  return AK_OK;
 err:
-  return -1;
+  return AK_ERR;
 }

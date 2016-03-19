@@ -8,7 +8,7 @@
 #include "ak_collada_fx_binary.h"
 #include "../ak_collada_common.h"
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxBinary(void * __restrict memParent,
                  xmlTextReaderPtr reader,
                  ak_binary ** __restrict dest) {
@@ -46,5 +46,5 @@ ak_dae_fxBinary(void * __restrict memParent,
 
   *dest = binary;
   
-  return 0;
+  return AK_OK;
 }

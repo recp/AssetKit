@@ -36,7 +36,7 @@ static ak_enumpair blinnPhongMap[] = {
 
 static size_t blinnPhongMapLen = 0;
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_blinn_phong(void * __restrict memParent,
                     xmlTextReaderPtr reader,
                     const char * elm,
@@ -82,7 +82,7 @@ ak_dae_blinn_phong(void * __restrict memParent,
                                  reader,
                                  (const char *)nodeName,
                                  &colorOrTex);
-        if (ret == 0) {
+        if (ret == AK_OK) {
           switch (found->val) {
             case k_s_dae_emission:
               blinn_phong->phong.emission = colorOrTex;
@@ -120,7 +120,7 @@ ak_dae_blinn_phong(void * __restrict memParent,
                                    (const char *)nodeName,
                                    &floatOrParam);
 
-        if (ret == 0) {
+        if (ret == AK_OK) {
           switch (found->val) {
             case k_s_dae_shininess:
               blinn_phong->phong.shininess = floatOrParam;
@@ -151,5 +151,5 @@ ak_dae_blinn_phong(void * __restrict memParent,
   
   *dest = blinn_phong;
   
-  return 0;
+  return AK_OK;
 }

@@ -22,7 +22,7 @@ static ak_enumpair modifierMap[] = {
 
 static size_t modifierMapLen = 0;
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_newparam(void * __restrict memParent,
                  xmlTextReaderPtr reader,
                  ak_newparam ** __restrict dest) {
@@ -51,7 +51,7 @@ ak_dae_newparam(void * __restrict memParent,
       int ret;
 
       ret = ak_dae_annotate(newparam, reader, &annotate);
-      if (ret == 0) {
+      if (ret == AK_OK) {
         if (last_annotate)
           last_annotate->next = annotate;
         else
@@ -86,7 +86,7 @@ ak_dae_newparam(void * __restrict memParent,
                             &val,
                             &val_type);
 
-        if (ret == 0) {
+        if (ret == AK_OK) {
           newparam->val = val;
           newparam->val_type = val_type;
         }
@@ -99,10 +99,10 @@ ak_dae_newparam(void * __restrict memParent,
 
   *dest = newparam;
 
-  return 0;
+  return AK_OK;
 }
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_param(void * __restrict memParent,
               xmlTextReaderPtr reader,
               AkParamType param_type,
@@ -139,15 +139,15 @@ ak_dae_param(void * __restrict memParent,
   *dest = param;
   _xml_endElement;
 
-  return 0;
+  return AK_OK;
 
 err:
 
   _xml_endElement;
-  return -1;
+  return AK_ERR;
 }
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_setparam(void * __restrict memParent,
                  xmlTextReaderPtr reader,
                  ak_setparam ** __restrict dest) {
@@ -180,7 +180,7 @@ ak_dae_setparam(void * __restrict memParent,
                           &val,
                           &val_type);
 
-      if (ret == 0) {
+      if (ret == AK_OK) {
         setparam->val = val;
         setparam->val_type = val_type;
       }
@@ -192,5 +192,5 @@ ak_dae_setparam(void * __restrict memParent,
 
   *dest = setparam;
   
-  return 0;
+  return AK_OK;
 }

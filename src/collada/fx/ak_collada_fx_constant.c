@@ -28,7 +28,7 @@ static ak_enumpair constantMap[] = {
 
 static size_t constantMapLen = 0;
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxConstant(void * __restrict memParent,
                    xmlTextReaderPtr reader,
                    ak_constant_fx ** __restrict dest) {
@@ -70,7 +70,7 @@ ak_dae_fxConstant(void * __restrict memParent,
                                  reader,
                                  (const char *)nodeName,
                                  &colorOrTex);
-        if (ret == 0) {
+        if (ret == AK_OK) {
           switch (found->val) {
             case k_s_dae_emission:
               constant->emission = colorOrTex;
@@ -98,7 +98,7 @@ ak_dae_fxConstant(void * __restrict memParent,
                                    (const char *)nodeName,
                                    &floatOrParam);
 
-        if (ret == 0) {
+        if (ret == AK_OK) {
           switch (found->val) {
             case k_s_dae_reflectivity:
               constant->reflectivity = floatOrParam;
@@ -126,5 +126,5 @@ ak_dae_fxConstant(void * __restrict memParent,
   
   *dest = constant;
   
-  return 0;
+  return AK_OK;
 }

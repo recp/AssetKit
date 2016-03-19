@@ -32,7 +32,7 @@ static ak_enumpair lambertMap[] = {
 
 static size_t lambertMapLen = 0;
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxLambert(void * __restrict memParent,
                   xmlTextReaderPtr reader,
                   ak_lambert ** __restrict dest) {
@@ -75,7 +75,7 @@ ak_dae_fxLambert(void * __restrict memParent,
                                  reader,
                                  (const char *)nodeName,
                                  &colorOrTex);
-        if (ret == 0) {
+        if (ret == AK_OK) {
           switch (found->val) {
             case k_s_dae_emission:
               lambert->emission = colorOrTex;
@@ -109,7 +109,7 @@ ak_dae_fxLambert(void * __restrict memParent,
                                    (const char *)nodeName,
                                    &floatOrParam);
 
-        if (ret == 0) {
+        if (ret == AK_OK) {
           switch (found->val) {
             case k_s_dae_reflectivity:
               lambert->reflectivity = floatOrParam;
@@ -137,5 +137,5 @@ ak_dae_fxLambert(void * __restrict memParent,
   
   *dest = lambert;
   
-  return 0;
+  return AK_OK;
 }

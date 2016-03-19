@@ -14,7 +14,7 @@
 
 #include "ak_collada_common.h"
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_technique(void * __restrict memParent,
                   xmlTextReaderPtr reader,
                   ak_technique ** __restrict dest) {
@@ -44,5 +44,5 @@ ak_dae_technique(void * __restrict memParent,
 
   *dest = technique;
 
-  return 0;
+  return AK_OK;
 }

@@ -13,7 +13,7 @@
 
 typedef struct _xmlTextReader *xmlTextReaderPtr;
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_material(void * __restrict memParent,
                  xmlTextReaderPtr reader,
                  ak_material ** __restrict dest);

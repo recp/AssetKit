@@ -8,7 +8,7 @@
 #include "ak_collada_color.h"
 #include "ak_collada_common.h"
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_color(xmlTextReaderPtr reader,
               bool read_sid,
               ak_color * __restrict dest) {
@@ -26,8 +26,8 @@ ak_dae_color(xmlTextReaderPtr reader,
     ak_strtof4(&colorStr, &dest->vec);
     xmlFree(colorStr);
 
-    return 0;
+    return AK_OK;
   } else {
-    return -1;
+    return AK_ERR;
   }
 }

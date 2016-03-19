@@ -10,7 +10,7 @@
 #include "../ak_collada_asset.h"
 #include "ak_collada_fx_effect.h"
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_material(void * __restrict memParent,
                  xmlTextReaderPtr reader,
                  ak_material ** __restrict dest) {
@@ -33,7 +33,7 @@ ak_dae_material(void * __restrict memParent,
 
       assetInf = NULL;
       ret = ak_dae_assetInf(material, reader, &assetInf);
-      if (ret == 0)
+      if (ret == AK_OK)
         material->inf = assetInf;
     } else if (_xml_eqElm(_s_dae_inst_effect)) {
       ak_effect_instance *effectInstance;
@@ -41,7 +41,7 @@ ak_dae_material(void * __restrict memParent,
 
       effectInstance = NULL;
       ret = ak_dae_fxEffectInstance(material, reader, &effectInstance);
-      if (ret == 0)
+      if (ret == AK_OK)
         material->effect_inst = effectInstance;
     } else if (_xml_eqElm(_s_dae_extra)) {
       xmlNodePtr nodePtr;
@@ -64,5 +64,5 @@ ak_dae_material(void * __restrict memParent,
   
   *dest = material;
   
-  return 0;
+  return AK_OK;
 }

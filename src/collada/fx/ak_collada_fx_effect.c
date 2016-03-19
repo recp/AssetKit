@@ -15,7 +15,7 @@
 
 #include "ak_collada_fx_profile.h"
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_effect(void * __restrict memParent,
                xmlTextReaderPtr reader,
                ak_effect ** __restrict  dest) {
@@ -45,7 +45,7 @@ ak_dae_effect(void * __restrict memParent,
 
       assetInf = NULL;
       ret = ak_dae_assetInf(effect, reader, &assetInf);
-      if (ret == 0)
+      if (ret == AK_OK)
         effect->inf = assetInf;
     } else if (_xml_eqElm(_s_dae_annotate)) {
       ak_annotate *annotate;
@@ -53,7 +53,7 @@ ak_dae_effect(void * __restrict memParent,
 
       ret = ak_dae_annotate(effect, reader, &annotate);
 
-      if (ret == 0) {
+      if (ret == AK_OK) {
         if (last_annotate)
           last_annotate->next = annotate;
         else
@@ -67,7 +67,7 @@ ak_dae_effect(void * __restrict memParent,
 
       ret = ak_dae_newparam(effect, reader, &newparam);
 
-      if (ret == 0) {
+      if (ret == AK_OK) {
         if (last_newparam)
           last_newparam->next = newparam;
         else
@@ -86,7 +86,7 @@ ak_dae_effect(void * __restrict memParent,
 
       ret = ak_dae_profile(effect, reader, &profile);
 
-      if (ret == 0) {
+      if (ret == AK_OK) {
         if (last_profile)
           last_profile->next = profile;
         else
@@ -115,10 +115,10 @@ ak_dae_effect(void * __restrict memParent,
 
   *dest = effect;
 
-  return 0;
+  return AK_OK;
 }
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxEffectInstance(void * __restrict memParent,
                          xmlTextReaderPtr reader,
                          ak_effect_instance ** __restrict dest) {
@@ -163,7 +163,7 @@ ak_dae_fxEffectInstance(void * __restrict memParent,
 
         ret = ak_dae_setparam(effectInst, reader, &setparam);
 
-        if (ret == 0) {
+        if (ret == AK_OK) {
           if (last_setparam)
             last_setparam->next = setparam;
           else
@@ -193,5 +193,5 @@ ak_dae_fxEffectInstance(void * __restrict memParent,
 
   *dest = effectInst;
   
-  return 0;
+  return AK_OK;
 }

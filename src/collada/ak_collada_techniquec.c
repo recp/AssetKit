@@ -9,7 +9,7 @@
 #include "ak_collada_common.h"
 #include "ak_collada_color.h"
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_techniquec(void * __restrict memParent,
                    xmlTextReaderPtr reader,
                    ak_technique_common ** __restrict dest) {
@@ -339,5 +339,5 @@ ak_dae_techniquec(void * __restrict memParent,
 
   *dest = techc;
 
-  return 0;
+  return AK_OK;
 }

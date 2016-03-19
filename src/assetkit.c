@@ -17,11 +17,11 @@
 
 typedef struct {
   const char * fext;
-  int (*floader_fn)(ak_doc ** __restrict,
+  AkResult (*floader_fn)(ak_doc ** __restrict,
                     const char * __restrict);
 } floader_t;
 
-int
+AkResult
 _assetkit_export
 ak_load(ak_doc ** __restrict dest,
          const char * __restrict file, ...) {
@@ -82,5 +82,5 @@ ak_load(ak_doc ** __restrict dest,
   return _err_no;
 err:
   *dest = NULL;
-  return -1;
+  return AK_ERR;
 }

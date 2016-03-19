@@ -10,7 +10,7 @@
 #include "../ak_collada_param.h"
 #include "../ak_collada_value.h"
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxBindUniform(void * __restrict memParent,
                       xmlTextReaderPtr reader,
                       ak_bind_uniform ** __restrict dest) {
@@ -38,7 +38,7 @@ ak_dae_fxBindUniform(void * __restrict memParent,
                           AK_PARAM_TYPE_BASIC,
                           &param);
 
-      if (ret == 0) {
+      if (ret == AK_OK) {
         if (last_param)
           last_param->next = param;
         else
@@ -58,7 +58,7 @@ ak_dae_fxBindUniform(void * __restrict memParent,
                             &val,
                             &val_type);
 
-        if (ret == 0) {
+        if (ret == AK_OK) {
           bind_uniform->val = val;
           bind_uniform->val_type = val_type;
         }
@@ -71,5 +71,5 @@ ak_dae_fxBindUniform(void * __restrict memParent,
 
   *dest = bind_uniform;
   
-  return 0;
+  return AK_OK;
 }

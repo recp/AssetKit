@@ -134,7 +134,7 @@ static ak_enumpair stateMap[] = {
 
 static size_t stateMapLen = 0;
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_fxState(void * __restrict memParent,
                 xmlTextReaderPtr reader,
                 ak_states ** __restrict dest) {
@@ -905,5 +905,5 @@ ak_dae_fxState(void * __restrict memParent,
   
   *dest = states;
 
-  return 0;
+  return AK_OK;
 }

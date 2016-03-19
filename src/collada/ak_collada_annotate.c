@@ -9,7 +9,7 @@
 #include "ak_collada_common.h"
 #include "ak_collada_value.h"
 
-int _assetkit_hide
+AkResult _assetkit_hide
 ak_dae_annotate(void * __restrict memParent,
                  xmlTextReaderPtr reader,
                  ak_annotate ** __restrict dest) {
@@ -38,5 +38,5 @@ ak_dae_annotate(void * __restrict memParent,
 
   *dest = annotate;
 
-  return 0;
+  return AK_OK;
 }
