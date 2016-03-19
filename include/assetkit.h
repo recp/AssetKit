@@ -831,10 +831,10 @@ struct ak_phong_s {
   ak_index_of_refraction * index_of_refraction;
 };
 
-typedef struct AkRenderState AkRenderState;
+struct AkRenderState;
 typedef struct ak_states_s ak_states;
 struct ak_states_s {
-  AkRenderState * next;
+  struct AkRenderState * next;
   long               count;
 };
 
