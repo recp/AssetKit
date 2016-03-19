@@ -16,9 +16,9 @@ int _assetkit_hide
 ak_dae_value(void * __restrict memParent,
               xmlTextReaderPtr reader,
               void ** __restrict dest,
-              ak_value_type * __restrict val_type);
+              AkValueType * __restrict val_type);
 
-long _assetkit_hide
+AkEnum _assetkit_hide
 ak_dae_valueType(const char * typeName);
 
 #endif /* __libassetkit__ak_collada_value__h_ */

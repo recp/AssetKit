@@ -148,7 +148,7 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
     attrValStr = (char *)xmlTextReaderGetAttribute(reader,                    \
                                                    (const xmlChar *)X);       \
     if (attrValStr) {                                                         \
-      long attrVal;                                                           \
+      AkEnum attrVal;                                                           \
       attrVal = FN(attrValStr);                                               \
       D = attrVal != -1 ? attrVal: 0;                                         \
       xmlFree(attrValStr);                                                    \
@@ -161,7 +161,7 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
     attrValStr = (char *)xmlTextReaderGetAttribute(reader,                    \
                                                    (const xmlChar *)X);       \
     if (attrValStr) {                                                         \
-      long attrVal;                                                           \
+      AkEnum attrVal;                                                           \
       attrVal = FN(attrValStr);                                               \
       D = attrVal != -1 ? attrVal: 0;                                         \
       xmlFree(attrValStr);                                                    \
@@ -174,7 +174,7 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
     attrValStr = (char *)xmlTextReaderGetAttribute(reader,                    \
                                                    (const xmlChar *)X);       \
     if (attrValStr) {                                                         \
-      long attrVal;                                                           \
+      AkEnum attrVal;                                                           \
       attrVal = FN(attrValStr);                                               \
       D = attrVal != -1 ? attrVal: DEF;                                       \
       xmlFree(attrValStr);                                                    \

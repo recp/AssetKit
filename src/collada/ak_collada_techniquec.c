@@ -81,7 +81,7 @@ ak_dae_techniquec(void * __restrict memParent,
       } while (nodeRet);
 
       techc->technique = perspective;
-      techc->technique_type = ak_TECHNIQUE_COMMON_CAMERA_PERSPECTIVE;
+      techc->technique_type = AK_TECHNIQUE_COMMON_CAMERA_PERSPECTIVE;
     }
 
     /* optics -> orthographic */
@@ -141,7 +141,7 @@ ak_dae_techniquec(void * __restrict memParent,
       } while (nodeRet);
 
       techc->technique = orthographic;
-      techc->technique_type = ak_TECHNIQUE_COMMON_CAMERA_ORTHOGRAPHIC;
+      techc->technique_type = AK_TECHNIQUE_COMMON_CAMERA_ORTHOGRAPHIC;
     }
 
     /* light -> ambient */
@@ -171,7 +171,7 @@ ak_dae_techniquec(void * __restrict memParent,
       } while (nodeRet);
 
       techc->technique = ambient;
-      techc->technique_type = ak_TECHNIQUE_COMMON_LIGHT_AMBIENT;
+      techc->technique_type = AK_TECHNIQUE_COMMON_LIGHT_AMBIENT;
     }
 
     /* light -> directional */
@@ -193,7 +193,7 @@ ak_dae_techniquec(void * __restrict memParent,
       } while (nodeRet);
 
       techc->technique = directional;
-      techc->technique_type = ak_TECHNIQUE_COMMON_LIGHT_DIRECTIONAL;
+      techc->technique_type = AK_TECHNIQUE_COMMON_LIGHT_DIRECTIONAL;
     }
 
     /* light -> point */
@@ -254,7 +254,7 @@ ak_dae_techniquec(void * __restrict memParent,
       } while (nodeRet);
       
       techc->technique = point;
-      techc->technique_type = ak_TECHNIQUE_COMMON_LIGHT_POINT;
+      techc->technique_type = AK_TECHNIQUE_COMMON_LIGHT_POINT;
     }
 
     /* light -> spot */
@@ -330,7 +330,7 @@ ak_dae_techniquec(void * __restrict memParent,
       } while (nodeRet);
       
       techc->technique = spot;
-      techc->technique_type = ak_TECHNIQUE_COMMON_LIGHT_SPOT;
+      techc->technique_type = AK_TECHNIQUE_COMMON_LIGHT_SPOT;
     }
     
     /* end element */

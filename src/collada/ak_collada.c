@@ -80,7 +80,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
 
       ret = ak_dae_assetInf(docInf, reader, &assetInf);
       if (ret == 0) {
-        docInf->ftype = ak_FILE_TYPE_COLLADA;
+        docInf->ftype = AK_FILE_TYPE_COLLADA;
         doc->docinf = *docInf;
       }
     } else if (_xml_eqElm(_s_dae_lib_cameras)) {

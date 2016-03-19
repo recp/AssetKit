@@ -35,7 +35,7 @@ ak_dae_fxBindUniform(void * __restrict memParent,
 
       ret = ak_dae_param(bind_uniform,
                           reader,
-                          ak_PARAM_TYPE_BASIC,
+                          AK_PARAM_TYPE_BASIC,
                           &param);
 
       if (ret == 0) {
@@ -50,7 +50,7 @@ ak_dae_fxBindUniform(void * __restrict memParent,
       /* load once */
       if (!bind_uniform->val) {
         void           * val;
-        ak_value_type   val_type;
+        AkValueType   val_type;
         int              ret;
 
         ret = ak_dae_value(bind_uniform,

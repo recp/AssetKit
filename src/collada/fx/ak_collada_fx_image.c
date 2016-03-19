@@ -204,7 +204,7 @@ ak_dae_fxImage_initFrom(void * __restrict memParent,
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_face);
   if (attrValStr) {
-    long attrVal;
+    AkEnum attrVal;
     attrVal = ak_dae_fxEnumFace(attrValStr);
     if (attrVal != -1)
       initFrom->face = attrVal;
@@ -264,7 +264,7 @@ ak_dae_fxImage_format(void * __restrict memParent,
       attrValStr = (char *)xmlTextReaderGetAttribute(reader,
                                       (const xmlChar *)_s_dae_channels);
       if (attrValStr) {
-        long attrVal;
+        AkEnum attrVal;
         attrVal = ak_dae_fxEnumChannel(attrValStr);
         if (attrVal != -1)
           format->hint.channel = attrVal;
@@ -276,7 +276,7 @@ ak_dae_fxImage_format(void * __restrict memParent,
       attrValStr = (char *)xmlTextReaderGetAttribute(reader,
                                       (const xmlChar *)_s_dae_range);
       if (attrValStr) {
-        long attrVal;
+        AkEnum attrVal;
         attrVal = ak_dae_fxEnumRange(attrValStr);
         if (attrVal != -1)
           format->hint.range = attrVal;
@@ -288,7 +288,7 @@ ak_dae_fxImage_format(void * __restrict memParent,
       attrValStr = (char *)xmlTextReaderGetAttribute(reader,
                                       (const xmlChar *)_s_dae_precision);
       if (attrValStr) {
-        long attrVal;
+        AkEnum attrVal;
         attrVal = ak_dae_fxEnumRange(attrValStr);
         if (attrVal != -1)
           format->hint.range = attrVal;

@@ -82,7 +82,7 @@ ak_dae_colorOrTex(void * __restrict memParent,
 
       ret = ak_dae_param(colorOrTex,
                           reader,
-                          ak_PARAM_TYPE_BASIC,
+                          AK_PARAM_TYPE_BASIC,
                           &param);
 
       if (ret == 0) {

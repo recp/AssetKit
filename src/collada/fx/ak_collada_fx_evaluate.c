@@ -98,7 +98,7 @@ ak_dae_fxEvaluate(void * __restrict memParent,
 
             ret = ak_dae_param(evaluate_target,
                                 reader,
-                                ak_PARAM_TYPE_BASIC,
+                                AK_PARAM_TYPE_BASIC,
                                 &param);
 
             if (ret == 0)

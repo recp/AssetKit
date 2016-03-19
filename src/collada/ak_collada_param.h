@@ -20,7 +20,7 @@ ak_dae_newparam(void * __restrict memParent,
 int _assetkit_hide
 ak_dae_param(void * __restrict memParent,
               xmlTextReaderPtr reader,
-              ak_param_type param_type,
+              AkParamType param_type,
               ak_param ** __restrict dest);
 
 int _assetkit_hide

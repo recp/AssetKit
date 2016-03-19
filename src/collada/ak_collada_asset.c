@@ -80,16 +80,16 @@ ak_dae_assetInf(void * __restrict memParent,
       (*dest)->unit = unit;
     } else if (_xml_eqElm(_s_dae_up_axis)) {
       const char * val;
-      ak_upaxis   upaxis;
+      AkUpAxis   upaxis;
 
       _xml_readConstText(val);
       if (val) {
         if (strcasecmp(val, _s_dae_z_up))
-          upaxis = ak_UP_AXIS_Z;
+          upaxis = AK_UP_AXIS_Z;
         else if (strcasecmp(val, _s_dae_x_up))
-          upaxis = ak_UP_AXIS_X;
+          upaxis = AK_UP_AXIS_X;
         else
-          upaxis = ak_UP_AXIS_Y;
+          upaxis = AK_UP_AXIS_Y;
 
         (*dest)->upaxis = upaxis;
       }

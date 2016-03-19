@@ -11,28 +11,28 @@
 
 typedef struct {
   const char * name;
-  long         val;
+  AkEnum      val;
 } ak_dae_enum;
 
-long _assetkit_hide
+AkEnum _assetkit_hide
 ak_dae_fxEnumGlFunc(const char * name) {
-  long val;
+  AkEnum val;
   long glenums_len;
   long i;
 
   ak_dae_enum glenums[] = {
-    {"NEVER",    ak_GL_FUNC_NEVER},
-    {"LESS",     ak_GL_FUNC_LESS},
-    {"LEQUAL",   ak_GL_FUNC_LEQUAL},
-    {"EQUAL",    ak_GL_FUNC_EQUAL},
-    {"GREATER",  ak_GL_FUNC_GREATER},
-    {"NOTEQUAL", ak_GL_FUNC_NOTEQUAL},
-    {"GEQUAL",   ak_GL_FUNC_GEQUAL},
-    {"ALWAYS",   ak_GL_FUNC_ALWAYS}
+    {"NEVER",    AK_GL_FUNC_NEVER},
+    {"LESS",     AK_GL_FUNC_LESS},
+    {"LEQUAL",   AK_GL_FUNC_LEQUAL},
+    {"EQUAL",    AK_GL_FUNC_EQUAL},
+    {"GREATER",  AK_GL_FUNC_GREATER},
+    {"NOTEQUAL", AK_GL_FUNC_NOTEQUAL},
+    {"GEQUAL",   AK_GL_FUNC_GEQUAL},
+    {"ALWAYS",   AK_GL_FUNC_ALWAYS}
   };
 
   /* COLLADA 1.5: ALWAYS is the default */
-  val = ak_GL_FUNC_ALWAYS;
+  val = AK_GL_FUNC_ALWAYS;
   glenums_len = ak_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
@@ -45,28 +45,28 @@ ak_dae_fxEnumGlFunc(const char * name) {
   return val;
 }
 
-long _assetkit_hide
+AkEnum _assetkit_hide
 ak_dae_fxEnumBlend(const char * name) {
-  long val;
+  AkEnum val;
   long glenums_len;
   long i;
 
   ak_dae_enum glenums[] = {
-    {"ZERO",                     ak_GL_BLEND_ZERO},
-    {"ONE",                      ak_GL_BLEND_ONE},
-    {"SRC_COLOR",                ak_GL_BLEND_SRC_COLOR},
-    {"ONE_MINUS_SRC_COLOR",      ak_GL_BLEND_ONE_MINUS_SRC_COLOR},
-    {"DEST_COLOR",               ak_GL_BLEND_DEST_COLOR},
-    {"ONE_MINUS_DEST_COLOR",     ak_GL_BLEND_ONE_MINUS_DEST_COLOR},
-    {"SRC_ALPHA",                ak_GL_BLEND_SRC_ALPHA},
-    {"ONE_MINUS_SRC_ALPHA",      ak_GL_BLEND_ONE_MINUS_SRC_ALPHA},
-    {"DST_ALPHA",                ak_GL_BLEND_DST_ALPHA},
-    {"ONE_MINUS_DST_ALPHA",      ak_GL_BLEND_ONE_MINUS_DST_ALPHA},
-    {"CONSTANT_COLOR",           ak_GL_BLEND_CONSTANT_COLOR},
-    {"ONE_MINUS_CONSTANT_COLOR", ak_GL_BLEND_ONE_MINUS_CONSTANT_COLOR},
-    {"CONSTANT_ALPHA",           ak_GL_BLEND_CONSTANT_ALPHA},
-    {"ONE_MINUS_CONSTANT_ALPHA", ak_GL_BLEND_ONE_MINUS_CONSTANT_ALPHA},
-    {"SRC_ALPHA_SATURATE",       ak_GL_BLEND_SRC_ALPHA_SATURATE}
+    {"ZERO",                     AK_GL_BLEND_ZERO},
+    {"ONE",                      AK_GL_BLEND_ONE},
+    {"SRC_COLOR",                AK_GL_BLEND_SRC_COLOR},
+    {"ONE_MINUS_SRC_COLOR",      AK_GL_BLEND_ONE_MINUS_SRC_COLOR},
+    {"DEST_COLOR",               AK_GL_BLEND_DEST_COLOR},
+    {"ONE_MINUS_DEST_COLOR",     AK_GL_BLEND_ONE_MINUS_DEST_COLOR},
+    {"SRC_ALPHA",                AK_GL_BLEND_SRC_ALPHA},
+    {"ONE_MINUS_SRC_ALPHA",      AK_GL_BLEND_ONE_MINUS_SRC_ALPHA},
+    {"DST_ALPHA",                AK_GL_BLEND_DST_ALPHA},
+    {"ONE_MINUS_DST_ALPHA",      AK_GL_BLEND_ONE_MINUS_DST_ALPHA},
+    {"CONSTANT_COLOR",           AK_GL_BLEND_CONSTANT_COLOR},
+    {"ONE_MINUS_CONSTANT_COLOR", AK_GL_BLEND_ONE_MINUS_CONSTANT_COLOR},
+    {"CONSTANT_ALPHA",           AK_GL_BLEND_CONSTANT_ALPHA},
+    {"ONE_MINUS_CONSTANT_ALPHA", AK_GL_BLEND_ONE_MINUS_CONSTANT_ALPHA},
+    {"SRC_ALPHA_SATURATE",       AK_GL_BLEND_SRC_ALPHA_SATURATE}
   };
 
   val = -1;
@@ -82,18 +82,18 @@ ak_dae_fxEnumBlend(const char * name) {
   return val;
 }
 
-long _assetkit_hide
+AkEnum _assetkit_hide
 ak_dae_fxEnumBlendEq(const char * name) {
-  long val;
+  AkEnum val;
   long glenums_len;
   long i;
 
   ak_dae_enum glenums[] = {
-    {"FUNC_ADD",              ak_GL_BLEND_EQUATION_FUNC_ADD},
-    {"FUNC_SUBTRACT",         ak_GL_BLEND_EQUATION_FUNC_SUBTRACT},
-    {"FUNC_REVERSE_SUBTRACT", ak_GL_BLEND_EQUATION_FUNC_REVERSE_SUBTRACT},
-    {"MIN",                   ak_GL_BLEND_EQUATION_MIN},
-    {"MAX",                   ak_GL_BLEND_EQUATION_MAX}
+    {"FUNC_ADD",              AK_GL_BLEND_EQUATION_FUNC_ADD},
+    {"FUNC_SUBTRACT",         AK_GL_BLEND_EQUATION_FUNC_SUBTRACT},
+    {"FUNC_REVERSE_SUBTRACT", AK_GL_BLEND_EQUATION_FUNC_REVERSE_SUBTRACT},
+    {"MIN",                   AK_GL_BLEND_EQUATION_MIN},
+    {"MAX",                   AK_GL_BLEND_EQUATION_MAX}
   };
 
   val = -1;
@@ -109,16 +109,16 @@ ak_dae_fxEnumBlendEq(const char * name) {
   return val;
 }
 
-long _assetkit_hide
+AkEnum _assetkit_hide
 ak_dae_fxEnumGLFace(const char * name) {
-  long val;
+  AkEnum val;
   long glenums_len;
   long i;
 
   ak_dae_enum glenums[] = {
-    {"FRONT",          ak_GL_FACE_FRONT},
-    {"BACK",           ak_GL_FACE_BACK},
-    {"FRONT_AND_BACK", ak_GL_FACE_FRONT_AND_BACK}
+    {"FRONT",          AK_GL_FACE_FRONT},
+    {"BACK",           AK_GL_FACE_BACK},
+    {"FRONT_AND_BACK", AK_GL_FACE_FRONT_AND_BACK}
   };
 
   val = -1;
@@ -134,18 +134,18 @@ ak_dae_fxEnumGLFace(const char * name) {
   return val;
 }
 
-long _assetkit_hide
+AkEnum _assetkit_hide
 ak_dae_fxEnumMaterial(const char * name) {
-  long val;
+  AkEnum val;
   long glenums_len;
   long i;
 
   ak_dae_enum glenums[] = {
-    {"EMISSION",            ak_GL_MATERIAL_EMISSION},
-    {"AMBIENT",             ak_GL_MATERIAL_AMBIENT},
-    {"DIFFUSE",             ak_GL_MATERIAL_DIFFUSE},
-    {"SPECULAR",            ak_GL_MATERIAL_SPECULAR},
-    {"AMBIENT_AND_DIFFUSE", ak_GL_MATERIAL_AMBIENT_AND_DIFFUSE},
+    {"EMISSION",            AK_GL_MATERIAL_TYPE_EMISSION},
+    {"AMBIENT",             AK_GL_MATERIAL_TYPE_AMBIENT},
+    {"DIFFUSE",             AK_GL_MATERIAL_TYPE_DIFFUSE},
+    {"SPECULAR",            AK_GL_MATERIAL_TYPE_SPECULAR},
+    {"AMBIENT_AND_DIFFUSE", AK_GL_MATERIAL_TYPE_AMBIENT_AND_DIFFUSE},
   };
 
   val = -1;
@@ -161,16 +161,16 @@ ak_dae_fxEnumMaterial(const char * name) {
   return val;
 }
 
-long _assetkit_hide
+AkEnum _assetkit_hide
 ak_dae_fxEnumFog(const char * name) {
-  long val;
+  AkEnum val;
   long glenums_len;
   long i;
 
   ak_dae_enum glenums[] = {
-    {"LINEAR", ak_GL_FOG_LINEAR},
-    {"EXP",    ak_GL_FOG_EXP},
-    {"EXP2",   ak_GL_FOG_EXP2}
+    {"LINEAR", AK_GL_FOG_LINEAR},
+    {"EXP",    AK_GL_FOG_EXP},
+    {"EXP2",   AK_GL_FOG_EXP2}
   };
 
   val = -1;
@@ -186,15 +186,15 @@ ak_dae_fxEnumFog(const char * name) {
   return val;
 }
 
-long _assetkit_hide
+AkEnum _assetkit_hide
 ak_dae_fxEnumFogCoordSrc(const char * name) {
-  long val;
+  AkEnum val;
   long glenums_len;
   long i;
 
   ak_dae_enum glenums[] = {
-    {"FOG_COORDINATE", ak_GL_FOG_COORD_SRC_FOG_COORDINATE},
-    {"FRAGMENT_DEPTH", ak_GL_FOG_COORD_SRC_FRAGMENT_DEPTH}
+    {"FOG_COORDINATE", AK_GL_FOG_COORD_SRC_FOG_COORDINATE},
+    {"FRAGMENT_DEPTH", AK_GL_FOG_COORD_SRC_FRAGMENT_DEPTH}
   };
 
   val = -1;
@@ -210,15 +210,15 @@ ak_dae_fxEnumFogCoordSrc(const char * name) {
   return val;
 }
 
-long _assetkit_hide
+AkEnum _assetkit_hide
 ak_dae_fxEnumFrontFace(const char * name) {
-  long val;
+  AkEnum val;
   long glenums_len;
   long i;
 
   ak_dae_enum glenums[] = {
-    {"CW",  ak_GL_FRONT_FACE_CW},
-    {"CCW", ak_GL_FRONT_FACE_CCW}
+    {"CW",  AK_GL_FRONT_FACE_CW},
+    {"CCW", AK_GL_FRONT_FACE_CCW}
   };
 
   val = -1;
@@ -234,17 +234,17 @@ ak_dae_fxEnumFrontFace(const char * name) {
   return val;
 }
 
-long _assetkit_hide
+AkEnum _assetkit_hide
 ak_dae_fxEnumLightModelColorCtl(const char * name) {
-  long val;
+  AkEnum val;
   long glenums_len;
   long i;
 
   ak_dae_enum glenums[] = {
     {"SINGLE_COLOR",
-      ak_GL_LIGHT_MODEL_COLOR_CONTROL_SINGLE_COLOR},
+      AK_GL_LIGHT_MODEL_COLOR_CONTROL_SINGLE_COLOR},
     {"SEPARATE_SPECULAR_COLOR",
-      ak_GL_LIGHT_MODEL_COLOR_CONTROL_SEPARATE_SPECULAR_COLOR}
+      AK_GL_LIGHT_MODEL_COLOR_CONTROL_SEPARATE_SPECULAR_COLOR}
   };
 
   val = -1;
@@ -260,28 +260,28 @@ ak_dae_fxEnumLightModelColorCtl(const char * name) {
   return val;
 }
 
-long _assetkit_hide
+AkEnum _assetkit_hide
 ak_dae_fxEnumLogicOp(const char * name) {
-  long val;
+  AkEnum val;
   long glenums_len;
   long i;
 
   ak_dae_enum glenums[] = {
-    {"CLEAR",         ak_GL_LOGIC_OP_CLEAR},
-    {"AND",           ak_GL_LOGIC_OP_AND},
-    {"AND_REVERSE",   ak_GL_LOGIC_OP_AND_REVERSE},
-    {"COPY",          ak_GL_LOGIC_OP_COPY},
-    {"AND_INVERTED",  ak_GL_LOGIC_OP_AND_INVERTED},
-    {"NOOP",          ak_GL_LOGIC_OP_NOOP},
-    {"XOR",           ak_GL_LOGIC_OP_XOR},
-    {"OR",            ak_GL_LOGIC_OP_OR},
-    {"NOR",           ak_GL_LOGIC_OP_NOR},
-    {"EQUIV",         ak_GL_LOGIC_OP_EQUIV},
-    {"INVERT",        ak_GL_LOGIC_OP_INVERT},
-    {"OR_REVERSE",    ak_GL_LOGIC_OP_OR_REVERSE},
-    {"COPY_INVERTED", ak_GL_LOGIC_OP_COPY_INVERTED},
-    {"NAND",          ak_GL_LOGIC_OP_NAND},
-    {"SET",           ak_GL_LOGIC_OP_SET}
+    {"CLEAR",         AK_GL_LOGIC_OP_CLEAR},
+    {"AND",           AK_GL_LOGIC_OP_AND},
+    {"AND_REVERSE",   AK_GL_LOGIC_OP_AND_REVERSE},
+    {"COPY",          AK_GL_LOGIC_OP_COPY},
+    {"AND_INVERTED",  AK_GL_LOGIC_OP_AND_INVERTED},
+    {"NOOP",          AK_GL_LOGIC_OP_NOOP},
+    {"XOR",           AK_GL_LOGIC_OP_XOR},
+    {"OR",            AK_GL_LOGIC_OP_OR},
+    {"NOR",           AK_GL_LOGIC_OP_NOR},
+    {"EQUIV",         AK_GL_LOGIC_OP_EQUIV},
+    {"INVERT",        AK_GL_LOGIC_OP_INVERT},
+    {"OR_REVERSE",    AK_GL_LOGIC_OP_OR_REVERSE},
+    {"COPY_INVERTED", AK_GL_LOGIC_OP_COPY_INVERTED},
+    {"NAND",          AK_GL_LOGIC_OP_NAND},
+    {"SET",           AK_GL_LOGIC_OP_SET}
   };
 
   val = -1;
@@ -297,16 +297,16 @@ ak_dae_fxEnumLogicOp(const char * name) {
   return val;
 }
 
-long _assetkit_hide
+AkEnum _assetkit_hide
 ak_dae_fxEnumPolyMode(const char * name) {
-  long val;
+  AkEnum val;
   long glenums_len;
   long i;
 
   ak_dae_enum glenums[] = {
-    {"POINT", ak_GL_POLYGON_MODE_POINT},
-    {"LINE",  ak_GL_POLYGON_MODE_LINE},
-    {"FILL",  ak_GL_POLYGON_MODE_FILL},
+    {"POINT", AK_GL_POLYGON_MODE_POINT},
+    {"LINE",  AK_GL_POLYGON_MODE_LINE},
+    {"FILL",  AK_GL_POLYGON_MODE_FILL},
   };
 
   val = -1;
@@ -322,15 +322,15 @@ ak_dae_fxEnumPolyMode(const char * name) {
   return val;
 }
 
-long _assetkit_hide
+AkEnum _assetkit_hide
 ak_dae_fxEnumShadeModel(const char * name) {
-  long val;
+  AkEnum val;
   long glenums_len;
   long i;
 
   ak_dae_enum glenums[] = {
-    {"FLAT",   ak_GL_SHADE_MODEL_FLAT},
-    {"SMOOTH", ak_GL_SHADE_MODEL_SMOOTH}
+    {"FLAT",   AK_GL_SHADE_MODEL_FLAT},
+    {"SMOOTH", AK_GL_SHADE_MODEL_SMOOTH}
   };
 
   val = -1;
@@ -346,21 +346,21 @@ ak_dae_fxEnumShadeModel(const char * name) {
   return val;
 }
 
-long _assetkit_hide
+AkEnum _assetkit_hide
 ak_dae_fxEnumStencilOp(const char * name) {
-  long val;
+  AkEnum val;
   long glenums_len;
   long i;
 
   ak_dae_enum glenums[] = {
-    {"KEEP",      ak_GL_STENCIL_OP_KEEP},
-    {"ZERO",      ak_GL_STENCIL_OP_ZERO},
-    {"REPLACE",   ak_GL_STENCIL_OP_REPLACE},
-    {"INCR",      ak_GL_STENCIL_OP_INCR},
-    {"DECR",      ak_GL_STENCIL_OP_DECR},
-    {"INVERT",    ak_GL_STENCIL_OP_INVERT},
-    {"INCR_WRAP", ak_GL_STENCIL_OP_INCR_WRAP},
-    {"DECR_WRAP", ak_GL_STENCIL_OP_DECR_WRAP}
+    {"KEEP",      AK_GL_STENCIL_OP_KEEP},
+    {"ZERO",      AK_GL_STENCIL_OP_ZERO},
+    {"REPLACE",   AK_GL_STENCIL_OP_REPLACE},
+    {"INCR",      AK_GL_STENCIL_OP_INCR},
+    {"DECR",      AK_GL_STENCIL_OP_DECR},
+    {"INVERT",    AK_GL_STENCIL_OP_INVERT},
+    {"INCR_WRAP", AK_GL_STENCIL_OP_INCR_WRAP},
+    {"DECR_WRAP", AK_GL_STENCIL_OP_DECR_WRAP}
   };
 
   val = -1;
@@ -376,18 +376,18 @@ ak_dae_fxEnumStencilOp(const char * name) {
   return val;
 }
 
-long _assetkit_hide
+AkEnum _assetkit_hide
 ak_dae_fxEnumWrap(const char * name) {
-  long val;
+  AkEnum val;
   long glenums_len;
   long i;
 
   ak_dae_enum glenums[] = {
-    {"WRAP",        ak_WRAP_MODE_WRAP},
-    {"CLAMP",       ak_WRAP_MODE_CLAMP},
-    {"BORDER",      ak_WRAP_MODE_BORDER},
-    {"MIRROR",      ak_WRAP_MODE_MIRROR},
-    {"MIRROR_ONCE", ak_WRAP_MODE_MIRROR_ONCE}
+    {"WRAP",        AK_WRAP_MODE_WRAP},
+    {"CLAMP",       AK_WRAP_MODE_CLAMP},
+    {"BORDER",      AK_WRAP_MODE_BORDER},
+    {"MIRROR",      AK_WRAP_MODE_MIRROR},
+    {"MIRROR_ONCE", AK_WRAP_MODE_MIRROR_ONCE}
   };
 
   val = -1;
@@ -403,16 +403,16 @@ ak_dae_fxEnumWrap(const char * name) {
   return val;
 }
 
-long _assetkit_hide
+AkEnum _assetkit_hide
 ak_dae_fxEnumMinfilter(const char * name) {
-  long val;
+  AkEnum val;
   long glenums_len;
   long i;
 
   ak_dae_enum glenums[] = {
-    {"NEAREST",     ak_MINFILTER_NEAREST},
-    {"LINEAR",      ak_MINFILTER_LINEAR},
-    {"ANISOTROPIC", ak_MINFILTER_ANISOTROPIC}
+    {"NEAREST",     AK_MINFILTER_NEAREST},
+    {"LINEAR",      AK_MINFILTER_LINEAR},
+    {"ANISOTROPIC", AK_MINFILTER_ANISOTROPIC}
   };
 
   val = -1;
@@ -428,16 +428,16 @@ ak_dae_fxEnumMinfilter(const char * name) {
   return val;
 }
 
-long _assetkit_hide
+AkEnum _assetkit_hide
 ak_dae_fxEnumMipfilter(const char * name) {
-  long val;
+  AkEnum val;
   long glenums_len;
   long i;
 
   ak_dae_enum glenums[] = {
-    {"NONE",    ak_MIPFILTER_NONE},
-    {"NEAREST", ak_MIPFILTER_NEAREST},
-    {"LINEAR",  ak_MIPFILTER_LINEAR}
+    {"NONE",    AK_MIPFILTER_NONE},
+    {"NEAREST", AK_MIPFILTER_NEAREST},
+    {"LINEAR",  AK_MIPFILTER_LINEAR}
   };
 
   val = -1;
@@ -453,15 +453,15 @@ ak_dae_fxEnumMipfilter(const char * name) {
   return val;
 }
 
-long _assetkit_hide
+AkEnum _assetkit_hide
 ak_dae_fxEnumMagfilter(const char * name) {
-  long val;
+  AkEnum val;
   long glenums_len;
   long i;
 
   ak_dae_enum glenums[] = {
-    {"NEAREST", ak_MAGFILTER_NEAREST},
-    {"LINEAR",  ak_MAGFILTER_LINEAR}
+    {"NEAREST", AK_MAGFILTER_NEAREST},
+    {"LINEAR",  AK_MAGFILTER_LINEAR}
   };
 
   val = -1;
@@ -477,17 +477,17 @@ ak_dae_fxEnumMagfilter(const char * name) {
   return val;
 }
 
-long _assetkit_hide
+AkEnum _assetkit_hide
 ak_dae_fxEnumShaderStage(const char * name) {
-  long val;
+  AkEnum val;
   long glenums_len;
   long i;
 
   ak_dae_enum glenums[] = {
-    {"VERTEX",      ak_PIPELINE_STAGE_VERTEX},
-    {"FRAGMENT",    ak_PIPELINE_STAGE_FRAGMENT},
-    {"TESSELATION", ak_PIPELINE_STAGE_TESSELATION},
-    {"GEOMETRY",    ak_PIPELINE_STAGE_GEOMETRY}
+    {"VERTEX",      AK_PIPELINE_STAGE_VERTEX},
+    {"FRAGMENT",    AK_PIPELINE_STAGE_FRAGMENT},
+    {"TESSELATION", AK_PIPELINE_STAGE_TESSELATION},
+    {"GEOMETRY",    AK_PIPELINE_STAGE_GEOMETRY}
   };
 
   val = -1;
@@ -503,19 +503,19 @@ ak_dae_fxEnumShaderStage(const char * name) {
   return val;
 }
 
-long _assetkit_hide
+AkEnum _assetkit_hide
 ak_dae_fxEnumFace(const char * name) {
-  long val;
+  AkEnum val;
   long glenums_len;
   long i;
 
   ak_dae_enum glenums[] = {
-    {"POSITIVE_X", ak_FACE_POSITIVE_X},
-    {"NEGATIVE_X", ak_FACE_NEGATIVE_X},
-    {"POSITIVE_Y", ak_FACE_POSITIVE_Y},
-    {"NEGATIVE_Y", ak_FACE_NEGATIVE_Y},
-    {"POSITIVE_Z", ak_FACE_POSITIVE_Z},
-    {"NEGATIVE_Z", ak_FACE_NEGATIVE_Z}
+    {"POSITIVE_X", AK_FACE_POSITIVE_X},
+    {"NEGATIVE_X", AK_FACE_NEGATIVE_X},
+    {"POSITIVE_Y", AK_FACE_POSITIVE_Y},
+    {"NEGATIVE_Y", AK_FACE_NEGATIVE_Y},
+    {"POSITIVE_Z", AK_FACE_POSITIVE_Z},
+    {"NEGATIVE_Z", AK_FACE_NEGATIVE_Z}
   };
 
   val = -1;
@@ -531,22 +531,22 @@ ak_dae_fxEnumFace(const char * name) {
   return val;
 }
 
-long _assetkit_hide
+AkEnum _assetkit_hide
 ak_dae_fxEnumDraw(const char * name) {
-  long val;
+  AkEnum val;
   long glenums_len;
   long i;
 
   ak_dae_enum glenums[] = {
-    {"GEOMETRY",         ak_DRAW_GEOMETRY},
-    {"SCENE_GEOMETRY",   ak_DRAW_SCENE_GEOMETRY},
-    {"SCENE_IMAGE",      ak_DRAW_SCENE_IMAGE},
-    {"FULL_SCREEN_QUAD", ak_DRAW_FULL_SCREEN_QUAD},
+    {"GEOMETRY",         AK_DRAW_GEOMETRY},
+    {"SCENE_GEOMETRY",   AK_DRAW_SCENE_GEOMETRY},
+    {"SCENE_IMAGE",      AK_DRAW_SCENE_IMAGE},
+    {"FULL_SCREEN_QUAD", AK_DRAW_FULL_SCREEN_QUAD},
     {"FULL_SCREEN_QUAD_PLUS_HALF_PIXEL",
-      ak_DRAW_FULL_SCREEN_QUAD_PLUS_HALF_PIXEL}
+      AK_DRAW_FULL_SCREEN_QUAD_PLUS_HALF_PIXEL}
   };
 
-  /* ak_DRAW_READ_STR_VAL */
+  /* AK_DRAW_READ_STR_VAL */
   val = 0;
   glenums_len = ak_ARRAY_LEN(glenums);
 
@@ -560,17 +560,17 @@ ak_dae_fxEnumDraw(const char * name) {
   return val;
 }
 
-long _assetkit_hide
+AkEnum _assetkit_hide
 ak_dae_fxEnumOpaque(const char * name) {
-  long val;
+  AkEnum val;
   long glenums_len;
   long i;
 
   ak_dae_enum glenums[] = {
-    {"A_ONE",    ak_OPAQUE_A_ONE},
-    {"RGB_ZERO", ak_OPAQUE_RGB_ZERO},
-    {"A_ZERO",   ak_OPAQUE_A_ZERO},
-    {"RGB_ONE",  ak_OPAQUE_RGB_ONE}
+    {"A_ONE",    AK_OPAQUE_A_ONE},
+    {"RGB_ZERO", AK_OPAQUE_RGB_ZERO},
+    {"A_ZERO",   AK_OPAQUE_A_ZERO},
+    {"RGB_ONE",  AK_OPAQUE_RGB_ONE}
   };
 
   val = 0;
@@ -586,19 +586,19 @@ ak_dae_fxEnumOpaque(const char * name) {
   return val;
 }
 
-long _assetkit_hide
+AkEnum _assetkit_hide
 ak_dae_fxEnumChannel(const char * name) {
-  long val;
+  AkEnum val;
   long glenums_len;
   long i;
 
   ak_dae_enum glenums[] = {
-    {"RGB",  ak_FORMAT_CHANNEL_RGB},
-    {"RGBA", ak_FORMAT_CHANNEL_RGBA},
-    {"RGBE", ak_FORMAT_CHANNEL_RGBE},
-    {"L",    ak_FORMAT_CHANNEL_L},
-    {"LA",   ak_FORMAT_CHANNEL_LA},
-    {"D",    ak_FORMAT_CHANNEL_D}
+    {"RGB",  AK_CHANNEL_FORMAT_RGB},
+    {"RGBA", AK_CHANNEL_FORMAT_RGBA},
+    {"RGBE", AK_CHANNEL_FORMAT_RGBE},
+    {"L",    AK_CHANNEL_FORMAT_L},
+    {"LA",   AK_CHANNEL_FORMAT_LA},
+    {"D",    AK_CHANNEL_FORMAT_D}
   };
 
   val = 0;
@@ -614,18 +614,18 @@ ak_dae_fxEnumChannel(const char * name) {
   return val;
 }
 
-long _assetkit_hide
+AkEnum _assetkit_hide
 ak_dae_fxEnumRange(const char * name) {
-  long val;
+  AkEnum val;
   long glenums_len;
   long i;
 
   ak_dae_enum glenums[] = {
-    {"SNORM", ak_FORMAT_RANGE_SNORM},
-    {"UNORM", ak_FORMAT_RANGE_UNORM},
-    {"SINT",  ak_FORMAT_RANGE_SINT},
-    {"UINT",  ak_FORMAT_RANGE_UINT},
-    {"FLOAT", ak_FORMAT_RANGE_FLOAT}
+    {"SNORM", AK_RANGE_FORMAT_SNORM},
+    {"UNORM", AK_RANGE_FORMAT_UNORM},
+    {"SINT",  AK_RANGE_FORMAT_SINT},
+    {"UINT",  AK_RANGE_FORMAT_UINT},
+    {"FLOAT", AK_RANGE_FORMAT_FLOAT}
   };
 
   val = 0;
@@ -641,18 +641,18 @@ ak_dae_fxEnumRange(const char * name) {
   return val;
 }
 
-long _assetkit_hide
+AkEnum _assetkit_hide
 ak_dae_fxEnumPrecision(const char * name) {
-  long val;
+  AkEnum val;
   long glenums_len;
   long i;
 
   ak_dae_enum glenums[] = {
-    {"DEFAULT", ak_FORMAT_PRECISION_DEFAULT},
-    {"LOW",     ak_FORMAT_PRECISION_LOW},
-    {"MID",     ak_FORMAT_PRECISION_MID},
-    {"HIGH",    ak_FORMAT_PRECISION_HIGHT},
-    {"MAX",     ak_FORMAT_PRECISION_MAX}
+    {"DEFAULT", AK_PRECISION_FORMAT_DEFAULT},
+    {"LOW",     AK_PRECISION_FORMAT_LOW},
+    {"MID",     AK_PRECISION_FORMAT_MID},
+    {"HIGH",    AK_PRECISION_FORMAT_HIGHT},
+    {"MAX",     AK_PRECISION_FORMAT_MAX}
   };
 
   val = 0;

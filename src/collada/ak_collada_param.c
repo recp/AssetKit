@@ -11,13 +11,13 @@
 #include "ak_collada_value.h"
 
 static ak_enumpair modifierMap[] = {
-  {_s_dae_const,    ak_MODIFIER_CONST},
-  {_s_dae_uniform,  ak_MODIFIER_UNIFORM},
-  {_s_dae_varying,  ak_MODIFIER_VARYING},
-  {_s_dae_static,   ak_MODIFIER_STATIC},
-  {_s_dae_volatile, ak_MODIFIER_VOLATILE},
-  {_s_dae_extern,   ak_MODIFIER_EXTERN},
-  {_s_dae_shared,   ak_MODIFIER_SHARED}
+  {_s_dae_const,    AK_MODIFIER_CONST},
+  {_s_dae_uniform,  AK_MODIFIER_UNIFORM},
+  {_s_dae_varying,  AK_MODIFIER_VARYING},
+  {_s_dae_static,   AK_MODIFIER_STATIC},
+  {_s_dae_volatile, AK_MODIFIER_VOLATILE},
+  {_s_dae_extern,   AK_MODIFIER_EXTERN},
+  {_s_dae_shared,   AK_MODIFIER_SHARED}
 };
 
 static size_t modifierMapLen = 0;
@@ -78,7 +78,7 @@ ak_dae_newparam(void * __restrict memParent,
       /* load once */
       if (!newparam->val) {
         void           * val;
-        ak_value_type   val_type;
+        AkValueType   val_type;
         int              ret;
 
         ret = ak_dae_value(newparam,
@@ -105,7 +105,7 @@ ak_dae_newparam(void * __restrict memParent,
 int _assetkit_hide
 ak_dae_param(void * __restrict memParent,
               xmlTextReaderPtr reader,
-              ak_param_type param_type,
+              AkParamType param_type,
               ak_param ** __restrict dest) {
   ak_param  *param;
 
@@ -115,11 +115,11 @@ ak_dae_param(void * __restrict memParent,
 
   nodeType = xmlTextReaderNodeType(reader);
 
-  if (param_type == ak_PARAM_TYPE_BASIC) {
+  if (param_type == AK_PARAM_TYPE_BASIC) {
     param = ak_calloc(memParent, sizeof(ak_param), 1);
 
     _xml_readAttr(param, param->ref, _s_dae_ref);
-  } else if (param_type == ak_PARAM_TYPE_EXTENDED) {
+  } else if (param_type == AK_PARAM_TYPE_EXTENDED) {
     ak_param_ex *param_ex;
     param_ex = ak_calloc(memParent, sizeof(ak_param_ex), 1);
 
@@ -172,7 +172,7 @@ ak_dae_setparam(void * __restrict memParent,
     /* load once */
     if (!setparam->val) {
       void           * val;
-      ak_value_type   val_type;
+      AkValueType   val_type;
       int              ret;
 
       ret = ak_dae_value(setparam,

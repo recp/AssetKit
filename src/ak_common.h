@@ -29,7 +29,7 @@
 typedef struct ak_enumpair_s ak_enumpair;
 struct ak_enumpair_s {
   const char * key;
-  long val;
+  AkEnum val;
 };
 
 int _assetkit_hide

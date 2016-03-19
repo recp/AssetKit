@@ -13,12 +13,12 @@
 #include "ak_collada_fx_technique.h"
 
 static ak_enumpair profileMap[] = {
-  {_s_dae_prfl_common, ak_PROFILE_TYPE_COMMON},
-  {_s_dae_prfl_glsl,   ak_PROFILE_TYPE_GLSL},
-  {_s_dae_prfl_gles2,  ak_PROFILE_TYPE_GLES2},
-  {_s_dae_prfl_gles,   ak_PROFILE_TYPE_GLES},
-  {_s_dae_prfl_cg,     ak_PROFILE_TYPE_CG},
-  {_s_dae_prfl_bridge, ak_PROFILE_TYPE_BRIDGE}
+  {_s_dae_prfl_common, AK_PROFILE_TYPE_COMMON},
+  {_s_dae_prfl_glsl,   AK_PROFILE_TYPE_GLSL},
+  {_s_dae_prfl_gles2,  AK_PROFILE_TYPE_GLES2},
+  {_s_dae_prfl_gles,   AK_PROFILE_TYPE_GLES},
+  {_s_dae_prfl_cg,     AK_PROFILE_TYPE_CG},
+  {_s_dae_prfl_bridge, AK_PROFILE_TYPE_BRIDGE}
 };
 
 static size_t profileMapLen = 0;
@@ -55,10 +55,10 @@ ak_dae_profile(void * __restrict memParent,
                   ak_enumpair_cmp2);
 
   switch (found->val) {
-    case ak_PROFILE_TYPE_COMMON:
+    case AK_PROFILE_TYPE_COMMON:
       profile = ak_calloc(memParent, sizeof(ak_profile_common), 1);
       break;
-    case ak_PROFILE_TYPE_GLSL: {
+    case AK_PROFILE_TYPE_GLSL: {
       ak_profile_GLSL *glslProfile;
       glslProfile = ak_calloc(memParent, sizeof(ak_profile_GLSL), 1);
 
@@ -67,7 +67,7 @@ ak_dae_profile(void * __restrict memParent,
       profile = &glslProfile->base;
       break;
     }
-    case ak_PROFILE_TYPE_GLES2: {
+    case AK_PROFILE_TYPE_GLES2: {
       ak_profile_GLES2 *gles2Profile;
       gles2Profile = ak_calloc(memParent, sizeof(ak_profile_GLES2), 1);
 
@@ -77,7 +77,7 @@ ak_dae_profile(void * __restrict memParent,
       profile = &gles2Profile->base;
       break;
     }
-    case ak_PROFILE_TYPE_GLES: {
+    case AK_PROFILE_TYPE_GLES: {
       ak_profile_GLES *glesProfile;
       glesProfile = ak_calloc(memParent, sizeof(ak_profile_GLES), 1);
 
@@ -86,7 +86,7 @@ ak_dae_profile(void * __restrict memParent,
       profile = &glesProfile->base;
       break;
     }
-    case ak_PROFILE_TYPE_CG: {
+    case AK_PROFILE_TYPE_CG: {
       ak_profile_CG *cgProfile;
       cgProfile = ak_calloc(memParent, sizeof(ak_profile_GLES2), 1);
 
@@ -95,7 +95,7 @@ ak_dae_profile(void * __restrict memParent,
       profile = &cgProfile->base;
       break;
     }
-    case ak_PROFILE_TYPE_BRIDGE: {
+    case AK_PROFILE_TYPE_BRIDGE: {
       ak_profile_BRIDGE *bridgeProfile;
       bridgeProfile = ak_calloc(memParent, sizeof(ak_profile_GLES2), 1);
 
@@ -181,13 +181,13 @@ ak_dae_profile(void * __restrict memParent,
         last_code->next = code;
       } else {
         switch (found->val) {
-          case ak_PROFILE_TYPE_GLSL:
+          case AK_PROFILE_TYPE_GLSL:
             ((ak_profile_GLSL *)profile)->code = code;
             break;
-          case ak_PROFILE_TYPE_GLES2:
+          case AK_PROFILE_TYPE_GLES2:
             ((ak_profile_GLES2 *)profile)->code = code;
             break;
-          case ak_PROFILE_TYPE_CG:
+          case AK_PROFILE_TYPE_CG:
             ((ak_profile_CG *)profile)->code = code;
             break;
           default:
@@ -213,13 +213,13 @@ ak_dae_profile(void * __restrict memParent,
         last_inc->next = inc;
       } else {
         switch (found->val) {
-          case ak_PROFILE_TYPE_GLSL:
+          case AK_PROFILE_TYPE_GLSL:
             ((ak_profile_GLSL *)profile)->include = inc;
             break;
-          case ak_PROFILE_TYPE_GLES2:
+          case AK_PROFILE_TYPE_GLES2:
             ((ak_profile_GLES2 *)profile)->include = inc;
             break;
-          case ak_PROFILE_TYPE_CG:
+          case AK_PROFILE_TYPE_CG:
             ((ak_profile_CG *)profile)->include = inc;
             break;
           default:

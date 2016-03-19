@@ -44,7 +44,7 @@ ak_dae_floatOrParam(void * __restrict memParent,
 
       ret = ak_dae_param(floatOrParam,
                           reader,
-                          ak_PARAM_TYPE_BASIC,
+                          AK_PARAM_TYPE_BASIC,
                           &param);
 
       if (ret == 0) {

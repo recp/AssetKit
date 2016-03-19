@@ -13,9 +13,10 @@
 
 /* since C99 or compiler ext */
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
-extern "C" {
+//extern "C" {
 #endif
 
 #if defined(_WIN32)
@@ -41,7 +42,7 @@ extern "C" {
 #define ak_ARRAY_LEN(ARR) sizeof(ARR) / sizeof(ARR[0]);
 
 /* Core Value types based on COLLADA specs 1.5 */
-
+typedef int32_t AkEnum;
 typedef const char *  ak_string;
 typedef char       *  ak_mut_string;
 typedef const char *  ak_str;
@@ -89,380 +90,163 @@ typedef ak_string  * ak_list_of_string;
  */
 typedef time_t ak_time_t;
 
-/*
- * Value Types
- */
-#define ak_value_type long
-#define ak_VALUE_TYPE_UNKNOWN                                          0x00
-#define ak_VALUE_TYPE_BOOL                                             0x01
-#define ak_VALUE_TYPE_BOOL2                                            0x02
-#define ak_VALUE_TYPE_BOOL3                                            0x03
-#define ak_VALUE_TYPE_BOOL4                                            0x04
-#define ak_VALUE_TYPE_INT                                              0x05
-#define ak_VALUE_TYPE_INT2                                             0x06
-#define ak_VALUE_TYPE_INT3                                             0x07
-#define ak_VALUE_TYPE_INT4                                             0x08
-#define ak_VALUE_TYPE_FLOAT                                            0x09
-#define ak_VALUE_TYPE_FLOAT2                                           0x10
-#define ak_VALUE_TYPE_FLOAT3                                           0x11
-#define ak_VALUE_TYPE_FLOAT4                                           0x12
-#define ak_VALUE_TYPE_FLOAT2x2                                         0x13
-#define ak_VALUE_TYPE_FLOAT3x3                                         0x14
-#define ak_VALUE_TYPE_FLOAT4x4                                         0x15
-#define ak_VALUE_TYPE_STRING                                           0x16
+typedef enum AkValueType {
+  AK_VALUE_TYPE_UNKNOWN  = 0,
+  AK_VALUE_TYPE_BOOL     = 1,
+  AK_VALUE_TYPE_BOOL2    = 2,
+  AK_VALUE_TYPE_BOOL3    = 3,
+  AK_VALUE_TYPE_BOOL4    = 4,
+  AK_VALUE_TYPE_INT      = 5,
+  AK_VALUE_TYPE_INT2     = 6,
+  AK_VALUE_TYPE_INT3     = 7,
+  AK_VALUE_TYPE_INT4     = 8,
+  AK_VALUE_TYPE_FLOAT    = 9,
+  AK_VALUE_TYPE_FLOAT2   = 10,
+  AK_VALUE_TYPE_FLOAT3   = 11,
+  AK_VALUE_TYPE_FLOAT4   = 12,
+  AK_VALUE_TYPE_FLOAT2x2 = 13,
+  AK_VALUE_TYPE_FLOAT3x3 = 14,
+  AK_VALUE_TYPE_FLOAT4x4 = 15,
+  AK_VALUE_TYPE_STRING   = 16
+} AkValueType;
 
-/*
- * Modifiers
- */
-#define ak_modifier long
-#define ak_MODIFIER_CONST                                              0x01
-#define ak_MODIFIER_UNIFORM                                            0x02
-#define ak_MODIFIER_VARYING                                            0x03
-#define ak_MODIFIER_STATIC                                             0x04
-#define ak_MODIFIER_VOLATILE                                           0x05
-#define ak_MODIFIER_EXTERN                                             0x06
-#define ak_MODIFIER_SHARED                                             0x07
+typedef enum AkModifier {
+  AK_MODIFIER_CONST    = 1,
+  AK_MODIFIER_UNIFORM  = 2,
+  AK_MODIFIER_VARYING  = 3,
+  AK_MODIFIER_STATIC   = 4,
+  AK_MODIFIER_VOLATILE = 5,
+  AK_MODIFIER_EXTERN   = 6,
+  AK_MODIFIER_SHARED   = 7
+} AkModifier;
 
-/*
- * Profiles
- */
-#define ak_profile_type long
-#define ak_PROFILE_TYPE_UNKOWN                                         0x00
-#define ak_PROFILE_TYPE_COMMON                                         0x01
-#define ak_PROFILE_TYPE_CG                                             0x02
-#define ak_PROFILE_TYPE_GLES                                           0x03
-#define ak_PROFILE_TYPE_GLES2                                          0x04
-#define ak_PROFILE_TYPE_GLSL                                           0x05
-#define ak_PROFILE_TYPE_BRIDGE                                         0x06
+typedef enum AkProfileType {
+  AK_PROFILE_TYPE_UNKOWN = 0,
+  AK_PROFILE_TYPE_COMMON = 1,
+  AK_PROFILE_TYPE_CG     = 2,
+  AK_PROFILE_TYPE_GLES   = 3,
+  AK_PROFILE_TYPE_GLES2  = 4,
+  AK_PROFILE_TYPE_GLSL   = 5,
+  AK_PROFILE_TYPE_BRIDGE = 6
+} AkProfileType;
 
-/*
- * Technique Common
- */
-#define ak_technique_common_type int
-#define ak_TECHNIQUE_COMMON_CAMERA_PERSPECTIVE                         0x01
-#define ak_TECHNIQUE_COMMON_CAMERA_ORTHOGRAPHIC                        0x02
+typedef enum AkTechniqueCommonType {
+  AK_TECHNIQUE_COMMON_CAMERA_PERSPECTIVE  = 1,
+  AK_TECHNIQUE_COMMON_CAMERA_ORTHOGRAPHIC = 2,
+  AK_TECHNIQUE_COMMON_LIGHT_AMBIENT       = 3,
+  AK_TECHNIQUE_COMMON_LIGHT_DIRECTIONAL   = 4,
+  AK_TECHNIQUE_COMMON_LIGHT_POINT         = 5,
+  AK_TECHNIQUE_COMMON_LIGHT_SPOT          = 6
+} AkTechniqueCommonType;
 
-#define ak_TECHNIQUE_COMMON_LIGHT_AMBIENT                              0x03
-#define ak_TECHNIQUE_COMMON_LIGHT_DIRECTIONAL                          0x04
-#define ak_TECHNIQUE_COMMON_LIGHT_POINT                                0x05
-#define ak_TECHNIQUE_COMMON_LIGHT_SPOT                                 0x06
+typedef enum AkFileType {
+  AK_FILE_TYPE_AUTO      = 0,
+  AK_FILE_TYPE_COLLADA   = 1,
+  AK_FILE_TYPE_WAVEFRONT = 2,
+  AK_FILE_TYPE_FBX       = 3
+} AkFileType;
 
-/**
- * @brief It keeps file type of asset doc
- *
- * @discussion To auto dedect file type by file extension set file type auto
- */
-#define ak_filetype int
-#define ak_FILE_TYPE_AUTO                                              0x00
-#define ak_FILE_TYPE_COLLADA                                           0x01
-#define ak_FILE_TYPE_WAVEFRONT                                         0x02
-#define ak_FILE_TYPE_FBX                                               0x03
+typedef enum AkAssetType {
+  AK_ASSET_TYPE_UNKNOWN
+} AkAssetType;
 
-/**
- * @brief Represents asset type such as mesh, light, camera etc...
- *
- * @discussion Because assetkit library developed to include any asset
- */
+typedef enum AkUpAxis {
+  AK_UP_AXIS_Y = 0,
+  AK_UP_AXIS_X = 1,
+  AK_UP_AXIS_Z = 2
+} AkUpAxis;
 
-#define ak_assettype long
-#define ak_ASSET_TYPE_UNKNOWN                                          0x00
-#define ak_ASSET_TYPE_CAMERA                                           0x01
-#define ak_ASSET_TYPE_LIGHT                                            0x02
+typedef enum AkAltitudeMode {
+  AK_ALTITUDE_RELATIVETOGROUND = 0,
+  AK_ALTITUDE_ABSOLUTE         = 1
+} AkAltitudeMode;
 
-#define ak_upaxis long
-#define ak_UP_AXIS_Y                                                   0x00
-#define ak_UP_AXIS_X                                                   0x01
-#define ak_UP_AXIS_Z                                                   0x02
+typedef enum AkOpaque {
+  AK_OPAQUE_A_ONE    = 0,
+  AK_OPAQUE_RGB_ZERO = 1,
+  AK_OPAQUE_A_ZERO   = 2,
+  AK_OPAQUE_RGB_ONE  = 3
+} AkOpaque;
 
-#define ak_altitude_mode long
-#define ak_ALTITUDE_RELATIVETOGROUND                                   0x00
-#define ak_ALTITUDE_ABSOLUTE                                           0x01
+typedef enum AkParamType {
+  AK_PARAM_TYPE_BASIC    = 0,
+  AK_PARAM_TYPE_EXTENDED = 1
+} AkParamType;
 
-/* FX */
-#define ak_opaque long
-#define ak_OPAQUE_A_ONE                                                0x00
-#define ak_OPAQUE_RGB_ZERO                                             0x01
-#define ak_OPAQUE_A_ZERO                                               0x02
-#define ak_OPAQUE_RGB_ONE                                              0x03
+typedef enum AkWrapMode {
+  AK_WRAP_MODE_WRAP        = 0,
+  AK_WRAP_MODE_MIRROR      = 1,
+  AK_WRAP_MODE_CLAMP       = 2,
+  AK_WRAP_MODE_BORDER      = 3,
+  AK_WRAP_MODE_MIRROR_ONCE = 4
+} AkWrapMode;
 
-#define ak_param_type long
-#define ak_PARAM_TYPE_BASIC                                            0x00
-#define ak_PARAM_TYPE_EXTENDED                                         0x01
+typedef enum AkMinFilter {
+  AK_MINFILTER_LINEAR      = 0,
+  AK_MINFILTER_NEAREST     = 1,
+  AK_MINFILTER_ANISOTROPIC = 2
+} AkMinFilter;
 
-#define ak_wrap_mode long
-#define ak_WRAP_MODE_WRAP                                              0x00
-#define ak_WRAP_MODE_MIRROR                                            0x01
-#define ak_WRAP_MODE_CLAMP                                             0x02
-#define ak_WRAP_MODE_BORDER                                            0x03
-#define ak_WRAP_MODE_MIRROR_ONCE                                       0x04
+typedef enum AkMagFilter {
+  AK_MAGFILTER_LINEAR  = 0,
+  AK_MAGFILTER_NEAREST = 1
+} AkMagFilter;
 
-#define ak_minfilter long
-#define ak_MINFILTER_LINEAR                                            0x00
-#define ak_MINFILTER_NEAREST                                           0x01
-#define ak_MINFILTER_ANISOTROPIC                                       0x02
+typedef enum AkMipFilter {
+  AK_MIPFILTER_LINEAR  = 0,
+  AK_MIPFILTER_NONE    = 1,
+  AK_MIPFILTER_NEAREST = 2
+} AkMipFilter;
 
-#define ak_magfilter long
-#define ak_MAGFILTER_LINEAR                                            0x00
-#define ak_MAGFILTER_NEAREST                                           0x01
+typedef enum AkFace {
+  AK_FACE_POSITIVE_X = 1,
+  AK_FACE_NEGATIVE_X = 2,
+  AK_FACE_POSITIVE_Y = 3,
+  AK_FACE_NEGATIVE_Y = 4,
+  AK_FACE_POSITIVE_Z = 5,
+  AK_FACE_NEGATIVE_Z = 6
+} AkFace;
 
-#define ak_mipfilter long
-#define ak_MIPFILTER_LINEAR                                            0x00
-#define ak_MIPFILTER_NONE                                              0x01
-#define ak_MIPFILTER_NEAREST                                           0x02
+typedef enum AkChannelFormat {
+  AK_CHANNEL_FORMAT_RGB  = 1,
+  AK_CHANNEL_FORMAT_RGBA = 2,
+  AK_CHANNEL_FORMAT_RGBE = 3,
+  AK_CHANNEL_FORMAT_L    = 4,
+  AK_CHANNEL_FORMAT_LA   = 5,
+  AK_CHANNEL_FORMAT_D    = 6
+} AkChannelFormat;
 
-#define ak_face long
-#define ak_FACE_POSITIVE_X                                             0x01
-#define ak_FACE_NEGATIVE_X                                             0x02
-#define ak_FACE_POSITIVE_Y                                             0x03
-#define ak_FACE_NEGATIVE_Y                                             0x04
-#define ak_FACE_POSITIVE_Z                                             0x05
-#define ak_FACE_NEGATIVE_Z                                             0x06
+typedef enum AkRangeFormat {
+  AK_RANGE_FORMAT_SNORM = 1,
+  AK_RANGE_FORMAT_UNORM = 2,
+  AK_RANGE_FORMAT_SINT  = 3,
+  AK_RANGE_FORMAT_UINT  = 4,
+  AK_RANGE_FORMAT_FLOAT = 5
+} AkRangeFormat;
 
-#define ak_format_channel long
-#define ak_FORMAT_CHANNEL_RGB                                          0x01
-#define ak_FORMAT_CHANNEL_RGBA                                         0x02
-#define ak_FORMAT_CHANNEL_RGBE                                         0x03
-#define ak_FORMAT_CHANNEL_L                                            0x04
-#define ak_FORMAT_CHANNEL_LA                                           0x05
-#define ak_FORMAT_CHANNEL_D                                            0x06
+typedef enum AkPrecisionFormat {
+  AK_PRECISION_FORMAT_DEFAULT = 1,
+  AK_PRECISION_FORMAT_LOW     = 2,
+  AK_PRECISION_FORMAT_MID     = 3,
+  AK_PRECISION_FORMAT_HIGHT   = 4,
+  AK_PRECISION_FORMAT_MAX     = 5
+} AkPrecisionFormat;
 
-#define ak_format_range long
-#define ak_FORMAT_RANGE_SNORM                                          0x01
-#define ak_FORMAT_RANGE_UNORM                                          0x02
-#define ak_FORMAT_RANGE_SINT                                           0x03
-#define ak_FORMAT_RANGE_UINT                                           0x04
-#define ak_FORMAT_RANGE_FLOAT                                          0x05
+typedef enum AkDrawType {
+  AK_DRAW_READ_STR_VAL                     = 0,
+  AK_DRAW_GEOMETRY                         = 1,
+  AK_DRAW_SCENE_GEOMETRY                   = 2,
+  AK_DRAW_SCENE_IMAGE                      = 3,
+  AK_DRAW_FULL_SCREEN_QUAD                 = 4,
+  AK_DRAW_FULL_SCREEN_QUAD_PLUS_HALF_PIXEL = 5
+} AkDrawType;
 
-#define ak_format_precision long
-#define ak_FORMAT_PRECISION_DEFAULT                                    0x01
-#define ak_FORMAT_PRECISION_LOW                                        0x02
-#define ak_FORMAT_PRECISION_MID                                        0x03
-#define ak_FORMAT_PRECISION_HIGHT                                      0x04
-#define ak_FORMAT_PRECISION_MAX                                        0x05
-
-/*
- * Render states
- */
-#define ak_render_state_type long
-#define ak_RENDER_STATE_ALPHA_FUNC                                   0x0001
-#define ak_RENDER_STATE_BLEND_FUNC                                   0x0002
-#define ak_RENDER_STATE_BLEND_FUNC_SEPARATE                          0x0003
-#define ak_RENDER_STATE_BLEND_EQUATION                               0x0004
-#define ak_RENDER_STATE_BLEND_EQUATION_SEPARATE                      0x0005
-#define ak_RENDER_STATE_COLOR_MATERIAL                               0x0006
-#define ak_RENDER_STATE_CULL_FACE                                    0x0007
-#define ak_RENDER_STATE_DEPTH_FUNC                                   0x0008
-#define ak_RENDER_STATE_FOG_MODE                                     0x0009
-#define ak_RENDER_STATE_FOG_COORD_SRC                                0x0010
-#define ak_RENDER_STATE_FRONT_FACE                                   0x0011
-#define ak_RENDER_STATE_LIGHT_MODEL_COLOR_CONTROL                    0x0012
-#define ak_RENDER_STATE_LOGIC_OP                                     0x0013
-#define ak_RENDER_STATE_POLYGON_MODE                                 0x0014
-#define ak_RENDER_STATE_SHADE_MODEL                                  0x0015
-#define ak_RENDER_STATE_STENCIL_FUNC                                 0x0016
-#define ak_RENDER_STATE_STENCIL_OP                                   0x0017
-#define ak_RENDER_STATE_STENCIL_FUNC_SEPARATE                        0x0018
-#define ak_RENDER_STATE_STENCIL_OP_SEPARATE                          0x0019
-#define ak_RENDER_STATE_STENCIL_MASK_SEPARATE                        0x0020
-#define ak_RENDER_STATE_LIGHT_ENABLE                                 0x0021
-#define ak_RENDER_STATE_LIGHT_AMBIENT                                0x0022
-#define ak_RENDER_STATE_LIGHT_DIFFUSE                                0x0023
-#define ak_RENDER_STATE_LIGHT_SPECULAR                               0x0024
-#define ak_RENDER_STATE_LIGHT_POSITION                               0x0025
-#define ak_RENDER_STATE_LIGHT_CONSTANT_ATTENUATION                   0x0026
-#define ak_RENDER_STATE_LIGHT_LINEAR_ATTENUATION                     0x0027
-#define ak_RENDER_STATE_LIGHT_QUADRIC_ATTENUATION                    0x0028
-#define ak_RENDER_STATE_LIGHT_SPOT_CUTOFF                            0x0029
-#define ak_RENDER_STATE_LIGHT_SPOT_DIRECTION                         0x0030
-#define ak_RENDER_STATE_LIGHT_SPOT_EXPONENT                          0x0031
-#define ak_RENDER_STATE_TEXTURE1D                                    0x0032
-#define ak_RENDER_STATE_TEXTURE2D                                    0x0033
-#define ak_RENDER_STATE_TEXTURE3D                                    0x0034
-#define ak_RENDER_STATE_TEXTURECUBE                                  0x0035
-#define ak_RENDER_STATE_TEXTURERECT                                  0x0036
-#define ak_RENDER_STATE_TEXTUREDEPTH                                 0x0037
-#define ak_RENDER_STATE_TEXTURE1D_ENABLE                             0x0038
-#define ak_RENDER_STATE_TEXTURE2D_ENABLE                             0x0039
-#define ak_RENDER_STATE_TEXTURE3D_ENABLE                             0x0040
-#define ak_RENDER_STATE_TEXTURECUBE_ENABLE                           0x0041
-#define ak_RENDER_STATE_TEXTURERECT_ENABLE                           0x0042
-#define ak_RENDER_STATE_TEXTUREDEPTH_ENABLE                          0x0043
-#define ak_RENDER_STATE_TEXTURE_ENV_COLOR                            0x0044
-#define ak_RENDER_STATE_TEXTURE_ENV_MODE                             0x0045
-#define ak_RENDER_STATE_CLIP_PLANE                                   0x0046
-#define ak_RENDER_STATE_CLIP_PLANE_ENABLE                            0x0047
-#define ak_RENDER_STATE_BLEND_COLOR                                  0x0048
-#define ak_RENDER_STATE_COLOR_MASK                                   0x0049
-#define ak_RENDER_STATE_DEPTH_BOUNDS                                 0x0050
-#define ak_RENDER_STATE_DEPTH_MASK                                   0x0051
-#define ak_RENDER_STATE_DEPTH_RANGE                                  0x0052
-#define ak_RENDER_STATE_FOG_DENSITY                                  0x0053
-#define ak_RENDER_STATE_FOG_START                                    0x0054
-#define ak_RENDER_STATE_FOG_END                                      0x0055
-#define ak_RENDER_STATE_FOG_COLOR                                    0x0056
-#define ak_RENDER_STATE_LIGHT_MODEL_AMBIENT                          0x0057
-#define ak_RENDER_STATE_LIGHTING_ENABLE                              0x0058
-#define ak_RENDER_STATE_LINE_STIPPLE                                 0x0059
-#define ak_RENDER_STATE_LINE_WIDTH                                   0x0060
-#define ak_RENDER_STATE_MATERIAL_AMBIENT                             0x0061
-#define ak_RENDER_STATE_MATERIAL_DIFFUSE                             0x0062
-#define ak_RENDER_STATE_MATERIAL_EMISSION                            0x0063
-#define ak_RENDER_STATE_MATERIAL_SHININESS                           0x0064
-#define ak_RENDER_STATE_MATERIAL_SPECULAR                            0x0065
-#define ak_RENDER_STATE_MODEL_VIEW_MATRIX                            0x0066
-#define ak_RENDER_STATE_POINT_DISTANCE_ATTENUATION                   0x0067
-#define ak_RENDER_STATE_POINT_FADE_THRESOLD_SIZE                     0x0068
-#define ak_RENDER_STATE_POINT_SIZE                                   0x0069
-#define ak_RENDER_STATE_POINT_SIZE_MIN                               0x0070
-#define ak_RENDER_STATE_POINT_SIZE_MAX                               0x0071
-#define ak_RENDER_STATE_POLYGON_OFFSET                               0x0072
-#define ak_RENDER_STATE_PROJECTION_MATRIX                            0x0073
-#define ak_RENDER_STATE_SCISSOR                                      0x0074
-#define ak_RENDER_STATE_STENCIL_MASK                                 0x0075
-#define ak_RENDER_STATE_ALPHA_TEST_ENABLE                            0x0076
-#define ak_RENDER_STATE_BLEND_ENABLE                                 0x0077
-#define ak_RENDER_STATE_COLOR_LOGIC_OP_ENABLE                        0x0078
-#define ak_RENDER_STATE_COLOR_MATERIAL_ENABLE                        0x0079
-#define ak_RENDER_STATE_CULL_FACE_ENABLE                             0x0080
-#define ak_RENDER_STATE_DEPTH_BOUNDS_ENABLE                          0x0081
-#define ak_RENDER_STATE_DEPTH_CLAMP_ENABLE                           0x0082
-#define ak_RENDER_STATE_DEPTH_TEST_ENABLE                            0x0083
-#define ak_RENDER_STATE_DITHER_ENABLE                                0x0084
-#define ak_RENDER_STATE_FOG_ENABLE                                   0x0085
-#define ak_RENDER_STATE_LIGHT_MODEL_LOCAL_VIEWER_ENABLE              0x0086
-#define ak_RENDER_STATE_LIGHT_MODEL_TWO_SIDE_ENABLE                  0x0087
-#define ak_RENDER_STATE_LINE_SMOOTH_ENABLE                           0x0088
-#define ak_RENDER_STATE_LINE_STIPPLE_ENABLE                          0x0089
-#define ak_RENDER_STATE_LOGIC_OP_ENABLE                              0x0090
-#define ak_RENDER_STATE_MULTISAMPLE_ENABLE                           0x0091
-#define ak_RENDER_STATE_NORMALIZE_ENABLE                             0x0092
-#define ak_RENDER_STATE_POINT_SMOOTH_ENABLE                          0x0093
-#define ak_RENDER_STATE_POLYGON_OFFSET_FILL_ENABLE                   0x0094
-#define ak_RENDER_STATE_POLYGON_OFFSET_LINE_ENABLE                   0x0095
-#define ak_RENDER_STATE_POLYGON_OFFSET_POINT_ENABLE                  0x0096
-#define ak_RENDER_STATE_POLYGON_SMOOTH_ENABLE                        0x0097
-#define ak_RENDER_STATE_POLYGON_STIPPLE_ENABLE                       0x0098
-#define ak_RENDER_STATE_RESCALE_NORMAL_ENABLE                        0x0099
-#define ak_RENDER_STATE_SAMPLE_ALPHA_TO_COVERAGE_ENABLE              0x0100
-#define ak_RENDER_STATE_SAMPLE_ALPHA_TO_ONE_ENABLE                   0x0101
-#define ak_RENDER_STATE_SAMPLE_COVERAGE_ENABLE                       0x0102
-#define ak_RENDER_STATE_SCISSOR_TEST_ENABLE                          0x0103
-#define ak_RENDER_STATE_STENCIL_TEST_ENABLE                          0x0104
-
-#define ak_gl_func long
-#define ak_GL_FUNC_NEVER                                             0x0200
-#define ak_GL_FUNC_LESS                                              0x0201
-#define ak_GL_FUNC_EQUAL                                             0x0202
-#define ak_GL_FUNC_LEQUAL                                            0x0203
-#define ak_GL_FUNC_GREATER                                           0x0204
-#define ak_GL_FUNC_NOTEQUAL                                          0x0205
-#define ak_GL_FUNC_GEQUAL                                            0x0206
-#define ak_GL_FUNC_ALWAYS                                            0x0207
-
-#define ak_gl_blend long
-#define ak_GL_BLEND_ZERO                                             0x00
-#define ak_GL_BLEND_ONE                                              0x01
-#define ak_GL_BLEND_SRC_COLOR                                        0x0300
-#define ak_GL_BLEND_ONE_MINUS_SRC_COLOR                              0x0301
-#define ak_GL_BLEND_DEST_COLOR                                       0x0306
-#define ak_GL_BLEND_ONE_MINUS_DEST_COLOR                             0x0307
-#define ak_GL_BLEND_SRC_ALPHA                                        0x0302
-#define ak_GL_BLEND_ONE_MINUS_SRC_ALPHA                              0x0303
-#define ak_GL_BLEND_DST_ALPHA                                        0x0304
-#define ak_GL_BLEND_ONE_MINUS_DST_ALPHA                              0x0305
-#define ak_GL_BLEND_CONSTANT_COLOR                                   0x8001
-#define ak_GL_BLEND_ONE_MINUS_CONSTANT_COLOR                         0x8002
-#define ak_GL_BLEND_CONSTANT_ALPHA                                   0x8003
-#define ak_GL_BLEND_ONE_MINUS_CONSTANT_ALPHA                         0x8004
-#define ak_GL_BLEND_SRC_ALPHA_SATURATE                               0x0308
-
-#define ak_gl_blend_equation long
-#define ak_GL_BLEND_EQUATION_FUNC_ADD                                0x8006
-#define ak_GL_BLEND_EQUATION_FUNC_SUBTRACT                           0x800A
-#define ak_GL_BLEND_EQUATION_FUNC_REVERSE_SUBTRACT                   0x800B
-#define ak_GL_BLEND_EQUATION_MIN                                     0x8007
-#define ak_GL_BLEND_EQUATION_MAX                                     0x8008
-
-#define ak_gl_face long
-#define ak_GL_FACE_FRONT                                             0x0404
-#define ak_GL_FACE_BACK                                              0x0405
-#define ak_GL_FACE_FRONT_AND_BACK                                    0x0408
-
-#define ak_gl_front_face long
-#define ak_GL_FRONT_FACE_CW                                          0x0900
-#define ak_GL_FRONT_FACE_CCW                                         0x0901
-
-#define ak_gl_material long
-#define ak_GL_MATERIAL_EMISSION                                      0x1600
-#define ak_GL_MATERIAL_AMBIENT                                       0x1200
-#define ak_GL_MATERIAL_DIFFUSE                                       0x1201
-#define ak_GL_MATERIAL_SPECULAR                                      0x1202
-#define ak_GL_MATERIAL_AMBIENT_AND_DIFFUSE                           0x1602
-
-#define ak_gl_fog long
-#define ak_GL_FOG_LINEAR                                             0x2601
-#define ak_GL_FOG_EXP                                                0x0800
-#define ak_GL_FOG_EXP2                                               0x0801
-
-#define ak_gl_fog_coord_src long
-#define ak_GL_FOG_COORD_SRC_FOG_COORDINATE                           0x8451
-#define ak_GL_FOG_COORD_SRC_FRAGMENT_DEPTH                           0x8452
-
-#define ak_gl_light_model_color_control long
-#define ak_GL_LIGHT_MODEL_COLOR_CONTROL_SINGLE_COLOR                 0x81F9
-#define ak_GL_LIGHT_MODEL_COLOR_CONTROL_SEPARATE_SPECULAR_COLOR      0x81FA
-
-#define ak_gl_logic_op long
-#define ak_GL_LOGIC_OP_CLEAR                                         0x1500
-#define ak_GL_LOGIC_OP_AND                                           0x1501
-#define ak_GL_LOGIC_OP_AND_REVERSE                                   0x1502
-#define ak_GL_LOGIC_OP_COPY                                          0x1503
-#define ak_GL_LOGIC_OP_AND_INVERTED                                  0x1504
-#define ak_GL_LOGIC_OP_NOOP                                          0x1505
-#define ak_GL_LOGIC_OP_XOR                                           0x1506
-#define ak_GL_LOGIC_OP_OR                                            0x1507
-#define ak_GL_LOGIC_OP_NOR                                           0x1508
-#define ak_GL_LOGIC_OP_EQUIV                                         0x1509
-#define ak_GL_LOGIC_OP_INVERT                                        0x150A
-#define ak_GL_LOGIC_OP_OR_REVERSE                                    0x150B
-#define ak_GL_LOGIC_OP_COPY_INVERTED                                 0x150C
-#define ak_GL_LOGIC_OP_NAND                                          0x150E
-#define ak_GL_LOGIC_OP_SET                                           0x150F
-
-#define ak_gl_polygon_mode long
-#define ak_GL_POLYGON_MODE_POINT                                     0x1B00
-#define ak_GL_POLYGON_MODE_LINE                                      0x1B01
-#define ak_GL_POLYGON_MODE_FILL                                      0x1B02
-
-#define ak_gl_shade_model long
-#define ak_GL_SHADE_MODEL_FLAT                                       0x1D00
-#define ak_GL_SHADE_MODEL_SMOOTH                                     0x1D01
-
-#define ak_gl_stencil_op long
-#define ak_GL_STENCIL_OP_KEEP                                        0x1E00
-#define ak_GL_STENCIL_OP_ZERO                                        0x0
-#define ak_GL_STENCIL_OP_REPLACE                                     0x1E01
-#define ak_GL_STENCIL_OP_INCR                                        0x1E02
-#define ak_GL_STENCIL_OP_DECR                                        0x1E03
-#define ak_GL_STENCIL_OP_INVERT                                      0x150A
-#define ak_GL_STENCIL_OP_INCR_WRAP                                   0x8507
-#define ak_GL_STENCIL_OP_DECR_WRAP                                   0x8508
-
-/* DRAW */
-#define ak_draw_enum long
-#define ak_DRAW_READ_STR_VAL                                         0x0000
-#define ak_DRAW_GEOMETRY                                             0x0001
-#define ak_DRAW_SCENE_GEOMETRY                                       0x0002
-#define ak_DRAW_SCENE_IMAGE                                          0x0003
-#define ak_DRAW_FULL_SCREEN_QUAD                                     0x0004
-#define ak_DRAW_FULL_SCREEN_QUAD_PLUS_HALF_PIXEL                     0x0005
-/* users can extend the draw enum elsewhere by custom values */
-
-#define ak_pipeline_stage long
-#define ak_PIPELINE_STAGE_VERTEX                                     0x0001
-#define ak_PIPELINE_STAGE_FRAGMENT                                   0x0002
-#define ak_PIPELINE_STAGE_TESSELATION                                0x0003
-#define ak_PIPELINE_STAGE_GEOMETRY                                   0x0004
+typedef enum AkPipelineStage {
+  AK_PIPELINE_STAGE_VERTEX      = 1,
+  AK_PIPELINE_STAGE_FRAGMENT    = 2,
+  AK_PIPELINE_STAGE_TESSELATION = 3,
+  AK_PIPELINE_STAGE_GEOMETRY    = 4
+} AkPipelineStage;
 
 /**
  * Almost all assets includes this fields. 
@@ -470,7 +254,7 @@ typedef time_t ak_time_t;
  */
 #define ak_asset_base                                                        \
   ak_assetinf  * inf;                                                        \
-  ak_assettype   type;
+  AkAssetType   type;
 
 /**
  * @brief attribute for a node. To get attribute count fetch attrc from node
@@ -565,7 +349,7 @@ struct ak_contributor_s {
 
 typedef struct ak_altitude_s ak_altitude;
 struct ak_altitude_s {
-  ak_altitude_mode mode;
+  AkAltitudeMode mode;
   double            val;
 };
 
@@ -594,14 +378,14 @@ struct ak_assetinf_s {
   ak_time_t        created;
   ak_time_t        modified;
   unsigned long     revision;
-  ak_upaxis        upaxis;
+  AkUpAxis        upaxis;
 };
 
 typedef struct ak_docinf_s ak_docinf;
 struct ak_docinf_s {
   ak_assetinf   base;
   const char   * fname;
-  ak_filetype   ftype;
+  AkFileType   ftype;
 };
 
 /*
@@ -631,7 +415,7 @@ typedef struct ak_technique_common_s ak_technique_common;
 struct ak_technique_common_s {
   ak_technique_common      * next;
   void                      * technique;
-  ak_technique_common_type   technique_type;
+  AkTechniqueCommonType   technique_type;
 };
 
 typedef struct ak_perspective_s ak_perspective;
@@ -746,7 +530,7 @@ struct ak_light_s {
  */
 typedef struct ak_param_s ak_param;
 struct ak_param_s {
-  ak_param_type  param_type;
+  AkParamType  param_type;
   const char * ref;
 
   ak_param * next;
@@ -759,7 +543,7 @@ struct ak_param_ex_s {
   const char     * sid;
   const char     * semantic;
   const char     * type_name;
-  ak_value_type   type;
+  AkValueType   type;
 };
 
 typedef struct ak_hex_data_s ak_hex_data;
@@ -773,7 +557,7 @@ struct ak_init_from_s {
   const char   * ref;
   ak_hex_data * hex;
   
-  ak_face     face;
+  AkFace     face;
   ak_uint     mip_index;
   ak_uint     depth;
   ak_int      array_index;
@@ -804,9 +588,9 @@ struct ak_mips_s {
 typedef struct ak_image_format_s ak_image_format;
 struct ak_image_format_s {
   struct {
-    ak_format_channel    channel;
-    ak_format_range      range;
-    ak_format_precision  precision;
+    AkChannelFormat    channel;
+    AkRangeFormat      range;
+    AkPrecisionFormat  precision;
     const char          * space;
   } hint;
 
@@ -901,13 +685,13 @@ struct ak_fx_sampler_common_s {
     const char * semantic;
   } texcoord;
 
-  ak_wrap_mode wrap_s;
-  ak_wrap_mode wrap_t;
-  ak_wrap_mode wrap_p;
+  AkWrapMode wrap_s;
+  AkWrapMode wrap_t;
+  AkWrapMode wrap_p;
 
-  ak_minfilter minfilter;
-  ak_magfilter magfilter;
-  ak_mipfilter mipfilter;
+  AkMinFilter minfilter;
+  AkMagFilter magfilter;
+  AkMipFilter mipfilter;
 
   unsigned long mip_max_level;
   unsigned long mip_min_level;
@@ -935,7 +719,7 @@ struct ak_fx_texture_s {
 
 typedef struct ak_fx_color_or_tex_s ak_fx_color_or_tex;
 struct ak_fx_color_or_tex_s {
-  ak_opaque       opaque;
+  AkOpaque       opaque;
   ak_color      * color;
   ak_param      * param;
   ak_fx_texture * texture;
@@ -963,7 +747,7 @@ typedef struct ak_annotate_s ak_annotate;
 struct ak_annotate_s {
   const char     * name;
   void           * val;
-  ak_value_type   val_type;
+  AkValueType   val_type;
 
   ak_annotate * next;
 };
@@ -973,9 +757,9 @@ struct ak_newparam_s {
   const char     * sid;
   ak_annotate   * annotate;
   const char     * semantic;
-  ak_modifier     modifier;
+  AkModifier     modifier;
   void           * val;
-  ak_value_type   val_type;
+  AkValueType   val_type;
 
   ak_newparam * next;
 };
@@ -984,7 +768,7 @@ typedef struct ak_setparam_s ak_setparam;
 struct ak_setparam_s {
   const char     * ref;
   void           * val;
-  ak_value_type   val_type;
+  AkValueType   val_type;
 
   ak_setparam * next;
 };
@@ -1055,7 +839,7 @@ struct ak_phong_s {
   ak_index_of_refraction * index_of_refraction;
 };
 
-typedef struct ak_render_state_s ak_render_state;
+typedef struct AK_RENDER_STATE_s ak_render_state;
 typedef struct ak_states_s ak_states;
 struct ak_states_s {
   ak_render_state * next;
@@ -1067,7 +851,7 @@ struct ak_evaluate_target_s {
   unsigned long index;
   unsigned long slice;
   unsigned long mip;
-  ak_face      face;
+  AkFace      face;
 
   ak_param          * param;
   ak_image_instance * image_inst;
@@ -1091,9 +875,9 @@ struct ak_stencil_clear_s {
   unsigned long val;
 };
 
-typedef struct ak_draw_s ak_draw;
-struct ak_draw_s {
-  ak_draw_enum enum_draw;
+typedef struct AK_DRAW_s ak_draw;
+struct AK_DRAW_s {
+  AkDrawType enum_draw;
   const char    * str_val;
 };
 
@@ -1152,7 +936,7 @@ struct ak_bind_uniform_s {
 
   ak_param       * param;
   void            * val;
-  ak_value_type    val_type;
+  AkValueType    val_type;
 
   ak_bind_uniform * next;
 };
@@ -1167,7 +951,7 @@ struct ak_bind_attrib_s {
 
 typedef struct ak_shader_s ak_shader;
 struct ak_shader_s {
-  ak_pipeline_stage stage;
+  AkPipelineStage stage;
 
   ak_sources      * sources;
   ak_compiler     * compiler;
@@ -1236,7 +1020,7 @@ struct ak_technique_fx_s {
 typedef struct ak_profile_s ak_profile;
 struct ak_profile_s {
   ak_asset_base                                                           
-  ak_profile_type   profile_type;
+  AkProfileType   profile_type;
   const char       * id;
   ak_newparam     * newparam;
   ak_technique_fx * technique;
@@ -1393,6 +1177,6 @@ ak_load(ak_doc ** __restrict dest,
          const char * __restrict file, ...);
 
 #ifdef __cplusplus
-}
+//}
 #endif
 #endif /* __libassetkit__assetkit__h_ */

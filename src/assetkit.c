@@ -40,7 +40,7 @@ ak_load(ak_doc ** __restrict dest,
 
   floader = NULL;
 
-  if (file_type == ak_FILE_TYPE_AUTO) {
+  if (file_type == AK_FILE_TYPE_AUTO) {
     char * file_ext;
     file_ext = strrchr(file, '.');
     if (file_ext) {
@@ -60,13 +60,13 @@ ak_load(ak_doc ** __restrict dest,
     }
   } else {
     switch (file_type) {
-      case ak_FILE_TYPE_COLLADA: {
+      case AK_FILE_TYPE_COLLADA: {
         floader = &floaders[0];
         break;
       }
-      case ak_FILE_TYPE_WAVEFRONT:
+      case AK_FILE_TYPE_WAVEFRONT:
         break;
-      case ak_FILE_TYPE_FBX:
+      case AK_FILE_TYPE_FBX:
         break;
       default:
         *dest = NULL;

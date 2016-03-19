@@ -22,12 +22,12 @@
     (*last_state) = (ak_render_state *)state;                                \
   } while (0)
 
-int _assetkit_hide
+AkEnum _assetkit_hide
 ak_dae_fxState_enum(xmlTextReaderPtr reader,
                      ak_render_state ** __restrict last_state,
                      ak_states ** __restrict states,
-                     long state_type,
-                     long defaultEnumVal,
+                     AkRenderStateType state_type,
+                     AkEnum defaultEnumVal,
                      ak_dae_fxEnumFn_t enumFn) {
   ak_state_t_ul *state;
   char *attrValStr;
@@ -38,7 +38,7 @@ ak_dae_fxState_enum(xmlTextReaderPtr reader,
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
   if (attrValStr) {
-    long enumVal;
+    AkEnum enumVal;
     enumVal = enumFn(attrValStr);
     if (enumVal == -1)
       enumVal = defaultEnumVal;
@@ -60,7 +60,7 @@ int _assetkit_hide
 ak_dae_fxState_bool4(xmlTextReaderPtr reader,
                       ak_render_state ** __restrict last_state,
                       ak_states ** __restrict states,
-                      long state_type,
+                      AkRenderStateType state_type,
                       ak_bool * defaultVal,
                       size_t defaultValSize) {
   ak_state_t_bool4 *state;
@@ -90,7 +90,7 @@ int _assetkit_hide
 ak_dae_fxState_int2(xmlTextReaderPtr reader,
                      ak_render_state ** __restrict last_state,
                      ak_states ** __restrict states,
-                     long state_type,
+                     AkRenderStateType state_type,
                      ak_int * defaultVal,
                      size_t defaultValSize) {
   ak_state_t_int2 *state;
@@ -120,7 +120,7 @@ int _assetkit_hide
 ak_dae_fxState_int4(xmlTextReaderPtr reader,
                      ak_render_state ** __restrict last_state,
                      ak_states ** __restrict states,
-                     long state_type,
+                     AkRenderStateType state_type,
                      ak_int * defaultVal,
                      size_t defaultValSize) {
   ak_state_t_int4 *state;
@@ -150,7 +150,7 @@ int _assetkit_hide
 ak_dae_fxState_ul(xmlTextReaderPtr reader,
                    ak_render_state ** __restrict last_state,
                    ak_states ** __restrict states,
-                   long state_type,
+                   AkRenderStateType state_type,
                    unsigned long defaultVal) {
   ak_state_t_ul *state;
   char *attrValStr;
@@ -182,7 +182,7 @@ int _assetkit_hide
 ak_dae_fxState_ul_i(xmlTextReaderPtr reader,
                      ak_render_state ** __restrict last_state,
                      ak_states ** __restrict states,
-                     long state_type,
+                     AkRenderStateType state_type,
                      unsigned long defaultVal) {
   ak_state_t_ul_i * state;
   char *attrValStr;
@@ -217,7 +217,7 @@ int _assetkit_hide
 ak_dae_fxState_float(xmlTextReaderPtr reader,
                       ak_render_state ** __restrict last_state,
                       ak_states ** __restrict states,
-                      long state_type,
+                      AkRenderStateType state_type,
                       ak_float defaultVal) {
   ak_state_t_float * state;
   char *attrValStr;
@@ -245,7 +245,7 @@ int _assetkit_hide
 ak_dae_fxState_float_i(xmlTextReaderPtr reader,
                         ak_render_state ** __restrict last_state,
                         ak_states ** __restrict states,
-                        long state_type,
+                        AkRenderStateType state_type,
                         ak_float defaultVal) {
   ak_state_t_float_i * state;
   char *attrValStr;
@@ -276,7 +276,7 @@ int _assetkit_hide
 ak_dae_fxState_float2(xmlTextReaderPtr reader,
                        ak_render_state ** __restrict last_state,
                        ak_states ** __restrict states,
-                       long state_type,
+                       AkRenderStateType state_type,
                        ak_float * defaultVal,
                        size_t defaultValSize) {
   ak_state_t_float2 *state;
@@ -306,7 +306,7 @@ int _assetkit_hide
 ak_dae_fxState_float3(xmlTextReaderPtr reader,
                        ak_render_state ** __restrict last_state,
                        ak_states ** __restrict states,
-                       long state_type,
+                       AkRenderStateType state_type,
                        ak_float * defaultVal,
                        size_t defaultValSize) {
   ak_state_t_float3 *state;
@@ -336,7 +336,7 @@ int _assetkit_hide
 ak_dae_fxState_float3_i(xmlTextReaderPtr reader,
                          ak_render_state ** __restrict last_state,
                          ak_states ** __restrict states,
-                         long state_type,
+                         AkRenderStateType state_type,
                          ak_float * defaultVal,
                          size_t defaultValSize) {
   ak_state_t_float3_i *state;
@@ -369,7 +369,7 @@ int _assetkit_hide
 ak_dae_fxState_float4(xmlTextReaderPtr reader,
                        ak_render_state ** __restrict last_state,
                        ak_states ** __restrict states,
-                       long state_type,
+                       AkRenderStateType state_type,
                        ak_float * defaultVal,
                        size_t defaultValSize) {
   ak_state_t_float4 *state;
@@ -399,7 +399,7 @@ int _assetkit_hide
 ak_dae_fxState_float4_i(xmlTextReaderPtr reader,
                          ak_render_state ** __restrict last_state,
                          ak_states ** __restrict states,
-                         long state_type,
+                         AkRenderStateType state_type,
                          ak_float * defaultVal,
                          size_t defaultValSize) {
   ak_state_t_float4_i *state;
@@ -432,7 +432,7 @@ int _assetkit_hide
 ak_dae_fxState_float4x4(xmlTextReaderPtr reader,
                          ak_render_state ** __restrict last_state,
                          ak_states ** __restrict states,
-                         long state_type,
+                         AkRenderStateType state_type,
                          ak_float * defaultVal,
                          size_t defaultValSize) {
   ak_state_t_float4x4 *state;
@@ -463,7 +463,7 @@ ak_dae_fxState_sampler(xmlTextReaderPtr reader,
                         const char *elm,
                         ak_render_state ** __restrict last_state,
                         ak_states ** __restrict states,
-                        long state_type) {
+                        AkRenderStateType state_type) {
   ak_state_t_sampler * state;
   const xmlChar  *nodeName;
   int             nodeType;
@@ -512,7 +512,7 @@ int _assetkit_hide
 ak_dae_fxState_str(xmlTextReaderPtr reader,
                     ak_render_state ** __restrict last_state,
                     ak_states ** __restrict states,
-                    long state_type) {
+                    AkRenderStateType state_type) {
   ak_state_t_str * state;
 
   state = ak_calloc(*states, sizeof(*state), 1);
@@ -537,7 +537,7 @@ ak_dae_fxStateAlphaFunc(xmlTextReaderPtr reader,
   int             nodeRet;
   
   state = ak_calloc(*states, sizeof(*state), 1);
-  state->base.state_type = ak_RENDER_STATE_ALPHA_FUNC;
+  state->base.state_type = AK_RENDER_STATE_ALPHA_FUNC;
 
   do {
     _xml_beginElement(_s_dae_alpha_func);
@@ -549,9 +549,9 @@ ak_dae_fxStateAlphaFunc(xmlTextReaderPtr reader,
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
-      state->func.val = ak_GL_FUNC_ALWAYS;
+      state->func.val = AK_GL_FUNC_ALWAYS;
       if (valStr) {
-        long enumVal;
+        AkEnum enumVal;
         enumVal = ak_dae_fxEnumGlFunc(valStr);
 
         if (enumVal != -1)
@@ -586,7 +586,7 @@ ak_dae_fxStateBlend(xmlTextReaderPtr reader,
   int            nodeRet;
 
   state = ak_calloc(*states, sizeof(*state), 1);
-  state->base.state_type = ak_RENDER_STATE_BLEND_FUNC;
+  state->base.state_type = AK_RENDER_STATE_BLEND_FUNC;
 
   do {
     _xml_beginElement(_s_dae_blend_func);
@@ -598,9 +598,9 @@ ak_dae_fxStateBlend(xmlTextReaderPtr reader,
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
-      state->src.val = ak_GL_BLEND_ONE;
+      state->src.val = AK_GL_BLEND_ONE;
       if (valStr) {
-        long enumVal;
+        AkEnum enumVal;
         enumVal = ak_dae_fxEnumBlend(valStr);
 
         if (enumVal != -1)
@@ -616,9 +616,9 @@ ak_dae_fxStateBlend(xmlTextReaderPtr reader,
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
-      state->src.val = ak_GL_BLEND_ZERO;
+      state->src.val = AK_GL_BLEND_ZERO;
       if (valStr) {
-        long enumVal;
+        AkEnum enumVal;
         enumVal = ak_dae_fxEnumBlend(valStr);
 
         if (enumVal != -1)
@@ -649,7 +649,7 @@ ak_dae_fxStateBlendSep(xmlTextReaderPtr reader,
   int            nodeRet;
 
   state = ak_calloc(*states, sizeof(*state), 1);
-  state->base.state_type = ak_RENDER_STATE_BLEND_FUNC_SEPARATE;
+  state->base.state_type = AK_RENDER_STATE_BLEND_FUNC_SEPARATE;
 
   do {
     _xml_beginElement(_s_dae_blend_func_separate);
@@ -661,9 +661,9 @@ ak_dae_fxStateBlendSep(xmlTextReaderPtr reader,
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
-      state->src_rgb.val = ak_GL_BLEND_ONE;
+      state->src_rgb.val = AK_GL_BLEND_ONE;
       if (valStr) {
-        long enumVal;
+        AkEnum enumVal;
         enumVal = ak_dae_fxEnumBlend(valStr);
 
         if (enumVal != -1)
@@ -679,9 +679,9 @@ ak_dae_fxStateBlendSep(xmlTextReaderPtr reader,
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
-      state->dest_rgb.val = ak_GL_BLEND_ZERO;
+      state->dest_rgb.val = AK_GL_BLEND_ZERO;
       if (valStr) {
-        long enumVal;
+        AkEnum enumVal;
         enumVal = ak_dae_fxEnumBlend(valStr);
 
         if (enumVal != -1)
@@ -697,9 +697,9 @@ ak_dae_fxStateBlendSep(xmlTextReaderPtr reader,
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
-      state->src_alpha.val = ak_GL_BLEND_ONE;
+      state->src_alpha.val = AK_GL_BLEND_ONE;
       if (valStr) {
-        long enumVal;
+        AkEnum enumVal;
         enumVal = ak_dae_fxEnumBlend(valStr);
 
         if (enumVal != -1)
@@ -715,9 +715,9 @@ ak_dae_fxStateBlendSep(xmlTextReaderPtr reader,
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
-      state->dest_alpha.val = ak_GL_BLEND_ZERO;
+      state->dest_alpha.val = AK_GL_BLEND_ZERO;
       if (valStr) {
-        long enumVal;
+        AkEnum enumVal;
         enumVal = ak_dae_fxEnumBlend(valStr);
 
         if (enumVal != -1)
@@ -749,7 +749,7 @@ ak_dae_fxStateBlendEqSep(xmlTextReaderPtr reader,
   int            nodeRet;
 
   state = ak_calloc(*states, sizeof(*state), 1);
-  state->base.state_type = ak_RENDER_STATE_BLEND_EQUATION_SEPARATE;
+  state->base.state_type = AK_RENDER_STATE_BLEND_EQUATION_SEPARATE;
 
   do {
     _xml_beginElement(_s_dae_blend_equation_separate);
@@ -761,9 +761,9 @@ ak_dae_fxStateBlendEqSep(xmlTextReaderPtr reader,
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
-      state->rgb.val = ak_GL_BLEND_EQUATION_FUNC_ADD;
+      state->rgb.val = AK_GL_BLEND_EQUATION_FUNC_ADD;
       if (valStr) {
-        long enumVal;
+        AkEnum enumVal;
         enumVal = ak_dae_fxEnumBlendEq(valStr);
 
         if (enumVal != -1)
@@ -779,9 +779,9 @@ ak_dae_fxStateBlendEqSep(xmlTextReaderPtr reader,
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
-      state->alpha.val = ak_GL_BLEND_EQUATION_FUNC_ADD;
+      state->alpha.val = AK_GL_BLEND_EQUATION_FUNC_ADD;
       if (valStr) {
-        long enumVal;
+        AkEnum enumVal;
         enumVal = ak_dae_fxEnumBlendEq(valStr);
 
         if (enumVal != -1)
@@ -812,7 +812,7 @@ ak_dae_fxStateColorMaterial(xmlTextReaderPtr reader,
   int            nodeRet;
 
   state = ak_calloc(*states, sizeof(*state), 1);
-  state->base.state_type = ak_RENDER_STATE_COLOR_MATERIAL;
+  state->base.state_type = AK_RENDER_STATE_COLOR_MATERIAL;
 
   do {
     _xml_beginElement(_s_dae_color_material);
@@ -824,9 +824,9 @@ ak_dae_fxStateColorMaterial(xmlTextReaderPtr reader,
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
-      state->face.val = ak_GL_FACE_FRONT_AND_BACK;
+      state->face.val = AK_GL_FACE_FRONT_AND_BACK;
       if (valStr) {
-        long enumVal;
+        AkEnum enumVal;
         enumVal = ak_dae_fxEnumGLFace(valStr);
 
         if (enumVal != -1)
@@ -842,9 +842,9 @@ ak_dae_fxStateColorMaterial(xmlTextReaderPtr reader,
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
-      state->mode.val = ak_GL_MATERIAL_AMBIENT_AND_DIFFUSE;
+      state->mode.val = AK_GL_MATERIAL_TYPE_AMBIENT_AND_DIFFUSE;
       if (valStr) {
-        long enumVal;
+        AkEnum enumVal;
         enumVal = ak_dae_fxEnumMaterial(valStr);
 
         if (enumVal != -1)
@@ -875,7 +875,7 @@ ak_dae_fxStatePolyMode(xmlTextReaderPtr reader,
   int            nodeRet;
 
   state = ak_calloc(*states, sizeof(*state), 1);
-  state->base.state_type = ak_RENDER_STATE_POLYGON_MODE;
+  state->base.state_type = AK_RENDER_STATE_POLYGON_MODE;
 
   do {
     _xml_beginElement(_s_dae_polygon_mode);
@@ -887,9 +887,9 @@ ak_dae_fxStatePolyMode(xmlTextReaderPtr reader,
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
-      state->face.val = ak_GL_FACE_FRONT_AND_BACK;
+      state->face.val = AK_GL_FACE_FRONT_AND_BACK;
       if (valStr) {
-        long enumVal;
+        AkEnum enumVal;
         enumVal = ak_dae_fxEnumGLFace(valStr);
 
         if (enumVal != -1)
@@ -905,9 +905,9 @@ ak_dae_fxStatePolyMode(xmlTextReaderPtr reader,
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
-      state->mode.val = ak_GL_POLYGON_MODE_FILL;
+      state->mode.val = AK_GL_POLYGON_MODE_FILL;
       if (valStr) {
-        long enumVal;
+        AkEnum enumVal;
         enumVal = ak_dae_fxEnumPolyMode(valStr);
 
         if (enumVal != -1)
@@ -938,7 +938,7 @@ ak_dae_fxStateStencilFunc(xmlTextReaderPtr reader,
   int            nodeRet;
 
   state = ak_calloc(*states, sizeof(*state), 1);
-  state->base.state_type = ak_RENDER_STATE_STENCIL_FUNC;
+  state->base.state_type = AK_RENDER_STATE_STENCIL_FUNC;
 
   do {
     _xml_beginElement(_s_dae_stencil_func);
@@ -950,9 +950,9 @@ ak_dae_fxStateStencilFunc(xmlTextReaderPtr reader,
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
-      state->func.val = ak_GL_FUNC_ALWAYS;
+      state->func.val = AK_GL_FUNC_ALWAYS;
       if (valStr) {
-        long enumVal;
+        AkEnum enumVal;
         enumVal = ak_dae_fxEnumGlFunc(valStr);
 
         if (enumVal != -1)
@@ -1012,7 +1012,7 @@ ak_dae_fxStateStencilOp(xmlTextReaderPtr reader,
   int            nodeRet;
 
   state = ak_calloc(*states, sizeof(*state), 1);
-  state->base.state_type = ak_RENDER_STATE_STENCIL_OP;
+  state->base.state_type = AK_RENDER_STATE_STENCIL_OP;
 
   do {
     _xml_beginElement(_s_dae_stencil_op);
@@ -1024,9 +1024,9 @@ ak_dae_fxStateStencilOp(xmlTextReaderPtr reader,
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
-      state->fail.val = ak_GL_STENCIL_OP_KEEP;
+      state->fail.val = AK_GL_STENCIL_OP_KEEP;
       if (valStr) {
-        long enumVal;
+        AkEnum enumVal;
         enumVal = ak_dae_fxEnumStencilOp(valStr);
 
         if (enumVal != -1)
@@ -1041,9 +1041,9 @@ ak_dae_fxStateStencilOp(xmlTextReaderPtr reader,
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
-      state->zfail.val = ak_GL_STENCIL_OP_KEEP;
+      state->zfail.val = AK_GL_STENCIL_OP_KEEP;
       if (valStr) {
-        long enumVal;
+        AkEnum enumVal;
         enumVal = ak_dae_fxEnumStencilOp(valStr);
 
         if (enumVal != -1)
@@ -1058,9 +1058,9 @@ ak_dae_fxStateStencilOp(xmlTextReaderPtr reader,
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
-      state->zpass.val = ak_GL_STENCIL_OP_KEEP;
+      state->zpass.val = AK_GL_STENCIL_OP_KEEP;
       if (valStr) {
-        long enumVal;
+        AkEnum enumVal;
         enumVal = ak_dae_fxEnumStencilOp(valStr);
 
         if (enumVal != -1)
@@ -1091,7 +1091,7 @@ ak_dae_fxStateStencilFuncSep(xmlTextReaderPtr reader,
   int            nodeRet;
 
   state = ak_calloc(*states, sizeof(*state), 1);
-  state->base.state_type = ak_RENDER_STATE_STENCIL_FUNC_SEPARATE;
+  state->base.state_type = AK_RENDER_STATE_STENCIL_FUNC_SEPARATE;
 
   do {
     _xml_beginElement(_s_dae_stencil_func_separate);
@@ -1103,9 +1103,9 @@ ak_dae_fxStateStencilFuncSep(xmlTextReaderPtr reader,
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
-      state->front.val = ak_GL_FUNC_ALWAYS;
+      state->front.val = AK_GL_FUNC_ALWAYS;
       if (valStr) {
-        long enumVal;
+        AkEnum enumVal;
         enumVal = ak_dae_fxEnumGlFunc(valStr);
 
         if (enumVal != -1)
@@ -1120,9 +1120,9 @@ ak_dae_fxStateStencilFuncSep(xmlTextReaderPtr reader,
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
-      state->back.val = ak_GL_FUNC_ALWAYS;
+      state->back.val = AK_GL_FUNC_ALWAYS;
       if (valStr) {
-        long enumVal;
+        AkEnum enumVal;
         enumVal = ak_dae_fxEnumGlFunc(valStr);
 
         if (enumVal != -1)
@@ -1181,7 +1181,7 @@ ak_dae_fxStateStencilOpSep(xmlTextReaderPtr reader,
   int            nodeRet;
 
   state = ak_calloc(*states, sizeof(*state), 1);
-  state->base.state_type = ak_RENDER_STATE_STENCIL_OP_SEPARATE;
+  state->base.state_type = AK_RENDER_STATE_STENCIL_OP_SEPARATE;
 
   do {
     _xml_beginElement(_s_dae_stencil_op_separate);
@@ -1193,9 +1193,9 @@ ak_dae_fxStateStencilOpSep(xmlTextReaderPtr reader,
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
-      state->face.val = ak_GL_FACE_FRONT_AND_BACK;
+      state->face.val = AK_GL_FACE_FRONT_AND_BACK;
       if (valStr) {
-        long enumVal;
+        AkEnum enumVal;
         enumVal = ak_dae_fxEnumGLFace(valStr);
 
         if (enumVal != -1)
@@ -1210,9 +1210,9 @@ ak_dae_fxStateStencilOpSep(xmlTextReaderPtr reader,
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
-      state->fail.val = ak_GL_STENCIL_OP_KEEP;
+      state->fail.val = AK_GL_STENCIL_OP_KEEP;
       if (valStr) {
-        long enumVal;
+        AkEnum enumVal;
         enumVal = ak_dae_fxEnumStencilOp(valStr);
 
         if (enumVal != -1)
@@ -1227,9 +1227,9 @@ ak_dae_fxStateStencilOpSep(xmlTextReaderPtr reader,
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
-      state->zfail.val = ak_GL_STENCIL_OP_KEEP;
+      state->zfail.val = AK_GL_STENCIL_OP_KEEP;
       if (valStr) {
-        long enumVal;
+        AkEnum enumVal;
         enumVal = ak_dae_fxEnumStencilOp(valStr);
 
         if (enumVal != -1)
@@ -1244,9 +1244,9 @@ ak_dae_fxStateStencilOpSep(xmlTextReaderPtr reader,
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
-      state->zpass.val = ak_GL_STENCIL_OP_KEEP;
+      state->zpass.val = AK_GL_STENCIL_OP_KEEP;
       if (valStr) {
-        long enumVal;
+        AkEnum enumVal;
         enumVal = ak_dae_fxEnumStencilOp(valStr);
 
         if (enumVal != -1)
@@ -1277,7 +1277,7 @@ ak_dae_fxStateStencilMaskSep(xmlTextReaderPtr reader,
   int            nodeRet;
 
   state = ak_calloc(*states, sizeof(*state), 1);
-  state->base.state_type = ak_RENDER_STATE_STENCIL_MASK_SEPARATE;
+  state->base.state_type = AK_RENDER_STATE_STENCIL_MASK_SEPARATE;
 
   do {
     _xml_beginElement(_s_dae_stencil_mask_separate);
@@ -1289,9 +1289,9 @@ ak_dae_fxStateStencilMaskSep(xmlTextReaderPtr reader,
       valStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_value);
 
-      state->face.val = ak_GL_FACE_FRONT_AND_BACK;
+      state->face.val = AK_GL_FACE_FRONT_AND_BACK;
       if (valStr) {
-        long enumVal;
+        AkEnum enumVal;
         enumVal = ak_dae_fxEnumGLFace(valStr);
 
         if (enumVal != -1)
