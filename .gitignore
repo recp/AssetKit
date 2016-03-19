@@ -38,3 +38,6 @@ m4/*.m4
 .buildstamp
 .dirstamp
 packages/
+.anjuta/*
+*.anjuta*
+config.h.*
