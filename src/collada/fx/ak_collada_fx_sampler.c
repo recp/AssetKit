@@ -160,7 +160,7 @@ ak_dae_fxSampler(void * __restrict memParent,
       }
       case k_s_dae_extra: {
         xmlNodePtr nodePtr;
-        ak_tree  *tree;
+        AkTree   *tree;
 
         nodePtr = xmlTextReaderExpand(reader);
         tree = NULL;

@@ -45,7 +45,7 @@ ak_dae_material(void * __restrict memParent,
         material->effect_inst = effectInstance;
     } else if (_xml_eqElm(_s_dae_extra)) {
       xmlNodePtr nodePtr;
-      ak_tree  *tree;
+      AkTree   *tree;
 
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;

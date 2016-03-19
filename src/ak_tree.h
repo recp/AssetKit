@@ -18,7 +18,7 @@ typedef struct _xmlNode xmlNode;
 int _assetkit_hide
 ak_tree_fromXmlNode(void * __restrict memParent,
                      xmlNode * __restrict xml_node,
-                     ak_tree_node ** __restrict dest,
-                     ak_tree_node * __restrict parent);
+                     AkTreeNode ** __restrict dest,
+                     AkTreeNode * __restrict parent);
 
 #endif /* __libassetkit__tree__h_ */

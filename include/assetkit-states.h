@@ -231,15 +231,14 @@ typedef enum AkRenderStateType {
   AK_RENDER_STATE_STENCIL_TEST_ENABLE             = 104
 } AkRenderStateType;
 
-typedef struct AK_RENDER_STATE_s ak_render_state;
-struct AK_RENDER_STATE_s {
-  AkRenderStateType   state_type;
-  ak_render_state      * next;
-};
+typedef struct AkRenderState {
+  AkRenderStateType      state_type;
+  struct AkRenderState * next;
+} AkRenderState;
 
 typedef struct ak_alpha_func_s ak_alpha_func;
 struct ak_alpha_func_s {
-  ak_render_state base;
+  AkRenderState base;
 
   struct {
     AkGlFunc   val;
@@ -254,7 +253,7 @@ struct ak_alpha_func_s {
 
 typedef struct ak_blend_func_s ak_blend_func;
 struct ak_blend_func_s {
-  ak_render_state base;
+  AkRenderState base;
 
   struct {
     AkGlBlend val;
@@ -269,7 +268,7 @@ struct ak_blend_func_s {
 
 typedef struct ak_blend_func_separate_s ak_blend_func_separate;
 struct ak_blend_func_separate_s {
-  ak_render_state base;
+  AkRenderState base;
 
   struct {
     AkGlBlend val;
@@ -294,7 +293,7 @@ struct ak_blend_func_separate_s {
 
 typedef struct ak_blend_equation_separate_s ak_blend_equation_separate;
 struct ak_blend_equation_separate_s {
-  ak_render_state base;
+  AkRenderState base;
 
   struct {
     AkGlBlendEquation val;
@@ -309,7 +308,7 @@ struct ak_blend_equation_separate_s {
 
 typedef struct ak_color_material_s ak_color_material;
 struct ak_color_material_s {
-  ak_render_state base;
+  AkRenderState base;
 
   struct {
     AkGlFace  val;
@@ -324,7 +323,7 @@ struct ak_color_material_s {
 
 typedef struct ak_polygon_mode_s ak_polygon_mode;
 struct ak_polygon_mode_s {
-  ak_render_state base;
+  AkRenderState base;
 
   struct{
     AkGlFace  val;
@@ -339,7 +338,7 @@ struct ak_polygon_mode_s {
 
 typedef struct ak_stencil_func_s ak_stencil_func;
 struct ak_stencil_func_s {
-  ak_render_state base;
+  AkRenderState base;
 
   struct{
     AkGlFunc  val;
@@ -359,7 +358,7 @@ struct ak_stencil_func_s {
 
 typedef struct ak_stencil_op_s ak_stencil_op;
 struct ak_stencil_op_s {
-  ak_render_state base;
+  AkRenderState base;
 
   struct{
     AkGlStencilOp val;
@@ -379,7 +378,7 @@ struct ak_stencil_op_s {
 
 typedef struct ak_stencil_func_separate_s ak_stencil_func_separate;
 struct ak_stencil_func_separate_s {
-  ak_render_state base;
+  AkRenderState base;
 
   struct{
     AkGlFunc  val;
@@ -404,7 +403,7 @@ struct ak_stencil_func_separate_s {
 
 typedef struct ak_stencil_op_separate_s ak_stencil_op_separate;
 struct ak_stencil_op_separate_s {
-  ak_render_state base;
+  AkRenderState base;
 
   struct{
     AkGlFace  val;
@@ -429,7 +428,7 @@ struct ak_stencil_op_separate_s {
 
 typedef struct ak_stencil_mask_separate_s ak_stencil_mask_separate;
 struct ak_stencil_mask_separate_s {
-  ak_render_state base;
+  AkRenderState base;
 
   struct{
     AkGlFace  val;
@@ -445,7 +444,7 @@ struct ak_stencil_mask_separate_s {
 #define _ak_DEF_STATE_T1(P, T)                                               \
   typedef struct ak_ ## P ## _s ak_ ## P;                                   \
   struct ak_ ## P ## _s {                                                    \
-    ak_render_state base;                                                    \
+    AkRenderState base;                                                    \
     T val;                                                                    \
     const char * param;                                                       \
   };
@@ -453,7 +452,7 @@ struct ak_stencil_mask_separate_s {
 #define _ak_DEF_STATE_T2(P, T)                                               \
   typedef struct ak_ ## P ## _s ak_ ## P;                                   \
   struct ak_ ## P ## _s {                                                    \
-    ak_render_state base;                                                    \
+    AkRenderState base;                                                    \
     T val;                                                                    \
     const char * param;                                                       \
     unsigned long index;                                                      \

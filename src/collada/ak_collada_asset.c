@@ -95,7 +95,7 @@ ak_dae_assetInf(void * __restrict memParent,
       }
     } else if (_xml_eqElm(_s_dae_extra)) {
       xmlNodePtr nodePtr;
-      ak_tree * tree;
+      AkTree  * tree;
 
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;

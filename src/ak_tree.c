@@ -19,11 +19,11 @@
 int _assetkit_hide
 ak_tree_fromXmlNode(void * __restrict memParent,
                      xmlNode * __restrict xml_node,
-                     ak_tree_node ** __restrict dest,
-                     ak_tree_node * __restrict parent) {
+                     AkTreeNode ** __restrict dest,
+                     AkTreeNode * __restrict parent) {
 
   xmlNode       * currNode;
-  ak_tree_node * tree_currNode;
+  AkTreeNode * tree_currNode;
 
   tree_currNode = NULL;
   currNode = xml_node->children;
@@ -43,8 +43,8 @@ ak_tree_fromXmlNode(void * __restrict memParent,
   for (;
        currNode && currNode->type == XML_ELEMENT_NODE;
        currNode = currNode->next) {
-    ak_tree_node      * tree_nNode;
-    ak_tree_node_attr * tree_currAttr;
+    AkTreeNode      * tree_nNode;
+    AkTreeNodeAttr * tree_currAttr;
     const xmlAttr      * xml_currAttr;
 
     tree_nNode = ak_calloc(parent, sizeof(*tree_currNode), 1);
@@ -74,7 +74,7 @@ ak_tree_fromXmlNode(void * __restrict memParent,
     for (xml_currAttr = currNode->properties;
          xml_currAttr && xml_currAttr->type == XML_ATTRIBUTE_NODE;
          xml_currAttr = xml_currAttr->next) {
-      ak_tree_node_attr * tree_nodeAttr;
+      AkTreeNodeAttr * tree_nodeAttr;
 
       tree_nodeAttr = ak_calloc(tree_nNode, sizeof(*tree_nodeAttr), 1);
       tree_nodeAttr->name = ak_strdup(tree_nodeAttr,

@@ -256,43 +256,30 @@ typedef enum AkPipelineStage {
   ak_assetinf  * inf;                                                        \
   AkAssetType   type;
 
-/**
- * @brief attribute for a node. To get attribute count fetch attrc from node
- * instead of iterating each attribute
- */
-typedef struct ak_tree_node_attr_s ak_tree_node_attr;
-
-struct ak_tree_node_attr_s {
+typedef struct AkTreeNodeAttr {
   const char * name;
   char       * val;
 
-  ak_tree_node_attr * next;
-  ak_tree_node_attr * prev;
-};
+  struct AkTreeNodeAttr * next;
+  struct AkTreeNodeAttr * prev;
+} AkTreeNodeAttr;
 
-/**
- * @brief list node for general purpose.
- */
-typedef struct ak_tree_node_s ak_tree_node;
 
-/**
- * @brief identically to list_node
- */
-typedef struct ak_tree_node_s ak_tree;
-
-struct ak_tree_node_s {
+typedef struct AkTreeNode {
   const char    * name;
   char          * val;
   unsigned long   attrc;
   unsigned long   chldc;
 
-  ak_tree_node_attr * attr;
-  ak_tree_node      * chld;
-  ak_tree_node      * parent;
-  ak_tree_node      * next;
-  ak_tree_node      * prev;
-};
+  AkTreeNodeAttr * attr;
 
+  struct AkTreeNode * chld;
+  struct AkTreeNode * parent;
+  struct AkTreeNode * next;
+  struct AkTreeNode * prev;
+} AkTreeNode;
+
+typedef struct AkTreeNode AkTree;
 
 #ifdef _ak_DEF_BASIC_ATTR
 #  undef _ak_DEF_BASIC_ATTR
@@ -374,7 +361,7 @@ struct ak_assetinf_s {
   const char      * keywords;
 
   ak_unit        * unit;
-  ak_tree        * extra;
+  AkTree        * extra;
   ak_time_t        created;
   ak_time_t        modified;
   unsigned long     revision;
@@ -405,7 +392,7 @@ struct ak_technique_s {
    * to use for validating the content of this instance document. Optional.
    */
   const char * xmlns;
-  ak_tree   * chld;
+  AkTree   * chld;
 
   ak_technique * prev;
   ak_technique * next;
@@ -445,7 +432,7 @@ struct ak_optics_s {
 typedef struct ak_imager_s ak_imager;
 struct ak_imager_s {
   ak_technique * technique;
-  ak_tree      * extra;
+  AkTree      * extra;
 };
 
 /**
@@ -461,7 +448,7 @@ struct ak_camera_s {
 
   ak_optics * optics;
   ak_imager * imager;
-  ak_tree   * extra;
+  AkTree   * extra;
 
   ak_camera * next;
 };
@@ -518,7 +505,7 @@ struct ak_light_s {
 
   ak_technique_common * technique_common;
   ak_technique        * technique;
-  ak_tree             * extra;
+  AkTree             * extra;
 
   ak_light * next;
 };
@@ -646,7 +633,7 @@ struct ak_image_s {
   ak_image2d    * image2d;
   ak_image3d    * image3d;
   ak_image_cube * cube;
-  ak_tree       * extra;
+  AkTree       * extra;
 
   ak_image * prev;
   ak_image * next;
@@ -663,7 +650,7 @@ struct ak_image_instance_s {
   const char * sid;
   const char * name;
 
-  ak_tree * extra;
+  AkTree * extra;
 };
 
 /*!
@@ -699,7 +686,7 @@ struct ak_fx_sampler_common_s {
   unsigned long max_anisotropy;
 
   ak_color * border_color;
-  ak_tree  * extra;
+  AkTree  * extra;
 };
 
 typedef ak_fx_sampler_common ak_sampler1D;
@@ -714,7 +701,7 @@ typedef struct ak_fx_texture_s ak_fx_texture;
 struct ak_fx_texture_s {
   const char * texture;
   const char * texcoord;
-  ak_tree   * extra;
+  AkTree   * extra;
 };
 
 typedef struct ak_fx_color_or_tex_s ak_fx_color_or_tex;
@@ -839,10 +826,10 @@ struct ak_phong_s {
   ak_index_of_refraction * index_of_refraction;
 };
 
-typedef struct AK_RENDER_STATE_s ak_render_state;
+typedef struct AkRenderState AkRenderState;
 typedef struct ak_states_s ak_states;
 struct ak_states_s {
-  ak_render_state * next;
+  AkRenderState * next;
   long               count;
 };
 
@@ -956,7 +943,7 @@ struct ak_shader_s {
   ak_sources      * sources;
   ak_compiler     * compiler;
   ak_bind_uniform * bind_uniform;
-  ak_tree         * extra;
+  AkTree         * extra;
 
   ak_shader * prev;
   ak_shader * next;
@@ -992,7 +979,7 @@ struct ak_pass_s {
   ak_states       * states;
   ak_evaluate     * evaluate;
   ak_program      * program;
-  ak_tree         * extra;
+  AkTree         * extra;
 
   ak_pass * prev;
   ak_pass * next;
@@ -1012,7 +999,7 @@ struct ak_technique_fx_s {
   ak_phong       * phong;
   ak_pass        * pass;
 
-  ak_tree        * extra;
+  AkTree        * extra;
 
   ak_technique_fx * next;
 };
@@ -1024,7 +1011,7 @@ struct ak_profile_s {
   const char       * id;
   ak_newparam     * newparam;
   ak_technique_fx * technique;
-  ak_tree         * extra;
+  AkTree         * extra;
   ak_profile      * prev;
   ak_profile      * next;
 };
@@ -1085,7 +1072,7 @@ struct ak_effect_s {
   ak_newparam * newparam;
   ak_profile  * profile;
 
-  ak_tree   * extra;
+  AkTree   * extra;
 
   ak_effect * prev;
   ak_effect * next;
@@ -1109,7 +1096,7 @@ struct ak_effect_instance_s {
   ak_technique_hint *techniqueHint;
   ak_setparam       *setparam;
 
-  ak_tree * extra;
+  AkTree * extra;
 };
 
 typedef struct ak_material_s ak_material;
@@ -1118,7 +1105,7 @@ struct ak_material_s {
   const char * id;
   const char * name;
   ak_effect_instance *effect_inst;
-  ak_tree * extra;
+  AkTree * extra;
 
   ak_material * next;
 };
@@ -1132,7 +1119,7 @@ struct ak_material_s {
     const char    * id;                                                       \
     const char    * name;                                                     \
     ak_##T       * chld;                                                     \
-    ak_tree      * extra;                                                    \
+    AkTree      * extra;                                                    \
     unsigned long   count;                                                    \
     ak_lib_##T   * next;                                                     \
   }

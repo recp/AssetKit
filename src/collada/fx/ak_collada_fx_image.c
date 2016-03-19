@@ -108,7 +108,7 @@ ak_dae_fxImage(void * __restrict memParent,
         img->cube = imageCube;
     } else if (_xml_eqElm(_s_dae_extra)) {
       xmlNodePtr nodePtr;
-      ak_tree  *tree;
+      AkTree   *tree;
 
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
@@ -150,7 +150,7 @@ ak_dae_fxImageInstance(void * __restrict memParent,
 
     if (_xml_eqElm(_s_dae_extra)) {
       xmlNodePtr nodePtr;
-      ak_tree  *tree;
+      AkTree   *tree;
 
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;

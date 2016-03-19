@@ -139,7 +139,7 @@ ak_dae_fxState(void * __restrict memParent,
                 xmlTextReaderPtr reader,
                 ak_states ** __restrict dest) {
   ak_states       *states;
-  ak_render_state *last_state;
+  AkRenderState *last_state;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;

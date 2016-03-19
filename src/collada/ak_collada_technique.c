@@ -20,7 +20,7 @@ ak_dae_technique(void * __restrict memParent,
                   ak_technique ** __restrict dest) {
 
   ak_technique *technique;
-  ak_tree      *tree;
+  AkTree       *tree;
   xmlNodePtr     nodePtr;
   const xmlChar *nodeName;
   int            nodeType;
