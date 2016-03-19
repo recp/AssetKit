@@ -1,0 +1,66 @@
+#*****************************************************************************
+# Copyright (c), Recep Aslantas.                                             *
+#                                                                            *
+# MIT License (MIT), http://opensource.org/licenses/MIT                      *
+# Full license can be found in the LICENSE filespaces                        *
+#                                                                            *
+#*****************************************************************************
+
+ACLOCAL_AMFLAGS = -I m4
+
+SUBDIRS = lib/libxml2 lib/jemalloc
+
+AM_CFLAGS = -Wall \
+            -std=gnu99 \
+            -O3 \
+            -fstrict-aliasing
+
+lib_LTLIBRARIES = libassetkit.la
+libassetkit_la_LDFLAGS = -no-undefined -version-info 0:1:0
+
+libassetkit_la_LIBADD = lib/libxml2/libxml2.la
+
+include_HEADERS = include/assetkit.h \
+                  include/assetkit-states.h \
+                  include/assetkit-string.h
+
+libassetkit_la_SOURCES=\
+    src/assetkit.c \
+    src/ak_common.c \
+    src/ak_libxml.c \
+    src/ak_memory.c \
+    src/ak_utils.c \
+    src/ak_string.c \
+    src/ak_tree.c \
+    src/collada/ak_collada.c \
+    src/collada/ak_collada_common.c \
+    src/collada/ak_collada_asset.c \
+    src/collada/ak_collada_technique.c \
+    src/collada/ak_collada_techniquec.c \
+    src/collada/ak_collada_camera.c \
+    src/collada/ak_collada_light.c \
+    src/collada/ak_collada_param.c \
+    src/collada/ak_collada_annotate.c \
+    src/collada/ak_collada_value.c \
+    src/collada/ak_collada_color.c \
+    src/collada/ak_collada_strpool.c \
+    src/collada/fx/ak_collada_fx_profile.c \
+    src/collada/fx/ak_collada_fx_effect.c \
+    src/collada/fx/ak_collada_fx_image.c \
+    src/collada/fx/ak_collada_fx_technique.c \
+    src/collada/fx/ak_collada_fx_color_or_tex.c \
+    src/collada/fx/ak_collada_fx_float_or_param.c \
+    src/collada/fx/ak_collada_fx_blinn_phong.c \
+    src/collada/fx/ak_collada_fx_constant.c \
+    src/collada/fx/ak_collada_fx_lambert.c \
+    src/collada/fx/ak_collada_fx_pass.c \
+    src/collada/fx/ak_collada_fx_states.c \
+    src/collada/fx/ak_collada_fx_states_detail.c \
+    src/collada/fx/ak_collada_fx_enums.c \
+    src/collada/fx/ak_collada_fx_sampler.c \
+    src/collada/fx/ak_collada_fx_program.c \
+    src/collada/fx/ak_collada_fx_shader.c \
+    src/collada/fx/ak_collada_fx_binary.c \
+    src/collada/fx/ak_collada_fx_uniform.c \
+    src/collada/fx/ak_collada_fx_evaluate.c \
+    src/collada/fx/ak_collada_fx_material.c
