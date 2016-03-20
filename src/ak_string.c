@@ -89,13 +89,13 @@ ak_strtof_s(const char * __restrict src,
              ak_float * __restrict dest,
              unsigned long n) {
   char * raw;
-  int    ret;
+  AkResult ret;
 
   raw = strdup(src);
   ret = ak_strtof(&raw, dest, n);
   free(raw);
 
-  return AK_OK;
+  return ret;
 }
 
 inline
