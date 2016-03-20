@@ -6,7 +6,6 @@
  */
 
 #include "ak_collada_fx_blinn_phong.h"
-#include "../ak_collada_common.h"
 #include "ak_collada_fx_color_or_tex.h"
 #include "ak_collada_fx_float_or_param.h"
 

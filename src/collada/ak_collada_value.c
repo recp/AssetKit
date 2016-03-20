@@ -6,7 +6,6 @@
  */
 
 #include "ak_collada_value.h"
-#include "ak_collada_common.h"
 
 typedef struct {
   const char * key;

@@ -9,8 +9,7 @@
 #define __libassetkit__ak_collada_fx_states_h_
 
 #include "../../../include/assetkit.h"
-
-typedef struct _xmlTextReader *xmlTextReaderPtr;
+#include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
 ak_dae_fxState(void * __restrict memParent,

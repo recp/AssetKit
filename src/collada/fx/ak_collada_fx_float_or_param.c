@@ -6,7 +6,6 @@
  */
 
 #include "ak_collada_fx_float_or_param.h"
-#include "../ak_collada_common.h"
 #include "../ak_collada_param.h"
 
 AkResult _assetkit_hide

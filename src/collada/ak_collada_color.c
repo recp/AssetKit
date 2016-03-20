@@ -6,7 +6,6 @@
  */
 
 #include "ak_collada_color.h"
-#include "ak_collada_common.h"
 
 AkResult _assetkit_hide
 ak_dae_color(xmlTextReaderPtr reader,

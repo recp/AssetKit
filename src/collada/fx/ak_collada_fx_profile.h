@@ -10,8 +10,7 @@
 #define __libassetkit__ak_collada_fx_profile__h_
 
 #include "../../../include/assetkit.h"
-
-typedef struct _xmlTextReader *xmlTextReaderPtr;
+#include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
 ak_dae_profile(void * __restrict memParent,

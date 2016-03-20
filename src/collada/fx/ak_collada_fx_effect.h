@@ -10,8 +10,7 @@
 #define __libassetkit__ak_collada_fx_effect__h_
 
 #include "../../../include/assetkit.h"
-
-typedef struct _xmlTextReader *xmlTextReaderPtr;
+#include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
 ak_dae_effect(void * __restrict memParent,

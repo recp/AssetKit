@@ -7,7 +7,6 @@
 
 #include "ak_collada_fx_effect.h"
 
-#include "../ak_collada_common.h"
 #include "../ak_collada_asset.h"
 #include "../ak_collada_technique.h"
 #include "../ak_collada_annotate.h"

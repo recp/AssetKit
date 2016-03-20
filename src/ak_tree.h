@@ -9,8 +9,7 @@
 #define __libassetkit__tree__h_
 
 #include "../include/assetkit.h"
-
-typedef struct _xmlNode xmlNode;
+#include <libxml/tree.h>
 
 /**
  * @brief load a tree from xml

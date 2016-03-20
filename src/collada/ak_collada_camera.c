@@ -6,7 +6,6 @@
  */
 
 #include "ak_collada_camera.h"
-#include "ak_collada_common.h"
 #include "ak_collada_asset.h"
 #include "ak_collada_technique.h"
 

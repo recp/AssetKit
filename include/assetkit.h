@@ -54,7 +54,6 @@ typedef ak_bool      ak_bool3[3];
 typedef ak_bool      ak_bool4[4];
 typedef double        ak_float;
 typedef ak_float     ak_float2[2];
-typedef ak_float     ak_float3[3];
 typedef ak_float2    ak_float2x2[2];
 typedef ak_float2    ak_float2x3[3];
 typedef ak_float2    ak_float2x4[4];

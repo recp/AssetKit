@@ -6,7 +6,6 @@
  */
 
 #include "ak_collada_fx_shader.h"
-#include "../ak_collada_common.h"
 #include "ak_collada_fx_enums.h"
 #include "ak_collada_fx_binary.h"
 #include "ak_collada_fx_uniform.h"

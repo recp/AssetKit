@@ -9,8 +9,7 @@
 #define __libassetkit__ak_collada_fx_lambert__h_
 
 #include "../../../include/assetkit.h"
-
-typedef struct _xmlTextReader *xmlTextReaderPtr;
+#include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
 ak_dae_fxLambert(void * __restrict memParent,

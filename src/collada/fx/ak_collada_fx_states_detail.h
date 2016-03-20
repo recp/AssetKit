@@ -9,9 +9,7 @@
 #define __libassetkit__ak_collada_fx_states_detail_h_
 
 #include "../../../include/assetkit.h"
-
-typedef struct _xmlNode xmlNode;
-typedef struct _xmlTextReader *xmlTextReaderPtr;
+#include "../ak_collada_common.h"
 
 typedef AkEnum (*ak_dae_fxEnumFn_t)(const char * name);
 

@@ -6,7 +6,6 @@
  */
 
 #include "ak_collada_asset.h"
-#include "ak_collada_common.h"
 
 AkResult _assetkit_hide
 ak_dae_assetInf(void * __restrict memParent,

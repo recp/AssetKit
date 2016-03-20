@@ -6,9 +6,7 @@
  */
 
 #include "ak_collada_fx_pass.h"
-#include "../ak_collada_common.h"
 #include "../ak_collada_asset.h"
-#include "../ak_collada_common.h"
 #include "../ak_collada_annotate.h"
 
 #include "ak_collada_fx_states.h"

@@ -6,7 +6,6 @@
  */
 
 #include "ak_collada_fx_evaluate.h"
-#include "../ak_collada_common.h"
 #include "../ak_collada_param.h"
 #include "../ak_collada_color.h"
 #include "ak_collada_fx_enums.h"
