@@ -82,6 +82,28 @@ typedef ak_uint      ak_list_of_uints[];
 typedef ak_hexBinary ak_list_of_hexBinary[];
 typedef ak_string  * ak_list_of_string;
 
+typedef bool     AkBool;
+typedef int32_t  AkInt;
+typedef uint32_t AkUInt;
+typedef float    AkFloat;
+typedef double   AkDouble;
+
+#undef AK__DEF_ARRAY
+
+#define AK__DEF_ARRAY(TYPE)                                                   \
+  typedef struct TYPE##Array {                                                \
+    size_t count;                                                             \
+    TYPE   items[];                                                           \
+  } TYPE##Array
+
+AK__DEF_ARRAY(AkBool);
+AK__DEF_ARRAY(AkInt);
+AK__DEF_ARRAY(AkUInt);
+AK__DEF_ARRAY(AkFloat);
+AK__DEF_ARRAY(AkDouble);
+
+#undef AK__DEF_ARRAY
+
 /* End Core Value Types */
 
 /** 
