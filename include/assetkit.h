@@ -94,7 +94,13 @@ typedef double   AkDouble;
   typedef struct TYPE##Array {                                                \
     size_t count;                                                             \
     TYPE   items[];                                                           \
-  } TYPE##Array
+  } TYPE##Array;                                                              \
+                                                                              \
+  typedef struct TYPE##ArrayL {                                               \
+    struct TYPE##ArrayL * next;                                               \
+    size_t count;                                                             \
+    TYPE   items[];                                                           \
+  } TYPE##ArrayL
 
 AK__DEF_ARRAY(AkBool);
 AK__DEF_ARRAY(AkInt);
