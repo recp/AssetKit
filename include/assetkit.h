@@ -313,6 +313,12 @@ typedef struct AkTreeNode {
 
 typedef struct AkTreeNode AkTree;
 
+typedef struct AkChoice {
+  AkEnum type;
+  void * target;
+  char   data[];
+} AkChoice;
+
 #ifdef _ak_DEF_BASIC_ATTR
 #  undef _ak_DEF_BASIC_ATTR
 #endif
