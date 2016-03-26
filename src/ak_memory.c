@@ -71,6 +71,7 @@ ak_heap_alloc(ak_heap * __restrict heap,
   ak_heapnode *parentNode;
 
   currNode = je_malloc(ak__heapnd_sz_algnd + size);
+  assert(currNode && "malloc failed");
 
   currNode->chld = NULL;
 
@@ -124,6 +125,7 @@ ak_heap_realloc(ak_heap * __restrict heap,
 
   newNode = je_realloc(oldNode,
                        ak__heapnd_sz_algnd + newsize);
+  assert(newNode && "realloc failed");
 
   return ak__alignas(newNode);
 }
