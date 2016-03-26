@@ -107,7 +107,13 @@ ak_mem_setp(void * __restrict memptr,
 void
 ak_free(void * __restrict memptr);
 
-AkObject *
-ak_malloc_asObject(size_t * size);
+AkObject*
+ak_objAlloc(void * __restrict memParent,
+            size_t typeSize,
+            AkEnum typeEnum,
+            AkBool zeroed);
+
+AkObject*
+ak_objFrom(void * __restrict memptr);
 
 #endif /* __libassetkit__memory__h_ */

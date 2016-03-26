@@ -292,6 +292,37 @@ ak_free(void * __restrict memptr) {
                 ak__alignof(memptr));
 }
 
+AkObject*
+ak_objAlloc(void * __restrict memParent,
+            size_t typeSize,
+            AkEnum typeEnum,
+            AkBool zeroed) {
+  AkObject * obj;
+
+  assert(typeSize > 0 && "invalid parameter value");
+
+  obj = ak_heap_alloc(&ak__heap,
+                      memParent,
+                      sizeof(*obj) + typeSize);
+
+  obj->size  = typeSize;
+  obj->type  = typeEnum;
+  obj->pData = (void *)((char *)obj + offsetof(AkObject, data));
+
+  if (zeroed)
+    memset(obj->pData, '\0', typeSize);
+
+  return obj;
+}
+
+AkObject*
+ak_objFrom(void * __restrict memptr) {
+  AkObject *obj;
+  obj = (void *)((char *)memptr - offsetof(AkObject, data));
+  assert(obj->pData == memptr && "invalid cas to AkObject");
+  return obj;
+}
+
 void
 ak_CONSTRUCTOR
 ak__init() {
