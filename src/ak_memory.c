@@ -16,7 +16,13 @@
 #include <malloc/malloc.h>
 #endif
 
-#include <jemalloc/jemalloc.h>
+#ifndef _WIN32
+#  include <jemalloc/jemalloc.h>
+#else
+# define je_malloc(size)         malloc(size)
+# define je_realloc(size, count) realloc(size, count)
+# define je_free(size)           free(size)
+#endif
 
 static ak_heap ak__heap = {
   .root       = NULL,
