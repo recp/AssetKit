@@ -21,22 +21,11 @@ typedef struct AkObject {
 typedef struct ak_heapnode_s ak_heapnode;
 typedef struct ak_heap_s     ak_heap;
 
-#ifdef ak__align_size
-#  undef ak__align_size
-#endif
-
-#define ak__align_size    8
-#define ak__heapnd_sz sizeof(ak_heapnode)
-
-#define ak__heapnd_sz_algnd ((ak__heapnd_sz + ak__align_size - 1)          \
-         &~ (uintptr_t)(ak__align_size - 1))
-
-#define ak__alignof(p) ((ak_heapnode *)(((char *)p)-ak__heapnd_sz_algnd))
-#define ak__alignas(m) ((void *)(((char *)m)+ak__heapnd_sz_algnd))
-
-#define ak_HEAP_FLAGS_NONE        0
-#define ak_HEAP_FLAGS_INITIALIZED 1 << 0
-#define ak_HEAP_FLAGS_DYNAMIC     1 << 1
+typedef enum AkHeapFlags {
+  AK_HEAP_FLAGS_NONE        = 0,
+  AK_HEAP_FLAGS_INITIALIZED = 1 << 0,
+  AK_HEAP_FLAGS_DYNAMIC     = 1 << 1,
+} AkHeapFlags;
 
 struct ak_heapnode_s {
   ak_heapnode *prev; /* parent */
@@ -49,8 +38,8 @@ struct ak_heapnode_s {
 struct ak_heap_s {
   ak_heapnode *root;
   ak_heapnode *trash;
-  void         *alloc_zone;
-  uint64_t      flags;
+  void        *alloc_zone;
+  AkEnum       flags;
 };
 
 void

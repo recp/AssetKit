@@ -23,6 +23,15 @@
 # define je_free(size)           free(size)
 #endif
 
+#define ak__align_size 8
+#define ak__heapnd_sz  sizeof(ak_heapnode)
+
+#define ak__heapnd_sz_algnd ((ak__heapnd_sz + ak__align_size - 1)             \
+         &~ (uintptr_t)(ak__align_size - 1))
+
+#define ak__alignof(p) ((ak_heapnode *)(((char *)p)-ak__heapnd_sz_algnd))
+#define ak__alignas(m) ((void *)(((char *)m)+ak__heapnd_sz_algnd))
+
 static ak_heap ak__heap = {
   .root       = NULL,
   .trash      = NULL,
@@ -32,12 +41,12 @@ static ak_heap ak__heap = {
 
 void
 ak_heap_init(ak_heap * __restrict heap) {
-  if (heap->flags & ak_HEAP_FLAGS_INITIALIZED)
+  if (heap->flags & AK_HEAP_FLAGS_INITIALIZED)
     return;
 
   heap->root  = NULL;
   heap->trash = NULL;
-  heap->flags |= ak_HEAP_FLAGS_INITIALIZED;
+  heap->flags |= AK_HEAP_FLAGS_INITIALIZED;
 
 #ifdef __APPLE__
   heap->alloc_zone = malloc_create_zone(PAGE_SIZE, 0);
@@ -46,7 +55,7 @@ ak_heap_init(ak_heap * __restrict heap) {
 
 void
 ak_heap_destroy(ak_heap * __restrict heap) {
-  if (!(heap->flags & ak_HEAP_FLAGS_INITIALIZED))
+  if (!(heap->flags & AK_HEAP_FLAGS_INITIALIZED))
     return;
 
 #ifdef __APPLE__
@@ -57,7 +66,7 @@ ak_heap_destroy(ak_heap * __restrict heap) {
   ak_heap_cleanup(&ak__heap);
 #endif
 
-  if (heap->flags & ak_HEAP_FLAGS_DYNAMIC
+  if (heap->flags & AK_HEAP_FLAGS_DYNAMIC
       && heap != &ak__heap)
     free(heap);
 }
