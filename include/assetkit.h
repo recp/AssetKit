@@ -85,8 +85,14 @@ typedef ak_string  * ak_list_of_string;
 typedef bool     AkBool;
 typedef int32_t  AkInt;
 typedef uint32_t AkUInt;
+typedef int64_t  AkInt64;
+typedef uint64_t AkUInt64;
 typedef float    AkFloat;
 typedef double   AkDouble;
+
+typedef float    AkFloat2[2];
+typedef float    AkFloat3[3];
+typedef float    AkFloat4[4];
 
 #undef AK__DEF_ARRAY
 
@@ -112,7 +118,7 @@ AK__DEF_ARRAY(AkDouble);
 
 /* End Core Value Types */
 
-/** 
+/**
  * @brief library time type
  */
 typedef time_t ak_time_t;
@@ -280,8 +286,74 @@ typedef enum AkPipelineStage {
   AK_PIPELINE_STAGE_GEOMETRY    = 4
 } AkPipelineStage;
 
+typedef enum AkInputSemantic {
+  /* read semanticRaw */
+  AK_INPUT_SEMANTIC_OTHER           = 0,
+  AK_INPUT_SEMANTIC_BINORMAL        = 1,
+  AK_INPUT_SEMANTIC_COLOR           = 2,
+  AK_INPUT_SEMANTIC_CONTINUITY      = 3,
+  AK_INPUT_SEMANTIC_IMAGE           = 4,
+  AK_INPUT_SEMANTIC_INPUT           = 5,
+  AK_INPUT_SEMANTIC_IN_TANGENT      = 6,
+  AK_INPUT_SEMANTIC_INTERPOLATION   = 7,
+  AK_INPUT_SEMANTIC_INV_BIND_MATRIX = 8,
+  AK_INPUT_SEMANTIC_JOINT           = 9,
+  AK_INPUT_SEMANTIC_LINEAR_STEPS    = 10,
+  AK_INPUT_SEMANTIC_MORPH_TARGET    = 11,
+  AK_INPUT_SEMANTIC_MORPH_WEIGHT    = 12,
+  AK_INPUT_SEMANTIC_NORMAL          = 13,
+  AK_INPUT_SEMANTIC_OUTPUT          = 14,
+  AK_INPUT_SEMANTIC_OUT_TANGENT     = 15,
+  AK_INPUT_SEMANTIC_POSITION        = 16,
+  AK_INPUT_SEMANTIC_TANGENT         = 17,
+  AK_INPUT_SEMANTIC_TEXBINORMAL     = 18,
+  AK_INPUT_SEMANTIC_TEXCOORD        = 19,
+  AK_INPUT_SEMANTIC_TEXTANGENT      = 20,
+  AK_INPUT_SEMANTIC_UV              = 21,
+  AK_INPUT_SEMANTIC_VERTEX          = 22,
+  AK_INPUT_SEMANTIC_WEIGHT          = 23
+} AkInputSemantic;
+
+typedef enum AkTriangleMode {
+  AK_TRIANGLE_MODE_TRIANGLES      = 0,
+  AK_TRIANGLE_MODE_TRIANGLE_STRIP = 1,
+  AK_TRIANGLE_MODE_TRIANGLE_FAN   = 2,
+} AkTriangleMode;
+
+typedef enum AkLineMode {
+  AK_LINE_MODE_LINES      = 0,
+  AK_LINE_MODE_LINE_LOOP  = 1,
+  AK_LINE_MODE_LINE_STRIP = 2
+} AkLineMode;
+
+typedef enum AkGemoetricPrimitiveType {
+  AK_GEOMETRIC_PRIMITIVE_TYPE_LINES     = 1,
+  AK_GEOMETRIC_PRIMITIVE_TYPE_POLYGONS  = 2,
+  AK_GEOMETRIC_PRIMITIVE_TYPE_POLYLIST  = 3,
+  AK_GEOMETRIC_PRIMITIVE_TYPE_TRIANGLES = 4
+} AkGemoetricPrimitiveType;
+
+typedef enum AkCurveElementType {
+  AK_CURVE_ELEMENT_TYPE_LINE      = 1,
+  AK_CURVE_ELEMENT_TYPE_CIRCLE    = 2,
+  AK_CURVE_ELEMENT_TYPE_ELLIPSE   = 3,
+  AK_CURVE_ELEMENT_TYPE_PARABOLA  = 4,
+  AK_CURVE_ELEMENT_TYPE_HYPERBOLA = 5,
+  AK_CURVE_ELEMENT_TYPE_NURBS     = 6,
+} AkCurveElementType;
+
+typedef enum AkSurfaceElementType {
+  AK_SURFACE_ELEMENT_TYPE_CONE          = 1,
+  AK_SURFACE_ELEMENT_TYPE_PLANE         = 2,
+  AK_SURFACE_ELEMENT_TYPE_CYLINDER      = 3,
+  AK_SURFACE_ELEMENT_TYPE_NURBS_SURFACE = 4,
+  AK_SURFACE_ELEMENT_TYPE_SPHERE        = 5,
+  AK_SURFACE_ELEMENT_TYPE_TORUS         = 6,
+  AK_SURFACE_ELEMENT_TYPE_SWEPT_SURFACE = 7
+} AkSurfaceElementType;
+
 /**
- * Almost all assets includes this fields. 
+ * Almost all assets includes this fields.
  * This macro defines base fields of assets
  */
 #define ak_asset_base                                                        \
@@ -295,7 +367,6 @@ typedef struct AkTreeNodeAttr {
   struct AkTreeNodeAttr * next;
   struct AkTreeNodeAttr * prev;
 } AkTreeNodeAttr;
-
 
 typedef struct AkTreeNode {
   const char    * name;
@@ -415,8 +486,8 @@ struct ak_docinf_s {
 
 /*
  * TODO:
- * There should be an option (ak_load) to prevent optional 
- * load unsed / non-portable techniques. 
+ * There should be an option (ak_load) to prevent optional
+ * load unsed / non-portable techniques.
  * This may increase parse performance and reduce memory usage
  */
 typedef struct ak_technique_s ak_technique;
@@ -426,7 +497,7 @@ struct ak_technique_s {
   /**
    * @brief
    * COLLADA Specs 1.5:
-   * This XML Schema namespace attribute identifies an additional schema 
+   * This XML Schema namespace attribute identifies an additional schema
    * to use for validating the content of this instance document. Optional.
    */
   const char * xmlns;
@@ -581,7 +652,7 @@ typedef struct ak_init_from_s ak_init_from;
 struct ak_init_from_s {
   const char   * ref;
   ak_hex_data * hex;
-  
+
   AkFace     face;
   ak_uint     mip_index;
   ak_uint     depth;
@@ -662,7 +733,7 @@ struct ak_image_cube_s {
 typedef struct ak_image_s ak_image;
 struct ak_image_s {
   ak_asset_base
-  
+
   const char * id;
   const char * sid;
   const char * name;
@@ -675,7 +746,7 @@ struct ak_image_s {
 
   ak_image * prev;
   ak_image * next;
-  
+
   struct {
     ak_bool share;
   } renderable;
@@ -1044,7 +1115,7 @@ struct ak_technique_fx_s {
 
 typedef struct ak_profile_s ak_profile;
 struct ak_profile_s {
-  ak_asset_base                                                           
+  ak_asset_base
   AkProfileType   profile_type;
   const char       * id;
   ak_newparam     * newparam;
@@ -1094,7 +1165,7 @@ struct ak_profile_glsl_s {
 typedef struct ak_profile_bridge_s ak_profile_BRIDGE;
 struct ak_profile_bridge_s {
   ak_profile base;
-  
+
   const char * platform;
   const char * url;
 };
@@ -1148,7 +1219,333 @@ struct ak_material_s {
   ak_material * next;
 };
 
+typedef struct AkSource {
+  ak_asset_base
+
+  const char * id;
+  const char * name;
+  const char * data;
+  AkValueType  dataType;
+
+  ak_technique_common * techniqueCommon;
+  ak_technique        * technique;
+
+  struct AkSource * next;
+} AkSource;
+
+typedef struct AkInputBasic {
+  ak_asset_base
+
+  const char * source;
+  const char * semanticRaw;
+  AkInputSemantic semantic;
+
+  struct AkInputBasic * next;
+} AkInputBasic;
+
+typedef struct AkInput {
+  AkInputBasic base;
+
+  uint32_t offset;
+  uint32_t set;
+} AkInput;
+
+typedef struct AkVertices {
+  ak_asset_base
+
+  const char   * id;
+  const char   * name;
+  AkInputBasic * input;
+  AkTree       * extra;
+} AkVertices;
+
+typedef struct AkLines {
+  ak_asset_base
+
+  const char * name;
+  const char * material;
+  uint64_t     count;
+
+  AkLineMode   mode;
+
+  AkInput    * input;
+  AkTree     * extra;
+
+  AkIntArray * primitives;
+} AkLines;
+
+typedef struct AkPolygons {
+  ak_asset_base
+
+  const char  * name;
+  const char  * material;
+  uint64_t      count;
+
+  AkInput     * input;
+  AkTree      * extra;
+
+  AkIntArrayL * primitives;
+
+  struct {
+    AkIntArray  * p;
+    AkIntArrayL * h;
+  }           * holes;
+
+} AkPolygons;
+
+typedef struct AkPolyList {
+  ak_asset_base
+
+  const char * name;
+  const char * material;
+  uint64_t     count;
+
+  AkInput    * input;
+  AkTree     * extra;
+
+  AkIntArray * vcount;
+  AkIntArray * primitives;
+} AkPolyList;
+
+typedef struct AkTriangles {
+  ak_asset_base
+
+  const char   * name;
+  const char   * material;
+  uint64_t       count;
+
+  AkTriangleMode mode;
+
+  AkInput      * input;
+  AkTree       * extra;
+  AkIntArray   * primitives;
+} AkTriangles;
+
+typedef struct AkMesh {
+  ak_asset_base
+
+  AkSource   * source;
+  AkVertices * vertices;
+  AkChoice   * gprimitive;
+} AkMesh;
+
+typedef struct AkConvexMesh {
+  ak_asset_base
+
+  const char * convexHullOf;
+  AkMesh       mesh[];
+} AkConvexMesh;
+
+typedef struct AkControlVerts {
+  ak_asset_base
+
+  AkInputBasic * input;
+  AkTree       * extra;
+} AkControlVerts;
+
+typedef struct AkSpline {
+  ak_asset_base
+
+  AkSource       * source;
+  AkControlVerts * cverts;
+  AkTree         * extra;
+} AkSpline;
+
+typedef struct AkLine {
+  AkFloat3 origin;
+  AkFloat3 direction;
+  AkTree * extra;
+} AkLine;
+
+typedef struct AkCircle {
+  AkFloat  radius;
+  AkTree * extra;
+} AkCircle;
+
+typedef struct AkEllipse {
+  AkFloat2 radius;
+  AkTree * extra;
+} AkEllipse;
+
+typedef struct AkParabola {
+  AkFloat  focal;
+  AkTree * extra;
+} AkParabola;
+
+typedef struct AkHyperbola {
+  AkFloat2 radius;
+  AkTree * extra;
+} AkHyperbola;
+
+typedef struct AkNurbs {
+  AkSource       * source;
+  AkControlVerts * cverts;
+  AkTree         * extra;
+} AkNurbs;
+
+typedef struct AkCurve {
+  AkFloatArrayL  * orient;
+  AkFloat3         origin;
+  AkChoice       * curve;
+  struct AkCurve * next;
+} AkCurve;
+
+typedef struct AkCurves {
+  AkCurve * curve;
+  AkTree  * extra;
+} AkCurves;
+
+typedef struct AkCone {
+  AkFloat  radius;
+  AkFloat  angle;
+  AkTree * extra;
+} AkCone;
+
+typedef struct AkPlane {
+  AkFloat4 equation;
+  AkTree * extra;
+} AkPlane;
+
+typedef struct AkCylinder {
+  AkFloat2 radius;
+  AkTree * extra;
+} AkCylinder;
+
+typedef struct AkNurbsSurface {
+  AkUInt degree_u;
+  AkBool closed_u;
+  AkUInt degree_v;
+  AkBool closed_v;
+
+  AkSource       * source;
+  AkControlVerts * cverts;
+  AkTree         * extra;
+} AkNurbsSurface;
+
+typedef struct AkSphere {
+  AkFloat  equation;
+  AkTree * extra;
+} AkSphere;
+
+typedef struct AkTorus {
+  AkFloat2 radius;
+  AkTree * extra;
+} AkTorus;
+
+typedef struct AkSweptSurface {
+  AkCurve * curve;
+  AkFloat3  direction;
+  AkFloat3  origin;
+  AkFloat3  axis;
+  AkTree  * extra;
+} AkSweptSurface;
+
+typedef struct AkSurface {
+  const char * sid;
+  const char * name;
+
+  AkChoice      * surface;
+  AkFloatArrayL * orient;
+  AkFloat3        origin;
+} AkSurface;
+
+typedef struct AkSurfaces {
+  AkSurface * surface;
+  AkTree    * extra;
+} AkSurfaces;
+
+typedef struct AkEdges {
+  const char * id;
+  const char * name;
+  AkUInt       count;
+
+  AkInput    * input;
+  AkIntArray * primitives;
+  AkTree     * extra;
+} AkEdges;
+
+typedef struct AkWires {
+  const char * id;
+  const char * name;
+  AkUInt       count;
+
+  AkInput    * input;
+  AkIntArray * vcount;
+  AkIntArray * primitives;
+  AkTree     * extra;
+} AkWires;
+
+typedef struct AkFaces {
+  const char * id;
+  const char * name;
+  AkUInt       count;
+
+  AkInput    * input;
+  AkIntArray * vcount;
+  AkIntArray * primitives;
+  AkTree     * extra;
+} AkFaces;
+
+typedef struct AkPCurves {
+  const char * id;
+  const char * name;
+  AkUInt       count;
+
+  AkInput    * input;
+  AkIntArray * vcount;
+  AkIntArray * primitives;
+  AkTree     * extra;
+} AkPCurves;
+
+typedef struct AkShells {
+  const char * id;
+  const char * name;
+  AkUInt       count;
+
+  AkInput    * input;
+  AkIntArray * vcount;
+  AkIntArray * primitives;
+  AkTree     * extra;
+} AkShells;
+
+typedef struct AkSolids {
+  const char * id;
+  const char * name;
+  AkUInt       count;
+
+  AkInput    * input;
+  AkIntArray * vcount;
+  AkIntArray * primitives;
+  AkTree     * extra;
+} AkSolids;
+
+typedef struct AkBoundryRep {
+  ak_asset_base
+  AkCurves   * curves;
+  AkCurves   * surfaceCurves;
+  AkSurfaces * surfaces;
+  AkSource   * source;
+  AkVertices * vertives;
+  AkEdges    * edges;
+  AkWires    * wires;
+  AkFaces    * faces;
+  AkPCurves  * pcurves;
+  AkShells   * shells;
+  AkSolids   * solids;
+  AkTree     * extra;
+} AkBoundryRep;
+
+typedef struct AkGeometry {
+  ak_asset_base
+
+  const char * id;
+  const char * name;
+  AkChoice   * gdata;
+  AkTree     * extra;
+} AkGeometry;
+
 #undef _ak_DEF_LIB
+#undef AK__DEF_LIB
 
 #define _ak_DEF_LIB(T)                                                       \
   typedef struct ak_lib_ ## T ## _s  ak_lib_ ## T;                          \
@@ -1162,13 +1559,26 @@ struct ak_material_s {
     ak_lib_##T   * next;                                                     \
   }
 
+#define AK__DEF_LIB(T)                                                        \
+  typedef struct AkLib ## T {                                                 \
+    ak_assetinf * inf;                                                        \
+    const char  * id;                                                         \
+    const char  * name;                                                       \
+    Ak ## T     * chld;                                                       \
+    AkTree      * extra;                                                      \
+    uint64_t      count;                                                      \
+    struct AkLib ## T * next;                                                 \
+  } AkLib ## T
+
 _ak_DEF_LIB(camera);
 _ak_DEF_LIB(light);
 _ak_DEF_LIB(effect);
 _ak_DEF_LIB(image);
 _ak_DEF_LIB(material);
+AK__DEF_LIB(Geometry);
 
 #undef _ak_DEF_LIB
+#undef AK__DEF_LIB
 
 typedef struct ak_lib_s ak_lib;
 struct ak_lib_s {
@@ -1177,6 +1587,7 @@ struct ak_lib_s {
   ak_lib_effect   * effects;
   ak_lib_image    * images;
   ak_lib_material * materials;
+  AkLibGeometry   * geometries;
 };
 
 typedef struct ak_doc_s ak_doc;
@@ -1193,8 +1604,6 @@ struct ak_asset_s {
 
 #include "assetkit-states.h"
 #include "assetkit-string.h"
-
-extern void ak_cleanup();
 
 AkResult
 _assetkit_export
