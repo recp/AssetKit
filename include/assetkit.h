@@ -118,6 +118,8 @@ AK__DEF_ARRAY(AkDouble);
 
 /* End Core Value Types */
 
+#include "ak-memory.h"
+
 /**
  * @brief library time type
  */
@@ -383,13 +385,6 @@ typedef struct AkTreeNode {
 } AkTreeNode;
 
 typedef struct AkTreeNode AkTree;
-
-typedef struct AkObject {
-  AkEnum type;
-  size_t size;
-  void * pData;
-  char   data[];
-} AkObject;
 
 #ifdef _ak_DEF_BASIC_ATTR
 #  undef _ak_DEF_BASIC_ATTR
@@ -1543,6 +1538,8 @@ typedef struct AkGeometry {
   const char * name;
   AkObject   * gdata;
   AkTree     * extra;
+
+  struct AkGeometry * next;
 } AkGeometry;
 
 #undef _ak_DEF_LIB

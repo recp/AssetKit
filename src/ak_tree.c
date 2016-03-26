@@ -9,7 +9,6 @@
 
 #include "ak_libxml.h"
 #include "ak_common.h"
-#include "ak_memory.h"
 #include "ak_utils.h"
 
 #include <libxml/tree.h>

@@ -5,7 +5,6 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "ak_memory.h"
 #include "ak_common.h"
 
 #include <stdlib.h>

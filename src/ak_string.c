@@ -9,7 +9,6 @@
 #include <string.h>
 
 #include "../include/assetkit.h"
-#include "ak_memory.h"
 
 AkResult
 ak_strtof(char ** __restrict src,

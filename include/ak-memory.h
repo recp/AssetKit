@@ -8,9 +8,15 @@
 #ifndef __libassetkit__memory__h_
 #define __libassetkit__memory__h_
 
-#include <stddef.h>
 #include <stdint.h>
 #include <sys/types.h>
+
+typedef struct AkObject {
+  AkEnum type;
+  size_t size;
+  void * pData;
+  char   data[];
+} AkObject;
 
 typedef struct ak_heapnode_s ak_heapnode;
 typedef struct ak_heap_s     ak_heap;
@@ -100,5 +106,8 @@ ak_mem_setp(void * __restrict memptr,
 
 void
 ak_free(void * __restrict memptr);
+
+AkObject *
+ak_malloc_asObject(size_t * size);
 
 #endif /* __libassetkit__memory__h_ */
