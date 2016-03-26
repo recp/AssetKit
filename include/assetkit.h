@@ -384,11 +384,12 @@ typedef struct AkTreeNode {
 
 typedef struct AkTreeNode AkTree;
 
-typedef struct AkChoice {
+typedef struct AkObject {
   AkEnum type;
-  void * target;
+  size_t size;
+  void * pData;
   char   data[];
-} AkChoice;
+} AkObject;
 
 #ifdef _ak_DEF_BASIC_ATTR
 #  undef _ak_DEF_BASIC_ATTR
@@ -1326,7 +1327,7 @@ typedef struct AkMesh {
 
   AkSource   * source;
   AkVertices * vertices;
-  AkChoice   * gprimitive;
+  AkObject   * gprimitive;
 } AkMesh;
 
 typedef struct AkConvexMesh {
@@ -1386,7 +1387,7 @@ typedef struct AkNurbs {
 typedef struct AkCurve {
   AkFloatArrayL  * orient;
   AkFloat3         origin;
-  AkChoice       * curve;
+  AkObject       * curve;
   struct AkCurve * next;
 } AkCurve;
 
@@ -1444,7 +1445,7 @@ typedef struct AkSurface {
   const char * sid;
   const char * name;
 
-  AkChoice      * surface;
+  AkObject      * surface;
   AkFloatArrayL * orient;
   AkFloat3        origin;
 } AkSurface;
@@ -1540,7 +1541,7 @@ typedef struct AkGeometry {
 
   const char * id;
   const char * name;
-  AkChoice   * gdata;
+  AkObject   * gdata;
   AkTree     * extra;
 } AkGeometry;
 
