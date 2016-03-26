@@ -122,8 +122,8 @@ ak_heap_realloc(ak_heap * __restrict heap,
     return NULL;
   }
 
-  newNode = realloc(oldNode,
-                    ak__heapnd_sz_algnd + newsize);
+  newNode = je_realloc(oldNode,
+                       ak__heapnd_sz_algnd + newsize);
 
   return ak__alignas(newNode);
 }
