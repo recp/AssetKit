@@ -110,7 +110,7 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
   } while (0)
 
 
-#define _xml_readTextUsingFn(X, Fn, ...)                                      \
+#define _xml_readTextUsingFn(TARGET, Fn, ...)                                 \
   do {                                                                        \
     const char * val;                                                         \
     /* read text element*/                                                    \
@@ -118,7 +118,7 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
     val = nodeType == XML_TEXT_NODE ?                                         \
         (const char *)xmlTextReaderConstValue(reader) : NULL;                 \
     if (val)                                                                  \
-      X = Fn(val, __VA_ARGS__);                                               \
+      TARGET = Fn(val, __VA_ARGS__);                                          \
   } while (0)
 
 #define _xml_readAttr(PARENT, TARGET, ATTR)                                   \

@@ -62,9 +62,8 @@ ak_dae_assetInf(void * __restrict memParent,
     } else if (_xml_eqElm(_s_dae_keywords)) {
       _xml_readText(*dest, (*dest)->keywords);
     } else if (_xml_eqElm(_s_dae_revision)) {
-      const char * val;
-      _xml_readText(*dest, val);
-      (*dest)->revision = strtoul(val, NULL, 10);
+      _xml_readTextUsingFn((*dest)->revision,
+                           strtoul, NULL, 10);
     } else if (_xml_eqElm(_s_dae_subject)) {
       _xml_readText(*dest, (*dest)->subject);
     } else if (_xml_eqElm(_s_dae_title)) {
