@@ -66,13 +66,15 @@ ak_dae_newparam(void * __restrict memParent,
 
       _xml_readConstText(val);
 
-      found = bsearch(val,
-                      modifierMap,
-                      modifierMapLen,
-                      sizeof(modifierMap[0]),
-                      ak_enumpair_cmp2);
+      if (val) {
+        found = bsearch(val,
+                        modifierMap,
+                        modifierMapLen,
+                        sizeof(modifierMap[0]),
+                        ak_enumpair_cmp2);
 
-      newparam->modifier = found->val;
+        newparam->modifier = found->val;
+      }
     } else {
       /* load once */
       if (!newparam->val) {
