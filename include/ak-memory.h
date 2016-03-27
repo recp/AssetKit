@@ -18,6 +18,8 @@ typedef struct AkObject {
   char   data[];
 } AkObject;
 
+#define ak_objGet(OBJ) OBJ->pData
+
 typedef struct ak_heapnode_s ak_heapnode;
 typedef struct ak_heap_s     ak_heap;
 
