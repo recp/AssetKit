@@ -22,7 +22,8 @@ libassetkit_la_LIBADD = lib/libxml2/libxml2.la
 
 include_HEADERS = include/assetkit.h \
                   include/assetkit-states.h \
-                  include/assetkit-string.h
+                  include/assetkit-string.h \
+                  include/ak-memory.h
 
 libassetkit_la_SOURCES=\
     src/assetkit.c \
@@ -34,6 +35,7 @@ libassetkit_la_SOURCES=\
     src/ak_tree.c \
     src/collada/ak_collada.c \
     src/collada/ak_collada_common.c \
+    src/collada/core/ak_collada_source.c \
     src/collada/ak_collada_asset.c \
     src/collada/ak_collada_technique.c \
     src/collada/ak_collada_techniquec.c \

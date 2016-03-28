@@ -82,17 +82,19 @@ typedef ak_uint      ak_list_of_uints[];
 typedef ak_hexBinary ak_list_of_hexBinary[];
 typedef ak_string  * ak_list_of_string;
 
-typedef bool     AkBool;
-typedef int32_t  AkInt;
-typedef uint32_t AkUInt;
-typedef int64_t  AkInt64;
-typedef uint64_t AkUInt64;
-typedef float    AkFloat;
-typedef double   AkDouble;
+typedef const char * AkString;
+typedef char       * AkMutString;
+typedef bool         AkBool;
+typedef int32_t      AkInt;
+typedef uint32_t     AkUInt;
+typedef int64_t      AkInt64;
+typedef uint64_t     AkUInt64;
+typedef float        AkFloat;
+typedef double       AkDouble;
 
-typedef float    AkFloat2[2];
-typedef float    AkFloat3[3];
-typedef float    AkFloat4[4];
+typedef AkFloat      AkFloat2[2];
+typedef AkFloat      AkFloat3[3];
+typedef AkFloat      AkFloat4[4];
 
 #undef AK__DEF_ARRAY
 
@@ -113,6 +115,7 @@ AK__DEF_ARRAY(AkInt);
 AK__DEF_ARRAY(AkUInt);
 AK__DEF_ARRAY(AkFloat);
 AK__DEF_ARRAY(AkDouble);
+AK__DEF_ARRAY(AkString);
 
 #undef AK__DEF_ARRAY
 
@@ -353,6 +356,16 @@ typedef enum AkSurfaceElementType {
   AK_SURFACE_ELEMENT_TYPE_TORUS         = 6,
   AK_SURFACE_ELEMENT_TYPE_SWEPT_SURFACE = 7
 } AkSurfaceElementType;
+
+typedef enum AkSourceArrayType {
+  AK_SOURCE_ARRAY_TYPE_BOOL   = 1,
+  AK_SOURCE_ARRAY_TYPE_FLOAT  = 2,
+  AK_SOURCE_ARRAY_TYPE_INT    = 3,
+  AK_SOURCE_ARRAY_TYPE_IDREF  = 4,
+  AK_SOURCE_ARRAY_TYPE_NAME   = 5,
+  AK_SOURCE_ARRAY_TYPE_SIDREF = 6,
+  AK_SOURCE_ARRAY_TYPE_TOKEN  = 7
+} AkSourceArrayType;
 
 /**
  * Almost all assets includes this fields.
@@ -1215,13 +1228,40 @@ struct ak_material_s {
   ak_material * next;
 };
 
+typedef struct AkBoolArrayN {
+  const char * id;
+  const char * name;
+  AkBoolArray  base;
+} AkBoolArrayN;
+
+typedef struct AkFloatArrayN {
+  const char * id;
+  const char * name;
+  AkUInt       digits;
+  AkUInt       magnitude;
+  AkFloatArray base;
+} AkFloatArrayN;
+
+typedef struct AkIntArrayN {
+  const char * id;
+  const char * name;
+  AkInt        minInclusive;
+  AkInt        maxInclusive;
+  AkFloatArray base;
+} AkIntArrayN;
+
+typedef struct AkStringArrayN {
+  const char  * id;
+  const char  * name;
+  AkStringArray base;
+} AkStringArrayN;
+
 typedef struct AkSource {
   ak_asset_base
 
   const char * id;
   const char * name;
-  const char * data;
-  AkValueType  dataType;
+  AkObject   * data;
 
   ak_technique_common * techniqueCommon;
   ak_technique        * technique;
@@ -1323,6 +1363,7 @@ typedef struct AkMesh {
   AkSource   * source;
   AkVertices * vertices;
   AkObject   * gprimitive;
+  AkTree     * extra;
 } AkMesh;
 
 typedef struct AkConvexMesh {
