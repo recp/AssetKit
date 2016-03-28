@@ -47,3 +47,4 @@ python/setup.py
 config.h
 stamp*
 COPYING
+.idea/*
