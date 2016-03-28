@@ -142,6 +142,17 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
     }                                                                         \
   } while (0);
 
+#define _xml_readAttrUsingFnWithDef(TARGET, ATTR, DEF, Fn, ...)               \
+  do {                                                                        \
+    char * attrVal;                                                           \
+    attrVal = (char *)xmlTextReaderGetAttribute(reader,                       \
+                                                (const xmlChar *)ATTR);       \
+    if (attrVal) {                                                            \
+      TARGET = Fn(attrVal, __VA_ARGS__);                                      \
+      xmlFree(attrVal);                                                       \
+    } else TARGET = DEF;                                                      \
+  } while (0);
+
 #define _xml_readTextAsEnum(D, X, FN)                                         \
   do {                                                                        \
     char *attrValStr;                                                         \
