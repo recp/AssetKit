@@ -284,32 +284,32 @@ ak_dae_fxState(void * __restrict memParent,
                                  &last_state,
                                  &states,
                                  AK_RENDER_STATE_LIGHT_AMBIENT,
-                                 (ak_float4){0.0f, 0.0f, 0.0f, 1.0f},
-                                 sizeof(ak_float4));
+                                 (AkFloat4){0.0f, 0.0f, 0.0f, 1.0f},
+                                 sizeof(AkFloat4));
         break;
       case AK_RENDER_STATE_LIGHT_DIFFUSE: 
         ak_dae_fxState_float4_i(reader,
                                  &last_state,
                                  &states,
                                  AK_RENDER_STATE_LIGHT_DIFFUSE,
-                                 (ak_float4){0.0f, 0.0f, 0.0f, 0.0f},
-                                 sizeof(ak_float4));
+                                 (AkFloat4){0.0f, 0.0f, 0.0f, 0.0f},
+                                 sizeof(AkFloat4));
         break;
       case AK_RENDER_STATE_LIGHT_SPECULAR:
         ak_dae_fxState_float4_i(reader,
                                  &last_state,
                                  &states,
                                  AK_RENDER_STATE_LIGHT_SPECULAR,
-                                 (ak_float4){0.0f, 0.0f, 0.0f, 0.0f},
-                                 sizeof(ak_float4));
+                                 (AkFloat4){0.0f, 0.0f, 0.0f, 0.0f},
+                                 sizeof(AkFloat4));
         break;
       case AK_RENDER_STATE_LIGHT_POSITION:
         ak_dae_fxState_float4_i(reader,
                                  &last_state,
                                  &states,
                                  AK_RENDER_STATE_LIGHT_POSITION,
-                                 (ak_float4){0.0f, 0.0f, 1.0f, 0.0f},
-                                 sizeof(ak_float4));
+                                 (AkFloat4){0.0f, 0.0f, 1.0f, 0.0f},
+                                 sizeof(AkFloat4));
         break;
       case AK_RENDER_STATE_LIGHT_CONSTANT_ATTENUATION:
         ak_dae_fxState_float_i(reader,
@@ -344,8 +344,8 @@ ak_dae_fxState(void * __restrict memParent,
                                  &last_state,
                                  &states,
                                  AK_RENDER_STATE_LIGHT_SPOT_DIRECTION,
-                                 (ak_float3){0.0f, 0.0f, -1.0f},
-                                 sizeof(ak_float3));
+                                 (AkFloat3){0.0f, 0.0f, -1.0f},
+                                 sizeof(AkFloat3));
         break;
       case AK_RENDER_STATE_LIGHT_SPOT_EXPONENT:
         ak_dae_fxState_float_i(reader,
@@ -457,8 +457,8 @@ ak_dae_fxState(void * __restrict memParent,
                                  &last_state,
                                  &states,
                                  AK_RENDER_STATE_CLIP_PLANE,
-                                 (ak_float4){0.0f, 0.0f, 0.0f, 0.0f},
-                                 sizeof(ak_float4));
+                                 (AkFloat4){0.0f, 0.0f, 0.0f, 0.0f},
+                                 sizeof(AkFloat4));
         break;
       case AK_RENDER_STATE_CLIP_PLANE_ENABLE:
         ak_dae_fxState_ul_i(reader,
@@ -472,16 +472,16 @@ ak_dae_fxState(void * __restrict memParent,
                                &last_state,
                                &states,
                                AK_RENDER_STATE_BLEND_COLOR,
-                               (ak_float4){0.0f, 0.0f, 0.0f, 0.0f},
-                               sizeof(ak_float4));
+                               (AkFloat4){0.0f, 0.0f, 0.0f, 0.0f},
+                               sizeof(AkFloat4));
         break;
       case AK_RENDER_STATE_COLOR_MASK:
         ak_dae_fxState_bool4(reader,
                               &last_state,
                               &states,
                               AK_RENDER_STATE_COLOR_MASK,
-                              (ak_bool4){1, 1, 1, 1},
-                              sizeof(ak_bool4));
+                              (AkBool4){1, 1, 1, 1},
+                              sizeof(AkBool4));
         break;
       case AK_RENDER_STATE_DEPTH_BOUNDS:
         ak_dae_fxState_float2(reader,
@@ -503,8 +503,8 @@ ak_dae_fxState(void * __restrict memParent,
                                &last_state,
                                &states,
                                AK_RENDER_STATE_DEPTH_RANGE,
-                               (ak_float2){0, 1},
-                               sizeof(ak_float2));
+                               (AkFloat2){0, 1},
+                               sizeof(AkFloat2));
         break;
       case AK_RENDER_STATE_FOG_DENSITY:
         ak_dae_fxState_float(reader,
@@ -532,16 +532,16 @@ ak_dae_fxState(void * __restrict memParent,
                                &last_state,
                                &states,
                                AK_RENDER_STATE_FOG_COLOR,
-                               (ak_float4){0.0f, 0.0f, 0.0f, 0.0f},
-                               sizeof(ak_float4));
+                               (AkFloat4){0.0f, 0.0f, 0.0f, 0.0f},
+                               sizeof(AkFloat4));
         break;
       case AK_RENDER_STATE_LIGHT_MODEL_AMBIENT:
         ak_dae_fxState_float4(reader,
                                &last_state,
                                &states,
                                AK_RENDER_STATE_LIGHT_MODEL_AMBIENT,
-                               (ak_float4){0.2f, 0.2f, 0.2f, 1.0f},
-                               sizeof(ak_float4));
+                               (AkFloat4){0.2f, 0.2f, 0.2f, 1.0f},
+                               sizeof(AkFloat4));
         break;
       case AK_RENDER_STATE_LIGHTING_ENABLE:
         ak_dae_fxState_ul(reader,
@@ -555,8 +555,8 @@ ak_dae_fxState(void * __restrict memParent,
                              &last_state,
                              &states,
                              AK_RENDER_STATE_LINE_STIPPLE,
-                             (ak_int2){1, 65536},
-                             sizeof(ak_int2));
+                             (AkInt2){1, 65536},
+                             sizeof(AkInt2));
         break;
       case AK_RENDER_STATE_LINE_WIDTH:
         ak_dae_fxState_float(reader,
@@ -570,24 +570,24 @@ ak_dae_fxState(void * __restrict memParent,
                                &last_state,
                                &states,
                                AK_RENDER_STATE_MATERIAL_AMBIENT,
-                               (ak_float4){0.2f, 0.2f, 0.2f, 1.0f},
-                               sizeof(ak_float4));
+                               (AkFloat4){0.2f, 0.2f, 0.2f, 1.0f},
+                               sizeof(AkFloat4));
         break;
       case AK_RENDER_STATE_MATERIAL_DIFFUSE:
         ak_dae_fxState_float4(reader,
                                &last_state,
                                &states,
                                AK_RENDER_STATE_MATERIAL_DIFFUSE,
-                               (ak_float4){0.8f, 0.8f, 0.8f, 1.0f},
-                               sizeof(ak_float4));
+                               (AkFloat4){0.8f, 0.8f, 0.8f, 1.0f},
+                               sizeof(AkFloat4));
         break;
       case AK_RENDER_STATE_MATERIAL_EMISSION:
         ak_dae_fxState_float4(reader,
                                &last_state,
                                &states,
                                AK_RENDER_STATE_MATERIAL_EMISSION,
-                               (ak_float4){0.0f, 0.0f, 0.0f, 1.0f},
-                               sizeof(ak_float4));
+                               (AkFloat4){0.0f, 0.0f, 0.0f, 1.0f},
+                               sizeof(AkFloat4));
         break;
       case AK_RENDER_STATE_MATERIAL_SHININESS:
         ak_dae_fxState_float(reader,
@@ -601,29 +601,29 @@ ak_dae_fxState(void * __restrict memParent,
                                &last_state,
                                &states,
                                AK_RENDER_STATE_MATERIAL_SPECULAR,
-                               (ak_float4){0.0f, 0.0f, 0.0f, 1.0f},
-                               sizeof(ak_float4));
+                               (AkFloat4){0.0f, 0.0f, 0.0f, 1.0f},
+                               sizeof(AkFloat4));
         break;
       case AK_RENDER_STATE_MODEL_VIEW_MATRIX:
         ak_dae_fxState_float4x4(reader,
                                  &last_state,
                                  &states,
                                  AK_RENDER_STATE_MODEL_VIEW_MATRIX,
-                                 *(ak_float4x4){
+                                 *(AkFloat4x4){
                                    {1.0f, 0.0f, 0.0f, 0.0f},
                                    {0.0f, 1.0f, 0.0f, 0.0f},
                                    {0.0f, 0.0f, 1.0f, 0.0f},
                                    {0.0f, 0.0f, 0.0f, 1.0f}
                                  },
-                                 sizeof(ak_float4x4));
+                                 sizeof(AkFloat4x4));
         break;
       case AK_RENDER_STATE_POINT_DISTANCE_ATTENUATION:
         ak_dae_fxState_float3(reader,
                                &last_state,
                                &states,
                                AK_RENDER_STATE_POINT_DISTANCE_ATTENUATION,
-                               (ak_float3){1.0f, 0.0f, 0.0f},
-                               sizeof(ak_float3));
+                               (AkFloat3){1.0f, 0.0f, 0.0f},
+                               sizeof(AkFloat3));
         break;
       case AK_RENDER_STATE_POINT_FADE_THRESOLD_SIZE:
         ak_dae_fxState_float(reader,
@@ -658,21 +658,21 @@ ak_dae_fxState(void * __restrict memParent,
                                &last_state,
                                &states,
                                AK_RENDER_STATE_POLYGON_OFFSET,
-                               (ak_float2){0.0f, 0.0f},
-                               sizeof(ak_float2));
+                               (AkFloat2){0.0f, 0.0f},
+                               sizeof(AkFloat2));
         break;
       case AK_RENDER_STATE_PROJECTION_MATRIX:
         ak_dae_fxState_float4x4(reader,
                                  &last_state,
                                  &states,
                                  AK_RENDER_STATE_PROJECTION_MATRIX,
-                                 *(ak_float4x4){
+                                 *(AkFloat4x4){
                                    {1.0f, 0.0f, 0.0f, 0.0f},
                                    {0.0f, 1.0f, 0.0f, 0.0f},
                                    {0.0f, 0.0f, 1.0f, 0.0f},
                                    {0.0f, 0.0f, 0.0f, 1.0f}
                                  },
-                                 sizeof(ak_float4x4));
+                                 sizeof(AkFloat4x4));
         break;
       case AK_RENDER_STATE_SCISSOR:
         ak_dae_fxState_int4(reader,

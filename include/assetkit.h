@@ -41,47 +41,7 @@
 
 #define ak_ARRAY_LEN(ARR) sizeof(ARR) / sizeof(ARR[0]);
 
-/* Core Value types based on COLLADA specs 1.5 */
-typedef int32_t AkEnum;
-typedef const char *  ak_string;
-typedef char       *  ak_mut_string;
-typedef const char *  ak_str;
-typedef char       *  ak_mutstr;
-typedef unsigned const char * ak_ustr;
-typedef bool          ak_bool;
-typedef ak_bool      ak_bool2[2];
-typedef ak_bool      ak_bool3[3];
-typedef ak_bool      ak_bool4[4];
-typedef double        ak_float;
-typedef ak_float     ak_float2[2];
-typedef ak_float2    ak_float2x2[2];
-typedef ak_float2    ak_float2x3[3];
-typedef ak_float2    ak_float2x4[4];
-typedef ak_float     ak_float3[3];
-typedef ak_float3    ak_float3x2[2];
-typedef ak_float3    ak_float3x3[3];
-typedef ak_float3    ak_float3x4[4];
-typedef ak_float     ak_float4[4];
-typedef ak_float4    ak_float4x2[2];
-typedef ak_float4    ak_float4x3[3];
-typedef ak_float4    ak_float4x4[4];
-typedef ak_float     ak_float7[7];
-typedef int           ak_int;
-typedef unsigned int  ak_uint;
-typedef ak_int       ak_hexBinary;
-typedef ak_int       ak_int2[2];
-typedef ak_int2      ak_int2x2[2];
-typedef ak_int       ak_int3[3];
-typedef ak_int3      ak_int3x3[3];
-typedef ak_int       ak_int4[4];
-typedef ak_int4      ak_int4x4[4];
-typedef ak_bool      ak_list_of_bools[];
-typedef ak_float     ak_list_of_floats[];
-typedef ak_int       ak_list_of_ints[];
-typedef ak_uint      ak_list_of_uints[];
-typedef ak_hexBinary ak_list_of_hexBinary[];
-typedef ak_string  * ak_list_of_string;
-
+typedef int32_t      AkEnum;
 typedef const char * AkString;
 typedef char       * AkMutString;
 typedef bool         AkBool;
@@ -92,9 +52,14 @@ typedef uint64_t     AkUInt64;
 typedef float        AkFloat;
 typedef double       AkDouble;
 
+typedef AkBool       AkBool4[4];
+typedef AkInt        AkInt2[2];
+typedef AkInt        AkInt4[4];
 typedef AkFloat      AkFloat2[2];
 typedef AkFloat      AkFloat3[3];
 typedef AkFloat      AkFloat4[4];
+
+typedef AkFloat4     AkFloat4x4[4];
 
 #undef AK__DEF_ARRAY
 
@@ -427,7 +392,7 @@ typedef struct ak_color_s ak_color;
 struct ak_color_s {
   const char * sid;
   union {
-    ak_float4 vec;
+    AkFloat4 vec;
 
     struct {
       float R;
@@ -663,10 +628,10 @@ struct ak_init_from_s {
   ak_hex_data * hex;
 
   AkFace     face;
-  ak_uint     mip_index;
-  ak_uint     depth;
-  ak_int      array_index;
-  ak_bool     mips_generate;
+  AkUInt     mip_index;
+  AkUInt     depth;
+  AkInt      array_index;
+  AkBool     mips_generate;
 
   ak_init_from * prev;
   ak_init_from * next;
@@ -674,20 +639,20 @@ struct ak_init_from_s {
 
 typedef struct ak_size_exact_s ak_size_exact;
 struct ak_size_exact_s {
-  ak_float width;
-  ak_float height;
+  AkFloat width;
+  AkFloat height;
 };
 
 typedef struct ak_size_ratio_s ak_size_ratio;
 struct ak_size_ratio_s {
-  ak_float width;
-  ak_float height;
+  AkFloat width;
+  AkFloat height;
 };
 
 typedef struct ak_mips_s ak_mips;
 struct ak_mips_s {
-  ak_uint levels;
-  ak_bool auto_generate;
+  AkUInt levels;
+  AkBool auto_generate;
 };
 
 typedef struct ak_image_format_s ak_image_format;
@@ -716,9 +681,9 @@ struct ak_image2d_s {
 typedef struct ak_image3d_s ak_image3d;
 struct ak_image3d_s {
   struct {
-    ak_uint width;
-    ak_uint height;
-    ak_uint depth;
+    AkUInt width;
+    AkUInt height;
+    AkUInt depth;
   } size;
 
   ak_mips           mips;
@@ -730,7 +695,7 @@ struct ak_image3d_s {
 typedef struct ak_image_cube_s ak_image_cube;
 struct ak_image_cube_s {
   struct {
-    ak_uint width;
+    AkUInt width;
   } size;
 
   ak_mips           mips;
@@ -757,7 +722,7 @@ struct ak_image_s {
   ak_image * next;
 
   struct {
-    ak_bool share;
+    AkBool share;
   } renderable;
 
 };
@@ -971,7 +936,7 @@ struct ak_color_clear_s {
 typedef struct ak_depth_clear_s ak_depth_clear;
 struct ak_depth_clear_s {
   unsigned long index;
-  ak_float     val;
+  AkFloat     val;
 };
 
 typedef struct ak_stencil_clear_s ak_stencil_clear;

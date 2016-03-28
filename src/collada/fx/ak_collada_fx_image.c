@@ -186,19 +186,19 @@ ak_dae_fxImage_initFrom(void * __restrict memParent,
 
   _xml_readAttrUsingFn(initFrom->mips_generate,
                        _s_dae_mips_generate,
-                       (ak_bool)strtol, NULL, 10);
+                       (AkBool)strtol, NULL, 10);
 
   _xml_readAttrUsingFn(initFrom->array_index,
                        _s_dae_array_index,
-                       (ak_int)strtol, NULL, 10);
+                       (AkInt)strtol, NULL, 10);
 
   _xml_readAttrUsingFn(initFrom->mip_index,
                        _s_dae_mip_index,
-                       (ak_int)strtol, NULL, 10);
+                       (AkInt)strtol, NULL, 10);
 
   _xml_readAttrUsingFn(initFrom->depth,
                        _s_dae_depth,
-                       (ak_int)strtol, NULL, 10);
+                       (AkInt)strtol, NULL, 10);
 
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
                                     (const xmlChar *)_s_dae_face);
@@ -363,7 +363,7 @@ ak_dae_fxImage_create2d(void * __restrict memParent,
 
       _xml_readAttrUsingFn(mips->levels,
                            _s_dae_width,
-                           (ak_uint)strtol, NULL, 10);
+                           (AkUInt)strtol, NULL, 10);
 
       _xml_readAttrUsingFn(mips->auto_generate,
                            _s_dae_height,
@@ -421,27 +421,27 @@ ak_dae_fxImage_create3d(void * __restrict memParent,
     if (_xml_eqElm(_s_dae_size)) {
       _xml_readAttrUsingFn(image3d->size.width,
                            _s_dae_width,
-                           (ak_int)strtol, NULL, 10);
+                           (AkInt)strtol, NULL, 10);
 
       _xml_readAttrUsingFn(image3d->size.height,
                            _s_dae_height,
-                           (ak_int)strtol, NULL, 10);
+                           (AkInt)strtol, NULL, 10);
 
       _xml_readAttrUsingFn(image3d->size.depth,
                            _s_dae_depth,
-                           (ak_int)strtol, NULL, 10);
+                           (AkInt)strtol, NULL, 10);
     } else if (_xml_eqElm(_s_dae_mips)) {
       _xml_readAttrUsingFn(image3d->mips.levels,
                            _s_dae_levels,
-                           (ak_int)strtol, NULL, 10);
+                           (AkInt)strtol, NULL, 10);
 
       _xml_readAttrUsingFn(image3d->mips.auto_generate,
                            _s_dae_auto_generate,
-                           (ak_int)strtol, NULL, 10);
+                           (AkInt)strtol, NULL, 10);
     } else if (_xml_eqElm(_s_dae_array)) {
       _xml_readAttrUsingFn(image3d->array_len,
                            _s_dae_length,
-                           (ak_int)strtol, NULL, 10);
+                           (AkInt)strtol, NULL, 10);
     } else if (_xml_eqElm(_s_dae_format)) {
       ak_image_format *imageFormat;
       int               ret;
@@ -487,19 +487,19 @@ ak_dae_fxImage_createCube(void * __restrict memParent,
     if (_xml_eqElm(_s_dae_size)) {
       _xml_readAttrUsingFn(imageCube->size.width,
                            _s_dae_width,
-                           (ak_int)strtol, NULL, 10);
+                           (AkInt)strtol, NULL, 10);
     } else if (_xml_eqElm(_s_dae_mips)) {
       _xml_readAttrUsingFn(imageCube->mips.levels,
                            _s_dae_levels,
-                           (ak_int)strtol, NULL, 10);
+                           (AkInt)strtol, NULL, 10);
 
       _xml_readAttrUsingFn(imageCube->mips.auto_generate,
                            _s_dae_auto_generate,
-                           (ak_int)strtol, NULL, 10);
+                           (AkInt)strtol, NULL, 10);
     } else if (_xml_eqElm(_s_dae_array)) {
       _xml_readAttrUsingFn(imageCube->array_len,
                            _s_dae_length,
-                           (ak_int)strtol, NULL, 10);
+                           (AkInt)strtol, NULL, 10);
     } else if (_xml_eqElm(_s_dae_format)) {
       ak_image_format *imageFormat;
       int               ret;

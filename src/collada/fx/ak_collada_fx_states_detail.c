@@ -61,7 +61,7 @@ ak_dae_fxState_bool4(xmlTextReaderPtr reader,
                       AkRenderState ** __restrict last_state,
                       ak_states ** __restrict states,
                       AkRenderStateType state_type,
-                      ak_bool * defaultVal,
+                      AkBool * defaultVal,
                       size_t defaultValSize) {
   ak_state_t_bool4 *state;
   char *attrValStr;
@@ -91,7 +91,7 @@ ak_dae_fxState_int2(xmlTextReaderPtr reader,
                      AkRenderState ** __restrict last_state,
                      ak_states ** __restrict states,
                      AkRenderStateType state_type,
-                     ak_int * defaultVal,
+                     AkInt * defaultVal,
                      size_t defaultValSize) {
   ak_state_t_int2 *state;
   char *attrValStr;
@@ -121,7 +121,7 @@ ak_dae_fxState_int4(xmlTextReaderPtr reader,
                      AkRenderState ** __restrict last_state,
                      ak_states ** __restrict states,
                      AkRenderStateType state_type,
-                     ak_int * defaultVal,
+                     AkInt * defaultVal,
                      size_t defaultValSize) {
   ak_state_t_int4 *state;
   char *attrValStr;
@@ -218,7 +218,7 @@ ak_dae_fxState_float(xmlTextReaderPtr reader,
                       AkRenderState ** __restrict last_state,
                       ak_states ** __restrict states,
                       AkRenderStateType state_type,
-                      ak_float defaultVal) {
+                      AkFloat defaultVal) {
   ak_state_t_float * state;
   char *attrValStr;
 
@@ -246,7 +246,7 @@ ak_dae_fxState_float_i(xmlTextReaderPtr reader,
                         AkRenderState ** __restrict last_state,
                         ak_states ** __restrict states,
                         AkRenderStateType state_type,
-                        ak_float defaultVal) {
+                        AkFloat defaultVal) {
   ak_state_t_float_i * state;
   char *attrValStr;
 
@@ -277,7 +277,7 @@ ak_dae_fxState_float2(xmlTextReaderPtr reader,
                        AkRenderState ** __restrict last_state,
                        ak_states ** __restrict states,
                        AkRenderStateType state_type,
-                       ak_float * defaultVal,
+                       AkFloat * defaultVal,
                        size_t defaultValSize) {
   ak_state_t_float2 *state;
   char *attrValStr;
@@ -307,7 +307,7 @@ ak_dae_fxState_float3(xmlTextReaderPtr reader,
                        AkRenderState ** __restrict last_state,
                        ak_states ** __restrict states,
                        AkRenderStateType state_type,
-                       ak_float * defaultVal,
+                       AkFloat * defaultVal,
                        size_t defaultValSize) {
   ak_state_t_float3 *state;
   char *attrValStr;
@@ -337,7 +337,7 @@ ak_dae_fxState_float3_i(xmlTextReaderPtr reader,
                          AkRenderState ** __restrict last_state,
                          ak_states ** __restrict states,
                          AkRenderStateType state_type,
-                         ak_float * defaultVal,
+                         AkFloat * defaultVal,
                          size_t defaultValSize) {
   ak_state_t_float3_i *state;
   char *attrValStr;
@@ -370,7 +370,7 @@ ak_dae_fxState_float4(xmlTextReaderPtr reader,
                        AkRenderState ** __restrict last_state,
                        ak_states ** __restrict states,
                        AkRenderStateType state_type,
-                       ak_float * defaultVal,
+                       AkFloat * defaultVal,
                        size_t defaultValSize) {
   ak_state_t_float4 *state;
   char *attrValStr;
@@ -400,7 +400,7 @@ ak_dae_fxState_float4_i(xmlTextReaderPtr reader,
                          AkRenderState ** __restrict last_state,
                          ak_states ** __restrict states,
                          AkRenderStateType state_type,
-                         ak_float * defaultVal,
+                         AkFloat * defaultVal,
                          size_t defaultValSize) {
   ak_state_t_float4_i *state;
   char *attrValStr;
@@ -433,7 +433,7 @@ ak_dae_fxState_float4x4(xmlTextReaderPtr reader,
                          AkRenderState ** __restrict last_state,
                          ak_states ** __restrict states,
                          AkRenderStateType state_type,
-                         ak_float * defaultVal,
+                         AkFloat * defaultVal,
                          size_t defaultValSize) {
   ak_state_t_float4x4 *state;
   char *attrValStr;

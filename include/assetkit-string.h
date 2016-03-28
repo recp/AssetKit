@@ -10,40 +10,40 @@
 
 AkResult
 ak_strtof(char ** __restrict src,
-           ak_float * __restrict dest,
+           AkFloat * __restrict dest,
            unsigned long n);
 
 AkResult
 ak_strtomb(char ** __restrict src,
-            ak_bool * __restrict dest,
+            AkBool * __restrict dest,
             unsigned long m,
             unsigned long n);
 
 AkResult
 ak_strtomi(char ** __restrict src,
-            ak_int * __restrict dest,
+            AkInt * __restrict dest,
             unsigned long m,
             unsigned long n);
 
 AkResult
 ak_strtomf(char ** __restrict src,
-            ak_float * __restrict dest,
+            AkFloat * __restrict dest,
             unsigned long m,
             unsigned long n);
 
 AkResult
 ak_strtof_s(const char * __restrict src,
-             ak_float * __restrict dest,
+             AkFloat * __restrict dest,
              unsigned long n);
 
 extern
 AkResult
 ak_strtof4(char ** __restrict src,
-            ak_float4 * __restrict dest);
+            AkFloat4 * __restrict dest);
 
 extern
 AkResult
 ak_strtof4_s(const char * __restrict src,
-              ak_float4 * __restrict dest);
+              AkFloat4 * __restrict dest);
 
 #endif /* __libassetkit__assetkit_string__h_ */

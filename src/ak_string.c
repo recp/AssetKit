@@ -12,7 +12,7 @@
 
 AkResult
 ak_strtof(char ** __restrict src,
-           ak_float * __restrict dest,
+           AkFloat * __restrict dest,
            unsigned long n) {
   char * tok;
 
@@ -28,7 +28,7 @@ ak_strtof(char ** __restrict src,
 
 AkResult
 ak_strtomf(char ** __restrict src,
-            ak_float * __restrict dest,
+            AkFloat * __restrict dest,
             unsigned long m,
             unsigned long n) {
   char * tok;
@@ -47,7 +47,7 @@ ak_strtomf(char ** __restrict src,
 
 AkResult
 ak_strtomb(char ** __restrict src,
-            ak_bool * __restrict dest,
+            AkBool * __restrict dest,
             unsigned long m,
             unsigned long n) {
   char * tok;
@@ -66,7 +66,7 @@ ak_strtomb(char ** __restrict src,
 
 AkResult
 ak_strtomi(char ** __restrict src,
-            ak_int * __restrict dest,
+            AkInt * __restrict dest,
             unsigned long m,
             unsigned long n) {
   char * tok;
@@ -78,14 +78,14 @@ ak_strtomi(char ** __restrict src,
   for (tok = strtok(*src, " ");
        tok && idx > 0ul;
        tok = strtok(NULL, " "))
-    *(dest - --idx) = (ak_int)strtol(tok, NULL, 10);
+    *(dest - --idx) = (AkInt)strtol(tok, NULL, 10);
 
   return AK_OK;
 }
 
 AkResult
 ak_strtof_s(const char * __restrict src,
-             ak_float * __restrict dest,
+             AkFloat * __restrict dest,
              unsigned long n) {
   char * raw;
   AkResult ret;
@@ -100,13 +100,13 @@ ak_strtof_s(const char * __restrict src,
 inline
 AkResult
 ak_strtof4(char ** __restrict src,
-            ak_float4 * __restrict dest) {
+            AkFloat4 * __restrict dest) {
   return ak_strtof(src, *dest, 4);
 }
 
 inline
 AkResult
 ak_strtof4_s(const char * __restrict src,
-              ak_float4 * __restrict dest) {
+              AkFloat4 * __restrict dest) {
   return ak_strtof_s(src, *dest, 4);
 }
