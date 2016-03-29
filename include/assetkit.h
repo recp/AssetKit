@@ -1188,29 +1188,33 @@ struct ak_material_s {
 typedef struct AkBoolArrayN {
   const char * id;
   const char * name;
-  AkBoolArray  base;
+  size_t       count;
+  AkBool       items[];
 } AkBoolArrayN;
 
 typedef struct AkFloatArrayN {
   const char * id;
   const char * name;
+  size_t       count;
   AkUInt       digits;
   AkUInt       magnitude;
-  AkFloatArray base;
+  AkFloat      items[];
 } AkFloatArrayN;
 
 typedef struct AkIntArrayN {
   const char * id;
   const char * name;
+  size_t       count;
   AkInt        minInclusive;
   AkInt        maxInclusive;
-  AkIntArray   base;
+  AkInt        items[];
 } AkIntArrayN;
 
 typedef struct AkStringArrayN {
   const char  * id;
   const char  * name;
-  AkStringArray base;
+  size_t count;
+  AkString items[];
 } AkStringArrayN;
 
 typedef struct AkSource {

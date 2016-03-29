@@ -104,9 +104,9 @@ ak_dae_source(void * __restrict memParent,
 
         _xml_readText(source, content);
 
-        boolArray->base.count = arrayCount;
+        boolArray->count = arrayCount;
         ak_strtomb(&content,
-                   boolArray->base.items,
+                   boolArray->items,
                    1,
                    arrayCount);
 
@@ -149,9 +149,9 @@ ak_dae_source(void * __restrict memParent,
 
         _xml_readText(source, content);
 
-        floatAray->base.count = arrayCount;
+        floatAray->count = arrayCount;
         ak_strtomf(&content,
-                   floatAray->base.items,
+                   floatAray->items,
                    1,
                    arrayCount);
 
@@ -194,9 +194,9 @@ ak_dae_source(void * __restrict memParent,
 
         _xml_readText(source, content);
 
-        intAray->base.count = arrayCount;
+        intAray->count = arrayCount;
         ak_strtomi(&content,
-                   intAray->base.items,
+                   intAray->items,
                    1,
                    arrayCount);
         
@@ -246,8 +246,8 @@ ak_dae_source(void * __restrict memParent,
         pData = ak_malloc(stringAray,
                           arrayDataSize);
 
-        stringAray->base.count = arrayCount;
-        stringAray->base.items[arrayCount] = pData;
+        stringAray->count = arrayCount;
+        stringAray->items[arrayCount] = pData;
 
         idx = 0;
         for (tok = strtok(content, " ");
@@ -257,7 +257,7 @@ ak_dae_source(void * __restrict memParent,
             break;
 
           strcpy(pData, tok);
-          stringAray->base.items[idx++] = pData;
+          stringAray->items[idx++] = pData;
 
           pData += strlen(tok);
           *pData++ = '\0';
