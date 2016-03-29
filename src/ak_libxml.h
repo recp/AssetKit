@@ -132,12 +132,13 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
     } else TARGET = NULL;                                                     \
   } while (0);
 
-#define _xml_readAttrUsingFn(D, X, Fn, ...)                                   \
+#define _xml_readAttrUsingFn(TARGET, ATTR, Fn, ...)                           \
   do {                                                                        \
     char * attrVal;                                                           \
-    attrVal = (char *)xmlTextReaderGetAttribute(reader, (const xmlChar *)X);  \
+    attrVal = (char *)xmlTextReaderGetAttribute(reader,                       \
+                                                (const xmlChar *)ATTR);       \
     if (attrVal) {                                                            \
-      D = Fn(attrVal, __VA_ARGS__);                                           \
+      TARGET = Fn(attrVal, __VA_ARGS__);                                      \
       xmlFree(attrVal);                                                       \
     }                                                                         \
   } while (0);
