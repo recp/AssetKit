@@ -47,7 +47,7 @@ ak_dae_source(void * __restrict memParent,
   _xml_readAttr(source, source->name, _s_dae_name);
 
   if (sourceMapLen == 0) {
-    sourceMapLen = ak_ARRAY_LEN(sourceMap);
+    sourceMapLen = AK_ARRAY_LEN(sourceMap);
     qsort(sourceMap,
           sourceMapLen,
           sizeof(sourceMap[0]),

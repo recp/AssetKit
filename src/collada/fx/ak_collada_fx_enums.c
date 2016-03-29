@@ -33,7 +33,7 @@ ak_dae_fxEnumGlFunc(const char * name) {
 
   /* COLLADA 1.5: ALWAYS is the default */
   val = AK_GL_FUNC_ALWAYS;
-  glenums_len = ak_ARRAY_LEN(glenums);
+  glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
     if (strcasecmp(name, glenums[i].name) == 0) {
@@ -70,7 +70,7 @@ ak_dae_fxEnumBlend(const char * name) {
   };
 
   val = -1;
-  glenums_len = ak_ARRAY_LEN(glenums);
+  glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
     if (strcasecmp(name, glenums[i].name) == 0) {
@@ -97,7 +97,7 @@ ak_dae_fxEnumBlendEq(const char * name) {
   };
 
   val = -1;
-  glenums_len = ak_ARRAY_LEN(glenums);
+  glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
     if (strcasecmp(name, glenums[i].name) == 0) {
@@ -122,7 +122,7 @@ ak_dae_fxEnumGLFace(const char * name) {
   };
 
   val = -1;
-  glenums_len = ak_ARRAY_LEN(glenums);
+  glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
     if (strcasecmp(name, glenums[i].name) == 0) {
@@ -149,7 +149,7 @@ ak_dae_fxEnumMaterial(const char * name) {
   };
 
   val = -1;
-  glenums_len = ak_ARRAY_LEN(glenums);
+  glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
     if (strcasecmp(name, glenums[i].name) == 0) {
@@ -174,7 +174,7 @@ ak_dae_fxEnumFog(const char * name) {
   };
 
   val = -1;
-  glenums_len = ak_ARRAY_LEN(glenums);
+  glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
     if (strcasecmp(name, glenums[i].name) == 0) {
@@ -198,7 +198,7 @@ ak_dae_fxEnumFogCoordSrc(const char * name) {
   };
 
   val = -1;
-  glenums_len = ak_ARRAY_LEN(glenums);
+  glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
     if (strcasecmp(name, glenums[i].name) == 0) {
@@ -222,7 +222,7 @@ ak_dae_fxEnumFrontFace(const char * name) {
   };
 
   val = -1;
-  glenums_len = ak_ARRAY_LEN(glenums);
+  glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
     if (strcasecmp(name, glenums[i].name) == 0) {
@@ -248,7 +248,7 @@ ak_dae_fxEnumLightModelColorCtl(const char * name) {
   };
 
   val = -1;
-  glenums_len = ak_ARRAY_LEN(glenums);
+  glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
     if (strcasecmp(name, glenums[i].name) == 0) {
@@ -285,7 +285,7 @@ ak_dae_fxEnumLogicOp(const char * name) {
   };
 
   val = -1;
-  glenums_len = ak_ARRAY_LEN(glenums);
+  glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
     if (strcasecmp(name, glenums[i].name) == 0) {
@@ -310,7 +310,7 @@ ak_dae_fxEnumPolyMode(const char * name) {
   };
 
   val = -1;
-  glenums_len = ak_ARRAY_LEN(glenums);
+  glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
     if (strcasecmp(name, glenums[i].name) == 0) {
@@ -334,7 +334,7 @@ ak_dae_fxEnumShadeModel(const char * name) {
   };
 
   val = -1;
-  glenums_len = ak_ARRAY_LEN(glenums);
+  glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
     if (strcasecmp(name, glenums[i].name) == 0) {
@@ -364,7 +364,7 @@ ak_dae_fxEnumStencilOp(const char * name) {
   };
 
   val = -1;
-  glenums_len = ak_ARRAY_LEN(glenums);
+  glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
     if (strcasecmp(name, glenums[i].name) == 0) {
@@ -391,7 +391,7 @@ ak_dae_fxEnumWrap(const char * name) {
   };
 
   val = -1;
-  glenums_len = ak_ARRAY_LEN(glenums);
+  glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
     if (strcasecmp(name, glenums[i].name) == 0) {
@@ -416,7 +416,7 @@ ak_dae_fxEnumMinfilter(const char * name) {
   };
 
   val = -1;
-  glenums_len = ak_ARRAY_LEN(glenums);
+  glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
     if (strcasecmp(name, glenums[i].name) == 0) {
@@ -441,7 +441,7 @@ ak_dae_fxEnumMipfilter(const char * name) {
   };
 
   val = -1;
-  glenums_len = ak_ARRAY_LEN(glenums);
+  glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
     if (strcasecmp(name, glenums[i].name) == 0) {
@@ -465,7 +465,7 @@ ak_dae_fxEnumMagfilter(const char * name) {
   };
 
   val = -1;
-  glenums_len = ak_ARRAY_LEN(glenums);
+  glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
     if (strcasecmp(name, glenums[i].name) == 0) {
@@ -491,7 +491,7 @@ ak_dae_fxEnumShaderStage(const char * name) {
   };
 
   val = -1;
-  glenums_len = ak_ARRAY_LEN(glenums);
+  glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
     if (strcasecmp(name, glenums[i].name) == 0) {
@@ -519,7 +519,7 @@ ak_dae_fxEnumFace(const char * name) {
   };
 
   val = -1;
-  glenums_len = ak_ARRAY_LEN(glenums);
+  glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
     if (strcasecmp(name, glenums[i].name) == 0) {
@@ -548,7 +548,7 @@ ak_dae_fxEnumDraw(const char * name) {
 
   /* AK_DRAW_READ_STR_VAL */
   val = 0;
-  glenums_len = ak_ARRAY_LEN(glenums);
+  glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
     if (strcasecmp(name, glenums[i].name) == 0) {
@@ -574,7 +574,7 @@ ak_dae_fxEnumOpaque(const char * name) {
   };
 
   val = 0;
-  glenums_len = ak_ARRAY_LEN(glenums);
+  glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
     if (strcasecmp(name, glenums[i].name) == 0) {
@@ -602,7 +602,7 @@ ak_dae_fxEnumChannel(const char * name) {
   };
 
   val = 0;
-  glenums_len = ak_ARRAY_LEN(glenums);
+  glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
     if (strcasecmp(name, glenums[i].name) == 0) {
@@ -629,7 +629,7 @@ ak_dae_fxEnumRange(const char * name) {
   };
 
   val = 0;
-  glenums_len = ak_ARRAY_LEN(glenums);
+  glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
     if (strcasecmp(name, glenums[i].name) == 0) {
@@ -656,7 +656,7 @@ ak_dae_fxEnumPrecision(const char * name) {
   };
 
   val = 0;
-  glenums_len = ak_ARRAY_LEN(glenums);
+  glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
     if (strcasecmp(name, glenums[i].name) == 0) {

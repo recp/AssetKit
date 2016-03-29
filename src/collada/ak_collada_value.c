@@ -48,7 +48,7 @@ ak_dae_valueType(const char * typeName) {
   ak_value_pair *found;
 
   if (valueMapLen == 0) {
-    valueMapLen = ak_ARRAY_LEN(valueMap);
+    valueMapLen = AK_ARRAY_LEN(valueMap);
     qsort(valueMap,
           valueMapLen,
           sizeof(valueMap[0]),
@@ -81,7 +81,7 @@ ak_dae_value(void * __restrict memParent,
   nodeName = xmlTextReaderConstName(reader);
 
   if (valueMapLen == 0) {
-    valueMapLen = ak_ARRAY_LEN(valueMap);
+    valueMapLen = AK_ARRAY_LEN(valueMap);
     qsort(valueMap,
           valueMapLen,
           sizeof(valueMap[0]),

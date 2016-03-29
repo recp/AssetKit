@@ -43,7 +43,7 @@ ak_dae_fxEvaluate(void * __restrict memParent,
   evaluate = ak_calloc(memParent, sizeof(*evaluate), 1);
 
   if (evaluateMapLen == 0) {
-    evaluateMapLen = ak_ARRAY_LEN(evaluateMap);
+    evaluateMapLen = AK_ARRAY_LEN(evaluateMap);
     qsort(evaluateMap,
           evaluateMapLen,
           sizeof(evaluateMap[0]),

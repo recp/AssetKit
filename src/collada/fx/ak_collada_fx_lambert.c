@@ -43,7 +43,7 @@ ak_dae_fxLambert(void * __restrict memParent,
   lambert = ak_calloc(memParent, sizeof(*lambert), 1);
 
   if (lambertMapLen == 0) {
-    lambertMapLen = ak_ARRAY_LEN(lambertMap);
+    lambertMapLen = AK_ARRAY_LEN(lambertMap);
     qsort(lambertMap,
           lambertMapLen,
           sizeof(lambertMap[0]),

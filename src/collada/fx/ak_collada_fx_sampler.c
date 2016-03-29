@@ -57,7 +57,7 @@ ak_dae_fxSampler(void * __restrict memParent,
   sampler = ak_calloc(memParent, sizeof(*sampler), 1);
 
   if (fxSamplerCMapLen == 0) {
-    fxSamplerCMapLen = ak_ARRAY_LEN(fxSamplerCMap);
+    fxSamplerCMapLen = AK_ARRAY_LEN(fxSamplerCMap);
     qsort(fxSamplerCMap,
           fxSamplerCMapLen,
           sizeof(fxSamplerCMap[0]),

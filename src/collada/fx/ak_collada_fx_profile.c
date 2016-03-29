@@ -40,7 +40,7 @@ ak_dae_profile(void * __restrict memParent,
   nodeName = xmlTextReaderConstName(reader);
 
   if (profileMapLen == 0) {
-    profileMapLen = ak_ARRAY_LEN(profileMap);
+    profileMapLen = AK_ARRAY_LEN(profileMap);
     qsort(profileMap,
           profileMapLen,
           sizeof(profileMap[0]),

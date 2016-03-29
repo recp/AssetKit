@@ -40,7 +40,7 @@ ak_dae_fxConstant(void * __restrict memParent,
   constant = ak_calloc(memParent, sizeof(*constant), 1);
 
   if (constantMapLen == 0) {
-    constantMapLen = ak_ARRAY_LEN(constantMap);
+    constantMapLen = AK_ARRAY_LEN(constantMap);
     qsort(constantMap,
           constantMapLen,
           sizeof(constantMap[0]),

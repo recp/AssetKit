@@ -146,7 +146,7 @@ ak_dae_fxState(void * __restrict memParent,
   states = ak_calloc(memParent, sizeof(*states), 1);
 
   if (stateMapLen == 0) {
-    stateMapLen = ak_ARRAY_LEN(stateMap);
+    stateMapLen = AK_ARRAY_LEN(stateMap);
     qsort(stateMap,
           stateMapLen,
           sizeof(stateMap[0]),

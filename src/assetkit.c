@@ -22,7 +22,7 @@ typedef struct {
 } floader_t;
 
 AkResult
-_assetkit_export
+AK_EXPORT
 ak_load(ak_doc ** __restrict dest,
          const char * __restrict file, ...) {
   floader_t * floader;
@@ -48,7 +48,7 @@ ak_load(ak_doc ** __restrict dest,
       int i;
 
       ++file_ext;
-      floader_len = ak_ARRAY_LEN(floaders);
+      floader_len = AK_ARRAY_LEN(floaders);
       for (i = 0; i < floader_len; i++) {
         if (strcmp(file_ext, floaders[i].fext) == 0) {
           floader = &floaders[i];

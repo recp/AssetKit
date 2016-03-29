@@ -35,7 +35,7 @@ ak_dae_newparam(void * __restrict memParent,
   last_annotate = NULL;
 
   if (modifierMapLen == 0) {
-    modifierMapLen = ak_ARRAY_LEN(modifierMap);
+    modifierMapLen = AK_ARRAY_LEN(modifierMap);
     qsort(modifierMap,
           modifierMapLen,
           sizeof(modifierMap[0]),
@@ -160,7 +160,7 @@ ak_dae_setparam(void * __restrict memParent,
   setparam = ak_calloc(memParent, sizeof(*setparam), 1);
 
   if (modifierMapLen == 0) {
-    modifierMapLen = ak_ARRAY_LEN(modifierMap);
+    modifierMapLen = AK_ARRAY_LEN(modifierMap);
     qsort(modifierMap,
           modifierMapLen,
           sizeof(modifierMap[0]),

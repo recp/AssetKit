@@ -21,25 +21,17 @@
 
 #if defined(_WIN32)
 #  ifdef _assetkit_dll
-#    define _assetkit_export __declspec(dllexport)
+#    define AK_EXPORT __declspec(dllexport)
 #  else
-#    define _assetkit_export __declspec(dllimport)
+#    define AK_EXPORT __declspec(dllimport)
 #  endif
-# define _assetkit_hide
+#  define _assetkit_hide
 #else
-#  define _assetkit_export __attribute__((visibility("default")))
-#  define _assetkit_hide   __attribute__((visibility("hidden")))
+#  define AK_EXPORT      __attribute__((visibility("default")))
+#  define _assetkit_hide __attribute__((visibility("hidden")))
 #endif
 
-#if DEBUG
-#  define __ak_assert(x) assert(x)
-#else
-#  define __ak_assert(x) /* do nothing */
-#endif
-
-#define __ak_restrict __restrict
-
-#define ak_ARRAY_LEN(ARR) sizeof(ARR) / sizeof(ARR[0]);
+#define AK_ARRAY_LEN(ARR) sizeof(ARR) / sizeof(ARR[0]);
 
 typedef int32_t      AkEnum;
 typedef const char * AkString;
@@ -1610,7 +1602,7 @@ struct ak_asset_s {
 #include "assetkit-string.h"
 
 AkResult
-_assetkit_export
+AK_EXPORT
 ak_load(ak_doc ** __restrict dest,
          const char * __restrict file, ...);
 

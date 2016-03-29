@@ -49,7 +49,7 @@ ak_dae_blinn_phong(void * __restrict memParent,
   blinn_phong = ak_calloc(memParent, sizeof(*blinn_phong), 1);
 
   if (blinnPhongMapLen == 0) {
-    blinnPhongMapLen = ak_ARRAY_LEN(blinnPhongMap);
+    blinnPhongMapLen = AK_ARRAY_LEN(blinnPhongMap);
     qsort(blinnPhongMap,
           blinnPhongMapLen,
           sizeof(blinnPhongMap[0]),
