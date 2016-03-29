@@ -140,12 +140,12 @@ ak_dae_source(void * __restrict memParent,
         _xml_readAttrUsingFnWithDef(floatAray->digits,
                                     _s_dae_digits,
                                     7, /* default */
-                                    strtoul, NULL, 10);
+                                    (AkInt)strtoul, NULL, 10);
 
         _xml_readAttrUsingFnWithDef(floatAray->magnitude,
                                     _s_dae_magnitude,
                                     38, /* default */
-                                    strtoul, NULL, 10);
+                                    (AkInt)strtoul, NULL, 10);
 
         _xml_readText(source, content);
 
@@ -185,12 +185,12 @@ ak_dae_source(void * __restrict memParent,
         _xml_readAttrUsingFnWithDef(intAray->minInclusive,
                                     _s_dae_minInclusive,
                                     -2147483648, /* default */
-                                    strtoul, NULL, 10);
+                                    (AkInt)strtoul, NULL, 10);
 
         _xml_readAttrUsingFnWithDef(intAray->maxInclusive,
                                     _s_dae_maxInclusive,
                                     2147483647, /* default */
-                                    strtoul, NULL, 10);
+                                    (AkInt)strtoul, NULL, 10);
 
         _xml_readText(source, content);
 
@@ -217,7 +217,7 @@ ak_dae_source(void * __restrict memParent,
         AkUInt64        arrayCount;
         size_t          arraySize;
         size_t          arrayDataSize;
-        int             idx;
+        AkUInt64        idx;
 
         _xml_readAttrUsingFnWithDef(arrayCount,
                                     _s_dae_count,
