@@ -60,7 +60,7 @@ ak_dae_source(void * __restrict memParent,
   do {
     const ak_enumpair *found;
 
-    _xml_beginElement(_s_dae_mesh);
+    _xml_beginElement(_s_dae_source);
 
     found = bsearch(nodeName,
                     sourceMap,
@@ -102,7 +102,7 @@ ak_dae_source(void * __restrict memParent,
         _xml_readAttr(obj, boolArray->id, _s_dae_id);
         _xml_readAttr(obj, boolArray->name, _s_dae_name);
 
-        content = (char *)xmlTextReaderValue(reader);
+        _xml_readText(source, content);
 
         boolArray->base.count = arrayCount;
         ak_strtomb(&content,
@@ -112,7 +112,7 @@ ak_dae_source(void * __restrict memParent,
 
         source->data = obj;
 
-        xmlFree(content);
+        ak_free(content);
         break;
       }
       case AK_SOURCE_ARRAY_TYPE_FLOAT: {
@@ -147,7 +147,7 @@ ak_dae_source(void * __restrict memParent,
                                     38, /* default */
                                     strtoul, NULL, 10);
 
-        content = (char *)xmlTextReaderValue(reader);
+        _xml_readText(source, content);
 
         floatAray->base.count = arrayCount;
         ak_strtomf(&content,
@@ -157,7 +157,7 @@ ak_dae_source(void * __restrict memParent,
 
         source->data = obj;
 
-        xmlFree(content);
+        ak_free(content);
         break;
       }
       case AK_SOURCE_ARRAY_TYPE_INT: {
@@ -192,7 +192,7 @@ ak_dae_source(void * __restrict memParent,
                                     2147483647, /* default */
                                     strtoul, NULL, 10);
 
-        content = (char *)xmlTextReaderValue(reader);
+        _xml_readText(source, content);
 
         intAray->base.count = arrayCount;
         ak_strtomi(&content,
@@ -202,7 +202,7 @@ ak_dae_source(void * __restrict memParent,
         
         source->data = obj;
 
-        xmlFree(content);
+        ak_free(content);
         break;
       }
       case AK_SOURCE_ARRAY_TYPE_IDREF:
@@ -224,7 +224,7 @@ ak_dae_source(void * __restrict memParent,
                                     0,
                                     strtoul, NULL, 10);
 
-        content = (char *)xmlTextReaderValue(reader);
+        _xml_readText(source, content);
 
         /* 
          |pSTR1|pSTR2|pSTR3|STR1\0STR2\0STR3|
@@ -265,7 +265,7 @@ ak_dae_source(void * __restrict memParent,
 
         source->data = obj;
 
-        xmlFree(content);
+        ak_free(content);
         break;
       }
       case k_s_dae_techniquec: {
