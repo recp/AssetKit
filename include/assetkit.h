@@ -1212,7 +1212,7 @@ typedef struct AkIntArrayN {
   const char * name;
   AkInt        minInclusive;
   AkInt        maxInclusive;
-  AkFloatArray base;
+  AkIntArray   base;
 } AkIntArrayN;
 
 typedef struct AkStringArrayN {
