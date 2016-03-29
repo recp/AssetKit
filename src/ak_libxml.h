@@ -89,7 +89,7 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
     /* read text element*/                                                    \
     _xml_readNext;                                                            \
     TARGET = nodeType == XML_TEXT_NODE ?                                      \
-         ak_strdup(PARENT,                                                   \
+         ak_strdup(PARENT,                                                    \
                     (const char *)xmlTextReaderConstValue(reader)) : NULL;    \
   } while (0)
 
@@ -127,7 +127,7 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
     attrVal = (char *)xmlTextReaderGetAttribute(reader,                       \
                                                 (const xmlChar *)ATTR);       \
     if (attrVal) {                                                            \
-      TARGET = ak_strdup(PARENT, attrVal);                                   \
+      TARGET = ak_strdup(PARENT, attrVal);                                    \
       xmlFree(attrVal);                                                       \
     } else TARGET = NULL;                                                     \
   } while (0);
@@ -159,35 +159,35 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
     attrValStr = (char *)xmlTextReaderGetAttribute(reader,                    \
                                                    (const xmlChar *)X);       \
     if (attrValStr) {                                                         \
-      AkEnum attrVal;                                                           \
+      AkEnum attrVal;                                                         \
       attrVal = FN(attrValStr);                                               \
       D = attrVal != -1 ? attrVal: 0;                                         \
       xmlFree(attrValStr);                                                    \
     } else D = 0;                                                             \
   } while(0);
 
-#define _xml_readAttrAsEnum(D, X, FN)                                         \
+#define _xml_readAttrAsEnum(TARGET, ATTR, FN)                                 \
   do {                                                                        \
     char *attrValStr;                                                         \
     attrValStr = (char *)xmlTextReaderGetAttribute(reader,                    \
-                                                   (const xmlChar *)X);       \
+                                                   (const xmlChar *)ATTR);    \
     if (attrValStr) {                                                         \
-      AkEnum attrVal;                                                           \
+      AkEnum attrVal;                                                         \
       attrVal = FN(attrValStr);                                               \
-      D = attrVal != -1 ? attrVal: 0;                                         \
+      TARGET = attrVal != -1 ? attrVal: 0;                                    \
       xmlFree(attrValStr);                                                    \
-    } else D = 0;                                                             \
+    } else TARGET = 0;                                                        \
   } while(0);
 
-#define _xml_readAttrAsEnumWithDef(D, X, FN, DEF)                             \
+#define _xml_readAttrAsEnumWithDef(TARGET, ATTR, FN, DEF)                     \
   do {                                                                        \
     char *attrValStr;                                                         \
     attrValStr = (char *)xmlTextReaderGetAttribute(reader,                    \
-                                                   (const xmlChar *)X);       \
+                                                   (const xmlChar *)ATTR);    \
     if (attrValStr) {                                                         \
-      AkEnum attrVal;                                                           \
+      AkEnum attrVal;                                                         \
       attrVal = FN(attrValStr);                                               \
-      D = attrVal != -1 ? attrVal: DEF;                                       \
+      TARGET = attrVal != -1 ? attrVal: DEF;                                  \
       xmlFree(attrValStr);                                                    \
     } else D = DEF;                                                           \
   } while(0);

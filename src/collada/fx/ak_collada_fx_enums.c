@@ -9,11 +9,6 @@
 #include "../../ak_common.h"
 #include <string.h>
 
-typedef struct {
-  const char * name;
-  AkEnum      val;
-} ak_dae_enum;
-
 AkEnum _assetkit_hide
 ak_dae_fxEnumGlFunc(const char * name) {
   AkEnum val;
