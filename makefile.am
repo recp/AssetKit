@@ -39,6 +39,9 @@ libassetkit_la_SOURCES=\
     src/collada/ak_collada.c \
     src/collada/ak_collada_common.c \
     src/collada/core/ak_collada_source.c \
+    src/collada/core/ak_collada_vertices.c \
+    src/collada/core/ak_collada_enums.c \
+    src/collada/core/ak_collada_lines.c \
     src/collada/ak_collada_asset.c \
     src/collada/ak_collada_technique.c \
     src/collada/ak_collada_techniquec.c \
