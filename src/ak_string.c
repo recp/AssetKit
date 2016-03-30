@@ -12,6 +12,23 @@
 
 AkResult
 AK_EXPORT
+ak_strtod(char ** __restrict src,
+          AkDouble * __restrict dest,
+          unsigned long n) {
+  char * tok;
+
+  dest = dest + n - 1ul;
+
+  for (tok = strtok(*src, " ");
+       tok && n > 0ul;
+       tok = strtok(NULL, " "))
+    *(dest - --n) = strtod(tok, NULL);
+
+  return AK_OK;
+}
+
+AkResult
+AK_EXPORT
 ak_strtof(char ** __restrict src,
            AkFloat * __restrict dest,
            unsigned long n) {

@@ -10,6 +10,12 @@
 
 AkResult
 AK_EXPORT
+ak_strtod(char ** __restrict src,
+          AkDouble * __restrict dest,
+          unsigned long n);
+
+AkResult
+AK_EXPORT
 ak_strtof(char ** __restrict src,
            AkFloat * __restrict dest,
            unsigned long n);
