@@ -330,6 +330,7 @@ ak_objAlloc(void * __restrict memParent,
 
   obj->size  = typeSize;
   obj->type  = typeEnum;
+  obj->next  = NULL;
   obj->pData = (void *)((char *)obj + offsetof(AkObject, data));
 
   if (zeroed)

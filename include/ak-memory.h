@@ -12,8 +12,9 @@
 #include <sys/types.h>
 
 typedef struct AkObject {
-  AkEnum type;
+  struct AkObject * next;
   size_t size;
+  AkEnum type;
   void * pData;
   char   data[];
 } AkObject;
