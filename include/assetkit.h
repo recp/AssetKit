@@ -288,12 +288,11 @@ typedef enum AkLineMode {
   AK_LINE_MODE_LINE_STRIP = 2
 } AkLineMode;
 
-typedef enum AkGemoetricPrimitiveType {
-  AK_GEOMETRIC_PRIMITIVE_TYPE_LINES     = 1,
-  AK_GEOMETRIC_PRIMITIVE_TYPE_POLYGONS  = 2,
-  AK_GEOMETRIC_PRIMITIVE_TYPE_POLYLIST  = 3,
-  AK_GEOMETRIC_PRIMITIVE_TYPE_TRIANGLES = 4
-} AkGemoetricPrimitiveType;
+typedef enum AkMeshPrimitiveType {
+  AK_MESH_PRIMITIVE_TYPE_LINES      = 1,
+  AK_MESH_PRIMITIVE_TYPE_POLYGONS   = 2,
+  AK_MESH_PRIMITIVE_TYPE_TRIANGLES  = 3
+} AkMeshPrimitiveType;
 
 typedef enum AkCurveElementType {
   AK_CURVE_ELEMENT_TYPE_LINE      = 1,
@@ -1263,12 +1262,11 @@ typedef struct AkLines {
   const char * material;
   uint64_t     count;
 
-  AkLineMode   mode;
-
   AkInput    * input;
   AkTree     * extra;
+  AkLineMode   mode;
 
-  AkIntArray * primitives;
+  AkDoubleArrayL * primitives;
 } AkLines;
 
 typedef struct AkPolygons {
