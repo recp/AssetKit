@@ -353,5 +353,7 @@
   "digits": "digits",
   "magnitude": "magnitude",
   "minInclusive": "minInclusive",
-  "maxInclusive": "maxInclusive"
+  "maxInclusive": "maxInclusive",
+  "ph": "ph",
+  "h": "h"
 }

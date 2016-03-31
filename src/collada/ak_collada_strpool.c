@@ -365,6 +365,8 @@ const char _s_dae_pool[] =
 "magnitude\0"
 "minInclusive\0"
 "maxInclusive\0"
+"ph\0"
+"h\0"
 ;
 
 #undef _ak_DAE_STRPOOL_

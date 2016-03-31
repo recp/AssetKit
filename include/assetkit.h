@@ -288,6 +288,11 @@ typedef enum AkLineMode {
   AK_LINE_MODE_LINE_STRIP = 2
 } AkLineMode;
 
+typedef enum AkPolygonMode {
+  AK_POLYGON_MODE_POLYLIST = 0,
+  AK_POLYGON_MODE_POLYGONS = 1
+} AkPolygonMode;
+
 typedef enum AkMeshPrimitiveType {
   AK_MESH_PRIMITIVE_TYPE_LINES      = 1,
   AK_MESH_PRIMITIVE_TYPE_POLYGONS   = 2,
@@ -1269,6 +1274,16 @@ typedef struct AkLines {
   AkDoubleArrayL * primitives;
 } AkLines;
 
+typedef struct AkPolygon {
+  struct AkPolygon * next;
+
+  AkDoubleArray  * primitives;
+  AkDoubleArrayL * holes;
+  AkIntArray     * vcount;
+  AkPolygonMode    mode;
+  AkBool           haveHoles;
+} AkPolygon;
+
 typedef struct AkPolygons {
   ak_asset_base
 
@@ -1277,30 +1292,9 @@ typedef struct AkPolygons {
   uint64_t      count;
 
   AkInput     * input;
+  AkPolygon   * polygon;
   AkTree      * extra;
-
-  AkIntArrayL * primitives;
-
-  struct {
-    AkIntArray  * p;
-    AkIntArrayL * h;
-  }           * holes;
-
 } AkPolygons;
-
-typedef struct AkPolyList {
-  ak_asset_base
-
-  const char * name;
-  const char * material;
-  uint64_t     count;
-
-  AkInput    * input;
-  AkTree     * extra;
-
-  AkIntArray * vcount;
-  AkIntArray * primitives;
-} AkPolyList;
 
 typedef struct AkTriangles {
   ak_asset_base
