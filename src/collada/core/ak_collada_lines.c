@@ -123,7 +123,7 @@ ak_dae_lines(void * __restrict memParent,
       last_array = doubleArray;
 
       ak_free(fakeArray);
-      ak_free(content);
+      xmlFree(content);
     } else if (_xml_eqElm(_s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
