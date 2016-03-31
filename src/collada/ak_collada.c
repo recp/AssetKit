@@ -11,6 +11,8 @@
 #include "ak_collada_camera.h"
 #include "ak_collada_light.h"
 
+#include "core/ak_collada_geometry.h"
+
 #include "fx/ak_collada_fx_effect.h"
 #include "fx/ak_collada_fx_image.h"
 #include "fx/ak_collada_fx_material.h"
@@ -26,6 +28,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
   ak_lib_effect   *last_libEffect;
   ak_lib_image    *last_libImage;
   ak_lib_material *last_libMaterial;
+  AkLibGeometry   *last_libGeometry;
 
   xmlTextReaderPtr  reader;
   const xmlChar    *nodeName;
@@ -65,6 +68,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
   last_libEffect   = NULL;
   last_libImage    = NULL;
   last_libMaterial = NULL;
+  last_libGeometry = NULL;
 
   do {
     _xml_beginElement(_s_dae_collada);
@@ -380,6 +384,67 @@ ak_dae_doc(ak_doc ** __restrict dest,
 
           ak_tree_fromXmlNode(doc, nodePtr, &tree, NULL);
           libmaterial->extra = tree;
+
+          _xml_skipElement;
+        } else {
+          _xml_skipElement;
+        }
+        
+        /* end element */
+        _xml_endElement;
+      } while (nodeRet);
+    } else if (_xml_eqElm(_s_dae_lib_geometries)) {
+      AkLibGeometry *libGeometry;
+      AkGeometry    *lastGeometry;
+
+      libGeometry = ak_calloc(doc, sizeof(*libGeometry), 1);
+      if (last_libGeometry)
+        last_libGeometry->next = libGeometry;
+      else
+        doc->lib.geometries = libGeometry;
+
+      last_libGeometry = libGeometry;
+
+      _xml_readAttr(libGeometry, libGeometry->id, _s_dae_id);
+      _xml_readAttr(libGeometry, libGeometry->name, _s_dae_name);
+
+      lastGeometry = NULL;
+
+      do {
+        _xml_beginElement(_s_dae_lib_geometries);
+
+        if (_xml_eqElm(_s_dae_asset)) {
+          ak_assetinf *assetInf;
+          AkResult ret;
+
+          assetInf = NULL;
+          ret = ak_dae_assetInf(doc, reader, &assetInf);
+          if (ret == AK_OK)
+            libGeometry->inf = assetInf;
+
+        } else if (_xml_eqElm(_s_dae_geometry)) {
+          AkGeometry *geometry;
+          AkResult ret;
+
+          geometry = NULL;
+          ret = ak_dae_geometry(doc, reader, &geometry);
+          if (ret == AK_OK) {
+            if (lastGeometry)
+              lastGeometry->next = geometry;
+            else
+              libGeometry->chld = geometry;
+
+            lastGeometry = geometry;
+          }
+        } else if (_xml_eqElm(_s_dae_extra)) {
+          xmlNodePtr nodePtr;
+          AkTree   *tree;
+
+          nodePtr = xmlTextReaderExpand(reader);
+          tree = NULL;
+
+          ak_tree_fromXmlNode(doc, nodePtr, &tree, NULL);
+          libGeometry->extra = tree;
 
           _xml_skipElement;
         } else {
