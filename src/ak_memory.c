@@ -139,6 +139,26 @@ ak_heap_realloc(ak_heap * __restrict heap,
                        ak__heapnd_sz_algnd + newsize);
   assert(newNode && "realloc failed");
 
+  if (heap->root == oldNode)
+    heap->root = newNode;
+
+  if (heap->trash == oldNode)
+    heap->trash = newNode;
+
+  if (newNode->chld)
+    newNode->chld->prev = newNode;
+
+  if (newNode->next)
+    newNode->next->prev = newNode;
+
+  if (newNode->prev) {
+    if (newNode->prev->chld == oldNode)
+      newNode->prev->chld = newNode;
+
+    if (newNode->prev->next == oldNode)
+      newNode->prev->next = newNode;
+  }
+
   return ak__alignas(newNode);
 }
 
