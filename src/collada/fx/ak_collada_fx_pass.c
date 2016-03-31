@@ -34,7 +34,7 @@ ak_dae_fxPass(void * __restrict memParent,
 
     if (_xml_eqElm(_s_dae_asset)) {
       ak_assetinf *assetInf;
-      int ret;
+      AkResult ret;
 
       assetInf = NULL;
       ret = ak_dae_assetInf(pass, reader, &assetInf);
@@ -42,7 +42,7 @@ ak_dae_fxPass(void * __restrict memParent,
         pass->inf = assetInf;
     } else if (_xml_eqElm(_s_dae_annotate)) {
       ak_annotate *annotate;
-      int           ret;
+      AkResult     ret;
 
       ret = ak_dae_annotate(pass, reader, &annotate);
 
@@ -56,7 +56,7 @@ ak_dae_fxPass(void * __restrict memParent,
       }
     } else if (_xml_eqElm(_s_dae_states)) {
       ak_states *states;
-      int         ret;
+      AkResult   ret;
 
       ret = ak_dae_fxState(pass, reader, &states);
       if (ret == AK_OK)
@@ -64,14 +64,14 @@ ak_dae_fxPass(void * __restrict memParent,
 
     } else if (_xml_eqElm(_s_dae_program)) {
       ak_program *prog;
-      int          ret;
+      AkResult    ret;
 
       ret = ak_dae_fxProg(pass, reader, &prog);
       if (ret == AK_OK)
         pass->program = prog;
     } else if (_xml_eqElm(_s_dae_evaluate)) {
       ak_evaluate * evaluate;
-      int ret;
+      AkResult ret;
 
       ret = ak_dae_fxEvaluate(pass, reader, &evaluate);
       if (ret == AK_OK)

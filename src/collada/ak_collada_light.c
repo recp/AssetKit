@@ -33,7 +33,7 @@ ak_dae_light(void * __restrict memParent,
 
     if (_xml_eqElm(_s_dae_asset)) {
       ak_assetinf *assetInf;
-      int ret;
+      AkResult ret;
 
       assetInf = NULL;
       ret = ak_dae_assetInf(light, reader, &assetInf);
@@ -42,7 +42,7 @@ ak_dae_light(void * __restrict memParent,
 
     } else if (_xml_eqElm(_s_dae_techniquec)) {
       ak_technique_common *tc;
-      int                   ret;
+      AkResult ret;
 
       tc = NULL;
       ret = ak_dae_techniquec(light, reader, &tc);
@@ -57,7 +57,7 @@ ak_dae_light(void * __restrict memParent,
 
     } else if (_xml_eqElm(_s_dae_technique)) {
       ak_technique *tq;
-      int            ret;
+      AkResult ret;
 
       tq = NULL;
       ret = ak_dae_technique(light, reader, &tq);

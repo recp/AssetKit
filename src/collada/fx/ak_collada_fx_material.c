@@ -28,7 +28,7 @@ ak_dae_material(void * __restrict memParent,
 
     if (_xml_eqElm(_s_dae_asset)) {
       ak_assetinf *assetInf;
-      int ret;
+      AkResult ret;
 
       assetInf = NULL;
       ret = ak_dae_assetInf(material, reader, &assetInf);
@@ -36,7 +36,7 @@ ak_dae_material(void * __restrict memParent,
         material->inf = assetInf;
     } else if (_xml_eqElm(_s_dae_inst_effect)) {
       ak_effect_instance *effectInstance;
-      int ret;
+      AkResult ret;
 
       effectInstance = NULL;
       ret = ak_dae_fxEffectInstance(material, reader, &effectInstance);

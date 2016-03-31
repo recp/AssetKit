@@ -39,7 +39,7 @@ ak_dae_floatOrParam(void * __restrict memParent,
       floatOrParam->val = valuef;
     } else if (_xml_eqElm(_s_dae_param)) {
       ak_param * param;
-      int         ret;
+      AkResult   ret;
 
       ret = ak_dae_param(floatOrParam,
                           reader,

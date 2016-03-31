@@ -481,7 +481,7 @@ ak_dae_fxState_sampler(xmlTextReaderPtr reader,
 
     if (_xml_eqElm(_s_dae_value)) {
       ak_fx_sampler_common * sampler;
-      int ret;
+      AkResult ret;
 
       sampler = NULL;
       ret = ak_dae_fxSampler(state,

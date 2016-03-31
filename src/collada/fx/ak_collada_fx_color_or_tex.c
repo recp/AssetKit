@@ -77,7 +77,7 @@ ak_dae_colorOrTex(void * __restrict memParent,
       }
     } else if (_xml_eqElm(_s_dae_param)) {
       ak_param * param;
-      int         ret;
+      AkResult   ret;
 
       ret = ak_dae_param(colorOrTex,
                           reader,

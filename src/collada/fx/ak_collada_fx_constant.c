@@ -63,7 +63,7 @@ ak_dae_fxConstant(void * __restrict memParent,
       case k_s_dae_reflective:
       case k_s_dae_transparent: {
         ak_fx_color_or_tex *colorOrTex;
-        int ret;
+        AkResult ret;
 
         ret = ak_dae_colorOrTex(constant,
                                  reader,
@@ -90,7 +90,7 @@ ak_dae_fxConstant(void * __restrict memParent,
       case k_s_dae_transparency:
       case k_s_dae_index_of_refraction: {
         ak_fx_float_or_param * floatOrParam;
-        int ret;
+        AkResult ret;
 
         ret = ak_dae_floatOrParam(constant,
                                    reader,

@@ -47,7 +47,7 @@ ak_dae_newparam(void * __restrict memParent,
 
     if (_xml_eqElm(_s_dae_annotate)) {
       ak_annotate *annotate;
-      int ret;
+      AkResult ret;
 
       ret = ak_dae_annotate(newparam, reader, &annotate);
       if (ret == AK_OK) {
@@ -78,9 +78,9 @@ ak_dae_newparam(void * __restrict memParent,
     } else {
       /* load once */
       if (!newparam->val) {
-        void           * val;
-        AkValueType   val_type;
-        int              ret;
+        void      * val;
+        AkValueType val_type;
+        AkResult    ret;
 
         ret = ak_dae_value(newparam,
                             reader,
@@ -172,9 +172,9 @@ ak_dae_setparam(void * __restrict memParent,
 
     /* load once */
     if (!setparam->val) {
-      void           * val;
-      AkValueType   val_type;
-      int              ret;
+      void      * val;
+      AkValueType val_type;
+      AkResult    ret;
 
       ret = ak_dae_value(setparam,
                           reader,

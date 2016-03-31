@@ -30,7 +30,7 @@ ak_dae_fxBindUniform(void * __restrict memParent,
 
     if (_xml_eqElm(_s_dae_param)) {
       ak_param * param;
-      int         ret;
+      AkResult   ret;
 
       ret = ak_dae_param(bind_uniform,
                           reader,
@@ -48,9 +48,9 @@ ak_dae_fxBindUniform(void * __restrict memParent,
     } else {
       /* load once */
       if (!bind_uniform->val) {
-        void           * val;
-        AkValueType   val_type;
-        int              ret;
+        void      * val;
+        AkValueType val_type;
+        AkResult    ret;
 
         ret = ak_dae_value(bind_uniform,
                             reader,

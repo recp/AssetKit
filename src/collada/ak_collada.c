@@ -73,7 +73,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
     if (_xml_eqElm(_s_dae_asset)) {
       ak_assetinf * assetInf;
       ak_docinf   * docInf;
-      int          ret;
+      AkResult      ret;
 
       docInf = ak_calloc(doc, sizeof(*docInf), 1);
       assetInf = &docInf->base;
@@ -105,7 +105,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
 
         if (_xml_eqElm(_s_dae_asset)) {
           ak_assetinf *assetInf;
-          int ret;
+          AkResult ret;
 
           assetInf = NULL;
           ret = ak_dae_assetInf(doc, reader, &assetInf);
@@ -114,7 +114,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
 
         } else if (_xml_eqElm(_s_dae_camera)) {
           ak_camera *acamera;
-          int         ret;
+          AkResult   ret;
 
           acamera = NULL;
           ret = ak_dae_camera(doc, reader, &acamera);
@@ -166,7 +166,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
 
         if (_xml_eqElm(_s_dae_asset)) {
           ak_assetinf *assetInf;
-          int ret;
+          AkResult ret;
 
           assetInf = NULL;
           ret = ak_dae_assetInf(doc, reader, &assetInf);
@@ -175,7 +175,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
 
         } else if (_xml_eqElm(_s_dae_light)) {
           ak_light *alight;
-          int        ret;
+          AkResult  ret;
 
           alight = NULL;
           ret = ak_dae_light(doc, reader, &alight);
@@ -229,7 +229,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
 
         if (_xml_eqElm(_s_dae_asset)) {
           ak_assetinf *assetInf;
-          int ret;
+          AkResult ret;
 
           assetInf = NULL;
           ret = ak_dae_assetInf(doc, reader, &assetInf);
@@ -238,7 +238,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
 
         } else if (_xml_eqElm(_s_dae_effect)) {
           ak_effect *anEffect;
-          int         ret;
+          AkResult   ret;
 
           ret = ak_dae_effect(doc, reader, &anEffect);
           if (ret == AK_OK) {
@@ -290,7 +290,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
 
         if (_xml_eqElm(_s_dae_asset)) {
           ak_assetinf *assetInf;
-          int ret;
+          AkResult ret;
 
           assetInf = NULL;
           ret = ak_dae_assetInf(doc, reader, &assetInf);
@@ -299,7 +299,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
 
         } else if (_xml_eqElm(_s_dae_image)) {
           ak_image *anImg;
-          int        ret;
+          AkResult  ret;
           
           ret = ak_dae_fxImage(doc, reader, &anImg);
           if (ret == AK_OK) {
@@ -350,7 +350,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
 
         if (_xml_eqElm(_s_dae_asset)) {
           ak_assetinf *assetInf;
-          int ret;
+          AkResult ret;
 
           assetInf = NULL;
           ret = ak_dae_assetInf(doc, reader, &assetInf);
@@ -359,7 +359,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
 
         } else if (_xml_eqElm(_s_dae_material)) {
           ak_material *material;
-          int ret;
+          AkResult ret;
 
           material = NULL;
           ret = ak_dae_material(doc, reader, &material);

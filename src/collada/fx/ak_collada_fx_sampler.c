@@ -78,7 +78,7 @@ ak_dae_fxSampler(void * __restrict memParent,
     switch (found->val) {
       case k_s_dae_instance_image: {
         ak_image_instance * imageInst;
-        int ret;
+        AkResult ret;
 
         ret = ak_dae_fxImageInstance(sampler, reader, &imageInst);
 
@@ -123,7 +123,7 @@ ak_dae_fxSampler(void * __restrict memParent,
         break;
       case k_s_dae_border_color: {
         ak_color *color;
-        int        ret;
+        AkResult  ret;
 
         color = ak_calloc(sampler, sizeof(*color), 1);
         ret   = ak_dae_color(reader, true, color);

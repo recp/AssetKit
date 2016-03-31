@@ -71,7 +71,7 @@ ak_dae_source(void * __restrict memParent,
     switch (found->val) {
       case k_s_dae_asset: {
         ak_assetinf *assetInf;
-        int ret;
+        AkResult ret;
 
         assetInf = NULL;
         ret = ak_dae_assetInf(source, reader, &assetInf);
@@ -270,7 +270,7 @@ ak_dae_source(void * __restrict memParent,
       }
       case k_s_dae_techniquec: {
         ak_technique_common *tc;
-        int                  ret;
+        AkResult ret;
 
         tc = NULL;
         ret = ak_dae_techniquec(source, reader, &tc);
@@ -287,7 +287,7 @@ ak_dae_source(void * __restrict memParent,
       }
       case k_s_dae_technique: {
         ak_technique *tq;
-        int           ret;
+        AkResult ret;
 
         tq = NULL;
         ret = ak_dae_technique(source, reader, &tq);

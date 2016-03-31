@@ -40,7 +40,7 @@ ak_dae_effect(void * __restrict memParent,
 
     if (_xml_eqElm(_s_dae_asset)) {
       ak_assetinf *assetInf;
-      int ret;
+      AkResult ret;
 
       assetInf = NULL;
       ret = ak_dae_assetInf(effect, reader, &assetInf);
@@ -48,7 +48,7 @@ ak_dae_effect(void * __restrict memParent,
         effect->inf = assetInf;
     } else if (_xml_eqElm(_s_dae_annotate)) {
       ak_annotate *annotate;
-      int           ret;
+      AkResult     ret;
 
       ret = ak_dae_annotate(effect, reader, &annotate);
 
@@ -62,7 +62,7 @@ ak_dae_effect(void * __restrict memParent,
       }
     } else if (_xml_eqElm(_s_dae_newparam)) {
       ak_newparam *newparam;
-      int            ret;
+      AkResult     ret;
 
       ret = ak_dae_newparam(effect, reader, &newparam);
 
@@ -81,7 +81,7 @@ ak_dae_effect(void * __restrict memParent,
                || _xml_eqElm(_s_dae_prfl_cg)
                || _xml_eqElm(_s_dae_prfl_bridge)) {
       ak_profile *profile;
-      int          ret;
+      AkResult    ret;
 
       ret = ak_dae_profile(effect, reader, &profile);
 
@@ -158,7 +158,7 @@ ak_dae_fxEffectInstance(void * __restrict memParent,
         last_techHint = techHint;
       } else if (_xml_eqElm(_s_dae_setparam)) {
         ak_setparam *setparam;
-        int ret;
+        AkResult ret;
 
         ret = ak_dae_setparam(effectInst, reader, &setparam);
 

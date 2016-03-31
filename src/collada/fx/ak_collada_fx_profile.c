@@ -122,7 +122,7 @@ ak_dae_profile(void * __restrict memParent,
 
     if (_xml_eqElm(_s_dae_asset)) {
       ak_assetinf *assetInf;
-      int ret;
+      AkResult ret;
 
       assetInf = NULL;
       ret = ak_dae_assetInf(profile, reader, &assetInf);
@@ -130,7 +130,7 @@ ak_dae_profile(void * __restrict memParent,
         profile->inf = assetInf;
     } else if (_xml_eqElm(_s_dae_newparam)) {
       ak_newparam *newparam;
-      int            ret;
+      AkResult     ret;
 
       ret = ak_dae_newparam(profile,
                              reader,
@@ -146,7 +146,7 @@ ak_dae_profile(void * __restrict memParent,
       }
     } else if (_xml_eqElm(_s_dae_technique)) {
       ak_technique_fx * technique_fx;
-      int                ret;
+      AkResult ret;
 
       ret = ak_dae_techniqueFx(profile, reader, &technique_fx);
       if (ret == AK_OK) {
@@ -160,7 +160,7 @@ ak_dae_profile(void * __restrict memParent,
 
     } else if (_xml_eqElm(_s_dae_extra)) {
       xmlNodePtr nodePtr;
-      AkTree   *tree;
+      AkTree    *tree;
 
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;

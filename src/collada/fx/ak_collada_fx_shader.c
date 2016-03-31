@@ -94,7 +94,7 @@ ak_dae_fxShader(void * __restrict memParent,
 
         if (_xml_eqElm(_s_dae_binary)) {
           ak_binary *binary;
-          int         ret;
+          AkResult   ret;
 
           ret = ak_dae_fxBinary(compiler, reader, &binary);
           if (ret == AK_OK)
@@ -115,7 +115,7 @@ ak_dae_fxShader(void * __restrict memParent,
       last_compiler = compiler;
     } else if (_xml_eqElm(_s_dae_bind_uniform)) {
       ak_bind_uniform *bind_uniform;
-      int ret;
+      AkResult ret;
 
       ret = ak_dae_fxBindUniform(shader, reader, &bind_uniform);
       if (ret == AK_OK) {

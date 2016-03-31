@@ -28,7 +28,7 @@ ak_dae_camera(void * __restrict memParent,
 
     if (_xml_eqElm(_s_dae_asset)) {
       ak_assetinf *assetInf;
-      int ret;
+      AkResult ret;
 
       assetInf = NULL;
       ret = ak_dae_assetInf(camera, reader, &assetInf);
@@ -50,7 +50,7 @@ ak_dae_camera(void * __restrict memParent,
 
         if (_xml_eqElm(_s_dae_techniquec)) {
           ak_technique_common *tc;
-          int                   ret;
+          AkResult ret;
 
           tc = NULL;
           ret = ak_dae_techniquec(optics, reader, &tc);
@@ -65,7 +65,7 @@ ak_dae_camera(void * __restrict memParent,
 
         } else if (_xml_eqElm(_s_dae_technique)) {
           ak_technique *tq;
-          int            ret;
+          AkResult ret;
 
           tq = NULL;
           ret = ak_dae_technique(optics, reader, &tq);
@@ -98,7 +98,7 @@ ak_dae_camera(void * __restrict memParent,
 
         if (_xml_eqElm(_s_dae_technique)) {
           ak_technique *tq;
-          int            ret;
+          AkResult ret;
 
           tq = NULL;
           ret = ak_dae_technique(imager, reader, &tq);

@@ -93,7 +93,7 @@ ak_dae_fxEvaluate(void * __restrict memParent,
 
           if (_xml_eqElm(_s_dae_param)) {
             ak_param * param;
-            int         ret;
+            AkResult   ret;
 
             ret = ak_dae_param(evaluate_target,
                                 reader,
@@ -104,7 +104,7 @@ ak_dae_fxEvaluate(void * __restrict memParent,
               evaluate_target->param = param;
           } else if (_xml_eqElm(_s_dae_instance_image)) {
             ak_image_instance *imageInst;
-            int ret;
+            AkResult ret;
 
             ret = ak_dae_fxImageInstance(evaluate_target,
                                           reader,
