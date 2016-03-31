@@ -7,6 +7,7 @@
 
 #include "ak_collada_lines.h"
 #include "ak_collada_enums.h"
+#include "../../ak_array.h"
 
 AkResult _assetkit_hide
 ak_dae_lines(void * __restrict memParent,
@@ -79,51 +80,21 @@ ak_dae_lines(void * __restrict memParent,
       last_input = input;
     } else if (_xml_eqElm(_s_dae_p)) {
       AkDoubleArrayL *doubleArray;
-      AkDouble       *fakeArray;
-      AkUInt64        fakeCount;
-      AkUInt64        arrayIndex;
-      size_t          arraySize;
-      char           *tok;
       char           *content;
+      AkResult        ret;
 
       _xml_readText(memPtr, content);
 
-      fakeCount  = 32;
-      arrayIndex = 0;
+      ret = ak_strtod_arrayL(memPtr, content, &doubleArray);
+      if (ret == AK_OK) {
+        if (last_array)
+          last_array->next = doubleArray;
+        else
+          lines->primitives = doubleArray;
 
-      fakeArray = ak_malloc(memPtr,
-                            sizeof(AkDouble) * fakeCount);
-
-      tok = strtok(content, " ");
-      while (tok) {
-        *(fakeArray + arrayIndex++) = strtod(tok, NULL);
-
-        tok = strtok(NULL, " ");
-
-        if (tok && arrayIndex == fakeCount) {
-          fakeCount += 32;
-          fakeArray = ak_realloc(memPtr,
-                                 fakeArray,
-                                 sizeof(AkDouble) * fakeCount);
-        }
+        last_array = doubleArray;
+        xmlFree(content);
       }
-
-      arraySize = sizeof(AkDouble) * arrayIndex;
-      doubleArray = ak_malloc(memPtr,
-                              sizeof(*doubleArray) + arraySize);
-
-      doubleArray->count = arrayIndex;
-      memmove(doubleArray->items, fakeArray, arraySize);
-
-      if (last_array)
-        last_array->next = doubleArray;
-      else
-        lines->primitives = doubleArray;
-
-      last_array = doubleArray;
-
-      ak_free(fakeArray);
-      xmlFree(content);
     } else if (_xml_eqElm(_s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
