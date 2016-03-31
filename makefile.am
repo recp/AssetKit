@@ -36,6 +36,7 @@ libassetkit_la_SOURCES=\
     src/ak_utils.c \
     src/ak_string.c \
     src/ak_tree.c \
+    src/ak_array.c \
     src/collada/ak_collada.c \
     src/collada/ak_collada_common.c \
     src/collada/core/ak_collada_geometry.c \
