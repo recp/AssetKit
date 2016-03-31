@@ -16,6 +16,11 @@ ak_strtod_array(void * __restrict memParent,
                 AkDoubleArray ** __restrict array);
 
 AkResult _assetkit_hide
+ak_strtod_arrayL(void * __restrict memParent,
+                 char * __restrict stringRep,
+                 AkDoubleArrayL ** __restrict array);
+
+AkResult _assetkit_hide
 ak_strtoi_array(void * __restrict memParent,
                 char * stringRep,
                 AkIntArray ** __restrict array);

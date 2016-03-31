@@ -56,6 +56,51 @@ ak_strtod_array(void * __restrict memParent,
 }
 
 AkResult _assetkit_hide
+ak_strtod_arrayL(void * __restrict memParent,
+                 char * __restrict stringRep,
+                 AkDoubleArrayL ** __restrict array) {
+  AkDoubleArrayL *doubleArray;
+  AkDouble       *tmpArray;
+  char           *tok;
+  AkUInt64        tmpCount;
+  AkUInt64        arrayIndex;
+  size_t          arraySize;
+
+  tmpCount  = AK__TMP_ARRAY_INCREMENT;
+  arrayIndex = 0;
+
+  tmpArray = ak_malloc(memParent,
+                       sizeof(AkDouble) * tmpCount);
+
+  tok = strtok(stringRep, " ");
+  while (tok) {
+    *(tmpArray + arrayIndex++) = strtod(tok, NULL);
+
+    tok = strtok(NULL, " ");
+
+    if (tok && arrayIndex == tmpCount) {
+      tmpCount += AK__TMP_ARRAY_INCREMENT;
+      tmpArray = ak_realloc(memParent,
+                            tmpArray,
+                            sizeof(AkDouble) * tmpCount);
+    }
+  }
+
+  arraySize = sizeof(AkDouble) * arrayIndex;
+  doubleArray = ak_malloc(memParent,
+                          sizeof(*doubleArray) + arraySize);
+
+  doubleArray->count = arrayIndex;
+  memmove(doubleArray->items, tmpArray, arraySize);
+
+  ak_free(tmpArray);
+
+  *array = doubleArray;
+
+  return AK_OK;
+}
+
+AkResult _assetkit_hide
 ak_strtoi_array(void * __restrict memParent,
                 char * stringRep,
                 AkIntArray ** __restrict array) {
