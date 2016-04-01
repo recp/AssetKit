@@ -6,6 +6,8 @@
  */
 
 #include "ak_collada_spline.h"
+#include "ak_collada_source.h"
+#include "ak_collada_enums.h"
 
 AkResult _assetkit_hide
 ak_dae_spline(void * __restrict memParent,
@@ -58,7 +60,7 @@ ak_dae_spline(void * __restrict memParent,
       }
     } else if (_xml_eqElm(_s_dae_control_vertices)) {
       AkControlVerts *cverts;
-      AkInput        *last_input;
+      AkInputBasic   *last_input;
 
       cverts = ak_calloc(memPtr, sizeof(*cverts), 1);
 
@@ -68,27 +70,27 @@ ak_dae_spline(void * __restrict memParent,
         _xml_beginElement(_s_dae_control_vertices);
 
         if (_xml_eqElm(_s_dae_input)) {
-          AkInput *input;
+          AkInputBasic *input;
 
           input = ak_calloc(memPtr, sizeof(*input), 1);
 
-          _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
-          _xml_readAttr(input, input->base.source, _s_dae_source);
+          _xml_readAttr(input, input->semanticRaw, _s_dae_semantic);
+          _xml_readAttr(input, input->source, _s_dae_source);
 
-          if (!input->base.semanticRaw || !input->base.source)
+          if (!input->semanticRaw || !input->source)
             ak_free(input);
           else {
             AkEnum inputSemantic;
-            inputSemantic = ak_dae_enumInputSemantic(input->base.semanticRaw);
+            inputSemantic = ak_dae_enumInputSemantic(input->semanticRaw);
 
             if (inputSemantic < 0)
               inputSemantic = AK_INPUT_SEMANTIC_OTHER;
 
-            input->base.semantic = inputSemantic;
+            input->semantic = inputSemantic;
           }
 
           if (last_input)
-            last_input->base.next = &input->base;
+            last_input->next = input;
           else
             cverts->input = input;
           
