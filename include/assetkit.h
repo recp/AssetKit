@@ -1331,6 +1331,7 @@ typedef struct AkSpline {
   AkSource       * source;
   AkControlVerts * cverts;
   AkTree         * extra;
+  AkBool           closed;
 } AkSpline;
 
 typedef struct AkLine {

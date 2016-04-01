@@ -356,5 +356,7 @@
   "maxInclusive": "maxInclusive",
   "ph": "ph",
   "h": "h",
-  "convex_hull_of": "convex_hull_of"
+  "convex_hull_of": "convex_hull_of",
+  "control_vertices": "control_vertices",
+  "closed": "closed"
 }
