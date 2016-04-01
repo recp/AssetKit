@@ -279,7 +279,7 @@ typedef enum AkInputSemantic {
 typedef enum AkTriangleMode {
   AK_TRIANGLE_MODE_TRIANGLES      = 0,
   AK_TRIANGLE_MODE_TRIANGLE_STRIP = 1,
-  AK_TRIANGLE_MODE_TRIANGLE_FAN   = 2,
+  AK_TRIANGLE_MODE_TRIANGLE_FAN   = 2
 } AkTriangleMode;
 
 typedef enum AkLineMode {
@@ -1299,15 +1299,13 @@ typedef struct AkPolygons {
 typedef struct AkTriangles {
   ak_asset_base
 
-  const char   * name;
-  const char   * material;
-  uint64_t       count;
-
-  AkTriangleMode mode;
-
-  AkInput      * input;
-  AkTree       * extra;
-  AkIntArray   * primitives;
+  const char     * name;
+  const char     * material;
+  AkInput        * input;
+  AkDoubleArrayL * primitives;
+  AkTree         * extra;
+  uint64_t         count;
+  AkTriangleMode   mode;
 } AkTriangles;
 
 typedef struct AkMesh {
