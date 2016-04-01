@@ -46,6 +46,9 @@ ak_dae_source(void * __restrict memParent,
   _xml_readAttr(source, source->id, _s_dae_id);
   _xml_readAttr(source, source->name, _s_dae_name);
 
+  if (xmlTextReaderIsEmptyElement(reader))
+    goto done;
+
   if (sourceMapLen == 0) {
     sourceMapLen = AK_ARRAY_LEN(sourceMap);
     qsort(sourceMap,
@@ -324,7 +327,8 @@ ak_dae_source(void * __restrict memParent,
     /* end element */
     _xml_endElement;
   } while (nodeRet);
-  
+
+done:
   *dest = source;
 
   return AK_OK;
