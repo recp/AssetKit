@@ -45,6 +45,7 @@ ak_dae_mesh(void * __restrict memParent,
             AkMesh ** __restrict dest,
             bool asObject) {
   AkObject *obj;
+  AkSource *last_source;
   AkObject *last_primitive;
   AkMesh   *mesh;
   void     *memPtr;
@@ -77,6 +78,7 @@ ak_dae_mesh(void * __restrict memParent,
   }
 
   last_primitive = NULL;
+  last_source = NULL;
 
   do {
     const ak_enumpair *found;
@@ -95,9 +97,14 @@ ak_dae_mesh(void * __restrict memParent,
         AkResult ret;
 
         ret = ak_dae_source(memPtr, reader, &source);
-        if (ret == AK_OK)
-          mesh->source = source;
+        if (ret == AK_OK) {
+          if (last_source)
+            last_source->next = source;
+          else
+            mesh->source = source;
 
+          last_source = source;
+        }
         break;
       }
       case k_s_dae_vertices: {
