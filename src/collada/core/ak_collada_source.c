@@ -81,191 +81,206 @@ ak_dae_source(void * __restrict memParent,
         break;
       }
       case AK_SOURCE_ARRAY_TYPE_BOOL: {
-        char         *content;
-        AkObject     *obj;
-        AkBoolArrayN *boolArray;
-        AkUInt64      arrayCount;
-        size_t        arraySize;
-
-        _xml_readAttrUsingFnWithDef(arrayCount,
-                                    _s_dae_count,
-                                    0,
-                                    strtoul, NULL, 10);
-
-        arraySize = sizeof(AkBool) * arrayCount;
-        obj = ak_objAlloc(source,
-                          sizeof(*boolArray) + arraySize,
-                          AK_SOURCE_ARRAY_TYPE_BOOL,
-                          true);
-        boolArray = ak_objGet(obj);
-
-        _xml_readAttr(obj, boolArray->id, _s_dae_id);
-        _xml_readAttr(obj, boolArray->name, _s_dae_name);
+        char *content;
 
         _xml_readMutText(content);
 
-        boolArray->count = arrayCount;
-        ak_strtomb(&content,
-                   boolArray->items,
-                   1,
-                   arrayCount);
+        if (content) {
+          AkObject     *obj;
+          AkBoolArrayN *boolArray;
+          AkUInt64      arrayCount;
+          size_t        arraySize;
 
-        source->data = obj;
+          _xml_readAttrUsingFnWithDef(arrayCount,
+                                      _s_dae_count,
+                                      0,
+                                      strtoul, NULL, 10);
 
-        xmlFree(content);
+          arraySize = sizeof(AkBool) * arrayCount;
+          obj = ak_objAlloc(source,
+                            sizeof(*boolArray) + arraySize,
+                            AK_SOURCE_ARRAY_TYPE_BOOL,
+                            true);
+          boolArray = ak_objGet(obj);
+
+          _xml_readAttr(obj, boolArray->id, _s_dae_id);
+          _xml_readAttr(obj, boolArray->name, _s_dae_name);
+
+
+
+          boolArray->count = arrayCount;
+          ak_strtomb(&content,
+                     boolArray->items,
+                     1,
+                     arrayCount);
+          
+          source->data = obj;
+          
+          xmlFree(content);
+        }
         break;
       }
       case AK_SOURCE_ARRAY_TYPE_FLOAT: {
-        char          *content;
-        AkObject      *obj;
-        AkFloatArrayN *floatAray;
-        AkUInt64       arrayCount;
-        size_t         arraySize;
-
-        _xml_readAttrUsingFnWithDef(arrayCount,
-                                    _s_dae_count,
-                                    0,
-                                    strtoul, NULL, 10);
-
-        arraySize = sizeof(AkFloat) * arrayCount;
-        obj = ak_objAlloc(source,
-                          sizeof(*floatAray) + arraySize,
-                          AK_SOURCE_ARRAY_TYPE_FLOAT,
-                          true);
-        floatAray = ak_objGet(obj);
-
-        _xml_readAttr(obj, floatAray->id, _s_dae_id);
-        _xml_readAttr(obj, floatAray->name, _s_dae_name);
-
-        _xml_readAttrUsingFnWithDef(floatAray->digits,
-                                    _s_dae_digits,
-                                    7, /* default */
-                                    (AkInt)strtoul, NULL, 10);
-
-        _xml_readAttrUsingFnWithDef(floatAray->magnitude,
-                                    _s_dae_magnitude,
-                                    38, /* default */
-                                    (AkInt)strtoul, NULL, 10);
+        char *content;
 
         _xml_readMutText(content);
 
-        floatAray->count = arrayCount;
-        ak_strtomf(&content,
-                   floatAray->items,
-                   1,
-                   arrayCount);
+        if (content) {
+          AkObject      *obj;
+          AkFloatArrayN *floatAray;
+          AkUInt64       arrayCount;
+          size_t         arraySize;
 
-        source->data = obj;
+          _xml_readAttrUsingFnWithDef(arrayCount,
+                                      _s_dae_count,
+                                      0,
+                                      strtoul, NULL, 10);
 
-        xmlFree(content);
+          arraySize = sizeof(AkFloat) * arrayCount;
+          obj = ak_objAlloc(source,
+                            sizeof(*floatAray) + arraySize,
+                            AK_SOURCE_ARRAY_TYPE_FLOAT,
+                            true);
+          floatAray = ak_objGet(obj);
+
+          _xml_readAttr(obj, floatAray->id, _s_dae_id);
+          _xml_readAttr(obj, floatAray->name, _s_dae_name);
+
+          _xml_readAttrUsingFnWithDef(floatAray->digits,
+                                      _s_dae_digits,
+                                      7, /* default */
+                                      (AkInt)strtoul, NULL, 10);
+
+          _xml_readAttrUsingFnWithDef(floatAray->magnitude,
+                                      _s_dae_magnitude,
+                                      38, /* default */
+                                      (AkInt)strtoul, NULL, 10);
+
+          floatAray->count = arrayCount;
+          ak_strtomf(&content,
+                     floatAray->items,
+                     1,
+                     arrayCount);
+          
+          source->data = obj;
+          
+          xmlFree(content);
+        }
         break;
       }
       case AK_SOURCE_ARRAY_TYPE_INT: {
-        char        *content;
-        AkObject    *obj;
-        AkIntArrayN *intAray;
-        AkUInt64     arrayCount;
-        size_t       arraySize;
+        char *content;
 
-        _xml_readAttrUsingFnWithDef(arrayCount,
-                                    _s_dae_count,
-                                    0,
-                                    strtoul, NULL, 10);
+         _xml_readMutText(content);
 
-        arraySize = sizeof(AkInt) * arrayCount;
-        obj = ak_objAlloc(source,
-                          sizeof(*intAray) + arraySize,
-                          AK_SOURCE_ARRAY_TYPE_INT,
-                          true);
-        intAray = ak_objGet(obj);
+        if (content) {
+          AkObject    *obj;
+          AkIntArrayN *intAray;
+          AkUInt64     arrayCount;
+          size_t       arraySize;
 
-        _xml_readAttr(obj, intAray->id, _s_dae_id);
-        _xml_readAttr(obj, intAray->name, _s_dae_name);
+          _xml_readAttrUsingFnWithDef(arrayCount,
+                                      _s_dae_count,
+                                      0,
+                                      strtoul, NULL, 10);
 
-        _xml_readAttrUsingFnWithDef(intAray->minInclusive,
-                                    _s_dae_minInclusive,
-                                    -2147483648, /* default */
-                                    (AkInt)strtoul, NULL, 10);
+          arraySize = sizeof(AkInt) * arrayCount;
+          obj = ak_objAlloc(source,
+                            sizeof(*intAray) + arraySize,
+                            AK_SOURCE_ARRAY_TYPE_INT,
+                            true);
+          intAray = ak_objGet(obj);
 
-        _xml_readAttrUsingFnWithDef(intAray->maxInclusive,
-                                    _s_dae_maxInclusive,
-                                    2147483647, /* default */
-                                    (AkInt)strtoul, NULL, 10);
+          _xml_readAttr(obj, intAray->id, _s_dae_id);
+          _xml_readAttr(obj, intAray->name, _s_dae_name);
 
-        _xml_readMutText(content);
+          _xml_readAttrUsingFnWithDef(intAray->minInclusive,
+                                      _s_dae_minInclusive,
+                                      -2147483648, /* default */
+                                      (AkInt)strtoul, NULL, 10);
 
-        intAray->count = arrayCount;
-        ak_strtomi(&content,
-                   intAray->items,
-                   1,
-                   arrayCount);
-        
-        source->data = obj;
+          _xml_readAttrUsingFnWithDef(intAray->maxInclusive,
+                                      _s_dae_maxInclusive,
+                                      2147483647, /* default */
+                                      (AkInt)strtoul, NULL, 10);
 
-        xmlFree(content);
+          intAray->count = arrayCount;
+          ak_strtomi(&content,
+                     intAray->items,
+                     1,
+                     arrayCount);
+          
+          source->data = obj;
+          
+          xmlFree(content);
+        }
         break;
       }
       case AK_SOURCE_ARRAY_TYPE_IDREF:
       case AK_SOURCE_ARRAY_TYPE_NAME:
       case AK_SOURCE_ARRAY_TYPE_SIDREF:
       case AK_SOURCE_ARRAY_TYPE_TOKEN: {
-        char           *content;
-        AkObject       *obj;
-        AkStringArrayN *stringAray;
-        char           *pData;
-        char           *tok;
-        AkUInt64        arrayCount;
-        size_t          arraySize;
-        size_t          arrayDataSize;
-        AkUInt64        idx;
-
-        _xml_readAttrUsingFnWithDef(arrayCount,
-                                    _s_dae_count,
-                                    0,
-                                    strtoul, NULL, 10);
+        char *content;
 
         _xml_readMutText(content);
 
-        /* 
-         |pSTR1|pSTR2|pSTR3|STR1\0STR2\0STR3|
-         
-         the last one is pointer to all data
-         */
-        arraySize = sizeof(char *) * arrayCount + 1;
-        arrayDataSize = strlen(content) + arrayCount /* NULL */;
+        if (content) {
+          AkObject       *obj;
+          AkStringArrayN *stringAray;
+          char           *pData;
+          char           *tok;
+          AkUInt64        arrayCount;
+          size_t          arraySize;
+          size_t          arrayDataSize;
+          AkUInt64        idx;
 
-        obj = ak_objAlloc(source,
-                          sizeof(*stringAray) + arraySize,
-                          found->val,
-                          true);
-        stringAray = ak_objGet(obj);
+          _xml_readAttrUsingFnWithDef(arrayCount,
+                                      _s_dae_count,
+                                      0,
+                                      strtoul, NULL, 10);
 
-        _xml_readAttr(obj, stringAray->id, _s_dae_id);
-        _xml_readAttr(obj, stringAray->name, _s_dae_name);
+          /*
+           |pSTR1|pSTR2|pSTR3|STR1\0STR2\0STR3|
 
-        pData = ak_malloc(stringAray,
-                          arrayDataSize);
+           the last one is pointer to all data
+           */
+          arraySize = sizeof(char *) * arrayCount + 1;
+          arrayDataSize = strlen(content) + arrayCount /* NULL */;
 
-        stringAray->count = arrayCount;
-        stringAray->items[arrayCount] = pData;
+          obj = ak_objAlloc(source,
+                            sizeof(*stringAray) + arraySize,
+                            found->val,
+                            true);
+          stringAray = ak_objGet(obj);
 
-        idx = 0;
-        for (tok = strtok(content, " ");
-             tok;
-             tok = strtok(NULL, " ")) {
-          if (idx >= arrayCount)
-            break;
+          _xml_readAttr(obj, stringAray->id, _s_dae_id);
+          _xml_readAttr(obj, stringAray->name, _s_dae_name);
 
-          strcpy(pData, tok);
-          stringAray->items[idx++] = pData;
+          pData = ak_malloc(stringAray,
+                            arrayDataSize);
 
-          pData += strlen(tok);
-          *pData++ = '\0';
+          stringAray->count = arrayCount;
+          stringAray->items[arrayCount] = pData;
+
+          idx = 0;
+          for (tok = strtok(content, " ");
+               tok;
+               tok = strtok(NULL, " ")) {
+            if (idx >= arrayCount)
+              break;
+
+            strcpy(pData, tok);
+            stringAray->items[idx++] = pData;
+
+            pData += strlen(tok);
+            *pData++ = '\0';
+          }
+          
+          source->data = obj;
+          
+          xmlFree(content);
         }
 
-        source->data = obj;
-
-        xmlFree(content);
         break;
       }
       case k_s_dae_techniquec: {
