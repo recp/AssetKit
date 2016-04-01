@@ -370,6 +370,7 @@ const char _s_dae_pool[] =
 "convex_hull_of\0"
 "control_vertices\0"
 "closed\0"
+"set\0"
 ;
 
 #undef _ak_DAE_STRPOOL_

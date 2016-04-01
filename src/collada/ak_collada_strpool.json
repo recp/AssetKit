@@ -358,5 +358,6 @@
   "h": "h",
   "convex_hull_of": "convex_hull_of",
   "control_vertices": "control_vertices",
-  "closed": "closed"
+  "closed": "closed",
+  "set": "set"
 }

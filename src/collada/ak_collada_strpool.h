@@ -374,5 +374,6 @@ const char _s_dae_pool[];
 #define _s_dae_convex_hull_of _s_dae(3945)
 #define _s_dae_control_vertices _s_dae(3960)
 #define _s_dae_closed _s_dae(3977)
+#define _s_dae_set _s_dae(3984)
 
 #endif /* __libassetkit__collada_strpool__h_ */
