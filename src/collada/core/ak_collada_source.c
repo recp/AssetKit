@@ -102,7 +102,7 @@ ak_dae_source(void * __restrict memParent,
         _xml_readAttr(obj, boolArray->id, _s_dae_id);
         _xml_readAttr(obj, boolArray->name, _s_dae_name);
 
-        _xml_readText(source, content);
+        _xml_readMutText(content);
 
         boolArray->count = arrayCount;
         ak_strtomb(&content,
@@ -112,7 +112,7 @@ ak_dae_source(void * __restrict memParent,
 
         source->data = obj;
 
-        ak_free(content);
+        xmlFree(content);
         break;
       }
       case AK_SOURCE_ARRAY_TYPE_FLOAT: {
@@ -147,7 +147,7 @@ ak_dae_source(void * __restrict memParent,
                                     38, /* default */
                                     (AkInt)strtoul, NULL, 10);
 
-        _xml_readText(source, content);
+        _xml_readMutText(content);
 
         floatAray->count = arrayCount;
         ak_strtomf(&content,
@@ -157,7 +157,7 @@ ak_dae_source(void * __restrict memParent,
 
         source->data = obj;
 
-        ak_free(content);
+        xmlFree(content);
         break;
       }
       case AK_SOURCE_ARRAY_TYPE_INT: {
@@ -192,7 +192,7 @@ ak_dae_source(void * __restrict memParent,
                                     2147483647, /* default */
                                     (AkInt)strtoul, NULL, 10);
 
-        _xml_readText(source, content);
+        _xml_readMutText(content);
 
         intAray->count = arrayCount;
         ak_strtomi(&content,
@@ -202,7 +202,7 @@ ak_dae_source(void * __restrict memParent,
         
         source->data = obj;
 
-        ak_free(content);
+        xmlFree(content);
         break;
       }
       case AK_SOURCE_ARRAY_TYPE_IDREF:
@@ -224,7 +224,7 @@ ak_dae_source(void * __restrict memParent,
                                     0,
                                     strtoul, NULL, 10);
 
-        _xml_readText(source, content);
+        _xml_readMutText(content);
 
         /* 
          |pSTR1|pSTR2|pSTR3|STR1\0STR2\0STR3|
@@ -265,7 +265,7 @@ ak_dae_source(void * __restrict memParent,
 
         source->data = obj;
 
-        ak_free(content);
+        xmlFree(content);
         break;
       }
       case k_s_dae_techniquec: {

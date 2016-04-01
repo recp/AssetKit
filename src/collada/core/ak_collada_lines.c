@@ -79,20 +79,24 @@ ak_dae_lines(void * __restrict memParent,
 
       last_input = input;
     } else if (_xml_eqElm(_s_dae_p)) {
-      AkDoubleArrayL *doubleArray;
-      char           *content;
-      AkResult        ret;
+      char *content;
 
-      _xml_readText(memPtr, content);
+      _xml_readMutText(content);
 
-      ret = ak_strtod_arrayL(memPtr, content, &doubleArray);
-      if (ret == AK_OK) {
-        if (last_array)
-          last_array->next = doubleArray;
-        else
-          lines->primitives = doubleArray;
+      if (content) {
+        AkDoubleArrayL *doubleArray;
+        AkResult ret;
 
-        last_array = doubleArray;
+        ret = ak_strtod_arrayL(memPtr, content, &doubleArray);
+        if (ret == AK_OK) {
+          if (last_array)
+            last_array->next = doubleArray;
+          else
+            lines->primitives = doubleArray;
+
+          last_array = doubleArray;
+        }
+
         xmlFree(content);
       }
     } else if (_xml_eqElm(_s_dae_extra)) {

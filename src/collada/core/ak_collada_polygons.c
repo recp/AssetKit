@@ -78,43 +78,45 @@ ak_dae_polygons(void * __restrict memParent,
 
       last_input = input;
     } else if (_xml_eqElm(_s_dae_p)) {
-      char           *content;
-      AkDoubleArray  *doubleArray;
-      AkResult        ret;
+      char *content;
 
-      _xml_readText(memPtr, content);
+      _xml_readMutText(content);
 
-      ret = ak_strtod_array(memPtr, content, &doubleArray);
-      if (ret == AK_OK) {
-        if (mode == AK_POLYGON_MODE_POLYLIST) {
-          if (!last_polygon) {
-            AkPolygon * polygon;
+      if (content) {
+        AkDoubleArray *doubleArray;
+        AkResult ret;
+        ret = ak_strtod_array(memPtr, content, &doubleArray);
+        if (ret == AK_OK) {
+          if (mode == AK_POLYGON_MODE_POLYLIST) {
+            if (!last_polygon) {
+              AkPolygon * polygon;
 
-            polygon = ak_calloc(memParent, sizeof(*polygon), 1);
+              polygon = ak_calloc(memParent, sizeof(*polygon), 1);
+              polygon->mode = mode;
+              polygon->haveHoles = false;
+
+              polygons->polygon = polygon;
+              last_polygon = polygon;
+            }
+          } else {
+            AkPolygon *polygon;
+            polygon = ak_calloc(memPtr, sizeof(*polygon), 1);
             polygon->mode = mode;
             polygon->haveHoles = false;
 
-            polygons->polygon = polygon;
+            if (last_polygon)
+              last_polygon->next = polygon;
+            else
+              polygons->polygon = polygon;
+
             last_polygon = polygon;
           }
-        } else {
-          AkPolygon *polygon;
-          polygon = ak_calloc(memPtr, sizeof(*polygon), 1);
-          polygon->mode = mode;
-          polygon->haveHoles = false;
-
-          if (last_polygon)
-            last_polygon->next = polygon;
-          else
-            polygons->polygon = polygon;
-
-          last_polygon = polygon;
+          
+          last_polygon->primitives = doubleArray;
         }
-
-        last_polygon->primitives = doubleArray;
+        
+        xmlFree(content);
       }
-
-      xmlFree(content);
     } else if (_xml_eqElm(_s_dae_vcount)
                && mode == AK_POLYGON_MODE_POLYLIST) {
       char *content;
@@ -155,30 +157,40 @@ ak_dae_polygons(void * __restrict memParent,
         _xml_beginElement(_s_dae_ph);
 
         if (_xml_eqElm(_s_dae_p)) {
-          char           *content;
-          AkDoubleArray  *doubleArray;
-          AkResult        ret;
+          char *content;
 
-          _xml_readText(memPtr, content);
+          _xml_readMutText(content);
 
-          ret = ak_strtod_array(memPtr, content, &doubleArray);
-          if (ret == AK_OK)
-            polygon->primitives = doubleArray;
+          if (content) {
+            AkDoubleArray *doubleArray;
+            AkResult ret;
+
+            ret = ak_strtod_array(memPtr, content, &doubleArray);
+            if (ret == AK_OK)
+              polygon->primitives = doubleArray;
+
+            xmlFree(content);
+          }
         } else if (_xml_eqElm(_s_dae_h)) {
-          char           *content;
-          AkDoubleArrayL *doubleArray;
-          AkResult        ret;
+          char *content;
 
-          _xml_readText(memPtr, content);
+          _xml_readMutText(content);
 
-          ret = ak_strtod_arrayL(memPtr, content, &doubleArray);
-          if (ret == AK_OK) {
-            if (last_array)
-              last_array->next = doubleArray;
-            else
-              polygon->holes = doubleArray;
+          if (content) {
+            AkDoubleArrayL *doubleArray;
+            AkResult ret;
 
-            last_array = doubleArray;
+            ret = ak_strtod_arrayL(memPtr, content, &doubleArray);
+            if (ret == AK_OK) {
+              if (last_array)
+                last_array->next = doubleArray;
+              else
+                polygon->holes = doubleArray;
+
+              last_array = doubleArray;
+            }
+
+            xmlFree(content);
           }
         } else {
           _xml_skipElement;
