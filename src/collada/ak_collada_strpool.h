@@ -371,5 +371,6 @@ const char _s_dae_pool[];
 #define _s_dae_maxInclusive _s_dae(3927)
 #define _s_dae_ph _s_dae(3940)
 #define _s_dae_h _s_dae(3943)
+#define _s_dae_convex_hull_of _s_dae(3945)
 
 #endif /* __libassetkit__collada_strpool__h_ */

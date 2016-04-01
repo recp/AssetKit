@@ -367,6 +367,7 @@ const char _s_dae_pool[] =
 "maxInclusive\0"
 "ph\0"
 "h\0"
+"convex_hull_of\0"
 ;
 
 #undef _ak_DAE_STRPOOL_

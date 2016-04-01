@@ -355,5 +355,6 @@
   "minInclusive": "minInclusive",
   "maxInclusive": "maxInclusive",
   "ph": "ph",
-  "h": "h"
+  "h": "h",
+  "convex_hull_of": "convex_hull_of"
 }

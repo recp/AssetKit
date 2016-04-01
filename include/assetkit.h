@@ -1311,18 +1311,12 @@ typedef struct AkTriangles {
 typedef struct AkMesh {
   ak_asset_base
 
+  const char * convexHullOf;
   AkSource   * source;
   AkVertices * vertices;
   AkObject   * gprimitive;
   AkTree     * extra;
 } AkMesh;
-
-typedef struct AkConvexMesh {
-  ak_asset_base
-
-  const char * convexHullOf;
-  AkMesh       mesh[];
-} AkConvexMesh;
 
 typedef struct AkControlVerts {
   ak_asset_base

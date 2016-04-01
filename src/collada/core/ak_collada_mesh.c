@@ -41,6 +41,7 @@ static size_t meshMapLen = 0;
 AkResult _assetkit_hide
 ak_dae_mesh(void * __restrict memParent,
             xmlTextReaderPtr reader,
+            const char * elm,
             AkMesh ** __restrict dest,
             bool asObject) {
   AkObject *obj;
@@ -65,6 +66,8 @@ ak_dae_mesh(void * __restrict memParent,
     memPtr = mesh;
   }
 
+  _xml_readAttr(memPtr, mesh->convexHullOf, _s_dae_convex_hull_of);
+
   if (meshMapLen == 0) {
     meshMapLen = AK_ARRAY_LEN(meshMap);
     qsort(meshMap,
@@ -78,7 +81,7 @@ ak_dae_mesh(void * __restrict memParent,
   do {
     const ak_enumpair *found;
 
-    _xml_beginElement(_s_dae_mesh);
+    _xml_beginElement(elm);
 
     found = bsearch(nodeName,
                     meshMap,

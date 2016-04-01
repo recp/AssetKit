@@ -13,6 +13,7 @@
 AkResult _assetkit_hide
 ak_dae_mesh(void * __restrict memParent,
             xmlTextReaderPtr reader,
+            const char * elm,
             AkMesh ** __restrict dest,
             bool asObject);
 
