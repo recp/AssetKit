@@ -14,6 +14,7 @@ AkResult _assetkit_hide
 ak_dae_polygons(void * __restrict memParent,
                 xmlTextReaderPtr reader,
                 const char * elm,
+                AkPolygonMode mode,
                 bool asObject,
                 AkPolygons ** __restrict dest);
 

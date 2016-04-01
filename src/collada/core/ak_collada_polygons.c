@@ -13,6 +13,7 @@ AkResult _assetkit_hide
 ak_dae_polygons(void * __restrict memParent,
                 xmlTextReaderPtr reader,
                 const char * elm,
+                AkPolygonMode mode,
                 bool asObject,
                 AkPolygons ** __restrict dest) {
   AkObject       *obj;
@@ -23,7 +24,6 @@ ak_dae_polygons(void * __restrict memParent,
   const xmlChar  *nodeName;
   int             nodeType;
   int             nodeRet;
-  AkPolygonMode   mode;
 
   if (asObject) {
     obj = ak_objAlloc(memParent,
@@ -37,11 +37,6 @@ ak_dae_polygons(void * __restrict memParent,
     polygons = ak_calloc(memParent, sizeof(*polygons), 1);
     memPtr = polygons;
   }
-
-  if (elm == _s_dae_polygons)
-    mode = AK_POLYGON_MODE_POLYGONS;
-  else
-    mode = AK_POLYGON_MODE_POLYLIST;
 
   _xml_readAttr(memPtr, polygons->name, _s_dae_name);
   _xml_readAttr(memPtr, polygons->material, _s_dae_material);
