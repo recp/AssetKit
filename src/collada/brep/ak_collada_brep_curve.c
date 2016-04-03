@@ -92,7 +92,7 @@ ak_dae_curve(void * __restrict memParent,
             nodePtr = xmlTextReaderExpand(reader);
             tree = NULL;
 
-            ak_tree_fromXmlNode(line, nodePtr, &tree, NULL);
+            ak_tree_fromXmlNode(obj, nodePtr, &tree, NULL);
             line->extra = tree;
             
             _xml_skipElement;
@@ -133,7 +133,7 @@ ak_dae_curve(void * __restrict memParent,
             nodePtr = xmlTextReaderExpand(reader);
             tree = NULL;
 
-            ak_tree_fromXmlNode(circle, nodePtr, &tree, NULL);
+            ak_tree_fromXmlNode(obj, nodePtr, &tree, NULL);
             circle->extra = tree;
 
             _xml_skipElement;
@@ -177,7 +177,7 @@ ak_dae_curve(void * __restrict memParent,
             nodePtr = xmlTextReaderExpand(reader);
             tree = NULL;
 
-            ak_tree_fromXmlNode(ellipse, nodePtr, &tree, NULL);
+            ak_tree_fromXmlNode(obj, nodePtr, &tree, NULL);
             ellipse->extra = tree;
 
             _xml_skipElement;
@@ -218,7 +218,7 @@ ak_dae_curve(void * __restrict memParent,
             nodePtr = xmlTextReaderExpand(reader);
             tree = NULL;
 
-            ak_tree_fromXmlNode(parabola, nodePtr, &tree, NULL);
+            ak_tree_fromXmlNode(obj, nodePtr, &tree, NULL);
             parabola->extra = tree;
 
             _xml_skipElement;
@@ -262,7 +262,7 @@ ak_dae_curve(void * __restrict memParent,
             nodePtr = xmlTextReaderExpand(reader);
             tree = NULL;
 
-            ak_tree_fromXmlNode(hyperbola, nodePtr, &tree, NULL);
+            ak_tree_fromXmlNode(obj, nodePtr, &tree, NULL);
             hyperbola->extra = tree;
 
             _xml_skipElement;
