@@ -49,6 +49,8 @@ libassetkit_la_SOURCES=\
     src/collada/core/ak_collada_triangles.c \
     src/collada/core/ak_collada_spline.c \
     src/collada/brep/ak_collada_brep.c \
+    src/collada/brep/ak_collada_brep_curve.c \
+    src/collada/brep/ak_collada_brep_nurbs.c \
     src/collada/ak_collada_asset.c \
     src/collada/ak_collada_technique.c \
     src/collada/ak_collada_techniquec.c \

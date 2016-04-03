@@ -359,5 +359,17 @@
   "convex_hull_of": "convex_hull_of",
   "control_vertices": "control_vertices",
   "closed": "closed",
-  "set": "set"
+  "set": "set",
+  "line": "line",
+  "circle": "circle",
+  "ellipse": "ellipse",
+  "parabola": "parabola",
+  "hyperbola": "hyperbola",
+  "nurbs": "nurbs",
+  "orient": "orient",
+  "origin": "origin",
+  "curve": "curve",
+  "direction": "direction",
+  "radius": "radius",
+  "degree": "degree"
 }

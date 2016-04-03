@@ -50,6 +50,9 @@ typedef AkInt        AkInt4[4];
 typedef AkFloat      AkFloat2[2];
 typedef AkFloat      AkFloat3[3];
 typedef AkFloat      AkFloat4[4];
+typedef AkDouble     AkDouble2[2];
+typedef AkDouble     AkDouble3[3];
+typedef AkDouble     AkDouble4[4];
 
 typedef AkFloat4     AkFloat4x4[4];
 
@@ -1335,8 +1338,8 @@ typedef struct AkSpline {
 } AkSpline;
 
 typedef struct AkLine {
-  AkFloat3 origin;
-  AkFloat3 direction;
+  AkDouble3 origin;
+  AkDouble3 direction;
   AkTree * extra;
 } AkLine;
 
@@ -1364,11 +1367,13 @@ typedef struct AkNurbs {
   AkSource       * source;
   AkControlVerts * cverts;
   AkTree         * extra;
+  AkUInt           degree;
+  AkBool           closed;
 } AkNurbs;
 
 typedef struct AkCurve {
-  AkFloatArrayL  * orient;
-  AkFloat3         origin;
+  AkDoubleArrayL * orient;
+  AkDouble3        origin;
   AkObject       * curve;
   struct AkCurve * next;
 } AkCurve;

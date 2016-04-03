@@ -371,6 +371,18 @@ const char _s_dae_pool[] =
 "control_vertices\0"
 "closed\0"
 "set\0"
+"line\0"
+"circle\0"
+"ellipse\0"
+"parabola\0"
+"hyperbola\0"
+"nurbs\0"
+"orient\0"
+"origin\0"
+"curve\0"
+"direction\0"
+"radius\0"
+"degree\0"
 ;
 
 #undef _ak_DAE_STRPOOL_

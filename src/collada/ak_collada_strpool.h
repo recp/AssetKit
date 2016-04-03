@@ -375,5 +375,17 @@ const char _s_dae_pool[];
 #define _s_dae_control_vertices _s_dae(3960)
 #define _s_dae_closed _s_dae(3977)
 #define _s_dae_set _s_dae(3984)
+#define _s_dae_line _s_dae(3988)
+#define _s_dae_circle _s_dae(3993)
+#define _s_dae_ellipse _s_dae(4000)
+#define _s_dae_parabola _s_dae(4008)
+#define _s_dae_hyperbola _s_dae(4017)
+#define _s_dae_nurbs _s_dae(4027)
+#define _s_dae_orient _s_dae(4033)
+#define _s_dae_origin _s_dae(4040)
+#define _s_dae_curve _s_dae(4047)
+#define _s_dae_direction _s_dae(4053)
+#define _s_dae_radius _s_dae(4063)
+#define _s_dae_degree _s_dae(4070)
 
 #endif /* __libassetkit__collada_strpool__h_ */
