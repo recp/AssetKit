@@ -54,6 +54,7 @@ typedef AkDouble     AkDouble2[2];
 typedef AkDouble     AkDouble3[3];
 typedef AkDouble     AkDouble4[4];
 
+typedef AkDouble     AkDouble4x4[4];
 typedef AkFloat4     AkFloat4x4[4];
 
 #undef AK__DEF_ARRAY
@@ -1390,7 +1391,7 @@ typedef struct AkCone {
 } AkCone;
 
 typedef struct AkPlane {
-  AkFloat4 equation;
+  AkDouble4 equation;
   AkTree * extra;
 } AkPlane;
 
@@ -1411,7 +1412,7 @@ typedef struct AkNurbsSurface {
 } AkNurbsSurface;
 
 typedef struct AkSphere {
-  AkFloat  equation;
+  AkFloat  radius;
   AkTree * extra;
 } AkSphere;
 

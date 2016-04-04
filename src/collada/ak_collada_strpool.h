@@ -391,5 +391,15 @@ const char _s_dae_pool[];
 #define _s_dae_closed_u _s_dae(4086)
 #define _s_dae_degree_v _s_dae(4095)
 #define _s_dae_closed_v _s_dae(4104)
+#define _s_dae_cone _s_dae(4113)
+#define _s_dae_plane _s_dae(4118)
+#define _s_dae_cylinder _s_dae(4124)
+#define _s_dae_nurbs_surface _s_dae(4133)
+#define _s_dae_sphere _s_dae(4147)
+#define _s_dae_torus _s_dae(4154)
+#define _s_dae_swept_surface _s_dae(4160)
+#define _s_dae_surface _s_dae(4174)
+#define _s_dae_angle _s_dae(4182)
+#define _s_dae_axis _s_dae(4188)
 
 #endif /* __libassetkit__collada_strpool__h_ */

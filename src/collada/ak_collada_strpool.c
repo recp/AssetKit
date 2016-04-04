@@ -387,6 +387,16 @@ const char _s_dae_pool[] =
 "closed_u\0"
 "degree_v\0"
 "closed_v\0"
+"cone\0"
+"plane\0"
+"cylinder\0"
+"nurbs_surface\0"
+"sphere\0"
+"torus\0"
+"swept_surface\0"
+"surface\0"
+"angle\0"
+"axis\0"
 ;
 
 #undef _ak_DAE_STRPOOL_

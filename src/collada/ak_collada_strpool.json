@@ -376,4 +376,14 @@
   "closed_u": "closed_u",
   "degree_v": "degree_v",
   "closed_v": "closed_v",
+  "cone": "cone",
+  "plane": "plane",
+  "cylinder": "cylinder",
+  "nurbs_surface": "nurbs_surface",
+  "sphere": "sphere",
+  "torus": "torus",
+  "swept_surface": "swept_surface",
+  "surface": "surface",
+  "angle": "angle",
+  "axis": "axis"
 }
