@@ -13,6 +13,7 @@
 AkResult _assetkit_hide
 ak_dae_curve(void * __restrict memParent,
              xmlTextReaderPtr reader,
+             bool asObject,
              AkCurve ** __restrict dest);
 
 #endif /* ak_collada_brep_curve_h */

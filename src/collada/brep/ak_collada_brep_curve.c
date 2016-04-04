@@ -28,14 +28,28 @@ static size_t curveMapLen = 0;
 AkResult _assetkit_hide
 ak_dae_curve(void * __restrict memParent,
              xmlTextReaderPtr reader,
+             bool asObject,
              AkCurve ** __restrict dest) {
+  AkObject       *obj;
   AkCurve        *curve;
+  void           *memPtr;
   AkDoubleArrayL *last_orient;;
   const xmlChar  *nodeName;
   int             nodeType;
   int             nodeRet;
 
-  curve = ak_calloc(memParent, sizeof(*curve), 1);
+  if (asObject) {
+    obj = ak_objAlloc(memParent,
+                      sizeof(*curve),
+                      0,
+                      true);
+
+    curve = ak_objGet(obj);
+    memPtr = obj;
+  } else {
+    curve = ak_calloc(memParent, sizeof(*curve), 1);
+    memPtr = curve;
+  }
 
   if (curveMapLen == 0) {
     curveMapLen = AK_ARRAY_LEN(curveMap);
@@ -63,7 +77,7 @@ ak_dae_curve(void * __restrict memParent,
         AkObject *obj;
         AkLine   *line;
 
-        obj = ak_objAlloc(curve,
+        obj = ak_objAlloc(memPtr,
                           sizeof(*line),
                           AK_CURVE_ELEMENT_TYPE_LINE,
                           true);
@@ -113,7 +127,7 @@ ak_dae_curve(void * __restrict memParent,
         AkObject *obj;
         AkCircle *circle;
 
-        obj = ak_objAlloc(curve,
+        obj = ak_objAlloc(memPtr,
                           sizeof(*circle),
                           AK_CURVE_ELEMENT_TYPE_CIRCLE,
                           true);
@@ -154,7 +168,7 @@ ak_dae_curve(void * __restrict memParent,
         AkObject  *obj;
         AkEllipse *ellipse;
 
-        obj = ak_objAlloc(curve,
+        obj = ak_objAlloc(memPtr,
                           sizeof(*ellipse),
                           AK_CURVE_ELEMENT_TYPE_ELLIPSE,
                           true);
@@ -198,7 +212,7 @@ ak_dae_curve(void * __restrict memParent,
         AkObject   *obj;
         AkParabola *parabola;
 
-        obj = ak_objAlloc(curve,
+        obj = ak_objAlloc(memPtr,
                           sizeof(*parabola),
                           AK_CURVE_ELEMENT_TYPE_PARABOLA,
                           true);
@@ -239,7 +253,7 @@ ak_dae_curve(void * __restrict memParent,
         AkObject    *obj;
         AkHyperbola *hyperbola;
 
-        obj = ak_objAlloc(curve,
+        obj = ak_objAlloc(memPtr,
                           sizeof(*hyperbola),
                           AK_CURVE_ELEMENT_TYPE_HYPERBOLA,
                           true);
@@ -283,7 +297,7 @@ ak_dae_curve(void * __restrict memParent,
         AkNurbs *nurbs;
         AkResult ret;
 
-        ret = ak_dae_nurbs(curve, reader, true, &nurbs);
+        ret = ak_dae_nurbs(memPtr, reader, true, &nurbs);
         if (ret == AK_OK)
           curve->curve = ak_objFrom(nurbs);
 
@@ -297,7 +311,7 @@ ak_dae_curve(void * __restrict memParent,
           AkDoubleArrayL *orient;
           AkResult ret;
 
-          ret = ak_strtod_arrayL(curve, content, &orient);
+          ret = ak_strtod_arrayL(memPtr, content, &orient);
           if (ret == AK_OK) {
             if (last_orient)
               last_orient->next = orient;
