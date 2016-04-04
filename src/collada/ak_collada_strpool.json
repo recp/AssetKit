@@ -371,5 +371,9 @@
   "curve": "curve",
   "direction": "direction",
   "radius": "radius",
-  "degree": "degree"
+  "degree": "degree",
+  "degree_u": "degree_u",
+  "closed_u": "closed_u",
+  "degree_v": "degree_v",
+  "closed_v": "closed_v",
 }

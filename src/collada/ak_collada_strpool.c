@@ -383,6 +383,10 @@ const char _s_dae_pool[] =
 "direction\0"
 "radius\0"
 "degree\0"
+"degree_u\0"
+"closed_u\0"
+"degree_v\0"
+"closed_v\0"
 ;
 
 #undef _ak_DAE_STRPOOL_

@@ -387,5 +387,9 @@ const char _s_dae_pool[];
 #define _s_dae_direction _s_dae(4053)
 #define _s_dae_radius _s_dae(4063)
 #define _s_dae_degree _s_dae(4070)
+#define _s_dae_degree_u _s_dae(4077)
+#define _s_dae_closed_u _s_dae(4086)
+#define _s_dae_degree_v _s_dae(4095)
+#define _s_dae_closed_v _s_dae(4104)
 
 #endif /* __libassetkit__collada_strpool__h_ */

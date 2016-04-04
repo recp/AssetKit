@@ -16,4 +16,10 @@ ak_dae_nurbs(void * __restrict memParent,
              bool asObject,
              AkNurbs ** __restrict dest);
 
+AkResult _assetkit_hide
+ak_dae_nurbs_surface(void * __restrict memParent,
+                     xmlTextReaderPtr reader,
+                     bool asObject,
+                     AkNurbsSurface ** __restrict dest);
+
 #endif /* ak_collada_brep_nurbs_h */
