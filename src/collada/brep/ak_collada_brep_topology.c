@@ -6,6 +6,8 @@
  */
 
 #include "ak_collada_brep_topology.h"
+#include "../core/ak_collada_enums.h"
+#include "../../ak_array.h"
 
 AkResult _assetkit_hide
 ak_dae_edges(void * __restrict memParent,
