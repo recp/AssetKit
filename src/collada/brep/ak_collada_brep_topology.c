@@ -71,10 +71,10 @@ ak_dae_edges(void * __restrict memParent,
       _xml_readMutText(content);
 
       if (content) {
-        AkDoubleArrayL *doubleArray;
+        AkDoubleArray *doubleArray;
         AkResult ret;
 
-        ret = ak_strtod_arrayL(edges, content, &doubleArray);
+        ret = ak_strtod_array(edges, content, &doubleArray);
         if (ret == AK_OK) {
           edges->primitives = doubleArray;
         }
@@ -180,10 +180,10 @@ ak_dae_wires(void * __restrict memParent,
       _xml_readMutText(content);
 
       if (content) {
-        AkDoubleArrayL *doubleArray;
+        AkDoubleArray *doubleArray;
         AkResult ret;
 
-        ret = ak_strtod_arrayL(wires, content, &doubleArray);
+        ret = ak_strtod_array(wires, content, &doubleArray);
         if (ret == AK_OK)
           wires->primitives = doubleArray;
 
@@ -288,10 +288,10 @@ ak_dae_faces(void * __restrict memParent,
       _xml_readMutText(content);
 
       if (content) {
-        AkDoubleArrayL *doubleArray;
+        AkDoubleArray *doubleArray;
         AkResult ret;
 
-        ret = ak_strtod_arrayL(faces, content, &doubleArray);
+        ret = ak_strtod_array(faces, content, &doubleArray);
         if (ret == AK_OK)
           faces->primitives = doubleArray;
 
@@ -396,10 +396,10 @@ ak_dae_pcurves(void * __restrict memParent,
       _xml_readMutText(content);
 
       if (content) {
-        AkDoubleArrayL *doubleArray;
+        AkDoubleArray *doubleArray;
         AkResult ret;
 
-        ret = ak_strtod_arrayL(pcurves, content, &doubleArray);
+        ret = ak_strtod_array(pcurves, content, &doubleArray);
         if (ret == AK_OK)
           pcurves->primitives = doubleArray;
 
@@ -504,10 +504,10 @@ ak_dae_shells(void * __restrict memParent,
       _xml_readMutText(content);
 
       if (content) {
-        AkDoubleArrayL *doubleArray;
+        AkDoubleArray *doubleArray;
         AkResult ret;
 
-        ret = ak_strtod_arrayL(shells, content, &doubleArray);
+        ret = ak_strtod_array(shells, content, &doubleArray);
         if (ret == AK_OK)
           shells->primitives = doubleArray;
 
@@ -612,10 +612,10 @@ ak_dae_solids(void * __restrict memParent,
       _xml_readMutText(content);
 
       if (content) {
-        AkDoubleArrayL *doubleArray;
+        AkDoubleArray *doubleArray;
         AkResult ret;
 
-        ret = ak_strtod_arrayL(solids, content, &doubleArray);
+        ret = ak_strtod_array(solids, content, &doubleArray);
         if (ret == AK_OK)
           solids->primitives = doubleArray;
 
