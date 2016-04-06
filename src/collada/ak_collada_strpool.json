@@ -385,5 +385,14 @@
   "swept_surface": "swept_surface",
   "surface": "surface",
   "angle": "angle",
-  "axis": "axis"
+  "axis": "axis",
+  "curves": "curves",
+  "surface_curves": "surface_curves",
+  "surfaces": "surfaces",
+  "edges": "edges",
+  "wires": "wires",
+  "faces": "faces",
+  "pcurves": "pcurves",
+  "shells": "shells",
+  "solids": "solids"
 }

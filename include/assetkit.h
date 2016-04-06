@@ -1444,68 +1444,68 @@ typedef struct AkSurfaces {
 } AkSurfaces;
 
 typedef struct AkEdges {
-  const char * id;
-  const char * name;
-  AkUInt       count;
+  const char    * id;
+  const char    * name;
+  AkUInt          count;
 
-  AkInput    * input;
-  AkIntArray * primitives;
-  AkTree     * extra;
+  AkInput       * input;
+  AkDoubleArray * primitives;
+  AkTree        * extra;
 } AkEdges;
 
 typedef struct AkWires {
-  const char * id;
-  const char * name;
-  AkUInt       count;
+  const char    * id;
+  const char    * name;
+  AkUInt          count;
 
-  AkInput    * input;
-  AkIntArray * vcount;
-  AkIntArray * primitives;
-  AkTree     * extra;
+  AkInput       * input;
+  AkIntArray    * vcount;
+  AkDoubleArray * primitives;
+  AkTree        * extra;
 } AkWires;
 
 typedef struct AkFaces {
-  const char * id;
-  const char * name;
-  AkUInt       count;
+  const char    * id;
+  const char    * name;
+  AkUInt          count;
 
-  AkInput    * input;
-  AkIntArray * vcount;
-  AkIntArray * primitives;
-  AkTree     * extra;
+  AkInput       * input;
+  AkIntArray    * vcount;
+  AkDoubleArray * primitives;
+  AkTree        * extra;
 } AkFaces;
 
 typedef struct AkPCurves {
-  const char * id;
-  const char * name;
-  AkUInt       count;
+  const char    * id;
+  const char    * name;
+  AkUInt          count;
 
-  AkInput    * input;
-  AkIntArray * vcount;
-  AkIntArray * primitives;
-  AkTree     * extra;
+  AkInput       * input;
+  AkIntArray    * vcount;
+  AkDoubleArray * primitives;
+  AkTree        * extra;
 } AkPCurves;
 
 typedef struct AkShells {
-  const char * id;
-  const char * name;
-  AkUInt       count;
+  const char    * id;
+  const char    * name;
+  AkUInt          count;
 
-  AkInput    * input;
-  AkIntArray * vcount;
-  AkIntArray * primitives;
-  AkTree     * extra;
+  AkInput       * input;
+  AkIntArray    * vcount;
+  AkDoubleArray * primitives;
+  AkTree        * extra;
 } AkShells;
 
 typedef struct AkSolids {
-  const char * id;
-  const char * name;
-  AkUInt       count;
+  const char    * id;
+  const char    * name;
+  AkUInt          count;
 
-  AkInput    * input;
-  AkIntArray * vcount;
-  AkIntArray * primitives;
-  AkTree     * extra;
+  AkInput       * input;
+  AkIntArray    * vcount;
+  AkDoubleArray * primitives;
+  AkTree        * extra;
 } AkSolids;
 
 typedef struct AkBoundryRep {
@@ -1514,7 +1514,7 @@ typedef struct AkBoundryRep {
   AkCurves   * surfaceCurves;
   AkSurfaces * surfaces;
   AkSource   * source;
-  AkVertices * vertives;
+  AkVertices * vertices;
   AkEdges    * edges;
   AkWires    * wires;
   AkFaces    * faces;

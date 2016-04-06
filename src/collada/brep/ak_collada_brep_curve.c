@@ -348,3 +348,55 @@ ak_dae_curve(void * __restrict memParent,
   
   return AK_OK;
 }
+
+AkResult _assetkit_hide
+ak_dae_curves(void * __restrict memParent,
+              xmlTextReaderPtr reader,
+              AkCurves ** __restrict dest) {
+  AkCurves      *curves;
+  AkCurve       *last_curve;
+  const xmlChar *nodeName;
+  int            nodeType;
+  int            nodeRet;
+
+  curves = ak_calloc(memParent, sizeof(*curves), 1);
+
+  last_curve = NULL;
+
+  do {
+    _xml_beginElement(_s_dae_curves);
+
+    if (_xml_eqElm(_s_dae_curve)) {
+      AkCurve *curve;
+      AkResult ret;
+
+      ret = ak_dae_curve(curves, reader, false, &curve);
+      if (ret == AK_OK) {
+        if (last_curve)
+          last_curve->next = curve;
+        else
+          curves->curve = curve;
+
+        last_curve = curve;
+      }
+    } else if (_xml_eqElm(_s_dae_extra)) {
+      xmlNodePtr nodePtr;
+      AkTree    *tree;
+
+      nodePtr = xmlTextReaderExpand(reader);
+      tree = NULL;
+
+      ak_tree_fromXmlNode(curves, nodePtr, &tree, NULL);
+      curves->extra = tree;
+
+      _xml_skipElement;
+    }
+
+    /* end element */
+    _xml_endElement;
+  } while (nodeRet);
+  
+  *dest = curves;
+  
+  return AK_OK;
+}

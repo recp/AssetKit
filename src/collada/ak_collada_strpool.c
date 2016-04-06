@@ -397,6 +397,15 @@ const char _s_dae_pool[] =
 "surface\0"
 "angle\0"
 "axis\0"
+"curves\0"
+"surface_curves\0"
+"surfaces\0"
+"edges\0"
+"wires\0"
+"faces\0"
+"pcurves\0"
+"shells\0"
+"solids\0"
 ;
 
 #undef _ak_DAE_STRPOOL_

@@ -401,5 +401,14 @@ const char _s_dae_pool[];
 #define _s_dae_surface _s_dae(4174)
 #define _s_dae_angle _s_dae(4182)
 #define _s_dae_axis _s_dae(4188)
+#define _s_dae_curves _s_dae(4193)
+#define _s_dae_surface_curves _s_dae(4200)
+#define _s_dae_surfaces _s_dae(4215)
+#define _s_dae_edges _s_dae(4224)
+#define _s_dae_wires _s_dae(4230)
+#define _s_dae_faces _s_dae(4236)
+#define _s_dae_pcurves _s_dae(4242)
+#define _s_dae_shells _s_dae(4250)
+#define _s_dae_solids _s_dae(4257)
 
 #endif /* __libassetkit__collada_strpool__h_ */
