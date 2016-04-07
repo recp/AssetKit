@@ -12,6 +12,7 @@
 #include "ak_collada_light.h"
 
 #include "core/ak_collada_geometry.h"
+#include "core/ak_collada_controller.h"
 
 #include "fx/ak_collada_fx_effect.h"
 #include "fx/ak_collada_fx_image.h"
@@ -29,6 +30,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
   ak_lib_image    *last_libImage;
   ak_lib_material *last_libMaterial;
   AkLibGeometry   *last_libGeometry;
+  AkLibController *last_libController;
 
   xmlTextReaderPtr  reader;
   const xmlChar    *nodeName;
@@ -63,12 +65,13 @@ ak_dae_doc(ak_doc ** __restrict dest,
 
   _xml_readNext;
 
-  last_libCam      = NULL;
-  last_libLight    = NULL;
-  last_libEffect   = NULL;
-  last_libImage    = NULL;
-  last_libMaterial = NULL;
-  last_libGeometry = NULL;
+  last_libCam        = NULL;
+  last_libLight      = NULL;
+  last_libEffect     = NULL;
+  last_libImage      = NULL;
+  last_libMaterial   = NULL;
+  last_libGeometry   = NULL;
+  last_libController = NULL;
 
   do {
     _xml_beginElement(_s_dae_collada);
@@ -445,6 +448,67 @@ ak_dae_doc(ak_doc ** __restrict dest,
 
           ak_tree_fromXmlNode(doc, nodePtr, &tree, NULL);
           libGeometry->extra = tree;
+
+          _xml_skipElement;
+        } else {
+          _xml_skipElement;
+        }
+        
+        /* end element */
+        _xml_endElement;
+      } while (nodeRet);
+    } else if (_xml_eqElm(_s_dae_lib_controllers)) {
+      AkLibController *libController;
+      AkController    *lastController;
+
+      libController = ak_calloc(doc, sizeof(*libController), 1);
+      if (last_libController)
+        last_libController->next = libController;
+      else
+        doc->lib.controllers = libController;
+
+      last_libController = libController;
+
+      _xml_readAttr(libController, libController->id, _s_dae_id);
+      _xml_readAttr(libController, libController->name, _s_dae_name);
+
+      lastController = NULL;
+
+      do {
+        _xml_beginElement(_s_dae_lib_controllers);
+
+        if (_xml_eqElm(_s_dae_asset)) {
+          ak_assetinf *assetInf;
+          AkResult ret;
+
+          assetInf = NULL;
+          ret = ak_dae_assetInf(doc, reader, &assetInf);
+          if (ret == AK_OK)
+            libController->inf = assetInf;
+
+        } else if (_xml_eqElm(_s_dae_controller)) {
+          AkController *controller;
+          AkResult ret;
+
+          controller = NULL;
+          ret = ak_dae_controller(doc, reader, &controller);
+          if (ret == AK_OK) {
+            if (lastController)
+              lastController->next = controller;
+            else
+              libController->chld = controller;
+
+            lastController = controller;
+          }
+        } else if (_xml_eqElm(_s_dae_extra)) {
+          xmlNodePtr nodePtr;
+          AkTree   *tree;
+
+          nodePtr = xmlTextReaderExpand(reader);
+          tree = NULL;
+
+          ak_tree_fromXmlNode(doc, nodePtr, &tree, NULL);
+          libController->extra = tree;
 
           _xml_skipElement;
         } else {

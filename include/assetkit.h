@@ -332,6 +332,11 @@ typedef enum AkSourceArrayType {
   AK_SOURCE_ARRAY_TYPE_TOKEN  = 7
 } AkSourceArrayType;
 
+typedef enum AkMorphMethod {
+  AK_MORPH_METHOD_NORMALIZED = 1,
+  AK_MORPH_METHOD_RELATIVE   = 2
+} AkMorphMethod;
+
 /**
  * Almost all assets includes this fields.
  * This macro defines base fields of assets
@@ -1535,6 +1540,61 @@ typedef struct AkGeometry {
   struct AkGeometry * next;
 } AkGeometry;
 
+typedef struct AkJoints {
+  ak_asset_base
+
+  AkInputBasic * input;
+  AkTree       * extra;
+} AkJoints;
+
+typedef struct AkVertexWeights {
+  AkInput       * input;
+  AkIntArray    * vcount;
+  AkDoubleArray * v;
+  AkTree        * extra;
+  AkUInt          count;
+} AkVertexWeights;
+
+typedef struct AkSkin {
+  ak_asset_base
+
+  const char      * baseMesh;
+  AkDoubleArray   * bindShapeMatrix;
+  AkSource        * source;
+  AkJoints        * joints;
+  AkVertexWeights * vertexWeights;
+  AkTree          * extra;
+} AkSkin;
+
+typedef struct AkTargets {
+  ak_asset_base
+
+  AkInputBasic * input;
+  AkTree       * extra;
+} AkTargets;
+
+typedef struct AkMorph {
+  ak_asset_base
+
+  const char *  baseMesh;
+  AkMorphMethod method;
+
+  AkSource    * source;
+  AkTargets   * targets;
+  AkTree      * extra;
+} AkMorph;
+
+typedef struct AkController {
+  ak_asset_base
+
+  const char * id;
+  const char * name;
+  AkObject   * data;
+  AkTree     * extra;
+
+  struct AkController * next;
+} AkController;
+
 #undef _ak_DEF_LIB
 #undef AK__DEF_LIB
 
@@ -1567,6 +1627,7 @@ _ak_DEF_LIB(effect);
 _ak_DEF_LIB(image);
 _ak_DEF_LIB(material);
 AK__DEF_LIB(Geometry);
+AK__DEF_LIB(Controller);
 
 #undef _ak_DEF_LIB
 #undef AK__DEF_LIB
@@ -1579,6 +1640,7 @@ struct ak_lib_s {
   ak_lib_image    * images;
   ak_lib_material * materials;
   AkLibGeometry   * geometries;
+  AkLibController * controllers;
 };
 
 typedef struct ak_doc_s ak_doc;

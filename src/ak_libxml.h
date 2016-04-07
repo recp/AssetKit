@@ -190,7 +190,7 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
       attrVal = FN(attrValStr);                                               \
       TARGET = attrVal != -1 ? attrVal: DEF;                                  \
       xmlFree(attrValStr);                                                    \
-    } else D = DEF;                                                           \
+    } else TARGET = DEF;                                                      \
   } while(0);
 
 #endif /* __libassetkit__libxml__h_ */

@@ -54,3 +54,27 @@ ak_dae_enumInputSemantic(const char * name) {
 
   return val;
 }
+
+AkEnum _assetkit_hide
+ak_dae_enumMorphMethod(const char * name) {
+  AkEnum val;
+  long glenums_len;
+  long i;
+
+  ak_dae_enum glenums[] = {
+    {"NORMALIZED", AK_MORPH_METHOD_NORMALIZED},
+    {"RELATIVE",   AK_MORPH_METHOD_RELATIVE},
+  };
+
+  val = AK_MORPH_METHOD_NORMALIZED;
+  glenums_len = AK_ARRAY_LEN(glenums);
+
+  for (i = 0; i < glenums_len; i++) {
+    if (strcasecmp(name, glenums[i].name) == 0) {
+      val = glenums[i].val;
+      break;
+    }
+  }
+
+  return val;
+}

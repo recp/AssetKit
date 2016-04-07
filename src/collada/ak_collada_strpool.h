@@ -410,5 +410,15 @@ const char _s_dae_pool[];
 #define _s_dae_pcurves _s_dae(4242)
 #define _s_dae_shells _s_dae(4250)
 #define _s_dae_solids _s_dae(4257)
+#define _s_dae_lib_controllers _s_dae(4264)
+#define _s_dae_controller _s_dae(4284)
+#define _s_dae_skin _s_dae(4295)
+#define _s_dae_morph _s_dae(4300)
+#define _s_dae_bind_shape_matrix _s_dae(4306)
+#define _s_dae_joints _s_dae(4324)
+#define _s_dae_vertex_weights _s_dae(4331)
+#define _s_dae_targets _s_dae(4346)
+#define _s_dae_v _s_dae(4354)
+#define _s_dae_method _s_dae(4356)
 
 #endif /* __libassetkit__collada_strpool__h_ */

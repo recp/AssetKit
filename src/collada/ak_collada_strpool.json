@@ -394,5 +394,15 @@
   "faces": "faces",
   "pcurves": "pcurves",
   "shells": "shells",
-  "solids": "solids"
+  "solids": "solids",
+  "lib_controllers": "library_controllers",
+  "controller": "controller",
+  "skin": "skin",
+  "morph": "morph",
+  "bind_shape_matrix": "bind_shape_matrix",
+  "joints": "joints",
+  "vertex_weights": "vertex_weights",
+  "targets": "targets",
+  "v": "v",
+  "method": "method"
 }

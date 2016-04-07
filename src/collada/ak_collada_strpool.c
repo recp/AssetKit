@@ -406,6 +406,16 @@ const char _s_dae_pool[] =
 "pcurves\0"
 "shells\0"
 "solids\0"
+"library_controllers\0"
+"controller\0"
+"skin\0"
+"morph\0"
+"bind_shape_matrix\0"
+"joints\0"
+"vertex_weights\0"
+"targets\0"
+"v\0"
+"method\0"
 ;
 
 #undef _ak_DAE_STRPOOL_

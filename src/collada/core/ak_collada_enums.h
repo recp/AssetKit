@@ -13,4 +13,7 @@
 AkEnum _assetkit_hide
 ak_dae_enumInputSemantic(const char * name);
 
+AkEnum _assetkit_hide
+ak_dae_enumMorphMethod(const char * name);
+
 #endif /* __libassetkit__ak_collada_fx_enums_h_ */
