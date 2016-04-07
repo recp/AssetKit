@@ -317,10 +317,10 @@ ak_dae_surface(void * __restrict memParent,
 
             ret = ak_dae_curve(surface,
                                reader,
-                               true,
+                               false,
                                &curve);
             if (ret == AK_OK)
-              sweptSurface->curve = ak_objFrom(curve);
+              sweptSurface->curve = curve;
           } else if (_xml_eqElm(_s_dae_direction)) {
             char *content;
             _xml_readMutText(content);
