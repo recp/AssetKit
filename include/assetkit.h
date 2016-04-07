@@ -337,6 +337,20 @@ typedef enum AkMorphMethod {
   AK_MORPH_METHOD_RELATIVE   = 2
 } AkMorphMethod;
 
+typedef enum AkNodeType {
+  AK_NODE_TYPE_NODE  = 1,
+  AK_NODE_TYPE_JOINT = 2
+} AkNodeType;
+
+typedef enum AkNodeTransformType {
+  AK_NODE_TRANSFORM_TYPE_LOOK_AT   = 1,
+  AK_NODE_TRANSFORM_TYPE_MATRIX    = 2,
+  AK_NODE_TRANSFORM_TYPE_ROTATE    = 3,
+  AK_NODE_TRANSFORM_TYPE_SCALE     = 4,
+  AK_NODE_TRANSFORM_TYPE_SKEW      = 5,
+  AK_NODE_TRANSFORM_TYPE_TRANSLATE = 6
+} AkNodeTransformType;
+
 /**
  * Almost all assets includes this fields.
  * This macro defines base fields of assets
@@ -1595,6 +1609,182 @@ typedef struct AkController {
   struct AkController * next;
 } AkController;
 
+typedef struct AkLookAt {
+  ak_asset_base
+
+  const char * sid;
+  AkDouble     val[9];
+} AkLookAt;
+
+typedef struct AkMatrix {
+  ak_asset_base
+
+  const char * sid;
+  AkDouble     val[4][4];
+} AkMatrix;
+
+typedef struct AkRotate {
+  ak_asset_base
+
+  const char * sid;
+  AkDouble     val[4];
+} AkRotate;
+
+typedef struct AkScale {
+  ak_asset_base
+
+  const char * sid;
+  AkDouble     val[3];
+} AkScale;
+
+typedef struct AkSkew {
+  ak_asset_base
+
+  const char * sid;
+  AkDouble     val[7];
+} AkSkew;
+
+typedef struct AkTranslate {
+  ak_asset_base
+
+  const char * sid;
+  AkDouble     val[3];
+} AkTranslate;
+
+typedef struct AkInstanceCamera {
+  const char * id;
+  const char * name;
+  const char * url;
+  AkTree     * extra;
+} AkInstanceCamera;
+
+typedef struct AkSkeleton {
+  const char * val;
+
+  struct AkSkeleton * next;
+} AkSkeleton;
+
+typedef struct AkBindMaterial {
+  ak_param     * param;
+  ak_technique_common * techniqueCommon;
+  ak_technique * technique;
+  AkTree       * extra;
+} AkBindMaterial;
+
+typedef struct AkInstanceController {
+  const char     * id;
+  const char     * name;
+  const char     * url;
+  AkSkeleton     * skeleton;
+  AkBindMaterial * bindMaterial;
+  AkTree         * extra;
+} AkInstanceController;
+
+typedef struct AkInstanceGeometry {
+  const char     * id;
+  const char     * name;
+  const char     * url;
+  AkBindMaterial * bindMaterial;
+  AkTree         * extra;
+} AkInstanceGeometry;
+
+typedef struct AkInstanceLight {
+  const char     * id;
+  const char     * name;
+  const char     * url;
+  const char     * proxy;
+  AkTree         * extra;
+} AkInstanceLight;
+
+typedef struct AkInstanceNode {
+  const char     * id;
+  const char     * name;
+  const char     * url;
+  AkTree         * extra;
+} AkInstanceNode;
+
+typedef struct AkNode {
+  ak_asset_base
+
+  const char * id;
+  const char * name;
+  const char * sid;
+  AkNodeType   nodeType;
+  AkStringArray        * layer;
+  AkObject             * transform;
+  AkInstanceCamera     * camera;
+  AkInstanceController * controller;
+  AkInstanceGeometry   * geometry;
+  AkInstanceLight      * light;
+  AkTree        * extra;
+  struct AkNode * chld;
+  struct AkNode * next;
+} AkNode;
+
+typedef struct AkTechniqueOverride {
+  const char * ref;
+  const char * pass;
+} AkTechniqueOverride;
+
+typedef struct AkBind {
+  const char    * semantic;
+  const char    * target;
+  struct AkBind * next;
+} AkBind;
+
+typedef struct AkBindVertexInput {
+  const char * semantic;
+  const char * inputSemantic;
+  AkUInt       inputSet;
+  struct AkBindVertexInput * next;
+} AkBindVertexInput;
+
+typedef struct AkInstanceMaterial {
+  ak_asset_base
+
+  const char          * url;
+  AkTechniqueOverride * techniqueOverride;
+  AkBind              * bind;
+  AkBindVertexInput   * bindVertexInput;
+  AkTree              * extra;
+
+  struct AkRender * next;
+} AkInstanceMaterial;
+
+typedef struct AkRender {
+  ak_asset_base
+
+  const char    * name;
+  const char    * sid;
+  const char    * cameraMode;
+  AkStringArray * layer;
+  AkInstanceMaterial * instanceMaterial;
+  AkTree        * extra;
+
+  struct AkRender * next;
+} AkRender;
+
+typedef struct AkEvaluateScene {
+  ak_asset_base
+
+  AkRender * render;
+  AkTree   * extra;
+
+  struct AkEvaluateScene * next;
+} AkEvaluateScene;
+
+typedef struct AkVisualScene {
+  ak_asset_base
+
+  const char * id;
+  const char * name;
+  AkNode     * node;
+  AkEvaluateScene * evaluateScene;
+  AkTree     * extra;
+
+  struct AkVisualScene * next;
+} AkVisualScene;
+
 #undef _ak_DEF_LIB
 #undef AK__DEF_LIB
 
@@ -1628,19 +1818,21 @@ _ak_DEF_LIB(image);
 _ak_DEF_LIB(material);
 AK__DEF_LIB(Geometry);
 AK__DEF_LIB(Controller);
+AK__DEF_LIB(VisualScene);
 
 #undef _ak_DEF_LIB
 #undef AK__DEF_LIB
 
 typedef struct ak_lib_s ak_lib;
 struct ak_lib_s {
-  ak_lib_camera   * cameras;
-  ak_lib_light    * lights;
-  ak_lib_effect   * effects;
-  ak_lib_image    * images;
-  ak_lib_material * materials;
-  AkLibGeometry   * geometries;
-  AkLibController * controllers;
+  ak_lib_camera    * cameras;
+  ak_lib_light     * lights;
+  ak_lib_effect    * effects;
+  ak_lib_image     * images;
+  ak_lib_material  * materials;
+  AkLibGeometry    * geometries;
+  AkLibController  * controllers;
+  AkLibVisualScene * visualScenes;
 };
 
 typedef struct ak_doc_s ak_doc;
