@@ -1442,8 +1442,8 @@ typedef struct AkTorus {
 
 typedef struct AkSweptSurface {
   AkCurve * curve;
-  AkFloat3  direction;
-  AkFloat3  origin;
+  AkDouble3 direction;
+  AkDouble3 origin;
   AkFloat3  axis;
   AkTree  * extra;
 } AkSweptSurface;
@@ -1452,9 +1452,9 @@ typedef struct AkSurface {
   const char * sid;
   const char * name;
 
-  AkObject      * surface;
-  AkFloatArrayL * orient;
-  AkFloat3        origin;
+  AkObject       * surface;
+  AkDoubleArrayL * orient;
+  AkDouble3        origin;
 } AkSurface;
 
 typedef struct AkSurfaces {
@@ -1721,7 +1721,7 @@ typedef struct AkNode {
   struct AkNode * next;
 } AkNode;
 
-typedef struct AkTechniqueOverride {
+typedef struct AkTechniqueOverride { 
   const char * ref;
   const char * pass;
 } AkTechniqueOverride;
