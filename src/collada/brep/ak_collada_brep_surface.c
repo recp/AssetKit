@@ -413,3 +413,55 @@ ak_dae_surface(void * __restrict memParent,
   
   return AK_OK;
 }
+
+AkResult _assetkit_hide
+ak_dae_surfaces(void * __restrict memParent,
+                xmlTextReaderPtr reader,
+                AkSurfaces ** __restrict dest) {
+  AkSurfaces    *surfaces;
+  AkSurface     *last_surface;
+  const xmlChar *nodeName;
+  int            nodeType;
+  int            nodeRet;
+
+  surfaces = ak_calloc(memParent, sizeof(*surfaces), 1);
+
+  last_surface= NULL;
+
+  do {
+    _xml_beginElement(_s_dae_surfaces);
+
+    if (_xml_eqElm(_s_dae_surface)) {
+      AkSurface *surface;
+      AkResult ret;
+
+      ret = ak_dae_surface(surfaces, reader, &surface);
+      if (ret == AK_OK) {
+        if (last_surface)
+          last_surface->next = surface;
+        else
+          surfaces->surface = surface;
+
+        last_surface = surface;
+      }
+    } else if (_xml_eqElm(_s_dae_extra)) {
+      xmlNodePtr nodePtr;
+      AkTree    *tree;
+
+      nodePtr = xmlTextReaderExpand(reader);
+      tree = NULL;
+
+      ak_tree_fromXmlNode(surfaces, nodePtr, &tree, NULL);
+      surfaces->extra = tree;
+
+      _xml_skipElement;
+    }
+
+    /* end element */
+    _xml_endElement;
+  } while (nodeRet);
+  
+  *dest = surfaces;
+  
+  return AK_OK;
+}

@@ -15,4 +15,9 @@ ak_dae_surface(void * __restrict memParent,
                xmlTextReaderPtr reader,
                AkSurface ** __restrict dest);
 
+AkResult _assetkit_hide
+ak_dae_surfaces(void * __restrict memParent,
+                xmlTextReaderPtr reader,
+                AkSurfaces ** __restrict dest);
+
 #endif /* ak_collada_brep_surface_h */

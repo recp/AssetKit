@@ -115,7 +115,7 @@ ak_dae_brep(void * __restrict memParent,
         AkSurfaces *surfaces;
         AkResult    ret;
 
-        ret = ak_dae_curves(memPtr, reader, &surfaces);
+        ret = ak_dae_surfaces(memPtr, reader, &surfaces);
         if (ret == AK_OK)
           brep->surfaces = surfaces;
 

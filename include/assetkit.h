@@ -1455,6 +1455,8 @@ typedef struct AkSurface {
   AkObject       * surface;
   AkDoubleArrayL * orient;
   AkDouble3        origin;
+
+  struct AkSurface * next;
 } AkSurface;
 
 typedef struct AkSurfaces {
