@@ -7,6 +7,8 @@
 
 #include "ak_collada_skin.h"
 #include "../../ak_array.h"
+#include "ak_collada_source.h"
+#include "ak_collada_enums.h"
 
 AkResult _assetkit_hide
 ak_dae_skin(void * __restrict memParent,

@@ -8,6 +8,7 @@
 #include "ak_collada_brep_surface.h"
 #include "ak_collada_brep_nurbs.h"
 #include "ak_collada_brep_curve.h"
+#include "../../ak_array.h"
 
 #define k_s_dae_orient 101
 #define k_s_dae_origin 102

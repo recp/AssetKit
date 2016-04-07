@@ -6,6 +6,8 @@
  */
 
 #include "ak_collada_brep.h"
+#include "../core/ak_collada_source.h"
+#include "../core/ak_collada_vertices.h"
 #include "ak_collada_brep_curve.h"
 #include "ak_collada_brep_surface.h"
 #include "ak_collada_brep_topology.h"

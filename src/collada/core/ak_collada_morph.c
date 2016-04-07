@@ -6,6 +6,7 @@
  */
 
 #include "ak_collada_morph.h"
+#include "ak_collada_source.h"
 #include "ak_collada_enums.h"
 #include "../../ak_array.h"
 
