@@ -247,7 +247,7 @@ ak_dae_source(void * __restrict memParent,
 
            the last one is pointer to all data
            */
-          arraySize = sizeof(char *) * arrayCount + 1;
+          arraySize = sizeof(char *) * (arrayCount + 1);
           arrayDataSize = strlen(content) + arrayCount /* NULL */;
 
           obj = ak_objAlloc(source,
