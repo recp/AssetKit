@@ -140,7 +140,8 @@ typedef enum AkTechniqueCommonType {
   AK_TECHNIQUE_COMMON_LIGHT_AMBIENT       = 3,
   AK_TECHNIQUE_COMMON_LIGHT_DIRECTIONAL   = 4,
   AK_TECHNIQUE_COMMON_LIGHT_POINT         = 5,
-  AK_TECHNIQUE_COMMON_LIGHT_SPOT          = 6
+  AK_TECHNIQUE_COMMON_LIGHT_SPOT          = 6,
+  AK_TECHNIQUE_COMMON_INSTANCE_MATERIAL   = 7
 } AkTechniqueCommonType;
 
 typedef enum AkFileType {
@@ -1658,6 +1659,8 @@ typedef struct AkInstanceCamera {
   const char * name;
   const char * url;
   AkTree     * extra;
+
+  struct AkInstanceCamera * next;
 } AkInstanceCamera;
 
 typedef struct AkSkeleton {
@@ -1680,6 +1683,8 @@ typedef struct AkInstanceController {
   AkSkeleton     * skeleton;
   AkBindMaterial * bindMaterial;
   AkTree         * extra;
+
+  struct AkInstanceController * next;
 } AkInstanceController;
 
 typedef struct AkInstanceGeometry {
@@ -1688,21 +1693,27 @@ typedef struct AkInstanceGeometry {
   const char     * url;
   AkBindMaterial * bindMaterial;
   AkTree         * extra;
+
+  struct AkInstanceGeometry * next;
 } AkInstanceGeometry;
 
 typedef struct AkInstanceLight {
   const char     * id;
   const char     * name;
   const char     * url;
-  const char     * proxy;
   AkTree         * extra;
+
+  struct AkInstanceLight * next;
 } AkInstanceLight;
 
 typedef struct AkInstanceNode {
   const char     * id;
   const char     * name;
   const char     * url;
+  const char     * proxy;
   AkTree         * extra;
+
+  struct AkInstanceNode * next;
 } AkInstanceNode;
 
 typedef struct AkNode {
@@ -1718,6 +1729,7 @@ typedef struct AkNode {
   AkInstanceController * controller;
   AkInstanceGeometry   * geometry;
   AkInstanceLight      * light;
+  AkInstanceNode       * node;
   AkTree        * extra;
   struct AkNode * chld;
   struct AkNode * next;
@@ -1744,24 +1756,28 @@ typedef struct AkBindVertexInput {
 typedef struct AkInstanceMaterial {
   ak_asset_base
 
+  const char          * sid;
+  const char          * name;
+  const char          * target;
+  const char          * symbol;
   const char          * url;
   AkTechniqueOverride * techniqueOverride;
   AkBind              * bind;
   AkBindVertexInput   * bindVertexInput;
   AkTree              * extra;
 
-  struct AkRender * next;
+  struct AkInstanceMaterial * next;
 } AkInstanceMaterial;
 
 typedef struct AkRender {
   ak_asset_base
 
-  const char    * name;
-  const char    * sid;
-  const char    * cameraMode;
-  AkStringArray * layer;
+  const char     * name;
+  const char     * sid;
+  const char     * cameraNode;
+  AkStringArrayL * layer;
   AkInstanceMaterial * instanceMaterial;
-  AkTree        * extra;
+  AkTree         * extra;
 
   struct AkRender * next;
 } AkRender;
@@ -1769,8 +1785,12 @@ typedef struct AkRender {
 typedef struct AkEvaluateScene {
   ak_asset_base
 
-  AkRender * render;
-  AkTree   * extra;
+  const char * id;
+  const char * name;
+  const char * sid;
+  AkRender   * render;
+  AkTree     * extra;
+  AkBool       enable;
 
   struct AkEvaluateScene * next;
 } AkEvaluateScene;

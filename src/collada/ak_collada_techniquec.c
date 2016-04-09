@@ -8,6 +8,7 @@
 #include "ak_collada_technique.h"
 #include "ak_collada_common.h"
 #include "ak_collada_color.h"
+#include "fx/ak_collada_fx_material.h"
 
 AkResult _assetkit_hide
 ak_dae_techniquec(void * __restrict memParent,
@@ -15,11 +16,15 @@ ak_dae_techniquec(void * __restrict memParent,
                    ak_technique_common ** __restrict dest) {
 
   ak_technique_common *techc;
+  AkInstanceMaterial  *last_instanceMaterial;
+
   const xmlChar * nodeName;
   int             nodeType;
   int             nodeRet;
 
   techc = ak_calloc(memParent, sizeof(*techc), 1);
+
+  last_instanceMaterial = NULL;
 
   do {
     _xml_beginElement(_s_dae_techniquec);
@@ -331,6 +336,21 @@ ak_dae_techniquec(void * __restrict memParent,
       
       techc->technique = spot;
       techc->technique_type = AK_TECHNIQUE_COMMON_LIGHT_SPOT;
+    } else if (_xml_eqElm(_s_dae_instance_material)) {
+      AkInstanceMaterial *instanceMaterial;
+      AkResult ret;
+      ret = ak_dae_fxInstanceMaterial(memParent, reader, &instanceMaterial);
+
+      if (ret == AK_OK) {
+        if (last_instanceMaterial)
+          last_instanceMaterial->next = instanceMaterial;
+        else {
+          techc->technique = instanceMaterial;
+          techc->technique_type = AK_TECHNIQUE_COMMON_INSTANCE_MATERIAL;
+        }
+
+        last_instanceMaterial = instanceMaterial;
+      }
     }
     
     /* end element */

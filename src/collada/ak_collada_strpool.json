@@ -431,5 +431,6 @@
   "proxy": "proxy",
   "render": "render",
   "camera_node": "camera_node",
-  "technique_override": "technique_override"
+  "technique_override": "technique_override",
+  "enable": "enable"
 }

@@ -78,3 +78,27 @@ ak_dae_enumMorphMethod(const char * name) {
 
   return val;
 }
+
+AkEnum _assetkit_hide
+ak_dae_enumNodeType(const char * name) {
+  AkEnum val;
+  long glenums_len;
+  long i;
+
+  ak_dae_enum glenums[] = {
+    {"NODE",  AK_NODE_TYPE_NODE},
+    {"JOINT", AK_NODE_TYPE_JOINT},
+  };
+
+  val = AK_NODE_TYPE_NODE;
+  glenums_len = AK_ARRAY_LEN(glenums);
+
+  for (i = 0; i < glenums_len; i++) {
+    if (strcasecmp(name, glenums[i].name) == 0) {
+      val = glenums[i].val;
+      break;
+    }
+  }
+
+  return val;
+}

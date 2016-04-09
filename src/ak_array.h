@@ -25,4 +25,16 @@ ak_strtoi_array(void * __restrict memParent,
                 char * stringRep,
                 AkIntArray ** __restrict array);
 
+AkResult _assetkit_hide
+ak_strtostr_array(void * __restrict memParent,
+                  char * stringRep,
+                  char separator,
+                  AkStringArray ** __restrict array);
+
+AkResult _assetkit_hide
+ak_strtostr_arrayL(void * __restrict memParent,
+                   char * stringRep,
+                   char separator,
+                   AkStringArrayL ** __restrict array);
+
 #endif /* ak_array_h */

@@ -447,5 +447,6 @@ const char _s_dae_pool[];
 #define _s_dae_render _s_dae(4644)
 #define _s_dae_camera_node _s_dae(4651)
 #define _s_dae_technique_override _s_dae(4663)
+#define _s_dae_enable _s_dae(4682)
 
 #endif /* __libassetkit__collada_strpool__h_ */

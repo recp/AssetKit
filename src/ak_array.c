@@ -144,3 +144,111 @@ ak_strtoi_array(void * __restrict memParent,
   
   return AK_OK;
 }
+
+AkResult _assetkit_hide
+ak_strtostr_array(void * __restrict memParent,
+                  char * stringRep,
+                  char separator,
+                  AkStringArray ** __restrict array) {
+  AkStringArray  *stringArray;
+  char           *pData;
+  char           *tok;
+  AkUInt64        arrayIndex;
+  AkUInt64        itemCount;
+  size_t          arraySize;
+  size_t          arrayDataSize;
+
+  arrayIndex = 0;
+  itemCount  = 0;
+
+  pData = stringRep;
+  while (*pData != '\0'
+         && *++pData == separator)
+    itemCount++;
+
+  /*
+   |pSTR1|pSTR2|pSTR3|STR1\0STR2\0STR3|
+
+   the last one is pointer to all data
+   */
+  arraySize = sizeof(char *) * (itemCount + 1);
+  arrayDataSize = strlen(stringRep) + itemCount /* NULL */;
+
+  stringArray = ak_malloc(memParent,
+                          sizeof(*stringArray) + arraySize);
+
+  pData = ak_malloc(stringArray,
+                    arrayDataSize);
+
+  stringArray->count = itemCount;
+  stringArray->items[itemCount] = pData;
+
+  tok = strtok(stringRep, &separator);
+  while (tok) {
+    strcpy(pData, tok);
+    stringArray->items[arrayIndex++] = pData;
+
+    pData += strlen(tok);
+    *pData++ = '\0';
+
+    tok = strtok(NULL, " ");
+  }
+
+  *array = stringArray;
+
+  return AK_OK;
+}
+
+AkResult _assetkit_hide
+ak_strtostr_arrayL(void * __restrict memParent,
+                   char * stringRep,
+                   char separator,
+                   AkStringArrayL ** __restrict array) {
+  AkStringArrayL  *stringArray;
+  char           *pData;
+  char           *tok;
+  AkUInt64        arrayIndex;
+  AkUInt64        itemCount;
+  size_t          arraySize;
+  size_t          arrayDataSize;
+
+  arrayIndex = 0;
+  itemCount  = 0;
+
+  pData = stringRep;
+  while (*pData != '\0'
+         && *++pData == separator)
+    itemCount++;
+
+  /*
+   |pSTR1|pSTR2|pSTR3|STR1\0STR2\0STR3|
+
+   the last one is pointer to all data
+   */
+  arraySize = sizeof(char *) * (itemCount + 1);
+  arrayDataSize = strlen(stringRep) + itemCount /* NULL */;
+
+  stringArray = ak_malloc(memParent,
+                          sizeof(*stringArray) + arraySize);
+
+  pData = ak_malloc(stringArray,
+                    arrayDataSize);
+
+  stringArray->count = itemCount;
+  stringArray->items[itemCount] = pData;
+
+  tok = strtok(stringRep, &separator);
+  while (tok) {
+    strcpy(pData, tok);
+    stringArray->items[arrayIndex++] = pData;
+
+    pData += strlen(tok);
+    *pData++ = '\0';
+
+    tok = strtok(NULL, " ");
+  }
+
+  *array = stringArray;
+  
+  return AK_OK;
+}

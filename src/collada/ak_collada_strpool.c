@@ -443,6 +443,7 @@ const char _s_dae_pool[] =
 "render\0"
 "camera_node\0"
 "technique_override\0"
+"enable\0"
 ;
 
 #undef _ak_DAE_STRPOOL_

@@ -13,6 +13,7 @@
 
 #include "core/ak_collada_geometry.h"
 #include "core/ak_collada_controller.h"
+#include "core/ak_collada_visual_scene.h"
 
 #include "fx/ak_collada_fx_effect.h"
 #include "fx/ak_collada_fx_image.h"
@@ -23,14 +24,15 @@ _assetkit_hide
 ak_dae_doc(ak_doc ** __restrict dest,
             const char * __restrict file) {
 
-  ak_doc          *doc;
-  ak_lib_camera   *last_libCam;
-  ak_lib_light    *last_libLight;
-  ak_lib_effect   *last_libEffect;
-  ak_lib_image    *last_libImage;
-  ak_lib_material *last_libMaterial;
-  AkLibGeometry   *last_libGeometry;
-  AkLibController *last_libController;
+  ak_doc           *doc;
+  ak_lib_camera    *last_libCam;
+  ak_lib_light     *last_libLight;
+  ak_lib_effect    *last_libEffect;
+  ak_lib_image     *last_libImage;
+  ak_lib_material  *last_libMaterial;
+  AkLibGeometry    *last_libGeometry;
+  AkLibController  *last_libController;
+  AkLibVisualScene *last_libVisualScene;
 
   xmlTextReaderPtr  reader;
   const xmlChar    *nodeName;
@@ -65,13 +67,14 @@ ak_dae_doc(ak_doc ** __restrict dest,
 
   _xml_readNext;
 
-  last_libCam        = NULL;
-  last_libLight      = NULL;
-  last_libEffect     = NULL;
-  last_libImage      = NULL;
-  last_libMaterial   = NULL;
-  last_libGeometry   = NULL;
-  last_libController = NULL;
+  last_libCam         = NULL;
+  last_libLight       = NULL;
+  last_libEffect      = NULL;
+  last_libImage       = NULL;
+  last_libMaterial    = NULL;
+  last_libGeometry    = NULL;
+  last_libController  = NULL;
+  last_libVisualScene = NULL;
 
   do {
     _xml_beginElement(_s_dae_collada);
@@ -509,6 +512,67 @@ ak_dae_doc(ak_doc ** __restrict dest,
 
           ak_tree_fromXmlNode(doc, nodePtr, &tree, NULL);
           libController->extra = tree;
+
+          _xml_skipElement;
+        } else {
+          _xml_skipElement;
+        }
+        
+        /* end element */
+        _xml_endElement;
+      } while (nodeRet);
+    } else if (_xml_eqElm(_s_dae_lib_visual_scenes)) {
+      AkLibVisualScene *libVisualScene;
+      AkVisualScene    *lastVisualScene;
+
+      libVisualScene = ak_calloc(doc, sizeof(*libVisualScene), 1);
+      if (last_libVisualScene)
+        last_libVisualScene->next = libVisualScene;
+      else
+        doc->lib.visualScenes = libVisualScene;
+
+      last_libVisualScene = libVisualScene;
+
+      _xml_readAttr(libVisualScene, libVisualScene->id, _s_dae_id);
+      _xml_readAttr(libVisualScene, libVisualScene->name, _s_dae_name);
+
+      lastVisualScene = NULL;
+
+      do {
+        _xml_beginElement(_s_dae_lib_visual_scenes);
+
+        if (_xml_eqElm(_s_dae_asset)) {
+          ak_assetinf *assetInf;
+          AkResult ret;
+
+          assetInf = NULL;
+          ret = ak_dae_assetInf(doc, reader, &assetInf);
+          if (ret == AK_OK)
+            libVisualScene->inf = assetInf;
+
+        } else if (_xml_eqElm(_s_dae_controller)) {
+          AkVisualScene *visualScene;
+          AkResult ret;
+
+          visualScene = NULL;
+          ret = ak_dae_visualScene(doc, reader, &visualScene);
+          if (ret == AK_OK) {
+            if (lastVisualScene)
+              lastVisualScene->next = visualScene;
+            else
+              libVisualScene->chld = visualScene;
+
+            lastVisualScene = visualScene;
+          }
+        } else if (_xml_eqElm(_s_dae_extra)) {
+          xmlNodePtr nodePtr;
+          AkTree   *tree;
+
+          nodePtr = xmlTextReaderExpand(reader);
+          tree = NULL;
+
+          ak_tree_fromXmlNode(doc, nodePtr, &tree, NULL);
+          libVisualScene->extra = tree;
 
           _xml_skipElement;
         } else {
