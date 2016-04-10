@@ -432,5 +432,6 @@
   "render": "render",
   "camera_node": "camera_node",
   "technique_override": "technique_override",
-  "enable": "enable"
+  "enable": "enable",
+  "lib_nodes": "library_nodes"
 }

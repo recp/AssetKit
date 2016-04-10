@@ -14,6 +14,7 @@
 #include "core/ak_collada_geometry.h"
 #include "core/ak_collada_controller.h"
 #include "core/ak_collada_visual_scene.h"
+#include "core/ak_collada_node.h"
 
 #include "fx/ak_collada_fx_effect.h"
 #include "fx/ak_collada_fx_image.h"
@@ -33,6 +34,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
   AkLibGeometry    *last_libGeometry;
   AkLibController  *last_libController;
   AkLibVisualScene *last_libVisualScene;
+  AkLibNode        *last_libNode;
 
   xmlTextReaderPtr  reader;
   const xmlChar    *nodeName;
@@ -75,6 +77,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
   last_libGeometry    = NULL;
   last_libController  = NULL;
   last_libVisualScene = NULL;
+  last_libNode        = NULL;
 
   do {
     _xml_beginElement(_s_dae_collada);
@@ -582,7 +585,68 @@ ak_dae_doc(ak_doc ** __restrict dest,
         /* end element */
         _xml_endElement;
       } while (nodeRet);
-    }
+    } else if (_xml_eqElm(_s_dae_lib_nodes)) {
+      AkLibNode *libNode;
+      AkNode    *lastNode;
+
+      libNode = ak_calloc(doc, sizeof(*libNode), 1);
+      if (last_libNode)
+        last_libNode->next = libNode;
+      else
+        doc->lib.nodes = libNode;
+
+      last_libNode = libNode;
+
+      _xml_readAttr(libNode, libNode->id, _s_dae_id);
+      _xml_readAttr(libNode, libNode->name, _s_dae_name);
+
+      lastNode = NULL;
+
+      do {
+        _xml_beginElement(_s_dae_lib_nodes);
+
+        if (_xml_eqElm(_s_dae_asset)) {
+          ak_assetinf *assetInf;
+          AkResult ret;
+
+          assetInf = NULL;
+          ret = ak_dae_assetInf(doc, reader, &assetInf);
+          if (ret == AK_OK)
+            libNode->inf = assetInf;
+
+        } else if (_xml_eqElm(_s_dae_controller)) {
+          AkNode  *node;
+          AkResult ret;
+
+          node = NULL;
+          ret = ak_dae_node(doc, reader, &node);
+          if (ret == AK_OK) {
+            if (lastNode)
+              lastNode->next = node;
+            else
+              libNode->chld = node;
+
+            lastNode = node;
+          }
+        } else if (_xml_eqElm(_s_dae_extra)) {
+          xmlNodePtr nodePtr;
+          AkTree   *tree;
+
+          nodePtr = xmlTextReaderExpand(reader);
+          tree = NULL;
+
+          ak_tree_fromXmlNode(doc, nodePtr, &tree, NULL);
+          libNode->extra = tree;
+
+          _xml_skipElement;
+        } else {
+          _xml_skipElement;
+        }
+        
+        /* end element */
+        _xml_endElement;
+      } while (nodeRet);
+    } /* if */
 
     /* end element */
     _xml_endElement;

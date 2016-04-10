@@ -1841,6 +1841,7 @@ _ak_DEF_LIB(material);
 AK__DEF_LIB(Geometry);
 AK__DEF_LIB(Controller);
 AK__DEF_LIB(VisualScene);
+AK__DEF_LIB(Node);
 
 #undef _ak_DEF_LIB
 #undef AK__DEF_LIB
@@ -1855,6 +1856,7 @@ struct ak_lib_s {
   AkLibGeometry    * geometries;
   AkLibController  * controllers;
   AkLibVisualScene * visualScenes;
+  AkLibNode        * nodes;
 };
 
 typedef struct ak_doc_s ak_doc;

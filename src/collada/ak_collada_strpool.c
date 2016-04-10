@@ -444,6 +444,7 @@ const char _s_dae_pool[] =
 "camera_node\0"
 "technique_override\0"
 "enable\0"
+"library_nodes\0"
 ;
 
 #undef _ak_DAE_STRPOOL_
