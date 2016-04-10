@@ -56,11 +56,14 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
   } while (0)
 
 #define _xml_beginElement(x)                                                  \
-  if (xmlTextReaderIsEmptyElement(reader))                                    \
+  nodeName = xmlTextReaderConstName(reader);                                  \
+  if (_xml_eq(nodeName, x)                                                    \
+      && xmlTextReaderIsEmptyElement(reader))                                 \
     break;                                                                    \
   _xml_readNext;                                                              \
-  if (nodeType == XML_ELEMENT_DECL                                            \
-      && _xml_eq(nodeName, x))                                                \
+  if ((_xml_eq(nodeName, x) && nodeType == XML_ELEMENT_DECL)                  \
+      || nodeType == XML_DTD_NODE /* Whitespace: 14 */                        \
+      )                                                                       \
     break;                                                                    \
 
 #define _xml_endElement                                                       \
