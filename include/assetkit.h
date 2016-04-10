@@ -1815,6 +1815,20 @@ typedef struct AkInstanceVisualScene {
   AkTree     * extra;
 } AkInstanceVisualScene;
 
+typedef struct AkScene {
+  ak_asset_base
+
+  /* 
+   TODO: 
+      instance_physics_scene
+      instance_kinematics_scene
+   */
+
+  AkInstanceVisualScene *visualScene;
+  AkTree * extra;
+
+} AkScene;
+
 #undef _ak_DEF_LIB
 #undef AK__DEF_LIB
 
@@ -1871,6 +1885,7 @@ typedef struct ak_doc_s ak_doc;
 struct ak_doc_s {
   ak_docinf docinf;
   ak_lib    lib;
+  AkScene   scene;
 };
 
 typedef struct ak_asset_s ak_asset;

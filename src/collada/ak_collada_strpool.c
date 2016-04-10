@@ -446,6 +446,7 @@ const char _s_dae_pool[] =
 "enable\0"
 "library_nodes\0"
 "instance_visual_scene\0"
+"scene\0"
 ;
 
 #undef _ak_DAE_STRPOOL_

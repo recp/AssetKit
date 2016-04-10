@@ -15,6 +15,7 @@
 #include "core/ak_collada_controller.h"
 #include "core/ak_collada_visual_scene.h"
 #include "core/ak_collada_node.h"
+#include "core/ak_collada_scene.h"
 
 #include "fx/ak_collada_fx_effect.h"
 #include "fx/ak_collada_fx_image.h"
@@ -646,6 +647,8 @@ ak_dae_doc(ak_doc ** __restrict dest,
         /* end element */
         _xml_endElement;
       } while (nodeRet);
+    } else if (_xml_eqElm(_s_dae_scene)) {
+      ak_dae_scene(doc, reader, &doc->scene);
     } /* if */
 
     /* end element */

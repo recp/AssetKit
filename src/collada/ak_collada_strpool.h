@@ -450,5 +450,6 @@ const char _s_dae_pool[];
 #define _s_dae_enable _s_dae(4682)
 #define _s_dae_lib_nodes _s_dae(4689)
 #define _s_dae_instance_visual_scene _s_dae(4703)
+#define _s_dae_scene _s_dae(4725)
 
 #endif /* __libassetkit__collada_strpool__h_ */
