@@ -1807,6 +1807,14 @@ typedef struct AkVisualScene {
   struct AkVisualScene * next;
 } AkVisualScene;
 
+typedef struct AkInstanceVisualScene {
+  ak_asset_base
+  const char * sid;
+  const char * name;
+  const char * url;
+  AkTree     * extra;
+} AkInstanceVisualScene;
+
 #undef _ak_DEF_LIB
 #undef AK__DEF_LIB
 

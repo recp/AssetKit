@@ -88,3 +88,43 @@ ak_dae_visualScene(void * __restrict memParent,
   
   return AK_OK;
 }
+
+AkResult _assetkit_hide
+ak_dae_instanceVisualScene(void * __restrict memParent,
+                           xmlTextReaderPtr reader,
+                           AkInstanceVisualScene ** __restrict dest) {
+  AkInstanceVisualScene *visualScene;
+  const xmlChar *nodeName;
+  int            nodeType;
+  int            nodeRet;
+
+  visualScene = ak_calloc(memParent, sizeof(*visualScene), 1);
+
+  _xml_readAttr(visualScene, visualScene->sid, _s_dae_sid);
+  _xml_readAttr(visualScene, visualScene->name, _s_dae_name);
+  _xml_readAttr(visualScene, visualScene->url, _s_dae_url);
+
+  do {
+    _xml_beginElement(_s_dae_instance_visual_scene);
+
+    if (_xml_eqElm(_s_dae_extra)) {
+      xmlNodePtr nodePtr;
+      AkTree   *tree;
+
+      nodePtr = xmlTextReaderExpand(reader);
+      tree = NULL;
+
+      ak_tree_fromXmlNode(visualScene, nodePtr, &tree, NULL);
+      visualScene->extra = tree;
+
+      _xml_skipElement;
+    }
+
+    /* end element */
+    _xml_endElement;
+  } while (nodeRet);
+  
+  *dest = visualScene;
+  
+  return AK_OK;
+}

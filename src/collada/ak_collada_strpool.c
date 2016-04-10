@@ -445,6 +445,7 @@ const char _s_dae_pool[] =
 "technique_override\0"
 "enable\0"
 "library_nodes\0"
+"instance_visual_scene\0"
 ;
 
 #undef _ak_DAE_STRPOOL_

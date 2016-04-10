@@ -15,4 +15,9 @@ ak_dae_visualScene(void * __restrict memParent,
                    xmlTextReaderPtr reader,
                    AkVisualScene ** __restrict dest);
 
+AkResult _assetkit_hide
+ak_dae_instanceVisualScene(void * __restrict memParent,
+                           xmlTextReaderPtr reader,
+                           AkInstanceVisualScene ** __restrict dest);
+
 #endif /* __libassetkit__ak_collada_visual_scene_h_ */
