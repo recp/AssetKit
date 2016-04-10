@@ -29,9 +29,9 @@ ak_dae_doc(ak_doc ** __restrict dest,
   ak_doc           *doc;
   ak_lib_camera    *last_libCam;
   ak_lib_light     *last_libLight;
-  ak_lib_effect    *last_libEffect;
+  AkLibEffect      *last_libEffect;
   ak_lib_image     *last_libImage;
-  ak_lib_material  *last_libMaterial;
+  AkLibMaterial    *last_libMaterial;
   AkLibGeometry    *last_libGeometry;
   AkLibController  *last_libController;
   AkLibVisualScene *last_libVisualScene;
@@ -222,21 +222,21 @@ ak_dae_doc(ak_doc ** __restrict dest,
 
     /* COLLADA FX */
     } else if (_xml_eqElm(_s_dae_lib_effects)) {
-      ak_lib_effect *libeffect;
-      ak_effect     *lasteffect;
+      AkLibEffect *libEffect;
+      AkEffect    *lastEffect;
 
-      libeffect = ak_calloc(doc, sizeof(*libeffect), 1);
+      libEffect = ak_calloc(doc, sizeof(*libEffect), 1);
       if (last_libEffect)
-        last_libEffect->next = libeffect;
+        last_libEffect->next = libEffect;
       else
-        doc->lib.effects = libeffect;
+        doc->lib.effects = libEffect;
 
-      last_libEffect = libeffect;
+      last_libEffect = libEffect;
 
-      _xml_readAttr(libeffect, libeffect->id, _s_dae_id);
-      _xml_readAttr(libeffect, libeffect->name, _s_dae_name);
+      _xml_readAttr(libEffect, libEffect->id, _s_dae_id);
+      _xml_readAttr(libEffect, libEffect->name, _s_dae_name);
 
-      lasteffect = NULL;
+      lastEffect = NULL;
 
       do {
         _xml_beginElement(_s_dae_lib_effects);
@@ -248,20 +248,20 @@ ak_dae_doc(ak_doc ** __restrict dest,
           assetInf = NULL;
           ret = ak_dae_assetInf(doc, reader, &assetInf);
           if (ret == AK_OK)
-            libeffect->inf = assetInf;
+            libEffect->inf = assetInf;
 
         } else if (_xml_eqElm(_s_dae_effect)) {
-          ak_effect *anEffect;
+          AkEffect *anEffect;
           AkResult   ret;
 
           ret = ak_dae_effect(doc, reader, &anEffect);
           if (ret == AK_OK) {
-            if (lasteffect)
-              lasteffect->next = anEffect;
+            if (lastEffect)
+              lastEffect->next = anEffect;
             else
-              libeffect->chld = anEffect;
+              libEffect->chld = anEffect;
 
-            lasteffect = anEffect;
+            lastEffect = anEffect;
           }
         } else if (_xml_eqElm(_s_dae_extra)) {
           xmlNodePtr nodePtr;
@@ -271,7 +271,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
           tree = NULL;
 
           ak_tree_fromXmlNode(doc, nodePtr, &tree, NULL);
-          libeffect->extra = tree;
+          libEffect->extra = tree;
 
           _xml_skipElement;
         } else {
@@ -343,21 +343,21 @@ ak_dae_doc(ak_doc ** __restrict dest,
         _xml_endElement;
       } while (nodeRet);
     } else if (_xml_eqElm(_s_dae_lib_materials)) {
-      ak_lib_material *libmaterial;
-      ak_material     *lastmaterial;
+      AkLibMaterial *libMaterial;
+      AkMaterial     *lastMaterial;
 
-      libmaterial = ak_calloc(doc, sizeof(*libmaterial), 1);
+      libMaterial = ak_calloc(doc, sizeof(*libMaterial), 1);
       if (last_libMaterial)
-        last_libMaterial->next = libmaterial;
+        last_libMaterial->next = libMaterial;
       else
-        doc->lib.materials = libmaterial;
+        doc->lib.materials = libMaterial;
 
-      last_libMaterial = libmaterial;
+      last_libMaterial = libMaterial;
 
-      _xml_readAttr(libmaterial, libmaterial->id, _s_dae_id);
-      _xml_readAttr(libmaterial, libmaterial->name, _s_dae_name);
+      _xml_readAttr(libMaterial, libMaterial->id, _s_dae_id);
+      _xml_readAttr(libMaterial, libMaterial->name, _s_dae_name);
 
-      lastmaterial = NULL;
+      lastMaterial = NULL;
 
       do {
         _xml_beginElement(_s_dae_lib_materials);
@@ -369,21 +369,21 @@ ak_dae_doc(ak_doc ** __restrict dest,
           assetInf = NULL;
           ret = ak_dae_assetInf(doc, reader, &assetInf);
           if (ret == AK_OK)
-            libmaterial->inf = assetInf;
+            libMaterial->inf = assetInf;
 
         } else if (_xml_eqElm(_s_dae_material)) {
-          ak_material *material;
+          AkMaterial *material;
           AkResult ret;
 
           material = NULL;
           ret = ak_dae_material(doc, reader, &material);
           if (ret == AK_OK) {
-            if (lastmaterial)
-              lastmaterial->next = material;
+            if (lastMaterial)
+              lastMaterial->next = material;
             else
-              libmaterial->chld = material;
+              libMaterial->chld = material;
 
-            lastmaterial = material;
+            lastMaterial = material;
           }
         } else if (_xml_eqElm(_s_dae_extra)) {
           xmlNodePtr nodePtr;
@@ -393,7 +393,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
           tree = NULL;
 
           ak_tree_fromXmlNode(doc, nodePtr, &tree, NULL);
-          libmaterial->extra = tree;
+          libMaterial->extra = tree;
 
           _xml_skipElement;
         } else {

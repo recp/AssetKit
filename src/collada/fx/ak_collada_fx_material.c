@@ -14,8 +14,8 @@
 AkResult _assetkit_hide
 ak_dae_material(void * __restrict memParent,
                  xmlTextReaderPtr reader,
-                 ak_material ** __restrict dest) {
-  ak_material  *material;
+                 AkMaterial ** __restrict dest) {
+  AkMaterial    *material;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
@@ -37,13 +37,13 @@ ak_dae_material(void * __restrict memParent,
       if (ret == AK_OK)
         material->inf = assetInf;
     } else if (_xml_eqElm(_s_dae_inst_effect)) {
-      ak_effect_instance *effectInstance;
+      AkInstanceEffect *instanceEffect;
       AkResult ret;
 
-      effectInstance = NULL;
-      ret = ak_dae_fxEffectInstance(material, reader, &effectInstance);
+      instanceEffect = NULL;
+      ret = ak_dae_fxInstanceEffect(material, reader, &instanceEffect);
       if (ret == AK_OK)
-        material->effect_inst = effectInstance;
+        material->instanceEffect = instanceEffect;
     } else if (_xml_eqElm(_s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;

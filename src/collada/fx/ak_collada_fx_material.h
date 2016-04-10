@@ -15,7 +15,7 @@
 AkResult _assetkit_hide
 ak_dae_material(void * __restrict memParent,
                  xmlTextReaderPtr reader,
-                 ak_material ** __restrict dest);
+                 AkMaterial ** __restrict dest);
 
 AkResult _assetkit_hide
 ak_dae_fxBindMaterial(void * __restrict memParent,

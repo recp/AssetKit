@@ -1164,8 +1164,7 @@ struct ak_profile_bridge_s {
   const char * url;
 };
 
-typedef struct ak_effect_s ak_effect;
-struct ak_effect_s {
+typedef struct AkEffect {
   ak_asset_base
 
   const char * id;
@@ -1174,44 +1173,38 @@ struct ak_effect_s {
   ak_annotate * annotate;
   ak_newparam * newparam;
   ak_profile  * profile;
+  AkTree      * extra;
 
-  AkTree   * extra;
+  struct AkEffect * next;
+} AkEffect;
 
-  ak_effect * prev;
-  ak_effect * next;
-};
-
-typedef struct ak_technique_hint_s ak_technique_hint;
-struct ak_technique_hint_s {
+typedef struct AkTechniqueHint {
   const char * platform;
   const char * ref;
   const char * profile;
 
-  ak_technique_hint * next;
-};
+  struct AkTechniqueHint * next;
+} AkTechniqueHint;
 
-typedef struct ak_effect_instance_s ak_effect_instance;
-struct ak_effect_instance_s {
+typedef struct AkInstanceEffect {
   const char * url;
   const char * sid;
   const char * name;
 
-  ak_technique_hint *techniqueHint;
-  ak_setparam       *setparam;
+  AkTechniqueHint * techniqueHint;
+  ak_setparam     * setparam;
+  AkTree          * extra;
+} AkInstanceEffect;
 
-  AkTree * extra;
-};
-
-typedef struct ak_material_s ak_material;
-struct ak_material_s {
+typedef struct AkMaterial {
   ak_asset_base
   const char * id;
   const char * name;
-  ak_effect_instance *effect_inst;
-  AkTree * extra;
+  AkInstanceEffect *instanceEffect;
+  AkTree     * extra;
 
-  ak_material * next;
-};
+  struct AkMaterial * next;
+} AkMaterial;
 
 typedef struct AkBoolArrayN {
   const char * id;
@@ -1857,9 +1850,9 @@ typedef struct AkScene {
 
 _ak_DEF_LIB(camera);
 _ak_DEF_LIB(light);
-_ak_DEF_LIB(effect);
+AK__DEF_LIB(Effect);
 _ak_DEF_LIB(image);
-_ak_DEF_LIB(material);
+AK__DEF_LIB(Material);
 AK__DEF_LIB(Geometry);
 AK__DEF_LIB(Controller);
 AK__DEF_LIB(VisualScene);
@@ -1872,9 +1865,9 @@ typedef struct ak_lib_s ak_lib;
 struct ak_lib_s {
   ak_lib_camera    * cameras;
   ak_lib_light     * lights;
-  ak_lib_effect    * effects;
+  AkLibEffect      * effects;
   ak_lib_image     * images;
-  ak_lib_material  * materials;
+  AkLibMaterial    * materials;
   AkLibGeometry    * geometries;
   AkLibController  * controllers;
   AkLibVisualScene * visualScenes;

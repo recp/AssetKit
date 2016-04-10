@@ -14,12 +14,12 @@
 
 AkResult _assetkit_hide
 ak_dae_effect(void * __restrict memParent,
-               xmlTextReaderPtr reader,
-               ak_effect ** __restrict dest);
+              xmlTextReaderPtr reader,
+              AkEffect ** __restrict dest);
 
 AkResult _assetkit_hide
-ak_dae_fxEffectInstance(void * __restrict memParent,
-                         xmlTextReaderPtr reader,
-                         ak_effect_instance ** __restrict dest);
+ak_dae_fxInstanceEffect(void * __restrict memParent,
+                        xmlTextReaderPtr reader,
+                        AkInstanceEffect ** __restrict dest);
 
 #endif /* __libassetkit__ak_collada_fx_effect__h_ */
