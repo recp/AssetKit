@@ -13,7 +13,7 @@
 
 AkResult _assetkit_hide
 ak_dae_fxLambert(void * __restrict memParent,
-                  xmlTextReaderPtr reader,
-                  ak_lambert ** __restrict dest);
+                 xmlTextReaderPtr reader,
+                 AkLambert ** __restrict dest);
 
 #endif /* __libassetkit__ak_collada_fx_lambert__h_ */

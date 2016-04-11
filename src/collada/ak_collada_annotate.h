@@ -13,7 +13,7 @@
 
 AkResult _assetkit_hide
 ak_dae_annotate(void * __restrict memParent,
-                 xmlTextReaderPtr reader,
-                 ak_annotate ** __restrict dest);
+                xmlTextReaderPtr reader,
+                AkAnnotate ** __restrict dest);
 
 #endif /* __libassetkit__ak_collada_annotate__h_ */

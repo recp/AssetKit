@@ -12,9 +12,9 @@ AkResult _assetkit_hide
 ak_dae_floatOrParam(void * __restrict memParent,
                      xmlTextReaderPtr reader,
                      const char * elm,
-                     ak_fx_float_or_param ** __restrict dest) {
-  ak_fx_float_or_param *floatOrParam;
-  ak_param *last_param;
+                     AkFxFloatOrParam ** __restrict dest) {
+  AkFxFloatOrParam *floatOrParam;
+  AkParam *last_param;
 
   const xmlChar *nodeName;
   int            nodeType;
@@ -38,7 +38,7 @@ ak_dae_floatOrParam(void * __restrict memParent,
 
       floatOrParam->val = valuef;
     } else if (_xml_eqElm(_s_dae_param)) {
-      ak_param * param;
+      AkParam * param;
       AkResult   ret;
 
       ret = ak_dae_param(floatOrParam,

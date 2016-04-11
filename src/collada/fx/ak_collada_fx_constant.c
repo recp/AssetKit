@@ -29,9 +29,9 @@ static size_t constantMapLen = 0;
 
 AkResult _assetkit_hide
 ak_dae_fxConstant(void * __restrict memParent,
-                   xmlTextReaderPtr reader,
-                   ak_constant_fx ** __restrict dest) {
-  ak_constant_fx *constant;
+                  xmlTextReaderPtr reader,
+                  AkConstantFx ** __restrict dest) {
+  AkConstantFx  *constant;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
@@ -62,7 +62,7 @@ ak_dae_fxConstant(void * __restrict memParent,
       case k_s_dae_emission:
       case k_s_dae_reflective:
       case k_s_dae_transparent: {
-        ak_fx_color_or_tex *colorOrTex;
+        AkFxColorOrTex *colorOrTex;
         AkResult ret;
 
         ret = ak_dae_colorOrTex(constant,
@@ -89,7 +89,7 @@ ak_dae_fxConstant(void * __restrict memParent,
       case k_s_dae_reflectivity:
       case k_s_dae_transparency:
       case k_s_dae_index_of_refraction: {
-        ak_fx_float_or_param * floatOrParam;
+        AkFxFloatOrParam * floatOrParam;
         AkResult ret;
 
         ret = ak_dae_floatOrParam(constant,
@@ -106,7 +106,7 @@ ak_dae_fxConstant(void * __restrict memParent,
               constant->transparency = floatOrParam;
               break;
             case k_s_dae_index_of_refraction:
-              constant->index_of_refraction = floatOrParam;
+              constant->indexOfRefraction = floatOrParam;
               break;
             default: break;
           }

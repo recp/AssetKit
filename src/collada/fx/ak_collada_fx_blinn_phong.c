@@ -74,7 +74,7 @@ ak_dae_blinn_phong(void * __restrict memParent,
       case k_s_dae_specular:
       case k_s_dae_reflective:
       case k_s_dae_transparent: {
-        ak_fx_color_or_tex *colorOrTex;
+        AkFxColorOrTex *colorOrTex;
         AkResult ret;
 
         ret = ak_dae_colorOrTex(blinn_phong,
@@ -111,7 +111,7 @@ ak_dae_blinn_phong(void * __restrict memParent,
       case k_s_dae_reflectivity:
       case k_s_dae_transparency:
       case k_s_dae_index_of_refraction: {
-        ak_fx_float_or_param * floatOrParam;
+        AkFxFloatOrParam * floatOrParam;
         AkResult ret;
 
         ret = ak_dae_floatOrParam(blinn_phong,
@@ -131,7 +131,7 @@ ak_dae_blinn_phong(void * __restrict memParent,
               blinn_phong->phong.transparency = floatOrParam;
               break;
             case k_s_dae_index_of_refraction:
-              blinn_phong->phong.index_of_refraction = floatOrParam;
+              blinn_phong->phong.indexOfRefraction = floatOrParam;
               break;
             default: break;
           }

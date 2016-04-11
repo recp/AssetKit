@@ -12,14 +12,14 @@
 #include "../ak_collada_common.h"
 
 typedef union {
-  ak_blinn blinn;
-  ak_phong phong;
+  AkBlinn blinn;
+  AkPhong phong;
 } ak_blinn_phong;
 
 AkResult _assetkit_hide
 ak_dae_blinn_phong(void * __restrict memParent,
-                    xmlTextReaderPtr reader,
-                    const char * elm,
-                    ak_blinn_phong ** __restrict dest);
+                   xmlTextReaderPtr reader,
+                   const char * elm,
+                   ak_blinn_phong ** __restrict dest);
 
 #endif /* __libassetkit__ak_collada_blinn_phong__h_ */

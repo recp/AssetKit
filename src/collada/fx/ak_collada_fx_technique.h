@@ -13,7 +13,7 @@
 
 AkResult _assetkit_hide
 ak_dae_techniqueFx(void * __restrict memParent,
-                    xmlTextReaderPtr reader,
-                    ak_technique_fx ** __restrict dest);
+                   xmlTextReaderPtr reader,
+                   AkTechniqueFx ** __restrict dest);
 
 #endif /* __libassetkit__ak_collada_technique_fx__h_ */

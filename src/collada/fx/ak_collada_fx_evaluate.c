@@ -33,9 +33,9 @@ static size_t evaluateMapLen = 0;
 
 AkResult _assetkit_hide
 ak_dae_fxEvaluate(void * __restrict memParent,
-                   xmlTextReaderPtr reader,
-                   ak_evaluate ** __restrict dest) {
-  ak_evaluate  *evaluate;
+                  xmlTextReaderPtr reader,
+                  AkEvaluate ** __restrict dest) {
+  AkEvaluate    *evaluate;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
@@ -65,7 +65,7 @@ ak_dae_fxEvaluate(void * __restrict memParent,
       case k_s_dae_color_target:
       case k_s_dae_depth_target:
       case k_s_dae_stencil_target: {
-        ak_evaluate_target *evaluate_target;
+        AkEvaluateTarget *evaluate_target;
         const xmlChar *targetNodeName;
 
         evaluate_target = ak_calloc(evaluate, sizeof(*evaluate_target), 1);
@@ -92,7 +92,7 @@ ak_dae_fxEvaluate(void * __restrict memParent,
           _xml_beginElement(targetNodeName);
 
           if (_xml_eqElm(_s_dae_param)) {
-            ak_param * param;
+            AkParam * param;
             AkResult   ret;
 
             ret = ak_dae_param(evaluate_target,
@@ -103,15 +103,15 @@ ak_dae_fxEvaluate(void * __restrict memParent,
             if (ret == AK_OK)
               evaluate_target->param = param;
           } else if (_xml_eqElm(_s_dae_instance_image)) {
-            ak_image_instance *imageInst;
+            AkInstanceImage *instanceImage;
             AkResult ret;
 
-            ret = ak_dae_fxImageInstance(evaluate_target,
+            ret = ak_dae_fxInstanceImage(evaluate_target,
                                           reader,
-                                          &imageInst);
+                                          &instanceImage);
 
             if (ret == AK_OK)
-              evaluate_target->image_inst = imageInst;
+              evaluate_target->instanceImage = instanceImage;
           } else {
             _xml_skipElement;
           }
@@ -134,7 +134,7 @@ ak_dae_fxEvaluate(void * __restrict memParent,
         }
       }
       case k_s_dae_color_clear: {
-        ak_color_clear *color_clear;
+        AkColorClear *color_clear;
         color_clear = ak_calloc(evaluate, sizeof(*color_clear), 1);
 
         _xml_readAttrUsingFn(color_clear->index,
@@ -147,7 +147,7 @@ ak_dae_fxEvaluate(void * __restrict memParent,
         break;
       }
       case k_s_dae_depth_clear:{
-        ak_depth_clear *depth_clear;
+        AkDepthClear *depth_clear;
         depth_clear = ak_calloc(evaluate, sizeof(*depth_clear), 1);
 
         _xml_readAttrUsingFn(depth_clear->index,
@@ -161,7 +161,7 @@ ak_dae_fxEvaluate(void * __restrict memParent,
         break;
       }
       case k_s_dae_stencil_clear:{
-        ak_stencil_clear *stencil_clear;
+        AkStencilClear *stencil_clear;
         stencil_clear = ak_calloc(evaluate, sizeof(*stencil_clear), 1);
 
         _xml_readAttrUsingFn(stencil_clear->index,
@@ -179,8 +179,8 @@ ak_dae_fxEvaluate(void * __restrict memParent,
         _xml_readText(evaluate, strVal);
 
         if (strVal) {
-          evaluate->draw.str_val = strVal;
-          evaluate->draw.enum_draw = ak_dae_fxEnumDraw(strVal);
+          evaluate->draw.strVal = strVal;
+          evaluate->draw.enumDraw = ak_dae_fxEnumDraw(strVal);
         }
       }
       default:

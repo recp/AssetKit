@@ -10,9 +10,9 @@
 
 AkResult _assetkit_hide
 ak_dae_annotate(void * __restrict memParent,
-                 xmlTextReaderPtr reader,
-                 ak_annotate ** __restrict dest) {
-  ak_annotate  *annotate;
+                xmlTextReaderPtr reader,
+                AkAnnotate ** __restrict dest) {
+  AkAnnotate   *annotate;
   const xmlChar *nodeName;
   int nodeType;
   int nodeRet;
@@ -27,9 +27,9 @@ ak_dae_annotate(void * __restrict memParent,
     /* load once */
     if (!annotate->val)
       ak_dae_value(annotate,
-                    reader,
-                    &annotate->val,
-                    &annotate->val_type);
+                   reader,
+                   &annotate->val,
+                   &annotate->valType);
 
     /* end element */
     _xml_endElement;

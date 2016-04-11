@@ -13,9 +13,9 @@ AkResult _assetkit_hide
 ak_dae_colorOrTex(void * __restrict memParent,
                    xmlTextReaderPtr reader,
                    const char * elm,
-                   ak_fx_color_or_tex ** __restrict dest) {
-  ak_fx_color_or_tex *colorOrTex;
-  ak_param *last_param;
+                   AkFxColorOrTex ** __restrict dest) {
+  AkFxColorOrTex *colorOrTex;
+  AkParam *last_param;
 
   const xmlChar *nodeName;
   int            nodeType;
@@ -32,7 +32,7 @@ ak_dae_colorOrTex(void * __restrict memParent,
     _xml_beginElement(elm);
 
     if (_xml_eqElm(_s_dae_color)) {
-      ak_color *color;
+      AkColor *color;
       char *colorStr;
 
       color = ak_calloc(colorOrTex, sizeof(*color), 1);
@@ -46,7 +46,7 @@ ak_dae_colorOrTex(void * __restrict memParent,
         xmlFree(colorStr);
       }
     } else if (_xml_eqElm(_s_dae_texture)) {
-      ak_fx_texture *tex;
+      AkFxTexture *tex;
 
       tex = ak_calloc(colorOrTex, sizeof(*tex), 1);
       _xml_readAttr(tex, tex->texture, _s_dae_texture);
@@ -76,7 +76,7 @@ ak_dae_colorOrTex(void * __restrict memParent,
         } while (nodeRet);
       }
     } else if (_xml_eqElm(_s_dae_param)) {
-      ak_param * param;
+      AkParam * param;
       AkResult   ret;
 
       ret = ak_dae_param(colorOrTex,

@@ -25,7 +25,7 @@
 AkResult _assetkit_hide
 ak_dae_fxState_enum(xmlTextReaderPtr reader,
                      AkRenderState ** __restrict last_state,
-                     ak_states ** __restrict states,
+                     AkStates ** __restrict states,
                      AkRenderStateType state_type,
                      AkEnum defaultEnumVal,
                      ak_dae_fxEnumFn_t enumFn) {
@@ -59,7 +59,7 @@ ak_dae_fxState_enum(xmlTextReaderPtr reader,
 AkResult _assetkit_hide
 ak_dae_fxState_bool4(xmlTextReaderPtr reader,
                       AkRenderState ** __restrict last_state,
-                      ak_states ** __restrict states,
+                      AkStates ** __restrict states,
                       AkRenderStateType state_type,
                       AkBool * defaultVal,
                       size_t defaultValSize) {
@@ -89,7 +89,7 @@ ak_dae_fxState_bool4(xmlTextReaderPtr reader,
 AkResult _assetkit_hide
 ak_dae_fxState_int2(xmlTextReaderPtr reader,
                      AkRenderState ** __restrict last_state,
-                     ak_states ** __restrict states,
+                     AkStates ** __restrict states,
                      AkRenderStateType state_type,
                      AkInt * defaultVal,
                      size_t defaultValSize) {
@@ -119,7 +119,7 @@ ak_dae_fxState_int2(xmlTextReaderPtr reader,
 AkResult _assetkit_hide
 ak_dae_fxState_int4(xmlTextReaderPtr reader,
                      AkRenderState ** __restrict last_state,
-                     ak_states ** __restrict states,
+                     AkStates ** __restrict states,
                      AkRenderStateType state_type,
                      AkInt * defaultVal,
                      size_t defaultValSize) {
@@ -149,7 +149,7 @@ ak_dae_fxState_int4(xmlTextReaderPtr reader,
 AkResult _assetkit_hide
 ak_dae_fxState_ul(xmlTextReaderPtr reader,
                    AkRenderState ** __restrict last_state,
-                   ak_states ** __restrict states,
+                   AkStates ** __restrict states,
                    AkRenderStateType state_type,
                    unsigned long defaultVal) {
   ak_state_t_ul *state;
@@ -181,7 +181,7 @@ ak_dae_fxState_ul(xmlTextReaderPtr reader,
 AkResult _assetkit_hide
 ak_dae_fxState_ul_i(xmlTextReaderPtr reader,
                      AkRenderState ** __restrict last_state,
-                     ak_states ** __restrict states,
+                     AkStates ** __restrict states,
                      AkRenderStateType state_type,
                      unsigned long defaultVal) {
   ak_state_t_ul_i * state;
@@ -216,7 +216,7 @@ ak_dae_fxState_ul_i(xmlTextReaderPtr reader,
 AkResult _assetkit_hide
 ak_dae_fxState_float(xmlTextReaderPtr reader,
                       AkRenderState ** __restrict last_state,
-                      ak_states ** __restrict states,
+                      AkStates ** __restrict states,
                       AkRenderStateType state_type,
                       AkFloat defaultVal) {
   ak_state_t_float * state;
@@ -244,7 +244,7 @@ ak_dae_fxState_float(xmlTextReaderPtr reader,
 AkResult _assetkit_hide
 ak_dae_fxState_float_i(xmlTextReaderPtr reader,
                         AkRenderState ** __restrict last_state,
-                        ak_states ** __restrict states,
+                        AkStates ** __restrict states,
                         AkRenderStateType state_type,
                         AkFloat defaultVal) {
   ak_state_t_float_i * state;
@@ -275,7 +275,7 @@ ak_dae_fxState_float_i(xmlTextReaderPtr reader,
 AkResult _assetkit_hide
 ak_dae_fxState_float2(xmlTextReaderPtr reader,
                        AkRenderState ** __restrict last_state,
-                       ak_states ** __restrict states,
+                       AkStates ** __restrict states,
                        AkRenderStateType state_type,
                        AkFloat * defaultVal,
                        size_t defaultValSize) {
@@ -305,7 +305,7 @@ ak_dae_fxState_float2(xmlTextReaderPtr reader,
 AkResult _assetkit_hide
 ak_dae_fxState_float3(xmlTextReaderPtr reader,
                        AkRenderState ** __restrict last_state,
-                       ak_states ** __restrict states,
+                       AkStates ** __restrict states,
                        AkRenderStateType state_type,
                        AkFloat * defaultVal,
                        size_t defaultValSize) {
@@ -335,7 +335,7 @@ ak_dae_fxState_float3(xmlTextReaderPtr reader,
 AkResult _assetkit_hide
 ak_dae_fxState_float3_i(xmlTextReaderPtr reader,
                          AkRenderState ** __restrict last_state,
-                         ak_states ** __restrict states,
+                         AkStates ** __restrict states,
                          AkRenderStateType state_type,
                          AkFloat * defaultVal,
                          size_t defaultValSize) {
@@ -368,7 +368,7 @@ ak_dae_fxState_float3_i(xmlTextReaderPtr reader,
 AkResult _assetkit_hide
 ak_dae_fxState_float4(xmlTextReaderPtr reader,
                        AkRenderState ** __restrict last_state,
-                       ak_states ** __restrict states,
+                       AkStates ** __restrict states,
                        AkRenderStateType state_type,
                        AkFloat * defaultVal,
                        size_t defaultValSize) {
@@ -398,7 +398,7 @@ ak_dae_fxState_float4(xmlTextReaderPtr reader,
 AkResult _assetkit_hide
 ak_dae_fxState_float4_i(xmlTextReaderPtr reader,
                          AkRenderState ** __restrict last_state,
-                         ak_states ** __restrict states,
+                         AkStates ** __restrict states,
                          AkRenderStateType state_type,
                          AkFloat * defaultVal,
                          size_t defaultValSize) {
@@ -431,7 +431,7 @@ ak_dae_fxState_float4_i(xmlTextReaderPtr reader,
 AkResult _assetkit_hide
 ak_dae_fxState_float4x4(xmlTextReaderPtr reader,
                          AkRenderState ** __restrict last_state,
-                         ak_states ** __restrict states,
+                         AkStates ** __restrict states,
                          AkRenderStateType state_type,
                          AkFloat * defaultVal,
                          size_t defaultValSize) {
@@ -462,7 +462,7 @@ AkResult _assetkit_hide
 ak_dae_fxState_sampler(xmlTextReaderPtr reader,
                         const char *elm,
                         AkRenderState ** __restrict last_state,
-                        ak_states ** __restrict states,
+                        AkStates ** __restrict states,
                         AkRenderStateType state_type) {
   ak_state_t_sampler * state;
   const xmlChar  *nodeName;
@@ -480,7 +480,7 @@ ak_dae_fxState_sampler(xmlTextReaderPtr reader,
     _xml_beginElement(elm);
 
     if (_xml_eqElm(_s_dae_value)) {
-      ak_fx_sampler_common * sampler;
+      AkFxSamplerCommon * sampler;
       AkResult ret;
 
       sampler = NULL;
@@ -511,7 +511,7 @@ ak_dae_fxState_sampler(xmlTextReaderPtr reader,
 AkResult _assetkit_hide
 ak_dae_fxState_str(xmlTextReaderPtr reader,
                     AkRenderState ** __restrict last_state,
-                    ak_states ** __restrict states,
+                    AkStates ** __restrict states,
                     AkRenderStateType state_type) {
   ak_state_t_str * state;
 
@@ -530,7 +530,7 @@ ak_dae_fxState_str(xmlTextReaderPtr reader,
 AkResult _assetkit_hide
 ak_dae_fxStateAlphaFunc(xmlTextReaderPtr reader,
                          AkRenderState ** __restrict last_state,
-                         ak_states ** __restrict states) {
+                         AkStates ** __restrict states) {
   ak_alpha_func *state;
   const xmlChar  *nodeName;
   int             nodeType;
@@ -579,7 +579,7 @@ ak_dae_fxStateAlphaFunc(xmlTextReaderPtr reader,
 AkResult _assetkit_hide
 ak_dae_fxStateBlend(xmlTextReaderPtr reader,
                      AkRenderState ** __restrict last_state,
-                     ak_states ** __restrict states) {
+                     AkStates ** __restrict states) {
   ak_blend_func * state;
   const xmlChar *nodeName;
   int            nodeType;
@@ -642,7 +642,7 @@ ak_dae_fxStateBlend(xmlTextReaderPtr reader,
 AkResult _assetkit_hide
 ak_dae_fxStateBlendSep(xmlTextReaderPtr reader,
                         AkRenderState ** __restrict last_state,
-                        ak_states ** __restrict states) {
+                        AkStates ** __restrict states) {
   ak_blend_func_separate *state;
   const xmlChar *nodeName;
   int            nodeType;
@@ -742,7 +742,7 @@ ak_dae_fxStateBlendSep(xmlTextReaderPtr reader,
 AkResult _assetkit_hide
 ak_dae_fxStateBlendEqSep(xmlTextReaderPtr reader,
                           AkRenderState ** __restrict last_state,
-                          ak_states ** __restrict states) {
+                          AkStates ** __restrict states) {
   ak_blend_equation_separate *state;
   const xmlChar *nodeName;
   int            nodeType;
@@ -805,7 +805,7 @@ ak_dae_fxStateBlendEqSep(xmlTextReaderPtr reader,
 AkResult _assetkit_hide
 ak_dae_fxStateColorMaterial(xmlTextReaderPtr reader,
                              AkRenderState ** __restrict last_state,
-                             ak_states ** __restrict states) {
+                             AkStates ** __restrict states) {
   ak_color_material *state;
   const xmlChar *nodeName;
   int            nodeType;
@@ -868,7 +868,7 @@ ak_dae_fxStateColorMaterial(xmlTextReaderPtr reader,
 AkResult _assetkit_hide
 ak_dae_fxStatePolyMode(xmlTextReaderPtr reader,
                         AkRenderState ** __restrict last_state,
-                        ak_states ** __restrict states) {
+                        AkStates ** __restrict states) {
   ak_polygon_mode *state;
   const xmlChar *nodeName;
   int            nodeType;
@@ -931,7 +931,7 @@ ak_dae_fxStatePolyMode(xmlTextReaderPtr reader,
 AkResult _assetkit_hide
 ak_dae_fxStateStencilFunc(xmlTextReaderPtr reader,
                            AkRenderState ** __restrict last_state,
-                           ak_states ** __restrict states) {
+                           AkStates ** __restrict states) {
   ak_stencil_func *state;
   const xmlChar *nodeName;
   int            nodeType;
@@ -1005,7 +1005,7 @@ ak_dae_fxStateStencilFunc(xmlTextReaderPtr reader,
 AkResult _assetkit_hide
 ak_dae_fxStateStencilOp(xmlTextReaderPtr reader,
                          AkRenderState ** __restrict last_state,
-                         ak_states ** __restrict states) {
+                         AkStates ** __restrict states) {
   ak_stencil_op *state;
   const xmlChar *nodeName;
   int            nodeType;
@@ -1084,7 +1084,7 @@ ak_dae_fxStateStencilOp(xmlTextReaderPtr reader,
 AkResult _assetkit_hide
 ak_dae_fxStateStencilFuncSep(xmlTextReaderPtr reader,
                               AkRenderState ** __restrict last_state,
-                              ak_states ** __restrict states) {
+                              AkStates ** __restrict states) {
   ak_stencil_func_separate *state;
   const xmlChar *nodeName;
   int            nodeType;
@@ -1174,7 +1174,7 @@ ak_dae_fxStateStencilFuncSep(xmlTextReaderPtr reader,
 AkResult _assetkit_hide
 ak_dae_fxStateStencilOpSep(xmlTextReaderPtr reader,
                             AkRenderState ** __restrict last_state,
-                            ak_states ** __restrict states) {
+                            AkStates ** __restrict states) {
   ak_stencil_op_separate *state;
   const xmlChar *nodeName;
   int            nodeType;
@@ -1270,7 +1270,7 @@ ak_dae_fxStateStencilOpSep(xmlTextReaderPtr reader,
 AkResult _assetkit_hide
 ak_dae_fxStateStencilMaskSep(xmlTextReaderPtr reader,
                               AkRenderState ** __restrict last_state,
-                              ak_states ** __restrict states) {
+                              AkStates ** __restrict states) {
   ak_stencil_mask_separate *state;
   const xmlChar *nodeName;
   int            nodeType;

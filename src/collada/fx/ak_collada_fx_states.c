@@ -136,8 +136,8 @@ static size_t stateMapLen = 0;
 AkResult _assetkit_hide
 ak_dae_fxState(void * __restrict memParent,
                 xmlTextReaderPtr reader,
-                ak_states ** __restrict dest) {
-  ak_states       *states;
+                AkStates ** __restrict dest) {
+  AkStates      *states;
   AkRenderState *last_state;
   const xmlChar *nodeName;
   int            nodeType;

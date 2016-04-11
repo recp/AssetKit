@@ -12,10 +12,10 @@
 AkResult _assetkit_hide
 ak_dae_light(void * __restrict memParent,
               xmlTextReaderPtr reader,
-              ak_light ** __restrict dest) {
-  ak_light            *light;
-  ak_technique        *last_tq;
-  ak_technique_common *last_tc;
+              AkLight ** __restrict dest) {
+  AkLight            *light;
+  AkTechnique        *last_tq;
+  AkTechniqueCommon *last_tc;
   const xmlChar        *nodeName;
   int nodeType;
   int nodeRet;
@@ -26,13 +26,13 @@ ak_dae_light(void * __restrict memParent,
   _xml_readAttr(light, light->name, _s_dae_name);
 
   last_tq = light->technique;
-  last_tc = light->technique_common;
+  last_tc = light->techniqueCommon;
 
   do {
     _xml_beginElement(_s_dae_light);
 
     if (_xml_eqElm(_s_dae_asset)) {
-      ak_assetinf *assetInf;
+      AkAssetInf *assetInf;
       AkResult ret;
 
       assetInf = NULL;
@@ -41,7 +41,7 @@ ak_dae_light(void * __restrict memParent,
         light->inf = assetInf;
 
     } else if (_xml_eqElm(_s_dae_techniquec)) {
-      ak_technique_common *tc;
+      AkTechniqueCommon *tc;
       AkResult ret;
 
       tc = NULL;
@@ -50,13 +50,13 @@ ak_dae_light(void * __restrict memParent,
         if (last_tc)
           last_tc->next = tc;
         else
-          light->technique_common = tc;
+          light->techniqueCommon = tc;
 
         last_tc = tc;
       }
 
     } else if (_xml_eqElm(_s_dae_technique)) {
-      ak_technique *tq;
+      AkTechnique *tq;
       AkResult ret;
 
       tq = NULL;

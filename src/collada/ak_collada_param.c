@@ -24,9 +24,9 @@ static size_t modifierMapLen = 0;
 AkResult _assetkit_hide
 ak_dae_newparam(void * __restrict memParent,
                  xmlTextReaderPtr reader,
-                 ak_newparam ** __restrict dest) {
-  ak_newparam  *newparam;
-  ak_annotate  *last_annotate;
+                 AkNewParam ** __restrict dest) {
+  AkNewParam    *newparam;
+  AkAnnotate    *last_annotate;
   const xmlChar *nodeName;
   int nodeType;
   int nodeRet;
@@ -46,7 +46,7 @@ ak_dae_newparam(void * __restrict memParent,
     _xml_beginElement(_s_dae_newparam);
 
     if (_xml_eqElm(_s_dae_annotate)) {
-      ak_annotate *annotate;
+      AkAnnotate *annotate;
       AkResult ret;
 
       ret = ak_dae_annotate(newparam, reader, &annotate);
@@ -89,7 +89,7 @@ ak_dae_newparam(void * __restrict memParent,
 
         if (ret == AK_OK) {
           newparam->val = val;
-          newparam->val_type = val_type;
+          newparam->valType = val_type;
         }
       }
     }
@@ -107,8 +107,8 @@ AkResult _assetkit_hide
 ak_dae_param(void * __restrict memParent,
               xmlTextReaderPtr reader,
               AkParamType param_type,
-              ak_param ** __restrict dest) {
-  ak_param  *param;
+              AkParam ** __restrict dest) {
+  AkParam  *param;
 
   const xmlChar *nodeName;
   int nodeType;
@@ -117,12 +117,12 @@ ak_dae_param(void * __restrict memParent,
   nodeType = xmlTextReaderNodeType(reader);
 
   if (param_type == AK_PARAM_TYPE_BASIC) {
-    param = ak_calloc(memParent, sizeof(ak_param), 1);
+    param = ak_calloc(memParent, sizeof(AkParam), 1);
 
     _xml_readAttr(param, param->ref, _s_dae_ref);
   } else if (param_type == AK_PARAM_TYPE_EXTENDED) {
-    ak_param_ex *param_ex;
-    param_ex = ak_calloc(memParent, sizeof(ak_param_ex), 1);
+    AkParamEx *param_ex;
+    param_ex = ak_calloc(memParent, sizeof(AkParamEx), 1);
 
     _xml_readAttr(param_ex, param_ex->name, _s_dae_name);
     _xml_readAttr(param_ex, param_ex->sid, _s_dae_sid);
@@ -151,8 +151,8 @@ err:
 AkResult _assetkit_hide
 ak_dae_setparam(void * __restrict memParent,
                  xmlTextReaderPtr reader,
-                 ak_setparam ** __restrict dest) {
-  ak_setparam  *setparam;
+                 AkSetParam ** __restrict dest) {
+  AkSetParam  *setparam;
   const xmlChar *nodeName;
   int nodeType;
   int nodeRet;
@@ -183,7 +183,7 @@ ak_dae_setparam(void * __restrict memParent,
 
       if (ret == AK_OK) {
         setparam->val = val;
-        setparam->val_type = val_type;
+        setparam->valType = val_type;
       }
     }
 

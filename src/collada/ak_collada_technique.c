@@ -16,9 +16,9 @@
 AkResult _assetkit_hide
 ak_dae_technique(void * __restrict memParent,
                   xmlTextReaderPtr reader,
-                  ak_technique ** __restrict dest) {
+                  AkTechnique ** __restrict dest) {
 
-  ak_technique *technique;
+  AkTechnique *technique;
   AkTree       *tree;
   xmlNodePtr     nodePtr;
   const xmlChar *nodeName;

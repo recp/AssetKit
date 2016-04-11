@@ -29,7 +29,7 @@ ak_dae_material(void * __restrict memParent,
     _xml_beginElement(_s_dae_material);
 
     if (_xml_eqElm(_s_dae_asset)) {
-      ak_assetinf *assetInf;
+      AkAssetInf *assetInf;
       AkResult ret;
 
       assetInf = NULL;
@@ -73,8 +73,8 @@ ak_dae_fxBindMaterial(void * __restrict memParent,
                       xmlTextReaderPtr reader,
                       AkBindMaterial ** __restrict dest) {
   AkBindMaterial *bindMaterial;
-  ak_param       *last_param;
-  ak_technique   *last_tq;
+  AkParam       *last_param;
+  AkTechnique   *last_tq;
   const xmlChar  *nodeName;
   int             nodeType;
   int             nodeRet;
@@ -88,7 +88,7 @@ ak_dae_fxBindMaterial(void * __restrict memParent,
     _xml_beginElement(_s_dae_bind_material);
 
     if (_xml_eqElm(_s_dae_param)) {
-      ak_param * param;
+      AkParam * param;
       AkResult   ret;
 
       ret = ak_dae_param(bindMaterial,
@@ -105,7 +105,7 @@ ak_dae_fxBindMaterial(void * __restrict memParent,
         last_param = param;
       }
     } else if (_xml_eqElm(_s_dae_techniquec)) {
-      ak_technique_common *tc;
+      AkTechniqueCommon *tc;
       AkResult ret;
 
       tc = NULL;
@@ -114,7 +114,7 @@ ak_dae_fxBindMaterial(void * __restrict memParent,
         bindMaterial->techniqueCommon = tc;
 
     } else if (_xml_eqElm(_s_dae_technique)) {
-      ak_technique *tq;
+      AkTechnique *tq;
       AkResult ret;
 
       tq = NULL;

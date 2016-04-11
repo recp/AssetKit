@@ -33,9 +33,9 @@ static size_t lambertMapLen = 0;
 
 AkResult _assetkit_hide
 ak_dae_fxLambert(void * __restrict memParent,
-                  xmlTextReaderPtr reader,
-                  ak_lambert ** __restrict dest) {
-  ak_lambert   *lambert;
+                 xmlTextReaderPtr reader,
+                 AkLambert ** __restrict dest) {
+  AkLambert     *lambert;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
@@ -67,7 +67,7 @@ ak_dae_fxLambert(void * __restrict memParent,
       case k_s_dae_diffuse:
       case k_s_dae_reflective:
       case k_s_dae_transparent: {
-        ak_fx_color_or_tex *colorOrTex;
+        AkFxColorOrTex *colorOrTex;
         AkResult ret;
 
         ret = ak_dae_colorOrTex(lambert,
@@ -100,7 +100,7 @@ ak_dae_fxLambert(void * __restrict memParent,
       case k_s_dae_reflectivity:
       case k_s_dae_transparency:
       case k_s_dae_index_of_refraction: {
-        ak_fx_float_or_param * floatOrParam;
+        AkFxFloatOrParam * floatOrParam;
         AkResult ret;
 
         ret = ak_dae_floatOrParam(lambert,
@@ -117,7 +117,7 @@ ak_dae_fxLambert(void * __restrict memParent,
               lambert->transparency = floatOrParam;
               break;
             case k_s_dae_index_of_refraction:
-              lambert->index_of_refraction = floatOrParam;
+              lambert->indexOfRefraction = floatOrParam;
               break;
             default: break;
           }

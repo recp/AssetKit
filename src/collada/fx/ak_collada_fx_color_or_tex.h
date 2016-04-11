@@ -15,6 +15,6 @@ AkResult _assetkit_hide
 ak_dae_colorOrTex(void * __restrict memParent,
                    xmlTextReaderPtr reader,
                    const char * elm,
-                   ak_fx_color_or_tex ** __restrict dest);
+                   AkFxColorOrTex ** __restrict dest);
 
 #endif /* __libassetkit__ak_collada_color_or_tex__h_ */

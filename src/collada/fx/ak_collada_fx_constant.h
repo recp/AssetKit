@@ -13,7 +13,7 @@
 
 AkResult _assetkit_hide
 ak_dae_fxConstant(void * __restrict memParent,
-                   xmlTextReaderPtr reader,
-                   ak_constant_fx ** __restrict dest);
+                  xmlTextReaderPtr reader,
+                  AkConstantFx ** __restrict dest);
 
 #endif /* __libassetkit__ak_collada_fx_constant__h_ */

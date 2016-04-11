@@ -15,10 +15,10 @@
 
 AkResult _assetkit_hide
 ak_dae_fxPass(void * __restrict memParent,
-               xmlTextReaderPtr reader,
-               ak_pass ** __restrict dest) {
-  ak_pass      *pass;
-  ak_annotate  *last_annotate;
+              xmlTextReaderPtr reader,
+              AkPass ** __restrict dest) {
+  AkPass        *pass;
+  AkAnnotate    *last_annotate;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
@@ -33,7 +33,7 @@ ak_dae_fxPass(void * __restrict memParent,
     _xml_beginElement(_s_dae_pass);
 
     if (_xml_eqElm(_s_dae_asset)) {
-      ak_assetinf *assetInf;
+      AkAssetInf *assetInf;
       AkResult ret;
 
       assetInf = NULL;
@@ -41,8 +41,8 @@ ak_dae_fxPass(void * __restrict memParent,
       if (ret == AK_OK)
         pass->inf = assetInf;
     } else if (_xml_eqElm(_s_dae_annotate)) {
-      ak_annotate *annotate;
-      AkResult     ret;
+      AkAnnotate *annotate;
+      AkResult    ret;
 
       ret = ak_dae_annotate(pass, reader, &annotate);
 
@@ -55,22 +55,22 @@ ak_dae_fxPass(void * __restrict memParent,
         last_annotate = annotate;
       }
     } else if (_xml_eqElm(_s_dae_states)) {
-      ak_states *states;
-      AkResult   ret;
+      AkStates *states;
+      AkResult  ret;
 
       ret = ak_dae_fxState(pass, reader, &states);
       if (ret == AK_OK)
         pass->states = states;
 
     } else if (_xml_eqElm(_s_dae_program)) {
-      ak_program *prog;
-      AkResult    ret;
+      AkProgram *prog;
+      AkResult   ret;
 
       ret = ak_dae_fxProg(pass, reader, &prog);
       if (ret == AK_OK)
         pass->program = prog;
     } else if (_xml_eqElm(_s_dae_evaluate)) {
-      ak_evaluate * evaluate;
+      AkEvaluate * evaluate;
       AkResult ret;
 
       ret = ak_dae_fxEvaluate(pass, reader, &evaluate);

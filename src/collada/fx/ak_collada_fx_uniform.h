@@ -13,7 +13,7 @@
 
 AkResult _assetkit_hide
 ak_dae_fxBindUniform(void * __restrict memParent,
-                      xmlTextReaderPtr reader,
-                      ak_bind_uniform ** __restrict dest);
+                     xmlTextReaderPtr reader,
+                     AkBindUniform ** __restrict dest);
 
 #endif /* __libassetkit__ak_collada_fx_uniform_h_ */

@@ -115,7 +115,7 @@ ak_dae_node(void * __restrict memParent,
 
     switch (found->val) {
       case k_s_dae_asset: {
-        ak_assetinf *assetInf;
+        AkAssetInf *assetInf;
         AkResult ret;
 
         assetInf = NULL;

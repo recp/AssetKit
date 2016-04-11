@@ -18,10 +18,10 @@ AkResult _assetkit_hide
 ak_dae_effect(void * __restrict memParent,
                xmlTextReaderPtr reader,
                AkEffect ** __restrict  dest) {
-  AkEffect    *effect;
-  ak_annotate *last_annotate;
-  ak_newparam *last_newparam;
-  AkProfile   *last_profile;
+  AkEffect   *effect;
+  AkAnnotate *last_annotate;
+  AkNewParam *last_newparam;
+  AkProfile  *last_profile;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
@@ -39,7 +39,7 @@ ak_dae_effect(void * __restrict memParent,
     _xml_beginElement(_s_dae_effect);
 
     if (_xml_eqElm(_s_dae_asset)) {
-      ak_assetinf *assetInf;
+      AkAssetInf *assetInf;
       AkResult ret;
 
       assetInf = NULL;
@@ -47,8 +47,8 @@ ak_dae_effect(void * __restrict memParent,
       if (ret == AK_OK)
         effect->inf = assetInf;
     } else if (_xml_eqElm(_s_dae_annotate)) {
-      ak_annotate *annotate;
-      AkResult     ret;
+      AkAnnotate *annotate;
+      AkResult    ret;
 
       ret = ak_dae_annotate(effect, reader, &annotate);
 
@@ -61,8 +61,8 @@ ak_dae_effect(void * __restrict memParent,
         last_annotate = annotate;
       }
     } else if (_xml_eqElm(_s_dae_newparam)) {
-      ak_newparam *newparam;
-      AkResult     ret;
+      AkNewParam *newparam;
+      AkResult    ret;
 
       ret = ak_dae_newparam(effect, reader, &newparam);
 
@@ -123,7 +123,7 @@ ak_dae_fxInstanceEffect(void * __restrict memParent,
                          AkInstanceEffect ** __restrict dest) {
   AkInstanceEffect *instanceEffect;
   AkTechniqueHint  *last_techHint;
-  ak_setparam      *last_setparam;
+  AkSetParam       *last_setparam;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
@@ -157,7 +157,7 @@ ak_dae_fxInstanceEffect(void * __restrict memParent,
 
         last_techHint = techHint;
       } else if (_xml_eqElm(_s_dae_setparam)) {
-        ak_setparam *setparam;
+        AkSetParam *setparam;
         AkResult ret;
 
         ret = ak_dae_setparam(instanceEffect, reader, &setparam);

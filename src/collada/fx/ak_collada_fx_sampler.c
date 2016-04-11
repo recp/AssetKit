@@ -48,8 +48,8 @@ AkResult _assetkit_hide
 ak_dae_fxSampler(void * __restrict memParent,
                   xmlTextReaderPtr reader,
                   const char *elm,
-                  ak_fx_sampler_common ** __restrict dest) {
-  ak_fx_sampler_common *sampler;
+                  AkFxSamplerCommon ** __restrict dest) {
+  AkFxSamplerCommon *sampler;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
@@ -77,13 +77,13 @@ ak_dae_fxSampler(void * __restrict memParent,
 
     switch (found->val) {
       case k_s_dae_instance_image: {
-        ak_image_instance * imageInst;
+        AkInstanceImage * instanceImage;
         AkResult ret;
 
-        ret = ak_dae_fxImageInstance(sampler, reader, &imageInst);
+        ret = ak_dae_fxInstanceImage(sampler, reader, &instanceImage);
 
         if (ret == AK_OK)
-          sampler->image_inst = imageInst;
+          sampler->instanceImage = instanceImage;
         break;
       }
       case k_s_dae_texcoord:
@@ -122,7 +122,7 @@ ak_dae_fxSampler(void * __restrict memParent,
                             ak_dae_fxEnumMipfilter);
         break;
       case k_s_dae_border_color: {
-        ak_color *color;
+        AkColor *color;
         AkResult  ret;
 
         color = ak_calloc(sampler, sizeof(*color), 1);

@@ -12,8 +12,8 @@
 AkResult _assetkit_hide
 ak_dae_camera(void * __restrict memParent,
                xmlTextReaderPtr reader,
-               ak_camera ** __restrict  dest) {
-  ak_camera    *camera;
+               AkCamera ** __restrict  dest) {
+  AkCamera    *camera;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
@@ -27,7 +27,7 @@ ak_dae_camera(void * __restrict memParent,
     _xml_beginElement(_s_dae_camera);
 
     if (_xml_eqElm(_s_dae_asset)) {
-      ak_assetinf *assetInf;
+      AkAssetInf *assetInf;
       AkResult ret;
 
       assetInf = NULL;
@@ -36,20 +36,20 @@ ak_dae_camera(void * __restrict memParent,
         camera->inf = assetInf;
 
     } else if (_xml_eqElm(_s_dae_optics)) {
-      ak_optics           *optics;
-      ak_technique        *last_tq;
-      ak_technique_common *last_tc;
+      AkOptics           *optics;
+      AkTechnique        *last_tq;
+      AkTechniqueCommon *last_tc;
 
       optics = ak_calloc(camera, sizeof(*optics), 1);
 
       last_tq = optics->technique;
-      last_tc = optics->technique_common;
+      last_tc = optics->techniqueCommon;
 
       do {
         _xml_beginElement(_s_dae_optics);
 
         if (_xml_eqElm(_s_dae_techniquec)) {
-          ak_technique_common *tc;
+          AkTechniqueCommon *tc;
           AkResult ret;
 
           tc = NULL;
@@ -58,13 +58,13 @@ ak_dae_camera(void * __restrict memParent,
             if (last_tc)
               last_tc->next = tc;
             else
-              optics->technique_common = tc;
+              optics->techniqueCommon = tc;
 
             last_tc = tc;
           }
 
         } else if (_xml_eqElm(_s_dae_technique)) {
-          ak_technique *tq;
+          AkTechnique *tq;
           AkResult ret;
 
           tq = NULL;
@@ -87,8 +87,8 @@ ak_dae_camera(void * __restrict memParent,
 
       camera->optics = optics;
     } else if (_xml_eqElm(_s_dae_imager)) {
-      ak_imager    *imager;
-      ak_technique *last_tq;
+      AkImager    *imager;
+      AkTechnique *last_tq;
 
       imager  = ak_calloc(camera, sizeof(*imager), 1);
       last_tq = imager->technique;
@@ -97,7 +97,7 @@ ak_dae_camera(void * __restrict memParent,
         _xml_beginElement(_s_dae_imager);
 
         if (_xml_eqElm(_s_dae_technique)) {
-          ak_technique *tq;
+          AkTechnique *tq;
           AkResult ret;
 
           tq = NULL;

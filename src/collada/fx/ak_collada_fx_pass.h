@@ -13,7 +13,7 @@
 
 AkResult _assetkit_hide
 ak_dae_fxPass(void * __restrict memParent,
-               xmlTextReaderPtr reader,
-               ak_pass ** __restrict dest);
+              xmlTextReaderPtr reader,
+              AkPass ** __restrict dest);
 
 #endif /* __libassetkit__ak_collada_fx_pass_h_ */

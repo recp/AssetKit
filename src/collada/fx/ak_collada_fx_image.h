@@ -15,11 +15,11 @@
 AkResult _assetkit_hide
 ak_dae_fxImage(void * __restrict memParent,
                 xmlTextReaderPtr reader,
-                ak_image ** __restrict dest);
+                AkImage ** __restrict dest);
 
 AkResult _assetkit_hide
-ak_dae_fxImageInstance(void * __restrict memParent,
+ak_dae_fxInstanceImage(void * __restrict memParent,
                         xmlTextReaderPtr reader,
-                        ak_image_instance ** __restrict dest);
+                        AkInstanceImage ** __restrict dest);
 
 #endif /* __libassetkit__ak_collada_fx_image__h_ */

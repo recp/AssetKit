@@ -13,38 +13,38 @@ static
 AkResult _assetkit_hide
 ak_dae_fxImage_initFrom(void * __restrict memParent,
                          xmlTextReaderPtr reader,
-                         ak_init_from ** __restrict dest);
+                         AkInitFrom ** __restrict dest);
 
 static
 AkResult _assetkit_hide
 ak_dae_fxImage_format(void * __restrict memParent,
                        xmlTextReaderPtr reader,
-                       ak_image_format ** __restrict dest);
+                       AkImageFormat ** __restrict dest);
 
 static
 AkResult _assetkit_hide
 ak_dae_fxImage_create2d(void * __restrict memParent,
                          xmlTextReaderPtr reader,
-                         ak_image2d ** __restrict dest);
+                         AkImage2d ** __restrict dest);
 
 static
 AkResult _assetkit_hide
 ak_dae_fxImage_create3d(void * __restrict memParent,
                          xmlTextReaderPtr reader,
-                         ak_image3d ** __restrict dest);
+                         AkImage3d ** __restrict dest);
 
 static
 int _assetkit_hide
 ak_dae_fxImage_createCube(void * __restrict memParent,
                            xmlTextReaderPtr reader,
-                           ak_image_cube ** __restrict dest);
+                           AkImageCube ** __restrict dest);
 
 
 AkResult _assetkit_hide
 ak_dae_fxImage(void * __restrict memParent,
                 xmlTextReaderPtr reader,
-                ak_image ** __restrict dest) {
-  ak_image *img;
+                AkImage ** __restrict dest) {
+  AkImage *img;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
@@ -59,7 +59,7 @@ ak_dae_fxImage(void * __restrict memParent,
     _xml_beginElement(_s_dae_image);
 
     if (_xml_eqElm(_s_dae_asset)) {
-      ak_assetinf *assetInf;
+      AkAssetInf *assetInf;
       AkResult     ret;
 
       assetInf = NULL;
@@ -78,28 +78,28 @@ ak_dae_fxImage(void * __restrict memParent,
           img->renderable.share = false;
       }
     } else if (_xml_eqElm(_s_dae_init_from)) {
-      ak_init_from *init_from;
+      AkInitFrom *init_from;
       AkResult      ret;
 
       ret = ak_dae_fxImage_initFrom(img, reader, &init_from);
       if (ret == AK_OK)
         img->init_from = init_from;
     } else if (_xml_eqElm(_s_dae_create_2d)) {
-      ak_image2d *image2d;
+      AkImage2d *image2d;
       AkResult    ret;
 
       ret = ak_dae_fxImage_create2d(img, reader, &image2d);
       if (ret == AK_OK)
         img->image2d = image2d;
     } else if (_xml_eqElm(_s_dae_create_3d)) {
-      ak_image3d *image3d;
+      AkImage3d *image3d;
       AkResult    ret;
 
       ret = ak_dae_fxImage_create3d(img, reader, &image3d);
       if (ret == AK_OK)
         img->image3d = image3d;
     } else if (_xml_eqElm(_s_dae_create_cube)) {
-      ak_image_cube *imageCube;
+      AkImageCube *imageCube;
       AkResult ret;
 
       ret = ak_dae_fxImage_createCube(img, reader, &imageCube);
@@ -130,19 +130,19 @@ ak_dae_fxImage(void * __restrict memParent,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxImageInstance(void * __restrict memParent,
+ak_dae_fxInstanceImage(void * __restrict memParent,
                         xmlTextReaderPtr reader,
-                        ak_image_instance ** __restrict dest) {
-  ak_image_instance *imgInst;
+                        AkInstanceImage ** __restrict dest) {
+  AkInstanceImage *instanceImage;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
 
-  imgInst = ak_calloc(memParent, sizeof(*imgInst), 1);
+  instanceImage = ak_calloc(memParent, sizeof(*instanceImage), 1);
 
-  _xml_readAttr(imgInst, imgInst->url, _s_dae_url);
-  _xml_readAttr(imgInst, imgInst->sid, _s_dae_sid);
-  _xml_readAttr(imgInst, imgInst->name, _s_dae_name);
+  _xml_readAttr(instanceImage, instanceImage->url, _s_dae_url);
+  _xml_readAttr(instanceImage, instanceImage->sid, _s_dae_sid);
+  _xml_readAttr(instanceImage, instanceImage->name, _s_dae_name);
 
   do {
     _xml_beginElement(_s_dae_instance_image);
@@ -154,8 +154,8 @@ ak_dae_fxImageInstance(void * __restrict memParent,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(imgInst, nodePtr, &tree, NULL);
-      imgInst->extra = tree;
+      ak_tree_fromXmlNode(instanceImage, nodePtr, &tree, NULL);
+      instanceImage->extra = tree;
 
       _xml_skipElement;
     } else {
@@ -166,7 +166,7 @@ ak_dae_fxImageInstance(void * __restrict memParent,
     _xml_endElement;
   } while (nodeRet);
   
-  *dest = imgInst;
+  *dest = instanceImage;
   
   return AK_OK;
 }
@@ -175,8 +175,8 @@ static
 AkResult _assetkit_hide
 ak_dae_fxImage_initFrom(void * __restrict memParent,
                          xmlTextReaderPtr reader,
-                         ak_init_from ** __restrict dest) {
-  ak_init_from *initFrom;
+                         AkInitFrom ** __restrict dest) {
+  AkInitFrom *initFrom;
   char          *attrValStr;
   const xmlChar *nodeName;
   int            nodeType;
@@ -217,7 +217,7 @@ ak_dae_fxImage_initFrom(void * __restrict memParent,
     if (_xml_eqElm(_s_dae_ref)) {
       _xml_readText(initFrom, initFrom->ref);
     } else if (_xml_eqElm(_s_dae_hex)) {
-      ak_hex_data *hex;
+      AkHexData *hex;
       hex = ak_calloc(initFrom, sizeof(*hex), 1);
 
       _xml_readAttr(hex, hex->format, _s_dae_format);
@@ -245,9 +245,9 @@ static
 AkResult _assetkit_hide
 ak_dae_fxImage_format(void * __restrict memParent,
                        xmlTextReaderPtr reader,
-                       ak_image_format ** __restrict dest) {
+                       AkImageFormat ** __restrict dest) {
 
-  ak_image_format *format;
+  AkImageFormat *format;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
@@ -316,9 +316,9 @@ static
 AkResult _assetkit_hide
 ak_dae_fxImage_create2d(void * __restrict memParent,
                          xmlTextReaderPtr reader,
-                         ak_image2d ** __restrict dest) {
+                         AkImage2d ** __restrict dest) {
 
-  ak_image2d   *image2d;
+  AkImage2d   *image2d;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
@@ -329,7 +329,7 @@ ak_dae_fxImage_create2d(void * __restrict memParent,
     _xml_beginElement(_s_dae_create_2d);
 
     if (_xml_eqElm(_s_dae_size_exact)) {
-      ak_size_exact *size_exact;
+      AkSizeExact *size_exact;
 
       size_exact = ak_calloc(image2d, sizeof(*size_exact), 1);
 
@@ -343,7 +343,7 @@ ak_dae_fxImage_create2d(void * __restrict memParent,
 
       image2d->size_exact = size_exact;
     } else if (_xml_eqElm(_s_dae_size_ratio)) {
-      ak_size_ratio *size_ratio;
+      AkSizeRatio *size_ratio;
 
       size_ratio = ak_calloc(image2d, sizeof(*size_ratio), 1);
 
@@ -357,7 +357,7 @@ ak_dae_fxImage_create2d(void * __restrict memParent,
 
       image2d->size_ratio = size_ratio;
     } else if (_xml_eqElm(_s_dae_mips)) {
-      ak_mips *mips;
+      AkMips *mips;
 
       mips = ak_calloc(image2d, sizeof(*mips), 1);
 
@@ -377,14 +377,14 @@ ak_dae_fxImage_create2d(void * __restrict memParent,
                            _s_dae_length,
                            strtol, NULL, 10);
     } else if (_xml_eqElm(_s_dae_format)) {
-      ak_image_format *imageFormat;
+      AkImageFormat *imageFormat;
       AkResult ret;
 
       ret = ak_dae_fxImage_format(image2d, reader, &imageFormat);
       if (ret == AK_OK)
         image2d->format = imageFormat;
     } else if (_xml_eqElm(_s_dae_size_exact)) {
-      ak_init_from *initFrom;
+      AkInitFrom *initFrom;
       AkResult ret;
 
       ret = ak_dae_fxImage_initFrom(image2d, reader, &initFrom);
@@ -407,8 +407,8 @@ static
 AkResult _assetkit_hide
 ak_dae_fxImage_create3d(void * __restrict memParent,
                          xmlTextReaderPtr reader,
-                         ak_image3d ** __restrict dest) {
-  ak_image3d   *image3d;
+                         AkImage3d ** __restrict dest) {
+  AkImage3d   *image3d;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
@@ -443,14 +443,14 @@ ak_dae_fxImage_create3d(void * __restrict memParent,
                            _s_dae_length,
                            (AkInt)strtol, NULL, 10);
     } else if (_xml_eqElm(_s_dae_format)) {
-      ak_image_format *imageFormat;
+      AkImageFormat *imageFormat;
       AkResult ret;
 
       ret = ak_dae_fxImage_format(image3d, reader, &imageFormat);
       if (ret == AK_OK)
         image3d->format = imageFormat;
     } else if (_xml_eqElm(_s_dae_size_exact)) {
-      ak_init_from *initFrom;
+      AkInitFrom *initFrom;
       AkResult ret;
 
       ret = ak_dae_fxImage_initFrom(image3d, reader, &initFrom);
@@ -473,8 +473,8 @@ static
 AkResult _assetkit_hide
 ak_dae_fxImage_createCube(void * __restrict memParent,
                            xmlTextReaderPtr reader,
-                           ak_image_cube ** __restrict dest) {
-  ak_image_cube *imageCube;
+                           AkImageCube ** __restrict dest) {
+  AkImageCube *imageCube;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
@@ -485,7 +485,7 @@ ak_dae_fxImage_createCube(void * __restrict memParent,
     _xml_beginElement(_s_dae_create_cube);
 
     if (_xml_eqElm(_s_dae_size)) {
-      _xml_readAttrUsingFn(imageCube->size.width,
+      _xml_readAttrUsingFn(imageCube->width,
                            _s_dae_width,
                            (AkInt)strtol, NULL, 10);
     } else if (_xml_eqElm(_s_dae_mips)) {
@@ -501,14 +501,14 @@ ak_dae_fxImage_createCube(void * __restrict memParent,
                            _s_dae_length,
                            (AkInt)strtol, NULL, 10);
     } else if (_xml_eqElm(_s_dae_format)) {
-      ak_image_format *imageFormat;
+      AkImageFormat *imageFormat;
       AkResult ret;
 
       ret = ak_dae_fxImage_format(imageCube, reader, &imageFormat);
       if (ret == AK_OK)
         imageCube->format = imageFormat;
     } else if (_xml_eqElm(_s_dae_size_exact)) {
-      ak_init_from *initFrom;
+      AkInitFrom *initFrom;
       AkResult ret;
 
       ret = ak_dae_fxImage_initFrom(imageCube, reader, &initFrom);

@@ -11,10 +11,10 @@
 
 AkResult _assetkit_hide
 ak_dae_fxBindUniform(void * __restrict memParent,
-                      xmlTextReaderPtr reader,
-                      ak_bind_uniform ** __restrict dest) {
-  ak_bind_uniform *bind_uniform;
-  ak_param        *last_param;
+                     xmlTextReaderPtr reader,
+                     AkBindUniform ** __restrict dest) {
+  AkBindUniform *bind_uniform;
+  AkParam      *last_param;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
@@ -29,7 +29,7 @@ ak_dae_fxBindUniform(void * __restrict memParent,
     _xml_beginElement(_s_dae_bind_uniform);
 
     if (_xml_eqElm(_s_dae_param)) {
-      ak_param * param;
+      AkParam * param;
       AkResult   ret;
 
       ret = ak_dae_param(bind_uniform,
@@ -59,7 +59,7 @@ ak_dae_fxBindUniform(void * __restrict memParent,
 
         if (ret == AK_OK) {
           bind_uniform->val = val;
-          bind_uniform->val_type = val_type;
+          bind_uniform->valType = val_type;
         }
       }
     }

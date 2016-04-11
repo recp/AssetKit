@@ -13,9 +13,9 @@
 AkResult _assetkit_hide
 ak_dae_techniquec(void * __restrict memParent,
                    xmlTextReaderPtr reader,
-                   ak_technique_common ** __restrict dest) {
+                   AkTechniqueCommon ** __restrict dest) {
 
-  ak_technique_common *techc;
+  AkTechniqueCommon *techc;
   AkInstanceMaterial  *last_instanceMaterial;
 
   const xmlChar * nodeName;
@@ -31,7 +31,7 @@ ak_dae_techniquec(void * __restrict memParent,
 
     /* optics -> perspective */
     if (_xml_eqElm(_s_dae_perspective)) {
-      ak_perspective * perspective;
+      AkPerspective * perspective;
       perspective = ak_calloc(techc, sizeof(*perspective), 1);
       
       do {
@@ -91,7 +91,7 @@ ak_dae_techniquec(void * __restrict memParent,
 
     /* optics -> orthographic */
     else if (_xml_eqElm(_s_dae_orthographic)) {
-      ak_orthographic * orthographic;
+      AkOrthographic * orthographic;
       orthographic = ak_calloc(techc, sizeof(*orthographic), 1);
 
       do {
@@ -151,7 +151,7 @@ ak_dae_techniquec(void * __restrict memParent,
 
     /* light -> ambient */
     else if (_xml_eqElm(_s_dae_ambient)) {
-      ak_ambient * ambient;
+      AkAmbient * ambient;
       ambient = ak_calloc(techc, sizeof(*ambient), 1);
 
       do {
@@ -181,7 +181,7 @@ ak_dae_techniquec(void * __restrict memParent,
 
     /* light -> directional */
     else if (_xml_eqElm(_s_dae_directional)) {
-      ak_directional * directional;
+      AkDirectional * directional;
       directional = ak_calloc(techc, sizeof(*directional), 1);
 
       do {
@@ -203,7 +203,7 @@ ak_dae_techniquec(void * __restrict memParent,
 
     /* light -> point */
     else if (_xml_eqElm(_s_dae_point)) {
-      ak_point * point;
+      AkPoint * point;
       point = ak_calloc(techc, sizeof(*point), 1);
 
       do {
@@ -264,7 +264,7 @@ ak_dae_techniquec(void * __restrict memParent,
 
     /* light -> spot */
     else if (_xml_eqElm(_s_dae_point)) {
-      ak_spot * spot;
+      AkSpot * spot;
       spot = ak_calloc(techc, sizeof(*spot), 1);
 
       do {

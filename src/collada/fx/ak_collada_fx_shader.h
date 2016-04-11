@@ -13,7 +13,7 @@
 
 AkResult _assetkit_hide
 ak_dae_fxShader(void * __restrict memParent,
-                 xmlTextReaderPtr reader,
-                 ak_shader ** __restrict dest);
+                xmlTextReaderPtr reader,
+                AkShader ** __restrict dest);
 
 #endif /* __libassetkit__ak_collada_fx_shader_h_ */

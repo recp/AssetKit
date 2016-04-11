@@ -17,10 +17,10 @@
 
 AkResult _assetkit_hide
 ak_dae_techniqueFx(void * __restrict memParent,
-                    xmlTextReaderPtr reader,
-                    ak_technique_fx ** __restrict dest) {
-  ak_technique_fx *technique;
-  ak_annotate     *last_annotate;
+                   xmlTextReaderPtr reader,
+                   AkTechniqueFx ** __restrict dest) {
+  AkTechniqueFx *technique;
+  AkAnnotate    *last_annotate;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
@@ -36,7 +36,7 @@ ak_dae_techniqueFx(void * __restrict memParent,
     _xml_beginElement(_s_dae_technique);
 
     if (_xml_eqElm(_s_dae_asset)) {
-      ak_assetinf *assetInf;
+      AkAssetInf *assetInf;
       AkResult ret;
 
       assetInf = NULL;
@@ -44,8 +44,8 @@ ak_dae_techniqueFx(void * __restrict memParent,
       if (ret == AK_OK)
         technique->inf = assetInf;
     } else if (_xml_eqElm(_s_dae_annotate)) {
-      ak_annotate *annotate;
-      AkResult     ret;
+      AkAnnotate *annotate;
+      AkResult    ret;
 
       ret = ak_dae_annotate(technique, reader, &annotate);
 
@@ -58,8 +58,8 @@ ak_dae_techniqueFx(void * __restrict memParent,
         last_annotate = annotate;
       }
     } else if (_xml_eqElm(_s_dae_pass)) {
-      ak_pass * pass;
-      AkResult  ret;
+      AkPass * pass;
+      AkResult ret;
 
       ret = ak_dae_fxPass(technique, reader, &pass);
       if (ret == AK_OK)
@@ -74,10 +74,10 @@ ak_dae_techniqueFx(void * __restrict memParent,
                                 (const char *)nodeName,
                                 &blinn_phong);
       if (ret == AK_OK)
-        technique->blinn = (ak_blinn *)blinn_phong;
+        technique->blinn = (AkBlinn *)blinn_phong;
 
     } else if (_xml_eqElm(_s_dae_constant)) {
-      ak_constant_fx * constant_fx;
+      AkConstantFx * constant_fx;
       AkResult ret;
 
       ret = ak_dae_fxConstant(technique, reader, &constant_fx);
@@ -85,7 +85,7 @@ ak_dae_techniqueFx(void * __restrict memParent,
         technique->constant = constant_fx;
 
     } else if (_xml_eqElm(_s_dae_lambert)) {
-      ak_lambert * lambert;
+      AkLambert * lambert;
       AkResult ret;
 
       ret = ak_dae_fxLambert(technique, reader, &lambert);
@@ -101,7 +101,7 @@ ak_dae_techniqueFx(void * __restrict memParent,
                                 (const char *)nodeName,
                                 &blinn_phong);
       if (ret == AK_OK)
-        technique->phong = (ak_phong *)blinn_phong;
+        technique->phong = (AkPhong *)blinn_phong;
 
     } else if (_xml_eqElm(_s_dae_extra)) {
       xmlNodePtr nodePtr;

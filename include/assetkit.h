@@ -357,7 +357,7 @@ typedef enum AkNodeTransformType {
  * This macro defines base fields of assets
  */
 #define ak_asset_base                                                        \
-  ak_assetinf  * inf;                                                        \
+  AkAssetInf  * inf;                                                        \
   AkAssetType   type;
 
 typedef struct AkTreeNodeAttr {
@@ -402,14 +402,12 @@ _ak_DEF_BASIC_ATTR(const char *, s);
 
 #undef _ak_DEF_BASIC_ATTR
 
-typedef struct ak_unit_s ak_unit;
-struct ak_unit_s {
+typedef struct AkUnit {
   const char * name;
   double       dist;
-};
+} AkUnit;
 
-typedef struct ak_color_s ak_color;
-struct ak_color_s {
+typedef struct AkColor {
   const char * sid;
   union {
     AkFloat4 vec;
@@ -421,10 +419,9 @@ struct ak_color_s {
       float A;
     };
   };
-};
+} AkColor;
 
-typedef struct ak_contributor_s ak_contributor;
-struct ak_contributor_s {
+typedef struct AkContributor {
   const char * author;
   const char * author_email;
   const char * author_website;
@@ -433,59 +430,46 @@ struct ak_contributor_s {
   const char * copyright;
   const char * source_data;
 
-  ak_contributor * next;
-  ak_contributor * prev;
-};
+  struct AkContributor * next;
+} AkContributor;
 
-typedef struct ak_altitude_s ak_altitude;
-struct ak_altitude_s {
+typedef struct AkAltitude {
   AkAltitudeMode mode;
-  double            val;
-};
+  double         val;
+} AkAltitude;
 
-typedef struct ak_geo_loc_s ak_geo_loc;
-struct ak_geo_loc_s {
-  double       lng;
-  double       lat;
-  ak_altitude alt;
-};
+typedef struct AkGeoLoc {
+  double     lng;
+  double     lat;
+  AkAltitude alt;
+} AkGeoLoc;
 
-typedef struct ak_coverage_s ak_coverage;
-struct ak_coverage_s {
-  ak_geo_loc geo_loc;
-};
+typedef struct AkCoverage {
+  AkGeoLoc geo_loc;
+} AkCoverage;
 
-typedef struct ak_assetinf_s ak_assetinf;
-struct ak_assetinf_s {
-  ak_contributor * contributor;
-  ak_coverage    * coverage;
-  const char      * subject;
-  const char      * title;
-  const char      * keywords;
+typedef struct AkAssetInf {
+  AkContributor * contributor;
+  AkCoverage     * coverage;
+  const char     * subject;
+  const char     * title;
+  const char     * keywords;
 
-  ak_unit        * unit;
-  AkTree        * extra;
+  AkUnit        * unit;
+  AkTree         * extra;
   ak_time_t        created;
   ak_time_t        modified;
-  unsigned long     revision;
-  AkUpAxis        upaxis;
-};
+  unsigned long    revision;
+  AkUpAxis         upaxis;
+} AkAssetInf;
 
-typedef struct ak_docinf_s ak_docinf;
-struct ak_docinf_s {
-  ak_assetinf   base;
-  const char   * fname;
+typedef struct AkDocInf {
+  AkAssetInf  base;
+  const char * fname;
   AkFileType   ftype;
-};
+} AkDocInf;
 
-/*
- * TODO:
- * There should be an option (ak_load) to prevent optional
- * load unsed / non-portable techniques.
- * This may increase parse performance and reduce memory usage
- */
-typedef struct ak_technique_s ak_technique;
-struct ak_technique_s {
+typedef struct AkTechnique {
   const char * profile;
 
   /**
@@ -495,266 +479,217 @@ struct ak_technique_s {
    * to use for validating the content of this instance document. Optional.
    */
   const char * xmlns;
-  AkTree   * chld;
+  AkTree     * chld;
 
-  ak_technique * prev;
-  ak_technique * next;
-};
+  struct AkTechnique * next;
+} AkTechnique;
 
-typedef struct ak_technique_common_s ak_technique_common;
-struct ak_technique_common_s {
-  ak_technique_common      * next;
-  void                      * technique;
-  AkTechniqueCommonType   technique_type;
-};
+typedef struct AkTechniqueCommon  {
+  struct AkTechniqueCommon * next;
+  void                     * technique;
+  AkTechniqueCommonType      technique_type;
+} AkTechniqueCommon;
 
-typedef struct ak_perspective_s ak_perspective;
-struct ak_perspective_s {
+typedef struct AkPerspective {
   ak_basic_attrd * xfov;
   ak_basic_attrd * yfov;
   ak_basic_attrd * aspect_ratio;
   ak_basic_attrd * znear;
   ak_basic_attrd * zfar;
-};
+} AkPerspective;
 
-typedef struct ak_orthographic_s ak_orthographic;
-struct ak_orthographic_s {
+typedef struct AkOrthographic {
   ak_basic_attrd * xmag;
   ak_basic_attrd * ymag;
   ak_basic_attrd * aspect_ratio;
   ak_basic_attrd * znear;
   ak_basic_attrd * zfar;
-};
+} AkOrthographic;
 
-typedef struct ak_optics_s ak_optics;
-struct ak_optics_s {
-  ak_technique_common * technique_common;
-  ak_technique        * technique;
-};
+typedef struct AkOptics {
+  AkTechniqueCommon * techniqueCommon;
+  AkTechnique      * technique;
+} AkOptics;
 
-typedef struct ak_imager_s ak_imager;
-struct ak_imager_s {
-  ak_technique * technique;
-  AkTree      * extra;
-};
+typedef struct AkImager {
+  AkTechnique * technique;
+  AkTree       * extra;
+} AkImager;
 
-/**
- * Declares a view of the visual scene hierarchy or scene graph.
- * The camera contains elements that describe the camera’s optics and imager.
- */
-typedef struct ak_camera_s ak_camera;
-struct ak_camera_s {
+typedef struct AkCamera {
   ak_asset_base
 
   const char * id;
   const char * name;
 
-  ak_optics * optics;
-  ak_imager * imager;
-  AkTree   * extra;
+  AkOptics * optics;
+  AkImager * imager;
+  AkTree    * extra;
 
-  ak_camera * next;
-};
+  struct AkCamera * next;
+} AkCamera;
 
-/**
- * ambient light
- */
-typedef struct ak_ambient_s ak_ambient;
-struct ak_ambient_s {
-  ak_color color;
-};
+typedef struct AkAmbient {
+  AkColor color;
+} AkAmbient;
 
-/**
- * directional light
- */
-typedef struct ak_directional_s ak_directional;
-struct ak_directional_s {
-  ak_color color;
-};
+typedef struct AkDirectional {
+  AkColor color;
+} AkDirectional;
 
-/**
- * point light
- */
-typedef struct ak_point_s ak_point;
-struct ak_point_s {
-  ak_color         color;
+typedef struct AkPoint {
+  AkColor         color;
   ak_basic_attrd * constant_attenuation;
   ak_basic_attrd * linear_attenuation;
   ak_basic_attrd * quadratic_attenuation;
-};
+} AkPoint;
 
-/**
- * spot light
- */
-typedef struct ak_spot_s ak_spot;
-struct ak_spot_s {
-  ak_color         color;
+typedef struct AkSpot {
+  AkColor         color;
   ak_basic_attrd * constant_attenuation;
   ak_basic_attrd * linear_attenuation;
   ak_basic_attrd * quadratic_attenuation;
   ak_basic_attrd * falloff_angle;
   ak_basic_attrd * falloff_exponent;
-};
+} AkSpot;
 
-/**
- * Declares a light source that illuminates a scene.
- */
-typedef struct ak_light_s ak_light;
-struct ak_light_s {
+typedef struct AkLight {
   ak_asset_base
 
   const char * id;
   const char * name;
 
-  ak_technique_common * technique_common;
-  ak_technique        * technique;
-  AkTree             * extra;
+  AkTechniqueCommon * techniqueCommon;
+  AkTechnique      * technique;
+  AkTree            * extra;
 
-  ak_light * next;
-};
+  struct AkLight * next;
+} AkLight;
 
 /* FX */
 /* Effects */
 /*
  * base type of param
  */
-typedef struct ak_param_s ak_param;
-struct ak_param_s {
+typedef struct AkParam {
   AkParamType  param_type;
   const char * ref;
 
-  ak_param * next;
-};
+  struct AkParam * next;
+} AkParam;
 
-typedef struct ak_param_ex_s ak_param_ex;
-struct ak_param_ex_s {
-  ak_param        base;
-  const char     * name;
-  const char     * sid;
-  const char     * semantic;
-  const char     * type_name;
-  AkValueType   type;
-};
+typedef struct AkParamEx {
+  AkParam     base;
+  const char * name;
+  const char * sid;
+  const char * semantic;
+  const char * type_name;
+  AkValueType  type;
+} AkParamEx;
 
-typedef struct ak_hex_data_s ak_hex_data;
-struct ak_hex_data_s {
+typedef struct AkHexData {
   const char * format;
   const char * val;
-};
+} AkHexData;
 
-typedef struct ak_init_from_s ak_init_from;
-struct ak_init_from_s {
-  const char   * ref;
-  ak_hex_data * hex;
+typedef struct AkInitFrom {
+  const char  * ref;
+  AkHexData * hex;
 
-  AkFace     face;
-  AkUInt     mip_index;
-  AkUInt     depth;
-  AkInt      array_index;
-  AkBool     mips_generate;
+  AkFace face;
+  AkUInt mip_index;
+  AkUInt depth;
+  AkInt  array_index;
+  AkBool mips_generate;
 
-  ak_init_from * prev;
-  ak_init_from * next;
-};
+  struct AkInitFrom * next;
+} AkInitFrom;
 
-typedef struct ak_size_exact_s ak_size_exact;
-struct ak_size_exact_s {
+typedef struct AkSizeExact {
   AkFloat width;
   AkFloat height;
-};
+} AkSizeExact;
 
-typedef struct ak_size_ratio_s ak_size_ratio;
-struct ak_size_ratio_s {
+typedef struct AkSizeRatio {
   AkFloat width;
   AkFloat height;
-};
+} AkSizeRatio;
 
-typedef struct ak_mips_s ak_mips;
-struct ak_mips_s {
+typedef struct AkMips {
   AkUInt levels;
   AkBool auto_generate;
-};
+} AkMips;
 
-typedef struct ak_image_format_s ak_image_format;
-struct ak_image_format_s {
+typedef struct AkImageFormat {
   struct {
     AkChannelFormat    channel;
     AkRangeFormat      range;
     AkPrecisionFormat  precision;
-    const char          * space;
+    const char       * space;
   } hint;
 
   const char * exact;
-};
+} AkImageFormat;
 
-typedef struct ak_image2d_s ak_image2d;
-struct ak_image2d_s {
-  ak_size_exact   * size_exact;
-  ak_size_ratio   * size_ratio;
-  ak_mips         * mips;
-  const char       * unnormalized;
-  long               array_len;
-  ak_image_format * format;
-  ak_init_from    * init_from;
-};
+typedef struct AkImage2d {
+  AkSizeExact * size_exact;
+  AkSizeRatio * size_ratio;
+  AkMips        * mips;
+  const char    * unnormalized;
+  AkImageFormat * format;
+  AkInitFrom    * init_from;
+  long            array_len;
+} AkImage2d;
 
-typedef struct ak_image3d_s ak_image3d;
-struct ak_image3d_s {
+typedef struct AkImage3d {
   struct {
     AkUInt width;
     AkUInt height;
     AkUInt depth;
   } size;
 
-  ak_mips           mips;
-  long               array_len;
-  ak_image_format * format;
-  ak_init_from    * init_from;
-};
+  AkMips          mips;
+  long            array_len;
+  AkImageFormat * format;
+  AkInitFrom    * init_from;
+} AkImage3d;
 
-typedef struct ak_image_cube_s ak_image_cube;
-struct ak_image_cube_s {
-  struct {
-    AkUInt width;
-  } size;
+typedef struct AkImageCube {
+  AkUInt          width;
+  AkMips          mips;
+  long            array_len;
+  AkImageFormat * format;
+  AkInitFrom    * init_from;
+} AkImageCube;
 
-  ak_mips           mips;
-  long               array_len;
-  ak_image_format * format;
-  ak_init_from    * init_from;
-};
-
-typedef struct ak_image_s ak_image;
-struct ak_image_s {
+typedef struct AkImage {
   ak_asset_base
 
   const char * id;
   const char * sid;
   const char * name;
 
-  ak_init_from  * init_from;
-  ak_image2d    * image2d;
-  ak_image3d    * image3d;
-  ak_image_cube * cube;
-  AkTree       * extra;
+  AkInitFrom  * init_from;
+  AkImage2d   * image2d;
+  AkImage3d   * image3d;
+  AkImageCube * cube;
+  AkTree      * extra;
 
-  ak_image * prev;
-  ak_image * next;
+  struct AkImage * next;
 
   struct {
     AkBool share;
   } renderable;
 
-};
+} AkImage;
 
-typedef struct ak_image_instance_s ak_image_instance;
-struct ak_image_instance_s {
+typedef struct AkInstanceImage {
   const char * url;
   const char * sid;
   const char * name;
 
   AkTree * extra;
-};
+} AkInstanceImage;
 
 /*!
  * base type for these types:
@@ -766,10 +701,9 @@ struct ak_image_instance_s {
  * samplerRECT
  * samplerStates
  */
-typedef struct ak_fx_sampler_common_s ak_fx_sampler_common;
-struct ak_fx_sampler_common_s {
+typedef struct AkFxSamplerCommon {
   ak_asset_base
-  ak_image_instance * image_inst;
+  AkInstanceImage * instanceImage;
 
   struct {
     const char * semantic;
@@ -788,332 +722,293 @@ struct ak_fx_sampler_common_s {
   float         mip_bias;
   unsigned long max_anisotropy;
 
-  ak_color * border_color;
-  AkTree  * extra;
-};
+  AkColor * border_color;
+  AkTree   * extra;
+} AkFxSamplerCommon;
 
-typedef ak_fx_sampler_common ak_sampler1D;
-typedef ak_fx_sampler_common ak_sampler2D;
-typedef ak_fx_sampler_common ak_sampler3D;
-typedef ak_fx_sampler_common ak_samplerCUBE;
-typedef ak_fx_sampler_common ak_samplerDEPTH;
-typedef ak_fx_sampler_common ak_samplerRECT;
-typedef ak_fx_sampler_common ak_samplerStates;
+typedef AkFxSamplerCommon AkSampler1D;
+typedef AkFxSamplerCommon AkSampler2D;
+typedef AkFxSamplerCommon AkSampler3D;
+typedef AkFxSamplerCommon AkSamplerCUBE;
+typedef AkFxSamplerCommon AkSamplerDEPTH;
+typedef AkFxSamplerCommon AkSamplerRECT;
+typedef AkFxSamplerCommon AkSamplerStates;
 
-typedef struct ak_fx_texture_s ak_fx_texture;
-struct ak_fx_texture_s {
+typedef struct AkFxTexture {
   const char * texture;
   const char * texcoord;
-  AkTree   * extra;
-};
+  AkTree     * extra;
+} AkFxTexture;
 
-typedef struct ak_fx_color_or_tex_s ak_fx_color_or_tex;
-struct ak_fx_color_or_tex_s {
-  AkOpaque       opaque;
-  ak_color      * color;
-  ak_param      * param;
-  ak_fx_texture * texture;
-};
+typedef struct AkFxColorOrTex {
+  AkColor    * color;
+  AkParam     * param;
+  AkFxTexture * texture;
+  AkOpaque      opaque;
+} AkFxColorOrTex;
 
-typedef ak_fx_color_or_tex ak_ambient_fx;
-typedef ak_fx_color_or_tex ak_diffuse;
-typedef ak_fx_color_or_tex ak_emission;
-typedef ak_fx_color_or_tex ak_reflective;
-typedef ak_fx_color_or_tex ak_specular;
-typedef ak_fx_color_or_tex ak_transparent;
+typedef AkFxColorOrTex AkAmbientFx;
+typedef AkFxColorOrTex AkDiffuse;
+typedef AkFxColorOrTex AkEmission;
+typedef AkFxColorOrTex AkReflective;
+typedef AkFxColorOrTex AkSpecular;
+typedef AkFxColorOrTex AkTransparent;
 
-typedef struct ak_fx_float_or_param_s ak_fx_float_or_param;
-struct ak_fx_float_or_param_s {
+typedef struct AkFxFloatOrParam {
   ak_basic_attrf * val;
-  ak_param       * param;
-};
+  AkParam        * param;
+} AkFxFloatOrParam;
 
-typedef ak_fx_float_or_param ak_index_of_refraction;
-typedef ak_fx_float_or_param ak_reflectivity;
-typedef ak_fx_float_or_param ak_shininess;
-typedef ak_fx_float_or_param ak_transparency;
+typedef AkFxFloatOrParam AkIndexOfRefraction;
+typedef AkFxFloatOrParam AkReflectivity;
+typedef AkFxFloatOrParam AkShininess;
+typedef AkFxFloatOrParam AkTransparency;
 
-typedef struct ak_annotate_s ak_annotate;
-struct ak_annotate_s {
-  const char     * name;
-  void           * val;
-  AkValueType   val_type;
+typedef struct AkAnnotate {
+  const char * name;
+  void       * val;
+  AkValueType  valType;
 
-  ak_annotate * next;
-};
+  struct AkAnnotate * next;
+} AkAnnotate;
 
-typedef struct ak_newparam_s ak_newparam;
-struct ak_newparam_s {
-  const char     * sid;
-  ak_annotate   * annotate;
-  const char     * semantic;
-  AkModifier     modifier;
-  void           * val;
-  AkValueType   val_type;
+typedef struct AkNewParam {
+  const char * sid;
+  AkAnnotate * annotate;
+  const char * semantic;
+  void       * val;
+  AkModifier   modifier;
+  AkValueType  valType;
 
-  ak_newparam * next;
-};
+  struct AkNewParam * next;
+} AkNewParam;
 
-typedef struct ak_setparam_s ak_setparam;
-struct ak_setparam_s {
-  const char     * ref;
-  void           * val;
-  AkValueType   val_type;
+typedef struct AkSetParam {
+  const char * ref;
+  void       * val;
+  AkValueType  valType;
 
-  ak_setparam * next;
-};
+  struct AkSetParam * next;
+} AkSetParam;
 
-typedef struct ak_code_s ak_code;
-struct ak_code_s {
+typedef struct AkCode {
   const char * sid;
   const char * val;
 
-  ak_code * next;
-};
+  struct AkCode * next;
+} AkCode;
 
-typedef struct ak_include_s ak_include;
-struct ak_include_s {
+typedef struct AkInclude {
   const char * sid;
   const char * url;
 
-  ak_include * next;
-};
+  struct AkInclude * next;
+} AkInclude;
 
-typedef struct ak_blinn_s ak_blinn;
-struct ak_blinn_s {
-  ak_emission            * emission;
-  ak_ambient_fx          * ambient;
-  ak_diffuse             * diffuse;
-  ak_specular            * specular;
-  ak_shininess           * shininess;
-  ak_reflective          * reflective;
-  ak_reflectivity        * reflectivity;
-  ak_transparent         * transparent;
-  ak_transparency        * transparency;
-  ak_index_of_refraction * index_of_refraction;
-};
+typedef struct AkBlinn {
+  AkEmission          * emission;
+  AkAmbientFx         * ambient;
+  AkDiffuse           * diffuse;
+  AkSpecular          * specular;
+  AkShininess         * shininess;
+  AkReflective        * reflective;
+  AkReflectivity      * reflectivity;
+  AkTransparent       * transparent;
+  AkTransparency      * transparency;
+  AkIndexOfRefraction * indexOfRefraction;
+} AkBlinn;
 
-typedef struct ak_constant_fx_s ak_constant_fx;
-struct ak_constant_fx_s {
-  ak_emission            * emission;
-  ak_reflective          * reflective;
-  ak_reflectivity        * reflectivity;
-  ak_transparent         * transparent;
-  ak_transparency        * transparency;
-  ak_index_of_refraction * index_of_refraction;
-};
+typedef struct AkConstantFx {
+  AkEmission          * emission;
+  AkReflective        * reflective;
+  AkReflectivity      * reflectivity;
+  AkTransparent       * transparent;
+  AkTransparency      * transparency;
+  AkIndexOfRefraction * indexOfRefraction;
+} AkConstantFx;
 
-typedef struct ak_lambert_s ak_lambert;
-struct ak_lambert_s {
-  ak_emission            * emission;
-  ak_ambient_fx          * ambient;
-  ak_diffuse             * diffuse;
-  ak_reflective          * reflective;
-  ak_reflectivity        * reflectivity;
-  ak_transparent         * transparent;
-  ak_transparency        * transparency;
-  ak_index_of_refraction * index_of_refraction;
-};
+typedef struct AkLambert {
+  AkEmission          * emission;
+  AkAmbientFx         * ambient;
+  AkDiffuse           * diffuse;
+  AkReflective        * reflective;
+  AkReflectivity      * reflectivity;
+  AkTransparent       * transparent;
+  AkTransparency      * transparency;
+  AkIndexOfRefraction * indexOfRefraction;
+} AkLambert;
 
-typedef struct ak_phong_s ak_phong;
-struct ak_phong_s {
-  ak_emission            * emission;
-  ak_ambient_fx          * ambient;
-  ak_diffuse             * diffuse;
-  ak_specular            * specular;
-  ak_shininess           * shininess;
-  ak_reflective          * reflective;
-  ak_reflectivity        * reflectivity;
-  ak_transparent         * transparent;
-  ak_transparency        * transparency;
-  ak_index_of_refraction * index_of_refraction;
-};
+typedef struct AkPhong {
+  AkEmission          * emission;
+  AkAmbientFx         * ambient;
+  AkDiffuse           * diffuse;
+  AkSpecular          * specular;
+  AkShininess         * shininess;
+  AkReflective        * reflective;
+  AkReflectivity      * reflectivity;
+  AkTransparent       * transparent;
+  AkTransparency      * transparency;
+  AkIndexOfRefraction * indexOfRefraction;
+} AkPhong;
 
 struct AkRenderState;
-typedef struct ak_states_s ak_states;
-struct ak_states_s {
+typedef struct AkStates {
   struct AkRenderState * next;
-  long               count;
-};
+  long count;
+} AkStates;
 
-typedef struct ak_evaluate_target_s ak_evaluate_target;
-struct ak_evaluate_target_s {
+typedef struct AkEvaluateTarget {
+  AkParam     * param;
   unsigned long index;
   unsigned long slice;
   unsigned long mip;
-  AkFace      face;
+  AkFace        face;
 
-  ak_param          * param;
-  ak_image_instance * image_inst;
-};
+  AkInstanceImage * instanceImage;
+} AkEvaluateTarget;
 
-typedef struct ak_color_clear_s ak_color_clear;
-struct ak_color_clear_s {
+typedef struct AkColorClear {
   unsigned long index;
-  ak_color     val;
-};
+  AkColor      val;
+} AkColorClear;
 
-typedef struct ak_depth_clear_s ak_depth_clear;
-struct ak_depth_clear_s {
+typedef struct AkDepthClear {
   unsigned long index;
-  AkFloat     val;
-};
+  AkFloat       val;
+} AkDepthClear;
 
-typedef struct ak_stencil_clear_s ak_stencil_clear;
-struct ak_stencil_clear_s {
+typedef struct AkStencilClear {
   unsigned long index;
   unsigned long val;
-};
+} AkStencilClear;
 
-typedef struct AK_DRAW_s ak_draw;
-struct AK_DRAW_s {
-  AkDrawType enum_draw;
-  const char    * str_val;
-};
+typedef struct AkDraw {
+  AkDrawType   enumDraw;
+  const char * strVal;
+} AkDraw;
 
-typedef struct ak_evaluate_s ak_evaluate;
-struct ak_evaluate_s {
-  ak_evaluate_target * color_target;
-  ak_evaluate_target * depth_target;
-  ak_evaluate_target * stencil_target;
-  ak_color_clear     * color_clear;
-  ak_depth_clear     * depth_clear;
-  ak_stencil_clear   * stencil_clear;
-  ak_draw              draw;
-};
+typedef struct AkEvaluate {
+  AkEvaluateTarget * color_target;
+  AkEvaluateTarget * depth_target;
+  AkEvaluateTarget * stencil_target;
+  AkColorClear     * color_clear;
+  AkDepthClear     * depth_clear;
+  AkStencilClear   * stencil_clear;
+  AkDraw             draw;
+} AkEvaluate;
 
-typedef struct ak_inline_s ak_inline;
-struct ak_inline_s {
+typedef struct AkInline {
   const char * val;
-  ak_inline * next;
-};
+  struct AkInline * next;
+} AkInline;
 
-typedef struct ak_import_s ak_import;
-struct ak_import_s {
+typedef struct AkImport {
   const char * ref;
-  ak_import * next;
-};
+  struct AkImport * next;
+} AkImport;
 
-typedef struct ak_sources_s ak_sources;
-struct ak_sources_s {
+typedef struct AkSources {
   const char * entry;
+  AkInline   * inlines;
+  AkImport   * imports;
+} AkSources;
 
-  ak_inline * inlines;
-  ak_import * imports;
-};
+typedef struct AkBinary {
+  const char  * ref;
+  AkHexData * hex;
 
-typedef struct ak_binary_s ak_binary;
-struct ak_binary_s {
-  const char * ref;
-  ak_hex_data * hex;
+  struct AkBinary * next;
+} AkBinary;
 
-  ak_binary * next;
-};
-
-typedef struct ak_compiler_s ak_compiler;
-struct ak_compiler_s {
+typedef struct AkCompiler {
   const char * platform;
   const char * target;
   const char * options;
-  ak_binary * binary;
+  AkBinary   * binary;
 
-  ak_compiler * next;
-};
+  struct AkCompiler * next;
+} AkCompiler;
 
-typedef struct ak_bind_uniform_s ak_bind_uniform;
-struct ak_bind_uniform_s {
+typedef struct AkBindUniform {
   const char * symbol;
+  AkParam    * param;
+  void       * val;
+  AkValueType  valType;
 
-  ak_param       * param;
-  void            * val;
-  AkValueType    val_type;
+  struct AkBindUniform * next;
+} AkBindUniform;
 
-  ak_bind_uniform * next;
-};
-
-typedef struct ak_bind_attrib_s ak_bind_attrib;
-struct ak_bind_attrib_s {
+typedef struct AkBindAttrib {
   const char * symbol;
   const char * semantic;
 
-  ak_bind_attrib * next;
-};
+  struct AkBindAttrib * next;
+} AkBindAttrib;
 
-typedef struct ak_shader_s ak_shader;
-struct ak_shader_s {
+typedef struct AkShader {
   AkPipelineStage stage;
 
-  ak_sources      * sources;
-  ak_compiler     * compiler;
-  ak_bind_uniform * bind_uniform;
-  AkTree         * extra;
+  AkSources     * sources;
+  AkCompiler    * compiler;
+  AkBindUniform * bind_uniform;
+  AkTree        * extra;
 
-  ak_shader * prev;
-  ak_shader * next;
-};
+  struct AkShader * next;
+} AkShader;
 
-typedef struct ak_linker_s ak_linker;
-struct ak_linker_s {
+typedef struct AkLinker {
   const char * platform;
   const char * target;
   const char * options;
+  AkBinary   * binary;
 
-  ak_binary * binary;
+  struct AkLinker * next;
+} AkLinker;
 
-  ak_linker * prev;
-  ak_linker * next;
-};
+typedef struct AkProgram {
+  AkShader        * shader;
+  AkBindAttrib  * bind_attrib;
+  AkBindUniform * bind_uniform;
+  AkLinker        * linker;
+} AkProgram;
 
-typedef struct ak_program_s ak_program;
-struct ak_program_s {
-  ak_shader       * shader;
-  ak_bind_attrib  * bind_attrib;
-  ak_bind_uniform * bind_uniform;
-  ak_linker       * linker;
-};
-
-typedef struct ak_pass_s ak_pass;
-struct ak_pass_s {
+typedef struct AkPass {
   ak_asset_base
 
   const char * sid;
+  AkAnnotate * annotate;
+  AkStates   * states;
+  AkEvaluate * evaluate;
+  AkProgram  * program;
+  AkTree     * extra;
 
-  ak_annotate     * annotate;
-  ak_states       * states;
-  ak_evaluate     * evaluate;
-  ak_program      * program;
-  AkTree         * extra;
+  struct AkPass * next;
+} AkPass;
 
-  ak_pass * prev;
-  ak_pass * next;
-};
-
-typedef struct ak_technique_fx_s ak_technique_fx;
-struct ak_technique_fx_s {
+typedef struct AkTechniqueFx {
   ak_asset_base
 
-  const char * id;
-  const char * sid;
+  const char   * id;
+  const char   * sid;
+  AkAnnotate   * annotate;
+  AkBlinn      * blinn;
+  AkConstantFx * constant;
+  AkLambert    * lambert;
+  AkPhong      * phong;
+  AkPass       * pass;
+  AkTree       * extra;
 
-  ak_annotate    * annotate;
-  ak_blinn       * blinn;
-  ak_constant_fx * constant;
-  ak_lambert     * lambert;
-  ak_phong       * phong;
-  ak_pass        * pass;
-
-  AkTree        * extra;
-
-  ak_technique_fx * next;
-};
+  struct AkTechniqueFx * next;
+} AkTechniqueFx;
 
 typedef struct AkProfile {
   ak_asset_base
-  AkProfileType     profileType;
-  const char      * id;
-  ak_newparam     * newparam;
-  ak_technique_fx * technique;
-  AkTree          * extra;
+
+  AkProfileType   profileType;
+  const char    * id;
+  AkNewParam    * newparam;
+  AkTechniqueFx * technique;
+  AkTree        * extra;
 
   struct AkProfile * next;
 } AkProfile;
@@ -1123,8 +1018,8 @@ typedef AkProfile AkProfileCommon;
 typedef struct AkProfileCG {
   AkProfile base;
 
-  ak_code    * code;
-  ak_include * include;
+  AkCode     * code;
+  AkInclude  * include;
   const char * platform;
 } AkProfileCG;
 
@@ -1137,8 +1032,8 @@ typedef struct AkProfileGLES {
 typedef struct AkProfileGLES2 {
   AkProfile base;
 
-  ak_code    * code;
-  ak_include * include;
+  AkCode     * code;
+  AkInclude  * include;
   const char * language;
   const char * platforms;
 } AkProfileGLES2;
@@ -1146,8 +1041,8 @@ typedef struct AkProfileGLES2 {
 typedef struct AkProfileGLSL {
   AkProfile base;
 
-  ak_code    * code;
-  ak_include * include;
+  AkCode     * code;
+  AkInclude  * include;
   const char * platform;
 } AkProfileGLSL;
 
@@ -1164,10 +1059,10 @@ typedef struct AkEffect {
   const char * id;
   const char * name;
 
-  ak_annotate * annotate;
-  ak_newparam * newparam;
-  AkProfile   * profile;
-  AkTree      * extra;
+  AkAnnotate * annotate;
+  AkNewParam * newparam;
+  AkProfile  * profile;
+  AkTree     * extra;
 
   struct AkEffect * next;
 } AkEffect;
@@ -1186,7 +1081,7 @@ typedef struct AkInstanceEffect {
   const char * name;
 
   AkTechniqueHint * techniqueHint;
-  ak_setparam     * setparam;
+  AkSetParam      * setparam;
   AkTree          * extra;
 } AkInstanceEffect;
 
@@ -1239,8 +1134,8 @@ typedef struct AkSource {
   const char * name;
   AkObject   * data;
 
-  ak_technique_common * techniqueCommon;
-  ak_technique        * technique;
+  AkTechniqueCommon * techniqueCommon;
+  AkTechnique        * technique;
 
   struct AkSource * next;
 } AkSource;
@@ -1657,9 +1552,9 @@ typedef struct AkSkeleton {
 } AkSkeleton;
 
 typedef struct AkBindMaterial {
-  ak_param     * param;
-  ak_technique_common * techniqueCommon;
-  ak_technique * technique;
+  AkParam      * param;
+  AkTechniqueCommon * techniqueCommon;
+  AkTechnique * technique;
   AkTree       * extra;
 } AkBindMaterial;
 
@@ -1816,24 +1711,11 @@ typedef struct AkScene {
 
 } AkScene;
 
-#undef _ak_DEF_LIB
 #undef AK__DEF_LIB
-
-#define _ak_DEF_LIB(T)                                                       \
-  typedef struct ak_lib_ ## T ## _s  ak_lib_ ## T;                          \
-  struct ak_lib_ ## T ## _s {                                                \
-    ak_assetinf  * inf;                                                      \
-    const char    * id;                                                       \
-    const char    * name;                                                     \
-    ak_##T       * chld;                                                     \
-    AkTree      * extra;                                                    \
-    unsigned long   count;                                                    \
-    ak_lib_##T   * next;                                                     \
-  }
 
 #define AK__DEF_LIB(T)                                                        \
   typedef struct AkLib ## T {                                                 \
-    ak_assetinf * inf;                                                        \
+    AkAssetInf * inf;                                                        \
     const char  * id;                                                         \
     const char  * name;                                                       \
     Ak ## T     * chld;                                                       \
@@ -1842,25 +1724,24 @@ typedef struct AkScene {
     struct AkLib ## T * next;                                                 \
   } AkLib ## T
 
-_ak_DEF_LIB(camera);
-_ak_DEF_LIB(light);
+AK__DEF_LIB(Camera);
+AK__DEF_LIB(Light);
 AK__DEF_LIB(Effect);
-_ak_DEF_LIB(image);
+AK__DEF_LIB(Image);
 AK__DEF_LIB(Material);
 AK__DEF_LIB(Geometry);
 AK__DEF_LIB(Controller);
 AK__DEF_LIB(VisualScene);
 AK__DEF_LIB(Node);
 
-#undef _ak_DEF_LIB
 #undef AK__DEF_LIB
 
 typedef struct ak_lib_s ak_lib;
 struct ak_lib_s {
-  ak_lib_camera    * cameras;
-  ak_lib_light     * lights;
+  AkLibCamera    * cameras;
+  AkLibLight       * lights;
   AkLibEffect      * effects;
-  ak_lib_image     * images;
+  AkLibImage       * images;
   AkLibMaterial    * materials;
   AkLibGeometry    * geometries;
   AkLibController  * controllers;
@@ -1870,7 +1751,7 @@ struct ak_lib_s {
 
 typedef struct ak_doc_s ak_doc;
 struct ak_doc_s {
-  ak_docinf docinf;
+  AkDocInf docinf;
   ak_lib    lib;
   AkScene   scene;
 };

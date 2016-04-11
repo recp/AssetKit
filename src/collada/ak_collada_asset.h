@@ -14,6 +14,6 @@
 AkResult _assetkit_hide
 ak_dae_assetInf(void * __restrict memParent,
                  xmlTextReaderPtr reader,
-                 ak_assetinf ** __restrict dest);
+                 AkAssetInf ** __restrict dest);
 
 #endif /* __libassetkit__ak_collada_asset__h_ */

@@ -14,6 +14,6 @@
 AkResult _assetkit_hide
 ak_dae_light(void * __restrict memParent,
               xmlTextReaderPtr reader,
-              ak_light ** __restrict  dest);
+              AkLight ** __restrict  dest);
 
 #endif /* __libassetkit__ak_collada_light__h_ */

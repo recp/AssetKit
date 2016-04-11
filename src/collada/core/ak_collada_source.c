@@ -34,8 +34,8 @@ ak_dae_source(void * __restrict memParent,
               AkSource ** __restrict dest) {
 
   AkSource            *source;
-  ak_technique        *last_tq;
-  ak_technique_common *last_tc;
+  AkTechnique        *last_tq;
+  AkTechniqueCommon *last_tc;
   
   const xmlChar *nodeName;
   int            nodeType;
@@ -73,7 +73,7 @@ ak_dae_source(void * __restrict memParent,
 
     switch (found->val) {
       case k_s_dae_asset: {
-        ak_assetinf *assetInf;
+        AkAssetInf *assetInf;
         AkResult ret;
 
         assetInf = NULL;
@@ -287,7 +287,7 @@ ak_dae_source(void * __restrict memParent,
         break;
       }
       case k_s_dae_techniquec: {
-        ak_technique_common *tc;
+        AkTechniqueCommon *tc;
         AkResult ret;
 
         tc = NULL;
@@ -304,7 +304,7 @@ ak_dae_source(void * __restrict memParent,
         break;
       }
       case k_s_dae_technique: {
-        ak_technique *tq;
+        AkTechnique *tq;
         AkResult ret;
 
         tq = NULL;

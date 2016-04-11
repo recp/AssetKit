@@ -12,13 +12,13 @@
 
 AkResult _assetkit_hide
 ak_dae_fxProg(void * __restrict memParent,
-               xmlTextReaderPtr reader,
-               ak_program ** __restrict dest) {
-  ak_program      *prog;
-  ak_bind_uniform *last_bind_uniform;
-  ak_bind_attrib  *last_bind_attrib;
-  ak_linker       *last_linker;
-  ak_shader       *last_shader;
+              xmlTextReaderPtr reader,
+              AkProgram ** __restrict dest) {
+  AkProgram     *prog;
+  AkBindUniform *last_bind_uniform;
+  AkBindAttrib  *last_bind_attrib;
+  AkLinker      *last_linker;
+  AkShader      *last_shader;
 
   const xmlChar *nodeName;
   int            nodeType;
@@ -35,8 +35,8 @@ ak_dae_fxProg(void * __restrict memParent,
     _xml_beginElement(_s_dae_program);
 
     if (_xml_eqElm(_s_dae_shader)) {
-      ak_shader *shader;
-      AkResult   ret;
+      AkShader *shader;
+      AkResult  ret;
 
       ret = ak_dae_fxShader(prog, reader, &shader);
       if (ret == AK_OK) {
@@ -48,8 +48,8 @@ ak_dae_fxProg(void * __restrict memParent,
         last_shader = shader;
       }
     } else if (_xml_eqElm(_s_dae_linker)) {
-      ak_linker *linker;
-      ak_binary *last_binary;
+      AkLinker *linker;
+      AkBinary *last_binary;
 
       linker = ak_calloc(prog, sizeof(*linker), 1);
 
@@ -63,8 +63,8 @@ ak_dae_fxProg(void * __restrict memParent,
         _xml_beginElement(_s_dae_linker);
 
         if (_xml_eqElm(_s_dae_binary)) {
-          ak_binary *binary;
-          AkResult   ret;
+          AkBinary *binary;
+          AkResult  ret;
 
           ret = ak_dae_fxBinary(linker, reader, &binary);
           if (ret == AK_OK) {
@@ -90,7 +90,7 @@ ak_dae_fxProg(void * __restrict memParent,
 
       last_linker = linker;
     } else if (_xml_eqElm(_s_dae_bind_attribute)) {
-      ak_bind_attrib *bind_attrib;
+      AkBindAttrib *bind_attrib;
 
       bind_attrib = ak_calloc(prog, sizeof(*bind_attrib), 1);
       _xml_readAttr(bind_attrib, bind_attrib->symbol, _s_dae_symbol);
@@ -116,7 +116,7 @@ ak_dae_fxProg(void * __restrict memParent,
 
       last_bind_attrib = bind_attrib;
     } else if (_xml_eqElm(_s_dae_bind_uniform)) {
-      ak_bind_uniform *bind_uniform;
+      AkBindUniform *bind_uniform;
       AkResult ret;
 
       ret = ak_dae_fxBindUniform(prog, reader, &bind_uniform);

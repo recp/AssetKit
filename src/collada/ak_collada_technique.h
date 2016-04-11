@@ -14,11 +14,11 @@
 AkResult _assetkit_hide
 ak_dae_technique(void * __restrict memParent,
                   xmlTextReaderPtr reader,
-                  ak_technique ** __restrict dest);
+                  AkTechnique ** __restrict dest);
 
 AkResult _assetkit_hide
 ak_dae_techniquec(void * __restrict memParent,
                    xmlTextReaderPtr reader,
-                   ak_technique_common ** __restrict dest);
+                   AkTechniqueCommon ** __restrict dest);
 
 #endif /* __libassetkit__ak_collada_technique__h_ */

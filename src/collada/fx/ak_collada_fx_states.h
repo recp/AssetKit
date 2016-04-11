@@ -14,6 +14,6 @@
 AkResult _assetkit_hide
 ak_dae_fxState(void * __restrict memParent,
                 xmlTextReaderPtr reader,
-                ak_states ** __restrict dest);
+                AkStates ** __restrict dest);
 
 #endif /* __libassetkit__ak_collada_fx_states_h_ */

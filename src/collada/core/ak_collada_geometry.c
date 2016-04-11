@@ -29,7 +29,7 @@ ak_dae_geometry(void * __restrict memParent,
     _xml_beginElement(_s_dae_geometry);
 
     if (_xml_eqElm(_s_dae_asset)) {
-      ak_assetinf *assetInf;
+      AkAssetInf *assetInf;
       AkResult ret;
 
       assetInf = NULL;

@@ -10,7 +10,7 @@
 AkResult _assetkit_hide
 ak_dae_assetInf(void * __restrict memParent,
                  xmlTextReaderPtr reader,
-                 ak_assetinf ** __restrict dest) {
+                 AkAssetInf ** __restrict dest) {
   const xmlChar * nodeName;
   int             nodeType;
   int             nodeRet;
@@ -22,7 +22,7 @@ ak_dae_assetInf(void * __restrict memParent,
     _xml_beginElement(_s_dae_asset);
 
     if (_xml_eqElm(_s_dae_contributor)) {
-      ak_contributor * contrib;
+      AkContributor * contrib;
       contrib = ak_calloc(*dest, sizeof(*contrib), 1);
 
       /* contributor */
@@ -69,7 +69,7 @@ ak_dae_assetInf(void * __restrict memParent,
     } else if (_xml_eqElm(_s_dae_title)) {
       _xml_readText(*dest, (*dest)->title);
     } else if (_xml_eqElm(_s_dae_unit)) {
-      ak_unit * unit;
+      AkUnit * unit;
       unit = ak_calloc(*dest, sizeof(*unit), 1);
 
       _xml_readAttr(*dest, unit->name, _s_dae_name);

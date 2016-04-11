@@ -27,10 +27,10 @@ ak_dae_doc(ak_doc ** __restrict dest,
             const char * __restrict file) {
 
   ak_doc           *doc;
-  ak_lib_camera    *last_libCam;
-  ak_lib_light     *last_libLight;
+  AkLibCamera      *last_libCam;
+  AkLibLight       *last_libLight;
   AkLibEffect      *last_libEffect;
-  ak_lib_image     *last_libImage;
+  AkLibImage       *last_libImage;
   AkLibMaterial    *last_libMaterial;
   AkLibGeometry    *last_libGeometry;
   AkLibController  *last_libController;
@@ -85,8 +85,8 @@ ak_dae_doc(ak_doc ** __restrict dest,
 
     /* COLLADA Core */
     if (_xml_eqElm(_s_dae_asset)) {
-      ak_assetinf * assetInf;
-      ak_docinf   * docInf;
+      AkAssetInf * assetInf;
+      AkDocInf   * docInf;
       AkResult      ret;
 
       docInf = ak_calloc(doc, sizeof(*docInf), 1);
@@ -98,8 +98,8 @@ ak_dae_doc(ak_doc ** __restrict dest,
         doc->docinf = *docInf;
       }
     } else if (_xml_eqElm(_s_dae_lib_cameras)) {
-      ak_lib_camera *libcam;
-      ak_camera     *lastcam;
+      AkLibCamera *libcam;
+      AkCamera    *lastcam;
 
       libcam = ak_calloc(doc, sizeof(*libcam), 1);
       if (last_libCam)
@@ -118,7 +118,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
         _xml_beginElement(_s_dae_lib_cameras);
 
         if (_xml_eqElm(_s_dae_asset)) {
-          ak_assetinf *assetInf;
+          AkAssetInf *assetInf;
           AkResult ret;
 
           assetInf = NULL;
@@ -127,7 +127,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
             libcam->inf = assetInf;
 
         } else if (_xml_eqElm(_s_dae_camera)) {
-          ak_camera *acamera;
+          AkCamera *acamera;
           AkResult   ret;
 
           acamera = NULL;
@@ -159,8 +159,8 @@ ak_dae_doc(ak_doc ** __restrict dest,
         _xml_endElement;
       } while (nodeRet);
     } else if (_xml_eqElm(_s_dae_lib_lights)) {
-      ak_lib_light *liblight;
-      ak_light     *lastlight;
+      AkLibLight *liblight;
+      AkLight    *lastlight;
 
       liblight = ak_calloc(doc, sizeof(*liblight), 1);
       if (last_libLight)
@@ -179,7 +179,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
         _xml_beginElement(_s_dae_lib_lights);
 
         if (_xml_eqElm(_s_dae_asset)) {
-          ak_assetinf *assetInf;
+          AkAssetInf *assetInf;
           AkResult ret;
 
           assetInf = NULL;
@@ -188,7 +188,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
             liblight->inf = assetInf;
 
         } else if (_xml_eqElm(_s_dae_light)) {
-          ak_light *alight;
+          AkLight *alight;
           AkResult  ret;
 
           alight = NULL;
@@ -242,7 +242,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
         _xml_beginElement(_s_dae_lib_effects);
 
         if (_xml_eqElm(_s_dae_asset)) {
-          ak_assetinf *assetInf;
+          AkAssetInf *assetInf;
           AkResult ret;
 
           assetInf = NULL;
@@ -283,8 +283,8 @@ ak_dae_doc(ak_doc ** __restrict dest,
       } while (nodeRet);
 
     } else if (_xml_eqElm(_s_dae_lib_images)) {
-      ak_lib_image *libimg;
-      ak_image     *lastimg;
+      AkLibImage *libimg;
+      AkImage      *lastimg;
 
       libimg = ak_calloc(doc, sizeof(*libimg), 1);
       if (last_libImage)
@@ -303,7 +303,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
         _xml_beginElement(_s_dae_lib_images);
 
         if (_xml_eqElm(_s_dae_asset)) {
-          ak_assetinf *assetInf;
+          AkAssetInf *assetInf;
           AkResult ret;
 
           assetInf = NULL;
@@ -312,7 +312,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
             libimg->inf = assetInf;
 
         } else if (_xml_eqElm(_s_dae_image)) {
-          ak_image *anImg;
+          AkImage *anImg;
           AkResult  ret;
           
           ret = ak_dae_fxImage(doc, reader, &anImg);
@@ -363,7 +363,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
         _xml_beginElement(_s_dae_lib_materials);
 
         if (_xml_eqElm(_s_dae_asset)) {
-          ak_assetinf *assetInf;
+          AkAssetInf *assetInf;
           AkResult ret;
 
           assetInf = NULL;
@@ -424,7 +424,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
         _xml_beginElement(_s_dae_lib_geometries);
 
         if (_xml_eqElm(_s_dae_asset)) {
-          ak_assetinf *assetInf;
+          AkAssetInf *assetInf;
           AkResult ret;
 
           assetInf = NULL;
@@ -485,7 +485,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
         _xml_beginElement(_s_dae_lib_controllers);
 
         if (_xml_eqElm(_s_dae_asset)) {
-          ak_assetinf *assetInf;
+          AkAssetInf *assetInf;
           AkResult ret;
 
           assetInf = NULL;
@@ -546,7 +546,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
         _xml_beginElement(_s_dae_lib_visual_scenes);
 
         if (_xml_eqElm(_s_dae_asset)) {
-          ak_assetinf *assetInf;
+          AkAssetInf *assetInf;
           AkResult ret;
 
           assetInf = NULL;
@@ -607,7 +607,7 @@ ak_dae_doc(ak_doc ** __restrict dest,
         _xml_beginElement(_s_dae_lib_nodes);
 
         if (_xml_eqElm(_s_dae_asset)) {
-          ak_assetinf *assetInf;
+          AkAssetInf *assetInf;
           AkResult ret;
 
           assetInf = NULL;

@@ -9,9 +9,9 @@
 
 AkResult _assetkit_hide
 ak_dae_fxBinary(void * __restrict memParent,
-                 xmlTextReaderPtr reader,
-                 ak_binary ** __restrict dest) {
-  ak_binary    *binary;
+                xmlTextReaderPtr reader,
+                AkBinary ** __restrict dest) {
+  AkBinary      *binary;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
@@ -24,7 +24,7 @@ ak_dae_fxBinary(void * __restrict memParent,
     if (_xml_eqElm(_s_dae_ref)) {
       _xml_readText(binary, binary->ref);
     } else if (_xml_eqElm(_s_dae_hex)) {
-      ak_hex_data *hex;
+      AkHexData *hex;
       hex = ak_calloc(binary, sizeof(*hex), 1);
 
       _xml_readAttr(hex, hex->format, _s_dae_format);

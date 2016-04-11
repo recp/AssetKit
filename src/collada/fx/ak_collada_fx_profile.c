@@ -26,11 +26,11 @@ AkResult _assetkit_hide
 ak_dae_profile(void * __restrict memParent,
                xmlTextReaderPtr reader,
                AkProfile ** __restrict dest) {
-  AkProfile   *profile;
-  ak_newparam *last_newparam;
-  ak_code     *last_code;
-  ak_include  *last_inc;
-  ak_technique_fx *last_techfx;
+  AkProfile     *profile;
+  AkNewParam    *last_newparam;
+  AkCode        *last_code;
+  AkInclude     *last_inc;
+  AkTechniqueFx *last_techfx;
 
   const ak_enumpair *found;
   const xmlChar *nodeName;
@@ -121,7 +121,7 @@ ak_dae_profile(void * __restrict memParent,
     _xml_beginElement(found->key);
 
     if (_xml_eqElm(_s_dae_asset)) {
-      ak_assetinf *assetInf;
+      AkAssetInf *assetInf;
       AkResult ret;
 
       assetInf = NULL;
@@ -129,8 +129,8 @@ ak_dae_profile(void * __restrict memParent,
       if (ret == AK_OK)
         profile->inf = assetInf;
     } else if (_xml_eqElm(_s_dae_newparam)) {
-      ak_newparam *newparam;
-      AkResult     ret;
+      AkNewParam *newparam;
+      AkResult    ret;
 
       ret = ak_dae_newparam(profile,
                              reader,
@@ -145,7 +145,7 @@ ak_dae_profile(void * __restrict memParent,
         last_newparam = newparam;
       }
     } else if (_xml_eqElm(_s_dae_technique)) {
-      ak_technique_fx * technique_fx;
+      AkTechniqueFx * technique_fx;
       AkResult ret;
 
       ret = ak_dae_techniqueFx(profile, reader, &technique_fx);
@@ -170,7 +170,7 @@ ak_dae_profile(void * __restrict memParent,
 
       _xml_skipElement;
     } else if (_xml_eqElm(_s_dae_code)) {
-      ak_code *code;
+      AkCode *code;
 
       code = ak_calloc(profile, sizeof(*code), 1);
       _xml_readAttr(code, code->sid, _s_dae_sid);
@@ -199,7 +199,7 @@ ak_dae_profile(void * __restrict memParent,
       last_code = code;
 
     } else if (_xml_eqElm(_s_dae_include)) {
-      ak_include *inc;
+      AkInclude *inc;
 
       inc = ak_calloc(profile, sizeof(*inc), 1);
       _xml_readAttr(inc, inc->sid, _s_dae_sid);
