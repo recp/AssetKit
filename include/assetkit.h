@@ -450,21 +450,21 @@ typedef struct AkCoverage {
 
 typedef struct AkAssetInf {
   AkContributor * contributor;
-  AkCoverage     * coverage;
-  const char     * subject;
-  const char     * title;
-  const char     * keywords;
+  AkCoverage    * coverage;
+  const char    * subject;
+  const char    * title;
+  const char    * keywords;
 
   AkUnit        * unit;
-  AkTree         * extra;
-  ak_time_t        created;
-  ak_time_t        modified;
-  unsigned long    revision;
-  AkUpAxis         upaxis;
+  AkTree        * extra;
+  ak_time_t       created;
+  ak_time_t       modified;
+  unsigned long   revision;
+  AkUpAxis        upaxis;
 } AkAssetInf;
 
 typedef struct AkDocInf {
-  AkAssetInf  base;
+  AkAssetInf   base;
   const char * fname;
   AkFileType   ftype;
 } AkDocInf;
@@ -508,7 +508,7 @@ typedef struct AkOrthographic {
 
 typedef struct AkOptics {
   AkTechniqueCommon * techniqueCommon;
-  AkTechnique      * technique;
+  AkTechnique       * technique;
 } AkOptics;
 
 typedef struct AkImager {
@@ -524,7 +524,7 @@ typedef struct AkCamera {
 
   AkOptics * optics;
   AkImager * imager;
-  AkTree    * extra;
+  AkTree   * extra;
 
   struct AkCamera * next;
 } AkCamera;
@@ -545,7 +545,7 @@ typedef struct AkPoint {
 } AkPoint;
 
 typedef struct AkSpot {
-  AkColor         color;
+  AkColor          color;
   ak_basic_attrd * constant_attenuation;
   ak_basic_attrd * linear_attenuation;
   ak_basic_attrd * quadratic_attenuation;
@@ -560,10 +560,9 @@ typedef struct AkLight {
   const char * name;
 
   AkTechniqueCommon * techniqueCommon;
-  AkTechnique      * technique;
+  AkTechnique       * technique;
   AkTree            * extra;
-
-  struct AkLight * next;
+  struct AkLight    * next;
 } AkLight;
 
 /* FX */
@@ -579,7 +578,7 @@ typedef struct AkParam {
 } AkParam;
 
 typedef struct AkParamEx {
-  AkParam     base;
+  AkParam      base;
   const char * name;
   const char * sid;
   const char * semantic;
@@ -622,18 +621,18 @@ typedef struct AkMips {
 
 typedef struct AkImageFormat {
   struct {
-    AkChannelFormat    channel;
-    AkRangeFormat      range;
-    AkPrecisionFormat  precision;
-    const char       * space;
+    AkChannelFormat   channel;
+    AkRangeFormat     range;
+    AkPrecisionFormat precision;
+    const char      * space;
   } hint;
 
   const char * exact;
 } AkImageFormat;
 
 typedef struct AkImage2d {
-  AkSizeExact * size_exact;
-  AkSizeRatio * size_ratio;
+  AkSizeExact   * size_exact;
+  AkSizeRatio   * size_ratio;
   AkMips        * mips;
   const char    * unnormalized;
   AkImageFormat * format;
@@ -677,10 +676,7 @@ typedef struct AkImage {
 
   struct AkImage * next;
 
-  struct {
-    AkBool share;
-  } renderable;
-
+  AkBool renderable_share;
 } AkImage;
 
 typedef struct AkInstanceImage {
@@ -705,9 +701,7 @@ typedef struct AkFxSamplerCommon {
   ak_asset_base
   AkInstanceImage * instanceImage;
 
-  struct {
-    const char * semantic;
-  } texcoord;
+  const char * texcoord_semantic;
 
   AkWrapMode wrap_s;
   AkWrapMode wrap_t;
@@ -723,7 +717,7 @@ typedef struct AkFxSamplerCommon {
   unsigned long max_anisotropy;
 
   AkColor * border_color;
-  AkTree   * extra;
+  AkTree  * extra;
 } AkFxSamplerCommon;
 
 typedef AkFxSamplerCommon AkSampler1D;
@@ -741,7 +735,7 @@ typedef struct AkFxTexture {
 } AkFxTexture;
 
 typedef struct AkFxColorOrTex {
-  AkColor    * color;
+  AkColor     * color;
   AkParam     * param;
   AkFxTexture * texture;
   AkOpaque      opaque;
@@ -966,10 +960,10 @@ typedef struct AkLinker {
 } AkLinker;
 
 typedef struct AkProgram {
-  AkShader        * shader;
+  AkShader      * shader;
   AkBindAttrib  * bind_attrib;
   AkBindUniform * bind_uniform;
-  AkLinker        * linker;
+  AkLinker      * linker;
 } AkProgram;
 
 typedef struct AkPass {
@@ -1135,7 +1129,7 @@ typedef struct AkSource {
   AkObject   * data;
 
   AkTechniqueCommon * techniqueCommon;
-  AkTechnique        * technique;
+  AkTechnique       * technique;
 
   struct AkSource * next;
 } AkSource;
@@ -1193,13 +1187,13 @@ typedef struct AkPolygon {
 typedef struct AkPolygons {
   ak_asset_base
 
-  const char  * name;
-  const char  * material;
-  uint64_t      count;
+  const char * name;
+  const char * material;
+  uint64_t     count;
 
-  AkInput     * input;
-  AkPolygon   * polygon;
-  AkTree      * extra;
+  AkInput    * input;
+  AkPolygon  * polygon;
+  AkTree     * extra;
 } AkPolygons;
 
 typedef struct AkTriangles {
@@ -1294,7 +1288,7 @@ typedef struct AkCone {
 
 typedef struct AkPlane {
   AkDouble4 equation;
-  AkTree * extra;
+  AkTree  * extra;
 } AkPlane;
 
 typedef struct AkCylinder {
@@ -1554,7 +1548,7 @@ typedef struct AkSkeleton {
 typedef struct AkBindMaterial {
   AkParam      * param;
   AkTechniqueCommon * techniqueCommon;
-  AkTechnique * technique;
+  AkTechnique  * technique;
   AkTree       * extra;
 } AkBindMaterial;
 
@@ -1580,20 +1574,20 @@ typedef struct AkInstanceGeometry {
 } AkInstanceGeometry;
 
 typedef struct AkInstanceLight {
-  const char     * id;
-  const char     * name;
-  const char     * url;
-  AkTree         * extra;
+  const char * id;
+  const char * name;
+  const char * url;
+  AkTree     * extra;
 
   struct AkInstanceLight * next;
 } AkInstanceLight;
 
 typedef struct AkInstanceNode {
-  const char     * id;
-  const char     * name;
-  const char     * url;
-  const char     * proxy;
-  AkTree         * extra;
+  const char * id;
+  const char * name;
+  const char * url;
+  const char * proxy;
+  AkTree     * extra;
 
   struct AkInstanceNode * next;
 } AkInstanceNode;
@@ -1708,19 +1702,18 @@ typedef struct AkScene {
 
   AkInstanceVisualScene *visualScene;
   AkTree * extra;
-
 } AkScene;
 
 #undef AK__DEF_LIB
 
 #define AK__DEF_LIB(T)                                                        \
   typedef struct AkLib ## T {                                                 \
-    AkAssetInf * inf;                                                        \
-    const char  * id;                                                         \
-    const char  * name;                                                       \
-    Ak ## T     * chld;                                                       \
-    AkTree      * extra;                                                      \
-    uint64_t      count;                                                      \
+    AkAssetInf * inf;                                                         \
+    const char * id;                                                          \
+    const char * name;                                                        \
+    Ak ## T    * chld;                                                        \
+    AkTree     * extra;                                                       \
+    uint64_t     count;                                                       \
     struct AkLib ## T * next;                                                 \
   } AkLib ## T
 
@@ -1736,9 +1729,8 @@ AK__DEF_LIB(Node);
 
 #undef AK__DEF_LIB
 
-typedef struct ak_lib_s ak_lib;
-struct ak_lib_s {
-  AkLibCamera    * cameras;
+typedef struct AkLib {
+  AkLibCamera      * cameras;
   AkLibLight       * lights;
   AkLibEffect      * effects;
   AkLibImage       * images;
@@ -1747,28 +1739,22 @@ struct ak_lib_s {
   AkLibController  * controllers;
   AkLibVisualScene * visualScenes;
   AkLibNode        * nodes;
-};
+} AkLib;
 
-typedef struct ak_doc_s ak_doc;
-struct ak_doc_s {
+typedef struct AkDoc {
   AkDocInf docinf;
-  ak_lib    lib;
-  AkScene   scene;
-};
-
-typedef struct ak_asset_s ak_asset;
-struct ak_asset_s {
-  ak_asset_base
-  void * ak_data;
-};
+  AkLib    lib;
+  AkScene  scene;
+} AkDoc;
 
 #include "assetkit-states.h"
 #include "assetkit-string.h"
 
 AkResult
 AK_EXPORT
-ak_load(ak_doc ** __restrict dest,
-         const char * __restrict file, ...);
+ak_load(AkDoc ** __restrict dest,
+        const char * __restrict file,
+        .../* options */);
 
 #ifdef __cplusplus
 //}

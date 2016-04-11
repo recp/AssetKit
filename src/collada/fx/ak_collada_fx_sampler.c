@@ -88,7 +88,7 @@ ak_dae_fxSampler(void * __restrict memParent,
       }
       case k_s_dae_texcoord:
         _xml_readAttr(sampler,
-                      sampler->texcoord.semantic,
+                      sampler->texcoord_semantic,
                       _s_dae_semantic);
         break;
       case k_s_dae_wrap_s:

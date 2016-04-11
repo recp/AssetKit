@@ -17,13 +17,13 @@
 
 typedef struct {
   const char * fext;
-  AkResult (*floader_fn)(ak_doc ** __restrict,
+  AkResult (*floader_fn)(AkDoc ** __restrict,
                     const char * __restrict);
 } floader_t;
 
 AkResult
 AK_EXPORT
-ak_load(ak_doc ** __restrict dest,
+ak_load(AkDoc ** __restrict dest,
          const char * __restrict file, ...) {
   floader_t * floader;
   int         file_type;

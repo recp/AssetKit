@@ -73,9 +73,9 @@ ak_dae_fxImage(void * __restrict memParent,
                                 (const xmlChar *)_s_dae_renderable);
       if (attrValStr) {
         if (xmlStrcasecmp(attrValStr, (const xmlChar *)_s_dae_true))
-          img->renderable.share = true;
+          img->renderable_share = true;
         else
-          img->renderable.share = false;
+          img->renderable_share = false;
       }
     } else if (_xml_eqElm(_s_dae_init_from)) {
       AkInitFrom *init_from;

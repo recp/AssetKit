@@ -23,10 +23,10 @@
 
 AkResult
 _assetkit_hide
-ak_dae_doc(ak_doc ** __restrict dest,
-            const char * __restrict file) {
+ak_dae_doc(AkDoc ** __restrict dest,
+           const char * __restrict file) {
 
-  ak_doc           *doc;
+  AkDoc            *doc;
   AkLibCamera      *last_libCam;
   AkLibLight       *last_libLight;
   AkLibEffect      *last_libEffect;
