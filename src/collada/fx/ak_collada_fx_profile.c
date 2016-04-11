@@ -24,9 +24,9 @@ static size_t profileMapLen = 0;
 
 AkResult _assetkit_hide
 ak_dae_profile(void * __restrict memParent,
-                xmlTextReaderPtr reader,
-                ak_profile ** __restrict dest) {
-  ak_profile  *profile;
+               xmlTextReaderPtr reader,
+               AkProfile ** __restrict dest) {
+  AkProfile   *profile;
   ak_newparam *last_newparam;
   ak_code     *last_code;
   ak_include  *last_inc;
@@ -55,11 +55,11 @@ ak_dae_profile(void * __restrict memParent,
 
   switch (found->val) {
     case AK_PROFILE_TYPE_COMMON:
-      profile = ak_calloc(memParent, sizeof(ak_profile_common), 1);
+      profile = ak_calloc(memParent, sizeof(AkProfileCommon), 1);
       break;
     case AK_PROFILE_TYPE_GLSL: {
-      ak_profile_GLSL *glslProfile;
-      glslProfile = ak_calloc(memParent, sizeof(ak_profile_GLSL), 1);
+      AkProfileGLSL *glslProfile;
+      glslProfile = ak_calloc(memParent, sizeof(AkProfileGLSL), 1);
 
       _xml_readAttr(glslProfile, glslProfile->platform, _s_dae_platform);
 
@@ -67,8 +67,8 @@ ak_dae_profile(void * __restrict memParent,
       break;
     }
     case AK_PROFILE_TYPE_GLES2: {
-      ak_profile_GLES2 *gles2Profile;
-      gles2Profile = ak_calloc(memParent, sizeof(ak_profile_GLES2), 1);
+      AkProfileGLES2 *gles2Profile;
+      gles2Profile = ak_calloc(memParent, sizeof(AkProfileGLES2), 1);
 
       _xml_readAttr(gles2Profile, gles2Profile->language, _s_dae_language);
       _xml_readAttr(gles2Profile, gles2Profile->platforms, _s_dae_platforms);
@@ -77,8 +77,8 @@ ak_dae_profile(void * __restrict memParent,
       break;
     }
     case AK_PROFILE_TYPE_GLES: {
-      ak_profile_GLES *glesProfile;
-      glesProfile = ak_calloc(memParent, sizeof(ak_profile_GLES), 1);
+      AkProfileGLES *glesProfile;
+      glesProfile = ak_calloc(memParent, sizeof(AkProfileGLES), 1);
 
       _xml_readAttr(glesProfile, glesProfile->platform, _s_dae_platform);
 
@@ -86,8 +86,8 @@ ak_dae_profile(void * __restrict memParent,
       break;
     }
     case AK_PROFILE_TYPE_CG: {
-      ak_profile_CG *cgProfile;
-      cgProfile = ak_calloc(memParent, sizeof(ak_profile_GLES2), 1);
+      AkProfileCG *cgProfile;
+      cgProfile = ak_calloc(memParent, sizeof(AkProfileGLES2), 1);
 
       _xml_readAttr(cgProfile, cgProfile->platform, _s_dae_platform);
 
@@ -95,8 +95,8 @@ ak_dae_profile(void * __restrict memParent,
       break;
     }
     case AK_PROFILE_TYPE_BRIDGE: {
-      ak_profile_BRIDGE *bridgeProfile;
-      bridgeProfile = ak_calloc(memParent, sizeof(ak_profile_GLES2), 1);
+      AkProfileBridge *bridgeProfile;
+      bridgeProfile = ak_calloc(memParent, sizeof(AkProfileGLES2), 1);
 
       _xml_readAttr(bridgeProfile, bridgeProfile->platform, _s_dae_platform);
       _xml_readAttr(bridgeProfile, bridgeProfile->url, _s_dae_url);
@@ -109,7 +109,7 @@ ak_dae_profile(void * __restrict memParent,
       break;
   }
 
-  profile->profile_type = found->val;
+  profile->profileType = found->val;
   _xml_readAttr(profile, profile->id, _s_dae_id);
 
   last_newparam = NULL;
@@ -181,13 +181,13 @@ ak_dae_profile(void * __restrict memParent,
       } else {
         switch (found->val) {
           case AK_PROFILE_TYPE_GLSL:
-            ((ak_profile_GLSL *)profile)->code = code;
+            ((AkProfileGLSL *)profile)->code = code;
             break;
           case AK_PROFILE_TYPE_GLES2:
-            ((ak_profile_GLES2 *)profile)->code = code;
+            ((AkProfileGLES2 *)profile)->code = code;
             break;
           case AK_PROFILE_TYPE_CG:
-            ((ak_profile_CG *)profile)->code = code;
+            ((AkProfileCG *)profile)->code = code;
             break;
           default:
             ak_free(code);
@@ -213,13 +213,13 @@ ak_dae_profile(void * __restrict memParent,
       } else {
         switch (found->val) {
           case AK_PROFILE_TYPE_GLSL:
-            ((ak_profile_GLSL *)profile)->include = inc;
+            ((AkProfileGLSL *)profile)->include = inc;
             break;
           case AK_PROFILE_TYPE_GLES2:
-            ((ak_profile_GLES2 *)profile)->include = inc;
+            ((AkProfileGLES2 *)profile)->include = inc;
             break;
           case AK_PROFILE_TYPE_CG:
-            ((ak_profile_CG *)profile)->include = inc;
+            ((AkProfileCG *)profile)->include = inc;
             break;
           default:
             ak_free(inc);

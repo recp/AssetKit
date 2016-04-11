@@ -14,7 +14,7 @@
 
 AkResult _assetkit_hide
 ak_dae_profile(void * __restrict memParent,
-                xmlTextReaderPtr reader,
-                ak_profile ** __restrict dest);
+               xmlTextReaderPtr reader,
+               AkProfile ** __restrict dest);
 
 #endif /* __libassetkit__ak_collada_fx_profile__h_ */

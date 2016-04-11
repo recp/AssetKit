@@ -21,7 +21,7 @@ ak_dae_effect(void * __restrict memParent,
   AkEffect    *effect;
   ak_annotate *last_annotate;
   ak_newparam *last_newparam;
-  ak_profile  *last_profile;
+  AkProfile   *last_profile;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
@@ -80,8 +80,8 @@ ak_dae_effect(void * __restrict memParent,
                || _xml_eqElm(_s_dae_prfl_gles)
                || _xml_eqElm(_s_dae_prfl_cg)
                || _xml_eqElm(_s_dae_prfl_bridge)) {
-      ak_profile *profile;
-      AkResult    ret;
+      AkProfile *profile;
+      AkResult   ret;
 
       ret = ak_dae_profile(effect, reader, &profile);
 

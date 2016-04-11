@@ -1107,62 +1107,56 @@ struct ak_technique_fx_s {
   ak_technique_fx * next;
 };
 
-typedef struct ak_profile_s ak_profile;
-struct ak_profile_s {
+typedef struct AkProfile {
   ak_asset_base
-  AkProfileType   profile_type;
-  const char       * id;
+  AkProfileType     profileType;
+  const char      * id;
   ak_newparam     * newparam;
   ak_technique_fx * technique;
-  AkTree         * extra;
-  ak_profile      * prev;
-  ak_profile      * next;
-};
+  AkTree          * extra;
 
-typedef ak_profile ak_profile_common;
+  struct AkProfile * next;
+} AkProfile;
 
-typedef struct ak_profile_cg_s ak_profile_CG;
-struct ak_profile_cg_s {
-  ak_profile base;
+typedef AkProfile AkProfileCommon;
 
-  ak_code      * code;
-  ak_include   * include;
-  const char    * platform;
-};
+typedef struct AkProfileCG {
+  AkProfile base;
 
-typedef struct ak_profile_gles_s ak_profile_GLES;
-struct ak_profile_gles_s {
-  ak_profile base;
+  ak_code    * code;
+  ak_include * include;
+  const char * platform;
+} AkProfileCG;
+
+typedef struct AkProfileGLES {
+  AkProfile base;
 
   const char * platform;
-};
+} AkProfileGLES;
 
-typedef struct ak_profile_gles2_s ak_profile_GLES2;
-struct ak_profile_gles2_s {
-  ak_profile base;
-
-  ak_code    * code;
-  ak_include * include;
-  const char  * language;
-  const char  * platforms;
-};
-
-typedef struct ak_profile_glsl_s ak_profile_GLSL;
-struct ak_profile_glsl_s {
-  ak_profile base;
+typedef struct AkProfileGLES2 {
+  AkProfile base;
 
   ak_code    * code;
   ak_include * include;
-  const char  * platform;
-};
+  const char * language;
+  const char * platforms;
+} AkProfileGLES2;
 
-typedef struct ak_profile_bridge_s ak_profile_BRIDGE;
-struct ak_profile_bridge_s {
-  ak_profile base;
+typedef struct AkProfileGLSL {
+  AkProfile base;
+
+  ak_code    * code;
+  ak_include * include;
+  const char * platform;
+} AkProfileGLSL;
+
+typedef struct AkProfileBridge {
+  AkProfile base;
 
   const char * platform;
   const char * url;
-};
+} AkProfileBridge;
 
 typedef struct AkEffect {
   ak_asset_base
@@ -1172,7 +1166,7 @@ typedef struct AkEffect {
 
   ak_annotate * annotate;
   ak_newparam * newparam;
-  ak_profile  * profile;
+  AkProfile   * profile;
   AkTree      * extra;
 
   struct AkEffect * next;
