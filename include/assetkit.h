@@ -16,7 +16,7 @@
 #include <stdint.h>
 
 #ifdef __cplusplus
-//extern "C" {
+extern "C" {
 #endif
 
 #if defined(_WIN32)
@@ -1756,6 +1756,6 @@ ak_load(AkDoc ** __restrict dest,
         .../* options */);
 
 #ifdef __cplusplus
-//}
+}
 #endif
 #endif /* __libassetkit__assetkit__h_ */
