@@ -114,17 +114,17 @@ ak_dae_fxShader(void * __restrict memParent,
 
       last_compiler = compiler;
     } else if (_xml_eqElm(_s_dae_bind_uniform)) {
-      AkBindUniform *bind_uniform;
+      AkBindUniform *bindUniform;
       AkResult ret;
 
-      ret = ak_dae_fxBindUniform(shader, reader, &bind_uniform);
+      ret = ak_dae_fxBindUniform(shader, reader, &bindUniform);
       if (ret == AK_OK) {
         if (last_bind_uniform)
-          last_bind_uniform->next = bind_uniform;
+          last_bind_uniform->next = bindUniform;
         else
-          shader->bind_uniform = bind_uniform;
+          shader->bindUniform = bindUniform;
 
-        last_bind_uniform = bind_uniform;
+        last_bind_uniform = bindUniform;
       }
     } else if (_xml_eqElm(_s_dae_extra)) {
       xmlNodePtr nodePtr;

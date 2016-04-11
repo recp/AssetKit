@@ -32,17 +32,17 @@ ak_dae_assetInf(void * __restrict memParent,
         if (_xml_eqElm(_s_dae_author))
           _xml_readText(*dest, contrib->author);
         else if (_xml_eqElm(_s_dae_author_email))
-          _xml_readText(*dest, contrib->author_email);
+          _xml_readText(*dest, contrib->authorEmail);
         else if (_xml_eqElm(_s_dae_author_website))
-          _xml_readText(*dest, contrib->author_website);
+          _xml_readText(*dest, contrib->authorWebsite);
         else if (_xml_eqElm(_s_dae_authoring_tool))
-          _xml_readText(*dest, contrib->authoring_tool);
+          _xml_readText(*dest, contrib->authoringTool);
         else if (_xml_eqElm(_s_dae_comments))
           _xml_readText(*dest, contrib->comments);
         else if (_xml_eqElm(_s_dae_copyright))
           _xml_readText(*dest, contrib->copyright);
         else if (_xml_eqElm(_s_dae_source_data))
-          _xml_readText(*dest, contrib->source_data);
+          _xml_readText(*dest, contrib->sourceData);
         else
           _xml_skipElement;
 

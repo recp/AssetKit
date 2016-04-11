@@ -88,21 +88,21 @@ ak_dae_fxSampler(void * __restrict memParent,
       }
       case k_s_dae_texcoord:
         _xml_readAttr(sampler,
-                      sampler->texcoord_semantic,
+                      sampler->texcoordSemantic,
                       _s_dae_semantic);
         break;
       case k_s_dae_wrap_s:
-        _xml_readTextAsEnum(sampler->wrap_s,
+        _xml_readTextAsEnum(sampler->wrapS,
                             _s_dae_wrap_s,
                             ak_dae_fxEnumWrap);
         break;
       case k_s_dae_wrap_t:
-        _xml_readTextAsEnum(sampler->wrap_t,
+        _xml_readTextAsEnum(sampler->wrapT,
                             _s_dae_wrap_t,
                             ak_dae_fxEnumWrap);
         break;
       case k_s_dae_wrap_p:
-        _xml_readTextAsEnum(sampler->wrap_p,
+        _xml_readTextAsEnum(sampler->wrapP,
                             _s_dae_wrap_p,
                             ak_dae_fxEnumWrap);
         break;
@@ -129,32 +129,32 @@ ak_dae_fxSampler(void * __restrict memParent,
         ret   = ak_dae_color(reader, true, color);
 
         if (ret == AK_OK)
-          sampler->border_color = color;
+          sampler->borderColor = color;
         else
           ak_free(color);
         break;
       }
       case k_s_dae_mip_max_level:
-        _xml_readTextUsingFn(sampler->mip_max_level,
+        _xml_readTextUsingFn(sampler->mipMaxLevel,
                              strtol, NULL, 10);
         break;
       case k_s_dae_mip_min_level:
-        _xml_readTextUsingFn(sampler->mip_min_level,
+        _xml_readTextUsingFn(sampler->mipMinLevel,
                              strtol, NULL, 10);
         break;
       case k_s_dae_mip_bias:
-        _xml_readTextUsingFn(sampler->mip_bias,
+        _xml_readTextUsingFn(sampler->mipBias,
                              strtof, NULL);
         break;
       case k_s_dae_max_anisotropy: {
         char *tmp;
 
         tmp = NULL;
-        _xml_readTextUsingFn(sampler->max_anisotropy,
+        _xml_readTextUsingFn(sampler->maxAnisotropy,
                              strtol, &tmp, 10);
 
         if (tmp && *tmp == '\0')
-          sampler->mip_max_level = 1;
+          sampler->mipMaxLevel = 1;
         break;
       }
       case k_s_dae_extra: {

@@ -73,17 +73,17 @@ ak_dae_fxImage(void * __restrict memParent,
                                 (const xmlChar *)_s_dae_renderable);
       if (attrValStr) {
         if (xmlStrcasecmp(attrValStr, (const xmlChar *)_s_dae_true))
-          img->renderable_share = true;
+          img->renderableShare = true;
         else
-          img->renderable_share = false;
+          img->renderableShare = false;
       }
     } else if (_xml_eqElm(_s_dae_init_from)) {
-      AkInitFrom *init_from;
+      AkInitFrom *initFrom;
       AkResult      ret;
 
-      ret = ak_dae_fxImage_initFrom(img, reader, &init_from);
+      ret = ak_dae_fxImage_initFrom(img, reader, &initFrom);
       if (ret == AK_OK)
-        img->init_from = init_from;
+        img->initFrom = initFrom;
     } else if (_xml_eqElm(_s_dae_create_2d)) {
       AkImage2d *image2d;
       AkResult    ret;
@@ -184,15 +184,15 @@ ak_dae_fxImage_initFrom(void * __restrict memParent,
 
   initFrom = ak_calloc(memParent, sizeof(*initFrom), 1);
 
-  _xml_readAttrUsingFn(initFrom->mips_generate,
+  _xml_readAttrUsingFn(initFrom->mipsGenerate,
                        _s_dae_mips_generate,
                        (AkBool)strtol, NULL, 10);
 
-  _xml_readAttrUsingFn(initFrom->array_index,
+  _xml_readAttrUsingFn(initFrom->arrayIndex,
                        _s_dae_array_index,
                        (AkInt)strtol, NULL, 10);
 
-  _xml_readAttrUsingFn(initFrom->mip_index,
+  _xml_readAttrUsingFn(initFrom->mipIndex,
                        _s_dae_mip_index,
                        (AkInt)strtol, NULL, 10);
 
@@ -329,33 +329,33 @@ ak_dae_fxImage_create2d(void * __restrict memParent,
     _xml_beginElement(_s_dae_create_2d);
 
     if (_xml_eqElm(_s_dae_size_exact)) {
-      AkSizeExact *size_exact;
+      AkSizeExact *sizeExact;
 
-      size_exact = ak_calloc(image2d, sizeof(*size_exact), 1);
+      sizeExact = ak_calloc(image2d, sizeof(*sizeExact), 1);
 
-      _xml_readAttrUsingFn(size_exact->width,
+      _xml_readAttrUsingFn(sizeExact->width,
                            _s_dae_width,
                            strtof, NULL);
 
-      _xml_readAttrUsingFn(size_exact->height,
+      _xml_readAttrUsingFn(sizeExact->height,
                            _s_dae_height,
                            strtof, NULL);
 
-      image2d->size_exact = size_exact;
+      image2d->sizeExact = sizeExact;
     } else if (_xml_eqElm(_s_dae_size_ratio)) {
-      AkSizeRatio *size_ratio;
+      AkSizeRatio *sizeRatio;
 
-      size_ratio = ak_calloc(image2d, sizeof(*size_ratio), 1);
+      sizeRatio = ak_calloc(image2d, sizeof(*sizeRatio), 1);
 
-      _xml_readAttrUsingFn(size_ratio->width,
+      _xml_readAttrUsingFn(sizeRatio->width,
                            _s_dae_width,
                            strtof, NULL);
 
-      _xml_readAttrUsingFn(size_ratio->height,
+      _xml_readAttrUsingFn(sizeRatio->height,
                            _s_dae_height,
                            strtof, NULL);
 
-      image2d->size_ratio = size_ratio;
+      image2d->sizeRatio = sizeRatio;
     } else if (_xml_eqElm(_s_dae_mips)) {
       AkMips *mips;
 
@@ -365,7 +365,7 @@ ak_dae_fxImage_create2d(void * __restrict memParent,
                            _s_dae_width,
                            (AkUInt)strtol, NULL, 10);
 
-      _xml_readAttrUsingFn(mips->auto_generate,
+      _xml_readAttrUsingFn(mips->autoGenerate,
                            _s_dae_height,
                            strtol, NULL, 10);
 
@@ -373,7 +373,7 @@ ak_dae_fxImage_create2d(void * __restrict memParent,
     } else if (_xml_eqElm(_s_dae_unnormalized)) {
       _xml_readText(image2d, image2d->unnormalized);
     } else if (_xml_eqElm(_s_dae_array)) {
-      _xml_readAttrUsingFn(image2d->array_len,
+      _xml_readAttrUsingFn(image2d->arrayLen,
                            _s_dae_length,
                            strtol, NULL, 10);
     } else if (_xml_eqElm(_s_dae_format)) {
@@ -389,7 +389,7 @@ ak_dae_fxImage_create2d(void * __restrict memParent,
 
       ret = ak_dae_fxImage_initFrom(image2d, reader, &initFrom);
       if (ret == AK_OK)
-        image2d->init_from = initFrom;
+        image2d->initFrom = initFrom;
     } else {
       _xml_skipElement;
     }
@@ -435,11 +435,11 @@ ak_dae_fxImage_create3d(void * __restrict memParent,
                            _s_dae_levels,
                            (AkInt)strtol, NULL, 10);
 
-      _xml_readAttrUsingFn(image3d->mips.auto_generate,
+      _xml_readAttrUsingFn(image3d->mips.autoGenerate,
                            _s_dae_auto_generate,
                            (AkInt)strtol, NULL, 10);
     } else if (_xml_eqElm(_s_dae_array)) {
-      _xml_readAttrUsingFn(image3d->array_len,
+      _xml_readAttrUsingFn(image3d->arrayLen,
                            _s_dae_length,
                            (AkInt)strtol, NULL, 10);
     } else if (_xml_eqElm(_s_dae_format)) {
@@ -455,7 +455,7 @@ ak_dae_fxImage_create3d(void * __restrict memParent,
 
       ret = ak_dae_fxImage_initFrom(image3d, reader, &initFrom);
       if (ret == AK_OK)
-        image3d->init_from = initFrom;
+        image3d->initFrom = initFrom;
     } else {
       _xml_skipElement;
     }
@@ -493,11 +493,11 @@ ak_dae_fxImage_createCube(void * __restrict memParent,
                            _s_dae_levels,
                            (AkInt)strtol, NULL, 10);
 
-      _xml_readAttrUsingFn(imageCube->mips.auto_generate,
+      _xml_readAttrUsingFn(imageCube->mips.autoGenerate,
                            _s_dae_auto_generate,
                            (AkInt)strtol, NULL, 10);
     } else if (_xml_eqElm(_s_dae_array)) {
-      _xml_readAttrUsingFn(imageCube->array_len,
+      _xml_readAttrUsingFn(imageCube->arrayLen,
                            _s_dae_length,
                            (AkInt)strtol, NULL, 10);
     } else if (_xml_eqElm(_s_dae_format)) {
@@ -513,7 +513,7 @@ ak_dae_fxImage_createCube(void * __restrict memParent,
 
       ret = ak_dae_fxImage_initFrom(imageCube, reader, &initFrom);
       if (ret == AK_OK)
-        imageCube->init_from = initFrom;
+        imageCube->initFrom = initFrom;
     } else {
       _xml_skipElement;
     }

@@ -122,56 +122,56 @@ ak_dae_fxEvaluate(void * __restrict memParent,
 
         switch (found->val) {
           case k_s_dae_color_target:
-            evaluate->color_target = evaluate_target;
+            evaluate->colorTarget = evaluate_target;
             break;
           case k_s_dae_depth_target:
-            evaluate->depth_target = evaluate_target;
+            evaluate->depthTarget = evaluate_target;
             break;
           case k_s_dae_stencil_target:
-            evaluate->stencil_target = evaluate_target;
+            evaluate->stencilTarget = evaluate_target;
             break;
           default: break;
         }
       }
       case k_s_dae_color_clear: {
-        AkColorClear *color_clear;
-        color_clear = ak_calloc(evaluate, sizeof(*color_clear), 1);
+        AkColorClear *colorClear;
+        colorClear = ak_calloc(evaluate, sizeof(*colorClear), 1);
 
-        _xml_readAttrUsingFn(color_clear->index,
+        _xml_readAttrUsingFn(colorClear->index,
                              _s_dae_index,
                              strtol, NULL, 10);
 
-        ak_dae_color(reader, false, &color_clear->val);
+        ak_dae_color(reader, false, &colorClear->val);
 
-        evaluate->color_clear = color_clear;
+        evaluate->colorClear = colorClear;
         break;
       }
       case k_s_dae_depth_clear:{
-        AkDepthClear *depth_clear;
-        depth_clear = ak_calloc(evaluate, sizeof(*depth_clear), 1);
+        AkDepthClear *depthClear;
+        depthClear = ak_calloc(evaluate, sizeof(*depthClear), 1);
 
-        _xml_readAttrUsingFn(depth_clear->index,
+        _xml_readAttrUsingFn(depthClear->index,
                              _s_dae_index,
                              strtol, NULL, 10);
 
-        _xml_readTextUsingFn(depth_clear->val,
+        _xml_readTextUsingFn(depthClear->val,
                              strtof, NULL);
 
-        evaluate->depth_clear = depth_clear;
+        evaluate->depthClear = depthClear;
         break;
       }
       case k_s_dae_stencil_clear:{
-        AkStencilClear *stencil_clear;
-        stencil_clear = ak_calloc(evaluate, sizeof(*stencil_clear), 1);
+        AkStencilClear *stencilClear;
+        stencilClear = ak_calloc(evaluate, sizeof(*stencilClear), 1);
 
-        _xml_readAttrUsingFn(stencil_clear->index,
+        _xml_readAttrUsingFn(stencilClear->index,
                              _s_dae_index,
                              strtol, NULL, 10);
 
-        _xml_readTextUsingFn(stencil_clear->val,
+        _xml_readTextUsingFn(stencilClear->val,
                              strtoul, NULL, 10);
 
-        evaluate->stencil_clear = stencil_clear;
+        evaluate->stencilClear = stencilClear;
         break;
       }
       case k_s_dae_draw: {

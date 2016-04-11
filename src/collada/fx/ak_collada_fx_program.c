@@ -90,17 +90,17 @@ ak_dae_fxProg(void * __restrict memParent,
 
       last_linker = linker;
     } else if (_xml_eqElm(_s_dae_bind_attribute)) {
-      AkBindAttrib *bind_attrib;
+      AkBindAttrib *bindAttrib;
 
-      bind_attrib = ak_calloc(prog, sizeof(*bind_attrib), 1);
-      _xml_readAttr(bind_attrib, bind_attrib->symbol, _s_dae_symbol);
+      bindAttrib = ak_calloc(prog, sizeof(*bindAttrib), 1);
+      _xml_readAttr(bindAttrib, bindAttrib->symbol, _s_dae_symbol);
 
       do {
         _xml_beginElement(_s_dae_bind_attribute);
 
         if (_xml_eqElm(_s_dae_semantic)) {
-          if (!bind_attrib->semantic)
-            _xml_readText(bind_attrib, bind_attrib->semantic);
+          if (!bindAttrib->semantic)
+            _xml_readText(bindAttrib, bindAttrib->semantic);
         } else {
           _xml_skipElement;
         }
@@ -110,23 +110,23 @@ ak_dae_fxProg(void * __restrict memParent,
       } while (nodeRet);
 
       if (last_bind_attrib)
-        last_bind_attrib->next = bind_attrib;
+        last_bind_attrib->next = bindAttrib;
       else
-        prog->bind_attrib = bind_attrib;
+        prog->bindAttrib = bindAttrib;
 
-      last_bind_attrib = bind_attrib;
+      last_bind_attrib = bindAttrib;
     } else if (_xml_eqElm(_s_dae_bind_uniform)) {
-      AkBindUniform *bind_uniform;
+      AkBindUniform *bindUniform;
       AkResult ret;
 
-      ret = ak_dae_fxBindUniform(prog, reader, &bind_uniform);
+      ret = ak_dae_fxBindUniform(prog, reader, &bindUniform);
       if (ret == AK_OK) {
         if (last_bind_uniform)
-          last_bind_uniform->next = bind_uniform;
+          last_bind_uniform->next = bindUniform;
         else
-          prog->bind_uniform = bind_uniform;
+          prog->bindUniform = bindUniform;
 
-        last_bind_uniform = bind_uniform;
+        last_bind_uniform = bindUniform;
       }
     } else {
       _xml_skipElement;

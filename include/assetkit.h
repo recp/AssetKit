@@ -423,12 +423,12 @@ typedef struct AkColor {
 
 typedef struct AkContributor {
   const char * author;
-  const char * author_email;
-  const char * author_website;
-  const char * authoring_tool;
+  const char * authorEmail;
+  const char * authorWebsite;
+  const char * authoringTool;
   const char * comments;
   const char * copyright;
-  const char * source_data;
+  const char * sourceData;
 
   struct AkContributor * next;
 } AkContributor;
@@ -445,7 +445,7 @@ typedef struct AkGeoLoc {
 } AkGeoLoc;
 
 typedef struct AkCoverage {
-  AkGeoLoc geo_loc;
+  AkGeoLoc geoLoc;
 } AkCoverage;
 
 typedef struct AkAssetInf {
@@ -487,13 +487,13 @@ typedef struct AkTechnique {
 typedef struct AkTechniqueCommon  {
   struct AkTechniqueCommon * next;
   void                     * technique;
-  AkTechniqueCommonType      technique_type;
+  AkTechniqueCommonType      techniqueType;
 } AkTechniqueCommon;
 
 typedef struct AkPerspective {
   ak_basic_attrd * xfov;
   ak_basic_attrd * yfov;
-  ak_basic_attrd * aspect_ratio;
+  ak_basic_attrd * aspectRatio;
   ak_basic_attrd * znear;
   ak_basic_attrd * zfar;
 } AkPerspective;
@@ -501,7 +501,7 @@ typedef struct AkPerspective {
 typedef struct AkOrthographic {
   ak_basic_attrd * xmag;
   ak_basic_attrd * ymag;
-  ak_basic_attrd * aspect_ratio;
+  ak_basic_attrd * aspectRatio;
   ak_basic_attrd * znear;
   ak_basic_attrd * zfar;
 } AkOrthographic;
@@ -513,7 +513,7 @@ typedef struct AkOptics {
 
 typedef struct AkImager {
   AkTechnique * technique;
-  AkTree       * extra;
+  AkTree      * extra;
 } AkImager;
 
 typedef struct AkCamera {
@@ -521,10 +521,9 @@ typedef struct AkCamera {
 
   const char * id;
   const char * name;
-
-  AkOptics * optics;
-  AkImager * imager;
-  AkTree   * extra;
+  AkOptics   * optics;
+  AkImager   * imager;
+  AkTree     * extra;
 
   struct AkCamera * next;
 } AkCamera;
@@ -538,19 +537,19 @@ typedef struct AkDirectional {
 } AkDirectional;
 
 typedef struct AkPoint {
-  AkColor         color;
-  ak_basic_attrd * constant_attenuation;
-  ak_basic_attrd * linear_attenuation;
-  ak_basic_attrd * quadratic_attenuation;
+  AkColor          color;
+  ak_basic_attrd * constantAttenuation;
+  ak_basic_attrd * linearAttenuation;
+  ak_basic_attrd * quadraticAttenuation;
 } AkPoint;
 
 typedef struct AkSpot {
   AkColor          color;
-  ak_basic_attrd * constant_attenuation;
-  ak_basic_attrd * linear_attenuation;
-  ak_basic_attrd * quadratic_attenuation;
-  ak_basic_attrd * falloff_angle;
-  ak_basic_attrd * falloff_exponent;
+  ak_basic_attrd * constantAttenuation;
+  ak_basic_attrd * linearAttenuation;
+  ak_basic_attrd * quadraticAttenuation;
+  ak_basic_attrd * falloffAngle;
+  ak_basic_attrd * falloffExponent;
 } AkSpot;
 
 typedef struct AkLight {
@@ -571,7 +570,7 @@ typedef struct AkLight {
  * base type of param
  */
 typedef struct AkParam {
-  AkParamType  param_type;
+  AkParamType  paramType;
   const char * ref;
 
   struct AkParam * next;
@@ -582,7 +581,7 @@ typedef struct AkParamEx {
   const char * name;
   const char * sid;
   const char * semantic;
-  const char * type_name;
+  const char * typeName;
   AkValueType  type;
 } AkParamEx;
 
@@ -592,14 +591,14 @@ typedef struct AkHexData {
 } AkHexData;
 
 typedef struct AkInitFrom {
-  const char  * ref;
-  AkHexData * hex;
+  const char * ref;
+  AkHexData  * hex;
 
   AkFace face;
-  AkUInt mip_index;
+  AkUInt mipIndex;
   AkUInt depth;
-  AkInt  array_index;
-  AkBool mips_generate;
+  AkInt  arrayIndex;
+  AkBool mipsGenerate;
 
   struct AkInitFrom * next;
 } AkInitFrom;
@@ -616,7 +615,7 @@ typedef struct AkSizeRatio {
 
 typedef struct AkMips {
   AkUInt levels;
-  AkBool auto_generate;
+  AkBool autoGenerate;
 } AkMips;
 
 typedef struct AkImageFormat {
@@ -631,13 +630,13 @@ typedef struct AkImageFormat {
 } AkImageFormat;
 
 typedef struct AkImage2d {
-  AkSizeExact   * size_exact;
-  AkSizeRatio   * size_ratio;
+  AkSizeExact   * sizeExact;
+  AkSizeRatio   * sizeRatio;
   AkMips        * mips;
   const char    * unnormalized;
   AkImageFormat * format;
-  AkInitFrom    * init_from;
-  long            array_len;
+  AkInitFrom    * initFrom;
+  long            arrayLen;
 } AkImage2d;
 
 typedef struct AkImage3d {
@@ -648,17 +647,17 @@ typedef struct AkImage3d {
   } size;
 
   AkMips          mips;
-  long            array_len;
+  long            arrayLen;
   AkImageFormat * format;
-  AkInitFrom    * init_from;
+  AkInitFrom    * initFrom;
 } AkImage3d;
 
 typedef struct AkImageCube {
   AkUInt          width;
   AkMips          mips;
-  long            array_len;
+  long            arrayLen;
   AkImageFormat * format;
-  AkInitFrom    * init_from;
+  AkInitFrom    * initFrom;
 } AkImageCube;
 
 typedef struct AkImage {
@@ -668,7 +667,7 @@ typedef struct AkImage {
   const char * sid;
   const char * name;
 
-  AkInitFrom  * init_from;
+  AkInitFrom  * initFrom;
   AkImage2d   * image2d;
   AkImage3d   * image3d;
   AkImageCube * cube;
@@ -676,7 +675,7 @@ typedef struct AkImage {
 
   struct AkImage * next;
 
-  AkBool renderable_share;
+  AkBool renderableShare;
 } AkImage;
 
 typedef struct AkInstanceImage {
@@ -701,22 +700,22 @@ typedef struct AkFxSamplerCommon {
   ak_asset_base
   AkInstanceImage * instanceImage;
 
-  const char * texcoord_semantic;
+  const char * texcoordSemantic;
 
-  AkWrapMode wrap_s;
-  AkWrapMode wrap_t;
-  AkWrapMode wrap_p;
+  AkWrapMode wrapS;
+  AkWrapMode wrapT;
+  AkWrapMode wrapP;
 
   AkMinFilter minfilter;
   AkMagFilter magfilter;
   AkMipFilter mipfilter;
 
-  unsigned long mip_max_level;
-  unsigned long mip_min_level;
-  float         mip_bias;
-  unsigned long max_anisotropy;
+  unsigned long mipMaxLevel;
+  unsigned long mipMinLevel;
+  float         mipBias;
+  unsigned long maxAnisotropy;
 
-  AkColor * border_color;
+  AkColor * borderColor;
   AkTree  * extra;
 } AkFxSamplerCommon;
 
@@ -863,7 +862,7 @@ typedef struct AkEvaluateTarget {
 
 typedef struct AkColorClear {
   unsigned long index;
-  AkColor      val;
+  AkColor       val;
 } AkColorClear;
 
 typedef struct AkDepthClear {
@@ -882,12 +881,12 @@ typedef struct AkDraw {
 } AkDraw;
 
 typedef struct AkEvaluate {
-  AkEvaluateTarget * color_target;
-  AkEvaluateTarget * depth_target;
-  AkEvaluateTarget * stencil_target;
-  AkColorClear     * color_clear;
-  AkDepthClear     * depth_clear;
-  AkStencilClear   * stencil_clear;
+  AkEvaluateTarget * colorTarget;
+  AkEvaluateTarget * depthTarget;
+  AkEvaluateTarget * stencilTarget;
+  AkColorClear     * colorClear;
+  AkDepthClear     * depthClear;
+  AkStencilClear   * stencilClear;
   AkDraw             draw;
 } AkEvaluate;
 
@@ -908,8 +907,8 @@ typedef struct AkSources {
 } AkSources;
 
 typedef struct AkBinary {
-  const char  * ref;
-  AkHexData * hex;
+  const char * ref;
+  AkHexData  * hex;
 
   struct AkBinary * next;
 } AkBinary;
@@ -944,7 +943,7 @@ typedef struct AkShader {
 
   AkSources     * sources;
   AkCompiler    * compiler;
-  AkBindUniform * bind_uniform;
+  AkBindUniform * bindUniform;
   AkTree        * extra;
 
   struct AkShader * next;
@@ -961,8 +960,8 @@ typedef struct AkLinker {
 
 typedef struct AkProgram {
   AkShader      * shader;
-  AkBindAttrib  * bind_attrib;
-  AkBindUniform * bind_uniform;
+  AkBindAttrib  * bindAttrib;
+  AkBindUniform * bindUniform;
   AkLinker      * linker;
 } AkProgram;
 
@@ -1469,7 +1468,7 @@ typedef struct AkTargets {
 typedef struct AkMorph {
   ak_asset_base
 
-  const char *  baseMesh;
+  const char  * baseMesh;
   AkMorphMethod method;
 
   AkSource    * source;

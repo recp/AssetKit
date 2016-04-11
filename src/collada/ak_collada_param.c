@@ -106,7 +106,7 @@ ak_dae_newparam(void * __restrict memParent,
 AkResult _assetkit_hide
 ak_dae_param(void * __restrict memParent,
               xmlTextReaderPtr reader,
-              AkParamType param_type,
+              AkParamType paramType,
               AkParam ** __restrict dest) {
   AkParam  *param;
 
@@ -116,21 +116,21 @@ ak_dae_param(void * __restrict memParent,
 
   nodeType = xmlTextReaderNodeType(reader);
 
-  if (param_type == AK_PARAM_TYPE_BASIC) {
+  if (paramType == AK_PARAM_TYPE_BASIC) {
     param = ak_calloc(memParent, sizeof(AkParam), 1);
 
     _xml_readAttr(param, param->ref, _s_dae_ref);
-  } else if (param_type == AK_PARAM_TYPE_EXTENDED) {
+  } else if (paramType == AK_PARAM_TYPE_EXTENDED) {
     AkParamEx *param_ex;
     param_ex = ak_calloc(memParent, sizeof(AkParamEx), 1);
 
     _xml_readAttr(param_ex, param_ex->name, _s_dae_name);
     _xml_readAttr(param_ex, param_ex->sid, _s_dae_sid);
     _xml_readAttr(param_ex, param_ex->name, _s_dae_semantic);
-    _xml_readAttr(param_ex, param_ex->type_name, _s_dae_type);
+    _xml_readAttr(param_ex, param_ex->typeName, _s_dae_type);
 
-    if (param_ex->type_name)
-      param_ex->type = ak_dae_valueType(param_ex->type_name);
+    if (param_ex->typeName)
+      param_ex->type = ak_dae_valueType(param_ex->typeName);
 
     param = &param_ex->base;
   } else {

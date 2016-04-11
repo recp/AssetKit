@@ -13,15 +13,15 @@ AkResult _assetkit_hide
 ak_dae_fxBindUniform(void * __restrict memParent,
                      xmlTextReaderPtr reader,
                      AkBindUniform ** __restrict dest) {
-  AkBindUniform *bind_uniform;
+  AkBindUniform *bindUniform;
   AkParam      *last_param;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
 
-  bind_uniform = ak_calloc(memParent, sizeof(*bind_uniform), 1);
+  bindUniform = ak_calloc(memParent, sizeof(*bindUniform), 1);
 
-  _xml_readAttr(bind_uniform, bind_uniform->symbol, _s_dae_symbol);
+  _xml_readAttr(bindUniform, bindUniform->symbol, _s_dae_symbol);
 
   last_param = NULL;
 
@@ -32,7 +32,7 @@ ak_dae_fxBindUniform(void * __restrict memParent,
       AkParam * param;
       AkResult   ret;
 
-      ret = ak_dae_param(bind_uniform,
+      ret = ak_dae_param(bindUniform,
                           reader,
                           AK_PARAM_TYPE_BASIC,
                           &param);
@@ -41,25 +41,25 @@ ak_dae_fxBindUniform(void * __restrict memParent,
         if (last_param)
           last_param->next = param;
         else
-          bind_uniform->param = param;
+          bindUniform->param = param;
 
         last_param = param;
       }
     } else {
       /* load once */
-      if (!bind_uniform->val) {
+      if (!bindUniform->val) {
         void      * val;
         AkValueType val_type;
         AkResult    ret;
 
-        ret = ak_dae_value(bind_uniform,
+        ret = ak_dae_value(bindUniform,
                             reader,
                             &val,
                             &val_type);
 
         if (ret == AK_OK) {
-          bind_uniform->val = val;
-          bind_uniform->valType = val_type;
+          bindUniform->val = val;
+          bindUniform->valType = val_type;
         }
       }
     }
@@ -68,7 +68,7 @@ ak_dae_fxBindUniform(void * __restrict memParent,
     _xml_endElement;
   } while (nodeRet);
 
-  *dest = bind_uniform;
+  *dest = bindUniform;
   
   return AK_OK;
 }
