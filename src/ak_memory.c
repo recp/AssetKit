@@ -32,6 +32,22 @@
 #define ak__alignof(p) ((ak_heapnode *)(((char *)p)-ak__heapnd_sz_algnd))
 #define ak__alignas(m) ((void *)(((char *)m)+ak__heapnd_sz_algnd))
 
+struct ak_heapnode_s {
+  ak_heapnode *prev; /* parent */
+  ak_heapnode *next; /* right  */
+  ak_heapnode *chld; /* left   */
+
+  char data[];
+};
+
+struct ak_heap_s {
+  ak_heapnode      *root;
+  ak_heapnode      *trash;
+  AkHeapSrchNode *searchRoot;
+  void             *alloc_zone;
+  AkEnum            flags;
+};
+
 static ak_heap ak__heap = {
   .root       = NULL,
   .trash      = NULL,

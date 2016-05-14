@@ -30,21 +30,6 @@ typedef enum AkHeapFlags {
   AK_HEAP_FLAGS_DYNAMIC     = 1 << 1,
 } AkHeapFlags;
 
-struct ak_heapnode_s {
-  ak_heapnode *prev; /* parent */
-  ak_heapnode *next; /* right  */
-  ak_heapnode *chld; /* left   */
-
-  char data[];
-};
-
-struct ak_heap_s {
-  ak_heapnode *root;
-  ak_heapnode *trash;
-  void        *alloc_zone;
-  AkEnum       flags;
-};
-
 void
 AK_EXPORT
 ak_heap_init(ak_heap * __restrict heap);
