@@ -16,7 +16,7 @@ ak_dae_fxBinary(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  binary = ak_calloc(memParent, sizeof(*binary), 1);
+  binary = ak_calloc(memParent, sizeof(*binary), false);
 
   do {
     _xml_beginElement(_s_dae_binary);
@@ -25,7 +25,7 @@ ak_dae_fxBinary(void * __restrict memParent,
       _xml_readText(binary, binary->ref);
     } else if (_xml_eqElm(_s_dae_hex)) {
       AkHexData *hex;
-      hex = ak_calloc(binary, sizeof(*hex), 1);
+      hex = ak_calloc(binary, sizeof(*hex), false);
 
       _xml_readAttr(hex, hex->format, _s_dae_format);
 

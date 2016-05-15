@@ -21,7 +21,7 @@ ak_dae_fxShader(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  shader = ak_calloc(memParent, sizeof(*shader), 1);
+  shader = ak_calloc(memParent, sizeof(*shader), false);
 
   _xml_readAttrAsEnum(shader->stage,
                       _s_dae_stage,
@@ -38,7 +38,7 @@ ak_dae_fxShader(void * __restrict memParent,
       AkInline  *last_inline;
       AkImport  *last_import;
 
-      sources = ak_calloc(shader, sizeof(*sources), 1);
+      sources = ak_calloc(shader, sizeof(*sources), false);
       _xml_readAttr(sources, sources->entry, _s_dae_entry);
 
       last_inline = NULL;
@@ -50,7 +50,7 @@ ak_dae_fxShader(void * __restrict memParent,
         if (_xml_eqElm(_s_dae_inline)) {
           AkInline *nInline;
 
-          nInline = ak_calloc(shader, sizeof(*nInline), 1);
+          nInline = ak_calloc(shader, sizeof(*nInline), false);
           _xml_readText(nInline, nInline->val);
 
           if (last_inline)
@@ -62,7 +62,7 @@ ak_dae_fxShader(void * __restrict memParent,
         } else if (_xml_eqElm(_s_dae_import)) {
           AkImport *nImport;
 
-          nImport = ak_calloc(shader, sizeof(*nImport), 1);
+          nImport = ak_calloc(shader, sizeof(*nImport), false);
           _xml_readText(nImport, nImport->ref);
 
           if (last_import)
@@ -83,7 +83,7 @@ ak_dae_fxShader(void * __restrict memParent,
     } else if (_xml_eqElm(_s_dae_compiler)) {
       AkCompiler *compiler;
 
-      compiler = ak_calloc(shader, sizeof(*compiler), 1);
+      compiler = ak_calloc(shader, sizeof(*compiler), false);
 
       _xml_readAttr(compiler, compiler->platform, _s_dae_platform);
       _xml_readAttr(compiler, compiler->target, _s_dae_target);

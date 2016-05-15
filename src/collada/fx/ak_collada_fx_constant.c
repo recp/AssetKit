@@ -37,7 +37,7 @@ ak_dae_fxConstant(void * __restrict memParent,
   int            nodeRet;
 
 
-  constant = ak_calloc(memParent, sizeof(*constant), 1);
+  constant = ak_calloc(memParent, sizeof(*constant), false);
 
   if (constantMapLen == 0) {
     constantMapLen = AK_ARRAY_LEN(constantMap);

@@ -28,12 +28,13 @@ ak_dae_lines(void * __restrict memParent,
     obj = ak_objAlloc(memParent,
                       sizeof(*lines),
                       0,
-                      true);
+                      true,
+                      false);
 
     lines = ak_objGet(obj);
     memPtr = obj;
   } else {
-    lines = ak_calloc(memParent, sizeof(*lines), 1);
+    lines = ak_calloc(memParent, sizeof(*lines), false);
     memPtr = lines;
   }
 
@@ -55,7 +56,7 @@ ak_dae_lines(void * __restrict memParent,
     if (_xml_eqElm(_s_dae_input)) {
       AkInput *input;
 
-      input = ak_calloc(memPtr, sizeof(*input), 1);
+      input = ak_calloc(memPtr, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
       _xml_readAttr(input, input->base.source, _s_dae_source);

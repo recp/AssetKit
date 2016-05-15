@@ -19,7 +19,7 @@ ak_dae_evaluateScene(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  evaluateScene = ak_calloc(memParent, sizeof(*evaluateScene), 1);
+  evaluateScene = ak_calloc(memParent, sizeof(*evaluateScene), false);
 
   _xml_readAttr(evaluateScene, evaluateScene->id, _s_dae_id);
   _xml_readAttr(evaluateScene, evaluateScene->name, _s_dae_name);

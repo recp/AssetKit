@@ -29,12 +29,13 @@ ak_dae_triangles(void * __restrict memParent,
     obj = ak_objAlloc(memParent,
                       sizeof(*triangles),
                       0,
-                      true);
+                      true,
+                      false);
 
     triangles = ak_objGet(obj);
     memPtr = obj;
   } else {
-    triangles = ak_calloc(memParent, sizeof(*triangles), 1);
+    triangles = ak_calloc(memParent, sizeof(*triangles), false);
     memPtr = triangles;
   }
 
@@ -56,7 +57,7 @@ ak_dae_triangles(void * __restrict memParent,
     if (_xml_eqElm(_s_dae_input)) {
       AkInput *input;
 
-      input = ak_calloc(memPtr, sizeof(*input), 1);
+      input = ak_calloc(memPtr, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
       _xml_readAttr(input, input->base.source, _s_dae_source);

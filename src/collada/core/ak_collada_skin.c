@@ -27,13 +27,14 @@ ak_dae_skin(void * __restrict memParent,
     obj = ak_objAlloc(memParent,
                       sizeof(*skin),
                       0,
-                      true);
+                      true,
+                      false);
 
     skin = ak_objGet(obj);
 
     memPtr = obj;
   } else {
-    skin = ak_calloc(memParent, sizeof(*skin), 1);
+    skin = ak_calloc(memParent, sizeof(*skin), false);
     memPtr = skin;
   }
 
@@ -73,7 +74,7 @@ ak_dae_skin(void * __restrict memParent,
       AkJoints     *joints;
       AkInputBasic *last_input;
 
-      joints = ak_calloc(skin, sizeof(*joints), 1);
+      joints = ak_calloc(skin, sizeof(*joints), false);
 
       last_input = NULL;
 
@@ -83,7 +84,7 @@ ak_dae_skin(void * __restrict memParent,
         if (_xml_eqElm(_s_dae_input)) {
           AkInputBasic *input;
 
-          input = ak_calloc(joints, sizeof(*input), 1);
+          input = ak_calloc(joints, sizeof(*input), false);
 
           _xml_readAttr(input, input->semanticRaw, _s_dae_semantic);
           _xml_readAttr(input, input->source, _s_dae_source);
@@ -131,7 +132,7 @@ ak_dae_skin(void * __restrict memParent,
       AkVertexWeights *vertexWeights;
       AkInput         *last_input;
 
-      vertexWeights = ak_calloc(skin, sizeof(*vertexWeights), 1);
+      vertexWeights = ak_calloc(skin, sizeof(*vertexWeights), false);
 
       last_input = NULL;
 
@@ -140,7 +141,7 @@ ak_dae_skin(void * __restrict memParent,
 
         if (_xml_eqElm(_s_dae_input)) {
           AkInput *input;
-          input = ak_calloc(vertexWeights, sizeof(*input), 1);
+          input = ak_calloc(vertexWeights, sizeof(*input), false);
 
           _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
           _xml_readAttr(input, input->base.source, _s_dae_source);

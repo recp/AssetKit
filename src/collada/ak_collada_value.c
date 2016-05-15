@@ -114,7 +114,9 @@ ak_dae_value(void * __restrict memParent,
     case AK_VALUE_TYPE_BOOL4:{
       AkBool * val;
 
-      val = ak_calloc(memParent, sizeof(*val) * found->m * found->n, 1);
+      val = ak_calloc(memParent,
+                      sizeof(*val) * found->m * found->n,
+                      false);
       ak_strtomb(&nodeVal, val, found->m, found->n);
 
       *dest = val;
@@ -126,7 +128,9 @@ ak_dae_value(void * __restrict memParent,
     case AK_VALUE_TYPE_INT4:{
       AkInt * val;
 
-      val = ak_calloc(memParent, sizeof(*val) * found->m * found->n, 1);
+      val = ak_calloc(memParent,
+                      sizeof(*val) * found->m * found->n,
+                      false);
       ak_strtomi(&nodeVal, val, found->m, found->n);
 
       *dest = val;
@@ -141,7 +145,9 @@ ak_dae_value(void * __restrict memParent,
     case AK_VALUE_TYPE_FLOAT4x4:{
       AkFloat * val;
 
-      val = ak_calloc(memParent, sizeof(*val) * found->m * found->n, 1);
+      val = ak_calloc(memParent,
+                      sizeof(*val) * found->m * found->n,
+                      false);
       ak_strtomf(&nodeVal, val, found->m, found->n);
 
       *dest = val;

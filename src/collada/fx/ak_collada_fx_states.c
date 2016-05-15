@@ -143,7 +143,7 @@ ak_dae_fxState(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  states = ak_calloc(memParent, sizeof(*states), 1);
+  states = ak_calloc(memParent, sizeof(*states), false);
 
   if (stateMapLen == 0) {
     stateMapLen = AK_ARRAY_LEN(stateMap);

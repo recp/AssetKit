@@ -27,13 +27,14 @@ ak_dae_morph(void * __restrict memParent,
     obj = ak_objAlloc(memParent,
                       sizeof(*morph),
                       0,
-                      true);
+                      true,
+                      false);
 
     morph = ak_objGet(obj);
 
     memPtr = obj;
   } else {
-    morph = ak_calloc(memParent, sizeof(*morph), 1);
+    morph = ak_calloc(memParent, sizeof(*morph), false);
     memPtr = morph;
   }
 
@@ -65,7 +66,7 @@ ak_dae_morph(void * __restrict memParent,
       AkTargets    *targets;
       AkInputBasic *last_input;
 
-      targets = ak_calloc(morph, sizeof(*targets), 1);
+      targets = ak_calloc(morph, sizeof(*targets), false);
 
       last_input = NULL;
 
@@ -75,7 +76,7 @@ ak_dae_morph(void * __restrict memParent,
         if (_xml_eqElm(_s_dae_input)) {
           AkInputBasic *input;
 
-          input = ak_calloc(targets, sizeof(*input), 1);
+          input = ak_calloc(targets, sizeof(*input), false);
 
           _xml_readAttr(input, input->semanticRaw, _s_dae_semantic);
           _xml_readAttr(input, input->source, _s_dae_source);

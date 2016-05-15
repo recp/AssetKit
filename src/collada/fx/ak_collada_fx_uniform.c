@@ -19,7 +19,7 @@ ak_dae_fxBindUniform(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  bindUniform = ak_calloc(memParent, sizeof(*bindUniform), 1);
+  bindUniform = ak_calloc(memParent, sizeof(*bindUniform), false);
 
   _xml_readAttr(bindUniform, bindUniform->symbol, _s_dae_symbol);
 

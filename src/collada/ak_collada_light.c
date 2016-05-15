@@ -20,7 +20,7 @@ ak_dae_light(void * __restrict memParent,
   int nodeType;
   int nodeRet;
 
-  light = ak_calloc(memParent, sizeof(*light), 1);
+  light = ak_calloc(memParent, sizeof(*light), false);
 
   _xml_readAttr(light, light->id, _s_dae_id);
   _xml_readAttr(light, light->name, _s_dae_name);

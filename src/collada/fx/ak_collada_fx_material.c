@@ -20,7 +20,7 @@ ak_dae_material(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  material = ak_calloc(memParent, sizeof(*material), 1);
+  material = ak_calloc(memParent, sizeof(*material), false);
 
   _xml_readAttr(material, material->id, _s_dae_id);
   _xml_readAttr(material, material->name, _s_dae_name);
@@ -79,7 +79,7 @@ ak_dae_fxBindMaterial(void * __restrict memParent,
   int             nodeType;
   int             nodeRet;
 
-  bindMaterial = ak_calloc(memParent, sizeof(*bindMaterial), 1);
+  bindMaterial = ak_calloc(memParent, sizeof(*bindMaterial), false);
 
   last_param = NULL;
   last_tq    = NULL;
@@ -162,7 +162,7 @@ ak_dae_fxInstanceMaterial(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  material = ak_calloc(memParent, sizeof(*material), 1);
+  material = ak_calloc(memParent, sizeof(*material), false);
 
   _xml_readAttr(material, material->sid, _s_dae_sid);
   _xml_readAttr(material, material->name, _s_dae_name);
@@ -178,7 +178,7 @@ ak_dae_fxInstanceMaterial(void * __restrict memParent,
 
     if (_xml_eqElm(_s_dae_bind)) {
       AkBind *bind;
-      bind = ak_calloc(material, sizeof(*bind), 1);
+      bind = ak_calloc(material, sizeof(*bind), false);
 
       _xml_readAttr(bind, bind->semantic, _s_dae_semantic);
       _xml_readAttr(bind, bind->target, _s_dae_target);
@@ -191,7 +191,7 @@ ak_dae_fxInstanceMaterial(void * __restrict memParent,
       last_bind = bind;
     } else if (_xml_eqElm(_s_dae_bind_vertex_input)) {
       AkBindVertexInput *bindVertexInput;
-      bindVertexInput = ak_calloc(material, sizeof(*bindVertexInput), 1);
+      bindVertexInput = ak_calloc(material, sizeof(*bindVertexInput), false);
 
       _xml_readAttr(bindVertexInput,
                     bindVertexInput->semantic,
@@ -211,7 +211,9 @@ ak_dae_fxInstanceMaterial(void * __restrict memParent,
       last_bindVertexInput = bindVertexInput;
     } else if (_xml_eqElm(_s_dae_technique_override)) {
       AkTechniqueOverride *techniqueOverride;
-      techniqueOverride = ak_calloc(material, sizeof(*techniqueOverride), 1);
+      techniqueOverride = ak_calloc(material,
+                                    sizeof(*techniqueOverride),
+                                    false);
 
       _xml_readAttr(techniqueOverride, techniqueOverride->pass, _s_dae_pass);
       _xml_readAttr(techniqueOverride, techniqueOverride->ref, _s_dae_ref);

@@ -37,7 +37,7 @@ ak_dae_surface(void * __restrict memParent,
   int             nodeType;
   int             nodeRet;
 
-  surface = ak_calloc(memParent, sizeof(*surface), 1);
+  surface = ak_calloc(memParent, sizeof(*surface), false);
 
 
   _xml_readAttr(surface, surface->sid, _s_dae_sid);
@@ -71,7 +71,8 @@ ak_dae_surface(void * __restrict memParent,
         obj = ak_objAlloc(surface,
                           sizeof(*cone),
                           AK_SURFACE_ELEMENT_TYPE_CONE,
-                          true);
+                          true,
+                          false);
 
         cone = ak_objGet(obj);
 
@@ -114,7 +115,8 @@ ak_dae_surface(void * __restrict memParent,
         obj = ak_objAlloc(surface,
                           sizeof(*plane),
                           AK_SURFACE_ELEMENT_TYPE_CONE,
-                          true);
+                          true,
+                          false);
 
         plane = ak_objGet(obj);
 
@@ -159,7 +161,8 @@ ak_dae_surface(void * __restrict memParent,
         obj = ak_objAlloc(surface,
                           sizeof(*cylinder),
                           AK_SURFACE_ELEMENT_TYPE_CYLINDER,
-                          true);
+                          true,
+                          false);
 
         cylinder = ak_objGet(obj);
 
@@ -219,7 +222,8 @@ ak_dae_surface(void * __restrict memParent,
         obj = ak_objAlloc(surface,
                           sizeof(*sphere),
                           AK_SURFACE_ELEMENT_TYPE_SPHERE,
-                          true);
+                          true,
+                          false);
 
         sphere = ak_objGet(obj);
 
@@ -259,7 +263,8 @@ ak_dae_surface(void * __restrict memParent,
         obj = ak_objAlloc(surface,
                           sizeof(*torus),
                           AK_SURFACE_ELEMENT_TYPE_TORUS,
-                          true);
+                          true,
+                          false);
 
         torus = ak_objGet(obj);
 
@@ -304,7 +309,8 @@ ak_dae_surface(void * __restrict memParent,
         obj = ak_objAlloc(surface,
                           sizeof(*sweptSurface),
                           AK_SURFACE_ELEMENT_TYPE_SWEPT_SURFACE,
-                          true);
+                          true,
+                          false);
 
         sweptSurface = ak_objGet(obj);
 
@@ -424,7 +430,7 @@ ak_dae_surfaces(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  surfaces = ak_calloc(memParent, sizeof(*surfaces), 1);
+  surfaces = ak_calloc(memParent, sizeof(*surfaces), false);
 
   last_surface= NULL;
 

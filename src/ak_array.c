@@ -25,7 +25,8 @@ ak_strtod_array(void * __restrict memParent,
   arrayIndex = 0;
 
   tmpArray = ak_malloc(memParent,
-                        sizeof(AkDouble) * tmpCount);
+                       sizeof(AkDouble) * tmpCount,
+                       false);
 
   tok = strtok(stringRep, " ");
   while (tok) {
@@ -43,7 +44,8 @@ ak_strtod_array(void * __restrict memParent,
 
   arraySize = sizeof(AkDouble) * arrayIndex;
   doubleArray = ak_malloc(memParent,
-                          sizeof(*doubleArray) + arraySize);
+                          sizeof(*doubleArray) + arraySize,
+                          false);
 
   doubleArray->count = arrayIndex;
   memmove(doubleArray->items, tmpArray, arraySize);
@@ -70,7 +72,8 @@ ak_strtod_arrayL(void * __restrict memParent,
   arrayIndex = 0;
 
   tmpArray = ak_malloc(memParent,
-                       sizeof(AkDouble) * tmpCount);
+                       sizeof(AkDouble) * tmpCount,
+                       false);
 
   tok = strtok(stringRep, " ");
   while (tok) {
@@ -88,7 +91,8 @@ ak_strtod_arrayL(void * __restrict memParent,
 
   arraySize = sizeof(AkDouble) * arrayIndex;
   doubleArray = ak_malloc(memParent,
-                          sizeof(*doubleArray) + arraySize);
+                          sizeof(*doubleArray) + arraySize,
+                          false);
 
   doubleArray->count = arrayIndex;
   memmove(doubleArray->items, tmpArray, arraySize);
@@ -115,7 +119,8 @@ ak_strtoi_array(void * __restrict memParent,
   arrayIndex = 0;
 
   tmpArray = ak_malloc(memParent,
-                        sizeof(AkInt) * tmpCount);
+                       sizeof(AkInt) * tmpCount,
+                       false);
 
   tok = strtok(stringRep, " ");
   while (tok) {
@@ -133,7 +138,8 @@ ak_strtoi_array(void * __restrict memParent,
 
   arraySize = sizeof(AkInt) * arrayIndex;
   intArray = ak_malloc(memParent,
-                       sizeof(*intArray) + arraySize);
+                       sizeof(*intArray) + arraySize,
+                       false);
 
   intArray->count = arrayIndex;
   memmove(intArray->items, tmpArray, arraySize);
@@ -175,10 +181,12 @@ ak_strtostr_array(void * __restrict memParent,
   arrayDataSize = strlen(stringRep) + itemCount /* NULL */;
 
   stringArray = ak_malloc(memParent,
-                          sizeof(*stringArray) + arraySize);
+                          sizeof(*stringArray) + arraySize,
+                          false);
 
   pData = ak_malloc(stringArray,
-                    arrayDataSize);
+                    arrayDataSize,
+                    false);
 
   stringArray->count = itemCount;
   stringArray->items[itemCount] = pData;
@@ -229,10 +237,12 @@ ak_strtostr_arrayL(void * __restrict memParent,
   arrayDataSize = strlen(stringRep) + itemCount /* NULL */;
 
   stringArray = ak_malloc(memParent,
-                          sizeof(*stringArray) + arraySize);
+                          sizeof(*stringArray) + arraySize,
+                          false);
 
   pData = ak_malloc(stringArray,
-                    arrayDataSize);
+                    arrayDataSize,
+                    false);
 
   stringArray->count = itemCount;
   stringArray->items[itemCount] = pData;

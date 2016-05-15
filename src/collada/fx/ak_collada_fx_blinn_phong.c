@@ -46,7 +46,7 @@ ak_dae_blinn_phong(void * __restrict memParent,
   int            nodeRet;
 
 
-  blinn_phong = ak_calloc(memParent, sizeof(*blinn_phong), 1);
+  blinn_phong = ak_calloc(memParent, sizeof(*blinn_phong), false);
 
   if (blinnPhongMapLen == 0) {
     blinnPhongMapLen = AK_ARRAY_LEN(blinnPhongMap);

@@ -20,7 +20,7 @@ ak_dae_geometry(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  geometry = ak_calloc(memParent, sizeof(*geometry), 1);
+  geometry = ak_calloc(memParent, sizeof(*geometry), false);
 
   _xml_readAttr(geometry, geometry->id, _s_dae_id);
   _xml_readAttr(geometry, geometry->name, _s_dae_name);

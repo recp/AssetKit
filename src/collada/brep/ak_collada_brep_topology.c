@@ -19,7 +19,7 @@ ak_dae_edges(void * __restrict memParent,
   int             nodeType;
   int             nodeRet;
 
-  edges = ak_calloc(memParent, sizeof(*edges), 1);
+  edges = ak_calloc(memParent, sizeof(*edges), false);
 
   _xml_readAttr(memParent, edges->id, _s_dae_id);
   _xml_readAttr(memParent, edges->name, _s_dae_name);
@@ -34,7 +34,7 @@ ak_dae_edges(void * __restrict memParent,
 
     if (_xml_eqElm(_s_dae_input)) {
       AkInput *input;
-      input = ak_calloc(edges, sizeof(*input), 1);
+      input = ak_calloc(edges, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
       _xml_readAttr(input, input->base.source, _s_dae_source);
@@ -114,7 +114,7 @@ ak_dae_wires(void * __restrict memParent,
   int             nodeType;
   int             nodeRet;
 
-  wires = ak_calloc(memParent, sizeof(*wires), 1);
+  wires = ak_calloc(memParent, sizeof(*wires), false);
 
   _xml_readAttr(memParent, wires->id, _s_dae_id);
   _xml_readAttr(memParent, wires->name, _s_dae_name);
@@ -129,7 +129,7 @@ ak_dae_wires(void * __restrict memParent,
 
     if (_xml_eqElm(_s_dae_input)) {
       AkInput *input;
-      input = ak_calloc(wires, sizeof(*input), 1);
+      input = ak_calloc(wires, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
       _xml_readAttr(input, input->base.source, _s_dae_source);
@@ -222,7 +222,7 @@ ak_dae_faces(void * __restrict memParent,
   int             nodeType;
   int             nodeRet;
 
-  faces = ak_calloc(memParent, sizeof(*faces), 1);
+  faces = ak_calloc(memParent, sizeof(*faces), false);
 
   _xml_readAttr(memParent, faces->id, _s_dae_id);
   _xml_readAttr(memParent, faces->name, _s_dae_name);
@@ -237,7 +237,7 @@ ak_dae_faces(void * __restrict memParent,
 
     if (_xml_eqElm(_s_dae_input)) {
       AkInput *input;
-      input = ak_calloc(faces, sizeof(*input), 1);
+      input = ak_calloc(faces, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
       _xml_readAttr(input, input->base.source, _s_dae_source);
@@ -330,7 +330,7 @@ ak_dae_pcurves(void * __restrict memParent,
   int             nodeType;
   int             nodeRet;
 
-  pcurves = ak_calloc(memParent, sizeof(*pcurves), 1);
+  pcurves = ak_calloc(memParent, sizeof(*pcurves), false);
 
   _xml_readAttr(memParent, pcurves->id, _s_dae_id);
   _xml_readAttr(memParent, pcurves->name, _s_dae_name);
@@ -345,7 +345,7 @@ ak_dae_pcurves(void * __restrict memParent,
 
     if (_xml_eqElm(_s_dae_input)) {
       AkInput *input;
-      input = ak_calloc(pcurves, sizeof(*input), 1);
+      input = ak_calloc(pcurves, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
       _xml_readAttr(input, input->base.source, _s_dae_source);
@@ -438,7 +438,7 @@ ak_dae_shells(void * __restrict memParent,
   int             nodeType;
   int             nodeRet;
 
-  shells = ak_calloc(memParent, sizeof(*shells), 1);
+  shells = ak_calloc(memParent, sizeof(*shells), false);
 
   _xml_readAttr(memParent, shells->id, _s_dae_id);
   _xml_readAttr(memParent, shells->name, _s_dae_name);
@@ -453,7 +453,7 @@ ak_dae_shells(void * __restrict memParent,
 
     if (_xml_eqElm(_s_dae_input)) {
       AkInput *input;
-      input = ak_calloc(shells, sizeof(*input), 1);
+      input = ak_calloc(shells, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
       _xml_readAttr(input, input->base.source, _s_dae_source);
@@ -546,7 +546,7 @@ ak_dae_solids(void * __restrict memParent,
   int             nodeType;
   int             nodeRet;
 
-  solids = ak_calloc(memParent, sizeof(*solids), 1);
+  solids = ak_calloc(memParent, sizeof(*solids), false);
 
   _xml_readAttr(memParent, solids->id, _s_dae_id);
   _xml_readAttr(memParent, solids->name, _s_dae_name);
@@ -561,7 +561,7 @@ ak_dae_solids(void * __restrict memParent,
 
     if (_xml_eqElm(_s_dae_input)) {
       AkInput *input;
-      input = ak_calloc(solids, sizeof(*input), 1);
+      input = ak_calloc(solids, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
       _xml_readAttr(input, input->base.source, _s_dae_source);

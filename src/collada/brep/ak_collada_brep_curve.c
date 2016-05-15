@@ -42,12 +42,13 @@ ak_dae_curve(void * __restrict memParent,
     obj = ak_objAlloc(memParent,
                       sizeof(*curve),
                       0,
-                      true);
+                      true,
+                      false);
 
     curve = ak_objGet(obj);
     memPtr = obj;
   } else {
-    curve = ak_calloc(memParent, sizeof(*curve), 1);
+    curve = ak_calloc(memParent, sizeof(*curve), false);
     memPtr = curve;
   }
 
@@ -80,7 +81,8 @@ ak_dae_curve(void * __restrict memParent,
         obj = ak_objAlloc(memPtr,
                           sizeof(*line),
                           AK_CURVE_ELEMENT_TYPE_LINE,
-                          true);
+                          true,
+                          false);
 
         line = ak_objGet(obj);
 
@@ -130,7 +132,8 @@ ak_dae_curve(void * __restrict memParent,
         obj = ak_objAlloc(memPtr,
                           sizeof(*circle),
                           AK_CURVE_ELEMENT_TYPE_CIRCLE,
-                          true);
+                          true,
+                          false);
 
         circle = ak_objGet(obj);
 
@@ -171,7 +174,8 @@ ak_dae_curve(void * __restrict memParent,
         obj = ak_objAlloc(memPtr,
                           sizeof(*ellipse),
                           AK_CURVE_ELEMENT_TYPE_ELLIPSE,
-                          true);
+                          true,
+                          false);
 
         ellipse = ak_objGet(obj);
 
@@ -215,7 +219,8 @@ ak_dae_curve(void * __restrict memParent,
         obj = ak_objAlloc(memPtr,
                           sizeof(*parabola),
                           AK_CURVE_ELEMENT_TYPE_PARABOLA,
-                          true);
+                          true,
+                          false);
 
         parabola = ak_objGet(obj);
 
@@ -256,7 +261,8 @@ ak_dae_curve(void * __restrict memParent,
         obj = ak_objAlloc(memPtr,
                           sizeof(*hyperbola),
                           AK_CURVE_ELEMENT_TYPE_HYPERBOLA,
-                          true);
+                          true,
+                          false);
 
         hyperbola = ak_objGet(obj);
 
@@ -359,7 +365,7 @@ ak_dae_curves(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  curves = ak_calloc(memParent, sizeof(*curves), 1);
+  curves = ak_calloc(memParent, sizeof(*curves), false);
 
   last_curve = NULL;
 

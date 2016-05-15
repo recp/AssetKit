@@ -19,7 +19,7 @@ ak_dae_controller(void * __restrict memParent,
   int             nodeType;
   int             nodeRet;
 
-  controller = ak_calloc(memParent, sizeof(*controller), 1);
+  controller = ak_calloc(memParent, sizeof(*controller), false);
 
   _xml_readAttr(controller, controller->id, _s_dae_id);
   _xml_readAttr(controller, controller->name, _s_dae_name);

@@ -23,7 +23,7 @@ ak_dae_fxPass(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  pass = ak_calloc(memParent, sizeof(*pass), 1);
+  pass = ak_calloc(memParent, sizeof(*pass), false);
 
   _xml_readAttr(pass, pass->sid, _s_dae_sid);
 

@@ -59,7 +59,7 @@ ak_dae_node(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  node = ak_calloc(memParent, sizeof(*node), 1);
+  node = ak_calloc(memParent, sizeof(*node), false);
 
   _xml_readAttr(node, node->id, _s_dae_id);
   _xml_readAttr(node, node->sid, _s_dae_sid);
@@ -136,7 +136,8 @@ ak_dae_node(void * __restrict memParent,
           obj = ak_objAlloc(node,
                             sizeof(*looakAt),
                             AK_NODE_TRANSFORM_TYPE_LOOK_AT,
-                            true);
+                            true,
+                            false);
 
           looakAt = ak_objGet(obj);
 
@@ -165,7 +166,8 @@ ak_dae_node(void * __restrict memParent,
           obj = ak_objAlloc(node,
                             sizeof(*matrix),
                             AK_NODE_TRANSFORM_TYPE_MATRIX,
-                            true);
+                            true,
+                            false);
 
           matrix = ak_objGet(obj);
 
@@ -194,7 +196,8 @@ ak_dae_node(void * __restrict memParent,
           obj = ak_objAlloc(node,
                             sizeof(*rotate),
                             AK_NODE_TRANSFORM_TYPE_ROTATE,
-                            true);
+                            true,
+                            false);
 
           rotate = ak_objGet(obj);
 
@@ -223,7 +226,8 @@ ak_dae_node(void * __restrict memParent,
           obj = ak_objAlloc(node,
                             sizeof(*scale),
                             AK_NODE_TRANSFORM_TYPE_SCALE,
-                            true);
+                            true,
+                            false);
 
           scale = ak_objGet(obj);
 
@@ -252,7 +256,8 @@ ak_dae_node(void * __restrict memParent,
           obj = ak_objAlloc(node,
                             sizeof(*skew),
                             AK_NODE_TRANSFORM_TYPE_SKEW,
-                            true);
+                            true,
+                            false);
 
           skew = ak_objGet(obj);
 
@@ -281,7 +286,8 @@ ak_dae_node(void * __restrict memParent,
           obj = ak_objAlloc(node,
                             sizeof(*translate),
                             AK_NODE_TRANSFORM_TYPE_TRANSLATE,
-                            true);
+                            true,
+                            false);
 
           translate = ak_objGet(obj);
 
@@ -301,7 +307,7 @@ ak_dae_node(void * __restrict memParent,
       }
       case k_s_dae_instance_camera: {
         AkInstanceCamera *instanceCamera;
-        instanceCamera = ak_calloc(node, sizeof(*instanceCamera), 1);
+        instanceCamera = ak_calloc(node, sizeof(*instanceCamera), false);
 
         _xml_readAttr(instanceCamera, instanceCamera->id, _s_dae_id);
         _xml_readAttr(instanceCamera, instanceCamera->name, _s_dae_name);
@@ -343,7 +349,7 @@ ak_dae_node(void * __restrict memParent,
         AkInstanceController *controller;
         AkSkeleton           *last_skeleton;
 
-        controller = ak_calloc(node, sizeof(*controller), 1);
+        controller = ak_calloc(node, sizeof(*controller), false);
 
         _xml_readAttr(controller, controller->id, _s_dae_id);
         _xml_readAttr(controller, controller->name, _s_dae_name);
@@ -357,7 +363,7 @@ ak_dae_node(void * __restrict memParent,
           if (_xml_eqElm(_s_dae_skeleton)) {
             if (!xmlTextReaderIsEmptyElement(reader)) {
               AkSkeleton *skeleton;
-              skeleton = ak_calloc(controller, sizeof(*skeleton), 1);
+              skeleton = ak_calloc(controller, sizeof(*skeleton), false);
 
               _xml_readText(controller, skeleton->val);
 
@@ -408,7 +414,7 @@ ak_dae_node(void * __restrict memParent,
       case k_s_dae_instance_geometry: {
         AkInstanceGeometry *geometry;
 
-        geometry = ak_calloc(node, sizeof(*geometry), 1);
+        geometry = ak_calloc(node, sizeof(*geometry), false);
 
         _xml_readAttr(geometry, geometry->id, _s_dae_id);
         _xml_readAttr(geometry, geometry->name, _s_dae_name);
@@ -457,7 +463,7 @@ ak_dae_node(void * __restrict memParent,
       case k_s_dae_instance_light: {
         AkInstanceLight *light;
 
-        light = ak_calloc(node, sizeof(*light), 1);
+        light = ak_calloc(node, sizeof(*light), false);
 
         _xml_readAttr(light, light->id, _s_dae_id);
         _xml_readAttr(light, light->name, _s_dae_name);
@@ -498,7 +504,7 @@ ak_dae_node(void * __restrict memParent,
       case k_s_dae_instance_node: {
         AkInstanceNode *instanceNode;
 
-        instanceNode = ak_calloc(node, sizeof(*instanceNode), 1);
+        instanceNode = ak_calloc(node, sizeof(*instanceNode), false);
 
         _xml_readAttr(instanceNode, instanceNode->id, _s_dae_id);
         _xml_readAttr(instanceNode, instanceNode->name, _s_dae_name);

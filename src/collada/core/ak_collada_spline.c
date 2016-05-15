@@ -26,12 +26,13 @@ ak_dae_spline(void * __restrict memParent,
     obj = ak_objAlloc(memParent,
                       sizeof(*spline),
                       0,
-                      true);
+                      true,
+                      false);
 
     spline = ak_objGet(obj);
     memPtr = obj;
   } else {
-    spline = ak_calloc(memParent, sizeof(*spline), 1);
+    spline = ak_calloc(memParent, sizeof(*spline), false);
     memPtr = spline;
   }
 
@@ -62,7 +63,7 @@ ak_dae_spline(void * __restrict memParent,
       AkControlVerts *cverts;
       AkInputBasic   *last_input;
 
-      cverts = ak_calloc(memPtr, sizeof(*cverts), 1);
+      cverts = ak_calloc(memPtr, sizeof(*cverts), false);
 
       last_input = NULL;
       
@@ -72,7 +73,7 @@ ak_dae_spline(void * __restrict memParent,
         if (_xml_eqElm(_s_dae_input)) {
           AkInputBasic *input;
 
-          input = ak_calloc(memPtr, sizeof(*input), 1);
+          input = ak_calloc(memPtr, sizeof(*input), false);
 
           _xml_readAttr(input, input->semanticRaw, _s_dae_semantic);
           _xml_readAttr(input, input->source, _s_dae_source);

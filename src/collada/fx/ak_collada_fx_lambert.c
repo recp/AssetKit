@@ -40,7 +40,7 @@ ak_dae_fxLambert(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  lambert = ak_calloc(memParent, sizeof(*lambert), 1);
+  lambert = ak_calloc(memParent, sizeof(*lambert), false);
 
   if (lambertMapLen == 0) {
     lambertMapLen = AK_ARRAY_LEN(lambertMap);

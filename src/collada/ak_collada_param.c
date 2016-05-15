@@ -31,7 +31,7 @@ ak_dae_newparam(void * __restrict memParent,
   int nodeType;
   int nodeRet;
 
-  newparam = ak_calloc(memParent, sizeof(*newparam), 1);
+  newparam = ak_calloc(memParent, sizeof(*newparam), false);
   last_annotate = NULL;
 
   if (modifierMapLen == 0) {
@@ -117,12 +117,12 @@ ak_dae_param(void * __restrict memParent,
   nodeType = xmlTextReaderNodeType(reader);
 
   if (paramType == AK_PARAM_TYPE_BASIC) {
-    param = ak_calloc(memParent, sizeof(AkParam), 1);
+    param = ak_calloc(memParent, sizeof(AkParam), false);
 
     _xml_readAttr(param, param->ref, _s_dae_ref);
   } else if (paramType == AK_PARAM_TYPE_EXTENDED) {
     AkParamEx *param_ex;
-    param_ex = ak_calloc(memParent, sizeof(AkParamEx), 1);
+    param_ex = ak_calloc(memParent, sizeof(AkParamEx), false);
 
     _xml_readAttr(param_ex, param_ex->name, _s_dae_name);
     _xml_readAttr(param_ex, param_ex->sid, _s_dae_sid);
@@ -157,7 +157,7 @@ ak_dae_setparam(void * __restrict memParent,
   int nodeType;
   int nodeRet;
 
-  setparam = ak_calloc(memParent, sizeof(*setparam), 1);
+  setparam = ak_calloc(memParent, sizeof(*setparam), false);
 
   if (modifierMapLen == 0) {
     modifierMapLen = AK_ARRAY_LEN(modifierMap);

@@ -21,7 +21,7 @@ ak_dae_visualScene(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  visualScene = ak_calloc(memParent, sizeof(*visualScene), 1);
+  visualScene = ak_calloc(memParent, sizeof(*visualScene), false);
 
   _xml_readAttr(visualScene, visualScene->id, _s_dae_id);
   _xml_readAttr(visualScene, visualScene->name, _s_dae_name);
@@ -98,7 +98,7 @@ ak_dae_instanceVisualScene(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  visualScene = ak_calloc(memParent, sizeof(*visualScene), 1);
+  visualScene = ak_calloc(memParent, sizeof(*visualScene), false);
 
   _xml_readAttr(visualScene, visualScene->sid, _s_dae_sid);
   _xml_readAttr(visualScene, visualScene->name, _s_dae_name);

@@ -41,7 +41,7 @@ ak_dae_source(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  source = ak_calloc(memParent, sizeof(*source), 1);
+  source = ak_calloc(memParent, sizeof(*source), false);
 
   _xml_readAttr(source, source->id, _s_dae_id);
   _xml_readAttr(source, source->name, _s_dae_name);
@@ -103,7 +103,8 @@ ak_dae_source(void * __restrict memParent,
           obj = ak_objAlloc(source,
                             sizeof(*boolArray) + arraySize,
                             AK_SOURCE_ARRAY_TYPE_BOOL,
-                            true);
+                            true,
+                            false);
           boolArray = ak_objGet(obj);
 
           _xml_readAttr(obj, boolArray->id, _s_dae_id);
@@ -143,7 +144,8 @@ ak_dae_source(void * __restrict memParent,
           obj = ak_objAlloc(source,
                             sizeof(*floatAray) + arraySize,
                             AK_SOURCE_ARRAY_TYPE_FLOAT,
-                            true);
+                            true,
+                            false);
           floatAray = ak_objGet(obj);
 
           _xml_readAttr(obj, floatAray->id, _s_dae_id);
@@ -191,7 +193,8 @@ ak_dae_source(void * __restrict memParent,
           obj = ak_objAlloc(source,
                             sizeof(*intAray) + arraySize,
                             AK_SOURCE_ARRAY_TYPE_INT,
-                            true);
+                            true,
+                            false);
           intAray = ak_objGet(obj);
 
           _xml_readAttr(obj, intAray->id, _s_dae_id);
@@ -253,14 +256,16 @@ ak_dae_source(void * __restrict memParent,
           obj = ak_objAlloc(source,
                             sizeof(*stringAray) + arraySize,
                             found->val,
-                            true);
+                            true,
+                            false);
           stringAray = ak_objGet(obj);
 
           _xml_readAttr(obj, stringAray->id, _s_dae_id);
           _xml_readAttr(obj, stringAray->name, _s_dae_name);
 
           pData = ak_malloc(stringAray,
-                            arrayDataSize);
+                            arrayDataSize,
+                            false);
 
           stringAray->count = arrayCount;
           stringAray->items[arrayCount] = pData;

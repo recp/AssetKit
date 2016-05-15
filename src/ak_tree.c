@@ -30,7 +30,7 @@ ak_tree_fromXmlNode(void * __restrict memParent,
   /* extra is text node */
   if (currNode && currNode->type == XML_TEXT_NODE) {
     if (currNode->content) {
-      tree_currNode = ak_calloc(memParent, sizeof(*tree_currNode), 1);
+      tree_currNode = ak_calloc(memParent, sizeof(*tree_currNode), false);
       tree_currNode->val = ak_strdup(tree_currNode,
                                       (const char *)currNode->content);
 
@@ -46,7 +46,7 @@ ak_tree_fromXmlNode(void * __restrict memParent,
     AkTreeNodeAttr * tree_currAttr;
     const xmlAttr      * xml_currAttr;
 
-    tree_nNode = ak_calloc(parent, sizeof(*tree_currNode), 1);
+    tree_nNode = ak_calloc(parent, sizeof(*tree_currNode), false);
     tree_nNode->parent = parent;
     tree_nNode->name = ak_strdup(tree_nNode,
                                   (const char *)currNode->name);
@@ -75,7 +75,7 @@ ak_tree_fromXmlNode(void * __restrict memParent,
          xml_currAttr = xml_currAttr->next) {
       AkTreeNodeAttr * tree_nodeAttr;
 
-      tree_nodeAttr = ak_calloc(tree_nNode, sizeof(*tree_nodeAttr), 1);
+      tree_nodeAttr = ak_calloc(tree_nNode, sizeof(*tree_nodeAttr), false);
       tree_nodeAttr->name = ak_strdup(tree_nodeAttr,
                                        (const char *)xml_currAttr->name);
       tree_nodeAttr->val =

@@ -21,7 +21,7 @@ ak_dae_colorOrTex(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  colorOrTex = ak_calloc(memParent, sizeof(*colorOrTex), 1);
+  colorOrTex = ak_calloc(memParent, sizeof(*colorOrTex), false);
   _xml_readAttrAsEnum(colorOrTex->opaque,
                       _s_dae_opaque,
                       ak_dae_fxEnumOpaque);
@@ -35,7 +35,7 @@ ak_dae_colorOrTex(void * __restrict memParent,
       AkColor *color;
       char *colorStr;
 
-      color = ak_calloc(colorOrTex, sizeof(*color), 1);
+      color = ak_calloc(colorOrTex, sizeof(*color), false);
 
       _xml_readAttr(color, color->sid, _s_dae_sid);
       _xml_readMutText(colorStr);
@@ -48,7 +48,7 @@ ak_dae_colorOrTex(void * __restrict memParent,
     } else if (_xml_eqElm(_s_dae_texture)) {
       AkFxTexture *tex;
 
-      tex = ak_calloc(colorOrTex, sizeof(*tex), 1);
+      tex = ak_calloc(colorOrTex, sizeof(*tex), false);
       _xml_readAttr(tex, tex->texture, _s_dae_texture);
       _xml_readAttr(tex, tex->texcoord, _s_dae_texcoord);
 

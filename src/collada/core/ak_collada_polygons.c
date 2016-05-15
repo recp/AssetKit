@@ -29,12 +29,13 @@ ak_dae_polygons(void * __restrict memParent,
     obj = ak_objAlloc(memParent,
                       sizeof(*polygons),
                       0,
-                      true);
+                      true,
+                      false);
 
     polygons = ak_objGet(obj);
     memPtr = obj;
   } else {
-    polygons = ak_calloc(memParent, sizeof(*polygons), 1);
+    polygons = ak_calloc(memParent, sizeof(*polygons), false);
     memPtr = polygons;
   }
 
@@ -54,7 +55,7 @@ ak_dae_polygons(void * __restrict memParent,
     if (_xml_eqElm(_s_dae_input)) {
       AkInput *input;
 
-      input = ak_calloc(memPtr, sizeof(*input), 1);
+      input = ak_calloc(memPtr, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
       _xml_readAttr(input, input->base.source, _s_dae_source);
@@ -99,7 +100,7 @@ ak_dae_polygons(void * __restrict memParent,
             if (!last_polygon) {
               AkPolygon * polygon;
 
-              polygon = ak_calloc(memParent, sizeof(*polygon), 1);
+              polygon = ak_calloc(memParent, sizeof(*polygon), false);
               polygon->mode = mode;
               polygon->haveHoles = false;
 
@@ -108,7 +109,7 @@ ak_dae_polygons(void * __restrict memParent,
             }
           } else {
             AkPolygon *polygon;
-            polygon = ak_calloc(memPtr, sizeof(*polygon), 1);
+            polygon = ak_calloc(memPtr, sizeof(*polygon), false);
             polygon->mode = mode;
             polygon->haveHoles = false;
 
@@ -139,7 +140,7 @@ ak_dae_polygons(void * __restrict memParent,
           if (!last_polygon) {
             AkPolygon * polygon;
 
-            polygon = ak_calloc(memParent, sizeof(*polygon), 1);
+            polygon = ak_calloc(memParent, sizeof(*polygon), false);
             polygon->mode = mode;
 
             polygons->polygon = polygon;
@@ -155,7 +156,7 @@ ak_dae_polygons(void * __restrict memParent,
       AkPolygon      *polygon;
       AkDoubleArrayL *last_array;
 
-      polygon = ak_calloc(memPtr, sizeof(*polygon), 1);
+      polygon = ak_calloc(memPtr, sizeof(*polygon), false);
       polygon->mode = mode;
       polygon->haveHoles = true;
 

@@ -40,7 +40,7 @@ ak_dae_fxEvaluate(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  evaluate = ak_calloc(memParent, sizeof(*evaluate), 1);
+  evaluate = ak_calloc(memParent, sizeof(*evaluate), false);
 
   if (evaluateMapLen == 0) {
     evaluateMapLen = AK_ARRAY_LEN(evaluateMap);
@@ -68,7 +68,7 @@ ak_dae_fxEvaluate(void * __restrict memParent,
         AkEvaluateTarget *evaluate_target;
         const xmlChar *targetNodeName;
 
-        evaluate_target = ak_calloc(evaluate, sizeof(*evaluate_target), 1);
+        evaluate_target = ak_calloc(evaluate, sizeof(*evaluate_target), false);
 
         _xml_readAttrUsingFn(evaluate_target->index,
                              _s_dae_index,
@@ -135,7 +135,7 @@ ak_dae_fxEvaluate(void * __restrict memParent,
       }
       case k_s_dae_color_clear: {
         AkColorClear *colorClear;
-        colorClear = ak_calloc(evaluate, sizeof(*colorClear), 1);
+        colorClear = ak_calloc(evaluate, sizeof(*colorClear), false);
 
         _xml_readAttrUsingFn(colorClear->index,
                              _s_dae_index,
@@ -148,7 +148,7 @@ ak_dae_fxEvaluate(void * __restrict memParent,
       }
       case k_s_dae_depth_clear:{
         AkDepthClear *depthClear;
-        depthClear = ak_calloc(evaluate, sizeof(*depthClear), 1);
+        depthClear = ak_calloc(evaluate, sizeof(*depthClear), false);
 
         _xml_readAttrUsingFn(depthClear->index,
                              _s_dae_index,
@@ -162,7 +162,7 @@ ak_dae_fxEvaluate(void * __restrict memParent,
       }
       case k_s_dae_stencil_clear:{
         AkStencilClear *stencilClear;
-        stencilClear = ak_calloc(evaluate, sizeof(*stencilClear), 1);
+        stencilClear = ak_calloc(evaluate, sizeof(*stencilClear), false);
 
         _xml_readAttrUsingFn(stencilClear->index,
                              _s_dae_index,

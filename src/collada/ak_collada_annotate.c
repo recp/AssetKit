@@ -17,7 +17,7 @@ ak_dae_annotate(void * __restrict memParent,
   int nodeType;
   int nodeRet;
 
-  annotate = ak_calloc(memParent, sizeof(*annotate), 1);
+  annotate = ak_calloc(memParent, sizeof(*annotate), false);
 
   _xml_readAttr(annotate, annotate->name, _s_dae_name);
 

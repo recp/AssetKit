@@ -20,7 +20,7 @@ ak_dae_render(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  render = ak_calloc(memParent, sizeof(*render), 1);
+  render = ak_calloc(memParent, sizeof(*render), false);
 
   _xml_readAttr(render, render->sid, _s_dae_sid);
   _xml_readAttr(render, render->name, _s_dae_name);

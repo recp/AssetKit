@@ -16,14 +16,14 @@ ak_dae_assetInf(void * __restrict memParent,
   int             nodeRet;
 
   if (!(*dest))
-    *dest = ak_calloc(memParent, sizeof(**dest), 1);
+    *dest = ak_calloc(memParent, sizeof(**dest), false);
 
   do {
     _xml_beginElement(_s_dae_asset);
 
     if (_xml_eqElm(_s_dae_contributor)) {
       AkContributor * contrib;
-      contrib = ak_calloc(*dest, sizeof(*contrib), 1);
+      contrib = ak_calloc(*dest, sizeof(*contrib), false);
 
       /* contributor */
       do {
@@ -70,7 +70,7 @@ ak_dae_assetInf(void * __restrict memParent,
       _xml_readText(*dest, (*dest)->title);
     } else if (_xml_eqElm(_s_dae_unit)) {
       AkUnit * unit;
-      unit = ak_calloc(*dest, sizeof(*unit), 1);
+      unit = ak_calloc(*dest, sizeof(*unit), false);
 
       _xml_readAttr(*dest, unit->name, _s_dae_name);
       _xml_readAttrUsingFn(unit->dist, _s_dae_meter, strtod, NULL);

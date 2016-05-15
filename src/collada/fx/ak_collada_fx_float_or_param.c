@@ -20,7 +20,7 @@ ak_dae_floatOrParam(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  floatOrParam = ak_calloc(memParent, sizeof(*floatOrParam), 1);
+  floatOrParam = ak_calloc(memParent, sizeof(*floatOrParam), false);
   last_param = NULL;
 
   do {
@@ -30,7 +30,7 @@ ak_dae_floatOrParam(void * __restrict memParent,
       ak_basic_attrf * valuef;
       const char * floatStr;
 
-      valuef = ak_calloc(floatOrParam, sizeof(*valuef), 1);
+      valuef = ak_calloc(floatOrParam, sizeof(*valuef), false);
       _xml_readAttr(valuef, valuef->sid, _s_dae_sid);
       _xml_readConstText(floatStr);
       if (floatStr)

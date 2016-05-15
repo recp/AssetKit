@@ -55,11 +55,11 @@ ak_dae_profile(void * __restrict memParent,
 
   switch (found->val) {
     case AK_PROFILE_TYPE_COMMON:
-      profile = ak_calloc(memParent, sizeof(AkProfileCommon), 1);
+      profile = ak_calloc(memParent, sizeof(AkProfileCommon), false);
       break;
     case AK_PROFILE_TYPE_GLSL: {
       AkProfileGLSL *glslProfile;
-      glslProfile = ak_calloc(memParent, sizeof(AkProfileGLSL), 1);
+      glslProfile = ak_calloc(memParent, sizeof(AkProfileGLSL), false);
 
       _xml_readAttr(glslProfile, glslProfile->platform, _s_dae_platform);
 
@@ -68,7 +68,7 @@ ak_dae_profile(void * __restrict memParent,
     }
     case AK_PROFILE_TYPE_GLES2: {
       AkProfileGLES2 *gles2Profile;
-      gles2Profile = ak_calloc(memParent, sizeof(AkProfileGLES2), 1);
+      gles2Profile = ak_calloc(memParent, sizeof(AkProfileGLES2), false);
 
       _xml_readAttr(gles2Profile, gles2Profile->language, _s_dae_language);
       _xml_readAttr(gles2Profile, gles2Profile->platforms, _s_dae_platforms);
@@ -78,7 +78,7 @@ ak_dae_profile(void * __restrict memParent,
     }
     case AK_PROFILE_TYPE_GLES: {
       AkProfileGLES *glesProfile;
-      glesProfile = ak_calloc(memParent, sizeof(AkProfileGLES), 1);
+      glesProfile = ak_calloc(memParent, sizeof(AkProfileGLES), false);
 
       _xml_readAttr(glesProfile, glesProfile->platform, _s_dae_platform);
 
@@ -87,7 +87,7 @@ ak_dae_profile(void * __restrict memParent,
     }
     case AK_PROFILE_TYPE_CG: {
       AkProfileCG *cgProfile;
-      cgProfile = ak_calloc(memParent, sizeof(AkProfileGLES2), 1);
+      cgProfile = ak_calloc(memParent, sizeof(AkProfileGLES2), false);
 
       _xml_readAttr(cgProfile, cgProfile->platform, _s_dae_platform);
 
@@ -96,7 +96,7 @@ ak_dae_profile(void * __restrict memParent,
     }
     case AK_PROFILE_TYPE_BRIDGE: {
       AkProfileBridge *bridgeProfile;
-      bridgeProfile = ak_calloc(memParent, sizeof(AkProfileGLES2), 1);
+      bridgeProfile = ak_calloc(memParent, sizeof(AkProfileGLES2), false);
 
       _xml_readAttr(bridgeProfile, bridgeProfile->platform, _s_dae_platform);
       _xml_readAttr(bridgeProfile, bridgeProfile->url, _s_dae_url);
@@ -172,7 +172,7 @@ ak_dae_profile(void * __restrict memParent,
     } else if (_xml_eqElm(_s_dae_code)) {
       AkCode *code;
 
-      code = ak_calloc(profile, sizeof(*code), 1);
+      code = ak_calloc(profile, sizeof(*code), false);
       _xml_readAttr(code, code->sid, _s_dae_sid);
       _xml_readConstText(code->val);
 
@@ -201,7 +201,7 @@ ak_dae_profile(void * __restrict memParent,
     } else if (_xml_eqElm(_s_dae_include)) {
       AkInclude *inc;
 
-      inc = ak_calloc(profile, sizeof(*inc), 1);
+      inc = ak_calloc(profile, sizeof(*inc), false);
       _xml_readAttr(inc, inc->sid, _s_dae_sid);
       _xml_readAttr(inc, inc->url, _s_dae_url);
 

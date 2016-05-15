@@ -49,7 +49,7 @@ ak_dae_fxImage(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  img = ak_calloc(memParent, sizeof(*img), 1);
+  img = ak_calloc(memParent, sizeof(*img), false);
 
   _xml_readAttr(img, img->id, _s_dae_id);
   _xml_readAttr(img, img->sid, _s_dae_sid);
@@ -138,7 +138,7 @@ ak_dae_fxInstanceImage(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  instanceImage = ak_calloc(memParent, sizeof(*instanceImage), 1);
+  instanceImage = ak_calloc(memParent, sizeof(*instanceImage), false);
 
   _xml_readAttr(instanceImage, instanceImage->url, _s_dae_url);
   _xml_readAttr(instanceImage, instanceImage->sid, _s_dae_sid);
@@ -182,7 +182,7 @@ ak_dae_fxImage_initFrom(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  initFrom = ak_calloc(memParent, sizeof(*initFrom), 1);
+  initFrom = ak_calloc(memParent, sizeof(*initFrom), false);
 
   _xml_readAttrUsingFn(initFrom->mipsGenerate,
                        _s_dae_mips_generate,
@@ -218,7 +218,7 @@ ak_dae_fxImage_initFrom(void * __restrict memParent,
       _xml_readText(initFrom, initFrom->ref);
     } else if (_xml_eqElm(_s_dae_hex)) {
       AkHexData *hex;
-      hex = ak_calloc(initFrom, sizeof(*hex), 1);
+      hex = ak_calloc(initFrom, sizeof(*hex), false);
 
       _xml_readAttr(hex, hex->format, _s_dae_format);
 
@@ -252,7 +252,7 @@ ak_dae_fxImage_format(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  format = ak_calloc(memParent, sizeof(*format), 1);
+  format = ak_calloc(memParent, sizeof(*format), false);
 
   do {
     _xml_beginElement(_s_dae_format);
@@ -323,7 +323,7 @@ ak_dae_fxImage_create2d(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  image2d = ak_calloc(memParent, sizeof(*image2d), 1);
+  image2d = ak_calloc(memParent, sizeof(*image2d), false);
 
   do {
     _xml_beginElement(_s_dae_create_2d);
@@ -331,7 +331,7 @@ ak_dae_fxImage_create2d(void * __restrict memParent,
     if (_xml_eqElm(_s_dae_size_exact)) {
       AkSizeExact *sizeExact;
 
-      sizeExact = ak_calloc(image2d, sizeof(*sizeExact), 1);
+      sizeExact = ak_calloc(image2d, sizeof(*sizeExact), false);
 
       _xml_readAttrUsingFn(sizeExact->width,
                            _s_dae_width,
@@ -345,7 +345,7 @@ ak_dae_fxImage_create2d(void * __restrict memParent,
     } else if (_xml_eqElm(_s_dae_size_ratio)) {
       AkSizeRatio *sizeRatio;
 
-      sizeRatio = ak_calloc(image2d, sizeof(*sizeRatio), 1);
+      sizeRatio = ak_calloc(image2d, sizeof(*sizeRatio), false);
 
       _xml_readAttrUsingFn(sizeRatio->width,
                            _s_dae_width,
@@ -359,7 +359,7 @@ ak_dae_fxImage_create2d(void * __restrict memParent,
     } else if (_xml_eqElm(_s_dae_mips)) {
       AkMips *mips;
 
-      mips = ak_calloc(image2d, sizeof(*mips), 1);
+      mips = ak_calloc(image2d, sizeof(*mips), false);
 
       _xml_readAttrUsingFn(mips->levels,
                            _s_dae_width,
@@ -413,7 +413,7 @@ ak_dae_fxImage_create3d(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  image3d = ak_calloc(memParent, sizeof(*image3d), 1);
+  image3d = ak_calloc(memParent, sizeof(*image3d), false);
 
   do {
     _xml_beginElement(_s_dae_create_3d);
@@ -479,7 +479,7 @@ ak_dae_fxImage_createCube(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  imageCube = ak_calloc(memParent, sizeof(*imageCube), 1);
+  imageCube = ak_calloc(memParent, sizeof(*imageCube), false);
 
   do {
     _xml_beginElement(_s_dae_create_cube);

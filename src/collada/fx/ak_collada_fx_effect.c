@@ -26,7 +26,7 @@ ak_dae_effect(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  effect = ak_calloc(memParent, sizeof(*effect), 1);
+  effect = ak_calloc(memParent, sizeof(*effect), false);
 
   last_annotate = NULL;
   last_newparam = NULL;
@@ -128,7 +128,7 @@ ak_dae_fxInstanceEffect(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  instanceEffect = ak_calloc(memParent, sizeof(*instanceEffect), 1);
+  instanceEffect = ak_calloc(memParent, sizeof(*instanceEffect), false);
 
   _xml_readAttr(instanceEffect, instanceEffect->url, _s_dae_url);
   _xml_readAttr(instanceEffect, instanceEffect->sid, _s_dae_sid);
@@ -144,7 +144,7 @@ ak_dae_fxInstanceEffect(void * __restrict memParent,
       if (_xml_eqElm(_s_dae_technique_hint)) {
         AkTechniqueHint *techHint;
 
-        techHint = ak_calloc(instanceEffect, sizeof(*techHint), 1);
+        techHint = ak_calloc(instanceEffect, sizeof(*techHint), false);
 
         _xml_readAttr(techHint, techHint->ref, _s_dae_ref);
         _xml_readAttr(techHint, techHint->profile, _s_dae_profile);

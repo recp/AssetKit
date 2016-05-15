@@ -32,7 +32,7 @@ ak_dae_fxState_enum(xmlTextReaderPtr reader,
   ak_state_t_ul *state;
   char *attrValStr;
 
-  state = ak_calloc(*states, sizeof(*state), 1);
+  state = ak_calloc(*states, sizeof(*state), false);
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
@@ -66,7 +66,7 @@ ak_dae_fxState_bool4(xmlTextReaderPtr reader,
   ak_state_t_bool4 *state;
   char *attrValStr;
 
-  state = ak_calloc(*states, sizeof(*state), 1);
+  state = ak_calloc(*states, sizeof(*state), false);
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
@@ -96,7 +96,7 @@ ak_dae_fxState_int2(xmlTextReaderPtr reader,
   ak_state_t_int2 *state;
   char *attrValStr;
 
-  state = ak_calloc(*states, sizeof(*state), 1);
+  state = ak_calloc(*states, sizeof(*state), false);
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
@@ -126,7 +126,7 @@ ak_dae_fxState_int4(xmlTextReaderPtr reader,
   ak_state_t_int4 *state;
   char *attrValStr;
 
-  state = ak_calloc(*states, sizeof(*state), 1);
+  state = ak_calloc(*states, sizeof(*state), false);
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
@@ -155,7 +155,7 @@ ak_dae_fxState_ul(xmlTextReaderPtr reader,
   ak_state_t_ul *state;
   char *attrValStr;
 
-  state = ak_calloc(*states, sizeof(*state), 1);
+  state = ak_calloc(*states, sizeof(*state), false);
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
@@ -187,7 +187,7 @@ ak_dae_fxState_ul_i(xmlTextReaderPtr reader,
   ak_state_t_ul_i * state;
   char *attrValStr;
 
-  state = ak_calloc(*states, sizeof(*state), 1);
+  state = ak_calloc(*states, sizeof(*state), false);
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
@@ -222,7 +222,7 @@ ak_dae_fxState_float(xmlTextReaderPtr reader,
   ak_state_t_float * state;
   char *attrValStr;
 
-  state = ak_calloc(*states, sizeof(*state), 1);
+  state = ak_calloc(*states, sizeof(*state), false);
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
@@ -250,7 +250,7 @@ ak_dae_fxState_float_i(xmlTextReaderPtr reader,
   ak_state_t_float_i * state;
   char *attrValStr;
 
-  state = ak_calloc(*states, sizeof(*state), 1);
+  state = ak_calloc(*states, sizeof(*state), false);
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
@@ -282,7 +282,7 @@ ak_dae_fxState_float2(xmlTextReaderPtr reader,
   ak_state_t_float2 *state;
   char *attrValStr;
 
-  state = ak_calloc(*states, sizeof(*state), 1);
+  state = ak_calloc(*states, sizeof(*state), false);
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
@@ -312,7 +312,7 @@ ak_dae_fxState_float3(xmlTextReaderPtr reader,
   ak_state_t_float3 *state;
   char *attrValStr;
 
-  state = ak_calloc(*states, sizeof(*state), 1);
+  state = ak_calloc(*states, sizeof(*state), false);
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
@@ -342,7 +342,7 @@ ak_dae_fxState_float3_i(xmlTextReaderPtr reader,
   ak_state_t_float3_i *state;
   char *attrValStr;
 
-  state = ak_calloc(*states, sizeof(*state), 1);
+  state = ak_calloc(*states, sizeof(*state), false);
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
@@ -375,7 +375,7 @@ ak_dae_fxState_float4(xmlTextReaderPtr reader,
   ak_state_t_float4 *state;
   char *attrValStr;
 
-  state = ak_calloc(*states, sizeof(*state), 1);
+  state = ak_calloc(*states, sizeof(*state), false);
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
@@ -405,7 +405,7 @@ ak_dae_fxState_float4_i(xmlTextReaderPtr reader,
   ak_state_t_float4_i *state;
   char *attrValStr;
 
-  state = ak_calloc(*states, sizeof(*state), 1);
+  state = ak_calloc(*states, sizeof(*state), false);
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
@@ -438,7 +438,7 @@ ak_dae_fxState_float4x4(xmlTextReaderPtr reader,
   ak_state_t_float4x4 *state;
   char *attrValStr;
 
-  state = ak_calloc(*states, sizeof(*state), 1);
+  state = ak_calloc(*states, sizeof(*state), false);
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(reader,
@@ -469,7 +469,7 @@ ak_dae_fxState_sampler(xmlTextReaderPtr reader,
   int             nodeType;
   int             nodeRet;
 
-  state = ak_calloc(*states, sizeof(*state), 1);
+  state = ak_calloc(*states, sizeof(*state), false);
   state->base.state_type = state_type;
 
   _xml_readAttrUsingFn(state->index,
@@ -515,7 +515,7 @@ ak_dae_fxState_str(xmlTextReaderPtr reader,
                     AkRenderStateType state_type) {
   ak_state_t_str * state;
 
-  state = ak_calloc(*states, sizeof(*state), 1);
+  state = ak_calloc(*states, sizeof(*state), false);
   state->base.state_type = state_type;
 
   _xml_readAttr(state, state->val, _s_dae_value);
@@ -536,7 +536,7 @@ ak_dae_fxStateAlphaFunc(xmlTextReaderPtr reader,
   int             nodeType;
   int             nodeRet;
   
-  state = ak_calloc(*states, sizeof(*state), 1);
+  state = ak_calloc(*states, sizeof(*state), false);
   state->base.state_type = AK_RENDER_STATE_ALPHA_FUNC;
 
   do {
@@ -585,7 +585,7 @@ ak_dae_fxStateBlend(xmlTextReaderPtr reader,
   int            nodeType;
   int            nodeRet;
 
-  state = ak_calloc(*states, sizeof(*state), 1);
+  state = ak_calloc(*states, sizeof(*state), false);
   state->base.state_type = AK_RENDER_STATE_BLEND_FUNC;
 
   do {
@@ -648,7 +648,7 @@ ak_dae_fxStateBlendSep(xmlTextReaderPtr reader,
   int            nodeType;
   int            nodeRet;
 
-  state = ak_calloc(*states, sizeof(*state), 1);
+  state = ak_calloc(*states, sizeof(*state), false);
   state->base.state_type = AK_RENDER_STATE_BLEND_FUNC_SEPARATE;
 
   do {
@@ -748,7 +748,7 @@ ak_dae_fxStateBlendEqSep(xmlTextReaderPtr reader,
   int            nodeType;
   int            nodeRet;
 
-  state = ak_calloc(*states, sizeof(*state), 1);
+  state = ak_calloc(*states, sizeof(*state), false);
   state->base.state_type = AK_RENDER_STATE_BLEND_EQUATION_SEPARATE;
 
   do {
@@ -811,7 +811,7 @@ ak_dae_fxStateColorMaterial(xmlTextReaderPtr reader,
   int            nodeType;
   int            nodeRet;
 
-  state = ak_calloc(*states, sizeof(*state), 1);
+  state = ak_calloc(*states, sizeof(*state), false);
   state->base.state_type = AK_RENDER_STATE_COLOR_MATERIAL;
 
   do {
@@ -874,7 +874,7 @@ ak_dae_fxStatePolyMode(xmlTextReaderPtr reader,
   int            nodeType;
   int            nodeRet;
 
-  state = ak_calloc(*states, sizeof(*state), 1);
+  state = ak_calloc(*states, sizeof(*state), false);
   state->base.state_type = AK_RENDER_STATE_POLYGON_MODE;
 
   do {
@@ -937,7 +937,7 @@ ak_dae_fxStateStencilFunc(xmlTextReaderPtr reader,
   int            nodeType;
   int            nodeRet;
 
-  state = ak_calloc(*states, sizeof(*state), 1);
+  state = ak_calloc(*states, sizeof(*state), false);
   state->base.state_type = AK_RENDER_STATE_STENCIL_FUNC;
 
   do {
@@ -1011,7 +1011,7 @@ ak_dae_fxStateStencilOp(xmlTextReaderPtr reader,
   int            nodeType;
   int            nodeRet;
 
-  state = ak_calloc(*states, sizeof(*state), 1);
+  state = ak_calloc(*states, sizeof(*state), false);
   state->base.state_type = AK_RENDER_STATE_STENCIL_OP;
 
   do {
@@ -1090,7 +1090,7 @@ ak_dae_fxStateStencilFuncSep(xmlTextReaderPtr reader,
   int            nodeType;
   int            nodeRet;
 
-  state = ak_calloc(*states, sizeof(*state), 1);
+  state = ak_calloc(*states, sizeof(*state), false);
   state->base.state_type = AK_RENDER_STATE_STENCIL_FUNC_SEPARATE;
 
   do {
@@ -1180,7 +1180,7 @@ ak_dae_fxStateStencilOpSep(xmlTextReaderPtr reader,
   int            nodeType;
   int            nodeRet;
 
-  state = ak_calloc(*states, sizeof(*state), 1);
+  state = ak_calloc(*states, sizeof(*state), false);
   state->base.state_type = AK_RENDER_STATE_STENCIL_OP_SEPARATE;
 
   do {
@@ -1276,7 +1276,7 @@ ak_dae_fxStateStencilMaskSep(xmlTextReaderPtr reader,
   int            nodeType;
   int            nodeRet;
 
-  state = ak_calloc(*states, sizeof(*state), 1);
+  state = ak_calloc(*states, sizeof(*state), false);
   state->base.state_type = AK_RENDER_STATE_STENCIL_MASK_SEPARATE;
 
   do {

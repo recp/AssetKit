@@ -25,7 +25,7 @@ ak_dae_technique(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  technique = ak_calloc(memParent, sizeof(*technique), 1);
+  technique = ak_calloc(memParent, sizeof(*technique), false);
 
   _xml_readAttr(technique, technique->profile, _s_dae_profile);
   _xml_readAttr(technique, technique->xmlns, _s_dae_xmlns);

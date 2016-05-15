@@ -54,7 +54,7 @@ ak_dae_fxSampler(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  sampler = ak_calloc(memParent, sizeof(*sampler), 1);
+  sampler = ak_calloc(memParent, sizeof(*sampler), false);
 
   if (fxSamplerCMapLen == 0) {
     fxSamplerCMapLen = AK_ARRAY_LEN(fxSamplerCMap);
@@ -125,7 +125,7 @@ ak_dae_fxSampler(void * __restrict memParent,
         AkColor *color;
         AkResult  ret;
 
-        color = ak_calloc(sampler, sizeof(*color), 1);
+        color = ak_calloc(sampler, sizeof(*color), false);
         ret   = ak_dae_color(reader, true, color);
 
         if (ret == AK_OK)

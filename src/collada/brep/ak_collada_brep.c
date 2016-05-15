@@ -59,13 +59,14 @@ ak_dae_brep(void * __restrict memParent,
     obj = ak_objAlloc(memParent,
                       sizeof(*brep),
                       0,
-                      true);
+                      true,
+                      false);
 
     brep = ak_objGet(obj);
 
     memPtr = obj;
   } else {
-    brep = ak_calloc(memParent, sizeof(*brep), 1);
+    brep = ak_calloc(memParent, sizeof(*brep), false);
     memPtr = brep;
   }
 

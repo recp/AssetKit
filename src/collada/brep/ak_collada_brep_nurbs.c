@@ -26,12 +26,13 @@ ak_dae_nurbs(void * __restrict memParent,
     obj = ak_objAlloc(memParent,
                       sizeof(*nurbs),
                       0,
-                      true);
+                      true,
+                      false);
 
     nurbs = ak_objGet(obj);
     memPtr = obj;
   } else {
-    nurbs = ak_calloc(memParent, sizeof(*nurbs), 1);
+    nurbs = ak_calloc(memParent, sizeof(*nurbs), false);
     memPtr = nurbs;
   }
 
@@ -66,7 +67,7 @@ ak_dae_nurbs(void * __restrict memParent,
       AkControlVerts *cverts;
       AkInputBasic   *last_input;
 
-      cverts = ak_calloc(memPtr, sizeof(*cverts), 1);
+      cverts = ak_calloc(memPtr, sizeof(*cverts), false);
 
       last_input = NULL;
 
@@ -76,7 +77,7 @@ ak_dae_nurbs(void * __restrict memParent,
         if (_xml_eqElm(_s_dae_input)) {
           AkInputBasic *input;
 
-          input = ak_calloc(memPtr, sizeof(*input), 1);
+          input = ak_calloc(memPtr, sizeof(*input), false);
 
           _xml_readAttr(input, input->semanticRaw, _s_dae_semantic);
           _xml_readAttr(input, input->source, _s_dae_source);
@@ -159,12 +160,13 @@ ak_dae_nurbs_surface(void * __restrict memParent,
     obj = ak_objAlloc(memParent,
                       sizeof(*nurbsSurface),
                       0,
-                      true);
+                      true,
+                      false);
 
     nurbsSurface = ak_objGet(obj);
     memPtr = obj;
   } else {
-    nurbsSurface = ak_calloc(memParent, sizeof(*nurbsSurface), 1);
+    nurbsSurface = ak_calloc(memParent, sizeof(*nurbsSurface), false);
     memPtr = nurbsSurface;
   }
 
@@ -208,7 +210,7 @@ ak_dae_nurbs_surface(void * __restrict memParent,
       AkControlVerts *cverts;
       AkInputBasic   *last_input;
 
-      cverts = ak_calloc(memPtr, sizeof(*cverts), 1);
+      cverts = ak_calloc(memPtr, sizeof(*cverts), false);
 
       last_input = NULL;
 
@@ -218,7 +220,7 @@ ak_dae_nurbs_surface(void * __restrict memParent,
         if (_xml_eqElm(_s_dae_input)) {
           AkInputBasic *input;
 
-          input = ak_calloc(memPtr, sizeof(*input), 1);
+          input = ak_calloc(memPtr, sizeof(*input), false);
 
           _xml_readAttr(input, input->semanticRaw, _s_dae_semantic);
           _xml_readAttr(input, input->source, _s_dae_source);

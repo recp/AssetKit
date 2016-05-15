@@ -18,7 +18,7 @@ ak_dae_camera(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  camera = ak_calloc(memParent, sizeof(*camera), 1);
+  camera = ak_calloc(memParent, sizeof(*camera), false);
 
   _xml_readAttr(camera, camera->id, _s_dae_id);
   _xml_readAttr(camera, camera->name, _s_dae_name);
@@ -40,7 +40,7 @@ ak_dae_camera(void * __restrict memParent,
       AkTechnique        *last_tq;
       AkTechniqueCommon *last_tc;
 
-      optics = ak_calloc(camera, sizeof(*optics), 1);
+      optics = ak_calloc(camera, sizeof(*optics), false);
 
       last_tq = optics->technique;
       last_tc = optics->techniqueCommon;
@@ -90,7 +90,7 @@ ak_dae_camera(void * __restrict memParent,
       AkImager    *imager;
       AkTechnique *last_tq;
 
-      imager  = ak_calloc(camera, sizeof(*imager), 1);
+      imager  = ak_calloc(camera, sizeof(*imager), false);
       last_tq = imager->technique;
 
       do {

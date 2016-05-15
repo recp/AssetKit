@@ -18,7 +18,7 @@ ak_dae_vertices(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  vertices = ak_calloc(memParent, sizeof(*vertices), 1);
+  vertices = ak_calloc(memParent, sizeof(*vertices), false);
 
   _xml_readAttr(vertices, vertices->id, _s_dae_id);
   _xml_readAttr(vertices, vertices->name, _s_dae_name);
@@ -31,7 +31,7 @@ ak_dae_vertices(void * __restrict memParent,
     if (_xml_eqElm(_s_dae_input)) {
       AkInputBasic *input;
 
-      input = ak_calloc(vertices, sizeof(*input), 1);
+      input = ak_calloc(vertices, sizeof(*input), false);
 
       _xml_readAttr(input, input->semanticRaw, _s_dae_semantic);
       _xml_readAttr(input, input->source, _s_dae_source);

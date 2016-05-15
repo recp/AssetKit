@@ -66,7 +66,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
     return AK_ERR;
   }
 
-  doc = ak_calloc(NULL, sizeof(*doc), 1);
+  doc = ak_calloc(NULL, sizeof(*doc), false);
 
   _xml_readNext;
 
@@ -89,7 +89,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
       AkDocInf   * docInf;
       AkResult      ret;
 
-      docInf = ak_calloc(doc, sizeof(*docInf), 1);
+      docInf = ak_calloc(doc, sizeof(*docInf), false);
       assetInf = &docInf->base;
 
       ret = ak_dae_assetInf(docInf, reader, &assetInf);
@@ -101,7 +101,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
       AkLibCamera *libcam;
       AkCamera    *lastcam;
 
-      libcam = ak_calloc(doc, sizeof(*libcam), 1);
+      libcam = ak_calloc(doc, sizeof(*libcam), false);
       if (last_libCam)
         last_libCam->next = libcam;
       else
@@ -162,7 +162,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
       AkLibLight *liblight;
       AkLight    *lastlight;
 
-      liblight = ak_calloc(doc, sizeof(*liblight), 1);
+      liblight = ak_calloc(doc, sizeof(*liblight), false);
       if (last_libLight)
         last_libLight->next = liblight;
       else
@@ -225,7 +225,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
       AkLibEffect *libEffect;
       AkEffect    *lastEffect;
 
-      libEffect = ak_calloc(doc, sizeof(*libEffect), 1);
+      libEffect = ak_calloc(doc, sizeof(*libEffect), false);
       if (last_libEffect)
         last_libEffect->next = libEffect;
       else
@@ -286,7 +286,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
       AkLibImage *libimg;
       AkImage      *lastimg;
 
-      libimg = ak_calloc(doc, sizeof(*libimg), 1);
+      libimg = ak_calloc(doc, sizeof(*libimg), false);
       if (last_libImage)
         last_libImage->next = libimg;
       else
@@ -346,7 +346,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
       AkLibMaterial *libMaterial;
       AkMaterial     *lastMaterial;
 
-      libMaterial = ak_calloc(doc, sizeof(*libMaterial), 1);
+      libMaterial = ak_calloc(doc, sizeof(*libMaterial), false);
       if (last_libMaterial)
         last_libMaterial->next = libMaterial;
       else
@@ -407,7 +407,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
       AkLibGeometry *libGeometry;
       AkGeometry    *lastGeometry;
 
-      libGeometry = ak_calloc(doc, sizeof(*libGeometry), 1);
+      libGeometry = ak_calloc(doc, sizeof(*libGeometry), false);
       if (last_libGeometry)
         last_libGeometry->next = libGeometry;
       else
@@ -468,7 +468,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
       AkLibController *libController;
       AkController    *lastController;
 
-      libController = ak_calloc(doc, sizeof(*libController), 1);
+      libController = ak_calloc(doc, sizeof(*libController), false);
       if (last_libController)
         last_libController->next = libController;
       else
@@ -529,7 +529,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
       AkLibVisualScene *libVisualScene;
       AkVisualScene    *lastVisualScene;
 
-      libVisualScene = ak_calloc(doc, sizeof(*libVisualScene), 1);
+      libVisualScene = ak_calloc(doc, sizeof(*libVisualScene), false);
       if (last_libVisualScene)
         last_libVisualScene->next = libVisualScene;
       else
@@ -590,7 +590,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
       AkLibNode *libNode;
       AkNode    *lastNode;
 
-      libNode = ak_calloc(doc, sizeof(*libNode), 1);
+      libNode = ak_calloc(doc, sizeof(*libNode), false);
       if (last_libNode)
         last_libNode->next = libNode;
       else

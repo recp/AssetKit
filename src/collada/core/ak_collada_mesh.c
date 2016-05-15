@@ -57,13 +57,14 @@ ak_dae_mesh(void * __restrict memParent,
     obj = ak_objAlloc(memParent,
                       sizeof(*mesh),
                       0,
-                      true);
+                      true,
+                      false);
 
     mesh = ak_objGet(obj);
 
     memPtr = obj;
   } else {
-    mesh = ak_calloc(memParent, sizeof(*mesh), 1);
+    mesh = ak_calloc(memParent, sizeof(*mesh), false);
     memPtr = mesh;
   }
 
