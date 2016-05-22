@@ -9,6 +9,7 @@
 #define __libassetkit__assetkit__h_
 
 #include <stdlib.h>
+#include <errno.h>
 #include <time.h>
 
 /* since C99 or compiler ext */
@@ -90,8 +91,11 @@ AK__DEF_ARRAY(AkString);
 typedef time_t ak_time_t;
 
 typedef enum AkResult {
-  AK_ERR = -1,
-  AK_OK  = 0
+  AK_OK     = 0,
+  AK_ERR    = -1, /* UKNOWN ERR */
+  AK_EFOUND = -1000,
+  AK_ENOMEM = -ENOMEM,
+  AK_EPERM  = -EPERM
 } AkResult;
 
 typedef enum AkValueType {
