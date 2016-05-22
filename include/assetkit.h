@@ -81,6 +81,14 @@ AK__DEF_ARRAY(AkString);
 
 #undef AK__DEF_ARRAY
 
+typedef enum AkResult {
+  AK_OK     = 0,
+  AK_ERR    = -1, /* UKNOWN ERR */
+  AK_EFOUND = -1000,
+  AK_ENOMEM = -ENOMEM,
+  AK_EPERM  = -EPERM
+} AkResult;
+
 /* End Core Value Types */
 
 #include "ak-memory.h"
@@ -89,14 +97,6 @@ AK__DEF_ARRAY(AkString);
  * @brief library time type
  */
 typedef time_t ak_time_t;
-
-typedef enum AkResult {
-  AK_OK     = 0,
-  AK_ERR    = -1, /* UKNOWN ERR */
-  AK_EFOUND = -1000,
-  AK_ENOMEM = -ENOMEM,
-  AK_EPERM  = -EPERM
-} AkResult;
 
 typedef enum AkValueType {
   AK_VALUE_TYPE_UNKNOWN  = 0,
