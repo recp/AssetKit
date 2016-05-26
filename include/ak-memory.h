@@ -35,7 +35,8 @@ typedef enum AkHeapFlags {
 
 typedef enum AkHeapNodeFlags {
   AK_HEAP_NODE_FLAGS_NONE = 0,
-  AK_HEAP_NODE_FLAGS_SRCH = 1 << 0
+  AK_HEAP_NODE_FLAGS_SRCH = 1 << 0,
+  AK_HEAP_NODE_FLAGS_RED  = 1 << 1
 } AkHeapNodeFlags;
 
 void
@@ -76,6 +77,31 @@ void
 AK_EXPORT
 ak_heap_cleanup(ak_heap * __restrict heap);
 
+void *
+AK_EXPORT
+ak_heap_getId(ak_heap * __restrict heap,
+              ak_heap_node * __restrict heap_node);
+
+void
+AK_EXPORT
+ak_heap_setId(ak_heap * __restrict heap,
+              ak_heap_node * __restrict heap_node,
+              void * __restrict memId);
+
+AkResult
+AK_EXPORT
+ak_heap_getMemById(ak_heap * __restrict heap,
+                   void * __restrict memId,
+                   void ** __restrict dest);
+
+void
+ak_heap_printKeys(ak_heap * __restrict heap);
+
+/* default heap helpers */
+
+void
+ak_mem_printKeys();
+
 void*
 AK_EXPORT
 ak_malloc(void * __restrict parent,
@@ -107,6 +133,22 @@ ak_mem_setp(void * __restrict memptr,
 void
 AK_EXPORT
 ak_free(void * __restrict memptr);
+
+void *
+AK_EXPORT
+ak_mem_getId(void * __restrict memptr);
+
+void
+AK_EXPORT
+ak_mem_setId(void * __restrict memptr,
+             void * __restrict memId);
+
+AkResult
+AK_EXPORT
+ak_mem_getMemById(void * __restrict memId,
+                  void ** __restrict dest);
+
+/* mem wrapper helpers */
 
 AkObject*
 AK_EXPORT

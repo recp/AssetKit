@@ -6,6 +6,8 @@
  */
 
 #include "ak_common.h"
+#include "ak_memory_common.h"
+#include "ak_memory_rb.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -23,62 +25,10 @@
 # define je_free(size)           free(size)
 #endif
 
-#define ak__align_size 8
-#define ak__heapnd_sz  (sizeof(ak_heap_node*) * 3 + sizeof(AkHeapNodeFlags))
-
-#define ak__align(size) ((size + ak__align_size - 1)                          \
-        &~ (uintptr_t)(ak__align_size - 1))
-
-#define ak__alignof(p) ((ak_heap_node *)(((char *)p)-ak__heapnd_sz))
-#define ak__alignas(m) ((void *)(((char *)m)+ak__heapnd_sz))
-
-/*
- * Binary Search Tree Node
- */
-typedef struct ak_heap_snode_s ak_heap_snode;
-
-struct ak_heap_snode_s {
-  void          *key;
-  ak_heap_snode *left;
-  ak_heap_snode *right;
-};
-
-/*
- case 1:
- 
-     | ak_heap_node | data |
-     ^
-  pointer
-
-
- case 2:
-     | ak_heap_snode | ak_heap_node | data |
-                     ^
-                  pointer
- */
-struct ak_heap_node_s {
-  ak_heap_node *prev; /* parent */
-  ak_heap_node *next; /* right  */
-  ak_heap_node *chld; /* left   */
-  AkEnum        flags;
-  char data[];
-};
-
-struct ak_heap_s {
-  ak_heap_node  *root;
-  ak_heap_node  *trash;
-#ifdef __APPLE__
-  void          *alloc_zone;
-#endif
-  ak_heap_snode *srch_root;
-  ak_heap_cmp    cmp;
-  AkEnum         flags;
-};
-
 static ak_heap ak__heap = {
   .root       = NULL,
   .trash      = NULL,
-  .srch_root  = NULL,
+  .srchRoot   = NULL,
   .alloc_zone = NULL,
   .flags      = 0
 };
@@ -87,20 +37,43 @@ static
 int
 ak__heap_srch_cmp(void * __restrict key1,
                   void * __restrict key2) {
-  return strcmp(key1, key2);
+  return strcmp((char *)key1, (char *)key2);
 }
 
 void
 AK_EXPORT
 ak_heap_init(ak_heap * __restrict heap,
              ak_heap_cmp cmp) {
+  AkHeapSrchNode *srchRootNode;
+  AkHeapSrchNode *srchNullNode;
+  size_t srchNodeSize;
+
   if (heap->flags & AK_HEAP_FLAGS_INITIALIZED)
     return;
+
+  srchNodeSize = sizeof(AkHeapSrchNode) + ak__heapnd_sz;
+  srchRootNode = calloc(srchNodeSize, 1);
+  srchNullNode = calloc(srchNodeSize, 1);
+
+  srchRootNode->key = "";
+  srchRootNode->chld[AK__BST_LEFT]  = srchNullNode;
+  srchRootNode->chld[AK__BST_RIGHT] = srchNullNode;
+
+  srchNullNode->key = "";
+  srchNullNode->chld[AK__BST_LEFT]  = srchNullNode;
+  srchNullNode->chld[AK__BST_RIGHT] = srchNullNode;
+
+  AK__HEAPNODE(srchRootNode)->flags = AK_HEAP_NODE_FLAGS_SRCH;
+  AK__HEAPNODE(srchNullNode)->flags = AK_HEAP_NODE_FLAGS_SRCH;
 
   heap->root  = NULL;
   heap->trash = NULL;
   heap->flags |= AK_HEAP_FLAGS_INITIALIZED;
   heap->cmp = cmp ? cmp : ak__heap_srch_cmp;
+
+  /* Real Root is srchRoot-right node */
+  heap->srchRoot = srchRootNode;
+  heap->srchNullNode = srchNullNode;
 
 #ifdef __APPLE__
   heap->alloc_zone = malloc_create_zone(PAGE_SIZE, 0);
@@ -121,6 +94,9 @@ ak_heap_destroy(ak_heap * __restrict heap) {
   ak_heap_cleanup(&ak__heap);
 #endif
 
+  free(heap->srchRoot);
+  free(heap->srchNullNode);
+
   if (heap->flags & AK_HEAP_FLAGS_DYNAMIC
       && heap != &ak__heap)
     free(heap);
@@ -139,19 +115,25 @@ ak_heap_alloc(ak_heap * __restrict heap,
 
   memsize = ak__heapnd_sz + size;
   if (srch)
-    memsize += sizeof(ak_heap_snode);
+    memsize += sizeof(AkHeapSrchNode);
 
   memsize = ak__align(memsize);
   chunk = je_malloc(memsize);
   assert(chunk && "malloc failed");
 
   if (srch) {
+    AkHeapSrchNode *srchNode;
     memset(chunk,
            '\0',
-           sizeof(ak_heap_snode));
+           sizeof(AkHeapSrchNode));
 
-    currNode = chunk + sizeof(ak_heap_snode);
-    currNode->flags |= AK_HEAP_NODE_FLAGS_SRCH;
+    currNode = chunk + sizeof(AkHeapSrchNode);
+    currNode->flags |= (AK_HEAP_NODE_FLAGS_SRCH | AK_HEAP_NODE_FLAGS_RED);
+
+    srchNode = (AkHeapSrchNode *)chunk;
+    srchNode->chld[AK__BST_LEFT]  = heap->srchNullNode;
+    srchNode->chld[AK__BST_RIGHT] = heap->srchNullNode;
+    srchNode->key = "";
   } else {
     currNode = chunk;
     currNode->flags = 0;
@@ -305,7 +287,7 @@ ak_heap_free(ak_heap * __restrict heap,
       }
 
       if (toFree->flags & AK_HEAP_NODE_FLAGS_SRCH) {
-        je_free(toFree - sizeof(ak_heap_snode));
+        je_free(toFree - sizeof(AkHeapSrchNode));
       } else {
         je_free(toFree);
       }
@@ -333,7 +315,7 @@ ak_heap_free(ak_heap * __restrict heap,
   heap_node->prev = NULL;
 
   if (heap_node->flags & AK_HEAP_NODE_FLAGS_SRCH) {
-    je_free(heap_node - sizeof(ak_heap_snode));
+    je_free(heap_node - sizeof(AkHeapSrchNode));
   } else {
     je_free(heap_node);
   }
@@ -344,6 +326,93 @@ AK_EXPORT
 ak_heap_cleanup(ak_heap * __restrict heap) {
   while (heap->root)
     ak_heap_free(heap, heap->root);
+}
+
+void *
+AK_EXPORT
+ak_heap_getId(ak_heap * __restrict heap,
+              ak_heap_node * __restrict heap_node) {
+  if (heap_node->flags & AK_HEAP_NODE_FLAGS_SRCH) {
+    AkHeapSrchNode *snode;
+    snode = heap_node - sizeof(*snode);
+    return snode->key;
+  }
+
+  return NULL;
+}
+
+void
+AK_EXPORT
+ak_heap_setId(ak_heap * __restrict heap,
+              ak_heap_node * __restrict heap_node,
+              void * __restrict memId) {
+  if (heap_node->flags & AK_HEAP_NODE_FLAGS_SRCH) {
+    AkHeapSrchNode *snode;
+    snode = (char *)heap_node - sizeof(*snode);
+
+    if (!memId) {
+      ak_heap_rb_remove(heap, snode);
+      snode->key = NULL;
+    } else {
+      snode->key = memId;
+      ak_heap_rb_insert(heap, snode);
+    }
+  }
+}
+
+AkResult
+AK_EXPORT
+ak_heap_getMemById(ak_heap * __restrict heap,
+                   void * __restrict memId,
+                   void ** __restrict dest) {
+  ak_heap_node   *heapNode;
+  AkHeapSrchNode *srchNode;
+
+  srchNode = ak_heap_rb_find(heap, memId);
+  if (!srchNode || srchNode == heap->srchNullNode) {
+    *dest = NULL;
+    return AK_EFOUND;
+  }
+
+  heapNode = AK__HEAPNODE(srchNode);
+  *dest = ak__alignas(heapNode);
+
+  return AK_OK;
+}
+
+void
+ak_heap_printKeys(ak_heap * __restrict heap) {
+  ak_heap_rb_print(heap);
+}
+
+void
+ak_mem_printKeys() {
+  ak_heap_rb_print(&ak__heap);
+}
+
+void *
+AK_EXPORT
+ak_mem_getId(void * __restrict memptr) {
+  return ak_heap_getId(&ak__heap,
+                       ak__alignof(memptr));
+}
+
+void
+AK_EXPORT
+ak_mem_setId(void * __restrict memptr,
+             void * __restrict memId) {
+  ak_heap_setId(&ak__heap,
+                ak__alignof(memptr),
+                memId);
+}
+
+AkResult
+AK_EXPORT
+ak_mem_getMemById(void * __restrict memId,
+                  void ** __restrict dest) {
+  return ak_heap_getMemById(&ak__heap,
+                            memId,
+                            dest);
 }
 
 void
