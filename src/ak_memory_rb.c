@@ -10,7 +10,10 @@
  * P:  Parent Node         (Parent of X)
  * T:  X's Sibling Node
  * G:  Grand Parent Node   (Parent of P)
- * GT: Great Parent Node   (Parent of Grand Parent)
+ * Q:  Great Parent Node   (Parent of Grand Parent)
+ *
+ * Y:  X's left child
+ * Z:  X's right child
  *
  * sX: side of X           (if X is left then sX=0, right sX=1)
  * sP: side of P
@@ -26,13 +29,13 @@
 void
 ak_heap_rb_insert(ak_heap * __restrict heap,
                   AkHeapSrchNode * __restrict srchNode) {
-  AkHeapSrchNode *X, *P, *T, *G, *GT;
+  AkHeapSrchNode *X, *P, *T, *G, *Q;
   int sG, sP, sX;
 
   sG = sP = -1;
   sX = 1;
   
-  X = P = G = GT = heap->srchRoot;
+  X = P = G = Q = heap->srchRoot;
 
   /* Top-Down Insert */
   while (X != heap->srchNullNode) {
@@ -40,10 +43,10 @@ ak_heap_rb_insert(ak_heap * __restrict heap,
     sP = sX;
     sX = !(heap->cmp(srchNode->key, X->key) < 0);
 
-    GT = G;
-    G  = P;
-    P  = X;
-    X  = X->chld[sX];
+    Q = G;
+    G = P;
+    P = X;
+    X = X->chld[sX];
 
   case1:
     /*
@@ -82,7 +85,7 @@ ak_heap_rb_insert(ak_heap * __restrict heap,
           G->chld[sP]  = X->chld[sX];
           X->chld[!sX] = P;
           X->chld[sX]  = G;
-          GT->chld[sG] = X;
+          Q->chld[sG]  = X;
 
           AK__RB_MKBLACK(X);
 
@@ -100,11 +103,11 @@ ak_heap_rb_insert(ak_heap * __restrict heap,
         else {
           G->chld[sP]  = P->chld[!sX];
           P->chld[!sX] = G;
-          GT->chld[sG] = P;
+          Q->chld[sG]  = P;
 
           AK__RB_MKBLACK(P);
 
-          G = GT;
+          G = Q;
         }
       }
     }
@@ -132,7 +135,7 @@ ak_heap_rb_insert(ak_heap * __restrict heap,
       G->chld[sP]  = X->chld[sX];
       X->chld[!sX] = P;
       X->chld[sX]  = G;
-      GT->chld[sG] = X;
+      Q->chld[sG]  = X;
 
       AK__RB_MKBLACK(X);
     }
@@ -141,7 +144,7 @@ ak_heap_rb_insert(ak_heap * __restrict heap,
     else {
       G->chld[sP]  = P->chld[!sX];
       P->chld[!sX] = G;
-      GT->chld[sG] = P;
+      Q->chld[sG]  = P;
 
       AK__RB_MKBLACK(P);
     }
@@ -280,14 +283,14 @@ ak_heap_rb_remove(ak_heap * __restrict heap,
          attach X's left to X's right->left(min) if exists
      */
     if (cmpRet == 0) {
-      AkHeapSrchNode *node;
+      AkHeapSrchNode *Z;
 
-      node = P->chld[AK__BST_RIGHT];
-      while (node->chld[AK__BST_LEFT] != heap->srchNullNode)
-        node = node->chld[AK__BST_LEFT];
+      Z = P->chld[AK__BST_RIGHT];
+      while (Z->chld[AK__BST_LEFT] != heap->srchNullNode)
+        Z = Z->chld[AK__BST_LEFT];
 
       G->chld[sP] = P->chld[AK__BST_RIGHT];
-      node->chld[AK__BST_LEFT] = P->chld[AK__BST_LEFT];
+      Z->chld[AK__BST_LEFT] = P->chld[AK__BST_LEFT];
 
       break;
     }
