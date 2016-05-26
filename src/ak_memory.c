@@ -25,6 +25,8 @@
 # define je_free(size)           free(size)
 #endif
 
+static const char * ak__emptystr = "";
+
 static ak_heap ak__heap = {
   .root       = NULL,
   .trash      = NULL,
@@ -55,11 +57,11 @@ ak_heap_init(ak_heap * __restrict heap,
   srchRootNode = calloc(srchNodeSize, 1);
   srchNullNode = calloc(srchNodeSize, 1);
 
-  srchRootNode->key = "";
+  srchRootNode->key = ak__emptystr;
   srchRootNode->chld[AK__BST_LEFT]  = srchNullNode;
   srchRootNode->chld[AK__BST_RIGHT] = srchNullNode;
 
-  srchNullNode->key = "";
+  srchNullNode->key = ak__emptystr;
   srchNullNode->chld[AK__BST_LEFT]  = srchNullNode;
   srchNullNode->chld[AK__BST_RIGHT] = srchNullNode;
 
@@ -133,7 +135,7 @@ ak_heap_alloc(ak_heap * __restrict heap,
     srchNode = (AkHeapSrchNode *)chunk;
     srchNode->chld[AK__BST_LEFT]  = heap->srchNullNode;
     srchNode->chld[AK__BST_RIGHT] = heap->srchNullNode;
-    srchNode->key = "";
+    srchNode->key = ak__emptystr;
   } else {
     currNode = chunk;
     currNode->flags = 0;
@@ -291,7 +293,7 @@ ak_heap_free(ak_heap * __restrict heap,
         srchNode = ((char *)toFree) - sizeof(AkHeapSrchNode);
 
         /* remove it from rb tree */
-        if (srchNode->key)
+        if (srchNode->key != ak__emptystr)
           ak_heap_rb_remove(heap, srchNode);
 
         je_free(srchNode);
@@ -326,7 +328,7 @@ ak_heap_free(ak_heap * __restrict heap,
     srchNode = ((char *)heap_node) - sizeof(AkHeapSrchNode);
 
     /* remove it from rb tree */
-    if (srchNode->key)
+    if (srchNode->key != ak__emptystr)
       ak_heap_rb_remove(heap, srchNode);
 
     je_free(srchNode);
@@ -366,7 +368,7 @@ ak_heap_setId(ak_heap * __restrict heap,
 
     if (!memId) {
       ak_heap_rb_remove(heap, snode);
-      snode->key = NULL;
+      snode->key = ak__emptystr;
     } else {
       snode->key = memId;
       ak_heap_rb_insert(heap, snode);
