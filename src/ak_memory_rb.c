@@ -29,13 +29,13 @@
 void
 ak_heap_rb_insert(ak_heap * __restrict heap,
                   AkHeapSrchNode * __restrict srchNode) {
-  AkHeapSrchNode *X, *P, *T, *G, *Q;
+  AkHeapSrchNode *X, *P, *G, *Q;
   int sG, sP, sX;
 
-  sG = sP = -1;
-  sX = 1;
+  sG = sP = sX = 1;
   
-  X = P = G = Q = heap->srchRoot;
+  P = G = Q = heap->srchRoot;
+  X = heap->srchRoot->chld[AK__BST_RIGHT];
 
   /* Top-Down Insert */
   while (X != heap->srchNullNode) {
