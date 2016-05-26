@@ -157,11 +157,11 @@ ak_heap_rb_remove(ak_heap * __restrict heap,
   AkHeapSrchNode *X, *P, *T, *G;
   int            sG, sP, sX, cX, cmpRet;
 
-  sG = sP = -1;
-  sX = 1;
+  sG = sP = sX = 1;
   cX = 0; /* root is black */
 
-  G = P = X = heap->srchRoot;
+  G = P = heap->srchRoot;
+  X = heap->srchRoot->chld[AK__BST_RIGHT];
   T = heap->srchNullNode;
 
   /* step 1: make root red */
