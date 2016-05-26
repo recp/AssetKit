@@ -203,8 +203,10 @@ ak_heap_rb_remove(ak_heap * __restrict heap,
       AK__RB_MKRED(P);
       AK__RB_MKBLACK(T);
 
-      T = R;
       G = T;
+      T = R;
+
+      sP = sX;
     }
 
     /* case 1: X has two black children */
@@ -242,6 +244,8 @@ ak_heap_rb_remove(ak_heap * __restrict heap,
 
         G = R;
         T = P->chld[!sX];
+
+        sP = sX;
       }
 
       /* case 1.c: T's right child is red */
@@ -264,6 +268,9 @@ ak_heap_rb_remove(ak_heap * __restrict heap,
 
         G = T;
         T = P->chld[!sX];
+
+        sG = sP;
+        sP = sX;
       }
     }
 
