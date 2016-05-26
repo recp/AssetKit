@@ -275,7 +275,7 @@ ak_heap_rb_remove(ak_heap * __restrict heap,
     if (cmpRet == 0) {
       AkHeapSrchNode *node;
 
-      node = P->chld[AK__BST_RIGHT]->chld[AK__BST_LEFT];
+      node = P->chld[AK__BST_RIGHT];
       while (node->chld[AK__BST_LEFT] != heap->srchNullNode)
         node = node->chld[AK__BST_LEFT];
 
