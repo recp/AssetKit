@@ -94,12 +94,12 @@ ak_heap_destroy(ak_heap * __restrict heap) {
   ak_heap_cleanup(&ak__heap);
 #endif
 
-  free(heap->srchRoot);
-  free(heap->srchNullNode);
+  je_free(heap->srchRoot);
+  je_free(heap->srchNullNode);
 
   if (heap->flags & AK_HEAP_FLAGS_DYNAMIC
       && heap != &ak__heap)
-    free(heap);
+    je_free(heap);
 }
 
 void*
@@ -287,7 +287,14 @@ ak_heap_free(ak_heap * __restrict heap,
       }
 
       if (toFree->flags & AK_HEAP_NODE_FLAGS_SRCH) {
-        je_free(toFree - sizeof(AkHeapSrchNode));
+        AkHeapSrchNode *srchNode;
+        srchNode = ((char *)toFree) - sizeof(AkHeapSrchNode);
+
+        /* remove it from rb tree */
+        if (srchNode->key)
+          ak_heap_rb_remove(heap, srchNode);
+
+        je_free(srchNode);
       } else {
         je_free(toFree);
       }
@@ -315,7 +322,14 @@ ak_heap_free(ak_heap * __restrict heap,
   heap_node->prev = NULL;
 
   if (heap_node->flags & AK_HEAP_NODE_FLAGS_SRCH) {
-    je_free(heap_node - sizeof(AkHeapSrchNode));
+    AkHeapSrchNode *srchNode;
+    srchNode = ((char *)heap_node) - sizeof(AkHeapSrchNode);
+
+    /* remove it from rb tree */
+    if (srchNode->key)
+      ak_heap_rb_remove(heap, srchNode);
+
+    je_free(srchNode);
   } else {
     je_free(heap_node);
   }
