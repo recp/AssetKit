@@ -286,11 +286,15 @@ ak_heap_rb_remove(ak_heap * __restrict heap,
       AkHeapSrchNode *Z;
 
       Z = P->chld[AK__BST_RIGHT];
-      while (Z->chld[AK__BST_LEFT] != heap->srchNullNode)
-        Z = Z->chld[AK__BST_LEFT];
+      if (Z != heap->srchNullNode) {
+        while (Z->chld[AK__BST_LEFT] != heap->srchNullNode)
+          Z = Z->chld[AK__BST_LEFT];
 
-      G->chld[sP] = P->chld[AK__BST_RIGHT];
-      Z->chld[AK__BST_LEFT] = P->chld[AK__BST_LEFT];
+        G->chld[sP] = P->chld[AK__BST_RIGHT];
+        Z->chld[AK__BST_LEFT] = P->chld[AK__BST_LEFT];
+      } else {
+        G->chld[sP] =  P->chld[AK__BST_LEFT];
+      }
 
       break;
     }
