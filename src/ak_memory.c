@@ -120,7 +120,7 @@ ak_heap_init(AkHeap * __restrict heap,
              AkHeapSrchCmp cmp) {
   AkHeapSrchNode    *srchRootNode;
   AkHeapSrchNode    *srchNullNode;
-  AkHeapSrchContext *srchCtx;
+  AkHeapSrchCtx *srchCtx;
 
   size_t srchNodeSize;
 

@@ -33,9 +33,9 @@ typedef struct AkHeapAllocator {
   size_t (*size)(const void *);
 } AkHeapAllocator;
 
-typedef struct AkHeapSrchContext AkHeapSrchContext;
-typedef struct AkHeapNode        AkHeapNode;
-typedef struct AkHeap            AkHeap;
+typedef struct AkHeapSrchCtx AkHeapSrchCtx;
+typedef struct AkHeapNode    AkHeapNode;
+typedef struct AkHeap        AkHeap;
 
 typedef int (*AkHeapSrchCmp)(void * __restrict key1,
                              void * __restrict key2);

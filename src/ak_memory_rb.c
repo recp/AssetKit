@@ -27,7 +27,7 @@
 #include <stdio.h>
 
 void
-ak_heap_rb_insert(AkHeapSrchContext * __restrict srchCtx,
+ak_heap_rb_insert(AkHeapSrchCtx * __restrict srchCtx,
                   AkHeapSrchNode * __restrict srchNode) {
   AkHeapSrchNode *X, *P, *G, *Q;
   int sG, sP, sX;
@@ -155,7 +155,7 @@ ak_heap_rb_insert(AkHeapSrchContext * __restrict srchCtx,
 }
 
 void
-ak_heap_rb_remove(AkHeapSrchContext * __restrict srchCtx,
+ak_heap_rb_remove(AkHeapSrchCtx * __restrict srchCtx,
                   AkHeapSrchNode * __restrict srchNode) {
   AkHeapSrchNode *X, *P, *T, *G;
   int            sG, sP, sX, cX, cmpRet;
@@ -305,7 +305,7 @@ ak_heap_rb_remove(AkHeapSrchContext * __restrict srchCtx,
 }
 
 AkHeapSrchNode *
-ak_heap_rb_find(AkHeapSrchContext * __restrict srchCtx,
+ak_heap_rb_find(AkHeapSrchCtx * __restrict srchCtx,
                 void * __restrict key) {
   AkHeapSrchNode *iter;
 
@@ -326,7 +326,7 @@ ak_heap_rb_find(AkHeapSrchContext * __restrict srchCtx,
 }
 
 void
-ak_heap_rb_printNode(AkHeapSrchContext * __restrict srchCtx,
+ak_heap_rb_printNode(AkHeapSrchCtx * __restrict srchCtx,
                      AkHeapSrchNode * __restrict srchNode) {
   if(srchNode != srchCtx->nullNode) {
     ak_heap_rb_printNode(srchCtx,
@@ -338,7 +338,7 @@ ak_heap_rb_printNode(AkHeapSrchContext * __restrict srchCtx,
 }
 
 void
-ak_heap_rb_print(AkHeapSrchContext * __restrict srchCtx) {
+ak_heap_rb_print(AkHeapSrchCtx * __restrict srchCtx) {
   if(!srchCtx->root->chld[AK__BST_RIGHT] == srchCtx->nullNode)
     printf("Empty tree");
   else
