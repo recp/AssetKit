@@ -167,8 +167,7 @@ ak_mem_getId(void * __restrict memptr);
 
 void
 AK_EXPORT
-ak_mem_setId(void * __restrict ctx,
-             void * __restrict memptr,
+ak_mem_setId(void * __restrict memptr,
              void * __restrict memId);
 
 AkResult
