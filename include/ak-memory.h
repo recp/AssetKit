@@ -33,11 +33,12 @@ typedef struct AkHeapAllocator {
   size_t (*size)(const void *);
 } AkHeapAllocator;
 
+typedef struct AkHeapSrchContext AkHeapSrchContext;
 typedef struct ak_heap_node_s ak_heap_node;
 typedef struct ak_heap_s      ak_heap;
 
-typedef int (*ak_heap_cmp)(void * __restrict key1,
-                           void * __restrict key2);
+typedef int (*AkHeapSrchCmp)(void * __restrict key1,
+                             void * __restrict key2);
 
 typedef enum AkHeapFlags {
   AK_HEAP_FLAGS_NONE        = 0,
@@ -58,13 +59,13 @@ ak_heap_allocator(ak_heap * __restrict heap);
 ak_heap *
 AK_EXPORT
 ak_heap_new(AkHeapAllocator *allocator,
-            ak_heap_cmp cmp);
+            AkHeapSrchCmp cmp);
 
 void
 AK_EXPORT
 ak_heap_init(ak_heap * __restrict heap,
              AkHeapAllocator *allocator,
-             ak_heap_cmp cmp);
+             AkHeapSrchCmp cmp);
 
 void
 AK_EXPORT

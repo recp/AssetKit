@@ -30,6 +30,12 @@ typedef struct AkHeapSrchNode {
   struct AkHeapSrchNode *chld[2];
 } AkHeapSrchNode;
 
+typedef struct AkHeapSrchContext {
+  AkHeapSrchNode  *root;
+  AkHeapSrchNode  *nullNode;
+  AkHeapSrchCmp    cmp;
+} AkHeapSrchContext;
+
 #define AK__HEAPNODE(X) \
             ((ak_heap_node *)(((char *)X) + sizeof(AkHeapSrchNode)))
 
@@ -43,7 +49,6 @@ typedef struct AkHeapSrchNode {
      | ak_heap_node | data |
      ^
   pointer
-
 
  case 2:
      | ak_heap_snode | ak_heap_node | data |
@@ -59,14 +64,11 @@ struct ak_heap_node_s {
 };
 
 struct ak_heap_s {
-  AkHeapAllocator *allocator;
-  ak_heap_node    *root;
-  ak_heap_node    *trash;
-  AkHeapSrchNode  *srchRoot;
-  AkHeapSrchNode  *srchNullNode;
-
-  ak_heap_cmp      cmp;
-  AkEnum           flags;
+  AkHeapAllocator   *allocator;
+  ak_heap_node      *root;
+  ak_heap_node      *trash;
+  AkHeapSrchContext *srchCtx;
+  AkEnum             flags;
 };
 
 #endif /* ak_memory_h */

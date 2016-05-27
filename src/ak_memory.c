@@ -49,10 +49,9 @@ static AkHeapAllocator ak__allocator = {
 
 static ak_heap ak__heap = {
   .allocator  = &ak__allocator,
-  .cmp        = ak__heap_srch_cmp,
+  .srchCtx    = NULL,
   .root       = NULL,
   .trash      = NULL,
-  .srchRoot   = NULL,
   .flags      = 0
 };
 
@@ -105,7 +104,7 @@ ak_heap_allocator(ak_heap * __restrict heap) {
 ak_heap *
 AK_EXPORT
 ak_heap_new(AkHeapAllocator *allocator,
-            ak_heap_cmp cmp) {
+            AkHeapSrchCmp cmp) {
   ak_heap *heap;
 
   heap = je_malloc(sizeof(*heap));
@@ -118,13 +117,18 @@ void
 AK_EXPORT
 ak_heap_init(ak_heap * __restrict heap,
              AkHeapAllocator *allocator,
-             ak_heap_cmp cmp) {
-  AkHeapSrchNode *srchRootNode;
-  AkHeapSrchNode *srchNullNode;
+             AkHeapSrchCmp cmp) {
+  AkHeapSrchNode    *srchRootNode;
+  AkHeapSrchNode    *srchNullNode;
+  AkHeapSrchContext *srchCtx;
+
   size_t srchNodeSize;
 
   if (heap->flags & AK_HEAP_FLAGS_INITIALIZED)
     return;
+
+  srchCtx = je_malloc(sizeof(*srchCtx));
+  srchCtx->cmp = cmp ? cmp : ak__heap_srch_cmp;
 
   srchNodeSize = sizeof(AkHeapSrchNode) + ak__heapnd_sz;
   srchRootNode = je_calloc(srchNodeSize, 1);
@@ -141,15 +145,15 @@ ak_heap_init(ak_heap * __restrict heap,
   AK__HEAPNODE(srchRootNode)->flags = AK_HEAP_NODE_FLAGS_SRCH;
   AK__HEAPNODE(srchNullNode)->flags = AK_HEAP_NODE_FLAGS_SRCH;
 
-  heap->root  = NULL;
-  heap->trash = NULL;
-  heap->flags |= AK_HEAP_FLAGS_INITIALIZED;
-  heap->cmp = cmp ? cmp : ak__heap_srch_cmp;
-  heap->allocator = allocator ? allocator : &ak__allocator;
-
   /* Real Root is srchRoot-right node */
-  heap->srchRoot = srchRootNode;
-  heap->srchNullNode = srchNullNode;
+  srchCtx->root     = srchRootNode;
+  srchCtx->nullNode = srchNullNode;
+
+  heap->root      = NULL;
+  heap->trash     = NULL;
+  heap->srchCtx   = srchCtx;
+  heap->allocator = allocator ? allocator : &ak__allocator;
+  heap->flags    |= AK_HEAP_FLAGS_INITIALIZED;
 }
 
 void
@@ -164,12 +168,13 @@ ak_heap_destroy(ak_heap * __restrict heap) {
 
   ak_heap_cleanup(&ak__heap);
 
-  allocator->free(heap->srchRoot);
-  allocator->free(heap->srchNullNode);
+  je_free(heap->srchCtx->root);
+  je_free(heap->srchCtx->nullNode);
+  je_free(heap->srchCtx);
 
   if (heap->flags & AK_HEAP_FLAGS_DYNAMIC
       && heap != &ak__heap)
-    allocator->free(heap);
+    je_free(heap);
 }
 
 void*
@@ -201,8 +206,8 @@ ak_heap_alloc(ak_heap * __restrict heap,
     currNode->flags |= (AK_HEAP_NODE_FLAGS_SRCH | AK_HEAP_NODE_FLAGS_RED);
 
     srchNode = (AkHeapSrchNode *)chunk;
-    srchNode->chld[AK__BST_LEFT]  = heap->srchNullNode;
-    srchNode->chld[AK__BST_RIGHT] = heap->srchNullNode;
+    srchNode->chld[AK__BST_LEFT]  = heap->srchCtx->nullNode;
+    srchNode->chld[AK__BST_RIGHT] = heap->srchCtx->nullNode;
     srchNode->key = ak__emptystr;
   } else {
     currNode = chunk;
@@ -364,7 +369,7 @@ ak_heap_free(ak_heap * __restrict heap,
 
         /* remove it from rb tree */
         if (srchNode->key != ak__emptystr)
-          ak_heap_rb_remove(heap, srchNode);
+          ak_heap_rb_remove(heap->srchCtx, srchNode);
 
         allocator->free(srchNode);
       } else {
@@ -399,7 +404,7 @@ ak_heap_free(ak_heap * __restrict heap,
 
     /* remove it from rb tree */
     if (srchNode->key != ak__emptystr)
-      ak_heap_rb_remove(heap, srchNode);
+      ak_heap_rb_remove(heap->srchCtx, srchNode);
 
     allocator->free(srchNode);
   } else {
@@ -437,11 +442,11 @@ ak_heap_setId(ak_heap * __restrict heap,
     snode = (char *)heap_node - sizeof(*snode);
 
     if (!memId) {
-      ak_heap_rb_remove(heap, snode);
+      ak_heap_rb_remove(heap->srchCtx, snode);
       snode->key = ak__emptystr;
     } else {
       snode->key = memId;
-      ak_heap_rb_insert(heap, snode);
+      ak_heap_rb_insert(heap->srchCtx, snode);
     }
   }
 }
@@ -455,7 +460,7 @@ ak_heap_getMemById(ak_heap * __restrict heap,
   AkHeapSrchNode *srchNode;
 
   srchNode = ak_heap_rb_find(heap, memId);
-  if (!srchNode || srchNode == heap->srchNullNode) {
+  if (!srchNode || srchNode == heap->srchCtx->nullNode) {
     *dest = NULL;
     return AK_EFOUND;
   }

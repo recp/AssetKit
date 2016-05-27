@@ -15,18 +15,18 @@
 #define AK__RB_MKBLACK(X) AK__HEAPNODE(X)->flags &= ~AK_HEAP_NODE_FLAGS_RED
 
 void
-ak_heap_rb_insert(ak_heap * __restrict heap,
+ak_heap_rb_insert(AkHeapSrchContext * __restrict srchCtx,
                   AkHeapSrchNode * __restrict srchNode);
 
 void
-ak_heap_rb_remove(ak_heap * __restrict heap,
+ak_heap_rb_remove(AkHeapSrchContext * __restrict srchCtx,
                   AkHeapSrchNode * __restrict srchNode);
 
 AkHeapSrchNode *
-ak_heap_rb_find(ak_heap * __restrict heap,
+ak_heap_rb_find(AkHeapSrchContext * __restrict srchCtx,
                 void * __restrict key);
 
 void
-ak_heap_rb_print(ak_heap * __restrict heap);
+ak_heap_rb_print(AkHeapSrchContext * __restrict srchCtx);
 
 #endif /* ak_memory_redblack_h */
