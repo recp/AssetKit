@@ -166,6 +166,8 @@ AK_EXPORT
 ak_heap_destroy(ak_heap * __restrict heap) {
   AkHeapAllocator * __restrict allocator;
 
+  allocator = heap->allocator;
+  
   if (!(heap->flags & AK_HEAP_FLAGS_INITIALIZED))
     return;
 
