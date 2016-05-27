@@ -32,7 +32,7 @@ ak__heap_strdup_def(const char * str);
 
 static
 int
-ak__heap_strdup(ak_heap * __restrict heap,
+ak__heap_strdup(AkHeap * __restrict heap,
                 const char * str);
 
 static const char * ak__emptystr = "";
@@ -47,7 +47,7 @@ static AkHeapAllocator ak__allocator = {
   .strdup   = ak__heap_strdup_def
 };
 
-static ak_heap ak__heap = {
+static AkHeap ak__heap = {
   .allocator  = &ak__allocator,
   .srchCtx    = NULL,
   .root       = NULL,
@@ -80,7 +80,7 @@ ak__heap_strdup_def(const char * str) {
 
 static
 int
-ak__heap_strdup(ak_heap * __restrict heap,
+ak__heap_strdup(AkHeap * __restrict heap,
                 const char * str) {
   void  *memptr;
   size_t memsize;
@@ -97,15 +97,15 @@ ak__heap_strdup(ak_heap * __restrict heap,
 
 AkHeapAllocator *
 AK_EXPORT
-ak_heap_allocator(ak_heap * __restrict heap) {
+ak_heap_allocator(AkHeap * __restrict heap) {
   return heap->allocator;
 }
 
-ak_heap *
+AkHeap *
 AK_EXPORT
 ak_heap_new(AkHeapAllocator *allocator,
             AkHeapSrchCmp cmp) {
-  ak_heap *heap;
+  AkHeap *heap;
 
   heap = je_malloc(sizeof(*heap));
   ak_heap_init(heap, allocator, cmp);
@@ -115,7 +115,7 @@ ak_heap_new(AkHeapAllocator *allocator,
 
 void
 AK_EXPORT
-ak_heap_init(ak_heap * __restrict heap,
+ak_heap_init(AkHeap * __restrict heap,
              AkHeapAllocator *allocator,
              AkHeapSrchCmp cmp) {
   AkHeapSrchNode    *srchRootNode;
@@ -158,7 +158,7 @@ ak_heap_init(ak_heap * __restrict heap,
 
 void
 AK_EXPORT
-ak_heap_destroy(ak_heap * __restrict heap) {
+ak_heap_destroy(AkHeap * __restrict heap) {
   AkHeapAllocator * __restrict allocator;
 
   allocator = heap->allocator;
@@ -179,13 +179,13 @@ ak_heap_destroy(ak_heap * __restrict heap) {
 
 void*
 AK_EXPORT
-ak_heap_alloc(ak_heap * __restrict heap,
+ak_heap_alloc(AkHeap * __restrict heap,
               void * __restrict parent,
               size_t size,
               bool srch) {
   char         *chunk;
-  ak_heap_node *currNode;
-  ak_heap_node *parentNode;
+  AkHeapNode *currNode;
+  AkHeapNode *parentNode;
   size_t memsize;
 
   memsize = ak__heapnd_sz + size;
@@ -217,7 +217,7 @@ ak_heap_alloc(ak_heap * __restrict heap,
   currNode->chld = NULL;
 
   if (parent) {
-    ak_heap_node *chldNode;
+    AkHeapNode *chldNode;
 
     parentNode = ak__alignof(parent);
     chldNode   = parentNode->chld;
@@ -248,12 +248,12 @@ ak_heap_alloc(ak_heap * __restrict heap,
 
 void*
 AK_EXPORT
-ak_heap_realloc(ak_heap * __restrict heap,
+ak_heap_realloc(AkHeap * __restrict heap,
                 void * __restrict parent,
                 void * __restrict memptr,
                 size_t newsize) {
-  ak_heap_node *oldNode;
-  ak_heap_node *newNode;
+  AkHeapNode *oldNode;
+  AkHeapNode *newNode;
 
   if (!memptr)
     return ak_heap_alloc(heap,
@@ -297,39 +297,39 @@ ak_heap_realloc(ak_heap * __restrict heap,
 
 void
 AK_EXPORT
-ak_heap_setp(ak_heap * __restrict heap,
-             ak_heap_node * __restrict heap_node,
-             ak_heap_node * __restrict newParent) {
-  if (heap_node->prev)
-    heap_node->prev->next = heap_node->next;
+ak_heap_setp(AkHeap * __restrict heap,
+             AkHeapNode * __restrict heapNode,
+             AkHeapNode * __restrict newParent) {
+  if (heapNode->prev)
+    heapNode->prev->next = heapNode->next;
 
-  if (heap_node->next)
-    heap_node->next->prev = heap_node->prev;
+  if (heapNode->next)
+    heapNode->next->prev = heapNode->prev;
 
-  if (heap_node == heap->root)
-    heap->root = heap_node->next;
+  if (heapNode == heap->root)
+    heap->root = heapNode->next;
 
   if (newParent->chld) {
-    newParent->chld->prev = heap_node;
-    heap_node->next = newParent->chld;
+    newParent->chld->prev = heapNode;
+    heapNode->next = newParent->chld;
   }
 
-  newParent->chld = heap_node;
+  newParent->chld = heapNode;
 }
 
 void
 AK_EXPORT
-ak_heap_free(ak_heap * __restrict heap,
-             ak_heap_node * __restrict heap_node) {
+ak_heap_free(AkHeap * __restrict heap,
+             AkHeapNode * __restrict heapNode) {
   AkHeapAllocator * __restrict allocator;
   allocator = heap->allocator;
 
   /* free all child nodes */
-  if (heap_node->chld) {
-    ak_heap_node *toFree;
-    ak_heap_node *nextFree;
+  if (heapNode->chld) {
+    AkHeapNode *toFree;
+    AkHeapNode *nextFree;
 
-    toFree = heap_node->chld;
+    toFree = heapNode->chld;
 
     do {
       nextFree = toFree->next;
@@ -341,7 +341,7 @@ ak_heap_free(ak_heap * __restrict heap,
 
       if (toFree->chld) {
         if (heap->trash) {
-          ak_heap_node *lastNode;
+          AkHeapNode *lastNode;
 
           lastNode = toFree->chld;
           while (lastNode->next)
@@ -386,21 +386,21 @@ ak_heap_free(ak_heap * __restrict heap,
 
     } while (toFree);
     
-    heap_node->chld = NULL;
+    heapNode->chld = NULL;
   }
 
-  if (heap_node->prev)
-    heap_node->prev->next = heap_node->next;
+  if (heapNode->prev)
+    heapNode->prev->next = heapNode->next;
 
-  if (heap->root == heap_node)
-    heap->root = heap_node->next;
+  if (heap->root == heapNode)
+    heap->root = heapNode->next;
 
-  heap_node->next = NULL;
-  heap_node->prev = NULL;
+  heapNode->next = NULL;
+  heapNode->prev = NULL;
 
-  if (heap_node->flags & AK_HEAP_NODE_FLAGS_SRCH) {
+  if (heapNode->flags & AK_HEAP_NODE_FLAGS_SRCH) {
     AkHeapSrchNode *srchNode;
-    srchNode = ((char *)heap_node) - sizeof(AkHeapSrchNode);
+    srchNode = ((char *)heapNode) - sizeof(AkHeapSrchNode);
 
     /* remove it from rb tree */
     if (srchNode->key != ak__emptystr)
@@ -408,24 +408,24 @@ ak_heap_free(ak_heap * __restrict heap,
 
     allocator->free(srchNode);
   } else {
-    allocator->free(heap_node);
+    allocator->free(heapNode);
   }
 }
 
 void
 AK_EXPORT
-ak_heap_cleanup(ak_heap * __restrict heap) {
+ak_heap_cleanup(AkHeap * __restrict heap) {
   while (heap->root)
     ak_heap_free(heap, heap->root);
 }
 
 void *
 AK_EXPORT
-ak_heap_getId(ak_heap * __restrict heap,
-              ak_heap_node * __restrict heap_node) {
-  if (heap_node->flags & AK_HEAP_NODE_FLAGS_SRCH) {
+ak_heap_getId(AkHeap * __restrict heap,
+              AkHeapNode * __restrict heapNode) {
+  if (heapNode->flags & AK_HEAP_NODE_FLAGS_SRCH) {
     AkHeapSrchNode *snode;
-    snode = heap_node - sizeof(*snode);
+    snode = (char *)heapNode - sizeof(*snode);
     return snode->key;
   }
 
@@ -434,12 +434,12 @@ ak_heap_getId(ak_heap * __restrict heap,
 
 void
 AK_EXPORT
-ak_heap_setId(ak_heap * __restrict heap,
-              ak_heap_node * __restrict heap_node,
+ak_heap_setId(AkHeap * __restrict heap,
+              AkHeapNode * __restrict heapNode,
               void * __restrict memId) {
-  if (heap_node->flags & AK_HEAP_NODE_FLAGS_SRCH) {
+  if (heapNode->flags & AK_HEAP_NODE_FLAGS_SRCH) {
     AkHeapSrchNode *snode;
-    snode = (char *)heap_node - sizeof(*snode);
+    snode = (char *)heapNode - sizeof(*snode);
 
     if (!memId) {
       ak_heap_rb_remove(heap->srchCtx, snode);
@@ -453,10 +453,10 @@ ak_heap_setId(ak_heap * __restrict heap,
 
 AkResult
 AK_EXPORT
-ak_heap_getMemById(ak_heap * __restrict heap,
+ak_heap_getMemById(AkHeap * __restrict heap,
                    void * __restrict memId,
                    void ** __restrict dest) {
-  ak_heap_node   *heapNode;
+  AkHeapNode   *heapNode;
   AkHeapSrchNode *srchNode;
 
   srchNode = ak_heap_rb_find(heap, memId);
@@ -472,7 +472,7 @@ ak_heap_getMemById(ak_heap * __restrict heap,
 }
 
 void
-ak_heap_printKeys(ak_heap * __restrict heap) {
+ak_heap_printKeys(AkHeap * __restrict heap) {
   ak_heap_rb_print(heap);
 }
 

@@ -11,12 +11,12 @@
 #include "ak_common.h"
 
 #define ak__align_size 8
-#define ak__heapnd_sz  (sizeof(ak_heap_node*) * 3 + sizeof(AkHeapNodeFlags))
+#define ak__heapnd_sz  (sizeof(AkHeapNode*) * 3 + sizeof(AkHeapNodeFlags))
 
 #define ak__align(size) ((size + ak__align_size - 1)                          \
         &~ (uintptr_t)(ak__align_size - 1))
 
-#define ak__alignof(p) ((ak_heap_node *)(((char *)p)-ak__heapnd_sz))
+#define ak__alignof(p) ((AkHeapNode *)(((char *)p)-ak__heapnd_sz))
 #define ak__alignas(m) ((void *)(((char *)m)+ak__heapnd_sz))
 
 #define AK__BST_LEFT  0
@@ -37,7 +37,7 @@ typedef struct AkHeapSrchContext {
 } AkHeapSrchContext;
 
 #define AK__HEAPNODE(X) \
-            ((ak_heap_node *)(((char *)X) + sizeof(AkHeapSrchNode)))
+            ((AkHeapNode *)(((char *)X) + sizeof(AkHeapSrchNode)))
 
 #define AK__HEAPNODE_ISRED(X)  (X->flags & AK_HEAP_NODE_FLAGS_RED)
 #define AK__HEAPNODE_MKRED(X)   X->flags |= AK_HEAP_NODE_FLAGS_RED
@@ -46,27 +46,27 @@ typedef struct AkHeapSrchContext {
 /*
  case 1:
  
-     | ak_heap_node | data |
+     | AkHeapNode | data |
      ^
   pointer
 
  case 2:
-     | ak_heap_snode | ak_heap_node | data |
-                     ^
-                  pointer
+     | AkHeapSrchNode | AkHeapNode | data |
+                      ^
+                   pointer
  */
-struct ak_heap_node_s {
-  ak_heap_node *prev; /* parent */
-  ak_heap_node *next; /* right  */
-  ak_heap_node *chld; /* left   */
-  AkEnum        flags;
-  char data[];
+struct AkHeapNode {
+  AkHeapNode *prev; /* parent */
+  AkHeapNode *next; /* right  */
+  AkHeapNode *chld; /* left   */
+  AkEnum      flags;
+  char        data[];
 };
 
-struct ak_heap_s {
+struct AkHeap {
   AkHeapAllocator   *allocator;
-  ak_heap_node      *root;
-  ak_heap_node      *trash;
+  AkHeapNode        *root;
+  AkHeapNode        *trash;
   AkHeapSrchContext *srchCtx;
   AkEnum             flags;
 };
