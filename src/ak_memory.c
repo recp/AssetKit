@@ -30,6 +30,15 @@ int
 ak__heap_srch_cmp(void * __restrict key1,
                   void * __restrict key2);
 
+static
+int
+ak__heap_strdup_def(const char * str);
+
+static
+int
+ak__heap_strdup(ak_heap * __restrict heap,
+                const char * str);
+
 static const char * ak__emptystr = "";
 
 static AkHeapAllocator ak__allocator = {
@@ -38,7 +47,8 @@ static AkHeapAllocator ak__allocator = {
   .valloc   = je_valloc,
   .realloc  = je_realloc,
   .memalign = je_posix_memalign,
-  .free     = je_free
+  .free     = je_free,
+  .strdup   = ak__heap_strdup_def
 };
 
 static ak_heap ak__heap = {
@@ -56,6 +66,39 @@ int
 ak__heap_srch_cmp(void * __restrict key1,
                   void * __restrict key2) {
   return strcmp((char *)key1, (char *)key2);
+}
+
+static
+int
+ak__heap_strdup_def(const char * str) {
+  void  *memptr;
+  size_t memsize;
+
+  memsize = strlen(str);
+  memptr  = ak__heap.allocator->malloc(memsize + 1);
+  memcpy(memptr, str, memsize);
+
+  /* NULL */
+  memset((char *)memptr + memsize, '\0', 1);
+
+  return memptr;
+}
+
+static
+int
+ak__heap_strdup(ak_heap * __restrict heap,
+                const char * str) {
+  void  *memptr;
+  size_t memsize;
+
+  memsize = strlen(str);
+  memptr  = heap->allocator->malloc(memsize + 1);
+  memcpy(memptr, str, memsize);
+
+  /* NULL */
+  memset((char *)memptr + memsize, '\0', 1);
+
+  return memptr;
 }
 
 AkHeapAllocator *
