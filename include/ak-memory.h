@@ -21,6 +21,16 @@ typedef struct AkObject {
 
 #define ak_objGet(OBJ) OBJ->pData
 
+typedef struct AkHeapAllocator {
+  void *(*malloc)(size_t);
+  void *(*calloc)(size_t, size_t);
+  void *(*valloc)(size_t size);
+  void *(*realloc)(void *, size_t);
+  void *(*memalign)(size_t, size_t);
+  void (*free)(void *);
+  size_t (*size)(const void *);
+} AkHeapAllocator;
+
 typedef struct ak_heap_node_s ak_heap_node;
 typedef struct ak_heap_s      ak_heap;
 
@@ -39,9 +49,19 @@ typedef enum AkHeapNodeFlags {
   AK_HEAP_NODE_FLAGS_RED  = 1 << 1
 } AkHeapNodeFlags;
 
+AkHeapAllocator *
+AK_EXPORT
+ak_heap_allocator(ak_heap * __restrict heap);
+
+ak_heap *
+AK_EXPORT
+ak_heap_new(AkHeapAllocator *allocator,
+            ak_heap_cmp cmp);
+
 void
 AK_EXPORT
 ak_heap_init(ak_heap * __restrict heap,
+             AkHeapAllocator *allocator,
              ak_heap_cmp cmp);
 
 void
@@ -98,6 +118,10 @@ void
 ak_heap_printKeys(ak_heap * __restrict heap);
 
 /* default heap helpers */
+
+AkHeapAllocator *
+AK_EXPORT
+ak_mem_allocator();
 
 void
 ak_mem_printKeys();

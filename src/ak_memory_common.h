@@ -59,16 +59,17 @@ struct ak_heap_node_s {
 };
 
 struct ak_heap_s {
-  ak_heap_node   *root;
-  ak_heap_node   *trash;
+  AkHeapAllocator *allocator;
+  ak_heap_node    *root;
+  ak_heap_node    *trash;
 #ifdef __APPLE__
-  void           *alloc_zone;
+  void            *alloc_zone;
 #endif
-  AkHeapSrchNode *srchRoot;
-  AkHeapSrchNode *srchNullNode;
+  AkHeapSrchNode  *srchRoot;
+  AkHeapSrchNode  *srchNullNode;
 
-  ak_heap_cmp     cmp;
-  AkEnum          flags;
+  ak_heap_cmp      cmp;
+  AkEnum           flags;
 };
 
 #endif /* ak_memory_h */

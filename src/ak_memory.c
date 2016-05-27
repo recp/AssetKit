@@ -25,9 +25,25 @@
 # define je_free(size)           free(size)
 #endif
 
+static
+int
+ak__heap_srch_cmp(void * __restrict key1,
+                  void * __restrict key2);
+
 static const char * ak__emptystr = "";
 
+static AkHeapAllocator ak__allocator = {
+  .malloc   = je_malloc,
+  .calloc   = je_calloc,
+  .valloc   = je_valloc,
+  .realloc  = je_realloc,
+  .memalign = je_posix_memalign,
+  .free     = je_free
+};
+
 static ak_heap ak__heap = {
+  .allocator  = &ak__allocator,
+  .cmp        = ak__heap_srch_cmp,
   .root       = NULL,
   .trash      = NULL,
   .srchRoot   = NULL,
@@ -42,9 +58,28 @@ ak__heap_srch_cmp(void * __restrict key1,
   return strcmp((char *)key1, (char *)key2);
 }
 
+AkHeapAllocator *
+AK_EXPORT
+ak_heap_allocator(ak_heap * __restrict heap) {
+  return heap->allocator;
+}
+
+ak_heap *
+AK_EXPORT
+ak_heap_new(AkHeapAllocator *allocator,
+            ak_heap_cmp cmp) {
+  ak_heap *heap;
+
+  heap = je_malloc(sizeof(*heap));
+  ak_heap_init(heap, allocator, cmp);
+
+  return heap;
+}
+
 void
 AK_EXPORT
 ak_heap_init(ak_heap * __restrict heap,
+             AkHeapAllocator *allocator,
              ak_heap_cmp cmp) {
   AkHeapSrchNode *srchRootNode;
   AkHeapSrchNode *srchNullNode;
@@ -72,6 +107,7 @@ ak_heap_init(ak_heap * __restrict heap,
   heap->trash = NULL;
   heap->flags |= AK_HEAP_FLAGS_INITIALIZED;
   heap->cmp = cmp ? cmp : ak__heap_srch_cmp;
+  heap->allocator = allocator ? allocator : &ak__allocator;
 
   /* Real Root is srchRoot-right node */
   heap->srchRoot = srchRootNode;
@@ -85,6 +121,8 @@ ak_heap_init(ak_heap * __restrict heap,
 void
 AK_EXPORT
 ak_heap_destroy(ak_heap * __restrict heap) {
+  AkHeapAllocator * __restrict allocator;
+
   if (!(heap->flags & AK_HEAP_FLAGS_INITIALIZED))
     return;
 
@@ -96,12 +134,12 @@ ak_heap_destroy(ak_heap * __restrict heap) {
   ak_heap_cleanup(&ak__heap);
 #endif
 
-  je_free(heap->srchRoot);
-  je_free(heap->srchNullNode);
+  allocator->free(heap->srchRoot);
+  allocator->free(heap->srchNullNode);
 
   if (heap->flags & AK_HEAP_FLAGS_DYNAMIC
       && heap != &ak__heap)
-    je_free(heap);
+    allocator->free(heap);
 }
 
 void*
@@ -120,7 +158,7 @@ ak_heap_alloc(ak_heap * __restrict heap,
     memsize += sizeof(AkHeapSrchNode);
 
   memsize = ak__align(memsize);
-  chunk = je_malloc(memsize);
+  chunk = heap->allocator->malloc(memsize);
   assert(chunk && "malloc failed");
 
   if (srch) {
@@ -248,6 +286,8 @@ void
 AK_EXPORT
 ak_heap_free(ak_heap * __restrict heap,
              ak_heap_node * __restrict heap_node) {
+  AkHeapAllocator * __restrict allocator;
+  allocator = heap->allocator;
 
   /* free all child nodes */
   if (heap_node->chld) {
@@ -296,9 +336,9 @@ ak_heap_free(ak_heap * __restrict heap,
         if (srchNode->key != ak__emptystr)
           ak_heap_rb_remove(heap, srchNode);
 
-        je_free(srchNode);
+        allocator->free(srchNode);
       } else {
-        je_free(toFree);
+        allocator->free(toFree);
       }
 
       toFree = nextFree;
@@ -331,9 +371,9 @@ ak_heap_free(ak_heap * __restrict heap,
     if (srchNode->key != ak__emptystr)
       ak_heap_rb_remove(heap, srchNode);
 
-    je_free(srchNode);
+    allocator->free(srchNode);
   } else {
-    je_free(heap_node);
+    allocator->free(heap_node);
   }
 }
 
@@ -399,6 +439,12 @@ ak_heap_getMemById(ak_heap * __restrict heap,
 void
 ak_heap_printKeys(ak_heap * __restrict heap) {
   ak_heap_rb_print(heap);
+}
+
+AkHeapAllocator *
+AK_EXPORT
+ak_mem_allocator() {
+  return ak__heap.allocator;
 }
 
 void
@@ -545,7 +591,7 @@ ak_objFrom(void * __restrict memptr) {
 void
 ak_CONSTRUCTOR
 ak__init() {
-  ak_heap_init(&ak__heap, NULL);
+  ak_heap_init(&ak__heap, NULL, NULL);
 }
 
 void
