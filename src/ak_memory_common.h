@@ -62,9 +62,6 @@ struct ak_heap_s {
   AkHeapAllocator *allocator;
   ak_heap_node    *root;
   ak_heap_node    *trash;
-#ifdef __APPLE__
-  void            *alloc_zone;
-#endif
   AkHeapSrchNode  *srchRoot;
   AkHeapSrchNode  *srchNullNode;
 

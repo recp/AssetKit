@@ -13,10 +13,6 @@
 #include <string.h>
 #include <assert.h>
 
-#ifdef __APPLE__
-#include <malloc/malloc.h>
-#endif
-
 #ifndef _WIN32
 #  include <jemalloc/jemalloc.h>
 #else
@@ -57,7 +53,6 @@ static ak_heap ak__heap = {
   .root       = NULL,
   .trash      = NULL,
   .srchRoot   = NULL,
-  .alloc_zone = NULL,
   .flags      = 0
 };
 
@@ -132,8 +127,8 @@ ak_heap_init(ak_heap * __restrict heap,
     return;
 
   srchNodeSize = sizeof(AkHeapSrchNode) + ak__heapnd_sz;
-  srchRootNode = calloc(srchNodeSize, 1);
-  srchNullNode = calloc(srchNodeSize, 1);
+  srchRootNode = je_calloc(srchNodeSize, 1);
+  srchNullNode = je_calloc(srchNodeSize, 1);
 
   srchRootNode->key = ak__emptystr;
   srchRootNode->chld[AK__BST_LEFT]  = srchNullNode;
@@ -155,10 +150,6 @@ ak_heap_init(ak_heap * __restrict heap,
   /* Real Root is srchRoot-right node */
   heap->srchRoot = srchRootNode;
   heap->srchNullNode = srchNullNode;
-
-#ifdef __APPLE__
-  heap->alloc_zone = malloc_create_zone(PAGE_SIZE, 0);
-#endif
 }
 
 void
@@ -171,13 +162,7 @@ ak_heap_destroy(ak_heap * __restrict heap) {
   if (!(heap->flags & AK_HEAP_FLAGS_INITIALIZED))
     return;
 
-#ifdef __APPLE__
-  malloc_destroy_zone(heap->alloc_zone);
-  heap->root  = NULL;
-  heap->trash = NULL;
-#else
   ak_heap_cleanup(&ak__heap);
-#endif
 
   allocator->free(heap->srchRoot);
   allocator->free(heap->srchNullNode);
