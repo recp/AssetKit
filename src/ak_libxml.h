@@ -137,6 +137,17 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
     } else TARGET = NULL;                                                     \
   } while (0);
 
+#define _xml_readId(OBJ)                                                      \
+  do {                                                                        \
+    char * attrVal;                                                           \
+    attrVal = (char *)xmlTextReaderGetAttribute(reader,                       \
+                                                (const xmlChar *)_s_dae_id);  \
+    if (attrVal) {                                                            \
+      ak_setId(OBJ, ak_strdup(OBJ, attrVal));                                 \
+      xmlFree(attrVal);                                                       \
+    }                                                                         \
+  } while (0);
+
 #define _xml_readAttrUsingFn(TARGET, ATTR, Fn, ...)                           \
   do {                                                                        \
     char * attrVal;                                                           \
