@@ -49,7 +49,7 @@ static AkHeapAllocator ak__allocator = {
 
 static AkHeap ak__heap = {
   .allocator  = &ak__allocator,
-  .srchCtx    = NULL,
+  .srchctx    = NULL,
   .root       = NULL,
   .trash      = NULL,
   .flags      = 0
@@ -120,15 +120,15 @@ ak_heap_init(AkHeap * __restrict heap,
              AkHeapSrchCmp cmp) {
   AkHeapSrchNode    *srchRootNode;
   AkHeapSrchNode    *srchNullNode;
-  AkHeapSrchCtx *srchCtx;
+  AkHeapSrchCtx *srchctx;
 
   size_t srchNodeSize;
 
   if (heap->flags & AK_HEAP_FLAGS_INITIALIZED)
     return;
 
-  srchCtx = je_malloc(sizeof(*srchCtx));
-  srchCtx->cmp = cmp ? cmp : ak__heap_srch_cmp;
+  srchctx = je_malloc(sizeof(*srchctx));
+  srchctx->cmp = cmp ? cmp : ak__heap_srch_cmp;
 
   srchNodeSize = sizeof(AkHeapSrchNode) + ak__heapnd_sz;
   srchRootNode = je_calloc(srchNodeSize, 1);
@@ -146,12 +146,12 @@ ak_heap_init(AkHeap * __restrict heap,
   AK__HEAPNODE(srchNullNode)->flags = AK_HEAP_NODE_FLAGS_SRCH;
 
   /* Real Root is srchRoot-right node */
-  srchCtx->root     = srchRootNode;
-  srchCtx->nullNode = srchNullNode;
+  srchctx->root     = srchRootNode;
+  srchctx->nullNode = srchNullNode;
 
   heap->root      = NULL;
   heap->trash     = NULL;
-  heap->srchCtx   = srchCtx;
+  heap->srchctx   = srchctx;
   heap->allocator = allocator ? allocator : &ak__allocator;
   heap->flags    |= AK_HEAP_FLAGS_INITIALIZED;
 }
@@ -168,9 +168,9 @@ ak_heap_destroy(AkHeap * __restrict heap) {
 
   ak_heap_cleanup(&ak__heap);
 
-  je_free(heap->srchCtx->root);
-  je_free(heap->srchCtx->nullNode);
-  je_free(heap->srchCtx);
+  je_free(heap->srchctx->root);
+  je_free(heap->srchctx->nullNode);
+  je_free(heap->srchctx);
 
   if (heap->flags & AK_HEAP_FLAGS_DYNAMIC
       && heap != &ak__heap)
@@ -206,8 +206,8 @@ ak_heap_alloc(AkHeap * __restrict heap,
     currNode->flags |= (AK_HEAP_NODE_FLAGS_SRCH | AK_HEAP_NODE_FLAGS_RED);
 
     srchNode = (AkHeapSrchNode *)chunk;
-    srchNode->chld[AK__BST_LEFT]  = heap->srchCtx->nullNode;
-    srchNode->chld[AK__BST_RIGHT] = heap->srchCtx->nullNode;
+    srchNode->chld[AK__BST_LEFT]  = heap->srchctx->nullNode;
+    srchNode->chld[AK__BST_RIGHT] = heap->srchctx->nullNode;
     srchNode->key = ak__emptystr;
   } else {
     currNode = chunk;
@@ -369,7 +369,7 @@ ak_heap_free(AkHeap * __restrict heap,
 
         /* remove it from rb tree */
         if (srchNode->key != ak__emptystr)
-          ak_heap_rb_remove(heap->srchCtx, srchNode);
+          ak_heap_rb_remove(heap->srchctx, srchNode);
 
         allocator->free(srchNode);
       } else {
@@ -404,7 +404,7 @@ ak_heap_free(AkHeap * __restrict heap,
 
     /* remove it from rb tree */
     if (srchNode->key != ak__emptystr)
-      ak_heap_rb_remove(heap->srchCtx, srchNode);
+      ak_heap_rb_remove(heap->srchctx, srchNode);
 
     allocator->free(srchNode);
   } else {
@@ -442,11 +442,11 @@ ak_heap_setId(AkHeap * __restrict heap,
     snode = (char *)heapNode - sizeof(*snode);
 
     if (!memId) {
-      ak_heap_rb_remove(heap->srchCtx, snode);
+      ak_heap_rb_remove(heap->srchctx, snode);
       snode->key = ak__emptystr;
     } else {
       snode->key = memId;
-      ak_heap_rb_insert(heap->srchCtx, snode);
+      ak_heap_rb_insert(heap->srchctx, snode);
     }
   }
 }
@@ -460,7 +460,7 @@ ak_heap_getMemById(AkHeap * __restrict heap,
   AkHeapSrchNode *srchNode;
 
   srchNode = ak_heap_rb_find(heap, memId);
-  if (!srchNode || srchNode == heap->srchCtx->nullNode) {
+  if (!srchNode || srchNode == heap->srchctx->nullNode) {
     *dest = NULL;
     return AK_EFOUND;
   }

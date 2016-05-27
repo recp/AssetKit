@@ -67,7 +67,7 @@ struct AkHeap {
   AkHeapAllocator *allocator;
   AkHeapNode      *root;
   AkHeapNode      *trash;
-  AkHeapSrchCtx   *srchCtx;
+  AkHeapSrchCtx   *srchctx;
   AkEnum           flags;
 };
 

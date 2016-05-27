@@ -27,21 +27,21 @@
 #include <stdio.h>
 
 void
-ak_heap_rb_insert(AkHeapSrchCtx * __restrict srchCtx,
+ak_heap_rb_insert(AkHeapSrchCtx * __restrict srchctx,
                   AkHeapSrchNode * __restrict srchNode) {
   AkHeapSrchNode *X, *P, *G, *Q;
   int sG, sP, sX;
 
   sG = sP = sX = 1;
   
-  P = G = Q = srchCtx->root;
+  P = G = Q = srchctx->root;
   X = P->chld[AK__BST_RIGHT];
 
   /* Top-Down Insert */
-  while (X != srchCtx->nullNode) {
+  while (X != srchctx->nullNode) {
     sG = sP;
     sP = sX;
-    sX = !(srchCtx->cmp(srchNode->key, X->key) < 0);
+    sX = !(srchctx->cmp(srchNode->key, X->key) < 0);
 
     Q = G;
     G = P;
@@ -78,7 +78,7 @@ ak_heap_rb_insert(AkHeapSrchCtx * __restrict srchCtx,
           /* move X down to avoid re-compare to P or G
              we are already know that new X will be one of children of X
            */
-          sN   = !(srchCtx->cmp(srchNode->key, X->key) < 0);
+          sN   = !(srchctx->cmp(srchNode->key, X->key) < 0);
           newX = X->chld[sN];
 
           P->chld[sX]  = X->chld[!sX];
@@ -113,7 +113,7 @@ ak_heap_rb_insert(AkHeapSrchCtx * __restrict srchCtx,
     }
   }
 
-  if (X != srchCtx->nullNode)
+  if (X != srchctx->nullNode)
     return;
 
   /* Red Black Node is pre-allocated in memory/heap tree */
@@ -151,11 +151,11 @@ ak_heap_rb_insert(AkHeapSrchCtx * __restrict srchCtx,
   }
 
   /* make root black */
-  AK__RB_MKBLACK(srchCtx->root->chld[AK__BST_RIGHT]);
+  AK__RB_MKBLACK(srchctx->root->chld[AK__BST_RIGHT]);
 }
 
 void
-ak_heap_rb_remove(AkHeapSrchCtx * __restrict srchCtx,
+ak_heap_rb_remove(AkHeapSrchCtx * __restrict srchctx,
                   AkHeapSrchNode * __restrict srchNode) {
   AkHeapSrchNode *X, *P, *T, *G;
   int            sG, sP, sX, cX, cmpRet;
@@ -163,16 +163,16 @@ ak_heap_rb_remove(AkHeapSrchCtx * __restrict srchCtx,
   sG = sP = sX = 1;
   cX = 0; /* root is black */
 
-  G = P = srchCtx->root;
+  G = P = srchctx->root;
   X = P->chld[AK__BST_RIGHT];
-  T = srchCtx->nullNode;
+  T = srchctx->nullNode;
 
   /* step 1: make root red */
-  AK__RB_MKRED(srchCtx->root->chld[AK__BST_RIGHT]);
+  AK__RB_MKRED(srchctx->root->chld[AK__BST_RIGHT]);
 
   /* Top-Down Deletion */
-  while (X != srchCtx->nullNode) {
-    cmpRet = srchCtx->cmp(srchNode->key, X->key);
+  while (X != srchctx->nullNode) {
+    cmpRet = srchctx->cmp(srchNode->key, X->key);
 
     sG = sP;
     sP = sX;
@@ -182,7 +182,7 @@ ak_heap_rb_remove(AkHeapSrchCtx * __restrict srchCtx,
     T  = P->chld[!sX];
     X  = P->chld[sX];
 
-    if (X == srchCtx->nullNode)
+    if (X == srchctx->nullNode)
       goto step3;
 
     cX = AK__RB_ISRED(X);
@@ -217,7 +217,7 @@ ak_heap_rb_remove(AkHeapSrchCtx * __restrict srchCtx,
         && !AK__RB_ISRED(X->chld[AK__BST_RIGHT])) {
 
       /* case 1.a: T has two black children */
-      if (T != srchCtx->nullNode
+      if (T != srchctx->nullNode
           && !AK__RB_ISRED(T->chld[AK__BST_LEFT])
           && !AK__RB_ISRED(T->chld[AK__BST_RIGHT])) {
 
@@ -286,8 +286,8 @@ ak_heap_rb_remove(AkHeapSrchCtx * __restrict srchCtx,
       AkHeapSrchNode *Z;
 
       Z = P->chld[AK__BST_RIGHT];
-      if (Z != srchCtx->nullNode) {
-        while (Z->chld[AK__BST_LEFT] != srchCtx->nullNode)
+      if (Z != srchctx->nullNode) {
+        while (Z->chld[AK__BST_LEFT] != srchctx->nullNode)
           Z = Z->chld[AK__BST_LEFT];
 
         G->chld[sP] = P->chld[AK__BST_RIGHT];
@@ -301,20 +301,20 @@ ak_heap_rb_remove(AkHeapSrchCtx * __restrict srchCtx,
   } /* while */
 
   /* step4: make root black */
-  AK__RB_MKBLACK(srchCtx->root->chld[AK__BST_RIGHT]);
+  AK__RB_MKBLACK(srchctx->root->chld[AK__BST_RIGHT]);
 }
 
 AkHeapSrchNode *
-ak_heap_rb_find(AkHeapSrchCtx * __restrict srchCtx,
+ak_heap_rb_find(AkHeapSrchCtx * __restrict srchctx,
                 void * __restrict key) {
   AkHeapSrchNode *iter;
 
-  iter = srchCtx->root->chld[AK__BST_RIGHT];
+  iter = srchctx->root->chld[AK__BST_RIGHT];
 
-  while (iter != srchCtx->nullNode) {
+  while (iter != srchctx->nullNode) {
     int cmpRet;
 
-    cmpRet = srchCtx->cmp(iter->key, key);
+    cmpRet = srchctx->cmp(iter->key, key);
 
     if (cmpRet == 0)
       break;
@@ -326,22 +326,22 @@ ak_heap_rb_find(AkHeapSrchCtx * __restrict srchCtx,
 }
 
 void
-ak_heap_rb_printNode(AkHeapSrchCtx * __restrict srchCtx,
+ak_heap_rb_printNode(AkHeapSrchCtx * __restrict srchctx,
                      AkHeapSrchNode * __restrict srchNode) {
-  if(srchNode != srchCtx->nullNode) {
-    ak_heap_rb_printNode(srchCtx,
+  if(srchNode != srchctx->nullNode) {
+    ak_heap_rb_printNode(srchctx,
                          srchNode->chld[AK__BST_LEFT]);
     printf("%s\n", srchNode->key);
-    ak_heap_rb_printNode(srchCtx,
+    ak_heap_rb_printNode(srchctx,
                          srchNode->chld[AK__BST_RIGHT]);
   }
 }
 
 void
-ak_heap_rb_print(AkHeapSrchCtx * __restrict srchCtx) {
-  if(!srchCtx->root->chld[AK__BST_RIGHT] == srchCtx->nullNode)
+ak_heap_rb_print(AkHeapSrchCtx * __restrict srchctx) {
+  if(!srchctx->root->chld[AK__BST_RIGHT] == srchctx->nullNode)
     printf("Empty tree");
   else
-    ak_heap_rb_printNode(srchCtx,
-                         srchCtx->root->chld[AK__BST_RIGHT]);
+    ak_heap_rb_printNode(srchctx,
+                         srchctx->root->chld[AK__BST_RIGHT]);
 }
