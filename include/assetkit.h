@@ -1758,15 +1758,18 @@ AK_EXPORT
 ak_load(AkDoc ** __restrict dest,
         const char * __restrict file,
         .../* options */);
-
 void *
 AK_EXPORT
-ak_getObjectById(const char * __restrict objectId);
+ak_getId(const char * __restrict objptr);
 
 AkResult
 AK_EXPORT
 ak_setId(void * __restrict objptr,
          const char * __restrict objectId);
+
+void *
+AK_EXPORT
+ak_getObjectById(const char * __restrict objectId);
 
 #ifdef __cplusplus
 }

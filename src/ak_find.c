@@ -7,6 +7,12 @@
 
 #include "ak_common.h"
 
+void *
+AK_EXPORT
+ak_getId(const char * __restrict objptr) {
+  return ak_mem_getId(objptr);
+}
+
 AkResult
 AK_EXPORT
 ak_setId(void * __restrict objptr,
