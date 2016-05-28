@@ -491,7 +491,7 @@ ak_heap_getMemById(AkHeap * __restrict heap,
   AkHeapNode   *heapNode;
   AkHeapSrchNode *srchNode;
 
-  srchNode = ak_heap_rb_find(heap, memId);
+  srchNode = ak_heap_rb_find(heap->srchctx, memId);
   if (!srchNode || srchNode == heap->srchctx->nullNode) {
     *dest = NULL;
     return AK_EFOUND;
