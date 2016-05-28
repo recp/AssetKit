@@ -268,9 +268,10 @@ ak_dae_source(AkHeap * __restrict heap,
           _xml_readAttr(obj, stringAray->id, _s_dae_id);
           _xml_readAttr(obj, stringAray->name, _s_dae_name);
 
-          pData = ak_malloc(stringAray,
-                            arrayDataSize,
-                            false);
+          pData = ak_heap_alloc(heap,
+                                 stringAray,
+                                 arrayDataSize,
+                                 false);
 
           stringAray->count = arrayCount;
           stringAray->items[arrayCount] = pData;

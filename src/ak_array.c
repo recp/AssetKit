@@ -25,9 +25,10 @@ ak_strtod_array(AkHeap * __restrict heap,
   tmpCount  = AK__TMP_ARRAY_INCREMENT;
   arrayIndex = 0;
 
-  tmpArray = ak_malloc(memParent,
-                       sizeof(AkDouble) * tmpCount,
-                       false);
+  tmpArray = ak_heap_alloc(heap,
+                           memParent,
+                           sizeof(AkDouble) * tmpCount,
+                           false);
 
   tok = strtok(stringRep, " ");
   while (tok) {
@@ -44,9 +45,10 @@ ak_strtod_array(AkHeap * __restrict heap,
   }
 
   arraySize = sizeof(AkDouble) * arrayIndex;
-  doubleArray = ak_malloc(memParent,
-                          sizeof(*doubleArray) + arraySize,
-                          false);
+  doubleArray = ak_heap_alloc(heap,
+                              memParent,
+                              sizeof(*doubleArray) + arraySize,
+                              false);
 
   doubleArray->count = arrayIndex;
   memmove(doubleArray->items, tmpArray, arraySize);
@@ -73,9 +75,10 @@ ak_strtod_arrayL(AkHeap * __restrict heap,
   tmpCount  = AK__TMP_ARRAY_INCREMENT;
   arrayIndex = 0;
 
-  tmpArray = ak_malloc(memParent,
-                       sizeof(AkDouble) * tmpCount,
-                       false);
+  tmpArray = ak_heap_alloc(heap,
+                           memParent,
+                           sizeof(AkDouble) * tmpCount,
+                           false);
 
   tok = strtok(stringRep, " ");
   while (tok) {
@@ -92,9 +95,10 @@ ak_strtod_arrayL(AkHeap * __restrict heap,
   }
 
   arraySize = sizeof(AkDouble) * arrayIndex;
-  doubleArray = ak_malloc(memParent,
-                          sizeof(*doubleArray) + arraySize,
-                          false);
+  doubleArray = ak_heap_alloc(heap,
+                              memParent,
+                              sizeof(*doubleArray) + arraySize,
+                              false);
 
   doubleArray->count = arrayIndex;
   memmove(doubleArray->items, tmpArray, arraySize);
@@ -121,9 +125,10 @@ ak_strtoi_array(AkHeap * __restrict heap,
   tmpCount  = AK__TMP_ARRAY_INCREMENT;
   arrayIndex = 0;
 
-  tmpArray = ak_malloc(memParent,
-                       sizeof(AkInt) * tmpCount,
-                       false);
+  tmpArray = ak_heap_alloc(heap,
+                           memParent,
+                           sizeof(AkInt) * tmpCount,
+                           false);
 
   tok = strtok(stringRep, " ");
   while (tok) {
@@ -140,9 +145,10 @@ ak_strtoi_array(AkHeap * __restrict heap,
   }
 
   arraySize = sizeof(AkInt) * arrayIndex;
-  intArray = ak_malloc(memParent,
-                       sizeof(*intArray) + arraySize,
-                       false);
+  intArray = ak_heap_alloc(heap,
+                           memParent,
+                           sizeof(*intArray) + arraySize,
+                           false);
 
   intArray->count = arrayIndex;
   memmove(intArray->items, tmpArray, arraySize);
@@ -184,13 +190,15 @@ ak_strtostr_array(AkHeap * __restrict heap,
   arraySize = sizeof(char *) * (itemCount + 1);
   arrayDataSize = strlen(stringRep) + itemCount /* NULL */;
 
-  stringArray = ak_malloc(memParent,
-                          sizeof(*stringArray) + arraySize,
-                          false);
+  stringArray = ak_heap_alloc(heap,
+                              memParent,
+                              sizeof(*stringArray) + arraySize,
+                              false);
 
-  pData = ak_malloc(stringArray,
-                    arrayDataSize,
-                    false);
+  pData = ak_heap_alloc(heap,
+                        stringArray,
+                        arrayDataSize,
+                        false);
 
   stringArray->count = itemCount;
   stringArray->items[itemCount] = pData;
@@ -241,13 +249,15 @@ ak_strtostr_arrayL(AkHeap * __restrict heap,
   arraySize = sizeof(char *) * (itemCount + 1);
   arrayDataSize = strlen(stringRep) + itemCount /* NULL */;
 
-  stringArray = ak_malloc(memParent,
-                          sizeof(*stringArray) + arraySize,
-                          false);
+  stringArray = ak_heap_alloc(heap,
+                              memParent,
+                              sizeof(*stringArray) + arraySize,
+                              false);
 
-  pData = ak_malloc(stringArray,
-                    arrayDataSize,
-                    false);
+  pData = ak_heap_alloc(heap,
+                        stringArray,
+                        arrayDataSize,
+                        false);
 
   stringArray->count = itemCount;
   stringArray->items[itemCount] = pData;

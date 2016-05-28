@@ -31,7 +31,10 @@ ak_tree_fromXmlNode(AkHeap * __restrict heap,
   /* extra is text node */
   if (currNode && currNode->type == XML_TEXT_NODE) {
     if (currNode->content) {
-      tree_currNode = ak_calloc(memParent, sizeof(*tree_currNode), false);
+      tree_currNode = ak_heap_calloc(heap,
+                                     memParent,
+                                     sizeof(*tree_currNode),
+                                     false);
       tree_currNode->val = ak_heap_strdup(heap,
                                           tree_currNode,
                                           (const char *)currNode->content);
@@ -48,7 +51,7 @@ ak_tree_fromXmlNode(AkHeap * __restrict heap,
     AkTreeNodeAttr * tree_currAttr;
     const xmlAttr      * xml_currAttr;
 
-    tree_nNode = ak_calloc(parent, sizeof(*tree_currNode), false);
+    tree_nNode = ak_heap_calloc(heap, parent, sizeof(*tree_currNode), false);
     tree_nNode->parent = parent;
     tree_nNode->name = ak_heap_strdup(heap,
                                       tree_nNode,
@@ -78,7 +81,10 @@ ak_tree_fromXmlNode(AkHeap * __restrict heap,
          xml_currAttr = xml_currAttr->next) {
       AkTreeNodeAttr * tree_nodeAttr;
 
-      tree_nodeAttr = ak_calloc(tree_nNode, sizeof(*tree_nodeAttr), false);
+      tree_nodeAttr = ak_heap_calloc(heap,
+                                     tree_nNode,
+                                     sizeof(*tree_nodeAttr),
+                                     false);
       tree_nodeAttr->name = ak_heap_strdup(heap,
                                            tree_nodeAttr,
                                            (const char *)xml_currAttr->name);
