@@ -10,9 +10,10 @@
 #include "ak_collada_technique.h"
 
 AkResult _assetkit_hide
-ak_dae_light(void * __restrict memParent,
-              xmlTextReaderPtr reader,
-              AkLight ** __restrict dest) {
+ak_dae_light(AkHeap * __restrict heap,
+             void * __restrict memParent,
+             xmlTextReaderPtr reader,
+             AkLight ** __restrict dest) {
   AkLight            *light;
   AkTechnique        *last_tq;
   AkTechniqueCommon *last_tc;
@@ -20,7 +21,7 @@ ak_dae_light(void * __restrict memParent,
   int nodeType;
   int nodeRet;
 
-  light = ak_calloc(memParent, sizeof(*light), false);
+  light = ak_heap_calloc(heap, memParent, sizeof(*light), false);
 
   _xml_readAttr(light, light->id, _s_dae_id);
   _xml_readAttr(light, light->name, _s_dae_name);
@@ -36,7 +37,7 @@ ak_dae_light(void * __restrict memParent,
       AkResult ret;
 
       assetInf = NULL;
-      ret = ak_dae_assetInf(light, reader, &assetInf);
+      ret = ak_dae_assetInf(heap, light, reader, &assetInf);
       if (ret == AK_OK)
         light->inf = assetInf;
 
@@ -45,7 +46,7 @@ ak_dae_light(void * __restrict memParent,
       AkResult ret;
 
       tc = NULL;
-      ret = ak_dae_techniquec(light, reader, &tc);
+      ret = ak_dae_techniquec(heap, light, reader, &tc);
       if (ret == AK_OK) {
         if (last_tc)
           last_tc->next = tc;
@@ -60,7 +61,7 @@ ak_dae_light(void * __restrict memParent,
       AkResult ret;
 
       tq = NULL;
-      ret = ak_dae_technique(light, reader, &tq);
+      ret = ak_dae_technique(heap, light, reader, &tq);
       if (ret == AK_OK) {
         if (last_tq)
           last_tq->next = tq;
@@ -76,7 +77,7 @@ ak_dae_light(void * __restrict memParent,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(light, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(heap, light, nodePtr, &tree, NULL);
       light->extra = tree;
 
       _xml_skipElement;

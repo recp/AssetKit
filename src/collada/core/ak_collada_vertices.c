@@ -9,7 +9,8 @@
 #include "ak_collada_enums.h"
 
 AkResult _assetkit_hide
-ak_dae_vertices(void * __restrict memParent,
+ak_dae_vertices(AkHeap * __restrict heap,
+                void * __restrict memParent,
                 xmlTextReaderPtr reader,
                 AkVertices ** __restrict dest) {
   AkVertices    *vertices;
@@ -18,7 +19,7 @@ ak_dae_vertices(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  vertices = ak_calloc(memParent, sizeof(*vertices), false);
+  vertices = ak_heap_calloc(heap, memParent, sizeof(*vertices), false);
 
   _xml_readAttr(vertices, vertices->id, _s_dae_id);
   _xml_readAttr(vertices, vertices->name, _s_dae_name);
@@ -31,7 +32,7 @@ ak_dae_vertices(void * __restrict memParent,
     if (_xml_eqElm(_s_dae_input)) {
       AkInputBasic *input;
 
-      input = ak_calloc(vertices, sizeof(*input), false);
+      input = ak_heap_calloc(heap, vertices, sizeof(*input), false);
 
       _xml_readAttr(input, input->semanticRaw, _s_dae_semantic);
       _xml_readAttr(input, input->source, _s_dae_source);
@@ -54,7 +55,7 @@ ak_dae_vertices(void * __restrict memParent,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(vertices, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(heap, vertices, nodePtr, &tree, NULL);
       vertices->extra = tree;
 
       _xml_skipElement;

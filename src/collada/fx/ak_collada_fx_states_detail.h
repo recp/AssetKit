@@ -14,130 +14,147 @@
 typedef AkEnum (*ak_dae_fxEnumFn_t)(const char * name);
 
 AkResult _assetkit_hide
-ak_dae_fxState_enum(xmlTextReaderPtr reader,
+ak_dae_fxState_enum(AkHeap * __restrict heap,
+                    xmlTextReaderPtr reader,
+                    AkRenderState ** __restrict last_state,
+                    AkStates ** __restrict states,
+                    AkRenderStateType state_type,
+                    AkEnum defaultEnumVal,
+                    ak_dae_fxEnumFn_t enumFn);
+
+AkResult _assetkit_hide
+ak_dae_fxState_bool4(AkHeap * __restrict heap,
+                     xmlTextReaderPtr reader,
                      AkRenderState ** __restrict last_state,
                      AkStates ** __restrict states,
                      AkRenderStateType state_type,
-                     AkEnum defaultEnumVal,
-                     ak_dae_fxEnumFn_t enumFn);
+                     AkBool * defaultVal,
+                     size_t defaultValSize);
 
 AkResult _assetkit_hide
-ak_dae_fxState_bool4(xmlTextReaderPtr reader,
+ak_dae_fxState_ul(AkHeap * __restrict heap,
+                  xmlTextReaderPtr reader,
+                  AkRenderState ** __restrict last_state,
+                  AkStates ** __restrict states,
+                  AkRenderStateType state_type,
+                  unsigned long defaultVal);
+
+AkResult _assetkit_hide
+ak_dae_fxState_ul_i(AkHeap * __restrict heap,
+                    xmlTextReaderPtr reader,
+                    AkRenderState ** __restrict last_state,
+                    AkStates ** __restrict states,
+                    AkRenderStateType state_type,
+                    unsigned long defaultVal);
+
+AkResult _assetkit_hide
+ak_dae_fxState_int2(AkHeap * __restrict heap,
+                    xmlTextReaderPtr reader,
+                    AkRenderState ** __restrict last_state,
+                    AkStates ** __restrict states,
+                    AkRenderStateType state_type,
+                    AkInt * defaultVal,
+                    size_t defaultValSize);
+
+AkResult _assetkit_hide
+ak_dae_fxState_int4(AkHeap * __restrict heap,
+                    xmlTextReaderPtr reader,
+                    AkRenderState ** __restrict last_state,
+                    AkStates ** __restrict states,
+                    AkRenderStateType state_type,
+                    AkInt * defaultVal,
+                    size_t defaultValSize);
+
+AkResult _assetkit_hide
+ak_dae_fxState_float(AkHeap * __restrict heap,
+                     xmlTextReaderPtr reader,
+                     AkRenderState ** __restrict last_state,
+                     AkStates ** __restrict states,
+                     AkRenderStateType state_type,
+                     AkFloat defaultVal);
+
+AkResult _assetkit_hide
+ak_dae_fxState_float_i(AkHeap * __restrict heap,
+                       xmlTextReaderPtr reader,
+                       AkRenderState ** __restrict last_state,
+                       AkStates ** __restrict states,
+                       AkRenderStateType state_type,
+                       AkFloat defaultVal);
+
+AkResult _assetkit_hide
+ak_dae_fxState_float2(AkHeap * __restrict heap,
+                      xmlTextReaderPtr reader,
                       AkRenderState ** __restrict last_state,
                       AkStates ** __restrict states,
                       AkRenderStateType state_type,
-                      AkBool * defaultVal,
+                      AkFloat * defaultVal,
                       size_t defaultValSize);
 
 AkResult _assetkit_hide
-ak_dae_fxState_ul(xmlTextReaderPtr reader,
-                   AkRenderState ** __restrict last_state,
-                   AkStates ** __restrict states,
-                   AkRenderStateType state_type,
-                   unsigned long defaultVal);
-
-AkResult _assetkit_hide
-ak_dae_fxState_ul_i(xmlTextReaderPtr reader,
-                     AkRenderState ** __restrict last_state,
-                     AkStates ** __restrict states,
-                     AkRenderStateType state_type,
-                     unsigned long defaultVal);
-
-AkResult _assetkit_hide
-ak_dae_fxState_int2(xmlTextReaderPtr reader,
-                     AkRenderState ** __restrict last_state,
-                     AkStates ** __restrict states,
-                     AkRenderStateType state_type,
-                     AkInt * defaultVal,
-                     size_t defaultValSize);
-
-AkResult _assetkit_hide
-ak_dae_fxState_int4(xmlTextReaderPtr reader,
-                     AkRenderState ** __restrict last_state,
-                     AkStates ** __restrict states,
-                     AkRenderStateType state_type,
-                     AkInt * defaultVal,
-                     size_t defaultValSize);
-
-AkResult _assetkit_hide
-ak_dae_fxState_float(xmlTextReaderPtr reader,
+ak_dae_fxState_float3(AkHeap * __restrict heap,
+                      xmlTextReaderPtr reader,
                       AkRenderState ** __restrict last_state,
                       AkStates ** __restrict states,
                       AkRenderStateType state_type,
-                      AkFloat defaultVal);
+                      AkFloat * defaultVal,
+                      size_t defaultValSize);
 
 AkResult _assetkit_hide
-ak_dae_fxState_float_i(xmlTextReaderPtr reader,
+ak_dae_fxState_float3_i(AkHeap * __restrict heap,
+                        xmlTextReaderPtr reader,
                         AkRenderState ** __restrict last_state,
                         AkStates ** __restrict states,
                         AkRenderStateType state_type,
-                        AkFloat defaultVal);
+                        AkFloat * defaultVal,
+                        size_t defaultValSize);
 
 AkResult _assetkit_hide
-ak_dae_fxState_float2(xmlTextReaderPtr reader,
-                       AkRenderState ** __restrict last_state,
-                       AkStates ** __restrict states,
-                       AkRenderStateType state_type,
-                       AkFloat * defaultVal,
-                       size_t defaultValSize);
+ak_dae_fxState_float4(AkHeap * __restrict heap,
+                      xmlTextReaderPtr reader,
+                      AkRenderState ** __restrict last_state,
+                      AkStates ** __restrict states,
+                      AkRenderStateType state_type,
+                      AkFloat * defaultVal,
+                      size_t defaultValSize);
 
 AkResult _assetkit_hide
-ak_dae_fxState_float3(xmlTextReaderPtr reader,
-                       AkRenderState ** __restrict last_state,
-                       AkStates ** __restrict states,
-                       AkRenderStateType state_type,
-                       AkFloat * defaultVal,
-                       size_t defaultValSize);
-
-AkResult _assetkit_hide
-ak_dae_fxState_float3_i(xmlTextReaderPtr reader,
-                         AkRenderState ** __restrict last_state,
-                         AkStates ** __restrict states,
-                         AkRenderStateType state_type,
-                         AkFloat * defaultVal,
-                         size_t defaultValSize);
-
-AkResult _assetkit_hide
-ak_dae_fxState_float4(xmlTextReaderPtr reader,
-                       AkRenderState ** __restrict last_state,
-                       AkStates ** __restrict states,
-                       AkRenderStateType state_type,
-                       AkFloat * defaultVal,
-                       size_t defaultValSize);
-
-AkResult _assetkit_hide
-ak_dae_fxState_float4_i(xmlTextReaderPtr reader,
-                         AkRenderState ** __restrict last_state,
-                         AkStates ** __restrict states,
-                         AkRenderStateType state_type,
-                         AkFloat * defaultVal,
-                         size_t defaultValSize);
-
-AkResult _assetkit_hide
-ak_dae_fxState_float4x4(xmlTextReaderPtr reader,
-                         AkRenderState ** __restrict last_state,
-                         AkStates ** __restrict states,
-                         AkRenderStateType state_type,
-                         AkFloat * defaultVal,
-                         size_t defaultValSize);
-
-AkResult _assetkit_hide
-ak_dae_fxState_sampler(xmlTextReaderPtr reader,
-                        const char *elm,
+ak_dae_fxState_float4_i(AkHeap * __restrict heap,
+                        xmlTextReaderPtr reader,
                         AkRenderState ** __restrict last_state,
                         AkStates ** __restrict states,
-                        AkRenderStateType state_type);
+                        AkRenderStateType state_type,
+                        AkFloat * defaultVal,
+                        size_t defaultValSize);
 
 AkResult _assetkit_hide
-ak_dae_fxState_str(xmlTextReaderPtr reader,
-                    AkRenderState ** __restrict last_state,
-                    AkStates ** __restrict states,
-                    AkRenderStateType state_type);
+ak_dae_fxState_float4x4(AkHeap * __restrict heap,
+                        xmlTextReaderPtr reader,
+                        AkRenderState ** __restrict last_state,
+                        AkStates ** __restrict states,
+                        AkRenderStateType state_type,
+                        AkFloat * defaultVal,
+                        size_t defaultValSize);
 
-#define _ak_DAE_ST_FUN_(ST_FN)                                               \
-AkResult _assetkit_hide                                                             \
-ST_FN(xmlTextReaderPtr,                                                       \
-      AkRenderState ** __restrict,                                         \
+AkResult _assetkit_hide
+ak_dae_fxState_sampler(AkHeap * __restrict heap,
+                       xmlTextReaderPtr reader,
+                       const char *elm,
+                       AkRenderState ** __restrict last_state,
+                       AkStates ** __restrict states,
+                       AkRenderStateType state_type);
+
+AkResult _assetkit_hide
+ak_dae_fxState_str(AkHeap * __restrict heap,
+                   xmlTextReaderPtr reader,
+                   AkRenderState ** __restrict last_state,
+                   AkStates ** __restrict states,
+                   AkRenderStateType state_type);
+
+#define _ak_DAE_ST_FUN_(ST_FN)                                                \
+AkResult _assetkit_hide                                                       \
+ST_FN(AkHeap * __restrict,                                                    \
+      xmlTextReaderPtr,                                                       \
+      AkRenderState ** __restrict,                                            \
       AkStates ** __restrict)
 
 _ak_DAE_ST_FUN_(ak_dae_fxStateAlphaFunc);

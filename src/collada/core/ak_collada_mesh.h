@@ -11,7 +11,8 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_mesh(void * __restrict memParent,
+ak_dae_mesh(AkHeap * __restrict heap,
+            void * __restrict memParent,
             xmlTextReaderPtr reader,
             const char * elm,
             AkMesh ** __restrict dest,

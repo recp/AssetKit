@@ -14,7 +14,8 @@
 #include "ak_collada_fx_evaluate.h"
 
 AkResult _assetkit_hide
-ak_dae_fxPass(void * __restrict memParent,
+ak_dae_fxPass(AkHeap * __restrict heap,
+              void * __restrict memParent,
               xmlTextReaderPtr reader,
               AkPass ** __restrict dest) {
   AkPass        *pass;
@@ -23,7 +24,7 @@ ak_dae_fxPass(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  pass = ak_calloc(memParent, sizeof(*pass), false);
+  pass = ak_heap_calloc(heap, memParent, sizeof(*pass), false);
 
   _xml_readAttr(pass, pass->sid, _s_dae_sid);
 
@@ -37,14 +38,14 @@ ak_dae_fxPass(void * __restrict memParent,
       AkResult ret;
 
       assetInf = NULL;
-      ret = ak_dae_assetInf(pass, reader, &assetInf);
+      ret = ak_dae_assetInf(heap, pass, reader, &assetInf);
       if (ret == AK_OK)
         pass->inf = assetInf;
     } else if (_xml_eqElm(_s_dae_annotate)) {
       AkAnnotate *annotate;
       AkResult    ret;
 
-      ret = ak_dae_annotate(pass, reader, &annotate);
+      ret = ak_dae_annotate(heap, pass, reader, &annotate);
 
       if (ret == AK_OK) {
         if (last_annotate)
@@ -58,7 +59,7 @@ ak_dae_fxPass(void * __restrict memParent,
       AkStates *states;
       AkResult  ret;
 
-      ret = ak_dae_fxState(pass, reader, &states);
+      ret = ak_dae_fxState(heap, pass, reader, &states);
       if (ret == AK_OK)
         pass->states = states;
 
@@ -66,14 +67,14 @@ ak_dae_fxPass(void * __restrict memParent,
       AkProgram *prog;
       AkResult   ret;
 
-      ret = ak_dae_fxProg(pass, reader, &prog);
+      ret = ak_dae_fxProg(heap, pass, reader, &prog);
       if (ret == AK_OK)
         pass->program = prog;
     } else if (_xml_eqElm(_s_dae_evaluate)) {
       AkEvaluate * evaluate;
       AkResult ret;
 
-      ret = ak_dae_fxEvaluate(pass, reader, &evaluate);
+      ret = ak_dae_fxEvaluate(heap, pass, reader, &evaluate);
       if (ret == AK_OK)
         pass->evaluate = evaluate;
     } else if (_xml_eqElm(_s_dae_extra)) {
@@ -83,7 +84,7 @@ ak_dae_fxPass(void * __restrict memParent,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(pass, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(heap, pass, nodePtr, &tree, NULL);
       pass->extra = tree;
 
       _xml_skipElement;

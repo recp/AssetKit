@@ -11,12 +11,14 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_surface(void * __restrict memParent,
+ak_dae_surface(AkHeap * __restrict heap,
+               void * __restrict memParent,
                xmlTextReaderPtr reader,
                AkSurface ** __restrict dest);
 
 AkResult _assetkit_hide
-ak_dae_surfaces(void * __restrict memParent,
+ak_dae_surfaces(AkHeap * __restrict heap,
+                void * __restrict memParent,
                 xmlTextReaderPtr reader,
                 AkSurfaces ** __restrict dest);
 

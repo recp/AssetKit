@@ -15,9 +15,10 @@
 #include "ak_collada_fx_profile.h"
 
 AkResult _assetkit_hide
-ak_dae_effect(void * __restrict memParent,
-               xmlTextReaderPtr reader,
-               AkEffect ** __restrict  dest) {
+ak_dae_effect(AkHeap * __restrict heap,
+              void * __restrict memParent,
+              xmlTextReaderPtr reader,
+              AkEffect ** __restrict  dest) {
   AkEffect   *effect;
   AkAnnotate *last_annotate;
   AkNewParam *last_newparam;
@@ -26,12 +27,12 @@ ak_dae_effect(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  effect = ak_calloc(memParent, sizeof(*effect), false);
+  effect = ak_heap_calloc(heap, memParent, sizeof(*effect), false);
 
   last_annotate = NULL;
   last_newparam = NULL;
   last_profile  = NULL;
-  
+
   _xml_readAttr(effect, effect->id, _s_dae_id);
   _xml_readAttr(effect, effect->name, _s_dae_name);
 
@@ -43,14 +44,14 @@ ak_dae_effect(void * __restrict memParent,
       AkResult ret;
 
       assetInf = NULL;
-      ret = ak_dae_assetInf(effect, reader, &assetInf);
+      ret = ak_dae_assetInf(heap, effect, reader, &assetInf);
       if (ret == AK_OK)
         effect->inf = assetInf;
     } else if (_xml_eqElm(_s_dae_annotate)) {
       AkAnnotate *annotate;
       AkResult    ret;
 
-      ret = ak_dae_annotate(effect, reader, &annotate);
+      ret = ak_dae_annotate(heap, effect, reader, &annotate);
 
       if (ret == AK_OK) {
         if (last_annotate)
@@ -64,7 +65,7 @@ ak_dae_effect(void * __restrict memParent,
       AkNewParam *newparam;
       AkResult    ret;
 
-      ret = ak_dae_newparam(effect, reader, &newparam);
+      ret = ak_dae_newparam(heap, effect, reader, &newparam);
 
       if (ret == AK_OK) {
         if (last_newparam)
@@ -83,7 +84,7 @@ ak_dae_effect(void * __restrict memParent,
       AkProfile *profile;
       AkResult   ret;
 
-      ret = ak_dae_profile(effect, reader, &profile);
+      ret = ak_dae_profile(heap, effect, reader, &profile);
 
       if (ret == AK_OK) {
         if (last_profile)
@@ -100,7 +101,7 @@ ak_dae_effect(void * __restrict memParent,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(effect, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(heap, effect, nodePtr, &tree, NULL);
       effect->extra = tree;
 
       _xml_skipElement;
@@ -118,9 +119,10 @@ ak_dae_effect(void * __restrict memParent,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxInstanceEffect(void * __restrict memParent,
-                         xmlTextReaderPtr reader,
-                         AkInstanceEffect ** __restrict dest) {
+ak_dae_fxInstanceEffect(AkHeap * __restrict heap,
+                        void * __restrict memParent,
+                        xmlTextReaderPtr reader,
+                        AkInstanceEffect ** __restrict dest) {
   AkInstanceEffect *instanceEffect;
   AkTechniqueHint  *last_techHint;
   AkSetParam       *last_setparam;
@@ -128,7 +130,10 @@ ak_dae_fxInstanceEffect(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  instanceEffect = ak_calloc(memParent, sizeof(*instanceEffect), false);
+  instanceEffect = ak_heap_calloc(heap,
+                                  memParent,
+                                  sizeof(*instanceEffect),
+                                  false);
 
   _xml_readAttr(instanceEffect, instanceEffect->url, _s_dae_url);
   _xml_readAttr(instanceEffect, instanceEffect->sid, _s_dae_sid);
@@ -144,7 +149,10 @@ ak_dae_fxInstanceEffect(void * __restrict memParent,
       if (_xml_eqElm(_s_dae_technique_hint)) {
         AkTechniqueHint *techHint;
 
-        techHint = ak_calloc(instanceEffect, sizeof(*techHint), false);
+        techHint = ak_heap_calloc(heap,
+                                  instanceEffect,
+                                  sizeof(*techHint),
+                                  false);
 
         _xml_readAttr(techHint, techHint->ref, _s_dae_ref);
         _xml_readAttr(techHint, techHint->profile, _s_dae_profile);
@@ -160,7 +168,10 @@ ak_dae_fxInstanceEffect(void * __restrict memParent,
         AkSetParam *setparam;
         AkResult ret;
 
-        ret = ak_dae_setparam(instanceEffect, reader, &setparam);
+        ret = ak_dae_setparam(heap,
+                              instanceEffect,
+                              reader,
+                              &setparam);
 
         if (ret == AK_OK) {
           if (last_setparam)
@@ -177,19 +188,23 @@ ak_dae_fxInstanceEffect(void * __restrict memParent,
         nodePtr = xmlTextReaderExpand(reader);
         tree = NULL;
 
-        ak_tree_fromXmlNode(instanceEffect, nodePtr, &tree, NULL);
+        ak_tree_fromXmlNode(heap,
+                            instanceEffect,
+                            nodePtr,
+                            &tree,
+                            NULL);
         instanceEffect->extra = tree;
-
+        
         _xml_skipElement;
       } else {
         _xml_skipElement;
       }
-
+      
       /* end element */
       _xml_endElement;
     } while (nodeRet);
   }
-
+  
   *dest = instanceEffect;
   
   return AK_OK;

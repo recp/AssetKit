@@ -10,7 +10,8 @@
 #include "../ak_collada_asset.h"
 
 AkResult _assetkit_hide
-ak_dae_evaluateScene(void * __restrict memParent,
+ak_dae_evaluateScene(AkHeap * __restrict heap,
+                     void * __restrict memParent,
                      xmlTextReaderPtr reader,
                      AkEvaluateScene ** __restrict dest) {
   AkEvaluateScene *evaluateScene;
@@ -19,7 +20,10 @@ ak_dae_evaluateScene(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  evaluateScene = ak_calloc(memParent, sizeof(*evaluateScene), false);
+  evaluateScene = ak_heap_calloc(heap,
+                                 memParent,
+                                 sizeof(*evaluateScene),
+                                 false);
 
   _xml_readAttr(evaluateScene, evaluateScene->id, _s_dae_id);
   _xml_readAttr(evaluateScene, evaluateScene->name, _s_dae_name);
@@ -38,7 +42,7 @@ ak_dae_evaluateScene(void * __restrict memParent,
       AkResult ret;
 
       assetInf = NULL;
-      ret = ak_dae_assetInf(evaluateScene, reader, &assetInf);
+      ret = ak_dae_assetInf(heap, evaluateScene, reader, &assetInf);
       if (ret == AK_OK)
         evaluateScene->inf = assetInf;
 
@@ -46,7 +50,7 @@ ak_dae_evaluateScene(void * __restrict memParent,
       AkRender *render;
       AkResult  ret;
 
-      ret = ak_dae_render(evaluateScene, reader, &render);
+      ret = ak_dae_render(heap, evaluateScene, reader, &render);
       if (ret == AK_OK) {
         if (last_render)
           last_render->next = render;
@@ -62,7 +66,7 @@ ak_dae_evaluateScene(void * __restrict memParent,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(evaluateScene, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(heap, evaluateScene, nodePtr, &tree, NULL);
       evaluateScene->extra = tree;
 
       _xml_skipElement;

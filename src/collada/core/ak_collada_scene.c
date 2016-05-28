@@ -9,7 +9,8 @@
 #include "ak_collada_visual_scene.h"
 
 AkResult _assetkit_hide
-ak_dae_scene(void * __restrict memParent,
+ak_dae_scene(AkHeap * __restrict heap,
+             void * __restrict memParent,
              xmlTextReaderPtr reader,
              AkScene * __restrict dest) {
   const xmlChar *nodeName;
@@ -23,7 +24,7 @@ ak_dae_scene(void * __restrict memParent,
       AkInstanceVisualScene *visualScene;
       AkResult ret;
 
-      ret = ak_dae_instanceVisualScene(memParent, reader, &visualScene);
+      ret = ak_dae_instanceVisualScene(heap, memParent, reader, &visualScene);
       if (ret == AK_OK)
         dest->visualScene = visualScene;
 
@@ -34,7 +35,7 @@ ak_dae_scene(void * __restrict memParent,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(memParent, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(heap, memParent, nodePtr, &tree, NULL);
       dest->extra = tree;
 
       _xml_skipElement;

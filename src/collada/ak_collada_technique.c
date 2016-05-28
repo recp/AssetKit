@@ -14,9 +14,10 @@
 #include "ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_technique(void * __restrict memParent,
-                  xmlTextReaderPtr reader,
-                  AkTechnique ** __restrict dest) {
+ak_dae_technique(AkHeap * __restrict heap,
+                 void * __restrict memParent,
+                 xmlTextReaderPtr reader,
+                 AkTechnique ** __restrict dest) {
 
   AkTechnique *technique;
   AkTree       *tree;
@@ -25,7 +26,7 @@ ak_dae_technique(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  technique = ak_calloc(memParent, sizeof(*technique), false);
+  technique = ak_heap_calloc(heap, memParent, sizeof(*technique), false);
 
   _xml_readAttr(technique, technique->profile, _s_dae_profile);
   _xml_readAttr(technique, technique->xmlns, _s_dae_xmlns);
@@ -33,7 +34,7 @@ ak_dae_technique(void * __restrict memParent,
   nodePtr = xmlTextReaderExpand(reader);
   tree = NULL;
 
-  ak_tree_fromXmlNode(technique, nodePtr, &tree, NULL);
+  ak_tree_fromXmlNode(heap, technique, nodePtr, &tree, NULL);
   technique->chld = tree;
 
   nodeName = xmlTextReaderConstName(reader);

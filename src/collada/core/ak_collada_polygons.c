@@ -10,7 +10,8 @@
 #include "../../ak_array.h"
 
 AkResult _assetkit_hide
-ak_dae_polygons(void * __restrict memParent,
+ak_dae_polygons(AkHeap * __restrict heap,
+                void * __restrict memParent,
                 xmlTextReaderPtr reader,
                 const char * elm,
                 AkPolygonMode mode,
@@ -26,7 +27,8 @@ ak_dae_polygons(void * __restrict memParent,
   int             nodeRet;
 
   if (asObject) {
-    obj = ak_objAlloc(memParent,
+    obj = ak_objAlloc(heap,
+                      memParent,
                       sizeof(*polygons),
                       0,
                       true,
@@ -35,7 +37,7 @@ ak_dae_polygons(void * __restrict memParent,
     polygons = ak_objGet(obj);
     memPtr = obj;
   } else {
-    polygons = ak_calloc(memParent, sizeof(*polygons), false);
+    polygons = ak_heap_calloc(heap, memParent, sizeof(*polygons), false);
     memPtr = polygons;
   }
 
@@ -55,7 +57,7 @@ ak_dae_polygons(void * __restrict memParent,
     if (_xml_eqElm(_s_dae_input)) {
       AkInput *input;
 
-      input = ak_calloc(memPtr, sizeof(*input), false);
+      input = ak_heap_calloc(heap, memPtr, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
       _xml_readAttr(input, input->base.source, _s_dae_source);
@@ -94,13 +96,13 @@ ak_dae_polygons(void * __restrict memParent,
       if (content) {
         AkDoubleArray *doubleArray;
         AkResult ret;
-        ret = ak_strtod_array(memPtr, content, &doubleArray);
+        ret = ak_strtod_array(heap, memPtr, content, &doubleArray);
         if (ret == AK_OK) {
           if (mode == AK_POLYGON_MODE_POLYLIST) {
             if (!last_polygon) {
               AkPolygon * polygon;
 
-              polygon = ak_calloc(memParent, sizeof(*polygon), false);
+              polygon = ak_heap_calloc(heap, memParent, sizeof(*polygon), false);
               polygon->mode = mode;
               polygon->haveHoles = false;
 
@@ -109,7 +111,7 @@ ak_dae_polygons(void * __restrict memParent,
             }
           } else {
             AkPolygon *polygon;
-            polygon = ak_calloc(memPtr, sizeof(*polygon), false);
+            polygon = ak_heap_calloc(heap, memPtr, sizeof(*polygon), false);
             polygon->mode = mode;
             polygon->haveHoles = false;
 
@@ -135,12 +137,12 @@ ak_dae_polygons(void * __restrict memParent,
         AkIntArray *intArray;
         AkResult    ret;
 
-        ret = ak_strtoi_array(memPtr, content, &intArray);
+        ret = ak_strtoi_array(heap, memPtr, content, &intArray);
         if (ret == AK_OK) {
           if (!last_polygon) {
             AkPolygon * polygon;
 
-            polygon = ak_calloc(memParent, sizeof(*polygon), false);
+            polygon = ak_heap_calloc(heap, memParent, sizeof(*polygon), false);
             polygon->mode = mode;
 
             polygons->polygon = polygon;
@@ -156,7 +158,7 @@ ak_dae_polygons(void * __restrict memParent,
       AkPolygon      *polygon;
       AkDoubleArrayL *last_array;
 
-      polygon = ak_calloc(memPtr, sizeof(*polygon), false);
+      polygon = ak_heap_calloc(heap, memPtr, sizeof(*polygon), false);
       polygon->mode = mode;
       polygon->haveHoles = true;
 
@@ -174,7 +176,7 @@ ak_dae_polygons(void * __restrict memParent,
             AkDoubleArray *doubleArray;
             AkResult ret;
 
-            ret = ak_strtod_array(memPtr, content, &doubleArray);
+            ret = ak_strtod_array(heap, memPtr, content, &doubleArray);
             if (ret == AK_OK)
               polygon->primitives = doubleArray;
 
@@ -189,7 +191,7 @@ ak_dae_polygons(void * __restrict memParent,
             AkDoubleArrayL *doubleArray;
             AkResult ret;
 
-            ret = ak_strtod_arrayL(memPtr, content, &doubleArray);
+            ret = ak_strtod_arrayL(heap, memPtr, content, &doubleArray);
             if (ret == AK_OK) {
               if (last_array)
                 last_array->next = doubleArray;
@@ -222,7 +224,11 @@ ak_dae_polygons(void * __restrict memParent,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(memPtr, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(heap,
+                          memPtr,
+                          nodePtr,
+                          &tree,
+                          NULL);
       polygons->extra = tree;
       
       _xml_skipElement;

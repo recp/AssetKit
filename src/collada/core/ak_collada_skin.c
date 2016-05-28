@@ -11,7 +11,8 @@
 #include "ak_collada_enums.h"
 
 AkResult _assetkit_hide
-ak_dae_skin(void * __restrict memParent,
+ak_dae_skin(AkHeap * __restrict heap,
+            void * __restrict memParent,
             xmlTextReaderPtr reader,
             bool asObject,
             AkSkin ** __restrict dest) {
@@ -24,7 +25,8 @@ ak_dae_skin(void * __restrict memParent,
   int             nodeRet;
 
   if (asObject) {
-    obj = ak_objAlloc(memParent,
+    obj = ak_objAlloc(heap,
+                      memParent,
                       sizeof(*skin),
                       0,
                       true,
@@ -34,7 +36,7 @@ ak_dae_skin(void * __restrict memParent,
 
     memPtr = obj;
   } else {
-    skin = ak_calloc(memParent, sizeof(*skin), false);
+    skin = ak_heap_calloc(heap, memParent, sizeof(*skin), false);
     memPtr = skin;
   }
 
@@ -53,7 +55,7 @@ ak_dae_skin(void * __restrict memParent,
         AkDoubleArray *doubleArray;
         AkResult ret;
 
-        ret = ak_strtod_array(skin, content, &doubleArray);
+        ret = ak_strtod_array(heap, skin, content, &doubleArray);
         if (ret == AK_OK)
           skin->bindShapeMatrix = doubleArray;
       }
@@ -61,7 +63,7 @@ ak_dae_skin(void * __restrict memParent,
       AkSource *source;
       AkResult ret;
 
-      ret = ak_dae_source(skin, reader, &source);
+      ret = ak_dae_source(heap, skin, reader, &source);
       if (ret == AK_OK) {
         if (last_source)
           last_source->next = source;
@@ -74,7 +76,7 @@ ak_dae_skin(void * __restrict memParent,
       AkJoints     *joints;
       AkInputBasic *last_input;
 
-      joints = ak_calloc(skin, sizeof(*joints), false);
+      joints = ak_heap_calloc(heap, skin, sizeof(*joints), false);
 
       last_input = NULL;
 
@@ -84,7 +86,7 @@ ak_dae_skin(void * __restrict memParent,
         if (_xml_eqElm(_s_dae_input)) {
           AkInputBasic *input;
 
-          input = ak_calloc(joints, sizeof(*input), false);
+          input = ak_heap_calloc(heap, joints, sizeof(*input), false);
 
           _xml_readAttr(input, input->semanticRaw, _s_dae_semantic);
           _xml_readAttr(input, input->source, _s_dae_source);
@@ -114,7 +116,7 @@ ak_dae_skin(void * __restrict memParent,
           nodePtr = xmlTextReaderExpand(reader);
           tree = NULL;
 
-          ak_tree_fromXmlNode(joints, nodePtr, &tree, NULL);
+          ak_tree_fromXmlNode(heap, joints, nodePtr, &tree, NULL);
           joints->extra = tree;
 
           _xml_skipElement;
@@ -132,7 +134,10 @@ ak_dae_skin(void * __restrict memParent,
       AkVertexWeights *vertexWeights;
       AkInput         *last_input;
 
-      vertexWeights = ak_calloc(skin, sizeof(*vertexWeights), false);
+      vertexWeights = ak_heap_calloc(heap,
+                                     skin,
+                                     sizeof(*vertexWeights),
+                                     false);
 
       last_input = NULL;
 
@@ -141,7 +146,7 @@ ak_dae_skin(void * __restrict memParent,
 
         if (_xml_eqElm(_s_dae_input)) {
           AkInput *input;
-          input = ak_calloc(vertexWeights, sizeof(*input), false);
+          input = ak_heap_calloc(heap, vertexWeights, sizeof(*input), false);
 
           _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
           _xml_readAttr(input, input->base.source, _s_dae_source);
@@ -180,7 +185,7 @@ ak_dae_skin(void * __restrict memParent,
             AkIntArray *intArray;
             AkResult    ret;
 
-            ret = ak_strtoi_array(vertexWeights, content, &intArray);
+            ret = ak_strtoi_array(heap, vertexWeights, content, &intArray);
             if (ret == AK_OK)
               vertexWeights->vcount = intArray;
             
@@ -194,7 +199,7 @@ ak_dae_skin(void * __restrict memParent,
             AkDoubleArray *doubleArray;
             AkResult       ret;
 
-            ret = ak_strtod_array(vertexWeights, content, &doubleArray);
+            ret = ak_strtod_array(heap, vertexWeights, content, &doubleArray);
             if (ret == AK_OK)
               vertexWeights->v = doubleArray;
 
@@ -207,7 +212,7 @@ ak_dae_skin(void * __restrict memParent,
           nodePtr = xmlTextReaderExpand(reader);
           tree = NULL;
 
-          ak_tree_fromXmlNode(vertexWeights, nodePtr, &tree, NULL);
+          ak_tree_fromXmlNode(heap, vertexWeights, nodePtr, &tree, NULL);
           vertexWeights->extra = tree;
 
           _xml_skipElement;
@@ -228,7 +233,7 @@ ak_dae_skin(void * __restrict memParent,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(skin, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(heap, skin, nodePtr, &tree, NULL);
       skin->extra = tree;
 
       _xml_skipElement;

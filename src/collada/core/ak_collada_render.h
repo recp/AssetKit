@@ -11,7 +11,8 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_render(void * __restrict memParent,
+ak_dae_render(AkHeap * __restrict heap,
+              void * __restrict memParent,
               xmlTextReaderPtr reader,
               AkRender ** __restrict dest);
 

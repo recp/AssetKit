@@ -12,9 +12,10 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_colorOrTex(void * __restrict memParent,
-                   xmlTextReaderPtr reader,
-                   const char * elm,
-                   AkFxColorOrTex ** __restrict dest);
+ak_dae_colorOrTex(AkHeap * __restrict heap,
+                  void * __restrict memParent,
+                  xmlTextReaderPtr reader,
+                  const char * elm,
+                  AkFxColorOrTex ** __restrict dest);
 
 #endif /* __libassetkit__ak_collada_color_or_tex__h_ */

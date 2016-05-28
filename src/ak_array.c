@@ -11,7 +11,8 @@
 #define AK__TMP_ARRAY_INCREMENT 32
 
 AkResult _assetkit_hide
-ak_strtod_array(void * __restrict memParent,
+ak_strtod_array(AkHeap * __restrict heap,
+                void * __restrict memParent,
                 char * __restrict stringRep,
                 AkDoubleArray ** __restrict array) {
   AkDoubleArray  *doubleArray;
@@ -37,8 +38,8 @@ ak_strtod_array(void * __restrict memParent,
     if (tok && arrayIndex == tmpCount) {
       tmpCount += AK__TMP_ARRAY_INCREMENT;
       tmpArray = ak_realloc(memParent,
-                             tmpArray,
-                             sizeof(AkDouble) * tmpCount);
+                            tmpArray,
+                            sizeof(AkDouble) * tmpCount);
     }
   }
 
@@ -53,12 +54,13 @@ ak_strtod_array(void * __restrict memParent,
   ak_free(tmpArray);
 
   *array = doubleArray;
-  
+
   return AK_OK;
 }
 
 AkResult _assetkit_hide
-ak_strtod_arrayL(void * __restrict memParent,
+ak_strtod_arrayL(AkHeap * __restrict heap,
+                 void * __restrict memParent,
                  char * __restrict stringRep,
                  AkDoubleArrayL ** __restrict array) {
   AkDoubleArrayL *doubleArray;
@@ -105,7 +107,8 @@ ak_strtod_arrayL(void * __restrict memParent,
 }
 
 AkResult _assetkit_hide
-ak_strtoi_array(void * __restrict memParent,
+ak_strtoi_array(AkHeap * __restrict heap,
+                void * __restrict memParent,
                 char * stringRep,
                 AkIntArray ** __restrict array) {
   AkIntArray     *intArray;
@@ -131,8 +134,8 @@ ak_strtoi_array(void * __restrict memParent,
     if (tok && arrayIndex == tmpCount) {
       tmpCount += AK__TMP_ARRAY_INCREMENT;
       tmpArray = ak_realloc(memParent,
-                             tmpArray,
-                             sizeof(AkInt) * tmpCount);
+                            tmpArray,
+                            sizeof(AkInt) * tmpCount);
     }
   }
 
@@ -147,12 +150,13 @@ ak_strtoi_array(void * __restrict memParent,
   ak_free(tmpArray);
 
   *array = intArray;
-  
+
   return AK_OK;
 }
 
 AkResult _assetkit_hide
-ak_strtostr_array(void * __restrict memParent,
+ak_strtostr_array(AkHeap * __restrict heap,
+                  void * __restrict memParent,
                   char * stringRep,
                   char separator,
                   AkStringArray ** __restrict array) {
@@ -208,7 +212,8 @@ ak_strtostr_array(void * __restrict memParent,
 }
 
 AkResult _assetkit_hide
-ak_strtostr_arrayL(void * __restrict memParent,
+ak_strtostr_arrayL(AkHeap * __restrict heap,
+                   void * __restrict memParent,
                    char * stringRep,
                    char separator,
                    AkStringArrayL ** __restrict array) {
@@ -251,10 +256,10 @@ ak_strtostr_arrayL(void * __restrict memParent,
   while (tok) {
     strcpy(pData, tok);
     stringArray->items[arrayIndex++] = pData;
-
+    
     pData += strlen(tok);
     *pData++ = '\0';
-
+    
     tok = strtok(NULL, " ");
   }
 

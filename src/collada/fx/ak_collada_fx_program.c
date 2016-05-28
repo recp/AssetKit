@@ -11,7 +11,8 @@
 #include "ak_collada_fx_binary.h"
 
 AkResult _assetkit_hide
-ak_dae_fxProg(void * __restrict memParent,
+ak_dae_fxProg(AkHeap * __restrict heap,
+              void * __restrict memParent,
               xmlTextReaderPtr reader,
               AkProgram ** __restrict dest) {
   AkProgram     *prog;
@@ -24,7 +25,7 @@ ak_dae_fxProg(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  prog = ak_calloc(memParent, sizeof(*prog), false);
+  prog = ak_heap_calloc(heap, memParent, sizeof(*prog), false);
 
   last_bind_uniform = NULL;
   last_bind_attrib  = NULL;
@@ -38,7 +39,7 @@ ak_dae_fxProg(void * __restrict memParent,
       AkShader *shader;
       AkResult  ret;
 
-      ret = ak_dae_fxShader(prog, reader, &shader);
+      ret = ak_dae_fxShader(heap, prog, reader, &shader);
       if (ret == AK_OK) {
         if (last_shader)
           last_shader->next = shader;
@@ -51,7 +52,7 @@ ak_dae_fxProg(void * __restrict memParent,
       AkLinker *linker;
       AkBinary *last_binary;
 
-      linker = ak_calloc(prog, sizeof(*linker), false);
+      linker = ak_heap_calloc(heap, prog, sizeof(*linker), false);
 
       _xml_readAttr(linker, linker->platform, _s_dae_platform);
       _xml_readAttr(linker, linker->target, _s_dae_target);
@@ -66,7 +67,7 @@ ak_dae_fxProg(void * __restrict memParent,
           AkBinary *binary;
           AkResult  ret;
 
-          ret = ak_dae_fxBinary(linker, reader, &binary);
+          ret = ak_dae_fxBinary(heap, linker, reader, &binary);
           if (ret == AK_OK) {
             if (last_shader)
               last_binary->next = binary;
@@ -92,7 +93,7 @@ ak_dae_fxProg(void * __restrict memParent,
     } else if (_xml_eqElm(_s_dae_bind_attribute)) {
       AkBindAttrib *bindAttrib;
 
-      bindAttrib = ak_calloc(prog, sizeof(*bindAttrib), false);
+      bindAttrib = ak_heap_calloc(heap, prog, sizeof(*bindAttrib), false);
       _xml_readAttr(bindAttrib, bindAttrib->symbol, _s_dae_symbol);
 
       do {
@@ -119,7 +120,7 @@ ak_dae_fxProg(void * __restrict memParent,
       AkBindUniform *bindUniform;
       AkResult ret;
 
-      ret = ak_dae_fxBindUniform(prog, reader, &bindUniform);
+      ret = ak_dae_fxBindUniform(heap, prog, reader, &bindUniform);
       if (ret == AK_OK) {
         if (last_bind_uniform)
           last_bind_uniform->next = bindUniform;

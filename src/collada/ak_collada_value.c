@@ -68,10 +68,11 @@ ak_dae_valueType(const char * typeName) {
 }
 
 AkResult _assetkit_hide
-ak_dae_value(void * __restrict memParent,
-              xmlTextReaderPtr reader,
-              void ** __restrict dest,
-              AkValueType * __restrict val_type) {
+ak_dae_value(AkHeap * __restrict heap,
+             void * __restrict memParent,
+             xmlTextReaderPtr reader,
+             void ** __restrict dest,
+             AkValueType * __restrict val_type) {
   ak_value_pair *found;
   char           *nodeVal;
   const xmlChar  *nodeName;
@@ -98,14 +99,14 @@ ak_dae_value(void * __restrict memParent,
     *val_type = AK_VALUE_TYPE_UNKNOWN;
     return AK_ERR;
   }
-  
+
   *val_type = found->val;
 
   _xml_readText(NULL, nodeVal);
 
   switch (found->val) {
     case AK_VALUE_TYPE_STRING:
-      
+
       *dest = nodeVal;
       break;
     case AK_VALUE_TYPE_BOOL:
@@ -114,9 +115,9 @@ ak_dae_value(void * __restrict memParent,
     case AK_VALUE_TYPE_BOOL4:{
       AkBool * val;
 
-      val = ak_calloc(memParent,
-                      sizeof(*val) * found->m * found->n,
-                      false);
+      val = ak_heap_calloc(heap, memParent,
+                           sizeof(*val) * found->m * found->n,
+                           false);
       ak_strtomb(&nodeVal, val, found->m, found->n);
 
       *dest = val;
@@ -128,9 +129,9 @@ ak_dae_value(void * __restrict memParent,
     case AK_VALUE_TYPE_INT4:{
       AkInt * val;
 
-      val = ak_calloc(memParent,
-                      sizeof(*val) * found->m * found->n,
-                      false);
+      val = ak_heap_calloc(heap, memParent,
+                           sizeof(*val) * found->m * found->n,
+                           false);
       ak_strtomi(&nodeVal, val, found->m, found->n);
 
       *dest = val;
@@ -145,9 +146,9 @@ ak_dae_value(void * __restrict memParent,
     case AK_VALUE_TYPE_FLOAT4x4:{
       AkFloat * val;
 
-      val = ak_calloc(memParent,
-                      sizeof(*val) * found->m * found->n,
-                      false);
+      val = ak_heap_calloc(heap, memParent,
+                           sizeof(*val) * found->m * found->n,
+                           false);
       ak_strtomf(&nodeVal, val, found->m, found->n);
 
       *dest = val;
@@ -180,6 +181,6 @@ int _assetkit_hide
 valuePairCmp2(const void * a, const void * b) {
   const char * _a = a;
   const ak_value_pair * _b = b;
-
+  
   return strcmp(_a, _b->key);
 }

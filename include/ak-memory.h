@@ -187,7 +187,8 @@ ak_mem_getMemById(void * __restrict ctx,
 
 AkObject*
 AK_EXPORT
-ak_objAlloc(void * __restrict memParent,
+ak_objAlloc(AkHeap * __restrict heap,
+            void * __restrict memParent,
             size_t typeSize,
             AkEnum typeEnum,
             AkBool zeroed,

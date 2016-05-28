@@ -16,7 +16,8 @@
 #include "ak_collada_fx_pass.h"
 
 AkResult _assetkit_hide
-ak_dae_techniqueFx(void * __restrict memParent,
+ak_dae_techniqueFx(AkHeap * __restrict heap,
+                   void * __restrict memParent,
                    xmlTextReaderPtr reader,
                    AkTechniqueFx ** __restrict dest) {
   AkTechniqueFx *technique;
@@ -25,7 +26,7 @@ ak_dae_techniqueFx(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  technique = ak_calloc(memParent, sizeof(*technique), false);
+  technique = ak_heap_calloc(heap, memParent, sizeof(*technique), false);
 
   _xml_readAttr(technique, technique->id, _s_dae_id);
   _xml_readAttr(technique, technique->sid, _s_dae_sid);
@@ -40,14 +41,14 @@ ak_dae_techniqueFx(void * __restrict memParent,
       AkResult ret;
 
       assetInf = NULL;
-      ret = ak_dae_assetInf(technique, reader, &assetInf);
+      ret = ak_dae_assetInf(heap, technique, reader, &assetInf);
       if (ret == AK_OK)
         technique->inf = assetInf;
     } else if (_xml_eqElm(_s_dae_annotate)) {
       AkAnnotate *annotate;
       AkResult    ret;
 
-      ret = ak_dae_annotate(technique, reader, &annotate);
+      ret = ak_dae_annotate(heap, technique, reader, &annotate);
 
       if (ret == AK_OK) {
         if (last_annotate)
@@ -61,7 +62,7 @@ ak_dae_techniqueFx(void * __restrict memParent,
       AkPass * pass;
       AkResult ret;
 
-      ret = ak_dae_fxPass(technique, reader, &pass);
+      ret = ak_dae_fxPass(heap, technique, reader, &pass);
       if (ret == AK_OK)
         technique->pass = pass;
 
@@ -69,10 +70,11 @@ ak_dae_techniqueFx(void * __restrict memParent,
       ak_blinn_phong * blinn_phong;
       AkResult ret;
 
-      ret = ak_dae_blinn_phong(technique,
-                                reader,
-                                (const char *)nodeName,
-                                &blinn_phong);
+      ret = ak_dae_blinn_phong(heap,
+                               technique,
+                               reader,
+                               (const char *)nodeName,
+                               &blinn_phong);
       if (ret == AK_OK)
         technique->blinn = (AkBlinn *)blinn_phong;
 
@@ -80,7 +82,7 @@ ak_dae_techniqueFx(void * __restrict memParent,
       AkConstantFx * constant_fx;
       AkResult ret;
 
-      ret = ak_dae_fxConstant(technique, reader, &constant_fx);
+      ret = ak_dae_fxConstant(heap, technique, reader, &constant_fx);
       if (ret == AK_OK)
         technique->constant = constant_fx;
 
@@ -88,7 +90,7 @@ ak_dae_techniqueFx(void * __restrict memParent,
       AkLambert * lambert;
       AkResult ret;
 
-      ret = ak_dae_fxLambert(technique, reader, &lambert);
+      ret = ak_dae_fxLambert(heap, technique, reader, &lambert);
       if (ret == AK_OK)
         technique->lambert = lambert;
 
@@ -96,10 +98,11 @@ ak_dae_techniqueFx(void * __restrict memParent,
       ak_blinn_phong * blinn_phong;
       AkResult ret;
 
-      ret = ak_dae_blinn_phong(technique,
-                                reader,
-                                (const char *)nodeName,
-                                &blinn_phong);
+      ret = ak_dae_blinn_phong(heap,
+                               technique,
+                               reader,
+                               (const char *)nodeName,
+                               &blinn_phong);
       if (ret == AK_OK)
         technique->phong = (AkPhong *)blinn_phong;
 
@@ -110,7 +113,7 @@ ak_dae_techniqueFx(void * __restrict memParent,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(technique, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(heap, technique, nodePtr, &tree, NULL);
       technique->extra = tree;
 
       _xml_skipElement;

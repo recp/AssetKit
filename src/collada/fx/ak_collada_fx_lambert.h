@@ -12,7 +12,8 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_fxLambert(void * __restrict memParent,
+ak_dae_fxLambert(AkHeap * __restrict heap,
+                 void * __restrict memParent,
                  xmlTextReaderPtr reader,
                  AkLambert ** __restrict dest);
 

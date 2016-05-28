@@ -22,16 +22,17 @@ static ak_enumpair modifierMap[] = {
 static size_t modifierMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_newparam(void * __restrict memParent,
-                 xmlTextReaderPtr reader,
-                 AkNewParam ** __restrict dest) {
+ak_dae_newparam(AkHeap * __restrict heap,
+                void * __restrict memParent,
+                xmlTextReaderPtr reader,
+                AkNewParam ** __restrict dest) {
   AkNewParam    *newparam;
   AkAnnotate    *last_annotate;
   const xmlChar *nodeName;
   int nodeType;
   int nodeRet;
 
-  newparam = ak_calloc(memParent, sizeof(*newparam), false);
+  newparam = ak_heap_calloc(heap, memParent, sizeof(*newparam), false);
   last_annotate = NULL;
 
   if (modifierMapLen == 0) {
@@ -49,7 +50,7 @@ ak_dae_newparam(void * __restrict memParent,
       AkAnnotate *annotate;
       AkResult ret;
 
-      ret = ak_dae_annotate(newparam, reader, &annotate);
+      ret = ak_dae_annotate(heap, newparam, reader, &annotate);
       if (ret == AK_OK) {
         if (last_annotate)
           last_annotate->next = annotate;
@@ -82,10 +83,11 @@ ak_dae_newparam(void * __restrict memParent,
         AkValueType val_type;
         AkResult    ret;
 
-        ret = ak_dae_value(newparam,
-                            reader,
-                            &val,
-                            &val_type);
+        ret = ak_dae_value(heap,
+                           newparam,
+                           reader,
+                           &val,
+                           &val_type);
 
         if (ret == AK_OK) {
           newparam->val = val;
@@ -104,10 +106,11 @@ ak_dae_newparam(void * __restrict memParent,
 }
 
 AkResult _assetkit_hide
-ak_dae_param(void * __restrict memParent,
-              xmlTextReaderPtr reader,
-              AkParamType paramType,
-              AkParam ** __restrict dest) {
+ak_dae_param(AkHeap * __restrict heap,
+             void * __restrict memParent,
+             xmlTextReaderPtr reader,
+             AkParamType paramType,
+             AkParam ** __restrict dest) {
   AkParam  *param;
 
   const xmlChar *nodeName;
@@ -117,12 +120,12 @@ ak_dae_param(void * __restrict memParent,
   nodeType = xmlTextReaderNodeType(reader);
 
   if (paramType == AK_PARAM_TYPE_BASIC) {
-    param = ak_calloc(memParent, sizeof(AkParam), false);
+    param = ak_heap_calloc(heap, memParent, sizeof(AkParam), false);
 
     _xml_readAttr(param, param->ref, _s_dae_ref);
   } else if (paramType == AK_PARAM_TYPE_EXTENDED) {
     AkParamEx *param_ex;
-    param_ex = ak_calloc(memParent, sizeof(AkParamEx), false);
+    param_ex = ak_heap_calloc(heap, memParent, sizeof(AkParamEx), false);
 
     _xml_readAttr(param_ex, param_ex->name, _s_dae_name);
     _xml_readAttr(param_ex, param_ex->sid, _s_dae_sid);
@@ -149,15 +152,16 @@ err:
 }
 
 AkResult _assetkit_hide
-ak_dae_setparam(void * __restrict memParent,
-                 xmlTextReaderPtr reader,
-                 AkSetParam ** __restrict dest) {
+ak_dae_setparam(AkHeap * __restrict heap,
+                void * __restrict memParent,
+                xmlTextReaderPtr reader,
+                AkSetParam ** __restrict dest) {
   AkSetParam  *setparam;
   const xmlChar *nodeName;
   int nodeType;
   int nodeRet;
 
-  setparam = ak_calloc(memParent, sizeof(*setparam), false);
+  setparam = ak_heap_calloc(heap, memParent, sizeof(*setparam), false);
 
   if (modifierMapLen == 0) {
     modifierMapLen = AK_ARRAY_LEN(modifierMap);
@@ -176,10 +180,11 @@ ak_dae_setparam(void * __restrict memParent,
       AkValueType val_type;
       AkResult    ret;
 
-      ret = ak_dae_value(setparam,
-                          reader,
-                          &val,
-                          &val_type);
+      ret = ak_dae_value(heap,
+                         setparam,
+                         reader,
+                         &val,
+                         &val_type);
 
       if (ret == AK_OK) {
         setparam->val = val;

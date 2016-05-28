@@ -43,7 +43,8 @@ static ak_enumpair brepMap[] = {
 static size_t brepMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_brep(void * __restrict memParent,
+ak_dae_brep(AkHeap * __restrict heap,
+            void * __restrict memParent,
             xmlTextReaderPtr reader,
             bool asObject,
             AkBoundryRep ** __restrict dest) {
@@ -56,7 +57,8 @@ ak_dae_brep(void * __restrict memParent,
   int            nodeRet;
 
   if (asObject) {
-    obj = ak_objAlloc(memParent,
+    obj = ak_objAlloc(heap,
+                      memParent,
                       sizeof(*brep),
                       0,
                       true,
@@ -66,7 +68,7 @@ ak_dae_brep(void * __restrict memParent,
 
     memPtr = obj;
   } else {
-    brep = ak_calloc(memParent, sizeof(*brep), false);
+    brep = ak_heap_calloc(heap, memParent, sizeof(*brep), false);
     memPtr = brep;
   }
 
@@ -96,7 +98,7 @@ ak_dae_brep(void * __restrict memParent,
         AkCurves *curves;
         AkResult  ret;
 
-        ret = ak_dae_curves(memPtr, reader, &curves);
+        ret = ak_dae_curves(heap, memPtr, reader, &curves);
         if (ret == AK_OK)
           brep->curves = curves;
 
@@ -106,7 +108,7 @@ ak_dae_brep(void * __restrict memParent,
         AkCurves *curves;
         AkResult  ret;
 
-        ret = ak_dae_curves(memPtr, reader, &curves);
+        ret = ak_dae_curves(heap, memPtr, reader, &curves);
         if (ret == AK_OK)
           brep->surfaceCurves = curves;
 
@@ -116,7 +118,7 @@ ak_dae_brep(void * __restrict memParent,
         AkSurfaces *surfaces;
         AkResult    ret;
 
-        ret = ak_dae_surfaces(memPtr, reader, &surfaces);
+        ret = ak_dae_surfaces(heap, memPtr, reader, &surfaces);
         if (ret == AK_OK)
           brep->surfaces = surfaces;
 
@@ -126,7 +128,7 @@ ak_dae_brep(void * __restrict memParent,
         AkSource *source;
         AkResult ret;
 
-        ret = ak_dae_source(memPtr, reader, &source);
+        ret = ak_dae_source(heap, memPtr, reader, &source);
         if (ret == AK_OK) {
           if (last_source)
             last_source->next = source;
@@ -141,7 +143,7 @@ ak_dae_brep(void * __restrict memParent,
         AkVertices *vertices;
         AkResult ret;
 
-        ret = ak_dae_vertices(memPtr, reader, &vertices);
+        ret = ak_dae_vertices(heap, memPtr, reader, &vertices);
         if (ret == AK_OK)
           brep->vertices = vertices;
 
@@ -151,7 +153,7 @@ ak_dae_brep(void * __restrict memParent,
         AkEdges *edges;
         AkResult ret;
 
-        ret = ak_dae_edges(memPtr, reader, &edges);
+        ret = ak_dae_edges(heap, memPtr, reader, &edges);
         if (ret == AK_OK)
           brep->edges = edges;
 
@@ -161,7 +163,7 @@ ak_dae_brep(void * __restrict memParent,
         AkWires *wires;
         AkResult ret;
 
-        ret = ak_dae_wires(memPtr, reader, &wires);
+        ret = ak_dae_wires(heap, memPtr, reader, &wires);
         if (ret == AK_OK)
           brep->wires = wires;
 
@@ -171,7 +173,7 @@ ak_dae_brep(void * __restrict memParent,
         AkFaces *faces;
         AkResult ret;
 
-        ret = ak_dae_faces(memPtr, reader, &faces);
+        ret = ak_dae_faces(heap, memPtr, reader, &faces);
         if (ret == AK_OK)
           brep->faces = faces;
 
@@ -181,7 +183,7 @@ ak_dae_brep(void * __restrict memParent,
         AkPCurves *pcurves;
         AkResult   ret;
 
-        ret = ak_dae_pcurves(memPtr, reader, &pcurves);
+        ret = ak_dae_pcurves(heap, memPtr, reader, &pcurves);
         if (ret == AK_OK)
           brep->pcurves = pcurves;
 
@@ -191,7 +193,7 @@ ak_dae_brep(void * __restrict memParent,
         AkShells *shells;
         AkResult  ret;
 
-        ret = ak_dae_shells(memPtr, reader, &shells);
+        ret = ak_dae_shells(heap, memPtr, reader, &shells);
         if (ret == AK_OK)
           brep->shells = shells;
 
@@ -201,7 +203,7 @@ ak_dae_brep(void * __restrict memParent,
         AkSolids *solids;
         AkResult  ret;
 
-        ret = ak_dae_solids(memPtr, reader, &solids);
+        ret = ak_dae_solids(heap, memPtr, reader, &solids);
         if (ret == AK_OK)
           brep->solids = solids;
 
@@ -214,7 +216,7 @@ ak_dae_brep(void * __restrict memParent,
         nodePtr = xmlTextReaderExpand(reader);
         tree = NULL;
 
-        ak_tree_fromXmlNode(memPtr, nodePtr, &tree, NULL);
+        ak_tree_fromXmlNode(heap, memPtr, nodePtr, &tree, NULL);
         brep->extra = tree;
 
         _xml_skipElement;

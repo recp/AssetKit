@@ -10,7 +10,8 @@
 #include "../../ak_array.h"
 
 AkResult _assetkit_hide
-ak_dae_triangles(void * __restrict memParent,
+ak_dae_triangles(AkHeap * __restrict heap,
+                 void * __restrict memParent,
                  xmlTextReaderPtr reader,
                  const char * elm,
                  AkTriangleMode mode,
@@ -26,7 +27,8 @@ ak_dae_triangles(void * __restrict memParent,
   int             nodeRet;
 
   if (asObject) {
-    obj = ak_objAlloc(memParent,
+    obj = ak_objAlloc(heap,
+                      memParent,
                       sizeof(*triangles),
                       0,
                       true,
@@ -35,7 +37,7 @@ ak_dae_triangles(void * __restrict memParent,
     triangles = ak_objGet(obj);
     memPtr = obj;
   } else {
-    triangles = ak_calloc(memParent, sizeof(*triangles), false);
+    triangles = ak_heap_calloc(heap, memParent, sizeof(*triangles), false);
     memPtr = triangles;
   }
 
@@ -57,7 +59,7 @@ ak_dae_triangles(void * __restrict memParent,
     if (_xml_eqElm(_s_dae_input)) {
       AkInput *input;
 
-      input = ak_calloc(memPtr, sizeof(*input), false);
+      input = ak_heap_calloc(heap, memPtr, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
       _xml_readAttr(input, input->base.source, _s_dae_source);
@@ -95,7 +97,7 @@ ak_dae_triangles(void * __restrict memParent,
       _xml_readMutText(content);
       if (content) {
         AkResult ret;
-        ret = ak_strtod_arrayL(memPtr, content, &doubleArray);
+        ret = ak_strtod_arrayL(heap, memPtr, content, &doubleArray);
         if (ret == AK_OK) {
           if (last_array)
             last_array->next = doubleArray;
@@ -114,7 +116,7 @@ ak_dae_triangles(void * __restrict memParent,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
       
-      ak_tree_fromXmlNode(memPtr, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(heap, memPtr, nodePtr, &tree, NULL);
       triangles->extra = tree;
       
       _xml_skipElement;

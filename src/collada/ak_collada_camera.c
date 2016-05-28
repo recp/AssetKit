@@ -10,15 +10,16 @@
 #include "ak_collada_technique.h"
 
 AkResult _assetkit_hide
-ak_dae_camera(void * __restrict memParent,
-               xmlTextReaderPtr reader,
-               AkCamera ** __restrict  dest) {
+ak_dae_camera(AkHeap * __restrict heap,
+              void * __restrict memParent,
+              xmlTextReaderPtr reader,
+              AkCamera ** __restrict  dest) {
   AkCamera    *camera;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
 
-  camera = ak_calloc(memParent, sizeof(*camera), false);
+  camera = ak_heap_calloc(heap, memParent, sizeof(*camera), false);
 
   _xml_readAttr(camera, camera->id, _s_dae_id);
   _xml_readAttr(camera, camera->name, _s_dae_name);
@@ -31,7 +32,7 @@ ak_dae_camera(void * __restrict memParent,
       AkResult ret;
 
       assetInf = NULL;
-      ret = ak_dae_assetInf(camera, reader, &assetInf);
+      ret = ak_dae_assetInf(heap, camera, reader, &assetInf);
       if (ret == AK_OK)
         camera->inf = assetInf;
 
@@ -40,7 +41,7 @@ ak_dae_camera(void * __restrict memParent,
       AkTechnique        *last_tq;
       AkTechniqueCommon *last_tc;
 
-      optics = ak_calloc(camera, sizeof(*optics), false);
+      optics = ak_heap_calloc(heap, camera, sizeof(*optics), false);
 
       last_tq = optics->technique;
       last_tc = optics->techniqueCommon;
@@ -53,7 +54,7 @@ ak_dae_camera(void * __restrict memParent,
           AkResult ret;
 
           tc = NULL;
-          ret = ak_dae_techniquec(optics, reader, &tc);
+          ret = ak_dae_techniquec(heap, optics, reader, &tc);
           if (ret == AK_OK) {
             if (last_tc)
               last_tc->next = tc;
@@ -68,7 +69,7 @@ ak_dae_camera(void * __restrict memParent,
           AkResult ret;
 
           tq = NULL;
-          ret = ak_dae_technique(optics, reader, &tq);
+          ret = ak_dae_technique(heap, optics, reader, &tq);
           if (ret == AK_OK) {
             if (last_tq)
               last_tq->next = tq;
@@ -90,7 +91,7 @@ ak_dae_camera(void * __restrict memParent,
       AkImager    *imager;
       AkTechnique *last_tq;
 
-      imager  = ak_calloc(camera, sizeof(*imager), false);
+      imager  = ak_heap_calloc(heap, camera, sizeof(*imager), false);
       last_tq = imager->technique;
 
       do {
@@ -101,7 +102,7 @@ ak_dae_camera(void * __restrict memParent,
           AkResult ret;
 
           tq = NULL;
-          ret = ak_dae_technique(imager, reader, &tq);
+          ret = ak_dae_technique(heap, imager, reader, &tq);
           if (ret == AK_OK) {
             if (last_tq)
               last_tq->next = tq;
@@ -117,7 +118,7 @@ ak_dae_camera(void * __restrict memParent,
           nodePtr = xmlTextReaderExpand(reader);
           tree = NULL;
 
-          ak_tree_fromXmlNode(imager, nodePtr, &tree, NULL);
+          ak_tree_fromXmlNode(heap, imager, nodePtr, &tree, NULL);
           imager->extra = tree;
 
           _xml_skipElement;
@@ -137,7 +138,7 @@ ak_dae_camera(void * __restrict memParent,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(camera, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(heap, camera, nodePtr, &tree, NULL);
       camera->extra = tree;
 
       _xml_skipElement;

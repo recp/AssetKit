@@ -15,9 +15,10 @@
  * @brief load a tree from xml
  */
 AkResult _assetkit_hide
-ak_tree_fromXmlNode(void * __restrict memParent,
-                     xmlNode * __restrict xml_node,
-                     AkTreeNode ** __restrict dest,
-                     AkTreeNode * __restrict parent);
+ak_tree_fromXmlNode(AkHeap * __restrict heap,
+                    void * __restrict memParent,
+                    xmlNode * __restrict xml_node,
+                    AkTreeNode ** __restrict dest,
+                    AkTreeNode * __restrict parent);
 
 #endif /* __libassetkit__tree__h_ */

@@ -12,7 +12,8 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_fxPass(void * __restrict memParent,
+ak_dae_fxPass(AkHeap * __restrict heap,
+              void * __restrict memParent,
               xmlTextReaderPtr reader,
               AkPass ** __restrict dest);
 

@@ -11,11 +11,12 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_triangles(void * __restrict memParent,
-                xmlTextReaderPtr reader,
-                const char * elm,
-                AkTriangleMode mode,
-                bool asObject,
-                AkTriangles ** __restrict dest);
+ak_dae_triangles(AkHeap * __restrict heap,
+                 void * __restrict memParent,
+                 xmlTextReaderPtr reader,
+                 const char * elm,
+                 AkTriangleMode mode,
+                 bool asObject,
+                 AkTriangles ** __restrict dest);
 
 #endif /* __libassetkit__ak_collada_triangles_h_ */

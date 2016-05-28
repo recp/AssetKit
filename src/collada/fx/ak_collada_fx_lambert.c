@@ -32,7 +32,8 @@ static ak_enumpair lambertMap[] = {
 static size_t lambertMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_fxLambert(void * __restrict memParent,
+ak_dae_fxLambert(AkHeap * __restrict heap,
+                 void * __restrict memParent,
                  xmlTextReaderPtr reader,
                  AkLambert ** __restrict dest) {
   AkLambert     *lambert;
@@ -40,7 +41,7 @@ ak_dae_fxLambert(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  lambert = ak_calloc(memParent, sizeof(*lambert), false);
+  lambert = ak_heap_calloc(heap, memParent, sizeof(*lambert), false);
 
   if (lambertMapLen == 0) {
     lambertMapLen = AK_ARRAY_LEN(lambertMap);
@@ -70,10 +71,11 @@ ak_dae_fxLambert(void * __restrict memParent,
         AkFxColorOrTex *colorOrTex;
         AkResult ret;
 
-        ret = ak_dae_colorOrTex(lambert,
-                                 reader,
-                                 (const char *)nodeName,
-                                 &colorOrTex);
+        ret = ak_dae_colorOrTex(heap,
+                                lambert,
+                                reader,
+                                (const char *)nodeName,
+                                &colorOrTex);
         if (ret == AK_OK) {
           switch (found->val) {
             case k_s_dae_emission:
@@ -103,10 +105,11 @@ ak_dae_fxLambert(void * __restrict memParent,
         AkFxFloatOrParam * floatOrParam;
         AkResult ret;
 
-        ret = ak_dae_floatOrParam(lambert,
-                                   reader,
-                                   (const char *)nodeName,
-                                   &floatOrParam);
+        ret = ak_dae_floatOrParam(heap,
+                                  lambert,
+                                  reader,
+                                  (const char *)nodeName,
+                                  &floatOrParam);
 
         if (ret == AK_OK) {
           switch (found->val) {

@@ -652,7 +652,8 @@ ak_free(void * __restrict memptr) {
 
 AkObject*
 AK_EXPORT
-ak_objAlloc(void * __restrict memParent,
+ak_objAlloc(AkHeap * __restrict heap,
+void * __restrict memParent,
             size_t typeSize,
             AkEnum typeEnum,
             AkBool zeroed,

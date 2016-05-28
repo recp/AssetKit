@@ -45,16 +45,17 @@ static ak_enumpair fxSamplerCMap[] = {
 static size_t fxSamplerCMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_fxSampler(void * __restrict memParent,
-                  xmlTextReaderPtr reader,
-                  const char *elm,
-                  AkFxSamplerCommon ** __restrict dest) {
+ak_dae_fxSampler(AkHeap * __restrict heap,
+                 void * __restrict memParent,
+                 xmlTextReaderPtr reader,
+                 const char *elm,
+                 AkFxSamplerCommon ** __restrict dest) {
   AkFxSamplerCommon *sampler;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
 
-  sampler = ak_calloc(memParent, sizeof(*sampler), false);
+  sampler = ak_heap_calloc(heap, memParent, sizeof(*sampler), false);
 
   if (fxSamplerCMapLen == 0) {
     fxSamplerCMapLen = AK_ARRAY_LEN(fxSamplerCMap);
@@ -80,7 +81,7 @@ ak_dae_fxSampler(void * __restrict memParent,
         AkInstanceImage * instanceImage;
         AkResult ret;
 
-        ret = ak_dae_fxInstanceImage(sampler, reader, &instanceImage);
+        ret = ak_dae_fxInstanceImage(heap, sampler, reader, &instanceImage);
 
         if (ret == AK_OK)
           sampler->instanceImage = instanceImage;
@@ -125,7 +126,7 @@ ak_dae_fxSampler(void * __restrict memParent,
         AkColor *color;
         AkResult  ret;
 
-        color = ak_calloc(sampler, sizeof(*color), false);
+        color = ak_heap_calloc(heap, sampler, sizeof(*color), false);
         ret   = ak_dae_color(reader, true, color);
 
         if (ret == AK_OK)
@@ -164,7 +165,7 @@ ak_dae_fxSampler(void * __restrict memParent,
         nodePtr = xmlTextReaderExpand(reader);
         tree = NULL;
 
-        ak_tree_fromXmlNode(sampler, nodePtr, &tree, NULL);
+        ak_tree_fromXmlNode(heap, sampler, nodePtr, &tree, NULL);
         sampler->extra = tree;
 
         _xml_skipElement;

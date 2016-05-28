@@ -12,8 +12,9 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_fxState(void * __restrict memParent,
-                xmlTextReaderPtr reader,
-                AkStates ** __restrict dest);
+ak_dae_fxState(AkHeap * __restrict heap,
+               void * __restrict memParent,
+               xmlTextReaderPtr reader,
+               AkStates ** __restrict dest);
 
 #endif /* __libassetkit__ak_collada_fx_states_h_ */

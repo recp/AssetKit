@@ -11,7 +11,8 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_geometry(void * __restrict memParent,
+ak_dae_geometry(AkHeap * __restrict heap,
+                void * __restrict memParent,
                 xmlTextReaderPtr reader,
                 AkGeometry ** __restrict dest);
 

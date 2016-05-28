@@ -32,7 +32,8 @@ static ak_enumpair evaluateMap[] = {
 static size_t evaluateMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_fxEvaluate(void * __restrict memParent,
+ak_dae_fxEvaluate(AkHeap * __restrict heap,
+                  void * __restrict memParent,
                   xmlTextReaderPtr reader,
                   AkEvaluate ** __restrict dest) {
   AkEvaluate    *evaluate;
@@ -40,7 +41,7 @@ ak_dae_fxEvaluate(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  evaluate = ak_calloc(memParent, sizeof(*evaluate), false);
+  evaluate = ak_heap_calloc(heap, memParent, sizeof(*evaluate), false);
 
   if (evaluateMapLen == 0) {
     evaluateMapLen = AK_ARRAY_LEN(evaluateMap);
@@ -68,7 +69,10 @@ ak_dae_fxEvaluate(void * __restrict memParent,
         AkEvaluateTarget *evaluate_target;
         const xmlChar *targetNodeName;
 
-        evaluate_target = ak_calloc(evaluate, sizeof(*evaluate_target), false);
+        evaluate_target = ak_heap_calloc(heap,
+                                         evaluate,
+                                         sizeof(*evaluate_target),
+                                         false);
 
         _xml_readAttrUsingFn(evaluate_target->index,
                              _s_dae_index,
@@ -95,10 +99,11 @@ ak_dae_fxEvaluate(void * __restrict memParent,
             AkParam * param;
             AkResult   ret;
 
-            ret = ak_dae_param(evaluate_target,
-                                reader,
-                                AK_PARAM_TYPE_BASIC,
-                                &param);
+            ret = ak_dae_param(heap,
+                               evaluate_target,
+                               reader,
+                               AK_PARAM_TYPE_BASIC,
+                               &param);
 
             if (ret == AK_OK)
               evaluate_target->param = param;
@@ -106,9 +111,10 @@ ak_dae_fxEvaluate(void * __restrict memParent,
             AkInstanceImage *instanceImage;
             AkResult ret;
 
-            ret = ak_dae_fxInstanceImage(evaluate_target,
-                                          reader,
-                                          &instanceImage);
+            ret = ak_dae_fxInstanceImage(heap,
+                                         evaluate_target,
+                                         reader,
+                                         &instanceImage);
 
             if (ret == AK_OK)
               evaluate_target->instanceImage = instanceImage;
@@ -135,7 +141,10 @@ ak_dae_fxEvaluate(void * __restrict memParent,
       }
       case k_s_dae_color_clear: {
         AkColorClear *colorClear;
-        colorClear = ak_calloc(evaluate, sizeof(*colorClear), false);
+        colorClear = ak_heap_calloc(heap,
+                                    evaluate,
+                                    sizeof(*colorClear),
+                                    false);
 
         _xml_readAttrUsingFn(colorClear->index,
                              _s_dae_index,
@@ -148,7 +157,10 @@ ak_dae_fxEvaluate(void * __restrict memParent,
       }
       case k_s_dae_depth_clear:{
         AkDepthClear *depthClear;
-        depthClear = ak_calloc(evaluate, sizeof(*depthClear), false);
+        depthClear = ak_heap_calloc(heap,
+                                    evaluate,
+                                    sizeof(*depthClear),
+                                    false);
 
         _xml_readAttrUsingFn(depthClear->index,
                              _s_dae_index,
@@ -162,7 +174,10 @@ ak_dae_fxEvaluate(void * __restrict memParent,
       }
       case k_s_dae_stencil_clear:{
         AkStencilClear *stencilClear;
-        stencilClear = ak_calloc(evaluate, sizeof(*stencilClear), false);
+        stencilClear = ak_heap_calloc(heap,
+                                      evaluate,
+                                      sizeof(*stencilClear),
+                                      false);
 
         _xml_readAttrUsingFn(stencilClear->index,
                              _s_dae_index,

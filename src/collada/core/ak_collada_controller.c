@@ -11,7 +11,8 @@
 #include "ak_collada_morph.h"
 
 AkResult _assetkit_hide
-ak_dae_controller(void * __restrict memParent,
+ak_dae_controller(AkHeap * __restrict heap,
+                  void * __restrict memParent,
                   xmlTextReaderPtr reader,
                   AkController ** __restrict dest) {
   AkController   *controller;
@@ -19,7 +20,7 @@ ak_dae_controller(void * __restrict memParent,
   int             nodeType;
   int             nodeRet;
 
-  controller = ak_calloc(memParent, sizeof(*controller), false);
+  controller = ak_heap_calloc(heap, memParent, sizeof(*controller), false);
 
   _xml_readAttr(controller, controller->id, _s_dae_id);
   _xml_readAttr(controller, controller->name, _s_dae_name);
@@ -33,7 +34,7 @@ ak_dae_controller(void * __restrict memParent,
       AkResult ret;
 
       assetInf = NULL;
-      ret = ak_dae_assetInf(controller, reader, &assetInf);
+      ret = ak_dae_assetInf(heap, controller, reader, &assetInf);
       if (ret == AK_OK)
         controller->inf = assetInf;
 
@@ -41,7 +42,7 @@ ak_dae_controller(void * __restrict memParent,
       AkSkin  *skin;
       AkResult ret;
 
-      ret = ak_dae_skin(controller, reader, true, &skin);
+      ret = ak_dae_skin(heap, controller, reader, true, &skin);
       if (ret == AK_OK)
         controller->data = ak_objFrom(skin);
 
@@ -49,7 +50,7 @@ ak_dae_controller(void * __restrict memParent,
       AkMorph *morph;
       AkResult ret;
 
-      ret = ak_dae_morph(controller, reader, true, &morph);
+      ret = ak_dae_morph(heap, controller, reader, true, &morph);
       if (ret == AK_OK)
         controller->data = ak_objFrom(morph);
 
@@ -60,7 +61,7 @@ ak_dae_controller(void * __restrict memParent,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(controller, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(heap, controller, nodePtr, &tree, NULL);
       controller->extra = tree;
 
       _xml_skipElement;

@@ -11,7 +11,8 @@
 #include "../../ak_array.h"
 
 AkResult _assetkit_hide
-ak_dae_morph(void * __restrict memParent,
+ak_dae_morph(AkHeap * __restrict heap,
+             void * __restrict memParent,
              xmlTextReaderPtr reader,
              bool asObject,
              AkMorph ** __restrict dest) {
@@ -24,7 +25,8 @@ ak_dae_morph(void * __restrict memParent,
   int             nodeRet;
 
   if (asObject) {
-    obj = ak_objAlloc(memParent,
+    obj = ak_objAlloc(heap,
+                      memParent,
                       sizeof(*morph),
                       0,
                       true,
@@ -34,7 +36,7 @@ ak_dae_morph(void * __restrict memParent,
 
     memPtr = obj;
   } else {
-    morph = ak_calloc(memParent, sizeof(*morph), false);
+    morph = ak_heap_calloc(heap, memParent, sizeof(*morph), false);
     memPtr = morph;
   }
 
@@ -53,7 +55,7 @@ ak_dae_morph(void * __restrict memParent,
       AkSource *source;
       AkResult ret;
 
-      ret = ak_dae_source(morph, reader, &source);
+      ret = ak_dae_source(heap, morph, reader, &source);
       if (ret == AK_OK) {
         if (last_source)
           last_source->next = source;
@@ -66,7 +68,7 @@ ak_dae_morph(void * __restrict memParent,
       AkTargets    *targets;
       AkInputBasic *last_input;
 
-      targets = ak_calloc(morph, sizeof(*targets), false);
+      targets = ak_heap_calloc(heap, morph, sizeof(*targets), false);
 
       last_input = NULL;
 
@@ -76,7 +78,7 @@ ak_dae_morph(void * __restrict memParent,
         if (_xml_eqElm(_s_dae_input)) {
           AkInputBasic *input;
 
-          input = ak_calloc(targets, sizeof(*input), false);
+          input = ak_heap_calloc(heap, targets, sizeof(*input), false);
 
           _xml_readAttr(input, input->semanticRaw, _s_dae_semantic);
           _xml_readAttr(input, input->source, _s_dae_source);
@@ -106,7 +108,7 @@ ak_dae_morph(void * __restrict memParent,
           nodePtr = xmlTextReaderExpand(reader);
           tree = NULL;
 
-          ak_tree_fromXmlNode(morph, nodePtr, &tree, NULL);
+          ak_tree_fromXmlNode(heap, morph, nodePtr, &tree, NULL);
           morph->extra = tree;
 
           _xml_skipElement;
@@ -127,7 +129,7 @@ ak_dae_morph(void * __restrict memParent,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
       
-      ak_tree_fromXmlNode(morph, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(heap, morph, nodePtr, &tree, NULL);
       morph->extra = tree;
       
       _xml_skipElement;

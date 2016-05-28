@@ -13,7 +13,7 @@
 
 AkResult _assetkit_hide
 ak_dae_color(xmlTextReaderPtr reader,
-              bool read_sid,
-              AkColor * __restrict dest);
+             bool read_sid,
+             AkColor * __restrict dest);
 
 #endif /* __libassetkit__ak_collada_color_h_ */

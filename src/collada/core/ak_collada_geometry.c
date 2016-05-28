@@ -12,7 +12,8 @@
 #include "../brep/ak_collada_brep.h"
 
 AkResult _assetkit_hide
-ak_dae_geometry(void * __restrict memParent,
+ak_dae_geometry(AkHeap * __restrict heap,
+                void * __restrict memParent,
                 xmlTextReaderPtr reader,
                 AkGeometry ** __restrict dest) {
   AkGeometry    *geometry;
@@ -20,7 +21,7 @@ ak_dae_geometry(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  geometry = ak_calloc(memParent, sizeof(*geometry), false);
+  geometry = ak_heap_calloc(heap, memParent, sizeof(*geometry), false);
 
   _xml_readAttr(geometry, geometry->id, _s_dae_id);
   _xml_readAttr(geometry, geometry->name, _s_dae_name);
@@ -33,7 +34,7 @@ ak_dae_geometry(void * __restrict memParent,
       AkResult ret;
 
       assetInf = NULL;
-      ret = ak_dae_assetInf(geometry, reader, &assetInf);
+      ret = ak_dae_assetInf(heap, geometry, reader, &assetInf);
       if (ret == AK_OK)
         geometry->inf = assetInf;
 
@@ -42,7 +43,8 @@ ak_dae_geometry(void * __restrict memParent,
       AkMesh  *mesh;
       AkResult ret;
 
-      ret = ak_dae_mesh(geometry,
+      ret = ak_dae_mesh(heap,
+                        geometry,
                         reader,
                         (const char *)nodeName,
                         &mesh,
@@ -54,10 +56,11 @@ ak_dae_geometry(void * __restrict memParent,
       AkSpline *spline;
       AkResult  ret;
 
-      ret = ak_dae_spline(geometry,
-                        reader,
-                        true,
-                        &spline);
+      ret = ak_dae_spline(heap,
+                          geometry,
+                          reader,
+                          true,
+                          &spline);
       if (ret == AK_OK)
         geometry->gdata = ak_objFrom(spline);
 
@@ -65,7 +68,8 @@ ak_dae_geometry(void * __restrict memParent,
       AkBoundryRep *brep;
       AkResult      ret;
 
-      ret = ak_dae_brep(geometry,
+      ret = ak_dae_brep(heap,
+                        geometry,
                         reader,
                         true,
                         &brep);
@@ -79,7 +83,7 @@ ak_dae_geometry(void * __restrict memParent,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(geometry, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(heap, geometry, nodePtr, &tree, NULL);
       geometry->extra = tree;
       
       _xml_skipElement;

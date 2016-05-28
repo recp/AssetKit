@@ -10,7 +10,8 @@
 #include "../../ak_array.h"
 
 AkResult _assetkit_hide
-ak_dae_lines(void * __restrict memParent,
+ak_dae_lines(AkHeap * __restrict heap,
+             void * __restrict memParent,
              xmlTextReaderPtr reader,
              AkLineMode mode,
              bool asObject,
@@ -25,7 +26,8 @@ ak_dae_lines(void * __restrict memParent,
   int             nodeRet;
 
   if (asObject) {
-    obj = ak_objAlloc(memParent,
+    obj = ak_objAlloc(heap,
+                      memParent,
                       sizeof(*lines),
                       0,
                       true,
@@ -34,7 +36,7 @@ ak_dae_lines(void * __restrict memParent,
     lines = ak_objGet(obj);
     memPtr = obj;
   } else {
-    lines = ak_calloc(memParent, sizeof(*lines), false);
+    lines = ak_heap_calloc(heap, memParent, sizeof(*lines), false);
     memPtr = lines;
   }
 
@@ -56,7 +58,7 @@ ak_dae_lines(void * __restrict memParent,
     if (_xml_eqElm(_s_dae_input)) {
       AkInput *input;
 
-      input = ak_calloc(memPtr, sizeof(*input), false);
+      input = ak_heap_calloc(heap, memPtr, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
       _xml_readAttr(input, input->base.source, _s_dae_source);
@@ -96,7 +98,7 @@ ak_dae_lines(void * __restrict memParent,
         AkDoubleArrayL *doubleArray;
         AkResult ret;
 
-        ret = ak_strtod_arrayL(memPtr, content, &doubleArray);
+        ret = ak_strtod_arrayL(heap, memPtr, content, &doubleArray);
         if (ret == AK_OK) {
           if (last_array)
             last_array->next = doubleArray;
@@ -115,7 +117,7 @@ ak_dae_lines(void * __restrict memParent,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(memPtr, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(heap, memPtr, nodePtr, &tree, NULL);
       lines->extra = tree;
 
       _xml_skipElement;

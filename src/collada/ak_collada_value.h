@@ -12,10 +12,11 @@
 #include "ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_value(void * __restrict memParent,
-              xmlTextReaderPtr reader,
-              void ** __restrict dest,
-              AkValueType * __restrict val_type);
+ak_dae_value(AkHeap * __restrict heap,
+             void * __restrict memParent,
+             xmlTextReaderPtr reader,
+             void ** __restrict dest,
+             AkValueType * __restrict val_type);
 
 AkEnum _assetkit_hide
 ak_dae_valueType(const char * typeName);

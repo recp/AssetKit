@@ -13,12 +13,14 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_effect(void * __restrict memParent,
+ak_dae_effect(AkHeap * __restrict heap,
+              void * __restrict memParent,
               xmlTextReaderPtr reader,
               AkEffect ** __restrict dest);
 
 AkResult _assetkit_hide
-ak_dae_fxInstanceEffect(void * __restrict memParent,
+ak_dae_fxInstanceEffect(AkHeap * __restrict heap,
+                        void * __restrict memParent,
                         xmlTextReaderPtr reader,
                         AkInstanceEffect ** __restrict dest);
 

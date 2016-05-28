@@ -10,7 +10,8 @@
 #include "../../ak_array.h"
 
 AkResult _assetkit_hide
-ak_dae_edges(void * __restrict memParent,
+ak_dae_edges(AkHeap * __restrict heap,
+             void * __restrict memParent,
              xmlTextReaderPtr reader,
              AkEdges ** __restrict dest) {
   AkEdges        *edges;
@@ -19,7 +20,7 @@ ak_dae_edges(void * __restrict memParent,
   int             nodeType;
   int             nodeRet;
 
-  edges = ak_calloc(memParent, sizeof(*edges), false);
+  edges = ak_heap_calloc(heap, memParent, sizeof(*edges), false);
 
   _xml_readAttr(memParent, edges->id, _s_dae_id);
   _xml_readAttr(memParent, edges->name, _s_dae_name);
@@ -34,7 +35,7 @@ ak_dae_edges(void * __restrict memParent,
 
     if (_xml_eqElm(_s_dae_input)) {
       AkInput *input;
-      input = ak_calloc(edges, sizeof(*input), false);
+      input = ak_heap_calloc(heap, edges, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
       _xml_readAttr(input, input->base.source, _s_dae_source);
@@ -63,7 +64,7 @@ ak_dae_edges(void * __restrict memParent,
         last_input->base.next = &input->base;
       else
         edges->input = input;
-      
+
       last_input = input;
     } else if (_xml_eqElm(_s_dae_p)) {
       char *content;
@@ -74,11 +75,11 @@ ak_dae_edges(void * __restrict memParent,
         AkDoubleArray *doubleArray;
         AkResult ret;
 
-        ret = ak_strtod_array(edges, content, &doubleArray);
+        ret = ak_strtod_array(heap, edges, content, &doubleArray);
         if (ret == AK_OK) {
           edges->primitives = doubleArray;
         }
-        
+
         xmlFree(content);
       }
 
@@ -89,23 +90,24 @@ ak_dae_edges(void * __restrict memParent,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(edges, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(heap, edges, nodePtr, &tree, NULL);
       edges->extra = tree;
 
       _xml_skipElement;
     }
-    
+
     /* end element */
     _xml_endElement;
   } while (nodeRet);
-  
+
   *dest = edges;
-  
+
   return AK_OK;
 }
 
 AkResult _assetkit_hide
-ak_dae_wires(void * __restrict memParent,
+ak_dae_wires(AkHeap * __restrict heap,
+             void * __restrict memParent,
              xmlTextReaderPtr reader,
              AkWires ** __restrict dest) {
   AkWires        *wires;
@@ -114,7 +116,7 @@ ak_dae_wires(void * __restrict memParent,
   int             nodeType;
   int             nodeRet;
 
-  wires = ak_calloc(memParent, sizeof(*wires), false);
+  wires = ak_heap_calloc(heap, memParent, sizeof(*wires), false);
 
   _xml_readAttr(memParent, wires->id, _s_dae_id);
   _xml_readAttr(memParent, wires->name, _s_dae_name);
@@ -129,7 +131,7 @@ ak_dae_wires(void * __restrict memParent,
 
     if (_xml_eqElm(_s_dae_input)) {
       AkInput *input;
-      input = ak_calloc(wires, sizeof(*input), false);
+      input = ak_heap_calloc(heap, wires, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
       _xml_readAttr(input, input->base.source, _s_dae_source);
@@ -168,10 +170,10 @@ ak_dae_wires(void * __restrict memParent,
         AkIntArray *intArray;
         AkResult    ret;
 
-        ret = ak_strtoi_array(wires, content, &intArray);
+        ret = ak_strtoi_array(heap, wires, content, &intArray);
         if (ret == AK_OK)
           wires->vcount = intArray;
-        
+
         xmlFree(content);
       }
     } else if (_xml_eqElm(_s_dae_p)) {
@@ -183,7 +185,7 @@ ak_dae_wires(void * __restrict memParent,
         AkDoubleArray *doubleArray;
         AkResult ret;
 
-        ret = ak_strtod_array(wires, content, &doubleArray);
+        ret = ak_strtod_array(heap, wires, content, &doubleArray);
         if (ret == AK_OK)
           wires->primitives = doubleArray;
 
@@ -197,7 +199,7 @@ ak_dae_wires(void * __restrict memParent,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(wires, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(heap, wires, nodePtr, &tree, NULL);
       wires->extra = tree;
 
       _xml_skipElement;
@@ -206,14 +208,15 @@ ak_dae_wires(void * __restrict memParent,
     /* end element */
     _xml_endElement;
   } while (nodeRet);
-  
+
   *dest = wires;
-  
+
   return AK_OK;
 }
 
 AkResult _assetkit_hide
-ak_dae_faces(void * __restrict memParent,
+ak_dae_faces(AkHeap * __restrict heap,
+             void * __restrict memParent,
              xmlTextReaderPtr reader,
              AkFaces ** __restrict dest) {
   AkFaces        *faces;
@@ -222,7 +225,7 @@ ak_dae_faces(void * __restrict memParent,
   int             nodeType;
   int             nodeRet;
 
-  faces = ak_calloc(memParent, sizeof(*faces), false);
+  faces = ak_heap_calloc(heap, memParent, sizeof(*faces), false);
 
   _xml_readAttr(memParent, faces->id, _s_dae_id);
   _xml_readAttr(memParent, faces->name, _s_dae_name);
@@ -237,7 +240,7 @@ ak_dae_faces(void * __restrict memParent,
 
     if (_xml_eqElm(_s_dae_input)) {
       AkInput *input;
-      input = ak_calloc(faces, sizeof(*input), false);
+      input = ak_heap_calloc(heap, faces, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
       _xml_readAttr(input, input->base.source, _s_dae_source);
@@ -276,7 +279,7 @@ ak_dae_faces(void * __restrict memParent,
         AkIntArray *intArray;
         AkResult    ret;
 
-        ret = ak_strtoi_array(faces, content, &intArray);
+        ret = ak_strtoi_array(heap, faces, content, &intArray);
         if (ret == AK_OK)
           faces->vcount = intArray;
 
@@ -291,7 +294,7 @@ ak_dae_faces(void * __restrict memParent,
         AkDoubleArray *doubleArray;
         AkResult ret;
 
-        ret = ak_strtod_array(faces, content, &doubleArray);
+        ret = ak_strtod_array(heap, faces, content, &doubleArray);
         if (ret == AK_OK)
           faces->primitives = doubleArray;
 
@@ -305,23 +308,24 @@ ak_dae_faces(void * __restrict memParent,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(faces, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(heap, faces, nodePtr, &tree, NULL);
       faces->extra = tree;
 
       _xml_skipElement;
     }
-    
+
     /* end element */
     _xml_endElement;
   } while (nodeRet);
-  
+
   *dest = faces;
-  
+
   return AK_OK;
 }
 
 AkResult _assetkit_hide
-ak_dae_pcurves(void * __restrict memParent,
+ak_dae_pcurves(AkHeap * __restrict heap,
+               void * __restrict memParent,
                xmlTextReaderPtr reader,
                AkPCurves ** __restrict dest) {
   AkPCurves      *pcurves;
@@ -330,7 +334,7 @@ ak_dae_pcurves(void * __restrict memParent,
   int             nodeType;
   int             nodeRet;
 
-  pcurves = ak_calloc(memParent, sizeof(*pcurves), false);
+  pcurves = ak_heap_calloc(heap, memParent, sizeof(*pcurves), false);
 
   _xml_readAttr(memParent, pcurves->id, _s_dae_id);
   _xml_readAttr(memParent, pcurves->name, _s_dae_name);
@@ -345,7 +349,7 @@ ak_dae_pcurves(void * __restrict memParent,
 
     if (_xml_eqElm(_s_dae_input)) {
       AkInput *input;
-      input = ak_calloc(pcurves, sizeof(*input), false);
+      input = ak_heap_calloc(heap, pcurves, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
       _xml_readAttr(input, input->base.source, _s_dae_source);
@@ -384,7 +388,7 @@ ak_dae_pcurves(void * __restrict memParent,
         AkIntArray *intArray;
         AkResult    ret;
 
-        ret = ak_strtoi_array(pcurves, content, &intArray);
+        ret = ak_strtoi_array(heap, pcurves, content, &intArray);
         if (ret == AK_OK)
           pcurves->vcount = intArray;
 
@@ -399,7 +403,7 @@ ak_dae_pcurves(void * __restrict memParent,
         AkDoubleArray *doubleArray;
         AkResult ret;
 
-        ret = ak_strtod_array(pcurves, content, &doubleArray);
+        ret = ak_strtod_array(heap, pcurves, content, &doubleArray);
         if (ret == AK_OK)
           pcurves->primitives = doubleArray;
 
@@ -413,23 +417,24 @@ ak_dae_pcurves(void * __restrict memParent,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(pcurves, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(heap, pcurves, nodePtr, &tree, NULL);
       pcurves->extra = tree;
 
       _xml_skipElement;
     }
-    
+
     /* end element */
     _xml_endElement;
   } while (nodeRet);
-  
+
   *dest = pcurves;
-  
+
   return AK_OK;
 }
 
 AkResult _assetkit_hide
-ak_dae_shells(void * __restrict memParent,
+ak_dae_shells(AkHeap * __restrict heap,
+              void * __restrict memParent,
               xmlTextReaderPtr reader,
               AkShells ** __restrict dest) {
   AkShells       *shells;
@@ -438,7 +443,7 @@ ak_dae_shells(void * __restrict memParent,
   int             nodeType;
   int             nodeRet;
 
-  shells = ak_calloc(memParent, sizeof(*shells), false);
+  shells = ak_heap_calloc(heap, memParent, sizeof(*shells), false);
 
   _xml_readAttr(memParent, shells->id, _s_dae_id);
   _xml_readAttr(memParent, shells->name, _s_dae_name);
@@ -453,7 +458,7 @@ ak_dae_shells(void * __restrict memParent,
 
     if (_xml_eqElm(_s_dae_input)) {
       AkInput *input;
-      input = ak_calloc(shells, sizeof(*input), false);
+      input = ak_heap_calloc(heap, shells, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
       _xml_readAttr(input, input->base.source, _s_dae_source);
@@ -492,7 +497,7 @@ ak_dae_shells(void * __restrict memParent,
         AkIntArray *intArray;
         AkResult    ret;
 
-        ret = ak_strtoi_array(shells, content, &intArray);
+        ret = ak_strtoi_array(heap, shells, content, &intArray);
         if (ret == AK_OK)
           shells->vcount = intArray;
 
@@ -507,7 +512,7 @@ ak_dae_shells(void * __restrict memParent,
         AkDoubleArray *doubleArray;
         AkResult ret;
 
-        ret = ak_strtod_array(shells, content, &doubleArray);
+        ret = ak_strtod_array(heap, shells, content, &doubleArray);
         if (ret == AK_OK)
           shells->primitives = doubleArray;
 
@@ -521,23 +526,24 @@ ak_dae_shells(void * __restrict memParent,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(shells, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(heap, shells, nodePtr, &tree, NULL);
       shells->extra = tree;
 
       _xml_skipElement;
     }
-    
+
     /* end element */
     _xml_endElement;
   } while (nodeRet);
-  
+
   *dest = shells;
-  
+
   return AK_OK;
 }
 
 AkResult _assetkit_hide
-ak_dae_solids(void * __restrict memParent,
+ak_dae_solids(AkHeap * __restrict heap,
+              void * __restrict memParent,
               xmlTextReaderPtr reader,
               AkSolids ** __restrict dest) {
   AkSolids       *solids;
@@ -546,7 +552,7 @@ ak_dae_solids(void * __restrict memParent,
   int             nodeType;
   int             nodeRet;
 
-  solids = ak_calloc(memParent, sizeof(*solids), false);
+  solids = ak_heap_calloc(heap, memParent, sizeof(*solids), false);
 
   _xml_readAttr(memParent, solids->id, _s_dae_id);
   _xml_readAttr(memParent, solids->name, _s_dae_name);
@@ -561,7 +567,7 @@ ak_dae_solids(void * __restrict memParent,
 
     if (_xml_eqElm(_s_dae_input)) {
       AkInput *input;
-      input = ak_calloc(solids, sizeof(*input), false);
+      input = ak_heap_calloc(heap, solids, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
       _xml_readAttr(input, input->base.source, _s_dae_source);
@@ -600,38 +606,38 @@ ak_dae_solids(void * __restrict memParent,
         AkIntArray *intArray;
         AkResult    ret;
 
-        ret = ak_strtoi_array(solids, content, &intArray);
+        ret = ak_strtoi_array(heap, solids, content, &intArray);
         if (ret == AK_OK)
           solids->vcount = intArray;
-
+        
         xmlFree(content);
       }
     } else if (_xml_eqElm(_s_dae_p)) {
       char *content;
-
+      
       _xml_readMutText(content);
-
+      
       if (content) {
         AkDoubleArray *doubleArray;
         AkResult ret;
-
-        ret = ak_strtod_array(solids, content, &doubleArray);
+        
+        ret = ak_strtod_array(heap, solids, content, &doubleArray);
         if (ret == AK_OK)
           solids->primitives = doubleArray;
-
+        
         xmlFree(content);
       }
-
+      
     } else if (_xml_eqElm(_s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
-
+      
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
-
-      ak_tree_fromXmlNode(solids, nodePtr, &tree, NULL);
+      
+      ak_tree_fromXmlNode(heap, solids, nodePtr, &tree, NULL);
       solids->extra = tree;
-
+      
       _xml_skipElement;
     }
     

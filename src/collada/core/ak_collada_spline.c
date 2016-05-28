@@ -10,7 +10,8 @@
 #include "ak_collada_enums.h"
 
 AkResult _assetkit_hide
-ak_dae_spline(void * __restrict memParent,
+ak_dae_spline(AkHeap * __restrict heap,
+              void * __restrict memParent,
               xmlTextReaderPtr reader,
               bool asObject,
               AkSpline ** __restrict dest) {
@@ -23,7 +24,8 @@ ak_dae_spline(void * __restrict memParent,
   int             nodeRet;
 
   if (asObject) {
-    obj = ak_objAlloc(memParent,
+    obj = ak_objAlloc(heap,
+                      memParent,
                       sizeof(*spline),
                       0,
                       true,
@@ -32,7 +34,7 @@ ak_dae_spline(void * __restrict memParent,
     spline = ak_objGet(obj);
     memPtr = obj;
   } else {
-    spline = ak_calloc(memParent, sizeof(*spline), false);
+    spline = ak_heap_calloc(heap, memParent, sizeof(*spline), false);
     memPtr = spline;
   }
 
@@ -50,7 +52,7 @@ ak_dae_spline(void * __restrict memParent,
       AkSource *source;
       AkResult ret;
 
-      ret = ak_dae_source(memPtr, reader, &source);
+      ret = ak_dae_source(heap, memPtr, reader, &source);
       if (ret == AK_OK) {
         if (last_source)
           last_source->next = source;
@@ -63,7 +65,7 @@ ak_dae_spline(void * __restrict memParent,
       AkControlVerts *cverts;
       AkInputBasic   *last_input;
 
-      cverts = ak_calloc(memPtr, sizeof(*cverts), false);
+      cverts = ak_heap_calloc(heap, memPtr, sizeof(*cverts), false);
 
       last_input = NULL;
       
@@ -73,7 +75,7 @@ ak_dae_spline(void * __restrict memParent,
         if (_xml_eqElm(_s_dae_input)) {
           AkInputBasic *input;
 
-          input = ak_calloc(memPtr, sizeof(*input), false);
+          input = ak_heap_calloc(heap, memPtr, sizeof(*input), false);
 
           _xml_readAttr(input, input->semanticRaw, _s_dae_semantic);
           _xml_readAttr(input, input->source, _s_dae_source);
@@ -103,7 +105,7 @@ ak_dae_spline(void * __restrict memParent,
           nodePtr = xmlTextReaderExpand(reader);
           tree = NULL;
 
-          ak_tree_fromXmlNode(memPtr, nodePtr, &tree, NULL);
+          ak_tree_fromXmlNode(heap, memPtr, nodePtr, &tree, NULL);
           cverts->extra = tree;
           
           _xml_skipElement;
@@ -124,7 +126,7 @@ ak_dae_spline(void * __restrict memParent,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(memPtr, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(heap, memPtr, nodePtr, &tree, NULL);
       spline->extra = tree;
 
       _xml_skipElement;

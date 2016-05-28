@@ -10,7 +10,8 @@
 #include "../fx/ak_collada_fx_material.h"
 
 AkResult _assetkit_hide
-ak_dae_render(void * __restrict memParent,
+ak_dae_render(AkHeap * __restrict heap,
+              void * __restrict memParent,
               xmlTextReaderPtr reader,
               AkRender ** __restrict dest) {
   AkRender           *render;
@@ -20,7 +21,7 @@ ak_dae_render(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  render = ak_calloc(memParent, sizeof(*render), false);
+  render = ak_heap_calloc(heap, memParent, sizeof(*render), false);
 
   _xml_readAttr(render, render->sid, _s_dae_sid);
   _xml_readAttr(render, render->name, _s_dae_name);
@@ -40,7 +41,7 @@ ak_dae_render(void * __restrict memParent,
         AkStringArrayL *layer;
         AkResult ret;
 
-        ret = ak_strtostr_arrayL(render, content, ' ', &layer);
+        ret = ak_strtostr_arrayL(heap, render, content, ' ', &layer);
         if (ret == AK_OK) {
           if (last_layer)
             last_layer->next = layer;
@@ -55,7 +56,10 @@ ak_dae_render(void * __restrict memParent,
     } else if (_xml_eqElm(_s_dae_instance_material)) {
       AkInstanceMaterial *instanceMaterial;
       AkResult ret;
-      ret = ak_dae_fxInstanceMaterial(memParent, reader, &instanceMaterial);
+      ret = ak_dae_fxInstanceMaterial(heap,
+                                      memParent,
+                                      reader,
+                                      &instanceMaterial);
 
       if (ret == AK_OK) {
         if (last_instanceMaterial)
@@ -72,7 +76,7 @@ ak_dae_render(void * __restrict memParent,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(render, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(heap, render, nodePtr, &tree, NULL);
       render->extra = tree;
 
       _xml_skipElement;

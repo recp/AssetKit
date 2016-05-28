@@ -16,11 +16,12 @@
 #include <string.h>
 
 AkResult _assetkit_hide
-ak_tree_fromXmlNode(void * __restrict memParent,
-                     xmlNode * __restrict xml_node,
-                     AkTreeNode ** __restrict dest,
-                     AkTreeNode * __restrict parent) {
-
+ak_tree_fromXmlNode(AkHeap * __restrict heap,
+                    void * __restrict memParent,
+                    xmlNode * __restrict xml_node,
+                    AkTreeNode ** __restrict dest,
+                    AkTreeNode * __restrict parent) {
+  
   xmlNode       * currNode;
   AkTreeNode * tree_currNode;
 
@@ -109,10 +110,11 @@ ak_tree_fromXmlNode(void * __restrict memParent,
 
           /* Load child nodes */
         case XML_ELEMENT_NODE:
-          ak_tree_fromXmlNode(tree_nNode,
-                               currNode,
-                               &tree_nNode->chld,
-                               tree_nNode);
+          ak_tree_fromXmlNode(heap,
+                              tree_nNode,
+                              currNode,
+                              &tree_nNode->chld,
+                              tree_nNode);
 
           break;
         default:

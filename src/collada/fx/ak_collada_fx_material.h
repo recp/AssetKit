@@ -13,17 +13,20 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_material(void * __restrict memParent,
-                 xmlTextReaderPtr reader,
-                 AkMaterial ** __restrict dest);
+ak_dae_material(AkHeap * __restrict heap,
+                void * __restrict memParent,
+                xmlTextReaderPtr reader,
+                AkMaterial ** __restrict dest);
 
 AkResult _assetkit_hide
-ak_dae_fxBindMaterial(void * __restrict memParent,
+ak_dae_fxBindMaterial(AkHeap * __restrict heap,
+                      void * __restrict memParent,
                       xmlTextReaderPtr reader,
                       AkBindMaterial ** __restrict dest);
 
 AkResult _assetkit_hide
-ak_dae_fxInstanceMaterial(void * __restrict memParent,
+ak_dae_fxInstanceMaterial(AkHeap * __restrict heap,
+                          void * __restrict memParent,
                           xmlTextReaderPtr reader,
                           AkInstanceMaterial ** __restrict dest);
 

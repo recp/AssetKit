@@ -12,15 +12,16 @@
 #include "ak_collada_fx_effect.h"
 
 AkResult _assetkit_hide
-ak_dae_material(void * __restrict memParent,
-                 xmlTextReaderPtr reader,
-                 AkMaterial ** __restrict dest) {
+ak_dae_material(AkHeap * __restrict heap,
+                void * __restrict memParent,
+                xmlTextReaderPtr reader,
+                AkMaterial ** __restrict dest) {
   AkMaterial    *material;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
 
-  material = ak_calloc(memParent, sizeof(*material), false);
+  material = ak_heap_calloc(heap, memParent, sizeof(*material), false);
 
   _xml_readAttr(material, material->id, _s_dae_id);
   _xml_readAttr(material, material->name, _s_dae_name);
@@ -33,7 +34,7 @@ ak_dae_material(void * __restrict memParent,
       AkResult ret;
 
       assetInf = NULL;
-      ret = ak_dae_assetInf(material, reader, &assetInf);
+      ret = ak_dae_assetInf(heap, material, reader, &assetInf);
       if (ret == AK_OK)
         material->inf = assetInf;
     } else if (_xml_eqElm(_s_dae_inst_effect)) {
@@ -41,7 +42,7 @@ ak_dae_material(void * __restrict memParent,
       AkResult ret;
 
       instanceEffect = NULL;
-      ret = ak_dae_fxInstanceEffect(material, reader, &instanceEffect);
+      ret = ak_dae_fxInstanceEffect(heap, material, reader, &instanceEffect);
       if (ret == AK_OK)
         material->instanceEffect = instanceEffect;
     } else if (_xml_eqElm(_s_dae_extra)) {
@@ -51,7 +52,7 @@ ak_dae_material(void * __restrict memParent,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(material, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(heap, material, nodePtr, &tree, NULL);
       material->extra = tree;
 
       _xml_skipElement;
@@ -69,7 +70,8 @@ ak_dae_material(void * __restrict memParent,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxBindMaterial(void * __restrict memParent,
+ak_dae_fxBindMaterial(AkHeap * __restrict heap,
+                      void * __restrict memParent,
                       xmlTextReaderPtr reader,
                       AkBindMaterial ** __restrict dest) {
   AkBindMaterial *bindMaterial;
@@ -79,7 +81,7 @@ ak_dae_fxBindMaterial(void * __restrict memParent,
   int             nodeType;
   int             nodeRet;
 
-  bindMaterial = ak_calloc(memParent, sizeof(*bindMaterial), false);
+  bindMaterial = ak_heap_calloc(heap, memParent, sizeof(*bindMaterial), false);
 
   last_param = NULL;
   last_tq    = NULL;
@@ -91,7 +93,8 @@ ak_dae_fxBindMaterial(void * __restrict memParent,
       AkParam * param;
       AkResult   ret;
 
-      ret = ak_dae_param(bindMaterial,
+      ret = ak_dae_param(heap,
+                         bindMaterial,
                          reader,
                          AK_PARAM_TYPE_BASIC,
                          &param);
@@ -109,7 +112,7 @@ ak_dae_fxBindMaterial(void * __restrict memParent,
       AkResult ret;
 
       tc = NULL;
-      ret = ak_dae_techniquec(bindMaterial, reader, &tc);
+      ret = ak_dae_techniquec(heap, bindMaterial, reader, &tc);
       if (ret == AK_OK)
         bindMaterial->techniqueCommon = tc;
 
@@ -118,7 +121,7 @@ ak_dae_fxBindMaterial(void * __restrict memParent,
       AkResult ret;
 
       tq = NULL;
-      ret = ak_dae_technique(bindMaterial, reader, &tq);
+      ret = ak_dae_technique(heap, bindMaterial, reader, &tq);
       if (ret == AK_OK) {
         if (last_tq)
           last_tq->next = tq;
@@ -134,7 +137,7 @@ ak_dae_fxBindMaterial(void * __restrict memParent,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(bindMaterial, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(heap, bindMaterial, nodePtr, &tree, NULL);
       bindMaterial->extra = tree;
 
       _xml_skipElement;
@@ -152,7 +155,8 @@ ak_dae_fxBindMaterial(void * __restrict memParent,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxInstanceMaterial(void * __restrict memParent,
+ak_dae_fxInstanceMaterial(AkHeap * __restrict heap,
+                          void * __restrict memParent,
                           xmlTextReaderPtr reader,
                           AkInstanceMaterial ** __restrict dest) {
   AkInstanceMaterial *material;
@@ -162,7 +166,7 @@ ak_dae_fxInstanceMaterial(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  material = ak_calloc(memParent, sizeof(*material), false);
+  material = ak_heap_calloc(heap, memParent, sizeof(*material), false);
 
   _xml_readAttr(material, material->sid, _s_dae_sid);
   _xml_readAttr(material, material->name, _s_dae_name);
@@ -178,7 +182,7 @@ ak_dae_fxInstanceMaterial(void * __restrict memParent,
 
     if (_xml_eqElm(_s_dae_bind)) {
       AkBind *bind;
-      bind = ak_calloc(material, sizeof(*bind), false);
+      bind = ak_heap_calloc(heap, material, sizeof(*bind), false);
 
       _xml_readAttr(bind, bind->semantic, _s_dae_semantic);
       _xml_readAttr(bind, bind->target, _s_dae_target);
@@ -191,7 +195,10 @@ ak_dae_fxInstanceMaterial(void * __restrict memParent,
       last_bind = bind;
     } else if (_xml_eqElm(_s_dae_bind_vertex_input)) {
       AkBindVertexInput *bindVertexInput;
-      bindVertexInput = ak_calloc(material, sizeof(*bindVertexInput), false);
+      bindVertexInput = ak_heap_calloc(heap,
+                                       material,
+                                       sizeof(*bindVertexInput),
+                                       false);
 
       _xml_readAttr(bindVertexInput,
                     bindVertexInput->semantic,
@@ -211,7 +218,7 @@ ak_dae_fxInstanceMaterial(void * __restrict memParent,
       last_bindVertexInput = bindVertexInput;
     } else if (_xml_eqElm(_s_dae_technique_override)) {
       AkTechniqueOverride *techniqueOverride;
-      techniqueOverride = ak_calloc(material,
+      techniqueOverride = ak_heap_calloc(heap, material,
                                     sizeof(*techniqueOverride),
                                     false);
 
@@ -226,7 +233,7 @@ ak_dae_fxInstanceMaterial(void * __restrict memParent,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(material, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(heap, material, nodePtr, &tree, NULL);
       material->extra = tree;
 
       _xml_skipElement;

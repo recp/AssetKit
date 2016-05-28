@@ -26,7 +26,8 @@ static ak_enumpair curveMap[] = {
 static size_t curveMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_curve(void * __restrict memParent,
+ak_dae_curve(AkHeap * __restrict heap,
+             void * __restrict memParent,
              xmlTextReaderPtr reader,
              bool asObject,
              AkCurve ** __restrict dest) {
@@ -39,7 +40,8 @@ ak_dae_curve(void * __restrict memParent,
   int             nodeRet;
 
   if (asObject) {
-    obj = ak_objAlloc(memParent,
+    obj = ak_objAlloc(heap,
+                      memParent,
                       sizeof(*curve),
                       0,
                       true,
@@ -48,7 +50,7 @@ ak_dae_curve(void * __restrict memParent,
     curve = ak_objGet(obj);
     memPtr = obj;
   } else {
-    curve = ak_calloc(memParent, sizeof(*curve), false);
+    curve = ak_heap_calloc(heap, memParent, sizeof(*curve), false);
     memPtr = curve;
   }
 
@@ -78,7 +80,8 @@ ak_dae_curve(void * __restrict memParent,
         AkObject *obj;
         AkLine   *line;
 
-        obj = ak_objAlloc(memPtr,
+        obj = ak_objAlloc(heap,
+                          memPtr,
                           sizeof(*line),
                           AK_CURVE_ELEMENT_TYPE_LINE,
                           true,
@@ -108,7 +111,7 @@ ak_dae_curve(void * __restrict memParent,
             nodePtr = xmlTextReaderExpand(reader);
             tree = NULL;
 
-            ak_tree_fromXmlNode(obj, nodePtr, &tree, NULL);
+            ak_tree_fromXmlNode(heap, obj, nodePtr, &tree, NULL);
             line->extra = tree;
             
             _xml_skipElement;
@@ -129,7 +132,8 @@ ak_dae_curve(void * __restrict memParent,
         AkObject *obj;
         AkCircle *circle;
 
-        obj = ak_objAlloc(memPtr,
+        obj = ak_objAlloc(heap,
+                          memPtr,
                           sizeof(*circle),
                           AK_CURVE_ELEMENT_TYPE_CIRCLE,
                           true,
@@ -150,7 +154,7 @@ ak_dae_curve(void * __restrict memParent,
             nodePtr = xmlTextReaderExpand(reader);
             tree = NULL;
 
-            ak_tree_fromXmlNode(obj, nodePtr, &tree, NULL);
+            ak_tree_fromXmlNode(heap, obj, nodePtr, &tree, NULL);
             circle->extra = tree;
 
             _xml_skipElement;
@@ -171,7 +175,8 @@ ak_dae_curve(void * __restrict memParent,
         AkObject  *obj;
         AkEllipse *ellipse;
 
-        obj = ak_objAlloc(memPtr,
+        obj = ak_objAlloc(heap,
+                          memPtr,
                           sizeof(*ellipse),
                           AK_CURVE_ELEMENT_TYPE_ELLIPSE,
                           true,
@@ -195,7 +200,7 @@ ak_dae_curve(void * __restrict memParent,
             nodePtr = xmlTextReaderExpand(reader);
             tree = NULL;
 
-            ak_tree_fromXmlNode(obj, nodePtr, &tree, NULL);
+            ak_tree_fromXmlNode(heap, obj, nodePtr, &tree, NULL);
             ellipse->extra = tree;
 
             _xml_skipElement;
@@ -216,7 +221,8 @@ ak_dae_curve(void * __restrict memParent,
         AkObject   *obj;
         AkParabola *parabola;
 
-        obj = ak_objAlloc(memPtr,
+        obj = ak_objAlloc(heap,
+                          memPtr,
                           sizeof(*parabola),
                           AK_CURVE_ELEMENT_TYPE_PARABOLA,
                           true,
@@ -237,7 +243,7 @@ ak_dae_curve(void * __restrict memParent,
             nodePtr = xmlTextReaderExpand(reader);
             tree = NULL;
 
-            ak_tree_fromXmlNode(obj, nodePtr, &tree, NULL);
+            ak_tree_fromXmlNode(heap, obj, nodePtr, &tree, NULL);
             parabola->extra = tree;
 
             _xml_skipElement;
@@ -258,7 +264,8 @@ ak_dae_curve(void * __restrict memParent,
         AkObject    *obj;
         AkHyperbola *hyperbola;
 
-        obj = ak_objAlloc(memPtr,
+        obj = ak_objAlloc(heap,
+                          memPtr,
                           sizeof(*hyperbola),
                           AK_CURVE_ELEMENT_TYPE_HYPERBOLA,
                           true,
@@ -282,7 +289,7 @@ ak_dae_curve(void * __restrict memParent,
             nodePtr = xmlTextReaderExpand(reader);
             tree = NULL;
 
-            ak_tree_fromXmlNode(obj, nodePtr, &tree, NULL);
+            ak_tree_fromXmlNode(heap, obj, nodePtr, &tree, NULL);
             hyperbola->extra = tree;
 
             _xml_skipElement;
@@ -303,7 +310,7 @@ ak_dae_curve(void * __restrict memParent,
         AkNurbs *nurbs;
         AkResult ret;
 
-        ret = ak_dae_nurbs(memPtr, reader, true, &nurbs);
+        ret = ak_dae_nurbs(heap, memPtr, reader, true, &nurbs);
         if (ret == AK_OK)
           curve->curve = ak_objFrom(nurbs);
 
@@ -317,7 +324,7 @@ ak_dae_curve(void * __restrict memParent,
           AkDoubleArrayL *orient;
           AkResult ret;
 
-          ret = ak_strtod_arrayL(memPtr, content, &orient);
+          ret = ak_strtod_arrayL(heap, memPtr, content, &orient);
           if (ret == AK_OK) {
             if (last_orient)
               last_orient->next = orient;
@@ -356,7 +363,8 @@ ak_dae_curve(void * __restrict memParent,
 }
 
 AkResult _assetkit_hide
-ak_dae_curves(void * __restrict memParent,
+ak_dae_curves(AkHeap * __restrict heap,
+              void * __restrict memParent,
               xmlTextReaderPtr reader,
               AkCurves ** __restrict dest) {
   AkCurves      *curves;
@@ -365,7 +373,7 @@ ak_dae_curves(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  curves = ak_calloc(memParent, sizeof(*curves), false);
+  curves = ak_heap_calloc(heap, memParent, sizeof(*curves), false);
 
   last_curve = NULL;
 
@@ -376,7 +384,7 @@ ak_dae_curves(void * __restrict memParent,
       AkCurve *curve;
       AkResult ret;
 
-      ret = ak_dae_curve(curves, reader, false, &curve);
+      ret = ak_dae_curve(heap, curves, reader, false, &curve);
       if (ret == AK_OK) {
         if (last_curve)
           last_curve->next = curve;
@@ -392,7 +400,7 @@ ak_dae_curves(void * __restrict memParent,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(curves, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(heap, curves, nodePtr, &tree, NULL);
       curves->extra = tree;
 
       _xml_skipElement;

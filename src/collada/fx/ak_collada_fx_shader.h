@@ -12,7 +12,8 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_fxShader(void * __restrict memParent,
+ak_dae_fxShader(AkHeap * __restrict heap,
+                void * __restrict memParent,
                 xmlTextReaderPtr reader,
                 AkShader ** __restrict dest);
 

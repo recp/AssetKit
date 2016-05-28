@@ -11,12 +11,14 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_visualScene(void * __restrict memParent,
+ak_dae_visualScene(AkHeap * __restrict heap,
+                   void * __restrict memParent,
                    xmlTextReaderPtr reader,
                    AkVisualScene ** __restrict dest);
 
 AkResult _assetkit_hide
-ak_dae_instanceVisualScene(void * __restrict memParent,
+ak_dae_instanceVisualScene(AkHeap * __restrict heap,
+                           void * __restrict memParent,
                            xmlTextReaderPtr reader,
                            AkInstanceVisualScene ** __restrict dest);
 

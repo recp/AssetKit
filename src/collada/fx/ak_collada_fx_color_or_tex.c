@@ -10,10 +10,11 @@
 #include "ak_collada_fx_enums.h"
 
 AkResult _assetkit_hide
-ak_dae_colorOrTex(void * __restrict memParent,
-                   xmlTextReaderPtr reader,
-                   const char * elm,
-                   AkFxColorOrTex ** __restrict dest) {
+ak_dae_colorOrTex(AkHeap * __restrict heap,
+                  void * __restrict memParent,
+                  xmlTextReaderPtr reader,
+                  const char * elm,
+                  AkFxColorOrTex ** __restrict dest) {
   AkFxColorOrTex *colorOrTex;
   AkParam *last_param;
 
@@ -21,7 +22,7 @@ ak_dae_colorOrTex(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  colorOrTex = ak_calloc(memParent, sizeof(*colorOrTex), false);
+  colorOrTex = ak_heap_calloc(heap, memParent, sizeof(*colorOrTex), false);
   _xml_readAttrAsEnum(colorOrTex->opaque,
                       _s_dae_opaque,
                       ak_dae_fxEnumOpaque);
@@ -35,7 +36,7 @@ ak_dae_colorOrTex(void * __restrict memParent,
       AkColor *color;
       char *colorStr;
 
-      color = ak_calloc(colorOrTex, sizeof(*color), false);
+      color = ak_heap_calloc(heap, colorOrTex, sizeof(*color), false);
 
       _xml_readAttr(color, color->sid, _s_dae_sid);
       _xml_readMutText(colorStr);
@@ -48,7 +49,7 @@ ak_dae_colorOrTex(void * __restrict memParent,
     } else if (_xml_eqElm(_s_dae_texture)) {
       AkFxTexture *tex;
 
-      tex = ak_calloc(colorOrTex, sizeof(*tex), false);
+      tex = ak_heap_calloc(heap, colorOrTex, sizeof(*tex), false);
       _xml_readAttr(tex, tex->texture, _s_dae_texture);
       _xml_readAttr(tex, tex->texcoord, _s_dae_texcoord);
 
@@ -63,7 +64,7 @@ ak_dae_colorOrTex(void * __restrict memParent,
             nodePtr = xmlTextReaderExpand(reader);
             tree = NULL;
 
-            ak_tree_fromXmlNode(tex, nodePtr, &tree, NULL);
+            ak_tree_fromXmlNode(heap, tex, nodePtr, &tree, NULL);
             tex->extra = tree;
 
             _xml_skipElement;
@@ -79,10 +80,11 @@ ak_dae_colorOrTex(void * __restrict memParent,
       AkParam * param;
       AkResult   ret;
 
-      ret = ak_dae_param(colorOrTex,
-                          reader,
-                          AK_PARAM_TYPE_BASIC,
-                          &param);
+      ret = ak_dae_param(heap,
+                         colorOrTex,
+                         reader,
+                         AK_PARAM_TYPE_BASIC,
+                         &param);
 
       if (ret == AK_OK) {
         if (last_param)

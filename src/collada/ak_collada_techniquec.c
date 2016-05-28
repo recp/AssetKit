@@ -11,9 +11,10 @@
 #include "fx/ak_collada_fx_material.h"
 
 AkResult _assetkit_hide
-ak_dae_techniquec(void * __restrict memParent,
-                   xmlTextReaderPtr reader,
-                   AkTechniqueCommon ** __restrict dest) {
+ak_dae_techniquec(AkHeap * __restrict heap,
+                  void * __restrict memParent,
+                  xmlTextReaderPtr reader,
+                  AkTechniqueCommon ** __restrict dest) {
 
   AkTechniqueCommon *techc;
   AkInstanceMaterial  *last_instanceMaterial;
@@ -22,7 +23,7 @@ ak_dae_techniquec(void * __restrict memParent,
   int             nodeType;
   int             nodeRet;
 
-  techc = ak_calloc(memParent, sizeof(*techc), false);
+  techc = ak_heap_calloc(heap, memParent, sizeof(*techc), false);
 
   last_instanceMaterial = NULL;
 
@@ -32,14 +33,14 @@ ak_dae_techniquec(void * __restrict memParent,
     /* optics -> perspective */
     if (_xml_eqElm(_s_dae_perspective)) {
       AkPerspective * perspective;
-      perspective = ak_calloc(techc, sizeof(*perspective), false);
+      perspective = ak_heap_calloc(heap, techc, sizeof(*perspective), false);
       
       do {
         _xml_beginElement(_s_dae_perspective);
 
         if (_xml_eqElm(_s_dae_xfov)) {
           ak_basic_attrd * xfov;
-          xfov = ak_calloc(perspective, sizeof(*xfov), false);
+          xfov = ak_heap_calloc(heap, perspective, sizeof(*xfov), false);
 
           _xml_readAttr(xfov, xfov->sid, _s_dae_sid);
           _xml_readTextUsingFn(xfov->val, strtod, NULL);
@@ -47,7 +48,7 @@ ak_dae_techniquec(void * __restrict memParent,
           perspective->xfov = xfov;
         } else if (_xml_eqElm(_s_dae_yfov)) {
           ak_basic_attrd * yfov;
-          yfov = ak_calloc(perspective, sizeof(*yfov), false);
+          yfov = ak_heap_calloc(heap, perspective, sizeof(*yfov), false);
 
           _xml_readAttr(yfov, yfov->sid, _s_dae_sid);
           _xml_readTextUsingFn(yfov->val, strtod, NULL);
@@ -55,7 +56,10 @@ ak_dae_techniquec(void * __restrict memParent,
           perspective->yfov = yfov;
         } else if (_xml_eqElm(_s_dae_aspect_ratio)) {
           ak_basic_attrd * aspectRatio;
-          aspectRatio = ak_calloc(perspective, sizeof(*aspectRatio), false);
+          aspectRatio = ak_heap_calloc(heap,
+                                       perspective,
+                                       sizeof(*aspectRatio),
+                                       false);
 
           _xml_readAttr(aspectRatio, aspectRatio->sid, _s_dae_sid);
           _xml_readTextUsingFn(aspectRatio->val, strtod, NULL);
@@ -63,7 +67,7 @@ ak_dae_techniquec(void * __restrict memParent,
           perspective->aspectRatio = aspectRatio;
         } else if (_xml_eqElm(_s_dae_znear)) {
           ak_basic_attrd * znear;
-          znear = ak_calloc(perspective, sizeof(*znear), false);
+          znear = ak_heap_calloc(heap, perspective, sizeof(*znear), false);
 
           _xml_readAttr(znear, znear->sid, _s_dae_sid);
           _xml_readTextUsingFn(znear->val, strtod, NULL);
@@ -71,7 +75,7 @@ ak_dae_techniquec(void * __restrict memParent,
           perspective->znear = znear;
         } else if (_xml_eqElm(_s_dae_zfar)) {
           ak_basic_attrd * zfar;
-          zfar = ak_calloc(perspective, sizeof(*zfar), false);
+          zfar = ak_heap_calloc(heap, perspective, sizeof(*zfar), false);
 
           _xml_readAttr(zfar, zfar->sid, _s_dae_sid);
           _xml_readTextUsingFn(zfar->val, strtod, NULL);
@@ -92,14 +96,14 @@ ak_dae_techniquec(void * __restrict memParent,
     /* optics -> orthographic */
     else if (_xml_eqElm(_s_dae_orthographic)) {
       AkOrthographic * orthographic;
-      orthographic = ak_calloc(techc, sizeof(*orthographic), false);
+      orthographic = ak_heap_calloc(heap, techc, sizeof(*orthographic), false);
 
       do {
         _xml_beginElement(_s_dae_orthographic);
 
         if (_xml_eqElm(_s_dae_xmag)) {
           ak_basic_attrd * xmag;
-          xmag = ak_calloc(orthographic, sizeof(*xmag), false);
+          xmag = ak_heap_calloc(heap, orthographic, sizeof(*xmag), false);
 
           _xml_readAttr(xmag, xmag->sid, _s_dae_sid);
           _xml_readTextUsingFn(xmag->val, strtod, NULL);
@@ -107,7 +111,7 @@ ak_dae_techniquec(void * __restrict memParent,
           orthographic->xmag = xmag;
         } else if (_xml_eqElm(_s_dae_ymag)) {
           ak_basic_attrd * ymag;
-          ymag = ak_calloc(orthographic, sizeof(*ymag), false);
+          ymag = ak_heap_calloc(heap, orthographic, sizeof(*ymag), false);
 
           _xml_readAttr(ymag, ymag->sid, _s_dae_sid);
           _xml_readTextUsingFn(ymag->val, strtod, NULL);
@@ -115,7 +119,10 @@ ak_dae_techniquec(void * __restrict memParent,
           orthographic->ymag = ymag;
         } else if (_xml_eqElm(_s_dae_aspect_ratio)) {
           ak_basic_attrd * aspectRatio;
-          aspectRatio = ak_calloc(orthographic, sizeof(*aspectRatio), false);
+          aspectRatio = ak_heap_calloc(heap,
+                                       orthographic,
+                                       sizeof(*aspectRatio),
+                                       false);
 
           _xml_readAttr(aspectRatio, aspectRatio->sid, _s_dae_sid);
           _xml_readTextUsingFn(aspectRatio->val, strtod, NULL);
@@ -123,7 +130,7 @@ ak_dae_techniquec(void * __restrict memParent,
           orthographic->aspectRatio = aspectRatio;
         } else if (_xml_eqElm(_s_dae_znear)) {
           ak_basic_attrd * znear;
-          znear = ak_calloc(orthographic, sizeof(*znear), false);
+          znear = ak_heap_calloc(heap, orthographic, sizeof(*znear), false);
 
           _xml_readAttr(znear, znear->sid, _s_dae_sid);
           _xml_readTextUsingFn(znear->val, strtod, NULL);
@@ -131,7 +138,7 @@ ak_dae_techniquec(void * __restrict memParent,
           orthographic->znear = znear;
         } else if (_xml_eqElm(_s_dae_zfar)) {
           ak_basic_attrd * zfar;
-          zfar = ak_calloc(orthographic, sizeof(*zfar), false);
+          zfar = ak_heap_calloc(heap, orthographic, sizeof(*zfar), false);
 
           _xml_readAttr(zfar, zfar->sid, _s_dae_sid);
           _xml_readTextUsingFn(zfar->val, strtod, NULL);
@@ -152,7 +159,7 @@ ak_dae_techniquec(void * __restrict memParent,
     /* light -> ambient */
     else if (_xml_eqElm(_s_dae_ambient)) {
       AkAmbient * ambient;
-      ambient = ak_calloc(techc, sizeof(*ambient), false);
+      ambient = ak_heap_calloc(heap, techc, sizeof(*ambient), false);
 
       do {
         _xml_beginElement(_s_dae_ambient);
@@ -182,7 +189,7 @@ ak_dae_techniquec(void * __restrict memParent,
     /* light -> directional */
     else if (_xml_eqElm(_s_dae_directional)) {
       AkDirectional * directional;
-      directional = ak_calloc(techc, sizeof(*directional), false);
+      directional = ak_heap_calloc(heap, techc, sizeof(*directional), false);
 
       do {
         _xml_beginElement(_s_dae_directional);
@@ -204,7 +211,7 @@ ak_dae_techniquec(void * __restrict memParent,
     /* light -> point */
     else if (_xml_eqElm(_s_dae_point)) {
       AkPoint * point;
-      point = ak_calloc(techc, sizeof(*point), false);
+      point = ak_heap_calloc(heap, techc, sizeof(*point), false);
 
       do {
         _xml_beginElement(_s_dae_point);
@@ -214,7 +221,7 @@ ak_dae_techniquec(void * __restrict memParent,
         } else if (_xml_eqElm(_s_dae_constant_attenuation)) {
           ak_basic_attrd * constantAttenuation;
 
-          constantAttenuation = ak_calloc(point,
+          constantAttenuation = ak_heap_calloc(heap, point,
                                           sizeof(*constantAttenuation),
                                           false);
 
@@ -227,7 +234,7 @@ ak_dae_techniquec(void * __restrict memParent,
         } else if (_xml_eqElm(_s_dae_linear_attenuation)) {
           ak_basic_attrd * linearAttenuation;
 
-          linearAttenuation = ak_calloc(point,
+          linearAttenuation = ak_heap_calloc(heap, point,
                                         sizeof(*linearAttenuation),
                                         false);
 
@@ -240,7 +247,7 @@ ak_dae_techniquec(void * __restrict memParent,
         } else if (_xml_eqElm(_s_dae_quadratic_attenuation)) {
           ak_basic_attrd * quadraticAttenuation;
 
-          quadraticAttenuation = ak_calloc(point,
+          quadraticAttenuation = ak_heap_calloc(heap, point,
                                            sizeof(*quadraticAttenuation),
                                            false);
 
@@ -265,7 +272,7 @@ ak_dae_techniquec(void * __restrict memParent,
     /* light -> spot */
     else if (_xml_eqElm(_s_dae_point)) {
       AkSpot * spot;
-      spot = ak_calloc(techc, sizeof(*spot), false);
+      spot = ak_heap_calloc(heap, techc, sizeof(*spot), false);
 
       do {
         _xml_beginElement(_s_dae_spot);
@@ -275,7 +282,7 @@ ak_dae_techniquec(void * __restrict memParent,
         } else if (_xml_eqElm(_s_dae_constant_attenuation)) {
           ak_basic_attrd * constantAttenuation;
 
-          constantAttenuation = ak_calloc(spot,
+          constantAttenuation = ak_heap_calloc(heap, spot,
                                           sizeof(*constantAttenuation),
                                           false);
 
@@ -288,7 +295,7 @@ ak_dae_techniquec(void * __restrict memParent,
         } else if (_xml_eqElm(_s_dae_linear_attenuation)) {
           ak_basic_attrd * linearAttenuation;
 
-          linearAttenuation = ak_calloc(spot,
+          linearAttenuation = ak_heap_calloc(heap, spot,
                                         sizeof(*linearAttenuation),
                                         false);
 
@@ -301,7 +308,7 @@ ak_dae_techniquec(void * __restrict memParent,
         } else if (_xml_eqElm(_s_dae_quadratic_attenuation)) {
           ak_basic_attrd * quadraticAttenuation;
 
-          quadraticAttenuation = ak_calloc(spot,
+          quadraticAttenuation = ak_heap_calloc(heap, spot,
                                            sizeof(*quadraticAttenuation),
                                            false);
 
@@ -314,7 +321,10 @@ ak_dae_techniquec(void * __restrict memParent,
         } else if (_xml_eqElm(_s_dae_falloff_angle)) {
           ak_basic_attrd * falloffAngle;
 
-          falloffAngle = ak_calloc(spot, sizeof(*falloffAngle), false);
+          falloffAngle = ak_heap_calloc(heap,
+                                        spot,
+                                        sizeof(*falloffAngle),
+                                        false);
 
           _xml_readTextUsingFn(falloffAngle->val, strtod, NULL);
           _xml_readAttr(falloffAngle, falloffAngle->sid, _s_dae_sid);
@@ -323,7 +333,10 @@ ak_dae_techniquec(void * __restrict memParent,
         } else if (_xml_eqElm(_s_dae_falloff_exponent)) {
           ak_basic_attrd * falloffExponent;
 
-          falloffExponent = ak_calloc(spot, sizeof(*falloffExponent), false);
+          falloffExponent = ak_heap_calloc(heap,
+                                           spot,
+                                           sizeof(*falloffExponent),
+                                           false);
 
           _xml_readTextUsingFn(falloffExponent->val, strtod, NULL);
           _xml_readAttr(falloffExponent, falloffExponent->sid, _s_dae_sid);
@@ -342,7 +355,10 @@ ak_dae_techniquec(void * __restrict memParent,
     } else if (_xml_eqElm(_s_dae_instance_material)) {
       AkInstanceMaterial *instanceMaterial;
       AkResult ret;
-      ret = ak_dae_fxInstanceMaterial(memParent, reader, &instanceMaterial);
+      ret = ak_dae_fxInstanceMaterial(heap,
+                                      memParent,
+                                      reader,
+                                      &instanceMaterial);
 
       if (ret == AK_OK) {
         if (last_instanceMaterial)

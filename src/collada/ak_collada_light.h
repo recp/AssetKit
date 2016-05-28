@@ -12,8 +12,9 @@
 #include "ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_light(void * __restrict memParent,
-              xmlTextReaderPtr reader,
-              AkLight ** __restrict  dest);
+ak_dae_light(AkHeap * __restrict heap,
+             void * __restrict memParent,
+             xmlTextReaderPtr reader,
+             AkLight ** __restrict  dest);
 
 #endif /* __libassetkit__ak_collada_light__h_ */

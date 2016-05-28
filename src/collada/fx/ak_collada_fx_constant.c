@@ -28,7 +28,8 @@ static ak_enumpair constantMap[] = {
 static size_t constantMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_fxConstant(void * __restrict memParent,
+ak_dae_fxConstant(AkHeap * __restrict heap,
+                  void * __restrict memParent,
                   xmlTextReaderPtr reader,
                   AkConstantFx ** __restrict dest) {
   AkConstantFx  *constant;
@@ -37,7 +38,7 @@ ak_dae_fxConstant(void * __restrict memParent,
   int            nodeRet;
 
 
-  constant = ak_calloc(memParent, sizeof(*constant), false);
+  constant = ak_heap_calloc(heap, memParent, sizeof(*constant), false);
 
   if (constantMapLen == 0) {
     constantMapLen = AK_ARRAY_LEN(constantMap);
@@ -65,10 +66,11 @@ ak_dae_fxConstant(void * __restrict memParent,
         AkFxColorOrTex *colorOrTex;
         AkResult ret;
 
-        ret = ak_dae_colorOrTex(constant,
-                                 reader,
-                                 (const char *)nodeName,
-                                 &colorOrTex);
+        ret = ak_dae_colorOrTex(heap,
+                                constant,
+                                reader,
+                                (const char *)nodeName,
+                                &colorOrTex);
         if (ret == AK_OK) {
           switch (found->val) {
             case k_s_dae_emission:
@@ -92,10 +94,11 @@ ak_dae_fxConstant(void * __restrict memParent,
         AkFxFloatOrParam * floatOrParam;
         AkResult ret;
 
-        ret = ak_dae_floatOrParam(constant,
-                                   reader,
-                                   (const char *)nodeName,
-                                   &floatOrParam);
+        ret = ak_dae_floatOrParam(heap,
+                                  constant,
+                                  reader,
+                                  (const char *)nodeName,
+                                  &floatOrParam);
 
         if (ret == AK_OK) {
           switch (found->val) {

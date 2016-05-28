@@ -29,7 +29,8 @@ static ak_enumpair sourceMap[] = {
 static size_t sourceMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_source(void * __restrict memParent,
+ak_dae_source(AkHeap * __restrict heap,
+              void * __restrict memParent,
               xmlTextReaderPtr reader,
               AkSource ** __restrict dest) {
 
@@ -41,7 +42,7 @@ ak_dae_source(void * __restrict memParent,
   int            nodeType;
   int            nodeRet;
 
-  source = ak_calloc(memParent, sizeof(*source), false);
+  source = ak_heap_calloc(heap, memParent, sizeof(*source), false);
 
   _xml_readAttr(source, source->id, _s_dae_id);
   _xml_readAttr(source, source->name, _s_dae_name);
@@ -77,7 +78,7 @@ ak_dae_source(void * __restrict memParent,
         AkResult ret;
 
         assetInf = NULL;
-        ret = ak_dae_assetInf(source, reader, &assetInf);
+        ret = ak_dae_assetInf(heap, source, reader, &assetInf);
         if (ret == AK_OK)
           source->inf = assetInf;
 
@@ -100,7 +101,8 @@ ak_dae_source(void * __restrict memParent,
                                       strtoul, NULL, 10);
 
           arraySize = sizeof(AkBool) * arrayCount;
-          obj = ak_objAlloc(source,
+          obj = ak_objAlloc(heap,
+                            source,
                             sizeof(*boolArray) + arraySize,
                             AK_SOURCE_ARRAY_TYPE_BOOL,
                             true,
@@ -141,7 +143,8 @@ ak_dae_source(void * __restrict memParent,
                                       strtoul, NULL, 10);
 
           arraySize = sizeof(AkFloat) * arrayCount;
-          obj = ak_objAlloc(source,
+          obj = ak_objAlloc(heap,
+                            source,
                             sizeof(*floatAray) + arraySize,
                             AK_SOURCE_ARRAY_TYPE_FLOAT,
                             true,
@@ -190,7 +193,8 @@ ak_dae_source(void * __restrict memParent,
                                       strtoul, NULL, 10);
 
           arraySize = sizeof(AkInt) * arrayCount;
-          obj = ak_objAlloc(source,
+          obj = ak_objAlloc(heap,
+                            source,
                             sizeof(*intAray) + arraySize,
                             AK_SOURCE_ARRAY_TYPE_INT,
                             true,
@@ -253,7 +257,8 @@ ak_dae_source(void * __restrict memParent,
           arraySize = sizeof(char *) * (arrayCount + 1);
           arrayDataSize = strlen(content) + arrayCount /* NULL */;
 
-          obj = ak_objAlloc(source,
+          obj = ak_objAlloc(heap,
+                            source,
                             sizeof(*stringAray) + arraySize,
                             found->val,
                             true,
@@ -296,7 +301,7 @@ ak_dae_source(void * __restrict memParent,
         AkResult ret;
 
         tc = NULL;
-        ret = ak_dae_techniquec(source, reader, &tc);
+        ret = ak_dae_techniquec(heap, source, reader, &tc);
         if (ret == AK_OK) {
           if (last_tc)
             last_tc->next = tc;
@@ -313,7 +318,7 @@ ak_dae_source(void * __restrict memParent,
         AkResult ret;
 
         tq = NULL;
-        ret = ak_dae_technique(source, reader, &tq);
+        ret = ak_dae_technique(heap, source, reader, &tq);
         if (ret == AK_OK) {
           if (last_tq)
             last_tq->next = tq;

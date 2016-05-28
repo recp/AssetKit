@@ -25,7 +25,7 @@ AkResult
 _assetkit_hide
 ak_dae_doc(AkDoc ** __restrict dest,
            const char * __restrict file) {
-
+  AkHeap           *heap;
   AkDoc            *doc;
   AkLibCamera      *last_libCam;
   AkLibLight       *last_libLight;
@@ -66,7 +66,8 @@ ak_dae_doc(AkDoc ** __restrict dest,
     return AK_ERR;
   }
 
-  doc = ak_calloc(NULL, sizeof(*doc), false);
+  heap = ak_heap_new(NULL, NULL);
+  doc  = ak_heap_calloc(heap, NULL, sizeof(*doc), false);
 
   _xml_readNext;
 
@@ -89,10 +90,10 @@ ak_dae_doc(AkDoc ** __restrict dest,
       AkDocInf   * docInf;
       AkResult      ret;
 
-      docInf = ak_calloc(doc, sizeof(*docInf), false);
+      docInf = ak_heap_calloc(heap, doc, sizeof(*docInf), false);
       assetInf = &docInf->base;
 
-      ret = ak_dae_assetInf(docInf, reader, &assetInf);
+      ret = ak_dae_assetInf(heap, docInf, reader, &assetInf);
       if (ret == AK_OK) {
         docInf->ftype = AK_FILE_TYPE_COLLADA;
         doc->docinf = *docInf;
@@ -101,7 +102,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
       AkLibCamera *libcam;
       AkCamera    *lastcam;
 
-      libcam = ak_calloc(doc, sizeof(*libcam), false);
+      libcam = ak_heap_calloc(heap, doc, sizeof(*libcam), false);
       if (last_libCam)
         last_libCam->next = libcam;
       else
@@ -122,7 +123,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           assetInf = NULL;
-          ret = ak_dae_assetInf(doc, reader, &assetInf);
+          ret = ak_dae_assetInf(heap, doc, reader, &assetInf);
           if (ret == AK_OK)
             libcam->inf = assetInf;
 
@@ -131,7 +132,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult   ret;
 
           acamera = NULL;
-          ret = ak_dae_camera(doc, reader, &acamera);
+          ret = ak_dae_camera(heap, doc, reader, &acamera);
           if (ret == AK_OK) {
             if (lastcam)
               lastcam->next = acamera;
@@ -147,7 +148,11 @@ ak_dae_doc(AkDoc ** __restrict dest,
           nodePtr = xmlTextReaderExpand(reader);
           tree = NULL;
 
-          ak_tree_fromXmlNode(doc, nodePtr, &tree, NULL);
+                ak_tree_fromXmlNode(heap,
+                          doc,
+                          nodePtr,
+                          &tree,
+                          NULL);
           libcam->extra = tree;
 
           _xml_skipElement;
@@ -162,7 +167,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
       AkLibLight *liblight;
       AkLight    *lastlight;
 
-      liblight = ak_calloc(doc, sizeof(*liblight), false);
+      liblight = ak_heap_calloc(heap, doc, sizeof(*liblight), false);
       if (last_libLight)
         last_libLight->next = liblight;
       else
@@ -183,7 +188,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           assetInf = NULL;
-          ret = ak_dae_assetInf(doc, reader, &assetInf);
+          ret = ak_dae_assetInf(heap, doc, reader, &assetInf);
           if (ret == AK_OK)
             liblight->inf = assetInf;
 
@@ -192,7 +197,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult  ret;
 
           alight = NULL;
-          ret = ak_dae_light(doc, reader, &alight);
+          ret = ak_dae_light(heap, doc, reader, &alight);
           if (ret == AK_OK) {
             if (lastlight)
               lastlight->next = alight;
@@ -208,7 +213,11 @@ ak_dae_doc(AkDoc ** __restrict dest,
           nodePtr = xmlTextReaderExpand(reader);
           tree = NULL;
 
-          ak_tree_fromXmlNode(doc, nodePtr, &tree, NULL);
+          ak_tree_fromXmlNode(heap,
+                              doc,
+                              nodePtr,
+                              &tree,
+                              NULL);
           liblight->extra = tree;
 
           _xml_skipElement;
@@ -225,7 +234,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
       AkLibEffect *libEffect;
       AkEffect    *lastEffect;
 
-      libEffect = ak_calloc(doc, sizeof(*libEffect), false);
+      libEffect = ak_heap_calloc(heap, doc, sizeof(*libEffect), false);
       if (last_libEffect)
         last_libEffect->next = libEffect;
       else
@@ -246,7 +255,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           assetInf = NULL;
-          ret = ak_dae_assetInf(doc, reader, &assetInf);
+          ret = ak_dae_assetInf(heap, doc, reader, &assetInf);
           if (ret == AK_OK)
             libEffect->inf = assetInf;
 
@@ -254,7 +263,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkEffect *anEffect;
           AkResult   ret;
 
-          ret = ak_dae_effect(doc, reader, &anEffect);
+          ret = ak_dae_effect(heap, doc, reader, &anEffect);
           if (ret == AK_OK) {
             if (lastEffect)
               lastEffect->next = anEffect;
@@ -270,7 +279,11 @@ ak_dae_doc(AkDoc ** __restrict dest,
           nodePtr = xmlTextReaderExpand(reader);
           tree = NULL;
 
-          ak_tree_fromXmlNode(doc, nodePtr, &tree, NULL);
+                ak_tree_fromXmlNode(heap,
+                          doc,
+                          nodePtr,
+                          &tree,
+                          NULL);
           libEffect->extra = tree;
 
           _xml_skipElement;
@@ -286,7 +299,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
       AkLibImage *libimg;
       AkImage      *lastimg;
 
-      libimg = ak_calloc(doc, sizeof(*libimg), false);
+      libimg = ak_heap_calloc(heap, doc, sizeof(*libimg), false);
       if (last_libImage)
         last_libImage->next = libimg;
       else
@@ -307,7 +320,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           assetInf = NULL;
-          ret = ak_dae_assetInf(doc, reader, &assetInf);
+          ret = ak_dae_assetInf(heap, doc, reader, &assetInf);
           if (ret == AK_OK)
             libimg->inf = assetInf;
 
@@ -315,7 +328,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkImage *anImg;
           AkResult  ret;
           
-          ret = ak_dae_fxImage(doc, reader, &anImg);
+          ret = ak_dae_fxImage(heap, doc, reader, &anImg);
           if (ret == AK_OK) {
             if (lastimg)
               lastimg->next = anImg;
@@ -331,7 +344,11 @@ ak_dae_doc(AkDoc ** __restrict dest,
           nodePtr = xmlTextReaderExpand(reader);
           tree = NULL;
 
-          ak_tree_fromXmlNode(doc, nodePtr, &tree, NULL);
+                ak_tree_fromXmlNode(heap,
+                          doc,
+                          nodePtr,
+                          &tree,
+                          NULL);
           libimg->extra = tree;
 
           _xml_skipElement;
@@ -346,7 +363,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
       AkLibMaterial *libMaterial;
       AkMaterial     *lastMaterial;
 
-      libMaterial = ak_calloc(doc, sizeof(*libMaterial), false);
+      libMaterial = ak_heap_calloc(heap, doc, sizeof(*libMaterial), false);
       if (last_libMaterial)
         last_libMaterial->next = libMaterial;
       else
@@ -367,7 +384,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           assetInf = NULL;
-          ret = ak_dae_assetInf(doc, reader, &assetInf);
+          ret = ak_dae_assetInf(heap, doc, reader, &assetInf);
           if (ret == AK_OK)
             libMaterial->inf = assetInf;
 
@@ -376,7 +393,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           material = NULL;
-          ret = ak_dae_material(doc, reader, &material);
+          ret = ak_dae_material(heap, doc, reader, &material);
           if (ret == AK_OK) {
             if (lastMaterial)
               lastMaterial->next = material;
@@ -392,7 +409,11 @@ ak_dae_doc(AkDoc ** __restrict dest,
           nodePtr = xmlTextReaderExpand(reader);
           tree = NULL;
 
-          ak_tree_fromXmlNode(doc, nodePtr, &tree, NULL);
+                ak_tree_fromXmlNode(heap,
+                          doc,
+                          nodePtr,
+                          &tree,
+                          NULL);
           libMaterial->extra = tree;
 
           _xml_skipElement;
@@ -407,7 +428,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
       AkLibGeometry *libGeometry;
       AkGeometry    *lastGeometry;
 
-      libGeometry = ak_calloc(doc, sizeof(*libGeometry), false);
+      libGeometry = ak_heap_calloc(heap, doc, sizeof(*libGeometry), false);
       if (last_libGeometry)
         last_libGeometry->next = libGeometry;
       else
@@ -428,7 +449,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           assetInf = NULL;
-          ret = ak_dae_assetInf(doc, reader, &assetInf);
+          ret = ak_dae_assetInf(heap, doc, reader, &assetInf);
           if (ret == AK_OK)
             libGeometry->inf = assetInf;
 
@@ -437,7 +458,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           geometry = NULL;
-          ret = ak_dae_geometry(doc, reader, &geometry);
+          ret = ak_dae_geometry(heap, doc, reader, &geometry);
           if (ret == AK_OK) {
             if (lastGeometry)
               lastGeometry->next = geometry;
@@ -453,7 +474,11 @@ ak_dae_doc(AkDoc ** __restrict dest,
           nodePtr = xmlTextReaderExpand(reader);
           tree = NULL;
 
-          ak_tree_fromXmlNode(doc, nodePtr, &tree, NULL);
+                ak_tree_fromXmlNode(heap,
+                          doc,
+                          nodePtr,
+                          &tree,
+                          NULL);
           libGeometry->extra = tree;
 
           _xml_skipElement;
@@ -468,7 +493,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
       AkLibController *libController;
       AkController    *lastController;
 
-      libController = ak_calloc(doc, sizeof(*libController), false);
+      libController = ak_heap_calloc(heap, doc, sizeof(*libController), false);
       if (last_libController)
         last_libController->next = libController;
       else
@@ -489,7 +514,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           assetInf = NULL;
-          ret = ak_dae_assetInf(doc, reader, &assetInf);
+          ret = ak_dae_assetInf(heap, doc, reader, &assetInf);
           if (ret == AK_OK)
             libController->inf = assetInf;
 
@@ -498,7 +523,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           controller = NULL;
-          ret = ak_dae_controller(doc, reader, &controller);
+          ret = ak_dae_controller(heap, doc, reader, &controller);
           if (ret == AK_OK) {
             if (lastController)
               lastController->next = controller;
@@ -514,7 +539,11 @@ ak_dae_doc(AkDoc ** __restrict dest,
           nodePtr = xmlTextReaderExpand(reader);
           tree = NULL;
 
-          ak_tree_fromXmlNode(doc, nodePtr, &tree, NULL);
+                ak_tree_fromXmlNode(heap,
+                          doc,
+                          nodePtr,
+                          &tree,
+                          NULL);
           libController->extra = tree;
 
           _xml_skipElement;
@@ -529,7 +558,10 @@ ak_dae_doc(AkDoc ** __restrict dest,
       AkLibVisualScene *libVisualScene;
       AkVisualScene    *lastVisualScene;
 
-      libVisualScene = ak_calloc(doc, sizeof(*libVisualScene), false);
+      libVisualScene = ak_heap_calloc(heap,
+                                      doc,
+                                      sizeof(*libVisualScene),
+                                      false);
       if (last_libVisualScene)
         last_libVisualScene->next = libVisualScene;
       else
@@ -550,7 +582,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           assetInf = NULL;
-          ret = ak_dae_assetInf(doc, reader, &assetInf);
+          ret = ak_dae_assetInf(heap, doc, reader, &assetInf);
           if (ret == AK_OK)
             libVisualScene->inf = assetInf;
 
@@ -559,7 +591,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           visualScene = NULL;
-          ret = ak_dae_visualScene(doc, reader, &visualScene);
+          ret = ak_dae_visualScene(heap, doc, reader, &visualScene);
           if (ret == AK_OK) {
             if (lastVisualScene)
               lastVisualScene->next = visualScene;
@@ -575,7 +607,11 @@ ak_dae_doc(AkDoc ** __restrict dest,
           nodePtr = xmlTextReaderExpand(reader);
           tree = NULL;
 
-          ak_tree_fromXmlNode(doc, nodePtr, &tree, NULL);
+                ak_tree_fromXmlNode(heap,
+                          doc,
+                          nodePtr,
+                          &tree,
+                          NULL);
           libVisualScene->extra = tree;
 
           _xml_skipElement;
@@ -590,7 +626,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
       AkLibNode *libNode;
       AkNode    *lastNode;
 
-      libNode = ak_calloc(doc, sizeof(*libNode), false);
+      libNode = ak_heap_calloc(heap, doc, sizeof(*libNode), false);
       if (last_libNode)
         last_libNode->next = libNode;
       else
@@ -611,7 +647,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           assetInf = NULL;
-          ret = ak_dae_assetInf(doc, reader, &assetInf);
+          ret = ak_dae_assetInf(heap, doc, reader, &assetInf);
           if (ret == AK_OK)
             libNode->inf = assetInf;
 
@@ -620,7 +656,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           node = NULL;
-          ret = ak_dae_node(doc, reader, &node);
+          ret = ak_dae_node(heap, doc, reader, &node);
           if (ret == AK_OK) {
             if (lastNode)
               lastNode->next = node;
@@ -636,7 +672,11 @@ ak_dae_doc(AkDoc ** __restrict dest,
           nodePtr = xmlTextReaderExpand(reader);
           tree = NULL;
 
-          ak_tree_fromXmlNode(doc, nodePtr, &tree, NULL);
+                ak_tree_fromXmlNode(heap,
+                          doc,
+                          nodePtr,
+                          &tree,
+                          NULL);
           libNode->extra = tree;
 
           _xml_skipElement;
@@ -648,7 +688,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
         _xml_endElement;
       } while (nodeRet);
     } else if (_xml_eqElm(_s_dae_scene)) {
-      ak_dae_scene(doc, reader, &doc->scene);
+      ak_dae_scene(heap, doc, reader, &doc->scene);
     } /* if */
 
     /* end element */

@@ -39,7 +39,8 @@ static ak_enumpair meshMap[] = {
 static size_t meshMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_mesh(void * __restrict memParent,
+ak_dae_mesh(AkHeap * __restrict heap,
+            void * __restrict memParent,
             xmlTextReaderPtr reader,
             const char * elm,
             AkMesh ** __restrict dest,
@@ -54,7 +55,8 @@ ak_dae_mesh(void * __restrict memParent,
   int            nodeRet;
 
   if (asObject) {
-    obj = ak_objAlloc(memParent,
+    obj = ak_objAlloc(heap,
+                      memParent,
                       sizeof(*mesh),
                       0,
                       true,
@@ -64,7 +66,7 @@ ak_dae_mesh(void * __restrict memParent,
 
     memPtr = obj;
   } else {
-    mesh = ak_calloc(memParent, sizeof(*mesh), false);
+    mesh = ak_heap_calloc(heap, memParent, sizeof(*mesh), false);
     memPtr = mesh;
   }
 
@@ -97,7 +99,7 @@ ak_dae_mesh(void * __restrict memParent,
         AkSource *source;
         AkResult ret;
 
-        ret = ak_dae_source(memPtr, reader, &source);
+        ret = ak_dae_source(heap, memPtr, reader, &source);
         if (ret == AK_OK) {
           if (last_source)
             last_source->next = source;
@@ -112,7 +114,7 @@ ak_dae_mesh(void * __restrict memParent,
         AkVertices *vertices;
         AkResult ret;
 
-        ret = ak_dae_vertices(memPtr, reader, &vertices);
+        ret = ak_dae_vertices(heap, memPtr, reader, &vertices);
         if (ret == AK_OK)
           mesh->vertices = vertices;
 
@@ -130,7 +132,8 @@ ak_dae_mesh(void * __restrict memParent,
         else
           lineMode = AK_LINE_MODE_LINE_STRIP;
 
-        ret = ak_dae_lines(memPtr,
+        ret = ak_dae_lines(heap,
+                           memPtr,
                            reader,
                            lineMode,
                            true,
@@ -160,7 +163,8 @@ ak_dae_mesh(void * __restrict memParent,
         else
           mode = AK_POLYGON_MODE_POLYLIST;
 
-        ret = ak_dae_polygons(memPtr,
+        ret = ak_dae_polygons(heap,
+                              memPtr,
                               reader,
                               found->key,
                               mode,
@@ -194,7 +198,8 @@ ak_dae_mesh(void * __restrict memParent,
         else
           mode = AK_TRIANGLE_MODE_TRIANGLE_FAN;
 
-        ret = ak_dae_triangles(memPtr,
+        ret = ak_dae_triangles(heap,
+                               memPtr,
                                reader,
                                found->key,
                                mode,
@@ -220,7 +225,7 @@ ak_dae_mesh(void * __restrict memParent,
         nodePtr = xmlTextReaderExpand(reader);
         tree = NULL;
 
-        ak_tree_fromXmlNode(mesh, nodePtr, &tree, NULL);
+        ak_tree_fromXmlNode(heap, mesh, nodePtr, &tree, NULL);
         mesh->extra = tree;
 
         _xml_skipElement;

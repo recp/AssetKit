@@ -12,9 +12,10 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_fxSampler(void * __restrict memParent,
-                  xmlTextReaderPtr reader,
-                  const char *elm,
-                  AkFxSamplerCommon ** __restrict dest);
+ak_dae_fxSampler(AkHeap * __restrict heap,
+                 void * __restrict memParent,
+                 xmlTextReaderPtr reader,
+                 const char *elm,
+                 AkFxSamplerCommon ** __restrict dest);
 
 #endif /* __libassetkit__ak_collada_fx_sampler_h_ */

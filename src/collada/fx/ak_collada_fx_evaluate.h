@@ -12,7 +12,8 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_fxEvaluate(void * __restrict memParent,
+ak_dae_fxEvaluate(AkHeap * __restrict heap,
+                  void * __restrict memParent,
                   xmlTextReaderPtr reader,
                   AkEvaluate ** __restrict dest);
 

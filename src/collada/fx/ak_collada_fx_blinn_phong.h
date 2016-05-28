@@ -17,7 +17,8 @@ typedef union {
 } ak_blinn_phong;
 
 AkResult _assetkit_hide
-ak_dae_blinn_phong(void * __restrict memParent,
+ak_dae_blinn_phong(AkHeap * __restrict heap,
+                   void * __restrict memParent,
                    xmlTextReaderPtr reader,
                    const char * elm,
                    ak_blinn_phong ** __restrict dest);

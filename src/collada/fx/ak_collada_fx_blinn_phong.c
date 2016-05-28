@@ -36,17 +36,18 @@ static ak_enumpair blinnPhongMap[] = {
 static size_t blinnPhongMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_blinn_phong(void * __restrict memParent,
-                    xmlTextReaderPtr reader,
-                    const char * elm,
-                    ak_blinn_phong ** __restrict dest) {
+ak_dae_blinn_phong(AkHeap * __restrict heap,
+                   void * __restrict memParent,
+                   xmlTextReaderPtr reader,
+                   const char * elm,
+                   ak_blinn_phong ** __restrict dest) {
   ak_blinn_phong *blinn_phong;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
 
 
-  blinn_phong = ak_calloc(memParent, sizeof(*blinn_phong), false);
+  blinn_phong = ak_heap_calloc(heap, memParent, sizeof(*blinn_phong), false);
 
   if (blinnPhongMapLen == 0) {
     blinnPhongMapLen = AK_ARRAY_LEN(blinnPhongMap);
@@ -77,10 +78,11 @@ ak_dae_blinn_phong(void * __restrict memParent,
         AkFxColorOrTex *colorOrTex;
         AkResult ret;
 
-        ret = ak_dae_colorOrTex(blinn_phong,
-                                 reader,
-                                 (const char *)nodeName,
-                                 &colorOrTex);
+        ret = ak_dae_colorOrTex(heap,
+                                blinn_phong,
+                                reader,
+                                (const char *)nodeName,
+                                &colorOrTex);
         if (ret == AK_OK) {
           switch (found->val) {
             case k_s_dae_emission:
@@ -114,10 +116,11 @@ ak_dae_blinn_phong(void * __restrict memParent,
         AkFxFloatOrParam * floatOrParam;
         AkResult ret;
 
-        ret = ak_dae_floatOrParam(blinn_phong,
-                                   reader,
-                                   (const char *)nodeName,
-                                   &floatOrParam);
+        ret = ak_dae_floatOrParam(heap,
+                                  blinn_phong,
+                                  reader,
+                                  (const char *)nodeName,
+                                  &floatOrParam);
 
         if (ret == AK_OK) {
           switch (found->val) {

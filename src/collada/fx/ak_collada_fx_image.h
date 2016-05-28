@@ -13,13 +13,15 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_fxImage(void * __restrict memParent,
-                xmlTextReaderPtr reader,
-                AkImage ** __restrict dest);
+ak_dae_fxImage(AkHeap * __restrict heap,
+               void * __restrict memParent,
+               xmlTextReaderPtr reader,
+               AkImage ** __restrict dest);
 
 AkResult _assetkit_hide
-ak_dae_fxInstanceImage(void * __restrict memParent,
-                        xmlTextReaderPtr reader,
-                        AkInstanceImage ** __restrict dest);
+ak_dae_fxInstanceImage(AkHeap * __restrict heap,
+                       void * __restrict memParent,
+                       xmlTextReaderPtr reader,
+                       AkInstanceImage ** __restrict dest);
 
 #endif /* __libassetkit__ak_collada_fx_image__h_ */

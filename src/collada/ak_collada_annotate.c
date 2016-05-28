@@ -9,7 +9,8 @@
 #include "ak_collada_value.h"
 
 AkResult _assetkit_hide
-ak_dae_annotate(void * __restrict memParent,
+ak_dae_annotate(AkHeap * __restrict heap,
+                void * __restrict memParent,
                 xmlTextReaderPtr reader,
                 AkAnnotate ** __restrict dest) {
   AkAnnotate   *annotate;
@@ -17,7 +18,7 @@ ak_dae_annotate(void * __restrict memParent,
   int nodeType;
   int nodeRet;
 
-  annotate = ak_calloc(memParent, sizeof(*annotate), false);
+  annotate = ak_heap_calloc(heap, memParent, sizeof(*annotate), false);
 
   _xml_readAttr(annotate, annotate->name, _s_dae_name);
 
@@ -26,7 +27,8 @@ ak_dae_annotate(void * __restrict memParent,
 
     /* load once */
     if (!annotate->val)
-      ak_dae_value(annotate,
+      ak_dae_value(heap,
+                   annotate,
                    reader,
                    &annotate->val,
                    &annotate->valType);
