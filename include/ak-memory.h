@@ -74,6 +74,7 @@ ak_heap_destroy(AkHeap * __restrict heap);
 char*
 AK_EXPORT
 ak_heap_strdup(AkHeap * __restrict heap,
+               void * __restrict parent,
                const char * str);
 
 void*

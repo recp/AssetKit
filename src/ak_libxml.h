@@ -94,8 +94,9 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
     /* read text element*/                                                    \
     _xml_readNext;                                                            \
     TARGET = nodeType == XML_TEXT_NODE ?                                      \
-         ak_strdup(PARENT,                                                    \
-                    (const char *)xmlTextReaderConstValue(reader)) : NULL;    \
+         ak_heap_strdup(heap,                                                 \
+                        PARENT,                                               \
+                        (const char *)xmlTextReaderConstValue(reader)):NULL;  \
   } while (0)
 
 #define _xml_readMutText(x)                                                   \
@@ -132,7 +133,7 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
     attrVal = (char *)xmlTextReaderGetAttribute(reader,                       \
                                                 (const xmlChar *)ATTR);       \
     if (attrVal) {                                                            \
-      TARGET = ak_strdup(PARENT, attrVal);                                    \
+      TARGET = ak_heap_strdup(heap, PARENT, attrVal);                         \
       xmlFree(attrVal);                                                       \
     } else TARGET = NULL;                                                     \
   } while (0);
@@ -143,7 +144,7 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
     attrVal = (char *)xmlTextReaderGetAttribute(reader,                       \
                                                 (const xmlChar *)_s_dae_id);  \
     if (attrVal) {                                                            \
-      ak_setId(OBJ, ak_strdup(OBJ, attrVal));                                 \
+      ak_setId(OBJ, ak_heap_strdup(heap, OBJ, attrVal));                      \
       xmlFree(attrVal);                                                       \
     }                                                                         \
   } while (0);

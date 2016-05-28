@@ -195,7 +195,7 @@ ak_dae_techniquec(AkHeap * __restrict heap,
         _xml_beginElement(_s_dae_directional);
 
         if (_xml_eqElm(_s_dae_color)) {
-          ak_dae_color(reader, true, &directional->color);
+          ak_dae_color(heap, reader, true, &directional->color);
         } else {
           _xml_skipElement;
         }
@@ -217,7 +217,7 @@ ak_dae_techniquec(AkHeap * __restrict heap,
         _xml_beginElement(_s_dae_point);
 
         if (_xml_eqElm(_s_dae_color)) {
-          ak_dae_color(reader, true, &point->color);
+          ak_dae_color(heap, reader, true, &point->color);
         } else if (_xml_eqElm(_s_dae_constant_attenuation)) {
           ak_basic_attrd * constantAttenuation;
 
@@ -278,7 +278,7 @@ ak_dae_techniquec(AkHeap * __restrict heap,
         _xml_beginElement(_s_dae_spot);
 
         if (_xml_eqElm(_s_dae_color)) {
-          ak_dae_color(reader, true, &spot->color);
+          ak_dae_color(heap, reader, true, &spot->color);
         } else if (_xml_eqElm(_s_dae_constant_attenuation)) {
           ak_basic_attrd * constantAttenuation;
 

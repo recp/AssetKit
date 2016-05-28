@@ -61,18 +61,29 @@ ak__heap_srch_cmp(void * __restrict key1,
 static
 char*
 ak__heap_strdup_def(const char * str) {
-  return ak_heap_strdup(&ak__heap, str);
+  void  *memptr;
+  size_t memsize;
+
+  memsize = strlen(str);
+  memptr  = ak__heap.allocator->malloc(memsize + 1);
+  memcpy(memptr, str, memsize);
+
+  /* NULL */
+  memset((char *)memptr + memsize, '\0', 1);
+
+  return memptr;
 }
 
 char*
 AK_EXPORT
 ak_heap_strdup(AkHeap * __restrict heap,
+               void * __restrict parent,
                const char * str) {
   void  *memptr;
   size_t memsize;
 
   memsize = strlen(str);
-  memptr  = heap->allocator->malloc(memsize + 1);
+  memptr  = ak_heap_alloc(heap, parent, memsize + 1, false);
   memcpy(memptr, str, memsize);
 
   /* NULL */

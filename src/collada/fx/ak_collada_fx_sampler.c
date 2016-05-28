@@ -127,7 +127,7 @@ ak_dae_fxSampler(AkHeap * __restrict heap,
         AkResult  ret;
 
         color = ak_heap_calloc(heap, sampler, sizeof(*color), false);
-        ret   = ak_dae_color(reader, true, color);
+        ret   = ak_dae_color(heap, reader, true, color);
 
         if (ret == AK_OK)
           sampler->borderColor = color;

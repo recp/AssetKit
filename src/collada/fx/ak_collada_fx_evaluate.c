@@ -150,7 +150,7 @@ ak_dae_fxEvaluate(AkHeap * __restrict heap,
                              _s_dae_index,
                              strtol, NULL, 10);
 
-        ak_dae_color(reader, false, &colorClear->val);
+        ak_dae_color(heap, reader, false, &colorClear->val);
 
         evaluate->colorClear = colorClear;
         break;
