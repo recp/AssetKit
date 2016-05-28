@@ -200,7 +200,8 @@ ak_heap_alloc(AkHeap * __restrict heap,
   AkHeapNode *parentNode;
   size_t memsize;
 
-  assert(!parent || heap->heapid == ak__alignof(parent)->heapid);
+  assert((!parent || heap->heapid == ak__alignof(parent)->heapid)
+         && "parent and child mem must use same heap");
 
   memsize = ak__heapnd_sz + size;
   if (srch)
