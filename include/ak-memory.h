@@ -80,6 +80,13 @@ ak_heap_alloc(AkHeap * __restrict heap,
 
 void*
 AK_EXPORT
+ak_heap_calloc(AkHeap * __restrict heap,
+               void * __restrict parent,
+               size_t size,
+               bool srch);
+
+void*
+AK_EXPORT
 ak_heap_realloc(AkHeap * __restrict heap,
                 void * __restrict parent,
                 void * __restrict memptr,
