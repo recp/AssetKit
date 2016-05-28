@@ -195,6 +195,8 @@ ak_heap_alloc(AkHeap * __restrict heap,
   AkHeapNode *parentNode;
   size_t memsize;
 
+  assert(!parent || heap->heapid == ak__alignof(parent)->heapid);
+
   memsize = ak__heapnd_sz + size;
   if (srch)
     memsize += sizeof(AkHeapSrchNode);
