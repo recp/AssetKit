@@ -9,13 +9,8 @@
 #include <assert.h>
 #include <math.h>
 
-static AkHeapBucketEntry ak__heap_bucketEntry = {
-  .heap   = NULL,
-  .heapid = 0
-};
-
 static AkHeapBucket ak__heap_bucket = {
-  .heapEntry       = &ak__heap_bucketEntry,
+  .heapEntry       = NULL,
   .firstAvailEntry = 1,
   .count           = 1
 };
@@ -31,9 +26,15 @@ static AkHeapLookupTable ak__heap_lt = {
 void
 ak_heap_lt_init(AkHeap * __restrict initialHeap) {
   assert(initialHeap && "heap cannot be null!");
-  ak__heap_bucketEntry.heap = initialHeap;
   ak__heap_bucket.heapEntry = calloc(sizeof(AkHeapBucketEntry),
                                      ak__heap_lt.bucketSize);
+
+  ak__heap_bucket.heapEntry[0] = (AkHeapBucketEntry){
+    .heap   = initialHeap,
+    .heapid = 0
+  };
+
+  ak__heap_lt.lastUsedEntry = ak__heap_lt.rootBucket->heapEntry;
 }
 
 void
@@ -68,6 +69,8 @@ ak_heap_lt_insert(AkHeap * __restrict heap) {
 
   bucket->firstAvailEntry++;
   bucket->count++;
+
+  ak__heap_lt.lastUsedEntry = bucketEntry;
 }
 
 AkHeap *
@@ -78,6 +81,9 @@ ak_heap_lt_find(uint32_t heapid) {
   int entryIndex;
 
   assert(heapid < ak__heap_lt.size * ak__heap_lt.bucketSize - 1);
+
+  if (ak__heap_lt.lastUsedEntry->heapid == heapid)
+    return ak__heap_lt.lastUsedEntry->heap;
 
   bucket      = ak__heap_lt.rootBucket;
   bucketIndex = floor(heapid / ak__heap_lt.bucketSize);
@@ -90,6 +96,8 @@ ak_heap_lt_find(uint32_t heapid) {
     return NULL;
 
   entry = &bucket->heapEntry[entryIndex];
+  ak__heap_lt.lastUsedEntry = entry;
+
   return entry->heapid == heapid ? entry->heap : NULL;
 }
 

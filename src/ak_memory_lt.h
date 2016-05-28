@@ -26,11 +26,12 @@ typedef struct AkHeapBucket {
 } AkHeapBucket;
 
 typedef struct AkHeapLookupTable {
-  AkHeapBucket *rootBucket;
-  AkHeapBucket *lastBucket;
-  AkHeapBucket *firstAvailBucket;
-  size_t   size;
-  size_t   bucketSize; /* default = 4 */
+  AkHeapBucket      *rootBucket;
+  AkHeapBucket      *lastBucket;
+  AkHeapBucket      *firstAvailBucket;
+  AkHeapBucketEntry *lastUsedEntry; /* cache last */
+  size_t             size;
+  size_t             bucketSize; /* default = 4 */
 } AkHeapLookupTable;
 
 void
