@@ -11,7 +11,7 @@
 #include "ak_common.h"
 
 #define ak__align_size 8
-#define ak__heapnd_sz  (sizeof(AkHeapNode*) * 3 + sizeof(AkHeapNodeFlags))
+#define ak__heapnd_sz  (sizeof(AkHeapNode*) * 3 + sizeof(uint64_t))
 
 #define ak__align(size) ((size + ak__align_size - 1)                          \
         &~ (uintptr_t)(ak__align_size - 1))
