@@ -23,11 +23,13 @@ ak_setId(void * __restrict objptr,
 
 void *
 AK_EXPORT
-ak_getObjectById(const char * __restrict objectId) {
+ak_getObjectById(AkDoc * __restrict doc,
+                 const char * __restrict objectId) {
   AkResult ret;
   void    *foundObject;
 
-  ret = ak_mem_getMemById(objectId,
+  ret = ak_mem_getMemById(doc,
+                          objectId,
                           &foundObject);
 
   return foundObject;
