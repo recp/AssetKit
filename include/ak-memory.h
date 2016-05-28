@@ -61,6 +61,11 @@ AK_EXPORT
 ak_heap_new(AkHeapAllocator *allocator,
             AkHeapSrchCmp cmp);
 
+AkResult
+AK_EXPORT
+ak_heap_attachto(AkHeap * __restrict heap,
+                 void * __restrict memptr);
+
 void
 AK_EXPORT
 ak_heap_init(AkHeap * __restrict heap,

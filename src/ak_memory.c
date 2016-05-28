@@ -111,6 +111,15 @@ ak_heap_new(AkHeapAllocator *allocator,
   return heap;
 }
 
+AkResult
+AK_EXPORT
+ak_heap_attachto(AkHeap * __restrict heap,
+                 void * __restrict memptr) {
+
+  heap->data = memptr;
+  return AK_OK;
+}
+
 void
 AK_EXPORT
 ak_heap_init(AkHeap * __restrict heap,
@@ -642,7 +651,12 @@ ak_free(void * __restrict memptr) {
   if (heapNode->heapid != heap->heapid)
     heap = ak_heap_lt_find(heapNode->heapid);
 
-  if (heap)
+  if (!heap)
+    return;
+
+  if (heap->data == memptr)
+    ak_heap_destroy(heap);
+  else
     ak_heap_free(heap, heapNode);
 }
 
@@ -658,7 +672,7 @@ void * __restrict memParent,
 
   assert(typeSize > 0 && "invalid parameter value");
 
-  obj = ak_heap_alloc(&ak__heap,
+  obj = ak_heap_alloc(heap,
                       memParent,
                       sizeof(*obj) + typeSize,
                       srch);

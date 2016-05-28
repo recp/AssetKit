@@ -154,6 +154,9 @@ ak_heap_lt_remove(uint32_t heapid) {
       free(bucket->heapEntry);
       free(bucket);
     }
+
+    if (ak__heap_lt.lastUsedEntry == entry)
+      ak__heap_lt.lastUsedEntry = NULL;
   }
 }
 
