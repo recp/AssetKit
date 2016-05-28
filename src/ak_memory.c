@@ -591,8 +591,17 @@ ak_strdup(void * __restrict parent,
 void
 AK_EXPORT
 ak_free(void * __restrict memptr) {
-  ak_heap_free(&ak__heap,
-                ak__alignof(memptr));
+  AkHeap     *heap;
+  AkHeapNode *heapNode;
+
+  heap     = &ak__heap;
+  heapNode = ak__alignof(memptr);
+
+  if (heapNode->heapid != heap->heapid)
+    heap = ak_heap_lt_find(heapNode->heapid);
+
+  if (heap)
+    ak_heap_free(heap, heapNode);
 }
 
 AkObject*
