@@ -59,7 +59,9 @@ struct AkHeapNode {
   AkHeapNode *prev; /* parent */
   AkHeapNode *next; /* right  */
   AkHeapNode *chld; /* left   */
-  AkEnum      flags;
+  uint32_t    heapid;
+  uint16_t    typeid;
+  uint16_t    flags;
   char        data[];
 };
 
@@ -68,6 +70,8 @@ struct AkHeap {
   AkHeapNode      *root;
   AkHeapNode      *trash;
   AkHeapSrchCtx   *srchctx;
+  void            *data;
+  uint32_t         heapid;
   AkEnum           flags;
 };
 

@@ -8,6 +8,7 @@
 #include "ak_common.h"
 #include "ak_memory_common.h"
 #include "ak_memory_rb.h"
+#include "ak_memory_lt.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -108,8 +109,9 @@ ak_heap_new(AkHeapAllocator *allocator,
   AkHeap *heap;
 
   heap = je_malloc(sizeof(*heap));
+  heap->flags = AK_HEAP_FLAGS_DYNAMIC;
   ak_heap_init(heap, allocator, cmp);
-
+  
   return heap;
 }
 
@@ -154,6 +156,9 @@ ak_heap_init(AkHeap * __restrict heap,
   heap->srchctx   = srchctx;
   heap->allocator = allocator ? allocator : &ak__allocator;
   heap->flags    |= AK_HEAP_FLAGS_INITIALIZED;
+
+  if (heap != &ak__heap)
+    ak_heap_lt_insert(heap);
 }
 
 void
@@ -173,8 +178,10 @@ ak_heap_destroy(AkHeap * __restrict heap) {
   je_free(heap->srchctx);
 
   if (heap->flags & AK_HEAP_FLAGS_DYNAMIC
-      && heap != &ak__heap)
+      && heap != &ak__heap) {
+    ak_heap_lt_remove(heap->heapid);
     je_free(heap);
+  }
 }
 
 void*
@@ -214,7 +221,8 @@ ak_heap_alloc(AkHeap * __restrict heap,
     currNode->flags = 0;
   }
 
-  currNode->chld = NULL;
+  currNode->heapid = heap->heapid;
+  currNode->chld   = NULL;
 
   if (parent) {
     AkHeapNode *chldNode;
@@ -627,10 +635,12 @@ void
 ak_CONSTRUCTOR
 ak__init() {
   ak_heap_init(&ak__heap, NULL, NULL);
+  ak_heap_lt_init(&ak__heap);
 }
 
 void
 ak_DESTRUCTOR
 ak__cleanup() {
   ak_heap_destroy(&ak__heap);
+  ak_heap_lt_cleanup();
 }
