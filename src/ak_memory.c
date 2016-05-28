@@ -500,24 +500,51 @@ ak_mem_printKeys() {
 void *
 AK_EXPORT
 ak_mem_getId(void * __restrict memptr) {
-  return ak_heap_getId(&ak__heap,
-                       ak__alignof(memptr));
+  AkHeap     *heap;
+  AkHeapNode *heapNode;
+
+  heapNode = ak__alignof(memptr);
+  if (heapNode->heapid == 0)
+    heap = &ak__heap;
+  else
+    heap = ak_heap_lt_find(heapNode->heapid);
+
+  return ak_heap_getId(heap, heapNode);
 }
 
 void
 AK_EXPORT
 ak_mem_setId(void * __restrict memptr,
              void * __restrict memId) {
-  ak_heap_setId(&ak__heap,
-                ak__alignof(memptr),
+  AkHeap     *heap;
+  AkHeapNode *heapNode;
+
+  heapNode = ak__alignof(memptr);
+  if (heapNode->heapid == 0)
+    heap = &ak__heap;
+  else
+    heap = ak_heap_lt_find(heapNode->heapid);
+
+  ak_heap_setId(heap,
+                heapNode,
                 memId);
 }
 
 AkResult
 AK_EXPORT
-ak_mem_getMemById(void * __restrict memId,
+ak_mem_getMemById(void * __restrict ctx,
+                  void * __restrict memId,
                   void ** __restrict dest) {
-  return ak_heap_getMemById(&ak__heap,
+  AkHeap     *heap;
+  AkHeapNode *heapNode;
+
+  heapNode = ak__alignof(ctx);
+  if (heapNode->heapid == 0)
+    heap = &ak__heap;
+  else
+    heap = ak_heap_lt_find(heapNode->heapid);
+
+  return ak_heap_getMemById(heap,
                             memId,
                             dest);
 }
