@@ -588,7 +588,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           if (ret == AK_OK)
             libVisualScene->inf = assetInf;
 
-        } else if (_xml_eqElm(_s_dae_controller)) {
+        } else if (_xml_eqElm(_s_dae_visual_scene)) {
           AkVisualScene *visualScene;
           AkResult ret;
 
@@ -653,7 +653,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           if (ret == AK_OK)
             libNode->inf = assetInf;
 
-        } else if (_xml_eqElm(_s_dae_controller)) {
+        } else if (_xml_eqElm(_s_dae_node)) {
           AkNode  *node;
           AkResult ret;
 
