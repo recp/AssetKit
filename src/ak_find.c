@@ -34,3 +34,13 @@ ak_getObjectById(AkDoc * __restrict doc,
 
   return foundObject;
 }
+
+void *
+AK_EXPORT
+ak_getObjectByUrl(AkDoc * __restrict doc,
+                  const char * __restrict objectUrl) {
+  if (*objectUrl == '#')
+    return ak_getObjectById(doc, objectUrl + 1);
+
+  return NULL;
+}

@@ -1772,6 +1772,11 @@ AK_EXPORT
 ak_getObjectById(AkDoc * __restrict doc,
                  const char * __restrict objectId);
 
+void *
+AK_EXPORT
+ak_getObjectByUrl(AkDoc * __restrict doc,
+                  const char * __restrict objectUrl);
+
 #ifdef __cplusplus
 }
 #endif
