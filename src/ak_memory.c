@@ -100,6 +100,14 @@ ak_heap_allocator(AkHeap * __restrict heap) {
 
 AkHeap *
 AK_EXPORT
+ak_heap_getheap(void * __restrict memptr) {
+  AkHeapNode   *heapNode;
+  heapNode = ak__alignof(memptr);
+  return ak_heap_lt_find(heapNode->heapid);
+}
+
+AkHeap *
+AK_EXPORT
 ak_heap_new(AkHeapAllocator *allocator,
             AkHeapSrchCmp cmp) {
   AkHeap *heap;

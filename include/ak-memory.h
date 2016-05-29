@@ -58,6 +58,10 @@ ak_heap_allocator(AkHeap * __restrict heap);
 
 AkHeap *
 AK_EXPORT
+ak_heap_getheap(void * __restrict memptr);
+
+AkHeap *
+AK_EXPORT
 ak_heap_new(AkHeapAllocator *allocator,
             AkHeapSrchCmp cmp);
 
