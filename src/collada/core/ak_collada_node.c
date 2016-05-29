@@ -318,9 +318,8 @@ ak_dae_node(AkHeap * __restrict heap,
         instanceCamera = ak_heap_calloc(heap,
                                         node,
                                         sizeof(*instanceCamera),
-                                        true);
+                                        false);
 
-        _xml_readId(instanceCamera);
         _xml_readAttr(instanceCamera, instanceCamera->name, _s_dae_name);
         _xml_readAttr(instanceCamera, instanceCamera->url, _s_dae_url);
 
@@ -360,9 +359,8 @@ ak_dae_node(AkHeap * __restrict heap,
         AkInstanceController *controller;
         AkSkeleton           *last_skeleton;
 
-        controller = ak_heap_calloc(heap, node, sizeof(*controller), true);
+        controller = ak_heap_calloc(heap, node, sizeof(*controller), false);
 
-        _xml_readId(controller);
         _xml_readAttr(controller, controller->name, _s_dae_name);
         _xml_readAttr(controller, controller->url, _s_dae_url);
 
@@ -435,9 +433,8 @@ ak_dae_node(AkHeap * __restrict heap,
       case k_s_dae_instance_geometry: {
         AkInstanceGeometry *geometry;
 
-        geometry = ak_heap_calloc(heap, node, sizeof(*geometry), true);
+        geometry = ak_heap_calloc(heap, node, sizeof(*geometry), false);
 
-        _xml_readId(geometry);
         _xml_readAttr(geometry, geometry->name, _s_dae_name);
         _xml_readAttr(geometry, geometry->url, _s_dae_url);
 
@@ -488,9 +485,8 @@ ak_dae_node(AkHeap * __restrict heap,
       case k_s_dae_instance_light: {
         AkInstanceLight *light;
 
-        light = ak_heap_calloc(heap, node, sizeof(*light), true);
+        light = ak_heap_calloc(heap, node, sizeof(*light), false);
 
-        _xml_readId(light);
         _xml_readAttr(light, light->name, _s_dae_name);
         _xml_readAttr(light, light->url, _s_dae_url);
 
@@ -536,9 +532,8 @@ ak_dae_node(AkHeap * __restrict heap,
         instanceNode = ak_heap_calloc(heap,
                                       node,
                                       sizeof(*instanceNode),
-                                      true);
+                                      false);
 
-        _xml_readId(instanceNode);
         _xml_readAttr(instanceNode, instanceNode->name, _s_dae_name);
         _xml_readAttr(instanceNode, instanceNode->url, _s_dae_url);
         _xml_readAttr(instanceNode, instanceNode->proxy, _s_dae_proxy);
