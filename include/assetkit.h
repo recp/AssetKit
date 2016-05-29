@@ -683,6 +683,7 @@ typedef struct AkImage {
 } AkImage;
 
 typedef struct AkInstanceImage {
+  AkImage    * image;
   const char * url;
   const char * sid;
   const char * name;
@@ -1073,6 +1074,7 @@ typedef struct AkTechniqueHint {
 } AkTechniqueHint;
 
 typedef struct AkInstanceEffect {
+  AkEffect   * effect;
   const char * url;
   const char * sid;
   const char * name;
@@ -1534,7 +1536,7 @@ typedef struct AkTranslate {
 } AkTranslate;
 
 typedef struct AkInstanceCamera {
-  /* const char * id; */
+  AkCamera   * camera;
   const char * name;
   const char * url;
   AkTree     * extra;
@@ -1556,7 +1558,7 @@ typedef struct AkBindMaterial {
 } AkBindMaterial;
 
 typedef struct AkInstanceController {
-  /* const char     * id; */
+  AkController   * controller;
   const char     * name;
   const char     * url;
   AkSkeleton     * skeleton;
@@ -1567,7 +1569,7 @@ typedef struct AkInstanceController {
 } AkInstanceController;
 
 typedef struct AkInstanceGeometry {
-  /* const char     * id; */
+  AkGeometry     * geometry;
   const char     * name;
   const char     * url;
   AkBindMaterial * bindMaterial;
@@ -1577,7 +1579,7 @@ typedef struct AkInstanceGeometry {
 } AkInstanceGeometry;
 
 typedef struct AkInstanceLight {
-  /* const char * id; */
+  AkLight    * light;
   const char * name;
   const char * url;
   AkTree     * extra;
@@ -1585,8 +1587,9 @@ typedef struct AkInstanceLight {
   struct AkInstanceLight * next;
 } AkInstanceLight;
 
+typedef struct AkNode AkNode;
 typedef struct AkInstanceNode {
-  /* const char * id; */
+  AkNode     * node;
   const char * name;
   const char * url;
   const char * proxy;
@@ -1635,6 +1638,7 @@ typedef struct AkBindVertexInput {
 typedef struct AkInstanceMaterial {
   ak_asset_base
 
+  AkMaterial          * material;
   const char          * sid;
   const char          * name;
   const char          * target;
@@ -1688,10 +1692,12 @@ typedef struct AkVisualScene {
 
 typedef struct AkInstanceVisualScene {
   ak_asset_base
-  const char * sid;
-  const char * name;
-  const char * url;
-  AkTree     * extra;
+
+  AkVisualScene * visualScene;
+  const char    * sid;
+  const char    * name;
+  const char    * url;
+  AkTree        * extra;
 } AkInstanceVisualScene;
 
 typedef struct AkScene {
