@@ -514,7 +514,7 @@ ak_heap_getMemById(AkHeap * __restrict heap,
 
 void
 ak_heap_printKeys(AkHeap * __restrict heap) {
-  ak_heap_rb_print(heap);
+  ak_heap_rb_print(heap->srchctx);
 }
 
 AkHeapAllocator *
@@ -525,7 +525,7 @@ ak_mem_allocator() {
 
 void
 ak_mem_printKeys() {
-  ak_heap_rb_print(&ak__heap);
+  ak_heap_rb_print(ak__heap.srchctx);
 }
 
 void *
