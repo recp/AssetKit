@@ -19,9 +19,9 @@ ak_dae_vertices(AkHeap * __restrict heap,
   int            nodeType;
   int            nodeRet;
 
-  vertices = ak_heap_calloc(heap, memParent, sizeof(*vertices), false);
+  vertices = ak_heap_calloc(heap, memParent, sizeof(*vertices), true);
 
-  _xml_readAttr(vertices, vertices->id, _s_dae_id);
+  _xml_readId(vertices);
   _xml_readAttr(vertices, vertices->name, _s_dae_name);
 
   last_input = NULL;

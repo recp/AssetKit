@@ -23,9 +23,9 @@ ak_dae_evaluateScene(AkHeap * __restrict heap,
   evaluateScene = ak_heap_calloc(heap,
                                  memParent,
                                  sizeof(*evaluateScene),
-                                 false);
+                                 true);
 
-  _xml_readAttr(evaluateScene, evaluateScene->id, _s_dae_id);
+  _xml_readId(evaluateScene);
   _xml_readAttr(evaluateScene, evaluateScene->name, _s_dae_name);
   _xml_readAttr(evaluateScene, evaluateScene->sid, _s_dae_sid);
   _xml_readAttrUsingFnWithDef(evaluateScene->enable,

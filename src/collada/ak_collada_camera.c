@@ -19,9 +19,9 @@ ak_dae_camera(AkHeap * __restrict heap,
   int            nodeType;
   int            nodeRet;
 
-  camera = ak_heap_calloc(heap, memParent, sizeof(*camera), false);
+  camera = ak_heap_calloc(heap, memParent, sizeof(*camera), true);
 
-  _xml_readAttr(camera, camera->id, _s_dae_id);
+  _xml_readId(camera);
   _xml_readAttr(camera, camera->name, _s_dae_name);
 
   do {

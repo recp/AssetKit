@@ -523,7 +523,7 @@ typedef struct AkImager {
 typedef struct AkCamera {
   ak_asset_base
 
-  const char * id;
+  /* const char * id; */
   const char * name;
   AkOptics   * optics;
   AkImager   * imager;
@@ -559,7 +559,7 @@ typedef struct AkSpot {
 typedef struct AkLight {
   ak_asset_base
 
-  const char * id;
+  /* const char * id; */
   const char * name;
 
   AkTechniqueCommon * techniqueCommon;
@@ -667,7 +667,7 @@ typedef struct AkImageCube {
 typedef struct AkImage {
   ak_asset_base
 
-  const char * id;
+  /* const char * id; */
   const char * sid;
   const char * name;
 
@@ -985,7 +985,7 @@ typedef struct AkPass {
 typedef struct AkTechniqueFx {
   ak_asset_base
 
-  const char   * id;
+  /* const char   * id; */
   const char   * sid;
   AkAnnotate   * annotate;
   AkBlinn      * blinn;
@@ -1002,7 +1002,7 @@ typedef struct AkProfile {
   ak_asset_base
 
   AkProfileType   profileType;
-  const char    * id;
+  /* const char    * id; */
   AkNewParam    * newparam;
   AkTechniqueFx * technique;
   AkTree        * extra;
@@ -1053,7 +1053,7 @@ typedef struct AkProfileBridge {
 typedef struct AkEffect {
   ak_asset_base
 
-  const char * id;
+  /* const char * id; */
   const char * name;
 
   AkAnnotate * annotate;
@@ -1084,7 +1084,7 @@ typedef struct AkInstanceEffect {
 
 typedef struct AkMaterial {
   ak_asset_base
-  const char * id;
+  /* const char * id; */
   const char * name;
   AkInstanceEffect *instanceEffect;
   AkTree     * extra;
@@ -1093,14 +1093,14 @@ typedef struct AkMaterial {
 } AkMaterial;
 
 typedef struct AkBoolArrayN {
-  const char * id;
+  /* const char * id; */
   const char * name;
   size_t       count;
   AkBool       items[];
 } AkBoolArrayN;
 
 typedef struct AkFloatArrayN {
-  const char * id;
+  /* const char * id; */
   const char * name;
   size_t       count;
   AkUInt       digits;
@@ -1109,7 +1109,7 @@ typedef struct AkFloatArrayN {
 } AkFloatArrayN;
 
 typedef struct AkIntArrayN {
-  const char * id;
+  /* const char * id; */
   const char * name;
   size_t       count;
   AkInt        minInclusive;
@@ -1118,7 +1118,7 @@ typedef struct AkIntArrayN {
 } AkIntArrayN;
 
 typedef struct AkStringArrayN {
-  const char  * id;
+  /* const char  * id; */
   const char  * name;
   size_t count;
   AkString items[];
@@ -1127,7 +1127,7 @@ typedef struct AkStringArrayN {
 typedef struct AkSource {
   ak_asset_base
 
-  const char * id;
+  /* const char * id; */
   const char * name;
   AkObject   * data;
 
@@ -1157,7 +1157,7 @@ typedef struct AkInput {
 typedef struct AkVertices {
   ak_asset_base
 
-  const char   * id;
+  /* const char   * id; */
   const char   * name;
   AkInputBasic * input;
   AkTree       * extra;
@@ -1345,7 +1345,7 @@ typedef struct AkSurfaces {
 } AkSurfaces;
 
 typedef struct AkEdges {
-  const char    * id;
+  /* const char    * id; */
   const char    * name;
   AkUInt          count;
 
@@ -1355,7 +1355,7 @@ typedef struct AkEdges {
 } AkEdges;
 
 typedef struct AkWires {
-  const char    * id;
+  /* const char    * id; */
   const char    * name;
   AkUInt          count;
 
@@ -1366,7 +1366,7 @@ typedef struct AkWires {
 } AkWires;
 
 typedef struct AkFaces {
-  const char    * id;
+  /* const char    * id; */
   const char    * name;
   AkUInt          count;
 
@@ -1377,7 +1377,7 @@ typedef struct AkFaces {
 } AkFaces;
 
 typedef struct AkPCurves {
-  const char    * id;
+  /* const char    * id; */
   const char    * name;
   AkUInt          count;
 
@@ -1388,7 +1388,7 @@ typedef struct AkPCurves {
 } AkPCurves;
 
 typedef struct AkShells {
-  const char    * id;
+  /* const char    * id; */
   const char    * name;
   AkUInt          count;
 
@@ -1399,7 +1399,7 @@ typedef struct AkShells {
 } AkShells;
 
 typedef struct AkSolids {
-  const char    * id;
+  /* const char    * id; */
   const char    * name;
   AkUInt          count;
 
@@ -1428,7 +1428,7 @@ typedef struct AkBoundryRep {
 typedef struct AkGeometry {
   ak_asset_base
 
-  const char * id;
+  /* const char * id; */
   const char * name;
   AkObject   * gdata;
   AkTree     * extra;
@@ -1483,7 +1483,7 @@ typedef struct AkMorph {
 typedef struct AkController {
   ak_asset_base
 
-  const char * id;
+  /* const char * id; */
   const char * name;
   AkObject   * data;
   AkTree     * extra;
@@ -1534,7 +1534,7 @@ typedef struct AkTranslate {
 } AkTranslate;
 
 typedef struct AkInstanceCamera {
-  const char * id;
+  /* const char * id; */
   const char * name;
   const char * url;
   AkTree     * extra;
@@ -1556,7 +1556,7 @@ typedef struct AkBindMaterial {
 } AkBindMaterial;
 
 typedef struct AkInstanceController {
-  const char     * id;
+  /* const char     * id; */
   const char     * name;
   const char     * url;
   AkSkeleton     * skeleton;
@@ -1567,7 +1567,7 @@ typedef struct AkInstanceController {
 } AkInstanceController;
 
 typedef struct AkInstanceGeometry {
-  const char     * id;
+  /* const char     * id; */
   const char     * name;
   const char     * url;
   AkBindMaterial * bindMaterial;
@@ -1577,7 +1577,7 @@ typedef struct AkInstanceGeometry {
 } AkInstanceGeometry;
 
 typedef struct AkInstanceLight {
-  const char * id;
+  /* const char * id; */
   const char * name;
   const char * url;
   AkTree     * extra;
@@ -1586,7 +1586,7 @@ typedef struct AkInstanceLight {
 } AkInstanceLight;
 
 typedef struct AkInstanceNode {
-  const char * id;
+  /* const char * id; */
   const char * name;
   const char * url;
   const char * proxy;
@@ -1598,7 +1598,7 @@ typedef struct AkInstanceNode {
 typedef struct AkNode {
   ak_asset_base
 
-  const char * id;
+  /* const char * id; */
   const char * name;
   const char * sid;
   AkNodeType   nodeType;
@@ -1664,7 +1664,7 @@ typedef struct AkRender {
 typedef struct AkEvaluateScene {
   ak_asset_base
 
-  const char * id;
+  /* const char * id; */
   const char * name;
   const char * sid;
   AkRender   * render;
@@ -1677,7 +1677,7 @@ typedef struct AkEvaluateScene {
 typedef struct AkVisualScene {
   ak_asset_base
 
-  const char * id;
+  /* const char * id; */
   const char * name;
   AkNode     * node;
   AkEvaluateScene * evaluateScene;
@@ -1712,7 +1712,7 @@ typedef struct AkScene {
 #define AK__DEF_LIB(T)                                                        \
   typedef struct AkLib ## T {                                                 \
     AkAssetInf * inf;                                                         \
-    const char * id;                                                          \
+    /* const char * id; */                                                    \
     const char * name;                                                        \
     Ak ## T    * chld;                                                        \
     AkTree     * extra;                                                       \

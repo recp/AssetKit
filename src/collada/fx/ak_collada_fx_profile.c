@@ -59,14 +59,14 @@ ak_dae_profile(AkHeap * __restrict heap,
       profile = ak_heap_calloc(heap,
                                memParent,
                                sizeof(AkProfileCommon),
-                               false);
+                               true);
       break;
     case AK_PROFILE_TYPE_GLSL: {
       AkProfileGLSL *glslProfile;
       glslProfile = ak_heap_calloc(heap,
                                    memParent,
                                    sizeof(AkProfileGLSL),
-                                   false);
+                                   true);
 
       _xml_readAttr(glslProfile, glslProfile->platform, _s_dae_platform);
 
@@ -78,7 +78,7 @@ ak_dae_profile(AkHeap * __restrict heap,
       gles2Profile = ak_heap_calloc(heap,
                                     memParent,
                                     sizeof(AkProfileGLES2),
-                                    false);
+                                    true);
 
       _xml_readAttr(gles2Profile, gles2Profile->language, _s_dae_language);
       _xml_readAttr(gles2Profile, gles2Profile->platforms, _s_dae_platforms);
@@ -91,7 +91,7 @@ ak_dae_profile(AkHeap * __restrict heap,
       glesProfile = ak_heap_calloc(heap,
                                    memParent,
                                    sizeof(AkProfileGLES),
-                                   false);
+                                   true);
 
       _xml_readAttr(glesProfile, glesProfile->platform, _s_dae_platform);
 
@@ -103,7 +103,7 @@ ak_dae_profile(AkHeap * __restrict heap,
       cgProfile = ak_heap_calloc(heap,
                                  memParent,
                                  sizeof(AkProfileGLES2),
-                                 false);
+                                 true);
 
       _xml_readAttr(cgProfile, cgProfile->platform, _s_dae_platform);
 
@@ -115,7 +115,7 @@ ak_dae_profile(AkHeap * __restrict heap,
       bridgeProfile = ak_heap_calloc(heap,
                                      memParent,
                                      sizeof(AkProfileGLES2),
-                                     false);
+                                     true);
 
       _xml_readAttr(bridgeProfile, bridgeProfile->platform, _s_dae_platform);
       _xml_readAttr(bridgeProfile, bridgeProfile->url, _s_dae_url);
@@ -129,7 +129,8 @@ ak_dae_profile(AkHeap * __restrict heap,
   }
 
   profile->profileType = found->val;
-  _xml_readAttr(profile, profile->id, _s_dae_id);
+
+  _xml_readId(profile);
 
   last_newparam = NULL;
   last_code     = NULL;

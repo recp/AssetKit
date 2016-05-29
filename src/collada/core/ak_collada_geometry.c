@@ -21,9 +21,9 @@ ak_dae_geometry(AkHeap * __restrict heap,
   int            nodeType;
   int            nodeRet;
 
-  geometry = ak_heap_calloc(heap, memParent, sizeof(*geometry), false);
+  geometry = ak_heap_calloc(heap, memParent, sizeof(*geometry), true);
 
-  _xml_readAttr(geometry, geometry->id, _s_dae_id);
+  _xml_readId(geometry);
   _xml_readAttr(geometry, geometry->name, _s_dae_name);
 
   do {

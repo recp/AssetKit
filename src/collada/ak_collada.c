@@ -104,7 +104,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
       AkLibCamera *libcam;
       AkCamera    *lastcam;
 
-      libcam = ak_heap_calloc(heap, doc, sizeof(*libcam), false);
+      libcam = ak_heap_calloc(heap, doc, sizeof(*libcam), true);
       if (last_libCam)
         last_libCam->next = libcam;
       else
@@ -112,7 +112,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
 
       last_libCam = libcam;
 
-      _xml_readAttr(libcam, libcam->id, _s_dae_id);
+      _xml_readId(libcam);
       _xml_readAttr(libcam, libcam->name, _s_dae_name);
 
       lastcam = NULL;
@@ -169,7 +169,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
       AkLibLight *liblight;
       AkLight    *lastlight;
 
-      liblight = ak_heap_calloc(heap, doc, sizeof(*liblight), false);
+      liblight = ak_heap_calloc(heap, doc, sizeof(*liblight), true);
       if (last_libLight)
         last_libLight->next = liblight;
       else
@@ -177,7 +177,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
 
       last_libLight = liblight;
 
-      _xml_readAttr(liblight, liblight->id, _s_dae_id);
+      _xml_readId(liblight);
       _xml_readAttr(liblight, liblight->name, _s_dae_name);
 
       lastlight = NULL;
@@ -236,7 +236,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
       AkLibEffect *libEffect;
       AkEffect    *lastEffect;
 
-      libEffect = ak_heap_calloc(heap, doc, sizeof(*libEffect), false);
+      libEffect = ak_heap_calloc(heap, doc, sizeof(*libEffect), true);
       if (last_libEffect)
         last_libEffect->next = libEffect;
       else
@@ -244,7 +244,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
 
       last_libEffect = libEffect;
 
-      _xml_readAttr(libEffect, libEffect->id, _s_dae_id);
+      _xml_readId(libEffect);
       _xml_readAttr(libEffect, libEffect->name, _s_dae_name);
 
       lastEffect = NULL;
@@ -301,7 +301,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
       AkLibImage *libimg;
       AkImage      *lastimg;
 
-      libimg = ak_heap_calloc(heap, doc, sizeof(*libimg), false);
+      libimg = ak_heap_calloc(heap, doc, sizeof(*libimg), true);
       if (last_libImage)
         last_libImage->next = libimg;
       else
@@ -309,7 +309,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
 
       last_libImage = libimg;
 
-      _xml_readAttr(libimg, libimg->id, _s_dae_id);
+      _xml_readId(libimg);
       _xml_readAttr(libimg, libimg->name, _s_dae_name);
 
       lastimg = NULL;
@@ -365,7 +365,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
       AkLibMaterial *libMaterial;
       AkMaterial     *lastMaterial;
 
-      libMaterial = ak_heap_calloc(heap, doc, sizeof(*libMaterial), false);
+      libMaterial = ak_heap_calloc(heap, doc, sizeof(*libMaterial), true);
       if (last_libMaterial)
         last_libMaterial->next = libMaterial;
       else
@@ -373,7 +373,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
 
       last_libMaterial = libMaterial;
 
-      _xml_readAttr(libMaterial, libMaterial->id, _s_dae_id);
+      _xml_readId(libMaterial);
       _xml_readAttr(libMaterial, libMaterial->name, _s_dae_name);
 
       lastMaterial = NULL;
@@ -430,7 +430,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
       AkLibGeometry *libGeometry;
       AkGeometry    *lastGeometry;
 
-      libGeometry = ak_heap_calloc(heap, doc, sizeof(*libGeometry), false);
+      libGeometry = ak_heap_calloc(heap, doc, sizeof(*libGeometry), true);
       if (last_libGeometry)
         last_libGeometry->next = libGeometry;
       else
@@ -438,7 +438,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
 
       last_libGeometry = libGeometry;
 
-      _xml_readAttr(libGeometry, libGeometry->id, _s_dae_id);
+      _xml_readId(libGeometry);
       _xml_readAttr(libGeometry, libGeometry->name, _s_dae_name);
 
       lastGeometry = NULL;
@@ -495,7 +495,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
       AkLibController *libController;
       AkController    *lastController;
 
-      libController = ak_heap_calloc(heap, doc, sizeof(*libController), false);
+      libController = ak_heap_calloc(heap, doc, sizeof(*libController), true);
       if (last_libController)
         last_libController->next = libController;
       else
@@ -503,7 +503,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
 
       last_libController = libController;
 
-      _xml_readAttr(libController, libController->id, _s_dae_id);
+      _xml_readId(libController);
       _xml_readAttr(libController, libController->name, _s_dae_name);
 
       lastController = NULL;
@@ -563,7 +563,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
       libVisualScene = ak_heap_calloc(heap,
                                       doc,
                                       sizeof(*libVisualScene),
-                                      false);
+                                      true);
       if (last_libVisualScene)
         last_libVisualScene->next = libVisualScene;
       else
@@ -571,7 +571,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
 
       last_libVisualScene = libVisualScene;
 
-      _xml_readAttr(libVisualScene, libVisualScene->id, _s_dae_id);
+      _xml_readId(libVisualScene);
       _xml_readAttr(libVisualScene, libVisualScene->name, _s_dae_name);
 
       lastVisualScene = NULL;
@@ -628,7 +628,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
       AkLibNode *libNode;
       AkNode    *lastNode;
 
-      libNode = ak_heap_calloc(heap, doc, sizeof(*libNode), false);
+      libNode = ak_heap_calloc(heap, doc, sizeof(*libNode), true);
       if (last_libNode)
         last_libNode->next = libNode;
       else
@@ -636,7 +636,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
 
       last_libNode = libNode;
 
-      _xml_readAttr(libNode, libNode->id, _s_dae_id);
+      _xml_readId(libNode);
       _xml_readAttr(libNode, libNode->name, _s_dae_name);
 
       lastNode = NULL;

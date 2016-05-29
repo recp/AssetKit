@@ -42,9 +42,9 @@ ak_dae_source(AkHeap * __restrict heap,
   int            nodeType;
   int            nodeRet;
 
-  source = ak_heap_calloc(heap, memParent, sizeof(*source), false);
+  source = ak_heap_calloc(heap, memParent, sizeof(*source), true);
 
-  _xml_readAttr(source, source->id, _s_dae_id);
+  _xml_readId(source);
   _xml_readAttr(source, source->name, _s_dae_name);
 
   if (xmlTextReaderIsEmptyElement(reader))
@@ -106,13 +106,11 @@ ak_dae_source(AkHeap * __restrict heap,
                             sizeof(*boolArray) + arraySize,
                             AK_SOURCE_ARRAY_TYPE_BOOL,
                             true,
-                            false);
+                            true);
           boolArray = ak_objGet(obj);
 
-          _xml_readAttr(obj, boolArray->id, _s_dae_id);
+          _xml_readId(obj);
           _xml_readAttr(obj, boolArray->name, _s_dae_name);
-
-
 
           boolArray->count = arrayCount;
           ak_strtomb(&content,
@@ -148,10 +146,10 @@ ak_dae_source(AkHeap * __restrict heap,
                             sizeof(*floatAray) + arraySize,
                             AK_SOURCE_ARRAY_TYPE_FLOAT,
                             true,
-                            false);
+                            true);
           floatAray = ak_objGet(obj);
 
-          _xml_readAttr(obj, floatAray->id, _s_dae_id);
+          _xml_readId(obj);
           _xml_readAttr(obj, floatAray->name, _s_dae_name);
 
           _xml_readAttrUsingFnWithDef(floatAray->digits,
@@ -198,10 +196,10 @@ ak_dae_source(AkHeap * __restrict heap,
                             sizeof(*intAray) + arraySize,
                             AK_SOURCE_ARRAY_TYPE_INT,
                             true,
-                            false);
+                            true);
           intAray = ak_objGet(obj);
 
-          _xml_readAttr(obj, intAray->id, _s_dae_id);
+          _xml_readId(obj);
           _xml_readAttr(obj, intAray->name, _s_dae_name);
 
           _xml_readAttrUsingFnWithDef(intAray->minInclusive,
@@ -262,10 +260,10 @@ ak_dae_source(AkHeap * __restrict heap,
                             sizeof(*stringAray) + arraySize,
                             found->val,
                             true,
-                            false);
+                            true);
           stringAray = ak_objGet(obj);
 
-          _xml_readAttr(obj, stringAray->id, _s_dae_id);
+          _xml_readId(obj);
           _xml_readAttr(obj, stringAray->name, _s_dae_name);
 
           pData = ak_heap_alloc(heap,

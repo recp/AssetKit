@@ -20,9 +20,9 @@ ak_dae_controller(AkHeap * __restrict heap,
   int             nodeType;
   int             nodeRet;
 
-  controller = ak_heap_calloc(heap, memParent, sizeof(*controller), false);
+  controller = ak_heap_calloc(heap, memParent, sizeof(*controller), true);
 
-  _xml_readAttr(controller, controller->id, _s_dae_id);
+  _xml_readId(controller);
   _xml_readAttr(controller, controller->name, _s_dae_name);
 
 

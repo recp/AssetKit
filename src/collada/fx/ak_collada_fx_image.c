@@ -55,9 +55,9 @@ ak_dae_fxImage(AkHeap * __restrict heap,
   int            nodeType;
   int            nodeRet;
 
-  img = ak_heap_calloc(heap, memParent, sizeof(*img), false);
+  img = ak_heap_calloc(heap, memParent, sizeof(*img), true);
 
-  _xml_readAttr(img, img->id, _s_dae_id);
+  _xml_readId(img);
   _xml_readAttr(img, img->sid, _s_dae_sid);
   _xml_readAttr(img, img->name, _s_dae_name);
 

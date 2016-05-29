@@ -20,9 +20,9 @@ ak_dae_edges(AkHeap * __restrict heap,
   int             nodeType;
   int             nodeRet;
 
-  edges = ak_heap_calloc(heap, memParent, sizeof(*edges), false);
+  edges = ak_heap_calloc(heap, memParent, sizeof(*edges), true);
 
-  _xml_readAttr(memParent, edges->id, _s_dae_id);
+  _xml_readId(memParent);
   _xml_readAttr(memParent, edges->name, _s_dae_name);
   _xml_readAttrUsingFn(edges->count,
                        _s_dae_count,
@@ -116,9 +116,9 @@ ak_dae_wires(AkHeap * __restrict heap,
   int             nodeType;
   int             nodeRet;
 
-  wires = ak_heap_calloc(heap, memParent, sizeof(*wires), false);
+  wires = ak_heap_calloc(heap, memParent, sizeof(*wires), true);
 
-  _xml_readAttr(memParent, wires->id, _s_dae_id);
+  _xml_readId(memParent);
   _xml_readAttr(memParent, wires->name, _s_dae_name);
   _xml_readAttrUsingFn(wires->count,
                        _s_dae_count,
@@ -225,9 +225,9 @@ ak_dae_faces(AkHeap * __restrict heap,
   int             nodeType;
   int             nodeRet;
 
-  faces = ak_heap_calloc(heap, memParent, sizeof(*faces), false);
+  faces = ak_heap_calloc(heap, memParent, sizeof(*faces), true);
 
-  _xml_readAttr(memParent, faces->id, _s_dae_id);
+  _xml_readId(memParent);
   _xml_readAttr(memParent, faces->name, _s_dae_name);
   _xml_readAttrUsingFn(faces->count,
                        _s_dae_count,
@@ -334,9 +334,9 @@ ak_dae_pcurves(AkHeap * __restrict heap,
   int             nodeType;
   int             nodeRet;
 
-  pcurves = ak_heap_calloc(heap, memParent, sizeof(*pcurves), false);
+  pcurves = ak_heap_calloc(heap, memParent, sizeof(*pcurves), true);
 
-  _xml_readAttr(memParent, pcurves->id, _s_dae_id);
+  _xml_readId(memParent);
   _xml_readAttr(memParent, pcurves->name, _s_dae_name);
   _xml_readAttrUsingFn(pcurves->count,
                        _s_dae_count,
@@ -443,9 +443,9 @@ ak_dae_shells(AkHeap * __restrict heap,
   int             nodeType;
   int             nodeRet;
 
-  shells = ak_heap_calloc(heap, memParent, sizeof(*shells), false);
+  shells = ak_heap_calloc(heap, memParent, sizeof(*shells), true);
 
-  _xml_readAttr(memParent, shells->id, _s_dae_id);
+  _xml_readId(memParent);
   _xml_readAttr(memParent, shells->name, _s_dae_name);
   _xml_readAttrUsingFn(shells->count,
                        _s_dae_count,
@@ -552,9 +552,9 @@ ak_dae_solids(AkHeap * __restrict heap,
   int             nodeType;
   int             nodeRet;
 
-  solids = ak_heap_calloc(heap, memParent, sizeof(*solids), false);
+  solids = ak_heap_calloc(heap, memParent, sizeof(*solids), true);
 
-  _xml_readAttr(memParent, solids->id, _s_dae_id);
+  _xml_readId(memParent);
   _xml_readAttr(memParent, solids->name, _s_dae_name);
   _xml_readAttrUsingFn(solids->count,
                        _s_dae_count,

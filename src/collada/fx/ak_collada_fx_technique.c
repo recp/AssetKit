@@ -26,9 +26,9 @@ ak_dae_techniqueFx(AkHeap * __restrict heap,
   int            nodeType;
   int            nodeRet;
 
-  technique = ak_heap_calloc(heap, memParent, sizeof(*technique), false);
+  technique = ak_heap_calloc(heap, memParent, sizeof(*technique), true);
 
-  _xml_readAttr(technique, technique->id, _s_dae_id);
+  _xml_readId(technique);
   _xml_readAttr(technique, technique->sid, _s_dae_sid);
 
   last_annotate = NULL;

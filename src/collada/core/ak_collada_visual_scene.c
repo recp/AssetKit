@@ -22,9 +22,9 @@ ak_dae_visualScene(AkHeap * __restrict heap,
   int            nodeType;
   int            nodeRet;
 
-  visualScene = ak_heap_calloc(heap, memParent, sizeof(*visualScene), false);
+  visualScene = ak_heap_calloc(heap, memParent, sizeof(*visualScene), true);
 
-  _xml_readAttr(visualScene, visualScene->id, _s_dae_id);
+  _xml_readId(visualScene);
   _xml_readAttr(visualScene, visualScene->name, _s_dae_name);
 
   last_node = NULL;

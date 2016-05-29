@@ -21,9 +21,9 @@ ak_dae_light(AkHeap * __restrict heap,
   int nodeType;
   int nodeRet;
 
-  light = ak_heap_calloc(heap, memParent, sizeof(*light), false);
+  light = ak_heap_calloc(heap, memParent, sizeof(*light), true);
 
-  _xml_readAttr(light, light->id, _s_dae_id);
+  _xml_readId(light);
   _xml_readAttr(light, light->name, _s_dae_name);
 
   last_tq = light->technique;

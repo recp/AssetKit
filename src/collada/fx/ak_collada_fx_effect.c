@@ -27,13 +27,13 @@ ak_dae_effect(AkHeap * __restrict heap,
   int            nodeType;
   int            nodeRet;
 
-  effect = ak_heap_calloc(heap, memParent, sizeof(*effect), false);
+  effect = ak_heap_calloc(heap, memParent, sizeof(*effect), true);
 
   last_annotate = NULL;
   last_newparam = NULL;
   last_profile  = NULL;
 
-  _xml_readAttr(effect, effect->id, _s_dae_id);
+  _xml_readId(effect);
   _xml_readAttr(effect, effect->name, _s_dae_name);
 
   do {

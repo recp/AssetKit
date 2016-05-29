@@ -60,9 +60,9 @@ ak_dae_node(AkHeap * __restrict heap,
   int            nodeType;
   int            nodeRet;
 
-  node = ak_heap_calloc(heap, memParent, sizeof(*node), false);
+  node = ak_heap_calloc(heap, memParent, sizeof(*node), true);
 
-  _xml_readAttr(node, node->id, _s_dae_id);
+  _xml_readId(node);
   _xml_readAttr(node, node->sid, _s_dae_sid);
   _xml_readAttr(node, node->name, _s_dae_name);
 
@@ -318,9 +318,9 @@ ak_dae_node(AkHeap * __restrict heap,
         instanceCamera = ak_heap_calloc(heap,
                                         node,
                                         sizeof(*instanceCamera),
-                                        false);
+                                        true);
 
-        _xml_readAttr(instanceCamera, instanceCamera->id, _s_dae_id);
+        _xml_readId(instanceCamera);
         _xml_readAttr(instanceCamera, instanceCamera->name, _s_dae_name);
         _xml_readAttr(instanceCamera, instanceCamera->url, _s_dae_url);
 
@@ -360,9 +360,9 @@ ak_dae_node(AkHeap * __restrict heap,
         AkInstanceController *controller;
         AkSkeleton           *last_skeleton;
 
-        controller = ak_heap_calloc(heap, node, sizeof(*controller), false);
+        controller = ak_heap_calloc(heap, node, sizeof(*controller), true);
 
-        _xml_readAttr(controller, controller->id, _s_dae_id);
+        _xml_readId(controller);
         _xml_readAttr(controller, controller->name, _s_dae_name);
         _xml_readAttr(controller, controller->url, _s_dae_url);
 
@@ -435,9 +435,9 @@ ak_dae_node(AkHeap * __restrict heap,
       case k_s_dae_instance_geometry: {
         AkInstanceGeometry *geometry;
 
-        geometry = ak_heap_calloc(heap, node, sizeof(*geometry), false);
+        geometry = ak_heap_calloc(heap, node, sizeof(*geometry), true);
 
-        _xml_readAttr(geometry, geometry->id, _s_dae_id);
+        _xml_readId(geometry);
         _xml_readAttr(geometry, geometry->name, _s_dae_name);
         _xml_readAttr(geometry, geometry->url, _s_dae_url);
 
@@ -488,9 +488,9 @@ ak_dae_node(AkHeap * __restrict heap,
       case k_s_dae_instance_light: {
         AkInstanceLight *light;
 
-        light = ak_heap_calloc(heap, node, sizeof(*light), false);
+        light = ak_heap_calloc(heap, node, sizeof(*light), true);
 
-        _xml_readAttr(light, light->id, _s_dae_id);
+        _xml_readId(light);
         _xml_readAttr(light, light->name, _s_dae_name);
         _xml_readAttr(light, light->url, _s_dae_url);
 
@@ -536,9 +536,9 @@ ak_dae_node(AkHeap * __restrict heap,
         instanceNode = ak_heap_calloc(heap,
                                       node,
                                       sizeof(*instanceNode),
-                                      false);
+                                      true);
 
-        _xml_readAttr(instanceNode, instanceNode->id, _s_dae_id);
+        _xml_readId(instanceNode);
         _xml_readAttr(instanceNode, instanceNode->name, _s_dae_name);
         _xml_readAttr(instanceNode, instanceNode->url, _s_dae_url);
         _xml_readAttr(instanceNode, instanceNode->proxy, _s_dae_proxy);

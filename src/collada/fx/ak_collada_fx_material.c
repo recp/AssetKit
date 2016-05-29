@@ -21,9 +21,9 @@ ak_dae_material(AkHeap * __restrict heap,
   int            nodeType;
   int            nodeRet;
 
-  material = ak_heap_calloc(heap, memParent, sizeof(*material), false);
+  material = ak_heap_calloc(heap, memParent, sizeof(*material), true);
 
-  _xml_readAttr(material, material->id, _s_dae_id);
+  _xml_readId(material);
   _xml_readAttr(material, material->name, _s_dae_name);
 
   do {
