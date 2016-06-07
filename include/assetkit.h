@@ -1756,8 +1756,8 @@ typedef struct AkDoc {
   AkScene  scene;
 } AkDoc;
 
-#include "assetkit-states.h"
-#include "assetkit-string.h"
+#include "ak-states.h"
+#include "ak-string.h"
 
 AkResult
 AK_EXPORT
