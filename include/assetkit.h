@@ -1733,27 +1733,28 @@ typedef struct AkDoc {
 #include "ak-states.h"
 #include "ak-string.h"
 
-AkResult
 AK_EXPORT
+AkResult
 ak_load(AkDoc ** __restrict dest,
         const char * __restrict file,
         .../* options */);
-void *
+
 AK_EXPORT
+void *
 ak_getId(const char * __restrict objptr);
 
-AkResult
 AK_EXPORT
+AkResult
 ak_setId(void * __restrict objptr,
          const char * __restrict objectId);
 
-void *
 AK_EXPORT
+void *
 ak_getObjectById(AkDoc * __restrict doc,
                  const char * __restrict objectId);
 
-void *
 AK_EXPORT
+void *
 ak_getObjectByUrl(AkDoc * __restrict doc,
                   const char * __restrict objectUrl);
 

@@ -21,8 +21,8 @@ typedef struct {
                     const char * __restrict);
 } floader_t;
 
-AkResult
 AK_EXPORT
+AkResult
 ak_load(AkDoc ** __restrict dest,
          const char * __restrict file, ...) {
   floader_t * floader;
