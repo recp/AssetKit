@@ -342,7 +342,7 @@ ak_heap_rb_print(AkHeapSrchCtx * __restrict srchctx) {
   printf("Asset Kit Memory Id Dump:\n");
   printf("------------------------\n");
 
-  if(!srchctx->root->chld[AK__BST_RIGHT] == srchctx->nullNode)
+  if(srchctx->root->chld[AK__BST_RIGHT] == srchctx->nullNode)
     printf("Empty tree\n");
   else
     ak_heap_rb_printNode(srchctx,
