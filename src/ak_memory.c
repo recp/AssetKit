@@ -236,7 +236,7 @@ ak_heap_alloc(AkHeap * __restrict heap,
            '\0',
            sizeof(AkHeapSrchNode));
 
-    currNode = chunk + sizeof(AkHeapSrchNode);
+    currNode = (AkHeapNode *)(chunk + sizeof(AkHeapSrchNode));
     currNode->flags |= (AK_HEAP_NODE_FLAGS_SRCH | AK_HEAP_NODE_FLAGS_RED);
 
     srchNode = (AkHeapSrchNode *)chunk;
@@ -244,7 +244,7 @@ ak_heap_alloc(AkHeap * __restrict heap,
     srchNode->chld[AK__BST_RIGHT] = heap->srchctx->nullNode;
     srchNode->key = ak__emptystr;
   } else {
-    currNode = chunk;
+    currNode = (AkHeapNode *)chunk;
     currNode->flags = 0;
   }
 
@@ -417,7 +417,7 @@ ak_heap_free(AkHeap * __restrict heap,
 
       if (toFree->flags & AK_HEAP_NODE_FLAGS_SRCH) {
         AkHeapSrchNode *srchNode;
-        srchNode = ((char *)toFree) - sizeof(AkHeapSrchNode);
+        srchNode = (AkHeapSrchNode *)((char *)toFree - sizeof(AkHeapSrchNode));
 
         /* remove it from rb tree */
         if (srchNode->key != ak__emptystr)
@@ -452,7 +452,7 @@ ak_heap_free(AkHeap * __restrict heap,
 
   if (heapNode->flags & AK_HEAP_NODE_FLAGS_SRCH) {
     AkHeapSrchNode *srchNode;
-    srchNode = ((char *)heapNode) - sizeof(AkHeapSrchNode);
+    srchNode = (AkHeapSrchNode *)((char *)heapNode - sizeof(AkHeapSrchNode));
 
     /* remove it from rb tree */
     if (srchNode->key != ak__emptystr)
@@ -475,9 +475,12 @@ void *
 AK_EXPORT
 ak_heap_getId(AkHeap * __restrict heap,
               AkHeapNode * __restrict heapNode) {
+
+  AK__UNUSED(heap);
+
   if (heapNode->flags & AK_HEAP_NODE_FLAGS_SRCH) {
     AkHeapSrchNode *snode;
-    snode = (char *)heapNode - sizeof(*snode);
+    snode = ((AkHeapSrchNode *)(char *)heapNode - sizeof(*snode));
     return snode->key;
   }
 
@@ -491,7 +494,7 @@ ak_heap_setId(AkHeap * __restrict heap,
               void * __restrict memId) {
   if (heapNode->flags & AK_HEAP_NODE_FLAGS_SRCH) {
     AkHeapSrchNode *snode;
-    snode = (char *)heapNode - sizeof(*snode);
+    snode = ((AkHeapSrchNode *)(char *)heapNode - sizeof(*snode));
 
     if (!memId) {
       ak_heap_rb_remove(heap->srchctx, snode);

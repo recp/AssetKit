@@ -10,14 +10,14 @@
 void *
 AK_EXPORT
 ak_getId(const char * __restrict objptr) {
-  return ak_mem_getId(objptr);
+  return ak_mem_getId((void *)objptr);
 }
 
 AkResult
 AK_EXPORT
 ak_setId(void * __restrict objptr,
          const char * __restrict objectId) {
-  ak_mem_setId(objptr, objectId);
+  ak_mem_setId(objptr, (void *)objectId);
   return AK_OK;
 }
 
@@ -29,7 +29,7 @@ ak_getObjectById(AkDoc * __restrict doc,
   void    *foundObject;
 
   ret = ak_mem_getMemById(doc,
-                          objectId,
+                          (void *)objectId,
                           &foundObject);
 
   return foundObject;

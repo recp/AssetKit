@@ -26,6 +26,8 @@
 #  define ak_CONSTRUCTOR
 #endif
 
+#define AK__UNUSED(X) (void)X
+
 typedef struct ak_enumpair_s ak_enumpair;
 struct ak_enumpair_s {
   const char * key;
