@@ -11,6 +11,12 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+#include "ak-common.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct AkObject {
   struct AkObject * next;
   size_t size;
@@ -206,11 +212,15 @@ ak_objAlloc(AkHeap * __restrict heap,
             void * __restrict memParent,
             size_t typeSize,
             AkEnum typeEnum,
-            AkBool zeroed,
+            bool zeroed,
             bool srch);
 
 AkObject*
 AK_EXPORT
 ak_objFrom(void * __restrict memptr);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __libassetkit__memory__h_ */

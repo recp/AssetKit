@@ -9,32 +9,14 @@
 #define __libassetkit__assetkit__h_
 
 #include <stdlib.h>
-#include <errno.h>
 #include <time.h>
 
-/* since C99 or compiler ext */
-#include <stdbool.h>
-#include <stdint.h>
+#include "ak-common.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#if defined(_WIN32)
-#  ifdef _assetkit_dll
-#    define AK_EXPORT __declspec(dllexport)
-#  else
-#    define AK_EXPORT __declspec(dllimport)
-#  endif
-#  define _assetkit_hide
-#else
-#  define AK_EXPORT      __attribute__((visibility("default")))
-#  define _assetkit_hide __attribute__((visibility("hidden")))
-#endif
-
-#define AK_ARRAY_LEN(ARR) sizeof(ARR) / sizeof(ARR[0]);
-
-typedef int32_t      AkEnum;
 typedef const char * AkString;
 typedef char       * AkMutString;
 typedef bool         AkBool;
@@ -80,14 +62,6 @@ AK__DEF_ARRAY(AkDouble);
 AK__DEF_ARRAY(AkString);
 
 #undef AK__DEF_ARRAY
-
-typedef enum AkResult {
-  AK_OK     = 0,
-  AK_ERR    = -1, /* UKNOWN ERR */
-  AK_EFOUND = -1000,
-  AK_ENOMEM = -ENOMEM,
-  AK_EPERM  = -EPERM
-} AkResult;
 
 /* End Core Value Types */
 
