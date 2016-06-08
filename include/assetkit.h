@@ -1598,7 +1598,7 @@ typedef struct AkInstanceNode {
   struct AkInstanceNode * next;
 } AkInstanceNode;
 
-typedef struct AkNode {
+struct AkNode {
   ak_asset_base
 
   /* const char * id; */
@@ -1615,7 +1615,7 @@ typedef struct AkNode {
   AkTree        * extra;
   struct AkNode * chld;
   struct AkNode * next;
-} AkNode;
+};
 
 typedef struct AkTechniqueOverride { 
   const char * ref;

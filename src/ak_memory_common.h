@@ -30,11 +30,11 @@ typedef struct AkHeapSrchNode {
   struct AkHeapSrchNode *chld[2];
 } AkHeapSrchNode;
 
-typedef struct AkHeapSrchCtx {
+struct AkHeapSrchCtx {
   AkHeapSrchNode  *root;
   AkHeapSrchNode  *nullNode;
   AkHeapSrchCmp    cmp;
-} AkHeapSrchCtx;
+};
 
 #define AK__HEAPNODE(X) \
             ((AkHeapNode *)(((char *)X) + sizeof(AkHeapSrchNode)))
