@@ -116,7 +116,7 @@ ak_dae_source(AkHeap * __restrict heap,
           ak_strtomb(&content,
                      boolArray->items,
                      1,
-                     arrayCount);
+                     (AkUInt)arrayCount);
           
           source->data = obj;
           
@@ -166,7 +166,7 @@ ak_dae_source(AkHeap * __restrict heap,
           ak_strtomf(&content,
                      floatAray->items,
                      1,
-                     arrayCount);
+                     (AkUInt)arrayCount);
           
           source->data = obj;
           
@@ -204,7 +204,7 @@ ak_dae_source(AkHeap * __restrict heap,
 
           _xml_readAttrUsingFnWithDef(intAray->minInclusive,
                                       _s_dae_minInclusive,
-                                      -2147483648, /* default */
+                                      -2147483647, /* default */
                                       (AkInt)strtoul, NULL, 10);
 
           _xml_readAttrUsingFnWithDef(intAray->maxInclusive,
@@ -216,7 +216,7 @@ ak_dae_source(AkHeap * __restrict heap,
           ak_strtomi(&content,
                      intAray->items,
                      1,
-                     arrayCount);
+                     (AkUInt)arrayCount);
           
           source->data = obj;
           

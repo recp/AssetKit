@@ -86,7 +86,7 @@ ak_heap_lt_find(uint32_t heapid) {
     return ak__heap_lt.lastUsedEntry->heap;
 
   bucket      = ak__heap_lt.rootBucket;
-  bucketIndex = floor(heapid / ak__heap_lt.bucketSize);
+  bucketIndex = (int)floor(heapid / ak__heap_lt.bucketSize);
   entryIndex  = heapid % ak__heap_lt.bucketSize;
 
   for (; bucketIndex > 0; bucketIndex--)
@@ -114,7 +114,7 @@ ak_heap_lt_remove(uint32_t heapid) {
   bucket      = ak__heap_lt.rootBucket;
   prevBucket  = ak__heap_lt.rootBucket;
 
-  bucketIndex = floor(heapid / ak__heap_lt.bucketSize);
+  bucketIndex = (int)floor(heapid / ak__heap_lt.bucketSize);
   entryIndex  = heapid % ak__heap_lt.bucketSize;
 
   for (; bucketIndex > 0; bucketIndex--) {
