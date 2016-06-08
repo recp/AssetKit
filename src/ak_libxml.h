@@ -8,7 +8,7 @@
 #ifndef __libassetkit__libxml__h_
 #define __libassetkit__libxml__h_
 
-#include <stdbool.h>
+#include "../include/ak-memory.h"
 #include <libxml/xmlreader.h>
 
 #define _xml_eq(a, b) (xmlStrcasecmp((xmlChar *)a, (xmlChar *)b) == 0)
