@@ -17,9 +17,11 @@
 #ifndef _WIN32
 #  include <jemalloc/jemalloc.h>
 #else
-# define je_malloc(size)         malloc(size)
-# define je_realloc(size, count) realloc(size, count)
-# define je_free(size)           free(size)
+# ifndef #ifdef JEMALLOC_VERSION
+#   define je_malloc(size)         malloc(size)
+#   define je_realloc(size, count) realloc(size, count)
+#   define je_free(size)           free(size)
+# endif
 #endif
 
 static
@@ -31,15 +33,24 @@ static
 char*
 ak__heap_strdup_def(const char * str);
 
-static const char * ak__emptystr = "";
+static char * ak__emptystr = "";
 
 static AkHeapAllocator ak__allocator = {
+#ifdef JEMALLOC_VERSION
   .malloc   = je_malloc,
   .calloc   = je_calloc,
   .valloc   = je_valloc,
   .realloc  = je_realloc,
   .memalign = je_posix_memalign,
   .free     = je_free,
+#else
+  .malloc   = malloc,
+  .calloc   = calloc,
+  .valloc   = valloc,
+  .realloc  = realloc,
+  .memalign = posix_memalign,
+  .free     = free,
+#endif
   .strdup   = ak__heap_strdup_def
 };
 
