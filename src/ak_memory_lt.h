@@ -31,7 +31,7 @@ typedef struct AkHeapLookupTable {
   AkHeapBucket      *firstAvailBucket;
   AkHeapBucketEntry *lastUsedEntry; /* cache last */
   size_t             size;
-  size_t             bucketSize; /* default = 4 */
+  uint32_t           bucketSize; /* default = 4 */
 } AkHeapLookupTable;
 
 void

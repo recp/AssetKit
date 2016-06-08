@@ -77,11 +77,11 @@ ak_dae_lines(AkHeap * __restrict heap,
 
       _xml_readAttrUsingFn(input->offset,
                            _s_dae_offset,
-                           strtoul, NULL, 10);
+                           (AkUInt)strtoul, NULL, 10);
 
       _xml_readAttrUsingFn(input->set,
                            _s_dae_set,
-                           strtoul, NULL, 10);
+                           (AkUInt)strtoul, NULL, 10);
 
       if (last_input)
         last_input->base.next = &input->base;

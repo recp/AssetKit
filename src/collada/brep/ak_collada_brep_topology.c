@@ -54,11 +54,11 @@ ak_dae_edges(AkHeap * __restrict heap,
 
       _xml_readAttrUsingFn(input->offset,
                            _s_dae_offset,
-                           strtoul, NULL, 10);
+                           (AkUInt)strtoul, NULL, 10);
 
       _xml_readAttrUsingFn(input->set,
                            _s_dae_set,
-                           strtoul, NULL, 10);
+                           (AkUInt)strtoul, NULL, 10);
 
       if (last_input)
         last_input->base.next = &input->base;
@@ -150,11 +150,11 @@ ak_dae_wires(AkHeap * __restrict heap,
 
       _xml_readAttrUsingFn(input->offset,
                            _s_dae_offset,
-                           strtoul, NULL, 10);
+                           (AkUInt)strtoul, NULL, 10);
 
       _xml_readAttrUsingFn(input->set,
                            _s_dae_set,
-                           strtoul, NULL, 10);
+                           (AkUInt)strtoul, NULL, 10);
 
       if (last_input)
         last_input->base.next = &input->base;
@@ -259,11 +259,11 @@ ak_dae_faces(AkHeap * __restrict heap,
 
       _xml_readAttrUsingFn(input->offset,
                            _s_dae_offset,
-                           strtoul, NULL, 10);
+                           (AkUInt)strtoul, NULL, 10);
 
       _xml_readAttrUsingFn(input->set,
                            _s_dae_set,
-                           strtoul, NULL, 10);
+                           (AkUInt)strtoul, NULL, 10);
 
       if (last_input)
         last_input->base.next = &input->base;
@@ -368,11 +368,11 @@ ak_dae_pcurves(AkHeap * __restrict heap,
 
       _xml_readAttrUsingFn(input->offset,
                            _s_dae_offset,
-                           strtoul, NULL, 10);
+                           (AkUInt)strtoul, NULL, 10);
 
       _xml_readAttrUsingFn(input->set,
                            _s_dae_set,
-                           strtoul, NULL, 10);
+                           (AkUInt)strtoul, NULL, 10);
 
       if (last_input)
         last_input->base.next = &input->base;
@@ -477,11 +477,11 @@ ak_dae_shells(AkHeap * __restrict heap,
 
       _xml_readAttrUsingFn(input->offset,
                            _s_dae_offset,
-                           strtoul, NULL, 10);
+                           (AkUInt)strtoul, NULL, 10);
 
       _xml_readAttrUsingFn(input->set,
                            _s_dae_set,
-                           strtoul, NULL, 10);
+                           (AkUInt)strtoul, NULL, 10);
 
       if (last_input)
         last_input->base.next = &input->base;
@@ -586,11 +586,11 @@ ak_dae_solids(AkHeap * __restrict heap,
 
       _xml_readAttrUsingFn(input->offset,
                            _s_dae_offset,
-                           strtoul, NULL, 10);
+                           (AkUInt)strtoul, NULL, 10);
 
       _xml_readAttrUsingFn(input->set,
                            _s_dae_set,
-                           strtoul, NULL, 10);
+                           (AkUInt)strtoul, NULL, 10);
 
       if (last_input)
         last_input->base.next = &input->base;
