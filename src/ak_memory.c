@@ -17,10 +17,11 @@
 #ifndef _WIN32
 #  include <jemalloc/jemalloc.h>
 #else
-# ifndef #ifdef JEMALLOC_VERSION
-#   define je_malloc(size)         malloc(size)
-#   define je_realloc(size, count) realloc(size, count)
-#   define je_free(size)           free(size)
+# ifndef JEMALLOC_VERSION
+#   define je_malloc(size)          malloc(size)
+#   define je_calloc(size, count)   calloc(size, count)
+#   define je_realloc(ptr, newsize) realloc(ptr, newsize)
+#   define je_free(ptr)             free(ptr)
 # endif
 #endif
 
@@ -46,10 +47,12 @@ static AkHeapAllocator ak__allocator = {
 #else
   .malloc   = malloc,
   .calloc   = calloc,
-  .valloc   = valloc,
   .realloc  = realloc,
-  .memalign = posix_memalign,
   .free     = free,
+#ifndef _WIN32
+  .valloc   = valloc,
+  .memalign = posix_memalign,
+#endif
 #endif
   .strdup   = ak__heap_strdup_def
 };
@@ -689,7 +692,7 @@ ak_objAlloc(AkHeap * __restrict heap,
 void * __restrict memParent,
             size_t typeSize,
             AkEnum typeEnum,
-            AkBool zeroed,
+            bool zeroed,
             bool srch) {
   AkObject * obj;
 
