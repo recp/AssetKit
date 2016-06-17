@@ -171,6 +171,6 @@ ak_heap_lt_cleanup(void) {
     bucket = bucket->next;
 
     free(toFree->heapEntry);
-    free(bucket);
+    free(toFree);
   }
 }
