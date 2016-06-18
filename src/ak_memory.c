@@ -191,10 +191,6 @@ ak_heap_init(AkHeap * __restrict heap,
 AK_EXPORT
 void
 ak_heap_destroy(AkHeap * __restrict heap) {
-  AkHeapAllocator * __restrict allocator;
-
-  allocator = heap->allocator;
-  
   if (!(heap->flags & AK_HEAP_FLAGS_INITIALIZED))
     return;
 

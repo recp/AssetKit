@@ -25,12 +25,11 @@ AK_EXPORT
 void *
 ak_getObjectById(AkDoc * __restrict doc,
                  const char * __restrict objectId) {
-  AkResult ret;
-  void    *foundObject;
+  void *foundObject;
 
-  ret = ak_mem_getMemById(doc,
-                          (void *)objectId,
-                          &foundObject);
+  ak_mem_getMemById(doc,
+                    (void *)objectId,
+                    &foundObject);
 
   return foundObject;
 }

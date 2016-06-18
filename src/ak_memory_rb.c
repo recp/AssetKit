@@ -158,14 +158,12 @@ void
 ak_heap_rb_remove(AkHeapSrchCtx * __restrict srchctx,
                   AkHeapSrchNode * __restrict srchNode) {
   AkHeapSrchNode *X, *P, *T, *G;
-  int            sG, sP, sX, cX, cmpRet;
+  int            sP, sX, cX, cmpRet;
 
-  sG = sP = sX = 1;
-  cX = 0; /* root is black */
+  sX = 1;
 
-  G = P = srchctx->root;
+  P = srchctx->root;
   X = P->chld[AK__BST_RIGHT];
-  T = srchctx->nullNode;
 
   /* step 1: make root red */
   AK__RB_MKRED(srchctx->root->chld[AK__BST_RIGHT]);
@@ -174,7 +172,7 @@ ak_heap_rb_remove(AkHeapSrchCtx * __restrict srchctx,
   while (X != srchctx->nullNode) {
     cmpRet = srchctx->cmp(srchNode->key, X->key);
 
-    sG = sP;
+    /* sG = sP; */
     sP = sX;
     sX = !(cmpRet < 0);
     G  = P;
@@ -246,7 +244,7 @@ ak_heap_rb_remove(AkHeapSrchCtx * __restrict srchctx,
         AK__RB_MKBLACK(P);
 
         G = R;
-        T = P->chld[!sX];
+        /* T = P->chld[!sX]; */
 
         sP = sX;
       }
@@ -270,9 +268,9 @@ ak_heap_rb_remove(AkHeapSrchCtx * __restrict srchctx,
         AK__RB_MKBLACK(R);
 
         G = T;
-        T = P->chld[!sX];
+        /* T = P->chld[!sX]; */
 
-        sG = sP;
+        /* sG = sP; */
         sP = sX;
       }
     }
