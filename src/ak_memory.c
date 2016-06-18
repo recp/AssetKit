@@ -497,7 +497,7 @@ ak_heap_setId(AkHeap * __restrict heap,
               void * __restrict memId) {
   if (heapNode->flags & AK_HEAP_NODE_FLAGS_SRCH) {
     AkHeapSrchNode *snode;
-    snode = ((AkHeapSrchNode *)(char *)heapNode - sizeof(*snode));
+    snode = (AkHeapSrchNode *)((char *)heapNode - sizeof(*snode));
 
     if (!memId) {
       ak_heap_rb_remove(heap->srchctx, snode);
