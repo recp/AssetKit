@@ -171,7 +171,7 @@ ak_dae_techniquec(AkHeap * __restrict heap,
           _xml_readMutText(colorStr);
 
           if (colorStr) {
-            ak_strtof4(&colorStr, &ambient->color.vec);
+            ak_strtof4(&colorStr, &ambient->color.color.vec);
             xmlFree(colorStr);
           }
         } else {

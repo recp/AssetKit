@@ -385,18 +385,21 @@ typedef struct AkUnit {
   double       dist;
 } AkUnit;
 
+typedef struct AkColorRGBA {
+  AkFloat R;
+  AkFloat G;
+  AkFloat B;
+  AkFloat A;
+} AkColorRGBA;
+
+typedef union AkColorU {
+  AkColorRGBA rgba;
+  AkFloat4    vec;
+} AkColorU;
+
 typedef struct AkColor {
   const char * sid;
-  union {
-    AkFloat4 vec;
-
-    struct {
-      float R;
-      float G;
-      float B;
-      float A;
-    };
-  };
+  AkColorU color;
 } AkColor;
 
 typedef struct AkContributor {

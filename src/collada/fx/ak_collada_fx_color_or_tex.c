@@ -42,7 +42,7 @@ ak_dae_colorOrTex(AkHeap * __restrict heap,
       _xml_readMutText(colorStr);
 
       if (colorStr) {
-        ak_strtof4(&colorStr, &color->vec);
+        ak_strtof4(&colorStr, &color->color.vec);
         colorOrTex->color = color;
         xmlFree(colorStr);
       }

@@ -23,7 +23,7 @@ ak_dae_color(AkHeap * __restrict heap,
   _xml_readMutText(colorStr);
 
   if (colorStr) {
-    ak_strtof4(&colorStr, &dest->vec);
+    ak_strtof4(&colorStr, &dest->color.vec);
     xmlFree(colorStr);
 
     return AK_OK;
