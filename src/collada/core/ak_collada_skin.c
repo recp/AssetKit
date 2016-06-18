@@ -40,7 +40,7 @@ ak_dae_skin(AkHeap * __restrict heap,
     memPtr = skin;
   }
 
-  _xml_readAttr(skin, skin->baseMesh, _s_dae_source);
+  _xml_readAttr(memPtr, skin->baseMesh, _s_dae_source);
 
   last_source = NULL;
 
@@ -55,7 +55,7 @@ ak_dae_skin(AkHeap * __restrict heap,
         AkDoubleArray *doubleArray;
         AkResult ret;
 
-        ret = ak_strtod_array(heap, skin, content, &doubleArray);
+        ret = ak_strtod_array(heap, memPtr, content, &doubleArray);
         if (ret == AK_OK)
           skin->bindShapeMatrix = doubleArray;
       }
@@ -63,7 +63,7 @@ ak_dae_skin(AkHeap * __restrict heap,
       AkSource *source;
       AkResult ret;
 
-      ret = ak_dae_source(heap, skin, reader, &source);
+      ret = ak_dae_source(heap, memPtr, reader, &source);
       if (ret == AK_OK) {
         if (last_source)
           last_source->next = source;
@@ -76,7 +76,7 @@ ak_dae_skin(AkHeap * __restrict heap,
       AkJoints     *joints;
       AkInputBasic *last_input;
 
-      joints = ak_heap_calloc(heap, skin, sizeof(*joints), false);
+      joints = ak_heap_calloc(heap, memPtr, sizeof(*joints), false);
 
       last_input = NULL;
 
@@ -135,7 +135,7 @@ ak_dae_skin(AkHeap * __restrict heap,
       AkInput         *last_input;
 
       vertexWeights = ak_heap_calloc(heap,
-                                     skin,
+                                     memPtr,
                                      sizeof(*vertexWeights),
                                      false);
 
@@ -233,7 +233,7 @@ ak_dae_skin(AkHeap * __restrict heap,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(heap, skin, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(heap, memPtr, nodePtr, &tree, NULL);
       skin->extra = tree;
 
       _xml_skipElement;

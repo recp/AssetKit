@@ -40,7 +40,7 @@ ak_dae_morph(AkHeap * __restrict heap,
     memPtr = morph;
   }
 
-  _xml_readAttr(morph, morph->baseMesh, _s_dae_source);
+  _xml_readAttr(memPtr, morph->baseMesh, _s_dae_source);
   _xml_readAttrAsEnumWithDef(morph->method,
                              _s_dae_method,
                              ak_dae_enumMorphMethod,
@@ -55,7 +55,7 @@ ak_dae_morph(AkHeap * __restrict heap,
       AkSource *source;
       AkResult ret;
 
-      ret = ak_dae_source(heap, morph, reader, &source);
+      ret = ak_dae_source(heap, memPtr, reader, &source);
       if (ret == AK_OK) {
         if (last_source)
           last_source->next = source;
@@ -68,7 +68,7 @@ ak_dae_morph(AkHeap * __restrict heap,
       AkTargets    *targets;
       AkInputBasic *last_input;
 
-      targets = ak_heap_calloc(heap, morph, sizeof(*targets), false);
+      targets = ak_heap_calloc(heap, memPtr, sizeof(*targets), false);
 
       last_input = NULL;
 
@@ -108,7 +108,7 @@ ak_dae_morph(AkHeap * __restrict heap,
           nodePtr = xmlTextReaderExpand(reader);
           tree = NULL;
 
-          ak_tree_fromXmlNode(heap, morph, nodePtr, &tree, NULL);
+          ak_tree_fromXmlNode(heap, memPtr, nodePtr, &tree, NULL);
           morph->extra = tree;
 
           _xml_skipElement;
@@ -129,7 +129,7 @@ ak_dae_morph(AkHeap * __restrict heap,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
       
-      ak_tree_fromXmlNode(heap, morph, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(heap, memPtr, nodePtr, &tree, NULL);
       morph->extra = tree;
       
       _xml_skipElement;
