@@ -139,6 +139,8 @@ ak_heap_new(AkHeapAllocator *allocator,
   AkHeap *heap;
 
   heap = je_malloc(sizeof(*heap));
+  assert(heap && "malloc failed");
+
   heap->flags = AK_HEAP_FLAGS_DYNAMIC;
   ak_heap_init(heap, allocator, cmp, print);
   
@@ -170,12 +172,18 @@ ak_heap_init(AkHeap * __restrict heap,
     return;
 
   srchctx = je_malloc(sizeof(*srchctx));
+  assert(srchctx && "malloc failed");
+
   srchctx->cmp = cmp ? cmp : ak__heap_srch_cmp;
   srchctx->print = print ? print : ak__heap_srch_print;
 
   srchNodeSize = sizeof(AkHeapSrchNode) + ak__heapnd_sz;
   srchRootNode = je_calloc(srchNodeSize, 1);
   srchNullNode = je_calloc(srchNodeSize, 1);
+
+  assert(srchRootNode
+         && srchNullNode
+         && "malloc failed");
 
   srchRootNode->key = ak__emptystr;
   srchRootNode->chld[AK__BST_LEFT]  = srchNullNode;
