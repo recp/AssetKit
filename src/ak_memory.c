@@ -208,18 +208,18 @@ ak_heap_destroy(AkHeap * __restrict heap) {
   if (!(heap->flags & AK_HEAP_FLAGS_INITIALIZED))
     return;
 
-  ak_heap_cleanup(&ak__heap);
+  ak_heap_cleanup(heap);
 
   je_free(heap->srchctx->root);
   je_free(heap->srchctx->nullNode);
   je_free(heap->srchctx);
 
+  heap->data = NULL;
+  ak_heap_lt_remove(heap->heapid);
+
   if (heap->flags & AK_HEAP_FLAGS_DYNAMIC
-      && heap != &ak__heap) {
-    heap->data = NULL;
-    ak_heap_lt_remove(heap->heapid);
+      && heap != &ak__heap)
     je_free(heap);
-  }
 }
 
 AK_EXPORT
