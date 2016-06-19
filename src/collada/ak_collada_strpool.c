@@ -5,14 +5,14 @@
  * Full license can be found in the LICENSE file
  */
 
-#ifndef _ak_DAE_STRPOOL_
-#define _ak_DAE_STRPOOL_
+#ifndef _AK_DAE_STRPOOL_
+#  define _AK_DAE_STRPOOL_
 #endif
 
 #include "ak_collada_strpool.h"
 #include <string.h>
 
-const char _s_dae_pool[] =
+const char _s_dae_pool_0[] =
 " \0"
 "COLLADA\0"
 "asset\0"
@@ -198,6 +198,9 @@ const char _s_dae_pool[] =
 "material_emission\0"
 "material_shininess\0"
 "material_specular\0"
+;
+
+const char _s_dae_pool_1[] =
 "model_view_matrix\0"
 "point_distance_attenuation\0"
 "point_fade_threshold_size\0"
@@ -385,6 +388,9 @@ const char _s_dae_pool[] =
 "degree\0"
 "degree_u\0"
 "closed_u\0"
+;
+
+const char _s_dae_pool_2[] =
 "degree_v\0"
 "closed_v\0"
 "cone\0"
@@ -449,4 +455,4 @@ const char _s_dae_pool[] =
 "scene\0"
 ;
 
-#undef _ak_DAE_STRPOOL_
+#undef _AK_DAE_STRPOOL_
