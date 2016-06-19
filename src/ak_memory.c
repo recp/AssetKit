@@ -11,6 +11,7 @@
 #include "ak_memory_lt.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <assert.h>
 
@@ -29,6 +30,10 @@ static
 int
 ak__heap_srch_cmp(void * __restrict key1,
                   void * __restrict key2);
+
+static
+void
+ak__heap_srch_print(void * __restrict key);
 
 static
 char*
@@ -70,6 +75,12 @@ int
 ak__heap_srch_cmp(void * __restrict key1,
                   void * __restrict key2) {
   return strcmp((char *)key1, (char *)key2);
+}
+
+static
+void
+ak__heap_srch_print(void * __restrict key) {
+  printf("\t%s\n", (const char *)key);
 }
 
 static
@@ -123,12 +134,13 @@ ak_heap_getheap(void * __restrict memptr) {
 AK_EXPORT
 AkHeap *
 ak_heap_new(AkHeapAllocator *allocator,
-            AkHeapSrchCmp cmp) {
+            AkHeapSrchCmpFn cmp,
+            AkHeapSrchPrintFn print) {
   AkHeap *heap;
 
   heap = je_malloc(sizeof(*heap));
   heap->flags = AK_HEAP_FLAGS_DYNAMIC;
-  ak_heap_init(heap, allocator, cmp);
+  ak_heap_init(heap, allocator, cmp, print);
   
   return heap;
 }
@@ -146,7 +158,8 @@ AK_EXPORT
 void
 ak_heap_init(AkHeap * __restrict heap,
              AkHeapAllocator *allocator,
-             AkHeapSrchCmp cmp) {
+             AkHeapSrchCmpFn cmp,
+             AkHeapSrchPrintFn print) {
   AkHeapSrchNode    *srchRootNode;
   AkHeapSrchNode    *srchNullNode;
   AkHeapSrchCtx *srchctx;
@@ -158,6 +171,7 @@ ak_heap_init(AkHeap * __restrict heap,
 
   srchctx = je_malloc(sizeof(*srchctx));
   srchctx->cmp = cmp ? cmp : ak__heap_srch_cmp;
+  srchctx->print = print ? print : ak__heap_srch_print;
 
   srchNodeSize = sizeof(AkHeapSrchNode) + ak__heapnd_sz;
   srchRootNode = je_calloc(srchNodeSize, 1);
@@ -724,7 +738,7 @@ ak_objFrom(void * __restrict memptr) {
 void
 ak_CONSTRUCTOR
 ak__init() {
-  ak_heap_init(&ak__heap, NULL, NULL);
+  ak_heap_init(&ak__heap, NULL, NULL, NULL);
   ak_heap_lt_init(&ak__heap);
 }
 

@@ -43,8 +43,10 @@ typedef struct AkHeapSrchCtx AkHeapSrchCtx;
 typedef struct AkHeapNode    AkHeapNode;
 typedef struct AkHeap        AkHeap;
 
-typedef int (*AkHeapSrchCmp)(void * __restrict key1,
-                             void * __restrict key2);
+typedef int (*AkHeapSrchCmpFn)(void * __restrict key1,
+                               void * __restrict key2);
+
+typedef void (*AkHeapSrchPrintFn)(void * __restrict key);
 
 typedef enum AkHeapFlags {
   AK_HEAP_FLAGS_NONE        = 0,
@@ -69,7 +71,8 @@ ak_heap_getheap(void * __restrict memptr);
 AK_EXPORT
 AkHeap *
 ak_heap_new(AkHeapAllocator *allocator,
-            AkHeapSrchCmp cmp);
+            AkHeapSrchCmpFn cmp,
+            AkHeapSrchPrintFn print);
 
 AK_EXPORT
 AkResult
@@ -80,7 +83,8 @@ AK_EXPORT
 void
 ak_heap_init(AkHeap * __restrict heap,
              AkHeapAllocator *allocator,
-             AkHeapSrchCmp cmp);
+             AkHeapSrchCmpFn cmp,
+             AkHeapSrchPrintFn print);
 
 AK_EXPORT
 void

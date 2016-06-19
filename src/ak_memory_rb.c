@@ -329,7 +329,7 @@ ak_heap_rb_printNode(AkHeapSrchCtx * __restrict srchctx,
   if(srchNode != srchctx->nullNode) {
     ak_heap_rb_printNode(srchctx,
                          srchNode->chld[AK__BST_LEFT]);
-    printf("%s\n", srchNode->key);
+    srchctx->print(srchNode->key);
     ak_heap_rb_printNode(srchctx,
                          srchNode->chld[AK__BST_RIGHT]);
   }
