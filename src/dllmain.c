@@ -18,7 +18,9 @@ BOOL APIENTRY DllMain(HMODULE hModule,
     ak__init();
     break;
   case DLL_THREAD_ATTACH:
+    break;
   case DLL_THREAD_DETACH:
+    break;
   case DLL_PROCESS_DETACH:
     ak__cleanup();
     break;
