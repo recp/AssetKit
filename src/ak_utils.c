@@ -10,7 +10,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <sys/stat.h>
+
+char *
+strptime(const char * __restrict buf,
+         const char * __restrict fmt,
+         struct tm * __restrict tm);
 
 AkResult
 ak_readfile(const char * __restrict file,
@@ -60,11 +66,9 @@ ak_parse_date(const char * __restrict input,
 
   memset(&_tm, '\0', sizeof(_tm));
 
-#ifndef _MSC_VER
   cp = strptime(input,
                 "%Y-%m-%dT%T%Z",
                 &_tm);
-#endif
 
   if (ret)
     *ret = cp;
