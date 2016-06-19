@@ -12,10 +12,10 @@
 
 AkResult
 ak_readfile(const char * __restrict file,
-             const char * __restrict modes,
-             char ** __restrict dest);
+            const char * __restrict modes,
+            char ** __restrict dest);
 time_t
 ak_parse_date(const char * __restrict input,
-               const char ** __restrict ret);
+              const char ** __restrict ret);
 
 #endif /* __libassetkit__aioutils__h_ */
