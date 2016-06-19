@@ -479,7 +479,7 @@ ak_heap_getId(AkHeap * __restrict heap,
 
   if (heapNode->flags & AK_HEAP_NODE_FLAGS_SRCH) {
     AkHeapSrchNode *snode;
-    snode = ((AkHeapSrchNode *)(char *)heapNode - sizeof(*snode));
+    snode = (AkHeapSrchNode *)((char *)heapNode - sizeof(*snode));
     return snode->key;
   }
 
