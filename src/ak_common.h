@@ -19,11 +19,11 @@
 #endif
 
 #ifdef __GNUC__
-#  define ak_DESTRUCTOR __attribute__((destructor))
-#  define ak_CONSTRUCTOR __attribute__((constructor))
+#  define AK_DESTRUCTOR __attribute__((destructor))
+#  define AK_CONSTRUCTOR __attribute__((constructor))
 #else
-#  define ak_DESTRUCTOR
-#  define ak_CONSTRUCTOR
+#  define AK_DESTRUCTOR
+#  define AK_CONSTRUCTOR
 #endif
 
 #define AK__UNUSED(X) (void)X

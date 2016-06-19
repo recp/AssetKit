@@ -216,6 +216,7 @@ ak_heap_destroy(AkHeap * __restrict heap) {
 
   if (heap->flags & AK_HEAP_FLAGS_DYNAMIC
       && heap != &ak__heap) {
+    heap->data = NULL;
     ak_heap_lt_remove(heap->heapid);
     je_free(heap);
   }
@@ -736,14 +737,14 @@ ak_objFrom(void * __restrict memptr) {
 }
 
 void
-ak_CONSTRUCTOR
+AK_CONSTRUCTOR
 ak__init() {
   ak_heap_init(&ak__heap, NULL, NULL, NULL);
   ak_heap_lt_init(&ak__heap);
 }
 
 void
-ak_DESTRUCTOR
+AK_DESTRUCTOR
 ak__cleanup() {
   ak_heap_destroy(&ak__heap);
   ak_heap_lt_cleanup();

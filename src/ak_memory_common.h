@@ -76,4 +76,12 @@ struct AkHeap {
   AkEnum           flags;
 };
 
+void
+AK_CONSTRUCTOR
+ak__init();
+
+void
+AK_DESTRUCTOR
+ak__cleanup();
+
 #endif /* ak_memory_h */
