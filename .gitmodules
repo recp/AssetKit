@@ -2,7 +2,9 @@
 	path = lib/libxml2
 	url = git://git.gnome.org/libxml2
 	branch = master
+	ignore = dirty
 [submodule "lib/jemalloc"]
 	path = lib/jemalloc
 	url = https://github.com/jemalloc/jemalloc.git
 	branch = master
+	ignore = dirty

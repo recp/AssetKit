@@ -31,9 +31,10 @@ typedef struct AkHeapSrchNode {
 } AkHeapSrchNode;
 
 struct AkHeapSrchCtx {
-  AkHeapSrchNode  *root;
-  AkHeapSrchNode  *nullNode;
-  AkHeapSrchCmp    cmp;
+  AkHeapSrchNode   *root;
+  AkHeapSrchNode   *nullNode;
+  AkHeapSrchCmpFn   cmp;
+  AkHeapSrchPrintFn print;
 };
 
 #define AK__HEAPNODE(X) \
@@ -74,5 +75,13 @@ struct AkHeap {
   uint32_t         heapid;
   AkEnum           flags;
 };
+
+void
+AK_CONSTRUCTOR
+ak__init();
+
+void
+AK_DESTRUCTOR
+ak__cleanup();
 
 #endif /* ak_memory_h */

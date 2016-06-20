@@ -12,11 +12,15 @@ from inspect import getsourcefile
 from os.path import realpath
 from os.path import dirname
 
-destdir = dirname(realpath(__file__))
+headerContents = [ ]
+destdir        = dirname(realpath(__file__))
+spidx          = 0
+pos            = 0
 
-fspoolJSON = open(destdir + "/ak_collada_strpool.json")
-spool = json.loads(fspoolJSON.read(), object_pairs_hook=OrderedDict)
-fspoolJSON.close()
+fspoolJson = open(destdir + "/ak_collada_strpool.json")
+spool      = json.loads(fspoolJson.read(),
+                        object_pairs_hook=OrderedDict)
+fspoolJson.close()
 
 fspool_h = open(destdir + "/ak_collada_strpool.h", "wb");
 fspool_c = open(destdir + "/ak_collada_strpool.c", "wb");
@@ -34,53 +38,70 @@ fspool_h.write(copyright)
 fspool_c.write(copyright)
 
 fspool_h.write("""
-#ifndef __libassetkit__collada_strpool__h_
-#define __libassetkit__collada_strpool__h_
+#ifndef ak_dae_strpool_h
+#  define ak_dae_strpool_h
 
-#ifndef _ak_DAE_STRPOOL_
-extern
+#ifndef _AK_DAE_STRPOOL_
+#  define _AK_EXTERN extern
+#else
+#  define _AK_EXTERN
 #endif
-const char _s_dae_pool[];
-
-#ifndef _s_dae
-#define _s_dae(x) (_s_dae_pool + x)
-#endif
-
 """)
 
 fspool_c.write("""
-#ifndef _ak_DAE_STRPOOL_
-#define _ak_DAE_STRPOOL_
+#ifndef _AK_DAE_STRPOOL_
+#  define _AK_DAE_STRPOOL_
 #endif
 
 #include "ak_collada_strpool.h"
 #include <string.h>
 
-const char _s_dae_pool[] =
+const char _s_dae_pool_0[] =
 """)
 
-pos = 0
+headerContents.append("\n/* _s_dae_pool_0 */\n")
+
 for name, val in spool.iteritems():
-  fspool_c.write("\"")
-  fspool_c.write(val)
-  fspool_c.write("\\0\"\n")
+  valLen = len(val) + 1
 
-  fspool_h.write("#define _s_dae_")
-  fspool_h.write(name)
-  fspool_h.write(" _s_dae(")
-  fspool_h.write(str(pos))
-  fspool_h.write(")\n")
+  # string literal size: 2048
+  if pos + valLen > 2048:
+    pos    = 0
+    spidx += 1
 
-  pos += len(val) + 1
+    fspool_c.write(";\n\nconst char _s_dae_pool_{0}[] =\n"
+                     .format(str(spidx)))
 
-fspool_h.write("""
-#endif /* __libassetkit__collada_strpool__h_ */
-""")
+    headerContents.append("\n/* _s_dae_pool_{0} */\n"
+                            .format(spidx))
 
-fspool_c.write(""";
+  fspool_c.write("\"{0}\\0\"\n"
+                   .format(val))
 
-#undef _ak_DAE_STRPOOL_
-""")
+  headerContents.append("#define _s_dae_{0} _s_dae_{1}({2})\n"
+                          .format(name, str(spidx), str(pos)))
 
-fspool_h.close()
+  pos += valLen
+
+# source file, then close it
+fspool_c.write(";\n\n#undef _AK_DAE_STRPOOL_\n")
 fspool_c.close()
+
+# header file
+for idx in range(spidx + 1):
+  fspool_h.write("\n_AK_EXTERN const char _s_dae_pool_{0}[];"
+                   .format(str(idx)))
+
+fspool_h.write("\n\n")
+
+for idx in range(spidx + 1):
+  fspool_h.write("#define _s_dae_{0}(x) (_s_dae_pool_{0} + x)\n"
+                   .format(str(idx)))
+
+# write header contents, then close it
+fspool_h.writelines(headerContents)
+fspool_h.write("\n#endif /* ak_dae_strpool_h */\n")
+fspool_h.close()
+
+# try free array
+del headerContents[:]
