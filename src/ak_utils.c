@@ -53,7 +53,6 @@ ak_readfile(const char * __restrict file,
   memset(*dest + fcontents_size, '\0', 1);
 
   total_read = 0;
-  nread      = 0;
 
   do {
     if ((fcontents_size - total_read) < blksize)
