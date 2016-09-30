@@ -129,10 +129,6 @@ typedef enum AkFileType {
   AK_FILE_TYPE_FBX       = 3
 } AkFileType;
 
-typedef enum AkAssetType {
-  AK_ASSET_TYPE_UNKNOWN
-} AkAssetType;
-
 typedef enum AkUpAxis {
   AK_UP_AXIS_Y = 0,
   AK_UP_AXIS_X = 1,
@@ -333,10 +329,10 @@ typedef enum AkNodeTransformType {
 /**
  * Almost all assets includes this fields.
  * This macro defines base fields of assets
+ * TODO: remove this!
  */
 #define ak_asset_base                                                        \
-  AkAssetInf  * inf;                                                        \
-  AkAssetType   type;
+  AkAssetInf  * inf;
 
 typedef struct AkTreeNodeAttr {
   const char * name;
