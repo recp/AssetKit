@@ -116,7 +116,7 @@ ak_strtoi_array(AkHeap * __restrict heap,
                 char * stringRep,
                 AkIntArray ** __restrict array) {
   AkIntArray     *intArray;
-  AkDouble       *tmpArray;
+  AkInt          *tmpArray;
   char           *tok;
   AkUInt64        tmpCount;
   AkUInt64        arrayIndex;
@@ -132,7 +132,7 @@ ak_strtoi_array(AkHeap * __restrict heap,
 
   tok = strtok(stringRep, " ");
   while (tok) {
-    *(tmpArray + arrayIndex++) = strtod(tok, NULL);
+    tmpArray[arrayIndex++] = (AkInt)strtol(tok, NULL, 10);
 
     tok = strtok(NULL, " ");
 
