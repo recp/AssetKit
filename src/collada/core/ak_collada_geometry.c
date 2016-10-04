@@ -6,7 +6,7 @@
  */
 
 #include "ak_collada_geometry.h"
-#include "../ak_collada_asset.h"
+#include "../core/ak_collada_asset.h"
 #include "ak_collada_mesh.h"
 #include "ak_collada_spline.h"
 #include "../brep/ak_collada_brep.h"

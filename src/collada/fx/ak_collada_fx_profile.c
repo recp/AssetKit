@@ -6,9 +6,9 @@
  */
 
 #include "ak_collada_fx_profile.h"
-#include "../ak_collada_param.h"
-#include "../ak_collada_annotate.h"
-#include "../ak_collada_asset.h"
+#include "../core/ak_collada_param.h"
+#include "../core/ak_collada_annotate.h"
+#include "../core/ak_collada_asset.h"
 #include "ak_collada_fx_technique.h"
 
 static ak_enumpair profileMap[] = {

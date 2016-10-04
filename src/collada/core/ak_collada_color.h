@@ -8,8 +8,7 @@
 #ifndef __libassetkit__ak_collada_color_h_
 #define __libassetkit__ak_collada_color_h_
 
-#include "../../include/assetkit.h"
-#include "ak_collada_common.h"
+#include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
 ak_dae_color(AkHeap * __restrict heap,

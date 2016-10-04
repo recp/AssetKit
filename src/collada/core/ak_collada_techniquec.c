@@ -6,9 +6,9 @@
  */
 
 #include "ak_collada_technique.h"
-#include "ak_collada_common.h"
 #include "ak_collada_color.h"
-#include "fx/ak_collada_fx_material.h"
+#include "../ak_collada_common.h"
+#include "../fx/ak_collada_fx_material.h"
 
 AkResult _assetkit_hide
 ak_dae_techniquec(AkHeap * __restrict heap,

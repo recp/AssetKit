@@ -6,12 +6,7 @@
  */
 
 #include "ak_collada_technique.h"
-#include "../ak_libxml.h"
-#include "../ak_common.h"
-#include "../ak_utils.h"
-#include "../ak_tree.h"
-
-#include "ak_collada_common.h"
+#include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
 ak_dae_technique(AkHeap * __restrict heap,

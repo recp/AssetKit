@@ -6,9 +6,9 @@
  */
 
 #include "ak_collada_fx_material.h"
-#include "../ak_collada_asset.h"
-#include "../ak_collada_param.h"
-#include "../ak_collada_technique.h"
+#include "../core/ak_collada_asset.h"
+#include "../core/ak_collada_param.h"
+#include "../core/ak_collada_technique.h"
 #include "ak_collada_fx_effect.h"
 
 AkResult _assetkit_hide

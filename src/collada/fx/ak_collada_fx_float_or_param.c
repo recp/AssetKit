@@ -6,7 +6,7 @@
  */
 
 #include "ak_collada_fx_float_or_param.h"
-#include "../ak_collada_param.h"
+#include "../core/ak_collada_param.h"
 
 AkResult _assetkit_hide
 ak_dae_floatOrParam(AkHeap * __restrict heap,

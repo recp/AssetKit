@@ -6,7 +6,7 @@
  */
 
 #include "ak_collada_fx_image.h"
-#include "../ak_collada_asset.h"
+#include "../core/ak_collada_asset.h"
 #include "ak_collada_fx_enums.h"
 
 static

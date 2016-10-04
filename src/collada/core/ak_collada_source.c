@@ -6,8 +6,8 @@
  */
 
 #include "ak_collada_source.h"
-#include "../ak_collada_asset.h"
-#include "../ak_collada_technique.h"
+#include "../core/ak_collada_asset.h"
+#include "../core/ak_collada_technique.h"
 
 #define k_s_dae_asset        100
 #define k_s_dae_techniquec   101

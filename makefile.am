@@ -42,7 +42,17 @@ libassetkit_la_SOURCES=\
     src/ak_memory_rb.c \
     src/ak_memory_lt.c \
     src/collada/ak_collada.c \
+    src/collada/ak_collada_strpool.c \
     src/collada/ak_collada_common.c \
+    src/collada/core/ak_collada_asset.c \
+    src/collada/core/ak_collada_technique.c \
+    src/collada/core/ak_collada_techniquec.c \
+    src/collada/core/ak_collada_camera.c \
+    src/collada/core/ak_collada_light.c \
+    src/collada/core/ak_collada_param.c \
+    src/collada/core/ak_collada_annotate.c \
+    src/collada/core/ak_collada_value.c \
+    src/collada/core/ak_collada_color.c \
     src/collada/core/ak_collada_geometry.c \
     src/collada/core/ak_collada_mesh.c \
     src/collada/core/ak_collada_source.c \
@@ -65,16 +75,6 @@ libassetkit_la_SOURCES=\
     src/collada/brep/ak_collada_brep_nurbs.c \
     src/collada/brep/ak_collada_brep_surface.c \
     src/collada/brep/ak_collada_brep_topology.c \
-    src/collada/ak_collada_asset.c \
-    src/collada/ak_collada_technique.c \
-    src/collada/ak_collada_techniquec.c \
-    src/collada/ak_collada_camera.c \
-    src/collada/ak_collada_light.c \
-    src/collada/ak_collada_param.c \
-    src/collada/ak_collada_annotate.c \
-    src/collada/ak_collada_value.c \
-    src/collada/ak_collada_color.c \
-    src/collada/ak_collada_strpool.c \
     src/collada/fx/ak_collada_fx_profile.c \
     src/collada/fx/ak_collada_fx_effect.c \
     src/collada/fx/ak_collada_fx_image.c \

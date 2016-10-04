@@ -8,8 +8,7 @@
 #ifndef __libassetkit__ak_collada_technique__h_
 #define __libassetkit__ak_collada_technique__h_
 
-#include "../../include/assetkit.h"
-#include "ak_collada_common.h"
+#include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
 ak_dae_technique(AkHeap * __restrict heap,

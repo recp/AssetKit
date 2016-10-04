@@ -7,8 +7,8 @@
 
 #include "ak_collada_fx_technique.h"
 
-#include "../ak_collada_asset.h"
-#include "../ak_collada_annotate.h"
+#include "../core/ak_collada_asset.h"
+#include "../core/ak_collada_annotate.h"
 
 #include "ak_collada_fx_blinn_phong.h"
 #include "ak_collada_fx_constant.h"

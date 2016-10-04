@@ -6,8 +6,8 @@
  */
 
 #include "ak_collada_fx_uniform.h"
-#include "../ak_collada_param.h"
-#include "../ak_collada_value.h"
+#include "../core/ak_collada_param.h"
+#include "../core/ak_collada_value.h"
 
 AkResult _assetkit_hide
 ak_dae_fxBindUniform(AkHeap * __restrict heap,

@@ -7,10 +7,10 @@
 
 #include "ak_collada.h"
 #include "ak_collada_common.h"
-#include "ak_collada_asset.h"
-#include "ak_collada_camera.h"
-#include "ak_collada_light.h"
 
+#include "core/ak_collada_asset.h"
+#include "core/ak_collada_camera.h"
+#include "core/ak_collada_light.h"
 #include "core/ak_collada_geometry.h"
 #include "core/ak_collada_controller.h"
 #include "core/ak_collada_visual_scene.h"

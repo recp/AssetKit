@@ -7,7 +7,7 @@
 
 #include "ak_collada_node.h"
 #include "../../ak_array.h"
-#include "../ak_collada_asset.h"
+#include "../core/ak_collada_asset.h"
 #include "ak_collada_enums.h"
 #include "../fx/ak_collada_fx_material.h"
 

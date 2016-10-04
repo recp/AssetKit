@@ -6,7 +6,7 @@
  */
 
 #include "ak_collada_visual_scene.h"
-#include "../ak_collada_asset.h"
+#include "../core/ak_collada_asset.h"
 #include "ak_collada_node.h"
 #include "ak_collada_evaluate_scene.h"
 

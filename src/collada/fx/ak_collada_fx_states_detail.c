@@ -7,7 +7,7 @@
 
 #include "ak_collada_fx_states_detail.h"
 #include "../ak_collada_common.h"
-#include "../ak_collada_value.h"
+#include "../core/ak_collada_value.h"
 #include "ak_collada_fx_enums.h"
 #include "ak_collada_fx_sampler.h"
 

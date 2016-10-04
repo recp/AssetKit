@@ -6,8 +6,8 @@
  */
 
 #include "ak_collada_fx_evaluate.h"
-#include "../ak_collada_param.h"
-#include "../ak_collada_color.h"
+#include "../core/ak_collada_param.h"
+#include "../core/ak_collada_color.h"
 #include "ak_collada_fx_enums.h"
 #include "ak_collada_fx_image.h"
 

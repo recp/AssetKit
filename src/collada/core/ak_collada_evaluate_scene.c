@@ -7,7 +7,7 @@
 
 #include "ak_collada_evaluate_scene.h"
 #include "ak_collada_render.h"
-#include "../ak_collada_asset.h"
+#include "../core/ak_collada_asset.h"
 
 AkResult _assetkit_hide
 ak_dae_evaluateScene(AkHeap * __restrict heap,
