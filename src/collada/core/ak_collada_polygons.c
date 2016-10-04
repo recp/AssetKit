@@ -94,9 +94,10 @@ ak_dae_polygons(AkHeap * __restrict heap,
       _xml_readMutText(content);
 
       if (content) {
-        AkDoubleArray *doubleArray;
+        AkUIntArray *intArray;
         AkResult ret;
-        ret = ak_strtod_array(heap, memPtr, content, &doubleArray);
+
+        ret = ak_strtoui_array(heap, memPtr, content, &intArray);
         if (ret == AK_OK) {
           if (mode == AK_POLYGON_MODE_POLYLIST) {
             if (!last_polygon) {
@@ -123,7 +124,7 @@ ak_dae_polygons(AkHeap * __restrict heap,
             last_polygon = polygon;
           }
           
-          last_polygon->primitives = doubleArray;
+          last_polygon->primitives = intArray;
         }
         
         xmlFree(content);
@@ -173,12 +174,12 @@ ak_dae_polygons(AkHeap * __restrict heap,
           _xml_readMutText(content);
 
           if (content) {
-            AkDoubleArray *doubleArray;
+            AkUIntArray *intArray;
             AkResult ret;
 
-            ret = ak_strtod_array(heap, memPtr, content, &doubleArray);
+            ret = ak_strtoui_array(heap, memPtr, content, &intArray);
             if (ret == AK_OK)
-              polygon->primitives = doubleArray;
+              polygon->primitives = intArray;
 
             xmlFree(content);
           }

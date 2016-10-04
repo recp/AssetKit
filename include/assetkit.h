@@ -1155,7 +1155,8 @@ typedef struct AkLines {
 typedef struct AkPolygon {
   struct AkPolygon * next;
 
-  AkDoubleArray  * primitives;
+  AkUIntArray    * primitives;
+
   AkDoubleArrayL * holes;
   AkIntArray     * vcount;
   AkPolygonMode    mode;
