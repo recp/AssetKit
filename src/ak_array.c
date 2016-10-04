@@ -161,6 +161,56 @@ ak_strtoi_array(AkHeap * __restrict heap,
 }
 
 AkResult _assetkit_hide
+ak_strtoui_array(AkHeap * __restrict heap,
+                 void * __restrict memParent,
+                 char * stringRep,
+                 AkUIntArray ** __restrict array) {
+  AkUIntArray    *intArray;
+  AkUInt         *tmpArray;
+  char           *tok;
+  AkUInt64        tmpCount;
+  AkUInt64        arrayIndex;
+  size_t          arraySize;
+
+  tmpCount  = AK__TMP_ARRAY_INCREMENT;
+  arrayIndex = 0;
+
+  tmpArray = ak_heap_alloc(heap,
+                           memParent,
+                           sizeof(AkUInt) * tmpCount,
+                           false);
+
+  tok = strtok(stringRep, " ");
+  while (tok) {
+    tmpArray[arrayIndex++] = (AkUInt)strtoul(tok, NULL, 10);
+
+    tok = strtok(NULL, " ");
+
+    if (tok && arrayIndex == tmpCount) {
+      tmpCount += AK__TMP_ARRAY_INCREMENT;
+      tmpArray = ak_realloc(memParent,
+                            tmpArray,
+                            sizeof(AkUInt) * tmpCount);
+    }
+  }
+
+  arraySize = sizeof(AkUInt) * arrayIndex;
+  intArray = ak_heap_alloc(heap,
+                           memParent,
+                           sizeof(*intArray) + arraySize,
+                           false);
+
+  intArray->count = arrayIndex;
+  memmove(intArray->items, tmpArray, arraySize);
+
+  ak_free(tmpArray);
+
+  *array = intArray;
+  
+  return AK_OK;
+}
+
+AkResult _assetkit_hide
 ak_strtostr_array(AkHeap * __restrict heap,
                   void * __restrict memParent,
                   char * stringRep,
