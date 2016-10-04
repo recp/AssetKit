@@ -6,7 +6,7 @@
  */
 
 #include "ak_collada_geomety_fixup.h"
-#include "ak_memory_common.h"
+#include "../ak_memory_common.h"
 
 AkResult _assetkit_hide
 ak_dae_mesh_fixup(AkMesh * mesh) {
@@ -36,7 +36,6 @@ ak_dae_mesh_fixup(AkMesh * mesh) {
         size_t       i;
 
         verticeInput = NULL;
-        vertOffset   = 0;
         inputCount   = 0;
         input        = polygon->input;
         indices      = polygon->indices;
