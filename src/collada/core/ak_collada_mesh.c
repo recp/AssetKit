@@ -11,6 +11,7 @@
 #include "ak_collada_lines.h"
 #include "ak_collada_polygons.h"
 #include "ak_collada_triangles.h"
+#include "../ak_collada_geomety_fixup.h"
 
 #define k_s_dae_source     1
 #define k_s_dae_vertices   2
@@ -246,6 +247,7 @@ ak_dae_mesh(AkHeap * __restrict heap,
     _xml_endElement;
   } while (nodeRet);
 
+  ak_dae_mesh_fixup(mesh);
   *dest = mesh;
 
   return AK_OK;

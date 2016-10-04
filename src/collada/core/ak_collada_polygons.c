@@ -29,7 +29,7 @@ ak_dae_polygon(AkHeap * __restrict heap,
     obj = ak_objAlloc(heap,
                       memParent,
                       sizeof(*polygon),
-                      0,
+                      AK_MESH_PRIMITIVE_TYPE_POLYGONS,
                       true,
                       false);
 
