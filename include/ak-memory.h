@@ -80,6 +80,10 @@ ak_heap_attachto(AkHeap * __restrict heap,
                  void * __restrict memptr);
 
 AK_EXPORT
+void*
+ak_heap_attachment(AkHeap * __restrict heap);
+
+AK_EXPORT
 void
 ak_heap_init(AkHeap * __restrict heap,
              AkHeapAllocator *allocator,
