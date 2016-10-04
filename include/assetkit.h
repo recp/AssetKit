@@ -1153,27 +1153,17 @@ typedef struct AkLines {
 } AkLines;
 
 typedef struct AkPolygon {
-  struct AkPolygon * next;
-
-  AkUIntArray    * primitives;
-
-  AkDoubleArrayL * holes;
-  AkIntArray     * vcount;
-  AkPolygonMode    mode;
-  AkBool           haveHoles;
+  const char       *name;
+  const char       *material;
+  AkInput          *input;
+  AkUIntArray      *indices;
+  AkDoubleArrayL   *holes;
+  AkIntArray       *vcount;
+  AkPolygonMode     mode;
+  AkBool            haveHoles;
+  AkTree           *extra;
+  struct AkPolygon *next;
 } AkPolygon;
-
-typedef struct AkPolygons {
-  ak_asset_base
-
-  const char * name;
-  const char * material;
-  uint64_t     count;
-
-  AkInput    * input;
-  AkPolygon  * polygon;
-  AkTree     * extra;
-} AkPolygons;
 
 typedef struct AkTriangles {
   ak_asset_base

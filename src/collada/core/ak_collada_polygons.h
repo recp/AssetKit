@@ -11,12 +11,12 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_polygons(AkHeap * __restrict heap,
-                void * __restrict memParent,
-                xmlTextReaderPtr reader,
-                const char * elm,
-                AkPolygonMode mode,
-                bool asObject,
-                AkPolygons ** __restrict dest);
+ak_dae_polygon(AkHeap * __restrict heap,
+               void * __restrict memParent,
+               xmlTextReaderPtr reader,
+               const char * elm,
+               AkPolygonMode mode,
+               bool asObject,
+               AkPolygon ** __restrict dest);
 
 #endif /* __libassetkit__ak_collada_polygons_h_ */

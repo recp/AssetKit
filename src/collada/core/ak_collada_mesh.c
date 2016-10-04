@@ -153,8 +153,8 @@ ak_dae_mesh(AkHeap * __restrict heap,
       }
       case k_s_dae_polygons:
       case k_s_dae_polylist: {
-        AkObject   *primitiveObj;
-        AkPolygons *polygons;
+        AkObject  *primitiveObj;
+        AkPolygon *polygon;
         AkPolygonMode mode;
         AkResult      ret;
 
@@ -163,15 +163,15 @@ ak_dae_mesh(AkHeap * __restrict heap,
         else
           mode = AK_POLYGON_MODE_POLYLIST;
 
-        ret = ak_dae_polygons(heap,
-                              memPtr,
-                              reader,
-                              found->key,
-                              mode,
-                              true,
-                              &polygons);
+        ret = ak_dae_polygon(heap,
+                             memPtr,
+                             reader,
+                             found->key,
+                             mode,
+                             true,
+                             &polygon);
         if (ret == AK_OK) {
-          primitiveObj = ak_objFrom(polygons);
+          primitiveObj = ak_objFrom(polygon);
 
           if (last_primitive)
             last_primitive->next = primitiveObj;
