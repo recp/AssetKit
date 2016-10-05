@@ -30,7 +30,7 @@ ak_dae_triangles(AkHeap * __restrict heap,
     obj = ak_objAlloc(heap,
                       memParent,
                       sizeof(*triangles),
-                      0,
+                      AK_MESH_PRIMITIVE_TYPE_TRIANGLES,
                       true,
                       false);
 

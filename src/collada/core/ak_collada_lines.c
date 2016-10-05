@@ -29,7 +29,7 @@ ak_dae_lines(AkHeap * __restrict heap,
     obj = ak_objAlloc(heap,
                       memParent,
                       sizeof(*lines),
-                      0,
+                      AK_MESH_PRIMITIVE_TYPE_LINES,
                       true,
                       false);
 
