@@ -60,7 +60,7 @@ ak_dae_brep(AkHeap * __restrict heap,
     obj = ak_objAlloc(heap,
                       memParent,
                       sizeof(*brep),
-                      0,
+                      AK_GEOMETRY_TYPE_BREP,
                       true,
                       false);
 

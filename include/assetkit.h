@@ -255,6 +255,12 @@ typedef enum AkInputSemantic {
   AK_INPUT_SEMANTIC_WEIGHT          = 23
 } AkInputSemantic;
 
+typedef enum AkGeometryType {
+  AK_GEOMETRY_TYPE_MESH   = 0,
+  AK_GEOMETRY_TYPE_SPLINE = 1,
+  AK_GEOMETRY_TYPE_BREP   = 2
+} AkGeometryType;
+
 typedef enum AkTriangleMode {
   AK_TRIANGLE_MODE_TRIANGLES      = 0,
   AK_TRIANGLE_MODE_TRIANGLE_STRIP = 1,

@@ -27,7 +27,7 @@ ak_dae_spline(AkHeap * __restrict heap,
     obj = ak_objAlloc(heap,
                       memParent,
                       sizeof(*spline),
-                      0,
+                      AK_GEOMETRY_TYPE_SPLINE,
                       true,
                       false);
 

@@ -60,7 +60,7 @@ ak_dae_mesh(AkHeap * __restrict heap,
     obj = ak_objAlloc(heap,
                       memParent,
                       sizeof(*mesh),
-                      0,
+                      AK_GEOMETRY_TYPE_MESH,
                       true,
                       false);
 
