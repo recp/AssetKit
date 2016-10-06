@@ -165,6 +165,9 @@ ak_dae_node(AkHeap * __restrict heap,
         if (content) {
           AkObject *obj;
           AkMatrix *matrix;
+          AkFloat   tmp[4][4];
+          uint32_t  i;
+          uint32_t  j;
 
           obj = ak_objAlloc(heap,
                             node,
@@ -176,7 +179,13 @@ ak_dae_node(AkHeap * __restrict heap,
           matrix = ak_objGet(obj);
 
           _xml_readAttr(matrix, matrix->sid, _s_dae_sid);
-          ak_strtof(&content, (AkFloat *)matrix->val, 16);
+
+          ak_strtof(&content, tmp[0], 16);
+
+          /* TODO: optimize it */
+          for (i = 0; i < 4; i++)
+            for (j = 0; j < 4; j++)
+              matrix->val[i][j] = tmp[j][i];
 
           if (last_transform)
             last_transform->next = obj;
