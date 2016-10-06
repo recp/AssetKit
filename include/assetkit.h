@@ -1471,10 +1471,8 @@ typedef struct AkLookAt {
 } AkLookAt;
 
 typedef struct AkMatrix {
-  ak_asset_base
-
   const char * sid;
-  AkDouble     val[4][4];
+  AkFloat      val[4][4];
 } AkMatrix;
 
 typedef struct AkRotate {

@@ -176,7 +176,7 @@ ak_dae_node(AkHeap * __restrict heap,
           matrix = ak_objGet(obj);
 
           _xml_readAttr(matrix, matrix->sid, _s_dae_sid);
-          ak_strtod(&content, (AkDouble *)matrix->val, 16);
+          ak_strtof(&content, (AkFloat *)matrix->val, 16);
 
           if (last_transform)
             last_transform->next = obj;
