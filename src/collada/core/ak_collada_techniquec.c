@@ -39,46 +39,46 @@ ak_dae_techniquec(AkHeap * __restrict heap,
         _xml_beginElement(_s_dae_perspective);
 
         if (_xml_eqElm(_s_dae_xfov)) {
-          ak_basic_attrd * xfov;
+          ak_basic_attrf * xfov;
           xfov = ak_heap_calloc(heap, perspective, sizeof(*xfov), false);
 
           _xml_readAttr(xfov, xfov->sid, _s_dae_sid);
-          _xml_readTextUsingFn(xfov->val, strtod, NULL);
+          _xml_readTextUsingFn(xfov->val, strtof, NULL);
 
           perspective->xfov = xfov;
         } else if (_xml_eqElm(_s_dae_yfov)) {
-          ak_basic_attrd * yfov;
+          ak_basic_attrf * yfov;
           yfov = ak_heap_calloc(heap, perspective, sizeof(*yfov), false);
 
           _xml_readAttr(yfov, yfov->sid, _s_dae_sid);
-          _xml_readTextUsingFn(yfov->val, strtod, NULL);
+          _xml_readTextUsingFn(yfov->val, strtof, NULL);
 
           perspective->yfov = yfov;
         } else if (_xml_eqElm(_s_dae_aspect_ratio)) {
-          ak_basic_attrd * aspectRatio;
+          ak_basic_attrf * aspectRatio;
           aspectRatio = ak_heap_calloc(heap,
                                        perspective,
                                        sizeof(*aspectRatio),
                                        false);
 
           _xml_readAttr(aspectRatio, aspectRatio->sid, _s_dae_sid);
-          _xml_readTextUsingFn(aspectRatio->val, strtod, NULL);
+          _xml_readTextUsingFn(aspectRatio->val, strtof, NULL);
 
           perspective->aspectRatio = aspectRatio;
         } else if (_xml_eqElm(_s_dae_znear)) {
-          ak_basic_attrd * znear;
+          ak_basic_attrf * znear;
           znear = ak_heap_calloc(heap, perspective, sizeof(*znear), false);
 
           _xml_readAttr(znear, znear->sid, _s_dae_sid);
-          _xml_readTextUsingFn(znear->val, strtod, NULL);
+          _xml_readTextUsingFn(znear->val, strtof, NULL);
 
           perspective->znear = znear;
         } else if (_xml_eqElm(_s_dae_zfar)) {
-          ak_basic_attrd * zfar;
+          ak_basic_attrf * zfar;
           zfar = ak_heap_calloc(heap, perspective, sizeof(*zfar), false);
 
           _xml_readAttr(zfar, zfar->sid, _s_dae_sid);
-          _xml_readTextUsingFn(zfar->val, strtod, NULL);
+          _xml_readTextUsingFn(zfar->val, strtof, NULL);
 
           perspective->zfar = zfar;
         } else {
@@ -102,46 +102,46 @@ ak_dae_techniquec(AkHeap * __restrict heap,
         _xml_beginElement(_s_dae_orthographic);
 
         if (_xml_eqElm(_s_dae_xmag)) {
-          ak_basic_attrd * xmag;
+          ak_basic_attrf * xmag;
           xmag = ak_heap_calloc(heap, orthographic, sizeof(*xmag), false);
 
           _xml_readAttr(xmag, xmag->sid, _s_dae_sid);
-          _xml_readTextUsingFn(xmag->val, strtod, NULL);
+          _xml_readTextUsingFn(xmag->val, strtof, NULL);
 
           orthographic->xmag = xmag;
         } else if (_xml_eqElm(_s_dae_ymag)) {
-          ak_basic_attrd * ymag;
+          ak_basic_attrf * ymag;
           ymag = ak_heap_calloc(heap, orthographic, sizeof(*ymag), false);
 
           _xml_readAttr(ymag, ymag->sid, _s_dae_sid);
-          _xml_readTextUsingFn(ymag->val, strtod, NULL);
+          _xml_readTextUsingFn(ymag->val, strtof, NULL);
 
           orthographic->ymag = ymag;
         } else if (_xml_eqElm(_s_dae_aspect_ratio)) {
-          ak_basic_attrd * aspectRatio;
+          ak_basic_attrf * aspectRatio;
           aspectRatio = ak_heap_calloc(heap,
                                        orthographic,
                                        sizeof(*aspectRatio),
                                        false);
 
           _xml_readAttr(aspectRatio, aspectRatio->sid, _s_dae_sid);
-          _xml_readTextUsingFn(aspectRatio->val, strtod, NULL);
+          _xml_readTextUsingFn(aspectRatio->val, strtof, NULL);
 
           orthographic->aspectRatio = aspectRatio;
         } else if (_xml_eqElm(_s_dae_znear)) {
-          ak_basic_attrd * znear;
+          ak_basic_attrf * znear;
           znear = ak_heap_calloc(heap, orthographic, sizeof(*znear), false);
 
           _xml_readAttr(znear, znear->sid, _s_dae_sid);
-          _xml_readTextUsingFn(znear->val, strtod, NULL);
+          _xml_readTextUsingFn(znear->val, strtof, NULL);
 
           orthographic->znear = znear;
         } else if (_xml_eqElm(_s_dae_zfar)) {
-          ak_basic_attrd * zfar;
+          ak_basic_attrf * zfar;
           zfar = ak_heap_calloc(heap, orthographic, sizeof(*zfar), false);
 
           _xml_readAttr(zfar, zfar->sid, _s_dae_sid);
-          _xml_readTextUsingFn(zfar->val, strtod, NULL);
+          _xml_readTextUsingFn(zfar->val, strtof, NULL);
 
           orthographic->zfar = zfar;
         } else {
