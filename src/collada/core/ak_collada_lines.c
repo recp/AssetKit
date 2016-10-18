@@ -19,7 +19,6 @@ ak_dae_lines(AkHeap * __restrict heap,
   AkObject       *obj;
   AkLines        *lines;
   AkInput        *last_input;
-  AkDoubleArrayL *last_array;
   void           *memPtr;
   const xmlChar  *nodeName;
   int             nodeType;
@@ -50,7 +49,6 @@ ak_dae_lines(AkHeap * __restrict heap,
                               strtoul, NULL, 10);
 
   last_input = NULL;
-  last_array = NULL;
 
   do {
     _xml_beginElement(_s_dae_lines);
@@ -95,18 +93,12 @@ ak_dae_lines(AkHeap * __restrict heap,
       _xml_readMutText(content);
 
       if (content) {
-        AkDoubleArrayL *doubleArray;
+        AkUIntArray *uintArray;
         AkResult ret;
-
-        ret = ak_strtod_arrayL(heap, memPtr, content, &doubleArray);
-        if (ret == AK_OK) {
-          if (last_array)
-            last_array->next = doubleArray;
-          else
-            lines->primitives = doubleArray;
-
-          last_array = doubleArray;
-        }
+        
+        ret = ak_strtoui_array(heap, memPtr, content, &uintArray);
+        if (ret == AK_OK)
+          lines->indices = uintArray;
 
         xmlFree(content);
       }

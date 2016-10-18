@@ -1145,17 +1145,14 @@ typedef struct AkVertices {
 } AkVertices;
 
 typedef struct AkLines {
-  ak_asset_base
-
-  const char * name;
-  const char * material;
+  const char  *name;
+  const char  *material;
+  AkInput     *input;
+  AkTree      *extra;
+  AkUIntArray *indices;
   uint64_t     count;
-
-  AkInput    * input;
-  AkTree     * extra;
   AkLineMode   mode;
-
-  AkDoubleArrayL * primitives;
+  struct AkLines *next;
 } AkLines;
 
 typedef struct AkPolygon {
