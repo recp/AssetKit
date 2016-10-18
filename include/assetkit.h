@@ -1172,15 +1172,14 @@ typedef struct AkPolygon {
 } AkPolygon;
 
 typedef struct AkTriangles {
-  ak_asset_base
-
-  const char     * name;
-  const char     * material;
-  AkInput        * input;
-  AkDoubleArrayL * primitives;
-  AkTree         * extra;
-  uint64_t         count;
-  AkTriangleMode   mode;
+  const char    *name;
+  const char    *material;
+  AkInput       *input;
+  AkUIntArray   *indices;
+  AkTree        *extra;
+  uint64_t       count;
+  AkTriangleMode mode;
+  struct AkTriangles *next;
 } AkTriangles;
 
 typedef struct AkMesh {

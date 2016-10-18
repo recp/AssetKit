@@ -19,7 +19,6 @@ ak_dae_triangles(AkHeap * __restrict heap,
                  AkTriangles ** __restrict dest) {
   AkObject       *obj;
   AkTriangles    *triangles;
-  AkDoubleArrayL *last_array;
   AkInput        *last_input;
   void           *memPtr;
   const xmlChar  *nodeName;
@@ -50,7 +49,6 @@ ak_dae_triangles(AkHeap * __restrict heap,
                               0,
                               strtoul, NULL, 10);
 
-  last_array = NULL;
   last_input = NULL;
 
   do {
@@ -91,21 +89,16 @@ ak_dae_triangles(AkHeap * __restrict heap,
 
       last_input = input;
     } else if (_xml_eqElm(_s_dae_p)) {
-      AkDoubleArrayL *doubleArray;
+      AkUIntArray *uintArray;
       char *content;
 
       _xml_readMutText(content);
       if (content) {
         AkResult ret;
-        ret = ak_strtod_arrayL(heap, memPtr, content, &doubleArray);
-        if (ret == AK_OK) {
-          if (last_array)
-            last_array->next = doubleArray;
-          else
-            triangles->primitives = doubleArray;
+        ret = ak_strtoui_array(heap, memPtr, content, &uintArray);
+        if (ret == AK_OK)
+          triangles->indices = uintArray;
 
-          last_array = doubleArray;
-        }
         xmlFree(content);
       }
 

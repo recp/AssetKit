@@ -46,12 +46,13 @@ ak_dae_mesh(AkHeap * __restrict heap,
             const char * elm,
             AkMesh ** __restrict dest,
             bool asObject) {
-  AkObject  *obj;
-  AkSource  *last_source;
-  AkObject  *last_primitive;
-  AkPolygon *last_polygon;
-  AkMesh    *mesh;
-  void      *memPtr;
+  AkObject    *obj;
+  AkSource    *last_source;
+  AkObject    *last_primitive;
+  AkPolygon   *last_polygon;
+  AkTriangles *last_triangles;
+  AkMesh      *mesh;
+  void        *memPtr;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
@@ -84,6 +85,7 @@ ak_dae_mesh(AkHeap * __restrict heap,
 
   last_primitive = NULL;
   last_polygon   = NULL;
+  last_triangles = NULL;
   last_source    = NULL;
 
   do {
@@ -221,6 +223,10 @@ ak_dae_mesh(AkHeap * __restrict heap,
             mesh->gprimitive = primitiveObj;
 
           last_primitive = primitiveObj;
+
+          if (last_triangles)
+            last_triangles->next = triangles;
+          last_triangles = triangles;
         }
 
         break;
