@@ -30,11 +30,11 @@ ak_strtod_array(AkHeap * __restrict heap,
                            sizeof(AkDouble) * tmpCount,
                            false);
 
-  tok = strtok(stringRep, " ");
+  tok = strtok(stringRep, " \t\r\n");
   while (tok) {
     *(tmpArray + arrayIndex++) = strtod(tok, NULL);
 
-    tok = strtok(NULL, " ");
+    tok = strtok(NULL, " \t\r\n");
 
     if (tok && arrayIndex == tmpCount) {
       tmpCount += AK__TMP_ARRAY_INCREMENT;
@@ -80,11 +80,11 @@ ak_strtod_arrayL(AkHeap * __restrict heap,
                            sizeof(AkDouble) * tmpCount,
                            false);
 
-  tok = strtok(stringRep, " ");
+  tok = strtok(stringRep, " \t\r\n");
   while (tok) {
     *(tmpArray + arrayIndex++) = strtod(tok, NULL);
 
-    tok = strtok(NULL, " ");
+    tok = strtok(NULL, " \t\r\n");
 
     if (tok && arrayIndex == tmpCount) {
       tmpCount += AK__TMP_ARRAY_INCREMENT;
@@ -130,11 +130,11 @@ ak_strtoi_array(AkHeap * __restrict heap,
                            sizeof(AkInt) * tmpCount,
                            false);
 
-  tok = strtok(stringRep, " ");
+  tok = strtok(stringRep, " \t\r\n");
   while (tok) {
     tmpArray[arrayIndex++] = (AkInt)strtol(tok, NULL, 10);
 
-    tok = strtok(NULL, " ");
+    tok = strtok(NULL, " \t\r\n");
 
     if (tok && arrayIndex == tmpCount) {
       tmpCount += AK__TMP_ARRAY_INCREMENT;
@@ -180,11 +180,11 @@ ak_strtoui_array(AkHeap * __restrict heap,
                            sizeof(AkUInt) * tmpCount,
                            false);
 
-  tok = strtok(stringRep, " ");
+  tok = strtok(stringRep, " \t\r\n");
   while (tok) {
     tmpArray[arrayIndex++] = (AkUInt)strtoul(tok, NULL, 10);
 
-    tok = strtok(NULL, " ");
+    tok = strtok(NULL, " \t\r\n");
 
     if (tok && arrayIndex == tmpCount) {
       tmpCount += AK__TMP_ARRAY_INCREMENT;
@@ -219,6 +219,7 @@ ak_strtostr_array(AkHeap * __restrict heap,
   AkStringArray  *stringArray;
   char           *pData;
   char           *tok;
+  char            separatorStr[4];
   AkUInt64        arrayIndex;
   AkUInt64        itemCount;
   size_t          arraySize;
@@ -226,6 +227,11 @@ ak_strtostr_array(AkHeap * __restrict heap,
 
   arrayIndex = 0;
   itemCount  = 0;
+
+  separatorStr[0] = separator;
+  separatorStr[1] = '\n';
+  separatorStr[2] = '\r';
+  separatorStr[3] = '\t';
 
   pData = stringRep;
   while (*pData != '\0'
@@ -253,7 +259,7 @@ ak_strtostr_array(AkHeap * __restrict heap,
   stringArray->count = itemCount;
   stringArray->items[itemCount] = pData;
 
-  tok = strtok(stringRep, &separator);
+  tok = strtok(stringRep, separatorStr);
   while (tok) {
     strcpy(pData, tok);
     stringArray->items[arrayIndex++] = pData;
@@ -261,7 +267,7 @@ ak_strtostr_array(AkHeap * __restrict heap,
     pData += strlen(tok);
     *pData++ = '\0';
 
-    tok = strtok(NULL, " ");
+    tok = strtok(NULL, separatorStr);
   }
 
   *array = stringArray;
@@ -278,6 +284,7 @@ ak_strtostr_arrayL(AkHeap * __restrict heap,
   AkStringArrayL  *stringArray;
   char           *pData;
   char           *tok;
+  char            separatorStr[4];
   AkUInt64        arrayIndex;
   AkUInt64        itemCount;
   size_t          arraySize;
@@ -285,6 +292,11 @@ ak_strtostr_arrayL(AkHeap * __restrict heap,
 
   arrayIndex = 0;
   itemCount  = 0;
+
+  separatorStr[0] = separator;
+  separatorStr[1] = '\n';
+  separatorStr[2] = '\r';
+  separatorStr[3] = '\t';
 
   pData = stringRep;
   while (*pData != '\0'
@@ -312,15 +324,15 @@ ak_strtostr_arrayL(AkHeap * __restrict heap,
   stringArray->count = itemCount;
   stringArray->items[itemCount] = pData;
 
-  tok = strtok(stringRep, &separator);
+  tok = strtok(stringRep, separatorStr);
   while (tok) {
     strcpy(pData, tok);
     stringArray->items[arrayIndex++] = pData;
-    
+
     pData += strlen(tok);
     *pData++ = '\0';
-    
-    tok = strtok(NULL, " ");
+
+    tok = strtok(NULL, separatorStr);
   }
 
   *array = stringArray;
