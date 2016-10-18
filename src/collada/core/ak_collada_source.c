@@ -275,9 +275,9 @@ ak_dae_source(AkHeap * __restrict heap,
           stringAray->items[arrayCount] = pData;
 
           idx = 0;
-          for (tok = strtok(content, " ");
+          for (tok = strtok(content, " \t\r\n");
                tok;
-               tok = strtok(NULL, " ")) {
+               tok = strtok(NULL, " \t\r\n")) {
             if (idx >= arrayCount)
               break;
 

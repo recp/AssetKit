@@ -19,9 +19,9 @@ ak_strtod(char ** __restrict src,
 
   dest = dest + n - 1ul;
 
-  for (tok = strtok(*src, " ");
+  for (tok = strtok(*src, " \t\r\n");
        tok && n > 0ul;
-       tok = strtok(NULL, " "))
+       tok = strtok(NULL, " \t\r\n"))
     *(dest - --n) = strtod(tok, NULL);
 
   return AK_OK;
@@ -36,9 +36,9 @@ ak_strtof(char ** __restrict src,
 
   dest = dest + n - 1ul;
 
-  for (tok = strtok(*src, " ");
+  for (tok = strtok(*src, " \t\r\n");
        tok && n > 0ul;
-       tok = strtok(NULL, " "))
+       tok = strtok(NULL, " \t\r\n"))
     *(dest - --n) = strtof(tok, NULL);
 
   return AK_OK;
@@ -56,9 +56,9 @@ ak_strtomf(char ** __restrict src,
   idx = m * n;
   dest = dest + idx - 1ul;
 
-  for (tok = strtok(*src, " ");
+  for (tok = strtok(*src, " \t\r\n");
        tok && idx > 0ul;
-       tok = strtok(NULL, " "))
+       tok = strtok(NULL, " \t\r\n"))
     *(dest - --idx) = strtof(tok, NULL);
 
   return AK_OK;
@@ -76,9 +76,9 @@ ak_strtomb(char ** __restrict src,
   idx = m * n;
   dest = dest + idx - 1ul;
 
-  for (tok = strtok(*src, " ");
+  for (tok = strtok(*src, " \t\r\n");
        tok && idx > 0ul;
-       tok = strtok(NULL, " "))
+       tok = strtok(NULL, " \t\r\n"))
     *(dest - --idx) = (bool)strtol(tok, NULL, 10);
 
   return AK_OK;
@@ -96,9 +96,9 @@ ak_strtomi(char ** __restrict src,
   idx = m * n;
   dest = dest + idx - 1ul;
 
-  for (tok = strtok(*src, " ");
+  for (tok = strtok(*src, " \t\r\n");
        tok && idx > 0ul;
-       tok = strtok(NULL, " "))
+       tok = strtok(NULL, " \t\r\n"))
     *(dest - --idx) = (AkInt)strtol(tok, NULL, 10);
 
   return AK_OK;
