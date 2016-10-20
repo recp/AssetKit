@@ -88,9 +88,9 @@ ak_dae_doc(AkDoc ** __restrict dest,
 
     /* COLLADA Core */
     if (_xml_eqElm(_s_dae_asset)) {
-      AkAssetInf * assetInf;
-      AkDocInf   * docInf;
-      AkResult      ret;
+      AkAssetInf *assetInf;
+      AkDocInf   *docInf;
+      AkResult    ret;
 
       docInf = ak_heap_calloc(heap, doc, sizeof(*docInf), false);
       assetInf = &docInf->base;
@@ -98,7 +98,10 @@ ak_dae_doc(AkDoc ** __restrict dest,
       ret = ak_dae_assetInf(heap, docInf, reader, &assetInf);
       if (ret == AK_OK) {
         docInf->ftype = AK_FILE_TYPE_COLLADA;
-        doc->docinf = *docInf;
+        doc->docinf   = *docInf;
+
+        doc->coordSys = assetInf->coordSys;
+        doc->unit     = assetInf->unit;
       }
     } else if (_xml_eqElm(_s_dae_lib_cameras)) {
       AkLibCamera *libcam;

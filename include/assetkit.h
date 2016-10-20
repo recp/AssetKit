@@ -427,18 +427,18 @@ typedef struct AkCoverage {
 } AkCoverage;
 
 typedef struct AkAssetInf {
-  AkContributor * contributor;
-  AkCoverage    * coverage;
-  const char    * subject;
-  const char    * title;
-  const char    * keywords;
+  AkCoordSys    *coordSys;
+  AkUnit        *unit;
+  AkContributor *contributor;
+  AkCoverage    *coverage;
+  const char    *subject;
+  const char    *title;
+  const char    *keywords;
 
-  AkUnit        * unit;
-  AkTree        * extra;
-  ak_time_t       created;
-  ak_time_t       modified;
-  unsigned long   revision;
-  AkCoordSys     *coordSys;
+  AkTree        *extra;
+  ak_time_t      created;
+  ak_time_t      modified;
+  unsigned long  revision;
 } AkAssetInf;
 
 typedef struct AkDocInf {
@@ -1710,9 +1710,11 @@ typedef struct AkLib {
 } AkLib;
 
 typedef struct AkDoc {
-  AkDocInf docinf;
-  AkLib    lib;
-  AkScene  scene;
+  AkDocInf    docinf;
+  AkCoordSys *coordSys;
+  AkUnit     *unit;
+  AkLib       lib;
+  AkScene     scene;
 } AkDoc;
 
 #include "ak-states.h"
