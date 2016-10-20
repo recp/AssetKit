@@ -38,6 +38,10 @@ extern AkCoordSys * AK_ZUP;
 extern AkCoordSys * AK_YUP;
 extern AkCoordSys * AK_XUP;
 
+extern AkCoordSys * AK_ZUP_LH;
+extern AkCoordSys * AK_YUP_LH;
+extern AkCoordSys * AK_XUP_LH;
+
 AK_EXPORT
 void
 ak_coordCvtSequence(AkCoordSys *oldCoordSystem,
