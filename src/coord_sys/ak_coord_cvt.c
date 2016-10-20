@@ -8,13 +8,13 @@
 #include "../ak_common.h"
 #include "../ak_memory_common.h"
 
-AkCoordSys akCoord_RH_ZUP = {
+AkCoordSys * AK_ZUP = &(AkCoordSys){
   AK_AXIS_POSITIVE_X,
   AK_AXIS_POSITIVE_Z,
   AK_AXIS_POSITIVE_Y
 };
 
-AkCoordSys akCoord_RH_YUP = {
+AkCoordSys * AK_YUP = &(AkCoordSys){
   AK_AXIS_POSITIVE_X,
   AK_AXIS_POSITIVE_Y,
   AK_AXIS_NEGATIVE_Z

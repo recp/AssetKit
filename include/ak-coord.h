@@ -34,8 +34,8 @@ typedef struct AkCoordSys {
   AkAxis fwd;      /* -Z */
 } AkCoordSys;
 
-extern AkCoordSys akCoord_RH_ZUP;
-extern AkCoordSys akCoord_RH_YUP;
+extern AkCoordSys * AK_ZUP;
+extern AkCoordSys * AK_YUP;
 
 AK_EXPORT
 void
