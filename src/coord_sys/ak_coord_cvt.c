@@ -20,6 +20,12 @@ AkCoordSys * AK_YUP = &(AkCoordSys){
   AK_AXIS_NEGATIVE_Z
 };
 
+AkCoordSys * AK_XUP = &(AkCoordSys){
+  AK_AXIS_NEGATIVE_Y,
+  AK_AXIS_POSITIVE_X,
+  AK_AXIS_NEGATIVE_Z
+};
+
 AK_EXPORT
 void
 ak_coordCvtSequenceTo(AkCoordSys *oldCoordSystem,

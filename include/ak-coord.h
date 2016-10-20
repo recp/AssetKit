@@ -36,6 +36,7 @@ typedef struct AkCoordSys {
 
 extern AkCoordSys * AK_ZUP;
 extern AkCoordSys * AK_YUP;
+extern AkCoordSys * AK_XUP;
 
 AK_EXPORT
 void
