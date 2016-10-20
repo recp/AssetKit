@@ -28,6 +28,13 @@
 
 #define AK__UNUSED(X) (void)X
 
+/*!
+ * @brief get sign of integer as +1 or -1
+ *
+ * @param X integer value
+ */
+#define AK_GET_SIGN(X) ((X >> 0xFF) - (-X >> 0xFF))
+
 typedef struct ak_enumpair_s ak_enumpair;
 struct ak_enumpair_s {
   const char * key;

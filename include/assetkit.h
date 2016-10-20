@@ -66,6 +66,7 @@ AK__DEF_ARRAY(AkString);
 /* End Core Value Types */
 
 #include "ak-memory.h"
+#include "ak-coord.h"
 
 /**
  * @brief library time type
