@@ -130,12 +130,6 @@ typedef enum AkFileType {
   AK_FILE_TYPE_FBX       = 3
 } AkFileType;
 
-typedef enum AkUpAxis {
-  AK_UP_AXIS_Y = 0,
-  AK_UP_AXIS_X = 1,
-  AK_UP_AXIS_Z = 2
-} AkUpAxis;
-
 typedef enum AkAltitudeMode {
   AK_ALTITUDE_RELATIVETOGROUND = 0,
   AK_ALTITUDE_ABSOLUTE         = 1
@@ -444,7 +438,7 @@ typedef struct AkAssetInf {
   ak_time_t       created;
   ak_time_t       modified;
   unsigned long   revision;
-  AkUpAxis        upaxis;
+  AkCoordSys     *coordSys;
 } AkAssetInf;
 
 typedef struct AkDocInf {

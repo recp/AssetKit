@@ -78,19 +78,16 @@ ak_dae_assetInf(AkHeap * __restrict heap,
 
       (*dest)->unit = unit;
     } else if (_xml_eqElm(_s_dae_up_axis)) {
-      const char * val;
-      AkUpAxis   upaxis;
+      const char *val;
 
       _xml_readConstText(val);
       if (val) {
-        if (strcasecmp(val, _s_dae_z_up))
-          upaxis = AK_UP_AXIS_Z;
-        else if (strcasecmp(val, _s_dae_x_up))
-          upaxis = AK_UP_AXIS_X;
+        if (strcasecmp(val, _s_dae_z_up) == 0)
+          (*dest)->coordSys = AK_ZUP;
+        else if (strcasecmp(val, _s_dae_x_up) == 0)
+          (*dest)->coordSys = AK_XUP;
         else
-          upaxis = AK_UP_AXIS_Y;
-
-        (*dest)->upaxis = upaxis;
+          (*dest)->coordSys = AK_YUP;
       }
     } else if (_xml_eqElm(_s_dae_extra)) {
       xmlNodePtr nodePtr;
