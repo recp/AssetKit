@@ -10,12 +10,12 @@
 
 AK_EXPORT
 void
-ak_changeCoordSys(AkDoc * __restrict mesh,
+ak_changeCoordSys(AkDoc * __restrict doc,
                   AkCoordSys * newCoordSys);
 
 AK_EXPORT
 void
-ak_changeCoordSysGeom(AkDoc * __restrict mesh,
+ak_changeCoordSysGeom(AkGeometry * __restrict geom,
                       AkCoordSys * newCoordSys);
 
 AK_EXPORT
