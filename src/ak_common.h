@@ -8,6 +8,8 @@
 #ifndef ak_common_h
 #define ak_common_h
 
+#define AK_INTERN
+
 #include "../include/assetkit.h"
 #include <stddef.h>
 #include <sys/types.h>
