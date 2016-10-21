@@ -1714,6 +1714,7 @@ typedef struct AkDoc {
 #include "ak-states.h"
 #include "ak-string.h"
 #include "ak-coord-util.h"
+#include "ak-lib.h"
 
 AK_EXPORT
 AkResult

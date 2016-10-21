@@ -46,6 +46,7 @@ libassetkit_la_SOURCES=\
     src/coord_sys/ak_coord_doc.c \
     src/coord_sys/ak_coord_cvt.c \
     src/default/ak_default_coord.c \
+    src/lib/ak_lib_geom.c \
     src/collada/ak_collada.c \
     src/collada/ak_collada_strpool.c \
     src/collada/ak_collada_common.c \
