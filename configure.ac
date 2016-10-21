@@ -16,6 +16,7 @@ AC_CONFIG_HEADERS([config.h])
 
 CFLAGS="$CFLAGS -I./lib/libxml2/include"
 CFLAGS="$CFLAGS -I./lib/jemalloc/include"
+CFLAGS="$CFLAGS -I./lib/cglm/include"
 
 LDFLAGS="$LDFLAGS -L./lib/jemalloc/lib"
 
