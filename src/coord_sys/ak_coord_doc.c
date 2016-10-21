@@ -27,4 +27,6 @@ ak_changeCoordSys(AkDoc * __restrict doc,
 
     libGeom = libGeom->next;
   }
+
+  doc->coordSys = newCoordSys;
 }
