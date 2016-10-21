@@ -34,10 +34,12 @@ typedef struct AkCoordSys {
   AkAxis fwd;      /* -Z */
 } AkCoordSys;
 
+/* Right Hand (Default) */
 extern AkCoordSys * AK_ZUP;
 extern AkCoordSys * AK_YUP;
 extern AkCoordSys * AK_XUP;
 
+/* Left Hand */
 extern AkCoordSys * AK_ZUP_LH;
 extern AkCoordSys * AK_YUP_LH;
 extern AkCoordSys * AK_XUP_LH;
