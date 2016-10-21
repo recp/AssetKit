@@ -45,6 +45,14 @@ extern AkCoordSys * AK_YUP_LH;
 extern AkCoordSys * AK_XUP_LH;
 
 AK_EXPORT
+AkCoordSys *
+ak_defaultCoordSys();
+
+AK_EXPORT
+void
+ak_defaultSetCoordSys(AkCoordSys * coordsys);
+
+AK_EXPORT
 void
 ak_coordCvtSequence(AkCoordSys *oldCoordSystem,
                     float      *sequence,
