@@ -146,5 +146,8 @@ ak_dae_mesh_fixup(AkMesh * mesh) {
       break;
   }
 
+  /* fixup coord system */
+  ak_changeCoordSysMesh(mesh, ak_defaultCoordSys());
+
   return AK_OK;
 }
