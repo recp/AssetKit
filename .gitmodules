@@ -8,3 +8,6 @@
 	url = https://github.com/jemalloc/jemalloc.git
 	branch = master
 	ignore = dirty
+[submodule "lib/cglm"]
+	path = lib/cglm
+	url = https://recp@github.com/recp/cglm.git
