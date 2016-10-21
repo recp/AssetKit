@@ -7,7 +7,6 @@
 
 #include "../ak_common.h"
 #include "../ak_memory_common.h"
-#include <cglm.h>
 
 AK_INLINE
 _assetkit_hide
