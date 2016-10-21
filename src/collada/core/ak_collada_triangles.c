@@ -24,6 +24,7 @@ ak_dae_triangles(AkHeap * __restrict heap,
 
   triangles = ak_heap_calloc(heap, memParent, sizeof(*triangles), false);
   triangles->mode = mode;
+  triangles->base.type = AK_MESH_PRIMITIVE_TYPE_TRIANGLES;
 
   _xml_readAttr(triangles, triangles->base.name, _s_dae_name);
   _xml_readAttr(triangles, triangles->base.material, _s_dae_material);

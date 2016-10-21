@@ -23,6 +23,7 @@ ak_dae_lines(AkHeap * __restrict heap,
 
   lines = ak_heap_calloc(heap, memParent, sizeof(*lines), false);
   lines->mode = mode;
+  lines->base.type = AK_MESH_PRIMITIVE_TYPE_LINES;
 
   _xml_readAttr(lines, lines->base.name, _s_dae_name);
   _xml_readAttr(lines, lines->base.material, _s_dae_material);

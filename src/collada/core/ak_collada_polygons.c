@@ -25,6 +25,7 @@ ak_dae_polygon(AkHeap * __restrict heap,
   polygon = ak_heap_calloc(heap, memParent, sizeof(*polygon), false);
   polygon->mode      = mode;
   polygon->haveHoles = false;
+  polygon->base.type = AK_MESH_PRIMITIVE_TYPE_POLYGONS;
 
   _xml_readAttr(polygon, polygon->base.name, _s_dae_name);
   _xml_readAttr(polygon, polygon->base.material, _s_dae_material);
