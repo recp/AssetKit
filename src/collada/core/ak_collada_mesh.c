@@ -46,17 +46,14 @@ ak_dae_mesh(AkHeap * __restrict heap,
             const char * elm,
             AkMesh ** __restrict dest,
             bool asObject) {
-  AkObject    *obj;
-  AkSource    *last_source;
-  AkObject    *last_primitive;
-  AkPolygon   *last_polygon;
-  AkTriangles *last_triangles;
-  AkLines     *last_lines;
-  AkMesh      *mesh;
-  void        *memPtr;
-  const xmlChar *nodeName;
-  int            nodeType;
-  int            nodeRet;
+  AkObject        *obj;
+  AkSource        *last_source;
+  AkMeshPrimitive *last_primitive;
+  AkMesh          *mesh;
+  void            *memPtr;
+  const xmlChar   *nodeName;
+  int              nodeType;
+  int              nodeRet;
 
   if (asObject) {
     obj = ak_objAlloc(heap,
@@ -85,9 +82,6 @@ ak_dae_mesh(AkHeap * __restrict heap,
   }
 
   last_primitive = NULL;
-  last_polygon   = NULL;
-  last_triangles = NULL;
-  last_lines     = NULL;
   last_source    = NULL;
 
   do {
@@ -129,7 +123,6 @@ ak_dae_mesh(AkHeap * __restrict heap,
       }
       case k_s_dae_lines:
       case k_s_dae_linestrips: {
-        AkObject  *primitiveObj;
         AkLines   *lines;
         AkLineMode lineMode;
         AkResult   ret;
@@ -143,29 +136,21 @@ ak_dae_mesh(AkHeap * __restrict heap,
                            memPtr,
                            reader,
                            lineMode,
-                           true,
                            &lines);
         if (ret == AK_OK) {
-          primitiveObj = ak_objFrom(lines);
-
           if (last_primitive)
-            last_primitive->next = primitiveObj;
+            last_primitive->next = &lines->base;
           else
-            mesh->gprimitive = primitiveObj;
+            mesh->primitive = &lines->base;
 
-          last_primitive = primitiveObj;
-
-          if (last_lines)
-            last_lines->next = lines;
-          last_lines = lines;
+          last_primitive = &lines->base;
         }
 
         break;
       }
       case k_s_dae_polygons:
       case k_s_dae_polylist: {
-        AkObject  *primitiveObj;
-        AkPolygon *polygon;
+        AkPolygon    *polygon;
         AkPolygonMode mode;
         AkResult      ret;
 
@@ -179,21 +164,14 @@ ak_dae_mesh(AkHeap * __restrict heap,
                              reader,
                              found->key,
                              mode,
-                             true,
                              &polygon);
         if (ret == AK_OK) {
-          primitiveObj = ak_objFrom(polygon);
-
           if (last_primitive)
-            last_primitive->next = primitiveObj;
+            last_primitive->next = &polygon->base;
           else
-            mesh->gprimitive = primitiveObj;
+            mesh->primitive = &polygon->base;
 
-          last_primitive = primitiveObj;
-
-          if (last_polygon)
-            last_polygon->next = polygon;
-          last_polygon = polygon;
+          last_primitive = &polygon->base;
         }
         
         break;
@@ -201,8 +179,7 @@ ak_dae_mesh(AkHeap * __restrict heap,
       case k_s_dae_triangles:
       case k_s_dae_trifans:
       case k_s_dae_tristrips: {
-        AkObject    *primitiveObj;
-        AkTriangles *triangles;
+        AkTriangles   *triangles;
         AkTriangleMode mode;
         AkResult       ret;
 
@@ -218,21 +195,14 @@ ak_dae_mesh(AkHeap * __restrict heap,
                                reader,
                                found->key,
                                mode,
-                               true,
                                &triangles);
         if (ret == AK_OK) {
-          primitiveObj = ak_objFrom(triangles);
-
           if (last_primitive)
-            last_primitive->next = primitiveObj;
+            last_primitive->next = &triangles->base;
           else
-            mesh->gprimitive = primitiveObj;
+            mesh->primitive = &triangles->base;
 
-          last_primitive = primitiveObj;
-
-          if (last_triangles)
-            last_triangles->next = triangles;
-          last_triangles = triangles;
+          last_primitive = &triangles->base;
         }
 
         break;
@@ -259,7 +229,7 @@ ak_dae_mesh(AkHeap * __restrict heap,
     _xml_endElement;
   } while (nodeRet);
 
-  ak_dae_mesh_fixup(mesh);
+  ak_dae_meshFixup(mesh);
   *dest = mesh;
 
   return AK_OK;

@@ -14,35 +14,18 @@ ak_dae_lines(AkHeap * __restrict heap,
              void * __restrict memParent,
              xmlTextReaderPtr reader,
              AkLineMode mode,
-             bool asObject,
              AkLines ** __restrict dest) {
-  AkObject       *obj;
   AkLines        *lines;
   AkInput        *last_input;
-  void           *memPtr;
   const xmlChar  *nodeName;
   int             nodeType;
   int             nodeRet;
 
-  if (asObject) {
-    obj = ak_objAlloc(heap,
-                      memParent,
-                      sizeof(*lines),
-                      AK_MESH_PRIMITIVE_TYPE_LINES,
-                      true,
-                      false);
-
-    lines = ak_objGet(obj);
-    memPtr = obj;
-  } else {
-    lines = ak_heap_calloc(heap, memParent, sizeof(*lines), false);
-    memPtr = lines;
-  }
-
+  lines = ak_heap_calloc(heap, memParent, sizeof(*lines), false);
   lines->mode = mode;
 
-  _xml_readAttr(memPtr, lines->name, _s_dae_name);
-  _xml_readAttr(memPtr, lines->material, _s_dae_material);
+  _xml_readAttr(lines, lines->base.name, _s_dae_name);
+  _xml_readAttr(lines, lines->base.material, _s_dae_material);
   _xml_readAttrUsingFnWithDef(lines->count,
                               _s_dae_count,
                               0,
@@ -56,7 +39,7 @@ ak_dae_lines(AkHeap * __restrict heap,
     if (_xml_eqElm(_s_dae_input)) {
       AkInput *input;
 
-      input = ak_heap_calloc(heap, memPtr, sizeof(*input), false);
+      input = ak_heap_calloc(heap, lines, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
       _xml_readAttr(input, input->base.source, _s_dae_source);
@@ -84,7 +67,7 @@ ak_dae_lines(AkHeap * __restrict heap,
       if (last_input)
         last_input->base.next = &input->base;
       else
-        lines->input = input;
+        lines->base.input = input;
 
       last_input = input;
     } else if (_xml_eqElm(_s_dae_p)) {
@@ -96,9 +79,9 @@ ak_dae_lines(AkHeap * __restrict heap,
         AkUIntArray *uintArray;
         AkResult ret;
         
-        ret = ak_strtoui_array(heap, memPtr, content, &uintArray);
+        ret = ak_strtoui_array(heap, lines, content, &uintArray);
         if (ret == AK_OK)
-          lines->indices = uintArray;
+          lines->base.indices = uintArray;
 
         xmlFree(content);
       }
@@ -109,8 +92,8 @@ ak_dae_lines(AkHeap * __restrict heap,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(heap, memPtr, nodePtr, &tree, NULL);
-      lines->extra = tree;
+      ak_tree_fromXmlNode(heap, lines, nodePtr, &tree, NULL);
+      lines->base.extra = tree;
 
       _xml_skipElement;
     }

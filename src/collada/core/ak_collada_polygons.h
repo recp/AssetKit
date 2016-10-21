@@ -16,7 +16,6 @@ ak_dae_polygon(AkHeap * __restrict heap,
                xmlTextReaderPtr reader,
                const char * elm,
                AkPolygonMode mode,
-               bool asObject,
                AkPolygon ** __restrict dest);
 
 #endif /* __libassetkit__ak_collada_polygons_h_ */

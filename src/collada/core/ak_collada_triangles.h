@@ -16,7 +16,6 @@ ak_dae_triangles(AkHeap * __restrict heap,
                  xmlTextReaderPtr reader,
                  const char * elm,
                  AkTriangleMode mode,
-                 bool asObject,
                  AkTriangles ** __restrict dest);
 
 #endif /* __libassetkit__ak_collada_triangles_h_ */

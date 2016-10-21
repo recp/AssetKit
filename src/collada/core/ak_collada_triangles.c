@@ -15,35 +15,18 @@ ak_dae_triangles(AkHeap * __restrict heap,
                  xmlTextReaderPtr reader,
                  const char * elm,
                  AkTriangleMode mode,
-                 bool asObject,
                  AkTriangles ** __restrict dest) {
-  AkObject       *obj;
   AkTriangles    *triangles;
   AkInput        *last_input;
-  void           *memPtr;
   const xmlChar  *nodeName;
   int             nodeType;
   int             nodeRet;
 
-  if (asObject) {
-    obj = ak_objAlloc(heap,
-                      memParent,
-                      sizeof(*triangles),
-                      AK_MESH_PRIMITIVE_TYPE_TRIANGLES,
-                      true,
-                      false);
-
-    triangles = ak_objGet(obj);
-    memPtr = obj;
-  } else {
-    triangles = ak_heap_calloc(heap, memParent, sizeof(*triangles), false);
-    memPtr = triangles;
-  }
-
+  triangles = ak_heap_calloc(heap, memParent, sizeof(*triangles), false);
   triangles->mode = mode;
 
-  _xml_readAttr(memPtr, triangles->name, _s_dae_name);
-  _xml_readAttr(memPtr, triangles->material, _s_dae_material);
+  _xml_readAttr(triangles, triangles->base.name, _s_dae_name);
+  _xml_readAttr(triangles, triangles->base.material, _s_dae_material);
   _xml_readAttrUsingFnWithDef(triangles->count,
                               _s_dae_count,
                               0,
@@ -57,7 +40,7 @@ ak_dae_triangles(AkHeap * __restrict heap,
     if (_xml_eqElm(_s_dae_input)) {
       AkInput *input;
 
-      input = ak_heap_calloc(heap, memPtr, sizeof(*input), false);
+      input = ak_heap_calloc(heap, triangles, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
       _xml_readAttr(input, input->base.source, _s_dae_source);
@@ -85,7 +68,7 @@ ak_dae_triangles(AkHeap * __restrict heap,
       if (last_input)
         last_input->base.next = &input->base;
       else
-        triangles->input = input;
+        triangles->base.input = input;
 
       last_input = input;
     } else if (_xml_eqElm(_s_dae_p)) {
@@ -95,9 +78,9 @@ ak_dae_triangles(AkHeap * __restrict heap,
       _xml_readMutText(content);
       if (content) {
         AkResult ret;
-        ret = ak_strtoui_array(heap, memPtr, content, &uintArray);
+        ret = ak_strtoui_array(heap, triangles, content, &uintArray);
         if (ret == AK_OK)
-          triangles->indices = uintArray;
+          triangles->base.indices = uintArray;
 
         xmlFree(content);
       }
@@ -109,8 +92,8 @@ ak_dae_triangles(AkHeap * __restrict heap,
       nodePtr = xmlTextReaderExpand(reader);
       tree = NULL;
       
-      ak_tree_fromXmlNode(heap, memPtr, nodePtr, &tree, NULL);
-      triangles->extra = tree;
+      ak_tree_fromXmlNode(heap, triangles, nodePtr, &tree, NULL);
+      triangles->base.extra = tree;
       
       _xml_skipElement;
     } else {

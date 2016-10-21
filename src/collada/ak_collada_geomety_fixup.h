@@ -11,6 +11,6 @@
 #include "ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_mesh_fixup(AkMesh * mesh);
+ak_dae_meshFixup(AkMesh * mesh);
 
 #endif /* ak_collada_geomety_fixup_h */

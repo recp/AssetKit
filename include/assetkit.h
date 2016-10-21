@@ -1139,49 +1139,43 @@ typedef struct AkVertices {
   AkTree       * extra;
 } AkVertices;
 
+typedef struct AkMeshPrimitive {
+  AkMeshPrimitiveType    type;
+  const char             *name;
+  const char             *material;
+  AkInput                *input;
+  AkUIntArray            *indices;
+  AkTree                 *extra;
+  struct AkMeshPrimitive *next;
+} AkMeshPrimitive;
+
 typedef struct AkLines {
-  const char  *name;
-  const char  *material;
-  AkInput     *input;
-  AkTree      *extra;
-  AkUIntArray *indices;
-  uint64_t     count;
-  AkLineMode   mode;
-  struct AkLines *next;
+  AkMeshPrimitive base;
+  uint64_t        count;
+  AkLineMode      mode;
 } AkLines;
 
 typedef struct AkPolygon {
-  const char       *name;
-  const char       *material;
-  AkInput          *input;
-  AkUIntArray      *indices;
-  AkDoubleArrayL   *holes;
-  AkIntArray       *vcount;
-  AkPolygonMode     mode;
-  AkBool            haveHoles;
-  AkTree           *extra;
-  struct AkPolygon *next;
+  AkMeshPrimitive base;
+  AkDoubleArrayL *holes;
+  AkIntArray     *vcount;
+  AkPolygonMode   mode;
+  AkBool          haveHoles;
 } AkPolygon;
 
 typedef struct AkTriangles {
-  const char    *name;
-  const char    *material;
-  AkInput       *input;
-  AkUIntArray   *indices;
-  AkTree        *extra;
-  uint64_t       count;
-  AkTriangleMode mode;
-  struct AkTriangles *next;
+  AkMeshPrimitive base;
+  uint64_t        count;
+  AkTriangleMode  mode;
 } AkTriangles;
 
 typedef struct AkMesh {
   ak_asset_base
-
-  const char * convexHullOf;
-  AkSource   * source;
-  AkVertices * vertices;
-  AkObject   * gprimitive;
-  AkTree     * extra;
+  const char      *convexHullOf;
+  AkSource        *source;
+  AkVertices      *vertices;
+  AkMeshPrimitive *primitive;
+  AkTree          *extra;
 } AkMesh;
 
 typedef struct AkControlVerts {

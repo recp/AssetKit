@@ -11,11 +11,9 @@
 AK_INLINE
 _assetkit_hide
 AkResult
-ak_dae_meshFixupPrimitive(AkHeap       *heap,
-                          AkDoc        *doc,
-                          AkObject     *primitive,
-                          AkInput      *firstInput,
-                          AkUIntArray **firstIndices) {
+ak_dae_meshFixupPrimitive(AkHeap          *heap,
+                          AkDoc           *doc,
+                          AkMeshPrimitive *primitive) {
     AkUIntArray *indices;
     AkUIntArray *newIndices;
     AkInput     *verticeInput;
@@ -27,8 +25,8 @@ ak_dae_meshFixupPrimitive(AkHeap       *heap,
 
     verticeInput = NULL;
     inputCount   = 0;
-    input        = firstInput;
-    indices      = *firstIndices;
+    input        = primitive->input;
+    indices      = primitive->indices;
 
     /* stride count */
     while (input) {
@@ -46,7 +44,7 @@ ak_dae_meshFixupPrimitive(AkHeap       *heap,
     indicesCount = indices->count / inputCount;
 
     /* fix indices for other inputs */
-    input = firstInput;
+    input = primitive->input;
     while (input) {
       AkSource *source;
 
@@ -123,69 +121,24 @@ ak_dae_meshFixupPrimitive(AkHeap       *heap,
 
     ak_free(indices);
 
-  *firstIndices = newIndices;
+  primitive->indices = newIndices;
 
   return AK_OK;
 }
 
 AkResult _assetkit_hide
-ak_dae_mesh_fixup(AkMesh * mesh) {
-  AkDoc    *doc;
-  AkHeap   *heap;
-  AkObject *primitive;
+ak_dae_meshFixup(AkMesh * mesh) {
+  AkDoc  *doc;
+  AkHeap *heap;
+  AkMeshPrimitive *primitive;
 
   heap      = ak_heap_getheap(mesh->vertices);
   doc       = heap->data;
-  primitive = mesh->gprimitive;
+  primitive = mesh->primitive;
 
-  switch ((AkMeshPrimitiveType)primitive->type) {
-    case AK_MESH_PRIMITIVE_TYPE_POLYGONS: {
-      AkPolygon  *polygon;
-
-      polygon = ak_objGet(primitive);
-      while (polygon) {
-        ak_dae_meshFixupPrimitive(heap,
-                                  doc,
-                                  primitive,
-                                  polygon->input,
-                                  &polygon->indices);
-        polygon = polygon->next;
-      }
-
-      break;
-    }
-
-    case AK_MESH_PRIMITIVE_TYPE_TRIANGLES: {
-      AkTriangles  *triangles;
-
-      triangles = ak_objGet(primitive);
-      while (triangles) {
-        ak_dae_meshFixupPrimitive(heap,
-                                  doc,
-                                  primitive,
-                                  triangles->input,
-                                  &triangles->indices);
-        triangles = triangles->next;
-      }
-
-      break;
-    }
-
-    case AK_MESH_PRIMITIVE_TYPE_LINES: {
-      AkLines *lines;
-
-      lines = ak_objGet(primitive);
-      while (lines) {
-        ak_dae_meshFixupPrimitive(heap,
-                                  doc,
-                                  primitive,
-                                  lines->input,
-                                  &lines->indices);
-        lines = lines->next;
-      }
-
-      break;
-    }
+  while (primitive) {
+    ak_dae_meshFixupPrimitive(heap, doc, primitive);
+    primitive = primitive->next;
   }
 
   /* fixup coord system */
