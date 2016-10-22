@@ -444,8 +444,8 @@ ak_dae_node(AkHeap * __restrict heap,
 
         geometry = ak_heap_calloc(heap, node, sizeof(*geometry), false);
 
-        _xml_readAttr(geometry, geometry->name, _s_dae_name);
-        _xml_readAttr(geometry, geometry->url, _s_dae_url);
+        _xml_readAttr(geometry, geometry->base.name, _s_dae_name);
+        _xml_readAttr(geometry, geometry->base.url, _s_dae_url);
 
         do {
           _xml_beginElement(_s_dae_instance_geometry);
@@ -470,7 +470,7 @@ ak_dae_node(AkHeap * __restrict heap,
                                 nodePtr,
                                 &tree,
                                 NULL);
-            geometry->extra = tree;
+            geometry->base.extra = tree;
 
             _xml_skipElement;
             break;

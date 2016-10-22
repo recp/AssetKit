@@ -656,6 +656,13 @@ typedef struct AkImage {
   AkBool renderableShare;
 } AkImage;
 
+typedef struct AkInstanceBase {
+  void       *object;
+  const char *url;
+  const char *name;
+  AkTree     *extra;
+} AkInstanceBase;
+
 typedef struct AkInstanceImage {
   AkImage    * image;
   const char * url;
@@ -1522,11 +1529,8 @@ typedef struct AkInstanceController {
 } AkInstanceController;
 
 typedef struct AkInstanceGeometry {
-  AkGeometry     * geometry;
-  const char     * name;
-  const char     * url;
-  AkBindMaterial * bindMaterial;
-  AkTree         * extra;
+  AkInstanceBase  base;
+  AkBindMaterial *bindMaterial;
 
   struct AkInstanceGeometry * next;
 } AkInstanceGeometry;
@@ -1715,6 +1719,7 @@ typedef struct AkDoc {
 #include "ak-string.h"
 #include "ak-coord-util.h"
 #include "ak-lib.h"
+#include "ak-instance.h"
 
 AK_EXPORT
 AkResult
