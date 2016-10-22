@@ -67,7 +67,7 @@ ak_coordCvtVectorTo(AkCoordSys *oldCoordSystem,
 
 AK_EXPORT
 void
-ak_coordCvtVectorN(AkCoordSys *oldCoordSystem,
+ak_coordCvtVectors(AkCoordSys *oldCoordSystem,
                    float      *vectorArray,
                    size_t      len,
                    AkCoordSys *newCoordSystem);

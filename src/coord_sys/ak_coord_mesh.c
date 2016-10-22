@@ -39,7 +39,7 @@ ak_changeCoordSysMesh(AkMesh * __restrict mesh,
           if (vs->data->type == AK_SOURCE_ARRAY_TYPE_FLOAT) {
             va = ak_objGet(vs->data);
 
-            ak_coordCvtVectorN(doc->coordSys,
+            ak_coordCvtVectors(doc->coordSys,
                                va->items,
                                va->count,
                                newCoordSys);
