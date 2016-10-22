@@ -54,22 +54,22 @@ ak_defaultSetCoordSys(AkCoordSys * coordsys);
 
 AK_EXPORT
 void
-ak_coordCvtSequence(AkCoordSys *oldCoordSystem,
-                    float      *sequence,
-                    AkCoordSys *newCoordSystem);
+ak_coordCvtVector(AkCoordSys *oldCoordSystem,
+                  float      *vector,
+                  AkCoordSys *newCoordSystem);
 
 AK_EXPORT
 void
-ak_coordCvtSequenceTo(AkCoordSys *oldCoordSystem,
-                      float      *oldSequence,
-                      AkCoordSys *newCoordSystem,
-                      float      *newSequence);
+ak_coordCvtVectorTo(AkCoordSys *oldCoordSystem,
+                    float      *oldVector,
+                    AkCoordSys *newCoordSystem,
+                    float      *newVector);
 
 AK_EXPORT
 void
-ak_coordCvtSequenceN(AkCoordSys *oldCoordSystem,
-                     float      *sequenceArray,
-                     size_t     len,
-                     AkCoordSys *newCoordSystem);
+ak_coordCvtVectorN(AkCoordSys *oldCoordSystem,
+                   float      *vectorArray,
+                   size_t      len,
+                   AkCoordSys *newCoordSystem);
 
 #endif /* ak_coord_h */
