@@ -72,4 +72,11 @@ ak_coordCvtVectors(AkCoordSys *oldCoordSystem,
                    size_t      len,
                    AkCoordSys *newCoordSystem);
 
+AK_EXPORT
+void
+ak_coordCvtTransform(AkCoordSys *oldCoordSystem,
+                     AkFloat4x4  oldTransform,
+                     AkCoordSys *newCoordSystem,
+                     AkFloat4x4  newTransform);
+
 #endif /* ak_coord_h */
