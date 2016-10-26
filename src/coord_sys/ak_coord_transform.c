@@ -22,6 +22,10 @@ ak_coordCvtTransform(AkCoordSys *oldCoordSystem,
   AkAxisAccessor a0, a1;
   char           eulerNew[3];
   const char     eulerXYZ[3] = {0, 1, 2};
+  AkAxisRotDirection rotDirection;
+
+  rotDirection = (oldCoordSystem->rotDirection + 1)
+                      * (newCoordSystem->rotDirection + 1);
 
   a0.s_up    = AK_GET_SIGN(oldCoordSystem->up);
   a0.s_right = AK_GET_SIGN(oldCoordSystem->right);
@@ -62,8 +66,13 @@ ak_coordCvtTransform(AkCoordSys *oldCoordSystem,
   glm_euler_angles(rot, angles);
   AK_CVT_VEC(angles);
 
-  /* apply new rotation */
+  /* convert rotation */
   AK_CVT_VEC_NOSIGN_TO(eulerXYZ, eulerNew);
+
+  /* apply new rotation direction */
+  glm_vec_scale(angles, rotDirection, angles);
+
+  /* apply new rotation */
   glm_euler_by_order(angles,
                      glm_euler_order(eulerNew),
                      rot);
@@ -73,7 +82,6 @@ ak_coordCvtTransform(AkCoordSys *oldCoordSystem,
 
   /* apply scaling */
   glm_mat4_dup(GLM_MAT4_IDENTITY, scale);
-
   scale[0][0] = scalev[0];
   scale[1][1] = scalev[1];
   scale[2][2] = scalev[2];

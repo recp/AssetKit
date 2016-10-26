@@ -28,10 +28,20 @@ typedef enum AkAxis {
   AK_AXIS_POSITIVE_Z = 3,
 } AkAxis;
 
+typedef enum AkAxisRotDirection {
+  AK_AXIS_ROT_DIRECTION_LH = -2,
+  AK_AXIS_ROT_DIRECTION_RH = 0
+} AkAxisRotDirection;
+
 typedef struct AkCoordSys {
   AkAxis right;    /* +X */
   AkAxis up;       /* +Y */
   AkAxis fwd;      /* -Z */
+
+  /*
+   * the default value is AK_AXIS_ROT_DIRECTION_RH (Right Handed)
+   */
+  AkAxisRotDirection rotDirection;
 } AkCoordSys;
 
 /* Right Hand (Default) */
