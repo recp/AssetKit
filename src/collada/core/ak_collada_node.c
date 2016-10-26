@@ -11,6 +11,8 @@
 #include "ak_collada_enums.h"
 #include "../fx/ak_collada_fx_material.h"
 
+#include <cglm.h>
+
 #define k_s_dae_asset               1
 #define k_s_dae_lookat              2
 #define k_s_dae_matrix              3
@@ -48,6 +50,7 @@ ak_dae_node(AkHeap * __restrict heap,
             void * __restrict memParent,
             xmlTextReaderPtr reader,
             AkNode ** __restrict dest) {
+  AkDoc         *doc;
   AkNode        *node;
   AkObject      *last_transform;
   AkInstanceCamera     *last_camera;
@@ -60,6 +63,7 @@ ak_dae_node(AkHeap * __restrict heap,
   int            nodeType;
   int            nodeRet;
 
+  doc  = ak_heap_attachment(heap);
   node = ak_heap_calloc(heap, memParent, sizeof(*node), true);
 
   _xml_readId(node);
@@ -165,9 +169,7 @@ ak_dae_node(AkHeap * __restrict heap,
         if (content) {
           AkObject *obj;
           AkMatrix *matrix;
-          AkFloat   tmp[4][4];
-          uint32_t  i;
-          uint32_t  j;
+          mat4      transform;
 
           obj = ak_objAlloc(heap,
                             node,
@@ -180,13 +182,13 @@ ak_dae_node(AkHeap * __restrict heap,
 
           _xml_readAttr(matrix, matrix->sid, _s_dae_sid);
 
-          ak_strtof(&content, tmp[0], 16);
+          ak_strtof(&content, transform[0], 16);
 
-          /* TODO: optimize it */
-          for (i = 0; i < 4; i++)
-            for (j = 0; j < 4; j++)
-              matrix->val[i][j] = tmp[j][i];
-
+          glm_mat4_transpose(transform);
+          ak_coordCvtTransform(doc->coordSys,
+                               transform,
+                               ak_defaultCoordSys(),
+                               matrix->val);
           if (last_transform)
             last_transform->next = obj;
           else
