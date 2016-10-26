@@ -59,14 +59,14 @@ ak_coordCvtTransform(AkCoordSys *oldCoordSystem,
   AK_CVT_VEC_NOSIGN_TO(X, tmp)                                                \
   glm_vec_dup(tmp, X);
 
-  /* convert rotation */
+  /* decompose rotation and scaling factors */
   glm_decompose_rs(oldTransform, rot, scalev);
 
-  /* extract angles */
+  /* extract euler angles XYZ */
   glm_euler_angles(rot, angles);
   AK_CVT_VEC(angles);
 
-  /* convert rotation */
+  /* find new euler sequence */
   AK_CVT_VEC_NOSIGN_TO(eulerXYZ, eulerNew);
 
   /* apply new rotation direction */
@@ -77,10 +77,10 @@ ak_coordCvtTransform(AkCoordSys *oldCoordSystem,
                      glm_euler_order(eulerNew),
                      rot);
 
-  /* convert scaling */
+  /* find new scaling factors */
   AK_CVT_VEC_NOSIGN(scalev);
 
-  /* apply scaling */
+  /* apply new scaling factors */
   glm_mat4_dup(GLM_MAT4_IDENTITY, scale);
   scale[0][0] = scalev[0];
   scale[1][1] = scalev[1];
@@ -88,7 +88,7 @@ ak_coordCvtTransform(AkCoordSys *oldCoordSystem,
 
   glm_mul(rot, scale, newTransform);
 
-  /* convert translation */
+  /* apply new translation */
   AK_CVT_VEC_TO(oldTransform[3], newTransform[3])
 
   /* duplicate w item directly to new coordinate sys without normalization */
