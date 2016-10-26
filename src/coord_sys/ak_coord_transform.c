@@ -17,10 +17,8 @@ ak_coordCvtTransform(AkCoordSys *oldCoordSystem,
                      AkFloat4x4  oldTransform,
                      AkCoordSys *newCoordSystem,
                      AkFloat4x4  newTransform) {
-  mat4           rot;
-  mat4           scale = GLM_MAT4_IDENTITY;
+  mat4           rot, scale;
   vec3           scalev, angles, tmp;
-  ivec3          scalevs;
   AkAxisAccessor a0, a1;
   char           eulerNew[3];
   const char     eulerXYZ[3] = {0, 1, 2};
@@ -58,7 +56,7 @@ ak_coordCvtTransform(AkCoordSys *oldCoordSystem,
   glm_vec_dup(tmp, X);
 
   /* convert rotation */
-  glm_decompose_rotation(oldTransform, rot);
+  glm_decompose_rs(oldTransform, rot, scalev);
 
   /* extract angles */
   glm_euler_angles(rot, angles);
@@ -71,14 +69,14 @@ ak_coordCvtTransform(AkCoordSys *oldCoordSystem,
                      rot);
 
   /* convert scaling */
-  glm_decompose_scalev(oldTransform, scalev, scalevs);
-
   AK_CVT_VEC_NOSIGN(scalev);
 
   /* apply scaling */
-  scale[0][0] = scalev[0] * scalevs[0];
-  scale[1][1] = scalev[1] * scalevs[1];
-  scale[2][2] = scalev[2] * scalevs[2];
+  glm_mat4_dup(GLM_MAT4_IDENTITY, scale);
+
+  scale[0][0] = scalev[0];
+  scale[1][1] = scalev[1];
+  scale[2][2] = scalev[2];
 
   glm_mul(rot, scale, newTransform);
 
