@@ -1463,8 +1463,8 @@ typedef struct AkLookAt {
 } AkLookAt;
 
 typedef struct AkMatrix {
-  const char * sid;
-  AkFloat      val[4][4];
+  const char          *sid;
+  AK_ALIGN(16) AkFloat val[4][4];
 } AkMatrix;
 
 typedef struct AkRotate {
