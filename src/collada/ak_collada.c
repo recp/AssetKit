@@ -709,5 +709,8 @@ ak_dae_doc(AkDoc ** __restrict dest,
 
   *dest = doc;
 
+  /* now set used coordSys */
+  doc->coordSys = ak_defaultCoordSys();
+
   return AK_OK;
 }
