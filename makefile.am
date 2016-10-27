@@ -49,6 +49,7 @@ libassetkit_la_SOURCES=\
     src/instance/ak_inst_geom.c \
     src/default/ak_default_coord.c \
     src/geom/ak_geom_mesh.c \
+    src/transform/ak_trans.c \
     src/lib/ak_lib_geom.c \
     src/collada/ak_collada.c \
     src/collada/ak_collada_strpool.c \
