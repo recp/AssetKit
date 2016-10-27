@@ -1724,6 +1724,7 @@ typedef struct AkDoc {
 #include "ak-coord-util.h"
 #include "ak-lib.h"
 #include "ak-instance.h"
+#include "ak-geom.h"
 
 AK_EXPORT
 AkResult
