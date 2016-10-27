@@ -1143,6 +1143,7 @@ typedef struct AkVertices {
   /* const char   * id; */
   const char   * name;
   AkInputBasic * input;
+  uint32_t       inputCount;
   AkTree       * extra;
 } AkVertices;
 
@@ -1151,6 +1152,8 @@ typedef struct AkMeshPrimitive {
   const char             *name;
   const char             *material;
   AkInput                *input;
+  uint32_t                inputCount;
+  AkVertices             *vertices;
   AkUIntArray            *indices;
   AkTree                 *extra;
   struct AkMeshPrimitive *next;
@@ -1182,6 +1185,7 @@ typedef struct AkMesh {
   AkSource        *source;
   AkVertices      *vertices;
   AkMeshPrimitive *primitive;
+  uint32_t         primitiveCount;
   AkTree          *extra;
 } AkMesh;
 

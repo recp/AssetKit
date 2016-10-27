@@ -16,12 +16,14 @@ ak_dae_triangles(AkHeap * __restrict heap,
                  const char * elm,
                  AkTriangleMode mode,
                  AkTriangles ** __restrict dest) {
+  AkDoc          *doc;
   AkTriangles    *triangles;
   AkInput        *last_input;
   const xmlChar  *nodeName;
   int             nodeType;
   int             nodeRet;
 
+  doc       = ak_heap_attachment(heap);
   triangles = ak_heap_calloc(heap, memParent, sizeof(*triangles), false);
   triangles->mode = mode;
   triangles->base.type = AK_MESH_PRIMITIVE_TYPE_TRIANGLES;
@@ -34,6 +36,7 @@ ak_dae_triangles(AkHeap * __restrict heap,
                               strtoul, NULL, 10);
 
   last_input = NULL;
+  triangles->base.inputCount = 0;
 
   do {
     _xml_beginElement(elm);
@@ -72,6 +75,12 @@ ak_dae_triangles(AkHeap * __restrict heap,
         triangles->base.input = input;
 
       last_input = input;
+
+      triangles->base.inputCount++;
+
+      /* attach vertices for convenience */
+      if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX)
+        triangles->base.vertices = ak_getObjectByUrl(doc, input->base.source);
     } else if (_xml_eqElm(_s_dae_p)) {
       AkUIntArray *uintArray;
       char *content;

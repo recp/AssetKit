@@ -25,6 +25,7 @@ ak_dae_vertices(AkHeap * __restrict heap,
   _xml_readAttr(vertices, vertices->name, _s_dae_name);
 
   last_input = NULL;
+  vertices->inputCount = 0;
 
   do {
     _xml_beginElement(_s_dae_vertices);
@@ -48,6 +49,8 @@ ak_dae_vertices(AkHeap * __restrict heap,
         vertices->input = input;
 
       last_input = input;
+
+      vertices->inputCount++;
     } else if (_xml_eqElm(_s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;

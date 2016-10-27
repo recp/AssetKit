@@ -81,8 +81,9 @@ ak_dae_mesh(AkHeap * __restrict heap,
           ak_enumpair_cmp);
   }
 
-  last_primitive = NULL;
-  last_source    = NULL;
+  last_primitive       = NULL;
+  last_source          = NULL;
+  mesh->primitiveCount = 0;
 
   do {
     const ak_enumpair *found;
@@ -144,6 +145,8 @@ ak_dae_mesh(AkHeap * __restrict heap,
             mesh->primitive = &lines->base;
 
           last_primitive = &lines->base;
+
+          mesh->primitiveCount++;
         }
 
         break;
@@ -172,6 +175,8 @@ ak_dae_mesh(AkHeap * __restrict heap,
             mesh->primitive = &polygon->base;
 
           last_primitive = &polygon->base;
+
+          mesh->primitiveCount++;
         }
         
         break;
@@ -203,6 +208,8 @@ ak_dae_mesh(AkHeap * __restrict heap,
             mesh->primitive = &triangles->base;
 
           last_primitive = &triangles->base;
+
+          mesh->primitiveCount++;
         }
 
         break;

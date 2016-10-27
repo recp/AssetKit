@@ -16,12 +16,14 @@ ak_dae_polygon(AkHeap * __restrict heap,
                const char * elm,
                AkPolygonMode mode,
                AkPolygon ** __restrict dest) {
+  AkDoc         *doc;
   AkPolygon     *polygon;
   AkInput       *last_input;
   const xmlChar *nodeName;
   int            nodeType;
   int            nodeRet;
 
+  doc     = ak_heap_attachment(heap);
   polygon = ak_heap_calloc(heap, memParent, sizeof(*polygon), false);
   polygon->mode      = mode;
   polygon->haveHoles = false;
@@ -36,7 +38,8 @@ ak_dae_polygon(AkHeap * __restrict heap,
                               strtoul, NULL, 10);
    */
 
-  last_input   = NULL;
+  last_input = NULL;
+  polygon->base.inputCount = 0;
 
   do {
     _xml_beginElement(elm);
@@ -75,6 +78,12 @@ ak_dae_polygon(AkHeap * __restrict heap,
         polygon->base.input = input;
 
       last_input = input;
+
+      polygon->base.inputCount++;
+
+      /* attach vertices for convenience */
+      if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX)
+        polygon->base.vertices = ak_getObjectByUrl(doc, input->base.source);
     } else if (_xml_eqElm(_s_dae_p)) {
       char *content;
 

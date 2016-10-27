@@ -15,12 +15,14 @@ ak_dae_lines(AkHeap * __restrict heap,
              xmlTextReaderPtr reader,
              AkLineMode mode,
              AkLines ** __restrict dest) {
+  AkDoc          *doc;
   AkLines        *lines;
   AkInput        *last_input;
   const xmlChar  *nodeName;
   int             nodeType;
   int             nodeRet;
 
+  doc   = ak_heap_attachment(heap);
   lines = ak_heap_calloc(heap, memParent, sizeof(*lines), false);
   lines->mode = mode;
   lines->base.type = AK_MESH_PRIMITIVE_TYPE_LINES;
@@ -33,6 +35,7 @@ ak_dae_lines(AkHeap * __restrict heap,
                               strtoul, NULL, 10);
 
   last_input = NULL;
+  lines->base.inputCount = 0;
 
   do {
     _xml_beginElement(_s_dae_lines);
@@ -71,6 +74,12 @@ ak_dae_lines(AkHeap * __restrict heap,
         lines->base.input = input;
 
       last_input = input;
+
+      lines->base.inputCount++;
+
+      /* attach vertices for convenience */
+      if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX)
+        lines->base.vertices = ak_getObjectByUrl(doc, input->base.source);
     } else if (_xml_eqElm(_s_dae_p)) {
       char *content;
 
