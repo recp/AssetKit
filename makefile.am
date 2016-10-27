@@ -27,7 +27,14 @@ libassetkit_la_LIBADD = lib/libxml2/libxml2.la
 include_HEADERS = include/assetkit.h \
                   include/ak-states.h \
                   include/ak-string.h \
-                  include/ak-memory.h
+                  include/ak-memory.h \
+                  include/ak-common.h \
+                  include/ak-coord.h \
+                  include/ak-coord-util.h \
+                  include/ak-lib.h \
+                  include/ak-instance.h \
+                  include/ak-geom.h \
+                  include/ak-transform.h
 
 libassetkit_la_SOURCES=\
     src/assetkit.c \
