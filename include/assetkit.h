@@ -1463,7 +1463,7 @@ typedef struct AkLookAt {
   ak_asset_base
 
   const char * sid;
-  AkFloat      val[9];
+  AkFloat3     val[3];
 } AkLookAt;
 
 typedef struct AkMatrix {

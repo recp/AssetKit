@@ -149,7 +149,7 @@ ak_dae_node(AkHeap * __restrict heap,
           looakAt = ak_objGet(obj);
 
           _xml_readAttr(looakAt, looakAt->sid, _s_dae_sid);
-          ak_strtof(&content, looakAt->val, 9);
+          ak_strtof(&content, (float *)looakAt->val, 9);
 
           if (last_transform)
             last_transform->next = obj;
