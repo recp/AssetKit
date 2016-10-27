@@ -269,6 +269,7 @@ ak_dae_node(AkHeap * __restrict heap,
         if (content) {
           AkObject *obj;
           AkSkew   *skew;
+          AkFloat   tmp[7];
 
           obj = ak_objAlloc(heap,
                             node,
@@ -280,7 +281,12 @@ ak_dae_node(AkHeap * __restrict heap,
           skew = ak_objGet(obj);
 
           _xml_readAttr(skew, skew->sid, _s_dae_sid);
-          ak_strtof(&content, (AkFloat *)skew->val, 4);
+          ak_strtof(&content, (AkFloat *)tmp, 4);
+
+          /* COLLADA uses degree here, convert it to radians */
+          skew->angle = glm_rad(tmp[0]);
+          glm_vec_dup(&tmp[1], skew->rotateAxis);
+          glm_vec_dup(&tmp[4], skew->aroundAxis);
 
           if (last_transform)
             last_transform->next = obj;

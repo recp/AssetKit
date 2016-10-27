@@ -1489,7 +1489,9 @@ typedef struct AkSkew {
   ak_asset_base
 
   const char * sid;
-  AkFloat      val[7];
+  AkFloat      angle;
+  AkFloat3     rotateAxis;
+  AkFloat3     aroundAxis;
 } AkSkew;
 
 typedef struct AkTranslate {
