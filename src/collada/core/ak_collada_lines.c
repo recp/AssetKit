@@ -35,7 +35,6 @@ ak_dae_lines(AkHeap * __restrict heap,
                               strtoul, NULL, 10);
 
   last_input = NULL;
-  lines->base.inputCount = 0;
 
   do {
     _xml_beginElement(_s_dae_lines);

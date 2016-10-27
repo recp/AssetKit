@@ -25,7 +25,6 @@ ak_dae_vertices(AkHeap * __restrict heap,
   _xml_readAttr(vertices, vertices->name, _s_dae_name);
 
   last_input = NULL;
-  vertices->inputCount = 0;
 
   do {
     _xml_beginElement(_s_dae_vertices);

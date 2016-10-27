@@ -36,7 +36,6 @@ ak_dae_triangles(AkHeap * __restrict heap,
                               strtoul, NULL, 10);
 
   last_input = NULL;
-  triangles->base.inputCount = 0;
 
   do {
     _xml_beginElement(elm);

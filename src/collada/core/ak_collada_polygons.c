@@ -39,7 +39,6 @@ ak_dae_polygon(AkHeap * __restrict heap,
    */
 
   last_input = NULL;
-  polygon->base.inputCount = 0;
 
   do {
     _xml_beginElement(elm);

@@ -81,9 +81,8 @@ ak_dae_mesh(AkHeap * __restrict heap,
           ak_enumpair_cmp);
   }
 
-  last_primitive       = NULL;
-  last_source          = NULL;
-  mesh->primitiveCount = 0;
+  last_primitive = NULL;
+  last_source    = NULL;
 
   do {
     const ak_enumpair *found;
