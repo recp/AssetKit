@@ -149,7 +149,7 @@ ak_dae_node(AkHeap * __restrict heap,
           looakAt = ak_objGet(obj);
 
           _xml_readAttr(looakAt, looakAt->sid, _s_dae_sid);
-          ak_strtod(&content, looakAt->val, 9);
+          ak_strtof(&content, looakAt->val, 9);
 
           if (last_transform)
             last_transform->next = obj;
@@ -218,7 +218,7 @@ ak_dae_node(AkHeap * __restrict heap,
           rotate = ak_objGet(obj);
 
           _xml_readAttr(rotate, rotate->sid, _s_dae_sid);
-          ak_strtod(&content, (AkDouble *)rotate->val, 4);
+          ak_strtof(&content, (AkFloat *)rotate->val, 4);
 
           if (last_transform)
             last_transform->next = obj;
@@ -249,7 +249,7 @@ ak_dae_node(AkHeap * __restrict heap,
           scale = ak_objGet(obj);
 
           _xml_readAttr(scale, scale->sid, _s_dae_sid);
-          ak_strtod(&content, (AkDouble *)scale->val, 4);
+          ak_strtof(&content, (AkFloat *)scale->val, 4);
 
           if (last_transform)
             last_transform->next = obj;
@@ -280,7 +280,7 @@ ak_dae_node(AkHeap * __restrict heap,
           skew = ak_objGet(obj);
 
           _xml_readAttr(skew, skew->sid, _s_dae_sid);
-          ak_strtod(&content, (AkDouble *)skew->val, 4);
+          ak_strtof(&content, (AkFloat *)skew->val, 4);
 
           if (last_transform)
             last_transform->next = obj;
@@ -311,7 +311,7 @@ ak_dae_node(AkHeap * __restrict heap,
           translate = ak_objGet(obj);
 
           _xml_readAttr(translate, translate->sid, _s_dae_sid);
-          ak_strtod(&content, (AkDouble *)translate->val, 4);
+          ak_strtof(&content, (AkFloat *)translate->val, 4);
 
           if (last_transform)
             last_transform->next = obj;
