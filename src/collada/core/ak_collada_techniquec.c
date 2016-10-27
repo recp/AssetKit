@@ -91,6 +91,41 @@ ak_dae_techniquec(AkHeap * __restrict heap,
 
       techc->technique = perspective;
       techc->techniqueType = AK_TECHNIQUE_COMMON_CAMERA_PERSPECTIVE;
+
+      if (!perspective->aspectRatio
+          && perspective->yfov
+          && perspective->xfov) {
+        ak_basic_attrf * aspectRatio;
+        aspectRatio = ak_heap_calloc(heap,
+                                     perspective,
+                                     sizeof(*aspectRatio),
+                                     false);
+
+        aspectRatio->val = perspective->xfov->val / perspective->yfov->val;
+        perspective->aspectRatio = aspectRatio;
+      } else if (!perspective->yfov
+                 && perspective->aspectRatio
+                 && perspective->xfov) {
+        ak_basic_attrf * yfov;
+        yfov = ak_heap_calloc(heap,
+                              perspective,
+                              sizeof(*yfov),
+                              false);
+
+        yfov->val = perspective->xfov->val / perspective->aspectRatio->val;
+        perspective->yfov = yfov;
+      } else if (!perspective->xfov
+                 && perspective->aspectRatio
+                 && perspective->yfov) {
+        ak_basic_attrf * xfov;
+        xfov = ak_heap_calloc(heap,
+                              perspective,
+                              sizeof(*xfov),
+                              false);
+
+        xfov->val = perspective->yfov->val * perspective->aspectRatio->val;
+        perspective->xfov = xfov;
+      }
     }
 
     /* optics -> orthographic */
