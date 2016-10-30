@@ -9,6 +9,7 @@
 #include "ak_collada_color.h"
 #include "../ak_collada_common.h"
 #include "../fx/ak_collada_fx_material.h"
+#include <cglm.h>
 
 AkResult _assetkit_hide
 ak_dae_techniquec(AkHeap * __restrict heap,
@@ -44,6 +45,7 @@ ak_dae_techniquec(AkHeap * __restrict heap,
 
           _xml_readAttr(xfov, xfov->sid, _s_dae_sid);
           _xml_readTextUsingFn(xfov->val, strtof, NULL);
+          xfov->val = glm_rad(xfov->val);
 
           perspective->xfov = xfov;
         } else if (_xml_eqElm(_s_dae_yfov)) {
@@ -52,6 +54,7 @@ ak_dae_techniquec(AkHeap * __restrict heap,
 
           _xml_readAttr(yfov, yfov->sid, _s_dae_sid);
           _xml_readTextUsingFn(yfov->val, strtof, NULL);
+          yfov->val = glm_rad(yfov->val);
 
           perspective->yfov = yfov;
         } else if (_xml_eqElm(_s_dae_aspect_ratio)) {
