@@ -29,19 +29,27 @@ typedef enum AkAxis {
 } AkAxis;
 
 typedef enum AkAxisRotDirection {
-  AK_AXIS_ROT_DIRECTION_LH = -2,
-  AK_AXIS_ROT_DIRECTION_RH = 0
+  AK_AXIS_ROT_DIR_LH = -2,
+  AK_AXIS_ROT_DIR_RH = 0
 } AkAxisRotDirection;
+
+typedef struct AkAxisOrientation {
+  AkAxis right;    /* +X */
+  AkAxis up;       /* +Y */
+  AkAxis fwd;      /* -Z */
+} AkAxisOrientation;
 
 typedef struct AkCoordSys {
   AkAxis right;    /* +X */
   AkAxis up;       /* +Y */
   AkAxis fwd;      /* -Z */
 
-  /*
-   * the default value is AK_AXIS_ROT_DIRECTION_RH (Right Handed)
-   */
+  /* the default value is AK_AXIS_ROT_DIRECTION_RH (Right Handed) */
   AkAxisRotDirection rotDirection;
+
+  /* when creating custom coord sys, this value must be set correctly, 
+     there is no default value */
+  AkAxisOrientation  cameraOrientation;
 } AkCoordSys;
 
 /* Right Hand (Default) */
@@ -53,6 +61,22 @@ extern AkCoordSys * AK_XUP;
 extern AkCoordSys * AK_ZUP_LH;
 extern AkCoordSys * AK_YUP_LH;
 extern AkCoordSys * AK_XUP_LH;
+
+AK_INLINE
+void
+ak_coordAxisToiVec3(AkAxisOrientation axisOri, int32_t vec[3]) {
+  vec[0] = axisOri.right;
+  vec[1] = axisOri.up;
+  vec[2] = axisOri.fwd;
+}
+
+AK_INLINE
+bool
+ak_coordOrientationIsEq(AkCoordSys *c1, AkCoordSys *c2) {
+  return  c1->right == c2->right
+            && c1->up == c2->up
+            && c1->fwd == c2->fwd;
+}
 
 AK_EXPORT
 AkCoordSys *
@@ -88,5 +112,11 @@ ak_coordCvtTransform(AkCoordSys *oldCoordSystem,
                      AkFloat4x4  oldTransform,
                      AkCoordSys *newCoordSystem,
                      AkFloat4x4  newTransform);
+
+AK_EXPORT
+void
+ak_coordFixCamOri(AkCoordSys *oldCoordSys,
+                  AkCoordSys *newCoordSys,
+                  AkFloat4x4  transform);
 
 #endif /* ak_coord_h */
