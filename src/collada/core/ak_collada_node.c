@@ -337,8 +337,8 @@ ak_dae_node(AkHeap * __restrict heap,
                                         sizeof(*instanceCamera),
                                         false);
 
-        _xml_readAttr(instanceCamera, instanceCamera->name, _s_dae_name);
-        _xml_readAttr(instanceCamera, instanceCamera->url, _s_dae_url);
+        _xml_readAttr(instanceCamera, instanceCamera->base.name, _s_dae_name);
+        _xml_readAttr(instanceCamera, instanceCamera->base.url, _s_dae_url);
 
         do {
           _xml_beginElement(_s_dae_instance_camera);
@@ -351,7 +351,7 @@ ak_dae_node(AkHeap * __restrict heap,
             tree = NULL;
 
             ak_tree_fromXmlNode(heap, instanceCamera, nodePtr, &tree, NULL);
-            instanceCamera->extra = tree;
+            instanceCamera->base.extra = tree;
             
             _xml_skipElement;
             break;

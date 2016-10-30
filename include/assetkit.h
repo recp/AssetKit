@@ -659,6 +659,7 @@ typedef struct AkImage {
 typedef struct AkInstanceBase {
   void       *object;
   const char *url;
+  const char *sid;
   const char *name;
   AkTree     *extra;
 } AkInstanceBase;
@@ -1502,11 +1503,7 @@ typedef struct AkTranslate {
 } AkTranslate;
 
 typedef struct AkInstanceCamera {
-  AkCamera   * camera;
-  const char * name;
-  const char * url;
-  AkTree     * extra;
-
+  AkInstanceBase  base;
   struct AkInstanceCamera * next;
 } AkInstanceCamera;
 
@@ -1561,6 +1558,9 @@ typedef struct AkInstanceNode {
   struct AkInstanceNode * next;
 } AkInstanceNode;
 
+/*
+ * TODO: separate all instances to individual nodes?
+ */
 struct AkNode {
   ak_asset_base
 
@@ -1647,6 +1647,7 @@ typedef struct AkVisualScene {
   /* const char * id; */
   const char * name;
   AkNode     * node;
+  AkNode     * firstCamNode;
   AkEvaluateScene * evaluateScene;
   AkTree     * extra;
 
@@ -1654,13 +1655,7 @@ typedef struct AkVisualScene {
 } AkVisualScene;
 
 typedef struct AkInstanceVisualScene {
-  ak_asset_base
-
-  AkVisualScene * visualScene;
-  const char    * sid;
-  const char    * name;
-  const char    * url;
-  AkTree        * extra;
+  AkInstanceBase  base;
 } AkInstanceVisualScene;
 
 typedef struct AkScene {
@@ -1727,6 +1722,7 @@ typedef struct AkDoc {
 #include "ak-lib.h"
 #include "ak-instance.h"
 #include "ak-geom.h"
+#include "ak-cam.h"
 #include "ak-transform.h"
 
 AK_EXPORT

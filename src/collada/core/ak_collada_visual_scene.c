@@ -27,7 +27,7 @@ ak_dae_visualScene(AkHeap * __restrict heap,
   _xml_readId(visualScene);
   _xml_readAttr(visualScene, visualScene->name, _s_dae_name);
 
-  last_node = NULL;
+  last_node          = NULL;
   last_evaluateScene = NULL;
 
   do {
@@ -54,6 +54,9 @@ ak_dae_visualScene(AkHeap * __restrict heap,
           visualScene->node = node;
 
         last_node = node;
+
+        if (!visualScene->firstCamNode && node->camera)
+          visualScene->firstCamNode = node;
       }
     } else if (_xml_eqElm(_s_dae_evaluate_scene)) {
       AkEvaluateScene *evaluateScene;
@@ -102,9 +105,9 @@ ak_dae_instanceVisualScene(AkHeap * __restrict heap,
 
   visualScene = ak_heap_calloc(heap, memParent, sizeof(*visualScene), false);
 
-  _xml_readAttr(visualScene, visualScene->sid, _s_dae_sid);
-  _xml_readAttr(visualScene, visualScene->name, _s_dae_name);
-  _xml_readAttr(visualScene, visualScene->url, _s_dae_url);
+  _xml_readAttr(visualScene, visualScene->base.sid, _s_dae_sid);
+  _xml_readAttr(visualScene, visualScene->base.name, _s_dae_name);
+  _xml_readAttr(visualScene, visualScene->base.url, _s_dae_url);
 
   do {
     _xml_beginElement(_s_dae_instance_visual_scene);
@@ -117,7 +120,7 @@ ak_dae_instanceVisualScene(AkHeap * __restrict heap,
       tree = NULL;
 
       ak_tree_fromXmlNode(heap, visualScene, nodePtr, &tree, NULL);
-      visualScene->extra = tree;
+      visualScene->base.extra = tree;
 
       _xml_skipElement;
     }
