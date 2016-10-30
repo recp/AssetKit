@@ -9,7 +9,6 @@
 #include "../ak_memory_common.h"
 #include "ak_coord_common.h"
 #include <cglm.h>
-#include <float.h>
 
 AK_EXPORT
 void

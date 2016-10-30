@@ -7,9 +7,8 @@
 
 #include "../ak_common.h"
 #include "../ak_memory_common.h"
-#include <math.h>
+#include "ak_coord_common.h"
 #include <cglm.h>
-#include <stdio.h>
 
 AK_EXPORT
 void
@@ -27,37 +26,7 @@ ak_coordCvtTransform(AkCoordSys *oldCoordSystem,
   rotDirection = (oldCoordSystem->rotDirection + 1)
                       * (newCoordSystem->rotDirection + 1);
 
-  a0.s_up    = AK_GET_SIGN(oldCoordSystem->up);
-  a0.s_right = AK_GET_SIGN(oldCoordSystem->right);
-  a0.s_fwd   = AK_GET_SIGN(oldCoordSystem->fwd);
-  a0.up      = abs(oldCoordSystem->up)    - 1;
-  a0.right   = abs(oldCoordSystem->right) - 1;
-  a0.fwd     = abs(oldCoordSystem->fwd)   - 1;
-
-  a1.s_up    = AK_GET_SIGN(newCoordSystem->up);
-  a1.s_right = AK_GET_SIGN(newCoordSystem->right);
-  a1.s_fwd   = AK_GET_SIGN(newCoordSystem->fwd);
-  a1.up      = abs(newCoordSystem->up)    - 1;
-  a1.right   = abs(newCoordSystem->right) - 1;
-  a1.fwd     = abs(newCoordSystem->fwd)   - 1;
-
-#define AK_CVT_VEC_TO(X0, X1)                                                 \
-  X1[a1.up]    = X0[a0.up]    * a0.s_up    * a1.s_up;                         \
-  X1[a1.right] = X0[a0.right] * a0.s_right * a1.s_right;                      \
-  X1[a1.fwd]   = X0[a0.fwd]   * a0.s_fwd   * a1.s_fwd;
-
-#define AK_CVT_VEC_NOSIGN_TO(X0, X1)                                          \
-  X1[a1.up]    = X0[a0.up];                                                   \
-  X1[a1.right] = X0[a0.right];                                                \
-  X1[a1.fwd]   = X0[a0.fwd];
-
-#define AK_CVT_VEC(X)                                                         \
-  AK_CVT_VEC_TO(X, tmp)                                                       \
-  glm_vec_dup(tmp, X);
-
-#define AK_CVT_VEC_NOSIGN(X)                                                  \
-  AK_CVT_VEC_NOSIGN_TO(X, tmp)                                                \
-  glm_vec_dup(tmp, X);
+  ak_coordAxisAccessors(oldCoordSystem, newCoordSystem, &a0, &a1);
 
   /* decompose rotation and scaling factors */
   glm_decompose_rs(oldTransform, rot, scalev);
