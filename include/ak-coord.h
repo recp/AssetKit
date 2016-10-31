@@ -109,9 +109,8 @@ ak_coordCvtVectors(AkCoordSys *oldCoordSystem,
 AK_EXPORT
 void
 ak_coordCvtTransform(AkCoordSys *oldCoordSystem,
-                     AkFloat4x4  oldTransform,
-                     AkCoordSys *newCoordSystem,
-                     AkFloat4x4  newTransform);
+                     AkFloat4x4  transform,
+                     AkCoordSys *newCoordSystem);
 
 AK_EXPORT
 void

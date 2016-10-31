@@ -13,10 +13,10 @@
 AK_EXPORT
 void
 ak_coordCvtTransform(AkCoordSys *oldCoordSystem,
-                     AkFloat4x4  oldTransform,
-                     AkCoordSys *newCoordSystem,
-                     AkFloat4x4  newTransform) {
+                     AkFloat4x4  transform,
+                     AkCoordSys *newCoordSystem) {
   mat4           rot, scale;
+  vec4           pos;
   vec3           scalev, angles, tmp;
   AkAxisAccessor a0, a1;
   char           eulerNew[3];
@@ -29,7 +29,7 @@ ak_coordCvtTransform(AkCoordSys *oldCoordSystem,
   ak_coordAxisAccessors(oldCoordSystem, newCoordSystem, &a0, &a1);
 
   /* decompose rotation and scaling factors */
-  glm_decompose_rs(oldTransform, rot, scalev);
+  glm_decompose_rs(transform, rot, scalev);
 
   /* extract euler angles XYZ */
   glm_euler_angles(rot, angles);
@@ -55,14 +55,11 @@ ak_coordCvtTransform(AkCoordSys *oldCoordSystem,
   scale[1][1] = scalev[1];
   scale[2][2] = scalev[2];
 
-  glm_mul(rot, scale, newTransform);
+  glm_vec4_dup(transform[3], pos);
+  glm_mul(rot, scale, transform);
 
   /* apply new translation */
-  AK_CVT_VEC_TO(oldTransform[3], newTransform[3])
+  AK_CVT_VEC(pos)
 
-  /* duplicate w item directly to new coordinate sys without normalization */
-  newTransform[0][3] = 0;
-  newTransform[1][3] = 0;
-  newTransform[2][3] = 0;
-  newTransform[3][3] = oldTransform[3][3];
+  glm_vec4_dup(pos, transform[3]);
 }
