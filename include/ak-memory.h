@@ -129,6 +129,12 @@ ak_heap_setp(AkHeap * __restrict heap,
 
 AK_EXPORT
 void
+ak_heap_setpm(AkHeap * __restrict heap,
+              void * __restrict memptr,
+              void * __restrict newparent);
+
+AK_EXPORT
+void
 ak_heap_free(AkHeap * __restrict heap,
              AkHeapNode * __restrict heapNode);
 

@@ -399,6 +399,16 @@ ak_heap_setp(AkHeap * __restrict heap,
 
 AK_EXPORT
 void
+ak_heap_setpm(AkHeap * __restrict heap,
+              void * __restrict memptr,
+              void * __restrict newparent) {
+  ak_heap_setp(heap,
+               ak__alignof(memptr),
+               ak__alignof(newparent));
+}
+
+AK_EXPORT
+void
 ak_heap_free(AkHeap * __restrict heap,
              AkHeapNode * __restrict heapNode) {
   AkHeapAllocator * __restrict allocator;
