@@ -32,4 +32,14 @@ void
 ak_transformCombine(AkNode * __restrict node,
                     float  * matrix);
 
+/*!
+ * @brief duplicate all transforms of node1 to node2
+ * 
+ * @warning duplicated transform will alloc extra memory
+ */
+AK_EXPORT
+void
+ak_transformDup(AkNode * __restrict srcNode,
+                AkNode * __restrict destNode);
+
 #endif /* ak_transform_h */
