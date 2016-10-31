@@ -6,10 +6,12 @@
  */
 
 #include "ak_collada_node.h"
+#include "ak_collada_enums.h"
+
 #include "../../ak_array.h"
 #include "../core/ak_collada_asset.h"
-#include "ak_collada_enums.h"
 #include "../fx/ak_collada_fx_material.h"
+#include "../ak_collada_node_fixup.h"
 
 #include <cglm.h>
 
@@ -608,7 +610,8 @@ ak_dae_node(AkHeap * __restrict heap,
     /* end element */
     _xml_endElement;
   } while (nodeRet);
-  
+
+  ak_dae_nodeFixup(heap, doc, node);
   *dest = node;
   
   return AK_OK;

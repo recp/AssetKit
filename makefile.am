@@ -64,6 +64,7 @@ libassetkit_la_SOURCES=\
     src/collada/ak_collada_strpool.c \
     src/collada/ak_collada_common.c \
     src/collada/ak_collada_geomety_fixup.c \
+    src/collada/ak_collada_node_fixup.c \
     src/collada/core/ak_collada_asset.c \
     src/collada/core/ak_collada_technique.c \
     src/collada/core/ak_collada_techniquec.c \
