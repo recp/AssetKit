@@ -194,11 +194,10 @@ ak_dae_node(AkHeap  * __restrict heap,
 
           ak_strtof(&content, transform[0], 16);
 
-          glm_mat4_transpose(transform);
+          glm_mat4_transpose_to(transform, matrix->val);
           ak_coordCvtTransform(doc->coordSys,
-                               transform,
-                               ak_defaultCoordSys(),
-                               matrix->val);
+                               matrix->val,
+                               ak_defaultCoordSys());
           if (last_transform)
             last_transform->next = obj;
           else
