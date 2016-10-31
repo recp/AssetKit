@@ -121,6 +121,11 @@ ak_dae_node(AkHeap * __restrict heap,
                     sizeof(nodeMap[0]),
                     ak_enumpair_cmp2);
 
+    if (!found) {
+      _xml_skipElement;
+      goto cont;
+    }
+
     switch (found->val) {
       case k_s_dae_asset: {
         AkAssetInf *assetInf;
@@ -606,7 +611,8 @@ ak_dae_node(AkHeap * __restrict heap,
         _xml_skipElement;
         break;
     }
-    
+
+  cont:
     /* end element */
     _xml_endElement;
   } while (nodeRet);
