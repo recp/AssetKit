@@ -11,9 +11,10 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_node(AkHeap * __restrict heap,
-            void * __restrict memParent,
-            xmlTextReaderPtr reader,
-            AkNode ** __restrict dest);
+ak_dae_node(AkHeap  * __restrict heap,
+            void    * __restrict memParent,
+            xmlTextReaderPtr     reader,
+            AkNode             **firstCamNode,
+            AkNode             **dest);
 
 #endif /* __libassetkit__ak_collada_node_h_ */

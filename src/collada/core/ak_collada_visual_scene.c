@@ -46,7 +46,11 @@ ak_dae_visualScene(AkHeap * __restrict heap,
       AkNode  *node;
       AkResult ret;
 
-      ret = ak_dae_node(heap, visualScene, reader, &node);
+      ret = ak_dae_node(heap,
+                        visualScene,
+                        reader,
+                        &visualScene->firstCamNode,
+                        &node);
       if (ret == AK_OK) {
         if (last_node)
           last_node->next = node;
@@ -54,9 +58,6 @@ ak_dae_visualScene(AkHeap * __restrict heap,
           visualScene->node = node;
 
         last_node = node;
-
-        if (!visualScene->firstCamNode && node->camera)
-          visualScene->firstCamNode = node;
       }
     } else if (_xml_eqElm(_s_dae_evaluate_scene)) {
       AkEvaluateScene *evaluateScene;

@@ -661,7 +661,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           node = NULL;
-          ret = ak_dae_node(heap, doc, reader, &node);
+          ret = ak_dae_node(heap, doc, reader, NULL, &node);
           if (ret == AK_OK) {
             if (lastNode)
               lastNode->next = node;
