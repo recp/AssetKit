@@ -27,7 +27,8 @@
 #define k_s_dae_instance_geometry   10
 #define k_s_dae_instance_light      11
 #define k_s_dae_instance_node       12
-#define k_s_dae_extra               13
+#define k_s_dae_node                13
+#define k_s_dae_extra               14
 
 static ak_enumpair nodeMap[] = {
   {_s_dae_asset,               k_s_dae_asset},
@@ -42,16 +43,18 @@ static ak_enumpair nodeMap[] = {
   {_s_dae_instance_geometry,   k_s_dae_instance_geometry},
   {_s_dae_instance_light,      k_s_dae_instance_light},
   {_s_dae_instance_node,       k_s_dae_instance_node},
+  {_s_dae_node,                k_s_dae_node},
   {_s_dae_extra,               k_s_dae_extra},
 };
 
 static size_t nodeMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_node(AkHeap * __restrict heap,
-            void * __restrict memParent,
-            xmlTextReaderPtr reader,
-            AkNode ** __restrict dest) {
+ak_dae_node(AkHeap  * __restrict heap,
+            void    * __restrict memParent,
+            xmlTextReaderPtr     reader,
+            AkNode             **firstCamNode,
+            AkNode             **dest) {
   AkDoc         *doc;
   AkNode        *node;
   AkObject      *last_transform;
@@ -377,6 +380,9 @@ ak_dae_node(AkHeap * __restrict heap,
 
         last_camera = instanceCamera;
 
+        if (!*firstCamNode)
+          *firstCamNode = node;
+
         break;
       }
       case k_s_dae_instance_controller: {
@@ -592,6 +598,19 @@ ak_dae_node(AkHeap * __restrict heap,
         
         last_node = instanceNode;
         
+        break;
+      }
+      case k_s_dae_node: {
+        AkNode *subNode;
+        AkResult ret;
+
+        subNode = NULL;
+        ret = ak_dae_node(heap, node, reader, firstCamNode, &subNode);
+        if (ret == AK_OK) {
+          node->chld      = subNode;
+          subNode->parent = node;
+        }
+
         break;
       }
       case k_s_dae_extra: {

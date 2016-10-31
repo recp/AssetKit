@@ -1577,6 +1577,7 @@ struct AkNode {
   AkInstanceNode       * node;
   AkTree        * extra;
   struct AkNode * chld;
+  struct AkNode * parent;
   struct AkNode * next;
 };
 
