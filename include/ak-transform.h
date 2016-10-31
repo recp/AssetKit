@@ -33,6 +33,20 @@ ak_transformCombine(AkNode * __restrict node,
                     float  * matrix);
 
 /*!
+ * @brief combines all node's transform elements in **world coord sys**
+ *
+ * this func walks/traverses to top node to get world coord
+ * this is not cheap op, obviously.
+ *
+ * @param node   node
+ * @param matrix combined transform (must be aligned 16)
+ */
+AK_EXPORT
+void
+ak_transformCombineWorld(AkNode * __restrict node,
+                         float  * matrix);
+
+/*!
  * @brief duplicate all transforms of node1 to node2
  * 
  * @warning duplicated transform will alloc extra memory

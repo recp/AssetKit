@@ -30,7 +30,7 @@ ak_camFirstCamera(AkDoc     * __restrict doc,
 
   /* view matrix */
   if (matrix)
-    ak_transformCombine(camNode, matrix);
+    ak_transformCombineWorld(camNode, matrix);
 
   if (camera || projMatrix) {
     cam = ak_instanceObject(doc, &camNode->camera->base);
