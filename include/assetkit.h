@@ -1476,7 +1476,7 @@ typedef struct AkRotate {
   ak_asset_base
 
   const char * sid;
-  AkFloat      val[4];
+  AK_ALIGN(16) AkFloat val[4];
 } AkRotate;
 
 typedef struct AkScale {
