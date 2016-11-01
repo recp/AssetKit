@@ -72,6 +72,9 @@ ak_transformCombine(AkNode * __restrict node,
                    lookAt->val[1],
                    lookAt->val[2],
                    tmp);
+
+        /* because this is view matrix */
+        glm_inv_tr(tmp);
         glm_mat4_mul(tmp, mat, mat);
         break;
       }
