@@ -1461,8 +1461,6 @@ typedef struct AkController {
 } AkController;
 
 typedef struct AkLookAt {
-  ak_asset_base
-
   const char * sid;
   AkFloat3     val[3];
 } AkLookAt;
@@ -1473,22 +1471,16 @@ typedef struct AkMatrix {
 } AkMatrix;
 
 typedef struct AkRotate {
-  ak_asset_base
-
   const char * sid;
   AK_ALIGN(16) AkFloat val[4];
 } AkRotate;
 
 typedef struct AkScale {
-  ak_asset_base
-
   const char * sid;
   AkFloat      val[3];
 } AkScale;
 
 typedef struct AkSkew {
-  ak_asset_base
-
   const char * sid;
   AkFloat      angle;
   AkFloat3     rotateAxis;
@@ -1496,8 +1488,6 @@ typedef struct AkSkew {
 } AkSkew;
 
 typedef struct AkTranslate {
-  ak_asset_base
-
   const char * sid;
   AkFloat      val[3];
 } AkTranslate;
