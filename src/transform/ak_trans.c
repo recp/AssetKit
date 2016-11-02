@@ -82,8 +82,7 @@ ak_transformCombine(AkNode * __restrict node,
         AkRotate *rotate;
 
         rotate = ak_objGet(transform);
-        glm_rotate_make(tmp, rotate->val[3], rotate->val);
-        glm_mat4_mul(tmp, mat, mat);
+        glm_rotate(mat, rotate->val[3], rotate->val);
         break;
       }
       case AK_NODE_TRANSFORM_TYPE_SCALE: {
