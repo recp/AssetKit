@@ -228,6 +228,7 @@ ak_dae_node(AkHeap  * __restrict heap,
 
           _xml_readAttr(rotate, rotate->sid, _s_dae_sid);
           ak_strtof(&content, (AkFloat *)rotate->val, 4);
+          glm_make_rad(&rotate->val[3]);
 
           if (last_transform)
             last_transform->next = obj;
