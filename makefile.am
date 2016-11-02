@@ -53,6 +53,7 @@ libassetkit_la_SOURCES=\
     src/coord_sys/ak_coord_doc.c \
     src/coord_sys/ak_coord_vector.c \
     src/coord_sys/ak_coord_transform.c \
+    src/coord_sys/ak_coord_transforms.c \
     src/coord_sys/ak_coord_camera.c \
     src/instance/ak_inst_geom.c \
     src/default/ak_default_coord.c \

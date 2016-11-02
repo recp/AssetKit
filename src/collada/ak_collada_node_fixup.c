@@ -8,20 +8,6 @@
 #include "ak_collada_node_fixup.h"
 #include <cglm.h>
 
-AK_INLINE
-void _assetkit_hide
-ak_dae_nodeFixupCameraTrans(AkDoc  * __restrict doc,
-                            AkNode * __restrict node) {
-  if (node->transform
-      && node->transform->type == AK_NODE_TRANSFORM_TYPE_MATRIX) {
-    AkMatrix *matrix;
-    matrix = ak_objGet(node->transform);
-    ak_coordFixCamOri(doc->coordSys,
-                      ak_defaultCoordSys(),
-                      matrix->val);
-  }
-}
-
 /*!
  * @brief fix camera node
  * 
@@ -32,7 +18,6 @@ ak_dae_nodeFixupCameraTrans(AkDoc  * __restrict doc,
 AK_INLINE
 void _assetkit_hide
 ak_dae_nodeFixupCamera(AkHeap * __restrict heap,
-                       AkDoc  * __restrict doc,
                        AkNode * __restrict node) {
   /* node has only camera which we want */
   if (node->camera
@@ -41,11 +26,13 @@ ak_dae_nodeFixupCamera(AkHeap * __restrict heap,
       && !node->light
       && !node->chld
       && !node->node) {
-    ak_dae_nodeFixupCameraTrans(doc, node);
+    node->nodeType = AK_NODE_TYPE_CAMERA_NODE;
   } else {
     /* make sure camera has its own node */
     AkNode *camNode;
     camNode = ak_heap_calloc(heap, node, sizeof(*node), true);
+
+    node->nodeType = AK_NODE_TYPE_CAMERA_NODE;
 
     camNode->camera = node->camera;
     ak_heap_setpm(heap, node->camera, camNode);
@@ -53,9 +40,6 @@ ak_dae_nodeFixupCamera(AkHeap * __restrict heap,
 
     /* duplicate all transforms before apply rotations */
     ak_transformDup(node, camNode);
-
-    /* fix orientation */
-    ak_dae_nodeFixupCameraTrans(doc, camNode);
   }
 }
 
@@ -63,7 +47,8 @@ void _assetkit_hide
 ak_dae_nodeFixup(AkHeap * __restrict heap,
                  AkDoc  * __restrict doc,
                  AkNode * __restrict node) {
-  if (node->camera) {
-    ak_dae_nodeFixupCamera(heap, doc, node);
-  }
+  if (node->camera)
+    ak_dae_nodeFixupCamera(heap, node);
+
+  ak_coordCvtNodeTransforms(doc, node);
 }

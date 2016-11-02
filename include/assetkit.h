@@ -314,8 +314,9 @@ typedef enum AkMorphMethod {
 } AkMorphMethod;
 
 typedef enum AkNodeType {
-  AK_NODE_TYPE_NODE  = 1,
-  AK_NODE_TYPE_JOINT = 2
+  AK_NODE_TYPE_NODE        = 1,
+  AK_NODE_TYPE_CAMERA_NODE = 2,
+  AK_NODE_TYPE_JOINT       = 3
 } AkNodeType;
 
 typedef enum AkNodeTransformType {

@@ -118,4 +118,18 @@ ak_coordFixCamOri(AkCoordSys *oldCoordSys,
                   AkCoordSys *newCoordSys,
                   AkFloat4x4  transform);
 
+struct AkDoc;
+struct AkNode;
+
+AK_EXPORT
+void
+ak_coordRotNodeForFixCamOri(struct AkDoc *doc,
+                            void         *memparent,
+                            AkObject    **destTransform);
+
+AK_EXPORT
+void
+ak_coordCvtNodeTransforms(struct AkDoc  * __restrict doc,
+                          struct AkNode * __restrict node);
+
 #endif /* ak_coord_h */
