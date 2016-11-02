@@ -24,7 +24,7 @@ ak_transformCombineWorld(AkNode * __restrict node,
     ak_transformCombine(parentNode, ptrans[0]);
 
     glm_mat4_mul(ptrans, mat, mat);
-    parentNode = parentNode->next;
+    parentNode = parentNode->parent;
   }
 
   glm_mat4_dup(mat, (vec4 *)matrix);
