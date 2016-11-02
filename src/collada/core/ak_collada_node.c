@@ -56,7 +56,7 @@ ak_dae_node(AkHeap  * __restrict heap,
             AkNode             **firstCamNode,
             AkNode             **dest) {
   AkDoc         *doc;
-  AkNode        *node;
+  AkNode        *node, *last_chld;
   AkObject      *last_transform;
   AkInstanceCamera     *last_camera;
   AkInstanceController *last_controller;
@@ -112,6 +112,7 @@ ak_dae_node(AkHeap  * __restrict heap,
   last_geometry   = NULL;
   last_light      = NULL;
   last_node       = NULL;
+  last_chld       = NULL;
 
   do {
     const ak_enumpair *found;
@@ -604,7 +605,13 @@ ak_dae_node(AkHeap  * __restrict heap,
         subNode = NULL;
         ret = ak_dae_node(heap, node, reader, firstCamNode, &subNode);
         if (ret == AK_OK) {
-          node->chld      = subNode;
+          if (last_chld)
+            last_chld->next = subNode;
+          else
+            node->chld = subNode;
+
+          last_chld = subNode;
+
           subNode->parent = node;
         }
 
