@@ -62,6 +62,7 @@ ak_dae_meshFixupPrimitive(AkHeap          *heap,
       AkFloatArrayN *newArray;
       AkFloat       *oldItems;
       AkFloat       *newItems;
+      const char    *oldArrayId;
       size_t         j;
 
       /* TODO: replace 3 with vertex count */
@@ -71,8 +72,8 @@ ak_dae_meshFixupPrimitive(AkHeap          *heap,
                         sizeof(*newArray)
                         + sizeof(AkFloat) * indicesCount * vertc,
                         AK_SOURCE_ARRAY_TYPE_FLOAT,
-                        false,
-                        false);
+                        true,
+                        true);
 
       newArray = ak_objGet(obj);
       oldArray = ak_objGet(source->data);
@@ -80,13 +81,19 @@ ak_dae_meshFixupPrimitive(AkHeap          *heap,
       oldItems = oldArray->items;
       newItems = newArray->items;
 
+      oldArrayId = ak_getId(source->data);
+      if (oldArrayId) {
+        ak_setId(source->data, NULL);
+        ak_setId(obj, oldArrayId);
+      }
+      
       newArray->count     = indicesCount * vertc;
       newArray->digits    = oldArray->digits;
       newArray->magnitude = oldArray->magnitude;
 
       if (oldArray->name) {
         newArray->name = oldArray->name;
-        ak_mem_setp((void *)oldArray->name, newArray);
+        ak_heap_setpm(heap, (void *)oldArray->name, newArray);
       }
 
       /* fix indices */
