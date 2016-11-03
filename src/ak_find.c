@@ -9,7 +9,7 @@
 
 AK_EXPORT
 void *
-ak_getId(const char * __restrict objptr) {
+ak_getId(void * __restrict objptr) {
   return ak_mem_getId((void *)objptr);
 }
 

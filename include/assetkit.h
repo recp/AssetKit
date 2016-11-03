@@ -1725,7 +1725,7 @@ ak_load(AkDoc ** __restrict dest,
 
 AK_EXPORT
 void *
-ak_getId(const char * __restrict objptr);
+ak_getId(void * __restrict objptr);
 
 AK_EXPORT
 AkResult
