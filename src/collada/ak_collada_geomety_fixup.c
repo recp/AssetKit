@@ -62,7 +62,7 @@ ak_dae_meshFixupPrimitive(AkHeap          *heap,
       AkFloatArrayN *newArray;
       AkFloat       *oldItems;
       AkFloat       *newItems;
-      const char    *oldArrayId;
+      char          *oldArrayId;
       size_t         j;
 
       /* TODO: replace 3 with vertex count */
@@ -83,6 +83,7 @@ ak_dae_meshFixupPrimitive(AkHeap          *heap,
 
       oldArrayId = ak_getId(source->data);
       if (oldArrayId) {
+        ak_heap_setpm(heap, oldArrayId, obj);
         ak_setId(source->data, NULL);
         ak_setId(obj, oldArrayId);
       }
