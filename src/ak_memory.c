@@ -796,15 +796,13 @@ ak_objFrom(void * __restrict memptr) {
 }
 
 void
-AK_CONSTRUCTOR
-ak__init() {
+ak_mem_init() {
   ak_heap_init(&ak__heap, NULL, NULL, NULL);
   ak_heap_lt_init(&ak__heap);
 }
 
 void
-AK_DESTRUCTOR
-ak__cleanup() {
+ak_mem_deinit() {
   ak_heap_destroy(&ak__heap);
   ak_heap_lt_cleanup();
 }

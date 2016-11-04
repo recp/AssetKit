@@ -80,11 +80,9 @@ struct AkHeap {
 };
 
 void
-AK_CONSTRUCTOR
-ak__init();
+ak_mem_init();
 
 void
-AK_DESTRUCTOR
-ak__cleanup();
+ak_mem_deinit();
 
 #endif /* ak_memory_h */
