@@ -490,7 +490,7 @@ ak_heap_free(AkHeap * __restrict heap,
 
       if (toFree->flags & AK_HEAP_NODE_FLAGS_SRCH) {
         AkHeapSrchNode *srchNode;
-        srchNode = (AkHeapSrchNode *)((char *)toFree - sizeof(AkHeapSrchNode));
+        srchNode = AK__SRCHNODE(toFree);
 
         /* remove it from rb tree */
         if (srchNode->key != ak__emptystr)
@@ -525,7 +525,7 @@ ak_heap_free(AkHeap * __restrict heap,
 
   if (heapNode->flags & AK_HEAP_NODE_FLAGS_SRCH) {
     AkHeapSrchNode *srchNode;
-    srchNode = (AkHeapSrchNode *)((char *)heapNode - sizeof(AkHeapSrchNode));
+    srchNode = AK__SRCHNODE(heapNode);
 
     /* remove it from rb tree */
     if (srchNode->key != ak__emptystr)
@@ -553,7 +553,7 @@ ak_heap_getId(AkHeap * __restrict heap,
 
   if (heapNode->flags & AK_HEAP_NODE_FLAGS_SRCH) {
     AkHeapSrchNode *snode;
-    snode = (AkHeapSrchNode *)((char *)heapNode - sizeof(*snode));
+    snode = AK__SRCHNODE(heapNode);
     return snode->key;
   }
 
@@ -567,7 +567,7 @@ ak_heap_setId(AkHeap * __restrict heap,
               void * __restrict memId) {
   if (heapNode->flags & AK_HEAP_NODE_FLAGS_SRCH) {
     AkHeapSrchNode *snode;
-    snode = (AkHeapSrchNode *)((char *)heapNode - sizeof(*snode));
+    snode = AK__SRCHNODE(heapNode);
 
     if (!memId) {
       ak_heap_rb_remove(heap->srchctx, snode);
