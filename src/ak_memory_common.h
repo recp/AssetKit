@@ -40,6 +40,9 @@ struct AkHeapSrchCtx {
 #define AK__HEAPNODE(X) \
             ((AkHeapNode *)(((char *)X) + sizeof(AkHeapSrchNode)))
 
+#define AK__SRCHNODE(X) \
+ ((AkHeapSrchNode *)((char *)X - sizeof(AkHeapSrchNode)))
+
 #define AK__HEAPNODE_ISRED(X)  (X->flags & AK_HEAP_NODE_FLAGS_RED)
 #define AK__HEAPNODE_MKRED(X)   X->flags |= AK_HEAP_NODE_FLAGS_RED
 #define AK__HEAPNODE_MKBLACK(X) X->flags &= ~AK_HEAP_NODE_FLAGS_RED

@@ -399,6 +399,37 @@ ak_heap_setp(AkHeap * __restrict heap,
   }
 
   newParent->chld = heapNode;
+
+  /* move all ids to new heap (if it is different) */
+  if (newParent->heapid != heapNode->heapid)
+    ak_heap_moveh(heap,
+                  ak_heap_getheap(newParent),
+                  heapNode);
+}
+
+AK_EXPORT
+void
+ak_heap_moveh(AkHeap * __restrict heap,
+              AkHeap * __restrict newheap,
+              AkHeapNode * __restrict heapNode) {
+  AkHeapSrchNode *srchNode;
+
+  do {
+    srchNode = AK__SRCHNODE(heapNode);
+
+    ak_heap_rb_remove(heap->srchctx, srchNode);
+    ak_heap_rb_insert(newheap->srchctx, srchNode);
+
+    heapNode->heapid = newheap->heapid;
+
+    heapNode = heapNode->chld;
+
+    /* TODO: get rid of recursive call like free */
+    if (heapNode->chld)
+      ak_heap_moveh(heap, newheap, heapNode->chld);
+
+    heapNode = heapNode->next;
+  } while (heapNode);
 }
 
 AK_EXPORT
