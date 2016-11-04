@@ -1680,6 +1680,11 @@ ak_setId(void * __restrict objptr,
          const char * __restrict objectId);
 
 AK_EXPORT
+AkResult
+ak_moveId(void * __restrict objptrOld,
+          void * __restrict objptrNew);
+
+AK_EXPORT
 void *
 ak_getObjectById(AkDoc * __restrict doc,
                  const char * __restrict objectId);
