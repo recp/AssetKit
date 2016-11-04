@@ -380,11 +380,15 @@ void
 ak_heap_setp(AkHeap * __restrict heap,
              AkHeapNode * __restrict heapNode,
              AkHeapNode * __restrict newParent) {
-  if (heapNode->prev)
-    heapNode->prev->next = heapNode->next;
+  if (heapNode->prev) {
+    if (heapNode->prev->next == heapNode)
+      heapNode->prev->next = heapNode->next;
+    else if (heapNode->prev->chld == heapNode)
+      heapNode->prev->chld = heapNode->next;
 
-  if (heapNode->next)
-    heapNode->next->prev = heapNode->prev;
+    if (heapNode->next)
+      heapNode->next->prev = heapNode->prev;
+  }
 
   if (heapNode == heap->root)
     heap->root = heapNode->next;
