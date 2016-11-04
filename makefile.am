@@ -35,7 +35,8 @@ include_HEADERS = include/assetkit.h \
                   include/ak-instance.h \
                   include/ak-geom.h \
                   include/ak-transform.h \
-                  include/ak-cam.h
+                  include/ak-cam.h \
+                  include/ak-source.h
 
 libassetkit_la_SOURCES=\
     src/assetkit.c \

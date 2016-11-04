@@ -298,16 +298,6 @@ typedef enum AkSurfaceElementType {
   AK_SURFACE_ELEMENT_TYPE_SWEPT_SURFACE = 7
 } AkSurfaceElementType;
 
-typedef enum AkSourceArrayType {
-  AK_SOURCE_ARRAY_TYPE_BOOL   = 1,
-  AK_SOURCE_ARRAY_TYPE_FLOAT  = 2,
-  AK_SOURCE_ARRAY_TYPE_INT    = 3,
-  AK_SOURCE_ARRAY_TYPE_IDREF  = 4,
-  AK_SOURCE_ARRAY_TYPE_NAME   = 5,
-  AK_SOURCE_ARRAY_TYPE_SIDREF = 6,
-  AK_SOURCE_ARRAY_TYPE_TOKEN  = 7
-} AkSourceArrayType;
-
 typedef enum AkMorphMethod {
   AK_MORPH_METHOD_NORMALIZED = 1,
   AK_MORPH_METHOD_RELATIVE   = 2
@@ -377,6 +367,8 @@ _ak_DEF_BASIC_ATTR(long, l);
 _ak_DEF_BASIC_ATTR(const char *, s);
 
 #undef _ak_DEF_BASIC_ATTR
+
+#include "ak-source.h"
 
 typedef struct AkUnit {
   const char * name;
@@ -1076,51 +1068,6 @@ typedef struct AkMaterial {
 
   struct AkMaterial * next;
 } AkMaterial;
-
-typedef struct AkBoolArrayN {
-  /* const char * id; */
-  const char * name;
-  size_t       count;
-  AkBool       items[];
-} AkBoolArrayN;
-
-typedef struct AkFloatArrayN {
-  /* const char * id; */
-  const char * name;
-  size_t       count;
-  AkUInt       digits;
-  AkUInt       magnitude;
-  AkFloat      items[];
-} AkFloatArrayN;
-
-typedef struct AkIntArrayN {
-  /* const char * id; */
-  const char * name;
-  size_t       count;
-  AkInt        minInclusive;
-  AkInt        maxInclusive;
-  AkInt        items[];
-} AkIntArrayN;
-
-typedef struct AkStringArrayN {
-  /* const char  * id; */
-  const char  * name;
-  size_t count;
-  AkString items[];
-} AkStringArrayN;
-
-typedef struct AkSource {
-  ak_asset_base
-
-  /* const char * id; */
-  const char * name;
-  AkObject   * data;
-
-  AkTechniqueCommon * techniqueCommon;
-  AkTechnique       * technique;
-
-  struct AkSource * next;
-} AkSource;
 
 typedef struct AkInputBasic {
   ak_asset_base
