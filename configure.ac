@@ -19,6 +19,7 @@ CFLAGS="$CFLAGS -I./lib/jemalloc/include"
 CFLAGS="$CFLAGS -I./lib/cglm/include"
 
 LDFLAGS="$LDFLAGS -L./lib/jemalloc/lib"
+LDFLAGS="$LDFLAGS -L./lib/libxml2/.libs"
 
 # Checks for programs.
 AC_PROG_CC
@@ -80,7 +81,5 @@ AC_CHECK_FUNCS([floor \
                 strtoul])
 
 AC_CONFIG_FILES([makefile])
-
-AC_CONFIG_SUBDIRS([lib/jemalloc lib/libxml2])
 
 AC_OUTPUT

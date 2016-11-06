@@ -19,6 +19,3 @@ libtoolize
 aclocal -I m4
 autoconf
 automake --add-missing --copy
-
-sh ./lib/libxml2/autogen.sh
-sh ./lib/jemalloc/autogen.sh

@@ -8,8 +8,6 @@
 
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = lib/libxml2 lib/jemalloc
-
 AM_CFLAGS = -Wall \
             -std=gnu99 \
             -O3 \
@@ -20,9 +18,10 @@ AM_CFLAGS = -Wall \
             -Wno-overlength-strings
 
 lib_LTLIBRARIES = libassetkit.la
-libassetkit_la_LDFLAGS = -no-undefined -version-info 0:1:0
-
-libassetkit_la_LIBADD = lib/libxml2/libxml2.la
+libassetkit_la_LDFLAGS = -no-undefined \
+                         -version-info 0:1:0 \
+                         -lxml2 \
+                         -ljemalloc
 
 include_HEADERS = include/assetkit.h \
                   include/ak-states.h \
