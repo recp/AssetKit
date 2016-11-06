@@ -6,6 +6,8 @@
  */
 
 #include "../ak_common.h"
+#include <limits.h>
+#include <uv.h>
 
 #define CHR_SLASH       '/'
 #define CHR_BACK_SLASH  '\\'
@@ -174,4 +176,20 @@ ak_path_join(char   *fragments[],
   *size = len;
 
   return 0;
+}
+
+AK_EXPORT
+int
+ak_path_tmpfile() {
+  char   path[PATH_MAX];
+  size_t size;
+  int    ret;
+
+  ret = uv_os_tmpdir(path, &size);
+  if (ret < 0)
+    return -1;
+
+  strcat(path, "/ak-XXXXXX");
+
+  return mkstemp(path);
 }

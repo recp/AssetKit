@@ -23,4 +23,8 @@ AK_EXPORT
 int
 ak_path_isfile(const char *path);
 
+AK_EXPORT
+int
+ak_path_tmpfile();
+
 #endif /* ak_path_h */
