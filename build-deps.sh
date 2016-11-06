@@ -7,11 +7,13 @@
 #
 
 # libxml2
-sh ./lib/libxml2/autogen.sh
-./lib/libxml2/configure
-./lib/libxml2/make
+cd ./lib/libxml2
+sh ./autogen.sh
+./configure
+make
 
 # jemalloc
-sh ./lib/jemalloc/autogen.sh
-./lib/jemalloc/configure
-./lib/jemalloc/make
+cd ../jemalloc
+sh ./autogen.sh
+./configure
+make
