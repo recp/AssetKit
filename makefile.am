@@ -35,7 +35,8 @@ include_HEADERS = include/assetkit.h \
                   include/ak-geom.h \
                   include/ak-transform.h \
                   include/ak-cam.h \
-                  include/ak-source.h
+                  include/ak-source.h \
+                  include/ak-path.h
 
 libassetkit_la_SOURCES=\
     src/assetkit.c \
@@ -57,6 +58,7 @@ libassetkit_la_SOURCES=\
     src/coord_sys/ak_coord_transform.c \
     src/coord_sys/ak_coord_transforms.c \
     src/coord_sys/ak_coord_camera.c \
+    src/resc/ak_path.c \
     src/instance/ak_inst_geom.c \
     src/default/ak_default_coord.c \
     src/geom/ak_geom_mesh.c \
