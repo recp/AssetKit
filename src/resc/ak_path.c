@@ -32,25 +32,34 @@ ak_path_trim(const char *path,
              char *trimmed) {
   const char *it1;
   char       *it2;
-  size_t len;
-  int    skp;
+  size_t      len;
+  int         skp;
+  int         proto;
+  int         local;
 
-  len = skp = 0;
+  len = skp = proto = local = 0;
   it1 = path;
   it2 = trimmed;
 
   while (*it1 == ' ')
     it1++;
 
+  local = *it1 == '/' || *it1 == '\\';
+
   while (*it1) {
     if (*it1 == '/' || *it1 == '\\') {
       if (skp != 0) {
-        it1++;
-        continue;
+        if (proto != 1) {
+          it1++;
+          continue;
+        }
+
+        proto = 2;
       }
 
       AK_STRTRM_SET(1);
     } else {
+      proto = !proto && *it1 == ':' && !local;
       AK_STRTRM_SET(0);
     }
   }
