@@ -10,7 +10,7 @@
 
 AK_EXPORT
 size_t
-ak_path_trim(char *path,
+ak_path_trim(const char *path,
              char *trimmed);
 
 AK_EXPORT

@@ -28,10 +28,10 @@
 
 AK_EXPORT
 size_t
-ak_path_trim(char *path,
+ak_path_trim(const char *path,
              char *trimmed) {
-  char  *it1;
-  char  *it2;
+  const char *it1;
+  char       *it2;
   size_t len;
   int    skp;
 
