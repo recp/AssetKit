@@ -179,7 +179,7 @@ ak_path_join(char   *fragments[],
 }
 
 AK_EXPORT
-int
+FILE *
 ak_path_tmpfile() {
   char   path[PATH_MAX];
   size_t size;
@@ -187,9 +187,10 @@ ak_path_tmpfile() {
 
   ret = uv_os_tmpdir(path, &size);
   if (ret < 0)
-    return -1;
+    return NULL;
 
   strcat(path, "/ak-XXXXXX");
 
-  return mkstemp(path);
+  /* TODO: include io.h for windows */
+  return fopen(mktemp(path), "wb+");
 }

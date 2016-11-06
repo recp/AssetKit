@@ -8,6 +8,8 @@
 #ifndef ak_path_h
 #define ak_path_h
 
+#include <stdio.h>
+
 AK_EXPORT
 size_t
 ak_path_trim(const char *path,
@@ -24,7 +26,7 @@ int
 ak_path_isfile(const char *path);
 
 AK_EXPORT
-int
+FILE *
 ak_path_tmpfile();
 
 #endif /* ak_path_h */
