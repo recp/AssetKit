@@ -17,3 +17,15 @@ cd ../jemalloc
 sh ./autogen.sh
 ./configure
 make
+
+# curl
+cd ../curl
+sh ./buildconf
+./configure
+make
+
+# libuv
+cd ../libuv
+sh ./autogen.sh
+./configure
+make

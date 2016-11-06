@@ -17,9 +17,13 @@ AC_CONFIG_HEADERS([config.h])
 CFLAGS="$CFLAGS -I./lib/libxml2/include"
 CFLAGS="$CFLAGS -I./lib/jemalloc/include"
 CFLAGS="$CFLAGS -I./lib/cglm/include"
+CFLAGS="$CFLAGS -I./lib/curl/include"
+CFLAGS="$CFLAGS -I./lib/libuv/include"
 
 LDFLAGS="$LDFLAGS -L./lib/jemalloc/lib"
 LDFLAGS="$LDFLAGS -L./lib/libxml2/.libs"
+LDFLAGS="$LDFLAGS -L./lib/curl/lib/.libs"
+LDFLAGS="$LDFLAGS -L./lib/libuv/.libs"
 
 # Checks for programs.
 AC_PROG_CC
@@ -38,6 +42,8 @@ LT_INIT
 # Checks for libraries.
 AC_CHECK_LIB([m], [floor])
 AC_CHECK_LIB([jemalloc], [je_malloc])
+AC_CHECK_LIB([curl], [curl_easy_perform])
+AC_CHECK_LIB([uv], [uv_os_tmpdir])
 
 AC_SYS_LARGEFILE
 

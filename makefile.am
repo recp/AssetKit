@@ -21,7 +21,9 @@ lib_LTLIBRARIES = libassetkit.la
 libassetkit_la_LDFLAGS = -no-undefined \
                          -version-info 0:1:0 \
                          -lxml2 \
-                         -ljemalloc
+                         -ljemalloc \
+                         -lcurl \
+                         -luv
 
 include_HEADERS = include/assetkit.h \
                   include/ak-states.h \
