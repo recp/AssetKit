@@ -38,10 +38,11 @@ ak_path_isfile(const char *path) {
   if (*it == '/' || *it == '\\')
     return 1;
 
-  if (strncasecmp("file://", path, 7) == 0)
-    return 1;
+  if (strstr(it, "://"))
+    if (strncasecmp("file", it, strstr(it, "://") - it) != 0)
+      return 0;
 
-  return 0;
+  return 1;
 }
 
 AK_EXPORT
