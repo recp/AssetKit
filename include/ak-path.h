@@ -19,4 +19,8 @@ ak_path_join(char   *fragments[],
              char   *buf,
              size_t *size);
 
+AK_EXPORT
+int
+ak_path_isfile(const char *path);
+
 #endif /* ak_path_h */

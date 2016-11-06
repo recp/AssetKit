@@ -27,6 +27,24 @@
   } while (0)
 
 AK_EXPORT
+int
+ak_path_isfile(const char *path) {
+  const char *it;
+
+  it = path;
+  while (*it == ' ')
+    it++;
+
+  if (*it == '/' || *it == '\\')
+    return 1;
+
+  if (strncasecmp("file://", path, 7) == 0)
+    return 1;
+
+  return 0;
+}
+
+AK_EXPORT
 size_t
 ak_path_trim(const char *path,
              char *trimmed) {
