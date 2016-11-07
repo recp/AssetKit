@@ -34,6 +34,8 @@ ak_resc_ins(const char *url) {
   void       *pFoundResc;
   AkResource *resc, *foundResc;
   char       *tmp, *trimmedURL;
+  const char *fragment;
+  size_t      trimmedURLSize;
   AkResult    ret;
 
   tmp = malloc(sizeof(*tmp) * strlen(url));
@@ -62,14 +64,25 @@ ak_resc_ins(const char *url) {
                 trimmedURL);
 
   resc->refc++;
-  resc->url = ak_heap_strdup(resc_heap, resc, url);
+
+  fragment = ak_path_fragment(trimmedURL);
+
+  if (strlen(fragment) > 0)
+    trimmedURLSize = fragment - trimmedURL;
+  else
+    trimmedURLSize = strlen(trimmedURL);
+
+  resc->url = ak_heap_strndup(resc_heap,
+                              resc,
+                              url,
+                              trimmedURLSize);
 
   if (ak_path_isfile(url)) {
     resc->isdwn    = true;
     resc->islocal  = true;
-    resc->localurl = url;
+    resc->localurl = resc->url;
     resc->result   = ak_load(&resc->doc,
-                             url,
+                             resc->url,
                              AK_FILE_TYPE_COLLADA);
     return resc;
   }
@@ -79,13 +92,13 @@ ak_resc_ins(const char *url) {
    */
 
   /* TODO: check preferences, user may want to download manually */
-  resc->localurl = ak_curl_dwn(url);
+  resc->localurl = ak_curl_dwn(resc->url);
   ak_heap_setpm(ak_heap_getheap((void *)resc->localurl),
                 (void *)resc->localurl,
                 resc);
 
   resc->result = ak_load(&resc->doc,
-                         url,
+                         resc->url,
                          AK_FILE_TYPE_COLLADA);
   return resc;
 }
