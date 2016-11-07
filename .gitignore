@@ -49,3 +49,4 @@ stamp*
 COPYING
 .idea/*
 *.VC.db
+test-driver
