@@ -210,4 +210,12 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
     } else TARGET = DEF;                                                      \
   } while(0);
 
+#include "../include/ak-url.h"
+
+void
+ak_url_from_attr(xmlTextReaderPtr reader,
+                 const char * attrName,
+                 void  *memparent,
+                 AkURL *url);
+
 #endif /* __libassetkit__libxml__h_ */

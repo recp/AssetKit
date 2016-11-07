@@ -45,9 +45,13 @@ ak_dae_lines(AkHeap * __restrict heap,
       input = ak_heap_calloc(heap, lines, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
-      _xml_readAttr(input, input->base.source, _s_dae_source);
 
-      if (!input->base.semanticRaw || !input->base.source)
+      ak_url_from_attr(reader,
+                       _s_dae_source,
+                       input,
+                       &input->base.source);
+
+      if (!input->base.semanticRaw || !input->base.source.url)
         ak_free(input);
       else {
         AkEnum inputSemantic;
@@ -78,7 +82,8 @@ ak_dae_lines(AkHeap * __restrict heap,
 
       /* attach vertices for convenience */
       if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX)
-        lines->base.vertices = ak_getObjectByUrl(doc, input->base.source);
+        lines->base.vertices = ak_getObjectByUrl(&input->base.source);
+
     } else if (_xml_eqElm(_s_dae_p)) {
       char *content;
 

@@ -135,9 +135,13 @@ ak_dae_fxInstanceEffect(AkHeap * __restrict heap,
                                   sizeof(*instanceEffect),
                                   false);
 
-  _xml_readAttr(instanceEffect, instanceEffect->url, _s_dae_url);
   _xml_readAttr(instanceEffect, instanceEffect->sid, _s_dae_sid);
   _xml_readAttr(instanceEffect, instanceEffect->name, _s_dae_name);
+
+  ak_url_from_attr(reader,
+                   _s_dae_url,
+                   instanceEffect,
+                   &instanceEffect->url);
 
   last_techHint = NULL;
   last_setparam = NULL;

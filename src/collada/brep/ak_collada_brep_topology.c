@@ -38,9 +38,13 @@ ak_dae_edges(AkHeap * __restrict heap,
       input = ak_heap_calloc(heap, edges, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
-      _xml_readAttr(input, input->base.source, _s_dae_source);
 
-      if (!input->base.semanticRaw || !input->base.source)
+      ak_url_from_attr(reader,
+                       _s_dae_source,
+                       input,
+                       &input->base.source);
+
+      if (!input->base.semanticRaw || !input->base.source.url)
         ak_free(input);
       else {
         AkEnum inputSemantic;
@@ -134,9 +138,13 @@ ak_dae_wires(AkHeap * __restrict heap,
       input = ak_heap_calloc(heap, wires, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
-      _xml_readAttr(input, input->base.source, _s_dae_source);
 
-      if (!input->base.semanticRaw || !input->base.source)
+      ak_url_from_attr(reader,
+                       _s_dae_source,
+                       input,
+                       &input->base.source);
+
+      if (!input->base.semanticRaw || !input->base.source.url)
         ak_free(input);
       else {
         AkEnum inputSemantic;
@@ -243,9 +251,13 @@ ak_dae_faces(AkHeap * __restrict heap,
       input = ak_heap_calloc(heap, faces, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
-      _xml_readAttr(input, input->base.source, _s_dae_source);
 
-      if (!input->base.semanticRaw || !input->base.source)
+      ak_url_from_attr(reader,
+                       _s_dae_source,
+                       input,
+                       &input->base.source);
+
+      if (!input->base.semanticRaw || !input->base.source.url)
         ak_free(input);
       else {
         AkEnum inputSemantic;
@@ -352,9 +364,13 @@ ak_dae_pcurves(AkHeap * __restrict heap,
       input = ak_heap_calloc(heap, pcurves, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
-      _xml_readAttr(input, input->base.source, _s_dae_source);
 
-      if (!input->base.semanticRaw || !input->base.source)
+      ak_url_from_attr(reader,
+                       _s_dae_source,
+                       input,
+                       &input->base.source);
+
+      if (!input->base.semanticRaw || !input->base.source.url)
         ak_free(input);
       else {
         AkEnum inputSemantic;
@@ -461,9 +477,13 @@ ak_dae_shells(AkHeap * __restrict heap,
       input = ak_heap_calloc(heap, shells, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
-      _xml_readAttr(input, input->base.source, _s_dae_source);
 
-      if (!input->base.semanticRaw || !input->base.source)
+      ak_url_from_attr(reader,
+                       _s_dae_source,
+                       input,
+                       &input->base.source);
+
+      if (!input->base.semanticRaw || !input->base.source.url)
         ak_free(input);
       else {
         AkEnum inputSemantic;
@@ -570,9 +590,13 @@ ak_dae_solids(AkHeap * __restrict heap,
       input = ak_heap_calloc(heap, solids, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
-      _xml_readAttr(input, input->base.source, _s_dae_source);
 
-      if (!input->base.semanticRaw || !input->base.source)
+      ak_url_from_attr(reader,
+                       _s_dae_source,
+                       input,
+                       &input->base.source);
+
+      if (!input->base.semanticRaw || !input->base.source.url)
         ak_free(input);
       else {
         AkEnum inputSemantic;

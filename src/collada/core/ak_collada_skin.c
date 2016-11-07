@@ -89,9 +89,13 @@ ak_dae_skin(AkHeap * __restrict heap,
           input = ak_heap_calloc(heap, joints, sizeof(*input), false);
 
           _xml_readAttr(input, input->semanticRaw, _s_dae_semantic);
-          _xml_readAttr(input, input->source, _s_dae_source);
 
-          if (!input->semanticRaw || !input->source)
+          ak_url_from_attr(reader,
+                           _s_dae_source,
+                           input,
+                           &input->source);
+
+          if (!input->semanticRaw || !input->source.url)
             ak_free(input);
           else {
             AkEnum inputSemantic;
@@ -149,9 +153,13 @@ ak_dae_skin(AkHeap * __restrict heap,
           input = ak_heap_calloc(heap, vertexWeights, sizeof(*input), false);
 
           _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
-          _xml_readAttr(input, input->base.source, _s_dae_source);
 
-          if (!input->base.semanticRaw || !input->base.source)
+          ak_url_from_attr(reader,
+                           _s_dae_source,
+                           input,
+                           &input->base.source);
+
+          if (!input->base.semanticRaw || !input->base.source.url)
             ak_free(input);
           else {
             AkEnum inputSemantic;

@@ -82,9 +82,13 @@ ak_dae_nurbs(AkHeap * __restrict heap,
           input = ak_heap_calloc(heap, memPtr, sizeof(*input), false);
 
           _xml_readAttr(input, input->semanticRaw, _s_dae_semantic);
-          _xml_readAttr(input, input->source, _s_dae_source);
 
-          if (!input->semanticRaw || !input->source)
+          ak_url_from_attr(reader,
+                           _s_dae_source,
+                           input,
+                           &input->source);
+
+          if (!input->semanticRaw || !input->source.url)
             ak_free(input);
           else {
             AkEnum inputSemantic;
@@ -230,9 +234,13 @@ ak_dae_nurbs_surface(AkHeap * __restrict heap,
           input = ak_heap_calloc(heap, memPtr, sizeof(*input), false);
 
           _xml_readAttr(input, input->semanticRaw, _s_dae_semantic);
-          _xml_readAttr(input, input->source, _s_dae_source);
 
-          if (!input->semanticRaw || !input->source)
+          ak_url_from_attr(reader,
+                           _s_dae_source,
+                           input,
+                           &input->source);
+
+          if (!input->semanticRaw || !input->source.url)
             ak_free(input);
           else {
             AkEnum inputSemantic;

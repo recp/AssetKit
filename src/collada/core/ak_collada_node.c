@@ -346,7 +346,11 @@ ak_dae_node(AkHeap  * __restrict heap,
                                         false);
 
         _xml_readAttr(instanceCamera, instanceCamera->base.name, _s_dae_name);
-        _xml_readAttr(instanceCamera, instanceCamera->base.url, _s_dae_url);
+
+        ak_url_from_attr(reader,
+                         _s_dae_url,
+                         instanceCamera,
+                         &instanceCamera->base.url);
 
         do {
           _xml_beginElement(_s_dae_instance_camera);
@@ -390,7 +394,11 @@ ak_dae_node(AkHeap  * __restrict heap,
         controller = ak_heap_calloc(heap, node, sizeof(*controller), false);
 
         _xml_readAttr(controller, controller->name, _s_dae_name);
-        _xml_readAttr(controller, controller->url, _s_dae_url);
+
+        ak_url_from_attr(reader,
+                         _s_dae_url,
+                         controller,
+                         &controller->url);
 
         last_skeleton = NULL;
 
@@ -464,7 +472,11 @@ ak_dae_node(AkHeap  * __restrict heap,
         geometry = ak_heap_calloc(heap, node, sizeof(*geometry), false);
 
         _xml_readAttr(geometry, geometry->base.name, _s_dae_name);
-        _xml_readAttr(geometry, geometry->base.url, _s_dae_url);
+
+        ak_url_from_attr(reader,
+                         _s_dae_url,
+                         geometry,
+                         &geometry->base.url);
 
         do {
           _xml_beginElement(_s_dae_instance_geometry);
@@ -516,7 +528,11 @@ ak_dae_node(AkHeap  * __restrict heap,
         light = ak_heap_calloc(heap, node, sizeof(*light), false);
 
         _xml_readAttr(light, light->name, _s_dae_name);
-        _xml_readAttr(light, light->url, _s_dae_url);
+
+        ak_url_from_attr(reader,
+                         _s_dae_url,
+                         light,
+                         &light->url);
 
         do {
           _xml_beginElement(_s_dae_instance_light);
@@ -563,8 +579,12 @@ ak_dae_node(AkHeap  * __restrict heap,
                                       false);
 
         _xml_readAttr(instanceNode, instanceNode->name, _s_dae_name);
-        _xml_readAttr(instanceNode, instanceNode->url, _s_dae_url);
         _xml_readAttr(instanceNode, instanceNode->proxy, _s_dae_proxy);
+
+        ak_url_from_attr(reader,
+                         _s_dae_url,
+                         instanceNode,
+                         &instanceNode->url);
 
         do {
           _xml_beginElement(_s_dae_instance_node);

@@ -172,7 +172,11 @@ ak_dae_fxInstanceMaterial(AkHeap * __restrict heap,
   _xml_readAttr(material, material->name, _s_dae_name);
   _xml_readAttr(material, material->target, _s_dae_target);
   _xml_readAttr(material, material->symbol, _s_dae_symbol);
-  _xml_readAttr(material, material->url, _s_dae_url);
+
+  ak_url_from_attr(reader,
+                   _s_dae_url,
+                   material,
+                   &material->url);
 
   last_bind = NULL;
   last_bindVertexInput = NULL;

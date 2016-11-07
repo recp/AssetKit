@@ -108,7 +108,11 @@ ak_dae_instanceVisualScene(AkHeap * __restrict heap,
 
   _xml_readAttr(visualScene, visualScene->base.sid, _s_dae_sid);
   _xml_readAttr(visualScene, visualScene->base.name, _s_dae_name);
-  _xml_readAttr(visualScene, visualScene->base.url, _s_dae_url);
+
+  ak_url_from_attr(reader,
+                   _s_dae_url,
+                   visualScene,
+                   &visualScene->base.url);
 
   do {
     _xml_beginElement(_s_dae_instance_visual_scene);

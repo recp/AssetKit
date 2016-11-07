@@ -150,9 +150,13 @@ ak_dae_fxInstanceImage(AkHeap * __restrict heap,
                                  sizeof(*instanceImage),
                                  false);
 
-  _xml_readAttr(instanceImage, instanceImage->url, _s_dae_url);
   _xml_readAttr(instanceImage, instanceImage->sid, _s_dae_sid);
   _xml_readAttr(instanceImage, instanceImage->name, _s_dae_name);
+
+  ak_url_from_attr(reader,
+                   _s_dae_url,
+                   instanceImage,
+                   &instanceImage->url);
 
   do {
     _xml_beginElement(_s_dae_instance_image);

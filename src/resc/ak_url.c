@@ -11,12 +11,32 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <assert.h>
 
 void
-ak_url_init(const char *urlstring,
+ak_url_init(void  *parent,
+            char  *urlstring,
             AkURL *dest) {
-  dest->reserved = ak_resc_ins(urlstring);
-  dest->url      = ak_path_fragment(urlstring);;
+
+  assert(parent && "parent must be malloced by ak_heap_alloc/calloc");
+
+  if (*urlstring == '#') {
+    AkHeap *heap;
+
+    dest->reserved = NULL;
+    heap           = ak_heap_getheap(parent);
+    dest->doc      = ak_heap_attachment(heap);
+    dest->url      = ak_heap_strdup(heap,
+                                    parent,
+                                    urlstring);
+
+
+    return;
+  }
+
+  dest->reserved = ak_resc_ins(urlstring);;
+  dest->url      = ak_path_fragment(urlstring);
+  dest->doc      = ((AkResource *)dest->reserved)->doc;
 }
 
 void
@@ -36,4 +56,13 @@ ak_url_unref(AkURL *url) {
     url->reserved = NULL;
     url->url      = NULL;
   }
+}
+
+AK_EXPORT
+void *
+ak_getObjectByUrl(AkURL * __restrict url) {
+  if (url->doc)
+    return ak_getObjectById(url->doc, url->url + 1);
+
+  return NULL;
 }

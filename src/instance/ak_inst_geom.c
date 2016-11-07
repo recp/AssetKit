@@ -13,7 +13,7 @@ void *
 ak_instanceObject(AkDoc * __restrict doc,
                   AkInstanceBase *instanceBase) {
   if (!instanceBase->object)
-    instanceBase->object = ak_getObjectByUrl(doc, instanceBase->url);
+    instanceBase->object = ak_getObjectByUrl(&instanceBase->url);
 
   return instanceBase->object;
 }
@@ -25,8 +25,9 @@ ak_instanceObjectGeom(AkDoc * __restrict doc,
   AkInstanceBase *instanceBase;
 
   instanceBase = &node->geometry->base;
+
   if (!instanceBase->object)
-    instanceBase->object = ak_getObjectByUrl(doc, instanceBase->url);
+    instanceBase->object = ak_getObjectByUrl(&instanceBase->url);
 
   return instanceBase->object;
 }
@@ -43,8 +44,9 @@ ak_instanceObjectGeomId(AkDoc * __restrict doc,
     return NULL;
 
   instanceBase = &node->geometry->base;
+
   if (!instanceBase->object)
-    instanceBase->object = ak_getObjectByUrl(doc, instanceBase->url);
+    instanceBase->object = ak_getObjectByUrl(&instanceBase->url);
 
   return instanceBase->object;
 }

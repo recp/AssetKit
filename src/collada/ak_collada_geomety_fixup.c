@@ -53,7 +53,7 @@ ak_dae_meshFixupPrimitive(AkHeap          *heap,
       continue;
     }
 
-    source = ak_getObjectByUrl(doc, input->base.source);
+    source = ak_getObjectByUrl(&input->base.source);
 
     /* TODO: INT, DOUBLE.. */
     if (source->data->type == AK_SOURCE_ARRAY_TYPE_FLOAT) {

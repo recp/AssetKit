@@ -10,11 +10,13 @@
 
 typedef struct AkURL {
   const char   *url;      /* only fragment */
-  void         *reserved; /* private */
+  struct AkDoc *doc;      /* document      */
+  void         *reserved; /* private       */
 } AkURL;
 
 void
-ak_url_init(const char *urlstring,
+ak_url_init(void  *parent,
+            char  *urlstring,
             AkURL *dest);
 
 void

@@ -30,10 +30,11 @@ ak_changeCoordSysMesh(AkMesh * __restrict mesh,
         AkSource      *vs;
         AkFloatArrayN *va;
 
-        verts = ak_getObjectByUrl(doc, input->base.source);
-        vib  = verts->input;
+        verts = ak_getObjectByUrl(&input->base.source);
+        vib   = verts->input;
+
         while (vib) {
-          vs = ak_getObjectByUrl(doc, vib->source);
+          vs = ak_getObjectByUrl(&vib->source);
 
           /* TODO: INT, DOUBLE.. */
           if (vs->data->type == AK_SOURCE_ARRAY_TYPE_FLOAT) {

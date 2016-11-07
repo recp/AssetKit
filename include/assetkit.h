@@ -651,16 +651,16 @@ typedef struct AkImage {
 } AkImage;
 
 typedef struct AkInstanceBase {
+  AkURL       url;
   void       *object;
-  const char *url;
   const char *sid;
   const char *name;
   AkTree     *extra;
 } AkInstanceBase;
 
 typedef struct AkInstanceImage {
+  AkURL        url;
   AkImage    * image;
-  const char * url;
   const char * sid;
   const char * name;
 
@@ -1050,8 +1050,8 @@ typedef struct AkTechniqueHint {
 } AkTechniqueHint;
 
 typedef struct AkInstanceEffect {
+  AkURL        url;
   AkEffect   * effect;
-  const char * url;
   const char * sid;
   const char * name;
 
@@ -1073,7 +1073,7 @@ typedef struct AkMaterial {
 typedef struct AkInputBasic {
   ak_asset_base
 
-  const char * source;
+  AkURL        source;
   const char * semanticRaw;
   AkInputSemantic semantic;
 
@@ -1460,9 +1460,9 @@ typedef struct AkBindMaterial {
 } AkBindMaterial;
 
 typedef struct AkInstanceController {
+  AkURL            url;
   AkController   * controller;
   const char     * name;
-  const char     * url;
   AkSkeleton     * skeleton;
   AkBindMaterial * bindMaterial;
   AkTree         * extra;
@@ -1478,9 +1478,9 @@ typedef struct AkInstanceGeometry {
 } AkInstanceGeometry;
 
 typedef struct AkInstanceLight {
+  AkURL        url;
   AkLight    * light;
   const char * name;
-  const char * url;
   AkTree     * extra;
 
   struct AkInstanceLight * next;
@@ -1488,9 +1488,9 @@ typedef struct AkInstanceLight {
 
 typedef struct AkNode AkNode;
 typedef struct AkInstanceNode {
+  AkURL        url;
   AkNode     * node;
   const char * name;
-  const char * url;
   const char * proxy;
   AkTree     * extra;
 
@@ -1541,12 +1541,12 @@ typedef struct AkBindVertexInput {
 typedef struct AkInstanceMaterial {
   ak_asset_base
 
+  AkURL                 url;
   AkMaterial          * material;
   const char          * sid;
   const char          * name;
   const char          * target;
   const char          * symbol;
-  const char          * url;
   AkTechniqueOverride * techniqueOverride;
   AkBind              * bind;
   AkBindVertexInput   * bindVertexInput;
@@ -1692,8 +1692,7 @@ ak_getObjectById(AkDoc * __restrict doc,
 
 AK_EXPORT
 void *
-ak_getObjectByUrl(AkDoc * __restrict doc,
-                  const char * __restrict objectUrl);
+ak_getObjectByUrl(AkURL * __restrict url);
 
 #ifdef __cplusplus
 }
