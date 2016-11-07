@@ -90,6 +90,43 @@ ak_resc_ins(const char *url) {
   return resc->doc;
 }
 
+void
+ak_resc_unref(AkResource *resc) {
+  resc->refc--;
+  if (resc->refc <= 0) {
+    if (resc->doc)
+      ak_free(resc->doc);
+
+    ak_free(resc);
+  }
+}
+
+void
+ak_resc_unref_url(const char *url) {
+  void    *resc;
+  char    *trimmed;
+  AkResult ret;
+
+  trimmed = NULL;
+  ak_path_trim(url, trimmed);
+
+  if (trimmed) {
+    ret = ak_heap_getMemById(resc_heap,
+                             trimmed,
+                             &resc);
+
+    if (ret != AK_EFOUND)
+      ak_resc_unref(resc);
+
+    free(trimmed);
+  }
+}
+
+void
+ak_resc_print() {
+  ak_heap_printKeys(resc_heap);
+}
+
 void _assetkit_hide
 ak_resc_init() {
   ak_heap_init(resc_heap, NULL, NULL, NULL);

@@ -31,4 +31,13 @@ ak_resc_deinit();
 AkDoc *
 ak_resc_ins(const char *url);
 
+void
+ak_resc_unref(AkResource *resc);
+
+void
+ak_resc_unref_url(const char *url);
+
+void
+ak_resc_print();
+
 #endif /* ak_resource_h */
