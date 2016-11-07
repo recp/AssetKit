@@ -41,7 +41,7 @@ ak__heap_strdup_def(const char * str);
 
 static char * ak__emptystr = "";
 
-static AkHeapAllocator ak__allocator = {
+AkHeapAllocator ak__allocator = {
 #ifdef JEMALLOC_VERSION
   .malloc   = je_malloc,
   .calloc   = je_calloc,

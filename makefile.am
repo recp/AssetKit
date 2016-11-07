@@ -61,6 +61,8 @@ libassetkit_la_SOURCES=\
     src/coord_sys/ak_coord_transforms.c \
     src/coord_sys/ak_coord_camera.c \
     src/resc/ak_path.c \
+    src/resc/ak_curl.c \
+    src/resc/ak_resource.c \
     src/instance/ak_inst_geom.c \
     src/default/ak_default_coord.c \
     src/geom/ak_geom_mesh.c \
