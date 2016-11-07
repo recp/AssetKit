@@ -11,6 +11,10 @@
 #include <stdio.h>
 
 AK_EXPORT
+const char *
+ak_path_fragment(const char *path);
+
+AK_EXPORT
 size_t
 ak_path_trim(const char *path,
              char *trimmed);

@@ -29,6 +29,12 @@
   } while (0)
 
 AK_EXPORT
+const char *
+ak_path_fragment(const char *path) {
+  return strrchr(path, '#');
+}
+
+AK_EXPORT
 int
 ak_path_isfile(const char *path) {
   const char *it;
