@@ -29,4 +29,8 @@ AK_EXPORT
 FILE *
 ak_path_tmpfile();
 
+AK_EXPORT
+char *
+ak_path_tmpfilepath();
+
 #endif /* ak_path_h */

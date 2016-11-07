@@ -179,6 +179,22 @@ ak_path_join(char   *fragments[],
 }
 
 AK_EXPORT
+char *
+ak_path_tmpfilepath() {
+  char   path[PATH_MAX];
+  size_t size;
+  int    ret;
+
+  ret = uv_os_tmpdir(path, &size);
+  if (ret < 0)
+    return NULL;
+
+  strcat(path, "/ak-XXXXXX");
+
+  return ak_strdup(NULL, mktemp(path));
+}
+
+AK_EXPORT
 FILE *
 ak_path_tmpfile() {
   char   path[PATH_MAX];
