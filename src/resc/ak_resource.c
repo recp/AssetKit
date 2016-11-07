@@ -29,7 +29,7 @@ static AkHeap ak__resc_heap = {
 
 #define resc_heap &ak__resc_heap
 
-AkDoc *
+AkResource *
 ak_resc_ins(const char *url) {
   void       *pFoundResc;
   AkResource *resc, *foundResc;
@@ -49,7 +49,7 @@ ak_resc_ins(const char *url) {
   if (ret != AK_EFOUND) {
     foundResc = pFoundResc;
     foundResc->refc++;
-    return foundResc->doc;
+    return foundResc;
   }
 
   resc = ak_heap_calloc(resc_heap,
@@ -71,7 +71,7 @@ ak_resc_ins(const char *url) {
     resc->result   = ak_load(&resc->doc,
                              url,
                              AK_FILE_TYPE_COLLADA);
-    return resc->doc;
+    return resc;
   }
 
   /* download the file, file must be downloadable, e.g not live stream
@@ -87,10 +87,15 @@ ak_resc_ins(const char *url) {
   resc->result = ak_load(&resc->doc,
                          url,
                          AK_FILE_TYPE_COLLADA);
-  return resc->doc;
+  return resc;
 }
 
 void
+ak_resc_ref(AkResource *resc) {
+  resc->refc++;
+}
+
+int
 ak_resc_unref(AkResource *resc) {
   resc->refc--;
   if (resc->refc <= 0) {
@@ -98,10 +103,14 @@ ak_resc_unref(AkResource *resc) {
       ak_free(resc->doc);
 
     ak_free(resc);
+
+    return -1;
   }
+
+  return 0;
 }
 
-void
+int
 ak_resc_unref_url(const char *url) {
   void    *resc;
   char    *trimmed;
@@ -115,11 +124,13 @@ ak_resc_unref_url(const char *url) {
                              trimmed,
                              &resc);
 
-    if (ret != AK_EFOUND)
-      ak_resc_unref(resc);
-
     free(trimmed);
+
+    if (ret != AK_EFOUND)
+      return ak_resc_unref(resc);
   }
+
+  return -1;
 }
 
 void

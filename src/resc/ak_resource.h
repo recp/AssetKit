@@ -28,13 +28,16 @@ ak_resc_init();
 void _assetkit_hide
 ak_resc_deinit();
 
-AkDoc *
+AkResource *
 ak_resc_ins(const char *url);
 
 void
+ak_resc_ref(AkResource *resc);
+
+int
 ak_resc_unref(AkResource *resc);
 
-void
+int
 ak_resc_unref_url(const char *url);
 
 void
