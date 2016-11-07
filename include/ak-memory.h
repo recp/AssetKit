@@ -101,6 +101,13 @@ ak_heap_strdup(AkHeap * __restrict heap,
                const char * str);
 
 AK_EXPORT
+char*
+ak_heap_strndup(AkHeap * __restrict heap,
+                void * __restrict parent,
+                const char * str,
+                size_t size);
+
+AK_EXPORT
 void*
 ak_heap_alloc(AkHeap * __restrict heap,
               void * __restrict parent,

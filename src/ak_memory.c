@@ -118,6 +118,23 @@ ak_heap_strdup(AkHeap * __restrict heap,
 }
 
 AK_EXPORT
+char*
+ak_heap_strndup(AkHeap * __restrict heap,
+                void * __restrict parent,
+                const char * str,
+                size_t size) {
+  void  *memptr;
+
+  memptr  = ak_heap_alloc(heap, parent, size + 1, false);
+  memcpy(memptr, str, size);
+
+  /* NULL */
+  memset((char *)memptr + size, '\0', 1);
+
+  return memptr;
+}
+
+AK_EXPORT
 AkHeapAllocator *
 ak_heap_allocator(AkHeap * __restrict heap) {
   return heap->allocator;
