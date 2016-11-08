@@ -11,12 +11,12 @@
 #include "ak_collada_morph.h"
 
 AkResult _assetkit_hide
-ak_dae_controller(AkDaeState * __restrict daestate,
+ak_dae_controller(AkXmlState * __restrict xst,
                   void * __restrict memParent,
                   AkController ** __restrict dest) {
   AkController *controller;
 
-  controller = ak_heap_calloc(daestate->heap,
+  controller = ak_heap_calloc(xst->heap,
                               memParent,
                               sizeof(*controller),
                               true);
@@ -25,14 +25,15 @@ ak_dae_controller(AkDaeState * __restrict daestate,
   _xml_readAttr(controller, controller->name, _s_dae_name);
 
   do {
-    _xml_beginElement(_s_dae_controller);
+    if (ak_xml_beginelm(xst, _s_dae_controller))
+      break;
 
     if (_xml_eqElm(_s_dae_asset)) {
       AkAssetInf *assetInf;
       AkResult ret;
 
       assetInf = NULL;
-      ret = ak_dae_assetInf(daestate, controller, &assetInf);
+      ret = ak_dae_assetInf(xst, controller, &assetInf);
       if (ret == AK_OK)
         controller->inf = assetInf;
 
@@ -40,7 +41,7 @@ ak_dae_controller(AkDaeState * __restrict daestate,
       AkSkin  *skin;
       AkResult ret;
 
-      ret = ak_dae_skin(daestate, controller, true, &skin);
+      ret = ak_dae_skin(xst, controller, true, &skin);
       if (ret == AK_OK)
         controller->data = ak_objFrom(skin);
 
@@ -48,7 +49,7 @@ ak_dae_controller(AkDaeState * __restrict daestate,
       AkMorph *morph;
       AkResult ret;
 
-      ret = ak_dae_morph(daestate, controller, true, &morph);
+      ret = ak_dae_morph(xst, controller, true, &morph);
       if (ret == AK_OK)
         controller->data = ak_objFrom(morph);
 
@@ -56,24 +57,24 @@ ak_dae_controller(AkDaeState * __restrict daestate,
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
-      nodePtr = xmlTextReaderExpand(daestate->reader);
+      nodePtr = xmlTextReaderExpand(xst->reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(daestate->heap,
+      ak_tree_fromXmlNode(xst->heap,
                           controller,
                           nodePtr,
                           &tree,
                           NULL);
       controller->extra = tree;
 
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     } else {
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     }
     
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
   
   *dest = controller;
   

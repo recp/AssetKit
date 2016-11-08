@@ -12,7 +12,7 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_floatOrParam(AkDaeState * __restrict daestate,
+ak_dae_floatOrParam(AkXmlState * __restrict xst,
                     void * __restrict memParent,
                     const char * elm,
                     AkFxFloatOrParam ** __restrict dest);

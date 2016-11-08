@@ -10,13 +10,13 @@
 #include "../core/ak_collada_asset.h"
 
 AkResult _assetkit_hide
-ak_dae_evaluateScene(AkDaeState * __restrict daestate,
+ak_dae_evaluateScene(AkXmlState * __restrict xst,
                      void * __restrict memParent,
                      AkEvaluateScene ** __restrict dest) {
   AkEvaluateScene *evaluateScene;
   AkRender        *last_render;
 
-  evaluateScene = ak_heap_calloc(daestate->heap,
+  evaluateScene = ak_heap_calloc(xst->heap,
                                  memParent,
                                  sizeof(*evaluateScene),
                                  true);
@@ -31,14 +31,15 @@ ak_dae_evaluateScene(AkDaeState * __restrict daestate,
   last_render = NULL;
 
   do {
-    _xml_beginElement(_s_dae_evaluate_scene);
+    if (ak_xml_beginelm(xst, _s_dae_evaluate_scene))
+      break;
 
     if (_xml_eqElm(_s_dae_asset)) {
       AkAssetInf *assetInf;
       AkResult ret;
 
       assetInf = NULL;
-      ret = ak_dae_assetInf(daestate, evaluateScene, &assetInf);
+      ret = ak_dae_assetInf(xst, evaluateScene, &assetInf);
       if (ret == AK_OK)
         evaluateScene->inf = assetInf;
 
@@ -46,7 +47,7 @@ ak_dae_evaluateScene(AkDaeState * __restrict daestate,
       AkRender *render;
       AkResult  ret;
 
-      ret = ak_dae_render(daestate, evaluateScene, &render);
+      ret = ak_dae_render(xst, evaluateScene, &render);
       if (ret == AK_OK) {
         if (last_render)
           last_render->next = render;
@@ -59,22 +60,22 @@ ak_dae_evaluateScene(AkDaeState * __restrict daestate,
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
-      nodePtr = xmlTextReaderExpand(daestate->reader);
+      nodePtr = xmlTextReaderExpand(xst->reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(daestate->heap,
+      ak_tree_fromXmlNode(xst->heap,
                           evaluateScene,
                           nodePtr,
                           &tree,
                           NULL);
       evaluateScene->extra = tree;
 
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
   
   *dest = evaluateScene;
   

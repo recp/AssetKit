@@ -36,13 +36,13 @@ static ak_enumpair blinnPhongMap[] = {
 static size_t blinnPhongMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_blinn_phong(AkDaeState * __restrict daestate,
+ak_dae_blinn_phong(AkXmlState * __restrict xst,
                    void * __restrict memParent,
                    const char * elm,
                    ak_blinn_phong ** __restrict dest) {
   ak_blinn_phong *blinn_phong;
 
-  blinn_phong = ak_heap_calloc(daestate->heap,
+  blinn_phong = ak_heap_calloc(xst->heap,
                                memParent,
                                sizeof(*blinn_phong),
                                false);
@@ -58,9 +58,10 @@ ak_dae_blinn_phong(AkDaeState * __restrict daestate,
   do {
     const ak_enumpair *found;
 
-    _xml_beginElement(elm);
+    if (ak_xml_beginelm(xst, elm))
+      break;
 
-    found = bsearch(daestate->nodeName,
+    found = bsearch(xst->nodeName,
                     blinnPhongMap,
                     blinnPhongMapLen,
                     sizeof(blinnPhongMap[0]),
@@ -76,9 +77,9 @@ ak_dae_blinn_phong(AkDaeState * __restrict daestate,
         AkFxColorOrTex *colorOrTex;
         AkResult ret;
 
-        ret = ak_dae_colorOrTex(daestate,
+        ret = ak_dae_colorOrTex(xst,
                                 blinn_phong,
-                                (const char *)daestate->nodeName,
+                                (const char *)xst->nodeName,
                                 &colorOrTex);
         if (ret == AK_OK) {
           switch (found->val) {
@@ -113,9 +114,9 @@ ak_dae_blinn_phong(AkDaeState * __restrict daestate,
         AkFxFloatOrParam * floatOrParam;
         AkResult ret;
 
-        ret = ak_dae_floatOrParam(daestate,
+        ret = ak_dae_floatOrParam(xst,
                                   blinn_phong,
-                                  (const char *)daestate->nodeName,
+                                  (const char *)xst->nodeName,
                                   &floatOrParam);
 
         if (ret == AK_OK) {
@@ -139,13 +140,13 @@ ak_dae_blinn_phong(AkDaeState * __restrict daestate,
         break;
       }
       default:
-         _xml_skipElement;
+         ak_xml_skipelm(xst);;
         break;
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
   
   *dest = blinn_phong;
   

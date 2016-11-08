@@ -19,13 +19,4 @@
 #include <libxml/xmlreader.h>
 #include <string.h>
 
-typedef AK_ALIGN(16) struct AkDaeState {
-  AkHeap          *heap;
-  AkDoc           *doc;
-  xmlTextReaderPtr reader;
-  const xmlChar   *nodeName;
-  int              nodeType;
-  int              nodeRet;
-} AkDaeState;
-
 #endif /* __libassetkit__ak_collada_common__h_ */

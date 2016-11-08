@@ -9,13 +9,13 @@
 #include "ak_collada_enums.h"
 
 AkResult _assetkit_hide
-ak_dae_vertices(AkDaeState * __restrict daestate,
+ak_dae_vertices(AkXmlState * __restrict xst,
                 void * __restrict memParent,
                 AkVertices ** __restrict dest) {
   AkVertices   *vertices;
   AkInputBasic *last_input;
 
-  vertices = ak_heap_calloc(daestate->heap,
+  vertices = ak_heap_calloc(xst->heap,
                             memParent,
                             sizeof(*vertices),
                             true);
@@ -26,16 +26,17 @@ ak_dae_vertices(AkDaeState * __restrict daestate,
   last_input = NULL;
 
   do {
-    _xml_beginElement(_s_dae_vertices);
+    if (ak_xml_beginelm(xst, _s_dae_vertices))
+      break;
 
     if (_xml_eqElm(_s_dae_input)) {
       AkInputBasic *input;
 
-      input = ak_heap_calloc(daestate->heap, vertices, sizeof(*input), false);
+      input = ak_heap_calloc(xst->heap, vertices, sizeof(*input), false);
 
       _xml_readAttr(input, input->semanticRaw, _s_dae_semantic);
 
-      ak_url_from_attr(daestate->reader,
+      ak_url_from_attr(xst->reader,
                        _s_dae_source,
                        input,
                        &input->source);
@@ -57,22 +58,22 @@ ak_dae_vertices(AkDaeState * __restrict daestate,
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
-      nodePtr = xmlTextReaderExpand(daestate->reader);
+      nodePtr = xmlTextReaderExpand(xst->reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(daestate->heap,
+      ak_tree_fromXmlNode(xst->heap,
                           vertices,
                           nodePtr,
                           &tree,
                           NULL);
       vertices->extra = tree;
 
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
   
   *dest = vertices;
 

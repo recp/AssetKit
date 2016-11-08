@@ -23,7 +23,7 @@
   } while (0)
 
 AkResult _assetkit_hide
-ak_dae_fxState_enum(AkDaeState * __restrict daestate,
+ak_dae_fxState_enum(AkXmlState * __restrict xst,
                     AkRenderState ** __restrict last_state,
                     AkStates ** __restrict states,
                     AkRenderStateType state_type,
@@ -32,10 +32,10 @@ ak_dae_fxState_enum(AkDaeState * __restrict daestate,
   ak_state_t_ul *state;
   char *attrValStr;
 
-  state = ak_heap_calloc(daestate->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
 
   state->base.state_type = state_type;
-  attrValStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+  attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
   if (attrValStr) {
     AkEnum enumVal;
@@ -57,7 +57,7 @@ ak_dae_fxState_enum(AkDaeState * __restrict daestate,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxState_bool4(AkDaeState * __restrict daestate,
+ak_dae_fxState_bool4(AkXmlState * __restrict xst,
                      AkRenderState ** __restrict last_state,
                      AkStates ** __restrict states,
                      AkRenderStateType state_type,
@@ -66,10 +66,10 @@ ak_dae_fxState_bool4(AkDaeState * __restrict daestate,
   ak_state_t_bool4 *state;
   char *attrValStr;
 
-  state = ak_heap_calloc(daestate->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
 
   state->base.state_type = state_type;
-  attrValStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+  attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
   if (attrValStr) {
     ak_strtomb(&attrValStr, state->val, 1, 4);
@@ -87,7 +87,7 @@ ak_dae_fxState_bool4(AkDaeState * __restrict daestate,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxState_int2(AkDaeState * __restrict daestate,
+ak_dae_fxState_int2(AkXmlState * __restrict xst,
                     AkRenderState ** __restrict last_state,
                     AkStates ** __restrict states,
                     AkRenderStateType state_type,
@@ -96,10 +96,10 @@ ak_dae_fxState_int2(AkDaeState * __restrict daestate,
   ak_state_t_int2 *state;
   char *attrValStr;
 
-  state = ak_heap_calloc(daestate->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
 
   state->base.state_type = state_type;
-  attrValStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+  attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
   if (attrValStr) {
     ak_strtomi(&attrValStr, state->val, 1, 2);
@@ -117,7 +117,7 @@ ak_dae_fxState_int2(AkDaeState * __restrict daestate,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxState_int4(AkDaeState * __restrict daestate,
+ak_dae_fxState_int4(AkXmlState * __restrict xst,
                     AkRenderState ** __restrict last_state,
                     AkStates ** __restrict states,
                     AkRenderStateType state_type,
@@ -126,10 +126,10 @@ ak_dae_fxState_int4(AkDaeState * __restrict daestate,
   ak_state_t_int4 *state;
   char *attrValStr;
 
-  state = ak_heap_calloc(daestate->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
 
   state->base.state_type = state_type;
-  attrValStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+  attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
   if (attrValStr) {
     ak_strtomi(&attrValStr, state->val, 1, 4);
@@ -147,7 +147,7 @@ ak_dae_fxState_int4(AkDaeState * __restrict daestate,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxState_ul(AkDaeState * __restrict daestate,
+ak_dae_fxState_ul(AkXmlState * __restrict xst,
                   AkRenderState ** __restrict last_state,
                   AkStates ** __restrict states,
                   AkRenderStateType state_type,
@@ -155,10 +155,10 @@ ak_dae_fxState_ul(AkDaeState * __restrict daestate,
   ak_state_t_ul *state;
   char *attrValStr;
 
-  state = ak_heap_calloc(daestate->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
 
   state->base.state_type = state_type;
-  attrValStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+  attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
   if (attrValStr) {
     char *tmp;
@@ -179,7 +179,7 @@ ak_dae_fxState_ul(AkDaeState * __restrict daestate,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxState_ul_i(AkDaeState * __restrict daestate,
+ak_dae_fxState_ul_i(AkXmlState * __restrict xst,
                     AkRenderState ** __restrict last_state,
                     AkStates ** __restrict states,
                     AkRenderStateType state_type,
@@ -187,10 +187,10 @@ ak_dae_fxState_ul_i(AkDaeState * __restrict daestate,
   ak_state_t_ul_i * state;
   char *attrValStr;
 
-  state = ak_heap_calloc(daestate->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
 
   state->base.state_type = state_type;
-  attrValStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+  attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
   if (attrValStr) {
     char *tmp;
@@ -214,7 +214,7 @@ ak_dae_fxState_ul_i(AkDaeState * __restrict daestate,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxState_float(AkDaeState * __restrict daestate,
+ak_dae_fxState_float(AkXmlState * __restrict xst,
                      AkRenderState ** __restrict last_state,
                      AkStates ** __restrict states,
                      AkRenderStateType state_type,
@@ -222,10 +222,10 @@ ak_dae_fxState_float(AkDaeState * __restrict daestate,
   ak_state_t_float * state;
   char *attrValStr;
 
-  state = ak_heap_calloc(daestate->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
 
   state->base.state_type = state_type;
-  attrValStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+  attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
   if (attrValStr) {
     state->val = strtof(attrValStr, NULL);
@@ -242,7 +242,7 @@ ak_dae_fxState_float(AkDaeState * __restrict daestate,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxState_float_i(AkDaeState * __restrict daestate,
+ak_dae_fxState_float_i(AkXmlState * __restrict xst,
                        AkRenderState ** __restrict last_state,
                        AkStates ** __restrict states,
                        AkRenderStateType state_type,
@@ -250,10 +250,10 @@ ak_dae_fxState_float_i(AkDaeState * __restrict daestate,
   ak_state_t_float_i * state;
   char *attrValStr;
 
-  state = ak_heap_calloc(daestate->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
 
   state->base.state_type = state_type;
-  attrValStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+  attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
   if (attrValStr) {
     state->val = strtof(attrValStr, NULL);
@@ -273,7 +273,7 @@ ak_dae_fxState_float_i(AkDaeState * __restrict daestate,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxState_float2(AkDaeState * __restrict daestate,
+ak_dae_fxState_float2(AkXmlState * __restrict xst,
                       AkRenderState ** __restrict last_state,
                       AkStates ** __restrict states,
                       AkRenderStateType state_type,
@@ -282,10 +282,10 @@ ak_dae_fxState_float2(AkDaeState * __restrict daestate,
   ak_state_t_float2 *state;
   char *attrValStr;
 
-  state = ak_heap_calloc(daestate->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
 
   state->base.state_type = state_type;
-  attrValStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+  attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
   if (attrValStr) {
     ak_strtomf(&attrValStr, state->val, 1, 2);
@@ -303,7 +303,7 @@ ak_dae_fxState_float2(AkDaeState * __restrict daestate,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxState_float3(AkDaeState * __restrict daestate,
+ak_dae_fxState_float3(AkXmlState * __restrict xst,
                       AkRenderState ** __restrict last_state,
                       AkStates ** __restrict states,
                       AkRenderStateType state_type,
@@ -312,10 +312,10 @@ ak_dae_fxState_float3(AkDaeState * __restrict daestate,
   ak_state_t_float3 *state;
   char *attrValStr;
 
-  state = ak_heap_calloc(daestate->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
 
   state->base.state_type = state_type;
-  attrValStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+  attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
   if (attrValStr) {
     ak_strtomf(&attrValStr, state->val, 1, 3);
@@ -333,7 +333,7 @@ ak_dae_fxState_float3(AkDaeState * __restrict daestate,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxState_float3_i(AkDaeState * __restrict daestate,
+ak_dae_fxState_float3_i(AkXmlState * __restrict xst,
                         AkRenderState ** __restrict last_state,
                         AkStates ** __restrict states,
                         AkRenderStateType state_type,
@@ -342,10 +342,10 @@ ak_dae_fxState_float3_i(AkDaeState * __restrict daestate,
   ak_state_t_float3_i *state;
   char *attrValStr;
 
-  state = ak_heap_calloc(daestate->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
 
   state->base.state_type = state_type;
-  attrValStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+  attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
   if (attrValStr) {
     ak_strtomf(&attrValStr, state->val, 1, 3);
@@ -366,7 +366,7 @@ ak_dae_fxState_float3_i(AkDaeState * __restrict daestate,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxState_float4(AkDaeState * __restrict daestate,
+ak_dae_fxState_float4(AkXmlState * __restrict xst,
                       AkRenderState ** __restrict last_state,
                       AkStates ** __restrict states,
                       AkRenderStateType state_type,
@@ -375,10 +375,10 @@ ak_dae_fxState_float4(AkDaeState * __restrict daestate,
   ak_state_t_float4 *state;
   char *attrValStr;
 
-  state = ak_heap_calloc(daestate->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
 
   state->base.state_type = state_type;
-  attrValStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+  attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
   if (attrValStr) {
     ak_strtomf(&attrValStr, state->val, 1, 4);
@@ -396,7 +396,7 @@ ak_dae_fxState_float4(AkDaeState * __restrict daestate,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxState_float4_i(AkDaeState * __restrict daestate,
+ak_dae_fxState_float4_i(AkXmlState * __restrict xst,
                         AkRenderState ** __restrict last_state,
                         AkStates ** __restrict states,
                         AkRenderStateType state_type,
@@ -405,10 +405,10 @@ ak_dae_fxState_float4_i(AkDaeState * __restrict daestate,
   ak_state_t_float4_i *state;
   char *attrValStr;
 
-  state = ak_heap_calloc(daestate->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
 
   state->base.state_type = state_type;
-  attrValStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+  attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
   if (attrValStr) {
     ak_strtomf(&attrValStr, state->val, 1, 4);
@@ -429,7 +429,7 @@ ak_dae_fxState_float4_i(AkDaeState * __restrict daestate,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxState_float4x4(AkDaeState * __restrict daestate,
+ak_dae_fxState_float4x4(AkXmlState * __restrict xst,
                         AkRenderState ** __restrict last_state,
                         AkStates ** __restrict states,
                         AkRenderStateType state_type,
@@ -438,10 +438,10 @@ ak_dae_fxState_float4x4(AkDaeState * __restrict daestate,
   ak_state_t_float4x4 *state;
   char *attrValStr;
 
-  state = ak_heap_calloc(daestate->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
 
   state->base.state_type = state_type;
-  attrValStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+  attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
   if (attrValStr) {
     ak_strtomf(&attrValStr, *state->val, 4, 4);
@@ -459,14 +459,14 @@ ak_dae_fxState_float4x4(AkDaeState * __restrict daestate,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxState_sampler(AkDaeState * __restrict daestate,
+ak_dae_fxState_sampler(AkXmlState * __restrict xst,
                        const char *elm,
                        AkRenderState ** __restrict last_state,
                        AkStates ** __restrict states,
                        AkRenderStateType state_type) {
   ak_state_t_sampler * state;
 
-  state = ak_heap_calloc(daestate->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
   state->base.state_type = state_type;
 
   _xml_readAttrUsingFn(state->index,
@@ -474,31 +474,32 @@ ak_dae_fxState_sampler(AkDaeState * __restrict daestate,
                        strtol, NULL, 10);
 
   do {
-    _xml_beginElement(elm);
+    if (ak_xml_beginelm(xst, elm))
+      break;
 
     if (_xml_eqElm(_s_dae_value)) {
       AkFxSamplerCommon * sampler;
       AkResult ret;
 
       sampler = NULL;
-      ret = ak_dae_fxSampler(daestate,
+      ret = ak_dae_fxSampler(xst,
                              state,
-                             (const char *)daestate->nodeName,
+                             (const char *)xst->nodeName,
                              &sampler);
 
       if (ret == AK_OK)
         state->val = sampler;
     } else if (_xml_eqElm(_s_dae_param)) {
-      _xml_readText(state, state->param);
+      state->param = ak_xml_val(xst, state);
     } else if (_xml_eqElm(_s_dae_index)) {
       _xml_readTextUsingFn(state->index, strtol, NULL, 10);
     } else {
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
 
   _ak_APPEND_STATE(last_state, state);
 
@@ -506,13 +507,13 @@ ak_dae_fxState_sampler(AkDaeState * __restrict daestate,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxState_str(AkDaeState * __restrict daestate,
+ak_dae_fxState_str(AkXmlState * __restrict xst,
                    AkRenderState ** __restrict last_state,
                    AkStates ** __restrict states,
                    AkRenderStateType state_type) {
   ak_state_t_str * state;
 
-  state = ak_heap_calloc(daestate->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
   state->base.state_type = state_type;
 
   _xml_readAttr(state, state->val, _s_dae_value);
@@ -525,22 +526,23 @@ ak_dae_fxState_str(AkDaeState * __restrict daestate,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxStateAlphaFunc(AkDaeState * __restrict daestate,
+ak_dae_fxStateAlphaFunc(AkXmlState * __restrict xst,
                         AkRenderState ** __restrict last_state,
                         AkStates ** __restrict states) {
   ak_alpha_func *state;
   
-  state = ak_heap_calloc(daestate->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
   state->base.state_type = AK_RENDER_STATE_ALPHA_FUNC;
 
   do {
-    _xml_beginElement(_s_dae_alpha_func);
+    if (ak_xml_beginelm(xst, _s_dae_alpha_func))
+      break;
 
     if (_xml_eqElm(_s_dae_func)) {
       char *valStr;
 
       _xml_readAttr(state, state->func.param, _s_dae_param);
-      valStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+      valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
       state->func.val = AK_GL_FUNC_ALWAYS;
@@ -558,12 +560,12 @@ ak_dae_fxStateAlphaFunc(AkDaeState * __restrict daestate,
       _xml_readAttrUsingFn(state->val.val, _s_dae_value, strtof, NULL);
       _xml_readAttr(state, state->val.param, _s_dae_param);
     } else {
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
 
   _ak_APPEND_STATE(last_state, state);
 
@@ -571,22 +573,23 @@ ak_dae_fxStateAlphaFunc(AkDaeState * __restrict daestate,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxStateBlend(AkDaeState * __restrict daestate,
+ak_dae_fxStateBlend(AkXmlState * __restrict xst,
                     AkRenderState ** __restrict last_state,
                     AkStates ** __restrict states) {
   ak_blend_func * state;
 
-  state = ak_heap_calloc(daestate->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
   state->base.state_type = AK_RENDER_STATE_BLEND_FUNC;
 
   do {
-    _xml_beginElement(_s_dae_blend_func);
+    if (ak_xml_beginelm(xst, _s_dae_blend_func))
+      break;
 
     if (_xml_eqElm(_s_dae_src)) {
       char *valStr;
 
       _xml_readAttr(state, state->src.param, _s_dae_param);
-      valStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+      valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
       state->src.val = AK_GL_BLEND_ONE;
@@ -604,7 +607,7 @@ ak_dae_fxStateBlend(AkDaeState * __restrict daestate,
       char *valStr;
 
       _xml_readAttr(state, state->src.param, _s_dae_param);
-      valStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+      valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
       state->src.val = AK_GL_BLEND_ZERO;
@@ -618,12 +621,12 @@ ak_dae_fxStateBlend(AkDaeState * __restrict daestate,
         xmlFree(valStr);
       }
     } else {
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
   
   _ak_APPEND_STATE(last_state, state);
   
@@ -631,22 +634,23 @@ ak_dae_fxStateBlend(AkDaeState * __restrict daestate,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxStateBlendSep(AkDaeState * __restrict daestate,
+ak_dae_fxStateBlendSep(AkXmlState * __restrict xst,
                        AkRenderState ** __restrict last_state,
                        AkStates ** __restrict states) {
   ak_blend_func_separate *state;
 
-  state = ak_heap_calloc(daestate->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
   state->base.state_type = AK_RENDER_STATE_BLEND_FUNC_SEPARATE;
 
   do {
-    _xml_beginElement(_s_dae_blend_func_separate);
+    if (ak_xml_beginelm(xst, _s_dae_blend_func_separate))
+      break;
 
     if (_xml_eqElm(_s_dae_src_rgb)) {
       char *valStr;
 
       _xml_readAttr(state, state->src_rgb.param, _s_dae_param);
-      valStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+      valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
       state->src_rgb.val = AK_GL_BLEND_ONE;
@@ -664,7 +668,7 @@ ak_dae_fxStateBlendSep(AkDaeState * __restrict daestate,
       char *valStr;
 
       _xml_readAttr(state, state->dest_rgb.param, _s_dae_param);
-      valStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+      valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
       state->dest_rgb.val = AK_GL_BLEND_ZERO;
@@ -682,7 +686,7 @@ ak_dae_fxStateBlendSep(AkDaeState * __restrict daestate,
       char *valStr;
 
       _xml_readAttr(state, state->src_alpha.param, _s_dae_param);
-      valStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+      valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
       state->src_alpha.val = AK_GL_BLEND_ONE;
@@ -700,7 +704,7 @@ ak_dae_fxStateBlendSep(AkDaeState * __restrict daestate,
       char *valStr;
 
       _xml_readAttr(state, state->dest_alpha.param, _s_dae_param);
-      valStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+      valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
       state->dest_alpha.val = AK_GL_BLEND_ZERO;
@@ -715,12 +719,12 @@ ak_dae_fxStateBlendSep(AkDaeState * __restrict daestate,
       }
 
     } else {
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
   
   _ak_APPEND_STATE(last_state, state);
   
@@ -728,22 +732,23 @@ ak_dae_fxStateBlendSep(AkDaeState * __restrict daestate,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxStateBlendEqSep(AkDaeState * __restrict daestate,
+ak_dae_fxStateBlendEqSep(AkXmlState * __restrict xst,
                          AkRenderState ** __restrict last_state,
                          AkStates ** __restrict states) {
   ak_blend_equation_separate *state;
 
-  state = ak_heap_calloc(daestate->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
   state->base.state_type = AK_RENDER_STATE_BLEND_EQUATION_SEPARATE;
 
   do {
-    _xml_beginElement(_s_dae_blend_equation_separate);
+    if (ak_xml_beginelm(xst, _s_dae_blend_equation_separate))
+      break;
 
     if (_xml_eqElm(_s_dae_rgb)) {
       char *valStr;
 
       _xml_readAttr(state, state->rgb.param, _s_dae_param);
-      valStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+      valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
       state->rgb.val = AK_GL_BLEND_EQUATION_FUNC_ADD;
@@ -761,7 +766,7 @@ ak_dae_fxStateBlendEqSep(AkDaeState * __restrict daestate,
       char *valStr;
 
       _xml_readAttr(state, state->alpha.param, _s_dae_param);
-      valStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+      valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
       state->alpha.val = AK_GL_BLEND_EQUATION_FUNC_ADD;
@@ -775,12 +780,12 @@ ak_dae_fxStateBlendEqSep(AkDaeState * __restrict daestate,
         xmlFree(valStr);
       }
     } else {
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
   
   _ak_APPEND_STATE(last_state, state);
   
@@ -788,22 +793,23 @@ ak_dae_fxStateBlendEqSep(AkDaeState * __restrict daestate,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxStateColorMaterial(AkDaeState * __restrict daestate,
+ak_dae_fxStateColorMaterial(AkXmlState * __restrict xst,
                             AkRenderState ** __restrict last_state,
                             AkStates ** __restrict states) {
   ak_color_material *state;
 
-  state = ak_heap_calloc(daestate->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
   state->base.state_type = AK_RENDER_STATE_COLOR_MATERIAL;
 
   do {
-    _xml_beginElement(_s_dae_color_material);
+    if (ak_xml_beginelm(xst, _s_dae_color_material))
+      break;
 
     if (_xml_eqElm(_s_dae_face)) {
       char *valStr;
 
       _xml_readAttr(state, state->face.param, _s_dae_param);
-      valStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+      valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
       state->face.val = AK_GL_FACE_FRONT_AND_BACK;
@@ -821,7 +827,7 @@ ak_dae_fxStateColorMaterial(AkDaeState * __restrict daestate,
       char *valStr;
 
       _xml_readAttr(state, state->mode.param, _s_dae_param);
-      valStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+      valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
       state->mode.val = AK_GL_MATERIAL_TYPE_AMBIENT_AND_DIFFUSE;
@@ -835,12 +841,12 @@ ak_dae_fxStateColorMaterial(AkDaeState * __restrict daestate,
         xmlFree(valStr);
       }
     } else {
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
   
   _ak_APPEND_STATE(last_state, state);
   
@@ -848,22 +854,23 @@ ak_dae_fxStateColorMaterial(AkDaeState * __restrict daestate,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxStatePolyMode(AkDaeState * __restrict daestate,
+ak_dae_fxStatePolyMode(AkXmlState * __restrict xst,
                        AkRenderState ** __restrict last_state,
                        AkStates ** __restrict states) {
   ak_polygon_mode *state;
 
-  state = ak_heap_calloc(daestate->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
   state->base.state_type = AK_RENDER_STATE_POLYGON_MODE;
 
   do {
-    _xml_beginElement(_s_dae_polygon_mode);
+    if (ak_xml_beginelm(xst, _s_dae_polygon_mode))
+      break;
 
     if (_xml_eqElm(_s_dae_face)) {
       char *valStr;
 
       _xml_readAttr(state, state->face.param, _s_dae_param);
-      valStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+      valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
       state->face.val = AK_GL_FACE_FRONT_AND_BACK;
@@ -881,7 +888,7 @@ ak_dae_fxStatePolyMode(AkDaeState * __restrict daestate,
       char *valStr;
 
       _xml_readAttr(state, state->mode.param, _s_dae_param);
-      valStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+      valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
       state->mode.val = AK_GL_POLYGON_MODE_FILL;
@@ -895,12 +902,12 @@ ak_dae_fxStatePolyMode(AkDaeState * __restrict daestate,
         xmlFree(valStr);
       }
     } else {
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
   
   _ak_APPEND_STATE(last_state, state);
   
@@ -908,22 +915,23 @@ ak_dae_fxStatePolyMode(AkDaeState * __restrict daestate,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxStateStencilFunc(AkDaeState * __restrict daestate,
+ak_dae_fxStateStencilFunc(AkXmlState * __restrict xst,
                           AkRenderState ** __restrict last_state,
                           AkStates ** __restrict states) {
   ak_stencil_func *state;
 
-  state = ak_heap_calloc(daestate->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
   state->base.state_type = AK_RENDER_STATE_STENCIL_FUNC;
 
   do {
-    _xml_beginElement(_s_dae_stencil_func);
+    if (ak_xml_beginelm(xst, _s_dae_stencil_func))
+      break;
 
     if (_xml_eqElm(_s_dae_stencil_func)) {
       char *valStr;
 
       _xml_readAttr(state, state->func.param, _s_dae_param);
-      valStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+      valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
       state->func.val = AK_GL_FUNC_ALWAYS;
@@ -941,7 +949,7 @@ ak_dae_fxStateStencilFunc(AkDaeState * __restrict daestate,
       char *valStr;
 
       _xml_readAttr(state, state->ref.param, _s_dae_param);
-      valStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+      valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
       if (valStr) {
@@ -952,7 +960,7 @@ ak_dae_fxStateStencilFunc(AkDaeState * __restrict daestate,
       char *valStr;
 
       _xml_readAttr(state, state->mask.param, _s_dae_param);
-      valStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+      valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
       if (valStr) {
         char * tmp;
@@ -966,12 +974,12 @@ ak_dae_fxStateStencilFunc(AkDaeState * __restrict daestate,
         xmlFree(valStr);
       }
     } else {
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
   
   _ak_APPEND_STATE(last_state, state);
   
@@ -979,22 +987,23 @@ ak_dae_fxStateStencilFunc(AkDaeState * __restrict daestate,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxStateStencilOp(AkDaeState * __restrict daestate,
+ak_dae_fxStateStencilOp(AkXmlState * __restrict xst,
                         AkRenderState ** __restrict last_state,
                         AkStates ** __restrict states) {
   ak_stencil_op *state;
 
-  state = ak_heap_calloc(daestate->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
   state->base.state_type = AK_RENDER_STATE_STENCIL_OP;
 
   do {
-    _xml_beginElement(_s_dae_stencil_op);
+    if (ak_xml_beginelm(xst, _s_dae_stencil_op))
+      break;
 
     if (_xml_eqElm(_s_dae_fail)) {
       char *valStr;
 
       _xml_readAttr(state, state->fail.param, _s_dae_param);
-      valStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+      valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
       state->fail.val = AK_GL_STENCIL_OP_KEEP;
@@ -1011,7 +1020,7 @@ ak_dae_fxStateStencilOp(AkDaeState * __restrict daestate,
       char *valStr;
 
       _xml_readAttr(state, state->zfail.param, _s_dae_param);
-      valStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+      valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
       state->zfail.val = AK_GL_STENCIL_OP_KEEP;
@@ -1028,7 +1037,7 @@ ak_dae_fxStateStencilOp(AkDaeState * __restrict daestate,
       char *valStr;
 
       _xml_readAttr(state, state->zpass.param, _s_dae_param);
-      valStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+      valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
       state->zpass.val = AK_GL_STENCIL_OP_KEEP;
@@ -1042,12 +1051,12 @@ ak_dae_fxStateStencilOp(AkDaeState * __restrict daestate,
         xmlFree(valStr);
       }
     } else {
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
   
   _ak_APPEND_STATE(last_state, state);
   
@@ -1055,22 +1064,23 @@ ak_dae_fxStateStencilOp(AkDaeState * __restrict daestate,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxStateStencilFuncSep(AkDaeState * __restrict daestate,
+ak_dae_fxStateStencilFuncSep(AkXmlState * __restrict xst,
                              AkRenderState ** __restrict last_state,
                              AkStates ** __restrict states) {
   ak_stencil_func_separate *state;
 
-  state = ak_heap_calloc(daestate->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
   state->base.state_type = AK_RENDER_STATE_STENCIL_FUNC_SEPARATE;
 
   do {
-    _xml_beginElement(_s_dae_stencil_func_separate);
+    if (ak_xml_beginelm(xst, _s_dae_stencil_func_separate))
+      break;
 
     if (_xml_eqElm(_s_dae_front)) {
       char *valStr;
 
       _xml_readAttr(state, state->front.param, _s_dae_param);
-      valStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+      valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
       state->front.val = AK_GL_FUNC_ALWAYS;
@@ -1087,7 +1097,7 @@ ak_dae_fxStateStencilFuncSep(AkDaeState * __restrict daestate,
       char *valStr;
 
       _xml_readAttr(state, state->back.param, _s_dae_param);
-      valStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+      valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
       state->back.val = AK_GL_FUNC_ALWAYS;
@@ -1104,7 +1114,7 @@ ak_dae_fxStateStencilFuncSep(AkDaeState * __restrict daestate,
       char *valStr;
 
       _xml_readAttr(state, state->ref.param, _s_dae_param);
-      valStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+      valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
       if (valStr) {
@@ -1115,7 +1125,7 @@ ak_dae_fxStateStencilFuncSep(AkDaeState * __restrict daestate,
       char *valStr;
 
       _xml_readAttr(state, state->mask.param, _s_dae_param);
-      valStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+      valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
       if (valStr) {
         char * tmp;
@@ -1129,12 +1139,12 @@ ak_dae_fxStateStencilFuncSep(AkDaeState * __restrict daestate,
         xmlFree(valStr);
       }
     } else {
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
   
   _ak_APPEND_STATE(last_state, state);
   
@@ -1142,22 +1152,23 @@ ak_dae_fxStateStencilFuncSep(AkDaeState * __restrict daestate,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxStateStencilOpSep(AkDaeState * __restrict daestate,
+ak_dae_fxStateStencilOpSep(AkXmlState * __restrict xst,
                            AkRenderState ** __restrict last_state,
                            AkStates ** __restrict states) {
   ak_stencil_op_separate *state;
 
-  state = ak_heap_calloc(daestate->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
   state->base.state_type = AK_RENDER_STATE_STENCIL_OP_SEPARATE;
 
   do {
-    _xml_beginElement(_s_dae_stencil_op_separate);
+    if (ak_xml_beginelm(xst, _s_dae_stencil_op_separate))
+      break;
 
     if (_xml_eqElm(_s_dae_face)) {
       char *valStr;
 
       _xml_readAttr(state, state->face.param, _s_dae_param);
-      valStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+      valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
       state->face.val = AK_GL_FACE_FRONT_AND_BACK;
@@ -1174,7 +1185,7 @@ ak_dae_fxStateStencilOpSep(AkDaeState * __restrict daestate,
       char *valStr;
 
       _xml_readAttr(state, state->fail.param, _s_dae_param);
-      valStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+      valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
       state->fail.val = AK_GL_STENCIL_OP_KEEP;
@@ -1191,7 +1202,7 @@ ak_dae_fxStateStencilOpSep(AkDaeState * __restrict daestate,
       char *valStr;
 
       _xml_readAttr(state, state->zfail.param, _s_dae_param);
-      valStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+      valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
       state->zfail.val = AK_GL_STENCIL_OP_KEEP;
@@ -1208,7 +1219,7 @@ ak_dae_fxStateStencilOpSep(AkDaeState * __restrict daestate,
       char *valStr;
 
       _xml_readAttr(state, state->zpass.param, _s_dae_param);
-      valStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+      valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
       state->zpass.val = AK_GL_STENCIL_OP_KEEP;
@@ -1222,12 +1233,12 @@ ak_dae_fxStateStencilOpSep(AkDaeState * __restrict daestate,
         xmlFree(valStr);
       }
     } else {
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
   
   _ak_APPEND_STATE(last_state, state);
   
@@ -1235,22 +1246,23 @@ ak_dae_fxStateStencilOpSep(AkDaeState * __restrict daestate,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxStateStencilMaskSep(AkDaeState * __restrict daestate,
+ak_dae_fxStateStencilMaskSep(AkXmlState * __restrict xst,
                              AkRenderState ** __restrict last_state,
                              AkStates ** __restrict states) {
   ak_stencil_mask_separate *state;
 
-  state = ak_heap_calloc(daestate->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
   state->base.state_type = AK_RENDER_STATE_STENCIL_MASK_SEPARATE;
 
   do {
-    _xml_beginElement(_s_dae_stencil_mask_separate);
+    if (ak_xml_beginelm(xst, _s_dae_stencil_mask_separate))
+      break;
 
     if (_xml_eqElm(_s_dae_face)) {
       char *valStr;
 
       _xml_readAttr(state, state->face.param, _s_dae_param);
-      valStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+      valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
       state->face.val = AK_GL_FACE_FRONT_AND_BACK;
@@ -1267,7 +1279,7 @@ ak_dae_fxStateStencilMaskSep(AkDaeState * __restrict daestate,
       char *valStr;
 
       _xml_readAttr(state, state->mask.param, _s_dae_param);
-      valStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+      valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
       if (valStr) {
         char * tmp;
@@ -1281,12 +1293,12 @@ ak_dae_fxStateStencilMaskSep(AkDaeState * __restrict daestate,
         xmlFree(valStr);
       }
     } else {
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
   
   _ak_APPEND_STATE(last_state, state);
   

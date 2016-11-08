@@ -11,12 +11,12 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_technique(AkDaeState * __restrict daestate,
+ak_dae_technique(AkXmlState * __restrict xst,
                  void * __restrict memParent,
                  AkTechnique ** __restrict dest);
 
 AkResult _assetkit_hide
-ak_dae_techniquec(AkDaeState * __restrict daestate,
+ak_dae_techniquec(AkXmlState * __restrict xst,
                   void * __restrict memParent,
                   AkTechniqueCommon ** __restrict dest);
 

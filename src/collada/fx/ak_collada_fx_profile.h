@@ -13,7 +13,7 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_profile(AkDaeState * __restrict daestate,
+ak_dae_profile(AkXmlState * __restrict xst,
                void * __restrict memParent,
                AkProfile ** __restrict dest);
 

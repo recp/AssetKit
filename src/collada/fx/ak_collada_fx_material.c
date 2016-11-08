@@ -12,12 +12,12 @@
 #include "ak_collada_fx_effect.h"
 
 AkResult _assetkit_hide
-ak_dae_material(AkDaeState * __restrict daestate,
+ak_dae_material(AkXmlState * __restrict xst,
                 void * __restrict memParent,
                 AkMaterial ** __restrict dest) {
   AkMaterial *material;
 
-  material = ak_heap_calloc(daestate->heap,
+  material = ak_heap_calloc(xst->heap,
                             memParent,
                             sizeof(*material),
                             true);
@@ -26,14 +26,15 @@ ak_dae_material(AkDaeState * __restrict daestate,
   _xml_readAttr(material, material->name, _s_dae_name);
 
   do {
-    _xml_beginElement(_s_dae_material);
+    if (ak_xml_beginelm(xst, _s_dae_material))
+      break;
 
     if (_xml_eqElm(_s_dae_asset)) {
       AkAssetInf *assetInf;
       AkResult ret;
 
       assetInf = NULL;
-      ret = ak_dae_assetInf(daestate, material, &assetInf);
+      ret = ak_dae_assetInf(xst, material, &assetInf);
       if (ret == AK_OK)
         material->inf = assetInf;
     } else if (_xml_eqElm(_s_dae_inst_effect)) {
@@ -41,31 +42,31 @@ ak_dae_material(AkDaeState * __restrict daestate,
       AkResult ret;
 
       instanceEffect = NULL;
-      ret = ak_dae_fxInstanceEffect(daestate, material, &instanceEffect);
+      ret = ak_dae_fxInstanceEffect(xst, material, &instanceEffect);
       if (ret == AK_OK)
         material->instanceEffect = instanceEffect;
     } else if (_xml_eqElm(_s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
-      nodePtr = xmlTextReaderExpand(daestate->reader);
+      nodePtr = xmlTextReaderExpand(xst->reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(daestate->heap,
+      ak_tree_fromXmlNode(xst->heap,
                           material,
                           nodePtr,
                           &tree,
                           NULL);
       material->extra = tree;
 
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     } else {
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
   
   *dest = material;
   
@@ -73,14 +74,14 @@ ak_dae_material(AkDaeState * __restrict daestate,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxBindMaterial(AkDaeState * __restrict daestate,
+ak_dae_fxBindMaterial(AkXmlState * __restrict xst,
                       void * __restrict memParent,
                       AkBindMaterial ** __restrict dest) {
   AkBindMaterial *bindMaterial;
   AkParam        *last_param;
   AkTechnique    *last_tq;
 
-  bindMaterial = ak_heap_calloc(daestate->heap,
+  bindMaterial = ak_heap_calloc(xst->heap,
                                 memParent,
                                 sizeof(*bindMaterial),
                                 false);
@@ -89,13 +90,14 @@ ak_dae_fxBindMaterial(AkDaeState * __restrict daestate,
   last_tq    = NULL;
 
   do {
-    _xml_beginElement(_s_dae_bind_material);
+    if (ak_xml_beginelm(xst, _s_dae_bind_material))
+      break;
 
     if (_xml_eqElm(_s_dae_param)) {
       AkParam * param;
       AkResult   ret;
 
-      ret = ak_dae_param(daestate,
+      ret = ak_dae_param(xst,
                          bindMaterial,
                          AK_PARAM_TYPE_BASIC,
                          &param);
@@ -113,7 +115,7 @@ ak_dae_fxBindMaterial(AkDaeState * __restrict daestate,
       AkResult ret;
 
       tc = NULL;
-      ret = ak_dae_techniquec(daestate, bindMaterial, &tc);
+      ret = ak_dae_techniquec(xst, bindMaterial, &tc);
       if (ret == AK_OK)
         bindMaterial->techniqueCommon = tc;
 
@@ -122,7 +124,7 @@ ak_dae_fxBindMaterial(AkDaeState * __restrict daestate,
       AkResult ret;
 
       tq = NULL;
-      ret = ak_dae_technique(daestate, bindMaterial, &tq);
+      ret = ak_dae_technique(xst, bindMaterial, &tq);
       if (ret == AK_OK) {
         if (last_tq)
           last_tq->next = tq;
@@ -135,24 +137,24 @@ ak_dae_fxBindMaterial(AkDaeState * __restrict daestate,
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
-      nodePtr = xmlTextReaderExpand(daestate->reader);
+      nodePtr = xmlTextReaderExpand(xst->reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(daestate->heap,
+      ak_tree_fromXmlNode(xst->heap,
                           bindMaterial,
                           nodePtr,
                           &tree,
                           NULL);
       bindMaterial->extra = tree;
 
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     } else {
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
   
   *dest = bindMaterial;
   
@@ -160,14 +162,14 @@ ak_dae_fxBindMaterial(AkDaeState * __restrict daestate,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxInstanceMaterial(AkDaeState * __restrict daestate,
+ak_dae_fxInstanceMaterial(AkXmlState * __restrict xst,
                           void * __restrict memParent,
                           AkInstanceMaterial ** __restrict dest) {
   AkInstanceMaterial *material;
   AkBind             *last_bind;
   AkBindVertexInput  *last_bindVertexInput;
 
-  material = ak_heap_calloc(daestate->heap,
+  material = ak_heap_calloc(xst->heap,
                             memParent,
                             sizeof(*material),
                             false);
@@ -177,7 +179,7 @@ ak_dae_fxInstanceMaterial(AkDaeState * __restrict daestate,
   _xml_readAttr(material, material->target, _s_dae_target);
   _xml_readAttr(material, material->symbol, _s_dae_symbol);
 
-  ak_url_from_attr(daestate->reader,
+  ak_url_from_attr(xst->reader,
                    _s_dae_url,
                    material,
                    &material->url);
@@ -186,11 +188,12 @@ ak_dae_fxInstanceMaterial(AkDaeState * __restrict daestate,
   last_bindVertexInput = NULL;
 
   do {
-    _xml_beginElement(_s_dae_instance_material);
+    if (ak_xml_beginelm(xst, _s_dae_instance_material))
+      break;
 
     if (_xml_eqElm(_s_dae_bind)) {
       AkBind *bind;
-      bind = ak_heap_calloc(daestate->heap,
+      bind = ak_heap_calloc(xst->heap,
                             material,
                             sizeof(*bind),
                             false);
@@ -206,7 +209,7 @@ ak_dae_fxInstanceMaterial(AkDaeState * __restrict daestate,
       last_bind = bind;
     } else if (_xml_eqElm(_s_dae_bind_vertex_input)) {
       AkBindVertexInput *bindVertexInput;
-      bindVertexInput = ak_heap_calloc(daestate->heap,
+      bindVertexInput = ak_heap_calloc(xst->heap,
                                        material,
                                        sizeof(*bindVertexInput),
                                        false);
@@ -229,7 +232,7 @@ ak_dae_fxInstanceMaterial(AkDaeState * __restrict daestate,
       last_bindVertexInput = bindVertexInput;
     } else if (_xml_eqElm(_s_dae_technique_override)) {
       AkTechniqueOverride *techniqueOverride;
-      techniqueOverride = ak_heap_calloc(daestate->heap,
+      techniqueOverride = ak_heap_calloc(xst->heap,
                                          material,
                                          sizeof(*techniqueOverride),
                                          false);
@@ -242,24 +245,24 @@ ak_dae_fxInstanceMaterial(AkDaeState * __restrict daestate,
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
-      nodePtr = xmlTextReaderExpand(daestate->reader);
+      nodePtr = xmlTextReaderExpand(xst->reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(daestate->heap,
+      ak_tree_fromXmlNode(xst->heap,
                           material,
                           nodePtr,
                           &tree,
                           NULL);
       material->extra = tree;
 
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     } else {
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
   
   *dest = material;
   

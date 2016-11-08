@@ -10,14 +10,14 @@
 #include "ak_collada_fx_enums.h"
 
 AkResult _assetkit_hide
-ak_dae_colorOrTex(AkDaeState * __restrict daestate,
+ak_dae_colorOrTex(AkXmlState * __restrict xst,
                   void * __restrict memParent,
                   const char * elm,
                   AkFxColorOrTex ** __restrict dest) {
   AkFxColorOrTex *colorOrTex;
   AkParam        *last_param;
 
-  colorOrTex = ak_heap_calloc(daestate->heap,
+  colorOrTex = ak_heap_calloc(xst->heap,
                               memParent,
                               sizeof(*colorOrTex),
                               false);
@@ -28,19 +28,20 @@ ak_dae_colorOrTex(AkDaeState * __restrict daestate,
   last_param = NULL;
 
   do {
-    _xml_beginElement(elm);
+    if (ak_xml_beginelm(xst, elm))
+      break;
 
     if (_xml_eqElm(_s_dae_color)) {
       AkColor *color;
       char *colorStr;
 
-      color = ak_heap_calloc(daestate->heap,
+      color = ak_heap_calloc(xst->heap,
                              colorOrTex,
                              sizeof(*color),
                              false);
 
       _xml_readAttr(color, color->sid, _s_dae_sid);
-      _xml_readMutText(colorStr);
+      colorStr = ak_xml_rawval(xst);
 
       if (colorStr) {
         ak_strtof4(&colorStr, &color->color.vec);
@@ -50,45 +51,46 @@ ak_dae_colorOrTex(AkDaeState * __restrict daestate,
     } else if (_xml_eqElm(_s_dae_texture)) {
       AkFxTexture *tex;
 
-      tex = ak_heap_calloc(daestate->heap,
+      tex = ak_heap_calloc(xst->heap,
                            colorOrTex,
                            sizeof(*tex),
                            false);
       _xml_readAttr(tex, tex->texture, _s_dae_texture);
       _xml_readAttr(tex, tex->texcoord, _s_dae_texcoord);
 
-      if (!xmlTextReaderIsEmptyElement(daestate->reader)) {
+      if (!xmlTextReaderIsEmptyElement(xst->reader)) {
         do {
-          _xml_beginElement(_s_dae_texture);
+          if (ak_xml_beginelm(xst, _s_dae_texture))
+            break;
 
           if (_xml_eqElm(_s_dae_extra)) {
             xmlNodePtr nodePtr;
             AkTree   *tree;
 
-            nodePtr = xmlTextReaderExpand(daestate->reader);
+            nodePtr = xmlTextReaderExpand(xst->reader);
             tree = NULL;
 
-            ak_tree_fromXmlNode(daestate->heap,
+            ak_tree_fromXmlNode(xst->heap,
                                 tex,
                                 nodePtr,
                                 &tree,
                                 NULL);
             tex->extra = tree;
 
-            _xml_skipElement;
+            ak_xml_skipelm(xst);;
           } else {
-            _xml_skipElement;
+            ak_xml_skipelm(xst);;
           }
 
           /* end element */
-          _xml_endElement;
-        } while (daestate->nodeRet);
+          ak_xml_endelm(xst);;
+        } while (xst->nodeRet);
       }
     } else if (_xml_eqElm(_s_dae_param)) {
       AkParam * param;
       AkResult   ret;
 
-      ret = ak_dae_param(daestate,
+      ret = ak_dae_param(xst,
                          colorOrTex,
                          AK_PARAM_TYPE_BASIC,
                          &param);
@@ -102,12 +104,12 @@ ak_dae_colorOrTex(AkDaeState * __restrict daestate,
         last_param = param;
       }
     } else {
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
   
   *dest = colorOrTex;
 

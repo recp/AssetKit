@@ -68,14 +68,14 @@ ak_dae_valueType(const char * typeName) {
 }
 
 AkResult _assetkit_hide
-ak_dae_value(AkDaeState * __restrict daestate,
+ak_dae_value(AkXmlState * __restrict xst,
              void * __restrict memParent,
              void ** __restrict dest,
              AkValueType * __restrict val_type) {
   ak_value_pair *found;
   char          *nodeVal;
 
-  daestate->nodeName = xmlTextReaderConstName(daestate->reader);
+  xst->nodeName = xmlTextReaderConstName(xst->reader);
 
   if (valueMapLen == 0) {
     valueMapLen = AK_ARRAY_LEN(valueMap);
@@ -85,7 +85,7 @@ ak_dae_value(AkDaeState * __restrict daestate,
           valuePairCmp);
   }
 
-  found = bsearch(daestate->nodeName,
+  found = bsearch(xst->nodeName,
                   valueMap,
                   valueMapLen,
                   sizeof(valueMap[0]),
@@ -98,7 +98,7 @@ ak_dae_value(AkDaeState * __restrict daestate,
 
   *val_type = found->val;
 
-  _xml_readText(NULL, nodeVal);
+  nodeVal = ak_xml_val(xst, NULL);
 
   switch (found->val) {
     case AK_VALUE_TYPE_STRING:
@@ -111,7 +111,7 @@ ak_dae_value(AkDaeState * __restrict daestate,
     case AK_VALUE_TYPE_BOOL4:{
       AkBool * val;
 
-      val = ak_heap_calloc(daestate->heap,
+      val = ak_heap_calloc(xst->heap,
                            memParent,
                            sizeof(*val) * found->m * found->n,
                            false);
@@ -126,7 +126,7 @@ ak_dae_value(AkDaeState * __restrict daestate,
     case AK_VALUE_TYPE_INT4:{
       AkInt * val;
 
-      val = ak_heap_calloc(daestate->heap,
+      val = ak_heap_calloc(xst->heap,
                            memParent,
                            sizeof(*val) * found->m * found->n,
                            false);
@@ -144,7 +144,7 @@ ak_dae_value(AkDaeState * __restrict daestate,
     case AK_VALUE_TYPE_FLOAT4x4:{
       AkFloat * val;
 
-      val = ak_heap_calloc(daestate->heap,
+      val = ak_heap_calloc(xst->heap,
                            memParent,
                            sizeof(*val) * found->m * found->n,
                            false);
@@ -161,7 +161,7 @@ ak_dae_value(AkDaeState * __restrict daestate,
     ak_free(nodeVal);
 
   /* end element */
-  _xml_endElement;
+  ak_xml_endelm(xst);;
 
   return AK_OK;
 }

@@ -12,7 +12,7 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_fxShader(AkDaeState * __restrict daestate,
+ak_dae_fxShader(AkXmlState * __restrict xst,
                 void * __restrict memParent,
                 AkShader ** __restrict dest);
 

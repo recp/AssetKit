@@ -32,12 +32,12 @@ static ak_enumpair evaluateMap[] = {
 static size_t evaluateMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_fxEvaluate(AkDaeState * __restrict daestate,
+ak_dae_fxEvaluate(AkXmlState * __restrict xst,
                   void * __restrict memParent,
                   AkEvaluate ** __restrict dest) {
   AkEvaluate *evaluate;
 
-  evaluate = ak_heap_calloc(daestate->heap,
+  evaluate = ak_heap_calloc(xst->heap,
                             memParent,
                             sizeof(*evaluate),
                             false);
@@ -53,9 +53,10 @@ ak_dae_fxEvaluate(AkDaeState * __restrict daestate,
   do {
     const ak_enumpair *found;
 
-    _xml_beginElement(_s_dae_evaluate);
+    if (ak_xml_beginelm(xst, _s_dae_evaluate))
+      break;
 
-    found = bsearch(daestate->nodeName,
+    found = bsearch(xst->nodeName,
                     evaluateMap,
                     evaluateMapLen,
                     sizeof(evaluateMap[0]),
@@ -68,7 +69,7 @@ ak_dae_fxEvaluate(AkDaeState * __restrict daestate,
         AkEvaluateTarget *evaluate_target;
         const xmlChar *targetNodeName;
 
-        evaluate_target = ak_heap_calloc(daestate->heap,
+        evaluate_target = ak_heap_calloc(xst->heap,
                                          evaluate,
                                          sizeof(*evaluate_target),
                                          false);
@@ -89,16 +90,17 @@ ak_dae_fxEvaluate(AkDaeState * __restrict daestate,
                             _s_dae_face,
                             ak_dae_fxEnumFace);
 
-        targetNodeName = daestate->nodeName;
+        targetNodeName = xst->nodeName;
 
         do {
-          _xml_beginElement(targetNodeName);
+          if (ak_xml_beginelm(xst, targetNodeName))
+            break;
 
           if (_xml_eqElm(_s_dae_param)) {
             AkParam * param;
             AkResult   ret;
 
-            ret = ak_dae_param(daestate,
+            ret = ak_dae_param(xst,
                                evaluate_target,
                                AK_PARAM_TYPE_BASIC,
                                &param);
@@ -109,19 +111,19 @@ ak_dae_fxEvaluate(AkDaeState * __restrict daestate,
             AkInstanceImage *instanceImage;
             AkResult ret;
 
-            ret = ak_dae_fxInstanceImage(daestate,
+            ret = ak_dae_fxInstanceImage(xst,
                                          evaluate_target,
                                          &instanceImage);
 
             if (ret == AK_OK)
               evaluate_target->instanceImage = instanceImage;
           } else {
-            _xml_skipElement;
+            ak_xml_skipelm(xst);;
           }
 
           /* end element */
-          _xml_endElement;
-        } while (daestate->nodeRet);
+          ak_xml_endelm(xst);;
+        } while (xst->nodeRet);
 
         switch (found->val) {
           case k_s_dae_color_target:
@@ -138,7 +140,7 @@ ak_dae_fxEvaluate(AkDaeState * __restrict daestate,
       }
       case k_s_dae_color_clear: {
         AkColorClear *colorClear;
-        colorClear = ak_heap_calloc(daestate->heap,
+        colorClear = ak_heap_calloc(xst->heap,
                                     evaluate,
                                     sizeof(*colorClear),
                                     false);
@@ -147,14 +149,14 @@ ak_dae_fxEvaluate(AkDaeState * __restrict daestate,
                              _s_dae_index,
                              strtol, NULL, 10);
 
-        ak_dae_color(daestate, false, &colorClear->val);
+        ak_dae_color(xst, false, &colorClear->val);
 
         evaluate->colorClear = colorClear;
         break;
       }
       case k_s_dae_depth_clear:{
         AkDepthClear *depthClear;
-        depthClear = ak_heap_calloc(daestate->heap,
+        depthClear = ak_heap_calloc(xst->heap,
                                     evaluate,
                                     sizeof(*depthClear),
                                     false);
@@ -171,7 +173,7 @@ ak_dae_fxEvaluate(AkDaeState * __restrict daestate,
       }
       case k_s_dae_stencil_clear:{
         AkStencilClear *stencilClear;
-        stencilClear = ak_heap_calloc(daestate->heap,
+        stencilClear = ak_heap_calloc(xst->heap,
                                       evaluate,
                                       sizeof(*stencilClear),
                                       false);
@@ -187,22 +189,21 @@ ak_dae_fxEvaluate(AkDaeState * __restrict daestate,
         break;
       }
       case k_s_dae_draw: {
-        char *strVal;
-        _xml_readText(evaluate, strVal);
-
-        if (strVal) {
+        const char *strVal;
+        
+        if ((strVal = ak_xml_val(xst, evaluate))) {
           evaluate->draw.strVal = strVal;
           evaluate->draw.enumDraw = ak_dae_fxEnumDraw(strVal);
         }
       }
       default:
-         _xml_skipElement;
+         ak_xml_skipelm(xst);;
         break;
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
 
   *dest = evaluate;
   

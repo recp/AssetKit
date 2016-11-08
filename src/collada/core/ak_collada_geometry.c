@@ -12,12 +12,12 @@
 #include "../brep/ak_collada_brep.h"
 
 AkResult _assetkit_hide
-ak_dae_geometry(AkDaeState * __restrict daestate,
+ak_dae_geometry(AkXmlState * __restrict xst,
                 void * __restrict memParent,
                 AkGeometry ** __restrict dest) {
   AkGeometry *geometry;
 
-  geometry = ak_heap_calloc(daestate->heap,
+  geometry = ak_heap_calloc(xst->heap,
                             memParent,
                             sizeof(*geometry),
                             true);
@@ -26,14 +26,15 @@ ak_dae_geometry(AkDaeState * __restrict daestate,
   _xml_readAttr(geometry, geometry->name, _s_dae_name);
 
   do {
-    _xml_beginElement(_s_dae_geometry);
+    if (ak_xml_beginelm(xst, _s_dae_geometry))
+      break;
 
     if (_xml_eqElm(_s_dae_asset)) {
       AkAssetInf *assetInf;
       AkResult ret;
 
       assetInf = NULL;
-      ret = ak_dae_assetInf(daestate, geometry, &assetInf);
+      ret = ak_dae_assetInf(xst, geometry, &assetInf);
       if (ret == AK_OK)
         geometry->inf = assetInf;
 
@@ -42,9 +43,9 @@ ak_dae_geometry(AkDaeState * __restrict daestate,
       AkMesh  *mesh;
       AkResult ret;
 
-      ret = ak_dae_mesh(daestate,
+      ret = ak_dae_mesh(xst,
                         geometry,
-                        (const char *)daestate->nodeName,
+                        (const char *)xst->nodeName,
                         &mesh,
                         true);
       if (ret == AK_OK)
@@ -54,7 +55,7 @@ ak_dae_geometry(AkDaeState * __restrict daestate,
       AkSpline *spline;
       AkResult  ret;
 
-      ret = ak_dae_spline(daestate,
+      ret = ak_dae_spline(xst,
                           geometry,
                           true,
                           &spline);
@@ -65,7 +66,7 @@ ak_dae_geometry(AkDaeState * __restrict daestate,
       AkBoundryRep *brep;
       AkResult      ret;
 
-      ret = ak_dae_brep(daestate,
+      ret = ak_dae_brep(xst,
                         geometry,
                         true,
                         &brep);
@@ -76,22 +77,22 @@ ak_dae_geometry(AkDaeState * __restrict daestate,
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
-      nodePtr = xmlTextReaderExpand(daestate->reader);
+      nodePtr = xmlTextReaderExpand(xst->reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(daestate->heap,
+      ak_tree_fromXmlNode(xst->heap,
                           geometry,
                           nodePtr,
                           &tree,
                           NULL);
       geometry->extra = tree;
       
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
   
   *dest = geometry;
   

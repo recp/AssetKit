@@ -11,7 +11,7 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_node(AkDaeState * __restrict daestate,
+ak_dae_node(AkXmlState * __restrict xst,
             void    * __restrict memParent,
             AkNode             **firstCamNode,
             AkNode             **dest);

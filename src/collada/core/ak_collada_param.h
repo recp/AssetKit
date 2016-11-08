@@ -11,18 +11,18 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_newparam(AkDaeState * __restrict daestate,
+ak_dae_newparam(AkXmlState * __restrict xst,
                 void * __restrict memParent,
                 AkNewParam ** __restrict dest);
 
 AkResult _assetkit_hide
-ak_dae_param(AkDaeState * __restrict daestate,
+ak_dae_param(AkXmlState * __restrict xst,
              void * __restrict memParent,
              AkParamType paramType,
              AkParam ** __restrict dest);
 
 AkResult _assetkit_hide
-ak_dae_setparam(AkDaeState * __restrict daestate,
+ak_dae_setparam(AkXmlState * __restrict xst,
                 void * __restrict memParent,
                 AkSetParam ** __restrict dest);
 

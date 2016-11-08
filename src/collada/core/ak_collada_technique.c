@@ -9,7 +9,7 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_technique(AkDaeState * __restrict daestate,
+ak_dae_technique(AkXmlState * __restrict xst,
                  void * __restrict memParent,
                  AkTechnique ** __restrict dest) {
 
@@ -17,7 +17,7 @@ ak_dae_technique(AkDaeState * __restrict daestate,
   AkTree      *tree;
   xmlNodePtr   nodePtr;
 
-  technique = ak_heap_calloc(daestate->heap,
+  technique = ak_heap_calloc(xst->heap,
                              memParent,
                              sizeof(*technique),
                              false);
@@ -25,16 +25,16 @@ ak_dae_technique(AkDaeState * __restrict daestate,
   _xml_readAttr(technique, technique->profile, _s_dae_profile);
   _xml_readAttr(technique, technique->xmlns, _s_dae_xmlns);
 
-  nodePtr = xmlTextReaderExpand(daestate->reader);
+  nodePtr = xmlTextReaderExpand(xst->reader);
   tree = NULL;
 
-  ak_tree_fromXmlNode(daestate->heap, technique, nodePtr, &tree, NULL);
+  ak_tree_fromXmlNode(xst->heap, technique, nodePtr, &tree, NULL);
   technique->chld = tree;
 
-  daestate->nodeName = xmlTextReaderConstName(daestate->reader);
-  daestate->nodeType = xmlTextReaderNodeType(daestate->reader);
+  xst->nodeName = xmlTextReaderConstName(xst->reader);
+  xst->nodeType = xmlTextReaderNodeType(xst->reader);
   
-  _xml_skipElement;
+  ak_xml_skipelm(xst);;
 
   *dest = technique;
 

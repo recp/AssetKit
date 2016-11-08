@@ -10,25 +10,26 @@
 #include "ak_collada_technique.h"
 
 AkResult _assetkit_hide
-ak_dae_camera(AkDaeState * __restrict daestate,
+ak_dae_camera(AkXmlState * __restrict xst,
               void * __restrict memParent,
               AkCamera ** __restrict  dest) {
   AkCamera *camera;
 
-  camera = ak_heap_calloc(daestate->heap, memParent, sizeof(*camera), true);
+  camera = ak_heap_calloc(xst->heap, memParent, sizeof(*camera), true);
 
   _xml_readId(camera);
   _xml_readAttr(camera, camera->name, _s_dae_name);
 
   do {
-    _xml_beginElement(_s_dae_camera);
+    if (ak_xml_beginelm(xst, _s_dae_camera))
+      break;
 
     if (_xml_eqElm(_s_dae_asset)) {
       AkAssetInf *assetInf;
       AkResult ret;
 
       assetInf = NULL;
-      ret = ak_dae_assetInf(daestate, camera, &assetInf);
+      ret = ak_dae_assetInf(xst, camera, &assetInf);
       if (ret == AK_OK)
         camera->inf = assetInf;
 
@@ -37,20 +38,21 @@ ak_dae_camera(AkDaeState * __restrict daestate,
       AkTechnique        *last_tq;
       AkTechniqueCommon *last_tc;
 
-      optics = ak_heap_calloc(daestate->heap, camera, sizeof(*optics), false);
+      optics = ak_heap_calloc(xst->heap, camera, sizeof(*optics), false);
 
       last_tq = optics->technique;
       last_tc = optics->techniqueCommon;
 
       do {
-        _xml_beginElement(_s_dae_optics);
+        if (ak_xml_beginelm(xst, _s_dae_optics))
+          break;
 
         if (_xml_eqElm(_s_dae_techniquec)) {
           AkTechniqueCommon *tc;
           AkResult ret;
 
           tc = NULL;
-          ret = ak_dae_techniquec(daestate, optics, &tc);
+          ret = ak_dae_techniquec(xst, optics, &tc);
           if (ret == AK_OK) {
             if (last_tc)
               last_tc->next = tc;
@@ -65,7 +67,7 @@ ak_dae_camera(AkDaeState * __restrict daestate,
           AkResult ret;
 
           tq = NULL;
-          ret = ak_dae_technique(daestate, optics, &tq);
+          ret = ak_dae_technique(xst, optics, &tq);
           if (ret == AK_OK) {
             if (last_tq)
               last_tq->next = tq;
@@ -75,30 +77,31 @@ ak_dae_camera(AkDaeState * __restrict daestate,
             last_tq = tq;
           }
         } else {
-          _xml_skipElement;
+          ak_xml_skipelm(xst);;
         }
 
         /* end element */
-        _xml_endElement;
-      } while (daestate->nodeRet);
+        ak_xml_endelm(xst);;
+      } while (xst->nodeRet);
 
       camera->optics = optics;
     } else if (_xml_eqElm(_s_dae_imager)) {
       AkImager    *imager;
       AkTechnique *last_tq;
 
-      imager  = ak_heap_calloc(daestate->heap, camera, sizeof(*imager), false);
+      imager  = ak_heap_calloc(xst->heap, camera, sizeof(*imager), false);
       last_tq = imager->technique;
 
       do {
-        _xml_beginElement(_s_dae_imager);
+        if (ak_xml_beginelm(xst, _s_dae_imager))
+          break;
 
         if (_xml_eqElm(_s_dae_technique)) {
           AkTechnique *tq;
           AkResult ret;
 
           tq = NULL;
-          ret = ak_dae_technique(daestate, imager, &tq);
+          ret = ak_dae_technique(xst, imager, &tq);
           if (ret == AK_OK) {
             if (last_tq)
               last_tq->next = tq;
@@ -111,46 +114,46 @@ ak_dae_camera(AkDaeState * __restrict daestate,
           xmlNodePtr nodePtr;
           AkTree   *tree;
 
-          nodePtr = xmlTextReaderExpand(daestate->reader);
+          nodePtr = xmlTextReaderExpand(xst->reader);
           tree = NULL;
 
-          ak_tree_fromXmlNode(daestate->heap,
+          ak_tree_fromXmlNode(xst->heap,
                               imager,
                               nodePtr,
                               &tree,
                               NULL);
           imager->extra = tree;
 
-          _xml_skipElement;
+          ak_xml_skipelm(xst);;
         } else {
-          _xml_skipElement;
+          ak_xml_skipelm(xst);;
         }
         
         /* end element */
-        _xml_endElement;
-      } while (daestate->nodeRet);
+        ak_xml_endelm(xst);;
+      } while (xst->nodeRet);
 
       camera->imager = imager;
     } else if (_xml_eqElm(_s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
-      nodePtr = xmlTextReaderExpand(daestate->reader);
+      nodePtr = xmlTextReaderExpand(xst->reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(daestate->heap,
+      ak_tree_fromXmlNode(xst->heap,
                           camera,
                           nodePtr,
                           &tree,
                           NULL);
       camera->extra = tree;
 
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
 
   *dest = camera;
 

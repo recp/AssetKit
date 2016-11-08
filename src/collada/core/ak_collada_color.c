@@ -8,7 +8,7 @@
 #include "ak_collada_color.h"
 
 AkResult _assetkit_hide
-ak_dae_color(AkDaeState * __restrict daestate,
+ak_dae_color(AkXmlState * __restrict xst,
              bool read_sid,
              AkColor * __restrict dest) {
   char *colorStr;
@@ -16,7 +16,7 @@ ak_dae_color(AkDaeState * __restrict daestate,
   if (read_sid)
     _xml_readAttr(dest, dest->sid, _s_dae_sid);
 
-  _xml_readMutText(colorStr);
+  colorStr = ak_xml_rawval(xst);
 
   if (colorStr) {
     ak_strtof4(&colorStr, &dest->color.vec);

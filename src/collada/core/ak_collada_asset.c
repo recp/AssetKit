@@ -8,67 +8,69 @@
 #include "ak_collada_asset.h"
 
 AkResult _assetkit_hide
-ak_dae_assetInf(AkDaeState * __restrict daestate,
+ak_dae_assetInf(AkXmlState * __restrict xst,
                 void * __restrict memParent,
                 AkAssetInf ** __restrict dest) {
   if (!(*dest))
-    *dest = ak_heap_calloc(daestate->heap,
+    *dest = ak_heap_calloc(xst->heap,
                            memParent,
                            sizeof(**dest), false);
 
   do {
-    _xml_beginElement(_s_dae_asset);
+    if (ak_xml_beginelm(xst, _s_dae_asset))
+      break;
 
     if (_xml_eqElm(_s_dae_contributor)) {
       AkContributor * contrib;
-      contrib = ak_heap_calloc(daestate->heap, *dest, sizeof(*contrib), false);
+      contrib = ak_heap_calloc(xst->heap, *dest, sizeof(*contrib), false);
 
       /* contributor */
       do {
-        _xml_beginElement(_s_dae_contributor);
+        if (ak_xml_beginelm(xst, _s_dae_contributor))
+          break;
 
         if (_xml_eqElm(_s_dae_author))
-          _xml_readText(*dest, contrib->author);
+          contrib->author = ak_xml_val(xst, *dest);
         else if (_xml_eqElm(_s_dae_author_email))
-          _xml_readText(*dest, contrib->authorEmail);
+          contrib->authorEmail = ak_xml_val(xst, *dest);
         else if (_xml_eqElm(_s_dae_author_website))
-          _xml_readText(*dest, contrib->authorWebsite);
+          contrib->authorWebsite = ak_xml_val(xst, *dest);
         else if (_xml_eqElm(_s_dae_authoring_tool))
-          _xml_readText(*dest, contrib->authoringTool);
+          contrib->authoringTool = ak_xml_val(xst, *dest);
         else if (_xml_eqElm(_s_dae_comments))
-          _xml_readText(*dest, contrib->comments);
+          contrib->comments = ak_xml_val(xst, *dest);
         else if (_xml_eqElm(_s_dae_copyright))
-          _xml_readText(*dest, contrib->copyright);
+          contrib->copyright = ak_xml_val(xst, *dest);
         else if (_xml_eqElm(_s_dae_source_data))
-          _xml_readText(*dest, contrib->sourceData);
+          contrib->sourceData = ak_xml_val(xst, *dest);
         else
-          _xml_skipElement;
+          ak_xml_skipelm(xst);;
 
         /* end element */
-        _xml_endElement;
-      } while (daestate->nodeRet);
+        ak_xml_endelm(xst);;
+      } while (xst->nodeRet);
 
       (*dest)->contributor = contrib;
     } else if (_xml_eqElm(_s_dae_created)) {
       const char * val;
-      _xml_readConstText(val);
+      val = ak_xml_rawcval(xst);
       (*dest)->created = ak_parse_date(val, NULL);
     } else if (_xml_eqElm(_s_dae_modified)) {
       const char * val;
-      _xml_readConstText(val);
+      val = ak_xml_rawcval(xst);
       (*dest)->modified = ak_parse_date(val, NULL);
     } else if (_xml_eqElm(_s_dae_keywords)) {
-      _xml_readText(*dest, (*dest)->keywords);
+      (*dest)->keywords = ak_xml_val(xst, *dest);
     } else if (_xml_eqElm(_s_dae_revision)) {
       _xml_readTextUsingFn((*dest)->revision,
                            strtoul, NULL, 10);
     } else if (_xml_eqElm(_s_dae_subject)) {
-      _xml_readText(*dest, (*dest)->subject);
+      (*dest)->subject = ak_xml_val(xst, *dest);
     } else if (_xml_eqElm(_s_dae_title)) {
-      _xml_readText(*dest, (*dest)->title);
+      (*dest)->title = ak_xml_val(xst, *dest);
     } else if (_xml_eqElm(_s_dae_unit)) {
       AkUnit * unit;
-      unit = ak_heap_calloc(daestate->heap, *dest, sizeof(*unit), false);
+      unit = ak_heap_calloc(xst->heap, *dest, sizeof(*unit), false);
 
       _xml_readAttr(*dest, unit->name, _s_dae_name);
       _xml_readAttrUsingFn(unit->dist, _s_dae_meter, strtod, NULL);
@@ -77,7 +79,7 @@ ak_dae_assetInf(AkDaeState * __restrict daestate,
     } else if (_xml_eqElm(_s_dae_up_axis)) {
       const char *val;
 
-      _xml_readConstText(val);
+      val = ak_xml_rawcval(xst);
       if (val) {
         if (strcasecmp(val, _s_dae_z_up) == 0)
           (*dest)->coordSys = AK_ZUP;
@@ -90,24 +92,24 @@ ak_dae_assetInf(AkDaeState * __restrict daestate,
       xmlNodePtr nodePtr;
       AkTree  * tree;
 
-      nodePtr = xmlTextReaderExpand(daestate->reader);
+      nodePtr = xmlTextReaderExpand(xst->reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(daestate->heap,
+      ak_tree_fromXmlNode(xst->heap,
                           *dest,
                           nodePtr,
                           &tree,
                           NULL);
       (*dest)->extra = tree;
 
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     } else {
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     }
     
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
   
   return AK_OK;
 }

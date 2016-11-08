@@ -9,32 +9,33 @@
 #include "../core/ak_collada_param.h"
 
 AkResult _assetkit_hide
-ak_dae_floatOrParam(AkDaeState * __restrict daestate,
+ak_dae_floatOrParam(AkXmlState * __restrict xst,
                     void * __restrict memParent,
                     const char * elm,
                     AkFxFloatOrParam ** __restrict dest) {
   AkFxFloatOrParam *floatOrParam;
   AkParam          *last_param;
 
-  floatOrParam = ak_heap_calloc(daestate->heap,
+  floatOrParam = ak_heap_calloc(xst->heap,
                                 memParent,
                                 sizeof(*floatOrParam),
                                 false);
   last_param = NULL;
 
   do {
-    _xml_beginElement(elm);
+    if (ak_xml_beginelm(xst, elm))
+      break;
 
     if (_xml_eqElm(_s_dae_float)) {
       ak_basic_attrf * valuef;
       const char * floatStr;
 
-      valuef = ak_heap_calloc(daestate->heap,
+      valuef = ak_heap_calloc(xst->heap,
                               floatOrParam,
                               sizeof(*valuef),
                               false);
       _xml_readAttr(valuef, valuef->sid, _s_dae_sid);
-      _xml_readConstText(floatStr);
+      floatStr = ak_xml_rawcval(xst);
       if (floatStr)
         valuef->val = strtof(floatStr, NULL);
 
@@ -43,7 +44,7 @@ ak_dae_floatOrParam(AkDaeState * __restrict daestate,
       AkParam * param;
       AkResult   ret;
 
-      ret = ak_dae_param(daestate,
+      ret = ak_dae_param(xst,
                          floatOrParam,
                          AK_PARAM_TYPE_BASIC,
                          &param);
@@ -57,12 +58,12 @@ ak_dae_floatOrParam(AkDaeState * __restrict daestate,
         last_param = param;
       }
     } else {
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
   
   *dest = floatOrParam;
 

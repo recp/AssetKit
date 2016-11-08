@@ -13,12 +13,12 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_fxImage(AkDaeState * __restrict daestate,
+ak_dae_fxImage(AkXmlState * __restrict xst,
                void * __restrict memParent,
                AkImage ** __restrict dest);
 
 AkResult _assetkit_hide
-ak_dae_fxInstanceImage(AkDaeState * __restrict daestate,
+ak_dae_fxInstanceImage(AkXmlState * __restrict xst,
                        void * __restrict memParent,
                        AkInstanceImage ** __restrict dest);
 

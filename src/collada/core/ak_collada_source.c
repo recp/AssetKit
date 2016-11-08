@@ -29,19 +29,19 @@ static ak_enumpair sourceMap[] = {
 static size_t sourceMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_source(AkDaeState * __restrict daestate,
+ak_dae_source(AkXmlState * __restrict xst,
               void * __restrict memParent,
               AkSource ** __restrict dest) {
   AkSource          *source;
   AkTechnique       *last_tq;
   AkTechniqueCommon *last_tc;
 
-  source = ak_heap_calloc(daestate->heap, memParent, sizeof(*source), true);
+  source = ak_heap_calloc(xst->heap, memParent, sizeof(*source), true);
 
   _xml_readId(source);
   _xml_readAttr(source, source->name, _s_dae_name);
 
-  if (xmlTextReaderIsEmptyElement(daestate->reader))
+  if (xmlTextReaderIsEmptyElement(xst->reader))
     goto done;
 
   if (sourceMapLen == 0) {
@@ -58,9 +58,10 @@ ak_dae_source(AkDaeState * __restrict daestate,
   do {
     const ak_enumpair *found;
 
-    _xml_beginElement(_s_dae_source);
+    if (ak_xml_beginelm(xst, _s_dae_source))
+      break;
 
-    found = bsearch(daestate->nodeName,
+    found = bsearch(xst->nodeName,
                     sourceMap,
                     sourceMapLen,
                     sizeof(sourceMap[0]),
@@ -72,7 +73,7 @@ ak_dae_source(AkDaeState * __restrict daestate,
         AkResult ret;
 
         assetInf = NULL;
-        ret = ak_dae_assetInf(daestate, source, &assetInf);
+        ret = ak_dae_assetInf(xst, source, &assetInf);
         if (ret == AK_OK)
           source->inf = assetInf;
 
@@ -91,7 +92,7 @@ ak_dae_source(AkDaeState * __restrict daestate,
                                     strtoul, NULL, 10);
 
         arraySize = sizeof(AkBool) * arrayCount;
-        obj = ak_objAlloc(daestate->heap,
+        obj = ak_objAlloc(xst->heap,
                           source,
                           sizeof(*boolArray) + arraySize,
                           AK_SOURCE_ARRAY_TYPE_BOOL,
@@ -104,7 +105,7 @@ ak_dae_source(AkDaeState * __restrict daestate,
 
         boolArray->count = arrayCount;
 
-        _xml_readMutText(content);;
+        content = ak_xml_rawval(xst);;
         if (content) {
           ak_strtomb(&content,
                      boolArray->items,
@@ -132,7 +133,7 @@ ak_dae_source(AkDaeState * __restrict daestate,
                                     strtoul, NULL, 10);
 
         arraySize = sizeof(AkFloat) * arrayCount;
-        obj = ak_objAlloc(daestate->heap,
+        obj = ak_objAlloc(xst->heap,
                           source,
                           sizeof(*floatAray) + arraySize,
                           AK_SOURCE_ARRAY_TYPE_FLOAT,
@@ -154,7 +155,7 @@ ak_dae_source(AkDaeState * __restrict daestate,
                                     (AkInt)strtoul, NULL, 10);
 
         floatAray->count = arrayCount;
-        _xml_readMutText(content);
+        content = ak_xml_rawval(xst);
 
         if (content) {
           ak_strtomf(&content,
@@ -182,7 +183,7 @@ ak_dae_source(AkDaeState * __restrict daestate,
                                     strtoul, NULL, 10);
 
         arraySize = sizeof(AkInt) * arrayCount;
-        obj = ak_objAlloc(daestate->heap,
+        obj = ak_objAlloc(xst->heap,
                           source,
                           sizeof(*intAray) + arraySize,
                           AK_SOURCE_ARRAY_TYPE_INT,
@@ -204,7 +205,7 @@ ak_dae_source(AkDaeState * __restrict daestate,
                                     (AkInt)strtoul, NULL, 10);
 
         intAray->count = arrayCount;
-        _xml_readMutText(content);
+        content = ak_xml_rawval(xst);
 
         if (content) {
           ak_strtomi(&content,
@@ -246,7 +247,7 @@ ak_dae_source(AkDaeState * __restrict daestate,
          */
         arraySize = sizeof(char *) * (arrayCount + 1);
 
-        obj = ak_objAlloc(daestate->heap,
+        obj = ak_objAlloc(xst->heap,
                           source,
                           sizeof(*stringAray) + arraySize,
                           found->val,
@@ -258,10 +259,10 @@ ak_dae_source(AkDaeState * __restrict daestate,
         _xml_readId(obj);
         _xml_readAttr(obj, stringAray->name, _s_dae_name);
 
-        _xml_readMutText(content);
+        content = ak_xml_rawval(xst);
         if (content) {
           arrayDataSize = strlen(content) + arrayCount /* NULL */;
-          pData = ak_heap_alloc(daestate->heap,
+          pData = ak_heap_alloc(xst->heap,
                                 stringAray,
                                 arrayDataSize,
                                 false);
@@ -295,7 +296,7 @@ ak_dae_source(AkDaeState * __restrict daestate,
         AkResult ret;
 
         tc = NULL;
-        ret = ak_dae_techniquec(daestate, source, &tc);
+        ret = ak_dae_techniquec(xst, source, &tc);
         if (ret == AK_OK) {
           if (last_tc)
             last_tc->next = tc;
@@ -312,7 +313,7 @@ ak_dae_source(AkDaeState * __restrict daestate,
         AkResult ret;
 
         tq = NULL;
-        ret = ak_dae_technique(daestate, source, &tq);
+        ret = ak_dae_technique(xst, source, &tq);
         if (ret == AK_OK) {
           if (last_tq)
             last_tq->next = tq;
@@ -324,13 +325,13 @@ ak_dae_source(AkDaeState * __restrict daestate,
         break;
       }
       default:
-        _xml_skipElement;
+        ak_xml_skipelm(xst);;
         break;
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
 
 done:
   *dest = source;

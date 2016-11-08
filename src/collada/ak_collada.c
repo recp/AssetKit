@@ -36,7 +36,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
   AkLibController  *last_libController;
   AkLibVisualScene *last_libVisualScene;
   AkLibNode        *last_libNode;
-  AkDaeState        daestateVal, *daestate;
+  AkXmlState        xstVal, *xst;
 
   xmlTextReaderPtr  reader;
   int xmlReaderFlags;
@@ -69,12 +69,13 @@ ak_dae_doc(AkDoc ** __restrict dest,
   
   ak_heap_setdata(heap, doc);
 
-  daestateVal.doc    = doc;
-  daestateVal.heap   = heap;
-  daestateVal.reader = reader;
-  daestate           = &daestateVal;
+  xstVal.doc    = doc;
+  xstVal.heap   = heap;
+  xstVal.reader = reader;
+  xst           = &xstVal;
 
-  _xml_readNext;
+//  _xml_readNext;
+  ak_xml_readnext(xst);
 
   last_libCam         = NULL;
   last_libLight       = NULL;
@@ -87,7 +88,8 @@ ak_dae_doc(AkDoc ** __restrict dest,
   last_libNode        = NULL;
 
   do {
-    _xml_beginElement(_s_dae_collada);
+    if (ak_xml_beginelm(xst, _s_dae_collada))
+      break;
 
     /* COLLADA Core */
     if (_xml_eqElm(_s_dae_asset)) {
@@ -98,7 +100,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
       docInf = ak_heap_calloc(heap, doc, sizeof(*docInf), false);
       assetInf = &docInf->base;
 
-      ret = ak_dae_assetInf(daestate, docInf, &assetInf);
+      ret = ak_dae_assetInf(xst, docInf, &assetInf);
       if (ret == AK_OK) {
         docInf->ftype = AK_FILE_TYPE_COLLADA;
         doc->docinf   = *docInf;
@@ -124,14 +126,15 @@ ak_dae_doc(AkDoc ** __restrict dest,
       lastcam = NULL;
 
       do {
-        _xml_beginElement(_s_dae_lib_cameras);
+        if (ak_xml_beginelm(xst, _s_dae_lib_cameras))
+          break;
 
         if (_xml_eqElm(_s_dae_asset)) {
           AkAssetInf *assetInf;
           AkResult ret;
 
           assetInf = NULL;
-          ret = ak_dae_assetInf(daestate, doc, &assetInf);
+          ret = ak_dae_assetInf(xst, doc, &assetInf);
           if (ret == AK_OK)
             libcam->inf = assetInf;
 
@@ -140,7 +143,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult   ret;
 
           acamera = NULL;
-          ret = ak_dae_camera(daestate, doc, &acamera);
+          ret = ak_dae_camera(xst, doc, &acamera);
           if (ret == AK_OK) {
             if (lastcam)
               lastcam->next = acamera;
@@ -163,14 +166,14 @@ ak_dae_doc(AkDoc ** __restrict dest,
                           NULL);
           libcam->extra = tree;
 
-          _xml_skipElement;
+          ak_xml_skipelm(xst);;
         } else {
-          _xml_skipElement;
+          ak_xml_skipelm(xst);;
         }
 
         /* end element */
-        _xml_endElement;
-      } while (daestate->nodeRet);
+        ak_xml_endelm(xst);;
+      } while (xst->nodeRet);
     } else if (_xml_eqElm(_s_dae_lib_lights)) {
       AkLibLight *liblight;
       AkLight    *lastlight;
@@ -189,14 +192,15 @@ ak_dae_doc(AkDoc ** __restrict dest,
       lastlight = NULL;
 
       do {
-        _xml_beginElement(_s_dae_lib_lights);
+        if (ak_xml_beginelm(xst, _s_dae_lib_lights))
+          break;
 
         if (_xml_eqElm(_s_dae_asset)) {
           AkAssetInf *assetInf;
           AkResult ret;
 
           assetInf = NULL;
-          ret = ak_dae_assetInf(daestate, doc, &assetInf);
+          ret = ak_dae_assetInf(xst, doc, &assetInf);
           if (ret == AK_OK)
             liblight->inf = assetInf;
 
@@ -205,7 +209,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult  ret;
 
           alight = NULL;
-          ret = ak_dae_light(daestate, doc, &alight);
+          ret = ak_dae_light(xst, doc, &alight);
           if (ret == AK_OK) {
             if (lastlight)
               lastlight->next = alight;
@@ -228,14 +232,14 @@ ak_dae_doc(AkDoc ** __restrict dest,
                               NULL);
           liblight->extra = tree;
 
-          _xml_skipElement;
+          ak_xml_skipelm(xst);;
         } else {
-          _xml_skipElement;
+          ak_xml_skipelm(xst);;
         }
         
         /* end element */
-        _xml_endElement;
-      } while (daestate->nodeRet);
+        ak_xml_endelm(xst);;
+      } while (xst->nodeRet);
 
     /* COLLADA FX */
     } else if (_xml_eqElm(_s_dae_lib_effects)) {
@@ -256,14 +260,15 @@ ak_dae_doc(AkDoc ** __restrict dest,
       lastEffect = NULL;
 
       do {
-        _xml_beginElement(_s_dae_lib_effects);
+        if (ak_xml_beginelm(xst, _s_dae_lib_effects))
+          break;
 
         if (_xml_eqElm(_s_dae_asset)) {
           AkAssetInf *assetInf;
           AkResult ret;
 
           assetInf = NULL;
-          ret = ak_dae_assetInf(daestate, doc, &assetInf);
+          ret = ak_dae_assetInf(xst, doc, &assetInf);
           if (ret == AK_OK)
             libEffect->inf = assetInf;
 
@@ -271,7 +276,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkEffect *anEffect;
           AkResult   ret;
 
-          ret = ak_dae_effect(daestate, doc, &anEffect);
+          ret = ak_dae_effect(xst, doc, &anEffect);
           if (ret == AK_OK) {
             if (lastEffect)
               lastEffect->next = anEffect;
@@ -294,14 +299,14 @@ ak_dae_doc(AkDoc ** __restrict dest,
                           NULL);
           libEffect->extra = tree;
 
-          _xml_skipElement;
+          ak_xml_skipelm(xst);;
         } else {
-          _xml_skipElement;
+          ak_xml_skipelm(xst);;
         }
         
         /* end element */
-        _xml_endElement;
-      } while (daestate->nodeRet);
+        ak_xml_endelm(xst);;
+      } while (xst->nodeRet);
 
     } else if (_xml_eqElm(_s_dae_lib_images)) {
       AkLibImage *libimg;
@@ -321,14 +326,15 @@ ak_dae_doc(AkDoc ** __restrict dest,
       lastimg = NULL;
 
       do {
-        _xml_beginElement(_s_dae_lib_images);
+        if (ak_xml_beginelm(xst, _s_dae_lib_images))
+          break;
 
         if (_xml_eqElm(_s_dae_asset)) {
           AkAssetInf *assetInf;
           AkResult ret;
 
           assetInf = NULL;
-          ret = ak_dae_assetInf(daestate, doc, &assetInf);
+          ret = ak_dae_assetInf(xst, doc, &assetInf);
           if (ret == AK_OK)
             libimg->inf = assetInf;
 
@@ -336,7 +342,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkImage *anImg;
           AkResult  ret;
           
-          ret = ak_dae_fxImage(daestate, doc, &anImg);
+          ret = ak_dae_fxImage(xst, doc, &anImg);
           if (ret == AK_OK) {
             if (lastimg)
               lastimg->next = anImg;
@@ -359,14 +365,14 @@ ak_dae_doc(AkDoc ** __restrict dest,
                           NULL);
           libimg->extra = tree;
 
-          _xml_skipElement;
+          ak_xml_skipelm(xst);;
         } else {
-          _xml_skipElement;
+          ak_xml_skipelm(xst);;
         }
         
         /* end element */
-        _xml_endElement;
-      } while (daestate->nodeRet);
+        ak_xml_endelm(xst);;
+      } while (xst->nodeRet);
     } else if (_xml_eqElm(_s_dae_lib_materials)) {
       AkLibMaterial *libMaterial;
       AkMaterial     *lastMaterial;
@@ -385,14 +391,15 @@ ak_dae_doc(AkDoc ** __restrict dest,
       lastMaterial = NULL;
 
       do {
-        _xml_beginElement(_s_dae_lib_materials);
+        if (ak_xml_beginelm(xst, _s_dae_lib_materials))
+          break;
 
         if (_xml_eqElm(_s_dae_asset)) {
           AkAssetInf *assetInf;
           AkResult ret;
 
           assetInf = NULL;
-          ret = ak_dae_assetInf(daestate, doc, &assetInf);
+          ret = ak_dae_assetInf(xst, doc, &assetInf);
           if (ret == AK_OK)
             libMaterial->inf = assetInf;
 
@@ -401,7 +408,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           material = NULL;
-          ret = ak_dae_material(daestate, doc, &material);
+          ret = ak_dae_material(xst, doc, &material);
           if (ret == AK_OK) {
             if (lastMaterial)
               lastMaterial->next = material;
@@ -424,14 +431,14 @@ ak_dae_doc(AkDoc ** __restrict dest,
                           NULL);
           libMaterial->extra = tree;
 
-          _xml_skipElement;
+          ak_xml_skipelm(xst);;
         } else {
-          _xml_skipElement;
+          ak_xml_skipelm(xst);;
         }
         
         /* end element */
-        _xml_endElement;
-      } while (daestate->nodeRet);
+        ak_xml_endelm(xst);;
+      } while (xst->nodeRet);
     } else if (_xml_eqElm(_s_dae_lib_geometries)) {
       AkLibGeometry *libGeometry;
       AkGeometry    *lastGeometry;
@@ -450,14 +457,15 @@ ak_dae_doc(AkDoc ** __restrict dest,
       lastGeometry = NULL;
 
       do {
-        _xml_beginElement(_s_dae_lib_geometries);
+        if (ak_xml_beginelm(xst, _s_dae_lib_geometries))
+          break;
 
         if (_xml_eqElm(_s_dae_asset)) {
           AkAssetInf *assetInf;
           AkResult ret;
 
           assetInf = NULL;
-          ret = ak_dae_assetInf(daestate, doc, &assetInf);
+          ret = ak_dae_assetInf(xst, doc, &assetInf);
           if (ret == AK_OK)
             libGeometry->inf = assetInf;
 
@@ -466,7 +474,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           geometry = NULL;
-          ret = ak_dae_geometry(daestate, doc, &geometry);
+          ret = ak_dae_geometry(xst, doc, &geometry);
           if (ret == AK_OK) {
             if (lastGeometry)
               lastGeometry->next = geometry;
@@ -489,14 +497,14 @@ ak_dae_doc(AkDoc ** __restrict dest,
                           NULL);
           libGeometry->extra = tree;
 
-          _xml_skipElement;
+          ak_xml_skipelm(xst);;
         } else {
-          _xml_skipElement;
+          ak_xml_skipelm(xst);;
         }
         
         /* end element */
-        _xml_endElement;
-      } while (daestate->nodeRet);
+        ak_xml_endelm(xst);;
+      } while (xst->nodeRet);
     } else if (_xml_eqElm(_s_dae_lib_controllers)) {
       AkLibController *libController;
       AkController    *lastController;
@@ -515,14 +523,15 @@ ak_dae_doc(AkDoc ** __restrict dest,
       lastController = NULL;
 
       do {
-        _xml_beginElement(_s_dae_lib_controllers);
+        if (ak_xml_beginelm(xst, _s_dae_lib_controllers))
+          break;
 
         if (_xml_eqElm(_s_dae_asset)) {
           AkAssetInf *assetInf;
           AkResult ret;
 
           assetInf = NULL;
-          ret = ak_dae_assetInf(daestate, doc, &assetInf);
+          ret = ak_dae_assetInf(xst, doc, &assetInf);
           if (ret == AK_OK)
             libController->inf = assetInf;
 
@@ -531,7 +540,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           controller = NULL;
-          ret = ak_dae_controller(daestate, doc, &controller);
+          ret = ak_dae_controller(xst, doc, &controller);
           if (ret == AK_OK) {
             if (lastController)
               lastController->next = controller;
@@ -554,14 +563,14 @@ ak_dae_doc(AkDoc ** __restrict dest,
                           NULL);
           libController->extra = tree;
 
-          _xml_skipElement;
+          ak_xml_skipelm(xst);;
         } else {
-          _xml_skipElement;
+          ak_xml_skipelm(xst);;
         }
         
         /* end element */
-        _xml_endElement;
-      } while (daestate->nodeRet);
+        ak_xml_endelm(xst);;
+      } while (xst->nodeRet);
     } else if (_xml_eqElm(_s_dae_lib_visual_scenes)) {
       AkLibVisualScene *libVisualScene;
       AkVisualScene    *lastVisualScene;
@@ -583,14 +592,15 @@ ak_dae_doc(AkDoc ** __restrict dest,
       lastVisualScene = NULL;
 
       do {
-        _xml_beginElement(_s_dae_lib_visual_scenes);
+        if (ak_xml_beginelm(xst, _s_dae_lib_visual_scenes))
+          break;
 
         if (_xml_eqElm(_s_dae_asset)) {
           AkAssetInf *assetInf;
           AkResult ret;
 
           assetInf = NULL;
-          ret = ak_dae_assetInf(daestate, doc, &assetInf);
+          ret = ak_dae_assetInf(xst, doc, &assetInf);
           if (ret == AK_OK)
             libVisualScene->inf = assetInf;
 
@@ -599,7 +609,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           visualScene = NULL;
-          ret = ak_dae_visualScene(daestate, doc, &visualScene);
+          ret = ak_dae_visualScene(xst, doc, &visualScene);
           if (ret == AK_OK) {
             if (lastVisualScene)
               lastVisualScene->next = visualScene;
@@ -622,14 +632,14 @@ ak_dae_doc(AkDoc ** __restrict dest,
                           NULL);
           libVisualScene->extra = tree;
 
-          _xml_skipElement;
+          ak_xml_skipelm(xst);;
         } else {
-          _xml_skipElement;
+          ak_xml_skipelm(xst);;
         }
         
         /* end element */
-        _xml_endElement;
-      } while (daestate->nodeRet);
+        ak_xml_endelm(xst);;
+      } while (xst->nodeRet);
     } else if (_xml_eqElm(_s_dae_lib_nodes)) {
       AkLibNode *libNode;
       AkNode    *lastNode;
@@ -648,14 +658,15 @@ ak_dae_doc(AkDoc ** __restrict dest,
       lastNode = NULL;
 
       do {
-        _xml_beginElement(_s_dae_lib_nodes);
+        if (ak_xml_beginelm(xst, _s_dae_lib_nodes))
+          break;
 
         if (_xml_eqElm(_s_dae_asset)) {
           AkAssetInf *assetInf;
           AkResult ret;
 
           assetInf = NULL;
-          ret = ak_dae_assetInf(daestate, doc, &assetInf);
+          ret = ak_dae_assetInf(xst, doc, &assetInf);
           if (ret == AK_OK)
             libNode->inf = assetInf;
 
@@ -664,7 +675,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           node = NULL;
-          ret = ak_dae_node(daestate, doc, NULL, &node);
+          ret = ak_dae_node(xst, doc, NULL, &node);
           if (ret == AK_OK) {
             if (lastNode)
               lastNode->next = node;
@@ -687,25 +698,25 @@ ak_dae_doc(AkDoc ** __restrict dest,
                           NULL);
           libNode->extra = tree;
 
-          _xml_skipElement;
+          ak_xml_skipelm(xst);;
         } else {
-          _xml_skipElement;
+          ak_xml_skipelm(xst);;
         }
         
         /* end element */
-        _xml_endElement;
-      } while (daestate->nodeRet);
+        ak_xml_endelm(xst);;
+      } while (xst->nodeRet);
     } else if (_xml_eqElm(_s_dae_scene)) {
-      ak_dae_scene(daestate, doc, &doc->scene);
+      ak_dae_scene(xst, doc, &doc->scene);
     } /* if */
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
 
   xmlFreeTextReader(reader);
 
-  if (daestate->nodeRet == -1) {
+  if (xst->nodeRet == -1) {
     fprintf(stderr, "%s : failed to parse\n", file);
     return AK_ERR;
   }

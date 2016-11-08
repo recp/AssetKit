@@ -10,13 +10,13 @@
 #include "../core/ak_collada_value.h"
 
 AkResult _assetkit_hide
-ak_dae_fxBindUniform(AkDaeState * __restrict daestate,
+ak_dae_fxBindUniform(AkXmlState * __restrict xst,
                      void * __restrict memParent,
                      AkBindUniform ** __restrict dest) {
   AkBindUniform *bindUniform;
   AkParam      *last_param;
 
-  bindUniform = ak_heap_calloc(daestate->heap,
+  bindUniform = ak_heap_calloc(xst->heap,
                                memParent,
                                sizeof(*bindUniform),
                                false);
@@ -26,13 +26,14 @@ ak_dae_fxBindUniform(AkDaeState * __restrict daestate,
   last_param = NULL;
 
   do {
-    _xml_beginElement(_s_dae_bind_uniform);
+    if (ak_xml_beginelm(xst, _s_dae_bind_uniform))
+      break;
 
     if (_xml_eqElm(_s_dae_param)) {
       AkParam * param;
       AkResult   ret;
 
-      ret = ak_dae_param(daestate,
+      ret = ak_dae_param(xst,
                          bindUniform,
                          AK_PARAM_TYPE_BASIC,
                          &param);
@@ -52,7 +53,7 @@ ak_dae_fxBindUniform(AkDaeState * __restrict daestate,
         AkValueType val_type;
         AkResult    ret;
 
-        ret = ak_dae_value(daestate,
+        ret = ak_dae_value(xst,
                            bindUniform,
                            &val,
                            &val_type);
@@ -65,8 +66,8 @@ ak_dae_fxBindUniform(AkDaeState * __restrict daestate,
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
 
   *dest = bindUniform;
   

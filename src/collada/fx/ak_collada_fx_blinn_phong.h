@@ -17,7 +17,7 @@ typedef union {
 } ak_blinn_phong;
 
 AkResult _assetkit_hide
-ak_dae_blinn_phong(AkDaeState * __restrict daestate,
+ak_dae_blinn_phong(AkXmlState * __restrict xst,
                    void * __restrict memParent,
                    const char * elm,
                    ak_blinn_phong ** __restrict dest);

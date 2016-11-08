@@ -9,18 +9,19 @@
 #include "ak_collada_visual_scene.h"
 
 AkResult _assetkit_hide
-ak_dae_scene(AkDaeState * __restrict daestate,
+ak_dae_scene(AkXmlState * __restrict xst,
              void * __restrict memParent,
              AkScene * __restrict dest) {
 
   do {
-    _xml_beginElement(_s_dae_scene);
+    if (ak_xml_beginelm(xst, _s_dae_scene))
+      break;
 
     if (_xml_eqElm(_s_dae_instance_visual_scene)) {
       AkInstanceVisualScene *visualScene;
       AkResult ret;
 
-      ret = ak_dae_instanceVisualScene(daestate, memParent, &visualScene);
+      ret = ak_dae_instanceVisualScene(xst, memParent, &visualScene);
       if (ret == AK_OK)
         dest->visualScene = visualScene;
 
@@ -28,22 +29,22 @@ ak_dae_scene(AkDaeState * __restrict daestate,
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
-      nodePtr = xmlTextReaderExpand(daestate->reader);
+      nodePtr = xmlTextReaderExpand(xst->reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(daestate->heap,
+      ak_tree_fromXmlNode(xst->heap,
                           memParent,
                           nodePtr,
                           &tree,
                           NULL);
       dest->extra = tree;
 
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
   
   return AK_OK;
 }

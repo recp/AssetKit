@@ -14,7 +14,7 @@
 typedef AkEnum (*ak_dae_fxEnumFn_t)(const char * name);
 
 AkResult _assetkit_hide
-ak_dae_fxState_enum(AkDaeState * __restrict daestate,
+ak_dae_fxState_enum(AkXmlState * __restrict xst,
                     AkRenderState ** __restrict last_state,
                     AkStates ** __restrict states,
                     AkRenderStateType state_type,
@@ -22,7 +22,7 @@ ak_dae_fxState_enum(AkDaeState * __restrict daestate,
                     ak_dae_fxEnumFn_t enumFn);
 
 AkResult _assetkit_hide
-ak_dae_fxState_bool4(AkDaeState * __restrict daestate,
+ak_dae_fxState_bool4(AkXmlState * __restrict xst,
                      AkRenderState ** __restrict last_state,
                      AkStates ** __restrict states,
                      AkRenderStateType state_type,
@@ -30,21 +30,21 @@ ak_dae_fxState_bool4(AkDaeState * __restrict daestate,
                      size_t defaultValSize);
 
 AkResult _assetkit_hide
-ak_dae_fxState_ul(AkDaeState * __restrict daestate,
+ak_dae_fxState_ul(AkXmlState * __restrict xst,
                   AkRenderState ** __restrict last_state,
                   AkStates ** __restrict states,
                   AkRenderStateType state_type,
                   unsigned long defaultVal);
 
 AkResult _assetkit_hide
-ak_dae_fxState_ul_i(AkDaeState * __restrict daestate,
+ak_dae_fxState_ul_i(AkXmlState * __restrict xst,
                     AkRenderState ** __restrict last_state,
                     AkStates ** __restrict states,
                     AkRenderStateType state_type,
                     unsigned long defaultVal);
 
 AkResult _assetkit_hide
-ak_dae_fxState_int2(AkDaeState * __restrict daestate,
+ak_dae_fxState_int2(AkXmlState * __restrict xst,
                     AkRenderState ** __restrict last_state,
                     AkStates ** __restrict states,
                     AkRenderStateType state_type,
@@ -52,7 +52,7 @@ ak_dae_fxState_int2(AkDaeState * __restrict daestate,
                     size_t defaultValSize);
 
 AkResult _assetkit_hide
-ak_dae_fxState_int4(AkDaeState * __restrict daestate,
+ak_dae_fxState_int4(AkXmlState * __restrict xst,
                     AkRenderState ** __restrict last_state,
                     AkStates ** __restrict states,
                     AkRenderStateType state_type,
@@ -60,21 +60,21 @@ ak_dae_fxState_int4(AkDaeState * __restrict daestate,
                     size_t defaultValSize);
 
 AkResult _assetkit_hide
-ak_dae_fxState_float(AkDaeState * __restrict daestate,
+ak_dae_fxState_float(AkXmlState * __restrict xst,
                      AkRenderState ** __restrict last_state,
                      AkStates ** __restrict states,
                      AkRenderStateType state_type,
                      AkFloat defaultVal);
 
 AkResult _assetkit_hide
-ak_dae_fxState_float_i(AkDaeState * __restrict daestate,
+ak_dae_fxState_float_i(AkXmlState * __restrict xst,
                        AkRenderState ** __restrict last_state,
                        AkStates ** __restrict states,
                        AkRenderStateType state_type,
                        AkFloat defaultVal);
 
 AkResult _assetkit_hide
-ak_dae_fxState_float2(AkDaeState * __restrict daestate,
+ak_dae_fxState_float2(AkXmlState * __restrict xst,
                       AkRenderState ** __restrict last_state,
                       AkStates ** __restrict states,
                       AkRenderStateType state_type,
@@ -82,7 +82,7 @@ ak_dae_fxState_float2(AkDaeState * __restrict daestate,
                       size_t defaultValSize);
 
 AkResult _assetkit_hide
-ak_dae_fxState_float3(AkDaeState * __restrict daestate,
+ak_dae_fxState_float3(AkXmlState * __restrict xst,
                       AkRenderState ** __restrict last_state,
                       AkStates ** __restrict states,
                       AkRenderStateType state_type,
@@ -90,7 +90,7 @@ ak_dae_fxState_float3(AkDaeState * __restrict daestate,
                       size_t defaultValSize);
 
 AkResult _assetkit_hide
-ak_dae_fxState_float3_i(AkDaeState * __restrict daestate,
+ak_dae_fxState_float3_i(AkXmlState * __restrict xst,
                         AkRenderState ** __restrict last_state,
                         AkStates ** __restrict states,
                         AkRenderStateType state_type,
@@ -98,7 +98,7 @@ ak_dae_fxState_float3_i(AkDaeState * __restrict daestate,
                         size_t defaultValSize);
 
 AkResult _assetkit_hide
-ak_dae_fxState_float4(AkDaeState * __restrict daestate,
+ak_dae_fxState_float4(AkXmlState * __restrict xst,
                       AkRenderState ** __restrict last_state,
                       AkStates ** __restrict states,
                       AkRenderStateType state_type,
@@ -106,7 +106,7 @@ ak_dae_fxState_float4(AkDaeState * __restrict daestate,
                       size_t defaultValSize);
 
 AkResult _assetkit_hide
-ak_dae_fxState_float4_i(AkDaeState * __restrict daestate,
+ak_dae_fxState_float4_i(AkXmlState * __restrict xst,
                         AkRenderState ** __restrict last_state,
                         AkStates ** __restrict states,
                         AkRenderStateType state_type,
@@ -114,7 +114,7 @@ ak_dae_fxState_float4_i(AkDaeState * __restrict daestate,
                         size_t defaultValSize);
 
 AkResult _assetkit_hide
-ak_dae_fxState_float4x4(AkDaeState * __restrict daestate,
+ak_dae_fxState_float4x4(AkXmlState * __restrict xst,
                         AkRenderState ** __restrict last_state,
                         AkStates ** __restrict states,
                         AkRenderStateType state_type,
@@ -122,21 +122,21 @@ ak_dae_fxState_float4x4(AkDaeState * __restrict daestate,
                         size_t defaultValSize);
 
 AkResult _assetkit_hide
-ak_dae_fxState_sampler(AkDaeState * __restrict daestate,
+ak_dae_fxState_sampler(AkXmlState * __restrict xst,
                        const char *elm,
                        AkRenderState ** __restrict last_state,
                        AkStates ** __restrict states,
                        AkRenderStateType state_type);
 
 AkResult _assetkit_hide
-ak_dae_fxState_str(AkDaeState * __restrict daestate,
+ak_dae_fxState_str(AkXmlState * __restrict xst,
                    AkRenderState ** __restrict last_state,
                    AkStates ** __restrict states,
                    AkRenderStateType state_type);
 
 #define _ak_DAE_ST_FUN_(ST_FN)                                                \
 AkResult _assetkit_hide                                                       \
-ST_FN(AkDaeState * __restrict daestate,                                       \
+ST_FN(AkXmlState * __restrict xst,                                       \
       AkRenderState ** __restrict,                                            \
       AkStates ** __restrict)
 

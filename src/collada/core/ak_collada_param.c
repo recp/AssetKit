@@ -22,13 +22,13 @@ static ak_enumpair modifierMap[] = {
 static size_t modifierMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_newparam(AkDaeState * __restrict daestate,
+ak_dae_newparam(AkXmlState * __restrict xst,
                 void * __restrict memParent,
                 AkNewParam ** __restrict dest) {
   AkNewParam *newparam;
   AkAnnotate *last_annotate;
 
-  newparam = ak_heap_calloc(daestate->heap,
+  newparam = ak_heap_calloc(xst->heap,
                             memParent,
                             sizeof(*newparam),
                             false);
@@ -43,13 +43,14 @@ ak_dae_newparam(AkDaeState * __restrict daestate,
   }
 
   do {
-    _xml_beginElement(_s_dae_newparam);
+    if (ak_xml_beginelm(xst, _s_dae_newparam))
+      break;
 
     if (_xml_eqElm(_s_dae_annotate)) {
       AkAnnotate *annotate;
       AkResult    ret;
 
-      ret = ak_dae_annotate(daestate, newparam, &annotate);
+      ret = ak_dae_annotate(xst, newparam, &annotate);
       if (ret == AK_OK) {
         if (last_annotate)
           last_annotate->next = annotate;
@@ -59,13 +60,12 @@ ak_dae_newparam(AkDaeState * __restrict daestate,
         last_annotate = annotate;
       }
     } else if (_xml_eqElm(_s_dae_semantic)) {
-      _xml_readText(newparam, newparam->semantic);
+       newparam->semantic = ak_xml_val(xst, newparam);
     } else if (_xml_eqElm(_s_dae_modifier)) {
       const ak_enumpair *found;
       const char *val;
 
-      _xml_readConstText(val);
-
+      val = ak_xml_rawcval(xst);
       if (val) {
         found = bsearch(val,
                         modifierMap,
@@ -82,7 +82,7 @@ ak_dae_newparam(AkDaeState * __restrict daestate,
         AkValueType val_type;
         AkResult    ret;
 
-        ret = ak_dae_value(daestate,
+        ret = ak_dae_value(xst,
                            newparam,
                            &val,
                            &val_type);
@@ -95,8 +95,8 @@ ak_dae_newparam(AkDaeState * __restrict daestate,
     }
     
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
 
   *dest = newparam;
 
@@ -104,16 +104,16 @@ ak_dae_newparam(AkDaeState * __restrict daestate,
 }
 
 AkResult _assetkit_hide
-ak_dae_param(AkDaeState * __restrict daestate,
+ak_dae_param(AkXmlState * __restrict xst,
              void * __restrict memParent,
              AkParamType paramType,
              AkParam ** __restrict dest) {
   AkParam *param;
 
-  daestate->nodeType = xmlTextReaderNodeType(daestate->reader);
+  xst->nodeType = xmlTextReaderNodeType(xst->reader);
 
   if (paramType == AK_PARAM_TYPE_BASIC) {
-    param = ak_heap_calloc(daestate->heap,
+    param = ak_heap_calloc(xst->heap,
                            memParent,
                            sizeof(AkParam),
                            false);
@@ -121,7 +121,7 @@ ak_dae_param(AkDaeState * __restrict daestate,
     _xml_readAttr(param, param->ref, _s_dae_ref);
   } else if (paramType == AK_PARAM_TYPE_EXTENDED) {
     AkParamEx *param_ex;
-    param_ex = ak_heap_calloc(daestate->heap,
+    param_ex = ak_heap_calloc(xst->heap,
                               memParent,
                               sizeof(AkParamEx),
                               false);
@@ -140,23 +140,23 @@ ak_dae_param(AkDaeState * __restrict daestate,
   }
 
   *dest = param;
-  _xml_endElement;
+  ak_xml_endelm(xst);;
 
   return AK_OK;
 
 err:
 
-  _xml_endElement;
+  ak_xml_endelm(xst);;
   return AK_ERR;
 }
 
 AkResult _assetkit_hide
-ak_dae_setparam(AkDaeState * __restrict daestate,
+ak_dae_setparam(AkXmlState * __restrict xst,
                 void * __restrict memParent,
                 AkSetParam ** __restrict dest) {
   AkSetParam *setparam;
 
-  setparam = ak_heap_calloc(daestate->heap,
+  setparam = ak_heap_calloc(xst->heap,
                             memParent,
                             sizeof(*setparam),
                             false);
@@ -170,7 +170,8 @@ ak_dae_setparam(AkDaeState * __restrict daestate,
   }
 
   do {
-    _xml_beginElement(_s_dae_setparam);
+    if (ak_xml_beginelm(xst, _s_dae_setparam))
+      break;
 
     /* load once */
     if (!setparam->val) {
@@ -178,7 +179,7 @@ ak_dae_setparam(AkDaeState * __restrict daestate,
       AkValueType val_type;
       AkResult    ret;
 
-      ret = ak_dae_value(daestate,
+      ret = ak_dae_value(xst,
                          setparam,
                          &val,
                          &val_type);
@@ -190,8 +191,8 @@ ak_dae_setparam(AkDaeState * __restrict daestate,
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
 
   *dest = setparam;
   

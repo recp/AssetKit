@@ -10,7 +10,7 @@
 #include "../../ak_array.h"
 
 AkResult _assetkit_hide
-ak_dae_triangles(AkDaeState * __restrict daestate,
+ak_dae_triangles(AkXmlState * __restrict xst,
                  void * __restrict memParent,
                  const char * elm,
                  AkTriangleMode mode,
@@ -19,8 +19,8 @@ ak_dae_triangles(AkDaeState * __restrict daestate,
   AkTriangles *triangles;
   AkInput     *last_input;
 
-  doc       = ak_heap_data(daestate->heap);
-  triangles = ak_heap_calloc(daestate->heap,
+  doc       = ak_heap_data(xst->heap);
+  triangles = ak_heap_calloc(xst->heap,
                              memParent,
                              sizeof(*triangles),
                              false);
@@ -38,16 +38,17 @@ ak_dae_triangles(AkDaeState * __restrict daestate,
   last_input = NULL;
 
   do {
-    _xml_beginElement(elm);
+    if (ak_xml_beginelm(xst, elm))
+      break;
 
     if (_xml_eqElm(_s_dae_input)) {
       AkInput *input;
 
-      input = ak_heap_calloc(daestate->heap, triangles, sizeof(*input), false);
+      input = ak_heap_calloc(xst->heap, triangles, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
 
-      ak_url_from_attr(daestate->reader,
+      ak_url_from_attr(xst->reader,
                        _s_dae_source,
                        input,
                        &input->base.source);
@@ -88,10 +89,10 @@ ak_dae_triangles(AkDaeState * __restrict daestate,
       AkUIntArray *uintArray;
       char *content;
 
-      _xml_readMutText(content);
+      content = ak_xml_rawval(xst);
       if (content) {
         AkResult ret;
-        ret = ak_strtoui_array(daestate->heap, triangles, content, &uintArray);
+        ret = ak_strtoui_array(xst->heap, triangles, content, &uintArray);
         if (ret == AK_OK)
           triangles->base.indices = uintArray;
 
@@ -102,24 +103,24 @@ ak_dae_triangles(AkDaeState * __restrict daestate,
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
-      nodePtr = xmlTextReaderExpand(daestate->reader);
+      nodePtr = xmlTextReaderExpand(xst->reader);
       tree = NULL;
       
-      ak_tree_fromXmlNode(daestate->heap,
+      ak_tree_fromXmlNode(xst->heap,
                           triangles,
                           nodePtr,
                           &tree,
                           NULL);
       triangles->base.extra = tree;
       
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     } else {
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     }
     
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
   
   *dest = triangles;
   

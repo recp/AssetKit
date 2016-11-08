@@ -11,7 +11,7 @@
 #include "ak_collada_fx_binary.h"
 
 AkResult _assetkit_hide
-ak_dae_fxProg(AkDaeState * __restrict daestate,
+ak_dae_fxProg(AkXmlState * __restrict xst,
               void * __restrict memParent,
               AkProgram ** __restrict dest) {
   AkProgram     *prog;
@@ -20,7 +20,7 @@ ak_dae_fxProg(AkDaeState * __restrict daestate,
   AkLinker      *last_linker;
   AkShader      *last_shader;
 
-  prog = ak_heap_calloc(daestate->heap,
+  prog = ak_heap_calloc(xst->heap,
                         memParent,
                         sizeof(*prog),
                         false);
@@ -31,13 +31,14 @@ ak_dae_fxProg(AkDaeState * __restrict daestate,
   last_shader       = NULL;
 
   do {
-    _xml_beginElement(_s_dae_program);
+    if (ak_xml_beginelm(xst, _s_dae_program))
+      break;
 
     if (_xml_eqElm(_s_dae_shader)) {
       AkShader *shader;
       AkResult  ret;
 
-      ret = ak_dae_fxShader(daestate, prog, &shader);
+      ret = ak_dae_fxShader(xst, prog, &shader);
       if (ret == AK_OK) {
         if (last_shader)
           last_shader->next = shader;
@@ -50,7 +51,7 @@ ak_dae_fxProg(AkDaeState * __restrict daestate,
       AkLinker *linker;
       AkBinary *last_binary;
 
-      linker = ak_heap_calloc(daestate->heap,
+      linker = ak_heap_calloc(xst->heap,
                               prog,
                               sizeof(*linker),
                               false);
@@ -62,13 +63,14 @@ ak_dae_fxProg(AkDaeState * __restrict daestate,
       last_binary = NULL;
 
       do {
-        _xml_beginElement(_s_dae_linker);
+        if (ak_xml_beginelm(xst, _s_dae_linker))
+          break;
 
         if (_xml_eqElm(_s_dae_binary)) {
           AkBinary *binary;
           AkResult  ret;
 
-          ret = ak_dae_fxBinary(daestate, linker, &binary);
+          ret = ak_dae_fxBinary(xst, linker, &binary);
           if (ret == AK_OK) {
             if (last_shader)
               last_binary->next = binary;
@@ -78,12 +80,12 @@ ak_dae_fxProg(AkDaeState * __restrict daestate,
             last_binary = binary;
           }
         } else {
-          _xml_skipElement;
+          ak_xml_skipelm(xst);;
         }
 
         /* end element */
-        _xml_endElement;
-      } while (daestate->nodeRet);
+        ak_xml_endelm(xst);;
+      } while (xst->nodeRet);
 
       if (last_linker)
         last_linker->next = linker;
@@ -94,25 +96,26 @@ ak_dae_fxProg(AkDaeState * __restrict daestate,
     } else if (_xml_eqElm(_s_dae_bind_attribute)) {
       AkBindAttrib *bindAttrib;
 
-      bindAttrib = ak_heap_calloc(daestate->heap,
+      bindAttrib = ak_heap_calloc(xst->heap,
                                   prog,
                                   sizeof(*bindAttrib),
                                   false);
       _xml_readAttr(bindAttrib, bindAttrib->symbol, _s_dae_symbol);
 
       do {
-        _xml_beginElement(_s_dae_bind_attribute);
+        if (ak_xml_beginelm(xst, _s_dae_bind_attribute))
+          break;
 
         if (_xml_eqElm(_s_dae_semantic)) {
           if (!bindAttrib->semantic)
-            _xml_readText(bindAttrib, bindAttrib->semantic);
+            bindAttrib->semantic = ak_xml_val(xst, bindAttrib);
         } else {
-          _xml_skipElement;
+          ak_xml_skipelm(xst);;
         }
 
         /* end element */
-        _xml_endElement;
-      } while (daestate->nodeRet);
+        ak_xml_endelm(xst);;
+      } while (xst->nodeRet);
 
       if (last_bind_attrib)
         last_bind_attrib->next = bindAttrib;
@@ -124,7 +127,7 @@ ak_dae_fxProg(AkDaeState * __restrict daestate,
       AkBindUniform *bindUniform;
       AkResult ret;
 
-      ret = ak_dae_fxBindUniform(daestate, prog, &bindUniform);
+      ret = ak_dae_fxBindUniform(xst, prog, &bindUniform);
       if (ret == AK_OK) {
         if (last_bind_uniform)
           last_bind_uniform->next = bindUniform;
@@ -134,12 +137,12 @@ ak_dae_fxProg(AkDaeState * __restrict daestate,
         last_bind_uniform = bindUniform;
       }
     } else {
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
 
   *dest = prog;
   

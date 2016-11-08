@@ -8,24 +8,25 @@
 #include "ak_collada_fx_binary.h"
 
 AkResult _assetkit_hide
-ak_dae_fxBinary(AkDaeState * __restrict daestate,
+ak_dae_fxBinary(AkXmlState * __restrict xst,
                 void * __restrict memParent,
                 AkBinary ** __restrict dest) {
   AkBinary *binary;
 
-  binary = ak_heap_calloc(daestate->heap,
+  binary = ak_heap_calloc(xst->heap,
                           memParent,
                           sizeof(*binary),
                           false);
 
   do {
-    _xml_beginElement(_s_dae_binary);
+    if (ak_xml_beginelm(xst, _s_dae_binary))
+      break;
 
     if (_xml_eqElm(_s_dae_ref)) {
-      _xml_readText(binary, binary->ref);
+      binary->ref = ak_xml_val(xst, binary);
     } else if (_xml_eqElm(_s_dae_hex)) {
       AkHexData *hex;
-      hex = ak_heap_calloc(daestate->heap,
+      hex = ak_heap_calloc(xst->heap,
                            binary,
                            sizeof(*hex),
                            false);
@@ -33,18 +34,18 @@ ak_dae_fxBinary(AkDaeState * __restrict daestate,
       _xml_readAttr(hex, hex->format, _s_dae_format);
 
       if (hex->format) {
-        _xml_readText(hex, hex->val);
+        hex->val = ak_xml_val(xst, hex);
         binary->hex = hex;
       } else {
         ak_free(hex);
       }
     } else {
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
 
   *dest = binary;
   

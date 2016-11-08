@@ -11,13 +11,13 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_curve(AkDaeState * __restrict daestate,
+ak_dae_curve(AkXmlState * __restrict xst,
              void * __restrict memParent,
              bool asObject,
              AkCurve ** __restrict dest);
 
 AkResult _assetkit_hide
-ak_dae_curves(AkDaeState * __restrict daestate,
+ak_dae_curves(AkXmlState * __restrict xst,
               void * __restrict memParent,
               AkCurves ** __restrict dest);
 

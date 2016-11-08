@@ -11,7 +11,7 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_brep(AkDaeState * __restrict daestate,
+ak_dae_brep(AkXmlState * __restrict xst,
             void * __restrict memParent,
             bool asObject,
             AkBoundryRep ** __restrict dest);

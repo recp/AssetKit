@@ -10,7 +10,7 @@
 #include "../../ak_array.h"
 
 AkResult _assetkit_hide
-ak_dae_polygon(AkDaeState * __restrict daestate,
+ak_dae_polygon(AkXmlState * __restrict xst,
                void * __restrict memParent,
                const char * elm,
                AkPolygonMode mode,
@@ -19,8 +19,8 @@ ak_dae_polygon(AkDaeState * __restrict daestate,
   AkPolygon *polygon;
   AkInput   *last_input;
 
-  doc     = ak_heap_data(daestate->heap);
-  polygon = ak_heap_calloc(daestate->heap,
+  doc     = ak_heap_data(xst->heap);
+  polygon = ak_heap_calloc(xst->heap,
                            memParent,
                            sizeof(*polygon),
                            false);
@@ -41,16 +41,17 @@ ak_dae_polygon(AkDaeState * __restrict daestate,
   last_input = NULL;
 
   do {
-    _xml_beginElement(elm);
+    if (ak_xml_beginelm(xst, elm))
+      break;
 
     if (_xml_eqElm(_s_dae_input)) {
       AkInput *input;
 
-      input = ak_heap_calloc(daestate->heap, polygon, sizeof(*input), false);
+      input = ak_heap_calloc(xst->heap, polygon, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
 
-      ak_url_from_attr(daestate->reader,
+      ak_url_from_attr(xst->reader,
                        _s_dae_source,
                        input,
                        &input->base.source);
@@ -90,13 +91,13 @@ ak_dae_polygon(AkDaeState * __restrict daestate,
     } else if (_xml_eqElm(_s_dae_p)) {
       char *content;
 
-      _xml_readMutText(content);
+      content = ak_xml_rawval(xst);
 
       if (content) {
         AkUIntArray *intArray;
         AkResult ret;
 
-        ret = ak_strtoui_array(daestate->heap, polygon, content, &intArray);
+        ret = ak_strtoui_array(xst->heap, polygon, content, &intArray);
         if (ret == AK_OK)
           polygon->base.indices = intArray;
         
@@ -105,13 +106,13 @@ ak_dae_polygon(AkDaeState * __restrict daestate,
     } else if (_xml_eqElm(_s_dae_vcount)
                && mode == AK_POLYGON_MODE_POLYLIST) {
       char *content;
-      _xml_readMutText(content);
+      content = ak_xml_rawval(xst);
 
       if (content) {
         AkIntArray *intArray;
         AkResult    ret;
 
-        ret = ak_strtoi_array(daestate->heap, polygon, content, &intArray);
+        ret = ak_strtoi_array(xst->heap, polygon, content, &intArray);
         if (ret == AK_OK)
           polygon->vcount = intArray;
 
@@ -130,12 +131,12 @@ ak_dae_polygon(AkDaeState * __restrict daestate,
       last_array = NULL;
 
       do {
-        _xml_beginElement(_s_dae_ph);
+        if (ak_xml_beginelm(xst, (_s_dae_ph);
 
         if (_xml_eqElm(_s_dae_p)) {
           char *content;
 
-          _xml_readMutText(content);
+          content = ak_xml_rawval(xst);
 
           if (content) {
             AkUIntArray *intArray;
@@ -150,7 +151,7 @@ ak_dae_polygon(AkDaeState * __restrict daestate,
         } else if (_xml_eqElm(_s_dae_h)) {
           char *content;
 
-          _xml_readMutText(content);
+          content = ak_xml_rawval(xst);
 
           if (content) {
             AkDoubleArrayL *doubleArray;
@@ -169,35 +170,35 @@ ak_dae_polygon(AkDaeState * __restrict daestate,
             xmlFree(content);
           }
         } else {
-          _xml_skipElement;
+          ak_xml_skipelm(xst);;
         }
 
         / end element /
-        _xml_endElement;
-      } while (daestate->nodeRet);
+        ak_xml_endelm(xst);;
+      } while (xst->nodeRet);
       */
     } else if (_xml_eqElm(_s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
-      nodePtr = xmlTextReaderExpand(daestate->reader);
+      nodePtr = xmlTextReaderExpand(xst->reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(daestate->heap,
+      ak_tree_fromXmlNode(xst->heap,
                           polygon,
                           nodePtr,
                           &tree,
                           NULL);
       polygon->base.extra = tree;
       
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     } else {
-      _xml_skipElement;
+      ak_xml_skipelm(xst);;
     }
     
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
   
   *dest = polygon;
 

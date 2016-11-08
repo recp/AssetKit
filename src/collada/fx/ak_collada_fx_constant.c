@@ -28,12 +28,12 @@ static ak_enumpair constantMap[] = {
 static size_t constantMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_fxConstant(AkDaeState * __restrict daestate,
+ak_dae_fxConstant(AkXmlState * __restrict xst,
                   void * __restrict memParent,
                   AkConstantFx ** __restrict dest) {
   AkConstantFx *constant;
 
-  constant = ak_heap_calloc(daestate->heap,
+  constant = ak_heap_calloc(xst->heap,
                             memParent,
                             sizeof(*constant),
                             false);
@@ -49,9 +49,10 @@ ak_dae_fxConstant(AkDaeState * __restrict daestate,
   do {
     const ak_enumpair *found;
 
-    _xml_beginElement(_s_dae_constant);
+    if (ak_xml_beginelm(xst, _s_dae_constant))
+      break;
 
-    found = bsearch(daestate->nodeName,
+    found = bsearch(xst->nodeName,
                     constantMap,
                     constantMapLen,
                     sizeof(constantMap[0]),
@@ -64,9 +65,9 @@ ak_dae_fxConstant(AkDaeState * __restrict daestate,
         AkFxColorOrTex *colorOrTex;
         AkResult ret;
 
-        ret = ak_dae_colorOrTex(daestate,
+        ret = ak_dae_colorOrTex(xst,
                                 constant,
-                                (const char *)daestate->nodeName,
+                                (const char *)xst->nodeName,
                                 &colorOrTex);
         if (ret == AK_OK) {
           switch (found->val) {
@@ -91,9 +92,9 @@ ak_dae_fxConstant(AkDaeState * __restrict daestate,
         AkFxFloatOrParam * floatOrParam;
         AkResult ret;
 
-        ret = ak_dae_floatOrParam(daestate,
+        ret = ak_dae_floatOrParam(xst,
                                   constant,
-                                  (const char *)daestate->nodeName,
+                                  (const char *)xst->nodeName,
                                   &floatOrParam);
 
         if (ret == AK_OK) {
@@ -114,13 +115,13 @@ ak_dae_fxConstant(AkDaeState * __restrict daestate,
         break;
       }
       default:
-        _xml_skipElement;
+        ak_xml_skipelm(xst);;
         break;
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
   
   *dest = constant;
   

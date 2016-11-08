@@ -45,13 +45,13 @@ static ak_enumpair fxSamplerCMap[] = {
 static size_t fxSamplerCMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_fxSampler(AkDaeState * __restrict daestate,
+ak_dae_fxSampler(AkXmlState * __restrict xst,
                  void * __restrict memParent,
                  const char *elm,
                  AkFxSamplerCommon ** __restrict dest) {
   AkFxSamplerCommon *sampler;
 
-  sampler = ak_heap_calloc(daestate->heap,
+  sampler = ak_heap_calloc(xst->heap,
                            memParent,
                            sizeof(*sampler),
                            false);
@@ -67,9 +67,10 @@ ak_dae_fxSampler(AkDaeState * __restrict daestate,
   do {
     const ak_enumpair *found;
 
-    _xml_beginElement(elm);
+    if (ak_xml_beginelm(xst, elm))
+      break;
 
-    found = bsearch(daestate->nodeName,
+    found = bsearch(xst->nodeName,
                     fxSamplerCMap,
                     fxSamplerCMapLen,
                     sizeof(fxSamplerCMap[0]),
@@ -80,7 +81,7 @@ ak_dae_fxSampler(AkDaeState * __restrict daestate,
         AkInstanceImage * instanceImage;
         AkResult ret;
 
-        ret = ak_dae_fxInstanceImage(daestate, sampler, &instanceImage);
+        ret = ak_dae_fxInstanceImage(xst, sampler, &instanceImage);
 
         if (ret == AK_OK)
           sampler->instanceImage = instanceImage;
@@ -125,11 +126,11 @@ ak_dae_fxSampler(AkDaeState * __restrict daestate,
         AkColor *color;
         AkResult  ret;
 
-        color = ak_heap_calloc(daestate->heap,
+        color = ak_heap_calloc(xst->heap,
                                sampler,
                                sizeof(*color),
                                false);
-        ret   = ak_dae_color(daestate, true, color);
+        ret   = ak_dae_color(xst, true, color);
 
         if (ret == AK_OK)
           sampler->borderColor = color;
@@ -164,27 +165,27 @@ ak_dae_fxSampler(AkDaeState * __restrict daestate,
         xmlNodePtr nodePtr;
         AkTree   *tree;
 
-        nodePtr = xmlTextReaderExpand(daestate->reader);
+        nodePtr = xmlTextReaderExpand(xst->reader);
         tree = NULL;
 
-        ak_tree_fromXmlNode(daestate->heap,
+        ak_tree_fromXmlNode(xst->heap,
                             sampler,
                             nodePtr,
                             &tree,
                             NULL);
         sampler->extra = tree;
 
-        _xml_skipElement;
+        ak_xml_skipelm(xst);;
         break;
       }
       default:
-         _xml_skipElement;
+         ak_xml_skipelm(xst);;
         break;
     }
 
     /* end element */
-    _xml_endElement;
-  } while (daestate->nodeRet);
+    ak_xml_endelm(xst);;
+  } while (xst->nodeRet);
 
   *dest = sampler;
   

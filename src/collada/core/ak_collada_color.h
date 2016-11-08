@@ -11,7 +11,7 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_color(AkDaeState * __restrict daestate,
+ak_dae_color(AkXmlState * __restrict xst,
              bool read_sid,
              AkColor * __restrict dest);
 
