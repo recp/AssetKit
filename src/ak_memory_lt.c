@@ -12,7 +12,8 @@
 static AkHeapBucket ak__heap_bucket = {
   .heapEntry       = NULL,
   .firstAvailEntry = 1,
-  .count           = 1
+  .count           = 1,
+  .bucketIndex     = 0
 };
 
 static AkHeapLookupTable ak__heap_lt = {
@@ -39,12 +40,9 @@ ak_heap_lt_init(AkHeap * __restrict initialHeap) {
   ak__heap_lt.lastUsedEntry = ak__heap_lt.rootBucket->heapEntry;
 }
 
-void
-ak_heap_lt_insert(AkHeap * __restrict heap) {
-  AkHeapBucket      *bucket;
-  AkHeapBucketEntry *bucketEntry;
-  uint32_t           entryIndex;
-  uint32_t           heapid;
+AkHeapBucket*
+ak_heap_lt_bucket() {
+  AkHeapBucket *bucket;
 
   /* all buckets are full */
   if (!ak__heap_lt.firstAvailBucket) {
@@ -55,13 +53,43 @@ ak_heap_lt_insert(AkHeap * __restrict heap) {
                                ak__heap_lt.bucketSize);
     assert(bucket->heapEntry && "malloc failed");
 
-    bucket->count = 0;
+    bucket->bucketIndex = ak__heap_lt.lastBucket->bucketIndex + 1;
 
+    ak__heap_lt.size++;
     ak__heap_lt.lastBucket->next = bucket;
     ak__heap_lt.lastBucket       = bucket;
     ak__heap_lt.firstAvailBucket = bucket;
   } else {
     bucket = ak__heap_lt.firstAvailBucket;
+  }
+
+  return bucket;
+}
+
+void
+ak_heap_lt_insert(AkHeap * __restrict heap) {
+  AkHeapBucket      *bucket;
+  AkHeapBucketEntry *bucketEntry;
+  uint32_t           entryIndex;
+  uint32_t           heapid;
+
+  bucket = ak__heap_lt.firstAvailBucket;
+
+  /* all buckets are full */
+  if (!bucket || bucket->firstAvailEntry >= ak__heap_lt.bucketSize) {
+    bucket = calloc(sizeof(*bucket), 1);
+    assert(bucket && "malloc failed");
+
+    bucket->heapEntry = calloc(sizeof(*bucket->heapEntry),
+                               ak__heap_lt.bucketSize);
+    assert(bucket->heapEntry && "malloc failed");
+
+    bucket->bucketIndex = ak__heap_lt.lastBucket->bucketIndex + 1;
+
+    ak__heap_lt.size++;
+    ak__heap_lt.lastBucket->next = bucket;
+    ak__heap_lt.lastBucket       = bucket;
+    ak__heap_lt.firstAvailBucket = bucket;
   }
 
   entryIndex  = bucket->firstAvailEntry;
@@ -73,7 +101,15 @@ ak_heap_lt_insert(AkHeap * __restrict heap) {
 
   heap->heapid = heapid;
 
-  bucket->firstAvailEntry++;
+  /* find next avail entry */
+  while (bucket->firstAvailEntry++ < ak__heap_lt.bucketSize) {
+    if (bucket->heapEntry[bucket->firstAvailEntry].heapid == 0)
+      break;
+  }
+
+  if (bucket->firstAvailEntry >= ak__heap_lt.bucketSize)
+    ak__heap_lt.firstAvailBucket = NULL;
+
   bucket->count++;
 
   ak__heap_lt.lastUsedEntry = bucketEntry;
