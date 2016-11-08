@@ -20,11 +20,7 @@
 extern AkHeapAllocator ak__allocator;
 
 static AkHeap ak__resc_heap = {
-  .allocator  = &ak__allocator,
-  .srchctx    = NULL,
-  .root       = NULL,
-  .trash      = NULL,
-  .flags      = 0
+  .flags = 0
 };
 
 #define resc_heap &ak__resc_heap
@@ -41,7 +37,17 @@ ak_resc_ins(const char *url) {
   tmp = malloc(sizeof(*tmp) * strlen(url));
 
   ak_path_trim(url, tmp);
-  trimmedURL = ak_heap_strdup(resc_heap, NULL, tmp);
+
+  fragment = ak_path_fragment(tmp);
+  if (strlen(fragment) > 0)
+    trimmedURLSize = fragment - tmp;
+  else
+    trimmedURLSize = strlen(tmp);
+
+  trimmedURL = ak_heap_strndup(resc_heap,
+                               NULL,
+                               tmp,
+                               trimmedURLSize);
   free(tmp);
 
   ret = ak_heap_getMemById(resc_heap,
@@ -51,6 +57,8 @@ ak_resc_ins(const char *url) {
   if (ret != AK_EFOUND) {
     foundResc = pFoundResc;
     foundResc->refc++;
+
+    ak_free(trimmedURL);
     return foundResc;
   }
 
@@ -59,23 +67,13 @@ ak_resc_ins(const char *url) {
                         sizeof(*resc),
                         true);
 
+  resc->url = trimmedURL;
+  ak_heap_setpm(resc_heap, trimmedURL, resc);
   ak_heap_setId(resc_heap,
                 ak__alignof(resc),
                 trimmedURL);
 
   resc->refc++;
-
-  fragment = ak_path_fragment(trimmedURL);
-
-  if (strlen(fragment) > 0)
-    trimmedURLSize = fragment - trimmedURL;
-  else
-    trimmedURLSize = strlen(trimmedURL);
-
-  resc->url = ak_heap_strndup(resc_heap,
-                              resc,
-                              url,
-                              trimmedURLSize);
 
   if (ak_path_isfile(url)) {
     resc->isdwn    = true;
