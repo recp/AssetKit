@@ -68,18 +68,14 @@ ak_dae_valueType(const char * typeName) {
 }
 
 AkResult _assetkit_hide
-ak_dae_value(AkHeap * __restrict heap,
+ak_dae_value(AkDaeState * __restrict daestate,
              void * __restrict memParent,
-             xmlTextReaderPtr reader,
              void ** __restrict dest,
              AkValueType * __restrict val_type) {
   ak_value_pair *found;
-  char           *nodeVal;
-  const xmlChar  *nodeName;
-  int nodeType;
-  int nodeRet;
+  char          *nodeVal;
 
-  nodeName = xmlTextReaderConstName(reader);
+  daestate->nodeName = xmlTextReaderConstName(daestate->reader);
 
   if (valueMapLen == 0) {
     valueMapLen = AK_ARRAY_LEN(valueMap);
@@ -89,7 +85,7 @@ ak_dae_value(AkHeap * __restrict heap,
           valuePairCmp);
   }
 
-  found = bsearch(nodeName,
+  found = bsearch(daestate->nodeName,
                   valueMap,
                   valueMapLen,
                   sizeof(valueMap[0]),
@@ -115,7 +111,8 @@ ak_dae_value(AkHeap * __restrict heap,
     case AK_VALUE_TYPE_BOOL4:{
       AkBool * val;
 
-      val = ak_heap_calloc(heap, memParent,
+      val = ak_heap_calloc(daestate->heap,
+                           memParent,
                            sizeof(*val) * found->m * found->n,
                            false);
       ak_strtomb(&nodeVal, val, found->m, found->n);
@@ -129,7 +126,8 @@ ak_dae_value(AkHeap * __restrict heap,
     case AK_VALUE_TYPE_INT4:{
       AkInt * val;
 
-      val = ak_heap_calloc(heap, memParent,
+      val = ak_heap_calloc(daestate->heap,
+                           memParent,
                            sizeof(*val) * found->m * found->n,
                            false);
       ak_strtomi(&nodeVal, val, found->m, found->n);
@@ -146,7 +144,8 @@ ak_dae_value(AkHeap * __restrict heap,
     case AK_VALUE_TYPE_FLOAT4x4:{
       AkFloat * val;
 
-      val = ak_heap_calloc(heap, memParent,
+      val = ak_heap_calloc(daestate->heap,
+                           memParent,
                            sizeof(*val) * found->m * found->n,
                            false);
       ak_strtomf(&nodeVal, val, found->m, found->n);

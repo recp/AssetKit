@@ -8,16 +8,15 @@
 #include "ak_collada_fx_binary.h"
 
 AkResult _assetkit_hide
-ak_dae_fxBinary(AkHeap * __restrict heap,
+ak_dae_fxBinary(AkDaeState * __restrict daestate,
                 void * __restrict memParent,
-                xmlTextReaderPtr reader,
                 AkBinary ** __restrict dest) {
-  AkBinary      *binary;
-  const xmlChar *nodeName;
-  int            nodeType;
-  int            nodeRet;
+  AkBinary *binary;
 
-  binary = ak_heap_calloc(heap, memParent, sizeof(*binary), false);
+  binary = ak_heap_calloc(daestate->heap,
+                          memParent,
+                          sizeof(*binary),
+                          false);
 
   do {
     _xml_beginElement(_s_dae_binary);
@@ -26,7 +25,10 @@ ak_dae_fxBinary(AkHeap * __restrict heap,
       _xml_readText(binary, binary->ref);
     } else if (_xml_eqElm(_s_dae_hex)) {
       AkHexData *hex;
-      hex = ak_heap_calloc(heap, binary, sizeof(*hex), false);
+      hex = ak_heap_calloc(daestate->heap,
+                           binary,
+                           sizeof(*hex),
+                           false);
 
       _xml_readAttr(hex, hex->format, _s_dae_format);
 
@@ -42,7 +44,7 @@ ak_dae_fxBinary(AkHeap * __restrict heap,
 
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
 
   *dest = binary;
   

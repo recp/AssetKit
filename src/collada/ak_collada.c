@@ -36,11 +36,9 @@ ak_dae_doc(AkDoc ** __restrict dest,
   AkLibController  *last_libController;
   AkLibVisualScene *last_libVisualScene;
   AkLibNode        *last_libNode;
+  AkDaeState        daestateVal, *daestate;
 
   xmlTextReaderPtr  reader;
-  const xmlChar    *nodeName;
-  int nodeType;
-  int nodeRet;
   int xmlReaderFlags;
 
   /*
@@ -71,6 +69,11 @@ ak_dae_doc(AkDoc ** __restrict dest,
   
   ak_heap_setdata(heap, doc);
 
+  daestateVal.doc    = doc;
+  daestateVal.heap   = heap;
+  daestateVal.reader = reader;
+  daestate           = &daestateVal;
+
   _xml_readNext;
 
   last_libCam         = NULL;
@@ -95,7 +98,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
       docInf = ak_heap_calloc(heap, doc, sizeof(*docInf), false);
       assetInf = &docInf->base;
 
-      ret = ak_dae_assetInf(heap, docInf, reader, &assetInf);
+      ret = ak_dae_assetInf(daestate, docInf, &assetInf);
       if (ret == AK_OK) {
         docInf->ftype = AK_FILE_TYPE_COLLADA;
         doc->docinf   = *docInf;
@@ -128,7 +131,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           assetInf = NULL;
-          ret = ak_dae_assetInf(heap, doc, reader, &assetInf);
+          ret = ak_dae_assetInf(daestate, doc, &assetInf);
           if (ret == AK_OK)
             libcam->inf = assetInf;
 
@@ -137,7 +140,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult   ret;
 
           acamera = NULL;
-          ret = ak_dae_camera(heap, doc, reader, &acamera);
+          ret = ak_dae_camera(daestate, doc, &acamera);
           if (ret == AK_OK) {
             if (lastcam)
               lastcam->next = acamera;
@@ -167,7 +170,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
 
         /* end element */
         _xml_endElement;
-      } while (nodeRet);
+      } while (daestate->nodeRet);
     } else if (_xml_eqElm(_s_dae_lib_lights)) {
       AkLibLight *liblight;
       AkLight    *lastlight;
@@ -193,7 +196,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           assetInf = NULL;
-          ret = ak_dae_assetInf(heap, doc, reader, &assetInf);
+          ret = ak_dae_assetInf(daestate, doc, &assetInf);
           if (ret == AK_OK)
             liblight->inf = assetInf;
 
@@ -202,7 +205,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult  ret;
 
           alight = NULL;
-          ret = ak_dae_light(heap, doc, reader, &alight);
+          ret = ak_dae_light(daestate, doc, &alight);
           if (ret == AK_OK) {
             if (lastlight)
               lastlight->next = alight;
@@ -232,7 +235,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
         
         /* end element */
         _xml_endElement;
-      } while (nodeRet);
+      } while (daestate->nodeRet);
 
     /* COLLADA FX */
     } else if (_xml_eqElm(_s_dae_lib_effects)) {
@@ -260,7 +263,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           assetInf = NULL;
-          ret = ak_dae_assetInf(heap, doc, reader, &assetInf);
+          ret = ak_dae_assetInf(daestate, doc, &assetInf);
           if (ret == AK_OK)
             libEffect->inf = assetInf;
 
@@ -268,7 +271,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkEffect *anEffect;
           AkResult   ret;
 
-          ret = ak_dae_effect(heap, doc, reader, &anEffect);
+          ret = ak_dae_effect(daestate, doc, &anEffect);
           if (ret == AK_OK) {
             if (lastEffect)
               lastEffect->next = anEffect;
@@ -298,7 +301,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
         
         /* end element */
         _xml_endElement;
-      } while (nodeRet);
+      } while (daestate->nodeRet);
 
     } else if (_xml_eqElm(_s_dae_lib_images)) {
       AkLibImage *libimg;
@@ -325,7 +328,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           assetInf = NULL;
-          ret = ak_dae_assetInf(heap, doc, reader, &assetInf);
+          ret = ak_dae_assetInf(daestate, doc, &assetInf);
           if (ret == AK_OK)
             libimg->inf = assetInf;
 
@@ -333,7 +336,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkImage *anImg;
           AkResult  ret;
           
-          ret = ak_dae_fxImage(heap, doc, reader, &anImg);
+          ret = ak_dae_fxImage(daestate, doc, &anImg);
           if (ret == AK_OK) {
             if (lastimg)
               lastimg->next = anImg;
@@ -363,7 +366,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
         
         /* end element */
         _xml_endElement;
-      } while (nodeRet);
+      } while (daestate->nodeRet);
     } else if (_xml_eqElm(_s_dae_lib_materials)) {
       AkLibMaterial *libMaterial;
       AkMaterial     *lastMaterial;
@@ -389,7 +392,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           assetInf = NULL;
-          ret = ak_dae_assetInf(heap, doc, reader, &assetInf);
+          ret = ak_dae_assetInf(daestate, doc, &assetInf);
           if (ret == AK_OK)
             libMaterial->inf = assetInf;
 
@@ -398,7 +401,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           material = NULL;
-          ret = ak_dae_material(heap, doc, reader, &material);
+          ret = ak_dae_material(daestate, doc, &material);
           if (ret == AK_OK) {
             if (lastMaterial)
               lastMaterial->next = material;
@@ -428,7 +431,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
         
         /* end element */
         _xml_endElement;
-      } while (nodeRet);
+      } while (daestate->nodeRet);
     } else if (_xml_eqElm(_s_dae_lib_geometries)) {
       AkLibGeometry *libGeometry;
       AkGeometry    *lastGeometry;
@@ -454,7 +457,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           assetInf = NULL;
-          ret = ak_dae_assetInf(heap, doc, reader, &assetInf);
+          ret = ak_dae_assetInf(daestate, doc, &assetInf);
           if (ret == AK_OK)
             libGeometry->inf = assetInf;
 
@@ -463,7 +466,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           geometry = NULL;
-          ret = ak_dae_geometry(heap, doc, reader, &geometry);
+          ret = ak_dae_geometry(daestate, doc, &geometry);
           if (ret == AK_OK) {
             if (lastGeometry)
               lastGeometry->next = geometry;
@@ -493,7 +496,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
         
         /* end element */
         _xml_endElement;
-      } while (nodeRet);
+      } while (daestate->nodeRet);
     } else if (_xml_eqElm(_s_dae_lib_controllers)) {
       AkLibController *libController;
       AkController    *lastController;
@@ -519,7 +522,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           assetInf = NULL;
-          ret = ak_dae_assetInf(heap, doc, reader, &assetInf);
+          ret = ak_dae_assetInf(daestate, doc, &assetInf);
           if (ret == AK_OK)
             libController->inf = assetInf;
 
@@ -528,7 +531,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           controller = NULL;
-          ret = ak_dae_controller(heap, doc, reader, &controller);
+          ret = ak_dae_controller(daestate, doc, &controller);
           if (ret == AK_OK) {
             if (lastController)
               lastController->next = controller;
@@ -558,7 +561,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
         
         /* end element */
         _xml_endElement;
-      } while (nodeRet);
+      } while (daestate->nodeRet);
     } else if (_xml_eqElm(_s_dae_lib_visual_scenes)) {
       AkLibVisualScene *libVisualScene;
       AkVisualScene    *lastVisualScene;
@@ -587,7 +590,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           assetInf = NULL;
-          ret = ak_dae_assetInf(heap, doc, reader, &assetInf);
+          ret = ak_dae_assetInf(daestate, doc, &assetInf);
           if (ret == AK_OK)
             libVisualScene->inf = assetInf;
 
@@ -596,7 +599,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           visualScene = NULL;
-          ret = ak_dae_visualScene(heap, doc, reader, &visualScene);
+          ret = ak_dae_visualScene(daestate, doc, &visualScene);
           if (ret == AK_OK) {
             if (lastVisualScene)
               lastVisualScene->next = visualScene;
@@ -626,7 +629,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
         
         /* end element */
         _xml_endElement;
-      } while (nodeRet);
+      } while (daestate->nodeRet);
     } else if (_xml_eqElm(_s_dae_lib_nodes)) {
       AkLibNode *libNode;
       AkNode    *lastNode;
@@ -652,7 +655,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           assetInf = NULL;
-          ret = ak_dae_assetInf(heap, doc, reader, &assetInf);
+          ret = ak_dae_assetInf(daestate, doc, &assetInf);
           if (ret == AK_OK)
             libNode->inf = assetInf;
 
@@ -661,7 +664,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
           AkResult ret;
 
           node = NULL;
-          ret = ak_dae_node(heap, doc, reader, NULL, &node);
+          ret = ak_dae_node(daestate, doc, NULL, &node);
           if (ret == AK_OK) {
             if (lastNode)
               lastNode->next = node;
@@ -691,18 +694,18 @@ ak_dae_doc(AkDoc ** __restrict dest,
         
         /* end element */
         _xml_endElement;
-      } while (nodeRet);
+      } while (daestate->nodeRet);
     } else if (_xml_eqElm(_s_dae_scene)) {
-      ak_dae_scene(heap, doc, reader, &doc->scene);
+      ak_dae_scene(daestate, doc, &doc->scene);
     } /* if */
 
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
 
   xmlFreeTextReader(reader);
 
-  if (nodeRet == -1) {
+  if (daestate->nodeRet == -1) {
     fprintf(stderr, "%s : failed to parse\n", file);
     return AK_ERR;
   }

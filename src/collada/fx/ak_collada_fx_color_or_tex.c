@@ -10,19 +10,17 @@
 #include "ak_collada_fx_enums.h"
 
 AkResult _assetkit_hide
-ak_dae_colorOrTex(AkHeap * __restrict heap,
+ak_dae_colorOrTex(AkDaeState * __restrict daestate,
                   void * __restrict memParent,
-                  xmlTextReaderPtr reader,
                   const char * elm,
                   AkFxColorOrTex ** __restrict dest) {
   AkFxColorOrTex *colorOrTex;
-  AkParam *last_param;
+  AkParam        *last_param;
 
-  const xmlChar *nodeName;
-  int            nodeType;
-  int            nodeRet;
-
-  colorOrTex = ak_heap_calloc(heap, memParent, sizeof(*colorOrTex), false);
+  colorOrTex = ak_heap_calloc(daestate->heap,
+                              memParent,
+                              sizeof(*colorOrTex),
+                              false);
   _xml_readAttrAsEnum(colorOrTex->opaque,
                       _s_dae_opaque,
                       ak_dae_fxEnumOpaque);
@@ -36,7 +34,10 @@ ak_dae_colorOrTex(AkHeap * __restrict heap,
       AkColor *color;
       char *colorStr;
 
-      color = ak_heap_calloc(heap, colorOrTex, sizeof(*color), false);
+      color = ak_heap_calloc(daestate->heap,
+                             colorOrTex,
+                             sizeof(*color),
+                             false);
 
       _xml_readAttr(color, color->sid, _s_dae_sid);
       _xml_readMutText(colorStr);
@@ -49,11 +50,14 @@ ak_dae_colorOrTex(AkHeap * __restrict heap,
     } else if (_xml_eqElm(_s_dae_texture)) {
       AkFxTexture *tex;
 
-      tex = ak_heap_calloc(heap, colorOrTex, sizeof(*tex), false);
+      tex = ak_heap_calloc(daestate->heap,
+                           colorOrTex,
+                           sizeof(*tex),
+                           false);
       _xml_readAttr(tex, tex->texture, _s_dae_texture);
       _xml_readAttr(tex, tex->texcoord, _s_dae_texcoord);
 
-      if (!xmlTextReaderIsEmptyElement(reader)) {
+      if (!xmlTextReaderIsEmptyElement(daestate->reader)) {
         do {
           _xml_beginElement(_s_dae_texture);
 
@@ -61,10 +65,14 @@ ak_dae_colorOrTex(AkHeap * __restrict heap,
             xmlNodePtr nodePtr;
             AkTree   *tree;
 
-            nodePtr = xmlTextReaderExpand(reader);
+            nodePtr = xmlTextReaderExpand(daestate->reader);
             tree = NULL;
 
-            ak_tree_fromXmlNode(heap, tex, nodePtr, &tree, NULL);
+            ak_tree_fromXmlNode(daestate->heap,
+                                tex,
+                                nodePtr,
+                                &tree,
+                                NULL);
             tex->extra = tree;
 
             _xml_skipElement;
@@ -74,15 +82,14 @@ ak_dae_colorOrTex(AkHeap * __restrict heap,
 
           /* end element */
           _xml_endElement;
-        } while (nodeRet);
+        } while (daestate->nodeRet);
       }
     } else if (_xml_eqElm(_s_dae_param)) {
       AkParam * param;
       AkResult   ret;
 
-      ret = ak_dae_param(heap,
+      ret = ak_dae_param(daestate,
                          colorOrTex,
-                         reader,
                          AK_PARAM_TYPE_BASIC,
                          &param);
 
@@ -100,7 +107,7 @@ ak_dae_colorOrTex(AkHeap * __restrict heap,
 
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
   
   *dest = colorOrTex;
 

@@ -23,9 +23,8 @@ static ak_enumpair profileMap[] = {
 static size_t profileMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_profile(AkHeap * __restrict heap,
+ak_dae_profile(AkDaeState * __restrict daestate,
                void * __restrict memParent,
-               xmlTextReaderPtr reader,
                AkProfile ** __restrict dest) {
   AkProfile     *profile;
   AkNewParam    *last_newparam;
@@ -34,11 +33,8 @@ ak_dae_profile(AkHeap * __restrict heap,
   AkTechniqueFx *last_techfx;
 
   const ak_enumpair *found;
-  const xmlChar *nodeName;
-  int nodeType;
-  int nodeRet;
 
-  nodeName = xmlTextReaderConstName(reader);
+  daestate->nodeName = xmlTextReaderConstName(daestate->reader);
 
   if (profileMapLen == 0) {
     profileMapLen = AK_ARRAY_LEN(profileMap);
@@ -48,7 +44,7 @@ ak_dae_profile(AkHeap * __restrict heap,
           ak_enumpair_cmp);
   }
 
-  found = bsearch(nodeName,
+  found = bsearch(daestate->nodeName,
                   profileMap,
                   profileMapLen,
                   sizeof(profileMap[0]),
@@ -56,14 +52,14 @@ ak_dae_profile(AkHeap * __restrict heap,
 
   switch (found->val) {
     case AK_PROFILE_TYPE_COMMON:
-      profile = ak_heap_calloc(heap,
+      profile = ak_heap_calloc(daestate->heap,
                                memParent,
                                sizeof(AkProfileCommon),
                                true);
       break;
     case AK_PROFILE_TYPE_GLSL: {
       AkProfileGLSL *glslProfile;
-      glslProfile = ak_heap_calloc(heap,
+      glslProfile = ak_heap_calloc(daestate->heap,
                                    memParent,
                                    sizeof(AkProfileGLSL),
                                    true);
@@ -75,7 +71,7 @@ ak_dae_profile(AkHeap * __restrict heap,
     }
     case AK_PROFILE_TYPE_GLES2: {
       AkProfileGLES2 *gles2Profile;
-      gles2Profile = ak_heap_calloc(heap,
+      gles2Profile = ak_heap_calloc(daestate->heap,
                                     memParent,
                                     sizeof(AkProfileGLES2),
                                     true);
@@ -88,7 +84,7 @@ ak_dae_profile(AkHeap * __restrict heap,
     }
     case AK_PROFILE_TYPE_GLES: {
       AkProfileGLES *glesProfile;
-      glesProfile = ak_heap_calloc(heap,
+      glesProfile = ak_heap_calloc(daestate->heap,
                                    memParent,
                                    sizeof(AkProfileGLES),
                                    true);
@@ -100,7 +96,7 @@ ak_dae_profile(AkHeap * __restrict heap,
     }
     case AK_PROFILE_TYPE_CG: {
       AkProfileCG *cgProfile;
-      cgProfile = ak_heap_calloc(heap,
+      cgProfile = ak_heap_calloc(daestate->heap,
                                  memParent,
                                  sizeof(AkProfileGLES2),
                                  true);
@@ -112,7 +108,7 @@ ak_dae_profile(AkHeap * __restrict heap,
     }
     case AK_PROFILE_TYPE_BRIDGE: {
       AkProfileBridge *bridgeProfile;
-      bridgeProfile = ak_heap_calloc(heap,
+      bridgeProfile = ak_heap_calloc(daestate->heap,
                                      memParent,
                                      sizeof(AkProfileGLES2),
                                      true);
@@ -145,9 +141,8 @@ ak_dae_profile(AkHeap * __restrict heap,
       AkResult ret;
 
       assetInf = NULL;
-      ret = ak_dae_assetInf(heap,
+      ret = ak_dae_assetInf(daestate,
                             profile,
-                            reader,
                             &assetInf);
       if (ret == AK_OK)
         profile->inf = assetInf;
@@ -155,9 +150,8 @@ ak_dae_profile(AkHeap * __restrict heap,
       AkNewParam *newparam;
       AkResult    ret;
 
-      ret = ak_dae_newparam(heap,
+      ret = ak_dae_newparam(daestate,
                             profile,
-                            reader,
                             &newparam);
 
       if (ret == AK_OK) {
@@ -172,9 +166,8 @@ ak_dae_profile(AkHeap * __restrict heap,
       AkTechniqueFx * technique_fx;
       AkResult ret;
 
-      ret = ak_dae_techniqueFx(heap,
+      ret = ak_dae_techniqueFx(daestate,
                                profile,
-                               reader,
                                &technique_fx);
       if (ret == AK_OK) {
         if (last_techfx)
@@ -189,10 +182,10 @@ ak_dae_profile(AkHeap * __restrict heap,
       xmlNodePtr nodePtr;
       AkTree    *tree;
 
-      nodePtr = xmlTextReaderExpand(reader);
+      nodePtr = xmlTextReaderExpand(daestate->reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(heap,
+      ak_tree_fromXmlNode(daestate->heap,
                           profile,
                           nodePtr,
                           &tree,
@@ -203,7 +196,10 @@ ak_dae_profile(AkHeap * __restrict heap,
     } else if (_xml_eqElm(_s_dae_code)) {
       AkCode *code;
 
-      code = ak_heap_calloc(heap, profile, sizeof(*code), false);
+      code = ak_heap_calloc(daestate->heap,
+                            profile,
+                            sizeof(*code),
+                            false);
       _xml_readAttr(code, code->sid, _s_dae_sid);
       _xml_readConstText(code->val);
 
@@ -232,7 +228,10 @@ ak_dae_profile(AkHeap * __restrict heap,
     } else if (_xml_eqElm(_s_dae_include)) {
       AkInclude *inc;
 
-      inc = ak_heap_calloc(heap, profile, sizeof(*inc), false);
+      inc = ak_heap_calloc(daestate->heap,
+                           profile,
+                           sizeof(*inc),
+                           false);
       _xml_readAttr(inc, inc->sid, _s_dae_sid);
       _xml_readAttr(inc, inc->url, _s_dae_url);
 
@@ -266,7 +265,7 @@ ak_dae_profile(AkHeap * __restrict heap,
     
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
   
   *dest = profile;
   

@@ -130,7 +130,7 @@ ak_tree_fromXmlNode(AkHeap * __restrict heap,
           break;
         default:
           break;
-      } // switch
+      } /* switch */
     } else {
       if (currNode->content)
         tree_nNode->val = ak_heap_strdup(heap,

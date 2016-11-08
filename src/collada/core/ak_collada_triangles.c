@@ -10,21 +10,21 @@
 #include "../../ak_array.h"
 
 AkResult _assetkit_hide
-ak_dae_triangles(AkHeap * __restrict heap,
+ak_dae_triangles(AkDaeState * __restrict daestate,
                  void * __restrict memParent,
-                 xmlTextReaderPtr reader,
                  const char * elm,
                  AkTriangleMode mode,
                  AkTriangles ** __restrict dest) {
-  AkDoc          *doc;
-  AkTriangles    *triangles;
-  AkInput        *last_input;
-  const xmlChar  *nodeName;
-  int             nodeType;
-  int             nodeRet;
+  AkDoc       *doc;
+  AkTriangles *triangles;
+  AkInput     *last_input;
 
-  doc       = ak_heap_data(heap);
-  triangles = ak_heap_calloc(heap, memParent, sizeof(*triangles), false);
+  doc       = ak_heap_data(daestate->heap);
+  triangles = ak_heap_calloc(daestate->heap,
+                             memParent,
+                             sizeof(*triangles),
+                             false);
+
   triangles->mode = mode;
   triangles->base.type = AK_MESH_PRIMITIVE_TYPE_TRIANGLES;
 
@@ -43,11 +43,11 @@ ak_dae_triangles(AkHeap * __restrict heap,
     if (_xml_eqElm(_s_dae_input)) {
       AkInput *input;
 
-      input = ak_heap_calloc(heap, triangles, sizeof(*input), false);
+      input = ak_heap_calloc(daestate->heap, triangles, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
 
-      ak_url_from_attr(reader,
+      ak_url_from_attr(daestate->reader,
                        _s_dae_source,
                        input,
                        &input->base.source);
@@ -91,7 +91,7 @@ ak_dae_triangles(AkHeap * __restrict heap,
       _xml_readMutText(content);
       if (content) {
         AkResult ret;
-        ret = ak_strtoui_array(heap, triangles, content, &uintArray);
+        ret = ak_strtoui_array(daestate->heap, triangles, content, &uintArray);
         if (ret == AK_OK)
           triangles->base.indices = uintArray;
 
@@ -102,10 +102,14 @@ ak_dae_triangles(AkHeap * __restrict heap,
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
-      nodePtr = xmlTextReaderExpand(reader);
+      nodePtr = xmlTextReaderExpand(daestate->reader);
       tree = NULL;
       
-      ak_tree_fromXmlNode(heap, triangles, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(daestate->heap,
+                          triangles,
+                          nodePtr,
+                          &tree,
+                          NULL);
       triangles->base.extra = tree;
       
       _xml_skipElement;
@@ -115,7 +119,7 @@ ak_dae_triangles(AkHeap * __restrict heap,
     
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
   
   *dest = triangles;
   

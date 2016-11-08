@@ -10,21 +10,17 @@
 #include "../core/ak_collada_enums.h"
 
 AkResult _assetkit_hide
-ak_dae_nurbs(AkHeap * __restrict heap,
+ak_dae_nurbs(AkDaeState * __restrict daestate,
              void * __restrict memParent,
-             xmlTextReaderPtr reader,
              bool asObject,
              AkNurbs ** __restrict dest) {
-  AkObject       *obj;
-  AkNurbs        *nurbs;
-  AkSource       *last_source;
-  void           *memPtr;
-  const xmlChar  *nodeName;
-  int             nodeType;
-  int             nodeRet;
+  AkObject *obj;
+  AkNurbs  *nurbs;
+  AkSource *last_source;
+  void     *memPtr;
 
   if (asObject) {
-    obj = ak_objAlloc(heap,
+    obj = ak_objAlloc(daestate->heap,
                       memParent,
                       sizeof(*nurbs),
                       0,
@@ -34,7 +30,10 @@ ak_dae_nurbs(AkHeap * __restrict heap,
     nurbs = ak_objGet(obj);
     memPtr = obj;
   } else {
-    nurbs = ak_heap_calloc(heap, memParent, sizeof(*nurbs), false);
+    nurbs = ak_heap_calloc(daestate->heap,
+                           memParent,
+                           sizeof(*nurbs),
+                           false);
     memPtr = nurbs;
   }
 
@@ -56,7 +55,7 @@ ak_dae_nurbs(AkHeap * __restrict heap,
       AkSource *source;
       AkResult ret;
 
-      ret = ak_dae_source(heap, memPtr, reader, &source);
+      ret = ak_dae_source(daestate, memPtr,  &source);
       if (ret == AK_OK) {
         if (last_source)
           last_source->next = source;
@@ -69,7 +68,10 @@ ak_dae_nurbs(AkHeap * __restrict heap,
       AkControlVerts *cverts;
       AkInputBasic   *last_input;
 
-      cverts = ak_heap_calloc(heap, memPtr, sizeof(*cverts), false);
+      cverts = ak_heap_calloc(daestate->heap,
+                              memPtr,
+                              sizeof(*cverts),
+                              false);
 
       last_input = NULL;
 
@@ -79,11 +81,14 @@ ak_dae_nurbs(AkHeap * __restrict heap,
         if (_xml_eqElm(_s_dae_input)) {
           AkInputBasic *input;
 
-          input = ak_heap_calloc(heap, memPtr, sizeof(*input), false);
+          input = ak_heap_calloc(daestate->heap,
+                                 memPtr,
+                                 sizeof(*input),
+                                 false);
 
           _xml_readAttr(input, input->semanticRaw, _s_dae_semantic);
 
-          ak_url_from_attr(reader,
+          ak_url_from_attr(daestate->reader,
                            _s_dae_source,
                            input,
                            &input->source);
@@ -110,10 +115,14 @@ ak_dae_nurbs(AkHeap * __restrict heap,
           xmlNodePtr nodePtr;
           AkTree   *tree;
 
-          nodePtr = xmlTextReaderExpand(reader);
+          nodePtr = xmlTextReaderExpand(daestate->reader);
           tree = NULL;
 
-          ak_tree_fromXmlNode(heap, memPtr, nodePtr, &tree, NULL);
+          ak_tree_fromXmlNode(daestate->heap,
+                              memPtr,
+                              nodePtr,
+                              &tree,
+                              NULL);
           cverts->extra = tree;
 
           _xml_skipElement;
@@ -124,17 +133,21 @@ ak_dae_nurbs(AkHeap * __restrict heap,
         
         /* end element */
         _xml_endElement;
-      } while (nodeRet);
+      } while (daestate->nodeRet);
       
       nurbs->cverts = cverts;
     } else if (_xml_eqElm(_s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
-      nodePtr = xmlTextReaderExpand(reader);
+      nodePtr = xmlTextReaderExpand(daestate->reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(heap, memPtr, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(daestate->heap,
+                          memPtr,
+                          nodePtr,
+                          &tree,
+                          NULL);
       nurbs->extra = tree;
 
       _xml_skipElement;
@@ -142,7 +155,7 @@ ak_dae_nurbs(AkHeap * __restrict heap,
     
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
   
   *dest = nurbs;
   
@@ -150,21 +163,17 @@ ak_dae_nurbs(AkHeap * __restrict heap,
 }
 
 AkResult _assetkit_hide
-ak_dae_nurbs_surface(AkHeap * __restrict heap,
+ak_dae_nurbs_surface(AkDaeState * __restrict daestate,
                      void * __restrict memParent,
-                     xmlTextReaderPtr reader,
                      bool asObject,
                      AkNurbsSurface ** __restrict dest) {
   AkObject       *obj;
   AkNurbsSurface *nurbsSurface;
   AkSource       *last_source;
   void           *memPtr;
-  const xmlChar  *nodeName;
-  int             nodeType;
-  int             nodeRet;
 
   if (asObject) {
-    obj = ak_objAlloc(heap,
+    obj = ak_objAlloc(daestate->heap,
                       memParent,
                       sizeof(*nurbsSurface),
                       0,
@@ -174,7 +183,7 @@ ak_dae_nurbs_surface(AkHeap * __restrict heap,
     nurbsSurface = ak_objGet(obj);
     memPtr = obj;
   } else {
-    nurbsSurface = ak_heap_calloc(heap,
+    nurbsSurface = ak_heap_calloc(daestate->heap,
                                   memParent,
                                   sizeof(*nurbsSurface),
                                   false);
@@ -208,7 +217,7 @@ ak_dae_nurbs_surface(AkHeap * __restrict heap,
       AkSource *source;
       AkResult ret;
 
-      ret = ak_dae_source(heap, memPtr, reader, &source);
+      ret = ak_dae_source(daestate, memPtr, &source);
       if (ret == AK_OK) {
         if (last_source)
           last_source->next = source;
@@ -221,7 +230,10 @@ ak_dae_nurbs_surface(AkHeap * __restrict heap,
       AkControlVerts *cverts;
       AkInputBasic   *last_input;
 
-      cverts = ak_heap_calloc(heap, memPtr, sizeof(*cverts), false);
+      cverts = ak_heap_calloc(daestate->heap,
+                              memPtr,
+                              sizeof(*cverts),
+                              false);
 
       last_input = NULL;
 
@@ -231,11 +243,14 @@ ak_dae_nurbs_surface(AkHeap * __restrict heap,
         if (_xml_eqElm(_s_dae_input)) {
           AkInputBasic *input;
 
-          input = ak_heap_calloc(heap, memPtr, sizeof(*input), false);
+          input = ak_heap_calloc(daestate->heap,
+                                 memPtr,
+                                 sizeof(*input),
+                                 false);
 
           _xml_readAttr(input, input->semanticRaw, _s_dae_semantic);
 
-          ak_url_from_attr(reader,
+          ak_url_from_attr(daestate->reader,
                            _s_dae_source,
                            input,
                            &input->source);
@@ -262,10 +277,14 @@ ak_dae_nurbs_surface(AkHeap * __restrict heap,
           xmlNodePtr nodePtr;
           AkTree   *tree;
 
-          nodePtr = xmlTextReaderExpand(reader);
+          nodePtr = xmlTextReaderExpand(daestate->reader);
           tree = NULL;
 
-          ak_tree_fromXmlNode(heap, memPtr, nodePtr, &tree, NULL);
+          ak_tree_fromXmlNode(daestate->heap,
+                              memPtr,
+                              nodePtr,
+                              &tree,
+                              NULL);
           cverts->extra = tree;
 
           _xml_skipElement;
@@ -276,17 +295,21 @@ ak_dae_nurbs_surface(AkHeap * __restrict heap,
 
         /* end element */
         _xml_endElement;
-      } while (nodeRet);
+      } while (daestate->nodeRet);
 
       nurbsSurface->cverts = cverts;
     } else if (_xml_eqElm(_s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
-      nodePtr = xmlTextReaderExpand(reader);
+      nodePtr = xmlTextReaderExpand(daestate->reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(heap, memPtr, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(daestate->heap,
+                          memPtr,
+                          nodePtr,
+                          &tree,
+                          NULL);
       nurbsSurface->extra = tree;
       
       _xml_skipElement;
@@ -294,7 +317,7 @@ ak_dae_nurbs_surface(AkHeap * __restrict heap,
     
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
   
   *dest = nurbsSurface;
   

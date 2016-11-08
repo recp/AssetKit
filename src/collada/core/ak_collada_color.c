@@ -8,14 +8,10 @@
 #include "ak_collada_color.h"
 
 AkResult _assetkit_hide
-ak_dae_color(AkHeap * __restrict heap,
-             xmlTextReaderPtr reader,
+ak_dae_color(AkDaeState * __restrict daestate,
              bool read_sid,
              AkColor * __restrict dest) {
-  char          *colorStr;
-  const xmlChar *nodeName;
-  int            nodeType;
-  int            nodeRet;
+  char *colorStr;
 
   if (read_sid)
     _xml_readAttr(dest, dest->sid, _s_dae_sid);

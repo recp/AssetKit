@@ -32,16 +32,15 @@ static ak_enumpair lambertMap[] = {
 static size_t lambertMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_fxLambert(AkHeap * __restrict heap,
+ak_dae_fxLambert(AkDaeState * __restrict daestate,
                  void * __restrict memParent,
-                 xmlTextReaderPtr reader,
                  AkLambert ** __restrict dest) {
-  AkLambert     *lambert;
-  const xmlChar *nodeName;
-  int            nodeType;
-  int            nodeRet;
+  AkLambert *lambert;
 
-  lambert = ak_heap_calloc(heap, memParent, sizeof(*lambert), false);
+  lambert = ak_heap_calloc(daestate->heap,
+                           memParent,
+                           sizeof(*lambert),
+                           false);
 
   if (lambertMapLen == 0) {
     lambertMapLen = AK_ARRAY_LEN(lambertMap);
@@ -56,7 +55,7 @@ ak_dae_fxLambert(AkHeap * __restrict heap,
 
     _xml_beginElement(_s_dae_lambert);
 
-    found = bsearch(nodeName,
+    found = bsearch(daestate->nodeName,
                     lambertMap,
                     lambertMapLen,
                     sizeof(lambertMap[0]),
@@ -71,10 +70,9 @@ ak_dae_fxLambert(AkHeap * __restrict heap,
         AkFxColorOrTex *colorOrTex;
         AkResult ret;
 
-        ret = ak_dae_colorOrTex(heap,
+        ret = ak_dae_colorOrTex(daestate,
                                 lambert,
-                                reader,
-                                (const char *)nodeName,
+                                (const char *)daestate->nodeName,
                                 &colorOrTex);
         if (ret == AK_OK) {
           switch (found->val) {
@@ -105,10 +103,9 @@ ak_dae_fxLambert(AkHeap * __restrict heap,
         AkFxFloatOrParam * floatOrParam;
         AkResult ret;
 
-        ret = ak_dae_floatOrParam(heap,
+        ret = ak_dae_floatOrParam(daestate,
                                   lambert,
-                                  reader,
-                                  (const char *)nodeName,
+                                  (const char *)daestate->nodeName,
                                   &floatOrParam);
 
         if (ret == AK_OK) {
@@ -135,7 +132,7 @@ ak_dae_fxLambert(AkHeap * __restrict heap,
 
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
   
   *dest = lambert;
   

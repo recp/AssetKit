@@ -9,17 +9,16 @@
 #include "ak_collada_enums.h"
 
 AkResult _assetkit_hide
-ak_dae_vertices(AkHeap * __restrict heap,
+ak_dae_vertices(AkDaeState * __restrict daestate,
                 void * __restrict memParent,
-                xmlTextReaderPtr reader,
                 AkVertices ** __restrict dest) {
-  AkVertices    *vertices;
-  AkInputBasic  *last_input;
-  const xmlChar *nodeName;
-  int            nodeType;
-  int            nodeRet;
+  AkVertices   *vertices;
+  AkInputBasic *last_input;
 
-  vertices = ak_heap_calloc(heap, memParent, sizeof(*vertices), true);
+  vertices = ak_heap_calloc(daestate->heap,
+                            memParent,
+                            sizeof(*vertices),
+                            true);
 
   _xml_readId(vertices);
   _xml_readAttr(vertices, vertices->name, _s_dae_name);
@@ -32,11 +31,11 @@ ak_dae_vertices(AkHeap * __restrict heap,
     if (_xml_eqElm(_s_dae_input)) {
       AkInputBasic *input;
 
-      input = ak_heap_calloc(heap, vertices, sizeof(*input), false);
+      input = ak_heap_calloc(daestate->heap, vertices, sizeof(*input), false);
 
       _xml_readAttr(input, input->semanticRaw, _s_dae_semantic);
 
-      ak_url_from_attr(reader,
+      ak_url_from_attr(daestate->reader,
                        _s_dae_source,
                        input,
                        &input->source);
@@ -58,10 +57,14 @@ ak_dae_vertices(AkHeap * __restrict heap,
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
-      nodePtr = xmlTextReaderExpand(reader);
+      nodePtr = xmlTextReaderExpand(daestate->reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(heap, vertices, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(daestate->heap,
+                          vertices,
+                          nodePtr,
+                          &tree,
+                          NULL);
       vertices->extra = tree;
 
       _xml_skipElement;
@@ -69,7 +72,7 @@ ak_dae_vertices(AkHeap * __restrict heap,
 
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
   
   *dest = vertices;
 

@@ -14,17 +14,16 @@
 #include "ak_collada_fx_evaluate.h"
 
 AkResult _assetkit_hide
-ak_dae_fxPass(AkHeap * __restrict heap,
+ak_dae_fxPass(AkDaeState * __restrict daestate,
               void * __restrict memParent,
-              xmlTextReaderPtr reader,
               AkPass ** __restrict dest) {
-  AkPass        *pass;
-  AkAnnotate    *last_annotate;
-  const xmlChar *nodeName;
-  int            nodeType;
-  int            nodeRet;
+  AkPass     *pass;
+  AkAnnotate *last_annotate;
 
-  pass = ak_heap_calloc(heap, memParent, sizeof(*pass), false);
+  pass = ak_heap_calloc(daestate->heap,
+                        memParent,
+                        sizeof(*pass),
+                        false);
 
   _xml_readAttr(pass, pass->sid, _s_dae_sid);
 
@@ -38,14 +37,14 @@ ak_dae_fxPass(AkHeap * __restrict heap,
       AkResult ret;
 
       assetInf = NULL;
-      ret = ak_dae_assetInf(heap, pass, reader, &assetInf);
+      ret = ak_dae_assetInf(daestate, pass, &assetInf);
       if (ret == AK_OK)
         pass->inf = assetInf;
     } else if (_xml_eqElm(_s_dae_annotate)) {
       AkAnnotate *annotate;
       AkResult    ret;
 
-      ret = ak_dae_annotate(heap, pass, reader, &annotate);
+      ret = ak_dae_annotate(daestate, pass, &annotate);
 
       if (ret == AK_OK) {
         if (last_annotate)
@@ -59,7 +58,7 @@ ak_dae_fxPass(AkHeap * __restrict heap,
       AkStates *states;
       AkResult  ret;
 
-      ret = ak_dae_fxState(heap, pass, reader, &states);
+      ret = ak_dae_fxState(daestate, pass, &states);
       if (ret == AK_OK)
         pass->states = states;
 
@@ -67,24 +66,28 @@ ak_dae_fxPass(AkHeap * __restrict heap,
       AkProgram *prog;
       AkResult   ret;
 
-      ret = ak_dae_fxProg(heap, pass, reader, &prog);
+      ret = ak_dae_fxProg(daestate, pass, &prog);
       if (ret == AK_OK)
         pass->program = prog;
     } else if (_xml_eqElm(_s_dae_evaluate)) {
       AkEvaluate * evaluate;
       AkResult ret;
 
-      ret = ak_dae_fxEvaluate(heap, pass, reader, &evaluate);
+      ret = ak_dae_fxEvaluate(daestate, pass, &evaluate);
       if (ret == AK_OK)
         pass->evaluate = evaluate;
     } else if (_xml_eqElm(_s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
-      nodePtr = xmlTextReaderExpand(reader);
+      nodePtr = xmlTextReaderExpand(daestate->reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(heap, pass, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(daestate->heap,
+                          pass,
+                          nodePtr,
+                          &tree,
+                          NULL);
       pass->extra = tree;
 
       _xml_skipElement;
@@ -94,7 +97,7 @@ ak_dae_fxPass(AkHeap * __restrict heap,
 
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
   
   *dest = pass;
   

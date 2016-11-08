@@ -10,18 +10,14 @@
 #include "../fx/ak_collada_fx_material.h"
 
 AkResult _assetkit_hide
-ak_dae_render(AkHeap * __restrict heap,
+ak_dae_render(AkDaeState * __restrict daestate,
               void * __restrict memParent,
-              xmlTextReaderPtr reader,
               AkRender ** __restrict dest) {
   AkRender           *render;
   AkInstanceMaterial *last_instanceMaterial;
   AkStringArrayL     *last_layer;
-  const xmlChar *nodeName;
-  int            nodeType;
-  int            nodeRet;
 
-  render = ak_heap_calloc(heap, memParent, sizeof(*render), false);
+  render = ak_heap_calloc(daestate->heap, memParent, sizeof(*render), false);
 
   _xml_readAttr(render, render->sid, _s_dae_sid);
   _xml_readAttr(render, render->name, _s_dae_name);
@@ -41,7 +37,7 @@ ak_dae_render(AkHeap * __restrict heap,
         AkStringArrayL *layer;
         AkResult ret;
 
-        ret = ak_strtostr_arrayL(heap, render, content, ' ', &layer);
+        ret = ak_strtostr_arrayL(daestate->heap, render, content, ' ', &layer);
         if (ret == AK_OK) {
           if (last_layer)
             last_layer->next = layer;
@@ -56,9 +52,8 @@ ak_dae_render(AkHeap * __restrict heap,
     } else if (_xml_eqElm(_s_dae_instance_material)) {
       AkInstanceMaterial *instanceMaterial;
       AkResult ret;
-      ret = ak_dae_fxInstanceMaterial(heap,
+      ret = ak_dae_fxInstanceMaterial(daestate,
                                       memParent,
-                                      reader,
                                       &instanceMaterial);
 
       if (ret == AK_OK) {
@@ -73,10 +68,14 @@ ak_dae_render(AkHeap * __restrict heap,
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
-      nodePtr = xmlTextReaderExpand(reader);
+      nodePtr = xmlTextReaderExpand(daestate->reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(heap, render, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(daestate->heap,
+                          render,
+                          nodePtr,
+                          &tree,
+                          NULL);
       render->extra = tree;
 
       _xml_skipElement;
@@ -84,7 +83,7 @@ ak_dae_render(AkHeap * __restrict heap,
 
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
   
   *dest = render;
   

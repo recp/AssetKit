@@ -11,22 +11,19 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_newparam(AkHeap * __restrict heap,
+ak_dae_newparam(AkDaeState * __restrict daestate,
                 void * __restrict memParent,
-                xmlTextReaderPtr reader,
                 AkNewParam ** __restrict dest);
 
 AkResult _assetkit_hide
-ak_dae_param(AkHeap * __restrict heap,
+ak_dae_param(AkDaeState * __restrict daestate,
              void * __restrict memParent,
-             xmlTextReaderPtr reader,
              AkParamType paramType,
              AkParam ** __restrict dest);
 
 AkResult _assetkit_hide
-ak_dae_setparam(AkHeap * __restrict heap,
+ak_dae_setparam(AkDaeState * __restrict daestate,
                 void * __restrict memParent,
-                xmlTextReaderPtr reader,
                 AkSetParam ** __restrict dest);
 
 #endif /* __libassetkit__ak_collada_param__h_ */

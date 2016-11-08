@@ -16,17 +16,16 @@
 #include "ak_collada_fx_pass.h"
 
 AkResult _assetkit_hide
-ak_dae_techniqueFx(AkHeap * __restrict heap,
+ak_dae_techniqueFx(AkDaeState * __restrict daestate,
                    void * __restrict memParent,
-                   xmlTextReaderPtr reader,
                    AkTechniqueFx ** __restrict dest) {
   AkTechniqueFx *technique;
   AkAnnotate    *last_annotate;
-  const xmlChar *nodeName;
-  int            nodeType;
-  int            nodeRet;
 
-  technique = ak_heap_calloc(heap, memParent, sizeof(*technique), true);
+  technique = ak_heap_calloc(daestate->heap,
+                             memParent,
+                             sizeof(*technique),
+                             true);
 
   _xml_readId(technique);
   _xml_readAttr(technique, technique->sid, _s_dae_sid);
@@ -41,14 +40,14 @@ ak_dae_techniqueFx(AkHeap * __restrict heap,
       AkResult ret;
 
       assetInf = NULL;
-      ret = ak_dae_assetInf(heap, technique, reader, &assetInf);
+      ret = ak_dae_assetInf(daestate, technique, &assetInf);
       if (ret == AK_OK)
         technique->inf = assetInf;
     } else if (_xml_eqElm(_s_dae_annotate)) {
       AkAnnotate *annotate;
       AkResult    ret;
 
-      ret = ak_dae_annotate(heap, technique, reader, &annotate);
+      ret = ak_dae_annotate(daestate, technique, &annotate);
 
       if (ret == AK_OK) {
         if (last_annotate)
@@ -62,7 +61,7 @@ ak_dae_techniqueFx(AkHeap * __restrict heap,
       AkPass * pass;
       AkResult ret;
 
-      ret = ak_dae_fxPass(heap, technique, reader, &pass);
+      ret = ak_dae_fxPass(daestate, technique, &pass);
       if (ret == AK_OK)
         technique->pass = pass;
 
@@ -70,10 +69,9 @@ ak_dae_techniqueFx(AkHeap * __restrict heap,
       ak_blinn_phong * blinn_phong;
       AkResult ret;
 
-      ret = ak_dae_blinn_phong(heap,
+      ret = ak_dae_blinn_phong(daestate,
                                technique,
-                               reader,
-                               (const char *)nodeName,
+                               (const char *)daestate->nodeName,
                                &blinn_phong);
       if (ret == AK_OK)
         technique->blinn = (AkBlinn *)blinn_phong;
@@ -82,7 +80,7 @@ ak_dae_techniqueFx(AkHeap * __restrict heap,
       AkConstantFx * constant_fx;
       AkResult ret;
 
-      ret = ak_dae_fxConstant(heap, technique, reader, &constant_fx);
+      ret = ak_dae_fxConstant(daestate, technique, &constant_fx);
       if (ret == AK_OK)
         technique->constant = constant_fx;
 
@@ -90,7 +88,7 @@ ak_dae_techniqueFx(AkHeap * __restrict heap,
       AkLambert * lambert;
       AkResult ret;
 
-      ret = ak_dae_fxLambert(heap, technique, reader, &lambert);
+      ret = ak_dae_fxLambert(daestate, technique, &lambert);
       if (ret == AK_OK)
         technique->lambert = lambert;
 
@@ -98,10 +96,9 @@ ak_dae_techniqueFx(AkHeap * __restrict heap,
       ak_blinn_phong * blinn_phong;
       AkResult ret;
 
-      ret = ak_dae_blinn_phong(heap,
+      ret = ak_dae_blinn_phong(daestate,
                                technique,
-                               reader,
-                               (const char *)nodeName,
+                               (const char *)daestate->nodeName,
                                &blinn_phong);
       if (ret == AK_OK)
         technique->phong = (AkPhong *)blinn_phong;
@@ -110,10 +107,14 @@ ak_dae_techniqueFx(AkHeap * __restrict heap,
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
-      nodePtr = xmlTextReaderExpand(reader);
+      nodePtr = xmlTextReaderExpand(daestate->reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(heap, technique, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(daestate->heap,
+                          technique,
+                          nodePtr,
+                          &tree,
+                          NULL);
       technique->extra = tree;
 
       _xml_skipElement;
@@ -123,10 +124,9 @@ ak_dae_techniqueFx(AkHeap * __restrict heap,
 
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
   
   *dest = technique;
   
   return AK_OK;
-
 }

@@ -9,19 +9,17 @@
 #include "../core/ak_collada_param.h"
 
 AkResult _assetkit_hide
-ak_dae_floatOrParam(AkHeap * __restrict heap,
+ak_dae_floatOrParam(AkDaeState * __restrict daestate,
                     void * __restrict memParent,
-                    xmlTextReaderPtr reader,
                     const char * elm,
                     AkFxFloatOrParam ** __restrict dest) {
   AkFxFloatOrParam *floatOrParam;
-  AkParam *last_param;
+  AkParam          *last_param;
 
-  const xmlChar *nodeName;
-  int            nodeType;
-  int            nodeRet;
-
-  floatOrParam = ak_heap_calloc(heap, memParent, sizeof(*floatOrParam), false);
+  floatOrParam = ak_heap_calloc(daestate->heap,
+                                memParent,
+                                sizeof(*floatOrParam),
+                                false);
   last_param = NULL;
 
   do {
@@ -31,7 +29,10 @@ ak_dae_floatOrParam(AkHeap * __restrict heap,
       ak_basic_attrf * valuef;
       const char * floatStr;
 
-      valuef = ak_heap_calloc(heap, floatOrParam, sizeof(*valuef), false);
+      valuef = ak_heap_calloc(daestate->heap,
+                              floatOrParam,
+                              sizeof(*valuef),
+                              false);
       _xml_readAttr(valuef, valuef->sid, _s_dae_sid);
       _xml_readConstText(floatStr);
       if (floatStr)
@@ -42,9 +43,8 @@ ak_dae_floatOrParam(AkHeap * __restrict heap,
       AkParam * param;
       AkResult   ret;
 
-      ret = ak_dae_param(heap,
+      ret = ak_dae_param(daestate,
                          floatOrParam,
-                         reader,
                          AK_PARAM_TYPE_BASIC,
                          &param);
 
@@ -62,7 +62,7 @@ ak_dae_floatOrParam(AkHeap * __restrict heap,
 
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
   
   *dest = floatOrParam;
 

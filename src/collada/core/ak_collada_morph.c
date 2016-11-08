@@ -11,21 +11,17 @@
 #include "../../ak_array.h"
 
 AkResult _assetkit_hide
-ak_dae_morph(AkHeap * __restrict heap,
+ak_dae_morph(AkDaeState * __restrict daestate,
              void * __restrict memParent,
-             xmlTextReaderPtr reader,
              bool asObject,
              AkMorph ** __restrict dest) {
-  AkObject       *obj;
-  AkMorph        *morph;
-  AkSource       *last_source;
-  void           *memPtr;
-  const xmlChar  *nodeName;
-  int             nodeType;
-  int             nodeRet;
+  AkObject *obj;
+  AkMorph  *morph;
+  AkSource *last_source;
+  void     *memPtr;
 
   if (asObject) {
-    obj = ak_objAlloc(heap,
+    obj = ak_objAlloc(daestate->heap,
                       memParent,
                       sizeof(*morph),
                       0,
@@ -36,7 +32,7 @@ ak_dae_morph(AkHeap * __restrict heap,
 
     memPtr = obj;
   } else {
-    morph = ak_heap_calloc(heap, memParent, sizeof(*morph), false);
+    morph = ak_heap_calloc(daestate->heap, memParent, sizeof(*morph), false);
     memPtr = morph;
   }
 
@@ -55,7 +51,7 @@ ak_dae_morph(AkHeap * __restrict heap,
       AkSource *source;
       AkResult ret;
 
-      ret = ak_dae_source(heap, memPtr, reader, &source);
+      ret = ak_dae_source(daestate, memPtr, &source);
       if (ret == AK_OK) {
         if (last_source)
           last_source->next = source;
@@ -68,7 +64,10 @@ ak_dae_morph(AkHeap * __restrict heap,
       AkTargets    *targets;
       AkInputBasic *last_input;
 
-      targets = ak_heap_calloc(heap, memPtr, sizeof(*targets), false);
+      targets = ak_heap_calloc(daestate->heap,
+                               memPtr,
+                               sizeof(*targets),
+                               false);
 
       last_input = NULL;
 
@@ -78,11 +77,14 @@ ak_dae_morph(AkHeap * __restrict heap,
         if (_xml_eqElm(_s_dae_input)) {
           AkInputBasic *input;
 
-          input = ak_heap_calloc(heap, targets, sizeof(*input), false);
+          input = ak_heap_calloc(daestate->heap,
+                                 targets,
+                                 sizeof(*input),
+                                 false);
 
           _xml_readAttr(input, input->semanticRaw, _s_dae_semantic);
 
-          ak_url_from_attr(reader,
+          ak_url_from_attr(daestate->reader,
                            _s_dae_source,
                            input,
                            &input->source);
@@ -109,10 +111,14 @@ ak_dae_morph(AkHeap * __restrict heap,
           xmlNodePtr nodePtr;
           AkTree   *tree;
 
-          nodePtr = xmlTextReaderExpand(reader);
+          nodePtr = xmlTextReaderExpand(daestate->reader);
           tree = NULL;
 
-          ak_tree_fromXmlNode(heap, memPtr, nodePtr, &tree, NULL);
+          ak_tree_fromXmlNode(daestate->heap,
+                              memPtr,
+                              nodePtr,
+                              &tree,
+                              NULL);
           morph->extra = tree;
 
           _xml_skipElement;
@@ -123,17 +129,21 @@ ak_dae_morph(AkHeap * __restrict heap,
 
         /* end element */
         _xml_endElement;
-      } while (nodeRet);
+      } while (daestate->nodeRet);
 
       morph->targets = targets;
     } else if (_xml_eqElm(_s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
       
-      nodePtr = xmlTextReaderExpand(reader);
+      nodePtr = xmlTextReaderExpand(daestate->reader);
       tree = NULL;
       
-      ak_tree_fromXmlNode(heap, memPtr, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(daestate->heap,
+                          memPtr,
+                          nodePtr,
+                          &tree,
+                          NULL);
       morph->extra = tree;
       
       _xml_skipElement;
@@ -143,7 +153,7 @@ ak_dae_morph(AkHeap * __restrict heap,
     
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
   
   *dest = morph;
   

@@ -28,17 +28,15 @@ static ak_enumpair constantMap[] = {
 static size_t constantMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_fxConstant(AkHeap * __restrict heap,
+ak_dae_fxConstant(AkDaeState * __restrict daestate,
                   void * __restrict memParent,
-                  xmlTextReaderPtr reader,
                   AkConstantFx ** __restrict dest) {
-  AkConstantFx  *constant;
-  const xmlChar *nodeName;
-  int            nodeType;
-  int            nodeRet;
+  AkConstantFx *constant;
 
-
-  constant = ak_heap_calloc(heap, memParent, sizeof(*constant), false);
+  constant = ak_heap_calloc(daestate->heap,
+                            memParent,
+                            sizeof(*constant),
+                            false);
 
   if (constantMapLen == 0) {
     constantMapLen = AK_ARRAY_LEN(constantMap);
@@ -53,7 +51,7 @@ ak_dae_fxConstant(AkHeap * __restrict heap,
 
     _xml_beginElement(_s_dae_constant);
 
-    found = bsearch(nodeName,
+    found = bsearch(daestate->nodeName,
                     constantMap,
                     constantMapLen,
                     sizeof(constantMap[0]),
@@ -66,10 +64,9 @@ ak_dae_fxConstant(AkHeap * __restrict heap,
         AkFxColorOrTex *colorOrTex;
         AkResult ret;
 
-        ret = ak_dae_colorOrTex(heap,
+        ret = ak_dae_colorOrTex(daestate,
                                 constant,
-                                reader,
-                                (const char *)nodeName,
+                                (const char *)daestate->nodeName,
                                 &colorOrTex);
         if (ret == AK_OK) {
           switch (found->val) {
@@ -94,10 +91,9 @@ ak_dae_fxConstant(AkHeap * __restrict heap,
         AkFxFloatOrParam * floatOrParam;
         AkResult ret;
 
-        ret = ak_dae_floatOrParam(heap,
+        ret = ak_dae_floatOrParam(daestate,
                                   constant,
-                                  reader,
-                                  (const char *)nodeName,
+                                  (const char *)daestate->nodeName,
                                   &floatOrParam);
 
         if (ret == AK_OK) {
@@ -124,7 +120,7 @@ ak_dae_fxConstant(AkHeap * __restrict heap,
 
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
   
   *dest = constant;
   

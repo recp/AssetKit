@@ -11,51 +11,42 @@
 
 static
 AkResult _assetkit_hide
-ak_dae_fxImage_initFrom(AkHeap * __restrict heap,
+ak_dae_fxImage_initFrom(AkDaeState * __restrict daestate,
                         void * __restrict memParent,
-                        xmlTextReaderPtr reader,
                         AkInitFrom ** __restrict dest);
 
 static
 AkResult _assetkit_hide
-ak_dae_fxImage_format(AkHeap * __restrict heap,
+ak_dae_fxImage_format(AkDaeState * __restrict daestate,
                       void * __restrict memParent,
-                      xmlTextReaderPtr reader,
                       AkImageFormat ** __restrict dest);
 
 static
 AkResult _assetkit_hide
-ak_dae_fxImage_create2d(AkHeap * __restrict heap,
+ak_dae_fxImage_create2d(AkDaeState * __restrict daestate,
                         void * __restrict memParent,
-                        xmlTextReaderPtr reader,
                         AkImage2d ** __restrict dest);
 
 static
 AkResult _assetkit_hide
-ak_dae_fxImage_create3d(AkHeap * __restrict heap,
+ak_dae_fxImage_create3d(AkDaeState * __restrict daestate,
                         void * __restrict memParent,
-                        xmlTextReaderPtr reader,
                         AkImage3d ** __restrict dest);
 
 static
 int _assetkit_hide
-ak_dae_fxImage_createCube(AkHeap * __restrict heap,
+ak_dae_fxImage_createCube(AkDaeState * __restrict daestate,
                           void * __restrict memParent,
-                          xmlTextReaderPtr reader,
                           AkImageCube ** __restrict dest);
 
 
 AkResult _assetkit_hide
-ak_dae_fxImage(AkHeap * __restrict heap,
+ak_dae_fxImage(AkDaeState * __restrict daestate,
                void * __restrict memParent,
-               xmlTextReaderPtr reader,
                AkImage ** __restrict dest) {
   AkImage *img;
-  const xmlChar *nodeName;
-  int            nodeType;
-  int            nodeRet;
 
-  img = ak_heap_calloc(heap, memParent, sizeof(*img), true);
+  img = ak_heap_calloc(daestate->heap, memParent, sizeof(*img), true);
 
   _xml_readId(img);
   _xml_readAttr(img, img->sid, _s_dae_sid);
@@ -69,13 +60,13 @@ ak_dae_fxImage(AkHeap * __restrict heap,
       AkResult     ret;
 
       assetInf = NULL;
-      ret = ak_dae_assetInf(heap, img, reader, &assetInf);
+      ret = ak_dae_assetInf(daestate, img, &assetInf);
       if (ret == AK_OK)
         img->inf = assetInf;
     } else if (_xml_eqElm(_s_dae_renderable)) {
       xmlChar *attrValStr;
       attrValStr =
-      xmlTextReaderGetAttribute(reader,
+      xmlTextReaderGetAttribute(daestate->reader,
                                 (const xmlChar *)_s_dae_renderable);
       if (attrValStr) {
         if (xmlStrcasecmp(attrValStr, (const xmlChar *)_s_dae_true))
@@ -87,38 +78,42 @@ ak_dae_fxImage(AkHeap * __restrict heap,
       AkInitFrom *initFrom;
       AkResult      ret;
 
-      ret = ak_dae_fxImage_initFrom(heap, img, reader, &initFrom);
+      ret = ak_dae_fxImage_initFrom(daestate, img, &initFrom);
       if (ret == AK_OK)
         img->initFrom = initFrom;
     } else if (_xml_eqElm(_s_dae_create_2d)) {
       AkImage2d *image2d;
       AkResult    ret;
 
-      ret = ak_dae_fxImage_create2d(heap, img, reader, &image2d);
+      ret = ak_dae_fxImage_create2d(daestate, img, &image2d);
       if (ret == AK_OK)
         img->image2d = image2d;
     } else if (_xml_eqElm(_s_dae_create_3d)) {
       AkImage3d *image3d;
       AkResult    ret;
 
-      ret = ak_dae_fxImage_create3d(heap, img, reader, &image3d);
+      ret = ak_dae_fxImage_create3d(daestate, img, &image3d);
       if (ret == AK_OK)
         img->image3d = image3d;
     } else if (_xml_eqElm(_s_dae_create_cube)) {
       AkImageCube *imageCube;
       AkResult ret;
 
-      ret = ak_dae_fxImage_createCube(heap, img, reader, &imageCube);
+      ret = ak_dae_fxImage_createCube(daestate, img, &imageCube);
       if (ret == AK_OK)
         img->cube = imageCube;
     } else if (_xml_eqElm(_s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree    *tree;
 
-      nodePtr = xmlTextReaderExpand(reader);
+      nodePtr = xmlTextReaderExpand(daestate->reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(heap, img, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(daestate->heap,
+                          img,
+                          nodePtr,
+                          &tree,
+                          NULL);
       img->extra = tree;
 
       _xml_skipElement;
@@ -128,7 +123,7 @@ ak_dae_fxImage(AkHeap * __restrict heap,
 
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
 
   *dest = img;
 
@@ -136,16 +131,12 @@ ak_dae_fxImage(AkHeap * __restrict heap,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxInstanceImage(AkHeap * __restrict heap,
+ak_dae_fxInstanceImage(AkDaeState * __restrict daestate,
                        void * __restrict memParent,
-                       xmlTextReaderPtr reader,
                        AkInstanceImage ** __restrict dest) {
   AkInstanceImage *instanceImage;
-  const xmlChar *nodeName;
-  int            nodeType;
-  int            nodeRet;
 
-  instanceImage = ak_heap_calloc(heap,
+  instanceImage = ak_heap_calloc(daestate->heap,
                                  memParent,
                                  sizeof(*instanceImage),
                                  false);
@@ -153,7 +144,7 @@ ak_dae_fxInstanceImage(AkHeap * __restrict heap,
   _xml_readAttr(instanceImage, instanceImage->sid, _s_dae_sid);
   _xml_readAttr(instanceImage, instanceImage->name, _s_dae_name);
 
-  ak_url_from_attr(reader,
+  ak_url_from_attr(daestate->reader,
                    _s_dae_url,
                    instanceImage,
                    &instanceImage->url);
@@ -165,10 +156,10 @@ ak_dae_fxInstanceImage(AkHeap * __restrict heap,
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
-      nodePtr = xmlTextReaderExpand(reader);
+      nodePtr = xmlTextReaderExpand(daestate->reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(heap,
+      ak_tree_fromXmlNode(daestate->heap,
                           instanceImage,
                           nodePtr,
                           &tree,
@@ -182,7 +173,7 @@ ak_dae_fxInstanceImage(AkHeap * __restrict heap,
 
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
 
   *dest = instanceImage;
 
@@ -191,17 +182,16 @@ ak_dae_fxInstanceImage(AkHeap * __restrict heap,
 
 static
 AkResult _assetkit_hide
-ak_dae_fxImage_initFrom(AkHeap * __restrict heap,
+ak_dae_fxImage_initFrom(AkDaeState * __restrict daestate,
                         void * __restrict memParent,
-                        xmlTextReaderPtr reader,
                         AkInitFrom ** __restrict dest) {
   AkInitFrom *initFrom;
-  char          *attrValStr;
-  const xmlChar *nodeName;
-  int            nodeType;
-  int            nodeRet;
+  char       *attrValStr;
 
-  initFrom = ak_heap_calloc(heap, memParent, sizeof(*initFrom), false);
+  initFrom = ak_heap_calloc(daestate->heap,
+                            memParent,
+                            sizeof(*initFrom),
+                            false);
 
   _xml_readAttrUsingFn(initFrom->mipsGenerate,
                        _s_dae_mips_generate,
@@ -219,7 +209,7 @@ ak_dae_fxImage_initFrom(AkHeap * __restrict heap,
                        _s_dae_depth,
                        (AkInt)strtol, NULL, 10);
 
-  attrValStr = (char *)xmlTextReaderGetAttribute(reader,
+  attrValStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
                                     (const xmlChar *)_s_dae_face);
   if (attrValStr) {
     AkEnum attrVal;
@@ -237,7 +227,7 @@ ak_dae_fxImage_initFrom(AkHeap * __restrict heap,
       _xml_readText(initFrom, initFrom->ref);
     } else if (_xml_eqElm(_s_dae_hex)) {
       AkHexData *hex;
-      hex = ak_heap_calloc(heap, initFrom, sizeof(*hex), false);
+      hex = ak_heap_calloc(daestate->heap, initFrom, sizeof(*hex), false);
 
       _xml_readAttr(hex, hex->format, _s_dae_format);
 
@@ -253,7 +243,7 @@ ak_dae_fxImage_initFrom(AkHeap * __restrict heap,
 
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
 
   *dest = initFrom;
 
@@ -262,17 +252,12 @@ ak_dae_fxImage_initFrom(AkHeap * __restrict heap,
 
 static
 AkResult _assetkit_hide
-ak_dae_fxImage_format(AkHeap * __restrict heap,
+ak_dae_fxImage_format(AkDaeState * __restrict daestate,
                       void * __restrict memParent,
-                      xmlTextReaderPtr reader,
                       AkImageFormat ** __restrict dest) {
-
   AkImageFormat *format;
-  const xmlChar *nodeName;
-  int            nodeType;
-  int            nodeRet;
 
-  format = ak_heap_calloc(heap, memParent, sizeof(*format), false);
+  format = ak_heap_calloc(daestate->heap, memParent, sizeof(*format), false);
 
   do {
     _xml_beginElement(_s_dae_format);
@@ -280,7 +265,7 @@ ak_dae_fxImage_format(AkHeap * __restrict heap,
     if (_xml_eqElm(_s_dae_hint)) {
       char *attrValStr;
 
-      attrValStr = (char *)xmlTextReaderGetAttribute(reader,
+      attrValStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
                                         (const xmlChar *)_s_dae_channels);
       if (attrValStr) {
         AkEnum attrVal;
@@ -292,8 +277,8 @@ ak_dae_fxImage_format(AkHeap * __restrict heap,
         attrValStr = NULL;
       }
 
-      attrValStr = (char *)xmlTextReaderGetAttribute(reader,
-                                                     (const xmlChar *)_s_dae_range);
+      attrValStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
+                                         (const xmlChar *)_s_dae_range);
       if (attrValStr) {
         AkEnum attrVal;
         attrVal = ak_dae_fxEnumRange(attrValStr);
@@ -304,7 +289,7 @@ ak_dae_fxImage_format(AkHeap * __restrict heap,
         attrValStr = NULL;
       }
 
-      attrValStr = (char *)xmlTextReaderGetAttribute(reader,
+      attrValStr = (char *)xmlTextReaderGetAttribute(daestate->reader,
                                         (const xmlChar *)_s_dae_precision);
       if (attrValStr) {
         AkEnum attrVal;
@@ -325,7 +310,7 @@ ak_dae_fxImage_format(AkHeap * __restrict heap,
 
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
 
   *dest = format;
 
@@ -334,17 +319,15 @@ ak_dae_fxImage_format(AkHeap * __restrict heap,
 
 static
 AkResult _assetkit_hide
-ak_dae_fxImage_create2d(AkHeap * __restrict heap,
+ak_dae_fxImage_create2d(AkDaeState * __restrict daestate,
                         void * __restrict memParent,
-                        xmlTextReaderPtr reader,
                         AkImage2d ** __restrict dest) {
+  AkImage2d *image2d;
 
-  AkImage2d   *image2d;
-  const xmlChar *nodeName;
-  int            nodeType;
-  int            nodeRet;
-
-  image2d = ak_heap_calloc(heap, memParent, sizeof(*image2d), false);
+  image2d = ak_heap_calloc(daestate->heap,
+                           memParent,
+                           sizeof(*image2d),
+                           false);
 
   do {
     _xml_beginElement(_s_dae_create_2d);
@@ -352,7 +335,10 @@ ak_dae_fxImage_create2d(AkHeap * __restrict heap,
     if (_xml_eqElm(_s_dae_size_exact)) {
       AkSizeExact *sizeExact;
 
-      sizeExact = ak_heap_calloc(heap, image2d, sizeof(*sizeExact), false);
+      sizeExact = ak_heap_calloc(daestate->heap,
+                                 image2d,
+                                 sizeof(*sizeExact),
+                                 false);
 
       _xml_readAttrUsingFn(sizeExact->width,
                            _s_dae_width,
@@ -366,7 +352,10 @@ ak_dae_fxImage_create2d(AkHeap * __restrict heap,
     } else if (_xml_eqElm(_s_dae_size_ratio)) {
       AkSizeRatio *sizeRatio;
 
-      sizeRatio = ak_heap_calloc(heap, image2d, sizeof(*sizeRatio), false);
+      sizeRatio = ak_heap_calloc(daestate->heap,
+                                 image2d,
+                                 sizeof(*sizeRatio),
+                                 false);
 
       _xml_readAttrUsingFn(sizeRatio->width,
                            _s_dae_width,
@@ -380,7 +369,10 @@ ak_dae_fxImage_create2d(AkHeap * __restrict heap,
     } else if (_xml_eqElm(_s_dae_mips)) {
       AkMips *mips;
 
-      mips = ak_heap_calloc(heap, image2d, sizeof(*mips), false);
+      mips = ak_heap_calloc(daestate->heap,
+                            image2d,
+                            sizeof(*mips),
+                            false);
 
       _xml_readAttrUsingFn(mips->levels,
                            _s_dae_width,
@@ -401,14 +393,14 @@ ak_dae_fxImage_create2d(AkHeap * __restrict heap,
       AkImageFormat *imageFormat;
       AkResult ret;
 
-      ret = ak_dae_fxImage_format(heap, image2d, reader, &imageFormat);
+      ret = ak_dae_fxImage_format(daestate, image2d, &imageFormat);
       if (ret == AK_OK)
         image2d->format = imageFormat;
     } else if (_xml_eqElm(_s_dae_size_exact)) {
       AkInitFrom *initFrom;
       AkResult ret;
 
-      ret = ak_dae_fxImage_initFrom(heap, image2d, reader, &initFrom);
+      ret = ak_dae_fxImage_initFrom(daestate, image2d, &initFrom);
       if (ret == AK_OK)
         image2d->initFrom = initFrom;
     } else {
@@ -417,7 +409,7 @@ ak_dae_fxImage_create2d(AkHeap * __restrict heap,
 
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
 
   *dest = image2d;
 
@@ -426,16 +418,15 @@ ak_dae_fxImage_create2d(AkHeap * __restrict heap,
 
 static
 AkResult _assetkit_hide
-ak_dae_fxImage_create3d(AkHeap * __restrict heap,
+ak_dae_fxImage_create3d(AkDaeState * __restrict daestate,
                         void * __restrict memParent,
-                        xmlTextReaderPtr reader,
                         AkImage3d ** __restrict dest) {
-  AkImage3d   *image3d;
-  const xmlChar *nodeName;
-  int            nodeType;
-  int            nodeRet;
+  AkImage3d *image3d;
 
-  image3d = ak_heap_calloc(heap, memParent, sizeof(*image3d), false);
+  image3d = ak_heap_calloc(daestate->heap,
+                           memParent,
+                           sizeof(*image3d),
+                           false);
 
   do {
     _xml_beginElement(_s_dae_create_3d);
@@ -468,14 +459,14 @@ ak_dae_fxImage_create3d(AkHeap * __restrict heap,
       AkImageFormat *imageFormat;
       AkResult ret;
 
-      ret = ak_dae_fxImage_format(heap, image3d, reader, &imageFormat);
+      ret = ak_dae_fxImage_format(daestate, image3d, &imageFormat);
       if (ret == AK_OK)
         image3d->format = imageFormat;
     } else if (_xml_eqElm(_s_dae_size_exact)) {
       AkInitFrom *initFrom;
       AkResult ret;
 
-      ret = ak_dae_fxImage_initFrom(heap, image3d, reader, &initFrom);
+      ret = ak_dae_fxImage_initFrom(daestate, image3d, &initFrom);
       if (ret == AK_OK)
         image3d->initFrom = initFrom;
     } else {
@@ -484,7 +475,7 @@ ak_dae_fxImage_create3d(AkHeap * __restrict heap,
 
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
 
   *dest = image3d;
 
@@ -493,16 +484,15 @@ ak_dae_fxImage_create3d(AkHeap * __restrict heap,
 
 static
 AkResult _assetkit_hide
-ak_dae_fxImage_createCube(AkHeap * __restrict heap,
+ak_dae_fxImage_createCube(AkDaeState * __restrict daestate,
                           void * __restrict memParent,
-                          xmlTextReaderPtr reader,
                           AkImageCube ** __restrict dest) {
   AkImageCube *imageCube;
-  const xmlChar *nodeName;
-  int            nodeType;
-  int            nodeRet;
 
-  imageCube = ak_heap_calloc(heap, memParent, sizeof(*imageCube), false);
+  imageCube = ak_heap_calloc(daestate->heap,
+                             memParent,
+                             sizeof(*imageCube),
+                             false);
 
   do {
     _xml_beginElement(_s_dae_create_cube);
@@ -527,14 +517,14 @@ ak_dae_fxImage_createCube(AkHeap * __restrict heap,
       AkImageFormat *imageFormat;
       AkResult ret;
       
-      ret = ak_dae_fxImage_format(heap, imageCube, reader, &imageFormat);
+      ret = ak_dae_fxImage_format(daestate, imageCube, &imageFormat);
       if (ret == AK_OK)
         imageCube->format = imageFormat;
     } else if (_xml_eqElm(_s_dae_size_exact)) {
       AkInitFrom *initFrom;
       AkResult ret;
       
-      ret = ak_dae_fxImage_initFrom(heap, imageCube, reader, &initFrom);
+      ret = ak_dae_fxImage_initFrom(daestate, imageCube, &initFrom);
       if (ret == AK_OK)
         imageCube->initFrom = initFrom;
     } else {
@@ -543,7 +533,7 @@ ak_dae_fxImage_createCube(AkHeap * __restrict heap,
     
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
   
   *dest = imageCube;
   

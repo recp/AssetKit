@@ -11,18 +11,17 @@
 #include "ak_collada_fx_uniform.h"
 
 AkResult _assetkit_hide
-ak_dae_fxShader(AkHeap * __restrict heap,
+ak_dae_fxShader(AkDaeState * __restrict daestate,
                 void * __restrict memParent,
-                xmlTextReaderPtr reader,
                 AkShader ** __restrict dest) {
   AkShader      *shader;
   AkCompiler    *last_compiler;
   AkBindUniform *last_bind_uniform;
-  const xmlChar *nodeName;
-  int            nodeType;
-  int            nodeRet;
 
-  shader = ak_heap_calloc(heap, memParent, sizeof(*shader), false);
+  shader = ak_heap_calloc(daestate->heap,
+                          memParent,
+                          sizeof(*shader),
+                          false);
 
   _xml_readAttrAsEnum(shader->stage,
                       _s_dae_stage,
@@ -39,7 +38,10 @@ ak_dae_fxShader(AkHeap * __restrict heap,
       AkInline  *last_inline;
       AkImport  *last_import;
 
-      sources = ak_heap_calloc(heap, shader, sizeof(*sources), false);
+      sources = ak_heap_calloc(daestate->heap,
+                               shader,
+                               sizeof(*sources),
+                               false);
       _xml_readAttr(sources, sources->entry, _s_dae_entry);
 
       last_inline = NULL;
@@ -51,7 +53,10 @@ ak_dae_fxShader(AkHeap * __restrict heap,
         if (_xml_eqElm(_s_dae_inline)) {
           AkInline *nInline;
 
-          nInline = ak_heap_calloc(heap, shader, sizeof(*nInline), false);
+          nInline = ak_heap_calloc(daestate->heap,
+                                   shader,
+                                   sizeof(*nInline),
+                                   false);
           _xml_readText(nInline, nInline->val);
 
           if (last_inline)
@@ -63,7 +68,10 @@ ak_dae_fxShader(AkHeap * __restrict heap,
         } else if (_xml_eqElm(_s_dae_import)) {
           AkImport *nImport;
 
-          nImport = ak_heap_calloc(heap, shader, sizeof(*nImport), false);
+          nImport = ak_heap_calloc(daestate->heap,
+                                   shader,
+                                   sizeof(*nImport),
+                                   false);
           _xml_readText(nImport, nImport->ref);
 
           if (last_import)
@@ -78,13 +86,16 @@ ak_dae_fxShader(AkHeap * __restrict heap,
         
         /* end element */
         _xml_endElement;
-      } while (nodeRet);
+      } while (daestate->nodeRet);
 
       shader->sources = sources;
     } else if (_xml_eqElm(_s_dae_compiler)) {
       AkCompiler *compiler;
 
-      compiler = ak_heap_calloc(heap, shader, sizeof(*compiler), false);
+      compiler = ak_heap_calloc(daestate->heap,
+                                shader,
+                                sizeof(*compiler),
+                                false);
 
       _xml_readAttr(compiler, compiler->platform, _s_dae_platform);
       _xml_readAttr(compiler, compiler->target, _s_dae_target);
@@ -97,7 +108,7 @@ ak_dae_fxShader(AkHeap * __restrict heap,
           AkBinary *binary;
           AkResult  ret;
 
-          ret = ak_dae_fxBinary(heap, compiler, reader, &binary);
+          ret = ak_dae_fxBinary(daestate, compiler, &binary);
           if (ret == AK_OK)
             compiler->binary = binary;
         } else {
@@ -106,7 +117,7 @@ ak_dae_fxShader(AkHeap * __restrict heap,
 
         /* end element */
         _xml_endElement;
-      } while (nodeRet);
+      } while (daestate->nodeRet);
 
       if (last_compiler)
         last_compiler->next = compiler;
@@ -118,7 +129,7 @@ ak_dae_fxShader(AkHeap * __restrict heap,
       AkBindUniform *bindUniform;
       AkResult ret;
 
-      ret = ak_dae_fxBindUniform(heap, shader, reader, &bindUniform);
+      ret = ak_dae_fxBindUniform(daestate, shader, &bindUniform);
       if (ret == AK_OK) {
         if (last_bind_uniform)
           last_bind_uniform->next = bindUniform;
@@ -131,10 +142,14 @@ ak_dae_fxShader(AkHeap * __restrict heap,
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
-      nodePtr = xmlTextReaderExpand(reader);
+      nodePtr = xmlTextReaderExpand(daestate->reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(heap, shader, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(daestate->heap,
+                          shader,
+                          nodePtr,
+                          &tree,
+                          NULL);
       shader->extra = tree;
 
       _xml_skipElement;
@@ -144,7 +159,7 @@ ak_dae_fxShader(AkHeap * __restrict heap,
 
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
 
   *dest = shader;
   

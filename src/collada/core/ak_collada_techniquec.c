@@ -12,19 +12,14 @@
 #include <cglm.h>
 
 AkResult _assetkit_hide
-ak_dae_techniquec(AkHeap * __restrict heap,
+ak_dae_techniquec(AkDaeState * __restrict daestate,
                   void * __restrict memParent,
-                  xmlTextReaderPtr reader,
                   AkTechniqueCommon ** __restrict dest) {
 
-  AkTechniqueCommon *techc;
-  AkInstanceMaterial  *last_instanceMaterial;
+  AkTechniqueCommon  *techc;
+  AkInstanceMaterial *last_instanceMaterial;
 
-  const xmlChar * nodeName;
-  int             nodeType;
-  int             nodeRet;
-
-  techc = ak_heap_calloc(heap, memParent, sizeof(*techc), false);
+  techc = ak_heap_calloc(daestate->heap, memParent, sizeof(*techc), false);
 
   last_instanceMaterial = NULL;
 
@@ -34,14 +29,20 @@ ak_dae_techniquec(AkHeap * __restrict heap,
     /* optics -> perspective */
     if (_xml_eqElm(_s_dae_perspective)) {
       AkPerspective * perspective;
-      perspective = ak_heap_calloc(heap, techc, sizeof(*perspective), false);
+      perspective = ak_heap_calloc(daestate->heap,
+                                   techc,
+                                   sizeof(*perspective),
+                                   false);
       
       do {
         _xml_beginElement(_s_dae_perspective);
 
         if (_xml_eqElm(_s_dae_xfov)) {
           ak_basic_attrf * xfov;
-          xfov = ak_heap_calloc(heap, perspective, sizeof(*xfov), false);
+          xfov = ak_heap_calloc(daestate->heap,
+                                perspective,
+                                sizeof(*xfov),
+                                false);
 
           _xml_readAttr(xfov, xfov->sid, _s_dae_sid);
           _xml_readTextUsingFn(xfov->val, strtof, NULL);
@@ -50,7 +51,10 @@ ak_dae_techniquec(AkHeap * __restrict heap,
           perspective->xfov = xfov;
         } else if (_xml_eqElm(_s_dae_yfov)) {
           ak_basic_attrf * yfov;
-          yfov = ak_heap_calloc(heap, perspective, sizeof(*yfov), false);
+          yfov = ak_heap_calloc(daestate->heap,
+                                perspective,
+                                sizeof(*yfov),
+                                false);
 
           _xml_readAttr(yfov, yfov->sid, _s_dae_sid);
           _xml_readTextUsingFn(yfov->val, strtof, NULL);
@@ -59,7 +63,7 @@ ak_dae_techniquec(AkHeap * __restrict heap,
           perspective->yfov = yfov;
         } else if (_xml_eqElm(_s_dae_aspect_ratio)) {
           ak_basic_attrf * aspectRatio;
-          aspectRatio = ak_heap_calloc(heap,
+          aspectRatio = ak_heap_calloc(daestate->heap,
                                        perspective,
                                        sizeof(*aspectRatio),
                                        false);
@@ -70,7 +74,10 @@ ak_dae_techniquec(AkHeap * __restrict heap,
           perspective->aspectRatio = aspectRatio;
         } else if (_xml_eqElm(_s_dae_znear)) {
           ak_basic_attrf * znear;
-          znear = ak_heap_calloc(heap, perspective, sizeof(*znear), false);
+          znear = ak_heap_calloc(daestate->heap,
+                                 perspective,
+                                 sizeof(*znear),
+                                 false);
 
           _xml_readAttr(znear, znear->sid, _s_dae_sid);
           _xml_readTextUsingFn(znear->val, strtof, NULL);
@@ -78,7 +85,10 @@ ak_dae_techniquec(AkHeap * __restrict heap,
           perspective->znear = znear;
         } else if (_xml_eqElm(_s_dae_zfar)) {
           ak_basic_attrf * zfar;
-          zfar = ak_heap_calloc(heap, perspective, sizeof(*zfar), false);
+          zfar = ak_heap_calloc(daestate->heap,
+                                perspective,
+                                sizeof(*zfar),
+                                false);
 
           _xml_readAttr(zfar, zfar->sid, _s_dae_sid);
           _xml_readTextUsingFn(zfar->val, strtof, NULL);
@@ -90,7 +100,7 @@ ak_dae_techniquec(AkHeap * __restrict heap,
 
         /* end element */
         _xml_endElement;
-      } while (nodeRet);
+      } while (daestate->nodeRet);
 
       techc->technique = perspective;
       techc->techniqueType = AK_TECHNIQUE_COMMON_CAMERA_PERSPECTIVE;
@@ -99,7 +109,7 @@ ak_dae_techniquec(AkHeap * __restrict heap,
           && perspective->yfov
           && perspective->xfov) {
         ak_basic_attrf * aspectRatio;
-        aspectRatio = ak_heap_calloc(heap,
+        aspectRatio = ak_heap_calloc(daestate->heap,
                                      perspective,
                                      sizeof(*aspectRatio),
                                      false);
@@ -110,7 +120,7 @@ ak_dae_techniquec(AkHeap * __restrict heap,
                  && perspective->aspectRatio
                  && perspective->xfov) {
         ak_basic_attrf * yfov;
-        yfov = ak_heap_calloc(heap,
+        yfov = ak_heap_calloc(daestate->heap,
                               perspective,
                               sizeof(*yfov),
                               false);
@@ -121,7 +131,7 @@ ak_dae_techniquec(AkHeap * __restrict heap,
                  && perspective->aspectRatio
                  && perspective->yfov) {
         ak_basic_attrf * xfov;
-        xfov = ak_heap_calloc(heap,
+        xfov = ak_heap_calloc(daestate->heap,
                               perspective,
                               sizeof(*xfov),
                               false);
@@ -134,14 +144,20 @@ ak_dae_techniquec(AkHeap * __restrict heap,
     /* optics -> orthographic */
     else if (_xml_eqElm(_s_dae_orthographic)) {
       AkOrthographic * orthographic;
-      orthographic = ak_heap_calloc(heap, techc, sizeof(*orthographic), false);
+      orthographic = ak_heap_calloc(daestate->heap,
+                                    techc,
+                                    sizeof(*orthographic),
+                                    false);
 
       do {
         _xml_beginElement(_s_dae_orthographic);
 
         if (_xml_eqElm(_s_dae_xmag)) {
           ak_basic_attrf * xmag;
-          xmag = ak_heap_calloc(heap, orthographic, sizeof(*xmag), false);
+          xmag = ak_heap_calloc(daestate->heap,
+                                orthographic,
+                                sizeof(*xmag),
+                                false);
 
           _xml_readAttr(xmag, xmag->sid, _s_dae_sid);
           _xml_readTextUsingFn(xmag->val, strtof, NULL);
@@ -149,7 +165,10 @@ ak_dae_techniquec(AkHeap * __restrict heap,
           orthographic->xmag = xmag;
         } else if (_xml_eqElm(_s_dae_ymag)) {
           ak_basic_attrf * ymag;
-          ymag = ak_heap_calloc(heap, orthographic, sizeof(*ymag), false);
+          ymag = ak_heap_calloc(daestate->heap,
+                                orthographic,
+                                sizeof(*ymag),
+                                false);
 
           _xml_readAttr(ymag, ymag->sid, _s_dae_sid);
           _xml_readTextUsingFn(ymag->val, strtof, NULL);
@@ -157,7 +176,7 @@ ak_dae_techniquec(AkHeap * __restrict heap,
           orthographic->ymag = ymag;
         } else if (_xml_eqElm(_s_dae_aspect_ratio)) {
           ak_basic_attrf * aspectRatio;
-          aspectRatio = ak_heap_calloc(heap,
+          aspectRatio = ak_heap_calloc(daestate->heap,
                                        orthographic,
                                        sizeof(*aspectRatio),
                                        false);
@@ -168,7 +187,10 @@ ak_dae_techniquec(AkHeap * __restrict heap,
           orthographic->aspectRatio = aspectRatio;
         } else if (_xml_eqElm(_s_dae_znear)) {
           ak_basic_attrf * znear;
-          znear = ak_heap_calloc(heap, orthographic, sizeof(*znear), false);
+          znear = ak_heap_calloc(daestate->heap,
+                                 orthographic,
+                                 sizeof(*znear),
+                                 false);
 
           _xml_readAttr(znear, znear->sid, _s_dae_sid);
           _xml_readTextUsingFn(znear->val, strtof, NULL);
@@ -176,7 +198,10 @@ ak_dae_techniquec(AkHeap * __restrict heap,
           orthographic->znear = znear;
         } else if (_xml_eqElm(_s_dae_zfar)) {
           ak_basic_attrf * zfar;
-          zfar = ak_heap_calloc(heap, orthographic, sizeof(*zfar), false);
+          zfar = ak_heap_calloc(daestate->heap,
+                                orthographic,
+                                sizeof(*zfar),
+                                false);
 
           _xml_readAttr(zfar, zfar->sid, _s_dae_sid);
           _xml_readTextUsingFn(zfar->val, strtof, NULL);
@@ -188,7 +213,7 @@ ak_dae_techniquec(AkHeap * __restrict heap,
 
         /* end element */
         _xml_endElement;
-      } while (nodeRet);
+      } while (daestate->nodeRet);
 
       techc->technique = orthographic;
       techc->techniqueType = AK_TECHNIQUE_COMMON_CAMERA_ORTHOGRAPHIC;
@@ -197,7 +222,10 @@ ak_dae_techniquec(AkHeap * __restrict heap,
     /* light -> ambient */
     else if (_xml_eqElm(_s_dae_ambient)) {
       AkAmbient * ambient;
-      ambient = ak_heap_calloc(heap, techc, sizeof(*ambient), false);
+      ambient = ak_heap_calloc(daestate->heap,
+                               techc,
+                               sizeof(*ambient),
+                               false);
 
       do {
         _xml_beginElement(_s_dae_ambient);
@@ -218,7 +246,7 @@ ak_dae_techniquec(AkHeap * __restrict heap,
 
         /* end element */
         _xml_endElement;
-      } while (nodeRet);
+      } while (daestate->nodeRet);
 
       techc->technique = ambient;
       techc->techniqueType = AK_TECHNIQUE_COMMON_LIGHT_AMBIENT;
@@ -227,20 +255,23 @@ ak_dae_techniquec(AkHeap * __restrict heap,
     /* light -> directional */
     else if (_xml_eqElm(_s_dae_directional)) {
       AkDirectional * directional;
-      directional = ak_heap_calloc(heap, techc, sizeof(*directional), false);
+      directional = ak_heap_calloc(daestate->heap,
+                                   techc,
+                                   sizeof(*directional),
+                                   false);
 
       do {
         _xml_beginElement(_s_dae_directional);
 
         if (_xml_eqElm(_s_dae_color)) {
-          ak_dae_color(heap, reader, true, &directional->color);
+          ak_dae_color(daestate, true, &directional->color);
         } else {
           _xml_skipElement;
         }
 
         /* end element */
         _xml_endElement;
-      } while (nodeRet);
+      } while (daestate->nodeRet);
 
       techc->technique = directional;
       techc->techniqueType = AK_TECHNIQUE_COMMON_LIGHT_DIRECTIONAL;
@@ -249,19 +280,20 @@ ak_dae_techniquec(AkHeap * __restrict heap,
     /* light -> point */
     else if (_xml_eqElm(_s_dae_point)) {
       AkPoint * point;
-      point = ak_heap_calloc(heap, techc, sizeof(*point), false);
+      point = ak_heap_calloc(daestate->heap, techc, sizeof(*point), false);
 
       do {
         _xml_beginElement(_s_dae_point);
 
         if (_xml_eqElm(_s_dae_color)) {
-          ak_dae_color(heap, reader, true, &point->color);
+          ak_dae_color(daestate, true, &point->color);
         } else if (_xml_eqElm(_s_dae_constant_attenuation)) {
           ak_basic_attrd * constantAttenuation;
 
-          constantAttenuation = ak_heap_calloc(heap, point,
-                                          sizeof(*constantAttenuation),
-                                          false);
+          constantAttenuation = ak_heap_calloc(daestate->heap,
+                                               point,
+                                               sizeof(*constantAttenuation),
+                                               false);
 
           _xml_readTextUsingFn(constantAttenuation->val, strtod, NULL);
           _xml_readAttr(constantAttenuation,
@@ -272,9 +304,10 @@ ak_dae_techniquec(AkHeap * __restrict heap,
         } else if (_xml_eqElm(_s_dae_linear_attenuation)) {
           ak_basic_attrd * linearAttenuation;
 
-          linearAttenuation = ak_heap_calloc(heap, point,
-                                        sizeof(*linearAttenuation),
-                                        false);
+          linearAttenuation = ak_heap_calloc(daestate->heap,
+                                             point,
+                                             sizeof(*linearAttenuation),
+                                             false);
 
           _xml_readTextUsingFn(linearAttenuation->val, strtod, NULL);
           _xml_readAttr(linearAttenuation,
@@ -285,9 +318,10 @@ ak_dae_techniquec(AkHeap * __restrict heap,
         } else if (_xml_eqElm(_s_dae_quadratic_attenuation)) {
           ak_basic_attrd * quadraticAttenuation;
 
-          quadraticAttenuation = ak_heap_calloc(heap, point,
-                                           sizeof(*quadraticAttenuation),
-                                           false);
+          quadraticAttenuation = ak_heap_calloc(daestate->heap,
+                                                point,
+                                                sizeof(*quadraticAttenuation),
+                                                false);
 
           _xml_readTextUsingFn(quadraticAttenuation->val, strtod, NULL);
           _xml_readAttr(quadraticAttenuation,
@@ -301,7 +335,7 @@ ak_dae_techniquec(AkHeap * __restrict heap,
 
         /* end element */
         _xml_endElement;
-      } while (nodeRet);
+      } while (daestate->nodeRet);
       
       techc->technique = point;
       techc->techniqueType = AK_TECHNIQUE_COMMON_LIGHT_POINT;
@@ -310,19 +344,20 @@ ak_dae_techniquec(AkHeap * __restrict heap,
     /* light -> spot */
     else if (_xml_eqElm(_s_dae_point)) {
       AkSpot * spot;
-      spot = ak_heap_calloc(heap, techc, sizeof(*spot), false);
+      spot = ak_heap_calloc(daestate->heap, techc, sizeof(*spot), false);
 
       do {
         _xml_beginElement(_s_dae_spot);
 
         if (_xml_eqElm(_s_dae_color)) {
-          ak_dae_color(heap, reader, true, &spot->color);
+          ak_dae_color(daestate, true, &spot->color);
         } else if (_xml_eqElm(_s_dae_constant_attenuation)) {
           ak_basic_attrd * constantAttenuation;
 
-          constantAttenuation = ak_heap_calloc(heap, spot,
-                                          sizeof(*constantAttenuation),
-                                          false);
+          constantAttenuation = ak_heap_calloc(daestate->heap,
+                                               spot,
+                                               sizeof(*constantAttenuation),
+                                               false);
 
           _xml_readTextUsingFn(constantAttenuation->val, strtod, NULL);
           _xml_readAttr(constantAttenuation,
@@ -333,9 +368,10 @@ ak_dae_techniquec(AkHeap * __restrict heap,
         } else if (_xml_eqElm(_s_dae_linear_attenuation)) {
           ak_basic_attrd * linearAttenuation;
 
-          linearAttenuation = ak_heap_calloc(heap, spot,
-                                        sizeof(*linearAttenuation),
-                                        false);
+          linearAttenuation = ak_heap_calloc(daestate->heap,
+                                             spot,
+                                             sizeof(*linearAttenuation),
+                                             false);
 
           _xml_readTextUsingFn(linearAttenuation->val, strtod, NULL);
           _xml_readAttr(linearAttenuation,
@@ -346,9 +382,10 @@ ak_dae_techniquec(AkHeap * __restrict heap,
         } else if (_xml_eqElm(_s_dae_quadratic_attenuation)) {
           ak_basic_attrd * quadraticAttenuation;
 
-          quadraticAttenuation = ak_heap_calloc(heap, spot,
-                                           sizeof(*quadraticAttenuation),
-                                           false);
+          quadraticAttenuation = ak_heap_calloc(daestate->heap,
+                                                spot,
+                                                sizeof(*quadraticAttenuation),
+                                                false);
 
           _xml_readTextUsingFn(quadraticAttenuation->val, strtod, NULL);
           _xml_readAttr(quadraticAttenuation,
@@ -359,7 +396,7 @@ ak_dae_techniquec(AkHeap * __restrict heap,
         } else if (_xml_eqElm(_s_dae_falloff_angle)) {
           ak_basic_attrd * falloffAngle;
 
-          falloffAngle = ak_heap_calloc(heap,
+          falloffAngle = ak_heap_calloc(daestate->heap,
                                         spot,
                                         sizeof(*falloffAngle),
                                         false);
@@ -371,7 +408,7 @@ ak_dae_techniquec(AkHeap * __restrict heap,
         } else if (_xml_eqElm(_s_dae_falloff_exponent)) {
           ak_basic_attrd * falloffExponent;
 
-          falloffExponent = ak_heap_calloc(heap,
+          falloffExponent = ak_heap_calloc(daestate->heap,
                                            spot,
                                            sizeof(*falloffExponent),
                                            false);
@@ -386,16 +423,15 @@ ak_dae_techniquec(AkHeap * __restrict heap,
         
         /* end element */
         _xml_endElement;
-      } while (nodeRet);
+      } while (daestate->nodeRet);
       
       techc->technique = spot;
       techc->techniqueType = AK_TECHNIQUE_COMMON_LIGHT_SPOT;
     } else if (_xml_eqElm(_s_dae_instance_material)) {
       AkInstanceMaterial *instanceMaterial;
       AkResult ret;
-      ret = ak_dae_fxInstanceMaterial(heap,
+      ret = ak_dae_fxInstanceMaterial(daestate,
                                       memParent,
-                                      reader,
                                       &instanceMaterial);
 
       if (ret == AK_OK) {
@@ -412,7 +448,7 @@ ak_dae_techniquec(AkHeap * __restrict heap,
     
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
 
   *dest = techc;
 

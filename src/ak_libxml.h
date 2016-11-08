@@ -41,36 +41,36 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
  */
 
 #define _xml_eqElm(b)                                                         \
-  (nodeType == XML_ELEMENT_NODE                                               \
-   && xmlStrcasecmp(nodeName, (xmlChar *)b) == 0)
+  (daestate->nodeType == XML_ELEMENT_NODE                                               \
+   && xmlStrcasecmp(daestate->nodeName, (xmlChar *)b) == 0)
 
 #define _xml_eqDecl(b)                                                        \
-  (nodeType == XML_ELEMENT_DECL                                               \
-   && xmlStrcasecmp(nodeName, (xmlChar *)b) == 0)
+  (daestate->nodeType == XML_ELEMENT_DECL                                               \
+   && xmlStrcasecmp(daestate->nodeName, (xmlChar *)b) == 0)
 
 #define _xml_readNext                                                         \
   do {                                                                        \
-    nodeRet  = xmlTextReaderRead(reader);                                     \
-    nodeType = xmlTextReaderNodeType(reader);                                 \
-    nodeName = xmlTextReaderConstName(reader);                                \
+    daestate->nodeRet  = xmlTextReaderRead(daestate->reader);                           \
+    daestate->nodeType = xmlTextReaderNodeType(daestate->reader);                       \
+    daestate->nodeName = xmlTextReaderConstName(daestate->reader);                      \
   } while (0)
 
 #define _xml_beginElement(x)                                                  \
-  nodeName = xmlTextReaderConstName(reader);                                  \
-  if (_xml_eq(nodeName, x)                                                    \
-      && xmlTextReaderIsEmptyElement(reader))                                 \
+  daestate->nodeName = xmlTextReaderConstName(daestate->reader);                        \
+  if (_xml_eq(daestate->nodeName, x)                                                    \
+      && xmlTextReaderIsEmptyElement(daestate->reader))                       \
     break;                                                                    \
   _xml_readNext;                                                              \
-  if ((_xml_eq(nodeName, x) && nodeType == XML_ELEMENT_DECL)                  \
-      || nodeType == XML_DTD_NODE /* Whitespace: 14 */                        \
+  if ((_xml_eq(daestate->nodeName, x) && daestate->nodeType == XML_ELEMENT_DECL)                  \
+      || daestate->nodeType == XML_DTD_NODE /* Whitespace: 14 */                        \
       )                                                                       \
     break;                                                                    \
 
 #define _xml_endElement                                                       \
   do {                                                                        \
-    if ((nodeType == XML_ELEMENT_DECL                                         \
-        && nodeType != XML_TEXT_NODE)                                         \
-        || nodeType == XML_ELEMENT_NODE)                                      \
+    if ((daestate->nodeType == XML_ELEMENT_DECL                                         \
+        && daestate->nodeType != XML_TEXT_NODE)                                         \
+        || daestate->nodeType == XML_ELEMENT_NODE)                                      \
       break;                                                                  \
     _xml_readNext;                                                            \
   } while(1)
@@ -79,12 +79,12 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
   do {                                                                        \
      const xmlChar * _nodeName;                                               \
      int _nodeDepth;                                                          \
-     _nodeName = nodeName;                                                    \
-     _nodeDepth = xmlTextReaderDepth(reader);                                 \
+     _nodeName = daestate->nodeName;                                                    \
+     _nodeDepth = xmlTextReaderDepth(daestate->reader);                       \
                                                                               \
      while (!_xml_eqDecl(_nodeName)) {                                        \
        _xml_readNext;                                                         \
-       if (xmlTextReaderDepth(reader) <= _nodeDepth)                          \
+       if (xmlTextReaderDepth(daestate->reader) <= _nodeDepth)                \
          break;                                                               \
      }                                                                        \
   } while (0)
@@ -93,26 +93,26 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
   do {                                                                        \
     /* read text element*/                                                    \
     _xml_readNext;                                                            \
-    TARGET = nodeType == XML_TEXT_NODE ?                                      \
-         ak_heap_strdup(heap,                                                 \
+    TARGET = daestate->nodeType == XML_TEXT_NODE ?                                      \
+         ak_heap_strdup(daestate->heap,                                       \
                         PARENT,                                               \
-                        (const char *)xmlTextReaderConstValue(reader)):NULL;  \
+              (const char *)xmlTextReaderConstValue(daestate->reader)):NULL;  \
   } while (0)
 
 #define _xml_readMutText(x)                                                   \
   do {                                                                        \
     /* read text element*/                                                    \
     _xml_readNext;                                                            \
-    x = nodeType == XML_TEXT_NODE ?                                           \
-         (char *)xmlTextReaderValue(reader) : NULL;                           \
+    x = daestate->nodeType == XML_TEXT_NODE ?                                           \
+         (char *)xmlTextReaderValue(daestate->reader) : NULL;                 \
   } while (0)
 
 #define _xml_readConstText(x)                                                 \
   do {                                                                        \
     /* read text element*/                                                    \
     _xml_readNext;                                                            \
-    x = nodeType == XML_TEXT_NODE ?                                           \
-        (const char *)xmlTextReaderConstValue(reader) : NULL;                 \
+    x = daestate->nodeType == XML_TEXT_NODE ?                                           \
+        (const char *)xmlTextReaderConstValue(daestate->reader) : NULL;       \
   } while (0)
 
 
@@ -121,8 +121,8 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
     const char * val;                                                         \
     /* read text element*/                                                    \
     _xml_readNext;                                                            \
-    val = nodeType == XML_TEXT_NODE ?                                         \
-        (const char *)xmlTextReaderConstValue(reader) : NULL;                 \
+    val = daestate->nodeType == XML_TEXT_NODE ?                                         \
+        (const char *)xmlTextReaderConstValue(daestate->reader) : NULL;       \
     if (val)                                                                  \
       TARGET = Fn(val, __VA_ARGS__);                                          \
   } while (0)
@@ -130,10 +130,10 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
 #define _xml_readAttr(PARENT, TARGET, ATTR)                                   \
   do {                                                                        \
     char * attrVal;                                                           \
-    attrVal = (char *)xmlTextReaderGetAttribute(reader,                       \
+    attrVal = (char *)xmlTextReaderGetAttribute(daestate->reader,             \
                                                 (const xmlChar *)ATTR);       \
     if (attrVal) {                                                            \
-      TARGET = ak_heap_strdup(heap, PARENT, attrVal);                         \
+      TARGET = ak_heap_strdup(daestate->heap, PARENT, attrVal);               \
       xmlFree(attrVal);                                                       \
     } else TARGET = NULL;                                                     \
   } while (0);
@@ -141,10 +141,10 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
 #define _xml_readId(OBJ)                                                      \
   do {                                                                        \
     char * attrVal;                                                           \
-    attrVal = (char *)xmlTextReaderGetAttribute(reader,                       \
+    attrVal = (char *)xmlTextReaderGetAttribute(daestate->reader,             \
                                                 (const xmlChar *)_s_dae_id);  \
     if (attrVal) {                                                            \
-      ak_setId(OBJ, ak_heap_strdup(heap, OBJ, attrVal));                      \
+      ak_setId(OBJ, ak_heap_strdup(daestate->heap, OBJ, attrVal));                \
       xmlFree(attrVal);                                                       \
     }                                                                         \
   } while (0);
@@ -152,7 +152,7 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
 #define _xml_readAttrUsingFn(TARGET, ATTR, Fn, ...)                           \
   do {                                                                        \
     char * attrVal;                                                           \
-    attrVal = (char *)xmlTextReaderGetAttribute(reader,                       \
+    attrVal = (char *)xmlTextReaderGetAttribute(daestate->reader,             \
                                                 (const xmlChar *)ATTR);       \
     if (attrVal) {                                                            \
       TARGET = Fn(attrVal, __VA_ARGS__);                                      \
@@ -163,7 +163,7 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
 #define _xml_readAttrUsingFnWithDef(TARGET, ATTR, DEF, Fn, ...)               \
   do {                                                                        \
     char * attrVal;                                                           \
-    attrVal = (char *)xmlTextReaderGetAttribute(reader,                       \
+    attrVal = (char *)xmlTextReaderGetAttribute(daestate->reader,             \
                                                 (const xmlChar *)ATTR);       \
     if (attrVal) {                                                            \
       TARGET = Fn(attrVal, __VA_ARGS__);                                      \
@@ -174,7 +174,7 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
 #define _xml_readTextAsEnum(D, X, FN)                                         \
   do {                                                                        \
     char *attrValStr;                                                         \
-    attrValStr = (char *)xmlTextReaderGetAttribute(reader,                    \
+    attrValStr = (char *)xmlTextReaderGetAttribute(daestate->reader,          \
                                                    (const xmlChar *)X);       \
     if (attrValStr) {                                                         \
       AkEnum attrVal;                                                         \
@@ -187,7 +187,7 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
 #define _xml_readAttrAsEnum(TARGET, ATTR, FN)                                 \
   do {                                                                        \
     char *attrValStr;                                                         \
-    attrValStr = (char *)xmlTextReaderGetAttribute(reader,                    \
+    attrValStr = (char *)xmlTextReaderGetAttribute(daestate->reader,          \
                                                    (const xmlChar *)ATTR);    \
     if (attrValStr) {                                                         \
       AkEnum attrVal;                                                         \
@@ -200,7 +200,7 @@ _xml_eqDecl2(xmlTextReaderPtr reader,
 #define _xml_readAttrAsEnumWithDef(TARGET, ATTR, FN, DEF)                     \
   do {                                                                        \
     char *attrValStr;                                                         \
-    attrValStr = (char *)xmlTextReaderGetAttribute(reader,                    \
+    attrValStr = (char *)xmlTextReaderGetAttribute(daestate->reader,          \
                                                    (const xmlChar *)ATTR);    \
     if (attrValStr) {                                                         \
       AkEnum attrVal;                                                         \

@@ -8,23 +8,20 @@
 #include "ak_collada_asset.h"
 
 AkResult _assetkit_hide
-ak_dae_assetInf(AkHeap * __restrict heap,
+ak_dae_assetInf(AkDaeState * __restrict daestate,
                 void * __restrict memParent,
-                xmlTextReaderPtr reader,
                 AkAssetInf ** __restrict dest) {
-  const xmlChar * nodeName;
-  int             nodeType;
-  int             nodeRet;
-
   if (!(*dest))
-    *dest = ak_heap_calloc(heap, memParent, sizeof(**dest), false);
+    *dest = ak_heap_calloc(daestate->heap,
+                           memParent,
+                           sizeof(**dest), false);
 
   do {
     _xml_beginElement(_s_dae_asset);
 
     if (_xml_eqElm(_s_dae_contributor)) {
       AkContributor * contrib;
-      contrib = ak_heap_calloc(heap, *dest, sizeof(*contrib), false);
+      contrib = ak_heap_calloc(daestate->heap, *dest, sizeof(*contrib), false);
 
       /* contributor */
       do {
@@ -49,7 +46,7 @@ ak_dae_assetInf(AkHeap * __restrict heap,
 
         /* end element */
         _xml_endElement;
-      } while (nodeRet);
+      } while (daestate->nodeRet);
 
       (*dest)->contributor = contrib;
     } else if (_xml_eqElm(_s_dae_created)) {
@@ -71,7 +68,7 @@ ak_dae_assetInf(AkHeap * __restrict heap,
       _xml_readText(*dest, (*dest)->title);
     } else if (_xml_eqElm(_s_dae_unit)) {
       AkUnit * unit;
-      unit = ak_heap_calloc(heap, *dest, sizeof(*unit), false);
+      unit = ak_heap_calloc(daestate->heap, *dest, sizeof(*unit), false);
 
       _xml_readAttr(*dest, unit->name, _s_dae_name);
       _xml_readAttrUsingFn(unit->dist, _s_dae_meter, strtod, NULL);
@@ -93,10 +90,10 @@ ak_dae_assetInf(AkHeap * __restrict heap,
       xmlNodePtr nodePtr;
       AkTree  * tree;
 
-      nodePtr = xmlTextReaderExpand(reader);
+      nodePtr = xmlTextReaderExpand(daestate->reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(heap,
+      ak_tree_fromXmlNode(daestate->heap,
                           *dest,
                           nodePtr,
                           &tree,
@@ -110,7 +107,7 @@ ak_dae_assetInf(AkHeap * __restrict heap,
     
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
   
   return AK_OK;
 }

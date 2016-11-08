@@ -26,21 +26,17 @@ static ak_enumpair curveMap[] = {
 static size_t curveMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_curve(AkHeap * __restrict heap,
+ak_dae_curve(AkDaeState * __restrict daestate,
              void * __restrict memParent,
-             xmlTextReaderPtr reader,
              bool asObject,
              AkCurve ** __restrict dest) {
   AkObject       *obj;
   AkCurve        *curve;
   void           *memPtr;
-  AkDoubleArrayL *last_orient;;
-  const xmlChar  *nodeName;
-  int             nodeType;
-  int             nodeRet;
+  AkDoubleArrayL *last_orient;
 
   if (asObject) {
-    obj = ak_objAlloc(heap,
+    obj = ak_objAlloc(daestate->heap,
                       memParent,
                       sizeof(*curve),
                       0,
@@ -50,7 +46,7 @@ ak_dae_curve(AkHeap * __restrict heap,
     curve = ak_objGet(obj);
     memPtr = obj;
   } else {
-    curve = ak_heap_calloc(heap, memParent, sizeof(*curve), false);
+    curve = ak_heap_calloc(daestate->heap, memParent, sizeof(*curve), false);
     memPtr = curve;
   }
 
@@ -69,7 +65,7 @@ ak_dae_curve(AkHeap * __restrict heap,
 
     _xml_beginElement(_s_dae_curve);
 
-    found = bsearch(nodeName,
+    found = bsearch(daestate->nodeName,
                     curveMap,
                     curveMapLen,
                     sizeof(curveMap[0]),
@@ -80,7 +76,7 @@ ak_dae_curve(AkHeap * __restrict heap,
         AkObject *obj;
         AkLine   *line;
 
-        obj = ak_objAlloc(heap,
+        obj = ak_objAlloc(daestate->heap,
                           memPtr,
                           sizeof(*line),
                           AK_CURVE_ELEMENT_TYPE_LINE,
@@ -108,10 +104,14 @@ ak_dae_curve(AkHeap * __restrict heap,
             xmlNodePtr nodePtr;
             AkTree    *tree;
 
-            nodePtr = xmlTextReaderExpand(reader);
+            nodePtr = xmlTextReaderExpand(daestate->reader);
             tree = NULL;
 
-            ak_tree_fromXmlNode(heap, obj, nodePtr, &tree, NULL);
+            ak_tree_fromXmlNode(daestate->heap,
+                                obj,
+                                nodePtr,
+                                &tree,
+                                NULL);
             line->extra = tree;
             
             _xml_skipElement;
@@ -122,7 +122,7 @@ ak_dae_curve(AkHeap * __restrict heap,
           
           /* end element */
           _xml_endElement;
-        } while (nodeRet);
+        } while (daestate->nodeRet);
 
         curve->curve = obj;
 
@@ -132,7 +132,7 @@ ak_dae_curve(AkHeap * __restrict heap,
         AkObject *obj;
         AkCircle *circle;
 
-        obj = ak_objAlloc(heap,
+        obj = ak_objAlloc(daestate->heap,
                           memPtr,
                           sizeof(*circle),
                           AK_CURVE_ELEMENT_TYPE_CIRCLE,
@@ -151,10 +151,14 @@ ak_dae_curve(AkHeap * __restrict heap,
             xmlNodePtr nodePtr;
             AkTree    *tree;
 
-            nodePtr = xmlTextReaderExpand(reader);
+            nodePtr = xmlTextReaderExpand(daestate->reader);
             tree = NULL;
 
-            ak_tree_fromXmlNode(heap, obj, nodePtr, &tree, NULL);
+            ak_tree_fromXmlNode(daestate->heap,
+                                obj,
+                                nodePtr,
+                                &tree,
+                                NULL);
             circle->extra = tree;
 
             _xml_skipElement;
@@ -165,7 +169,7 @@ ak_dae_curve(AkHeap * __restrict heap,
 
           /* end element */
           _xml_endElement;
-        } while (nodeRet);
+        } while (daestate->nodeRet);
         
         curve->curve = obj;
         
@@ -175,7 +179,7 @@ ak_dae_curve(AkHeap * __restrict heap,
         AkObject  *obj;
         AkEllipse *ellipse;
 
-        obj = ak_objAlloc(heap,
+        obj = ak_objAlloc(daestate->heap,
                           memPtr,
                           sizeof(*ellipse),
                           AK_CURVE_ELEMENT_TYPE_ELLIPSE,
@@ -197,10 +201,14 @@ ak_dae_curve(AkHeap * __restrict heap,
             xmlNodePtr nodePtr;
             AkTree    *tree;
 
-            nodePtr = xmlTextReaderExpand(reader);
+            nodePtr = xmlTextReaderExpand(daestate->reader);
             tree = NULL;
 
-            ak_tree_fromXmlNode(heap, obj, nodePtr, &tree, NULL);
+            ak_tree_fromXmlNode(daestate->heap,
+                                obj,
+                                nodePtr,
+                                &tree,
+                                NULL);
             ellipse->extra = tree;
 
             _xml_skipElement;
@@ -211,7 +219,7 @@ ak_dae_curve(AkHeap * __restrict heap,
 
           /* end element */
           _xml_endElement;
-        } while (nodeRet);
+        } while (daestate->nodeRet);
         
         curve->curve = obj;
         
@@ -221,7 +229,7 @@ ak_dae_curve(AkHeap * __restrict heap,
         AkObject   *obj;
         AkParabola *parabola;
 
-        obj = ak_objAlloc(heap,
+        obj = ak_objAlloc(daestate->heap,
                           memPtr,
                           sizeof(*parabola),
                           AK_CURVE_ELEMENT_TYPE_PARABOLA,
@@ -240,10 +248,14 @@ ak_dae_curve(AkHeap * __restrict heap,
             xmlNodePtr nodePtr;
             AkTree    *tree;
 
-            nodePtr = xmlTextReaderExpand(reader);
+            nodePtr = xmlTextReaderExpand(daestate->reader);
             tree = NULL;
 
-            ak_tree_fromXmlNode(heap, obj, nodePtr, &tree, NULL);
+            ak_tree_fromXmlNode(daestate->heap,
+                                obj,
+                                nodePtr,
+                                &tree,
+                                NULL);
             parabola->extra = tree;
 
             _xml_skipElement;
@@ -254,7 +266,7 @@ ak_dae_curve(AkHeap * __restrict heap,
 
           /* end element */
           _xml_endElement;
-        } while (nodeRet);
+        } while (daestate->nodeRet);
         
         curve->curve = obj;
         
@@ -264,7 +276,7 @@ ak_dae_curve(AkHeap * __restrict heap,
         AkObject    *obj;
         AkHyperbola *hyperbola;
 
-        obj = ak_objAlloc(heap,
+        obj = ak_objAlloc(daestate->heap,
                           memPtr,
                           sizeof(*hyperbola),
                           AK_CURVE_ELEMENT_TYPE_HYPERBOLA,
@@ -286,10 +298,14 @@ ak_dae_curve(AkHeap * __restrict heap,
             xmlNodePtr nodePtr;
             AkTree    *tree;
 
-            nodePtr = xmlTextReaderExpand(reader);
+            nodePtr = xmlTextReaderExpand(daestate->reader);
             tree = NULL;
 
-            ak_tree_fromXmlNode(heap, obj, nodePtr, &tree, NULL);
+            ak_tree_fromXmlNode(daestate->heap,
+                                obj,
+                                nodePtr,
+                                &tree,
+                                NULL);
             hyperbola->extra = tree;
 
             _xml_skipElement;
@@ -300,7 +316,7 @@ ak_dae_curve(AkHeap * __restrict heap,
 
           /* end element */
           _xml_endElement;
-        } while (nodeRet);
+        } while (daestate->nodeRet);
         
         curve->curve = obj;
         
@@ -310,7 +326,7 @@ ak_dae_curve(AkHeap * __restrict heap,
         AkNurbs *nurbs;
         AkResult ret;
 
-        ret = ak_dae_nurbs(heap, memPtr, reader, true, &nurbs);
+        ret = ak_dae_nurbs(daestate, memPtr, true, &nurbs);
         if (ret == AK_OK)
           curve->curve = ak_objFrom(nurbs);
 
@@ -324,7 +340,7 @@ ak_dae_curve(AkHeap * __restrict heap,
           AkDoubleArrayL *orient;
           AkResult ret;
 
-          ret = ak_strtod_arrayL(heap, memPtr, content, &orient);
+          ret = ak_strtod_arrayL(daestate->heap, memPtr, content, &orient);
           if (ret == AK_OK) {
             if (last_orient)
               last_orient->next = orient;
@@ -355,7 +371,7 @@ ak_dae_curve(AkHeap * __restrict heap,
     
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
   
   *dest = curve;
   
@@ -363,17 +379,13 @@ ak_dae_curve(AkHeap * __restrict heap,
 }
 
 AkResult _assetkit_hide
-ak_dae_curves(AkHeap * __restrict heap,
+ak_dae_curves(AkDaeState * __restrict daestate,
               void * __restrict memParent,
-              xmlTextReaderPtr reader,
               AkCurves ** __restrict dest) {
-  AkCurves      *curves;
-  AkCurve       *last_curve;
-  const xmlChar *nodeName;
-  int            nodeType;
-  int            nodeRet;
+  AkCurves *curves;
+  AkCurve  *last_curve;
 
-  curves = ak_heap_calloc(heap, memParent, sizeof(*curves), false);
+  curves = ak_heap_calloc(daestate->heap, memParent, sizeof(*curves), false);
 
   last_curve = NULL;
 
@@ -384,7 +396,7 @@ ak_dae_curves(AkHeap * __restrict heap,
       AkCurve *curve;
       AkResult ret;
 
-      ret = ak_dae_curve(heap, curves, reader, false, &curve);
+      ret = ak_dae_curve(daestate, curves, false, &curve);
       if (ret == AK_OK) {
         if (last_curve)
           last_curve->next = curve;
@@ -397,10 +409,14 @@ ak_dae_curves(AkHeap * __restrict heap,
       xmlNodePtr nodePtr;
       AkTree    *tree;
 
-      nodePtr = xmlTextReaderExpand(reader);
+      nodePtr = xmlTextReaderExpand(daestate->reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(heap, curves, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(daestate->heap,
+                          curves,
+                          nodePtr,
+                          &tree,
+                          NULL);
       curves->extra = tree;
 
       _xml_skipElement;
@@ -408,7 +424,7 @@ ak_dae_curves(AkHeap * __restrict heap,
 
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
   
   *dest = curves;
   

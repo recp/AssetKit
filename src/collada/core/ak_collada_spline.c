@@ -10,21 +10,17 @@
 #include "ak_collada_enums.h"
 
 AkResult _assetkit_hide
-ak_dae_spline(AkHeap * __restrict heap,
+ak_dae_spline(AkDaeState * __restrict daestate,
               void * __restrict memParent,
-              xmlTextReaderPtr reader,
               bool asObject,
               AkSpline ** __restrict dest) {
-  AkObject       *obj;
-  AkSpline       *spline;
-  AkSource       *last_source;
-  void           *memPtr;
-  const xmlChar  *nodeName;
-  int             nodeType;
-  int             nodeRet;
+  AkObject *obj;
+  AkSpline *spline;
+  AkSource *last_source;
+  void     *memPtr;
 
   if (asObject) {
-    obj = ak_objAlloc(heap,
+    obj = ak_objAlloc(daestate->heap,
                       memParent,
                       sizeof(*spline),
                       AK_GEOMETRY_TYPE_SPLINE,
@@ -34,7 +30,10 @@ ak_dae_spline(AkHeap * __restrict heap,
     spline = ak_objGet(obj);
     memPtr = obj;
   } else {
-    spline = ak_heap_calloc(heap, memParent, sizeof(*spline), false);
+    spline = ak_heap_calloc(daestate->heap,
+                            memParent,
+                            sizeof(*spline),
+                            false);
     memPtr = spline;
   }
 
@@ -52,7 +51,7 @@ ak_dae_spline(AkHeap * __restrict heap,
       AkSource *source;
       AkResult ret;
 
-      ret = ak_dae_source(heap, memPtr, reader, &source);
+      ret = ak_dae_source(daestate, memPtr, &source);
       if (ret == AK_OK) {
         if (last_source)
           last_source->next = source;
@@ -65,7 +64,7 @@ ak_dae_spline(AkHeap * __restrict heap,
       AkControlVerts *cverts;
       AkInputBasic   *last_input;
 
-      cverts = ak_heap_calloc(heap, memPtr, sizeof(*cverts), false);
+      cverts = ak_heap_calloc(daestate->heap, memPtr, sizeof(*cverts), false);
 
       last_input = NULL;
       
@@ -75,11 +74,14 @@ ak_dae_spline(AkHeap * __restrict heap,
         if (_xml_eqElm(_s_dae_input)) {
           AkInputBasic *input;
 
-          input = ak_heap_calloc(heap, memPtr, sizeof(*input), false);
+          input = ak_heap_calloc(daestate->heap,
+                                 memPtr,
+                                 sizeof(*input),
+                                 false);
 
           _xml_readAttr(input, input->semanticRaw, _s_dae_semantic);
 
-          ak_url_from_attr(reader,
+          ak_url_from_attr(daestate->reader,
                            _s_dae_source,
                            input,
                            &input->source);
@@ -106,10 +108,14 @@ ak_dae_spline(AkHeap * __restrict heap,
           xmlNodePtr nodePtr;
           AkTree   *tree;
 
-          nodePtr = xmlTextReaderExpand(reader);
+          nodePtr = xmlTextReaderExpand(daestate->reader);
           tree = NULL;
 
-          ak_tree_fromXmlNode(heap, memPtr, nodePtr, &tree, NULL);
+          ak_tree_fromXmlNode(daestate->heap,
+                              memPtr,
+                              nodePtr,
+                              &tree,
+                              NULL);
           cverts->extra = tree;
           
           _xml_skipElement;
@@ -120,17 +126,21 @@ ak_dae_spline(AkHeap * __restrict heap,
         
         /* end element */
         _xml_endElement;
-      } while (nodeRet);
+      } while (daestate->nodeRet);
 
       spline->cverts = cverts;
     } else if (_xml_eqElm(_s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
-      nodePtr = xmlTextReaderExpand(reader);
+      nodePtr = xmlTextReaderExpand(daestate->reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(heap, memPtr, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(daestate->heap,
+                          memPtr,
+                          nodePtr,
+                          &tree,
+                          NULL);
       spline->extra = tree;
 
       _xml_skipElement;
@@ -140,7 +150,7 @@ ak_dae_spline(AkHeap * __restrict heap,
 
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
   
   *dest = spline;
   

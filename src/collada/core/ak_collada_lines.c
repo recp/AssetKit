@@ -10,20 +10,16 @@
 #include "../../ak_array.h"
 
 AkResult _assetkit_hide
-ak_dae_lines(AkHeap * __restrict heap,
+ak_dae_lines(AkDaeState * __restrict daestate,
              void * __restrict memParent,
-             xmlTextReaderPtr reader,
              AkLineMode mode,
              AkLines ** __restrict dest) {
-  AkDoc          *doc;
-  AkLines        *lines;
-  AkInput        *last_input;
-  const xmlChar  *nodeName;
-  int             nodeType;
-  int             nodeRet;
+  AkDoc   *doc;
+  AkLines *lines;
+  AkInput *last_input;
 
-  doc   = ak_heap_data(heap);
-  lines = ak_heap_calloc(heap, memParent, sizeof(*lines), false);
+  doc   = ak_heap_data(daestate->heap);
+  lines = ak_heap_calloc(daestate->heap, memParent, sizeof(*lines), false);
   lines->mode = mode;
   lines->base.type = AK_MESH_PRIMITIVE_TYPE_LINES;
 
@@ -42,11 +38,11 @@ ak_dae_lines(AkHeap * __restrict heap,
     if (_xml_eqElm(_s_dae_input)) {
       AkInput *input;
 
-      input = ak_heap_calloc(heap, lines, sizeof(*input), false);
+      input = ak_heap_calloc(daestate->heap, lines, sizeof(*input), false);
 
       _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
 
-      ak_url_from_attr(reader,
+      ak_url_from_attr(daestate->reader,
                        _s_dae_source,
                        input,
                        &input->base.source);
@@ -93,7 +89,7 @@ ak_dae_lines(AkHeap * __restrict heap,
         AkUIntArray *uintArray;
         AkResult ret;
         
-        ret = ak_strtoui_array(heap, lines, content, &uintArray);
+        ret = ak_strtoui_array(daestate->heap, lines, content, &uintArray);
         if (ret == AK_OK)
           lines->base.indices = uintArray;
 
@@ -103,10 +99,14 @@ ak_dae_lines(AkHeap * __restrict heap,
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
-      nodePtr = xmlTextReaderExpand(reader);
+      nodePtr = xmlTextReaderExpand(daestate->reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(heap, lines, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(daestate->heap,
+                          lines,
+                          nodePtr,
+                          &tree,
+                          NULL);
       lines->base.extra = tree;
 
       _xml_skipElement;
@@ -114,7 +114,7 @@ ak_dae_lines(AkHeap * __restrict heap,
 
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
   
   *dest = lines;
 

@@ -10,17 +10,16 @@
 #include "../core/ak_collada_value.h"
 
 AkResult _assetkit_hide
-ak_dae_fxBindUniform(AkHeap * __restrict heap,
+ak_dae_fxBindUniform(AkDaeState * __restrict daestate,
                      void * __restrict memParent,
-                     xmlTextReaderPtr reader,
                      AkBindUniform ** __restrict dest) {
   AkBindUniform *bindUniform;
   AkParam      *last_param;
-  const xmlChar *nodeName;
-  int            nodeType;
-  int            nodeRet;
 
-  bindUniform = ak_heap_calloc(heap, memParent, sizeof(*bindUniform), false);
+  bindUniform = ak_heap_calloc(daestate->heap,
+                               memParent,
+                               sizeof(*bindUniform),
+                               false);
 
   _xml_readAttr(bindUniform, bindUniform->symbol, _s_dae_symbol);
 
@@ -33,9 +32,8 @@ ak_dae_fxBindUniform(AkHeap * __restrict heap,
       AkParam * param;
       AkResult   ret;
 
-      ret = ak_dae_param(heap,
+      ret = ak_dae_param(daestate,
                          bindUniform,
-                         reader,
                          AK_PARAM_TYPE_BASIC,
                          &param);
 
@@ -54,9 +52,8 @@ ak_dae_fxBindUniform(AkHeap * __restrict heap,
         AkValueType val_type;
         AkResult    ret;
 
-        ret = ak_dae_value(heap,
+        ret = ak_dae_value(daestate,
                            bindUniform,
-                           reader,
                            &val,
                            &val_type);
 
@@ -69,7 +66,7 @@ ak_dae_fxBindUniform(AkHeap * __restrict heap,
 
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
 
   *dest = bindUniform;
   

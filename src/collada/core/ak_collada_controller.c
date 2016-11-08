@@ -11,20 +11,18 @@
 #include "ak_collada_morph.h"
 
 AkResult _assetkit_hide
-ak_dae_controller(AkHeap * __restrict heap,
+ak_dae_controller(AkDaeState * __restrict daestate,
                   void * __restrict memParent,
-                  xmlTextReaderPtr reader,
                   AkController ** __restrict dest) {
-  AkController   *controller;
-  const xmlChar  *nodeName;
-  int             nodeType;
-  int             nodeRet;
+  AkController *controller;
 
-  controller = ak_heap_calloc(heap, memParent, sizeof(*controller), true);
+  controller = ak_heap_calloc(daestate->heap,
+                              memParent,
+                              sizeof(*controller),
+                              true);
 
   _xml_readId(controller);
   _xml_readAttr(controller, controller->name, _s_dae_name);
-
 
   do {
     _xml_beginElement(_s_dae_controller);
@@ -34,7 +32,7 @@ ak_dae_controller(AkHeap * __restrict heap,
       AkResult ret;
 
       assetInf = NULL;
-      ret = ak_dae_assetInf(heap, controller, reader, &assetInf);
+      ret = ak_dae_assetInf(daestate, controller, &assetInf);
       if (ret == AK_OK)
         controller->inf = assetInf;
 
@@ -42,7 +40,7 @@ ak_dae_controller(AkHeap * __restrict heap,
       AkSkin  *skin;
       AkResult ret;
 
-      ret = ak_dae_skin(heap, controller, reader, true, &skin);
+      ret = ak_dae_skin(daestate, controller, true, &skin);
       if (ret == AK_OK)
         controller->data = ak_objFrom(skin);
 
@@ -50,7 +48,7 @@ ak_dae_controller(AkHeap * __restrict heap,
       AkMorph *morph;
       AkResult ret;
 
-      ret = ak_dae_morph(heap, controller, reader, true, &morph);
+      ret = ak_dae_morph(daestate, controller, true, &morph);
       if (ret == AK_OK)
         controller->data = ak_objFrom(morph);
 
@@ -58,10 +56,14 @@ ak_dae_controller(AkHeap * __restrict heap,
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
-      nodePtr = xmlTextReaderExpand(reader);
+      nodePtr = xmlTextReaderExpand(daestate->reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(heap, controller, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(daestate->heap,
+                          controller,
+                          nodePtr,
+                          &tree,
+                          NULL);
       controller->extra = tree;
 
       _xml_skipElement;
@@ -71,7 +73,7 @@ ak_dae_controller(AkHeap * __restrict heap,
     
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
   
   *dest = controller;
   

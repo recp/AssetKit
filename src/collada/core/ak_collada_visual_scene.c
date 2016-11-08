@@ -11,18 +11,17 @@
 #include "ak_collada_evaluate_scene.h"
 
 AkResult _assetkit_hide
-ak_dae_visualScene(AkHeap * __restrict heap,
+ak_dae_visualScene(AkDaeState * __restrict daestate,
                    void * __restrict memParent,
-                   xmlTextReaderPtr reader,
                    AkVisualScene ** __restrict dest) {
   AkVisualScene   *visualScene;
   AkNode          *last_node;
   AkEvaluateScene *last_evaluateScene;
-  const xmlChar *nodeName;
-  int            nodeType;
-  int            nodeRet;
 
-  visualScene = ak_heap_calloc(heap, memParent, sizeof(*visualScene), true);
+  visualScene = ak_heap_calloc(daestate->heap,
+                               memParent,
+                               sizeof(*visualScene),
+                               true);
 
   _xml_readId(visualScene);
   _xml_readAttr(visualScene, visualScene->name, _s_dae_name);
@@ -38,7 +37,7 @@ ak_dae_visualScene(AkHeap * __restrict heap,
       AkResult ret;
 
       assetInf = NULL;
-      ret = ak_dae_assetInf(heap, visualScene, reader, &assetInf);
+      ret = ak_dae_assetInf(daestate, visualScene, &assetInf);
       if (ret == AK_OK)
         visualScene->inf = assetInf;
 
@@ -46,9 +45,8 @@ ak_dae_visualScene(AkHeap * __restrict heap,
       AkNode  *node;
       AkResult ret;
 
-      ret = ak_dae_node(heap,
+      ret = ak_dae_node(daestate,
                         visualScene,
-                        reader,
                         &visualScene->firstCamNode,
                         &node);
       if (ret == AK_OK) {
@@ -63,7 +61,7 @@ ak_dae_visualScene(AkHeap * __restrict heap,
       AkEvaluateScene *evaluateScene;
       AkResult ret;
 
-      ret = ak_dae_evaluateScene(heap, visualScene, reader, &evaluateScene);
+      ret = ak_dae_evaluateScene(daestate, visualScene, &evaluateScene);
       if (ret == AK_OK) {
         if (last_evaluateScene)
           last_evaluateScene->next = evaluateScene;
@@ -76,10 +74,14 @@ ak_dae_visualScene(AkHeap * __restrict heap,
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
-      nodePtr = xmlTextReaderExpand(reader);
+      nodePtr = xmlTextReaderExpand(daestate->reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(heap, visualScene, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(daestate->heap,
+                          visualScene,
+                          nodePtr,
+                          &tree,
+                          NULL);
       visualScene->extra = tree;
 
       _xml_skipElement;
@@ -87,7 +89,7 @@ ak_dae_visualScene(AkHeap * __restrict heap,
 
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
   
   *dest = visualScene;
   
@@ -95,21 +97,20 @@ ak_dae_visualScene(AkHeap * __restrict heap,
 }
 
 AkResult _assetkit_hide
-ak_dae_instanceVisualScene(AkHeap * __restrict heap,
+ak_dae_instanceVisualScene(AkDaeState * __restrict daestate,
                            void * __restrict memParent,
-                           xmlTextReaderPtr reader,
                            AkInstanceVisualScene ** __restrict dest) {
   AkInstanceVisualScene *visualScene;
-  const xmlChar *nodeName;
-  int            nodeType;
-  int            nodeRet;
 
-  visualScene = ak_heap_calloc(heap, memParent, sizeof(*visualScene), false);
+  visualScene = ak_heap_calloc(daestate->heap,
+                               memParent,
+                               sizeof(*visualScene),
+                               false);
 
   _xml_readAttr(visualScene, visualScene->base.sid, _s_dae_sid);
   _xml_readAttr(visualScene, visualScene->base.name, _s_dae_name);
 
-  ak_url_from_attr(reader,
+  ak_url_from_attr(daestate->reader,
                    _s_dae_url,
                    visualScene,
                    &visualScene->base.url);
@@ -121,10 +122,14 @@ ak_dae_instanceVisualScene(AkHeap * __restrict heap,
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
-      nodePtr = xmlTextReaderExpand(reader);
+      nodePtr = xmlTextReaderExpand(daestate->reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(heap, visualScene, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(daestate->heap,
+                          visualScene,
+                          nodePtr,
+                          &tree,
+                          NULL);
       visualScene->base.extra = tree;
 
       _xml_skipElement;
@@ -132,7 +137,7 @@ ak_dae_instanceVisualScene(AkHeap * __restrict heap,
 
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
   
   *dest = visualScene;
   

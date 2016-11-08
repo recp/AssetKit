@@ -11,9 +11,8 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_morph(AkHeap * __restrict heap,
+ak_dae_morph(AkDaeState * __restrict daestate,
              void * __restrict memParent,
-             xmlTextReaderPtr reader,
              bool asObject,
              AkMorph ** __restrict dest);
 

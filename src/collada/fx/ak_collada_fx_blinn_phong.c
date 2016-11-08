@@ -36,18 +36,16 @@ static ak_enumpair blinnPhongMap[] = {
 static size_t blinnPhongMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_blinn_phong(AkHeap * __restrict heap,
+ak_dae_blinn_phong(AkDaeState * __restrict daestate,
                    void * __restrict memParent,
-                   xmlTextReaderPtr reader,
                    const char * elm,
                    ak_blinn_phong ** __restrict dest) {
   ak_blinn_phong *blinn_phong;
-  const xmlChar *nodeName;
-  int            nodeType;
-  int            nodeRet;
 
-
-  blinn_phong = ak_heap_calloc(heap, memParent, sizeof(*blinn_phong), false);
+  blinn_phong = ak_heap_calloc(daestate->heap,
+                               memParent,
+                               sizeof(*blinn_phong),
+                               false);
 
   if (blinnPhongMapLen == 0) {
     blinnPhongMapLen = AK_ARRAY_LEN(blinnPhongMap);
@@ -62,7 +60,7 @@ ak_dae_blinn_phong(AkHeap * __restrict heap,
 
     _xml_beginElement(elm);
 
-    found = bsearch(nodeName,
+    found = bsearch(daestate->nodeName,
                     blinnPhongMap,
                     blinnPhongMapLen,
                     sizeof(blinnPhongMap[0]),
@@ -78,10 +76,9 @@ ak_dae_blinn_phong(AkHeap * __restrict heap,
         AkFxColorOrTex *colorOrTex;
         AkResult ret;
 
-        ret = ak_dae_colorOrTex(heap,
+        ret = ak_dae_colorOrTex(daestate,
                                 blinn_phong,
-                                reader,
-                                (const char *)nodeName,
+                                (const char *)daestate->nodeName,
                                 &colorOrTex);
         if (ret == AK_OK) {
           switch (found->val) {
@@ -116,10 +113,9 @@ ak_dae_blinn_phong(AkHeap * __restrict heap,
         AkFxFloatOrParam * floatOrParam;
         AkResult ret;
 
-        ret = ak_dae_floatOrParam(heap,
+        ret = ak_dae_floatOrParam(daestate,
                                   blinn_phong,
-                                  reader,
-                                  (const char *)nodeName,
+                                  (const char *)daestate->nodeName,
                                   &floatOrParam);
 
         if (ret == AK_OK) {
@@ -149,7 +145,7 @@ ak_dae_blinn_phong(AkHeap * __restrict heap,
 
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
   
   *dest = blinn_phong;
   

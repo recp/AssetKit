@@ -134,17 +134,16 @@ static ak_enumpair stateMap[] = {
 static size_t stateMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_fxState(AkHeap * __restrict heap,
+ak_dae_fxState(AkDaeState * __restrict daestate,
                void * __restrict memParent,
-               xmlTextReaderPtr reader,
                AkStates ** __restrict dest) {
   AkStates      *states;
   AkRenderState *last_state;
-  const xmlChar *nodeName;
-  int            nodeType;
-  int            nodeRet;
 
-  states = ak_heap_calloc(heap, memParent, sizeof(*states), false);
+  states = ak_heap_calloc(daestate->heap,
+                          memParent,
+                          sizeof(*states),
+                          false);
 
   if (stateMapLen == 0) {
     stateMapLen = AK_ARRAY_LEN(stateMap);
@@ -161,7 +160,7 @@ ak_dae_fxState(AkHeap * __restrict heap,
 
     _xml_beginElement(_s_dae_states);
 
-    found = bsearch(nodeName,
+    found = bsearch(daestate->nodeName,
                     stateMap,
                     stateMapLen,
                     sizeof(stateMap[0]),
@@ -169,17 +168,16 @@ ak_dae_fxState(AkHeap * __restrict heap,
 
     switch (found->val) {
       case AK_RENDER_STATE_ALPHA_FUNC:
-        ak_dae_fxStateAlphaFunc(heap, reader, &last_state, &states);
+        ak_dae_fxStateAlphaFunc(daestate, &last_state, &states);
         break;
       case AK_RENDER_STATE_BLEND_FUNC:
-        ak_dae_fxStateBlend(heap, reader, &last_state, &states);
+        ak_dae_fxStateBlend(daestate, &last_state, &states);
         break;
       case AK_RENDER_STATE_BLEND_FUNC_SEPARATE:
-        ak_dae_fxStateBlendSep(heap, reader, &last_state, &states);
+        ak_dae_fxStateBlendSep(daestate, &last_state, &states);
         break;
       case AK_RENDER_STATE_BLEND_EQUATION:
-        ak_dae_fxState_enum(heap,
-                            reader,
+        ak_dae_fxState_enum(daestate,
                             &last_state,
                             &states,
                             AK_RENDER_STATE_BLEND_EQUATION,
@@ -187,14 +185,13 @@ ak_dae_fxState(AkHeap * __restrict heap,
                             ak_dae_fxEnumBlendEq);
         break;
       case AK_RENDER_STATE_BLEND_EQUATION_SEPARATE:
-        ak_dae_fxStateBlendEqSep(heap, reader, &last_state, &states);
+        ak_dae_fxStateBlendEqSep(daestate, &last_state, &states);
         break;
       case AK_RENDER_STATE_COLOR_MATERIAL:
-        ak_dae_fxStateColorMaterial(heap, reader, &last_state, &states);
+        ak_dae_fxStateColorMaterial(daestate, &last_state, &states);
         break;
       case AK_RENDER_STATE_CULL_FACE:
-        ak_dae_fxState_enum(heap,
-                            reader,
+        ak_dae_fxState_enum(daestate,
                             &last_state,
                             &states,
                             AK_RENDER_STATE_CULL_FACE,
@@ -202,8 +199,7 @@ ak_dae_fxState(AkHeap * __restrict heap,
                             ak_dae_fxEnumGLFace);
         break;
       case AK_RENDER_STATE_DEPTH_FUNC:
-        ak_dae_fxState_enum(heap,
-                            reader,
+        ak_dae_fxState_enum(daestate,
                             &last_state,
                             &states,
                             AK_RENDER_STATE_DEPTH_FUNC,
@@ -211,8 +207,7 @@ ak_dae_fxState(AkHeap * __restrict heap,
                             ak_dae_fxEnumGlFunc);
         break;
       case AK_RENDER_STATE_FOG_MODE:
-        ak_dae_fxState_enum(heap,
-                            reader,
+        ak_dae_fxState_enum(daestate,
                             &last_state,
                             &states,
                             AK_RENDER_STATE_FOG_MODE,
@@ -220,8 +215,7 @@ ak_dae_fxState(AkHeap * __restrict heap,
                             ak_dae_fxEnumFog);
         break;
       case AK_RENDER_STATE_FOG_COORD_SRC:
-        ak_dae_fxState_enum(heap,
-                            reader,
+        ak_dae_fxState_enum(daestate,
                             &last_state,
                             &states,
                             AK_RENDER_STATE_FOG_COORD_SRC,
@@ -229,8 +223,7 @@ ak_dae_fxState(AkHeap * __restrict heap,
                             ak_dae_fxEnumFogCoordSrc);
         break;
       case AK_RENDER_STATE_FRONT_FACE:
-        ak_dae_fxState_enum(heap,
-                            reader,
+        ak_dae_fxState_enum(daestate,
                             &last_state,
                             &states,
                             AK_RENDER_STATE_FRONT_FACE,
@@ -238,8 +231,7 @@ ak_dae_fxState(AkHeap * __restrict heap,
                             ak_dae_fxEnumFrontFace);
         break;
       case AK_RENDER_STATE_LIGHT_MODEL_COLOR_CONTROL:
-        ak_dae_fxState_enum(heap,
-                            reader,
+        ak_dae_fxState_enum(daestate,
                             &last_state,
                             &states,
                             AK_RENDER_STATE_LIGHT_MODEL_COLOR_CONTROL,
@@ -247,8 +239,7 @@ ak_dae_fxState(AkHeap * __restrict heap,
                             ak_dae_fxEnumLightModelColorCtl);
         break;
       case AK_RENDER_STATE_LOGIC_OP:
-        ak_dae_fxState_enum(heap,
-                            reader,
+        ak_dae_fxState_enum(daestate,
                             &last_state,
                             &states,
                             AK_RENDER_STATE_LOGIC_OP,
@@ -256,11 +247,10 @@ ak_dae_fxState(AkHeap * __restrict heap,
                             ak_dae_fxEnumLogicOp);
         break;
       case AK_RENDER_STATE_POLYGON_MODE:
-        ak_dae_fxStatePolyMode(heap, reader, &last_state, &states);
+        ak_dae_fxStatePolyMode(daestate, &last_state, &states);
         break;
       case AK_RENDER_STATE_SHADE_MODEL:
-        ak_dae_fxState_enum(heap,
-                            reader,
+        ak_dae_fxState_enum(daestate,
                             &last_state,
                             &states,
                             AK_RENDER_STATE_SHADE_MODEL,
@@ -268,31 +258,29 @@ ak_dae_fxState(AkHeap * __restrict heap,
                             ak_dae_fxEnumShadeModel);
         break;
       case AK_RENDER_STATE_STENCIL_FUNC:
-        ak_dae_fxStateStencilFunc(heap, reader, &last_state, &states);
+        ak_dae_fxStateStencilFunc(daestate, &last_state, &states);
         break;
       case AK_RENDER_STATE_STENCIL_OP:
-        ak_dae_fxStateStencilOp(heap, reader, &last_state, &states);
+        ak_dae_fxStateStencilOp(daestate, &last_state, &states);
         break;
       case AK_RENDER_STATE_STENCIL_FUNC_SEPARATE:
-        ak_dae_fxStateStencilFuncSep(heap, reader, &last_state, &states);
+        ak_dae_fxStateStencilFuncSep(daestate, &last_state, &states);
         break;
       case AK_RENDER_STATE_STENCIL_OP_SEPARATE:
-        ak_dae_fxStateStencilOpSep(heap, reader, &last_state, &states);
+        ak_dae_fxStateStencilOpSep(daestate, &last_state, &states);
         break;
       case AK_RENDER_STATE_STENCIL_MASK_SEPARATE:
-        ak_dae_fxStateStencilMaskSep(heap, reader, &last_state, &states);
+        ak_dae_fxStateStencilMaskSep(daestate, &last_state, &states);
         break;
       case AK_RENDER_STATE_LIGHT_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_LIGHT_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_LIGHT_AMBIENT:
-        ak_dae_fxState_float4_i(heap,
-                                reader,
+        ak_dae_fxState_float4_i(daestate,
                                 &last_state,
                                 &states,
                                 AK_RENDER_STATE_LIGHT_AMBIENT,
@@ -300,8 +288,7 @@ ak_dae_fxState(AkHeap * __restrict heap,
                                 sizeof(AkFloat4));
         break;
       case AK_RENDER_STATE_LIGHT_DIFFUSE:
-        ak_dae_fxState_float4_i(heap,
-                                reader,
+        ak_dae_fxState_float4_i(daestate,
                                 &last_state,
                                 &states,
                                 AK_RENDER_STATE_LIGHT_DIFFUSE,
@@ -309,8 +296,7 @@ ak_dae_fxState(AkHeap * __restrict heap,
                                 sizeof(AkFloat4));
         break;
       case AK_RENDER_STATE_LIGHT_SPECULAR:
-        ak_dae_fxState_float4_i(heap,
-                                reader,
+        ak_dae_fxState_float4_i(daestate,
                                 &last_state,
                                 &states,
                                 AK_RENDER_STATE_LIGHT_SPECULAR,
@@ -318,8 +304,7 @@ ak_dae_fxState(AkHeap * __restrict heap,
                                 sizeof(AkFloat4));
         break;
       case AK_RENDER_STATE_LIGHT_POSITION:
-        ak_dae_fxState_float4_i(heap,
-                                reader,
+        ak_dae_fxState_float4_i(daestate,
                                 &last_state,
                                 &states,
                                 AK_RENDER_STATE_LIGHT_POSITION,
@@ -327,40 +312,35 @@ ak_dae_fxState(AkHeap * __restrict heap,
                                 sizeof(AkFloat4));
         break;
       case AK_RENDER_STATE_LIGHT_CONSTANT_ATTENUATION:
-        ak_dae_fxState_float_i(heap,
-                               reader,
+        ak_dae_fxState_float_i(daestate,
                                &last_state,
                                &states,
                                AK_RENDER_STATE_LIGHT_CONSTANT_ATTENUATION,
                                1);
         break;
       case AK_RENDER_STATE_LIGHT_LINEAR_ATTENUATION:
-        ak_dae_fxState_float_i(heap,
-                               reader,
+        ak_dae_fxState_float_i(daestate,
                                &last_state,
                                &states,
                                AK_RENDER_STATE_LIGHT_LINEAR_ATTENUATION,
                                0);
         break;
       case AK_RENDER_STATE_LIGHT_QUADRIC_ATTENUATION:
-        ak_dae_fxState_float_i(heap,
-                               reader,
+        ak_dae_fxState_float_i(daestate,
                                &last_state,
                                &states,
                                AK_RENDER_STATE_LIGHT_QUADRIC_ATTENUATION,
                                0);
         break;
       case AK_RENDER_STATE_LIGHT_SPOT_CUTOFF:
-        ak_dae_fxState_float_i(heap,
-                               reader,
+        ak_dae_fxState_float_i(daestate,
                                &last_state,
                                &states,
                                AK_RENDER_STATE_LIGHT_SPOT_CUTOFF,
                                180);
         break;
       case AK_RENDER_STATE_LIGHT_SPOT_DIRECTION:
-        ak_dae_fxState_float3_i(heap,
-                                reader,
+        ak_dae_fxState_float3_i(daestate,
                                 &last_state,
                                 &states,
                                 AK_RENDER_STATE_LIGHT_SPOT_DIRECTION,
@@ -368,112 +348,98 @@ ak_dae_fxState(AkHeap * __restrict heap,
                                 sizeof(AkFloat3));
         break;
       case AK_RENDER_STATE_LIGHT_SPOT_EXPONENT:
-        ak_dae_fxState_float_i(heap,
-                               reader,
+        ak_dae_fxState_float_i(daestate,
                                &last_state,
                                &states,
                                AK_RENDER_STATE_LIGHT_SPOT_EXPONENT,
                                0);
         break;
       case AK_RENDER_STATE_TEXTURE1D:
-        ak_dae_fxState_sampler(heap,
-                               reader,
-                               (const char *)nodeName,
+        ak_dae_fxState_sampler(daestate,
+                               (const char *)daestate->nodeName,
                                &last_state,
                                &states,
                                AK_RENDER_STATE_TEXTURE1D);
         break;
       case AK_RENDER_STATE_TEXTURE2D:
-        ak_dae_fxState_sampler(heap,
-                               reader,
-                               (const char *)nodeName,
+        ak_dae_fxState_sampler(daestate,
+                               (const char *)daestate->nodeName,
                                &last_state,
                                &states,
                                AK_RENDER_STATE_TEXTURE2D);
         break;
       case AK_RENDER_STATE_TEXTURE3D:
-        ak_dae_fxState_sampler(heap,
-                               reader,
-                               (const char *)nodeName,
+        ak_dae_fxState_sampler(daestate,
+                               (const char *)daestate->nodeName,
                                &last_state,
                                &states,
                                AK_RENDER_STATE_TEXTURE3D);
         break;
       case AK_RENDER_STATE_TEXTURECUBE:
-        ak_dae_fxState_sampler(heap,
-                               reader,
-                               (const char *)nodeName,
+        ak_dae_fxState_sampler(daestate,
+                               (const char *)daestate->nodeName,
                                &last_state,
                                &states,
                                AK_RENDER_STATE_TEXTURECUBE);
         break;
       case AK_RENDER_STATE_TEXTURERECT:
-        ak_dae_fxState_sampler(heap,
-                               reader,
-                               (const char *)nodeName,
+        ak_dae_fxState_sampler(daestate,
+                               (const char *)daestate->nodeName,
                                &last_state,
                                &states,
                                AK_RENDER_STATE_TEXTURERECT);
         break;
       case AK_RENDER_STATE_TEXTUREDEPTH:
-        ak_dae_fxState_sampler(heap,
-                               reader,
-                               (const char *)nodeName,
+        ak_dae_fxState_sampler(daestate,
+                               (const char *)daestate->nodeName,
                                &last_state,
                                &states,
                                AK_RENDER_STATE_TEXTUREDEPTH);
         break;
       case AK_RENDER_STATE_TEXTURE1D_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_TEXTURE1D_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_TEXTURE2D_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_TEXTURE2D_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_TEXTURE3D_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_TEXTURE3D_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_TEXTURECUBE_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_TEXTURECUBE_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_TEXTURERECT_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_TEXTURERECT_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_TEXTUREDEPTH_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_TEXTUREDEPTH_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_TEXTURE_ENV_COLOR:
-        ak_dae_fxState_float4_i(heap,
-                                reader,
+        ak_dae_fxState_float4_i(daestate,
                                 &last_state,
                                 &states,
                                 AK_RENDER_STATE_TEXTURE_ENV_COLOR,
@@ -481,15 +447,13 @@ ak_dae_fxState(AkHeap * __restrict heap,
                                 0);
         break;
       case AK_RENDER_STATE_TEXTURE_ENV_MODE:
-        ak_dae_fxState_str(heap,
-                           reader,
+        ak_dae_fxState_str(daestate,
                            &last_state,
                            &states,
                            AK_RENDER_STATE_TEXTURE_ENV_MODE);
         break;
       case AK_RENDER_STATE_CLIP_PLANE:
-        ak_dae_fxState_float4_i(heap,
-                                reader,
+        ak_dae_fxState_float4_i(daestate,
                                 &last_state,
                                 &states,
                                 AK_RENDER_STATE_CLIP_PLANE,
@@ -497,16 +461,14 @@ ak_dae_fxState(AkHeap * __restrict heap,
                                 sizeof(AkFloat4));
         break;
       case AK_RENDER_STATE_CLIP_PLANE_ENABLE:
-        ak_dae_fxState_ul_i(heap,
-                            reader,
+        ak_dae_fxState_ul_i(daestate,
                             &last_state,
                             &states,
                             AK_RENDER_STATE_CLIP_PLANE_ENABLE,
                             0);
         break;
       case AK_RENDER_STATE_BLEND_COLOR:
-        ak_dae_fxState_float4(heap,
-                              reader,
+        ak_dae_fxState_float4(daestate,
                               &last_state,
                               &states,
                               AK_RENDER_STATE_BLEND_COLOR,
@@ -514,8 +476,7 @@ ak_dae_fxState(AkHeap * __restrict heap,
                               sizeof(AkFloat4));
         break;
       case AK_RENDER_STATE_COLOR_MASK:
-        ak_dae_fxState_bool4(heap,
-                             reader,
+        ak_dae_fxState_bool4(daestate,
                              &last_state,
                              &states,
                              AK_RENDER_STATE_COLOR_MASK,
@@ -523,8 +484,7 @@ ak_dae_fxState(AkHeap * __restrict heap,
                              sizeof(AkBool4));
         break;
       case AK_RENDER_STATE_DEPTH_BOUNDS:
-        ak_dae_fxState_float2(heap,
-                              reader,
+        ak_dae_fxState_float2(daestate,
                               &last_state,
                               &states,
                               AK_RENDER_STATE_DEPTH_BOUNDS,
@@ -532,16 +492,14 @@ ak_dae_fxState(AkHeap * __restrict heap,
                               0);
         break;
       case AK_RENDER_STATE_DEPTH_MASK:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_DEPTH_MASK,
                           1);
         break;
       case AK_RENDER_STATE_DEPTH_RANGE:
-        ak_dae_fxState_float2(heap,
-                              reader,
+        ak_dae_fxState_float2(daestate,
                               &last_state,
                               &states,
                               AK_RENDER_STATE_DEPTH_RANGE,
@@ -549,32 +507,28 @@ ak_dae_fxState(AkHeap * __restrict heap,
                               sizeof(AkFloat2));
         break;
       case AK_RENDER_STATE_FOG_DENSITY:
-        ak_dae_fxState_float(heap,
-                             reader,
+        ak_dae_fxState_float(daestate,
                              &last_state,
                              &states,
                              AK_RENDER_STATE_FOG_DENSITY,
                              1.0f);
         break;
       case AK_RENDER_STATE_FOG_START:
-        ak_dae_fxState_float(heap,
-                             reader,
+        ak_dae_fxState_float(daestate,
                              &last_state,
                              &states,
                              AK_RENDER_STATE_FOG_START,
                              0.0f);
         break;
       case AK_RENDER_STATE_FOG_END:
-        ak_dae_fxState_float(heap,
-                             reader,
+        ak_dae_fxState_float(daestate,
                              &last_state,
                              &states,
                              AK_RENDER_STATE_FOG_END,
                              1.0f);
         break;
       case AK_RENDER_STATE_FOG_COLOR:
-        ak_dae_fxState_float4(heap,
-                              reader,
+        ak_dae_fxState_float4(daestate,
                               &last_state,
                               &states,
                               AK_RENDER_STATE_FOG_COLOR,
@@ -582,8 +536,7 @@ ak_dae_fxState(AkHeap * __restrict heap,
                               sizeof(AkFloat4));
         break;
       case AK_RENDER_STATE_LIGHT_MODEL_AMBIENT:
-        ak_dae_fxState_float4(heap,
-                              reader,
+        ak_dae_fxState_float4(daestate,
                               &last_state,
                               &states,
                               AK_RENDER_STATE_LIGHT_MODEL_AMBIENT,
@@ -591,16 +544,14 @@ ak_dae_fxState(AkHeap * __restrict heap,
                               sizeof(AkFloat4));
         break;
       case AK_RENDER_STATE_LIGHTING_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_LIGHTING_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_LINE_STIPPLE:
-        ak_dae_fxState_int2(heap,
-                            reader,
+        ak_dae_fxState_int2(daestate,
                             &last_state,
                             &states,
                             AK_RENDER_STATE_LINE_STIPPLE,
@@ -608,16 +559,14 @@ ak_dae_fxState(AkHeap * __restrict heap,
                             sizeof(AkInt2));
         break;
       case AK_RENDER_STATE_LINE_WIDTH:
-        ak_dae_fxState_float(heap,
-                             reader,
+        ak_dae_fxState_float(daestate,
                              &last_state,
                              &states,
                              AK_RENDER_STATE_LINE_WIDTH,
                              1.0f);
         break;
       case AK_RENDER_STATE_MATERIAL_AMBIENT:
-        ak_dae_fxState_float4(heap,
-                              reader,
+        ak_dae_fxState_float4(daestate,
                               &last_state,
                               &states,
                               AK_RENDER_STATE_MATERIAL_AMBIENT,
@@ -625,8 +574,7 @@ ak_dae_fxState(AkHeap * __restrict heap,
                               sizeof(AkFloat4));
         break;
       case AK_RENDER_STATE_MATERIAL_DIFFUSE:
-        ak_dae_fxState_float4(heap,
-                              reader,
+        ak_dae_fxState_float4(daestate,
                               &last_state,
                               &states,
                               AK_RENDER_STATE_MATERIAL_DIFFUSE,
@@ -634,8 +582,7 @@ ak_dae_fxState(AkHeap * __restrict heap,
                               sizeof(AkFloat4));
         break;
       case AK_RENDER_STATE_MATERIAL_EMISSION:
-        ak_dae_fxState_float4(heap,
-                              reader,
+        ak_dae_fxState_float4(daestate,
                               &last_state,
                               &states,
                               AK_RENDER_STATE_MATERIAL_EMISSION,
@@ -643,16 +590,14 @@ ak_dae_fxState(AkHeap * __restrict heap,
                               sizeof(AkFloat4));
         break;
       case AK_RENDER_STATE_MATERIAL_SHININESS:
-        ak_dae_fxState_float(heap,
-                             reader,
+        ak_dae_fxState_float(daestate,
                              &last_state,
                              &states,
                              AK_RENDER_STATE_MATERIAL_SHININESS,
                              0.0f);
         break;
       case AK_RENDER_STATE_MATERIAL_SPECULAR:
-        ak_dae_fxState_float4(heap,
-                              reader,
+        ak_dae_fxState_float4(daestate,
                               &last_state,
                               &states,
                               AK_RENDER_STATE_MATERIAL_SPECULAR,
@@ -660,8 +605,7 @@ ak_dae_fxState(AkHeap * __restrict heap,
                               sizeof(AkFloat4));
         break;
       case AK_RENDER_STATE_MODEL_VIEW_MATRIX:
-        ak_dae_fxState_float4x4(heap,
-                                reader,
+        ak_dae_fxState_float4x4(daestate,
                                 &last_state,
                                 &states,
                                 AK_RENDER_STATE_MODEL_VIEW_MATRIX,
@@ -674,8 +618,7 @@ ak_dae_fxState(AkHeap * __restrict heap,
                                 sizeof(AkFloat4x4));
         break;
       case AK_RENDER_STATE_POINT_DISTANCE_ATTENUATION:
-        ak_dae_fxState_float3(heap,
-                              reader,
+        ak_dae_fxState_float3(daestate,
                               &last_state,
                               &states,
                               AK_RENDER_STATE_POINT_DISTANCE_ATTENUATION,
@@ -683,40 +626,35 @@ ak_dae_fxState(AkHeap * __restrict heap,
                               sizeof(AkFloat3));
         break;
       case AK_RENDER_STATE_POINT_FADE_THRESOLD_SIZE:
-        ak_dae_fxState_float(heap,
-                             reader,
+        ak_dae_fxState_float(daestate,
                              &last_state,
                              &states,
                              AK_RENDER_STATE_POINT_FADE_THRESOLD_SIZE,
                              1.0f);
         break;
       case AK_RENDER_STATE_POINT_SIZE:
-        ak_dae_fxState_float(heap,
-                             reader,
+        ak_dae_fxState_float(daestate,
                              &last_state,
                              &states,
                              AK_RENDER_STATE_POINT_SIZE,
                              1.0f);
         break;
       case AK_RENDER_STATE_POINT_SIZE_MIN:
-        ak_dae_fxState_float(heap,
-                             reader,
+        ak_dae_fxState_float(daestate,
                              &last_state,
                              &states,
                              AK_RENDER_STATE_POINT_SIZE_MIN,
                              0.0f);
         break;
       case AK_RENDER_STATE_POINT_SIZE_MAX:
-        ak_dae_fxState_float(heap,
-                             reader,
+        ak_dae_fxState_float(daestate,
                              &last_state,
                              &states,
                              AK_RENDER_STATE_POINT_SIZE_MAX,
                              1.0f);
         break;
       case AK_RENDER_STATE_POLYGON_OFFSET:
-        ak_dae_fxState_float2(heap,
-                              reader,
+        ak_dae_fxState_float2(daestate,
                               &last_state,
                               &states,
                               AK_RENDER_STATE_POLYGON_OFFSET,
@@ -724,8 +662,7 @@ ak_dae_fxState(AkHeap * __restrict heap,
                               sizeof(AkFloat2));
         break;
       case AK_RENDER_STATE_PROJECTION_MATRIX:
-        ak_dae_fxState_float4x4(heap,
-                                reader,
+        ak_dae_fxState_float4x4(daestate,
                                 &last_state,
                                 &states,
                                 AK_RENDER_STATE_PROJECTION_MATRIX,
@@ -738,8 +675,7 @@ ak_dae_fxState(AkHeap * __restrict heap,
                                 sizeof(AkFloat4x4));
         break;
       case AK_RENDER_STATE_SCISSOR:
-        ak_dae_fxState_int4(heap,
-                            reader,
+        ak_dae_fxState_int4(daestate,
                             &last_state,
                             &states,
                             AK_RENDER_STATE_SCISSOR,
@@ -747,240 +683,210 @@ ak_dae_fxState(AkHeap * __restrict heap,
                             0);
         break;
       case AK_RENDER_STATE_STENCIL_MASK:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_STENCIL_MASK,
                           4294967295);
         break;
       case AK_RENDER_STATE_ALPHA_TEST_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_ALPHA_TEST_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_BLEND_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_BLEND_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_COLOR_LOGIC_OP_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_COLOR_LOGIC_OP_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_COLOR_MATERIAL_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_COLOR_MATERIAL_ENABLE,
                           1);
         break;
       case AK_RENDER_STATE_CULL_FACE_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_CULL_FACE_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_DEPTH_BOUNDS_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_DEPTH_BOUNDS_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_DEPTH_CLAMP_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_DEPTH_CLAMP_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_DEPTH_TEST_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_DEPTH_TEST_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_DITHER_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_DITHER_ENABLE,
                           1);
         break;
       case AK_RENDER_STATE_FOG_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_FOG_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_LIGHT_MODEL_LOCAL_VIEWER_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_LIGHT_MODEL_LOCAL_VIEWER_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_LIGHT_MODEL_TWO_SIDE_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_LIGHT_MODEL_TWO_SIDE_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_LINE_SMOOTH_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_LINE_SMOOTH_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_LINE_STIPPLE_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_LINE_STIPPLE_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_LOGIC_OP_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_LOGIC_OP_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_MULTISAMPLE_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_MULTISAMPLE_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_NORMALIZE_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_NORMALIZE_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_POINT_SMOOTH_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_POINT_SMOOTH_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_POLYGON_OFFSET_FILL_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_POLYGON_OFFSET_FILL_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_POLYGON_OFFSET_LINE_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_POLYGON_OFFSET_LINE_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_POLYGON_OFFSET_POINT_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_POLYGON_OFFSET_POINT_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_POLYGON_SMOOTH_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_POLYGON_SMOOTH_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_POLYGON_STIPPLE_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_POLYGON_STIPPLE_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_RESCALE_NORMAL_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_RESCALE_NORMAL_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_SAMPLE_ALPHA_TO_COVERAGE_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_SAMPLE_ALPHA_TO_COVERAGE_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_SAMPLE_ALPHA_TO_ONE_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_SAMPLE_ALPHA_TO_ONE_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_SAMPLE_COVERAGE_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_SAMPLE_COVERAGE_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_SCISSOR_TEST_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_SCISSOR_TEST_ENABLE,
                           0);
         break;
       case AK_RENDER_STATE_STENCIL_TEST_ENABLE:
-        ak_dae_fxState_ul(heap,
-                          reader,
+        ak_dae_fxState_ul(daestate,
                           &last_state,
                           &states,
                           AK_RENDER_STATE_STENCIL_TEST_ENABLE,
@@ -994,7 +900,7 @@ ak_dae_fxState(AkHeap * __restrict heap,
 
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
 
   *dest = states;
 

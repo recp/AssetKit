@@ -29,25 +29,19 @@ static ak_enumpair sourceMap[] = {
 static size_t sourceMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_source(AkHeap * __restrict heap,
+ak_dae_source(AkDaeState * __restrict daestate,
               void * __restrict memParent,
-              xmlTextReaderPtr reader,
               AkSource ** __restrict dest) {
-
-  AkSource            *source;
-  AkTechnique        *last_tq;
+  AkSource          *source;
+  AkTechnique       *last_tq;
   AkTechniqueCommon *last_tc;
-  
-  const xmlChar *nodeName;
-  int            nodeType;
-  int            nodeRet;
 
-  source = ak_heap_calloc(heap, memParent, sizeof(*source), true);
+  source = ak_heap_calloc(daestate->heap, memParent, sizeof(*source), true);
 
   _xml_readId(source);
   _xml_readAttr(source, source->name, _s_dae_name);
 
-  if (xmlTextReaderIsEmptyElement(reader))
+  if (xmlTextReaderIsEmptyElement(daestate->reader))
     goto done;
 
   if (sourceMapLen == 0) {
@@ -66,7 +60,7 @@ ak_dae_source(AkHeap * __restrict heap,
 
     _xml_beginElement(_s_dae_source);
 
-    found = bsearch(nodeName,
+    found = bsearch(daestate->nodeName,
                     sourceMap,
                     sourceMapLen,
                     sizeof(sourceMap[0]),
@@ -78,7 +72,7 @@ ak_dae_source(AkHeap * __restrict heap,
         AkResult ret;
 
         assetInf = NULL;
-        ret = ak_dae_assetInf(heap, source, reader, &assetInf);
+        ret = ak_dae_assetInf(daestate, source, &assetInf);
         if (ret == AK_OK)
           source->inf = assetInf;
 
@@ -97,7 +91,7 @@ ak_dae_source(AkHeap * __restrict heap,
                                     strtoul, NULL, 10);
 
         arraySize = sizeof(AkBool) * arrayCount;
-        obj = ak_objAlloc(heap,
+        obj = ak_objAlloc(daestate->heap,
                           source,
                           sizeof(*boolArray) + arraySize,
                           AK_SOURCE_ARRAY_TYPE_BOOL,
@@ -138,7 +132,7 @@ ak_dae_source(AkHeap * __restrict heap,
                                     strtoul, NULL, 10);
 
         arraySize = sizeof(AkFloat) * arrayCount;
-        obj = ak_objAlloc(heap,
+        obj = ak_objAlloc(daestate->heap,
                           source,
                           sizeof(*floatAray) + arraySize,
                           AK_SOURCE_ARRAY_TYPE_FLOAT,
@@ -188,7 +182,7 @@ ak_dae_source(AkHeap * __restrict heap,
                                     strtoul, NULL, 10);
 
         arraySize = sizeof(AkInt) * arrayCount;
-        obj = ak_objAlloc(heap,
+        obj = ak_objAlloc(daestate->heap,
                           source,
                           sizeof(*intAray) + arraySize,
                           AK_SOURCE_ARRAY_TYPE_INT,
@@ -252,7 +246,7 @@ ak_dae_source(AkHeap * __restrict heap,
          */
         arraySize = sizeof(char *) * (arrayCount + 1);
 
-        obj = ak_objAlloc(heap,
+        obj = ak_objAlloc(daestate->heap,
                           source,
                           sizeof(*stringAray) + arraySize,
                           found->val,
@@ -267,7 +261,7 @@ ak_dae_source(AkHeap * __restrict heap,
         _xml_readMutText(content);
         if (content) {
           arrayDataSize = strlen(content) + arrayCount /* NULL */;
-          pData = ak_heap_alloc(heap,
+          pData = ak_heap_alloc(daestate->heap,
                                 stringAray,
                                 arrayDataSize,
                                 false);
@@ -301,7 +295,7 @@ ak_dae_source(AkHeap * __restrict heap,
         AkResult ret;
 
         tc = NULL;
-        ret = ak_dae_techniquec(heap, source, reader, &tc);
+        ret = ak_dae_techniquec(daestate, source, &tc);
         if (ret == AK_OK) {
           if (last_tc)
             last_tc->next = tc;
@@ -318,7 +312,7 @@ ak_dae_source(AkHeap * __restrict heap,
         AkResult ret;
 
         tq = NULL;
-        ret = ak_dae_technique(heap, source, reader, &tq);
+        ret = ak_dae_technique(daestate, source, &tq);
         if (ret == AK_OK) {
           if (last_tq)
             last_tq->next = tq;
@@ -336,7 +330,7 @@ ak_dae_source(AkHeap * __restrict heap,
 
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
 
 done:
   *dest = source;

@@ -10,17 +10,13 @@
 #include "../core/ak_collada_asset.h"
 
 AkResult _assetkit_hide
-ak_dae_evaluateScene(AkHeap * __restrict heap,
+ak_dae_evaluateScene(AkDaeState * __restrict daestate,
                      void * __restrict memParent,
-                     xmlTextReaderPtr reader,
                      AkEvaluateScene ** __restrict dest) {
   AkEvaluateScene *evaluateScene;
   AkRender        *last_render;
-  const xmlChar *nodeName;
-  int            nodeType;
-  int            nodeRet;
 
-  evaluateScene = ak_heap_calloc(heap,
+  evaluateScene = ak_heap_calloc(daestate->heap,
                                  memParent,
                                  sizeof(*evaluateScene),
                                  true);
@@ -42,7 +38,7 @@ ak_dae_evaluateScene(AkHeap * __restrict heap,
       AkResult ret;
 
       assetInf = NULL;
-      ret = ak_dae_assetInf(heap, evaluateScene, reader, &assetInf);
+      ret = ak_dae_assetInf(daestate, evaluateScene, &assetInf);
       if (ret == AK_OK)
         evaluateScene->inf = assetInf;
 
@@ -50,7 +46,7 @@ ak_dae_evaluateScene(AkHeap * __restrict heap,
       AkRender *render;
       AkResult  ret;
 
-      ret = ak_dae_render(heap, evaluateScene, reader, &render);
+      ret = ak_dae_render(daestate, evaluateScene, &render);
       if (ret == AK_OK) {
         if (last_render)
           last_render->next = render;
@@ -63,10 +59,14 @@ ak_dae_evaluateScene(AkHeap * __restrict heap,
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
-      nodePtr = xmlTextReaderExpand(reader);
+      nodePtr = xmlTextReaderExpand(daestate->reader);
       tree = NULL;
 
-      ak_tree_fromXmlNode(heap, evaluateScene, nodePtr, &tree, NULL);
+      ak_tree_fromXmlNode(daestate->heap,
+                          evaluateScene,
+                          nodePtr,
+                          &tree,
+                          NULL);
       evaluateScene->extra = tree;
 
       _xml_skipElement;
@@ -74,7 +74,7 @@ ak_dae_evaluateScene(AkHeap * __restrict heap,
 
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
   
   *dest = evaluateScene;
   

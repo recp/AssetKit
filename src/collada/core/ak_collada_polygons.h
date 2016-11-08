@@ -11,9 +11,8 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_polygon(AkHeap * __restrict heap,
+ak_dae_polygon(AkDaeState * __restrict daestate,
                void * __restrict memParent,
-               xmlTextReaderPtr reader,
                const char * elm,
                AkPolygonMode mode,
                AkPolygon ** __restrict dest);

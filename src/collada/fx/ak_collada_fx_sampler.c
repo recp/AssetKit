@@ -45,17 +45,16 @@ static ak_enumpair fxSamplerCMap[] = {
 static size_t fxSamplerCMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_fxSampler(AkHeap * __restrict heap,
+ak_dae_fxSampler(AkDaeState * __restrict daestate,
                  void * __restrict memParent,
-                 xmlTextReaderPtr reader,
                  const char *elm,
                  AkFxSamplerCommon ** __restrict dest) {
   AkFxSamplerCommon *sampler;
-  const xmlChar *nodeName;
-  int            nodeType;
-  int            nodeRet;
 
-  sampler = ak_heap_calloc(heap, memParent, sizeof(*sampler), false);
+  sampler = ak_heap_calloc(daestate->heap,
+                           memParent,
+                           sizeof(*sampler),
+                           false);
 
   if (fxSamplerCMapLen == 0) {
     fxSamplerCMapLen = AK_ARRAY_LEN(fxSamplerCMap);
@@ -70,7 +69,7 @@ ak_dae_fxSampler(AkHeap * __restrict heap,
 
     _xml_beginElement(elm);
 
-    found = bsearch(nodeName,
+    found = bsearch(daestate->nodeName,
                     fxSamplerCMap,
                     fxSamplerCMapLen,
                     sizeof(fxSamplerCMap[0]),
@@ -81,7 +80,7 @@ ak_dae_fxSampler(AkHeap * __restrict heap,
         AkInstanceImage * instanceImage;
         AkResult ret;
 
-        ret = ak_dae_fxInstanceImage(heap, sampler, reader, &instanceImage);
+        ret = ak_dae_fxInstanceImage(daestate, sampler, &instanceImage);
 
         if (ret == AK_OK)
           sampler->instanceImage = instanceImage;
@@ -126,8 +125,11 @@ ak_dae_fxSampler(AkHeap * __restrict heap,
         AkColor *color;
         AkResult  ret;
 
-        color = ak_heap_calloc(heap, sampler, sizeof(*color), false);
-        ret   = ak_dae_color(heap, reader, true, color);
+        color = ak_heap_calloc(daestate->heap,
+                               sampler,
+                               sizeof(*color),
+                               false);
+        ret   = ak_dae_color(daestate, true, color);
 
         if (ret == AK_OK)
           sampler->borderColor = color;
@@ -162,10 +164,14 @@ ak_dae_fxSampler(AkHeap * __restrict heap,
         xmlNodePtr nodePtr;
         AkTree   *tree;
 
-        nodePtr = xmlTextReaderExpand(reader);
+        nodePtr = xmlTextReaderExpand(daestate->reader);
         tree = NULL;
 
-        ak_tree_fromXmlNode(heap, sampler, nodePtr, &tree, NULL);
+        ak_tree_fromXmlNode(daestate->heap,
+                            sampler,
+                            nodePtr,
+                            &tree,
+                            NULL);
         sampler->extra = tree;
 
         _xml_skipElement;
@@ -178,7 +184,7 @@ ak_dae_fxSampler(AkHeap * __restrict heap,
 
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
 
   *dest = sampler;
   

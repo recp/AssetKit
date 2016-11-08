@@ -11,39 +11,33 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_edges(AkHeap * __restrict heap,
+ak_dae_edges(AkDaeState * __restrict daestate,
              void * __restrict memParent,
-             xmlTextReaderPtr reader,
              AkEdges ** __restrict dest);
 
 AkResult _assetkit_hide
-ak_dae_wires(AkHeap * __restrict heap,
+ak_dae_wires(AkDaeState * __restrict daestate,
              void * __restrict memParent,
-             xmlTextReaderPtr reader,
              AkWires ** __restrict dest);
 
 AkResult _assetkit_hide
-ak_dae_faces(AkHeap * __restrict heap,
+ak_dae_faces(AkDaeState * __restrict daestate,
              void * __restrict memParent,
-             xmlTextReaderPtr reader,
              AkFaces ** __restrict dest);
 
 AkResult _assetkit_hide
-ak_dae_pcurves(AkHeap * __restrict heap,
+ak_dae_pcurves(AkDaeState * __restrict daestate,
                void * __restrict memParent,
-               xmlTextReaderPtr reader,
                AkPCurves ** __restrict dest);
 
 AkResult _assetkit_hide
-ak_dae_shells(AkHeap * __restrict heap,
+ak_dae_shells(AkDaeState * __restrict daestate,
               void * __restrict memParent,
-              xmlTextReaderPtr reader,
               AkShells ** __restrict dest);
 
 AkResult _assetkit_hide
-ak_dae_solids(AkHeap * __restrict heap,
+ak_dae_solids(AkDaeState * __restrict daestate,
               void * __restrict memParent,
-              xmlTextReaderPtr reader,
               AkSolids ** __restrict dest);
 
 #endif /* ak_collada_brep_topology_h */

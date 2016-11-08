@@ -40,9 +40,8 @@ static ak_enumpair meshMap[] = {
 static size_t meshMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_mesh(AkHeap * __restrict heap,
+ak_dae_mesh(AkDaeState * __restrict daestate,
             void * __restrict memParent,
-            xmlTextReaderPtr reader,
             const char * elm,
             AkMesh ** __restrict dest,
             bool asObject) {
@@ -51,12 +50,9 @@ ak_dae_mesh(AkHeap * __restrict heap,
   AkMeshPrimitive *last_primitive;
   AkMesh          *mesh;
   void            *memPtr;
-  const xmlChar   *nodeName;
-  int              nodeType;
-  int              nodeRet;
 
   if (asObject) {
-    obj = ak_objAlloc(heap,
+    obj = ak_objAlloc(daestate->heap,
                       memParent,
                       sizeof(*mesh),
                       AK_GEOMETRY_TYPE_MESH,
@@ -67,7 +63,7 @@ ak_dae_mesh(AkHeap * __restrict heap,
 
     memPtr = obj;
   } else {
-    mesh = ak_heap_calloc(heap, memParent, sizeof(*mesh), false);
+    mesh = ak_heap_calloc(daestate->heap, memParent, sizeof(*mesh), false);
     memPtr = mesh;
   }
 
@@ -89,7 +85,7 @@ ak_dae_mesh(AkHeap * __restrict heap,
 
     _xml_beginElement(elm);
 
-    found = bsearch(nodeName,
+    found = bsearch(daestate->nodeName,
                     meshMap,
                     meshMapLen,
                     sizeof(meshMap[0]),
@@ -100,7 +96,7 @@ ak_dae_mesh(AkHeap * __restrict heap,
         AkSource *source;
         AkResult ret;
 
-        ret = ak_dae_source(heap, memPtr, reader, &source);
+        ret = ak_dae_source(daestate, memPtr, &source);
         if (ret == AK_OK) {
           if (last_source)
             last_source->next = source;
@@ -115,7 +111,7 @@ ak_dae_mesh(AkHeap * __restrict heap,
         AkVertices *vertices;
         AkResult ret;
 
-        ret = ak_dae_vertices(heap, memPtr, reader, &vertices);
+        ret = ak_dae_vertices(daestate, memPtr, &vertices);
         if (ret == AK_OK)
           mesh->vertices = vertices;
 
@@ -132,9 +128,8 @@ ak_dae_mesh(AkHeap * __restrict heap,
         else
           lineMode = AK_LINE_MODE_LINE_STRIP;
 
-        ret = ak_dae_lines(heap,
+        ret = ak_dae_lines(daestate,
                            memPtr,
-                           reader,
                            lineMode,
                            &lines);
         if (ret == AK_OK) {
@@ -161,9 +156,8 @@ ak_dae_mesh(AkHeap * __restrict heap,
         else
           mode = AK_POLYGON_MODE_POLYLIST;
 
-        ret = ak_dae_polygon(heap,
+        ret = ak_dae_polygon(daestate,
                              memPtr,
-                             reader,
                              found->key,
                              mode,
                              &polygon);
@@ -194,9 +188,8 @@ ak_dae_mesh(AkHeap * __restrict heap,
         else
           mode = AK_TRIANGLE_MODE_TRIANGLE_FAN;
 
-        ret = ak_dae_triangles(heap,
+        ret = ak_dae_triangles(daestate,
                                memPtr,
-                               reader,
                                found->key,
                                mode,
                                &triangles);
@@ -217,10 +210,14 @@ ak_dae_mesh(AkHeap * __restrict heap,
         xmlNodePtr nodePtr;
         AkTree    *tree;
 
-        nodePtr = xmlTextReaderExpand(reader);
+        nodePtr = xmlTextReaderExpand(daestate->reader);
         tree = NULL;
 
-        ak_tree_fromXmlNode(heap, mesh, nodePtr, &tree, NULL);
+        ak_tree_fromXmlNode(daestate->heap,
+                            mesh,
+                            nodePtr,
+                            &tree,
+                            NULL);
         mesh->extra = tree;
 
         _xml_skipElement;
@@ -233,7 +230,7 @@ ak_dae_mesh(AkHeap * __restrict heap,
 
     /* end element */
     _xml_endElement;
-  } while (nodeRet);
+  } while (daestate->nodeRet);
 
   ak_dae_meshFixup(mesh);
   *dest = mesh;
