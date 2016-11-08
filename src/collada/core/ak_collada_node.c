@@ -68,7 +68,7 @@ ak_dae_node(AkHeap  * __restrict heap,
   int            nodeType;
   int            nodeRet;
 
-  doc  = ak_heap_attachment(heap);
+  doc  = ak_heap_data(heap);
   node = ak_heap_calloc(heap, memParent, sizeof(*node), true);
 
   _xml_readId(node);

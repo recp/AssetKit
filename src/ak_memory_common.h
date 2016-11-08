@@ -74,6 +74,8 @@ struct AkHeap {
   AkHeapNode      *root;
   AkHeapNode      *trash;
   AkHeapSrchCtx   *srchctx;
+  AkHeap          *chld; /* attached heaps, free all with this */
+  AkHeap          *next;
   void            *data;
   uint32_t         heapid;
   AkEnum           flags;

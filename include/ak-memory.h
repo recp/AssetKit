@@ -75,13 +75,23 @@ ak_heap_new(AkHeapAllocator *allocator,
             AkHeapSrchPrintFn print);
 
 AK_EXPORT
+void
+ak_heap_attach(AkHeap * __restrict parent,
+               AkHeap * __restrict chld);
+
+AK_EXPORT
+void
+ak_heap_dettach(AkHeap * __restrict parent,
+                AkHeap * __restrict chld);
+
+AK_EXPORT
 AkResult
-ak_heap_attachto(AkHeap * __restrict heap,
-                 void * __restrict memptr);
+ak_heap_setdata(AkHeap * __restrict heap,
+                void * __restrict memptr);
 
 AK_EXPORT
 void*
-ak_heap_attachment(AkHeap * __restrict heap);
+ak_heap_data(AkHeap * __restrict heap);
 
 AK_EXPORT
 void

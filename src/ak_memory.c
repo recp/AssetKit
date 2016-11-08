@@ -165,9 +165,44 @@ ak_heap_new(AkHeapAllocator *allocator,
 }
 
 AK_EXPORT
+void
+ak_heap_attach(AkHeap * __restrict parent,
+               AkHeap * __restrict chld) {
+  if (!parent->chld) {
+    parent->chld = chld;
+    return;
+  }
+
+  chld->next   = parent->chld;
+  parent->chld = chld;
+}
+
+AK_EXPORT
+void
+ak_heap_dettach(AkHeap * __restrict parent,
+                AkHeap * __restrict chld) {
+  AkHeap *heap;
+
+  heap = parent->chld;
+  if (heap == chld) {
+    parent->chld = chld->next;
+    return;
+  }
+
+  while (heap) {
+    if (heap->next == chld) {
+      heap->next = chld->next;
+      break;
+    }
+
+    heap = heap->next;
+  }
+}
+
+AK_EXPORT
 AkResult
-ak_heap_attachto(AkHeap * __restrict heap,
-                 void * __restrict memptr) {
+ak_heap_setdata(AkHeap * __restrict heap,
+                void * __restrict memptr) {
 
   heap->data = memptr;
   return AK_OK;
@@ -175,7 +210,7 @@ ak_heap_attachto(AkHeap * __restrict heap,
 
 AK_EXPORT
 void*
-ak_heap_attachment(AkHeap * __restrict heap) {
+ak_heap_data(AkHeap * __restrict heap) {
   return heap->data;
 }
 
@@ -238,6 +273,17 @@ void
 ak_heap_destroy(AkHeap * __restrict heap) {
   if (!(heap->flags & AK_HEAP_FLAGS_INITIALIZED))
     return;
+
+  /* first destroy all attached heaps */
+  if (heap->chld) {
+    AkHeap *aheap;
+    aheap = heap->chld;
+
+    do {
+      ak_heap_destroy(aheap);
+      aheap = aheap->next;
+    } while (aheap);
+  }
 
   ak_heap_cleanup(heap);
 

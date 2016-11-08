@@ -25,7 +25,7 @@ ak_url_init(void  *parent,
 
     dest->reserved = NULL;
     heap           = ak_heap_getheap(parent);
-    dest->doc      = ak_heap_attachment(heap);
+    dest->doc      = ak_heap_data(heap);
     dest->url      = ak_heap_strdup(heap,
                                     parent,
                                     urlstring);

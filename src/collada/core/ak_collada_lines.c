@@ -22,7 +22,7 @@ ak_dae_lines(AkHeap * __restrict heap,
   int             nodeType;
   int             nodeRet;
 
-  doc   = ak_heap_attachment(heap);
+  doc   = ak_heap_data(heap);
   lines = ak_heap_calloc(heap, memParent, sizeof(*lines), false);
   lines->mode = mode;
   lines->base.type = AK_MESH_PRIMITIVE_TYPE_LINES;

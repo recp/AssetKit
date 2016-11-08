@@ -23,7 +23,7 @@ ak_dae_polygon(AkHeap * __restrict heap,
   int            nodeType;
   int            nodeRet;
 
-  doc     = ak_heap_attachment(heap);
+  doc     = ak_heap_data(heap);
   polygon = ak_heap_calloc(heap, memParent, sizeof(*polygon), false);
   polygon->mode      = mode;
   polygon->haveHoles = false;

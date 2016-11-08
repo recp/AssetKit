@@ -23,7 +23,7 @@ ak_dae_triangles(AkHeap * __restrict heap,
   int             nodeType;
   int             nodeRet;
 
-  doc       = ak_heap_attachment(heap);
+  doc       = ak_heap_data(heap);
   triangles = ak_heap_calloc(heap, memParent, sizeof(*triangles), false);
   triangles->mode = mode;
   triangles->base.type = AK_MESH_PRIMITIVE_TYPE_TRIANGLES;
