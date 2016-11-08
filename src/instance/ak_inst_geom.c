@@ -10,8 +10,7 @@
 
 AK_EXPORT
 void *
-ak_instanceObject(AkDoc * __restrict doc,
-                  AkInstanceBase *instanceBase) {
+ak_instanceObject(AkInstanceBase *instanceBase) {
   if (!instanceBase->object)
     instanceBase->object = ak_getObjectByUrl(&instanceBase->url);
 
@@ -20,8 +19,7 @@ ak_instanceObject(AkDoc * __restrict doc,
 
 AK_EXPORT
 AkGeometry *
-ak_instanceObjectGeom(AkDoc * __restrict doc,
-                      AkNode * node) {
+ak_instanceObjectGeom(AkNode * node) {
   AkInstanceBase *instanceBase;
 
   instanceBase = &node->geometry->base;

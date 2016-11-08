@@ -22,7 +22,7 @@ ak_camFirstCamera(AkDoc     * __restrict doc,
   if (!doc->scene.visualScene)
     goto efound;
 
-  scene = ak_instanceObject(doc, &doc->scene.visualScene->base);
+  scene = ak_instanceObject(&doc->scene.visualScene->base);
   if (!scene->firstCamNode)
     goto efound;
 
@@ -33,7 +33,7 @@ ak_camFirstCamera(AkDoc     * __restrict doc,
     ak_transformCombineWorld(camNode, matrix);
 
   if (camera || projMatrix) {
-    cam = ak_instanceObject(doc, &camNode->camera->base);
+    cam = ak_instanceObject(&camNode->camera->base);
 
     if (camera)
       *camera = cam;

@@ -10,13 +10,11 @@
 
 AK_EXPORT
 void *
-ak_instanceObject(AkDoc * __restrict doc,
-                  AkInstanceBase *instance);
+ak_instanceObject(AkInstanceBase *instance);
 
 AK_EXPORT
 AkGeometry *
-ak_instanceObjectGeom(AkDoc * __restrict doc,
-                      AkNode * node);
+ak_instanceObjectGeom(AkNode * node);
 
 AK_EXPORT
 AkGeometry *

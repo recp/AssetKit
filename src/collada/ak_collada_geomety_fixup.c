@@ -12,7 +12,6 @@ AK_INLINE
 _assetkit_hide
 AkResult
 ak_dae_meshFixupPrimitive(AkHeap          *heap,
-                          AkDoc           *doc,
                           AkMeshPrimitive *primitive) {
   AkUIntArray *indices;
   AkUIntArray *newIndices;
@@ -139,7 +138,7 @@ ak_dae_meshFixup(AkMesh * mesh) {
   primitive = mesh->primitive;
 
   while (primitive) {
-    ak_dae_meshFixupPrimitive(heap, doc, primitive);
+    ak_dae_meshFixupPrimitive(heap, primitive);
     primitive = primitive->next;
   }
 
