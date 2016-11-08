@@ -34,7 +34,7 @@ ak_url_init(void  *parent,
     return;
   }
 
-  dest->reserved = ak_resc_ins(urlstring);;
+  dest->reserved = ak_resc_ins(urlstring);
   dest->url      = ak_path_fragment(urlstring);
   dest->doc      = ((AkResource *)dest->reserved)->doc;
 }
