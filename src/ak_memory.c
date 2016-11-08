@@ -263,7 +263,7 @@ ak_heap_init(AkHeap * __restrict heap,
   heap->srchctx   = srchctx;
   heap->allocator = allocator ? allocator : &ak__allocator;
   heap->flags    |= AK_HEAP_FLAGS_INITIALIZED;
-
+  
   if (heap != &ak__heap)
     ak_heap_lt_insert(heap);
 }
@@ -328,7 +328,7 @@ ak_heap_alloc(AkHeap * __restrict heap,
            sizeof(AkHeapSrchNode));
 
     currNode = (AkHeapNode *)(chunk + sizeof(AkHeapSrchNode));
-    currNode->flags |= (AK_HEAP_NODE_FLAGS_SRCH | AK_HEAP_NODE_FLAGS_RED);
+    currNode->flags = (AK_HEAP_NODE_FLAGS_SRCH | AK_HEAP_NODE_FLAGS_RED);
 
     srchNode = (AkHeapSrchNode *)chunk;
     srchNode->chld[AK__BST_LEFT]  = heap->srchctx->nullNode;
