@@ -258,6 +258,8 @@ ak_heap_init(AkHeap * __restrict heap,
   srchctx->root     = srchRootNode;
   srchctx->nullNode = srchNullNode;
 
+  heap->chld      = NULL;
+  heap->next      = NULL;
   heap->root      = NULL;
   heap->trash     = NULL;
   heap->srchctx   = srchctx;
