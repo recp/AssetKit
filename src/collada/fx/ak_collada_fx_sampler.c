@@ -93,34 +93,22 @@ ak_dae_fxSampler(AkXmlState * __restrict xst,
                                                 _s_dae_semantic);
         break;
       case k_s_dae_wrap_s:
-        _xml_readTextAsEnum(sampler->wrapS,
-                            _s_dae_wrap_s,
-                            ak_dae_fxEnumWrap);
+        sampler->wrapS = ak_xml_readenum(xst, ak_dae_fxEnumWrap);
         break;
       case k_s_dae_wrap_t:
-        _xml_readTextAsEnum(sampler->wrapT,
-                            _s_dae_wrap_t,
-                            ak_dae_fxEnumWrap);
+        sampler->wrapT = ak_xml_readenum(xst, ak_dae_fxEnumWrap);
         break;
       case k_s_dae_wrap_p:
-        _xml_readTextAsEnum(sampler->wrapP,
-                            _s_dae_wrap_p,
-                            ak_dae_fxEnumWrap);
+        sampler->wrapP = ak_xml_readenum(xst, ak_dae_fxEnumWrap);
         break;
       case k_s_dae_minfilter:
-        _xml_readTextAsEnum(sampler->minfilter,
-                            _s_dae_minfilter,
-                            ak_dae_fxEnumMinfilter);
+        sampler->minfilter = ak_xml_readenum(xst, ak_dae_fxEnumMinfilter);
         break;
       case k_s_dae_magfilter:
-        _xml_readTextAsEnum(sampler->magfilter,
-                            _s_dae_magfilter,
-                            ak_dae_fxEnumMagfilter);
+        sampler->magfilter = ak_xml_readenum(xst, ak_dae_fxEnumMagfilter);
         break;
       case k_s_dae_mipfilter:
-        _xml_readTextAsEnum(sampler->mipfilter,
-                            _s_dae_mipfilter,
-                            ak_dae_fxEnumMipfilter);
+        sampler->mipfilter = ak_xml_readenum(xst, ak_dae_fxEnumMipfilter);
         break;
       case k_s_dae_border_color: {
         AkColor *color;

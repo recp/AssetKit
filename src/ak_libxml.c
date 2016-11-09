@@ -156,3 +156,31 @@ ak_xml_readid(AkXmlState * __restrict xst,
     xmlFree(xmlAttrVal);
   }
 }
+
+AkEnum
+ak_xml_readenum(AkXmlState * __restrict xst,
+                AkEnum (*fn)(const char * name)) {
+  const char *text;
+
+  text = ak_xml_rawcval(xst);
+
+  if (text) {
+    AkEnum enm;
+    enm = fn(text);
+    return enm != -1 ? enm: 0;
+  }
+
+  return 0;
+}
+
+AkEnum
+ak_xml_readenum_from(const char *text,
+                     AkEnum (*fn)(const char * name)) {
+  AkEnum enm;
+
+  if (!text)
+    return 0;
+
+  enm = fn(text);
+  return (enm != -1) * enm;
+}

@@ -62,6 +62,14 @@ void
 ak_xml_readid(AkXmlState * __restrict xst,
               void * __restrict memptr);
 
+AkEnum
+ak_xml_readenum(AkXmlState * __restrict xst,
+                AkEnum (*fn)(const char * name));
+
+AkEnum
+ak_xml_readenum_from(const char *text,
+                     AkEnum (*fn)(const char * name));
+
 #define _xml_readTextUsingFn(TARGET, Fn, ...)                                 \
   do {                                                                        \
     const char * val;                                                         \
@@ -91,19 +99,6 @@ ak_xml_readid(AkXmlState * __restrict xst,
       xmlFree(attrVal);                                                       \
     } else TARGET = DEF;                                                      \
   } while (0);
-
-#define _xml_readTextAsEnum(D, X, FN)                                         \
-  do {                                                                        \
-    char *attrValStr;                                                         \
-    attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,          \
-                                                   (const xmlChar *)X);       \
-    if (attrValStr) {                                                         \
-      AkEnum attrVal;                                                         \
-      attrVal = FN(attrValStr);                                               \
-      D = attrVal != -1 ? attrVal: 0;                                         \
-      xmlFree(attrValStr);                                                    \
-    } else D = 0;                                                             \
-  } while(0);
 
 #define _xml_readAttrAsEnum(TARGET, ATTR, FN)                                 \
   do {                                                                        \
