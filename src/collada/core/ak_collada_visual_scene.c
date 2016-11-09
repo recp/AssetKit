@@ -23,7 +23,7 @@ ak_dae_visualScene(AkXmlState * __restrict xst,
                                sizeof(*visualScene),
                                true);
 
-  _xml_readId(visualScene);
+  ak_xml_readid(xst, visualScene);
   visualScene->name = ak_xml_attr(xst, visualScene, _s_dae_name);
 
   last_node          = NULL;

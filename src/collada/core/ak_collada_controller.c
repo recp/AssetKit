@@ -21,7 +21,7 @@ ak_dae_controller(AkXmlState * __restrict xst,
                               sizeof(*controller),
                               true);
 
-  _xml_readId(controller);
+  ak_xml_readid(xst, controller);
   controller->name = ak_xml_attr(xst, controller, _s_dae_name);
 
   do {

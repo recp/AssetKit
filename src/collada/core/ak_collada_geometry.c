@@ -22,7 +22,7 @@ ak_dae_geometry(AkXmlState * __restrict xst,
                             sizeof(*geometry),
                             true);
 
-  _xml_readId(geometry);
+  ak_xml_readid(xst, geometry);
   geometry->name = ak_xml_attr(xst, geometry, _s_dae_name);
 
   do {

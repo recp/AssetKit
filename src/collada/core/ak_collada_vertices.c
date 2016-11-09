@@ -20,7 +20,7 @@ ak_dae_vertices(AkXmlState * __restrict xst,
                             sizeof(*vertices),
                             true);
 
-  _xml_readId(vertices);
+  ak_xml_readid(xst, vertices);
   vertices->name = ak_xml_attr(xst, vertices, _s_dae_name);
 
   last_input = NULL;

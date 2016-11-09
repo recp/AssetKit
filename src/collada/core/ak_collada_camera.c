@@ -17,7 +17,7 @@ ak_dae_camera(AkXmlState * __restrict xst,
 
   camera = ak_heap_calloc(xst->heap, memParent, sizeof(*camera), true);
 
-  _xml_readId(camera);
+  ak_xml_readid(xst, camera);
   camera->name = ak_xml_attr(xst, camera, _s_dae_name);
 
   do {

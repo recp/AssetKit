@@ -22,7 +22,7 @@ ak_dae_material(AkXmlState * __restrict xst,
                             sizeof(*material),
                             true);
 
-  _xml_readId(material);
+  ak_xml_readid(xst, material);
   material->name = ak_xml_attr(xst, material, _s_dae_name);
 
   do {

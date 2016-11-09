@@ -19,7 +19,7 @@ ak_dae_light(AkXmlState * __restrict xst,
 
   light = ak_heap_calloc(xst->heap, memParent, sizeof(*light), true);
 
-  _xml_readId(light);
+  ak_xml_readid(xst, light);
   light->name = ak_xml_attr(xst, light, _s_dae_name);
 
   last_tq = light->technique;

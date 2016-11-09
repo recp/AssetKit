@@ -120,7 +120,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
 
       last_libCam = libcam;
 
-      _xml_readId(libcam);
+      ak_xml_readid(xst, libcam);
       libcam->name = ak_xml_attr(xst, libcam, _s_dae_name);
 
       lastcam = NULL;
@@ -186,7 +186,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
 
       last_libLight = liblight;
 
-      _xml_readId(liblight);
+      ak_xml_readid(xst, liblight);
       liblight->name = ak_xml_attr(xst, liblight, _s_dae_name);
 
       lastlight = NULL;
@@ -254,7 +254,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
 
       last_libEffect = libEffect;
 
-      _xml_readId(libEffect);
+      ak_xml_readid(xst, libEffect);
       libEffect->name = ak_xml_attr(xst, libEffect, _s_dae_name);
 
       lastEffect = NULL;
@@ -320,7 +320,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
 
       last_libImage = libimg;
 
-      _xml_readId(libimg);
+      ak_xml_readid(xst, libimg);
       libimg->name = ak_xml_attr(xst, libimg, _s_dae_name);
 
       lastimg = NULL;
@@ -385,7 +385,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
 
       last_libMaterial = libMaterial;
 
-      _xml_readId(libMaterial);
+      ak_xml_readid(xst, libMaterial);
       libMaterial->name = ak_xml_attr(xst, libMaterial, _s_dae_name);
 
       lastMaterial = NULL;
@@ -451,7 +451,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
 
       last_libGeometry = libGeometry;
 
-      _xml_readId(libGeometry);
+      ak_xml_readid(xst, libGeometry);
       libGeometry->name = ak_xml_attr(xst, libGeometry, _s_dae_name);
 
       lastGeometry = NULL;
@@ -517,7 +517,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
 
       last_libController = libController;
 
-      _xml_readId(libController);
+      ak_xml_readid(xst, libController);
       libController->name = ak_xml_attr(xst, libController, _s_dae_name);
 
       lastController = NULL;
@@ -586,7 +586,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
 
       last_libVisualScene = libVisualScene;
 
-      _xml_readId(libVisualScene);
+      ak_xml_readid(xst, libVisualScene);
       libVisualScene->name = ak_xml_attr(xst, libVisualScene, _s_dae_name);
 
       lastVisualScene = NULL;
@@ -652,7 +652,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
 
       last_libNode = libNode;
 
-      _xml_readId(libNode);
+      ak_xml_readid(xst, libNode);
       libNode->name = ak_xml_attr(xst, libNode, _s_dae_name);
 
       lastNode = NULL;

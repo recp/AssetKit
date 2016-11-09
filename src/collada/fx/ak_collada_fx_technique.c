@@ -27,7 +27,7 @@ ak_dae_techniqueFx(AkXmlState * __restrict xst,
                              sizeof(*technique),
                              true);
 
-  _xml_readId(technique);
+  ak_xml_readid(xst, technique);
   technique->sid = ak_xml_attr(xst, technique, _s_dae_sid);
 
   last_annotate = NULL;

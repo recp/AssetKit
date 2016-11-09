@@ -32,7 +32,7 @@ ak_dae_effect(AkXmlState * __restrict xst,
   last_newparam = NULL;
   last_profile  = NULL;
 
-  _xml_readId(effect);
+  ak_xml_readid(xst, effect);
   effect->name = ak_xml_attr(xst, effect, _s_dae_name);
 
   do {

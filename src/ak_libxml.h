@@ -58,6 +58,10 @@ ak_xml_attr(AkXmlState * __restrict xst,
             void * __restrict parent,
             const char * name);
 
+void
+ak_xml_readid(AkXmlState * __restrict xst,
+              void * __restrict memptr);
+
 #define _xml_readTextUsingFn(TARGET, Fn, ...)                                 \
   do {                                                                        \
     const char * val;                                                         \
@@ -65,17 +69,6 @@ ak_xml_attr(AkXmlState * __restrict xst,
     if (val)                                                                  \
       TARGET = Fn(val, __VA_ARGS__);                                          \
   } while (0)
-
-#define _xml_readId(OBJ)                                                      \
-  do {                                                                        \
-    char * attrVal;                                                           \
-    attrVal = (char *)xmlTextReaderGetAttribute(xst->reader,             \
-                                                (const xmlChar *)_s_dae_id);  \
-    if (attrVal) {                                                            \
-      ak_setId(OBJ, ak_heap_strdup(xst->heap, OBJ, attrVal));                \
-      xmlFree(attrVal);                                                       \
-    }                                                                         \
-  } while (0);
 
 #define _xml_readAttrUsingFn(TARGET, ATTR, Fn, ...)                           \
   do {                                                                        \

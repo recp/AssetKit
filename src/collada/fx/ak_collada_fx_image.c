@@ -48,7 +48,7 @@ ak_dae_fxImage(AkXmlState * __restrict xst,
 
   img = ak_heap_calloc(xst->heap, memParent, sizeof(*img), true);
 
-  _xml_readId(img);
+  ak_xml_readid(xst, img);
   img->sid  = ak_xml_attr(xst, img, _s_dae_sid);
   img->name = ak_xml_attr(xst, img, _s_dae_name);
 

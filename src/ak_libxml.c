@@ -140,3 +140,19 @@ ak_xml_attr(AkXmlState * __restrict xst,
 
   return NULL;
 }
+
+void
+ak_xml_readid(AkXmlState * __restrict xst,
+              void * __restrict memptr) {
+  xmlChar *xmlAttrVal;
+
+  xmlAttrVal = xmlTextReaderGetAttribute(xst->reader,
+                                         (const xmlChar *)_s_dae_id);
+  if (xmlAttrVal) {
+    ak_setId(memptr,
+             ak_heap_strdup(xst->heap,
+                            memptr,
+                            (char *)xmlAttrVal));
+    xmlFree(xmlAttrVal);
+  }
+}
