@@ -23,9 +23,9 @@ ak_dae_fxShader(AkXmlState * __restrict xst,
                           sizeof(*shader),
                           false);
 
-  _xml_readAttrAsEnum(shader->stage,
-                      _s_dae_stage,
-                      ak_dae_fxEnumShaderStage);
+  shader->stage = ak_xml_attrenum(xst,
+                                  _s_dae_stage,
+                                  ak_dae_fxEnumShaderStage);
 
   last_compiler     = NULL;
   last_bind_uniform = NULL;

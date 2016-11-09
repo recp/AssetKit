@@ -70,6 +70,17 @@ AkEnum
 ak_xml_readenum_from(const char *text,
                      AkEnum (*fn)(const char * name));
 
+AkEnum
+ak_xml_attrenum(AkXmlState * __restrict xst,
+                const char * name,
+                AkEnum (*fn)(const char * name));
+
+AkEnum
+ak_xml_attrenum_def(AkXmlState * __restrict xst,
+                    const char * name,
+                    AkEnum (*fn)(const char * name),
+                    AkEnum defval);
+
 #define _xml_readTextUsingFn(TARGET, Fn, ...)                                 \
   do {                                                                        \
     const char * val;                                                         \
@@ -81,7 +92,7 @@ ak_xml_readenum_from(const char *text,
 #define _xml_readAttrUsingFn(TARGET, ATTR, Fn, ...)                           \
   do {                                                                        \
     char * attrVal;                                                           \
-    attrVal = (char *)xmlTextReaderGetAttribute(xst->reader,             \
+    attrVal = (char *)xmlTextReaderGetAttribute(xst->reader,                  \
                                                 (const xmlChar *)ATTR);       \
     if (attrVal) {                                                            \
       TARGET = Fn(attrVal, __VA_ARGS__);                                      \
@@ -92,39 +103,13 @@ ak_xml_readenum_from(const char *text,
 #define _xml_readAttrUsingFnWithDef(TARGET, ATTR, DEF, Fn, ...)               \
   do {                                                                        \
     char * attrVal;                                                           \
-    attrVal = (char *)xmlTextReaderGetAttribute(xst->reader,             \
+    attrVal = (char *)xmlTextReaderGetAttribute(xst->reader,                  \
                                                 (const xmlChar *)ATTR);       \
     if (attrVal) {                                                            \
       TARGET = Fn(attrVal, __VA_ARGS__);                                      \
       xmlFree(attrVal);                                                       \
     } else TARGET = DEF;                                                      \
   } while (0);
-
-#define _xml_readAttrAsEnum(TARGET, ATTR, FN)                                 \
-  do {                                                                        \
-    char *attrValStr;                                                         \
-    attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,          \
-                                                   (const xmlChar *)ATTR);    \
-    if (attrValStr) {                                                         \
-      AkEnum attrVal;                                                         \
-      attrVal = FN(attrValStr);                                               \
-      TARGET = attrVal != -1 ? attrVal: 0;                                    \
-      xmlFree(attrValStr);                                                    \
-    } else TARGET = 0;                                                        \
-  } while(0);
-
-#define _xml_readAttrAsEnumWithDef(TARGET, ATTR, FN, DEF)                     \
-  do {                                                                        \
-    char *attrValStr;                                                         \
-    attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,          \
-                                                   (const xmlChar *)ATTR);    \
-    if (attrValStr) {                                                         \
-      AkEnum attrVal;                                                         \
-      attrVal = FN(attrValStr);                                               \
-      TARGET = attrVal != -1 ? attrVal: DEF;                                  \
-      xmlFree(attrValStr);                                                    \
-    } else TARGET = DEF;                                                      \
-  } while(0);
 
 #include "../include/ak-url.h"
 

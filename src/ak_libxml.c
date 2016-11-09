@@ -184,3 +184,34 @@ ak_xml_readenum_from(const char *text,
   enm = fn(text);
   return (enm != -1) * enm;
 }
+
+AkEnum
+ak_xml_attrenum(AkXmlState * __restrict xst,
+                const char * name,
+                AkEnum (*fn)(const char * name)) {
+  xmlChar *xmlAttrVal;
+
+  xmlAttrVal = xmlTextReaderGetAttribute(xst->reader,
+                                         (const xmlChar *)name);
+  if (xmlAttrVal) {
+    AkEnum enm;
+    enm = fn((char *)xmlAttrVal);
+    xmlFree(xmlAttrVal);
+
+    return (enm != -1) * enm;
+  }
+
+  return 0;
+}
+
+AkEnum
+ak_xml_attrenum_def(AkXmlState * __restrict xst,
+                    const char * name,
+                    AkEnum (*fn)(const char * name),
+                    AkEnum defval) {
+  AkEnum enm;
+
+  enm = ak_xml_attrenum(xst, name, fn);
+
+  return enm > 0 ? enm : defval;
+}

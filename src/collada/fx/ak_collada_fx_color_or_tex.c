@@ -21,9 +21,10 @@ ak_dae_colorOrTex(AkXmlState * __restrict xst,
                               memParent,
                               sizeof(*colorOrTex),
                               false);
-  _xml_readAttrAsEnum(colorOrTex->opaque,
-                      _s_dae_opaque,
-                      ak_dae_fxEnumOpaque);
+
+  colorOrTex->opaque = ak_xml_attrenum(xst,
+                                       _s_dae_opaque,
+                                       ak_dae_fxEnumOpaque);
 
   last_param = NULL;
 

@@ -86,9 +86,9 @@ ak_dae_fxEvaluate(AkXmlState * __restrict xst,
                              _s_dae_mip,
                              strtol, NULL, 10);
 
-        _xml_readAttrAsEnum(evaluate_target->face,
-                            _s_dae_face,
-                            ak_dae_fxEnumFace);
+        evaluate_target->face = ak_xml_attrenum(xst,
+                                                _s_dae_face,
+                                                ak_dae_fxEnumFace);
 
         targetNodeName = xst->nodeName;
 

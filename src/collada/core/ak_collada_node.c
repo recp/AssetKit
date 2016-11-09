@@ -71,10 +71,10 @@ ak_dae_node(AkXmlState * __restrict xst,
   node->sid  = ak_xml_attr(xst, node, _s_dae_sid);
   node->name = ak_xml_attr(xst, node, _s_dae_name);
 
-  _xml_readAttrAsEnumWithDef(node->nodeType,
-                             _s_dae_type,
-                             ak_dae_enumNodeType,
-                             AK_NODE_TYPE_NODE);
+  node->nodeType = ak_xml_attrenum_def(xst,
+                                       _s_dae_type,
+                                       ak_dae_enumNodeType,
+                                       AK_NODE_TYPE_NODE);
 
   attrVal = (char *)xmlTextReaderGetAttribute(xst->reader,
                                  (const xmlChar *)_s_dae_layer);

@@ -38,11 +38,10 @@ ak_dae_morph(AkXmlState * __restrict xst,
 
   morph->baseMesh = ak_xml_attr(xst, memPtr, _s_dae_source);
 
-  _xml_readAttrAsEnumWithDef(morph->method,
-                             _s_dae_method,
-                             ak_dae_enumMorphMethod,
-                             AK_MORPH_METHOD_NORMALIZED);
-
+  morph->method = ak_xml_attrenum_def(xst,
+                                      _s_dae_method,
+                                      ak_dae_enumMorphMethod,
+                                      AK_MORPH_METHOD_NORMALIZED);
   last_source = NULL;
 
   do {
