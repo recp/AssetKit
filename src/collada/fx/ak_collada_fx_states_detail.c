@@ -492,7 +492,7 @@ ak_dae_fxState_sampler(AkXmlState * __restrict xst,
     } else if (ak_xml_eqelm(xst, _s_dae_param)) {
       state->param = ak_xml_val(xst, state);
     } else if (ak_xml_eqelm(xst, _s_dae_index)) {
-      _xml_readTextUsingFn(state->index, strtol, NULL, 10);
+      state->index = ak_xml_valul(xst);
     } else {
       ak_xml_skipelm(xst);;
     }

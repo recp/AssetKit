@@ -121,6 +121,72 @@ ak_xml_val(AkXmlState * __restrict xst,
                         ak_xml_rawcval(xst));
 }
 
+float
+ak_xml_valf(AkXmlState * __restrict xst) {
+  const char * val;
+  val = ak_xml_rawcval(xst);
+
+  if (val)
+    return strtof(val, NULL);
+
+  return 0.0f;
+}
+
+double
+ak_xml_vald(AkXmlState * __restrict xst) {
+  const char * val;
+  val = ak_xml_rawcval(xst);
+
+  if (val)
+    return strtod(val, NULL);
+
+  return 0.0f;
+}
+
+long
+ak_xml_vall(AkXmlState * __restrict xst) {
+  const char * val;
+  val = ak_xml_rawcval(xst);
+
+  if (val)
+    return strtol(val, NULL, 10);
+
+  return 0l;
+}
+
+unsigned long
+ak_xml_valul(AkXmlState * __restrict xst) {
+  const char * val;
+  val = ak_xml_rawcval(xst);
+
+  if (val)
+    return strtol(val, NULL, 10);
+
+  return 0ul;
+}
+
+unsigned long
+ak_xml_valul_def(AkXmlState * __restrict xst,
+                 unsigned long defval) {
+  const char * val;
+  char       * tmp;
+
+  tmp = NULL;
+  val = ak_xml_rawcval(xst);
+
+  if (val) {
+    unsigned long vall;
+    vall = strtol(val, &tmp, 10);
+
+    if (tmp && *tmp == '\0')
+      return defval;
+
+    return vall;
+  }
+
+  return 0ul;
+}
+
 const char *
 ak_xml_attr(AkXmlState * __restrict xst,
             void * __restrict parent,

@@ -152,8 +152,7 @@ ak_dae_curve(AkXmlState * __restrict xst,
             break;
 
           if (ak_xml_eqelm(xst, _s_dae_radius)) {
-            _xml_readTextUsingFn(circle->radius,
-                                 strtof, NULL);
+            circle->radius = ak_xml_valf(xst);
           } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
             xmlNodePtr nodePtr;
             AkTree    *tree;
@@ -253,8 +252,7 @@ ak_dae_curve(AkXmlState * __restrict xst,
             break;
 
           if (ak_xml_eqelm(xst, _s_dae_radius)) {
-            _xml_readTextUsingFn(parabola->focal,
-                                 strtof, NULL);
+            parabola->focal = ak_xml_valf(xst);
           } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
             xmlNodePtr nodePtr;
             AkTree    *tree;

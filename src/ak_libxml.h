@@ -62,6 +62,22 @@ void
 ak_xml_readid(AkXmlState * __restrict xst,
               void * __restrict memptr);
 
+float
+ak_xml_valf(AkXmlState * __restrict xst);
+
+double
+ak_xml_vald(AkXmlState * __restrict xst);
+
+long
+ak_xml_vall(AkXmlState * __restrict xst);
+
+unsigned long
+ak_xml_valul(AkXmlState * __restrict xst);
+
+unsigned long
+ak_xml_valul_def(AkXmlState * __restrict xst,
+                 unsigned long defval);
+
 AkEnum
 ak_xml_readenum(AkXmlState * __restrict xst,
                 AkEnum (*fn)(const char * name));
@@ -80,14 +96,6 @@ ak_xml_attrenum_def(AkXmlState * __restrict xst,
                     const char * name,
                     AkEnum (*fn)(const char * name),
                     AkEnum defval);
-
-#define _xml_readTextUsingFn(TARGET, Fn, ...)                                 \
-  do {                                                                        \
-    const char * val;                                                         \
-    val = ak_xml_rawcval(xst);                                                \
-    if (val)                                                                  \
-      TARGET = Fn(val, __VA_ARGS__);                                          \
-  } while (0)
 
 #define _xml_readAttrUsingFn(TARGET, ATTR, Fn, ...)                           \
   do {                                                                        \

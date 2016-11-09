@@ -62,8 +62,7 @@ ak_dae_assetInf(AkXmlState * __restrict xst,
     } else if (ak_xml_eqelm(xst, _s_dae_keywords)) {
       (*dest)->keywords = ak_xml_val(xst, *dest);
     } else if (ak_xml_eqelm(xst, _s_dae_revision)) {
-      _xml_readTextUsingFn((*dest)->revision,
-                           strtoul, NULL, 10);
+      (*dest)->revision = ak_xml_vall(xst);
     } else if (ak_xml_eqelm(xst, _s_dae_subject)) {
       (*dest)->subject = ak_xml_val(xst, *dest);
     } else if (ak_xml_eqelm(xst, _s_dae_title)) {

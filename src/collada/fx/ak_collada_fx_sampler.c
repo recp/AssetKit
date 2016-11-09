@@ -127,28 +127,17 @@ ak_dae_fxSampler(AkXmlState * __restrict xst,
         break;
       }
       case k_s_dae_mip_max_level:
-        _xml_readTextUsingFn(sampler->mipMaxLevel,
-                             strtol, NULL, 10);
+        sampler->mipMaxLevel = ak_xml_vall(xst);
         break;
       case k_s_dae_mip_min_level:
-        _xml_readTextUsingFn(sampler->mipMinLevel,
-                             strtol, NULL, 10);
+        sampler->mipMinLevel = ak_xml_vall(xst);
         break;
       case k_s_dae_mip_bias:
-        _xml_readTextUsingFn(sampler->mipBias,
-                             strtof, NULL);
+        sampler->mipBias = ak_xml_valf(xst);
         break;
-      case k_s_dae_max_anisotropy: {
-        char *tmp;
-
-        tmp = NULL;
-        _xml_readTextUsingFn(sampler->maxAnisotropy,
-                             strtol, &tmp, 10);
-
-        if (tmp && *tmp == '\0')
-          sampler->mipMaxLevel = 1;
+      case k_s_dae_max_anisotropy:
+        sampler->maxAnisotropy = ak_xml_valul_def(xst, 1l);
         break;
-      }
       case k_s_dae_extra: {
         xmlNodePtr nodePtr;
         AkTree   *tree;

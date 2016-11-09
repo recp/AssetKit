@@ -82,11 +82,9 @@ ak_dae_surface(AkXmlState * __restrict xst,
             break;
 
           if (ak_xml_eqelm(xst, _s_dae_radius)) {
-            _xml_readTextUsingFn(cone->angle,
-                                 strtof, NULL);
+            cone->angle = ak_xml_valf(xst);
           } else if (ak_xml_eqelm(xst, _s_dae_angle)) {
-            _xml_readTextUsingFn(cone->radius,
-                                 strtof, NULL);
+            cone->radius = ak_xml_valf(xst);
           } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
             xmlNodePtr nodePtr;
             AkTree    *tree;
@@ -251,8 +249,7 @@ ak_dae_surface(AkXmlState * __restrict xst,
             break;
 
           if (ak_xml_eqelm(xst, _s_dae_radius)) {
-            _xml_readTextUsingFn(sphere->radius,
-                                 strtof, NULL);
+            sphere->radius = ak_xml_valf(xst);
           } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
             xmlNodePtr nodePtr;
             AkTree    *tree;

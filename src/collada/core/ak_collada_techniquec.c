@@ -47,7 +47,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
                                 false);
 
           xfov->sid = ak_xml_attr(xst, xfov, _s_dae_sid);
-          _xml_readTextUsingFn(xfov->val, strtof, NULL);
+          xfov->val = ak_xml_valf(xst);
           xfov->val = glm_rad(xfov->val);
 
           perspective->xfov = xfov;
@@ -59,7 +59,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
                                 false);
 
           yfov->sid = ak_xml_attr(xst, yfov, _s_dae_sid);
-          _xml_readTextUsingFn(yfov->val, strtof, NULL);
+          yfov->val = ak_xml_valf(xst);
           yfov->val = glm_rad(yfov->val);
 
           perspective->yfov = yfov;
@@ -71,7 +71,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
                                        false);
 
           aspectRatio->sid = ak_xml_attr(xst, aspectRatio, _s_dae_sid);
-          _xml_readTextUsingFn(aspectRatio->val, strtof, NULL);
+          aspectRatio->val = ak_xml_valf(xst);
 
           perspective->aspectRatio = aspectRatio;
         } else if (ak_xml_eqelm(xst, _s_dae_znear)) {
@@ -82,7 +82,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
                                  false);
 
           znear->sid = ak_xml_attr(xst, znear, _s_dae_sid);
-          _xml_readTextUsingFn(znear->val, strtof, NULL);
+          znear->val = ak_xml_valf(xst);
 
           perspective->znear = znear;
         } else if (ak_xml_eqelm(xst, _s_dae_zfar)) {
@@ -93,7 +93,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
                                 false);
 
           zfar->sid = ak_xml_attr(xst, zfar, _s_dae_sid);
-          _xml_readTextUsingFn(zfar->val, strtof, NULL);
+          zfar->val = ak_xml_valf(xst);
 
           perspective->zfar = zfar;
         } else {
@@ -163,7 +163,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
                                 false);
 
           xmag->sid = ak_xml_attr(xst, xmag, _s_dae_sid);
-          _xml_readTextUsingFn(xmag->val, strtof, NULL);
+          xmag->val = ak_xml_valf(xst);
 
           orthographic->xmag = xmag;
         } else if (ak_xml_eqelm(xst, _s_dae_ymag)) {
@@ -174,7 +174,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
                                 false);
 
           ymag->sid = ak_xml_attr(xst, ymag, _s_dae_sid);
-          _xml_readTextUsingFn(ymag->val, strtof, NULL);
+          ymag->val = ak_xml_valf(xst);
 
           orthographic->ymag = ymag;
         } else if (ak_xml_eqelm(xst, _s_dae_aspect_ratio)) {
@@ -185,7 +185,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
                                        false);
 
           aspectRatio->sid = ak_xml_attr(xst, aspectRatio, _s_dae_sid);
-          _xml_readTextUsingFn(aspectRatio->val, strtof, NULL);
+          aspectRatio->val = ak_xml_valf(xst);
 
           orthographic->aspectRatio = aspectRatio;
         } else if (ak_xml_eqelm(xst, _s_dae_znear)) {
@@ -196,7 +196,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
                                  false);
 
           znear->sid = ak_xml_attr(xst, znear, _s_dae_sid);
-          _xml_readTextUsingFn(znear->val, strtof, NULL);
+          znear->val = ak_xml_valf(xst);
 
           orthographic->znear = znear;
         } else if (ak_xml_eqelm(xst, _s_dae_zfar)) {
@@ -207,7 +207,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
                                 false);
 
           zfar->sid = ak_xml_attr(xst, zfar, _s_dae_sid);
-          _xml_readTextUsingFn(zfar->val, strtof, NULL);
+          zfar->val = ak_xml_valf(xst);
 
           orthographic->zfar = zfar;
         } else {
@@ -301,8 +301,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
                                                sizeof(*constantAttenuation),
                                                false);
 
-          _xml_readTextUsingFn(constantAttenuation->val, strtod, NULL);
-
+          constantAttenuation->val = ak_xml_vald(xst);
           constantAttenuation->sid = ak_xml_attr(xst,
                                                  constantAttenuation,
                                                  _s_dae_sid);
@@ -316,7 +315,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
                                              sizeof(*linearAttenuation),
                                              false);
 
-          _xml_readTextUsingFn(linearAttenuation->val, strtod, NULL);
+          linearAttenuation->val = ak_xml_vald(xst);
           linearAttenuation->sid = ak_xml_attr(xst,
                                                linearAttenuation,
                                                _s_dae_sid);
@@ -330,8 +329,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
                                                 sizeof(*quadraticAttenuation),
                                                 false);
 
-          _xml_readTextUsingFn(quadraticAttenuation->val, strtod, NULL);
-
+          quadraticAttenuation->val = ak_xml_vald(xst);
           quadraticAttenuation->sid = ak_xml_attr(xst,
                                                   quadraticAttenuation,
                                                   _s_dae_sid);
@@ -368,8 +366,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
                                                sizeof(*constantAttenuation),
                                                false);
 
-          _xml_readTextUsingFn(constantAttenuation->val, strtod, NULL);
-
+          constantAttenuation->val = ak_xml_vald(xst);
           constantAttenuation->sid = ak_xml_attr(xst,
                                                  constantAttenuation,
                                                  _s_dae_sid);
@@ -383,8 +380,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
                                              sizeof(*linearAttenuation),
                                              false);
 
-          _xml_readTextUsingFn(linearAttenuation->val, strtod, NULL);
-
+          linearAttenuation->val = ak_xml_vald(xst);
           linearAttenuation->sid = ak_xml_attr(xst,
                                                linearAttenuation,
                                                _s_dae_sid);
@@ -398,8 +394,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
                                                 sizeof(*quadraticAttenuation),
                                                 false);
 
-          _xml_readTextUsingFn(quadraticAttenuation->val, strtod, NULL);
-
+          quadraticAttenuation->val = ak_xml_vald(xst);
           quadraticAttenuation->sid = ak_xml_attr(xst,
                                                   quadraticAttenuation,
                                                   _s_dae_sid);
@@ -413,7 +408,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
                                         sizeof(*falloffAngle),
                                         false);
 
-          _xml_readTextUsingFn(falloffAngle->val, strtod, NULL);
+          falloffAngle->val = ak_xml_vald(xst);
           falloffAngle->sid = ak_xml_attr(xst, falloffAngle, _s_dae_sid);
 
           spot->falloffAngle = falloffAngle;
@@ -425,7 +420,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
                                            sizeof(*falloffExponent),
                                            false);
 
-          _xml_readTextUsingFn(falloffExponent->val, strtod, NULL);
+          falloffExponent->val = ak_xml_vald(xst);
           falloffExponent->sid = ak_xml_attr(xst, falloffExponent, _s_dae_sid);
 
           spot->falloffExponent = falloffExponent;

@@ -165,9 +165,7 @@ ak_dae_fxEvaluate(AkXmlState * __restrict xst,
                              _s_dae_index,
                              strtol, NULL, 10);
 
-        _xml_readTextUsingFn(depthClear->val,
-                             strtof, NULL);
-
+        depthClear->val = ak_xml_valf(xst);
         evaluate->depthClear = depthClear;
         break;
       }
@@ -182,8 +180,7 @@ ak_dae_fxEvaluate(AkXmlState * __restrict xst,
                              _s_dae_index,
                              strtol, NULL, 10);
 
-        _xml_readTextUsingFn(stencilClear->val,
-                             strtoul, NULL, 10);
+        stencilClear->val = ak_xml_valul(xst);
 
         evaluate->stencilClear = stencilClear;
         break;
