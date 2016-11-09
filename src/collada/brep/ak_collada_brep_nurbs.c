@@ -37,14 +37,8 @@ ak_dae_nurbs(AkXmlState * __restrict xst,
     memPtr = nurbs;
   }
 
-  _xml_readAttrUsingFn(nurbs->degree,
-                       _s_dae_degree,
-                       (AkUInt)strtoul, NULL, 10);
-
-  _xml_readAttrUsingFnWithDef(nurbs->closed,
-                              _s_dae_closed,
-                              false,
-                              (AkBool)strtoul, NULL, 10);
+  nurbs->degree = ak_xml_attrui(xst, _s_dae_degree);
+  nurbs->closed = ak_xml_attrui_def(xst, _s_dae_closed, false);
 
   last_source = NULL;
 
@@ -192,23 +186,10 @@ ak_dae_nurbs_surface(AkXmlState * __restrict xst,
     memPtr = nurbsSurface;
   }
 
-  _xml_readAttrUsingFn(nurbsSurface->degree_u,
-                       _s_dae_degree_u,
-                       (AkUInt)strtoul, NULL, 10);
-
-  _xml_readAttrUsingFnWithDef(nurbsSurface->closed_u,
-                              _s_dae_closed_u,
-                              false,
-                              (AkBool)strtoul, NULL, 10);
-
-  _xml_readAttrUsingFn(nurbsSurface->degree_v,
-                       _s_dae_degree_v,
-                       (AkUInt)strtoul, NULL, 10);
-
-  _xml_readAttrUsingFnWithDef(nurbsSurface->closed_v,
-                              _s_dae_closed_v,
-                              false,
-                              (AkBool)strtoul, NULL, 10);
+  nurbsSurface->degree_u = ak_xml_attrui(xst, _s_dae_degree_u);
+  nurbsSurface->degree_v = ak_xml_attrui(xst, _s_dae_degree_v);
+  nurbsSurface->closed_u = ak_xml_attrui(xst, _s_dae_closed_u);
+  nurbsSurface->closed_v = ak_xml_attrui(xst, _s_dae_closed_v);
 
   last_source = NULL;
 

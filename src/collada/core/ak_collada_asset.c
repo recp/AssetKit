@@ -72,7 +72,7 @@ ak_dae_assetInf(AkXmlState * __restrict xst,
       unit = ak_heap_calloc(xst->heap, *dest, sizeof(*unit), false);
 
       unit->name = ak_xml_attr(xst, *dest, _s_dae_name);
-      _xml_readAttrUsingFn(unit->dist, _s_dae_meter, strtod, NULL);
+      unit->dist = ak_xml_attrd(xst, _s_dae_meter);
 
       (*dest)->unit = unit;
     } else if (ak_xml_eqelm(xst, _s_dae_up_axis)) {

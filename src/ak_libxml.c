@@ -22,10 +22,11 @@ ak_url_from_attr(xmlTextReaderPtr reader,
                 (char *)attrVal,
                 url);
     xmlFree(attrVal);
-  } else {
-    url->reserved = NULL;
-    url->url      = NULL;
+    return;
   }
+
+  url->reserved = NULL;
+  url->url      = NULL;
 }
 
 void
@@ -140,7 +141,7 @@ ak_xml_vald(AkXmlState * __restrict xst) {
   if (val)
     return strtod(val, NULL);
 
-  return 0.0f;
+  return 0.0;
 }
 
 long
@@ -160,7 +161,7 @@ ak_xml_valul(AkXmlState * __restrict xst) {
   val = ak_xml_rawcval(xst);
 
   if (val)
-    return strtol(val, NULL, 10);
+    return strtoul(val, NULL, 10);
 
   return 0ul;
 }
@@ -176,7 +177,7 @@ ak_xml_valul_def(AkXmlState * __restrict xst,
 
   if (val) {
     unsigned long vall;
-    vall = strtol(val, &tmp, 10);
+    vall = strtoul(val, &tmp, 10);
 
     if (tmp && *tmp == '\0')
       return defval;
@@ -280,4 +281,113 @@ ak_xml_attrenum_def(AkXmlState * __restrict xst,
   enm = ak_xml_attrenum(xst, name, fn);
 
   return enm > 0 ? enm : defval;
+}
+
+float
+ak_xml_attrf(AkXmlState * __restrict xst,
+             const char * name) {
+  xmlChar *xmlAttrVal;
+  float    attr;
+
+  xmlAttrVal = xmlTextReaderGetAttribute(xst->reader,
+                                         (const xmlChar *)name);
+  if (xmlAttrVal) {
+    attr = strtof((char *)xmlAttrVal, NULL);
+    xmlFree(xmlAttrVal);
+    return attr;
+  }
+
+  return 0.0f;
+}
+
+double
+ak_xml_attrd(AkXmlState * __restrict xst,
+             const char * name) {
+  xmlChar *xmlAttrVal;
+  double   attr;
+
+  xmlAttrVal = xmlTextReaderGetAttribute(xst->reader,
+                                         (const xmlChar *)name);
+  if (xmlAttrVal) {
+    attr = strtod((char *)xmlAttrVal, NULL);
+    xmlFree(xmlAttrVal);
+    return attr;
+  }
+
+  return 0.0;
+}
+
+long
+ak_xml_attrl(AkXmlState * __restrict xst,
+             const char * name) {
+  xmlChar *xmlAttrVal;
+  long     attr;
+
+  xmlAttrVal = xmlTextReaderGetAttribute(xst->reader,
+                                         (const xmlChar *)name);
+  if (xmlAttrVal) {
+    attr = strtol((char *)xmlAttrVal, NULL, 10);
+    xmlFree(xmlAttrVal);
+    return attr;
+  }
+
+  return 0l;
+}
+
+unsigned int
+ak_xml_attrui(AkXmlState * __restrict xst,
+              const char * name) {
+  xmlChar *xmlAttrVal;
+  float    attr;
+
+  xmlAttrVal = xmlTextReaderGetAttribute(xst->reader,
+                                         (const xmlChar *)name);
+  if (xmlAttrVal) {
+    attr = strtoul((char *)xmlAttrVal, NULL, 10);
+    xmlFree(xmlAttrVal);
+    return attr;
+  }
+
+  return 0ul;
+}
+
+uint64_t
+ak_xml_attrui64(AkXmlState * __restrict xst,
+                const char * name) {
+  xmlChar *xmlAttrVal;
+  float    attr;
+
+  xmlAttrVal = xmlTextReaderGetAttribute(xst->reader,
+                                         (const xmlChar *)name);
+  if (xmlAttrVal) {
+    attr = strtoull((char *)xmlAttrVal, NULL, 10);
+    xmlFree(xmlAttrVal);
+    return attr;
+  }
+
+  return 0ull;
+}
+
+unsigned int
+ak_xml_attrui_def(AkXmlState * __restrict xst,
+                  const char * name,
+                  unsigned int defval) {
+  xmlChar *xmlAttrVal;
+  char    *tmp;
+  float    attr;
+
+  tmp        = NULL;
+  xmlAttrVal = xmlTextReaderGetAttribute(xst->reader,
+                                         (const xmlChar *)name);
+  if (xmlAttrVal) {
+    attr = strtoul((char *)xmlAttrVal, &tmp, 10);
+    xmlFree(xmlAttrVal);
+
+    if (tmp && *tmp == '\0')
+      return defval;
+
+    return attr;
+  }
+
+  return 0ul;
 }

@@ -37,10 +37,7 @@ ak_dae_spline(AkXmlState * __restrict xst,
     memPtr = spline;
   }
 
-  _xml_readAttrUsingFnWithDef(spline->closed,
-                              _s_dae_closed,
-                              false,
-                              (AkBool)strtoul, NULL, 10);
+  spline->closed = ak_xml_attrui(xst, _s_dae_closed);
 
   last_source = NULL;
 

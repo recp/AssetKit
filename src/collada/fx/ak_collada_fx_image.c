@@ -195,21 +195,10 @@ ak_dae_fxImage_initFrom(AkXmlState * __restrict xst,
                             sizeof(*initFrom),
                             false);
 
-  _xml_readAttrUsingFn(initFrom->mipsGenerate,
-                       _s_dae_mips_generate,
-                       (AkBool)strtol, NULL, 10);
-
-  _xml_readAttrUsingFn(initFrom->arrayIndex,
-                       _s_dae_array_index,
-                       (AkInt)strtol, NULL, 10);
-
-  _xml_readAttrUsingFn(initFrom->mipIndex,
-                       _s_dae_mip_index,
-                       (AkInt)strtol, NULL, 10);
-
-  _xml_readAttrUsingFn(initFrom->depth,
-                       _s_dae_depth,
-                       (AkInt)strtol, NULL, 10);
+  initFrom->mipsGenerate = ak_xml_attrui(xst, _s_dae_mips_generate);
+  initFrom->arrayIndex   = ak_xml_attrui(xst, _s_dae_array_index);
+  initFrom->mipIndex     = ak_xml_attrui(xst, _s_dae_mip_index);
+  initFrom->depth        = ak_xml_attrui(xst, _s_dae_depth);
 
   attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_face);
@@ -345,13 +334,8 @@ ak_dae_fxImage_create2d(AkXmlState * __restrict xst,
                                  sizeof(*sizeExact),
                                  false);
 
-      _xml_readAttrUsingFn(sizeExact->width,
-                           _s_dae_width,
-                           strtof, NULL);
-
-      _xml_readAttrUsingFn(sizeExact->height,
-                           _s_dae_height,
-                           strtof, NULL);
+      sizeExact->width  = ak_xml_attrf(xst, _s_dae_width);
+      sizeExact->height = ak_xml_attrf(xst, _s_dae_height);
 
       image2d->sizeExact = sizeExact;
     } else if (ak_xml_eqelm(xst, _s_dae_size_ratio)) {
@@ -362,13 +346,9 @@ ak_dae_fxImage_create2d(AkXmlState * __restrict xst,
                                  sizeof(*sizeRatio),
                                  false);
 
-      _xml_readAttrUsingFn(sizeRatio->width,
-                           _s_dae_width,
-                           strtof, NULL);
 
-      _xml_readAttrUsingFn(sizeRatio->height,
-                           _s_dae_height,
-                           strtof, NULL);
+      sizeRatio->width  = ak_xml_attrf(xst, _s_dae_width);
+      sizeRatio->height = ak_xml_attrf(xst, _s_dae_height);
 
       image2d->sizeRatio = sizeRatio;
     } else if (ak_xml_eqelm(xst, _s_dae_mips)) {
@@ -379,21 +359,14 @@ ak_dae_fxImage_create2d(AkXmlState * __restrict xst,
                             sizeof(*mips),
                             false);
 
-      _xml_readAttrUsingFn(mips->levels,
-                           _s_dae_width,
-                           (AkUInt)strtol, NULL, 10);
-
-      _xml_readAttrUsingFn(mips->autoGenerate,
-                           _s_dae_height,
-                           strtol, NULL, 10);
+      mips->levels       = ak_xml_attrui(xst, _s_dae_width);
+      mips->autoGenerate = ak_xml_attrui(xst, _s_dae_height);
 
       image2d->mips = mips;
     } else if (ak_xml_eqelm(xst, _s_dae_unnormalized)) {
       image2d->unnormalized = ak_xml_val(xst, image2d);
     } else if (ak_xml_eqelm(xst, _s_dae_array)) {
-      _xml_readAttrUsingFn(image2d->arrayLen,
-                           _s_dae_length,
-                           strtol, NULL, 10);
+      image2d->arrayLen = ak_xml_attrui(xst, _s_dae_length);
     } else if (ak_xml_eqelm(xst, _s_dae_format)) {
       AkImageFormat *imageFormat;
       AkResult ret;
@@ -438,29 +411,14 @@ ak_dae_fxImage_create3d(AkXmlState * __restrict xst,
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_size)) {
-      _xml_readAttrUsingFn(image3d->size.width,
-                           _s_dae_width,
-                           (AkInt)strtol, NULL, 10);
-
-      _xml_readAttrUsingFn(image3d->size.height,
-                           _s_dae_height,
-                           (AkInt)strtol, NULL, 10);
-
-      _xml_readAttrUsingFn(image3d->size.depth,
-                           _s_dae_depth,
-                           (AkInt)strtol, NULL, 10);
+      image3d->size.width  = ak_xml_attrui(xst, _s_dae_width);
+      image3d->size.height = ak_xml_attrui(xst, _s_dae_height);
+      image3d->size.depth  = ak_xml_attrui(xst, _s_dae_depth);
     } else if (ak_xml_eqelm(xst, _s_dae_mips)) {
-      _xml_readAttrUsingFn(image3d->mips.levels,
-                           _s_dae_levels,
-                           (AkInt)strtol, NULL, 10);
-
-      _xml_readAttrUsingFn(image3d->mips.autoGenerate,
-                           _s_dae_auto_generate,
-                           (AkInt)strtol, NULL, 10);
+      image3d->mips.levels       = ak_xml_attrui(xst, _s_dae_levels);
+      image3d->mips.autoGenerate = ak_xml_attrui(xst, _s_dae_auto_generate);
     } else if (ak_xml_eqelm(xst, _s_dae_array)) {
-      _xml_readAttrUsingFn(image3d->arrayLen,
-                           _s_dae_length,
-                           (AkInt)strtol, NULL, 10);
+      image3d->arrayLen = ak_xml_attrui(xst, _s_dae_length);
     } else if (ak_xml_eqelm(xst, _s_dae_format)) {
       AkImageFormat *imageFormat;
       AkResult ret;
@@ -505,21 +463,12 @@ ak_dae_fxImage_createCube(AkXmlState * __restrict xst,
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_size)) {
-      _xml_readAttrUsingFn(imageCube->width,
-                           _s_dae_width,
-                           (AkInt)strtol, NULL, 10);
+      imageCube->width = ak_xml_attrui(xst, _s_dae_width);
     } else if (ak_xml_eqelm(xst, _s_dae_mips)) {
-      _xml_readAttrUsingFn(imageCube->mips.levels,
-                           _s_dae_levels,
-                           (AkInt)strtol, NULL, 10);
-
-      _xml_readAttrUsingFn(imageCube->mips.autoGenerate,
-                           _s_dae_auto_generate,
-                           (AkInt)strtol, NULL, 10);
+      imageCube->mips.levels       = ak_xml_attrui(xst, _s_dae_levels);
+      imageCube->mips.autoGenerate = ak_xml_attrui(xst, _s_dae_auto_generate);
     } else if (ak_xml_eqelm(xst, _s_dae_array)) {
-      _xml_readAttrUsingFn(imageCube->arrayLen,
-                           _s_dae_length,
-                           (AkInt)strtol, NULL, 10);
+      imageCube->arrayLen = ak_xml_attrui(xst, _s_dae_length);
     } else if (ak_xml_eqelm(xst, _s_dae_format)) {
       AkImageFormat *imageFormat;
       AkResult ret;

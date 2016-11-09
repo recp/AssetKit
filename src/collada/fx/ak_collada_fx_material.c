@@ -222,9 +222,7 @@ ak_dae_fxInstanceMaterial(AkXmlState * __restrict xst,
                                                    bindVertexInput,
                                                    _s_dae_input_semantic);
 
-      _xml_readAttrUsingFn(bindVertexInput->inputSet,
-                           _s_dae_input_set,
-                           (AkUInt)strtoul, NULL, 10);
+      bindVertexInput->inputSet = ak_xml_attrui(xst, _s_dae_input_set);
 
       if (last_bindVertexInput)
         last_bindVertexInput->next = bindVertexInput;

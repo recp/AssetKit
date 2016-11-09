@@ -204,9 +204,7 @@ ak_dae_fxState_ul_i(AkXmlState * __restrict xst,
   }
 
   state->param = ak_xml_attr(xst, state, _s_dae_param);
-  _xml_readAttrUsingFn(state->index,
-                       _s_dae_index,
-                       strtol, NULL, 10);
+  state->index = ak_xml_attrui(xst, _s_dae_index);
 
   _ak_APPEND_STATE(last_state, state);
 
@@ -263,9 +261,7 @@ ak_dae_fxState_float_i(AkXmlState * __restrict xst,
   }
 
   state->param = ak_xml_attr(xst, state, _s_dae_param);
-  _xml_readAttrUsingFn(state->index,
-                       _s_dae_index,
-                       strtol, NULL, 10);
+  state->index = ak_xml_attrui(xst, _s_dae_index);
 
   _ak_APPEND_STATE(last_state, state);
 
@@ -356,9 +352,7 @@ ak_dae_fxState_float3_i(AkXmlState * __restrict xst,
   }
 
   state->param = ak_xml_attr(xst, state, _s_dae_param);
-  _xml_readAttrUsingFn(state->index,
-                       _s_dae_index,
-                       strtol, NULL, 10);
+  state->index = ak_xml_attrui(xst, _s_dae_index);
 
   _ak_APPEND_STATE(last_state, state);
 
@@ -419,9 +413,7 @@ ak_dae_fxState_float4_i(AkXmlState * __restrict xst,
   }
 
   state->param = ak_xml_attr(xst, state, _s_dae_param);
-  _xml_readAttrUsingFn(state->index,
-                       _s_dae_index,
-                       strtol, NULL, 10);
+  state->index = ak_xml_attrui(xst, _s_dae_index);
 
   _ak_APPEND_STATE(last_state, state);
 
@@ -469,9 +461,7 @@ ak_dae_fxState_sampler(AkXmlState * __restrict xst,
   state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
   state->base.state_type = state_type;
 
-  _xml_readAttrUsingFn(state->index,
-                       _s_dae_index,
-                       strtol, NULL, 10);
+  state->index = ak_xml_attrui(xst, _s_dae_index);
 
   do {
     if (ak_xml_beginelm(xst, elm))
@@ -518,7 +508,7 @@ ak_dae_fxState_str(AkXmlState * __restrict xst,
 
   state->val   = ak_xml_attr(xst, state, _s_dae_value);
   state->param = ak_xml_attr(xst, state, _s_dae_param);
-  _xml_readAttrUsingFn(state->index, _s_dae_index, strtol, NULL, 10);
+  state->index = ak_xml_attrui(xst, _s_dae_index);
 
   _ak_APPEND_STATE(last_state, state);
 
@@ -557,7 +547,7 @@ ak_dae_fxStateAlphaFunc(AkXmlState * __restrict xst,
       }
 
     } else if (ak_xml_eqelm(xst, _s_dae_value)) {
-      _xml_readAttrUsingFn(state->val.val, _s_dae_value, strtof, NULL);
+      state->val.val   = ak_xml_attrf(xst, _s_dae_value);
       state->val.param = ak_xml_attr(xst, state, _s_dae_param);
     } else {
       ak_xml_skipelm(xst);;

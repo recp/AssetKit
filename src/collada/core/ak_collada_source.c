@@ -86,12 +86,9 @@ ak_dae_source(AkXmlState * __restrict xst,
         AkUInt64      arrayCount;
         size_t        arraySize;
 
-        _xml_readAttrUsingFnWithDef(arrayCount,
-                                    _s_dae_count,
-                                    0,
-                                    strtoul, NULL, 10);
+        arrayCount = ak_xml_attrui64(xst, _s_dae_count);
+        arraySize  = sizeof(AkBool) * arrayCount;
 
-        arraySize = sizeof(AkBool) * arrayCount;
         obj = ak_objAlloc(xst->heap,
                           source,
                           sizeof(*boolArray) + arraySize,
@@ -127,12 +124,9 @@ ak_dae_source(AkXmlState * __restrict xst,
         AkUInt64       arrayCount;
         size_t         arraySize;
 
-        _xml_readAttrUsingFnWithDef(arrayCount,
-                                    _s_dae_count,
-                                    0,
-                                    strtoul, NULL, 10);
+        arrayCount = ak_xml_attrui64(xst, _s_dae_count);
+        arraySize  = sizeof(AkFloat) * arrayCount;
 
-        arraySize = sizeof(AkFloat) * arrayCount;
         obj = ak_objAlloc(xst->heap,
                           source,
                           sizeof(*floatAray) + arraySize,
@@ -142,19 +136,12 @@ ak_dae_source(AkXmlState * __restrict xst,
         floatAray = ak_objGet(obj);
 
         ak_xml_readid(xst, obj);
-        floatAray->name = ak_xml_attr(xst, obj, _s_dae_name);
+        floatAray->name      = ak_xml_attr(xst, obj, _s_dae_name);
+        /* TODO: probably will not be unused */
+        floatAray->digits    = ak_xml_attrui(xst, _s_dae_digits);
+        floatAray->magnitude = ak_xml_attrui(xst, _s_dae_magnitude);
 
-        _xml_readAttrUsingFnWithDef(floatAray->digits,
-                                    _s_dae_digits,
-                                    7, /* default */
-                                    (AkInt)strtoul, NULL, 10);
-
-        _xml_readAttrUsingFnWithDef(floatAray->magnitude,
-                                    _s_dae_magnitude,
-                                    38, /* default */
-                                    (AkInt)strtoul, NULL, 10);
-
-        floatAray->count = arrayCount;
+        floatAray->count     = arrayCount;
         content = ak_xml_rawval(xst);
 
         if (content) {
@@ -173,43 +160,38 @@ ak_dae_source(AkXmlState * __restrict xst,
       case AK_SOURCE_ARRAY_TYPE_INT: {
         char        *content;
         AkObject    *obj;
-        AkIntArrayN *intAray;
+        AkIntArrayN *intArray;
         AkUInt64     arrayCount;
         size_t       arraySize;
 
-        _xml_readAttrUsingFnWithDef(arrayCount,
-                                    _s_dae_count,
-                                    0,
-                                    strtoul, NULL, 10);
+        arrayCount = ak_xml_attrui64(xst, _s_dae_count);
+        arraySize  = sizeof(AkInt) * arrayCount;
 
-        arraySize = sizeof(AkInt) * arrayCount;
         obj = ak_objAlloc(xst->heap,
                           source,
-                          sizeof(*intAray) + arraySize,
+                          sizeof(*intArray) + arraySize,
                           AK_SOURCE_ARRAY_TYPE_INT,
                           true,
                           true);
-        intAray = ak_objGet(obj);
+        intArray = ak_objGet(obj);
 
         ak_xml_readid(xst, obj);
-        intAray->name = ak_xml_attr(xst, obj, _s_dae_name);
+        intArray->name  = ak_xml_attr(xst, obj, _s_dae_name);
 
-        _xml_readAttrUsingFnWithDef(intAray->minInclusive,
-                                    _s_dae_minInclusive,
-                                    -2147483647, /* default */
-                                    (AkInt)strtoul, NULL, 10);
+        /* TODO: probably will not be used */
+        intArray->minInclusive = ak_xml_attrui_def(xst,
+                                                   _s_dae_minInclusive,
+                                                   -2147483647);
+        intArray->maxInclusive = ak_xml_attrui_def(xst,
+                                                   _s_dae_maxInclusive,
+                                                   2147483647);
 
-        _xml_readAttrUsingFnWithDef(intAray->maxInclusive,
-                                    _s_dae_maxInclusive,
-                                    2147483647, /* default */
-                                    (AkInt)strtoul, NULL, 10);
-
-        intAray->count = arrayCount;
+        intArray->count = arrayCount;
         content = ak_xml_rawval(xst);
 
         if (content) {
           ak_strtomi(&content,
-                     intAray->items,
+                     intArray->items,
                      1,
                      (AkUInt)arrayCount);
 
@@ -235,10 +217,7 @@ ak_dae_source(AkXmlState * __restrict xst,
         size_t          arrayDataSize;
         AkUInt64        idx;
 
-        _xml_readAttrUsingFnWithDef(arrayCount,
-                                    _s_dae_count,
-                                    0,
-                                    strtoul, NULL, 10);
+        arrayCount = ak_xml_attrui64(xst, _s_dae_count);
 
         /*
          |pSTR1|pSTR2|pSTR3|STR1\0STR2\0STR3|

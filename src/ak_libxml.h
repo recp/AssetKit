@@ -9,6 +9,7 @@
 #define __libassetkit__libxml__h_
 
 #include "ak_common.h"
+#include "../include/ak-url.h"
 #include <libxml/xmlreader.h>
 
 typedef AK_ALIGN(16) struct AkXmlState {
@@ -97,29 +98,30 @@ ak_xml_attrenum_def(AkXmlState * __restrict xst,
                     AkEnum (*fn)(const char * name),
                     AkEnum defval);
 
-#define _xml_readAttrUsingFn(TARGET, ATTR, Fn, ...)                           \
-  do {                                                                        \
-    char * attrVal;                                                           \
-    attrVal = (char *)xmlTextReaderGetAttribute(xst->reader,                  \
-                                                (const xmlChar *)ATTR);       \
-    if (attrVal) {                                                            \
-      TARGET = Fn(attrVal, __VA_ARGS__);                                      \
-      xmlFree(attrVal);                                                       \
-    }                                                                         \
-  } while (0);
+float
+ak_xml_attrf(AkXmlState * __restrict xst,
+             const char * name);
 
-#define _xml_readAttrUsingFnWithDef(TARGET, ATTR, DEF, Fn, ...)               \
-  do {                                                                        \
-    char * attrVal;                                                           \
-    attrVal = (char *)xmlTextReaderGetAttribute(xst->reader,                  \
-                                                (const xmlChar *)ATTR);       \
-    if (attrVal) {                                                            \
-      TARGET = Fn(attrVal, __VA_ARGS__);                                      \
-      xmlFree(attrVal);                                                       \
-    } else TARGET = DEF;                                                      \
-  } while (0);
+double
+ak_xml_attrd(AkXmlState * __restrict xst,
+             const char * name);
 
-#include "../include/ak-url.h"
+int
+ak_xml_attri(AkXmlState * __restrict xst,
+             const char * name);
+
+unsigned int
+ak_xml_attrui(AkXmlState * __restrict xst,
+              const char * name);
+
+uint64_t
+ak_xml_attrui64(AkXmlState * __restrict xst,
+                const char * name);
+
+unsigned int
+ak_xml_attrui_def(AkXmlState * __restrict xst,
+                  const char * name,
+                  unsigned int defval);
 
 void
 ak_url_from_attr(xmlTextReaderPtr reader,

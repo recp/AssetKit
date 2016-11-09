@@ -25,11 +25,7 @@ ak_dae_lines(AkXmlState * __restrict xst,
 
   lines->base.name     = ak_xml_attr(xst, lines, _s_dae_name);
   lines->base.material = ak_xml_attr(xst, lines, _s_dae_material);
-
-  _xml_readAttrUsingFnWithDef(lines->count,
-                              _s_dae_count,
-                              0,
-                              strtoul, NULL, 10);
+  lines->count         = ak_xml_attrui(xst, _s_dae_count);
 
   last_input = NULL;
 
@@ -61,13 +57,8 @@ ak_dae_lines(AkXmlState * __restrict xst,
         input->base.semantic = inputSemantic;
       }
 
-      _xml_readAttrUsingFn(input->offset,
-                           _s_dae_offset,
-                           (AkUInt)strtoul, NULL, 10);
-
-      _xml_readAttrUsingFn(input->set,
-                           _s_dae_set,
-                           (AkUInt)strtoul, NULL, 10);
+      input->offset = ak_xml_attrui(xst, _s_dae_offset);
+      input->set    = ak_xml_attrui(xst, _s_dae_set);
 
       if (last_input)
         last_input->base.next = &input->base;

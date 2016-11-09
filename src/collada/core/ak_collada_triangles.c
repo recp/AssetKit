@@ -30,11 +30,7 @@ ak_dae_triangles(AkXmlState * __restrict xst,
 
   triangles->base.name     = ak_xml_attr(xst, triangles, _s_dae_name);
   triangles->base.material = ak_xml_attr(xst, triangles, _s_dae_material);
-
-  _xml_readAttrUsingFnWithDef(triangles->count,
-                              _s_dae_count,
-                              0,
-                              strtoul, NULL, 10);
+  triangles->count         = ak_xml_attrui64(xst, _s_dae_count);
 
   last_input = NULL;
 
@@ -66,13 +62,8 @@ ak_dae_triangles(AkXmlState * __restrict xst,
         input->base.semantic = inputSemantic;
       }
 
-      _xml_readAttrUsingFn(input->offset,
-                           _s_dae_offset,
-                           (AkUInt)strtoul, NULL, 10);
-
-      _xml_readAttrUsingFn(input->set,
-                           _s_dae_set,
-                           (AkUInt)strtoul, NULL, 10);
+      input->offset = ak_xml_attrui(xst, _s_dae_offset);
+      input->set    = ak_xml_attrui(xst, _s_dae_set);
 
       if (last_input)
         last_input->base.next = &input->base;

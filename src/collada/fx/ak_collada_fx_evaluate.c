@@ -74,21 +74,13 @@ ak_dae_fxEvaluate(AkXmlState * __restrict xst,
                                          sizeof(*evaluate_target),
                                          false);
 
-        _xml_readAttrUsingFn(evaluate_target->index,
-                             _s_dae_index,
-                             strtol, NULL, 10);
+        evaluate_target->index = ak_xml_attrui(xst, _s_dae_index);
+        evaluate_target->slice = ak_xml_attrui(xst, _s_dae_slice);
+        evaluate_target->mip   = ak_xml_attrui(xst, _s_dae_mip);
 
-        _xml_readAttrUsingFn(evaluate_target->slice,
-                             _s_dae_slice,
-                             strtol, NULL, 10);
-
-        _xml_readAttrUsingFn(evaluate_target->mip,
-                             _s_dae_mip,
-                             strtol, NULL, 10);
-
-        evaluate_target->face = ak_xml_attrenum(xst,
-                                                _s_dae_face,
-                                                ak_dae_fxEnumFace);
+        evaluate_target->face  = ak_xml_attrenum(xst,
+                                                 _s_dae_face,
+                                                 ak_dae_fxEnumFace);
 
         targetNodeName = xst->nodeName;
 
@@ -145,9 +137,7 @@ ak_dae_fxEvaluate(AkXmlState * __restrict xst,
                                     sizeof(*colorClear),
                                     false);
 
-        _xml_readAttrUsingFn(colorClear->index,
-                             _s_dae_index,
-                             strtol, NULL, 10);
+        colorClear->index = ak_xml_attrui(xst, _s_dae_index);
 
         ak_dae_color(xst, false, &colorClear->val);
 
@@ -161,11 +151,9 @@ ak_dae_fxEvaluate(AkXmlState * __restrict xst,
                                     sizeof(*depthClear),
                                     false);
 
-        _xml_readAttrUsingFn(depthClear->index,
-                             _s_dae_index,
-                             strtol, NULL, 10);
+        depthClear->index = ak_xml_attrui(xst, _s_dae_index);
+        depthClear->val   = ak_xml_valf(xst);
 
-        depthClear->val = ak_xml_valf(xst);
         evaluate->depthClear = depthClear;
         break;
       }
@@ -176,11 +164,8 @@ ak_dae_fxEvaluate(AkXmlState * __restrict xst,
                                       sizeof(*stencilClear),
                                       false);
 
-        _xml_readAttrUsingFn(stencilClear->index,
-                             _s_dae_index,
-                             strtol, NULL, 10);
-
-        stencilClear->val = ak_xml_valul(xst);
+        stencilClear->index = ak_xml_attrui(xst, _s_dae_index);
+        stencilClear->val   = ak_xml_valul(xst);
 
         evaluate->stencilClear = stencilClear;
         break;

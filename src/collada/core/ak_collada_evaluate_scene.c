@@ -22,11 +22,9 @@ ak_dae_evaluateScene(AkXmlState * __restrict xst,
                                  true);
 
   ak_xml_readid(xst, evaluateScene);
-  evaluateScene->name = ak_xml_attr(xst, evaluateScene, _s_dae_name);
-  evaluateScene->sid  = ak_xml_attr(xst, evaluateScene, _s_dae_sid);
-  _xml_readAttrUsingFnWithDef(evaluateScene->enable,
-                              _s_dae_enable, true,
-                              (AkBool)strtol, NULL, 10);
+  evaluateScene->name   = ak_xml_attr(xst, evaluateScene, _s_dae_name);
+  evaluateScene->sid    = ak_xml_attr(xst, evaluateScene, _s_dae_sid);
+  evaluateScene->enable = ak_xml_attrui_def(xst, _s_dae_enable, true);
 
   last_render = NULL;
 

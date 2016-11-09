@@ -182,13 +182,8 @@ ak_dae_skin(AkXmlState * __restrict xst,
             input->base.semantic = inputSemantic;
           }
 
-          _xml_readAttrUsingFn(input->offset,
-                               _s_dae_offset,
-                               (AkUInt)strtoul, NULL, 10);
-
-          _xml_readAttrUsingFn(input->set,
-                               _s_dae_set,
-                               (AkUInt)strtoul, NULL, 10);
+          input->offset = ak_xml_attrui(xst, _s_dae_offset);
+          input->set    = ak_xml_attrui(xst, _s_dae_set);
 
           if (last_input)
             last_input->base.next = &input->base;

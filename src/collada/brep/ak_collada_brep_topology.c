@@ -22,10 +22,8 @@ ak_dae_edges(AkXmlState * __restrict xst,
                          true);
 
   ak_xml_readid(xst, memParent);
-  edges->name = ak_xml_attr(xst, memParent, _s_dae_name);
-  _xml_readAttrUsingFn(edges->count,
-                       _s_dae_count,
-                       (AkUInt)strtoul, NULL, 10);
+  edges->name  = ak_xml_attr(xst, memParent, _s_dae_name);
+  edges->count = ak_xml_attrui(xst, _s_dae_count);
 
   last_input = NULL;
 
@@ -59,13 +57,8 @@ ak_dae_edges(AkXmlState * __restrict xst,
         input->base.semantic = inputSemantic;
       }
 
-      _xml_readAttrUsingFn(input->offset,
-                           _s_dae_offset,
-                           (AkUInt)strtoul, NULL, 10);
-
-      _xml_readAttrUsingFn(input->set,
-                           _s_dae_set,
-                           (AkUInt)strtoul, NULL, 10);
+      input->offset = ak_xml_attrui(xst, _s_dae_offset);
+      input->set    = ak_xml_attrui(xst, _s_dae_set);
 
       if (last_input)
         last_input->base.next = &input->base;
@@ -132,10 +125,8 @@ ak_dae_wires(AkXmlState * __restrict xst,
                          true);
 
   ak_xml_readid(xst, memParent);
-  wires->name = ak_xml_attr(xst, memParent, _s_dae_name);
-  _xml_readAttrUsingFn(wires->count,
-                       _s_dae_count,
-                       (AkUInt)strtoul, NULL, 10);
+  wires->name  = ak_xml_attr(xst, memParent, _s_dae_name);
+  wires->count = ak_xml_attrui(xst, _s_dae_count);
 
   last_input = NULL;
 
@@ -169,13 +160,8 @@ ak_dae_wires(AkXmlState * __restrict xst,
         input->base.semantic = inputSemantic;
       }
 
-      _xml_readAttrUsingFn(input->offset,
-                           _s_dae_offset,
-                           (AkUInt)strtoul, NULL, 10);
-
-      _xml_readAttrUsingFn(input->set,
-                           _s_dae_set,
-                           (AkUInt)strtoul, NULL, 10);
+      input->offset = ak_xml_attrui(xst, _s_dae_offset);
+      input->set    = ak_xml_attrui(xst, _s_dae_set);
 
       if (last_input)
         last_input->base.next = &input->base;
@@ -258,10 +244,8 @@ ak_dae_faces(AkXmlState * __restrict xst,
                          true);
 
   ak_xml_readid(xst, memParent);
-  faces->name = ak_xml_attr(xst, memParent, _s_dae_name);
-  _xml_readAttrUsingFn(faces->count,
-                       _s_dae_count,
-                       (AkUInt)strtoul, NULL, 10);
+  faces->name  = ak_xml_attr(xst, memParent, _s_dae_name);
+  faces->count = ak_xml_attrui(xst, _s_dae_count);
 
   last_input = NULL;
 
@@ -295,13 +279,8 @@ ak_dae_faces(AkXmlState * __restrict xst,
         input->base.semantic = inputSemantic;
       }
 
-      _xml_readAttrUsingFn(input->offset,
-                           _s_dae_offset,
-                           (AkUInt)strtoul, NULL, 10);
-
-      _xml_readAttrUsingFn(input->set,
-                           _s_dae_set,
-                           (AkUInt)strtoul, NULL, 10);
+      input->offset = ak_xml_attrui(xst, _s_dae_offset);
+      input->set    = ak_xml_attrui(xst, _s_dae_set);
 
       if (last_input)
         last_input->base.next = &input->base;
@@ -384,10 +363,8 @@ ak_dae_pcurves(AkXmlState * __restrict xst,
                            true);
 
   ak_xml_readid(xst, memParent);
-  pcurves->name = ak_xml_attr(xst, memParent, _s_dae_name);
-  _xml_readAttrUsingFn(pcurves->count,
-                       _s_dae_count,
-                       (AkUInt)strtoul, NULL, 10);
+  pcurves->name  = ak_xml_attr(xst, memParent, _s_dae_name);
+  pcurves->count = ak_xml_attrui(xst, _s_dae_count);
 
   last_input = NULL;
 
@@ -421,13 +398,8 @@ ak_dae_pcurves(AkXmlState * __restrict xst,
         input->base.semantic = inputSemantic;
       }
 
-      _xml_readAttrUsingFn(input->offset,
-                           _s_dae_offset,
-                           (AkUInt)strtoul, NULL, 10);
-
-      _xml_readAttrUsingFn(input->set,
-                           _s_dae_set,
-                           (AkUInt)strtoul, NULL, 10);
+      input->offset = ak_xml_attrui(xst, _s_dae_offset);
+      input->set    = ak_xml_attrui(xst, _s_dae_set);
 
       if (last_input)
         last_input->base.next = &input->base;
@@ -510,10 +482,8 @@ ak_dae_shells(AkXmlState * __restrict xst,
                           true);
 
   ak_xml_readid(xst, memParent);
-  shells->name = ak_xml_attr(xst, memParent, _s_dae_name);
-  _xml_readAttrUsingFn(shells->count,
-                       _s_dae_count,
-                       (AkUInt)strtoul, NULL, 10);
+  shells->name  = ak_xml_attr(xst, memParent, _s_dae_name);
+  shells->count = ak_xml_attrui(xst, _s_dae_count);
 
   last_input = NULL;
 
@@ -547,13 +517,8 @@ ak_dae_shells(AkXmlState * __restrict xst,
         input->base.semantic = inputSemantic;
       }
 
-      _xml_readAttrUsingFn(input->offset,
-                           _s_dae_offset,
-                           (AkUInt)strtoul, NULL, 10);
-
-      _xml_readAttrUsingFn(input->set,
-                           _s_dae_set,
-                           (AkUInt)strtoul, NULL, 10);
+      input->offset = ak_xml_attrui(xst, _s_dae_offset);
+      input->set    = ak_xml_attrui(xst, _s_dae_set);
 
       if (last_input)
         last_input->base.next = &input->base;
@@ -636,10 +601,8 @@ ak_dae_solids(AkXmlState * __restrict xst,
                           true);
 
   ak_xml_readid(xst, memParent);
-  solids->name = ak_xml_attr(xst, memParent, _s_dae_name);
-  _xml_readAttrUsingFn(solids->count,
-                       _s_dae_count,
-                       (AkUInt)strtoul, NULL, 10);
+  solids->name  = ak_xml_attr(xst, memParent, _s_dae_name);
+  solids->count = ak_xml_attrui(xst, _s_dae_count);
 
   last_input = NULL;
 
@@ -673,13 +636,8 @@ ak_dae_solids(AkXmlState * __restrict xst,
         input->base.semantic = inputSemantic;
       }
 
-      _xml_readAttrUsingFn(input->offset,
-                           _s_dae_offset,
-                           (AkUInt)strtoul, NULL, 10);
-
-      _xml_readAttrUsingFn(input->set,
-                           _s_dae_set,
-                           (AkUInt)strtoul, NULL, 10);
+      input->offset = ak_xml_attrui(xst, _s_dae_offset);
+      input->set    = ak_xml_attrui(xst, _s_dae_set);
 
       if (last_input)
         last_input->base.next = &input->base;
