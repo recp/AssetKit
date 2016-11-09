@@ -17,7 +17,7 @@
 AkResult _assetkit_hide
 ak_dae_effect(AkXmlState * __restrict xst,
               void * __restrict memParent,
-              AkEffect ** __restrict  dest) {
+              void ** __restrict  dest) {
   AkEffect   *effect;
   AkAnnotate *last_annotate;
   AkNewParam *last_newparam;

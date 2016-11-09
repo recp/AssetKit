@@ -13,7 +13,7 @@
 AkResult _assetkit_hide
 ak_dae_visualScene(AkXmlState * __restrict xst,
                    void * __restrict memParent,
-                   AkVisualScene ** __restrict dest) {
+                   void ** __restrict dest) {
   AkVisualScene   *visualScene;
   AkNode          *last_node;
   AkEvaluateScene *last_evaluateScene;

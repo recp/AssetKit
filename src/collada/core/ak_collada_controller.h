@@ -13,6 +13,6 @@
 AkResult _assetkit_hide
 ak_dae_controller(AkXmlState * __restrict xst,
                   void * __restrict memParent,
-                  AkController ** __restrict dest);
+                  void ** __restrict dest);
 
 #endif /* __libassetkit__ak_collada_controller_h_ */

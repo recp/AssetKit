@@ -43,7 +43,7 @@ ak_dae_fxImage_createCube(AkXmlState * __restrict xst,
 AkResult _assetkit_hide
 ak_dae_fxImage(AkXmlState * __restrict xst,
                void * __restrict memParent,
-               AkImage ** __restrict dest) {
+               void ** __restrict dest) {
   AkImage *img;
 
   img = ak_heap_calloc(xst->heap, memParent, sizeof(*img), true);

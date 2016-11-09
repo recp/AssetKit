@@ -13,6 +13,6 @@
 AkResult _assetkit_hide
 ak_dae_geometry(AkXmlState * __restrict xst,
                 void * __restrict memParent,
-                AkGeometry ** __restrict dest);
+                void ** __restrict dest);
 
 #endif /* __libassetkit__ak_collada_geometry_h_ */

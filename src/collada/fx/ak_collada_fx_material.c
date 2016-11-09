@@ -14,7 +14,7 @@
 AkResult _assetkit_hide
 ak_dae_material(AkXmlState * __restrict xst,
                 void * __restrict memParent,
-                AkMaterial ** __restrict dest) {
+                void ** __restrict dest) {
   AkMaterial *material;
 
   material = ak_heap_calloc(xst->heap,

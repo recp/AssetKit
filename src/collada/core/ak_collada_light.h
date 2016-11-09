@@ -13,6 +13,6 @@
 AkResult _assetkit_hide
 ak_dae_light(AkXmlState * __restrict xst,
              void * __restrict memParent,
-             AkLight ** __restrict  dest);
+             void ** __restrict  dest);
 
 #endif /* __libassetkit__ak_collada_light__h_ */

@@ -13,7 +13,7 @@
 AkResult _assetkit_hide
 ak_dae_controller(AkXmlState * __restrict xst,
                   void * __restrict memParent,
-                  AkController ** __restrict dest) {
+                  void ** __restrict dest) {
   AkController *controller;
 
   controller = ak_heap_calloc(xst->heap,

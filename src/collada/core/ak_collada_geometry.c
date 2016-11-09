@@ -14,7 +14,7 @@
 AkResult _assetkit_hide
 ak_dae_geometry(AkXmlState * __restrict xst,
                 void * __restrict memParent,
-                AkGeometry ** __restrict dest) {
+                void ** __restrict dest) {
   AkGeometry *geometry;
 
   geometry = ak_heap_calloc(xst->heap,

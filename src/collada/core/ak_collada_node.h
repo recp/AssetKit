@@ -16,4 +16,9 @@ ak_dae_node(AkXmlState * __restrict xst,
             AkNode             **firstCamNode,
             AkNode             **dest);
 
+AkResult _assetkit_hide
+ak_dae_node2(AkXmlState * __restrict xst,
+             void       * __restrict memParent,
+             void             **dest);
+
 #endif /* __libassetkit__ak_collada_node_h_ */

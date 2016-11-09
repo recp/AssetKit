@@ -12,7 +12,7 @@
 AkResult _assetkit_hide
 ak_dae_light(AkXmlState * __restrict xst,
              void * __restrict memParent,
-             AkLight ** __restrict dest) {
+             void ** __restrict dest) {
   AkLight           *light;
   AkTechnique       *last_tq;
   AkTechniqueCommon *last_tc;

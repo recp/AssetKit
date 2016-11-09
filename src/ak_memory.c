@@ -703,7 +703,7 @@ ak_mem_setId(void * __restrict memptr,
              void * __restrict memId) {
   AkHeap     *heap;
   AkHeapNode *heapNode;
-
+  
   heapNode = ak__alignof(memptr);
   if (heapNode->heapid == 0)
     heap = &ak__heap;

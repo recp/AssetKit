@@ -13,6 +13,6 @@
 AkResult _assetkit_hide
 ak_dae_camera(AkXmlState * __restrict xst,
               void * __restrict memParent,
-              AkCamera ** __restrict  dest);
+              void ** __restrict  dest);
 
 #endif /* __libassetkit__ak_collada_camera__h_ */

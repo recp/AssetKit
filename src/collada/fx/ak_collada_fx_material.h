@@ -15,7 +15,7 @@
 AkResult _assetkit_hide
 ak_dae_material(AkXmlState * __restrict xst,
                 void * __restrict memParent,
-                AkMaterial ** __restrict dest);
+                void ** __restrict dest);
 
 AkResult _assetkit_hide
 ak_dae_fxBindMaterial(AkXmlState * __restrict xst,

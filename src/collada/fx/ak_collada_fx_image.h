@@ -15,7 +15,7 @@
 AkResult _assetkit_hide
 ak_dae_fxImage(AkXmlState * __restrict xst,
                void * __restrict memParent,
-               AkImage ** __restrict dest);
+               void ** __restrict dest);
 
 AkResult _assetkit_hide
 ak_dae_fxInstanceImage(AkXmlState * __restrict xst,

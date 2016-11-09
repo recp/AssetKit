@@ -50,6 +50,16 @@ static ak_enumpair nodeMap[] = {
 static size_t nodeMapLen = 0;
 
 AkResult _assetkit_hide
+ak_dae_node2(AkXmlState * __restrict xst,
+             void       * __restrict memParent,
+             void             **dest) {
+  return ak_dae_node(xst,
+                     memParent,
+                     NULL,
+                     (AkNode **)dest);
+}
+
+AkResult _assetkit_hide
 ak_dae_node(AkXmlState * __restrict xst,
             void    * __restrict memParent,
             AkNode             **firstCamNode,
@@ -121,7 +131,7 @@ ak_dae_node(AkXmlState * __restrict xst,
                     nodeMapLen,
                     sizeof(nodeMap[0]),
                     ak_enumpair_cmp2);
-
+    printf("node '%s'\n", found->key);
     if (!found) {
       ak_xml_skipelm(xst);;
       goto cont;

@@ -12,7 +12,7 @@
 AkResult _assetkit_hide
 ak_dae_camera(AkXmlState * __restrict xst,
               void * __restrict memParent,
-              AkCamera ** __restrict  dest) {
+              void ** __restrict  dest) {
   AkCamera *camera;
 
   camera = ak_heap_calloc(xst->heap, memParent, sizeof(*camera), true);
