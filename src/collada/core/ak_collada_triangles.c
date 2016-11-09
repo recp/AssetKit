@@ -45,7 +45,7 @@ ak_dae_triangles(AkXmlState * __restrict xst,
 
       input->base.semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
-      ak_url_from_attr(xst->reader,
+      ak_xml_attr_url(xst->reader,
                        _s_dae_source,
                        input,
                        &input->base.source);

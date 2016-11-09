@@ -345,7 +345,7 @@ ak_dae_node(AkXmlState * __restrict xst,
         instanceCamera->base.name = ak_xml_attr(xst,
                                                 instanceCamera,
                                                 _s_dae_name);
-        ak_url_from_attr(xst->reader,
+        ak_xml_attr_url(xst->reader,
                          _s_dae_url,
                          instanceCamera,
                          &instanceCamera->base.url);
@@ -401,7 +401,7 @@ ak_dae_node(AkXmlState * __restrict xst,
 
         controller->name = ak_xml_attr(xst, controller, _s_dae_name);
 
-        ak_url_from_attr(xst->reader,
+        ak_xml_attr_url(xst->reader,
                          _s_dae_url,
                          controller,
                          &controller->url);
@@ -482,7 +482,7 @@ ak_dae_node(AkXmlState * __restrict xst,
 
         geometry->base.name = ak_xml_attr(xst, geometry, _s_dae_name);
 
-        ak_url_from_attr(xst->reader,
+        ak_xml_attr_url(xst->reader,
                          _s_dae_url,
                          geometry,
                          &geometry->base.url);
@@ -539,7 +539,7 @@ ak_dae_node(AkXmlState * __restrict xst,
 
         light->name = ak_xml_attr(xst, light, _s_dae_name);
 
-        ak_url_from_attr(xst->reader,
+        ak_xml_attr_url(xst->reader,
                          _s_dae_url,
                          light,
                          &light->url);
@@ -592,7 +592,7 @@ ak_dae_node(AkXmlState * __restrict xst,
         instanceNode->name  = ak_xml_attr(xst, instanceNode, _s_dae_name);
         instanceNode->proxy = ak_xml_attr(xst, instanceNode, _s_dae_proxy);
 
-        ak_url_from_attr(xst->reader,
+        ak_xml_attr_url(xst->reader,
                          _s_dae_url,
                          instanceNode,
                          &instanceNode->url);

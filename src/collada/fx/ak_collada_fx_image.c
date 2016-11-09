@@ -145,7 +145,7 @@ ak_dae_fxInstanceImage(AkXmlState * __restrict xst,
   instanceImage->sid  = ak_xml_attr(xst, instanceImage, _s_dae_sid);
   instanceImage->name = ak_xml_attr(xst, instanceImage, _s_dae_name);
 
-  ak_url_from_attr(xst->reader,
+  ak_xml_attr_url(xst->reader,
                    _s_dae_url,
                    instanceImage,
                    &instanceImage->url);

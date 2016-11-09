@@ -10,10 +10,10 @@
 #include "collada/ak_collada_common.h"
 
 void
-ak_url_from_attr(xmlTextReaderPtr reader,
-                 const char * attrName,
-                 void  *memparent,
-                 AkURL *url) {
+ak_xml_attr_url(xmlTextReaderPtr reader,
+                const char * attrName,
+                void  *memparent,
+                AkURL *url) {
   xmlChar * attrVal;
   attrVal = xmlTextReaderGetAttribute(reader,
                                       (const xmlChar *)attrName);
