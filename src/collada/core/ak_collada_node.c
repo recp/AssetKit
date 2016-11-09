@@ -68,8 +68,8 @@ ak_dae_node(AkXmlState * __restrict xst,
   node = ak_heap_calloc(xst->heap, memParent, sizeof(*node), true);
 
   _xml_readId(node);
-  _xml_readAttr(node, node->sid, _s_dae_sid);
-  _xml_readAttr(node, node->name, _s_dae_name);
+  node->sid  = ak_xml_attr(xst, node, _s_dae_sid);
+  node->name = ak_xml_attr(xst, node, _s_dae_name);
 
   _xml_readAttrAsEnumWithDef(node->nodeType,
                              _s_dae_type,
@@ -156,7 +156,7 @@ ak_dae_node(AkXmlState * __restrict xst,
 
           looakAt = ak_objGet(obj);
 
-          _xml_readAttr(looakAt, looakAt->sid, _s_dae_sid);
+          looakAt->sid = ak_xml_attr(xst, looakAt, _s_dae_sid);
           ak_strtof(&content, (float *)looakAt->val, 9);
 
           if (last_transform)
@@ -188,7 +188,7 @@ ak_dae_node(AkXmlState * __restrict xst,
 
           matrix = ak_objGet(obj);
 
-          _xml_readAttr(matrix, matrix->sid, _s_dae_sid);
+          matrix->sid = ak_xml_attr(xst, matrix, _s_dae_sid);
           ak_strtof(&content, transform[0], 16);
 
           glm_mat4_transpose_to(transform, matrix->val);
@@ -221,7 +221,7 @@ ak_dae_node(AkXmlState * __restrict xst,
 
           rotate = ak_objGet(obj);
 
-          _xml_readAttr(rotate, rotate->sid, _s_dae_sid);
+          rotate->sid = ak_xml_attr(xst, rotate, _s_dae_sid);
           ak_strtof(&content, (AkFloat *)rotate->val, 4);
           glm_make_rad(&rotate->val[3]);
 
@@ -253,7 +253,7 @@ ak_dae_node(AkXmlState * __restrict xst,
 
           scale = ak_objGet(obj);
 
-          _xml_readAttr(scale, scale->sid, _s_dae_sid);
+          scale->sid = ak_xml_attr(xst, scale, _s_dae_sid);
           ak_strtof(&content, (AkFloat *)scale->val, 4);
 
           if (last_transform)
@@ -285,7 +285,7 @@ ak_dae_node(AkXmlState * __restrict xst,
 
           skew = ak_objGet(obj);
 
-          _xml_readAttr(skew, skew->sid, _s_dae_sid);
+          skew->sid = ak_xml_attr(xst, skew, _s_dae_sid);
           ak_strtof(&content, (AkFloat *)tmp, 4);
 
           /* COLLADA uses degree here, convert it to radians */
@@ -321,7 +321,7 @@ ak_dae_node(AkXmlState * __restrict xst,
 
           translate = ak_objGet(obj);
 
-          _xml_readAttr(translate, translate->sid, _s_dae_sid);
+          translate->sid = ak_xml_attr(xst, translate, _s_dae_sid);
           ak_strtof(&content, (AkFloat *)translate->val, 4);
 
           if (last_transform)
@@ -342,8 +342,9 @@ ak_dae_node(AkXmlState * __restrict xst,
                                         sizeof(*instanceCamera),
                                         false);
 
-        _xml_readAttr(instanceCamera, instanceCamera->base.name, _s_dae_name);
-
+        instanceCamera->base.name = ak_xml_attr(xst,
+                                                instanceCamera,
+                                                _s_dae_name);
         ak_url_from_attr(xst->reader,
                          _s_dae_url,
                          instanceCamera,
@@ -353,7 +354,7 @@ ak_dae_node(AkXmlState * __restrict xst,
           if (ak_xml_beginelm(xst, _s_dae_instance_camera))
             break;
 
-          if (_xml_eqElm(_s_dae_extra)) {
+          if (ak_xml_eqelm(xst, _s_dae_extra)) {
             xmlNodePtr nodePtr;
             AkTree    *tree;
 
@@ -398,7 +399,7 @@ ak_dae_node(AkXmlState * __restrict xst,
                                     sizeof(*controller),
                                     false);
 
-        _xml_readAttr(controller, controller->name, _s_dae_name);
+        controller->name = ak_xml_attr(xst, controller, _s_dae_name);
 
         ak_url_from_attr(xst->reader,
                          _s_dae_url,
@@ -411,7 +412,7 @@ ak_dae_node(AkXmlState * __restrict xst,
           if (ak_xml_beginelm(xst, _s_dae_instance_controller))
             break;
 
-          if (_xml_eqElm(_s_dae_skeleton)) {
+          if (ak_xml_eqelm(xst, _s_dae_skeleton)) {
             if (!xmlTextReaderIsEmptyElement(xst->reader)) {
               AkSkeleton *skeleton;
               skeleton = ak_heap_calloc(xst->heap,
@@ -428,7 +429,7 @@ ak_dae_node(AkXmlState * __restrict xst,
 
               last_skeleton = skeleton;
             }
-          } else if (_xml_eqElm(_s_dae_bind_material)) {
+          } else if (ak_xml_eqelm(xst, _s_dae_bind_material)) {
             AkBindMaterial *bindMaterial;
             AkResult ret;
 
@@ -438,7 +439,7 @@ ak_dae_node(AkXmlState * __restrict xst,
             if (ret == AK_OK)
               controller->bindMaterial = bindMaterial;
 
-          } else if (_xml_eqElm(_s_dae_extra)) {
+          } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
             xmlNodePtr nodePtr;
             AkTree    *tree;
 
@@ -479,7 +480,7 @@ ak_dae_node(AkXmlState * __restrict xst,
                                   sizeof(*geometry),
                                   false);
 
-        _xml_readAttr(geometry, geometry->base.name, _s_dae_name);
+        geometry->base.name = ak_xml_attr(xst, geometry, _s_dae_name);
 
         ak_url_from_attr(xst->reader,
                          _s_dae_url,
@@ -490,7 +491,7 @@ ak_dae_node(AkXmlState * __restrict xst,
           if (ak_xml_beginelm(xst, _s_dae_instance_geometry))
             break;
 
-          if (_xml_eqElm(_s_dae_bind_material)) {
+          if (ak_xml_eqelm(xst, _s_dae_bind_material)) {
             AkBindMaterial *bindMaterial;
             AkResult ret;
 
@@ -498,7 +499,7 @@ ak_dae_node(AkXmlState * __restrict xst,
             if (ret == AK_OK)
               geometry->bindMaterial = bindMaterial;
 
-          } else if (_xml_eqElm(_s_dae_extra)) {
+          } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
             xmlNodePtr nodePtr;
             AkTree    *tree;
 
@@ -536,7 +537,7 @@ ak_dae_node(AkXmlState * __restrict xst,
 
         light = ak_heap_calloc(xst->heap, node, sizeof(*light), false);
 
-        _xml_readAttr(light, light->name, _s_dae_name);
+        light->name = ak_xml_attr(xst, light, _s_dae_name);
 
         ak_url_from_attr(xst->reader,
                          _s_dae_url,
@@ -547,7 +548,7 @@ ak_dae_node(AkXmlState * __restrict xst,
           if (ak_xml_beginelm(xst, _s_dae_instance_light))
             break;
 
-          if (_xml_eqElm(_s_dae_extra)) {
+          if (ak_xml_eqelm(xst, _s_dae_extra)) {
             xmlNodePtr nodePtr;
             AkTree    *tree;
 
@@ -588,8 +589,8 @@ ak_dae_node(AkXmlState * __restrict xst,
                                       sizeof(*instanceNode),
                                       false);
 
-        _xml_readAttr(instanceNode, instanceNode->name, _s_dae_name);
-        _xml_readAttr(instanceNode, instanceNode->proxy, _s_dae_proxy);
+        instanceNode->name  = ak_xml_attr(xst, instanceNode, _s_dae_name);
+        instanceNode->proxy = ak_xml_attr(xst, instanceNode, _s_dae_proxy);
 
         ak_url_from_attr(xst->reader,
                          _s_dae_url,
@@ -600,7 +601,7 @@ ak_dae_node(AkXmlState * __restrict xst,
           if (ak_xml_beginelm(xst, _s_dae_instance_node))
             break;
 
-          if (_xml_eqElm(_s_dae_extra)) {
+          if (ak_xml_eqelm(xst, _s_dae_extra)) {
             xmlNodePtr nodePtr;
             AkTree    *tree;
 

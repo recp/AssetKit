@@ -23,8 +23,9 @@ ak_dae_lines(AkXmlState * __restrict xst,
   lines->mode = mode;
   lines->base.type = AK_MESH_PRIMITIVE_TYPE_LINES;
 
-  _xml_readAttr(lines, lines->base.name, _s_dae_name);
-  _xml_readAttr(lines, lines->base.material, _s_dae_material);
+  lines->base.name     = ak_xml_attr(xst, lines, _s_dae_name);
+  lines->base.material = ak_xml_attr(xst, lines, _s_dae_material);
+
   _xml_readAttrUsingFnWithDef(lines->count,
                               _s_dae_count,
                               0,
@@ -36,13 +37,13 @@ ak_dae_lines(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_lines))
       break;
 
-    if (_xml_eqElm(_s_dae_input)) {
+    if (ak_xml_eqelm(xst, _s_dae_input)) {
       AkInput *input;
 
       input = ak_heap_calloc(xst->heap, lines, sizeof(*input), false);
 
-      _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
-
+      input->base.semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
+      
       ak_url_from_attr(xst->reader,
                        _s_dae_source,
                        input,
@@ -81,7 +82,7 @@ ak_dae_lines(AkXmlState * __restrict xst,
       if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX)
         lines->base.vertices = ak_getObjectByUrl(&input->base.source);
 
-    } else if (_xml_eqElm(_s_dae_p)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_p)) {
       char *content;
 
       content = ak_xml_rawval(xst);
@@ -96,7 +97,7 @@ ak_dae_lines(AkXmlState * __restrict xst,
 
         xmlFree(content);
       }
-    } else if (_xml_eqElm(_s_dae_extra)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
 

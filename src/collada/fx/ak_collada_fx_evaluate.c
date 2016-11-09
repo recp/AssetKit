@@ -93,10 +93,10 @@ ak_dae_fxEvaluate(AkXmlState * __restrict xst,
         targetNodeName = xst->nodeName;
 
         do {
-          if (ak_xml_beginelm(xst, targetNodeName))
+          if (ak_xml_beginelm(xst, (char *)targetNodeName))
             break;
 
-          if (_xml_eqElm(_s_dae_param)) {
+          if (ak_xml_eqelm(xst, _s_dae_param)) {
             AkParam * param;
             AkResult   ret;
 
@@ -107,7 +107,7 @@ ak_dae_fxEvaluate(AkXmlState * __restrict xst,
 
             if (ret == AK_OK)
               evaluate_target->param = param;
-          } else if (_xml_eqElm(_s_dae_instance_image)) {
+          } else if (ak_xml_eqelm(xst, _s_dae_instance_image)) {
             AkInstanceImage *instanceImage;
             AkResult ret;
 

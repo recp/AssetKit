@@ -67,7 +67,7 @@ ak_dae_mesh(AkXmlState * __restrict xst,
     memPtr = mesh;
   }
 
-  _xml_readAttr(memPtr, mesh->convexHullOf, _s_dae_convex_hull_of);
+  mesh->convexHullOf = ak_xml_attr(xst, memPtr, _s_dae_convex_hull_of);
 
   if (meshMapLen == 0) {
     meshMapLen = AK_ARRAY_LEN(meshMap);

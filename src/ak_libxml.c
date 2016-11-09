@@ -36,6 +36,18 @@ ak_xml_readnext(AkXmlState * __restrict xst) {
 }
 
 bool
+ak_xml_eqelm(AkXmlState * __restrict xst, const char * s) {
+  return xst->nodeType == XML_ELEMENT_NODE
+         && xmlStrcasecmp(xst->nodeName, (xmlChar *)s) == 0;
+}
+
+bool
+ak_xml_eqdecl(AkXmlState * __restrict xst, const xmlChar * s) {
+  return xst->nodeType == XML_ELEMENT_DECL
+        && xmlStrcasecmp(xst->nodeName, s) == 0;
+}
+
+bool
 ak_xml_beginelm(AkXmlState * __restrict xst,
                 const char *elmname) {
   xst->nodeName = xmlTextReaderConstName(xst->reader);
@@ -71,7 +83,7 @@ ak_xml_skipelm(AkXmlState * __restrict xst) {
   nodeName  = xst->nodeName;
   nodeDepth = xmlTextReaderDepth(xst->reader);
 
-  while (!_xml_eqDecl(nodeName)) {
+  while (!ak_xml_eqdecl(xst, nodeName)) {
     ak_xml_readnext(xst);
 
     if (xmlTextReaderDepth(xst->reader) <= nodeDepth)
@@ -107,4 +119,24 @@ ak_xml_val(AkXmlState * __restrict xst,
   return ak_heap_strdup(xst->heap,
                         parent,
                         ak_xml_rawcval(xst));
+}
+
+const char *
+ak_xml_attr(AkXmlState * __restrict xst,
+            void * __restrict parent,
+            const char * name) {
+  xmlChar *xmlAttrVal;
+  char    *attrVal;
+
+  xmlAttrVal = xmlTextReaderGetAttribute(xst->reader,
+                                         (const xmlChar *)name);
+  if (xmlAttrVal) {
+    attrVal = ak_heap_strdup(xst->heap,
+                             parent,
+                             (char *)xmlAttrVal);
+    xmlFree(xmlAttrVal);
+    return attrVal;
+  }
+
+  return NULL;
 }

@@ -46,7 +46,7 @@ ak_dae_newparam(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_newparam))
       break;
 
-    if (_xml_eqElm(_s_dae_annotate)) {
+    if (ak_xml_eqelm(xst, _s_dae_annotate)) {
       AkAnnotate *annotate;
       AkResult    ret;
 
@@ -59,9 +59,9 @@ ak_dae_newparam(AkXmlState * __restrict xst,
 
         last_annotate = annotate;
       }
-    } else if (_xml_eqElm(_s_dae_semantic)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_semantic)) {
        newparam->semantic = ak_xml_val(xst, newparam);
-    } else if (_xml_eqElm(_s_dae_modifier)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_modifier)) {
       const ak_enumpair *found;
       const char *val;
 
@@ -118,7 +118,7 @@ ak_dae_param(AkXmlState * __restrict xst,
                            sizeof(AkParam),
                            false);
 
-    _xml_readAttr(param, param->ref, _s_dae_ref);
+    param->ref = ak_xml_attr(xst, param, _s_dae_ref);
   } else if (paramType == AK_PARAM_TYPE_EXTENDED) {
     AkParamEx *param_ex;
     param_ex = ak_heap_calloc(xst->heap,
@@ -126,10 +126,10 @@ ak_dae_param(AkXmlState * __restrict xst,
                               sizeof(AkParamEx),
                               false);
 
-    _xml_readAttr(param_ex, param_ex->name, _s_dae_name);
-    _xml_readAttr(param_ex, param_ex->sid, _s_dae_sid);
-    _xml_readAttr(param_ex, param_ex->name, _s_dae_semantic);
-    _xml_readAttr(param_ex, param_ex->typeName, _s_dae_type);
+    param_ex->name     = ak_xml_attr(xst, param_ex, _s_dae_name);
+    param_ex->sid      = ak_xml_attr(xst, param_ex, _s_dae_sid);
+    param_ex->semantic = ak_xml_attr(xst, param_ex, _s_dae_semantic);
+    param_ex->typeName = ak_xml_attr(xst, param_ex, _s_dae_type);
 
     if (param_ex->typeName)
       param_ex->type = ak_dae_valueType(param_ex->typeName);

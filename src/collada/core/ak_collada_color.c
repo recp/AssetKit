@@ -14,7 +14,7 @@ ak_dae_color(AkXmlState * __restrict xst,
   char *colorStr;
 
   if (read_sid)
-    _xml_readAttr(dest, dest->sid, _s_dae_sid);
+    dest->sid = ak_xml_attr(xst, dest, _s_dae_sid);
 
   colorStr = ak_xml_rawval(xst);
 

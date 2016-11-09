@@ -31,7 +31,7 @@ ak_dae_colorOrTex(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, elm))
       break;
 
-    if (_xml_eqElm(_s_dae_color)) {
+    if (ak_xml_eqelm(xst, _s_dae_color)) {
       AkColor *color;
       char *colorStr;
 
@@ -40,7 +40,7 @@ ak_dae_colorOrTex(AkXmlState * __restrict xst,
                              sizeof(*color),
                              false);
 
-      _xml_readAttr(color, color->sid, _s_dae_sid);
+      color->sid = ak_xml_attr(xst, color, _s_dae_sid);
       colorStr = ak_xml_rawval(xst);
 
       if (colorStr) {
@@ -48,22 +48,23 @@ ak_dae_colorOrTex(AkXmlState * __restrict xst,
         colorOrTex->color = color;
         xmlFree(colorStr);
       }
-    } else if (_xml_eqElm(_s_dae_texture)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_texture)) {
       AkFxTexture *tex;
 
       tex = ak_heap_calloc(xst->heap,
                            colorOrTex,
                            sizeof(*tex),
                            false);
-      _xml_readAttr(tex, tex->texture, _s_dae_texture);
-      _xml_readAttr(tex, tex->texcoord, _s_dae_texcoord);
+
+      tex->texture = ak_xml_attr(xst, tex, _s_dae_texture);
+      tex->texcoord = ak_xml_attr(xst, tex, _s_dae_texcoord);
 
       if (!xmlTextReaderIsEmptyElement(xst->reader)) {
         do {
           if (ak_xml_beginelm(xst, _s_dae_texture))
             break;
 
-          if (_xml_eqElm(_s_dae_extra)) {
+          if (ak_xml_eqelm(xst, _s_dae_extra)) {
             xmlNodePtr nodePtr;
             AkTree   *tree;
 
@@ -86,7 +87,7 @@ ak_dae_colorOrTex(AkXmlState * __restrict xst,
           ak_xml_endelm(xst);;
         } while (xst->nodeRet);
       }
-    } else if (_xml_eqElm(_s_dae_param)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_param)) {
       AkParam * param;
       AkResult   ret;
 

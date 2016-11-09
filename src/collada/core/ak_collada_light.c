@@ -20,7 +20,7 @@ ak_dae_light(AkXmlState * __restrict xst,
   light = ak_heap_calloc(xst->heap, memParent, sizeof(*light), true);
 
   _xml_readId(light);
-  _xml_readAttr(light, light->name, _s_dae_name);
+  light->name = ak_xml_attr(xst, light, _s_dae_name);
 
   last_tq = light->technique;
   last_tc = light->techniqueCommon;
@@ -29,7 +29,7 @@ ak_dae_light(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_light))
       break;
 
-    if (_xml_eqElm(_s_dae_asset)) {
+    if (ak_xml_eqelm(xst, _s_dae_asset)) {
       AkAssetInf *assetInf;
       AkResult ret;
 
@@ -38,7 +38,7 @@ ak_dae_light(AkXmlState * __restrict xst,
       if (ret == AK_OK)
         light->inf = assetInf;
 
-    } else if (_xml_eqElm(_s_dae_techniquec)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_techniquec)) {
       AkTechniqueCommon *tc;
       AkResult ret;
 
@@ -53,7 +53,7 @@ ak_dae_light(AkXmlState * __restrict xst,
         last_tc = tc;
       }
 
-    } else if (_xml_eqElm(_s_dae_technique)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_technique)) {
       AkTechnique *tq;
       AkResult ret;
 
@@ -67,7 +67,7 @@ ak_dae_light(AkXmlState * __restrict xst,
 
         last_tq = tq;
       }
-    } else if (_xml_eqElm(_s_dae_extra)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
 

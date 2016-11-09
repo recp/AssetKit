@@ -34,7 +34,7 @@ ak_dae_fxProg(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_program))
       break;
 
-    if (_xml_eqElm(_s_dae_shader)) {
+    if (ak_xml_eqelm(xst, _s_dae_shader)) {
       AkShader *shader;
       AkResult  ret;
 
@@ -47,7 +47,7 @@ ak_dae_fxProg(AkXmlState * __restrict xst,
 
         last_shader = shader;
       }
-    } else if (_xml_eqElm(_s_dae_linker)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_linker)) {
       AkLinker *linker;
       AkBinary *last_binary;
 
@@ -56,9 +56,9 @@ ak_dae_fxProg(AkXmlState * __restrict xst,
                               sizeof(*linker),
                               false);
 
-      _xml_readAttr(linker, linker->platform, _s_dae_platform);
-      _xml_readAttr(linker, linker->target, _s_dae_target);
-      _xml_readAttr(linker, linker->options, _s_dae_options);
+      linker->platform = ak_xml_attr(xst, linker, _s_dae_platform);
+      linker->target   = ak_xml_attr(xst, linker, _s_dae_target);
+      linker->options  = ak_xml_attr(xst, linker, _s_dae_options);
 
       last_binary = NULL;
 
@@ -66,7 +66,7 @@ ak_dae_fxProg(AkXmlState * __restrict xst,
         if (ak_xml_beginelm(xst, _s_dae_linker))
           break;
 
-        if (_xml_eqElm(_s_dae_binary)) {
+        if (ak_xml_eqelm(xst, _s_dae_binary)) {
           AkBinary *binary;
           AkResult  ret;
 
@@ -93,20 +93,21 @@ ak_dae_fxProg(AkXmlState * __restrict xst,
         prog->linker = linker;
 
       last_linker = linker;
-    } else if (_xml_eqElm(_s_dae_bind_attribute)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_bind_attribute)) {
       AkBindAttrib *bindAttrib;
 
       bindAttrib = ak_heap_calloc(xst->heap,
                                   prog,
                                   sizeof(*bindAttrib),
                                   false);
-      _xml_readAttr(bindAttrib, bindAttrib->symbol, _s_dae_symbol);
+
+      bindAttrib->symbol = ak_xml_attr(xst, bindAttrib, _s_dae_symbol);
 
       do {
         if (ak_xml_beginelm(xst, _s_dae_bind_attribute))
           break;
 
-        if (_xml_eqElm(_s_dae_semantic)) {
+        if (ak_xml_eqelm(xst, _s_dae_semantic)) {
           if (!bindAttrib->semantic)
             bindAttrib->semantic = ak_xml_val(xst, bindAttrib);
         } else {
@@ -123,7 +124,7 @@ ak_dae_fxProg(AkXmlState * __restrict xst,
         prog->bindAttrib = bindAttrib;
 
       last_bind_attrib = bindAttrib;
-    } else if (_xml_eqElm(_s_dae_bind_uniform)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_bind_uniform)) {
       AkBindUniform *bindUniform;
       AkResult ret;
 

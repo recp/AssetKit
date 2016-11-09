@@ -22,13 +22,13 @@ ak_dae_controller(AkXmlState * __restrict xst,
                               true);
 
   _xml_readId(controller);
-  _xml_readAttr(controller, controller->name, _s_dae_name);
+  controller->name = ak_xml_attr(xst, controller, _s_dae_name);
 
   do {
     if (ak_xml_beginelm(xst, _s_dae_controller))
       break;
 
-    if (_xml_eqElm(_s_dae_asset)) {
+    if (ak_xml_eqelm(xst, _s_dae_asset)) {
       AkAssetInf *assetInf;
       AkResult ret;
 
@@ -37,7 +37,7 @@ ak_dae_controller(AkXmlState * __restrict xst,
       if (ret == AK_OK)
         controller->inf = assetInf;
 
-    } else if (_xml_eqElm(_s_dae_skin)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_skin)) {
       AkSkin  *skin;
       AkResult ret;
 
@@ -45,7 +45,7 @@ ak_dae_controller(AkXmlState * __restrict xst,
       if (ret == AK_OK)
         controller->data = ak_objFrom(skin);
 
-    } else if (_xml_eqElm(_s_dae_morph)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_morph)) {
       AkMorph *morph;
       AkResult ret;
 
@@ -53,7 +53,7 @@ ak_dae_controller(AkXmlState * __restrict xst,
       if (ret == AK_OK)
         controller->data = ak_objFrom(morph);
 
-    } else if (_xml_eqElm(_s_dae_extra)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
 

@@ -21,7 +21,7 @@ ak_dae_fxBindUniform(AkXmlState * __restrict xst,
                                sizeof(*bindUniform),
                                false);
 
-  _xml_readAttr(bindUniform, bindUniform->symbol, _s_dae_symbol);
+  bindUniform->symbol = ak_xml_attr(xst, bindUniform, _s_dae_symbol);
 
   last_param = NULL;
 
@@ -29,7 +29,7 @@ ak_dae_fxBindUniform(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_bind_uniform))
       break;
 
-    if (_xml_eqElm(_s_dae_param)) {
+    if (ak_xml_eqelm(xst, _s_dae_param)) {
       AkParam * param;
       AkResult   ret;
 

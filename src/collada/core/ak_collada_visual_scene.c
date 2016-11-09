@@ -24,7 +24,7 @@ ak_dae_visualScene(AkXmlState * __restrict xst,
                                true);
 
   _xml_readId(visualScene);
-  _xml_readAttr(visualScene, visualScene->name, _s_dae_name);
+  visualScene->name = ak_xml_attr(xst, visualScene, _s_dae_name);
 
   last_node          = NULL;
   last_evaluateScene = NULL;
@@ -33,7 +33,7 @@ ak_dae_visualScene(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_visual_scene))
       break;
 
-    if (_xml_eqElm(_s_dae_asset)) {
+    if (ak_xml_eqelm(xst, _s_dae_asset)) {
       AkAssetInf *assetInf;
       AkResult ret;
 
@@ -42,7 +42,7 @@ ak_dae_visualScene(AkXmlState * __restrict xst,
       if (ret == AK_OK)
         visualScene->inf = assetInf;
 
-    } else if (_xml_eqElm(_s_dae_node)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_node)) {
       AkNode  *node;
       AkResult ret;
 
@@ -58,7 +58,7 @@ ak_dae_visualScene(AkXmlState * __restrict xst,
 
         last_node = node;
       }
-    } else if (_xml_eqElm(_s_dae_evaluate_scene)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_evaluate_scene)) {
       AkEvaluateScene *evaluateScene;
       AkResult ret;
 
@@ -71,7 +71,7 @@ ak_dae_visualScene(AkXmlState * __restrict xst,
 
         last_evaluateScene = evaluateScene;
       }
-    } else if (_xml_eqElm(_s_dae_extra)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
@@ -108,8 +108,8 @@ ak_dae_instanceVisualScene(AkXmlState * __restrict xst,
                                sizeof(*visualScene),
                                false);
 
-  _xml_readAttr(visualScene, visualScene->base.sid, _s_dae_sid);
-  _xml_readAttr(visualScene, visualScene->base.name, _s_dae_name);
+  visualScene->base.sid = ak_xml_attr(xst, visualScene, _s_dae_sid);
+  visualScene->base.name = ak_xml_attr(xst, visualScene, _s_dae_name);
 
   ak_url_from_attr(xst->reader,
                    _s_dae_url,
@@ -120,7 +120,7 @@ ak_dae_instanceVisualScene(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_instance_visual_scene))
       break;
 
-    if (_xml_eqElm(_s_dae_extra)) {
+    if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
 

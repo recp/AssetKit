@@ -25,7 +25,7 @@ ak_dae_fxPass(AkXmlState * __restrict xst,
                         sizeof(*pass),
                         false);
 
-  _xml_readAttr(pass, pass->sid, _s_dae_sid);
+  pass->sid = ak_xml_attr(xst, pass, _s_dae_sid);
 
   last_annotate = NULL;
 
@@ -33,7 +33,7 @@ ak_dae_fxPass(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_pass))
       break;
 
-    if (_xml_eqElm(_s_dae_asset)) {
+    if (ak_xml_eqelm(xst, _s_dae_asset)) {
       AkAssetInf *assetInf;
       AkResult ret;
 
@@ -41,7 +41,7 @@ ak_dae_fxPass(AkXmlState * __restrict xst,
       ret = ak_dae_assetInf(xst, pass, &assetInf);
       if (ret == AK_OK)
         pass->inf = assetInf;
-    } else if (_xml_eqElm(_s_dae_annotate)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_annotate)) {
       AkAnnotate *annotate;
       AkResult    ret;
 
@@ -55,7 +55,7 @@ ak_dae_fxPass(AkXmlState * __restrict xst,
 
         last_annotate = annotate;
       }
-    } else if (_xml_eqElm(_s_dae_states)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_states)) {
       AkStates *states;
       AkResult  ret;
 
@@ -63,21 +63,21 @@ ak_dae_fxPass(AkXmlState * __restrict xst,
       if (ret == AK_OK)
         pass->states = states;
 
-    } else if (_xml_eqElm(_s_dae_program)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_program)) {
       AkProgram *prog;
       AkResult   ret;
 
       ret = ak_dae_fxProg(xst, pass, &prog);
       if (ret == AK_OK)
         pass->program = prog;
-    } else if (_xml_eqElm(_s_dae_evaluate)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_evaluate)) {
       AkEvaluate * evaluate;
       AkResult ret;
 
       ret = ak_dae_fxEvaluate(xst, pass, &evaluate);
       if (ret == AK_OK)
         pass->evaluate = evaluate;
-    } else if (_xml_eqElm(_s_dae_extra)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
 

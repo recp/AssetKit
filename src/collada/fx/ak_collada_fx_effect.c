@@ -33,13 +33,13 @@ ak_dae_effect(AkXmlState * __restrict xst,
   last_profile  = NULL;
 
   _xml_readId(effect);
-  _xml_readAttr(effect, effect->name, _s_dae_name);
+  effect->name = ak_xml_attr(xst, effect, _s_dae_name);
 
   do {
     if (ak_xml_beginelm(xst, _s_dae_effect))
       break;
 
-    if (_xml_eqElm(_s_dae_asset)) {
+    if (ak_xml_eqelm(xst, _s_dae_asset)) {
       AkAssetInf *assetInf;
       AkResult ret;
 
@@ -47,7 +47,7 @@ ak_dae_effect(AkXmlState * __restrict xst,
       ret = ak_dae_assetInf(xst, effect, &assetInf);
       if (ret == AK_OK)
         effect->inf = assetInf;
-    } else if (_xml_eqElm(_s_dae_annotate)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_annotate)) {
       AkAnnotate *annotate;
       AkResult    ret;
 
@@ -61,7 +61,7 @@ ak_dae_effect(AkXmlState * __restrict xst,
 
         last_annotate = annotate;
       }
-    } else if (_xml_eqElm(_s_dae_newparam)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_newparam)) {
       AkNewParam *newparam;
       AkResult    ret;
 
@@ -75,12 +75,12 @@ ak_dae_effect(AkXmlState * __restrict xst,
 
         last_newparam = newparam;
       }
-    } else if (_xml_eqElm(_s_dae_prfl_common)
-               || _xml_eqElm(_s_dae_prfl_glsl)
-               || _xml_eqElm(_s_dae_prfl_gles2)
-               || _xml_eqElm(_s_dae_prfl_gles)
-               || _xml_eqElm(_s_dae_prfl_cg)
-               || _xml_eqElm(_s_dae_prfl_bridge)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_prfl_common)
+               || ak_xml_eqelm(xst, _s_dae_prfl_glsl)
+               || ak_xml_eqelm(xst, _s_dae_prfl_gles2)
+               || ak_xml_eqelm(xst, _s_dae_prfl_gles)
+               || ak_xml_eqelm(xst, _s_dae_prfl_cg)
+               || ak_xml_eqelm(xst, _s_dae_prfl_bridge)) {
       AkProfile *profile;
       AkResult   ret;
 
@@ -94,7 +94,7 @@ ak_dae_effect(AkXmlState * __restrict xst,
 
         last_profile = profile;
       }
-    } else if (_xml_eqElm(_s_dae_extra)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
@@ -135,8 +135,8 @@ ak_dae_fxInstanceEffect(AkXmlState * __restrict xst,
                                   sizeof(*instanceEffect),
                                   false);
 
-  _xml_readAttr(instanceEffect, instanceEffect->sid, _s_dae_sid);
-  _xml_readAttr(instanceEffect, instanceEffect->name, _s_dae_name);
+  instanceEffect->name = ak_xml_attr(xst, instanceEffect, _s_dae_name);
+  instanceEffect->sid  = ak_xml_attr(xst, instanceEffect, _s_dae_sid);
 
   ak_url_from_attr(xst->reader,
                    _s_dae_url,
@@ -151,7 +151,7 @@ ak_dae_fxInstanceEffect(AkXmlState * __restrict xst,
       if (ak_xml_beginelm(xst, _s_dae_inst_effect))
         break;
 
-      if (_xml_eqElm(_s_dae_technique_hint)) {
+      if (ak_xml_eqelm(xst, _s_dae_technique_hint)) {
         AkTechniqueHint *techHint;
 
         techHint = ak_heap_calloc(xst->heap,
@@ -159,9 +159,9 @@ ak_dae_fxInstanceEffect(AkXmlState * __restrict xst,
                                   sizeof(*techHint),
                                   false);
 
-        _xml_readAttr(techHint, techHint->ref, _s_dae_ref);
-        _xml_readAttr(techHint, techHint->profile, _s_dae_profile);
-        _xml_readAttr(techHint, techHint->platform, _s_dae_platform);
+        techHint->ref      = ak_xml_attr(xst, techHint, _s_dae_ref);
+        techHint->profile  = ak_xml_attr(xst, techHint, _s_dae_profile);
+        techHint->platform = ak_xml_attr(xst, techHint, _s_dae_platform);
 
         if (last_techHint)
           last_techHint->next = techHint;
@@ -169,7 +169,7 @@ ak_dae_fxInstanceEffect(AkXmlState * __restrict xst,
           instanceEffect->techniqueHint = techHint;
 
         last_techHint = techHint;
-      } else if (_xml_eqElm(_s_dae_setparam)) {
+      } else if (ak_xml_eqelm(xst, _s_dae_setparam)) {
         AkSetParam *setparam;
         AkResult ret;
 
@@ -185,7 +185,7 @@ ak_dae_fxInstanceEffect(AkXmlState * __restrict xst,
 
           last_setparam = setparam;
         }
-      } else if (_xml_eqElm(_s_dae_extra)) {
+      } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
         xmlNodePtr nodePtr;
         AkTree   *tree;
 

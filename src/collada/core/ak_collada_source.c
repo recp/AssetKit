@@ -39,7 +39,7 @@ ak_dae_source(AkXmlState * __restrict xst,
   source = ak_heap_calloc(xst->heap, memParent, sizeof(*source), true);
 
   _xml_readId(source);
-  _xml_readAttr(source, source->name, _s_dae_name);
+  source->name = ak_xml_attr(xst, source, _s_dae_name);
 
   if (xmlTextReaderIsEmptyElement(xst->reader))
     goto done;
@@ -101,7 +101,7 @@ ak_dae_source(AkXmlState * __restrict xst,
         boolArray = ak_objGet(obj);
 
         _xml_readId(obj);
-        _xml_readAttr(obj, boolArray->name, _s_dae_name);
+        boolArray->name = ak_xml_attr(xst, obj, _s_dae_name);
 
         boolArray->count = arrayCount;
 
@@ -142,7 +142,7 @@ ak_dae_source(AkXmlState * __restrict xst,
         floatAray = ak_objGet(obj);
 
         _xml_readId(obj);
-        _xml_readAttr(obj, floatAray->name, _s_dae_name);
+        floatAray->name = ak_xml_attr(xst, obj, _s_dae_name);
 
         _xml_readAttrUsingFnWithDef(floatAray->digits,
                                     _s_dae_digits,
@@ -192,7 +192,7 @@ ak_dae_source(AkXmlState * __restrict xst,
         intAray = ak_objGet(obj);
 
         _xml_readId(obj);
-        _xml_readAttr(obj, intAray->name, _s_dae_name);
+        intAray->name = ak_xml_attr(xst, obj, _s_dae_name);
 
         _xml_readAttrUsingFnWithDef(intAray->minInclusive,
                                     _s_dae_minInclusive,
@@ -257,7 +257,7 @@ ak_dae_source(AkXmlState * __restrict xst,
         stringAray->count = arrayCount;
 
         _xml_readId(obj);
-        _xml_readAttr(obj, stringAray->name, _s_dae_name);
+        stringAray->name = ak_xml_attr(xst, obj, _s_dae_name);
 
         content = ak_xml_rawval(xst);
         if (content) {

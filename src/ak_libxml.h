@@ -45,32 +45,26 @@ ak_xml_rawcval(AkXmlState * __restrict xst);
 char *
 ak_xml_rawval(AkXmlState * __restrict xst);
 
-#define _xml_eqElm(b)                                                         \
-  (xst->nodeType == XML_ELEMENT_NODE                                               \
-   && xmlStrcasecmp(xst->nodeName, (xmlChar *)b) == 0)
+bool
+ak_xml_eqelm(AkXmlState * __restrict xst,
+             const char * s);
 
-#define _xml_eqDecl(b)                                                        \
-  (xst->nodeType == XML_ELEMENT_DECL                                               \
-   && xmlStrcasecmp(xst->nodeName, (xmlChar *)b) == 0)
+bool
+ak_xml_eqdecl(AkXmlState * __restrict xst,
+              const xmlChar * s);
+
+const char *
+ak_xml_attr(AkXmlState * __restrict xst,
+            void * __restrict parent,
+            const char * name);
 
 #define _xml_readTextUsingFn(TARGET, Fn, ...)                                 \
   do {                                                                        \
     const char * val;                                                         \
-    val = ak_xml_rawcval(xst);\
+    val = ak_xml_rawcval(xst);                                                \
     if (val)                                                                  \
       TARGET = Fn(val, __VA_ARGS__);                                          \
   } while (0)
-
-#define _xml_readAttr(PARENT, TARGET, ATTR)                                   \
-  do {                                                                        \
-    char * attrVal;                                                           \
-    attrVal = (char *)xmlTextReaderGetAttribute(xst->reader,             \
-                                                (const xmlChar *)ATTR);       \
-    if (attrVal) {                                                            \
-      TARGET = ak_heap_strdup(xst->heap, PARENT, attrVal);               \
-      xmlFree(attrVal);                                                       \
-    } else TARGET = NULL;                                                     \
-  } while (0);
 
 #define _xml_readId(OBJ)                                                      \
   do {                                                                        \

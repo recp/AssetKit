@@ -19,7 +19,7 @@ ak_dae_annotate(AkXmlState * __restrict xst,
                             sizeof(*annotate),
                             false);
 
-  _xml_readAttr(annotate, annotate->name, _s_dae_name);
+  annotate->name = ak_xml_attr(xst, annotate, _s_dae_name);
 
   do {
     if (ak_xml_beginelm(xst, _s_dae_annotate))

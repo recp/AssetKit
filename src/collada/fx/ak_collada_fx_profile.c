@@ -64,7 +64,7 @@ ak_dae_profile(AkXmlState * __restrict xst,
                                    sizeof(AkProfileGLSL),
                                    true);
 
-      _xml_readAttr(glslProfile, glslProfile->platform, _s_dae_platform);
+      glslProfile->platform = ak_xml_attr(xst, glslProfile, _s_dae_platform);
 
       profile = &glslProfile->base;
       break;
@@ -76,8 +76,12 @@ ak_dae_profile(AkXmlState * __restrict xst,
                                     sizeof(AkProfileGLES2),
                                     true);
 
-      _xml_readAttr(gles2Profile, gles2Profile->language, _s_dae_language);
-      _xml_readAttr(gles2Profile, gles2Profile->platforms, _s_dae_platforms);
+      gles2Profile->language = ak_xml_attr(xst,
+                                           gles2Profile,
+                                           _s_dae_language);
+      gles2Profile->platforms = ak_xml_attr(xst,
+                                            gles2Profile,
+                                            _s_dae_platforms);
 
       profile = &gles2Profile->base;
       break;
@@ -89,7 +93,9 @@ ak_dae_profile(AkXmlState * __restrict xst,
                                    sizeof(AkProfileGLES),
                                    true);
 
-      _xml_readAttr(glesProfile, glesProfile->platform, _s_dae_platform);
+      glesProfile->platform = ak_xml_attr(xst,
+                                          glesProfile,
+                                          _s_dae_platform);
 
       profile = &glesProfile->base;
       break;
@@ -101,7 +107,7 @@ ak_dae_profile(AkXmlState * __restrict xst,
                                  sizeof(AkProfileGLES2),
                                  true);
 
-      _xml_readAttr(cgProfile, cgProfile->platform, _s_dae_platform);
+      cgProfile->platform = ak_xml_attr(xst, cgProfile, _s_dae_platform);
 
       profile = &cgProfile->base;
       break;
@@ -113,9 +119,11 @@ ak_dae_profile(AkXmlState * __restrict xst,
                                      sizeof(AkProfileGLES2),
                                      true);
 
-      _xml_readAttr(bridgeProfile, bridgeProfile->platform, _s_dae_platform);
-      _xml_readAttr(bridgeProfile, bridgeProfile->url, _s_dae_url);
+      bridgeProfile->platform = ak_xml_attr(xst,
+                                            bridgeProfile,
+                                            _s_dae_platform);
 
+      bridgeProfile->url = ak_xml_attr(xst, bridgeProfile, _s_dae_url);
       profile = &bridgeProfile->base;
       break;
     }
@@ -137,7 +145,7 @@ ak_dae_profile(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, found->key))
       break;
 
-    if (_xml_eqElm(_s_dae_asset)) {
+    if (ak_xml_eqelm(xst, _s_dae_asset)) {
       AkAssetInf *assetInf;
       AkResult ret;
 
@@ -147,7 +155,7 @@ ak_dae_profile(AkXmlState * __restrict xst,
                             &assetInf);
       if (ret == AK_OK)
         profile->inf = assetInf;
-    } else if (_xml_eqElm(_s_dae_newparam)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_newparam)) {
       AkNewParam *newparam;
       AkResult    ret;
 
@@ -163,7 +171,7 @@ ak_dae_profile(AkXmlState * __restrict xst,
 
         last_newparam = newparam;
       }
-    } else if (_xml_eqElm(_s_dae_technique)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_technique)) {
       AkTechniqueFx * technique_fx;
       AkResult ret;
 
@@ -179,7 +187,7 @@ ak_dae_profile(AkXmlState * __restrict xst,
         last_techfx = technique_fx;
       }
 
-    } else if (_xml_eqElm(_s_dae_extra)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree    *tree;
 
@@ -194,14 +202,14 @@ ak_dae_profile(AkXmlState * __restrict xst,
       profile->extra = tree;
 
       ak_xml_skipelm(xst);;
-    } else if (_xml_eqElm(_s_dae_code)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_code)) {
       AkCode *code;
 
       code = ak_heap_calloc(xst->heap,
                             profile,
                             sizeof(*code),
                             false);
-      _xml_readAttr(code, code->sid, _s_dae_sid);
+      code->sid = ak_xml_attr(xst, code, _s_dae_sid);
       code->val = ak_xml_val(xst, code);
 
       if (last_code) {
@@ -226,15 +234,15 @@ ak_dae_profile(AkXmlState * __restrict xst,
 
       last_code = code;
 
-    } else if (_xml_eqElm(_s_dae_include)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_include)) {
       AkInclude *inc;
 
       inc = ak_heap_calloc(xst->heap,
                            profile,
                            sizeof(*inc),
                            false);
-      _xml_readAttr(inc, inc->sid, _s_dae_sid);
-      _xml_readAttr(inc, inc->url, _s_dae_url);
+      inc->sid = ak_xml_attr(xst, inc, _s_dae_sid);
+      inc->url = ak_xml_attr(xst, inc, _s_dae_url);
 
       if (!inc->url)
         inc->url = ak_xml_val(xst, inc);

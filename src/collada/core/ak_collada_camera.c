@@ -18,13 +18,13 @@ ak_dae_camera(AkXmlState * __restrict xst,
   camera = ak_heap_calloc(xst->heap, memParent, sizeof(*camera), true);
 
   _xml_readId(camera);
-  _xml_readAttr(camera, camera->name, _s_dae_name);
+  camera->name = ak_xml_attr(xst, camera, _s_dae_name);
 
   do {
     if (ak_xml_beginelm(xst, _s_dae_camera))
       break;
 
-    if (_xml_eqElm(_s_dae_asset)) {
+    if (ak_xml_eqelm(xst, _s_dae_asset)) {
       AkAssetInf *assetInf;
       AkResult ret;
 
@@ -33,7 +33,7 @@ ak_dae_camera(AkXmlState * __restrict xst,
       if (ret == AK_OK)
         camera->inf = assetInf;
 
-    } else if (_xml_eqElm(_s_dae_optics)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_optics)) {
       AkOptics           *optics;
       AkTechnique        *last_tq;
       AkTechniqueCommon *last_tc;
@@ -47,7 +47,7 @@ ak_dae_camera(AkXmlState * __restrict xst,
         if (ak_xml_beginelm(xst, _s_dae_optics))
           break;
 
-        if (_xml_eqElm(_s_dae_techniquec)) {
+        if (ak_xml_eqelm(xst, _s_dae_techniquec)) {
           AkTechniqueCommon *tc;
           AkResult ret;
 
@@ -62,7 +62,7 @@ ak_dae_camera(AkXmlState * __restrict xst,
             last_tc = tc;
           }
 
-        } else if (_xml_eqElm(_s_dae_technique)) {
+        } else if (ak_xml_eqelm(xst, _s_dae_technique)) {
           AkTechnique *tq;
           AkResult ret;
 
@@ -85,7 +85,7 @@ ak_dae_camera(AkXmlState * __restrict xst,
       } while (xst->nodeRet);
 
       camera->optics = optics;
-    } else if (_xml_eqElm(_s_dae_imager)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_imager)) {
       AkImager    *imager;
       AkTechnique *last_tq;
 
@@ -96,7 +96,7 @@ ak_dae_camera(AkXmlState * __restrict xst,
         if (ak_xml_beginelm(xst, _s_dae_imager))
           break;
 
-        if (_xml_eqElm(_s_dae_technique)) {
+        if (ak_xml_eqelm(xst, _s_dae_technique)) {
           AkTechnique *tq;
           AkResult ret;
 
@@ -110,7 +110,7 @@ ak_dae_camera(AkXmlState * __restrict xst,
 
             last_tq = tq;
           }
-        } else if (_xml_eqElm(_s_dae_extra)) {
+        } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
           xmlNodePtr nodePtr;
           AkTree   *tree;
 
@@ -134,7 +134,7 @@ ak_dae_camera(AkXmlState * __restrict xst,
       } while (xst->nodeRet);
 
       camera->imager = imager;
-    } else if (_xml_eqElm(_s_dae_extra)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
 

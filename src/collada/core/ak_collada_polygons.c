@@ -29,8 +29,9 @@ ak_dae_polygon(AkXmlState * __restrict xst,
   polygon->haveHoles = false;
   polygon->base.type = AK_MESH_PRIMITIVE_TYPE_POLYGONS;
 
-  _xml_readAttr(polygon, polygon->base.name, _s_dae_name);
-  _xml_readAttr(polygon, polygon->base.material, _s_dae_material);
+  polygon->base.name = ak_xml_attr(xst, polygon, _s_dae_name);
+  polygon->base.material = ak_xml_attr(xst, polygon, _s_dae_material);
+
   /* 
    _xml_readAttrUsingFnWithDef(polygon->count,
                               _s_dae_count,
@@ -44,12 +45,11 @@ ak_dae_polygon(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, elm))
       break;
 
-    if (_xml_eqElm(_s_dae_input)) {
+    if (ak_xml_eqelm(xst, _s_dae_input)) {
       AkInput *input;
 
       input = ak_heap_calloc(xst->heap, polygon, sizeof(*input), false);
-
-      _xml_readAttr(input, input->base.semanticRaw, _s_dae_semantic);
+      input->base.semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
       ak_url_from_attr(xst->reader,
                        _s_dae_source,
@@ -88,7 +88,7 @@ ak_dae_polygon(AkXmlState * __restrict xst,
       /* attach vertices for convenience */
       if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX)
         polygon->base.vertices = ak_getObjectByUrl(&input->base.source);
-    } else if (_xml_eqElm(_s_dae_p)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_p)) {
       char *content;
 
       content = ak_xml_rawval(xst);
@@ -103,7 +103,7 @@ ak_dae_polygon(AkXmlState * __restrict xst,
         
         xmlFree(content);
       }
-    } else if (_xml_eqElm(_s_dae_vcount)
+    } else if (ak_xml_eqelm(xst, _s_dae_vcount)
                && mode == AK_POLYGON_MODE_POLYLIST) {
       char *content;
       content = ak_xml_rawval(xst);
@@ -118,7 +118,7 @@ ak_dae_polygon(AkXmlState * __restrict xst,
 
         xmlFree(content);
       }
-    } else if (_xml_eqElm(_s_dae_ph)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_ph)) {
       /* TODO: */
       /*
       AkPolygon      *polygon;
@@ -133,7 +133,7 @@ ak_dae_polygon(AkXmlState * __restrict xst,
       do {
         if (ak_xml_beginelm(xst, (_s_dae_ph);
 
-        if (_xml_eqElm(_s_dae_p)) {
+        if (ak_xml_eqelm(xst, _s_dae_p)) {
           char *content;
 
           content = ak_xml_rawval(xst);
@@ -148,7 +148,7 @@ ak_dae_polygon(AkXmlState * __restrict xst,
 
             xmlFree(content);
           }
-        } else if (_xml_eqElm(_s_dae_h)) {
+        } else if (ak_xml_eqelm(xst, _s_dae_h)) {
           char *content;
 
           content = ak_xml_rawval(xst);
@@ -177,7 +177,7 @@ ak_dae_polygon(AkXmlState * __restrict xst,
         ak_xml_endelm(xst);;
       } while (xst->nodeRet);
       */
-    } else if (_xml_eqElm(_s_dae_extra)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
 

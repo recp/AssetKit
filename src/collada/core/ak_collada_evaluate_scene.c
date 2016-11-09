@@ -22,8 +22,8 @@ ak_dae_evaluateScene(AkXmlState * __restrict xst,
                                  true);
 
   _xml_readId(evaluateScene);
-  _xml_readAttr(evaluateScene, evaluateScene->name, _s_dae_name);
-  _xml_readAttr(evaluateScene, evaluateScene->sid, _s_dae_sid);
+  evaluateScene->name = ak_xml_attr(xst, evaluateScene, _s_dae_name);
+  evaluateScene->sid  = ak_xml_attr(xst, evaluateScene, _s_dae_sid);
   _xml_readAttrUsingFnWithDef(evaluateScene->enable,
                               _s_dae_enable, true,
                               (AkBool)strtol, NULL, 10);
@@ -34,7 +34,7 @@ ak_dae_evaluateScene(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_evaluate_scene))
       break;
 
-    if (_xml_eqElm(_s_dae_asset)) {
+    if (ak_xml_eqelm(xst, _s_dae_asset)) {
       AkAssetInf *assetInf;
       AkResult ret;
 
@@ -43,7 +43,7 @@ ak_dae_evaluateScene(AkXmlState * __restrict xst,
       if (ret == AK_OK)
         evaluateScene->inf = assetInf;
 
-    } else if (_xml_eqElm(_s_dae_render)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_render)) {
       AkRender *render;
       AkResult  ret;
 
@@ -56,7 +56,7 @@ ak_dae_evaluateScene(AkXmlState * __restrict xst,
 
         last_render = render;
       }
-    } else if (_xml_eqElm(_s_dae_extra)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
 

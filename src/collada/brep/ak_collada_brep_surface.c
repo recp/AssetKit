@@ -39,9 +39,8 @@ ak_dae_surface(AkXmlState * __restrict xst,
                            sizeof(*surface),
                            false);
 
-
-  _xml_readAttr(surface, surface->sid, _s_dae_sid);
-  _xml_readAttr(surface, surface->name, _s_dae_name);
+  surface->sid  = ak_xml_attr(xst, surface, _s_dae_sid);
+  surface->name = ak_xml_attr(xst, surface, _s_dae_name);
 
   if (surfaceMapLen == 0) {
     surfaceMapLen = AK_ARRAY_LEN(surfaceMap);
@@ -82,13 +81,13 @@ ak_dae_surface(AkXmlState * __restrict xst,
           if (ak_xml_beginelm(xst, _s_dae_surface))
             break;
 
-          if (_xml_eqElm(_s_dae_radius)) {
+          if (ak_xml_eqelm(xst, _s_dae_radius)) {
             _xml_readTextUsingFn(cone->angle,
                                  strtof, NULL);
-          } else if (_xml_eqElm(_s_dae_angle)) {
+          } else if (ak_xml_eqelm(xst, _s_dae_angle)) {
             _xml_readTextUsingFn(cone->radius,
                                  strtof, NULL);
-          } else if (_xml_eqElm(_s_dae_extra)) {
+          } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
             xmlNodePtr nodePtr;
             AkTree    *tree;
 
@@ -132,7 +131,7 @@ ak_dae_surface(AkXmlState * __restrict xst,
           if (ak_xml_beginelm(xst, _s_dae_plane))
             break;
 
-          if (_xml_eqElm(_s_dae_radius)) {
+          if (ak_xml_eqelm(xst, _s_dae_radius)) {
             char *content;
             content = ak_xml_rawval(xst);
 
@@ -140,7 +139,7 @@ ak_dae_surface(AkXmlState * __restrict xst,
               ak_strtod(&content, (AkDouble *)&plane->equation, 4);
               xmlFree(content);
             }
-          } else if (_xml_eqElm(_s_dae_extra)) {
+          } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
             xmlNodePtr nodePtr;
             AkTree    *tree;
 
@@ -184,7 +183,7 @@ ak_dae_surface(AkXmlState * __restrict xst,
           if (ak_xml_beginelm(xst, _s_dae_cylinder))
             break;
 
-          if (_xml_eqElm(_s_dae_radius)) {
+          if (ak_xml_eqelm(xst, _s_dae_radius)) {
             char *content;
             content = ak_xml_rawval(xst);
 
@@ -192,7 +191,7 @@ ak_dae_surface(AkXmlState * __restrict xst,
               ak_strtof(&content, (AkFloat *)&cylinder->radius, 2);
               xmlFree(content);
             }
-          } else if (_xml_eqElm(_s_dae_extra)) {
+          } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
             xmlNodePtr nodePtr;
             AkTree    *tree;
 
@@ -251,10 +250,10 @@ ak_dae_surface(AkXmlState * __restrict xst,
           if (ak_xml_beginelm(xst, _s_dae_sphere))
             break;
 
-          if (_xml_eqElm(_s_dae_radius)) {
+          if (ak_xml_eqelm(xst, _s_dae_radius)) {
             _xml_readTextUsingFn(sphere->radius,
                                  strtof, NULL);
-          } else if (_xml_eqElm(_s_dae_extra)) {
+          } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
             xmlNodePtr nodePtr;
             AkTree    *tree;
 
@@ -298,7 +297,7 @@ ak_dae_surface(AkXmlState * __restrict xst,
           if (ak_xml_beginelm(xst, _s_dae_torus))
             break;
 
-          if (_xml_eqElm(_s_dae_radius)) {
+          if (ak_xml_eqelm(xst, _s_dae_radius)) {
             char *content;
             content = ak_xml_rawval(xst);
 
@@ -306,7 +305,7 @@ ak_dae_surface(AkXmlState * __restrict xst,
               ak_strtof(&content, (AkFloat *)&torus->radius, 2);
               xmlFree(content);
             }
-          } else if (_xml_eqElm(_s_dae_extra)) {
+          } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
             xmlNodePtr nodePtr;
             AkTree    *tree;
 
@@ -350,7 +349,7 @@ ak_dae_surface(AkXmlState * __restrict xst,
           if (ak_xml_beginelm(xst, _s_dae_swept_surface))
             break;
 
-          if (_xml_eqElm(_s_dae_curve)) {
+          if (ak_xml_eqelm(xst, _s_dae_curve)) {
             AkCurve *curve;
             AkResult ret;
 
@@ -360,7 +359,7 @@ ak_dae_surface(AkXmlState * __restrict xst,
                                &curve);
             if (ret == AK_OK)
               sweptSurface->curve = curve;
-          } else if (_xml_eqElm(_s_dae_direction)) {
+          } else if (ak_xml_eqelm(xst, _s_dae_direction)) {
             char *content;
             content = ak_xml_rawval(xst);
 
@@ -368,7 +367,7 @@ ak_dae_surface(AkXmlState * __restrict xst,
               ak_strtof(&content, (AkFloat *)&sweptSurface->direction, 3);
               xmlFree(content);
             }
-          } else if (_xml_eqElm(_s_dae_origin)) {
+          } else if (ak_xml_eqelm(xst, _s_dae_origin)) {
             char *content;
             content = ak_xml_rawval(xst);
 
@@ -376,7 +375,7 @@ ak_dae_surface(AkXmlState * __restrict xst,
               ak_strtof(&content, (AkFloat *)&sweptSurface->origin, 3);
               xmlFree(content);
             }
-          } else if (_xml_eqElm(_s_dae_axis)) {
+          } else if (ak_xml_eqelm(xst, _s_dae_axis)) {
             char *content;
             content = ak_xml_rawval(xst);
 
@@ -384,7 +383,7 @@ ak_dae_surface(AkXmlState * __restrict xst,
               ak_strtof(&content, (AkFloat *)&sweptSurface->axis, 3);
               xmlFree(content);
             }
-          } else if (_xml_eqElm(_s_dae_extra)) {
+          } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
             xmlNodePtr nodePtr;
             AkTree    *tree;
 
@@ -479,7 +478,7 @@ ak_dae_surfaces(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_surfaces))
       break;
 
-    if (_xml_eqElm(_s_dae_surface)) {
+    if (ak_xml_eqelm(xst, _s_dae_surface)) {
       AkSurface *surface;
       AkResult ret;
 
@@ -492,7 +491,7 @@ ak_dae_surfaces(AkXmlState * __restrict xst,
 
         last_surface = surface;
       }
-    } else if (_xml_eqElm(_s_dae_extra)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree    *tree;
 

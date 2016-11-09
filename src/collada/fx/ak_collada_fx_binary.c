@@ -22,16 +22,16 @@ ak_dae_fxBinary(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_binary))
       break;
 
-    if (_xml_eqElm(_s_dae_ref)) {
+    if (ak_xml_eqelm(xst, _s_dae_ref)) {
       binary->ref = ak_xml_val(xst, binary);
-    } else if (_xml_eqElm(_s_dae_hex)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_hex)) {
       AkHexData *hex;
       hex = ak_heap_calloc(xst->heap,
                            binary,
                            sizeof(*hex),
                            false);
 
-      _xml_readAttr(hex, hex->format, _s_dae_format);
+      hex->format = ak_xml_attr(xst, hex, _s_dae_format);
 
       if (hex->format) {
         hex->val = ak_xml_val(xst, hex);

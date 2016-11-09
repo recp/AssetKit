@@ -21,7 +21,7 @@ ak_dae_vertices(AkXmlState * __restrict xst,
                             true);
 
   _xml_readId(vertices);
-  _xml_readAttr(vertices, vertices->name, _s_dae_name);
+  vertices->name = ak_xml_attr(xst, vertices, _s_dae_name);
 
   last_input = NULL;
 
@@ -29,12 +29,12 @@ ak_dae_vertices(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_vertices))
       break;
 
-    if (_xml_eqElm(_s_dae_input)) {
+    if (ak_xml_eqelm(xst, _s_dae_input)) {
       AkInputBasic *input;
 
       input = ak_heap_calloc(xst->heap, vertices, sizeof(*input), false);
 
-      _xml_readAttr(input, input->semanticRaw, _s_dae_semantic);
+      input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
       ak_url_from_attr(xst->reader,
                        _s_dae_source,
@@ -54,7 +54,7 @@ ak_dae_vertices(AkXmlState * __restrict xst,
       last_input = input;
 
       vertices->inputCount++;
-    } else if (_xml_eqElm(_s_dae_extra)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
 

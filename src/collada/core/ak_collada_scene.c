@@ -17,7 +17,7 @@ ak_dae_scene(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_scene))
       break;
 
-    if (_xml_eqElm(_s_dae_instance_visual_scene)) {
+    if (ak_xml_eqelm(xst, _s_dae_instance_visual_scene)) {
       AkInstanceVisualScene *visualScene;
       AkResult ret;
 
@@ -25,7 +25,7 @@ ak_dae_scene(AkXmlState * __restrict xst,
       if (ret == AK_OK)
         dest->visualScene = visualScene;
 
-    } else if (_xml_eqElm(_s_dae_extra)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
 

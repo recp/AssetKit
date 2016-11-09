@@ -20,7 +20,7 @@ ak_dae_assetInf(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_asset))
       break;
 
-    if (_xml_eqElm(_s_dae_contributor)) {
+    if (ak_xml_eqelm(xst, _s_dae_contributor)) {
       AkContributor * contrib;
       contrib = ak_heap_calloc(xst->heap, *dest, sizeof(*contrib), false);
 
@@ -29,19 +29,19 @@ ak_dae_assetInf(AkXmlState * __restrict xst,
         if (ak_xml_beginelm(xst, _s_dae_contributor))
           break;
 
-        if (_xml_eqElm(_s_dae_author))
+        if (ak_xml_eqelm(xst, _s_dae_author))
           contrib->author = ak_xml_val(xst, *dest);
-        else if (_xml_eqElm(_s_dae_author_email))
+        else if (ak_xml_eqelm(xst, _s_dae_author_email))
           contrib->authorEmail = ak_xml_val(xst, *dest);
-        else if (_xml_eqElm(_s_dae_author_website))
+        else if (ak_xml_eqelm(xst, _s_dae_author_website))
           contrib->authorWebsite = ak_xml_val(xst, *dest);
-        else if (_xml_eqElm(_s_dae_authoring_tool))
+        else if (ak_xml_eqelm(xst, _s_dae_authoring_tool))
           contrib->authoringTool = ak_xml_val(xst, *dest);
-        else if (_xml_eqElm(_s_dae_comments))
+        else if (ak_xml_eqelm(xst, _s_dae_comments))
           contrib->comments = ak_xml_val(xst, *dest);
-        else if (_xml_eqElm(_s_dae_copyright))
+        else if (ak_xml_eqelm(xst, _s_dae_copyright))
           contrib->copyright = ak_xml_val(xst, *dest);
-        else if (_xml_eqElm(_s_dae_source_data))
+        else if (ak_xml_eqelm(xst, _s_dae_source_data))
           contrib->sourceData = ak_xml_val(xst, *dest);
         else
           ak_xml_skipelm(xst);;
@@ -51,32 +51,32 @@ ak_dae_assetInf(AkXmlState * __restrict xst,
       } while (xst->nodeRet);
 
       (*dest)->contributor = contrib;
-    } else if (_xml_eqElm(_s_dae_created)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_created)) {
       const char * val;
       val = ak_xml_rawcval(xst);
       (*dest)->created = ak_parse_date(val, NULL);
-    } else if (_xml_eqElm(_s_dae_modified)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_modified)) {
       const char * val;
       val = ak_xml_rawcval(xst);
       (*dest)->modified = ak_parse_date(val, NULL);
-    } else if (_xml_eqElm(_s_dae_keywords)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_keywords)) {
       (*dest)->keywords = ak_xml_val(xst, *dest);
-    } else if (_xml_eqElm(_s_dae_revision)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_revision)) {
       _xml_readTextUsingFn((*dest)->revision,
                            strtoul, NULL, 10);
-    } else if (_xml_eqElm(_s_dae_subject)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_subject)) {
       (*dest)->subject = ak_xml_val(xst, *dest);
-    } else if (_xml_eqElm(_s_dae_title)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_title)) {
       (*dest)->title = ak_xml_val(xst, *dest);
-    } else if (_xml_eqElm(_s_dae_unit)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_unit)) {
       AkUnit * unit;
       unit = ak_heap_calloc(xst->heap, *dest, sizeof(*unit), false);
 
-      _xml_readAttr(*dest, unit->name, _s_dae_name);
+      unit->name = ak_xml_attr(xst, *dest, _s_dae_name);
       _xml_readAttrUsingFn(unit->dist, _s_dae_meter, strtod, NULL);
 
       (*dest)->unit = unit;
-    } else if (_xml_eqElm(_s_dae_up_axis)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_up_axis)) {
       const char *val;
 
       val = ak_xml_rawcval(xst);
@@ -88,7 +88,7 @@ ak_dae_assetInf(AkXmlState * __restrict xst,
         else
           (*dest)->coordSys = AK_YUP;
       }
-    } else if (_xml_eqElm(_s_dae_extra)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree  * tree;
 

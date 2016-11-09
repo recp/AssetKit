@@ -34,7 +34,7 @@ ak_dae_fxShader(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_shader))
       break;
 
-    if (_xml_eqElm(_s_dae_sources)) {
+    if (ak_xml_eqelm(xst, _s_dae_sources)) {
       AkSources *sources;
       AkInline  *last_inline;
       AkImport  *last_import;
@@ -43,7 +43,7 @@ ak_dae_fxShader(AkXmlState * __restrict xst,
                                shader,
                                sizeof(*sources),
                                false);
-      _xml_readAttr(sources, sources->entry, _s_dae_entry);
+      sources->entry = ak_xml_attr(xst, sources, _s_dae_entry);
 
       last_inline = NULL;
       last_import = NULL;
@@ -52,7 +52,7 @@ ak_dae_fxShader(AkXmlState * __restrict xst,
         if (ak_xml_beginelm(xst, _s_dae_sources))
           break;
 
-        if (_xml_eqElm(_s_dae_inline)) {
+        if (ak_xml_eqelm(xst, _s_dae_inline)) {
           AkInline *nInline;
 
           nInline = ak_heap_calloc(xst->heap,
@@ -67,7 +67,7 @@ ak_dae_fxShader(AkXmlState * __restrict xst,
             sources->inlines = nInline;
 
           last_inline = nInline;
-        } else if (_xml_eqElm(_s_dae_import)) {
+        } else if (ak_xml_eqelm(xst, _s_dae_import)) {
           AkImport *nImport;
 
           nImport = ak_heap_calloc(xst->heap,
@@ -91,7 +91,7 @@ ak_dae_fxShader(AkXmlState * __restrict xst,
       } while (xst->nodeRet);
 
       shader->sources = sources;
-    } else if (_xml_eqElm(_s_dae_compiler)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_compiler)) {
       AkCompiler *compiler;
 
       compiler = ak_heap_calloc(xst->heap,
@@ -99,15 +99,15 @@ ak_dae_fxShader(AkXmlState * __restrict xst,
                                 sizeof(*compiler),
                                 false);
 
-      _xml_readAttr(compiler, compiler->platform, _s_dae_platform);
-      _xml_readAttr(compiler, compiler->target, _s_dae_target);
-      _xml_readAttr(compiler, compiler->options, _s_dae_options);
+      compiler->platform = ak_xml_attr(xst, compiler, _s_dae_platform);
+      compiler->target   = ak_xml_attr(xst, compiler, _s_dae_target);
+      compiler->options  = ak_xml_attr(xst, compiler, _s_dae_options);
 
       do {
         if (ak_xml_beginelm(xst, _s_dae_compiler))
           break;
 
-        if (_xml_eqElm(_s_dae_binary)) {
+        if (ak_xml_eqelm(xst, _s_dae_binary)) {
           AkBinary *binary;
           AkResult  ret;
 
@@ -128,7 +128,7 @@ ak_dae_fxShader(AkXmlState * __restrict xst,
         shader->compiler = compiler;
 
       last_compiler = compiler;
-    } else if (_xml_eqElm(_s_dae_bind_uniform)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_bind_uniform)) {
       AkBindUniform *bindUniform;
       AkResult ret;
 
@@ -141,7 +141,7 @@ ak_dae_fxShader(AkXmlState * __restrict xst,
 
         last_bind_uniform = bindUniform;
       }
-    } else if (_xml_eqElm(_s_dae_extra)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
 

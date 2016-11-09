@@ -88,9 +88,9 @@ ak_dae_fxSampler(AkXmlState * __restrict xst,
         break;
       }
       case k_s_dae_texcoord:
-        _xml_readAttr(sampler,
-                      sampler->texcoordSemantic,
-                      _s_dae_semantic);
+        sampler->texcoordSemantic = ak_xml_attr(xst,
+                                                sampler,
+                                                _s_dae_semantic);
         break;
       case k_s_dae_wrap_s:
         _xml_readTextAsEnum(sampler->wrapS,

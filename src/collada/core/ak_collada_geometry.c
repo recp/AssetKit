@@ -23,13 +23,13 @@ ak_dae_geometry(AkXmlState * __restrict xst,
                             true);
 
   _xml_readId(geometry);
-  _xml_readAttr(geometry, geometry->name, _s_dae_name);
+  geometry->name = ak_xml_attr(xst, geometry, _s_dae_name);
 
   do {
     if (ak_xml_beginelm(xst, _s_dae_geometry))
       break;
 
-    if (_xml_eqElm(_s_dae_asset)) {
+    if (ak_xml_eqelm(xst, _s_dae_asset)) {
       AkAssetInf *assetInf;
       AkResult ret;
 
@@ -38,8 +38,8 @@ ak_dae_geometry(AkXmlState * __restrict xst,
       if (ret == AK_OK)
         geometry->inf = assetInf;
 
-    } else if (_xml_eqElm(_s_dae_mesh)
-               || _xml_eqElm(_s_dae_convex_mesh)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_mesh)
+               || ak_xml_eqelm(xst, _s_dae_convex_mesh)) {
       AkMesh  *mesh;
       AkResult ret;
 
@@ -51,7 +51,7 @@ ak_dae_geometry(AkXmlState * __restrict xst,
       if (ret == AK_OK)
         geometry->gdata = ak_objFrom(mesh);
 
-    } else if (_xml_eqElm(_s_dae_spline)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_spline)) {
       AkSpline *spline;
       AkResult  ret;
 
@@ -62,7 +62,7 @@ ak_dae_geometry(AkXmlState * __restrict xst,
       if (ret == AK_OK)
         geometry->gdata = ak_objFrom(spline);
 
-    } else if (_xml_eqElm(_s_dae_brep)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_brep)) {
       AkBoundryRep *brep;
       AkResult      ret;
 
@@ -73,7 +73,7 @@ ak_dae_geometry(AkXmlState * __restrict xst,
       if (ret == AK_OK)
         geometry->gdata = ak_objFrom(brep);
 
-    } else if (_xml_eqElm(_s_dae_extra)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
 

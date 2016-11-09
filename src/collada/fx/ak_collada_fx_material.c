@@ -23,13 +23,13 @@ ak_dae_material(AkXmlState * __restrict xst,
                             true);
 
   _xml_readId(material);
-  _xml_readAttr(material, material->name, _s_dae_name);
+  material->name = ak_xml_attr(xst, material, _s_dae_name);
 
   do {
     if (ak_xml_beginelm(xst, _s_dae_material))
       break;
 
-    if (_xml_eqElm(_s_dae_asset)) {
+    if (ak_xml_eqelm(xst, _s_dae_asset)) {
       AkAssetInf *assetInf;
       AkResult ret;
 
@@ -37,7 +37,7 @@ ak_dae_material(AkXmlState * __restrict xst,
       ret = ak_dae_assetInf(xst, material, &assetInf);
       if (ret == AK_OK)
         material->inf = assetInf;
-    } else if (_xml_eqElm(_s_dae_inst_effect)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_inst_effect)) {
       AkInstanceEffect *instanceEffect;
       AkResult ret;
 
@@ -45,7 +45,7 @@ ak_dae_material(AkXmlState * __restrict xst,
       ret = ak_dae_fxInstanceEffect(xst, material, &instanceEffect);
       if (ret == AK_OK)
         material->instanceEffect = instanceEffect;
-    } else if (_xml_eqElm(_s_dae_extra)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
@@ -93,7 +93,7 @@ ak_dae_fxBindMaterial(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_bind_material))
       break;
 
-    if (_xml_eqElm(_s_dae_param)) {
+    if (ak_xml_eqelm(xst, _s_dae_param)) {
       AkParam * param;
       AkResult   ret;
 
@@ -110,7 +110,7 @@ ak_dae_fxBindMaterial(AkXmlState * __restrict xst,
 
         last_param = param;
       }
-    } else if (_xml_eqElm(_s_dae_techniquec)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_techniquec)) {
       AkTechniqueCommon *tc;
       AkResult ret;
 
@@ -119,7 +119,7 @@ ak_dae_fxBindMaterial(AkXmlState * __restrict xst,
       if (ret == AK_OK)
         bindMaterial->techniqueCommon = tc;
 
-    } else if (_xml_eqElm(_s_dae_technique)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_technique)) {
       AkTechnique *tq;
       AkResult ret;
 
@@ -133,7 +133,7 @@ ak_dae_fxBindMaterial(AkXmlState * __restrict xst,
 
         last_tq = tq;
       }
-    } else if (_xml_eqElm(_s_dae_extra)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
@@ -174,10 +174,10 @@ ak_dae_fxInstanceMaterial(AkXmlState * __restrict xst,
                             sizeof(*material),
                             false);
 
-  _xml_readAttr(material, material->sid, _s_dae_sid);
-  _xml_readAttr(material, material->name, _s_dae_name);
-  _xml_readAttr(material, material->target, _s_dae_target);
-  _xml_readAttr(material, material->symbol, _s_dae_symbol);
+  material->sid    = ak_xml_attr(xst, material, _s_dae_sid);
+  material->name   = ak_xml_attr(xst, material, _s_dae_name);
+  material->target = ak_xml_attr(xst, material, _s_dae_target);
+  material->symbol = ak_xml_attr(xst, material, _s_dae_symbol);
 
   ak_url_from_attr(xst->reader,
                    _s_dae_url,
@@ -191,15 +191,15 @@ ak_dae_fxInstanceMaterial(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_instance_material))
       break;
 
-    if (_xml_eqElm(_s_dae_bind)) {
+    if (ak_xml_eqelm(xst, _s_dae_bind)) {
       AkBind *bind;
       bind = ak_heap_calloc(xst->heap,
                             material,
                             sizeof(*bind),
                             false);
 
-      _xml_readAttr(bind, bind->semantic, _s_dae_semantic);
-      _xml_readAttr(bind, bind->target, _s_dae_target);
+      bind->semantic = ak_xml_attr(xst, bind, _s_dae_semantic);
+      bind->target   = ak_xml_attr(xst, bind, _s_dae_target);
 
       if (last_bind)
         last_bind->next = bind;
@@ -207,19 +207,21 @@ ak_dae_fxInstanceMaterial(AkXmlState * __restrict xst,
         material->bind = bind;
 
       last_bind = bind;
-    } else if (_xml_eqElm(_s_dae_bind_vertex_input)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_bind_vertex_input)) {
       AkBindVertexInput *bindVertexInput;
       bindVertexInput = ak_heap_calloc(xst->heap,
                                        material,
                                        sizeof(*bindVertexInput),
                                        false);
 
-      _xml_readAttr(bindVertexInput,
-                    bindVertexInput->semantic,
-                    _s_dae_semantic);
-      _xml_readAttr(bindVertexInput,
-                    bindVertexInput->inputSemantic,
-                    _s_dae_input_semantic);
+      bindVertexInput->semantic = ak_xml_attr(xst,
+                                              bindVertexInput,
+                                              _s_dae_semantic);
+
+      bindVertexInput->inputSemantic = ak_xml_attr(xst,
+                                                   bindVertexInput,
+                                                   _s_dae_input_semantic);
+
       _xml_readAttrUsingFn(bindVertexInput->inputSet,
                            _s_dae_input_set,
                            (AkUInt)strtoul, NULL, 10);
@@ -230,18 +232,22 @@ ak_dae_fxInstanceMaterial(AkXmlState * __restrict xst,
         material->bindVertexInput = bindVertexInput;
 
       last_bindVertexInput = bindVertexInput;
-    } else if (_xml_eqElm(_s_dae_technique_override)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_technique_override)) {
       AkTechniqueOverride *techniqueOverride;
       techniqueOverride = ak_heap_calloc(xst->heap,
                                          material,
                                          sizeof(*techniqueOverride),
                                          false);
 
-      _xml_readAttr(techniqueOverride, techniqueOverride->pass, _s_dae_pass);
-      _xml_readAttr(techniqueOverride, techniqueOverride->ref, _s_dae_ref);
+      techniqueOverride->pass = ak_xml_attr(xst,
+                                            techniqueOverride,
+                                            _s_dae_pass);
+      techniqueOverride->ref = ak_xml_attr(xst,
+                                           techniqueOverride,
+                                           _s_dae_ref);
 
       material->techniqueOverride = techniqueOverride;
-    } else if (_xml_eqElm(_s_dae_extra)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
 

@@ -28,7 +28,7 @@ ak_dae_techniqueFx(AkXmlState * __restrict xst,
                              true);
 
   _xml_readId(technique);
-  _xml_readAttr(technique, technique->sid, _s_dae_sid);
+  technique->sid = ak_xml_attr(xst, technique, _s_dae_sid);
 
   last_annotate = NULL;
 
@@ -36,7 +36,7 @@ ak_dae_techniqueFx(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_technique))
       break;
 
-    if (_xml_eqElm(_s_dae_asset)) {
+    if (ak_xml_eqelm(xst, _s_dae_asset)) {
       AkAssetInf *assetInf;
       AkResult ret;
 
@@ -44,7 +44,7 @@ ak_dae_techniqueFx(AkXmlState * __restrict xst,
       ret = ak_dae_assetInf(xst, technique, &assetInf);
       if (ret == AK_OK)
         technique->inf = assetInf;
-    } else if (_xml_eqElm(_s_dae_annotate)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_annotate)) {
       AkAnnotate *annotate;
       AkResult    ret;
 
@@ -58,7 +58,7 @@ ak_dae_techniqueFx(AkXmlState * __restrict xst,
 
         last_annotate = annotate;
       }
-    } else if (_xml_eqElm(_s_dae_pass)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_pass)) {
       AkPass * pass;
       AkResult ret;
 
@@ -66,7 +66,7 @@ ak_dae_techniqueFx(AkXmlState * __restrict xst,
       if (ret == AK_OK)
         technique->pass = pass;
 
-    } else if (_xml_eqElm(_s_dae_blinn)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_blinn)) {
       ak_blinn_phong * blinn_phong;
       AkResult ret;
 
@@ -77,7 +77,7 @@ ak_dae_techniqueFx(AkXmlState * __restrict xst,
       if (ret == AK_OK)
         technique->blinn = (AkBlinn *)blinn_phong;
 
-    } else if (_xml_eqElm(_s_dae_constant)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_constant)) {
       AkConstantFx * constant_fx;
       AkResult ret;
 
@@ -85,7 +85,7 @@ ak_dae_techniqueFx(AkXmlState * __restrict xst,
       if (ret == AK_OK)
         technique->constant = constant_fx;
 
-    } else if (_xml_eqElm(_s_dae_lambert)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_lambert)) {
       AkLambert * lambert;
       AkResult ret;
 
@@ -93,7 +93,7 @@ ak_dae_techniqueFx(AkXmlState * __restrict xst,
       if (ret == AK_OK)
         technique->lambert = lambert;
 
-    } else if (_xml_eqElm(_s_dae_phong)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_phong)) {
       ak_blinn_phong * blinn_phong;
       AkResult ret;
 
@@ -104,7 +104,7 @@ ak_dae_techniqueFx(AkXmlState * __restrict xst,
       if (ret == AK_OK)
         technique->phong = (AkPhong *)blinn_phong;
 
-    } else if (_xml_eqElm(_s_dae_extra)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
 

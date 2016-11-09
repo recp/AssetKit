@@ -49,14 +49,14 @@ ak_dae_fxImage(AkXmlState * __restrict xst,
   img = ak_heap_calloc(xst->heap, memParent, sizeof(*img), true);
 
   _xml_readId(img);
-  _xml_readAttr(img, img->sid, _s_dae_sid);
-  _xml_readAttr(img, img->name, _s_dae_name);
+  img->sid  = ak_xml_attr(xst, img, _s_dae_sid);
+  img->name = ak_xml_attr(xst, img, _s_dae_name);
 
   do {
     if (ak_xml_beginelm(xst, _s_dae_image))
       break;
 
-    if (_xml_eqElm(_s_dae_asset)) {
+    if (ak_xml_eqelm(xst, _s_dae_asset)) {
       AkAssetInf *assetInf;
       AkResult     ret;
 
@@ -64,7 +64,7 @@ ak_dae_fxImage(AkXmlState * __restrict xst,
       ret = ak_dae_assetInf(xst, img, &assetInf);
       if (ret == AK_OK)
         img->inf = assetInf;
-    } else if (_xml_eqElm(_s_dae_renderable)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_renderable)) {
       xmlChar *attrValStr;
       attrValStr =
       xmlTextReaderGetAttribute(xst->reader,
@@ -75,35 +75,35 @@ ak_dae_fxImage(AkXmlState * __restrict xst,
         else
           img->renderableShare = false;
       }
-    } else if (_xml_eqElm(_s_dae_init_from)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_init_from)) {
       AkInitFrom *initFrom;
       AkResult      ret;
 
       ret = ak_dae_fxImage_initFrom(xst, img, &initFrom);
       if (ret == AK_OK)
         img->initFrom = initFrom;
-    } else if (_xml_eqElm(_s_dae_create_2d)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_create_2d)) {
       AkImage2d *image2d;
       AkResult    ret;
 
       ret = ak_dae_fxImage_create2d(xst, img, &image2d);
       if (ret == AK_OK)
         img->image2d = image2d;
-    } else if (_xml_eqElm(_s_dae_create_3d)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_create_3d)) {
       AkImage3d *image3d;
       AkResult    ret;
 
       ret = ak_dae_fxImage_create3d(xst, img, &image3d);
       if (ret == AK_OK)
         img->image3d = image3d;
-    } else if (_xml_eqElm(_s_dae_create_cube)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_create_cube)) {
       AkImageCube *imageCube;
       AkResult ret;
 
       ret = ak_dae_fxImage_createCube(xst, img, &imageCube);
       if (ret == AK_OK)
         img->cube = imageCube;
-    } else if (_xml_eqElm(_s_dae_extra)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree    *tree;
 
@@ -142,8 +142,8 @@ ak_dae_fxInstanceImage(AkXmlState * __restrict xst,
                                  sizeof(*instanceImage),
                                  false);
 
-  _xml_readAttr(instanceImage, instanceImage->sid, _s_dae_sid);
-  _xml_readAttr(instanceImage, instanceImage->name, _s_dae_name);
+  instanceImage->sid  = ak_xml_attr(xst, instanceImage, _s_dae_sid);
+  instanceImage->name = ak_xml_attr(xst, instanceImage, _s_dae_name);
 
   ak_url_from_attr(xst->reader,
                    _s_dae_url,
@@ -154,7 +154,7 @@ ak_dae_fxInstanceImage(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_instance_image))
       break;
 
-    if (_xml_eqElm(_s_dae_extra)) {
+    if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
 
@@ -226,13 +226,13 @@ ak_dae_fxImage_initFrom(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_init_from))
       break;
 
-    if (_xml_eqElm(_s_dae_ref)) {
+    if (ak_xml_eqelm(xst, _s_dae_ref)) {
       initFrom->ref = ak_xml_val(xst, initFrom);
-    } else if (_xml_eqElm(_s_dae_hex)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_hex)) {
       AkHexData *hex;
       hex = ak_heap_calloc(xst->heap, initFrom, sizeof(*hex), false);
 
-      _xml_readAttr(hex, hex->format, _s_dae_format);
+      hex->format = ak_xml_attr(xst, hex, _s_dae_format);
 
       if (hex->format) {
         hex->val = ak_xml_val(xst, hex);
@@ -266,7 +266,7 @@ ak_dae_fxImage_format(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_format))
       break;
 
-    if (_xml_eqElm(_s_dae_hint)) {
+    if (ak_xml_eqelm(xst, _s_dae_hint)) {
       char *attrValStr;
 
       attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
@@ -305,8 +305,8 @@ ak_dae_fxImage_format(AkXmlState * __restrict xst,
         attrValStr = NULL;
       }
 
-      _xml_readAttr(format, format->hint.space, _s_dae_space);
-    } else if (_xml_eqElm(_s_dae_exact)) {
+      format->hint.space = ak_xml_attr(xst, format, _s_dae_space);
+    } else if (ak_xml_eqelm(xst, _s_dae_exact)) {
       format->exact = ak_xml_val(xst, format);
     } else {
       ak_xml_skipelm(xst);;
@@ -337,7 +337,7 @@ ak_dae_fxImage_create2d(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_create_2d))
       break;
 
-    if (_xml_eqElm(_s_dae_size_exact)) {
+    if (ak_xml_eqelm(xst, _s_dae_size_exact)) {
       AkSizeExact *sizeExact;
 
       sizeExact = ak_heap_calloc(xst->heap,
@@ -354,7 +354,7 @@ ak_dae_fxImage_create2d(AkXmlState * __restrict xst,
                            strtof, NULL);
 
       image2d->sizeExact = sizeExact;
-    } else if (_xml_eqElm(_s_dae_size_ratio)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_size_ratio)) {
       AkSizeRatio *sizeRatio;
 
       sizeRatio = ak_heap_calloc(xst->heap,
@@ -371,7 +371,7 @@ ak_dae_fxImage_create2d(AkXmlState * __restrict xst,
                            strtof, NULL);
 
       image2d->sizeRatio = sizeRatio;
-    } else if (_xml_eqElm(_s_dae_mips)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_mips)) {
       AkMips *mips;
 
       mips = ak_heap_calloc(xst->heap,
@@ -388,20 +388,20 @@ ak_dae_fxImage_create2d(AkXmlState * __restrict xst,
                            strtol, NULL, 10);
 
       image2d->mips = mips;
-    } else if (_xml_eqElm(_s_dae_unnormalized)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_unnormalized)) {
       image2d->unnormalized = ak_xml_val(xst, image2d);
-    } else if (_xml_eqElm(_s_dae_array)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_array)) {
       _xml_readAttrUsingFn(image2d->arrayLen,
                            _s_dae_length,
                            strtol, NULL, 10);
-    } else if (_xml_eqElm(_s_dae_format)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_format)) {
       AkImageFormat *imageFormat;
       AkResult ret;
 
       ret = ak_dae_fxImage_format(xst, image2d, &imageFormat);
       if (ret == AK_OK)
         image2d->format = imageFormat;
-    } else if (_xml_eqElm(_s_dae_size_exact)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_size_exact)) {
       AkInitFrom *initFrom;
       AkResult ret;
 
@@ -437,7 +437,7 @@ ak_dae_fxImage_create3d(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_create_3d))
       break;
 
-    if (_xml_eqElm(_s_dae_size)) {
+    if (ak_xml_eqelm(xst, _s_dae_size)) {
       _xml_readAttrUsingFn(image3d->size.width,
                            _s_dae_width,
                            (AkInt)strtol, NULL, 10);
@@ -449,7 +449,7 @@ ak_dae_fxImage_create3d(AkXmlState * __restrict xst,
       _xml_readAttrUsingFn(image3d->size.depth,
                            _s_dae_depth,
                            (AkInt)strtol, NULL, 10);
-    } else if (_xml_eqElm(_s_dae_mips)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_mips)) {
       _xml_readAttrUsingFn(image3d->mips.levels,
                            _s_dae_levels,
                            (AkInt)strtol, NULL, 10);
@@ -457,18 +457,18 @@ ak_dae_fxImage_create3d(AkXmlState * __restrict xst,
       _xml_readAttrUsingFn(image3d->mips.autoGenerate,
                            _s_dae_auto_generate,
                            (AkInt)strtol, NULL, 10);
-    } else if (_xml_eqElm(_s_dae_array)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_array)) {
       _xml_readAttrUsingFn(image3d->arrayLen,
                            _s_dae_length,
                            (AkInt)strtol, NULL, 10);
-    } else if (_xml_eqElm(_s_dae_format)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_format)) {
       AkImageFormat *imageFormat;
       AkResult ret;
 
       ret = ak_dae_fxImage_format(xst, image3d, &imageFormat);
       if (ret == AK_OK)
         image3d->format = imageFormat;
-    } else if (_xml_eqElm(_s_dae_size_exact)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_size_exact)) {
       AkInitFrom *initFrom;
       AkResult ret;
 
@@ -504,11 +504,11 @@ ak_dae_fxImage_createCube(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_create_cube))
       break;
 
-    if (_xml_eqElm(_s_dae_size)) {
+    if (ak_xml_eqelm(xst, _s_dae_size)) {
       _xml_readAttrUsingFn(imageCube->width,
                            _s_dae_width,
                            (AkInt)strtol, NULL, 10);
-    } else if (_xml_eqElm(_s_dae_mips)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_mips)) {
       _xml_readAttrUsingFn(imageCube->mips.levels,
                            _s_dae_levels,
                            (AkInt)strtol, NULL, 10);
@@ -516,18 +516,18 @@ ak_dae_fxImage_createCube(AkXmlState * __restrict xst,
       _xml_readAttrUsingFn(imageCube->mips.autoGenerate,
                            _s_dae_auto_generate,
                            (AkInt)strtol, NULL, 10);
-    } else if (_xml_eqElm(_s_dae_array)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_array)) {
       _xml_readAttrUsingFn(imageCube->arrayLen,
                            _s_dae_length,
                            (AkInt)strtol, NULL, 10);
-    } else if (_xml_eqElm(_s_dae_format)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_format)) {
       AkImageFormat *imageFormat;
       AkResult ret;
       
       ret = ak_dae_fxImage_format(xst, imageCube, &imageFormat);
       if (ret == AK_OK)
         imageCube->format = imageFormat;
-    } else if (_xml_eqElm(_s_dae_size_exact)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_size_exact)) {
       AkInitFrom *initFrom;
       AkResult ret;
       

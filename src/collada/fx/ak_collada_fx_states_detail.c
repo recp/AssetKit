@@ -49,7 +49,7 @@ ak_dae_fxState_enum(AkXmlState * __restrict xst,
     state->val = defaultEnumVal;
   }
 
-  _xml_readAttr(state, state->param, _s_dae_param);
+  state->param = ak_xml_attr(xst, state, _s_dae_param);
 
   _ak_APPEND_STATE(last_state, state);
 
@@ -79,7 +79,7 @@ ak_dae_fxState_bool4(AkXmlState * __restrict xst,
       memcpy(state->val, defaultVal, defaultValSize);
   }
 
-  _xml_readAttr(state, state->param, _s_dae_param);
+  state->param = ak_xml_attr(xst, state, _s_dae_param);
 
   _ak_APPEND_STATE(last_state, state);
 
@@ -109,7 +109,7 @@ ak_dae_fxState_int2(AkXmlState * __restrict xst,
       memcpy(state->val, defaultVal, defaultValSize);
   }
 
-  _xml_readAttr(state, state->param, _s_dae_param);
+  state->param = ak_xml_attr(xst, state, _s_dae_param);
 
   _ak_APPEND_STATE(last_state, state);
 
@@ -139,7 +139,7 @@ ak_dae_fxState_int4(AkXmlState * __restrict xst,
       memcpy(state->val, defaultVal, defaultValSize);
   }
 
-  _xml_readAttr(state, state->param, _s_dae_param);
+  state->param = ak_xml_attr(xst, state, _s_dae_param);
 
   _ak_APPEND_STATE(last_state, state);
 
@@ -171,7 +171,7 @@ ak_dae_fxState_ul(AkXmlState * __restrict xst,
     state->val = defaultVal;
   }
 
-  _xml_readAttr(state, state->param, _s_dae_param);
+  state->param = ak_xml_attr(xst, state, _s_dae_param);
 
   _ak_APPEND_STATE(last_state, state);
 
@@ -203,7 +203,7 @@ ak_dae_fxState_ul_i(AkXmlState * __restrict xst,
     state->val = defaultVal;
   }
 
-  _xml_readAttr(state, state->param, _s_dae_param);
+  state->param = ak_xml_attr(xst, state, _s_dae_param);
   _xml_readAttrUsingFn(state->index,
                        _s_dae_index,
                        strtol, NULL, 10);
@@ -234,7 +234,7 @@ ak_dae_fxState_float(AkXmlState * __restrict xst,
     state->val = defaultVal;
   }
 
-  _xml_readAttr(state, state->param, _s_dae_param);
+  state->param = ak_xml_attr(xst, state, _s_dae_param);
 
   _ak_APPEND_STATE(last_state, state);
 
@@ -262,7 +262,7 @@ ak_dae_fxState_float_i(AkXmlState * __restrict xst,
     state->val = defaultVal;
   }
 
-  _xml_readAttr(state, state->param, _s_dae_param);
+  state->param = ak_xml_attr(xst, state, _s_dae_param);
   _xml_readAttrUsingFn(state->index,
                        _s_dae_index,
                        strtol, NULL, 10);
@@ -295,7 +295,7 @@ ak_dae_fxState_float2(AkXmlState * __restrict xst,
       memcpy(state->val, defaultVal, defaultValSize);
   }
 
-  _xml_readAttr(state, state->param, _s_dae_param);
+  state->param = ak_xml_attr(xst, state, _s_dae_param);
 
   _ak_APPEND_STATE(last_state, state);
 
@@ -325,7 +325,7 @@ ak_dae_fxState_float3(AkXmlState * __restrict xst,
       memcpy(state->val, defaultVal, defaultValSize);
   }
 
-  _xml_readAttr(state, state->param, _s_dae_param);
+  state->param = ak_xml_attr(xst, state, _s_dae_param);
 
   _ak_APPEND_STATE(last_state, state);
 
@@ -355,7 +355,7 @@ ak_dae_fxState_float3_i(AkXmlState * __restrict xst,
       memcpy(state->val, defaultVal, defaultValSize);
   }
 
-  _xml_readAttr(state, state->param, _s_dae_param);
+  state->param = ak_xml_attr(xst, state, _s_dae_param);
   _xml_readAttrUsingFn(state->index,
                        _s_dae_index,
                        strtol, NULL, 10);
@@ -388,7 +388,7 @@ ak_dae_fxState_float4(AkXmlState * __restrict xst,
       memcpy(state->val, defaultVal, defaultValSize);
   }
 
-  _xml_readAttr(state, state->param, _s_dae_param);
+  state->param = ak_xml_attr(xst, state, _s_dae_param);
 
   _ak_APPEND_STATE(last_state, state);
 
@@ -418,7 +418,7 @@ ak_dae_fxState_float4_i(AkXmlState * __restrict xst,
       memcpy(state->val, defaultVal, defaultValSize);
   }
 
-  _xml_readAttr(state, state->param, _s_dae_param);
+  state->param = ak_xml_attr(xst, state, _s_dae_param);
   _xml_readAttrUsingFn(state->index,
                        _s_dae_index,
                        strtol, NULL, 10);
@@ -451,7 +451,7 @@ ak_dae_fxState_float4x4(AkXmlState * __restrict xst,
       memcpy(*state->val, defaultVal, defaultValSize);
   }
 
-  _xml_readAttr(state, state->param, _s_dae_param);
+  state->param = ak_xml_attr(xst, state, _s_dae_param);
 
   _ak_APPEND_STATE(last_state, state);
 
@@ -477,7 +477,7 @@ ak_dae_fxState_sampler(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, elm))
       break;
 
-    if (_xml_eqElm(_s_dae_value)) {
+    if (ak_xml_eqelm(xst, _s_dae_value)) {
       AkFxSamplerCommon * sampler;
       AkResult ret;
 
@@ -489,9 +489,9 @@ ak_dae_fxState_sampler(AkXmlState * __restrict xst,
 
       if (ret == AK_OK)
         state->val = sampler;
-    } else if (_xml_eqElm(_s_dae_param)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_param)) {
       state->param = ak_xml_val(xst, state);
-    } else if (_xml_eqElm(_s_dae_index)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_index)) {
       _xml_readTextUsingFn(state->index, strtol, NULL, 10);
     } else {
       ak_xml_skipelm(xst);;
@@ -516,8 +516,8 @@ ak_dae_fxState_str(AkXmlState * __restrict xst,
   state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
   state->base.state_type = state_type;
 
-  _xml_readAttr(state, state->val, _s_dae_value);
-  _xml_readAttr(state, state->param, _s_dae_param);
+  state->val   = ak_xml_attr(xst, state, _s_dae_value);
+  state->param = ak_xml_attr(xst, state, _s_dae_param);
   _xml_readAttrUsingFn(state->index, _s_dae_index, strtol, NULL, 10);
 
   _ak_APPEND_STATE(last_state, state);
@@ -538,10 +538,10 @@ ak_dae_fxStateAlphaFunc(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_alpha_func))
       break;
 
-    if (_xml_eqElm(_s_dae_func)) {
+    if (ak_xml_eqelm(xst, _s_dae_func)) {
       char *valStr;
 
-      _xml_readAttr(state, state->func.param, _s_dae_param);
+      state->func.param = ak_xml_attr(xst, state, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -556,9 +556,9 @@ ak_dae_fxStateAlphaFunc(AkXmlState * __restrict xst,
         xmlFree(valStr);
       }
 
-    } else if (_xml_eqElm(_s_dae_value)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_value)) {
       _xml_readAttrUsingFn(state->val.val, _s_dae_value, strtof, NULL);
-      _xml_readAttr(state, state->val.param, _s_dae_param);
+      state->val.param = ak_xml_attr(xst, state, _s_dae_param);
     } else {
       ak_xml_skipelm(xst);;
     }
@@ -585,10 +585,10 @@ ak_dae_fxStateBlend(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_blend_func))
       break;
 
-    if (_xml_eqElm(_s_dae_src)) {
+    if (ak_xml_eqelm(xst, _s_dae_src)) {
       char *valStr;
 
-      _xml_readAttr(state, state->src.param, _s_dae_param);
+      state->src.param = ak_xml_attr(xst, state, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -603,10 +603,10 @@ ak_dae_fxStateBlend(AkXmlState * __restrict xst,
         xmlFree(valStr);
       }
 
-    } else if (_xml_eqElm(_s_dae_dest)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_dest)) {
       char *valStr;
 
-      _xml_readAttr(state, state->src.param, _s_dae_param);
+      state->src.param = ak_xml_attr(xst, state, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -646,10 +646,10 @@ ak_dae_fxStateBlendSep(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_blend_func_separate))
       break;
 
-    if (_xml_eqElm(_s_dae_src_rgb)) {
+    if (ak_xml_eqelm(xst, _s_dae_src_rgb)) {
       char *valStr;
 
-      _xml_readAttr(state, state->src_rgb.param, _s_dae_param);
+      state->src_rgb.param = ak_xml_attr(xst, state, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -664,10 +664,10 @@ ak_dae_fxStateBlendSep(AkXmlState * __restrict xst,
         xmlFree(valStr);
       }
 
-    } else if (_xml_eqElm(_s_dae_dest_rgb)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_dest_rgb)) {
       char *valStr;
 
-      _xml_readAttr(state, state->dest_rgb.param, _s_dae_param);
+      state->dest_rgb.param = ak_xml_attr(xst, state, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -682,10 +682,10 @@ ak_dae_fxStateBlendSep(AkXmlState * __restrict xst,
         xmlFree(valStr);
       }
 
-    } else if (_xml_eqElm(_s_dae_src_alpha)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_src_alpha)) {
       char *valStr;
 
-      _xml_readAttr(state, state->src_alpha.param, _s_dae_param);
+      state->src_alpha.param = ak_xml_attr(xst, state, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -700,10 +700,10 @@ ak_dae_fxStateBlendSep(AkXmlState * __restrict xst,
         xmlFree(valStr);
       }
 
-    } else if (_xml_eqElm(_s_dae_dest_alpha)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_dest_alpha)) {
       char *valStr;
 
-      _xml_readAttr(state, state->dest_alpha.param, _s_dae_param);
+      state->dest_alpha.param = ak_xml_attr(xst, state, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -744,10 +744,10 @@ ak_dae_fxStateBlendEqSep(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_blend_equation_separate))
       break;
 
-    if (_xml_eqElm(_s_dae_rgb)) {
+    if (ak_xml_eqelm(xst, _s_dae_rgb)) {
       char *valStr;
 
-      _xml_readAttr(state, state->rgb.param, _s_dae_param);
+      state->rgb.param = ak_xml_attr(xst, state, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -762,10 +762,10 @@ ak_dae_fxStateBlendEqSep(AkXmlState * __restrict xst,
         xmlFree(valStr);
       }
 
-    } else if (_xml_eqElm(_s_dae_alpha)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_alpha)) {
       char *valStr;
 
-      _xml_readAttr(state, state->alpha.param, _s_dae_param);
+      state->alpha.param = ak_xml_attr(xst, state, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -805,10 +805,10 @@ ak_dae_fxStateColorMaterial(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_color_material))
       break;
 
-    if (_xml_eqElm(_s_dae_face)) {
+    if (ak_xml_eqelm(xst, _s_dae_face)) {
       char *valStr;
 
-      _xml_readAttr(state, state->face.param, _s_dae_param);
+      state->face.param = ak_xml_attr(xst, state, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -823,10 +823,10 @@ ak_dae_fxStateColorMaterial(AkXmlState * __restrict xst,
         xmlFree(valStr);
       }
 
-    } else if (_xml_eqElm(_s_dae_mode)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_mode)) {
       char *valStr;
 
-      _xml_readAttr(state, state->mode.param, _s_dae_param);
+      state->mode.param = ak_xml_attr(xst, state, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -866,10 +866,10 @@ ak_dae_fxStatePolyMode(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_polygon_mode))
       break;
 
-    if (_xml_eqElm(_s_dae_face)) {
+    if (ak_xml_eqelm(xst, _s_dae_face)) {
       char *valStr;
 
-      _xml_readAttr(state, state->face.param, _s_dae_param);
+      state->face.param = ak_xml_attr(xst, state, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -884,10 +884,10 @@ ak_dae_fxStatePolyMode(AkXmlState * __restrict xst,
         xmlFree(valStr);
       }
 
-    } else if (_xml_eqElm(_s_dae_mode)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_mode)) {
       char *valStr;
 
-      _xml_readAttr(state, state->mode.param, _s_dae_param);
+      state->mode.param = ak_xml_attr(xst, state, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -927,10 +927,10 @@ ak_dae_fxStateStencilFunc(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_stencil_func))
       break;
 
-    if (_xml_eqElm(_s_dae_stencil_func)) {
+    if (ak_xml_eqelm(xst, _s_dae_stencil_func)) {
       char *valStr;
 
-      _xml_readAttr(state, state->func.param, _s_dae_param);
+      state->func.param = ak_xml_attr(xst, state, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -945,10 +945,10 @@ ak_dae_fxStateStencilFunc(AkXmlState * __restrict xst,
         xmlFree(valStr);
       }
 
-    } else if (_xml_eqElm(_s_dae_ref)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_ref)) {
       char *valStr;
 
-      _xml_readAttr(state, state->ref.param, _s_dae_param);
+      state->ref.param = ak_xml_attr(xst, state, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -956,10 +956,10 @@ ak_dae_fxStateStencilFunc(AkXmlState * __restrict xst,
         state->mask.val = strtol(valStr, NULL, 10);
         xmlFree(valStr);
       }
-    } else if (_xml_eqElm(_s_dae_mask)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_mask)) {
       char *valStr;
 
-      _xml_readAttr(state, state->mask.param, _s_dae_param);
+      state->mask.param = ak_xml_attr(xst, state, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
       if (valStr) {
@@ -999,10 +999,10 @@ ak_dae_fxStateStencilOp(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_stencil_op))
       break;
 
-    if (_xml_eqElm(_s_dae_fail)) {
+    if (ak_xml_eqelm(xst, _s_dae_fail)) {
       char *valStr;
 
-      _xml_readAttr(state, state->fail.param, _s_dae_param);
+      state->fail.param = ak_xml_attr(xst, state, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -1016,10 +1016,10 @@ ak_dae_fxStateStencilOp(AkXmlState * __restrict xst,
 
         xmlFree(valStr);
       }
-    } else if (_xml_eqElm(_s_dae_zfail)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_zfail)) {
       char *valStr;
 
-      _xml_readAttr(state, state->zfail.param, _s_dae_param);
+      state->zfail.param = ak_xml_attr(xst, state, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -1033,10 +1033,10 @@ ak_dae_fxStateStencilOp(AkXmlState * __restrict xst,
 
         xmlFree(valStr);
       }
-    } else if (_xml_eqElm(_s_dae_zpass)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_zpass)) {
       char *valStr;
 
-      _xml_readAttr(state, state->zpass.param, _s_dae_param);
+      state->zpass.param = ak_xml_attr(xst, state, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -1076,10 +1076,10 @@ ak_dae_fxStateStencilFuncSep(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_stencil_func_separate))
       break;
 
-    if (_xml_eqElm(_s_dae_front)) {
+    if (ak_xml_eqelm(xst, _s_dae_front)) {
       char *valStr;
 
-      _xml_readAttr(state, state->front.param, _s_dae_param);
+      state->front.param = ak_xml_attr(xst, state, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -1093,10 +1093,10 @@ ak_dae_fxStateStencilFuncSep(AkXmlState * __restrict xst,
 
         xmlFree(valStr);
       }
-    } else if (_xml_eqElm(_s_dae_back)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_back)) {
       char *valStr;
 
-      _xml_readAttr(state, state->back.param, _s_dae_param);
+      state->back.param = ak_xml_attr(xst, state, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -1110,10 +1110,10 @@ ak_dae_fxStateStencilFuncSep(AkXmlState * __restrict xst,
 
         xmlFree(valStr);
       }
-    } else if (_xml_eqElm(_s_dae_ref)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_ref)) {
       char *valStr;
 
-      _xml_readAttr(state, state->ref.param, _s_dae_param);
+      state->ref.param = ak_xml_attr(xst, state, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -1121,10 +1121,10 @@ ak_dae_fxStateStencilFuncSep(AkXmlState * __restrict xst,
         state->mask.val = strtol(valStr, NULL, 10);
         xmlFree(valStr);
       }
-    } else if (_xml_eqElm(_s_dae_mask)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_mask)) {
       char *valStr;
 
-      _xml_readAttr(state, state->mask.param, _s_dae_param);
+      state->mask.param = ak_xml_attr(xst, state, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
       if (valStr) {
@@ -1164,10 +1164,10 @@ ak_dae_fxStateStencilOpSep(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_stencil_op_separate))
       break;
 
-    if (_xml_eqElm(_s_dae_face)) {
+    if (ak_xml_eqelm(xst, _s_dae_face)) {
       char *valStr;
 
-      _xml_readAttr(state, state->face.param, _s_dae_param);
+      state->face.param = ak_xml_attr(xst, state, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -1181,10 +1181,10 @@ ak_dae_fxStateStencilOpSep(AkXmlState * __restrict xst,
 
         xmlFree(valStr);
       }
-    } else if (_xml_eqElm(_s_dae_fail)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_fail)) {
       char *valStr;
 
-      _xml_readAttr(state, state->fail.param, _s_dae_param);
+      state->fail.param = ak_xml_attr(xst, state, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -1198,10 +1198,10 @@ ak_dae_fxStateStencilOpSep(AkXmlState * __restrict xst,
 
         xmlFree(valStr);
       }
-    } else if (_xml_eqElm(_s_dae_zfail)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_zfail)) {
       char *valStr;
 
-      _xml_readAttr(state, state->zfail.param, _s_dae_param);
+      state->zfail.param = ak_xml_attr(xst, state, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -1215,10 +1215,10 @@ ak_dae_fxStateStencilOpSep(AkXmlState * __restrict xst,
 
         xmlFree(valStr);
       }
-    } else if (_xml_eqElm(_s_dae_zpass)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_zpass)) {
       char *valStr;
 
-      _xml_readAttr(state, state->zpass.param, _s_dae_param);
+      state->zpass.param = ak_xml_attr(xst, state, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -1258,10 +1258,10 @@ ak_dae_fxStateStencilMaskSep(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_stencil_mask_separate))
       break;
 
-    if (_xml_eqElm(_s_dae_face)) {
+    if (ak_xml_eqelm(xst, _s_dae_face)) {
       char *valStr;
 
-      _xml_readAttr(state, state->face.param, _s_dae_param);
+      state->face.param = ak_xml_attr(xst, state, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
 
@@ -1275,10 +1275,10 @@ ak_dae_fxStateStencilMaskSep(AkXmlState * __restrict xst,
 
         xmlFree(valStr);
       }
-    } else if (_xml_eqElm(_s_dae_mask)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_mask)) {
       char *valStr;
 
-      _xml_readAttr(state, state->mask.param, _s_dae_param);
+      state->mask.param = ak_xml_attr(xst, state, _s_dae_param);
       valStr = (char *)xmlTextReaderGetAttribute(xst->reader,
                                     (const xmlChar *)_s_dae_value);
       if (valStr) {

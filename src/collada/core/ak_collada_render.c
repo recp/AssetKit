@@ -19,9 +19,9 @@ ak_dae_render(AkXmlState * __restrict xst,
 
   render = ak_heap_calloc(xst->heap, memParent, sizeof(*render), false);
 
-  _xml_readAttr(render, render->sid, _s_dae_sid);
-  _xml_readAttr(render, render->name, _s_dae_name);
-  _xml_readAttr(render, render->cameraNode, _s_dae_camera_node);
+  render->sid  = ak_xml_attr(xst, render, _s_dae_sid);
+  render->name = ak_xml_attr(xst, render, _s_dae_name);
+  render->cameraNode = ak_xml_attr(xst, render, _s_dae_camera_node);
 
   last_instanceMaterial = NULL;
   last_layer = NULL;
@@ -30,7 +30,7 @@ ak_dae_render(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, _s_dae_render))
       break;
 
-    if (_xml_eqElm(_s_dae_layer)) {
+    if (ak_xml_eqelm(xst, _s_dae_layer)) {
       char *content;
       content = ak_xml_rawval(xst);
 
@@ -50,7 +50,7 @@ ak_dae_render(AkXmlState * __restrict xst,
 
         xmlFree(content);
       }
-    } else if (_xml_eqElm(_s_dae_instance_material)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_instance_material)) {
       AkInstanceMaterial *instanceMaterial;
       AkResult ret;
       ret = ak_dae_fxInstanceMaterial(xst,
@@ -65,7 +65,7 @@ ak_dae_render(AkXmlState * __restrict xst,
 
         last_instanceMaterial = instanceMaterial;
       }
-    } else if (_xml_eqElm(_s_dae_extra)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
 

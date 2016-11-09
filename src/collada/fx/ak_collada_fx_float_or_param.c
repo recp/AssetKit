@@ -26,7 +26,7 @@ ak_dae_floatOrParam(AkXmlState * __restrict xst,
     if (ak_xml_beginelm(xst, elm))
       break;
 
-    if (_xml_eqElm(_s_dae_float)) {
+    if (ak_xml_eqelm(xst, _s_dae_float)) {
       ak_basic_attrf * valuef;
       const char * floatStr;
 
@@ -34,13 +34,13 @@ ak_dae_floatOrParam(AkXmlState * __restrict xst,
                               floatOrParam,
                               sizeof(*valuef),
                               false);
-      _xml_readAttr(valuef, valuef->sid, _s_dae_sid);
+      valuef->sid = ak_xml_attr(xst, valuef, _s_dae_sid);
       floatStr = ak_xml_rawcval(xst);
       if (floatStr)
         valuef->val = strtof(floatStr, NULL);
 
       floatOrParam->val = valuef;
-    } else if (_xml_eqElm(_s_dae_param)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_param)) {
       AkParam * param;
       AkResult   ret;
 

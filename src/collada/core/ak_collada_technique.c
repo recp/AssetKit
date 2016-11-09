@@ -22,8 +22,8 @@ ak_dae_technique(AkXmlState * __restrict xst,
                              sizeof(*technique),
                              false);
 
-  _xml_readAttr(technique, technique->profile, _s_dae_profile);
-  _xml_readAttr(technique, technique->xmlns, _s_dae_xmlns);
+  technique->profile = ak_xml_attr(xst, technique, _s_dae_profile);
+  technique->xmlns   = ak_xml_attr(xst, technique, _s_dae_xmlns);
 
   nodePtr = xmlTextReaderExpand(xst->reader);
   tree = NULL;
