@@ -161,7 +161,7 @@ ak_dae_value(AkXmlState * __restrict xst,
     ak_free(nodeVal);
 
   /* end element */
-  ak_xml_endelm(xst);;
+  ak_xml_endelm(xst);
 
   return AK_OK;
 }

@@ -77,11 +77,11 @@ ak_dae_camera(AkXmlState * __restrict xst,
             last_tq = tq;
           }
         } else {
-          ak_xml_skipelm(xst);;
+          ak_xml_skipelm(xst);
         }
 
         /* end element */
-        ak_xml_endelm(xst);;
+        ak_xml_endelm(xst);
       } while (xst->nodeRet);
 
       camera->optics = optics;
@@ -124,13 +124,13 @@ ak_dae_camera(AkXmlState * __restrict xst,
                               NULL);
           imager->extra = tree;
 
-          ak_xml_skipelm(xst);;
+          ak_xml_skipelm(xst);
         } else {
-          ak_xml_skipelm(xst);;
+          ak_xml_skipelm(xst);
         }
         
         /* end element */
-        ak_xml_endelm(xst);;
+        ak_xml_endelm(xst);
       } while (xst->nodeRet);
 
       camera->imager = imager;
@@ -148,11 +148,11 @@ ak_dae_camera(AkXmlState * __restrict xst,
                           NULL);
       camera->extra = tree;
 
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
 
   *dest = camera;

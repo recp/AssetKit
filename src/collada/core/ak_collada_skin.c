@@ -130,14 +130,14 @@ ak_dae_skin(AkXmlState * __restrict xst,
                               NULL);
           joints->extra = tree;
 
-          ak_xml_skipelm(xst);;
+          ak_xml_skipelm(xst);
 
         } else {
-          ak_xml_skipelm(xst);;
+          ak_xml_skipelm(xst);
         }
         
         /* end element */
-        ak_xml_endelm(xst);;
+        ak_xml_endelm(xst);
       } while (xst->nodeRet);
       
       skin->joints = joints;
@@ -239,14 +239,14 @@ ak_dae_skin(AkXmlState * __restrict xst,
                               NULL);
           vertexWeights->extra = tree;
 
-          ak_xml_skipelm(xst);;
+          ak_xml_skipelm(xst);
 
         } else {
-          ak_xml_skipelm(xst);;
+          ak_xml_skipelm(xst);
         }
         
         /* end element */
-        ak_xml_endelm(xst);;
+        ak_xml_endelm(xst);
       } while (xst->nodeRet);
       
       skin->vertexWeights = vertexWeights;
@@ -264,13 +264,13 @@ ak_dae_skin(AkXmlState * __restrict xst,
                           NULL);
       skin->extra = tree;
 
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
 
   *dest = skin;

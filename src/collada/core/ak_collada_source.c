@@ -102,7 +102,7 @@ ak_dae_source(AkXmlState * __restrict xst,
 
         boolArray->count = arrayCount;
 
-        content = ak_xml_rawval(xst);;
+        content = ak_xml_rawval(xst);
         if (content) {
           ak_strtomb(&content,
                      boolArray->items,
@@ -304,12 +304,12 @@ ak_dae_source(AkXmlState * __restrict xst,
         break;
       }
       default:
-        ak_xml_skipelm(xst);;
+        ak_xml_skipelm(xst);
         break;
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
 
 done:

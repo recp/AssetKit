@@ -83,11 +83,11 @@ ak_dae_fxShader(AkXmlState * __restrict xst,
 
           last_import = nImport;
         } else {
-          ak_xml_skipelm(xst);;
+          ak_xml_skipelm(xst);
         }
         
         /* end element */
-        ak_xml_endelm(xst);;
+        ak_xml_endelm(xst);
       } while (xst->nodeRet);
 
       shader->sources = sources;
@@ -115,11 +115,11 @@ ak_dae_fxShader(AkXmlState * __restrict xst,
           if (ret == AK_OK)
             compiler->binary = binary;
         } else {
-          ak_xml_skipelm(xst);;
+          ak_xml_skipelm(xst);
         }
 
         /* end element */
-        ak_xml_endelm(xst);;
+        ak_xml_endelm(xst);
       } while (xst->nodeRet);
 
       if (last_compiler)
@@ -155,13 +155,13 @@ ak_dae_fxShader(AkXmlState * __restrict xst,
                           NULL);
       shader->extra = tree;
 
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
 
   *dest = shader;

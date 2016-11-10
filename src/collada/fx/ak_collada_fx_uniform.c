@@ -66,7 +66,7 @@ ak_dae_fxBindUniform(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
 
   *dest = bindUniform;

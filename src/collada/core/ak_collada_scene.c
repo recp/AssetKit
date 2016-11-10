@@ -39,11 +39,11 @@ ak_dae_scene(AkXmlState * __restrict xst,
                           NULL);
       dest->extra = tree;
 
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   return AK_OK;

@@ -140,12 +140,12 @@ ak_dae_blinn_phong(AkXmlState * __restrict xst,
         break;
       }
       default:
-         ak_xml_skipelm(xst);;
+         ak_xml_skipelm(xst);
         break;
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   *dest = blinn_phong;

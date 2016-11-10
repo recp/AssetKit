@@ -80,11 +80,11 @@ ak_dae_fxProg(AkXmlState * __restrict xst,
             last_binary = binary;
           }
         } else {
-          ak_xml_skipelm(xst);;
+          ak_xml_skipelm(xst);
         }
 
         /* end element */
-        ak_xml_endelm(xst);;
+        ak_xml_endelm(xst);
       } while (xst->nodeRet);
 
       if (last_linker)
@@ -111,11 +111,11 @@ ak_dae_fxProg(AkXmlState * __restrict xst,
           if (!bindAttrib->semantic)
             bindAttrib->semantic = ak_xml_val(xst, bindAttrib);
         } else {
-          ak_xml_skipelm(xst);;
+          ak_xml_skipelm(xst);
         }
 
         /* end element */
-        ak_xml_endelm(xst);;
+        ak_xml_endelm(xst);
       } while (xst->nodeRet);
 
       if (last_bind_attrib)
@@ -138,11 +138,11 @@ ak_dae_fxProg(AkXmlState * __restrict xst,
         last_bind_uniform = bindUniform;
       }
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
 
   *dest = prog;

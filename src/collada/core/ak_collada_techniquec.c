@@ -97,11 +97,11 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
 
           perspective->zfar = zfar;
         } else {
-          ak_xml_skipelm(xst);;
+          ak_xml_skipelm(xst);
         }
 
         /* end element */
-        ak_xml_endelm(xst);;
+        ak_xml_endelm(xst);
       } while (xst->nodeRet);
 
       techc->technique = perspective;
@@ -211,11 +211,11 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
 
           orthographic->zfar = zfar;
         } else {
-          ak_xml_skipelm(xst);;
+          ak_xml_skipelm(xst);
         }
 
         /* end element */
-        ak_xml_endelm(xst);;
+        ak_xml_endelm(xst);
       } while (xst->nodeRet);
 
       techc->technique = orthographic;
@@ -245,11 +245,11 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
             xmlFree(colorStr);
           }
         } else {
-          ak_xml_skipelm(xst);;
+          ak_xml_skipelm(xst);
         }
 
         /* end element */
-        ak_xml_endelm(xst);;
+        ak_xml_endelm(xst);
       } while (xst->nodeRet);
 
       techc->technique = ambient;
@@ -271,11 +271,11 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
         if (ak_xml_eqelm(xst, _s_dae_color)) {
           ak_dae_color(xst, true, &directional->color);
         } else {
-          ak_xml_skipelm(xst);;
+          ak_xml_skipelm(xst);
         }
 
         /* end element */
-        ak_xml_endelm(xst);;
+        ak_xml_endelm(xst);
       } while (xst->nodeRet);
 
       techc->technique = directional;
@@ -336,11 +336,11 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
 
           point->quadraticAttenuation = quadraticAttenuation;
         } else {
-          ak_xml_skipelm(xst);;
+          ak_xml_skipelm(xst);
         }
 
         /* end element */
-        ak_xml_endelm(xst);;
+        ak_xml_endelm(xst);
       } while (xst->nodeRet);
       
       techc->technique = point;
@@ -425,11 +425,11 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
 
           spot->falloffExponent = falloffExponent;
         } else {
-          ak_xml_skipelm(xst);;
+          ak_xml_skipelm(xst);
         }
         
         /* end element */
-        ak_xml_endelm(xst);;
+        ak_xml_endelm(xst);
       } while (xst->nodeRet);
       
       techc->technique = spot;
@@ -454,7 +454,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
     }
     
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
 
   *dest = techc;

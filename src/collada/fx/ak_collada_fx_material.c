@@ -59,13 +59,13 @@ ak_dae_material(AkXmlState * __restrict xst,
                           NULL);
       material->extra = tree;
 
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   *dest = material;
@@ -147,13 +147,13 @@ ak_dae_fxBindMaterial(AkXmlState * __restrict xst,
                           NULL);
       bindMaterial->extra = tree;
 
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   *dest = bindMaterial;
@@ -259,13 +259,13 @@ ak_dae_fxInstanceMaterial(AkXmlState * __restrict xst,
                           NULL);
       material->extra = tree;
 
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   *dest = material;

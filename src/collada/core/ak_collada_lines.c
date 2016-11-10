@@ -102,11 +102,11 @@ ak_dae_lines(AkXmlState * __restrict xst,
                           NULL);
       lines->base.extra = tree;
 
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   *dest = lines;

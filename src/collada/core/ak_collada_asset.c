@@ -44,10 +44,10 @@ ak_dae_assetInf(AkXmlState * __restrict xst,
         else if (ak_xml_eqelm(xst, _s_dae_source_data))
           contrib->sourceData = ak_xml_val(xst, *dest);
         else
-          ak_xml_skipelm(xst);;
+          ak_xml_skipelm(xst);
 
         /* end element */
-        ak_xml_endelm(xst);;
+        ak_xml_endelm(xst);
       } while (xst->nodeRet);
 
       (*dest)->contributor = contrib;
@@ -101,13 +101,13 @@ ak_dae_assetInf(AkXmlState * __restrict xst,
                           NULL);
       (*dest)->extra = tree;
 
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
     
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   return AK_OK;

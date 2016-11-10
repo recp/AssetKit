@@ -110,11 +110,11 @@ ak_dae_fxEvaluate(AkXmlState * __restrict xst,
             if (ret == AK_OK)
               evaluate_target->instanceImage = instanceImage;
           } else {
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
           }
 
           /* end element */
-          ak_xml_endelm(xst);;
+          ak_xml_endelm(xst);
         } while (xst->nodeRet);
 
         switch (found->val) {
@@ -179,12 +179,12 @@ ak_dae_fxEvaluate(AkXmlState * __restrict xst,
         }
       }
       default:
-         ak_xml_skipelm(xst);;
+         ak_xml_skipelm(xst);
         break;
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
 
   *dest = evaluate;

@@ -108,13 +108,13 @@ ak_dae_effect(AkXmlState * __restrict xst,
                           NULL);
       effect->extra = tree;
 
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
 
   *dest = effect;
@@ -199,13 +199,13 @@ ak_dae_fxInstanceEffect(AkXmlState * __restrict xst,
                             NULL);
         instanceEffect->extra = tree;
         
-        ak_xml_skipelm(xst);;
+        ak_xml_skipelm(xst);
       } else {
-        ak_xml_skipelm(xst);;
+        ak_xml_skipelm(xst);
       }
       
       /* end element */
-      ak_xml_endelm(xst);;
+      ak_xml_endelm(xst);
     } while (xst->nodeRet);
   }
   

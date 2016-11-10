@@ -195,7 +195,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
                     ak_enumpair_cmp2);
 
     if (!found) {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
       goto cont;
     }
 
@@ -246,7 +246,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
   cont:
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
 
   xmlFreeTextReader(reader);

@@ -79,11 +79,11 @@ ak_dae_render(AkXmlState * __restrict xst,
                           NULL);
       render->extra = tree;
 
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   *dest = render;

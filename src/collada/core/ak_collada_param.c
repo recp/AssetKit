@@ -95,7 +95,7 @@ ak_dae_newparam(AkXmlState * __restrict xst,
     }
     
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
 
   *dest = newparam;
@@ -140,13 +140,13 @@ ak_dae_param(AkXmlState * __restrict xst,
   }
 
   *dest = param;
-  ak_xml_endelm(xst);;
+  ak_xml_endelm(xst);
 
   return AK_OK;
 
 err:
 
-  ak_xml_endelm(xst);;
+  ak_xml_endelm(xst);
   return AK_ERR;
 }
 
@@ -191,7 +191,7 @@ ak_dae_setparam(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
 
   *dest = setparam;

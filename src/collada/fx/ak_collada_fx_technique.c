@@ -118,13 +118,13 @@ ak_dae_techniqueFx(AkXmlState * __restrict xst,
                           NULL);
       technique->extra = tree;
 
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   *dest = technique;

@@ -220,16 +220,16 @@ ak_dae_brep(AkXmlState * __restrict xst,
                             NULL);
         brep->extra = tree;
 
-        ak_xml_skipelm(xst);;
+        ak_xml_skipelm(xst);
         break;
       }
       default:
-        ak_xml_skipelm(xst);;
+        ak_xml_skipelm(xst);
         break;
     }
     
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   *dest = brep;

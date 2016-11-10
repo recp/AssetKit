@@ -201,7 +201,7 @@ ak_dae_profile(AkXmlState * __restrict xst,
                           NULL);
       profile->extra = tree;
 
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     } else if (ak_xml_eqelm(xst, _s_dae_code)) {
       AkCode *code;
 
@@ -269,11 +269,11 @@ ak_dae_profile(AkXmlState * __restrict xst,
 
       last_inc = inc;
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     } 
     
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   *dest = profile;

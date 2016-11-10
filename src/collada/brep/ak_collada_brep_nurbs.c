@@ -121,14 +121,14 @@ ak_dae_nurbs(AkXmlState * __restrict xst,
                               NULL);
           cverts->extra = tree;
 
-          ak_xml_skipelm(xst);;
+          ak_xml_skipelm(xst);
 
         } else {
-          ak_xml_skipelm(xst);;
+          ak_xml_skipelm(xst);
         }
         
         /* end element */
-        ak_xml_endelm(xst);;
+        ak_xml_endelm(xst);
       } while (xst->nodeRet);
       
       nurbs->cverts = cverts;
@@ -146,11 +146,11 @@ ak_dae_nurbs(AkXmlState * __restrict xst,
                           NULL);
       nurbs->extra = tree;
 
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
     
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   *dest = nurbs;
@@ -272,14 +272,14 @@ ak_dae_nurbs_surface(AkXmlState * __restrict xst,
                               NULL);
           cverts->extra = tree;
 
-          ak_xml_skipelm(xst);;
+          ak_xml_skipelm(xst);
 
         } else {
-          ak_xml_skipelm(xst);;
+          ak_xml_skipelm(xst);
         }
 
         /* end element */
-        ak_xml_endelm(xst);;
+        ak_xml_endelm(xst);
       } while (xst->nodeRet);
 
       nurbsSurface->cverts = cverts;
@@ -297,11 +297,11 @@ ak_dae_nurbs_surface(AkXmlState * __restrict xst,
                           NULL);
       nurbsSurface->extra = tree;
       
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
     
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   *dest = nurbsSurface;

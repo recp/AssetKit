@@ -117,13 +117,13 @@ ak_dae_fxImage(AkXmlState * __restrict xst,
                           NULL);
       img->extra = tree;
 
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
 
   *dest = img;
@@ -168,13 +168,13 @@ ak_dae_fxInstanceImage(AkXmlState * __restrict xst,
                           NULL);
       instanceImage->extra = tree;
 
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
 
   *dest = instanceImage;
@@ -230,11 +230,11 @@ ak_dae_fxImage_initFrom(AkXmlState * __restrict xst,
         ak_free(hex);
       }
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
 
   *dest = initFrom;
@@ -298,11 +298,11 @@ ak_dae_fxImage_format(AkXmlState * __restrict xst,
     } else if (ak_xml_eqelm(xst, _s_dae_exact)) {
       format->exact = ak_xml_val(xst, format);
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
 
   *dest = format;
@@ -382,11 +382,11 @@ ak_dae_fxImage_create2d(AkXmlState * __restrict xst,
       if (ret == AK_OK)
         image2d->initFrom = initFrom;
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
 
   *dest = image2d;
@@ -434,11 +434,11 @@ ak_dae_fxImage_create3d(AkXmlState * __restrict xst,
       if (ret == AK_OK)
         image3d->initFrom = initFrom;
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
 
   *dest = image3d;
@@ -484,11 +484,11 @@ ak_dae_fxImage_createCube(AkXmlState * __restrict xst,
       if (ret == AK_OK)
         imageCube->initFrom = initFrom;
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
     
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   *dest = imageCube;

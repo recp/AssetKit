@@ -120,14 +120,14 @@ ak_dae_curve(AkXmlState * __restrict xst,
                                 NULL);
             line->extra = tree;
             
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
             break;
           } else {
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
           }
           
           /* end element */
-          ak_xml_endelm(xst);;
+          ak_xml_endelm(xst);
         } while (xst->nodeRet);
 
         curve->curve = obj;
@@ -167,14 +167,14 @@ ak_dae_curve(AkXmlState * __restrict xst,
                                 NULL);
             circle->extra = tree;
 
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
             break;
           } else {
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
           }
 
           /* end element */
-          ak_xml_endelm(xst);;
+          ak_xml_endelm(xst);
         } while (xst->nodeRet);
         
         curve->curve = obj;
@@ -220,14 +220,14 @@ ak_dae_curve(AkXmlState * __restrict xst,
                                 NULL);
             ellipse->extra = tree;
 
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
             break;
           } else {
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
           }
 
           /* end element */
-          ak_xml_endelm(xst);;
+          ak_xml_endelm(xst);
         } while (xst->nodeRet);
         
         curve->curve = obj;
@@ -267,14 +267,14 @@ ak_dae_curve(AkXmlState * __restrict xst,
                                 NULL);
             parabola->extra = tree;
 
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
             break;
           } else {
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
           }
 
           /* end element */
-          ak_xml_endelm(xst);;
+          ak_xml_endelm(xst);
         } while (xst->nodeRet);
         
         curve->curve = obj;
@@ -320,14 +320,14 @@ ak_dae_curve(AkXmlState * __restrict xst,
                                 NULL);
             hyperbola->extra = tree;
 
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
             break;
           } else {
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
           }
 
           /* end element */
-          ak_xml_endelm(xst);;
+          ak_xml_endelm(xst);
         } while (xst->nodeRet);
         
         curve->curve = obj;
@@ -378,12 +378,12 @@ ak_dae_curve(AkXmlState * __restrict xst,
         break;
       }
       default:
-        ak_xml_skipelm(xst);;
+        ak_xml_skipelm(xst);
         break;
     }
     
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   *dest = curve;
@@ -433,11 +433,11 @@ ak_dae_curves(AkXmlState * __restrict xst,
                           NULL);
       curves->extra = tree;
 
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   *dest = curves;

@@ -117,14 +117,14 @@ ak_dae_spline(AkXmlState * __restrict xst,
                               NULL);
           cverts->extra = tree;
           
-          ak_xml_skipelm(xst);;
+          ak_xml_skipelm(xst);
 
         } else {
-          ak_xml_skipelm(xst);;
+          ak_xml_skipelm(xst);
         }
         
         /* end element */
-        ak_xml_endelm(xst);;
+        ak_xml_endelm(xst);
       } while (xst->nodeRet);
 
       spline->cverts = cverts;
@@ -142,13 +142,13 @@ ak_dae_spline(AkXmlState * __restrict xst,
                           NULL);
       spline->extra = tree;
 
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   *dest = spline;

@@ -33,7 +33,7 @@ ak_dae_annotate(AkXmlState * __restrict xst,
                    &annotate->valType);
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
 
   *dest = annotate;

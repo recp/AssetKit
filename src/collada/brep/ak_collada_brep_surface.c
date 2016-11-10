@@ -99,14 +99,14 @@ ak_dae_surface(AkXmlState * __restrict xst,
                                 NULL);
             cone->extra = tree;
 
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
             break;
           } else {
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
           }
 
           /* end element */
-          ak_xml_endelm(xst);;
+          ak_xml_endelm(xst);
         } while (xst->nodeRet);
         
         surface->surface = obj;
@@ -151,14 +151,14 @@ ak_dae_surface(AkXmlState * __restrict xst,
                                 NULL);
             plane->extra = tree;
 
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
             break;
           } else {
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
           }
 
           /* end element */
-          ak_xml_endelm(xst);;
+          ak_xml_endelm(xst);
         } while (xst->nodeRet);
         
         surface->surface = obj;
@@ -203,14 +203,14 @@ ak_dae_surface(AkXmlState * __restrict xst,
                                 NULL);
             cylinder->extra = tree;
 
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
             break;
           } else {
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
           }
 
           /* end element */
-          ak_xml_endelm(xst);;
+          ak_xml_endelm(xst);
         } while (xst->nodeRet);
         
         surface->surface = obj;
@@ -264,14 +264,14 @@ ak_dae_surface(AkXmlState * __restrict xst,
                                 NULL);
             sphere->extra = tree;
 
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
             break;
           } else {
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
           }
 
           /* end element */
-          ak_xml_endelm(xst);;
+          ak_xml_endelm(xst);
         } while (xst->nodeRet);
         
         surface->surface = obj;
@@ -316,14 +316,14 @@ ak_dae_surface(AkXmlState * __restrict xst,
                                 NULL);
             torus->extra = tree;
 
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
             break;
           } else {
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
           }
 
           /* end element */
-          ak_xml_endelm(xst);;
+          ak_xml_endelm(xst);
         } while (xst->nodeRet);
         
         surface->surface = obj;
@@ -394,14 +394,14 @@ ak_dae_surface(AkXmlState * __restrict xst,
                                 NULL);
             sweptSurface->extra = tree;
 
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
             break;
           } else {
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
           }
 
           /* end element */
-          ak_xml_endelm(xst);;
+          ak_xml_endelm(xst);
         } while (xst->nodeRet);
         
         surface->surface = obj;
@@ -444,12 +444,12 @@ ak_dae_surface(AkXmlState * __restrict xst,
         break;
       }
       default:
-        ak_xml_skipelm(xst);;
+        ak_xml_skipelm(xst);
         break;
     }
     
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   *dest = surface;
@@ -502,11 +502,11 @@ ak_dae_surfaces(AkXmlState * __restrict xst,
                           NULL);
       surfaces->extra = tree;
 
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   *dest = surfaces;

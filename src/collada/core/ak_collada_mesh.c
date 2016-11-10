@@ -221,16 +221,16 @@ ak_dae_mesh(AkXmlState * __restrict xst,
                             NULL);
         mesh->extra = tree;
 
-        ak_xml_skipelm(xst);;
+        ak_xml_skipelm(xst);
         break;
       }
       default:
-        ak_xml_skipelm(xst);;
+        ak_xml_skipelm(xst);
         break;
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
 
   ak_dae_meshFixup(mesh);

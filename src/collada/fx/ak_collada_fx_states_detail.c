@@ -484,11 +484,11 @@ ak_dae_fxState_sampler(AkXmlState * __restrict xst,
     } else if (ak_xml_eqelm(xst, _s_dae_index)) {
       state->index = ak_xml_valul(xst);
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
 
   _ak_APPEND_STATE(last_state, state);
@@ -550,11 +550,11 @@ ak_dae_fxStateAlphaFunc(AkXmlState * __restrict xst,
       state->val.val   = ak_xml_attrf(xst, _s_dae_value);
       state->val.param = ak_xml_attr(xst, state, _s_dae_param);
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
 
   _ak_APPEND_STATE(last_state, state);
@@ -611,11 +611,11 @@ ak_dae_fxStateBlend(AkXmlState * __restrict xst,
         xmlFree(valStr);
       }
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   _ak_APPEND_STATE(last_state, state);
@@ -709,11 +709,11 @@ ak_dae_fxStateBlendSep(AkXmlState * __restrict xst,
       }
 
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   _ak_APPEND_STATE(last_state, state);
@@ -770,11 +770,11 @@ ak_dae_fxStateBlendEqSep(AkXmlState * __restrict xst,
         xmlFree(valStr);
       }
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   _ak_APPEND_STATE(last_state, state);
@@ -831,11 +831,11 @@ ak_dae_fxStateColorMaterial(AkXmlState * __restrict xst,
         xmlFree(valStr);
       }
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   _ak_APPEND_STATE(last_state, state);
@@ -892,11 +892,11 @@ ak_dae_fxStatePolyMode(AkXmlState * __restrict xst,
         xmlFree(valStr);
       }
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   _ak_APPEND_STATE(last_state, state);
@@ -964,11 +964,11 @@ ak_dae_fxStateStencilFunc(AkXmlState * __restrict xst,
         xmlFree(valStr);
       }
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   _ak_APPEND_STATE(last_state, state);
@@ -1041,11 +1041,11 @@ ak_dae_fxStateStencilOp(AkXmlState * __restrict xst,
         xmlFree(valStr);
       }
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   _ak_APPEND_STATE(last_state, state);
@@ -1129,11 +1129,11 @@ ak_dae_fxStateStencilFuncSep(AkXmlState * __restrict xst,
         xmlFree(valStr);
       }
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   _ak_APPEND_STATE(last_state, state);
@@ -1223,11 +1223,11 @@ ak_dae_fxStateStencilOpSep(AkXmlState * __restrict xst,
         xmlFree(valStr);
       }
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   _ak_APPEND_STATE(last_state, state);
@@ -1283,11 +1283,11 @@ ak_dae_fxStateStencilMaskSep(AkXmlState * __restrict xst,
         xmlFree(valStr);
       }
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   _ak_APPEND_STATE(last_state, state);

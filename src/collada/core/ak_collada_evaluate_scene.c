@@ -68,11 +68,11 @@ ak_dae_evaluateScene(AkXmlState * __restrict xst,
                           NULL);
       evaluateScene->extra = tree;
 
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   *dest = evaluateScene;

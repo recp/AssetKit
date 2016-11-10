@@ -85,11 +85,11 @@ ak_dae_visualScene(AkXmlState * __restrict xst,
                           NULL);
       visualScene->extra = tree;
 
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   *dest = visualScene;
@@ -134,11 +134,11 @@ ak_dae_instanceVisualScene(AkXmlState * __restrict xst,
                           NULL);
       visualScene->base.extra = tree;
 
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   *dest = visualScene;

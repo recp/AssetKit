@@ -34,7 +34,7 @@ ak_dae_technique(AkXmlState * __restrict xst,
   xst->nodeName = xmlTextReaderConstName(xst->reader);
   xst->nodeType = xmlTextReaderNodeType(xst->reader);
   
-  ak_xml_skipelm(xst);;
+  ak_xml_skipelm(xst);
 
   *dest = technique;
 

@@ -100,11 +100,11 @@ ak_dae_edges(AkXmlState * __restrict xst,
                           NULL);
       edges->extra = tree;
 
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
 
   *dest = edges;
@@ -219,11 +219,11 @@ ak_dae_wires(AkXmlState * __restrict xst,
                           NULL);
       wires->extra = tree;
 
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
 
   *dest = wires;
@@ -338,11 +338,11 @@ ak_dae_faces(AkXmlState * __restrict xst,
                           NULL);
       faces->extra = tree;
 
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
 
   *dest = faces;
@@ -457,11 +457,11 @@ ak_dae_pcurves(AkXmlState * __restrict xst,
                           NULL);
       pcurves->extra = tree;
 
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
 
   *dest = pcurves;
@@ -576,11 +576,11 @@ ak_dae_shells(AkXmlState * __restrict xst,
                           NULL);
       shells->extra = tree;
 
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
 
   *dest = shells;
@@ -695,11 +695,11 @@ ak_dae_solids(AkXmlState * __restrict xst,
                           NULL);
       solids->extra = tree;
       
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
     
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   *dest = solids;

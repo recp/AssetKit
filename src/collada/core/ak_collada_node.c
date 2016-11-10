@@ -133,7 +133,7 @@ ak_dae_node(AkXmlState * __restrict xst,
                     ak_enumpair_cmp2);
 
     if (!found) {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
       goto cont;
     }
 
@@ -378,14 +378,14 @@ ak_dae_node(AkXmlState * __restrict xst,
                                 NULL);
             instanceCamera->base.extra = tree;
             
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
             break;
           } else {
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
           }
           
           /* end element */
-          ak_xml_endelm(xst);;
+          ak_xml_endelm(xst);
         } while (xst->nodeRet);
 
         if (last_camera)
@@ -463,14 +463,14 @@ ak_dae_node(AkXmlState * __restrict xst,
                                 NULL);
             controller->extra = tree;
 
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
             break;
           } else {
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
           }
 
           /* end element */
-          ak_xml_endelm(xst);;
+          ak_xml_endelm(xst);
         } while (xst->nodeRet);
 
         if (last_controller)
@@ -523,14 +523,14 @@ ak_dae_node(AkXmlState * __restrict xst,
                                 NULL);
             geometry->base.extra = tree;
 
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
             break;
           } else {
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
           }
 
           /* end element */
-          ak_xml_endelm(xst);;
+          ak_xml_endelm(xst);
         } while (xst->nodeRet);
 
         if (last_geometry)
@@ -572,14 +572,14 @@ ak_dae_node(AkXmlState * __restrict xst,
                                 NULL);
             light->extra = tree;
 
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
             break;
           } else {
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
           }
 
           /* end element */
-          ak_xml_endelm(xst);;
+          ak_xml_endelm(xst);
         } while (xst->nodeRet);
 
         if (last_light)
@@ -625,14 +625,14 @@ ak_dae_node(AkXmlState * __restrict xst,
                                 NULL);
             instanceNode->extra = tree;
 
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
             break;
           } else {
-            ak_xml_skipelm(xst);;
+            ak_xml_skipelm(xst);
           }
 
           /* end element */
-          ak_xml_endelm(xst);;
+          ak_xml_endelm(xst);
         } while (xst->nodeRet);
 
         if (last_node)
@@ -677,17 +677,17 @@ ak_dae_node(AkXmlState * __restrict xst,
                             NULL);
         node->extra = tree;
 
-        ak_xml_skipelm(xst);;
+        ak_xml_skipelm(xst);
         break;
       }
       default:
-        ak_xml_skipelm(xst);;
+        ak_xml_skipelm(xst);
         break;
     }
 
   cont:
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
 
   ak_dae_nodeFixup(xst->heap, doc, node);

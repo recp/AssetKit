@@ -58,11 +58,11 @@ ak_dae_floatOrParam(AkXmlState * __restrict xst,
         last_param = param;
       }
     } else {
-      ak_xml_skipelm(xst);;
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
-    ak_xml_endelm(xst);;
+    ak_xml_endelm(xst);
   } while (xst->nodeRet);
   
   *dest = floatOrParam;
