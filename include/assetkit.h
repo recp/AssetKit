@@ -1611,47 +1611,35 @@ typedef struct AkScene {
   AkTree * extra;
 } AkScene;
 
-#undef AK__DEF_LIB
+typedef struct AkLibItem {
+  /* const char * id; */
 
-#define AK__DEF_LIB(T)                                                        \
-  typedef struct AkLib ## T {                                                 \
-    AkAssetInf * inf;                                                         \
-    /* const char * id; */                                                    \
-    const char * name;                                                        \
-    Ak ## T    * chld;                                                        \
-    AkTree     * extra;                                                       \
-    uint64_t     count;                                                       \
-    struct AkLib ## T * next;                                                 \
-  } AkLib ## T
+  AkAssetInf *inf;
+  const char *name;
+  AkTree     *extra;
+  void       *chld;
+  uint64_t    count;
 
-AK__DEF_LIB(Camera);
-AK__DEF_LIB(Light);
-AK__DEF_LIB(Effect);
-AK__DEF_LIB(Image);
-AK__DEF_LIB(Material);
-AK__DEF_LIB(Geometry);
-AK__DEF_LIB(Controller);
-AK__DEF_LIB(VisualScene);
-AK__DEF_LIB(Node);
-
-#undef AK__DEF_LIB
+  struct AkLibItem *next;
+} AkLibItem;
 
 typedef struct AkLib {
-  AkLibCamera      * cameras;
-  AkLibLight       * lights;
-  AkLibEffect      * effects;
-  AkLibImage       * images;
-  AkLibMaterial    * materials;
-  AkLibGeometry    * geometries;
-  AkLibController  * controllers;
-  AkLibVisualScene * visualScenes;
-  AkLibNode        * nodes;
+  AkLibItem *cameras;
+  AkLibItem *lights;
+  AkLibItem *effects;
+  AkLibItem *images;
+  AkLibItem *materials;
+  AkLibItem *geometries;
+  AkLibItem *controllers;
+  AkLibItem *visualScenes;
+  AkLibItem *nodes;
 } AkLib;
 
 typedef struct AkDoc {
   AkDocInf    docinf;
   AkCoordSys *coordSys;
   AkUnit     *unit;
+  AkTree     *extra;
   AkLib       lib;
   AkScene     scene;
 } AkDoc;

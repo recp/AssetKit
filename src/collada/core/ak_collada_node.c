@@ -131,7 +131,7 @@ ak_dae_node(AkXmlState * __restrict xst,
                     nodeMapLen,
                     sizeof(nodeMap[0]),
                     ak_enumpair_cmp2);
-    printf("node '%s'\n", found->key);
+
     if (!found) {
       ak_xml_skipelm(xst);;
       goto cont;

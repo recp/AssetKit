@@ -21,25 +21,123 @@
 #include "fx/ak_collada_fx_image.h"
 #include "fx/ak_collada_fx_material.h"
 
+#include "ak_collada_lib.h"
+
+#define k_s_dae_asset               1
+#define k_s_dae_lib_cameras         2
+#define k_s_dae_lib_lights          3
+#define k_s_dae_lib_effects         4
+#define k_s_dae_lib_images          5
+#define k_s_dae_lib_materials       6
+#define k_s_dae_lib_geometries      7
+#define k_s_dae_lib_controllers     8
+#define k_s_dae_lib_visual_scenes   9
+#define k_s_dae_lib_nodes           10
+#define k_s_dae_scene               11
+#define k_s_dae_extra               12
+
+static ak_enumpair daeMap[] = {
+  {_s_dae_asset,             k_s_dae_asset},
+  {_s_dae_lib_cameras,       k_s_dae_lib_cameras},
+  {_s_dae_lib_lights,        k_s_dae_lib_lights},
+  {_s_dae_lib_effects,       k_s_dae_lib_effects},
+  {_s_dae_lib_images,        k_s_dae_lib_images},
+  {_s_dae_lib_materials,     k_s_dae_lib_materials},
+  {_s_dae_lib_geometries,    k_s_dae_lib_geometries},
+  {_s_dae_lib_controllers,   k_s_dae_lib_controllers},
+  {_s_dae_lib_visual_scenes, k_s_dae_lib_visual_scenes},
+  {_s_dae_lib_nodes,         k_s_dae_lib_nodes},
+  {_s_dae_scene,             k_s_dae_scene},
+  {_s_dae_extra,             k_s_dae_extra},
+};
+
+static size_t daeMapLen = 0;
+
+static AkLibChldDesc libchlds[] = {
+  {
+    NULL,
+    _s_dae_lib_cameras,
+    _s_dae_camera,
+    ak_dae_camera,
+    offsetof(AkLib, cameras),
+    offsetof(AkCamera, next)
+  },
+  {
+    NULL,
+    _s_dae_lib_lights,
+    _s_dae_light,
+    ak_dae_light,
+    offsetof(AkLib, lights),
+    offsetof(AkLight, next)
+  },
+  {
+    NULL,
+    _s_dae_lib_effects,
+    _s_dae_effect,
+    ak_dae_effect,
+    offsetof(AkLib, effects),
+    offsetof(AkEffect, next)
+  },
+  {
+    NULL,
+    _s_dae_lib_images,
+    _s_dae_image,
+    ak_dae_fxImage,
+    offsetof(AkLib, images),
+    offsetof(AkImage, next)
+  },
+  {
+    NULL,
+    _s_dae_lib_materials,
+    _s_dae_material,
+    ak_dae_material,
+    offsetof(AkLib, materials),
+    offsetof(AkMaterial, next)
+  },
+  {
+    NULL,
+    _s_dae_lib_geometries,
+    _s_dae_geometry,
+    ak_dae_geometry,
+    offsetof(AkLib, geometries),
+    offsetof(AkGeometry, next)
+  },
+  {
+    NULL,
+    _s_dae_lib_controllers,
+    _s_dae_controller,
+    ak_dae_controller,
+    offsetof(AkLib, controllers),
+    offsetof(AkController, next)
+  },
+  {
+    NULL,
+    _s_dae_lib_visual_scenes,
+    _s_dae_visual_scene,
+    ak_dae_visualScene,
+    offsetof(AkLib, visualScenes),
+    offsetof(AkVisualScene, next)
+  },
+  {
+    NULL,
+    _s_dae_lib_nodes,
+    _s_dae_node,
+    ak_dae_node2,
+    offsetof(AkLib, nodes),
+    offsetof(AkNode, next)
+  }
+};
+
 AkResult
 _assetkit_hide
 ak_dae_doc(AkDoc ** __restrict dest,
            const char * __restrict file) {
-  AkHeap           *heap;
-  AkDoc            *doc;
-  AkLibCamera      *last_libCam;
-  AkLibLight       *last_libLight;
-  AkLibEffect      *last_libEffect;
-  AkLibImage       *last_libImage;
-  AkLibMaterial    *last_libMaterial;
-  AkLibGeometry    *last_libGeometry;
-  AkLibController  *last_libController;
-  AkLibVisualScene *last_libVisualScene;
-  AkLibNode        *last_libNode;
-  AkXmlState        xstVal, *xst;
+  AkHeap          *heap;
+  AkDoc           *doc;
+  AkXmlState       xstVal, *xst;
 
-  xmlTextReaderPtr  reader;
-  int xmlReaderFlags;
+  xmlTextReaderPtr reader;
+  int              xmlReaderFlags;
 
   /*
    * this initialize the library and check potential ABI mismatches
@@ -49,12 +147,12 @@ ak_dae_doc(AkDoc ** __restrict dest,
   LIBXML_TEST_VERSION
 
   xmlReaderFlags = XML_PARSE_NOBLANKS
-                   |XML_PARSE_NOCDATA
-                   |XML_PARSE_NOXINCNODE
-                   |XML_PARSE_NOBASEFIX
+  |XML_PARSE_NOCDATA
+  |XML_PARSE_NOXINCNODE
+  |XML_PARSE_NOBASEFIX
 #ifndef _DEBUG
-                   |XML_PARSE_NOERROR
-                   |XML_PARSE_NOWARNING
+  |XML_PARSE_NOERROR
+  |XML_PARSE_NOWARNING
 #endif
   ;
 
@@ -66,7 +164,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
 
   heap = ak_heap_new(NULL, NULL, NULL);
   doc  = ak_heap_calloc(heap, NULL, sizeof(*doc), false);
-  
+
   ak_heap_setdata(heap, doc);
 
   xstVal.doc    = doc;
@@ -74,641 +172,78 @@ ak_dae_doc(AkDoc ** __restrict dest,
   xstVal.reader = reader;
   xst           = &xstVal;
 
-//  _xml_readNext;
   ak_xml_readnext(xst);
 
-  last_libCam         = NULL;
-  last_libLight       = NULL;
-  last_libEffect      = NULL;
-  last_libImage       = NULL;
-  last_libMaterial    = NULL;
-  last_libGeometry    = NULL;
-  last_libController  = NULL;
-  last_libVisualScene = NULL;
-  last_libNode        = NULL;
+  if (daeMapLen == 0) {
+    daeMapLen = AK_ARRAY_LEN(daeMap);
+    qsort(daeMap,
+          daeMapLen,
+          sizeof(daeMap[0]),
+          ak_enumpair_cmp);
+  }
 
   do {
+    const ak_enumpair *found;
+
     if (ak_xml_beginelm(xst, _s_dae_collada))
       break;
 
-    /* COLLADA Core */
-    if (ak_xml_eqelm(xst, _s_dae_asset)) {
-      AkAssetInf *assetInf;
-      AkDocInf   *docInf;
-      AkResult    ret;
+    found = bsearch(xst->nodeName,
+                    daeMap,
+                    daeMapLen,
+                    sizeof(daeMap[0]),
+                    ak_enumpair_cmp2);
 
-      docInf = ak_heap_calloc(heap, doc, sizeof(*docInf), false);
-      assetInf = &docInf->base;
+    if (!found) {
+      ak_xml_skipelm(xst);;
+      goto cont;
+    }
 
-      ret = ak_dae_assetInf(xst, docInf, &assetInf);
-      if (ret == AK_OK) {
-        docInf->ftype = AK_FILE_TYPE_COLLADA;
-        doc->docinf   = *docInf;
+    switch (found->val) {
+      case k_s_dae_asset: {
+        AkAssetInf *assetInf;
+        AkDocInf   *docInf;
+        AkResult    ret;
 
-        doc->coordSys = assetInf->coordSys;
-        doc->unit     = assetInf->unit;
+        docInf = ak_heap_calloc(heap, doc, sizeof(*docInf), false);
+        assetInf = &docInf->base;
+
+        ret = ak_dae_assetInf(xst, docInf, &assetInf);
+        if (ret == AK_OK) {
+          docInf->ftype = AK_FILE_TYPE_COLLADA;
+          doc->docinf   = *docInf;
+
+          doc->coordSys = assetInf->coordSys;
+          doc->unit     = assetInf->unit;
+        }
+
+        break;
       }
-    } else if (ak_xml_eqelm(xst, _s_dae_lib_cameras)) {
-      AkLibCamera *libcam;
-      AkCamera    *lastcam;
-
-      libcam = ak_heap_calloc(heap, doc, sizeof(*libcam), true);
-      if (last_libCam)
-        last_libCam->next = libcam;
-      else
-        doc->lib.cameras = libcam;
-
-      last_libCam = libcam;
-
-      ak_xml_readid(xst, libcam);
-      libcam->name = ak_xml_attr(xst, libcam, _s_dae_name);
-
-      lastcam = NULL;
-
-      do {
-        if (ak_xml_beginelm(xst, _s_dae_lib_cameras))
-          break;
-
-        if (ak_xml_eqelm(xst, _s_dae_asset)) {
-          AkAssetInf *assetInf;
-          AkResult ret;
-
-          assetInf = NULL;
-          ret = ak_dae_assetInf(xst, doc, &assetInf);
-          if (ret == AK_OK)
-            libcam->inf = assetInf;
-
-        } else if (ak_xml_eqelm(xst, _s_dae_camera)) {
-          AkCamera *acamera;
-          AkResult   ret;
-
-          acamera = NULL;
-          ret = ak_dae_camera(xst, doc, &acamera);
-          if (ret == AK_OK) {
-            if (lastcam)
-              lastcam->next = acamera;
-            else
-              libcam->chld = acamera;
-
-            lastcam = acamera;
-          }
-        } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-          xmlNodePtr nodePtr;
-          AkTree   *tree;
-
-          nodePtr = xmlTextReaderExpand(reader);
-          tree = NULL;
-
-                ak_tree_fromXmlNode(heap,
-                          doc,
-                          nodePtr,
-                          &tree,
-                          NULL);
-          libcam->extra = tree;
-
-          ak_xml_skipelm(xst);;
-        } else {
-          ak_xml_skipelm(xst);;
-        }
-
-        /* end element */
-        ak_xml_endelm(xst);;
-      } while (xst->nodeRet);
-    } else if (ak_xml_eqelm(xst, _s_dae_lib_lights)) {
-      AkLibLight *liblight;
-      AkLight    *lastlight;
-
-      liblight = ak_heap_calloc(heap, doc, sizeof(*liblight), true);
-      if (last_libLight)
-        last_libLight->next = liblight;
-      else
-        doc->lib.lights = liblight;
-
-      last_libLight = liblight;
-
-      ak_xml_readid(xst, liblight);
-      liblight->name = ak_xml_attr(xst, liblight, _s_dae_name);
-
-      lastlight = NULL;
-
-      do {
-        if (ak_xml_beginelm(xst, _s_dae_lib_lights))
-          break;
-
-        if (ak_xml_eqelm(xst, _s_dae_asset)) {
-          AkAssetInf *assetInf;
-          AkResult ret;
-
-          assetInf = NULL;
-          ret = ak_dae_assetInf(xst, doc, &assetInf);
-          if (ret == AK_OK)
-            liblight->inf = assetInf;
-
-        } else if (ak_xml_eqelm(xst, _s_dae_light)) {
-          AkLight *alight;
-          AkResult  ret;
-
-          alight = NULL;
-          ret = ak_dae_light(xst, doc, &alight);
-          if (ret == AK_OK) {
-            if (lastlight)
-              lastlight->next = alight;
-            else
-              liblight->chld = alight;
-
-            lastlight = alight;
-          }
-        } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-          xmlNodePtr nodePtr;
-          AkTree   *tree;
-
-          nodePtr = xmlTextReaderExpand(reader);
-          tree = NULL;
-
-          ak_tree_fromXmlNode(heap,
-                              doc,
-                              nodePtr,
-                              &tree,
-                              NULL);
-          liblight->extra = tree;
-
-          ak_xml_skipelm(xst);;
-        } else {
-          ak_xml_skipelm(xst);;
-        }
-        
-        /* end element */
-        ak_xml_endelm(xst);;
-      } while (xst->nodeRet);
-
-    /* COLLADA FX */
-    } else if (ak_xml_eqelm(xst, _s_dae_lib_effects)) {
-      AkLibEffect *libEffect;
-      AkEffect    *lastEffect;
-
-      libEffect = ak_heap_calloc(heap, doc, sizeof(*libEffect), true);
-      if (last_libEffect)
-        last_libEffect->next = libEffect;
-      else
-        doc->lib.effects = libEffect;
-
-      last_libEffect = libEffect;
-
-      ak_xml_readid(xst, libEffect);
-      libEffect->name = ak_xml_attr(xst, libEffect, _s_dae_name);
-
-      lastEffect = NULL;
-
-      do {
-        if (ak_xml_beginelm(xst, _s_dae_lib_effects))
-          break;
-
-        if (ak_xml_eqelm(xst, _s_dae_asset)) {
-          AkAssetInf *assetInf;
-          AkResult ret;
-
-          assetInf = NULL;
-          ret = ak_dae_assetInf(xst, doc, &assetInf);
-          if (ret == AK_OK)
-            libEffect->inf = assetInf;
-
-        } else if (ak_xml_eqelm(xst, _s_dae_effect)) {
-          AkEffect *anEffect;
-          AkResult   ret;
-
-          ret = ak_dae_effect(xst, doc, &anEffect);
-          if (ret == AK_OK) {
-            if (lastEffect)
-              lastEffect->next = anEffect;
-            else
-              libEffect->chld = anEffect;
-
-            lastEffect = anEffect;
-          }
-        } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-          xmlNodePtr nodePtr;
-          AkTree   *tree;
-
-          nodePtr = xmlTextReaderExpand(reader);
-          tree = NULL;
-
-                ak_tree_fromXmlNode(heap,
-                          doc,
-                          nodePtr,
-                          &tree,
-                          NULL);
-          libEffect->extra = tree;
-
-          ak_xml_skipelm(xst);;
-        } else {
-          ak_xml_skipelm(xst);;
-        }
-        
-        /* end element */
-        ak_xml_endelm(xst);;
-      } while (xst->nodeRet);
-
-    } else if (ak_xml_eqelm(xst, _s_dae_lib_images)) {
-      AkLibImage *libimg;
-      AkImage      *lastimg;
-
-      libimg = ak_heap_calloc(heap, doc, sizeof(*libimg), true);
-      if (last_libImage)
-        last_libImage->next = libimg;
-      else
-        doc->lib.images = libimg;
-
-      last_libImage = libimg;
-
-      ak_xml_readid(xst, libimg);
-      libimg->name = ak_xml_attr(xst, libimg, _s_dae_name);
-
-      lastimg = NULL;
-
-      do {
-        if (ak_xml_beginelm(xst, _s_dae_lib_images))
-          break;
-
-        if (ak_xml_eqelm(xst, _s_dae_asset)) {
-          AkAssetInf *assetInf;
-          AkResult ret;
-
-          assetInf = NULL;
-          ret = ak_dae_assetInf(xst, doc, &assetInf);
-          if (ret == AK_OK)
-            libimg->inf = assetInf;
-
-        } else if (ak_xml_eqelm(xst, _s_dae_image)) {
-          AkImage *anImg;
-          AkResult  ret;
-          
-          ret = ak_dae_fxImage(xst, doc, &anImg);
-          if (ret == AK_OK) {
-            if (lastimg)
-              lastimg->next = anImg;
-            else
-              libimg->chld = anImg;
-
-            lastimg = anImg;
-          }
-        } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-          xmlNodePtr nodePtr;
-          AkTree   *tree;
-
-          nodePtr = xmlTextReaderExpand(reader);
-          tree = NULL;
-
-                ak_tree_fromXmlNode(heap,
-                          doc,
-                          nodePtr,
-                          &tree,
-                          NULL);
-          libimg->extra = tree;
-
-          ak_xml_skipelm(xst);;
-        } else {
-          ak_xml_skipelm(xst);;
-        }
-        
-        /* end element */
-        ak_xml_endelm(xst);;
-      } while (xst->nodeRet);
-    } else if (ak_xml_eqelm(xst, _s_dae_lib_materials)) {
-      AkLibMaterial *libMaterial;
-      AkMaterial     *lastMaterial;
-
-      libMaterial = ak_heap_calloc(heap, doc, sizeof(*libMaterial), true);
-      if (last_libMaterial)
-        last_libMaterial->next = libMaterial;
-      else
-        doc->lib.materials = libMaterial;
-
-      last_libMaterial = libMaterial;
-
-      ak_xml_readid(xst, libMaterial);
-      libMaterial->name = ak_xml_attr(xst, libMaterial, _s_dae_name);
-
-      lastMaterial = NULL;
-
-      do {
-        if (ak_xml_beginelm(xst, _s_dae_lib_materials))
-          break;
-
-        if (ak_xml_eqelm(xst, _s_dae_asset)) {
-          AkAssetInf *assetInf;
-          AkResult ret;
-
-          assetInf = NULL;
-          ret = ak_dae_assetInf(xst, doc, &assetInf);
-          if (ret == AK_OK)
-            libMaterial->inf = assetInf;
-
-        } else if (ak_xml_eqelm(xst, _s_dae_material)) {
-          AkMaterial *material;
-          AkResult ret;
-
-          material = NULL;
-          ret = ak_dae_material(xst, doc, &material);
-          if (ret == AK_OK) {
-            if (lastMaterial)
-              lastMaterial->next = material;
-            else
-              libMaterial->chld = material;
-
-            lastMaterial = material;
-          }
-        } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-          xmlNodePtr nodePtr;
-          AkTree   *tree;
-
-          nodePtr = xmlTextReaderExpand(reader);
-          tree = NULL;
-
-                ak_tree_fromXmlNode(heap,
-                          doc,
-                          nodePtr,
-                          &tree,
-                          NULL);
-          libMaterial->extra = tree;
-
-          ak_xml_skipelm(xst);;
-        } else {
-          ak_xml_skipelm(xst);;
-        }
-        
-        /* end element */
-        ak_xml_endelm(xst);;
-      } while (xst->nodeRet);
-    } else if (ak_xml_eqelm(xst, _s_dae_lib_geometries)) {
-      AkLibGeometry *libGeometry;
-      AkGeometry    *lastGeometry;
-
-      libGeometry = ak_heap_calloc(heap, doc, sizeof(*libGeometry), true);
-      if (last_libGeometry)
-        last_libGeometry->next = libGeometry;
-      else
-        doc->lib.geometries = libGeometry;
-
-      last_libGeometry = libGeometry;
-
-      ak_xml_readid(xst, libGeometry);
-      libGeometry->name = ak_xml_attr(xst, libGeometry, _s_dae_name);
-
-      lastGeometry = NULL;
-
-      do {
-        if (ak_xml_beginelm(xst, _s_dae_lib_geometries))
-          break;
-
-        if (ak_xml_eqelm(xst, _s_dae_asset)) {
-          AkAssetInf *assetInf;
-          AkResult ret;
-
-          assetInf = NULL;
-          ret = ak_dae_assetInf(xst, doc, &assetInf);
-          if (ret == AK_OK)
-            libGeometry->inf = assetInf;
-
-        } else if (ak_xml_eqelm(xst, _s_dae_geometry)) {
-          AkGeometry *geometry;
-          AkResult ret;
-
-          geometry = NULL;
-          ret = ak_dae_geometry(xst, doc, &geometry);
-          if (ret == AK_OK) {
-            if (lastGeometry)
-              lastGeometry->next = geometry;
-            else
-              libGeometry->chld = geometry;
-
-            lastGeometry = geometry;
-          }
-        } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-          xmlNodePtr nodePtr;
-          AkTree   *tree;
-
-          nodePtr = xmlTextReaderExpand(reader);
-          tree = NULL;
-
-                ak_tree_fromXmlNode(heap,
-                          doc,
-                          nodePtr,
-                          &tree,
-                          NULL);
-          libGeometry->extra = tree;
-
-          ak_xml_skipelm(xst);;
-        } else {
-          ak_xml_skipelm(xst);;
-        }
-        
-        /* end element */
-        ak_xml_endelm(xst);;
-      } while (xst->nodeRet);
-    } else if (ak_xml_eqelm(xst, _s_dae_lib_controllers)) {
-      AkLibController *libController;
-      AkController    *lastController;
-
-      libController = ak_heap_calloc(heap, doc, sizeof(*libController), true);
-      if (last_libController)
-        last_libController->next = libController;
-      else
-        doc->lib.controllers = libController;
-
-      last_libController = libController;
-
-      ak_xml_readid(xst, libController);
-      libController->name = ak_xml_attr(xst, libController, _s_dae_name);
-
-      lastController = NULL;
-
-      do {
-        if (ak_xml_beginelm(xst, _s_dae_lib_controllers))
-          break;
-
-        if (ak_xml_eqelm(xst, _s_dae_asset)) {
-          AkAssetInf *assetInf;
-          AkResult ret;
-
-          assetInf = NULL;
-          ret = ak_dae_assetInf(xst, doc, &assetInf);
-          if (ret == AK_OK)
-            libController->inf = assetInf;
-
-        } else if (ak_xml_eqelm(xst, _s_dae_controller)) {
-          AkController *controller;
-          AkResult ret;
-
-          controller = NULL;
-          ret = ak_dae_controller(xst, doc, &controller);
-          if (ret == AK_OK) {
-            if (lastController)
-              lastController->next = controller;
-            else
-              libController->chld = controller;
-
-            lastController = controller;
-          }
-        } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-          xmlNodePtr nodePtr;
-          AkTree   *tree;
-
-          nodePtr = xmlTextReaderExpand(reader);
-          tree = NULL;
-
-                ak_tree_fromXmlNode(heap,
-                          doc,
-                          nodePtr,
-                          &tree,
-                          NULL);
-          libController->extra = tree;
-
-          ak_xml_skipelm(xst);;
-        } else {
-          ak_xml_skipelm(xst);;
-        }
-        
-        /* end element */
-        ak_xml_endelm(xst);;
-      } while (xst->nodeRet);
-    } else if (ak_xml_eqelm(xst, _s_dae_lib_visual_scenes)) {
-      AkLibVisualScene *libVisualScene;
-      AkVisualScene    *lastVisualScene;
-
-      libVisualScene = ak_heap_calloc(heap,
-                                      doc,
-                                      sizeof(*libVisualScene),
-                                      true);
-      if (last_libVisualScene)
-        last_libVisualScene->next = libVisualScene;
-      else
-        doc->lib.visualScenes = libVisualScene;
-
-      last_libVisualScene = libVisualScene;
-
-      ak_xml_readid(xst, libVisualScene);
-      libVisualScene->name = ak_xml_attr(xst, libVisualScene, _s_dae_name);
-
-      lastVisualScene = NULL;
-
-      do {
-        if (ak_xml_beginelm(xst, _s_dae_lib_visual_scenes))
-          break;
-
-        if (ak_xml_eqelm(xst, _s_dae_asset)) {
-          AkAssetInf *assetInf;
-          AkResult ret;
-
-          assetInf = NULL;
-          ret = ak_dae_assetInf(xst, doc, &assetInf);
-          if (ret == AK_OK)
-            libVisualScene->inf = assetInf;
-
-        } else if (ak_xml_eqelm(xst, _s_dae_visual_scene)) {
-          AkVisualScene *visualScene;
-          AkResult ret;
-
-          visualScene = NULL;
-          ret = ak_dae_visualScene(xst, doc, &visualScene);
-          if (ret == AK_OK) {
-            if (lastVisualScene)
-              lastVisualScene->next = visualScene;
-            else
-              libVisualScene->chld = visualScene;
-
-            lastVisualScene = visualScene;
-          }
-        } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-          xmlNodePtr nodePtr;
-          AkTree   *tree;
-
-          nodePtr = xmlTextReaderExpand(reader);
-          tree = NULL;
-
-                ak_tree_fromXmlNode(heap,
-                          doc,
-                          nodePtr,
-                          &tree,
-                          NULL);
-          libVisualScene->extra = tree;
-
-          ak_xml_skipelm(xst);;
-        } else {
-          ak_xml_skipelm(xst);;
-        }
-        
-        /* end element */
-        ak_xml_endelm(xst);;
-      } while (xst->nodeRet);
-    } else if (ak_xml_eqelm(xst, _s_dae_lib_nodes)) {
-      AkLibNode *libNode;
-      AkNode    *lastNode;
-
-      libNode = ak_heap_calloc(heap, doc, sizeof(*libNode), true);
-      if (last_libNode)
-        last_libNode->next = libNode;
-      else
-        doc->lib.nodes = libNode;
-
-      last_libNode = libNode;
-
-      ak_xml_readid(xst, libNode);
-      libNode->name = ak_xml_attr(xst, libNode, _s_dae_name);
-
-      lastNode = NULL;
-
-      do {
-        if (ak_xml_beginelm(xst, _s_dae_lib_nodes))
-          break;
-
-        if (ak_xml_eqelm(xst, _s_dae_asset)) {
-          AkAssetInf *assetInf;
-          AkResult ret;
-
-          assetInf = NULL;
-          ret = ak_dae_assetInf(xst, doc, &assetInf);
-          if (ret == AK_OK)
-            libNode->inf = assetInf;
-
-        } else if (ak_xml_eqelm(xst, _s_dae_node)) {
-          AkNode  *node;
-          AkResult ret;
-
-          node = NULL;
-          ret = ak_dae_node(xst, doc, NULL, &node);
-          if (ret == AK_OK) {
-            if (lastNode)
-              lastNode->next = node;
-            else
-              libNode->chld = node;
-
-            lastNode = node;
-          }
-        } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-          xmlNodePtr nodePtr;
-          AkTree   *tree;
-
-          nodePtr = xmlTextReaderExpand(reader);
-          tree = NULL;
-
-                ak_tree_fromXmlNode(heap,
-                          doc,
-                          nodePtr,
-                          &tree,
-                          NULL);
-          libNode->extra = tree;
-
-          ak_xml_skipelm(xst);;
-        } else {
-          ak_xml_skipelm(xst);;
-        }
-        
-        /* end element */
-        ak_xml_endelm(xst);;
-      } while (xst->nodeRet);
-    } else if (ak_xml_eqelm(xst, _s_dae_scene)) {
-      ak_dae_scene(xst, doc, &doc->scene);
-    } /* if */
+      case k_s_dae_scene:
+        ak_dae_scene(xst, doc, &doc->scene);
+        break;
+      case k_s_dae_extra: {
+        xmlNodePtr nodePtr;
+        AkTree   *tree;
+
+        nodePtr = xmlTextReaderExpand(reader);
+        tree = NULL;
+
+        ak_tree_fromXmlNode(heap,
+                            doc,
+                            nodePtr,
+                            &tree,
+                            NULL);
+        doc->extra = tree;
+
+        ak_xml_skipelm(xst);
+        break;
+      }
+      default:
+        ak_dae_lib(xst, &libchlds[found->val - 2]);
+        break;
+    }
+  cont:
 
     /* end element */
     ak_xml_endelm(xst);;
