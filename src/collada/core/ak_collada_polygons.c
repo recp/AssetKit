@@ -15,11 +15,9 @@ ak_dae_polygon(AkXmlState * __restrict xst,
                const char * elm,
                AkPolygonMode mode,
                AkPolygon ** __restrict dest) {
-  AkDoc     *doc;
   AkPolygon *polygon;
   AkInput   *last_input;
 
-  doc     = ak_heap_data(xst->heap);
   polygon = ak_heap_calloc(xst->heap,
                            memParent,
                            sizeof(*polygon),

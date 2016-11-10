@@ -15,11 +15,9 @@ ak_dae_triangles(AkXmlState * __restrict xst,
                  const char * elm,
                  AkTriangleMode mode,
                  AkTriangles ** __restrict dest) {
-  AkDoc       *doc;
   AkTriangles *triangles;
   AkInput     *last_input;
 
-  doc       = ak_heap_data(xst->heap);
   triangles = ak_heap_calloc(xst->heap,
                              memParent,
                              sizeof(*triangles),

@@ -14,11 +14,9 @@ ak_dae_lines(AkXmlState * __restrict xst,
              void * __restrict memParent,
              AkLineMode mode,
              AkLines ** __restrict dest) {
-  AkDoc   *doc;
   AkLines *lines;
   AkInput *last_input;
 
-  doc   = ak_heap_data(xst->heap);
   lines = ak_heap_calloc(xst->heap, memParent, sizeof(*lines), false);
   lines->mode = mode;
   lines->base.type = AK_MESH_PRIMITIVE_TYPE_LINES;

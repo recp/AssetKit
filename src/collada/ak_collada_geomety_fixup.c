@@ -129,12 +129,10 @@ ak_dae_meshFixupPrimitive(AkHeap          *heap,
 
 AkResult _assetkit_hide
 ak_dae_meshFixup(AkMesh * mesh) {
-  AkDoc  *doc;
   AkHeap *heap;
   AkMeshPrimitive *primitive;
 
   heap      = ak_heap_getheap(mesh->vertices);
-  doc       = heap->data;
   primitive = mesh->primitive;
 
   while (primitive) {
