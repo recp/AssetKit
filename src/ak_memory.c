@@ -661,6 +661,9 @@ ak_heap_getMemById(AkHeap * __restrict heap,
   heapNode = AK__HEAPNODE(srchNode);
   *dest = ak__alignas(heapNode);
 
+  if (!*dest)
+    return AK_EFOUND;
+
   return AK_OK;
 }
 
