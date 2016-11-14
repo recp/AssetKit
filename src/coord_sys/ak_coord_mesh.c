@@ -31,7 +31,12 @@ ak_changeCoordSysMesh(AkMesh * __restrict mesh,
         AkFloatArrayN *va;
 
         verts = ak_getObjectByUrl(&input->base.source);
-        vib   = verts->input;
+        if (!verts) {
+          input = (AkInput *)input->base.next;
+          continue;
+        }
+        
+        vib = verts->input;
 
         while (vib) {
           vs = ak_getObjectByUrl(&vib->source);
