@@ -11,13 +11,13 @@
 #include "ak_common.h"
 
 #define ak__align_size 8
-#define ak__heapnd_sz  (sizeof(AkHeapNode*) * 3 + sizeof(uint64_t))
+#define ak__heapnd_sz  offsetof(AkHeapNode, data)
 
 #define ak__align(size) ((size + ak__align_size - 1)                          \
-        &~ (uintptr_t)(ak__align_size - 1))
+&~ (uintptr_t)(ak__align_size - 1))
 
-#define ak__alignof(p) ((AkHeapNode *)(((char *)p)-ak__heapnd_sz))
-#define ak__alignas(m) ((void *)(((char *)m)+ak__heapnd_sz))
+#define ak__alignof(p) ((AkHeapNode *)(((char *)p) - ak__heapnd_sz))
+#define ak__alignas(m) ((void *)(((char *)m) + ak__heapnd_sz))
 
 #define AK__BST_LEFT  0
 #define AK__BST_RIGHT 1
@@ -37,37 +37,53 @@ struct AkHeapSrchCtx {
   AkHeapSrchPrintFn print;
 };
 
-#define AK__HEAPNODE(X) \
-            ((AkHeapNode *)(((char *)X) + sizeof(AkHeapSrchNode)))
+typedef struct AkSIDNode {
+  /*
+   | offset0  | sid_ptr0  | ...
+   | uint16_t | uintptr_t | ...
+   */
+  void             *sid;
+  void             *refs;
+  struct AkSIDNode *prev;
+  struct AkSIDNode *chld;
+  struct AkSIDNode *next;
+} AkSIDNode;
 
-#define AK__SRCHNODE(X) \
- ((AkHeapSrchNode *)((char *)X - sizeof(AkHeapSrchNode)))
+#define AK__HEAPNODE(X)                                                       \
+  (((AkHeapNodeExt *)((char *)X - offsetof(AkHeapNodeExt, data)))->node)
 
-#define AK__HEAPNODE_ISRED(X)  (X->flags & AK_HEAP_NODE_FLAGS_RED)
-#define AK__HEAPNODE_MKRED(X)   X->flags |= AK_HEAP_NODE_FLAGS_RED
-#define AK__HEAPNODE_MKBLACK(X) X->flags &= ~AK_HEAP_NODE_FLAGS_RED
+#define AK__HEAPEXTNODE(X)                                                    \
+  ((AkHeapSrchNode *)((char *)X - sizeof(AkHeapNodeExt)))
 
 /*
- case 1:
- 
-     | AkHeapNode | data |
-     ^
-  pointer
-
- case 2:
-     | AkHeapSrchNode | AkHeapNode | data |
-                      ^
-                   pointer
- */
+ - prev - AkHeapNode - next -
+               |
+    AkHeapNode o AkHeapNodeExt
+               |
+             chld
+               |               */
 struct AkHeapNode {
   AkHeapNode *prev; /* parent */
   AkHeapNode *next; /* right  */
-  AkHeapNode *chld; /* left   */
+  void       *chld; /* left   */
   uint32_t    heapid;
   uint16_t    typeid;
   uint16_t    flags;
   char        data[];
 };
+
+/*
+ - prev - AkHeapNode - next -
+              |
+        AkHeapNodeExt
+              |
+            chld
+              |               */
+typedef struct AkHeapNodeExt {
+  AkHeapNode *node;
+  AkHeapNode *chld;
+  char        data[];
+} AkHeapNodeExt;
 
 struct AkHeap {
   AkHeapAllocator *allocator;

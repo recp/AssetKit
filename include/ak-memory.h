@@ -57,7 +57,9 @@ typedef enum AkHeapFlags {
 typedef enum AkHeapNodeFlags {
   AK_HEAP_NODE_FLAGS_NONE = 0,
   AK_HEAP_NODE_FLAGS_SRCH = 1 << 0,
-  AK_HEAP_NODE_FLAGS_RED  = 1 << 1
+  AK_HEAP_NODE_FLAGS_RED  = 1 << 1,
+  AK_HEAP_NODE_FLAGS_SID  = 1 << 2,
+  AK_HEAP_NODE_FLAGS_EXT  = 1 << 3
 } AkHeapNodeFlags;
 
 AK_EXPORT
@@ -137,6 +139,15 @@ ak_heap_realloc(AkHeap * __restrict heap,
                 void * __restrict parent,
                 void * __restrict memptr,
                 size_t newsize);
+
+AK_EXPORT
+void *
+ak_heap_chld(AkHeapNode *heapNode);
+
+AK_EXPORT
+void
+ak_heap_chld_set(AkHeapNode * __restrict heapNode,
+                 AkHeapNode * __restrict chldNode);
 
 AK_EXPORT
 void
