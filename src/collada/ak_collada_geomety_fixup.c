@@ -27,6 +27,9 @@ ak_dae_meshFixupPrimitive(AkHeap          *heap,
   input        = primitive->input;
   indices      = primitive->indices;
 
+  if (!indices)
+    return AK_OK;
+
   /* stride count */
   while (input) {
     inputCount++;
@@ -53,6 +56,10 @@ ak_dae_meshFixupPrimitive(AkHeap          *heap,
     }
 
     source = ak_getObjectByUrl(&input->base.source);
+    if (!source) {
+      input = (AkInput *)input->base.next;
+      continue;
+    }
 
     /* TODO: INT, DOUBLE.. */
     if (source->data->type == AK_SOURCE_ARRAY_TYPE_FLOAT) {
@@ -111,7 +118,8 @@ ak_dae_meshFixupPrimitive(AkHeap          *heap,
 
   newIndices = ak_heap_alloc(heap,
                              primitive,
-                             sizeof(AkFloat) * indicesCount,
+                             sizeof(*newIndices)
+                               + sizeof(AkFloat) * indicesCount,
                              false);
 
   newIndices->count = indicesCount;
