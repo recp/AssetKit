@@ -36,8 +36,7 @@ ak_dae_surface(AkXmlState * __restrict xst,
 
   surface = ak_heap_calloc(xst->heap,
                            memParent,
-                           sizeof(*surface),
-                           false);
+                           sizeof(*surface));
 
   surface->sid  = ak_xml_attr(xst, surface, _s_dae_sid);
   surface->name = ak_xml_attr(xst, surface, _s_dae_name);
@@ -466,8 +465,7 @@ ak_dae_surfaces(AkXmlState * __restrict xst,
 
   surfaces = ak_heap_calloc(xst->heap,
                             memParent,
-                            sizeof(*surfaces),
-                            false);
+                            sizeof(*surfaces));
 
   last_surface= NULL;
 

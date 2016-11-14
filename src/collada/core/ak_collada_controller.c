@@ -18,8 +18,7 @@ ak_dae_controller(AkXmlState * __restrict xst,
 
   controller = ak_heap_calloc(xst->heap,
                               memParent,
-                              sizeof(*controller),
-                              true);
+                              sizeof(*controller));
 
   ak_xml_readid(xst, controller);
   controller->name = ak_xml_attr(xst, controller, _s_dae_name);

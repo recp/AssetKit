@@ -39,8 +39,7 @@ ak_dae_fxLambert(AkXmlState * __restrict xst,
 
   lambert = ak_heap_calloc(xst->heap,
                            memParent,
-                           sizeof(*lambert),
-                           false);
+                           sizeof(*lambert));
 
   if (lambertMapLen == 0) {
     lambertMapLen = AK_ARRAY_LEN(lambertMap);

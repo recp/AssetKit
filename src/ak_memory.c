@@ -389,8 +389,7 @@ AK_EXPORT
 void*
 ak_heap_calloc(AkHeap * __restrict heap,
                void * __restrict parent,
-               size_t size,
-               bool srch) {
+               size_t size) {
   void  *memptr;
 
   memptr = ak_heap_alloc(heap,

@@ -14,7 +14,7 @@ ak_dae_assetInf(AkXmlState * __restrict xst,
   if (!(*dest))
     *dest = ak_heap_calloc(xst->heap,
                            memParent,
-                           sizeof(**dest), false);
+                           sizeof(**dest));
 
   do {
     if (ak_xml_beginelm(xst, _s_dae_asset))
@@ -22,7 +22,7 @@ ak_dae_assetInf(AkXmlState * __restrict xst,
 
     if (ak_xml_eqelm(xst, _s_dae_contributor)) {
       AkContributor * contrib;
-      contrib = ak_heap_calloc(xst->heap, *dest, sizeof(*contrib), false);
+      contrib = ak_heap_calloc(xst->heap, *dest, sizeof(*contrib));
 
       /* contributor */
       do {
@@ -69,7 +69,7 @@ ak_dae_assetInf(AkXmlState * __restrict xst,
       (*dest)->title = ak_xml_val(xst, *dest);
     } else if (ak_xml_eqelm(xst, _s_dae_unit)) {
       AkUnit * unit;
-      unit = ak_heap_calloc(xst->heap, *dest, sizeof(*unit), false);
+      unit = ak_heap_calloc(xst->heap, *dest, sizeof(*unit));
 
       unit->name = ak_xml_attr(xst, *dest, _s_dae_name);
       unit->dist = ak_xml_attrd(xst, _s_dae_meter);

@@ -20,8 +20,7 @@ ak_dae_polygon(AkXmlState * __restrict xst,
 
   polygon = ak_heap_calloc(xst->heap,
                            memParent,
-                           sizeof(*polygon),
-                           false);
+                           sizeof(*polygon));
 
   polygon->mode      = mode;
   polygon->haveHoles = false;
@@ -46,7 +45,7 @@ ak_dae_polygon(AkXmlState * __restrict xst,
     if (ak_xml_eqelm(xst, _s_dae_input)) {
       AkInput *input;
 
-      input = ak_heap_calloc(xst->heap, polygon, sizeof(*input), false);
+      input = ak_heap_calloc(xst->heap, polygon, sizeof(*input));
       input->base.semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
       ak_xml_attr_url(xst->reader,

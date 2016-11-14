@@ -15,8 +15,7 @@ ak_dae_fxBinary(AkXmlState * __restrict xst,
 
   binary = ak_heap_calloc(xst->heap,
                           memParent,
-                          sizeof(*binary),
-                          false);
+                          sizeof(*binary));
 
   do {
     if (ak_xml_beginelm(xst, _s_dae_binary))
@@ -28,8 +27,7 @@ ak_dae_fxBinary(AkXmlState * __restrict xst,
       AkHexData *hex;
       hex = ak_heap_calloc(xst->heap,
                            binary,
-                           sizeof(*hex),
-                           false);
+                           sizeof(*hex));
 
       hex->format = ak_xml_attr(xst, hex, _s_dae_format);
 

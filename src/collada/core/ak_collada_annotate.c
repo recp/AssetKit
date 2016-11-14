@@ -16,8 +16,7 @@ ak_dae_annotate(AkXmlState * __restrict xst,
 
   annotate = ak_heap_calloc(xst->heap,
                             memParent,
-                            sizeof(*annotate),
-                            false);
+                            sizeof(*annotate));
 
   annotate->name = ak_xml_attr(xst, annotate, _s_dae_name);
 

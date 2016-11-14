@@ -54,15 +54,13 @@ ak_dae_profile(AkXmlState * __restrict xst,
     case AK_PROFILE_TYPE_COMMON:
       profile = ak_heap_calloc(xst->heap,
                                memParent,
-                               sizeof(AkProfileCommon),
-                               true);
+                               sizeof(AkProfileCommon));
       break;
     case AK_PROFILE_TYPE_GLSL: {
       AkProfileGLSL *glslProfile;
       glslProfile = ak_heap_calloc(xst->heap,
                                    memParent,
-                                   sizeof(AkProfileGLSL),
-                                   true);
+                                   sizeof(AkProfileGLSL));
 
       glslProfile->platform = ak_xml_attr(xst, glslProfile, _s_dae_platform);
 
@@ -73,8 +71,7 @@ ak_dae_profile(AkXmlState * __restrict xst,
       AkProfileGLES2 *gles2Profile;
       gles2Profile = ak_heap_calloc(xst->heap,
                                     memParent,
-                                    sizeof(AkProfileGLES2),
-                                    true);
+                                    sizeof(AkProfileGLES2));
 
       gles2Profile->language = ak_xml_attr(xst,
                                            gles2Profile,
@@ -90,8 +87,7 @@ ak_dae_profile(AkXmlState * __restrict xst,
       AkProfileGLES *glesProfile;
       glesProfile = ak_heap_calloc(xst->heap,
                                    memParent,
-                                   sizeof(AkProfileGLES),
-                                   true);
+                                   sizeof(AkProfileGLES));
 
       glesProfile->platform = ak_xml_attr(xst,
                                           glesProfile,
@@ -104,8 +100,7 @@ ak_dae_profile(AkXmlState * __restrict xst,
       AkProfileCG *cgProfile;
       cgProfile = ak_heap_calloc(xst->heap,
                                  memParent,
-                                 sizeof(AkProfileGLES2),
-                                 true);
+                                 sizeof(AkProfileGLES2));
 
       cgProfile->platform = ak_xml_attr(xst, cgProfile, _s_dae_platform);
 
@@ -116,8 +111,7 @@ ak_dae_profile(AkXmlState * __restrict xst,
       AkProfileBridge *bridgeProfile;
       bridgeProfile = ak_heap_calloc(xst->heap,
                                      memParent,
-                                     sizeof(AkProfileGLES2),
-                                     true);
+                                     sizeof(AkProfileGLES2));
 
       bridgeProfile->platform = ak_xml_attr(xst,
                                             bridgeProfile,
@@ -207,8 +201,7 @@ ak_dae_profile(AkXmlState * __restrict xst,
 
       code = ak_heap_calloc(xst->heap,
                             profile,
-                            sizeof(*code),
-                            false);
+                            sizeof(*code));
       code->sid = ak_xml_attr(xst, code, _s_dae_sid);
       code->val = ak_xml_val(xst, code);
 
@@ -239,8 +232,7 @@ ak_dae_profile(AkXmlState * __restrict xst,
 
       inc = ak_heap_calloc(xst->heap,
                            profile,
-                           sizeof(*inc),
-                           false);
+                           sizeof(*inc));
       inc->sid = ak_xml_attr(xst, inc, _s_dae_sid);
       inc->url = ak_xml_attr(xst, inc, _s_dae_url);
 

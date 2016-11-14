@@ -16,8 +16,7 @@ ak_dae_lib(AkXmlState    * __restrict xst,
 
   lib = ak_heap_calloc(xst->heap,
                        xst->doc,
-                       sizeof(*lib),
-                       true);
+                       sizeof(*lib));
   if (lc->lastItem)
     lc->lastItem->next = lib;
   else

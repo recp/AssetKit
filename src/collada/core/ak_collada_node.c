@@ -75,7 +75,7 @@ ak_dae_node(AkXmlState * __restrict xst,
   char                 *attrVal;
 
   doc  = ak_heap_data(xst->heap);
-  node = ak_heap_calloc(xst->heap, memParent, sizeof(*node), true);
+  node = ak_heap_calloc(xst->heap, memParent, sizeof(*node));
 
   ak_xml_readid(xst, node);
   node->sid  = ak_xml_attr(xst, node, _s_dae_sid);
@@ -349,8 +349,7 @@ ak_dae_node(AkXmlState * __restrict xst,
         AkInstanceCamera *instanceCamera;
         instanceCamera = ak_heap_calloc(xst->heap,
                                         node,
-                                        sizeof(*instanceCamera),
-                                        false);
+                                        sizeof(*instanceCamera));
 
         instanceCamera->base.name = ak_xml_attr(xst,
                                                 instanceCamera,
@@ -406,8 +405,7 @@ ak_dae_node(AkXmlState * __restrict xst,
 
         controller = ak_heap_calloc(xst->heap,
                                     node,
-                                    sizeof(*controller),
-                                    false);
+                                    sizeof(*controller));
 
         controller->name = ak_xml_attr(xst, controller, _s_dae_name);
 
@@ -427,8 +425,7 @@ ak_dae_node(AkXmlState * __restrict xst,
               AkSkeleton *skeleton;
               skeleton = ak_heap_calloc(xst->heap,
                                         controller,
-                                        sizeof(*skeleton),
-                                        false);
+                                        sizeof(*skeleton));
 
               skeleton->val = ak_xml_val(xst, controller);
 
@@ -487,8 +484,7 @@ ak_dae_node(AkXmlState * __restrict xst,
 
         geometry = ak_heap_calloc(xst->heap,
                                   node,
-                                  sizeof(*geometry),
-                                  false);
+                                  sizeof(*geometry));
 
         geometry->base.name = ak_xml_attr(xst, geometry, _s_dae_name);
 
@@ -545,7 +541,7 @@ ak_dae_node(AkXmlState * __restrict xst,
       case k_s_dae_instance_light: {
         AkInstanceLight *light;
 
-        light = ak_heap_calloc(xst->heap, node, sizeof(*light), false);
+        light = ak_heap_calloc(xst->heap, node, sizeof(*light));
 
         light->name = ak_xml_attr(xst, light, _s_dae_name);
 
@@ -596,8 +592,7 @@ ak_dae_node(AkXmlState * __restrict xst,
 
         instanceNode = ak_heap_calloc(xst->heap,
                                       node,
-                                      sizeof(*instanceNode),
-                                      false);
+                                      sizeof(*instanceNode));
 
         instanceNode->name  = ak_xml_attr(xst, instanceNode, _s_dae_name);
         instanceNode->proxy = ak_xml_attr(xst, instanceNode, _s_dae_proxy);

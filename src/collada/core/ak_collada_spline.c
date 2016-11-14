@@ -32,8 +32,7 @@ ak_dae_spline(AkXmlState * __restrict xst,
   } else {
     spline = ak_heap_calloc(xst->heap,
                             memParent,
-                            sizeof(*spline),
-                            false);
+                            sizeof(*spline));
     memPtr = spline;
   }
 
@@ -62,7 +61,7 @@ ak_dae_spline(AkXmlState * __restrict xst,
       AkControlVerts *cverts;
       AkInputBasic   *last_input;
 
-      cverts = ak_heap_calloc(xst->heap, memPtr, sizeof(*cverts), false);
+      cverts = ak_heap_calloc(xst->heap, memPtr, sizeof(*cverts));
 
       last_input = NULL;
       
@@ -75,8 +74,7 @@ ak_dae_spline(AkXmlState * __restrict xst,
 
           input = ak_heap_calloc(xst->heap,
                                  memPtr,
-                                 sizeof(*input),
-                                 false);
+                                 sizeof(*input));
 
           input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 

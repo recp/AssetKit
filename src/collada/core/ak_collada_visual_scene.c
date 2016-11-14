@@ -20,8 +20,7 @@ ak_dae_visualScene(AkXmlState * __restrict xst,
 
   visualScene = ak_heap_calloc(xst->heap,
                                memParent,
-                               sizeof(*visualScene),
-                               true);
+                               sizeof(*visualScene));
 
   ak_xml_readid(xst, visualScene);
   visualScene->name = ak_xml_attr(xst, visualScene, _s_dae_name);
@@ -105,8 +104,7 @@ ak_dae_instanceVisualScene(AkXmlState * __restrict xst,
 
   visualScene = ak_heap_calloc(xst->heap,
                                memParent,
-                               sizeof(*visualScene),
-                               false);
+                               sizeof(*visualScene));
 
   visualScene->base.sid = ak_xml_attr(xst, visualScene, _s_dae_sid);
   visualScene->base.name = ak_xml_attr(xst, visualScene, _s_dae_name);

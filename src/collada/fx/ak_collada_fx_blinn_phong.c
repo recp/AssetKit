@@ -44,8 +44,7 @@ ak_dae_blinn_phong(AkXmlState * __restrict xst,
 
   blinn_phong = ak_heap_calloc(xst->heap,
                                memParent,
-                               sizeof(*blinn_phong),
-                               false);
+                               sizeof(*blinn_phong));
 
   if (blinnPhongMapLen == 0) {
     blinnPhongMapLen = AK_ARRAY_LEN(blinnPhongMap);

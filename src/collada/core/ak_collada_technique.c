@@ -19,8 +19,7 @@ ak_dae_technique(AkXmlState * __restrict xst,
 
   technique = ak_heap_calloc(xst->heap,
                              memParent,
-                             sizeof(*technique),
-                             false);
+                             sizeof(*technique));
 
   technique->profile = ak_xml_attr(xst, technique, _s_dae_profile);
   technique->xmlns   = ak_xml_attr(xst, technique, _s_dae_xmlns);

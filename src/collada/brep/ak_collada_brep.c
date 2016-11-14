@@ -64,7 +64,7 @@ ak_dae_brep(AkXmlState * __restrict xst,
 
     memPtr = obj;
   } else {
-    brep = ak_heap_calloc(xst->heap, memParent, sizeof(*brep), false);
+    brep = ak_heap_calloc(xst->heap, memParent, sizeof(*brep));
     memPtr = brep;
   }
 

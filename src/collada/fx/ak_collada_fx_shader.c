@@ -20,8 +20,7 @@ ak_dae_fxShader(AkXmlState * __restrict xst,
 
   shader = ak_heap_calloc(xst->heap,
                           memParent,
-                          sizeof(*shader),
-                          false);
+                          sizeof(*shader));
 
   shader->stage = ak_xml_attrenum(xst,
                                   _s_dae_stage,
@@ -41,8 +40,7 @@ ak_dae_fxShader(AkXmlState * __restrict xst,
 
       sources = ak_heap_calloc(xst->heap,
                                shader,
-                               sizeof(*sources),
-                               false);
+                               sizeof(*sources));
       sources->entry = ak_xml_attr(xst, sources, _s_dae_entry);
 
       last_inline = NULL;
@@ -57,8 +55,7 @@ ak_dae_fxShader(AkXmlState * __restrict xst,
 
           nInline = ak_heap_calloc(xst->heap,
                                    shader,
-                                   sizeof(*nInline),
-                                   false);
+                                   sizeof(*nInline));
            nInline->val = ak_xml_val(xst, nInline);
 
           if (last_inline)
@@ -72,8 +69,7 @@ ak_dae_fxShader(AkXmlState * __restrict xst,
 
           nImport = ak_heap_calloc(xst->heap,
                                    shader,
-                                   sizeof(*nImport),
-                                   false);
+                                   sizeof(*nImport));
           nImport->ref = ak_xml_val(xst, nImport);
 
           if (last_import)
@@ -96,8 +92,7 @@ ak_dae_fxShader(AkXmlState * __restrict xst,
 
       compiler = ak_heap_calloc(xst->heap,
                                 shader,
-                                sizeof(*compiler),
-                                false);
+                                sizeof(*compiler));
 
       compiler->platform = ak_xml_attr(xst, compiler, _s_dae_platform);
       compiler->target   = ak_xml_attr(xst, compiler, _s_dae_target);

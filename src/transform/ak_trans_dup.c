@@ -22,8 +22,7 @@ ak_transformDup(AkNode * __restrict srcNode,
   heap = ak_heap_getheap(srcNode);
   newTransform = ak_heap_calloc(heap,
                                 destNode,
-                                sizeof(*newTransform),
-                                false);
+                                sizeof(*newTransform));
 
   transform     = srcNode->transform;
   lastTransform = NULL;

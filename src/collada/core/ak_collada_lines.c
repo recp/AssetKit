@@ -17,7 +17,7 @@ ak_dae_lines(AkXmlState * __restrict xst,
   AkLines *lines;
   AkInput *last_input;
 
-  lines = ak_heap_calloc(xst->heap, memParent, sizeof(*lines), false);
+  lines = ak_heap_calloc(xst->heap, memParent, sizeof(*lines));
   lines->mode = mode;
   lines->base.type = AK_MESH_PRIMITIVE_TYPE_LINES;
 
@@ -34,7 +34,7 @@ ak_dae_lines(AkXmlState * __restrict xst,
     if (ak_xml_eqelm(xst, _s_dae_input)) {
       AkInput *input;
 
-      input = ak_heap_calloc(xst->heap, lines, sizeof(*input), false);
+      input = ak_heap_calloc(xst->heap, lines, sizeof(*input));
 
       input->base.semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
       

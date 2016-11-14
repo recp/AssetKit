@@ -63,7 +63,7 @@ ak_dae_mesh(AkXmlState * __restrict xst,
 
     memPtr = obj;
   } else {
-    mesh = ak_heap_calloc(xst->heap, memParent, sizeof(*mesh), false);
+    mesh = ak_heap_calloc(xst->heap, memParent, sizeof(*mesh));
     memPtr = mesh;
   }
 

@@ -18,8 +18,7 @@ ak_dae_edges(AkXmlState * __restrict xst,
 
   edges = ak_heap_calloc(xst->heap,
                          memParent,
-                         sizeof(*edges),
-                         true);
+                         sizeof(*edges));
 
   ak_xml_readid(xst, memParent);
   edges->name  = ak_xml_attr(xst, memParent, _s_dae_name);
@@ -35,8 +34,7 @@ ak_dae_edges(AkXmlState * __restrict xst,
       AkInput *input;
       input = ak_heap_calloc(xst->heap,
                              edges,
-                             sizeof(*input),
-                             false);
+                             sizeof(*input));
 
       input->base.semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
@@ -121,8 +119,7 @@ ak_dae_wires(AkXmlState * __restrict xst,
 
   wires = ak_heap_calloc(xst->heap,
                          memParent,
-                         sizeof(*wires),
-                         true);
+                         sizeof(*wires));
 
   ak_xml_readid(xst, memParent);
   wires->name  = ak_xml_attr(xst, memParent, _s_dae_name);
@@ -138,8 +135,7 @@ ak_dae_wires(AkXmlState * __restrict xst,
       AkInput *input;
       input = ak_heap_calloc(xst->heap,
                              wires,
-                             sizeof(*input),
-                             false);
+                             sizeof(*input));
 
       input->base.semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
@@ -240,8 +236,7 @@ ak_dae_faces(AkXmlState * __restrict xst,
 
   faces = ak_heap_calloc(xst->heap,
                          memParent,
-                         sizeof(*faces),
-                         true);
+                         sizeof(*faces));
 
   ak_xml_readid(xst, memParent);
   faces->name  = ak_xml_attr(xst, memParent, _s_dae_name);
@@ -257,8 +252,7 @@ ak_dae_faces(AkXmlState * __restrict xst,
       AkInput *input;
       input = ak_heap_calloc(xst->heap,
                              faces,
-                             sizeof(*input),
-                             false);
+                             sizeof(*input));
 
       input->base.semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
@@ -359,8 +353,7 @@ ak_dae_pcurves(AkXmlState * __restrict xst,
 
   pcurves = ak_heap_calloc(xst->heap,
                            memParent,
-                           sizeof(*pcurves),
-                           true);
+                           sizeof(*pcurves));
 
   ak_xml_readid(xst, memParent);
   pcurves->name  = ak_xml_attr(xst, memParent, _s_dae_name);
@@ -376,8 +369,7 @@ ak_dae_pcurves(AkXmlState * __restrict xst,
       AkInput *input;
       input = ak_heap_calloc(xst->heap,
                              pcurves,
-                             sizeof(*input),
-                             false);
+                             sizeof(*input));
 
       input->base.semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
@@ -478,8 +470,7 @@ ak_dae_shells(AkXmlState * __restrict xst,
 
   shells = ak_heap_calloc(xst->heap,
                           memParent,
-                          sizeof(*shells),
-                          true);
+                          sizeof(*shells));
 
   ak_xml_readid(xst, memParent);
   shells->name  = ak_xml_attr(xst, memParent, _s_dae_name);
@@ -495,8 +486,7 @@ ak_dae_shells(AkXmlState * __restrict xst,
       AkInput *input;
       input = ak_heap_calloc(xst->heap,
                              shells,
-                             sizeof(*input),
-                             false);
+                             sizeof(*input));
 
       input->base.semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
@@ -597,8 +587,7 @@ ak_dae_solids(AkXmlState * __restrict xst,
 
   solids = ak_heap_calloc(xst->heap,
                           memParent,
-                          sizeof(*solids),
-                          true);
+                          sizeof(*solids));
 
   ak_xml_readid(xst, memParent);
   solids->name  = ak_xml_attr(xst, memParent, _s_dae_name);
@@ -614,8 +603,7 @@ ak_dae_solids(AkXmlState * __restrict xst,
       AkInput *input;
       input = ak_heap_calloc(xst->heap,
                              solids,
-                             sizeof(*input),
-                             false);
+                             sizeof(*input));
 
       input->base.semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 

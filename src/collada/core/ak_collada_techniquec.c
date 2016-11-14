@@ -19,7 +19,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
   AkTechniqueCommon  *techc;
   AkInstanceMaterial *last_instanceMaterial;
 
-  techc = ak_heap_calloc(xst->heap, memParent, sizeof(*techc), false);
+  techc = ak_heap_calloc(xst->heap, memParent, sizeof(*techc));
 
   last_instanceMaterial = NULL;
 
@@ -32,8 +32,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
       AkPerspective * perspective;
       perspective = ak_heap_calloc(xst->heap,
                                    techc,
-                                   sizeof(*perspective),
-                                   false);
+                                   sizeof(*perspective));
       
       do {
         if (ak_xml_beginelm(xst, _s_dae_perspective))
@@ -43,8 +42,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
           ak_basic_attrf * xfov;
           xfov = ak_heap_calloc(xst->heap,
                                 perspective,
-                                sizeof(*xfov),
-                                false);
+                                sizeof(*xfov));
 
           xfov->sid = ak_xml_attr(xst, xfov, _s_dae_sid);
           xfov->val = ak_xml_valf(xst);
@@ -55,8 +53,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
           ak_basic_attrf * yfov;
           yfov = ak_heap_calloc(xst->heap,
                                 perspective,
-                                sizeof(*yfov),
-                                false);
+                                sizeof(*yfov));
 
           yfov->sid = ak_xml_attr(xst, yfov, _s_dae_sid);
           yfov->val = ak_xml_valf(xst);
@@ -67,8 +64,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
           ak_basic_attrf * aspectRatio;
           aspectRatio = ak_heap_calloc(xst->heap,
                                        perspective,
-                                       sizeof(*aspectRatio),
-                                       false);
+                                       sizeof(*aspectRatio));
 
           aspectRatio->sid = ak_xml_attr(xst, aspectRatio, _s_dae_sid);
           aspectRatio->val = ak_xml_valf(xst);
@@ -78,8 +74,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
           ak_basic_attrf * znear;
           znear = ak_heap_calloc(xst->heap,
                                  perspective,
-                                 sizeof(*znear),
-                                 false);
+                                 sizeof(*znear));
 
           znear->sid = ak_xml_attr(xst, znear, _s_dae_sid);
           znear->val = ak_xml_valf(xst);
@@ -89,8 +84,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
           ak_basic_attrf * zfar;
           zfar = ak_heap_calloc(xst->heap,
                                 perspective,
-                                sizeof(*zfar),
-                                false);
+                                sizeof(*zfar));
 
           zfar->sid = ak_xml_attr(xst, zfar, _s_dae_sid);
           zfar->val = ak_xml_valf(xst);
@@ -113,8 +107,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
         ak_basic_attrf * aspectRatio;
         aspectRatio = ak_heap_calloc(xst->heap,
                                      perspective,
-                                     sizeof(*aspectRatio),
-                                     false);
+                                     sizeof(*aspectRatio));
 
         aspectRatio->val = perspective->xfov->val / perspective->yfov->val;
         perspective->aspectRatio = aspectRatio;
@@ -124,8 +117,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
         ak_basic_attrf * yfov;
         yfov = ak_heap_calloc(xst->heap,
                               perspective,
-                              sizeof(*yfov),
-                              false);
+                              sizeof(*yfov));
 
         yfov->val = perspective->xfov->val / perspective->aspectRatio->val;
         perspective->yfov = yfov;
@@ -135,8 +127,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
         ak_basic_attrf * xfov;
         xfov = ak_heap_calloc(xst->heap,
                               perspective,
-                              sizeof(*xfov),
-                              false);
+                              sizeof(*xfov));
 
         xfov->val = perspective->yfov->val * perspective->aspectRatio->val;
         perspective->xfov = xfov;
@@ -148,8 +139,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
       AkOrthographic * orthographic;
       orthographic = ak_heap_calloc(xst->heap,
                                     techc,
-                                    sizeof(*orthographic),
-                                    false);
+                                    sizeof(*orthographic));
 
       do {
         if (ak_xml_beginelm(xst, _s_dae_orthographic))
@@ -159,8 +149,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
           ak_basic_attrf * xmag;
           xmag = ak_heap_calloc(xst->heap,
                                 orthographic,
-                                sizeof(*xmag),
-                                false);
+                                sizeof(*xmag));
 
           xmag->sid = ak_xml_attr(xst, xmag, _s_dae_sid);
           xmag->val = ak_xml_valf(xst);
@@ -170,8 +159,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
           ak_basic_attrf * ymag;
           ymag = ak_heap_calloc(xst->heap,
                                 orthographic,
-                                sizeof(*ymag),
-                                false);
+                                sizeof(*ymag));
 
           ymag->sid = ak_xml_attr(xst, ymag, _s_dae_sid);
           ymag->val = ak_xml_valf(xst);
@@ -181,8 +169,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
           ak_basic_attrf * aspectRatio;
           aspectRatio = ak_heap_calloc(xst->heap,
                                        orthographic,
-                                       sizeof(*aspectRatio),
-                                       false);
+                                       sizeof(*aspectRatio));
 
           aspectRatio->sid = ak_xml_attr(xst, aspectRatio, _s_dae_sid);
           aspectRatio->val = ak_xml_valf(xst);
@@ -192,8 +179,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
           ak_basic_attrf * znear;
           znear = ak_heap_calloc(xst->heap,
                                  orthographic,
-                                 sizeof(*znear),
-                                 false);
+                                 sizeof(*znear));
 
           znear->sid = ak_xml_attr(xst, znear, _s_dae_sid);
           znear->val = ak_xml_valf(xst);
@@ -203,8 +189,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
           ak_basic_attrf * zfar;
           zfar = ak_heap_calloc(xst->heap,
                                 orthographic,
-                                sizeof(*zfar),
-                                false);
+                                sizeof(*zfar));
 
           zfar->sid = ak_xml_attr(xst, zfar, _s_dae_sid);
           zfar->val = ak_xml_valf(xst);
@@ -227,8 +212,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
       AkAmbient * ambient;
       ambient = ak_heap_calloc(xst->heap,
                                techc,
-                               sizeof(*ambient),
-                               false);
+                               sizeof(*ambient));
 
       do {
         if (ak_xml_beginelm(xst, _s_dae_ambient))
@@ -261,8 +245,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
       AkDirectional * directional;
       directional = ak_heap_calloc(xst->heap,
                                    techc,
-                                   sizeof(*directional),
-                                   false);
+                                   sizeof(*directional));
 
       do {
         if (ak_xml_beginelm(xst, _s_dae_directional))
@@ -285,7 +268,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
     /* light -> point */
     else if (ak_xml_eqelm(xst, _s_dae_point)) {
       AkPoint * point;
-      point = ak_heap_calloc(xst->heap, techc, sizeof(*point), false);
+      point = ak_heap_calloc(xst->heap, techc, sizeof(*point));
 
       do {
         if (ak_xml_beginelm(xst, _s_dae_point))
@@ -298,8 +281,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
 
           constantAttenuation = ak_heap_calloc(xst->heap,
                                                point,
-                                               sizeof(*constantAttenuation),
-                                               false);
+                                               sizeof(*constantAttenuation));
 
           constantAttenuation->val = ak_xml_vald(xst);
           constantAttenuation->sid = ak_xml_attr(xst,
@@ -312,8 +294,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
 
           linearAttenuation = ak_heap_calloc(xst->heap,
                                              point,
-                                             sizeof(*linearAttenuation),
-                                             false);
+                                             sizeof(*linearAttenuation));
 
           linearAttenuation->val = ak_xml_vald(xst);
           linearAttenuation->sid = ak_xml_attr(xst,
@@ -326,8 +307,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
 
           quadraticAttenuation = ak_heap_calloc(xst->heap,
                                                 point,
-                                                sizeof(*quadraticAttenuation),
-                                                false);
+                                                sizeof(*quadraticAttenuation));
 
           quadraticAttenuation->val = ak_xml_vald(xst);
           quadraticAttenuation->sid = ak_xml_attr(xst,
@@ -350,7 +330,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
     /* light -> spot */
     else if (ak_xml_eqelm(xst, _s_dae_point)) {
       AkSpot * spot;
-      spot = ak_heap_calloc(xst->heap, techc, sizeof(*spot), false);
+      spot = ak_heap_calloc(xst->heap, techc, sizeof(*spot));
 
       do {
         if (ak_xml_beginelm(xst, _s_dae_spot))
@@ -363,8 +343,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
 
           constantAttenuation = ak_heap_calloc(xst->heap,
                                                spot,
-                                               sizeof(*constantAttenuation),
-                                               false);
+                                               sizeof(*constantAttenuation));
 
           constantAttenuation->val = ak_xml_vald(xst);
           constantAttenuation->sid = ak_xml_attr(xst,
@@ -377,8 +356,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
 
           linearAttenuation = ak_heap_calloc(xst->heap,
                                              spot,
-                                             sizeof(*linearAttenuation),
-                                             false);
+                                             sizeof(*linearAttenuation));
 
           linearAttenuation->val = ak_xml_vald(xst);
           linearAttenuation->sid = ak_xml_attr(xst,
@@ -391,8 +369,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
 
           quadraticAttenuation = ak_heap_calloc(xst->heap,
                                                 spot,
-                                                sizeof(*quadraticAttenuation),
-                                                false);
+                                                sizeof(*quadraticAttenuation));
 
           quadraticAttenuation->val = ak_xml_vald(xst);
           quadraticAttenuation->sid = ak_xml_attr(xst,
@@ -405,8 +382,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
 
           falloffAngle = ak_heap_calloc(xst->heap,
                                         spot,
-                                        sizeof(*falloffAngle),
-                                        false);
+                                        sizeof(*falloffAngle));
 
           falloffAngle->val = ak_xml_vald(xst);
           falloffAngle->sid = ak_xml_attr(xst, falloffAngle, _s_dae_sid);
@@ -417,8 +393,7 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
 
           falloffExponent = ak_heap_calloc(xst->heap,
                                            spot,
-                                           sizeof(*falloffExponent),
-                                           false);
+                                           sizeof(*falloffExponent));
 
           falloffExponent->val = ak_xml_vald(xst);
           falloffExponent->sid = ak_xml_attr(xst, falloffExponent, _s_dae_sid);

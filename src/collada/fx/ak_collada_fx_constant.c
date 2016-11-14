@@ -35,8 +35,7 @@ ak_dae_fxConstant(AkXmlState * __restrict xst,
 
   constant = ak_heap_calloc(xst->heap,
                             memParent,
-                            sizeof(*constant),
-                            false);
+                            sizeof(*constant));
 
   if (constantMapLen == 0) {
     constantMapLen = AK_ARRAY_LEN(constantMap);

@@ -22,8 +22,7 @@ ak_dae_fxProg(AkXmlState * __restrict xst,
 
   prog = ak_heap_calloc(xst->heap,
                         memParent,
-                        sizeof(*prog),
-                        false);
+                        sizeof(*prog));
 
   last_bind_uniform = NULL;
   last_bind_attrib  = NULL;
@@ -53,8 +52,7 @@ ak_dae_fxProg(AkXmlState * __restrict xst,
 
       linker = ak_heap_calloc(xst->heap,
                               prog,
-                              sizeof(*linker),
-                              false);
+                              sizeof(*linker));
 
       linker->platform = ak_xml_attr(xst, linker, _s_dae_platform);
       linker->target   = ak_xml_attr(xst, linker, _s_dae_target);
@@ -98,8 +96,7 @@ ak_dae_fxProg(AkXmlState * __restrict xst,
 
       bindAttrib = ak_heap_calloc(xst->heap,
                                   prog,
-                                  sizeof(*bindAttrib),
-                                  false);
+                                  sizeof(*bindAttrib));
 
       bindAttrib->symbol = ak_xml_attr(xst, bindAttrib, _s_dae_symbol);
 

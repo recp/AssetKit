@@ -18,8 +18,7 @@ ak_dae_evaluateScene(AkXmlState * __restrict xst,
 
   evaluateScene = ak_heap_calloc(xst->heap,
                                  memParent,
-                                 sizeof(*evaluateScene),
-                                 true);
+                                 sizeof(*evaluateScene));
 
   ak_xml_readid(xst, evaluateScene);
   evaluateScene->name   = ak_xml_attr(xst, evaluateScene, _s_dae_name);

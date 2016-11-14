@@ -113,8 +113,7 @@ ak_dae_value(AkXmlState * __restrict xst,
 
       val = ak_heap_calloc(xst->heap,
                            memParent,
-                           sizeof(*val) * found->m * found->n,
-                           false);
+                           sizeof(*val) * found->m * found->n);
       ak_strtomb(&nodeVal, val, found->m, found->n);
 
       *dest = val;
@@ -128,8 +127,7 @@ ak_dae_value(AkXmlState * __restrict xst,
 
       val = ak_heap_calloc(xst->heap,
                            memParent,
-                           sizeof(*val) * found->m * found->n,
-                           false);
+                           sizeof(*val) * found->m * found->n);
       ak_strtomi(&nodeVal, val, found->m, found->n);
 
       *dest = val;
@@ -146,8 +144,7 @@ ak_dae_value(AkXmlState * __restrict xst,
 
       val = ak_heap_calloc(xst->heap,
                            memParent,
-                           sizeof(*val) * found->m * found->n,
-                           false);
+                           sizeof(*val) * found->m * found->n);
       ak_strtomf(&nodeVal, val, found->m, found->n);
 
       *dest = val;

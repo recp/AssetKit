@@ -53,8 +53,7 @@ ak_dae_fxSampler(AkXmlState * __restrict xst,
 
   sampler = ak_heap_calloc(xst->heap,
                            memParent,
-                           sizeof(*sampler),
-                           false);
+                           sizeof(*sampler));
 
   if (fxSamplerCMapLen == 0) {
     fxSamplerCMapLen = AK_ARRAY_LEN(fxSamplerCMap);
@@ -116,8 +115,7 @@ ak_dae_fxSampler(AkXmlState * __restrict xst,
 
         color = ak_heap_calloc(xst->heap,
                                sampler,
-                               sizeof(*color),
-                               false);
+                               sizeof(*color));
         ret   = ak_dae_color(xst, true, color);
 
         if (ret == AK_OK)

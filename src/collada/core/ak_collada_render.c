@@ -17,7 +17,7 @@ ak_dae_render(AkXmlState * __restrict xst,
   AkInstanceMaterial *last_instanceMaterial;
   AkStringArrayL     *last_layer;
 
-  render = ak_heap_calloc(xst->heap, memParent, sizeof(*render), false);
+  render = ak_heap_calloc(xst->heap, memParent, sizeof(*render));
 
   render->sid  = ak_xml_attr(xst, render, _s_dae_sid);
   render->name = ak_xml_attr(xst, render, _s_dae_name);

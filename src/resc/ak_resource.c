@@ -64,8 +64,7 @@ ak_resc_ins(const char *url) {
 
   resc = ak_heap_calloc(resc_heap,
                         NULL,
-                        sizeof(*resc),
-                        true);
+                        sizeof(*resc));
 
   resc->url = trimmedURL;
   ak_heap_setpm(resc_heap, trimmedURL, resc);

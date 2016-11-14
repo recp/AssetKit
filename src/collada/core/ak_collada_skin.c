@@ -32,7 +32,7 @@ ak_dae_skin(AkXmlState * __restrict xst,
 
     memPtr = obj;
   } else {
-    skin = ak_heap_calloc(xst->heap, memParent, sizeof(*skin), false);
+    skin = ak_heap_calloc(xst->heap, memParent, sizeof(*skin));
     memPtr = skin;
   }
 
@@ -75,7 +75,7 @@ ak_dae_skin(AkXmlState * __restrict xst,
       AkJoints     *joints;
       AkInputBasic *last_input;
 
-      joints = ak_heap_calloc(xst->heap, memPtr, sizeof(*joints), false);
+      joints = ak_heap_calloc(xst->heap, memPtr, sizeof(*joints));
 
       last_input = NULL;
 
@@ -88,8 +88,7 @@ ak_dae_skin(AkXmlState * __restrict xst,
 
           input = ak_heap_calloc(xst->heap,
                                  joints,
-                                 sizeof(*input),
-                                 false);
+                                 sizeof(*input));
 
           input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
@@ -147,8 +146,7 @@ ak_dae_skin(AkXmlState * __restrict xst,
 
       vertexWeights = ak_heap_calloc(xst->heap,
                                      memPtr,
-                                     sizeof(*vertexWeights),
-                                     false);
+                                     sizeof(*vertexWeights));
 
       last_input = NULL;
 
@@ -160,8 +158,7 @@ ak_dae_skin(AkXmlState * __restrict xst,
           AkInput *input;
           input = ak_heap_calloc(xst->heap,
                                  vertexWeights,
-                                 sizeof(*input),
-                                 false);
+                                 sizeof(*input));
 
           input->base.semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
           

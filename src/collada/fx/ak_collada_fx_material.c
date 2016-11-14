@@ -19,8 +19,7 @@ ak_dae_material(AkXmlState * __restrict xst,
 
   material = ak_heap_calloc(xst->heap,
                             memParent,
-                            sizeof(*material),
-                            true);
+                            sizeof(*material));
 
   ak_xml_readid(xst, material);
   material->name = ak_xml_attr(xst, material, _s_dae_name);
@@ -83,8 +82,7 @@ ak_dae_fxBindMaterial(AkXmlState * __restrict xst,
 
   bindMaterial = ak_heap_calloc(xst->heap,
                                 memParent,
-                                sizeof(*bindMaterial),
-                                false);
+                                sizeof(*bindMaterial));
 
   last_param = NULL;
   last_tq    = NULL;
@@ -171,8 +169,7 @@ ak_dae_fxInstanceMaterial(AkXmlState * __restrict xst,
 
   material = ak_heap_calloc(xst->heap,
                             memParent,
-                            sizeof(*material),
-                            false);
+                            sizeof(*material));
 
   material->sid    = ak_xml_attr(xst, material, _s_dae_sid);
   material->name   = ak_xml_attr(xst, material, _s_dae_name);
@@ -195,8 +192,7 @@ ak_dae_fxInstanceMaterial(AkXmlState * __restrict xst,
       AkBind *bind;
       bind = ak_heap_calloc(xst->heap,
                             material,
-                            sizeof(*bind),
-                            false);
+                            sizeof(*bind));
 
       bind->semantic = ak_xml_attr(xst, bind, _s_dae_semantic);
       bind->target   = ak_xml_attr(xst, bind, _s_dae_target);
@@ -211,8 +207,7 @@ ak_dae_fxInstanceMaterial(AkXmlState * __restrict xst,
       AkBindVertexInput *bindVertexInput;
       bindVertexInput = ak_heap_calloc(xst->heap,
                                        material,
-                                       sizeof(*bindVertexInput),
-                                       false);
+                                       sizeof(*bindVertexInput));
 
       bindVertexInput->semantic = ak_xml_attr(xst,
                                               bindVertexInput,
@@ -234,8 +229,7 @@ ak_dae_fxInstanceMaterial(AkXmlState * __restrict xst,
       AkTechniqueOverride *techniqueOverride;
       techniqueOverride = ak_heap_calloc(xst->heap,
                                          material,
-                                         sizeof(*techniqueOverride),
-                                         false);
+                                         sizeof(*techniqueOverride));
 
       techniqueOverride->pass = ak_xml_attr(xst,
                                             techniqueOverride,

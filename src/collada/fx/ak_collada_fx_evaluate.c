@@ -39,8 +39,7 @@ ak_dae_fxEvaluate(AkXmlState * __restrict xst,
 
   evaluate = ak_heap_calloc(xst->heap,
                             memParent,
-                            sizeof(*evaluate),
-                            false);
+                            sizeof(*evaluate));
 
   if (evaluateMapLen == 0) {
     evaluateMapLen = AK_ARRAY_LEN(evaluateMap);
@@ -71,8 +70,7 @@ ak_dae_fxEvaluate(AkXmlState * __restrict xst,
 
         evaluate_target = ak_heap_calloc(xst->heap,
                                          evaluate,
-                                         sizeof(*evaluate_target),
-                                         false);
+                                         sizeof(*evaluate_target));
 
         evaluate_target->index = ak_xml_attrui(xst, _s_dae_index);
         evaluate_target->slice = ak_xml_attrui(xst, _s_dae_slice);
@@ -134,8 +132,7 @@ ak_dae_fxEvaluate(AkXmlState * __restrict xst,
         AkColorClear *colorClear;
         colorClear = ak_heap_calloc(xst->heap,
                                     evaluate,
-                                    sizeof(*colorClear),
-                                    false);
+                                    sizeof(*colorClear));
 
         colorClear->index = ak_xml_attrui(xst, _s_dae_index);
 
@@ -148,8 +145,7 @@ ak_dae_fxEvaluate(AkXmlState * __restrict xst,
         AkDepthClear *depthClear;
         depthClear = ak_heap_calloc(xst->heap,
                                     evaluate,
-                                    sizeof(*depthClear),
-                                    false);
+                                    sizeof(*depthClear));
 
         depthClear->index = ak_xml_attrui(xst, _s_dae_index);
         depthClear->val   = ak_xml_valf(xst);
@@ -161,8 +157,7 @@ ak_dae_fxEvaluate(AkXmlState * __restrict xst,
         AkStencilClear *stencilClear;
         stencilClear = ak_heap_calloc(xst->heap,
                                       evaluate,
-                                      sizeof(*stencilClear),
-                                      false);
+                                      sizeof(*stencilClear));
 
         stencilClear->index = ak_xml_attrui(xst, _s_dae_index);
         stencilClear->val   = ak_xml_valul(xst);

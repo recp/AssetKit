@@ -32,7 +32,7 @@ ak_dae_morph(AkXmlState * __restrict xst,
 
     memPtr = obj;
   } else {
-    morph = ak_heap_calloc(xst->heap, memParent, sizeof(*morph), false);
+    morph = ak_heap_calloc(xst->heap, memParent, sizeof(*morph));
     memPtr = morph;
   }
 
@@ -67,8 +67,7 @@ ak_dae_morph(AkXmlState * __restrict xst,
 
       targets = ak_heap_calloc(xst->heap,
                                memPtr,
-                               sizeof(*targets),
-                               false);
+                               sizeof(*targets));
 
       last_input = NULL;
 
@@ -81,8 +80,7 @@ ak_dae_morph(AkXmlState * __restrict xst,
 
           input = ak_heap_calloc(xst->heap,
                                  targets,
-                                 sizeof(*input),
-                                 false);
+                                 sizeof(*input));
 
           input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 

@@ -163,7 +163,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
   }
 
   heap = ak_heap_new(NULL, NULL, NULL);
-  doc  = ak_heap_calloc(heap, NULL, sizeof(*doc), false);
+  doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
 
   ak_heap_setdata(heap, doc);
 
@@ -205,7 +205,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
         AkDocInf   *docInf;
         AkResult    ret;
 
-        docInf = ak_heap_calloc(heap, doc, sizeof(*docInf), false);
+        docInf = ak_heap_calloc(heap, doc, sizeof(*docInf));
         assetInf = &docInf->base;
 
         ret = ak_dae_assetInf(xst, docInf, &assetInf);

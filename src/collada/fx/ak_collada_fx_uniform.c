@@ -18,8 +18,7 @@ ak_dae_fxBindUniform(AkXmlState * __restrict xst,
 
   bindUniform = ak_heap_calloc(xst->heap,
                                memParent,
-                               sizeof(*bindUniform),
-                               false);
+                               sizeof(*bindUniform));
 
   bindUniform->symbol = ak_xml_attr(xst, bindUniform, _s_dae_symbol);
 

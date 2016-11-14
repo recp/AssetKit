@@ -22,8 +22,7 @@ ak_dae_fxPass(AkXmlState * __restrict xst,
 
   pass = ak_heap_calloc(xst->heap,
                         memParent,
-                        sizeof(*pass),
-                        false);
+                        sizeof(*pass));
 
   pass->sid = ak_xml_attr(xst, pass, _s_dae_sid);
 

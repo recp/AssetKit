@@ -46,7 +46,7 @@ ak_dae_curve(AkXmlState * __restrict xst,
     curve = ak_objGet(obj);
     memPtr = obj;
   } else {
-    curve = ak_heap_calloc(xst->heap, memParent, sizeof(*curve), false);
+    curve = ak_heap_calloc(xst->heap, memParent, sizeof(*curve));
     memPtr = curve;
   }
 
@@ -398,7 +398,7 @@ ak_dae_curves(AkXmlState * __restrict xst,
   AkCurves *curves;
   AkCurve  *last_curve;
 
-  curves = ak_heap_calloc(xst->heap, memParent, sizeof(*curves), false);
+  curves = ak_heap_calloc(xst->heap, memParent, sizeof(*curves));
 
   last_curve = NULL;
 

@@ -30,7 +30,7 @@ ak_dae_nodeFixupCamera(AkHeap * __restrict heap,
   } else {
     /* make sure camera has its own node */
     AkNode *camNode;
-    camNode = ak_heap_calloc(heap, node, sizeof(*node), true);
+    camNode = ak_heap_calloc(heap, node, sizeof(*node));
 
     node->nodeType = AK_NODE_TYPE_CAMERA_NODE;
 

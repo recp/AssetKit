@@ -19,8 +19,7 @@ ak_dae_colorOrTex(AkXmlState * __restrict xst,
 
   colorOrTex = ak_heap_calloc(xst->heap,
                               memParent,
-                              sizeof(*colorOrTex),
-                              false);
+                              sizeof(*colorOrTex));
 
   colorOrTex->opaque = ak_xml_attrenum(xst,
                                        _s_dae_opaque,
@@ -38,8 +37,7 @@ ak_dae_colorOrTex(AkXmlState * __restrict xst,
 
       color = ak_heap_calloc(xst->heap,
                              colorOrTex,
-                             sizeof(*color),
-                             false);
+                             sizeof(*color));
 
       color->sid = ak_xml_attr(xst, color, _s_dae_sid);
       colorStr = ak_xml_rawval(xst);
@@ -54,8 +52,7 @@ ak_dae_colorOrTex(AkXmlState * __restrict xst,
 
       tex = ak_heap_calloc(xst->heap,
                            colorOrTex,
-                           sizeof(*tex),
-                           false);
+                           sizeof(*tex));
 
       tex->texture = ak_xml_attr(xst, tex, _s_dae_texture);
       tex->texcoord = ak_xml_attr(xst, tex, _s_dae_texcoord);

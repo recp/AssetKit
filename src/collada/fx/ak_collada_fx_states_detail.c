@@ -32,7 +32,7 @@ ak_dae_fxState_enum(AkXmlState * __restrict xst,
   ak_state_t_ul *state;
   char *attrValStr;
 
-  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
@@ -66,7 +66,7 @@ ak_dae_fxState_bool4(AkXmlState * __restrict xst,
   ak_state_t_bool4 *state;
   char *attrValStr;
 
-  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
@@ -96,7 +96,7 @@ ak_dae_fxState_int2(AkXmlState * __restrict xst,
   ak_state_t_int2 *state;
   char *attrValStr;
 
-  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
@@ -126,7 +126,7 @@ ak_dae_fxState_int4(AkXmlState * __restrict xst,
   ak_state_t_int4 *state;
   char *attrValStr;
 
-  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
@@ -155,7 +155,7 @@ ak_dae_fxState_ul(AkXmlState * __restrict xst,
   ak_state_t_ul *state;
   char *attrValStr;
 
-  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
@@ -187,7 +187,7 @@ ak_dae_fxState_ul_i(AkXmlState * __restrict xst,
   ak_state_t_ul_i * state;
   char *attrValStr;
 
-  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
@@ -220,7 +220,7 @@ ak_dae_fxState_float(AkXmlState * __restrict xst,
   ak_state_t_float * state;
   char *attrValStr;
 
-  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
@@ -248,7 +248,7 @@ ak_dae_fxState_float_i(AkXmlState * __restrict xst,
   ak_state_t_float_i * state;
   char *attrValStr;
 
-  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
@@ -278,7 +278,7 @@ ak_dae_fxState_float2(AkXmlState * __restrict xst,
   ak_state_t_float2 *state;
   char *attrValStr;
 
-  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
@@ -308,7 +308,7 @@ ak_dae_fxState_float3(AkXmlState * __restrict xst,
   ak_state_t_float3 *state;
   char *attrValStr;
 
-  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
@@ -338,7 +338,7 @@ ak_dae_fxState_float3_i(AkXmlState * __restrict xst,
   ak_state_t_float3_i *state;
   char *attrValStr;
 
-  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
@@ -369,7 +369,7 @@ ak_dae_fxState_float4(AkXmlState * __restrict xst,
   ak_state_t_float4 *state;
   char *attrValStr;
 
-  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
@@ -399,7 +399,7 @@ ak_dae_fxState_float4_i(AkXmlState * __restrict xst,
   ak_state_t_float4_i *state;
   char *attrValStr;
 
-  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
@@ -430,7 +430,7 @@ ak_dae_fxState_float4x4(AkXmlState * __restrict xst,
   ak_state_t_float4x4 *state;
   char *attrValStr;
 
-  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
 
   state->base.state_type = state_type;
   attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
@@ -458,7 +458,7 @@ ak_dae_fxState_sampler(AkXmlState * __restrict xst,
                        AkRenderStateType state_type) {
   ak_state_t_sampler * state;
 
-  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
   state->base.state_type = state_type;
 
   state->index = ak_xml_attrui(xst, _s_dae_index);
@@ -503,7 +503,7 @@ ak_dae_fxState_str(AkXmlState * __restrict xst,
                    AkRenderStateType state_type) {
   ak_state_t_str * state;
 
-  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
   state->base.state_type = state_type;
 
   state->val   = ak_xml_attr(xst, state, _s_dae_value);
@@ -521,7 +521,7 @@ ak_dae_fxStateAlphaFunc(AkXmlState * __restrict xst,
                         AkStates ** __restrict states) {
   ak_alpha_func *state;
   
-  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
   state->base.state_type = AK_RENDER_STATE_ALPHA_FUNC;
 
   do {
@@ -568,7 +568,7 @@ ak_dae_fxStateBlend(AkXmlState * __restrict xst,
                     AkStates ** __restrict states) {
   ak_blend_func * state;
 
-  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
   state->base.state_type = AK_RENDER_STATE_BLEND_FUNC;
 
   do {
@@ -629,7 +629,7 @@ ak_dae_fxStateBlendSep(AkXmlState * __restrict xst,
                        AkStates ** __restrict states) {
   ak_blend_func_separate *state;
 
-  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
   state->base.state_type = AK_RENDER_STATE_BLEND_FUNC_SEPARATE;
 
   do {
@@ -727,7 +727,7 @@ ak_dae_fxStateBlendEqSep(AkXmlState * __restrict xst,
                          AkStates ** __restrict states) {
   ak_blend_equation_separate *state;
 
-  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
   state->base.state_type = AK_RENDER_STATE_BLEND_EQUATION_SEPARATE;
 
   do {
@@ -788,7 +788,7 @@ ak_dae_fxStateColorMaterial(AkXmlState * __restrict xst,
                             AkStates ** __restrict states) {
   ak_color_material *state;
 
-  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
   state->base.state_type = AK_RENDER_STATE_COLOR_MATERIAL;
 
   do {
@@ -849,7 +849,7 @@ ak_dae_fxStatePolyMode(AkXmlState * __restrict xst,
                        AkStates ** __restrict states) {
   ak_polygon_mode *state;
 
-  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
   state->base.state_type = AK_RENDER_STATE_POLYGON_MODE;
 
   do {
@@ -910,7 +910,7 @@ ak_dae_fxStateStencilFunc(AkXmlState * __restrict xst,
                           AkStates ** __restrict states) {
   ak_stencil_func *state;
 
-  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
   state->base.state_type = AK_RENDER_STATE_STENCIL_FUNC;
 
   do {
@@ -982,7 +982,7 @@ ak_dae_fxStateStencilOp(AkXmlState * __restrict xst,
                         AkStates ** __restrict states) {
   ak_stencil_op *state;
 
-  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
   state->base.state_type = AK_RENDER_STATE_STENCIL_OP;
 
   do {
@@ -1059,7 +1059,7 @@ ak_dae_fxStateStencilFuncSep(AkXmlState * __restrict xst,
                              AkStates ** __restrict states) {
   ak_stencil_func_separate *state;
 
-  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
   state->base.state_type = AK_RENDER_STATE_STENCIL_FUNC_SEPARATE;
 
   do {
@@ -1147,7 +1147,7 @@ ak_dae_fxStateStencilOpSep(AkXmlState * __restrict xst,
                            AkStates ** __restrict states) {
   ak_stencil_op_separate *state;
 
-  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
   state->base.state_type = AK_RENDER_STATE_STENCIL_OP_SEPARATE;
 
   do {
@@ -1241,7 +1241,7 @@ ak_dae_fxStateStencilMaskSep(AkXmlState * __restrict xst,
                              AkStates ** __restrict states) {
   ak_stencil_mask_separate *state;
 
-  state = ak_heap_calloc(xst->heap, *states, sizeof(*state), false);
+  state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
   state->base.state_type = AK_RENDER_STATE_STENCIL_MASK_SEPARATE;
 
   do {

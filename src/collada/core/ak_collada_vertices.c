@@ -17,8 +17,7 @@ ak_dae_vertices(AkXmlState * __restrict xst,
 
   vertices = ak_heap_calloc(xst->heap,
                             memParent,
-                            sizeof(*vertices),
-                            true);
+                            sizeof(*vertices));
 
   ak_xml_readid(xst, vertices);
   vertices->name = ak_xml_attr(xst, vertices, _s_dae_name);
@@ -32,7 +31,7 @@ ak_dae_vertices(AkXmlState * __restrict xst,
     if (ak_xml_eqelm(xst, _s_dae_input)) {
       AkInputBasic *input;
 
-      input = ak_heap_calloc(xst->heap, vertices, sizeof(*input), false);
+      input = ak_heap_calloc(xst->heap, vertices, sizeof(*input));
 
       input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 

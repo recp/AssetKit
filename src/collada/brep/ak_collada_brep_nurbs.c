@@ -32,8 +32,7 @@ ak_dae_nurbs(AkXmlState * __restrict xst,
   } else {
     nurbs = ak_heap_calloc(xst->heap,
                            memParent,
-                           sizeof(*nurbs),
-                           false);
+                           sizeof(*nurbs));
     memPtr = nurbs;
   }
 
@@ -65,8 +64,7 @@ ak_dae_nurbs(AkXmlState * __restrict xst,
 
       cverts = ak_heap_calloc(xst->heap,
                               memPtr,
-                              sizeof(*cverts),
-                              false);
+                              sizeof(*cverts));
 
       last_input = NULL;
 
@@ -79,8 +77,7 @@ ak_dae_nurbs(AkXmlState * __restrict xst,
 
           input = ak_heap_calloc(xst->heap,
                                  memPtr,
-                                 sizeof(*input),
-                                 false);
+                                 sizeof(*input));
 
           input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
@@ -181,8 +178,7 @@ ak_dae_nurbs_surface(AkXmlState * __restrict xst,
   } else {
     nurbsSurface = ak_heap_calloc(xst->heap,
                                   memParent,
-                                  sizeof(*nurbsSurface),
-                                  false);
+                                  sizeof(*nurbsSurface));
     memPtr = nurbsSurface;
   }
 
@@ -216,8 +212,7 @@ ak_dae_nurbs_surface(AkXmlState * __restrict xst,
 
       cverts = ak_heap_calloc(xst->heap,
                               memPtr,
-                              sizeof(*cverts),
-                              false);
+                              sizeof(*cverts));
 
       last_input = NULL;
 
@@ -230,8 +225,7 @@ ak_dae_nurbs_surface(AkXmlState * __restrict xst,
 
           input = ak_heap_calloc(xst->heap,
                                  memPtr,
-                                 sizeof(*input),
-                                 false);
+                                 sizeof(*input));
 
           input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 

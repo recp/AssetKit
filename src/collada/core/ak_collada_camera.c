@@ -15,7 +15,7 @@ ak_dae_camera(AkXmlState * __restrict xst,
               void ** __restrict  dest) {
   AkCamera *camera;
 
-  camera = ak_heap_calloc(xst->heap, memParent, sizeof(*camera), true);
+  camera = ak_heap_calloc(xst->heap, memParent, sizeof(*camera));
 
   ak_xml_readid(xst, camera);
   camera->name = ak_xml_attr(xst, camera, _s_dae_name);
@@ -38,7 +38,7 @@ ak_dae_camera(AkXmlState * __restrict xst,
       AkTechnique        *last_tq;
       AkTechniqueCommon *last_tc;
 
-      optics = ak_heap_calloc(xst->heap, camera, sizeof(*optics), false);
+      optics = ak_heap_calloc(xst->heap, camera, sizeof(*optics));
 
       last_tq = optics->technique;
       last_tc = optics->techniqueCommon;
@@ -89,7 +89,7 @@ ak_dae_camera(AkXmlState * __restrict xst,
       AkImager    *imager;
       AkTechnique *last_tq;
 
-      imager  = ak_heap_calloc(xst->heap, camera, sizeof(*imager), false);
+      imager  = ak_heap_calloc(xst->heap, camera, sizeof(*imager));
       last_tq = imager->technique;
 
       do {

@@ -46,7 +46,7 @@ ak_dae_fxImage(AkXmlState * __restrict xst,
                void ** __restrict dest) {
   AkImage *img;
 
-  img = ak_heap_calloc(xst->heap, memParent, sizeof(*img), true);
+  img = ak_heap_calloc(xst->heap, memParent, sizeof(*img));
 
   ak_xml_readid(xst, img);
   img->sid  = ak_xml_attr(xst, img, _s_dae_sid);
@@ -139,8 +139,7 @@ ak_dae_fxInstanceImage(AkXmlState * __restrict xst,
 
   instanceImage = ak_heap_calloc(xst->heap,
                                  memParent,
-                                 sizeof(*instanceImage),
-                                 false);
+                                 sizeof(*instanceImage));
 
   instanceImage->sid  = ak_xml_attr(xst, instanceImage, _s_dae_sid);
   instanceImage->name = ak_xml_attr(xst, instanceImage, _s_dae_name);
@@ -192,8 +191,7 @@ ak_dae_fxImage_initFrom(AkXmlState * __restrict xst,
 
   initFrom = ak_heap_calloc(xst->heap,
                             memParent,
-                            sizeof(*initFrom),
-                            false);
+                            sizeof(*initFrom));
 
   initFrom->mipsGenerate = ak_xml_attrui(xst, _s_dae_mips_generate);
   initFrom->arrayIndex   = ak_xml_attrui(xst, _s_dae_array_index);
@@ -219,7 +217,7 @@ ak_dae_fxImage_initFrom(AkXmlState * __restrict xst,
       initFrom->ref = ak_xml_val(xst, initFrom);
     } else if (ak_xml_eqelm(xst, _s_dae_hex)) {
       AkHexData *hex;
-      hex = ak_heap_calloc(xst->heap, initFrom, sizeof(*hex), false);
+      hex = ak_heap_calloc(xst->heap, initFrom, sizeof(*hex));
 
       hex->format = ak_xml_attr(xst, hex, _s_dae_format);
 
@@ -249,7 +247,7 @@ ak_dae_fxImage_format(AkXmlState * __restrict xst,
                       AkImageFormat ** __restrict dest) {
   AkImageFormat *format;
 
-  format = ak_heap_calloc(xst->heap, memParent, sizeof(*format), false);
+  format = ak_heap_calloc(xst->heap, memParent, sizeof(*format));
 
   do {
     if (ak_xml_beginelm(xst, _s_dae_format))
@@ -319,8 +317,7 @@ ak_dae_fxImage_create2d(AkXmlState * __restrict xst,
 
   image2d = ak_heap_calloc(xst->heap,
                            memParent,
-                           sizeof(*image2d),
-                           false);
+                           sizeof(*image2d));
 
   do {
     if (ak_xml_beginelm(xst, _s_dae_create_2d))
@@ -331,8 +328,7 @@ ak_dae_fxImage_create2d(AkXmlState * __restrict xst,
 
       sizeExact = ak_heap_calloc(xst->heap,
                                  image2d,
-                                 sizeof(*sizeExact),
-                                 false);
+                                 sizeof(*sizeExact));
 
       sizeExact->width  = ak_xml_attrf(xst, _s_dae_width);
       sizeExact->height = ak_xml_attrf(xst, _s_dae_height);
@@ -343,8 +339,7 @@ ak_dae_fxImage_create2d(AkXmlState * __restrict xst,
 
       sizeRatio = ak_heap_calloc(xst->heap,
                                  image2d,
-                                 sizeof(*sizeRatio),
-                                 false);
+                                 sizeof(*sizeRatio));
 
 
       sizeRatio->width  = ak_xml_attrf(xst, _s_dae_width);
@@ -356,8 +351,7 @@ ak_dae_fxImage_create2d(AkXmlState * __restrict xst,
 
       mips = ak_heap_calloc(xst->heap,
                             image2d,
-                            sizeof(*mips),
-                            false);
+                            sizeof(*mips));
 
       mips->levels       = ak_xml_attrui(xst, _s_dae_width);
       mips->autoGenerate = ak_xml_attrui(xst, _s_dae_height);
@@ -403,8 +397,7 @@ ak_dae_fxImage_create3d(AkXmlState * __restrict xst,
 
   image3d = ak_heap_calloc(xst->heap,
                            memParent,
-                           sizeof(*image3d),
-                           false);
+                           sizeof(*image3d));
 
   do {
     if (ak_xml_beginelm(xst, _s_dae_create_3d))
@@ -455,8 +448,7 @@ ak_dae_fxImage_createCube(AkXmlState * __restrict xst,
 
   imageCube = ak_heap_calloc(xst->heap,
                              memParent,
-                             sizeof(*imageCube),
-                             false);
+                             sizeof(*imageCube));
 
   do {
     if (ak_xml_beginelm(xst, _s_dae_create_cube))

@@ -20,8 +20,7 @@ ak_dae_triangles(AkXmlState * __restrict xst,
 
   triangles = ak_heap_calloc(xst->heap,
                              memParent,
-                             sizeof(*triangles),
-                             false);
+                             sizeof(*triangles));
 
   triangles->mode = mode;
   triangles->base.type = AK_MESH_PRIMITIVE_TYPE_TRIANGLES;
@@ -39,7 +38,7 @@ ak_dae_triangles(AkXmlState * __restrict xst,
     if (ak_xml_eqelm(xst, _s_dae_input)) {
       AkInput *input;
 
-      input = ak_heap_calloc(xst->heap, triangles, sizeof(*input), false);
+      input = ak_heap_calloc(xst->heap, triangles, sizeof(*input));
 
       input->base.semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 

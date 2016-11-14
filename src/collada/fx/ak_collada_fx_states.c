@@ -142,8 +142,7 @@ ak_dae_fxState(AkXmlState * __restrict xst,
 
   states = ak_heap_calloc(xst->heap,
                           memParent,
-                          sizeof(*states),
-                          false);
+                          sizeof(*states));
 
   if (stateMapLen == 0) {
     stateMapLen = AK_ARRAY_LEN(stateMap);

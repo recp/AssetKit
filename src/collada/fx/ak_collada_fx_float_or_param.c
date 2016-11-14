@@ -18,8 +18,7 @@ ak_dae_floatOrParam(AkXmlState * __restrict xst,
 
   floatOrParam = ak_heap_calloc(xst->heap,
                                 memParent,
-                                sizeof(*floatOrParam),
-                                false);
+                                sizeof(*floatOrParam));
   last_param = NULL;
 
   do {
@@ -32,8 +31,8 @@ ak_dae_floatOrParam(AkXmlState * __restrict xst,
 
       valuef = ak_heap_calloc(xst->heap,
                               floatOrParam,
-                              sizeof(*valuef),
-                              false);
+                              sizeof(*valuef));
+
       valuef->sid = ak_xml_attr(xst, valuef, _s_dae_sid);
       floatStr = ak_xml_rawcval(xst);
       if (floatStr)

@@ -25,8 +25,7 @@ ak_dae_effect(AkXmlState * __restrict xst,
 
   effect = ak_heap_calloc(xst->heap,
                           memParent,
-                          sizeof(*effect),
-                          true);
+                          sizeof(*effect));
 
   last_annotate = NULL;
   last_newparam = NULL;
@@ -132,8 +131,7 @@ ak_dae_fxInstanceEffect(AkXmlState * __restrict xst,
 
   instanceEffect = ak_heap_calloc(xst->heap,
                                   memParent,
-                                  sizeof(*instanceEffect),
-                                  false);
+                                  sizeof(*instanceEffect));
 
   instanceEffect->name = ak_xml_attr(xst, instanceEffect, _s_dae_name);
   instanceEffect->sid  = ak_xml_attr(xst, instanceEffect, _s_dae_sid);
@@ -156,8 +154,7 @@ ak_dae_fxInstanceEffect(AkXmlState * __restrict xst,
 
         techHint = ak_heap_calloc(xst->heap,
                                   instanceEffect,
-                                  sizeof(*techHint),
-                                  false);
+                                  sizeof(*techHint));
 
         techHint->ref      = ak_xml_attr(xst, techHint, _s_dae_ref);
         techHint->profile  = ak_xml_attr(xst, techHint, _s_dae_profile);
