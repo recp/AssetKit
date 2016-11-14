@@ -117,7 +117,7 @@ ak_heap_strdup(AkHeap * __restrict heap,
   size_t memsize;
 
   memsize = strlen(str);
-  memptr  = ak_heap_alloc(heap, parent, memsize + 1, false);
+  memptr  = ak_heap_alloc(heap, parent, memsize + 1);
   memcpy(memptr, str, memsize);
 
   /* NULL */
@@ -134,7 +134,7 @@ ak_heap_strndup(AkHeap * __restrict heap,
                 size_t size) {
   void  *memptr;
 
-  memptr  = ak_heap_alloc(heap, parent, size + 1, false);
+  memptr  = ak_heap_alloc(heap, parent, size + 1);
   memcpy(memptr, str, size);
 
   /* NULL */
@@ -338,8 +338,7 @@ AK_EXPORT
 void*
 ak_heap_alloc(AkHeap * __restrict heap,
               void * __restrict parent,
-              size_t size,
-              bool srch) {
+              size_t size) {
   AkHeapNode *currNode;
   AkHeapNode *parentNode;
   size_t      memsize;
@@ -396,8 +395,7 @@ ak_heap_calloc(AkHeap * __restrict heap,
 
   memptr = ak_heap_alloc(heap,
                          parent,
-                         size,
-                         srch);
+                         size);
   memset(memptr, '\0', size);
 
   return memptr;
@@ -416,8 +414,7 @@ ak_heap_realloc(AkHeap * __restrict heap,
   if (!memptr)
     return ak_heap_alloc(heap,
                          parent,
-                         newsize,
-                         false);
+                         newsize);
 
   oldNode = ak__alignof(memptr);
 
@@ -919,8 +916,7 @@ ak_malloc(void * __restrict parent,
           bool srch) {
   return ak_heap_alloc(&ak__heap,
                        parent,
-                       size,
-                       srch);
+                       size);
 }
 
 AK_EXPORT
@@ -932,8 +928,7 @@ ak_calloc(void * __restrict parent,
 
   memptr = ak_heap_alloc(&ak__heap,
                          parent,
-                         size,
-                         srch);
+                         size);
   memset(memptr, '\0', size);
 
   return memptr;
@@ -960,8 +955,7 @@ ak_strdup(void * __restrict parent,
   memsize = strlen(str);
   memptr  = ak_heap_alloc(&ak__heap,
                           parent,
-                          memsize + 1,
-                          false);
+                          memsize + 1);
 
   memcpy(memptr, str, memsize);
 
@@ -1006,8 +1000,7 @@ void * __restrict memParent,
 
   obj = ak_heap_alloc(heap,
                       memParent,
-                      sizeof(*obj) + typeSize,
-                      srch);
+                      sizeof(*obj) + typeSize);
 
   obj->size  = typeSize;
   obj->type  = typeEnum;

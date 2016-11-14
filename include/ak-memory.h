@@ -123,8 +123,7 @@ AK_EXPORT
 void*
 ak_heap_alloc(AkHeap * __restrict heap,
               void * __restrict parent,
-              size_t size,
-              bool srch);
+              size_t size);
 
 AK_EXPORT
 void*

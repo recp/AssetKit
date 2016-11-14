@@ -119,8 +119,7 @@ ak_dae_meshFixupPrimitive(AkHeap          *heap,
   newIndices = ak_heap_alloc(heap,
                              primitive,
                              sizeof(*newIndices)
-                               + sizeof(AkFloat) * indicesCount,
-                             false);
+                               + sizeof(AkUInt) * indicesCount);
 
   newIndices->count = indicesCount;
 

@@ -27,8 +27,7 @@ ak_strtod_array(AkHeap * __restrict heap,
 
   tmpArray = ak_heap_alloc(heap,
                            memParent,
-                           sizeof(AkDouble) * tmpCount,
-                           false);
+                           sizeof(AkDouble) * tmpCount);
 
   tok = strtok(stringRep, " \t\r\n");
   while (tok) {
@@ -47,8 +46,7 @@ ak_strtod_array(AkHeap * __restrict heap,
   arraySize = sizeof(AkDouble) * arrayIndex;
   doubleArray = ak_heap_alloc(heap,
                               memParent,
-                              sizeof(*doubleArray) + arraySize,
-                              false);
+                              sizeof(*doubleArray) + arraySize);
 
   doubleArray->count = arrayIndex;
   memmove(doubleArray->items, tmpArray, arraySize);
@@ -77,8 +75,7 @@ ak_strtod_arrayL(AkHeap * __restrict heap,
 
   tmpArray = ak_heap_alloc(heap,
                            memParent,
-                           sizeof(AkDouble) * tmpCount,
-                           false);
+                           sizeof(AkDouble) * tmpCount);
 
   tok = strtok(stringRep, " \t\r\n");
   while (tok) {
@@ -97,8 +94,7 @@ ak_strtod_arrayL(AkHeap * __restrict heap,
   arraySize = sizeof(AkDouble) * arrayIndex;
   doubleArray = ak_heap_alloc(heap,
                               memParent,
-                              sizeof(*doubleArray) + arraySize,
-                              false);
+                              sizeof(*doubleArray) + arraySize);
 
   doubleArray->count = arrayIndex;
   memmove(doubleArray->items, tmpArray, arraySize);
@@ -127,8 +123,7 @@ ak_strtoi_array(AkHeap * __restrict heap,
 
   tmpArray = ak_heap_alloc(heap,
                            memParent,
-                           sizeof(AkInt) * tmpCount,
-                           false);
+                           sizeof(AkInt) * tmpCount);
 
   tok = strtok(stringRep, " \t\r\n");
   while (tok) {
@@ -147,8 +142,7 @@ ak_strtoi_array(AkHeap * __restrict heap,
   arraySize = sizeof(AkInt) * arrayIndex;
   intArray = ak_heap_alloc(heap,
                            memParent,
-                           sizeof(*intArray) + arraySize,
-                           false);
+                           sizeof(*intArray) + arraySize);
 
   intArray->count = arrayIndex;
   memmove(intArray->items, tmpArray, arraySize);
@@ -177,8 +171,7 @@ ak_strtoui_array(AkHeap * __restrict heap,
 
   tmpArray = ak_heap_alloc(heap,
                            memParent,
-                           sizeof(AkUInt) * tmpCount,
-                           false);
+                           sizeof(AkUInt) * tmpCount);
 
   tok = strtok(stringRep, " \t\r\n");
   while (tok) {
@@ -197,8 +190,7 @@ ak_strtoui_array(AkHeap * __restrict heap,
   arraySize = sizeof(AkUInt) * arrayIndex;
   intArray = ak_heap_alloc(heap,
                            memParent,
-                           sizeof(*intArray) + arraySize,
-                           false);
+                           sizeof(*intArray) + arraySize);
 
   intArray->count = arrayIndex;
   memmove(intArray->items, tmpArray, arraySize);
@@ -248,13 +240,11 @@ ak_strtostr_array(AkHeap * __restrict heap,
 
   stringArray = ak_heap_alloc(heap,
                               memParent,
-                              sizeof(*stringArray) + arraySize,
-                              false);
+                              sizeof(*stringArray) + arraySize);
 
   pData = ak_heap_alloc(heap,
                         stringArray,
-                        arrayDataSize,
-                        false);
+                        arrayDataSize);
 
   stringArray->count = itemCount;
   stringArray->items[itemCount] = pData;
@@ -313,13 +303,11 @@ ak_strtostr_arrayL(AkHeap * __restrict heap,
 
   stringArray = ak_heap_alloc(heap,
                               memParent,
-                              sizeof(*stringArray) + arraySize,
-                              false);
+                              sizeof(*stringArray) + arraySize);
 
   pData = ak_heap_alloc(heap,
                         stringArray,
-                        arrayDataSize,
-                        false);
+                        arrayDataSize);
 
   stringArray->count = itemCount;
   stringArray->items[itemCount] = pData;
