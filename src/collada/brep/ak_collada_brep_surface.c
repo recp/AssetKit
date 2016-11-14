@@ -71,8 +71,7 @@ ak_dae_surface(AkXmlState * __restrict xst,
                           surface,
                           sizeof(*cone),
                           AK_SURFACE_ELEMENT_TYPE_CONE,
-                          true,
-                          false);
+                          true);
 
         cone = ak_objGet(obj);
 
@@ -119,8 +118,7 @@ ak_dae_surface(AkXmlState * __restrict xst,
                           surface,
                           sizeof(*plane),
                           AK_SURFACE_ELEMENT_TYPE_CONE,
-                          true,
-                          false);
+                          true);
 
         plane = ak_objGet(obj);
 
@@ -171,8 +169,7 @@ ak_dae_surface(AkXmlState * __restrict xst,
                           surface,
                           sizeof(*cylinder),
                           AK_SURFACE_ELEMENT_TYPE_CYLINDER,
-                          true,
-                          false);
+                          true);
 
         cylinder = ak_objGet(obj);
 
@@ -238,8 +235,7 @@ ak_dae_surface(AkXmlState * __restrict xst,
                           surface,
                           sizeof(*sphere),
                           AK_SURFACE_ELEMENT_TYPE_SPHERE,
-                          true,
-                          false);
+                          true);
 
         sphere = ak_objGet(obj);
 
@@ -284,8 +280,7 @@ ak_dae_surface(AkXmlState * __restrict xst,
                           surface,
                           sizeof(*torus),
                           AK_SURFACE_ELEMENT_TYPE_TORUS,
-                          true,
-                          false);
+                          true);
 
         torus = ak_objGet(obj);
 
@@ -336,8 +331,7 @@ ak_dae_surface(AkXmlState * __restrict xst,
                           surface,
                           sizeof(*sweptSurface),
                           AK_SURFACE_ELEMENT_TYPE_SWEPT_SURFACE,
-                          true,
-                          false);
+                          true);
 
         sweptSurface = ak_objGet(obj);
 

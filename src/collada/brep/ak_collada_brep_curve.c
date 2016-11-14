@@ -40,8 +40,7 @@ ak_dae_curve(AkXmlState * __restrict xst,
                       memParent,
                       sizeof(*curve),
                       0,
-                      true,
-                      false);
+                      true);
 
     curve = ak_objGet(obj);
     memPtr = obj;
@@ -81,8 +80,7 @@ ak_dae_curve(AkXmlState * __restrict xst,
                           memPtr,
                           sizeof(*line),
                           AK_CURVE_ELEMENT_TYPE_LINE,
-                          true,
-                          false);
+                          true);
 
         line = ak_objGet(obj);
 
@@ -142,8 +140,7 @@ ak_dae_curve(AkXmlState * __restrict xst,
                           memPtr,
                           sizeof(*circle),
                           AK_CURVE_ELEMENT_TYPE_CIRCLE,
-                          true,
-                          false);
+                          true);
 
         circle = ak_objGet(obj);
 
@@ -189,8 +186,7 @@ ak_dae_curve(AkXmlState * __restrict xst,
                           memPtr,
                           sizeof(*ellipse),
                           AK_CURVE_ELEMENT_TYPE_ELLIPSE,
-                          true,
-                          false);
+                          true);
 
         ellipse = ak_objGet(obj);
 
@@ -242,8 +238,7 @@ ak_dae_curve(AkXmlState * __restrict xst,
                           memPtr,
                           sizeof(*parabola),
                           AK_CURVE_ELEMENT_TYPE_PARABOLA,
-                          true,
-                          false);
+                          true);
 
         parabola = ak_objGet(obj);
 
@@ -289,8 +284,7 @@ ak_dae_curve(AkXmlState * __restrict xst,
                           memPtr,
                           sizeof(*hyperbola),
                           AK_CURVE_ELEMENT_TYPE_HYPERBOLA,
-                          true,
-                          false);
+                          true);
 
         hyperbola = ak_objGet(obj);
 

@@ -24,8 +24,7 @@ ak_dae_nurbs(AkXmlState * __restrict xst,
                       memParent,
                       sizeof(*nurbs),
                       0,
-                      true,
-                      false);
+                      true);
 
     nurbs = ak_objGet(obj);
     memPtr = obj;
@@ -170,8 +169,7 @@ ak_dae_nurbs_surface(AkXmlState * __restrict xst,
                       memParent,
                       sizeof(*nurbsSurface),
                       0,
-                      true,
-                      false);
+                      true);
 
     nurbsSurface = ak_objGet(obj);
     memPtr = obj;

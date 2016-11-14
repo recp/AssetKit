@@ -25,8 +25,7 @@ ak_dae_morph(AkXmlState * __restrict xst,
                       memParent,
                       sizeof(*morph),
                       0,
-                      true,
-                      false);
+                      true);
 
     morph = ak_objGet(obj);
 

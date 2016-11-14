@@ -93,7 +93,6 @@ ak_dae_source(AkXmlState * __restrict xst,
                           source,
                           sizeof(*boolArray) + arraySize,
                           AK_SOURCE_ARRAY_TYPE_BOOL,
-                          true,
                           true);
         boolArray = ak_objGet(obj);
 
@@ -131,7 +130,6 @@ ak_dae_source(AkXmlState * __restrict xst,
                           source,
                           sizeof(*floatAray) + arraySize,
                           AK_SOURCE_ARRAY_TYPE_FLOAT,
-                          true,
                           true);
         floatAray = ak_objGet(obj);
 
@@ -171,7 +169,6 @@ ak_dae_source(AkXmlState * __restrict xst,
                           source,
                           sizeof(*intArray) + arraySize,
                           AK_SOURCE_ARRAY_TYPE_INT,
-                          true,
                           true);
         intArray = ak_objGet(obj);
 
@@ -230,7 +227,6 @@ ak_dae_source(AkXmlState * __restrict xst,
                           source,
                           sizeof(*stringAray) + arraySize,
                           found->val,
-                          true,
                           true);
         stringAray = ak_objGet(obj);
         stringAray->count = arrayCount;

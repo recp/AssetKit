@@ -57,8 +57,7 @@ ak_dae_brep(AkXmlState * __restrict xst,
                       memParent,
                       sizeof(*brep),
                       AK_GEOMETRY_TYPE_BREP,
-                      true,
-                      false);
+                      true);
 
     brep = ak_objGet(obj);
 

@@ -161,8 +161,7 @@ ak_dae_node(AkXmlState * __restrict xst,
                             node,
                             sizeof(*looakAt),
                             AK_NODE_TRANSFORM_TYPE_LOOK_AT,
-                            true,
-                            false);
+                            true);
 
           looakAt = ak_objGet(obj);
 
@@ -193,8 +192,7 @@ ak_dae_node(AkXmlState * __restrict xst,
                             node,
                             sizeof(*matrix),
                             AK_NODE_TRANSFORM_TYPE_MATRIX,
-                            true,
-                            false);
+                            true);
 
           matrix = ak_objGet(obj);
 
@@ -226,8 +224,7 @@ ak_dae_node(AkXmlState * __restrict xst,
                             node,
                             sizeof(*rotate),
                             AK_NODE_TRANSFORM_TYPE_ROTATE,
-                            true,
-                            false);
+                            true);
 
           rotate = ak_objGet(obj);
 
@@ -258,8 +255,7 @@ ak_dae_node(AkXmlState * __restrict xst,
                             node,
                             sizeof(*scale),
                             AK_NODE_TRANSFORM_TYPE_SCALE,
-                            true,
-                            false);
+                            true);
 
           scale = ak_objGet(obj);
 
@@ -290,8 +286,7 @@ ak_dae_node(AkXmlState * __restrict xst,
                             node,
                             sizeof(*skew),
                             AK_NODE_TRANSFORM_TYPE_SKEW,
-                            true,
-                            false);
+                            true);
 
           skew = ak_objGet(obj);
 
@@ -326,8 +321,7 @@ ak_dae_node(AkXmlState * __restrict xst,
                             node,
                             sizeof(*translate),
                             AK_NODE_TRANSFORM_TYPE_TRANSLATE,
-                            true,
-                            false);
+                            true);
 
           translate = ak_objGet(obj);
 

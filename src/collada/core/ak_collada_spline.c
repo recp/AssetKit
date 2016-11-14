@@ -24,8 +24,7 @@ ak_dae_spline(AkXmlState * __restrict xst,
                       memParent,
                       sizeof(*spline),
                       AK_GEOMETRY_TYPE_SPLINE,
-                      true,
-                      false);
+                      true);
 
     spline = ak_objGet(obj);
     memPtr = obj;

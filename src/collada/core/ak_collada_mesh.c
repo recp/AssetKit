@@ -56,8 +56,7 @@ ak_dae_mesh(AkXmlState * __restrict xst,
                       memParent,
                       sizeof(*mesh),
                       AK_GEOMETRY_TYPE_MESH,
-                      true,
-                      false);
+                      true);
 
     mesh = ak_objGet(obj);
 

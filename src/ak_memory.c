@@ -911,8 +911,7 @@ ak_mem_setp(void * __restrict memptr,
 AK_EXPORT
 void*
 ak_malloc(void * __restrict parent,
-          size_t size,
-          bool srch) {
+          size_t size) {
   return ak_heap_alloc(&ak__heap,
                        parent,
                        size);
@@ -921,8 +920,7 @@ ak_malloc(void * __restrict parent,
 AK_EXPORT
 void*
 ak_calloc(void * __restrict parent,
-          size_t size,
-          bool srch) {
+          size_t size) {
   void  *memptr;
 
   memptr = ak_heap_alloc(&ak__heap,
@@ -991,8 +989,7 @@ ak_objAlloc(AkHeap * __restrict heap,
 void * __restrict memParent,
             size_t typeSize,
             AkEnum typeEnum,
-            bool zeroed,
-            bool srch) {
+            bool zeroed) {
   AkObject * obj;
 
   assert(typeSize > 0 && "invalid parameter value");

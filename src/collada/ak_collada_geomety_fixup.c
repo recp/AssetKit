@@ -77,7 +77,6 @@ ak_dae_meshFixupPrimitive(AkHeap          *heap,
                         sizeof(*newArray)
                         + sizeof(AkFloat) * indicesCount * vertc,
                         AK_SOURCE_ARRAY_TYPE_FLOAT,
-                        true,
                         true);
 
       newArray = ak_objGet(obj);

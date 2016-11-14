@@ -25,8 +25,7 @@ ak_dae_skin(AkXmlState * __restrict xst,
                       memParent,
                       sizeof(*skin),
                       0,
-                      true,
-                      false);
+                      true);
 
     skin = ak_objGet(obj);
 

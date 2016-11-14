@@ -208,14 +208,12 @@ ak_mem_printKeys();
 AK_EXPORT
 void*
 ak_malloc(void * __restrict parent,
-          size_t size,
-          bool srch);
+          size_t size);
 
 AK_EXPORT
 void*
 ak_calloc(void * __restrict parent,
-          size_t size,
-          bool srch);
+          size_t size);
 
 AK_EXPORT
 char*
@@ -260,8 +258,7 @@ ak_objAlloc(AkHeap * __restrict heap,
             void * __restrict memParent,
             size_t typeSize,
             AkEnum typeEnum,
-            bool zeroed,
-            bool srch);
+            bool zeroed);
 
 AK_EXPORT
 AkObject*

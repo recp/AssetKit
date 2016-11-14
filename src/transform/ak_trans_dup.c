@@ -37,8 +37,7 @@ ak_transformDup(AkNode * __restrict srcNode,
                                    destNode,
                                    sizeof(*matrix),
                                    AK_NODE_TRANSFORM_TYPE_MATRIX,
-                                   true,
-                                   false);
+                                   true);
         newMatrix = ak_objGet(newTransform);
 
         newMatrix->sid = ak_heap_strdup(heap, newTransform, matrix->sid);
@@ -53,8 +52,7 @@ ak_transformDup(AkNode * __restrict srcNode,
                                    destNode,
                                    sizeof(*lookAt),
                                    AK_NODE_TRANSFORM_TYPE_LOOK_AT,
-                                   true,
-                                   false);
+                                   true);
         newLookAt = ak_objGet(newTransform);
 
         newLookAt->sid = ak_heap_strdup(heap, newTransform, lookAt->sid);
@@ -71,8 +69,7 @@ ak_transformDup(AkNode * __restrict srcNode,
                                    destNode,
                                    sizeof(*rotate),
                                    AK_NODE_TRANSFORM_TYPE_ROTATE,
-                                   true,
-                                   false);
+                                   true);
         newRotate = ak_objGet(newTransform);
 
         newRotate->sid = ak_heap_strdup(heap, newTransform, rotate->sid);
@@ -87,8 +84,7 @@ ak_transformDup(AkNode * __restrict srcNode,
                                    destNode,
                                    sizeof(*scale),
                                    AK_NODE_TRANSFORM_TYPE_SCALE,
-                                   true,
-                                   false);
+                                   true);
         newScale = ak_objGet(newTransform);
 
         newScale->sid = ak_heap_strdup(heap, newTransform, scale->sid);
@@ -103,8 +99,7 @@ ak_transformDup(AkNode * __restrict srcNode,
                                    destNode,
                                    sizeof(*translate),
                                    AK_NODE_TRANSFORM_TYPE_TRANSLATE,
-                                   true,
-                                   false);
+                                   true);
         newTranslate = ak_objGet(newTransform);
 
         newTranslate->sid = ak_heap_strdup(heap, newTransform, translate->sid);
@@ -119,8 +114,7 @@ ak_transformDup(AkNode * __restrict srcNode,
                                    destNode,
                                    sizeof(*skew),
                                    AK_NODE_TRANSFORM_TYPE_SKEW,
-                                   true,
-                                   false);
+                                   true);
         newSkew = ak_objGet(newTransform);
 
         newSkew->sid = ak_heap_strdup(heap, newTransform, skew->sid);
