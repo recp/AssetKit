@@ -46,6 +46,8 @@ libassetkit_la_SOURCES=\
     src/ak_common.c \
     src/ak_libxml.c \
     src/ak_memory.c \
+    src/ak_memory_ext.c \
+    src/ak_sid.c \
     src/ak_utils.c \
     src/ak_string.c \
     src/ak_tree.c \

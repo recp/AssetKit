@@ -42,8 +42,9 @@ typedef struct AkSIDNode {
    | offset0  | sid_ptr0  | ...
    | uint16_t | uintptr_t | ...
    */
-  void             *sid;
+  void             *sids;
   void             *refs;
+  const char       *sid;
   struct AkSIDNode *prev;
   struct AkSIDNode *chld;
   struct AkSIDNode *next;
@@ -96,6 +97,25 @@ struct AkHeap {
   uint32_t         heapid;
   AkEnum           flags;
 };
+
+void
+ak_heap_ext_setid(AkHeap * __restrict heap,
+                  AkHeapNode * __restrict heapNode,
+                  void * __restrict memId);
+
+void
+ak_heap_ext_unsetid(AkHeap * __restrict heap,
+                    AkHeapNode * __restrict heapNode);
+
+AkSIDNode *
+ak_heap_ext_mk_sidnode(AkHeap * __restrict heap,
+                       AkHeapNode * __restrict heapNode);
+
+AkSIDNode *
+ak_heap_ext_sidnode(AkHeapNode * __restrict heapNode);
+
+AkHeapNode *
+ak_heap_ext_sidnode_node(AkSIDNode * __restrict sidnode);
 
 void
 ak_mem_init();

@@ -1652,6 +1652,7 @@ typedef struct AkDoc {
 #include "ak-geom.h"
 #include "ak-cam.h"
 #include "ak-transform.h"
+#include "ak-sid.h"
 
 AK_EXPORT
 AkResult

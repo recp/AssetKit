@@ -26,15 +26,6 @@
 # endif
 #endif
 
-void
-ak_heap_mk_srchnode(AkHeap * __restrict heap,
-                    AkHeapNode * __restrict heapNode,
-                    void * __restrict memId);
-
-void
-ak_heap_rm_srchnode(AkHeap * __restrict heap,
-                    AkHeapNode * __restrict heapNode);
-
 static
 int
 ak__heap_srch_cmp(void * __restrict key1,
@@ -671,139 +662,17 @@ ak_heap_getId(AkHeap * __restrict heap,
   AK__UNUSED(heap);
 }
 
-void
-ak_heap_mk_srchnode(AkHeap * __restrict heap,
-                    AkHeapNode * __restrict heapNode,
-                    void * __restrict memId) {
-  AkHeapAllocator *alc;
-  AkHeapNodeExt   *extNode;
-  AkHeapSrchNode  *snode;
-  AkHeapNodeExt   *extNodeR;
-  AkSIDNode       *sidNode;
-  size_t           snodeSize;
-
-  alc       = heap->allocator;
-  snodeSize = sizeof(AkHeapSrchNode);
-
-  if (!(heapNode->flags & AK_HEAP_NODE_FLAGS_EXT)) {
-    extNode        = alc->malloc(sizeof(*extNode) + snodeSize);
-    extNode->node  = heapNode;
-    extNode->chld  = heapNode->chld;
-    heapNode->chld = extNode;
-
-    snode = (AkHeapSrchNode *)extNode->data;
-    goto done;
-  }
-
-  extNode = heapNode->chld;
-
-  if (heapNode->flags & AK_HEAP_NODE_FLAGS_SRCH) {
-    snode = (AkHeapSrchNode *)extNode->data;
-    ak_heap_rb_remove(heap->srchctx, snode);
-    goto done;
-  }
-
-  sidNode  = (AkSIDNode *)(extNode->data + 1);
-  extNodeR = alc->realloc(extNode,
-                          sizeof(*extNodeR)
-                          + snodeSize
-                          + sizeof(AkSIDNode)
-                          + 1);
-
-  if (heapNode->flags & AK_HEAP_NODE_FLAGS_SID) {
-    if (sidNode->prev) { sidNode->prev       += snodeSize; }
-    if (sidNode->next) { sidNode->next->prev += snodeSize; }
-    if (sidNode->chld) { sidNode->chld->prev += snodeSize; }
-
-    memmove(extNodeR + snodeSize,
-            extNodeR,
-            sizeof(AkSIDNode) + 1);
-    extNodeR->data[snodeSize] = 1;
-
-    /* TODO: update refs */
-    heapNode->chld = extNode;
-  }
-
-  snode = (AkHeapSrchNode *)extNodeR->data;
-
-done:
-  heapNode->flags |= (AK_HEAP_NODE_FLAGS_EXT
-                      | AK_HEAP_NODE_FLAGS_SRCH
-                      | AK_HEAP_NODE_FLAGS_RED);
-
-  snode->chld[AK__BST_LEFT]  = heap->srchctx->nullNode;
-  snode->chld[AK__BST_RIGHT] = heap->srchctx->nullNode;
-  snode->key                 = memId;
-
-  ak_heap_rb_insert(heap->srchctx, snode);
-}
-
-void
-ak_heap_rm_srchnode(AkHeap * __restrict heap,
-                    AkHeapNode * __restrict heapNode) {
-  AkHeapAllocator *alc;
-  AkHeapNodeExt   *extNode;
-  AkHeapNodeExt   *extNodeR;
-  AkSIDNode       *sidNode;
-  size_t           snodeSize;
-
-  alc       = heap->allocator;
-  snodeSize = sizeof(AkHeapSrchNode);
-
-  if (!(heapNode->flags
-        & (AK_HEAP_NODE_FLAGS_EXT | AK_HEAP_NODE_FLAGS_SRCH))) {
-    heapNode->flags &= ~AK_HEAP_NODE_FLAGS_RED;
-    return;
-  }
-
-  extNode = heapNode->chld;
-  ak_heap_rb_remove(heap->srchctx,
-                    (AkHeapSrchNode *)extNode->data);
-
-  if (!(heapNode->flags & AK_HEAP_NODE_FLAGS_SID)) {
-    heapNode->chld = extNode->chld;
-    heapNode->flags &= ~(AK_HEAP_NODE_FLAGS_SRCH
-                         | AK_HEAP_NODE_FLAGS_EXT
-                         | AK_HEAP_NODE_FLAGS_RED);
-    alc->free(extNode);
-    return;
-  }
-
-  sidNode  = (AkSIDNode *)(extNode->data + snodeSize + 1);
-  extNodeR = alc->realloc(extNode,
-                          sizeof(*extNodeR)
-                          + sizeof(AkSIDNode)
-                          + 1);
-
-  if (heapNode->flags & AK_HEAP_NODE_FLAGS_SID) {
-    if (sidNode->prev) { sidNode->prev       -= snodeSize; }
-    if (sidNode->next) { sidNode->next->prev -= snodeSize; }
-    if (sidNode->chld) { sidNode->chld->prev -= snodeSize; }
-
-    memmove(extNodeR - snodeSize,
-            extNodeR,
-            sizeof(AkSIDNode) + 1);
-
-    extNodeR->data[0] = 0;
-
-    /* TODO: update refs */
-    heapNode->chld = extNodeR;
-  }
-
-  heapNode->flags &= ~(AK_HEAP_NODE_FLAGS_SRCH | AK_HEAP_NODE_FLAGS_RED);
-}
-
 AK_EXPORT
 void
 ak_heap_setId(AkHeap * __restrict heap,
               AkHeapNode * __restrict heapNode,
               void * __restrict memId) {
   if (!memId) {
-    ak_heap_rm_srchnode(heap, heapNode);
+    ak_heap_ext_unsetid(heap, heapNode);
     return;
   }
 
-  ak_heap_mk_srchnode(heap, heapNode, memId);
+  ak_heap_ext_setid(heap, heapNode, memId);
 }
 
 AK_EXPORT
