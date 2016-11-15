@@ -136,7 +136,7 @@ ak_heap_ext_sidnode_node(AkSIDNode * __restrict sidnode) {
   AkHeapNodeExt *extNode;
   char          *ptr;
 
-  ptr = ((char *)sidnode) - 1 - sizeof(AkSIDNode);
+  ptr = ((char *)sidnode) - 1 - sizeof(AkHeapNodeExt);
   if (*(((char *)sidnode) - 1))
     ptr -= sizeof(AkHeapSrchNode);
 
@@ -146,13 +146,11 @@ ak_heap_ext_sidnode_node(AkSIDNode * __restrict sidnode) {
 
 AkSIDNode *
 ak_heap_ext_sidnode(AkHeapNode * __restrict heapNode) {
-  AkHeapNodeExt *extNode;
-
   if ((heapNode->flags & AK_HEAP_NODE_FLAGS_EXT)
       && (heapNode->flags & AK_HEAP_NODE_FLAGS_SID)) {
+    AkHeapNodeExt *extNode;
 
     extNode = heapNode->chld;
-
     if (!(heapNode->flags & AK_HEAP_NODE_FLAGS_SRCH))
       return (AkSIDNode *)(extNode->data + 1);
 
@@ -174,7 +172,10 @@ ak_heap_ext_mk_sidnode(AkHeap * __restrict heap,
   snodeSize   = sizeof(AkHeapSrchNode);
 
   if (!(heapNode->flags & AK_HEAP_NODE_FLAGS_EXT)) {
-    extNode        = alc->malloc(sizeof(*extNode) + sizeof(AkSIDNode) + 1);
+    extNode        = alc->calloc(sizeof(*extNode)
+                                 + sizeof(AkSIDNode)
+                                 + 1,
+                                 1);
     extNode->node  = heapNode;
     extNode->chld  = heapNode->chld;
     heapNode->chld = extNode;
