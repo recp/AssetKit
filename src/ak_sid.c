@@ -157,6 +157,7 @@ ak_sid_seta(void       *memnode,
   uint16_t    off;
   int         off0;
   int         relink;
+  int         itmsize;
 
   heapNode = ak__alignof(memnode);
   heap     = ak_heap_getheap(memnode);
@@ -168,31 +169,29 @@ ak_sid_seta(void       *memnode,
   else
     sidnode = ak_heap_ext_sidnode(heapNode);
 
-  off0 = sizeof(size_t);
-  off  = (char *)memptr - (char *)memnode;
+  off0    = sizeof(size_t);
+  off     = (char *)memptr - (char *)memnode;
+  itmsize = sizeof(uint16_t) + sizeof(uintptr_t);
 
   if (!sidnode->sids) {
-    sidnode->sids = heap->allocator->calloc(off0
-                                            + sizeof(uint16_t)
-                                            + sizeof(const char *),
-                                            1);
+    sidnode->sids = heap->allocator->calloc(off0 + itmsize, 1);
   } else {
     size_t newsize;
 
-    newsize  = off0;
-    newsize += ((*(size_t *)((char *)sidnode->sids + off0)) + 1)
-                  * (newsize * sizeof(uint16_t) + sizeof(const char *));
+    newsize  = *(size_t *)((char *)sidnode->sids) + 1;
+    newsize  = newsize * itmsize;
 
-    sidnode->sids = heap->allocator->realloc(sidnode->sids, newsize);
+    sidnode->sids = heap->allocator->realloc(sidnode->sids,
+                                             newsize + off0);
   }
 
   sidptr = sidnode->sids;
-  sidptr += off0 + (*(size_t *)(sidptr + off0))++;
+  sidptr += off0 + itmsize * (*(size_t *)sidptr)++;
 
   *(uint16_t *)sidptr = off;
 
   sidptr += sizeof(uint16_t);
-  *(const char **)sidptr = sid;
+  *(uintptr_t *)sidptr = (uintptr_t)sid;
 
   /* TODO: invalidate refs */
 }
