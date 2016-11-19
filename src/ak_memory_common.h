@@ -45,6 +45,7 @@ typedef struct AkSIDNode {
   void             *sids;
   void             *refs;
   const char       *sid;
+
   struct AkSIDNode *prev;
   struct AkSIDNode *chld;
   struct AkSIDNode *next;
@@ -67,8 +68,9 @@ struct AkHeapNode {
   AkHeapNode *prev; /* parent */
   AkHeapNode *next; /* right  */
   void       *chld; /* left   */
-  uint32_t    heapid;
+  uint16_t    heapid;
   uint16_t    typeid;
+  uint16_t    depth;
   uint16_t    flags;
   char        data[];
 };
@@ -94,7 +96,7 @@ struct AkHeap {
   AkHeap          *chld; /* attached heaps, free all with this */
   AkHeap          *next;
   void            *data;
-  uint32_t         heapid;
+  uint16_t         heapid;
   AkEnum           flags;
 };
 

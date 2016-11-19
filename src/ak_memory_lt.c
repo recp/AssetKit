@@ -71,7 +71,7 @@ ak_heap_lt_insert(AkHeap * __restrict heap) {
   AkHeapBucket      *bucket;
   AkHeapBucketEntry *bucketEntry;
   uint32_t           entryIndex;
-  uint32_t           heapid;
+  uint16_t           heapid;
 
   bucket = ak__heap_lt.firstAvailBucket;
 
@@ -116,7 +116,7 @@ ak_heap_lt_insert(AkHeap * __restrict heap) {
 }
 
 AkHeap *
-ak_heap_lt_find(uint32_t heapid) {
+ak_heap_lt_find(uint16_t heapid) {
   AkHeapBucket      *bucket;
   AkHeapBucketEntry *entry;
   int bucketIndex;
@@ -144,7 +144,7 @@ ak_heap_lt_find(uint32_t heapid) {
 }
 
 void
-ak_heap_lt_remove(uint32_t heapid) {
+ak_heap_lt_remove(uint16_t heapid) {
   AkHeapBucket      *prevBucket;
   AkHeapBucket      *bucket;
   AkHeapBucketEntry *entry;
