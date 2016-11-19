@@ -44,10 +44,10 @@ ak_camFirstCamera(AkDoc     * __restrict doc,
           AkPerspective *perspective;
           perspective = cam->optics->techniqueCommon->technique;
 
-          glm_perspective(perspective->yfov->val,
-                          perspective->aspectRatio->val,
-                          perspective->znear->val,
-                          perspective->zfar->val,
+          glm_perspective(perspective->yfov,
+                          perspective->aspectRatio,
+                          perspective->znear,
+                          perspective->zfar,
                           (vec4 *)projMatrix);
           break;
         }

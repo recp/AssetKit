@@ -39,57 +39,42 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
           break;
 
         if (ak_xml_eqelm(xst, _s_dae_xfov)) {
-          ak_basic_attrf * xfov;
-          xfov = ak_heap_calloc(xst->heap,
-                                perspective,
-                                sizeof(*xfov));
+          const char *sid;
 
-          xfov->sid = ak_xml_attr(xst, xfov, _s_dae_sid);
-          xfov->val = ak_xml_valf(xst);
-          xfov->val = glm_rad(xfov->val);
+          sid = ak_xml_attr(xst, perspective, _s_dae_sid);
+          perspective->xfov = glm_rad(ak_xml_valf(xst));
+          
+          ak_sid_seta(perspective,
+                      &perspective->xfov,
+                      sid);
 
-          perspective->xfov = xfov;
         } else if (ak_xml_eqelm(xst, _s_dae_yfov)) {
-          ak_basic_attrf * yfov;
-          yfov = ak_heap_calloc(xst->heap,
-                                perspective,
-                                sizeof(*yfov));
+          perspective->yfov = glm_rad(ak_xml_valf(xst));
 
-          yfov->sid = ak_xml_attr(xst, yfov, _s_dae_sid);
-          yfov->val = ak_xml_valf(xst);
-          yfov->val = glm_rad(yfov->val);
+          ak_sid_seta(perspective,
+                      &perspective->yfov,
+                      ak_xml_attr(xst, perspective, _s_dae_sid));
 
-          perspective->yfov = yfov;
         } else if (ak_xml_eqelm(xst, _s_dae_aspect_ratio)) {
-          ak_basic_attrf * aspectRatio;
-          aspectRatio = ak_heap_calloc(xst->heap,
-                                       perspective,
-                                       sizeof(*aspectRatio));
+          perspective->aspectRatio = ak_xml_valf(xst);
 
-          aspectRatio->sid = ak_xml_attr(xst, aspectRatio, _s_dae_sid);
-          aspectRatio->val = ak_xml_valf(xst);
+          ak_sid_seta(perspective,
+                      &perspective->aspectRatio,
+                      ak_xml_attr(xst, perspective, _s_dae_sid));
 
-          perspective->aspectRatio = aspectRatio;
         } else if (ak_xml_eqelm(xst, _s_dae_znear)) {
-          ak_basic_attrf * znear;
-          znear = ak_heap_calloc(xst->heap,
-                                 perspective,
-                                 sizeof(*znear));
+          perspective->znear = ak_xml_valf(xst);
 
-          znear->sid = ak_xml_attr(xst, znear, _s_dae_sid);
-          znear->val = ak_xml_valf(xst);
+          ak_sid_seta(perspective,
+                      &perspective->znear,
+                      ak_xml_attr(xst, perspective, _s_dae_sid));
 
-          perspective->znear = znear;
         } else if (ak_xml_eqelm(xst, _s_dae_zfar)) {
-          ak_basic_attrf * zfar;
-          zfar = ak_heap_calloc(xst->heap,
-                                perspective,
-                                sizeof(*zfar));
+          perspective->zfar = ak_xml_valf(xst);
 
-          zfar->sid = ak_xml_attr(xst, zfar, _s_dae_sid);
-          zfar->val = ak_xml_valf(xst);
-
-          perspective->zfar = zfar;
+          ak_sid_seta(perspective,
+                      &perspective->zfar,
+                      ak_xml_attr(xst, perspective, _s_dae_sid));
         } else {
           ak_xml_skipelm(xst);
         }
@@ -104,33 +89,15 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
       if (!perspective->aspectRatio
           && perspective->yfov
           && perspective->xfov) {
-        ak_basic_attrf * aspectRatio;
-        aspectRatio = ak_heap_calloc(xst->heap,
-                                     perspective,
-                                     sizeof(*aspectRatio));
-
-        aspectRatio->val = perspective->xfov->val / perspective->yfov->val;
-        perspective->aspectRatio = aspectRatio;
+        perspective->aspectRatio = perspective->xfov / perspective->yfov;
       } else if (!perspective->yfov
                  && perspective->aspectRatio
                  && perspective->xfov) {
-        ak_basic_attrf * yfov;
-        yfov = ak_heap_calloc(xst->heap,
-                              perspective,
-                              sizeof(*yfov));
-
-        yfov->val = perspective->xfov->val / perspective->aspectRatio->val;
-        perspective->yfov = yfov;
+        perspective->yfov = perspective->xfov / perspective->aspectRatio;
       } else if (!perspective->xfov
                  && perspective->aspectRatio
                  && perspective->yfov) {
-        ak_basic_attrf * xfov;
-        xfov = ak_heap_calloc(xst->heap,
-                              perspective,
-                              sizeof(*xfov));
-
-        xfov->val = perspective->yfov->val * perspective->aspectRatio->val;
-        perspective->xfov = xfov;
+        perspective->xfov = perspective->yfov * perspective->aspectRatio;
       }
     }
 

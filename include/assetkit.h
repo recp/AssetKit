@@ -463,11 +463,11 @@ typedef struct AkTechniqueCommon  {
 } AkTechniqueCommon;
 
 typedef struct AkPerspective {
-  ak_basic_attrf * xfov;
-  ak_basic_attrf * yfov;
-  ak_basic_attrf * aspectRatio;
-  ak_basic_attrf * znear;
-  ak_basic_attrf * zfar;
+  float xfov;
+  float yfov;
+  float aspectRatio;
+  float znear;
+  float zfar;
 } AkPerspective;
 
 typedef struct AkOrthographic {
