@@ -463,6 +463,27 @@ ak_heap_chld_set(AkHeapNode * __restrict heapNode,
 }
 
 AK_EXPORT
+AkHeapNode *
+ak_heap_parent(AkHeapNode *heapNode) {
+  AkHeapNode *hparent, *hnode_it1;
+
+  hparent   = NULL;
+  hnode_it1 = heapNode;
+
+  while (hnode_it1->prev) {
+    /* we found near parent */
+    if (hnode_it1->prev->chld == hnode_it1) {
+      hparent = hnode_it1->prev;
+      break;
+    }
+
+    hnode_it1 = hnode_it1->prev;
+  };
+
+  return hparent;
+}
+
+AK_EXPORT
 void
 ak_heap_setp(AkHeap * __restrict heap,
              AkHeapNode * __restrict heapNode,

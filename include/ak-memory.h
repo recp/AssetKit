@@ -148,6 +148,10 @@ ak_heap_chld_set(AkHeapNode * __restrict heapNode,
                  AkHeapNode * __restrict chldNode);
 
 AK_EXPORT
+AkHeapNode *
+ak_heap_parent(AkHeapNode *heapNode);
+
+AK_EXPORT
 void
 ak_heap_setp(AkHeap * __restrict heap,
              AkHeapNode * __restrict heapNode,
