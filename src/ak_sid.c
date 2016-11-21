@@ -57,67 +57,6 @@ ak_sid_geta(void *memnode,
   return NULL;
 }
 
-void _assetkit_hide
-ak_sid_link(AkHeapNode *heapNode,
-            AkSIDNode * __restrict sidnode) {
-  AkHeapNode *hnode_it1, *hnode_it2;
-  AkSIDNode  *parentSIDNode, *nextSIDNode;
-
-  parentSIDNode = NULL;
-  hnode_it1     = heapNode;
-
-  while (hnode_it1->prev) {
-    /* we found near parent */
-    if (hnode_it1->prev->chld != hnode_it1) {
-      if ((parentSIDNode = ak_heap_ext_sidnode(hnode_it1->prev))) {
-        nextSIDNode = parentSIDNode->chld;
-
-        parentSIDNode->chld = sidnode;
-        sidnode->prev       = parentSIDNode;
-        sidnode->next       = nextSIDNode;
-        nextSIDNode->prev   = sidnode;
-
-        /* check for re-link parent-chld ! */
-
-      nxt:
-        while (nextSIDNode) {
-          hnode_it2 = ak_heap_ext_sidnode_node(nextSIDNode);
-
-          /* find parent */
-          while (hnode_it2->prev) {
-            /* we found a parent! 
-               if parent is current node, link it */
-            if (hnode_it2->prev->chld == hnode_it2
-                && hnode_it2->prev == heapNode) {
-              AkSIDNode *tmp1, *tmp2;
-
-              tmp2              = nextSIDNode->next;
-              tmp2->prev        = nextSIDNode->prev;
-
-              tmp1              = sidnode->chld;
-              tmp1->prev        = nextSIDNode;
-              sidnode->chld     = nextSIDNode;
-              nextSIDNode->prev = sidnode;
-              nextSIDNode->next = tmp1;
-
-              nextSIDNode       = tmp2;
-              goto nxt;
-            }
-
-            hnode_it2 = hnode_it2->prev;
-          }
-
-          nextSIDNode = nextSIDNode->next;
-        }
-
-        break;
-      }
-    }
-
-    hnode_it1 = hnode_it1->prev;
-  };
-}
-
 AK_EXPORT
 void
 ak_sid_set(void       *memnode,
@@ -138,9 +77,6 @@ ak_sid_set(void       *memnode,
     sidnode = ak_heap_ext_sidnode(heapNode);
 
   sidnode->sid = sid;
-
-  if (relink)
-    ak_sid_link(heapNode, sidnode);
 
   /* TODO: invalidate refs */
 }

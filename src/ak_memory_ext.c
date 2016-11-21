@@ -49,10 +49,6 @@ ak_heap_ext_setid(AkHeap * __restrict heap,
                           + 1);
 
   if (heapNode->flags & AK_HEAP_NODE_FLAGS_SID) {
-    if (sidNode->prev) { sidNode->prev       += snodeSize; }
-    if (sidNode->next) { sidNode->next->prev += snodeSize; }
-    if (sidNode->chld) { sidNode->chld->prev += snodeSize; }
-
     memmove(extNodeR + snodeSize,
             extNodeR,
             sizeof(AkSIDNode) + 1);
@@ -114,10 +110,6 @@ ak_heap_ext_unsetid(AkHeap * __restrict heap,
                           + 1);
 
   if (heapNode->flags & AK_HEAP_NODE_FLAGS_SID) {
-    if (sidNode->prev) { sidNode->prev       -= snodeSize; }
-    if (sidNode->next) { sidNode->next->prev -= snodeSize; }
-    if (sidNode->chld) { sidNode->chld->prev -= snodeSize; }
-
     memmove(extNodeR - snodeSize,
             extNodeR,
             sizeof(AkSIDNode) + 1);

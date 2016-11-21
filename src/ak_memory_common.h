@@ -45,9 +45,6 @@ typedef struct AkSIDNode {
   void             *sids;
   void             *refs;
   const char       *sid;
-  struct AkSIDNode *prev;
-  struct AkSIDNode *chld;
-  struct AkSIDNode *next;
 } AkSIDNode;
 
 #define AK__HEAPNODE(X)                                                       \
