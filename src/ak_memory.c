@@ -360,8 +360,7 @@ ak_heap_alloc(AkHeap * __restrict heap,
       currNode->next = NULL;
     }
 
-    currNode->prev  = parentNode;
-    currNode->depth = parentNode->depth + 1;
+    currNode->prev = parentNode;
   } else {
     if (heap->root) {
       heap->root->prev = currNode;
@@ -370,9 +369,8 @@ ak_heap_alloc(AkHeap * __restrict heap,
       currNode->next = NULL;
     }
 
-    heap->root      = currNode;
-    currNode->prev  = NULL;
-    currNode->depth = 0;
+    heap->root = currNode;
+    currNode->prev = NULL;
   }
 
   return ak__alignas(currNode);

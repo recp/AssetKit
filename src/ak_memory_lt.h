@@ -14,7 +14,7 @@
 
 typedef struct AkHeapBucketEntry {
   AkHeap  *heap;
-  uint16_t heapid;
+  uint32_t heapid;
 } AkHeapBucketEntry;
 
 typedef struct AkHeapBucket {
@@ -38,10 +38,10 @@ void
 ak_heap_lt_init(AkHeap * __restrict initialHeap);
 
 AkHeap *
-ak_heap_lt_find(uint16_t heapid);
+ak_heap_lt_find(uint32_t heapid);
 
 void
-ak_heap_lt_remove(uint16_t heapid);
+ak_heap_lt_remove(uint32_t heapid);
 
 void
 ak_heap_lt_insert(AkHeap * __restrict heap);
