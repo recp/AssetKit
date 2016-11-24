@@ -208,22 +208,6 @@ ak_xml_attr(AkXmlState * __restrict xst,
   return NULL;
 }
 
-void
-ak_xml_readid(AkXmlState * __restrict xst,
-              void * __restrict memptr) {
-  xmlChar *xmlAttrVal;
-
-  xmlAttrVal = xmlTextReaderGetAttribute(xst->reader,
-                                         (const xmlChar *)_s_dae_id);
-  if (xmlAttrVal) {
-    ak_setId(memptr,
-             ak_heap_strdup(xst->heap,
-                            memptr,
-                            (char *)xmlAttrVal));
-    xmlFree(xmlAttrVal);
-  }
-}
-
 AkEnum
 ak_xml_readenum(AkXmlState * __restrict xst,
                 AkEnum (*fn)(const char * name)) {
@@ -390,4 +374,45 @@ ak_xml_attrui_def(AkXmlState * __restrict xst,
   }
 
   return 0ul;
+}
+
+void
+ak_xml_readid(AkXmlState * __restrict xst,
+              void * __restrict memptr) {
+  xmlChar *xmlAttrVal;
+
+  xmlAttrVal = xmlTextReaderGetAttribute(xst->reader,
+                                         (const xmlChar *)_s_dae_id);
+  if (xmlAttrVal) {
+    ak_setId(memptr,
+             ak_heap_strdup(xst->heap,
+                            memptr,
+                            (char *)xmlAttrVal));
+    xmlFree(xmlAttrVal);
+  }
+}
+
+void
+ak_xml_readsid(AkXmlState * __restrict xst,
+               void * __restrict memptr) {
+  xmlChar *xmlAttrVal;
+
+  xmlAttrVal = xmlTextReaderGetAttribute(xst->reader,
+                                         (const xmlChar *)_s_dae_sid);
+  if (xmlAttrVal) {
+    ak_sid_set(memptr, ak_heap_strdup(xst->heap,
+                                      memptr,
+                                      (char *)xmlAttrVal));
+
+    xmlFree(xmlAttrVal);
+  }
+}
+
+void
+ak_xml_sid_seta(AkXmlState * __restrict xst,
+                void *memnode,
+                void *memptr) {
+  ak_sid_seta(memnode,
+              memptr,
+              ak_xml_attr(xst, memnode, _s_dae_sid));
 }

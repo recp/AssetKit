@@ -89,7 +89,7 @@ ak_sid_set(void       *memnode,
     if (ak_heap_chld(heapNode->prev) == heapNode)
       heapNode->prev->flags |= AK_HEAP_NODE_FLAGS_SID_CHLD;
 
-    heapNode = heapNode->next;
+    heapNode = heapNode->prev;
   }
 
   /* TODO: invalidate refs */
@@ -153,6 +153,15 @@ ak_sid_seta(void       *memnode,
   }
 
   /* TODO: invalidate refs */
+}
+
+AK_EXPORT
+void
+ak_sid_dup(void *newMemnode,
+           void *oldMemnode) {
+  ak_sid_set(newMemnode, ak_heap_strdup(ak_heap_getheap(newMemnode),
+                                        newMemnode,
+                                        ak_sid_get(oldMemnode)));
 }
 
 AK_EXPORT

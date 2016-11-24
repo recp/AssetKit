@@ -21,8 +21,9 @@ ak_dae_evaluateScene(AkXmlState * __restrict xst,
                                  sizeof(*evaluateScene));
 
   ak_xml_readid(xst, evaluateScene);
+  ak_xml_readsid(xst, evaluateScene);
+
   evaluateScene->name   = ak_xml_attr(xst, evaluateScene, _s_dae_name);
-  evaluateScene->sid    = ak_xml_attr(xst, evaluateScene, _s_dae_sid);
   evaluateScene->enable = ak_xml_attrui_def(xst, _s_dae_enable, true);
 
   last_render = NULL;

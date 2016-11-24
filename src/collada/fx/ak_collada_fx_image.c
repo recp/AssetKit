@@ -49,7 +49,8 @@ ak_dae_fxImage(AkXmlState * __restrict xst,
   img = ak_heap_calloc(xst->heap, memParent, sizeof(*img));
 
   ak_xml_readid(xst, img);
-  img->sid  = ak_xml_attr(xst, img, _s_dae_sid);
+  ak_xml_readsid(xst, img);
+
   img->name = ak_xml_attr(xst, img, _s_dae_name);
 
   do {
@@ -141,7 +142,8 @@ ak_dae_fxInstanceImage(AkXmlState * __restrict xst,
                                  memParent,
                                  sizeof(*instanceImage));
 
-  instanceImage->sid  = ak_xml_attr(xst, instanceImage, _s_dae_sid);
+  ak_xml_readsid(xst, instanceImage);
+
   instanceImage->name = ak_xml_attr(xst, instanceImage, _s_dae_name);
 
   ak_xml_attr_url(xst->reader,

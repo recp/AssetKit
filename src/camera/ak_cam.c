@@ -56,12 +56,12 @@ ak_camFirstCamera(AkDoc     * __restrict doc,
           AkOrthographic *ortho;
           ortho = cam->optics->techniqueCommon->technique;
 
-          glm_ortho(-ortho->xmag->val,
-                     ortho->xmag->val,
-                    -ortho->ymag->val,
-                     ortho->ymag->val,
-                     ortho->znear->val,
-                     ortho->zfar->val,
+          glm_ortho(-ortho->xmag,
+                     ortho->xmag,
+                    -ortho->ymag,
+                     ortho->ymag,
+                     ortho->znear,
+                     ortho->zfar,
                      (vec4 *)projMatrix);
           break;
         }

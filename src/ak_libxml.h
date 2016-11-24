@@ -59,10 +59,6 @@ ak_xml_attr(AkXmlState * __restrict xst,
             void * __restrict parent,
             const char * name);
 
-void
-ak_xml_readid(AkXmlState * __restrict xst,
-              void * __restrict memptr);
-
 float
 ak_xml_valf(AkXmlState * __restrict xst);
 
@@ -128,5 +124,18 @@ ak_xml_attr_url(xmlTextReaderPtr reader,
                 const char * attrName,
                 void  *memparent,
                 AkURL *url);
+
+void
+ak_xml_readid(AkXmlState * __restrict xst,
+              void * __restrict memptr);
+
+void
+ak_xml_readsid(AkXmlState * __restrict xst,
+               void * __restrict memptr);
+
+void
+ak_xml_sid_seta(AkXmlState * __restrict xst,
+                void *memnode,
+                void *memptr);
 
 #endif /* __libassetkit__libxml__h_ */

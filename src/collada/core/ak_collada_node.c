@@ -78,7 +78,8 @@ ak_dae_node(AkXmlState * __restrict xst,
   node = ak_heap_calloc(xst->heap, memParent, sizeof(*node));
 
   ak_xml_readid(xst, node);
-  node->sid  = ak_xml_attr(xst, node, _s_dae_sid);
+  ak_xml_readsid(xst, node);
+
   node->name = ak_xml_attr(xst, node, _s_dae_name);
 
   node->nodeType = ak_xml_attrenum_def(xst,
@@ -165,7 +166,8 @@ ak_dae_node(AkXmlState * __restrict xst,
 
           looakAt = ak_objGet(obj);
 
-          looakAt->sid = ak_xml_attr(xst, looakAt, _s_dae_sid);
+          ak_xml_readsid(xst, obj);
+
           ak_strtof(&content, (float *)looakAt->val, 9);
 
           if (last_transform)
@@ -196,7 +198,8 @@ ak_dae_node(AkXmlState * __restrict xst,
 
           matrix = ak_objGet(obj);
 
-          matrix->sid = ak_xml_attr(xst, matrix, _s_dae_sid);
+          ak_xml_readsid(xst, obj);
+
           ak_strtof(&content, transform[0], 16);
 
           glm_mat4_transpose_to(transform, matrix->val);
@@ -228,7 +231,8 @@ ak_dae_node(AkXmlState * __restrict xst,
 
           rotate = ak_objGet(obj);
 
-          rotate->sid = ak_xml_attr(xst, rotate, _s_dae_sid);
+          ak_xml_readsid(xst, obj);
+
           ak_strtof(&content, (AkFloat *)rotate->val, 4);
           glm_make_rad(&rotate->val[3]);
 
@@ -259,7 +263,8 @@ ak_dae_node(AkXmlState * __restrict xst,
 
           scale = ak_objGet(obj);
 
-          scale->sid = ak_xml_attr(xst, scale, _s_dae_sid);
+          ak_xml_readsid(xst, obj);
+
           ak_strtof(&content, (AkFloat *)scale->val, 4);
 
           if (last_transform)
@@ -290,7 +295,8 @@ ak_dae_node(AkXmlState * __restrict xst,
 
           skew = ak_objGet(obj);
 
-          skew->sid = ak_xml_attr(xst, skew, _s_dae_sid);
+          ak_xml_readsid(xst, obj);
+
           ak_strtof(&content, (AkFloat *)tmp, 4);
 
           /* COLLADA uses degree here, convert it to radians */
@@ -325,7 +331,8 @@ ak_dae_node(AkXmlState * __restrict xst,
 
           translate = ak_objGet(obj);
 
-          translate->sid = ak_xml_attr(xst, translate, _s_dae_sid);
+          ak_xml_readsid(xst, obj);
+
           ak_strtof(&content, (AkFloat *)translate->val, 4);
 
           if (last_transform)

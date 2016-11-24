@@ -39,8 +39,7 @@ ak_transformDup(AkNode * __restrict srcNode,
                                    AK_NODE_TRANSFORM_TYPE_MATRIX,
                                    true);
         newMatrix = ak_objGet(newTransform);
-
-        newMatrix->sid = ak_heap_strdup(heap, newTransform, matrix->sid);
+        ak_sid_dup(newTransform, transform);
         glm_mat4_dup(matrix->val, newMatrix->val);
         break;
       }
@@ -54,8 +53,8 @@ ak_transformDup(AkNode * __restrict srcNode,
                                    AK_NODE_TRANSFORM_TYPE_LOOK_AT,
                                    true);
         newLookAt = ak_objGet(newTransform);
+        ak_sid_dup(newTransform, transform);
 
-        newLookAt->sid = ak_heap_strdup(heap, newTransform, lookAt->sid);
         glm_vec_dup(lookAt->val[0], newLookAt->val[0]);
         glm_vec_dup(lookAt->val[1], newLookAt->val[1]);
         glm_vec_dup(lookAt->val[2], newLookAt->val[2]);
@@ -71,8 +70,7 @@ ak_transformDup(AkNode * __restrict srcNode,
                                    AK_NODE_TRANSFORM_TYPE_ROTATE,
                                    true);
         newRotate = ak_objGet(newTransform);
-
-        newRotate->sid = ak_heap_strdup(heap, newTransform, rotate->sid);
+        ak_sid_dup(newTransform, transform);
         glm_vec4_dup(rotate->val, newRotate->val);
         break;
       }
@@ -86,8 +84,7 @@ ak_transformDup(AkNode * __restrict srcNode,
                                    AK_NODE_TRANSFORM_TYPE_SCALE,
                                    true);
         newScale = ak_objGet(newTransform);
-
-        newScale->sid = ak_heap_strdup(heap, newTransform, scale->sid);
+        ak_sid_dup(newTransform, transform);
         glm_vec_dup(scale->val, newScale->val);
         break;
       }
@@ -101,8 +98,7 @@ ak_transformDup(AkNode * __restrict srcNode,
                                    AK_NODE_TRANSFORM_TYPE_TRANSLATE,
                                    true);
         newTranslate = ak_objGet(newTransform);
-
-        newTranslate->sid = ak_heap_strdup(heap, newTransform, translate->sid);
+        ak_sid_dup(newTransform, transform);
         glm_vec_dup(translate->val, newTranslate->val);
         break;
       }
@@ -116,8 +112,8 @@ ak_transformDup(AkNode * __restrict srcNode,
                                    AK_NODE_TRANSFORM_TYPE_SKEW,
                                    true);
         newSkew = ak_objGet(newTransform);
+        ak_sid_dup(newTransform, transform);
 
-        newSkew->sid = ak_heap_strdup(heap, newTransform, skew->sid);
         newSkew->angle = skew->angle;
         glm_vec_dup(skew->aroundAxis, newSkew->aroundAxis);
         glm_vec_dup(skew->rotateAxis, newSkew->rotateAxis);

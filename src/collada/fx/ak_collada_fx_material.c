@@ -171,7 +171,8 @@ ak_dae_fxInstanceMaterial(AkXmlState * __restrict xst,
                             memParent,
                             sizeof(*material));
 
-  material->sid    = ak_xml_attr(xst, material, _s_dae_sid);
+  ak_xml_readsid(xst, material);
+
   material->name   = ak_xml_attr(xst, material, _s_dae_name);
   material->target = ak_xml_attr(xst, material, _s_dae_target);
   material->symbol = ak_xml_attr(xst, material, _s_dae_symbol);

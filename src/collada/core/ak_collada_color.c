@@ -14,16 +14,14 @@ ak_dae_color(AkXmlState * __restrict xst,
   char *colorStr;
 
   if (read_sid)
-    dest->sid = ak_xml_attr(xst, dest, _s_dae_sid);
+    ak_xml_readsid(xst, dest);
 
-  colorStr = ak_xml_rawval(xst);
+  colorStr = ak_xml_rawcval(xst);
 
   if (colorStr) {
-    ak_strtof4(&colorStr, &dest->color.vec);
-    xmlFree(colorStr);
-
+    ak_strtof4(&colorStr, &dest->vec);
     return AK_OK;
-  } else {
-    return AK_ERR;
   }
+
+  return AK_ERR;
 }

@@ -39,11 +39,11 @@ ak_dae_colorOrTex(AkXmlState * __restrict xst,
                              colorOrTex,
                              sizeof(*color));
 
-      color->sid = ak_xml_attr(xst, color, _s_dae_sid);
+      ak_xml_readsid(xst, color);
       colorStr = ak_xml_rawval(xst);
 
       if (colorStr) {
-        ak_strtof4(&colorStr, &color->color.vec);
+        ak_strtof4(&colorStr, &color->vec);
         colorOrTex->color = color;
         xmlFree(colorStr);
       }

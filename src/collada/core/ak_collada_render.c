@@ -19,7 +19,8 @@ ak_dae_render(AkXmlState * __restrict xst,
 
   render = ak_heap_calloc(xst->heap, memParent, sizeof(*render));
 
-  render->sid  = ak_xml_attr(xst, render, _s_dae_sid);
+  ak_xml_readsid(xst, render);
+
   render->name = ak_xml_attr(xst, render, _s_dae_name);
   render->cameraNode = ak_xml_attr(xst, render, _s_dae_camera_node);
 

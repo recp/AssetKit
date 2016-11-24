@@ -24,7 +24,7 @@ ak_dae_fxPass(AkXmlState * __restrict xst,
                         memParent,
                         sizeof(*pass));
 
-  pass->sid = ak_xml_attr(xst, pass, _s_dae_sid);
+  ak_xml_readsid(xst, pass);
 
   last_annotate = NULL;
 

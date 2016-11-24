@@ -133,8 +133,9 @@ ak_dae_fxInstanceEffect(AkXmlState * __restrict xst,
                                   memParent,
                                   sizeof(*instanceEffect));
 
+  ak_xml_readsid(xst, instanceEffect);
+  
   instanceEffect->name = ak_xml_attr(xst, instanceEffect, _s_dae_name);
-  instanceEffect->sid  = ak_xml_attr(xst, instanceEffect, _s_dae_sid);
 
   ak_xml_attr_url(xst->reader,
                    _s_dae_url,

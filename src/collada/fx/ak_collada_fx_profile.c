@@ -202,7 +202,9 @@ ak_dae_profile(AkXmlState * __restrict xst,
       code = ak_heap_calloc(xst->heap,
                             profile,
                             sizeof(*code));
-      code->sid = ak_xml_attr(xst, code, _s_dae_sid);
+
+      ak_xml_readsid(xst, code);
+
       code->val = ak_xml_val(xst, code);
 
       if (last_code) {
@@ -233,7 +235,9 @@ ak_dae_profile(AkXmlState * __restrict xst,
       inc = ak_heap_calloc(xst->heap,
                            profile,
                            sizeof(*inc));
-      inc->sid = ak_xml_attr(xst, inc, _s_dae_sid);
+
+      ak_xml_readsid(xst, inc);
+
       inc->url = ak_xml_attr(xst, inc, _s_dae_url);
 
       if (!inc->url)

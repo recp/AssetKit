@@ -351,24 +351,6 @@ typedef struct AkTreeNode {
 
 typedef struct AkTreeNode AkTree;
 
-#ifdef _ak_DEF_BASIC_ATTR
-#  undef _ak_DEF_BASIC_ATTR
-#endif
-
-#define _ak_DEF_BASIC_ATTR(T, P)                                             \
-typedef struct ak_basic_attr ## P ## _s ak_basic_attr ## P;                 \
-struct ak_basic_attr ## P ## _s {                                            \
-  const char * sid;                                                           \
-  T            val;                                                           \
-}
-
-_ak_DEF_BASIC_ATTR(float, f);
-_ak_DEF_BASIC_ATTR(double, d);
-_ak_DEF_BASIC_ATTR(long, l);
-_ak_DEF_BASIC_ATTR(const char *, s);
-
-#undef _ak_DEF_BASIC_ATTR
-
 #include "ak-source.h"
 
 typedef struct AkUnit {
@@ -383,14 +365,9 @@ typedef struct AkColorRGBA {
   AkFloat A;
 } AkColorRGBA;
 
-typedef union AkColorU {
+typedef union AkColor {
   AkColorRGBA rgba;
   AkFloat4    vec;
-} AkColorU;
-
-typedef struct AkColor {
-  const char * sid;
-  AkColorU color;
 } AkColor;
 
 typedef struct AkContributor {
@@ -471,11 +448,11 @@ typedef struct AkPerspective {
 } AkPerspective;
 
 typedef struct AkOrthographic {
-  ak_basic_attrf * xmag;
-  ak_basic_attrf * ymag;
-  ak_basic_attrf * aspectRatio;
-  ak_basic_attrf * znear;
-  ak_basic_attrf * zfar;
+  float xmag;
+  float ymag;
+  float aspectRatio;
+  float znear;
+  float zfar;
 } AkOrthographic;
 
 typedef struct AkOptics {
@@ -500,28 +477,23 @@ typedef struct AkCamera {
   struct AkCamera * next;
 } AkCamera;
 
-typedef struct AkAmbient {
-  AkColor color;
-} AkAmbient;
-
-typedef struct AkDirectional {
-  AkColor color;
-} AkDirectional;
+typedef AkColor AkAmbient;
+typedef AkColor AkDirectional;
 
 typedef struct AkPoint {
-  AkColor          color;
-  ak_basic_attrd * constantAttenuation;
-  ak_basic_attrd * linearAttenuation;
-  ak_basic_attrd * quadraticAttenuation;
+  AkColor color;
+  float   constantAttenuation;
+  float   linearAttenuation;
+  float   quadraticAttenuation;
 } AkPoint;
 
 typedef struct AkSpot {
-  AkColor          color;
-  ak_basic_attrd * constantAttenuation;
-  ak_basic_attrd * linearAttenuation;
-  ak_basic_attrd * quadraticAttenuation;
-  ak_basic_attrd * falloffAngle;
-  ak_basic_attrd * falloffExponent;
+  AkColor color;
+  float   constantAttenuation;
+  float   linearAttenuation;
+  float   quadraticAttenuation;
+  float   falloffAngle;
+  float   falloffExponent;
 } AkSpot;
 
 typedef struct AkLight {
@@ -549,9 +521,10 @@ typedef struct AkParam {
 } AkParam;
 
 typedef struct AkParamEx {
+  /* const char * sid; */
+
   AkParam      base;
   const char * name;
-  const char * sid;
   const char * semantic;
   const char * typeName;
   AkValueType  type;
@@ -635,10 +608,10 @@ typedef struct AkImageCube {
 typedef struct AkImage {
   ak_asset_base
 
-  /* const char * id; */
-  const char * sid;
-  const char * name;
+  /* const char * id;  */
+  /* const char * sid; */
 
+  const char  * name;
   AkInitFrom  * initFrom;
   AkImage2d   * image2d;
   AkImage3d   * image3d;
@@ -651,17 +624,19 @@ typedef struct AkImage {
 } AkImage;
 
 typedef struct AkInstanceBase {
+  /* const char * sid; */
+
   AkURL       url;
   void       *object;
-  const char *sid;
   const char *name;
   AkTree     *extra;
 } AkInstanceBase;
 
 typedef struct AkInstanceImage {
+  /* const char * sid; */
+
   AkURL        url;
   AkImage    * image;
-  const char * sid;
   const char * name;
 
   AkTree * extra;
@@ -729,8 +704,8 @@ typedef AkFxColorOrTex AkSpecular;
 typedef AkFxColorOrTex AkTransparent;
 
 typedef struct AkFxFloatOrParam {
-  ak_basic_attrf * val;
-  AkParam        * param;
+  float   *val;
+  AkParam *param;
 } AkFxFloatOrParam;
 
 typedef AkFxFloatOrParam AkIndexOfRefraction;
@@ -747,7 +722,7 @@ typedef struct AkAnnotate {
 } AkAnnotate;
 
 typedef struct AkNewParam {
-  const char * sid;
+  /* const char * sid; */
   AkAnnotate * annotate;
   const char * semantic;
   void       * val;
@@ -766,14 +741,16 @@ typedef struct AkSetParam {
 } AkSetParam;
 
 typedef struct AkCode {
-  const char * sid;
+  /* const char * sid; */
+
   const char * val;
 
   struct AkCode * next;
 } AkCode;
 
 typedef struct AkInclude {
-  const char * sid;
+  /* const char * sid; */
+
   const char * url;
 
   struct AkInclude * next;
@@ -949,7 +926,8 @@ typedef struct AkProgram {
 typedef struct AkPass {
   ak_asset_base
 
-  const char * sid;
+  /* const char * sid; */
+
   AkAnnotate * annotate;
   AkStates   * states;
   AkEvaluate * evaluate;
@@ -962,8 +940,8 @@ typedef struct AkPass {
 typedef struct AkTechniqueFx {
   ak_asset_base
 
-  /* const char   * id; */
-  const char   * sid;
+  /* const char * id; */
+  /* const char * sid; */
   AkAnnotate   * annotate;
   AkBlinn      * blinn;
   AkConstantFx * constant;
@@ -1050,9 +1028,10 @@ typedef struct AkTechniqueHint {
 } AkTechniqueHint;
 
 typedef struct AkInstanceEffect {
+  /* const char * sid; */
+
   AkURL        url;
   AkEffect   * effect;
-  const char * sid;
   const char * name;
 
   AkTechniqueHint * techniqueHint;
@@ -1247,7 +1226,8 @@ typedef struct AkSweptSurface {
 } AkSweptSurface;
 
 typedef struct AkSurface {
-  const char * sid;
+  /* const char * sid; */
+
   const char * name;
 
   AkObject       * surface;
@@ -1410,34 +1390,36 @@ typedef struct AkController {
 } AkController;
 
 typedef struct AkLookAt {
-  const char * sid;
+  /* const char * sid; */
+
   AkFloat3     val[3];
 } AkLookAt;
 
 typedef struct AkMatrix {
-  const char          *sid;
+  /* const char * sid; */
+
   AK_ALIGN(16) AkFloat val[4][4];
 } AkMatrix;
 
 typedef struct AkRotate {
-  const char * sid;
+  /* const char * sid; */
   AK_ALIGN(16) AkFloat val[4];
 } AkRotate;
 
 typedef struct AkScale {
-  const char * sid;
+  /* const char * sid; */
   AkFloat      val[3];
 } AkScale;
 
 typedef struct AkSkew {
-  const char * sid;
+  /* const char * sid; */
   AkFloat      angle;
   AkFloat3     rotateAxis;
   AkFloat3     aroundAxis;
 } AkSkew;
 
 typedef struct AkTranslate {
-  const char * sid;
+  /* const char * sid; */
   AkFloat      val[3];
 } AkTranslate;
 
@@ -1503,9 +1485,10 @@ typedef struct AkInstanceNode {
 struct AkNode {
   ak_asset_base
 
-  /* const char * id; */
+  /* const char * id;  */
+  /* const char * sid; */
+
   const char * name;
-  const char * sid;
   AkNodeType   nodeType;
   AkStringArray        * layer;
   AkObject             * transform;
@@ -1541,9 +1524,10 @@ typedef struct AkBindVertexInput {
 typedef struct AkInstanceMaterial {
   ak_asset_base
 
+  /* const char * sid; */
+
   AkURL                 url;
   AkMaterial          * material;
-  const char          * sid;
   const char          * name;
   const char          * target;
   const char          * symbol;
@@ -1572,8 +1556,9 @@ typedef struct AkEvaluateScene {
   ak_asset_base
 
   /* const char * id; */
+  /* const char * sid; */
+
   const char * name;
-  const char * sid;
   AkRender   * render;
   AkTree     * extra;
   AkBool       enable;

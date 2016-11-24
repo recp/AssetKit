@@ -123,8 +123,9 @@ ak_dae_param(AkXmlState * __restrict xst,
                               memParent,
                               sizeof(AkParamEx));
 
+    ak_xml_readsid(xst, param_ex);
+
     param_ex->name     = ak_xml_attr(xst, param_ex, _s_dae_name);
-    param_ex->sid      = ak_xml_attr(xst, param_ex, _s_dae_sid);
     param_ex->semantic = ak_xml_attr(xst, param_ex, _s_dae_semantic);
     param_ex->typeName = ak_xml_attr(xst, param_ex, _s_dae_type);
 

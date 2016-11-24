@@ -111,13 +111,16 @@ ak_coordRotNodeForFixCamOri(AkDoc     *doc,
   /* rotation for forward direction */
   if (fwdAxis[3] != 0.0f) {
     transformFwd = ak_objAlloc(heap,
-                            memparent,
-                            sizeof(*rotate),
-                            AK_NODE_TRANSFORM_TYPE_ROTATE,
-                            true);
+                               memparent,
+                               sizeof(*rotate),
+                               AK_NODE_TRANSFORM_TYPE_ROTATE,
+                               true);
 
     rotate = ak_objGet(transformFwd);
-    rotate->sid = ak_heap_strdup(heap, transformFwd, "ak-cam-fix-rot1");
+
+    ak_sid_set(transformFwd, ak_heap_strdup(heap,
+                                            transformFwd,
+                                            "ak-cam-fix-rot1"));
     glm_vec4_dup(fwdAxis, rotate->val);
 
     *destTransform = transformFwd;
@@ -132,7 +135,11 @@ ak_coordRotNodeForFixCamOri(AkDoc     *doc,
                                true);
 
     rotate = ak_objGet(transformUp);
-    rotate->sid = ak_heap_strdup(heap, transformUp, "ak-cam-fix-rot2");
+
+    ak_sid_set(transformUp, ak_heap_strdup(heap,
+                                           transformUp,
+                                           "ak-cam-fix-rot2"));
+
     glm_vec4_dup(fwdAxis, rotate->val);
 
     if (*destTransform)

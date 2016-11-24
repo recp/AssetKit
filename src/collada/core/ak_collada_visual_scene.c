@@ -106,7 +106,8 @@ ak_dae_instanceVisualScene(AkXmlState * __restrict xst,
                                memParent,
                                sizeof(*visualScene));
 
-  visualScene->base.sid = ak_xml_attr(xst, visualScene, _s_dae_sid);
+  ak_xml_readsid(xst, visualScene);
+  
   visualScene->base.name = ak_xml_attr(xst, visualScene, _s_dae_name);
 
   ak_xml_attr_url(xst->reader,

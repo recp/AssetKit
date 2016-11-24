@@ -23,6 +23,11 @@ ak_sid_geta(void *memnode,
 
 AK_EXPORT
 void
+ak_sid_dup(void *newMemnode,
+           void *oldMemnode);
+
+AK_EXPORT
+void
 ak_sid_set(void       *memnode,
            const char * __restrict sid);
 

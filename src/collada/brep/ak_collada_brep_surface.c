@@ -38,7 +38,8 @@ ak_dae_surface(AkXmlState * __restrict xst,
                            memParent,
                            sizeof(*surface));
 
-  surface->sid  = ak_xml_attr(xst, surface, _s_dae_sid);
+  ak_xml_readsid(xst, surface);
+
   surface->name = ak_xml_attr(xst, surface, _s_dae_name);
 
   if (surfaceMapLen == 0) {
