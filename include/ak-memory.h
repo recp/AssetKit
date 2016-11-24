@@ -191,6 +191,12 @@ ak_heap_setId(AkHeap * __restrict heap,
 
 AK_EXPORT
 AkResult
+ak_heap_getNodeById(AkHeap * __restrict heap,
+                    void * __restrict memId,
+                    AkHeapNode ** __restrict dest);
+
+AK_EXPORT
+AkResult
 ak_heap_getMemById(AkHeap * __restrict heap,
                    void * __restrict memId,
                    void ** __restrict dest);

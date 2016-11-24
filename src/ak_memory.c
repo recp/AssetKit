@@ -698,6 +698,27 @@ ak_heap_setId(AkHeap * __restrict heap,
 
 AK_EXPORT
 AkResult
+ak_heap_getNodeById(AkHeap * __restrict heap,
+                    void * __restrict memId,
+                    AkHeapNode ** __restrict dest) {
+  AkHeapSrchNode *srchNode;
+
+  srchNode = ak_heap_rb_find(heap->srchctx, memId);
+  if (!srchNode || srchNode == heap->srchctx->nullNode) {
+    *dest = NULL;
+    return AK_EFOUND;
+  }
+
+  *dest = AK__HEAPNODE(srchNode);
+
+  if (!*dest)
+    return AK_EFOUND;
+
+  return AK_OK;
+}
+
+AK_EXPORT
+AkResult
 ak_heap_getMemById(AkHeap * __restrict heap,
                    void * __restrict memId,
                    void ** __restrict dest) {
