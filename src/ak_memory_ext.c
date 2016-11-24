@@ -17,7 +17,6 @@ ak_heap_ext_setid(AkHeap * __restrict heap,
   AkHeapNodeExt   *extNode;
   AkHeapSrchNode  *snode;
   AkHeapNodeExt   *extNodeR;
-  AkSIDNode       *sidNode;
   size_t           snodeSize;
 
   alc       = heap->allocator;
@@ -41,7 +40,6 @@ ak_heap_ext_setid(AkHeap * __restrict heap,
     goto done;
   }
 
-  sidNode  = (AkSIDNode *)(extNode->data + 1);
   extNodeR = alc->realloc(extNode,
                           sizeof(*extNodeR)
                           + snodeSize
@@ -78,7 +76,6 @@ ak_heap_ext_unsetid(AkHeap * __restrict heap,
   AkHeapAllocator *alc;
   AkHeapNodeExt   *extNode;
   AkHeapNodeExt   *extNodeR;
-  AkSIDNode       *sidNode;
   size_t           snodeSize;
 
   alc       = heap->allocator;
@@ -103,7 +100,6 @@ ak_heap_ext_unsetid(AkHeap * __restrict heap,
     return;
   }
 
-  sidNode  = (AkSIDNode *)(extNode->data + snodeSize + 1);
   extNodeR = alc->realloc(extNode,
                           sizeof(*extNodeR)
                           + sizeof(AkSIDNode)
