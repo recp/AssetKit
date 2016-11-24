@@ -106,6 +106,7 @@ libassetkit_la_SOURCES=\
     src/collada/core/ak_collada_evaluate_scene.c \
     src/collada/core/ak_collada_render.c \
     src/collada/core/ak_collada_scene.c \
+    src/collada/core/ak_collada_accessor.c \
     src/collada/brep/ak_collada_brep.c \
     src/collada/brep/ak_collada_brep_curve.c \
     src/collada/brep/ak_collada_brep_nurbs.c \

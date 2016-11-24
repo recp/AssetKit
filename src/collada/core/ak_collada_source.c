@@ -8,6 +8,7 @@
 #include "ak_collada_source.h"
 #include "../core/ak_collada_asset.h"
 #include "../core/ak_collada_technique.h"
+#include "../core/ak_collada_accessor.h"
 
 #define k_s_dae_asset        100
 #define k_s_dae_techniquec   101
@@ -32,9 +33,8 @@ AkResult _assetkit_hide
 ak_dae_source(AkXmlState * __restrict xst,
               void * __restrict memParent,
               AkSource ** __restrict dest) {
-  AkSource          *source;
-  AkTechnique       *last_tq;
-  AkTechniqueCommon *last_tc;
+  AkSource    *source;
+  AkTechnique *last_tq;
 
   source = ak_heap_calloc(xst->heap, memParent, sizeof(*source));
 
@@ -53,7 +53,6 @@ ak_dae_source(AkXmlState * __restrict xst,
   }
 
   last_tq = NULL;
-  last_tc = NULL;
 
   do {
     const ak_enumpair *found;
@@ -266,20 +265,20 @@ ak_dae_source(AkXmlState * __restrict xst,
         break;
       }
       case k_s_dae_techniquec: {
-        AkTechniqueCommon *tc;
-        AkResult ret;
+        AkAccessor *accessor;
 
-        tc = NULL;
-        ret = ak_dae_techniquec(xst, source, &tc);
-        if (ret == AK_OK) {
-          if (last_tc)
-            last_tc->next = tc;
-          else
-            source->techniqueCommon = tc;
+        do {
+          if (ak_xml_beginelm(xst, _s_dae_techniquec))
+            break;
 
-          last_tc = tc;
-        }
-        
+          if (ak_xml_eqelm(xst, _s_dae_accessor))
+            if (ak_dae_accessor(xst, source, &accessor) == AK_OK)
+              source->techniqueCommon = accessor;
+          
+          /* end element */
+          ak_xml_endelm(xst);
+        } while (xst->nodeRet);
+
         break;
       }
       case k_s_dae_technique: {

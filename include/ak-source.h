@@ -11,6 +11,11 @@
 extern "C" {
 #endif
 
+struct AkDataParam;
+struct AkTechnique;
+struct AkTechniqueCommon;
+struct AkAssetInf;
+
 typedef enum AkSourceArrayType {
   AK_SOURCE_ARRAY_TYPE_BOOL   = 1,
   AK_SOURCE_ARRAY_TYPE_FLOAT  = 2,
@@ -22,15 +27,12 @@ typedef enum AkSourceArrayType {
 } AkSourceArrayType;
 
 typedef struct AkAccessor {
-  const char *source;
-  uint32_t    count;
-  uint32_t    offset;
-  uint32_t    stride;
+  AkURL    source;
+  uint32_t count;
+  uint32_t offset;
+  uint32_t stride;
+  struct AkDataParam *param;
 } AkAccessor;
-
-struct AkTechnique;
-struct AkTechniqueCommon;
-struct AkAssetInf;
 
 typedef struct AkSource {
   /* const char * id; */
