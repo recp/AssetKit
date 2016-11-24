@@ -32,4 +32,10 @@ ak_sid_seta(void       *memnode,
             void       *memptr,
             const char * __restrict sid);
 
+AK_EXPORT
+void *
+ak_sid_resolve(AkDoc * __restrict doc,
+               void  * __restrict sender,
+               const char * __restrict sid);
+
 #endif /* ak_sid_h */

@@ -55,11 +55,12 @@ typedef enum AkHeapFlags {
 } AkHeapFlags;
 
 typedef enum AkHeapNodeFlags {
-  AK_HEAP_NODE_FLAGS_NONE = 0,
-  AK_HEAP_NODE_FLAGS_SRCH = 1 << 0,
-  AK_HEAP_NODE_FLAGS_RED  = 1 << 1,
-  AK_HEAP_NODE_FLAGS_SID  = 1 << 2,
-  AK_HEAP_NODE_FLAGS_EXT  = 1 << 3
+  AK_HEAP_NODE_FLAGS_NONE     = 0,
+  AK_HEAP_NODE_FLAGS_SRCH     = 1 << 0,
+  AK_HEAP_NODE_FLAGS_RED      = 1 << 1,
+  AK_HEAP_NODE_FLAGS_SID      = 1 << 2,  /* memory node has sid (itself)  */
+  AK_HEAP_NODE_FLAGS_EXT      = 1 << 3,
+  AK_HEAP_NODE_FLAGS_SID_CHLD = 1 << 4   /* least one of children has sid */
 } AkHeapNodeFlags;
 
 AK_EXPORT

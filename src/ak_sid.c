@@ -11,6 +11,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+void * _assetkit_hide
+ak_sid_resolve_attr(AkHeapNode *heapNode,
+                    uintptr_t   off,
+                    const char *attr);
+
 AK_EXPORT
 const char *
 ak_sid_get(void *memnode) {
@@ -78,6 +83,15 @@ ak_sid_set(void       *memnode,
 
   sidnode->sid = sid;
 
+  /* mark parents */
+  while (heapNode->prev) {
+    /* we foound parent */
+    if (ak_heap_chld(heapNode->prev) == heapNode)
+      heapNode->prev->flags |= AK_HEAP_NODE_FLAGS_SID_CHLD;
+
+    heapNode = heapNode->next;
+  }
+
   /* TODO: invalidate refs */
 }
 
@@ -129,5 +143,169 @@ ak_sid_seta(void       *memnode,
   sidptr += sizeof(uint16_t);
   *(uintptr_t *)sidptr = (uintptr_t)sid;
 
+  /* mark parents */
+  while (heapNode->prev) {
+    /* we foound parent */
+    if (ak_heap_chld(heapNode->prev) == heapNode)
+      heapNode->prev->flags |= AK_HEAP_NODE_FLAGS_SID_CHLD;
+
+    heapNode = heapNode->prev;
+  }
+
   /* TODO: invalidate refs */
+}
+
+AK_EXPORT
+void *
+ak_sid_resolve(AkDoc * __restrict doc,
+               void  * __restrict sender,
+               const char * __restrict sid) {
+  AkHeap      *heap;
+  AkHeapNode  *idnode, *sidnode, *it;
+  char        *siddup, *sid_it, *saveptr;
+  void        *found;
+  AkHeapNode **buf[2];
+  size_t       bufl[2], bufc[2], bufi[2];
+  int          bufidx;
+  AkResult     r;
+  uint16_t     off;
+
+  off     = 0;
+  sidnode = NULL;
+  found   = NULL;
+  heap    = ak_heap_getheap(doc);
+  siddup  = strdup(sid);
+
+  sid_it = strtok_r(siddup, "/ \t", &saveptr);
+
+  if (*sid_it == '.') {
+    /* .[attr] */
+    if (!strchr(sid, '/'))  {
+      sid_it++;
+      sidnode = sender;
+      goto ret;
+    }
+
+    /* ./sid.../sid.[attr] */
+    idnode = ak__alignof(sender);
+  } else {
+    r = ak_heap_getNodeById(heap, sid_it, &idnode);
+    if (r != AK_OK || !idnode)
+      goto err;
+  }
+
+  bufi[0] = bufi[1] = bufc[0] = bufc[1] = bufidx = 0;
+  bufl[0] = bufl[1] = 4; /* start point */
+
+  buf[0] = malloc(sizeof(*buf[0]) * bufl[0]);
+  buf[1] = malloc(sizeof(*buf[0]) * bufl[0]);
+
+  buf[bufidx][bufi[bufidx]] = ak_heap_chld(idnode);
+
+  sid_it = strtok_r(NULL, "/ \t", &saveptr); /* first sid */
+  bufc[bufidx] = 1;
+
+  /* breadth-first search */
+  while (bufc[bufidx] > 0) {
+
+    it = buf[bufidx][bufi[bufidx]];
+
+    while (it) {
+      if (it->flags & AK_HEAP_NODE_FLAGS_SID) {
+        AkSIDNode *snode;
+
+        snode = ak_heap_ext_sidnode(it);
+        if (snode->sid && strcmp(snode->sid, sid_it) == 0) {
+          char *tok;
+
+          sidnode = it;
+
+          /* go for next */
+          tok = strtok_r(NULL, "/ \t", &saveptr);
+          if (!tok)
+            goto ret;
+
+          sid_it = tok;
+        }
+
+        /* check attrs */
+        if (snode->sids) {
+          char  *p, *end;
+          size_t c;
+
+          c   = *(size_t *)snode->sids;
+          p   = (char *)snode->sids + sizeof(size_t);
+          end = p + c * (sizeof(char **) + sizeof(uint16_t));
+
+          while (p != end) {
+            off = *(uint16_t *)p;
+            p  += sizeof(uint16_t);
+
+            /* found sid in attr */
+            if (strcmp(*(char **)p, sid_it) == 0) {
+              char *tok;
+
+              sidnode = it;
+
+              /* there is no way to go down */
+              tok = strtok_r(NULL, "/ \t", &saveptr);
+              if (tok)
+                goto err;
+
+              goto ret;
+            }
+
+            p += sizeof(char **) + sizeof(uint16_t);
+          }
+        }
+      }
+
+      if (it->flags & AK_HEAP_NODE_FLAGS_SID_CHLD) {
+        /* keep all children */
+        AkHeapNode *it2;
+
+        it2 = ak_heap_chld(it);
+        while (it2) {
+
+          if (bufi[!bufidx] == bufl[!bufidx]) {
+            bufl[!bufidx] += 16;
+            buf[!bufidx]   = realloc(buf[!bufidx],
+                                     bufl[!bufidx]);
+          }
+
+          buf[!bufidx][bufi[!bufidx]] = it2;
+          bufi[!bufidx]++;
+          bufc[!bufidx]++;
+
+          it2 = it2->next;
+        }
+      }
+
+      it = it->next;
+    }
+
+    if (++bufi[bufidx] == bufc[bufidx]) {
+      bufc[bufidx] = bufi[bufidx] = bufi[!bufidx] = 0;
+      bufidx       = !bufidx;
+    }
+  }
+
+ret:
+  found = ak_sid_resolve_attr(sidnode,
+                              off,
+                              sid_it);
+err:
+  free(buf[0]);
+  free(buf[1]);
+  free(siddup);
+
+  return found;
+}
+
+void * _assetkit_hide
+ak_sid_resolve_attr(AkHeapNode *heapNode,
+                    uintptr_t   off,
+                    const char *attr) {
+  return heapNode->data;
+  return NULL;
 }
