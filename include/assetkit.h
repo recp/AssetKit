@@ -1542,8 +1542,9 @@ typedef struct AkInstanceMaterial {
 typedef struct AkRender {
   ak_asset_base
 
+  /* const char * sid; */
+
   const char     * name;
-  const char     * sid;
   const char     * cameraNode;
   AkStringArrayL * layer;
   AkInstanceMaterial * instanceMaterial;
