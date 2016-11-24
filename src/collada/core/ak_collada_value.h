@@ -16,7 +16,8 @@ ak_dae_value(AkXmlState * __restrict xst,
              void ** __restrict dest,
              AkValueType * __restrict val_type);
 
-AkEnum _assetkit_hide
-ak_dae_valueType(const char * typeName);
+void _assetkit_hide
+ak_dae_dataType(const char *typeName,
+                AkDataType *type);
 
 #endif /* __libassetkit__ak_collada_value__h_ */

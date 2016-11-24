@@ -18,8 +18,12 @@ ak_dae_newparam(AkXmlState * __restrict xst,
 AkResult _assetkit_hide
 ak_dae_param(AkXmlState * __restrict xst,
              void * __restrict memParent,
-             AkParamType paramType,
              AkParam ** __restrict dest);
+
+AkResult _assetkit_hide
+ak_dae_dataparam(AkXmlState * __restrict xst,
+                 void * __restrict memParent,
+                 AkDataParam ** __restrict dest);
 
 AkResult _assetkit_hide
 ak_dae_setparam(AkXmlState * __restrict xst,

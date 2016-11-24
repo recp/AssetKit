@@ -92,7 +92,6 @@ ak_dae_fxEvaluate(AkXmlState * __restrict xst,
 
             ret = ak_dae_param(xst,
                                evaluate_target,
-                               AK_PARAM_TYPE_BASIC,
                                &param);
 
             if (ret == AK_OK)

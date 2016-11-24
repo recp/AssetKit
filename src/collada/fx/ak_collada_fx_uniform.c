@@ -34,7 +34,6 @@ ak_dae_fxBindUniform(AkXmlState * __restrict xst,
 
       ret = ak_dae_param(xst,
                          bindUniform,
-                         AK_PARAM_TYPE_BASIC,
                          &param);
 
       if (ret == AK_OK) {

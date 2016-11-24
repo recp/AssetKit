@@ -514,21 +514,24 @@ typedef struct AkLight {
  * base type of param
  */
 typedef struct AkParam {
-  AkParamType  paramType;
-  const char * ref;
-
-  struct AkParam * next;
+  const char     *ref;
+  struct AkParam *next;
 } AkParam;
 
-typedef struct AkParamEx {
+typedef struct AkDataType {
+  const char *typeName;
+  AkValueType type;
+  int         size;
+} AkDataType;
+
+typedef struct AkDataParam {
   /* const char * sid; */
 
-  AkParam      base;
-  const char * name;
-  const char * semantic;
-  const char * typeName;
-  AkValueType  type;
-} AkParamEx;
+  struct AkDataParam *next;
+  const char         *name;
+  const char         *semantic;
+  AkDataType          type;
+} AkDataParam;
 
 typedef struct AkHexData {
   const char * format;

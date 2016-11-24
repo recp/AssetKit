@@ -105,47 +105,45 @@ ak_dae_newparam(AkXmlState * __restrict xst,
 AkResult _assetkit_hide
 ak_dae_param(AkXmlState * __restrict xst,
              void * __restrict memParent,
-             AkParamType paramType,
              AkParam ** __restrict dest) {
   AkParam *param;
 
   xst->nodeType = xmlTextReaderNodeType(xst->reader);
 
-  if (paramType == AK_PARAM_TYPE_BASIC) {
-    param = ak_heap_calloc(xst->heap,
-                           memParent,
-                           sizeof(AkParam));
+  param = ak_heap_calloc(xst->heap,
+                         memParent,
+                         sizeof(AkParam));
 
-    param->ref = ak_xml_attr(xst, param, _s_dae_ref);
-  } else if (paramType == AK_PARAM_TYPE_EXTENDED) {
-    AkParamEx *param_ex;
-    param_ex = ak_heap_calloc(xst->heap,
-                              memParent,
-                              sizeof(AkParamEx));
-
-    ak_xml_readsid(xst, param_ex);
-
-    param_ex->name     = ak_xml_attr(xst, param_ex, _s_dae_name);
-    param_ex->semantic = ak_xml_attr(xst, param_ex, _s_dae_semantic);
-    param_ex->typeName = ak_xml_attr(xst, param_ex, _s_dae_type);
-
-    if (param_ex->typeName)
-      param_ex->type = ak_dae_valueType(param_ex->typeName);
-
-    param = &param_ex->base;
-  } else {
-    goto err;
-  }
+  param->ref = ak_xml_attr(xst, param, _s_dae_ref);
 
   *dest = param;
   ak_xml_endelm(xst);
 
   return AK_OK;
+}
 
-err:
+AkResult _assetkit_hide
+ak_dae_dataparam(AkXmlState * __restrict xst,
+                 void * __restrict memParent,
+                 AkDataParam ** __restrict dest) {
+  AkDataParam *dataParam;
 
+  dataParam = ak_heap_calloc(xst->heap,
+                             memParent,
+                             sizeof(AkDataParam));
+
+  ak_xml_readsid(xst, dataParam);
+
+  dataParam->name     = ak_xml_attr(xst, dataParam, _s_dae_name);
+  dataParam->semantic = ak_xml_attr(xst, dataParam, _s_dae_semantic);
+
+  ak_dae_dataType(ak_xml_attr(xst, dataParam, _s_dae_type),
+                  &dataParam->type);
+
+  *dest = dataParam;
   ak_xml_endelm(xst);
-  return AK_ERR;
+
+  return AK_OK;
 }
 
 AkResult _assetkit_hide

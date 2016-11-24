@@ -46,7 +46,6 @@ ak_dae_floatOrParam(AkXmlState * __restrict xst,
 
       ret = ak_dae_param(xst,
                          floatOrParam,
-                         AK_PARAM_TYPE_BASIC,
                          &param);
 
       if (ret == AK_OK) {
