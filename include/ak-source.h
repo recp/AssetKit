@@ -11,7 +11,6 @@
 extern "C" {
 #endif
 
-struct AkDataParam;
 struct AkTechnique;
 struct AkTechniqueCommon;
 struct AkAssetInf;
@@ -25,6 +24,21 @@ typedef enum AkSourceArrayType {
   AK_SOURCE_ARRAY_TYPE_SIDREF = 6,
   AK_SOURCE_ARRAY_TYPE_TOKEN  = 7
 } AkSourceArrayType;
+
+typedef struct AkDataType {
+  const char *typeName;
+  AkValueType type;
+  int         size;
+} AkDataType;
+
+typedef struct AkDataParam {
+  /* const char * sid; */
+
+  struct AkDataParam *next;
+  const char         *name;
+  const char         *semantic;
+  AkDataType          type;
+} AkDataParam;
 
 typedef struct AkAccessor {
   AkURL    source;

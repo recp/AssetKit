@@ -518,21 +518,6 @@ typedef struct AkParam {
   struct AkParam *next;
 } AkParam;
 
-typedef struct AkDataType {
-  const char *typeName;
-  AkValueType type;
-  int         size;
-} AkDataType;
-
-typedef struct AkDataParam {
-  /* const char * sid; */
-
-  struct AkDataParam *next;
-  const char         *name;
-  const char         *semantic;
-  AkDataType          type;
-} AkDataParam;
-
 typedef struct AkHexData {
   const char * format;
   const char * val;
