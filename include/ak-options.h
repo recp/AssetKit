@@ -12,7 +12,7 @@ typedef enum AkOption {
   AK_OPTION_SOURCE_FIX_NONE        = 0,  /* false */
   AK_OPTION_SOURCE_FIX_INTERLEAVED = 1,  /* true  */
   AK_OPTION_SOURCE_FIX_INDIVIDUAL  = 2,  /* true  */
-  AK_OPTION_COORD                  = 3
+  AK_OPTION_COORD                  = 3   /* Y_UP  */
 } AkOption;
 
 AK_EXPORT
