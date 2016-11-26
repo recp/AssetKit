@@ -259,7 +259,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
   *dest = doc;
 
   /* now set used coordSys */
-  doc->coordSys = ak_defaultCoordSys();
+  doc->coordSys = (void *)ak_opt_get(AK_OPTION_COORD);
 
   return AK_OK;
 }

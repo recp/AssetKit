@@ -11,6 +11,8 @@
 #define AK_INTERN
 
 #include "../include/assetkit.h"
+#include "../include/ak-options.h"
+
 #include <stddef.h>
 #include <sys/types.h>
 #include <string.h>

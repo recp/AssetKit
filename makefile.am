@@ -39,7 +39,9 @@ include_HEADERS = include/assetkit.h \
                   include/ak-cam.h \
                   include/ak-source.h \
                   include/ak-path.h \
-                  include/ak-url.h
+                  include/ak-url.h \
+                  include/ak-sid.h \
+                  include/ak-options.h
 
 libassetkit_la_SOURCES=\
     src/assetkit.c \
@@ -68,7 +70,8 @@ libassetkit_la_SOURCES=\
     src/resc/ak_resource.c \
     src/resc/ak_url.c \
     src/instance/ak_inst_geom.c \
-    src/default/ak_default_coord.c \
+    src/default/ak_def_coord.c \
+    src/default/ak_def_opt.c \
     src/geom/ak_geom_mesh.c \
     src/transform/ak_trans.c \
     src/transform/ak_trans_dup.c \

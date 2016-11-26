@@ -79,14 +79,6 @@ ak_coordOrientationIsEq(AkCoordSys *c1, AkCoordSys *c2) {
 }
 
 AK_EXPORT
-AkCoordSys *
-ak_defaultCoordSys();
-
-AK_EXPORT
-void
-ak_defaultSetCoordSys(AkCoordSys * coordsys);
-
-AK_EXPORT
 void
 ak_coordCvtVector(AkCoordSys *oldCoordSystem,
                   float      *vector,

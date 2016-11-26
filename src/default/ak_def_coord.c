@@ -30,15 +30,3 @@ AkCoordSys *AK_YUP_LH   = AK_COORD(AK__Y_LH, AK_AXIS_ROT_DIR_LH, {AK__Y_LH});
 AkCoordSys *AK_XUP_LH   = AK_COORD(AK__X_LH, AK_AXIS_ROT_DIR_LH, {AK__Y_LH});
 
 AkCoordSys *AK_DEFAULT_COORD = &AK__Y_RH_VAL;
-
-AK_EXPORT
-void
-ak_defaultSetCoordSys(AkCoordSys * coordsys) {
-  AK_DEFAULT_COORD = coordsys;
-}
-
-AK_EXPORT
-AkCoordSys *
-ak_defaultCoordSys() {
-  return AK_DEFAULT_COORD;
-}
