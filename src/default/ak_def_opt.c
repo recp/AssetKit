@@ -6,6 +6,7 @@
  */
 
 #include "ak_def_opt.h"
+#include <assert.h>
 
 extern AkCoordSys AK__Y_RH_VAL;
 
@@ -20,8 +21,7 @@ uintptr_t AK_OPTIONS[] =
 AK_EXPORT
 void
 ak_opt_set(AkOption option, uintptr_t value) {
-  if ((uint32_t)option >= AK_ARRAY_LEN(AK_OPTIONS))
-    return;
+  assert((uint32_t)option < AK_ARRAY_LEN(AK_OPTIONS));
 
   AK_OPTIONS[option] = value;
 }
@@ -29,8 +29,7 @@ ak_opt_set(AkOption option, uintptr_t value) {
 AK_EXPORT
 uintptr_t
 ak_opt_get(AkOption option) {
-  if ((uint32_t)option >= AK_ARRAY_LEN(AK_OPTIONS))
-    return 0;
+  assert((uint32_t)option < AK_ARRAY_LEN(AK_OPTIONS));
 
   return AK_OPTIONS[option];
 }
