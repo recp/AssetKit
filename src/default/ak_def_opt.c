@@ -12,10 +12,11 @@ extern AkCoordSys AK__Y_RH_VAL;
 
 uintptr_t AK_OPTIONS[] =
 {
-  false,                   /* 0: _SOURCE_FIX_NONE         */
-  true,                    /* 1: _SOURCE_FIX_INTERLEAVED  */
-  true,                    /* 2: _SOURCE_FIX_INDIVIDUAL   */
-  (uintptr_t)&AK__Y_RH_VAL /* 3: _COORD                   */
+  false,                   /* 0: _INDICES_NONE                */
+  true,                    /* 1: _INDICES_SINGLE_INTERLEAVED  */
+  true,                    /* 2: _INDICES_SINGLE_SEPARATE     */
+  true,                    /* 2: _INDICES_SINGLE              */
+  (uintptr_t)&AK__Y_RH_VAL /* 3: _COORD                       */
 };
 
 AK_EXPORT
