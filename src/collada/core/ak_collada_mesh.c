@@ -232,7 +232,9 @@ ak_dae_mesh(AkXmlState * __restrict xst,
     ak_xml_endelm(xst);
   } while (xst->nodeRet);
 
-  ak_dae_meshFixup(mesh);
+  if (!ak_opt_get(AK_OPT_INDICES_NONE))
+    ak_dae_meshFixup(mesh);
+
   *dest = mesh;
 
   return AK_OK;
