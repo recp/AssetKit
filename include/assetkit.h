@@ -1038,13 +1038,10 @@ typedef struct AkMaterial {
 } AkMaterial;
 
 typedef struct AkInputBasic {
-  ak_asset_base
-
-  AkURL        source;
-  const char * semanticRaw;
-  AkInputSemantic semantic;
-
-  struct AkInputBasic * next;
+  AkURL                source;
+  AkInputSemantic      semantic;
+  const char          *semanticRaw;
+  struct AkInputBasic *next;
 } AkInputBasic;
 
 typedef struct AkInput {
