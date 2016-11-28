@@ -1050,7 +1050,8 @@ typedef struct AkInputBasic {
 typedef struct AkInput {
   AkInputBasic base;
 
-  uint32_t offset;
+  uint32_t index;  /* index in VAO     */
+  uint32_t offset; /* index in indices */
   uint32_t set;
 } AkInput;
 

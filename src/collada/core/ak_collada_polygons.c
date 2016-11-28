@@ -17,6 +17,7 @@ ak_dae_polygon(AkXmlState * __restrict xst,
                AkPolygon ** __restrict dest) {
   AkPolygon *polygon;
   AkInput   *last_input;
+  int        inputIndex;
 
   polygon = ak_heap_calloc(xst->heap,
                            memParent,
@@ -37,6 +38,7 @@ ak_dae_polygon(AkXmlState * __restrict xst,
    */
 
   last_input = NULL;
+  inputIndex = 0;
 
   do {
     if (ak_xml_beginelm(xst, elm))
@@ -67,6 +69,7 @@ ak_dae_polygon(AkXmlState * __restrict xst,
 
       input->offset = ak_xml_attrui(xst, _s_dae_offset);
       input->set    = ak_xml_attrui(xst, _s_dae_set);
+      input->index  = inputIndex++;
 
       if (last_input)
         last_input->base.next = &input->base;
