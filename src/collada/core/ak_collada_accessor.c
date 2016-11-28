@@ -49,6 +49,9 @@ ak_dae_accessor(AkXmlState * __restrict xst,
           accessor->param = dataParam;
 
         last_param = dataParam;
+
+        if (dataParam->name)
+          accessor->bound++;
       }
     }
 

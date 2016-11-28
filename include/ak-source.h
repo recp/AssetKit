@@ -45,6 +45,7 @@ typedef struct AkAccessor {
   uint32_t count;
   uint32_t offset;
   uint32_t stride;
+  uint32_t bound;
   struct AkDataParam *param;
 } AkAccessor;
 
