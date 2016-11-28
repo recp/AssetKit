@@ -17,7 +17,6 @@ ak_dae_triangles(AkXmlState * __restrict xst,
                  AkTriangles ** __restrict dest) {
   AkTriangles *triangles;
   AkInput     *last_input;
-  int          inputIndex;
 
   triangles = ak_heap_calloc(xst->heap,
                              memParent,
@@ -31,7 +30,6 @@ ak_dae_triangles(AkXmlState * __restrict xst,
   triangles->count         = ak_xml_attrui64(xst, _s_dae_count);
 
   last_input = NULL;
-  inputIndex = 0;
 
   do {
     if (ak_xml_beginelm(xst, elm))
@@ -63,7 +61,6 @@ ak_dae_triangles(AkXmlState * __restrict xst,
 
       input->offset = ak_xml_attrui(xst, _s_dae_offset);
       input->set    = ak_xml_attrui(xst, _s_dae_set);
-      input->index  = inputIndex++;
 
       if (last_input)
         last_input->base.next = &input->base;

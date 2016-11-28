@@ -95,7 +95,6 @@ ak_dae_nurbs(AkXmlState * __restrict xst,
               inputSemantic = AK_INPUT_SEMANTIC_OTHER;
 
             input->semantic = inputSemantic;
-
           }
 
           if (last_input)

@@ -142,14 +142,12 @@ ak_dae_skin(AkXmlState * __restrict xst,
     } else if (ak_xml_eqelm(xst, _s_dae_vertex_weights)) {
       AkVertexWeights *vertexWeights;
       AkInput         *last_input;
-      int              inputIndex;
 
       vertexWeights = ak_heap_calloc(xst->heap,
                                      memPtr,
                                      sizeof(*vertexWeights));
 
       last_input = NULL;
-      inputIndex = 0;
 
       do {
         if (ak_xml_beginelm(xst, _s_dae_vertex_weights))
@@ -182,7 +180,6 @@ ak_dae_skin(AkXmlState * __restrict xst,
 
           input->offset = ak_xml_attrui(xst, _s_dae_offset);
           input->set    = ak_xml_attrui(xst, _s_dae_set);
-          input->index  = inputIndex++;
 
           if (last_input)
             last_input->base.next = &input->base;

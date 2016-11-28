@@ -15,7 +15,6 @@ ak_dae_edges(AkXmlState * __restrict xst,
              AkEdges ** __restrict dest) {
   AkEdges *edges;
   AkInput *last_input;
-  int      inputIndex;
 
   edges = ak_heap_calloc(xst->heap,
                          memParent,
@@ -26,7 +25,6 @@ ak_dae_edges(AkXmlState * __restrict xst,
   edges->count = ak_xml_attrui(xst, _s_dae_count);
 
   last_input = NULL;
-  inputIndex = 0;
 
   do {
     if (ak_xml_beginelm(xst, _s_dae_edges))
@@ -59,7 +57,6 @@ ak_dae_edges(AkXmlState * __restrict xst,
 
       input->offset = ak_xml_attrui(xst, _s_dae_offset);
       input->set    = ak_xml_attrui(xst, _s_dae_set);
-      input->index  = inputIndex++;
 
       if (last_input)
         last_input->base.next = &input->base;
@@ -119,7 +116,6 @@ ak_dae_wires(AkXmlState * __restrict xst,
              AkWires ** __restrict dest) {
   AkWires *wires;
   AkInput *last_input;
-  int      inputIndex;
 
   wires = ak_heap_calloc(xst->heap,
                          memParent,
@@ -130,7 +126,6 @@ ak_dae_wires(AkXmlState * __restrict xst,
   wires->count = ak_xml_attrui(xst, _s_dae_count);
 
   last_input = NULL;
-  inputIndex = 0;
 
   do {
     if (ak_xml_beginelm(xst, _s_dae_wires))
@@ -163,7 +158,6 @@ ak_dae_wires(AkXmlState * __restrict xst,
 
       input->offset = ak_xml_attrui(xst, _s_dae_offset);
       input->set    = ak_xml_attrui(xst, _s_dae_set);
-      input->index  = inputIndex++;
 
       if (last_input)
         last_input->base.next = &input->base;
@@ -239,7 +233,6 @@ ak_dae_faces(AkXmlState * __restrict xst,
              AkFaces ** __restrict dest) {
   AkFaces *faces;
   AkInput *last_input;
-  int      inputIndex;
 
   faces = ak_heap_calloc(xst->heap,
                          memParent,
@@ -250,7 +243,6 @@ ak_dae_faces(AkXmlState * __restrict xst,
   faces->count = ak_xml_attrui(xst, _s_dae_count);
 
   last_input = NULL;
-  inputIndex = 0;
 
   do {
     if (ak_xml_beginelm(xst, _s_dae_faces))
@@ -283,7 +275,6 @@ ak_dae_faces(AkXmlState * __restrict xst,
 
       input->offset = ak_xml_attrui(xst, _s_dae_offset);
       input->set    = ak_xml_attrui(xst, _s_dae_set);
-      input->index = inputIndex++;
 
       if (last_input)
         last_input->base.next = &input->base;
@@ -359,7 +350,6 @@ ak_dae_pcurves(AkXmlState * __restrict xst,
                AkPCurves ** __restrict dest) {
   AkPCurves *pcurves;
   AkInput   *last_input;
-  int        inputIndex;
 
   pcurves = ak_heap_calloc(xst->heap,
                            memParent,
@@ -370,7 +360,6 @@ ak_dae_pcurves(AkXmlState * __restrict xst,
   pcurves->count = ak_xml_attrui(xst, _s_dae_count);
 
   last_input = NULL;
-  inputIndex = 0;
 
   do {
     if (ak_xml_beginelm(xst, _s_dae_pcurves))
@@ -403,7 +392,6 @@ ak_dae_pcurves(AkXmlState * __restrict xst,
 
       input->offset = ak_xml_attrui(xst, _s_dae_offset);
       input->set    = ak_xml_attrui(xst, _s_dae_set);
-      input->index  = inputIndex++;
 
       if (last_input)
         last_input->base.next = &input->base;
@@ -479,7 +467,6 @@ ak_dae_shells(AkXmlState * __restrict xst,
               AkShells ** __restrict dest) {
   AkShells *shells;
   AkInput  *last_input;
-  int       inputIndex;
 
   shells = ak_heap_calloc(xst->heap,
                           memParent,
@@ -490,7 +477,6 @@ ak_dae_shells(AkXmlState * __restrict xst,
   shells->count = ak_xml_attrui(xst, _s_dae_count);
 
   last_input = NULL;
-  inputIndex = 0;
 
   do {
     if (ak_xml_beginelm(xst, _s_dae_shells))
@@ -523,7 +509,6 @@ ak_dae_shells(AkXmlState * __restrict xst,
 
       input->offset = ak_xml_attrui(xst, _s_dae_offset);
       input->set    = ak_xml_attrui(xst, _s_dae_set);
-      input->index  = inputIndex++;
 
       if (last_input)
         last_input->base.next = &input->base;
@@ -599,7 +584,6 @@ ak_dae_solids(AkXmlState * __restrict xst,
               AkSolids ** __restrict dest) {
   AkSolids *solids;
   AkInput  *last_input;
-  int       inputIndex;
 
   solids = ak_heap_calloc(xst->heap,
                           memParent,
@@ -610,7 +594,6 @@ ak_dae_solids(AkXmlState * __restrict xst,
   solids->count = ak_xml_attrui(xst, _s_dae_count);
 
   last_input = NULL;
-  inputIndex = 0;
 
   do {
     if (ak_xml_beginelm(xst, _s_dae_solids))
@@ -643,7 +626,6 @@ ak_dae_solids(AkXmlState * __restrict xst,
 
       input->offset = ak_xml_attrui(xst, _s_dae_offset);
       input->set    = ak_xml_attrui(xst, _s_dae_set);
-      input->index  = inputIndex++;
 
       if (last_input)
         last_input->base.next = &input->base;
