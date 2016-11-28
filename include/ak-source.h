@@ -38,6 +38,7 @@ typedef struct AkDataParam {
   const char         *name;
   const char         *semantic;
   AkDataType          type;
+  uint32_t            offset;
 } AkDataParam;
 
 typedef struct AkAccessor {

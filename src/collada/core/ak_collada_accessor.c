@@ -14,6 +14,7 @@ ak_dae_accessor(AkXmlState * __restrict xst,
                 AkAccessor ** __restrict dest) {
   AkAccessor  *accessor;
   AkDataParam *last_param;
+  uint32_t     paramOffset;
 
   accessor = ak_heap_calloc(xst->heap,
                             memParent,
@@ -31,7 +32,8 @@ ak_dae_accessor(AkXmlState * __restrict xst,
   if (xmlTextReaderIsEmptyElement(xst->reader))
     goto done;
 
-  last_param = NULL;
+  last_param  = NULL;
+  paramOffset = 0;
 
   do {
     if (ak_xml_beginelm(xst, _s_dae_accessor))
@@ -50,8 +52,10 @@ ak_dae_accessor(AkXmlState * __restrict xst,
 
         last_param = dataParam;
 
-        if (dataParam->name)
+        if (dataParam->name) {
           accessor->bound++;
+          dataParam->offset = paramOffset++;
+        }
       }
     }
 
