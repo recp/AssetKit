@@ -95,7 +95,7 @@ ak_coordRotNodeForFixCamOri(AkDoc     *doc,
   vec4        fwdAxis, upAxis;
 
   oldCoordSys = doc->coordSys;
-  newCoordSys = (void *)ak_opt_get(AK_OPTION_COORD);
+  newCoordSys = (void *)ak_opt_get(AK_OPT_COORD);
 
   *destTransform = NULL;
   if (ak_coordOrientationIsEq(oldCoordSys, newCoordSys))

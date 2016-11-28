@@ -20,7 +20,7 @@ ak_coordCvtNodeTransforms(AkDoc  * __restrict doc,
   AkAxisAccessor a0, a1;
 
   oldCoordSys = doc->coordSys;
-  newCoordsys = (void *)ak_opt_get(AK_OPTION_COORD);
+  newCoordsys = (void *)ak_opt_get(AK_OPT_COORD);
 
   ak_coordAxisAccessors(oldCoordSys, newCoordsys, &a0, &a1);
 
