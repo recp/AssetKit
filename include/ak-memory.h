@@ -25,7 +25,7 @@ typedef struct AkObject {
   char   data[];
 } AkObject;
 
-#define ak_objGet(OBJ) OBJ->pData
+#define ak_objGet(OBJ) (OBJ)->pData
 #define ak_allocator ak_mem_allocator()
 
 typedef struct AkHeapAllocator {
