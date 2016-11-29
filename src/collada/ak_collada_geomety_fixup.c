@@ -362,9 +362,11 @@ ak_dae_meshFixupPrimitive(AkHeap          *heap,
 AkResult _assetkit_hide
 ak_dae_meshFixup(AkMesh * mesh) {
   AkHeap *heap;
+  AkDoc  *doc;
   AkMeshPrimitive *primitive;
 
   heap      = ak_heap_getheap(mesh->vertices);
+  doc       = ak_heap_data(heap);
   primitive = mesh->primitive;
 
   while (primitive) {
@@ -373,7 +375,8 @@ ak_dae_meshFixup(AkMesh * mesh) {
   }
   
   /* fixup coord system */
-  ak_changeCoordSysMesh(mesh, (void *)ak_opt_get(AK_OPT_COORD));
+  if ((void *)ak_opt_get(AK_OPT_COORD) != doc->coordSys)
+    ak_changeCoordSysMesh(mesh, (void *)ak_opt_get(AK_OPT_COORD));
   
   return AK_OK;
 }

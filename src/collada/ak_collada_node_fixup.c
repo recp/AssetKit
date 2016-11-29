@@ -50,5 +50,6 @@ ak_dae_nodeFixup(AkHeap * __restrict heap,
   if (node->camera)
     ak_dae_nodeFixupCamera(heap, node);
 
-  ak_coordCvtNodeTransforms(doc, node);
+  if ((void *)ak_opt_get(AK_OPT_COORD) != doc->coordSys)
+    ak_coordCvtNodeTransforms(doc, node);
 }
