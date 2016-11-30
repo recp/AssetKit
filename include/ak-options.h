@@ -7,6 +7,9 @@
 
 #ifndef ak_options_h
 #define ak_options_h
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef enum AkOption {
   AK_OPT_INDICES_NONE               = 0,  /* false */
@@ -24,4 +27,7 @@ AK_EXPORT
 uintptr_t
 ak_opt_get(AkOption option);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* ak_options_h */

@@ -7,6 +7,9 @@
 
 #ifndef ak_cam_h
 #define ak_cam_h
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*!
  * @brief Top camera in scene if available
@@ -30,4 +33,7 @@ ak_camFirstCamera(AkDoc     * __restrict doc,
                   float     * matrix,
                   float     * projMatrix);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* ak_cam_h */

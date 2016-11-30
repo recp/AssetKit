@@ -7,9 +7,15 @@
 
 #ifndef ak_lib_h
 #define ak_lib_h
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 AK_EXPORT
 AkGeometry *
 ak_libFirstGeom(AkDoc * __restrict doc);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* ak_lib_h */

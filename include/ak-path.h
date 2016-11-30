@@ -7,6 +7,9 @@
 
 #ifndef ak_path_h
 #define ak_path_h
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stdio.h>
 
@@ -37,4 +40,7 @@ AK_EXPORT
 char *
 ak_path_tmpfilepath();
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* ak_path_h */

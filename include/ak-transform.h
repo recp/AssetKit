@@ -7,6 +7,9 @@
 
 #ifndef ak_transform_h
 #define ak_transform_h
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*!
  * @brief build skew matrix from AkSkew
@@ -56,4 +59,7 @@ void
 ak_transformDup(AkNode * __restrict srcNode,
                 AkNode * __restrict destNode);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* ak_transform_h */

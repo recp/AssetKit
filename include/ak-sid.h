@@ -11,6 +11,9 @@
 
 #ifndef ak_sid_h
 #define ak_sid_h
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 AK_EXPORT
 const char *
@@ -43,4 +46,7 @@ ak_sid_resolve(AkDoc * __restrict doc,
                void  * __restrict sender,
                const char * __restrict sid);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* ak_sid_h */

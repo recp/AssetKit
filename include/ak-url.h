@@ -7,6 +7,9 @@
 
 #ifndef ak_url_h
 #define ak_url_h
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct AkURL {
   const char   *url;      /* only fragment */
@@ -25,4 +28,7 @@ ak_url_ref(AkURL *url);
 void
 ak_url_unref(AkURL *url);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* ak_url_h */

@@ -7,6 +7,9 @@
 
 #ifndef ak_coord_h
 #define ak_coord_h
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct AkAxisAccessor {
   int8_t right;
@@ -124,4 +127,7 @@ void
 ak_coordCvtNodeTransforms(struct AkDoc  * __restrict doc,
                           struct AkNode * __restrict node);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* ak_coord_h */

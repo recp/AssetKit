@@ -7,6 +7,9 @@
 
 #ifndef ak_coord_util_h
 #define ak_coord_util_h
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 AK_EXPORT
 void
@@ -23,4 +26,7 @@ void
 ak_changeCoordSysMesh(AkMesh * __restrict mesh,
                       AkCoordSys * newCoordSys);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* ak_coord_util_h */

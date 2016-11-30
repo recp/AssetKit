@@ -7,6 +7,9 @@
 
 #ifndef ak_geom_h
 #define ak_geom_h
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*!
  * @brief Total input count except VERTEX input
@@ -19,4 +22,7 @@ AK_EXPORT
 uint32_t
 ak_meshInputCount(AkMesh * __restrict mesh);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* ak_geom_h */
