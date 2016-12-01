@@ -63,8 +63,12 @@ ak_dae_dataType(const char *typeName,
                   sizeof(valueMap[0]),
                   valuePairCmp2);
 
-  if (!found)
-    type->type = AK_VALUE_TYPE_UNKNOWN;
+  if (!found) {
+    type->type     = AK_VALUE_TYPE_UNKNOWN;
+    type->typeName = NULL;
+    type->size     = 0;
+    return;
+  }
 
   type->size     = found->size;
   type->type     = found->val;
