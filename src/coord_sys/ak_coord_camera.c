@@ -10,26 +10,48 @@
 #include "ak_coord_common.h"
 #include <cglm.h>
 
+void
+ak_coordLayoutCam(AkCoordSys * __restrict coordSys,
+                  int camOriNew[3]) {
+  int cam[3];
+  int coord[3];
+  int i, j;
+
+  ak_coordAxisToiVec3(coordSys->cameraOrientation, cam);
+  ak_coordToiVec3(coordSys, coord);
+
+  for (i = 0; i < 3; i++) {
+    for (j = 0; j < 3; j++)
+       if (cam[i] == coord[j])
+         camOriNew[i] = (j + 1) * glm_sign(cam[j]);
+       else if (abs(cam[i]) == abs(coord[j]))
+         camOriNew[i] = -(j + 1) * glm_sign(cam[j]);
+  }
+}
+
 AK_EXPORT
 void
 ak_coordRotForFixCamOri(AkCoordSys *oldCoordSys,
                         AkCoordSys *newCoordSys,
                         vec4        fwdAxis,
                         vec4        upAxis) {
-  ivec3          camOri, camOriNew;
-  vec3           v1, v2, v3;
+  ivec3          camOriOld, camOriNew;
+  vec3           v1, v2, v3, tmp;
   AkAxisAccessor a0, a1;
 
-  ak_coordAxisAccessors(oldCoordSys, newCoordSys, &a0,  &a1);
-  ak_coordAxisToiVec3(oldCoordSys->cameraOrientation, camOri);
-
-  AK_CVT_VEC_TO(camOri, camOriNew)
+  ak_coordAxisCamAccessors(newCoordSys,
+                           &a0,
+                           &a1);
+  
+  ak_coordLayoutCam(oldCoordSys, camOriOld);
+  ak_coordLayoutCam(newCoordSys, camOriNew);
 
   glm_vec_broadcast(0.0f, v1);
   glm_vec_broadcast(0.0f, v2);
 
-  v1[abs(camOri[2]) - 1]    = glm_sign(camOri[2]);
-  v2[abs(camOriNew[2]) - 1] = glm_sign(camOriNew[2]);
+  /* we want to rotate from new to old!!! */
+  v1[abs(camOriNew[2]) - 1] = glm_sign(camOriNew[2]);
+  v2[abs(camOriOld[2]) - 1] = glm_sign(camOriOld[2]);
   glm_vec_cross(v1, v2, v3);
 
   /* angle for forward axis */
@@ -38,25 +60,37 @@ ak_coordRotForFixCamOri(AkCoordSys *oldCoordSys,
     /* forward axis */
     glm_vec_dup(v3, fwdAxis);
 
-    /* now forward1 == forward0 == v1, fix up vector */
-    /* v2 is new up */
-    glm_vec_cross(v1, v3, v2);
-  } else {
-    /* forward1 == forward0 [already], Up = Right x Fwd */
-    glm_vec_broadcast(0.0f, v3);
-    v3[abs(camOri[0]) - 1] = glm_sign(camOri[0]);
-    glm_vec_cross(v3, v1, v2);
+    /* convert to current coord sys */
+    AK_CVT_VEC(fwdAxis)
   }
 
+  /* up axis */
   glm_vec_broadcast(0.0f, v1);
-  v1[abs(camOri[1]) - 1] = glm_sign(camOri[1]);
+  glm_vec_broadcast(0.0f, v2);
+
+  v1[abs(camOriNew[1]) - 1] = glm_sign(camOriNew[1]);
+  v2[abs(camOriOld[1]) - 1] = glm_sign(camOriOld[1]);
+
+  /* rotate with fwd to find new up (rotated) */
+  glm_vec_rotate(v1, fwdAxis[3], v3);
+
+  glm_vec_cross(v1, v2, v3);
 
   /* angle for up axis */
   upAxis[3] = glm_vec_angle(v1, v2);
 
   /* up direction */
-  if (upAxis[3] != 0.0f)
-    glm_vec_dup(v2, upAxis);
+  if (upAxis[3] != 0.0f) {
+    /* up axis */
+    glm_vec_dup(v3, upAxis);
+
+    /* convert to current coord sys */
+    AK_CVT_VEC(upAxis)
+
+    /* rotate found axis with fwd */
+    if (fwdAxis[3] != 0)
+      glm_vec_rotate(upAxis, -fwdAxis[3], fwdAxis);
+  }
 }
 
 AK_EXPORT

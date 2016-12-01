@@ -54,4 +54,24 @@ ak_coordAxisAccessors(AkCoordSys * __restrict oldCoordSys,
   a1->fwd     = abs(newCoordSys->fwd)   - 1;
 }
 
+AK_INLINE
+void
+ak_coordAxisCamAccessors(AkCoordSys * __restrict newCoordSys,
+                         AkAxisAccessor * __restrict a0,
+                         AkAxisAccessor * __restrict a1) {
+  a0->s_up    = AK_GET_SIGN(newCoordSys->cameraOrientation.up);
+  a0->s_right = AK_GET_SIGN(newCoordSys->cameraOrientation.right);
+  a0->s_fwd   = AK_GET_SIGN(newCoordSys->cameraOrientation.fwd);
+  a0->up      = abs(newCoordSys->cameraOrientation.up)    - 1;
+  a0->right   = abs(newCoordSys->cameraOrientation.right) - 1;
+  a0->fwd     = abs(newCoordSys->cameraOrientation.fwd)   - 1;
+
+  a1->s_up    = AK_GET_SIGN(newCoordSys->up);
+  a1->s_right = AK_GET_SIGN(newCoordSys->right);
+  a1->s_fwd   = AK_GET_SIGN(newCoordSys->fwd);
+  a1->up      = abs(newCoordSys->up)    - 1;
+  a1->right   = abs(newCoordSys->right) - 1;
+  a1->fwd     = abs(newCoordSys->fwd)   - 1;
+}
+
 #endif /* ak_coord_common_h */
