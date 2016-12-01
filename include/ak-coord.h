@@ -74,6 +74,14 @@ ak_coordAxisToiVec3(AkAxisOrientation axisOri, int32_t vec[3]) {
 }
 
 AK_INLINE
+void
+ak_coordToiVec3(AkCoordSys * __restrict coordSys, int32_t vec[3]) {
+  vec[0] = coordSys->right;
+  vec[1] = coordSys->up;
+  vec[2] = coordSys->fwd;
+}
+
+AK_INLINE
 bool
 ak_coordOrientationIsEq(AkCoordSys *c1, AkCoordSys *c2) {
   return  c1->right == c2->right
