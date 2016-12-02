@@ -43,7 +43,7 @@ typedef struct AkDataParam {
 
 typedef struct AkAccessor {
   AkURL    source;
-  uint32_t count;
+  size_t   count;
   uint32_t offset;
   uint32_t stride;
   uint32_t bound;
