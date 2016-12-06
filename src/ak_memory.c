@@ -80,7 +80,7 @@ ak__heap_srch_cmp(void * __restrict key1,
 static
 void
 ak__heap_srch_print(void * __restrict key) {
-  printf("\t%s\n", (const char *)key);
+  printf("\t'%s'\n", (const char *)key);
 }
 
 static

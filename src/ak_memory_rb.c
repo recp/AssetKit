@@ -44,12 +44,12 @@ ak_heap_rb_insert(AkHeapSrchCtx * __restrict srchctx,
   X = P->chld[AK__BST_RIGHT];
 
   /* Top-Down Insert */
-  while (X != srchctx->nullNode) {
+  do {
     /* main case : two children are red */
     if (AK__RB_ISRED(X->chld[AK__BST_LEFT])
         && AK__RB_ISRED(X->chld[AK__BST_RIGHT])) {
 
-      /* P is black */
+      /* case 1: P is black */
       if (!AK__RB_ISRED(P)) {
         /* make X red */
         AK__RB_MKRED(X);
@@ -60,7 +60,7 @@ ak_heap_rb_insert(AkHeapSrchCtx * __restrict srchctx,
       }
 
       /* P is red */
-      else  {
+      else {
         AK__RB_MKRED(G);
 
         /* case 2: X and P are both left/right children */
@@ -92,7 +92,7 @@ ak_heap_rb_insert(AkHeapSrchCtx * __restrict srchctx,
           X->chld[sX]  = G;
 
           X = P;
-          P = X;
+          P = Q->chld[sG];
           G = Q;
 
           sP = sG;
@@ -108,7 +108,7 @@ ak_heap_rb_insert(AkHeapSrchCtx * __restrict srchctx,
     G  = P;
     P  = X;
     X  = X->chld[sX];
-  }
+  } while (X != srchctx->nullNode);
 
   X = P->chld[sX] = srchNode;
 
@@ -121,24 +121,22 @@ ak_heap_rb_insert(AkHeapSrchCtx * __restrict srchctx,
 
     /* double rotation */
     if (sX != sP){
+      AK__RB_MKBLACK(X);
+
+      Q->chld[sG]  = X;
       P->chld[sX]  = X->chld[!sX];
       G->chld[sP]  = X->chld[sX];
       X->chld[!sX] = P;
       X->chld[sX]  = G;
-      Q->chld[sG]  = X;
-
-      AK__RB_MKBLACK(X);
-
-      P = Q;
     }
 
     /* single rotation */
     else {
+      AK__RB_MKBLACK(P);
+
       G->chld[sP]  = P->chld[!sP];
       P->chld[!sP] = G;
       Q->chld[sG]  = P;
-
-      AK__RB_MKBLACK(P);
     }
   }
 
