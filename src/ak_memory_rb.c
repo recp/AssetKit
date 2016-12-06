@@ -32,6 +32,12 @@ ak_heap_rb_insert(AkHeapSrchCtx * __restrict srchctx,
   AkHeapSrchNode *X, *P, *G, *Q;
   int sG, sP, sX;
 
+  if (srchctx->root->chld[AK__BST_RIGHT] == srchctx->nullNode) {
+    AK__RB_MKBLACK(srchNode);
+    srchctx->root->chld[AK__BST_RIGHT] = srchNode;
+    return;
+  }
+
   sG = sP = sX = 1;
   
   P = G = Q = srchctx->root;
@@ -39,93 +45,77 @@ ak_heap_rb_insert(AkHeapSrchCtx * __restrict srchctx,
 
   /* Top-Down Insert */
   while (X != srchctx->nullNode) {
-    sG = sP;
-    sP = sX;
-    sX = !(srchctx->cmp(srchNode->key, X->key) < 0);
-
-    Q = G;
-    G = P;
-    P = X;
-    X = X->chld[sX];
-
-  case1:
-    /*
-     * case 1: two children are red
-     *   color flip
-     */
+    /* main case : two children are red */
     if (AK__RB_ISRED(X->chld[AK__BST_LEFT])
         && AK__RB_ISRED(X->chld[AK__BST_RIGHT])) {
-      /* make current red */
-      AK__RB_MKRED(X);
 
-      /* make two children black */
-      AK__RB_MKBLACK(X->chld[AK__BST_LEFT]);
-      AK__RB_MKBLACK(X->chld[AK__BST_RIGHT]);
+      /* P is black */
+      if (!AK__RB_ISRED(P)) {
+        /* make X red */
+        AK__RB_MKRED(X);
 
-      /* case 2: both X and P are red: red violation */
-      if (AK__RB_ISRED(P)) {
+        /* make two children black */
+        AK__RB_MKBLACK(X->chld[AK__BST_LEFT]);
+        AK__RB_MKBLACK(X->chld[AK__BST_RIGHT]);
+      }
+
+      /* P is red */
+      else  {
         AK__RB_MKRED(G);
 
-        /*
-         * case 2a: double rotation
-         *          X and P are opposide side
-         *          current < grand != current < parent
-         */
-        if (sX != sP){
-          AkHeapSrchNode *newX;
-          int sN;
+        /* case 2: X and P are both left/right children */
+        if (sX == sP){
+          /* single rotation */
 
-          /* move X down to avoid re-compare to P or G
-             we are already know that new X will be one of children of X
-           */
-          sN   = !(srchctx->cmp(srchNode->key, X->key) < 0);
-          newX = X->chld[sN];
+          AK__RB_MKRED(X);
+          AK__RB_MKBLACK(P);
+          AK__RB_MKBLACK(X->chld[AK__BST_LEFT]);
+          AK__RB_MKBLACK(X->chld[AK__BST_RIGHT]);
 
+          Q->chld[sG]  = P;
+          G->chld[sP]  = P->chld[!sP];
+          P->chld[!sP] = G;
+
+          G = Q;
+        }
+
+        /* case 3: X and P are opposide side */
+        else {
+          AK__RB_MKBLACK(X);
+          AK__RB_MKBLACK(X->chld[AK__BST_LEFT]);
+          AK__RB_MKBLACK(X->chld[AK__BST_RIGHT]);
+
+          Q->chld[sG]  = X;
           P->chld[sX]  = X->chld[!sX];
           G->chld[sP]  = X->chld[sX];
           X->chld[!sX] = P;
           X->chld[sX]  = G;
-          Q->chld[sG]  = X;
 
-          AK__RB_MKBLACK(X);
-
-          P = X->chld[sN];
-          X = newX;
-          G = X;
-
-          sP = sN;
-          sX = !sP;
-
-          goto case1;
-        }
-
-        /* single rotation */
-        else {
-          G->chld[sP]  = P->chld[!sX];
-          P->chld[!sX] = G;
-          Q->chld[sG]  = P;
-
-          AK__RB_MKBLACK(P);
-
+          X = P;
+          P = X;
           G = Q;
+
+          sP = sG;
+          sX = sP;
         }
       }
     }
+
+    sG = sP;
+    sP = sX;
+    sX = !(srchctx->cmp(srchNode->key, X->key) < 0);
+    Q  = G;
+    G  = P;
+    P  = X;
+    X  = X->chld[sX];
   }
 
-  if (X != srchctx->nullNode)
-    return;
-
-  /* Red Black Node is pre-allocated in memory/heap tree */
   X = P->chld[sX] = srchNode;
 
   /* make current red */
   AK__RB_MKRED(X);
 
-  /*
-   * check case 2 for new node
-   * case 2: both X and P are red: red violation
-   */
+  /* check for red violation, we know uncle is black */
   if (AK__RB_ISRED(P)) {
     AK__RB_MKRED(G);
 
@@ -138,12 +128,14 @@ ak_heap_rb_insert(AkHeapSrchCtx * __restrict srchctx,
       Q->chld[sG]  = X;
 
       AK__RB_MKBLACK(X);
+
+      P = Q;
     }
 
     /* single rotation */
     else {
-      G->chld[sP]  = P->chld[!sX];
-      P->chld[!sX] = G;
+      G->chld[sP]  = P->chld[!sP];
+      P->chld[!sP] = G;
       Q->chld[sG]  = P;
 
       AK__RB_MKBLACK(P);
