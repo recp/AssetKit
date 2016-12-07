@@ -148,120 +148,65 @@ void
 ak_heap_rb_remove(AkHeapSrchCtx * __restrict srchctx,
                   AkHeapSrchNode * __restrict srchNode) {
   AkHeapSrchNode *X, *P, *T, *G, *toDel, *toDelP;
-  int            sP, sX, cmpRet, sDel, sDelP;
-  int            c2b, fnd;
+  int            sP, sX, cmpRet, sDel;
+  int            c2b;
+
+  if (srchNode == srchctx->nullNode)
+    return;
 
   sP     = AK__BST_RIGHT;
+  sX     = AK__BST_RIGHT;
   G      = srchctx->root;
   P      = G;
   X      = P->chld[AK__BST_RIGHT];
-  c2b    = 0;
-  fnd    = 0;
-  toDel  = NULL;
-  toDelP = NULL;
+  T      = P->chld[AK__BST_LEFT];
+  toDel  = srchctx->nullNode;
+  toDelP = srchctx->nullNode;
   sDel   = 0;
-  sDelP  = 0;
 
   /* step 1: examine the root */
-  cmpRet = srchctx->cmp(srchNode->key, X->key);
-  if (cmpRet == 0) {
-    toDelP = P;
-    toDel  = X;
-    sDel   = sP;
-    sDelP  = sP;
-    sX     = AK__BST_LEFT;
-
-    G      = P;
-    P      = X;
-    X      = P->chld[sX];
-    T      = P->chld[!sX];
-    sX     = AK__BST_RIGHT;
-  } else {
-    sX  = !(cmpRet < 0);
-  }
-
-  if (!AK__RB_ISRED(X->chld[AK__BST_LEFT])
-      && !AK__RB_ISRED(X->chld[AK__BST_RIGHT])) {
-    AK__RB_MKRED(srchctx->root->chld[AK__BST_RIGHT]);
-    G = P;
-    P = X;
-    X = P->chld[sX];
-    T = P->chld[!sX];
-
-    if (X == srchctx->nullNode)
-      goto step3;
-
-    goto case2;
+  if (AK__RB_ISBLACK(X->chld[AK__BST_LEFT])
+      && AK__RB_ISBLACK(X->chld[AK__BST_RIGHT])) {
+    AK__RB_MKRED(X);
+    c2b = 0;
   } else {
     /* step 2B */
     c2b = 1;
   }
 
+  goto l0;
+
   /* Top-Down Deletion */
-  while (X != srchctx->nullNode) {
-    if (cmpRet != 0) {
-      cmpRet = srchctx->cmp(srchNode->key, X->key);
-      if (cmpRet == 0) {
-        toDelP = P;
-        toDel  = X;
-        sDel   = sX;
-        sDelP  = sP;
-        sX     = AK__BST_LEFT;
-
-        G      = P;
-        P      = X;
-        X      = P->chld[sX];
-        T      = P->chld[!sX];
-        sX     = AK__BST_RIGHT;
-      } else {
-        sP = sX;
-        sX = !(cmpRet < 0);
-      }
-    }
-
-    G  = P;
-    P  = X;
-    T  = P->chld[!sX];
-    X  = P->chld[sX];
-
-    if (X == srchctx->nullNode)
-      break;
-
+  do {
     /* case 2b continue: check new X */
     if (c2b) {
-      AkHeapSrchNode *R;
+      c2b = 0;
 
       /* if new X is red continue down again */
-      if (AK__RB_ISRED(X)) {
-        c2b = 0;
-        continue;
-      }
+      if (AK__RB_ISRED(X))
+        goto l0;
 
-      /* new X is black T is red */
-      R = T->chld[!sX];
-
+      G->chld[sP]  = T;
       P->chld[!sX] = T->chld[sX];
       T->chld[sX]  = P;
-      G->chld[sP]  = T;
 
       AK__RB_MKRED(P);
       AK__RB_MKBLACK(T);
 
-      G = T;
-      T = P->chld[!sX];
-
-      sP  = sX;
-      c2b = 0;
+      G  = T;
+      T  = P->chld[!sX];
+      sP = sX;
+      /* if new X is black back to case 2 */
     }
 
     /* case 2: X has two black children */
-    if (!AK__RB_ISRED(X->chld[AK__BST_LEFT])
-        && !AK__RB_ISRED(X->chld[AK__BST_RIGHT])) case2: {
+    if (AK__RB_ISBLACK(X->chld[AK__BST_LEFT])
+        && AK__RB_ISBLACK(X->chld[AK__BST_RIGHT])) {
 
       /* case 1.a: T has two black children */
       if (T != srchctx->nullNode
-          && !AK__RB_ISRED(T->chld[AK__BST_LEFT])
-          && !AK__RB_ISRED(T->chld[AK__BST_RIGHT])) {
+          && AK__RB_ISBLACK(T->chld[AK__BST_LEFT])
+          && AK__RB_ISBLACK(T->chld[AK__BST_RIGHT])) {
 
         /* color flip */
         AK__RB_MKRED(X);
@@ -287,9 +232,7 @@ ak_heap_rb_remove(AkHeapSrchCtx * __restrict srchctx,
         AK__RB_MKRED(X);
         AK__RB_MKBLACK(P);
 
-        G = R;
-        /* T = P->chld[!sX]; */
-
+        G  = R;
         sP = sX;
       }
 
@@ -311,36 +254,76 @@ ak_heap_rb_remove(AkHeapSrchCtx * __restrict srchctx,
         AK__RB_MKBLACK(P);
         AK__RB_MKBLACK(R);
 
-        G = T;
-        /* T = P->chld[!sX]; */
-
-        /* sG = sP; */
+        G  = T;
         sP = sX;
       }
     } else {
       /* case 2b: X's one child is red, advence to next level */
       c2b = 1;
     }
-  } /* while */
 
-step3:
-  if (cmpRet == 0) {
-    /* P is node which will take toDel place */
-    if (toDel->chld[AK__BST_LEFT] != srchctx->nullNode) {
+  l0:
+    cmpRet = srchctx->cmp(srchNode->key, X->key);
+    if (cmpRet == 0) {
+      toDelP = P;
+      toDel  = X;
+      sDel   = sX;
+    }
+
+    sP = sX;
+    sX = !(cmpRet < 0);
+    G  = P;
+    P  = X;
+    T  = P->chld[!sX];
+    X  = P->chld[sX];
+
+    /* at this point we know that X is red or X left chld is red */
+    if (cmpRet == 0
+        && toDel->chld[AK__BST_RIGHT] == srchctx->nullNode)
+      break;
+
+    /*
+     at this point we know that X has right child and 
+     in-order predecessor (P) is black, its left chld is red:
+
+     if (X == srchctx->nullNode
+         && c2b
+         && AK__RB_ISBLACK(X)) { ... }
+     */
+  } while (X != srchctx->nullNode);
+
+  /* make root black */
+  AK__RB_MKBLACK(srchctx->root->chld[AK__BST_RIGHT]);
+
+  if (toDel == srchctx->nullNode)
+    return;
+
+  if (toDel != srchctx->nullNode) {
+    if (toDel->chld[AK__BST_RIGHT] != srchctx->nullNode) {
+      /* P is black, save black height */
+      if (c2b)
+        AK__RB_MKBLACK(P->chld[!sX]);
+
+      /* change color */
+      if (AK__RB_ISRED(toDel))
+        AK__RB_MKRED(P);
+      else
+        AK__RB_MKBLACK(P);
+      
+      /* replace P with its left child */
+      G->chld[sP] = P->chld[!sX];
+
+      /* replace X with in-order predecessor */
       P->chld[AK__BST_RIGHT] = toDel->chld[AK__BST_RIGHT];
-
-      if (P != toDel->chld[AK__BST_LEFT])
-        P->chld[AK__BST_LEFT] = toDel->chld[AK__BST_LEFT];
-
-      G->chld[sP]         = srchctx->nullNode;
-      toDelP->chld[sDelP] = P;
+      P->chld[AK__BST_LEFT]  = toDel->chld[AK__BST_LEFT];
+      toDelP->chld[sDel]     = P;
     } else {
-      toDelP->chld[sDelP] = toDel->chld[AK__BST_RIGHT];
+      /* make left red */
+      toDelP->chld[sDel] = toDel->chld[AK__BST_LEFT];
+      if (c2b && toDel->chld[AK__BST_LEFT] != srchctx->nullNode)
+        AK__RB_MKBLACK(toDel->chld[AK__BST_LEFT]);
     }
   }
-
-  /* step4: make root black */
-  AK__RB_MKBLACK(srchctx->root->chld[AK__BST_RIGHT]);
 }
 
 AkHeapSrchNode *
