@@ -10,9 +10,10 @@
 
 #include "ak_memory_common.h"
 
-#define AK__RB_ISRED(X)  (AK__HEAPNODE(X)->flags & AK_HEAP_NODE_FLAGS_RED)
-#define AK__RB_MKRED(X)   AK__HEAPNODE(X)->flags |= AK_HEAP_NODE_FLAGS_RED
-#define AK__RB_MKBLACK(X) AK__HEAPNODE(X)->flags &= ~AK_HEAP_NODE_FLAGS_RED
+#define AK__RB_ISBLACK(X) !((AK__HEAPNODE(X)->flags & AK_HEAP_NODE_FLAGS_RED))
+#define AK__RB_ISRED(X)     (AK__HEAPNODE(X)->flags & AK_HEAP_NODE_FLAGS_RED)
+#define AK__RB_MKRED(X)    AK__HEAPNODE(X)->flags |= AK_HEAP_NODE_FLAGS_RED
+#define AK__RB_MKBLACK(X)  AK__HEAPNODE(X)->flags &= ~AK_HEAP_NODE_FLAGS_RED
 
 void
 ak_heap_rb_insert(AkHeapSrchCtx * __restrict srchctx,
