@@ -29,8 +29,8 @@
 void
 ak_heap_rb_insert(AkHeapSrchCtx * __restrict srchctx,
                   AkHeapSrchNode * __restrict srchNode) {
-  AkHeapSrchNode *X, *P, *G, *Q;
-  int sG, sP, sX;
+  AkHeapSrchNode *X, *P, *G, *Q, *W;
+  int sW, sG, sP, sX;
 
   if (srchctx->root->chld[AK__BST_RIGHT] == srchctx->nullNode) {
     AK__RB_MKBLACK(srchNode);
@@ -38,9 +38,9 @@ ak_heap_rb_insert(AkHeapSrchCtx * __restrict srchctx,
     return;
   }
 
-  sG = sP = sX = 1;
-  
-  P = G = Q = srchctx->root;
+  sW = sG = sP = sX = 1;
+
+  W = P = G = Q = srchctx->root;
   X = P->chld[AK__BST_RIGHT];
 
   /* Top-Down Insert */
@@ -91,19 +91,19 @@ ak_heap_rb_insert(AkHeapSrchCtx * __restrict srchctx,
           X->chld[!sX] = P;
           X->chld[sX]  = G;
 
-          X = P;
-          P = Q->chld[sG];
-          G = Q;
-
-          sP = sG;
-          sX = sP;
+          G  = W;
+          P  = Q;
+          sX = sG;
+          sP = sW;
         }
       }
     }
 
+    sW = sG;
     sG = sP;
     sP = sX;
     sX = !(srchctx->cmp(srchNode->key, X->key) < 0);
+    W  = Q,
     Q  = G;
     G  = P;
     P  = X;
