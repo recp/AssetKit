@@ -26,6 +26,57 @@
 #include "ak_memory_rb.h"
 #include <stdio.h>
 
+/*
+ simple assertion for rbtree
+ source: Eternally Confuzzled
+ */
+int
+ak_heap_rb_assert(AkHeapSrchCtx * srchctx,
+                  AkHeapSrchNode * root) {
+  int lh, rh;
+  if (root == srchctx->nullNode) {
+    return 1;
+  } else {
+    struct AkHeapSrchNode *ln = root->chld[0];
+    struct AkHeapSrchNode *rn = root->chld[1];
+
+    /* Consecutive red links */
+    if (AK__RB_ISRED(root)) {
+      if (AK__RB_ISRED(ln) || AK__RB_ISRED(rn)) {
+        puts("Red violation");
+        exit(0);
+        return 0;
+      }
+    }
+
+    lh = ak_heap_rb_assert(srchctx, ln);
+    rh = ak_heap_rb_assert(srchctx, rn);
+
+    /* Invalid binary search tree */
+    if ((ln != srchctx->nullNode
+         && srchctx->cmp(ln->key, root->key) >= 0)
+        || (rn != srchctx->nullNode
+            && srchctx->cmp(rn->key, root->key) <= 0)) {
+          puts("Binary tree violation");
+          exit(0);
+          return 0;
+        }
+
+    /* Black height mismatch */
+    if (lh != 0 && rh != 0 && lh != rh) {
+      puts("Black violation");
+      exit(0);
+      return 0;
+    }
+
+    /* Only count black links */
+    if (lh != 0 && rh != 0)
+      return AK__RB_ISRED(root) ? lh : lh + 1;
+
+    return 0;
+  }
+}
+
 void
 ak_heap_rb_insert(AkHeapSrchCtx * __restrict srchctx,
                   AkHeapSrchNode * __restrict srchNode) {
