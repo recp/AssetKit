@@ -6,6 +6,9 @@
 # Full license can be found in the LICENSE file
 #
 
+# check if deps are pulled
+git submodule update --init --recursive
+
 # libxml2
 cd ./lib/libxml2
 sh ./autogen.sh
