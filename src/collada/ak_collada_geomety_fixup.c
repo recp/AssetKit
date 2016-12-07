@@ -41,21 +41,22 @@ ak_dae_meshFixupInterleave(AkHeap          *heap,
   indices         = primitive->indices;
 
   while (inputb) {
+    AkObject *obj;
+
     source = ak_getObjectByUrl(&inputb->source);
+    acc    = source->techniqueCommon;
+    obj    = ak_getObjectByUrl(&acc->source);
 
     if (inputb->semantic == AK_INPUT_SEMANTIC_POSITION) {
-      positions       = ak_objGet(source->data);
+      positions       = ak_objGet(obj);
       positionsSource = source;
-      acc             = positionsSource->techniqueCommon;
       positionsURL    = &acc->source;
       newcount        = acc->count;
     }
 
     /* currently only floats */
-    if (source->data->type == AK_SOURCE_ARRAY_TYPE_FLOAT) {
-      acc = source->techniqueCommon;
+    if (obj->type == AK_SOURCE_ARRAY_TYPE_FLOAT)
       stride += acc->bound;
-    }
 
     inputb = inputb->next;
   }
@@ -67,48 +68,49 @@ ak_dae_meshFixupInterleave(AkHeap          *heap,
 
   while (inputb) {
     if (inputb->semantic != AK_INPUT_SEMANTIC_VERTEX) {
-      source    = ak_getObjectByUrl(&inputb->source);
-      acc       = source->techniqueCommon;
-      stride   += acc->bound;
+      source  = ak_getObjectByUrl(&inputb->source);
+      acc     = source->techniqueCommon;
+      stride += acc->bound;
     }
 
     inputb = inputb->next;
   }
 
-  newcount *= stride;
   intrData = ak_objAlloc(heap,
                          positionsSource,
                          sizeof(*intrArray)
-                         + newcount * sizeof(float),
+                            + newcount * stride * sizeof(float),
                          AK_SOURCE_ARRAY_TYPE_FLOAT,
                          true);
   intrArray            = ak_objGet(intrData);
-  intrArray->count     = newcount;
+  intrArray->count     = newcount * stride;
   intrArray->digits    = positions->digits;
   intrArray->magnitude = positions->magnitude;
   intrItems            = intrArray->items;
-
+  
   /* fix indices for vertices->inputs */
   inputb = primitive->vertices->input;
   while (inputb) {
+    AkObject *obj;
+
     source = ak_getObjectByUrl(&inputb->source);
 
     if (!source)
       return AK_ERR;
 
+    acc = source->techniqueCommon;
+    obj = ak_getObjectByUrl(&acc->source);
+
     /* currently only floats */
-    if (source->data->type == AK_SOURCE_ARRAY_TYPE_FLOAT) {
+    if (obj->type == AK_SOURCE_ARRAY_TYPE_FLOAT) {
       AkFloatArrayN *oldArray;
-      AkObject      *obj;
       size_t         i, j;
 
-      acc      = source->techniqueCommon;
-      obj      = ak_getObjectByUrl(&acc->source);
       oldArray = ak_objGet(obj);
 
       if (inputb->semantic == AK_INPUT_SEMANTIC_POSITION) {
         /* move items to interleaved array */
-        for (i = 0; i < positionsSource->techniqueCommon->count; i++) {
+        for (i = 0; i < acc->count; i++) {
           j      = 0;
           dparam = acc->param;
 
@@ -127,14 +129,17 @@ ak_dae_meshFixupInterleave(AkHeap          *heap,
         /* TODO: */
       }
 
-      /* offset for next input */
-      offset += acc->bound;
-
       ak_url_init(acc,
                   (char *)positionsURL->url,
                   &acc->source);
       ak_url_unref(&acc->source);
+
       acc->stride = stride;
+      acc->offset = offset;
+      acc->count  = newcount;
+
+      /* offset for next input */
+      offset += acc->bound;
     }
 
     inputb = inputb->next;
@@ -156,11 +161,13 @@ ak_dae_meshFixupInterleave(AkHeap          *heap,
 
     /* currently only floats */
     if (source->data->type == AK_SOURCE_ARRAY_TYPE_FLOAT) {
+      AkObject      *obj;
       AkFloatArrayN *oldArray;
       size_t         i, j;
 
       acc      = source->techniqueCommon;
-      oldArray = ak_objGet(source->data);
+      obj      = ak_getObjectByUrl(&acc->source);
+      oldArray = ak_objGet(obj);
 
       /* move items to interleaved array */
       for (i = 0; i < indicesCount; i++) {
@@ -195,15 +202,19 @@ ak_dae_meshFixupInterleave(AkHeap          *heap,
         acc->param     = dparam_u;
       }
 
-      ak_free(source->data);
+      if (obj != positionsSource->data)
+        ak_free(obj);
+
       source->data = NULL;
 
       ak_url_init(acc,
                   (char *)positionsURL->url,
                   &acc->source);
       ak_url_unref(&acc->source);
+
       acc->stride = stride;
       acc->offset = offset;
+      acc->count  = newcount;
 
       /* offset for next input */
       offset += acc->bound;
@@ -259,7 +270,6 @@ ak_dae_meshFixupPrimitive(AkHeap          *heap,
 
   vertOffset   = vertInput->offset;
   indicesCount = indices->count / indexCount;
-
 
   /* currently automatically interlaving allowed only 1 primitve */
   if (ak_opt_get(AK_OPT_INDICES_SINGLE_INTERLEAVED)
