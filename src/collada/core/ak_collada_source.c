@@ -79,11 +79,11 @@ ak_dae_source(AkXmlState * __restrict xst,
         break;
       }
       case AK_SOURCE_ARRAY_TYPE_BOOL: {
-        char         *content;
-        AkObject     *obj;
-        AkBoolArrayN *boolArray;
-        AkUInt64      arrayCount;
-        size_t        arraySize;
+        AkSourceBoolArray *boolArray;
+        char     *content;
+        AkObject *obj;
+        AkUInt64  arrayCount;
+        size_t    arraySize;
 
         arrayCount = ak_xml_attrui64(xst, _s_dae_count);
         arraySize  = sizeof(AkBool) * arrayCount;
@@ -116,11 +116,11 @@ ak_dae_source(AkXmlState * __restrict xst,
         break;
       }
       case AK_SOURCE_ARRAY_TYPE_FLOAT: {
-        char          *content;
-        AkObject      *obj;
-        AkFloatArrayN *floatAray;
-        AkUInt64       arrayCount;
-        size_t         arraySize;
+        AkSourceFloatArray *floatAray;
+        char     *content;
+        AkObject *obj;
+        AkUInt64  arrayCount;
+        size_t    arraySize;
 
         arrayCount = ak_xml_attrui64(xst, _s_dae_count);
         arraySize  = sizeof(AkFloat) * arrayCount;
@@ -155,11 +155,11 @@ ak_dae_source(AkXmlState * __restrict xst,
         break;
       }
       case AK_SOURCE_ARRAY_TYPE_INT: {
-        char        *content;
-        AkObject    *obj;
-        AkIntArrayN *intArray;
-        AkUInt64     arrayCount;
-        size_t       arraySize;
+        AkSourceIntArray *intArray;
+        char     *content;
+        AkObject *obj;
+        AkUInt64  arrayCount;
+        size_t    arraySize;
 
         arrayCount = ak_xml_attrui64(xst, _s_dae_count);
         arraySize  = sizeof(AkInt) * arrayCount;
@@ -203,15 +203,15 @@ ak_dae_source(AkXmlState * __restrict xst,
       case AK_SOURCE_ARRAY_TYPE_NAME:
       case AK_SOURCE_ARRAY_TYPE_SIDREF:
       case AK_SOURCE_ARRAY_TYPE_TOKEN: {
-        char          *content;
-        AkObject       *obj;
-        AkStringArrayN *stringAray;
-        char           *pData;
-        char           *tok;
-        AkUInt64        arrayCount;
-        size_t          arraySize;
-        size_t          arrayDataSize;
-        AkUInt64        idx;
+        AkSourceStringArray *stringAray;
+        char     *content;
+        AkObject *obj;
+        char     *pData;
+        char     *tok;
+        AkUInt64  arrayCount;
+        size_t    arraySize;
+        size_t    arrayDataSize;
+        AkUInt64  idx;
 
         arrayCount = ak_xml_attrui64(xst, _s_dae_count);
 

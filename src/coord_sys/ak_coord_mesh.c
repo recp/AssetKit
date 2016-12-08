@@ -25,10 +25,10 @@ ak_changeCoordSysMesh(AkMesh * __restrict mesh,
     input = primitive->input;
     while (input) {
       if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX) {
-        AkVertices    *verts;
-        AkInputBasic  *vib;
-        AkSource      *vs;
-        AkFloatArrayN *va;
+        AkSourceFloatArray *va;
+        AkVertices   *verts;
+        AkInputBasic *vib;
+        AkSource     *vs;
 
         verts = ak_getObjectByUrl(&input->base.source);
         if (!verts) {

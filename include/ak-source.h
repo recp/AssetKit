@@ -60,37 +60,37 @@ typedef struct AkSource {
   struct AkSource    *next;
 } AkSource;
 
-typedef struct AkBoolArrayN {
+typedef struct AkSourceBoolArray {
   /* const char * id; */
   const char * name;
   size_t       count;
   AkBool       items[];
-} AkBoolArrayN;
+} AkSourceBoolArray;
 
-typedef struct AkFloatArrayN {
+typedef struct AkSourceFloatArray {
   /* const char * id; */
   const char * name;
   size_t       count;
   AkUInt       digits;
   AkUInt       magnitude;
   AkFloat      items[];
-} AkFloatArrayN;
+} AkSourceFloatArray;
 
-typedef struct AkIntArrayN {
+typedef struct AkSourceIntArray {
   /* const char * id; */
   const char * name;
   size_t       count;
   AkInt        minInclusive;
   AkInt        maxInclusive;
   AkInt        items[];
-} AkIntArrayN;
+} AkSourceIntArray;
 
-typedef struct AkStringArrayN {
+typedef struct AkSourceStringArray {
   /* const char  * id; */
   const char  * name;
   size_t count;
   AkString items[];
-} AkStringArrayN;
+} AkSourceStringArray;
 
 #ifdef __cplusplus
 }

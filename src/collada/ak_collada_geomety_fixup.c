@@ -20,7 +20,7 @@ ak_dae_meshFixupInterleave(AkHeap          *heap,
   AkInputBasic    *inputb;
   AkInput         *input;
   AkUIntArray     *indices;
-  AkFloatArrayN   *positions, *intrArray;
+  AkSourceFloatArray   *positions, *intrArray;
   AkAccessor      *acc;
   AkObject        *intrData;
   AkFloat         *intrItems;
@@ -103,8 +103,8 @@ ak_dae_meshFixupInterleave(AkHeap          *heap,
 
     /* currently only floats */
     if (obj->type == AK_SOURCE_ARRAY_TYPE_FLOAT) {
-      AkFloatArrayN *oldArray;
-      size_t         i, j;
+      AkSourceFloatArray *oldArray;
+      size_t i, j;
 
       oldArray = ak_objGet(obj);
 
@@ -161,9 +161,9 @@ ak_dae_meshFixupInterleave(AkHeap          *heap,
 
     /* currently only floats */
     if (source->data->type == AK_SOURCE_ARRAY_TYPE_FLOAT) {
-      AkObject      *obj;
-      AkFloatArrayN *oldArray;
-      size_t         i, j;
+      AkSourceFloatArray *oldArray;
+      AkObject *obj;
+      size_t i, j;
 
       acc      = source->techniqueCommon;
       obj      = ak_getObjectByUrl(&acc->source);
@@ -289,7 +289,7 @@ ak_dae_meshFixupPrimitive(AkHeap          *heap,
         input = (AkInput *)input->base.next;
         continue;
       }
-
+ 
       source = ak_getObjectByUrl(&input->base.source);
       if (!source) {
         input = (AkInput *)input->base.next;
@@ -298,12 +298,12 @@ ak_dae_meshFixupPrimitive(AkHeap          *heap,
 
       /* TODO: INT, DOUBLE.. */
       if (source->data->type == AK_SOURCE_ARRAY_TYPE_FLOAT) {
-        AkObject      *obj;
-        AkFloatArrayN *oldArray;
-        AkFloatArrayN *newArray;
-        AkFloat       *oldItems;
-        AkFloat       *newItems;
-        size_t         j;
+        AkSourceFloatArray *oldArray;
+        AkSourceFloatArray *newArray;
+        AkObject *obj;
+        AkFloat  *oldItems;
+        AkFloat  *newItems;
+        size_t    j;
 
         /* TODO: replace 3 with vertex count */
 #define vertc 3
