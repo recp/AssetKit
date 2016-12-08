@@ -333,7 +333,8 @@ ak_dae_meshFixSrc(AkHeap          *heap,
       ak_moveId(obj, newData);
       source->data = newData;
 
-      if (obj != positionsSrc->data)
+      if (oldArray->count < indicesCount * acc->stride
+          && obj != positionsSrc->data)
         ak_free(obj);
     }
     
