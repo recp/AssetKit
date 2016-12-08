@@ -15,30 +15,29 @@ ak_dae_meshFixSrcIntr(AkHeap          *heap,
                       AkInput         *vertInput,
                       size_t           indicesCount,
                       size_t           indexCount) {
-  AkURL           *positionsURL;
-  AkSource        *source, *positionsSource;
-  AkInputBasic    *inputb;
-  AkInput         *input;
-  AkUIntArray     *indices;
-  AkSourceFloatArray   *positions, *intrArray;
-  AkAccessor      *acc;
-  AkObject        *intrData;
-  AkFloat         *intrItems;
-  AkDataParam     *dparam;
-  size_t           newcount;
-  uint32_t         stride;
-  uint32_t         vertOffset, offset;
+  AkSourceFloatArray *positions, *intrArray;
+  AkURL        *positionsURL;
+  AkSource     *source, *positionsSrc;
+  AkInputBasic *inputb;
+  AkInput      *input;
+  AkUIntArray  *indices;
+  AkAccessor   *acc;
+  AkObject     *intrData;
+  AkFloat      *intrItems;
+  AkDataParam  *dparam;
+  size_t        newcount;
+  uint32_t      stride, vertOffset, offset;
 
-  stride          = 0;
-  offset          = 0;
-  newcount        = 0;
-  positionsSource = NULL;
-  positionsURL    = NULL;
-  positions       = NULL;
-  dparam          = NULL;
-  vertOffset      = vertInput->offset;
-  inputb          = primitive->vertices->input;
-  indices         = primitive->indices;
+  stride       = 0;
+  offset       = 0;
+  newcount     = 0;
+  positionsSrc = NULL;
+  positionsURL = NULL;
+  positions    = NULL;
+  dparam       = NULL;
+  vertOffset   = vertInput->offset;
+  inputb       = primitive->vertices->input;
+  indices      = primitive->indices;
 
   while (inputb) {
     AkObject *obj;
@@ -48,10 +47,10 @@ ak_dae_meshFixSrcIntr(AkHeap          *heap,
     obj    = ak_getObjectByUrl(&acc->source);
 
     if (inputb->semantic == AK_INPUT_SEMANTIC_POSITION) {
-      positions       = ak_objGet(obj);
-      positionsSource = source;
-      positionsURL    = &acc->source;
-      newcount        = acc->count;
+      positions    = ak_objGet(obj);
+      positionsSrc = source;
+      positionsURL = &acc->source;
+      newcount     = acc->count;
     }
 
     /* currently only floats */
@@ -61,7 +60,7 @@ ak_dae_meshFixSrcIntr(AkHeap          *heap,
     inputb = inputb->next;
   }
 
-  if (!positionsSource || !positions || !positionsURL)
+  if (!positionsSrc || !positions || !positionsURL)
     return AK_ERR;
 
   inputb = &primitive->input->base;
@@ -77,7 +76,7 @@ ak_dae_meshFixSrcIntr(AkHeap          *heap,
   }
 
   intrData = ak_objAlloc(heap,
-                         positionsSource,
+                         positionsSrc,
                          sizeof(*intrArray)
                             + newcount * stride * sizeof(float),
                          AK_SOURCE_ARRAY_TYPE_FLOAT,
@@ -202,7 +201,7 @@ ak_dae_meshFixSrcIntr(AkHeap          *heap,
         acc->param     = dparam_u;
       }
 
-      if (obj != positionsSource->data)
+      if (obj != positionsSrc->data)
         ak_free(obj);
 
       source->data = NULL;
@@ -223,9 +222,9 @@ ak_dae_meshFixSrcIntr(AkHeap          *heap,
     input = (AkInput *)input->base.next;
   }
 
-  ak_moveId(positionsSource->data, intrData);
-  ak_free(positionsSource->data);
-  positionsSource->data = intrData;
+  ak_moveId(positionsSrc->data, intrData);
+  ak_free(positionsSrc->data);
+  positionsSrc->data = intrData;
 
   return AK_OK;
 }
@@ -237,7 +236,7 @@ ak_dae_meshFixSrc(AkHeap          *heap,
                   AkInput         *vertInput,
                   size_t           indicesCount,
                   size_t           indexCount) {
-  AkSource     *source, *positionsSource;
+  AkSource     *source, *positionsSrc;
   AkInputBasic *inputb;
   AkInput      *input;
   AkAccessor   *acc;
@@ -245,17 +244,17 @@ ak_dae_meshFixSrc(AkHeap          *heap,
   AkDataParam  *dparam;
   uint32_t      vertOffset;
 
-  inputb          = primitive->vertices->input;
-  indices         = primitive->indices;
-  vertOffset      = vertInput->offset;
-  positionsSource = NULL;
+  inputb       = primitive->vertices->input;
+  indices      = primitive->indices;
+  vertOffset   = vertInput->offset;
+  positionsSrc = NULL;
 
   while (inputb) {
     source = ak_getObjectByUrl(&inputb->source);
     acc    = source->techniqueCommon;
 
     if (inputb->semantic == AK_INPUT_SEMANTIC_POSITION)
-      positionsSource = source;
+      positionsSrc = source;
 
     inputb = inputb->next;
   }
@@ -334,7 +333,7 @@ ak_dae_meshFixSrc(AkHeap          *heap,
       ak_moveId(obj, newData);
       source->data = newData;
 
-      if (obj != positionsSource->data)
+      if (obj != positionsSrc->data)
         ak_free(obj);
     }
     
@@ -347,8 +346,8 @@ ak_dae_meshFixSrc(AkHeap          *heap,
 AK_INLINE
 _assetkit_hide
 AkResult
-ak_dae_meshFixupPrimitive(AkHeap          *heap,
-                          AkMesh          *mesh,
+ak_dae_meshFixupPrimitive(AkHeap *heap,
+                          AkMesh *mesh,
                           AkMeshPrimitive *primitive) {
   AkUIntArray *indices;
   AkUIntArray *newIndices;
