@@ -10,11 +10,11 @@
 
 _assetkit_hide
 AkResult
-ak_dae_meshFixupInterleave(AkHeap          *heap,
-                           AkMeshPrimitive *primitive,
-                           AkInput         *vertInput,
-                           size_t           indicesCount,
-                           size_t           indexCount) {
+ak_dae_meshFixSrcIntr(AkHeap          *heap,
+                      AkMeshPrimitive *primitive,
+                      AkInput         *vertInput,
+                      size_t           indicesCount,
+                      size_t           indexCount) {
   AkURL           *positionsURL;
   AkSource        *source, *positionsSource;
   AkInputBasic    *inputb;
@@ -230,6 +230,120 @@ ak_dae_meshFixupInterleave(AkHeap          *heap,
   return AK_OK;
 }
 
+_assetkit_hide
+AkResult
+ak_dae_meshFixSrc(AkHeap          *heap,
+                  AkMeshPrimitive *primitive,
+                  AkInput         *vertInput,
+                  size_t           indicesCount,
+                  size_t           indexCount) {
+  AkSource     *source, *positionsSource;
+  AkInputBasic *inputb;
+  AkInput      *input;
+  AkAccessor   *acc;
+  AkUIntArray  *indices;
+  AkDataParam  *dparam;
+  uint32_t      vertOffset;
+
+  inputb          = primitive->vertices->input;
+  indices         = primitive->indices;
+  vertOffset      = vertInput->offset;
+  positionsSource = NULL;
+
+  while (inputb) {
+    source = ak_getObjectByUrl(&inputb->source);
+    acc    = source->techniqueCommon;
+
+    if (inputb->semantic == AK_INPUT_SEMANTIC_POSITION)
+      positionsSource = source;
+
+    inputb = inputb->next;
+  }
+
+  /* fix indices for other inputs */
+  input = primitive->input;
+  while (input) {
+    AkSource *source;
+
+    if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX) {
+      input = (AkInput *)input->base.next;
+      continue;
+    }
+
+    source = ak_getObjectByUrl(&input->base.source);
+    if (!source)
+      return AK_ERR;
+
+    /* currently only floats */
+    if (source->data->type == AK_SOURCE_ARRAY_TYPE_FLOAT) {
+      AkSourceFloatArray *oldArray, *newArray;
+      AkObject *obj, *newData;
+      size_t i, j;
+
+      acc      = source->techniqueCommon;
+      obj      = ak_getObjectByUrl(&acc->source);
+      oldArray = ak_objGet(obj);
+
+      if (oldArray->count < indicesCount * acc->stride) {
+        newData = ak_objAlloc(heap,
+                              source,
+                              sizeof(*newArray)
+                              + indicesCount * acc->stride * sizeof(float),
+                              AK_SOURCE_ARRAY_TYPE_FLOAT,
+                              true);
+        newArray            = ak_objGet(newData);
+        newArray->count     = indicesCount * acc->stride;
+        newArray->digits    = oldArray->digits;
+        newArray->magnitude = oldArray->magnitude;
+
+        if (oldArray->name) {
+          newArray->name = oldArray->name;
+          ak_heap_setpm(heap, (void *)oldArray->name, newArray);
+        }
+      } else {
+        newData  = obj;
+        newArray = ak_objGet(newData);
+      }
+
+      /* move items to interleaved array */
+      for (i = 0; i < indicesCount; i++) {
+        AkUInt index, index2;
+
+        index  = indices->items[i * indexCount + vertOffset];
+        index2 = indices->items[i * indexCount + input->offset];
+
+        j      = 0;
+        dparam = acc->param;
+
+        /* TODO: must unbound params be zero? */
+        while (dparam) {
+          if (!dparam->name)
+            continue;
+
+          newArray->items[index * acc->stride
+                          + acc->offset
+                          + j++]
+               = oldArray->items[index2 * acc->stride
+                                 + acc->offset
+                                 + dparam->offset];
+
+          dparam = dparam->next;
+        }
+      }
+
+      ak_moveId(obj, newData);
+      source->data = newData;
+
+      if (obj != positionsSource->data)
+        ak_free(obj);
+    }
+    
+    input = (AkInput *)input->base.next;
+  }
+
+  return 0;
+}
+
 AK_INLINE
 _assetkit_hide
 AkResult
@@ -274,93 +388,30 @@ ak_dae_meshFixupPrimitive(AkHeap          *heap,
   /* currently automatically interlaving allowed only 1 primitve */
   if (ak_opt_get(AK_OPT_INDICES_SINGLE_INTERLEAVED)
       && mesh->primitiveCount == 1) {
-    ak_dae_meshFixupInterleave(heap,
-                               primitive,
-                               vertInput,
-                               indicesCount,
-                               indexCount);
+    ak_dae_meshFixSrcIntr(heap,
+                          primitive,
+                          vertInput,
+                          indicesCount,
+                          indexCount);
   } else {
-    /* fix indices for other inputs */
-    input = primitive->input;
-    while (input) {
-      AkSource *source;
-
-      if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX) {
-        input = (AkInput *)input->base.next;
-        continue;
-      }
- 
-      source = ak_getObjectByUrl(&input->base.source);
-      if (!source) {
-        input = (AkInput *)input->base.next;
-        continue;
-      }
-
-      /* TODO: INT, DOUBLE.. */
-      if (source->data->type == AK_SOURCE_ARRAY_TYPE_FLOAT) {
-        AkSourceFloatArray *oldArray;
-        AkSourceFloatArray *newArray;
-        AkObject *obj;
-        AkFloat  *oldItems;
-        AkFloat  *newItems;
-        size_t    j;
-
-        /* TODO: replace 3 with vertex count */
-#define vertc 3
-        obj = ak_objAlloc(heap,
-                          source,
-                          sizeof(*newArray)
-                          + sizeof(AkFloat) * indicesCount * vertc,
-                          AK_SOURCE_ARRAY_TYPE_FLOAT,
-                          true);
-
-        newArray = ak_objGet(obj);
-        oldArray = ak_objGet(source->data);
-
-        oldItems = oldArray->items;
-        newItems = newArray->items;
-
-        ak_moveId(source->data, obj);
-
-        newArray->count     = indicesCount * vertc;
-        newArray->digits    = oldArray->digits;
-        newArray->magnitude = oldArray->magnitude;
-
-        if (oldArray->name) {
-          newArray->name = oldArray->name;
-          ak_heap_setpm(heap, (void *)oldArray->name, newArray);
-        }
-
-        /* fix indices */
-        for (i = 0; i < indicesCount; i++) {
-          AkUInt index;
-          AkUInt index2;
-
-          index  = indices->items[i * primitive->inputCount + vertOffset];
-          index2 = indices->items[i * primitive->inputCount + input->offset];
-
-          for (j = 0; j < vertc; j++)
-            newItems[index * vertc + j] = oldItems[index2 * vertc + j];
-        }
-        
-        ak_free(source->data);
-        source->data = obj;
-      }
-      
-      input = (AkInput *)input->base.next;
-    }
+    ak_dae_meshFixSrc(heap,
+                      primitive,
+                      vertInput,
+                      indicesCount,
+                      indexCount);
   }
 
   newIndices = ak_heap_alloc(heap,
                              primitive,
                              sizeof(*newIndices)
-                             + sizeof(AkUInt) * indicesCount);
+                               + sizeof(AkUInt) * indicesCount);
 
   newIndices->count = indicesCount;
 
   /* keep only vertex indices in primitives */
   for (i = 0; i < indicesCount; i++)
-    newIndices->items[i] = indices->items[i * primitive->inputCount + vertOffset];
+    newIndices->items[i] = indices->items[i * primitive->inputCount
+                                          + vertOffset];
 
   ak_free(indices);
 
