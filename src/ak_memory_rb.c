@@ -205,12 +205,10 @@ ak_heap_rb_remove(AkHeapSrchCtx * __restrict srchctx,
   if (srchNode == srchctx->nullNode)
     return;
 
-  sP     = AK__BST_RIGHT;
   sX     = AK__BST_RIGHT;
   G      = srchctx->root;
   P      = G;
   X      = P->chld[AK__BST_RIGHT];
-  T      = P->chld[AK__BST_LEFT];
   toDel  = srchctx->nullNode;
   toDelP = srchctx->nullNode;
   sDel   = 0;
@@ -282,9 +280,6 @@ ak_heap_rb_remove(AkHeapSrchCtx * __restrict srchctx,
 
         AK__RB_MKRED(X);
         AK__RB_MKBLACK(P);
-
-        G  = R;
-        sP = sX;
       }
 
       /* case 1.c: T's right child is red */
@@ -304,9 +299,6 @@ ak_heap_rb_remove(AkHeapSrchCtx * __restrict srchctx,
         AK__RB_MKRED(T);
         AK__RB_MKBLACK(P);
         AK__RB_MKBLACK(R);
-
-        G  = T;
-        sP = sX;
       }
     } else {
       /* case 2b: X's one child is red, advence to next level */
