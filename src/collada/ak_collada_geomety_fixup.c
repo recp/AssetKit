@@ -251,7 +251,6 @@ ak_dae_meshFixSrc(AkHeap          *heap,
 
   while (inputb) {
     source = ak_getObjectByUrl(&inputb->source);
-    acc    = source->techniqueCommon;
 
     if (inputb->semantic == AK_INPUT_SEMANTIC_POSITION)
       positionsSrc = source;
