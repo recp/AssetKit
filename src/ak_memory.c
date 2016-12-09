@@ -39,7 +39,7 @@ static
 char*
 ak__heap_strdup_def(const char * str);
 
-static char * ak__emptystr = "";
+static void * ak__emptystr = "";
 
 AkHeapAllocator ak__allocator = {
 #ifdef JEMALLOC_VERSION
