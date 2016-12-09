@@ -14,7 +14,7 @@ AM_CFLAGS = -Wall \
             -Wstrict-aliasing=2 \
             -fstrict-aliasing \
             -Wpedantic \
-            -Weffc++ \
+            -Wmissing-declarations \
             -Wno-overlength-strings
 
 lib_LTLIBRARIES = libassetkit.la
