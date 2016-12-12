@@ -498,8 +498,12 @@ ak_heap_setp(AkHeap * __restrict heap,
       heapNode->next->prev = heapNode->prev;
   }
 
-  if (heapNode == heap->root)
+  if (heapNode == heap->root) {
     heap->root = heapNode->next;
+
+    if (heapNode->next)
+      heapNode->next->prev = NULL;
+  }
 
   parentChld = ak_heap_chld(newParent);
   if (parentChld) {
@@ -655,8 +659,11 @@ ak_heap_free(AkHeap * __restrict heap,
       heapNode->prev->next = heapNode->next;
   }
 
-  if (heap->root == heapNode)
+  if (heap->root == heapNode) {
     heap->root = heapNode->next;
+    if (heapNode->next)
+      heapNode->next->prev = NULL;
+  }
 
   heapNode->next = NULL;
   heapNode->prev = NULL;
