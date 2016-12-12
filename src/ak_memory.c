@@ -605,8 +605,6 @@ ak_heap_free(AkHeap * __restrict heap,
 
     do {
       nextFree = toFree->next;
-      if (nextFree)
-        nextFree->prev = NULL;
 
       if (heap->trash == toFree)
         heap->trash = nextFree;
@@ -627,15 +625,6 @@ ak_heap_free(AkHeap * __restrict heap,
         }
 
         heap->trash = toFree->chld;
-        ((AkHeapNode *)toFree->chld)->prev = NULL;
-      }
-
-      /* connect prev and next */
-      if (toFree->prev) {
-        toFree->prev->next = nextFree;
-
-        if (nextFree)
-          nextFree->prev = toFree->prev;
       }
 
       allocator->free(toFree);
