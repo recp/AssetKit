@@ -653,8 +653,8 @@ ak_heap_free(AkHeap * __restrict heap,
   }
 
   if (heapNode->prev) {
-    if (heapNode->prev->chld == heapNode)
-      heapNode->prev->chld = heapNode->next;
+    if (ak_heap_chld(heapNode->prev) == heapNode)
+      ak_heap_chld_set(heapNode->prev, heapNode->next);
     else
       heapNode->prev->next = heapNode->next;
   }
