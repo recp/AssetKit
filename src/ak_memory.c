@@ -648,14 +648,14 @@ ak_heap_free(AkHeap * __restrict heap,
       heapNode->prev->next = heapNode->next;
   }
 
-  if (heap->root == heapNode) {
+  /* heap->root == heapNode
+     we know that root->prev always is NULL */
+  else {
     heap->root = heapNode->next;
-    if (heapNode->next)
-      heapNode->next->prev = NULL;
   }
 
-  heapNode->next = NULL;
-  heapNode->prev = NULL;
+  if (heapNode->next)
+    heapNode->next->prev = heapNode->prev;
 
   allocator->free(heapNode);
 }
