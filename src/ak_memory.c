@@ -353,24 +353,18 @@ ak_heap_alloc(AkHeap * __restrict heap,
     chldNode   = ak_heap_chld(parentNode);
 
     ak_heap_chld_set(parentNode, currNode);
-    if (chldNode) {
+    if (chldNode)
       chldNode->prev = currNode;
-      currNode->next = chldNode;
-    } else {
-      currNode->next = NULL;
-    }
 
+    currNode->next = chldNode;
     currNode->prev = parentNode;
   } else {
-    if (heap->root) {
+    if (heap->root)
       heap->root->prev = currNode;
-      currNode->next   = heap->root;
-    } else {
-      currNode->next = NULL;
-    }
 
-    heap->root = currNode;
+    currNode->next = heap->root;
     currNode->prev = NULL;
+    heap->root     = currNode;
   }
 
   return ak__alignas(currNode);
