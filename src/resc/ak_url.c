@@ -29,8 +29,6 @@ ak_url_init(void  *parent,
     dest->url      = ak_heap_strdup(heap,
                                     parent,
                                     urlstring);
-
-
     return;
   }
 

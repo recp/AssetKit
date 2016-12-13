@@ -62,34 +62,34 @@ typedef struct AkSource {
 
 typedef struct AkSourceBoolArray {
   /* const char * id; */
-  const char * name;
-  size_t       count;
-  AkBool       items[];
+  const char *name;
+  size_t      count;
+  AkBool      items[];
 } AkSourceBoolArray;
 
 typedef struct AkSourceFloatArray {
   /* const char * id; */
-  const char * name;
-  size_t       count;
-  AkUInt       digits;
-  AkUInt       magnitude;
-  AkFloat      items[];
+  const char *name;
+  size_t      count;
+  AkUInt      digits;
+  AkUInt      magnitude;
+  AkFloat     items[];
 } AkSourceFloatArray;
 
 typedef struct AkSourceIntArray {
   /* const char * id; */
-  const char * name;
-  size_t       count;
-  AkInt        minInclusive;
-  AkInt        maxInclusive;
-  AkInt        items[];
+  const char *name;
+  size_t      count;
+  AkInt       minInclusive;
+  AkInt       maxInclusive;
+  AkInt       items[];
 } AkSourceIntArray;
 
 typedef struct AkSourceStringArray {
   /* const char  * id; */
-  const char  * name;
-  size_t count;
-  AkString items[];
+  const char  *name;
+  size_t       count;
+  AkString     items[];
 } AkSourceStringArray;
 
 #ifdef __cplusplus
