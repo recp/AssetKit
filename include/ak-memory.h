@@ -31,12 +31,11 @@ typedef struct AkObject {
 typedef struct AkHeapAllocator {
   void  *(*malloc)(size_t);
   void  *(*calloc)(size_t, size_t);
-  void  *(*valloc)(size_t size);
-  void  *(*realloc)(void *, size_t);
-  int    (*memalign)(void **, size_t, size_t);
+  void *(*realloc)(void *, size_t);
+  int  (*memalign)(void **, size_t, size_t);
   char  *(*strdup)(const char *);
-  void   (*free)(void *);
-  size_t (*size)(const void *);
+  void     (*free)(void *);
+  size_t   (*size)(const void *);
 } AkHeapAllocator;
 
 typedef struct AkHeapSrchCtx AkHeapSrchCtx;

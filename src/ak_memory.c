@@ -45,7 +45,6 @@ AkHeapAllocator ak__allocator = {
 #ifdef JEMALLOC_VERSION
   .malloc   = je_malloc,
   .calloc   = je_calloc,
-  .valloc   = je_valloc,
   .realloc  = je_realloc,
   .memalign = je_posix_memalign,
   .free     = je_free,
@@ -55,7 +54,6 @@ AkHeapAllocator ak__allocator = {
   .realloc  = realloc,
   .free     = free,
 #ifndef _WIN32
-  .valloc   = valloc,
   .memalign = posix_memalign,
 #endif
 #endif
