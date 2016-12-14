@@ -11,7 +11,6 @@
 #include "ak_collada_lines.h"
 #include "ak_collada_polygons.h"
 #include "ak_collada_triangles.h"
-#include "../ak_collada_mesh_fixup.h"
 
 #define k_s_dae_source     1
 #define k_s_dae_vertices   2
