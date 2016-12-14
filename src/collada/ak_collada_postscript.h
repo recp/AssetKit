@@ -5,12 +5,12 @@
  * Full license can be found in the LICENSE file
  */
 
-#ifndef ak_collada_mesh_fixup_h
-#define ak_collada_mesh_fixup_h
+#ifndef ak_collada_postscript_h
+#define ak_collada_postscript_h
 
 #include "ak_collada_common.h"
 
-AkResult _assetkit_hide
-ak_dae_mesh_fixup(AkMesh * mesh);
+void _assetkit_hide
+ak_dae_postscript(AkDoc * doc);
 
-#endif /* ak_collada_mesh_fixup_h */
+#endif /* ak_collada_postscript_h */

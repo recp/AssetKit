@@ -420,7 +420,7 @@ ak_dae_meshFixupPrimitive(AkHeap *heap,
 }
 
 AkResult _assetkit_hide
-ak_dae_meshFixup(AkMesh * mesh) {
+ak_dae_mesh_fixup(AkMesh * mesh) {
   AkHeap *heap;
   AkDoc  *doc;
   AkMeshPrimitive *primitive;

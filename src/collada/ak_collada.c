@@ -22,6 +22,7 @@
 #include "fx/ak_collada_fx_material.h"
 
 #include "ak_collada_lib.h"
+#include "ak_collada_postscript.h"
 
 #define k_s_dae_asset               1
 #define k_s_dae_lib_cameras         2
@@ -258,8 +259,8 @@ ak_dae_doc(AkDoc ** __restrict dest,
 
   *dest = doc;
 
-  /* now set used coordSys */
-  doc->coordSys = (void *)ak_opt_get(AK_OPT_COORD);
+  /* post-parse operations */
+  ak_dae_postscript(doc);
 
   return AK_OK;
 }
