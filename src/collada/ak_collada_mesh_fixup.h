@@ -5,12 +5,12 @@
  * Full license can be found in the LICENSE file
  */
 
-#ifndef ak_collada_geomety_fixup_h
-#define ak_collada_geomety_fixup_h
+#ifndef ak_collada_mesh_fixup_h
+#define ak_collada_mesh_fixup_h
 
 #include "ak_collada_common.h"
 
 AkResult _assetkit_hide
 ak_dae_meshFixup(AkMesh * mesh);
 
-#endif /* ak_collada_geomety_fixup_h */
+#endif /* ak_collada_mesh_fixup_h */

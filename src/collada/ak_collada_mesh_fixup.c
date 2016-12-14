@@ -5,7 +5,7 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "ak_collada_geomety_fixup.h"
+#include "ak_collada_mesh_fixup.h"
 #include "../ak_memory_common.h"
 
 _assetkit_hide
@@ -86,7 +86,7 @@ ak_dae_meshFixSrcIntr(AkHeap          *heap,
   intrArray->digits    = positions->digits;
   intrArray->magnitude = positions->magnitude;
   intrItems            = intrArray->items;
-  
+
   /* fix indices for vertices->inputs */
   inputb = primitive->vertices->input;
   while (inputb) {
@@ -336,7 +336,7 @@ ak_dae_meshFixSrc(AkHeap          *heap,
           && obj != positionsSrc->data)
         ak_free(obj);
     }
-    
+
     input = (AkInput *)input->base.next;
   }
 
@@ -433,10 +433,10 @@ ak_dae_meshFixup(AkMesh * mesh) {
     ak_dae_meshFixupPrimitive(heap, mesh, primitive);
     primitive = primitive->next;
   }
-  
+
   /* fixup coord system */
   if ((void *)ak_opt_get(AK_OPT_COORD) != doc->coordSys)
     ak_changeCoordSysMesh(mesh, (void *)ak_opt_get(AK_OPT_COORD));
-  
+
   return AK_OK;
 }
