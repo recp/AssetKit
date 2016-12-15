@@ -58,6 +58,23 @@ ak_heap_ext_off(uint16_t flags, uint16_t flag) {
 }
 
 void *
+ak_heap_ext_get(AkHeapNode * __restrict hnode,
+                uint16_t                flag) {
+  AkHeapNodeExt   *exnode;
+  uint32_t         ofst;
+
+  ofst = ak_heap_ext_off(hnode->flags, flag);
+
+  /* nothing to do */
+  if (hnode->flags & flag) {
+    exnode = hnode->chld;
+    return &exnode->data[ofst];
+  }
+
+  return NULL;
+}
+
+void *
 ak_heap_ext_add(AkHeap     * __restrict heap,
                 AkHeapNode * __restrict hnode,
                 uint16_t                flag) {
@@ -195,67 +212,4 @@ ak_heap_ext_free(AkHeap     * __restrict heap,
   alc->free(exnode);
 
   hnode->flags &= ~AK_HEAP_NODE_FLAGS_EXT_ALL;
-}
-
-AkSIDNode *
-ak_heap_ext_sidnode(AkHeapNode * __restrict heapNode) {
-  if ((heapNode->flags & AK_HEAP_NODE_FLAGS_EXT)
-      && (heapNode->flags & AK_HEAP_NODE_FLAGS_SID)) {
-    AkHeapNodeExt *extNode;
-
-    extNode = heapNode->chld;
-    if (!(heapNode->flags & AK_HEAP_NODE_FLAGS_SRCH))
-      return (AkSIDNode *)(extNode->data + 1);
-
-    return (AkSIDNode *)(extNode->data + sizeof(AkHeapSrchNode) + 1);
-  }
-
-  return NULL;
-}
-
-AkSIDNode *
-ak_heap_ext_mk_sidnode(AkHeap * __restrict heap,
-                       AkHeapNode * __restrict heapNode) {
-  AkHeapAllocator *alc;
-  AkHeapNodeExt   *extNode;
-  AkSIDNode       *sidNode;
-  size_t           snodeSize;
-
-  alc         = heap->allocator;
-  snodeSize   = sizeof(AkHeapSrchNode);
-
-  if (!(heapNode->flags & AK_HEAP_NODE_FLAGS_EXT)) {
-    extNode        = alc->calloc(sizeof(*extNode)
-                                 + sizeof(AkSIDNode)
-                                 + 1,
-                                 1);
-    extNode->node  = heapNode;
-    extNode->chld  = heapNode->chld;
-    heapNode->chld = extNode;
-
-    extNode->data[0] = 0;
-    sidNode = (AkSIDNode *)(extNode->data + 1);
-    goto done;
-  }
-
-  extNode = heapNode->chld;
-
-  if (!(heapNode->flags & AK_HEAP_NODE_FLAGS_SRCH)) {
-    sidNode = (AkSIDNode *)(extNode->data + 1);
-    goto done;
-  }
-
-  if (!(heapNode->flags & AK_HEAP_NODE_FLAGS_SID))
-    extNode = alc->realloc(extNode,
-                           sizeof(*extNode)
-                           + sizeof(AkHeapSrchNode)
-                           + sizeof(AkSIDNode)
-                           + 1);
-
-  sidNode = (AkSIDNode *)(extNode->data + snodeSize + 1);
-  extNode->data[sizeof(AkHeapSrchNode)] = 1;
-
-done:
-  heapNode->flags |= (AK_HEAP_NODE_FLAGS_EXT | AK_HEAP_NODE_FLAGS_SID);
-  return sidNode;
 }

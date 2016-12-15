@@ -22,7 +22,7 @@ ak_sid_get(void *memnode) {
   AkSIDNode  *sidnode;
 
   heapNode = ak__alignof(memnode);
-  sidnode  = ak_heap_ext_sidnode(heapNode);
+  sidnode  = ak_heap_ext_get(heapNode, AK_HEAP_NODE_FLAGS_SID);
 
   if (!sidnode)
     return NULL;
@@ -42,7 +42,7 @@ ak_sid_geta(void *memnode,
   size_t      i;
 
   heapNode = ak__alignof(memnode);
-  sidnode  = ak_heap_ext_sidnode(heapNode);
+  sidnode  = ak_heap_ext_get(heapNode, AK_HEAP_NODE_FLAGS_SID);
 
   if (!sidnode)
     return NULL;
@@ -68,17 +68,11 @@ ak_sid_set(void       *memnode,
   AkSIDNode  *sidnode;
   AkHeapNode *heapNode;
   AkHeap     *heap;
-  int         relink;
 
   heapNode = ak__alignof(memnode);
   heap     = ak_heap_getheap(memnode);
-  relink   = !((heapNode->flags & AK_HEAP_NODE_FLAGS_EXT)
-                && (heapNode->flags & AK_HEAP_NODE_FLAGS_SID));
 
-  if (relink)
-    sidnode = ak_heap_ext_mk_sidnode(heap, heapNode);
-  else
-    sidnode = ak_heap_ext_sidnode(heapNode);
+  sidnode = ak_heap_ext_add(heap, heapNode, AK_HEAP_NODE_FLAGS_SID);
 
   sidnode->sid = sid;
 
@@ -105,19 +99,12 @@ ak_sid_seta(void       *memnode,
   char       *sidptr;
   uint16_t    off;
   int         off0;
-  int         relink;
   int         itmsize;
 
   heapNode = ak__alignof(memnode);
   heap     = ak_heap_getheap(memnode);
-  relink   = !((heapNode->flags & AK_HEAP_NODE_FLAGS_EXT)
-               && (heapNode->flags & AK_HEAP_NODE_FLAGS_SID));
 
-  if (relink)
-    sidnode = ak_heap_ext_mk_sidnode(heap, heapNode);
-  else
-    sidnode = ak_heap_ext_sidnode(heapNode);
-
+  sidnode = ak_heap_ext_add(heap, heapNode, AK_HEAP_NODE_FLAGS_SID);
   off0    = sizeof(size_t);
   off     = (char *)memptr - (char *)memnode;
   itmsize = sizeof(uint16_t) + sizeof(uintptr_t);
@@ -227,7 +214,7 @@ ak_sid_resolve(AkDoc * __restrict doc,
       if (it->flags & AK_HEAP_NODE_FLAGS_SID) {
         AkSIDNode *snode;
 
-        snode = ak_heap_ext_sidnode(it);
+        snode = ak_heap_ext_get(it, AK_HEAP_NODE_FLAGS_SID);
         if (snode->sid && strcmp(snode->sid, sid_it) == 0) {
           char *tok;
 

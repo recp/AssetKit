@@ -105,6 +105,10 @@ void
 ak_sid_destroy(AkSIDNode * snode);
 
 void *
+ak_heap_ext_get(AkHeapNode * __restrict hnode,
+                uint16_t                flag);
+
+void *
 ak_heap_ext_add(AkHeap     * __restrict heap,
                 AkHeapNode * __restrict hnode,
                 uint16_t                flag);
@@ -117,13 +121,6 @@ ak_heap_ext_rm(AkHeap     * __restrict heap,
 void
 ak_heap_ext_free(AkHeap     * __restrict heap,
                  AkHeapNode * __restrict hnode);
-
-AkSIDNode *
-ak_heap_ext_mk_sidnode(AkHeap * __restrict heap,
-                       AkHeapNode * __restrict heapNode);
-
-AkSIDNode *
-ak_heap_ext_sidnode(AkHeapNode * __restrict heapNode);
 
 void
 ak_mem_init();
