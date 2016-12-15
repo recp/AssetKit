@@ -125,9 +125,6 @@ ak_heap_ext_mk_sidnode(AkHeap * __restrict heap,
 AkSIDNode *
 ak_heap_ext_sidnode(AkHeapNode * __restrict heapNode);
 
-AkHeapNode *
-ak_heap_ext_sidnode_node(AkSIDNode * __restrict sidnode);
-
 void
 ak_mem_init();
 

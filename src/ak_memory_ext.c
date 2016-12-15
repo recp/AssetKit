@@ -197,19 +197,6 @@ ak_heap_ext_free(AkHeap     * __restrict heap,
   hnode->flags &= ~AK_HEAP_NODE_FLAGS_EXT_ALL;
 }
 
-AkHeapNode *
-ak_heap_ext_sidnode_node(AkSIDNode * __restrict sidnode) {
-  AkHeapNodeExt *extNode;
-  char          *ptr;
-
-  ptr = ((char *)sidnode) - 1 - sizeof(AkHeapNodeExt);
-  if (*(((char *)sidnode) - 1))
-    ptr -= sizeof(AkHeapSrchNode);
-
-  extNode = (AkHeapNodeExt *)ptr;
-  return extNode->node;
-}
-
 AkSIDNode *
 ak_heap_ext_sidnode(AkHeapNode * __restrict heapNode) {
   if ((heapNode->flags & AK_HEAP_NODE_FLAGS_EXT)
