@@ -26,13 +26,14 @@ ak_heap_ext_size(uint16_t flags) {
   uint32_t sz, flag, i;
 
   sz   = 0;
-  flag = (1 << (31 - ak_bitw_clz(flags))) >> AK_HEAP_NODE_FLAGS_EXT_FRST;
-  i    = ak_bitw_ctz(flag);
+  flag = (1 << (31 - ak_bitw_clz(flags)));
+  i    = ak_bitw_ctz(flag) - ak_bitw_ctz(AK_HEAP_NODE_FLAGS_EXT_FRST);
 
-  while (flag > 0) {
+  while (flag >= AK_HEAP_NODE_FLAGS_EXT_FRST) {
     if (flags & flag)
-      sz += ak__heap_ext_sz[i--];
+      sz += ak__heap_ext_sz[i];
     flag >>= 1;
+    i--;
   }
 
   return sz;
@@ -44,14 +45,13 @@ uint32_t
 ak_heap_ext_off(uint16_t flags, uint16_t flag) {
   uint32_t sz, i;
 
-  flag >>= AK_HEAP_NODE_FLAGS_EXT_FRST;
   sz = 0;
-  i = ak_bitw_ctz(flag);
+  i = ak_bitw_ctz(flag) - ak_bitw_ctz(AK_HEAP_NODE_FLAGS_EXT_FRST);
 
-  while (flag > 0) {
+  while ((flag >>= 1) >= AK_HEAP_NODE_FLAGS_EXT_FRST) {
     if (flags & flag)
-      sz += ak__heap_ext_sz[i--];
-    flag >>= 1;
+      sz += ak__heap_ext_sz[i];
+    i--;
   }
 
   return sz;
@@ -60,18 +60,16 @@ ak_heap_ext_off(uint16_t flags, uint16_t flag) {
 void *
 ak_heap_ext_get(AkHeapNode * __restrict hnode,
                 uint16_t                flag) {
-  AkHeapNodeExt   *exnode;
-  uint32_t         ofst;
+  AkHeapNodeExt *exnode;
+  uint32_t       ofst;
 
-  ofst = ak_heap_ext_off(hnode->flags, flag);
+  if (!(hnode->flags & flag))
+    return NULL;
 
-  /* nothing to do */
-  if (hnode->flags & flag) {
-    exnode = hnode->chld;
-    return &exnode->data[ofst];
-  }
+  exnode = hnode->chld;
+  ofst   = ak_heap_ext_off(hnode->flags & ~flag, flag);
 
-  return NULL;
+  return &exnode->data[ofst];
 }
 
 void *
@@ -80,7 +78,7 @@ ak_heap_ext_add(AkHeap     * __restrict heap,
                 uint16_t                flag) {
   AkHeapAllocator *alc;
   AkHeapNodeExt   *exnode;
-  uint32_t         sz, ofst, isz;
+  uint32_t         sz, ofst, isz, flag_off;
 
   ofst = ak_heap_ext_off(hnode->flags, flag);
 
@@ -90,9 +88,11 @@ ak_heap_ext_add(AkHeap     * __restrict heap,
     return &exnode->data[ofst];
   }
 
+  flag_off = ak_bitw_ctz(AK_HEAP_NODE_FLAGS_EXT_FRST);
+
   alc = heap->allocator;
   sz  = ak_heap_ext_size(hnode->flags);
-  isz = ak__heap_ext_sz[ak_bitw_ctz(flag >> AK_HEAP_NODE_FLAGS_EXT_FRST)];
+  isz = ak__heap_ext_sz[ak_bitw_ctz(flag >> flag_off)];
 
   if (!(hnode->flags & AK_HEAP_NODE_FLAGS_EXT)) {
     exnode        = alc->malloc(sizeof(*exnode) + sz + isz);
@@ -101,9 +101,11 @@ ak_heap_ext_add(AkHeap     * __restrict heap,
     hnode->flags |= AK_HEAP_NODE_FLAGS_EXT;
   } else {
     exnode = alc->realloc(hnode->chld, sizeof(*exnode) + sz + isz);
-    memmove(&exnode->data[ofst],
-            &exnode->data[ofst] + isz,
-            isz);
+
+    if (sz > ofst)
+      memmove(&exnode->data[ofst],
+              &exnode->data[ofst] + isz,
+              isz);
   }
 
   memset(&exnode->data[ofst], 0, isz);
@@ -120,16 +122,18 @@ ak_heap_ext_rm(AkHeap     * __restrict heap,
                uint16_t                flag) {
   AkHeapAllocator *alc;
   AkHeapNodeExt   *exnode;
-  uint32_t         sz, ofst, isz;
+  uint32_t         sz, ofst, isz, flag_off;
 
   /* nothing to do */
   if (!(hnode->flags & flag))
     return;
 
+  flag_off = ak_bitw_ctz(AK_HEAP_NODE_FLAGS_EXT_FRST);
+
   alc    = heap->allocator;
   sz     = ak_heap_ext_size(hnode->flags & ~flag);
   ofst   = ak_heap_ext_off(hnode->flags, flag);
-  isz    = ak__heap_ext_sz[ak_bitw_ctz(flag >> AK_HEAP_NODE_FLAGS_EXT_FRST)];
+  isz    = ak__heap_ext_sz[ak_bitw_ctz(flag >> flag_off)];
   exnode = hnode->chld;
 
   /* free items */
