@@ -29,6 +29,10 @@
 #  define AK_ALIGN(X) __attribute((aligned(X)))
 #endif
 
+#ifndef __has_builtin
+#  define __has_builtin(x) 0
+#endif
+
 #define AK_ARRAY_LEN(ARR) sizeof(ARR) / sizeof(ARR[0])
 
 typedef int32_t AkEnum;
