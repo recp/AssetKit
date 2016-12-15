@@ -8,6 +8,7 @@
 #include "ak_bitwise.h"
 #include <limits.h>
 
+AK_INLINE
 uint32_t
 ak_bitw_ctz(uint32_t x) {
 #if __has_builtin(__builtin_ctz)
@@ -21,6 +22,7 @@ ak_bitw_ctz(uint32_t x) {
 #endif
 }
 
+AK_INLINE
 uint32_t
 ak_bitw_ffs(uint32_t x) {
 #if __has_builtin(__builtin_ffs)
@@ -30,6 +32,7 @@ ak_bitw_ffs(uint32_t x) {
 #endif
 }
 
+AK_INLINE
 uint32_t
 ak_bitw_clz(uint32_t x) {
 #if __has_builtin(__builtin_clz)
