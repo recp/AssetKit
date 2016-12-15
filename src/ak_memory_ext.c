@@ -8,115 +8,193 @@
 #include "ak_common.h"
 #include "ak_memory_common.h"
 #include "ak_memory_rb.h"
+#include "bitwise/ak_bitwise.h"
 
-void
-ak_heap_ext_setid(AkHeap * __restrict heap,
-                  AkHeapNode * __restrict heapNode,
-                  void * __restrict memId) {
+static uint8_t ak__heap_ext_sz[] = {
+  (uint8_t)sizeof(AkHeapSrchNode),
+  (uint8_t)sizeof(AkSIDNode),
+  (uint8_t)sizeof(uintptr_t),
+  (uint8_t)sizeof(uintptr_t),
+  (uint8_t)sizeof(uintptr_t),
+  (uint8_t)sizeof(uintptr_t)
+};
+
+static
+AK_INLINE
+uint32_t
+ak_heap_ext_size(uint16_t flags) {
+  uint32_t sz, flag, i;
+
+  sz   = 0;
+  flag = (1 << (31 - ak_bitw_clz(flags))) >> AK_HEAP_NODE_FLAGS_EXT_FRST;
+  i    = ak_bitw_ctz(flag);
+
+  while (flag > 0) {
+    if (flags & flag)
+      sz += ak__heap_ext_sz[i--];
+    flag >>= 1;
+  }
+
+  return sz;
+}
+
+static
+AK_INLINE
+uint32_t
+ak_heap_ext_off(uint16_t flags, uint16_t flag) {
+  uint32_t sz, i;
+
+  flag >>= AK_HEAP_NODE_FLAGS_EXT_FRST;
+  sz = 0;
+  i = ak_bitw_ctz(flag);
+
+  while (flag > 0) {
+    if (flags & flag)
+      sz += ak__heap_ext_sz[i--];
+    flag >>= 1;
+  }
+
+  return sz;
+}
+
+void *
+ak_heap_ext_add(AkHeap     * __restrict heap,
+                AkHeapNode * __restrict hnode,
+                uint16_t                flag) {
   AkHeapAllocator *alc;
-  AkHeapNodeExt   *extNode;
-  AkHeapSrchNode  *snode;
-  AkHeapNodeExt   *extNodeR;
-  size_t           snodeSize;
+  AkHeapNodeExt   *exnode;
+  uint32_t         sz, ofst, isz;
 
-  alc       = heap->allocator;
-  snodeSize = sizeof(AkHeapSrchNode);
+  ofst = ak_heap_ext_off(hnode->flags, flag);
 
-  if (!(heapNode->flags & AK_HEAP_NODE_FLAGS_EXT)) {
-    extNode        = alc->malloc(sizeof(*extNode) + snodeSize);
-    extNode->node  = heapNode;
-    extNode->chld  = heapNode->chld;
-    heapNode->chld = extNode;
-
-    snode = (AkHeapSrchNode *)extNode->data;
-    goto done;
+  /* nothing to do */
+  if (hnode->flags & flag) {
+    exnode = hnode->chld;
+    return &exnode->data[ofst];
   }
 
-  extNode = heapNode->chld;
+  alc = heap->allocator;
+  sz  = ak_heap_ext_size(hnode->flags);
+  isz = ak__heap_ext_sz[ak_bitw_ctz(flag >> AK_HEAP_NODE_FLAGS_EXT_FRST)];
 
-  if (heapNode->flags & AK_HEAP_NODE_FLAGS_SRCH) {
-    snode = (AkHeapSrchNode *)extNode->data;
-    ak_heap_rb_remove(heap->srchctx, snode);
-    goto done;
+  if (!(hnode->flags & AK_HEAP_NODE_FLAGS_EXT)) {
+    exnode        = alc->malloc(sizeof(*exnode) + sz + isz);
+    exnode->node  = hnode;
+    exnode->chld  = hnode->chld;
+    hnode->flags |= AK_HEAP_NODE_FLAGS_EXT;
+  } else {
+    exnode = alc->realloc(hnode->chld, sizeof(*exnode) + sz + isz);
+    memmove(&exnode->data[ofst],
+            &exnode->data[ofst] + isz,
+            isz);
   }
 
-  extNodeR = alc->realloc(extNode,
-                          sizeof(*extNodeR)
-                          + snodeSize
-                          + sizeof(AkSIDNode)
-                          + 1);
+  memset(&exnode->data[ofst], 0, isz);
+  hnode->chld = exnode;
 
-  if (heapNode->flags & AK_HEAP_NODE_FLAGS_SID) {
-    memmove(extNodeR + snodeSize,
-            extNodeR,
-            sizeof(AkSIDNode) + 1);
-    extNodeR->data[snodeSize] = 1;
+  hnode->flags |= flag;
 
-    /* TODO: update refs */
-    heapNode->chld = extNodeR;
-  }
-
-  snode = (AkHeapSrchNode *)extNodeR->data;
-
-done:
-  heapNode->flags |= (AK_HEAP_NODE_FLAGS_EXT
-                      | AK_HEAP_NODE_FLAGS_SRCH
-                      | AK_HEAP_NODE_FLAGS_RED);
-
-  snode->chld[AK__BST_LEFT]  = heap->srchctx->nullNode;
-  snode->chld[AK__BST_RIGHT] = heap->srchctx->nullNode;
-  snode->key                 = memId;
-
-  ak_heap_rb_insert(heap->srchctx, snode);
+  return &exnode->data[ofst];
 }
 
 void
-ak_heap_ext_unsetid(AkHeap * __restrict heap,
-                    AkHeapNode * __restrict heapNode) {
+ak_heap_ext_rm(AkHeap     * __restrict heap,
+               AkHeapNode * __restrict hnode,
+               uint16_t                flag) {
   AkHeapAllocator *alc;
-  AkHeapNodeExt   *extNode;
-  AkHeapNodeExt   *extNodeR;
-  size_t           snodeSize;
+  AkHeapNodeExt   *exnode;
+  uint32_t         sz, ofst, isz;
 
-  alc       = heap->allocator;
-  snodeSize = sizeof(AkHeapSrchNode);
-
-  if (!(heapNode->flags
-        & (AK_HEAP_NODE_FLAGS_EXT | AK_HEAP_NODE_FLAGS_SRCH))) {
-    heapNode->flags &= ~AK_HEAP_NODE_FLAGS_RED;
+  /* nothing to do */
+  if (!(hnode->flags & flag))
     return;
+
+  alc    = heap->allocator;
+  sz     = ak_heap_ext_size(hnode->flags & ~flag);
+  ofst   = ak_heap_ext_off(hnode->flags, flag);
+  isz    = ak__heap_ext_sz[ak_bitw_ctz(flag >> AK_HEAP_NODE_FLAGS_EXT_FRST)];
+  exnode = hnode->chld;
+
+  /* free items */
+  switch (flag) {
+    case AK_HEAP_NODE_FLAGS_SRCH:
+      ak_heap_rb_remove(heap->srchctx,
+                        (AkHeapSrchNode *)&exnode->data[ofst]);
+      hnode->flags &= ~AK_HEAP_NODE_FLAGS_RED;
+      break;
+    case AK_HEAP_NODE_FLAGS_SID:
+      ak_sid_destroy((AkSIDNode *)&exnode->data[ofst]);
+      break;
+    case AK_HEAP_NODE_FLAGS_EXTRA:
+    case AK_HEAP_NODE_FLAGS_INF:
+      ak_free(&exnode->data[ofst]);
+      break;
+    case AK_HEAP_NODE_FLAGS_USR:
+      if (hnode->flags & AK_HEAP_NODE_FLAGS_USRF)
+        alc->free(&exnode->data[ofst]);
+      break;
   }
 
-  extNode = heapNode->chld;
-  ak_heap_rb_remove(heap->srchctx,
-                    (AkHeapSrchNode *)extNode->data);
+  hnode->flags &= ~flag;
+  if (sz > 0) {
+    exnode = alc->realloc(hnode->chld, sz + sizeof(*exnode));
+    memmove(&exnode->data[ofst] + isz,
+            &exnode->data[ofst],
+            isz);
+  } else {
+    hnode->chld = exnode->chld;
+    alc->free(exnode);
 
-  if (!(heapNode->flags & AK_HEAP_NODE_FLAGS_SID)) {
-    heapNode->chld = extNode->chld;
-    heapNode->flags &= ~(AK_HEAP_NODE_FLAGS_SRCH
-                         | AK_HEAP_NODE_FLAGS_EXT
-                         | AK_HEAP_NODE_FLAGS_RED);
-    alc->free(extNode);
+    hnode->flags &= ~AK_HEAP_NODE_FLAGS_EXT_ALL;
+  }
+}
+
+void
+ak_heap_ext_free(AkHeap     * __restrict heap,
+                 AkHeapNode * __restrict hnode) {
+  AkHeapAllocator *alc;
+  AkHeapNodeExt   *exnode;
+  uint32_t         ofst;
+
+  /* nothing to do */
+  if (!(hnode->flags & AK_HEAP_NODE_FLAGS_EXT))
     return;
+
+  alc    = heap->allocator;
+  exnode = hnode->chld;
+
+  /* free items */
+  if (hnode->flags & AK_HEAP_NODE_FLAGS_SRCH) {
+    ofst = ak_heap_ext_off(hnode->flags, AK_HEAP_NODE_FLAGS_SRCH);
+    ak_heap_rb_remove(heap->srchctx,
+                      (AkHeapSrchNode *)&exnode->data[ofst]);
   }
 
-  extNodeR = alc->realloc(extNode,
-                          sizeof(*extNodeR)
-                          + sizeof(AkSIDNode)
-                          + 1);
-
-  if (heapNode->flags & AK_HEAP_NODE_FLAGS_SID) {
-    memmove(extNodeR - snodeSize,
-            extNodeR,
-            sizeof(AkSIDNode) + 1);
-
-    extNodeR->data[0] = 0;
-
-    /* TODO: update refs */
-    heapNode->chld = extNodeR;
+  if (hnode->flags & AK_HEAP_NODE_FLAGS_SID) {
+    ofst = ak_heap_ext_off(hnode->flags, AK_HEAP_NODE_FLAGS_SID);
+    ak_sid_destroy((AkSIDNode *)&exnode->data[ofst]);
   }
 
-  heapNode->flags &= ~(AK_HEAP_NODE_FLAGS_SRCH | AK_HEAP_NODE_FLAGS_RED);
+  if (hnode->flags & AK_HEAP_NODE_FLAGS_EXTRA) {
+    ofst = ak_heap_ext_off(hnode->flags, AK_HEAP_NODE_FLAGS_EXTRA);
+    ak_free(&exnode->data[ofst]);
+  }
+
+  if (hnode->flags & AK_HEAP_NODE_FLAGS_INF) {
+    ofst = ak_heap_ext_off(hnode->flags, AK_HEAP_NODE_FLAGS_INF);
+    ak_free(&exnode->data[ofst]);
+  }
+
+  if (hnode->flags & AK_HEAP_NODE_FLAGS_USR) {
+    ofst = ak_heap_ext_off(hnode->flags, AK_HEAP_NODE_FLAGS_INF);
+    if (hnode->flags & AK_HEAP_NODE_FLAGS_USRF)
+      alc->free(&exnode->data[ofst]);
+  }
+
+  hnode->chld = exnode->chld;
+  alc->free(exnode);
+
+  hnode->flags &= ~AK_HEAP_NODE_FLAGS_EXT_ALL;
 }
 
 AkHeapNode *

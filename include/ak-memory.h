@@ -54,12 +54,27 @@ typedef enum AkHeapFlags {
 } AkHeapFlags;
 
 typedef enum AkHeapNodeFlags {
-  AK_HEAP_NODE_FLAGS_NONE     = 0,
-  AK_HEAP_NODE_FLAGS_SRCH     = 1 << 0,
-  AK_HEAP_NODE_FLAGS_RED      = 1 << 1,
-  AK_HEAP_NODE_FLAGS_SID      = 1 << 2,  /* memory node has sid (itself)  */
-  AK_HEAP_NODE_FLAGS_EXT      = 1 << 3,
-  AK_HEAP_NODE_FLAGS_SID_CHLD = 1 << 4   /* least one of children has sid */
+  AK_HEAP_NODE_FLAGS_NONE     = 0,       /* plain node                       */
+  AK_HEAP_NODE_FLAGS_EXT      = 1 << 0,  /* node has one of:                 */
+  AK_HEAP_NODE_FLAGS_SID_CHLD = 1 << 1,  /* least one of children has sid    */
+  AK_HEAP_NODE_FLAGS_RED      = 1 << 2,  /* RBtree color bit                 */
+  AK_HEAP_NODE_FLAGS_SRCH     = 1 << 3,  /* node has an id                   */
+  AK_HEAP_NODE_FLAGS_SID      = 1 << 4,  /* memory node or its attr has sid  */
+  AK_HEAP_NODE_FLAGS_REFC     = 1 << 5,  /* node is reference counted        */
+  AK_HEAP_NODE_FLAGS_EXTRA    = 1 << 6,  /* node has <extra> element         */
+  AK_HEAP_NODE_FLAGS_INF      = 1 << 7,  /* node has <asset> element         */
+  AK_HEAP_NODE_FLAGS_USR      = 1 << 8,  /* user data                        */
+  AK_HEAP_NODE_FLAGS_USRF     = 1 << 9,  /* user data must be freed          */
+  AK_HEAP_NODE_FLAGS_SID_NODE = AK_HEAP_NODE_FLAGS_SID,
+  AK_HEAP_NODE_FLAGS_EXT_ALL  = AK_HEAP_NODE_FLAGS_EXT
+                               | AK_HEAP_NODE_FLAGS_SRCH
+                               | AK_HEAP_NODE_FLAGS_SID
+                               | AK_HEAP_NODE_FLAGS_REFC
+                               | AK_HEAP_NODE_FLAGS_EXTRA
+                               | AK_HEAP_NODE_FLAGS_INF
+                               | AK_HEAP_NODE_FLAGS_USR
+                               | AK_HEAP_NODE_FLAGS_USRF,
+  AK_HEAP_NODE_FLAGS_EXT_FRST = AK_HEAP_NODE_FLAGS_SRCH
 } AkHeapNodeFlags;
 
 AK_EXPORT

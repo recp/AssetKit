@@ -163,6 +163,11 @@ ak_sid_dup(void *newMemnode,
                                         ak_sid_get(oldMemnode)));
 }
 
+void
+ak_sid_destroy(AkSIDNode * snode) {
+  /* TODO delete all sid-s from node */
+}
+
 AK_EXPORT
 void *
 ak_sid_resolve(AkDoc * __restrict doc,

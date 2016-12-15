@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include "bitwise/ak_bitwise.h"
 
 #if !defined(_WIN32) && defined(USE_JEMALLOC)
 #  include <jemalloc/jemalloc.h>
@@ -548,36 +549,6 @@ ak_heap_setpm(AkHeap * __restrict heap,
                ak__alignof(newparent));
 }
 
-void
-ak_heap_free_ext(AkHeap * __restrict heap,
-                 AkHeapNode * __restrict heapNode) {
-  AkHeapNodeExt *extNode;
-
-  if (!(heapNode->flags & AK_HEAP_NODE_FLAGS_EXT))
-    return;
-
-  extNode = heapNode->chld;
-
-  if (heapNode->flags & AK_HEAP_NODE_FLAGS_SRCH) {
-    AkHeapSrchNode *srchNode;
-    srchNode = (AkHeapSrchNode *)extNode->data;
-
-    /* remove it from rb tree */
-    if (srchNode->key != ak__emptystr)
-      ak_heap_rb_remove(heap->srchctx, srchNode);
-
-    heapNode->flags &= ~(AK_HEAP_NODE_FLAGS_SRCH | AK_HEAP_NODE_FLAGS_RED);
-  }
-
-  if (heapNode->flags & AK_HEAP_NODE_FLAGS_SID) {
-    /* TODO: */
-  }
-
-  heapNode->chld = extNode->chld;
-  heap->allocator->free(extNode);
-  heapNode->flags &= ~AK_HEAP_NODE_FLAGS_EXT;
-}
-
 AK_EXPORT
 void
 ak_heap_free(AkHeap * __restrict heap,
@@ -586,7 +557,7 @@ ak_heap_free(AkHeap * __restrict heap,
   allocator = heap->allocator;
 
   if (heapNode->flags & AK_HEAP_NODE_FLAGS_EXT)
-    ak_heap_free_ext(heap, heapNode);
+    ak_heap_ext_free(heap, heapNode);
 
   /* free all child nodes */
   if (heapNode->chld) {
@@ -602,7 +573,7 @@ ak_heap_free(AkHeap * __restrict heap,
         heap->trash = nextFree;
 
       if (heapNode->flags & AK_HEAP_NODE_FLAGS_EXT)
-        ak_heap_free_ext(heap, toFree);
+        ak_heap_ext_free(heap, toFree);
 
       if (toFree->chld) {
         if (heap->trash) {
@@ -680,12 +651,27 @@ void
 ak_heap_setId(AkHeap * __restrict heap,
               AkHeapNode * __restrict heapNode,
               void * __restrict memId) {
+  AkHeapSrchNode *snode;
+
   if (!memId) {
-    ak_heap_ext_unsetid(heap, heapNode);
+    ak_heap_ext_rm(heap, heapNode, AK_HEAP_NODE_FLAGS_SRCH);
     return;
   }
 
-  ak_heap_ext_setid(heap, heapNode, memId);
+  snode = ak_heap_ext_add(heap,
+                          heapNode,
+                          AK_HEAP_NODE_FLAGS_SRCH);
+
+  if (snode->key)
+    ak_heap_rb_remove(heap->srchctx, snode);
+
+  heapNode->flags |= AK_HEAP_NODE_FLAGS_RED;
+
+  snode->chld[AK__BST_LEFT]  = heap->srchctx->nullNode;
+  snode->chld[AK__BST_RIGHT] = heap->srchctx->nullNode;
+  snode->key                 = memId;
+
+  ak_heap_rb_insert(heap->srchctx, snode);
 }
 
 AK_EXPORT
@@ -771,7 +757,7 @@ ak_mem_setId(void * __restrict memptr,
              void * __restrict memId) {
   AkHeap     *heap;
   AkHeapNode *heapNode;
-  
+
   heapNode = ak__alignof(memptr);
   if (heapNode->heapid == 0)
     heap = &ak__heap;

@@ -70,13 +70,19 @@ struct AkHeapNode {
   char        data[];
 };
 
+
 /*
  - prev - AkHeapNode - next -
               |
-        AkHeapNodeExt
+        AkHeapNodeExt - data
               |
             chld
-              |               */
+              |
+
+data: data must contain items with these order with these data types
+-------------------------------------------------------------------------------
+| id       | sid     | refc      | extra     | inf       | usr       |
+| SrchNode | SidNode | uintptr_t | uintptr_t | uintptr_t | uintptr_t |       */
 typedef struct AkHeapNodeExt {
   AkHeapNode *node;
   AkHeapNode *chld;
@@ -96,13 +102,21 @@ struct AkHeap {
 };
 
 void
-ak_heap_ext_setid(AkHeap * __restrict heap,
-                  AkHeapNode * __restrict heapNode,
-                  void * __restrict memId);
+ak_sid_destroy(AkSIDNode * snode);
+
+void *
+ak_heap_ext_add(AkHeap     * __restrict heap,
+                AkHeapNode * __restrict hnode,
+                uint16_t                flag);
 
 void
-ak_heap_ext_unsetid(AkHeap * __restrict heap,
-                    AkHeapNode * __restrict heapNode);
+ak_heap_ext_rm(AkHeap     * __restrict heap,
+               AkHeapNode * __restrict hnode,
+               uint16_t                flag);
+
+void
+ak_heap_ext_free(AkHeap     * __restrict heap,
+                 AkHeapNode * __restrict hnode);
 
 AkSIDNode *
 ak_heap_ext_mk_sidnode(AkHeap * __restrict heap,
