@@ -22,10 +22,19 @@ ak_bitw_ctz(uint32_t x) {
 }
 
 uint32_t
+ak_bitw_ffs(uint32_t x) {
+#if __has_builtin(__builtin_ffs)
+  return __builtin_ffs(x);
+#else
+  return ak_bitw_ctz(x) + 1;
+#endif
+}
+
+uint32_t
 ak_bitw_clz(uint32_t x) {
   #if __has_builtin(__builtin_clz)
     return __builtin_clz(x);
   #else
-    return sizeof(uint32_t) * CHAR_BIT - ak_bitw_ctz(x) + 1;
+    return sizeof(uint32_t) * CHAR_BIT - ak_bitw_ffs(x);
   #endif
 }

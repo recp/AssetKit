@@ -16,4 +16,7 @@ ak_bitw_ctz(uint32_t x);
 uint32_t
 ak_bitw_clz(uint32_t x);
 
+uint32_t
+ak_bitw_ffs(uint32_t x);
+
 #endif /* ak_bitwise_h */
