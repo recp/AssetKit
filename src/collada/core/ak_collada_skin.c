@@ -91,10 +91,10 @@ ak_dae_skin(AkXmlState * __restrict xst,
 
           input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
-          ak_xml_attr_url(xst->reader,
-                           _s_dae_source,
-                           input,
-                           &input->source);
+          ak_xml_attr_url(xst,
+                          _s_dae_source,
+                          input,
+                          &input->source);
 
           if (!input->semanticRaw || !input->source.url)
             ak_free(input);
@@ -133,11 +133,11 @@ ak_dae_skin(AkXmlState * __restrict xst,
         } else {
           ak_xml_skipelm(xst);
         }
-        
+
         /* end element */
         ak_xml_endelm(xst);
       } while (xst->nodeRet);
-      
+
       skin->joints = joints;
     } else if (ak_xml_eqelm(xst, _s_dae_vertex_weights)) {
       AkVertexWeights *vertexWeights;
@@ -160,11 +160,11 @@ ak_dae_skin(AkXmlState * __restrict xst,
                                  sizeof(*input));
 
           input->base.semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
-          
-          ak_xml_attr_url(xst->reader,
-                           _s_dae_source,
-                           input,
-                           &input->base.source);
+
+          ak_xml_attr_url(xst,
+                          _s_dae_source,
+                          input,
+                          &input->base.source);
 
           if (!input->base.semanticRaw || !input->base.source.url)
             ak_free(input);
@@ -185,7 +185,7 @@ ak_dae_skin(AkXmlState * __restrict xst,
             last_input->base.next = &input->base;
           else
             vertexWeights->input = input;
-          
+
           last_input = input;
         } else if (ak_xml_eqelm(xst, _s_dae_vcount)) {
           char *content;
@@ -201,7 +201,7 @@ ak_dae_skin(AkXmlState * __restrict xst,
                                   &intArray);
             if (ret == AK_OK)
               vertexWeights->vcount = intArray;
-            
+
             xmlFree(content);
           }
         } else if (ak_xml_eqelm(xst, _s_dae_v)) {
@@ -240,11 +240,11 @@ ak_dae_skin(AkXmlState * __restrict xst,
         } else {
           ak_xml_skipelm(xst);
         }
-        
+
         /* end element */
         ak_xml_endelm(xst);
       } while (xst->nodeRet);
-      
+
       skin->vertexWeights = vertexWeights;
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
@@ -270,6 +270,6 @@ ak_dae_skin(AkXmlState * __restrict xst,
   } while (xst->nodeRet);
 
   *dest = skin;
-  
+
   return AK_OK;
 }

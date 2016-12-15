@@ -355,10 +355,10 @@ ak_dae_node(AkXmlState * __restrict xst,
         instanceCamera->base.name = ak_xml_attr(xst,
                                                 instanceCamera,
                                                 _s_dae_name);
-        ak_xml_attr_url(xst->reader,
-                         _s_dae_url,
-                         instanceCamera,
-                         &instanceCamera->base.url);
+        ak_xml_attr_url(xst,
+                        _s_dae_url,
+                        instanceCamera,
+                        &instanceCamera->base.url);
 
         do {
           if (ak_xml_beginelm(xst, _s_dae_instance_camera))
@@ -377,13 +377,13 @@ ak_dae_node(AkXmlState * __restrict xst,
                                 &tree,
                                 NULL);
             instanceCamera->base.extra = tree;
-            
+
             ak_xml_skipelm(xst);
             break;
           } else {
             ak_xml_skipelm(xst);
           }
-          
+
           /* end element */
           ak_xml_endelm(xst);
         } while (xst->nodeRet);
@@ -410,10 +410,10 @@ ak_dae_node(AkXmlState * __restrict xst,
 
         controller->name = ak_xml_attr(xst, controller, _s_dae_name);
 
-        ak_xml_attr_url(xst->reader,
-                         _s_dae_url,
-                         controller,
-                         &controller->url);
+        ak_xml_attr_url(xst,
+                        _s_dae_url,
+                        controller,
+                        &controller->url);
 
         last_skeleton = NULL;
 
@@ -475,7 +475,7 @@ ak_dae_node(AkXmlState * __restrict xst,
           last_controller->next = controller;
         else
           node->controller = controller;
-        
+
         last_controller = controller;
 
         break;
@@ -489,10 +489,10 @@ ak_dae_node(AkXmlState * __restrict xst,
 
         geometry->base.name = ak_xml_attr(xst, geometry, _s_dae_name);
 
-        ak_xml_attr_url(xst->reader,
-                         _s_dae_url,
-                         geometry,
-                         &geometry->base.url);
+        ak_xml_attr_url(xst,
+                        _s_dae_url,
+                        geometry,
+                        &geometry->base.url);
 
         do {
           if (ak_xml_beginelm(xst, _s_dae_instance_geometry))
@@ -534,9 +534,9 @@ ak_dae_node(AkXmlState * __restrict xst,
           last_geometry->next = geometry;
         else
           node->geometry = geometry;
-        
+
         last_geometry = geometry;
-        
+
         break;
       }
       case k_s_dae_instance_light: {
@@ -546,10 +546,10 @@ ak_dae_node(AkXmlState * __restrict xst,
 
         light->name = ak_xml_attr(xst, light, _s_dae_name);
 
-        ak_xml_attr_url(xst->reader,
-                         _s_dae_url,
-                         light,
-                         &light->url);
+        ak_xml_attr_url(xst,
+                        _s_dae_url,
+                        light,
+                        &light->url);
 
         do {
           if (ak_xml_beginelm(xst, _s_dae_instance_light))
@@ -583,7 +583,7 @@ ak_dae_node(AkXmlState * __restrict xst,
           last_light->next = light;
         else
           node->light = light;
-        
+
         last_light = light;
 
         break;
@@ -598,10 +598,10 @@ ak_dae_node(AkXmlState * __restrict xst,
         instanceNode->name  = ak_xml_attr(xst, instanceNode, _s_dae_name);
         instanceNode->proxy = ak_xml_attr(xst, instanceNode, _s_dae_proxy);
 
-        ak_xml_attr_url(xst->reader,
-                         _s_dae_url,
-                         instanceNode,
-                         &instanceNode->url);
+        ak_xml_attr_url(xst,
+                        _s_dae_url,
+                        instanceNode,
+                        &instanceNode->url);
 
         do {
           if (ak_xml_beginelm(xst, _s_dae_instance_node))
@@ -635,9 +635,9 @@ ak_dae_node(AkXmlState * __restrict xst,
           last_node->next = instanceNode;
         else
           node->node = instanceNode;
-        
+
         last_node = instanceNode;
-        
+
         break;
       }
       case k_s_dae_node: {
@@ -688,6 +688,6 @@ ak_dae_node(AkXmlState * __restrict xst,
 
   ak_dae_nodeFixup(xst->heap, doc, node);
   *dest = node;
-  
+
   return AK_OK;
 }

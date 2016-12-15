@@ -11,6 +11,6 @@
 #include "ak_collada_common.h"
 
 void _assetkit_hide
-ak_dae_postscript(AkDoc * doc);
+ak_dae_postscript(AkXmlState * __restrict xst);
 
 #endif /* ak_collada_postscript_h */

@@ -134,13 +134,13 @@ ak_dae_fxInstanceEffect(AkXmlState * __restrict xst,
                                   sizeof(*instanceEffect));
 
   ak_xml_readsid(xst, instanceEffect);
-  
+
   instanceEffect->name = ak_xml_attr(xst, instanceEffect, _s_dae_name);
 
-  ak_xml_attr_url(xst->reader,
-                   _s_dae_url,
-                   instanceEffect,
-                   &instanceEffect->url);
+  ak_xml_attr_url(xst,
+                  _s_dae_url,
+                  instanceEffect,
+                  &instanceEffect->url);
 
   last_techHint = NULL;
   last_setparam = NULL;
@@ -196,18 +196,18 @@ ak_dae_fxInstanceEffect(AkXmlState * __restrict xst,
                             &tree,
                             NULL);
         instanceEffect->extra = tree;
-        
+
         ak_xml_skipelm(xst);
       } else {
         ak_xml_skipelm(xst);
       }
-      
+
       /* end element */
       ak_xml_endelm(xst);
     } while (xst->nodeRet);
   }
-  
+
   *dest = instanceEffect;
-  
+
   return AK_OK;
 }

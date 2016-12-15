@@ -37,11 +37,11 @@ ak_dae_lines(AkXmlState * __restrict xst,
       input = ak_heap_calloc(xst->heap, lines, sizeof(*input));
 
       input->base.semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
-      
-      ak_xml_attr_url(xst->reader,
-                       _s_dae_source,
-                       input,
-                       &input->base.source);
+
+      ak_xml_attr_url(xst,
+                      _s_dae_source,
+                      input,
+                      &input->base.source);
 
       if (!input->base.semanticRaw || !input->base.source.url)
         ak_free(input);
@@ -79,7 +79,7 @@ ak_dae_lines(AkXmlState * __restrict xst,
       if (content) {
         AkUIntArray *uintArray;
         AkResult ret;
-        
+
         ret = ak_strtoui_array(xst->heap, lines, content, &uintArray);
         if (ret == AK_OK)
           lines->base.indices = uintArray;
@@ -106,7 +106,7 @@ ak_dae_lines(AkXmlState * __restrict xst,
     /* end element */
     ak_xml_endelm(xst);
   } while (xst->nodeRet);
-  
+
   *dest = lines;
 
   return AK_OK;

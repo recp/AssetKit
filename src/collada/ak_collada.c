@@ -260,7 +260,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
   *dest = doc;
 
   /* post-parse operations */
-  ak_dae_postscript(doc);
+  ak_dae_postscript(xst);
 
   return AK_OK;
 }

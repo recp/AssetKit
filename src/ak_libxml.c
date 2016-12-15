@@ -10,7 +10,7 @@
 #include "collada/ak_collada_common.h"
 
 void
-ak_xml_attr_url(xmlTextReaderPtr reader,
+ak_xml_attr_url(AkXmlState * __restrict xst,
                 const char * attrName,
                 void  *memparent,
                 AkURL *url) {

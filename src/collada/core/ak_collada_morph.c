@@ -83,10 +83,10 @@ ak_dae_morph(AkXmlState * __restrict xst,
 
           input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
-          ak_xml_attr_url(xst->reader,
-                           _s_dae_source,
-                           input,
-                           &input->source);
+          ak_xml_attr_url(xst,
+                          _s_dae_source,
+                          input,
+                          &input->source);
 
           if (!input->semanticRaw || !input->source.url)
             ak_free(input);
@@ -134,27 +134,27 @@ ak_dae_morph(AkXmlState * __restrict xst,
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
-      
+
       nodePtr = xmlTextReaderExpand(xst->reader);
       tree = NULL;
-      
+
       ak_tree_fromXmlNode(xst->heap,
                           memPtr,
                           nodePtr,
                           &tree,
                           NULL);
       morph->extra = tree;
-      
+
       ak_xml_skipelm(xst);
     } else {
       ak_xml_skipelm(xst);
     }
-    
+
     /* end element */
     ak_xml_endelm(xst);
   } while (xst->nodeRet);
-  
+
   *dest = morph;
-  
+
   return AK_OK;
 }

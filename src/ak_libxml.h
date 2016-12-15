@@ -120,7 +120,7 @@ ak_xml_attrui_def(AkXmlState * __restrict xst,
                   unsigned int defval);
 
 void
-ak_xml_attr_url(xmlTextReaderPtr reader,
+ak_xml_attr_url(AkXmlState * __restrict xst,
                 const char * attrName,
                 void  *memparent,
                 AkURL *url);

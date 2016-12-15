@@ -66,9 +66,9 @@ ak_dae_material(AkXmlState * __restrict xst,
     /* end element */
     ak_xml_endelm(xst);
   } while (xst->nodeRet);
-  
+
   *dest = material;
-  
+
   return AK_OK;
 }
 
@@ -152,9 +152,9 @@ ak_dae_fxBindMaterial(AkXmlState * __restrict xst,
     /* end element */
     ak_xml_endelm(xst);
   } while (xst->nodeRet);
-  
+
   *dest = bindMaterial;
-  
+
   return AK_OK;
 }
 
@@ -176,10 +176,10 @@ ak_dae_fxInstanceMaterial(AkXmlState * __restrict xst,
   material->target = ak_xml_attr(xst, material, _s_dae_target);
   material->symbol = ak_xml_attr(xst, material, _s_dae_symbol);
 
-  ak_xml_attr_url(xst->reader,
-                   _s_dae_url,
-                   material,
-                   &material->url);
+  ak_xml_attr_url(xst,
+                  _s_dae_url,
+                  material,
+                  &material->url);
 
   last_bind = NULL;
   last_bindVertexInput = NULL;
@@ -261,8 +261,8 @@ ak_dae_fxInstanceMaterial(AkXmlState * __restrict xst,
     /* end element */
     ak_xml_endelm(xst);
   } while (xst->nodeRet);
-  
+
   *dest = material;
-  
+
   return AK_OK;
 }

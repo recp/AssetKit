@@ -42,10 +42,10 @@ ak_dae_triangles(AkXmlState * __restrict xst,
 
       input->base.semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
-      ak_xml_attr_url(xst->reader,
-                       _s_dae_source,
-                       input,
-                       &input->base.source);
+      ak_xml_attr_url(xst,
+                      _s_dae_source,
+                      input,
+                      &input->base.source);
 
       if (!input->base.semanticRaw || !input->base.source.url)
         ak_free(input);
@@ -94,24 +94,24 @@ ak_dae_triangles(AkXmlState * __restrict xst,
 
       nodePtr = xmlTextReaderExpand(xst->reader);
       tree = NULL;
-      
+
       ak_tree_fromXmlNode(xst->heap,
                           triangles,
                           nodePtr,
                           &tree,
                           NULL);
       triangles->base.extra = tree;
-      
+
       ak_xml_skipelm(xst);
     } else {
       ak_xml_skipelm(xst);
     }
-    
+
     /* end element */
     ak_xml_endelm(xst);
   } while (xst->nodeRet);
-  
+
   *dest = triangles;
-  
+
   return AK_OK;
 }

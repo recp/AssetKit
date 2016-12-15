@@ -29,7 +29,7 @@ ak_dae_polygon(AkXmlState * __restrict xst,
   polygon->base.name = ak_xml_attr(xst, polygon, _s_dae_name);
   polygon->base.material = ak_xml_attr(xst, polygon, _s_dae_material);
 
-  /* 
+  /*
    _xml_readAttrUsingFnWithDef(polygon->count,
                               _s_dae_count,
                               0,
@@ -48,10 +48,10 @@ ak_dae_polygon(AkXmlState * __restrict xst,
       input = ak_heap_calloc(xst->heap, polygon, sizeof(*input));
       input->base.semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
-      ak_xml_attr_url(xst->reader,
-                       _s_dae_source,
-                       input,
-                       &input->base.source);
+      ak_xml_attr_url(xst,
+                      _s_dae_source,
+                      input,
+                      &input->base.source);
 
       if (!input->base.semanticRaw || !input->base.source.url)
         ak_free(input);
@@ -92,7 +92,7 @@ ak_dae_polygon(AkXmlState * __restrict xst,
         ret = ak_strtoui_array(xst->heap, polygon, content, &intArray);
         if (ret == AK_OK)
           polygon->base.indices = intArray;
-        
+
         xmlFree(content);
       }
     } else if (ak_xml_eqelm(xst, _s_dae_vcount)
@@ -182,16 +182,16 @@ ak_dae_polygon(AkXmlState * __restrict xst,
                           &tree,
                           NULL);
       polygon->base.extra = tree;
-      
+
       ak_xml_skipelm(xst);
     } else {
       ak_xml_skipelm(xst);
     }
-    
+
     /* end element */
     ak_xml_endelm(xst);
   } while (xst->nodeRet);
-  
+
   *dest = polygon;
 
   return AK_OK;

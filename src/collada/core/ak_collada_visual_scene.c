@@ -90,9 +90,9 @@ ak_dae_visualScene(AkXmlState * __restrict xst,
     /* end element */
     ak_xml_endelm(xst);
   } while (xst->nodeRet);
-  
+
   *dest = visualScene;
-  
+
   return AK_OK;
 }
 
@@ -107,13 +107,13 @@ ak_dae_instanceVisualScene(AkXmlState * __restrict xst,
                                sizeof(*visualScene));
 
   ak_xml_readsid(xst, visualScene);
-  
+
   visualScene->base.name = ak_xml_attr(xst, visualScene, _s_dae_name);
 
-  ak_xml_attr_url(xst->reader,
-                   _s_dae_url,
-                   visualScene,
-                   &visualScene->base.url);
+  ak_xml_attr_url(xst,
+                  _s_dae_url,
+                  visualScene,
+                  &visualScene->base.url);
 
   do {
     if (ak_xml_beginelm(xst, _s_dae_instance_visual_scene))
@@ -139,8 +139,8 @@ ak_dae_instanceVisualScene(AkXmlState * __restrict xst,
     /* end element */
     ak_xml_endelm(xst);
   } while (xst->nodeRet);
-  
+
   *dest = visualScene;
-  
+
   return AK_OK;
 }

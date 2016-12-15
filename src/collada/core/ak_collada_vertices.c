@@ -35,10 +35,10 @@ ak_dae_vertices(AkXmlState * __restrict xst,
 
       input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
-      ak_xml_attr_url(xst->reader,
-                       _s_dae_source,
-                       input,
-                       &input->source);
+      ak_xml_attr_url(xst,
+                      _s_dae_source,
+                      input,
+                      &input->source);
 
       if (!input->semanticRaw || !input->source.url)
         ak_free(input);
@@ -73,7 +73,7 @@ ak_dae_vertices(AkXmlState * __restrict xst,
     /* end element */
     ak_xml_endelm(xst);
   } while (xst->nodeRet);
-  
+
   *dest = vertices;
 
   return AK_OK;

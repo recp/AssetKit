@@ -63,7 +63,7 @@ ak_dae_spline(AkXmlState * __restrict xst,
       cverts = ak_heap_calloc(xst->heap, memPtr, sizeof(*cverts));
 
       last_input = NULL;
-      
+
       do {
         if (ak_xml_beginelm(xst, _s_dae_control_vertices))
           break;
@@ -77,10 +77,10 @@ ak_dae_spline(AkXmlState * __restrict xst,
 
           input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
-          ak_xml_attr_url(xst->reader,
-                           _s_dae_source,
-                           input,
-                           &input->source);
+          ak_xml_attr_url(xst,
+                          _s_dae_source,
+                          input,
+                          &input->source);
 
           if (!input->semanticRaw || !input->source.url)
             ak_free(input);
@@ -98,7 +98,7 @@ ak_dae_spline(AkXmlState * __restrict xst,
             last_input->next = input;
           else
             cverts->input = input;
-          
+
           last_input = input;
         } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
           xmlNodePtr nodePtr;
@@ -113,13 +113,13 @@ ak_dae_spline(AkXmlState * __restrict xst,
                               &tree,
                               NULL);
           cverts->extra = tree;
-          
+
           ak_xml_skipelm(xst);
 
         } else {
           ak_xml_skipelm(xst);
         }
-        
+
         /* end element */
         ak_xml_endelm(xst);
       } while (xst->nodeRet);
@@ -147,8 +147,8 @@ ak_dae_spline(AkXmlState * __restrict xst,
     /* end element */
     ak_xml_endelm(xst);
   } while (xst->nodeRet);
-  
+
   *dest = spline;
-  
+
   return AK_OK;
 }

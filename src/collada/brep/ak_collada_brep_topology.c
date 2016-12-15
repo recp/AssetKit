@@ -38,10 +38,10 @@ ak_dae_edges(AkXmlState * __restrict xst,
 
       input->base.semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
-      ak_xml_attr_url(xst->reader,
-                       _s_dae_source,
-                       input,
-                       &input->base.source);
+      ak_xml_attr_url(xst,
+                      _s_dae_source,
+                      input,
+                      &input->base.source);
 
       if (!input->base.semanticRaw || !input->base.source.url)
         ak_free(input);
@@ -139,10 +139,10 @@ ak_dae_wires(AkXmlState * __restrict xst,
 
       input->base.semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
-      ak_xml_attr_url(xst->reader,
-                       _s_dae_source,
-                       input,
-                       &input->base.source);
+      ak_xml_attr_url(xst,
+                      _s_dae_source,
+                      input,
+                      &input->base.source);
 
       if (!input->base.semanticRaw || !input->base.source.url)
         ak_free(input);
@@ -256,10 +256,10 @@ ak_dae_faces(AkXmlState * __restrict xst,
 
       input->base.semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
-      ak_xml_attr_url(xst->reader,
-                       _s_dae_source,
-                       input,
-                       &input->base.source);
+      ak_xml_attr_url(xst,
+                      _s_dae_source,
+                      input,
+                      &input->base.source);
 
       if (!input->base.semanticRaw || !input->base.source.url)
         ak_free(input);
@@ -373,10 +373,10 @@ ak_dae_pcurves(AkXmlState * __restrict xst,
 
       input->base.semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
-      ak_xml_attr_url(xst->reader,
-                       _s_dae_source,
-                       input,
-                       &input->base.source);
+      ak_xml_attr_url(xst,
+                      _s_dae_source,
+                      input,
+                      &input->base.source);
 
       if (!input->base.semanticRaw || !input->base.source.url)
         ak_free(input);
@@ -490,10 +490,10 @@ ak_dae_shells(AkXmlState * __restrict xst,
 
       input->base.semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
-      ak_xml_attr_url(xst->reader,
-                       _s_dae_source,
-                       input,
-                       &input->base.source);
+      ak_xml_attr_url(xst,
+                      _s_dae_source,
+                      input,
+                      &input->base.source);
 
       if (!input->base.semanticRaw || !input->base.source.url)
         ak_free(input);
@@ -607,10 +607,10 @@ ak_dae_solids(AkXmlState * __restrict xst,
 
       input->base.semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
-      ak_xml_attr_url(xst->reader,
-                       _s_dae_source,
-                       input,
-                       &input->base.source);
+      ak_xml_attr_url(xst,
+                      _s_dae_source,
+                      input,
+                      &input->base.source);
 
       if (!input->base.semanticRaw || !input->base.source.url)
         ak_free(input);
@@ -647,50 +647,50 @@ ak_dae_solids(AkXmlState * __restrict xst,
                               &intArray);
         if (ret == AK_OK)
           solids->vcount = intArray;
-        
+
         xmlFree(content);
       }
     } else if (ak_xml_eqelm(xst, _s_dae_p)) {
       char *content;
-      
+
       content = ak_xml_rawval(xst);
-      
+
       if (content) {
         AkDoubleArray *doubleArray;
         AkResult ret;
-        
+
         ret = ak_strtod_array(xst->heap,
                               solids,
                               content,
                               &doubleArray);
         if (ret == AK_OK)
           solids->primitives = doubleArray;
-        
+
         xmlFree(content);
       }
-      
+
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
-      
+
       nodePtr = xmlTextReaderExpand(xst->reader);
       tree = NULL;
-      
+
       ak_tree_fromXmlNode(xst->heap,
                           solids,
                           nodePtr,
                           &tree,
                           NULL);
       solids->extra = tree;
-      
+
       ak_xml_skipelm(xst);
     }
-    
+
     /* end element */
     ak_xml_endelm(xst);
   } while (xst->nodeRet);
-  
+
   *dest = solids;
-  
+
   return AK_OK;
 }

@@ -146,10 +146,10 @@ ak_dae_fxInstanceImage(AkXmlState * __restrict xst,
 
   instanceImage->name = ak_xml_attr(xst, instanceImage, _s_dae_name);
 
-  ak_xml_attr_url(xst->reader,
-                   _s_dae_url,
-                   instanceImage,
-                   &instanceImage->url);
+  ak_xml_attr_url(xst,
+                  _s_dae_url,
+                  instanceImage,
+                  &instanceImage->url);
 
   do {
     if (ak_xml_beginelm(xst, _s_dae_instance_image))
@@ -466,26 +466,26 @@ ak_dae_fxImage_createCube(AkXmlState * __restrict xst,
     } else if (ak_xml_eqelm(xst, _s_dae_format)) {
       AkImageFormat *imageFormat;
       AkResult ret;
-      
+
       ret = ak_dae_fxImage_format(xst, imageCube, &imageFormat);
       if (ret == AK_OK)
         imageCube->format = imageFormat;
     } else if (ak_xml_eqelm(xst, _s_dae_size_exact)) {
       AkInitFrom *initFrom;
       AkResult ret;
-      
+
       ret = ak_dae_fxImage_initFrom(xst, imageCube, &initFrom);
       if (ret == AK_OK)
         imageCube->initFrom = initFrom;
     } else {
       ak_xml_skipelm(xst);
     }
-    
+
     /* end element */
     ak_xml_endelm(xst);
   } while (xst->nodeRet);
-  
+
   *dest = imageCube;
-  
+
   return AK_OK;
 }
