@@ -81,8 +81,8 @@ struct AkHeapNode {
 
 data: data must contain items with these order with these data types
 -------------------------------------------------------------------------------
-| id       | sid     | refc      | extra     | inf       | usr       |
-| SrchNode | SidNode | uintptr_t | uintptr_t | uintptr_t | uintptr_t |       */
+| id       | sid     | refc   | extra     | inf       | usr       |
+| SrchNode | SidNode | size_t | uintptr_t | uintptr_t | uintptr_t |          */
 typedef struct AkHeapNodeExt {
   AkHeapNode *node;
   AkHeapNode *chld;
