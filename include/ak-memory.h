@@ -41,6 +41,7 @@ typedef struct AkHeapAllocator {
 typedef struct AkHeapSrchCtx AkHeapSrchCtx;
 typedef struct AkHeapNode    AkHeapNode;
 typedef struct AkHeap        AkHeap;
+struct AkURL;
 
 typedef int (*AkHeapSrchCmpFn)(void * __restrict key1,
                                void * __restrict key2);
@@ -209,6 +210,12 @@ AkResult
 ak_heap_getNodeById(AkHeap * __restrict heap,
                     void * __restrict memId,
                     AkHeapNode ** __restrict dest);
+
+AK_EXPORT
+AkResult
+ak_heap_getNodeByURL(AkHeap * __restrict heap,
+                     struct AkURL * __restrict url,
+                     AkHeapNode ** __restrict dest);
 
 AK_EXPORT
 AkResult

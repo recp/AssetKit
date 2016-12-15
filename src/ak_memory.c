@@ -697,6 +697,17 @@ ak_heap_getNodeById(AkHeap * __restrict heap,
 
 AK_EXPORT
 AkResult
+ak_heap_getNodeByURL(AkHeap * __restrict heap,
+                     struct AkURL * __restrict url,
+                     AkHeapNode ** __restrict dest) {
+  if (url->doc)
+    return ak_heap_getNodeById(heap, (char *)url->url + 1, dest);
+
+  return AK_EFOUND;
+}
+
+AK_EXPORT
+AkResult
 ak_heap_getMemById(AkHeap * __restrict heap,
                    void * __restrict memId,
                    void ** __restrict dest) {
