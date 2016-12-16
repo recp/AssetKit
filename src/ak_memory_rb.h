@@ -27,6 +27,11 @@ AkHeapSrchNode *
 ak_heap_rb_find(AkHeapSrchCtx * __restrict srchctx,
                 void * __restrict key);
 
+int
+ak_heap_rb_parent(AkHeapSrchCtx * __restrict srchctx,
+                  void * __restrict key,
+                  AkHeapSrchNode ** dest);
+
 void
 ak_heap_rb_print(AkHeapSrchCtx * __restrict srchctx);
 

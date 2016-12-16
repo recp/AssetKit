@@ -390,6 +390,37 @@ ak_heap_rb_find(AkHeapSrchCtx * __restrict srchctx,
   return iter;
 }
 
+int
+ak_heap_rb_parent(AkHeapSrchCtx * __restrict srchctx,
+                  void * __restrict key,
+                  AkHeapSrchNode ** dest) {
+   AkHeapSrchNode *iter, *parent;
+   int side, cmpRet;
+
+   side   = AK__BST_RIGHT;
+   iter   = srchctx->root->chld[side];
+   parent = srchctx->root;
+   cmpRet = -1;
+
+   while (iter != srchctx->nullNode) {
+      cmpRet = srchctx->cmp(iter->key, key);
+
+      if (cmpRet == 0)
+         break;
+
+      side   = cmpRet < 0;
+      parent = iter;
+      iter   = iter->chld[side];
+   }
+
+   if (cmpRet != 0)
+      *dest = NULL;
+   else
+      *dest = parent;
+
+   return side;
+}
+
 void
 ak_heap_rb_printNode(AkHeapSrchCtx * __restrict srchctx,
                      AkHeapSrchNode * __restrict srchNode) {
