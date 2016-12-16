@@ -23,11 +23,12 @@ static
 AK_INLINE
 uint32_t
 ak_heap_ext_size(uint16_t flags) {
-  uint32_t sz, flag, i;
+  uint32_t sz, flag, i, ctz;
 
   sz   = 0;
-  flag = (1 << (31 - ak_bitw_clz(flags)));
-  i    = ak_bitw_ctz(flag) - ak_bitw_ctz(AK_HEAP_NODE_FLAGS_EXT_FRST);
+  ctz  = (31 - ak_bitw_clz(flags));
+  flag = 1 << ctz;
+  i    = ctz - ak_bitw_ctz(AK_HEAP_NODE_FLAGS_EXT_FRST);
 
   while (flag >= AK_HEAP_NODE_FLAGS_EXT_FRST) {
     if (flags & flag)
@@ -49,9 +50,9 @@ ak_heap_ext_off(uint16_t flags, uint16_t flag) {
   i = ak_bitw_ctz(flag) - ak_bitw_ctz(AK_HEAP_NODE_FLAGS_EXT_FRST);
 
   while ((flag >>= 1) >= AK_HEAP_NODE_FLAGS_EXT_FRST) {
+    i--;
     if (flags & flag)
       sz += ak__heap_ext_sz[i];
-    i--;
   }
 
   return sz;
@@ -100,12 +101,33 @@ ak_heap_ext_add(AkHeap     * __restrict heap,
     exnode->chld  = hnode->chld;
     hnode->flags |= AK_HEAP_NODE_FLAGS_EXT;
   } else {
-    exnode = alc->realloc(hnode->chld, sizeof(*exnode) + sz + isz);
+    AkHeapSrchNode *curr, *parent;
+    int side;
+
+    exnode = hnode->chld;
+    parent = NULL;
+    side   = 1;
+
+    /* save link */
+    if (hnode->flags & AK_HEAP_NODE_FLAGS_SRCH) {
+      curr = (AkHeapSrchNode *)exnode->data;
+      side = ak_heap_rb_parent(heap->srchctx,
+                               curr->key,
+                               &parent);
+    }
+
+    exnode = alc->realloc(exnode, sizeof(*exnode) + sz + isz);
 
     if (sz > ofst)
       memmove(&exnode->data[ofst],
               &exnode->data[ofst] + isz,
-              isz);
+              sz - ofst);
+
+    /* update link */
+    if (parent) {
+      curr = (AkHeapSrchNode *)exnode->data;
+      parent->chld[side] = curr;
+    }
   }
 
   memset(&exnode->data[ofst], 0, isz);
@@ -158,10 +180,34 @@ ak_heap_ext_rm(AkHeap     * __restrict heap,
 
   hnode->flags &= ~flag;
   if (sz > 0) {
-    exnode = alc->realloc(hnode->chld, sz + sizeof(*exnode));
-    memmove(&exnode->data[ofst] + isz,
-            &exnode->data[ofst],
-            isz);
+    AkHeapSrchNode *curr, *parent;
+    int side;
+
+    parent = NULL;
+    side   = 1;
+
+    /* save link */
+    if (hnode->flags & AK_HEAP_NODE_FLAGS_SRCH) {
+      curr = (AkHeapSrchNode *)exnode->data;
+      side = ak_heap_rb_parent(heap->srchctx,
+                               curr->key,
+                               &parent);
+    }
+
+    if (sz > ofst)
+      memmove(&exnode->data[ofst] + isz,
+              &exnode->data[ofst],
+              sz - ofst);
+
+    exnode = alc->realloc(exnode, sz + sizeof(*exnode));
+
+    /* update link */
+    if (parent) {
+      curr = (AkHeapSrchNode *)exnode->data;
+      parent->chld[side] = curr;
+    }
+
+    hnode->chld = exnode;
   } else {
     hnode->chld = exnode->chld;
     alc->free(exnode);
