@@ -14,7 +14,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-#include "bitwise/ak_bitwise.h"
 
 #if !defined(_WIN32) && defined(USE_JEMALLOC)
 #  include <jemalloc/jemalloc.h>
