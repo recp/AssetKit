@@ -730,6 +730,30 @@ ak_heap_getMemById(AkHeap * __restrict heap,
 }
 
 AK_EXPORT
+size_t
+ak_heap_refc(AkHeapNode * __restrict heapNode) {
+  size_t *refc;
+
+  refc = ak_heap_ext_get(heapNode, AK_HEAP_NODE_FLAGS_REFC);
+  if (!refc)
+    return -1;
+
+  return *refc;
+}
+
+AK_EXPORT
+size_t
+ak_heap_retain(AkHeapNode * __restrict heapNode) {
+  size_t *refc;
+
+  refc = ak_heap_ext_get(heapNode, AK_HEAP_NODE_FLAGS_REFC);
+  if (!refc)
+    return -1;
+
+  return ++(*refc);
+}
+
+AK_EXPORT
 void
 ak_heap_printKeys(AkHeap * __restrict heap) {
   ak_heap_rb_print(heap->srchctx);
@@ -860,6 +884,18 @@ ak_strdup(void * __restrict parent,
   memset((char *)memptr + memsize, '\0', 1);
 
   return memptr;
+}
+
+AK_EXPORT
+size_t
+ak_refc(void * __restrict mem) {
+  return ak_heap_refc(ak__alignof(mem));
+}
+
+AK_EXPORT
+size_t
+ak_retain(void * __restrict mem) {
+  return ak_heap_retain(ak__alignof(mem));
 }
 
 AK_EXPORT
