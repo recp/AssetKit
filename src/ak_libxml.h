@@ -12,11 +12,17 @@
 #include "../include/ak-url.h"
 #include <libxml/xmlreader.h>
 
+typedef struct AkURLQueue {
+  AkURL *url;
+  struct AkURLQueue *next;
+} AkURLQueue;
+
 typedef AK_ALIGN(16) struct AkXmlState {
   AkHeap          *heap;
   AkDoc           *doc;
   xmlTextReaderPtr reader;
   const xmlChar   *nodeName;
+  AkURLQueue      *urlQueue;
   int              nodeType;
   int              nodeRet;
 } AkXmlState;

@@ -168,10 +168,11 @@ ak_dae_doc(AkDoc ** __restrict dest,
 
   ak_heap_setdata(heap, doc);
 
-  xstVal.doc    = doc;
-  xstVal.heap   = heap;
-  xstVal.reader = reader;
-  xst           = &xstVal;
+  xstVal.doc      = doc;
+  xstVal.heap     = heap;
+  xstVal.reader   = reader;
+  xstVal.urlQueue = NULL;
+  xst             = &xstVal;
 
   ak_xml_readnext(xst);
 

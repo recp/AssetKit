@@ -14,13 +14,21 @@ ak_xml_attr_url(AkXmlState * __restrict xst,
                 const char * attrName,
                 void  *memparent,
                 AkURL *url) {
-  xmlChar * attrVal;
-  attrVal = xmlTextReaderGetAttribute(reader,
+  xmlChar    *attrVal;
+  AkURLQueue *urlQueue;
+
+  attrVal = xmlTextReaderGetAttribute(xst->reader,
                                       (const xmlChar *)attrName);
   if (attrVal) {
     ak_url_init(memparent,
                 (char *)attrVal,
                 url);
+
+    urlQueue       = xst->heap->allocator->malloc(sizeof(*urlQueue));
+    urlQueue->next = xst->urlQueue;
+    urlQueue->url  = url;
+    xst->urlQueue  = urlQueue;
+    
     xmlFree(attrVal);
     return;
   }
