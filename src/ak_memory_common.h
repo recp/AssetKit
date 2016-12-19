@@ -50,9 +50,6 @@ typedef struct AkSIDNode {
 #define AK__HEAPNODE(X)                                                       \
   (((AkHeapNodeExt *)((char *)X - offsetof(AkHeapNodeExt, data)))->node)
 
-#define AK__HEAPEXTNODE(X)                                                    \
-  ((AkHeapSrchNode *)((char *)X - sizeof(AkHeapNodeExt)))
-
 /*
  - prev - AkHeapNode - next -
                |

@@ -217,62 +217,57 @@ ak_heap_data(AkHeap * __restrict heap) {
 
 AK_EXPORT
 void
-ak_heap_init(AkHeap * __restrict heap,
-             AkHeapAllocator *allocator,
-             AkHeapSrchCmpFn cmp,
-             AkHeapSrchPrintFn print) {
+ak_heap_init(AkHeap          * __restrict heap,
+             AkHeapAllocator * __restrict allocator,
+             AkHeapSrchCmpFn              cmp,
+             AkHeapSrchPrintFn            print) {
   AkHeapAllocator *alc;
   AkHeapSrchCtx   *srchctx;
   AkHeapNode      *rootNode,     *nullNode;
   AkHeapNodeExt   *rootNodeExt,  *nullNodeExt;
-  AkHeapSrchNode  *srchRootNode, *srchNullNode;
-  size_t           srchNodeSize;
+  AkHeapSrchNode  *rootSrchNode, *nullSrchNode;
 
   if (heap->flags & AK_HEAP_FLAGS_INITIALIZED)
     return;
 
   alc = allocator ? allocator : &ak__allocator;
 
-  srchctx = alc->malloc(sizeof(*srchctx));
-  assert(srchctx && "malloc failed");
-
-  srchctx->cmp   = cmp ? cmp : ak__heap_srch_cmp;
-  srchctx->print = print ? print : ak__heap_srch_print;
-
-  srchNodeSize = sizeof(AkHeapSrchNode);
-
+  srchctx     = alc->malloc(sizeof(*srchctx));
   rootNode    = alc->calloc(ak__heapnd_sz, 1);
   nullNode    = alc->calloc(ak__heapnd_sz, 1);
-  rootNodeExt = alc->calloc(sizeof(*rootNodeExt) + srchNodeSize, 1);
-  nullNodeExt = alc->calloc(sizeof(*nullNodeExt) + srchNodeSize, 1);
+  rootNodeExt = alc->calloc(sizeof(*rootNodeExt) + sizeof(AkHeapSrchNode), 1);
+  nullNodeExt = alc->calloc(sizeof(*nullNodeExt) + sizeof(AkHeapSrchNode), 1);
 
-  assert(rootNode
+  assert(srchctx
+         && rootNode
          && nullNode
          && rootNodeExt
          && nullNodeExt
          && "malloc failed");
 
   rootNode->chld    = rootNodeExt;
-  nullNode->chld    = nullNodeExt;
   rootNodeExt->node = rootNode;
+  rootSrchNode      = (AkHeapSrchNode *)rootNodeExt->data;
+
+  nullNode->chld    = nullNodeExt;
   nullNodeExt->node = nullNode;
-  srchRootNode      = (AkHeapSrchNode *)rootNodeExt->data;
-  srchNullNode      = (AkHeapSrchNode *)nullNodeExt->data;
+  nullSrchNode      = (AkHeapSrchNode *)nullNodeExt->data;
 
-  srchNullNode->key = ak__emptystr;
-  srchNullNode->chld[AK__BST_LEFT]  = srchNullNode;
-  srchNullNode->chld[AK__BST_RIGHT] = srchNullNode;
+  nullSrchNode->key = ak__emptystr;
+  nullSrchNode->chld[AK__BST_LEFT]  = nullSrchNode;
+  nullSrchNode->chld[AK__BST_RIGHT] = nullSrchNode;
 
-  srchRootNode->key = ak__emptystr;
-  srchRootNode->chld[AK__BST_LEFT]  = srchNullNode;
-  srchRootNode->chld[AK__BST_RIGHT] = srchNullNode;
+  rootSrchNode->key = ak__emptystr;
+  rootSrchNode->chld[AK__BST_LEFT]  = nullSrchNode;
+  rootSrchNode->chld[AK__BST_RIGHT] = nullSrchNode;
 
   rootNode->flags   = (AK_HEAP_NODE_FLAGS_EXT | AK_HEAP_NODE_FLAGS_SRCH);
   nullNode->flags   = (AK_HEAP_NODE_FLAGS_EXT | AK_HEAP_NODE_FLAGS_SRCH);
 
-  /* Real Root is srchRoot-right node */
-  srchctx->root     = srchRootNode;
-  srchctx->nullNode = srchNullNode;
+  srchctx->cmp      = cmp   ? cmp   : ak__heap_srch_cmp;
+  srchctx->print    = print ? print : ak__heap_srch_print;
+  srchctx->root     = rootSrchNode;
+  srchctx->nullNode = nullSrchNode;
 
   heap->chld      = NULL;
   heap->next      = NULL;
@@ -290,6 +285,7 @@ AK_EXPORT
 void
 ak_heap_destroy(AkHeap * __restrict heap) {
   AkHeapAllocator *alc;
+  AkHeapNode *rootNode, *nullNode;
 
   if (!(heap->flags & AK_HEAP_FLAGS_INITIALIZED))
     return;
@@ -309,10 +305,13 @@ ak_heap_destroy(AkHeap * __restrict heap) {
 
   ak_heap_cleanup(heap);
 
-  alc->free(AK__HEAPNODE(heap->srchctx->root));
-  alc->free(AK__HEAPNODE(heap->srchctx->nullNode));
-  alc->free(AK__HEAPEXTNODE(heap->srchctx->root));
-  alc->free(AK__HEAPEXTNODE(heap->srchctx->nullNode));
+  rootNode = AK__HEAPNODE(heap->srchctx->root);
+  nullNode = AK__HEAPNODE(heap->srchctx->nullNode);
+
+  alc->free(rootNode);
+  alc->free(nullNode);
+  alc->free(rootNode->chld);
+  alc->free(nullNode->chld);
   alc->free(heap->srchctx);
 
   heap->data = NULL;
