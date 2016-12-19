@@ -100,7 +100,7 @@ ak__heap_strdup_def(const char * str) {
 AK_EXPORT
 char*
 ak_heap_strdup(AkHeap * __restrict heap,
-               void * __restrict parent,
+               void   * __restrict parent,
                const char * str) {
   void  *memptr;
   size_t memsize;
@@ -117,11 +117,11 @@ ak_heap_strdup(AkHeap * __restrict heap,
 
 AK_EXPORT
 char*
-ak_heap_strndup(AkHeap * __restrict heap,
-                void * __restrict parent,
-                const char * str,
+ak_heap_strndup(AkHeap     * __restrict heap,
+                void       * __restrict parent,
+                const char *            str,
                 size_t size) {
-  void  *memptr;
+  void *memptr;
 
   memptr  = ak_heap_alloc(heap, parent, size + 1);
   memcpy(memptr, str, size);
@@ -635,12 +635,11 @@ ak_heap_cleanup(AkHeap * __restrict heap) {
 
 AK_EXPORT
 void *
-ak_heap_getId(AkHeap * __restrict heap,
+ak_heap_getId(AkHeap     * __restrict heap,
               AkHeapNode * __restrict heapNode) {
   AkHeapSrchNode *snode;
 
-  if (!(heapNode->flags & AK_HEAP_NODE_FLAGS_EXT)
-      || !(heapNode->flags & AK_HEAP_NODE_FLAGS_SRCH))
+  if (!(heapNode->flags & AK_HEAP_NODE_FLAGS_SRCH))
     return NULL;
 
   snode = (AkHeapSrchNode *)((AkHeapNodeExt *)heapNode->chld)->data;
@@ -651,9 +650,9 @@ ak_heap_getId(AkHeap * __restrict heap,
 
 AK_EXPORT
 void
-ak_heap_setId(AkHeap * __restrict heap,
+ak_heap_setId(AkHeap     * __restrict heap,
               AkHeapNode * __restrict heapNode,
-              void * __restrict memId) {
+              void       * __restrict memId) {
   AkHeapSrchNode *snode;
 
   if (!memId) {
@@ -679,8 +678,8 @@ ak_heap_setId(AkHeap * __restrict heap,
 
 AK_EXPORT
 AkResult
-ak_heap_getNodeById(AkHeap * __restrict heap,
-                    void * __restrict memId,
+ak_heap_getNodeById(AkHeap      * __restrict heap,
+                    void        * __restrict memId,
                     AkHeapNode ** __restrict dest) {
   AkHeapSrchNode *srchNode;
 
@@ -690,21 +689,21 @@ ak_heap_getNodeById(AkHeap * __restrict heap,
     return AK_EFOUND;
   }
 
-  *dest = AK__HEAPNODE(srchNode);
+  if ((*dest = AK__HEAPNODE(srchNode)))
+    return AK_OK;
 
-  if (!*dest)
-    return AK_EFOUND;
-
-  return AK_OK;
+  return AK_EFOUND;
 }
 
 AK_EXPORT
 AkResult
-ak_heap_getNodeByURL(AkHeap * __restrict heap,
+ak_heap_getNodeByURL(AkHeap       * __restrict heap,
                      struct AkURL * __restrict url,
-                     AkHeapNode ** __restrict dest) {
+                     AkHeapNode  ** __restrict dest) {
   if (url->doc)
-    return ak_heap_getNodeById(heap, (char *)url->url + 1, dest);
+    return ak_heap_getNodeById(heap,
+                               (char *)url->url + 1,
+                               dest);
 
   return AK_EFOUND;
 }
@@ -712,9 +711,8 @@ ak_heap_getNodeByURL(AkHeap * __restrict heap,
 AK_EXPORT
 AkResult
 ak_heap_getMemById(AkHeap * __restrict heap,
-                   void * __restrict memId,
-                   void ** __restrict dest) {
-  AkHeapNode   *heapNode;
+                   void   * __restrict memId,
+                   void  ** __restrict dest) {
   AkHeapSrchNode *srchNode;
 
   srchNode = ak_heap_rb_find(heap->srchctx, memId);
@@ -723,13 +721,10 @@ ak_heap_getMemById(AkHeap * __restrict heap,
     return AK_EFOUND;
   }
 
-  heapNode = AK__HEAPNODE(srchNode);
-  *dest = ak__alignas(heapNode);
+  if ((*dest = ak__alignas(AK__HEAPNODE(srchNode))))
+    return AK_OK;
 
-  if (!*dest)
-    return AK_EFOUND;
-
-  return AK_OK;
+  return AK_EFOUND;
 }
 
 AK_EXPORT
@@ -809,8 +804,8 @@ ak_mem_setId(void * __restrict memptr,
 
 AK_EXPORT
 AkResult
-ak_mem_getMemById(void * __restrict ctx,
-                  void * __restrict memId,
+ak_mem_getMemById(void  * __restrict ctx,
+                  void  * __restrict memId,
                   void ** __restrict dest) {
   AkHeap     *heap;
   AkHeapNode *heapNode;
@@ -848,7 +843,7 @@ AK_EXPORT
 void*
 ak_calloc(void * __restrict parent,
           size_t size) {
-  void  *memptr;
+  void *memptr;
 
   memptr = ak_heap_alloc(&ak__heap,
                          parent,
@@ -862,7 +857,7 @@ AK_EXPORT
 void*
 ak_realloc(void * __restrict parent,
            void * __restrict memptr,
-           size_t newsize) {
+           size_t            newsize) {
   return ak_heap_realloc(&ak__heap,
                           parent,
                           memptr,
@@ -871,7 +866,7 @@ ak_realloc(void * __restrict parent,
 
 AK_EXPORT
 char*
-ak_strdup(void * __restrict parent,
+ak_strdup(void       * __restrict parent,
           const char * __restrict str) {
   void  *memptr;
   size_t memsize;
@@ -925,10 +920,10 @@ ak_free(void * __restrict memptr) {
 AK_EXPORT
 AkObject*
 ak_objAlloc(AkHeap * __restrict heap,
-void * __restrict memParent,
-            size_t typeSize,
-            AkEnum typeEnum,
-            bool zeroed) {
+            void   * __restrict memParent,
+            size_t              typeSize,
+            AkEnum              typeEnum,
+            bool                zeroed) {
   AkObject * obj;
 
   assert(typeSize > 0 && "invalid parameter value");
