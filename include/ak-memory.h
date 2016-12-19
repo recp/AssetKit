@@ -103,7 +103,7 @@ ak_heap_dettach(AkHeap * __restrict parent,
                 AkHeap * __restrict chld);
 
 AK_EXPORT
-AkResult
+void
 ak_heap_setdata(AkHeap * __restrict heap,
                 void * __restrict memptr);
 

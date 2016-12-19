@@ -201,12 +201,10 @@ ak_heap_dettach(AkHeap * __restrict parent,
 }
 
 AK_EXPORT
-AkResult
+void
 ak_heap_setdata(AkHeap * __restrict heap,
                 void * __restrict memptr) {
-
   heap->data = memptr;
-  return AK_OK;
 }
 
 AK_EXPORT
