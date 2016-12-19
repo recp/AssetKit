@@ -17,8 +17,6 @@
 #include <string.h>
 #include <stdio.h>
 
-extern AkHeapAllocator ak__allocator;
-
 static AkHeap ak__resc_heap = {
   .flags = 0
 };
