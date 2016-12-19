@@ -148,8 +148,8 @@ ak_heap_getheap(void * __restrict memptr) {
 
 AK_EXPORT
 AkHeap *
-ak_heap_new(AkHeapAllocator *allocator,
-            AkHeapSrchCmpFn cmp,
+ak_heap_new(AkHeapAllocator  *allocator,
+            AkHeapSrchCmpFn   cmp,
             AkHeapSrchPrintFn print) {
   AkHeapAllocator *alc;
   AkHeap          *heap;
@@ -187,12 +187,14 @@ ak_heap_dettach(AkHeap * __restrict parent,
   heap = parent->chld;
   if (heap == chld) {
     parent->chld = chld->next;
+    chld->next   = NULL;
     return;
   }
 
   while (heap) {
     if (heap->next == chld) {
       heap->next = chld->next;
+      chld->next = NULL;
       break;
     }
 
