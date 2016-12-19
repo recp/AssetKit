@@ -99,7 +99,8 @@ struct AkHeap {
 };
 
 void
-ak_sid_destroy(AkSIDNode * snode);
+ak_sid_destroy(AkHeap * __restrict heap,
+               AkSIDNode * __restrict snode);
 
 void *
 ak_heap_ext_get(AkHeapNode * __restrict hnode,

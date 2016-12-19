@@ -151,8 +151,16 @@ ak_sid_dup(void *newMemnode,
 }
 
 void
-ak_sid_destroy(AkSIDNode * snode) {
-  /* TODO delete all sid-s from node */
+ak_sid_destroy(AkHeap * __restrict heap,
+               AkSIDNode * __restrict snode) {
+  AkHeapAllocator *alc;
+
+  alc = heap->allocator;
+  if (snode->refs)
+    alc->free(snode->refs);
+
+  if (snode->sids)
+    alc->free(snode->sids);
 }
 
 AK_EXPORT

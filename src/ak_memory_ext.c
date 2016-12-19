@@ -166,7 +166,7 @@ ak_heap_ext_rm(AkHeap     * __restrict heap,
       hnode->flags &= ~AK_HEAP_NODE_FLAGS_RED;
       break;
     case AK_HEAP_NODE_FLAGS_SID:
-      ak_sid_destroy((AkSIDNode *)&exnode->data[ofst]);
+      ak_sid_destroy(heap, (AkSIDNode *)&exnode->data[ofst]);
       break;
     case AK_HEAP_NODE_FLAGS_EXTRA:
     case AK_HEAP_NODE_FLAGS_INF:
@@ -239,7 +239,7 @@ ak_heap_ext_free(AkHeap     * __restrict heap,
 
   if (hnode->flags & AK_HEAP_NODE_FLAGS_SID) {
     ofst = ak_heap_ext_off(hnode->flags, AK_HEAP_NODE_FLAGS_SID);
-    ak_sid_destroy((AkSIDNode *)&exnode->data[ofst]);
+    ak_sid_destroy(heap, (AkSIDNode *)&exnode->data[ofst]);
   }
 
   if (hnode->flags & AK_HEAP_NODE_FLAGS_EXTRA) {
