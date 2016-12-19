@@ -484,16 +484,16 @@ ak_heap_parent(AkHeapNode *heapNode) {
 
 AK_EXPORT
 void
-ak_heap_setp(AkHeap * __restrict heap,
+ak_heap_setp(AkHeap     * __restrict heap,
              AkHeapNode * __restrict heapNode,
              AkHeapNode * __restrict newParent) {
   AkHeapNode *parentChld;
 
   if (heapNode->prev) {
-    if (heapNode->prev->next == heapNode)
-      heapNode->prev->next = heapNode->next;
-    else if (ak_heap_chld(heapNode->prev) == heapNode)
+    if (ak_heap_chld(heapNode->prev) == heapNode)
       ak_heap_chld_set(heapNode->prev, heapNode->next);
+    else
+      heapNode->prev->next = heapNode->next;
 
     if (heapNode->next)
       heapNode->next->prev = heapNode->prev;
@@ -509,7 +509,7 @@ ak_heap_setp(AkHeap * __restrict heap,
   parentChld = ak_heap_chld(newParent);
   if (parentChld) {
     parentChld->prev = heapNode;
-    heapNode->next = parentChld;
+    heapNode->next   = parentChld;
   }
 
   ak_heap_chld_set(newParent, heapNode);
@@ -527,8 +527,7 @@ ak_heap_moveh(AkHeap * __restrict heap,
               AkHeap * __restrict newheap,
               AkHeapNode * __restrict heapNode) {
   do {
-    if (heapNode->flags &
-        (AK_HEAP_NODE_FLAGS_EXT | AK_HEAP_NODE_FLAGS_SRCH)) {
+    if (heapNode->flags & AK_HEAP_NODE_FLAGS_SRCH) {
       AkHeapSrchNode *srchNode;
       srchNode = (AkHeapSrchNode *)((AkHeapNodeExt *)heapNode->chld)->data;
 
