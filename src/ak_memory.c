@@ -415,9 +415,19 @@ ak_heap_realloc(AkHeap * __restrict heap,
   if (heap->trash == oldNode)
     heap->trash = newNode;
 
-  chld = ak_heap_chld(newNode);
-  if (chld)
-    chld->prev = newNode;
+  chld = newNode->chld;
+  if (chld) {
+    if (newNode->flags & AK_HEAP_NODE_FLAGS_EXT) {
+      AkHeapNodeExt *exnode;
+      exnode       = newNode->chld;
+      exnode->node = newNode;
+
+      if (exnode->chld)
+        exnode->chld->prev = newNode;
+    } else {
+      chld->prev = newNode;
+    }
+  }
 
   if (newNode->next)
     newNode->next->prev = newNode;
