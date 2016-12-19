@@ -325,8 +325,8 @@ ak_heap_destroy(AkHeap * __restrict heap) {
 AK_EXPORT
 void*
 ak_heap_alloc(AkHeap * __restrict heap,
-              void * __restrict parent,
-              size_t size) {
+              void   * __restrict parent,
+              size_t              size) {
   AkHeapNode *currNode;
   AkHeapNode *parentNode;
   size_t      memsize;
@@ -334,8 +334,8 @@ ak_heap_alloc(AkHeap * __restrict heap,
   assert((!parent || heap->heapid == ak__alignof(parent)->heapid)
          && "parent and child mem must use same heap");
 
-  memsize = ak__heapnd_sz + size;
-  memsize = ak__align(memsize);
+  memsize  = ak__heapnd_sz + size;
+  memsize  = ak__align(memsize);
   currNode = heap->allocator->malloc(memsize);
   assert(currNode && "malloc failed");
 
@@ -370,9 +370,9 @@ ak_heap_alloc(AkHeap * __restrict heap,
 AK_EXPORT
 void*
 ak_heap_calloc(AkHeap * __restrict heap,
-               void * __restrict parent,
-               size_t size) {
-  void  *memptr;
+               void   * __restrict parent,
+               size_t              size) {
+  void *memptr;
 
   memptr = ak_heap_alloc(heap,
                          parent,
@@ -385,9 +385,9 @@ ak_heap_calloc(AkHeap * __restrict heap,
 AK_EXPORT
 void*
 ak_heap_realloc(AkHeap * __restrict heap,
-                void * __restrict parent,
-                void * __restrict memptr,
-                size_t newsize) {
+                void   * __restrict parent,
+                void   * __restrict memptr,
+                size_t              newsize) {
   AkHeapNode *oldNode;
   AkHeapNode *newNode;
   AkHeapNode *chld;
@@ -404,8 +404,9 @@ ak_heap_realloc(AkHeap * __restrict heap,
     return NULL;
   }
 
-  newNode = heap->allocator->realloc(oldNode,
-                                     ak__heapnd_sz + newsize);
+  newsize = ak__heapnd_sz + newsize;
+  newsize = ak__align(newsize);
+  newNode = heap->allocator->realloc(oldNode, newsize);
   assert(newNode && "realloc failed");
 
   if (heap->root == oldNode)
@@ -436,8 +437,7 @@ ak_heap_realloc(AkHeap * __restrict heap,
 
     if (chld == oldNode)
       ak_heap_chld_set(newNode->prev, newNode);
-
-    if (newNode->prev->next == oldNode)
+    else
       newNode->prev->next = newNode;
   }
 
