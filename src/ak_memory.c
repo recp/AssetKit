@@ -308,10 +308,10 @@ ak_heap_destroy(AkHeap * __restrict heap) {
   rootNode = AK__HEAPNODE(heap->srchctx->root);
   nullNode = AK__HEAPNODE(heap->srchctx->nullNode);
 
-  alc->free(rootNode);
-  alc->free(nullNode);
   alc->free(rootNode->chld);
   alc->free(nullNode->chld);
+  alc->free(rootNode);
+  alc->free(nullNode);
   alc->free(heap->srchctx);
 
   heap->data = NULL;
