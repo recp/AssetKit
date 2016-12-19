@@ -560,8 +560,8 @@ AK_EXPORT
 void
 ak_heap_free(AkHeap * __restrict heap,
              AkHeapNode * __restrict heapNode) {
-  AkHeapAllocator * __restrict allocator;
-  allocator = heap->allocator;
+  AkHeapAllocator * __restrict alc;
+  alc = heap->allocator;
 
   if (heapNode->flags & AK_HEAP_NODE_FLAGS_EXT)
     ak_heap_ext_free(heap, heapNode);
@@ -576,13 +576,10 @@ ak_heap_free(AkHeap * __restrict heap,
     do {
       nextFree = toFree->next;
 
-      if (heap->trash == toFree)
-        heap->trash = nextFree;
-
-      if (heapNode->flags & AK_HEAP_NODE_FLAGS_EXT)
-        ak_heap_ext_free(heap, toFree);
-
       if (toFree->chld) {
+        if (toFree->flags & AK_HEAP_NODE_FLAGS_EXT)
+          ak_heap_ext_free(heap, toFree);
+
         if (heap->trash) {
           AkHeapNode *lastNode;
 
@@ -590,20 +587,19 @@ ak_heap_free(AkHeap * __restrict heap,
           while (lastNode->next)
             lastNode = lastNode->next;
 
-          heap->trash->prev = lastNode;
           lastNode->next = heap->trash;
         }
 
         heap->trash = toFree->chld;
       }
 
-      allocator->free(toFree);
+      alc->free(toFree);
       toFree = nextFree;
 
       /* empty trash */
       if (!toFree && heap->trash) {
         toFree = heap->trash;
-        heap->trash = nextFree;
+        heap->trash = NULL;
       }
 
     } while (toFree);
@@ -627,7 +623,7 @@ ak_heap_free(AkHeap * __restrict heap,
   if (heapNode->next)
     heapNode->next->prev = heapNode->prev;
 
-  allocator->free(heapNode);
+  alc->free(heapNode);
 }
 
 AK_EXPORT
