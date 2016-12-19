@@ -13,6 +13,11 @@
 #include <stdint.h>
 #include <errno.h>
 
+#ifdef DEBUG
+#  include <assert.h>
+#  include <stdio.h>
+#endif
+
 #if defined(_WIN32)
 #  ifdef _assetkit_dll
 #    define AK_EXPORT __declspec(dllexport)
