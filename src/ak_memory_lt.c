@@ -215,4 +215,6 @@ ak_heap_lt_cleanup(void) {
     free(toFree->heapEntry);
     free(toFree);
   }
+
+  free(ak__heap_bucket.heapEntry);
 }
