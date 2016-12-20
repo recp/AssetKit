@@ -34,7 +34,17 @@ const char *
 ak_generatId(AkDoc      * __restrict doc,
              void       * __restrict parentmem,
              const char * __restrict prefix) {
-  AkHeap     *heap, *idheap;
+  return ak_id_gen(ak_heap_getheap(doc),
+                   parentmem,
+                   prefix);
+}
+
+_assetkit_hide
+const char *
+ak_id_gen(AkHeap     * __restrict heap,
+          void       * __restrict parentmem,
+          const char * __restrict prefix) {
+  AkHeap     *idheap;
   size_t     *idp;
   void       *idpf;
   char       *id;
@@ -47,7 +57,6 @@ ak_generatId(AkDoc      * __restrict doc,
   else
     idpstr = prefix;
 
-  heap   = ak_heap_getheap(doc);
   idheap = heap->idheap;
   if (!idheap)
     return NULL;
@@ -89,6 +98,6 @@ ak_generatId(AkDoc      * __restrict doc,
 
     ak_free(id);
   } while (true);
-
+  
   return id;
 }
