@@ -16,7 +16,8 @@ typedef enum AkOption {
   AK_OPT_INDICES_SINGLE_INTERLEAVED = 1,  /* true  */
   AK_OPT_INDICES_SINGLE_SEPARATE    = 2,  /* true  */
   AK_OPT_INDICES_SINGLE             = 3,  /* true  */
-  AK_OPT_COORD                      = 4   /* Y_UP  */
+  AK_OPT_COORD                      = 4,  /* Y_UP  */
+  AK_OPT_DEFAULT_ID_PREFIX          = 5   /* id prefix */
 } AkOption;
 
 AK_EXPORT

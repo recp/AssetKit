@@ -1488,7 +1488,7 @@ struct AkNode {
   struct AkNode * next;
 };
 
-typedef struct AkTechniqueOverride { 
+typedef struct AkTechniqueOverride {
   const char * ref;
   const char * pass;
 } AkTechniqueOverride;
@@ -1572,8 +1572,8 @@ typedef struct AkInstanceVisualScene {
 typedef struct AkScene {
   ak_asset_base
 
-  /* 
-   TODO: 
+  /*
+   TODO:
       instance_physics_scene
       instance_kinematics_scene
    */
@@ -1653,6 +1653,12 @@ ak_getObjectById(AkDoc * __restrict doc,
 AK_EXPORT
 void *
 ak_getObjectByUrl(AkURL * __restrict url);
+
+AK_EXPORT
+const char *
+ak_generatId(AkDoc      * __restrict doc,
+             void       * __restrict parentmem,
+             const char * __restrict prefix);
 
 #ifdef __cplusplus
 }

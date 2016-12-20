@@ -94,6 +94,7 @@ struct AkHeap {
   AkHeap          *chld; /* attached heaps, free all with this */
   AkHeap          *next;
   void            *data;
+  AkHeap          *idheap;
   uint32_t         heapid;
   AkEnum           flags;
 };

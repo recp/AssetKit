@@ -23,6 +23,7 @@
 
 #include "ak_collada_lib.h"
 #include "ak_collada_postscript.h"
+#include "../ak_id.h"
 
 #define k_s_dae_asset               1
 #define k_s_dae_lib_cameras         2
@@ -167,6 +168,8 @@ ak_dae_doc(AkDoc ** __restrict dest,
   doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
 
   ak_heap_setdata(heap, doc);
+
+  heap->idheap = ak_id_newheap();
 
   xstVal.doc      = doc;
   xstVal.heap     = heap;

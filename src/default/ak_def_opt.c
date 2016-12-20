@@ -8,15 +8,17 @@
 #include "ak_def_opt.h"
 #include <assert.h>
 
-extern AkCoordSys AK__Y_RH_VAL;
+extern AkCoordSys   AK__Y_RH_VAL;
+extern const char * AK_DEF_ID_PRFX;
 
 uintptr_t AK_OPTIONS[] =
 {
-  false,                   /* 0: _INDICES_NONE                */
-  true,                    /* 1: _INDICES_SINGLE_INTERLEAVED  */
-  true,                    /* 2: _INDICES_SINGLE_SEPARATE     */
-  true,                    /* 2: _INDICES_SINGLE              */
-  (uintptr_t)&AK__Y_RH_VAL /* 3: _COORD                       */
+  false,                    /* 0: _INDICES_NONE                */
+  true,                     /* 1: _INDICES_SINGLE_INTERLEAVED  */
+  true,                     /* 2: _INDICES_SINGLE_SEPARATE     */
+  true,                     /* 2: _INDICES_SINGLE              */
+  (uintptr_t)&AK__Y_RH_VAL, /* 3: _COORD                       */
+  (uintptr_t)&AK_DEF_ID_PRFX
 };
 
 AK_EXPORT
