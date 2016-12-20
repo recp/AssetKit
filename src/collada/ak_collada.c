@@ -170,6 +170,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
   ak_heap_setdata(heap, doc);
 
   heap->idheap = ak_id_newheap();
+  ak_heap_attach(heap, heap->idheap);
 
   xstVal.doc      = doc;
   xstVal.heap     = heap;
