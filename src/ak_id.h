@@ -10,7 +10,7 @@
 
 #include "ak_common.h"
 
-AkHeap* _assetkit_hide
-ak_id_newheap();
+void _assetkit_hide
+ak_id_newheap(AkHeap * __restrict heap);
 
 #endif /* ak_id_h */

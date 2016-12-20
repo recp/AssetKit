@@ -11,22 +11,22 @@
 #include <math.h>
 #include <stdio.h>
 
-AkHeap* _assetkit_hide
-ak_id_newheap() {
-  AkHeap *heap;
+void _assetkit_hide
+ak_id_newheap(AkHeap * __restrict heap) {
   size_t *idp;
   void   *idpstr;
 
-  heap = ak_heap_new(NULL, NULL, NULL);
+  heap->idheap = ak_heap_new(NULL, NULL, NULL);
 
   /* default prefix */
   idpstr = (void *)ak_opt_get(AK_OPT_DEFAULT_ID_PREFIX);
-  idp    = ak_heap_alloc(heap, NULL, sizeof(size_t));
+  idp    = ak_heap_alloc(heap->idheap, NULL, sizeof(size_t));
   *idp   = 1;
-  ak_heap_setId(heap,
+  ak_heap_setId(heap->idheap,
                 ak__alignof(idp),
                 idpstr);
-  return heap;
+
+  ak_heap_attach(heap, heap->idheap);
 }
 
 AK_EXPORT
