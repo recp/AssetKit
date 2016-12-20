@@ -9,6 +9,7 @@
 #include "ak_memory_common.h"
 #include "ak_id.h"
 #include <math.h>
+#include <stdio.h>
 
 AkHeap* _assetkit_hide
 ak_id_newheap() {
