@@ -580,17 +580,19 @@ ak_heap_free(AkHeap * __restrict heap,
         if (toFree->flags & AK_HEAP_NODE_FLAGS_EXT)
           ak_heap_ext_free(heap, toFree);
 
-        if (heap->trash) {
-          AkHeapNode *lastNode;
+        if (toFree->chld) {
+          if (heap->trash) {
+            AkHeapNode *lastNode;
 
-          lastNode = toFree->chld;
-          while (lastNode->next)
-            lastNode = lastNode->next;
+            lastNode = toFree->chld;
+            while (lastNode->next)
+              lastNode = lastNode->next;
 
-          lastNode->next = heap->trash;
+            lastNode->next = heap->trash;
+          }
+
+          heap->trash = toFree->chld;
         }
-
-        heap->trash = toFree->chld;
       }
 
       alc->free(toFree);
