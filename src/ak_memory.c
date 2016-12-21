@@ -285,7 +285,8 @@ AK_EXPORT
 void
 ak_heap_destroy(AkHeap * __restrict heap) {
   AkHeapAllocator *alc;
-  AkHeapNode *rootNode, *nullNode;
+  AkHeapNode      *rootNode, *nullNode;
+  AkHeap          *it, *toDestroy;
 
   if (!(heap->flags & AK_HEAP_FLAGS_INITIALIZED))
     return;
@@ -294,13 +295,12 @@ ak_heap_destroy(AkHeap * __restrict heap) {
 
   /* first destroy all attached heaps */
   if (heap->chld) {
-    AkHeap *aheap;
-    aheap = heap->chld;
-
+    it = heap->chld;
     do {
-      ak_heap_destroy(aheap);
-      aheap = aheap->next;
-    } while (aheap);
+      toDestroy = it;
+      it = it->next;
+      ak_heap_destroy(toDestroy);
+    } while (it);
   }
 
   ak_heap_cleanup(heap);
