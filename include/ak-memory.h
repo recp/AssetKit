@@ -272,6 +272,10 @@ ak_mem_setp(void * __restrict memptr,
             void * __restrict newparent);
 
 AK_EXPORT
+void *
+ak_mem_parent(void *mem);
+
+AK_EXPORT
 void
 ak_free(void * __restrict memptr);
 

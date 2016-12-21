@@ -833,6 +833,12 @@ ak_mem_setp(void * __restrict memptr,
 }
 
 AK_EXPORT
+void *
+ak_mem_parent(void *mem) {
+  return ak__alignas(ak_heap_parent(ak__alignof(mem)));
+}
+
+AK_EXPORT
 void*
 ak_malloc(void * __restrict parent,
           size_t size) {
