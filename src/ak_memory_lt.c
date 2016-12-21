@@ -152,8 +152,7 @@ ak_heap_lt_remove(uint32_t heapid) {
     if (!AK__LT_BUCKET_IS_FULL(bucket))
       bucket->firstAvailEntry = entryIndex;
 
-    if (bucket->count < 1
-        && bucket != &ak__heap_bucket) {
+    if (bucket->count < 1 && bucket != &ak__heap_bucket) {
       if (ak__heap_lt.firstAvailBucket == bucket) {
         AkHeapBucket *nextAvailBucket;
 
@@ -167,6 +166,10 @@ ak_heap_lt_remove(uint32_t heapid) {
           ak__heap_lt.firstAvailBucket = NULL;
       }
 
+      if (ak__heap_lt.lastBucket == bucket)
+        ak__heap_lt.lastBucket = prevBucket;
+
+      /* we know that prevBucket cannot be null because rootBucket is static */
       prevBucket->next = bucket->next;
       free(bucket->heapEntry);
       free(bucket);
