@@ -76,7 +76,7 @@ ak_heap_lt_insert(AkHeap * __restrict heap) {
   bucket = ak__heap_lt.firstAvailBucket;
 
   /* all buckets are full */
-  if (!bucket || bucket->firstAvailEntry >= ak__heap_lt.bucketSize) {
+  if (!bucket || bucket->firstAvailEntry >= ak__heap_lt.bucketSize - 1) {
     bucket = calloc(sizeof(*bucket), 1);
     assert(bucket && "malloc failed");
 
@@ -102,12 +102,13 @@ ak_heap_lt_insert(AkHeap * __restrict heap) {
   heap->heapid = heapid;
 
   /* find next avail entry */
-  while (bucket->firstAvailEntry++ < ak__heap_lt.bucketSize) {
+  while (bucket->firstAvailEntry++ < ak__heap_lt.bucketSize - 1) {
+    assert(bucket->firstAvailEntry < 4);
     if (bucket->heapEntry[bucket->firstAvailEntry].heapid == 0)
       break;
   }
 
-  if (bucket->firstAvailEntry >= ak__heap_lt.bucketSize)
+  if (bucket->firstAvailEntry >= ak__heap_lt.bucketSize - 1)
     ak__heap_lt.firstAvailBucket = NULL;
 
   bucket->count++;
