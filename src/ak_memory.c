@@ -464,22 +464,22 @@ ak_heap_chld_set(AkHeapNode * __restrict heapNode,
 AK_EXPORT
 AkHeapNode *
 ak_heap_parent(AkHeapNode *heapNode) {
-  AkHeapNode *hparent, *hnode_it1;
+  AkHeapNode *p, *it;
 
-  hparent   = NULL;
-  hnode_it1 = heapNode;
+  p  = NULL;
+  it = heapNode;
 
-  while (hnode_it1->prev) {
+  while (it->prev) {
     /* we found near parent */
-    if (ak_heap_chld(hnode_it1->prev->chld) == hnode_it1) {
-      hparent = hnode_it1->prev;
+    if (ak_heap_chld(it->prev) == heapNode) {
+      p = it->prev;
       break;
     }
 
-    hnode_it1 = hnode_it1->prev;
+    it = it->prev;
   };
 
-  return hparent;
+  return p;
 }
 
 AK_EXPORT
