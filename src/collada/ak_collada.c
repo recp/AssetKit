@@ -140,6 +140,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
 
   xmlTextReaderPtr reader;
   int              xmlReaderFlags;
+  int              i, libchldsCount;
 
   /*
    * this initialize the library and check potential ABI mismatches
@@ -185,6 +186,11 @@ ak_dae_doc(AkDoc ** __restrict dest,
           sizeof(daeMap[0]),
           ak_enumpair_cmp);
   }
+
+  /* unset lastItem from static structs */
+  libchldsCount = AK_ARRAY_LEN(libchlds);
+  for (i = 0; i < libchldsCount; i++)
+    libchlds[i].lastItem = NULL;
 
   do {
     const ak_enumpair *found;
