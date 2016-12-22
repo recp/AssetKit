@@ -69,6 +69,7 @@ typedef enum AkHeapNodeFlags {
   AK_HEAP_NODE_FLAGS_SID_NODE = AK_HEAP_NODE_FLAGS_SID,
   AK_HEAP_NODE_FLAGS_EXT_ALL  = AK_HEAP_NODE_FLAGS_EXT
                                | AK_HEAP_NODE_FLAGS_SRCH
+                               | AK_HEAP_NODE_FLAGS_RED
                                | AK_HEAP_NODE_FLAGS_SID
                                | AK_HEAP_NODE_FLAGS_REFC
                                | AK_HEAP_NODE_FLAGS_EXTRA
