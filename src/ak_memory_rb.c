@@ -54,9 +54,9 @@ ak_heap_rb_assert(AkHeapSrchCtx * srchctx,
 
     /* Invalid binary search tree */
     if ((ln != srchctx->nullNode
-         && srchctx->cmp(ln->key, root->key) >= 0)
+         && srchctx->cmp(ln->key, root->key) > 0)
         || (rn != srchctx->nullNode
-            && srchctx->cmp(rn->key, root->key) <= 0)) {
+            && srchctx->cmp(rn->key, root->key) < 0)) {
           puts("Binary tree violation");
           exit(0);
           return 0;
