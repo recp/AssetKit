@@ -243,6 +243,11 @@ ak_heap_rb_remove(AkHeapSrchCtx * __restrict srchctx,
       AK__RB_MKRED(P);
       AK__RB_MKBLACK(T);
 
+      if (toDelP == G) {
+        toDelP = T;
+        sDel = sX;
+      }
+
       G  = T;
       T  = P->chld[!sX];
       sP = sX;
@@ -281,6 +286,11 @@ ak_heap_rb_remove(AkHeapSrchCtx * __restrict srchctx,
 
         AK__RB_MKRED(X);
         AK__RB_MKBLACK(P);
+
+        if (toDelP == G) {
+          toDelP = R;
+          sDel   = sX;
+        }
       }
 
       /* case 1.c: T's right child is red */
@@ -300,6 +310,11 @@ ak_heap_rb_remove(AkHeapSrchCtx * __restrict srchctx,
         AK__RB_MKRED(T);
         AK__RB_MKBLACK(P);
         AK__RB_MKBLACK(R);
+
+        if (toDelP == G) {
+          toDelP = T;
+          sDel   = sX;
+        }
       }
     } else {
       /* case 2b: X's one child is red, advence to next level */
@@ -307,33 +322,26 @@ ak_heap_rb_remove(AkHeapSrchCtx * __restrict srchctx,
     }
 
   l0:
-    cmpRet = srchctx->cmp(srchNode->key, X->key);
-    if (cmpRet == 0) {
-      toDelP = P;
-      toDel  = X;
-      sDel   = sX;
+    sP = sX;
+    if (toDel != srchctx->nullNode) {
+      sX = toDel->chld[AK__BST_RIGHT] == srchctx->nullNode;
+    } else {
+      cmpRet = srchctx->cmp(srchNode->key, X->key);
+
+      if (cmpRet != 0) {
+        sX = !(cmpRet < 0);
+      } else {
+        toDelP = P;
+        toDel  = X;
+        sDel   = sP;
+        sX     = toDel->chld[AK__BST_RIGHT] != srchctx->nullNode;
+      }
     }
 
-    sP = sX;
-    sX = !(cmpRet < 0);
     G  = P;
     P  = X;
-    T  = P->chld[!sX];
     X  = P->chld[sX];
-
-    /* at this point we know that X is red or X left chld is red */
-    if (cmpRet == 0
-        && toDel->chld[AK__BST_RIGHT] == srchctx->nullNode)
-      break;
-
-    /*
-     at this point we know that X has right child and 
-     in-order predecessor (P) is black, its left chld is red:
-
-     if (X == srchctx->nullNode
-         && c2b
-         && AK__RB_ISBLACK(X)) { ... }
-     */
+    T  = P->chld[!sX];
   } while (X != srchctx->nullNode);
 
   /* make root black */
@@ -342,31 +350,30 @@ ak_heap_rb_remove(AkHeapSrchCtx * __restrict srchctx,
   if (toDel == srchctx->nullNode)
     return;
 
-  if (toDel != srchctx->nullNode) {
-    if (toDel->chld[AK__BST_RIGHT] != srchctx->nullNode) {
-      /* P is black, save black height */
-      if (c2b)
-        AK__RB_MKBLACK(P->chld[!sX]);
+  /* toDel has least one child */
+  if (P != toDel) {
+    /* P is black, save black height */
+    if (c2b)
+      AK__RB_MKBLACK(P->chld[!sX]);
 
-      /* change color */
-      if (AK__RB_ISRED(toDel))
-        AK__RB_MKRED(P);
-      else
-        AK__RB_MKBLACK(P);
-      
-      /* replace P with its left child */
-      G->chld[sP] = P->chld[!sX];
+    /* change color */
+    if (AK__RB_ISRED(toDel))
+      AK__RB_MKRED(P);
+    else
+      AK__RB_MKBLACK(P);
 
-      /* replace X with in-order predecessor */
-      P->chld[AK__BST_RIGHT] = toDel->chld[AK__BST_RIGHT];
-      P->chld[AK__BST_LEFT]  = toDel->chld[AK__BST_LEFT];
-      toDelP->chld[sDel]     = P;
-    } else {
-      /* make left red */
-      toDelP->chld[sDel] = toDel->chld[AK__BST_LEFT];
-      if (c2b && toDel->chld[AK__BST_LEFT] != srchctx->nullNode)
-        AK__RB_MKBLACK(toDel->chld[AK__BST_LEFT]);
-    }
+    /* replace P with its left child */
+    G->chld[sP] = P->chld[!sX];
+
+    /* replace X with in-order predecessor */
+    P->chld[AK__BST_RIGHT] = toDel->chld[AK__BST_RIGHT];
+    P->chld[AK__BST_LEFT]  = toDel->chld[AK__BST_LEFT];
+    toDelP->chld[sDel]     = P;
+  }
+
+  /* P is toDel; there is no child */
+  else {
+    G->chld[sP] = srchctx->nullNode;
   }
 }
 
