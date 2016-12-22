@@ -19,7 +19,7 @@ ak_id_newheap(AkHeap * __restrict heap) {
   heap->idheap = ak_heap_new(NULL, NULL, NULL);
 
   /* default prefix */
-  idpstr = (void *)ak_opt_get(AK_OPT_DEFAULT_ID_PREFIX);
+  idpstr = *(void **)ak_opt_get(AK_OPT_DEFAULT_ID_PREFIX);
   idp    = ak_heap_alloc(heap->idheap, NULL, sizeof(size_t));
   *idp   = 1;
   ak_heap_setId(heap->idheap,
