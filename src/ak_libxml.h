@@ -25,7 +25,19 @@ typedef AK_ALIGN(16) struct AkXmlState {
   AkURLQueue      *urlQueue;
   int              nodeType;
   int              nodeRet;
+  int              nodeDepth;
 } AkXmlState;
+
+typedef struct AkXmlElmState {
+  AkXmlState * __restrict xst;
+  const char * __restrict name;
+  int                     depth;
+} AkXmlElmState;
+
+#define ak_xest_init(XEST, NAME)                                              \
+  XEST.xst   = xst;                                                           \
+  XEST.name  = NAME;                                                          \
+  XEST.depth = xmlTextReaderDepth(xst->reader);
 
 #define _xml_eq(a, b) (xmlStrcasecmp((xmlChar *)a, (xmlChar *)b) == 0)
 
@@ -33,11 +45,10 @@ void
 ak_xml_readnext(AkXmlState * __restrict xst);
 
 bool
-ak_xml_beginelm(AkXmlState * __restrict xst,
-                const char *elmname);
+ak_xml_begin(AkXmlElmState * __restrict xest);
 
-void
-ak_xml_endelm(AkXmlState * __restrict xst);
+bool
+ak_xml_end(AkXmlElmState * __restrict);
 
 void
 ak_xml_skipelm(AkXmlState * __restrict xst);

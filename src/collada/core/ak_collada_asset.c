@@ -11,7 +11,8 @@ AkResult _assetkit_hide
 ak_dae_assetInf(AkXmlState * __restrict xst,
                 void * __restrict memParent,
                 AkAssetInf ** __restrict dest) {
-  void *memptr;
+  void         *memptr;
+  AkXmlElmState xest;
 
   if (!(*dest)) {
     *dest = ak_heap_calloc(xst->heap,
@@ -22,17 +23,23 @@ ak_dae_assetInf(AkXmlState * __restrict xst,
     memptr = memParent;
   }
 
+  ak_xest_init(xest, _s_dae_asset)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_asset))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_contributor)) {
-      AkContributor * contrib;
+      AkContributor *contrib;
+      AkXmlElmState  xest2;
+
       contrib = ak_heap_calloc(xst->heap, memptr, sizeof(*contrib));
+
+      ak_xest_init(xest2, _s_dae_contributor)
 
       /* contributor */
       do {
-        if (ak_xml_beginelm(xst, _s_dae_contributor))
+        if (ak_xml_begin(&xest2))
           break;
 
         if (ak_xml_eqelm(xst, _s_dae_author))
@@ -53,7 +60,8 @@ ak_dae_assetInf(AkXmlState * __restrict xst,
           ak_xml_skipelm(xst);
 
         /* end element */
-        ak_xml_endelm(xst);
+        if (ak_xml_end(&xest2))
+          break;
       } while (xst->nodeRet);
 
       (*dest)->contributor = contrib;
@@ -113,7 +121,8 @@ ak_dae_assetInf(AkXmlState * __restrict xst,
     }
     
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
   
   return AK_OK;

@@ -15,10 +15,11 @@ ak_dae_morph(AkXmlState * __restrict xst,
              void * __restrict memParent,
              bool asObject,
              AkMorph ** __restrict dest) {
-  AkObject *obj;
-  AkMorph  *morph;
-  AkSource *last_source;
-  void     *memPtr;
+  AkObject    *obj;
+  AkMorph     *morph;
+  AkSource    *last_source;
+  void         *memPtr;
+  AkXmlElmState xest;
 
   if (asObject) {
     obj = ak_objAlloc(xst->heap,
@@ -43,8 +44,10 @@ ak_dae_morph(AkXmlState * __restrict xst,
                                       AK_MORPH_METHOD_NORMALIZED);
   last_source = NULL;
 
+  ak_xest_init(xest, _s_dae_morph)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_morph))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_source)) {
@@ -63,6 +66,7 @@ ak_dae_morph(AkXmlState * __restrict xst,
     } else if (ak_xml_eqelm(xst, _s_dae_targets)) {
       AkTargets    *targets;
       AkInputBasic *last_input;
+      AkXmlElmState xest2;
 
       targets = ak_heap_calloc(xst->heap,
                                memPtr,
@@ -70,8 +74,10 @@ ak_dae_morph(AkXmlState * __restrict xst,
 
       last_input = NULL;
 
+      ak_xest_init(xest2, _s_dae_targets)
+
       do {
-        if (ak_xml_beginelm(xst, _s_dae_targets))
+        if (ak_xml_begin(&xest2))
             break;
 
         if (ak_xml_eqelm(xst, _s_dae_input)) {
@@ -127,7 +133,8 @@ ak_dae_morph(AkXmlState * __restrict xst,
         }
 
         /* end element */
-        ak_xml_endelm(xst);
+        if (ak_xml_end(&xest2))
+          break;
       } while (xst->nodeRet);
 
       morph->targets = targets;
@@ -151,7 +158,8 @@ ak_dae_morph(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = morph;

@@ -11,14 +11,17 @@ AkResult _assetkit_hide
 ak_dae_fxBinary(AkXmlState * __restrict xst,
                 void * __restrict memParent,
                 AkBinary ** __restrict dest) {
-  AkBinary *binary;
+  AkBinary     *binary;
+  AkXmlElmState xest;
 
   binary = ak_heap_calloc(xst->heap,
                           memParent,
                           sizeof(*binary));
 
+  ak_xest_init(xest, _s_dae_binary)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_binary))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_ref)) {
@@ -42,7 +45,8 @@ ak_dae_fxBinary(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = binary;

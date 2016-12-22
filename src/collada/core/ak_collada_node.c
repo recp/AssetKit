@@ -73,6 +73,7 @@ ak_dae_node(AkXmlState * __restrict xst,
   AkInstanceLight      *last_light;
   AkInstanceNode       *last_node;
   char                 *attrVal;
+  AkXmlElmState         xest;
 
   doc  = ak_heap_data(xst->heap);
   node = ak_heap_calloc(xst->heap, memParent, sizeof(*node));
@@ -121,10 +122,12 @@ ak_dae_node(AkXmlState * __restrict xst,
   last_node       = NULL;
   last_chld       = NULL;
 
+  ak_xest_init(xest, _s_dae_node)
+
   do {
     const ak_enumpair *found;
 
-    if (ak_xml_beginelm(xst, _s_dae_node))
+    if (ak_xml_begin(&xest))
       break;
 
     found = bsearch(xst->nodeName,
@@ -348,6 +351,7 @@ ak_dae_node(AkXmlState * __restrict xst,
       }
       case k_s_dae_instance_camera: {
         AkInstanceCamera *instanceCamera;
+        AkXmlElmState     xest2;
         instanceCamera = ak_heap_calloc(xst->heap,
                                         node,
                                         sizeof(*instanceCamera));
@@ -360,8 +364,10 @@ ak_dae_node(AkXmlState * __restrict xst,
                         instanceCamera,
                         &instanceCamera->base.url);
 
+        ak_xest_init(xest2, _s_dae_instance_camera)
+
         do {
-          if (ak_xml_beginelm(xst, _s_dae_instance_camera))
+          if (ak_xml_begin(&xest2))
             break;
 
           if (ak_xml_eqelm(xst, _s_dae_extra)) {
@@ -385,7 +391,8 @@ ak_dae_node(AkXmlState * __restrict xst,
           }
 
           /* end element */
-          ak_xml_endelm(xst);
+          if (ak_xml_end(&xest2))
+            break;
         } while (xst->nodeRet);
 
         if (last_camera)
@@ -403,6 +410,7 @@ ak_dae_node(AkXmlState * __restrict xst,
       case k_s_dae_instance_controller: {
         AkInstanceController *controller;
         AkSkeleton           *last_skeleton;
+        AkXmlElmState         xest2;
 
         controller = ak_heap_calloc(xst->heap,
                                     node,
@@ -417,8 +425,10 @@ ak_dae_node(AkXmlState * __restrict xst,
 
         last_skeleton = NULL;
 
+        ak_xest_init(xest2, _s_dae_instance_controller)
+
         do {
-          if (ak_xml_beginelm(xst, _s_dae_instance_controller))
+          if (ak_xml_begin(&xest2))
             break;
 
           if (ak_xml_eqelm(xst, _s_dae_skeleton)) {
@@ -468,7 +478,8 @@ ak_dae_node(AkXmlState * __restrict xst,
           }
 
           /* end element */
-          ak_xml_endelm(xst);
+          if (ak_xml_end(&xest2))
+            break;
         } while (xst->nodeRet);
 
         if (last_controller)
@@ -482,6 +493,7 @@ ak_dae_node(AkXmlState * __restrict xst,
       }
       case k_s_dae_instance_geometry: {
         AkInstanceGeometry *geometry;
+        AkXmlElmState       xest2;
 
         geometry = ak_heap_calloc(xst->heap,
                                   node,
@@ -494,8 +506,10 @@ ak_dae_node(AkXmlState * __restrict xst,
                         geometry,
                         &geometry->base.url);
 
+        ak_xest_init(xest2, _s_dae_instance_geometry)
+
         do {
-          if (ak_xml_beginelm(xst, _s_dae_instance_geometry))
+          if (ak_xml_begin(&xest2))
             break;
 
           if (ak_xml_eqelm(xst, _s_dae_bind_material)) {
@@ -527,7 +541,8 @@ ak_dae_node(AkXmlState * __restrict xst,
           }
 
           /* end element */
-          ak_xml_endelm(xst);
+          if (ak_xml_end(&xest2))
+            break;
         } while (xst->nodeRet);
 
         if (last_geometry)
@@ -541,6 +556,7 @@ ak_dae_node(AkXmlState * __restrict xst,
       }
       case k_s_dae_instance_light: {
         AkInstanceLight *light;
+        AkXmlElmState    xest2;
 
         light = ak_heap_calloc(xst->heap, node, sizeof(*light));
 
@@ -551,8 +567,10 @@ ak_dae_node(AkXmlState * __restrict xst,
                         light,
                         &light->url);
 
+        ak_xest_init(xest2, _s_dae_instance_light)
+
         do {
-          if (ak_xml_beginelm(xst, _s_dae_instance_light))
+          if (ak_xml_begin(&xest2))
             break;
 
           if (ak_xml_eqelm(xst, _s_dae_extra)) {
@@ -576,7 +594,8 @@ ak_dae_node(AkXmlState * __restrict xst,
           }
 
           /* end element */
-          ak_xml_endelm(xst);
+          if (ak_xml_end(&xest2))
+            break;
         } while (xst->nodeRet);
 
         if (last_light)
@@ -590,6 +609,7 @@ ak_dae_node(AkXmlState * __restrict xst,
       }
       case k_s_dae_instance_node: {
         AkInstanceNode *instanceNode;
+        AkXmlElmState   xest2;
 
         instanceNode = ak_heap_calloc(xst->heap,
                                       node,
@@ -603,8 +623,10 @@ ak_dae_node(AkXmlState * __restrict xst,
                         instanceNode,
                         &instanceNode->url);
 
+        ak_xest_init(xest2, _s_dae_instance_node)
+
         do {
-          if (ak_xml_beginelm(xst, _s_dae_instance_node))
+          if (ak_xml_begin(&xest2))
             break;
 
           if (ak_xml_eqelm(xst, _s_dae_extra)) {
@@ -628,7 +650,8 @@ ak_dae_node(AkXmlState * __restrict xst,
           }
 
           /* end element */
-          ak_xml_endelm(xst);
+          if (ak_xml_end(&xest2))
+            break;
         } while (xst->nodeRet);
 
         if (last_node)
@@ -683,7 +706,8 @@ ak_dae_node(AkXmlState * __restrict xst,
 
   cont:
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   ak_dae_nodeFixup(xst->heap, doc, node);

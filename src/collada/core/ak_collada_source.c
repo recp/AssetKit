@@ -33,8 +33,9 @@ AkResult _assetkit_hide
 ak_dae_source(AkXmlState * __restrict xst,
               void * __restrict memParent,
               AkSource ** __restrict dest) {
-  AkSource    *source;
-  AkTechnique *last_tq;
+  AkSource     *source;
+  AkTechnique  *last_tq;
+  AkXmlElmState xest;
 
   source = ak_heap_calloc(xst->heap, memParent, sizeof(*source));
 
@@ -54,10 +55,12 @@ ak_dae_source(AkXmlState * __restrict xst,
 
   last_tq = NULL;
 
+  ak_xest_init(xest, _s_dae_source)
+
   do {
     const ak_enumpair *found;
 
-    if (ak_xml_beginelm(xst, _s_dae_source))
+    if (ak_xml_begin(&xest))
       break;
 
     found = bsearch(xst->nodeName,
@@ -265,10 +268,13 @@ ak_dae_source(AkXmlState * __restrict xst,
         break;
       }
       case k_s_dae_techniquec: {
-        AkAccessor *accessor;
+        AkAccessor   *accessor;
+        AkXmlElmState xest2;
+
+        ak_xest_init(xest2, _s_dae_techniquec)
 
         do {
-          if (ak_xml_beginelm(xst, _s_dae_techniquec))
+          if (ak_xml_begin(&xest2))
             break;
 
           if (ak_xml_eqelm(xst, _s_dae_accessor))
@@ -276,7 +282,8 @@ ak_dae_source(AkXmlState * __restrict xst,
               source->techniqueCommon = accessor;
           
           /* end element */
-          ak_xml_endelm(xst);
+          if (ak_xml_end(&xest2))
+            break;
         } while (xst->nodeRet);
 
         break;
@@ -303,7 +310,8 @@ ak_dae_source(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
 done:

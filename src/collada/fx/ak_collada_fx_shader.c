@@ -17,6 +17,7 @@ ak_dae_fxShader(AkXmlState * __restrict xst,
   AkShader      *shader;
   AkCompiler    *last_compiler;
   AkBindUniform *last_bind_uniform;
+  AkXmlElmState  xest;
 
   shader = ak_heap_calloc(xst->heap,
                           memParent,
@@ -29,14 +30,17 @@ ak_dae_fxShader(AkXmlState * __restrict xst,
   last_compiler     = NULL;
   last_bind_uniform = NULL;
 
+  ak_xest_init(xest, _s_dae_shader)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_shader))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_sources)) {
-      AkSources *sources;
-      AkInline  *last_inline;
-      AkImport  *last_import;
+      AkSources    *sources;
+      AkInline     *last_inline;
+      AkImport     *last_import;
+      AkXmlElmState xest2;
 
       sources = ak_heap_calloc(xst->heap,
                                shader,
@@ -46,8 +50,10 @@ ak_dae_fxShader(AkXmlState * __restrict xst,
       last_inline = NULL;
       last_import = NULL;
 
+      ak_xest_init(xest2, _s_dae_sources)
+
       do {
-        if (ak_xml_beginelm(xst, _s_dae_sources))
+        if (ak_xml_begin(&xest2))
           break;
 
         if (ak_xml_eqelm(xst, _s_dae_inline)) {
@@ -83,12 +89,14 @@ ak_dae_fxShader(AkXmlState * __restrict xst,
         }
         
         /* end element */
-        ak_xml_endelm(xst);
+        if (ak_xml_end(&xest2))
+          break;
       } while (xst->nodeRet);
 
       shader->sources = sources;
     } else if (ak_xml_eqelm(xst, _s_dae_compiler)) {
-      AkCompiler *compiler;
+      AkCompiler   *compiler;
+      AkXmlElmState xest2;
 
       compiler = ak_heap_calloc(xst->heap,
                                 shader,
@@ -98,8 +106,10 @@ ak_dae_fxShader(AkXmlState * __restrict xst,
       compiler->target   = ak_xml_attr(xst, compiler, _s_dae_target);
       compiler->options  = ak_xml_attr(xst, compiler, _s_dae_options);
 
+      ak_xest_init(xest2, _s_dae_compiler)
+
       do {
-        if (ak_xml_beginelm(xst, _s_dae_compiler))
+        if (ak_xml_begin(&xest2))
           break;
 
         if (ak_xml_eqelm(xst, _s_dae_binary)) {
@@ -114,7 +124,8 @@ ak_dae_fxShader(AkXmlState * __restrict xst,
         }
 
         /* end element */
-        ak_xml_endelm(xst);
+        if (ak_xml_end(&xest2))
+          break;
       } while (xst->nodeRet);
 
       if (last_compiler)
@@ -156,7 +167,8 @@ ak_dae_fxShader(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = shader;

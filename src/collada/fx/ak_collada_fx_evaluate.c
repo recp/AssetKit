@@ -35,7 +35,8 @@ AkResult _assetkit_hide
 ak_dae_fxEvaluate(AkXmlState * __restrict xst,
                   void * __restrict memParent,
                   AkEvaluate ** __restrict dest) {
-  AkEvaluate *evaluate;
+  AkEvaluate   *evaluate;
+  AkXmlElmState xest;
 
   evaluate = ak_heap_calloc(xst->heap,
                             memParent,
@@ -48,11 +49,13 @@ ak_dae_fxEvaluate(AkXmlState * __restrict xst,
           sizeof(evaluateMap[0]),
           ak_enumpair_cmp);
   }
-  
+
+  ak_xest_init(xest, _s_dae_evaluate)
+
   do {
     const ak_enumpair *found;
 
-    if (ak_xml_beginelm(xst, _s_dae_evaluate))
+    if (ak_xml_begin(&xest))
       break;
 
     found = bsearch(xst->nodeName,
@@ -66,7 +69,8 @@ ak_dae_fxEvaluate(AkXmlState * __restrict xst,
       case k_s_dae_depth_target:
       case k_s_dae_stencil_target: {
         AkEvaluateTarget *evaluate_target;
-        const xmlChar *targetNodeName;
+        const xmlChar    *targetNodeName;
+        AkXmlElmState     xest2;
 
         evaluate_target = ak_heap_calloc(xst->heap,
                                          evaluate,
@@ -82,8 +86,10 @@ ak_dae_fxEvaluate(AkXmlState * __restrict xst,
 
         targetNodeName = xst->nodeName;
 
+        ak_xest_init(xest2, (char *)targetNodeName)
+
         do {
-          if (ak_xml_beginelm(xst, (char *)targetNodeName))
+          if (ak_xml_begin(&xest2))
             break;
 
           if (ak_xml_eqelm(xst, _s_dae_param)) {
@@ -111,7 +117,8 @@ ak_dae_fxEvaluate(AkXmlState * __restrict xst,
           }
 
           /* end element */
-          ak_xml_endelm(xst);
+          if (ak_xml_end(&xest2))
+            break;
         } while (xst->nodeRet);
 
         switch (found->val) {
@@ -178,7 +185,8 @@ ak_dae_fxEvaluate(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = evaluate;

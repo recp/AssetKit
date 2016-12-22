@@ -17,8 +17,9 @@ AkResult _assetkit_hide
 ak_dae_fxPass(AkXmlState * __restrict xst,
               void * __restrict memParent,
               AkPass ** __restrict dest) {
-  AkPass     *pass;
-  AkAnnotate *last_annotate;
+  AkPass       *pass;
+  AkAnnotate   *last_annotate;
+  AkXmlElmState xest;
 
   pass = ak_heap_calloc(xst->heap,
                         memParent,
@@ -28,8 +29,10 @@ ak_dae_fxPass(AkXmlState * __restrict xst,
 
   last_annotate = NULL;
 
+  ak_xest_init(xest, _s_dae_pass)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_pass))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
@@ -96,7 +99,8 @@ ak_dae_fxPass(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
   
   *dest = pass;

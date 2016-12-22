@@ -15,6 +15,7 @@ ak_dae_evaluateScene(AkXmlState * __restrict xst,
                      AkEvaluateScene ** __restrict dest) {
   AkEvaluateScene *evaluateScene;
   AkRender        *last_render;
+  AkXmlElmState    xest;
 
   evaluateScene = ak_heap_calloc(xst->heap,
                                  memParent,
@@ -28,8 +29,10 @@ ak_dae_evaluateScene(AkXmlState * __restrict xst,
 
   last_render = NULL;
 
+  ak_xest_init(xest, _s_dae_evaluate_scene)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_evaluate_scene))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
@@ -72,7 +75,8 @@ ak_dae_evaluateScene(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
   
   *dest = evaluateScene;

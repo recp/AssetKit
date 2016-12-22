@@ -49,6 +49,7 @@ ak_dae_mesh(AkXmlState * __restrict xst,
   AkMeshPrimitive *last_primitive;
   AkMesh          *mesh;
   void            *memPtr;
+  AkXmlElmState    xest;
 
   if (asObject) {
     obj = ak_objAlloc(xst->heap,
@@ -78,10 +79,12 @@ ak_dae_mesh(AkXmlState * __restrict xst,
   last_primitive = NULL;
   last_source    = NULL;
 
+  ak_xest_init(xest, elm)
+
   do {
     const ak_enumpair *found;
 
-    if (ak_xml_beginelm(xst, elm))
+    if (ak_xml_begin(&xest))
         break;
 
     found = bsearch(xst->nodeName,
@@ -228,7 +231,8 @@ ak_dae_mesh(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = mesh;

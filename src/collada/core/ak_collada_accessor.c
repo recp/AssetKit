@@ -12,9 +12,10 @@ AkResult _assetkit_hide
 ak_dae_accessor(AkXmlState * __restrict xst,
                 void * __restrict memParent,
                 AkAccessor ** __restrict dest) {
-  AkAccessor  *accessor;
-  AkDataParam *last_param;
-  uint32_t     paramOffset;
+  AkAccessor   *accessor;
+  AkDataParam  *last_param;
+  AkXmlElmState xest;
+  uint32_t      paramOffset;
 
   accessor = ak_heap_calloc(xst->heap,
                             memParent,
@@ -35,8 +36,10 @@ ak_dae_accessor(AkXmlState * __restrict xst,
   last_param  = NULL;
   paramOffset = 0;
 
+  ak_xest_init(xest, _s_dae_accessor)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_accessor))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_param)) {
@@ -60,7 +63,8 @@ ak_dae_accessor(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
 done:

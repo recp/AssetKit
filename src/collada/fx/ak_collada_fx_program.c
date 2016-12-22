@@ -19,6 +19,7 @@ ak_dae_fxProg(AkXmlState * __restrict xst,
   AkBindAttrib  *last_bind_attrib;
   AkLinker      *last_linker;
   AkShader      *last_shader;
+  AkXmlElmState  xest;
 
   prog = ak_heap_calloc(xst->heap,
                         memParent,
@@ -29,8 +30,10 @@ ak_dae_fxProg(AkXmlState * __restrict xst,
   last_linker       = NULL;
   last_shader       = NULL;
 
+  ak_xest_init(xest, _s_dae_program)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_program))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_shader)) {
@@ -47,8 +50,9 @@ ak_dae_fxProg(AkXmlState * __restrict xst,
         last_shader = shader;
       }
     } else if (ak_xml_eqelm(xst, _s_dae_linker)) {
-      AkLinker *linker;
-      AkBinary *last_binary;
+      AkLinker     *linker;
+      AkBinary     *last_binary;
+      AkXmlElmState xest2;
 
       linker = ak_heap_calloc(xst->heap,
                               prog,
@@ -60,8 +64,10 @@ ak_dae_fxProg(AkXmlState * __restrict xst,
 
       last_binary = NULL;
 
+      ak_xest_init(xest2, _s_dae_linker)
+
       do {
-        if (ak_xml_beginelm(xst, _s_dae_linker))
+        if (ak_xml_begin(&xest2))
           break;
 
         if (ak_xml_eqelm(xst, _s_dae_binary)) {
@@ -82,7 +88,8 @@ ak_dae_fxProg(AkXmlState * __restrict xst,
         }
 
         /* end element */
-        ak_xml_endelm(xst);
+        if (ak_xml_end(&xest2))
+          break;
       } while (xst->nodeRet);
 
       if (last_linker)
@@ -93,6 +100,7 @@ ak_dae_fxProg(AkXmlState * __restrict xst,
       last_linker = linker;
     } else if (ak_xml_eqelm(xst, _s_dae_bind_attribute)) {
       AkBindAttrib *bindAttrib;
+      AkXmlElmState xest2;
 
       bindAttrib = ak_heap_calloc(xst->heap,
                                   prog,
@@ -100,8 +108,10 @@ ak_dae_fxProg(AkXmlState * __restrict xst,
 
       bindAttrib->symbol = ak_xml_attr(xst, bindAttrib, _s_dae_symbol);
 
+      ak_xest_init(xest2, _s_dae_bind_attribute)
+
       do {
-        if (ak_xml_beginelm(xst, _s_dae_bind_attribute))
+        if (ak_xml_begin(&xest2))
           break;
 
         if (ak_xml_eqelm(xst, _s_dae_semantic)) {
@@ -112,7 +122,8 @@ ak_dae_fxProg(AkXmlState * __restrict xst,
         }
 
         /* end element */
-        ak_xml_endelm(xst);
+        if (ak_xml_end(&xest2))
+          break;
       } while (xst->nodeRet);
 
       if (last_bind_attrib)
@@ -139,7 +150,8 @@ ak_dae_fxProg(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = prog;

@@ -16,6 +16,7 @@ ak_dae_colorOrTex(AkXmlState * __restrict xst,
                   AkFxColorOrTex ** __restrict dest) {
   AkFxColorOrTex *colorOrTex;
   AkParam        *last_param;
+  AkXmlElmState   xest;
 
   colorOrTex = ak_heap_calloc(xst->heap,
                               memParent,
@@ -27,8 +28,10 @@ ak_dae_colorOrTex(AkXmlState * __restrict xst,
 
   last_param = NULL;
 
+  ak_xest_init(xest, elm)
+
   do {
-    if (ak_xml_beginelm(xst, elm))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_color)) {
@@ -58,8 +61,12 @@ ak_dae_colorOrTex(AkXmlState * __restrict xst,
       tex->texcoord = ak_xml_attr(xst, tex, _s_dae_texcoord);
 
       if (!xmlTextReaderIsEmptyElement(xst->reader)) {
+        AkXmlElmState xest2;
+
+        ak_xest_init(xest2, _s_dae_texture)
+
         do {
-          if (ak_xml_beginelm(xst, _s_dae_texture))
+          if (ak_xml_begin(&xest2))
             break;
 
           if (ak_xml_eqelm(xst, _s_dae_extra)) {
@@ -82,7 +89,8 @@ ak_dae_colorOrTex(AkXmlState * __restrict xst,
           }
 
           /* end element */
-          ak_xml_endelm(xst);
+          if (ak_xml_end(&xest2))
+            break;
         } while (xst->nodeRet);
       }
     } else if (ak_xml_eqelm(xst, _s_dae_param)) {
@@ -106,7 +114,8 @@ ak_dae_colorOrTex(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
   
   *dest = colorOrTex;

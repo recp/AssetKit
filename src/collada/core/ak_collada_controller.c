@@ -15,6 +15,7 @@ ak_dae_controller(AkXmlState * __restrict xst,
                   void * __restrict memParent,
                   void ** __restrict dest) {
   AkController *controller;
+  AkXmlElmState xest;
 
   controller = ak_heap_calloc(xst->heap,
                               memParent,
@@ -23,8 +24,10 @@ ak_dae_controller(AkXmlState * __restrict xst,
   ak_xml_readid(xst, controller);
   controller->name = ak_xml_attr(xst, controller, _s_dae_name);
 
+  ak_xest_init(xest, _s_dae_controller)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_controller))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
@@ -72,7 +75,8 @@ ak_dae_controller(AkXmlState * __restrict xst,
     }
     
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
   
   *dest = controller;

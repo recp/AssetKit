@@ -16,6 +16,7 @@ ak_dae_light(AkXmlState * __restrict xst,
   AkLight           *light;
   AkTechnique       *last_tq;
   AkTechniqueCommon *last_tc;
+  AkXmlElmState      xest;
 
   light = ak_heap_calloc(xst->heap, memParent, sizeof(*light));
 
@@ -25,8 +26,10 @@ ak_dae_light(AkXmlState * __restrict xst,
   last_tq = light->technique;
   last_tc = light->techniqueCommon;
 
+  ak_xest_init(xest, _s_dae_light)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_light))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
@@ -87,7 +90,8 @@ ak_dae_light(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = light;

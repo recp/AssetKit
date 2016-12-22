@@ -34,6 +34,7 @@ ak_dae_curve(AkXmlState * __restrict xst,
   AkCurve        *curve;
   void           *memPtr;
   AkDoubleArrayL *last_orient;
+  AkXmlElmState   xest;
 
   if (asObject) {
     obj = ak_objAlloc(xst->heap,
@@ -59,10 +60,12 @@ ak_dae_curve(AkXmlState * __restrict xst,
 
   last_orient = NULL;
 
+  ak_xest_init(xest, _s_dae_curve)
+
   do {
     const ak_enumpair *found;
 
-    if (ak_xml_beginelm(xst, _s_dae_curve))
+    if (ak_xml_begin(&xest))
       break;
 
     found = bsearch(xst->nodeName,
@@ -73,8 +76,9 @@ ak_dae_curve(AkXmlState * __restrict xst,
 
     switch (found->val) {
       case AK_CURVE_ELEMENT_TYPE_LINE: {
-        AkObject *obj;
-        AkLine   *line;
+        AkObject     *obj;
+        AkLine       *line;
+        AkXmlElmState xest2;
 
         obj = ak_objAlloc(xst->heap,
                           memPtr,
@@ -84,8 +88,10 @@ ak_dae_curve(AkXmlState * __restrict xst,
 
         line = ak_objGet(obj);
 
+        ak_xest_init(xest2, _s_dae_line)
+
         do {
-          if (ak_xml_beginelm(xst, _s_dae_line))
+          if (ak_xml_begin(&xest2))
             break;
 
           if (ak_xml_eqelm(xst, _s_dae_origin)) {
@@ -125,7 +131,8 @@ ak_dae_curve(AkXmlState * __restrict xst,
           }
           
           /* end element */
-          ak_xml_endelm(xst);
+          if (ak_xml_end(&xest2))
+            break;
         } while (xst->nodeRet);
 
         curve->curve = obj;
@@ -133,8 +140,9 @@ ak_dae_curve(AkXmlState * __restrict xst,
         break;
       }
       case AK_CURVE_ELEMENT_TYPE_CIRCLE: {
-        AkObject *obj;
-        AkCircle *circle;
+        AkObject     *obj;
+        AkCircle     *circle;
+        AkXmlElmState xest2;
 
         obj = ak_objAlloc(xst->heap,
                           memPtr,
@@ -144,8 +152,10 @@ ak_dae_curve(AkXmlState * __restrict xst,
 
         circle = ak_objGet(obj);
 
+        ak_xest_init(xest2, _s_dae_circle)
+
         do {
-          if (ak_xml_beginelm(xst, _s_dae_circle))
+          if (ak_xml_begin(&xest2))
             break;
 
           if (ak_xml_eqelm(xst, _s_dae_radius)) {
@@ -171,7 +181,8 @@ ak_dae_curve(AkXmlState * __restrict xst,
           }
 
           /* end element */
-          ak_xml_endelm(xst);
+          if (ak_xml_end(&xest2))
+            break;
         } while (xst->nodeRet);
         
         curve->curve = obj;
@@ -179,8 +190,9 @@ ak_dae_curve(AkXmlState * __restrict xst,
         break;
       }
       case AK_CURVE_ELEMENT_TYPE_ELLIPSE: {
-        AkObject  *obj;
-        AkEllipse *ellipse;
+        AkObject     *obj;
+        AkEllipse    *ellipse;
+        AkXmlElmState xest2;
 
         obj = ak_objAlloc(xst->heap,
                           memPtr,
@@ -190,8 +202,10 @@ ak_dae_curve(AkXmlState * __restrict xst,
 
         ellipse = ak_objGet(obj);
 
+        ak_xest_init(xest2, _s_dae_ellipse)
+
         do {
-          if (ak_xml_beginelm(xst, _s_dae_ellipse))
+          if (ak_xml_begin(&xest2))
               break;
 
           if (ak_xml_eqelm(xst, _s_dae_radius)) {
@@ -223,7 +237,8 @@ ak_dae_curve(AkXmlState * __restrict xst,
           }
 
           /* end element */
-          ak_xml_endelm(xst);
+          if (ak_xml_end(&xest2))
+            break;
         } while (xst->nodeRet);
         
         curve->curve = obj;
@@ -231,8 +246,9 @@ ak_dae_curve(AkXmlState * __restrict xst,
         break;
       }
       case AK_CURVE_ELEMENT_TYPE_PARABOLA: {
-        AkObject   *obj;
-        AkParabola *parabola;
+        AkObject     *obj;
+        AkParabola   *parabola;
+        AkXmlElmState xest2;
 
         obj = ak_objAlloc(xst->heap,
                           memPtr,
@@ -242,8 +258,10 @@ ak_dae_curve(AkXmlState * __restrict xst,
 
         parabola = ak_objGet(obj);
 
+        ak_xest_init(xest2, _s_dae_parabola)
+
         do {
-          if (ak_xml_beginelm(xst, _s_dae_parabola))
+          if (ak_xml_begin(&xest2))
             break;
 
           if (ak_xml_eqelm(xst, _s_dae_radius)) {
@@ -269,7 +287,8 @@ ak_dae_curve(AkXmlState * __restrict xst,
           }
 
           /* end element */
-          ak_xml_endelm(xst);
+          if (ak_xml_end(&xest2))
+            break;
         } while (xst->nodeRet);
         
         curve->curve = obj;
@@ -277,8 +296,9 @@ ak_dae_curve(AkXmlState * __restrict xst,
         break;
       }
       case AK_CURVE_ELEMENT_TYPE_HYPERBOLA: {
-        AkObject    *obj;
-        AkHyperbola *hyperbola;
+        AkObject     *obj;
+        AkHyperbola  *hyperbola;
+        AkXmlElmState xest2;
 
         obj = ak_objAlloc(xst->heap,
                           memPtr,
@@ -288,8 +308,10 @@ ak_dae_curve(AkXmlState * __restrict xst,
 
         hyperbola = ak_objGet(obj);
 
+        ak_xest_init(xest2, _s_dae_hyperbola)
+
         do {
-          if (ak_xml_beginelm(xst, _s_dae_hyperbola))
+          if (ak_xml_begin(&xest2))
             break;
 
           if (ak_xml_eqelm(xst, _s_dae_radius)) {
@@ -321,7 +343,8 @@ ak_dae_curve(AkXmlState * __restrict xst,
           }
 
           /* end element */
-          ak_xml_endelm(xst);
+          if (ak_xml_end(&xest2))
+            break;
         } while (xst->nodeRet);
         
         curve->curve = obj;
@@ -377,7 +400,8 @@ ak_dae_curve(AkXmlState * __restrict xst,
     }
     
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
   
   *dest = curve;
@@ -389,15 +413,18 @@ AkResult _assetkit_hide
 ak_dae_curves(AkXmlState * __restrict xst,
               void * __restrict memParent,
               AkCurves ** __restrict dest) {
-  AkCurves *curves;
-  AkCurve  *last_curve;
+  AkCurves     *curves;
+  AkCurve      *last_curve;
+  AkXmlElmState xest;
 
   curves = ak_heap_calloc(xst->heap, memParent, sizeof(*curves));
 
   last_curve = NULL;
 
+  ak_xest_init(xest, _s_dae_curves)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_curves))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_curve)) {
@@ -431,7 +458,8 @@ ak_dae_curves(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
   
   *dest = curves;

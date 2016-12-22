@@ -17,6 +17,7 @@ ak_dae_visualScene(AkXmlState * __restrict xst,
   AkVisualScene   *visualScene;
   AkNode          *last_node;
   AkEvaluateScene *last_evaluateScene;
+  AkXmlElmState    xest;
 
   visualScene = ak_heap_calloc(xst->heap,
                                memParent,
@@ -28,8 +29,10 @@ ak_dae_visualScene(AkXmlState * __restrict xst,
   last_node          = NULL;
   last_evaluateScene = NULL;
 
+  ak_xest_init(xest, _s_dae_visual_scene)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_visual_scene))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
@@ -88,7 +91,8 @@ ak_dae_visualScene(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = visualScene;
@@ -101,6 +105,7 @@ ak_dae_instanceVisualScene(AkXmlState * __restrict xst,
                            void * __restrict memParent,
                            AkInstanceVisualScene ** __restrict dest) {
   AkInstanceVisualScene *visualScene;
+  AkXmlElmState          xest;
 
   visualScene = ak_heap_calloc(xst->heap,
                                memParent,
@@ -115,8 +120,10 @@ ak_dae_instanceVisualScene(AkXmlState * __restrict xst,
                   visualScene,
                   &visualScene->base.url);
 
+  ak_xest_init(xest, _s_dae_instance_visual_scene)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_instance_visual_scene))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_extra)) {
@@ -137,7 +144,8 @@ ak_dae_instanceVisualScene(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = visualScene;

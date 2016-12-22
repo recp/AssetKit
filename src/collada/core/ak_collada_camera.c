@@ -13,15 +13,18 @@ AkResult _assetkit_hide
 ak_dae_camera(AkXmlState * __restrict xst,
               void * __restrict memParent,
               void ** __restrict  dest) {
-  AkCamera *camera;
+  AkCamera     *camera;
+  AkXmlElmState xest;
 
   camera = ak_heap_calloc(xst->heap, memParent, sizeof(*camera));
 
   ak_xml_readid(xst, camera);
   camera->name = ak_xml_attr(xst, camera, _s_dae_name);
 
+  ak_xest_init(xest, _s_dae_camera)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_camera))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
@@ -34,17 +37,20 @@ ak_dae_camera(AkXmlState * __restrict xst,
         camera->inf = assetInf;
 
     } else if (ak_xml_eqelm(xst, _s_dae_optics)) {
-      AkOptics           *optics;
-      AkTechnique        *last_tq;
+      AkOptics          *optics;
+      AkTechnique       *last_tq;
       AkTechniqueCommon *last_tc;
+      AkXmlElmState      xest2;
 
       optics = ak_heap_calloc(xst->heap, camera, sizeof(*optics));
 
       last_tq = optics->technique;
       last_tc = optics->techniqueCommon;
 
+      ak_xest_init(xest2, _s_dae_optics)
+
       do {
-        if (ak_xml_beginelm(xst, _s_dae_optics))
+        if (ak_xml_begin(&xest2))
           break;
 
         if (ak_xml_eqelm(xst, _s_dae_techniquec)) {
@@ -81,19 +87,23 @@ ak_dae_camera(AkXmlState * __restrict xst,
         }
 
         /* end element */
-        ak_xml_endelm(xst);
+        if (ak_xml_end(&xest2))
+          break;
       } while (xst->nodeRet);
 
       camera->optics = optics;
     } else if (ak_xml_eqelm(xst, _s_dae_imager)) {
-      AkImager    *imager;
-      AkTechnique *last_tq;
+      AkImager     *imager;
+      AkTechnique  *last_tq;
+      AkXmlElmState xest2;
 
       imager  = ak_heap_calloc(xst->heap, camera, sizeof(*imager));
       last_tq = imager->technique;
 
+      ak_xest_init(xest2, _s_dae_imager)
+
       do {
-        if (ak_xml_beginelm(xst, _s_dae_imager))
+        if (ak_xml_begin(&xest2))
           break;
 
         if (ak_xml_eqelm(xst, _s_dae_technique)) {
@@ -130,7 +140,8 @@ ak_dae_camera(AkXmlState * __restrict xst,
         }
         
         /* end element */
-        ak_xml_endelm(xst);
+        if (ak_xml_end(&xest2))
+          break;
       } while (xst->nodeRet);
 
       camera->imager = imager;
@@ -152,7 +163,8 @@ ak_dae_camera(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = camera;

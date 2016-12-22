@@ -14,6 +14,7 @@ ak_dae_vertices(AkXmlState * __restrict xst,
                 AkVertices ** __restrict dest) {
   AkVertices   *vertices;
   AkInputBasic *last_input;
+  AkXmlElmState xest;
 
   vertices = ak_heap_calloc(xst->heap,
                             memParent,
@@ -24,8 +25,10 @@ ak_dae_vertices(AkXmlState * __restrict xst,
 
   last_input = NULL;
 
+  ak_xest_init(xest, _s_dae_vertices)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_vertices))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_input)) {
@@ -71,7 +74,8 @@ ak_dae_vertices(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = vertices;

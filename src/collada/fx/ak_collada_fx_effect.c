@@ -18,10 +18,11 @@ AkResult _assetkit_hide
 ak_dae_effect(AkXmlState * __restrict xst,
               void * __restrict memParent,
               void ** __restrict  dest) {
-  AkEffect   *effect;
-  AkAnnotate *last_annotate;
-  AkNewParam *last_newparam;
-  AkProfile  *last_profile;
+  AkEffect     *effect;
+  AkAnnotate   *last_annotate;
+  AkNewParam   *last_newparam;
+  AkProfile    *last_profile;
+  AkXmlElmState xest;
 
   effect = ak_heap_calloc(xst->heap,
                           memParent,
@@ -34,8 +35,10 @@ ak_dae_effect(AkXmlState * __restrict xst,
   ak_xml_readid(xst, effect);
   effect->name = ak_xml_attr(xst, effect, _s_dae_name);
 
+  ak_xest_init(xest, _s_dae_effect)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_effect))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
@@ -113,7 +116,8 @@ ak_dae_effect(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = effect;
@@ -128,6 +132,7 @@ ak_dae_fxInstanceEffect(AkXmlState * __restrict xst,
   AkInstanceEffect *instanceEffect;
   AkTechniqueHint  *last_techHint;
   AkSetParam       *last_setparam;
+  AkXmlElmState     xest;
 
   instanceEffect = ak_heap_calloc(xst->heap,
                                   memParent,
@@ -145,67 +150,68 @@ ak_dae_fxInstanceEffect(AkXmlState * __restrict xst,
   last_techHint = NULL;
   last_setparam = NULL;
 
-  if (!xmlTextReaderIsEmptyElement(xst->reader)) {
-    do {
-      if (ak_xml_beginelm(xst, _s_dae_inst_effect))
-        break;
+  ak_xest_init(xest, _s_dae_inst_effect)
 
-      if (ak_xml_eqelm(xst, _s_dae_technique_hint)) {
-        AkTechniqueHint *techHint;
+  do {
+    if (ak_xml_begin(&xest))
+      break;
 
-        techHint = ak_heap_calloc(xst->heap,
-                                  instanceEffect,
-                                  sizeof(*techHint));
+    if (ak_xml_eqelm(xst, _s_dae_technique_hint)) {
+      AkTechniqueHint *techHint;
 
-        techHint->ref      = ak_xml_attr(xst, techHint, _s_dae_ref);
-        techHint->profile  = ak_xml_attr(xst, techHint, _s_dae_profile);
-        techHint->platform = ak_xml_attr(xst, techHint, _s_dae_platform);
+      techHint = ak_heap_calloc(xst->heap,
+                                instanceEffect,
+                                sizeof(*techHint));
 
-        if (last_techHint)
-          last_techHint->next = techHint;
-        else
-          instanceEffect->techniqueHint = techHint;
+      techHint->ref      = ak_xml_attr(xst, techHint, _s_dae_ref);
+      techHint->profile  = ak_xml_attr(xst, techHint, _s_dae_profile);
+      techHint->platform = ak_xml_attr(xst, techHint, _s_dae_platform);
 
-        last_techHint = techHint;
-      } else if (ak_xml_eqelm(xst, _s_dae_setparam)) {
-        AkSetParam *setparam;
-        AkResult ret;
+      if (last_techHint)
+        last_techHint->next = techHint;
+      else
+        instanceEffect->techniqueHint = techHint;
 
-        ret = ak_dae_setparam(xst,
-                              instanceEffect,
-                              &setparam);
+      last_techHint = techHint;
+    } else if (ak_xml_eqelm(xst, _s_dae_setparam)) {
+      AkSetParam *setparam;
+      AkResult ret;
 
-        if (ret == AK_OK) {
-          if (last_setparam)
-            last_setparam->next = setparam;
-          else
-            instanceEffect->setparam = setparam;
-
-          last_setparam = setparam;
-        }
-      } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-        xmlNodePtr nodePtr;
-        AkTree   *tree;
-
-        nodePtr = xmlTextReaderExpand(xst->reader);
-        tree = NULL;
-
-        ak_tree_fromXmlNode(xst->heap,
+      ret = ak_dae_setparam(xst,
                             instanceEffect,
-                            nodePtr,
-                            &tree,
-                            NULL);
-        instanceEffect->extra = tree;
+                            &setparam);
 
-        ak_xml_skipelm(xst);
-      } else {
-        ak_xml_skipelm(xst);
+      if (ret == AK_OK) {
+        if (last_setparam)
+          last_setparam->next = setparam;
+        else
+          instanceEffect->setparam = setparam;
+
+        last_setparam = setparam;
       }
+    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
+      xmlNodePtr nodePtr;
+      AkTree   *tree;
 
-      /* end element */
-      ak_xml_endelm(xst);
-    } while (xst->nodeRet);
-  }
+      nodePtr = xmlTextReaderExpand(xst->reader);
+      tree = NULL;
+
+      ak_tree_fromXmlNode(xst->heap,
+                          instanceEffect,
+                          nodePtr,
+                          &tree,
+                          NULL);
+      instanceEffect->extra = tree;
+
+      ak_xml_skipelm(xst);
+    } else {
+      ak_xml_skipelm(xst);
+    }
+
+    /* end element */
+    if (ak_xml_end(&xest))
+      break;
+  } while (xst->nodeRet);
 
   *dest = instanceEffect;
 

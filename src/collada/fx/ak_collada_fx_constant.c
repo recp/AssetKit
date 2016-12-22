@@ -32,6 +32,7 @@ ak_dae_fxConstant(AkXmlState * __restrict xst,
                   void * __restrict memParent,
                   AkConstantFx ** __restrict dest) {
   AkConstantFx *constant;
+  AkXmlElmState xest;
 
   constant = ak_heap_calloc(xst->heap,
                             memParent,
@@ -45,10 +46,12 @@ ak_dae_fxConstant(AkXmlState * __restrict xst,
           ak_enumpair_cmp);
   }
 
+  ak_xest_init(xest, _s_dae_constant)
+
   do {
     const ak_enumpair *found;
 
-    if (ak_xml_beginelm(xst, _s_dae_constant))
+    if (ak_xml_begin(&xest))
       break;
 
     found = bsearch(xst->nodeName,
@@ -119,7 +122,8 @@ ak_dae_fxConstant(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
   
   *dest = constant;

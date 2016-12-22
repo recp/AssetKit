@@ -456,15 +456,18 @@ ak_dae_fxState_sampler(AkXmlState * __restrict xst,
                        AkRenderState ** __restrict last_state,
                        AkStates ** __restrict states,
                        AkRenderStateType state_type) {
-  ak_state_t_sampler * state;
+  ak_state_t_sampler *state;
+  AkXmlElmState       xest;
 
   state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
   state->base.state_type = state_type;
 
   state->index = ak_xml_attrui(xst, _s_dae_index);
 
+  ak_xest_init(xest, elm)
+
   do {
-    if (ak_xml_beginelm(xst, elm))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_value)) {
@@ -488,7 +491,8 @@ ak_dae_fxState_sampler(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   _ak_APPEND_STATE(last_state, state);
@@ -520,12 +524,15 @@ ak_dae_fxStateAlphaFunc(AkXmlState * __restrict xst,
                         AkRenderState ** __restrict last_state,
                         AkStates ** __restrict states) {
   ak_alpha_func *state;
+  AkXmlElmState  xest;
   
   state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
   state->base.state_type = AK_RENDER_STATE_ALPHA_FUNC;
 
+  ak_xest_init(xest, _s_dae_alpha_func)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_alpha_func))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_func)) {
@@ -554,7 +561,8 @@ ak_dae_fxStateAlphaFunc(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   _ak_APPEND_STATE(last_state, state);
@@ -566,13 +574,16 @@ AkResult _assetkit_hide
 ak_dae_fxStateBlend(AkXmlState * __restrict xst,
                     AkRenderState ** __restrict last_state,
                     AkStates ** __restrict states) {
-  ak_blend_func * state;
+  ak_blend_func *state;
+  AkXmlElmState  xest;
 
   state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
   state->base.state_type = AK_RENDER_STATE_BLEND_FUNC;
 
+  ak_xest_init(xest, _s_dae_blend_func)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_blend_func))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_src)) {
@@ -615,7 +626,8 @@ ak_dae_fxStateBlend(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
   
   _ak_APPEND_STATE(last_state, state);
@@ -628,12 +640,15 @@ ak_dae_fxStateBlendSep(AkXmlState * __restrict xst,
                        AkRenderState ** __restrict last_state,
                        AkStates ** __restrict states) {
   ak_blend_func_separate *state;
+  AkXmlElmState           xest;
 
   state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
   state->base.state_type = AK_RENDER_STATE_BLEND_FUNC_SEPARATE;
 
+  ak_xest_init(xest, _s_dae_blend_func_separate)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_blend_func_separate))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_src_rgb)) {
@@ -713,7 +728,8 @@ ak_dae_fxStateBlendSep(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
   
   _ak_APPEND_STATE(last_state, state);
@@ -726,12 +742,15 @@ ak_dae_fxStateBlendEqSep(AkXmlState * __restrict xst,
                          AkRenderState ** __restrict last_state,
                          AkStates ** __restrict states) {
   ak_blend_equation_separate *state;
+  AkXmlElmState               xest;
 
   state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
   state->base.state_type = AK_RENDER_STATE_BLEND_EQUATION_SEPARATE;
 
+  ak_xest_init(xest, _s_dae_blend_equation_separate)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_blend_equation_separate))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_rgb)) {
@@ -774,7 +793,8 @@ ak_dae_fxStateBlendEqSep(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
   
   _ak_APPEND_STATE(last_state, state);
@@ -787,12 +807,15 @@ ak_dae_fxStateColorMaterial(AkXmlState * __restrict xst,
                             AkRenderState ** __restrict last_state,
                             AkStates ** __restrict states) {
   ak_color_material *state;
+  AkXmlElmState      xest;
 
   state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
   state->base.state_type = AK_RENDER_STATE_COLOR_MATERIAL;
 
+  ak_xest_init(xest, _s_dae_color_material)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_color_material))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_face)) {
@@ -835,7 +858,8 @@ ak_dae_fxStateColorMaterial(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
   
   _ak_APPEND_STATE(last_state, state);
@@ -848,12 +872,15 @@ ak_dae_fxStatePolyMode(AkXmlState * __restrict xst,
                        AkRenderState ** __restrict last_state,
                        AkStates ** __restrict states) {
   ak_polygon_mode *state;
+  AkXmlElmState   xest;
 
   state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
   state->base.state_type = AK_RENDER_STATE_POLYGON_MODE;
 
+  ak_xest_init(xest, _s_dae_polygon_mode)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_polygon_mode))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_face)) {
@@ -896,7 +923,8 @@ ak_dae_fxStatePolyMode(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
   
   _ak_APPEND_STATE(last_state, state);
@@ -909,12 +937,15 @@ ak_dae_fxStateStencilFunc(AkXmlState * __restrict xst,
                           AkRenderState ** __restrict last_state,
                           AkStates ** __restrict states) {
   ak_stencil_func *state;
+  AkXmlElmState    xest;
 
   state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
   state->base.state_type = AK_RENDER_STATE_STENCIL_FUNC;
 
+  ak_xest_init(xest, _s_dae_stencil_func)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_stencil_func))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_stencil_func)) {
@@ -968,7 +999,8 @@ ak_dae_fxStateStencilFunc(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
   
   _ak_APPEND_STATE(last_state, state);
@@ -981,12 +1013,15 @@ ak_dae_fxStateStencilOp(AkXmlState * __restrict xst,
                         AkRenderState ** __restrict last_state,
                         AkStates ** __restrict states) {
   ak_stencil_op *state;
+  AkXmlElmState  xest;
 
   state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
   state->base.state_type = AK_RENDER_STATE_STENCIL_OP;
 
+  ak_xest_init(xest, _s_dae_stencil_op)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_stencil_op))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_fail)) {
@@ -1045,7 +1080,8 @@ ak_dae_fxStateStencilOp(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
   
   _ak_APPEND_STATE(last_state, state);
@@ -1058,12 +1094,15 @@ ak_dae_fxStateStencilFuncSep(AkXmlState * __restrict xst,
                              AkRenderState ** __restrict last_state,
                              AkStates ** __restrict states) {
   ak_stencil_func_separate *state;
+  AkXmlElmState             xest;
 
   state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
   state->base.state_type = AK_RENDER_STATE_STENCIL_FUNC_SEPARATE;
 
+  ak_xest_init(xest, _s_dae_stencil_func_separate)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_stencil_func_separate))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_front)) {
@@ -1133,7 +1172,8 @@ ak_dae_fxStateStencilFuncSep(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
   
   _ak_APPEND_STATE(last_state, state);
@@ -1146,12 +1186,15 @@ ak_dae_fxStateStencilOpSep(AkXmlState * __restrict xst,
                            AkRenderState ** __restrict last_state,
                            AkStates ** __restrict states) {
   ak_stencil_op_separate *state;
+  AkXmlElmState           xest;
 
   state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
   state->base.state_type = AK_RENDER_STATE_STENCIL_OP_SEPARATE;
 
+  ak_xest_init(xest, _s_dae_stencil_op_separate)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_stencil_op_separate))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_face)) {
@@ -1227,7 +1270,8 @@ ak_dae_fxStateStencilOpSep(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
   
   _ak_APPEND_STATE(last_state, state);
@@ -1240,12 +1284,15 @@ ak_dae_fxStateStencilMaskSep(AkXmlState * __restrict xst,
                              AkRenderState ** __restrict last_state,
                              AkStates ** __restrict states) {
   ak_stencil_mask_separate *state;
+  AkXmlElmState             xest;
 
   state = ak_heap_calloc(xst->heap, *states, sizeof(*state));
   state->base.state_type = AK_RENDER_STATE_STENCIL_MASK_SEPARATE;
 
+  ak_xest_init(xest, _s_dae_stencil_mask_separate)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_stencil_mask_separate))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_face)) {
@@ -1287,7 +1334,8 @@ ak_dae_fxStateStencilMaskSep(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
   
   _ak_APPEND_STATE(last_state, state);

@@ -15,7 +15,8 @@ AkResult _assetkit_hide
 ak_dae_material(AkXmlState * __restrict xst,
                 void * __restrict memParent,
                 void ** __restrict dest) {
-  AkMaterial *material;
+  AkMaterial   *material;
+  AkXmlElmState xest;
 
   material = ak_heap_calloc(xst->heap,
                             memParent,
@@ -24,8 +25,10 @@ ak_dae_material(AkXmlState * __restrict xst,
   ak_xml_readid(xst, material);
   material->name = ak_xml_attr(xst, material, _s_dae_name);
 
+  ak_xest_init(xest, _s_dae_material)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_material))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
@@ -64,7 +67,8 @@ ak_dae_material(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = material;
@@ -79,6 +83,7 @@ ak_dae_fxBindMaterial(AkXmlState * __restrict xst,
   AkBindMaterial *bindMaterial;
   AkParam        *last_param;
   AkTechnique    *last_tq;
+  AkXmlElmState   xest;
 
   bindMaterial = ak_heap_calloc(xst->heap,
                                 memParent,
@@ -87,8 +92,10 @@ ak_dae_fxBindMaterial(AkXmlState * __restrict xst,
   last_param = NULL;
   last_tq    = NULL;
 
+  ak_xest_init(xest, _s_dae_bind_material)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_bind_material))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_param)) {
@@ -150,7 +157,8 @@ ak_dae_fxBindMaterial(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = bindMaterial;
@@ -165,6 +173,7 @@ ak_dae_fxInstanceMaterial(AkXmlState * __restrict xst,
   AkInstanceMaterial *material;
   AkBind             *last_bind;
   AkBindVertexInput  *last_bindVertexInput;
+  AkXmlElmState       xest;
 
   material = ak_heap_calloc(xst->heap,
                             memParent,
@@ -184,8 +193,10 @@ ak_dae_fxInstanceMaterial(AkXmlState * __restrict xst,
   last_bind = NULL;
   last_bindVertexInput = NULL;
 
+  ak_xest_init(xest, _s_dae_instance_material)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_instance_material))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_bind)) {
@@ -259,7 +270,8 @@ ak_dae_fxInstanceMaterial(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = material;

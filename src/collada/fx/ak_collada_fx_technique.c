@@ -21,6 +21,7 @@ ak_dae_techniqueFx(AkXmlState * __restrict xst,
                    AkTechniqueFx ** __restrict dest) {
   AkTechniqueFx *technique;
   AkAnnotate    *last_annotate;
+  AkXmlElmState  xest;
 
   technique = ak_heap_calloc(xst->heap,
                              memParent,
@@ -31,8 +32,10 @@ ak_dae_techniqueFx(AkXmlState * __restrict xst,
 
   last_annotate = NULL;
 
+  ak_xest_init(xest, _s_dae_technique)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_technique))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
@@ -123,7 +126,8 @@ ak_dae_techniqueFx(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
   
   *dest = technique;

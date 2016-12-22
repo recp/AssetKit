@@ -12,7 +12,8 @@ AkResult _assetkit_hide
 ak_dae_annotate(AkXmlState * __restrict xst,
                 void * __restrict memParent,
                 AkAnnotate ** __restrict dest) {
-  AkAnnotate *annotate;
+  AkAnnotate   *annotate;
+  AkXmlElmState xest;
 
   annotate = ak_heap_calloc(xst->heap,
                             memParent,
@@ -20,8 +21,10 @@ ak_dae_annotate(AkXmlState * __restrict xst,
 
   annotate->name = ak_xml_attr(xst, annotate, _s_dae_name);
 
+  ak_xest_init(xest, _s_dae_annotate)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_annotate))
+    if (ak_xml_begin(&xest))
       break;
 
     /* load once */
@@ -32,7 +35,8 @@ ak_dae_annotate(AkXmlState * __restrict xst,
                    &annotate->valType);
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = annotate;

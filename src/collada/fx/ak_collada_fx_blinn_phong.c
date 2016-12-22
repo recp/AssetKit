@@ -41,6 +41,7 @@ ak_dae_blinn_phong(AkXmlState * __restrict xst,
                    const char * elm,
                    ak_blinn_phong ** __restrict dest) {
   ak_blinn_phong *blinn_phong;
+  AkXmlElmState   xest;
 
   blinn_phong = ak_heap_calloc(xst->heap,
                                memParent,
@@ -54,10 +55,12 @@ ak_dae_blinn_phong(AkXmlState * __restrict xst,
           ak_enumpair_cmp);
   }
 
+  ak_xest_init(xest, elm)
+
   do {
     const ak_enumpair *found;
 
-    if (ak_xml_beginelm(xst, elm))
+    if (ak_xml_begin(&xest))
       break;
 
     found = bsearch(xst->nodeName,
@@ -144,7 +147,8 @@ ak_dae_blinn_phong(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
   
   *dest = blinn_phong;

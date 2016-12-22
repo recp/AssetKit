@@ -35,7 +35,8 @@ AkResult _assetkit_hide
 ak_dae_fxLambert(AkXmlState * __restrict xst,
                  void * __restrict memParent,
                  AkLambert ** __restrict dest) {
-  AkLambert *lambert;
+  AkLambert    *lambert;
+  AkXmlElmState xest;
 
   lambert = ak_heap_calloc(xst->heap,
                            memParent,
@@ -49,10 +50,12 @@ ak_dae_fxLambert(AkXmlState * __restrict xst,
           ak_enumpair_cmp);
   }
 
+  ak_xest_init(xest, _s_dae_lambert)
+
   do {
     const ak_enumpair *found;
 
-    if (ak_xml_beginelm(xst, _s_dae_lambert))
+    if (ak_xml_begin(&xest))
       break;
 
     found = bsearch(xst->nodeName,
@@ -131,7 +134,8 @@ ak_dae_fxLambert(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
   
   *dest = lambert;

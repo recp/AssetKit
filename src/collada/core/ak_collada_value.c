@@ -82,6 +82,7 @@ ak_dae_value(AkXmlState * __restrict xst,
              AkValueType * __restrict val_type) {
   ak_value_pair *found;
   char          *nodeVal;
+  AkXmlElmState  xest;
 
   xst->nodeName = xmlTextReaderConstName(xst->reader);
 
@@ -107,6 +108,8 @@ ak_dae_value(AkXmlState * __restrict xst,
   *val_type = found->val;
 
   nodeVal = ak_xml_val(xst, NULL);
+
+  ak_xest_init(xest, found->key)
 
   switch (found->val) {
     case AK_VALUE_TYPE_STRING:
@@ -166,7 +169,7 @@ ak_dae_value(AkXmlState * __restrict xst,
     ak_free(nodeVal);
 
   /* end element */
-  ak_xml_endelm(xst);
+  ak_xml_end(&xest);
 
   return AK_OK;
 }

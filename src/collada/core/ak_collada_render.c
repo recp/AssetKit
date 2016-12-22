@@ -16,6 +16,7 @@ ak_dae_render(AkXmlState * __restrict xst,
   AkRender           *render;
   AkInstanceMaterial *last_instanceMaterial;
   AkStringArrayL     *last_layer;
+  AkXmlElmState       xest;
 
   render = ak_heap_calloc(xst->heap, memParent, sizeof(*render));
 
@@ -27,8 +28,10 @@ ak_dae_render(AkXmlState * __restrict xst,
   last_instanceMaterial = NULL;
   last_layer = NULL;
 
+  ak_xest_init(xest, _s_dae_render)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_render))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_layer)) {
@@ -84,7 +87,8 @@ ak_dae_render(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
   
   *dest = render;

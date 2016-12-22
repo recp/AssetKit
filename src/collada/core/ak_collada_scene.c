@@ -12,9 +12,12 @@ AkResult _assetkit_hide
 ak_dae_scene(AkXmlState * __restrict xst,
              void * __restrict memParent,
              AkScene * __restrict dest) {
+  AkXmlElmState xest;
+
+  ak_xest_init(xest, _s_dae_scene)
 
   do {
-    if (ak_xml_beginelm(xst, _s_dae_scene))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_instance_visual_scene)) {
@@ -43,7 +46,8 @@ ak_dae_scene(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
   
   return AK_OK;

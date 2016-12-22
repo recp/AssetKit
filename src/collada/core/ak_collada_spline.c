@@ -14,10 +14,11 @@ ak_dae_spline(AkXmlState * __restrict xst,
               void * __restrict memParent,
               bool asObject,
               AkSpline ** __restrict dest) {
-  AkObject *obj;
-  AkSpline *spline;
-  AkSource *last_source;
-  void     *memPtr;
+  AkObject    *obj;
+  AkSpline    *spline;
+  AkSource    *last_source;
+  void         *memPtr;
+  AkXmlElmState xest;
 
   if (asObject) {
     obj = ak_objAlloc(xst->heap,
@@ -39,8 +40,10 @@ ak_dae_spline(AkXmlState * __restrict xst,
 
   last_source = NULL;
 
+  ak_xest_init(xest, _s_dae_spline)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_spline))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_source)) {
@@ -59,13 +62,16 @@ ak_dae_spline(AkXmlState * __restrict xst,
     } else if (ak_xml_eqelm(xst, _s_dae_control_vertices)) {
       AkControlVerts *cverts;
       AkInputBasic   *last_input;
+      AkXmlElmState   xest2;
 
       cverts = ak_heap_calloc(xst->heap, memPtr, sizeof(*cverts));
 
       last_input = NULL;
 
+      ak_xest_init(xest2, _s_dae_control_vertices)
+
       do {
-        if (ak_xml_beginelm(xst, _s_dae_control_vertices))
+        if (ak_xml_begin(&xest2))
           break;
 
         if (ak_xml_eqelm(xst, _s_dae_input)) {
@@ -121,7 +127,8 @@ ak_dae_spline(AkXmlState * __restrict xst,
         }
 
         /* end element */
-        ak_xml_endelm(xst);
+        if (ak_xml_end(&xest2))
+          break;
       } while (xst->nodeRet);
 
       spline->cverts = cverts;
@@ -145,7 +152,8 @@ ak_dae_spline(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = spline;

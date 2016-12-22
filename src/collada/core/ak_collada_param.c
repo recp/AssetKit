@@ -25,8 +25,9 @@ AkResult _assetkit_hide
 ak_dae_newparam(AkXmlState * __restrict xst,
                 void * __restrict memParent,
                 AkNewParam ** __restrict dest) {
-  AkNewParam *newparam;
-  AkAnnotate *last_annotate;
+  AkNewParam   *newparam;
+  AkAnnotate   *last_annotate;
+  AkXmlElmState xest;
 
   newparam = ak_heap_calloc(xst->heap,
                             memParent,
@@ -41,8 +42,10 @@ ak_dae_newparam(AkXmlState * __restrict xst,
           ak_enumpair_cmp);
   }
 
+  ak_xest_init(xest, _s_dae_newparam)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_newparam))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_annotate)) {
@@ -94,7 +97,8 @@ ak_dae_newparam(AkXmlState * __restrict xst,
     }
     
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = newparam;
@@ -106,7 +110,8 @@ AkResult _assetkit_hide
 ak_dae_param(AkXmlState * __restrict xst,
              void * __restrict memParent,
              AkParam ** __restrict dest) {
-  AkParam *param;
+  AkParam      *param;
+  AkXmlElmState xest;
 
   xst->nodeType = xmlTextReaderNodeType(xst->reader);
 
@@ -117,7 +122,9 @@ ak_dae_param(AkXmlState * __restrict xst,
   param->ref = ak_xml_attr(xst, param, _s_dae_ref);
 
   *dest = param;
-  ak_xml_endelm(xst);
+
+  ak_xest_init(xest, _s_dae_param);
+  ak_xml_end(&xest);
 
   return AK_OK;
 }
@@ -126,7 +133,8 @@ AkResult _assetkit_hide
 ak_dae_dataparam(AkXmlState * __restrict xst,
                  void * __restrict memParent,
                  AkDataParam ** __restrict dest) {
-  AkDataParam *dataParam;
+  AkDataParam  *dataParam;
+  AkXmlElmState xest;
 
   dataParam = ak_heap_calloc(xst->heap,
                              memParent,
@@ -141,7 +149,9 @@ ak_dae_dataparam(AkXmlState * __restrict xst,
                   &dataParam->type);
 
   *dest = dataParam;
-  ak_xml_endelm(xst);
+
+  ak_xest_init(xest, _s_dae_param);
+  ak_xml_end(&xest);
 
   return AK_OK;
 }
@@ -150,7 +160,8 @@ AkResult _assetkit_hide
 ak_dae_setparam(AkXmlState * __restrict xst,
                 void * __restrict memParent,
                 AkSetParam ** __restrict dest) {
-  AkSetParam *setparam;
+  AkSetParam   *setparam;
+  AkXmlElmState xest;
 
   setparam = ak_heap_calloc(xst->heap,
                             memParent,
@@ -164,8 +175,10 @@ ak_dae_setparam(AkXmlState * __restrict xst,
           ak_enumpair_cmp);
   }
 
+  ak_xest_init(xest, _s_dae_setparam)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_setparam))
+    if (ak_xml_begin(&xest))
       break;
 
     /* load once */
@@ -186,7 +199,8 @@ ak_dae_setparam(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = setparam;

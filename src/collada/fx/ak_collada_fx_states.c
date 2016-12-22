@@ -139,6 +139,7 @@ ak_dae_fxState(AkXmlState * __restrict xst,
                AkStates ** __restrict dest) {
   AkStates      *states;
   AkRenderState *last_state;
+  AkXmlElmState  xest;
 
   states = ak_heap_calloc(xst->heap,
                           memParent,
@@ -154,10 +155,12 @@ ak_dae_fxState(AkXmlState * __restrict xst,
 
   last_state = NULL;
 
+  ak_xest_init(xest, _s_dae_states)
+
   do {
     const ak_enumpair *found;
 
-    if (ak_xml_beginelm(xst, _s_dae_states))
+    if (ak_xml_begin(&xest))
       break;
 
     found = bsearch(xst->nodeName,
@@ -899,7 +902,8 @@ ak_dae_fxState(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = states;

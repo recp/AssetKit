@@ -15,10 +15,11 @@ ak_dae_skin(AkXmlState * __restrict xst,
             void * __restrict memParent,
             bool asObject,
             AkSkin ** __restrict dest) {
-  AkObject *obj;
-  AkSkin   *skin;
-  AkSource *last_source;
-  void     *memPtr;
+  AkObject     *obj;
+  AkSkin       *skin;
+  AkSource     *last_source;
+  void         *memPtr;
+  AkXmlElmState xest;
 
   if (asObject) {
     obj = ak_objAlloc(xst->heap,
@@ -39,8 +40,10 @@ ak_dae_skin(AkXmlState * __restrict xst,
 
   last_source = NULL;
 
+  ak_xest_init(xest, _s_dae_skin)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_skin))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_bind_shape_matrix)) {
@@ -73,13 +76,16 @@ ak_dae_skin(AkXmlState * __restrict xst,
     } else if (ak_xml_eqelm(xst, _s_dae_joints)) {
       AkJoints     *joints;
       AkInputBasic *last_input;
+      AkXmlElmState xest2;
 
       joints = ak_heap_calloc(xst->heap, memPtr, sizeof(*joints));
 
       last_input = NULL;
 
+      ak_xest_init(xest, _s_dae_joints)
+
       do {
-        if (ak_xml_beginelm(xst, _s_dae_joints))
+        if (ak_xml_begin(&xest2))
           break;
 
         if (ak_xml_eqelm(xst, _s_dae_input)) {
@@ -135,13 +141,15 @@ ak_dae_skin(AkXmlState * __restrict xst,
         }
 
         /* end element */
-        ak_xml_endelm(xst);
+        if (ak_xml_end(&xest2))
+          break;
       } while (xst->nodeRet);
 
       skin->joints = joints;
     } else if (ak_xml_eqelm(xst, _s_dae_vertex_weights)) {
       AkVertexWeights *vertexWeights;
       AkInput         *last_input;
+      AkXmlElmState    xest2;
 
       vertexWeights = ak_heap_calloc(xst->heap,
                                      memPtr,
@@ -149,8 +157,10 @@ ak_dae_skin(AkXmlState * __restrict xst,
 
       last_input = NULL;
 
+      ak_xest_init(xest2, _s_dae_vertex_weights)
+
       do {
-        if (ak_xml_beginelm(xst, _s_dae_vertex_weights))
+        if (ak_xml_begin(&xest2))
           break;
 
         if (ak_xml_eqelm(xst, _s_dae_input)) {
@@ -242,7 +252,8 @@ ak_dae_skin(AkXmlState * __restrict xst,
         }
 
         /* end element */
-        ak_xml_endelm(xst);
+        if (ak_xml_end(&xest2))
+          break;
       } while (xst->nodeRet);
 
       skin->vertexWeights = vertexWeights;
@@ -266,7 +277,8 @@ ak_dae_skin(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = skin;

@@ -14,8 +14,9 @@ ak_dae_lines(AkXmlState * __restrict xst,
              void * __restrict memParent,
              AkLineMode mode,
              AkLines ** __restrict dest) {
-  AkLines *lines;
-  AkInput *last_input;
+  AkLines      *lines;
+  AkInput      *last_input;
+  AkXmlElmState xest;
 
   lines = ak_heap_calloc(xst->heap, memParent, sizeof(*lines));
   lines->mode = mode;
@@ -27,8 +28,10 @@ ak_dae_lines(AkXmlState * __restrict xst,
 
   last_input = NULL;
 
+  ak_xest_init(xest, _s_dae_lines)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_lines))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_input)) {
@@ -104,7 +107,8 @@ ak_dae_lines(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = lines;

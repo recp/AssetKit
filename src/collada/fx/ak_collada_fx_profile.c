@@ -26,13 +26,13 @@ AkResult _assetkit_hide
 ak_dae_profile(AkXmlState * __restrict xst,
                void * __restrict memParent,
                AkProfile ** __restrict dest) {
-  AkProfile     *profile;
-  AkNewParam    *last_newparam;
-  AkCode        *last_code;
-  AkInclude     *last_inc;
-  AkTechniqueFx *last_techfx;
-
+  AkProfile         *profile;
+  AkNewParam        *last_newparam;
+  AkCode            *last_code;
+  AkInclude         *last_inc;
+  AkTechniqueFx     *last_techfx;
   const ak_enumpair *found;
+  AkXmlElmState      xest;
 
   xst->nodeName = xmlTextReaderConstName(xst->reader);
 
@@ -135,8 +135,10 @@ ak_dae_profile(AkXmlState * __restrict xst,
   last_inc      = NULL;
   last_techfx   = NULL;
 
+  ak_xest_init(xest, found->key)
+
   do {
-    if (ak_xml_beginelm(xst, found->key))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
@@ -269,7 +271,8 @@ ak_dae_profile(AkXmlState * __restrict xst,
     } 
     
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
   
   *dest = profile;

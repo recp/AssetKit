@@ -13,8 +13,9 @@ AkResult _assetkit_hide
 ak_dae_edges(AkXmlState * __restrict xst,
              void * __restrict memParent,
              AkEdges ** __restrict dest) {
-  AkEdges *edges;
-  AkInput *last_input;
+  AkEdges      *edges;
+  AkInput      *last_input;
+  AkXmlElmState xest;
 
   edges = ak_heap_calloc(xst->heap,
                          memParent,
@@ -26,8 +27,10 @@ ak_dae_edges(AkXmlState * __restrict xst,
 
   last_input = NULL;
 
+  ak_xest_init(xest, _s_dae_edges)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_edges))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_input)) {
@@ -102,7 +105,8 @@ ak_dae_edges(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = edges;
@@ -114,8 +118,9 @@ AkResult _assetkit_hide
 ak_dae_wires(AkXmlState * __restrict xst,
              void * __restrict memParent,
              AkWires ** __restrict dest) {
-  AkWires *wires;
-  AkInput *last_input;
+  AkWires      *wires;
+  AkInput      *last_input;
+  AkXmlElmState xest;
 
   wires = ak_heap_calloc(xst->heap,
                          memParent,
@@ -127,8 +132,10 @@ ak_dae_wires(AkXmlState * __restrict xst,
 
   last_input = NULL;
 
+  ak_xest_init(xest, _s_dae_wires)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_wires))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_input)) {
@@ -219,7 +226,8 @@ ak_dae_wires(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = wires;
@@ -231,8 +239,9 @@ AkResult _assetkit_hide
 ak_dae_faces(AkXmlState * __restrict xst,
              void * __restrict memParent,
              AkFaces ** __restrict dest) {
-  AkFaces *faces;
-  AkInput *last_input;
+  AkFaces      *faces;
+  AkInput      *last_input;
+  AkXmlElmState xest;
 
   faces = ak_heap_calloc(xst->heap,
                          memParent,
@@ -244,8 +253,10 @@ ak_dae_faces(AkXmlState * __restrict xst,
 
   last_input = NULL;
 
+  ak_xest_init(xest, _s_dae_faces)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_faces))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_input)) {
@@ -336,7 +347,8 @@ ak_dae_faces(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = faces;
@@ -348,8 +360,9 @@ AkResult _assetkit_hide
 ak_dae_pcurves(AkXmlState * __restrict xst,
                void * __restrict memParent,
                AkPCurves ** __restrict dest) {
-  AkPCurves *pcurves;
-  AkInput   *last_input;
+  AkPCurves    *pcurves;
+  AkInput      *last_input;
+  AkXmlElmState xest;
 
   pcurves = ak_heap_calloc(xst->heap,
                            memParent,
@@ -361,8 +374,10 @@ ak_dae_pcurves(AkXmlState * __restrict xst,
 
   last_input = NULL;
 
+  ak_xest_init(xest, _s_dae_pcurves)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_pcurves))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_input)) {
@@ -453,7 +468,8 @@ ak_dae_pcurves(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = pcurves;
@@ -465,8 +481,9 @@ AkResult _assetkit_hide
 ak_dae_shells(AkXmlState * __restrict xst,
               void * __restrict memParent,
               AkShells ** __restrict dest) {
-  AkShells *shells;
-  AkInput  *last_input;
+  AkShells     *shells;
+  AkInput      *last_input;
+  AkXmlElmState xest;
 
   shells = ak_heap_calloc(xst->heap,
                           memParent,
@@ -478,8 +495,10 @@ ak_dae_shells(AkXmlState * __restrict xst,
 
   last_input = NULL;
 
+  ak_xest_init(xest, _s_dae_shells)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_shells))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_input)) {
@@ -570,7 +589,8 @@ ak_dae_shells(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = shells;
@@ -582,8 +602,9 @@ AkResult _assetkit_hide
 ak_dae_solids(AkXmlState * __restrict xst,
               void * __restrict memParent,
               AkSolids ** __restrict dest) {
-  AkSolids *solids;
-  AkInput  *last_input;
+  AkSolids     *solids;
+  AkInput      *last_input;
+  AkXmlElmState xest;
 
   solids = ak_heap_calloc(xst->heap,
                           memParent,
@@ -595,8 +616,10 @@ ak_dae_solids(AkXmlState * __restrict xst,
 
   last_input = NULL;
 
+  ak_xest_init(xest, _s_dae_solids)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_solids))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_input)) {
@@ -687,7 +710,8 @@ ak_dae_solids(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = solids;

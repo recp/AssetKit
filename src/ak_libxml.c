@@ -39,9 +39,10 @@ ak_xml_attr_url(AkXmlState * __restrict xst,
 
 void
 ak_xml_readnext(AkXmlState * __restrict xst) {
-  xst->nodeRet  = xmlTextReaderRead(xst->reader);
-  xst->nodeType = xmlTextReaderNodeType(xst->reader);
-  xst->nodeName = xmlTextReaderConstName(xst->reader);
+  xst->nodeRet   = xmlTextReaderRead(xst->reader);
+  xst->nodeType  = xmlTextReaderNodeType(xst->reader);
+  xst->nodeName  = xmlTextReaderConstName(xst->reader);
+  xst->nodeDepth = xmlTextReaderDepth(xst->reader);
 }
 
 bool
@@ -57,31 +58,33 @@ ak_xml_eqdecl(AkXmlState * __restrict xst, const xmlChar * s) {
 }
 
 bool
-ak_xml_beginelm(AkXmlState * __restrict xst,
-                const char *elmname) {
-  xst->nodeName = xmlTextReaderConstName(xst->reader);
-  if (_xml_eq(xst->nodeName, elmname)
-      && xmlTextReaderIsEmptyElement(xst->reader))
+ak_xml_begin(AkXmlElmState * __restrict xest) {
+  if (_xml_eq(xest->xst->nodeName, xest->name)
+      && xmlTextReaderIsEmptyElement(xest->xst->reader))
     return true;
 
-  ak_xml_readnext(xst);
+  ak_xml_readnext(xest->xst);
 
-  return (_xml_eq(xst->nodeName, elmname)
-          && xst->nodeType == XML_ELEMENT_DECL)
-         || xst->nodeType == XML_DTD_NODE /* Whitespace: 14 */
+  return (_xml_eq(xest->xst->nodeName, xest->name)
+          && xest->xst->nodeType == XML_ELEMENT_DECL)
+          || xest->xst->nodeType == XML_DTD_NODE /* Whitespace: 14 */
   ;
 }
 
-void
-ak_xml_endelm(AkXmlState * __restrict xst) {
+bool
+ak_xml_end(AkXmlElmState * __restrict xest) {
   do {
-    if ((xst->nodeType == XML_ELEMENT_DECL
-         && xst->nodeType != XML_TEXT_NODE)
-        || xst->nodeType == XML_ELEMENT_NODE)
+    if (xest->xst->nodeType == XML_ELEMENT_DECL
+        || xest->xst->nodeType == XML_ELEMENT_NODE)
       break;
 
-    ak_xml_readnext(xst);
+    ak_xml_readnext(xest->xst);
   } while(1);
+
+  /* TODO: there is no need to compare nodeType and nodeName?
+           because we reached to end of node by depth info 
+   */
+  return xest->depth == xest->xst->nodeDepth;
 }
 
 void

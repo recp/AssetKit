@@ -137,6 +137,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
   AkHeap          *heap;
   AkDoc           *doc;
   AkXmlState       xstVal, *xst;
+  AkXmlElmState    xest;
 
   xmlTextReaderPtr reader;
   int              xmlReaderFlags;
@@ -192,10 +193,12 @@ ak_dae_doc(AkDoc ** __restrict dest,
   for (i = 0; i < libchldsCount; i++)
     libchlds[i].lastItem = NULL;
 
+  ak_xest_init(xest, _s_dae_collada)
+
   do {
     const ak_enumpair *found;
 
-    if (ak_xml_beginelm(xst, _s_dae_collada))
+    if (ak_xml_begin(&xest))
       break;
 
     found = bsearch(xst->nodeName,
@@ -256,7 +259,8 @@ ak_dae_doc(AkDoc ** __restrict dest,
   cont:
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   xmlFreeTextReader(reader);

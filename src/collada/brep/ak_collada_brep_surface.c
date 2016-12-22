@@ -33,6 +33,7 @@ ak_dae_surface(AkXmlState * __restrict xst,
                AkSurface ** __restrict dest) {
   AkSurface      *surface;
   AkDoubleArrayL *last_orient;
+  AkXmlElmState   xest;
 
   surface = ak_heap_calloc(xst->heap,
                            memParent,
@@ -52,10 +53,12 @@ ak_dae_surface(AkXmlState * __restrict xst,
 
   last_orient = NULL;
 
+  ak_xest_init(xest, _s_dae_surface)
+
   do {
     const ak_enumpair *found;
 
-    if (ak_xml_beginelm(xst, _s_dae_surface))
+    if (ak_xml_begin(&xest))
       break;
 
     found = bsearch(xst->nodeName,
@@ -65,8 +68,9 @@ ak_dae_surface(AkXmlState * __restrict xst,
                     ak_enumpair_cmp2);
     switch (found->val) {
       case AK_SURFACE_ELEMENT_TYPE_CONE: {
-        AkObject *obj;
-        AkCone   *cone;
+        AkObject     *obj;
+        AkCone       *cone;
+        AkXmlElmState xest2;
 
         obj = ak_objAlloc(xst->heap,
                           surface,
@@ -76,8 +80,10 @@ ak_dae_surface(AkXmlState * __restrict xst,
 
         cone = ak_objGet(obj);
 
+        ak_xest_init(xest2, _s_dae_cone)
+
         do {
-          if (ak_xml_beginelm(xst, _s_dae_surface))
+          if (ak_xml_begin(&xest2))
             break;
 
           if (ak_xml_eqelm(xst, _s_dae_radius)) {
@@ -105,15 +111,17 @@ ak_dae_surface(AkXmlState * __restrict xst,
           }
 
           /* end element */
-          ak_xml_endelm(xst);
+          if (ak_xml_end(&xest2))
+            break;
         } while (xst->nodeRet);
         
         surface->surface = obj;
         break;
       }
       case AK_SURFACE_ELEMENT_TYPE_PLANE: {
-        AkObject *obj;
-        AkPlane  *plane;
+        AkObject     *obj;
+        AkPlane      *plane;
+        AkXmlElmState xest2;
 
         obj = ak_objAlloc(xst->heap,
                           surface,
@@ -123,8 +131,10 @@ ak_dae_surface(AkXmlState * __restrict xst,
 
         plane = ak_objGet(obj);
 
+        ak_xest_init(xest2, _s_dae_plane)
+
         do {
-          if (ak_xml_beginelm(xst, _s_dae_plane))
+          if (ak_xml_begin(&xest2))
             break;
 
           if (ak_xml_eqelm(xst, _s_dae_radius)) {
@@ -156,15 +166,17 @@ ak_dae_surface(AkXmlState * __restrict xst,
           }
 
           /* end element */
-          ak_xml_endelm(xst);
+          if (ak_xml_end(&xest2))
+            break;
         } while (xst->nodeRet);
         
         surface->surface = obj;
         break;
       }
       case AK_SURFACE_ELEMENT_TYPE_CYLINDER: {
-        AkObject   *obj;
-        AkCylinder *cylinder;
+        AkObject     *obj;
+        AkCylinder   *cylinder;
+        AkXmlElmState xest2;
 
         obj = ak_objAlloc(xst->heap,
                           surface,
@@ -174,8 +186,10 @@ ak_dae_surface(AkXmlState * __restrict xst,
 
         cylinder = ak_objGet(obj);
 
+        ak_xest_init(xest2, _s_dae_cylinder)
+
         do {
-          if (ak_xml_beginelm(xst, _s_dae_cylinder))
+          if (ak_xml_begin(&xest2))
             break;
 
           if (ak_xml_eqelm(xst, _s_dae_radius)) {
@@ -207,7 +221,8 @@ ak_dae_surface(AkXmlState * __restrict xst,
           }
 
           /* end element */
-          ak_xml_endelm(xst);
+          if (ak_xml_end(&xest2))
+            break;
         } while (xst->nodeRet);
         
         surface->surface = obj;
@@ -229,8 +244,9 @@ ak_dae_surface(AkXmlState * __restrict xst,
         break;
       }
       case AK_SURFACE_ELEMENT_TYPE_SPHERE: {
-        AkObject *obj;
-        AkSphere *sphere;
+        AkObject     *obj;
+        AkSphere     *sphere;
+        AkXmlElmState xest2;
 
         obj = ak_objAlloc(xst->heap,
                           surface,
@@ -240,8 +256,10 @@ ak_dae_surface(AkXmlState * __restrict xst,
 
         sphere = ak_objGet(obj);
 
+        ak_xest_init(xest2, _s_dae_sphere)
+
         do {
-          if (ak_xml_beginelm(xst, _s_dae_sphere))
+          if (ak_xml_begin(&xest2))
             break;
 
           if (ak_xml_eqelm(xst, _s_dae_radius)) {
@@ -267,15 +285,17 @@ ak_dae_surface(AkXmlState * __restrict xst,
           }
 
           /* end element */
-          ak_xml_endelm(xst);
+          if (ak_xml_end(&xest2))
+            break;
         } while (xst->nodeRet);
         
         surface->surface = obj;
         break;
       }
       case AK_SURFACE_ELEMENT_TYPE_TORUS: {
-        AkObject *obj;
-        AkTorus  *torus;
+        AkObject     *obj;
+        AkTorus      *torus;
+        AkXmlElmState xest2;
 
         obj = ak_objAlloc(xst->heap,
                           surface,
@@ -285,8 +305,10 @@ ak_dae_surface(AkXmlState * __restrict xst,
 
         torus = ak_objGet(obj);
 
+        ak_xest_init(xest2, _s_dae_torus)
+
         do {
-          if (ak_xml_beginelm(xst, _s_dae_torus))
+          if (ak_xml_begin(&xest2))
             break;
 
           if (ak_xml_eqelm(xst, _s_dae_radius)) {
@@ -318,7 +340,8 @@ ak_dae_surface(AkXmlState * __restrict xst,
           }
 
           /* end element */
-          ak_xml_endelm(xst);
+          if (ak_xml_end(&xest2))
+            break;
         } while (xst->nodeRet);
         
         surface->surface = obj;
@@ -327,6 +350,7 @@ ak_dae_surface(AkXmlState * __restrict xst,
       case AK_SURFACE_ELEMENT_TYPE_SWEPT_SURFACE: {
         AkObject       *obj;
         AkSweptSurface *sweptSurface;
+        AkXmlElmState   xest2;
 
         obj = ak_objAlloc(xst->heap,
                           surface,
@@ -336,8 +360,10 @@ ak_dae_surface(AkXmlState * __restrict xst,
 
         sweptSurface = ak_objGet(obj);
 
+        ak_xest_init(xest2, _s_dae_swept_surface)
+
         do {
-          if (ak_xml_beginelm(xst, _s_dae_swept_surface))
+          if (ak_xml_begin(&xest2))
             break;
 
           if (ak_xml_eqelm(xst, _s_dae_curve)) {
@@ -395,7 +421,8 @@ ak_dae_surface(AkXmlState * __restrict xst,
           }
 
           /* end element */
-          ak_xml_endelm(xst);
+          if (ak_xml_end(&xest2))
+            break;
         } while (xst->nodeRet);
         
         surface->surface = obj;
@@ -443,7 +470,8 @@ ak_dae_surface(AkXmlState * __restrict xst,
     }
     
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
   
   *dest = surface;
@@ -455,17 +483,20 @@ AkResult _assetkit_hide
 ak_dae_surfaces(AkXmlState * __restrict xst,
                 void * __restrict memParent,
                 AkSurfaces ** __restrict dest) {
-  AkSurfaces    *surfaces;
-  AkSurface     *last_surface;
+  AkSurfaces   *surfaces;
+  AkSurface    *last_surface;
+  AkXmlElmState xest;
 
   surfaces = ak_heap_calloc(xst->heap,
                             memParent,
                             sizeof(*surfaces));
 
-  last_surface= NULL;
+  last_surface = NULL;
+
+  ak_xest_init(xest, _s_dae_surfaces)
 
   do {
-    if (ak_xml_beginelm(xst, _s_dae_surfaces))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_surface)) {
@@ -499,7 +530,8 @@ ak_dae_surfaces(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
   
   *dest = surfaces;

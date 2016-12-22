@@ -15,14 +15,17 @@ ak_dae_floatOrParam(AkXmlState * __restrict xst,
                     AkFxFloatOrParam ** __restrict dest) {
   AkFxFloatOrParam *floatOrParam;
   AkParam          *last_param;
+  AkXmlElmState     xest;
 
   floatOrParam = ak_heap_calloc(xst->heap,
                                 memParent,
                                 sizeof(*floatOrParam));
   last_param = NULL;
 
+  ak_xest_init(xest, elm)
+
   do {
-    if (ak_xml_beginelm(xst, elm))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_float)) {
@@ -61,7 +64,8 @@ ak_dae_floatOrParam(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
   
   *dest = floatOrParam;

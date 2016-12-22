@@ -11,8 +11,9 @@
 void _assetkit_hide
 ak_dae_lib(AkXmlState    * __restrict xst,
            AkLibChldDesc * __restrict lc) {
-  AkLibItem *lib;
-  char      *lastLibChld;
+  AkLibItem    *lib;
+  char         *lastLibChld;
+  AkXmlElmState xest;
 
   lib = ak_heap_calloc(xst->heap,
                        xst->doc,
@@ -29,8 +30,10 @@ ak_dae_lib(AkXmlState    * __restrict xst,
 
   lastLibChld = NULL;
 
+  ak_xest_init(xest, lc->libname)
+
   do {
-    if (ak_xml_beginelm(xst, lc->libname))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
@@ -76,6 +79,7 @@ ak_dae_lib(AkXmlState    * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 }

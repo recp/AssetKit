@@ -44,7 +44,8 @@ AkResult _assetkit_hide
 ak_dae_fxImage(AkXmlState * __restrict xst,
                void * __restrict memParent,
                void ** __restrict dest) {
-  AkImage *img;
+  AkImage      *img;
+  AkXmlElmState xest;
 
   img = ak_heap_calloc(xst->heap, memParent, sizeof(*img));
 
@@ -53,8 +54,10 @@ ak_dae_fxImage(AkXmlState * __restrict xst,
 
   img->name = ak_xml_attr(xst, img, _s_dae_name);
 
+  ak_xest_init(xest, _s_dae_image)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_image))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
@@ -124,7 +127,8 @@ ak_dae_fxImage(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = img;
@@ -137,6 +141,7 @@ ak_dae_fxInstanceImage(AkXmlState * __restrict xst,
                        void * __restrict memParent,
                        AkInstanceImage ** __restrict dest) {
   AkInstanceImage *instanceImage;
+  AkXmlElmState    xest;
 
   instanceImage = ak_heap_calloc(xst->heap,
                                  memParent,
@@ -151,8 +156,10 @@ ak_dae_fxInstanceImage(AkXmlState * __restrict xst,
                   instanceImage,
                   &instanceImage->url);
 
+  ak_xest_init(xest, _s_dae_instance_image)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_instance_image))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_extra)) {
@@ -175,7 +182,8 @@ ak_dae_fxInstanceImage(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = instanceImage;
@@ -188,8 +196,9 @@ AkResult _assetkit_hide
 ak_dae_fxImage_initFrom(AkXmlState * __restrict xst,
                         void * __restrict memParent,
                         AkInitFrom ** __restrict dest) {
-  AkInitFrom *initFrom;
-  char       *attrValStr;
+  AkInitFrom   *initFrom;
+  char         *attrValStr;
+  AkXmlElmState xest;
 
   initFrom = ak_heap_calloc(xst->heap,
                             memParent,
@@ -211,8 +220,10 @@ ak_dae_fxImage_initFrom(AkXmlState * __restrict xst,
     xmlFree(attrValStr);
   }
 
+  ak_xest_init(xest, _s_dae_init_from)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_init_from))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_ref)) {
@@ -234,7 +245,8 @@ ak_dae_fxImage_initFrom(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = initFrom;
@@ -248,11 +260,14 @@ ak_dae_fxImage_format(AkXmlState * __restrict xst,
                       void * __restrict memParent,
                       AkImageFormat ** __restrict dest) {
   AkImageFormat *format;
+  AkXmlElmState  xest;
 
   format = ak_heap_calloc(xst->heap, memParent, sizeof(*format));
 
+  ak_xest_init(xest, _s_dae_format)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_format))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_hint)) {
@@ -302,7 +317,8 @@ ak_dae_fxImage_format(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = format;
@@ -315,14 +331,17 @@ AkResult _assetkit_hide
 ak_dae_fxImage_create2d(AkXmlState * __restrict xst,
                         void * __restrict memParent,
                         AkImage2d ** __restrict dest) {
-  AkImage2d *image2d;
+  AkImage2d    *image2d;
+  AkXmlElmState xest;
 
   image2d = ak_heap_calloc(xst->heap,
                            memParent,
                            sizeof(*image2d));
 
+  ak_xest_init(xest, _s_dae_create_2d)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_create_2d))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_size_exact)) {
@@ -382,7 +401,8 @@ ak_dae_fxImage_create2d(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = image2d;
@@ -395,14 +415,17 @@ AkResult _assetkit_hide
 ak_dae_fxImage_create3d(AkXmlState * __restrict xst,
                         void * __restrict memParent,
                         AkImage3d ** __restrict dest) {
-  AkImage3d *image3d;
+  AkImage3d    *image3d;
+  AkXmlElmState xest;
 
   image3d = ak_heap_calloc(xst->heap,
                            memParent,
                            sizeof(*image3d));
 
+  ak_xest_init(xest, _s_dae_create_3d)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_create_3d))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_size)) {
@@ -433,7 +456,8 @@ ak_dae_fxImage_create3d(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = image3d;
@@ -446,14 +470,17 @@ AkResult _assetkit_hide
 ak_dae_fxImage_createCube(AkXmlState * __restrict xst,
                           void * __restrict memParent,
                           AkImageCube ** __restrict dest) {
-  AkImageCube *imageCube;
+  AkImageCube  *imageCube;
+  AkXmlElmState xest;
 
   imageCube = ak_heap_calloc(xst->heap,
                              memParent,
                              sizeof(*imageCube));
 
+  ak_xest_init(xest, _s_dae_create_cube)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_create_cube))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_size)) {
@@ -482,7 +509,8 @@ ak_dae_fxImage_createCube(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = imageCube;

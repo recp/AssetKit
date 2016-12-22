@@ -15,7 +15,8 @@ AkResult _assetkit_hide
 ak_dae_geometry(AkXmlState * __restrict xst,
                 void * __restrict memParent,
                 void ** __restrict dest) {
-  AkGeometry *geometry;
+  AkGeometry   *geometry;
+  AkXmlElmState xest;
 
   geometry = ak_heap_calloc(xst->heap,
                             memParent,
@@ -24,8 +25,10 @@ ak_dae_geometry(AkXmlState * __restrict xst,
   ak_xml_readid(xst, geometry);
   geometry->name = ak_xml_attr(xst, geometry, _s_dae_name);
 
+  ak_xest_init(xest, _s_dae_geometry)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_geometry))
+    if (ak_xml_begin(&xest))
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
@@ -90,7 +93,8 @@ ak_dae_geometry(AkXmlState * __restrict xst,
     }
 
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
   
   *dest = geometry;

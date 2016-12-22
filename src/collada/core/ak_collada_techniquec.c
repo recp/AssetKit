@@ -15,27 +15,33 @@ AkResult _assetkit_hide
 ak_dae_techniquec(AkXmlState * __restrict xst,
                   void * __restrict memParent,
                   AkTechniqueCommon ** __restrict dest) {
-
   AkTechniqueCommon  *techc;
   AkInstanceMaterial *last_instanceMaterial;
+  AkXmlElmState       xest;
 
   techc = ak_heap_calloc(xst->heap, memParent, sizeof(*techc));
 
   last_instanceMaterial = NULL;
 
+  ak_xest_init(xest, _s_dae_techniquec)
+
   do {
-    if (ak_xml_beginelm(xst, _s_dae_techniquec))
+    if (ak_xml_begin(&xest))
       break;
 
     /* optics -> perspective */
     if (ak_xml_eqelm(xst, _s_dae_perspective)) {
-      AkPerspective * perspective;
+      AkPerspective *perspective;
+      AkXmlElmState  xest2;
+
       perspective = ak_heap_calloc(xst->heap,
                                    techc,
                                    sizeof(*perspective));
-      
+
+      ak_xest_init(xest2, _s_dae_perspective)
+
       do {
-        if (ak_xml_beginelm(xst, _s_dae_perspective))
+        if (ak_xml_begin(&xest2))
           break;
 
         if (ak_xml_eqelm(xst, _s_dae_xfov)) {
@@ -73,7 +79,8 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
         }
 
         /* end element */
-        ak_xml_endelm(xst);
+        if (ak_xml_end(&xest2))
+          break;
       } while (xst->nodeRet);
 
       techc->technique = perspective;
@@ -96,13 +103,17 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
 
     /* optics -> orthographic */
     else if (ak_xml_eqelm(xst, _s_dae_orthographic)) {
-      AkOrthographic * orthographic;
+      AkOrthographic *orthographic;
+      AkXmlElmState   xest2;
+
       orthographic = ak_heap_calloc(xst->heap,
                                     techc,
                                     sizeof(*orthographic));
 
+      ak_xest_init(xest2, _s_dae_orthographic)
+
       do {
-        if (ak_xml_beginelm(xst, _s_dae_orthographic))
+        if (ak_xml_begin(&xest2))
           break;
 
         if (ak_xml_eqelm(xst, _s_dae_xmag)) {
@@ -140,7 +151,8 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
         }
 
         /* end element */
-        ak_xml_endelm(xst);
+        if (ak_xml_end(&xest2))
+          break;
       } while (xst->nodeRet);
 
       techc->technique = orthographic;
@@ -149,13 +161,17 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
 
     /* light -> ambient */
     else if (ak_xml_eqelm(xst, _s_dae_ambient)) {
-      AkAmbient * ambient;
+      AkAmbient    *ambient;
+      AkXmlElmState xest2;
+
       ambient = ak_heap_calloc(xst->heap,
                                techc,
                                sizeof(*ambient));
 
+      ak_xest_init(xest2, _s_dae_ambient)
+
       do {
-        if (ak_xml_beginelm(xst, _s_dae_ambient))
+        if (ak_xml_begin(&xest2))
           break;
 
         if (ak_xml_eqelm(xst, _s_dae_color)) {
@@ -171,7 +187,8 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
         }
 
         /* end element */
-        ak_xml_endelm(xst);
+        if (ak_xml_end(&xest2))
+          break;
       } while (xst->nodeRet);
 
       techc->technique = ambient;
@@ -180,13 +197,17 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
 
     /* light -> directional */
     else if (ak_xml_eqelm(xst, _s_dae_directional)) {
-      AkDirectional * directional;
+      AkDirectional *directional;
+      AkXmlElmState  xest2;
+
       directional = ak_heap_calloc(xst->heap,
                                    techc,
                                    sizeof(*directional));
 
+      ak_xest_init(xest2, _s_dae_directional)
+
       do {
-        if (ak_xml_beginelm(xst, _s_dae_directional))
+        if (ak_xml_begin(&xest2))
           break;
 
         if (ak_xml_eqelm(xst, _s_dae_color)) {
@@ -202,7 +223,8 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
         }
 
         /* end element */
-        ak_xml_endelm(xst);
+        if (ak_xml_end(&xest2))
+          break;
       } while (xst->nodeRet);
 
       techc->technique = directional;
@@ -211,11 +233,15 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
 
     /* light -> point */
     else if (ak_xml_eqelm(xst, _s_dae_point)) {
-      AkPoint * point;
+      AkPoint      *point;
+      AkXmlElmState xest2;
+
       point = ak_heap_calloc(xst->heap, techc, sizeof(*point));
 
+      ak_xest_init(xest2, _s_dae_point)
+
       do {
-        if (ak_xml_beginelm(xst, _s_dae_point))
+        if (ak_xml_begin(&xest2))
           break;
 
         if (ak_xml_eqelm(xst, _s_dae_color)) {
@@ -247,7 +273,8 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
         }
 
         /* end element */
-        ak_xml_endelm(xst);
+        if (ak_xml_end(&xest2))
+          break;
       } while (xst->nodeRet);
       
       techc->technique = point;
@@ -256,11 +283,15 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
 
     /* light -> spot */
     else if (ak_xml_eqelm(xst, _s_dae_point)) {
-      AkSpot * spot;
+      AkSpot       *spot;
+      AkXmlElmState xest2;
+
       spot = ak_heap_calloc(xst->heap, techc, sizeof(*spot));
 
+      ak_xest_init(xest2, _s_dae_spot)
+
       do {
-        if (ak_xml_beginelm(xst, _s_dae_spot))
+        if (ak_xml_begin(&xest2))
           break;
 
         if (ak_xml_eqelm(xst, _s_dae_color)) {
@@ -304,7 +335,8 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
         }
         
         /* end element */
-        ak_xml_endelm(xst);
+        if (ak_xml_end(&xest2))
+          break;
       } while (xst->nodeRet);
       
       techc->technique = spot;
@@ -329,7 +361,8 @@ ak_dae_techniquec(AkXmlState * __restrict xst,
     }
     
     /* end element */
-    ak_xml_endelm(xst);
+    if (ak_xml_end(&xest))
+      break;
   } while (xst->nodeRet);
 
   *dest = techc;
