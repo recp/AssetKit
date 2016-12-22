@@ -81,7 +81,7 @@ void
 ak_heap_rb_insert(AkHeapSrchCtx * __restrict srchctx,
                   AkHeapSrchNode * __restrict srchNode) {
   AkHeapSrchNode *X, *P, *G, *Q, *W;
-  int sW, sG, sP, sX;
+  int sQ, sG, sP, sX;
 
   if (srchctx->root->chld[AK__BST_RIGHT] == srchctx->nullNode) {
     AK__RB_MKBLACK(srchNode);
@@ -89,7 +89,7 @@ ak_heap_rb_insert(AkHeapSrchCtx * __restrict srchctx,
     return;
   }
 
-  sW = sG = sP = sX = 1;
+  sQ = sG = sP = sX = 1;
 
   W = P = G = Q = srchctx->root;
   X = P->chld[AK__BST_RIGHT];
@@ -128,6 +128,7 @@ ak_heap_rb_insert(AkHeapSrchCtx * __restrict srchctx,
           P->chld[!sP] = G;
 
           G = Q;
+          Q = W;
         }
 
         /* case 3: X and P are opposide side */
@@ -136,21 +137,21 @@ ak_heap_rb_insert(AkHeapSrchCtx * __restrict srchctx,
           AK__RB_MKBLACK(X->chld[AK__BST_LEFT]);
           AK__RB_MKBLACK(X->chld[AK__BST_RIGHT]);
 
-          Q->chld[sG]  = X;
-          P->chld[sX]  = X->chld[!sX];
-          G->chld[sP]  = X->chld[sX];
-          X->chld[!sX] = P;
-          X->chld[sX]  = G;
+          Q->chld[sG] = X;
+          P->chld[sX] = X->chld[sP];
+          G->chld[sP] = X->chld[sX];
+          X->chld[sP] = P;
+          X->chld[sX] = G;
 
           G  = W;
           P  = Q;
           sX = sG;
-          sP = sW;
+          sP = sQ;
         }
       }
     }
 
-    sW = sG;
+    sQ = sG;
     sG = sP;
     sP = sX;
     sX = !(srchctx->cmp(srchNode->key, X->key) < 0);
