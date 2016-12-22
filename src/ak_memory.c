@@ -658,7 +658,9 @@ ak_heap_setId(AkHeap     * __restrict heap,
   AkHeapSrchNode *snode;
 
   if (!memId) {
-    ak_heap_ext_rm(heap, heapNode, AK_HEAP_NODE_FLAGS_SRCH);
+    ak_heap_ext_rm(heap,
+                   heapNode,
+                   AK_HEAP_NODE_FLAGS_SRCH);
     return;
   }
 
