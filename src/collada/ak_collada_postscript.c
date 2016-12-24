@@ -21,7 +21,7 @@ ak_dae_postscript(AkXmlState * __restrict xst) {
      because we need to collect about source/array usages
      also we can run fixups as parallels here
   */
-  if (!ak_opt_get(AK_OPT_INDICES_NONE))
+  if (!ak_opt_get(AK_OPT_INDICES_DEFAULT))
     ak_dae_geom_fixup_all(xst->doc);
 
   /* now set used coordSys */
