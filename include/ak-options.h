@@ -11,13 +11,16 @@
 extern "C" {
 #endif
 
+/* TODO: */
 typedef enum AkOption {
   AK_OPT_INDICES_DEFAULT            = 0,  /* false */
-  AK_OPT_INDICES_SINGLE_INTERLEAVED = 1,  /* true  */
-  AK_OPT_INDICES_SINGLE_SEPARATE    = 2,  /* true  */
-  AK_OPT_INDICES_SINGLE             = 3,  /* true  */
-  AK_OPT_COORD                      = 4,  /* Y_UP  */
-  AK_OPT_DEFAULT_ID_PREFIX          = 5   /* id prefix */
+  AK_OPT_INDICES_SINGLE_INTERLEAVED = 1,  /* false  */
+  AK_OPT_INDICES_SINGLE_SEPARATE    = 2,  /* false  */
+  AK_OPT_INDICES_SINGLE             = 3,  /* false  */
+  AK_OPT_NO_INDICES_INTERLEAVED     = 4,  /* true  */
+  AK_OPT_NO_INDICES_SEPARATE        = 5,  /* true  */
+  AK_OPT_COORD                      = 6,  /* Y_UP  */
+  AK_OPT_DEFAULT_ID_PREFIX          = 7   /* id prefix */
 } AkOption;
 
 AK_EXPORT
