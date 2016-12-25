@@ -1066,16 +1066,16 @@ typedef struct AkMeshPrimitive {
   const char             *name;
   const char             *material;
   AkInput                *input;
-  uint32_t                inputCount;
   AkVertices             *vertices;
   AkUIntArray            *indices;
   AkTree                 *extra;
   struct AkMeshPrimitive *next;
+  size_t                  count;
+  uint32_t                inputCount;
 } AkMeshPrimitive;
 
 typedef struct AkLines {
   AkMeshPrimitive base;
-  uint64_t        count;
   AkLineMode      mode;
 } AkLines;
 
@@ -1089,7 +1089,6 @@ typedef struct AkPolygon {
 
 typedef struct AkTriangles {
   AkMeshPrimitive base;
-  uint64_t        count;
   AkTriangleMode  mode;
 } AkTriangles;
 
