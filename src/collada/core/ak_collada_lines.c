@@ -17,6 +17,7 @@ ak_dae_lines(AkXmlState * __restrict xst,
   AkLines      *lines;
   AkInput      *last_input;
   AkXmlElmState xest;
+  uint32_t      indexoff;
 
   lines = ak_heap_calloc(xst->heap, memParent, sizeof(*lines));
   lines->mode = mode;
@@ -27,6 +28,7 @@ ak_dae_lines(AkXmlState * __restrict xst,
   lines->base.count    = ak_xml_attrui(xst, _s_dae_count);
 
   last_input = NULL;
+  indexoff   = 0;
 
   ak_xest_init(xest, _s_dae_lines)
 
@@ -74,6 +76,8 @@ ak_dae_lines(AkXmlState * __restrict xst,
       if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX)
         lines->base.vertices = ak_getObjectByUrl(&input->base.source);
 
+      if (input->offset > indexoff)
+        indexoff = input->offset;
     } else if (ak_xml_eqelm(xst, _s_dae_p)) {
       char *content;
 
@@ -110,6 +114,8 @@ ak_dae_lines(AkXmlState * __restrict xst,
     if (ak_xml_end(&xest))
       break;
   } while (xst->nodeRet);
+
+  lines->base.indexStride = indexoff + 1;
 
   *dest = lines;
 

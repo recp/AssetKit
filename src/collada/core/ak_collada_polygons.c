@@ -18,6 +18,7 @@ ak_dae_polygon(AkXmlState * __restrict xst,
   AkPolygon    *polygon;
   AkInput      *last_input;
   AkXmlElmState xest;
+  uint32_t      indexoff;
 
   polygon = ak_heap_calloc(xst->heap,
                            memParent,
@@ -39,6 +40,7 @@ ak_dae_polygon(AkXmlState * __restrict xst,
    */
 
   last_input = NULL;
+  indexoff   = 0;
 
   ak_xest_init(xest, elm)
 
@@ -84,6 +86,9 @@ ak_dae_polygon(AkXmlState * __restrict xst,
       /* attach vertices for convenience */
       if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX)
         polygon->base.vertices = ak_getObjectByUrl(&input->base.source);
+
+      if (input->offset > indexoff)
+        indexoff = input->offset;
     } else if (ak_xml_eqelm(xst, _s_dae_p)) {
       char *content;
 
@@ -196,6 +201,8 @@ ak_dae_polygon(AkXmlState * __restrict xst,
     if (ak_xml_end(&xest))
       break;
   } while (xst->nodeRet);
+
+  polygon->base.indexStride = indexoff + 1;
 
   *dest = polygon;
 

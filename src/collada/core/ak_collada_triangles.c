@@ -18,6 +18,7 @@ ak_dae_triangles(AkXmlState * __restrict xst,
   AkTriangles  *triangles;
   AkInput      *last_input;
   AkXmlElmState xest;
+  uint32_t      indexoff;
 
   triangles = ak_heap_calloc(xst->heap,
                              memParent,
@@ -31,6 +32,7 @@ ak_dae_triangles(AkXmlState * __restrict xst,
   triangles->base.count    = ak_xml_attrui64(xst, _s_dae_count);
 
   last_input = NULL;
+  indexoff   = 0;
 
   ak_xest_init(xest, elm)
 
@@ -77,6 +79,9 @@ ak_dae_triangles(AkXmlState * __restrict xst,
       /* attach vertices for convenience */
       if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX)
         triangles->base.vertices = ak_getObjectByUrl(&input->base.source);
+
+      if (input->offset > indexoff)
+        indexoff = input->offset;
     } else if (ak_xml_eqelm(xst, _s_dae_p)) {
       AkUIntArray *uintArray;
       char *content;
@@ -114,6 +119,8 @@ ak_dae_triangles(AkXmlState * __restrict xst,
     if (ak_xml_end(&xest))
       break;
   } while (xst->nodeRet);
+
+  triangles->base.indexStride = indexoff + 1;
 
   *dest = triangles;
 
