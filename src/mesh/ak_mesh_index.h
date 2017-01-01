@@ -17,19 +17,19 @@ typedef struct AkInputDesc {
   uint32_t            set;
 } AkInputDesc;
 
-typedef struct AkFakePrim {
-  uint8_t         *flg;
-  AkUIntArray     *ind;
-  AkInput         *input;
-  uint32_t         chk_start;
-  uint32_t         chk_end;
-  uint32_t         vo;     /* vertOffset */
-  uint32_t         st;
-  uint32_t         count;
-  uint32_t         icount;
-  uint32_t         ccount; /* checked count */
-  struct AkFakePrim *next;
-} AkFakePrim;
+typedef struct AkPrimProxy {
+  struct AkPrimProxy *next;
+  uint8_t            *flg;
+  AkUIntArray        *ind;
+  AkInput            *input;
+  uint32_t            chk_start;
+  uint32_t            chk_end;
+  uint32_t            vo;     /* vertOffset */
+  uint32_t            st;
+  uint32_t            count;
+  uint32_t            icount;
+  uint32_t            ccount; /* checked count */
+} AkPrimProxy;
 
 
 #endif /* ak_mesh_index_h */

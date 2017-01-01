@@ -20,7 +20,7 @@ ak_ill_verts(AkHeap      *heap,
   AkInputDesc        *idesc, *idesci, *last_idesc;
   AkMeshPrimitive    *prim, *primi;
   AkUInt             *it, *posflgs;
-  AkFakePrim         *fp, *lfp, *fpi;
+  AkPrimProxy        *fp, *lfp, *fpi;
   AkInputBasic       *inputb;
   AkSource           *posSource;
   AkSourceFloatArray *posArray;
@@ -254,7 +254,7 @@ ak_ill_verts(AkHeap      *heap,
         idxp = it[i + vo];
         it[i + vo] += dupcsum->items[idxp];
       }
-      
+
       fpi = fpi->next;
     }
   }
@@ -262,7 +262,7 @@ ak_ill_verts(AkHeap      *heap,
   /* free resources */
   fpi = fp;
   while (fpi) {
-    AkFakePrim *tofree;
+    AkPrimProxy *tofree;
     tofree = fpi;
     fpi    = fpi->next;
     ak_free(tofree);
