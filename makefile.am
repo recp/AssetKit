@@ -82,6 +82,7 @@ libassetkit_la_SOURCES=\
     src/transform/ak_trans_traverse.c \
     src/lib/ak_lib_geom.c \
     src/mesh/ak_mesh_util.c \
+    src/mesh/ak_mesh_index.c \
     src/collada/ak_collada.c \
     src/collada/ak_collada_lib.c \
     src/collada/ak_collada_strpool.c \

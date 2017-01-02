@@ -28,7 +28,7 @@ uint32_t
 ak_mesh_vert_stride(AkMesh *mesh);
 
 uint32_t
-ak_mesh_src_stride(AkMesh *mesh, AkURL *srcURL);
+ak_mesh_arr_stride(AkMesh *mesh, AkURL *arrayURL);
 
 uint32_t
 ak_mesh_prim_stride(AkMeshPrimitive *prim);

@@ -45,6 +45,7 @@ typedef struct AkAccessor {
   AkURL    source;
   size_t   count;
   size_t   offset;
+  uint32_t firstBound;
   uint32_t stride;
   uint32_t bound;
   struct AkDataParam *param;
@@ -60,7 +61,16 @@ typedef struct AkSource {
   struct AkSource    *next;
 } AkSource;
 
+typedef struct AkSourceArrayNew {
+  void     *array;
+  char     *url;
+  size_t    count;
+  uint32_t  offset;
+  uint32_t  stride;
+} AkSourceArrayNew;
+
 typedef struct AkSourceBoolArray {
+  AkSourceArrayNew *newArray;
   /* const char * id; */
   const char *name;
   size_t      count;
@@ -69,6 +79,7 @@ typedef struct AkSourceBoolArray {
 
 typedef struct AkSourceFloatArray {
   /* const char * id; */
+  AkSourceArrayNew *newArray;
   const char *name;
   size_t      count;
   AkUInt      digits;
@@ -78,6 +89,7 @@ typedef struct AkSourceFloatArray {
 
 typedef struct AkSourceIntArray {
   /* const char * id; */
+  AkSourceArrayNew *newArray;
   const char *name;
   size_t      count;
   AkInt       minInclusive;
@@ -86,6 +98,7 @@ typedef struct AkSourceIntArray {
 } AkSourceIntArray;
 
 typedef struct AkSourceStringArray {
+  AkSourceArrayNew *newArray;
   /* const char  * id; */
   const char  *name;
   size_t       count;

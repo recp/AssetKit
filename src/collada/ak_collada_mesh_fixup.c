@@ -7,6 +7,7 @@
 
 #include "ak_collada_mesh_fixup.h"
 #include "../ak_memory_common.h"
+#include "../mesh/ak_mesh_index.h"
 
 _assetkit_hide
 AkResult
@@ -423,16 +424,11 @@ AkResult _assetkit_hide
 ak_dae_mesh_fixup(AkMesh * mesh) {
   AkHeap *heap;
   AkDoc  *doc;
-  AkMeshPrimitive *primitive;
 
-  heap      = ak_heap_getheap(mesh->vertices);
-  doc       = ak_heap_data(heap);
-  primitive = mesh->primitive;
+  heap = ak_heap_getheap(mesh->vertices);
+  doc  = ak_heap_data(heap);
 
-  while (primitive) {
-    ak_dae_meshFixupPrimitive(heap, mesh, primitive);
-    primitive = primitive->next;
-  }
+  ak_mesh_fix_indices(heap, mesh);
 
   /* fixup coord system */
   if ((void *)ak_opt_get(AK_OPT_COORD) != doc->coordSys)

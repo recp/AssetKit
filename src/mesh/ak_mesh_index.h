@@ -10,12 +10,11 @@
 
 #include "../ak_common.h"
 
-typedef struct AkInputDesc {
-  struct AkInputDesc *next;
-  const char         *semantic;
-  AkURL              *source;
-  uint32_t            set;
-} AkInputDesc;
+typedef struct AkArrayList {
+  struct AkArrayList *next;
+  void               *data;
+  void               *newdata;
+} AkArrayList;
 
 typedef struct AkPrimProxy {
   struct AkPrimProxy *next;
@@ -31,5 +30,19 @@ typedef struct AkPrimProxy {
   uint32_t            ccount; /* checked count */
 } AkPrimProxy;
 
+
+typedef struct AkInputDesc {
+  struct AkInputDesc *next;
+  const char         *semantic;
+  AkURL              *source;
+  AkInput            *input;
+  AkPrimProxy        *pp;
+  uint32_t            set;
+  uint32_t            tag;
+} AkInputDesc;
+
+_assetkit_hide
+AkResult
+ak_mesh_fix_indices(AkHeap *heap, AkMesh *mesh);
 
 #endif /* ak_mesh_index_h */

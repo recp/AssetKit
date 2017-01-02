@@ -201,7 +201,7 @@ ak_mesh_prim_stride(AkMeshPrimitive *prim) {
 }
 
 uint32_t
-ak_mesh_src_stride(AkMesh *mesh, AkURL *srcURL) {
+ak_mesh_arr_stride(AkMesh *mesh, AkURL *arrayURL) {
   AkMeshPrimitive *primi;
   AkInputBasic    *inputb;
   AkInput         *input;
@@ -218,8 +218,8 @@ ak_mesh_src_stride(AkMesh *mesh, AkURL *srcURL) {
     src = ak_getObjectByUrl(&inputb->source);
     acc = src->techniqueCommon;
 
-    if (strcmp(acc->source.url, srcURL->url) == 0
-        && acc->source.doc == srcURL->doc)
+    if (strcmp(acc->source.url, arrayURL->url) == 0
+        && acc->source.doc == arrayURL->doc)
       stride += acc->bound;
 
     inputb = inputb->next;
@@ -238,8 +238,8 @@ ak_mesh_src_stride(AkMesh *mesh, AkURL *srcURL) {
       src = ak_getObjectByUrl(&input->base.source);
       acc = src->techniqueCommon;
 
-      if (strcmp(acc->source.url, srcURL->url) == 0
-          && acc->source.doc == srcURL->doc)
+      if (strcmp(acc->source.url, arrayURL->url) == 0
+          && acc->source.doc == arrayURL->doc)
         stride += acc->bound;
 
       input = (AkInput *)input->base.next;
@@ -247,7 +247,7 @@ ak_mesh_src_stride(AkMesh *mesh, AkURL *srcURL) {
 
     primi = primi->next;
   }
-  
+
   return stride;
 }
 
