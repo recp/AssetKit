@@ -271,3 +271,114 @@ ak_ill_verts(AkHeap      *heap,
   return count;
 }
 
+_assetkit_hide
+AkResult
+ak_mesh_fix_pos_df(AkHeap *heap,
+                   AkMesh *mesh,
+                   char  **posarray) {
+  AkSourceFloatArray *arr,  *oldArr;
+  AkSource           *src,  *oldSrc;
+  AkObject           *data, *oldData;
+  AkAccessor         *acc,  *oldAcc;
+  AkMeshPrimitive    *prim;
+  AkDataParam        *dparam;
+  AkUIntArray        *dupc;
+  AkHeapAllocator    *alc;
+  char               *arrurl, *newarrayid;
+  size_t              extc, newc, vc, i, j, d, s;
+  uint32_t            stride;
+
+  oldSrc = NULL;
+  prim   = mesh->primitive;
+  oldSrc = ak_mesh_pos_src(mesh);
+
+  if (!oldSrc || !oldSrc->techniqueCommon)
+    return AK_ERR;
+
+  oldAcc  = oldSrc->techniqueCommon;
+  oldData = ak_getObjectByUrl(&oldAcc->source);
+  if (!oldData)
+    return AK_ERR;
+
+  src    = ak_mesh_src(heap, mesh, oldSrc, INT_MAX);
+  acc    = src->techniqueCommon;
+  stride = ak_mesh_src_stride(mesh, &oldAcc->source);
+  oldArr = ak_objGet(oldData);
+
+  if (stride == 0) /* TODO: free resources */
+    return AK_ERR;
+
+  newc = oldAcc->count * stride;
+  vc   = newc / stride;
+  alc  = heap->allocator;
+  dupc = ak_heap_calloc(heap,
+                        NULL,
+                        sizeof(AkUIntArray) + sizeof(AkUInt) * vc);
+
+  dupc->count = vc;
+  extc = ak_ill_verts(heap, mesh, dupc) * stride;
+  data = ak_objAlloc(heap,
+                     src,
+                     sizeof(*data) + (newc + extc) * sizeof(AkFloat),
+                     AK_SOURCE_ARRAY_TYPE_FLOAT,
+                     false);
+  arr            = ak_objGet(data);
+  arr->count     = newc + extc;
+  arr->digits    = oldArr->digits;
+  arr->magnitude = oldArr->magnitude;
+
+  /* copy single-indexed vert positions */
+  for (s = i = 0; i < vc; i++) {
+    d = dupc->items[i];
+
+    for (j = 0; j <= d; j++) {
+      dparam = oldAcc->param;
+
+      while (dparam) {
+        if (!dparam->name)
+          continue;
+
+        arr->items[(i + j + s) * stride + dparam->offset]
+           = oldArr->items[i * oldAcc->stride + dparam->offset];
+
+        dparam = dparam->next;
+      }
+    }
+
+    s += dupc->items[i];
+  }
+
+  /* fix params */
+  ak_accessor_rebound(heap, acc, 0);
+
+  if (src == oldSrc) {
+    arrurl = (char *)acc->source.url;
+
+    ak_moveId(oldData, data);
+    ak_free(src->data);
+  } else {
+    newarrayid = (char *)ak_id_gen(heap, data, ak_getId(oldData));
+    arrurl     = ak_id_urlstring(alc, newarrayid);
+
+    ak_url_init(acc, arrurl, &acc->source);
+    ak_url_unref(&acc->source);
+  }
+
+  acc->stride = stride;
+  acc->offset = 0; /* make position offset 0 */
+  acc->count  = newc;
+
+  if (oldArr->name)
+    arr->name = ak_heap_strdup(heap,
+                               arr,
+                               oldArr->name);
+
+  src->data = data;
+  ak_free(dupc);
+
+  if (posarray)
+    *posarray = arrurl;
+
+  return AK_OK;
+}
+
