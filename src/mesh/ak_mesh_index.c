@@ -273,11 +273,13 @@ ak_ill_verts(AkHeap      *heap,
 
 _assetkit_hide
 AkResult
-ak_mesh_fix_pos_df(AkHeap *heap,
-                   AkMesh *mesh,
-                   char  **posarray) {
+ak_mesh_fix_pos(AkHeap   *heap,
+                AkMesh   *mesh,
+                AkSource *oldSrc, /* caller alreay has position source */
+                uint32_t  newstride,
+                char    **posarray) {
   AkSourceFloatArray *arr,  *oldArr;
-  AkSource           *src,  *oldSrc;
+  AkSource           *src;
   AkObject           *data, *oldData;
   AkAccessor         *acc,  *oldAcc;
   AkMeshPrimitive    *prim;
@@ -288,13 +290,7 @@ ak_mesh_fix_pos_df(AkHeap *heap,
   size_t              extc, newc, vc, i, j, d, s;
   uint32_t            stride;
 
-  oldSrc = NULL;
-  prim   = mesh->primitive;
-  oldSrc = ak_mesh_pos_src(mesh);
-
-  if (!oldSrc || !oldSrc->techniqueCommon)
-    return AK_ERR;
-
+  prim    = mesh->primitive;
   oldAcc  = oldSrc->techniqueCommon;
   oldData = ak_getObjectByUrl(&oldAcc->source);
   if (!oldData)
@@ -338,8 +334,8 @@ ak_mesh_fix_pos_df(AkHeap *heap,
         if (!dparam->name)
           continue;
 
-        arr->items[(i + j + s) * stride + dparam->offset]
-           = oldArr->items[i * oldAcc->stride + dparam->offset];
+        arr->items[(i + j + s) * newstride + dparam->offset]
+           = oldArr->items[i * stride + dparam->offset];
 
         dparam = dparam->next;
       }
@@ -347,6 +343,10 @@ ak_mesh_fix_pos_df(AkHeap *heap,
 
     s += dupc->items[i];
   }
+
+  acc->stride = newstride;
+  acc->offset = 0; /* make position offset 0 */
+  acc->count  = (newc + extc) / newstride;
 
   /* fix params */
   ak_accessor_rebound(heap, acc, 0);
@@ -363,10 +363,6 @@ ak_mesh_fix_pos_df(AkHeap *heap,
     ak_url_init(acc, arrurl, &acc->source);
     ak_url_unref(&acc->source);
   }
-
-  acc->stride = stride;
-  acc->offset = 0; /* make position offset 0 */
-  acc->count  = newc;
 
   if (oldArr->name)
     arr->name = ak_heap_strdup(heap,
