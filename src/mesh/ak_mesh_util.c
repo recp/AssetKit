@@ -303,6 +303,7 @@ ak_accessor_rebound(AkHeap     *heap,
   AkDataParam *bound,  *last_bound;
   AkDataParam *ubound, *last_ubound;
   uint32_t     uboundc;
+  uint32_t     required;
 
   uboundc     = 0;
   ubound      = NULL;
@@ -332,11 +333,15 @@ ak_accessor_rebound(AkHeap     *heap,
     dpi = dpi->next;
   }
 
-  /* add new unbound params */
-  if (uboundc < offset) {
-    uint32_t i;
+  required = uboundc + acc->bound;
 
-    for (i = 0; i < offset; i++) {
+  /* add new unbound params */
+  if (required < acc->stride) {
+    uint32_t i;
+    uint32_t missing;
+
+    missing = acc->stride - offset;
+    for (i = 0; i < missing; i++) {
       AkDataParam *dpu;
       dpu       = ak_heap_calloc(heap, acc, sizeof(*dpu));
       dpu->next = ubound;
@@ -348,8 +353,8 @@ ak_accessor_rebound(AkHeap     *heap,
   }
 
   /* free some unbound params */
-  else if (uboundc > offset) {
-    while (uboundc > offset && ubound) {
+  else if (uboundc > required) {
+    while (uboundc > required && ubound) {
       AkDataParam *tofree;
       tofree = ubound;
       ubound = ubound->next;
@@ -358,8 +363,24 @@ ak_accessor_rebound(AkHeap     *heap,
   }
 
   if (uboundc > 0) {
-    acc->param = ubound;
-    last_ubound->next = bound;
+    if (offset > 0) {
+      uint32_t i;
+      AkDataParam *dpu;
+
+      i          = 0;
+      dpu        = ubound;
+      acc->param = ubound;
+
+      do {
+        dpu = dpu->next;
+      } while (++i < offset);
+
+      bound->next = dpu->next;
+      dpu->next   = bound;
+    } else {
+      acc->param  = bound;
+      bound->next = ubound;
+    }
   }
 }
 
