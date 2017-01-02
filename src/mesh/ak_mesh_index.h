@@ -18,8 +18,10 @@ typedef struct AkArrayList {
 
 typedef struct AkPrimProxy {
   struct AkPrimProxy *next;
+  AkMeshPrimitive    *orig;
   uint8_t            *flg;
   AkUIntArray        *ind;
+  AkUIntArray        *newind;
   AkInput            *input;
   uint32_t            chk_start;
   uint32_t            chk_end;

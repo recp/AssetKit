@@ -63,15 +63,23 @@ ak_ill_verts(AkHeap      *heap,
 
     fpi = ak_heap_calloc(heap, NULL, sizeof(*fpi));
 
+    fpi->orig      = primi;
     fpi->st        = primi->indexStride;
     fpi->ind       = primi->indices;
     fpi->count     = (uint32_t)primi->indices->count;
     fpi->icount    = (uint32_t)fpi->ind->count / fpi->st;
     fpi->ccount    = 0;
-    fpi->flg       = ak_heap_calloc(heap, fpi, sizeof(uint8_t) * fpi->icount);
+    fpi->flg       = ak_heap_calloc(heap,
+                                    fpi,
+                                    sizeof(uint8_t) * fpi->icount);
     fpi->chk_start = 0;
     fpi->chk_end   = fpi->count;
     fpi->input     = primi->input;
+    fpi->newind    = ak_heap_alloc(heap,
+                                   primi,
+                                   sizeof(*fpi->newind)
+                                   + sizeof(AkUInt) * fpi->icount);
+    fpi->newind->count = fpi->icount;
 
     icount += fpi->icount;
     input   = fpi->input;
@@ -147,6 +155,7 @@ ak_ill_verts(AkHeap      *heap,
       while (fpi) {
         AkInput     *input;
         AkUIntArray *ind;
+        AkUInt      *it2;
         uint32_t     st, vo, i, j, ii;
 
         /* nothing to check */
@@ -155,10 +164,11 @@ ak_ill_verts(AkHeap      *heap,
           continue;
         }
 
-        ind  = fpi->ind;
-        it   = ind->items;
-        st   = fpi->st;
-        vo   = fpi->vo;
+        ind = fpi->ind;
+        it  = ind->items;
+        it2 = fpi->newind->items;
+        st  = fpi->st;
+        vo  = fpi->vo;
 
         input = fpi->input;
         while (input) {
@@ -197,6 +207,9 @@ ak_ill_verts(AkHeap      *heap,
             if (iter > 1) {
               dupc->items[idxp]++;
               count++;
+              it2[j] = dupc->items[idxp];
+            } else {
+              it2[j] = 0;
             }
 
             inp[0] = iter;
@@ -213,6 +226,7 @@ ak_ill_verts(AkHeap      *heap,
           } else if (inp[1] == idx) {
             ccount++;
             fpi->flg[j] = chk;
+            it2[j] = dupc->items[idxp];
 
             /* shrink the check range for next iter */
             if (j == fpi->chk_start)
@@ -248,16 +262,47 @@ ak_ill_verts(AkHeap      *heap,
 
     fpi = fp;
     while (fpi) {
+      AkUInt *it2;
       uint32_t c, st, vo, idxp;
 
-      it   = fpi->ind->items;
-      st   = fpi->st;
-      vo   = fpi->vo;
-      c    = fpi->count;
+      it  = fpi->ind->items;
+      it2 = fpi->newind->items;
+      st  = fpi->st;
+      vo  = fpi->vo;
+      c   = fpi->count;
 
       for (i = j = 0; i < c; i += st, j++) {
-        idxp = it[i + vo];
-        it[i + vo] += dupcsum->items[idxp];
+        uint32_t newpos;
+
+        idxp   = it[i + vo];
+        newpos = it2[j] + idxp + dupcsum->items[idxp];
+
+        it[i + vo] = newpos;
+        it2[j]     = newpos;
+      }
+
+      fpi = fpi->next;
+    }
+  } else {
+    fpi = fp;
+    while (fpi) {
+      AkUInt *it2;
+      uint32_t i, j, c, st, vo, idxp;
+
+      it  = fpi->ind->items;
+      it2 = fpi->newind->items;
+      st  = fpi->st;
+      vo  = fpi->vo;
+      c   = fpi->count;
+
+      for (i = j = 0; i < c; i += st, j++) {
+        uint32_t newpos;
+
+        idxp   = it[i + vo];
+        newpos = it2[j] + idxp;
+
+        it[i + vo] = newpos;
+        it2[j]     = newpos;
       }
 
       fpi = fpi->next;
@@ -687,11 +732,20 @@ ak_mesh_fix_idx_df(AkHeap *heap, AkMesh *mesh) {
     ak_free(aii->data);
   }
 
+  /* fix indices and free */
   ppi = pp;
   while (ppi) {
-    AkPrimProxy *tofree;
+    AkPrimProxy     *tofree;
+    AkMeshPrimitive *prim;
     tofree = ppi;
-    ppi    = ppi->next;
+
+    if (ppi) {
+      prim = ppi->orig;
+      ak_free(prim->indices);
+      prim->indices = ppi->newind;
+    }
+
+    ppi = ppi->next;
     ak_free(tofree);
   }
 
