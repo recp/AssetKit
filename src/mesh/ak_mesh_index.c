@@ -66,8 +66,8 @@ ak_ill_verts(AkHeap      *heap,
     fpi->orig      = primi;
     fpi->st        = primi->indexStride;
     fpi->ind       = primi->indices;
-    fpi->count     = (uint32_t)primi->indices->count;
-    fpi->icount    = (uint32_t)fpi->ind->count / fpi->st;
+    fpi->count     = (uint32_t)fpi->ind->count;
+    fpi->icount    = (uint32_t)fpi->count / fpi->st;
     fpi->ccount    = 0;
     fpi->flg       = ak_heap_calloc(heap,
                                     fpi,
@@ -146,7 +146,7 @@ ak_ill_verts(AkHeap      *heap,
     fpi = fp;
     while (fpi) {
       fpi->chk_start = 0;
-      fpi->chk_end   = fpi->count / fpi->st;
+      fpi->chk_end   = fpi->icount;
       fpi = fpi->next;
     }
 
@@ -355,8 +355,8 @@ ak_mesh_fix_pos(AkHeap       *heap,
   if (stride == 0) /* TODO: free resources */
     return AK_ERR;
 
-  newc = oldAcc->count * stride;
-  vc   = newc / stride;
+  newc = oldAcc->count;
+  vc   = oldAcc->count;
   alc  = heap->allocator;
   dupc = ak_heap_calloc(heap,
                         NULL,
@@ -367,14 +367,15 @@ ak_mesh_fix_pos(AkHeap       *heap,
                       mesh,
                       dupc,
                       primProxy,
-                      idesc_out) * stride;
+                      idesc_out);
   data = ak_objAlloc(heap,
                      src,
-                     sizeof(*data) + (newc + extc) * sizeof(AkFloat),
+                     sizeof(*data)
+                       + (vc + extc) * newstride * sizeof(AkFloat),
                      AK_SOURCE_ARRAY_TYPE_FLOAT,
                      false);
   arr            = ak_objGet(data);
-  arr->count     = newc + extc;
+  arr->count     = (vc + extc) * newstride;
   arr->digits    = oldArr->digits;
   arr->magnitude = oldArr->magnitude;
 
@@ -405,7 +406,7 @@ ak_mesh_fix_pos(AkHeap       *heap,
 
   acc->stride = newstride;
   acc->offset = 0; /* make position offset 0 */
-  acc->count  = (newc + extc) / newstride;
+  acc->count  = newc + extc;
 
   /* fix params */
   ak_accessor_rebound(heap, acc, 0);
