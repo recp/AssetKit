@@ -18,6 +18,19 @@ ak_instanceObject(AkInstanceBase *instanceBase) {
 }
 
 AK_EXPORT
+AkNode *
+ak_instanceObjectNode(AkNode * node) {
+  AkInstanceBase *instanceBase;
+
+  instanceBase = &node->node->base;
+
+  if (!instanceBase->object)
+    instanceBase->object = ak_getObjectByUrl(&instanceBase->url);
+
+  return instanceBase->object;
+}
+
+AK_EXPORT
 AkGeometry *
 ak_instanceObjectGeom(AkNode * node) {
   AkInstanceBase *instanceBase;

@@ -615,13 +615,13 @@ ak_dae_node(AkXmlState * __restrict xst,
                                       node,
                                       sizeof(*instanceNode));
 
-        instanceNode->name  = ak_xml_attr(xst, instanceNode, _s_dae_name);
-        instanceNode->proxy = ak_xml_attr(xst, instanceNode, _s_dae_proxy);
+        instanceNode->base.name = ak_xml_attr(xst, instanceNode, _s_dae_name);
+        instanceNode->proxy     = ak_xml_attr(xst, instanceNode, _s_dae_proxy);
 
         ak_xml_attr_url(xst,
                         _s_dae_url,
                         instanceNode,
-                        &instanceNode->url);
+                        &instanceNode->base.url);
 
         ak_xest_init(xest2, _s_dae_instance_node)
 
@@ -641,7 +641,7 @@ ak_dae_node(AkXmlState * __restrict xst,
                                 nodePtr,
                                 &tree,
                                 NULL);
-            instanceNode->extra = tree;
+            instanceNode->base.extra = tree;
 
             ak_xml_skipelm(xst);
             break;

@@ -16,6 +16,10 @@ void *
 ak_instanceObject(AkInstanceBase *instance);
 
 AK_EXPORT
+AkNode *
+ak_instanceObjectNode(AkNode * node);
+
+AK_EXPORT
 AkGeometry *
 ak_instanceObjectGeom(AkNode * node);
 

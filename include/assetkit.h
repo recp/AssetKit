@@ -1455,12 +1455,8 @@ typedef struct AkInstanceLight {
 
 typedef struct AkNode AkNode;
 typedef struct AkInstanceNode {
-  AkURL        url;
-  AkNode     * node;
-  const char * name;
-  const char * proxy;
-  AkTree     * extra;
-
+  AkInstanceBase base;
+  const char    *proxy;
   struct AkInstanceNode * next;
 } AkInstanceNode;
 

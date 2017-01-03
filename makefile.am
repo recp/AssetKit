@@ -72,7 +72,7 @@ libassetkit_la_SOURCES=\
     src/resc/ak_curl.c \
     src/resc/ak_resource.c \
     src/resc/ak_url.c \
-    src/instance/ak_inst_geom.c \
+    src/instance/ak_inst.c \
     src/default/ak_def_coord.c \
     src/default/ak_def_id.c \
     src/default/ak_def_opt.c \
