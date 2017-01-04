@@ -17,8 +17,7 @@ size_t
 ak_ill_verts(AkHeap      *heap,
              AkMesh      *mesh,
              AkUIntArray *dupc,
-             AkPrimProxy **primproxy,
-             AkInputDesc **idesc_out) {
+             AkPrimProxy **primproxy) {
   AkInputDesc        *idesc, *idesci, *last_idesc;
   AkMeshPrimitive    *prim, *primi;
   AkUInt             *it, *posflgs;
@@ -312,9 +311,6 @@ ak_ill_verts(AkHeap      *heap,
   if (primproxy)
     *primproxy = fp;
 
-  if (idesc_out)
-    *idesc_out = idesci;
-
   return count;
 }
 
@@ -326,8 +322,7 @@ ak_mesh_fix_pos(AkHeap       *heap,
                 uint32_t      newstride,
                 size_t       *newArrayCount,
                 AkArrayList **ai,
-                AkPrimProxy **primProxy,
-                AkInputDesc **idesc_out) {
+                AkPrimProxy **primProxy) {
   AkSourceFloatArray *arr,  *oldArr;
   AkSource           *src;
   AkObject           *data, *oldData;
@@ -366,8 +361,7 @@ ak_mesh_fix_pos(AkHeap       *heap,
   extc = ak_ill_verts(heap,
                       mesh,
                       dupc,
-                      primProxy,
-                      idesc_out);
+                      primProxy);
   data = ak_objAlloc(heap,
                      src,
                      sizeof(*data)
@@ -448,7 +442,8 @@ ak_mesh_fix_pos(AkHeap       *heap,
 _assetkit_hide
 AkResult
 ak_mesh_copy_copyarray(AkHeap             *heap,
-                       AkInputDesc        *idesc,
+                       AkMesh             *mesh,
+                       AkPrimProxy        *pp,
                        AkSource           *oldsrc,
                        AkSource           *src,
                        AkAccessor         *oldAcc,
@@ -457,70 +452,78 @@ ak_mesh_copy_copyarray(AkHeap             *heap,
                        AkSourceFloatArray *newArray,
                        bool                same) {
   AkHeapAllocator *alc;
-  AkInputDesc     *idesci;
   AkAccessor      *acc;
   AkSource        *srci;
+  AkPrimProxy     *ppi;
+
+  AK__UNUSED(mesh);
 
   alc = heap->allocator;
   acc = src->techniqueCommon;
 
-  idesci = idesc;
-  while (idesci) {
-    AkPrimProxy *ppi;
-    AkUInt      *it;
-    AkDataParam *dparam;
-    uint32_t     i, j;
+  ppi = pp;
+  while (ppi) {
+    AkInput *input;
+    input = ppi->input;
+    while (input) {
+      AkUInt      *it;
+      AkDataParam *dparam;
+      uint32_t     i, j;
 
-    srci = ak_getObjectByUrl(&idesci->input->base.source);
-    if (srci != oldsrc) {
-      idesci = idesci->next;
-      continue;
-    }
-
-    /* fix input source url */
-    if (!same) {
-      if (idesci->source->url)
-        ak_free((char *)idesci->source->url);
-
-      ak_url_init(idesci->input, srcurl, &idesci->input->base.source);
-
-      /* because this source's array maybe used by another source */
-      ak_trash_add(oldsrc);
-    }
-
-    ppi = idesc->pp;
-
-    /* move items to new array */
-    it = idesci->pp->ind->items;
-    for (i = 0; i < ppi->icount; i++) {
-      AkUInt index, index2;
-
-      index  = it[i * ppi->st + ppi->vo];
-      index2 = it[i * ppi->st + idesc->input->offset];
-
-      j      = 0;
-      dparam = oldAcc->param;
-
-      /* TODO: must unbound params be zero? */
-      while (dparam) {
-        if (!dparam->name)
-          continue;
-
-        newArray->items[index * acc->stride
-                         + acc->offset
-                         + acc->firstBound
-                         + j++]
-        = oldArray->items[index2 * oldAcc->stride
-                           + oldAcc->offset
-                           + dparam->offset];
-        
-        dparam = dparam->next;
+      if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX) {
+        input = (AkInput *)input->base.next;
+        continue;
       }
-    }
 
-    /* mark this input's source procesed */
-    idesci->tag = 1;
-    idesci = idesci->next;
+      srci = ak_getObjectByUrl(&input->base.source);
+      if (srci != oldsrc) {
+        input = (AkInput *)input->base.next;
+        continue;
+      }
+
+      /* fix input source url */
+      if (!same) {
+        if (input->base.source.url)
+          ak_free((char *)input->base.source.url);
+
+        ak_url_init(input, srcurl, &input->base.source);
+
+        /* because this source's array maybe used by another source */
+        ak_trash_add(oldsrc);
+      }
+
+      /* move items to new array */
+      it = ppi->ind->items;
+      for (i = 0; i < ppi->icount; i++) {
+        AkUInt index, index2;
+
+        index  = it[i * ppi->st + ppi->vo];
+        index2 = it[i * ppi->st + input->offset];
+
+        j      = 0;
+        dparam = oldAcc->param;
+
+        /* TODO: must unbound params be zero? */
+        while (dparam) {
+          if (!dparam->name)
+            continue;
+
+          newArray->items[index * acc->stride
+                          + acc->offset
+                          + acc->firstBound
+                          + j++]
+          = oldArray->items[index2 * oldAcc->stride
+                            + oldAcc->offset
+                            + dparam->offset];
+          
+          dparam = dparam->next;
+        }
+      }
+
+      input->base.reserved = 1;
+      input = (AkInput *)input->base.next;
+    }
+    ppi = ppi->next;
   }
 
   if (!same)
@@ -537,7 +540,7 @@ ak_mesh_fix_idx_df(AkHeap *heap, AkMesh *mesh) {
   AkPrimProxy     *pp, *ppi;
   AkHeapAllocator *alc;
   AkArrayList     *ai;
-  AkInputDesc     *idesc, *idesci;
+  AkInput         *input;
   uint32_t         stride;
   size_t           count;
   AkResult         ret;
@@ -558,8 +561,7 @@ ak_mesh_fix_idx_df(AkHeap *heap, AkMesh *mesh) {
                            stride,
                            &count,
                            &ai,
-                           &pp,
-                           &idesc);
+                           &pp);
 
   if (ret != AK_OK)
     return ret;
@@ -568,156 +570,159 @@ ak_mesh_fix_idx_df(AkHeap *heap, AkMesh *mesh) {
 
   /* fix every individual semantic index */
 
-  idesci = idesc;
-  while (idesci) {
-    AkSource   *srci,  *oldSrci;
-    AkAccessor *acci,  *oldAcci;
-    AkObject   *datai, *oldDatai;
-    AkInput    *input;
-    uint32_t    stridei;
+  ppi = pp;
+  while (ppi) {
+    input = ppi->input;
+    while (input) {
+      AkSource   *srci,  *oldSrci;
+      AkAccessor *acci,  *oldAcci;
+      AkObject   *datai, *oldDatai;
+      uint32_t    stridei;
 
-    if (idesci->tag == 1) {
-      idesci = idesci->next;
-      continue;
-    }
+      if (input->base.reserved == 1) {
+        input = (AkInput *)input->base.next;
+        continue;
+      }
 
-    input = idesci->input;
-    if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX) {
-      idesci = idesci->next;
-      continue;
-    }
+      if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX) {
+        input = (AkInput *)input->base.next;
+        continue;
+      }
 
-    oldSrci = ak_getObjectByUrl(&input->base.source);
-    if (!oldSrci)
-      return AK_ERR; /* TODO: make this soft error, e.g. ignore */
+      oldSrci = ak_getObjectByUrl(&input->base.source);
+      if (!oldSrci)
+        return AK_ERR; /* TODO: make this soft error, e.g. ignore */
 
-    oldAcci = oldSrci->techniqueCommon;
-    if (!oldAcci)
-      return AK_ERR; /* TODO: make this soft error, e.g. ignore */
+      oldAcci = oldSrci->techniqueCommon;
+      if (!oldAcci)
+        return AK_ERR; /* TODO: make this soft error, e.g. ignore */
 
-    oldDatai = ak_getObjectByUrl(&oldAcci->source);
-    if (!oldDatai)
-      return AK_ERR; /* TODO: make this soft error, e.g. ignore */
+      oldDatai = ak_getObjectByUrl(&oldAcci->source);
+      if (!oldDatai)
+        return AK_ERR; /* TODO: make this soft error, e.g. ignore */
 
-    /* currently only floats */
-    if (oldDatai->type == AK_SOURCE_ARRAY_TYPE_FLOAT) {
-      AkSourceFloatArray *oldArrayi, *newArrayi;
-      AkSourceArrayNew   *newArray;
-      char               *srcurl;
-      bool                same;
+      /* currently only floats */
+      if (oldDatai->type == AK_SOURCE_ARRAY_TYPE_FLOAT) {
+        AkSourceFloatArray *oldArrayi, *newArrayi;
+        AkSourceArrayNew   *newArray;
+        char               *srcurl;
+        bool                same;
 
-      oldArrayi   = ak_objGet(oldDatai);
-      newArray    = oldArrayi->newArray;
-      stridei     = oldAcci->bound;
-      srci        = ak_mesh_src(heap, mesh, oldSrci, INT_MAX);
-      acci        = srci->techniqueCommon;
-      acci->bound = oldAcci->bound;
+        oldArrayi   = ak_objGet(oldDatai);
+        newArray    = oldArrayi->newArray;
+        stridei     = oldAcci->bound;
+        srci        = ak_mesh_src(heap, mesh, oldSrci, INT_MAX);
+        acci        = srci->techniqueCommon;
+        acci->bound = oldAcci->bound;
 
-      if (newArray) {
-        newArrayi        = newArray->array;
-        acci->stride     = newArray->stride;
-        acci->offset     = 0;
-        acci->count      = newArray->count;
-        acci->firstBound = newArray->offset;
-        ak_accessor_rebound(heap, acci, newArray->offset);
+        if (newArray) {
+          newArrayi        = newArray->array;
+          acci->stride     = newArray->stride;
+          acci->offset     = 0;
+          acci->count      = newArray->count;
+          acci->firstBound = newArray->offset;
+          ak_accessor_rebound(heap, acci, newArray->offset);
 
-        newArray->offset += acci->bound;
-      } else {
-        AkArrayList *aii;
-        acci->stride     = ak_mesh_arr_stride(mesh, &oldAcci->source);
-        acci->count      = count / acci->bound;
-        acci->firstBound = 0;
-        ak_accessor_rebound(heap, acci, 0);
-
-        newArray = ak_heap_alloc(heap,
-                                 NULL,
-                                 sizeof(*newArray));
-
-        datai = ak_objAlloc(heap,
-                            srci,
-                            sizeof(*newArrayi)
-                            + count * acci->stride * sizeof(float),
-                            AK_SOURCE_ARRAY_TYPE_FLOAT,
-                            true);
-        newArrayi            = ak_objGet(datai);
-        newArrayi->count     = count * acci->stride;
-        newArrayi->digits    = oldArrayi->digits;
-        newArrayi->magnitude = oldArrayi->magnitude;
-
-        if (oldArrayi->name) {
-          newArrayi->name = oldArrayi->name;
-          ak_heap_setpm(heap,
-                        (void *)oldArrayi->name,
-                        newArrayi);
-        }
-
-        newArray->array  = newArrayi;
-        newArray->offset = acci->bound;
-        newArray->stride = acci->stride;
-        newArray->count  = acci->count;
-        newArray->url    = ak_heap_strdup(heap,
-                                          newArray,
-                                          acci->source.url);
-
-        if (srci == oldSrci) {
-          newArray->url = (char *)acci->source.url;
-
-          aii = ak_heap_alloc(heap, NULL, sizeof(*aii));
-          aii->next    = ai;
-          aii->data    = oldDatai;
-          aii->newdata = datai;
-          ai           = aii;
+          newArray->offset += acci->bound;
         } else {
-          char *newarrayid;
-          newarrayid   = (char *)ak_id_gen(heap,
-                                           datai,
-                                           ak_getId(oldDatai));
-          newArray->url = ak_id_urlstring(alc, newarrayid);
+          AkArrayList *aii;
+          acci->stride     = ak_mesh_arr_stride(mesh, &oldAcci->source);
+          acci->count      = count / acci->bound;
+          acci->firstBound = 0;
+          ak_accessor_rebound(heap, acci, 0);
+
+          newArray = ak_heap_alloc(heap,
+                                   NULL,
+                                   sizeof(*newArray));
+
+          datai = ak_objAlloc(heap,
+                              srci,
+                              sizeof(*newArrayi)
+                              + count * acci->stride * sizeof(float),
+                              AK_SOURCE_ARRAY_TYPE_FLOAT,
+                              true);
+          newArrayi            = ak_objGet(datai);
+          newArrayi->count     = count * acci->stride;
+          newArrayi->digits    = oldArrayi->digits;
+          newArrayi->magnitude = oldArrayi->magnitude;
+
+          if (oldArrayi->name) {
+            newArrayi->name = oldArrayi->name;
+            ak_heap_setpm(heap,
+                          (void *)oldArrayi->name,
+                          newArrayi);
+          }
+
+          newArray->array  = newArrayi;
+          newArray->offset = acci->bound;
+          newArray->stride = acci->stride;
+          newArray->count  = acci->count;
+          newArray->url    = ak_heap_strdup(heap,
+                                            newArray,
+                                            acci->source.url);
+
+          if (srci == oldSrci) {
+            newArray->url = (char *)acci->source.url;
+
+            aii = ak_heap_alloc(heap, NULL, sizeof(*aii));
+            aii->next    = ai;
+            aii->data    = oldDatai;
+            aii->newdata = datai;
+            ai           = aii;
+          } else {
+            char *newarrayid;
+            newarrayid   = (char *)ak_id_gen(heap,
+                                             datai,
+                                             ak_getId(oldDatai));
+            newArray->url = ak_id_urlstring(alc, newarrayid);
+          }
+
+          oldArrayi->newArray = newArray;
+          ak_trash_add(newArray);
         }
 
-        oldArrayi->newArray = newArray;
-        ak_trash_add(newArray);
+        /* update accessor source url */
+        ak_url_init(acci, newArray->url, &acci->source);
+        ak_url_unref(&acci->source);
+
+        /* we need fix all inputs, copy all data from all primitives */
+
+        /* fix input source url */
+        same = srci == oldSrci;
+        if (!same) {
+          char *srcid;
+          acci   = srci->techniqueCommon;
+          srcid  = ak_getId(srci);
+          srcurl = ak_id_urlstring(alc, srcid);
+
+          if (input->base.source.url)
+            ak_free((char *)input->base.source.url);
+
+          ak_url_init(input, srcurl, &input->base.source);
+          alc->free(srcurl);
+
+          /* because this source's array maybe used by another source */
+          ak_trash_add(oldSrci);
+        } else {
+          srcurl = (char *)input->base.source.url;
+        }
+
+        /* copy source to new array for all inputs */
+        ak_mesh_copy_copyarray(heap,
+                               mesh,
+                               pp,
+                               oldSrci,
+                               srci,
+                               oldAcci,
+                               srcurl,
+                               oldArrayi,
+                               newArrayi,
+                               same);
       }
-
-      /* update accessor source url */
-      ak_url_init(acci, newArray->url, &acci->source);
-      ak_url_unref(&acci->source);
-
-      /* we need fix all inputs, copy all data from all primitives */
-
-      /* fix input source url */
-      same = srci == oldSrci;
-      if (!same) {
-        char *srcid;
-        acci   = srci->techniqueCommon;
-        srcid  = ak_getId(srci);
-        srcurl = ak_id_urlstring(alc, srcid);
-
-        if (input->base.source.url)
-          ak_free((char *)input->base.source.url);
-
-        ak_url_init(input, srcurl, &input->base.source);
-        alc->free(srcurl);
-
-        /* because this source's array maybe used by another source */
-        ak_trash_add(oldSrci);
-      } else {
-        srcurl = (char *)input->base.source.url;
-      }
-
-      /* copy source to new array for all inputs */
-      ak_mesh_copy_copyarray(heap,
-                             idesc,
-                             oldSrci,
-                             srci,
-                             oldAcci,
-                             srcurl,
-                             oldArrayi,
-                             newArrayi,
-                             same);
+      
+      input = (AkInput *)input->base.next;
     }
-
-    idesci = idesci->next;
+    ppi = ppi->next;
   }
 
   /* move array's ids to new array,
