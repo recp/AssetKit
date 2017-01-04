@@ -240,7 +240,7 @@ ak_dae_source(AkXmlState * __restrict xst,
         if (content) {
           arrayDataSize = strlen(content) + arrayCount /* NULL */;
           pData = ak_heap_alloc(xst->heap,
-                                stringAray,
+                                obj,
                                 arrayDataSize);
 
           stringAray->items[arrayCount] = pData;
