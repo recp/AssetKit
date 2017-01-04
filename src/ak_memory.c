@@ -105,6 +105,9 @@ ak_heap_strdup(AkHeap * __restrict heap,
   void  *memptr;
   size_t memsize;
 
+  if (!str)
+    return NULL;
+
   memsize = strlen(str);
   memptr  = ak_heap_alloc(heap, parent, memsize + 1);
   memcpy(memptr, str, memsize);
