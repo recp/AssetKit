@@ -428,11 +428,12 @@ ak_dae_mesh_fixup(AkMesh * mesh) {
   heap = ak_heap_getheap(mesh->vertices);
   doc  = ak_heap_data(heap);
 
-  ak_mesh_fix_indices(heap, mesh);
-
-  /* fixup coord system */
+  /* first fixup coord system because verts will be duplicated,
+     reduce extra process */
   if ((void *)ak_opt_get(AK_OPT_COORD) != doc->coordSys)
     ak_changeCoordSysMesh(mesh, (void *)ak_opt_get(AK_OPT_COORD));
+
+  ak_mesh_fix_indices(heap, mesh);
 
   return AK_OK;
 }
