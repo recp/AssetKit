@@ -703,10 +703,9 @@ ak_mesh_fix_idx_df(AkHeap *heap, AkMesh *mesh) {
 
           /* because this source's array maybe used by another source */
           ak_trash_add(oldSrci);
-        } else {
-          srcurl = (char *)input->base.source.url;
         }
 
+        srcurl = (char *)input->base.source.url;
         /* copy source to new array for all inputs */
         ak_mesh_copy_copyarray(heap,
                                mesh,
