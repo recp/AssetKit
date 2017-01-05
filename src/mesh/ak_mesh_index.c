@@ -466,7 +466,7 @@ ak_mesh_copy_copyarray(AkHeap             *heap,
     AkInput *input;
     input = ppi->input;
     while (input) {
-      AkUInt      *it;
+      AkUInt      *it, *it2;
       AkDataParam *dparam;
       uint32_t     i, j;
 
@@ -494,12 +494,13 @@ ak_mesh_copy_copyarray(AkHeap             *heap,
       }
 
       /* move items to new array */
-      it = ppi->ind->items;
+      it  = ppi->newind->items;
+      it2 = ppi->ind->items;
       for (i = 0; i < ppi->icount; i++) {
         AkUInt index, index2;
 
-        index  = it[i * ppi->st + ppi->vo];
-        index2 = it[i * ppi->st + input->offset];
+        index  = it[i];
+        index2 = it2[i * ppi->st + input->offset];
 
         j      = 0;
         dparam = oldAcc->param;
