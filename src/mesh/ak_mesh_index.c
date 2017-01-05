@@ -364,7 +364,7 @@ ak_mesh_fix_pos(AkHeap       *heap,
                       primProxy);
   data = ak_objAlloc(heap,
                      src,
-                     sizeof(*data)
+                     sizeof(*arr)
                        + (vc + extc) * newstride * sizeof(AkFloat),
                      AK_SOURCE_ARRAY_TYPE_FLOAT,
                      false);
