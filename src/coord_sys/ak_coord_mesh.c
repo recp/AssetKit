@@ -7,56 +7,113 @@
 
 #include "../ak_common.h"
 #include "../ak_memory_common.h"
+#include "../ak_map.h"
+
+/* TODO: use mutex */
 
 AK_EXPORT
 void
 ak_changeCoordSysMesh(AkMesh * __restrict mesh,
                       AkCoordSys * newCoordSys) {
-  AkMeshPrimitive *primitive;
-  AkDoc   *doc;
-  AkHeap  *heap;
-  AkInput *input;
+  AkMeshPrimitive *primi;
+  AkDoc           *doc;
+  AkHeap          *heap;
+  AkInput         *input;
+  AkInputBasic    *inputb;
+  AkMap           *map;
+  AkMapItem       *mapi;
 
   heap = ak_heap_getheap(mesh->vertices);
   doc  = heap->data;
+  map  = ak_map_new(NULL);
 
-  primitive = mesh->primitive;
-  while (primitive) {
-    input = primitive->input;
+  /* find sources to update */
+  inputb = mesh->vertices->input;
+  while (inputb) {
+    /* TODO: other semantics which are depend on coord sys */
+    if (inputb->semantic == AK_INPUT_SEMANTIC_POSITION
+        || inputb->semantic == AK_INPUT_SEMANTIC_NORMAL) {
+      AkSource *srci;
+
+      /* only current document */
+      if (inputb->source.doc != doc) {
+        inputb = inputb->next;
+        continue;
+      }
+
+      srci = ak_getObjectByUrl(&inputb->source);
+      if (!srci || !srci->techniqueCommon) {
+        inputb = inputb->next;
+        continue;
+      }
+
+      ak_map_addptr(map, srci);
+    }
+    
+    inputb = inputb->next;
+  }
+
+  primi = mesh->primitive;
+  while (primi) {
+    input = primi->input;
     while (input) {
       if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX) {
-        AkSourceFloatArray *va;
-        AkVertices   *verts;
-        AkInputBasic *vib;
-        AkSource     *vs;
+        input = (AkInput *)input->base.next;
+        continue;
+      }
 
-        verts = ak_getObjectByUrl(&input->base.source);
-        if (!verts) {
+      /* TODO: other semantics which are depend on coord sys */
+      if (input->base.semantic == AK_INPUT_SEMANTIC_POSITION
+          || input->base.semantic == AK_INPUT_SEMANTIC_NORMAL) {
+        AkSource *srci;
+
+        /* only current document */
+        if (input->base.source.doc != doc) {
+          input = (AkInput *)input->base.next;
+          continue;
+        }
+
+        srci = ak_getObjectByUrl(&input->base.source);
+        if (!srci || !srci->techniqueCommon) {
           input = (AkInput *)input->base.next;
           continue;
         }
         
-        vib = verts->input;
-
-        while (vib) {
-          vs = ak_getObjectByUrl(&vib->source);
-
-          /* TODO: INT, DOUBLE.. */
-          if (vs->data->type == AK_SOURCE_ARRAY_TYPE_FLOAT) {
-            va = ak_objGet(vs->data);
-
-            ak_coordCvtVectors(doc->coordSys,
-                               va->items,
-                               va->count,
-                               newCoordSys);
-          }
-
-          vib = vib->next;
-        } /* while */
+        ak_map_addptr(map, srci);
       }
-      
       input = (AkInput *)input->base.next;
     }
-    primitive = primitive->next;
+    primi = primi->next;
   }
+
+  mapi = map->root;
+  while (mapi) {
+    AkSource   *srci;
+    AkAccessor *acci;
+    AkObject   *datai;
+
+    srci = ak_getId(mapi);
+    acci = srci->techniqueCommon;
+
+    acci = srci->techniqueCommon;
+    datai = ak_getObjectByUrl(&acci->source);
+    if (!datai) {
+      inputb = inputb->next;
+      continue;
+    }
+
+    /* TODO: INT, DOUBLE.. */
+    if (datai->type == AK_SOURCE_ARRAY_TYPE_FLOAT) {
+      AkSourceFloatArray *arri;
+
+      arri = ak_objGet(datai);
+      ak_coordCvtVectors(doc->coordSys,
+                         arri->items,
+                         arri->count,
+                         newCoordSys);
+    }
+    mapi = mapi->next;
+  }
+
+  ak_map_destroy(map);
 }
