@@ -470,7 +470,8 @@ ak_mesh_copy_copyarray(AkHeap             *heap,
       AkDataParam *dparam;
       uint32_t     i, j;
 
-      if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX) {
+      if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX
+          || input->base.reserved == 1) {
         input = (AkInput *)input->base.next;
         continue;
       }
