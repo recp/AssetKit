@@ -344,7 +344,7 @@ ak_mesh_fix_pos(AkHeap       *heap,
 
   src    = ak_mesh_src(heap, mesh, oldSrc, INT_MAX);
   acc    = src->techniqueCommon;
-  stride = ak_mesh_arr_stride(mesh, &oldAcc->source);
+  stride = oldAcc->stride;
   oldArr = ak_objGet(oldData);
 
   if (stride == 0) /* TODO: free resources */
