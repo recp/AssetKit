@@ -395,7 +395,7 @@ ak_mesh_fix_pos(AkHeap       *heap,
       }
     }
 
-    s += dupc->items[i];
+    s += d;
   }
 
   acc->stride = newstride;
