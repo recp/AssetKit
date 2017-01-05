@@ -522,6 +522,7 @@ ak_mesh_copy_copyarray(AkHeap             *heap,
         }
       }
 
+      input->offset        = 0; /* single index */
       input->base.reserved = 1;
       input = (AkInput *)input->base.next;
     }
@@ -628,6 +629,7 @@ ak_mesh_fix_idx_df(AkHeap *heap, AkMesh *mesh) {
           newArray->offset += acci->bound;
         } else {
           AkArrayList *aii;
+
           acci->stride     = ak_mesh_arr_stride(mesh, &oldAcci->source);
           acci->count      = count / acci->bound;
           acci->firstBound = 0;
