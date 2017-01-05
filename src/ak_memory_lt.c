@@ -99,7 +99,8 @@ ak_heap_lt_find(uint32_t heapid) {
 
   assert(heapid < ak__heap_lt.size * ak__heap_lt.bucketSize);
 
-  if (ak__heap_lt.lastUsedEntry->heapid == heapid)
+  if (ak__heap_lt.lastUsedEntry
+      && ak__heap_lt.lastUsedEntry->heapid == heapid)
     return ak__heap_lt.lastUsedEntry->heap;
 
   bucket      = ak__heap_lt.rootBucket;
