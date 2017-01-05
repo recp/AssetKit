@@ -8,6 +8,7 @@
 #include "ak_mesh_util.h"
 #include "../ak_common.h"
 #include "../ak_id.h"
+#include "../ak_map.h"
 
 size_t
 ak_mesh_src_usg(AkHeap *heap,
@@ -207,10 +208,13 @@ ak_mesh_arr_stride(AkMesh *mesh, AkURL *arrayURL) {
   AkInput         *input;
   AkSource        *src;
   AkAccessor      *acc;
+  AkMap           *map;
+  AkMapItem       *mapi;
   uint32_t         stride;
 
   primi   = mesh->primitive;
   stride  = 0;
+  map     = ak_map_new(NULL);
 
   /* vertices */
   inputb = primi->vertices->input;
@@ -220,7 +224,7 @@ ak_mesh_arr_stride(AkMesh *mesh, AkURL *arrayURL) {
 
     if (strcmp(acc->source.url, arrayURL->url) == 0
         && acc->source.doc == arrayURL->doc)
-      stride += acc->bound;
+      ak_map_addptr(map, src);
 
     inputb = inputb->next;
   }
@@ -240,13 +244,24 @@ ak_mesh_arr_stride(AkMesh *mesh, AkURL *arrayURL) {
 
       if (strcmp(acc->source.url, arrayURL->url) == 0
           && acc->source.doc == arrayURL->doc)
-        stride += acc->bound;
+        ak_map_addptr(map, src);
 
       input = (AkInput *)input->base.next;
     }
 
     primi = primi->next;
   }
+
+  mapi = map->root;
+  while (mapi) {
+    src = ak_getId(mapi);
+    acc = src->techniqueCommon;
+    if (acc)
+      stride += acc->bound;
+    mapi = mapi->next;
+  }
+
+  ak_map_destroy(map);
 
   return stride;
 }
