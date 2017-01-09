@@ -49,6 +49,12 @@ ak_ill_verts(AkHeap      *heap,
     inputb = inputb->next;
   }
 
+  /* there is no positions */
+  if (!posArray) {
+    *primproxy = NULL;
+    return 0;
+  }
+
   posflgs = ak_heap_calloc(heap,
                            NULL,
                            sizeof(uint32_t) * (posArray->count + 2));
@@ -360,6 +366,10 @@ ak_mesh_fix_pos(AkHeap       *heap,
                       mesh,
                       dupc,
                       primProxy);
+
+  if (!*primProxy)
+    return AK_ERR;
+
   data = ak_objAlloc(heap,
                      src,
                      sizeof(*arr)
