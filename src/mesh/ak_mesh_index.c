@@ -327,7 +327,6 @@ ak_mesh_fix_pos(AkHeap       *heap,
   AkSource           *src;
   AkObject           *data, *oldData;
   AkAccessor         *acc,  *oldAcc;
-  AkMeshPrimitive    *prim;
   AkDataParam        *dparam;
   AkUIntArray        *dupc;
   AkHeapAllocator    *alc;
@@ -336,7 +335,6 @@ ak_mesh_fix_pos(AkHeap       *heap,
   size_t              extc, newc, vc, i, j, d, s;
   uint32_t            stride;
 
-  prim    = mesh->primitive;
   oldAcc  = oldSrc->techniqueCommon;
   oldData = ak_getObjectByUrl(&oldAcc->source);
   if (!oldData)
@@ -580,7 +578,6 @@ ak_mesh_fix_idx_df(AkHeap *heap, AkMesh *mesh) {
       AkSource   *srci,  *oldSrci;
       AkAccessor *acci,  *oldAcci;
       AkObject   *datai, *oldDatai;
-      uint32_t    stridei;
 
       if (input->base.reserved == 1) {
         input = (AkInput *)input->base.next;
@@ -613,7 +610,6 @@ ak_mesh_fix_idx_df(AkHeap *heap, AkMesh *mesh) {
 
         oldArrayi   = ak_objGet(oldDatai);
         newArray    = oldArrayi->newArray;
-        stridei     = oldAcci->bound;
         srci        = ak_mesh_src(heap, mesh, oldSrci, INT_MAX);
         acci        = srci->techniqueCommon;
         acci->bound = oldAcci->bound;
@@ -695,7 +691,6 @@ ak_mesh_fix_idx_df(AkHeap *heap, AkMesh *mesh) {
         same = srci == oldSrci;
         if (!same) {
           char *srcid;
-          acci   = srci->techniqueCommon;
           srcid  = ak_getId(srci);
           srcurl = ak_id_urlstring(alc, srcid);
 

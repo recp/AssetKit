@@ -47,8 +47,6 @@ ak_mesh_src_usg(AkHeap *heap,
         continue;
       }
 
-      src_it = ak_getObjectByUrl(&input->base.source);
-
       if (input->base.source.doc == doc) {
         src_it = ak_getObjectByUrl(&input->base.source);
         if (src_it && src_it == src)
@@ -73,10 +71,9 @@ ak_mesh_src(AkHeap   *heap,
   AkAccessor  *newacc, *oldacc;
   AkDataParam *dp, *last_dp;
   const char  *newid;
-  size_t       refc, usg;
+  size_t       usg;
 
-  refc = ak_refc(src);
-  usg  = ak_mesh_src_usg(heap, mesh, src);
+  usg = ak_mesh_src_usg(heap, mesh, src);
 
   /* source needs be duplicated */
   if (ak_refc(src) <= usg
