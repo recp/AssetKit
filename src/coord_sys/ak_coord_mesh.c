@@ -92,13 +92,11 @@ ak_changeCoordSysMesh(AkMesh * __restrict mesh,
     AkAccessor *acci;
     AkObject   *datai;
 
-    srci = ak_getId(mapi);
-    acci = srci->techniqueCommon;
-
-    acci = srci->techniqueCommon;
+    srci  = ak_getId(mapi);
+    acci  = srci->techniqueCommon;
     datai = ak_getObjectByUrl(&acci->source);
     if (!datai) {
-      inputb = inputb->next;
+      mapi = mapi->next;
       continue;
     }
 
