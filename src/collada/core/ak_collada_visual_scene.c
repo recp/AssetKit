@@ -103,9 +103,9 @@ ak_dae_visualScene(AkXmlState * __restrict xst,
 AkResult _assetkit_hide
 ak_dae_instanceVisualScene(AkXmlState * __restrict xst,
                            void * __restrict memParent,
-                           AkInstanceVisualScene ** __restrict dest) {
-  AkInstanceVisualScene *visualScene;
-  AkXmlElmState          xest;
+                           AkInstanceBase ** __restrict dest) {
+  AkInstanceBase *visualScene;
+  AkXmlElmState   xest;
 
   visualScene = ak_heap_calloc(xst->heap,
                                memParent,
@@ -113,12 +113,12 @@ ak_dae_instanceVisualScene(AkXmlState * __restrict xst,
 
   ak_xml_readsid(xst, visualScene);
 
-  visualScene->base.name = ak_xml_attr(xst, visualScene, _s_dae_name);
+  visualScene->name = ak_xml_attr(xst, visualScene, _s_dae_name);
 
   ak_xml_attr_url(xst,
                   _s_dae_url,
                   visualScene,
-                  &visualScene->base.url);
+                  &visualScene->url);
 
   ak_xest_init(xest, _s_dae_instance_visual_scene)
 
@@ -138,7 +138,7 @@ ak_dae_instanceVisualScene(AkXmlState * __restrict xst,
                           nodePtr,
                           &tree,
                           NULL);
-      visualScene->base.extra = tree;
+      visualScene->extra = tree;
 
       ak_xml_skipelm(xst);
     }

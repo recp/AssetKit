@@ -18,6 +18,6 @@ ak_dae_visualScene(AkXmlState * __restrict xst,
 AkResult _assetkit_hide
 ak_dae_instanceVisualScene(AkXmlState * __restrict xst,
                            void * __restrict memParent,
-                           AkInstanceVisualScene ** __restrict dest);
+                           AkInstanceBase ** __restrict dest);
 
 #endif /* __libassetkit__ak_collada_visual_scene_h_ */

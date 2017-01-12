@@ -21,7 +21,7 @@ ak_dae_scene(AkXmlState * __restrict xst,
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_instance_visual_scene)) {
-      AkInstanceVisualScene *visualScene;
+      AkInstanceBase *visualScene;
       AkResult ret;
 
       ret = ak_dae_instanceVisualScene(xst, memParent, &visualScene);

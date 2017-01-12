@@ -618,6 +618,7 @@ typedef struct AkInstanceBase {
   void       *object;
   const char *name;
   AkTree     *extra;
+  struct AkInstanceBase *next;
 } AkInstanceBase;
 
 typedef struct AkInstanceImage {
@@ -1409,11 +1410,6 @@ typedef struct AkTranslate {
   AkFloat      val[3];
 } AkTranslate;
 
-typedef struct AkInstanceCamera {
-  AkInstanceBase  base;
-  struct AkInstanceCamera * next;
-} AkInstanceCamera;
-
 typedef struct AkSkeleton {
   const char * val;
 
@@ -1441,24 +1437,12 @@ typedef struct AkInstanceController {
 typedef struct AkInstanceGeometry {
   AkInstanceBase  base;
   AkBindMaterial *bindMaterial;
-
-  struct AkInstanceGeometry * next;
 } AkInstanceGeometry;
-
-typedef struct AkInstanceLight {
-  AkURL        url;
-  AkLight    * light;
-  const char * name;
-  AkTree     * extra;
-
-  struct AkInstanceLight * next;
-} AkInstanceLight;
 
 typedef struct AkNode AkNode;
 typedef struct AkInstanceNode {
   AkInstanceBase base;
   const char    *proxy;
-  struct AkInstanceNode * next;
 } AkInstanceNode;
 
 /*
@@ -1470,19 +1454,21 @@ struct AkNode {
   /* const char * id;  */
   /* const char * sid; */
 
-  const char * name;
-  AkNodeType   nodeType;
-  AkStringArray        * layer;
-  AkObject             * transform;
-  AkInstanceCamera     * camera;
-  AkInstanceController * controller;
-  AkInstanceGeometry   * geometry;
-  AkInstanceLight      * light;
-  AkInstanceNode       * node;
-  AkTree        * extra;
-  struct AkNode * chld;
-  struct AkNode * parent;
-  struct AkNode * next;
+  const char           *name;
+  AkNodeType            nodeType;
+  AkStringArray        *layer;
+  AkObject             *transform;
+
+  AkInstanceBase       *camera;
+  AkInstanceController *controller;
+  AkInstanceGeometry   *geometry;
+  AkInstanceBase       *light;
+  AkInstanceNode       *node;
+
+  AkTree               *extra;
+  struct AkNode        *chld;
+  struct AkNode        *parent;
+  struct AkNode        *next;
 };
 
 typedef struct AkTechniqueOverride {
@@ -1562,10 +1548,6 @@ typedef struct AkVisualScene {
   struct AkVisualScene * next;
 } AkVisualScene;
 
-typedef struct AkInstanceVisualScene {
-  AkInstanceBase  base;
-} AkInstanceVisualScene;
-
 typedef struct AkScene {
   ak_asset_base
 
@@ -1575,7 +1557,7 @@ typedef struct AkScene {
       instance_kinematics_scene
    */
 
-  AkInstanceVisualScene *visualScene;
+  AkInstanceBase *visualScene;
   AkTree * extra;
 } AkScene;
 

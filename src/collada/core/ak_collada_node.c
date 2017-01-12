@@ -67,10 +67,10 @@ ak_dae_node(AkXmlState * __restrict xst,
   AkDoc                *doc;
   AkNode               *node, *last_chld;
   AkObject             *last_transform;
-  AkInstanceCamera     *last_camera;
+  AkInstanceBase       *last_camera;
   AkInstanceController *last_controller;
   AkInstanceGeometry   *last_geometry;
-  AkInstanceLight      *last_light;
+  AkInstanceBase       *last_light;
   AkInstanceNode       *last_node;
   char                 *attrVal;
   AkXmlElmState         xest;
@@ -350,19 +350,19 @@ ak_dae_node(AkXmlState * __restrict xst,
         break;
       }
       case k_s_dae_instance_camera: {
-        AkInstanceCamera *instanceCamera;
-        AkXmlElmState     xest2;
+        AkInstanceBase *instanceCamera;
+        AkXmlElmState   xest2;
         instanceCamera = ak_heap_calloc(xst->heap,
                                         node,
                                         sizeof(*instanceCamera));
 
-        instanceCamera->base.name = ak_xml_attr(xst,
+        instanceCamera->name = ak_xml_attr(xst,
                                                 instanceCamera,
                                                 _s_dae_name);
         ak_xml_attr_url(xst,
                         _s_dae_url,
                         instanceCamera,
-                        &instanceCamera->base.url);
+                        &instanceCamera->url);
 
         ak_xest_init(xest2, _s_dae_instance_camera)
 
@@ -382,7 +382,7 @@ ak_dae_node(AkXmlState * __restrict xst,
                                 nodePtr,
                                 &tree,
                                 NULL);
-            instanceCamera->base.extra = tree;
+            instanceCamera->extra = tree;
 
             ak_xml_skipelm(xst);
             break;
@@ -546,7 +546,7 @@ ak_dae_node(AkXmlState * __restrict xst,
         } while (xst->nodeRet);
 
         if (last_geometry)
-          last_geometry->next = geometry;
+          last_geometry->base.next = &geometry->base;
         else
           node->geometry = geometry;
 
@@ -555,17 +555,17 @@ ak_dae_node(AkXmlState * __restrict xst,
         break;
       }
       case k_s_dae_instance_light: {
-        AkInstanceLight *light;
-        AkXmlElmState    xest2;
+        AkInstanceBase *lightInst;
+        AkXmlElmState   xest2;
 
-        light = ak_heap_calloc(xst->heap, node, sizeof(*light));
+        lightInst = ak_heap_calloc(xst->heap, node, sizeof(*lightInst));
 
-        light->name = ak_xml_attr(xst, light, _s_dae_name);
+        lightInst->name = ak_xml_attr(xst, lightInst, _s_dae_name);
 
         ak_xml_attr_url(xst,
                         _s_dae_url,
-                        light,
-                        &light->url);
+                        lightInst,
+                        &lightInst->url);
 
         ak_xest_init(xest2, _s_dae_instance_light)
 
@@ -581,11 +581,11 @@ ak_dae_node(AkXmlState * __restrict xst,
             tree = NULL;
 
             ak_tree_fromXmlNode(xst->heap,
-                                light,
+                                lightInst,
                                 nodePtr,
                                 &tree,
                                 NULL);
-            light->extra = tree;
+            lightInst->extra = tree;
 
             ak_xml_skipelm(xst);
             break;
@@ -599,11 +599,11 @@ ak_dae_node(AkXmlState * __restrict xst,
         } while (xst->nodeRet);
 
         if (last_light)
-          last_light->next = light;
+          last_light->next = lightInst;
         else
-          node->light = light;
+          node->light = lightInst;
 
-        last_light = light;
+        last_light = lightInst;
 
         break;
       }
@@ -655,7 +655,7 @@ ak_dae_node(AkXmlState * __restrict xst,
         } while (xst->nodeRet);
 
         if (last_node)
-          last_node->next = instanceNode;
+          last_node->base.next = &instanceNode->base;
         else
           node->node = instanceNode;
 
