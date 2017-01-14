@@ -80,7 +80,7 @@ ak_id_gen(AkHeap     * __restrict heap,
     AkResult    ret;
 
     /* we ensure that token > 0 when in ctor */
-    tknsize = (int32_t)(log10(*idp) + 1);
+    tknsize = (size_t)log10((double)*idp) + 1;
 
     id = ak_heap_alloc(heap, parentmem, size + tknsize + 1);
     id[size + tknsize] = '\0';

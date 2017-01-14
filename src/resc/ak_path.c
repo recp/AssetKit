@@ -9,6 +9,12 @@
 #include <limits.h>
 #include <uv.h>
 
+#ifdef _MSC_VER
+#  ifndef PATH_MAX
+#    define PATH_MAX MAX_PATH
+#  endif
+#endif
+
 #define CHR_SLASH       '/'
 #define CHR_BACK_SLASH  '\\'
 #define CHR_COLON       ':'
@@ -108,8 +114,8 @@ ak_path_join(char   *fragments[],
   const char *frag_end;
   size_t      len;
   size_t      frag_len;
-  int         frag_idx;
-  int         frag_idx_v;
+  size_t      frag_idx;
+  size_t      frag_idx_v;
   char        c;
 
   if (!fragments

@@ -9,6 +9,7 @@
 #include "ak_memory_common.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 void * _assetkit_hide
 ak_sid_resolve_attr(AkHeapNode *heapNode,
@@ -48,7 +49,7 @@ ak_sid_geta(void *memnode,
     return NULL;
 
   sidCount = *(size_t *)sidnode->sid;
-  off      = (char *)memptr - (char *)memnode;
+  off      = (uint16_t)((char *)memptr - (char *)memnode);
   ptr      = (char *)sidnode->sid + sizeof(size_t);
 
   for (i = 0; i < sidCount; i++) {
@@ -106,7 +107,7 @@ ak_sid_seta(void       *memnode,
 
   sidnode = ak_heap_ext_add(heap, heapNode, AK_HEAP_NODE_FLAGS_SID);
   off0    = sizeof(size_t);
-  off     = (char *)memptr - (char *)memnode;
+  off     = (uint16_t)((char *)memptr - (char *)memnode);
   itmsize = sizeof(uint16_t) + sizeof(uintptr_t);
 
   if (!sidnode->sids) {
@@ -185,7 +186,7 @@ ak_sid_resolve(AkDoc * __restrict doc,
   siddup  = strdup(sid);
 
   sid_it = strtok_r(siddup, "/ \t", &saveptr);
-
+  
   if (*sid_it == '.') {
     /* .[attr] */
     if (!strchr(sid, '/'))  {

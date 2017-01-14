@@ -59,7 +59,7 @@ ak_ill_verts(AkHeap      *heap,
                            NULL,
                            sizeof(uint32_t) * (posArray->count + 2));
 
-  chk = count = icount = ccount = 0;
+  count = icount = ccount = chk = 0;
 
   idesc      = NULL;
   last_idesc = NULL;

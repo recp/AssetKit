@@ -1,12 +1,20 @@
 /*
-* Copyright (c), Recep Aslantas.
-*
-* MIT License (MIT), http://opensource.org/licenses/MIT
-* Full license can be found in the LICENSE file
-*/
+ * Copyright (c), Recep Aslantas.
+ *
+ * MIT License (MIT), http://opensource.org/licenses/MIT
+ * Full license can be found in the LICENSE file
+ */
 
 #include "config.h"
 #include "ak_memory_common.h"
+
+void
+AK_CONSTRUCTOR
+ak__init();
+
+void
+AK_DESTRUCTOR
+ak__cleanup();
 
 BOOL APIENTRY DllMain(HMODULE hModule,
                       DWORD  ul_reason_for_call,

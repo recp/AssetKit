@@ -332,13 +332,13 @@ ak_xml_attrl(AkXmlState * __restrict xst,
 unsigned int
 ak_xml_attrui(AkXmlState * __restrict xst,
               const char * name) {
-  xmlChar *xmlAttrVal;
-  float    attr;
+  xmlChar     *xmlAttrVal;
+  unsigned int attr;
 
   xmlAttrVal = xmlTextReaderGetAttribute(xst->reader,
                                          (const xmlChar *)name);
   if (xmlAttrVal) {
-    attr = strtoul((char *)xmlAttrVal, NULL, 10);
+    attr = (unsigned int)strtoul((char *)xmlAttrVal, NULL, 10);
     xmlFree(xmlAttrVal);
     return attr;
   }
@@ -350,7 +350,7 @@ uint64_t
 ak_xml_attrui64(AkXmlState * __restrict xst,
                 const char * name) {
   xmlChar *xmlAttrVal;
-  float    attr;
+  uint64_t attr;
 
   xmlAttrVal = xmlTextReaderGetAttribute(xst->reader,
                                          (const xmlChar *)name);
@@ -367,15 +367,15 @@ unsigned int
 ak_xml_attrui_def(AkXmlState * __restrict xst,
                   const char * name,
                   unsigned int defval) {
-  xmlChar *xmlAttrVal;
-  char    *tmp;
-  float    attr;
+  xmlChar     *xmlAttrVal;
+  char        *tmp;
+  unsigned int attr;
 
   tmp        = NULL;
   xmlAttrVal = xmlTextReaderGetAttribute(xst->reader,
                                          (const xmlChar *)name);
   if (xmlAttrVal) {
-    attr = strtoul((char *)xmlAttrVal, &tmp, 10);
+    attr = (unsigned int)strtoul((char *)xmlAttrVal, &tmp, 10);
     xmlFree(xmlAttrVal);
 
     if (tmp && *tmp == '\0')
