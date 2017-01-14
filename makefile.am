@@ -61,7 +61,6 @@ libassetkit_la_SOURCES=\
     src/ak_id.c \
     src/ak_trash.c \
     src/ak_map.c \
-    src/bitwise/ak_bitwise.c \
     src/coord_sys/ak_coord_mesh.c \
     src/coord_sys/ak_coord_geom.c \
     src/coord_sys/ak_coord_doc.c \
