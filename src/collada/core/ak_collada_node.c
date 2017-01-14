@@ -52,7 +52,7 @@ static size_t nodeMapLen = 0;
 AkResult _assetkit_hide
 ak_dae_node2(AkXmlState * __restrict xst,
              void       * __restrict memParent,
-             void             **dest) {
+             void      ** __restrict dest) {
   return ak_dae_node(xst,
                      memParent,
                      NULL,

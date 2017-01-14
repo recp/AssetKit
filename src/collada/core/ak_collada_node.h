@@ -19,6 +19,6 @@ ak_dae_node(AkXmlState * __restrict xst,
 AkResult _assetkit_hide
 ak_dae_node2(AkXmlState * __restrict xst,
              void       * __restrict memParent,
-             void             **dest);
+             void      ** __restrict dest);
 
 #endif /* __libassetkit__ak_collada_node_h_ */

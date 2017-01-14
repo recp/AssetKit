@@ -106,7 +106,7 @@ ak_heap_dettach(AkHeap * __restrict parent,
 AK_EXPORT
 void
 ak_heap_setdata(AkHeap * __restrict heap,
-                void * __restrict memptr);
+                void   * __restrict memptr);
 
 AK_EXPORT
 void*
@@ -114,10 +114,10 @@ ak_heap_data(AkHeap * __restrict heap);
 
 AK_EXPORT
 void
-ak_heap_init(AkHeap * __restrict heap,
-             AkHeapAllocator *allocator,
-             AkHeapSrchCmpFn cmp,
-             AkHeapSrchPrintFn print);
+ak_heap_init(AkHeap          * __restrict heap,
+             AkHeapAllocator * __restrict allocator,
+             AkHeapSrchCmpFn              cmp,
+             AkHeapSrchPrintFn            print);
 
 AK_EXPORT
 void
@@ -132,27 +132,27 @@ ak_heap_strdup(AkHeap * __restrict heap,
 AK_EXPORT
 char*
 ak_heap_strndup(AkHeap * __restrict heap,
-                void * __restrict parent,
+                void   * __restrict parent,
                 const char * str,
-                size_t size);
+                size_t       size);
 
 AK_EXPORT
 void*
 ak_heap_alloc(AkHeap * __restrict heap,
-              void * __restrict parent,
+              void   * __restrict parent,
               size_t size);
 
 AK_EXPORT
 void*
 ak_heap_calloc(AkHeap * __restrict heap,
-               void * __restrict parent,
+               void   * __restrict parent,
                size_t size);
 
 AK_EXPORT
 void*
 ak_heap_realloc(AkHeap * __restrict heap,
-                void * __restrict parent,
-                void * __restrict memptr,
+                void   * __restrict parent,
+                void   * __restrict memptr,
                 size_t newsize);
 
 AK_EXPORT
@@ -170,25 +170,25 @@ ak_heap_parent(AkHeapNode *heapNode);
 
 AK_EXPORT
 void
-ak_heap_setp(AkHeap * __restrict heap,
+ak_heap_setp(AkHeap     * __restrict heap,
              AkHeapNode * __restrict heapNode,
              AkHeapNode * __restrict newParent);
 
 AK_EXPORT
 void
-ak_heap_moveh(AkHeap * __restrict heap,
-              AkHeap * __restrict newheap,
+ak_heap_moveh(AkHeap     * __restrict heap,
+              AkHeap     * __restrict newheap,
               AkHeapNode * __restrict heapNode);
 
 AK_EXPORT
 void
 ak_heap_setpm(AkHeap * __restrict heap,
-              void * __restrict memptr,
-              void * __restrict newparent);
+              void   * __restrict memptr,
+              void   * __restrict newparent);
 
 AK_EXPORT
 void
-ak_heap_free(AkHeap * __restrict heap,
+ak_heap_free(AkHeap     * __restrict heap,
              AkHeapNode * __restrict heapNode);
 
 AK_EXPORT
@@ -197,32 +197,32 @@ ak_heap_cleanup(AkHeap * __restrict heap);
 
 AK_EXPORT
 void *
-ak_heap_getId(AkHeap * __restrict heap,
+ak_heap_getId(AkHeap     * __restrict heap,
               AkHeapNode * __restrict heapNode);
 
 AK_EXPORT
 void
-ak_heap_setId(AkHeap * __restrict heap,
+ak_heap_setId(AkHeap     * __restrict heap,
               AkHeapNode * __restrict heapNode,
-              void * __restrict memId);
+              void       * __restrict memId);
 
 AK_EXPORT
 AkResult
-ak_heap_getNodeById(AkHeap * __restrict heap,
-                    void * __restrict memId,
+ak_heap_getNodeById(AkHeap      * __restrict heap,
+                    void        * __restrict memId,
                     AkHeapNode ** __restrict dest);
 
 AK_EXPORT
 AkResult
-ak_heap_getNodeByURL(AkHeap * __restrict heap,
+ak_heap_getNodeByURL(AkHeap       * __restrict heap,
                      struct AkURL * __restrict url,
-                     AkHeapNode ** __restrict dest);
+                     AkHeapNode  ** __restrict dest);
 
 AK_EXPORT
 AkResult
 ak_heap_getMemById(AkHeap * __restrict heap,
-                   void * __restrict memId,
-                   void ** __restrict dest);
+                   void   * __restrict memId,
+                   void  ** __restrict dest);
 
 AK_EXPORT
 size_t
