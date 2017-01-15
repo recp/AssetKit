@@ -8,15 +8,15 @@
 #include "ak_collada_light.h"
 #include "ak_collada_asset.h"
 #include "ak_collada_technique.h"
+#include "ak_collada_color.h"
 
 AkResult _assetkit_hide
 ak_dae_light(AkXmlState * __restrict xst,
-             void * __restrict memParent,
-             void ** __restrict dest) {
-  AkLight           *light;
-  AkTechnique       *last_tq;
-  AkTechniqueCommon *last_tc;
-  AkXmlElmState      xest;
+             void       * __restrict memParent,
+             void      ** __restrict dest) {
+  AkLight       *light;
+  AkTechnique   *last_tq;
+  AkXmlElmState  xest;
 
   light = ak_heap_calloc(xst->heap, memParent, sizeof(*light));
 
@@ -24,7 +24,6 @@ ak_dae_light(AkXmlState * __restrict xst,
   light->name = ak_xml_attr(xst, light, _s_dae_name);
 
   last_tq = light->technique;
-  last_tc = light->techniqueCommon;
 
   ak_xest_init(xest, _s_dae_light)
 
@@ -42,20 +41,13 @@ ak_dae_light(AkXmlState * __restrict xst,
         light->inf = assetInf;
 
     } else if (ak_xml_eqelm(xst, _s_dae_techniquec)) {
-      AkTechniqueCommon *tc;
-      AkResult ret;
+      AkLightBase *tcommon;
+      AkResult     ret;
 
-      tc = NULL;
-      ret = ak_dae_techniquec(xst, light, &tc);
-      if (ret == AK_OK) {
-        if (last_tc)
-          last_tc->next = tc;
-        else
-          light->techniqueCommon = tc;
-
-        last_tc = tc;
-      }
-
+      tcommon = NULL;
+      ret     = ak_dae_light_tcommon(xst, light, &tcommon);
+      if (ret == AK_OK)
+        light->techniqueCommon = tcommon;
     } else if (ak_xml_eqelm(xst, _s_dae_technique)) {
       AkTechnique *tq;
       AkResult ret;
@@ -95,6 +87,212 @@ ak_dae_light(AkXmlState * __restrict xst,
   } while (xst->nodeRet);
 
   *dest = light;
+
+  return AK_OK;
+}
+
+AkResult _assetkit_hide
+ak_dae_light_tcommon(AkXmlState   * __restrict xst,
+                     void         * __restrict memParent,
+                     AkLightBase ** __restrict dest) {
+  AkXmlElmState xest;
+
+  ak_xest_init(xest, _s_dae_techniquec)
+
+  do {
+    if (ak_xml_begin(&xest))
+      break;
+
+    if (ak_xml_eqelm(xst, _s_dae_ambient)) {
+      AkAmbientLight *ambient;
+      AkXmlElmState   xest2;
+
+      ambient = ak_heap_calloc(xst->heap,
+                               memParent,
+                               sizeof(*ambient));
+
+      ak_xest_init(xest2, _s_dae_ambient)
+
+      do {
+        if (ak_xml_begin(&xest2))
+          break;
+
+        if (ak_xml_eqelm(xst, _s_dae_color)) {
+          char *colorStr;
+
+          ak_xml_readsid(xst, ambient);
+          colorStr = ak_xml_rawcval(xst);
+
+          if (colorStr)
+            ak_strtof4(&colorStr, &ambient->color.vec);
+        } else {
+          ak_xml_skipelm(xst);
+        }
+
+        /* end element */
+        if (ak_xml_end(&xest2))
+          break;
+      } while (xst->nodeRet);
+
+      ambient->type = AK_LIGHT_TYPE_AMBIENT;
+      *dest = ambient;
+    }
+
+    else if (ak_xml_eqelm(xst, _s_dae_directional)) {
+      AkDirectionalLight *directional;
+      AkXmlElmState       xest2;
+
+      directional = ak_heap_calloc(xst->heap,
+                                   memParent,
+                                   sizeof(*directional));
+
+      ak_xest_init(xest2, _s_dae_directional)
+
+      do {
+        if (ak_xml_begin(&xest2))
+          break;
+
+        if (ak_xml_eqelm(xst, _s_dae_color)) {
+          char *colorStr;
+
+          ak_xml_readsid(xst, directional);
+          colorStr = ak_xml_rawcval(xst);
+
+          if (colorStr)
+            ak_strtof4(&colorStr, &directional->color.vec);
+        } else {
+          ak_xml_skipelm(xst);
+        }
+
+        /* end element */
+        if (ak_xml_end(&xest2))
+          break;
+      } while (xst->nodeRet);
+
+      directional->type = AK_LIGHT_TYPE_DIRECTIONAL;
+      *dest = directional;
+    }
+
+    else if (ak_xml_eqelm(xst, _s_dae_point)) {
+      AkPointLight *point;
+      AkXmlElmState xest2;
+
+      point = ak_heap_calloc(xst->heap,
+                             memParent,
+                             sizeof(*point));
+
+      ak_xest_init(xest2, _s_dae_point)
+
+      do {
+        if (ak_xml_begin(&xest2))
+          break;
+
+        if (ak_xml_eqelm(xst, _s_dae_color)) {
+          ak_xml_sid_seta(xst,
+                          point,
+                          &point->base.color);
+
+          ak_dae_color(xst, false, &point->base.color);
+        } else if (ak_xml_eqelm(xst, _s_dae_constant_attenuation)) {
+          ak_xml_sid_seta(xst,
+                          point,
+                          &point->constantAttenuation);
+
+          point->constantAttenuation = ak_xml_valf(xst);
+        } else if (ak_xml_eqelm(xst, _s_dae_linear_attenuation)) {
+          ak_xml_sid_seta(xst,
+                          point,
+                          &point->linearAttenuation);
+
+          point->linearAttenuation = ak_xml_valf(xst);
+        } else if (ak_xml_eqelm(xst, _s_dae_quadratic_attenuation)) {
+          ak_xml_sid_seta(xst,
+                          point,
+                          &point->quadraticAttenuation);
+
+          point->quadraticAttenuation = ak_xml_valf(xst);
+        } else {
+          ak_xml_skipelm(xst);
+        }
+
+        /* end element */
+        if (ak_xml_end(&xest2))
+          break;
+      } while (xst->nodeRet);
+
+      point->base.type = AK_LIGHT_TYPE_POINT;
+      *dest = &point->base;
+    }
+
+    else if (ak_xml_eqelm(xst, _s_dae_point)) {
+      AkSpotLight  *spot;
+      AkXmlElmState xest2;
+
+      spot = ak_heap_calloc(xst->heap,
+                            memParent,
+                            sizeof(*spot));
+
+      ak_xest_init(xest2, _s_dae_spot)
+
+      do {
+        if (ak_xml_begin(&xest2))
+          break;
+
+        if (ak_xml_eqelm(xst, _s_dae_color)) {
+          ak_xml_sid_seta(xst,
+                          spot,
+                          &spot->base.color);
+
+          ak_dae_color(xst, false, &spot->base.color);
+        } else if (ak_xml_eqelm(xst, _s_dae_constant_attenuation)) {
+          ak_xml_sid_seta(xst,
+                          spot,
+                          &spot->constantAttenuation);
+
+          spot->constantAttenuation = ak_xml_valf(xst);
+        } else if (ak_xml_eqelm(xst, _s_dae_linear_attenuation)) {
+          ak_xml_sid_seta(xst,
+                          spot,
+                          &spot->linearAttenuation);
+
+          spot->linearAttenuation = ak_xml_valf(xst);
+        } else if (ak_xml_eqelm(xst, _s_dae_quadratic_attenuation)) {
+          ak_xml_sid_seta(xst,
+                          spot,
+                          &spot->quadraticAttenuation);
+
+          spot->quadraticAttenuation = ak_xml_valf(xst);
+        } else if (ak_xml_eqelm(xst, _s_dae_falloff_angle)) {
+          ak_xml_sid_seta(xst,
+                          spot,
+                          &spot->falloffAngle);
+
+          spot->falloffAngle = ak_xml_valf(xst);
+        } else if (ak_xml_eqelm(xst, _s_dae_falloff_exponent)) {
+          ak_xml_sid_seta(xst,
+                          spot,
+                          &spot->falloffExponent);
+
+          spot->falloffExponent = ak_xml_valf(xst);
+        } else {
+          ak_xml_skipelm(xst);
+        }
+
+        /* end element */
+        if (ak_xml_end(&xest2))
+          break;
+      } while (xst->nodeRet);
+
+      spot->base.type = AK_LIGHT_TYPE_SPOT;
+      *dest = &spot->base;
+    } else {
+      ak_xml_skipelm(xst);
+    }
+    
+    /* end element */
+    if (ak_xml_end(&xest))
+      break;
+  } while (xst->nodeRet);
 
   return AK_OK;
 }

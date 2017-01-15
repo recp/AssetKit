@@ -117,11 +117,7 @@ typedef enum AkProfileType {
 typedef enum AkTechniqueCommonType {
   AK_TECHNIQUE_COMMON_CAMERA_PERSPECTIVE  = 1,
   AK_TECHNIQUE_COMMON_CAMERA_ORTHOGRAPHIC = 2,
-  AK_TECHNIQUE_COMMON_LIGHT_AMBIENT       = 3,
-  AK_TECHNIQUE_COMMON_LIGHT_DIRECTIONAL   = 4,
-  AK_TECHNIQUE_COMMON_LIGHT_POINT         = 5,
-  AK_TECHNIQUE_COMMON_LIGHT_SPOT          = 6,
-  AK_TECHNIQUE_COMMON_INSTANCE_MATERIAL   = 7
+  AK_TECHNIQUE_COMMON_INSTANCE_MATERIAL   = 3
 } AkTechniqueCommonType;
 
 typedef enum AkFileType {
@@ -476,37 +472,6 @@ typedef struct AkCamera {
 
   struct AkCamera * next;
 } AkCamera;
-
-typedef AkColor AkAmbient;
-typedef AkColor AkDirectional;
-
-typedef struct AkPoint {
-  AkColor color;
-  float   constantAttenuation;
-  float   linearAttenuation;
-  float   quadraticAttenuation;
-} AkPoint;
-
-typedef struct AkSpot {
-  AkColor color;
-  float   constantAttenuation;
-  float   linearAttenuation;
-  float   quadraticAttenuation;
-  float   falloffAngle;
-  float   falloffExponent;
-} AkSpot;
-
-typedef struct AkLight {
-  ak_asset_base
-
-  /* const char * id; */
-  const char * name;
-
-  AkTechniqueCommon * techniqueCommon;
-  AkTechnique       * technique;
-  AkTree            * extra;
-  struct AkLight    * next;
-} AkLight;
 
 /* FX */
 /* Effects */
@@ -1603,6 +1568,7 @@ typedef struct AkDoc {
 #include "ak-cam.h"
 #include "ak-transform.h"
 #include "ak-sid.h"
+#include "ak-light.h"
 
 AK_EXPORT
 AkResult
