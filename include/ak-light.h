@@ -49,7 +49,7 @@ typedef struct AkLight {
 
   /* const char * id; */
   const char     *name;
-  AkLightBase    *techniqueCommon;
+  AkLightBase    *tcommon;
   AkTechnique    *technique;
   AkTree         *extra;
   struct AkLight *next;

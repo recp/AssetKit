@@ -47,7 +47,7 @@ ak_dae_light(AkXmlState * __restrict xst,
       tcommon = NULL;
       ret     = ak_dae_light_tcommon(xst, light, &tcommon);
       if (ret == AK_OK)
-        light->techniqueCommon = tcommon;
+        light->tcommon = tcommon;
     } else if (ak_xml_eqelm(xst, _s_dae_technique)) {
       AkTechnique *tq;
       AkResult ret;
