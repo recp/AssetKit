@@ -224,7 +224,7 @@ ak_dae_light_tcommon(AkXmlState   * __restrict xst,
       *dest = &point->base;
     }
 
-    else if (ak_xml_eqelm(xst, _s_dae_point)) {
+    else if (ak_xml_eqelm(xst, _s_dae_spot)) {
       AkSpotLight  *spot;
       AkXmlElmState xest2;
 
