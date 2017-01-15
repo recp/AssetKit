@@ -43,11 +43,12 @@
 typedef int32_t AkEnum;
 
 typedef enum AkResult {
-  AK_OK     = 0,
-  AK_ERR    = -1, /* UKNOWN ERR */
-  AK_EFOUND = -1000,
-  AK_ENOMEM = -ENOMEM,
-  AK_EPERM  = -EPERM
+  AK_OK       = 0,
+  AK_ERR      = -1, /* UKNOWN ERR */
+  AK_ETCOMMON = -2, /* no tcommon found */
+  AK_EFOUND   = -1000,
+  AK_ENOMEM   = -ENOMEM,
+  AK_EPERM    = -EPERM
 } AkResult;
 
 #endif /* __libassetkit__common_h */
