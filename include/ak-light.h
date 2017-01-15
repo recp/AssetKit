@@ -30,18 +30,18 @@ typedef AkLightBase AkDirectionalLight;
 
 typedef struct AkPointLight {
   AkLightBase base;
-  float       constantAttenuation;
-  float       linearAttenuation;
-  float       quadraticAttenuation;
+  float       constAttn;
+  float       linearAttn;
+  float       quadAttn;
 } AkPointLight;
 
 typedef struct AkSpotLight {
   AkLightBase base;
-  float       constantAttenuation;
-  float       linearAttenuation;
-  float       quadraticAttenuation;
+  float       constAttn;
+  float       linearAttn;
+  float       quadAttn;
   float       falloffAngle;
-  float       falloffExponent;
+  float       falloffExp;
 } AkSpotLight;
 
 typedef struct AkLight {

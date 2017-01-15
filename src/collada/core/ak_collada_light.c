@@ -193,24 +193,24 @@ ak_dae_light_tcommon(AkXmlState   * __restrict xst,
                           &point->base.color);
 
           ak_dae_color(xst, false, &point->base.color);
-        } else if (ak_xml_eqelm(xst, _s_dae_constant_attenuation)) {
+        } else if (ak_xml_eqelm(xst, _s_dae_const_attn)) {
           ak_xml_sid_seta(xst,
                           point,
-                          &point->constantAttenuation);
+                          &point->constAttn);
 
-          point->constantAttenuation = ak_xml_valf(xst);
-        } else if (ak_xml_eqelm(xst, _s_dae_linear_attenuation)) {
+          point->constAttn = ak_xml_valf(xst);
+        } else if (ak_xml_eqelm(xst, _s_dae_linear_attn)) {
           ak_xml_sid_seta(xst,
                           point,
-                          &point->linearAttenuation);
+                          &point->linearAttn);
 
-          point->linearAttenuation = ak_xml_valf(xst);
-        } else if (ak_xml_eqelm(xst, _s_dae_quadratic_attenuation)) {
+          point->linearAttn = ak_xml_valf(xst);
+        } else if (ak_xml_eqelm(xst, _s_dae_quad_attn)) {
           ak_xml_sid_seta(xst,
                           point,
-                          &point->quadraticAttenuation);
+                          &point->quadAttn);
 
-          point->quadraticAttenuation = ak_xml_valf(xst);
+          point->quadAttn = ak_xml_valf(xst);
         } else {
           ak_xml_skipelm(xst);
         }
@@ -244,36 +244,36 @@ ak_dae_light_tcommon(AkXmlState   * __restrict xst,
                           &spot->base.color);
 
           ak_dae_color(xst, false, &spot->base.color);
-        } else if (ak_xml_eqelm(xst, _s_dae_constant_attenuation)) {
+        } else if (ak_xml_eqelm(xst, _s_dae_const_attn)) {
           ak_xml_sid_seta(xst,
                           spot,
-                          &spot->constantAttenuation);
+                          &spot->constAttn);
 
-          spot->constantAttenuation = ak_xml_valf(xst);
-        } else if (ak_xml_eqelm(xst, _s_dae_linear_attenuation)) {
+          spot->constAttn = ak_xml_valf(xst);
+        } else if (ak_xml_eqelm(xst, _s_dae_linear_attn)) {
           ak_xml_sid_seta(xst,
                           spot,
-                          &spot->linearAttenuation);
+                          &spot->linearAttn);
 
-          spot->linearAttenuation = ak_xml_valf(xst);
-        } else if (ak_xml_eqelm(xst, _s_dae_quadratic_attenuation)) {
+          spot->linearAttn = ak_xml_valf(xst);
+        } else if (ak_xml_eqelm(xst, _s_dae_quad_attn)) {
           ak_xml_sid_seta(xst,
                           spot,
-                          &spot->quadraticAttenuation);
+                          &spot->quadAttn);
 
-          spot->quadraticAttenuation = ak_xml_valf(xst);
+          spot->quadAttn = ak_xml_valf(xst);
         } else if (ak_xml_eqelm(xst, _s_dae_falloff_angle)) {
           ak_xml_sid_seta(xst,
                           spot,
                           &spot->falloffAngle);
 
           spot->falloffAngle = ak_xml_valf(xst);
-        } else if (ak_xml_eqelm(xst, _s_dae_falloff_exponent)) {
+        } else if (ak_xml_eqelm(xst, _s_dae_falloff_exp)) {
           ak_xml_sid_seta(xst,
                           spot,
-                          &spot->falloffExponent);
+                          &spot->falloffExp);
 
-          spot->falloffExponent = ak_xml_valf(xst);
+          spot->falloffExp = ak_xml_valf(xst);
         } else {
           ak_xml_skipelm(xst);
         }
