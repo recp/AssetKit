@@ -9,6 +9,7 @@
 #include "ak_collada_asset.h"
 #include "ak_collada_technique.h"
 #include "ak_collada_color.h"
+#include <cglm.h>
 
 AkResult _assetkit_hide
 ak_dae_light(AkXmlState * __restrict xst,
@@ -267,7 +268,7 @@ ak_dae_light_tcommon(AkXmlState   * __restrict xst,
                           spot,
                           &spot->falloffAngle);
 
-          spot->falloffAngle = ak_xml_valf(xst);
+          spot->falloffAngle = glm_rad(ak_xml_valf(xst));
         } else if (ak_xml_eqelm(xst, _s_dae_falloff_exp)) {
           ak_xml_sid_seta(xst,
                           spot,
