@@ -43,9 +43,7 @@ typedef struct AkAxisOrientation {
 } AkAxisOrientation;
 
 typedef struct AkCoordSys {
-  AkAxis right;    /* +X */
-  AkAxis up;       /* +Y */
-  AkAxis fwd;      /* -Z */
+  AkAxisOrientation  axis;
 
   /* the default value is AK_AXIS_ROT_DIRECTION_RH (Right Handed) */
   AkAxisRotDirection rotDirection;
@@ -76,17 +74,17 @@ ak_coordAxisToiVec3(AkAxisOrientation axisOri, int32_t vec[3]) {
 AK_INLINE
 void
 ak_coordToiVec3(AkCoordSys * __restrict coordSys, int32_t vec[3]) {
-  vec[0] = coordSys->right;
-  vec[1] = coordSys->up;
-  vec[2] = coordSys->fwd;
+  vec[0] = coordSys->axis.right;
+  vec[1] = coordSys->axis.up;
+  vec[2] = coordSys->axis.fwd;
 }
 
 AK_INLINE
 bool
 ak_coordOrientationIsEq(AkCoordSys *c1, AkCoordSys *c2) {
-  return  c1->right == c2->right
-            && c1->up == c2->up
-            && c1->fwd == c2->fwd;
+  return  c1->axis.right == c2->axis.right
+            && c1->axis.up == c2->axis.up
+            && c1->axis.fwd == c2->axis.fwd;
 }
 
 AK_EXPORT

@@ -39,19 +39,24 @@ ak_coordAxisAccessors(AkCoordSys * __restrict oldCoordSys,
                       AkCoordSys * __restrict newCoordSys,
                       AkAxisAccessor * __restrict a0,
                       AkAxisAccessor * __restrict a1) {
-  a0->s_up    = AK_GET_SIGN(oldCoordSys->up);
-  a0->s_right = AK_GET_SIGN(oldCoordSys->right);
-  a0->s_fwd   = AK_GET_SIGN(oldCoordSys->fwd);
-  a0->up      = abs(oldCoordSys->up)    - 1;
-  a0->right   = abs(oldCoordSys->right) - 1;
-  a0->fwd     = abs(oldCoordSys->fwd)   - 1;
+  AkAxisOrientation oldAxis, newAxis;
 
-  a1->s_up    = AK_GET_SIGN(newCoordSys->up);
-  a1->s_right = AK_GET_SIGN(newCoordSys->right);
-  a1->s_fwd   = AK_GET_SIGN(newCoordSys->fwd);
-  a1->up      = abs(newCoordSys->up)    - 1;
-  a1->right   = abs(newCoordSys->right) - 1;
-  a1->fwd     = abs(newCoordSys->fwd)   - 1;
+  oldAxis = oldCoordSys->axis;
+  newAxis = newCoordSys->axis;
+
+  a0->s_up    = AK_GET_SIGN(oldAxis.up);
+  a0->s_right = AK_GET_SIGN(oldAxis.right);
+  a0->s_fwd   = AK_GET_SIGN(oldAxis.fwd);
+  a0->up      = abs(oldAxis.up)    - 1;
+  a0->right   = abs(oldAxis.right) - 1;
+  a0->fwd     = abs(oldAxis.fwd)   - 1;
+
+  a1->s_up    = AK_GET_SIGN(newAxis.up);
+  a1->s_right = AK_GET_SIGN(newAxis.right);
+  a1->s_fwd   = AK_GET_SIGN(newAxis.fwd);
+  a1->up      = abs(newAxis.up)    - 1;
+  a1->right   = abs(newAxis.right) - 1;
+  a1->fwd     = abs(newAxis.fwd)   - 1;
 }
 
 AK_INLINE
@@ -59,19 +64,24 @@ void
 ak_coordAxisCamAccessors(AkCoordSys * __restrict newCoordSys,
                          AkAxisAccessor * __restrict a0,
                          AkAxisAccessor * __restrict a1) {
-  a0->s_up    = AK_GET_SIGN(newCoordSys->cameraOrientation.up);
-  a0->s_right = AK_GET_SIGN(newCoordSys->cameraOrientation.right);
-  a0->s_fwd   = AK_GET_SIGN(newCoordSys->cameraOrientation.fwd);
-  a0->up      = abs(newCoordSys->cameraOrientation.up)    - 1;
-  a0->right   = abs(newCoordSys->cameraOrientation.right) - 1;
-  a0->fwd     = abs(newCoordSys->cameraOrientation.fwd)   - 1;
+  AkAxisOrientation oldAxis, newAxis;
 
-  a1->s_up    = AK_GET_SIGN(newCoordSys->up);
-  a1->s_right = AK_GET_SIGN(newCoordSys->right);
-  a1->s_fwd   = AK_GET_SIGN(newCoordSys->fwd);
-  a1->up      = abs(newCoordSys->up)    - 1;
-  a1->right   = abs(newCoordSys->right) - 1;
-  a1->fwd     = abs(newCoordSys->fwd)   - 1;
+  oldAxis = newCoordSys->cameraOrientation;
+  newAxis = newCoordSys->axis;
+
+  a0->s_up    = AK_GET_SIGN(oldAxis.up);
+  a0->s_right = AK_GET_SIGN(oldAxis.right);
+  a0->s_fwd   = AK_GET_SIGN(oldAxis.fwd);
+  a0->up      = abs(oldAxis.up)    - 1;
+  a0->right   = abs(oldAxis.right) - 1;
+  a0->fwd     = abs(oldAxis.fwd)   - 1;
+
+  a1->s_up    = AK_GET_SIGN(newAxis.up);
+  a1->s_right = AK_GET_SIGN(newAxis.right);
+  a1->s_fwd   = AK_GET_SIGN(newAxis.fwd);
+  a1->up      = abs(newAxis.up)    - 1;
+  a1->right   = abs(newAxis.right) - 1;
+  a1->fwd     = abs(newAxis.fwd)   - 1;
 }
 
 #endif /* ak_coord_common_h */
