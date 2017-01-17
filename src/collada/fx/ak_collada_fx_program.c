@@ -76,7 +76,7 @@ ak_dae_fxProg(AkXmlState * __restrict xst,
 
           ret = ak_dae_fxBinary(xst, linker, &binary);
           if (ret == AK_OK) {
-            if (last_shader)
+            if (last_binary)
               last_binary->next = binary;
             else
               linker->binary = binary;
