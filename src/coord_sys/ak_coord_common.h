@@ -11,6 +11,16 @@
 #include "../ak_common.h"
 #include "../ak_memory_common.h"
 
+#define AK__Z_RH {AK_AXIS_POSITIVE_X, AK_AXIS_POSITIVE_Z, AK_AXIS_POSITIVE_Y}
+#define AK__Y_RH {AK_AXIS_POSITIVE_X, AK_AXIS_POSITIVE_Y, AK_AXIS_NEGATIVE_Z}
+#define AK__X_RH {AK_AXIS_NEGATIVE_Y, AK_AXIS_POSITIVE_X, AK_AXIS_NEGATIVE_Z}
+
+#define AK__Z_LH {AK_AXIS_POSITIVE_X, AK_AXIS_POSITIVE_Z, AK_AXIS_NEGATIVE_Y}
+#define AK__Y_LH {AK_AXIS_POSITIVE_X, AK_AXIS_POSITIVE_Y, AK_AXIS_POSITIVE_Z}
+#define AK__X_LH {AK_AXIS_NEGATIVE_Y, AK_AXIS_POSITIVE_X, AK_AXIS_POSITIVE_Z}
+
+#define AK_COORD(P0, P1, P2) &(AkCoordSys){P0, P1, P2}
+
 #define AK_CVT_VEC_TO(X0, X1)                                                 \
   X1[a1.up]    = X0[a0.up]    * a0.s_up    * a1.s_up;                         \
   X1[a1.right] = X0[a0.right] * a0.s_right * a1.s_right;                      \
@@ -83,5 +93,20 @@ ak_coordAxisCamAccessors(AkCoordSys * __restrict newCoordSys,
   a1->right   = abs(newAxis.right) - 1;
   a1->fwd     = abs(newAxis.fwd)   - 1;
 }
+
+void
+ak_coordAxisOri(AkCoordSys * __restrict coordSys,
+                AkAxisOrientation       axis,
+                int                     newAxisOri[3]);
+
+void
+ak_coordAxisOriLocate(int coord1[3],
+                      int coord2[3],
+                      int    ori[3]);
+
+void
+ak_coordAxisOriAbs(AkCoordSys * __restrict coordSys,
+                   AkAxisOrientation       axis,
+                   int                     newAxisOri[3]);
 
 #endif /* ak_coord_common_h */

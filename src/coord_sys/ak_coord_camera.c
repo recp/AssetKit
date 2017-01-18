@@ -10,25 +10,6 @@
 #include "ak_coord_common.h"
 #include <cglm.h>
 
-void
-ak_coordLayoutCam(AkCoordSys * __restrict coordSys,
-                  int camOriNew[3]) {
-  int cam[3];
-  int coord[3];
-  int i, j;
-
-  ak_coordAxisToiVec3(coordSys->cameraOrientation, cam);
-  ak_coordToiVec3(coordSys, coord);
-
-  for (i = 0; i < 3; i++) {
-    for (j = 0; j < 3; j++)
-       if (cam[i] == coord[j])
-         camOriNew[i] = (j + 1) * glm_sign(cam[j]);
-       else if (abs(cam[i]) == abs(coord[j]))
-         camOriNew[i] = -(j + 1) * glm_sign(cam[j]);
-  }
-}
-
 AK_EXPORT
 void
 ak_coordRotForFixCamOri(AkCoordSys *oldCoordSys,
@@ -43,8 +24,8 @@ ak_coordRotForFixCamOri(AkCoordSys *oldCoordSys,
                            &a0,
                            &a1);
   
-  ak_coordLayoutCam(oldCoordSys, camOriOld);
-  ak_coordLayoutCam(newCoordSys, camOriNew);
+  ak_coordAxisOri(oldCoordSys, oldCoordSys->cameraOrientation, camOriOld);
+  ak_coordAxisOri(newCoordSys, newCoordSys->cameraOrientation, camOriNew);
 
   glm_vec_broadcast(0.0f, v1);
   glm_vec_broadcast(0.0f, v2);
