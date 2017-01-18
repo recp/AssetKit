@@ -15,12 +15,11 @@ void
 ak_coordCvtTransform(AkCoordSys *oldCoordSystem,
                      AkFloat4x4  transform,
                      AkCoordSys *newCoordSystem) {
-  mat4           rot, scale;
-  vec4           pos;
-  vec3           scalev, angles, tmp;
-  AkAxisAccessor a0, a1;
-  char           eulerNew[3];
-  const char     eulerXYZ[3] = {0, 1, 2};
+  mat4               rot, scale;
+  vec4               pos;
+  vec3               scalev, angles, tmp;
+  AkAxisAccessor     a0, a1;
+  ivec3              eulerNew;
   AkAxisRotDirection rotDirection;
 
   rotDirection = (oldCoordSystem->rotDirection + 1)
@@ -36,7 +35,9 @@ ak_coordCvtTransform(AkCoordSys *oldCoordSystem,
   AK_CVT_VEC(angles);
 
   /* find new euler sequence */
-  AK_CVT_VEC_NOSIGN_TO(eulerXYZ, eulerNew);
+  ak_coordAxisOriAbs(newCoordSystem,
+                     oldCoordSystem->axis,
+                     eulerNew);
 
   /* apply new rotation direction */
   glm_vec_scale(angles, rotDirection, angles);
