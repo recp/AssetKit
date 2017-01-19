@@ -7,7 +7,7 @@
 
 #include "../ak_common.h"
 #include "../ak_memory_common.h"
-#include "ak_coord_common.h"
+#include "../coord_sys/ak_coord_common.h"
 
 /* Right Hand (Default) */
 AkCoordSys AK__Y_RH_VAL =         {AK__Y_RH, AK_AXIS_ROT_DIR_RH, AK__Y_RH};
