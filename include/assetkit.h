@@ -104,16 +104,6 @@ typedef enum AkModifier {
   AK_MODIFIER_SHARED   = 7
 } AkModifier;
 
-typedef enum AkProfileType {
-  AK_PROFILE_TYPE_UNKOWN = 0,
-  AK_PROFILE_TYPE_COMMON = 1,
-  AK_PROFILE_TYPE_CG     = 2,
-  AK_PROFILE_TYPE_GLES   = 3,
-  AK_PROFILE_TYPE_GLES2  = 4,
-  AK_PROFILE_TYPE_GLSL   = 5,
-  AK_PROFILE_TYPE_BRIDGE = 6
-} AkProfileType;
-
 typedef enum AkTechniqueCommonType {
   AK_TECHNIQUE_COMMON_CAMERA_PERSPECTIVE  = 1,
   AK_TECHNIQUE_COMMON_CAMERA_ORTHOGRAPHIC = 2,

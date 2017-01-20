@@ -11,6 +11,16 @@
 extern "C" {
 #endif
 
+typedef enum AkProfileType {
+  AK_PROFILE_TYPE_UNKOWN = 0,
+  AK_PROFILE_TYPE_COMMON = 1,
+  AK_PROFILE_TYPE_CG     = 2,
+  AK_PROFILE_TYPE_GLES   = 3,
+  AK_PROFILE_TYPE_GLES2  = 4,
+  AK_PROFILE_TYPE_GLSL   = 5,
+  AK_PROFILE_TYPE_BRIDGE = 6
+} AkProfileType;
+
 typedef struct AkTechniqueFx {
   ak_asset_base
 
