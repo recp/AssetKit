@@ -640,7 +640,7 @@ typedef struct AkFxColorOrTex {
   AkOpaque      opaque;
 } AkFxColorOrTex;
 
-typedef AkFxColorOrTex AkAmbientFx;
+typedef AkFxColorOrTex AkAmbient;
 typedef AkFxColorOrTex AkDiffuse;
 typedef AkFxColorOrTex AkEmission;
 typedef AkFxColorOrTex AkReflective;
@@ -702,7 +702,7 @@ typedef struct AkInclude {
 
 typedef struct AkBlinn {
   AkEmission          * emission;
-  AkAmbientFx         * ambient;
+  AkAmbient           * ambient;
   AkDiffuse           * diffuse;
   AkSpecular          * specular;
   AkShininess         * shininess;
@@ -724,7 +724,7 @@ typedef struct AkConstantFx {
 
 typedef struct AkLambert {
   AkEmission          * emission;
-  AkAmbientFx         * ambient;
+  AkAmbient           * ambient;
   AkDiffuse           * diffuse;
   AkReflective        * reflective;
   AkReflectivity      * reflectivity;
@@ -735,7 +735,7 @@ typedef struct AkLambert {
 
 typedef struct AkPhong {
   AkEmission          * emission;
-  AkAmbientFx         * ambient;
+  AkAmbient           * ambient;
   AkDiffuse           * diffuse;
   AkSpecular          * specular;
   AkShininess         * shininess;
