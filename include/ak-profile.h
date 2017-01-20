@@ -38,15 +38,14 @@ typedef struct AkTechniqueFx {
 } AkTechniqueFx;
 
 typedef struct AkProfile {
+  /* const char * id; */
   ak_asset_base
 
-  AkProfileType   profileType;
-  /* const char    * id; */
-  AkNewParam    * newparam;
-  AkTechniqueFx * technique;
-  AkTree        * extra;
-
-  struct AkProfile * next;
+  AkProfileType     type;
+  AkNewParam       *newparam;
+  AkTechniqueFx    *technique;
+  AkTree           *extra;
+  struct AkProfile *next;
 } AkProfile;
 
 typedef AkProfile AkProfileCommon;

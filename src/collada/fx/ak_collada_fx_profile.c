@@ -126,7 +126,7 @@ ak_dae_profile(AkXmlState * __restrict xst,
       break;
   }
 
-  profile->profileType = found->val;
+  profile->type = found->val;
 
   ak_xml_readid(xst, profile);
 
