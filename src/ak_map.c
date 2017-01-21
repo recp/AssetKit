@@ -8,22 +8,11 @@
 #include "../include/ak-map.h"
 #include "ak_memory_common.h"
 
-static
-int
-ak__ptr_cmp(void *key1, void *key2) {
-  if (key1 > key2)
-    return 1;
-  else if (key1 < key2)
-    return -1;
-
-  return 0;
-}
-
 AkMap *
 ak_map_new(AkMapCmp cmp) {
   AkMap  *map;
   AkHeap *heap;
-  heap = ak_heap_new(NULL, cmp ? cmp : ak__ptr_cmp, NULL);
+  heap = ak_heap_new(NULL, cmp ? cmp : ak_cmp_ptr, NULL);
 
   map = ak_heap_alloc(heap, NULL, sizeof(*map));
   ak_heap_setdata(heap, map);
@@ -69,6 +58,49 @@ ak_map_add(AkMap *map,
   mi = ak_heap_alloc(map->heap, NULL, sizeof(*mi) + size);
   if (size > 0)
     memcpy(mi->data, value, size);
+
+  ak_heap_setId(map->heap, ak__alignof(mi), id);
+
+  mi->prev = NULL;
+  mi->next = map->root;
+  if (map->root)
+    map->root->prev = mi;
+  map->root = mi;
+}
+
+void
+ak_multimap_add(AkMap *map,
+                void  *value,
+                size_t size,
+                void  *id) {
+  AkHeapNode *hnode;
+  AkMapItem  *mi;
+  AkMapItem  *subItm;
+  AkResult    ret;
+
+  ret = ak_heap_getNodeById(map->heap, id, &hnode);
+  if (ret == AK_OK) {
+    AkMapItem *mii;
+
+    mi = ak__alignas(hnode);
+    subItm = ak_heap_calloc(map->heap, NULL, sizeof(*mi) + size);
+    if (size > 0)
+      memcpy(subItm->data, value, size);
+
+    mii = (AkMapItem *)mi->data;
+    if (mii)
+      mii->prev = subItm;
+
+    subItm->next = mii;
+    *(AkMapItem **)mi->data = subItm;
+    return;
+  }
+
+  mi     = ak_heap_calloc(map->heap, NULL, sizeof(*mi) + sizeof(void *));
+  subItm = ak_heap_calloc(map->heap, NULL, sizeof(*mi) + size);
+  if (size > 0)
+    memcpy(subItm->data, value, size);
+  *(AkMapItem **)mi->data = subItm;
 
   ak_heap_setId(map->heap, ak__alignof(mi), id);
 

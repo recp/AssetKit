@@ -5,7 +5,9 @@
  * Full license can be found in the LICENSE file
  */
 
-/* TODO: use separate rbtree instead of heap's rbtree (optional) */
+/* TODO: use separate rbtree instead of heap's rbtree (optional)
+ *       this map impl have many TODOs
+ */
 
 #ifndef ak_map_h
 #define ak_map_h
@@ -36,6 +38,12 @@ ak_map_add(AkMap *map,
            void  *value,
            size_t size,
            void  *id);
+
+void
+ak_multimap_add(AkMap *map,
+                void  *value,
+                size_t size,
+                void  *id);
 
 AkMap *
 ak_map_new(AkMapCmp cmp);

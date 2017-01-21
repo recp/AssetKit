@@ -61,4 +61,12 @@ ak_enumpair_cmp(const void * a, const void * b);
 int _assetkit_hide
 ak_enumpair_cmp2(const void * a, const void * b);
 
+AK_EXPORT
+int
+ak_cmp_str(void * key1, void *key2);
+
+AK_EXPORT
+int
+ak_cmp_ptr(void *key1, void *key2);
+
 #endif /* ak_common_h */
