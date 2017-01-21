@@ -27,4 +27,9 @@ ak_dae_fxInstanceMaterial(AkXmlState * __restrict xst,
                           void * __restrict memParent,
                           AkInstanceMaterial ** __restrict dest);
 
+AkResult _assetkit_hide
+ak_dae_fxBindMaterial_tcommon(AkXmlState          * __restrict xst,
+                              void                * __restrict memParent,
+                              AkInstanceMaterial ** __restrict dest);
+
 #endif /* __libassetkit__ak_collada_fx_material__h_ */

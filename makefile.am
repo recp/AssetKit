@@ -98,7 +98,6 @@ libassetkit_la_SOURCES=\
     src/collada/ak_collada_postscript.c \
     src/collada/core/ak_collada_asset.c \
     src/collada/core/ak_collada_technique.c \
-    src/collada/core/ak_collada_techniquec.c \
     src/collada/core/ak_collada_camera.c \
     src/collada/core/ak_collada_light.c \
     src/collada/core/ak_collada_param.c \

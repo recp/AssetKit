@@ -104,10 +104,6 @@ typedef enum AkModifier {
   AK_MODIFIER_SHARED   = 7
 } AkModifier;
 
-typedef enum AkTechniqueCommonType {
-  AK_TECHNIQUE_COMMON_INSTANCE_MATERIAL   = 3
-} AkTechniqueCommonType;
-
 typedef enum AkFileType {
   AK_FILE_TYPE_AUTO      = 0,
   AK_FILE_TYPE_COLLADA   = 1,
@@ -410,12 +406,6 @@ typedef struct AkTechnique {
 
   struct AkTechnique * next;
 } AkTechnique;
-
-typedef struct AkTechniqueCommon  {
-  struct AkTechniqueCommon * next;
-  void                     * technique;
-  AkTechniqueCommonType      techniqueType;
-} AkTechniqueCommon;
 
 /* FX */
 /* Effects */
@@ -887,11 +877,12 @@ typedef struct AkSkeleton {
   struct AkSkeleton * next;
 } AkSkeleton;
 
+struct AkInstanceMaterial;
 typedef struct AkBindMaterial {
-  AkParam      * param;
-  AkTechniqueCommon * techniqueCommon;
-  AkTechnique  * technique;
-  AkTree       * extra;
+  AkParam                   *param;
+  struct AkInstanceMaterial *tcommon;
+  AkTechnique               *technique;
+  AkTree                    *extra;
 } AkBindMaterial;
 
 typedef struct AkInstanceController {

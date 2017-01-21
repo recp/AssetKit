@@ -115,13 +115,15 @@ ak_dae_fxBindMaterial(AkXmlState * __restrict xst,
         last_param = param;
       }
     } else if (ak_xml_eqelm(xst, _s_dae_techniquec)) {
-      AkTechniqueCommon *tc;
-      AkResult ret;
+      AkInstanceMaterial *tcommon;
+      AkResult            ret;
 
-      tc = NULL;
-      ret = ak_dae_techniquec(xst, bindMaterial, &tc);
+      tcommon = NULL;
+      ret     = ak_dae_fxBindMaterial_tcommon(xst,
+                                              bindMaterial,
+                                              &tcommon);
       if (ret == AK_OK)
-        bindMaterial->techniqueCommon = tc;
+        bindMaterial->tcommon = tcommon;
 
     } else if (ak_xml_eqelm(xst, _s_dae_technique)) {
       AkTechnique *tq;
@@ -276,5 +278,47 @@ ak_dae_fxInstanceMaterial(AkXmlState * __restrict xst,
 
   *dest = material;
 
+  return AK_OK;
+}
+
+AkResult _assetkit_hide
+ak_dae_fxBindMaterial_tcommon(AkXmlState          * __restrict xst,
+                              void                * __restrict memParent,
+                              AkInstanceMaterial ** __restrict dest) {
+  AkInstanceMaterial *imat, *last_imat;
+  AkXmlElmState xest;
+
+  ak_xest_init(xest, _s_dae_techniquec)
+
+  imat = last_imat = NULL;
+
+  do {
+    if (ak_xml_begin(&xest))
+      break;
+
+    if (ak_xml_eqelm(xst, _s_dae_instance_material)) {
+      AkInstanceMaterial *imati;
+      AkResult            ret;
+      ret = ak_dae_fxInstanceMaterial(xst,
+                                      memParent,
+                                      &imati);
+
+      if (ret == AK_OK) {
+        if (last_imat)
+          last_imat->next = imati;
+        else
+          imat = imati;
+        last_imat = imati;
+      }
+    } else {
+      ak_xml_skipelm(xst);
+    }
+    
+    /* end element */
+    if (ak_xml_end(&xest))
+      break;
+  } while (xst->nodeRet);
+
+  *dest = imat;
   return AK_OK;
 }
