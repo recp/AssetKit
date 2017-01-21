@@ -952,19 +952,12 @@ typedef struct AkBindVertexInput {
 } AkBindVertexInput;
 
 typedef struct AkInstanceMaterial {
-  ak_asset_base
-
-  /* const char * sid; */
-
-  AkURL                 url;
-  AkMaterial          * material;
-  const char          * name;
-  const char          * target;
-  const char          * symbol;
-  AkTechniqueOverride * techniqueOverride;
-  AkBind              * bind;
-  AkBindVertexInput   * bindVertexInput;
-  AkTree              * extra;
+  AkInstanceBase       base;
+  const char          *target;
+  const char          *symbol;
+  AkTechniqueOverride *techniqueOverride;
+  AkBind              *bind;
+  AkBindVertexInput   *bindVertexInput;
 
   struct AkInstanceMaterial * next;
 } AkInstanceMaterial;

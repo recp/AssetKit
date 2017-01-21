@@ -183,14 +183,14 @@ ak_dae_fxInstanceMaterial(AkXmlState * __restrict xst,
 
   ak_xml_readsid(xst, material);
 
-  material->name   = ak_xml_attr(xst, material, _s_dae_name);
-  material->target = ak_xml_attr(xst, material, _s_dae_target);
-  material->symbol = ak_xml_attr(xst, material, _s_dae_symbol);
+  material->base.name = ak_xml_attr(xst, material, _s_dae_name);
+  material->target    = ak_xml_attr(xst, material, _s_dae_target);
+  material->symbol    = ak_xml_attr(xst, material, _s_dae_symbol);
 
   ak_xml_attr_url(xst,
                   _s_dae_url,
                   material,
-                  &material->url);
+                  &material->base.url);
 
   last_bind = NULL;
   last_bindVertexInput = NULL;
@@ -264,7 +264,7 @@ ak_dae_fxInstanceMaterial(AkXmlState * __restrict xst,
                           nodePtr,
                           &tree,
                           NULL);
-      material->extra = tree;
+      material->base.extra = tree;
 
       ak_xml_skipelm(xst);
     } else {
