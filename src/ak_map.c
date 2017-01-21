@@ -67,7 +67,8 @@ ak_map_add(AkMap *map,
     return;
 
   mi = ak_heap_alloc(map->heap, NULL, sizeof(*mi) + size);
-  memcpy(mi->data, value, size);
+  if (size > 0)
+    memcpy(mi->data, value, size);
 
   ak_heap_setId(map->heap, ak__alignof(mi), id);
 
