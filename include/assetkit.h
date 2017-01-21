@@ -883,40 +883,6 @@ typedef struct AkController {
   struct AkController * next;
 } AkController;
 
-typedef struct AkLookAt {
-  /* const char * sid; */
-
-  AkFloat3     val[3];
-} AkLookAt;
-
-typedef struct AkMatrix {
-  /* const char * sid; */
-
-  AK_ALIGN(16) AkFloat val[4][4];
-} AkMatrix;
-
-typedef struct AkRotate {
-  /* const char * sid; */
-  AK_ALIGN(16) AkFloat val[4];
-} AkRotate;
-
-typedef struct AkScale {
-  /* const char * sid; */
-  AkFloat      val[3];
-} AkScale;
-
-typedef struct AkSkew {
-  /* const char * sid; */
-  AkFloat      angle;
-  AkFloat3     rotateAxis;
-  AkFloat3     aroundAxis;
-} AkSkew;
-
-typedef struct AkTranslate {
-  /* const char * sid; */
-  AkFloat      val[3];
-} AkTranslate;
-
 typedef struct AkSkeleton {
   const char * val;
 
