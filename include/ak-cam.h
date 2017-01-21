@@ -11,6 +11,44 @@
 extern "C" {
 #endif
 
+typedef struct AkPerspective {
+  float xfov;
+  float yfov;
+  float aspectRatio;
+  float znear;
+  float zfar;
+} AkPerspective;
+
+typedef struct AkOrthographic {
+  float xmag;
+  float ymag;
+  float aspectRatio;
+  float znear;
+  float zfar;
+} AkOrthographic;
+
+typedef struct AkOptics {
+  AkTechniqueCommon * techniqueCommon;
+  AkTechnique       * technique;
+} AkOptics;
+
+typedef struct AkImager {
+  AkTechnique * technique;
+  AkTree      * extra;
+} AkImager;
+
+typedef struct AkCamera {
+  ak_asset_base
+
+  /* const char * id; */
+  const char * name;
+  AkOptics   * optics;
+  AkImager   * imager;
+  AkTree     * extra;
+
+  struct AkCamera * next;
+} AkCamera;
+
 /*!
  * @brief Top camera in scene if available
  *
