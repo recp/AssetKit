@@ -958,8 +958,6 @@ typedef struct AkInstanceMaterial {
   AkTechniqueOverride *techniqueOverride;
   AkBind              *bind;
   AkBindVertexInput   *bindVertexInput;
-
-  struct AkInstanceMaterial * next;
 } AkInstanceMaterial;
 
 typedef struct AkRender {

@@ -305,7 +305,7 @@ ak_dae_fxBindMaterial_tcommon(AkXmlState          * __restrict xst,
 
       if (ret == AK_OK) {
         if (last_imat)
-          last_imat->next = imati;
+          last_imat->base.next = &imati->base;
         else
           imat = imati;
         last_imat = imati;

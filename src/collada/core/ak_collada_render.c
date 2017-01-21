@@ -63,7 +63,7 @@ ak_dae_render(AkXmlState * __restrict xst,
 
       if (ret == AK_OK) {
         if (last_instanceMaterial)
-          last_instanceMaterial->next = instanceMaterial;
+          last_instanceMaterial->base.next = &instanceMaterial->base;
         else
           render->instanceMaterial = instanceMaterial;
 
