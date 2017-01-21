@@ -5,7 +5,8 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "ak_map.h"
+#include "../include/ak-map.h"
+#include "ak_memory_common.h"
 
 static
 int

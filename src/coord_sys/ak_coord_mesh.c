@@ -7,7 +7,6 @@
 
 #include "../ak_common.h"
 #include "../ak_memory_common.h"
-#include "../ak_map.h"
 
 /* TODO: use mutex */
 

@@ -9,9 +9,11 @@
 
 #ifndef ak_map_h
 #define ak_map_h
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include "ak_memory_common.h"
-#include <stdlib.h>
+#include "ak-memory.h"
 
 typedef struct AkMapItem {
   struct AkMapItem *prev;
@@ -41,4 +43,7 @@ ak_map_new(AkMapCmp cmp);
 void
 ak_map_destroy(AkMap *map);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* ak_map_linear_h */

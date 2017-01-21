@@ -8,7 +8,6 @@
 #include "ak_mesh_util.h"
 #include "../ak_common.h"
 #include "../ak_id.h"
-#include "../ak_map.h"
 
 size_t
 ak_mesh_src_usg(AkHeap *heap,
