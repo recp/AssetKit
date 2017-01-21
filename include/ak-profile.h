@@ -11,6 +11,8 @@
 extern "C" {
 #endif
 
+#include "ak-material.h"
+
 typedef enum AkProfileType {
   AK_PROFILE_TYPE_UNKOWN = 0,
   AK_PROFILE_TYPE_COMMON = 1,

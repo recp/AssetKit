@@ -627,30 +627,6 @@ typedef struct AkFxTexture {
   AkTree     * extra;
 } AkFxTexture;
 
-typedef struct AkFxColorOrTex {
-  AkColor     * color;
-  AkParam     * param;
-  AkFxTexture * texture;
-  AkOpaque      opaque;
-} AkFxColorOrTex;
-
-typedef AkFxColorOrTex AkAmbient;
-typedef AkFxColorOrTex AkDiffuse;
-typedef AkFxColorOrTex AkEmission;
-typedef AkFxColorOrTex AkReflective;
-typedef AkFxColorOrTex AkSpecular;
-typedef AkFxColorOrTex AkTransparent;
-
-typedef struct AkFxFloatOrParam {
-  float   *val;
-  AkParam *param;
-} AkFxFloatOrParam;
-
-typedef AkFxFloatOrParam AkIndexOfRefraction;
-typedef AkFxFloatOrParam AkReflectivity;
-typedef AkFxFloatOrParam AkShininess;
-typedef AkFxFloatOrParam AkTransparency;
-
 typedef struct AkAnnotate {
   const char * name;
   void       * val;
@@ -693,52 +669,6 @@ typedef struct AkInclude {
 
   struct AkInclude * next;
 } AkInclude;
-
-typedef struct AkBlinn {
-  AkEmission          * emission;
-  AkAmbient           * ambient;
-  AkDiffuse           * diffuse;
-  AkSpecular          * specular;
-  AkShininess         * shininess;
-  AkReflective        * reflective;
-  AkReflectivity      * reflectivity;
-  AkTransparent       * transparent;
-  AkTransparency      * transparency;
-  AkIndexOfRefraction * indexOfRefraction;
-} AkBlinn;
-
-typedef struct AkConstantFx {
-  AkEmission          * emission;
-  AkReflective        * reflective;
-  AkReflectivity      * reflectivity;
-  AkTransparent       * transparent;
-  AkTransparency      * transparency;
-  AkIndexOfRefraction * indexOfRefraction;
-} AkConstantFx;
-
-typedef struct AkLambert {
-  AkEmission          * emission;
-  AkAmbient           * ambient;
-  AkDiffuse           * diffuse;
-  AkReflective        * reflective;
-  AkReflectivity      * reflectivity;
-  AkTransparent       * transparent;
-  AkTransparency      * transparency;
-  AkIndexOfRefraction * indexOfRefraction;
-} AkLambert;
-
-typedef struct AkPhong {
-  AkEmission          * emission;
-  AkAmbient           * ambient;
-  AkDiffuse           * diffuse;
-  AkSpecular          * specular;
-  AkShininess         * shininess;
-  AkReflective        * reflective;
-  AkReflectivity      * reflectivity;
-  AkTransparent       * transparent;
-  AkTransparency      * transparency;
-  AkIndexOfRefraction * indexOfRefraction;
-} AkPhong;
 
 struct AkRenderState;
 typedef struct AkStates {
