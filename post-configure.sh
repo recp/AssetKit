@@ -34,4 +34,6 @@ if [ "`uname`" = "Darwin" ]; then
   install_name_tool -change /usr/local/lib/$libuv_dylib \
                             @loader_path/$libuv_dylib \
                             $ak_dylib
+
+  ln -sf ../include .libs/include
 fi
