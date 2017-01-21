@@ -12,7 +12,6 @@ extern "C" {
 #endif
 
 struct AkTechnique;
-struct AkTechniqueCommon;
 struct AkAssetInf;
 
 typedef enum AkSourceArrayType {
@@ -56,7 +55,7 @@ typedef struct AkSource {
   struct AkAssetInf  *inf;
   const char         *name;
   AkObject           *data; /* arrays inside source */
-  AkAccessor         *techniqueCommon;
+  AkAccessor         *tcommon;
   struct AkTechnique *technique;
   struct AkSource    *next;
 } AkSource;

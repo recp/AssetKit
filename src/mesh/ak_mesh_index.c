@@ -42,7 +42,7 @@ ak_ill_verts(AkHeap      *heap,
   while (inputb) {
     if (inputb->semantic == AK_INPUT_SEMANTIC_POSITION) {
       posSource = ak_getObjectByUrl(&inputb->source);
-      posData   = ak_getObjectByUrl(&posSource->techniqueCommon->source);
+      posData   = ak_getObjectByUrl(&posSource->tcommon->source);
       posArray  = ak_objGet(posData);
       break;
     }
@@ -341,13 +341,13 @@ ak_mesh_fix_pos(AkHeap       *heap,
   size_t              extc, newc, vc, i, j, d, s;
   uint32_t            stride;
 
-  oldAcc  = oldSrc->techniqueCommon;
+  oldAcc  = oldSrc->tcommon;
   oldData = ak_getObjectByUrl(&oldAcc->source);
   if (!oldData)
     return AK_ERR;
 
   src    = ak_mesh_src(heap, mesh, oldSrc, INT_MAX);
-  acc    = src->techniqueCommon;
+  acc    = src->tcommon;
   stride = oldAcc->stride;
   oldArr = ak_objGet(oldData);
 
@@ -467,7 +467,7 @@ ak_mesh_copy_copyarray(AkHeap             *heap,
   AK__UNUSED(mesh);
 
   alc = heap->allocator;
-  acc = src->techniqueCommon;
+  acc = src->tcommon;
 
   ppi = pp;
   while (ppi) {
@@ -557,10 +557,10 @@ ak_mesh_fix_idx_df(AkHeap *heap, AkMesh *mesh) {
   AkResult         ret;
 
   oldSrc = ak_mesh_pos_src(mesh);
-  if (!oldSrc || !oldSrc->techniqueCommon)
+  if (!oldSrc || !oldSrc->tcommon)
     return AK_ERR;
 
-  oldAcc = oldSrc->techniqueCommon;
+  oldAcc = oldSrc->tcommon;
   if (!oldSrc)
     return AK_ERR;
 
@@ -603,7 +603,7 @@ ak_mesh_fix_idx_df(AkHeap *heap, AkMesh *mesh) {
       if (!oldSrci)
         return AK_ERR; /* TODO: make this soft error, e.g. ignore */
 
-      oldAcci = oldSrci->techniqueCommon;
+      oldAcci = oldSrci->tcommon;
       if (!oldAcci)
         return AK_ERR; /* TODO: make this soft error, e.g. ignore */
 
@@ -621,7 +621,7 @@ ak_mesh_fix_idx_df(AkHeap *heap, AkMesh *mesh) {
         oldArrayi   = ak_objGet(oldDatai);
         newArray    = oldArrayi->newArray;
         srci        = ak_mesh_src(heap, mesh, oldSrci, INT_MAX);
-        acci        = srci->techniqueCommon;
+        acci        = srci->tcommon;
         acci->bound = oldAcci->bound;
 
         if (newArray) {

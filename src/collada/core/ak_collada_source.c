@@ -279,7 +279,7 @@ ak_dae_source(AkXmlState * __restrict xst,
 
           if (ak_xml_eqelm(xst, _s_dae_accessor))
             if (ak_dae_accessor(xst, source, &accessor) == AK_OK)
-              source->techniqueCommon = accessor;
+              source->tcommon = accessor;
           
           /* end element */
           if (ak_xml_end(&xest2))

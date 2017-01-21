@@ -89,7 +89,7 @@ ak_mesh_src(AkHeap   *heap,
                     ak_getId(newsrc));
   ak_setId(newsrc, newid);
 
-  oldacc = src->techniqueCommon;
+  oldacc = src->tcommon;
 
   /* duplicate accesor */
   newacc = ak_heap_alloc(heap, newsrc, sizeof(*newacc));
@@ -120,7 +120,7 @@ ak_mesh_src(AkHeap   *heap,
     dp = dp->next;
   }
 
-  newsrc->techniqueCommon = newacc;
+  newsrc->tcommon = newacc;
 
   return newsrc;
 }
@@ -161,8 +161,8 @@ ak_mesh_vert_stride(AkMesh *mesh) {
   inputb = primi->vertices->input;
   while (inputb) {
     src = ak_getObjectByUrl(&inputb->source);
-    if (src && src->techniqueCommon)
-      stride += src->techniqueCommon->bound;
+    if (src && src->tcommon)
+      stride += src->tcommon->bound;
 
     inputb = inputb->next;
   }
@@ -188,8 +188,8 @@ ak_mesh_prim_stride(AkMeshPrimitive *prim) {
       }
 
       src = ak_getObjectByUrl(&input->base.source);
-      if (src && src->techniqueCommon)
-        stride += src->techniqueCommon->bound;
+      if (src && src->tcommon)
+        stride += src->tcommon->bound;
 
       input = (AkInput *)input->base.next;
     }
@@ -217,7 +217,7 @@ ak_mesh_arr_stride(AkMesh *mesh, AkURL *arrayURL) {
   inputb = primi->vertices->input;
   while (inputb) {
     src = ak_getObjectByUrl(&inputb->source);
-    acc = src->techniqueCommon;
+    acc = src->tcommon;
 
     if (strcmp(acc->source.url, arrayURL->url) == 0
         && acc->source.doc == arrayURL->doc)
@@ -237,7 +237,7 @@ ak_mesh_arr_stride(AkMesh *mesh, AkURL *arrayURL) {
       }
 
       src = ak_getObjectByUrl(&input->base.source);
-      acc = src->techniqueCommon;
+      acc = src->tcommon;
 
       if (strcmp(acc->source.url, arrayURL->url) == 0
           && acc->source.doc == arrayURL->doc)
@@ -252,7 +252,7 @@ ak_mesh_arr_stride(AkMesh *mesh, AkURL *arrayURL) {
   mapi = map->root;
   while (mapi) {
     src = ak_getId(mapi);
-    acc = src->techniqueCommon;
+    acc = src->tcommon;
     if (acc)
       stride += acc->bound;
     mapi = mapi->next;
@@ -284,8 +284,8 @@ ak_mesh_intr_count(AkMesh *mesh) {
         inputb = primi->vertices->input;
         while (inputb) {
           src = ak_getObjectByUrl(&inputb->source);
-          if (src && src->techniqueCommon)
-            count += src->techniqueCommon->bound * icount;
+          if (src && src->tcommon)
+            count += src->tcommon->bound * icount;
 
           inputb = inputb->next;
         }
@@ -295,8 +295,8 @@ ak_mesh_intr_count(AkMesh *mesh) {
       }
 
       src = ak_getObjectByUrl(&input->base.source);
-      if (src && src->techniqueCommon)
-        count += src->techniqueCommon->bound * icount;
+      if (src && src->tcommon)
+        count += src->tcommon->bound * icount;
 
       input = (AkInput *)input->base.next;
     }

@@ -42,7 +42,7 @@ ak_changeCoordSysMesh(AkMesh * __restrict mesh,
       }
 
       srci = ak_getObjectByUrl(&inputb->source);
-      if (!srci || !srci->techniqueCommon) {
+      if (!srci || !srci->tcommon) {
         inputb = inputb->next;
         continue;
       }
@@ -74,7 +74,7 @@ ak_changeCoordSysMesh(AkMesh * __restrict mesh,
         }
 
         srci = ak_getObjectByUrl(&input->base.source);
-        if (!srci || !srci->techniqueCommon) {
+        if (!srci || !srci->tcommon) {
           input = (AkInput *)input->base.next;
           continue;
         }
@@ -93,7 +93,7 @@ ak_changeCoordSysMesh(AkMesh * __restrict mesh,
     AkObject   *datai;
 
     srci  = ak_getId(mapi);
-    acci  = srci->techniqueCommon;
+    acci  = srci->tcommon;
     datai = ak_getObjectByUrl(&acci->source);
     if (!datai) {
       mapi = mapi->next;
