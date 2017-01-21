@@ -5,6 +5,9 @@
 
 #ifndef redblack_h
 #define redblack_h
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stdint.h>
 
@@ -59,4 +62,7 @@ rb_assert(RBTree *tree, RBNode *root);
 void
 rb_destroy(RBTree *tree);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* redblack_h */
