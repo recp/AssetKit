@@ -154,7 +154,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
   |XML_PARSE_NOCDATA
   |XML_PARSE_NOXINCNODE
   |XML_PARSE_NOBASEFIX
-#ifndef _DEBUG
+#ifndef DEBUG
   |XML_PARSE_NOERROR
   |XML_PARSE_NOWARNING
 #endif
