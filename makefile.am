@@ -45,7 +45,8 @@ include_HEADERS = include/assetkit.h \
                   include/ak-trash.h \
                   include/ak-light.h \
                   include/ak-profile.h \
-                  include/ak-material.h
+                  include/ak-material.h \
+                  include/ak-rb.h
 
 libassetkit_la_SOURCES=\
     src/assetkit.c \
@@ -65,6 +66,7 @@ libassetkit_la_SOURCES=\
     src/ak_id.c \
     src/ak_trash.c \
     src/ak_map.c \
+    src/rb.c \
     src/coord_sys/ak_coord_common.c \
     src/coord_sys/ak_coord_mesh.c \
     src/coord_sys/ak_coord_geom.c \
