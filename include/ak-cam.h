@@ -11,42 +11,54 @@
 extern "C" {
 #endif
 
+typedef enum AkProjectionType {
+  AK_PROJECTION_PERSPECTIVE  = 0, /* default */
+  AK_PROJECTION_ORTHOGRAPHIC = 1,
+  AK_PROJECTION_OTHER        = 2
+} AkProjectionType;
+
+typedef struct AkProjection {
+  AkProjectionType type;
+  uint32_t         tag;
+} AkProjection;
+
 typedef struct AkPerspective {
-  float xfov;
-  float yfov;
-  float aspectRatio;
-  float znear;
-  float zfar;
+  AkProjection base;
+  float        xfov;
+  float        yfov;
+  float        aspectRatio;
+  float        znear;
+  float        zfar;
 } AkPerspective;
 
 typedef struct AkOrthographic {
-  float xmag;
-  float ymag;
-  float aspectRatio;
-  float znear;
-  float zfar;
+  AkProjection base;
+  float        xmag;
+  float        ymag;
+  float        aspectRatio;
+  float        znear;
+  float        zfar;
 } AkOrthographic;
 
 typedef struct AkOptics {
-  AkTechniqueCommon * techniqueCommon;
-  AkTechnique       * technique;
+  AkProjection *tcommon;
+  AkTechnique  *technique;
 } AkOptics;
 
 typedef struct AkImager {
-  AkTechnique * technique;
-  AkTree      * extra;
+  AkTechnique *technique;
+  AkTree      *extra;
 } AkImager;
 
 typedef struct AkCamera {
   ak_asset_base
 
   /* const char * id; */
-  const char * name;
-  AkOptics   * optics;
-  AkImager   * imager;
-  AkTree     * extra;
-
-  struct AkCamera * next;
+  const char      *name;
+  AkOptics        *optics;
+  AkImager        *imager;
+  AkTree          *extra;
+  struct AkCamera *next;
 } AkCamera;
 
 /*!

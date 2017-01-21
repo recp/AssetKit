@@ -105,8 +105,6 @@ typedef enum AkModifier {
 } AkModifier;
 
 typedef enum AkTechniqueCommonType {
-  AK_TECHNIQUE_COMMON_CAMERA_PERSPECTIVE  = 1,
-  AK_TECHNIQUE_COMMON_CAMERA_ORTHOGRAPHIC = 2,
   AK_TECHNIQUE_COMMON_INSTANCE_MATERIAL   = 3
 } AkTechniqueCommonType;
 

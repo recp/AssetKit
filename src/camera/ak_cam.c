@@ -39,10 +39,10 @@ ak_camFirstCamera(AkDoc     * __restrict doc,
       *camera = cam;
 
     if (projMatrix) {
-      switch ((int)cam->optics->techniqueCommon->techniqueType) {
-        case AK_TECHNIQUE_COMMON_CAMERA_PERSPECTIVE: {
+      switch ((int)cam->optics->tcommon->type) {
+        case AK_PROJECTION_PERSPECTIVE: {
           AkPerspective *perspective;
-          perspective = cam->optics->techniqueCommon->technique;
+          perspective = (AkPerspective *)cam->optics->tcommon;
 
           glm_perspective(perspective->yfov,
                           perspective->aspectRatio,
@@ -52,9 +52,9 @@ ak_camFirstCamera(AkDoc     * __restrict doc,
           break;
         }
 
-        case AK_TECHNIQUE_COMMON_CAMERA_ORTHOGRAPHIC: {
+        case AK_PROJECTION_ORTHOGRAPHIC: {
           AkOrthographic *ortho;
-          ortho = cam->optics->techniqueCommon->technique;
+          ortho = (AkOrthographic *)cam->optics->tcommon;
 
           glm_ortho(-ortho->xmag,
                      ortho->xmag,

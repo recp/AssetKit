@@ -8,6 +8,7 @@
 #include "ak_collada_camera.h"
 #include "ak_collada_asset.h"
 #include "ak_collada_technique.h"
+#include <cglm.h>
 
 AkResult _assetkit_hide
 ak_dae_camera(AkXmlState * __restrict xst,
@@ -37,15 +38,14 @@ ak_dae_camera(AkXmlState * __restrict xst,
         camera->inf = assetInf;
 
     } else if (ak_xml_eqelm(xst, _s_dae_optics)) {
-      AkOptics          *optics;
-      AkTechnique       *last_tq;
-      AkTechniqueCommon *last_tc;
-      AkXmlElmState      xest2;
+      AkOptics     *optics;
+      AkTechnique  *last_tq;
+      AkXmlElmState xest2;
 
-      optics = ak_heap_calloc(xst->heap, camera, sizeof(*optics));
-
+      optics  = ak_heap_calloc(xst->heap,
+                               camera,
+                               sizeof(*optics));
       last_tq = optics->technique;
-      last_tc = optics->techniqueCommon;
 
       ak_xest_init(xest2, _s_dae_optics)
 
@@ -54,20 +54,13 @@ ak_dae_camera(AkXmlState * __restrict xst,
           break;
 
         if (ak_xml_eqelm(xst, _s_dae_techniquec)) {
-          AkTechniqueCommon *tc;
-          AkResult ret;
+          AkProjection *tcommon;
+          AkResult      ret;
 
-          tc = NULL;
-          ret = ak_dae_techniquec(xst, optics, &tc);
-          if (ret == AK_OK) {
-            if (last_tc)
-              last_tc->next = tc;
-            else
-              optics->techniqueCommon = tc;
-
-            last_tc = tc;
-          }
-
+          tcommon = NULL;
+          ret     = ak_dae_camera_tcommon(xst, optics, &tcommon);
+          if (ret == AK_OK)
+            optics->tcommon = tcommon;
         } else if (ak_xml_eqelm(xst, _s_dae_technique)) {
           AkTechnique *tq;
           AkResult ret;
@@ -169,5 +162,157 @@ ak_dae_camera(AkXmlState * __restrict xst,
 
   *dest = camera;
 
+  return AK_OK;
+}
+
+AkResult _assetkit_hide
+ak_dae_camera_tcommon(AkXmlState    * __restrict xst,
+                      void          * __restrict memParent,
+                      AkProjection ** __restrict dest) {
+  AkXmlElmState xest;
+
+  ak_xest_init(xest, _s_dae_techniquec)
+
+  do {
+    if (ak_xml_begin(&xest))
+      break;
+
+    /* optics -> perspective */
+    if (ak_xml_eqelm(xst, _s_dae_perspective)) {
+      AkPerspective *perspective;
+      AkXmlElmState  xest2;
+
+      perspective = ak_heap_calloc(xst->heap,
+                                   memParent,
+                                   sizeof(*perspective));
+
+      ak_xest_init(xest2, _s_dae_perspective)
+
+      do {
+        if (ak_xml_begin(&xest2))
+          break;
+
+        if (ak_xml_eqelm(xst, _s_dae_xfov)) {
+          ak_xml_sid_seta(xst,
+                          perspective,
+                          &perspective->xfov);
+
+          perspective->xfov = glm_rad(ak_xml_valf(xst));
+        } else if (ak_xml_eqelm(xst, _s_dae_yfov)) {
+          ak_xml_sid_seta(xst,
+                          perspective,
+                          &perspective->yfov);
+
+          perspective->yfov = glm_rad(ak_xml_valf(xst));
+        } else if (ak_xml_eqelm(xst, _s_dae_aspect_ratio)) {
+          ak_xml_sid_seta(xst,
+                          perspective,
+                          &perspective->aspectRatio);
+
+          perspective->aspectRatio = ak_xml_valf(xst);
+        } else if (ak_xml_eqelm(xst, _s_dae_znear)) {
+          ak_xml_sid_seta(xst,
+                          perspective,
+                          &perspective->znear);
+
+          perspective->znear = ak_xml_valf(xst);
+        } else if (ak_xml_eqelm(xst, _s_dae_zfar)) {
+          ak_xml_sid_seta(xst,
+                          perspective,
+                          &perspective->zfar);
+
+          perspective->zfar = ak_xml_valf(xst);
+        } else {
+          ak_xml_skipelm(xst);
+        }
+
+        /* end element */
+        if (ak_xml_end(&xest2))
+          break;
+      } while (xst->nodeRet);
+
+      perspective->base.type = AK_PROJECTION_PERSPECTIVE;
+      if (!perspective->aspectRatio
+          && perspective->yfov
+          && perspective->xfov) {
+        perspective->aspectRatio = perspective->xfov / perspective->yfov;
+      } else if (!perspective->yfov
+                 && perspective->aspectRatio
+                 && perspective->xfov) {
+        perspective->yfov = perspective->xfov / perspective->aspectRatio;
+      } else if (!perspective->xfov
+                 && perspective->aspectRatio
+                 && perspective->yfov) {
+        perspective->xfov = perspective->yfov * perspective->aspectRatio;
+      }
+
+      *dest = &perspective->base;
+    }
+
+    /* optics -> orthographic */
+    else if (ak_xml_eqelm(xst, _s_dae_orthographic)) {
+      AkOrthographic *orthographic;
+      AkXmlElmState   xest2;
+
+      orthographic = ak_heap_calloc(xst->heap,
+                                    memParent,
+                                    sizeof(*orthographic));
+
+      ak_xest_init(xest2, _s_dae_orthographic)
+
+      do {
+        if (ak_xml_begin(&xest2))
+          break;
+
+        if (ak_xml_eqelm(xst, _s_dae_xmag)) {
+          ak_xml_sid_seta(xst,
+                          orthographic,
+                          &orthographic->xmag);
+
+          orthographic->xmag = ak_xml_valf(xst);
+        } else if (ak_xml_eqelm(xst, _s_dae_ymag)) {
+          ak_xml_sid_seta(xst,
+                          orthographic,
+                          &orthographic->ymag);
+
+          orthographic->ymag = ak_xml_valf(xst);
+        } else if (ak_xml_eqelm(xst, _s_dae_aspect_ratio)) {
+          ak_xml_sid_seta(xst,
+                          orthographic,
+                          &orthographic->aspectRatio);
+
+          orthographic->aspectRatio = ak_xml_valf(xst);
+        } else if (ak_xml_eqelm(xst, _s_dae_znear)) {
+          ak_xml_sid_seta(xst,
+                          orthographic,
+                          &orthographic->znear);
+
+          orthographic->znear = ak_xml_valf(xst);
+        } else if (ak_xml_eqelm(xst, _s_dae_zfar)) {
+          ak_xml_sid_seta(xst,
+                          orthographic,
+                          &orthographic->zfar);
+
+          orthographic->zfar = ak_xml_valf(xst);
+        } else {
+          ak_xml_skipelm(xst);
+        }
+
+        /* end element */
+        if (ak_xml_end(&xest2))
+          break;
+      } while (xst->nodeRet);
+
+      orthographic->base.type = AK_PROJECTION_ORTHOGRAPHIC;
+      *dest = &orthographic->base;
+    } else {
+      ak_xml_skipelm(xst);
+    }
+    
+    /* end element */
+    if (ak_xml_end(&xest))
+      break;
+  } while (xst->nodeRet);
+  
   return AK_OK;
 }
