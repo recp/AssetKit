@@ -62,7 +62,7 @@ ak_map_add(AkMap *map,
   AkMapItem  *mi;
   AkResult    ret;
 
-  ret = ak_heap_getNodeById(map->heap, value, &hnode);
+  ret = ak_heap_getNodeById(map->heap, id, &hnode);
   if (ret == AK_OK)
     return;
 
