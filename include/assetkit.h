@@ -780,15 +780,9 @@ typedef struct AkTechniqueHint {
 } AkTechniqueHint;
 
 typedef struct AkInstanceEffect {
-  /* const char * sid; */
-
-  AkURL        url;
-  AkEffect   * effect;
-  const char * name;
-
-  AkTechniqueHint * techniqueHint;
-  AkSetParam      * setparam;
-  AkTree          * extra;
+  AkInstanceBase   base;
+  AkTechniqueHint *techniqueHint;
+  AkSetParam      *setparam;
 } AkInstanceEffect;
 
 typedef struct AkMaterial {
