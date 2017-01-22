@@ -11,11 +11,11 @@
 #include "../include/assetkit.h"
 
 AK_EXPORT
-AkResult
+int
 ak_strtod(char ** __restrict src,
           AkDouble * __restrict dest,
           unsigned long n) {
-  char * tok;
+  char *tok;
 
   dest = dest + n - 1ul;
 
@@ -24,15 +24,15 @@ ak_strtod(char ** __restrict src,
        tok = strtok(NULL, " \t\r\n"))
     *(dest - --n) = strtod(tok, NULL);
 
-  return AK_OK;
+  return (int)n;
 }
 
 AK_EXPORT
-AkResult
+int
 ak_strtof(char ** __restrict src,
            AkFloat * __restrict dest,
            unsigned long n) {
-  char * tok;
+  char *tok;
 
   dest = dest + n - 1ul;
 
@@ -41,11 +41,11 @@ ak_strtof(char ** __restrict src,
        tok = strtok(NULL, " \t\r\n"))
     *(dest - --n) = strtof(tok, NULL);
 
-  return AK_OK;
+  return (int)n;
 }
 
 AK_EXPORT
-AkResult
+int
 ak_strtomf(char ** __restrict src,
             AkFloat * __restrict dest,
             unsigned long m,
@@ -61,11 +61,11 @@ ak_strtomf(char ** __restrict src,
        tok = strtok(NULL, " \t\r\n"))
     *(dest - --idx) = strtof(tok, NULL);
 
-  return AK_OK;
+  return (int)idx;
 }
 
 AK_EXPORT
-AkResult
+int
 ak_strtomb(char ** __restrict src,
             AkBool * __restrict dest,
             unsigned long m,
@@ -81,11 +81,11 @@ ak_strtomb(char ** __restrict src,
        tok = strtok(NULL, " \t\r\n"))
     *(dest - --idx) = (bool)strtol(tok, NULL, 10);
 
-  return AK_OK;
+  return (int)idx;
 }
 
 AK_EXPORT
-AkResult
+int
 ak_strtomi(char ** __restrict src,
             AkInt * __restrict dest,
             unsigned long m,
@@ -101,16 +101,16 @@ ak_strtomi(char ** __restrict src,
        tok = strtok(NULL, " \t\r\n"))
     *(dest - --idx) = (AkInt)strtol(tok, NULL, 10);
 
-  return AK_OK;
+  return (int)idx;
 }
 
 AK_EXPORT
-AkResult
+int
 ak_strtof_s(const char * __restrict src,
              AkFloat * __restrict dest,
              unsigned long n) {
-  char * raw;
-  AkResult ret;
+  char *raw;
+  int   ret;
 
   raw = strdup(src);
   ret = ak_strtof(&raw, dest, n);
@@ -121,7 +121,7 @@ ak_strtof_s(const char * __restrict src,
 
 AK_EXPORT
 inline
-AkResult
+int
 ak_strtof4(char ** __restrict src,
             AkFloat4 * __restrict dest) {
   return ak_strtof(src, *dest, 4);
@@ -129,7 +129,7 @@ ak_strtof4(char ** __restrict src,
 
 AK_EXPORT
 inline
-AkResult
+int
 ak_strtof4_s(const char * __restrict src,
               AkFloat4 * __restrict dest) {
   return ak_strtof_s(src, *dest, 4);
