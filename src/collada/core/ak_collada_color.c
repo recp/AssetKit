@@ -19,7 +19,13 @@ ak_dae_color(AkXmlState * __restrict xst,
   colorStr = ak_xml_rawcval(xst);
 
   if (colorStr) {
-    ak_strtof4(&colorStr, &dest->vec);
+    int c;
+    c = ak_strtof4(&colorStr, &dest->vec);
+    if (c > 0) {
+      do {
+        dest->vec[4 - c--] = 1.0f;
+      } while (c > 0);
+    }
     return AK_OK;
   }
 
