@@ -35,19 +35,6 @@ typedef AkFxFloatOrParam AkReflectivity;
 typedef AkFxFloatOrParam AkShininess;
 typedef AkFxFloatOrParam AkTransparency;
 
-typedef struct AkBlinn {
-  AkEmission          * emission;
-  AkAmbient           * ambient;
-  AkDiffuse           * diffuse;
-  AkSpecular          * specular;
-  AkShininess         * shininess;
-  AkReflective        * reflective;
-  AkReflectivity      * reflectivity;
-  AkTransparent       * transparent;
-  AkTransparency      * transparency;
-  AkIndexOfRefraction * indexOfRefraction;
-} AkBlinn;
-
 typedef struct AkConstantFx {
   AkEmission          * emission;
   AkReflective        * reflective;
@@ -80,6 +67,8 @@ typedef struct AkPhong {
   AkTransparency      * transparency;
   AkIndexOfRefraction * indexOfRefraction;
 } AkPhong;
+
+typedef AkPhong AkBlinn;
 
 #ifdef __cplusplus
 }
