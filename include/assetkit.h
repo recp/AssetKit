@@ -946,7 +946,6 @@ typedef struct AkBindVertexInput {
 
 typedef struct AkInstanceMaterial {
   AkInstanceBase       base;
-  const char          *target;
   const char          *symbol;
   AkTechniqueOverride *techniqueOverride;
   AkBind              *bind;

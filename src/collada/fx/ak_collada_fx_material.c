@@ -184,11 +184,10 @@ ak_dae_fxInstanceMaterial(AkXmlState * __restrict xst,
   ak_xml_readsid(xst, material);
 
   material->base.name = ak_xml_attr(xst, material, _s_dae_name);
-  material->target    = ak_xml_attr(xst, material, _s_dae_target);
   material->symbol    = ak_xml_attr(xst, material, _s_dae_symbol);
 
   ak_xml_attr_url(xst,
-                  _s_dae_url,
+                  _s_dae_target,
                   material,
                   &material->base.url);
 
