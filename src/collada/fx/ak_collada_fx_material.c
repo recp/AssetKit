@@ -46,7 +46,7 @@ ak_dae_material(AkXmlState * __restrict xst,
       instanceEffect = NULL;
       ret = ak_dae_fxInstanceEffect(xst, material, &instanceEffect);
       if (ret == AK_OK)
-        material->instanceEffect = instanceEffect;
+        material->effect = instanceEffect;
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;

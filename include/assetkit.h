@@ -788,11 +788,10 @@ typedef struct AkInstanceEffect {
 typedef struct AkMaterial {
   ak_asset_base
   /* const char * id; */
-  const char * name;
-  AkInstanceEffect *instanceEffect;
-  AkTree     * extra;
-
-  struct AkMaterial * next;
+  const char        *name;
+  AkInstanceEffect  *effect;
+  AkTree            *extra;
+  struct AkMaterial *next;
 } AkMaterial;
 
 typedef struct AkInputBasic {
