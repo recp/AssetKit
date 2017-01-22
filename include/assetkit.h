@@ -340,8 +340,8 @@ typedef struct AkColorRGBA {
 } AkColorRGBA;
 
 typedef union AkColor {
-  AkColorRGBA rgba;
-  AkFloat4    vec;
+  AK_ALIGN(16) AkColorRGBA rgba;
+  AK_ALIGN(16) AkFloat4    vec;
 } AkColor;
 
 typedef struct AkContributor {
