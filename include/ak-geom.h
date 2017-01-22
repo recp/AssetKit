@@ -11,11 +11,15 @@
 extern "C" {
 #endif
 
+#include "ak-map.h"
+
 typedef enum AkGeometryType {
   AK_GEOMETRY_TYPE_MESH   = 0,
   AK_GEOMETRY_TYPE_SPLINE = 1,
   AK_GEOMETRY_TYPE_BREP   = 2
 } AkGeometryType;
+
+struct AkGeometry;
 
 typedef struct AkVertices {
   ak_asset_base
@@ -29,6 +33,7 @@ typedef struct AkVertices {
 
 typedef struct AkMeshPrimitive {
   AkMeshPrimitiveType    type;
+  struct AkGeometry      *geom;
   const char             *name;
   const char             *material;
   AkInput                *input;
@@ -278,11 +283,11 @@ typedef struct AkGeometry {
   ak_asset_base
 
   /* const char * id; */
-  const char * name;
-  AkObject   * gdata;
-  AkTree     * extra;
-
-  struct AkGeometry * next;
+  const char        *name;
+  AkObject          *gdata;
+  AkTree            *extra;
+  AkMap             *materialMap;
+  struct AkGeometry *next;
 } AkGeometry;
 
 /*!
@@ -295,6 +300,20 @@ typedef struct AkGeometry {
 AK_EXPORT
 uint32_t
 ak_meshInputCount(AkMesh * __restrict mesh);
+
+/*!
+ * @brief set material (symbol) for primitive
+ *        actual material will set with bind_material/instance material
+ *
+ * @param prim     mesh primitive
+ * @param material material
+ *
+ * @return result
+ */
+AK_EXPORT
+AkResult
+ak_meshSetMaterial(AkMeshPrimitive *prim,
+                   const char      *material);
 
 #ifdef __cplusplus
 }

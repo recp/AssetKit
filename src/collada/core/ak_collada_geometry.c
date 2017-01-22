@@ -21,6 +21,11 @@ ak_dae_geometry(AkXmlState * __restrict xst,
   geometry = ak_heap_calloc(xst->heap,
                             memParent,
                             sizeof(*geometry));
+  geometry->materialMap = ak_map_new(ak_cmp_str);
+
+  /* destroy heap with this object */
+  ak_heap_setdata(geometry->materialMap->heap,
+                  geometry);
 
   ak_xml_readid(xst, geometry);
   geometry->name = ak_xml_attr(xst, geometry, _s_dae_name);

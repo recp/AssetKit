@@ -46,7 +46,7 @@ ak_dae_mesh(AkXmlState * __restrict xst,
             bool asObject) {
   AkObject        *obj;
   AkSource        *last_source;
-  AkMeshPrimitive *last_primitive;
+  AkMeshPrimitive *last_prim;
   AkMesh          *mesh;
   void            *memPtr;
   AkXmlElmState    xest;
@@ -76,8 +76,8 @@ ak_dae_mesh(AkXmlState * __restrict xst,
           ak_enumpair_cmp);
   }
 
-  last_primitive = NULL;
-  last_source    = NULL;
+  last_prim   = NULL;
+  last_source = NULL;
 
   ak_xest_init(xest, elm)
 
@@ -135,12 +135,17 @@ ak_dae_mesh(AkXmlState * __restrict xst,
                            lineMode,
                            &lines);
         if (ret == AK_OK) {
-          if (last_primitive)
-            last_primitive->next = &lines->base;
+          if (last_prim)
+            last_prim->next = &lines->base;
           else
             mesh->primitive = &lines->base;
 
-          last_primitive = &lines->base;
+          last_prim = &lines->base;
+
+          last_prim->geom = memParent;
+          if (last_prim->material)
+            ak_meshSetMaterial(last_prim,
+                               last_prim->material);
 
           mesh->primitiveCount++;
         }
@@ -164,12 +169,17 @@ ak_dae_mesh(AkXmlState * __restrict xst,
                              mode,
                              &polygon);
         if (ret == AK_OK) {
-          if (last_primitive)
-            last_primitive->next = &polygon->base;
+          if (last_prim)
+            last_prim->next = &polygon->base;
           else
             mesh->primitive = &polygon->base;
 
-          last_primitive = &polygon->base;
+          last_prim = &polygon->base;
+
+          last_prim->geom = memParent;
+          if (last_prim->material)
+            ak_meshSetMaterial(last_prim,
+                               last_prim->material);
 
           mesh->primitiveCount++;
         }
@@ -196,12 +206,17 @@ ak_dae_mesh(AkXmlState * __restrict xst,
                                mode,
                                &triangles);
         if (ret == AK_OK) {
-          if (last_primitive)
-            last_primitive->next = &triangles->base;
+          if (last_prim)
+            last_prim->next = &triangles->base;
           else
             mesh->primitive = &triangles->base;
 
-          last_primitive = &triangles->base;
+          last_prim = &triangles->base;
+
+          last_prim->geom = memParent;
+          if (last_prim->material)
+            ak_meshSetMaterial(last_prim,
+                               last_prim->material);
 
           mesh->primitiveCount++;
         }
