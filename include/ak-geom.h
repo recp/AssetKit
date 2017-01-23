@@ -12,6 +12,7 @@ extern "C" {
 #endif
 
 #include "ak-map.h"
+#include "ak-bbox.h"
 
 typedef enum AkGeometryType {
   AK_GEOMETRY_TYPE_MESH   = 0,
@@ -34,6 +35,7 @@ typedef struct AkVertices {
 typedef struct AkMeshPrimitive {
   AkMeshPrimitiveType    type;
   struct AkGeometry      *geom;
+  AkBoundingBox          *bbox; /* per-primitive bbox */
   const char             *name;
   const char             *material;
   AkInput                *input;
@@ -70,6 +72,7 @@ typedef struct AkMesh {
   AkSource        *source;
   AkVertices      *vertices;
   AkMeshPrimitive *primitive;
+  AkBoundingBox   *bbox;
   uint32_t         primitiveCount;
   AkTree          *extra;
 } AkMesh;
@@ -287,6 +290,7 @@ typedef struct AkGeometry {
   AkObject          *gdata;
   AkTree            *extra;
   AkMap             *materialMap;
+  AkBoundingBox     *bbox;
   struct AkGeometry *next;
 } AkGeometry;
 

@@ -984,13 +984,13 @@ typedef struct AkVisualScene {
   ak_asset_base
 
   /* const char * id; */
-  const char * name;
-  AkNode     * node;
-  AkNode     * firstCamNode;
-  AkEvaluateScene * evaluateScene;
-  AkTree     * extra;
-
-  struct AkVisualScene * next;
+  const char           *name;
+  AkNode               *node;
+  AkNode               *firstCamNode;
+  AkEvaluateScene      *evaluateScene;
+  struct AkBoundingBox *bbox;
+  AkTree               *extra;
+  struct AkVisualScene *next;
 } AkVisualScene;
 
 typedef struct AkScene {
@@ -1001,7 +1001,6 @@ typedef struct AkScene {
       instance_physics_scene
       instance_kinematics_scene
    */
-
   AkInstanceBase *visualScene;
   AkTree * extra;
 } AkScene;
