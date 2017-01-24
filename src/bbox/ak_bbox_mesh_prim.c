@@ -39,7 +39,7 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
         break;
 
       data = ak_getObjectByUrl(&acc->source);
-      if (!data)
+      if (data)
         posarray = ak_objGet(data);
       break;
     }
