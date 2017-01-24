@@ -95,6 +95,8 @@ libassetkit_la_SOURCES=\
     src/mesh/ak_mesh_index.c \
     src/mesh/ak_mesh_material.c \
     src/bbox/ak_bbox.c \
+    src/bbox/ak_bbox_geom.c \
+    src/bbox/ak_bbox_mesh.c \
     src/bbox/ak_bbox_mesh_prim.c \
     src/collada/ak_collada.c \
     src/collada/ak_collada_lib.c \
