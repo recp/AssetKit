@@ -58,4 +58,24 @@ ak_bbox_mesh(struct AkMesh * __restrict mesh);
 void
 ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim);
 
+/*!
+ * @brief get center of bbox
+ *
+ * @param[in]  bbox   bbox
+ * @param[out] center center of bbox
+ */
+void
+ak_bbox_center(AkBoundingBox * __restrict bbox,
+               float center[3]);
+
+/*!
+ * @brief returns radius of sphere which is surround bbox square
+ *
+ * @param bbox bbox
+ *
+ * @return radius (r) of outer sphere
+ */
+float
+ak_bbox_radius(AkBoundingBox * __restrict bbox);
+
 #endif /* ak_bbox_h */

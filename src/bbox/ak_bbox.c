@@ -6,6 +6,7 @@
  */
 
 #include "ak_bbox.h"
+#include <cglm.h>
 
 void
 ak_bbox_pick(float min[3],
@@ -97,4 +98,19 @@ ak_bbox_pick_pbox2(AkBoundingBox *parent,
 
   if (vec2[2] > parent->max[2])
     parent->max[2] = vec2[2];
+}
+
+void
+ak_bbox_center(AkBoundingBox * __restrict bbox,
+               float center[3]) {
+  center[0] = (bbox->max[0] + bbox->min[0]) * 0.5f;
+  center[1] = (bbox->max[1] + bbox->min[1]) * 0.5f;
+  center[2] = (bbox->max[2] + bbox->min[2]) * 0.5f;
+}
+
+float
+ak_bbox_radius(AkBoundingBox * __restrict bbox) {
+  float v[3];
+  glm_vec_sub(bbox->max, bbox->min, v);
+  return fabsf(glm_vec_max(v));
 }
