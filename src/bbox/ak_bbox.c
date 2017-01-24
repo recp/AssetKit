@@ -55,3 +55,46 @@ ak_bbox_pick_pbox(AkBoundingBox *parent,
   if (chld->max[2] > parent->max[2])
     parent->max[2] = chld->max[2];
 }
+
+void
+ak_bbox_pick_pbox2(AkBoundingBox *parent,
+                   float vec1[3],
+                   float vec2[3]) {
+  /* min */
+  if (vec1[0] < parent->min[0])
+    parent->min[0] = vec1[0];
+
+  if (vec1[1] < parent->min[1])
+    parent->min[1] = vec1[1];
+
+  if (vec1[2] < parent->min[2])
+    parent->min[2] = vec1[2];
+
+  if (vec2[0] < parent->min[0])
+    parent->min[0] = vec2[0];
+
+  if (vec2[1] < parent->min[1])
+    parent->min[1] = vec2[1];
+
+  if (vec2[2] < parent->min[2])
+    parent->min[2] = vec2[2];
+
+  /* max */
+  if (vec1[0] > parent->max[0])
+    parent->max[0] = vec1[0];
+
+  if (vec1[1] > parent->max[1])
+    parent->max[1] = vec1[1];
+
+  if (vec1[2] > parent->max[2])
+    parent->max[2] = vec1[2];
+
+  if (vec2[0] > parent->max[0])
+    parent->max[0] = vec2[0];
+
+  if (vec2[1] > parent->max[1])
+    parent->max[1] = vec2[1];
+
+  if (vec2[2] > parent->max[2])
+    parent->max[2] = vec2[2];
+}

@@ -20,4 +20,9 @@ void
 ak_bbox_pick_pbox(AkBoundingBox *parent,
                   AkBoundingBox *chld);
 
+void
+ak_bbox_pick_pbox2(AkBoundingBox *parent,
+                   float vec1[3],
+                   float vec2[3]);
+
 #endif /* ak_src_bbox_h */
