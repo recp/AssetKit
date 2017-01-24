@@ -8,17 +8,12 @@
 #include "ak_bbox.h"
 
 void
-ak_bbox_mesh(struct AkVisualScene * __restrict scene,
-             struct AkGeometry    * __restrict geom,
-             struct AkMesh        * __restrict mesh) {
+ak_bbox_mesh(struct AkMesh * __restrict mesh) {
   AkMeshPrimitive *prim;
 
   prim = mesh->primitive;
   while (prim) {
-    ak_bbox_mesh_prim(scene,
-                      geom,
-                      mesh,
-                      prim);
+    ak_bbox_mesh_prim(prim);
     prim = prim->next;
   }
 }

@@ -9,17 +9,18 @@
 #include <cglm.h>
 
 void
-ak_bbox_mesh_prim(struct AkVisualScene   * __restrict scene,
-                  struct AkGeometry      * __restrict geom,
-                  struct AkMesh          * __restrict mesh,
-                  struct AkMeshPrimitive * __restrict prim) {
+ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
   AkHeap             *heap;
+  AkGeometry         *geom;
+  AkMesh             *mesh;
   AkSourceFloatArray *posarray;
   AkFloat            *items;
   AkInputBasic       *inputb;
   AkAccessor         *acc;
   vec3                min, max;
 
+  mesh     = prim->mesh;
+  geom     = mesh->geom;
   inputb   = mesh->vertices->input;
   posarray = NULL;
   acc      = NULL;
@@ -89,13 +90,9 @@ ak_bbox_mesh_prim(struct AkVisualScene   * __restrict scene,
   if (!geom->bbox)
     geom->bbox = ak_heap_calloc(heap, prim, sizeof(*prim->bbox));
 
-  if (!scene->bbox)
-    scene->bbox = ak_heap_calloc(heap, prim, sizeof(*prim->bbox));
-
   glm_vec_dup(min, prim->bbox->min);
   glm_vec_dup(max, prim->bbox->max);
 
   ak_bbox_pick_pbox(mesh->bbox,  prim->bbox);
   ak_bbox_pick_pbox(geom->bbox,  mesh->bbox);
-  ak_bbox_pick_pbox(scene->bbox, geom->bbox);
 }
