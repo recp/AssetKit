@@ -15,7 +15,7 @@ ak_meshSetMaterial(AkMeshPrimitive *prim,
   AkGeometry *geom;
   AkMap      *map;
 
-  geom = prim->geom;
+  geom = prim->mesh->geom;
 
 #ifdef DEBUG
   assert(geom && "set geometry for this primitive!");

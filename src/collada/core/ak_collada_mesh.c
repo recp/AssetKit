@@ -66,6 +66,7 @@ ak_dae_mesh(AkXmlState * __restrict xst,
     memPtr = mesh;
   }
 
+  mesh->geom         = memParent;
   mesh->convexHullOf = ak_xml_attr(xst, memPtr, _s_dae_convex_hull_of);
 
   if (meshMapLen == 0) {
@@ -142,7 +143,7 @@ ak_dae_mesh(AkXmlState * __restrict xst,
 
           last_prim = &lines->base;
 
-          last_prim->geom = memParent;
+          last_prim->mesh = mesh;
           if (last_prim->material)
             ak_meshSetMaterial(last_prim,
                                last_prim->material);
@@ -176,7 +177,7 @@ ak_dae_mesh(AkXmlState * __restrict xst,
 
           last_prim = &polygon->base;
 
-          last_prim->geom = memParent;
+          last_prim->mesh = mesh;
           if (last_prim->material)
             ak_meshSetMaterial(last_prim,
                                last_prim->material);
@@ -213,7 +214,7 @@ ak_dae_mesh(AkXmlState * __restrict xst,
 
           last_prim = &triangles->base;
 
-          last_prim->geom = memParent;
+          last_prim->mesh = mesh;
           if (last_prim->material)
             ak_meshSetMaterial(last_prim,
                                last_prim->material);

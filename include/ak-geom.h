@@ -21,6 +21,7 @@ typedef enum AkGeometryType {
 } AkGeometryType;
 
 struct AkGeometry;
+struct AkMesh;
 
 typedef struct AkVertices {
   ak_asset_base
@@ -34,7 +35,7 @@ typedef struct AkVertices {
 
 typedef struct AkMeshPrimitive {
   AkMeshPrimitiveType    type;
-  struct AkGeometry      *geom;
+  struct AkMesh          *mesh;
   AkBoundingBox          *bbox; /* per-primitive bbox */
   const char             *name;
   const char             *material;
@@ -68,13 +69,14 @@ typedef struct AkTriangles {
 
 typedef struct AkMesh {
   ak_asset_base
-  const char      *convexHullOf;
-  AkSource        *source;
-  AkVertices      *vertices;
-  AkMeshPrimitive *primitive;
-  AkBoundingBox   *bbox;
-  uint32_t         primitiveCount;
-  AkTree          *extra;
+  struct AkGeometry *geom;
+  const char        *convexHullOf;
+  AkSource          *source;
+  AkVertices        *vertices;
+  AkMeshPrimitive   *primitive;
+  AkBoundingBox     *bbox;
+  uint32_t           primitiveCount;
+  AkTree            *extra;
 } AkMesh;
 
 typedef struct AkControlVerts {
