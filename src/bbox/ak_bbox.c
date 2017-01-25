@@ -103,9 +103,8 @@ ak_bbox_pick_pbox2(AkBoundingBox *parent,
 void
 ak_bbox_center(AkBoundingBox * __restrict bbox,
                float center[3]) {
-  center[0] = (bbox->max[0] + bbox->min[0]) * 0.5f;
-  center[1] = (bbox->max[1] + bbox->min[1]) * 0.5f;
-  center[2] = (bbox->max[2] + bbox->min[2]) * 0.5f;
+  glm_vec_sub(bbox->max, bbox->min, center);
+  glm_vec_scale(center, 0.5f, center);
 }
 
 float
