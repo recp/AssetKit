@@ -251,12 +251,12 @@ ak_dae_camera_tcommon(AkXmlState    * __restrict xst,
 
     /* optics -> orthographic */
     else if (ak_xml_eqelm(xst, _s_dae_orthographic)) {
-      AkOrthographic *orthographic;
+      AkOrthographic *ortho;
       AkXmlElmState   xest2;
 
-      orthographic = ak_heap_calloc(xst->heap,
-                                    memParent,
-                                    sizeof(*orthographic));
+      ortho = ak_heap_calloc(xst->heap,
+                             memParent,
+                             sizeof(*ortho));
 
       ak_xest_init(xest2, _s_dae_orthographic)
 
@@ -266,34 +266,34 @@ ak_dae_camera_tcommon(AkXmlState    * __restrict xst,
 
         if (ak_xml_eqelm(xst, _s_dae_xmag)) {
           ak_xml_sid_seta(xst,
-                          orthographic,
-                          &orthographic->xmag);
+                          ortho,
+                          &ortho->xmag);
 
-          orthographic->xmag = ak_xml_valf(xst);
+          ortho->xmag = ak_xml_valf(xst);
         } else if (ak_xml_eqelm(xst, _s_dae_ymag)) {
           ak_xml_sid_seta(xst,
-                          orthographic,
-                          &orthographic->ymag);
+                          ortho,
+                          &ortho->ymag);
 
-          orthographic->ymag = ak_xml_valf(xst);
+          ortho->ymag = ak_xml_valf(xst);
         } else if (ak_xml_eqelm(xst, _s_dae_aspect_ratio)) {
           ak_xml_sid_seta(xst,
-                          orthographic,
-                          &orthographic->aspectRatio);
+                          ortho,
+                          &ortho->aspectRatio);
 
-          orthographic->aspectRatio = ak_xml_valf(xst);
+          ortho->aspectRatio = ak_xml_valf(xst);
         } else if (ak_xml_eqelm(xst, _s_dae_znear)) {
           ak_xml_sid_seta(xst,
-                          orthographic,
-                          &orthographic->znear);
+                          ortho,
+                          &ortho->znear);
 
-          orthographic->znear = ak_xml_valf(xst);
+          ortho->znear = ak_xml_valf(xst);
         } else if (ak_xml_eqelm(xst, _s_dae_zfar)) {
           ak_xml_sid_seta(xst,
-                          orthographic,
-                          &orthographic->zfar);
+                          ortho,
+                          &ortho->zfar);
 
-          orthographic->zfar = ak_xml_valf(xst);
+          ortho->zfar = ak_xml_valf(xst);
         } else {
           ak_xml_skipelm(xst);
         }
@@ -303,8 +303,21 @@ ak_dae_camera_tcommon(AkXmlState    * __restrict xst,
           break;
       } while (xst->nodeRet);
 
-      orthographic->base.type = AK_PROJECTION_ORTHOGRAPHIC;
-      *dest = &orthographic->base;
+      ortho->base.type = AK_PROJECTION_ORTHOGRAPHIC;
+      if (!ortho->aspectRatio
+          && ortho->ymag
+          && ortho->xmag) {
+        ortho->aspectRatio = ortho->xmag / ortho->ymag;
+      } else if (!ortho->ymag
+                 && ortho->aspectRatio
+                 && ortho->xmag) {
+        ortho->ymag = ortho->xmag / ortho->aspectRatio;
+      } else if (!ortho->xmag
+                 && ortho->aspectRatio
+                 && ortho->ymag) {
+        ortho->xmag = ortho->ymag * ortho->aspectRatio;
+      }
+      *dest = &ortho->base;
     } else {
       ak_xml_skipelm(xst);
     }
