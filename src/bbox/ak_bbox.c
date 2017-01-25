@@ -112,5 +112,5 @@ float
 ak_bbox_radius(AkBoundingBox * __restrict bbox) {
   float v[3];
   glm_vec_sub(bbox->max, bbox->min, v);
-  return fabsf(glm_vec_max(v));
+  return fabsf(glm_vec_max(v)) / 2.0f;
 }
