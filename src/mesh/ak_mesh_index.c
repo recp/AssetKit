@@ -268,7 +268,7 @@ ak_ill_verts(AkHeap      *heap,
     fpi = fp;
     while (fpi) {
       AkUInt *it2;
-      uint32_t c, st, vo, idxp;
+      uint32_t c, st, vo, idxp, newpos;
 
       it  = fpi->ind->items;
       it2 = fpi->newind->items;
@@ -276,14 +276,20 @@ ak_ill_verts(AkHeap      *heap,
       vo  = fpi->vo;
       c   = fpi->count;
 
-      for (i = j = 0; i < c; i += st, j++) {
-        uint32_t newpos;
-
-        idxp   = it[i + vo];
-        newpos = it2[j] + idxp + dupcsum->items[idxp];
-
-        it[i + vo] = newpos;
-        it2[j]     = newpos;
+      if (idesc) {
+        for (i = j = 0; i < c; i += st, j++) {
+          idxp       = it[i + vo];
+          newpos     = it2[j] + idxp + dupcsum->items[idxp];
+          it[i + vo] = newpos;
+          it2[j]     = newpos;
+        }
+      } else {
+        for (i = j = 0; i < c; i += st, j++) {
+          idxp       = it[i + vo];
+          newpos     = idxp + dupcsum->items[idxp];
+          it[i + vo] = newpos;
+          it2[j]     = newpos;
+        }
       }
 
       fpi = fpi->next;
@@ -292,7 +298,7 @@ ak_ill_verts(AkHeap      *heap,
     fpi = fp;
     while (fpi) {
       AkUInt *it2;
-      uint32_t i, j, c, st, vo, idxp;
+      uint32_t i, j, c, st, vo;
 
       it  = fpi->ind->items;
       it2 = fpi->newind->items;
@@ -300,14 +306,12 @@ ak_ill_verts(AkHeap      *heap,
       vo  = fpi->vo;
       c   = fpi->count;
 
-      for (i = j = 0; i < c; i += st, j++) {
-        uint32_t newpos;
-
-        idxp   = it[i + vo];
-        newpos = it2[j] + idxp;
-
-        it[i + vo] = newpos;
-        it2[j]     = newpos;
+      if (idesc) {
+        for (i = j = 0; i < c; i += st, j++)
+          it2[j] = it[i + vo] = it[i + vo] + it2[j];
+      } else {
+        for (i = j = 0; i < c; i += st, j++)
+          it2[j] = it[i + vo] = it[i + vo];
       }
 
       fpi = fpi->next;
