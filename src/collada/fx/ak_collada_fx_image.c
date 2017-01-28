@@ -88,25 +88,25 @@ ak_dae_fxImage(AkXmlState * __restrict xst,
         img->initFrom = initFrom;
     } else if (ak_xml_eqelm(xst, _s_dae_create_2d)) {
       AkImage2d *image2d;
-      AkResult    ret;
+      AkResult   ret;
 
       ret = ak_dae_fxImage_create2d(xst, img, &image2d);
       if (ret == AK_OK)
-        img->image2d = image2d;
+        img->image = &image2d->base;
     } else if (ak_xml_eqelm(xst, _s_dae_create_3d)) {
       AkImage3d *image3d;
       AkResult    ret;
 
       ret = ak_dae_fxImage_create3d(xst, img, &image3d);
       if (ret == AK_OK)
-        img->image3d = image3d;
+        img->image = &image3d->base;
     } else if (ak_xml_eqelm(xst, _s_dae_create_cube)) {
       AkImageCube *imageCube;
       AkResult ret;
 
       ret = ak_dae_fxImage_createCube(xst, img, &imageCube);
       if (ret == AK_OK)
-        img->cube = imageCube;
+        img->image = &imageCube->base;
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree    *tree;
@@ -338,6 +338,7 @@ ak_dae_fxImage_create2d(AkXmlState * __restrict xst,
                            memParent,
                            sizeof(*image2d));
 
+  image2d->base.type = AK_IMAGE_TYPE_2D;
   ak_xest_init(xest, _s_dae_create_2d)
 
   do {
@@ -381,21 +382,21 @@ ak_dae_fxImage_create2d(AkXmlState * __restrict xst,
     } else if (ak_xml_eqelm(xst, _s_dae_unnormalized)) {
       image2d->unnormalized = ak_xml_val(xst, image2d);
     } else if (ak_xml_eqelm(xst, _s_dae_array)) {
-      image2d->arrayLen = ak_xml_attrui(xst, _s_dae_length);
+      image2d->base.arrayLen = ak_xml_attrui(xst, _s_dae_length);
     } else if (ak_xml_eqelm(xst, _s_dae_format)) {
       AkImageFormat *imageFormat;
       AkResult ret;
 
       ret = ak_dae_fxImage_format(xst, image2d, &imageFormat);
       if (ret == AK_OK)
-        image2d->format = imageFormat;
+        image2d->base.format = imageFormat;
     } else if (ak_xml_eqelm(xst, _s_dae_size_exact)) {
       AkInitFrom *initFrom;
       AkResult ret;
 
       ret = ak_dae_fxImage_initFrom(xst, image2d, &initFrom);
       if (ret == AK_OK)
-        image2d->initFrom = initFrom;
+        image2d->base.initFrom = initFrom;
     } else {
       ak_xml_skipelm(xst);
     }
@@ -422,6 +423,7 @@ ak_dae_fxImage_create3d(AkXmlState * __restrict xst,
                            memParent,
                            sizeof(*image3d));
 
+  image3d->base.type = AK_IMAGE_TYPE_3D;
   ak_xest_init(xest, _s_dae_create_3d)
 
   do {
@@ -436,21 +438,21 @@ ak_dae_fxImage_create3d(AkXmlState * __restrict xst,
       image3d->mips.levels       = ak_xml_attrui(xst, _s_dae_levels);
       image3d->mips.autoGenerate = ak_xml_attrui(xst, _s_dae_auto_generate);
     } else if (ak_xml_eqelm(xst, _s_dae_array)) {
-      image3d->arrayLen = ak_xml_attrui(xst, _s_dae_length);
+      image3d->base.arrayLen = ak_xml_attrui(xst, _s_dae_length);
     } else if (ak_xml_eqelm(xst, _s_dae_format)) {
       AkImageFormat *imageFormat;
       AkResult ret;
 
       ret = ak_dae_fxImage_format(xst, image3d, &imageFormat);
       if (ret == AK_OK)
-        image3d->format = imageFormat;
+        image3d->base.format = imageFormat;
     } else if (ak_xml_eqelm(xst, _s_dae_size_exact)) {
       AkInitFrom *initFrom;
       AkResult ret;
 
       ret = ak_dae_fxImage_initFrom(xst, image3d, &initFrom);
       if (ret == AK_OK)
-        image3d->initFrom = initFrom;
+        image3d->base.initFrom = initFrom;
     } else {
       ak_xml_skipelm(xst);
     }
@@ -477,6 +479,7 @@ ak_dae_fxImage_createCube(AkXmlState * __restrict xst,
                              memParent,
                              sizeof(*imageCube));
 
+  imageCube->base.type = AK_IMAGE_TYPE_CUBE;
   ak_xest_init(xest, _s_dae_create_cube)
 
   do {
@@ -489,21 +492,21 @@ ak_dae_fxImage_createCube(AkXmlState * __restrict xst,
       imageCube->mips.levels       = ak_xml_attrui(xst, _s_dae_levels);
       imageCube->mips.autoGenerate = ak_xml_attrui(xst, _s_dae_auto_generate);
     } else if (ak_xml_eqelm(xst, _s_dae_array)) {
-      imageCube->arrayLen = ak_xml_attrui(xst, _s_dae_length);
+      imageCube->base.arrayLen = ak_xml_attrui(xst, _s_dae_length);
     } else if (ak_xml_eqelm(xst, _s_dae_format)) {
       AkImageFormat *imageFormat;
       AkResult ret;
 
       ret = ak_dae_fxImage_format(xst, imageCube, &imageFormat);
       if (ret == AK_OK)
-        imageCube->format = imageFormat;
+        imageCube->base.format = imageFormat;
     } else if (ak_xml_eqelm(xst, _s_dae_size_exact)) {
       AkInitFrom *initFrom;
       AkResult ret;
 
       ret = ak_dae_fxImage_initFrom(xst, imageCube, &initFrom);
       if (ret == AK_OK)
-        imageCube->initFrom = initFrom;
+        imageCube->base.initFrom = initFrom;
     } else {
       ak_xml_skipelm(xst);
     }
