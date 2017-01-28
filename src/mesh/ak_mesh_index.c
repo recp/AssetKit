@@ -761,6 +761,16 @@ ak_mesh_fix_idx_df(AkHeap *heap, AkMesh *mesh) {
       prim = ppi->orig;
       ak_free(prim->indices);
       prim->indices = ppi->newind;
+
+      /* mark primitive as single index */
+      prim->indexStride = 1;
+
+      /* make all offsets 0 */
+      input = ppi->input;
+      while (input) {
+        input->offset = 0;
+        input = (AkInput *)input->base.next;
+      }
     }
 
     ppi = ppi->next;
