@@ -21,7 +21,8 @@ uintptr_t AK_OPTIONS[] =
   false,                      /* 5: _NO_INDICES_SEPARATE         */
   (uintptr_t)&AK__Y_RH_VAL,   /* 6: _COORD                       */
   (uintptr_t)&AK_DEF_ID_PRFX, /* 7: _DEFAULT_ID_PREFIX           */
-  false                       /* 8: _COMPUTE_BBOX                */
+  false,                      /* 8: _COMPUTE_BBOX                */
+  true                        /* 9: _TRIANGULATE                 */
 };
 
 AK_EXPORT
