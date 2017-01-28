@@ -68,6 +68,11 @@ ak_meshTriangulatePoly(AkPolygon * __restrict poly) {
 
   ak_free(poly->base.indices);
   poly->base.indices = newind;
+
+  /* no need to this info anymore, save space! */
+  ak_free(poly->vcount);
+  poly->vcount = NULL;
+
   return trianglec;
 }
 
