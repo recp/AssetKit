@@ -57,7 +57,7 @@ typedef struct AkLines {
 typedef struct AkPolygon {
   AkMeshPrimitive base;
   AkDoubleArrayL *holes;
-  AkIntArray     *vcount;
+  AkUIntArray    *vcount;
   AkPolygonMode   mode;
   AkBool          haveHoles;
 } AkPolygon;
@@ -320,6 +320,28 @@ AK_EXPORT
 AkResult
 ak_meshSetMaterial(AkMeshPrimitive *prim,
                    const char      *material);
+
+/*!
+ * @brief triangulate all mesh primitives
+ *
+ * @param mesh mesh
+ *
+ * @return new triangles/faces count
+ */
+AK_EXPORT
+uint32_t
+ak_meshTriangulate(AkMesh * __restrict mesh);
+
+/*!
+ * @brief triangulate polygon
+ *
+ * @param poly polygon primitive
+ *
+ * @return new triangles/faces count
+ */
+AK_EXPORT
+uint32_t
+ak_meshTriangulatePoly(AkPolygon * __restrict poly);
 
 #ifdef __cplusplus
 }

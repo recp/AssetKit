@@ -110,12 +110,12 @@ ak_dae_polygon(AkXmlState * __restrict xst,
       content = ak_xml_rawval(xst);
 
       if (content) {
-        AkIntArray *intArray;
-        AkResult    ret;
+        AkUIntArray *uintArray;
+        AkResult     ret;
 
-        ret = ak_strtoi_array(xst->heap, polygon, content, &intArray);
+        ret = ak_strtoui_array(xst->heap, polygon, content, &uintArray);
         if (ret == AK_OK)
-          polygon->vcount = intArray;
+          polygon->vcount = uintArray;
 
         xmlFree(content);
       }
