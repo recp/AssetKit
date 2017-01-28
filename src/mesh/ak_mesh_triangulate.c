@@ -8,6 +8,103 @@
 #include "ak_mesh_util.h"
 #include "../ak_common.h"
 
+/* not tested yet! */
+AK_EXPORT
+uint32_t
+ak_meshTriangulatePoly_noindices(AkPolygon * __restrict poly) {
+  AkSourceFloatArray *arr, *newarr;
+  AkHeap             *heap;
+  AkUInt             *vc_it;
+  AkAccessor         *acc;
+  AkSource           *src;
+  AkInputBasic       *inputb;
+  AkObject           *data, *newdata;
+  AkFloat            *it_new, *it_old;
+  AkUInt              trianglec, otherc, i, st, isz;
+
+  otherc    = 0;
+  trianglec = 0;
+  vc_it     = poly->vcount->items;
+  for (i = 0; i < poly->vcount->count; i++) {
+    if (vc_it[i] > 3)
+      trianglec += vc_it[i] - 2;
+    else
+      otherc += vc_it[i];
+  }
+
+  if (!trianglec)
+    return trianglec;
+
+  if (!poly->base.vertices)
+    return 0;
+
+  src = NULL;
+  acc = NULL;
+  arr = NULL;
+
+  inputb = poly->base.vertices->input;
+  while (inputb) {
+    if (inputb->semantic == AK_INPUT_SEMANTIC_POSITION) {
+      src = ak_getObjectByUrl(&inputb->source);
+      if (!src)
+        return 0;
+
+      acc = src->tcommon;
+      if (!acc)
+        return 0;
+
+      data = ak_getObjectByUrl(&acc->source);
+      if (!data)
+        return 0;
+
+      arr = ak_objGet(data);
+    }
+    inputb = inputb->next;
+  }
+
+  if (!src || !acc || !arr)
+    return 0;
+
+  isz  = sizeof(AkFloat);
+  st   = acc->stride;
+  heap = ak_heap_getheap(poly->vcount);
+
+  newdata = ak_heap_alloc(heap,
+                          poly,
+                          sizeof(*newdata)
+                          + isz * (arr->count
+                                   + (trianglec - 1) * 3 * st));
+  newarr = ak_objGet(newdata);
+  newarr->count = arr->count + (trianglec - 1) * 3 * st;
+
+  it_old  = newarr->items;
+  it_new = arr->items;
+
+  for (i = 0; i < poly->vcount->count; i++) {
+    uint32_t vc, j;
+
+    vc = vc_it[i];
+    if (vc > 2) {
+      for (j = 1; j < vc - 1; j++) {
+        memcpy(it_new, it_old, st * isz);
+        it_new += st;
+
+        memcpy(it_new,
+               it_old + j * st,
+               2 * st * isz);
+        it_new += 2 * st;
+      }
+    } else {
+      memcpy(it_new, it_old, vc * st * isz);
+      it_new += vc * st;
+    }
+
+    it_old += vc * st;
+  }
+
+  return trianglec;
+}
+
 AK_EXPORT
 uint32_t
 ak_meshTriangulatePoly(AkPolygon * __restrict poly) {
@@ -19,6 +116,10 @@ ak_meshTriangulatePoly(AkPolygon * __restrict poly) {
 
   if (!poly->vcount)
     return 0;
+
+  /* we have only primitives for direct draw, no indexes :( */
+  if (!poly->base.indices)
+    return ak_meshTriangulatePoly_noindices(poly);
 
   otherc    = 0;
   trianglec = 0;
