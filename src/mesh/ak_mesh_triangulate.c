@@ -14,21 +14,24 @@ ak_meshTriangulatePoly(AkPolygon * __restrict poly) {
   AkHeap      *heap;
   AkUIntArray *newind;
   AkUInt      *vc_it, *ind_it, *newind_it;
-  AkUInt       extc, i, st;
+  AkUInt       trianglec, otherc, i, st;
   AkUInt       isz;
 
   if (!poly->vcount)
     return 0;
 
-  extc  = 0;
-  vc_it = poly->vcount->items;
+  otherc    = 0;
+  trianglec = 0;
+  vc_it     = poly->vcount->items;
   for (i = 0; i < poly->vcount->count; i++) {
     if (vc_it[i] > 3)
-      extc += vc_it[i] - 2;
+      trianglec += vc_it[i] - 2;
+    else
+      otherc += vc_it[i];
   }
 
-  if (!extc)
-    return extc;
+  if (!trianglec)
+    return trianglec;
 
   isz    = sizeof(AkUInt);
   heap   = ak_heap_getheap(poly->vcount);
@@ -37,8 +40,8 @@ ak_meshTriangulatePoly(AkPolygon * __restrict poly) {
   newind = ak_heap_alloc(heap,
                          poly,
                          sizeof(*newind)
-                         + isz * (poly->base.indices->count + extc) * st);
-  newind->count = (poly->base.indices->count + extc) * st;
+                         + isz * (otherc + trianglec * 3) * st);
+  newind->count = (otherc + trianglec * 3) * st;
   newind_it     = newind->items;
 
   for (i = 0; i < poly->vcount->count; i++) {
@@ -65,7 +68,7 @@ ak_meshTriangulatePoly(AkPolygon * __restrict poly) {
 
   ak_free(poly->base.indices);
   poly->base.indices = newind;
-  return extc;
+  return trianglec;
 }
 
 AK_EXPORT
