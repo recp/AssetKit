@@ -9,14 +9,11 @@
 #define ak_image_h
 
 typedef struct AkImageFormat {
-  struct {
-    AkChannelFormat   channel;
-    AkRangeFormat     range;
-    AkPrecisionFormat precision;
-    const char      * space;
-  } hint;
-
-  const char * exact;
+  const char       *space;
+  const char       *exact;
+  AkChannelFormat   channel;
+  AkRangeFormat     range;
+  AkPrecisionFormat precision;
 } AkImageFormat;
 
 typedef struct AkImage2d {

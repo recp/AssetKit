@@ -279,7 +279,7 @@ ak_dae_fxImage_format(AkXmlState * __restrict xst,
         AkEnum attrVal;
         attrVal = ak_dae_fxEnumChannel(attrValStr);
         if (attrVal != -1)
-          format->hint.channel = attrVal;
+          format->channel = attrVal;
 
         xmlFree(attrValStr);
         attrValStr = NULL;
@@ -291,7 +291,7 @@ ak_dae_fxImage_format(AkXmlState * __restrict xst,
         AkEnum attrVal;
         attrVal = ak_dae_fxEnumRange(attrValStr);
         if (attrVal != -1)
-          format->hint.range = attrVal;
+          format->range = attrVal;
 
         xmlFree(attrValStr);
         attrValStr = NULL;
@@ -303,13 +303,13 @@ ak_dae_fxImage_format(AkXmlState * __restrict xst,
         AkEnum attrVal;
         attrVal = ak_dae_fxEnumRange(attrValStr);
         if (attrVal != -1)
-          format->hint.range = attrVal;
+          format->range = attrVal;
 
         xmlFree(attrValStr);
         attrValStr = NULL;
       }
 
-      format->hint.space = ak_xml_attr(xst, format, _s_dae_space);
+      format->space = ak_xml_attr(xst, format, _s_dae_space);
     } else if (ak_xml_eqelm(xst, _s_dae_exact)) {
       format->exact = ak_xml_val(xst, format);
     } else {
