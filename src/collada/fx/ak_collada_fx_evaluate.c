@@ -103,8 +103,8 @@ ak_dae_fxEvaluate(AkXmlState * __restrict xst,
             if (ret == AK_OK)
               evaluate_target->param = param;
           } else if (ak_xml_eqelm(xst, _s_dae_instance_image)) {
-            AkInstanceImage *instanceImage;
-            AkResult ret;
+            AkInstanceBase *instanceImage;
+            AkResult        ret;
 
             ret = ak_dae_fxInstanceImage(xst,
                                          evaluate_target,

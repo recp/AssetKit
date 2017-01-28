@@ -450,66 +450,6 @@ typedef struct AkMips {
   AkBool autoGenerate;
 } AkMips;
 
-typedef struct AkImageFormat {
-  struct {
-    AkChannelFormat   channel;
-    AkRangeFormat     range;
-    AkPrecisionFormat precision;
-    const char      * space;
-  } hint;
-
-  const char * exact;
-} AkImageFormat;
-
-typedef struct AkImage2d {
-  AkSizeExact   * sizeExact;
-  AkSizeRatio   * sizeRatio;
-  AkMips        * mips;
-  const char    * unnormalized;
-  AkImageFormat * format;
-  AkInitFrom    * initFrom;
-  long            arrayLen;
-} AkImage2d;
-
-typedef struct AkImage3d {
-  struct {
-    AkUInt width;
-    AkUInt height;
-    AkUInt depth;
-  } size;
-
-  AkMips          mips;
-  long            arrayLen;
-  AkImageFormat * format;
-  AkInitFrom    * initFrom;
-} AkImage3d;
-
-typedef struct AkImageCube {
-  AkUInt          width;
-  AkMips          mips;
-  long            arrayLen;
-  AkImageFormat * format;
-  AkInitFrom    * initFrom;
-} AkImageCube;
-
-typedef struct AkImage {
-  ak_asset_base
-
-  /* const char * id;  */
-  /* const char * sid; */
-
-  const char  * name;
-  AkInitFrom  * initFrom;
-  AkImage2d   * image2d;
-  AkImage3d   * image3d;
-  AkImageCube * cube;
-  AkTree      * extra;
-
-  struct AkImage * next;
-
-  AkBool renderableShare;
-} AkImage;
-
 typedef struct AkInstanceBase {
   /* const char * sid; */
 
@@ -519,16 +459,6 @@ typedef struct AkInstanceBase {
   AkTree     *extra;
   struct AkInstanceBase *next;
 } AkInstanceBase;
-
-typedef struct AkInstanceImage {
-  /* const char * sid; */
-
-  AkURL        url;
-  AkImage    * image;
-  const char * name;
-
-  AkTree * extra;
-} AkInstanceImage;
 
 /*!
  * base type for these types:
@@ -541,26 +471,23 @@ typedef struct AkInstanceImage {
  * samplerStates
  */
 typedef struct AkFxSamplerCommon {
-  ak_asset_base
-  AkInstanceImage * instanceImage;
+  AkInstanceBase *instanceImage;
+  const char     *texcoordSemantic;
+  AkColor        *borderColor;
+  AkTree         *extra;
 
-  const char * texcoordSemantic;
+  AkWrapMode      wrapS;
+  AkWrapMode      wrapT;
+  AkWrapMode      wrapP;
 
-  AkWrapMode wrapS;
-  AkWrapMode wrapT;
-  AkWrapMode wrapP;
+  AkMinFilter     minfilter;
+  AkMagFilter     magfilter;
+  AkMipFilter     mipfilter;
 
-  AkMinFilter minfilter;
-  AkMagFilter magfilter;
-  AkMipFilter mipfilter;
-
-  unsigned long mipMaxLevel;
-  unsigned long mipMinLevel;
-  float         mipBias;
-  unsigned long maxAnisotropy;
-
-  AkColor * borderColor;
-  AkTree  * extra;
+  unsigned long   maxAnisotropy;
+  unsigned long   mipMaxLevel;
+  unsigned long   mipMinLevel;
+  float           mipBias;
 } AkFxSamplerCommon;
 
 typedef AkFxSamplerCommon AkSampler1D;
@@ -627,13 +554,12 @@ typedef struct AkStates {
 } AkStates;
 
 typedef struct AkEvaluateTarget {
-  AkParam     * param;
-  unsigned long index;
-  unsigned long slice;
-  unsigned long mip;
-  AkFace        face;
-
-  AkInstanceImage * instanceImage;
+  AkParam        *param;
+  AkInstanceBase *instanceImage;
+  unsigned long   index;
+  unsigned long   slice;
+  unsigned long   mip;
+  AkFace          face;
 } AkEvaluateTarget;
 
 typedef struct AkColorClear {
@@ -1039,6 +965,7 @@ typedef struct AkDoc {
 } AkDoc;
 
 #include "ak-geom.h"
+#include "ak-image.h"
 #include "ak-states.h"
 #include "ak-string.h"
 #include "ak-coord-util.h"

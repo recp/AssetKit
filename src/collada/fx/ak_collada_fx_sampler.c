@@ -80,8 +80,8 @@ ak_dae_fxSampler(AkXmlState * __restrict xst,
 
     switch (found->val) {
       case k_s_dae_instance_image: {
-        AkInstanceImage * instanceImage;
-        AkResult ret;
+        AkInstanceBase *instanceImage;
+        AkResult        ret;
 
         ret = ak_dae_fxInstanceImage(xst, sampler, &instanceImage);
 

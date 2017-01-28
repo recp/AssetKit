@@ -49,7 +49,8 @@ include_HEADERS = include/assetkit.h \
                   include/ak-rb.h \
                   include/ak-map.h \
                   include/ak-util.h \
-                  include/ak-bbox.h
+                  include/ak-bbox.h \
+                  include/ak-image.h
 
 libassetkit_la_SOURCES=\
     src/assetkit.c \

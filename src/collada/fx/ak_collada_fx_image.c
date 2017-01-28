@@ -137,11 +137,11 @@ ak_dae_fxImage(AkXmlState * __restrict xst,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxInstanceImage(AkXmlState * __restrict xst,
-                       void * __restrict memParent,
-                       AkInstanceImage ** __restrict dest) {
-  AkInstanceImage *instanceImage;
-  AkXmlElmState    xest;
+ak_dae_fxInstanceImage(AkXmlState      * __restrict xst,
+                       void            * __restrict memParent,
+                       AkInstanceBase ** __restrict dest) {
+  AkInstanceBase *instanceImage;
+  AkXmlElmState   xest;
 
   instanceImage = ak_heap_calloc(xst->heap,
                                  memParent,

@@ -18,8 +18,8 @@ ak_dae_fxImage(AkXmlState * __restrict xst,
                void ** __restrict dest);
 
 AkResult _assetkit_hide
-ak_dae_fxInstanceImage(AkXmlState * __restrict xst,
-                       void * __restrict memParent,
-                       AkInstanceImage ** __restrict dest);
+ak_dae_fxInstanceImage(AkXmlState      * __restrict xst,
+                       void            * __restrict memParent,
+                       AkInstanceBase ** __restrict dest);
 
 #endif /* __libassetkit__ak_collada_fx_image__h_ */
