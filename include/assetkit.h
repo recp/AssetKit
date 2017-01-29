@@ -418,37 +418,21 @@ typedef struct AkParam {
 } AkParam;
 
 typedef struct AkHexData {
-  const char * format;
-  const char * val;
+  const char *format;
+  const char *hexval;
+  void       *data;
 } AkHexData;
 
 typedef struct AkInitFrom {
-  const char * ref;
-  AkHexData  * hex;
-
-  AkFace face;
-  AkUInt mipIndex;
-  AkUInt depth;
-  AkInt  arrayIndex;
-  AkBool mipsGenerate;
-
-  struct AkInitFrom * next;
+  struct AkInitFrom *next;
+  const char        *ref;
+  AkHexData         *hex;
+  AkFace             face;
+  AkUInt             mipIndex;
+  AkUInt             depth;
+  AkInt              arrayIndex;
+  AkBool             mipsGenerate;
 } AkInitFrom;
-
-typedef struct AkSizeExact {
-  AkFloat width;
-  AkFloat height;
-} AkSizeExact;
-
-typedef struct AkSizeRatio {
-  AkFloat width;
-  AkFloat height;
-} AkSizeRatio;
-
-typedef struct AkMips {
-  AkUInt levels;
-  AkBool autoGenerate;
-} AkMips;
 
 typedef struct AkInstanceBase {
   /* const char * sid; */

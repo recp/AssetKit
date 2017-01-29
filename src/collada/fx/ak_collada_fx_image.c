@@ -235,7 +235,7 @@ ak_dae_fxImage_initFrom(AkXmlState * __restrict xst,
       hex->format = ak_xml_attr(xst, hex, _s_dae_format);
 
       if (hex->format) {
-        hex->val = ak_xml_val(xst, hex);
+        hex->hexval = ak_xml_val(xst, hex);
         initFrom->hex = hex;
       } else {
         ak_free(hex);
