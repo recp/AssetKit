@@ -37,6 +37,7 @@ typedef struct AkPointLight {
 
 typedef struct AkSpotLight {
   AkLightBase base;
+  AkFloat3    conedir;
   float       constAttn;
   float       linearAttn;
   float       quadAttn;
