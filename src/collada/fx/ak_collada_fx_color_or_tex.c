@@ -7,6 +7,7 @@
 
 #include "ak_collada_fx_color_or_tex.h"
 #include "../core/ak_collada_param.h"
+#include "../core/ak_collada_color.h"
 #include "ak_collada_fx_enums.h"
 
 AkResult _assetkit_hide
@@ -36,20 +37,11 @@ ak_dae_colorOrTex(AkXmlState * __restrict xst,
 
     if (ak_xml_eqelm(xst, _s_dae_color)) {
       AkColor *color;
-      char *colorStr;
-
       color = ak_heap_calloc(xst->heap,
                              colorOrTex,
                              sizeof(*color));
-
-      ak_xml_readsid(xst, color);
-      colorStr = ak_xml_rawval(xst);
-
-      if (colorStr) {
-        ak_strtof4(&colorStr, &color->vec);
-        colorOrTex->color = color;
-        xmlFree(colorStr);
-      }
+      ak_dae_color(xst, color, true, false, color);
+      colorOrTex->color = color;
     } else if (ak_xml_eqelm(xst, _s_dae_texture)) {
       AkFxTexture *tex;
 
