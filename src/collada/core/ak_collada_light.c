@@ -11,6 +11,8 @@
 #include "ak_collada_color.h"
 #include <cglm.h>
 
+#define AK_DEFAULT_LIGHT_DIR {0.0f, 0.0f, -1.0f}
+
 AkResult _assetkit_hide
 ak_dae_light(AkXmlState * __restrict xst,
              void       * __restrict memParent,
@@ -96,6 +98,7 @@ AkResult _assetkit_hide
 ak_dae_light_tcommon(AkXmlState   * __restrict xst,
                      void         * __restrict memParent,
                      AkLightBase ** __restrict dest) {
+  AkCoordSys   *optCoordSys;
   AkXmlElmState xest;
 
   ak_xest_init(xest, _s_dae_techniquec)
@@ -215,26 +218,13 @@ ak_dae_light_tcommon(AkXmlState   * __restrict xst,
 
     else if (ak_xml_eqelm(xst, _s_dae_spot)) {
       AkSpotLight  *spot;
-      AkCoordSys   *optCoordSys;
       AkXmlElmState xest2;
-      float         conedir[] = {0.0f, 0.0f, -1.0f};
 
       spot = ak_heap_calloc(xst->heap,
                             memParent,
                             sizeof(*spot));
 
       ak_xest_init(xest2, _s_dae_spot)
-
-      optCoordSys = (void *)ak_opt_get(AK_OPT_COORD);
-      if (optCoordSys != xst->doc->coordSys) {
-        /* convert default cone direction to new coord sys */
-        ak_coordCvtVectorTo(xst->doc->coordSys,
-                            conedir,
-                            optCoordSys,
-                            spot->conedir);
-      } else {
-        glm_vec_dup(conedir, spot->conedir);
-      }
 
       do {
         if (ak_xml_begin(&xest2))
@@ -295,6 +285,18 @@ ak_dae_light_tcommon(AkXmlState   * __restrict xst,
     if (ak_xml_end(&xest))
       break;
   } while (xst->nodeRet);
+
+  optCoordSys = (void *)ak_opt_get(AK_OPT_COORD);
+  if (optCoordSys != xst->doc->coordSys) {
+    /* convert default cone direction to new coord sys */
+    ak_coordCvtVectorTo(xst->doc->coordSys,
+                        (vec3)AK_DEFAULT_LIGHT_DIR,
+                        optCoordSys,
+                        (*dest)->direction);
+  } else {
+    glm_vec_dup((vec3)AK_DEFAULT_LIGHT_DIR,
+                (*dest)->direction);
+  }
 
   return AK_OK;
 }
