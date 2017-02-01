@@ -119,13 +119,7 @@ ak_dae_light_tcommon(AkXmlState   * __restrict xst,
           break;
 
         if (ak_xml_eqelm(xst, _s_dae_color)) {
-          char *colorStr;
-
-          ak_xml_readsid(xst, ambient);
-          colorStr = ak_xml_rawcval(xst);
-
-          if (colorStr)
-            ak_strtof4(&colorStr, &ambient->color.vec);
+          ak_dae_color(xst, ambient, true, true, &ambient->color);
         } else {
           ak_xml_skipelm(xst);
         }
@@ -154,13 +148,7 @@ ak_dae_light_tcommon(AkXmlState   * __restrict xst,
           break;
 
         if (ak_xml_eqelm(xst, _s_dae_color)) {
-          char *colorStr;
-
-          ak_xml_readsid(xst, directional);
-          colorStr = ak_xml_rawcval(xst);
-
-          if (colorStr)
-            ak_strtof4(&colorStr, &directional->color.vec);
+          ak_dae_color(xst, directional, true, true, &directional->color);
         } else {
           ak_xml_skipelm(xst);
         }
@@ -193,7 +181,7 @@ ak_dae_light_tcommon(AkXmlState   * __restrict xst,
                           point,
                           &point->base.color);
 
-          ak_dae_color(xst, false, &point->base.color);
+          ak_dae_color(xst, point, true, true, &point->base.color);
         } else if (ak_xml_eqelm(xst, _s_dae_const_attn)) {
           ak_xml_sid_seta(xst,
                           point,
@@ -257,7 +245,7 @@ ak_dae_light_tcommon(AkXmlState   * __restrict xst,
                           spot,
                           &spot->base.color);
 
-          ak_dae_color(xst, false, &spot->base.color);
+          ak_dae_color(xst, spot, true, true, &spot->base.color);
         } else if (ak_xml_eqelm(xst, _s_dae_const_attn)) {
           ak_xml_sid_seta(xst,
                           spot,

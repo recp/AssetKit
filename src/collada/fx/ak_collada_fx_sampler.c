@@ -119,7 +119,7 @@ ak_dae_fxSampler(AkXmlState * __restrict xst,
         color = ak_heap_calloc(xst->heap,
                                sampler,
                                sizeof(*color));
-        ret   = ak_dae_color(xst, true, color);
+        ret   = ak_dae_color(xst, color, true, false, color);
 
         if (ret == AK_OK)
           sampler->borderColor = color;

@@ -142,7 +142,7 @@ ak_dae_fxEvaluate(AkXmlState * __restrict xst,
 
         colorClear->index = ak_xml_attrui(xst, _s_dae_index);
 
-        ak_dae_color(xst, false, &colorClear->val);
+        ak_dae_color(xst, colorClear, false, false, &colorClear->val);
 
         evaluate->colorClear = colorClear;
         break;

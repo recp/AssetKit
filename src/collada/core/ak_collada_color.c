@@ -9,12 +9,17 @@
 
 AkResult _assetkit_hide
 ak_dae_color(AkXmlState * __restrict xst,
-             bool read_sid,
-             AkColor * __restrict dest) {
+             void       * __restrict memParent,
+             bool                    read_sid,
+             bool                    stack,
+             AkColor    * __restrict dest) {
   char *colorStr;
+  void *memp;
+
+  memp = stack ? memParent : dest;
 
   if (read_sid)
-    ak_xml_readsid(xst, dest);
+    ak_xml_readsid(xst, memp);
 
   colorStr = ak_xml_rawcval(xst);
 

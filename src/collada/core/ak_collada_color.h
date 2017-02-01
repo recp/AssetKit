@@ -12,7 +12,9 @@
 
 AkResult _assetkit_hide
 ak_dae_color(AkXmlState * __restrict xst,
-             bool read_sid,
-             AkColor * __restrict dest);
+             void       * __restrict memParent,
+             bool                    read_sid,
+             bool                    stack,
+             AkColor    * __restrict dest);
 
 #endif /* __libassetkit__ak_collada_color_h_ */
