@@ -419,8 +419,8 @@ typedef struct AkParam {
 
 typedef struct AkHexData {
   const char *format;
-  const char *hexval;
-  void       *data;
+  const char *hexval; /* hex value    */
+  void       *data;   /* binary value */
 } AkHexData;
 
 typedef struct AkInitFrom {
