@@ -405,3 +405,20 @@ ak_id_urlstring(AkHeapAllocator *alc, char *id) {
 
   return urlstring;
 }
+
+int
+ak_mesh_vertex_off(AkMeshPrimitive *prim) {
+  AkInput *input;
+
+  input  = prim->input;
+  while (input) {
+    if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX)
+      break;
+    input = (AkInput *)input->base.next;
+  }
+
+  if (!input)
+    return -1;
+
+  return input->offset;
+}
