@@ -13,16 +13,17 @@ extern const char * AK_DEF_ID_PRFX;
 
 uintptr_t AK_OPTIONS[] =
 {
-  false,                      /* 0: _INDICES_NONE                */
-  false,                      /* 1: _INDICES_SINGLE_INTERLEAVED  */
-  false,                      /* 2: _INDICES_SINGLE_SEPARATE     */
-  false,                      /* 3: _INDICES_SINGLE              */
-  true,                       /* 4: _NO_INDICES_INTERLEAVED      */
-  false,                      /* 5: _NO_INDICES_SEPARATE         */
-  (uintptr_t)&AK__Y_RH_VAL,   /* 6: _COORD                       */
-  (uintptr_t)&AK_DEF_ID_PRFX, /* 7: _DEFAULT_ID_PREFIX           */
-  false,                      /* 8: _COMPUTE_BBOX                */
-  true                        /* 9: _TRIANGULATE                 */
+  false,                      /* 0:  _INDICES_NONE                */
+  false,                      /* 1:  _INDICES_SINGLE_INTERLEAVED  */
+  false,                      /* 2:  _INDICES_SINGLE_SEPARATE     */
+  false,                      /* 3:  _INDICES_SINGLE              */
+  true,                       /* 4:  _NO_INDICES_INTERLEAVED      */
+  false,                      /* 5:  _NO_INDICES_SEPARATE         */
+  (uintptr_t)&AK__Y_RH_VAL,   /* 6:  _COORD                       */
+  (uintptr_t)&AK_DEF_ID_PRFX, /* 7:  _DEFAULT_ID_PREFIX           */
+  false,                      /* 8:  _COMPUTE_BBOX                */
+  true,                       /* 9:  _TRIANGULATE                 */
+  true,                       /* 10: _GEN_NORMALS_IF_NEEDED       */
 };
 
 AK_EXPORT
