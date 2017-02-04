@@ -42,5 +42,6 @@ This library will full support COLLADA specs and glTF specs, plus other 3D forma
 - [ ] Exporting
 
 # Notes
+- Actual README and documents for how to use this will be written after first version
 - I'm working hard to finish this lib, I'll update README when finished, for now <b>DON'T USE THIS LIB UNTIL FINISHED</b>
 - Don't create pull requests for now, if you really want first contact me because I may work on the feature you want or I've  planned it with an architecture to do that
