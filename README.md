@@ -1,5 +1,5 @@
 # 🎨 AssetKit
-3D asset importer, exporter library. This library also includes common 3D utils funcs. This library is C99 but C++ wrappers can be written in the future. 
+3D asset importer, exporter library. This library also includes common 3D utils funcs. It is written with C99 but C++ wrappers can be written in the future. 
 
 This library will full support COLLADA specs and glTF specs, plus other 3D formats e.g .obj, .stl maybe supported by sub-libraries.
 
