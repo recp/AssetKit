@@ -343,6 +343,27 @@ AK_EXPORT
 uint32_t
 ak_meshTriangulatePoly(AkPolygon * __restrict poly);
 
+/*!
+ * @brief returns true if least one primitive doesn't have normals
+ *
+ * @param mesh mesh
+ *
+ * @return boolean
+ */
+AK_EXPORT
+bool
+ak_meshNeedsNormals(AkMesh * __restrict mesh);
+
+/*!
+ * @brief returns true if primitive doesn't have normals
+ *
+ * @param mesh mesh
+ *
+ * @return boolean
+ */
+AK_EXPORT
+bool
+ak_meshPrimNeedsNormals(AkMeshPrimitive * __restrict prim);
 #ifdef __cplusplus
 }
 #endif
