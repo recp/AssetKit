@@ -45,17 +45,18 @@ ak_data_new(void   *memparent,
  * @brief join batch data into continued array
  *
  * @param dctx data context
- * @param free free after joining
+ * @param buff buffer
  *
- * @return continued memory adress
+ * @return array count
  */
-void*
-ak_data_join(AkDataContext *dctx, bool freeit);
+size_t
+ak_data_join(AkDataContext *dctx,
+             void          *buff);
 
 void
 ak_data_append(AkDataContext *dctx, void *data);
 
-void
+bool
 ak_data_append_unq(AkDataContext *dctx, void *item);
 
 void

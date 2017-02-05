@@ -61,12 +61,13 @@ ak_data_append(AkDataContext *dctx, void *data) {
   dctx->itemcount++;
 }
 
-void
+bool
 ak_data_append_unq(AkDataContext *dctx, void *item) {
   if (ak_data_exists(dctx, item))
-    return;
+    return false;
 
   ak_data_append(dctx, item);
+  return true;
 }
 
 void
@@ -121,36 +122,33 @@ ak_data_exists(AkDataContext *dctx, void *item) {
   return false;
 }
 
-void*
+size_t
 ak_data_join(AkDataContext *dctx,
-             bool           freeit) {
+             void          *buff) {
   AkDataChunk *chunk;
-  void  *mem, *data;
+  void  *data;
   char  *pmem;
-  size_t isz, csz, i;
+  size_t isz, csz, i, count;
+
+  count = 0;
 
   if (!dctx->data)
-    return NULL;
+    return count;
 
   isz   = dctx->itemsize;
   chunk = dctx->data;
-  mem   = ak_heap_alloc(dctx->heap,
-                        dctx->memparent,
-                        dctx->usedsize);
 
-  pmem = mem;
+  pmem = buff;
   while (chunk) {
     csz = dctx->nodesize - chunk->usedsize;
     for (i = isz; i < csz; i += isz) {
       data = chunk->data;
       memcpy(pmem, data, isz);
       pmem += isz;
+      count++;
     }
     chunk = chunk->next;
   }
 
-  if (freeit)
-    ak_free(dctx);
-
-  return mem;
+  return count;
 }
