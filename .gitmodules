@@ -19,3 +19,6 @@
 	path = lib/libuv
 	url = https://github.com/libuv/libuv.git
 	branch = master
+[submodule "lib/stb"]
+	path = lib/stb
+	url = https://github.com/nothings/stb.git
