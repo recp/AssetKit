@@ -53,16 +53,43 @@ size_t
 ak_data_join(AkDataContext *dctx,
              void          *buff);
 
+/*!
+ * @brief append item, this will copy data by size of itemsize into context
+ *
+ * @param dctx data context
+ * @param data item
+ */
 void
 ak_data_append(AkDataContext *dctx, void *data);
 
-bool
+/*!
+ * @brief append if not exists and return appended item index
+ *
+ * @param dctx data context
+ * @param item item
+ *
+ * @return index
+ */
+int
 ak_data_append_unq(AkDataContext *dctx, void *item);
 
+/*!
+ * @brief walk through by walkFn
+ *
+ * @param dctx data context
+ */
 void
 ak_data_walk(AkDataContext *dctx);
 
-bool
+/*!
+ * @brief check if item is exists
+ *
+ * @param dctx data context
+ * @param item item
+ *
+ * @return returns item index
+ */
+int
 ak_data_exists(AkDataContext *dctx, void *item);
 
 #endif /* ak_data_h */

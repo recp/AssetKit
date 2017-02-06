@@ -61,13 +61,17 @@ ak_data_append(AkDataContext *dctx, void *data) {
   dctx->itemcount++;
 }
 
-bool
+int
 ak_data_append_unq(AkDataContext *dctx, void *item) {
-  if (ak_data_exists(dctx, item))
-    return false;
+  int idx;
+
+  idx = ak_data_exists(dctx, item);
+  if (idx != -1)
+    return idx;
 
   ak_data_append(dctx, item);
-  return true;
+  idx = (int)dctx->itemcount - 1;
+  return idx;
 }
 
 void
@@ -92,16 +96,18 @@ ak_data_walk(AkDataContext *dctx) {
   }
 }
 
-bool
+int
 ak_data_exists(AkDataContext *dctx, void *item) {
   AkDataChunk *chunk;
   void  *data;
   char  *pmem;
   size_t isz, csz, i;
+  int    idx;
 
   if (!dctx->data)
-    return false;
+    return -1;
 
+  idx   = 0;
   isz   = dctx->itemsize;
   chunk = dctx->data;
 
@@ -112,14 +118,15 @@ ak_data_exists(AkDataContext *dctx, void *item) {
 
     for (i = isz; i < csz; i += isz) {
       if (dctx->cmp(pmem, item) == 0)
-        return true;
+        return idx;
 
       pmem += isz;
+      idx++;
     }
     chunk = chunk->next;
   }
 
-  return false;
+  return idx;
 }
 
 size_t
