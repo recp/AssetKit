@@ -76,7 +76,8 @@ ak_mesh_src(AkHeap   *heap,
 
   /* source needs be duplicated */
   if (ak_refc(src) <= usg
-      && usg <= max)
+      && usg <= max
+      && usg > 0)
     return src;
 
   newsrc = ak_heap_calloc(heap,
