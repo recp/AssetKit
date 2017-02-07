@@ -13,7 +13,7 @@ AM_CFLAGS = -Wall \
             -O3 \
             -Wstrict-aliasing=2 \
             -fstrict-aliasing \
-            -Wpedantic \
+            -pedantic \
             -Wmissing-declarations \
             -Wno-overlength-strings
 
