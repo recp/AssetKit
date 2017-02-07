@@ -9,6 +9,7 @@
 #define ak_bitwise_h
 
 #include "../ak_common.h"
+#include <limits.h>
 
 AK_INLINE
 uint32_t
