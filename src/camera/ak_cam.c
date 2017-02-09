@@ -11,10 +11,10 @@
 
 AK_EXPORT
 AkResult
-ak_camFirstCamera(AkDoc     * __restrict doc,
-                  AkCamera ** camera,
-                  float     * matrix,
-                  float     * projMatrix) {
+ak_firstCamera(AkDoc     * __restrict doc,
+               AkCamera ** camera,
+               float     * matrix,
+               float     * projMatrix) {
   AkVisualScene *scene;
   AkNode        *camNode;
   AkCamera      *cam;

@@ -78,10 +78,10 @@ typedef struct AkCamera {
  */
 AK_EXPORT
 AkResult
-ak_camFirstCamera(AkDoc     * __restrict doc,
-                  AkCamera ** camera,
-                  float     * matrix,
-                  float     * projMatrix);
+ak_firstCamera(AkDoc     * __restrict doc,
+               AkCamera ** camera,
+               float     * matrix,
+               float     * projMatrix);
 
 #ifdef __cplusplus
 }
