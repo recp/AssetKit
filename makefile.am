@@ -89,6 +89,7 @@ libassetkit_la_SOURCES=\
     src/default/ak_def_id.c \
     src/default/ak_def_opt.c \
     src/default/ak_def_cmp.c \
+    src/default/ak_def_semantic.c \
     src/geom/ak_geom_mesh.c \
     src/transform/ak_trans.c \
     src/transform/ak_trans_dup.c \
