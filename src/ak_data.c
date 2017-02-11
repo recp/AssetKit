@@ -140,8 +140,7 @@ size_t
 ak_data_join(AkDataContext *dctx,
              void          *buff) {
   AkDataChunk *chunk;
-  void  *data;
-  char  *pmem;
+  char        *pmem, *data;
   size_t isz, csz, i, count;
 
   count = 0;
@@ -154,11 +153,12 @@ ak_data_join(AkDataContext *dctx,
 
   pmem = buff;
   while (chunk) {
-    csz = chunk->usedsize;
+    csz  = chunk->usedsize;
+    data = chunk->data;
     for (i = 0; i < csz; i += isz) {
-      data = chunk->data;
       memcpy(pmem, data, isz);
       pmem += isz;
+      data += isz;
       count++;
     }
     chunk = chunk->next;
