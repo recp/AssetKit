@@ -22,6 +22,11 @@ ak_mesh_src(AkHeap   *heap,
             uint32_t  max);
 
 AkSource *
+ak_mesh_src_for(AkHeap         *heap,
+                AkMesh         *mesh,
+                AkInputSemantic semantic);
+
+AkSource *
 ak_mesh_pos_src(AkMesh *mesh);
 
 uint32_t
