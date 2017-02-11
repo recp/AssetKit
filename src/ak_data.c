@@ -103,28 +103,35 @@ ak_data_exists(AkDataContext *dctx, void *item) {
   char  *pmem;
   size_t isz, csz, i;
   int    idx;
+  bool   found;
 
   if (!dctx->data)
     return -1;
 
+  found = false;
   idx   = 0;
   isz   = dctx->itemsize;
   chunk = dctx->data;
 
   while (chunk) {
-    csz  = dctx->nodesize - chunk->usedsize;
+    csz  = chunk->usedsize;
     data = chunk->data;
     pmem = data;
 
-    for (i = isz; i < csz; i += isz) {
-      if (dctx->cmp(pmem, item) == 0)
+    for (i = 0; i < csz; i += isz) {
+      if (dctx->cmp(pmem, item) == 0) {
+        found = true;
         return idx;
+      }
 
       pmem += isz;
       idx++;
     }
     chunk = chunk->next;
   }
+
+  if (!found)
+    idx = -1;
 
   return idx;
 }
@@ -147,8 +154,8 @@ ak_data_join(AkDataContext *dctx,
 
   pmem = buff;
   while (chunk) {
-    csz = dctx->nodesize - chunk->usedsize;
-    for (i = isz; i < csz; i += isz) {
+    csz = chunk->usedsize;
+    for (i = 0; i < csz; i += isz) {
       data = chunk->data;
       memcpy(pmem, data, isz);
       pmem += isz;
