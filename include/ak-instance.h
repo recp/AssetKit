@@ -11,6 +11,33 @@
 extern "C" {
 #endif
 
+typedef struct AkInstanceListItem {
+  struct AkInstanceListItem *prev;
+  struct AkInstanceListItem *next;
+  AkInstanceBase *instance;
+  size_t          index;
+} AkInstanceListItem;
+
+typedef struct AkInstanceList {
+  AkInstanceListItem *first;
+  AkInstanceListItem *last;
+  size_t              count;
+  size_t              lastindex;
+} AkInstanceList;
+
+AK_EXPORT
+void
+ak_instanceListAdd(AkInstanceList *list,
+                   AkInstanceBase *inst);
+
+AK_EXPORT
+void
+ak_instanceListDel(AkInstanceList *list,
+                   AkInstanceListItem *item);
+
+char*
+ak_instanceName(AkInstanceListItem *item);
+
 AK_EXPORT
 void *
 ak_instanceObject(AkInstanceBase *instance);
