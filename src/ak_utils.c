@@ -13,6 +13,7 @@
 #include <time.h>
 #include <sys/stat.h>
 #include <assert.h>
+#include <math.h>
 
 char *
 strptime(const char * __restrict buf,
@@ -89,4 +90,10 @@ ak_parse_date(const char * __restrict input,
     *ret = cp;
 
   return mktime(&_tm);
+}
+
+AK_EXPORT
+int
+ak_digitsize(size_t number) {
+  return floor(log10(number)) + 1;
 }
