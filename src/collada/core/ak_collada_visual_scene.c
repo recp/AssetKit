@@ -29,6 +29,10 @@ ak_dae_visualScene(AkXmlState * __restrict xst,
   last_node          = NULL;
   last_evaluateScene = NULL;
 
+  visualScene->cameras = ak_heap_calloc(xst->heap,
+                                        visualScene,
+                                        sizeof(*visualScene->cameras));
+
   ak_xest_init(xest, _s_dae_visual_scene)
 
   do {
@@ -50,7 +54,7 @@ ak_dae_visualScene(AkXmlState * __restrict xst,
 
       ret = ak_dae_node(xst,
                         visualScene,
-                        &visualScene->firstCamNode,
+                        visualScene,
                         &node);
       if (ret == AK_OK) {
         if (last_node)

@@ -60,10 +60,10 @@ ak_dae_node2(AkXmlState * __restrict xst,
 }
 
 AkResult _assetkit_hide
-ak_dae_node(AkXmlState * __restrict xst,
-            void    * __restrict memParent,
-            AkNode             **firstCamNode,
-            AkNode             **dest) {
+ak_dae_node(AkXmlState    * __restrict xst,
+            void          * __restrict memParent,
+            AkVisualScene * __restrict scene,
+            AkNode       ** __restrict dest) {
   AkDoc                *doc;
   AkNode               *node, *last_chld;
   AkObject             *last_transform;
@@ -404,8 +404,13 @@ ak_dae_node(AkXmlState * __restrict xst,
 
         last_camera = instanceCamera;
 
-        if (!*firstCamNode)
-          *firstCamNode = node;
+        if (scene) {
+          if (!scene->firstCamNode)
+            scene->firstCamNode = node;
+
+          ak_instanceListAdd(scene->cameras,
+                             instanceCamera);
+        }
 
         break;
       }
@@ -676,7 +681,7 @@ ak_dae_node(AkXmlState * __restrict xst,
         AkResult ret;
 
         subNode = NULL;
-        ret = ak_dae_node(xst, node,firstCamNode, &subNode);
+        ret = ak_dae_node(xst, node, scene, &subNode);
         if (ret == AK_OK) {
           if (last_chld)
             last_chld->next = subNode;

@@ -892,17 +892,20 @@ typedef struct AkEvaluateScene {
   struct AkEvaluateScene * next;
 } AkEvaluateScene;
 
+struct AkInstanceList;
+
 typedef struct AkVisualScene {
   ak_asset_base
 
   /* const char * id; */
-  const char           *name;
-  AkNode               *node;
-  AkNode               *firstCamNode;
-  AkEvaluateScene      *evaluateScene;
-  struct AkBoundingBox *bbox;
-  AkTree               *extra;
-  struct AkVisualScene *next;
+  const char            *name;
+  AkNode                *node;
+  AkNode                *firstCamNode; /* first found camera       */
+  struct AkInstanceList *cameras;      /* all cameras inside scene */
+  AkEvaluateScene       *evaluateScene;
+  struct AkBoundingBox  *bbox;
+  AkTree                *extra;
+  struct AkVisualScene  *next;
 } AkVisualScene;
 
 typedef struct AkScene {

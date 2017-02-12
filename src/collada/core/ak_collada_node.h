@@ -11,10 +11,10 @@
 #include "../ak_collada_common.h"
 
 AkResult _assetkit_hide
-ak_dae_node(AkXmlState * __restrict xst,
-            void    * __restrict memParent,
-            AkNode             **firstCamNode,
-            AkNode             **dest);
+ak_dae_node(AkXmlState    * __restrict xst,
+            void          * __restrict memParent,
+            AkVisualScene * __restrict scene,
+            AkNode       ** __restrict dest);
 
 AkResult _assetkit_hide
 ak_dae_node2(AkXmlState * __restrict xst,
