@@ -395,6 +395,8 @@ ak_dae_node(AkXmlState * __restrict xst,
             break;
         } while (xst->nodeRet);
 
+        instanceCamera->node = node;
+
         if (last_camera)
           last_camera->next = instanceCamera;
         else
@@ -545,6 +547,8 @@ ak_dae_node(AkXmlState * __restrict xst,
             break;
         } while (xst->nodeRet);
 
+        geometry->base.node = node;
+
         if (last_geometry)
           last_geometry->base.next = &geometry->base;
         else
@@ -597,6 +601,8 @@ ak_dae_node(AkXmlState * __restrict xst,
           if (ak_xml_end(&xest2))
             break;
         } while (xst->nodeRet);
+
+        lightInst->node = node;
 
         if (last_light)
           last_light->next = lightInst;
@@ -653,6 +659,8 @@ ak_dae_node(AkXmlState * __restrict xst,
           if (ak_xml_end(&xest2))
             break;
         } while (xst->nodeRet);
+
+        instanceNode->base.node = node;
 
         if (last_node)
           last_node->base.next = &instanceNode->base;

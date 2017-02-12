@@ -434,13 +434,15 @@ typedef struct AkInitFrom {
   AkBool             mipsGenerate;
 } AkInitFrom;
 
+struct AkNode;
 typedef struct AkInstanceBase {
   /* const char * sid; */
 
-  AkURL       url;
-  void       *object;
-  const char *name;
-  AkTree     *extra;
+  AkURL         url;
+  void         *object;
+  const char   *name;
+  AkTree       *extra;
+  struct AkNode *node;
   struct AkInstanceBase *next;
 } AkInstanceBase;
 
