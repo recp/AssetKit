@@ -76,8 +76,23 @@ ak_instanceName(AkInstanceListItem *item) {
 
   heap = ak_heap_getheap(item);
 
+  /* instance name */
   if (inst->name)
     return ak_heap_strdup(heap, item, inst->name);
+
+  /* we can use node.name or node.id for instance name */
+  if (inst->node) {
+    char *nodeid;
+
+    if (inst->node->name)
+      return ak_heap_strdup(heap,
+                            item,
+                            inst->node->name);
+
+    nodeid = ak_getId(inst->node);
+    if (nodeid)
+      return ak_heap_strdup(heap, item, nodeid);
+  }
 
   obj = ak_instanceObject(inst);
   if (!obj)
@@ -87,7 +102,9 @@ ak_instanceName(AkInstanceListItem *item) {
   idlen      = strlen(objId);
 
   indexDigit = ak_digitsize(item->index);
-  name       = ak_heap_alloc(heap, item, idlen + indexDigit + 2);
+  name       = ak_heap_alloc(heap,
+                             item,
+                             idlen + indexDigit + 2);
 
   strncpy(name, objId, idlen);
   sprintf(name + idlen, "-%zu", item->index);
