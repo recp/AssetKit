@@ -287,7 +287,8 @@ ak_dae_light_tcommon(AkXmlState   * __restrict xst,
   } while (xst->nodeRet);
 
   optCoordSys = (void *)ak_opt_get(AK_OPT_COORD);
-  if (optCoordSys != xst->doc->coordSys) {
+  if (!ak_opt_get(AK_OPT_USE_DOC_COORD)
+      && optCoordSys != xst->doc->coordSys) {
     /* convert default cone direction to new coord sys */
     ak_coordCvtVectorTo(xst->doc->coordSys,
                         (vec3)AK_DEFAULT_LIGHT_DIR,

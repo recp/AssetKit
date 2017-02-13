@@ -20,10 +20,11 @@ typedef enum AkOption {
   AK_OPT_NOINDEX_INTERLEAVED        = 4,  /* true   */
   AK_OPT_NOINDEX_SEPARATE           = 5,  /* true   */
   AK_OPT_COORD                      = 6,  /* Y_UP   */
-  AK_OPT_DEFAULT_ID_PREFIX          = 7,  /* id-    */
-  AK_OPT_COMPUTE_BBOX               = 8,  /* false  */
-  AK_OPT_TRIANGULATE                = 9,  /* true   */
-  AK_OPT_GEN_NORMALS_IF_NEEDED      = 10  /* true   */
+  AK_OPT_USE_DOC_COORD              = 7,  /* true   */
+  AK_OPT_DEFAULT_ID_PREFIX          = 8,  /* id-    */
+  AK_OPT_COMPUTE_BBOX               = 9,  /* false  */
+  AK_OPT_TRIANGULATE                = 10, /* true   */
+  AK_OPT_GEN_NORMALS_IF_NEEDED      = 11  /* true   */
 } AkOption;
 
 AK_EXPORT

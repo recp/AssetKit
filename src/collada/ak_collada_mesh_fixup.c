@@ -19,7 +19,8 @@ ak_dae_mesh_fixup(AkMesh * mesh) {
 
   /* first fixup coord system because verts will be duplicated,
      reduce extra process */
-  if ((void *)ak_opt_get(AK_OPT_COORD) != doc->coordSys)
+  if (!ak_opt_get(AK_OPT_USE_DOC_COORD)
+      && (void *)ak_opt_get(AK_OPT_COORD) != doc->coordSys)
     ak_changeCoordSysMesh(mesh, (void *)ak_opt_get(AK_OPT_COORD));
 
   ak_mesh_fix_indices(heap, mesh);
