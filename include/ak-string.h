@@ -37,6 +37,12 @@ ak_strtof(char ** __restrict src,
 
 AK_EXPORT
 int
+ak_strtoui(char   ** __restrict src,
+           AkUInt * __restrict dest,
+           unsigned long n);
+
+AK_EXPORT
+int
 ak_strtomb(char ** __restrict src,
             AkBool * __restrict dest,
             unsigned long m,

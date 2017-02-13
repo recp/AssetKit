@@ -88,6 +88,23 @@ ak_strtof(char ** __restrict src,
 
 AK_EXPORT
 int
+ak_strtoui(char   ** __restrict src,
+           AkUInt * __restrict dest,
+           unsigned long n) {
+  char *tok;
+
+  dest = dest + n - 1ul;
+
+  for (tok = strtok(*src, " \t\r\n");
+       tok && n > 0ul;
+       tok = strtok(NULL, " \t\r\n"))
+    *(dest - --n) = (AkUInt)strtoul(tok, NULL, 10);
+
+  return (int)n;
+}
+
+AK_EXPORT
+int
 ak_strtomf(char ** __restrict src,
             AkFloat * __restrict dest,
             unsigned long m,
