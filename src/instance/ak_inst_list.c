@@ -42,10 +42,6 @@ AK_EXPORT
 void
 ak_instanceListDel(AkInstanceList *list,
                    AkInstanceListItem *item) {
-  AkHeap *heap;
-
-  heap = ak_heap_getheap(list);
-
   if (list->first == item)
     list->first = item->next;
 
