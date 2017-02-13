@@ -10,31 +10,31 @@
 #include "ak_collada_fx_enums.h"
 
 static
-AkResult _assetkit_hide
+AkResult
 ak_dae_fxImage_initFrom(AkXmlState * __restrict xst,
                         void * __restrict memParent,
                         AkInitFrom ** __restrict dest);
 
 static
-AkResult _assetkit_hide
+AkResult
 ak_dae_fxImage_format(AkXmlState * __restrict xst,
                       void * __restrict memParent,
                       AkImageFormat ** __restrict dest);
 
 static
-AkResult _assetkit_hide
+AkResult
 ak_dae_fxImage_create2d(AkXmlState * __restrict xst,
                         void * __restrict memParent,
                         AkImage2d ** __restrict dest);
 
 static
-AkResult _assetkit_hide
+AkResult
 ak_dae_fxImage_create3d(AkXmlState * __restrict xst,
                         void * __restrict memParent,
                         AkImage3d ** __restrict dest);
 
 static
-int _assetkit_hide
+int
 ak_dae_fxImage_createCube(AkXmlState * __restrict xst,
                           void * __restrict memParent,
                           AkImageCube ** __restrict dest);
@@ -192,7 +192,7 @@ ak_dae_fxInstanceImage(AkXmlState      * __restrict xst,
 }
 
 static
-AkResult _assetkit_hide
+AkResult
 ak_dae_fxImage_initFrom(AkXmlState * __restrict xst,
                         void * __restrict memParent,
                         AkInitFrom ** __restrict dest) {
@@ -255,7 +255,7 @@ ak_dae_fxImage_initFrom(AkXmlState * __restrict xst,
 }
 
 static
-AkResult _assetkit_hide
+AkResult
 ak_dae_fxImage_format(AkXmlState * __restrict xst,
                       void * __restrict memParent,
                       AkImageFormat ** __restrict dest) {
@@ -327,7 +327,7 @@ ak_dae_fxImage_format(AkXmlState * __restrict xst,
 }
 
 static
-AkResult _assetkit_hide
+AkResult
 ak_dae_fxImage_create2d(AkXmlState * __restrict xst,
                         void * __restrict memParent,
                         AkImage2d ** __restrict dest) {
@@ -412,7 +412,7 @@ ak_dae_fxImage_create2d(AkXmlState * __restrict xst,
 }
 
 static
-AkResult _assetkit_hide
+AkResult
 ak_dae_fxImage_create3d(AkXmlState * __restrict xst,
                         void * __restrict memParent,
                         AkImage3d ** __restrict dest) {
@@ -468,7 +468,7 @@ ak_dae_fxImage_create3d(AkXmlState * __restrict xst,
 }
 
 static
-AkResult _assetkit_hide
+AkResult
 ak_dae_fxImage_createCube(AkXmlState * __restrict xst,
                           void * __restrict memParent,
                           AkImageCube ** __restrict dest) {

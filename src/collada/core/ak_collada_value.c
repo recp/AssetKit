@@ -16,11 +16,11 @@ typedef struct {
 } ak_value_pair;
 
 static
-int _assetkit_hide
+int
 valuePairCmp(const void *, const void *);
 
 static
-int _assetkit_hide
+int
 valuePairCmp2(const void *, const void *);
 
 static ak_value_pair valueMap[] = {
@@ -175,7 +175,7 @@ ak_dae_value(AkXmlState * __restrict xst,
 }
 
 static
-int _assetkit_hide
+int
 valuePairCmp(const void * a, const void * b) {
   const ak_value_pair * _a = a;
   const ak_value_pair * _b = b;
@@ -184,7 +184,7 @@ valuePairCmp(const void * a, const void * b) {
 }
 
 static
-int _assetkit_hide
+int
 valuePairCmp2(const void * a, const void * b) {
   const char * _a = a;
   const ak_value_pair * _b = b;
