@@ -730,7 +730,7 @@ typedef struct AkJoints {
 
 typedef struct AkVertexWeights {
   AkInput       * input;
-  AkIntArray    * vcount;
+  AkUIntArray   * vcount;
   AkDoubleArray * v;
   AkTree        * extra;
   AkUInt          count;

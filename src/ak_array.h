@@ -11,47 +11,41 @@
 #include "../include/assetkit.h"
 
 AkResult _assetkit_hide
-ak_strtof_arrayL(AkHeap * __restrict heap,
-                 void * __restrict memParent,
-                 char * __restrict stringRep,
+ak_strtof_arrayL(AkHeap         * __restrict heap,
+                 void           * __restrict memParent,
+                 char                       *content,
                  AkFloatArrayL ** __restrict array);
 
 AkResult _assetkit_hide
-ak_strtod_array(AkHeap * __restrict heap,
-                void * __restrict memParent,
-                char * __restrict stringRep,
+ak_strtod_array(AkHeap         * __restrict heap,
+                void           * __restrict memParent,
+                char                       *content,
                 AkDoubleArray ** __restrict array);
 
 AkResult _assetkit_hide
-ak_strtod_arrayL(AkHeap * __restrict heap,
-                 void * __restrict memParent,
-                 char * __restrict stringRep,
+ak_strtod_arrayL(AkHeap          * __restrict heap,
+                 void            * __restrict memParent,
+                 char                        *content,
                  AkDoubleArrayL ** __restrict array);
 
 AkResult _assetkit_hide
-ak_strtoi_array(AkHeap * __restrict heap,
-                void * __restrict memParent,
-                char * stringRep,
-                AkIntArray ** __restrict array);
-
-AkResult _assetkit_hide
-ak_strtoui_array(AkHeap * __restrict heap,
-                 void * __restrict memParent,
-                 char * stringRep,
+ak_strtoui_array(AkHeap       * __restrict heap,
+                 void         * __restrict memParent,
+                 char                     *content,
                  AkUIntArray ** __restrict array);
 
 AkResult _assetkit_hide
-ak_strtostr_array(AkHeap * __restrict heap,
-                  void * __restrict memParent,
-                  char * stringRep,
-                  char separator,
+ak_strtostr_array(AkHeap         * __restrict heap,
+                  void           * __restrict memParent,
+                  char                       *content,
+                  char                        separator,
                   AkStringArray ** __restrict array);
 
 AkResult _assetkit_hide
-ak_strtostr_arrayL(AkHeap * __restrict heap,
-                   void * __restrict memParent,
-                   char * stringRep,
-                   char separator,
+ak_strtostr_arrayL(AkHeap          * __restrict heap,
+                   void            * __restrict memParent,
+                   char                        *content,
+                   char                         separator,
                    AkStringArrayL ** __restrict array);
 
 #endif /* ak_array_h */

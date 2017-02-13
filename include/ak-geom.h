@@ -213,7 +213,7 @@ typedef struct AkWires {
   /* const char    * id; */
   const char  *name;
   AkInput     *input;
-  AkIntArray  *vcount;
+  AkUIntArray *vcount;
   AkUIntArray *primitives;
   AkTree      *extra;
   AkUInt       count;
@@ -223,7 +223,7 @@ typedef struct AkFaces {
   /* const char    * id; */
   const char  *name;
   AkInput     *input;
-  AkIntArray  *vcount;
+  AkUIntArray *vcount;
   AkUIntArray *primitives;
   AkTree      *extra;
   AkUInt       count;
@@ -233,7 +233,7 @@ typedef struct AkPCurves {
   /* const char    * id; */
   const char  *name;
   AkInput     *input;
-  AkIntArray  *vcount;
+  AkUIntArray *vcount;
   AkUIntArray *primitives;
   AkTree      *extra;
   AkUInt       count;
@@ -243,7 +243,7 @@ typedef struct AkShells {
   /* const char    * id; */
   const char  *name;
   AkInput     *input;
-  AkIntArray  *vcount;
+  AkUIntArray *vcount;
   AkUIntArray *primitives;
   AkTree      *extra;
   AkUInt       count;
@@ -253,7 +253,7 @@ typedef struct AkSolids {
   /* const char    * id; */
   const char  *name;
   AkInput     *input;
-  AkIntArray  *vcount;
+  AkUIntArray *vcount;
   AkUIntArray *primitives;
   AkTree      *extra;
   AkUInt       count;

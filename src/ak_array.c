@@ -8,253 +8,109 @@
 #include "ak_array.h"
 #include <string.h>
 
-#define AK__TMP_ARRAY_INCREMENT 32
-
 AkResult _assetkit_hide
-ak_strtof_arrayL(AkHeap * __restrict heap,
-                 void * __restrict memParent,
-                 char * __restrict stringRep,
+ak_strtof_arrayL(AkHeap         * __restrict heap,
+                 void           * __restrict memParent,
+                 char                       *content,
                  AkFloatArrayL ** __restrict array) {
-  AkFloatArrayL *floatArray;
-  AkFloat       *tmpArray;
-  char          *tok;
-  AkUInt64       tmpCount;
-  AkUInt64       arrayIndex;
-  size_t         arraySize;
+  AkFloatArrayL *arr;
+  size_t         count;
 
-  tmpCount  = AK__TMP_ARRAY_INCREMENT;
-  arrayIndex = 0;
+  count = ak_strtok_count(content, " \t\r\n", NULL);
+  if (count == 0)
+    return AK_ERR;
 
-  tmpArray = ak_heap_alloc(heap,
-                           memParent,
-                           sizeof(AkFloat) * tmpCount);
+  arr = ak_heap_alloc(heap,
+                      memParent,
+                      sizeof(*arr)
+                      + sizeof(AkFloat) * count);
+  ak_strtof(&content, arr->items, count);
+  arr->count = count;
+  arr->next  = NULL;
 
-  tok = strtok(stringRep, " \t\r\n");
-  while (tok) {
-    *(tmpArray + arrayIndex++) = strtof(tok, NULL);
+  *array = arr;
 
-    tok = strtok(NULL, " \t\r\n");
-
-    if (tok && arrayIndex == tmpCount) {
-      tmpCount += AK__TMP_ARRAY_INCREMENT;
-      tmpArray = ak_realloc(memParent,
-                            tmpArray,
-                            sizeof(AkFloat) * tmpCount);
-    }
-  }
-
-  arraySize = sizeof(AkFloat) * arrayIndex;
-  floatArray = ak_heap_alloc(heap,
-                             memParent,
-                             sizeof(*floatArray) + arraySize);
-
-  floatArray->count = arrayIndex;
-  memmove(floatArray->items, tmpArray, arraySize);
-
-  ak_free(tmpArray);
-
-  *array = floatArray;
-  
   return AK_OK;
 }
 
 AkResult _assetkit_hide
-ak_strtod_array(AkHeap * __restrict heap,
-                void * __restrict memParent,
-                char * __restrict stringRep,
+ak_strtod_array(AkHeap         * __restrict heap,
+                void           * __restrict memParent,
+                char                       *content,
                 AkDoubleArray ** __restrict array) {
-  AkDoubleArray  *doubleArray;
-  AkDouble       *tmpArray;
-  char           *tok;
-  AkUInt64        tmpCount;
-  AkUInt64        arrayIndex;
-  size_t          arraySize;
+  AkDoubleArray *arr;
+  size_t         count;
 
-  tmpCount  = AK__TMP_ARRAY_INCREMENT;
-  arrayIndex = 0;
+  count = ak_strtok_count(content, " \t\r\n", NULL);
+  if (count == 0)
+    return AK_ERR;
 
-  tmpArray = ak_heap_alloc(heap,
-                           memParent,
-                           sizeof(AkDouble) * tmpCount);
+  arr = ak_heap_alloc(heap,
+                      memParent,
+                      sizeof(*arr)
+                      + sizeof(AkDouble) * count);
+  ak_strtod(&content, arr->items, count);
+  arr->count = count;
 
-  tok = strtok(stringRep, " \t\r\n");
-  while (tok) {
-    *(tmpArray + arrayIndex++) = strtod(tok, NULL);
-
-    tok = strtok(NULL, " \t\r\n");
-
-    if (tok && arrayIndex == tmpCount) {
-      tmpCount += AK__TMP_ARRAY_INCREMENT;
-      tmpArray = ak_realloc(memParent,
-                            tmpArray,
-                            sizeof(AkDouble) * tmpCount);
-    }
-  }
-
-  arraySize = sizeof(AkDouble) * arrayIndex;
-  doubleArray = ak_heap_alloc(heap,
-                              memParent,
-                              sizeof(*doubleArray) + arraySize);
-
-  doubleArray->count = arrayIndex;
-  memmove(doubleArray->items, tmpArray, arraySize);
-
-  ak_free(tmpArray);
-
-  *array = doubleArray;
+  *array = arr;
 
   return AK_OK;
 }
 
 AkResult _assetkit_hide
-ak_strtod_arrayL(AkHeap * __restrict heap,
-                 void * __restrict memParent,
-                 char * __restrict stringRep,
+ak_strtod_arrayL(AkHeap          * __restrict heap,
+                 void            * __restrict memParent,
+                 char                        *content,
                  AkDoubleArrayL ** __restrict array) {
-  AkDoubleArrayL *doubleArray;
-  AkDouble       *tmpArray;
-  char           *tok;
-  AkUInt64        tmpCount;
-  AkUInt64        arrayIndex;
-  size_t          arraySize;
+  AkDoubleArrayL *arr;
+  size_t          count;
 
-  tmpCount  = AK__TMP_ARRAY_INCREMENT;
-  arrayIndex = 0;
+  count = ak_strtok_count(content, " \t\r\n", NULL);
+  if (count == 0)
+    return AK_ERR;
 
-  tmpArray = ak_heap_alloc(heap,
-                           memParent,
-                           sizeof(AkDouble) * tmpCount);
+  arr = ak_heap_alloc(heap,
+                      memParent,
+                      sizeof(*arr)
+                      + sizeof(AkDouble) * count);
+  ak_strtod(&content, arr->items, count);
+  arr->count = count;
+  arr->next  = NULL;
 
-  tok = strtok(stringRep, " \t\r\n");
-  while (tok) {
-    *(tmpArray + arrayIndex++) = strtod(tok, NULL);
-
-    tok = strtok(NULL, " \t\r\n");
-
-    if (tok && arrayIndex == tmpCount) {
-      tmpCount += AK__TMP_ARRAY_INCREMENT;
-      tmpArray = ak_realloc(memParent,
-                            tmpArray,
-                            sizeof(AkDouble) * tmpCount);
-    }
-  }
-
-  arraySize = sizeof(AkDouble) * arrayIndex;
-  doubleArray = ak_heap_alloc(heap,
-                              memParent,
-                              sizeof(*doubleArray) + arraySize);
-
-  doubleArray->count = arrayIndex;
-  memmove(doubleArray->items, tmpArray, arraySize);
-
-  ak_free(tmpArray);
-
-  *array = doubleArray;
+  *array = arr;
 
   return AK_OK;
 }
 
 AkResult _assetkit_hide
-ak_strtoi_array(AkHeap * __restrict heap,
-                void * __restrict memParent,
-                char * stringRep,
-                AkIntArray ** __restrict array) {
-  AkIntArray     *intArray;
-  AkInt          *tmpArray;
-  char           *tok;
-  AkUInt64        tmpCount;
-  AkUInt64        arrayIndex;
-  size_t          arraySize;
-
-  tmpCount  = AK__TMP_ARRAY_INCREMENT;
-  arrayIndex = 0;
-
-  tmpArray = ak_heap_alloc(heap,
-                           memParent,
-                           sizeof(AkInt) * tmpCount);
-
-  tok = strtok(stringRep, " \t\r\n");
-  while (tok) {
-    tmpArray[arrayIndex++] = (AkInt)strtol(tok, NULL, 10);
-
-    tok = strtok(NULL, " \t\r\n");
-
-    if (tok && arrayIndex == tmpCount) {
-      tmpCount += AK__TMP_ARRAY_INCREMENT;
-      tmpArray = ak_realloc(memParent,
-                            tmpArray,
-                            sizeof(AkInt) * tmpCount);
-    }
-  }
-
-  arraySize = sizeof(AkInt) * arrayIndex;
-  intArray = ak_heap_alloc(heap,
-                           memParent,
-                           sizeof(*intArray) + arraySize);
-
-  intArray->count = arrayIndex;
-  memmove(intArray->items, tmpArray, arraySize);
-
-  ak_free(tmpArray);
-
-  *array = intArray;
-
-  return AK_OK;
-}
-
-AkResult _assetkit_hide
-ak_strtoui_array(AkHeap * __restrict heap,
-                 void * __restrict memParent,
-                 char * stringRep,
+ak_strtoui_array(AkHeap       * __restrict heap,
+                 void         * __restrict memParent,
+                 char                     *content,
                  AkUIntArray ** __restrict array) {
-  AkUIntArray    *intArray;
-  AkUInt         *tmpArray;
-  char           *tok;
-  AkUInt64        tmpCount;
-  AkUInt64        arrayIndex;
-  size_t          arraySize;
+  AkUIntArray *arr;
+  size_t       count;
 
-  tmpCount  = AK__TMP_ARRAY_INCREMENT;
-  arrayIndex = 0;
+  count = ak_strtok_count(content, " \t\r\n", NULL);
+  if (count == 0)
+    return AK_ERR;
 
-  tmpArray = ak_heap_alloc(heap,
-                           memParent,
-                           sizeof(AkUInt) * tmpCount);
+  arr = ak_heap_alloc(heap,
+                      memParent,
+                      sizeof(*arr)
+                      + sizeof(AkUInt) * count);
+  ak_strtoui(&content, arr->items, count);
+  arr->count = count;
 
-  tok = strtok(stringRep, " \t\r\n");
-  while (tok) {
-    tmpArray[arrayIndex++] = (AkUInt)strtoul(tok, NULL, 10);
+  *array = arr;
 
-    tok = strtok(NULL, " \t\r\n");
-
-    if (tok && arrayIndex == tmpCount) {
-      tmpCount += AK__TMP_ARRAY_INCREMENT;
-      tmpArray = ak_realloc(memParent,
-                            tmpArray,
-                            sizeof(AkUInt) * tmpCount);
-    }
-  }
-
-  arraySize = sizeof(AkUInt) * arrayIndex;
-  intArray = ak_heap_alloc(heap,
-                           memParent,
-                           sizeof(*intArray) + arraySize);
-
-  intArray->count = arrayIndex;
-  memmove(intArray->items, tmpArray, arraySize);
-
-  ak_free(tmpArray);
-
-  *array = intArray;
-  
   return AK_OK;
 }
 
 AkResult _assetkit_hide
-ak_strtostr_array(AkHeap * __restrict heap,
-                  void * __restrict memParent,
-                  char * stringRep,
-                  char separator,
+ak_strtostr_array(AkHeap         * __restrict heap,
+                  void           * __restrict memParent,
+                  char                       *content,
+                  char                        separator,
                   AkStringArray ** __restrict array) {
   AkStringArray  *stringArray;
   char           *pData;
@@ -273,7 +129,7 @@ ak_strtostr_array(AkHeap * __restrict heap,
   separatorStr[2] = '\r';
   separatorStr[3] = '\t';
 
-  pData = stringRep;
+  pData = content;
   while (*pData != '\0'
          && *++pData == separator)
     itemCount++;
@@ -284,7 +140,7 @@ ak_strtostr_array(AkHeap * __restrict heap,
    the last one is pointer to all data
    */
   arraySize = sizeof(char *) * (itemCount + 1);
-  arrayDataSize = strlen(stringRep) + itemCount /* NULL */;
+  arrayDataSize = strlen(content) + itemCount /* NULL */;
 
   stringArray = ak_heap_alloc(heap,
                               memParent,
@@ -297,7 +153,7 @@ ak_strtostr_array(AkHeap * __restrict heap,
   stringArray->count = itemCount;
   stringArray->items[itemCount] = pData;
 
-  tok = strtok(stringRep, separatorStr);
+  tok = strtok(content, separatorStr);
   while (tok) {
     strcpy(pData, tok);
     stringArray->items[arrayIndex++] = pData;
@@ -372,6 +228,6 @@ ak_strtostr_arrayL(AkHeap * __restrict heap,
   }
 
   *array = stringArray;
-  
+
   return AK_OK;
 }

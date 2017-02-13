@@ -176,13 +176,13 @@ ak_dae_wires(AkXmlState * __restrict xst,
       content = ak_xml_rawval(xst);
 
       if (content) {
-        AkIntArray *intArray;
-        AkResult    ret;
+        AkUIntArray *intArray;
+        AkResult     ret;
 
-        ret = ak_strtoi_array(xst->heap,
-                              wires,
-                              content,
-                              &intArray);
+        ret = ak_strtoui_array(xst->heap,
+                               wires,
+                               content,
+                               &intArray);
         if (ret == AK_OK)
           wires->vcount = intArray;
 
@@ -297,13 +297,13 @@ ak_dae_faces(AkXmlState * __restrict xst,
       content = ak_xml_rawval(xst);
 
       if (content) {
-        AkIntArray *intArray;
-        AkResult    ret;
+        AkUIntArray *intArray;
+        AkResult     ret;
 
-        ret = ak_strtoi_array(xst->heap,
-                              faces,
-                              content,
-                              &intArray);
+        ret = ak_strtoui_array(xst->heap,
+                               faces,
+                               content,
+                               &intArray);
         if (ret == AK_OK)
           faces->vcount = intArray;
 
@@ -418,13 +418,13 @@ ak_dae_pcurves(AkXmlState * __restrict xst,
       content = ak_xml_rawval(xst);
 
       if (content) {
-        AkIntArray *intArray;
-        AkResult    ret;
+        AkUIntArray *intArray;
+        AkResult     ret;
 
-        ret = ak_strtoi_array(xst->heap,
-                              pcurves,
-                              content,
-                              &intArray);
+        ret = ak_strtoui_array(xst->heap,
+                               pcurves,
+                               content,
+                               &intArray);
         if (ret == AK_OK)
           pcurves->vcount = intArray;
 
@@ -539,13 +539,13 @@ ak_dae_shells(AkXmlState * __restrict xst,
       content = ak_xml_rawval(xst);
 
       if (content) {
-        AkIntArray *intArray;
-        AkResult    ret;
+        AkUIntArray *intArray;
+        AkResult     ret;
 
-        ret = ak_strtoi_array(xst->heap,
-                              shells,
-                              content,
-                              &intArray);
+        ret = ak_strtoui_array(xst->heap,
+                               shells,
+                               content,
+                               &intArray);
         if (ret == AK_OK)
           shells->vcount = intArray;
 
@@ -660,13 +660,13 @@ ak_dae_solids(AkXmlState * __restrict xst,
       content = ak_xml_rawval(xst);
 
       if (content) {
-        AkIntArray *intArray;
-        AkResult    ret;
+        AkUIntArray *intArray;
+        AkResult     ret;
 
-        ret = ak_strtoi_array(xst->heap,
-                              solids,
-                              content,
-                              &intArray);
+        ret = ak_strtoui_array(xst->heap,
+                               solids,
+                               content,
+                               &intArray);
         if (ret == AK_OK)
           solids->vcount = intArray;
 

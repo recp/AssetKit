@@ -202,13 +202,13 @@ ak_dae_skin(AkXmlState * __restrict xst,
           content = ak_xml_rawval(xst);
 
           if (content) {
-            AkIntArray *intArray;
-            AkResult    ret;
+            AkUIntArray *intArray;
+            AkResult     ret;
 
-            ret = ak_strtoi_array(xst->heap,
-                                  vertexWeights,
-                                  content,
-                                  &intArray);
+            ret = ak_strtoui_array(xst->heap,
+                                   vertexWeights,
+                                   content,
+                                   &intArray);
             if (ret == AK_OK)
               vertexWeights->vcount = intArray;
 
