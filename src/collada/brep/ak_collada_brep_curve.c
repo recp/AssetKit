@@ -33,7 +33,7 @@ ak_dae_curve(AkXmlState * __restrict xst,
   AkObject       *obj;
   AkCurve        *curve;
   void           *memPtr;
-  AkDoubleArrayL *last_orient;
+  AkFloatArrayL  *last_orient;
   AkXmlElmState   xest;
 
   if (asObject) {
@@ -99,7 +99,7 @@ ak_dae_curve(AkXmlState * __restrict xst,
             content = ak_xml_rawval(xst);
 
             if (content) {
-              ak_strtod(&content, line->origin, 3);
+              ak_strtof(&content, line->origin, 3);
               xmlFree(content);
             }
           } else if (ak_xml_eqelm(xst, _s_dae_direction)) {
@@ -107,7 +107,7 @@ ak_dae_curve(AkXmlState * __restrict xst,
             content = ak_xml_rawval(xst);
 
             if (content) {
-              ak_strtod(&content, line->direction, 3);
+              ak_strtof(&content, line->direction, 3);
               xmlFree(content);
             }
           } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
@@ -366,10 +366,13 @@ ak_dae_curve(AkXmlState * __restrict xst,
         content = ak_xml_rawval(xst);
 
         if (content) {
-          AkDoubleArrayL *orient;
-          AkResult ret;
+          AkFloatArrayL *orient;
+          AkResult       ret;
 
-          ret = ak_strtod_arrayL(xst->heap, memPtr, content, &orient);
+          ret = ak_strtof_arrayL(xst->heap,
+                                 memPtr,
+                                 content,
+                                 &orient);
           if (ret == AK_OK) {
             if (last_orient)
               last_orient->next = orient;
@@ -389,7 +392,7 @@ ak_dae_curve(AkXmlState * __restrict xst,
         content = ak_xml_rawval(xst);
 
         if (content) {
-          ak_strtod(&content, curve->origin, 3);
+          ak_strtof(&content, curve->origin, 3);
           xmlFree(content);
         }
         break;

@@ -31,9 +31,9 @@ AkResult _assetkit_hide
 ak_dae_surface(AkXmlState * __restrict xst,
                void * __restrict memParent,
                AkSurface ** __restrict dest) {
-  AkSurface      *surface;
-  AkDoubleArrayL *last_orient;
-  AkXmlElmState   xest;
+  AkSurface     *surface;
+  AkFloatArrayL *last_orient;
+  AkXmlElmState  xest;
 
   surface = ak_heap_calloc(xst->heap,
                            memParent,
@@ -433,10 +433,10 @@ ak_dae_surface(AkXmlState * __restrict xst,
         content = ak_xml_rawval(xst);
 
         if (content) {
-          AkDoubleArrayL *orient;
-          AkResult ret;
+          AkFloatArrayL *orient;
+          AkResult       ret;
 
-          ret = ak_strtod_arrayL(xst->heap,
+          ret = ak_strtof_arrayL(xst->heap,
                                  surface,
                                  content,
                                  &orient);
@@ -459,7 +459,7 @@ ak_dae_surface(AkXmlState * __restrict xst,
         content = ak_xml_rawval(xst);
 
         if (content) {
-          ak_strtod(&content, surface->origin, 3);
+          ak_strtof(&content, surface->origin, 3);
           xmlFree(content);
         }
         break;

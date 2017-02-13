@@ -82,95 +82,94 @@ typedef struct AkMesh {
 typedef struct AkControlVerts {
   ak_asset_base
 
-  AkInputBasic * input;
-  AkTree       * extra;
+  AkInputBasic *input;
+  AkTree       *extra;
 } AkControlVerts;
 
 typedef struct AkSpline {
   ak_asset_base
 
-  AkSource       * source;
-  AkControlVerts * cverts;
-  AkTree         * extra;
-  AkBool           closed;
+  AkSource       *source;
+  AkControlVerts *cverts;
+  AkTree         *extra;
+  AkBool          closed;
 } AkSpline;
 
 typedef struct AkLine {
-  AkDouble3 origin;
-  AkDouble3 direction;
-  AkTree * extra;
+  AkFloat3 origin;
+  AkFloat3 direction;
+  AkTree  *extra;
 } AkLine;
 
 typedef struct AkCircle {
-  AkFloat  radius;
-  AkTree * extra;
+  AkFloat radius;
+  AkTree *extra;
 } AkCircle;
 
 typedef struct AkEllipse {
   AkFloat2 radius;
-  AkTree * extra;
+  AkTree  *extra;
 } AkEllipse;
 
 typedef struct AkParabola {
-  AkFloat  focal;
-  AkTree * extra;
+  AkFloat focal;
+  AkTree *extra;
 } AkParabola;
 
 typedef struct AkHyperbola {
   AkFloat2 radius;
-  AkTree * extra;
+  AkTree  *extra;
 } AkHyperbola;
 
 typedef struct AkNurbs {
-  AkSource       * source;
-  AkControlVerts * cverts;
-  AkTree         * extra;
-  AkUInt           degree;
-  AkBool           closed;
+  AkSource       *source;
+  AkControlVerts *cverts;
+  AkTree         *extra;
+  AkUInt          degree;
+  AkBool          closed;
 } AkNurbs;
 
 typedef struct AkCurve {
-  AkDoubleArrayL * orient;
-  AkDouble3        origin;
-  AkObject       * curve;
-  struct AkCurve * next;
+  AkFloatArrayL *orient;
+  AkFloat3       origin;
+  AkObject       *curve;
+  struct AkCurve *next;
 } AkCurve;
 
 typedef struct AkCurves {
-  AkCurve * curve;
-  AkTree  * extra;
+  AkCurve *curve;
+  AkTree  *extra;
 } AkCurves;
 
 typedef struct AkCone {
-  AkFloat  radius;
-  AkFloat  angle;
-  AkTree * extra;
+  AkFloat radius;
+  AkFloat angle;
+  AkTree *extra;
 } AkCone;
 
 typedef struct AkPlane {
-  AkDouble4 equation;
-  AkTree  * extra;
+  AkFloat4 equation;
+  AkTree  *extra;
 } AkPlane;
 
 typedef struct AkCylinder {
   AkFloat2 radius;
-  AkTree * extra;
+  AkTree  *extra;
 } AkCylinder;
 
 typedef struct AkNurbsSurface {
-  AkUInt degree_u;
-  AkBool closed_u;
-  AkUInt degree_v;
-  AkBool closed_v;
-
-  AkSource       * source;
-  AkControlVerts * cverts;
-  AkTree         * extra;
+  AkSource       *source;
+  AkControlVerts *cverts;
+  AkTree         *extra;
+  AkUInt          degree_u;
+  AkUInt          degree_v;
+  AkBool          closed_u;
+  AkBool          closed_v;
 } AkNurbsSurface;
 
 typedef struct AkSphere {
-  AkFloat  radius;
-  AkTree * extra;
+  AkFloat radius;
+  AkTree *extra;
 } AkSphere;
 
 typedef struct AkTorus {
@@ -179,93 +178,85 @@ typedef struct AkTorus {
 } AkTorus;
 
 typedef struct AkSweptSurface {
-  AkCurve * curve;
-  AkDouble3 direction;
-  AkDouble3 origin;
-  AkFloat3  axis;
-  AkTree  * extra;
+  AkCurve *curve;
+  AkFloat3 direction;
+  AkFloat3 origin;
+  AkFloat3 axis;
+  AkTree  *extra;
 } AkSweptSurface;
 
 typedef struct AkSurface {
   /* const char * sid; */
 
-  const char * name;
-
-  AkObject       * surface;
-  AkDoubleArrayL * orient;
-  AkDouble3        origin;
-
-  struct AkSurface * next;
+  const char       *name;
+  AkObject         *surface;
+  AkFloatArrayL    *orient;
+  AkFloat3          origin;
+  struct AkSurface *next;
 } AkSurface;
 
 typedef struct AkSurfaces {
-  AkSurface * surface;
-  AkTree    * extra;
+  AkSurface *surface;
+  AkTree    *extra;
 } AkSurfaces;
 
 typedef struct AkEdges {
   /* const char    * id; */
-  const char    * name;
-  AkUInt          count;
-
-  AkInput       * input;
-  AkDoubleArray * primitives;
-  AkTree        * extra;
+  const char    *name;
+  AkInput       *input;
+  AkUIntArray   *primitives;
+  AkTree        *extra;
+  AkUInt         count;
 } AkEdges;
 
 typedef struct AkWires {
   /* const char    * id; */
-  const char    * name;
-  AkUInt          count;
-
-  AkInput       * input;
-  AkIntArray    * vcount;
-  AkDoubleArray * primitives;
-  AkTree        * extra;
+  const char  *name;
+  AkInput     *input;
+  AkIntArray  *vcount;
+  AkUIntArray *primitives;
+  AkTree      *extra;
+  AkUInt       count;
 } AkWires;
 
 typedef struct AkFaces {
   /* const char    * id; */
-  const char    * name;
-  AkUInt          count;
-
-  AkInput       * input;
-  AkIntArray    * vcount;
-  AkDoubleArray * primitives;
-  AkTree        * extra;
+  const char  *name;
+  AkInput     *input;
+  AkIntArray  *vcount;
+  AkUIntArray *primitives;
+  AkTree      *extra;
+  AkUInt       count;
 } AkFaces;
 
 typedef struct AkPCurves {
   /* const char    * id; */
-  const char    * name;
-  AkUInt          count;
-
-  AkInput       * input;
-  AkIntArray    * vcount;
-  AkDoubleArray * primitives;
-  AkTree        * extra;
+  const char  *name;
+  AkInput     *input;
+  AkIntArray  *vcount;
+  AkUIntArray *primitives;
+  AkTree      *extra;
+  AkUInt       count;
 } AkPCurves;
 
 typedef struct AkShells {
   /* const char    * id; */
-  const char    * name;
-  AkUInt          count;
-
-  AkInput       * input;
-  AkIntArray    * vcount;
-  AkDoubleArray * primitives;
-  AkTree        * extra;
+  const char  *name;
+  AkInput     *input;
+  AkIntArray  *vcount;
+  AkUIntArray *primitives;
+  AkTree      *extra;
+  AkUInt       count;
 } AkShells;
 
 typedef struct AkSolids {
   /* const char    * id; */
-  const char    * name;
-  AkUInt          count;
-
-  AkInput       * input;
-  AkIntArray    * vcount;
-  AkDoubleArray * primitives;
-  AkTree        * extra;
+  const char  *name;
+  AkInput     *input;
+  AkIntArray  *vcount;
+  AkUIntArray *primitives;
+  AkTree      *extra;
+  AkUInt       count;
 } AkSolids;
 
 typedef struct AkBoundryRep {

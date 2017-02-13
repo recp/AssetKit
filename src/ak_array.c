@@ -11,6 +11,54 @@
 #define AK__TMP_ARRAY_INCREMENT 32
 
 AkResult _assetkit_hide
+ak_strtof_arrayL(AkHeap * __restrict heap,
+                 void * __restrict memParent,
+                 char * __restrict stringRep,
+                 AkFloatArrayL ** __restrict array) {
+  AkFloatArrayL *floatArray;
+  AkFloat       *tmpArray;
+  char          *tok;
+  AkUInt64       tmpCount;
+  AkUInt64       arrayIndex;
+  size_t         arraySize;
+
+  tmpCount  = AK__TMP_ARRAY_INCREMENT;
+  arrayIndex = 0;
+
+  tmpArray = ak_heap_alloc(heap,
+                           memParent,
+                           sizeof(AkFloat) * tmpCount);
+
+  tok = strtok(stringRep, " \t\r\n");
+  while (tok) {
+    *(tmpArray + arrayIndex++) = strtof(tok, NULL);
+
+    tok = strtok(NULL, " \t\r\n");
+
+    if (tok && arrayIndex == tmpCount) {
+      tmpCount += AK__TMP_ARRAY_INCREMENT;
+      tmpArray = ak_realloc(memParent,
+                            tmpArray,
+                            sizeof(AkFloat) * tmpCount);
+    }
+  }
+
+  arraySize = sizeof(AkFloat) * arrayIndex;
+  floatArray = ak_heap_alloc(heap,
+                             memParent,
+                             sizeof(*floatArray) + arraySize);
+
+  floatArray->count = arrayIndex;
+  memmove(floatArray->items, tmpArray, arraySize);
+
+  ak_free(tmpArray);
+
+  *array = floatArray;
+  
+  return AK_OK;
+}
+
+AkResult _assetkit_hide
 ak_strtod_array(AkHeap * __restrict heap,
                 void * __restrict memParent,
                 char * __restrict stringRep,
@@ -271,7 +319,7 @@ ak_strtostr_arrayL(AkHeap * __restrict heap,
                    char * stringRep,
                    char separator,
                    AkStringArrayL ** __restrict array) {
-  AkStringArrayL  *stringArray;
+  AkStringArrayL *stringArray;
   char           *pData;
   char           *tok;
   char            separatorStr[4];

@@ -73,16 +73,15 @@ ak_dae_edges(AkXmlState * __restrict xst,
       content = ak_xml_rawval(xst);
 
       if (content) {
-        AkDoubleArray *doubleArray;
-        AkResult ret;
+        AkUIntArray *indices;
+        AkResult     ret;
 
-        ret = ak_strtod_array(xst->heap,
-                              edges,
-                              content,
-                              &doubleArray);
-        if (ret == AK_OK) {
-          edges->primitives = doubleArray;
-        }
+        ret = ak_strtoui_array(xst->heap,
+                               edges,
+                               content,
+                               &indices);
+        if (ret == AK_OK)
+          edges->primitives = indices;
 
         xmlFree(content);
       }
@@ -195,15 +194,15 @@ ak_dae_wires(AkXmlState * __restrict xst,
       content = ak_xml_rawval(xst);
 
       if (content) {
-        AkDoubleArray *doubleArray;
-        AkResult ret;
+        AkUIntArray *indices;
+        AkResult     ret;
 
-        ret = ak_strtod_array(xst->heap,
-                              wires,
-                              content,
-                              &doubleArray);
+        ret = ak_strtoui_array(xst->heap,
+                               wires,
+                               content,
+                               &indices);
         if (ret == AK_OK)
-          wires->primitives = doubleArray;
+          wires->primitives = indices;
 
         xmlFree(content);
       }
@@ -316,15 +315,15 @@ ak_dae_faces(AkXmlState * __restrict xst,
       content = ak_xml_rawval(xst);
 
       if (content) {
-        AkDoubleArray *doubleArray;
-        AkResult ret;
+        AkUIntArray *indices;
+        AkResult     ret;
 
-        ret = ak_strtod_array(xst->heap,
-                              faces,
-                              content,
-                              &doubleArray);
+        ret = ak_strtoui_array(xst->heap,
+                               faces,
+                               content,
+                               &indices);
         if (ret == AK_OK)
-          faces->primitives = doubleArray;
+          faces->primitives = indices;
 
         xmlFree(content);
       }
@@ -437,15 +436,15 @@ ak_dae_pcurves(AkXmlState * __restrict xst,
       content = ak_xml_rawval(xst);
 
       if (content) {
-        AkDoubleArray *doubleArray;
-        AkResult ret;
+        AkUIntArray *indices;
+        AkResult     ret;
 
-        ret = ak_strtod_array(xst->heap,
-                              pcurves,
-                              content,
-                              &doubleArray);
+        ret = ak_strtoui_array(xst->heap,
+                               pcurves,
+                               content,
+                               &indices);
         if (ret == AK_OK)
-          pcurves->primitives = doubleArray;
+          pcurves->primitives = indices;
 
         xmlFree(content);
       }
@@ -558,15 +557,15 @@ ak_dae_shells(AkXmlState * __restrict xst,
       content = ak_xml_rawval(xst);
 
       if (content) {
-        AkDoubleArray *doubleArray;
-        AkResult ret;
+        AkUIntArray *indices;
+        AkResult     ret;
 
-        ret = ak_strtod_array(xst->heap,
-                              shells,
-                              content,
-                              &doubleArray);
+        ret = ak_strtoui_array(xst->heap,
+                               shells,
+                               content,
+                               &indices);
         if (ret == AK_OK)
-          shells->primitives = doubleArray;
+          shells->primitives = indices;
 
         xmlFree(content);
       }
@@ -679,15 +678,15 @@ ak_dae_solids(AkXmlState * __restrict xst,
       content = ak_xml_rawval(xst);
 
       if (content) {
-        AkDoubleArray *doubleArray;
-        AkResult ret;
+        AkUIntArray *indices;
+        AkResult     ret;
 
-        ret = ak_strtod_array(xst->heap,
-                              solids,
-                              content,
-                              &doubleArray);
+        ret = ak_strtoui_array(xst->heap,
+                               solids,
+                               content,
+                               &indices);
         if (ret == AK_OK)
-          solids->primitives = doubleArray;
+          solids->primitives = indices;
 
         xmlFree(content);
       }
