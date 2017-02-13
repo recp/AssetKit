@@ -8,6 +8,21 @@
 #ifndef __libassetkit__assetkit_string__h_
 #define __libassetkit__assetkit_string__h_
 
+/*!
+ * @brief util for count tokens before call strtok to save realloc calls
+ *
+ * @param[in]  buff string buffer
+ * @param[in]  sep  separators use comma to use multiple e.g. " \t\r"
+ * @param[out] len  non-separator char count
+ *
+ * @return returns word count
+ */
+AK_EXPORT
+size_t
+ak_strtok_count(char * __restrict buff,
+                char * __restrict sep,
+                size_t           *len);
+
 AK_EXPORT
 int
 ak_strtod(char ** __restrict src,

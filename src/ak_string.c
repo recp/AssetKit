@@ -11,6 +11,48 @@
 #include "../include/assetkit.h"
 
 AK_EXPORT
+size_t
+ak_strtok_count(char * __restrict buff,
+                char * __restrict sep,
+                size_t           *len) {
+  size_t c, spacec, sepc, i;
+
+  sepc = (uint32_t)strlen(sep);
+  if (!sepc)
+    return 1;
+
+  c = spacec = 0;
+  while(*buff != '\0') {
+    bool sep_found, inc;
+
+    inc = sep_found = false;
+    do {
+      sep_found = false;
+      for (i = 0; i < sepc; i++) {
+        if (*buff == sep[i]) {
+          sep_found = true;
+          inc       = c > 0; /* trim left */
+          buff++;
+        }
+      }
+    } while (sep_found && *buff != '\0');
+
+    if (*buff == '\0')
+      break;
+
+    buff++;
+    if (inc)
+      spacec++;
+    c++;
+  }
+
+  if (len)
+    *len = c;
+
+  return spacec + 1;
+}
+
+AK_EXPORT
 int
 ak_strtod(char ** __restrict src,
           AkDouble * __restrict dest,
