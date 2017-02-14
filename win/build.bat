@@ -3,10 +3,10 @@ nuget restore .\assetkit.sln
 
 cd ..
 
-git submodule update --init --recursive
+git submodule -q update --init --recursive 2> $null
 
 cd lib\libuv
-git clone https://chromium.googlesource.com/external/gyp.git build/gyp
+git clone -q https://chromium.googlesource.com/external/gyp.git build/gyp 2> $null
 .\vcbuild.bat
 
 cd %CUR_DR%
