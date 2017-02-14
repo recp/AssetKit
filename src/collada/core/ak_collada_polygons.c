@@ -30,7 +30,7 @@ ak_dae_polygon(AkXmlState * __restrict xst,
 
   polygon->base.name     = ak_xml_attr(xst, polygon, _s_dae_name);
   polygon->base.material = ak_xml_attr(xst, polygon, _s_dae_material);
-  polygon->base.count    = ak_xml_attrui64(xst, _s_dae_count);
+  polygon->base.count    = ak_xml_attrui(xst, _s_dae_count);
 
   /*
    _xml_readAttrUsingFnWithDef(polygon->count,
