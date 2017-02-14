@@ -11,4 +11,4 @@ git clone -q https://chromium.googlesource.com/external/gyp.git build/gyp 2> $nu
 
 cd %CUR_DR%
 
-devenv assetkit.sln /Build Release
+msbuild assetkit.vcxproj /p:Configuration=Release
