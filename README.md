@@ -1,11 +1,15 @@
 # 🎨 AssetKit
-3D asset importer, exporter library. This library also includes common 3D utils funcs. It is written with C99 but C++ wrappers can be written in the future. 
+3D asset importer, exporter library. This library also includes common 3D utils funcs. It is written with C99 but C++ wrappers or other language bindings can be written in the future. 
 
 || **Unix (gcc, clang)** | **Windows (msvc)** |
 |---|---|---|
 | **Build** | [![Build Status](https://travis-ci.org/recp/assetkit.svg?branch=master)](https://travis-ci.org/recp/assetkit)|todo
 
-This library will full support COLLADA specs and glTF specs, plus other 3D formats e.g .obj, .stl maybe supported by sub-libraries.
+This library will full support COLLADA specs and glTF specs, plus other 3D formats e.g .obj, .stl maybe supported by sub-libraries e.g. assetkit-stl, assetkit-fbx.
+
+There is also an optional renderer library called [libgk](https://github.com/recp/libgk) for render AssetKit contents. You can see how to load AssetKit to libgk in [assetkit-gl](https://github.com/recp/assetkit-gl) lib/repo.
+
+I've also created a basic program (included a screenshot of render result and dae) to show full steps: [simple-collada-viewer](http://github.com/recp/simple-collada-viewer)
 
 ##Tasklist
 
@@ -30,6 +34,7 @@ This library will full support COLLADA specs and glTF specs, plus other 3D forma
     - [x] B-rep
   - [x] Cameras
     - [x] Attach first found camera to scene as default camera
+    - [x] Attach all camera instances to scene
   - [x] Scenes
      - [x] Nodes
        - [x] Fix camera node transform
@@ -48,4 +53,4 @@ This library will full support COLLADA specs and glTF specs, plus other 3D forma
 # Notes
 - Actual README and documents for how to use this will be written after first version
 - I'm working hard to finish this lib, I'll update README when finished, for now <b>DON'T USE THIS LIB UNTIL FINISHED</b>
-- Don't create pull requests for now, if you really want first contact me because I may work on the feature you want or I've  planned it with an architecture to do that
+- Don't create pull requests for now, if you really want then, first contact me because I may work on the feature you want or I've planned it with an architecture to do that
