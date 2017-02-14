@@ -163,7 +163,7 @@ ak_strtod_fast(char     * __restrict src,
       tok++;
   }
 
-  *(dest - --n) = strtof(tok, NULL);
+  *(dest - --n) = strtod(tok, NULL);
 
   return (int)n;
 }
@@ -194,7 +194,7 @@ ak_strtoui_fast(char   * __restrict src,
       tok++;
   }
 
-  *(dest - --n) = strtof(tok, NULL);
+  *(dest - --n) = strtoul(tok, NULL, 10);
 
   return (int)n;
 }
