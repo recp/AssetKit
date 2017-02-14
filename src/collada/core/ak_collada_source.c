@@ -85,10 +85,10 @@ ak_dae_source(AkXmlState * __restrict xst,
         AkSourceBoolArray *boolArray;
         char     *content;
         AkObject *obj;
-        AkUInt64  arrayCount;
         size_t    arraySize;
+        uint32_t  arrayCount;
 
-        arrayCount = ak_xml_attrui64(xst, _s_dae_count);
+        arrayCount = ak_xml_attrui(xst, _s_dae_count);
         arraySize  = sizeof(AkBool) * arrayCount;
 
         obj = ak_objAlloc(xst->heap,
@@ -122,10 +122,10 @@ ak_dae_source(AkXmlState * __restrict xst,
         AkSourceFloatArray *floatAray;
         char     *content;
         AkObject *obj;
-        AkUInt64  arrayCount;
         size_t    arraySize;
+        uint32_t  arrayCount;
 
-        arrayCount = ak_xml_attrui64(xst, _s_dae_count);
+        arrayCount = ak_xml_attrui(xst, _s_dae_count);
         arraySize  = sizeof(AkFloat) * arrayCount;
 
         obj = ak_objAlloc(xst->heap,
@@ -161,10 +161,10 @@ ak_dae_source(AkXmlState * __restrict xst,
         AkSourceIntArray *intArray;
         char     *content;
         AkObject *obj;
-        AkUInt64  arrayCount;
         size_t    arraySize;
+        uint32_t  arrayCount;
 
-        arrayCount = ak_xml_attrui64(xst, _s_dae_count);
+        arrayCount = ak_xml_attrui(xst, _s_dae_count);
         arraySize  = sizeof(AkInt) * arrayCount;
 
         obj = ak_objAlloc(xst->heap,
@@ -211,12 +211,12 @@ ak_dae_source(AkXmlState * __restrict xst,
         AkObject *obj;
         char     *pData;
         char     *tok;
-        AkUInt64  arrayCount;
         size_t    arraySize;
         size_t    arrayDataSize;
-        AkUInt64  idx;
+        uint32_t  arrayCount;
+		    uint32_t  idx;
 
-        arrayCount = ak_xml_attrui64(xst, _s_dae_count);
+        arrayCount = ak_xml_attrui(xst, _s_dae_count);
 
         /*
          |pSTR1|pSTR2|pSTR3|STR1\0STR2\0STR3|

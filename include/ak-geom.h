@@ -44,7 +44,7 @@ typedef struct AkMeshPrimitive {
   AkUIntArray            *indices;
   AkTree                 *extra;
   struct AkMeshPrimitive *next;
-  size_t                  count;
+  uint32_t                count;
   uint32_t                inputCount;
   uint32_t                indexStride;
 } AkMeshPrimitive;

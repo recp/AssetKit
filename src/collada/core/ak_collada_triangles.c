@@ -29,7 +29,7 @@ ak_dae_triangles(AkXmlState * __restrict xst,
 
   triangles->base.name     = ak_xml_attr(xst, triangles, _s_dae_name);
   triangles->base.material = ak_xml_attr(xst, triangles, _s_dae_material);
-  triangles->base.count    = ak_xml_attrui64(xst, _s_dae_count);
+  triangles->base.count    = ak_xml_attrui(xst, _s_dae_count);
 
   last_input = NULL;
   indexoff   = 0;

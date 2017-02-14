@@ -194,7 +194,7 @@ ak_strtoui_fast(char   * __restrict src,
       tok++;
   }
 
-  *(dest - --n) = strtoul(tok, NULL, 10);
+  *(dest - --n) = (AkUInt)strtoul(tok, NULL, 10);
 
   return (int)n;
 }

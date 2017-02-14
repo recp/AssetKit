@@ -116,8 +116,8 @@ ak_strtostr_array(AkHeap         * __restrict heap,
   char           *pData;
   char           *tok;
   char            separatorStr[4];
-  AkUInt64        arrayIndex;
-  AkUInt64        itemCount;
+  size_t          arrayIndex;
+  size_t          itemCount;
   size_t          arraySize;
   size_t          arrayDataSize;
 
@@ -179,8 +179,8 @@ ak_strtostr_arrayL(AkHeap * __restrict heap,
   char           *pData;
   char           *tok;
   char            separatorStr[4];
-  AkUInt64        arrayIndex;
-  AkUInt64        itemCount;
+  size_t          arrayIndex;
+  size_t          itemCount;
   size_t          arraySize;
   size_t          arrayDataSize;
 
