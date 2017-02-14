@@ -74,21 +74,26 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>..\lib\libuv\include;..\lib\cglm\include;$(IncludePath)</IncludePath>
+    <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <IncludePath>..\lib\libuv\include;..\lib\cglm\include;$(IncludePath)</IncludePath>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>true</RunCodeAnalysis>
     <IncludePath>..\lib\libuv\include;..\lib\cglm\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>..\lib\libuv\include;..\lib\cglm\include;$(IncludePath)</IncludePath>
+    <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -98,6 +103,7 @@
       <CompileAs>CompileAsC</CompileAs>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_assetkit_dll;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <EnablePREfast>true</EnablePREfast>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -115,6 +121,7 @@
       <PrecompiledHeaderFile />
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_assetkit_dll;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <EnablePREfast>true</EnablePREfast>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -155,6 +162,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_assetkit_dll;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsC</CompileAs>
+      <EnablePREfast>true</EnablePREfast>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -169,7 +177,6 @@
     <None Include="..\src\collada\ak_collada_strpool.json" />
     <None Include="..\src\collada\strpool.py" />
     <None Include="LICENSE" />
-    <None Include="msbuild.bat" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -203,7 +210,6 @@
     <ClInclude Include="..\src\ak_array.h" />
     <ClInclude Include="..\src\ak_common.h" />
     <ClInclude Include="..\src\ak_data.h" />
-    <ClInclude Include="..\src\ak_hex.h" />
     <ClInclude Include="..\src\ak_id.h" />
     <ClInclude Include="..\src\ak_libxml.h" />
     <ClInclude Include="..\src\ak_memory_common.h" />
@@ -288,7 +294,6 @@
     <ClCompile Include="..\src\ak_common.c" />
     <ClCompile Include="..\src\ak_data.c" />
     <ClCompile Include="..\src\ak_find.c" />
-    <ClCompile Include="..\src\ak_hex.c" />
     <ClCompile Include="..\src\ak_id.c" />
     <ClCompile Include="..\src\ak_lib.c" />
     <ClCompile Include="..\src\ak_libxml.c" />

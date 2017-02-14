@@ -2,7 +2,6 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <None Include="LICENSE" />
-    <None Include="msbuild.bat" />
     <None Include="packages.config" />
     <None Include="..\src\collada\ak_collada_strpool.json">
       <Filter>src\collada</Filter>
@@ -374,9 +373,6 @@
     <ClInclude Include="..\src\ak_data.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\ak_hex.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\ak_id.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -704,9 +700,6 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\src\ak_find.c">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\ak_hex.c">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\src\ak_id.c">
