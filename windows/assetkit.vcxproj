@@ -1,0 +1,439 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="packages\openssl.1.0.1.21\build\native\openssl.props" Condition="Exists('packages\openssl.1.0.1.21\build\native\openssl.props')" />
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{D998A022-DFB7-4969-8F3C-2130E110A331}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>assetkit</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <ProjectName>assetkit</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>..\lib\libuv\include;..\lib\cglm\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <IncludePath>..\lib\libuv\include;..\lib\cglm\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+    <IncludePath>..\lib\libuv\include;..\lib\cglm\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>..\lib\libuv\include;..\lib\cglm\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Full</Optimization>
+      <CompileAs>CompileAsC</CompileAs>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_assetkit_dll;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>.\packages\libxml2.2.7.8.7\build\native\lib\v110\Win32\Debug\dynamic\cdecl\libxml2.lib;.\packages\curl.7.30.0.2\build\native\lib\v110\Win32\Debug\dynamic\libcurl.lib;..\lib\libuv\Debug\lib\libuv.lib;advapi32.lib;iphlpapi.lib;psapi.lib;shell32.lib;ws2_32.lib;userenv.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>LIBCMTD.lib</IgnoreSpecificDefaultLibraries>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Full</Optimization>
+      <CompileAs>CompileAsC</CompileAs>
+      <PrecompiledHeaderFile />
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_assetkit_dll;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>.\packages\libxml2.2.7.8.7\build\native\lib\v110\Win32\Debug\dynamic\cdecl\libxml2.lib;.\packages\curl.7.30.0.2\build\native\lib\v110\Win32\Debug\dynamic\libcurl.lib;..\lib\libuv\Debug\lib\libuv.lib;advapi32.lib;iphlpapi.lib;psapi.lib;shell32.lib;ws2_32.lib;userenv.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>LIBCMTD.lib</IgnoreSpecificDefaultLibraries>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_assetkit_dll;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <EnablePREfast>true</EnablePREfast>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>.\packages\libxml2.2.7.8.7\build\native\lib\v110\Win32\Debug\dynamic\cdecl\libxml2.lib;.\packages\curl.7.30.0.2\build\native\lib\v110\Win32\Debug\dynamic\libcurl.lib;..\lib\libuv\Debug\lib\libuv.lib;advapi32.lib;iphlpapi.lib;psapi.lib;shell32.lib;ws2_32.lib;userenv.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>LIBCMTD.lib</IgnoreSpecificDefaultLibraries>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_assetkit_dll;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>.\packages\libxml2.2.7.8.7\build\native\lib\v110\Win32\Debug\dynamic\cdecl\libxml2.lib;.\packages\curl.7.30.0.2\build\native\lib\v110\Win32\Debug\dynamic\libcurl.lib;..\lib\libuv\Debug\lib\libuv.lib;advapi32.lib;iphlpapi.lib;psapi.lib;shell32.lib;ws2_32.lib;userenv.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>LIBCMTD.lib</IgnoreSpecificDefaultLibraries>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <None Include="..\src\collada\ak_collada_strpool.json" />
+    <None Include="..\src\collada\strpool.py" />
+    <None Include="LICENSE" />
+    <None Include="msbuild.bat" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\ak-bbox.h" />
+    <ClInclude Include="..\include\ak-cam.h" />
+    <ClInclude Include="..\include\ak-common.h" />
+    <ClInclude Include="..\include\ak-coord-util.h" />
+    <ClInclude Include="..\include\ak-coord.h" />
+    <ClInclude Include="..\include\ak-geom.h" />
+    <ClInclude Include="..\include\ak-image.h" />
+    <ClInclude Include="..\include\ak-instance.h" />
+    <ClInclude Include="..\include\ak-lib.h" />
+    <ClInclude Include="..\include\ak-light.h" />
+    <ClInclude Include="..\include\ak-map.h" />
+    <ClInclude Include="..\include\ak-material.h" />
+    <ClInclude Include="..\include\ak-memory.h" />
+    <ClInclude Include="..\include\ak-options.h" />
+    <ClInclude Include="..\include\ak-path.h" />
+    <ClInclude Include="..\include\ak-profile.h" />
+    <ClInclude Include="..\include\ak-rb.h" />
+    <ClInclude Include="..\include\ak-sid.h" />
+    <ClInclude Include="..\include\ak-source.h" />
+    <ClInclude Include="..\include\ak-states.h" />
+    <ClInclude Include="..\include\ak-string.h" />
+    <ClInclude Include="..\include\ak-transform.h" />
+    <ClInclude Include="..\include\ak-trash.h" />
+    <ClInclude Include="..\include\ak-url.h" />
+    <ClInclude Include="..\include\ak-util.h" />
+    <ClInclude Include="..\include\assetkit.h" />
+    <ClInclude Include="..\src\ak_accessor.h" />
+    <ClInclude Include="..\src\ak_array.h" />
+    <ClInclude Include="..\src\ak_common.h" />
+    <ClInclude Include="..\src\ak_data.h" />
+    <ClInclude Include="..\src\ak_hex.h" />
+    <ClInclude Include="..\src\ak_id.h" />
+    <ClInclude Include="..\src\ak_libxml.h" />
+    <ClInclude Include="..\src\ak_memory_common.h" />
+    <ClInclude Include="..\src\ak_memory_lt.h" />
+    <ClInclude Include="..\src\ak_memory_rb.h" />
+    <ClInclude Include="..\src\ak_trash.h" />
+    <ClInclude Include="..\src\ak_tree.h" />
+    <ClInclude Include="..\src\ak_utils.h" />
+    <ClInclude Include="..\src\bbox\ak_bbox.h" />
+    <ClInclude Include="..\src\bitwise\ak_bitwise.h" />
+    <ClInclude Include="..\src\collada\ak_collada.h" />
+    <ClInclude Include="..\src\collada\ak_collada_common.h" />
+    <ClInclude Include="..\src\collada\ak_collada_geom_fixup.h" />
+    <ClInclude Include="..\src\collada\ak_collada_lib.h" />
+    <ClInclude Include="..\src\collada\ak_collada_mesh_fixup.h" />
+    <ClInclude Include="..\src\collada\ak_collada_node_fixup.h" />
+    <ClInclude Include="..\src\collada\ak_collada_postscript.h" />
+    <ClInclude Include="..\src\collada\ak_collada_strpool.h" />
+    <ClInclude Include="..\src\collada\brep\ak_collada_brep.h" />
+    <ClInclude Include="..\src\collada\brep\ak_collada_brep_curve.h" />
+    <ClInclude Include="..\src\collada\brep\ak_collada_brep_nurbs.h" />
+    <ClInclude Include="..\src\collada\brep\ak_collada_brep_surface.h" />
+    <ClInclude Include="..\src\collada\brep\ak_collada_brep_topology.h" />
+    <ClInclude Include="..\src\collada\core\ak_collada_accessor.h" />
+    <ClInclude Include="..\src\collada\core\ak_collada_annotate.h" />
+    <ClInclude Include="..\src\collada\core\ak_collada_asset.h" />
+    <ClInclude Include="..\src\collada\core\ak_collada_camera.h" />
+    <ClInclude Include="..\src\collada\core\ak_collada_color.h" />
+    <ClInclude Include="..\src\collada\core\ak_collada_controller.h" />
+    <ClInclude Include="..\src\collada\core\ak_collada_enums.h" />
+    <ClInclude Include="..\src\collada\core\ak_collada_evaluate_scene.h" />
+    <ClInclude Include="..\src\collada\core\ak_collada_geometry.h" />
+    <ClInclude Include="..\src\collada\core\ak_collada_light.h" />
+    <ClInclude Include="..\src\collada\core\ak_collada_lines.h" />
+    <ClInclude Include="..\src\collada\core\ak_collada_mesh.h" />
+    <ClInclude Include="..\src\collada\core\ak_collada_morph.h" />
+    <ClInclude Include="..\src\collada\core\ak_collada_node.h" />
+    <ClInclude Include="..\src\collada\core\ak_collada_param.h" />
+    <ClInclude Include="..\src\collada\core\ak_collada_polygons.h" />
+    <ClInclude Include="..\src\collada\core\ak_collada_render.h" />
+    <ClInclude Include="..\src\collada\core\ak_collada_scene.h" />
+    <ClInclude Include="..\src\collada\core\ak_collada_skin.h" />
+    <ClInclude Include="..\src\collada\core\ak_collada_source.h" />
+    <ClInclude Include="..\src\collada\core\ak_collada_spline.h" />
+    <ClInclude Include="..\src\collada\core\ak_collada_technique.h" />
+    <ClInclude Include="..\src\collada\core\ak_collada_triangles.h" />
+    <ClInclude Include="..\src\collada\core\ak_collada_value.h" />
+    <ClInclude Include="..\src\collada\core\ak_collada_vertices.h" />
+    <ClInclude Include="..\src\collada\core\ak_collada_visual_scene.h" />
+    <ClInclude Include="..\src\collada\fx\ak_collada_fx_binary.h" />
+    <ClInclude Include="..\src\collada\fx\ak_collada_fx_blinn_phong.h" />
+    <ClInclude Include="..\src\collada\fx\ak_collada_fx_color_or_tex.h" />
+    <ClInclude Include="..\src\collada\fx\ak_collada_fx_constant.h" />
+    <ClInclude Include="..\src\collada\fx\ak_collada_fx_effect.h" />
+    <ClInclude Include="..\src\collada\fx\ak_collada_fx_enums.h" />
+    <ClInclude Include="..\src\collada\fx\ak_collada_fx_evaluate.h" />
+    <ClInclude Include="..\src\collada\fx\ak_collada_fx_float_or_param.h" />
+    <ClInclude Include="..\src\collada\fx\ak_collada_fx_image.h" />
+    <ClInclude Include="..\src\collada\fx\ak_collada_fx_lambert.h" />
+    <ClInclude Include="..\src\collada\fx\ak_collada_fx_material.h" />
+    <ClInclude Include="..\src\collada\fx\ak_collada_fx_pass.h" />
+    <ClInclude Include="..\src\collada\fx\ak_collada_fx_profile.h" />
+    <ClInclude Include="..\src\collada\fx\ak_collada_fx_program.h" />
+    <ClInclude Include="..\src\collada\fx\ak_collada_fx_sampler.h" />
+    <ClInclude Include="..\src\collada\fx\ak_collada_fx_shader.h" />
+    <ClInclude Include="..\src\collada\fx\ak_collada_fx_states.h" />
+    <ClInclude Include="..\src\collada\fx\ak_collada_fx_states_detail.h" />
+    <ClInclude Include="..\src\collada\fx\ak_collada_fx_technique.h" />
+    <ClInclude Include="..\src\collada\fx\ak_collada_fx_uniform.h" />
+    <ClInclude Include="..\src\config.h" />
+    <ClInclude Include="..\src\coord_sys\ak_coord_common.h" />
+    <ClInclude Include="..\src\default\ak_def_opt.h" />
+    <ClInclude Include="..\src\default\ak_def_semantic.h" />
+    <ClInclude Include="..\src\mesh\ak_mesh_index.h" />
+    <ClInclude Include="..\src\mesh\ak_mesh_util.h" />
+    <ClInclude Include="..\src\resc\ak_curl.h" />
+    <ClInclude Include="..\src\resc\ak_resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\ak_accessor.c" />
+    <ClCompile Include="..\src\ak_array.c" />
+    <ClCompile Include="..\src\ak_common.c" />
+    <ClCompile Include="..\src\ak_data.c" />
+    <ClCompile Include="..\src\ak_find.c" />
+    <ClCompile Include="..\src\ak_hex.c" />
+    <ClCompile Include="..\src\ak_id.c" />
+    <ClCompile Include="..\src\ak_lib.c" />
+    <ClCompile Include="..\src\ak_libxml.c" />
+    <ClCompile Include="..\src\ak_map.c" />
+    <ClCompile Include="..\src\ak_memory.c" />
+    <ClCompile Include="..\src\ak_memory_ext.c" />
+    <ClCompile Include="..\src\ak_memory_lt.c" />
+    <ClCompile Include="..\src\ak_memory_rb.c" />
+    <ClCompile Include="..\src\ak_sid.c" />
+    <ClCompile Include="..\src\ak_string.c" />
+    <ClCompile Include="..\src\ak_trash.c" />
+    <ClCompile Include="..\src\ak_tree.c" />
+    <ClCompile Include="..\src\ak_utils.c" />
+    <ClCompile Include="..\src\assetkit.c" />
+    <ClCompile Include="..\src\bbox\ak_bbox.c" />
+    <ClCompile Include="..\src\bbox\ak_bbox_geom.c" />
+    <ClCompile Include="..\src\bbox\ak_bbox_mesh.c" />
+    <ClCompile Include="..\src\bbox\ak_bbox_mesh_prim.c" />
+    <ClCompile Include="..\src\bbox\ak_bbox_scene.c" />
+    <ClCompile Include="..\src\camera\ak_cam.c" />
+    <ClCompile Include="..\src\collada\ak_collada.c" />
+    <ClCompile Include="..\src\collada\ak_collada_common.c" />
+    <ClCompile Include="..\src\collada\ak_collada_geom_fixup.c" />
+    <ClCompile Include="..\src\collada\ak_collada_lib.c" />
+    <ClCompile Include="..\src\collada\ak_collada_mesh_fixup.c" />
+    <ClCompile Include="..\src\collada\ak_collada_node_fixup.c" />
+    <ClCompile Include="..\src\collada\ak_collada_postscript.c" />
+    <ClCompile Include="..\src\collada\ak_collada_strpool.c" />
+    <ClCompile Include="..\src\collada\brep\ak_collada_brep.c" />
+    <ClCompile Include="..\src\collada\brep\ak_collada_brep_curve.c" />
+    <ClCompile Include="..\src\collada\brep\ak_collada_brep_nurbs.c" />
+    <ClCompile Include="..\src\collada\brep\ak_collada_brep_surface.c" />
+    <ClCompile Include="..\src\collada\brep\ak_collada_brep_topology.c" />
+    <ClCompile Include="..\src\collada\core\ak_collada_accessor.c" />
+    <ClCompile Include="..\src\collada\core\ak_collada_annotate.c" />
+    <ClCompile Include="..\src\collada\core\ak_collada_asset.c" />
+    <ClCompile Include="..\src\collada\core\ak_collada_camera.c" />
+    <ClCompile Include="..\src\collada\core\ak_collada_color.c" />
+    <ClCompile Include="..\src\collada\core\ak_collada_controller.c" />
+    <ClCompile Include="..\src\collada\core\ak_collada_enums.c" />
+    <ClCompile Include="..\src\collada\core\ak_collada_evaluate_scene.c" />
+    <ClCompile Include="..\src\collada\core\ak_collada_geometry.c" />
+    <ClCompile Include="..\src\collada\core\ak_collada_light.c" />
+    <ClCompile Include="..\src\collada\core\ak_collada_lines.c" />
+    <ClCompile Include="..\src\collada\core\ak_collada_mesh.c" />
+    <ClCompile Include="..\src\collada\core\ak_collada_morph.c" />
+    <ClCompile Include="..\src\collada\core\ak_collada_node.c" />
+    <ClCompile Include="..\src\collada\core\ak_collada_param.c" />
+    <ClCompile Include="..\src\collada\core\ak_collada_polygons.c" />
+    <ClCompile Include="..\src\collada\core\ak_collada_render.c" />
+    <ClCompile Include="..\src\collada\core\ak_collada_scene.c" />
+    <ClCompile Include="..\src\collada\core\ak_collada_skin.c" />
+    <ClCompile Include="..\src\collada\core\ak_collada_source.c" />
+    <ClCompile Include="..\src\collada\core\ak_collada_spline.c" />
+    <ClCompile Include="..\src\collada\core\ak_collada_technique.c" />
+    <ClCompile Include="..\src\collada\core\ak_collada_triangles.c" />
+    <ClCompile Include="..\src\collada\core\ak_collada_value.c" />
+    <ClCompile Include="..\src\collada\core\ak_collada_vertices.c" />
+    <ClCompile Include="..\src\collada\core\ak_collada_visual_scene.c" />
+    <ClCompile Include="..\src\collada\fx\ak_collada_fx_binary.c" />
+    <ClCompile Include="..\src\collada\fx\ak_collada_fx_blinn_phong.c" />
+    <ClCompile Include="..\src\collada\fx\ak_collada_fx_color_or_tex.c" />
+    <ClCompile Include="..\src\collada\fx\ak_collada_fx_constant.c" />
+    <ClCompile Include="..\src\collada\fx\ak_collada_fx_effect.c" />
+    <ClCompile Include="..\src\collada\fx\ak_collada_fx_enums.c" />
+    <ClCompile Include="..\src\collada\fx\ak_collada_fx_evaluate.c" />
+    <ClCompile Include="..\src\collada\fx\ak_collada_fx_float_or_param.c" />
+    <ClCompile Include="..\src\collada\fx\ak_collada_fx_image.c" />
+    <ClCompile Include="..\src\collada\fx\ak_collada_fx_lambert.c" />
+    <ClCompile Include="..\src\collada\fx\ak_collada_fx_material.c" />
+    <ClCompile Include="..\src\collada\fx\ak_collada_fx_pass.c" />
+    <ClCompile Include="..\src\collada\fx\ak_collada_fx_profile.c" />
+    <ClCompile Include="..\src\collada\fx\ak_collada_fx_program.c" />
+    <ClCompile Include="..\src\collada\fx\ak_collada_fx_sampler.c" />
+    <ClCompile Include="..\src\collada\fx\ak_collada_fx_shader.c" />
+    <ClCompile Include="..\src\collada\fx\ak_collada_fx_states.c" />
+    <ClCompile Include="..\src\collada\fx\ak_collada_fx_states_detail.c" />
+    <ClCompile Include="..\src\collada\fx\ak_collada_fx_technique.c" />
+    <ClCompile Include="..\src\collada\fx\ak_collada_fx_uniform.c" />
+    <ClCompile Include="..\src\coord_sys\ak_coord_camera.c" />
+    <ClCompile Include="..\src\coord_sys\ak_coord_common.c" />
+    <ClCompile Include="..\src\coord_sys\ak_coord_doc.c" />
+    <ClCompile Include="..\src\coord_sys\ak_coord_geom.c" />
+    <ClCompile Include="..\src\coord_sys\ak_coord_mesh.c" />
+    <ClCompile Include="..\src\coord_sys\ak_coord_transform.c" />
+    <ClCompile Include="..\src\coord_sys\ak_coord_transforms.c" />
+    <ClCompile Include="..\src\coord_sys\ak_coord_vector.c" />
+    <ClCompile Include="..\src\default\ak_def_cmp.c" />
+    <ClCompile Include="..\src\default\ak_def_coord.c" />
+    <ClCompile Include="..\src\default\ak_def_id.c" />
+    <ClCompile Include="..\src\default\ak_def_opt.c" />
+    <ClCompile Include="..\src\default\ak_def_semantic.c" />
+    <ClCompile Include="..\src\dllmain.c" />
+    <ClCompile Include="..\src\geom\ak_geom_mesh.c" />
+    <ClCompile Include="..\src\instance\ak_inst.c" />
+    <ClCompile Include="..\src\instance\ak_inst_list.c" />
+    <ClCompile Include="..\src\lib\ak_lib_geom.c" />
+    <ClCompile Include="..\src\mesh\ak_mesh_index.c" />
+    <ClCompile Include="..\src\mesh\ak_mesh_material.c" />
+    <ClCompile Include="..\src\mesh\ak_mesh_normal.c" />
+    <ClCompile Include="..\src\mesh\ak_mesh_triangulate.c" />
+    <ClCompile Include="..\src\mesh\ak_mesh_util.c" />
+    <ClCompile Include="..\src\rb.c" />
+    <ClCompile Include="..\src\resc\ak_curl.c" />
+    <ClCompile Include="..\src\resc\ak_path.c" />
+    <ClCompile Include="..\src\resc\ak_resource.c" />
+    <ClCompile Include="..\src\resc\ak_url.c" />
+    <ClCompile Include="..\src\transform\ak_trans.c" />
+    <ClCompile Include="..\src\transform\ak_trans_dup.c" />
+    <ClCompile Include="..\src\transform\ak_trans_traverse.c" />
+    <ClCompile Include="..\src\win32\strptime.c" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="packages\libxml2.redist.2.7.8.7\build\native\libxml2.redist.targets" Condition="Exists('packages\libxml2.redist.2.7.8.7\build\native\libxml2.redist.targets')" />
+    <Import Project="packages\libxml2.2.7.8.7\build\native\libxml2.targets" Condition="Exists('packages\libxml2.2.7.8.7\build\native\libxml2.targets')" />
+    <Import Project="packages\libiconv.redist.1.14.0.11\build\native\libiconv.redist.targets" Condition="Exists('packages\libiconv.redist.1.14.0.11\build\native\libiconv.redist.targets')" />
+    <Import Project="packages\libiconv.1.14.0.11\build\native\libiconv.targets" Condition="Exists('packages\libiconv.1.14.0.11\build\native\libiconv.targets')" />
+    <Import Project="packages\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.targets" Condition="Exists('packages\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.targets')" />
+    <Import Project="packages\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.targets" Condition="Exists('packages\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.targets')" />
+    <Import Project="packages\zlib.redist.1.2.8.7\build\native\zlib.redist.targets" Condition="Exists('packages\zlib.redist.1.2.8.7\build\native\zlib.redist.targets')" />
+    <Import Project="packages\curl.redist.7.30.0.2\build\native\curl.redist.targets" Condition="Exists('packages\curl.redist.7.30.0.2\build\native\curl.redist.targets')" />
+    <Import Project="packages\libssh2.redist.1.4.3.1\build\native\libssh2.redist.targets" Condition="Exists('packages\libssh2.redist.1.4.3.1\build\native\libssh2.redist.targets')" />
+    <Import Project="packages\openssl.redist.1.0.1.25\build\native\openssl.redist.targets" Condition="Exists('packages\openssl.redist.1.0.1.25\build\native\openssl.redist.targets')" />
+    <Import Project="packages\openssl.1.0.1.21\build\native\openssl.targets" Condition="Exists('packages\openssl.1.0.1.21\build\native\openssl.targets')" />
+    <Import Project="packages\libssh2.1.4.3.1\build\native\libssh2.targets" Condition="Exists('packages\libssh2.1.4.3.1\build\native\libssh2.targets')" />
+    <Import Project="packages\curl.7.30.0.2\build\native\curl.targets" Condition="Exists('packages\curl.7.30.0.2\build\native\curl.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\libxml2.redist.2.7.8.7\build\native\libxml2.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\libxml2.redist.2.7.8.7\build\native\libxml2.redist.targets'))" />
+    <Error Condition="!Exists('packages\libxml2.2.7.8.7\build\native\libxml2.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\libxml2.2.7.8.7\build\native\libxml2.targets'))" />
+    <Error Condition="!Exists('packages\libiconv.redist.1.14.0.11\build\native\libiconv.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\libiconv.redist.1.14.0.11\build\native\libiconv.redist.targets'))" />
+    <Error Condition="!Exists('packages\libiconv.1.14.0.11\build\native\libiconv.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\libiconv.1.14.0.11\build\native\libiconv.targets'))" />
+    <Error Condition="!Exists('packages\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.targets'))" />
+    <Error Condition="!Exists('packages\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.targets'))" />
+    <Error Condition="!Exists('packages\zlib.redist.1.2.8.7\build\native\zlib.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\zlib.redist.1.2.8.7\build\native\zlib.redist.targets'))" />
+    <Error Condition="!Exists('packages\curl.redist.7.30.0.2\build\native\curl.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\curl.redist.7.30.0.2\build\native\curl.redist.targets'))" />
+    <Error Condition="!Exists('packages\libssh2.redist.1.4.3.1\build\native\libssh2.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\libssh2.redist.1.4.3.1\build\native\libssh2.redist.targets'))" />
+    <Error Condition="!Exists('packages\openssl.redist.1.0.1.25\build\native\openssl.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\openssl.redist.1.0.1.25\build\native\openssl.redist.targets'))" />
+    <Error Condition="!Exists('packages\openssl.1.0.1.21\build\native\openssl.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\openssl.1.0.1.21\build\native\openssl.props'))" />
+    <Error Condition="!Exists('packages\openssl.1.0.1.21\build\native\openssl.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\openssl.1.0.1.21\build\native\openssl.targets'))" />
+    <Error Condition="!Exists('packages\libssh2.1.4.3.1\build\native\libssh2.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\libssh2.1.4.3.1\build\native\libssh2.targets'))" />
+    <Error Condition="!Exists('packages\curl.7.30.0.2\build\native\curl.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\curl.7.30.0.2\build\native\curl.targets'))" />
+  </Target>
+</Project>
