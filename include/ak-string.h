@@ -18,10 +18,34 @@
  * @return returns word count
  */
 AK_EXPORT
-size_t
+int
 ak_strtok_count(char * __restrict buff,
                 char * __restrict sep,
                 size_t           *len);
+
+AK_EXPORT
+int
+ak_strtok_count_fast(char * __restrict buff,
+                     size_t           *len);
+
+
+AK_EXPORT
+int
+ak_strtof_fast(char    * __restrict src,
+               AkFloat * __restrict dest,
+               unsigned long n);
+
+AK_EXPORT
+int
+ak_strtod_fast(char     * __restrict src,
+               AkDouble * __restrict dest,
+               unsigned long n);
+
+AK_EXPORT
+int
+ak_strtoui_fast(char   * __restrict src,
+                AkUInt * __restrict dest,
+                unsigned long n);
 
 AK_EXPORT
 int

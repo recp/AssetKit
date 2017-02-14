@@ -16,7 +16,7 @@ ak_strtof_arrayL(AkHeap         * __restrict heap,
   AkFloatArrayL *arr;
   size_t         count;
 
-  count = ak_strtok_count(content, " \t\r\n", NULL);
+  count = ak_strtok_count_fast(content, NULL);
   if (count == 0)
     return AK_ERR;
 
@@ -24,7 +24,7 @@ ak_strtof_arrayL(AkHeap         * __restrict heap,
                       memParent,
                       sizeof(*arr)
                       + sizeof(AkFloat) * count);
-  ak_strtof(&content, arr->items, count);
+  ak_strtof_fast(content, arr->items, count);
   arr->count = count;
   arr->next  = NULL;
 
@@ -41,7 +41,7 @@ ak_strtod_array(AkHeap         * __restrict heap,
   AkDoubleArray *arr;
   size_t         count;
 
-  count = ak_strtok_count(content, " \t\r\n", NULL);
+  count = ak_strtok_count_fast(content, NULL);
   if (count == 0)
     return AK_ERR;
 
@@ -49,7 +49,7 @@ ak_strtod_array(AkHeap         * __restrict heap,
                       memParent,
                       sizeof(*arr)
                       + sizeof(AkDouble) * count);
-  ak_strtod(&content, arr->items, count);
+  ak_strtod_fast(content, arr->items, count);
   arr->count = count;
 
   *array = arr;
@@ -65,7 +65,7 @@ ak_strtod_arrayL(AkHeap          * __restrict heap,
   AkDoubleArrayL *arr;
   size_t          count;
 
-  count = ak_strtok_count(content, " \t\r\n", NULL);
+  count = ak_strtok_count_fast(content, NULL);
   if (count == 0)
     return AK_ERR;
 
@@ -73,7 +73,7 @@ ak_strtod_arrayL(AkHeap          * __restrict heap,
                       memParent,
                       sizeof(*arr)
                       + sizeof(AkDouble) * count);
-  ak_strtod(&content, arr->items, count);
+  ak_strtod_fast(content, arr->items, count);
   arr->count = count;
   arr->next  = NULL;
 
@@ -90,7 +90,7 @@ ak_strtoui_array(AkHeap       * __restrict heap,
   AkUIntArray *arr;
   size_t       count;
 
-  count = ak_strtok_count(content, " \t\r\n", NULL);
+  count = ak_strtok_count_fast(content, NULL);
   if (count == 0)
     return AK_ERR;
 
@@ -98,7 +98,7 @@ ak_strtoui_array(AkHeap       * __restrict heap,
                       memParent,
                       sizeof(*arr)
                       + sizeof(AkUInt) * count);
-  ak_strtoui(&content, arr->items, count);
+  ak_strtoui_fast(content, arr->items, count);
   arr->count = count;
 
   *array = arr;

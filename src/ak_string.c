@@ -10,46 +10,193 @@
 
 #include "../include/assetkit.h"
 
+#define AK_ARRAY_SEP_CHECK (c == ' ' || c == '\n' || c == '\t' || c == '\r')
+
 AK_EXPORT
-size_t
+int
 ak_strtok_count(char * __restrict buff,
                 char * __restrict sep,
                 size_t           *len) {
-  size_t c, spacec, sepc, i;
+  int i, count, itemc, buflen, found_sep;
 
-  sepc = (uint32_t)strlen(sep);
-  if (!sepc)
+  buflen = (int)strlen(buff);
+  if (buflen == 0)
+    return 0;
+
+  count = itemc = 0;
+
+  /* because of buff[j + 1] */
+  if (buflen == 1)
     return 1;
 
-  c = spacec = 0;
-  while(*buff != '\0') {
-    bool sep_found, inc;
-
-    inc = sep_found = false;
-    do {
-      sep_found = false;
-      for (i = 0; i < sepc; i++) {
-        if (*buff == sep[i]) {
-          sep_found = true;
-          inc       = c > 0; /* trim left */
-          buff++;
-        }
+  found_sep = false;
+  for (i = 0; i < buflen; i++) {
+    if (strchr(sep, buff[i])){
+      if (!found_sep) {
+        itemc++;
+        found_sep = true;
       }
-    } while (sep_found && *buff != '\0');
+      continue;
+    }
 
-    if (*buff == '\0')
-      break;
-
-    buff++;
-    if (inc)
-      spacec++;
-    c++;
+    found_sep = false;
+    count++;
   }
 
   if (len)
-    *len = c;
+    *len = buflen - count;
 
-  return spacec + 1;
+  /* left trim */
+  if (strchr(sep, buff[0]))
+    itemc--;
+
+  /* right trim */
+  if (strchr(sep, buff[buflen - 1]))
+    itemc--;
+
+  return itemc + 1;
+}
+
+AK_EXPORT
+int
+ak_strtok_count_fast(char * __restrict buff,
+                     size_t           *len) {
+  int i, count, itemc, buflen, found_sep;
+  char c;
+
+  buflen = (int)strlen(buff);
+  if (buflen == 0)
+    return 0;
+
+  count = itemc = 0;
+
+  /* because of buff[j + 1] */
+  if (buflen == 1)
+    return 1;
+
+  found_sep = false;
+  for (i = 0; i < buflen; i++) {
+    c = buff[i];
+    if (AK_ARRAY_SEP_CHECK) {
+      if (!found_sep) {
+        itemc++;
+        found_sep = true;
+      }
+      continue;
+    }
+
+    found_sep = false;
+    count++;
+  }
+
+  /* left trim */
+  c = buff[0];
+  if (AK_ARRAY_SEP_CHECK)
+    itemc--;
+
+  /* right trim */
+  c = buff[buflen - 1];
+  if (AK_ARRAY_SEP_CHECK)
+    itemc--;
+
+  if (len)
+    *len = buflen - count;
+  
+  return itemc + 1;
+}
+
+
+AK_EXPORT
+int
+ak_strtof_fast(char    * __restrict src,
+               AkFloat * __restrict dest,
+               unsigned long n) {
+  char *tok, *end;
+  char  c;
+
+  if (n == 0)
+    return 0;
+
+  dest = dest + n - 1ul;
+
+  tok = src;
+  c   = *tok;
+  while (AK_ARRAY_SEP_CHECK)
+    tok++;
+
+  while (n > 1ul) {
+    *(dest - --n) = strtof(tok, &end);
+    tok = end;
+
+    while (AK_ARRAY_SEP_CHECK)
+      tok++;
+  }
+
+  *(dest - --n) = strtof(tok, NULL);
+
+  return (int)n;
+}
+
+AK_EXPORT
+int
+ak_strtod_fast(char     * __restrict src,
+               AkDouble * __restrict dest,
+               unsigned long n) {
+  char *tok, *end;
+  char  c;
+
+  if (n == 0)
+    return 0;
+
+  dest = dest + n - 1ul;
+
+  tok = src;
+  c   = *tok;
+  while (AK_ARRAY_SEP_CHECK)
+    tok++;
+
+  while (n > 1ul) {
+    *(dest - --n) = strtod(tok, &end);
+    tok = end;
+
+    while (AK_ARRAY_SEP_CHECK)
+      tok++;
+  }
+
+  *(dest - --n) = strtof(tok, NULL);
+
+  return (int)n;
+}
+
+AK_EXPORT
+int
+ak_strtoui_fast(char   * __restrict src,
+                AkUInt * __restrict dest,
+                unsigned long n) {
+  char *tok, *end;
+  char  c;
+
+  if (n == 0)
+    return 0;
+
+  dest = dest + n - 1ul;
+
+  tok = src;
+  c   = *tok;
+  while (AK_ARRAY_SEP_CHECK)
+    tok++;
+
+  while (n > 1ul) {
+    *(dest - --n) = (AkUInt)strtoul(tok, &end, 10);
+    tok = end;
+
+    while (AK_ARRAY_SEP_CHECK)
+      tok++;
+  }
+
+  *(dest - --n) = strtof(tok, NULL);
+
+  return (int)n;
 }
 
 AK_EXPORT
