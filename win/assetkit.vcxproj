@@ -109,8 +109,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>.\packages\libxml2.2.7.8.7\build\native\lib\v110\Win32\Debug\dynamic\cdecl\libxml2.lib;.\packages\curl.7.30.0.2\build\native\lib\v110\Win32\Debug\dynamic\libcurl.lib;..\lib\libuv\Debug\lib\libuv.lib;advapi32.lib;iphlpapi.lib;psapi.lib;shell32.lib;ws2_32.lib;userenv.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>LIBCMTD.lib</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -129,8 +128,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>.\packages\libxml2.2.7.8.7\build\native\lib\v110\Win32\Debug\dynamic\cdecl\libxml2.lib;.\packages\curl.7.30.0.2\build\native\lib\v110\Win32\Debug\dynamic\libcurl.lib;..\lib\libuv\Debug\lib\libuv.lib;advapi32.lib;iphlpapi.lib;psapi.lib;shell32.lib;ws2_32.lib;userenv.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>LIBCMTD.lib</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -152,8 +150,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>.\packages\libxml2.2.7.8.7\build\native\lib\v110\Win32\Debug\dynamic\cdecl\libxml2.lib;.\packages\curl.7.30.0.2\build\native\lib\v110\Win32\Debug\dynamic\libcurl.lib;..\lib\libuv\Debug\lib\libuv.lib;advapi32.lib;iphlpapi.lib;psapi.lib;shell32.lib;ws2_32.lib;userenv.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>LIBCMTD.lib</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -173,8 +170,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>.\packages\libxml2.2.7.8.7\build\native\lib\v110\Win32\Debug\dynamic\cdecl\libxml2.lib;.\packages\curl.7.30.0.2\build\native\lib\v110\Win32\Debug\dynamic\libcurl.lib;..\lib\libuv\Debug\lib\libuv.lib;advapi32.lib;iphlpapi.lib;psapi.lib;shell32.lib;ws2_32.lib;userenv.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>LIBCMTD.lib</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
