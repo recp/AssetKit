@@ -119,10 +119,8 @@ ak_data_exists(AkDataContext *dctx, void *item) {
     pmem = data;
 
     for (i = 0; i < csz; i += isz) {
-      if (dctx->cmp(pmem, item) == 0) {
-        found = true;
+      if (dctx->cmp(pmem, item) == 0)
         return idx;
-      }
 
       pmem += isz;
       idx++;

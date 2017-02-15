@@ -131,7 +131,7 @@ AkSource*
 ak_mesh_src_for(AkHeap         *heap,
                 AkMesh         *mesh,
                 AkInputSemantic semantic) {
-  AkSourceFloatArray *arr, *posarr;
+  AkSourceFloatArray *arr;
   AkSource    *src,  *possrc;
   AkAccessor  *acc,  *posacc;
   AkObject    *data, *posdata;
@@ -144,7 +144,6 @@ ak_mesh_src_for(AkHeap         *heap,
       || !(posdata = ak_getObjectByUrl(&posacc->source)))
     return NULL;
 
-  posarr = ak_objGet(posdata);
   c = posacc->count;
 
   /* TODO: find existing src and join data into one */
