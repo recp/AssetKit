@@ -17,7 +17,7 @@ ak_accessor_setparams(AkAccessor     *acc,
   AkDataParam *dp, *last_dp;
   uint32_t     i;
 
-  assert(semantic > 0 && semantic < (int)ak_def_semanticc());
+  assert(semantic > 0 && (uint32_t)semantic < ak_def_semanticc());
 
   smpair = ak_def_semantic()[semantic];
   acc->bound = smpair->count;
@@ -34,7 +34,7 @@ ak_accessor_setparams(AkAccessor     *acc,
            smpair->type,
            sizeof(dp->type));
 
-    if (!acc->param)
+    if (!last_dp)
       acc->param = dp;
     else
       last_dp->next = dp;
