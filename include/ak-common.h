@@ -43,6 +43,7 @@
 typedef int32_t AkEnum;
 
 typedef enum AkResult {
+  AK_NOOP     = 1,  /* no operation needed */
   AK_OK       = 0,
   AK_ERR      = -1, /* UKNOWN ERR */
   AK_ETCOMMON = -2, /* no tcommon found */
