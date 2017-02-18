@@ -462,6 +462,9 @@ ak_heap_chld_set(AkHeapNode * __restrict heapNode,
     ((AkHeapNodeExt *)heapNode->chld)->chld = chldNode;
   else
     heapNode->chld = chldNode;
+
+  if (chldNode)
+    chldNode->prev = heapNode;
 }
 
 AK_EXPORT
@@ -500,6 +503,8 @@ ak_heap_setp(AkHeap     * __restrict heap,
 
     if (heapNode->next)
       heapNode->next->prev = heapNode->prev;
+
+    heapNode->prev = NULL;
   }
 
   if (heapNode == heap->root) {
@@ -510,12 +515,14 @@ ak_heap_setp(AkHeap     * __restrict heap,
   }
 
   parentChld = ak_heap_chld(newParent);
+  ak_heap_chld_set(newParent, heapNode);
+
   if (parentChld) {
     parentChld->prev = heapNode;
     heapNode->next   = parentChld;
   }
 
-  ak_heap_chld_set(newParent, heapNode);
+  heapNode->prev = newParent;
 
   /* move all ids to new heap (if it is different) */
   if (newParent->heapid != heapNode->heapid)
