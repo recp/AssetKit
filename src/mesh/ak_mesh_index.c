@@ -543,8 +543,12 @@ ak_mesh_copy_copyarray(AkHeap             *heap,
     ppi = ppi->next;
   }
 
-  if (!same)
+  if (!same) {
+    /* because this source's array maybe used by another source */
+    ak_trash_add(oldsrc);
+
     alc->free(srcurl);
+  }
 
   return AK_OK;
 }
@@ -711,18 +715,10 @@ ak_mesh_fix_idx_df(AkHeap *heap, AkMesh *mesh) {
           char *srcid;
           srcid  = ak_getId(srci);
           srcurl = ak_id_urlstring(alc, srcid);
-
-          if (input->base.source.url)
-            ak_free((char *)input->base.source.url);
-
-          ak_url_init(input, srcurl, &input->base.source);
-          alc->free(srcurl);
-
-          /* because this source's array maybe used by another source */
-          ak_trash_add(oldSrci);
+        } else {
+          srcurl = (char *)input->base.source.url;
         }
 
-        srcurl = (char *)input->base.source.url;
         /* copy source to new array for all inputs */
         ak_mesh_copy_copyarray(heap,
                                mesh,
