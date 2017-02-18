@@ -384,6 +384,7 @@ ak_mesh_fix_pos(AkHeap       *heap,
   arr->count     = (vc + extc) * newstride;
   arr->digits    = oldArr->digits;
   arr->magnitude = oldArr->magnitude;
+  arr->name      = NULL;
 
   oldArr->newArray = ak_heap_alloc(heap,
                                    NULL,
@@ -659,6 +660,7 @@ ak_mesh_fix_idx_df(AkHeap *heap, AkMesh *mesh) {
           newArrayi->count     = count * acci->stride;
           newArrayi->digits    = oldArrayi->digits;
           newArrayi->magnitude = oldArrayi->magnitude;
+          newArrayi->name      = NULL;
 
           if (oldArrayi->name) {
             newArrayi->name = oldArrayi->name;
