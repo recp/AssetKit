@@ -26,6 +26,13 @@ ak_mesh_src_for(AkHeap         *heap,
                 AkMesh         *mesh,
                 AkInputSemantic semantic);
 
+AkSource*
+ak_mesh_src_for_ext(AkHeap         *heap,
+                    AkMesh         *mesh,
+                    char           *srcid,
+                    AkInputSemantic semantic,
+                    size_t          count);
+
 AkSource *
 ak_mesh_pos_src(AkMesh *mesh);
 

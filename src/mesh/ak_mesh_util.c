@@ -181,6 +181,70 @@ ak_mesh_src_for(AkHeap         *heap,
   return src;
 }
 
+AkSource*
+ak_mesh_src_for_ext(AkHeap         *heap,
+                    AkMesh         *mesh,
+                    char           *srcid,
+                    AkInputSemantic semantic,
+                    size_t          count) {
+  AkSourceFloatArray *arr;
+  AkSource    *src,  *possrc;
+  AkAccessor  *acc,  *posacc;
+  AkObject    *data, *posdata;
+  char        *arrid, *url;
+  size_t      *refc;
+
+  possrc = ak_mesh_pos_src(mesh);
+  if (!possrc
+      || !(posacc = possrc->tcommon)
+      || !(posdata = ak_getObjectByUrl(&posacc->source)))
+    return NULL;
+
+  if (count == 0)
+    count = posacc->count;
+
+  /* TODO: find existing src and join data into one */
+  src = ak_heap_calloc(heap, ak_objFrom(mesh), sizeof(*src));
+  if (srcid)
+    ak_setId(src, srcid);
+
+  acc = ak_heap_calloc(heap, src, sizeof(*acc));
+
+  /* set params */
+  ak_accessor_setparams(acc, semantic);
+
+  acc->stride  = acc->bound;
+  acc->count   = count;
+  src->tcommon = acc;
+
+  /* TODO: support other array types */
+  data = ak_objAlloc(heap,
+                     src,
+                     sizeof(*arr) + count * acc->stride * sizeof(float),
+                     AK_SOURCE_ARRAY_TYPE_FLOAT,
+                     false);
+  arr           = ak_objGet(data);
+  arr->count    = count * acc->stride;
+  arr->name     = NULL;
+  arr->newArray =  NULL;
+  arrid         = (char *)ak_id_gen(heap, data, NULL);
+  ak_setId(data, arrid);
+
+  /* update accessor source url */
+  url = ak_id_urlstring(heap->allocator, arrid);
+  ak_url_init(acc, url, &acc->source);
+  heap->allocator->free(url);
+
+  src->data = data;
+
+  /* retain obj */
+  refc = ak_heap_ext_add(heap,
+                         ak__alignof(src),
+                         AK_HEAP_NODE_FLAGS_REFC);
+  (*refc)++;
+  return src;
+}
+
 AkSource *
 ak_mesh_pos_src(AkMesh *mesh) {
   AkSource     *src;
