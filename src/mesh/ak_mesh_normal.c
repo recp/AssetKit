@@ -115,46 +115,54 @@ ak_meshPrimGenNormals(AkMeshPrimitive    * __restrict prim,
       AkPolygon *poly;
       AkUInt    *vc_it;
       vec3       v1, v2, n;
-      size_t     i;
+      size_t     i, k;
       uint32_t   vc, j;
       AkUInt     idx;
 
-      poly  = (AkPolygon *)prim;
+      poly = (AkPolygon *)prim;
+
+      /* polygon ha triangulated */
+      if (!poly->vcount)
+        goto tri;
+
       vc_it = poly->vcount->items;
 
-      for (i = 0; i < poly->vcount->count; i++) {
+      for (i = k = 0; k < poly->vcount->count; k++) {
         float *a, *b, *c;
 
-        vc = vc_it[i];
-        if (vc > 2) {
-          a = pos + ind_it[i]          * pos_st;
-          b = pos + ind_it[i + st]     * pos_st;
-          c = pos + ind_it[i + st * 2] * pos_st;
+        vc = vc_it[k];
 
-          glm_vec_sub(a, b, v1);
-          glm_vec_sub(b, c, v2);
+        /* TODO: normals for lines or points ? */
+        if (vc < 3)
+          continue;
 
-          glm_vec_cross(v1, v2, n);
-          glm_vec_normalize(n);
+        a = pos + ind_it[i]          * pos_st;
+        b = pos + ind_it[i + st]     * pos_st;
+        c = pos + ind_it[i + st * 2] * pos_st;
 
-          glm_vec_cross(v1, v2, n);
-          glm_vec_normalize(n);
+        glm_vec_sub(a, b, v1);
+        glm_vec_sub(b, c, v2);
 
-          idx = ak_data_append_unq(objp->dctx, n);
+        glm_vec_cross(v1, v2, n);
+        glm_vec_normalize(n);
 
-          for (j = 0; j < 3; j++) {
-            memcpy(ind_it2 + (i + j) * newst,
-                   ind_it  + (i + j) * st,
-                   sizeof(AkUInt) * st);
-            ind_it2[(i + j) * newst + st] = idx;
-          }
-        } else {
-          /* TODO: normals for lines or points ? */
+        glm_vec_cross(v1, v2, n);
+        glm_vec_normalize(n);
+
+        idx = ak_data_append_unq(objp->dctx, n);
+
+        for (j = 0; j < vc; j++) {
+          memcpy(ind_it2 + (i + j) * newst,
+                 ind_it  + (i + j) * st,
+                 sizeof(AkUInt) * st);
+          ind_it2[(i + j) * newst + st] = idx;
         }
+
+        i += vc;
       }
       break;
     }
-    case AK_MESH_PRIMITIVE_TYPE_TRIANGLES: {
+    case AK_MESH_PRIMITIVE_TYPE_TRIANGLES: tri: {
       vec3     v1, v2, n;
       uint32_t i, j;
       size_t   tc;
