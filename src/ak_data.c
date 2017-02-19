@@ -43,7 +43,9 @@ ak_data_append(AkDataContext *dctx, void *data) {
     chunk->usedsize = 0;
     chunk->next     = NULL;
 
-    chunk->next = dctx->last;
+    if (dctx->last)
+      dctx->last->next = chunk;
+
     dctx->last  = chunk;
     dctx->size += dctx->nodesize;
 
@@ -99,7 +101,6 @@ ak_data_walk(AkDataContext *dctx) {
 int
 ak_data_exists(AkDataContext *dctx, void *item) {
   AkDataChunk *chunk;
-  void  *data;
   char  *pmem;
   size_t isz, csz, i;
   int    idx;
@@ -115,8 +116,7 @@ ak_data_exists(AkDataContext *dctx, void *item) {
 
   while (chunk) {
     csz  = chunk->usedsize;
-    data = chunk->data;
-    pmem = data;
+    pmem = chunk->data;
 
     for (i = 0; i < csz; i += isz) {
       if (dctx->cmp(pmem, item) == 0)
