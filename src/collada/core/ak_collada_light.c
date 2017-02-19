@@ -173,6 +173,9 @@ ak_dae_light_tcommon(AkXmlState   * __restrict xst,
                              memParent,
                              sizeof(*point));
 
+      /* default values */
+      point->constAttn = 1.0f;
+
       ak_xest_init(xest2, _s_dae_point)
 
       do {
@@ -223,6 +226,10 @@ ak_dae_light_tcommon(AkXmlState   * __restrict xst,
       spot = ak_heap_calloc(xst->heap,
                             memParent,
                             sizeof(*spot));
+
+      /* default values */
+      spot->constAttn    = 1.0f;
+      spot->falloffAngle = glm_rad(180.0f);
 
       ak_xest_init(xest2, _s_dae_spot)
 
