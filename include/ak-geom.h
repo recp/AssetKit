@@ -355,6 +355,16 @@ ak_meshNeedsNormals(AkMesh * __restrict mesh);
 AK_EXPORT
 bool
 ak_meshPrimNeedsNormals(AkMeshPrimitive * __restrict prim);
+
+/*!
+ * @brief generate normals for all pritimives of mesh
+ *
+ * @param mesh mesh
+ */
+AK_EXPORT
+void
+ak_meshGenNormals(AkMesh * __restrict mesh);
+
 #ifdef __cplusplus
 }
 #endif

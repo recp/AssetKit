@@ -31,5 +31,9 @@ ak_dae_mesh_fixup(AkMesh * mesh) {
   if (ak_opt_get(AK_OPT_TRIANGULATE))
     ak_meshTriangulate(mesh);
 
+  if (ak_opt_get(AK_OPT_GEN_NORMALS_IF_NEEDED))
+    if (ak_meshNeedsNormals(mesh))
+      ak_meshGenNormals(mesh);
+
   return AK_OK;
 }
