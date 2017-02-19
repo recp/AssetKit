@@ -80,7 +80,7 @@ ak_meshPrimGenNormals(AkMeshPrimitive    * __restrict prim,
   AkUInt      *ind_it;
   AkUInt       st, newst;
   AkInt        vo, pos_st;
-  size_t       c;
+  size_t       count;
 
   if (prim->type != AK_MESH_PRIMITIVE_TYPE_TRIANGLES
       && prim->type != AK_MESH_PRIMITIVE_TYPE_POLYGONS)
@@ -100,14 +100,15 @@ ak_meshPrimGenNormals(AkMeshPrimitive    * __restrict prim,
   ind_it = prim->indices->items + vo;
   st     = prim->indexStride;
   newst  = st + 1;
-  c      = (prim->indices->count / st) * newst;
+  count  = prim->indices->count / st;
 
   /* TODO: for now join this into existing indices, 
            but in the future use separate to fix indices  */
   inpIndices = ak_heap_calloc(heap,
                               prim,
-                              sizeof(*inpIndices) + c * sizeof(AkUInt));
-  inpIndices->count = c;
+                              sizeof(*inpIndices)
+                              + count * newst * sizeof(AkUInt));
+  inpIndices->count = count * newst;
   ind_it2 = inpIndices->items;
 
   switch (prim->type) {
@@ -115,8 +116,7 @@ ak_meshPrimGenNormals(AkMeshPrimitive    * __restrict prim,
       AkPolygon *poly;
       AkUInt    *vc_it;
       vec3       v1, v2, n;
-      size_t     i, k;
-      uint32_t   vc, j;
+      size_t     i, k, vc, j;
       AkUInt     idx;
 
       poly = (AkPolygon *)prim;
@@ -136,9 +136,9 @@ ak_meshPrimGenNormals(AkMeshPrimitive    * __restrict prim,
         if (vc < 3)
           continue;
 
-        a = pos + ind_it[i]          * pos_st;
-        b = pos + ind_it[i + st]     * pos_st;
-        c = pos + ind_it[i + st * 2] * pos_st;
+        a = pos + ind_it[i + vo]           * pos_st;
+        b = pos + ind_it[i + vo + st]      * pos_st;
+        c = pos + ind_it[i + vo + st + st] * pos_st;
 
         glm_vec_sub(a, b, v1);
         glm_vec_sub(b, c, v2);
@@ -152,9 +152,12 @@ ak_meshPrimGenNormals(AkMeshPrimitive    * __restrict prim,
         idx = ak_data_append_unq(objp->dctx, n);
 
         for (j = 0; j < vc; j++) {
+          /* other inputs */
           memcpy(ind_it2 + (i + j) * newst,
                  ind_it  + (i + j) * st,
                  sizeof(AkUInt) * st);
+
+          /* normal */
           ind_it2[(i + j) * newst + st] = idx;
         }
 
@@ -165,18 +168,16 @@ ak_meshPrimGenNormals(AkMeshPrimitive    * __restrict prim,
     case AK_MESH_PRIMITIVE_TYPE_TRIANGLES: tri: {
       vec3     v1, v2, n;
       uint32_t i, j;
-      size_t   tc;
       AkUInt   idx;
 
       idx = 0;
-      tc  = prim->indices->count;
 
-      for (i = vo; i < tc; i += st * 3 /* 3: triangle */) {
+      for (i = 0; i < count; i += 3 /* 3: triangle */) {
         float *a, *b, *c;
 
-        a = pos + ind_it[i]          * pos_st;
-        b = pos + ind_it[i + st]     * pos_st;
-        c = pos + ind_it[i + st * 2] * pos_st;
+        a = pos + ind_it[i + vo]           * pos_st;
+        b = pos + ind_it[i + vo + st]      * pos_st;
+        c = pos + ind_it[i + vo + st + st] * pos_st;
 
         glm_vec_sub(a, b, v1);
         glm_vec_sub(b, c, v2);
@@ -186,11 +187,14 @@ ak_meshPrimGenNormals(AkMeshPrimitive    * __restrict prim,
 
         idx = ak_data_append_unq(objp->dctx, n);
 
-        for (j = 0; j < 3; j++) {
-          memcpy(ind_it2 + (i + j) * newst,
-                 ind_it  + (i + j) * st,
+        for (j = i; j < i + 3; j++) {
+          /* other inputs */
+          memcpy(ind_it2 + j * newst,
+                 ind_it  + j * st,
                  sizeof(AkUInt) * st);
-          ind_it2[(i + j) * newst + st] = idx;
+
+          /* normal */
+          ind_it2[j * newst + st] = idx;
         }
       }
       break;
@@ -202,7 +206,7 @@ ak_meshPrimGenNormals(AkMeshPrimitive    * __restrict prim,
 
   /* add input */
   input = ak_heap_calloc(heap, prim, sizeof(*input));
-  input->offset           = prim->indexStride,
+  input->offset           = st;
   input->base.semantic    = AK_INPUT_SEMANTIC_NORMAL;
   input->base.semanticRaw = "NORMAL";
   input->base.next        = &prim->input->base;
