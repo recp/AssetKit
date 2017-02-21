@@ -188,7 +188,8 @@ ak_ill_verts(AkHeap      *heap,
         }
 
         if (!input) {
-          fpi = fpi->next;
+          ccount += (fpi->chk_end - fpi->chk_start);
+          fpi     = fpi->next;
           continue;
         }
 
