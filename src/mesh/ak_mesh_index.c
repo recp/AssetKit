@@ -119,7 +119,6 @@ ak_ill_verts(AkHeap      *heap,
         found->source   = &input->base.source; /* ??? */
         found->input    = input;
         found->pp       = fpi;
-        found->tag      = 0;
 
         if (last_idesc)
           last_idesc->next = found;

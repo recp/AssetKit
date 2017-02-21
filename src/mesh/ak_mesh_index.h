@@ -40,7 +40,6 @@ typedef struct AkInputDesc {
   AkInput            *input;
   AkPrimProxy        *pp;
   uint32_t            set;
-  uint32_t            tag;
 } AkInputDesc;
 
 _assetkit_hide
