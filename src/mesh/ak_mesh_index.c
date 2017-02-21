@@ -246,6 +246,7 @@ ak_ill_verts(AkHeap      *heap,
       iter++;
     }
 
+    ccount = 0;
     idesci = idesci->next;
   }
 
