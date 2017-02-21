@@ -72,15 +72,15 @@ AK_EXPORT
 void
 ak_meshPrimGenNormals(AkMeshPrimitive    * __restrict prim,
                       AkGenNormalStruct  * __restrict objp) {
-  AkUIntArray *inpIndices;
-  AkFloat     *pos;
-  AkUInt      *ind_it2;
-  AkHeap      *heap;
-  AkInput     *input;
-  AkUInt      *ind_it;
-  AkUInt       st, newst;
-  AkInt        vo, pos_st;
-  size_t       count;
+  AkUIntArray  *inpIndices;
+  AkFloat      *pos;
+  AkUInt       *it, *it2;
+  AkHeap       *heap;
+  AkInput      *input;
+  AkInputBasic *inputb;
+  AkUInt        st, newst;
+  AkInt         vo, pos_st;
+  size_t        count;
 
   if (prim->type != AK_MESH_PRIMITIVE_TYPE_TRIANGLES
       && prim->type != AK_MESH_PRIMITIVE_TYPE_POLYGONS)
@@ -97,10 +97,10 @@ ak_meshPrimGenNormals(AkMeshPrimitive    * __restrict prim,
   if (!prim->indices || prim->indices->count == 0)
     return;
 
-  ind_it = prim->indices->items + vo;
-  st     = prim->indexStride;
-  newst  = st + 1;
-  count  = prim->indices->count / st;
+  it    = prim->indices->items + vo;
+  st    = prim->indexStride;
+  count = prim->indices->count / st;
+  newst = st + 1;
 
   /* TODO: for now join this into existing indices, 
            but in the future use separate to fix indices  */
@@ -109,7 +109,7 @@ ak_meshPrimGenNormals(AkMeshPrimitive    * __restrict prim,
                               sizeof(*inpIndices)
                               + count * newst * sizeof(AkUInt));
   inpIndices->count = count * newst;
-  ind_it2 = inpIndices->items;
+  it2 = inpIndices->items;
 
   switch (prim->type) {
     case AK_MESH_PRIMITIVE_TYPE_POLYGONS: {
@@ -136,9 +136,9 @@ ak_meshPrimGenNormals(AkMeshPrimitive    * __restrict prim,
         if (vc < 3)
           continue;
 
-        a = pos + ind_it[i + vo]           * pos_st;
-        b = pos + ind_it[i + vo + st]      * pos_st;
-        c = pos + ind_it[i + vo + st + st] * pos_st;
+        a = pos + it[i + vo]           * pos_st;
+        b = pos + it[i + vo + st]      * pos_st;
+        c = pos + it[i + vo + st + st] * pos_st;
 
         glm_vec_sub(a, b, v1);
         glm_vec_sub(b, c, v2);
@@ -151,14 +151,14 @@ ak_meshPrimGenNormals(AkMeshPrimitive    * __restrict prim,
 
         idx = ak_data_append_unq(objp->dctx, n);
 
-        for (j = 0; j < vc; j++) {
+        for (j = i; j < i + vc; j++) {
           /* other inputs */
-          memcpy(ind_it2 + (i + j) * newst,
-                 ind_it  + (i + j) * st,
+          memcpy(it2 + j * newst,
+                 it  + j * st,
                  sizeof(AkUInt) * st);
 
           /* normal */
-          ind_it2[(i + j) * newst + st] = idx;
+          it2[j * newst + st] = idx;
         }
 
         i += vc;
@@ -175,9 +175,9 @@ ak_meshPrimGenNormals(AkMeshPrimitive    * __restrict prim,
       for (i = 0; i < count; i += 3 /* 3: triangle */) {
         float *a, *b, *c;
 
-        a = pos + ind_it[i + vo]           * pos_st;
-        b = pos + ind_it[i + vo + st]      * pos_st;
-        c = pos + ind_it[i + vo + st + st] * pos_st;
+        a = pos + it[i + vo]           * pos_st;
+        b = pos + it[i + vo + st]      * pos_st;
+        c = pos + it[i + vo + st + st] * pos_st;
 
         glm_vec_sub(a, b, v1);
         glm_vec_sub(b, c, v2);
@@ -189,12 +189,12 @@ ak_meshPrimGenNormals(AkMeshPrimitive    * __restrict prim,
 
         for (j = i; j < i + 3; j++) {
           /* other inputs */
-          memcpy(ind_it2 + j * newst,
-                 ind_it  + j * st,
+          memcpy(it2 + j * newst,
+                 it  + j * st,
                  sizeof(AkUInt) * st);
 
           /* normal */
-          ind_it2[j * newst + st] = idx;
+          it2[j * newst + st] = idx;
         }
       }
       break;
@@ -209,7 +209,12 @@ ak_meshPrimGenNormals(AkMeshPrimitive    * __restrict prim,
   input->offset           = st;
   input->base.semantic    = AK_INPUT_SEMANTIC_NORMAL;
   input->base.semanticRaw = "NORMAL";
-  input->base.next        = &prim->input->base;
+
+  inputb = &prim->input->base;
+  while (inputb->next)
+    inputb = inputb->next;
+
+  inputb->next = &input->base;
 
   ak_url_init(input,
               objp->srcurl,
