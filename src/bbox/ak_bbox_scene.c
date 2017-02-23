@@ -36,8 +36,8 @@ ak_bbox_node(AkVisualScene * __restrict scene,
       geomInst = geomInst->next;
     }
 
-    glm_vec_dup(bbox.min, min);
-    glm_vec_dup(bbox.max, max);
+    glm_vec_copy(bbox.min, min);
+    glm_vec_copy(bbox.max, max);
 
     /* this is position ? */
     min[3] = max[3] = 1;

@@ -40,7 +40,7 @@ ak_transformDup(AkNode * __restrict srcNode,
                                    true);
         newMatrix = ak_objGet(newTransform);
         ak_sid_dup(newTransform, transform);
-        glm_mat4_dup(matrix->val, newMatrix->val);
+        glm_mat4_copy(matrix->val, newMatrix->val);
         break;
       }
       case AK_NODE_TRANSFORM_TYPE_LOOK_AT: {
@@ -55,9 +55,9 @@ ak_transformDup(AkNode * __restrict srcNode,
         newLookAt = ak_objGet(newTransform);
         ak_sid_dup(newTransform, transform);
 
-        glm_vec_dup(lookAt->val[0], newLookAt->val[0]);
-        glm_vec_dup(lookAt->val[1], newLookAt->val[1]);
-        glm_vec_dup(lookAt->val[2], newLookAt->val[2]);
+        glm_vec_copy(lookAt->val[0], newLookAt->val[0]);
+        glm_vec_copy(lookAt->val[1], newLookAt->val[1]);
+        glm_vec_copy(lookAt->val[2], newLookAt->val[2]);
         break;
       }
       case AK_NODE_TRANSFORM_TYPE_ROTATE: {
@@ -71,7 +71,7 @@ ak_transformDup(AkNode * __restrict srcNode,
                                    true);
         newRotate = ak_objGet(newTransform);
         ak_sid_dup(newTransform, transform);
-        glm_vec4_dup(rotate->val, newRotate->val);
+        glm_vec4_copy(rotate->val, newRotate->val);
         break;
       }
       case AK_NODE_TRANSFORM_TYPE_SCALE: {
@@ -85,7 +85,7 @@ ak_transformDup(AkNode * __restrict srcNode,
                                    true);
         newScale = ak_objGet(newTransform);
         ak_sid_dup(newTransform, transform);
-        glm_vec_dup(scale->val, newScale->val);
+        glm_vec_copy(scale->val, newScale->val);
         break;
       }
       case AK_NODE_TRANSFORM_TYPE_TRANSLATE: {
@@ -99,7 +99,7 @@ ak_transformDup(AkNode * __restrict srcNode,
                                    true);
         newTranslate = ak_objGet(newTransform);
         ak_sid_dup(newTransform, transform);
-        glm_vec_dup(translate->val, newTranslate->val);
+        glm_vec_copy(translate->val, newTranslate->val);
         break;
       }
       case AK_NODE_TRANSFORM_TYPE_SKEW: {
@@ -115,8 +115,8 @@ ak_transformDup(AkNode * __restrict srcNode,
         ak_sid_dup(newTransform, transform);
 
         newSkew->angle = skew->angle;
-        glm_vec_dup(skew->aroundAxis, newSkew->aroundAxis);
-        glm_vec_dup(skew->rotateAxis, newSkew->rotateAxis);
+        glm_vec_copy(skew->aroundAxis, newSkew->aroundAxis);
+        glm_vec_copy(skew->rotateAxis, newSkew->rotateAxis);
         break;
       }
     }

@@ -39,7 +39,7 @@ ak_coordRotForFixCamOri(AkCoordSys *oldCoordSys,
   fwdAxis[3] = glm_vec_angle(v1, v2);
   if (fwdAxis[3] != 0.0f) {
     /* forward axis */
-    glm_vec_dup(v3, fwdAxis);
+    glm_vec_copy(v3, fwdAxis);
 
     /* convert to current coord sys */
     AK_CVT_VEC(fwdAxis)
@@ -63,7 +63,7 @@ ak_coordRotForFixCamOri(AkCoordSys *oldCoordSys,
   /* up direction */
   if (upAxis[3] != 0.0f) {
     /* up axis */
-    glm_vec_dup(v3, upAxis);
+    glm_vec_copy(v3, upAxis);
 
     /* convert to current coord sys */
     AK_CVT_VEC(upAxis)
@@ -139,7 +139,7 @@ ak_coordRotNodeForFixCamOri(AkDoc     *doc,
                ak_heap_strdup(heap,
                               transformFwd,
                               "ak-cam-fix-rot1"));
-    glm_vec4_dup(fwdAxis, rotate->val);
+    glm_vec4_copy(fwdAxis, rotate->val);
 
     *destTransform = transformFwd;
   }
@@ -158,7 +158,7 @@ ak_coordRotNodeForFixCamOri(AkDoc     *doc,
                ak_heap_strdup(heap,
                               transformUp,
                               "ak-cam-fix-rot2"));
-    glm_vec4_dup(upAxis, rotate->val);
+    glm_vec4_copy(upAxis, rotate->val);
 
     if (*destTransform)
       (*destTransform)->next = transformUp;

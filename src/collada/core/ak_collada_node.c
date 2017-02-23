@@ -304,8 +304,8 @@ ak_dae_node(AkXmlState    * __restrict xst,
 
           /* COLLADA uses degree here, convert it to radians */
           skew->angle = glm_rad(tmp[0]);
-          glm_vec_dup(&tmp[1], skew->rotateAxis);
-          glm_vec_dup(&tmp[4], skew->aroundAxis);
+          glm_vec_copy(&tmp[1], skew->rotateAxis);
+          glm_vec_copy(&tmp[4], skew->aroundAxis);
 
           if (last_transform)
             last_transform->next = obj;

@@ -96,8 +96,8 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
                                 prim,
                                 sizeof(*prim->bbox));
 
-  glm_vec_dup(min, prim->bbox->min);
-  glm_vec_dup(max, prim->bbox->max);
+  glm_vec_copy(min, prim->bbox->min);
+  glm_vec_copy(max, prim->bbox->max);
 
   ak_bbox_pick_pbox(mesh->bbox,  prim->bbox);
   ak_bbox_pick_pbox(geom->bbox,  mesh->bbox);

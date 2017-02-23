@@ -42,7 +42,7 @@ ak_transformSkewMatrix(AkSkew * __restrict skew,
 
   mat[3][3] = 1.0f;
 
-  glm_mat4_dup(mat, (vec4 *)matrix);
+  glm_mat4_copy(mat, (vec4 *)matrix);
 }
 
 AK_EXPORT
@@ -111,5 +111,5 @@ ak_transformCombine(AkNode * __restrict node,
     transform = transform->next;
   }
 
-  glm_mat4_dup(mat, (vec4 *)matrix);
+  glm_mat4_copy(mat, (vec4 *)matrix);
 }

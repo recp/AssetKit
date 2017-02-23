@@ -51,16 +51,16 @@ ak_coordCvtTransform(AkCoordSys *oldCoordSystem,
   AK_CVT_VEC_NOSIGN(scalev);
 
   /* apply new scaling factors */
-  glm_mat4_dup(GLM_MAT4_IDENTITY, scale);
+  glm_mat4_copy(GLM_MAT4_IDENTITY, scale);
   scale[0][0] = scalev[0];
   scale[1][1] = scalev[1];
   scale[2][2] = scalev[2];
 
-  glm_vec4_dup(transform[3], pos);
+  glm_vec4_copy(transform[3], pos);
   glm_mul(rot, scale, transform);
 
   /* apply new translation */
   AK_CVT_VEC(pos)
 
-  glm_vec4_dup(pos, transform[3]);
+  glm_vec4_copy(pos, transform[3]);
 }
