@@ -234,6 +234,10 @@ ak_heap_retain(AkHeapNode * __restrict heapNode);
 
 AK_EXPORT
 void
+ak_heap_release(AkHeapNode * __restrict heapNode);
+
+AK_EXPORT
+void
 ak_heap_printKeys(AkHeap * __restrict heap);
 
 /* default heap helpers */
@@ -302,6 +306,10 @@ ak_refc(void * __restrict mem);
 AK_EXPORT
 size_t
 ak_retain(void * __restrict mem);
+
+AK_EXPORT
+void
+ak_release(void * __restrict mem);
 
 /* mem wrapper helpers */
 

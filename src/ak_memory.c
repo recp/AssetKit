@@ -767,6 +767,19 @@ ak_heap_retain(AkHeapNode * __restrict heapNode) {
 
 AK_EXPORT
 void
+ak_heap_release(AkHeapNode * __restrict heapNode) {
+  size_t *refc;
+
+  refc = ak_heap_ext_get(heapNode, AK_HEAP_NODE_FLAGS_REFC);
+  if (!refc || !(*refc))
+    return;
+
+  if (--(*refc) == 0ul)
+    ak_free(ak__alignas(heapNode));
+}
+
+AK_EXPORT
+void
 ak_heap_printKeys(AkHeap * __restrict heap) {
   ak_heap_rb_print(heap->srchctx);
 }
@@ -914,6 +927,12 @@ AK_EXPORT
 size_t
 ak_retain(void * __restrict mem) {
   return ak_heap_retain(ak__alignof(mem));
+}
+
+AK_EXPORT
+void
+ak_release(void * __restrict mem) {
+  ak_heap_release(ak__alignof(mem));
 }
 
 AK_EXPORT
