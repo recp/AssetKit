@@ -368,6 +368,17 @@ ak_meshGenNormals(AkMesh * __restrict mesh);
 
 AK_EXPORT
 AkObject*
+/*!
+ * @brief this func returns array of input, because if you want to get array
+ *        you need to traverse though input -> source -> technique -> array
+ *
+ * @param mesh  mesh
+ * @param input input
+ *
+ * @return array object
+ */
+AK_EXPORT
+AkObject*
 ak_meshArrayOf(AkMesh   * __restrict mesh,
                AkInput  * __restrict input);
 
