@@ -543,3 +543,24 @@ ak_mesh_vertex_off(AkMeshPrimitive *prim) {
 
   return input->offset;
 }
+
+AK_EXPORT
+AkObject*
+ak_meshArrayOf(AkMesh  * __restrict mesh,
+               AkInput * __restrict input) {
+  AkHeap     *heap;
+  AkObject   *meshobj;
+  AkSource   *src;
+  AkAccessor *acc;
+
+  meshobj = ak_objFrom(mesh);
+  heap    = ak_heap_getheap(meshobj);
+
+  if (!(src = ak_getObjectByUrl(&input->base.source)))
+    return NULL;
+
+  if (!(acc = src->tcommon))
+    return NULL;
+
+  return ak_getObjectByUrl(&acc->source);
+}

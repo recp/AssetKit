@@ -365,6 +365,12 @@ AK_EXPORT
 void
 ak_meshGenNormals(AkMesh * __restrict mesh);
 
+
+AK_EXPORT
+AkObject*
+ak_meshArrayOf(AkMesh   * __restrict mesh,
+               AkInput  * __restrict input);
+
 #ifdef __cplusplus
 }
 #endif
