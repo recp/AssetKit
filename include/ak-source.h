@@ -104,6 +104,21 @@ typedef struct AkSourceStringArray {
   AkString     items[];
 } AkSourceStringArray;
 
+AK_INLINE
+size_t
+ak_sourceArraySize(AkSourceArrayType type) {
+  switch (type) {
+    case AK_SOURCE_ARRAY_TYPE_FLOAT : return sizeof(AkSourceFloatArray);
+    case AK_SOURCE_ARRAY_TYPE_INT   : return sizeof(AkSourceIntArray);
+    case AK_SOURCE_ARRAY_TYPE_SIDREF:
+    case AK_SOURCE_ARRAY_TYPE_IDREF :
+    case AK_SOURCE_ARRAY_TYPE_NAME  :
+    case AK_SOURCE_ARRAY_TYPE_TOKEN : return sizeof(AkSourceStringArray);
+    case AK_SOURCE_ARRAY_TYPE_BOOL  : return sizeof(AkSourceBoolArray);
+    default                         : return 0;
+  }
+}
+
 #ifdef __cplusplus
 }
 #endif
