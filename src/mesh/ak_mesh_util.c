@@ -544,6 +544,74 @@ ak_mesh_vertex_off(AkMeshPrimitive *prim) {
   return input->offset;
 }
 
+void
+ak_meshInspectArray(AkMesh   * __restrict mesh,
+                    AkURL    * __restrict arrayURL,
+                    uint32_t * __restrict stride,
+                    size_t   * __restrict count) {
+  AkMeshPrimitive *primi;
+  AkInputBasic    *inputb;
+  AkInput         *input;
+  AkSource        *src;
+  AkAccessor      *acc;
+  AkMap           *map;
+  AkMapItem       *mapi;
+
+  *stride = 0;
+  *count  = 0ul;
+  primi   = mesh->primitive;
+  map     = ak_map_new(NULL);
+
+  /* vertices */
+  inputb = primi->vertices->input;
+  while (inputb) {
+    src = ak_getObjectByUrl(&inputb->source);
+    acc = src->tcommon;
+
+    if (strcmp(acc->source.url, arrayURL->url) == 0
+        && acc->source.doc == arrayURL->doc)
+      ak_map_addptr(map, src);
+
+    inputb = inputb->next;
+  }
+
+  /* other inputs */
+  while (primi) {
+    input = primi->input;
+
+    while (input) {
+      if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX) {
+        input = (AkInput *)input->base.next;
+        continue;
+      }
+
+      src = ak_getObjectByUrl(&input->base.source);
+      acc = src->tcommon;
+
+      if (strcmp(acc->source.url, arrayURL->url) == 0
+          && acc->source.doc == arrayURL->doc)
+        ak_map_addptr(map, src);
+
+      input = (AkInput *)input->base.next;
+    }
+
+    primi = primi->next;
+  }
+
+  mapi = map->root;
+  while (mapi) {
+    src = ak_getId(mapi);
+    acc = src->tcommon;
+    if (acc) {
+      *stride += acc->bound;
+      *count  += acc->bound * acc->count;
+    }
+    mapi = mapi->next;
+  }
+
+  ak_map_destroy(map);
+}
+
 AK_EXPORT
 AkObject*
 ak_meshArrayOf(AkMesh  * __restrict mesh,

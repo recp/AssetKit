@@ -382,6 +382,22 @@ AkObject*
 ak_meshArrayOf(AkMesh   * __restrict mesh,
                AkInput  * __restrict input);
 
+/*!
+ * @brief collect array infos, altername would be ak_meshArrayInfos
+ *        this function collects array usage (count, stride) in specified mesh
+ *        this is useful for shrink array
+ *
+ * @param[in]  mesh     mesh
+ * @param[in]  arrayURL array URL
+ * @param[out] stride   stride (for mesh)
+ * @param[out] count    count  (for mesh)
+ */
+void
+ak_meshInspectArray(AkMesh   * __restrict mesh,
+                    AkURL    * __restrict arrayURL,
+                    uint32_t * __restrict stride,
+                    size_t   * __restrict count);
+
 #ifdef __cplusplus
 }
 #endif
