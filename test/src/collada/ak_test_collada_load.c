@@ -28,9 +28,13 @@ ak_collada_load_folder(void **state) {
 
   if ((dir = opendir ("./")) != NULL) {
     while ((ent = readdir (dir)) != NULL) {
+	  size_t namelen;
+
+	  namelen = strlen(ent->d_name);
+
       if (*ent->d_name == '.') {
-        if (ent->d_namlen == 1
-            || (ent->d_namlen == 2 && ent->d_name[1] == '.')
+        if (namelen == 1
+            || (namelen == 2 && ent->d_name[1] == '.')
             || strcmp(ent->d_name, ".DS_Store") == 0)
           continue;
       }
