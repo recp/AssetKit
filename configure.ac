@@ -41,9 +41,6 @@ LT_INIT
 
 # Checks for libraries.
 AC_CHECK_LIB([m], [floor])
-AC_CHECK_LIB([jemalloc], [je_malloc])
-AC_CHECK_LIB([curl], [curl_easy_perform])
-AC_CHECK_LIB([uv], [uv_os_tmpdir])
 
 AC_SYS_LARGEFILE
 
