@@ -1,6 +1,0 @@
-[==========] Running 1 test(s).
-[ RUN      ] ak_collada_load_folder
-[       OK ] ak_collada_load_folder
-[==========] 1 test(s) run.
-[  PASSED  ] 1 test(s).
-PASS test/ak-tests (exit status: 0)
