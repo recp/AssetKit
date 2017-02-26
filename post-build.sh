@@ -37,7 +37,7 @@ if [ "`uname`" = "Darwin" ]; then
                             @loader_path/$libuv_dylib \
                             $ak_dylib
 
-  ln -sf $(PWD)/test/lib/cmocka/build/src/libcmocka.0.dylib \
+  ln -sf $(pwd)/test/lib/cmocka/build/src/libcmocka.0.dylib \
       .libs/libcmocka.0.dylib;
 else
   libxml2_so=$(readlink  ./lib/libxml2/.libs/libxml2.so)
@@ -50,6 +50,6 @@ else
   cp ./lib/curl/lib/.libs/$curl_so   .libs/$curl_so
   cp ./lib/libuv/.libs/$libuv_so     .libs/$libuv_so
 
-  ln -sf $(PWD)/test/lib/cmocka/build/src/libcmocka.so.0
+  ln -sf $(pwd)/test/lib/cmocka/build/src/libcmocka.so.0 \
       .libs/libcmocka.so.0;
 fi

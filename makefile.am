@@ -185,4 +185,4 @@ test_ak_tests_SOURCES=\
     test/src/collada/ak_test_collada_load.c
 
 all-local:
-	sh ./post-configure.sh
+	sh ./post-build.sh
