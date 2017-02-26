@@ -170,8 +170,6 @@ ak_meshPrimGenNormals(AkMeshPrimitive    * __restrict prim,
       uint32_t i, j;
       AkUInt   idx;
 
-      idx = 0;
-
       for (i = 0; i < count; i += 3 /* 3: triangle */) {
         float *a, *b, *c;
 

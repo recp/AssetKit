@@ -616,13 +616,10 @@ AK_EXPORT
 AkObject*
 ak_meshArrayOf(AkMesh  * __restrict mesh,
                AkInput * __restrict input) {
-  AkHeap     *heap;
-  AkObject   *meshobj;
   AkSource   *src;
   AkAccessor *acc;
 
-  meshobj = ak_objFrom(mesh);
-  heap    = ak_heap_getheap(meshobj);
+  AK__UNUSED(mesh);
 
   if (!(src = ak_getObjectByUrl(&input->base.source)))
     return NULL;
