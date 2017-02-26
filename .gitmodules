@@ -22,3 +22,9 @@
 [submodule "lib/stb"]
 	path = lib/stb
 	url = https://github.com/nothings/stb.git
+[submodule "test/lib"]
+	path = test/lib
+	url = git://git.cryptomilk.org/projects/cmocka.git
+[submodule "test/lib/cmocka"]
+	path = test/lib/cmocka
+	url = git://git.cryptomilk.org/projects/cmocka.git
