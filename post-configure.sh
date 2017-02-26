@@ -8,6 +8,8 @@
 
 cd `dirname "$0"`
 
+mkdir -p .libs
+
 #TODO: implement this to other platforms e.g. linux, windows
 if [ "`uname`" = "Darwin" ]; then
   ak_dylib=.libs/libassetkit.dylib
@@ -35,5 +37,19 @@ if [ "`uname`" = "Darwin" ]; then
                             @loader_path/$libuv_dylib \
                             $ak_dylib
 
-  ln -sf ../include .libs/include
+  ln -sf $(PWD)/test/lib/cmocka/build/src/libcmocka.0.dylib \
+      .libs/libcmocka.0.dylib;
+else
+  libxml2_so=$(readlink  ./lib/libxml2/.libs/libxml2.so)
+  jemalloc_so=$(readlink ./lib/jemalloc/lib/libjemalloc.so)
+  curl_so=$(readlink     ./lib/curl/lib/.libs/libcurl.so)
+  libuv_so=$(readlink    ./lib/libuv/.libs/libuv.so)
+
+  cp ./lib/libxml2/.libs/$libxml2_so .libs/$libxml2_so
+  cp ./lib/jemalloc/lib/$jemalloc_so .libs/$jemalloc_so
+  cp ./lib/curl/lib/.libs/$curl_so   .libs/$curl_so
+  cp ./lib/libuv/.libs/$libuv_so     .libs/$libuv_so
+
+  ln -sf $(PWD)/test/lib/cmocka/build/src/libcmocka.so.0
+      .libs/libcmocka.so.0;
 fi

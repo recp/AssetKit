@@ -185,11 +185,4 @@ test_ak_tests_SOURCES=\
     test/src/collada/ak_test_collada_load.c
 
 all-local:
-	mkdir -p .libs && \
-	if [ "`uname`" = "Darwin" ]; then \
-	  ln -sf $(PWD)/test/lib/cmocka/build/src/libcmocka.0.dylib \
-        .libs/libcmocka.0.dylib; \
-    else \
-	  ln -sf $(PWD)/test/lib/cmocka/build/src/libcmocka.so.0 \
-        .libs/libcmocka.so.0; \
-	fi
+	sh ./post-configure.sh
