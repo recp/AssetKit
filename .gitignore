@@ -51,3 +51,6 @@ COPYING
 *.VC.db
 test-driver
 /include/include/
+*.log
+test/ak-tests.trs
+test/ak-tests
