@@ -33,6 +33,9 @@ typedef AkHeapSrchCmpFn AkMapCmp;
 void
 ak_map_addptr(AkMap *map, void *ptr);
 
+void*
+ak_map_find(AkMap *map, void *id);
+
 void
 ak_map_add(AkMap *map,
            void  *value,
