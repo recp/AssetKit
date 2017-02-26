@@ -44,4 +44,10 @@ matrix:
             - clang-3.7
       env: COMPILER=clang++-3.7
 
-script: sh ./build-deps.sh && sh ./autogen.sh && ./configure && make
+before_install:
+  - pip install --user cpp-coveralls
+
+script: sh ./build-deps.sh && sh ./autogen.sh && ./configure --enable-gcov && make && make check
+
+after_success:
+  - coveralls --exclude lib --exclude tests --gcov-options '\-lp'
