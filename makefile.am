@@ -184,7 +184,7 @@ test_ak_tests_SOURCES=\
     test/src/collada/ak_test_collada.c \
     test/src/collada/ak_test_collada_load.c
 
-
 all-local:
-	ln -sf $(PWD)/test/lib/cmocka/build/src/libcmocka.0.dylib \
-    .libs/libcmocka.0.dylib
+	mkdir -p .libs \
+	&& ln -sf $(PWD)/test/lib/cmocka/build/src/libcmocka.0.dylib \
+          .libs/libcmocka.0.dylib
