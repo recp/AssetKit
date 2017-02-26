@@ -13,30 +13,30 @@ git submodule update --init --recursive
 cd ./lib/libxml2
 sh ./autogen.sh
 ./configure
-make
+make -j8
 
 # jemalloc
 cd ../jemalloc
 sh ./autogen.sh
 ./configure
-make
+make -j8
 
 # curl
 cd ../curl
 sh ./buildconf
 ./configure
-make
+make -j8
 
 # libuv
 cd ../libuv
 sh ./autogen.sh
 ./configure
-make
+make -j8
 
 # test - cmocka
 cd ../../test/lib/cmocka
 mkdir build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Debug ..
-make
+make -j8
 cd ../../../../
