@@ -46,15 +46,11 @@ script:
   - make
 
 after_success:
-  # Collect coverage and push to coveralls
-  # Ignore third party source code and tests.
   - if [[ "$CC" == "gcc" && "$CODE_COVERAGE" == "ON" ]]; then
       coveralls
-        --root ../
-        --build-root ./
-        --exclude-pattern '.+/lib/'
-        --exclude-pattern '.+/test/'
+        --exclude lib
+        --exclude test
         --gcov /usr/bin/gcov
-        --gcov-options '\--long-file-names --preserve-paths'
+        --gcov-options '\-lp'
         --verbose;
     fi
