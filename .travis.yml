@@ -50,7 +50,6 @@ after_success:
       coveralls
         --exclude lib
         --exclude test
-        --gcov /usr/bin/gcov
         --gcov-options '\-lp'
         --verbose;
     fi
