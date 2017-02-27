@@ -51,6 +51,45 @@ I've also created a basic program (included a screenshot of render result and da
 - [ ] Load Kinematics
 - [ ] Exporting
 
+## Build
+
+### Unix (Autotools)
+Step 1: First you should build dependencies, do this only once:
+```bash
+$ sh ./build-deps.sh
+```
+
+Step 2: Build, Test and Install AssetKit 
+```bash
+$ sh autogen.sh
+$ ./configure
+$ make
+$ make check
+$ [sudo] make install
+```
+
+Step 3: Change install name if required, after make finished make automaticall runs `sh ./post-build.sh` script. It changes install names. You may want to edit build scripts and `post-build.sh` script if you want to build AssetKit with existing libraries. Default behavior is that AssetKit will look up sub libraries inside `.libs` folder, if you only need to change `.libs` name then change it in `post-build.sh` script file.
+
+### Windows (MSBuild)
+Windows related build files, project files are located in `win` folder, make sure you are inside `assetkit/win` folder. Code Analysis are enabled to it may take awhile to build
+
+`git`, `nuget` and `python` commands should be installed/accessible.
+
+```Powershell
+$ cd win
+$ .\build.bat
+$ msbuild assetkit.vcxproj /p:Configuration=Release
+```
+if `msbuild` won't work correctly then try to build with `devenv`:
+```Powershell
+$ devenv assetkit.sln /Build Release
+```
+
+### Test
+Currently tests are implemented for Autotools (make check), there is separate repo for storing test models to avoid increase repo size: http://github.com/recp/sample-models . By running `build-deps.sh`, `git submodule update --init --recursive` command will be executed and all sample models will be fecthed for testing into `assetkit/test` folder
+
+`make check` uses this repo samples to test.
+
 # Notes
 - Actual README and documents for how to use this will be written after first version
 - I'm working hard to finish this lib, I'll update README when finished, for now <b>DON'T USE THIS LIB UNTIL FINISHED</b>
