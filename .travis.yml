@@ -1,53 +1,58 @@
 language: c
 
-cache: ccache
+os:
+  - linux
+  - osx
 
-before_script:
-  - sudo add-apt-repository ppa:dns/gnu -y
-  - sudo apt-get update -q
-  - sudo apt-get install --only-upgrade autoconf
+compiler:
+  - clang
+  - gcc
 
 matrix:
+  fast_finish: true
+  exclude:
+    # Skip GCC builds on macOS.
+    - os: osx
+      compiler: gcc
   include:
-    - compiler: gcc
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-4.9
-      env: COMPILER=g++-4.9
-    - compiler: gcc
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-5
-      env: COMPILER=g++-5
-    - compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise-3.6
-          packages:
-            - clang-3.6
-      env: COMPILER=clang++-3.6
-    - compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise-3.7
-          packages:
-            - clang-3.7
-      env: COMPILER=clang++-3.7
+    # Additional GCC builds for code coverage.
+    - os: linux
+      compiler: gcc
+      env: CODE_COVERAGE=ON
+
+cache:
+  apt: true
+
+addons:
+  apt:
+    packages:
+      - clang-3.6
+      - lcov
+
+branches:
+  only:
+    - master
 
 before_install:
   - pip install --user cpp-coveralls
 
-script: sh ./build-deps.sh && sh ./autogen.sh && ./configure --enable-gcov && make && make check
+script:
+  - sh ./build-deps.sh
+  - sh ./autogen.sh
+  - ./configure --enable-gcov
+  - make
+  - make check
 
 after_success:
-  - coveralls --exclude lib --exclude tests --gcov-options '\-lp'
+  # Collect coverage and push to coveralls
+  # Ignore third party source code and tests.
+  - if [[ "$CC" == "gcc" && "$CODE_COVERAGE" == "ON" ]]; then
+      coveralls
+        --root ../
+        --build-root ./
+        --exclude-pattern '.+/lib/'
+        --exclude-pattern '.+/test/'
+        --gcov /usr/bin/gcov
+        --gcov-options '\--long-file-names --preserve-paths'
+        --verbose;
+    fi
