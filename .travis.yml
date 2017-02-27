@@ -44,7 +44,6 @@ script:
   - sh ./autogen.sh
   - ./configure --enable-gcov
   - make
-  - make check
 
 after_success:
   # Collect coverage and push to coveralls
