@@ -36,7 +36,7 @@ test_ak_tests_LDFLAGS = -L./.libs \
                         -lxml2 \
                         -ljemalloc \
                         -lcurl \
-                        -luv -Wl -V
+                        -luv
 
 test_ak_tests_CFLAGS = -I./test/lib/cmocka/include \
                        -I./include
