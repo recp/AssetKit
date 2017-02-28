@@ -53,6 +53,7 @@ script:
 after_success:
   - if [[ "$CC" == "gcc" && "$CODE_COVERAGE" == "ON" ]]; then
       coveralls
+        --build-root .
         --exclude lib
         --exclude test
         --gcov-options '\-lp'
