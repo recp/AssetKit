@@ -54,3 +54,6 @@ test-driver
 *.log
 test/ak-tests.trs
 test/ak-tests
+*.gcov
+*.gcno
+*.gcda
