@@ -19,7 +19,11 @@ if [ "`uname`" = "Darwin" ]; then
   ln -s $libtoolBin "${libtoolBinDir}/libtoolize"
 fi
 
+# general deps: gcc make autoconf automake
+
 # libxml2
+# deps:
+#   pkg-config zlib1g-dev node curl libpython-dev
 cd ./lib/libxml2
 sh ./autogen.sh
 ./configure
