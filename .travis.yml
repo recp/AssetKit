@@ -43,9 +43,9 @@ script:
   - sh ./build-deps.sh
   - sh ./autogen.sh
   - if [[ "$CC" == "gcc" && "$CODE_COVERAGE" == "ON" ]]; then
-      ./configure CFLAGS="-ftest-coverage -fprofile-arcs"
+      ./configure CFLAGS="-ftest-coverage -fprofile-arcs";
     else
-      ./configure
+      ./configure;
     fi
   - make
 
