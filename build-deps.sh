@@ -9,6 +9,16 @@
 # check if deps are pulled
 git submodule update --init --recursive
 
+# fix glibtoolize
+
+cd `dirname "$0"`
+
+if [ "`uname`" = "Darwin" ]; then
+  libtoolBin=$(which glibtoolize)
+  libtoolBinDir=$(dirname "${libtoolBin}")
+  ln -s $libtoolBin "${libtoolBinDir}/libtoolize"
+fi
+
 # libxml2
 cd ./lib/libxml2
 sh ./autogen.sh
