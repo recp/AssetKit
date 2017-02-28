@@ -42,7 +42,11 @@ before_install:
 script:
   - sh ./build-deps.sh
   - sh ./autogen.sh
-  - ./configure --enable-gcov
+  - if [[ "$CC" == "gcc" && "$CODE_COVERAGE" == "ON" ]]; then
+      ./configure CFLAGS="-ftest-coverage -fprofile-arcs"
+    else
+      ./configure
+    fi
   - make
 
 after_success:
