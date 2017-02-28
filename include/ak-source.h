@@ -104,6 +104,7 @@ typedef struct AkSourceStringArray {
   AkString     items[];
 } AkSourceStringArray;
 
+static
 AK_INLINE
 size_t
 ak_sourceArraySize(AkSourceArrayType type) {
