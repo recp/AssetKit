@@ -9,7 +9,7 @@
 #include "ak_test_collada_load.h"
 
 const struct CMUnitTest ak_collada_tests[] = {
-  unit_test(ak_collada_load_folder)
+  cmocka_unit_test(ak_collada_load_folder)
 };
 
 int
