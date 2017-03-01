@@ -9,6 +9,7 @@
 #define ak_test_common_h
 
 #include <stdarg.h>
+#include <stdint.h>
 #include <stddef.h>
 #include <setjmp.h>
 #include <cmocka.h>

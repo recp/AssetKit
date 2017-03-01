@@ -57,3 +57,5 @@ test/ak-tests
 *.gcov
 *.gcno
 *.gcda
+tests.trs
+tests

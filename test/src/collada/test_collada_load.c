@@ -5,7 +5,7 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "ak_test_collada_load.h"
+#include "test_collada_load.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -19,11 +19,12 @@
 const char *ak_dae_dir = "./test/sample-models/collada/files";
 
 void
-ak_collada_load_folder(void **state) {
+test_collada_load_folder(void **state) {
   DIR           *dir;
   struct dirent *ent;
   AkDoc         *doc;
 
+  (void)state;
   chdir(ak_dae_dir);
 
   if ((dir = opendir ("./")) != NULL) {
@@ -45,6 +46,4 @@ ak_collada_load_folder(void **state) {
     
     closedir(dir);
   }
-
-  free(*state);
 }

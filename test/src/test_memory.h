@@ -5,10 +5,12 @@
  * Full license can be found in the LICENSE file
  */
 
-#ifndef ak_test_collada_h
-#define ak_test_collada_h
+#ifndef ak_test_memory_h
+#define ak_test_memory_h
 
-int
-ak_test_collada();
+#include "test-common.h"
 
-#endif /* ak_test_collada_h */
+void
+test_heap(void **state);
+
+#endif /* ak_test_memory_h */
