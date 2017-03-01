@@ -12,6 +12,7 @@ int
 main(int argc, const char * argv[]) {
   int ret;
 
+  ret = 0;
   ret += ak_test_collada();
 
   return ret;
