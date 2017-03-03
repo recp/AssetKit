@@ -15,13 +15,18 @@ struct AkTechnique;
 struct AkAssetInf;
 
 typedef enum AkSourceArrayType {
-  AK_SOURCE_ARRAY_TYPE_BOOL   = 1,
-  AK_SOURCE_ARRAY_TYPE_FLOAT  = 2,
-  AK_SOURCE_ARRAY_TYPE_INT    = 3,
-  AK_SOURCE_ARRAY_TYPE_IDREF  = 4,
-  AK_SOURCE_ARRAY_TYPE_NAME   = 5,
-  AK_SOURCE_ARRAY_TYPE_SIDREF = 6,
-  AK_SOURCE_ARRAY_TYPE_TOKEN  = 7
+  AK_SOURCE_ARRAY_TYPE_UNKNOWN = 0,
+  AK_SOURCE_ARRAY_TYPE_FLOAT   = 1 << 0,
+  AK_SOURCE_ARRAY_TYPE_INT     = 1 << 1,
+  AK_SOURCE_ARRAY_TYPE_BOOL    = 1 << 2,
+  AK_SOURCE_ARRAY_TYPE_IDREF   = 1 << 3,
+  AK_SOURCE_ARRAY_TYPE_NAME    = 1 << 4,
+  AK_SOURCE_ARRAY_TYPE_SIDREF  = 1 << 5,
+  AK_SOURCE_ARRAY_TYPE_TOKEN   = 1 << 6,
+  AK_SOURCE_ARRAY_TYPE_STRING  = AK_SOURCE_ARRAY_TYPE_IDREF
+                               | AK_SOURCE_ARRAY_TYPE_NAME
+                               | AK_SOURCE_ARRAY_TYPE_SIDREF
+                               | AK_SOURCE_ARRAY_TYPE_TOKEN
 } AkSourceArrayType;
 
 typedef struct AkDataType {
@@ -109,14 +114,11 @@ AK_INLINE
 size_t
 ak_sourceArraySize(AkSourceArrayType type) {
   switch (type) {
-    case AK_SOURCE_ARRAY_TYPE_FLOAT : return sizeof(AkSourceFloatArray);
-    case AK_SOURCE_ARRAY_TYPE_INT   : return sizeof(AkSourceIntArray);
-    case AK_SOURCE_ARRAY_TYPE_SIDREF:
-    case AK_SOURCE_ARRAY_TYPE_IDREF :
-    case AK_SOURCE_ARRAY_TYPE_NAME  :
-    case AK_SOURCE_ARRAY_TYPE_TOKEN : return sizeof(AkSourceStringArray);
-    case AK_SOURCE_ARRAY_TYPE_BOOL  : return sizeof(AkSourceBoolArray);
-    default                         : return 0;
+    case AK_SOURCE_ARRAY_TYPE_FLOAT  : return sizeof(AkSourceFloatArray);
+    case AK_SOURCE_ARRAY_TYPE_INT    : return sizeof(AkSourceIntArray);
+    case AK_SOURCE_ARRAY_TYPE_STRING : return sizeof(AkSourceStringArray);
+    case AK_SOURCE_ARRAY_TYPE_BOOL   : return sizeof(AkSourceBoolArray);
+    default                          : return 0;
   }
 }
 
