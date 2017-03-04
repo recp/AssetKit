@@ -13,4 +13,7 @@
 void
 test_heap(void **state);
 
+void
+test_heap_multiple(void **state);
+
 #endif /* ak_test_memory_h */

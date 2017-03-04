@@ -12,8 +12,9 @@
 int
 main(int argc, const char * argv[]) {
   const struct CMUnitTest tests[] = {
+    cmocka_unit_test(test_heap),
+    cmocka_unit_test(test_heap_multiple),
     cmocka_unit_test(test_collada_load_folder),
-    cmocka_unit_test(test_heap)
   };
 
   return cmocka_run_group_tests(tests,
