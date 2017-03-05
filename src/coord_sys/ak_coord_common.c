@@ -32,21 +32,6 @@ ak_coordAxisOri(AkCoordSys * __restrict coordSys,
 }
 
 void
-ak_coordAxisCoordLocate(int coord1[3],
-                        int coord2[3],
-                        int    ori[3]) {
-  int i, j;
-
-  for (i = 0; i < 3; i++) {
-    for (j = 0; j < 3; j++)
-      if (coord2[i] == coord1[j])
-        ori[i] = (j + 1) * glm_sign(coord2[j]);
-      else if (abs(coord2[i]) == abs(coord1[j]))
-        ori[i] = -(j + 1) * glm_sign(coord2[j]);
-  }
-}
-
-void
 ak_coordAxisOriAbs(AkCoordSys * __restrict coordSys,
                    AkAxisOrientation       axis,
                    int                     newAxisOri[3]) {

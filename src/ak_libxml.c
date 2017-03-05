@@ -312,23 +312,6 @@ ak_xml_attrd(AkXmlState * __restrict xst,
   return 0.0;
 }
 
-long
-ak_xml_attrl(AkXmlState * __restrict xst,
-             const char * name) {
-  xmlChar *xmlAttrVal;
-  long     attr;
-
-  xmlAttrVal = xmlTextReaderGetAttribute(xst->reader,
-                                         (const xmlChar *)name);
-  if (xmlAttrVal) {
-    attr = strtol((char *)xmlAttrVal, NULL, 10);
-    xmlFree(xmlAttrVal);
-    return attr;
-  }
-
-  return 0l;
-}
-
 unsigned int
 ak_xml_attrui(AkXmlState * __restrict xst,
               const char * name) {
