@@ -26,6 +26,10 @@
 #include "ak_memory_rb.h"
 #include <stdio.h>
 
+void
+ak_heap_rb_printNode(AkHeapSrchCtx * __restrict srchctx,
+                     AkHeapSrchNode * __restrict srchNode);
+
 /*
  simple assertion for rbtree
  source: Eternally Confuzzled

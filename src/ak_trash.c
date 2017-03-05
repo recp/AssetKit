@@ -5,11 +5,14 @@
  * Full license can be found in the LICENSE file
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include "ak_trash.h"
 
 #include "../include/assetkit.h"
+#include "../include/ak-trash.h"
 #include "ak_memory_common.h"
+
+#include <stdlib.h>
+#include <string.h>
 
 typedef struct AkTrashItem {
   void               *tofree;

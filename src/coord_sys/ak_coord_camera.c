@@ -15,6 +15,13 @@ void
 ak_coordRotForFixCamOri(AkCoordSys *oldCoordSys,
                         AkCoordSys *newCoordSys,
                         vec4        fwdAxis,
+                        vec4        upAxis);
+
+AK_EXPORT
+void
+ak_coordRotForFixCamOri(AkCoordSys *oldCoordSys,
+                        AkCoordSys *newCoordSys,
+                        vec4        fwdAxis,
                         vec4        upAxis) {
   ivec3          camOriOld, camOriNew;
   vec3           v1, v2, v3, tmp;

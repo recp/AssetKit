@@ -35,4 +35,8 @@ ak_heap_rb_parent(AkHeapSrchCtx * __restrict srchctx,
 void
 ak_heap_rb_print(AkHeapSrchCtx * __restrict srchctx);
 
+int
+ak_heap_rb_assert(AkHeapSrchCtx * srchctx,
+                  AkHeapSrchNode * root);
+
 #endif /* ak_memory_redblack_h */

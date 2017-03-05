@@ -38,6 +38,9 @@
 
 static const char *rb_empty = "";
 
+void
+rb_printi(RBTree *tree, RBNode *node);
+
 static
 int
 rb_def_cmp_str(void * key1, void *key2) {

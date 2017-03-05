@@ -9,6 +9,7 @@
 #define __libassetkit__aioutils__h_
 
 #include "../include/assetkit.h"
+#include "../include/ak-util.h"
 
 AkResult
 ak_readfile(const char * __restrict file,

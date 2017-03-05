@@ -22,6 +22,11 @@ typedef struct AkGenNormalStruct {
   int            pos_stride;
 } AkGenNormalStruct;
 
+_assetkit_hide
+void
+ak_meshPrimGenNormals(AkMeshPrimitive    * __restrict prim,
+                      AkGenNormalStruct  * __restrict objp);
+
 AK_EXPORT
 bool
 ak_meshPrimNeedsNormals(AkMeshPrimitive * __restrict prim) {
@@ -68,7 +73,7 @@ ak_meshNeedsNormals(AkMesh * __restrict mesh) {
   return ret;
 }
 
-AK_EXPORT
+_assetkit_hide
 void
 ak_meshPrimGenNormals(AkMeshPrimitive    * __restrict prim,
                       AkGenNormalStruct  * __restrict objp) {

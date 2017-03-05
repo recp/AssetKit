@@ -13,10 +13,16 @@
 #include <curl/curl.h>
 
 size_t
-ak_curl_write(void *ptr,
+ak_curl_write(void  *ptr,
               size_t size,
               size_t nmemb,
-              FILE *stream) {
+              FILE  *stream);
+
+size_t
+ak_curl_write(void  *ptr,
+              size_t size,
+              size_t nmemb,
+              FILE  *stream) {
   return fwrite(ptr, size, nmemb, stream);
 }
 
