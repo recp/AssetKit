@@ -174,6 +174,8 @@ ak_heap_lt_remove(uint32_t heapid) {
       prevBucket->next = bucket->next;
       free(bucket->heapEntry);
       free(bucket);
+
+      ak__heap_lt.size--;
     }
 
     if (ak__heap_lt.lastUsedEntry == entry)
