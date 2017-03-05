@@ -20,4 +20,7 @@ void
 ak_accessor_setparams(AkAccessor     *acc,
                       AkInputSemantic semantic);
 
+AkAccessor*
+ak_accessor_dup(AkAccessor *oldacc);
+
 #endif /* ak_accessor_h */

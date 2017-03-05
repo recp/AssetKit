@@ -41,3 +41,52 @@ ak_accessor_setparams(AkAccessor     *acc,
     last_dp = dp;
   }
 }
+
+AkAccessor*
+ak_accessor_dup(AkAccessor *oldacc) {
+  AkHeap      *heap;
+  AkAccessor  *acc;
+  AkDataParam *dp, *newdp, *last_dp;
+
+  heap = ak_heap_getheap(oldacc);
+  acc  = ak_heap_alloc(heap,
+                       ak_heap_parent(ak_mem_parent(oldacc)),
+                       sizeof(*acc));
+
+  memcpy(acc, oldacc, sizeof(*oldacc));
+
+  last_dp = NULL;
+  dp = oldacc->param;
+  while (dp) {
+    newdp = ak_heap_alloc(heap,
+                          acc,
+                          sizeof(*newdp));
+    memcpy(&newdp->type,
+           &dp->type,
+           sizeof(newdp->type));
+
+    newdp->offset = dp->offset;
+
+    if (dp->name)
+      newdp->name = ak_heap_strdup(heap,
+                                   acc,
+                                   dp->name);
+
+    if (dp->semantic)
+      newdp->semantic = ak_heap_strdup(heap,
+                                       acc,
+                                       dp->semantic);
+
+    if (last_dp)
+      last_dp->next = newdp;
+    else
+      acc->param = newdp;
+    last_dp = newdp;
+
+    newdp->next = NULL;
+
+    dp = dp->next;
+  }
+
+  return acc;
+}
