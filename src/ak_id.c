@@ -58,8 +58,10 @@ ak_id_gen(AkHeap     * __restrict heap,
     idpstr = prefix;
 
   idheap = heap->idheap;
-  if (!idheap)
-    return NULL;
+  if (!idheap) {
+    ak_id_newheap(heap);
+    idheap = heap->idheap;
+  }
 
   ret = ak_heap_getMemById(idheap, (void *)idpstr, &idpf);
 
