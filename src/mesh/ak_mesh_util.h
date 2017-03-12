@@ -36,6 +36,9 @@ ak_mesh_src_for_ext(AkHeap         *heap,
 AkSource *
 ak_mesh_pos_src(AkMesh *mesh);
 
+AkObject*
+ak_mesh_positions(AkMesh *mesh);
+
 uint32_t
 ak_mesh_vert_stride(AkMesh *mesh);
 

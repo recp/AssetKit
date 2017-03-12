@@ -11,6 +11,7 @@
 #include "ak_collada_lines.h"
 #include "ak_collada_polygons.h"
 #include "ak_collada_triangles.h"
+#include "../../mesh/ak_mesh_util.h"
 
 #define k_s_dae_source     1
 #define k_s_dae_vertices   2
@@ -115,8 +116,10 @@ ak_dae_mesh(AkXmlState * __restrict xst,
         AkResult ret;
 
         ret = ak_dae_vertices(xst, memPtr, &vertices);
-        if (ret == AK_OK)
-          mesh->vertices = vertices;
+        if (ret == AK_OK) {
+          mesh->vertices  = vertices;
+          mesh->positions = ak_mesh_positions(mesh);
+        }
 
         break;
       }

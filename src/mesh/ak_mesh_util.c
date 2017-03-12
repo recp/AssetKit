@@ -268,6 +268,17 @@ ret:
   return src;
 }
 
+AkObject*
+ak_mesh_positions(AkMesh * __restrict mesh) {
+  AkSource *src;
+
+  src = ak_mesh_pos_src(mesh);
+  if (!src || !src->tcommon)
+    return NULL;
+
+  return ak_getObjectByUrl(&src->tcommon->source);
+}
+
 uint32_t
 ak_mesh_vert_stride(AkMesh *mesh) {
   AkMeshPrimitive *primi;

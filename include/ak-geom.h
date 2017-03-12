@@ -73,10 +73,11 @@ typedef struct AkMesh {
   const char        *convexHullOf;
   AkSource          *source;
   AkVertices        *vertices;
+  AkObject          *positions;
   AkMeshPrimitive   *primitive;
   AkBoundingBox     *bbox;
-  uint32_t           primitiveCount;
   AkTree            *extra;
+  uint32_t           primitiveCount;
 } AkMesh;
 
 typedef struct AkControlVerts {
