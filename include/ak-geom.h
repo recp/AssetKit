@@ -14,6 +14,7 @@ extern "C" {
 #include "ak-map.h"
 #include "ak-bbox.h"
 #include "ak-map.h"
+#include "ak-rb.h"
 
 typedef enum AkGeometryType {
   AK_GEOMETRY_TYPE_MESH   = 0,
