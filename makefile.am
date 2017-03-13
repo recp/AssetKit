@@ -119,6 +119,7 @@ libassetkit_la_SOURCES=\
     src/mesh/ak_mesh_triangulate.c \
     src/mesh/ak_mesh_normal.c \
     src/mesh/ak_mesh_edit.c \
+    src/mesh/ak_mesh_edit_index.c \
     src/bbox/ak_bbox.c \
     src/bbox/ak_bbox_geom.c \
     src/bbox/ak_bbox_mesh.c \

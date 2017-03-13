@@ -444,6 +444,11 @@ ak_meshInspectArray(AkMesh   * __restrict mesh,
                     uint32_t * __restrict stride,
                     size_t   * __restrict count);
 
+
+AK_EXPORT
+AkUIntArray*
+ak_meshIndicesArrayFor(AkMesh          * __restrict mesh,
+                       AkMeshPrimitive * __restrict prim);
 #ifdef __cplusplus
 }
 #endif
