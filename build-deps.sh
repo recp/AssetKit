@@ -19,7 +19,7 @@ if [ "`uname`" = "Darwin" ]; then
   ln -s $libtoolBin "${libtoolBinDir}/libtoolize"
 fi
 
-# general deps: gcc make autoconf automake
+# general deps: gcc make autoconf automake libtool cmake
 
 # libxml2
 # deps:
