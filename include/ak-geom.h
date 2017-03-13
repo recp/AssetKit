@@ -13,12 +13,19 @@ extern "C" {
 
 #include "ak-map.h"
 #include "ak-bbox.h"
+#include "ak-map.h"
 
 typedef enum AkGeometryType {
   AK_GEOMETRY_TYPE_MESH   = 0,
   AK_GEOMETRY_TYPE_SPLINE = 1,
   AK_GEOMETRY_TYPE_BREP   = 2
 } AkGeometryType;
+
+typedef enum AkGeometryEditFlags {
+  AK_GEOM_EDIT_FLAG_ARRAYS  = 1,
+  AK_GEOM_EDIT_FLAG_INDICES = 2,
+  AK_GEOM_EDIT_FLAG_MUTEX   = 3
+} AkGeometryEditFlags;
 
 struct AkGeometry;
 struct AkMesh;
@@ -67,6 +74,17 @@ typedef struct AkTriangles {
   AkTriangleMode  mode;
 } AkTriangles;
 
+typedef struct AkMeshEditHelper {
+  AkGeometryEditFlags flags;
+  RBTree             *arrays;         /* new arrays               */
+  RBTree             *detachedArrays; /* old array- new array map */
+  AkMap              *inputArrayMap;  /* input-accessor-array map */
+  RBTree             *indices;        /* new indices              */
+  void               *mutex;
+  void               *duplicator;
+  size_t              refc;
+} AkMeshEditHelper;
+
 typedef struct AkMesh {
   ak_asset_base
   struct AkGeometry *geom;
@@ -77,6 +95,7 @@ typedef struct AkMesh {
   AkMeshPrimitive   *primitive;
   AkBoundingBox     *bbox;
   AkTree            *extra;
+  AkMeshEditHelper  *edith;
   uint32_t           primitiveCount;
 } AkMesh;
 
@@ -365,6 +384,35 @@ ak_meshPrimNeedsNormals(AkMeshPrimitive * __restrict prim);
 AK_EXPORT
 void
 ak_meshGenNormals(AkMesh * __restrict mesh);
+
+/*!
+ * @brief prepare mesh for edit, or enable edit mode with default attribs
+ *
+ * @param mesh mesh
+ */
+AK_EXPORT
+void
+ak_meshBeginEdit(AkMesh * __restrict mesh);
+
+/*!
+ * @brief prepare mesh for edit, or enable edit mode
+ *
+ * @param mesh  meshs
+ * @param flags flags needed while edit mode
+ */
+AK_EXPORT
+void
+ak_meshBeginEditA(AkMesh  * __restrict mesh,
+                  AkGeometryEditFlags flags);
+
+/*!
+ * @brief finish edit, disable edit mode, relese allocated memory for editing
+ *
+ * @param mesh mesh
+ */
+AK_EXPORT
+void
+ak_meshEndEdit(AkMesh * __restrict mesh);
 
 /*!
  * @brief this func returns array of input, because if you want to get array
