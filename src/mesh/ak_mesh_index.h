@@ -32,7 +32,6 @@ typedef struct AkPrimProxy {
   uint32_t            ccount; /* checked count */
 } AkPrimProxy;
 
-
 typedef struct AkInputDesc {
   struct AkInputDesc *next;
   const char         *semantic;

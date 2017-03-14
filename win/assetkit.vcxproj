@@ -23,14 +23,14 @@
     <ProjectGuid>{D998A022-DFB7-4969-8F3C-2130E110A331}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>assetkit</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
     <ProjectName>assetkit</ProjectName>
+    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -391,6 +391,11 @@
     <ClCompile Include="..\src\instance\ak_inst.c" />
     <ClCompile Include="..\src\instance\ak_inst_list.c" />
     <ClCompile Include="..\src\lib\ak_lib_geom.c" />
+    <ClCompile Include="..\src\mesh\ak_mesh_duplicator.c" />
+    <ClCompile Include="..\src\mesh\ak_mesh_edit.c" />
+    <ClCompile Include="..\src\mesh\ak_mesh_edit_array.c" />
+    <ClCompile Include="..\src\mesh\ak_mesh_edit_array_fixup.c" />
+    <ClCompile Include="..\src\mesh\ak_mesh_edit_index.c" />
     <ClCompile Include="..\src\mesh\ak_mesh_index.c" />
     <ClCompile Include="..\src\mesh\ak_mesh_material.c" />
     <ClCompile Include="..\src\mesh\ak_mesh_normal.c" />

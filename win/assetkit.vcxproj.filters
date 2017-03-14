@@ -750,5 +750,20 @@
     <ClCompile Include="..\src\rb.c">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\mesh\ak_mesh_duplicator.c">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mesh\ak_mesh_edit.c">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mesh\ak_mesh_edit_array.c">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mesh\ak_mesh_edit_array_fixup.c">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mesh\ak_mesh_edit_index.c">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

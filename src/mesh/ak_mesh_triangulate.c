@@ -72,10 +72,10 @@ ak_meshTriangulatePoly_noindices(AkPolygon * __restrict poly) {
   newdata = ak_heap_alloc(heap,
                           poly,
                           sizeof(*newdata)
-                          + isz * (arr->count
+                          + isz * (arr->base.count
                                    + (trianglec - 1) * 3 * st));
   newarr = ak_objGet(newdata);
-  newarr->count = arr->count + (trianglec - 1) * 3 * st;
+  newarr->base.count = arr->base.count + (trianglec - 1) * 3 * st;
 
   it_old  = newarr->items;
   it_new = arr->items;

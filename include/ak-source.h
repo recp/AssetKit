@@ -11,6 +11,10 @@
 extern "C" {
 #endif
 
+#include <stdint.h>
+#include <stdbool.h>
+#include "ak-rb.h"
+
 struct AkTechnique;
 struct AkAssetInf;
 
@@ -65,49 +69,69 @@ typedef struct AkSource {
   struct AkSource    *next;
 } AkSource;
 
-typedef struct AkSourceArrayNew {
-  void     *array;
-  char     *url;
-  size_t    count;
-  uint32_t  offset;
-  uint32_t  stride;
-} AkSourceArrayNew;
+typedef struct AkDuplicatorRange {
+  struct AkDuplicatorRange *next;
+  AkUIntArray              *dupc;
+  size_t                    startIndex;
+  size_t                    endIndex;
+} AkDuplicatorRange;
+
+typedef struct AkDuplicator {
+  void              *arrstate;
+  void              *vertices;
+  AkDuplicatorRange *range;
+  size_t             dupCount;
+} AkDuplicator;
+
+typedef struct AkSourceArrayState {
+  AkDuplicator *duplicator;
+  void         *array;
+  char         *url;
+  size_t        count;
+  uint32_t      stride;
+  uint32_t      lastoffset;
+} AkSourceArrayState;
+
+typedef struct AkSourceArrayBase {
+  /* const char * id; */
+  const char       *name;
+  size_t            count;
+  AkSourceArrayType type;
+  void             *items;
+} AkSourceArrayBase;
 
 typedef struct AkSourceBoolArray {
-  AkSourceArrayNew *newArray;
-  /* const char * id; */
-  const char *name;
-  size_t      count;
-  AkBool      items[];
+  AkSourceArrayBase base;
+  AkBool            items[];
 } AkSourceBoolArray;
 
 typedef struct AkSourceFloatArray {
-  /* const char * id; */
-  AkSourceArrayNew *newArray;
-  const char *name;
-  size_t      count;
-  AkUInt      digits;
-  AkUInt      magnitude;
-  AkFloat     items[];
+  AkSourceArrayBase base;
+  AkUInt            digits;
+  AkUInt            magnitude;
+  AkFloat           items[];
 } AkSourceFloatArray;
 
 typedef struct AkSourceIntArray {
-  /* const char * id; */
-  AkSourceArrayNew *newArray;
-  const char *name;
-  size_t      count;
-  AkInt       minInclusive;
-  AkInt       maxInclusive;
-  AkInt       items[];
+  AkSourceArrayBase base;
+  AkInt             minInclusive;
+  AkInt             maxInclusive;
+  AkInt             items[];
 } AkSourceIntArray;
 
 typedef struct AkSourceStringArray {
-  AkSourceArrayNew *newArray;
-  /* const char  * id; */
-  const char  *name;
-  size_t       count;
-  AkString     items[];
+  AkSourceArrayBase base;
+  AkString          items[];
 } AkSourceStringArray;
+
+typedef struct AkSourceEditHelper {
+  struct AkSourceEditHelper *next;
+  AkSource *oldsource;
+  AkSource *source;
+  void     *url;
+  void     *arrayid;
+  bool      isnew;
+} AkSourceEditHelper;
 
 static
 AK_INLINE
@@ -119,6 +143,34 @@ ak_sourceArraySize(AkSourceArrayType type) {
     case AK_SOURCE_ARRAY_TYPE_STRING : return sizeof(AkSourceStringArray);
     case AK_SOURCE_ARRAY_TYPE_BOOL   : return sizeof(AkSourceBoolArray);
     default                          : return 0;
+  }
+}
+
+static
+AK_INLINE
+size_t
+ak_sourceArrayItemSize(AkSourceArrayType type) {
+  switch (type) {
+    case AK_SOURCE_ARRAY_TYPE_FLOAT : return sizeof(AkFloat);
+    case AK_SOURCE_ARRAY_TYPE_INT   : return sizeof(AkInt);
+    default                         : return 1;
+  }
+}
+
+static
+AK_INLINE
+void*
+ak_sourceArrayItems(AkSourceArrayBase *array) {
+  switch (array->type) {
+    case AK_SOURCE_ARRAY_TYPE_FLOAT:
+      return ((AkSourceFloatArray *)array)->items;
+    case AK_SOURCE_ARRAY_TYPE_INT:
+      return ((AkSourceIntArray *)array)->items;
+    case AK_SOURCE_ARRAY_TYPE_STRING:
+      return ((AkSourceStringArray *)array)->items;
+    case AK_SOURCE_ARRAY_TYPE_BOOL:
+      return ((AkSourceBoolArray *)array)->items;
+    default: return NULL;
   }
 }
 

@@ -445,11 +445,59 @@ ak_meshInspectArray(AkMesh   * __restrict mesh,
                     uint32_t * __restrict stride,
                     size_t   * __restrict count);
 
-
 AK_EXPORT
 AkUIntArray*
 ak_meshIndicesArrayFor(AkMesh          * __restrict mesh,
                        AkMeshPrimitive * __restrict prim);
+
+AK_EXPORT
+AkSourceArrayState*
+ak_meshReserveArray(AkMesh * __restrict mesh,
+                    void   * __restrict arrayid,
+                    AkSourceArrayType   type,
+                    uint32_t            stride,
+                    size_t              acc_count);
+
+AK_EXPORT
+AkSourceArrayState*
+ak_meshReserveArrayFor(AkMesh   * __restrict mesh,
+                       AkObject * __restrict olddata);
+
+AK_EXPORT
+void
+ak_meshReserveArrayForInput(AkMesh       * __restrict mesh,
+                            AkInputBasic * __restrict inputb,
+                            uint32_t                  inputOffset,
+                            size_t                    count);
+
+AK_EXPORT
+void
+ak_meshReserveArrays(AkMesh * __restrict mesh,
+                     size_t              count);
+
+AK_EXPORT
+AkResult
+ak_meshCopyArraysIfNeeded(AkMesh * __restrict mesh);
+
+
+AK_EXPORT
+void
+ak_meshMoveArrays(AkMesh * __restrict mesh);
+
+AK_EXPORT
+AkSourceEditHelper*
+ak_meshSourceEditHelper(AkMesh       * __restrict mesh,
+                        AkInputBasic * __restrict input);
+
+AK_EXPORT
+AkDuplicator*
+ak_meshDuplicatorForIndices(AkMesh * __restrict mesh);
+
+AK_EXPORT
+void
+ak_meshFixIndicesArrays(AkMesh       * __restrict mesh,
+                        AkDuplicator * __restrict duplicator);
+
 #ifdef __cplusplus
 }
 #endif

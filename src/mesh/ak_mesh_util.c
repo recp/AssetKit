@@ -167,7 +167,7 @@ ak_mesh_src_for(AkHeap         *heap,
                      AK_SOURCE_ARRAY_TYPE_FLOAT,
                      false);
   arr        = ak_objGet(data);
-  arr->count = c * acc->stride;
+  arr->base.count = c * acc->stride;
   arrid      = (char *)ak_id_gen(heap, data, NULL);
   ak_setId(data, arrid);
 
@@ -223,11 +223,10 @@ ak_mesh_src_for_ext(AkHeap         *heap,
                      sizeof(*arr) + count * acc->stride * sizeof(float),
                      AK_SOURCE_ARRAY_TYPE_FLOAT,
                      false);
-  arr           = ak_objGet(data);
-  arr->count    = count * acc->stride;
-  arr->name     = NULL;
-  arr->newArray =  NULL;
-  arrid         = (char *)ak_id_gen(heap, data, NULL);
+  arr             = ak_objGet(data);
+  arr->base.count = count * acc->stride;
+  arr->base.name  = NULL;
+  arrid           = (char *)ak_id_gen(heap, data, NULL);
   ak_setId(data, arrid);
 
   /* update accessor source url */

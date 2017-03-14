@@ -106,7 +106,7 @@ ak_changeCoordSysMesh(AkMesh * __restrict mesh,
       arri = ak_objGet(datai);
       ak_coordCvtVectors(doc->coordSys,
                          arri->items,
-                         arri->count,
+                         arri->base.count,
                          newCoordSys);
     }
     mapi = mapi->next;
