@@ -174,6 +174,10 @@ ak_sourceArrayItems(AkSourceArrayBase *array) {
   }
 }
 
+AK_EXPORT
+AkObject*
+ak_sourceDetachArray(AkAccessor * __restrict acc);
+
 #ifdef __cplusplus
 }
 #endif

@@ -307,6 +307,7 @@
     <ClCompile Include="..\src\ak_trash.c" />
     <ClCompile Include="..\src\ak_tree.c" />
     <ClCompile Include="..\src\ak_utils.c" />
+    <ClCompile Include="..\src\array\ak_source_array.c" />
     <ClCompile Include="..\src\assetkit.c" />
     <ClCompile Include="..\src\bbox\ak_bbox.c" />
     <ClCompile Include="..\src\bbox\ak_bbox_geom.c" />

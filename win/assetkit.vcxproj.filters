@@ -77,6 +77,9 @@
     <Filter Include="src\win32">
       <UniqueIdentifier>{40e7b53a-e724-492f-8b13-10585f5a9706}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\array">
+      <UniqueIdentifier>{e75c3a9a-56ed-4934-b5d7-fde390896868}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\ak-bbox.h">
@@ -764,6 +767,9 @@
     </ClCompile>
     <ClCompile Include="..\src\mesh\ak_mesh_edit_index.c">
       <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\array\ak_source_array.c">
+      <Filter>src\array</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
