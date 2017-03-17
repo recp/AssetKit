@@ -71,6 +71,15 @@ ak_meshEndEdit(AkMesh * __restrict mesh) {
   if (edith->arrays)
     rb_destroy(edith->arrays);
 
+  if (edith->detachedArrays)
+    rb_destroy(edith->detachedArrays);
+
+  if (edith->indices)
+    rb_destroy(edith->indices);
+
+  if (edith->inputArrayMap)
+    ak_map_destroy(edith->inputArrayMap);
+
   ak_release(edith);
   mesh->edith = NULL;
 }
