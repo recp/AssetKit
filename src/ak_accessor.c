@@ -50,7 +50,7 @@ ak_accessor_dup(AkAccessor *oldacc) {
 
   heap = ak_heap_getheap(oldacc);
   acc  = ak_heap_alloc(heap,
-                       ak_heap_parent(ak_mem_parent(oldacc)),
+                       ak_mem_parent(oldacc),
                        sizeof(*acc));
 
   memcpy(acc, oldacc, sizeof(*oldacc));
@@ -58,9 +58,9 @@ ak_accessor_dup(AkAccessor *oldacc) {
   last_dp = NULL;
   dp = oldacc->param;
   while (dp) {
-    newdp = ak_heap_alloc(heap,
-                          acc,
-                          sizeof(*newdp));
+    newdp = ak_heap_calloc(heap,
+                           acc,
+                           sizeof(*newdp));
     memcpy(&newdp->type,
            &dp->type,
            sizeof(newdp->type));
