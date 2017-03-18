@@ -477,7 +477,7 @@ ak_heap_parent(AkHeapNode *heapNode) {
 
   while (it->prev) {
     /* we found near parent */
-    if (ak_heap_chld(it->prev) == heapNode) {
+    if (ak_heap_chld(it->prev) == it) {
       p = it->prev;
       break;
     }
