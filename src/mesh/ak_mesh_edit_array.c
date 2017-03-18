@@ -341,6 +341,9 @@ ak_meshMoveArrays(AkMesh * __restrict mesh) {
                     srch->arrayid);
     }
 
+    if (inputb->semantic == AK_INPUT_SEMANTIC_POSITION)
+      mesh->positions = arrstate->array;
+
     /* move source */
     if (inputb->source.url != srch->url)
       ak_free((char *)inputb->source.url);
