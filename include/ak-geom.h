@@ -479,6 +479,9 @@ AK_EXPORT
 AkResult
 ak_meshCopyArraysIfNeeded(AkMesh * __restrict mesh);
 
+AK_EXPORT
+void
+ak_moveIndices(AkMesh * __restrict mesh);
 
 AK_EXPORT
 void

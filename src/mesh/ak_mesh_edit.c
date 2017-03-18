@@ -68,6 +68,10 @@ ak_meshEndEdit(AkMesh * __restrict mesh) {
   if (!edith)
     return;
 
+  /* finish edit */
+  ak_moveIndices(mesh);
+  ak_meshMoveArrays(mesh);
+
   if (edith->arrays)
     rb_destroy(edith->arrays);
 

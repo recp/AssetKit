@@ -69,3 +69,34 @@ ak_meshIndicesArrayFor(AkMesh          * __restrict mesh,
 
   return indices;
 }
+
+AK_EXPORT
+void
+ak_moveIndices(AkMesh * __restrict mesh) {
+  AkMeshPrimitive *prim;
+  AkInput         *input;
+
+  /* fix indices */
+  prim = mesh->primitive;
+  while (prim) {
+    AkUIntArray *indices;
+
+    indices = ak_meshIndicesArrayFor(mesh, prim);
+    if (indices != prim->indices)
+      ak_free(prim->indices);
+
+    prim->indices = indices;
+
+    /* mark primitive as single index */
+    prim->indexStride = 1;
+
+    /* make all offsets 0 */
+    input = prim->input;
+    while (input) {
+      input->offset = 0;
+      input = (AkInput *)input->base.next;
+    }
+
+    prim = prim->next;
+  }
+}

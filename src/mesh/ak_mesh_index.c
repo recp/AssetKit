@@ -143,11 +143,9 @@ ak_mesh_fix_pos(AkHeap   *heap,
 _assetkit_hide
 AkResult
 ak_mesh_fix_idx_df(AkHeap *heap, AkMesh *mesh) {
-  AkMeshPrimitive *prim;
   AkSource        *oldSrc;
   AkAccessor      *oldAcc;
   AkArrayList     *ai;
-  AkInput         *input;
   uint32_t         stride;
   AkResult         ret;
 
@@ -168,34 +166,6 @@ ak_mesh_fix_idx_df(AkHeap *heap, AkMesh *mesh) {
 
   ak_meshCopyArraysIfNeeded(mesh);
 
-  /* finish edit */
-  ak_meshMoveArrays(mesh);
-
-  /* fix indices */
-  prim = mesh->primitive;
-  while (prim) {
-    AkUIntArray *indices;
-
-    indices = ak_meshIndicesArrayFor(mesh, prim);
-    if (indices != prim->indices)
-      ak_free(prim->indices);
-
-    prim->indices = indices;
-
-    /* mark primitive as single index */
-    prim->indexStride = 1;
-
-    /* make all offsets 0 */
-    input = prim->input;
-    while (input) {
-      input->offset = 0;
-      input = (AkInput *)input->base.next;
-    }
-
-    prim = prim->next;
-  }
-
-  ak_trash_empty();
   return AK_OK;
 }
 
