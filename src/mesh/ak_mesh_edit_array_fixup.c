@@ -112,8 +112,8 @@ ak_meshCopyArraysIfNeeded(AkMesh * __restrict mesh) {
 
                 newitms[newindex * arrstate->stride
                         + arrstate->lastoffset
-                        + acc->firstBound
-                        + acc->offset
+                        + newacc->firstBound
+                        + newacc->offset
                         + j++]
                 = olditms[oldindex * acc->stride
                           + acc->offset

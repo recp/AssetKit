@@ -168,6 +168,7 @@ ak_meshReserveArrayForInput(AkMesh       * __restrict mesh,
 
   /* generate new accesor for input */
   newacc = ak_accessor_dup(acci);
+  newacc->count = count;
 
   if (ak_refc(srci) > usg || acci->offset != 0)
     arrayid = (void *)ak_id_gen(heap,
@@ -231,6 +232,8 @@ ak_meshReserveArrayForInput(AkMesh       * __restrict mesh,
   srch->source->data    = datai;
   srch->source->tcommon = newacc;
   srch->arrayid         = arrayid;
+
+  ak_heap_setpm(heap, newacc, srch->source);
 
   ak_map_add(edith->inputArrayMap,
              &srch,
