@@ -760,7 +760,9 @@ ak_heap_retain(AkHeapNode * __restrict heapNode) {
 
   refc = ak_heap_ext_get(heapNode, AK_HEAP_NODE_FLAGS_REFC);
   if (!refc)
-    return -1;
+    refc = ak_heap_ext_add(ak_heap_getheap(ak__alignas(heapNode)),
+                           heapNode,
+                           AK_HEAP_NODE_FLAGS_REFC);
 
   return ++(*refc);
 }
