@@ -15,7 +15,7 @@ ak_id_newheap(AkHeap * __restrict heap);
 
 _assetkit_hide
 const char *
-ak_id_gen(AkHeap     * __restrict doc,
+ak_id_gen(AkHeap     * __restrict heap,
           void       * __restrict parentmem,
           const char * __restrict prefix);
 
