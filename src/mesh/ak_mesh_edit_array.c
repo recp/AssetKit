@@ -302,7 +302,7 @@ ak_meshSourceEditHelper(AkMesh       * __restrict mesh,
 AK_EXPORT
 void
 ak_meshMoveArrays(AkMesh * __restrict mesh) {
-  AkHeap             *heap;
+  AkHeap             *heap, *mapHeap;
   AkMeshEditHelper   *edith;
   AkObject           *meshobj;
   AkSourceEditHelper *srch;
@@ -318,9 +318,11 @@ ak_meshMoveArrays(AkMesh * __restrict mesh) {
   meshobj = ak_objFrom(mesh);
   heap    = ak_heap_getheap(meshobj);
 
-  mi = edith->inputArrayMap->root;
+  mapHeap = edith->inputArrayMap->heap;
+  mi      = edith->inputArrayMap->root;
+
   while (mi) {
-    inputb = ak_heap_getId(heap, ak__alignof(mi));
+    inputb = ak_heap_getId(mapHeap, ak__alignof(mi));
     srch   = *(AkSourceEditHelper **)mi->data;
 
     /* move array */
@@ -329,10 +331,10 @@ ak_meshMoveArrays(AkMesh * __restrict mesh) {
                              srch->arrayid,
                              &founditem);
     if (ret == AK_OK) {
-      ak_moveId(founditem, arrstate->array);
-
-      if (founditem != arrstate->array)
+      if (founditem != arrstate->array) {
+        ak_moveId(founditem, arrstate->array);
         ak_free(founditem);
+      }
     } else {
       ak_heap_setId(heap,
                     ak__alignof(arrstate->array),
