@@ -226,12 +226,23 @@ ak_meshReserveArrayForInput(AkMesh       * __restrict mesh,
 
   srch = ak_heap_calloc(heap, meshobj, sizeof(*srch));
   srch->isnew           = ak_refc(srci) > usg || acci->offset != 0;
-  srch->url             = (char *)inputb->source.url;
   srch->oldsource       = srci;
   srch->source          = ak_heap_calloc(heap, meshobj, sizeof(*srci));
   srch->source->data    = datai;
   srch->source->tcommon = newacc;
   srch->arrayid         = arrayid;
+
+  if (srch->isnew) {
+    void *srcid;
+    srcid = (void *)ak_id_gen(heap,
+                              srch->source,
+                              NULL);
+
+    srch->url = ak_id_urlstring(heap->allocator, srcid);
+    ak_heap_setId(heap, ak__alignof(srch->source), srcid);
+  } else {
+    srch->url = (char *)inputb->source.url;
+  }
 
   ak_heap_setpm(heap, newacc, srch->source);
 
@@ -312,7 +323,7 @@ ak_meshMoveArrays(AkMesh * __restrict mesh) {
   AkSourceArrayState *arrstate;
   AkMapItem          *mi;
   AkInputBasic       *inputb;
-  void               *founditem;
+  void               *foundarray;
   AkResult            ret;
 
   edith = mesh->edith;
@@ -332,11 +343,11 @@ ak_meshMoveArrays(AkMesh * __restrict mesh) {
     arrstate = rb_find(edith->arrays, srch->arrayid);
     ret = ak_heap_getMemById(heap,
                              srch->arrayid,
-                             &founditem);
+                             &foundarray);
     if (ret == AK_OK) {
-      if (founditem != arrstate->array) {
-        ak_moveId(founditem, arrstate->array);
-        ak_free(founditem);
+      if (foundarray != arrstate->array) {
+        ak_moveId(foundarray, arrstate->array);
+        ak_release(foundarray);
       }
     } else {
       ak_heap_setId(heap,
@@ -344,12 +355,27 @@ ak_meshMoveArrays(AkMesh * __restrict mesh) {
                     srch->arrayid);
     }
 
+    ak_retain(arrstate->array);
+
     if (inputb->semantic == AK_INPUT_SEMANTIC_POSITION)
       mesh->positions = arrstate->array;
 
     /* move source */
+    if (!srch->isnew) {
+      void *foundsource;
+      ret = ak_heap_getMemById(heap,
+                               (char *)srch->url + 1,
+                               &foundsource);
+      if (ret == AK_OK)
+        ak_moveId(srch->oldsource, srch->source);
+    }
+
+    ak_url_unref(&inputb->source);
     if (inputb->source.url != srch->url)
       ak_free((char *)inputb->source.url);
+
+    ak_release(srch->oldsource);
+    ak_retain(srch->source);
 
     ak_url_init(inputb,
                 srch->url,
