@@ -75,8 +75,8 @@ ak_meshNeedsNormals(AkMesh * __restrict mesh) {
 
 _assetkit_hide
 void
-ak_meshPrimGenNormals(AkMeshPrimitive    * __restrict prim,
-                      AkGenNormalStruct  * __restrict objp) {
+ak_meshPrimGenNormals(AkMeshPrimitive   * __restrict prim,
+                      AkGenNormalStruct * __restrict objp) {
   AkUIntArray  *inpIndices;
   AkFloat      *pos;
   AkUInt       *it, *it2;
@@ -223,7 +223,6 @@ ak_meshPrimGenNormals(AkMeshPrimitive    * __restrict prim,
               objp->srcurl,
               &input->base.source);
 
-  prim->input = input;
   prim->inputCount++;
   prim->indexStride++;
 
