@@ -144,7 +144,7 @@ ak_heap_allocator(AkHeap * __restrict heap) {
 AK_EXPORT
 AkHeap *
 ak_heap_getheap(void * __restrict memptr) {
-  AkHeapNode   *heapNode;
+  AkHeapNode *heapNode;
   heapNode = ak__alignof(memptr);
   return ak_heap_lt_find(heapNode->heapid);
 }
@@ -172,11 +172,6 @@ AK_EXPORT
 void
 ak_heap_attach(AkHeap * __restrict parent,
                AkHeap * __restrict chld) {
-  if (!parent->chld) {
-    parent->chld = chld;
-    return;
-  }
-
   chld->next   = parent->chld;
   parent->chld = chld;
 }
@@ -357,7 +352,6 @@ ak_heap_alloc(AkHeap * __restrict heap,
       chldNode->prev = currNode;
 
     currNode->next = chldNode;
-    currNode->prev = parentNode;
   } else {
     if (heap->root)
       heap->root->prev = currNode;
@@ -521,8 +515,6 @@ ak_heap_setp(AkHeap     * __restrict heap,
     parentChld->prev = heapNode;
     heapNode->next   = parentChld;
   }
-
-  heapNode->prev = newParent;
 
   /* move all ids to new heap (if it is different) */
   if (newParent->heapid != heapNode->heapid)
