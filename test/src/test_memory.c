@@ -55,7 +55,7 @@ test_heap(void **state) {
 void
 test_heap_multiple(void **state) {
   AkHeap  *heap, *root;
-  uint32_t count, i;
+  uint32_t i;
 
   (void)state;
 
@@ -66,7 +66,7 @@ test_heap_multiple(void **state) {
     heap = ak_heap_new(NULL, NULL, NULL);
 
   /* multiple alloc 2, leak */
-  for (i = 0; i < 10000; i++)
+  for (i = 0; i < 1000; i++)
     heap = ak_heap_new(NULL, NULL, NULL);
 
   /* multiple alloc-free 1 */
@@ -76,27 +76,29 @@ test_heap_multiple(void **state) {
   }
 
   /* multiple alloc-free 2 */
-  for (i = 0; i < 10000; i++) {
+  for (i = 0; i < 1000; i++) {
     heap = ak_heap_new(NULL, NULL, NULL);
     ak_heap_destroy(heap);
   }
 
   /* multiple alloc, attach to parent */
-  for (i = 0; i < 10000; i++) {
+  for (i = 0; i < 1000; i++) {
     heap = ak_heap_new(NULL, NULL, NULL);
     ak_heap_attach(root, heap);
   }
 
   /* multiple alloc, attach to parent */
-  for (i = 0; i < 10000; i++) {
+  for (i = 0; i < 1000; i++) {
     heap = ak_heap_new(NULL, NULL, NULL);
     ak_heap_attach(root, heap);
   }
 
   ak_heap_destroy(root);
 
+  root = ak_heap_new(NULL, NULL, NULL);
+
   /* multiple alloc, attach-detach to parent */
-  for (i = 0; i < 10000; i++) {
+  for (i = 0; i < 1000; i++) {
     heap = ak_heap_new(NULL, NULL, NULL);
     ak_heap_attach(root, heap);
     ak_heap_dettach(root, heap);
