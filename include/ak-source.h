@@ -121,7 +121,7 @@ typedef struct AkSourceIntArray {
 
 typedef struct AkSourceStringArray {
   AkSourceArrayBase base;
-  AkString          items[];
+  AkMutString       items[];
 } AkSourceStringArray;
 
 typedef struct AkSourceEditHelper {
