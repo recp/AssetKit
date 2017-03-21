@@ -120,15 +120,14 @@ ak_strtof_fast(char    * __restrict src,
   dest = dest + n - 1ul;
 
   tok = src;
-  c   = *tok;
-  while (AK_ARRAY_SEP_CHECK)
+  while (c = *tok, AK_ARRAY_SEP_CHECK)
     tok++;
 
   while (n > 1ul) {
     *(dest - --n) = strtof(tok, &end);
     tok = end;
 
-    while (AK_ARRAY_SEP_CHECK)
+    while (c = *tok, AK_ARRAY_SEP_CHECK)
       tok++;
   }
 
@@ -151,15 +150,14 @@ ak_strtod_fast(char     * __restrict src,
   dest = dest + n - 1ul;
 
   tok = src;
-  c   = *tok;
-  while (AK_ARRAY_SEP_CHECK)
+  while (c = *tok, AK_ARRAY_SEP_CHECK)
     tok++;
 
   while (n > 1ul) {
     *(dest - --n) = strtod(tok, &end);
     tok = end;
 
-    while (AK_ARRAY_SEP_CHECK)
+    while (c = *tok, AK_ARRAY_SEP_CHECK)
       tok++;
   }
 
@@ -182,15 +180,14 @@ ak_strtoui_fast(char   * __restrict src,
   dest = dest + n - 1ul;
 
   tok = src;
-  c   = *tok;
-  while (AK_ARRAY_SEP_CHECK)
+  while (c = *tok, AK_ARRAY_SEP_CHECK)
     tok++;
 
   while (n > 1ul) {
     *(dest - --n) = (AkUInt)strtoul(tok, &end, 10);
     tok = end;
 
-    while (AK_ARRAY_SEP_CHECK)
+    while (c = *tok, AK_ARRAY_SEP_CHECK)
       tok++;
   }
 
