@@ -37,7 +37,7 @@ AkSource *
 ak_mesh_pos_src(AkMesh *mesh);
 
 AkObject*
-ak_mesh_positions(AkMesh *mesh);
+ak_mesh_positions(AkMesh * __restrict mesh);
 
 uint32_t
 ak_mesh_vert_stride(AkMesh *mesh);

@@ -8,8 +8,12 @@
 #include "ak_mesh_util.h"
 #include "../ak_common.h"
 
+_assetkit_hide
+uint32_t
+ak_meshTriangulatePoly_noindices(AkPolygon * __restrict poly);
+
 /* not tested yet! */
-AK_EXPORT
+_assetkit_hide
 uint32_t
 ak_meshTriangulatePoly_noindices(AkPolygon * __restrict poly) {
   AkSourceFloatArray *arr, *newarr;

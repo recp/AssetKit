@@ -45,4 +45,15 @@ _assetkit_hide
 AkResult
 ak_mesh_fix_indices(AkHeap *heap, AkMesh *mesh);
 
+_assetkit_hide
+AkResult
+ak_mesh_fix_pos(AkHeap   *heap,
+                AkMesh   *mesh,
+                AkSource *oldSrc, /* caller alreay has position source */
+                uint32_t  newstride);
+
+_assetkit_hide
+AkResult
+ak_mesh_fix_idx_df(AkHeap *heap, AkMesh *mesh);
+
 #endif /* ak_mesh_index_h */
