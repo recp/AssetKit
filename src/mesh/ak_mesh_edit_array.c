@@ -46,9 +46,7 @@ ak_meshReserveArray(AkMesh * __restrict mesh,
 
   arraysize = ak_sourceArraySize(type);
   isize     = ak_sourceArrayItemSize(type);
-  newsize   = sizeof(*data)
-                + arraysize
-                + isize * count;
+  newsize   = arraysize + isize * count;
 
   if (!arrstate) {
     arrstate = ak_heap_calloc(heap, meshobj, sizeof(*arrstate));
