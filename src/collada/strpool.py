@@ -8,9 +8,8 @@
 
 import json
 from collections import OrderedDict
-from inspect import getsourcefile
-from os.path import realpath
-from os.path import dirname
+from os.path     import realpath
+from os.path     import dirname
 
 headerContents = [ ]
 destdir        = dirname(realpath(__file__))
@@ -25,7 +24,7 @@ fspoolJson.close()
 fspool_h = open(destdir + "/ak_collada_strpool.h", "wb");
 fspool_c = open(destdir + "/ak_collada_strpool.c", "wb");
 
-copyright = """\
+copyright_str = """\
 /*
  * Copyright (c), Recep Aslantas.
  *
@@ -34,8 +33,8 @@ copyright = """\
  */
 """
 
-fspool_h.write(copyright)
-fspool_c.write(copyright)
+fspool_h.write(copyright_str)
+fspool_c.write(copyright_str)
 
 fspool_h.write("""
 #ifndef ak_dae_strpool_h
