@@ -560,7 +560,7 @@ ak_heap_setpm(AkHeap * __restrict heap,
 
 AK_EXPORT
 void
-ak_heap_free(AkHeap * __restrict heap,
+ak_heap_free(AkHeap     * __restrict heap,
              AkHeapNode * __restrict heapNode) {
   AkHeapAllocator * __restrict alc;
   alc = heap->allocator;
@@ -578,21 +578,19 @@ ak_heap_free(AkHeap * __restrict heap,
     do {
       nextFree = toFree->next;
 
+      if (toFree->flags & AK_HEAP_NODE_FLAGS_EXT)
+        ak_heap_ext_free(heap, toFree);
+
       if (toFree->chld) {
-        if (toFree->flags & AK_HEAP_NODE_FLAGS_EXT)
-          ak_heap_ext_free(heap, toFree);
+        if (heap->trash) {
+          AkHeapNode *lastNode;
 
-        if (toFree->chld) {
-          if (heap->trash) {
-            AkHeapNode *lastNode;
+          lastNode = toFree->chld;
+          while (lastNode->next)
+            lastNode = lastNode->next;
 
-            lastNode = toFree->chld;
-            while (lastNode->next)
-              lastNode = lastNode->next;
-
-            lastNode->next = heap->trash;
-          }
-
+          lastNode->next = heap->trash;
+        } else {
           heap->trash = toFree->chld;
         }
       }
@@ -607,8 +605,6 @@ ak_heap_free(AkHeap * __restrict heap,
       }
 
     } while (toFree);
-
-    heapNode->chld = NULL;
   }
 
   if (heapNode->prev) {
