@@ -22,7 +22,6 @@ ak_mesh_fix_pos(AkHeap   *heap,
                 uint32_t  newstride) {
   AkInputBasic       *inputb;
   AkMeshEditHelper   *edith;
-  AkSourceFloatArray *oldArr;
   AkSource           *src;
   AkObject           *oldData;
   AkAccessor         *acc, *oldAcc;
@@ -41,7 +40,6 @@ ak_mesh_fix_pos(AkHeap   *heap,
     return AK_ERR;
 
   stride     = oldAcc->stride;
-  oldArr     = ak_objGet(oldData);
   vc         = oldAcc->count;
 
   duplicator = ak_meshDuplicatorForIndices(mesh);
@@ -143,11 +141,9 @@ ak_mesh_fix_pos(AkHeap   *heap,
 _assetkit_hide
 AkResult
 ak_mesh_fix_idx_df(AkHeap *heap, AkMesh *mesh) {
-  AkSource        *oldSrc;
-  AkAccessor      *oldAcc;
-  AkArrayList     *ai;
-  uint32_t         stride;
-  AkResult         ret;
+  AkSource   *oldSrc;
+  AkAccessor *oldAcc;
+  uint32_t    stride;
 
   oldSrc = ak_mesh_pos_src(mesh);
   if (!oldSrc || !oldSrc->tcommon)
@@ -157,12 +153,11 @@ ak_mesh_fix_idx_df(AkHeap *heap, AkMesh *mesh) {
   if (!oldSrc)
     return AK_ERR;
 
-  ai     = NULL;
   stride = ak_mesh_arr_stride(mesh, &oldAcc->source);
-  ret    = ak_mesh_fix_pos(heap,
-                           mesh,
-                           oldSrc,
-                           stride);
+  (void)ak_mesh_fix_pos(heap,
+                        mesh,
+                        oldSrc,
+                        stride);
 
   ak_meshCopyArraysIfNeeded(mesh);
 
