@@ -184,7 +184,7 @@ ak_path_join(char   *fragments[],
 
     buf += frag_len;
     frag_idx_v++;
-  };
+  }
 
   memset(buf + 1, '\0', 1);
   *size = len;

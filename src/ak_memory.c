@@ -483,7 +483,7 @@ ak_heap_parent(AkHeapNode *heapNode) {
     }
 
     it = it->prev;
-  };
+  }
 
   return p;
 }
