@@ -150,7 +150,7 @@ ak_mesh_fix_idx_df(AkHeap *heap, AkMesh *mesh) {
     return AK_ERR;
 
   oldAcc = oldSrc->tcommon;
-  if (!oldSrc)
+  if (!oldAcc)
     return AK_ERR;
 
   stride = ak_mesh_arr_stride(mesh, &oldAcc->source);

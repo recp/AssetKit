@@ -142,7 +142,7 @@ ak_dae_surface(AkXmlState * __restrict xst,
             content = ak_xml_rawval(xst);
 
             if (content) {
-              ak_strtod(&content, (AkDouble *)&plane->equation, 4);
+              ak_strtof(&content, (AkFloat *)&plane->equation, 4);
               xmlFree(content);
             }
           } else if (ak_xml_eqelm(xst, _s_dae_extra)) {

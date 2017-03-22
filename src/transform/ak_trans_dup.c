@@ -16,7 +16,7 @@ ak_transformDup(AkNode * __restrict srcNode,
   AkHeap   *heap;
   AkObject *transform, *newTransform, *lastTransform;
 
-  if (!srcNode->transform || !destNode || !srcNode)
+  if (!srcNode || !srcNode->transform || !destNode)
     return;
 
   heap = ak_heap_getheap(srcNode);

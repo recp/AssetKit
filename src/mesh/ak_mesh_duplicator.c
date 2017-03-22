@@ -359,7 +359,7 @@ ak_meshFixIndicesArrays(AkMesh       * __restrict mesh,
           it2[j] = it[i + vo] = it[i + vo] + it2[j];
       } else {
         for (i = j = 0; i < c; i += st, j++)
-          it2[j] = it[i + vo] = it[i + vo];
+          it2[j] = it[i + vo];
       }
       prim = prim->next;
     }

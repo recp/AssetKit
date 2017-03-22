@@ -315,6 +315,6 @@ void * _assetkit_hide
 ak_sid_resolve_attr(AkHeapNode *heapNode,
                     uintptr_t   off,
                     const char *attr) {
-  return heapNode->data;
+  /* TODO: */
   return NULL;
 }

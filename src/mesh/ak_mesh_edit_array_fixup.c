@@ -45,8 +45,10 @@ ak_meshCopyArraysIfNeeded(AkMesh * __restrict mesh) {
     ind2 = ak_meshIndicesArrayFor(mesh, primi);
 
     /* same index array */
-    if (!ind2 || ind1 == ind2)
+    if (!ind1 || ind1 == ind2) {
       primi = primi->next;
+      continue;
+    }
 
     ind1_it = ind1->items;
     ind2_it = ind2->items;

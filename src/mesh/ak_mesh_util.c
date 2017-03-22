@@ -468,6 +468,8 @@ ak_accessor_rebound(AkHeap     *heap,
 
       if (last_bound)
         last_bound->next = dpi->next;
+
+      uboundc++;
     } else {
       if (!last_bound)
         bound = dpi;
