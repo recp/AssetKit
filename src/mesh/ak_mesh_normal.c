@@ -151,9 +151,6 @@ ak_meshPrimGenNormals(AkMeshPrimitive   * __restrict prim,
         glm_vec_cross(v1, v2, n);
         glm_vec_normalize(n);
 
-        glm_vec_cross(v1, v2, n);
-        glm_vec_normalize(n);
-
         idx = ak_data_append_unq(objp->dctx, n);
 
         for (j = i; j < i + vc; j++) {

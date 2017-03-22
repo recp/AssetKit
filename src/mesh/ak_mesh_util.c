@@ -192,7 +192,6 @@ ak_mesh_src_for_ext(AkHeap         *heap,
   AkAccessor  *acc,  *posacc;
   AkObject    *data, *posdata;
   char        *arrid, *url;
-  size_t      *refc;
 
   possrc = ak_mesh_pos_src(mesh);
   if (!possrc
@@ -237,10 +236,8 @@ ak_mesh_src_for_ext(AkHeap         *heap,
   src->data = data;
 
   /* retain obj */
-  refc = ak_heap_ext_add(heap,
-                         ak__alignof(src),
-                         AK_HEAP_NODE_FLAGS_REFC);
-  (*refc)++;
+  ak_retain(src);
+
   return src;
 }
 
