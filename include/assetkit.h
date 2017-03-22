@@ -711,7 +711,6 @@ typedef struct AkInputBasic {
   AkInputSemantic      semantic;
   const char          *semanticRaw;
   struct AkInputBasic *next;
-  uint32_t             reserved;
 } AkInputBasic;
 
 typedef struct AkInput {
