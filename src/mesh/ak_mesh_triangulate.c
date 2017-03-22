@@ -80,6 +80,9 @@ ak_meshTriangulatePoly_noindices(AkPolygon * __restrict poly) {
                                    + (trianglec - 1) * 3 * st));
   newarr = ak_objGet(newdata);
   newarr->base.count = arr->base.count + (trianglec - 1) * 3 * st;
+  newarr->base.name  = NULL;
+  newarr->base.type  = AK_SOURCE_ARRAY_TYPE_FLOAT;
+  newarr->base.items = &newarr->items;
 
   it_old  = newarr->items;
   it_new = arr->items;

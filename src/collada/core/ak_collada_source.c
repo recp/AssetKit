@@ -94,14 +94,15 @@ ak_dae_source(AkXmlState * __restrict xst,
         obj = ak_objAlloc(xst->heap,
                           source,
                           sizeof(*boolArray) + arraySize,
-                          AK_SOURCE_ARRAY_TYPE_BOOL,
+                          found->val,
                           true);
         boolArray = ak_objGet(obj);
 
         ak_xml_readid(xst, obj);
-        boolArray->base.name = ak_xml_attr(xst, obj, _s_dae_name);
-
+        boolArray->base.name  = ak_xml_attr(xst, obj, _s_dae_name);
         boolArray->base.count = arrayCount;
+        boolArray->base.type  = found->val;
+        boolArray->base.items = &boolArray->items;
 
         content = ak_xml_rawval(xst);
         if (content) {
@@ -131,15 +132,15 @@ ak_dae_source(AkXmlState * __restrict xst,
         obj = ak_objAlloc(xst->heap,
                           source,
                           sizeof(*floatAray) + arraySize,
-                          AK_SOURCE_ARRAY_TYPE_FLOAT,
+                          found->val,
                           true);
         floatAray = ak_objGet(obj);
         ak_xml_readid(xst, obj);
   
         floatAray->base.name  = ak_xml_attr(xst, obj, _s_dae_name);
-        floatAray->base.type  = AK_SOURCE_ARRAY_TYPE_FLOAT;
-        floatAray->base.items = &floatAray->items;
         floatAray->base.count = arrayCount;
+        floatAray->base.type  = found->val;
+        floatAray->base.items = &floatAray->items;
         floatAray->digits     = ak_xml_attrui(xst, _s_dae_digits);
         floatAray->magnitude  = ak_xml_attrui(xst, _s_dae_magnitude);
 
@@ -171,12 +172,14 @@ ak_dae_source(AkXmlState * __restrict xst,
         obj = ak_objAlloc(xst->heap,
                           source,
                           sizeof(*intArray) + arraySize,
-                          AK_SOURCE_ARRAY_TYPE_INT,
+                          found->val,
                           true);
         intArray = ak_objGet(obj);
 
         ak_xml_readid(xst, obj);
-        intArray->base.name    = ak_xml_attr(xst, obj, _s_dae_name);
+        intArray->base.name  = ak_xml_attr(xst, obj, _s_dae_name);
+        intArray->base.type  = found->val;
+        intArray->base.items = &intArray->items;
 
         /* TODO: probably will not be used */
         intArray->minInclusive = ak_xml_attrui_def(xst,
@@ -232,10 +235,12 @@ ak_dae_source(AkXmlState * __restrict xst,
                           found->val,
                           true);
         stringAray = ak_objGet(obj);
-        stringAray->base.count    = arrayCount;
 
         ak_xml_readid(xst, obj);
-        stringAray->base.name = ak_xml_attr(xst, obj, _s_dae_name);
+        stringAray->base.count = arrayCount;
+        stringAray->base.name  = ak_xml_attr(xst, obj, _s_dae_name);
+        stringAray->base.type  = found->val;
+        stringAray->base.items = &stringAray->items;
 
         content = ak_xml_rawval(xst);
         if (content) {
