@@ -314,7 +314,7 @@ ak_meshFixIndicesArrays(AkMesh       * __restrict mesh,
     while (prim) {
       AkUIntArray *newind;
       AkUInt *it, *it2;
-      uint32_t c, st, vo, idxp, newpos;
+      uint32_t c, st, vo;
 
       newind = ak_meshIndicesArrayFor(mesh, prim);
       it     = prim->indices->items;
@@ -324,19 +324,14 @@ ak_meshFixIndicesArrays(AkMesh       * __restrict mesh,
       c      = (uint32_t)prim->indices->count;
 
       if (duplicator->dupCount > 0) {
+        uint32_t idxp;
         for (i = j = 0; i < c; i += st, j++) {
-          idxp       = it[i + vo];
-          newpos     = it2[j] + idxp + dupcsum->items[idxp];
-          it[i + vo] = newpos;
-          it2[j]     = newpos;
+          idxp   = it[i + vo];
+          it2[j] = it2[j] + idxp + dupcsum->items[idxp];
         }
       } else {
-        for (i = j = 0; i < c; i += st, j++) {
-          idxp       = it[i + vo];
-          newpos     = idxp + dupcsum->items[idxp];
-          it[i + vo] = newpos;
-          it2[j]     = newpos;
-        }
+        for (i = j = 0; i < c; i += st, j++)
+          it2[j] = it[i + vo];
       }
 
       prim = prim->next;
@@ -356,11 +351,12 @@ ak_meshFixIndicesArrays(AkMesh       * __restrict mesh,
 
       if (duplicator->dupCount > 0) {
         for (i = j = 0; i < c; i += st, j++)
-          it2[j] = it[i + vo] = it[i + vo] + it2[j];
+          it2[j] = it[i + vo] + it2[j];
       } else {
         for (i = j = 0; i < c; i += st, j++)
           it2[j] = it[i + vo];
       }
+
       prim = prim->next;
     }
   }
