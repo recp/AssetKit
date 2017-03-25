@@ -6,12 +6,12 @@
 # Full license can be found in the LICENSE file
 #
 
-cd `dirname "$0"`
+cd $(dirname "$0")
 
 mkdir -p .libs
 
 #TODO: implement this to other platforms e.g. linux, windows
-if [ "`uname`" = "Darwin" ]; then
+if [ "$(uname)" = "Darwin" ]; then
   ak_dylib=.libs/libassetkit.dylib
 
   libxml2_dylib=$(readlink  ./lib/libxml2/.libs/libxml2.dylib)

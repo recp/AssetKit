@@ -11,9 +11,9 @@ git submodule update --init --recursive
 
 # fix glibtoolize
 
-cd `dirname "$0"`
+cd $(dirname "$0")
 
-if [ "`uname`" = "Darwin" ]; then
+if [ "$(uname)" = "Darwin" ]; then
   libtoolBin=$(which glibtoolize)
   libtoolBinDir=$(dirname "${libtoolBin}")
   ln -s $libtoolBin "${libtoolBinDir}/libtoolize"
