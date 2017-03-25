@@ -31,7 +31,6 @@ ak_curl_dwn(const char *url) {
   char    *localurl;
   CURL    *curl;
   FILE    *file;
-  CURLcode res;
 
   localurl = NULL;
   curl     = curl_easy_init();
@@ -42,7 +41,7 @@ ak_curl_dwn(const char *url) {
     curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, ak_curl_write);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, file);
-    res = curl_easy_perform(curl);
+    (void)curl_easy_perform(curl);
 
     curl_easy_cleanup(curl);
     fclose(file);
