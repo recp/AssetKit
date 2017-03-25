@@ -10,6 +10,7 @@
 #include "../ak_id.h"
 #include "../ak_accessor.h"
 #include "../ak_memory_common.h"
+#include <assert.h>
 
 size_t
 ak_mesh_src_usg(AkHeap *heap,
@@ -466,19 +467,19 @@ ak_accessor_rebound(AkHeap     *heap,
         ubound = dpi;
       last_ubound = dpi;
 
-      if (last_bound)
-        last_bound->next = dpi->next;
-
       uboundc++;
     } else {
-      if (!last_bound)
+      if (last_bound)
+        last_bound->next = dpi;
+      else
         bound = dpi;
-
       last_bound = dpi;
     }
 
     dpi = dpi->next;
   }
+
+  assert(last_bound && offset <= (acc->stride - acc->bound));
 
   required = uboundc + acc->bound;
 
@@ -509,25 +510,28 @@ ak_accessor_rebound(AkHeap     *heap,
     }
   }
 
-  if (uboundc > 0) {
-    if (offset > 0) {
-      uint32_t i;
-      AkDataParam *dpu;
+  last_bound->next  = NULL;
+  if (last_ubound)
+    last_ubound->next = NULL;
 
-      i          = 0;
-      dpu        = ubound;
-      acc->param = ubound;
+  if (offset > 0) {
+    uint32_t i;
+    AkDataParam *dpu, *dpu_after;
 
-      do {
-        dpu = dpu->next;
-      } while (++i < offset);
+    i          = 0;
+    dpu        = ubound;
+    acc->param = ubound;
 
-      bound->next = dpu->next;
-      dpu->next   = bound;
-    } else {
-      acc->param  = bound;
-      bound->next = ubound;
-    }
+    do {
+      dpu = dpu->next;
+    } while (++i < offset);
+
+    dpu_after        = dpu->next;
+    dpu->next        = bound;
+    last_bound->next = dpu_after;
+  } else {
+    acc->param  = bound;
+    bound->next = ubound;
   }
 }
 
