@@ -590,9 +590,9 @@ ak_heap_free(AkHeap     * __restrict heap,
             lastNode = lastNode->next;
 
           lastNode->next = heap->trash;
-        } else {
-          heap->trash = toFree->chld;
         }
+
+        heap->trash = toFree->chld;
       }
 
       alc->free(toFree);
