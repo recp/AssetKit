@@ -121,6 +121,9 @@ void
 ak_heap_ext_free(AkHeap     * __restrict heap,
                  AkHeapNode * __restrict hnode);
 
+void _assetkit_hide
+ak_freeh(AkHeapNode * __restrict heapNode);
+
 void
 ak_mem_init();
 

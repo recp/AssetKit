@@ -68,6 +68,8 @@ static AkHeap ak__heap = {
   .flags      = 0
 };
 
+static RBTree *ak__heap_sub = NULL;
+
 static
 int
 ak__heap_srch_cmp(void * __restrict key1,
@@ -558,6 +560,18 @@ ak_heap_setpm(AkHeap * __restrict heap,
                ak__alignof(newparent));
 }
 
+void _assetkit_hide
+ak_freeh(AkHeapNode * __restrict heapNode) {
+  if (heapNode->flags & AK_HEAP_NODE_FLAGS_HEAP_CHLD) {
+    AkHeap *attachedHeap;
+    attachedHeap = ak_attachedHeap(ak__alignas(heapNode));
+    if (attachedHeap) {
+      ak_heap_destroy(attachedHeap);
+      ak_setAttachedHeap(ak__alignas(heapNode), NULL);
+    }
+  }
+}
+
 AK_EXPORT
 void
 ak_heap_free(AkHeap     * __restrict heap,
@@ -567,6 +581,10 @@ ak_heap_free(AkHeap     * __restrict heap,
 
   if (heapNode->flags & AK_HEAP_NODE_FLAGS_EXT)
     ak_heap_ext_free(heap, heapNode);
+
+  /* free attached heap */
+  if (heapNode->flags & AK_HEAP_NODE_FLAGS_HEAP_CHLD)
+    ak_freeh(heapNode);
 
   /* free all child nodes */
   if (heapNode->chld) {
@@ -581,6 +599,10 @@ ak_heap_free(AkHeap     * __restrict heap,
       if (toFree->flags & AK_HEAP_NODE_FLAGS_EXT)
         ak_heap_ext_free(heap, toFree);
 
+      /* free attached heap */
+      if (toFree->flags & AK_HEAP_NODE_FLAGS_HEAP_CHLD)
+        ak_freeh(toFree);
+      
       if (toFree->chld) {
         if (heap->trash) {
           AkHeapNode *lastNode;
@@ -775,6 +797,38 @@ ak_heap_printKeys(AkHeap * __restrict heap) {
 }
 
 AK_EXPORT
+AkHeap*
+ak_attachedHeap(void * __restrict memptr) {
+  return rb_find(ak__heap_sub, ak__alignof(memptr));
+}
+
+AK_EXPORT
+void
+ak_setAttachedHeap(void   * __restrict memptr,
+                   AkHeap * __restrict heap) {
+  RBNode     *found;
+  AkHeapNode *heapNode;
+
+  heapNode = ak__alignof(memptr);
+
+  if (!heap) {
+    rb_remove(ak__heap_sub, memptr);
+    heapNode->flags &= ~AK_HEAP_NODE_FLAGS_HEAP_CHLD;
+    return;
+  }
+
+  found = rb_find_node(ak__heap_sub, heapNode);
+  if (found) {
+    found->val = heap;
+    return;
+  }
+
+  rb_insert(ak__heap_sub, heapNode, heap);
+
+  heapNode->flags |= AK_HEAP_NODE_FLAGS_HEAP_CHLD;
+}
+
+AK_EXPORT
 AkHeapAllocator *
 ak_mem_allocator() {
   return ak__heap.allocator;
@@ -940,6 +994,7 @@ ak_free(void * __restrict memptr) {
   if (!heap)
     return;
 
+  /* free heap self instead of single free if this node attached to heap */
   if (heap->data == memptr)
     ak_heap_destroy(heap);
   else
@@ -983,6 +1038,7 @@ ak_objFrom(void * __restrict memptr) {
 
 void
 ak_mem_init() {
+  ak__heap_sub = rb_newtree(ak_cmp_ptr, NULL);
   ak_heap_init(&ak__heap, NULL, NULL, NULL);
   ak_heap_lt_init(&ak__heap);
 }
@@ -991,4 +1047,5 @@ void
 ak_mem_deinit() {
   ak_heap_destroy(&ak__heap);
   ak_heap_lt_cleanup();
+  rb_destroy(ak__heap_sub);
 }
