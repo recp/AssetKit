@@ -441,6 +441,16 @@ rb_remove(RBTree *tree, void *key) {
 
 void *
 rb_find(RBTree *tree, void *key) {
+  RBNode *found;
+  found = rb_find_node(tree, key);
+  if (found == NULL)
+    return NULL;
+
+  return found->val;
+}
+
+RBNode*
+rb_find_node(RBTree *tree, void *key) {
   RBNode *iter;
 
   iter = tree->root->chld[RB_RIGHT];
@@ -458,8 +468,8 @@ rb_find(RBTree *tree, void *key) {
 
   if (!iter || iter == tree->nullNode)
     return NULL;
-
-  return iter->val;
+  
+  return iter;
 }
 
 int

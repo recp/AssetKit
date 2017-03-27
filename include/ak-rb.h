@@ -48,6 +48,9 @@ rb_remove(RBTree *tree, void *key);
 void *
 rb_find(RBTree *tree, void *key);
 
+RBNode*
+rb_find_node(RBTree *tree, void *key);
+
 int
 rb_parent(RBTree *tree,
           void *key,
