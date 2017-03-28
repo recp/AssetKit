@@ -489,8 +489,6 @@ void
 ak_heap_setp(AkHeap     * __restrict heap,
              AkHeapNode * __restrict heapNode,
              AkHeapNode * __restrict newParent) {
-  AkHeapNode *parentChld;
-
   if (heapNode->prev) {
     if (ak_heap_chld(heapNode->prev) == heapNode)
       ak_heap_chld_set(heapNode->prev, heapNode->next);
@@ -501,22 +499,18 @@ ak_heap_setp(AkHeap     * __restrict heap,
       heapNode->next->prev = heapNode->prev;
 
     heapNode->prev = NULL;
-  }
-
-  if (heapNode == heap->root) {
+  } else if (heapNode == heap->root) { /* root->prev = NULL */
     heap->root = heapNode->next;
 
     if (heapNode->next)
       heapNode->next->prev = NULL;
   }
 
-  parentChld = ak_heap_chld(newParent);
+  heapNode->next = ak_heap_chld(newParent);
   ak_heap_chld_set(newParent, heapNode);
 
-  if (parentChld) {
-    parentChld->prev = heapNode;
-    heapNode->next   = parentChld;
-  }
+  if (heapNode->next)
+    heapNode->next->prev = heapNode;
 
   /* move all ids to new heap (if it is different) */
   if (newParent->heapid != heapNode->heapid)
