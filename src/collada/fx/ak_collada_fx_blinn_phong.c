@@ -103,7 +103,9 @@ ak_dae_blinn_phong(AkXmlState * __restrict xst,
             case k_s_dae_transparent:
               blinn_phong->phong.transparent = colorOrTex;
               break;
-            default: break;
+            default:
+              ak_free(colorOrTex);
+              break;
           }
         }
 
@@ -135,7 +137,9 @@ ak_dae_blinn_phong(AkXmlState * __restrict xst,
             case k_s_dae_index_of_refraction:
               blinn_phong->phong.indexOfRefraction = floatOrParam;
               break;
-            default: break;
+            default:
+              ak_free(floatOrParam);
+              break;
           }
         }
 

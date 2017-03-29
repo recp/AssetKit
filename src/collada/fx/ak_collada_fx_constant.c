@@ -82,7 +82,9 @@ ak_dae_fxConstant(AkXmlState * __restrict xst,
             case k_s_dae_transparent:
               constant->transparent = colorOrTex;
               break;
-            default: break;
+            default:
+              ak_free(colorOrTex);
+              break;
           }
         }
 
@@ -110,7 +112,9 @@ ak_dae_fxConstant(AkXmlState * __restrict xst,
             case k_s_dae_index_of_refraction:
               constant->indexOfRefraction = floatOrParam;
               break;
-            default: break;
+            default:
+              ak_free(floatOrParam);
+              break;
           }
         }
 

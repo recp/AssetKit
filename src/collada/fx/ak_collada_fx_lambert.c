@@ -94,7 +94,9 @@ ak_dae_fxLambert(AkXmlState * __restrict xst,
             case k_s_dae_transparent:
               lambert->transparent = colorOrTex;
               break;
-            default: break;
+            default:
+              ak_free(colorOrTex);
+              break;
           }
         }
 
@@ -122,7 +124,9 @@ ak_dae_fxLambert(AkXmlState * __restrict xst,
             case k_s_dae_index_of_refraction:
               lambert->indexOfRefraction = floatOrParam;
               break;
-            default: break;
+            default:
+              ak_free(floatOrParam);
+              break;
           }
         }
 
