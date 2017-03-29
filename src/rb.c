@@ -81,6 +81,10 @@ rb_free(RBTree *tree, RBNode *node) {
   if(node != tree->nullNode) {
     rb_free(tree, node->chld[RB_LEFT]);
     rb_free(tree, node->chld[RB_RIGHT]);
+
+    if (tree->freeNode)
+      tree->freeNode(tree, node);
+
     free(node);
   }
 }
@@ -90,7 +94,7 @@ rb_newtree(RBCmpFn cmp, RBPrintFn print) {
   RBTree *tree;
   RBNode *rootNode, *nullNode;
 
-  tree     = malloc(sizeof(*tree));
+  tree     = calloc(sizeof(*tree), 1);
   rootNode = calloc(sizeof(*rootNode), 1);
   nullNode = calloc(sizeof(*rootNode), 1);
 

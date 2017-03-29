@@ -17,6 +17,7 @@ struct RBNode;
 typedef int  (*RBCmpFn)(void *, void *);
 typedef void (*RBPrintFn)(void *);
 typedef void (*RBWalkFn)(struct RBTree *tree, struct RBNode *node);
+typedef void (*RBFreeFn)(void *);
 
 typedef struct RBNode {
   void          *key;
@@ -30,6 +31,8 @@ typedef struct RBTree {
   RBNode   *nullNode;
   RBCmpFn   cmp;
   RBPrintFn print;
+  RBWalkFn  freeNode;
+  RBFreeFn  freeFn;
 } RBTree;
 
 RBTree*
