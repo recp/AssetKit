@@ -445,7 +445,7 @@ void
 ak_accessor_rebound(AkHeap     *heap,
                     AkAccessor *acc,
                     uint32_t    offset) {
-  AkDataParam *dpi, *dpu, *dpu_after;
+  AkDataParam *dpi, *dpu;
   AkDataParam *bound,  *last_bound;
   AkDataParam *ubound, *last_ubound;
   uint32_t     uboundc, required, i;
@@ -521,13 +521,14 @@ ak_accessor_rebound(AkHeap     *heap,
   dpu        = ubound;
   acc->param = ubound;
 
-  do {
+  while (dpu && i++ < offset) {
     dpu = dpu->next;
-  } while (++i < offset);
+  }
 
-  dpu_after        = dpu->next;
+  assert(dpu);
+
+  last_bound->next = dpu->next;
   dpu->next        = bound;
-  last_bound->next = dpu_after;
 }
 
 char *

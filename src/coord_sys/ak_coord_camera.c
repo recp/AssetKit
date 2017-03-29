@@ -76,7 +76,7 @@ ak_coordRotForFixCamOri(AkCoordSys *oldCoordSys,
     AK_CVT_VEC(upAxis)
 
     /* rotate found axis with fwd */
-    if (fwdAxis[3] != 0)
+    if (fwdAxis[3] != 0.0f)
       glm_vec_rotate(upAxis, -fwdAxis[3], fwdAxis);
   }
 }
