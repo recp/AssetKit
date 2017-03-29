@@ -42,6 +42,12 @@ void
 rb_printi(RBTree *tree, RBNode *node);
 
 static
+void
+rb_walki(RBTree * __restrict tree,
+         RBWalkFn            walkFn,
+         RBNode * __restrict node);
+
+static
 int
 rb_def_cmp_str(void * key1, void *key2) {
   return strcmp((char *)key1, (char *)key2);
@@ -521,6 +527,38 @@ rb_print(RBTree *tree) {
     rb_printi(tree, tree->root->chld[RB_RIGHT]);
 
   printf("------------------------\n");
+}
+
+static
+void
+rb_walki(RBTree * __restrict tree,
+         RBWalkFn            walkFn,
+         RBNode * __restrict node) {
+  if(node == tree->nullNode)
+    return;
+
+  rb_walki(tree,
+           walkFn,
+           node->chld[RB_LEFT]);
+
+  walkFn(tree, node);
+
+  rb_walki(tree,
+           walkFn,
+           node->chld[RB_RIGHT]);
+}
+
+void
+rb_walk(RBTree *tree, RBWalkFn walkFn) {
+  RBNode *rootNode;
+
+  rootNode = tree->root->chld[RB_RIGHT];
+  if(rootNode == tree->nullNode)
+    return;
+
+  rb_walki(tree,
+           walkFn,
+           rootNode);
 }
 
 /*

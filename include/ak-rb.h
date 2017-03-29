@@ -11,8 +11,12 @@ extern "C" {
 
 #include <stdint.h>
 
+struct RBTree;
+struct RBNode;
+
 typedef int  (*RBCmpFn)(void *, void *);
 typedef void (*RBPrintFn)(void *);
+typedef void (*RBWalkFn)(struct RBTree *tree, struct RBNode *node);
 
 typedef struct RBNode {
   void          *key;
@@ -58,6 +62,9 @@ rb_parent(RBTree *tree,
 
 void
 rb_print(RBTree *tree);
+
+void
+rb_walk(RBTree *tree, RBWalkFn walkFn);
 
 int
 rb_assert(RBTree *tree, RBNode *root);
