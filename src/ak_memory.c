@@ -806,7 +806,7 @@ ak_setAttachedHeap(void   * __restrict memptr,
   heapNode = ak__alignof(memptr);
 
   if (!heap) {
-    rb_remove(ak__heap_sub, memptr);
+    rb_remove(ak__heap_sub, heapNode);
     heapNode->flags &= ~AK_HEAP_NODE_FLAGS_HEAP_CHLD;
     return;
   }
