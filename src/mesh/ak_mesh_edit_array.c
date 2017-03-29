@@ -15,6 +15,19 @@
 
 extern const char* ak_mesh_edit_assert1;
 
+void
+ak_meshFreeRsvArray(RBTree *tree, RBNode *node) {
+  AkSourceArrayState *arrstate;
+
+  if (node == tree->nullNode)
+    return;
+
+  arrstate = node->val;
+
+  tree->freeFn(arrstate->url);
+  ak_free(arrstate);
+}
+
 AK_EXPORT
 AkSourceArrayState*
 ak_meshReserveArray(AkMesh * __restrict mesh,

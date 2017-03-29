@@ -8,6 +8,7 @@
 #include "../ak_common.h"
 #include "../ak_memory_common.h"
 #include "ak_mesh_util.h"
+#include "ak_mesh_edit_common.h"
 
 const char*
 ak_mesh_edit_assert1 = "you must call ak_meshBeginEdit* before this op";
@@ -46,6 +47,9 @@ ak_meshBeginEditA(AkMesh  * __restrict mesh,
     edith->arrays         = rb_newtree(ak_cmp_str, NULL);
     edith->detachedArrays = rb_newtree(ak_cmp_ptr, NULL);
     edith->inputArrayMap  = ak_map_new(ak_cmp_ptr);
+
+    edith->arrays->freeFn   = heap->allocator->free;
+    edith->arrays->freeNode = ak_meshFreeRsvArray;
 
     edith->flags |= AK_GEOM_EDIT_FLAG_ARRAYS;
   }
