@@ -83,6 +83,10 @@ ak_firstCamera(AkDoc     * __restrict doc,
                float     * matrix,
                float     * projMatrix);
 
+AK_EXPORT
+const AkCamera*
+ak_defaultCamera();
+
 #ifdef __cplusplus
 }
 #endif

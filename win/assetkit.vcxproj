@@ -281,8 +281,10 @@
     <ClInclude Include="..\src\collada\fx\ak_collada_fx_uniform.h" />
     <ClInclude Include="..\src\config.h" />
     <ClInclude Include="..\src\coord_sys\ak_coord_common.h" />
+    <ClInclude Include="..\src\default\ak_def_cam.h" />
     <ClInclude Include="..\src\default\ak_def_opt.h" />
     <ClInclude Include="..\src\default\ak_def_semantic.h" />
+    <ClInclude Include="..\src\mesh\ak_mesh_edit_common.h" />
     <ClInclude Include="..\src\mesh\ak_mesh_index.h" />
     <ClInclude Include="..\src\mesh\ak_mesh_util.h" />
     <ClInclude Include="..\src\resc\ak_curl.h" />
@@ -382,6 +384,7 @@
     <ClCompile Include="..\src\coord_sys\ak_coord_transform.c" />
     <ClCompile Include="..\src\coord_sys\ak_coord_transforms.c" />
     <ClCompile Include="..\src\coord_sys\ak_coord_vector.c" />
+    <ClCompile Include="..\src\default\ak_def_cam.c" />
     <ClCompile Include="..\src\default\ak_def_cmp.c" />
     <ClCompile Include="..\src\default\ak_def_coord.c" />
     <ClCompile Include="..\src\default\ak_def_id.c" />
