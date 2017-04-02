@@ -9,6 +9,8 @@
 #include "../ak_memory_common.h"
 #include "ak_mesh_index.h"
 #include "ak_mesh_util.h"
+#include "ak_mesh_edit_common.h"
+#include <limits.h>
 
 AK_EXPORT
 AkDuplicator*
@@ -28,7 +30,7 @@ ak_meshDuplicatorForIndices(AkMesh * __restrict mesh) {
   AkSourceFloatArray *posArray;
   AkObject           *posData;
   size_t              count, ccount, icount;
-  uint32_t            chk, iter;
+  uint32_t            chk, iter, inpc, inpi;
 
   meshobj = ak_objFrom(mesh);
   heap    = ak_heap_getheap(meshobj);
@@ -72,33 +74,51 @@ ak_meshDuplicatorForIndices(AkMesh * __restrict mesh) {
                         + sizeof(AkUInt) * posAcc->count);
   dupc->count = posAcc->count;
 
-  posflgs = ak_heap_calloc(heap,
-                           NULL,
-                           sizeof(uint32_t)
-                           * (posArray->base.count + 2));
-
-  count = icount = ccount = chk = 0;
+  count = icount = ccount = chk = inpc = 0;
 
   idesc      = NULL;
   last_idesc = NULL;
+
+  /* collect some info */
+  while (primi) {
+    /* find best stride for single alloc */
+    if (primi->inputCount > inpc)
+      inpc = primi->inputCount;
+
+    primi = primi->next;
+  }
+
+  inpc--;
+  inpi = 0;
+
+  primi = prim;
   while (primi) {
     AkInput *input;
 
     fpi = ak_heap_calloc(heap, NULL, sizeof(*fpi));
-
-    fpi->orig      = primi;
-    fpi->st        = primi->indexStride;
-    fpi->ind       = primi->indices;
-    fpi->count     = (uint32_t)fpi->ind->count;
-    fpi->icount    = (uint32_t)fpi->count / fpi->st;
-    fpi->ccount    = 0;
-    fpi->flg       = ak_heap_calloc(heap,
-                                    fpi,
-                                    sizeof(uint8_t) * fpi->icount);
-    fpi->chk_start = 0;
-    fpi->chk_end   = fpi->count;
+    fpi->inpi   = calloc(sizeof(*fpi->inpi) * inpc, 1);
+    fpi->orig   = primi;
+    fpi->st     = primi->indexStride;
+    fpi->ind    = primi->indices;
+    fpi->count  = (uint32_t)fpi->ind->count;
+    fpi->icount = (uint32_t)fpi->count / fpi->st;
+    fpi->flg    = ak_heap_calloc(heap,
+                                 fpi,
+                                 sizeof(uint8_t) * fpi->icount);
     fpi->input     = primi->input;
     fpi->newind    = ak_meshIndicesArrayFor(mesh, primi);
+
+    fpi->chk_start = 0;
+    fpi->chk_end   = fpi->icount;
+
+    memset(fpi->newind->items,
+           0,
+           fpi->newind->count * sizeof(AkUInt));
+
+    /* set all inputs' index -1 as default */
+    memset(fpi->inpi,
+           UINT_MAX,
+           sizeof(int32_t) * inpc);
 
     icount += fpi->icount;
     input   = fpi->input;
@@ -127,12 +147,13 @@ ak_meshDuplicatorForIndices(AkMesh * __restrict mesh) {
       }
 
       if (!found) {
-        found = ak_heap_calloc(heap, fpi, sizeof(*found));
+        found           = ak_heap_calloc(heap, fpi, sizeof(*found));
         found->semantic = input->base.semanticRaw;
         found->set      = input->set;
         found->source   = &input->base.source; /* ??? */
         found->input    = input;
         found->pp       = fpi;
+        found->index    = inpi++;
 
         if (last_idesc)
           last_idesc->next = found;
@@ -140,6 +161,8 @@ ak_meshDuplicatorForIndices(AkMesh * __restrict mesh) {
           idesc = found;
         last_idesc = found;
       }
+
+      fpi->inpi[found->index] = input->offset;
 
       input = (AkInput *)input->base.next;
     }
@@ -154,115 +177,90 @@ ak_meshDuplicatorForIndices(AkMesh * __restrict mesh) {
     primi = primi->next;
   }
 
-  /* find positions which are not share all attribs same */
-  idesci = idesc;
-  while (idesci) {
-    iter = 1;
-    chk  = !chk;
+  posflgs = ak_heap_calloc(heap,
+                           NULL,
+                           sizeof(uint32_t)
+                           * (posArray->base.count * (inpc + 1)));
 
-    /* reset check range */
+  iter = 1;
+  chk  = 1;
+  while (ccount < icount) {
     fpi = fp;
     while (fpi) {
-      fpi->chk_start = 0;
-      fpi->chk_end   = fpi->icount;
-      fpi = fpi->next;
-    }
+      AkUIntArray *ind;
+      AkUInt      *it2;
+      uint32_t     st, vo, i, j;
 
-    while (ccount < icount) {
-      fpi = fp;
-      while (fpi) {
-        AkInput     *input;
-        AkUIntArray *ind;
-        AkUInt      *it2;
-        uint32_t     st, vo, i, j, ii;
+      /* nothing to check */
+      if (fpi->chk_start >= fpi->chk_end) {
+        fpi = fpi->next;
+        continue;
+      }
 
-        /* nothing to check */
-        if (fpi->chk_start >= fpi->chk_end) {
-          fpi = fpi->next;
+      ind = fpi->ind;
+      it  = ind->items;
+      it2 = fpi->newind->items;
+      st  = fpi->st;
+      vo  = fpi->vo;
+
+      j  = fpi->chk_start;
+      i  = j * st;
+
+      for (; j < fpi->chk_end; i += st, j++) {
+        uint32_t *inp, idxp, k;
+        bool      is_eq;
+
+        if (fpi->flg[j] == chk)
           continue;
-        }
 
-        ind = fpi->ind;
-        it  = ind->items;
-        it2 = fpi->newind->items;
-        st  = fpi->st;
-        vo  = fpi->vo;
+        idxp  = it[i + vo];
+        inp   = posflgs + idxp * (inpc + 1);
+        is_eq = true;
 
-        input = fpi->input;
-        while (input) {
-          if (strcasecmp(input->base.semanticRaw,
-                         idesci->semantic) == 0
-              && input->set == idesci->set
-              && input->base.source.doc == idesci->source->doc
-              && strcasecmp(input->base.source.url,
-                            idesci->source->url) == 0)
-            break;
+        if (inp[0] < iter) {
+          /* skip first squence */
+          if (iter > 1) {
+            dupc->items[idxp]++;
+            count++;
+          }
 
-          input = (AkInput *)input->base.next;
-        }
+          inp[0] = iter;
+          for (k = 0; k < inpc; k++) {
+            inpi = fpi->inpi[k];
+            inp[k + 1] = inpi == UINT_MAX ? UINT_MAX : it[inpi];
+          }
+        } else {
+          for (k = 0; k < inpc; k++) {
+            inpi = fpi->inpi[k];
+            if (inpi == UINT_MAX)
+              continue;
 
-        if (!input) {
-          ccount += (fpi->chk_end - fpi->chk_start);
-          fpi     = fpi->next;
-          continue;
-        }
-
-        ii = input->offset;
-        j  = fpi->chk_start;
-        i  = j * st;
-
-        for (; j < fpi->chk_end; i += st, j++) {
-          uint32_t *inp, idx, idxp;
-
-          if (fpi->flg[j] == chk)
-            continue;
-
-          idxp = it[i + vo];
-          idx  = it[i + ii];
-          inp  = posflgs + idxp * 2;
-
-          if (inp[0] < iter) {
-            /* skip first squence */
-            if (iter > 1) {
-              dupc->items[idxp]++;
-              count++;
-              it2[j] = dupc->items[idxp];
-            } else {
-              it2[j] = 0;
+            if (it[i+ inpi] != inp[k + 1]) {
+              is_eq = false;
+              break;
             }
-
-            inp[0] = iter;
-            inp[1] = idx;
-
-            ccount++;
-            fpi->flg[j] = chk;
-
-            /* shrink the check range for next iter */
-            if (j == fpi->chk_start)
-              fpi->chk_start++;
-            else if (j == fpi->chk_end)
-              fpi->chk_end--;
-          } else if (inp[1] == idx) {
-            ccount++;
-            fpi->flg[j] = chk;
-            it2[j] = dupc->items[idxp];
-
-            /* shrink the check range for next iter */
-            if (j == fpi->chk_start)
-              fpi->chk_start++;
-            else if (j == fpi->chk_end)
-              fpi->chk_end--;
           }
         }
 
-        fpi = fpi->next;
+        if (!is_eq) {
+          it2[j]++;
+          continue;
+        }
+
+        ccount++;
+        fpi->flg[j] = chk;
+
+        /* shrink the check range for next iter */
+        if (j == fpi->chk_start)
+          fpi->chk_start++;
+        else if (j == fpi->chk_end)
+          fpi->chk_end--;
       }
 
-      iter++;
+      fpi = fpi->next;
     }
 
-    ccount = 0;
-    idesci = idesci->next;
+    iter++;
   }
 
   dupr             = ak_heap_alloc(heap, duplicator, sizeof(*dupr));
@@ -314,7 +312,7 @@ ak_meshFixIndicesArrays(AkMesh       * __restrict mesh,
     while (prim) {
       AkUIntArray *newind;
       AkUInt *it, *it2;
-      uint32_t c, st, vo;
+      uint32_t c, st, vo, idxp;
 
       newind = ak_meshIndicesArrayFor(mesh, prim);
       it     = prim->indices->items;
@@ -323,15 +321,9 @@ ak_meshFixIndicesArrays(AkMesh       * __restrict mesh,
       vo     = ak_mesh_vertex_off(prim);
       c      = (uint32_t)prim->indices->count;
 
-      if (duplicator->dupCount > 0) {
-        uint32_t idxp;
-        for (i = j = 0; i < c; i += st, j++) {
-          idxp   = it[i + vo];
-          it2[j] = it2[j] + idxp + dupcsum->items[idxp];
-        }
-      } else {
-        for (i = j = 0; i < c; i += st, j++)
-          it2[j] = it[i + vo];
+      for (i = j = 0; i < c; i += st, j++) {
+        idxp   = it[i + vo];
+        it2[j] = it2[j] + idxp + dupcsum->items[idxp];
       }
 
       prim = prim->next;
@@ -349,13 +341,8 @@ ak_meshFixIndicesArrays(AkMesh       * __restrict mesh,
       vo     = ak_mesh_vertex_off(prim);
       c      = (uint32_t)prim->indices->count;
 
-      if (duplicator->dupCount > 0) {
-        for (i = j = 0; i < c; i += st, j++)
-          it2[j] = it[i + vo] + it2[j];
-      } else {
-        for (i = j = 0; i < c; i += st, j++)
-          it2[j] = it[i + vo];
-      }
+      for (i = j = 0; i < c; i += st, j++)
+        it2[j] = it[i + vo];
 
       prim = prim->next;
     }
