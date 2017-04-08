@@ -36,7 +36,7 @@
 #define RB_ISRED(R)   (R->color == RB_RED)
 #define RB_ISBLCK(R)  (R->color == RB_BLCK)
 
-static const char *rb_empty = "";
+static const char *rb_emptystr = "";
 
 void
 rb_printi(RBTree *tree, RBNode *node);
@@ -100,11 +100,11 @@ rb_newtree(RBCmpFn cmp, RBPrintFn print) {
 
   assert(tree && rootNode && nullNode);
 
-  nullNode->key            = (void *)rb_empty;
+  nullNode->key            = (void *)rb_emptystr;
   nullNode->chld[RB_LEFT]  = nullNode;
   nullNode->chld[RB_RIGHT] = nullNode;
 
-  rootNode->key            = (void *)rb_empty;
+  rootNode->key            = (void *)rb_emptystr;
   rootNode->chld[RB_LEFT]  = nullNode;
   rootNode->chld[RB_RIGHT] = nullNode;
 
@@ -126,6 +126,17 @@ rb_newtree_str() {
 RBTree*
 rb_newtree_ptr() {
   return rb_newtree(rb_def_cmp_ptr, rb_def_print_ptr);
+}
+
+void
+rb_empty(RBTree *tree) {
+  RBNode *node;
+
+  node = tree->root->chld[RB_RIGHT];
+  if (node != tree->nullNode)
+    rb_free(tree, tree->root->chld[RB_RIGHT]);
+
+  tree->root->chld[RB_RIGHT] = tree->nullNode;
 }
 
 void
@@ -276,7 +287,7 @@ rb_remove(RBTree *tree, void *key) {
   int     sP, sX, cmpRet, sDel;
   int     c2b;
 
-  if (!key || key == rb_empty)
+  if (!key || key == rb_emptystr)
     return;
 
   sX     = RB_RIGHT;

@@ -74,6 +74,9 @@ int
 rb_assert(RBTree *tree, RBNode *root);
 
 void
+rb_empty(RBTree *tree);
+
+void
 rb_destroy(RBTree *tree);
 
 #ifdef __cplusplus
