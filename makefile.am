@@ -130,6 +130,7 @@ libassetkit_la_SOURCES=\
     src/bbox/ak_bbox_mesh.c \
     src/bbox/ak_bbox_mesh_prim.c \
     src/bbox/ak_bbox_scene.c \
+    src/image/ak_image.c \
     src/collada/ak_collada.c \
     src/collada/ak_collada_lib.c \
     src/collada/ak_collada_strpool.c \

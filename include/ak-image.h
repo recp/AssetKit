@@ -84,7 +84,7 @@ typedef struct AkImage {
   AkBool renderableShare;
 } AkImage;
 
-void
+void*
 ak_imageLoad(AkImage * __restrict image);
 
 #endif /* ak_image_h */

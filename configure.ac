@@ -19,6 +19,7 @@ CFLAGS="$CFLAGS -I./lib/jemalloc/include"
 CFLAGS="$CFLAGS -I./lib/cglm/include"
 CFLAGS="$CFLAGS -I./lib/curl/include"
 CFLAGS="$CFLAGS -I./lib/libuv/include"
+CFLAGS="$CFLAGS -I./lib/stb"
 
 LDFLAGS="$LDFLAGS -L./lib/jemalloc/lib"
 LDFLAGS="$LDFLAGS -L./lib/libxml2/.libs"
