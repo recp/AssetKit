@@ -113,6 +113,7 @@ rb_newtree(RBCmpFn cmp, RBPrintFn print) {
 
   tree->cmp   = cmp   ? cmp   : rb_def_cmp_str;
   tree->print = print ? print : rb_def_print_str;
+  tree->count = 0;
 
   return tree;
 }
@@ -265,6 +266,8 @@ rb_insert(RBTree *tree,
 
   /* make root black */
   RB_MKBLCK(tree->root->chld[RB_RIGHT]);
+
+  tree->count++;
 }
 
 void
@@ -447,6 +450,7 @@ rb_remove(RBTree *tree, void *key) {
   }
 
   free(toDel);
+  tree->count--;
 }
 
 void *

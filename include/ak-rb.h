@@ -33,6 +33,7 @@ typedef struct RBTree {
   RBPrintFn print;
   RBWalkFn  freeNode;
   RBFreeFn  freeFn;
+  size_t    count;
 } RBTree;
 
 RBTree*
