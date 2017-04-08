@@ -24,7 +24,8 @@ typedef enum AkOption {
   AK_OPT_DEFAULT_ID_PREFIX          = 8,  /* id-    */
   AK_OPT_COMPUTE_BBOX               = 9,  /* false  */
   AK_OPT_TRIANGULATE                = 10, /* true   */
-  AK_OPT_GEN_NORMALS_IF_NEEDED      = 11  /* true   */
+  AK_OPT_GEN_NORMALS_IF_NEEDED      = 11, /* true   */
+  AK_OPT_DEFAULT_PROFILE            = 12  /* COMMON */
 } AkOption;
 
 AK_EXPORT
