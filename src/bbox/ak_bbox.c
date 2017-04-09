@@ -105,6 +105,7 @@ ak_bbox_center(AkBoundingBox * __restrict bbox,
                float center[3]) {
   glm_vec_sub(bbox->max, bbox->min, center);
   glm_vec_scale(center, 0.5f, center);
+  glm_vec_add(bbox->min, center, center);
 }
 
 float
