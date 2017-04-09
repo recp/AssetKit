@@ -10,6 +10,7 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+#include <stdlib.h>
 
 struct RBTree;
 struct RBNode;
