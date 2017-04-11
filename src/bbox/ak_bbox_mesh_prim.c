@@ -6,6 +6,7 @@
  */
 
 #include "ak_bbox.h"
+#include "../mesh/ak_mesh_util.h"
 #include <cglm.h>
 
 void
@@ -59,15 +60,18 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
      unrelated data and this will cause get wrong box
    */
   if (prim->indices) {
-    AkUInt *iitems;
-    size_t  i;
+    AkUInt  *ind;
+    size_t   i, icount;
+    uint32_t st, vo;
 
-    iitems = prim->indices->items;
-    for (i = 0;
-         i < prim->indices->count;
-         i += prim->indexStride) {
+    icount = prim->indices->count;
+    vo     = ak_mesh_vertex_off(prim);
+    st     = prim->indexStride;
+    ind    = prim->indices->items;
+
+    for (i = 0; i < icount; i += st) {
       float *vec;
-      vec = items + iitems[i /* + vo */];
+      vec = items + ind[i + vo];
       ak_bbox_pick(min, max, vec);
     }
   } else {
@@ -99,6 +103,6 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
   glm_vec_copy(min, prim->bbox->min);
   glm_vec_copy(max, prim->bbox->max);
 
-  ak_bbox_pick_pbox(mesh->bbox,  prim->bbox);
-  ak_bbox_pick_pbox(geom->bbox,  mesh->bbox);
+  ak_bbox_pick_pbox(mesh->bbox, prim->bbox);
+  ak_bbox_pick_pbox(geom->bbox, mesh->bbox);
 }
