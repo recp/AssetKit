@@ -814,6 +814,9 @@ typedef struct AkInstanceNode {
 /*
  * TODO: separate all instances to individual nodes?
  */
+struct AkMatrix;
+struct AkBoundingBox;
+
 struct AkNode {
   ak_asset_base
 
@@ -824,6 +827,13 @@ struct AkNode {
   AkNodeType            nodeType;
   AkStringArray        *layer;
   AkObject             *transform;
+
+  /* only avilable if library is forced to calculate them
+     check these two matrix to avoid extra or same calculation 
+   */
+  struct AkMatrix      *matrix;
+  struct AkMatrix      *matrixWorld;
+  struct AkBoundingBox *bbox;
 
   AkInstanceBase       *camera;
   AkInstanceController *controller;

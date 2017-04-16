@@ -10,12 +10,35 @@
 
 static
 void
-ak_bbox_node(AkVisualScene * __restrict scene,
+ak_bbox_node(AkHeap        * __restrict heap,
+             AkVisualScene * __restrict scene,
+             AkNode        * __restrict node,
+             mat4                       parentTrans);
+
+static
+void
+ak_bbox_node(AkHeap        * __restrict heap,
+             AkVisualScene * __restrict scene,
              AkNode        * __restrict node,
              mat4                       parentTrans) {
-  mat4 trans;
-  ak_transformCombine(node, trans[0]);
-  glm_mat4_mul(parentTrans, trans, trans);
+  AkFloat  (*matrixWorld)[4];
+
+  if (!node->matrix)
+    node->matrix = ak_heap_alloc(heap,
+                                 node,
+                                 sizeof(*node->matrix));
+
+  if (!node->matrixWorld)
+    node->matrixWorld = ak_heap_alloc(heap,
+                                      node,
+                                      sizeof(*node->matrixWorld));
+
+  matrixWorld = node->matrixWorld->val;
+
+  ak_transformCombine(node, node->matrix->val[0]);
+  glm_mat4_mul(parentTrans,
+               node->matrix->val,
+               matrixWorld);
 
   if (node->geometry) {
     AkInstanceBase *geomInst;
@@ -25,6 +48,7 @@ ak_bbox_node(AkVisualScene * __restrict scene,
 
     glm_vec_broadcast(0.0f, bbox.min);
     glm_vec_broadcast(0.0f, bbox.max);
+    min[3] = max[3] = 1;
 
     /* find bbox for node to avoid extra calc */
     geomInst = &node->geometry->base;
@@ -39,25 +63,35 @@ ak_bbox_node(AkVisualScene * __restrict scene,
     glm_vec_copy(bbox.min, min);
     glm_vec_copy(bbox.max, max);
 
-    /* this is position ? */
-    min[3] = max[3] = 1;
-    glm_mat4_mulv(trans, min, min);
-    glm_mat4_mulv(trans, max, max);
+    glm_mat4_mulv(matrixWorld, min, min);
+    glm_mat4_mulv(matrixWorld, max, max);
 
-    ak_bbox_pick_pbox2(scene->bbox, min, max);
+    if (scene->bbox->isvalid) {
+      ak_bbox_pick_pbox2(scene->bbox, min, max);
+    } else {
+      glm_vec_copy(min, scene->bbox->min);
+      glm_vec_copy(max, scene->bbox->max);
+      scene->bbox->isvalid = true;
+    }
   }
 
   if (node->node) {
     AkNode *nodei;
     if ((nodei = ak_instanceObjectNode(node)))
-      ak_bbox_node(scene, nodei, trans);
+      ak_bbox_node(heap,
+                   scene,
+                   nodei,
+                   matrixWorld);
   }
 
   if (node->chld) {
     AkNode *nodei;
     nodei = node->chld;
     do {
-      ak_bbox_node(scene, nodei, trans);
+      ak_bbox_node(heap,
+                   scene,
+                   nodei,
+                   matrixWorld);
       nodei = nodei->next;
     } while (nodei);
   }
@@ -65,7 +99,7 @@ ak_bbox_node(AkVisualScene * __restrict scene,
 
 void
 ak_bbox_scene(struct AkVisualScene * __restrict scene) {
-  mat4 idmat = GLM_MAT4_IDENTITY_INIT;
+  mat4    trans = GLM_MAT4_IDENTITY_INIT;
   AkHeap *heap;
   AkNode *node;
   node = scene->node;
@@ -76,8 +110,12 @@ ak_bbox_scene(struct AkVisualScene * __restrict scene) {
     scene->bbox = ak_heap_calloc(heap,
                                  scene,
                                  sizeof(*scene->bbox));
+
   while (node) {
-    ak_bbox_node(scene, node, idmat);
+    ak_bbox_node(heap,
+                 scene,
+                 node,
+                 trans);
     node = node->next;
   }
 }
