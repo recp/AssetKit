@@ -71,7 +71,7 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
 
     for (i = 0; i < icount; i += st) {
       float *vec;
-      vec = items + ind[i + vo];
+      vec = items + ind[i + vo] * acc->stride;
       ak_bbox_pick(min, max, vec);
     }
   } else {
