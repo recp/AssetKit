@@ -13,6 +13,7 @@
 #include "../include/assetkit.h"
 #include "../include/ak-options.h"
 #include "../include/ak-map.h"
+#include "../include/ak-type.h"
 
 #include <stddef.h>
 #include <sys/types.h>

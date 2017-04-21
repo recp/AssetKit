@@ -203,6 +203,7 @@
     <ClInclude Include="..\include\ak-string.h" />
     <ClInclude Include="..\include\ak-transform.h" />
     <ClInclude Include="..\include\ak-trash.h" />
+    <ClInclude Include="..\include\ak-type.h" />
     <ClInclude Include="..\include\ak-url.h" />
     <ClInclude Include="..\include\ak-util.h" />
     <ClInclude Include="..\include\assetkit.h" />
@@ -308,6 +309,7 @@
     <ClCompile Include="..\src\ak_string.c" />
     <ClCompile Include="..\src\ak_trash.c" />
     <ClCompile Include="..\src\ak_tree.c" />
+    <ClCompile Include="..\src\ak_type.c" />
     <ClCompile Include="..\src\ak_utils.c" />
     <ClCompile Include="..\src\array\ak_source_array.c" />
     <ClCompile Include="..\src\assetkit.c" />

@@ -409,6 +409,9 @@
     <ClInclude Include="..\src\mesh\ak_mesh_edit_common.h">
       <Filter>src\mesh</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\ak-type.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\bbox\ak_bbox.c">
@@ -779,6 +782,9 @@
     </ClCompile>
     <ClCompile Include="..\src\default\ak_def_cam.c">
       <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ak_type.c">
+      <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
