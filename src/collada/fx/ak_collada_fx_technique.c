@@ -26,6 +26,7 @@ ak_dae_techniqueFx(AkXmlState * __restrict xst,
   technique = ak_heap_calloc(xst->heap,
                              memParent,
                              sizeof(*technique));
+  ak_setypeid(technique, AKT_TECHNIQUE_FX);
 
   ak_xml_readid(xst, technique);
   ak_xml_readsid(xst, technique);

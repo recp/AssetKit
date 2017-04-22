@@ -32,6 +32,8 @@ ak_dae_newparam(AkXmlState * __restrict xst,
   newparam = ak_heap_calloc(xst->heap,
                             memParent,
                             sizeof(*newparam));
+  ak_setypeid(newparam, AKT_NEWPARAM);
+
   last_annotate = NULL;
 
   if (modifierMapLen == 0) {
@@ -118,6 +120,7 @@ ak_dae_param(AkXmlState * __restrict xst,
   param = ak_heap_calloc(xst->heap,
                          memParent,
                          sizeof(AkParam));
+  ak_setypeid(param, AKT_PARAM);
 
   param->ref = ak_xml_attr(xst, param, _s_dae_ref);
 
@@ -166,6 +169,7 @@ ak_dae_setparam(AkXmlState * __restrict xst,
   setparam = ak_heap_calloc(xst->heap,
                             memParent,
                             sizeof(*setparam));
+  ak_setypeid(setparam, AKT_SETPARAM);
 
   if (modifierMapLen == 0) {
     modifierMapLen = AK_ARRAY_LEN(modifierMap);

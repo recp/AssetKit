@@ -27,6 +27,7 @@ ak_dae_effect(AkXmlState * __restrict xst,
   effect = ak_heap_calloc(xst->heap,
                           memParent,
                           sizeof(*effect));
+  ak_setypeid(effect, AKT_EFFECT);
 
   last_annotate = NULL;
   last_newparam = NULL;
