@@ -406,7 +406,13 @@ void
 ak_xml_sid_seta(AkXmlState * __restrict xst,
                 void *memnode,
                 void *memptr) {
+  const char *sid;
+
+  sid = ak_xml_attr(xst, memnode, _s_dae_sid);
+  if (!sid)
+    return;
+
   ak_sid_seta(memnode,
               memptr,
-              ak_xml_attr(xst, memnode, _s_dae_sid));
+              sid);
 }
