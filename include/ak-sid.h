@@ -42,9 +42,8 @@ ak_sid_seta(void       *memnode,
 
 AK_EXPORT
 void *
-ak_sid_resolve(AkDoc * __restrict doc,
-               void  * __restrict sender,
-               const char * __restrict sid);
+ak_sid_resolve(AkDoc      * __restrict doc,
+               const char * __restrict target);
 
 #ifdef __cplusplus
 }

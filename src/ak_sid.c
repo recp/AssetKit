@@ -7,9 +7,17 @@
 
 #include "ak_common.h"
 #include "ak_memory_common.h"
+#include "ak_sid.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
+static AkHeap ak__sidconst_heap = {
+  .flags = 0
+};
+
+#define sidconst_heap &ak__sidconst_heap
 
 void * _assetkit_hide
 ak_sid_resolve_attr(AkHeapNode *heapNode,
@@ -165,53 +173,139 @@ ak_sid_destroy(AkHeap * __restrict heap,
 }
 
 AK_EXPORT
+ptrdiff_t
+ak_sidElement(AkDoc      * __restrict doc,
+              const char * __restrict target,
+              void      ** __restrict idnode) {
+  AkHeap     *heap;
+  AkHeapNode *hnode, *parent;
+  const char *it;
+  char       *sidp;
+  AkResult    ret;
+
+  it   = ak_strltrim_fast(target);
+  sidp = strchr(target, '/');
+  heap = ak_heap_getheap(doc);
+
+  /* if there is no "/" then assume that this is "./" */
+  if (*it == '.' || !sidp) {
+    AkTypeId *constr;
+
+    /* .[attr] */
+    if (!sidp) {
+      it++;
+      goto ret;
+    }
+
+    /* else ./sid.../sid.[attr] */
+
+    /* find id node */
+    hnode  = ak__alignof(target);
+    constr = ak_sidConstraintsOf(ak_typeid(hnode));
+    parent = ak_heap_parent(hnode);
+
+    /* find by constraint / semantic */
+    if (parent && constr) {
+      uint32_t count, i;
+      count = (uint32_t)constr[0];
+
+      while (parent) {
+        AkTypeId pTypeId, typeId;
+        bool     found;
+
+        found   = false;
+        pTypeId = ak_typeid(parent);
+
+        for (i = 1; i < count; i++) {
+          typeId = constr[i];
+          if (constr[i] == pTypeId) {
+            found = true;
+            break;
+          }
+        }
+
+        if (found)
+          break;
+
+        parent = ak_heap_parent(parent);
+      }
+    }
+
+    /* check id nodes */
+    else {
+      while (parent) {
+        void *id;
+
+        id = ak_heap_getId(heap, parent);
+        if (id)
+          break;
+
+        parent = ak_heap_parent(parent);
+      }
+    }
+  } else if (sidp) {
+    char     *id;
+    ptrdiff_t idlen;
+
+    idlen = sidp - it;
+    id    = malloc(sizeof(char) * idlen + 1);
+
+    memcpy(id, it, idlen);
+    id[idlen] = '\0';
+
+    ret = ak_heap_getNodeById(heap,
+                              (void *)id,
+                              &hnode);
+    if (ret != AK_OK || !idnode)
+      goto err;
+
+    *idnode = ak__alignas(hnode);
+    it      = sidp;
+  } else {
+    goto err;
+  }
+
+ret:
+  return it - target + 1;
+err:
+  return -1;
+}
+
+AK_EXPORT
 void *
-ak_sid_resolve(AkDoc * __restrict doc,
-               void  * __restrict sender,
-               const char * __restrict sid) {
+ak_sid_resolve(AkDoc      * __restrict doc,
+               const char * __restrict target) {
   AkHeap      *heap;
   AkHeapNode  *idnode, *sidnode, *it;
   char        *siddup, *sid_it, *saveptr;
   void        *found;
   AkHeapNode **buf[2];
+  void        *elm;
   size_t       bufl[2], bufc[2], bufi[2];
   int          bufidx;
-  AkResult     r;
   uint16_t     off;
+  ptrdiff_t    sidoff;
 
+  sidoff = ak_sidElement(doc, target, &elm);
+  if (sidoff == -1 || !elm)
+    return NULL;
+
+  idnode  = ak__alignof(elm);
   off     = 0;
   sidnode = NULL;
   found   = NULL;
   heap    = ak_heap_getheap(doc);
-  siddup  = strdup(sid);
+  siddup  = strdup(target + sidoff);
 
-  sid_it = strtok_r(siddup, "/ \t", &saveptr);
-  
-  if (*sid_it == '.') {
-    /* .[attr] */
-    if (!strchr(sid, '/'))  {
-      sid_it++;
-      sidnode = sender;
-      goto ret;
-    }
-
-    /* ./sid.../sid.[attr] */
-    idnode = ak__alignof(sender);
-  } else {
-    r = ak_heap_getNodeById(heap, sid_it, &idnode);
-    if (r != AK_OK || !idnode)
-      goto err;
-  }
+  sid_it  = strtok_r(siddup, "/ \t", &saveptr);
 
   bufi[0] = bufi[1] = bufc[0] = bufc[1] = bufidx = 0;
   bufl[0] = bufl[1] = 4; /* start point */
 
-  buf[0] = malloc(sizeof(*buf[0]) * bufl[0]);
-  buf[1] = malloc(sizeof(*buf[0]) * bufl[0]);
+  buf[0]  = malloc(sizeof(*buf[0]) * bufl[0]);
+  buf[1]  = malloc(sizeof(*buf[0]) * bufl[0]);
 
   buf[bufidx][bufi[bufidx]] = ak_heap_chld(idnode);
-
-  sid_it = strtok_r(NULL, "/ \t", &saveptr); /* first sid */
   bufc[bufidx] = 1;
 
   /* breadth-first search */
@@ -317,4 +411,73 @@ ak_sid_resolve_attr(AkHeapNode *heapNode,
                     const char *attr) {
   /* TODO: */
   return NULL;
+}
+
+AkTypeId *
+ak_sidConstraintsOf(AkTypeId typeId) {
+  void     *found;
+  AkResult  ret;
+
+  ret = ak_heap_getMemById(sidconst_heap,
+                           &typeId,
+                           &found);
+  if (ret == AK_OK)
+    return found;
+
+  return NULL;
+}
+
+void
+ak_sidConstraintTo(AkTypeId typeId,
+                   AkTypeId typeIds[],
+                   uint32_t count) {
+  AkHeap   *heap;
+  AkTypeId *constr;
+  void     *found;
+  AkResult  ret;
+
+  heap = sidconst_heap;
+  ret  = ak_heap_getMemById(heap,
+                            &typeId,
+                            &found);
+  if (ret == AK_OK)
+    ak_free(found);
+
+  if (count == 0)
+    return;
+
+  /* count | item1 | item2 | item3 */
+  constr = ak_heap_alloc(heap,
+                         NULL,
+                         sizeof(AkTypeId) * (count + 1));
+  constr[0] = count;
+  memcpy(&constr[1],
+         typeIds,
+         sizeof(AkTypeId) * count);
+
+  ak_heap_setId(heap,
+                ak__alignof(constr),
+                &typeId);
+}
+
+void _assetkit_hide
+ak_sid_init() {
+  AkTypeId effectConstr[] = {
+    AKT_TECHNIQUE_FX,
+    AKT_PROFILE,
+    AKT_EFFECT
+  };
+
+  ak_heap_init(sidconst_heap,
+               NULL,
+               ak_cmp_ptr,
+               NULL);
+
+  ak_sidConstraintTo(AKT_TEXCOORD, effectConstr, 3);
+  ak_sidConstraintTo(AKT_TEXTURE,  effectConstr, 3);
+}
+
+void _assetkit_hide
+ak_sid_deinit() {
+  ak_heap_destroy(sidconst_heap);
 }
