@@ -6,6 +6,7 @@
  */
 
 #include "ak_collada_value.h"
+#include "../fx/ak_collada_fx_sampler.h"
 
 typedef struct {
   const char *key;
@@ -39,7 +40,15 @@ static ak_value_pair valueMap[] = {
   {_s_dae_float4,   AK_VALUE_TYPE_FLOAT4,   1, 4, sizeof(float[4])},
   {_s_dae_float2x2, AK_VALUE_TYPE_FLOAT2x2, 2, 2, sizeof(float[2][2])},
   {_s_dae_float3x3, AK_VALUE_TYPE_FLOAT3x3, 3, 3, sizeof(float[3][3])},
-  {_s_dae_float4x4, AK_VALUE_TYPE_FLOAT4x4, 4, 4, sizeof(float[4][4])}
+  {_s_dae_float4x4, AK_VALUE_TYPE_FLOAT4x4, 4, 4, sizeof(float[4][4])},
+
+  /* samplers */
+  {_s_dae_sampler1d,     AK_VALUE_TYPE_SAMPLER1D, 1, 1, sizeof(AkSampler1D)},
+  {_s_dae_sampler2d,     AK_VALUE_TYPE_SAMPLER1D, 1, 1, sizeof(AkSampler2D)},
+  {_s_dae_sampler3d,     AK_VALUE_TYPE_SAMPLER1D, 1, 1, sizeof(AkSampler3D)},
+  {_s_dae_sampler_cube,  AK_VALUE_TYPE_SAMPLER1D, 1, 1, sizeof(AkSamplerCUBE)},
+  {_s_dae_sampler_rect,  AK_VALUE_TYPE_SAMPLER1D, 1, 1, sizeof(AkSamplerRECT)},
+  {_s_dae_sampler_depth, AK_VALUE_TYPE_SAMPLER1D, 1, 1, sizeof(AkSamplerDEPTH)}
 };
 
 static size_t valueMapLen = 0;
@@ -81,10 +90,7 @@ ak_dae_value(AkXmlState * __restrict xst,
              void ** __restrict dest,
              AkValueType * __restrict val_type) {
   ak_value_pair *found;
-  char          *nodeVal;
   AkXmlElmState  xest;
-
-  xst->nodeName = xmlTextReaderConstName(xst->reader);
 
   if (valueMapLen == 0) {
     valueMapLen = AK_ARRAY_LEN(valueMap);
@@ -102,26 +108,25 @@ ak_dae_value(AkXmlState * __restrict xst,
 
   if (!found) {
     *val_type = AK_VALUE_TYPE_UNKNOWN;
-    return AK_ERR;
+    return AK_EFOUND;
   }
 
   *val_type = found->val;
-
-  nodeVal = ak_xml_val(xst, NULL);
 
   ak_xest_init(xest, found->key)
 
   switch (found->val) {
     case AK_VALUE_TYPE_STRING:
-
-      *dest = nodeVal;
+      *dest = ak_xml_val(xst, NULL);
       break;
     case AK_VALUE_TYPE_BOOL:
     case AK_VALUE_TYPE_BOOL2:
     case AK_VALUE_TYPE_BOOL3:
     case AK_VALUE_TYPE_BOOL4:{
-      AkBool * val;
+      AkBool *val;
+      char   *nodeVal;
 
+      nodeVal = ak_xml_rawcval(xst);
       val = ak_heap_calloc(xst->heap,
                            memParent,
                            sizeof(*val) * found->m * found->n);
@@ -134,8 +139,10 @@ ak_dae_value(AkXmlState * __restrict xst,
     case AK_VALUE_TYPE_INT2:
     case AK_VALUE_TYPE_INT3:
     case AK_VALUE_TYPE_INT4:{
-      AkInt * val;
+      AkInt *val;
+      char  *nodeVal;
 
+      nodeVal = ak_xml_rawcval(xst);
       val = ak_heap_calloc(xst->heap,
                            memParent,
                            sizeof(*val) * found->m * found->n);
@@ -151,8 +158,10 @@ ak_dae_value(AkXmlState * __restrict xst,
     case AK_VALUE_TYPE_FLOAT2x2:
     case AK_VALUE_TYPE_FLOAT3x3:
     case AK_VALUE_TYPE_FLOAT4x4:{
-      AkFloat * val;
+      AkFloat *val;
+      char    *nodeVal;
 
+      nodeVal = ak_xml_rawcval(xst);
       val = ak_heap_calloc(xst->heap,
                            memParent,
                            sizeof(*val) * found->m * found->n);
@@ -161,12 +170,29 @@ ak_dae_value(AkXmlState * __restrict xst,
       *dest = val;
       break;
     }
+    case AK_VALUE_TYPE_SAMPLER1D:
+    case AK_VALUE_TYPE_SAMPLER2D:
+    case AK_VALUE_TYPE_SAMPLER3D:
+    case AK_VALUE_TYPE_SAMPLER_CUBE:
+    case AK_VALUE_TYPE_SAMPLER_RECT:
+    case AK_VALUE_TYPE_SAMPLER_DEPTH: {
+      AkFxSamplerCommon *sampler;
+      AkResult           ret;
+
+      sampler = NULL;
+      ret = ak_dae_fxSampler(xst,
+                             memParent,
+                             found->key,
+                             &sampler);
+
+      if (ret == AK_OK)
+        *dest = sampler;
+
+      break;
+    }
     default:
       break;
   }
-
-  if (nodeVal)
-    ak_free(nodeVal);
 
   /* end element */
   ak_xml_end(&xest);
