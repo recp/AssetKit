@@ -18,7 +18,9 @@ typedef enum AkTypeId {
   AKT_NEWPARAM,
   AKT_SETPARAM,
   AKT_TECHNIQUE_FX,
-  AKT_SAMPLER
+  AKT_SAMPLER,
+  AKT_TEXTURE,
+  AKT_TEXCOORD
 } AkTypeId;
 
 AkTypeId

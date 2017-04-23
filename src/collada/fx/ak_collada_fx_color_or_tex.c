@@ -48,9 +48,13 @@ ak_dae_colorOrTex(AkXmlState * __restrict xst,
       tex = ak_heap_calloc(xst->heap,
                            colorOrTex,
                            sizeof(*tex));
+      ak_setypeid(tex, AKT_TEXTURE);
 
-      tex->texture = ak_xml_attr(xst, tex, _s_dae_texture);
+      tex->texture  = ak_xml_attr(xst, tex, _s_dae_texture);
       tex->texcoord = ak_xml_attr(xst, tex, _s_dae_texcoord);
+
+      if (tex->texcoord)
+        ak_setypeid((void *)tex->texcoord, AKT_TEXCOORD);
 
       if (!xmlTextReaderIsEmptyElement(xst->reader)) {
         AkXmlElmState xest2;
