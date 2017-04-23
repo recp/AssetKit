@@ -453,6 +453,12 @@ const char _s_dae_pool_2[] =
 "library_nodes\0"
 "instance_visual_scene\0"
 "scene\0"
+"sampler1D\0"
+"sampler2D\0"
+"sampler3D\0"
+"samplerRECT\0"
+"samplerCUBE\0"
+"samplerDEPTH\0"
 ;
 
 #undef _AK_DAE_STRPOOL_

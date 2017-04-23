@@ -461,5 +461,11 @@ _AK_EXTERN const char _s_dae_pool_2[];
 #define _s_dae_lib_nodes _s_dae_2(594)
 #define _s_dae_instance_visual_scene _s_dae_2(608)
 #define _s_dae_scene _s_dae_2(630)
+#define _s_dae_sampler1d _s_dae_2(636)
+#define _s_dae_sampler2d _s_dae_2(646)
+#define _s_dae_sampler3d _s_dae_2(656)
+#define _s_dae_sampler_rect _s_dae_2(666)
+#define _s_dae_sampler_cube _s_dae_2(678)
+#define _s_dae_sampler_depth _s_dae_2(690)
 
 #endif /* ak_dae_strpool_h */

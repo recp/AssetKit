@@ -432,5 +432,11 @@
   "enable": "enable",
   "lib_nodes": "library_nodes",
   "instance_visual_scene": "instance_visual_scene",
-  "scene": "scene"
+  "scene": "scene",
+  "sampler1d": "sampler1D",
+  "sampler2d": "sampler2D",
+  "sampler3d": "sampler3D",
+  "sampler_rect": "samplerRECT",
+  "sampler_cube": "samplerCUBE",
+  "sampler_depth": "samplerDEPTH"
 }
