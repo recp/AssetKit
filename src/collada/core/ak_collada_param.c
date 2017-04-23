@@ -33,6 +33,7 @@ ak_dae_newparam(AkXmlState * __restrict xst,
                             memParent,
                             sizeof(*newparam));
   ak_setypeid(newparam, AKT_NEWPARAM);
+  ak_xml_readsid(xst, newparam);
 
   last_annotate = NULL;
 
