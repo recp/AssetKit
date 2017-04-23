@@ -8,6 +8,10 @@
 #ifndef __libassetkit__assetkit_string__h_
 #define __libassetkit__assetkit_string__h_
 
+AK_EXPORT
+const char*
+ak_strltrim_fast(const char * __restrict str);
+
 /*!
  * @brief util for count tokens before call strtok to save realloc calls
  *

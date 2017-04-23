@@ -13,6 +13,30 @@
 #define AK_ARRAY_SEP_CHECK (c == ' ' || c == '\n' || c == '\t' || c == '\r')
 
 AK_EXPORT
+const char*
+ak_strltrim_fast(const char * __restrict str) {
+  const char *ptr;
+  size_t      len, i;
+  char        c;
+
+  len = strlen(str);
+  ptr = str;
+
+  if (len == 0)
+    return ptr;
+
+  for (i = 0; i < len; i++) {
+    c = str[i];
+    if (AK_ARRAY_SEP_CHECK) {
+      ptr++;
+      continue;
+    }
+  }
+
+  return ptr;
+}
+
+AK_EXPORT
 int
 ak_strtok_count(char * __restrict buff,
                 char * __restrict sep,
