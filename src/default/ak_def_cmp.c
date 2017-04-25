@@ -26,6 +26,17 @@ ak_cmp_ptr(void *key1, void *key2) {
 
 AK_EXPORT
 int
+ak_cmp_i32(void *key1, void *key2) {
+  int32_t a, b;
+
+  a = *(int32_t *)key1;
+  b = *(int32_t *)key2;
+
+  return a - b;
+}
+
+AK_EXPORT
+int
 ak_cmp_vec3(void *key1, void *key2) {
   float *v1, *v2;
 

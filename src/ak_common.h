@@ -74,6 +74,10 @@ ak_cmp_ptr(void *key1, void *key2);
 
 AK_EXPORT
 int
+ak_cmp_i32(void *key1, void *key2);
+
+AK_EXPORT
+int
 ak_cmp_vec3(void * key1, void *key2);
 
 typedef int (*AkCmpFn)(void * key1, void *key2);
