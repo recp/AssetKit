@@ -192,7 +192,7 @@ ak_sidElement(AkDoc      * __restrict doc,
     AkTypeId *constr;
 
     /* .[attr] */
-    if (!sidp) {
+    if (*it == '.' && !sidp) {
       it++;
       goto ret;
     }
@@ -201,22 +201,22 @@ ak_sidElement(AkDoc      * __restrict doc,
 
     /* find id node */
     hnode  = ak__alignof(target);
-    constr = ak_sidConstraintsOf(ak_typeid(hnode));
+    constr = ak_sidConstraintsOf(ak_typeid((void *)target));
     parent = ak_heap_parent(hnode);
 
     /* find by constraint / semantic */
     if (parent && constr) {
       uint32_t count, i;
-      count = (uint32_t)constr[0];
+      count = (uint32_t)constr[1];
 
       while (parent) {
         AkTypeId pTypeId, typeId;
         bool     found;
 
         found   = false;
-        pTypeId = ak_typeid(parent);
+        pTypeId = ak_typeid(ak__alignas(parent));
 
-        for (i = 1; i < count; i++) {
+        for (i = 2; i < count; i++) {
           typeId = constr[i];
           if (constr[i] == pTypeId) {
             found = true;
@@ -446,18 +446,19 @@ ak_sidConstraintTo(AkTypeId typeId,
   if (count == 0)
     return;
 
-  /* count | item1 | item2 | item3 */
+  /* key | count | item1 | item2 | item3 */
   constr = ak_heap_alloc(heap,
                          NULL,
-                         sizeof(AkTypeId) * (count + 1));
-  constr[0] = count;
-  memcpy(&constr[1],
+                         sizeof(AkTypeId) * (count + 2));
+  constr[0] = typeId;
+  constr[1] = count;
+  memcpy(&constr[2],
          typeIds,
          sizeof(AkTypeId) * count);
 
   ak_heap_setId(heap,
                 ak__alignof(constr),
-                &typeId);
+                &constr[0]);
 }
 
 void _assetkit_hide
@@ -470,11 +471,12 @@ ak_sid_init() {
 
   ak_heap_init(sidconst_heap,
                NULL,
-               ak_cmp_ptr,
+               ak_cmp_i32,
                NULL);
 
-  ak_sidConstraintTo(AKT_TEXCOORD, effectConstr, 3);
-  ak_sidConstraintTo(AKT_TEXTURE,  effectConstr, 3);
+  ak_sidConstraintTo(AKT_TEXTURE_NAME, effectConstr, 3);
+  ak_sidConstraintTo(AKT_TEXCOORD,     effectConstr, 3);
+  ak_sidConstraintTo(AKT_TEXTURE,      effectConstr, 3);
 }
 
 void _assetkit_hide
