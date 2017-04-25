@@ -53,6 +53,9 @@ ak_dae_colorOrTex(AkXmlState * __restrict xst,
       tex->texture  = ak_xml_attr(xst, tex, _s_dae_texture);
       tex->texcoord = ak_xml_attr(xst, tex, _s_dae_texcoord);
 
+      if (tex->texture)
+        ak_setypeid((void *)tex->texture, AKT_TEXTURE_NAME);
+
       if (tex->texcoord)
         ak_setypeid((void *)tex->texcoord, AKT_TEXCOORD);
 
@@ -89,6 +92,8 @@ ak_dae_colorOrTex(AkXmlState * __restrict xst,
             break;
         } while (xst->nodeRet);
       }
+
+      colorOrTex->texture = tex;
     } else if (ak_xml_eqelm(xst, _s_dae_param)) {
       AkParam * param;
       AkResult   ret;

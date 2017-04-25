@@ -20,6 +20,7 @@ typedef enum AkTypeId {
   AKT_TECHNIQUE_FX,
   AKT_SAMPLER,
   AKT_TEXTURE,
+  AKT_TEXTURE_NAME,
   AKT_TEXCOORD
 } AkTypeId;
 
