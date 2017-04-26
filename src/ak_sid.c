@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <string.h>
 
-static AkHeap ak__sidconst_heap = {
+AkHeap ak__sidconst_heap = {
   .flags = 0
 };
 
@@ -183,13 +183,22 @@ ak_sidElement(AkDoc      * __restrict doc,
   char       *sidp;
   AkResult    ret;
 
+  heap = NULL;
+  it   = NULL;
+  sidp = NULL;
+
+  if (*idnode) {
+    hnode = ak__alignof(*idnode);
+    goto again;
+  }
+
+  heap = ak_heap_getheap(doc);
   it   = ak_strltrim_fast(target);
   sidp = strchr(target, '/');
-  heap = ak_heap_getheap(doc);
 
   /* if there is no "/" then assume that this is "./" */
   if (*it == '.' || !sidp) {
-    AkTypeId *constr;
+    AkSidConstr *constr;
 
     /* .[attr] */
     if (*it == '.' && !sidp) {
@@ -201,27 +210,28 @@ ak_sidElement(AkDoc      * __restrict doc,
 
     /* find id node */
     hnode  = ak__alignof(target);
+
+  again:
     constr = ak_sidConstraintsOf(ak_typeid((void *)target));
     parent = ak_heap_parent(hnode);
 
     /* find by constraint / semantic */
     if (parent && constr) {
-      uint32_t count, i;
-      count = (uint32_t)constr[1];
-
       while (parent) {
-        AkTypeId pTypeId, typeId;
+        AkSidConstrItem *constrItem;
+        AkTypeId pTypeId;
         bool     found;
 
-        found   = false;
-        pTypeId = ak_typeid(ak__alignas(parent));
-
-        for (i = 2; i < count; i++) {
-          typeId = constr[i];
-          if (constr[i] == pTypeId) {
+        found      = false;
+        pTypeId    = ak_typeid(ak__alignas(parent));
+        constrItem = constr->item;
+        while (constrItem) {
+          if (constrItem->constr == pTypeId) {
             found = true;
             break;
           }
+
+          constrItem = constrItem->next;
         }
 
         if (found)
@@ -243,6 +253,12 @@ ak_sidElement(AkDoc      * __restrict doc,
         parent = ak_heap_parent(parent);
       }
     }
+
+    *idnode = ak__alignas(parent);
+
+    /* no need to offset again */
+    if (*idnode)
+      return 0;
   } else if (sidp) {
     char     *id;
     ptrdiff_t idlen;
@@ -286,112 +302,121 @@ ak_sid_resolve(AkDoc      * __restrict doc,
   uint16_t     off;
   ptrdiff_t    sidoff;
 
+  elm    = NULL;
   sidoff = ak_sidElement(doc, target, &elm);
   if (sidoff == -1 || !elm)
     return NULL;
 
-  idnode  = ak__alignof(elm);
-  off     = 0;
-  sidnode = NULL;
-  found   = NULL;
-  heap    = ak_heap_getheap(doc);
-  siddup  = strdup(target + sidoff);
-
-  sid_it  = strtok_r(siddup, "/ \t", &saveptr);
-
   bufi[0] = bufi[1] = bufc[0] = bufc[1] = bufidx = 0;
   bufl[0] = bufl[1] = 4; /* start point */
 
+  heap    = ak_heap_getheap(doc);
   buf[0]  = malloc(sizeof(*buf[0]) * bufl[0]);
   buf[1]  = malloc(sizeof(*buf[0]) * bufl[0]);
 
-  buf[bufidx][bufi[bufidx]] = ak_heap_chld(idnode);
-  bufc[bufidx] = 1;
+  do {
+    idnode  = ak__alignof(elm);
+    off     = 0;
+    sidnode = NULL;
+    found   = NULL;
+    siddup  = strdup(target + sidoff);
+    sid_it  = strtok_r(siddup, "/ \t", &saveptr);
 
-  /* breadth-first search */
-  while (bufc[bufidx] > 0) {
+    buf[bufidx][bufi[bufidx]] = ak_heap_chld(idnode);
+    bufc[bufidx] = 1;
 
-    it = buf[bufidx][bufi[bufidx]];
+    /* breadth-first search */
+    while (bufc[bufidx] > 0) {
 
-    while (it) {
-      if (it->flags & AK_HEAP_NODE_FLAGS_SID) {
-        AkSIDNode *snode;
+      it = buf[bufidx][bufi[bufidx]];
 
-        snode = ak_heap_ext_get(it, AK_HEAP_NODE_FLAGS_SID);
-        if (snode->sid && strcmp(snode->sid, sid_it) == 0) {
-          char *tok;
+      while (it) {
+        if (it->flags & AK_HEAP_NODE_FLAGS_SID) {
+          AkSIDNode *snode;
 
-          sidnode = it;
+          snode = ak_heap_ext_get(it, AK_HEAP_NODE_FLAGS_SID);
+          if (snode->sid && strcmp(snode->sid, sid_it) == 0) {
+            char *tok;
 
-          /* go for next */
-          tok = strtok_r(NULL, "/ \t", &saveptr);
-          if (!tok)
-            goto ret;
+            sidnode = it;
 
-          sid_it = tok;
-        }
-
-        /* check attrs */
-        if (snode->sids) {
-          char  *p, *end;
-          size_t c;
-
-          c   = *(size_t *)snode->sids;
-          p   = (char *)snode->sids + sizeof(size_t);
-          end = p + c * (sizeof(char **) + sizeof(uint16_t));
-
-          while (p != end) {
-            off = *(uint16_t *)p;
-            p  += sizeof(uint16_t);
-
-            /* found sid in attr */
-            if (strcmp(*(char **)p, sid_it) == 0) {
-              char *tok;
-
-              sidnode = it;
-
-              /* there is no way to go down */
-              tok = strtok_r(NULL, "/ \t", &saveptr);
-              if (tok)
-                goto err;
-
+            /* go for next */
+            tok = strtok_r(NULL, "/ \t", &saveptr);
+            if (!tok)
               goto ret;
+
+            sid_it = tok;
+          }
+
+          /* check attrs */
+          if (snode->sids) {
+            char  *p, *end;
+            size_t c;
+
+            c   = *(size_t *)snode->sids;
+            p   = (char *)snode->sids + sizeof(size_t);
+            end = p + c * (sizeof(char **) + sizeof(uint16_t));
+
+            while (p != end) {
+              off = *(uint16_t *)p;
+              p  += sizeof(uint16_t);
+
+              /* found sid in attr */
+              if (strcmp(*(char **)p, sid_it) == 0) {
+                char *tok;
+
+                sidnode = it;
+
+                /* there is no way to go down */
+                tok = strtok_r(NULL, "/ \t", &saveptr);
+                if (tok)
+                  goto err;
+
+                goto ret;
+              }
+
+              p += sizeof(char **) + sizeof(uint16_t);
             }
-
-            p += sizeof(char **) + sizeof(uint16_t);
           }
         }
-      }
 
-      if (it->flags & AK_HEAP_NODE_FLAGS_SID_CHLD) {
-        /* keep all children */
-        AkHeapNode *it2;
+        if (it->flags & AK_HEAP_NODE_FLAGS_SID_CHLD) {
+          /* keep all children */
+          AkHeapNode *it2;
 
-        it2 = ak_heap_chld(it);
-        while (it2) {
+          it2 = ak_heap_chld(it);
+          while (it2) {
 
-          if (bufi[!bufidx] == bufl[!bufidx]) {
-            bufl[!bufidx] += 16;
-            buf[!bufidx]   = realloc(buf[!bufidx],
-                                     bufl[!bufidx]);
+            if (bufi[!bufidx] == bufl[!bufidx]) {
+              bufl[!bufidx] += 16;
+              buf[!bufidx]   = realloc(buf[!bufidx],
+                                       bufl[!bufidx]);
+            }
+            
+            buf[!bufidx][bufi[!bufidx]] = it2;
+            bufi[!bufidx]++;
+            bufc[!bufidx]++;
+            
+            it2 = it2->next;
           }
-
-          buf[!bufidx][bufi[!bufidx]] = it2;
-          bufi[!bufidx]++;
-          bufc[!bufidx]++;
-
-          it2 = it2->next;
         }
+        
+        it = it->next;
       }
-
-      it = it->next;
+      
+      if (++bufi[bufidx] == bufc[bufidx]) {
+        bufc[bufidx] = bufi[bufidx] = bufi[!bufidx] = 0;
+        bufidx       = !bufidx;
+      }
     }
 
-    if (++bufi[bufidx] == bufc[bufidx]) {
-      bufc[bufidx] = bufi[bufidx] = bufi[!bufidx] = 0;
-      bufidx       = !bufidx;
-    }
-  }
+    /* pick next parent*/
+    (void)ak_sidElement(doc, target, &elm);
+    if (!elm)
+      goto err;
+
+    free(siddup);
+  } while (true);
 
 ret:
   found = ak_sid_resolve_attr(sidnode,
@@ -410,73 +435,16 @@ ak_sid_resolve_attr(AkHeapNode *heapNode,
                     uintptr_t   off,
                     const char *attr) {
   /* TODO: */
-  return NULL;
-}
-
-AkTypeId *
-ak_sidConstraintsOf(AkTypeId typeId) {
-  void     *found;
-  AkResult  ret;
-
-  ret = ak_heap_getMemById(sidconst_heap,
-                           &typeId,
-                           &found);
-  if (ret == AK_OK)
-    return found;
-
-  return NULL;
-}
-
-void
-ak_sidConstraintTo(AkTypeId typeId,
-                   AkTypeId typeIds[],
-                   uint32_t count) {
-  AkHeap   *heap;
-  AkTypeId *constr;
-  void     *found;
-  AkResult  ret;
-
-  heap = sidconst_heap;
-  ret  = ak_heap_getMemById(heap,
-                            &typeId,
-                            &found);
-  if (ret == AK_OK)
-    ak_free(found);
-
-  if (count == 0)
-    return;
-
-  /* key | count | item1 | item2 | item3 */
-  constr = ak_heap_alloc(heap,
-                         NULL,
-                         sizeof(AkTypeId) * (count + 2));
-  constr[0] = typeId;
-  constr[1] = count;
-  memcpy(&constr[2],
-         typeIds,
-         sizeof(AkTypeId) * count);
-
-  ak_heap_setId(heap,
-                ak__alignof(constr),
-                &constr[0]);
+  return ak__alignas(heapNode);
 }
 
 void _assetkit_hide
 ak_sid_init() {
-  AkTypeId effectConstr[] = {
-    AKT_TECHNIQUE_FX,
-    AKT_PROFILE,
-    AKT_EFFECT
-  };
-
   ak_heap_init(sidconst_heap,
                NULL,
                ak_cmp_i32,
                NULL);
-
-  ak_sidConstraintTo(AKT_TEXTURE_NAME, effectConstr, 3);
-  ak_sidConstraintTo(AKT_TEXCOORD,     effectConstr, 3);
-  ak_sidConstraintTo(AKT_TEXTURE,      effectConstr, 3);
+  ak_sidInitConstr();
 }
 
 void _assetkit_hide

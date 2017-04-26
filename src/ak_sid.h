@@ -10,18 +10,34 @@
 
 #include "ak_common.h"
 
+typedef struct AkSidConstrItem {
+  AkTypeId                constr;
+  uint32_t                chldCound;
+  AkTypeId               *constrChld;
+  struct AkSidConstrItem *next;
+} AkSidConstrItem;
+
+typedef struct AkSidConstr {
+  AkTypeId         typeId;
+  AkEnum           method; /* 0: block-scope */
+  AkSidConstrItem *item;
+} AkSidConstr;
+
 void _assetkit_hide
 ak_sid_init();
 
 void _assetkit_hide
 ak_sid_deinit();
 
-AkTypeId*
+void
+ak_sidInitConstr();
+
+AkSidConstr*
 ak_sidConstraintsOf(AkTypeId typeId);
 
 void
-ak_sidConstraintTo(AkTypeId typeId,
-                   AkTypeId typeIds[],
-                   uint32_t count);
+ak_sidConstraintTo(AkTypeId         typeId,
+                   AkSidConstrItem *constrs,
+                   AkEnum           method);
 
 #endif /* ak_src_sid_h */

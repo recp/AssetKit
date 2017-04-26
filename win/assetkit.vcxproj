@@ -306,6 +306,7 @@
     <ClCompile Include="..\src\ak_memory_lt.c" />
     <ClCompile Include="..\src\ak_memory_rb.c" />
     <ClCompile Include="..\src\ak_sid.c" />
+    <ClCompile Include="..\src\ak_sid_constr.c" />
     <ClCompile Include="..\src\ak_string.c" />
     <ClCompile Include="..\src\ak_trash.c" />
     <ClCompile Include="..\src\ak_tree.c" />
