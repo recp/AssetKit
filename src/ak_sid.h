@@ -40,4 +40,11 @@ ak_sidConstraintTo(AkTypeId         typeId,
                    AkSidConstrItem *constrs,
                    AkEnum           method);
 
+_assetkit_hide
+ptrdiff_t
+ak_sidElement(AkDoc      * __restrict doc,
+              const char * __restrict target,
+              void      ** __restrict idnode,
+              bool       * __restrict isdot);
+
 #endif /* ak_src_sid_h */

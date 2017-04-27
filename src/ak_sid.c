@@ -172,32 +172,33 @@ ak_sid_destroy(AkHeap * __restrict heap,
     alc->free(snode->sids);
 }
 
-AK_EXPORT
+_assetkit_hide
 ptrdiff_t
 ak_sidElement(AkDoc      * __restrict doc,
               const char * __restrict target,
-              void      ** __restrict idnode) {
+              void      ** __restrict idnode,
+              bool       * __restrict isdot) {
   AkHeap     *heap;
   AkHeapNode *hnode, *parent;
   const char *it;
   char       *sidp;
   AkResult    ret;
 
-  heap = NULL;
-  it   = NULL;
-  sidp = NULL;
+  heap  = NULL;
+  it    = ak_strltrim_fast(target);
+  sidp  = strchr(target, '/');
+  *isdot = *it == '.' || !sidp;
 
-  if (*idnode) {
+  if (*idnode && *isdot) {
     hnode = ak__alignof(*idnode);
     goto again;
   }
 
   heap = ak_heap_getheap(doc);
-  it   = ak_strltrim_fast(target);
-  sidp = strchr(target, '/');
+
 
   /* if there is no "/" then assume that this is "./" */
-  if (*it == '.' || !sidp) {
+  if (*isdot) {
     AkSidConstr *constr;
 
     /* .[attr] */
@@ -301,9 +302,10 @@ ak_sid_resolve(AkDoc      * __restrict doc,
   int          bufidx;
   uint16_t     off;
   ptrdiff_t    sidoff;
+  bool         isdot;
 
   elm    = NULL;
-  sidoff = ak_sidElement(doc, target, &elm);
+  sidoff = ak_sidElement(doc, target, &elm, &isdot);
   if (sidoff == -1 || !elm)
     return NULL;
 
@@ -314,109 +316,111 @@ ak_sid_resolve(AkDoc      * __restrict doc,
   buf[0]  = malloc(sizeof(*buf[0]) * bufl[0]);
   buf[1]  = malloc(sizeof(*buf[0]) * bufl[0]);
 
-  do {
-    idnode  = ak__alignof(elm);
-    off     = 0;
-    sidnode = NULL;
-    found   = NULL;
-    siddup  = strdup(target + sidoff);
-    sid_it  = strtok_r(siddup, "/ \t", &saveptr);
+again:
+  idnode  = ak__alignof(elm);
+  off     = 0;
+  sidnode = NULL;
+  found   = NULL;
+  siddup  = strdup(target + sidoff);
+  sid_it  = strtok_r(siddup, "/ \t", &saveptr);
 
-    buf[bufidx][bufi[bufidx]] = ak_heap_chld(idnode);
-    bufc[bufidx] = 1;
+  buf[bufidx][bufi[bufidx]] = ak_heap_chld(idnode);
+  bufc[bufidx] = 1;
 
-    /* breadth-first search */
-    while (bufc[bufidx] > 0) {
+  /* breadth-first search */
+  while (bufc[bufidx] > 0) {
 
-      it = buf[bufidx][bufi[bufidx]];
+    it = buf[bufidx][bufi[bufidx]];
 
-      while (it) {
-        if (it->flags & AK_HEAP_NODE_FLAGS_SID) {
-          AkSIDNode *snode;
+    while (it) {
+      if (it->flags & AK_HEAP_NODE_FLAGS_SID) {
+        AkSIDNode *snode;
 
-          snode = ak_heap_ext_get(it, AK_HEAP_NODE_FLAGS_SID);
-          if (snode->sid && strcmp(snode->sid, sid_it) == 0) {
-            char *tok;
+        snode = ak_heap_ext_get(it, AK_HEAP_NODE_FLAGS_SID);
+        if (snode->sid && strcmp(snode->sid, sid_it) == 0) {
+          char *tok;
 
-            sidnode = it;
+          sidnode = it;
 
-            /* go for next */
-            tok = strtok_r(NULL, "/ \t", &saveptr);
-            if (!tok)
+          /* go for next */
+          tok = strtok_r(NULL, "/ \t", &saveptr);
+          if (!tok)
+            goto ret;
+
+          sid_it = tok;
+        }
+
+        /* check attrs */
+        if (snode->sids) {
+          char  *p, *end;
+          size_t c;
+
+          c   = *(size_t *)snode->sids;
+          p   = (char *)snode->sids + sizeof(size_t);
+          end = p + c * (sizeof(char **) + sizeof(uint16_t));
+
+          while (p != end) {
+            off = *(uint16_t *)p;
+            p  += sizeof(uint16_t);
+
+            /* found sid in attr */
+            if (strcmp(*(char **)p, sid_it) == 0) {
+              char *tok;
+
+              sidnode = it;
+
+              /* there is no way to go down */
+              tok = strtok_r(NULL, "/ \t", &saveptr);
+              if (tok)
+                goto err;
+
               goto ret;
-
-            sid_it = tok;
-          }
-
-          /* check attrs */
-          if (snode->sids) {
-            char  *p, *end;
-            size_t c;
-
-            c   = *(size_t *)snode->sids;
-            p   = (char *)snode->sids + sizeof(size_t);
-            end = p + c * (sizeof(char **) + sizeof(uint16_t));
-
-            while (p != end) {
-              off = *(uint16_t *)p;
-              p  += sizeof(uint16_t);
-
-              /* found sid in attr */
-              if (strcmp(*(char **)p, sid_it) == 0) {
-                char *tok;
-
-                sidnode = it;
-
-                /* there is no way to go down */
-                tok = strtok_r(NULL, "/ \t", &saveptr);
-                if (tok)
-                  goto err;
-
-                goto ret;
-              }
-
-              p += sizeof(char **) + sizeof(uint16_t);
             }
+
+            p += sizeof(char **) + sizeof(uint16_t);
           }
         }
+      }
 
-        if (it->flags & AK_HEAP_NODE_FLAGS_SID_CHLD) {
-          /* keep all children */
-          AkHeapNode *it2;
+      if (it->flags & AK_HEAP_NODE_FLAGS_SID_CHLD) {
+        /* keep all children */
+        AkHeapNode *it2;
 
-          it2 = ak_heap_chld(it);
-          while (it2) {
+        it2 = ak_heap_chld(it);
+        while (it2) {
 
-            if (bufi[!bufidx] == bufl[!bufidx]) {
-              bufl[!bufidx] += 16;
-              buf[!bufidx]   = realloc(buf[!bufidx],
-                                       bufl[!bufidx]);
-            }
-            
-            buf[!bufidx][bufi[!bufidx]] = it2;
-            bufi[!bufidx]++;
-            bufc[!bufidx]++;
-            
-            it2 = it2->next;
+          if (bufi[!bufidx] == bufl[!bufidx]) {
+            bufl[!bufidx] += 16;
+            buf[!bufidx]   = realloc(buf[!bufidx],
+                                     bufl[!bufidx]);
           }
+
+          buf[!bufidx][bufi[!bufidx]] = it2;
+          bufi[!bufidx]++;
+          bufc[!bufidx]++;
+
+          it2 = it2->next;
         }
-        
-        it = it->next;
       }
-      
-      if (++bufi[bufidx] == bufc[bufidx]) {
-        bufc[bufidx] = bufi[bufidx] = bufi[!bufidx] = 0;
-        bufidx       = !bufidx;
-      }
+
+      it = it->next;
     }
 
+    if (++bufi[bufidx] == bufc[bufidx]) {
+      bufc[bufidx] = bufi[bufidx] = bufi[!bufidx] = 0;
+      bufidx       = !bufidx;
+    }
+  }
+
+  if (isdot) {
     /* pick next parent*/
-    (void)ak_sidElement(doc, target, &elm);
+    (void)ak_sidElement(doc, target, &elm, &isdot);
     if (!elm)
       goto err;
 
     free(siddup);
-  } while (true);
+    goto again;
+  }
 
 ret:
   found = ak_sid_resolve_attr(sidnode,
