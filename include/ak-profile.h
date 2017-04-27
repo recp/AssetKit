@@ -14,13 +14,13 @@ extern "C" {
 #include "ak-material.h"
 
 typedef enum AkProfileType {
-  AK_PROFILE_TYPE_UNKOWN = 0,
-  AK_PROFILE_TYPE_COMMON = 1,
-  AK_PROFILE_TYPE_CG     = 2,
-  AK_PROFILE_TYPE_GLES   = 3,
-  AK_PROFILE_TYPE_GLES2  = 4,
-  AK_PROFILE_TYPE_GLSL   = 5,
-  AK_PROFILE_TYPE_BRIDGE = 6
+  AK_PROFILE_TYPE_UNKOWN =-1,
+  AK_PROFILE_TYPE_COMMON = 0,
+  AK_PROFILE_TYPE_CG     = 1,
+  AK_PROFILE_TYPE_GLES   = 2,
+  AK_PROFILE_TYPE_GLES2  = 3,
+  AK_PROFILE_TYPE_GLSL   = 4,
+  AK_PROFILE_TYPE_BRIDGE = 5
 } AkProfileType;
 
 typedef struct AkTechniqueFx {
