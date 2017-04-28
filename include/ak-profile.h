@@ -13,6 +13,8 @@ extern "C" {
 
 #include "ak-material.h"
 
+struct AkEffect;
+
 typedef enum AkProfileType {
   AK_PROFILE_TYPE_UNKOWN =-1,
   AK_PROFILE_TYPE_COMMON = 0,
@@ -89,6 +91,16 @@ typedef struct AkProfileBridge {
   const char * platform;
   const char * url;
 } AkProfileBridge;
+
+AkProfileType
+ak_profileType(struct AkEffect * __restrict effect);
+
+uint32_t
+ak_supportedProfiles(AkProfileType ** profileTypes);
+
+void
+ak_setSupportedProfiles(AkProfileType profileTypes[],
+                        uint32_t      count);
 
 #ifdef __cplusplus
 }

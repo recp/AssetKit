@@ -216,6 +216,7 @@
     <ClInclude Include="..\src\ak_memory_common.h" />
     <ClInclude Include="..\src\ak_memory_lt.h" />
     <ClInclude Include="..\src\ak_memory_rb.h" />
+    <ClInclude Include="..\src\ak_profile.h" />
     <ClInclude Include="..\src\ak_trash.h" />
     <ClInclude Include="..\src\ak_tree.h" />
     <ClInclude Include="..\src\ak_utils.h" />
@@ -305,6 +306,7 @@
     <ClCompile Include="..\src\ak_memory_ext.c" />
     <ClCompile Include="..\src\ak_memory_lt.c" />
     <ClCompile Include="..\src\ak_memory_rb.c" />
+    <ClCompile Include="..\src\ak_profile.c" />
     <ClCompile Include="..\src\ak_sid.c" />
     <ClCompile Include="..\src\ak_sid_constr.c" />
     <ClCompile Include="..\src\ak_string.c" />

@@ -684,14 +684,15 @@ typedef struct AkEffect {
   ak_asset_base
 
   /* const char * id; */
-  const char * name;
+  const char      *name;
+  AkAnnotate      *annotate;
+  AkNewParam      *newparam;
+  AkProfile       *profile;
+  AkTree          *extra;
+  struct AkEffect *next;
 
-  AkAnnotate * annotate;
-  AkNewParam * newparam;
-  AkProfile  * profile;
-  AkTree     * extra;
-
-  struct AkEffect * next;
+  /* effect specific options, override global options */
+  AkProfileType    bestProfile;
 } AkEffect;
 
 typedef struct AkTechniqueHint {
