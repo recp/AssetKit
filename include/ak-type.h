@@ -27,6 +27,9 @@ typedef enum AkTypeId {
 AkTypeId
 ak_typeid(void * __restrict mem);
 
+AkTypeId
+ak_typeidh(AkHeapNode * __restrict hnode);
+
 void
 ak_setypeid(void * __restrict mem,
             AkTypeId tid);

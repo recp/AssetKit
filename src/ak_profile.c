@@ -15,6 +15,36 @@
 AkProfileType *ak__profileTypes;
 uint32_t       ak__profileTypesCount;
 
+AkProfile*
+ak_profile(struct AkEffect * __restrict effect,
+           AkProfile       * __restrict after) {
+  AkHeapNode   *hnodeParent, *hnode;
+  AkProfileType profileType;
+
+  hnodeParent = ak__alignof(effect);
+  profileType = ak_profileType(effect);
+
+  /* get next profile */
+  if (after) {
+    hnode = ak__alignof(after);
+    hnode = hnode->next;
+  } else {
+    hnode = hnodeParent->chld;
+  }
+
+  while (hnode) {
+    if (ak_typeidh(hnode) == AKT_PROFILE) {
+      AkProfile *profile;
+      profile = ak__alignas(hnode);
+      if (profile->type == profileType)
+        return profile;
+    }
+    hnode = hnode->next;
+  }
+
+  return NULL;
+}
+
 AkProfileType
 ak_profileType(struct AkEffect * __restrict effect) {
   AkProfileType defaultProfile;

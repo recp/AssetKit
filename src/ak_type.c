@@ -10,6 +10,11 @@
 #include "../include/ak-type.h"
 
 AkTypeId
+ak_typeidh(AkHeapNode * __restrict hnode) {
+  return hnode->typeid;
+}
+
+AkTypeId
 ak_typeid(void * __restrict mem) {
   AkHeapNode *hnode;
 

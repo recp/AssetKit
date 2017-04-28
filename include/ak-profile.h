@@ -92,6 +92,10 @@ typedef struct AkProfileBridge {
   const char * url;
 } AkProfileBridge;
 
+AkProfile*
+ak_profile(struct AkEffect * __restrict effect,
+           AkProfile       * __restrict after);
+
 AkProfileType
 ak_profileType(struct AkEffect * __restrict effect);
 
