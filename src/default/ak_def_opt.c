@@ -25,7 +25,8 @@ uintptr_t AK_OPTIONS[] =
   false,                      /* 9:  _COMPUTE_BBOX                */
   true,                       /* 10: _TRIANGULATE                 */
   true,                       /* 11: _GEN_NORMALS_IF_NEEDED       */
-  AK_PROFILE_TYPE_COMMON      /* 12: _DEFAULT_PROFILE             */
+  AK_PROFILE_TYPE_COMMON,     /* 12: _DEFAULT_PROFILE             */
+  true                        /* 13: _EFFECT_PROFILE              */
 };
 
 AK_EXPORT
