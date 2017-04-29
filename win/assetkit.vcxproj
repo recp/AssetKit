@@ -183,6 +183,7 @@
     <ClInclude Include="..\include\ak-bbox.h" />
     <ClInclude Include="..\include\ak-cam.h" />
     <ClInclude Include="..\include\ak-common.h" />
+    <ClInclude Include="..\include\ak-context.h" />
     <ClInclude Include="..\include\ak-coord-util.h" />
     <ClInclude Include="..\include\ak-coord.h" />
     <ClInclude Include="..\include\ak-geom.h" />

@@ -415,6 +415,9 @@
     <ClInclude Include="..\src\ak_profile.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\ak-context.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\bbox\ak_bbox.c">

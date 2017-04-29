@@ -974,6 +974,7 @@ typedef struct AkDoc {
   AkScene     scene;
 } AkDoc;
 
+#include "ak-context.h"
 #include "ak-geom.h"
 #include "ak-image.h"
 #include "ak-states.h"
