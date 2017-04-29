@@ -41,6 +41,19 @@ typedef struct AkTechniqueFx {
   struct AkTechniqueFx * next;
 } AkTechniqueFx;
 
+typedef struct AkTechniqueOverride {
+  const char * ref;
+  const char * pass;
+} AkTechniqueOverride;
+
+typedef struct AkTechniqueHint {
+  const char * platform;
+  const char * ref;
+  const char * profile;
+
+  struct AkTechniqueHint * next;
+} AkTechniqueHint;
+
 typedef struct AkProfile {
   /* const char * id; */
   ak_asset_base

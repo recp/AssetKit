@@ -695,14 +695,6 @@ typedef struct AkEffect {
   AkProfileType    bestProfile;
 } AkEffect;
 
-typedef struct AkTechniqueHint {
-  const char * platform;
-  const char * ref;
-  const char * profile;
-
-  struct AkTechniqueHint * next;
-} AkTechniqueHint;
-
 typedef struct AkInstanceEffect {
   AkInstanceBase   base;
   AkTechniqueHint *techniqueHint;
@@ -858,11 +850,6 @@ struct AkNode {
   struct AkNode        *parent;
   struct AkNode        *next;
 };
-
-typedef struct AkTechniqueOverride {
-  const char * ref;
-  const char * pass;
-} AkTechniqueOverride;
 
 typedef struct AkBind {
   const char    * semantic;
