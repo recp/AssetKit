@@ -14,6 +14,7 @@
 
 AkProfileType *ak__profileTypes;
 uint32_t       ak__profileTypesCount;
+char           ak__platform[64];
 
 AkProfile*
 ak_profile(struct AkEffect * __restrict effect,
@@ -120,8 +121,21 @@ ak_setSupportedProfiles(AkProfileType profileTypes[],
   ak__profileTypesCount = count;
 }
 
+const char*
+ak_platform() {
+  return ak__platform;
+}
+
+void
+ak_setPlatform(const char platform[64]) {
+  strcpy(ak__platform, platform);
+}
+
 void _assetkit_hide
 ak_profile_init() {
+  /* default platform */
+  strcpy(ak__platform, "GL");
+
   ak__profileTypes = ak_malloc(NULL, sizeof(AkProfileType));
   *ak__profileTypes = AK_PROFILE_TYPE_COMMON;
   ak__profileTypesCount = 1;
