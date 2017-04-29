@@ -12,26 +12,26 @@
 extern AkCoordSys   AK__Y_RH_VAL;
 extern const char * AK_DEF_ID_PRFX;
 
-const char ak__commonstr[] = "common";
+const char *ak__def_techniques[] = {"common", NULL};
 
 uintptr_t AK_OPTIONS[] =
 {
-  false,                      /* 0:  _INDICES_NONE                */
-  false,                      /* 1:  _INDICES_SINGLE_INTERLEAVED  */
-  false,                      /* 2:  _INDICES_SINGLE_SEPARATE     */
-  false,                      /* 3:  _INDICES_SINGLE              */
-  true,                       /* 4:  _NO_INDICES_INTERLEAVED      */
-  false,                      /* 5:  _NO_INDICES_SEPARATE         */
-  (uintptr_t)&AK__Y_RH_VAL,   /* 6:  _COORD                       */
-  true,                       /* 7:  _USE_DOC_COORD               */
-  (uintptr_t)&AK_DEF_ID_PRFX, /* 8:  _DEFAULT_ID_PREFIX           */
-  false,                      /* 9:  _COMPUTE_BBOX                */
-  true,                       /* 10: _TRIANGULATE                 */
-  true,                       /* 11: _GEN_NORMALS_IF_NEEDED       */
-  AK_PROFILE_TYPE_COMMON,     /* 12: _DEFAULT_PROFILE             */
-  true,                       /* 13: _EFFECT_PROFILE              */
-  (uintptr_t)&ak__commonstr,  /* 14: _TECHNIQUE                   */
-  (uintptr_t)&ak__commonstr   /* 15: _TECHNIQUE_FX                */
+  false,                           /* 0:  _INDICES_NONE                */
+  false,                           /* 1:  _INDICES_SINGLE_INTERLEAVED  */
+  false,                           /* 2:  _INDICES_SINGLE_SEPARATE     */
+  false,                           /* 3:  _INDICES_SINGLE              */
+  true,                            /* 4:  _NO_INDICES_INTERLEAVED      */
+  false,                           /* 5:  _NO_INDICES_SEPARATE         */
+  (uintptr_t)&AK__Y_RH_VAL,        /* 6:  _COORD                       */
+  true,                            /* 7:  _USE_DOC_COORD               */
+  (uintptr_t)&AK_DEF_ID_PRFX,      /* 8:  _DEFAULT_ID_PREFIX           */
+  false,                           /* 9:  _COMPUTE_BBOX                */
+  true,                            /* 10: _TRIANGULATE                 */
+  true,                            /* 11: _GEN_NORMALS_IF_NEEDED       */
+  AK_PROFILE_TYPE_COMMON,          /* 12: _DEFAULT_PROFILE             */
+  true,                            /* 13: _EFFECT_PROFILE              */
+  (uintptr_t)ak__def_techniques,   /* 14: _TECHNIQUE                   */
+  (uintptr_t)ak__def_techniques    /* 15: _TECHNIQUE_FX                */
 };
 
 AK_EXPORT
@@ -54,9 +54,6 @@ AK_EXPORT
 void
 ak_opt_set_str(AkOption option, const char *value) {
   assert((uint32_t)option < AK_ARRAY_LEN(AK_OPTIONS));
-
-  if (AK_OPTIONS[option] != (uintptr_t)&ak__commonstr)
-    ak_free((char *)AK_OPTIONS[option]);
 
   AK_OPTIONS[option] = (uintptr_t)ak_strdup(NULL, value);
 }
