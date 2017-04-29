@@ -6,10 +6,13 @@
  */
 
 #include "ak_def_opt.h"
+#include <string.h>
 #include <assert.h>
 
 extern AkCoordSys   AK__Y_RH_VAL;
 extern const char * AK_DEF_ID_PRFX;
+
+const char ak__commonstr[] = "common";
 
 uintptr_t AK_OPTIONS[] =
 {
@@ -26,7 +29,9 @@ uintptr_t AK_OPTIONS[] =
   true,                       /* 10: _TRIANGULATE                 */
   true,                       /* 11: _GEN_NORMALS_IF_NEEDED       */
   AK_PROFILE_TYPE_COMMON,     /* 12: _DEFAULT_PROFILE             */
-  true                        /* 13: _EFFECT_PROFILE              */
+  true,                       /* 13: _EFFECT_PROFILE              */
+  (uintptr_t)&ak__commonstr,  /* 14: _TECHNIQUE                   */
+  (uintptr_t)&ak__commonstr   /* 15: _TECHNIQUE_FX                */
 };
 
 AK_EXPORT
@@ -43,4 +48,15 @@ ak_opt_get(AkOption option) {
   assert((uint32_t)option < AK_ARRAY_LEN(AK_OPTIONS));
 
   return AK_OPTIONS[option];
+}
+
+AK_EXPORT
+void
+ak_opt_set_str(AkOption option, const char *value) {
+  assert((uint32_t)option < AK_ARRAY_LEN(AK_OPTIONS));
+
+  if (AK_OPTIONS[option] != (uintptr_t)&ak__commonstr)
+    ak_free((char *)AK_OPTIONS[option]);
+
+  AK_OPTIONS[option] = (uintptr_t)ak_strdup(NULL, value);
 }
