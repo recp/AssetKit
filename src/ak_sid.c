@@ -7,6 +7,7 @@
 
 #include "ak_common.h"
 #include "ak_memory_common.h"
+#include "../include/ak-profile.h"
 #include "ak_sid.h"
 
 #include <stdlib.h>
@@ -174,11 +175,12 @@ ak_sid_destroy(AkHeap * __restrict heap,
 
 _assetkit_hide
 ptrdiff_t
-ak_sidElement(AkDoc      * __restrict doc,
+ak_sidElement(AkContext  * __restrict ctx,
               const char * __restrict target,
               void      ** __restrict idnode,
               bool       * __restrict isdot) {
   AkHeap     *heap;
+  AkDoc      *doc;
   AkHeapNode *hnode, *parent;
   const char *it;
   char       *sidp;
@@ -194,6 +196,7 @@ ak_sidElement(AkDoc      * __restrict doc,
     goto again;
   }
 
+  doc  = ctx->doc;
   heap = ak_heap_getheap(doc);
 
 
@@ -288,12 +291,162 @@ err:
   return -1;
 }
 
+_assetkit_hide
+AkHeapNode*
+ak_sid_profile(AkContext  * __restrict ctx,
+               AkHeapNode * __restrict parent,
+               AkHeapNode * __restrict after) {
+  AkProfile       *profile;
+  AkTechniqueHint *hint;
+  const char      *platform;
+
+  profile = ak_profile(ak__alignas(parent),
+                       after ? ak__alignas(after) : NULL);
+
+  /* check hint for profile */
+  if ((!ctx->techniqueHint
+       || !ctx->techniqueHint->profile)
+      && profile)
+    return ak__alignof(profile);
+
+  hint     = ctx->techniqueHint;
+  platform = ak_platform();
+  while (profile) {
+    if (profile->type == hint->profileType)
+      goto ret;
+
+    if (!(profile = ak_profile(ak__alignas(parent), profile)))
+      goto err;
+
+    /* check platform */
+    if (hint->platform) {
+      if (strcmp(platform, hint->platform) == 0)
+        profile = ak_profile(ak__alignas(parent), profile);
+    }
+  }
+
+ret:
+  if (profile)
+    return ak__alignof(profile);
+
+err:
+  return NULL;
+}
+
+_assetkit_hide
+AkHeapNode*
+ak_sid_technique(AkContext  * __restrict ctx,
+                 AkHeapNode * __restrict chld) {
+  AkHeapNode *orig;
+  orig = chld;
+
+  /* first check hint for technique */
+  if (ctx->techniqueHint && ctx->techniqueHint->ref) {
+    AkTechniqueHint *hint;
+    const char      *platform;
+
+    hint     = ctx->techniqueHint;
+    platform = ak_platform();
+
+    /* get desired technique */
+    while (chld) {
+      AkSIDNode *snode;
+      snode = ak_heap_ext_get(chld, AK_HEAP_NODE_FLAGS_SID);
+      if (snode->sid && strcmp(snode->sid, hint->ref) == 0)
+        goto ret;
+
+      if (!(chld = chld->next))
+        goto err;
+
+      /* check platform */
+      if (hint->platform) {
+        if (strcmp(platform, hint->platform) == 0)
+          chld = chld->next;
+      }
+    }
+  }
+
+  /* check global options to get active technique name */
+  else {
+    /* default: try to get sid="common" or technique_common */
+    char **tnames, *tname;
+
+    /* get global techniques with order */
+    if (ak_typeidh(chld) == AKT_TECHNIQUE_FX)
+      tnames = (char **)ak_opt_get(AK_OPT_TECHNIQUE_FX);
+    else
+      tnames = (char **)ak_opt_get(AK_OPT_TECHNIQUE);
+
+    if (!*tnames)
+      goto err;
+
+    /* get desired technique */
+    while (chld) {
+      tname = *tnames;
+
+      do {
+        AkSIDNode *snode;
+        uint32_t   i;
+
+        i     = 0;
+        snode = ak_heap_ext_get(chld, AK_HEAP_NODE_FLAGS_SID);
+        if (snode
+            && snode->sid
+            && strcmp(snode->sid, tname) == 0)
+          goto ret;
+
+        tname = tnames[++i];
+      } while (tname);
+
+      chld = chld->next;
+    }
+  }
+
+  /* default: no technique found use first one */
+  chld = orig;
+
+ret:
+  return chld;
+
+err:
+  return NULL;
+}
+
+_assetkit_hide
+AkHeapNode*
+ak_sid_chldh(AkContext  * __restrict ctx,
+             AkHeapNode * __restrict parent,
+             AkHeapNode * __restrict after) {
+  AkHeapNode *chld;
+
+  /* select active profile if parent is <effect> */
+  if (ak_typeidh(parent) == AKT_EFFECT)
+    return ak_sid_profile(ctx, parent, after);
+
+  /* get child element */
+  if (after)
+    chld = after->next;
+  else
+    chld = ak_heap_chld(parent);
+
+  if (!chld)
+    return NULL;
+
+  /* check active technique if child element is <technique> */
+  if (ak_typeidh(chld) == AKT_TECHNIQUE_FX
+      || ak_typeidh(chld) == AKT_TECHNIQUE)
+    chld = ak_sid_technique(ctx, chld);
+
+  return chld;
+}
+
 AK_EXPORT
 void *
-ak_sid_resolve(AkDoc      * __restrict doc,
+ak_sid_resolve(AkContext  * __restrict ctx,
                const char * __restrict target) {
   AkHeap      *heap;
-  AkHeapNode  *idnode, *sidnode, *it;
+  AkDoc       *doc;
+  AkHeapNode  *idnode, *sidnode, *it, *chld;
   char        *siddup, *sid_it, *saveptr;
   void        *found;
   AkHeapNode **buf[2];
@@ -305,13 +458,14 @@ ak_sid_resolve(AkDoc      * __restrict doc,
   bool         isdot;
 
   elm    = NULL;
-  sidoff = ak_sidElement(doc, target, &elm, &isdot);
+  sidoff = ak_sidElement(ctx, target, &elm, &isdot);
   if (sidoff == -1 || !elm)
     return NULL;
 
   bufi[0] = bufi[1] = bufc[0] = bufc[1] = bufidx = 0;
   bufl[0] = bufl[1] = 4; /* start point */
 
+  doc     = ctx->doc;
   heap    = ak_heap_getheap(doc);
   buf[0]  = malloc(sizeof(*buf[0]) * bufl[0]);
   buf[1]  = malloc(sizeof(*buf[0]) * bufl[0]);
@@ -324,7 +478,11 @@ again:
   siddup  = strdup(target + sidoff);
   sid_it  = strtok_r(siddup, "/ \t", &saveptr);
 
-  buf[bufidx][bufi[bufidx]] = ak_heap_chld(idnode);
+  chld = ak_sid_chldh(ctx, idnode, NULL);
+  if (!chld)
+    return NULL;
+
+  buf[bufidx][bufi[bufidx]] = chld;
   bufc[bufidx] = 1;
 
   /* breadth-first search */
@@ -386,9 +544,8 @@ again:
         /* keep all children */
         AkHeapNode *it2;
 
-        it2 = ak_heap_chld(it);
+        it2 = ak_sid_chldh(ctx, it, NULL);
         while (it2) {
-
           if (bufi[!bufidx] == bufl[!bufidx]) {
             bufl[!bufidx] += 16;
             buf[!bufidx]   = realloc(buf[!bufidx],
@@ -399,7 +556,7 @@ again:
           bufi[!bufidx]++;
           bufc[!bufidx]++;
 
-          it2 = it2->next;
+          it2 = ak_sid_chldh(ctx, it, it2);
         }
       }
 
@@ -414,7 +571,7 @@ again:
 
   if (isdot) {
     /* pick next parent*/
-    (void)ak_sidElement(doc, target, &elm, &isdot);
+    (void)ak_sidElement(ctx, target, &elm, &isdot);
     if (!elm)
       goto err;
 

@@ -15,6 +15,8 @@
 extern "C" {
 #endif
 
+#include "ak-context.h"
+
 AK_EXPORT
 const char *
 ak_sid_get(void *memnode);
@@ -42,7 +44,7 @@ ak_sid_seta(void       *memnode,
 
 AK_EXPORT
 void *
-ak_sid_resolve(AkDoc      * __restrict doc,
+ak_sid_resolve(AkContext  * __restrict ctx,
                const char * __restrict target);
 
 #ifdef __cplusplus

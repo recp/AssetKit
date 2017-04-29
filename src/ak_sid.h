@@ -41,8 +41,25 @@ ak_sidConstraintTo(AkTypeId         typeId,
                    AkEnum           method);
 
 _assetkit_hide
+AkHeapNode*
+ak_sid_profile(AkContext  * __restrict ctx,
+               AkHeapNode * __restrict parent,
+               AkHeapNode * __restrict after);
+
+_assetkit_hide
+AkHeapNode*
+ak_sid_technique(AkContext  * __restrict ctx,
+                 AkHeapNode * __restrict chld);
+
+_assetkit_hide
+AkHeapNode*
+ak_sid_chldh(AkContext  * __restrict ctx,
+             AkHeapNode * __restrict parent,
+             AkHeapNode * __restrict after);
+
+_assetkit_hide
 ptrdiff_t
-ak_sidElement(AkDoc      * __restrict doc,
+ak_sidElement(AkContext  * __restrict ctx,
               const char * __restrict target,
               void      ** __restrict idnode,
               bool       * __restrict isdot);

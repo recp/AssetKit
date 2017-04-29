@@ -47,11 +47,11 @@ typedef struct AkTechniqueOverride {
 } AkTechniqueOverride;
 
 typedef struct AkTechniqueHint {
-  const char * platform;
-  const char * ref;
-  const char * profile;
-
-  struct AkTechniqueHint * next;
+  struct AkTechniqueHint *next;
+  const char             *platform;
+  const char             *ref;
+  const char             *profile;
+  AkProfileType           profileType;
 } AkTechniqueHint;
 
 typedef struct AkProfile {
