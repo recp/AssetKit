@@ -7,6 +7,7 @@
 
 #include "../ak_common.h"
 #include "../../include/ak-path.h"
+#include "../../include/ak-string.h"
 
 #include <limits.h>
 #include <uv.h>
@@ -59,6 +60,25 @@ ak_path_isfile(const char *path) {
       return 0;
 
   return 1;
+}
+
+AK_EXPORT
+char*
+ak_path_dir(AkHeap     * __restrict heap,
+            void       * __restrict memparent,
+            const char * __restrict path) {
+  char *dir;
+  char *slash;
+
+  slash = strrchr(path, '/');
+  if (!slash)
+    return ak_heap_strdup(heap, memparent, "./");
+
+  dir = ak_heap_strndup(heap,
+                        memparent,
+                        path,
+                        slash - path);
+  return dir;
 }
 
 AK_EXPORT
@@ -188,6 +208,37 @@ ak_path_join(char   *fragments[],
   *size = len;
 
   return 0;
+}
+
+AK_EXPORT
+const char*
+ak_fullpath(AkDoc       * __restrict doc,
+            const char  * __restrict ref,
+            char        * __restrict buf) {
+  size_t     pathlen;
+  const char *ptr;
+  char  *fileprefix  = "file:///";
+  char  *fragments[] = {
+    (char *)doc->inf.dir,
+    "/",
+    (char *)ref,
+    NULL
+  };
+
+  ak_path_join(fragments,
+               buf,
+               &pathlen);
+
+  ptr = ak_strltrim_fast(buf);
+  if (strncmp(ptr, fileprefix, strlen(fileprefix)) == 0) {
+#ifndef _WIN32
+    ptr += strlen(fileprefix) - 1;
+#else
+    ptr += strlen(fileprefix);
+#endif
+  }
+
+  return ptr;
 }
 
 AK_EXPORT

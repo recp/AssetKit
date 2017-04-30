@@ -13,6 +13,9 @@ extern "C" {
 
 #include <stdio.h>
 
+struct AkHeap;
+struct AkDoc;
+
 AK_EXPORT
 const char *
 ak_path_fragment(const char *path);
@@ -31,6 +34,18 @@ ak_path_join(char   *fragments[],
 AK_EXPORT
 int
 ak_path_isfile(const char *path);
+
+AK_EXPORT
+char*
+ak_path_dir(struct AkHeap * __restrict heap,
+            void          * __restrict memparent,
+            const char    * __restrict path);
+
+AK_EXPORT
+const char*
+ak_fullpath(struct AkDoc * __restrict doc,
+            const char   * __restrict ref,
+            char         * __restrict buf);
 
 AK_EXPORT
 FILE *
