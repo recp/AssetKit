@@ -155,7 +155,8 @@ ak_path_join(char   *fragments[],
       frag++;
 
     /* r-trim */
-    while ((c = *frag_end) != '\0'
+    while (frag_end > frag
+           && (c = *frag_end) != '\0'
            && (c == CHR_SLASH || c == CHR_BACK_SLASH))
       frag_end--;
 
@@ -176,9 +177,6 @@ ak_path_join(char   *fragments[],
 
     frag_len = ++frag_end - frag;
     len += frag_len;
-
-    if (*size < len)
-      return -1;
 
     strncpy(buf, frag, frag_len);
 
