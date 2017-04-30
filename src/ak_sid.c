@@ -276,6 +276,7 @@ ak_sidElement(AkContext  * __restrict ctx,
     ret = ak_heap_getNodeById(heap,
                               (void *)id,
                               &hnode);
+    free(id);
     if (ret != AK_OK || !idnode)
       goto err;
 

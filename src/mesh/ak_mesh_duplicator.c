@@ -96,7 +96,7 @@ ak_meshDuplicatorForIndices(AkMesh * __restrict mesh) {
     AkInput *input;
 
     fpi = ak_heap_calloc(heap, NULL, sizeof(*fpi));
-    fpi->inpi   = calloc(sizeof(*fpi->inpi) * inpc, 1);
+    fpi->inpi   = ak_heap_calloc(heap, fpi, sizeof(*fpi->inpi) * inpc);
     fpi->orig   = primi;
     fpi->st     = primi->indexStride;
     fpi->ind    = primi->indices;
@@ -271,6 +271,17 @@ ak_meshDuplicatorForIndices(AkMesh * __restrict mesh) {
 
   duplicator->range    = dupr;
   duplicator->dupCount = count;
+
+  /* cleanup */
+  fpi = fp;
+  while (fpi) {
+    AkPrimProxy *tofree;
+
+    tofree = fpi;
+    fpi = fpi->next;
+
+    ak_free(tofree);
+  }
 
   return duplicator;
 }
