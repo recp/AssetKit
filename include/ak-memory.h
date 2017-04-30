@@ -171,20 +171,17 @@ ak_heap_parent(AkHeapNode *heapNode);
 
 AK_EXPORT
 void
-ak_heap_setp(AkHeap     * __restrict heap,
-             AkHeapNode * __restrict heapNode,
+ak_heap_setp(AkHeapNode * __restrict heapNode,
              AkHeapNode * __restrict newParent);
 
 AK_EXPORT
 void
-ak_heap_moveh(AkHeap     * __restrict heap,
-              AkHeap     * __restrict newheap,
-              AkHeapNode * __restrict heapNode);
+ak_heap_moveh(AkHeapNode * __restrict heapNode,
+              AkHeap     * __restrict newheap);
 
 AK_EXPORT
 void
-ak_heap_setpm(AkHeap * __restrict heap,
-              void   * __restrict memptr,
+ak_heap_setpm(void   * __restrict memptr,
               void   * __restrict newparent);
 
 AK_EXPORT

@@ -281,7 +281,7 @@ ak_meshGenNormals(AkMesh * __restrict mesh) {
   data = ak_getObjectByUrl(&acc->source);
   arr  = ak_objGet(data);
 
-  ak_heap_setpm(heap, srcid, src);
+  ak_heap_setpm(srcid, src);
 
   (void)ak_data_join(dctx, arr->items);
 

@@ -29,8 +29,7 @@ ak_moveId(void * __restrict objptrOld,
 
   objectId = ak_getId(objptrOld);
   if (objectId) {
-    ak_heap_setpm(ak_heap_getheap(objptrOld),
-                  objectId,
+    ak_heap_setpm(objectId,
                   objptrNew);
 
     ak_setId(objptrOld, NULL);

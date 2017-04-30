@@ -39,6 +39,12 @@ static
 char*
 ak__heap_strdup_def(const char * str);
 
+_assetkit_hide
+void
+ak_heap_moveh_chld(AkHeap     * __restrict heap,
+                   AkHeap     * __restrict newheap,
+                   AkHeapNode * __restrict heapNode);
+
 static void * ak__emptystr = "";
 
 AkHeapAllocator ak__allocator = {
@@ -486,9 +492,13 @@ ak_heap_parent(AkHeapNode *heapNode) {
 
 AK_EXPORT
 void
-ak_heap_setp(AkHeap     * __restrict heap,
-             AkHeapNode * __restrict heapNode,
+ak_heap_setp(AkHeapNode * __restrict heapNode,
              AkHeapNode * __restrict newParent) {
+  AkHeap *oldheap, *newheap;
+
+  oldheap = ak_heap_lt_find(heapNode->heapid);
+  newheap = ak_heap_lt_find(newParent->heapid);
+
   if (heapNode->prev) {
     if (ak_heap_chld(heapNode->prev) == heapNode)
       ak_heap_chld_set(heapNode->prev, heapNode->next);
@@ -499,32 +509,37 @@ ak_heap_setp(AkHeap     * __restrict heap,
       heapNode->next->prev = heapNode->prev;
 
     heapNode->prev = NULL;
-  } else if (heapNode == heap->root) { /* root->prev = NULL */
-    heap->root = heapNode->next;
+  } else if (heapNode == oldheap->root) { /* root->prev = NULL */
+    oldheap->root = heapNode->next;
 
     if (heapNode->next)
       heapNode->next->prev = NULL;
   }
+
+  heapNode->next = NULL;
+
+  if (heapNode == oldheap->trash)
+    oldheap->trash = heapNode->next;
+
+  /* move all ids to new heap (if it is different) */
+  if (newParent->heapid != heapNode->heapid)
+    ak_heap_moveh(heapNode, newheap);
 
   heapNode->next = ak_heap_chld(newParent);
   ak_heap_chld_set(newParent, heapNode);
 
   if (heapNode->next)
     heapNode->next->prev = heapNode;
-
-  /* move all ids to new heap (if it is different) */
-  if (newParent->heapid != heapNode->heapid)
-    ak_heap_moveh(heap,
-                  ak_heap_getheap(newParent),
-                  heapNode);
 }
 
-AK_EXPORT
+_assetkit_hide
 void
-ak_heap_moveh(AkHeap * __restrict heap,
-              AkHeap * __restrict newheap,
-              AkHeapNode * __restrict heapNode) {
+ak_heap_moveh_chld(AkHeap     * __restrict heap,
+                   AkHeap     * __restrict newheap,
+                   AkHeapNode * __restrict heapNode) {
   do {
+    AkHeapNode *chld;
+
     if (heapNode->flags & AK_HEAP_NODE_FLAGS_SRCH) {
       AkHeapSrchNode *srchNode;
       srchNode = (AkHeapSrchNode *)((AkHeapNodeExt *)heapNode->chld)->data;
@@ -534,23 +549,41 @@ ak_heap_moveh(AkHeap * __restrict heap,
     }
 
     heapNode->heapid = newheap->heapid;
-    heapNode         = ak_heap_chld(heapNode);
+    chld = ak_heap_chld(heapNode);
+    if (chld)
+      ak_heap_moveh_chld(heap, newheap, chld);
 
-    /* TODO: get rid of recursive call like free */
-    if (heapNode) {
-      ak_heap_moveh(heap, newheap, heapNode);
-      heapNode = heapNode->next;
-    }
+    heapNode = heapNode->next;
   } while (heapNode);
 }
 
 AK_EXPORT
 void
-ak_heap_setpm(AkHeap * __restrict heap,
-              void * __restrict memptr,
+ak_heap_moveh(AkHeapNode * __restrict heapNode,
+              AkHeap     * __restrict newheap) {
+  AkHeapNode *chld;
+  AkHeap     *heap;
+
+  heap = ak_heap_lt_find(heapNode->heapid);
+  if (heapNode->flags & AK_HEAP_NODE_FLAGS_SRCH) {
+    AkHeapSrchNode *srchNode;
+    srchNode = (AkHeapSrchNode *)((AkHeapNodeExt *)heapNode->chld)->data;
+
+    ak_heap_rb_remove(heap->srchctx, srchNode);
+    ak_heap_rb_insert(newheap->srchctx, srchNode);
+  }
+
+  heapNode->heapid = newheap->heapid;
+  chld = ak_heap_chld(heapNode);
+  if (chld)
+    ak_heap_moveh_chld(heap, newheap, chld);
+}
+
+AK_EXPORT
+void
+ak_heap_setpm(void * __restrict memptr,
               void * __restrict newparent) {
-  ak_heap_setp(heap,
-               ak__alignof(memptr),
+  ak_heap_setp(ak__alignof(memptr),
                ak__alignof(newparent));
 }
 
@@ -890,9 +923,8 @@ AK_EXPORT
 void
 ak_mem_setp(void * __restrict memptr,
             void * __restrict newparent) {
-  ak_heap_setp(&ak__heap,
-                ak__alignof(memptr),
-                ak__alignof(newparent));
+  ak_heap_setp(ak__alignof(memptr),
+               ak__alignof(newparent));
 }
 
 AK_EXPORT

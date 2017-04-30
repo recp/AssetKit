@@ -38,7 +38,7 @@ ak_imageLoad(AkImage * __restrict image) {
       /* TODO: */
     }
 
-    ak_heap_setpm(heap, data, image);
+    ak_heap_setpm(data, image);
   }
   return data;
 }

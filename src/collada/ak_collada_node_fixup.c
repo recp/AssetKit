@@ -35,7 +35,7 @@ ak_dae_nodeFixupCamera(AkHeap * __restrict heap,
     node->nodeType = AK_NODE_TYPE_CAMERA_NODE;
 
     camNode->camera = node->camera;
-    ak_heap_setpm(heap, node->camera, camNode);
+    ak_heap_setpm(node->camera, camNode);
     node->camera = NULL;
 
     /* duplicate all transforms before apply rotations */

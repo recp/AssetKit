@@ -65,7 +65,7 @@ ak_resc_ins(const char *url) {
                         sizeof(*resc));
 
   resc->url = trimmedURL;
-  ak_heap_setpm(resc_heap, trimmedURL, resc);
+  ak_heap_setpm(trimmedURL, resc);
   ak_heap_setId(resc_heap,
                 ak__alignof(resc),
                 trimmedURL);
@@ -88,9 +88,7 @@ ak_resc_ins(const char *url) {
 
   /* TODO: check preferences, user may want to download manually */
   resc->localurl = ak_curl_dwn(resc->url);
-  ak_heap_setpm(ak_heap_getheap((void *)resc->localurl),
-                (void *)resc->localurl,
-                resc);
+  ak_heap_setpm((void *)resc->localurl, resc);
 
   resc->result = ak_load(&resc->doc,
                          resc->url,

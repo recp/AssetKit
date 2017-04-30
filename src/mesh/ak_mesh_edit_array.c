@@ -229,7 +229,7 @@ ak_meshReserveArrayForInput(AkMesh       * __restrict mesh,
   }
 
   if (ak_refc(srci) > usg || acci->offset != 0)
-    ak_heap_setpm(heap, arrayid, datai);
+    ak_heap_setpm(arrayid, datai);
 
   ak_url_init(newacc,
               arrstate->url,
@@ -255,7 +255,7 @@ ak_meshReserveArrayForInput(AkMesh       * __restrict mesh,
     srch->url = (char *)inputb->source.url;
   }
 
-  ak_heap_setpm(heap, newacc, srch->source);
+  ak_heap_setpm(newacc, srch->source);
 
   ak_map_add(edith->inputArrayMap,
              &srch,
