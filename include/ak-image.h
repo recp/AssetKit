@@ -15,6 +15,13 @@ typedef enum AkImageType {
   AK_IMAGE_TYPE_CUBE = 3
 } AkImageType;
 
+typedef struct AkImageData {
+  void   *data;
+  AkFloat width;
+  AkFloat height;
+  AkEnum  comp;
+} AkImageData;
+
 typedef struct AkSizeExact {
   AkFloat width;
   AkFloat height;
@@ -78,13 +85,14 @@ typedef struct AkImage {
   const char     *name;
   AkInitFrom     *initFrom;
   AkImageBase    *image;
+  AkImageData    *data;
   AkTree         *extra;
   struct AkImage *next;
 
   AkBool renderableShare;
 } AkImage;
 
-void*
+void
 ak_imageLoad(AkImage * __restrict image);
 
 #endif /* ak_image_h */
