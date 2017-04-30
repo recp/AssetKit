@@ -979,6 +979,9 @@ ak_free(void * __restrict memptr) {
   AkHeap     *heap;
   AkHeapNode *heapNode;
 
+  if (!memptr)
+    return;
+
   heap     = &ak__heap;
   heapNode = ak__alignof(memptr);
 
