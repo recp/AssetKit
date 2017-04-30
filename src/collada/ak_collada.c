@@ -25,6 +25,8 @@
 #include "ak_collada_postscript.h"
 #include "../ak_id.h"
 
+#include "../../include/ak-path.h"
+
 #define k_s_dae_asset               1
 #define k_s_dae_lib_cameras         2
 #define k_s_dae_lib_lights          3
@@ -169,6 +171,12 @@ ak_dae_doc(AkDoc ** __restrict dest,
   heap = ak_heap_new(NULL, NULL, NULL);
   doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
 
+  doc->inf.name = file;
+  doc->inf.dir  = ak_path_dir(heap, doc, file);
+
+  if (doc->inf.dir)
+    doc->inf.dirlen = strlen(doc->inf.dir);
+
   ak_heap_setdata(heap, doc);
   ak_id_newheap(heap);
 
@@ -215,19 +223,14 @@ ak_dae_doc(AkDoc ** __restrict dest,
     switch (found->val) {
       case k_s_dae_asset: {
         AkAssetInf *assetInf;
-        AkDocInf   *docInf;
         AkResult    ret;
 
-        docInf = ak_heap_calloc(heap, doc, sizeof(*docInf));
-        assetInf = &docInf->base;
-
-        ret = ak_dae_assetInf(xst, docInf, &assetInf);
+        assetInf = &doc->inf.base;
+        ret = ak_dae_assetInf(xst, doc, &assetInf);
         if (ret == AK_OK) {
-          docInf->ftype = AK_FILE_TYPE_COLLADA;
-          doc->docinf   = *docInf;
-
-          doc->coordSys = assetInf->coordSys;
-          doc->unit     = assetInf->unit;
+          doc->inf.ftype = AK_FILE_TYPE_COLLADA;
+          doc->coordSys  = assetInf->coordSys;
+          doc->unit      = assetInf->unit;
         }
 
         break;

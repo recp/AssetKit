@@ -399,7 +399,9 @@ typedef struct AkAssetInf {
 
 typedef struct AkDocInf {
   AkAssetInf   base;
-  const char * fname;
+  const char  *dir;
+  const char  *name;
+  size_t       dirlen;
   AkFileType   ftype;
 } AkDocInf;
 
@@ -953,7 +955,7 @@ typedef struct AkLib {
 } AkLib;
 
 typedef struct AkDoc {
-  AkDocInf    docinf;
+  AkDocInf    inf;
   AkCoordSys *coordSys;
   AkUnit     *unit;
   AkTree     *extra;
