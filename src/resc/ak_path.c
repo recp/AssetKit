@@ -204,7 +204,7 @@ ak_path_join(char   *fragments[],
     frag_idx_v++;
   }
 
-  memset(buf + 1, '\0', 1);
+  memset(buf, '\0', 1);
   *size = len;
 
   return 0;
