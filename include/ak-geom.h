@@ -51,6 +51,7 @@ typedef struct AkMeshPrimitive {
   AkVertices             *vertices;
   AkUIntArray            *indices;
   AkTree                 *extra;
+  void                   *udata;
   struct AkMeshPrimitive *next;
   uint32_t                count;
   uint32_t                inputCount;
