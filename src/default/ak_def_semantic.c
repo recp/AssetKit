@@ -15,7 +15,7 @@
 #define AK_TFLOAT 0
 
 AkDataType ak_def_dtypes[] = {
-  {"float", AK_VALUE_TYPE_FLOAT, sizeof(float)}
+  {"float", AK_VALUE_FLOAT, sizeof(float)}
 };
 
 AkInputSemanticPair ak_def_params[] = {
