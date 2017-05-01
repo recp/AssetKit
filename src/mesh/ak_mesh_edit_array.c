@@ -258,8 +258,7 @@ ak_meshReserveArrayForInput(AkMesh       * __restrict mesh,
   ak_heap_setpm(newacc, srch->source);
 
   ak_map_add(edith->inputArrayMap,
-             &srch,
-             sizeof(srch),
+             srch,
              inputb);
 }
 
@@ -313,8 +312,8 @@ ak_meshSourceEditHelper(AkMesh       * __restrict mesh,
   edith = mesh->edith;
   assert(edith && ak_mesh_edit_assert1);
 
-  srch = *(AkSourceEditHelper **)ak_map_find(edith->inputArrayMap,
-                                             input);
+  srch = (AkSourceEditHelper *)ak_map_find(edith->inputArrayMap,
+                                           input);
 
   /* use old source as new */
   if (!srch) {
@@ -348,7 +347,7 @@ ak_meshMoveArrays(AkMesh * __restrict mesh) {
 
   while (mi) {
     inputb = ak_heap_getId(mapHeap, ak__alignof(mi));
-    srch   = *(AkSourceEditHelper **)mi->data;
+    srch   = (AkSourceEditHelper *)mi->data;
 
     /* move array */
     arrstate = rb_find(edith->arrays, srch->arrayid);

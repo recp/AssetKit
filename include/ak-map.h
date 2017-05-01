@@ -16,11 +16,13 @@ extern "C" {
 #endif
 
 #include "ak-memory.h"
+#include <stdbool.h>
 
 typedef struct AkMapItem {
   struct AkMapItem *prev;
   struct AkMapItem *next;
-  char   data[];
+  void             *data;
+  bool              isMapItem;
 } AkMapItem;
 
 typedef struct AkMap {
@@ -36,16 +38,17 @@ ak_map_addptr(AkMap *map, void *ptr);
 void*
 ak_map_find(AkMap *map, void *id);
 
+AkMapItem*
+ak_map_findm(AkMap *map, void *id);
+
 void
 ak_map_add(AkMap *map,
            void  *value,
-           size_t size,
            void  *id);
 
 void
 ak_multimap_add(AkMap *map,
                 void  *value,
-                size_t size,
                 void  *id);
 
 AkMap *

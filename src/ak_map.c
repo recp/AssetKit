@@ -44,12 +44,23 @@ ak_map_addptr(AkMap *map, void *ptr) {
 
 void*
 ak_map_find(AkMap *map, void *id) {
+  AkMapItem *mi;
+
+  mi = ak_map_findm(map, id);
+  if (mi)
+    return mi->data;
+
+  return NULL;
+}
+
+AkMapItem*
+ak_map_findm(AkMap *map, void *id) {
   void       *mem;
   AkResult    ret;
 
   ret = ak_heap_getMemById(map->heap, id, &mem);
   if (ret == AK_OK)
-    return ((AkMapItem *)mem)->data;
+    return mem;
 
   return NULL;
 }
@@ -57,7 +68,6 @@ ak_map_find(AkMap *map, void *id) {
 void
 ak_map_add(AkMap *map,
            void  *value,
-           size_t size,
            void  *id) {
   AkHeapNode *hnode;
   AkMapItem  *mi;
@@ -67,9 +77,8 @@ ak_map_add(AkMap *map,
   if (ret == AK_OK)
     return;
 
-  mi = ak_heap_alloc(map->heap, NULL, sizeof(*mi) + size);
-  if (size > 0)
-    memcpy(mi->data, value, size);
+  mi = ak_heap_alloc(map->heap, NULL, sizeof(*mi));
+  mi->data = value;
 
   ak_heap_setId(map->heap, ak__alignof(mi), id);
 
@@ -83,7 +92,6 @@ ak_map_add(AkMap *map,
 void
 ak_multimap_add(AkMap *map,
                 void  *value,
-                size_t size,
                 void  *id) {
   AkHeapNode *hnode;
   AkMapItem  *mi;
@@ -95,9 +103,8 @@ ak_multimap_add(AkMap *map,
     AkMapItem *mii;
 
     mi = ak__alignas(hnode);
-    subItm = ak_heap_calloc(map->heap, NULL, sizeof(*mi) + size);
-    if (size > 0)
-      memcpy(subItm->data, value, size);
+    subItm = ak_heap_calloc(map->heap, NULL, sizeof(*mi));
+    subItm->data = value;
 
     mii = (AkMapItem *)mi->data;
     if (mii)
@@ -108,11 +115,12 @@ ak_multimap_add(AkMap *map,
     return;
   }
 
-  mi     = ak_heap_calloc(map->heap, NULL, sizeof(*mi) + sizeof(void *));
-  subItm = ak_heap_calloc(map->heap, NULL, sizeof(*mi) + size);
-  if (size > 0)
-    memcpy(subItm->data, value, size);
-  *(AkMapItem **)mi->data = subItm;
+  mi     = ak_heap_calloc(map->heap, NULL, sizeof(*mi));
+  subItm = ak_heap_calloc(map->heap, NULL, sizeof(*mi));
+
+  mi->isMapItem = true;
+  mi->data      = subItm;
+  subItm->data  = value;
 
   ak_heap_setId(map->heap, ak__alignof(mi), id);
 

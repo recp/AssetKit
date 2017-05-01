@@ -25,10 +25,7 @@ ak_meshSetMaterial(AkMeshPrimitive *prim,
   map = geom->materialMap;
 
   /* TODO: remove first */
-  ak_multimap_add(map,
-                  (AkMeshPrimitive **)&prim,
-                  sizeof(AkMeshPrimitive **),
-                  (void *)material);
+  ak_multimap_add(map, prim, (void *)material);
 
   prim->material = material;
   return AK_OK;
