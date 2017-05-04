@@ -798,5 +798,8 @@
     <ClCompile Include="..\src\ak_profile.c">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\mesh\ak_mesh_input.c">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

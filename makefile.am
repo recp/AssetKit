@@ -130,6 +130,7 @@ libassetkit_la_SOURCES=\
     src/mesh/ak_mesh_edit_array_fixup.c \
     src/mesh/ak_mesh_edit_index.c \
     src/mesh/ak_mesh_duplicator.c \
+    src/mesh/ak_mesh_input.c \
     src/bbox/ak_bbox.c \
     src/bbox/ak_bbox_geom.c \
     src/bbox/ak_bbox_mesh.c \

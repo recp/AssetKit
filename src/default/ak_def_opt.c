@@ -31,7 +31,8 @@ uintptr_t AK_OPTIONS[] =
   AK_PROFILE_TYPE_COMMON,          /* 12: _DEFAULT_PROFILE             */
   true,                            /* 13: _EFFECT_PROFILE              */
   (uintptr_t)ak__def_techniques,   /* 14: _TECHNIQUE                   */
-  (uintptr_t)ak__def_techniques    /* 15: _TECHNIQUE_FX                */
+  (uintptr_t)ak__def_techniques,   /* 15: _TECHNIQUE_FX                */
+  false,                           /* 16: _ZERO_INDEXED_INPUT          */
 };
 
 AK_EXPORT

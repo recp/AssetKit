@@ -407,6 +407,7 @@
     <ClCompile Include="..\src\mesh\ak_mesh_edit_array_fixup.c" />
     <ClCompile Include="..\src\mesh\ak_mesh_edit_index.c" />
     <ClCompile Include="..\src\mesh\ak_mesh_index.c" />
+    <ClCompile Include="..\src\mesh\ak_mesh_input.c" />
     <ClCompile Include="..\src\mesh\ak_mesh_material.c" />
     <ClCompile Include="..\src\mesh\ak_mesh_normal.c" />
     <ClCompile Include="..\src\mesh\ak_mesh_triangulate.c" />

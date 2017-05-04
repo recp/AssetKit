@@ -502,6 +502,13 @@ void
 ak_meshFixIndicesArrays(AkMesh       * __restrict mesh,
                         AkDuplicator * __restrict duplicator);
 
+void
+ak_inputNameIndexed(AkInputBasic * __restrict input,
+                    char         * __restrict buf);
+
+void
+ak_meshReIndexInputs(AkMesh * __restrict mesh);
+
 #ifdef __cplusplus
 }
 #endif
