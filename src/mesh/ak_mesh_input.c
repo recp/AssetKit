@@ -10,6 +10,7 @@
 #include "ak_mesh_index.h"
 #include "ak_mesh_util.h"
 #include "ak_mesh_edit_common.h"
+#include <stdio.h>
 
 void
 ak_meshReIndexInputs(AkMesh * __restrict mesh) {
