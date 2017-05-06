@@ -227,7 +227,7 @@ ak_meshDuplicatorForIndices(AkMesh * __restrict mesh) {
           inp[0] = iter;
           for (k = 0; k < inpc; k++) {
             inpi = fpi->inpi[k];
-            inp[k + 1] = inpi == UINT_MAX ? UINT_MAX : it[inpi];
+            inp[k + 1] = inpi == UINT_MAX ? UINT_MAX : it[i + inpi];
           }
         } else {
           for (k = 0; k < inpc; k++) {
