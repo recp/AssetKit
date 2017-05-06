@@ -33,6 +33,7 @@ uintptr_t AK_OPTIONS[] =
   (uintptr_t)ak__def_techniques,   /* 14: _TECHNIQUE                   */
   (uintptr_t)ak__def_techniques,   /* 15: _TECHNIQUE_FX                */
   false,                           /* 16: _ZERO_INDEXED_INPUT          */
+  true                             /* 17: _IMAGE_LOAD_FLIP_VERTICALLY  */
 };
 
 AK_EXPORT
