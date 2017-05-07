@@ -714,7 +714,8 @@ typedef struct AkMaterial {
 
 typedef struct AkInputBasic {
   AkURL                source;
-  int32_t              index; /* TEXCOORD0, TEXCOORD1... */
+  uint32_t             index; /* TEXCOORD0, TEXCOORD1... */
+  bool                 isIndexed;
   AkInputSemantic      semantic;
   const char          *semanticRaw;
   struct AkInputBasic *next;

@@ -29,9 +29,11 @@ ak_meshReIndexInputs(AkMesh * __restrict mesh) {
         if (found) {
           found->val = ((char *)found->val) + 1;
           inp->index = (int32_t)found->val;
+          inp->isIndexed = true;
         } else {
           rb_insert(tree, (void *)inp->semanticRaw, NULL);
-          inp->index = -1;
+          inp->index = 0;
+          inp->isIndexed = false;
         }
         inp = inp->next;
       }
@@ -42,9 +44,11 @@ ak_meshReIndexInputs(AkMesh * __restrict mesh) {
         if (found) {
           found->val = ((char *)found->val) + 1;
           inp->index = (int32_t)found->val;
+          inp->isIndexed = true;
         } else {
           rb_insert(tree, (void *)inp->semanticRaw, NULL);
-          inp->index = -1;
+          inp->index = 0;
+          inp->isIndexed = false;
         }
         inp = inp->next;
       }
@@ -62,16 +66,16 @@ ak_meshReIndexInputs(AkMesh * __restrict mesh) {
         inp = mesh->vertices->input;
         while (inp) {
           found = rb_find_node(tree, (void *)inp->semanticRaw);
-          if (found && inp->index == -1 && found->val)
-            inp->index = 0;
+          if (found && !inp->index && found->val)
+            inp->isIndexed = true;
           inp = inp->next;
         }
 
         inp = &prim->input->base;
         while (inp) {
           found = rb_find_node(tree, (void *)inp->semanticRaw);
-          if (found && inp->index == -1 && found->val)
-            inp->index = 0;
+          if (found && !inp->index && found->val)
+            inp->isIndexed = true;
           inp = inp->next;
         }
 
@@ -86,9 +90,11 @@ ak_meshReIndexInputs(AkMesh * __restrict mesh) {
       if (found) {
         found->val = ((char *)found->val) + 1;
         inp->index = (int32_t)found->val;
+        inp->isIndexed = true;
       } else {
         rb_insert(tree, (void *)inp->semanticRaw, NULL);
-        inp->index = -1;
+        inp->index = 0;
+        inp->isIndexed = false;
       }
       inp = inp->next;
     }
@@ -97,7 +103,7 @@ ak_meshReIndexInputs(AkMesh * __restrict mesh) {
       inp = mesh->vertices->input;
       while (inp) {
         found = rb_find_node(tree, (void *)inp->semanticRaw);
-        if (found && inp->index == -1 && found->val)
+        if (found && !inp->index && found->val)
           inp->index = 0;
         inp = inp->next;
       }
@@ -112,7 +118,7 @@ ak_inputNameIndexed(AkInputBasic * __restrict input,
   if (!input->semanticRaw)
     return;
 
-  if (input->index > -1)
+  if (input->isIndexed)
     sprintf(buf, "%s%d", input->semanticRaw, input->index);
   else
     strcpy(buf, input->semanticRaw);
