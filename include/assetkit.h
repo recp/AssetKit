@@ -862,10 +862,10 @@ typedef struct AkBind {
 } AkBind;
 
 typedef struct AkBindVertexInput {
-  const char * semantic;
-  const char * inputSemantic;
-  AkUInt       inputSet;
-  struct AkBindVertexInput * next;
+  struct AkBindVertexInput *next;
+  const char               *semantic;
+  const char               *inputSemantic;
+  AkUInt                    inputSet;
 } AkBindVertexInput;
 
 typedef struct AkInstanceMaterial {

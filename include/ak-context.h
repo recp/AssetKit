@@ -11,9 +11,15 @@
 extern "C" {
 #endif
 
+#include "ak-common.h"
+#include "ak-map.h"
+#include "ak-util.h"
+
 typedef struct AkContext {
-  AkDoc           *doc;
-  AkTechniqueHint *techniqueHint;
+  AkDoc              *doc;
+  AkTechniqueHint    *techniqueHint;
+  AkInstanceMaterial *instanceMaterial;
+  AkMap              *bindVertexInputIndex;
 } AkContext;
 
 #ifdef __cplusplus

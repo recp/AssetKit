@@ -41,11 +41,12 @@ ak_imageLoad(AkImage * __restrict image) {
     if (initFrom->ref) {
       char        pathbuf[PATH_MAX];
       const char *path;
+      bool        flipImage;
 
       path = ak_fullpath(doc, initFrom->ref, pathbuf);
 
-      if (ak_opt_get(AK_OPT_IMAGE_LOAD_FLIP_VERTICALLY))
-        stbi_set_flip_vertically_on_load(true);
+      flipImage = ak_opt_get(AK_OPT_IMAGE_LOAD_FLIP_VERTICALLY);
+      stbi_set_flip_vertically_on_load(flipImage);
 
       data = stbi_load(path, &x, &y, &ch, 0);
       if (!data)
