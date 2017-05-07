@@ -509,6 +509,11 @@ ak_inputNameIndexed(AkInputBasic * __restrict input,
 void
 ak_meshReIndexInputs(AkMesh * __restrict mesh);
 
+AkInputBasic*
+ak_meshInputGet(AkMeshPrimitive *prim,
+                const char      *inputSemantic,
+                uint32_t         set);
+
 #ifdef __cplusplus
 }
 #endif

@@ -11,6 +11,7 @@
 #include "ak_mesh_util.h"
 #include "ak_mesh_edit_common.h"
 #include <stdio.h>
+#include <string.h>
 
 void
 ak_meshReIndexInputs(AkMesh * __restrict mesh) {
@@ -122,4 +123,44 @@ ak_inputNameIndexed(AkInputBasic * __restrict input,
     sprintf(buf, "%s%d", input->semanticRaw, input->index);
   else
     strcpy(buf, input->semanticRaw);
+}
+
+AkInputBasic*
+ak_meshInputGet(AkMeshPrimitive *prim,
+                const char      *inputSemantic,
+                uint32_t         set) {
+  AkInputBasic *inputb;
+  AkInput      *input;
+
+  /* first search in primitive */
+  input = prim->input;
+  while (input) {
+    if (!input->base.semanticRaw)
+      goto cont1;
+
+    if (strcmp(input->base.semanticRaw, inputSemantic) == 0
+        && input->set == set)
+      return &input->base;
+
+  cont1:
+    input = (AkInput *)input->base.next;
+  }
+
+  if (!prim->mesh || !prim->mesh->vertices)
+    return NULL;
+
+  inputb = prim->mesh->vertices->input;
+  while (inputb) {
+    if (!inputb->semanticRaw)
+      goto cont2;
+
+    if (strcmp(inputb->semanticRaw, inputSemantic) == 0
+        && set == 0)
+      return inputb;
+
+  cont2:
+    inputb = inputb->next;
+  }
+
+  return NULL;
 }
