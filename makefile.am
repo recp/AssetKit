@@ -118,6 +118,7 @@ libassetkit_la_SOURCES=\
     src/transform/ak_trans.c \
     src/transform/ak_trans_dup.c \
     src/transform/ak_trans_traverse.c \
+    src/lib/ak_lib.c \
     src/lib/ak_lib_geom.c \
     src/array/ak_source_array.c \
     src/mesh/ak_mesh_util.c \

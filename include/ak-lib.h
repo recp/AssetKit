@@ -11,9 +11,22 @@
 extern "C" {
 #endif
 
+#include "ak-cam.h"
+#include "ak-light.h"
+
 AK_EXPORT
 AkGeometry *
 ak_libFirstGeom(AkDoc * __restrict doc);
+
+AK_EXPORT
+AkResult
+ak_libAddCamera(AkDoc    * __restrict doc,
+                AkCamera * __restrict cam);
+
+AK_EXPORT
+AkResult
+ak_libAddLight(AkDoc   * __restrict doc,
+               AkLight * __restrict light);
 
 #ifdef __cplusplus
 }
