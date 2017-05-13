@@ -26,6 +26,12 @@ typedef struct AkInstanceList {
 } AkInstanceList;
 
 AK_EXPORT
+AkInstanceBase*
+ak_instanceMake(AkHeap * __restrict heap,
+                void   * __restrict memparent,
+                void   * __restrict object);
+
+AK_EXPORT
 void
 ak_instanceListAdd(AkInstanceList *list,
                    AkInstanceBase *inst);

@@ -7,6 +7,40 @@
 
 #include "../ak_common.h"
 #include "../ak_memory_common.h"
+#include "../ak_id.h"
+
+AK_EXPORT
+AkInstanceBase*
+ak_instanceMake(AkHeap * __restrict heap,
+                void   * __restrict memparent,
+                void   * __restrict object) {
+  AkInstanceBase *instance;
+  const char     *id;
+
+  if (!object || !memparent || !heap)
+    return NULL;
+
+  instance = ak_heap_calloc(heap,
+                            memparent,
+                            sizeof(*instance));
+
+  /* we already have the object */
+  instance->object = object;
+
+  /* target must have id or we will generate an id for it */
+  id = ak_getId(object);
+  if (!id)
+    id = ak_id_gen(heap,
+                   object,
+                   NULL);
+
+  ak_url_init_with_id(heap->allocator,
+                      instance,
+                      (char *)id,
+                      &instance->url);
+
+  return instance;
+}
 
 AK_EXPORT
 void *
