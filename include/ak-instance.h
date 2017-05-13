@@ -35,6 +35,10 @@ void
 ak_instanceListDel(AkInstanceList *list,
                    AkInstanceListItem *item);
 
+AK_EXPORT
+void
+ak_instanceListEmpty(AkInstanceList *list);
+
 char*
 ak_instanceName(AkInstanceListItem *item);
 

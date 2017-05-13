@@ -59,6 +59,24 @@ ak_instanceListDel(AkInstanceList *list,
   ak_free(item);
 }
 
+AK_EXPORT
+void
+ak_instanceListEmpty(AkInstanceList *list) {
+  AkInstanceListItem *item, *tofree;
+  item = list->first;
+
+  while (item) {
+    tofree = item;
+    item = item->next;
+    ak_free(tofree);
+  }
+
+  list->first     = NULL;
+  list->last      = NULL;
+  list->count     = 0;
+  list->lastindex = 0;
+}
+
 char*
 ak_instanceName(AkInstanceListItem *item) {
   AkHeap         *heap;
