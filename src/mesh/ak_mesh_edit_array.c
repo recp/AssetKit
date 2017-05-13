@@ -72,7 +72,7 @@ ak_meshReserveArray(AkMesh * __restrict mesh,
 
     arrstate->array  = data;
     arrstate->count  = count;
-    arrstate->url    = ak_id_urlstring(heap->allocator, arrayid);
+    arrstate->url    = ak_url_string(heap->allocator, arrayid);
     arrstate->stride = stride;
 
     array = ak_objGet(data);
@@ -120,7 +120,7 @@ ak_meshReserveArrayFor(AkMesh   * __restrict mesh,
   arrayid = ak_getId(olddata);
 
   arrayURL.doc = doc;
-  arrayURL.url = ak_id_urlstring(heap->allocator, arrayid);
+  arrayURL.url = ak_url_string(heap->allocator, arrayid);
 
   ak_meshInspectArray(mesh,
                       &arrayURL,
@@ -249,7 +249,7 @@ ak_meshReserveArrayForInput(AkMesh       * __restrict mesh,
                               srch->source,
                               NULL);
 
-    srch->url = ak_id_urlstring(heap->allocator, srcid);
+    srch->url = ak_url_string(heap->allocator, srcid);
     ak_heap_setId(heap, ak__alignof(srch->source), srcid);
   } else {
     srch->url = (char *)inputb->source.url;

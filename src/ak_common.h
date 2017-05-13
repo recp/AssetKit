@@ -14,6 +14,7 @@
 #include "../include/ak-options.h"
 #include "../include/ak-map.h"
 #include "../include/ak-type.h"
+#include "../include/ak-url.h"
 
 #include <stddef.h>
 #include <sys/types.h>

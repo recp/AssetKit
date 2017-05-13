@@ -38,6 +38,17 @@ ak_url_init(void  *parent,
 }
 
 void
+char *
+ak_url_string(AkHeapAllocator *alc, char *id) {
+  char *urlstring;
+
+  urlstring  = alc->malloc(strlen(id) + 2);
+  *urlstring = '#';
+  strcpy(urlstring + 1, id);
+
+  return urlstring;
+}
+
 ak_url_ref(AkURL *url) {
   if (!url->reserved)
     return;

@@ -251,7 +251,7 @@ ak_meshGenNormals(AkMesh * __restrict mesh) {
 
   heap   = ak_heap_getheap(ak_objFrom(mesh));
   srcid  = (char *)ak_id_gen(heap, NULL, NULL);
-  srcurl = ak_id_urlstring(heap->allocator, srcid);
+  srcurl = ak_url_string(heap->allocator, srcid);
   pos_it = posarr->items;
 
   dctx = ak_data_new(ak_objFrom(mesh),

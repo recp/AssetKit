@@ -59,8 +59,4 @@ ak_accessor_rebound(AkHeap     *heap,
                     AkAccessor *acc,
                     uint32_t    offset);
 
-char *
-ak_id_urlstring(AkHeapAllocator *alc,
-                char *id);
-
 #endif /* ak_mesh_util_h */

@@ -23,6 +23,10 @@ ak_url_init(void  *parent,
             AkURL *dest);
 
 void
+char *
+ak_url_string(AkHeapAllocator *alc, char *id);
+
+void
 ak_url_ref(AkURL *url);
 
 void

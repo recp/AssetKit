@@ -177,7 +177,7 @@ ak_mesh_src_for(AkHeap         *heap,
   ak_setId(data, arrid);
 
   /* update accessor source url */
-  url = ak_id_urlstring(heap->allocator, arrid);
+  url = ak_url_string(heap->allocator, arrid);
   ak_url_init(acc, url, &acc->source);
   heap->allocator->free(url);
 
@@ -236,7 +236,7 @@ ak_mesh_src_for_ext(AkHeap         *heap,
   ak_setId(data, arrid);
 
   /* update accessor source url */
-  url = ak_id_urlstring(heap->allocator, arrid);
+  url = ak_url_string(heap->allocator, arrid);
   ak_url_init(acc, url, &acc->source);
   heap->allocator->free(url);
 
@@ -529,17 +529,6 @@ ak_accessor_rebound(AkHeap     *heap,
 
   last_bound->next = dpu->next;
   dpu->next        = bound;
-}
-
-char *
-ak_id_urlstring(AkHeapAllocator *alc, char *id) {
-  char *urlstring;
-
-  urlstring  = alc->malloc(strlen(id) + 2);
-  *urlstring = '#';
-  strcpy(urlstring + 1, id);
-
-  return urlstring;
 }
 
 int
