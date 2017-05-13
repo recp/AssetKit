@@ -617,6 +617,14 @@ ak_dae_node(AkXmlState    * __restrict xst,
 
         last_light = lightInst;
 
+        if (scene && lightInst) {
+          AkLight *lightObject;
+          lightObject = ak_instanceObject(lightInst);
+          if (lightObject)
+            ak_instanceListAdd(scene->lights,
+                               lightInst);
+        }
+
         break;
       }
       case k_s_dae_instance_node: {

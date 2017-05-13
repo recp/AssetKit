@@ -56,6 +56,10 @@ typedef struct AkLight {
   struct AkLight *next;
 } AkLight;
 
+AK_EXPORT
+AkLight*
+ak_defaultLight(void * __restrict memparent);
+  
 #ifdef __cplusplus
 }
 #endif

@@ -914,6 +914,7 @@ typedef struct AkVisualScene {
   AkNode                *node;
   AkNode                *firstCamNode; /* first found camera       */
   struct AkInstanceList *cameras;      /* all cameras inside scene */
+  struct AkInstanceList *lights;       /* all lights inside scene  */
   AkEvaluateScene       *evaluateScene;
   struct AkBoundingBox  *bbox;
   AkTree                *extra;
