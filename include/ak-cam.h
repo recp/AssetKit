@@ -85,7 +85,7 @@ ak_firstCamera(AkDoc     * __restrict doc,
 
 AK_EXPORT
 const AkCamera*
-ak_defaultCamera();
+ak_defaultCamera(void * __restrict memparent);
 
 #ifdef __cplusplus
 }

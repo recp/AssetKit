@@ -16,6 +16,7 @@ ak_firstCamera(AkDoc     * __restrict doc,
                AkCamera ** camera,
                float     * matrix,
                float     * projMatrix) {
+  AkHeap        *heap;
   AkVisualScene *scene;
   AkNode        *camNode;
   AkCamera      *cam;
@@ -27,6 +28,7 @@ ak_firstCamera(AkDoc     * __restrict doc,
   if (!scene->firstCamNode)
     goto efound;
 
+  heap    = ak_heap_getheap(doc);
   camNode = scene->firstCamNode;
 
   /* view matrix */
@@ -36,8 +38,23 @@ ak_firstCamera(AkDoc     * __restrict doc,
   if (camera || projMatrix) {
     cam = ak_instanceObject(camNode->camera);
 
-    if (!cam)
-      cam = (AkCamera *)ak_defaultCamera();
+    if (!cam) {
+      if (ak_opt_get(AK_OPT_ADD_DEFAULT_CAMERA)) {
+        AkInstanceBase *cameraInst;
+        cam = (AkCamera *)ak_defaultCamera(camNode);
+
+        cameraInst = ak_instanceMake(heap, camNode, cam);
+        ak_instanceListEmpty(scene->cameras);
+        ak_instanceListAdd(scene->cameras, cameraInst);
+
+        cameraInst->next = camNode->camera;
+        camNode->camera  = cameraInst;
+
+        ak_libAddCamera(doc, cam);
+      } else {
+        goto efound;
+      }
+    }
 
     if (camera)
       *camera = cam;
@@ -85,6 +102,32 @@ efound:
 
 AK_EXPORT
 const AkCamera*
-ak_defaultCamera() {
-  return ak_def_camera();
+ak_defaultCamera(void * __restrict memparent) {
+  AkHeap   *heap;
+  AkCamera *cam;
+  const AkCamera *defcam;
+
+  defcam = ak_def_camera();
+
+  if (memparent)
+    heap = ak_heap_getheap(memparent);
+  else
+    heap = ak_heap_default();
+
+  cam = ak_heap_calloc(heap,
+                         memparent,
+                         sizeof(*cam));
+  memcpy(cam, defcam, sizeof(*defcam));
+  cam->optics = ak_heap_calloc(heap,
+                               cam,
+                               sizeof(*cam->optics));
+  cam->optics->tcommon = ak_heap_calloc(heap,
+                                        cam,
+                                        sizeof(AkPerspective));
+
+  memcpy(cam->optics->tcommon,
+         defcam->optics->tcommon,
+         sizeof(AkPerspective));
+
+  return cam;
 }

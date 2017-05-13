@@ -408,8 +408,9 @@ ak_dae_node(AkXmlState    * __restrict xst,
           if (!scene->firstCamNode)
             scene->firstCamNode = node;
 
-          ak_instanceListAdd(scene->cameras,
-                             instanceCamera);
+          if (instanceCamera)
+            ak_instanceListAdd(scene->cameras,
+                               instanceCamera);
         }
 
         break;
