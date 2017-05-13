@@ -285,6 +285,7 @@
     <ClInclude Include="..\src\config.h" />
     <ClInclude Include="..\src\coord_sys\ak_coord_common.h" />
     <ClInclude Include="..\src\default\ak_def_cam.h" />
+    <ClInclude Include="..\src\default\ak_def_light.h" />
     <ClInclude Include="..\src\default\ak_def_opt.h" />
     <ClInclude Include="..\src\default\ak_def_semantic.h" />
     <ClInclude Include="..\src\mesh\ak_mesh_edit_common.h" />
@@ -300,8 +301,8 @@
     <ClCompile Include="..\src\ak_data.c" />
     <ClCompile Include="..\src\ak_find.c" />
     <ClCompile Include="..\src\ak_id.c" />
-    <ClCompile Include="..\src\ak_lib.c" />
     <ClCompile Include="..\src\ak_libxml.c" />
+    <ClCompile Include="..\src\ak_main.c" />
     <ClCompile Include="..\src\ak_map.c" />
     <ClCompile Include="..\src\ak_memory.c" />
     <ClCompile Include="..\src\ak_memory_ext.c" />
@@ -394,13 +395,16 @@
     <ClCompile Include="..\src\default\ak_def_cmp.c" />
     <ClCompile Include="..\src\default\ak_def_coord.c" />
     <ClCompile Include="..\src\default\ak_def_id.c" />
+    <ClCompile Include="..\src\default\ak_def_light.c" />
     <ClCompile Include="..\src\default\ak_def_opt.c" />
     <ClCompile Include="..\src\default\ak_def_semantic.c" />
     <ClCompile Include="..\src\dllmain.c" />
     <ClCompile Include="..\src\geom\ak_geom_mesh.c" />
     <ClCompile Include="..\src\instance\ak_inst.c" />
     <ClCompile Include="..\src\instance\ak_inst_list.c" />
+    <ClCompile Include="..\src\lib\ak_lib.c" />
     <ClCompile Include="..\src\lib\ak_lib_geom.c" />
+    <ClCompile Include="..\src\light\ak_light.c" />
     <ClCompile Include="..\src\mesh\ak_mesh_duplicator.c" />
     <ClCompile Include="..\src\mesh\ak_mesh_edit.c" />
     <ClCompile Include="..\src\mesh\ak_mesh_edit_array.c" />

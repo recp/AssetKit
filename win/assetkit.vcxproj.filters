@@ -80,6 +80,9 @@
     <Filter Include="src\array">
       <UniqueIdentifier>{e75c3a9a-56ed-4934-b5d7-fde390896868}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\light">
+      <UniqueIdentifier>{e9c5a211-a5c2-44f9-b202-74b018e2ea0a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\ak-bbox.h">
@@ -418,6 +421,9 @@
     <ClInclude Include="..\include\ak-context.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\default\ak_def_light.h">
+      <Filter>src\default</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\bbox\ak_bbox.c">
@@ -723,9 +729,6 @@
     <ClCompile Include="..\src\ak_id.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\ak_lib.c">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\ak_libxml.c">
       <Filter>src</Filter>
     </ClCompile>
@@ -800,6 +803,18 @@
     </ClCompile>
     <ClCompile Include="..\src\mesh\ak_mesh_input.c">
       <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\light\ak_light.c">
+      <Filter>src\light</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\default\ak_def_light.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\ak_lib.c">
+      <Filter>src\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ak_main.c">
+      <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
