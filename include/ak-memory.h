@@ -90,6 +90,10 @@ ak_heap_getheap(void * __restrict memptr);
 
 AK_EXPORT
 AkHeap *
+ak_heap_default();
+
+AK_EXPORT
+AkHeap *
 ak_heap_new(AkHeapAllocator *allocator,
             AkHeapSrchCmpFn cmp,
             AkHeapSrchPrintFn print);

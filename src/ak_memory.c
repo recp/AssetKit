@@ -151,6 +151,12 @@ ak_heap_allocator(AkHeap * __restrict heap) {
 
 AK_EXPORT
 AkHeap *
+ak_heap_default() {
+  return &ak__heap;
+}
+
+AK_EXPORT
+AkHeap *
 ak_heap_getheap(void * __restrict memptr) {
   AkHeapNode *heapNode;
   heapNode = ak__alignof(memptr);
