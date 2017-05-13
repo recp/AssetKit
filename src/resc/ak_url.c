@@ -38,6 +38,16 @@ ak_url_init(void  *parent,
 }
 
 void
+ak_url_init_with_id(AkHeapAllocator *alc,
+                    void            *parent,
+                    char            *idstirng,
+                    AkURL           *dest) {
+  char *urlstring;
+  urlstring = ak_url_string(alc, idstirng);
+  ak_url_init(parent, urlstring, dest);
+  alc->free(urlstring);
+}
+
 char *
 ak_url_string(AkHeapAllocator *alc, char *id) {
   char *urlstring;
@@ -49,6 +59,7 @@ ak_url_string(AkHeapAllocator *alc, char *id) {
   return urlstring;
 }
 
+void
 ak_url_ref(AkURL *url) {
   if (!url->reserved)
     return;
