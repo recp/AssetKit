@@ -60,7 +60,7 @@ ak_transformCombine(AkNode * __restrict node,
         AkMatrix *matrix;
         matrix = ak_objGet(transform);
 
-        glm_mat4_mul(matrix->val, mat, mat);
+        glm_mat4_mul(mat, matrix->val,  mat);
         break;
       }
       case AK_NODE_TRANSFORM_TYPE_LOOK_AT: {
@@ -74,28 +74,31 @@ ak_transformCombine(AkNode * __restrict node,
 
         /* because this is view matrix */
         glm_inv_tr(tmp);
-        glm_mat4_mul(tmp, mat, mat);
+        glm_mat4_mul(mat, tmp, mat);
         break;
       }
       case AK_NODE_TRANSFORM_TYPE_ROTATE: {
         AkRotate *rotate;
-        rotate = ak_objGet(transform);
 
-        glm_rotate(mat, rotate->val[3], rotate->val);
+        rotate = ak_objGet(transform);
+        glm_rotate_make(tmp, rotate->val[3], rotate->val);
+        glm_mat4_mul(mat, tmp, mat);
         break;
       }
       case AK_NODE_TRANSFORM_TYPE_SCALE: {
         AkScale *scale;
         scale = ak_objGet(transform);
 
-        glm_scale(mat, scale->val);
+        glm_scale_make(tmp, scale->val);
+        glm_mat4_mul(mat, tmp, mat);
         break;
       }
       case AK_NODE_TRANSFORM_TYPE_TRANSLATE: {
         AkTranslate *translate;
         translate = ak_objGet(transform);
 
-        glm_translate(mat, translate->val);
+        glm_translate_make(tmp, translate->val);
+        glm_mat4_mul(mat, tmp, mat);
         break;
       }
       case AK_NODE_TRANSFORM_TYPE_SKEW: {
@@ -103,7 +106,7 @@ ak_transformCombine(AkNode * __restrict node,
         skew = ak_objGet(transform);
 
         ak_transformSkewMatrix(skew, tmp[0]);
-        glm_mat4_mul(tmp, mat, mat);
+        glm_mat4_mul(mat, tmp, mat);
         break;
       }
     }
