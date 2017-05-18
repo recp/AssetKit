@@ -32,7 +32,8 @@ typedef enum AkOption {
   AK_OPT_ZERO_INDEXED_INPUT         = 16, /* false    */
   AK_OPT_IMAGE_LOAD_FLIP_VERTICALLY = 17, /* true     */
   AK_OPT_ADD_DEFAULT_CAMERA         = 18, /* true     */
-  AK_OPT_ADD_DEFAULT_LIGHT          = 19  /* true     */
+  AK_OPT_ADD_DEFAULT_LIGHT          = 19, /* true     */
+  AK_OPT_COORD_CONVERT_TYPE         = 20  /* FIX_ROTATION */
 } AkOption;
 
 AK_EXPORT

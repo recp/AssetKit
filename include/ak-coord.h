@@ -11,6 +11,12 @@
 extern "C" {
 #endif
 
+typedef enum AkCoordCvtType {
+  AK_COORD_CVT_FIX_ROTATION = 0, /* add only rotation               */
+  AK_COORD_CVT_ALL          = 1, /* change positions, all things... */
+  AK_COORD_CVT_DEFAULT      = AK_COORD_CVT_FIX_ROTATION
+} AkCoordCvtType;
+
 typedef struct AkAxisAccessor {
   int8_t right;
   int8_t up;
