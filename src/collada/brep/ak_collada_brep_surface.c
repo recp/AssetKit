@@ -66,6 +66,11 @@ ak_dae_surface(AkXmlState * __restrict xst,
                     surfaceMapLen,
                     sizeof(surfaceMap[0]),
                     ak_enumpair_cmp2);
+    if (!found) {
+      ak_xml_skipelm(xst);
+      goto skip;
+    }
+
     switch (found->val) {
       case AK_SURFACE_ELEMENT_TYPE_CONE: {
         AkObject     *obj;
@@ -468,7 +473,8 @@ ak_dae_surface(AkXmlState * __restrict xst,
         ak_xml_skipelm(xst);
         break;
     }
-    
+
+  skip:
     /* end element */
     if (ak_xml_end(&xest))
       break;

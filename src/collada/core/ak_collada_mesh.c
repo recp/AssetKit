@@ -94,6 +94,10 @@ ak_dae_mesh(AkXmlState * __restrict xst,
                     meshMapLen,
                     sizeof(meshMap[0]),
                     ak_enumpair_cmp2);
+    if (!found) {
+      ak_xml_skipelm(xst);
+      goto skip;
+    }
 
     switch (found->val) {
       case k_s_dae_source: {
@@ -249,6 +253,7 @@ ak_dae_mesh(AkXmlState * __restrict xst,
         break;
     }
 
+  skip:
     /* end element */
     if (ak_xml_end(&xest))
       break;

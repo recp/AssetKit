@@ -49,6 +49,10 @@ ak_dae_profile(AkXmlState * __restrict xst,
                   profileMapLen,
                   sizeof(profileMap[0]),
                   ak_enumpair_cmp2);
+  if (!found) {
+    ak_xml_skipelm(xst);
+    goto err;
+  }
 
   switch (found->val) {
     case AK_PROFILE_TYPE_COMMON:
@@ -123,7 +127,6 @@ ak_dae_profile(AkXmlState * __restrict xst,
     }
     default:
       goto err;
-      break;
   }
 
   ak_setypeid(profile, AKT_PROFILE);

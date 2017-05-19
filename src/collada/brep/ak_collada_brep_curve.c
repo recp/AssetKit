@@ -73,6 +73,10 @@ ak_dae_curve(AkXmlState * __restrict xst,
                     curveMapLen,
                     sizeof(curveMap[0]),
                     ak_enumpair_cmp2);
+    if (!found) {
+      ak_xml_skipelm(xst);
+      goto skip;
+    }
 
     switch (found->val) {
       case AK_CURVE_ELEMENT_TYPE_LINE: {
@@ -401,7 +405,8 @@ ak_dae_curve(AkXmlState * __restrict xst,
         ak_xml_skipelm(xst);
         break;
     }
-    
+
+  skip:
     /* end element */
     if (ak_xml_end(&xest))
       break;

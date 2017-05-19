@@ -78,6 +78,10 @@ ak_dae_fxSampler(AkXmlState * __restrict xst,
                     fxSamplerCMapLen,
                     sizeof(fxSamplerCMap[0]),
                     ak_enumpair_cmp2);
+    if (!found) {
+      ak_xml_skipelm(xst);
+      goto skip;
+    }
 
     switch (found->val) {
       case k_s_dae_instance_image: {
@@ -162,6 +166,7 @@ ak_dae_fxSampler(AkXmlState * __restrict xst,
         break;
     }
 
+  skip:
     /* end element */
     if (ak_xml_end(&xest))
       break;

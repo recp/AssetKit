@@ -214,10 +214,9 @@ ak_dae_doc(AkDoc ** __restrict dest,
                     daeMapLen,
                     sizeof(daeMap[0]),
                     ak_enumpair_cmp2);
-
     if (!found) {
       ak_xml_skipelm(xst);
-      goto cont;
+      goto skip;
     }
 
     switch (found->val) {
@@ -259,8 +258,8 @@ ak_dae_doc(AkDoc ** __restrict dest,
         ak_dae_lib(xst, &libchlds[found->val - 2]);
         break;
     }
-  cont:
 
+  skip:
     /* end element */
     if (ak_xml_end(&xest))
       break;

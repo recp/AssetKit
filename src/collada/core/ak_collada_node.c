@@ -135,10 +135,9 @@ ak_dae_node(AkXmlState    * __restrict xst,
                     nodeMapLen,
                     sizeof(nodeMap[0]),
                     ak_enumpair_cmp2);
-
     if (!found) {
       ak_xml_skipelm(xst);
-      goto cont;
+      goto skip;
     }
 
     switch (found->val) {
@@ -726,7 +725,7 @@ ak_dae_node(AkXmlState    * __restrict xst,
         break;
     }
 
-  cont:
+  skip:
     /* end element */
     if (ak_xml_end(&xest))
       break;

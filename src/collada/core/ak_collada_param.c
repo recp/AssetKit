@@ -77,8 +77,8 @@ ak_dae_newparam(AkXmlState * __restrict xst,
                         modifierMapLen,
                         sizeof(modifierMap[0]),
                         ak_enumpair_cmp2);
-
-        newparam->modifier = found->val;
+        if (found)
+          newparam->modifier = found->val;
       }
     } else {
       /* load once */

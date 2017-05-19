@@ -168,6 +168,10 @@ ak_dae_fxState(AkXmlState * __restrict xst,
                     stateMapLen,
                     sizeof(stateMap[0]),
                     ak_enumpair_cmp2);
+    if (!found) {
+      ak_xml_skipelm(xst);
+      goto skip;
+    }
 
     switch (found->val) {
       case AK_RENDER_STATE_ALPHA_FUNC:
@@ -901,6 +905,7 @@ ak_dae_fxState(AkXmlState * __restrict xst,
         break;
     }
 
+  skip:
     /* end element */
     if (ak_xml_end(&xest))
       break;
