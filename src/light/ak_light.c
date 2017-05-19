@@ -19,9 +19,10 @@
 AK_EXPORT
 AkLight*
 ak_defaultLight(void * __restrict memparent) {
-  AkHeap  *heap;
-  AkDoc   *doc;
-  AkLight *light;
+  AkHeap        *heap;
+  AkDoc         *doc;
+  AkLight       *light;
+  AkCoordSys    *coordsys;
   const AkLight *deflight;
 
   deflight = ak_def_light();
@@ -47,9 +48,13 @@ ak_defaultLight(void * __restrict memparent) {
          sizeof(AkDirectionalLight));
 
   /* convert light direction */
+  if (!ak_opt_get(AK_OPT_USE_DOC_COORD))
+    coordsys = (void *)ak_opt_get(AK_OPT_COORD);
+  else
+    coordsys = doc->coordSys;
+
   ak_coordCvtVector(AK_YUP,
                     light->tcommon->direction,
-                    doc->coordSys);
-
+                    coordsys);
   return light;
 }
