@@ -35,7 +35,7 @@ uintptr_t AK_OPTIONS[] =
   false,                           /* 16: _ZERO_INDEXED_INPUT          */
   true,                            /* 17: _IMAGE_LOAD_FLIP_VERTICALLY  */
   true,                            /* 18: _ADD_DEFAULT_CAMERA          */
-  true,                            /* 19: _ADD_DEFAULT_LIGHT           */
+  false,                           /* 19: _ADD_DEFAULT_LIGHT           */
   AK_COORD_CVT_FIX_ROTATION        /* 20: _COORD_CONVERT_TYPE          */
 };
 
