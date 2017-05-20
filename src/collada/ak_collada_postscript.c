@@ -25,7 +25,8 @@ ak_dae_postscript(AkXmlState * __restrict xst) {
     ak_dae_geom_fixup_all(xst->doc);
 
   /* now set used coordSys */
-  xst->doc->coordSys = (void *)ak_opt_get(AK_OPT_COORD);
+  if (!ak_opt_get(AK_OPT_USE_DOC_COORD))
+    xst->doc->coordSys = (void *)ak_opt_get(AK_OPT_COORD);
 }
 
 void _assetkit_hide
