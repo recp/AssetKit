@@ -36,13 +36,7 @@ ak_dae_fxPass(AkXmlState * __restrict xst,
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
-      AkAssetInf *assetInf;
-      AkResult ret;
-
-      assetInf = NULL;
-      ret = ak_dae_assetInf(xst, pass, &assetInf);
-      if (ret == AK_OK)
-        pass->inf = assetInf;
+      (void)ak_dae_assetInf(xst, pass, NULL);
     } else if (ak_xml_eqelm(xst, _s_dae_annotate)) {
       AkAnnotate *annotate;
       AkResult    ret;

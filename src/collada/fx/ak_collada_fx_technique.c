@@ -40,13 +40,7 @@ ak_dae_techniqueFx(AkXmlState * __restrict xst,
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
-      AkAssetInf *assetInf;
-      AkResult ret;
-
-      assetInf = NULL;
-      ret = ak_dae_assetInf(xst, technique, &assetInf);
-      if (ret == AK_OK)
-        technique->inf = assetInf;
+      (void)ak_dae_assetInf(xst, technique, NULL);
     } else if (ak_xml_eqelm(xst, _s_dae_annotate)) {
       AkAnnotate *annotate;
       AkResult    ret;

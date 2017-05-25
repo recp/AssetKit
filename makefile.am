@@ -94,6 +94,7 @@ libassetkit_la_SOURCES=\
     src/ak_accessor.c \
     src/ak_type.c \
     src/ak_profile.c \
+    src/ak_asset.c \
     src/camera/ak_cam.c \
     src/light/ak_light.c \
     src/coord_sys/ak_coord_common.c \

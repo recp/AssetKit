@@ -142,14 +142,7 @@ ak_dae_node(AkXmlState    * __restrict xst,
 
     switch (found->val) {
       case k_s_dae_asset: {
-        AkAssetInf *assetInf;
-        AkResult ret;
-
-        assetInf = NULL;
-        ret = ak_dae_assetInf(xst, node, &assetInf);
-        if (ret == AK_OK)
-          node->inf = assetInf;
-
+        (void)ak_dae_assetInf(xst, node, NULL);
         break;
       }
       case k_s_dae_lookat: {

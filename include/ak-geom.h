@@ -32,8 +32,6 @@ struct AkGeometry;
 struct AkMesh;
 
 typedef struct AkVertices {
-  ak_asset_base
-
   /* const char   * id; */
   const char   * name;
   AkInputBasic * input;
@@ -88,7 +86,6 @@ typedef struct AkMeshEditHelper {
 } AkMeshEditHelper;
 
 typedef struct AkMesh {
-  ak_asset_base
   struct AkGeometry *geom;
   const char        *convexHullOf;
   AkSource          *source;
@@ -102,15 +99,11 @@ typedef struct AkMesh {
 } AkMesh;
 
 typedef struct AkControlVerts {
-  ak_asset_base
-
   AkInputBasic *input;
   AkTree       *extra;
 } AkControlVerts;
 
 typedef struct AkSpline {
-  ak_asset_base
-
   AkSource       *source;
   AkControlVerts *cverts;
   AkTree         *extra;
@@ -282,7 +275,6 @@ typedef struct AkSolids {
 } AkSolids;
 
 typedef struct AkBoundryRep {
-  ak_asset_base
   AkCurves   * curves;
   AkCurves   * surfaceCurves;
   AkSurfaces * surfaces;
@@ -298,8 +290,6 @@ typedef struct AkBoundryRep {
 } AkBoundryRep;
 
 typedef struct AkGeometry {
-  ak_asset_base
-
   /* const char * id; */
   const char        *name;
   AkObject          *gdata;

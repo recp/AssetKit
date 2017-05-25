@@ -32,13 +32,7 @@ ak_dae_material(AkXmlState * __restrict xst,
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
-      AkAssetInf *assetInf;
-      AkResult ret;
-
-      assetInf = NULL;
-      ret = ak_dae_assetInf(xst, material, &assetInf);
-      if (ret == AK_OK)
-        material->inf = assetInf;
+      (void)ak_dae_assetInf(xst, material, NULL);
     } else if (ak_xml_eqelm(xst, _s_dae_inst_effect)) {
       AkInstanceEffect *instanceEffect;
       AkResult ret;

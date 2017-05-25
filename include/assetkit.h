@@ -69,11 +69,6 @@ AK__DEF_ARRAY(AkString);
 #include "ak-coord.h"
 #include "ak-url.h"
 
-/**
- * @brief library time type
- */
-typedef time_t ak_time_t;
-
 typedef enum AkValueType {
   AK_VALUE_UNKNOWN       =-1,
   AK_VALUE_CUSTOM        = 0,
@@ -304,14 +299,6 @@ typedef enum AkNodeTransformType {
   AK_NODE_TRANSFORM_TYPE_TRANSLATE = 6
 } AkNodeTransformType;
 
-/**
- * Almost all assets includes this fields.
- * This macro defines base fields of assets
- * TODO: remove this!
- */
-#define ak_asset_base                                                        \
-  AkAssetInf  * inf;
-
 typedef struct AkTreeNodeAttr {
   const char * name;
   char       * val;
@@ -390,11 +377,10 @@ typedef struct AkAssetInf {
   const char    *subject;
   const char    *title;
   const char    *keywords;
-
+  const char    *revision;
   AkTree        *extra;
-  ak_time_t      created;
-  ak_time_t      modified;
-  unsigned long  revision;
+  time_t         created;
+  time_t         modified;
 } AkAssetInf;
 
 typedef struct AkDocInf {
@@ -667,8 +653,6 @@ typedef struct AkProgram {
 } AkProgram;
 
 typedef struct AkPass {
-  ak_asset_base
-
   /* const char * sid; */
 
   AkAnnotate * annotate;
@@ -683,8 +667,6 @@ typedef struct AkPass {
 #include "ak-profile.h"
 
 typedef struct AkEffect {
-  ak_asset_base
-
   /* const char * id; */
   const char      *name;
   AkAnnotate      *annotate;
@@ -704,7 +686,6 @@ typedef struct AkInstanceEffect {
 } AkInstanceEffect;
 
 typedef struct AkMaterial {
-  ak_asset_base
   /* const char * id; */
   const char        *name;
   AkInstanceEffect  *effect;
@@ -729,8 +710,6 @@ typedef struct AkInput {
 } AkInput;
 
 typedef struct AkJoints {
-  ak_asset_base
-
   AkInputBasic * input;
   AkTree       * extra;
 } AkJoints;
@@ -744,8 +723,6 @@ typedef struct AkVertexWeights {
 } AkVertexWeights;
 
 typedef struct AkSkin {
-  ak_asset_base
-
   const char      * baseMesh;
   AkDoubleArray   * bindShapeMatrix;
   AkSource        * source;
@@ -755,15 +732,11 @@ typedef struct AkSkin {
 } AkSkin;
 
 typedef struct AkTargets {
-  ak_asset_base
-
   AkInputBasic * input;
   AkTree       * extra;
 } AkTargets;
 
 typedef struct AkMorph {
-  ak_asset_base
-
   const char  * baseMesh;
   AkMorphMethod method;
 
@@ -773,8 +746,6 @@ typedef struct AkMorph {
 } AkMorph;
 
 typedef struct AkController {
-  ak_asset_base
-
   /* const char * id; */
   const char * name;
   AkObject   * data;
@@ -826,8 +797,6 @@ struct AkMatrix;
 struct AkBoundingBox;
 
 struct AkNode {
-  ak_asset_base
-
   /* const char * id;  */
   /* const char * sid; */
 
@@ -877,8 +846,6 @@ typedef struct AkInstanceMaterial {
 } AkInstanceMaterial;
 
 typedef struct AkRender {
-  ak_asset_base
-
   /* const char * sid; */
 
   const char     * name;
@@ -891,8 +858,6 @@ typedef struct AkRender {
 } AkRender;
 
 typedef struct AkEvaluateScene {
-  ak_asset_base
-
   /* const char * id; */
   /* const char * sid; */
 
@@ -907,8 +872,6 @@ typedef struct AkEvaluateScene {
 struct AkInstanceList;
 
 typedef struct AkVisualScene {
-  ak_asset_base
-
   /* const char * id; */
   const char            *name;
   AkNode                *node;
@@ -922,8 +885,6 @@ typedef struct AkVisualScene {
 } AkVisualScene;
 
 typedef struct AkScene {
-  ak_asset_base
-
   /*
    TODO:
       instance_physics_scene
@@ -1013,6 +974,11 @@ const char *
 ak_generatId(AkDoc      * __restrict doc,
              void       * __restrict parentmem,
              const char * __restrict prefix);
+
+AK_EXPORT
+void*
+ak_getAssetInfo(void * __restrict obj,
+                size_t itemOffset);
 
 #ifdef __cplusplus
 }

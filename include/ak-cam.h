@@ -51,8 +51,6 @@ typedef struct AkImager {
 } AkImager;
 
 typedef struct AkCamera {
-  ak_asset_base
-
   /* const char * id; */
   const char      *name;
   AkOptics        *optics;

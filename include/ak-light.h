@@ -46,8 +46,6 @@ typedef struct AkSpotLight {
 } AkSpotLight;
 
 typedef struct AkLight {
-  ak_asset_base
-
   /* const char * id; */
   const char     *name;
   AkLightBase    *tcommon;

@@ -15,7 +15,6 @@ AkDirectionalLight akdef_light_tcommon = {
 };
 
 AkLight akdef_light = {
-  .inf       = NULL,
   .name      = "default",
   .tcommon   = &akdef_light_tcommon,
   .technique = NULL,

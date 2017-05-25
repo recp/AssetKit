@@ -36,14 +36,7 @@ ak_dae_evaluateScene(AkXmlState * __restrict xst,
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
-      AkAssetInf *assetInf;
-      AkResult ret;
-
-      assetInf = NULL;
-      ret = ak_dae_assetInf(xst, evaluateScene, &assetInf);
-      if (ret == AK_OK)
-        evaluateScene->inf = assetInf;
-
+      (void)ak_dae_assetInf(xst, evaluateScene, NULL);
     } else if (ak_xml_eqelm(xst, _s_dae_render)) {
       AkRender *render;
       AkResult  ret;

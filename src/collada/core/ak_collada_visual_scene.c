@@ -44,14 +44,7 @@ ak_dae_visualScene(AkXmlState * __restrict xst,
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
-      AkAssetInf *assetInf;
-      AkResult ret;
-
-      assetInf = NULL;
-      ret = ak_dae_assetInf(xst, visualScene, &assetInf);
-      if (ret == AK_OK)
-        visualScene->inf = assetInf;
-
+      (void)ak_dae_assetInf(xst, visualScene, NULL);
     } else if (ak_xml_eqelm(xst, _s_dae_node)) {
       AkNode  *node;
       AkResult ret;

@@ -79,7 +79,6 @@ typedef struct AkImageCube {
 } AkImageCube;
 
 typedef struct AkImage {
-  ak_asset_base
   /* const char * id;  */
   /* const char * sid; */
   const char     *name;

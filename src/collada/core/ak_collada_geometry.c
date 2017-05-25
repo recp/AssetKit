@@ -37,14 +37,7 @@ ak_dae_geometry(AkXmlState * __restrict xst,
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
-      AkAssetInf *assetInf;
-      AkResult ret;
-
-      assetInf = NULL;
-      ret = ak_dae_assetInf(xst, geometry, &assetInf);
-      if (ret == AK_OK)
-        geometry->inf = assetInf;
-
+      (void)ak_dae_assetInf(xst, geometry, NULL);
     } else if (ak_xml_eqelm(xst, _s_dae_mesh)
                || ak_xml_eqelm(xst, _s_dae_convex_mesh)) {
       AkMesh  *mesh;

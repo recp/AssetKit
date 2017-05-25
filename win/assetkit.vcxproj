@@ -297,6 +297,7 @@
   <ItemGroup>
     <ClCompile Include="..\src\ak_accessor.c" />
     <ClCompile Include="..\src\ak_array.c" />
+    <ClCompile Include="..\src\ak_asset.c" />
     <ClCompile Include="..\src\ak_common.c" />
     <ClCompile Include="..\src\ak_data.c" />
     <ClCompile Include="..\src\ak_find.c" />

@@ -26,8 +26,6 @@ typedef enum AkProfileType {
 } AkProfileType;
 
 typedef struct AkTechniqueFx {
-  ak_asset_base
-
   /* const char * id; */
   /* const char * sid; */
   AkAnnotate   * annotate;
@@ -56,8 +54,6 @@ typedef struct AkTechniqueHint {
 
 typedef struct AkProfile {
   /* const char * id; */
-  ak_asset_base
-
   AkProfileType     type;
   AkNewParam       *newparam;
   AkTechniqueFx    *technique;

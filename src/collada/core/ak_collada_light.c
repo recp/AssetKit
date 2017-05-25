@@ -35,14 +35,7 @@ ak_dae_light(AkXmlState * __restrict xst,
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
-      AkAssetInf *assetInf;
-      AkResult ret;
-
-      assetInf = NULL;
-      ret = ak_dae_assetInf(xst, light, &assetInf);
-      if (ret == AK_OK)
-        light->inf = assetInf;
-
+      (void)ak_dae_assetInf(xst, light, NULL);
     } else if (ak_xml_eqelm(xst, _s_dae_techniquec)) {
       AkLightBase *tcommon;
       AkResult     ret;
