@@ -34,3 +34,9 @@ ak_getAssetInfo(void * __restrict obj,
       return NULL;
   } while (true);
 }
+
+AK_EXPORT
+AkCoordSys*
+ak_getCoordSys(void * __restrict obj) {
+  return ak_getAssetInfo(obj, offsetof(AkAssetInf, coordSys));
+}

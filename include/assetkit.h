@@ -980,6 +980,11 @@ void*
 ak_getAssetInfo(void * __restrict obj,
                 size_t itemOffset);
 
+/* same as: ak_getAssetInfo(obj, offsetof(AkAssetInf, coordSys)) */
+AK_EXPORT
+AkCoordSys*
+ak_getCoordSys(void * __restrict obj);
+
 #ifdef __cplusplus
 }
 #endif
