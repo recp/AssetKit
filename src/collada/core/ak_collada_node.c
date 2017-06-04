@@ -260,7 +260,7 @@ ak_dae_node(AkXmlState    * __restrict xst,
 
           ak_xml_readsid(xst, obj);
 
-          ak_strtof(&content, (AkFloat *)scale->val, 4);
+          ak_strtof(&content, (AkFloat *)scale->val, 3);
 
           if (last_transform)
             last_transform->next = obj;
