@@ -985,6 +985,10 @@ AK_EXPORT
 AkCoordSys*
 ak_getCoordSys(void * __restrict obj);
 
+AK_EXPORT
+bool
+ak_hasCoordSys(void * __restrict obj);
+
 #ifdef __cplusplus
 }
 #endif

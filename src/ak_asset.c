@@ -40,3 +40,19 @@ AkCoordSys*
 ak_getCoordSys(void * __restrict obj) {
   return ak_getAssetInfo(obj, offsetof(AkAssetInf, coordSys));
 }
+
+AK_EXPORT
+bool
+ak_hasCoordSys(void * __restrict obj) {
+  AkHeapNode *hnode;
+  char      **ai;
+  void      **found;
+
+  hnode = ak__alignof(obj);
+  ai    = ak_heap_ext_get(hnode, AK_HEAP_NODE_FLAGS_INF);
+  if (!ai)
+    return false;
+
+  found = (void **)(*ai + offsetof(AkAssetInf, coordSys));
+  return found != NULL;
+}
