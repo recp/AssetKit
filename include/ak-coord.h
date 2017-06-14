@@ -69,6 +69,8 @@ extern AkCoordSys * AK_ZUP_LH;
 extern AkCoordSys * AK_YUP_LH;
 extern AkCoordSys * AK_XUP_LH;
 
+struct AkTransform;
+
 static
 AK_INLINE
 void
@@ -121,6 +123,13 @@ void
 ak_coordCvtTransform(AkCoordSys *oldCoordSystem,
                      AkFloat4x4  transform,
                      AkCoordSys *newCoordSystem);
+
+/* find transform between two coordinate system */
+AK_EXPORT
+void
+ak_coordFindTransform(struct AkTransform *transform,
+                      AkCoordSys         *oldCoordSys,
+                      AkCoordSys         *newCoordSys);
 
 AK_EXPORT
 void
