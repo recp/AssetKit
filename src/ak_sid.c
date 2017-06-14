@@ -445,7 +445,6 @@ AK_EXPORT
 void *
 ak_sid_resolve(AkContext  * __restrict ctx,
                const char * __restrict target) {
-  AkHeap      *heap;
   AkDoc       *doc;
   AkHeapNode  *idnode, *sidnode, *it, *chld;
   char        *siddup, *sid_it, *saveptr;
@@ -467,7 +466,6 @@ ak_sid_resolve(AkContext  * __restrict ctx,
   bufl[0] = bufl[1] = 4; /* start point */
 
   doc     = ctx->doc;
-  heap    = ak_heap_getheap(doc);
   buf[0]  = malloc(sizeof(*buf[0]) * bufl[0]);
   buf[1]  = malloc(sizeof(*buf[0]) * bufl[0]);
 
