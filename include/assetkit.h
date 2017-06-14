@@ -290,15 +290,6 @@ typedef enum AkNodeType {
   AK_NODE_TYPE_JOINT       = 3
 } AkNodeType;
 
-typedef enum AkNodeTransformType {
-  AK_NODE_TRANSFORM_TYPE_LOOK_AT   = 1,
-  AK_NODE_TRANSFORM_TYPE_MATRIX    = 2,
-  AK_NODE_TRANSFORM_TYPE_ROTATE    = 3,
-  AK_NODE_TRANSFORM_TYPE_SCALE     = 4,
-  AK_NODE_TRANSFORM_TYPE_SKEW      = 5,
-  AK_NODE_TRANSFORM_TYPE_TRANSLATE = 6
-} AkNodeTransformType;
-
 typedef struct AkTreeNodeAttr {
   const char * name;
   char       * val;
