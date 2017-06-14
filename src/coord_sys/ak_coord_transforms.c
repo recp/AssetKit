@@ -24,7 +24,7 @@ ak_coordCvtNodeTransforms(AkDoc  * __restrict doc,
 
   ak_coordAxisAccessors(oldCoordSys, newCoordsys, &a0, &a1);
 
-  transform = lastTransform = node->transform;
+  transform = lastTransform = node->transform->item;
 
   while (transform) {
     switch (transform->type) {
@@ -87,14 +87,18 @@ ak_coordCvtNodeTransforms(AkDoc  * __restrict doc,
 
   /* extra rotation for camera orientation */
   if (node->nodeType == AK_NODE_TYPE_CAMERA_NODE) {
-    AkObject *extraTransform;
-    ak_coordRotNodeForFixCamOri(doc, node, &extraTransform);
+    AkObject *extraTransformItem;
+    ak_coordRotNodeForFixCamOri(doc, node, &extraTransformItem);
 
-    if (extraTransform) {
+    if (extraTransformItem) {
       if (lastTransform)
-        lastTransform->next = extraTransform;
-      else
-        node->transform = extraTransform;
+        lastTransform->next = extraTransformItem;
+      else {
+        node->transform = ak_heap_calloc(ak_heap_getheap(extraTransformItem),
+                                         node,
+                                         sizeof(*node->transform));
+        node->transform->item = extraTransformItem;
+      }
     }
   }
 }

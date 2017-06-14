@@ -795,6 +795,7 @@ typedef struct AkInstanceNode {
  */
 struct AkMatrix;
 struct AkBoundingBox;
+struct AkTransform;
 
 struct AkNode {
   /* const char * id;  */
@@ -803,7 +804,7 @@ struct AkNode {
   const char           *name;
   AkNodeType            nodeType;
   AkStringArray        *layer;
-  AkObject             *transform;
+  struct AkTransform   *transform;
 
   /* only avilable if library is forced to calculate them
      check these two matrix to avoid extra or same calculation 

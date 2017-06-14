@@ -49,11 +49,17 @@ AK_EXPORT
 void
 ak_transformCombine(AkNode * __restrict node,
                     float  * matrix) {
-  AkObject *transform;
+  AkObject *transform, *transformGroup;
   mat4      mat = GLM_MAT4_IDENTITY_INIT;
   mat4      tmp;
 
-  transform = node->transform;
+  if (!node->transform)
+    goto ret;
+
+  transformGroup = node->transform->base;
+
+again:
+  transform = transformGroup;
   while (transform) {
     switch (transform->type) {
       case AK_NODE_TRANSFORM_TYPE_MATRIX: {
@@ -114,5 +120,26 @@ ak_transformCombine(AkNode * __restrict node,
     transform = transform->next;
   }
 
+  if (transformGroup != node->transform->item) {
+    transformGroup = node->transform->item;
+    goto again;
+  }
+
+ret:
   glm_mat4_copy(mat, (vec4 *)matrix);
+}
+
+AK_EXPORT
+void
+ak_transformFreeBase(AkTransform * __restrict transform) {
+  AkObject *transItem, *tofree;
+
+  transItem = transform->base;
+  while (transItem) {
+    tofree = transItem;
+    transItem = transItem->next;
+    ak_free(tofree);
+  }
+
+  transform->base = NULL;
 }

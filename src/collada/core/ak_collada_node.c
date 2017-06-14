@@ -167,8 +167,12 @@ ak_dae_node(AkXmlState    * __restrict xst,
 
           if (last_transform)
             last_transform->next = obj;
-          else
-            node->transform = obj;
+          else {
+            node->transform = ak_heap_calloc(xst->heap,
+                                             node,
+                                             sizeof(*node->transform));
+            node->transform->item = obj;
+          }
 
           last_transform = obj;
 
@@ -201,8 +205,12 @@ ak_dae_node(AkXmlState    * __restrict xst,
 
           if (last_transform)
             last_transform->next = obj;
-          else
-            node->transform = obj;
+          else {
+            node->transform = ak_heap_calloc(xst->heap,
+                                             node,
+                                             sizeof(*node->transform));
+            node->transform->item = obj;
+          }
 
           last_transform = obj;
 
@@ -233,8 +241,12 @@ ak_dae_node(AkXmlState    * __restrict xst,
 
           if (last_transform)
             last_transform->next = obj;
-          else
-            node->transform = obj;
+          else {
+            node->transform = ak_heap_calloc(xst->heap,
+                                             node,
+                                             sizeof(*node->transform));
+            node->transform->item = obj;
+          }
 
           last_transform = obj;
 
@@ -264,8 +276,12 @@ ak_dae_node(AkXmlState    * __restrict xst,
 
           if (last_transform)
             last_transform->next = obj;
-          else
-            node->transform = obj;
+          else {
+            node->transform = ak_heap_calloc(xst->heap,
+                                             node,
+                                             sizeof(*node->transform));
+            node->transform->item = obj;
+          }
 
           last_transform = obj;
 
@@ -301,8 +317,12 @@ ak_dae_node(AkXmlState    * __restrict xst,
 
           if (last_transform)
             last_transform->next = obj;
-          else
-            node->transform = obj;
+          else {
+            node->transform = ak_heap_calloc(xst->heap,
+                                             node,
+                                             sizeof(*node->transform));
+            node->transform->item = obj;
+          }
 
           last_transform = obj;
 
@@ -332,8 +352,12 @@ ak_dae_node(AkXmlState    * __restrict xst,
 
           if (last_transform)
             last_transform->next = obj;
-          else
-            node->transform = obj;
+          else {
+            node->transform = ak_heap_calloc(xst->heap,
+                                             node,
+                                             sizeof(*node->transform));
+            node->transform->item = obj;
+          }
 
           last_transform = obj;
 

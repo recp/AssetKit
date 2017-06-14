@@ -11,6 +11,11 @@
 extern "C" {
 #endif
 
+typedef struct AkTransform {
+  AkObject *base; /* fixup transform */
+  AkObject *item;
+} AkTransform;
+
 typedef struct AkLookAt {
   /* const char * sid; */
 
@@ -92,6 +97,10 @@ AK_EXPORT
 void
 ak_transformDup(AkNode * __restrict srcNode,
                 AkNode * __restrict destNode);
+
+AK_EXPORT
+void
+ak_transformFreeBase(AkTransform * __restrict transform);
 
 #ifdef __cplusplus
 }
