@@ -19,6 +19,9 @@ ak_coordCvtNodeTransforms(AkDoc  * __restrict doc,
   vec3           tmp;
   AkAxisAccessor a0, a1;
 
+  if (!node->transform)
+    return;
+
   oldCoordSys = doc->coordSys;
   newCoordsys = (void *)ak_opt_get(AK_OPT_COORD);
 

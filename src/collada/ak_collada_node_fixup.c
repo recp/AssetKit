@@ -44,13 +44,54 @@ ak_dae_nodeFixupCamera(AkHeap * __restrict heap,
 }
 
 void _assetkit_hide
-ak_dae_nodeFixup(AkHeap * __restrict heap,
-                 AkDoc  * __restrict doc,
-                 AkNode * __restrict node) {
+ak_dae_nodeFixup(AkHeap        * __restrict heap,
+                 AkDoc         * __restrict doc,
+                 AkVisualScene * __restrict scene,
+                 AkNode        * __restrict node) {
+  AkCoordSys *coordSys, *newCoordSys;
+  bool        hasCoordSys;
+
+  newCoordSys = (void *)ak_opt_get(AK_OPT_COORD);
+
+  /* step 1: fixup camera node */
   if (node->camera)
     ak_dae_nodeFixupCamera(heap, node);
 
-  if (!ak_opt_get(AK_OPT_USE_DOC_COORD)
-      && (void *)ak_opt_get(AK_OPT_COORD) != doc->coordSys)
-    ak_coordCvtNodeTransforms(doc, node);
+  /* step 2: fixup coord sys  */
+  if ((hasCoordSys = ak_hasCoordSys(node)))
+    coordSys = ak_getCoordSys(node);
+  else
+    coordSys = doc->coordSys;
+
+  if (newCoordSys == coordSys)
+    return;
+
+  switch (ak_opt_get(AK_OPT_COORD_CONVERT_TYPE)) {
+    case AK_COORD_CVT_FIX_TRANSFORM: {
+      if (hasCoordSys
+          /* don't change nodes in library_nodes */
+          || (!node->parent && scene)) {
+        AkCoordSys *oldCoordSys;
+        oldCoordSys = ak_getCoordSys(node);
+
+        if (!node->transform) {
+          node->transform = ak_heap_calloc(heap,
+                                           node,
+                                           sizeof(*node->transform));
+        }
+
+        /* fixup transform[s] */
+        ak_coordFindTransform(node->transform,
+                              oldCoordSys,
+                              newCoordSys);
+      }
+      break;
+    }
+    case AK_COORD_CVT_ALL:
+      if (node->transform)
+        ak_coordCvtNodeTransforms(doc, node);
+      break;
+    default:
+      break;
+  }
 }

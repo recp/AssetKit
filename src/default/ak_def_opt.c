@@ -23,20 +23,19 @@ uintptr_t AK_OPTIONS[] =
   true,                            /* 4:  _NO_INDICES_INTERLEAVED      */
   false,                           /* 5:  _NO_INDICES_SEPARATE         */
   (uintptr_t)&AK__Y_RH_VAL,        /* 6:  _COORD                       */
-  true,                            /* 7:  _USE_DOC_COORD               */
-  (uintptr_t)&AK_DEF_ID_PRFX,      /* 8:  _DEFAULT_ID_PREFIX           */
-  false,                           /* 9:  _COMPUTE_BBOX                */
-  true,                            /* 10: _TRIANGULATE                 */
-  true,                            /* 11: _GEN_NORMALS_IF_NEEDED       */
-  AK_PROFILE_TYPE_COMMON,          /* 12: _DEFAULT_PROFILE             */
-  true,                            /* 13: _EFFECT_PROFILE              */
-  (uintptr_t)ak__def_techniques,   /* 14: _TECHNIQUE                   */
-  (uintptr_t)ak__def_techniques,   /* 15: _TECHNIQUE_FX                */
-  false,                           /* 16: _ZERO_INDEXED_INPUT          */
-  true,                            /* 17: _IMAGE_LOAD_FLIP_VERTICALLY  */
-  true,                            /* 18: _ADD_DEFAULT_CAMERA          */
-  false,                           /* 19: _ADD_DEFAULT_LIGHT           */
-  AK_COORD_CVT_DEFAULT             /* 20: _COORD_CONVERT_TYPE          */
+  (uintptr_t)&AK_DEF_ID_PRFX,      /* 7:  _DEFAULT_ID_PREFIX           */
+  false,                           /* 8:  _COMPUTE_BBOX                */
+  true,                            /* 9: _TRIANGULATE                 */
+  true,                            /* 10: _GEN_NORMALS_IF_NEEDED       */
+  AK_PROFILE_TYPE_COMMON,          /* 11: _DEFAULT_PROFILE             */
+  true,                            /* 12: _EFFECT_PROFILE              */
+  (uintptr_t)ak__def_techniques,   /* 13: _TECHNIQUE                   */
+  (uintptr_t)ak__def_techniques,   /* 14: _TECHNIQUE_FX                */
+  false,                           /* 15: _ZERO_INDEXED_INPUT          */
+  true,                            /* 16: _IMAGE_LOAD_FLIP_VERTICALLY  */
+  true,                            /* 17: _ADD_DEFAULT_CAMERA          */
+  false,                           /* 18: _ADD_DEFAULT_LIGHT           */
+  AK_COORD_CVT_DEFAULT             /* 19: _COORD_CONVERT_TYPE          */
 };
 
 AK_EXPORT

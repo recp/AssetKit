@@ -48,7 +48,7 @@ ak_defaultLight(void * __restrict memparent) {
          sizeof(AkDirectionalLight));
 
   /* convert light direction */
-  if (!ak_opt_get(AK_OPT_USE_DOC_COORD))
+  if (ak_opt_get(AK_OPT_COORD_CONVERT_TYPE) != AK_COORD_CVT_DISABLED)
     coordsys = (void *)ak_opt_get(AK_OPT_COORD);
   else
     coordsys = doc->coordSys;
