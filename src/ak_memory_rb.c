@@ -159,7 +159,7 @@ ak_heap_rb_insert(AkHeapSrchCtx * __restrict srchctx,
     sG = sP;
     sP = sX;
     sX = !(srchctx->cmp(srchNode->key, X->key) < 0);
-    W  = Q,
+    W  = Q;
     Q  = G;
     G  = P;
     P  = X;

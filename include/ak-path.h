@@ -49,11 +49,11 @@ ak_fullpath(struct AkDoc * __restrict doc,
 
 AK_EXPORT
 FILE *
-ak_path_tmpfile();
+ak_path_tmpfile(void);
 
 AK_EXPORT
 char *
-ak_path_tmpfilepath();
+ak_path_tmpfilepath(void);
 
 #ifdef __cplusplus
 }

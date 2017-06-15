@@ -23,10 +23,10 @@ typedef struct AkResource {
 } AkResource;
 
 void _assetkit_hide
-ak_resc_init();
+ak_resc_init(void);
 
 void _assetkit_hide
-ak_resc_deinit();
+ak_resc_deinit(void);
 
 AkResource *
 ak_resc_ins(const char *url);
@@ -41,6 +41,6 @@ int
 ak_resc_unref_url(const char *url);
 
 void
-ak_resc_print();
+ak_resc_print(void);
 
 #endif /* ak_resource_h */

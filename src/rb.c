@@ -238,7 +238,7 @@ rb_insert(RBTree *tree,
     sG = sP;
     sP = sX;
     sX = !(tree->cmp(key, X->key) < 0);
-    W  = Q,
+    W  = Q;
     Q  = G;
     G  = P;
     P  = X;

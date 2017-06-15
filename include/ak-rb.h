@@ -41,10 +41,10 @@ RBTree*
 rb_newtree(RBCmpFn cmp, RBPrintFn print);
 
 RBTree*
-rb_newtree_str();
+rb_newtree_str(void);
 
 RBTree*
-rb_newtree_ptr();
+rb_newtree_ptr(void);
 
 void
 rb_insert(RBTree *tree,

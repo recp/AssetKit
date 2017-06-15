@@ -16,11 +16,11 @@
 
 void
 AK_CONSTRUCTOR
-ak__init();
+ak__init(void);
 
 void
 AK_DESTRUCTOR
-ak__cleanup();
+ak__cleanup(void);
 
 void
 AK_CONSTRUCTOR

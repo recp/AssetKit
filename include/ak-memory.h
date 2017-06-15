@@ -90,7 +90,7 @@ ak_heap_getheap(void * __restrict memptr);
 
 AK_EXPORT
 AkHeap *
-ak_heap_default();
+ak_heap_default(void);
 
 AK_EXPORT
 AkHeap *
@@ -255,11 +255,11 @@ ak_setAttachedHeap(void   * __restrict memptr,
 
 AK_EXPORT
 AkHeapAllocator *
-ak_mem_allocator();
+ak_mem_allocator(void);
 
 AK_EXPORT
 void
-ak_mem_printKeys();
+ak_mem_printKeys(void);
 
 AK_EXPORT
 void*

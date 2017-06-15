@@ -17,9 +17,9 @@ typedef struct AkInputSemanticPair {
 } AkInputSemanticPair;
 
 const AkInputSemanticPair**
-ak_def_semantic();
+ak_def_semantic(void);
 
 uint32_t
-ak_def_semanticc();
+ak_def_semanticc(void);
 
 #endif /* ak_def_semantic_h */

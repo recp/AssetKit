@@ -125,9 +125,9 @@ void _assetkit_hide
 ak_freeh(AkHeapNode * __restrict heapNode);
 
 void
-ak_mem_init();
+ak_mem_init(void);
 
 void
-ak_mem_deinit();
+ak_mem_deinit(void);
 
 #endif /* ak_memory_h */

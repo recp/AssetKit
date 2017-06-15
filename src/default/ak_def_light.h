@@ -11,6 +11,6 @@
 #include "../ak_common.h"
 
 const AkLight*
-ak_def_light();
+ak_def_light(void);
 
 #endif /* ak_def_light_h */

@@ -116,7 +116,7 @@ ak_setSupportedProfiles(AkProfileType profileTypes[],
                         uint32_t      count);
 
 const char*
-ak_platform();
+ak_platform(void);
 
 void
 ak_setPlatform(const char platform[64]);

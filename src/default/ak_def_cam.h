@@ -11,6 +11,6 @@
 #include "../ak_common.h"
 
 const AkCamera*
-ak_def_camera();
+ak_def_camera(void);
 
 #endif /* ak_def_cam_h */

@@ -24,13 +24,13 @@ typedef struct AkSidConstr {
 } AkSidConstr;
 
 void _assetkit_hide
-ak_sid_init();
+ak_sid_init(void);
 
 void _assetkit_hide
-ak_sid_deinit();
+ak_sid_deinit(void);
 
 void
-ak_sidInitConstr();
+ak_sidInitConstr(void);
 
 AkSidConstr*
 ak_sidConstraintsOf(AkTypeId typeId);

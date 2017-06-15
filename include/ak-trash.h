@@ -18,7 +18,7 @@ void ak_trash_add(void *mem);
 
 AK_EXPORT
 void
-ak_trash_empty();
+ak_trash_empty(void);
 
 #ifdef __cplusplus
 }
