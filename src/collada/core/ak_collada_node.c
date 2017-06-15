@@ -715,8 +715,6 @@ ak_dae_node(AkXmlState    * __restrict xst,
             node->chld = subNode;
 
           last_chld = subNode;
-
-          subNode->parent = node;
         }
 
         break;
@@ -749,7 +747,10 @@ ak_dae_node(AkXmlState    * __restrict xst,
       break;
   } while (xst->nodeRet);
 
-  ak_dae_nodeFixup(xst->heap, doc, node);
+  if (ak_isKindOf(memParent, node))
+    node->parent = memParent;
+
+  ak_dae_nodeFixup(xst->heap, doc, scene, node);
   *dest = node;
 
   return AK_OK;
