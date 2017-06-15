@@ -77,6 +77,7 @@ ak_dae_node(AkXmlState    * __restrict xst,
 
   doc  = ak_heap_data(xst->heap);
   node = ak_heap_calloc(xst->heap, memParent, sizeof(*node));
+  ak_setypeid(node, AKT_NODE);
 
   ak_xml_readid(xst, node);
   ak_xml_readsid(xst, node);

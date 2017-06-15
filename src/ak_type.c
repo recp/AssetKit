@@ -36,6 +36,9 @@ ak_isKindOf(void * __restrict mem,
             void * __restrict other) {
   AkHeapNode *hnode1, *hnode2;
 
+  if (!mem || !other)
+    return false;
+
   hnode1 = ak__alignof(mem);
   hnode2 = ak__alignof(other);
 

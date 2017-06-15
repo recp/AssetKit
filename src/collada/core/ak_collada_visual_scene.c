@@ -23,6 +23,7 @@ ak_dae_visualScene(AkXmlState * __restrict xst,
   visualScene = ak_heap_calloc(xst->heap,
                                memParent,
                                sizeof(*visualScene));
+  ak_setypeid(visualScene, AKT_SCENE);
 
   ak_xml_readid(xst, visualScene);
   visualScene->name = ak_xml_attr(xst, visualScene, _s_dae_name);

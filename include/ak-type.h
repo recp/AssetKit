@@ -22,7 +22,9 @@ typedef enum AkTypeId {
   AKT_SAMPLER,
   AKT_TEXTURE,
   AKT_TEXTURE_NAME,
-  AKT_TEXCOORD
+  AKT_TEXCOORD,
+  AKT_NODE,
+  AKT_SCENE
 } AkTypeId;
 
 AkTypeId
