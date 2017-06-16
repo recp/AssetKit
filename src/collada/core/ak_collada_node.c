@@ -373,9 +373,10 @@ ak_dae_node(AkXmlState    * __restrict xst,
                                         node,
                                         sizeof(*instanceCamera));
 
+        instanceCamera->type = AK_INSTANCE_CAMERA;
         instanceCamera->name = ak_xml_attr(xst,
-                                                instanceCamera,
-                                                _s_dae_name);
+                                           instanceCamera,
+                                           _s_dae_name);
         ak_xml_attr_url(xst,
                         _s_dae_url,
                         instanceCamera,
@@ -419,7 +420,8 @@ ak_dae_node(AkXmlState    * __restrict xst,
         else
           node->camera = instanceCamera;
 
-        last_camera = instanceCamera;
+        instanceCamera->prev = last_camera;
+        last_camera          = instanceCamera;
 
         if (scene) {
           if (!scene->firstCamNode)
@@ -429,24 +431,26 @@ ak_dae_node(AkXmlState    * __restrict xst,
             ak_instanceListAdd(scene->cameras,
                                instanceCamera);
         }
-
         break;
       }
       case k_s_dae_instance_controller: {
-        AkInstanceController *controller;
+        AkInstanceController *instanceController;
         AkSkeleton           *last_skeleton;
         AkXmlElmState         xest2;
 
-        controller = ak_heap_calloc(xst->heap,
-                                    node,
-                                    sizeof(*controller));
+        instanceController = ak_heap_calloc(xst->heap,
+                                            node,
+                                            sizeof(*instanceController));
 
-        controller->name = ak_xml_attr(xst, controller, _s_dae_name);
+        instanceController->base.type = AK_INSTANCE_CONTROLLER;
+        instanceController->base.name = ak_xml_attr(xst,
+                                                    instanceController,
+                                                    _s_dae_name);
 
         ak_xml_attr_url(xst,
                         _s_dae_url,
-                        controller,
-                        &controller->url);
+                        instanceController,
+                        &instanceController->base.url);
 
         last_skeleton = NULL;
 
@@ -460,15 +464,15 @@ ak_dae_node(AkXmlState    * __restrict xst,
             if (!xmlTextReaderIsEmptyElement(xst->reader)) {
               AkSkeleton *skeleton;
               skeleton = ak_heap_calloc(xst->heap,
-                                        controller,
+                                        instanceController,
                                         sizeof(*skeleton));
 
-              skeleton->val = ak_xml_val(xst, controller);
+              skeleton->val = ak_xml_val(xst, instanceController);
 
               if (last_skeleton)
                 last_skeleton->next = skeleton;
               else
-                controller->skeleton = skeleton;
+                instanceController->skeleton = skeleton;
 
               last_skeleton = skeleton;
             }
@@ -477,10 +481,10 @@ ak_dae_node(AkXmlState    * __restrict xst,
             AkResult ret;
 
             ret = ak_dae_fxBindMaterial(xst,
-                                        controller,
+                                        instanceController,
                                         &bindMaterial);
             if (ret == AK_OK)
-              controller->bindMaterial = bindMaterial;
+              instanceController->bindMaterial = bindMaterial;
 
           } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
             xmlNodePtr nodePtr;
@@ -490,11 +494,11 @@ ak_dae_node(AkXmlState    * __restrict xst,
             tree = NULL;
 
             ak_tree_fromXmlNode(xst->heap,
-                                controller,
+                                instanceController,
                                 nodePtr,
                                 &tree,
                                 NULL);
-            controller->extra = tree;
+            instanceController->base.extra = tree;
 
             ak_xml_skipelm(xst);
             break;
@@ -508,28 +512,29 @@ ak_dae_node(AkXmlState    * __restrict xst,
         } while (xst->nodeRet);
 
         if (last_controller)
-          last_controller->next = controller;
+          last_controller->base.next = &instanceController->base;
         else
-          node->controller = controller;
+          node->controller = instanceController;
 
-        last_controller = controller;
-
+        instanceController->base.prev = &last_controller->base;
+        last_controller               = instanceController;
         break;
       }
       case k_s_dae_instance_geometry: {
-        AkInstanceGeometry *geometry;
+        AkInstanceGeometry *instanceGeom;
         AkXmlElmState       xest2;
 
-        geometry = ak_heap_calloc(xst->heap,
-                                  node,
-                                  sizeof(*geometry));
+        instanceGeom = ak_heap_calloc(xst->heap,
+                                      node,
+                                      sizeof(*instanceGeom));
 
-        geometry->base.name = ak_xml_attr(xst, geometry, _s_dae_name);
+        instanceGeom->base.type = AK_INSTANCE_GEOMETRY;
+        instanceGeom->base.name = ak_xml_attr(xst, instanceGeom, _s_dae_name);
 
         ak_xml_attr_url(xst,
                         _s_dae_url,
-                        geometry,
-                        &geometry->base.url);
+                        instanceGeom,
+                        &instanceGeom->base.url);
 
         ak_xest_init(xest2, _s_dae_instance_geometry)
 
@@ -541,9 +546,9 @@ ak_dae_node(AkXmlState    * __restrict xst,
             AkBindMaterial *bindMaterial;
             AkResult ret;
 
-            ret = ak_dae_fxBindMaterial(xst, geometry, &bindMaterial);
+            ret = ak_dae_fxBindMaterial(xst, instanceGeom, &bindMaterial);
             if (ret == AK_OK)
-              geometry->bindMaterial = bindMaterial;
+              instanceGeom->bindMaterial = bindMaterial;
 
           } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
             xmlNodePtr nodePtr;
@@ -553,11 +558,11 @@ ak_dae_node(AkXmlState    * __restrict xst,
             tree = NULL;
 
             ak_tree_fromXmlNode(xst->heap,
-                                geometry,
+                                instanceGeom,
                                 nodePtr,
                                 &tree,
                                 NULL);
-            geometry->base.extra = tree;
+            instanceGeom->base.extra = tree;
 
             ak_xml_skipelm(xst);
             break;
@@ -570,29 +575,32 @@ ak_dae_node(AkXmlState    * __restrict xst,
             break;
         } while (xst->nodeRet);
 
-        geometry->base.node = node;
+        instanceGeom->base.node = node;
 
         if (last_geometry)
-          last_geometry->base.next = &geometry->base;
+          last_geometry->base.next = &instanceGeom->base;
         else
-          node->geometry = geometry;
+          node->geometry = instanceGeom;
 
-        last_geometry = geometry;
-
+        instanceGeom->base.prev = &last_geometry->base;
+        last_geometry           = instanceGeom;
         break;
       }
       case k_s_dae_instance_light: {
-        AkInstanceBase *lightInst;
+        AkInstanceBase *instanceLight;
         AkXmlElmState   xest2;
 
-        lightInst = ak_heap_calloc(xst->heap, node, sizeof(*lightInst));
+        instanceLight = ak_heap_calloc(xst->heap,
+                                       node,
+                                       sizeof(*instanceLight));
 
-        lightInst->name = ak_xml_attr(xst, lightInst, _s_dae_name);
+        instanceLight->type = AK_INSTANCE_LIGHT;
+        instanceLight->name = ak_xml_attr(xst, instanceLight, _s_dae_name);
 
         ak_xml_attr_url(xst,
                         _s_dae_url,
-                        lightInst,
-                        &lightInst->url);
+                        instanceLight,
+                        &instanceLight->url);
 
         ak_xest_init(xest2, _s_dae_instance_light)
 
@@ -608,11 +616,11 @@ ak_dae_node(AkXmlState    * __restrict xst,
             tree = NULL;
 
             ak_tree_fromXmlNode(xst->heap,
-                                lightInst,
+                                instanceLight,
                                 nodePtr,
                                 &tree,
                                 NULL);
-            lightInst->extra = tree;
+            instanceLight->extra = tree;
 
             ak_xml_skipelm(xst);
             break;
@@ -625,21 +633,22 @@ ak_dae_node(AkXmlState    * __restrict xst,
             break;
         } while (xst->nodeRet);
 
-        lightInst->node = node;
+        instanceLight->node = node;
 
         if (last_light)
-          last_light->next = lightInst;
+          last_light->next = instanceLight;
         else
-          node->light = lightInst;
+          node->light = instanceLight;
 
-        last_light = lightInst;
+        instanceLight->prev = last_light;
+        last_light          = instanceLight;
 
-        if (scene && lightInst) {
+        if (scene && instanceLight) {
           AkLight *lightObject;
-          lightObject = ak_instanceObject(lightInst);
+          lightObject = ak_instanceObject(instanceLight);
           if (lightObject)
             ak_instanceListAdd(scene->lights,
-                               lightInst);
+                               instanceLight);
         }
 
         break;
@@ -652,6 +661,7 @@ ak_dae_node(AkXmlState    * __restrict xst,
                                       node,
                                       sizeof(*instanceNode));
 
+        instanceNode->base.type = AK_INSTANCE_NODE;
         instanceNode->base.name = ak_xml_attr(xst, instanceNode, _s_dae_name);
         instanceNode->proxy     = ak_xml_attr(xst, instanceNode, _s_dae_proxy);
 
@@ -698,8 +708,8 @@ ak_dae_node(AkXmlState    * __restrict xst,
         else
           node->node = instanceNode;
 
-        last_node = instanceNode;
-
+        instanceNode->base.prev = &last_node->base;
+        last_node               = instanceNode;
         break;
       }
       case k_s_dae_node: {

@@ -290,6 +290,15 @@ typedef enum AkNodeType {
   AK_NODE_TYPE_JOINT       = 3
 } AkNodeType;
 
+typedef enum AkInstanceType {
+  AK_INSTANCE_NODE       = 1,
+  AK_INSTANCE_CAMERA     = 2,
+  AK_INSTANCE_LIGHT      = 3,
+  AK_INSTANCE_GEOMETRY   = 4,
+  AK_INSTANCE_IMAGE      = 5,
+  AK_INSTANCE_CONTROLLER = 6
+} AkInstanceType;
+
 typedef struct AkTreeNodeAttr {
   const char * name;
   char       * val;
@@ -427,12 +436,13 @@ typedef struct AkInitFrom {
 struct AkNode;
 typedef struct AkInstanceBase {
   /* const char * sid; */
-
-  AkURL         url;
-  void         *object;
-  const char   *name;
-  AkTree       *extra;
-  struct AkNode *node;
+  AkURL                  url;
+  AkInstanceType         type;
+  void                  *object;
+  const char            *name;
+  AkTree                *extra;
+  struct AkNode         *node;
+  struct AkInstanceBase *prev;
   struct AkInstanceBase *next;
 } AkInstanceBase;
 
@@ -760,14 +770,9 @@ typedef struct AkBindMaterial {
 } AkBindMaterial;
 
 typedef struct AkInstanceController {
-  AkURL            url;
-  AkController   * controller;
-  const char     * name;
-  AkSkeleton     * skeleton;
-  AkBindMaterial * bindMaterial;
-  AkTree         * extra;
-
-  struct AkInstanceController * next;
+  AkInstanceBase  base;
+  AkSkeleton     *skeleton;
+  AkBindMaterial *bindMaterial;
 } AkInstanceController;
 
 typedef struct AkInstanceGeometry {
