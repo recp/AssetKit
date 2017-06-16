@@ -11,6 +11,8 @@
 extern "C" {
 #endif
 
+#include "ak-node.h"
+
 typedef struct AkInstanceListItem {
   struct AkInstanceListItem *prev;
   struct AkInstanceListItem *next;

@@ -424,6 +424,9 @@
     <ClInclude Include="..\src\default\ak_def_light.h">
       <Filter>src\default</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\ak-node.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\bbox\ak_bbox.c">

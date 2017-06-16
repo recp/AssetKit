@@ -64,7 +64,8 @@ static AkLibChldDesc libchlds[] = {
     _s_dae_camera,
     ak_dae_camera,
     offsetof(AkLib, cameras),
-    offsetof(AkCamera, next)
+    offsetof(AkCamera, next),
+    -1
   },
   {
     NULL,
@@ -72,7 +73,8 @@ static AkLibChldDesc libchlds[] = {
     _s_dae_light,
     ak_dae_light,
     offsetof(AkLib, lights),
-    offsetof(AkLight, next)
+    offsetof(AkLight, next),
+    -1
   },
   {
     NULL,
@@ -80,7 +82,8 @@ static AkLibChldDesc libchlds[] = {
     _s_dae_effect,
     ak_dae_effect,
     offsetof(AkLib, effects),
-    offsetof(AkEffect, next)
+    offsetof(AkEffect, next),
+    -1
   },
   {
     NULL,
@@ -89,6 +92,7 @@ static AkLibChldDesc libchlds[] = {
     ak_dae_fxImage,
     offsetof(AkLib, images),
     offsetof(AkImage, next)
+    -1
   },
   {
     NULL,
@@ -96,7 +100,8 @@ static AkLibChldDesc libchlds[] = {
     _s_dae_material,
     ak_dae_material,
     offsetof(AkLib, materials),
-    offsetof(AkMaterial, next)
+    offsetof(AkMaterial, next),
+    -1
   },
   {
     NULL,
@@ -104,7 +109,8 @@ static AkLibChldDesc libchlds[] = {
     _s_dae_geometry,
     ak_dae_geometry,
     offsetof(AkLib, geometries),
-    offsetof(AkGeometry, next)
+    offsetof(AkGeometry, next),
+    -1
   },
   {
     NULL,
@@ -112,7 +118,8 @@ static AkLibChldDesc libchlds[] = {
     _s_dae_controller,
     ak_dae_controller,
     offsetof(AkLib, controllers),
-    offsetof(AkController, next)
+    offsetof(AkController, next),
+    -1
   },
   {
     NULL,
@@ -120,7 +127,8 @@ static AkLibChldDesc libchlds[] = {
     _s_dae_visual_scene,
     ak_dae_visualScene,
     offsetof(AkLib, visualScenes),
-    offsetof(AkVisualScene, next)
+    offsetof(AkVisualScene, next),
+    -1
   },
   {
     NULL,
@@ -128,7 +136,8 @@ static AkLibChldDesc libchlds[] = {
     _s_dae_node,
     ak_dae_node2,
     offsetof(AkLib, nodes),
-    offsetof(AkNode, next)
+    offsetof(AkNode, next),
+    offsetof(AkNode, prev)
   }
 };
 

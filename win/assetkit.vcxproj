@@ -194,6 +194,7 @@
     <ClInclude Include="..\include\ak-map.h" />
     <ClInclude Include="..\include\ak-material.h" />
     <ClInclude Include="..\include\ak-memory.h" />
+    <ClInclude Include="..\include\ak-node.h" />
     <ClInclude Include="..\include\ak-options.h" />
     <ClInclude Include="..\include\ak-path.h" />
     <ClInclude Include="..\include\ak-profile.h" />

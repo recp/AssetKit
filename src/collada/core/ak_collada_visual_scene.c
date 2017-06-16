@@ -60,7 +60,8 @@ ak_dae_visualScene(AkXmlState * __restrict xst,
         else
           visualScene->node = node;
 
-        last_node = node;
+        node->prev = last_node;
+        last_node  = node;
       }
     } else if (ak_xml_eqelm(xst, _s_dae_evaluate_scene)) {
       AkEvaluateScene *evaluateScene;

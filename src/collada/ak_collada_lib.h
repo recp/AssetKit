@@ -21,6 +21,7 @@ typedef struct AkLibChldDesc {
   libChldFn   chldFn;
   int         libOffset;
   int         nextOfset;
+  int         prevOfset;
 } AkLibChldDesc;
 
 void _assetkit_hide

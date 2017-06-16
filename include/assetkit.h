@@ -284,12 +284,6 @@ typedef enum AkMorphMethod {
   AK_MORPH_METHOD_RELATIVE   = 2
 } AkMorphMethod;
 
-typedef enum AkNodeType {
-  AK_NODE_TYPE_NODE        = 1,
-  AK_NODE_TYPE_CAMERA_NODE = 2,
-  AK_NODE_TYPE_JOINT       = 3
-} AkNodeType;
-
 typedef enum AkInstanceType {
   AK_INSTANCE_NODE       = 1,
   AK_INSTANCE_CAMERA     = 2,
@@ -780,7 +774,6 @@ typedef struct AkInstanceGeometry {
   AkBindMaterial *bindMaterial;
 } AkInstanceGeometry;
 
-typedef struct AkNode AkNode;
 typedef struct AkInstanceNode {
   AkInstanceBase base;
   const char    *proxy;
@@ -792,34 +785,6 @@ typedef struct AkInstanceNode {
 struct AkMatrix;
 struct AkBoundingBox;
 struct AkTransform;
-
-struct AkNode {
-  /* const char * id;  */
-  /* const char * sid; */
-
-  const char           *name;
-  AkNodeType            nodeType;
-  AkStringArray        *layer;
-  struct AkTransform   *transform;
-
-  /* only avilable if library is forced to calculate them
-     check these two matrix to avoid extra or same calculation 
-   */
-  struct AkMatrix      *matrix;
-  struct AkMatrix      *matrixWorld;
-  struct AkBoundingBox *bbox;
-
-  AkInstanceBase       *camera;
-  AkInstanceController *controller;
-  AkInstanceGeometry   *geometry;
-  AkInstanceBase       *light;
-  AkInstanceNode       *node;
-
-  AkTree               *extra;
-  struct AkNode        *chld;
-  struct AkNode        *parent;
-  struct AkNode        *next;
-};
 
 typedef struct AkBind {
   const char    * semantic;
@@ -871,8 +836,8 @@ struct AkInstanceList;
 typedef struct AkVisualScene {
   /* const char * id; */
   const char            *name;
-  AkNode                *node;
-  AkNode                *firstCamNode; /* first found camera       */
+  struct AkNode         *node;
+  struct AkNode         *firstCamNode; /* first found camera       */
   struct AkInstanceList *cameras;      /* all cameras inside scene */
   struct AkInstanceList *lights;       /* all lights inside scene  */
   AkEvaluateScene       *evaluateScene;
@@ -936,6 +901,7 @@ typedef struct AkDoc {
 #include "ak-transform.h"
 #include "ak-sid.h"
 #include "ak-light.h"
+#include "ak-node.h"
 
 AK_EXPORT
 AkResult

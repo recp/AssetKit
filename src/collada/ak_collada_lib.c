@@ -57,6 +57,9 @@ ak_dae_lib(AkXmlState    * __restrict xst,
         else
           lib->chld = libChld;
 
+        if (lc->prevOfset > -1)
+          *(void **)((char *)libChld + lc->prevOfset) = lastLibChld;
+
         lastLibChld = libChld;
       }
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
