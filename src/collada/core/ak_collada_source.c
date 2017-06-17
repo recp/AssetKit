@@ -114,13 +114,10 @@ ak_dae_source(AkXmlState * __restrict xst,
                      boolArray->items,
                      1,
                      (AkUInt)arrayCount);
-
-          source->data = obj;
           xmlFree(content);
-        } else {
-          ak_free(obj);
         }
 
+        source->data = obj;
         break;
       }
       case AK_SOURCE_ARRAY_TYPE_FLOAT: {
@@ -155,12 +152,10 @@ ak_dae_source(AkXmlState * __restrict xst,
                      floatAray->items,
                      1,
                      (AkUInt)arrayCount);
-          source->data = obj;
           xmlFree(content);
-        } else {
-          ak_free(obj);
         }
 
+        source->data = obj;
         break;
       }
       case AK_SOURCE_ARRAY_TYPE_INT: {
@@ -201,13 +196,10 @@ ak_dae_source(AkXmlState * __restrict xst,
                      intArray->items,
                      1,
                      (AkUInt)arrayCount);
-
-          source->data = obj;
           xmlFree(content);
-        } else {
-          ak_free(obj);
         }
 
+        source->data = obj;
         break;
       }
       case AK_SOURCE_ARRAY_TYPE_IDREF:
@@ -268,13 +260,10 @@ ak_dae_source(AkXmlState * __restrict xst,
             pData += strlen(tok);
             *pData++ = '\0';
           }
-
-          source->data = obj;
           xmlFree(content);
-        } else {
-          ak_free(obj);
         }
 
+        source->data = obj;
         break;
       }
       case k_s_dae_techniquec: {
