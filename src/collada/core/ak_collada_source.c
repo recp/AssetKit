@@ -75,14 +75,7 @@ ak_dae_source(AkXmlState * __restrict xst,
 
     switch (found->val) {
       case k_s_dae_asset: {
-        AkAssetInf *assetInf;
-        AkResult ret;
-
-        assetInf = NULL;
-        ret = ak_dae_assetInf(xst, source, &assetInf);
-        if (ret == AK_OK)
-          source->inf = assetInf;
-
+        (void)ak_dae_assetInf(xst, source, NULL);
         break;
       }
       case AK_SOURCE_ARRAY_TYPE_BOOL: {

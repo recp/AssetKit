@@ -37,14 +37,7 @@ ak_dae_lib(AkXmlState    * __restrict xst,
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
-      AkAssetInf *assetInf;
-      AkResult ret;
-
-      assetInf = NULL;
-      ret = ak_dae_assetInf(xst, xst->doc, &assetInf);
-      if (ret == AK_OK)
-        lib->inf = assetInf;
-
+      (void)ak_dae_assetInf(xst, xst->doc, NULL);
     } else if (ak_xml_eqelm(xst, lc->name)) {
       void      *libChld;
       AkResult   ret;

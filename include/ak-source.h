@@ -16,7 +16,6 @@ extern "C" {
 #include "ak-rb.h"
 
 struct AkTechnique;
-struct AkAssetInf;
 
 typedef enum AkSourceArrayType {
   AK_SOURCE_ARRAY_TYPE_UNKNOWN = 0,
@@ -61,7 +60,6 @@ typedef struct AkAccessor {
 
 typedef struct AkSource {
   /* const char * id; */
-  struct AkAssetInf  *inf;
   const char         *name;
   AkObject           *data; /* arrays inside source */
   AkAccessor         *tcommon;

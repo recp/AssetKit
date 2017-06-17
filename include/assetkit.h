@@ -859,7 +859,6 @@ typedef struct AkScene {
 typedef struct AkLibItem {
   /* const char * id; */
 
-  AkAssetInf *inf;
   const char *name;
   AkTree     *extra;
   void       *chld;
