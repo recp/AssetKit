@@ -73,13 +73,16 @@ ak_xml_begin(AkXmlElmState * __restrict xest) {
 
 bool
 ak_xml_end(AkXmlElmState * __restrict xest) {
-  do {
-    if (xest->xst->nodeType == XML_ELEMENT_DECL
-        || xest->xst->nodeType == XML_ELEMENT_NODE)
-      break;
+  if (!xmlTextReaderIsEmptyElement(xest->xst->reader)) {
+    do {
+      if (xest->xst->nodeType == XML_ELEMENT_DECL
+          || xest->xst->nodeType == XML_ELEMENT_NODE
+          )
+        break;
 
-    ak_xml_readnext(xest->xst);
-  } while(1);
+      ak_xml_readnext(xest->xst);
+    } while(1);
+  }
 
   /* TODO: there is no need to compare nodeType and nodeName?
            because we reached to end of node by depth info 
@@ -105,6 +108,9 @@ ak_xml_skipelm(AkXmlState * __restrict xst) {
 
 char *
 ak_xml_rawcval(AkXmlState * __restrict xst) {
+  if (xmlTextReaderIsEmptyElement(xst->reader))
+    return NULL;
+
   /* read text element*/
   ak_xml_readnext(xst);
 
@@ -116,6 +122,9 @@ ak_xml_rawcval(AkXmlState * __restrict xst) {
 
 char *
 ak_xml_rawval(AkXmlState * __restrict xst) {
+ if (xmlTextReaderIsEmptyElement(xst->reader))
+   return NULL;
+
   /* read text element*/
   ak_xml_readnext(xst);
 
