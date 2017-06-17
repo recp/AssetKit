@@ -96,9 +96,9 @@ ak_coordFindTransform(AkTransform *transform,
   glm_vec_broadcast(0.0f, x1);
   glm_vec_broadcast(0.0f, y1);
   glm_vec_broadcast(0.0f, z1);
-  x1[abs(oriOld[0]) - 1] = glm_sign(oriOld[0]);
-  y1[abs(oriOld[1]) - 1] = glm_sign(oriOld[1]);
-  z1[abs(oriOld[2]) - 1] = glm_sign(oriOld[2]);
+  x1[abs(oriOld[0]) - 1] = (float)glm_sign(oriOld[0]);
+  y1[abs(oriOld[1]) - 1] = (float)glm_sign(oriOld[1]);
+  z1[abs(oriOld[2]) - 1] = (float)glm_sign(oriOld[2]);
 
   /* step-1: X axis; a rotation will be enough */
 
@@ -125,6 +125,7 @@ ak_coordFindTransform(AkTransform *transform,
     glm_vec_copy(axis, rot->val);
     rot->val[3] = angle;
 
+    
     /* rotate y and z */
     glm_vec_rotate(y1, angle, axis);
     glm_vec_rotate(z1, angle, axis);
@@ -136,7 +137,7 @@ ak_coordFindTransform(AkTransform *transform,
 
   /* find rotation axis */
   glm_vec_broadcast(0.0f, oth);
-  oth[abs(oriNew[1]) - 1] = glm_sign(oriNew[1]);
+  oth[abs(oriNew[1]) - 1] = (float)glm_sign(oriNew[1]);
   glm_vec_cross(y1, oth, axis);
 
   /* angle for y axis */
