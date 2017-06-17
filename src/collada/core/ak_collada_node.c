@@ -516,8 +516,9 @@ ak_dae_node(AkXmlState    * __restrict xst,
         else
           node->controller = instanceController;
 
-        instanceController->base.prev = &last_controller->base;
-        last_controller               = instanceController;
+        if (last_controller)
+          instanceController->base.prev = &last_controller->base;
+        last_controller = instanceController;
         break;
       }
       case k_s_dae_instance_geometry: {
@@ -582,8 +583,9 @@ ak_dae_node(AkXmlState    * __restrict xst,
         else
           node->geometry = instanceGeom;
 
-        instanceGeom->base.prev = &last_geometry->base;
-        last_geometry           = instanceGeom;
+        if (last_geometry)
+          instanceGeom->base.prev = &last_geometry->base;
+        last_geometry = instanceGeom;
         break;
       }
       case k_s_dae_instance_light: {
@@ -708,8 +710,9 @@ ak_dae_node(AkXmlState    * __restrict xst,
         else
           node->node = instanceNode;
 
-        instanceNode->base.prev = &last_node->base;
-        last_node               = instanceNode;
+        if (last_node)
+          instanceNode->base.prev = &last_node->base;
+        last_node = instanceNode;
         break;
       }
       case k_s_dae_node: {
