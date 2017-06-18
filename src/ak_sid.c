@@ -108,6 +108,7 @@ ak_sid_seta(void       *memnode,
   AkHeap     *heap;
   char       *sidptr;
   uint16_t    off;
+  uintptr_t   sidptrval;
   int         off0;
   int         itmsize;
 
@@ -136,8 +137,9 @@ ak_sid_seta(void       *memnode,
 
   *(uint16_t *)sidptr = off;
 
-  sidptr += sizeof(uint16_t);
-  *(uintptr_t *)sidptr = (uintptr_t)sid;
+  sidptr   += sizeof(uint16_t);
+  sidptrval = (uintptr_t)sid;
+  memcpy(sidptr, &sidptrval, sizeof(uintptr_t));
 
   /* mark parents */
   while (heapNode->prev) {
