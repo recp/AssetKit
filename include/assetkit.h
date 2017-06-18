@@ -880,7 +880,7 @@ typedef struct AkLib {
 } AkLib;
 
 typedef struct AkDoc {
-  AkDocInf    inf;
+  AkDocInf   *inf;
   AkCoordSys *coordSys;
   AkUnit     *unit;
   AkTree     *extra;

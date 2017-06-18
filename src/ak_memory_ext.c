@@ -170,7 +170,7 @@ ak_heap_ext_rm(AkHeap     * __restrict heap,
       break;
     case AK_HEAP_NODE_FLAGS_EXTRA:
     case AK_HEAP_NODE_FLAGS_INF:
-      ak_free(&exnode->data[ofst]);
+      /* ak_free(&exnode->data[ofst]); */
       break;
     case AK_HEAP_NODE_FLAGS_USR:
       if (hnode->flags & AK_HEAP_NODE_FLAGS_USRF)
@@ -244,12 +244,12 @@ ak_heap_ext_free(AkHeap     * __restrict heap,
 
   if (hnode->flags & AK_HEAP_NODE_FLAGS_EXTRA) {
     ofst = ak_heap_ext_off(hnode->flags, AK_HEAP_NODE_FLAGS_EXTRA);
-    ak_free(&exnode->data[ofst]);
+    /* ak_free(&exnode->data[ofst]); */
   }
 
   if (hnode->flags & AK_HEAP_NODE_FLAGS_INF) {
     ofst = ak_heap_ext_off(hnode->flags, AK_HEAP_NODE_FLAGS_INF);
-    ak_free(&exnode->data[ofst]);
+    /* ak_free(&exnode->data[ofst]); */
   }
 
   if (hnode->flags & AK_HEAP_NODE_FLAGS_USR) {

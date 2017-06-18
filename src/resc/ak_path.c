@@ -219,7 +219,7 @@ ak_fullpath(AkDoc       * __restrict doc,
   const char *ptr;
   char  *fileprefix  = "file:///";
   char  *fragments[] = {
-    (char *)doc->inf.dir,
+    (char *)doc->inf->dir,
     "/",
     (char *)ref,
     NULL

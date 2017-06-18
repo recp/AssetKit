@@ -10,18 +10,15 @@
 
 AkResult _assetkit_hide
 ak_dae_assetInf(AkXmlState * __restrict xst,
-                void * __restrict memParent,
-                AkAssetInf ** __restrict dest) {
-  AkAssetInf   *ainf;
+                void       * __restrict memParent,
+                AkAssetInf * __restrict ainf) {
   AkAssetInf   **extp;
   AkXmlElmState xest;
 
-  if (!(*dest)) {
-    *dest = ainf = ak_heap_calloc(xst->heap,
-                                  memParent,
-                                  sizeof(**dest));
-  } else {
-    ainf = memParent;
+  if (!ainf) {
+    ainf = ak_heap_calloc(xst->heap,
+                          memParent,
+                          sizeof(*ainf));
   }
 
   ak_xest_init(xest, _s_dae_asset)
