@@ -936,7 +936,15 @@ ak_mem_setp(void * __restrict memptr,
 AK_EXPORT
 void *
 ak_mem_parent(void *mem) {
-  return ak__alignas(ak_heap_parent(ak__alignof(mem)));
+  AkHeapNode *hnode;
+  if (!mem)
+    return NULL;
+
+  hnode = ak_heap_parent(ak__alignof(mem));
+  if (!hnode)
+    return NULL;
+
+  return ak__alignas(hnode);
 }
 
 AK_EXPORT
