@@ -83,6 +83,9 @@
     <Filter Include="src\light">
       <UniqueIdentifier>{e9c5a211-a5c2-44f9-b202-74b018e2ea0a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\node">
+      <UniqueIdentifier>{58bdb93e-a949-465b-9a9f-9916c1f42d2b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\ak-bbox.h">
@@ -821,6 +824,15 @@
     </ClCompile>
     <ClCompile Include="..\src\ak_asset.c">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\node\ak_node.c">
+      <Filter>src\node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\coord_sys\ak_coord_node.c">
+      <Filter>src\coord_sys</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\coord_sys\ak_coord_scene.c">
+      <Filter>src\coord_sys</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

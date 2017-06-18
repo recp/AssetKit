@@ -67,6 +67,16 @@ AkGeometry *
 ak_instanceObjectGeomId(AkDoc * __restrict doc,
                         const char * id);
 
+AK_EXPORT
+AkNode*
+ak_instanceMoveToSubNode(AkNode * __restrict node,
+                         AkInstanceBase     *inst);
+
+AK_EXPORT
+AkNode*
+ak_instanceMoveToSubNodeIfNeeded(AkNode * __restrict node,
+                                 AkInstanceBase     *inst);
+
 #ifdef __cplusplus
 }
 #endif

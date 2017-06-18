@@ -67,6 +67,12 @@ typedef struct AkNode {
   struct AkNode        *parent;
 } AkNode;
 
+AK_EXPORT
+void
+ak_addSubNode(AkNode * __restrict parent,
+              AkNode * __restrict subnode,
+              bool                fixCoordSys);
+
 #ifdef __cplusplus
 }
 #endif

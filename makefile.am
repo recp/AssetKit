@@ -68,7 +68,8 @@ include_HEADERS = include/assetkit.h \
                   include/ak-bbox.h \
                   include/ak-image.h \
                   include/ak-type.h \
-                  include/ak-context.h
+                  include/ak-context.h \
+                  include/ak-node.h
 
 libassetkit_la_SOURCES=\
     src/assetkit.c \
@@ -97,6 +98,7 @@ libassetkit_la_SOURCES=\
     src/ak_asset.c \
     src/camera/ak_cam.c \
     src/light/ak_light.c \
+    src/node/ak_node.c \
     src/coord_sys/ak_coord_common.c \
     src/coord_sys/ak_coord_mesh.c \
     src/coord_sys/ak_coord_geom.c \
@@ -105,6 +107,8 @@ libassetkit_la_SOURCES=\
     src/coord_sys/ak_coord_transform.c \
     src/coord_sys/ak_coord_transforms.c \
     src/coord_sys/ak_coord_camera.c \
+    src/coord_sys/ak_coord_node.c \
+    src/coord_sys/ak_coord_scene.c \
     src/resc/ak_path.c \
     src/resc/ak_curl.c \
     src/resc/ak_resource.c \

@@ -390,6 +390,8 @@
     <ClCompile Include="..\src\coord_sys\ak_coord_doc.c" />
     <ClCompile Include="..\src\coord_sys\ak_coord_geom.c" />
     <ClCompile Include="..\src\coord_sys\ak_coord_mesh.c" />
+    <ClCompile Include="..\src\coord_sys\ak_coord_node.c" />
+    <ClCompile Include="..\src\coord_sys\ak_coord_scene.c" />
     <ClCompile Include="..\src\coord_sys\ak_coord_transform.c" />
     <ClCompile Include="..\src\coord_sys\ak_coord_transforms.c" />
     <ClCompile Include="..\src\coord_sys\ak_coord_vector.c" />
@@ -418,6 +420,7 @@
     <ClCompile Include="..\src\mesh\ak_mesh_normal.c" />
     <ClCompile Include="..\src\mesh\ak_mesh_triangulate.c" />
     <ClCompile Include="..\src\mesh\ak_mesh_util.c" />
+    <ClCompile Include="..\src\node\ak_node.c" />
     <ClCompile Include="..\src\rb.c" />
     <ClCompile Include="..\src\resc\ak_curl.c" />
     <ClCompile Include="..\src\resc\ak_path.c" />

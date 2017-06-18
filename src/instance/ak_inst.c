@@ -95,3 +95,112 @@ ak_instanceObjectGeomId(AkDoc * __restrict doc,
 
   return instanceBase->object;
 }
+
+AK_EXPORT
+AkNode*
+ak_instanceMoveToSubNode(AkNode * __restrict node,
+                         AkInstanceBase     *inst) {
+  AkHeap *heap;
+  AkNode *subNode;
+  size_t  off;
+
+  heap    = ak_heap_getheap(node);
+  subNode = ak_heap_calloc(heap, node, sizeof(*node));
+
+  switch (inst->type) {
+    case AK_INSTANCE_GEOMETRY:
+      off = offsetof(AkNode, geometry);
+      break;
+    case AK_INSTANCE_LIGHT:
+      off = offsetof(AkNode, light);
+      break;
+    case AK_INSTANCE_CAMERA:
+      off = offsetof(AkNode, camera);
+      break;
+    case AK_INSTANCE_NODE:
+      off = offsetof(AkNode, node);
+      break;
+    case AK_INSTANCE_CONTROLLER:
+      off = offsetof(AkNode, controller);
+      break;
+    default:
+      ak_free(subNode);
+      return NULL;
+      break;
+  }
+
+  if (inst->prev)
+    inst->prev->next = inst->next;
+
+  if (inst->next)
+    inst->next->prev = inst->prev;
+
+  if (*(void **)((char *)node + off) == inst)
+    *(void **)((char *)node + off) = NULL;
+
+  *(void **)((char *)subNode + off) = inst;
+
+  inst->node = subNode;
+  ak_heap_setpm(inst, subNode);
+
+  ak_addSubNode(node, subNode, false);
+
+  return subNode;
+}
+
+AK_EXPORT
+AkNode*
+ak_instanceMoveToSubNodeIfNeeded(AkNode * __restrict node,
+                                 AkInstanceBase     *inst) {
+  void           *instObj,  *parentObject;
+  AkCoordSys     *coordSys, *instCoordSys;
+  AkInstanceBase *insti;
+  AkInstanceBase *instArray[] = {(AkInstanceBase *)node->geometry,
+                                 (AkInstanceBase *)node->node,
+                                 (AkInstanceBase *)node->controller,
+                                 node->camera,
+                                 node->light};
+  int             i, instArrayLen;
+
+  instObj = ak_instanceObject(inst);
+  if (!instObj)
+    goto ret;
+
+  /* check if node coordsys is equal to instance */
+  coordSys     = ak_getCoordSys(node);
+  instCoordSys = ak_getCoordSys(instObj);
+
+  if (!ak_hasCoordSys(instObj))
+    goto ret;
+
+  parentObject = node->parent;
+  if (!parentObject)
+    parentObject = ak_mem_parent(node);
+
+  if ((ak_hasCoordSys(node)
+       && coordSys != instCoordSys)
+      || (!node->parent && ak_typeid(parentObject) == AKT_SCENE))
+    goto move;
+
+  /* check all instances coord sys in this node */
+  instArrayLen = AK_ARRAY_LEN(instArray);
+  for (i = 0; i < instArrayLen; i++) {
+    insti = instArray[i];
+    while (insti) {
+      if (insti != inst) {
+        void *instObji;
+        instObji = ak_instanceObject(insti);
+        if (!ak_hasCoordSys(instObji)
+            || ak_getCoordSys(instObji) != instCoordSys) {
+          goto move;
+        }
+      }
+      insti = insti->next;
+    }
+  }
+
+ret:
+  return NULL;
+move:
+  return ak_instanceMoveToSubNode(node, inst);
+}

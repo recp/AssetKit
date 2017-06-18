@@ -123,6 +123,7 @@ ak_dae_visualScene(AkXmlState * __restrict xst,
     }
   }
 
+  ak_fixSceneCoordSys(visualScene);
   *dest = visualScene;
 
   return AK_OK;
