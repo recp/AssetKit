@@ -59,3 +59,52 @@ ak_libAddLight(AkDoc   * __restrict doc,
 
   return AK_OK;
 }
+
+AK_EXPORT
+void
+ak_libInsertInto(AkLibItem *lib,
+                 void      *item,
+                 int32_t    prevOffset,
+                 int32_t    nextOffset) {
+  char *libChld, *lastLibChld;
+
+  libChld = lastLibChld = lib->chld;
+  while (libChld) {
+    libChld = *(char **)(lastLibChld + nextOffset);
+    if (libChld)
+      lastLibChld = libChld;
+  }
+
+  if (lastLibChld)
+    *(void **)(lastLibChld + nextOffset) = item;
+  else
+    lib->chld = item;
+
+  if (prevOffset > -1)
+    *(void **)((char *)item + prevOffset) = lastLibChld;
+}
+
+AK_EXPORT
+AkLibItem*
+ak_libFirstOrCreat(AkDoc * __restrict doc,
+                   uint32_t           itemOffset) {
+  AkHeap    *heap;
+  AkLibItem *lib;
+
+  heap = ak_heap_getheap(doc);
+  lib  = *(void **)((char *)&doc->lib + itemOffset);
+  if (lib)
+    return lib;
+
+  lib = ak_heap_calloc(heap,
+                       doc,
+                       sizeof(*lib));
+  doc->lib.images = lib;
+  return lib;
+}
+
+AK_EXPORT
+AkLibItem*
+ak_libImageFirstOrCreat(AkDoc * __restrict doc) {
+  return ak_libFirstOrCreat(doc, offsetof(AkLib, images));
+}
