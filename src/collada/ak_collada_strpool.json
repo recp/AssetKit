@@ -438,5 +438,7 @@
   "sampler3d": "sampler3D",
   "sampler_rect": "samplerRECT",
   "sampler_cube": "samplerCUBE",
-  "sampler_depth": "samplerDEPTH"
+  "sampler_depth": "samplerDEPTH",
+  "data": "data",
+  "version": "version"
 }

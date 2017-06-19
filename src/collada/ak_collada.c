@@ -57,6 +57,16 @@ static ak_enumpair daeMap[] = {
 
 static size_t daeMapLen = 0;
 
+static ak_enumpair daeVersions[] = {
+  {"1.5.0",             AK_COLLADA_VERSION_150},
+  {"1.5",               AK_COLLADA_VERSION_150},
+  {"1.4.1",             AK_COLLADA_VERSION_141},
+  {"1.4.0",             AK_COLLADA_VERSION_140},
+  {"1.4",               AK_COLLADA_VERSION_140},
+};
+
+static size_t daeVersionsLen = 0;
+
 static AkLibChldDesc libchlds[] = {
   {
     NULL,
@@ -145,14 +155,16 @@ AkResult
 _assetkit_hide
 ak_dae_doc(AkDoc ** __restrict dest,
            const char * __restrict file) {
-  AkHeap          *heap;
-  AkDoc           *doc;
-  AkXmlState       xstVal, *xst;
-  AkXmlElmState    xest;
+  AkHeap            *heap;
+  AkDoc             *doc;
+  const ak_enumpair *foundVersion;
+  char              *versionAttr;
+  AkXmlState         xstVal, *xst;
+  AkXmlElmState      xest;
 
-  xmlTextReaderPtr reader;
-  int              xmlReaderFlags;
-  int              i, libchldsCount;
+  xmlTextReaderPtr   reader;
+  int                xmlReaderFlags;
+  int                i, libchldsCount;
 
   /*
    * this initialize the library and check potential ABI mismatches
@@ -190,12 +202,22 @@ ak_dae_doc(AkDoc ** __restrict dest,
   ak_heap_setdata(heap, doc);
   ak_id_newheap(heap);
 
+  /* instead of keeping version as string we keep enum/int to fast-comparing */
+  if (daeVersionsLen == 0) {
+    daeVersionsLen = AK_ARRAY_LEN(daeVersions);
+    qsort(daeVersions,
+          daeVersionsLen,
+          sizeof(daeVersions[0]),
+          ak_enumpair_cmp);
+  }
+
   xstVal.doc      = doc;
   xstVal.heap     = heap;
   xstVal.reader   = reader;
   xstVal.urlQueue = NULL;
   xst             = &xstVal;
 
+  /* begin parse, get COLLADA element */
   ak_xml_readnext(xst);
 
   if (daeMapLen == 0) {
@@ -204,6 +226,23 @@ ak_dae_doc(AkDoc ** __restrict dest,
           daeMapLen,
           sizeof(daeMap[0]),
           ak_enumpair_cmp);
+  }
+
+  /* get version info */
+  versionAttr = (char *)ak_xml_attr(xst, NULL, _s_dae_version);
+  if (versionAttr) {
+    foundVersion = bsearch(versionAttr,
+                           daeVersions,
+                           daeVersionsLen,
+                           sizeof(daeVersions[0]),
+                           ak_enumpair_cmp2);
+    if (!foundVersion)
+      xst->version = AK_COLLADA_VERSION_141;
+    else
+      xst->version = foundVersion->val;
+    ak_free(versionAttr);
+  } else { /* because it is current and most used version */
+    xst->version = AK_COLLADA_VERSION_141;
   }
 
   /* unset lastItem from static structs */

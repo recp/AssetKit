@@ -12,6 +12,12 @@
 #include "../include/ak-url.h"
 #include <libxml/xmlreader.h>
 
+typedef enum AkCOLLADAVersion {
+  AK_COLLADA_VERSION_150 = 150,
+  AK_COLLADA_VERSION_141 = 141,
+  AK_COLLADA_VERSION_140 = 140
+} AkCOLLADAVersion;
+
 typedef struct AkURLQueue {
   AkURL *url;
   struct AkURLQueue *next;
@@ -23,6 +29,7 @@ typedef AK_ALIGN(16) struct AkXmlState {
   xmlTextReaderPtr reader;
   const xmlChar   *nodeName;
   AkURLQueue      *urlQueue;
+  AkCOLLADAVersion version;
   int              nodeType;
   int              nodeRet;
   int              nodeDepth;

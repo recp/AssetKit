@@ -459,6 +459,8 @@ const char _s_dae_pool_2[] =
 "samplerRECT\0"
 "samplerCUBE\0"
 "samplerDEPTH\0"
+"data\0"
+"version\0"
 ;
 
 #undef _AK_DAE_STRPOOL_

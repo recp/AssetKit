@@ -467,5 +467,7 @@ _AK_EXTERN const char _s_dae_pool_2[];
 #define _s_dae_sampler_rect _s_dae_2(666)
 #define _s_dae_sampler_cube _s_dae_2(678)
 #define _s_dae_sampler_depth _s_dae_2(690)
+#define _s_dae_data _s_dae_2(703)
+#define _s_dae_version _s_dae_2(708)
 
 #endif /* ak_dae_strpool_h */
