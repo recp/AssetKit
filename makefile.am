@@ -204,7 +204,9 @@ libassetkit_la_SOURCES=\
     src/collada/fx/ak_collada_fx_binary.c \
     src/collada/fx/ak_collada_fx_uniform.c \
     src/collada/fx/ak_collada_fx_evaluate.c \
-    src/collada/fx/ak_collada_fx_material.c
+    src/collada/fx/ak_collada_fx_material.c \
+\
+    src/collada/1.4/ak_collada14_image.c
 
 test_tests_SOURCES=\
     test/src/test-common.h \

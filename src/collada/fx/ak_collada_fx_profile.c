@@ -9,6 +9,9 @@
 #include "../core/ak_collada_param.h"
 #include "../core/ak_collada_annotate.h"
 #include "../core/ak_collada_asset.h"
+
+#include "../1.4/ak_collada14_image.h"
+
 #include "ak_collada_fx_technique.h"
 
 static ak_enumpair profileMap[] = {
@@ -178,7 +181,10 @@ ak_dae_profile(AkXmlState * __restrict xst,
 
         last_techfx = technique_fx;
       }
-
+    } else if (xst->version < AK_COLLADA_VERSION_150
+               && ak_xml_eqelm(xst, _s_dae_image)) {
+      /* migration from 1.4 */
+      ak_dae14_fxMigrateImg(xst, NULL);
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree    *tree;

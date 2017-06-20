@@ -86,6 +86,9 @@
     <Filter Include="src\node">
       <UniqueIdentifier>{58bdb93e-a949-465b-9a9f-9916c1f42d2b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\collada\1.4">
+      <UniqueIdentifier>{299da012-b922-4b23-a103-44078e2e86e4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\ak-bbox.h">
@@ -429,6 +432,9 @@
     </ClInclude>
     <ClInclude Include="..\include\ak-node.h">
       <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\1.4\ak_collada14_image.h">
+      <Filter>src\collada\1.4</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -833,6 +839,9 @@
     </ClCompile>
     <ClCompile Include="..\src\coord_sys\ak_coord_scene.c">
       <Filter>src\coord_sys</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\1.4\ak_collada14_image.c">
+      <Filter>src\collada\1.4</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

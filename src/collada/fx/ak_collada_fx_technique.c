@@ -10,6 +10,8 @@
 #include "../core/ak_collada_asset.h"
 #include "../core/ak_collada_annotate.h"
 
+#include "../1.4/ak_collada14_image.h"
+
 #include "ak_collada_fx_blinn_phong.h"
 #include "ak_collada_fx_constant.h"
 #include "ak_collada_fx_lambert.h"
@@ -100,7 +102,10 @@ ak_dae_techniqueFx(AkXmlState * __restrict xst,
                                &blinn_phong);
       if (ret == AK_OK)
         technique->phong = (AkPhong *)blinn_phong;
-
+    } else if (xst->version < AK_COLLADA_VERSION_150
+               && ak_xml_eqelm(xst, _s_dae_image)) {
+      /* migration from 1.4 */
+      ak_dae14_fxMigrateImg(xst, NULL);
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;

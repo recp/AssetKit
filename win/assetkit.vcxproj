@@ -224,6 +224,7 @@
     <ClInclude Include="..\src\ak_utils.h" />
     <ClInclude Include="..\src\bbox\ak_bbox.h" />
     <ClInclude Include="..\src\bitwise\ak_bitwise.h" />
+    <ClInclude Include="..\src\collada\1.4\ak_collada14_image.h" />
     <ClInclude Include="..\src\collada\ak_collada.h" />
     <ClInclude Include="..\src\collada\ak_collada_common.h" />
     <ClInclude Include="..\src\collada\ak_collada_geom_fixup.h" />
@@ -326,6 +327,7 @@
     <ClCompile Include="..\src\bbox\ak_bbox_mesh_prim.c" />
     <ClCompile Include="..\src\bbox\ak_bbox_scene.c" />
     <ClCompile Include="..\src\camera\ak_cam.c" />
+    <ClCompile Include="..\src\collada\1.4\ak_collada14_image.c" />
     <ClCompile Include="..\src\collada\ak_collada.c" />
     <ClCompile Include="..\src\collada\ak_collada_common.c" />
     <ClCompile Include="..\src\collada\ak_collada_geom_fixup.c" />

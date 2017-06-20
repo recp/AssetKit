@@ -12,6 +12,8 @@
 #include "../core/ak_collada_annotate.h"
 #include "../core/ak_collada_param.h"
 
+#include "../1.4/ak_collada14_image.h"
+
 #include "ak_collada_fx_profile.h"
 
 AkResult _assetkit_hide
@@ -91,6 +93,10 @@ ak_dae_effect(AkXmlState * __restrict xst,
 
         last_profile = profile;
       }
+    } else if (xst->version < AK_COLLADA_VERSION_150
+               && ak_xml_eqelm(xst, _s_dae_image)) {
+      /* migration from 1.4 */
+      ak_dae14_fxMigrateImg(xst, NULL);
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;

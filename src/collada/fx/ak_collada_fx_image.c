@@ -7,6 +7,7 @@
 
 #include "ak_collada_fx_image.h"
 #include "../core/ak_collada_asset.h"
+#include "../1.4/ak_collada14_image.h"
 #include "ak_collada_fx_enums.h"
 
 static
@@ -39,13 +40,17 @@ ak_dae_fxImage_createCube(AkXmlState * __restrict xst,
                           void * __restrict memParent,
                           AkImageCube ** __restrict dest);
 
-
 AkResult _assetkit_hide
 ak_dae_fxImage(AkXmlState * __restrict xst,
                void * __restrict memParent,
                void ** __restrict dest) {
   AkImage      *img;
   AkXmlElmState xest;
+
+  if (xst->version < AK_COLLADA_VERSION_150) {
+    ak_dae14_fxMigrateImg(xst, memParent);
+    return AK_OK;
+  }
 
   img = ak_heap_calloc(xst->heap, memParent, sizeof(*img));
 
