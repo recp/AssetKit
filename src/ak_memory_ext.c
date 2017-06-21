@@ -243,13 +243,13 @@ ak_heap_ext_free(AkHeap     * __restrict heap,
   }
 
   if (hnode->flags & AK_HEAP_NODE_FLAGS_EXTRA) {
-    ofst = ak_heap_ext_off(hnode->flags, AK_HEAP_NODE_FLAGS_EXTRA);
-    /* ak_free(&exnode->data[ofst]); */
+    /* ofst = ak_heap_ext_off(hnode->flags, AK_HEAP_NODE_FLAGS_EXTRA);
+       ak_free(&exnode->data[ofst]); */
   }
 
   if (hnode->flags & AK_HEAP_NODE_FLAGS_INF) {
-    ofst = ak_heap_ext_off(hnode->flags, AK_HEAP_NODE_FLAGS_INF);
-    /* ak_free(&exnode->data[ofst]); */
+    /* ofst = ak_heap_ext_off(hnode->flags, AK_HEAP_NODE_FLAGS_INF);
+       ak_free(&exnode->data[ofst]); */
   }
 
   if (hnode->flags & AK_HEAP_NODE_FLAGS_USR) {

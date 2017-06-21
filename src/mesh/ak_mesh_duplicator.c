@@ -359,11 +359,3 @@ ak_meshFixIndicesArrays(AkMesh       * __restrict mesh,
     }
   }
 }
-
-AK_EXPORT
-void
-ak_meshDuplicatorDuplicate(AkMesh            *mesh,
-                           AkDuplicator      *duplicator,
-                           AkSourceArrayBase *array,
-                           AkSourceArrayBase *newarray) {
-}

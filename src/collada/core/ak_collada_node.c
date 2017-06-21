@@ -64,7 +64,6 @@ ak_dae_node(AkXmlState    * __restrict xst,
             void          * __restrict memParent,
             AkVisualScene * __restrict scene,
             AkNode       ** __restrict dest) {
-  AkDoc                *doc;
   AkNode               *node, *last_chld;
   AkObject             *last_transform;
   AkInstanceBase       *last_camera;
@@ -75,7 +74,6 @@ ak_dae_node(AkXmlState    * __restrict xst,
   char                 *attrVal;
   AkXmlElmState         xest;
 
-  doc  = ak_heap_data(xst->heap);
   node = ak_heap_calloc(xst->heap, memParent, sizeof(*node));
   ak_setypeid(node, AKT_NODE);
 
