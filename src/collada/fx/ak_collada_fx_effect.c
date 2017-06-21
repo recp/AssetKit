@@ -72,7 +72,8 @@ ak_dae_effect(AkXmlState * __restrict xst,
         else
           effect->newparam = newparam;
 
-        last_newparam = newparam;
+        newparam->prev = last_newparam;
+        last_newparam  = newparam;
       }
     } else if (ak_xml_eqelm(xst, _s_dae_prfl_common)
                || ak_xml_eqelm(xst, _s_dae_prfl_glsl)
@@ -190,7 +191,8 @@ ak_dae_fxInstanceEffect(AkXmlState * __restrict xst,
         else
           instanceEffect->setparam = setparam;
 
-        last_setparam = setparam;
+        setparam->prev = last_setparam;
+        last_setparam  = setparam;
       }
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;

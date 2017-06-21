@@ -25,6 +25,7 @@ typedef struct AkURLQueue {
 
 typedef AK_ALIGN(16) struct AkXmlState {
   AkHeap          *heap;
+  void            *jobs14;
   AkDoc           *doc;
   xmlTextReaderPtr reader;
   const xmlChar   *nodeName;

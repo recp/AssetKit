@@ -469,5 +469,10 @@ _AK_EXTERN const char _s_dae_pool_2[];
 #define _s_dae_sampler_depth _s_dae_2(690)
 #define _s_dae_data _s_dae_2(703)
 #define _s_dae_version _s_dae_2(708)
+#define _s_dae_format_hint _s_dae_2(716)
+#define _s_dae_viewport_ratio _s_dae_2(728)
+#define _s_dae_mip_levels _s_dae_2(743)
+#define _s_dae_mipmap_generate _s_dae_2(754)
+#define _s_dae_option _s_dae_2(770)
 
 #endif /* ak_dae_strpool_h */

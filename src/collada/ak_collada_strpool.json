@@ -440,5 +440,10 @@
   "sampler_cube": "samplerCUBE",
   "sampler_depth": "samplerDEPTH",
   "data": "data",
-  "version": "version"
+  "version": "version",
+  "format_hint": "format_hint",
+  "viewport_ratio": "viewport_ratio",
+  "mip_levels": "mip_levels",
+  "mipmap_generate": "mipmap_generate",
+  "option": "option"
 }

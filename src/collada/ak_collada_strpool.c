@@ -461,6 +461,11 @@ const char _s_dae_pool_2[] =
 "samplerDEPTH\0"
 "data\0"
 "version\0"
+"format_hint\0"
+"viewport_ratio\0"
+"mip_levels\0"
+"mipmap_generate\0"
+"option\0"
 ;
 
 #undef _AK_DAE_STRPOOL_

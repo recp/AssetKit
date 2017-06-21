@@ -174,7 +174,9 @@ typedef enum AkChannelFormat {
   AK_CHANNEL_FORMAT_RGBE = 3,
   AK_CHANNEL_FORMAT_L    = 4,
   AK_CHANNEL_FORMAT_LA   = 5,
-  AK_CHANNEL_FORMAT_D    = 6
+  AK_CHANNEL_FORMAT_D    = 6,
+  AK_CHANNEL_FORMAT_XYZ  = 7,
+  AK_CHANNEL_FORMAT_XYZW = 8
 } AkChannelFormat;
 
 typedef enum AkRangeFormat {
@@ -419,6 +421,7 @@ typedef struct AkTechnique {
  */
 typedef struct AkParam {
   const char     *ref;
+  struct AkParam *prev;
   struct AkParam *next;
 } AkParam;
 
@@ -504,6 +507,7 @@ typedef struct AkAnnotate {
 
 typedef struct AkNewParam {
   /* const char * sid; */
+  struct AkNewParam *prev;
   struct AkNewParam *next;
   AkAnnotate        *annotate;
   const char        *semantic;
@@ -512,6 +516,7 @@ typedef struct AkNewParam {
 } AkNewParam;
 
 typedef struct AkSetParam {
+  struct AkSetParam *prev;
   struct AkSetParam *next;
   const char        *ref;
   AkValue           *val;

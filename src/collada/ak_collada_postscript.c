@@ -10,11 +10,17 @@
 #include "../ak_memory_common.h"
 #include "../ak_libxml.h"
 
+#include "1.4/ak_collada14.h"
+
 void _assetkit_hide
 ak_dae_retain_refs(AkXmlState * __restrict xst);
 
 void _assetkit_hide
 ak_dae_postscript(AkXmlState * __restrict xst) {
+  /* first migrate 1.4 to 1.5 */
+  if (xst->version < AK_COLLADA_VERSION_150)
+    ak_dae14_loadjobs_finish(xst);
+
   ak_dae_retain_refs(xst);
 
   /* fixup when finished,

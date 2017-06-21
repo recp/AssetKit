@@ -108,7 +108,8 @@ ak_dae_colorOrTex(AkXmlState * __restrict xst,
         else
           colorOrTex->param = param;
 
-        last_param = param;
+        param->prev = last_param;
+        last_param  = param;
       }
     } else {
       ak_xml_skipelm(xst);

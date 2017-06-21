@@ -106,7 +106,8 @@ ak_dae_fxBindMaterial(AkXmlState * __restrict xst,
         else
           bindMaterial->param = param;
 
-        last_param = param;
+        param->prev = last_param;
+        last_param  = param;
       }
     } else if (ak_xml_eqelm(xst, _s_dae_techniquec)) {
       AkInstanceMaterial *tcommon;

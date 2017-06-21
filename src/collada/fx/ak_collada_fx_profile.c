@@ -164,7 +164,8 @@ ak_dae_profile(AkXmlState * __restrict xst,
         else
           profile->newparam = newparam;
 
-        last_newparam = newparam;
+        newparam->prev = last_newparam;
+        last_newparam  = newparam;
       }
     } else if (ak_xml_eqelm(xst, _s_dae_technique)) {
       AkTechniqueFx * technique_fx;

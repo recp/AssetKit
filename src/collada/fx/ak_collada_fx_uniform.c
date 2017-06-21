@@ -45,7 +45,8 @@ ak_dae_fxBindUniform(AkXmlState * __restrict xst,
         else
           bindUniform->param = param;
 
-        last_param = param;
+        param->prev = last_param;
+        last_param  = param;
       }
     } else {
       /* load once */

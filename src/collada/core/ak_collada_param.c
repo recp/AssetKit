@@ -22,8 +22,8 @@ static ak_enumpair modifierMap[] = {
 static size_t modifierMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_newparam(AkXmlState * __restrict xst,
-                void * __restrict memParent,
+ak_dae_newparam(AkXmlState  * __restrict xst,
+                void        * __restrict memParent,
                 AkNewParam ** __restrict dest) {
   AkNewParam   *newparam;
   AkAnnotate   *last_annotate;
@@ -107,8 +107,8 @@ ak_dae_newparam(AkXmlState * __restrict xst,
 
 AkResult _assetkit_hide
 ak_dae_param(AkXmlState * __restrict xst,
-             void * __restrict memParent,
-             AkParam ** __restrict dest) {
+             void       * __restrict memParent,
+             AkParam   ** __restrict dest) {
   AkParam      *param;
   AkXmlElmState xest;
 
@@ -130,8 +130,8 @@ ak_dae_param(AkXmlState * __restrict xst,
 }
 
 AkResult _assetkit_hide
-ak_dae_dataparam(AkXmlState * __restrict xst,
-                 void * __restrict memParent,
+ak_dae_dataparam(AkXmlState   * __restrict xst,
+                 void         * __restrict memParent,
                  AkDataParam ** __restrict dest) {
   AkDataParam  *dataParam;
   AkXmlElmState xest;
@@ -157,8 +157,8 @@ ak_dae_dataparam(AkXmlState * __restrict xst,
 }
 
 AkResult _assetkit_hide
-ak_dae_setparam(AkXmlState * __restrict xst,
-                void * __restrict memParent,
+ak_dae_setparam(AkXmlState  * __restrict xst,
+                void        * __restrict memParent,
                 AkSetParam ** __restrict dest) {
   AkSetParam   *setparam;
   AkXmlElmState xest;

@@ -57,7 +57,8 @@ ak_dae_floatOrParam(AkXmlState * __restrict xst,
         else
           floatOrParam->param = param;
 
-        last_param = param;
+        param->prev = last_param;
+        last_param  = param;
       }
     } else {
       ak_xml_skipelm(xst);

@@ -436,6 +436,12 @@
     <ClInclude Include="..\src\collada\1.4\ak_collada14_image.h">
       <Filter>src\collada\1.4</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\collada\1.4\ak_collada14.h">
+      <Filter>src\collada\1.4</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\1.4\ak_collada14_surface.h">
+      <Filter>src\collada\1.4</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\bbox\ak_bbox.c">
@@ -841,6 +847,12 @@
       <Filter>src\coord_sys</Filter>
     </ClCompile>
     <ClCompile Include="..\src\collada\1.4\ak_collada14_image.c">
+      <Filter>src\collada\1.4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\1.4\ak_collada14.c">
+      <Filter>src\collada\1.4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\1.4\ak_collada14_surface.c">
       <Filter>src\collada\1.4</Filter>
     </ClCompile>
   </ItemGroup>

@@ -300,7 +300,7 @@ ak_dae_fxImage_format(AkXmlState * __restrict xst,
                                         (const xmlChar *)_s_dae_precision);
       if (attrValStr) {
         AkEnum attrVal;
-        attrVal = ak_dae_fxEnumRange(attrValStr);
+        attrVal = ak_dae_fxEnumPrecision(attrValStr);
         if (attrVal != -1)
           format->range = attrVal;
 

@@ -10,6 +10,9 @@
 #include "ak_collada_fx_enums.h"
 #include "ak_collada_fx_image.h"
 
+#include "../1.4/ak_collada14.h"
+#include "../1.4/ak_collada14_surface.h"
+
 #define k_s_dae_instance_image 1
 #define k_s_dae_texcoord       2
 #define k_s_dae_wrap_s         3
@@ -24,6 +27,7 @@
 #define k_s_dae_mip_bias       12
 #define k_s_dae_max_anisotropy 13
 #define k_s_dae_extra          14
+#define k_s_dae_source         15
 
 static ak_enumpair fxSamplerCMap[] = {
   {_s_dae_instance_image, k_s_dae_instance_image},
@@ -39,7 +43,8 @@ static ak_enumpair fxSamplerCMap[] = {
   {_s_dae_mip_min_level,  k_s_dae_mip_min_level},
   {_s_dae_mip_bias,       k_s_dae_mip_bias},
   {_s_dae_max_anisotropy, k_s_dae_max_anisotropy},
-  {_s_dae_extra,          k_s_dae_extra}
+  {_s_dae_extra,          k_s_dae_extra},
+  {_s_dae_source,         k_s_dae_source}
 };
 
 static size_t fxSamplerCMapLen = 0;
@@ -84,6 +89,24 @@ ak_dae_fxSampler(AkXmlState * __restrict xst,
     }
 
     switch (found->val) {
+      case k_s_dae_source: {
+        char *source;
+        source = ak_xml_val(xst, sampler);
+
+         /* COLLADA 1.4 uses source -> <surface> for texturing */
+        if (source) {
+          if (xst->version < AK_COLLADA_VERSION_150) {
+            ak_dae14_loadjobs_add(xst,
+                                  sampler,
+                                  source,
+                                  AK_DAE14_LOADJOB_SURFACE);
+          } else {
+            ak_xml_skipelm(xst);
+          }
+        }
+
+        break;
+      }
       case k_s_dae_instance_image: {
         AkInstanceBase *instanceImage;
         AkResult        ret;
@@ -162,7 +185,7 @@ ak_dae_fxSampler(AkXmlState * __restrict xst,
         break;
       }
       default:
-         ak_xml_skipelm(xst);
+        ak_xml_skipelm(xst);
         break;
     }
 

@@ -593,7 +593,11 @@ ak_dae_fxEnumChannel(const char * name) {
     {"RGBE", AK_CHANNEL_FORMAT_RGBE},
     {"L",    AK_CHANNEL_FORMAT_L},
     {"LA",   AK_CHANNEL_FORMAT_LA},
-    {"D",    AK_CHANNEL_FORMAT_D}
+    {"D",    AK_CHANNEL_FORMAT_D},
+
+    /* 1.4 */
+    {"XYZ",  AK_CHANNEL_FORMAT_XYZ},
+    {"XYZW", AK_CHANNEL_FORMAT_XYZW}
   };
 
   val = 0;

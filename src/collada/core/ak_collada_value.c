@@ -8,10 +8,14 @@
 #include "ak_collada_value.h"
 #include "../fx/ak_collada_fx_sampler.h"
 
+#include "../1.4/ak_collada14_surface.h"
+
+#define AK_CUSTOM_TYPE_SURFACE 1
+
 typedef struct {
   const char *key;
   AkValueType val;
-  int         m;
+  int         m; /* this is userData for _CUSTOM */
   int         n;
   int         size;
 } ak_value_pair;
@@ -48,7 +52,16 @@ static ak_value_pair valueMap[] = {
   {_s_dae_sampler3d,     AK_VALUE_SAMPLER3D,     1, 1, sizeof(AkSampler3D)},
   {_s_dae_sampler_cube,  AK_VALUE_SAMPLER_CUBE,  1, 1, sizeof(AkSamplerCUBE)},
   {_s_dae_sampler_rect,  AK_VALUE_SAMPLER_RECT,  1, 1, sizeof(AkSamplerRECT)},
-  {_s_dae_sampler_depth, AK_VALUE_SAMPLER_DEPTH, 1, 1, sizeof(AkSamplerDEPTH)}
+  {_s_dae_sampler_depth, AK_VALUE_SAMPLER_DEPTH, 1, 1, sizeof(AkSamplerDEPTH)},
+
+  /* COLLADA 1.4 */
+  {
+    _s_dae_surface,
+    AK_VALUE_CUSTOM,
+    AK_CUSTOM_TYPE_SURFACE,
+    1,
+    sizeof(AkDae14Surface)
+  },
 };
 
 static size_t valueMapLen = 0;
@@ -191,6 +204,21 @@ ak_dae_value(AkXmlState * __restrict xst,
       if (ret == AK_OK)
         val->value = sampler;
 
+      break;
+    }
+    case AK_VALUE_CUSTOM: {
+      switch (found->m) {
+        case AK_CUSTOM_TYPE_SURFACE: {
+          AkDae14Surface *surface;
+          AkResult        ret;
+
+          surface = NULL;
+          ret = ak_dae14_fxSurface(xst, memParent, &surface);
+          if (ret == AK_OK)
+            val->value = surface;
+          break;
+        }
+      }
       break;
     }
     default:
