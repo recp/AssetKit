@@ -79,7 +79,6 @@ ak_dae14_loadjobs_finish(AkXmlState * __restrict xst) {
             sampler->instanceImage = instanceImage;
             surface->instanceImage = instanceImage;
 
-            printf("%s %s\n", surface->initFrom, job->value);
           }
         }
 
