@@ -32,19 +32,13 @@ typedef enum AkSourceArrayType {
                                | AK_SOURCE_ARRAY_TYPE_TOKEN
 } AkSourceArrayType;
 
-typedef struct AkDataType {
-  const char *typeName;
-  AkValueType type;
-  int         size;
-} AkDataType;
-
 typedef struct AkDataParam {
   /* const char * sid; */
 
   struct AkDataParam *next;
   const char         *name;
   const char         *semantic;
-  AkDataType          type;
+  AkTypeDesc          type;
   uint32_t            offset;
 } AkDataParam;
 

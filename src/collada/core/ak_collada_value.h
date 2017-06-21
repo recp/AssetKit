@@ -12,12 +12,11 @@
 
 AkResult _assetkit_hide
 ak_dae_value(AkXmlState * __restrict xst,
-             void * __restrict memParent,
-             void ** __restrict dest,
-             AkValueType * __restrict val_type);
+             void       * __restrict memParent,
+             AkValue   ** __restrict dest);
 
 void _assetkit_hide
 ak_dae_dataType(const char *typeName,
-                AkDataType *type);
+                AkTypeDesc *type);
 
 #endif /* __libassetkit__ak_collada_value__h_ */

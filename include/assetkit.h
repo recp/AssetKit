@@ -293,6 +293,18 @@ typedef enum AkInstanceType {
   AK_INSTANCE_CONTROLLER = 6
 } AkInstanceType;
 
+typedef struct AkTypeDesc {
+  const char *typeName;
+  AkValueType type;
+  int         size;
+  int         userData;
+} AkTypeDesc;
+
+typedef struct AkValue {
+  void      *value;
+  AkTypeDesc type;
+} AkValue;
+
 typedef struct AkTreeNodeAttr {
   const char * name;
   char       * val;
@@ -485,30 +497,24 @@ typedef struct AkFxTexture {
 } AkFxTexture;
 
 typedef struct AkAnnotate {
-  const char * name;
-  void       * val;
-  AkValueType  valType;
-
-  struct AkAnnotate * next;
+  struct AkAnnotate *next;
+  const char        *name;
+  AkValue           *val;
 } AkAnnotate;
 
 typedef struct AkNewParam {
   /* const char * sid; */
-  AkAnnotate * annotate;
-  const char * semantic;
-  void       * val;
-  AkModifier   modifier;
-  AkValueType  valType;
-
-  struct AkNewParam * next;
+  struct AkNewParam *next;
+  AkAnnotate        *annotate;
+  const char        *semantic;
+  AkValue           *val;
+  AkModifier         modifier;
 } AkNewParam;
 
 typedef struct AkSetParam {
-  const char * ref;
-  void       * val;
-  AkValueType  valType;
-
-  struct AkSetParam * next;
+  struct AkSetParam *next;
+  const char        *ref;
+  AkValue           *val;
 } AkSetParam;
 
 typedef struct AkCode {
@@ -605,12 +611,10 @@ typedef struct AkCompiler {
 } AkCompiler;
 
 typedef struct AkBindUniform {
-  const char * symbol;
-  AkParam    * param;
-  void       * val;
-  AkValueType  valType;
-
-  struct AkBindUniform * next;
+  struct AkBindUniform *next;
+  const char           *symbol;
+  AkParam              *param;
+  AkValue              *val;
 } AkBindUniform;
 
 typedef struct AkBindAttrib {

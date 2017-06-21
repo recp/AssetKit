@@ -12,7 +12,7 @@
 
 typedef struct AkInputSemanticPair {
   uint32_t        count;
-  AkDataType     *type;
+  AkTypeDesc     *type;
   char           **params;
 } AkInputSemanticPair;
 

@@ -83,19 +83,15 @@ ak_dae_newparam(AkXmlState * __restrict xst,
     } else {
       /* load once */
       if (!newparam->val) {
-        void      * val;
-        AkValueType val_type;
-        AkResult    ret;
+        AkValue *val;
+        AkResult ret;
 
         ret = ak_dae_value(xst,
                            newparam,
-                           &val,
-                           &val_type);
+                           &val);
 
-        if (ret == AK_OK) {
+        if (ret == AK_OK)
           newparam->val = val;
-          newparam->valType = val_type;
-        }
       }
     }
     
@@ -188,19 +184,15 @@ ak_dae_setparam(AkXmlState * __restrict xst,
 
     /* load once */
     if (!setparam->val) {
-      void      * val;
-      AkValueType val_type;
-      AkResult    ret;
+      AkValue *val;
+      AkResult ret;
 
       ret = ak_dae_value(xst,
                          setparam,
-                         &val,
-                         &val_type);
+                         &val);
 
-      if (ret == AK_OK) {
+      if (ret == AK_OK)
         setparam->val = val;
-        setparam->valType = val_type;
-      }
     }
 
     /* end element */

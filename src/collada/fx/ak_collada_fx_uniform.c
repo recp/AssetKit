@@ -50,19 +50,15 @@ ak_dae_fxBindUniform(AkXmlState * __restrict xst,
     } else {
       /* load once */
       if (!bindUniform->val) {
-        void      * val;
-        AkValueType val_type;
-        AkResult    ret;
+        AkValue *val;
+        AkResult ret;
 
         ret = ak_dae_value(xst,
                            bindUniform,
-                           &val,
-                           &val_type);
+                           &val);
 
-        if (ret == AK_OK) {
+        if (ret == AK_OK)
           bindUniform->val = val;
-          bindUniform->valType = val_type;
-        }
       }
     }
 

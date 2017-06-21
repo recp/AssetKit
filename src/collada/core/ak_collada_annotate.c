@@ -28,11 +28,17 @@ ak_dae_annotate(AkXmlState * __restrict xst,
       break;
 
     /* load once */
-    if (!annotate->val)
-      ak_dae_value(xst,
-                   annotate,
-                   &annotate->val,
-                   &annotate->valType);
+    if (!annotate->val) {
+      AkValue *val;
+      AkResult ret;
+
+      ret = ak_dae_value(xst,
+                         annotate,
+                         &val);
+
+      if (ret == AK_OK)
+        annotate->val = val;
+    }
 
     /* end element */
     if (ak_xml_end(&xest))

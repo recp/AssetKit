@@ -55,7 +55,7 @@ static size_t valueMapLen = 0;
 
 void _assetkit_hide
 ak_dae_dataType(const char *typeName,
-                AkDataType *type) {
+                AkTypeDesc *type) {
   ak_value_pair *found;
 
   if (valueMapLen == 0) {
@@ -86,9 +86,9 @@ ak_dae_dataType(const char *typeName,
 
 AkResult _assetkit_hide
 ak_dae_value(AkXmlState * __restrict xst,
-             void * __restrict memParent,
-             void ** __restrict dest,
-             AkValueType * __restrict val_type) {
+             void       * __restrict memParent,
+             AkValue   ** __restrict dest) {
+  AkValue       *val;
   ak_value_pair *found;
   AkXmlElmState  xest;
 
@@ -107,48 +107,51 @@ ak_dae_value(AkXmlState * __restrict xst,
                   valuePairCmp2);
 
   if (!found) {
-    *val_type = AK_VALUE_UNKNOWN;
+    *dest = NULL;
     return AK_EFOUND;
   }
 
-  *val_type = found->val;
+  val = ak_heap_calloc(xst->heap, memParent, sizeof(*val));
+  val->type.size     = found->size;
+  val->type.type     = found->val;
+  val->type.typeName = found->key;
 
   ak_xest_init(xest, found->key)
 
   switch (found->val) {
     case AK_VALUE_STRING:
-      *dest = ak_xml_val(xst, NULL);
+      val->value = ak_xml_val(xst, NULL);
       break;
     case AK_VALUE_BOOL:
     case AK_VALUE_BOOL2:
     case AK_VALUE_BOOL3:
     case AK_VALUE_BOOL4:{
-      AkBool *val;
+      AkBool *boolVal;
       char   *nodeVal;
 
       nodeVal = ak_xml_rawcval(xst);
-      val = ak_heap_calloc(xst->heap,
-                           memParent,
-                           sizeof(*val) * found->m * found->n);
-      ak_strtomb(&nodeVal, val, found->m, found->n);
+      boolVal = ak_heap_calloc(xst->heap,
+                               memParent,
+                               sizeof(*boolVal) * found->m * found->n);
+      ak_strtomb(&nodeVal, boolVal, found->m, found->n);
 
-      *dest = val;
+      val->value = boolVal;
       break;
     }
     case AK_VALUE_INT:
     case AK_VALUE_INT2:
     case AK_VALUE_INT3:
     case AK_VALUE_INT4:{
-      AkInt *val;
+      AkInt *intVal;
       char  *nodeVal;
 
       nodeVal = ak_xml_rawcval(xst);
-      val = ak_heap_calloc(xst->heap,
-                           memParent,
-                           sizeof(*val) * found->m * found->n);
-      ak_strtomi(&nodeVal, val, found->m, found->n);
+      intVal = ak_heap_calloc(xst->heap,
+                              memParent,
+                              sizeof(*intVal) * found->m * found->n);
+      ak_strtomi(&nodeVal, intVal, found->m, found->n);
 
-      *dest = val;
+      val->value = intVal;
       break;
     }
     case AK_VALUE_FLOAT:
@@ -158,16 +161,16 @@ ak_dae_value(AkXmlState * __restrict xst,
     case AK_VALUE_FLOAT2x2:
     case AK_VALUE_FLOAT3x3:
     case AK_VALUE_FLOAT4x4:{
-      AkFloat *val;
+      AkFloat *floatVal;
       char    *nodeVal;
 
-      nodeVal = ak_xml_rawcval(xst);
-      val = ak_heap_calloc(xst->heap,
-                           memParent,
-                           sizeof(*val) * found->m * found->n);
-      ak_strtomf(&nodeVal, val, found->m, found->n);
+      nodeVal  = ak_xml_rawcval(xst);
+      floatVal = ak_heap_calloc(xst->heap,
+                                memParent,
+                                sizeof(*floatVal) * found->m * found->n);
+      ak_strtomf(&nodeVal, floatVal, found->m, found->n);
 
-      *dest = val;
+      val->value = floatVal;
       break;
     }
     case AK_VALUE_SAMPLER1D:
@@ -186,7 +189,7 @@ ak_dae_value(AkXmlState * __restrict xst,
                              &sampler);
 
       if (ret == AK_OK)
-        *dest = sampler;
+        val->value = sampler;
 
       break;
     }
@@ -196,6 +199,8 @@ ak_dae_value(AkXmlState * __restrict xst,
 
   /* end element */
   ak_xml_end(&xest);
+
+  *dest = val;
 
   return AK_OK;
 }
