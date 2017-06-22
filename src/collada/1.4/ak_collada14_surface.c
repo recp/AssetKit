@@ -28,7 +28,20 @@ ak_dae14_fxSurface(AkXmlState      * __restrict xst,
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_init_from)) {
-      surface->initFrom = ak_xml_val(xst, surface);
+      AkDae14SurfaceFrom *initFrom;
+      initFrom = ak_heap_calloc(xst->heap,
+                                surface,
+                                sizeof(*xst->heap));
+      initFrom->mip   = ak_xml_attrui(xst, _s_dae_mip);
+      initFrom->slice = ak_xml_attrui(xst, _s_dae_slice);
+      initFrom->image = ak_xml_val(xst, surface);
+      initFrom->face  = ak_xml_attrenum_def(xst,
+                                            _s_dae_face,
+                                            ak_dae_fxEnumFace,
+                                            AK_FACE_POSITIVE_Y);
+      surface->initFrom = initFrom;
+    } else if (ak_xml_eqelm(xst, _s_dae_init_as_target)) {
+      surface->initAsTarget = true; /* becuse the element exists */
     } else if (ak_xml_eqelm(xst, _s_dae_format)) {
       surface->format = ak_xml_val(xst, surface);
     } else if (ak_xml_eqelm(xst, _s_dae_format_hint)) {

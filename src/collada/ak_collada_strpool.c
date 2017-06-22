@@ -466,6 +466,11 @@ const char _s_dae_pool_2[] =
 "mip_levels\0"
 "mipmap_generate\0"
 "option\0"
+"init_as_target\0"
+"init_cube\0"
+"all\0"
+"primary\0"
+"order\0"
 ;
 
 #undef _AK_DAE_STRPOOL_

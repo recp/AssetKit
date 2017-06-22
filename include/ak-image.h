@@ -88,7 +88,8 @@ typedef struct AkImage {
   AkTree         *extra;
   struct AkImage *next;
 
-  AkBool renderableShare;
+  AkBool          renderable;
+  AkBool          renderableShare;
 } AkImage;
 
 void

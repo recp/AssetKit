@@ -60,7 +60,11 @@ ak_dae14_loadjobs_finish(AkXmlState * __restrict xst) {
 
           /* surface may already migrated to 1.5+ */
           if (!surface->instanceImage) {
-            sampler       = job->parent;
+            AkImage *image;
+
+            sampler = job->parent;
+
+            /* convert initFrom to instance_image */
             instanceImage = ak_heap_calloc(xst->heap,
                                            sampler,
                                            sizeof(*instanceImage));
@@ -73,12 +77,23 @@ ak_dae14_loadjobs_finish(AkXmlState * __restrict xst) {
 
             ak_url_init_with_id(xst->heap->allocator,
                                 instanceImage,
-                                (char *)surface->initFrom,
+                                (char *)surface->initFrom->image,
                                 &instanceImage->url);
 
             sampler->instanceImage = instanceImage;
             surface->instanceImage = instanceImage;
 
+            /* convert other params to update/new image */
+            image = ak_instanceObject(instanceImage);
+            if (image) {
+              if (surface->initFrom) {
+                image->initFrom->face       = surface->initFrom->face;
+                image->initFrom->mipIndex   = surface->initFrom->mip;
+                image->initFrom->arrayIndex = surface->initFrom->slice;
+              }
+
+              image->renderable = surface->initAsTarget;
+            }
           }
         }
 
@@ -112,7 +127,6 @@ ak_dae14_loadjobs_finish(AkXmlState * __restrict xst) {
 
           surface = surfaceParam->val->value;
           ak_free(surface);
-          ak_free(surfaceParam->val);
 
           if (surfaceParam->prev)
             surfaceParam->prev->next = surfaceParam->next;

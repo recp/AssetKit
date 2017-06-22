@@ -445,5 +445,10 @@
   "viewport_ratio": "viewport_ratio",
   "mip_levels": "mip_levels",
   "mipmap_generate": "mipmap_generate",
-  "option": "option"
+  "option": "option",
+  "init_as_target": "init_as_target",
+  "init_cube": "init_cube",
+  "all": "all",
+  "primary": "primary",
+  "order": "order"
 }

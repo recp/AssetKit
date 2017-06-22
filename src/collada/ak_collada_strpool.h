@@ -474,5 +474,10 @@ _AK_EXTERN const char _s_dae_pool_2[];
 #define _s_dae_mip_levels _s_dae_2(743)
 #define _s_dae_mipmap_generate _s_dae_2(754)
 #define _s_dae_option _s_dae_2(770)
+#define _s_dae_init_as_target _s_dae_2(777)
+#define _s_dae_init_cube _s_dae_2(792)
+#define _s_dae_all _s_dae_2(802)
+#define _s_dae_primary _s_dae_2(806)
+#define _s_dae_order _s_dae_2(814)
 
 #endif /* ak_dae_strpool_h */

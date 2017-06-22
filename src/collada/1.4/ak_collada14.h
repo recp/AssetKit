@@ -23,10 +23,16 @@ typedef struct AkDae14LoadJob {
   AkDae14LoadJobType     type;
 } AkDae14LoadJob;
 
+typedef struct AkDae14SurfaceFrom {
+  const char *image;
+  AkUInt      mip;
+  AkUInt      slice;
+  AkFace      face;
+} AkDae14SurfaceFrom;
+
 typedef struct AkDae14Surface {
   AkInstanceBase *instanceImage;
   AkTree         *extra;
-  const char     *initFrom;
   const char     *format;
   AkImageFormat   formatHint;
   AkImageSize     size;
@@ -34,7 +40,10 @@ typedef struct AkDae14Surface {
   int             mipLevels;
   bool            mipmapGenerate;
 
-  /* others: TODO */
+  /* initializers */
+  bool                  initAsNull;
+  bool                  initAsTarget;
+  AkDae14SurfaceFrom   *initFrom;
 } AkDae14Surface;
 
 void
