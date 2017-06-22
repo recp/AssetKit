@@ -30,6 +30,8 @@ ak_strltrim_fast(const char * __restrict str) {
     if (AK_ARRAY_SEP_CHECK) {
       ptr++;
       continue;
+    } else {
+      return ptr;
     }
   }
 

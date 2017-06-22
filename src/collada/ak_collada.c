@@ -211,10 +211,11 @@ ak_dae_doc(AkDoc ** __restrict dest,
           ak_enumpair_cmp);
   }
 
+  memset(&xstVal, 0, sizeof(xstVal));
+
   xstVal.doc      = doc;
   xstVal.heap     = heap;
   xstVal.reader   = reader;
-  xstVal.urlQueue = NULL;
   xst             = &xstVal;
 
   /* begin parse, get COLLADA element */

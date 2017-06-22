@@ -192,7 +192,7 @@ ak_path_join(char   *fragments[],
       APPEND_SLASH;
 
     /* protocol e.g. http://, tcp:// */
-    if (frag_idx_v == 1 && *(buf - 2) == CHR_COLON)
+    if (len > 1 && frag_idx_v == 1 && *(buf - 2) == CHR_COLON)
       APPEND_SLASH;
 
     frag_len = ++frag_end - frag;
