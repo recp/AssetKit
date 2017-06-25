@@ -28,6 +28,9 @@ ak_imageLoad(AkImage * __restrict image) {
   AkImageData   *idata;
   unsigned char *data;
 
+  if (image->data)
+    return;
+
   idata  = NULL;
   data   = NULL;
   heap   = ak_heap_getheap(image);
