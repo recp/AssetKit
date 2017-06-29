@@ -91,6 +91,9 @@ ak_coordFixCamOri(AkCoordSys *oldCoordSys,
   if (ak_coordOrientationIsEq(oldCoordSys, newCoordSys))
     return;
 
+  memset(fwdAxis, 0, sizeof(fwdAxis));
+  memset(upAxis,  0, sizeof(upAxis));
+
   ak_coordRotForFixCamOri(oldCoordSys,
                           newCoordSys,
                           fwdAxis,
@@ -122,6 +125,9 @@ ak_coordRotNodeForFixCamOri(AkDoc     *doc,
   *destTransform = NULL;
   if (ak_coordOrientationIsEq(oldCoordSys, newCoordSys))
     return;
+
+  memset(fwdAxis, 0, sizeof(fwdAxis));
+  memset(upAxis,  0, sizeof(upAxis));
 
   ak_coordRotForFixCamOri(oldCoordSys,
                           newCoordSys,
