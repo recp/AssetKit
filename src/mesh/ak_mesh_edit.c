@@ -44,20 +44,23 @@ ak_meshBeginEditA(AkMesh  * __restrict mesh,
 
   if ((flags & AK_GEOM_EDIT_FLAG_ARRAYS)
       && !edith->arrays) {
-    edith->arrays         = rb_newtree(ak_cmp_str, NULL);
-    edith->detachedArrays = rb_newtree(ak_cmp_ptr, NULL);
+    edith->arrays         = rb_newtree_str();
+    edith->detachedArrays = rb_newtree_ptr();
     edith->inputArrayMap  = ak_map_new(ak_cmp_ptr);
 
-    edith->arrays->freeFn   = heap->allocator->free;
-    edith->arrays->freeNode = ak_meshFreeRsvArray;
+    ak_dsSetAllocator(heap->allocator, edith->arrays->alc);
+    ak_dsSetAllocator(heap->allocator, edith->detachedArrays->alc);
+
+    edith->arrays->onFreeNode = ak_meshFreeRsvArray;
 
     edith->flags |= AK_GEOM_EDIT_FLAG_ARRAYS;
   }
 
   if ((flags & AK_GEOM_EDIT_FLAG_INDICES)
       && !edith->arrays) {
-    edith->indices = rb_newtree(ak_cmp_ptr, NULL);
+    edith->indices = rb_newtree_ptr();
     edith->flags  |= AK_GEOM_EDIT_FLAG_INDICES;
+    ak_dsSetAllocator(heap->allocator, edith->indices->alc);
   }
 
   ak_retain(edith);

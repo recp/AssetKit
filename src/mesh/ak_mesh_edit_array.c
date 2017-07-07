@@ -24,7 +24,7 @@ ak_meshFreeRsvArray(RBTree *tree, RBNode *node) {
 
   arrstate = node->val;
 
-  tree->freeFn(arrstate->url);
+  tree->alc->free(arrstate->url);
   ak_free(arrstate);
 }
 
@@ -46,17 +46,18 @@ ak_meshReserveArray(AkMesh * __restrict mesh,
   edith = mesh->edith;
   assert(edith && ak_mesh_edit_assert1);
 
-  count = acc_count * stride;
+  meshobj = ak_objFrom(mesh);
+  heap    = ak_heap_getheap(meshobj);
+  count   = acc_count * stride;
+
   if (!(edith->flags & AK_GEOM_EDIT_FLAG_ARRAYS)
       || !edith->arrays) {
-    edith->arrays = rb_newtree(ak_cmp_str, NULL);
+    edith->arrays = rb_newtree_str();
     edith->flags |= AK_GEOM_EDIT_FLAG_ARRAYS;
+    ak_dsSetAllocator(heap->allocator, edith->arrays->alc);
   }
 
-  meshobj  = ak_objFrom(mesh);
-  heap     = ak_heap_getheap(meshobj);
-  arrstate = rb_find(edith->arrays, arrayid);
-
+  arrstate  = rb_find(edith->arrays, arrayid);
   arraysize = ak_sourceArraySize(type);
   isize     = ak_sourceArrayItemSize(type);
   newsize   = arraysize + isize * count;

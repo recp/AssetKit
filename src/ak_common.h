@@ -16,6 +16,8 @@
 #include "../include/ak-type.h"
 #include "../include/ak-url.h"
 
+#include <ds/rb.h>
+
 #include <stddef.h>
 #include <sys/types.h>
 #include <string.h>

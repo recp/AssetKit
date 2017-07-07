@@ -14,7 +14,8 @@ extern "C" {
 #include "ak-map.h"
 #include "ak-bbox.h"
 #include "ak-map.h"
-#include "ak-rb.h"
+
+struct RBTree;
 
 typedef enum AkGeometryType {
   AK_GEOMETRY_TYPE_MESH   = 0,
@@ -76,10 +77,10 @@ typedef struct AkTriangles {
 
 typedef struct AkMeshEditHelper {
   AkGeometryEditFlags flags;
-  RBTree             *arrays;         /* new arrays               */
-  RBTree             *detachedArrays; /* old array- new array map */
+  struct RBTree      *arrays;         /* new arrays               */
+  struct RBTree      *detachedArrays; /* old array- new array map */
+  struct RBTree      *indices;        /* new indices              */
   AkMap              *inputArrayMap;  /* input-accessor-array map */
-  RBTree             *indices;        /* new indices              */
   void               *mutex;
   void               *duplicator;
   size_t              refc;

@@ -23,7 +23,8 @@ libassetkit_la_LDFLAGS = -no-undefined \
                          -lxml2 \
                          -ljemalloc \
                          -lcurl \
-                         -luv
+                         -luv \
+                         -lds
 
 check_PROGRAMS = test/tests
 TESTS = test/tests
@@ -36,7 +37,8 @@ test_tests_LDFLAGS = -L./.libs \
                      -lxml2 \
                      -ljemalloc \
                      -lcurl \
-                     -luv
+                     -luv \
+                     -lds
 
 test_tests_CFLAGS = -I./test/lib/cmocka/include \
                     -I./include
@@ -62,7 +64,6 @@ include_HEADERS = include/assetkit.h \
                   include/ak-light.h \
                   include/ak-profile.h \
                   include/ak-material.h \
-                  include/ak-rb.h \
                   include/ak-map.h \
                   include/ak-util.h \
                   include/ak-bbox.h \
@@ -77,6 +78,9 @@ libassetkit_la_SOURCES=\
     src/ak_libxml.c \
     src/ak_memory.c \
     src/ak_memory_ext.c \
+    src/ak_memory_rb.c \
+    src/ak_memory_lt.c \
+    src/ak_memory_intr.c \
     src/ak_sid.c \
     src/ak_sid_constr.c \
     src/ak_utils.c \
@@ -84,13 +88,10 @@ libassetkit_la_SOURCES=\
     src/ak_tree.c \
     src/ak_array.c \
     src/ak_find.c \
-    src/ak_memory_rb.c \
-    src/ak_memory_lt.c \
     src/ak_main.c \
     src/ak_id.c \
     src/ak_trash.c \
     src/ak_map.c \
-    src/rb.c \
     src/ak_data.c \
     src/ak_accessor.c \
     src/ak_type.c \

@@ -31,8 +31,9 @@ ak_meshIndicesArrayFor(AkMesh          * __restrict mesh,
 
   if (!(edith->flags & AK_GEOM_EDIT_FLAG_INDICES)
       || !edith->indices) {
-    edith->indices = rb_newtree(ak_cmp_ptr, NULL);
-    edith->flags |= AK_GEOM_EDIT_FLAG_INDICES;
+    edith->indices = rb_newtree_ptr();
+    edith->flags  |= AK_GEOM_EDIT_FLAG_INDICES;
+    ak_dsSetAllocator(heap->allocator, edith->indices->alc);
   }
 
   indices = rb_find(edith->indices, prim);

@@ -15,13 +15,20 @@
 
 void
 ak_meshReIndexInputs(AkMesh * __restrict mesh) {
+  AkHeap          *heap;
+  AkObject        *meshobj;
   RBTree          *tree;
   AkInputBasic    *inp;
   AkMeshPrimitive *prim;
   RBNode          *found;
 
-  tree = rb_newtree_str();
-  prim = mesh->primitive;
+  meshobj = ak_objFrom(mesh);
+  heap    = ak_heap_getheap(meshobj);
+  tree    = rb_newtree_str();
+  prim    = mesh->primitive;
+
+  ak_dsSetAllocator(heap->allocator, tree->alc);
+
   if (prim) {
     do {
       inp = mesh->vertices->input;

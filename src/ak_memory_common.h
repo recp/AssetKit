@@ -9,6 +9,7 @@
 #define ak_memory_h
 
 #include "ak_common.h"
+#include <ds/allocator.h>
 
 #define ak__align_size 8
 #define ak__heapnd_sz  offsetof(AkHeapNode, data)
@@ -129,5 +130,10 @@ ak_mem_init(void);
 
 void
 ak_mem_deinit(void);
+
+_assetkit_hide
+void
+ak_dsSetAllocator(AkHeapAllocator * __restrict alc,
+                  DsAllocator     * __restrict dsalc);
 
 #endif /* ak_memory_h */

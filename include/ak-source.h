@@ -13,7 +13,6 @@ extern "C" {
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "ak-rb.h"
 
 struct AkTechnique;
 

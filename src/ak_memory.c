@@ -1081,9 +1081,11 @@ ak_objFrom(void * __restrict memptr) {
 
 void
 ak_mem_init() {
-  ak__heap_sub = rb_newtree(ak_cmp_ptr, NULL);
+  ak__heap_sub = rb_newtree_ptr();
   ak_heap_init(&ak__heap, NULL, NULL, NULL);
   ak_heap_lt_init(&ak__heap);
+
+  ak_dsSetAllocator(ak__heap.allocator, ak__heap_sub->alc);
 }
 
 void

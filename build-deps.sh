@@ -47,6 +47,12 @@ sh ./autogen.sh
 ./configure
 make -j8
 
+# libds
+cd ../libds
+sh ./autogen.sh
+./configure
+make -j8
+
 # test - cmocka
 cd ../../test/lib/cmocka
 mkdir build
