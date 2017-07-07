@@ -31,3 +31,6 @@
 [submodule "test/sample-models"]
 	path = test/sample-models
 	url = https://github.com/recp/sample-models.git
+[submodule "lib/libds"]
+	path = lib/libds
+	url = https://github.com/recp/libds.git
