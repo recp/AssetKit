@@ -27,8 +27,8 @@ ak_data_new(void   *memparent,
   return ctx;
 }
 
-void
-ak_data_append(AkDataContext *dctx, void *data) {
+int
+ak_data_append(AkDataContext *dctx, void *item) {
   AkDataChunk *chunk;
   void        *mem;
   size_t       size;
@@ -56,11 +56,13 @@ ak_data_append(AkDataContext *dctx, void *data) {
   }
 
   mem = chunk->data + chunk->usedsize;
-  memcpy(mem, data, size);
+  memcpy(mem, item, size);
 
   chunk->usedsize += size;
   dctx->usedsize  += size;
   dctx->itemcount++;
+
+  return (int)dctx->itemcount - 1;
 }
 
 int
@@ -71,9 +73,7 @@ ak_data_append_unq(AkDataContext *dctx, void *item) {
   if (idx != -1)
     return idx;
 
-  ak_data_append(dctx, item);
-  idx = (int)dctx->itemcount - 1;
-  return idx;
+  return ak_data_append(dctx, item);
 }
 
 void

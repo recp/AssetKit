@@ -57,10 +57,12 @@ ak_data_join(AkDataContext *dctx,
  * @brief append item, this will copy data by size of itemsize into context
  *
  * @param dctx data context
- * @param data item
+ * @param item item
+ *
+ * @return index
  */
-void
-ak_data_append(AkDataContext *dctx, void *data);
+int
+ak_data_append(AkDataContext *dctx, void *item);
 
 /*!
  * @brief append if not exists and return appended item index
