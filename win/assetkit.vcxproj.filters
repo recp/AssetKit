@@ -139,9 +139,6 @@
     <ClInclude Include="..\include\ak-profile.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ak-rb.h">
-      <Filter>include</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\ak-sid.h">
       <Filter>include</Filter>
     </ClInclude>
@@ -786,9 +783,6 @@
     <ClCompile Include="..\src\dllmain.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\rb.c">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\mesh\ak_mesh_duplicator.c">
       <Filter>src\mesh</Filter>
     </ClCompile>
@@ -854,6 +848,9 @@
     </ClCompile>
     <ClCompile Include="..\src\collada\1.4\ak_collada14_surface.c">
       <Filter>src\collada\1.4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ak_memory_intr.c">
+      <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

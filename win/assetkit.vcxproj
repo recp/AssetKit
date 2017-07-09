@@ -73,7 +73,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\lib\libuv\include;..\lib\cglm\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\lib\libuv\include;..\lib\libds\include;..\lib\cglm\include;$(IncludePath)</IncludePath>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
@@ -108,7 +108,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>.\packages\libxml2.2.7.8.7\build\native\lib\v110\Win32\Debug\dynamic\cdecl\libxml2.lib;.\packages\curl.7.30.0.2\build\native\lib\v110\Win32\Debug\dynamic\libcurl.lib;..\lib\libuv\Debug\lib\libuv.lib;advapi32.lib;iphlpapi.lib;psapi.lib;shell32.lib;ws2_32.lib;userenv.lib;ucrtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>.\packages\libxml2.2.7.8.7\build\native\lib\v110\Win32\Debug\dynamic\cdecl\libxml2.lib;.\packages\curl.7.30.0.2\build\native\lib\v110\Win32\Debug\dynamic\libcurl.lib;..\lib\libuv\Debug\lib\libuv.lib;..\lib\libds\win\Release\libds.lib;advapi32.lib;iphlpapi.lib;psapi.lib;shell32.lib;ws2_32.lib;userenv.lib;ucrtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>LIBCMTD.lib</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
@@ -198,7 +198,6 @@
     <ClInclude Include="..\include\ak-options.h" />
     <ClInclude Include="..\include\ak-path.h" />
     <ClInclude Include="..\include\ak-profile.h" />
-    <ClInclude Include="..\include\ak-rb.h" />
     <ClInclude Include="..\include\ak-sid.h" />
     <ClInclude Include="..\include\ak-source.h" />
     <ClInclude Include="..\include\ak-states.h" />
@@ -311,6 +310,7 @@
     <ClCompile Include="..\src\ak_map.c" />
     <ClCompile Include="..\src\ak_memory.c" />
     <ClCompile Include="..\src\ak_memory_ext.c" />
+    <ClCompile Include="..\src\ak_memory_intr.c" />
     <ClCompile Include="..\src\ak_memory_lt.c" />
     <ClCompile Include="..\src\ak_memory_rb.c" />
     <ClCompile Include="..\src\ak_profile.c" />
@@ -427,7 +427,6 @@
     <ClCompile Include="..\src\mesh\ak_mesh_triangulate.c" />
     <ClCompile Include="..\src\mesh\ak_mesh_util.c" />
     <ClCompile Include="..\src\node\ak_node.c" />
-    <ClCompile Include="..\src\rb.c" />
     <ClCompile Include="..\src\resc\ak_curl.c" />
     <ClCompile Include="..\src\resc\ak_path.c" />
     <ClCompile Include="..\src\resc\ak_resource.c" />

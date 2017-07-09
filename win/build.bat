@@ -11,4 +11,9 @@ git clone -q https://chromium.googlesource.com/external/gyp.git build/gyp 2> $nu
 
 cd %CUR_DR%
 
+cd lib\libds\win
+.\build.bat
+
+cd %CUR_DR%
+
 msbuild assetkit.vcxproj /p:Configuration=Debug
