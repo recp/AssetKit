@@ -761,7 +761,8 @@ ak_dae_node(AkXmlState    * __restrict xst,
   if (ak_isKindOf(memParent, node))
     node->parent = memParent;
 
-  ak_fixNodeCoordSys(node);
+  ak_dae_nodeFixup(xst->heap, node);
+
   *dest = node;
 
   return AK_OK;

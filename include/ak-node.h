@@ -13,6 +13,10 @@ extern "C" {
 
 #include "ak-common.h"
 
+typedef enum AkNodeFlags {
+  AK_NODEF_FIXED_COORD = 1
+} AkNodeFlags;
+
 typedef enum AkNodeType {
   AK_NODE_TYPE_NODE        = 1,
   AK_NODE_TYPE_CAMERA_NODE = 2,
@@ -42,6 +46,7 @@ typedef struct AkNode {
   /* const char * sid; */
 
   const char           *name;
+  AkNodeFlags           flags;
   AkNodeType            nodeType;
   AkStringArray        *layer;
   struct AkTransform   *transform;

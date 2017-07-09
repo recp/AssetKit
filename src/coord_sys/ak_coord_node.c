@@ -92,24 +92,24 @@ ak_fixNodeCoordSys(AkNode * __restrict node) {
     }
   }
 
-  if (instTransCount == 1 && coordSysToFix)
-    coordSys = coordSysToFix;
-
-  parentObject = node->parent;
-  if (!parentObject)
-    parentObject = ak_mem_parent(node);
-
-  if (parentObject)
-    parentCoordSys = ak_getCoordSys(parentObject);
-  else
-    parentCoordSys = AK_YUP;
-
-  if (parentCoordSys == coordSys)
-    return;
-
   heap = ak_heap_getheap(node);
   switch (ak_opt_get(AK_OPT_COORD_CONVERT_TYPE)) {
     case AK_COORD_CVT_FIX_TRANSFORM: {
+      if (instTransCount == 1 && coordSysToFix)
+        coordSys = coordSysToFix;
+
+      parentObject = node->parent;
+      if (!parentObject)
+        parentObject = ak_mem_parent(node);
+
+      if (parentObject)
+        parentCoordSys = ak_getCoordSys(parentObject);
+      else
+        parentCoordSys = AK_YUP;
+
+      if (parentCoordSys == coordSys)
+        return;
+
       if (hasCoordSys
           /* don't change nodes in library_nodes */
           || (!node->parent && ak_typeid(parentObject) == AKT_SCENE)) {

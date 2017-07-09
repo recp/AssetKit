@@ -144,9 +144,9 @@ struct AkNode;
 
 AK_EXPORT
 void
-ak_coordRotNodeForFixCamOri(struct AkDoc *doc,
-                            void         *memparent,
-                            AkObject    **destTransform);
+ak_coordRotNodeForFixedCoord(struct AkDoc *doc,
+                             void         *memparent,
+                             AkObject    **destTransform);
 
 AK_EXPORT
 void

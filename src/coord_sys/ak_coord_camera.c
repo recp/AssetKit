@@ -10,19 +10,23 @@
 #include "ak_coord_common.h"
 #include <cglm.h>
 
-AK_EXPORT
+_assetkit_hide
 void
-ak_coordRotForFixCamOri(AkCoordSys *oldCoordSys,
-                        AkCoordSys *newCoordSys,
-                        vec4        fwdAxis,
-                        vec4        upAxis);
+ak_coordRotForFixedCoord(AkCoordSys        *oldCoordSys,
+                         AkCoordSys        *newCoordSys,
+                         AkAxisOrientation *oldAxes,
+                         AkAxisOrientation *newAxes,
+                         vec4               fwdAxis,
+                         vec4               upAxis);
 
-AK_EXPORT
+_assetkit_hide
 void
-ak_coordRotForFixCamOri(AkCoordSys *oldCoordSys,
-                        AkCoordSys *newCoordSys,
-                        vec4        fwdAxis,
-                        vec4        upAxis) {
+ak_coordRotForFixedCoord(AkCoordSys        *oldCoordSys,
+                         AkCoordSys        *newCoordSys,
+                         AkAxisOrientation *oldAxes,
+                         AkAxisOrientation *newAxes,
+                         vec4               fwdAxis,
+                         vec4               upAxis) {
   ivec3          camOriOld, camOriNew;
   vec3           v1, v2, v3, tmp;
   AkAxisAccessor a0, a1;
@@ -31,8 +35,8 @@ ak_coordRotForFixCamOri(AkCoordSys *oldCoordSys,
                            &a0,
                            &a1);
   
-  ak_coordAxisOri(oldCoordSys, oldCoordSys->cameraOrientation, camOriOld);
-  ak_coordAxisOri(newCoordSys, newCoordSys->cameraOrientation, camOriNew);
+  ak_coordAxisOri(oldCoordSys, *oldAxes, camOriOld);
+  ak_coordAxisOri(newCoordSys, *newAxes, camOriNew);
 
   glm_vec_broadcast(0.0f, v1);
   glm_vec_broadcast(0.0f, v2);
@@ -94,10 +98,12 @@ ak_coordFixCamOri(AkCoordSys *oldCoordSys,
   memset(fwdAxis, 0, sizeof(fwdAxis));
   memset(upAxis,  0, sizeof(upAxis));
 
-  ak_coordRotForFixCamOri(oldCoordSys,
-                          newCoordSys,
-                          fwdAxis,
-                          upAxis);
+  ak_coordRotForFixedCoord(oldCoordSys,
+                           newCoordSys,
+                           &oldCoordSys->cameraOrientation,
+                           &newCoordSys->cameraOrientation,
+                           fwdAxis,
+                           upAxis);
 
   /* apply rotation for forward direction */
   if (fwdAxis[3] != 0.0f)
@@ -110,11 +116,11 @@ ak_coordFixCamOri(AkCoordSys *oldCoordSys,
 
 AK_EXPORT
 void
-ak_coordRotNodeForFixCamOri(AkDoc     *doc,
-                            void      *memparent,
-                            AkObject **destTransform) {
+ak_coordRotNodeForFixedCoord(AkDoc     *doc,
+                             void      *memparent,
+                             AkObject **destTransform) {
   AkHeap     *heap;
-  AkCoordSys *oldCoordSys, *newCoordSys;
+  AkCoordSys *oldCoordSys,  *newCoordSys;
   AkObject   *transformFwd, *transformUp;
   AkRotate   *rotate;
   vec4        fwdAxis, upAxis;
@@ -129,10 +135,12 @@ ak_coordRotNodeForFixCamOri(AkDoc     *doc,
   memset(fwdAxis, 0, sizeof(fwdAxis));
   memset(upAxis,  0, sizeof(upAxis));
 
-  ak_coordRotForFixCamOri(oldCoordSys,
-                          newCoordSys,
-                          fwdAxis,
-                          upAxis);
+  ak_coordRotForFixedCoord(oldCoordSys,
+                           newCoordSys,
+                           &oldCoordSys->cameraOrientation,
+                           &newCoordSys->cameraOrientation,
+                           fwdAxis,
+                           upAxis);
 
   heap = ak_heap_getheap(doc);
 
@@ -147,11 +155,6 @@ ak_coordRotNodeForFixCamOri(AkDoc     *doc,
                                true);
 
     rotate = ak_objGet(transformFwd);
-
-    ak_sid_set(transformFwd,
-               ak_heap_strdup(heap,
-                              transformFwd,
-                              "ak-cam-fix-rot1"));
     glm_vec4_copy(fwdAxis, rotate->val);
 
     *destTransform = transformFwd;
@@ -166,11 +169,6 @@ ak_coordRotNodeForFixCamOri(AkDoc     *doc,
                               true);
 
     rotate = ak_objGet(transformUp);
-
-    ak_sid_set(transformUp,
-               ak_heap_strdup(heap,
-                              transformUp,
-                              "ak-cam-fix-rot2"));
     glm_vec4_copy(upAxis, rotate->val);
 
     if (*destTransform)

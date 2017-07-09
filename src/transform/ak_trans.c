@@ -66,7 +66,7 @@ again:
         AkMatrix *matrix;
         matrix = ak_objGet(transform);
 
-        glm_mat4_mul(mat, matrix->val,  mat);
+        glm_mat4_mul(mat, matrix->val, mat);
         break;
       }
       case AK_TRANSFORM_LOOKAT: {

@@ -9,89 +9,68 @@
 #include <cglm.h>
 
 /*!
- * @brief fix camera node
- * 
- * make sure camera has its own node
+ * @brief fix camera, light
  *
  * @todo new node lost its id, sid and name, FIX THIS!
  */
-AK_INLINE
 void _assetkit_hide
-ak_dae_nodeFixupCamera(AkHeap * __restrict heap,
-                       AkNode * __restrict node) {
-  /* node has only camera which we want */
-  if (node->camera
-      && !node->controller
+ak_dae_nodeFixupFixedCoord(AkHeap * __restrict heap,
+                           AkNode * __restrict node) {
+  AkNode *newNode;
+
+  if (!node->camera
+       && !node->light)
+      return;
+
+  if (!node->controller
       && !node->geometry
-      && !node->light
       && !node->chld
       && !node->node) {
-    node->nodeType = AK_NODE_TYPE_CAMERA_NODE;
-  } else {
-    /* make sure camera has its own node */
-    AkNode *camNode;
-    camNode = ak_heap_calloc(heap, node, sizeof(*node));
-
-    node->nodeType = AK_NODE_TYPE_CAMERA_NODE;
-
-    camNode->camera = node->camera;
-    ak_heap_setpm(node->camera, camNode);
-    node->camera = NULL;
-
-    /* duplicate all transforms before apply rotations */
-    ak_transformDup(node, camNode);
+    node->flags |= AK_NODEF_FIXED_COORD;
+    return;
   }
+
+  /* move to new node, if we move to new child node we would not neeed to,
+   duplicate transform but the node may be used by sid path, so we couldn't
+   move to child, instead we have to duplicate transfroms :(
+   */
+
+  newNode = ak_heap_calloc(heap, node, sizeof(*newNode));
+  newNode->nodeType = AK_NODE_TYPE_NODE;
+
+  if (node->camera) {
+    AkInstanceBase *inst;
+    inst = node->camera;
+    while (inst) {
+      ak_heap_setpm(inst, newNode);
+      inst = inst->next;
+    }
+
+    newNode->camera = node->camera;
+    node->camera    = NULL;
+  }
+
+  if (node->light) {
+    AkInstanceBase *inst;
+    inst = node->light;
+    while (inst) {
+      ak_heap_setpm(inst, newNode);
+      inst = inst->next;
+    }
+
+    newNode->light = node->light;
+    node->light    = NULL;
+  }
+
+  /* duplicate all transforms before apply rotations */
+  ak_transformDup(node, newNode);
 }
 
 void _assetkit_hide
-ak_dae_nodeFixup(AkHeap        * __restrict heap,
-                 AkDoc         * __restrict doc,
-                 AkVisualScene * __restrict scene,
-                 AkNode        * __restrict node) {
-  AkCoordSys *coordSys, *newCoordSys;
-  bool        hasCoordSys;
+ak_dae_nodeFixup(AkHeap * __restrict heap,
+                 AkNode * __restrict node) {
+  if (node->camera || node->light)
+    ak_dae_nodeFixupFixedCoord(heap, node);
 
-  newCoordSys = (void *)ak_opt_get(AK_OPT_COORD);
-
-  /* step 1: fixup camera node */
-  if (node->camera)
-    ak_dae_nodeFixupCamera(heap, node);
-
-  /* step 2: fixup coord sys  */
-  if ((hasCoordSys = ak_hasCoordSys(node)))
-    coordSys = ak_getCoordSys(node);
-  else
-    coordSys = doc->coordSys;
-
-  if (newCoordSys == coordSys)
-    return;
-
-  switch (ak_opt_get(AK_OPT_COORD_CONVERT_TYPE)) {
-    case AK_COORD_CVT_FIX_TRANSFORM: {
-      if (hasCoordSys
-          /* don't change nodes in library_nodes */
-          || (!node->parent && scene)) {
-        AkCoordSys *oldCoordSys;
-        oldCoordSys = ak_getCoordSys(node);
-
-        if (!node->transform) {
-          node->transform = ak_heap_calloc(heap,
-                                           node,
-                                           sizeof(*node->transform));
-        }
-
-        /* fixup transform[s] */
-        ak_coordFindTransform(node->transform,
-                              oldCoordSys,
-                              newCoordSys);
-      }
-      break;
-    }
-    case AK_COORD_CVT_ALL:
-      if (node->transform)
-        ak_coordCvtNodeTransforms(doc, node);
-      break;
-    default:
-      break;
-  }
+  ak_fixNodeCoordSys(node);
 }

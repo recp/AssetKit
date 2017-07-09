@@ -89,9 +89,9 @@ ak_coordCvtNodeTransforms(AkDoc  * __restrict doc,
   }
 
   /* extra rotation for camera orientation */
-  if (node->nodeType == AK_NODE_TYPE_CAMERA_NODE) {
+  if (node->flags & AK_NODEF_FIXED_COORD) {
     AkObject *extraTransformItem;
-    ak_coordRotNodeForFixCamOri(doc, node, &extraTransformItem);
+    ak_coordRotNodeForFixedCoord(doc, node, &extraTransformItem);
 
     if (extraTransformItem) {
       if (lastTransform)
