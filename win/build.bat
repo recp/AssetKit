@@ -1,3 +1,5 @@
+@echo off
+
 SET CUR_DR=%cd%
 nuget restore .\assetkit.sln
 
@@ -11,14 +13,14 @@ echo.
 
 cd lib\libuv
 git clone -q https://chromium.googlesource.com/external/gyp.git build/gyp 2> $null
-.\vcbuild.bat
+call .\vcbuild.bat
 
 echo.
 echo Build libds
 echo.
 
 cd %CUR_DR%\..\lib\libds\win
-.\build.bat
+call .\build.bat
 
 cd %CUR_DR%
 
