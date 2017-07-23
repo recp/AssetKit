@@ -1,5 +1,3 @@
-@echo off
-
 SET CUR_DR=%cd%
 nuget restore .\assetkit.sln
 
