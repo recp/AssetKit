@@ -3,5 +3,3 @@ build_script:
     cd win
 
     .\build.bat
-
-    msbuild assetkit.vcxproj /p:Configuration=Release
