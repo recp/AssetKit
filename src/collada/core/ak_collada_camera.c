@@ -8,7 +8,7 @@
 #include "ak_collada_camera.h"
 #include "ak_collada_asset.h"
 #include "ak_collada_technique.h"
-#include <cglm.h>
+#include <cglm/cglm.h>
 
 AkResult _assetkit_hide
 ak_dae_camera(AkXmlState * __restrict xst,
@@ -124,7 +124,7 @@ ak_dae_camera(AkXmlState * __restrict xst,
         } else {
           ak_xml_skipelm(xst);
         }
-        
+
         /* end element */
         if (ak_xml_end(&xest2))
           break;
@@ -314,11 +314,11 @@ ak_dae_camera_tcommon(AkXmlState    * __restrict xst,
     } else {
       ak_xml_skipelm(xst);
     }
-    
+
     /* end element */
     if (ak_xml_end(&xest))
       break;
   } while (xst->nodeRet);
-  
+
   return AK_OK;
 }

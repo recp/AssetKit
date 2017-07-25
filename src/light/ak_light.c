@@ -8,11 +8,11 @@
 #include "../ak_common.h"
 #include "../ak_memory_common.h"
 #include "../default/ak_def_light.h"
-#include <cglm.h>
+#include <cglm/cglm.h>
 
-/* this duplicates default light to new light, 
+/* this duplicates default light to new light,
    because we want to keep default not modified,
-   users may want to modify imported light, 
+   users may want to modify imported light,
    they don't know this is default or not,
    and we don't wan to force them to check lights are default or not.
  */

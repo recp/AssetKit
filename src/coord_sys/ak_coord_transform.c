@@ -8,7 +8,7 @@
 #include "../ak_common.h"
 #include "../ak_memory_common.h"
 #include "ak_coord_common.h"
-#include <cglm.h>
+#include <cglm/cglm.h>
 #include <float.h>
 
 AK_EXPORT
@@ -125,7 +125,7 @@ ak_coordFindTransform(AkTransform *transform,
     glm_vec_copy(axis, rot->val);
     rot->val[3] = angle;
 
-    
+
     /* rotate y and z */
     glm_vec_rotate(y1, angle, axis);
     glm_vec_rotate(z1, angle, axis);

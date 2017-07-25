@@ -7,7 +7,7 @@
 
 #include "../ak_common.h"
 #include "../ak_memory_common.h"
-#include <cglm.h>
+#include <cglm/cglm.h>
 
 /*
  Note from OpenCOLLADA repo:

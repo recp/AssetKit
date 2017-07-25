@@ -6,7 +6,7 @@
  */
 
 #include "ak_collada_node_fixup.h"
-#include <cglm.h>
+#include <cglm/cglm.h>
 
 /*!
  * @brief fix camera, light

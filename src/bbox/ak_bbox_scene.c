@@ -6,7 +6,7 @@
  */
 
 #include "ak_bbox.h"
-#include <cglm.h>
+#include <cglm/cglm.h>
 
 static
 void

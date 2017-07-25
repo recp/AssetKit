@@ -6,7 +6,7 @@
  */
 
 #include "ak_bbox.h"
-#include <cglm.h>
+#include <cglm/cglm.h>
 
 void
 ak_bbox_pick(float min[3],

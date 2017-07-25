@@ -13,7 +13,7 @@
 
 #include "ak_mesh_index.h"
 
-#include <cglm.h>
+#include <cglm/cglm.h>
 
 typedef struct AkGenNormalStruct {
   AkFloat       *pos_it;
@@ -107,7 +107,7 @@ ak_meshPrimGenNormals(AkMeshPrimitive   * __restrict prim,
   count = prim->indices->count / st;
   newst = st + 1;
 
-  /* TODO: for now join this into existing indices, 
+  /* TODO: for now join this into existing indices,
            but in the future use separate to fix indices  */
   inpIndices = ak_heap_calloc(heap,
                               prim,

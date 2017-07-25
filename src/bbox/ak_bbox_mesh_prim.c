@@ -7,7 +7,7 @@
 
 #include "ak_bbox.h"
 #include "../mesh/ak_mesh_util.h"
-#include <cglm.h>
+#include <cglm/cglm.h>
 
 void
 ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {

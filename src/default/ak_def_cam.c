@@ -6,7 +6,7 @@
  */
 
 #include "ak_def_cam.h"
-#include <cglm.h>
+#include <cglm/cglm.h>
 
 AkPerspective ak_def_cam_tcommon = {
   .base = {

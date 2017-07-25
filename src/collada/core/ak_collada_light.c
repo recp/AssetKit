@@ -9,7 +9,7 @@
 #include "ak_collada_asset.h"
 #include "ak_collada_technique.h"
 #include "ak_collada_color.h"
-#include <cglm.h>
+#include <cglm/cglm.h>
 
 #define AK_DEFAULT_LIGHT_DIR {0.0f, 0.0f, -1.0f}
 
@@ -280,7 +280,7 @@ ak_dae_light_tcommon(AkXmlState   * __restrict xst,
     } else {
       ak_xml_skipelm(xst);
     }
-    
+
     /* end element */
     if (ak_xml_end(&xest))
       break;

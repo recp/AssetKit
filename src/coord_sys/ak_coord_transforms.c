@@ -8,7 +8,7 @@
 #include "../ak_common.h"
 #include "../ak_memory_common.h"
 #include "ak_coord_common.h"
-#include <cglm.h>
+#include <cglm/cglm.h>
 
 AK_EXPORT
 void

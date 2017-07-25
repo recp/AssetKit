@@ -13,7 +13,7 @@
 #include "../fx/ak_collada_fx_material.h"
 #include "../ak_collada_node_fixup.h"
 
-#include <cglm.h>
+#include <cglm/cglm.h>
 
 #define k_s_dae_asset               1
 #define k_s_dae_lookat              2
