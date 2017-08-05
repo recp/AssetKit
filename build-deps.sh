@@ -53,6 +53,12 @@ sh ./autogen.sh
 ./configure
 make -j8
 
+# jansson
+cd ../jansson
+autoreconf -i
+./configure
+make -j8
+
 # test - cmocka
 cd ../../test/lib/cmocka
 mkdir build

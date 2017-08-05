@@ -21,12 +21,14 @@ CFLAGS="$CFLAGS -I./lib/curl/include"
 CFLAGS="$CFLAGS -I./lib/libuv/include"
 CFLAGS="$CFLAGS -I./lib/libds/include"
 CFLAGS="$CFLAGS -I./lib/stb"
+CFLAGS="$CFLAGS -I./lib/jansson/src"
 
 LDFLAGS="$LDFLAGS -L./lib/jemalloc/lib"
 LDFLAGS="$LDFLAGS -L./lib/libxml2/.libs"
 LDFLAGS="$LDFLAGS -L./lib/curl/lib/.libs"
 LDFLAGS="$LDFLAGS -L./lib/libuv/.libs"
 LDFLAGS="$LDFLAGS -L./lib/libds/.libs"
+LDFLAGS="$LDFLAGS -L./lib/jansson/src/.libs"
 
 # Checks for programs.
 AC_PROG_CC

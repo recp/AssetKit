@@ -34,3 +34,6 @@
 [submodule "lib/libds"]
 	path = lib/libds
 	url = https://github.com/recp/libds.git
+[submodule "lib/jansson"]
+	path = lib/jansson
+	url = https://github.com/akheron/jansson.git
