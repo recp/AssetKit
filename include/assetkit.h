@@ -113,8 +113,9 @@ typedef enum AkModifier {
 typedef enum AkFileType {
   AK_FILE_TYPE_AUTO      = 0,
   AK_FILE_TYPE_COLLADA   = 1,
-  AK_FILE_TYPE_WAVEFRONT = 2,
-  AK_FILE_TYPE_FBX       = 3
+  AK_FILE_TYPE_GLTF      = 2,
+  AK_FILE_TYPE_WAVEFRONT = 3,
+  AK_FILE_TYPE_FBX       = 4
 } AkFileType;
 
 typedef enum AkAltitudeMode {

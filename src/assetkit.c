@@ -9,6 +9,7 @@
 
 #include "ak_utils.h"
 #include "collada/ak_collada.h"
+#include "gltf/gltf.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -35,7 +36,8 @@ ak_load(AkDoc ** __restrict dest,
   va_end(pref_args);
 
   floader_t floaders[] = {
-    {"dae", ak_dae_doc}
+    {"dae",  ak_dae_doc},
+    {"gltf", ak_gltf_doc}
   };
 
   floader = NULL;
@@ -62,6 +64,10 @@ ak_load(AkDoc ** __restrict dest,
     switch (file_type) {
       case AK_FILE_TYPE_COLLADA: {
         floader = &floaders[0];
+        break;
+      }
+      case AK_FILE_TYPE_GLTF: {
+        floader = &floaders[1];
         break;
       }
       case AK_FILE_TYPE_WAVEFRONT:
