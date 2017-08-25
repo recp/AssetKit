@@ -12,7 +12,7 @@
 
 AkResult _assetkit_hide
 ak_dae_source(AkXmlState * __restrict xst,
-              void * __restrict memParent,
-              AkSource ** __restrict dest);
+              void       * __restrict memParent,
+              AkSource  ** __restrict dest);
 
 #endif /* __libassetkit__ak_collada_source_h_ */

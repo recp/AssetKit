@@ -27,8 +27,7 @@ ak_meshDuplicatorForIndices(AkMesh * __restrict mesh) {
   AkInputBasic       *inputb;
   AkSource           *posSource;
   AkAccessor         *posAcc;
-  AkSourceFloatArray *posArray;
-  AkObject           *posData;
+  AkBuffer           *posBuff;
   size_t              count, ccount, icount;
   uint32_t            chk, iter, inpc, inpi;
 
@@ -42,10 +41,9 @@ ak_meshDuplicatorForIndices(AkMesh * __restrict mesh) {
   primi     = prim;
   lfp       = NULL;
   fp        = NULL;
-  posArray  = NULL;
+  posBuff   = NULL;
   posSource = NULL;
   posAcc    = NULL;
-  posData   = NULL;
 
   if (!prim)
     return 0;
@@ -55,17 +53,16 @@ ak_meshDuplicatorForIndices(AkMesh * __restrict mesh) {
     if (inputb->semantic == AK_INPUT_SEMANTIC_POSITION) {
       if (!(posSource  = ak_getObjectByUrl(&inputb->source))
           || !(posAcc  = posSource->tcommon)
-          || !(posData = ak_getObjectByUrl(&posAcc->source)))
+          || !(posBuff = ak_getObjectByUrl(&posAcc->source)))
         return NULL;
 
-      posArray = ak_objGet(posData);
       break;
     }
     inputb = inputb->next;
   }
 
   /* there is no positions */
-  if (!posSource || !posAcc || !posData || !posArray)
+  if (!posSource || !posAcc || !posBuff)
     return NULL;
 
   dupc = ak_heap_calloc(heap,
@@ -180,7 +177,7 @@ ak_meshDuplicatorForIndices(AkMesh * __restrict mesh) {
   posflgs = ak_heap_calloc(heap,
                            NULL,
                            sizeof(uint32_t)
-                           * (posArray->base.count * (inpc + 1)));
+                           * (posAcc->count * posAcc->stride * (inpc + 1)));
 
   iter = 1;
   chk  = 1;
@@ -295,17 +292,23 @@ ak_meshFixIndicesArrays(AkMesh       * __restrict mesh,
   AkMeshPrimitive   *prim;
   AkDuplicatorRange *dupr;
   AkUIntArray       *dupc;
-  AkObject          *posobj;
-  AkSourceArrayBase *posarr;
+  AkSource          *possrc;
+  AkBuffer          *posbuff;
+  AkAccessor        *posacc;
 
   meshobj = ak_objFrom(mesh);
   heap    = ak_heap_getheap(meshobj);
   dupr    = duplicator->range;
   dupc    = dupr->dupc;
-  posobj  = mesh->positions;
-  posarr  = ak_objGet(posobj);
+  possrc  = mesh->positions;
 
-  prim    = mesh->primitive;
+  if (!possrc
+      || !(posacc  = possrc->tcommon)
+      || !(posbuff = ak_getObjectByUrl(&posacc->source)))
+    return;
+
+  prim = mesh->primitive;
+
   if (duplicator->dupCount > 0) {
     AkUIntArray *dupcsum;
     uint32_t     sum, i, j;
@@ -313,7 +316,7 @@ ak_meshFixIndicesArrays(AkMesh       * __restrict mesh,
     dupcsum = ak_heap_calloc(heap,
                              dupc,
                              sizeof(AkUIntArray)
-                               + sizeof(AkUInt) * posarr->count);
+                               + sizeof(AkUInt) * posacc->count);
     /* shift indices */
     for (sum = i = 0; i < dupc->count; i++) {
       dupcsum->items[i] = sum;

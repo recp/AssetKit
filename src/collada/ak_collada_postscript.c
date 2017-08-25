@@ -16,12 +16,17 @@ void _assetkit_hide
 ak_dae_retain_refs(AkXmlState * __restrict xst);
 
 void _assetkit_hide
+ak_dae_fixup_accessors(AkXmlState * __restrict xst);
+
+void _assetkit_hide
 ak_dae_postscript(AkXmlState * __restrict xst) {
   /* first migrate 1.4 to 1.5 */
   if (xst->version < AK_COLLADA_VERSION_150)
     ak_dae14_loadjobs_finish(xst);
 
   ak_dae_retain_refs(xst);
+
+  ak_dae_fixup_accessors(xst);
 
   /* fixup when finished,
      because we need to collect about source/array usages
@@ -65,5 +70,23 @@ ak_dae_retain_refs(AkXmlState * __restrict xst) {
 
     it = it->next;
     alc->free(tofree);
+  }
+}
+
+void _assetkit_hide
+ak_dae_fixup_accessors(AkXmlState * __restrict xst) {
+  FListItem  *item;
+  AkAccessor *acc;
+  AkBuffer   *buff;
+
+  item = xst->accessors;
+  while (item) {
+    acc = item->data;
+    if ((buff = ak_getObjectByUrl(&acc->source))) {
+      acc->itemTypeId = (AkTypeId)buff->reserved;
+      acc->type       = ak_typeDesc(acc->itemTypeId);
+    }
+
+    item = item->next;
   }
 }

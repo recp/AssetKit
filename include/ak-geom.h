@@ -91,7 +91,7 @@ typedef struct AkMesh {
   const char        *convexHullOf;
   AkSource          *source;
   AkVertices        *vertices;
-  AkObject          *positions;
+  AkSource          *positions;
   AkMeshPrimitive   *primitive;
   AkBoundingBox     *bbox;
   AkTree            *extra;
@@ -445,15 +445,10 @@ ak_meshIndicesArrayFor(AkMesh          * __restrict mesh,
 AK_EXPORT
 AkSourceArrayState*
 ak_meshReserveArray(AkMesh * __restrict mesh,
-                    void   * __restrict arrayid,
-                    AkSourceArrayType   type,
+                    void   * __restrict buffid,
+                    size_t              itemSize,
                     uint32_t            stride,
                     size_t              acc_count);
-
-AK_EXPORT
-AkSourceArrayState*
-ak_meshReserveArrayFor(AkMesh   * __restrict mesh,
-                       AkObject * __restrict olddata);
 
 AK_EXPORT
 void

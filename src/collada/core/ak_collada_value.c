@@ -14,7 +14,7 @@
 
 typedef struct {
   const char *key;
-  AkValueType val;
+  AkTypeId    val;
   int         m; /* this is userData for _CUSTOM */
   int         n;
   int         size;
@@ -29,35 +29,35 @@ int
 valuePairCmp2(const void *, const void *);
 
 static ak_value_pair valueMap[] = {
-  {_s_dae_string,   AK_VALUE_STRING,   1, 1, sizeof(char *)},
-  {_s_dae_bool,     AK_VALUE_BOOL,     1, 1, sizeof(bool)},
-  {_s_dae_bool2,    AK_VALUE_BOOL2,    1, 2, sizeof(bool[2])},
-  {_s_dae_bool3,    AK_VALUE_BOOL3,    1, 3, sizeof(bool[3])},
-  {_s_dae_bool4,    AK_VALUE_BOOL4,    1, 4, sizeof(bool[4])},
-  {_s_dae_int,      AK_VALUE_INT,      1, 1, sizeof(int)},
-  {_s_dae_int2,     AK_VALUE_INT2,     1, 2, sizeof(int[2])},
-  {_s_dae_int3,     AK_VALUE_INT3,     1, 3, sizeof(int[3])},
-  {_s_dae_int4,     AK_VALUE_INT4,     1, 4, sizeof(int[4])},
-  {_s_dae_float,    AK_VALUE_FLOAT,    1, 1, sizeof(float)},
-  {_s_dae_float2,   AK_VALUE_FLOAT2,   1, 2, sizeof(float[2])},
-  {_s_dae_float3,   AK_VALUE_FLOAT3,   1, 3, sizeof(float[3])},
-  {_s_dae_float4,   AK_VALUE_FLOAT4,   1, 4, sizeof(float[4])},
-  {_s_dae_float2x2, AK_VALUE_FLOAT2x2, 2, 2, sizeof(float[2][2])},
-  {_s_dae_float3x3, AK_VALUE_FLOAT3x3, 3, 3, sizeof(float[3][3])},
-  {_s_dae_float4x4, AK_VALUE_FLOAT4x4, 4, 4, sizeof(float[4][4])},
+  {_s_dae_string,   AKT_STRING,   1, 1, sizeof(char *)},
+  {_s_dae_bool,     AKT_BOOL,     1, 1, sizeof(bool)},
+  {_s_dae_bool2,    AKT_BOOL2,    1, 2, sizeof(bool[2])},
+  {_s_dae_bool3,    AKT_BOOL3,    1, 3, sizeof(bool[3])},
+  {_s_dae_bool4,    AKT_BOOL4,    1, 4, sizeof(bool[4])},
+  {_s_dae_int,      AKT_INT,      1, 1, sizeof(int)},
+  {_s_dae_int2,     AKT_INT2,     1, 2, sizeof(int[2])},
+  {_s_dae_int3,     AKT_INT3,     1, 3, sizeof(int[3])},
+  {_s_dae_int4,     AKT_INT4,     1, 4, sizeof(int[4])},
+  {_s_dae_float,    AKT_FLOAT,    1, 1, sizeof(float)},
+  {_s_dae_float2,   AKT_FLOAT2,   1, 2, sizeof(float[2])},
+  {_s_dae_float3,   AKT_FLOAT3,   1, 3, sizeof(float[3])},
+  {_s_dae_float4,   AKT_FLOAT4,   1, 4, sizeof(float[4])},
+  {_s_dae_float2x2, AKT_FLOAT2x2, 2, 2, sizeof(float[2][2])},
+  {_s_dae_float3x3, AKT_FLOAT3x3, 3, 3, sizeof(float[3][3])},
+  {_s_dae_float4x4, AKT_FLOAT4x4, 4, 4, sizeof(float[4][4])},
 
   /* samplers */
-  {_s_dae_sampler1d,     AK_VALUE_SAMPLER1D,     1, 1, sizeof(AkSampler1D)},
-  {_s_dae_sampler2d,     AK_VALUE_SAMPLER2D,     1, 1, sizeof(AkSampler2D)},
-  {_s_dae_sampler3d,     AK_VALUE_SAMPLER3D,     1, 1, sizeof(AkSampler3D)},
-  {_s_dae_sampler_cube,  AK_VALUE_SAMPLER_CUBE,  1, 1, sizeof(AkSamplerCUBE)},
-  {_s_dae_sampler_rect,  AK_VALUE_SAMPLER_RECT,  1, 1, sizeof(AkSamplerRECT)},
-  {_s_dae_sampler_depth, AK_VALUE_SAMPLER_DEPTH, 1, 1, sizeof(AkSamplerDEPTH)},
+  {_s_dae_sampler1d,     AKT_SAMPLER1D,     1, 1, sizeof(AkSampler1D)},
+  {_s_dae_sampler2d,     AKT_SAMPLER2D,     1, 1, sizeof(AkSampler2D)},
+  {_s_dae_sampler3d,     AKT_SAMPLER3D,     1, 1, sizeof(AkSampler3D)},
+  {_s_dae_sampler_cube,  AKT_SAMPLER_CUBE,  1, 1, sizeof(AkSamplerCUBE)},
+  {_s_dae_sampler_rect,  AKT_SAMPLER_RECT,  1, 1, sizeof(AkSamplerRECT)},
+  {_s_dae_sampler_depth, AKT_SAMPLER_DEPTH, 1, 1, sizeof(AkSamplerDEPTH)},
 
   /* COLLADA 1.4 */
   {
     _s_dae_surface,
-    AK_VALUE_CUSTOM,
+    AKT_CUSTOM,
     AK_CUSTOM_TYPE_SURFACE,
     1,
     sizeof(AkDae14Surface)
@@ -86,14 +86,14 @@ ak_dae_dataType(const char *typeName,
                   valuePairCmp2);
 
   if (!found) {
-    type->type     = AK_VALUE_UNKNOWN;
+    type->typeId   = AKT_UNKNOWN;
     type->typeName = NULL;
     type->size     = 0;
     return;
   }
 
   type->size     = found->size;
-  type->type     = found->val;
+  type->typeId   = found->val;
   type->typeName = found->key;
 }
 
@@ -126,19 +126,19 @@ ak_dae_value(AkXmlState * __restrict xst,
 
   val = ak_heap_calloc(xst->heap, memParent, sizeof(*val));
   val->type.size     = found->size;
-  val->type.type     = found->val;
+  val->type.typeId   = found->val;
   val->type.typeName = found->key;
 
   ak_xest_init(xest, found->key)
 
   switch (found->val) {
-    case AK_VALUE_STRING:
+    case AKT_STRING:
       val->value = ak_xml_val(xst, NULL);
       break;
-    case AK_VALUE_BOOL:
-    case AK_VALUE_BOOL2:
-    case AK_VALUE_BOOL3:
-    case AK_VALUE_BOOL4:{
+    case AKT_BOOL:
+    case AKT_BOOL2:
+    case AKT_BOOL3:
+    case AKT_BOOL4:{
       AkBool *boolVal;
       char   *nodeVal;
 
@@ -151,10 +151,10 @@ ak_dae_value(AkXmlState * __restrict xst,
       val->value = boolVal;
       break;
     }
-    case AK_VALUE_INT:
-    case AK_VALUE_INT2:
-    case AK_VALUE_INT3:
-    case AK_VALUE_INT4:{
+    case AKT_INT:
+    case AKT_INT2:
+    case AKT_INT3:
+    case AKT_INT4:{
       AkInt *intVal;
       char  *nodeVal;
 
@@ -167,13 +167,13 @@ ak_dae_value(AkXmlState * __restrict xst,
       val->value = intVal;
       break;
     }
-    case AK_VALUE_FLOAT:
-    case AK_VALUE_FLOAT2:
-    case AK_VALUE_FLOAT3:
-    case AK_VALUE_FLOAT4:
-    case AK_VALUE_FLOAT2x2:
-    case AK_VALUE_FLOAT3x3:
-    case AK_VALUE_FLOAT4x4:{
+    case AKT_FLOAT:
+    case AKT_FLOAT2:
+    case AKT_FLOAT3:
+    case AKT_FLOAT4:
+    case AKT_FLOAT2x2:
+    case AKT_FLOAT3x3:
+    case AKT_FLOAT4x4:{
       AkFloat *floatVal;
       char    *nodeVal;
 
@@ -186,12 +186,12 @@ ak_dae_value(AkXmlState * __restrict xst,
       val->value = floatVal;
       break;
     }
-    case AK_VALUE_SAMPLER1D:
-    case AK_VALUE_SAMPLER2D:
-    case AK_VALUE_SAMPLER3D:
-    case AK_VALUE_SAMPLER_CUBE:
-    case AK_VALUE_SAMPLER_RECT:
-    case AK_VALUE_SAMPLER_DEPTH: {
+    case AKT_SAMPLER1D:
+    case AKT_SAMPLER2D:
+    case AKT_SAMPLER3D:
+    case AKT_SAMPLER_CUBE:
+    case AKT_SAMPLER_RECT:
+    case AKT_SAMPLER_DEPTH: {
       AkFxSamplerCommon *sampler;
       AkResult           ret;
 
@@ -206,7 +206,7 @@ ak_dae_value(AkXmlState * __restrict xst,
 
       break;
     }
-    case AK_VALUE_CUSTOM: {
+    case AKT_CUSTOM: {
       switch (found->m) {
         case AK_CUSTOM_TYPE_SURFACE: {
           AkDae14Surface *surface;

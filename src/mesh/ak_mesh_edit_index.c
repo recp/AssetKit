@@ -41,22 +41,20 @@ ak_meshIndicesArrayFor(AkMesh          * __restrict mesh,
     if (prim->indices) {
       count = prim->indices->count / prim->indexStride;
     } else {
-      AkSource          *possrc;
-      AkAccessor        *posacc;
-      AkSourceArrayBase *posarr;
-      AkObject          *posdata;
+      AkSource   *possrc;
+      AkAccessor *posacc;
+      AkBuffer   *posbuff;
 
       possrc = ak_mesh_pos_src(mesh);
       if (!possrc || !possrc->tcommon)
         return NULL;
 
-      posacc  = possrc->tcommon;
-      posdata = ak_getObjectByUrl(&posacc->source);
-      if (!posdata)
+      posacc = possrc->tcommon;
+      posbuff = ak_getObjectByUrl(&posacc->source);
+      if (!posbuff)
         return NULL;
 
-      posarr = ak_objGet(posdata);
-      count  = posarr->count;
+      count = posacc->bound * posacc->count;
     }
 
     indices = ak_heap_alloc(heap,

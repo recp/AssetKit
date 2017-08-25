@@ -8,6 +8,8 @@
 #include "ak_collada_accessor.h"
 #include "ak_collada_param.h"
 
+#include <ds/forward-list-sep.h>
+
 AkResult _assetkit_hide
 ak_dae_accessor(AkXmlState * __restrict xst,
                 void * __restrict memParent,
@@ -69,5 +71,9 @@ ak_dae_accessor(AkXmlState * __restrict xst,
 
 done:
   *dest = accessor;
+
+  /* append accessor to global list */
+  flist_sp_insert(&xst->accessors, accessor);
+
   return AK_OK;
 }

@@ -8,48 +8,40 @@
 #include "../ak_common.h"
 
 AK_EXPORT
-AkObject*
+AkBuffer*
 ak_sourceDetachArray(AkAccessor * __restrict acc) {
-  AkHeap            *heap;
-  AkSourceArrayBase *array, *newarray;
-  AkObject          *data,  *newdata;
-  AkDataParam       *dp;
-  size_t             size, icount, i;
+  AkHeap      *heap;
+  AkBuffer    *buff, *newbuff;
+  AkDataParam *dp;
+  size_t       size, icount, i;
 
   heap = ak_heap_getheap(acc);
-  data = ak_getObjectByUrl(&acc->source);
-  if (!data)
+  buff = ak_getObjectByUrl(&acc->source);
+  if (!buff)
     return NULL;
 
-  if (data->type == AK_SOURCE_ARRAY_TYPE_STRING) {
+  if (acc->itemTypeId == AKT_STRING) {
     /* TODO: */
     return NULL;
   }
 
-  array = ak_objGet(data);
-  size  = ak_sourceArraySize(data->type)
-             + ak_sourceArrayItemSize(data->type)
-             + acc->count * acc->bound;
+  size = acc->count * acc->bound;
 
-  newdata = ak_objAlloc(heap,
-                        NULL,
-                        size,
-                        data->type,
-                        false);
-  newarray = ak_objGet(newdata);
-  newarray->count = acc->count;
-  newarray->type  = data->type;
+  newbuff = ak_heap_calloc(heap, NULL, sizeof(*newbuff));
+  newbuff->length = size;
 
-  icount = newarray->count;
+  newbuff->data = ak_heap_alloc(heap, newbuff, size);
 
-  switch (data->type) {
-    case AK_SOURCE_ARRAY_TYPE_FLOAT: {
+
+  switch (acc->itemTypeId) {
+    case AKT_FLOAT: {
       AkFloat *olditms, *newitms;
       AkUInt   j;
 
-      newitms = newarray->items;
-      olditms = array->items;
+      newitms = newbuff->data;
+      olditms = buff->data;
 
+      icount = newbuff->length / sizeof(float);
       for (i = 0; i < icount; i++) {
         j  = 0;
         dp = acc->param;
@@ -64,13 +56,14 @@ ak_sourceDetachArray(AkAccessor * __restrict acc) {
       }
       break;
     }
-    case AK_SOURCE_ARRAY_TYPE_INT: {
+    case AKT_INT: {
       AkInt *olditms, *newitms;
       AkUInt j;
 
-      newitms = newarray->items;
-      olditms = array->items;
+      newitms = newbuff->data;
+      olditms = buff->data;
 
+      icount = newbuff->length / sizeof(int32_t);
       for (i = 0; i < icount; i++) {
         j  = 0;
         dp = acc->param;
@@ -85,17 +78,18 @@ ak_sourceDetachArray(AkAccessor * __restrict acc) {
       }
       break;
     }
-    case AK_SOURCE_ARRAY_TYPE_STRING: {
+    case AKT_STRING: {
       /* TODO: */
       break;
     }
-    case AK_SOURCE_ARRAY_TYPE_BOOL: {
+    case AKT_BOOL: {
       bool  *olditms, *newitms;
       AkUInt j;
 
-      newitms = newarray->items;
-      olditms = array->items;
+      newitms = newbuff->data;
+      olditms = buff->data;
 
+      icount = newbuff->length / sizeof(bool);
       for (i = 0; i < icount; i++) {
         j  = 0;
         dp = acc->param;
@@ -114,5 +108,5 @@ ak_sourceDetachArray(AkAccessor * __restrict acc) {
       return NULL;
   }
 
-  return newdata;
+  return newbuff;
 }

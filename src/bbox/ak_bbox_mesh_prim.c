@@ -14,22 +14,21 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
   AkHeap             *heap;
   AkGeometry         *geom;
   AkMesh             *mesh;
-  AkSourceFloatArray *posarray;
+  AkBuffer           *posbuff;
   AkFloat            *items;
   AkInputBasic       *inputb;
   AkAccessor         *acc;
   vec3                min, max;
 
-  mesh     = prim->mesh;
-  geom     = mesh->geom;
-  inputb   = mesh->vertices->input;
-  posarray = NULL;
-  acc      = NULL;
+  mesh    = prim->mesh;
+  geom    = mesh->geom;
+  inputb  = mesh->vertices->input;
+  posbuff = NULL;
+  acc     = NULL;
 
   while (inputb) {
     if (inputb->semantic == AK_INPUT_SEMANTIC_POSITION) {
       AkSource *src;
-      AkObject *data;
 
       src = ak_getObjectByUrl(&inputb->source);
       if (!src)
@@ -39,19 +38,17 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
       if (!acc)
         break;
 
-      data = ak_getObjectByUrl(&acc->source);
-      if (data)
-        posarray = ak_objGet(data);
+      posbuff = ak_getObjectByUrl(&acc->source);
       break;
     }
     inputb = inputb->next;
   }
 
   /* there is no positions */
-  if (!posarray || !acc)
+  if (!posbuff || !acc)
     return;
 
-  items = posarray->items;
+  items = posbuff->data;
 
   glm_vec_broadcast(0.0f, min);
   glm_vec_broadcast(0.0f, max);

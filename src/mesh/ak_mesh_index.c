@@ -23,7 +23,6 @@ ak_mesh_fix_pos(AkHeap   *heap,
   AkInputBasic       *inputb;
   AkMeshEditHelper   *edith;
   AkSource           *src;
-  AkObject           *oldData;
   AkAccessor         *acc, *oldAcc;
   AkDataParam        *dparam;
   AkUIntArray        *dupc;
@@ -34,9 +33,8 @@ ak_mesh_fix_pos(AkHeap   *heap,
   edith = mesh->edith;
   assert(edith && ak_mesh_edit_assert1);
 
-  oldAcc  = oldSrc->tcommon;
-  oldData = ak_getObjectByUrl(&oldAcc->source);
-  if (!oldData)
+  oldAcc = oldSrc->tcommon;
+  if (!ak_getObjectByUrl(&oldAcc->source))
     return AK_ERR;
 
   stride     = oldAcc->stride;
@@ -51,10 +49,9 @@ ak_mesh_fix_pos(AkHeap   *heap,
 
   inputb = mesh->vertices->input;
   while (inputb) {
-    AkSourceArrayBase  *oldarray, *newarray;
+    AkBuffer           *oldbuff, *newbuff;
     AkSourceArrayState *arrstate;
-    AkObject           *data, *newdata;
-    void               *arrayid;
+    void               *buffid;
 
     src = ak_getObjectByUrl(&inputb->source);
     if (!src)
@@ -64,23 +61,20 @@ ak_mesh_fix_pos(AkHeap   *heap,
     if (!acc)
       goto cont;
 
-    data = ak_getObjectByUrl(&acc->source);
-    if (!data)
+    oldbuff = ak_getObjectByUrl(&acc->source);
+    if (!oldbuff)
       goto cont;
 
-    arrayid  = ak_getId(data);
-    arrstate = rb_find(edith->arrays, arrayid);
+    buffid   = ak_getId(oldbuff);
+    arrstate = rb_find(edith->arrays, buffid);
     if (arrstate) {
       AkSourceEditHelper *srch;
       AkAccessor *newacc;
       size_t      i, j;
 
-      newdata  = arrstate->array;
-      oldarray = ak_objGet(data);
-      newarray = ak_objGet(newdata);
-
-      srch   = ak_meshSourceEditHelper(mesh, inputb);
-      newacc = srch->source->tcommon;
+      newbuff  = arrstate->array;
+      srch     = ak_meshSourceEditHelper(mesh, inputb);
+      newacc   = srch->source->tcommon;
       assert(newacc && "accessor is needed!");
 
       newacc->firstBound = arrstate->lastoffset;
@@ -88,12 +82,12 @@ ak_mesh_fix_pos(AkHeap   *heap,
                           newacc,
                           arrstate->lastoffset);
 
-      switch (oldarray->type) {
-        case AK_SOURCE_ARRAY_TYPE_FLOAT: {
+      switch (acc->itemTypeId) {
+        case AKT_FLOAT: {
           AkFloat *olditms, *newitms;
 
-          newitms = newarray->items;
-          olditms = oldarray->items;
+          newitms = newbuff->data;
+          olditms = oldbuff->data;
 
           /* copy single-indexed vert positions */
           for (s = i = 0; i < vc; i++) {
@@ -118,13 +112,13 @@ ak_mesh_fix_pos(AkHeap   *heap,
 
           break;
         }
-        case AK_SOURCE_ARRAY_TYPE_INT: {
+        case AKT_INT: {
           break;
         }
-        case AK_SOURCE_ARRAY_TYPE_STRING: {
+        case AKT_STRING: {
           break;
         }
-        case AK_SOURCE_ARRAY_TYPE_BOOL: {
+        case AKT_BOOL: {
           break;
         }
         default: break;

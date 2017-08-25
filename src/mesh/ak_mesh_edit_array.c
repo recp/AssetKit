@@ -31,17 +31,16 @@ ak_meshFreeRsvArray(RBTree *tree, RBNode *node) {
 AK_EXPORT
 AkSourceArrayState*
 ak_meshReserveArray(AkMesh * __restrict mesh,
-                    void   * __restrict arrayid,
-                    AkSourceArrayType   type,
+                    void   * __restrict buffid,
+                    size_t              itemSize,
                     uint32_t            stride,
                     size_t              acc_count) {
   AkHeap             *heap;
-  AkObject           *data;
   AkSourceArrayState *arrstate;
-  AkSourceArrayBase  *array;
+  AkBuffer           *buff;
   AkMeshEditHelper   *edith;
   AkObject           *meshobj;
-  size_t             newsize, arraysize, isize, count;
+  size_t              newsize, count;
 
   edith = mesh->edith;
   assert(edith && ak_mesh_edit_assert1);
@@ -57,82 +56,34 @@ ak_meshReserveArray(AkMesh * __restrict mesh,
     ak_dsSetAllocator(heap->allocator, edith->arrays->alc);
   }
 
-  arrstate  = rb_find(edith->arrays, arrayid);
-  arraysize = ak_sourceArraySize(type);
-  isize     = ak_sourceArrayItemSize(type);
-  newsize   = arraysize + isize * count;
+  arrstate = rb_find(edith->arrays, buffid);
+  newsize  = itemSize * count;
 
   if (!arrstate) {
-    arrstate = ak_heap_calloc(heap, meshobj, sizeof(*arrstate));
-    data = ak_objAlloc(heap,
-                       meshobj,
-                       newsize,
-                       type,
-                       false);
-    memset(data->data, '\0', arraysize);
+    arrstate     = ak_heap_calloc(heap, meshobj, sizeof(*arrstate));
+    buff         = ak_heap_calloc(heap, meshobj, sizeof(*buff));
+    buff->length = newsize;
+    buff->data   = ak_heap_calloc(heap, buff, newsize);
 
-    arrstate->array  = data;
+    arrstate->array  = buff;
     arrstate->count  = count;
-    arrstate->url    = ak_url_string(heap->allocator, arrayid);
+    arrstate->url    = ak_url_string(heap->allocator, buffid);
     arrstate->stride = stride;
 
-    array = ak_objGet(data);
-    array->count = count;
-    array->type  = type;
-    array->items = ak_sourceArrayItems(array);
-
-    rb_insert(edith->arrays, arrayid, arrstate);
+    rb_insert(edith->arrays, buffid, arrstate);
     return arrstate;
   }
 
-  data  = arrstate->array;
-  array = ak_objGet(data);
-  if (array->count < count) {
-    data = ak_heap_realloc(heap,
-                           meshobj,
-                           data,
-                           newsize);
-
-    array = ak_objGet(data);
-    array->count = count;
-    array->type  = type;
-
-    arrstate->array = data;
+  buff = arrstate->array;
+  if (buff->length < newsize) {
+    buff->data = ak_heap_realloc(heap,
+                                 meshobj,
+                                 buff->data,
+                                 newsize);
+    buff->length = newsize;
   }
 
   return arrstate;
-}
-
-AK_EXPORT
-AkSourceArrayState*
-ak_meshReserveArrayFor(AkMesh   * __restrict mesh,
-                       AkObject * __restrict olddata) {
-  AkHeap            *heap;
-  AkDoc             *doc;
-  AkObject          *meshobj;
-  void              *arrayid;
-  AkURL              arrayURL;
-  size_t             count;
-  uint32_t           stride;
-
-  meshobj = ak_objFrom(mesh);
-  heap    = ak_heap_getheap(meshobj);
-  doc     = ak_heap_data(heap);
-  arrayid = ak_getId(olddata);
-
-  arrayURL.doc = doc;
-  arrayURL.url = ak_url_string(heap->allocator, arrayid);
-
-  ak_meshInspectArray(mesh,
-                      &arrayURL,
-                      &stride,
-                      &count);
-
-  return ak_meshReserveArray(mesh,
-                             arrayid,
-                             olddata->type,
-                             stride,
-                             count);
 }
 
 AK_EXPORT
@@ -148,8 +99,8 @@ ak_meshReserveArrayForInput(AkMesh       * __restrict mesh,
   AkSourceArrayState *arrstate;
   AkSource           *srci;
   AkAccessor         *acci, *newacc;
-  AkObject           *datai;
-  void               *arrayid;
+  AkBuffer           *buffi;
+  void               *buffid;
   size_t              usg;
 
   meshobj = ak_objFrom(mesh);
@@ -166,8 +117,8 @@ ak_meshReserveArrayForInput(AkMesh       * __restrict mesh,
   if (!acci)
     return;
 
-  datai = ak_getObjectByUrl(&acci->source);
-  if (!datai)
+  buffi = ak_getObjectByUrl(&acci->source);
+  if (!buffi)
     return;
 
   /* TODO: analyze accesor, continuous data */
@@ -183,22 +134,22 @@ ak_meshReserveArrayForInput(AkMesh       * __restrict mesh,
   newacc->count = count;
 
   if (ak_refc(srci) > usg || acci->offset != 0)
-    arrayid = (void *)ak_id_gen(heap,
-                                NULL,
-                                NULL);
+    buffid = (void *)ak_id_gen(heap,
+                               NULL,
+                               NULL);
   else
-    arrayid = ak_getId(datai);
+    buffid = ak_getId(buffi);
 
   /* dont detach array */
   if (acci->offset == 0) {
     arrstate = ak_meshReserveArray(mesh,
-                                   arrayid,
-                                   datai->type,
+                                   buffid,
+                                   acci->type->size,
                                    acci->bound,
                                    count);
-    datai = arrstate->array;
+    buffi = arrstate->array;
   } else {
-    AkObject *founddata;
+    AkBuffer *foundbuff;
 
     /* detach array, because we may need to realloc, realloc-ing continued 
      * arrays is more expensive than individual array. But probably sending 
@@ -206,20 +157,20 @@ ak_meshReserveArrayForInput(AkMesh       * __restrict mesh,
      * here because of maintenance of array. There maybe an option for this 
      * in the future.
      */
-    founddata = rb_find(edith->detachedArrays, acci);
-    if (!founddata) {
+    foundbuff = rb_find(edith->detachedArrays, acci);
+    if (!foundbuff) {
       arrstate = ak_meshReserveArray(mesh,
-                                     arrayid,
-                                     datai->type,
+                                     buffid,
+                                     acci->type->size,
                                      acci->bound,
                                      count);
-      datai = arrstate->array;
+      buffi = arrstate->array;
       rb_insert(edith->detachedArrays,
                 acci,
-                datai);
+                buffi);
     } else {
-      datai    = founddata;
-      arrstate = rb_find(edith->arrays, arrayid);
+      buffi    = foundbuff;
+      arrstate = rb_find(edith->arrays, buffid);
     }
 
     ak_accessor_rebound(heap, newacc, 0);
@@ -230,7 +181,7 @@ ak_meshReserveArrayForInput(AkMesh       * __restrict mesh,
   }
 
   if (ak_refc(srci) > usg || acci->offset != 0)
-    ak_heap_setpm(arrayid, datai);
+    ak_heap_setpm(buffid, buffi);
 
   ak_url_init(newacc,
               arrstate->url,
@@ -240,9 +191,9 @@ ak_meshReserveArrayForInput(AkMesh       * __restrict mesh,
   srch->isnew           = ak_refc(srci) > usg || acci->offset != 0;
   srch->oldsource       = srci;
   srch->source          = ak_heap_calloc(heap, meshobj, sizeof(*srci));
-  srch->source->data    = datai;
+  srch->source->buffer  = buffi;
   srch->source->tcommon = newacc;
-  srch->arrayid         = arrayid;
+  srch->arrayid         = buffid;
 
   if (srch->isnew) {
     void *srcid;

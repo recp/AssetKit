@@ -89,24 +89,21 @@ ak_changeCoordSysMesh(AkMesh * __restrict mesh,
   while (mapi) {
     AkSource   *srci;
     AkAccessor *acci;
-    AkObject   *datai;
+    AkBuffer   *buffi;
 
-    srci  = ak_getId(mapi);
-    acci  = srci->tcommon;
-    datai = ak_getObjectByUrl(&acci->source);
-    if (!datai) {
+    srci = ak_getId(mapi);
+    acci = srci->tcommon;
+    buffi = ak_getObjectByUrl(&acci->source);
+    if (!buffi) {
       mapi = mapi->next;
       continue;
     }
 
     /* TODO: INT, DOUBLE.. */
-    if (datai->type == AK_SOURCE_ARRAY_TYPE_FLOAT) {
-      AkSourceFloatArray *arri;
-
-      arri = ak_objGet(datai);
+    if (acci->itemTypeId == AKT_FLOAT) {
       ak_coordCvtVectors(doc->coordSys,
-                         arri->items,
-                         arri->base.count,
+                         buffi->data,
+                         buffi->length / acci->type->size,
                          newCoordSys);
     }
     mapi = mapi->next;

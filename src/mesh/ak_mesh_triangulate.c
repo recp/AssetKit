@@ -16,15 +16,14 @@ ak_meshTriangulatePoly_noindices(AkPolygon * __restrict poly);
 _assetkit_hide
 uint32_t
 ak_meshTriangulatePoly_noindices(AkPolygon * __restrict poly) {
-  AkSourceFloatArray *arr, *newarr;
-  AkHeap             *heap;
-  AkUInt             *vc_it;
-  AkAccessor         *acc;
-  AkSource           *src;
-  AkInputBasic       *inputb;
-  AkObject           *data, *newdata;
-  AkFloat            *it_new, *it_old;
-  AkUInt              trianglec, otherc, i, st, isz;
+  AkBuffer     *buff, *newbuff;
+  AkHeap       *heap;
+  AkUInt       *vc_it;
+  AkAccessor   *acc;
+  AkSource     *src;
+  AkInputBasic *inputb;
+  AkFloat      *it_new, *it_old;
+  AkUInt        trianglec, otherc, i, st, isz;
 
   otherc    = 0;
   trianglec = 0;
@@ -42,9 +41,9 @@ ak_meshTriangulatePoly_noindices(AkPolygon * __restrict poly) {
   if (!poly->base.vertices)
     return 0;
 
-  src = NULL;
-  acc = NULL;
-  arr = NULL;
+  src  = NULL;
+  acc  = NULL;
+  buff = NULL;
 
   inputb = poly->base.vertices->input;
   while (inputb) {
@@ -57,35 +56,29 @@ ak_meshTriangulatePoly_noindices(AkPolygon * __restrict poly) {
       if (!acc)
         return 0;
 
-      data = ak_getObjectByUrl(&acc->source);
-      if (!data)
+      buff = ak_getObjectByUrl(&acc->source);
+      if (!buff)
         return 0;
-
-      arr = ak_objGet(data);
     }
     inputb = inputb->next;
   }
 
-  if (!src || !acc || !arr)
+  if (!src || !acc || !buff)
     return 0;
 
   isz  = sizeof(AkFloat);
   st   = acc->stride;
   heap = ak_heap_getheap(poly->vcount);
 
-  newdata = ak_heap_alloc(heap,
-                          poly,
-                          sizeof(*newdata)
-                          + isz * (arr->base.count
-                                   + (trianglec - 1) * 3 * st));
-  newarr = ak_objGet(newdata);
-  newarr->base.count = arr->base.count + (trianglec - 1) * 3 * st;
-  newarr->base.name  = NULL;
-  newarr->base.type  = AK_SOURCE_ARRAY_TYPE_FLOAT;
-  newarr->base.items = &newarr->items;
+  newbuff = ak_heap_calloc(heap, poly, sizeof(*newbuff));
+  newbuff->data = ak_heap_alloc(heap,
+                                newbuff,
+                                isz * trianglec * 3 * st);
 
-  it_old  = newarr->items;
-  it_new = arr->items;
+  newbuff->length = isz * trianglec * 3 * st;
+
+  it_old = newbuff->data;
+  it_new = buff->data;
 
   for (i = 0; i < poly->vcount->count; i++) {
     uint32_t vc, j;

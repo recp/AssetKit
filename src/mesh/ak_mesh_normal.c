@@ -233,10 +233,9 @@ ak_meshGenNormals(AkMesh * __restrict mesh) {
   AkHeap             *heap;
   AkMeshPrimitive    *prim;
   AkDataContext      *dctx;
-  AkSourceFloatArray *arr,   *posarr;
+  AkBuffer           *buff,  *posbuff;
   AkSource           *src,   *possrc;
   AkAccessor         *acc,   *posacc;
-  AkObject           *data,  *posdata;
   char               *srcid, *srcurl;
   AkFloat            *pos_it;
   AkGenNormalStruct   objp;
@@ -244,15 +243,13 @@ ak_meshGenNormals(AkMesh * __restrict mesh) {
   possrc = ak_mesh_pos_src(mesh);
   if (!possrc
       || !(posacc  = possrc->tcommon)
-      || !(posdata = ak_getObjectByUrl(&posacc->source)))
+      || !(posbuff = ak_getObjectByUrl(&posacc->source)))
     return;
-
-  posarr = ak_objGet(posdata);
 
   heap   = ak_heap_getheap(ak_objFrom(mesh));
   srcid  = (char *)ak_id_gen(heap, NULL, NULL);
   srcurl = ak_url_string(heap->allocator, srcid);
-  pos_it = posarr->items;
+  pos_it = posbuff->data;
 
   dctx = ak_data_new(ak_objFrom(mesh),
                      64,
@@ -278,12 +275,11 @@ ak_meshGenNormals(AkMesh * __restrict mesh) {
                             dctx->itemcount);
 
   acc  = src->tcommon;
-  data = ak_getObjectByUrl(&acc->source);
-  arr  = ak_objGet(data);
+  buff = ak_getObjectByUrl(&acc->source);
 
   ak_heap_setpm(srcid, src);
 
-  (void)ak_data_join(dctx, arr->items);
+  (void)ak_data_join(dctx, buff->data);
 
   ak_free(dctx);
   heap->allocator->free(srcurl);

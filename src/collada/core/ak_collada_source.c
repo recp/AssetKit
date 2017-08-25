@@ -10,33 +10,35 @@
 #include "../core/ak_collada_technique.h"
 #include "../core/ak_collada_accessor.h"
 
-#define k_s_dae_asset        100
-#define k_s_dae_techniquec   101
-#define k_s_dae_technique    102
+#define k_s_dae_asset      1000
+#define k_s_dae_techniquec 1001
+#define k_s_dae_technique  1002
 
 static ak_enumpair sourceMap[] = {
-  {_s_dae_bool_array,   AK_SOURCE_ARRAY_TYPE_BOOL},
-  {_s_dae_float_array,  AK_SOURCE_ARRAY_TYPE_FLOAT},
-  {_s_dae_IDREF_array,  AK_SOURCE_ARRAY_TYPE_IDREF},
-  {_s_dae_int_array,    AK_SOURCE_ARRAY_TYPE_INT},
-  {_s_dae_Name_array,   AK_SOURCE_ARRAY_TYPE_NAME},
-  {_s_dae_SIDREF_array, AK_SOURCE_ARRAY_TYPE_SIDREF},
-  {_s_dae_token_array,  AK_SOURCE_ARRAY_TYPE_TOKEN},
+  {_s_dae_bool_array,   AKT_BOOL},
+  {_s_dae_float_array,  AKT_FLOAT},
+  {_s_dae_IDREF_array,  AKT_IDREF},
+  {_s_dae_int_array,    AKT_INT},
+  {_s_dae_Name_array,   AKT_NAME},
+  {_s_dae_SIDREF_array, AKT_SIDREF},
+  {_s_dae_token_array,  AKT_TOKEN},
   {_s_dae_asset,        k_s_dae_asset},
   {_s_dae_techniquec,   k_s_dae_techniquec},
-  {_s_dae_technique,    k_s_dae_technique},
+  {_s_dae_technique,    k_s_dae_technique}
 };
 
 static size_t sourceMapLen = 0;
 
 AkResult _assetkit_hide
 ak_dae_source(AkXmlState * __restrict xst,
-              void * __restrict memParent,
-              AkSource ** __restrict dest) {
+              void       * __restrict memParent,
+              AkSource  ** __restrict dest) {
   AkSource     *source;
+  AkBuffer     *buffer;
   AkTechnique  *last_tq;
   AkXmlElmState xest;
 
+  buffer = NULL;
   source = ak_heap_calloc(xst->heap, memParent, sizeof(*source));
 
   ak_xml_readid(xst, source);
@@ -59,6 +61,9 @@ ak_dae_source(AkXmlState * __restrict xst,
 
   do {
     const ak_enumpair *found;
+    char              *content;
+    size_t             arraySize;
+    AkUInt             arrayCount;
 
     if (ak_xml_begin(&xest))
       break;
@@ -73,143 +78,94 @@ ak_dae_source(AkXmlState * __restrict xst,
       goto skip;
     }
 
+    arraySize = arrayCount = 0;
+    switch (found->val) {
+      case AKT_FLOAT:
+      case AKT_INT:
+      case AKT_BOOL:
+      case AKT_SIDREF:
+      case AKT_IDREF:
+      case AKT_NAME:
+      case AKT_TOKEN: {
+        buffer = ak_heap_alloc(xst->heap, source, sizeof(*buffer));
+        ak_xml_readid(xst, buffer);
+
+        arrayCount = ak_xml_attrui(xst, _s_dae_count);
+        arraySize  = sizeof(AkFloat) * arrayCount;
+
+        buffer->name     = ak_xml_attr(xst, buffer, _s_dae_name);
+        buffer->length   = arraySize * arrayCount;
+        buffer->reserved = found->val;
+
+        source->buffer   = buffer;
+      }
+    }
+
     switch (found->val) {
       case k_s_dae_asset: {
         (void)ak_dae_assetInf(xst, source, NULL);
         break;
       }
-      case AK_SOURCE_ARRAY_TYPE_BOOL: {
-        AkSourceBoolArray *boolArray;
-        char     *content;
-        AkObject *obj;
-        size_t    arraySize;
-        uint32_t  arrayCount;
 
-        arrayCount = ak_xml_attrui(xst, _s_dae_count);
-        arraySize  = sizeof(AkBool) * arrayCount;
+      case AKT_FLOAT: {
+        /*
+         Removed for now:
+          ak_xml_attrui(xst, _s_dae_digits);
+          ak_xml_attrui(xst, _s_dae_magnitude);
+        */
 
-        obj = ak_objAlloc(xst->heap,
-                          source,
-                          sizeof(*boolArray) + arraySize,
-                          found->val,
-                          true);
-        boolArray = ak_objGet(obj);
-
-        ak_xml_readid(xst, obj);
-        boolArray->base.name  = ak_xml_attr(xst, obj, _s_dae_name);
-        boolArray->base.count = arrayCount;
-        boolArray->base.type  = found->val;
-        boolArray->base.items = &boolArray->items;
-
-        content = ak_xml_rawval(xst);
-        if (content) {
-          ak_strtomb(&content,
-                     boolArray->items,
-                     1,
-                     (AkUInt)arrayCount);
-          xmlFree(content);
-        }
-
-        source->data = obj;
-        break;
-      }
-      case AK_SOURCE_ARRAY_TYPE_FLOAT: {
-        AkSourceFloatArray *floatAray;
-        char     *content;
-        AkObject *obj;
-        size_t    arraySize;
-        uint32_t  arrayCount;
-
-        arrayCount = ak_xml_attrui(xst, _s_dae_count);
-        arraySize  = sizeof(AkFloat) * arrayCount;
-
-        obj = ak_objAlloc(xst->heap,
-                          source,
-                          sizeof(*floatAray) + arraySize,
-                          found->val,
-                          true);
-        floatAray = ak_objGet(obj);
-        ak_xml_readid(xst, obj);
-  
-        floatAray->base.name  = ak_xml_attr(xst, obj, _s_dae_name);
-        floatAray->base.count = arrayCount;
-        floatAray->base.type  = found->val;
-        floatAray->base.items = &floatAray->items;
-        floatAray->digits     = ak_xml_attrui(xst, _s_dae_digits);
-        floatAray->magnitude  = ak_xml_attrui(xst, _s_dae_magnitude);
-
-        content = ak_xml_rawval(xst);
-
-        if (content) {
+        if ((content = ak_xml_rawval(xst))) {
+          buffer->data = ak_heap_alloc(xst->heap, buffer, arraySize);
           ak_strtomf(&content,
-                     floatAray->items,
+                     buffer->data,
                      1,
-                     (AkUInt)arrayCount);
+                     arrayCount);
           xmlFree(content);
         }
 
-        source->data = obj;
         break;
       }
-      case AK_SOURCE_ARRAY_TYPE_INT: {
-        AkSourceIntArray *intArray;
-        char     *content;
-        AkObject *obj;
-        size_t    arraySize;
-        uint32_t  arrayCount;
 
-        arrayCount = ak_xml_attrui(xst, _s_dae_count);
-        arraySize  = sizeof(AkInt) * arrayCount;
+      case AKT_INT: {
+        /*
+         Removed for now:
+          ak_xml_attrui_def(xst, _s_dae_minInclusive, -2147483647);
+          ak_xml_attrui_def(xst, _s_dae_maxInclusive,  2147483647);
+         */
 
-        obj = ak_objAlloc(xst->heap,
-                          source,
-                          sizeof(*intArray) + arraySize,
-                          found->val,
-                          true);
-        intArray = ak_objGet(obj);
-
-        ak_xml_readid(xst, obj);
-        intArray->base.name  = ak_xml_attr(xst, obj, _s_dae_name);
-        intArray->base.type  = found->val;
-        intArray->base.items = &intArray->items;
-
-        /* TODO: probably will not be used */
-        intArray->minInclusive = ak_xml_attrui_def(xst,
-                                                   _s_dae_minInclusive,
-                                                   -2147483647);
-        intArray->maxInclusive = ak_xml_attrui_def(xst,
-                                                   _s_dae_maxInclusive,
-                                                   2147483647);
-
-        intArray->base.count = arrayCount;
-        content = ak_xml_rawval(xst);
-
-        if (content) {
+        if ((content = ak_xml_rawval(xst))) {
+          buffer->reserved = AKT_INT;
+          buffer->data = ak_heap_alloc(xst->heap, buffer, arraySize);
           ak_strtomi(&content,
-                     intArray->items,
+                     buffer->data,
                      1,
-                     (AkUInt)arrayCount);
+                     arrayCount);
           xmlFree(content);
         }
-
-        source->data = obj;
         break;
       }
-      case AK_SOURCE_ARRAY_TYPE_IDREF:
-      case AK_SOURCE_ARRAY_TYPE_NAME:
-      case AK_SOURCE_ARRAY_TYPE_SIDREF:
-      case AK_SOURCE_ARRAY_TYPE_TOKEN: {
-        AkSourceStringArray *stringAray;
-        char     *content;
-        AkObject *obj;
+
+      case AKT_BOOL: {
+        if ((content = ak_xml_rawval(xst))) {
+          buffer->data = ak_heap_alloc(xst->heap, buffer, arraySize);
+          ak_strtomb(&content,
+                     buffer->data,
+                     1,
+                     arrayCount);
+          xmlFree(content);
+        }
+        break;
+      }
+
+      case AKT_IDREF:
+      case AKT_NAME:
+      case AKT_SIDREF:
+      case AKT_TOKEN: {
         char     *pData;
         char     *tok;
-        size_t    arraySize;
+        char    **iter;
         size_t    arrayDataSize;
-        uint32_t  arrayCount;
 		    uint32_t  idx;
-
-        arrayCount = ak_xml_attrui(xst, _s_dae_count);
 
         /*
          |pSTR1|pSTR2|pSTR3|STR1\0STR2\0STR3|
@@ -217,28 +173,17 @@ ak_dae_source(AkXmlState * __restrict xst,
          the last one is pointer to all data
          */
         arraySize = sizeof(char *) * (arrayCount + 1);
-
-        obj = ak_objAlloc(xst->heap,
-                          source,
-                          sizeof(*stringAray) + arraySize,
-                          found->val,
-                          true);
-        stringAray = ak_objGet(obj);
-
-        ak_xml_readid(xst, obj);
-        stringAray->base.count = arrayCount;
-        stringAray->base.name  = ak_xml_attr(xst, obj, _s_dae_name);
-        stringAray->base.type  = found->val;
-        stringAray->base.items = &stringAray->items;
-
-        content = ak_xml_rawval(xst);
-        if (content) {
+        if ((content = ak_xml_rawval(xst))) {
           arrayDataSize = strlen(content) + arrayCount /* NULL */;
+          iter = buffer->data = ak_heap_alloc(xst->heap,
+                                              buffer,
+                                              arraySize);
+
           pData = ak_heap_alloc(xst->heap,
-                                obj,
+                                buffer,
                                 arrayDataSize);
 
-          stringAray->items[arrayCount] = pData;
+          iter[arrayCount] = pData;
 
           idx = 0;
           for (tok = strtok(content, " \t\r\n");
@@ -248,15 +193,13 @@ ak_dae_source(AkXmlState * __restrict xst,
               break;
 
             strcpy(pData, tok);
-            stringAray->items[idx++] = pData;
+            iter[idx++] = pData;
 
             pData += strlen(tok);
             *pData++ = '\0';
           }
           xmlFree(content);
         }
-
-        source->data = obj;
         break;
       }
       case k_s_dae_techniquec: {

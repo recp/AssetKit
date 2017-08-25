@@ -11,6 +11,7 @@
 #include "ak_common.h"
 #include "../include/ak-url.h"
 #include <libxml/xmlreader.h>
+#include <ds/forward-list-sep.h>
 
 typedef enum AkCOLLADAVersion {
   AK_COLLADA_VERSION_150 = 150,
@@ -30,6 +31,7 @@ typedef AK_ALIGN(16) struct AkXmlState {
   xmlTextReaderPtr reader;
   const xmlChar   *nodeName;
   AkURLQueue      *urlQueue;
+  FListItem       *accessors;
   AkCOLLADAVersion version;
   int              nodeType;
   int              nodeRet;

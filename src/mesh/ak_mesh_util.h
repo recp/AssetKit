@@ -36,7 +36,7 @@ ak_mesh_src_for_ext(AkHeap         *heap,
 AkSource *
 ak_mesh_pos_src(AkMesh *mesh);
 
-AkObject*
+AkSource*
 ak_mesh_positions(AkMesh * __restrict mesh);
 
 uint32_t

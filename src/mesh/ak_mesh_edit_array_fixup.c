@@ -24,7 +24,6 @@ ak_meshCopyArraysIfNeeded(AkMesh * __restrict mesh) {
   AkMeshPrimitive  *primi;
   AkSource         *src;
   AkAccessor       *acc;
-  AkObject         *data, *newdata;
   AkUIntArray      *ind1, *ind2;
   AkUInt           *ind1_it, *ind2_it;
 
@@ -37,9 +36,9 @@ ak_meshCopyArraysIfNeeded(AkMesh * __restrict mesh) {
 
   /* per-primitive inputs */
   while (primi) {
-    AkSourceArrayBase  *oldarray, *newarray;
+    AkBuffer           *oldbuff, *newbuff;
     AkSourceArrayState *arrstate;
-    void               *arrayid;
+    void               *buffid;
 
     ind1 = primi->indices;
     ind2 = ak_meshIndicesArrayFor(mesh, primi);
@@ -66,12 +65,12 @@ ak_meshCopyArraysIfNeeded(AkMesh * __restrict mesh) {
       if (!acc)
         goto cont;
 
-      data = ak_getObjectByUrl(&acc->source);
-      if (!data)
+      oldbuff = ak_getObjectByUrl(&acc->source);
+      if (!oldbuff)
         goto cont;
 
-      arrayid  = ak_getId(data);
-      arrstate = rb_find(edith->arrays, arrayid);
+      buffid   = ak_getId(oldbuff);
+      arrstate = rb_find(edith->arrays, buffid);
 
       /* copy array to mesh */
       if (arrstate) {
@@ -80,9 +79,7 @@ ak_meshCopyArraysIfNeeded(AkMesh * __restrict mesh) {
         AkDataParam *dp;
         size_t       icount, i;
 
-        newdata  = arrstate->array;
-        oldarray = ak_objGet(data);
-        newarray = ak_objGet(newdata);
+        newbuff = arrstate->array;
 
         srch   = ak_meshSourceEditHelper(mesh, &input->base);
         newacc = srch->source->tcommon;
@@ -94,13 +91,13 @@ ak_meshCopyArraysIfNeeded(AkMesh * __restrict mesh) {
                             arrstate->lastoffset);
 
         icount = primi->indices->count / primi->indexStride;
-        switch (oldarray->type) {
-          case AK_SOURCE_ARRAY_TYPE_FLOAT: {
+        switch (acc->itemTypeId) {
+          case AKT_FLOAT: {
             AkFloat *olditms, *newitms;
             AkUInt   oldindex, newindex, j;
 
-            newitms = newarray->items;
-            olditms = oldarray->items;
+            newitms = newbuff->data;
+            olditms = oldbuff->data;
 
             for (i = 0; i < icount; i++) {
               j        = 0;
@@ -126,13 +123,13 @@ ak_meshCopyArraysIfNeeded(AkMesh * __restrict mesh) {
             }
             break;
           }
-          case AK_SOURCE_ARRAY_TYPE_INT: {
+          case AKT_INT: {
             break;
           }
-          case AK_SOURCE_ARRAY_TYPE_STRING: {
+          case AKT_STRING: {
             break;
           }
-          case AK_SOURCE_ARRAY_TYPE_BOOL: {
+          case AKT_BOOL: {
             break;
           }
           default: break;
