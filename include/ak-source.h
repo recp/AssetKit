@@ -43,17 +43,15 @@ typedef struct AkAccessor {
   AkTypeDesc         *type;
   struct AkDataParam *param;
   size_t              count;
-
-    size_t              offset;
-//  size_t              byteOffset;
-  size_t              byteLength;
-  size_t              byteStride;
-
+  size_t              offset;
   uint32_t            firstBound;
   uint32_t            stride;
   uint32_t            bound;
-
   AkTypeId            itemTypeId;
+
+  size_t              byteOffset;
+  size_t              byteLength;
+  uint32_t            byteStride;
 } AkAccessor;
 
 typedef struct AkSource {

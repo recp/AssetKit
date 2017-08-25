@@ -83,8 +83,16 @@ ak_dae_fixup_accessors(AkXmlState * __restrict xst) {
   while (item) {
     acc = item->data;
     if ((buff = ak_getObjectByUrl(&acc->source))) {
+      size_t itemSize;
+
       acc->itemTypeId = (AkTypeId)buff->reserved;
       acc->type       = ak_typeDesc(acc->itemTypeId);
+
+      itemSize = acc->type->size;
+
+      acc->byteStride = acc->stride * itemSize;
+      acc->byteLength = acc->count * acc->stride * itemSize;
+      acc->byteOffset = acc->offset * itemSize;
     }
 
     item = item->next;

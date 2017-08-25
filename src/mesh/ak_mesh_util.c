@@ -214,6 +214,8 @@ ak_mesh_src_for_ext(AkHeap         *heap,
   acc->count      = count;
   acc->itemTypeId = AKT_FLOAT;
   acc->type       = ak_typeDesc(acc->itemTypeId);
+  acc->byteStride = acc->stride * acc->type->size;
+  acc->byteLength = acc->count * acc->byteStride;
   src->tcommon    = acc;
 
   buff = ak_heap_calloc(heap, src, sizeof(*buff));
