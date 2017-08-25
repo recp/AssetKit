@@ -8,6 +8,12 @@
 #include "ak_common.h"
 #include "ak_memory_common.h"
 #include "../include/ak-type.h"
+#include "ak_type.h"
+#include "default/ak_def_type.h"
+
+#include <ds/rb.h>
+
+RBTree *ak__typetree = NULL;
 
 AkTypeId
 ak_typeidh(AkHeapNode * __restrict hnode) {
@@ -43,4 +49,35 @@ ak_isKindOf(void * __restrict mem,
   hnode2 = ak__alignof(other);
 
   return hnode1->typeid == hnode2->typeid;
+}
+
+AkTypeDesc*
+ak_typeDesc(AkTypeId typeId) {
+  return rb_find(ak__typetree, (void *)typeId);
+}
+
+void
+ak_registerType(AkTypeId typeId, AkTypeDesc *desc) {
+  rb_insert(ak__typetree, (void *)typeId, desc);
+}
+
+void _assetkit_hide
+ak_type_init() {
+  AkTypeDesc *it;
+
+  ak__typetree = rb_newtree(NULL, ds_cmp_i32p, NULL);
+
+  /* register predefined type descs */
+  it = (AkTypeDesc *)ak_def_typedesc();
+  if (it) {
+    do {
+      ak_registerType(it->typeId, it);
+      it++;
+    } while (it->size > 0);
+  }
+}
+
+void _assetkit_hide
+ak_type_deinit() {
+  rb_destroy(ak__typetree);
 }

@@ -97,6 +97,7 @@ libassetkit_la_SOURCES=\
     src/ak_type.c \
     src/ak_profile.c \
     src/ak_asset.c \
+    src/ak_type.c \
     src/camera/ak_cam.c \
     src/light/ak_light.c \
     src/node/ak_node.c \
@@ -123,6 +124,7 @@ libassetkit_la_SOURCES=\
     src/default/ak_def_semantic.c \
     src/default/ak_def_cam.c \
     src/default/ak_def_light.c \
+    src/default/ak_def_type.c \
     src/geom/ak_geom_mesh.c \
     src/transform/ak_trans.c \
     src/transform/ak_trans_dup.c \

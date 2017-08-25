@@ -99,6 +99,7 @@ typedef enum AkValueType {
   AK_VALUE_ENUM          = 23,
   AK_VALUE_ARRAY         = 24
 } AkValueType;
+#include "ak-type.h"
 
 typedef enum AkModifier {
   AK_MODIFIER_CONST    = 1,
@@ -295,13 +296,6 @@ typedef enum AkInstanceType {
   AK_INSTANCE_IMAGE      = 5,
   AK_INSTANCE_CONTROLLER = 6
 } AkInstanceType;
-
-typedef struct AkTypeDesc {
-  const char *typeName;
-  AkValueType type;
-  int         size;
-  int         userData;
-} AkTypeDesc;
 
 typedef struct AkValue {
   void      *value;
