@@ -8,6 +8,7 @@
 #include "../ak_common.h"
 #include "../../include/ak-path.h"
 #include "ak_resource.h"
+#include "ak_curl.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -85,4 +86,22 @@ ak_getObjectByUrl(AkURL * __restrict url) {
     return ak_getObjectById(url->doc, url->url + 1);
 
   return NULL;
+}
+
+const char*
+ak_getFile(const char *url) {
+  if (ak_path_isfile(url))
+    return url;
+
+  /* download the file, file must be downloadable, e.g not live stream
+   * to do this the remote file must send file size
+   */
+
+  /* return local URL
+   
+     TODO: option for cache time,
+           option for how to store this file,
+           option for when to remove it
+   */
+  return ak_curl_dwn(url);
 }

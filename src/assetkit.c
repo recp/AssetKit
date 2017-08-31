@@ -25,15 +25,20 @@ typedef struct {
 AK_EXPORT
 AkResult
 ak_load(AkDoc ** __restrict dest,
-         const char * __restrict file, ...) {
-  floader_t * floader;
+         const char * __restrict url, ...) {
+  floader_t  *floader;
+  const char *localurl;
   int         file_type;
   int         _err_no;
 
   va_list pref_args;
-  va_start(pref_args, file);
+  va_start(pref_args, url);
   file_type = va_arg(pref_args, int);
   va_end(pref_args);
+
+  localurl = ak_getFile(url);
+  if (!localurl)
+    return AK_EBADF;
 
   floader_t floaders[] = {
     {"dae",  ak_dae_doc},
@@ -44,7 +49,7 @@ ak_load(AkDoc ** __restrict dest,
 
   if (file_type == AK_FILE_TYPE_AUTO) {
     char * file_ext;
-    file_ext = strrchr(file, '.');
+    file_ext = strrchr(localurl, '.');
     if (file_ext) {
       int floader_len;
       int i;
@@ -81,7 +86,7 @@ ak_load(AkDoc ** __restrict dest,
   }
 
   if (floader)
-    _err_no = floader->floader_fn(dest, file);
+    _err_no = floader->floader_fn(dest, localurl);
   else
     goto err;
 

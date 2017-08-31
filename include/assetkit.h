@@ -878,7 +878,7 @@ typedef struct AkDoc {
 AK_EXPORT
 AkResult
 ak_load(AkDoc ** __restrict dest,
-        const char * __restrict file,
+        const char * __restrict url,
         .../* options */);
 
 AK_EXPORT
@@ -903,6 +903,9 @@ ak_getObjectById(AkDoc * __restrict doc,
 AK_EXPORT
 void *
 ak_getObjectByUrl(AkURL * __restrict url);
+
+const char*
+ak_getFile(const char *url);
 
 AK_EXPORT
 const char *
