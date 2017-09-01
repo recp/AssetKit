@@ -13,6 +13,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <sys/syslimits.h>
 
 void
 ak_url_init(void  *parent,
@@ -104,4 +105,13 @@ ak_getFile(const char *url) {
            option for when to remove it
    */
   return ak_curl_dwn(url);
+}
+
+const char*
+ak_getFileFrom(AkDoc *doc, const char *url) {
+  char        pathbuf[PATH_MAX];
+  const char *path;
+
+  path = ak_fullpath(doc, url, pathbuf);
+  return ak_strdup(NULL, path);
 }

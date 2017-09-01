@@ -907,6 +907,9 @@ ak_getObjectByUrl(AkURL * __restrict url);
 const char*
 ak_getFile(const char *url);
 
+const char*
+ak_getFileFrom(AkDoc *doc, const char *url);
+
 AK_EXPORT
 const char *
 ak_generatId(AkDoc      * __restrict doc,
