@@ -34,6 +34,9 @@ ak_readfile(const char * __restrict file,
   int         infile_no;
   
   infile    = fopen(file, modes);
+  if (!infile)
+    goto err;
+
   infile_no = fileno(infile);
 
   if (fstat(infile_no, &infile_st) != 0)
@@ -71,6 +74,7 @@ ak_readfile(const char * __restrict file,
 
   return AK_OK;
 err:
+  *dest = NULL;
   return AK_ERR;
 }
 
