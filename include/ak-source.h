@@ -57,7 +57,6 @@ typedef struct AkAccessor {
 typedef struct AkSource {
   /* const char * id; */
   const char         *name;
-  AkObject           *data; /* arrays inside source */
   AkBuffer           *buffer;
   AkAccessor         *tcommon;
   struct AkTechnique *technique;
