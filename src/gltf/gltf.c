@@ -9,15 +9,14 @@
 #include "../ak_id.h"
 #include "../../include/ak-path.h"
 #include "core/gltf_asset.h"
+#include "core/gltf_buffer.h"
 
 AkResult _assetkit_hide
 ak_gltf_doc(AkDoc     ** __restrict dest,
             const char * __restrict filepath) {
   AkHeap      *heap;
   AkDoc       *doc;
-  json_t      *gltf_json;
   AkAssetInf  *ainf;
-  AkDocInf    *docinf;
   AkGLTFState  gstVal, *gst;
   json_error_t error;
   AkResult     ret;
@@ -35,6 +34,10 @@ ak_gltf_doc(AkDoc     ** __restrict dest,
   ak_heap_setdata(heap, doc);
   ak_id_newheap(heap);
 
+  doc->lib.buffers = ak_heap_calloc(heap,
+                                    doc,
+                                    sizeof(*doc->lib.buffers));
+
   memset(&gstVal, 0, sizeof(gstVal));
 
   gst         = &gstVal;
@@ -50,6 +53,8 @@ ak_gltf_doc(AkDoc     ** __restrict dest,
     ak_free(doc);
     return ret;
   }
+
+  (void)gltf_buffers(gst, doc->lib.buffers, NULL);
 
   *dest = doc;
 

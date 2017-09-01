@@ -17,6 +17,9 @@
 extern "C" {
 #endif
 
+struct FList;
+struct FListItem;
+
 typedef const char * AkString;
 typedef char       * AkMutString;
 typedef bool         AkBool;
@@ -850,6 +853,8 @@ typedef struct AkLib {
   AkLibItem *controllers;
   AkLibItem *visualScenes;
   AkLibItem *nodes;
+
+  struct FListItem *buffers;
 } AkLib;
 
 typedef struct AkDoc {

@@ -17,6 +17,8 @@
 #include "../include/ak-url.h"
 
 #include <ds/rb.h>
+#include <ds/forward-list.h>
+#include <ds/forward-list-sep.h>
 
 #include <stddef.h>
 #include <sys/types.h>

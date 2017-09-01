@@ -13,6 +13,8 @@
 #include "../ak_memory_common.h"
 #include "../ak_utils.h"
 #include "../ak_tree.h"
+#include "../ak_json.h"
+#include "../resc/ak_curl.h"
 #include "gltf_strpool.h"
 
 #include <string.h>

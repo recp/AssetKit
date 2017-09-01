@@ -23,7 +23,8 @@ strptime(const char * __restrict buf,
 AkResult
 ak_readfile(const char * __restrict file,
             const char * __restrict modes,
-            char ** __restrict dest) {
+            void      ** __restrict dest,
+            size_t     * __restrict size) {
   FILE      * infile;
   size_t      blksize;
   size_t      fsize;
@@ -50,11 +51,12 @@ ak_readfile(const char * __restrict file,
 
   fsize          = infile_st.st_size;
   fcontents_size = sizeof(char) * fsize;
+  *size          = fcontents_size;
 
   *dest = malloc(fcontents_size + 1);
   assert(*dest && "malloc failed");
 
-  memset(*dest + fcontents_size, '\0', 1);
+  memset(*(char **)dest + fcontents_size, '\0', 1);
 
   total_read = 0;
 
@@ -62,8 +64,8 @@ ak_readfile(const char * __restrict file,
     if ((fcontents_size - total_read) < blksize)
       blksize = fcontents_size - total_read;
 
-    nread = fread(*dest + total_read,
-                  sizeof(**dest),
+    nread = fread(*(char **)dest + total_read,
+                  sizeof(char),
                   blksize,
                   infile);
 
@@ -75,6 +77,7 @@ ak_readfile(const char * __restrict file,
   return AK_OK;
 err:
   *dest = NULL;
+  *size = 0;
   return AK_ERR;
 }
 

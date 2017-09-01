@@ -14,7 +14,8 @@
 AkResult
 ak_readfile(const char * __restrict file,
             const char * __restrict modes,
-            char ** __restrict dest);
+            void      ** __restrict dest,
+            size_t     * __restrict size);
 time_t
 ak_parse_date(const char * __restrict input,
               const char ** __restrict ret);
