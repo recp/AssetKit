@@ -44,6 +44,12 @@ typedef enum AkTypeId {
   AKT_SIDREF        = 25,
   AKT_TOKEN         = 26,
 
+  AKT_UINT          = 27,
+  AKT_BYTE          = 28,
+  AKT_UBYTE         = 29,
+  AKT_SHORT         = 30,
+  AKT_USHORT        = 31,
+
   AKT_EFFECT,
   AKT_PROFILE,
   AKT_PARAM,
