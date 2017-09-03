@@ -48,10 +48,14 @@ typedef struct AkAccessor {
   uint32_t            stride;
   uint32_t            bound;
   AkTypeId            itemTypeId;
+  bool                normalized;
 
   size_t              byteOffset;
   size_t              byteLength;
   uint32_t            byteStride;
+
+  void               *min;
+  void               *max;
 } AkAccessor;
 
 typedef struct AkSource {

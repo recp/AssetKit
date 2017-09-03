@@ -35,4 +35,17 @@ typedef struct AkGLTFState {
   AkGLTFVersion version;
 } AkGLTFState;
 
+/* for vectors: item count,
+   for matrics: item count | matrix size 
+ */
+typedef enum AkGLTFType {
+  AK_GLTF_SCALAR = 1,
+  AK_GLTF_VEC2   = 2,
+  AK_GLTF_VEC3   = 3,
+  AK_GLTF_VEC4   = 4,
+  AK_GLTF_MAT2   = (4  << 3) | 2,
+  AK_GLTF_MAT3   = (9  << 3) | 3,
+  AK_GLTF_MAT4   = (16 << 3) | 4
+} AkGLTFType;
+
 #endif /* ak_gltf_commoh_h */

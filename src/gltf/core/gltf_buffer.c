@@ -35,7 +35,7 @@ gltf_buffers(AkGLTFState * __restrict gst,
   jbuffersSize = json_array_size(jbuffers);
   buffers      = gst->doc->lib.buffers;
 
-  for (i = 0; i < jbuffersSize; i++) {
+  for (i = jbuffersSize - 1; i > 0; i--) {
     AkBuffer *buff;
     json_t   *jbuffer;
 

@@ -1,0 +1,190 @@
+/*
+ * Copyright (c), Recep Aslantas.
+ *
+ * MIT License (MIT), http://opensource.org/licenses/MIT
+ * Full license can be found in the LICENSE file
+ */
+
+#include "gltf_accesor.h"
+#include "gltf_enums.h"
+#include "../../ak_accessor.h"
+
+AkAccessor* _assetkit_hide
+gltf_accessor(AkGLTFState     * __restrict gst,
+              AkMeshPrimitive * __restrict prim,
+              json_t          * __restrict jacc) {
+  AkHeap      *heap;
+  AkSource    *src;
+  AkAccessor  *acc;
+  json_t      *jbuffViews, *jbuffView, *jbuff, *min, *max;
+  AkDataParam *dp, *last_dp;
+  uint32_t     bound, i, bufferIndex;
+
+  heap = gst->heap;
+
+  src  = ak_heap_calloc(heap, prim, sizeof(*src));
+  acc  = ak_heap_calloc(heap, src, sizeof(*acc));
+
+  acc->stride     = acc->bound;
+  acc->count      = json_int32(jacc, _s_gltf_count);
+  acc->itemTypeId = gltf_componentType(json_int32(jacc,
+                                                  _s_gltf_componentType));
+  acc->type       = ak_typeDesc(acc->itemTypeId);
+  acc->byteOffset = json_int64(jacc, _s_gltf_byteOffset);
+  acc->normalized = json_boolean_value(json_object_get(jacc,
+                                                       _s_gltf_normalized));
+
+  jbuffViews = json_object_get(gst->root, _s_gltf_bufferViews);
+  jbuffView  = json_array_get(jbuffViews, json_int32(jacc,
+                                                     _s_gltf_bufferView));
+
+  if (jbuffView) {
+    acc->byteLength  = json_int64(jbuffView, _s_gltf_byteLength);
+    acc->byteStride  = json_int32(jbuffView, _s_gltf_byteStride);
+    acc->byteOffset += json_int64(jbuffView, _s_gltf_byteOffset);
+
+    acc->stride      = acc->byteStride / acc->type->size;
+
+    /* bind accessor to buffer  */
+    if ((jbuff = json_object_get(jbuffView, _s_gltf_buffer))) {
+      FListItem *buffIter;
+
+      bufferIndex = json_int32(jbuffView, _s_gltf_bufferView);
+      buffIter    = gst->doc->lib.buffers;
+      while (bufferIndex > 0)
+        buffIter = buffIter->next;
+
+      if (buffIter)
+        acc->source.ptr = buffIter->data;
+    }
+  }
+
+  bound      = gltf_type(json_cstr(jacc, _s_gltf_type));
+  dp         = last_dp = NULL;
+  acc->bound = bound;
+
+  if (bound > 10)
+    acc->bound >>= 3;
+
+  /* prepare accessor params */
+  for (i = 0; i < acc->bound; i++) {
+    char        paramName[8];
+    const char *paramNames = "XYZW";
+
+    memset(paramName, '\0', sizeof(paramName));
+
+    /* vector */
+    if (bound < 10) {
+      paramName[0] = paramNames[i];
+    }
+
+    /* matrix */
+    else {
+      uint32_t s, m, n;
+
+      s = (bound << (32 - 3)) >> (32 - 3);
+
+      m = i % s;
+      n = i / s;
+
+      /* M01, M02, ... M33 */
+      sprintf(paramName, "M%d%d", m, n);
+    }
+
+    dp         = ak_heap_calloc(heap, acc, sizeof(*dp));
+    dp->offset = i;
+    dp->name   = ak_heap_strdup(heap,
+                                dp,
+                                paramName);
+    memcpy(&dp->type,
+           acc->type,
+           sizeof(dp->type));
+
+    if (!last_dp)
+      acc->param = dp;
+    else
+      last_dp->next = dp;
+    last_dp = dp;
+  }
+
+  src->tcommon = acc;
+
+  min = json_object_get(jacc, _s_gltf_min);
+  max = json_object_get(jacc, _s_gltf_max);
+
+  if (min && json_is_array(min)) {
+    size_t arrSize;
+
+    arrSize  = json_array_size(min);
+    acc->min = ak_heap_alloc(heap,
+                             acc,
+                             sizeof(acc->type->size * acc->bound));
+
+    if (arrSize > acc->bound)
+      arrSize = acc->bound;
+
+    for (i = 0; i < arrSize; i++) {
+      json_t *ival;
+
+      ival = json_array_get(min, i);
+      switch (acc->itemTypeId) {
+        case AKT_FLOAT:
+          ((float *)acc->min)[i] = json_number_value(ival);
+          break;
+        case AKT_INT:
+        case AKT_UINT:
+          ((int32_t *)acc->min)[i] = (int32_t)json_integer_value(ival);
+          break;
+        case AKT_SHORT:
+        case AKT_USHORT:
+          ((short *)acc->min)[i] = (short)json_number_value(ival);
+          break;
+        case AKT_BYTE:
+        case AKT_UBYTE:
+          ((char *)acc->min)[i] = json_string_value(ival)[0];
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+  if (max && json_is_array(max)) {
+    size_t arrSize;
+
+    arrSize  = json_array_size(max);
+    acc->max = ak_heap_alloc(heap,
+                             acc,
+                             sizeof(acc->type->size * acc->bound));
+
+    if (arrSize > acc->bound)
+      arrSize = acc->bound;
+
+    for (i = 0; i < arrSize; i++) {
+      json_t *ival;
+
+      ival = json_array_get(max, i);
+      switch (acc->itemTypeId) {
+        case AKT_FLOAT:
+          ((float *)acc->max)[i] = json_number_value(ival);
+          break;
+        case AKT_INT:
+        case AKT_UINT:
+          ((int32_t *)acc->max)[i] = (int32_t)json_integer_value(ival);
+          break;
+        case AKT_SHORT:
+        case AKT_USHORT:
+          ((short *)acc->max)[i] = (short)json_number_value(ival);
+          break;
+        case AKT_BYTE:
+        case AKT_UBYTE:
+          ((char *)acc->max)[i] = json_string_value(ival)[0];
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+  return acc;
+}
