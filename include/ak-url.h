@@ -14,6 +14,7 @@ extern "C" {
 typedef struct AkURL {
   const char   *url;      /* only fragment */
   struct AkDoc *doc;      /* document      */
+  void         *ptr;      /* direct link   */
   void         *reserved; /* private       */
 } AkURL;
 

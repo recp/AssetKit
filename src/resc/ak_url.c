@@ -83,6 +83,9 @@ ak_url_unref(AkURL *url) {
 AK_EXPORT
 void *
 ak_getObjectByUrl(AkURL * __restrict url) {
+  if (url->ptr)
+    return url->ptr;
+
   if (url->doc)
     return ak_getObjectById(url->doc, url->url + 1);
 
