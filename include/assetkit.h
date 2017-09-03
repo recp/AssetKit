@@ -233,7 +233,8 @@ typedef enum AkPolygonMode {
 typedef enum AkMeshPrimitiveType {
   AK_MESH_PRIMITIVE_TYPE_LINES      = 1,
   AK_MESH_PRIMITIVE_TYPE_POLYGONS   = 2,
-  AK_MESH_PRIMITIVE_TYPE_TRIANGLES  = 3
+  AK_MESH_PRIMITIVE_TYPE_TRIANGLES  = 3,
+  AK_MESH_PRIMITIVE_TYPE_POINTS     = 4
 } AkMeshPrimitiveType;
 
 typedef enum AkCurveElementType {
