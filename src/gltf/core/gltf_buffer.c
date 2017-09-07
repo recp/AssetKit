@@ -14,26 +14,15 @@
  */
 
 AkResult _assetkit_hide
-gltf_buffers(AkGLTFState * __restrict gst,
-             void        * __restrict memParent,
-             AkSource    * __restrict dest) {
+gltf_buffers(AkGLTFState * __restrict gst) {
   json_t     *jbuffers;
-  AkSource   *source;
   const char *sval;
   FListItem  *buffers;
   size_t      i, jbuffersSize;
 
-  source = ak_heap_calloc(gst->heap, memParent, sizeof(*source));
-
-  if (!dest) {
-    dest = ak_heap_calloc(gst->heap,
-                          memParent,
-                          sizeof(*dest));
-  }
-
   jbuffers     = json_object_get(gst->root, _s_gltf_buffers);
   jbuffersSize = json_array_size(jbuffers);
-  buffers      = gst->doc->lib.buffers;
+  buffers      = gst->buffers;
 
   for (i = jbuffersSize - 1; i > 0; i--) {
     AkBuffer *buff;

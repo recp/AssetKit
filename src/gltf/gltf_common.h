@@ -32,6 +32,7 @@ typedef struct AkGLTFState {
   AkHeap       *heap;
   AkDoc        *doc;
   json_t       *root;
+  FListItem    *buffers;
   AkGLTFVersion version;
 } AkGLTFState;
 

@@ -11,8 +11,6 @@
 #include "../gltf_common.h"
 
 AkResult _assetkit_hide
-gltf_buffers(AkGLTFState * __restrict gst,
-             void        * __restrict memParent,
-             AkSource    * __restrict dest);
+gltf_buffers(AkGLTFState * __restrict gst);
 
 #endif /* gltf_buffer_h */

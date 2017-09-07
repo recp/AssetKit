@@ -34,10 +34,6 @@ ak_gltf_doc(AkDoc     ** __restrict dest,
   ak_heap_setdata(heap, doc);
   ak_id_newheap(heap);
 
-  doc->lib.buffers = ak_heap_calloc(heap,
-                                    doc,
-                                    sizeof(*doc->lib.buffers));
-
   memset(&gstVal, 0, sizeof(gstVal));
 
   gst         = &gstVal;
@@ -54,7 +50,7 @@ ak_gltf_doc(AkDoc     ** __restrict dest,
     return ret;
   }
 
-  (void)gltf_buffers(gst, doc->lib.buffers, NULL);
+  gltf_buffers(gst);
 
   *dest = doc;
 
