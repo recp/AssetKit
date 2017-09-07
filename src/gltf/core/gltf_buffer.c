@@ -89,11 +89,6 @@ gltf_buffer(AkGLTFState * __restrict gst,
   return buff;
 }
 
-/*
-  glTF buffer                -> AkSource
-  glTF accessor + bufferView -> AkAccessor
- */
-
 AkResult _assetkit_hide
 gltf_buffers(AkGLTFState * __restrict gst) {
   json_t     *jbuffers;

@@ -39,26 +39,13 @@ gltf_enumInputSemantic(const char * name) {
 AkEnum _assetkit_hide
 gltf_componentType(int type) {
   switch (type) {
-    case 5120:
-      return AKT_BYTE;
-      break;
-    case 5121:
-      return AKT_UBYTE;
-      break;
-    case 5122:
-      return AKT_SHORT;
-      break;
-    case 5123:
-      return AKT_USHORT;
-      break;
-    case 5125:
-      return AKT_UINT;
-      break;
-    case 5126:
-      return AKT_FLOAT;
-      break;
-    default:
-      break;
+    case 5120:  return AKT_BYTE;   break;
+    case 5121:  return AKT_UBYTE;  break;
+    case 5122:  return AKT_SHORT;  break;
+    case 5123:  return AKT_USHORT; break;
+    case 5125:  return AKT_UINT;   break;
+    case 5126:  return AKT_FLOAT;  break;
+    default: break;
   }
   return AKT_NONE;
 }
