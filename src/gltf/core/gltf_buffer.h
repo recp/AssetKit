@@ -13,4 +13,9 @@
 AkResult _assetkit_hide
 gltf_buffers(AkGLTFState * __restrict gst);
 
+AkBuffer*
+gltf_buffer(AkGLTFState * __restrict gst,
+            int32_t                  bufferView,
+            size_t                  *byteStride);
+
 #endif /* gltf_buffer_h */

@@ -7,6 +7,7 @@
 
 #include "gltf_accesor.h"
 #include "gltf_enums.h"
+#include "gltf_buffer.h"
 #include "../../ak_accessor.h"
 
 AkAccessor* _assetkit_hide
@@ -16,9 +17,9 @@ gltf_accessor(AkGLTFState     * __restrict gst,
   AkHeap      *heap;
   AkSource    *src;
   AkAccessor  *acc;
-  json_t      *jbuffViews, *jbuffView, *jbuff, *min, *max;
+  json_t      *jbuffView, *min, *max;
   AkDataParam *dp, *last_dp;
-  uint32_t     bound, i, bufferIndex;
+  uint32_t     bound, i;
 
   heap = gst->heap;
 
@@ -34,29 +35,17 @@ gltf_accessor(AkGLTFState     * __restrict gst,
   acc->normalized = json_boolean_value(json_object_get(jacc,
                                                        _s_gltf_normalized));
 
-  jbuffViews = json_object_get(gst->root, _s_gltf_bufferViews);
-  jbuffView  = json_array_get(jbuffViews, json_int32(jacc,
-                                                     _s_gltf_bufferView));
+  if ((jbuffView = json_object_get(jacc, _s_gltf_bufferView))) {
+    AkBuffer *buff;
 
-  if (jbuffView) {
-    acc->byteLength  = json_int64(jbuffView, _s_gltf_byteLength);
-    acc->byteStride  = json_int32(jbuffView, _s_gltf_byteStride);
-    acc->byteOffset += json_int64(jbuffView, _s_gltf_byteOffset);
+    acc->byteOffset = json_int64(jacc, _s_gltf_byteOffset);
+    acc->stride     = (uint32_t)(acc->byteStride / acc->type->size);
 
-    acc->stride      = acc->byteStride / acc->type->size;
+    buff = gltf_buffer(gst,
+                       (int32_t)json_integer_value(jbuffView),
+                       &acc->byteStride);
 
-    /* bind accessor to buffer  */
-    if ((jbuff = json_object_get(jbuffView, _s_gltf_buffer))) {
-      FListItem *buffIter;
-
-      bufferIndex = json_int32(jbuffView, _s_gltf_bufferView);
-      buffIter    = gst->doc->lib.buffers;
-      while (bufferIndex > 0)
-        buffIter = buffIter->next;
-
-      if (buffIter)
-        acc->source.ptr = buffIter->data;
-    }
+    acc->source.ptr = buff;
   }
 
   bound      = gltf_type(json_cstr(jacc, _s_gltf_type));

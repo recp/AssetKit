@@ -52,7 +52,7 @@ typedef struct AkAccessor {
 
   size_t              byteOffset;
   size_t              byteLength;
-  uint32_t            byteStride;
+  size_t              byteStride;
 
   void               *min;
   void               *max;
