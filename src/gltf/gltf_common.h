@@ -33,6 +33,7 @@ typedef struct AkGLTFState {
   AkDoc        *doc;
   json_t       *root;
   FListItem    *buffers;
+  RBTree       *bufferViews; /* cache bufferViews to prevent dup */
   AkGLTFVersion version;
 } AkGLTFState;
 

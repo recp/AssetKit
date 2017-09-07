@@ -19,6 +19,12 @@ gltf_buffer(AkGLTFState * __restrict gst,
   size_t     jbuffsSize;
   int32_t    bufferIndex;
 
+  buff = rb_find(gst->bufferViews, (void *)(intptr_t)bufferView);
+  if (buff) {
+    *byteStride = buff->reserved;
+    return buff;
+  }
+
   jbuffViews = json_object_get(gst->root, _s_gltf_bufferViews);
   jbuffView  = json_array_get(jbuffViews, bufferView);
   if (!jbuffView)
@@ -71,7 +77,12 @@ gltf_buffer(AkGLTFState * __restrict gst,
       if ((sval = json_cstr(jbuffView, _s_gltf_name)))
         buff->name = ak_heap_strdup(gst->heap, buff, sval);
 
-      buff->length = byteLength;
+      buff->reserved = (size_t)byteStride;
+      buff->length   = byteLength;
+
+      rb_insert(gst->bufferViews,
+                (void *)(uintptr_t)bufferView,
+                buff);
     }
   }
 
