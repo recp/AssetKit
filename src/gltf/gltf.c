@@ -20,6 +20,7 @@ ak_gltf_doc(AkDoc     ** __restrict dest,
   AkHeap      *heap;
   AkDoc       *doc;
   AkAssetInf  *ainf;
+  json_t      *jscene;
   AkGLTFState  gstVal, *gst;
   json_error_t error;
   AkResult     ret;
@@ -61,6 +62,29 @@ ak_gltf_doc(AkDoc     ** __restrict dest,
   gltf_meshes(gst);
   gltf_nodes(gst);
   gltf_scenes(gst);
+
+  /* set default scene */
+  if ((jscene = json_object_get(gst->root, _s_gltf_scene))) {
+    AkVisualScene *scene;
+    int32_t        sceneIndex;
+
+    scene      = doc->lib.visualScenes->chld;
+    sceneIndex = (int32_t)json_integer_value(jscene);
+    while (sceneIndex > 0 && scene) {
+      scene = scene->next;
+      sceneIndex--;
+    }
+
+    if (scene) {
+      AkInstanceBase *instScene;
+      instScene = ak_heap_calloc(heap,
+                                 doc,
+                                 sizeof(*instScene));
+
+      instScene->url.ptr = scene;
+      doc->scene.visualScene = instScene;
+    }
+  }
 
   *dest = doc;
 
