@@ -44,5 +44,16 @@
   "VEC4": "VEC4",
   "MAT2": "MAT2",
   "MAT3": "MAT3",
-  "MAT4": "MAT4"
+  "MAT4": "MAT4",
+  "children": "children",
+  "matrix": "matrix",
+  "rotation": "rotation",
+  "scale": "scale",
+  "translation": "translation",
+  "weights": "weights",
+  "extensions": "extensions",
+  "extras": "extras",
+  "skin": "skin",
+  "camera": "camera",
+  "ak_flg": "ak_flg"
 }

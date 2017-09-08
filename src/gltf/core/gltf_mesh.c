@@ -20,35 +20,35 @@ void _assetkit_hide
 gltf_meshes(AkGLTFState * __restrict gst) {
   AkHeap     *heap;
   AkDoc      *doc;
-  json_t     *jmeshess, *jaccessors;
+  json_t     *jmeshes, *jaccessors;
   AkLibItem  *lib;
   AkGeometry *last_geom;
-  size_t      jmeshesSize, i;
+  int32_t     jmeshCount, i;
 
   heap        = gst->heap;
   doc         = gst->doc;
   lib         = ak_heap_calloc(heap, doc, sizeof(*lib));
   last_geom   = NULL;
 
-  jmeshess    = json_object_get(gst->root, _s_gltf_meshes);
-  jmeshesSize = json_array_size(jmeshess);
-  jaccessors  = json_object_get(gst->root, _s_gltf_accessors);
+  jmeshes    = json_object_get(gst->root, _s_gltf_meshes);
+  jmeshCount = (int32_t)json_array_size(jmeshes);
+  jaccessors = json_object_get(gst->root, _s_gltf_accessors);
 
-  for (i = 0; i < jmeshesSize; i++) {
+  for (i = jmeshCount - 1; i >= 0; i--) {
     AkGeometry *geom;
     AkObject   *last_mesh;
 
     json_t     *jmesh, *jprims;
-    size_t      jprimsSize, j;
+    int32_t     jprimCount, j;
 
     geom       = ak_heap_calloc(heap, lib, sizeof(*geom));
 
-    jmesh      = json_array_get(jmeshess, i);
+    jmesh      = json_array_get(jmeshes, i);
     jprims     = json_object_get(jmesh, _s_gltf_primitives);
-    jprimsSize = json_array_size(jprims);
+    jprimCount = (int32_t)json_array_size(jprims);
     last_mesh  = NULL;
 
-    for (j = 0; j < jprimsSize; j++) {
+    for (j = 0; j < jprimCount; j++) {
       AkObject        *meshObj;
       AkMesh          *mesh;
       AkMeshPrimitive *prim;
@@ -181,6 +181,8 @@ gltf_meshes(AkGLTFState * __restrict gst) {
     last_geom = geom;
     lib->count++;
   }
+
+  doc->lib.geometries = lib;
 }
 
 void _assetkit_hide

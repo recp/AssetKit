@@ -65,5 +65,16 @@ _AK_EXTERN const char _s_gltf_pool_0[];
 #define _s_gltf_MAT2 _s_gltf_0(323)
 #define _s_gltf_MAT3 _s_gltf_0(328)
 #define _s_gltf_MAT4 _s_gltf_0(333)
+#define _s_gltf_children _s_gltf_0(338)
+#define _s_gltf_matrix _s_gltf_0(347)
+#define _s_gltf_rotation _s_gltf_0(354)
+#define _s_gltf_scale _s_gltf_0(363)
+#define _s_gltf_translation _s_gltf_0(369)
+#define _s_gltf_weights _s_gltf_0(381)
+#define _s_gltf_extensions _s_gltf_0(389)
+#define _s_gltf_extras _s_gltf_0(400)
+#define _s_gltf_skin _s_gltf_0(407)
+#define _s_gltf_camera _s_gltf_0(412)
+#define _s_gltf_ak_flg _s_gltf_0(419)
 
 #endif /* ak_gltf_strpool_h */

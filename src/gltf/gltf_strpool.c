@@ -59,6 +59,17 @@ const char _s_gltf_pool_0[] =
 "MAT2\0"
 "MAT3\0"
 "MAT4\0"
+"children\0"
+"matrix\0"
+"rotation\0"
+"scale\0"
+"translation\0"
+"weights\0"
+"extensions\0"
+"extras\0"
+"skin\0"
+"camera\0"
+"ak_flg\0"
 ;
 
 #undef _AK_GLTF_STRPOOL_

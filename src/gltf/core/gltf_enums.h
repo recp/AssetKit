@@ -4,6 +4,7 @@
  * MIT License (MIT), http://opensource.org/licenses/MIT
  * Full license can be found in the LICENSE file
  */
+
 #ifndef gltf_enums_h
 #define gltf_enums_h
 
