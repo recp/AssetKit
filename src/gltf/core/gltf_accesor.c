@@ -12,7 +12,7 @@
 
 AkAccessor* _assetkit_hide
 gltf_accessor(AkGLTFState     * __restrict gst,
-              AkMeshPrimitive * __restrict prim,
+              void            * __restrict memParent,
               json_t          * __restrict jacc) {
   AkHeap      *heap;
   AkSource    *src;
@@ -23,17 +23,18 @@ gltf_accessor(AkGLTFState     * __restrict gst,
 
   heap = gst->heap;
 
-  src  = ak_heap_calloc(heap, prim, sizeof(*src));
+  src  = ak_heap_calloc(heap, memParent, sizeof(*src));
   acc  = ak_heap_calloc(heap, src, sizeof(*acc));
 
   acc->stride     = acc->bound;
-  acc->count      = json_int32(jacc, _s_gltf_count);
   acc->itemTypeId = gltf_componentType(json_int32(jacc,
                                                   _s_gltf_componentType));
   acc->type       = ak_typeDesc(acc->itemTypeId);
   acc->byteOffset = json_int64(jacc, _s_gltf_byteOffset);
   acc->normalized = json_boolean_value(json_object_get(jacc,
                                                        _s_gltf_normalized));
+  bound      = gltf_type(json_cstr(jacc, _s_gltf_type));
+  acc->count = json_int32(jacc, _s_gltf_count) * bound;
 
   if ((jbuffView = json_object_get(jacc, _s_gltf_bufferView))) {
     AkBuffer *buff;
@@ -45,10 +46,13 @@ gltf_accessor(AkGLTFState     * __restrict gst,
                        (int32_t)json_integer_value(jbuffView),
                        &acc->byteStride);
 
+    if (acc->byteStride == 0)
+      acc->byteStride = acc->type->size;
+
+    acc->byteLength = buff->length;
     acc->source.ptr = buff;
   }
 
-  bound      = gltf_type(json_cstr(jacc, _s_gltf_type));
   dp         = last_dp = NULL;
   acc->bound = bound;
 

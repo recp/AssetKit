@@ -12,7 +12,7 @@
 
 AkAccessor* _assetkit_hide
 gltf_accessor(AkGLTFState     * __restrict gst,
-              AkMeshPrimitive * __restrict prim,
+              void            * __restrict memParent,
               json_t          * __restrict jacc);
 
 #endif /* gltf_accesor_h */
