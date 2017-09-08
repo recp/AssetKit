@@ -27,8 +27,8 @@ gltf_nodes(AkGLTFState * __restrict gst) {
   jnodesCount = json_array_size(jnodes);
 
   for (i = 0; i < jnodesCount; i++) {
-    AkNode     *node;
-    json_t     *jnode, *jval;
+    AkNode *node;
+    json_t *jnode, *jval;
 
     jnode = json_array_get(jnodes, i);
 
@@ -83,8 +83,10 @@ gltf_node(AkGLTFState * __restrict gst,
 
     meshIndex = (int32_t)json_integer_value(jmesh);
     geomIter  = gst->doc->lib.geometries->chld;
-    while (meshIndex > 0)
+    while (meshIndex > 0) {
       geomIter = geomIter->next;
+      meshIndex--;
+    }
 
     if (geomIter) {
       AkInstanceGeometry *instGeom;
@@ -229,7 +231,7 @@ gltf_node(AkGLTFState * __restrict gst,
                       true);
 
     scale = ak_objGet(obj);
-    for (i = 0; i < 43; i++)
+    for (i = 0; i < 3; i++)
       scale->val[i] = json_number_value(jval);
 
     if (last_trans)

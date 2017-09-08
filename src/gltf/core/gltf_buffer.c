@@ -48,8 +48,10 @@ gltf_buffer(AkGLTFState * __restrict gst,
     FListItem *buffIter;
 
     buffIter = gst->buffers;
-    while (bufferIndex > 0)
+    while (bufferIndex > 0) {
       buffIter = buffIter->next;
+      bufferIndex--;
+    }
 
     if (buffIter) {
       AkBuffer   *gltfbuff;
