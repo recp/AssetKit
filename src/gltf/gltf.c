@@ -12,6 +12,7 @@
 #include "core/gltf_buffer.h"
 #include "core/gltf_mesh.h"
 #include "core/gltf_node.h"
+#include "core/gltf_scene.h"
 
 AkResult _assetkit_hide
 ak_gltf_doc(AkDoc     ** __restrict dest,
@@ -59,6 +60,7 @@ ak_gltf_doc(AkDoc     ** __restrict dest,
   gltf_buffers(gst);
   gltf_meshes(gst);
   gltf_nodes(gst);
+  gltf_scenes(gst);
 
   *dest = doc;
 

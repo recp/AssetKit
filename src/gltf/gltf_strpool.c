@@ -40,6 +40,7 @@ const char _s_gltf_pool_0[] =
 "indices\0"
 "mode\0"
 "nodes\0"
+"node\0"
 "mesh\0"
 "scene\0"
 "scenes\0"

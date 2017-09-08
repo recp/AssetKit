@@ -26,6 +26,7 @@
   "indices": "indices",
   "mode": "mode",
   "nodes": "nodes",
+  "node": "node",
   "mesh": "mesh",
   "scene": "scene",
   "scenes": "scenes",
