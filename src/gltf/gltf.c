@@ -13,6 +13,7 @@
 #include "core/gltf_mesh.h"
 #include "core/gltf_node.h"
 #include "core/gltf_scene.h"
+#include "gltf_postscript.h"
 
 AkResult _assetkit_hide
 ak_gltf_doc(AkDoc     ** __restrict dest,
@@ -87,6 +88,9 @@ ak_gltf_doc(AkDoc     ** __restrict dest,
   }
 
   *dest = doc;
+
+  /* post-parse operations */
+  gltf_postscript(gst);
 
   return AK_OK;
 }
