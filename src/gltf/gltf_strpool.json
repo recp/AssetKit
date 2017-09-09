@@ -56,5 +56,6 @@
   "extras": "extras",
   "skin": "skin",
   "camera": "camera",
-  "ak_flg": "ak_flg"
+  "ak_flg": "ak_flg",
+  "VERTEX": "VERTEX"
 }
