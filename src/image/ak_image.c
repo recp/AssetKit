@@ -21,6 +21,12 @@
 
 #pragma GCC diagnostic pop
 
+#ifdef _MSC_VER
+#  ifndef PATH_MAX
+#    define PATH_MAX MAX_PATH
+#  endif
+#endif
+
 void
 ak_imageLoad(AkImage * __restrict image) {
   AkHeap        *heap;

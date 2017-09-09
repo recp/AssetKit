@@ -13,7 +13,13 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <sys/syslimits.h>
+#include <limits.h>
+
+#ifdef _MSC_VER
+#  ifndef PATH_MAX
+#    define PATH_MAX MAX_PATH
+#  endif
+#endif
 
 void
 ak_url_init(void  *parent,
