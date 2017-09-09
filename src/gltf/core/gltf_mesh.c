@@ -7,7 +7,7 @@
 
 #include "gltf_mesh.h"
 #include "gltf_enums.h"
-#include "gltf_accesor.h"
+#include "gltf_accessor.h"
 #include "gltf_buffer.h"
 #include "../../ak_accessor.h"
 
