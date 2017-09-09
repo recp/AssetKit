@@ -77,8 +77,9 @@ gltf_meshes(AkGLTFState * __restrict gst) {
                                                  vertInp,
                                                  _s_gltf_VERTEX);
       vertInp->base.source.ptr = mesh->vertices;
+      prim->input = last_inp = vertInp;
+      prim->inputCount = 1;
 
-      prim->input   = last_inp = vertInp;
       last_vert_inp = NULL;
       jattribs      = json_object_get(jprim, _s_gltf_attributes);
       json_object_foreach(jattribs, jkey, jval) {
@@ -148,10 +149,10 @@ gltf_meshes(AkGLTFState * __restrict gst) {
           AkUInt      *it1;
           char        *it2;
 
-          indices = ak_heap_alloc(heap,
-                                  prim,
-                                  sizeof(*indices)
-                                    + sizeof(AkUInt) * count);
+          indices = ak_heap_calloc(heap,
+                                   prim,
+                                   sizeof(*indices)
+                                     + sizeof(AkUInt) * count);
           indices->count = count;
           it1 = indices->items;
           it2 = indicesBuff->data;
@@ -160,7 +161,7 @@ gltf_meshes(AkGLTFState * __restrict gst) {
              type to int32 (for now)
            */
           for (i = 0; i < count; i++) {
-            it1[i] = *(AkUInt *)(it2 + itemSize * i);
+            memcpy(&it1[i], it2 + itemSize * i, itemSize);
           }
 
           prim->indices     = indices;
@@ -168,7 +169,7 @@ gltf_meshes(AkGLTFState * __restrict gst) {
         }
       }
 
-      gltf_setPrimMode(prim, json_int32(jprim, _s_gltf_mode));
+      gltf_setPrimMode(prim, json_int32_def(jprim, _s_gltf_mode, 4));
 
       prim->vertices    = mesh->vertices;
       prim->mesh        = mesh;
@@ -227,21 +228,21 @@ gltf_setPrimMode(AkMeshPrimitive *prim, int mode) {
     case 4: {
       AkTriangles *tri;
       tri = (AkTriangles *)prim;
-      prim->type = AK_MESH_PRIMITIVE_TYPE_LINES;
+      prim->type = AK_MESH_PRIMITIVE_TYPE_TRIANGLES;
       tri->mode  = AK_TRIANGLE_MODE_TRIANGLES;
       break;
     }
     case 5: {
       AkTriangles *tri;
       tri = (AkTriangles *)prim;
-      prim->type = AK_MESH_PRIMITIVE_TYPE_LINES;
+      prim->type = AK_MESH_PRIMITIVE_TYPE_TRIANGLES;
       tri->mode  = AK_TRIANGLE_MODE_TRIANGLE_STRIP;
       break;
     }
     case 6: {
       AkTriangles *tri;
       tri = (AkTriangles *)prim;
-      prim->type = AK_MESH_PRIMITIVE_TYPE_LINES;
+      prim->type = AK_MESH_PRIMITIVE_TYPE_TRIANGLES;
       tri->mode  = AK_TRIANGLE_MODE_TRIANGLE_FAN;
       break;
     }

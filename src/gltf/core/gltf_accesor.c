@@ -26,7 +26,6 @@ gltf_accessor(AkGLTFState     * __restrict gst,
   src  = ak_heap_calloc(heap, memParent, sizeof(*src));
   acc  = ak_heap_calloc(heap, src, sizeof(*acc));
 
-  acc->stride     = acc->bound;
   acc->itemTypeId = gltf_componentType(json_int32(jacc,
                                                   _s_gltf_componentType));
   acc->type       = ak_typeDesc(acc->itemTypeId);
@@ -46,18 +45,19 @@ gltf_accessor(AkGLTFState     * __restrict gst,
                        (int32_t)json_integer_value(jbuffView),
                        &acc->byteStride);
 
-    if (acc->byteStride == 0)
-      acc->byteStride = acc->type->size;
-
     acc->byteLength = buff->length;
     acc->source.ptr = buff;
   }
 
-  dp         = last_dp = NULL;
-  acc->bound = bound;
+  dp          = last_dp = NULL;
+  acc->bound  = bound;
 
   if (bound > 10)
     acc->bound >>= 3;
+
+  acc->stride = acc->bound;
+  if (acc->byteStride == 0)
+    acc->byteStride = acc->type->size * acc->stride;
 
   /* prepare accessor params */
   for (i = 0; i < acc->bound; i++) {

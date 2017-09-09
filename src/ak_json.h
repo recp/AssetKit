@@ -18,6 +18,11 @@ const char*
 json_cstr(json_t *jsn, const char *key);
 
 int32_t
+json_int32_def(json_t     *jsn,
+               const char *key,
+               int32_t     def);
+
+int32_t
 json_int32(json_t *jsn, const char *key);
 
 int64_t

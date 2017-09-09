@@ -55,7 +55,6 @@ gltf_buffer(AkGLTFState * __restrict gst,
 
     if (buffIter) {
       AkBuffer   *gltfbuff;
-      void       *data;
       const char *sval;
       size_t      byteLength, _byteStride, byteOffset;
 
@@ -71,8 +70,8 @@ gltf_buffer(AkGLTFState * __restrict gst,
       if (byteStride)
         *byteStride = _byteStride;
 
-      buff->data = data = ak_heap_alloc(heap, buff, byteLength);
-      memcpy(data,
+      buff->data = ak_heap_alloc(heap, buff, byteLength);
+      memcpy(buff->data,
              (char *)gltfbuff->data + byteOffset,
              byteLength);
 
