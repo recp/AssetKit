@@ -24,7 +24,8 @@ libassetkit_la_LDFLAGS = -no-undefined \
                          -ljemalloc \
                          -lcurl \
                          -luv \
-                         -lds
+                         -lds \
+                         -ljansson
 
 check_PROGRAMS = test/tests
 TESTS = test/tests
@@ -97,7 +98,7 @@ libassetkit_la_SOURCES=\
     src/ak_type.c \
     src/ak_profile.c \
     src/ak_asset.c \
-    src/ak_type.c \
+    src/ak_json.c \
     src/camera/ak_cam.c \
     src/light/ak_light.c \
     src/node/ak_node.c \
@@ -211,7 +212,19 @@ libassetkit_la_SOURCES=\
 \
     src/collada/1.4/ak_collada14.c \
     src/collada/1.4/ak_collada14_image.c \
-    src/collada/1.4/ak_collada14_surface.c
+    src/collada/1.4/ak_collada14_surface.c \
+\
+    src/gltf/gltf.c \
+    src/gltf/gltf_strpool.c \
+    src/gltf/gltf_postscript.c \
+    src/gltf/gltf_mesh_fixup.c \
+    src/gltf/core/gltf_enums.c \
+    src/gltf/core/gltf_asset.c \
+    src/gltf/core/gltf_buffer.c \
+    src/gltf/core/gltf_accessor.c \
+    src/gltf/core/gltf_mesh.c \
+    src/gltf/core/gltf_node.c \
+    src/gltf/core/gltf_scene.c
 
 test_tests_SOURCES=\
     test/src/test-common.h \
