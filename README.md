@@ -3,6 +3,7 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/e52s0fr8mnbmsqy4?svg=true)](https://ci.appveyor.com/project/recp/assetkit)
 [![Coverage Status](https://coveralls.io/repos/github/recp/assetkit/badge.svg?branch=master)](https://coveralls.io/github/recp/assetkit?branch=master)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/6edde2ba446148759437eb0148c799b6)](https://www.codacy.com/app/recp/assetkit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=recp/assetkit&amp;utm_campaign=Badge_Grade)
+![status](https://img.shields.io/badge/glTF-2%2E0-green.svg?style=flat)
 
 3D asset importer, exporter library. This library also includes common 3D utils funcs. It is written with C99 but C++ wrappers or other language bindings can be written in the future. 
 
@@ -12,7 +13,21 @@ There is also an optional renderer library called [libgk](https://github.com/rec
 
 I've also created a basic program (included a screenshot of render result and dae) to show full steps: [simple-collada-viewer](http://github.com/recp/simple-collada-viewer)
 
-##Tasklist
+## glTF
+- [x] Load buffers, bufferViews
+- [x] Load acessors, meshes / primitives
+- [x] Load nodes
+- [x] Load scenes
+- [ ] Load materials
+  - [ ] Images
+  - [ ] Textures
+  - [ ] PBR Materials
+- [ ] Animations
+- [ ] Extensions
+  - [ ] Lights
+  - [ ] Common materials
+
+## Tasklist
 
 - [x] Hierarchical Allocator
   - [x] Extensible memory node
