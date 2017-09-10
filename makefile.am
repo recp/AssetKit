@@ -224,7 +224,8 @@ libassetkit_la_SOURCES=\
     src/gltf/core/gltf_accessor.c \
     src/gltf/core/gltf_mesh.c \
     src/gltf/core/gltf_node.c \
-    src/gltf/core/gltf_scene.c
+    src/gltf/core/gltf_scene.c \
+    src/gltf/core/gltf_camera.c
 
 test_tests_SOURCES=\
     test/src/test-common.h \

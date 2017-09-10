@@ -14,6 +14,7 @@
 #include "core/gltf_node.h"
 #include "core/gltf_scene.h"
 #include "gltf_postscript.h"
+#include "core/gltf_camera.h"
 
 AkResult _assetkit_hide
 ak_gltf_doc(AkDoc     ** __restrict dest,
@@ -63,6 +64,7 @@ ak_gltf_doc(AkDoc     ** __restrict dest,
   gltf_meshes(gst);
   gltf_nodes(gst);
   gltf_scenes(gst);
+  gltf_cameras(gst);
 
   /* set default scene */
   if ((jscene = json_object_get(gst->root, _s_gltf_scene))) {

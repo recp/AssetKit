@@ -28,4 +28,7 @@ json_int32(json_t *jsn, const char *key);
 int64_t
 json_int64(json_t *jsn, const char *key);
 
+float
+json_float(json_t *jsn, const char *key);
+
 #endif /* ak_json_h */

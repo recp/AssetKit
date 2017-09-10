@@ -36,6 +36,17 @@ json_int32(json_t *jsn, const char *key) {
   return json_int32_def(jsn, key, 0);
 }
 
+float
+json_float(json_t *jsn, const char *key) {
+  json_t *jval;
+
+  jval = json_object_get(jsn, key);
+  if (!jval)
+    return 0.0f;
+
+  return (float)json_integer_value(jval);
+}
+
 int64_t
 json_int64(json_t *jsn, const char *key) {
   json_t *jval;

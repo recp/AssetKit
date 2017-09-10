@@ -56,6 +56,16 @@
   "extras": "extras",
   "skin": "skin",
   "camera": "camera",
+  "cameras": "cameras",
+  "perspective": "perspective",
+  "orthographic": "orthographic",
+  "aspectRatio": "aspectRatio",
+  "xfov": "xfov",
+  "yfov": "yfov",
+  "zfar": "zfar",
+  "znear": "znear",
+  "xmag": "xmag",
+  "ymag": "ymag",
   "ak_flg": "ak_flg",
   "VERTEX": "VERTEX"
 }
