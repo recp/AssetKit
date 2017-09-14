@@ -16,6 +16,7 @@ gltf_nodes(AkGLTFState * __restrict gst);
 AkNode* _assetkit_hide
 gltf_node(AkGLTFState * __restrict gst,
           void        * __restrict memParent,
-          json_t      * __restrict jnode);
+          json_t      * __restrict jnode,
+          AkNode     ** __restrict nodechld);
 
 #endif /* gltf_node_h */

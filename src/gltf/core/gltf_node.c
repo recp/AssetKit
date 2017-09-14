@@ -6,6 +6,7 @@
  */
 
 #include "gltf_node.h"
+#include "../../ak_id.h"
 
 void _assetkit_hide
 gltf_nodes(AkGLTFState * __restrict gst) {
@@ -13,8 +14,10 @@ gltf_nodes(AkGLTFState * __restrict gst) {
   AkDoc      *doc;
   json_t     *jnodes;
   AkLibItem  *lib;
-  AkNode     *last_node;
+  AkNode     *last_node, *node;
   AkObject   *last_trans;
+  AkNode    **nodechld;
+  FListItem  *nodes, *nodeItem;
   size_t      jnodesCount, i;
 
   heap        = gst->heap;
@@ -22,13 +25,15 @@ gltf_nodes(AkGLTFState * __restrict gst) {
   lib         = ak_heap_calloc(heap, doc, sizeof(*lib));
   last_node   = NULL;
   last_trans  = NULL;
+  nodes       = NULL;
 
   jnodes      = json_object_get(gst->root, _s_gltf_nodes);
   jnodesCount = json_array_size(jnodes);
+  nodechld    = ak_calloc(NULL, sizeof(*nodechld) * jnodesCount);
 
   for (i = 0; i < jnodesCount; i++) {
-    AkNode *node;
-    json_t *jnode, *jval;
+    json_t     *jnode, *jval;
+    const char *nodeid;
 
     jnode = json_array_get(jnodes, i);
 
@@ -36,16 +41,62 @@ gltf_nodes(AkGLTFState * __restrict gst) {
     if ((jval = json_object_get(jnode, _s_gltf_ak_flg)))
       continue;
 
-    node = gltf_node(gst, lib, jnode);
+    node = gltf_node(gst, lib, jnode, nodechld);
+    if (!node)
+      continue;
 
-    if (last_node)
-      last_node->next = node;
-    else
-      lib->chld = node;
+    /* sets id "node-[i]" for node. */
+    nodeid = ak_id_gen(heap, node, _s_gltf_node);
 
-    last_node = node;
-    lib->count++;
+    ak_heap_setId(heap,
+                  ak__alignof(node),
+                  (void *)nodeid);
+
+    flist_sp_insert(&nodes, node);
   }
+
+  /* all nodes are parsed, now set children */
+  nodeItem = nodes;
+  i        = jnodesCount - 1;
+
+  while (nodeItem) {
+    AkNode *parentNode;
+
+    node       = nodeItem->data;
+    parentNode = nodechld[i];
+
+    /* this node ha parent node, move this into parent children link. */
+    if (parentNode) {
+      AkNode *chld;
+      chld = node->chld;
+      if (chld)
+        chld->prev  = node;
+
+      node->next      = chld;
+      parentNode->chld = node;
+      node->parent    = parentNode;
+
+      /* node ownership */
+      ak_heap_setpm(node, parentNode);
+    }
+
+    /* it is root node, add to library_nodes */
+    else {
+      if (last_node)
+        last_node->next = node;
+      else
+        lib->chld = node;
+
+      last_node = node;
+      lib->count++;
+    }
+
+    nodeItem = nodeItem->next;
+    i--;
+  }
+
+  flist_sp_destroy(&nodes);
+  ak_free(nodechld);
 
   doc->lib.nodes = lib;
 }
@@ -53,7 +104,8 @@ gltf_nodes(AkGLTFState * __restrict gst) {
 AkNode* _assetkit_hide
 gltf_node(AkGLTFState * __restrict gst,
           void        * __restrict memParent,
-          json_t      * __restrict jnode) {
+          json_t      * __restrict jnode,
+          AkNode     ** __restrict nodechld) {
   AkHeap     *heap;
   AkDoc      *doc;
   AkLibItem  *lib;
@@ -75,6 +127,31 @@ gltf_node(AkGLTFState * __restrict gst,
 
   if ((sval = json_cstr(jnode, _s_gltf_name)))
     node->name = ak_heap_strdup(gst->heap, node, sval);
+
+  /* cameras */
+  if ((jval = json_object_get(jnode, _s_gltf_camera))) {
+    AkCamera *camIter;
+    int32_t   camIndex;
+
+    camIndex = (int32_t)json_integer_value(jval);
+    camIter  = gst->doc->lib.cameras->chld;
+    while (camIndex > 0) {
+      camIter = camIter->next;
+      camIndex--;
+    }
+
+    if (camIter) {
+      AkInstanceBase *instCamera;
+      instCamera = ak_heap_calloc(heap,
+                                  node,
+                                  sizeof(*instCamera));
+      instCamera->node    = node;
+      instCamera->type    = AK_INSTANCE_CAMERA;
+      instCamera->url.ptr = camIter;
+
+      node->camera = instCamera;
+    }
+  }
 
   /* instance geometries */
   if ((jmesh = json_object_get(jnode, _s_gltf_mesh))) {
@@ -102,28 +179,26 @@ gltf_node(AkGLTFState * __restrict gst,
     }
   }
 
-  /* child nodes */
+  /* mark child nodes
+     we will move the marked nodes into the node after read all nodes.
+   */
   if ((jchld = json_object_get(jnode, _s_gltf_children))) {
-    AkNode *chld, *last_chld;
-    json_t *jchldi;
-    size_t  arrCount;
+    AkNode *chld;
+    size_t  arrCount, chldIndex;
 
     arrCount  = json_array_size(jchld);
-    last_chld = NULL;
 
     for (i = 0; i < arrCount; i++) {
-      jchldi = json_array_get(jchld, i);
-      chld   = gltf_node(gst, node, jchldi);
+      chldIndex = json_integer_value(json_array_get(jchld, i));
+      chld      = nodechld[chldIndex];
 
-      /* set flag to prevent being re-child of another node */
-      json_object_set(jchldi, _s_gltf_ak_flg, json_integer(1));
+      /* this node is already child of another,
+         it cannot be child of two node at same time
+       */
+      if (chld)
+        continue;
 
-      if (last_chld)
-        last_chld->next = chld;
-      else
-        node->chld = chld;
-
-      last_chld = chld;
+      nodechld[chldIndex] = node;
     }
   }
 
@@ -143,7 +218,8 @@ gltf_node(AkGLTFState * __restrict gst,
     matrix = ak_objGet(obj);
     for (i = 0; i < 4; i++) {
       for (j = 0; j < 4; j++) {
-        matrix->val[i][j] = json_number_value(jval);
+        matrix->val[i][j] = json_number_value(json_array_get(jval,
+                                                             i * 4 + j));
       }
     }
 
@@ -174,7 +250,7 @@ gltf_node(AkGLTFState * __restrict gst,
 
     translate = ak_objGet(obj);
     for (i = 0; i < 3; i++)
-      translate->val[i] = json_number_value(jval);
+      translate->val[i] = json_number_value(json_array_get(jval, i));
 
     if (last_trans)
       last_trans->next = obj;
@@ -203,7 +279,7 @@ gltf_node(AkGLTFState * __restrict gst,
 
     rot = ak_objGet(obj);
     for (i = 0; i < 4; i++)
-      rot->val[i] = json_number_value(jval);
+      rot->val[i] = json_number_value(json_array_get(jval, i));
 
     if (last_trans)
       last_trans->next = obj;
@@ -232,7 +308,7 @@ gltf_node(AkGLTFState * __restrict gst,
 
     scale = ak_objGet(obj);
     for (i = 0; i < 3; i++)
-      scale->val[i] = json_number_value(jval);
+      scale->val[i] = json_number_value(json_array_get(jval, i));
 
     if (last_trans)
       last_trans->next = obj;
