@@ -54,7 +54,7 @@ ak_bbox_node(AkHeap        * __restrict heap,
     geomInst = &node->geometry->base;
     while (geomInst) {
       geom = ak_instanceObject(geomInst);
-      if (geom)
+      if (geom && geom->bbox)
         ak_bbox_pick_pbox(&bbox, geom->bbox);
 
       geomInst = geomInst->next;
