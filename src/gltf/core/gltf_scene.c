@@ -45,33 +45,33 @@ gltf_scenes(AkGLTFState * __restrict gst) {
 
       last_instNode = NULL;
       nodeCount     = (int32_t)json_array_size(jnodes);
+
+      /* create instanceNode for each node */
       for (j = nodeCount - 1; j >= 0; j--) {
-        AkNode *nodei;
+        char            nodeid[16];
+        AkNode         *node;
+        AkInstanceNode *instNode;
+
         nodeIndex = (int32_t)json_integer_value(json_array_get(jnodes, j));
+        instNode  = ak_heap_calloc(heap, scene, sizeof(*instNode));
 
-        nodei = doc->lib.nodes->chld;
-        while (nodeIndex > 0) {
-          nodei = nodei->next;
-          nodeIndex--;
-        }
+        sprintf(nodeid, "%s%zu", _s_gltf_node, i + 1);
+        if (!(node = ak_getObjectById(doc, nodeid)))
+          continue;
 
-        /* create instanceNode for each reference */
-        if (nodei) {
-          AkInstanceNode *instNode;
-          instNode = ak_heap_calloc(heap,
-                                    scene,
-                                    sizeof(*instNode));
+        instNode->base.node    = node;
+        instNode->base.url.ptr = node;
+        instNode->base.type    = AK_INSTANCE_NODE;
 
-          instNode->base.type    = AK_INSTANCE_NODE;
-          instNode->base.url.ptr = nodei;
+        if (last_instNode)
+          last_instNode->base.next = &instNode->base;
+        else
+          scene->node->node = instNode;
 
-          if (last_instNode)
-            last_instNode->base.next = &instNode->base;
-          else
-            scene->node->node = instNode;
+        last_instNode = instNode;
 
-          last_instNode = instNode;
-        }
+        if (!scene->firstCamNode)
+          gltf_setFirstCamera(scene, node);
       }
     }
 

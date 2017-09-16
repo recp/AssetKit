@@ -118,6 +118,8 @@ gltf_buffers(AkGLTFState * __restrict gst) {
                              "rb",
                              &buff->data,
                              &buff->length);
+
+      /* TODO: log if logging enabled (or by log level) */
     }
 
     if ((sval = json_cstr(jbuffer, _s_gltf_name)))

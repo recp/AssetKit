@@ -68,13 +68,14 @@ gltf_nodes(AkGLTFState * __restrict gst) {
     /* this node ha parent node, move this into parent children link. */
     if (parentNode) {
       AkNode *chld;
-      chld = node->chld;
-      if (chld)
-        chld->prev  = node;
+      chld = parentNode->chld;
+      if (chld) {
+        chld->prev = node;
+        node->next = chld;
+      }
 
-      node->next      = chld;
       parentNode->chld = node;
-      node->parent    = parentNode;
+      node->parent     = parentNode;
 
       /* node ownership */
       ak_heap_setpm(node, parentNode);
@@ -108,8 +109,6 @@ gltf_node(AkGLTFState * __restrict gst,
           AkNode     ** __restrict nodechld) {
   AkHeap     *heap;
   AkDoc      *doc;
-  AkLibItem  *lib;
-  AkNode     *last_node;
   AkObject   *last_trans;
   AkNode     *node;
   json_t     *jmesh, *jchld, *jval;
@@ -118,8 +117,6 @@ gltf_node(AkGLTFState * __restrict gst,
 
   heap        = gst->heap;
   doc         = gst->doc;
-  lib         = ak_heap_calloc(heap, doc, sizeof(*lib));
-  last_node   = NULL;
   last_trans  = NULL;
 
   node = ak_heap_calloc(heap, memParent, sizeof(*node));
@@ -321,11 +318,6 @@ gltf_node(AkGLTFState * __restrict gst,
 
     last_trans = obj;
   }
-
-  if (last_node)
-    last_node->next = node;
-  else
-    lib->chld = node;
 
   return node;
 }
