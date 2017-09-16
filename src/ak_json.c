@@ -44,7 +44,7 @@ json_float(json_t *jsn, const char *key) {
   if (!jval)
     return 0.0f;
 
-  return (float)json_integer_value(jval);
+  return (float)json_number_value(jval);
 }
 
 int64_t

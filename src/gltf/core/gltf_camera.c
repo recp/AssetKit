@@ -37,13 +37,13 @@ gltf_cameras(AkGLTFState * __restrict gst) {
     if ((sval = json_cstr(jcam, _s_gltf_name)))
       cam->name = ak_heap_strdup(gst->heap, cam, sval);
 
-    if ((sval = json_cstr(jcam, _s_gltf_type))) {
+    if (!(sval = json_cstr(jcam, _s_gltf_type))) {
       ak_free(cam);
       continue;
     }
 
-    jtechnique = json_object_get(jcams, sval);
-    if (strcasecmp(sval, _s_gltf_perspective)) {
+    jtechnique = json_object_get(jcam, sval);
+    if (strcasecmp(sval, _s_gltf_perspective) == 0) {
       AkPerspective *persp;
       persp = ak_heap_calloc(heap, optics, sizeof(*persp));
       persp->base.type = AK_PROJECTION_PERSPECTIVE;
@@ -52,7 +52,7 @@ gltf_cameras(AkGLTFState * __restrict gst) {
       persp->yfov        = json_float(jtechnique, _s_gltf_yfov);
       persp->znear       = json_float(jtechnique, _s_gltf_znear);
       persp->zfar        = json_float(jtechnique, _s_gltf_zfar);
-      persp->aspectRatio = json_float(jtechnique, _s_gltf_zfar);
+      persp->aspectRatio = json_float(jtechnique, _s_gltf_aspectRatio);
 
       if (!persp->aspectRatio
           && persp->yfov
@@ -69,7 +69,7 @@ gltf_cameras(AkGLTFState * __restrict gst) {
       }
 
       optics->tcommon = &persp->base;
-    } else if (strcasecmp(sval, _s_gltf_orthographic)) {
+    } else if (strcasecmp(sval, _s_gltf_orthographic) == 0) {
       AkOrthographic *ortho;
       ortho = ak_heap_calloc(heap, optics, sizeof(*ortho));
       ortho->base.type = AK_PROJECTION_ORTHOGRAPHIC;
@@ -79,11 +79,8 @@ gltf_cameras(AkGLTFState * __restrict gst) {
       ortho->znear = json_float(jtechnique, _s_gltf_znear);
       ortho->zfar  = json_float(jtechnique, _s_gltf_zfar);
 
-      if (!ortho->aspectRatio
-          && ortho->ymag
-          && ortho->xmag) {
+      if (ortho->ymag && ortho->xmag)
         ortho->aspectRatio = ortho->xmag / ortho->ymag;
-      }
 
       optics->tcommon = &ortho->base;
     }
@@ -96,4 +93,6 @@ gltf_cameras(AkGLTFState * __restrict gst) {
     last_cam = cam;
     lib->count++;
   }
+
+  doc->lib.cameras = lib;
 }

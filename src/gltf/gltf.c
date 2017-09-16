@@ -62,9 +62,9 @@ ak_gltf_doc(AkDoc     ** __restrict dest,
 
   gltf_buffers(gst);
   gltf_meshes(gst);
+  gltf_cameras(gst);
   gltf_nodes(gst);
   gltf_scenes(gst);
-  gltf_cameras(gst);
 
   /* set default scene */
   if ((jscene = json_object_get(gst->root, _s_gltf_scene))) {

@@ -7,6 +7,10 @@
 
 #include "gltf_scene.h"
 
+static
+void
+gltf_setFirstCamera(AkVisualScene *scene, AkNode *node);
+
 void _assetkit_hide
 gltf_scenes(AkGLTFState * __restrict gst) {
   AkHeap        *heap;
@@ -30,6 +34,10 @@ gltf_scenes(AkGLTFState * __restrict gst) {
 
     jscene = json_array_get(jscenes, i);
     scene  = ak_heap_calloc(heap, lib, sizeof(*scene));
+
+    scene->cameras = ak_heap_calloc(heap,
+                                    scene,
+                                    sizeof(*scene->cameras));
 
     /* root node: to store node instances */
     scene->node = ak_heap_calloc(heap,
@@ -85,4 +93,27 @@ gltf_scenes(AkGLTFState * __restrict gst) {
   }
 
   doc->lib.visualScenes = lib;
+}
+
+static
+void
+gltf_setFirstCamera(AkVisualScene *scene, AkNode *node) {
+  if (node->camera) {
+    if (!scene->firstCamNode)
+      scene->firstCamNode = node;
+
+    ak_instanceListAdd(scene->cameras,
+                       node->camera);
+
+    return;
+  }
+
+  if (node->chld) {
+    AkNode *nodei;
+    nodei = node->chld;
+    while (nodei) {
+      gltf_setFirstCamera(scene, nodei);
+      nodei = nodei->next;
+    }
+  }
 }
