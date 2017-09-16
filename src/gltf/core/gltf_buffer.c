@@ -78,7 +78,7 @@ gltf_buffer(AkGLTFState * __restrict gst,
       if ((sval = json_cstr(jbuffView, _s_gltf_name)))
         buff->name = ak_heap_strdup(gst->heap, buff, sval);
 
-      buff->reserved = (size_t)byteStride;
+      buff->reserved = (size_t)_byteStride;
       buff->length   = byteLength;
 
       rb_insert(gst->bufferViews,

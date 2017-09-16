@@ -111,7 +111,7 @@ gltf_accessor(AkGLTFState     * __restrict gst,
     arrSize  = json_array_size(min);
     acc->min = ak_heap_alloc(heap,
                              acc,
-                             sizeof(acc->type->size * acc->bound));
+                             sizeof(acc->type->size) * acc->bound);
 
     if (arrSize > acc->bound)
       arrSize = acc->bound;
@@ -148,7 +148,7 @@ gltf_accessor(AkGLTFState     * __restrict gst,
     arrSize  = json_array_size(max);
     acc->max = ak_heap_alloc(heap,
                              acc,
-                             sizeof(acc->type->size * acc->bound));
+                             sizeof(acc->type->size) * acc->bound);
 
     if (arrSize > acc->bound)
       arrSize = acc->bound;

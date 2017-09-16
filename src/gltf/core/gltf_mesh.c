@@ -56,6 +56,7 @@ gltf_meshes(AkGLTFState * __restrict gst) {
       json_t          *jprim, *jattribs, *jval, *jindices;
       const char      *jkey;
 
+      jprim   = json_array_get(jprims, i);
       meshObj = ak_objAlloc(heap,
                             geom,
                             sizeof(AkMesh),
@@ -64,8 +65,9 @@ gltf_meshes(AkGLTFState * __restrict gst) {
       mesh       = ak_objGet(meshObj);
       mesh->geom = geom;
 
-      prim  = ak_heap_calloc(heap, meshObj, sizeof(*prim));
-      jprim = json_array_get(jprims, i);
+      prim  = gltf_allocPrim(heap,
+                             meshObj,
+                             json_int32_def(jprim, _s_gltf_mode,  4));
 
       mesh->vertices = ak_heap_calloc(heap,
                                       prim,
@@ -169,8 +171,6 @@ gltf_meshes(AkGLTFState * __restrict gst) {
         }
       }
 
-      gltf_setPrimMode(prim, json_int32_def(jprim, _s_gltf_mode, 4));
-
       prim->vertices    = mesh->vertices;
       prim->mesh        = mesh;
       mesh->primitive   = prim;
@@ -198,53 +198,68 @@ gltf_meshes(AkGLTFState * __restrict gst) {
   doc->lib.geometries = lib;
 }
 
-void _assetkit_hide
-gltf_setPrimMode(AkMeshPrimitive *prim, int mode) {
+AkMeshPrimitive* _assetkit_hide
+gltf_allocPrim(AkHeap * __restrict heap,
+               void   * __restrict memParent,
+               int                 mode) {
   switch (mode) {
-    case 0:
+    case 0: {
+      AkMeshPrimitive *prim;
+      prim = ak_heap_calloc(heap, memParent, sizeof(*prim));
       prim->type = AK_MESH_PRIMITIVE_TYPE_POINTS;
+      return prim;
       break;
+    }
     case 1: {
       AkLines *lines;
-      lines = (AkLines *)prim;
-      prim->type  = AK_MESH_PRIMITIVE_TYPE_LINES;
-      lines->mode = AK_LINE_MODE_LINES;
+      lines = ak_heap_calloc(heap, memParent, sizeof(*lines));
+      lines->base.type = AK_MESH_PRIMITIVE_TYPE_LINES;
+      lines->mode      = AK_LINE_MODE_LINES;
+      return &lines->base;
       break;
     }
     case 2: {
       AkLines *lines;
-      lines = (AkLines *)prim;
-      prim->type  = AK_MESH_PRIMITIVE_TYPE_LINES;
-      lines->mode = AK_LINE_MODE_LINE_LOOP;
+      lines = ak_heap_calloc(heap, memParent, sizeof(*lines));
+      lines->base.type = AK_MESH_PRIMITIVE_TYPE_LINES;
+      lines->mode       = AK_LINE_MODE_LINE_LOOP;
+      return &lines->base;
       break;
     }
     case 3: {
       AkLines *lines;
-      lines = (AkLines *)prim;
-      prim->type  = AK_MESH_PRIMITIVE_TYPE_LINES;
-      lines->mode = AK_LINE_MODE_LINE_STRIP;
+      lines = ak_heap_calloc(heap, memParent, sizeof(*lines));
+      lines->base.type = AK_MESH_PRIMITIVE_TYPE_LINES;
+      lines->mode      = AK_LINE_MODE_LINE_STRIP;
+      return &lines->base;
       break;
     }
     case 4: {
       AkTriangles *tri;
-      tri = (AkTriangles *)prim;
-      prim->type = AK_MESH_PRIMITIVE_TYPE_TRIANGLES;
-      tri->mode  = AK_TRIANGLE_MODE_TRIANGLES;
+      tri = ak_heap_calloc(heap, memParent, sizeof(*tri));
+      tri->base.type = AK_MESH_PRIMITIVE_TYPE_TRIANGLES;
+      tri->mode      = AK_TRIANGLE_MODE_TRIANGLES;
+      return &tri->base;
       break;
     }
     case 5: {
       AkTriangles *tri;
-      tri = (AkTriangles *)prim;
-      prim->type = AK_MESH_PRIMITIVE_TYPE_TRIANGLES;
+      tri = ak_heap_calloc(heap, memParent, sizeof(*tri));
+      tri->base.type = AK_MESH_PRIMITIVE_TYPE_TRIANGLES;
       tri->mode  = AK_TRIANGLE_MODE_TRIANGLE_STRIP;
+      return &tri->base;
       break;
     }
     case 6: {
       AkTriangles *tri;
-      tri = (AkTriangles *)prim;
-      prim->type = AK_MESH_PRIMITIVE_TYPE_TRIANGLES;
+      tri = ak_heap_calloc(heap, memParent, sizeof(*tri));
+      tri->base.type = AK_MESH_PRIMITIVE_TYPE_TRIANGLES;
       tri->mode  = AK_TRIANGLE_MODE_TRIANGLE_FAN;
+      return &tri->base;
       break;
     }
   }
+
+  return NULL;
 }
+

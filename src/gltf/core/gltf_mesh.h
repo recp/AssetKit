@@ -13,7 +13,9 @@
 void _assetkit_hide
 gltf_meshes(AkGLTFState * __restrict gst);
 
-void _assetkit_hide
-gltf_setPrimMode(AkMeshPrimitive *prim, int mode);
+AkMeshPrimitive* _assetkit_hide
+gltf_allocPrim(AkHeap * __restrict heap,
+               void   * __restrict memParent,
+               int                 mode);
 
 #endif /* gltf_mesh_h */
