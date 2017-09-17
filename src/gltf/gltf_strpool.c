@@ -82,6 +82,8 @@ const char _s_gltf_pool_0[] =
 "ymag\0"
 "ak_flg\0"
 "VERTEX\0"
+"images\0"
+"image\0"
 ;
 
 #undef _AK_GLTF_STRPOOL_

@@ -108,7 +108,6 @@ gltf_node(AkGLTFState * __restrict gst,
           json_t      * __restrict jnode,
           AkNode     ** __restrict nodechld) {
   AkHeap     *heap;
-  AkDoc      *doc;
   AkObject   *last_trans;
   AkNode     *node;
   json_t     *jmesh, *jchld, *jval;
@@ -116,7 +115,6 @@ gltf_node(AkGLTFState * __restrict gst,
   size_t      i;
 
   heap        = gst->heap;
-  doc         = gst->doc;
   last_trans  = NULL;
 
   node = ak_heap_calloc(heap, memParent, sizeof(*node));
@@ -202,9 +200,7 @@ gltf_node(AkGLTFState * __restrict gst,
   if ((jval = json_object_get(jnode, _s_gltf_matrix))) {
     AkObject *obj;
     AkMatrix *matrix;
-    size_t    arrSize, j;
-
-    arrSize = json_array_size(jval);
+    size_t    j;
 
     obj = ak_objAlloc(heap,
                       node,

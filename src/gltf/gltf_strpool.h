@@ -88,5 +88,7 @@ _AK_EXTERN const char _s_gltf_pool_0[];
 #define _s_gltf_ymag _s_gltf_0(495)
 #define _s_gltf_ak_flg _s_gltf_0(500)
 #define _s_gltf_VERTEX _s_gltf_0(507)
+#define _s_gltf_images _s_gltf_0(514)
+#define _s_gltf_image _s_gltf_0(521)
 
 #endif /* ak_gltf_strpool_h */

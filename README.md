@@ -20,7 +20,7 @@ I've also created a basic program (included a screenshot of render result and da
 - [x] Load scenes
 - [x] Load cameras
 - [ ] Load materials
-  - [ ] Images
+  - [x] Images
   - [ ] Textures
   - [ ] PBR Materials
 - [ ] Animations

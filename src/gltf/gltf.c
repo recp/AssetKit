@@ -15,6 +15,7 @@
 #include "core/gltf_scene.h"
 #include "gltf_postscript.h"
 #include "core/gltf_camera.h"
+#include "core/gltf_image.h"
 
 AkResult _assetkit_hide
 ak_gltf_doc(AkDoc     ** __restrict dest,
@@ -61,6 +62,7 @@ ak_gltf_doc(AkDoc     ** __restrict dest,
                                 NULL);
 
   gltf_buffers(gst);
+  gltf_images(gst);
   gltf_meshes(gst);
   gltf_cameras(gst);
   gltf_nodes(gst);

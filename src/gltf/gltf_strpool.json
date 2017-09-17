@@ -67,5 +67,7 @@
   "xmag": "xmag",
   "ymag": "ymag",
   "ak_flg": "ak_flg",
-  "VERTEX": "VERTEX"
+  "VERTEX": "VERTEX",
+  "images": "images",
+  "image": "image"
 }
