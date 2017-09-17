@@ -226,7 +226,9 @@ libassetkit_la_SOURCES=\
     src/gltf/core/gltf_node.c \
     src/gltf/core/gltf_scene.c \
     src/gltf/core/gltf_camera.c \
-    src/gltf/core/gltf_image.c
+    src/gltf/core/gltf_image.c \
+    src/gltf/core/gltf_profile.c \
+    src/gltf/core/gltf_sampler.c
 
 test_tests_SOURCES=\
     test/src/test-common.h \

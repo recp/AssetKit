@@ -119,12 +119,17 @@ typedef enum AkWrapMode {
 typedef enum AkMinFilter {
   AK_MINFILTER_LINEAR      = 0,
   AK_MINFILTER_NEAREST     = 1,
-  AK_MINFILTER_ANISOTROPIC = 2
+  AK_MINFILTER_ANISOTROPIC = 2,
+
+  AK_LINEAR_MIPMAP_NEAREST  = 2,
+  AK_LINEAR_MIPMAP_LINEAR   = 3,
+  AK_NEAREST_MIPMAP_NEAREST = 4,
+  AK_NEAREST_MIPMAP_LINEAR  = 5
 } AkMinFilter;
 
 typedef enum AkMagFilter {
-  AK_MAGFILTER_LINEAR  = 0,
-  AK_MAGFILTER_NEAREST = 1
+  AK_MAGFILTER_LINEAR       = 0,
+  AK_MAGFILTER_NEAREST      = 1
 } AkMagFilter;
 
 typedef enum AkMipFilter {

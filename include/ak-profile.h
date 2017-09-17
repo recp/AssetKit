@@ -22,7 +22,9 @@ typedef enum AkProfileType {
   AK_PROFILE_TYPE_GLES   = 2,
   AK_PROFILE_TYPE_GLES2  = 3,
   AK_PROFILE_TYPE_GLSL   = 4,
-  AK_PROFILE_TYPE_BRIDGE = 5
+  AK_PROFILE_TYPE_BRIDGE = 5,
+
+  AK_PROFILE_TYPE_GLTF   = 6
 } AkProfileType;
 
 typedef struct AkTechniqueFx {
@@ -100,6 +102,8 @@ typedef struct AkProfileBridge {
   const char * platform;
   const char * url;
 } AkProfileBridge;
+
+typedef AkProfile AkProfileGLTF;
 
 AkProfile*
 ak_profile(struct AkEffect * __restrict effect,

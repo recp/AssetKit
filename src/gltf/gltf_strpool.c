@@ -84,6 +84,12 @@ const char _s_gltf_pool_0[] =
 "VERTEX\0"
 "images\0"
 "image\0"
+"sampler\0"
+"samplers\0"
+"wrapS\0"
+"wrapT\0"
+"magFilter\0"
+"minFilter\0"
 ;
 
 #undef _AK_GLTF_STRPOOL_

@@ -78,3 +78,39 @@ gltf_type(const char *name) {
 
   return val;
 }
+
+AkEnum _assetkit_hide
+gltf_minFilter(int type) {
+  switch (type) {
+    case 9728:  return AK_MAGFILTER_NEAREST;       break;
+    case 9729:  return AK_MAGFILTER_LINEAR;        break;
+
+    case 9984:  return AK_NEAREST_MIPMAP_NEAREST;  break;
+    case 9985:  return AK_LINEAR_MIPMAP_NEAREST;   break;
+    case 9986:  return AK_NEAREST_MIPMAP_LINEAR;   break;
+    case 9987:  return AK_LINEAR_MIPMAP_LINEAR;    break;
+    default: break;
+  }
+  return 0;
+}
+
+AkEnum _assetkit_hide
+gltf_magFilter(int type) {
+  switch (type) {
+    case 9728:  return AK_MINFILTER_NEAREST;   break;
+    case 9729:  return AK_MINFILTER_LINEAR;    break;
+    default: break;
+  }
+  return 0;
+}
+
+AkEnum _assetkit_hide
+gltf_wrapMode(int type) {
+  switch (type) {
+    case 33071:  return AK_WRAP_MODE_CLAMP;       break;
+    case 33648:  return AK_WRAP_MODE_MIRROR;      break;
+    case 10497:  return AK_WRAP_MODE_WRAP;        break;
+    default: break;
+  }
+  return AK_WRAP_MODE_WRAP;
+}

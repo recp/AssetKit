@@ -90,5 +90,11 @@ _AK_EXTERN const char _s_gltf_pool_0[];
 #define _s_gltf_VERTEX _s_gltf_0(507)
 #define _s_gltf_images _s_gltf_0(514)
 #define _s_gltf_image _s_gltf_0(521)
+#define _s_gltf_sampler _s_gltf_0(527)
+#define _s_gltf_samplers _s_gltf_0(535)
+#define _s_gltf_wrapS _s_gltf_0(544)
+#define _s_gltf_wrapT _s_gltf_0(550)
+#define _s_gltf_magFilter _s_gltf_0(556)
+#define _s_gltf_minFilter _s_gltf_0(566)
 
 #endif /* ak_gltf_strpool_h */

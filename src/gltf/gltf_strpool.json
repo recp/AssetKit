@@ -69,5 +69,11 @@
   "ak_flg": "ak_flg",
   "VERTEX": "VERTEX",
   "images": "images",
-  "image": "image"
+  "image": "image",
+  "sampler": "sampler",
+  "samplers": "samplers",
+  "wrapS": "wrapS",
+  "wrapT": "wrapT",
+  "magFilter": "magFilter",
+  "minFilter": "minFilter"
 }
