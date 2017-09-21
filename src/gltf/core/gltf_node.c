@@ -231,9 +231,6 @@ gltf_node(AkGLTFState * __restrict gst,
   if ((jval = json_object_get(jnode, _s_gltf_translation))) {
     AkObject    *obj;
     AkTranslate *translate;
-    size_t       arrSize;
-
-    arrSize = json_array_size(jval);
 
     obj = ak_objAlloc(heap,
                       node,
@@ -260,9 +257,6 @@ gltf_node(AkGLTFState * __restrict gst,
   if ((jval = json_object_get(jnode, _s_gltf_rotation))) {
     AkObject *obj;
     AkRotate *rot;
-    size_t    arrSize;
-
-    arrSize = json_array_size(jval);
 
     obj = ak_objAlloc(heap,
                       node,
@@ -289,9 +283,6 @@ gltf_node(AkGLTFState * __restrict gst,
   if ((jval = json_object_get(jnode, _s_gltf_scale))) {
     AkObject *obj;
     AkScale  *scale;
-    size_t    arrSize;
-
-    arrSize = json_array_size(jval);
 
     obj = ak_objAlloc(heap,
                       node,

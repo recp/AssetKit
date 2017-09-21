@@ -63,7 +63,7 @@ gltf_scenes(AkGLTFState * __restrict gst) {
         nodeIndex = (int32_t)json_integer_value(json_array_get(jnodes, j));
         instNode  = ak_heap_calloc(heap, scene, sizeof(*instNode));
 
-        sprintf(nodeid, "%s%zu", _s_gltf_node, i + 1);
+        sprintf(nodeid, "%s%d", _s_gltf_node, nodeIndex + 1);
         if (!(node = ak_getObjectById(doc, nodeid)))
           continue;
 

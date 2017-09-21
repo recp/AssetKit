@@ -32,9 +32,10 @@ AkProfileGLTF* _assetkit_hide
 gltf_profile(AkGLTFState * __restrict gst) {
   AkEffect *effect;
 
-  effect = gst->doc->lib.effects->chld;
-  if (!effect)
+  if (!gst->doc->lib.effects)
     gltf_setprofile(gst);
+
+  effect = gst->doc->lib.effects->chld;
 
   return effect->profile;
 }
