@@ -5,12 +5,12 @@
  * Full license can be found in the LICENSE file
  */
 
-#ifndef gltf_sampler_h
-#define gltf_sampler_h
+#ifndef gltf_texture_h
+#define gltf_texture_h
 
 #include "../gltf_common.h"
 
 void _assetkit_hide
-gltf_samplers(AkGLTFState * __restrict gst);
+gltf_textures(AkGLTFState * __restrict gst);
 
-#endif /* gltf_sampler_h */
+#endif /* gltf_texture_h */

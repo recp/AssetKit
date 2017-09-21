@@ -90,6 +90,8 @@ const char _s_gltf_pool_0[] =
 "wrapT\0"
 "magFilter\0"
 "minFilter\0"
+"textures\0"
+"source\0"
 ;
 
 #undef _AK_GLTF_STRPOOL_

@@ -96,5 +96,7 @@ _AK_EXTERN const char _s_gltf_pool_0[];
 #define _s_gltf_wrapT _s_gltf_0(550)
 #define _s_gltf_magFilter _s_gltf_0(556)
 #define _s_gltf_minFilter _s_gltf_0(566)
+#define _s_gltf_textures _s_gltf_0(576)
+#define _s_gltf_source _s_gltf_0(585)
 
 #endif /* ak_gltf_strpool_h */

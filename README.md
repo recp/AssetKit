@@ -21,7 +21,8 @@ I've also created a basic program (included a screenshot of render result and da
 - [x] Load cameras
 - [ ] Load materials
   - [x] Images
-  - [ ] Textures
+  - [x] Samplers
+  - [x] Textures
   - [ ] PBR Materials
 - [ ] Animations
 - [ ] Extensions

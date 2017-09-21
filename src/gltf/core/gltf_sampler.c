@@ -26,13 +26,13 @@ gltf_samplers(AkGLTFState * __restrict gst) {
   jsamplerCount = json_array_size(jsamplers);
   profile       = gltf_profile(gst);
 
-  for (i = 0; i < jsamplerCount; i++) {
+  for (i = jsamplerCount; i != 0; i--) {
     AkSampler2D *sampler;
     AkNewParam  *param;
     AkValue     *paramVal;
     json_t      *jsampler;
 
-    jsampler = json_array_get(jsamplers, i);
+    jsampler = json_array_get(jsamplers, i - 1);
     param    = ak_heap_calloc(heap, profile,  sizeof(*param));
     paramVal = ak_heap_calloc(heap, param,    sizeof(*paramVal));
     sampler  = ak_heap_calloc(heap, paramVal, sizeof(*sampler));
@@ -61,5 +61,7 @@ gltf_samplers(AkGLTFState * __restrict gst) {
       profile->newparam = param;
 
     last_param = param;
+
+    flist_sp_insert(&gst->samplers, sampler);
   }
 }

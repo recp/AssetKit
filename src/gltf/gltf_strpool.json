@@ -75,5 +75,7 @@
   "wrapS": "wrapS",
   "wrapT": "wrapT",
   "magFilter": "magFilter",
-  "minFilter": "minFilter"
+  "minFilter": "minFilter",
+  "textures": "textures",
+  "source": "source"
 }
