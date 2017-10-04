@@ -94,7 +94,7 @@ ak_dae_source(AkXmlState * __restrict xst,
         arraySize  = sizeof(AkFloat) * arrayCount;
 
         buffer->name     = ak_xml_attr(xst, buffer, _s_dae_name);
-        buffer->length   = arraySize * arrayCount;
+        buffer->length   = arraySize;
         buffer->reserved = found->val;
 
         source->buffer   = buffer;
