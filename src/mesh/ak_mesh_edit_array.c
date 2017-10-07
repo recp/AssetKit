@@ -319,9 +319,6 @@ ak_meshMoveArrays(AkMesh * __restrict mesh) {
 
     ak_retain(arrstate->array);
 
-    if (inputb->semantic == AK_INPUT_SEMANTIC_POSITION)
-      mesh->positions = arrstate->array;
-
     /* move source */
     if (!srch->isnew) {
       void *foundsource;
@@ -343,6 +340,9 @@ ak_meshMoveArrays(AkMesh * __restrict mesh) {
                 srch->url,
                 &inputb->source);
 
+    if (inputb->semantic == AK_INPUT_SEMANTIC_POSITION)
+      mesh->positions = ak_mesh_positions(mesh);
+    
     mi = mi->next;
   }
 }

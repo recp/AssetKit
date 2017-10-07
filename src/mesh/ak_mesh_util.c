@@ -170,7 +170,7 @@ ak_mesh_src_for(AkHeap         *heap,
   buff->length = c * acc->stride * sizeof(float);
 
   buffid = (char *)ak_id_gen(heap, buff->data, NULL);
-  ak_setId(buff->data, buffid);
+  ak_setId(buff, buffid);
 
   /* update accessor source url */
   url = ak_url_string(heap->allocator, buffid);
@@ -230,7 +230,7 @@ ak_mesh_src_for_ext(AkHeap         *heap,
 
 
   buffid = (char *)ak_id_gen(heap, buff->data, NULL);
-  ak_setId(buff->data, buffid);
+  ak_setId(buff, buffid);
 
   /* update accessor source url */
   url = ak_url_string(heap->allocator, buffid);
