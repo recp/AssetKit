@@ -11,13 +11,11 @@
 
 void _assetkit_hide
 gltf_mesh_fixup(AkGLTFState * __restrict gst) {
-  AkHeap     *heap;
   AkDoc      *doc;
   AkLibItem  *geomLib;
   AkGeometry *geom;
 
-  heap = gst->heap;
-  doc  = gst->doc;
+  doc = gst->doc;
 
   geomLib = doc->lib.geometries;
   while (geomLib) {

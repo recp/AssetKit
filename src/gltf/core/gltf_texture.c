@@ -13,7 +13,6 @@ gltf_textures(AkGLTFState * __restrict gst) {
   AkHeap        *heap;
   AkDoc         *doc;
   json_t        *jtextures;
-  AkProfileGLTF *profile;
   size_t         jtextureCount, i;
 
   heap          = gst->heap;
@@ -21,7 +20,6 @@ gltf_textures(AkGLTFState * __restrict gst) {
 
   jtextures     = json_object_get(gst->root, _s_gltf_textures);
   jtextureCount = json_array_size(jtextures);
-  profile       = gltf_profile(gst);
 
   for (i = 0; i < jtextureCount; i++) {
     json_t      *jtexture, *jsampler, *jsource;

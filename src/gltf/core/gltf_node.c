@@ -302,8 +302,6 @@ gltf_node(AkGLTFState * __restrict gst,
                                        sizeof(*node->transform));
       node->transform->item = obj;
     }
-
-    last_trans = obj;
   }
 
   return node;

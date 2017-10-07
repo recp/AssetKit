@@ -12,14 +12,12 @@
 void _assetkit_hide
 gltf_samplers(AkGLTFState * __restrict gst) {
   AkHeap        *heap;
-  AkDoc         *doc;
   json_t        *jsamplers;
   AkNewParam    *last_param;
   AkProfileGLTF *profile;
   size_t         jsamplerCount, i;
 
   heap       = gst->heap;
-  doc        = gst->doc;
   last_param = NULL;
 
   jsamplers     = json_object_get(gst->root, _s_gltf_samplers);

@@ -111,13 +111,12 @@ gltf_buffers(AkGLTFState * __restrict gst) {
     /* load buffer into memory */
     if ((sval = json_cstr(jbuffer, _s_gltf_uri))) {
       const char *localurl;
-      AkResult    ret;
 
       localurl = ak_getFileFrom(gst->doc, sval);
-      ret      = ak_readfile(localurl,
-                             "rb",
-                             &buff->data,
-                             &buff->length);
+      (void)ak_readfile(localurl,
+                        "rb",
+                        &buff->data,
+                        &buff->length);
 
       /* TODO: log if logging enabled (or by log level) */
     }

@@ -9,9 +9,9 @@
 #define ak_src_type_h
 
 void _assetkit_hide
-ak_type_init();
+ak_type_init(void);
 
 void _assetkit_hide
-ak_type_deinit();
+ak_type_deinit(void);
 
 #endif /* ak_src_type_h */
