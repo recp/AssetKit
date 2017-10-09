@@ -11,64 +11,97 @@
 extern "C" {
 #endif
 
-typedef struct AkFxColorOrTex {
-  AkColor     * color;
-  AkParam     * param;
-  AkFxTexture * texture;
-  AkOpaque      opaque;
-} AkFxColorOrTex;
+typedef enum AkAlphaMode {
+  AK_ALPHA_OPAQUE,
+  AK_ALPHA_MASK,
+  AK_ALPHA_BLEND
+} AkAlphaMode;
 
-typedef AkFxColorOrTex AkAmbient;
-typedef AkFxColorOrTex AkDiffuse;
-typedef AkFxColorOrTex AkEmission;
-typedef AkFxColorOrTex AkReflective;
-typedef AkFxColorOrTex AkSpecular;
-typedef AkFxColorOrTex AkTransparent;
+typedef enum AkMaterialType {
+  AK_MATERIAL_PHONG              = 1,
+  AK_MATERIAL_BLINN              = 2,
+  AK_MATERIAL_LAMBERT            = 3,
+  AK_MATERIAL_CONSTANT           = 4,
+  AK_MATERIAL_METALLIC_ROUGHNESS = 5,  /* PBR Material */
+  AK_MATERIAL_SPECULAR_GLOSSINES = 6   /* PBR Material */
+} AkMaterialType;
+
+typedef struct AkFxColorOrTex {
+  AkColor     *color;
+  AkParam     *param;
+  AkFxTexture *texture;
+  AkOpaque     opaque;
+} AkFxColorOrTex;
 
 typedef struct AkFxFloatOrParam {
   float   *val;
   AkParam *param;
 } AkFxFloatOrParam;
 
-typedef AkFxFloatOrParam AkIndexOfRefraction;
-typedef AkFxFloatOrParam AkReflectivity;
-typedef AkFxFloatOrParam AkShininess;
-typedef AkFxFloatOrParam AkTransparency;
+typedef struct AkTransparent {
+  AkFxColorOrTex   *color;
+  AkFxFloatOrParam *amount;
+  AkAlphaMode       mode;
+  float             cutoff;
+} AkTransparent;
+
+typedef struct AkReflective {
+  AkFxColorOrTex   *color;
+  AkFxFloatOrParam *amount;
+} AkReflective;
+
+typedef struct AkEffectCmnTechnique {
+  AkMaterialType    type;
+  AkAlphaMode       alphaMode;
+  AkTransparent    *transparent;
+  AkReflective     *reflective;
+  AkFxFloatOrParam *indexOfRefraction;
+} AkEffectCmnTechnique;
+
+/* Common materials */
 
 typedef struct AkConstantFx {
-  AkEmission          * emission;
-  AkReflective        * reflective;
-  AkReflectivity      * reflectivity;
-  AkTransparent       * transparent;
-  AkTransparency      * transparency;
-  AkIndexOfRefraction * indexOfRefraction;
+  AkEffectCmnTechnique base;
+  AkFxColorOrTex      *emission;
 } AkConstantFx;
 
 typedef struct AkLambert {
-  AkEmission          * emission;
-  AkAmbient           * ambient;
-  AkDiffuse           * diffuse;
-  AkReflective        * reflective;
-  AkReflectivity      * reflectivity;
-  AkTransparent       * transparent;
-  AkTransparency      * transparency;
-  AkIndexOfRefraction * indexOfRefraction;
+  AkEffectCmnTechnique base;
+  AkFxColorOrTex      *emission;
+  AkFxColorOrTex      *ambient;
+  AkFxColorOrTex      *diffuse;
 } AkLambert;
 
 typedef struct AkPhong {
-  AkEmission          * emission;
-  AkAmbient           * ambient;
-  AkDiffuse           * diffuse;
-  AkSpecular          * specular;
-  AkShininess         * shininess;
-  AkReflective        * reflective;
-  AkReflectivity      * reflectivity;
-  AkTransparent       * transparent;
-  AkTransparency      * transparency;
-  AkIndexOfRefraction * indexOfRefraction;
+  AkEffectCmnTechnique base;
+  AkFxColorOrTex      *emission;
+  AkFxColorOrTex      *ambient;
+  AkFxColorOrTex      *diffuse;
+  AkFxColorOrTex      *specular;
+  AkFxFloatOrParam    *shininess;
 } AkPhong;
 
 typedef AkPhong AkBlinn;
+
+/* Common PBR Materials */
+
+typedef struct AkMetallicRoughness {
+  AkEffectCmnTechnique base;
+  AkColor              baseColor;
+  AkFxTexture         *baseTexture;
+  AkFxTexture         *metallicRoughnessTexture;
+  float                metallic;
+  float                roughness;
+} AkMetallicRoughness;
+
+typedef struct AkSpecularGlossiness {
+  AkEffectCmnTechnique base;
+  AkColor              diffuse;
+  AkColor              specular;
+  AkFxTexture         *diffuseTexture;
+  AkFxTexture         *specularGlossinessTexture;
+  float                glossiness;
+} AkSpecularGlossiness;
 
 #ifdef __cplusplus
 }

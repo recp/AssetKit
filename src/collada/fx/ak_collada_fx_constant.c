@@ -80,12 +80,30 @@ ak_dae_fxConstant(AkXmlState * __restrict xst,
             case k_s_dae_emission:
               constant->emission = colorOrTex;
               break;
-            case k_s_dae_reflective:
-              constant->reflective = colorOrTex;
+            case k_s_dae_reflective: {
+              if (!constant->base.reflective) {
+                AkReflective *refl;
+                refl = ak_heap_calloc(xst->heap,
+                                      constant,
+                                      sizeof(*refl));
+                constant->base.reflective = refl;
+              }
+
+              constant->base.reflective->color = colorOrTex;
               break;
-            case k_s_dae_transparent:
-              constant->transparent = colorOrTex;
+            }
+            case k_s_dae_transparent: {
+              if (!constant->base.transparent) {
+                AkTransparent *transp;
+                transp = ak_heap_calloc(xst->heap,
+                                        constant,
+                                        sizeof(*transp));
+                constant->base.transparent = transp;
+              }
+
+              constant->base.transparent->color = colorOrTex;
               break;
+            }
             default:
               ak_free(colorOrTex);
               break;
@@ -97,8 +115,8 @@ ak_dae_fxConstant(AkXmlState * __restrict xst,
       case k_s_dae_reflectivity:
       case k_s_dae_transparency:
       case k_s_dae_index_of_refraction: {
-        AkFxFloatOrParam * floatOrParam;
-        AkResult ret;
+        AkFxFloatOrParam *floatOrParam;
+        AkResult          ret;
 
         ret = ak_dae_floatOrParam(xst,
                                   constant,
@@ -107,14 +125,33 @@ ak_dae_fxConstant(AkXmlState * __restrict xst,
 
         if (ret == AK_OK) {
           switch (found->val) {
-            case k_s_dae_reflectivity:
-              constant->reflectivity = floatOrParam;
+            case k_s_dae_reflectivity:{
+              if (!constant->base.reflective) {
+                AkReflective *refl;
+                refl = ak_heap_calloc(xst->heap,
+                                      constant,
+                                      sizeof(*refl));
+
+                constant->base.reflective = refl;
+              }
+
+              constant->base.reflective->amount = floatOrParam;
               break;
-            case k_s_dae_transparency:
-              constant->transparency = floatOrParam;
+            }
+            case k_s_dae_transparency: {
+              if (!constant->base.transparent) {
+                AkTransparent *transp;
+                transp = ak_heap_calloc(xst->heap,
+                                        constant,
+                                        sizeof(*transp));
+                constant->base.transparent = transp;
+              }
+
+              constant->base.transparent->amount = floatOrParam;
               break;
+            }
             case k_s_dae_index_of_refraction:
-              constant->indexOfRefraction = floatOrParam;
+              constant->base.indexOfRefraction = floatOrParam;
               break;
             default:
               ak_free(floatOrParam);

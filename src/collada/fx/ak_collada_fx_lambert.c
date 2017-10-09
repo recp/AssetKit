@@ -92,12 +92,30 @@ ak_dae_fxLambert(AkXmlState * __restrict xst,
             case k_s_dae_diffuse:
               lambert->diffuse = colorOrTex;
               break;
-            case k_s_dae_reflective:
-              lambert->reflective = colorOrTex;
+            case k_s_dae_reflective: {
+              if (!lambert->base.reflective) {
+                AkReflective *refl;
+                refl = ak_heap_calloc(xst->heap,
+                                      lambert,
+                                      sizeof(*refl));
+                lambert->base.reflective = refl;
+              }
+
+              lambert->base.reflective->color = colorOrTex;
               break;
-            case k_s_dae_transparent:
-              lambert->transparent = colorOrTex;
+            }
+            case k_s_dae_transparent: {
+              if (!lambert->base.transparent) {
+                AkTransparent *transp;
+                transp = ak_heap_calloc(xst->heap,
+                                        lambert,
+                                        sizeof(*transp));
+                lambert->base.transparent = transp;
+              }
+
+              lambert->base.transparent->color = colorOrTex;
               break;
+            }
             default:
               ak_free(colorOrTex);
               break;
@@ -119,14 +137,32 @@ ak_dae_fxLambert(AkXmlState * __restrict xst,
 
         if (ret == AK_OK) {
           switch (found->val) {
-            case k_s_dae_reflectivity:
-              lambert->reflectivity = floatOrParam;
+            case k_s_dae_reflectivity: {
+              if (!lambert->base.reflective) {
+                AkReflective *refl;
+                refl = ak_heap_calloc(xst->heap,
+                                      lambert,
+                                      sizeof(*refl));
+                lambert->base.reflective = refl;
+              }
+
+              lambert->base.reflective->amount = floatOrParam;
               break;
-            case k_s_dae_transparency:
-              lambert->transparency = floatOrParam;
+            }
+            case k_s_dae_transparency: {
+              if (!lambert->base.transparent) {
+                AkTransparent *transp;
+                transp = ak_heap_calloc(xst->heap,
+                                        lambert,
+                                        sizeof(*transp));
+                lambert->base.transparent = transp;
+              }
+
+              lambert->base.transparent->amount = floatOrParam;
               break;
+            }
             case k_s_dae_index_of_refraction:
-              lambert->indexOfRefraction = floatOrParam;
+              lambert->base.indexOfRefraction = floatOrParam;
               break;
             default:
               ak_free(floatOrParam);

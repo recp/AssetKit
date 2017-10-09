@@ -101,12 +101,30 @@ ak_dae_blinn_phong(AkXmlState * __restrict xst,
             case k_s_dae_specular:
               blinn_phong->phong.specular = colorOrTex;
               break;
-            case k_s_dae_reflective:
-              blinn_phong->phong.reflective = colorOrTex;
+            case k_s_dae_reflective: {
+              if (!blinn_phong->phong.base.reflective) {
+                AkReflective *refl;
+                refl = ak_heap_calloc(xst->heap,
+                                      blinn_phong,
+                                      sizeof(*refl));
+                blinn_phong->phong.base.reflective = refl;
+              }
+
+              blinn_phong->phong.base.reflective->color = colorOrTex;
               break;
-            case k_s_dae_transparent:
-              blinn_phong->phong.transparent = colorOrTex;
+            }
+            case k_s_dae_transparent: {
+              if (!blinn_phong->phong.base.transparent) {
+                AkTransparent *transp;
+                transp = ak_heap_calloc(xst->heap,
+                                        blinn_phong,
+                                        sizeof(*transp));
+                blinn_phong->phong.base.transparent = transp;
+              }
+
+              blinn_phong->phong.base.transparent->color = colorOrTex;
               break;
+            }
             default:
               ak_free(colorOrTex);
               break;
@@ -132,14 +150,32 @@ ak_dae_blinn_phong(AkXmlState * __restrict xst,
             case k_s_dae_shininess:
               blinn_phong->phong.shininess = floatOrParam;
               break;
-            case k_s_dae_reflectivity:
-              blinn_phong->phong.reflectivity = floatOrParam;
+            case k_s_dae_reflectivity: {
+              if (!blinn_phong->phong.base.reflective) {
+                AkReflective *refl;
+                refl = ak_heap_calloc(xst->heap,
+                                      blinn_phong,
+                                      sizeof(*refl));
+                blinn_phong->phong.base.reflective = refl;
+              }
+
+              blinn_phong->phong.base.reflective->amount = floatOrParam;
               break;
-            case k_s_dae_transparency:
-              blinn_phong->phong.transparency = floatOrParam;
+            }
+            case k_s_dae_transparency: {
+              if (!blinn_phong->phong.base.transparent) {
+                AkTransparent *transp;
+                transp = ak_heap_calloc(xst->heap,
+                                        blinn_phong,
+                                        sizeof(*transp));
+                blinn_phong->phong.base.transparent = transp;
+              }
+
+              blinn_phong->phong.base.transparent->amount = floatOrParam;
               break;
+            }
             case k_s_dae_index_of_refraction:
-              blinn_phong->phong.indexOfRefraction = floatOrParam;
+              blinn_phong->phong.base.indexOfRefraction = floatOrParam;
               break;
             default:
               ak_free(floatOrParam);
