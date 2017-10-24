@@ -52,7 +52,9 @@ ak_changeCoordSysMesh(AkMesh * __restrict mesh,
     inputb = inputb->next;
   }
 
-  primi = mesh->primitive;
+  if (!(primi = mesh->primitive))
+    return;
+
   while (primi) {
     input = primi->input;
     while (input) {

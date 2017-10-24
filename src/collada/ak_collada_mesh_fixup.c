@@ -13,6 +13,9 @@ AkResult _assetkit_hide
 ak_dae_mesh_fixup(AkMesh * mesh) {
   AkHeap *heap;
   AkDoc  *doc;
+  
+  if (!mesh->vertices)
+    return AK_OK;
 
   heap = ak_heap_getheap(mesh->vertices);
   doc  = ak_heap_data(heap);
@@ -22,6 +25,9 @@ ak_dae_mesh_fixup(AkMesh * mesh) {
   if (ak_opt_get(AK_OPT_COORD_CONVERT_TYPE) == AK_COORD_CVT_ALL
       && (void *)ak_opt_get(AK_OPT_COORD) != doc->coordSys)
     ak_changeCoordSysMesh(mesh, (void *)ak_opt_get(AK_OPT_COORD));
+
+  if (!mesh->primitive)
+    return AK_OK;
 
   ak_mesh_fix_indices(heap, mesh);
 
