@@ -245,10 +245,10 @@ ak_heap_init(AkHeap          * __restrict heap,
   alc = allocator ? allocator : &ak__allocator;
 
   srchctx     = alc->malloc(sizeof(*srchctx));
-  rootNode    = alc->calloc(ak__heapnd_sz, 1);
-  nullNode    = alc->calloc(ak__heapnd_sz, 1);
-  rootNodeExt = alc->calloc(sizeof(*rootNodeExt) + sizeof(AkHeapSrchNode), 1);
-  nullNodeExt = alc->calloc(sizeof(*nullNodeExt) + sizeof(AkHeapSrchNode), 1);
+  rootNode    = alc->calloc(1, ak__heapnd_sz);
+  nullNode    = alc->calloc(1, ak__heapnd_sz);
+  rootNodeExt = alc->calloc(1, sizeof(*rootNodeExt) + sizeof(AkHeapSrchNode));
+  nullNodeExt = alc->calloc(1, sizeof(*nullNodeExt) + sizeof(AkHeapSrchNode));
 
   assert(srchctx
          && rootNode

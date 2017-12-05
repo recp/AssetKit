@@ -121,7 +121,7 @@ ak_sid_seta(void       *memnode,
   itmsize = sizeof(uint16_t) + sizeof(uintptr_t);
 
   if (!sidnode->sids) {
-    sidnode->sids = heap->allocator->calloc(off0 + itmsize, 1);
+    sidnode->sids = heap->allocator->calloc(1, off0 + itmsize);
   } else {
     size_t newsize;
 

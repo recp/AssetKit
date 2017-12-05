@@ -27,8 +27,8 @@ static AkHeapLookupTable ak__heap_lt = {
 void
 ak_heap_lt_init(AkHeap * __restrict initialHeap) {
   assert(initialHeap && "heap cannot be null!");
-  ak__heap_bucket.heapEntry = calloc(sizeof(AkHeapBucketEntry),
-                                     ak__heap_lt.bucketSize);
+  ak__heap_bucket.heapEntry = calloc(ak__heap_lt.bucketSize,
+                                     sizeof(AkHeapBucketEntry));
 
   assert(ak__heap_bucket.heapEntry && "malloc failed");
 
@@ -51,11 +51,11 @@ ak_heap_lt_insert(AkHeap * __restrict heap) {
 
   /* all buckets are full */
   if (!bucket || bucket->firstAvailEntry >= ak__heap_lt.bucketSize - 1) {
-    bucket = calloc(sizeof(*bucket), 1);
+    bucket = calloc(1, sizeof(*bucket));
     assert(bucket && "malloc failed");
 
-    bucket->heapEntry = calloc(sizeof(*bucket->heapEntry),
-                               ak__heap_lt.bucketSize);
+    bucket->heapEntry = calloc(ak__heap_lt.bucketSize,
+                               sizeof(*bucket->heapEntry));
     assert(bucket->heapEntry && "malloc failed");
 
     bucket->bucketIndex = ak__heap_lt.lastBucket->bucketIndex + 1;
