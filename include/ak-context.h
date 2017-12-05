@@ -19,7 +19,7 @@ typedef struct AkContext {
   AkDoc              *doc;
   AkTechniqueHint    *techniqueHint;
   AkInstanceMaterial *instanceMaterial;
-  AkMap              *bindVertexInputIndex;
+  AkMap              *bindVertexInput;
 } AkContext;
 
 #ifdef __cplusplus
