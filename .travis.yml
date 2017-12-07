@@ -37,7 +37,9 @@ branches:
     - master
 
 before_install:
-  - pip install --user cpp-coveralls
+  - if [[ "$CC" == "gcc" && "$CODE_COVERAGE" == "ON" ]]; then
+      - pip install --user cpp-coveralls
+    fi
 
 script:
   - sh ./build-deps.sh
