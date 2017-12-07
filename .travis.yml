@@ -38,7 +38,7 @@ branches:
 
 before_install:
   - if [[ "$CC" == "gcc" && "$CODE_COVERAGE" == "ON" ]]; then
-      - pip install --user cpp-coveralls
+      pip install --user cpp-coveralls
     fi
 
 script:
