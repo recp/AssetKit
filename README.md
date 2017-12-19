@@ -13,6 +13,11 @@ There is also an optional renderer library called [libgk](https://github.com/rec
 
 I've also created a basic program (included a screenshot of render result and dae) to show full steps: [simple-collada-viewer](http://github.com/recp/simple-collada-viewer)
 
+## Project Status
+Currently I'm working on renderer which is also important to test AssetKit. When I implement a feature in AssetKit then I'm adding extra features to [Graphics Kernel / Graphics Kit](https://github.com/recp/libgk) to test AssetKit. The renderer is not just for testing purpose so I'm trying to do my best and this takes some time.
+
+So working on multiple projects ([cglm](https://github.com/recp/cglm), [libgk](https://github.com/recp/libgk), [libds](https://github.com/recp/libds), ...) makes the progress very slow, but in the end the results will be perfect
+
 ## glTF
 - [x] Load buffers, bufferViews
 - [x] Load acessors, meshes / primitives
