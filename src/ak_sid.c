@@ -548,7 +548,7 @@ again:
           if (bufi[!bufidx] == bufl[!bufidx]) {
             bufl[!bufidx] += 16;
             buf[!bufidx]   = realloc(buf[!bufidx],
-                                     bufl[!bufidx]);
+                                     sizeof(*buf[!bufidx]) * bufl[!bufidx]);
           }
 
           buf[!bufidx][bufi[!bufidx]] = it2;
