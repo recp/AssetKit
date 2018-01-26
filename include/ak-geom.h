@@ -361,7 +361,7 @@ ak_meshNeedsNormals(AkMesh * __restrict mesh);
 /*!
  * @brief returns true if primitive doesn't have normals
  *
- * @param mesh mesh
+ * @param prim primitive
  *
  * @return boolean
  */

@@ -7,6 +7,7 @@
 
 #include "ak_bbox.h"
 #include <cglm/cglm.h>
+#include <float.h>
 
 static
 void
@@ -46,8 +47,8 @@ ak_bbox_node(AkHeap        * __restrict heap,
     AkBoundingBox   bbox;
     vec4            min, max;
 
-    glm_vec_broadcast(0.0f, bbox.min);
-    glm_vec_broadcast(0.0f, bbox.max);
+    glm_vec_broadcast(FLT_MAX, bbox.min);
+    glm_vec_broadcast(-FLT_MAX, bbox.max);
     min[3] = max[3] = 1;
 
     /* find bbox for node to avoid extra calc */

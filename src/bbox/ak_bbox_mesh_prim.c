@@ -8,6 +8,7 @@
 #include "ak_bbox.h"
 #include "../mesh/ak_mesh_util.h"
 #include <cglm/cglm.h>
+#include <float.h>
 
 void
 ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
@@ -50,8 +51,8 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
 
   items = posbuff->data;
 
-  glm_vec_broadcast(0.0f, min);
-  glm_vec_broadcast(0.0f, max);
+  glm_vec_broadcast(FLT_MAX, min);
+  glm_vec_broadcast(-FLT_MAX, max);
 
   /* we must walk through indices if exists because source may contain
      unrelated data and this will cause get wrong box
