@@ -123,7 +123,9 @@ ak_dae_visualScene(AkXmlState * __restrict xst,
     }
   }
 
-  ak_fixSceneCoordSys(visualScene);
+  if (ak_opt_get(AK_OPT_COORD_CONVERT_TYPE) != AK_COORD_CVT_DISABLED)
+    ak_fixSceneCoordSys(visualScene);
+
   *dest = visualScene;
 
   return AK_OK;
