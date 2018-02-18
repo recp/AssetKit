@@ -96,13 +96,6 @@ typedef enum AkAltitudeMode {
   AK_ALTITUDE_ABSOLUTE         = 1
 } AkAltitudeMode;
 
-typedef enum AkOpaque {
-  AK_OPAQUE_A_ONE    = 0,
-  AK_OPAQUE_RGB_ZERO = 1,
-  AK_OPAQUE_A_ZERO   = 2,
-  AK_OPAQUE_RGB_ONE  = 3
-} AkOpaque;
-
 typedef enum AkParamType {
   AK_PARAM_TYPE_BASIC    = 0,
   AK_PARAM_TYPE_EXTENDED = 1

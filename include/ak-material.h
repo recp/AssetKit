@@ -17,6 +17,14 @@ typedef enum AkAlphaMode {
   AK_ALPHA_BLEND
 } AkAlphaMode;
 
+typedef enum AkOpaque {
+  AK_OPAQUE_A_ONE    = 0,
+  AK_OPAQUE_RGB_ZERO = 1,
+  AK_OPAQUE_A_ZERO   = 2,
+  AK_OPAQUE_RGB_ONE  = 3,
+  AK_OPAQUE_DEFAULT  = AK_OPAQUE_A_ONE
+} AkOpaque;
+
 typedef enum AkMaterialType {
   AK_MATERIAL_PHONG              = 1,
   AK_MATERIAL_BLINN              = 2,
@@ -52,7 +60,6 @@ typedef struct AkReflective {
 
 typedef struct AkEffectCmnTechnique {
   AkMaterialType    type;
-  AkAlphaMode       alphaMode;
   AkTransparent    *transparent;
   AkReflective     *reflective;
   AkFxFloatOrParam *indexOfRefraction;
