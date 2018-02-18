@@ -8,6 +8,7 @@
 #include "ak_collada_fx_constant.h"
 #include "ak_collada_fx_color_or_tex.h"
 #include "ak_collada_fx_float_or_param.h"
+#include "../../default/ak_def_material.h"
 
 #define k_s_dae_emission            1
 #define k_s_dae_reflective          2
@@ -94,10 +95,11 @@ ak_dae_fxConstant(AkXmlState * __restrict xst,
             }
             case k_s_dae_transparent: {
               if (!constant->base.transparent) {
-                AkTransparent *transp;
+                AkTransparent    *transp;
                 transp = ak_heap_calloc(xst->heap,
                                         constant,
                                         sizeof(*transp));
+                transp->amount = ak_def_transparency();
                 constant->base.transparent = transp;
               }
 
