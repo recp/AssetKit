@@ -9,6 +9,7 @@
 #include "ak_collada_fx_color_or_tex.h"
 #include "ak_collada_fx_float_or_param.h"
 #include "../../default/ak_def_material.h"
+#include "ak_collada_fx_enums.h"
 
 #define k_s_dae_emission            1
 #define k_s_dae_ambient             2
@@ -82,7 +83,12 @@ ak_dae_blinn_phong(AkXmlState * __restrict xst,
       case k_s_dae_reflective:
       case k_s_dae_transparent: {
         AkFxColorOrTex *colorOrTex;
-        AkResult ret;
+        AkResult        ret;
+        AkOpaque        opaque;
+
+        opaque = ak_xml_attrenum(xst,
+                                 _s_dae_opaque,
+                                 ak_dae_fxEnumOpaque);
 
         ret = ak_dae_colorOrTex(xst,
                                 blinn_phong,
@@ -124,7 +130,8 @@ ak_dae_blinn_phong(AkXmlState * __restrict xst,
                 blinn_phong->phong.base.transparent = transp;
               }
 
-              blinn_phong->phong.base.transparent->color = colorOrTex;
+              blinn_phong->phong.base.transparent->color  = colorOrTex;
+              blinn_phong->phong.base.transparent->opaque = opaque;
               break;
             }
             default:

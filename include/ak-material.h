@@ -18,10 +18,10 @@ typedef enum AkAlphaMode {
 } AkAlphaMode;
 
 typedef enum AkOpaque {
-  AK_OPAQUE_A_ONE    = 0,
-  AK_OPAQUE_RGB_ZERO = 1,
-  AK_OPAQUE_A_ZERO   = 2,
-  AK_OPAQUE_RGB_ONE  = 3,
+  AK_OPAQUE_A_ONE    = 0, /* Default */
+  AK_OPAQUE_A_ZERO   = 1,
+  AK_OPAQUE_RGB_ONE  = 2,
+  AK_OPAQUE_RGB_ZERO = 3,
   AK_OPAQUE_DEFAULT  = AK_OPAQUE_A_ONE
 } AkOpaque;
 
@@ -38,7 +38,6 @@ typedef struct AkFxColorOrTex {
   AkColor     *color;
   AkParam     *param;
   AkFxTexture *texture;
-  AkOpaque     opaque;
 } AkFxColorOrTex;
 
 typedef struct AkFxFloatOrParam {
@@ -50,6 +49,7 @@ typedef struct AkTransparent {
   AkFxColorOrTex   *color;
   AkFxFloatOrParam *amount;
   AkAlphaMode       mode;
+  AkOpaque          opaque;
   float             cutoff;
 } AkTransparent;
 
