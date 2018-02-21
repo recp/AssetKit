@@ -59,3 +59,4 @@ test/ak-tests
 *.gcda
 tests.trs
 tests
+*.userprefs
