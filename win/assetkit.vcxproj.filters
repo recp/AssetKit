@@ -9,6 +9,7 @@
     <None Include="..\src\collada\strpool.py">
       <Filter>src\collada</Filter>
     </None>
+    <None Include="build.bat" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="include">
@@ -439,6 +440,9 @@
     <ClInclude Include="..\src\collada\1.4\ak_collada14_surface.h">
       <Filter>src\collada\1.4</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\default\ak_def_material.h">
+      <Filter>src\default</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\bbox\ak_bbox.c">
@@ -851,6 +855,9 @@
     </ClCompile>
     <ClCompile Include="..\src\ak_memory_intr.c">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\default\ak_def_material.c">
+      <Filter>src\default</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

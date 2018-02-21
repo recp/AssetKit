@@ -24,7 +24,7 @@
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>assetkit</RootNamespace>
     <ProjectName>assetkit</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -176,6 +176,7 @@
   <ItemGroup>
     <None Include="..\src\collada\ak_collada_strpool.json" />
     <None Include="..\src\collada\strpool.py" />
+    <None Include="build.bat" />
     <None Include="LICENSE" />
     <None Include="packages.config" />
   </ItemGroup>
@@ -289,6 +290,7 @@
     <ClInclude Include="..\src\coord_sys\ak_coord_common.h" />
     <ClInclude Include="..\src\default\ak_def_cam.h" />
     <ClInclude Include="..\src\default\ak_def_light.h" />
+    <ClInclude Include="..\src\default\ak_def_material.h" />
     <ClInclude Include="..\src\default\ak_def_opt.h" />
     <ClInclude Include="..\src\default\ak_def_semantic.h" />
     <ClInclude Include="..\src\mesh\ak_mesh_edit_common.h" />
@@ -406,6 +408,7 @@
     <ClCompile Include="..\src\default\ak_def_coord.c" />
     <ClCompile Include="..\src\default\ak_def_id.c" />
     <ClCompile Include="..\src\default\ak_def_light.c" />
+    <ClCompile Include="..\src\default\ak_def_material.c" />
     <ClCompile Include="..\src\default\ak_def_opt.c" />
     <ClCompile Include="..\src\default\ak_def_semantic.c" />
     <ClCompile Include="..\src\dllmain.c" />
