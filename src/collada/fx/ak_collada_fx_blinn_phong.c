@@ -180,8 +180,6 @@ ak_dae_blinn_phong(AkXmlState * __restrict xst,
                 blinn_phong->phong.base.transparent = transp;
               }
 
-              if (blinn_phong->phong.base.transparent->amount)
-                ak_free(blinn_phong->phong.base.transparent->amount);
               blinn_phong->phong.base.transparent->amount = floatOrParam;
               break;
             }
