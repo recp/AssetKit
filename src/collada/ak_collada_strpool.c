@@ -471,6 +471,7 @@ const char _s_dae_pool_2[] =
 "all\0"
 "primary\0"
 "order\0"
+"sketchup\0"
 ;
 
 #undef _AK_DAE_STRPOOL_

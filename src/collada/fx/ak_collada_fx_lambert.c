@@ -10,6 +10,7 @@
 #include "ak_collada_fx_float_or_param.h"
 #include "../../default/ak_def_material.h"
 #include "ak_collada_fx_enums.h"
+#include "../bugfix/transp.h"
 
 #define k_s_dae_emission            1
 #define k_s_dae_ambient             2
@@ -168,6 +169,11 @@ ak_dae_fxLambert(AkXmlState * __restrict xst,
               }
 
               lambert->base.transparent->amount = floatOrParam;
+
+              /* some old version of tools e.g. SketchUp exports incorrect */
+              if (ak_opt_get(AK_OPT_BUGFIXES))
+                dae_bugfix_transp(lambert->base.transparent);
+
               break;
             }
             case k_s_dae_index_of_refraction:

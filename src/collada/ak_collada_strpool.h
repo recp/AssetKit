@@ -479,5 +479,6 @@ _AK_EXTERN const char _s_dae_pool_2[];
 #define _s_dae_all _s_dae_2(802)
 #define _s_dae_primary _s_dae_2(806)
 #define _s_dae_order _s_dae_2(814)
+#define _s_dae_sketchup _s_dae_2(820)
 
 #endif /* ak_dae_strpool_h */

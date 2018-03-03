@@ -450,5 +450,6 @@
   "init_cube": "init_cube",
   "all": "all",
   "primary": "primary",
-  "order": "order"
+  "order": "order",
+  "sketchup": "sketchup"
 }
