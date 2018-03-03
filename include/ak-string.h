@@ -108,4 +108,12 @@ int
 ak_strtof4_s(const char * __restrict src,
               AkFloat4 * __restrict dest);
 
+AK_EXPORT
+char*
+ak_tolower(char *str);
+
+AK_EXPORT
+char*
+ak_toupper(char *str);
+
 #endif /* __libassetkit__assetkit_string__h_ */

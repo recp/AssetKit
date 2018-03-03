@@ -7,6 +7,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "../include/assetkit.h"
 
@@ -362,4 +363,20 @@ int
 ak_strtof4_s(const char * __restrict src,
               AkFloat4 * __restrict dest) {
   return ak_strtof_s(src, *dest, 4);
+}
+
+AK_EXPORT
+char*
+ak_tolower(char *str) {
+  char *p;
+  for (p = str; *p; ++p) *p = tolower(*p);
+  return str;
+}
+
+AK_EXPORT
+char*
+ak_toupper(char *str) {
+  char *p;
+  for (p = str; *p; ++p) *p = toupper(*p);
+  return str;
 }
