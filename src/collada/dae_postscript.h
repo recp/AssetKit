@@ -5,12 +5,12 @@
  * Full license can be found in the LICENSE file
  */
 
-#ifndef dae_bugfix_transp_h
-#define dae_bugfix_transp_h
+#ifndef dae_postscript_h
+#define dae_postscript_h
 
-#include "../dae_common.h"
+#include "dae_common.h"
 
 void _assetkit_hide
-dae_bugfix_transp(AkTransparent * __restrict transp);
+ak_dae_postscript(AkXmlState * __restrict xst);
 
-#endif /* dae_bugfix_transp_h */
+#endif /* dae_postscript_h */

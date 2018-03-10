@@ -8,7 +8,7 @@
 #include "../include/assetkit.h"
 
 #include "ak_utils.h"
-#include "collada/ak_collada.h"
+#include "collada/dae.h"
 #include "gltf/gltf.h"
 
 #include <stdlib.h>

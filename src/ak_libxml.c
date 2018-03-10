@@ -7,7 +7,7 @@
 
 #include "ak_libxml.h"
 #include "ak_common.h"
-#include "collada/ak_collada_common.h"
+#include "collada/dae_common.h"
 
 void
 ak_xml_attr_url(AkXmlState * __restrict xst,
@@ -28,7 +28,7 @@ ak_xml_attr_url(AkXmlState * __restrict xst,
     urlQueue->next = xst->urlQueue;
     urlQueue->url  = url;
     xst->urlQueue  = urlQueue;
-    
+
     xmlFree(attrVal);
     return;
   }
@@ -85,7 +85,7 @@ ak_xml_end(AkXmlElmState * __restrict xest) {
   }
 
   /* TODO: there is no need to compare nodeType and nodeName?
-           because we reached to end of node by depth info 
+           because we reached to end of node by depth info
    */
   return xest->depth == xest->xst->nodeDepth;
 }
