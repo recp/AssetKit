@@ -265,7 +265,8 @@ typedef enum AkInstanceType {
   AK_INSTANCE_LIGHT      = 3,
   AK_INSTANCE_GEOMETRY   = 4,
   AK_INSTANCE_IMAGE      = 5,
-  AK_INSTANCE_CONTROLLER = 6
+  AK_INSTANCE_CONTROLLER = 6,
+  AK_INSTANCE_EFFECT     = 7
 } AkInstanceType;
 
 typedef struct AkValue {

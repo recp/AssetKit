@@ -142,6 +142,7 @@ ak_dae_fxInstanceEffect(AkXmlState * __restrict xst,
 
   ak_xml_readsid(xst, instanceEffect);
 
+  instanceEffect->base.type = AK_INSTANCE_EFFECT;
   instanceEffect->base.name = ak_xml_attr(xst,
                                           instanceEffect,
                                           _s_dae_name);
