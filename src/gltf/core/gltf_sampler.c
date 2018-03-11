@@ -42,13 +42,13 @@ gltf_samplers(AkGLTFState * __restrict gst) {
     paramVal->value = sampler;
     param->val      = paramVal;
 
-    sampler->wrapS = gltf_wrapMode(json_int32(jsampler, _s_gltf_wrapS));
-    sampler->wrapT = gltf_wrapMode(json_int32(jsampler, _s_gltf_wrapT));
+    sampler->wrapS = gltf_wrapMode(jsn_i32(jsampler, _s_gltf_wrapS));
+    sampler->wrapT = gltf_wrapMode(jsn_i32(jsampler, _s_gltf_wrapT));
 
-    sampler->minfilter = gltf_minFilter(json_int32(jsampler,
+    sampler->minfilter = gltf_minFilter(jsn_i32(jsampler,
                                                    _s_gltf_minFilter));
 
-    sampler->magfilter = gltf_magFilter(json_int32(jsampler,
+    sampler->magfilter = gltf_magFilter(jsn_i32(jsampler,
                                                    _s_gltf_magFilter));
 
     /* TODO: get sampler.name for debug module */

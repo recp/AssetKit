@@ -19,9 +19,7 @@ json_cstr(json_t *jsn, const char *key) {
 }
 
 int32_t
-json_int32_def(json_t     *jsn,
-               const char *key,
-               int32_t     def) {
+jsn_i32_def(json_t *jsn, const char *key, int32_t def) {
   json_t *jval;
 
   jval = json_object_get(jsn, key);
@@ -32,12 +30,12 @@ json_int32_def(json_t     *jsn,
 }
 
 int32_t
-json_int32(json_t *jsn, const char *key) {
-  return json_int32_def(jsn, key, 0);
+jsn_i32(json_t *jsn, const char *key) {
+  return jsn_i32_def(jsn, key, 0);
 }
 
 float
-json_float(json_t *jsn, const char *key) {
+jsn_flt(json_t *jsn, const char *key) {
   json_t *jval;
 
   jval = json_object_get(jsn, key);
@@ -47,8 +45,16 @@ json_float(json_t *jsn, const char *key) {
   return (float)json_number_value(jval);
 }
 
+void
+jsn_flt_if(json_t *jsn, const char *key, float *dest) {
+  json_t *jval;
+
+  if (!(jval = json_object_get(jsn, key)))
+    *dest = (float)json_number_value(jval);
+}
+
 int64_t
-json_int64(json_t *jsn, const char *key) {
+jsn_i64(json_t *jsn, const char *key) {
   json_t *jval;
 
   jval = json_object_get(jsn, key);
@@ -57,4 +63,3 @@ json_int64(json_t *jsn, const char *key) {
 
   return json_integer_value(jval);
 }
-

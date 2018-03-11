@@ -30,7 +30,7 @@ gltf_buffer(AkGLTFState * __restrict gst,
   if (!jbuffView)
     return NULL;
 
-  bufferIndex = json_int32(jbuffView, _s_gltf_bufferView);
+  bufferIndex = jsn_i32(jbuffView, _s_gltf_bufferView);
 
   jbuffs      = json_object_get(gst->root, _s_gltf_buffers);
   jbuffsSize  = json_array_size(jbuffs);
@@ -63,9 +63,9 @@ gltf_buffer(AkGLTFState * __restrict gst,
       /* we will return bufferView data as AkBuffer,
          because we don't what is in gltf buffer (for now)
        */
-      byteLength  = json_int64(jbuffView, _s_gltf_byteLength);
-      _byteStride = json_int32(jbuffView, _s_gltf_byteStride);
-      byteOffset  = json_int64(jbuffView, _s_gltf_byteOffset);
+      byteLength  = jsn_i64(jbuffView, _s_gltf_byteLength);
+      _byteStride = jsn_i32(jbuffView, _s_gltf_byteStride);
+      byteOffset  = jsn_i64(jbuffView, _s_gltf_byteOffset);
 
       if (byteStride)
         *byteStride = _byteStride;

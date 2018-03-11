@@ -18,17 +18,20 @@ const char*
 json_cstr(json_t *jsn, const char *key);
 
 int32_t
-json_int32_def(json_t     *jsn,
+jsn_i32_def(json_t     *jsn,
                const char *key,
                int32_t     def);
 
 int32_t
-json_int32(json_t *jsn, const char *key);
+jsn_i32(json_t *jsn, const char *key);
 
 int64_t
-json_int64(json_t *jsn, const char *key);
+jsn_i64(json_t *jsn, const char *key);
 
 float
-json_float(json_t *jsn, const char *key);
+jsn_flt(json_t *jsn, const char *key);
+
+void
+jsn_flt_if(json_t *jsn, const char *key, float *dest);
 
 #endif /* ak_json_h */

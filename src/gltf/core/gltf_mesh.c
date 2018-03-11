@@ -67,7 +67,7 @@ gltf_meshes(AkGLTFState * __restrict gst) {
 
       prim  = gltf_allocPrim(heap,
                              meshObj,
-                             json_int32_def(jprim, _s_gltf_mode,  4));
+                             jsn_i32_def(jprim, _s_gltf_mode, 4));
 
       mesh->vertices = ak_heap_calloc(heap,
                                       prim,

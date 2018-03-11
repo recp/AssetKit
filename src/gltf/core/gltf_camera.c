@@ -48,11 +48,11 @@ gltf_cameras(AkGLTFState * __restrict gst) {
       persp = ak_heap_calloc(heap, optics, sizeof(*persp));
       persp->base.type = AK_PROJECTION_PERSPECTIVE;
 
-      persp->xfov        = json_float(jtechnique, _s_gltf_xfov);
-      persp->yfov        = json_float(jtechnique, _s_gltf_yfov);
-      persp->znear       = json_float(jtechnique, _s_gltf_znear);
-      persp->zfar        = json_float(jtechnique, _s_gltf_zfar);
-      persp->aspectRatio = json_float(jtechnique, _s_gltf_aspectRatio);
+      persp->xfov        = jsn_flt(jtechnique, _s_gltf_xfov);
+      persp->yfov        = jsn_flt(jtechnique, _s_gltf_yfov);
+      persp->znear       = jsn_flt(jtechnique, _s_gltf_znear);
+      persp->zfar        = jsn_flt(jtechnique, _s_gltf_zfar);
+      persp->aspectRatio = jsn_flt(jtechnique, _s_gltf_aspectRatio);
 
       if (!persp->aspectRatio
           && persp->yfov
@@ -74,10 +74,10 @@ gltf_cameras(AkGLTFState * __restrict gst) {
       ortho = ak_heap_calloc(heap, optics, sizeof(*ortho));
       ortho->base.type = AK_PROJECTION_ORTHOGRAPHIC;
 
-      ortho->xmag  = json_float(jtechnique, _s_gltf_xmag);
-      ortho->ymag  = json_float(jtechnique, _s_gltf_ymag);
-      ortho->znear = json_float(jtechnique, _s_gltf_znear);
-      ortho->zfar  = json_float(jtechnique, _s_gltf_zfar);
+      ortho->xmag  = jsn_flt(jtechnique, _s_gltf_xmag);
+      ortho->ymag  = jsn_flt(jtechnique, _s_gltf_ymag);
+      ortho->znear = jsn_flt(jtechnique, _s_gltf_znear);
+      ortho->zfar  = jsn_flt(jtechnique, _s_gltf_zfar);
 
       if (ortho->ymag && ortho->xmag)
         ortho->aspectRatio = ortho->xmag / ortho->ymag;
