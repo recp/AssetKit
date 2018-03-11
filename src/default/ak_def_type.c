@@ -36,7 +36,7 @@ AkTypeDesc ak_def_type_descs[] = {
   {"short",     AKT_SHORT,     sizeof(short),              0},
   {"ushort",    AKT_USHORT,    sizeof(unsigned short),     0},
 
-  {"sampler2D", AKT_SAMPLER2D, sizeof(AkSampler2D),        0},
+  {"sampler2D", AKT_SAMPLER2D, sizeof(AkSampler),          0},
 
   {NULL,       0,            0,                            0}
 };

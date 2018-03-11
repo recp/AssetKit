@@ -471,7 +471,7 @@ _ak_DEF_STATE_T2(state_t_float3_i,           AkFloat3)
 _ak_DEF_STATE_T1(state_t_float4,             AkFloat4)
 _ak_DEF_STATE_T2(state_t_float4_i,           AkFloat4)
 _ak_DEF_STATE_T1(state_t_float4x4,           AkFloat4x4)
-_ak_DEF_STATE_T2(state_t_sampler,            AkFxSamplerCommon *)
+_ak_DEF_STATE_T2(state_t_sampler,            AkSampler *)
 _ak_DEF_STATE_T2(state_t_str,                const char *)
 
 #undef _ak_DEF_STATE_T

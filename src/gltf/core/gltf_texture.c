@@ -23,7 +23,7 @@ gltf_textures(AkGLTFState * __restrict gst) {
 
   for (i = 0; i < jtextureCount; i++) {
     json_t      *jtexture, *jsampler, *jsource;
-    AkSampler2D *sampler;
+    AkSampler   *sampler;
 
     sampler  = NULL;
     jtexture = json_array_get(jtextures, i);

@@ -53,8 +53,8 @@ ak_dae14_loadjobs_finish(AkXmlState * __restrict xst) {
 
         surfaceParam = ak_sid_resolve(&ctx, job->value);
         if (surfaceParam) {
-          AkFxSamplerCommon *sampler;
-          AkInstanceBase    *instanceImage;
+          AkSampler      *sampler;
+          AkInstanceBase *instanceImage;
 
           surface = surfaceParam->val->value;
 

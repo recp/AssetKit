@@ -101,36 +101,6 @@ typedef enum AkParamType {
   AK_PARAM_TYPE_EXTENDED = 1
 } AkParamType;
 
-typedef enum AkWrapMode {
-  AK_WRAP_MODE_WRAP        = 0,
-  AK_WRAP_MODE_MIRROR      = 1,
-  AK_WRAP_MODE_CLAMP       = 2,
-  AK_WRAP_MODE_BORDER      = 3,
-  AK_WRAP_MODE_MIRROR_ONCE = 4
-} AkWrapMode;
-
-typedef enum AkMinFilter {
-  AK_MINFILTER_LINEAR      = 0,
-  AK_MINFILTER_NEAREST     = 1,
-  AK_MINFILTER_ANISOTROPIC = 2,
-
-  AK_LINEAR_MIPMAP_NEAREST  = 2,
-  AK_LINEAR_MIPMAP_LINEAR   = 3,
-  AK_NEAREST_MIPMAP_NEAREST = 4,
-  AK_NEAREST_MIPMAP_LINEAR  = 5
-} AkMinFilter;
-
-typedef enum AkMagFilter {
-  AK_MAGFILTER_LINEAR       = 0,
-  AK_MAGFILTER_NEAREST      = 1
-} AkMagFilter;
-
-typedef enum AkMipFilter {
-  AK_MIPFILTER_LINEAR  = 0,
-  AK_MIPFILTER_NONE    = 1,
-  AK_MIPFILTER_NEAREST = 2
-} AkMipFilter;
-
 typedef enum AkFace {
   AK_FACE_POSITIVE_X = 1,
   AK_FACE_NEGATIVE_X = 2,
@@ -421,44 +391,6 @@ typedef struct AkInstanceBase {
   struct AkInstanceBase *prev;
   struct AkInstanceBase *next;
 } AkInstanceBase;
-
-/*!
- * base type for these types:
- * sampler1D
- * sampler2D
- * sampler3D
- * samplerCUBE
- * samplerDEPTH
- * samplerRECT
- * samplerStates
- */
-typedef struct AkFxSamplerCommon {
-  AkInstanceBase *instanceImage;
-  const char     *texcoordSemantic;
-  AkColor        *borderColor;
-  AkTree         *extra;
-
-  AkWrapMode      wrapS;
-  AkWrapMode      wrapT;
-  AkWrapMode      wrapP;
-
-  AkMinFilter     minfilter;
-  AkMagFilter     magfilter;
-  AkMipFilter     mipfilter;
-
-  unsigned long   maxAnisotropy;
-  unsigned long   mipMaxLevel;
-  unsigned long   mipMinLevel;
-  float           mipBias;
-} AkFxSamplerCommon;
-
-typedef AkFxSamplerCommon AkSampler1D;
-typedef AkFxSamplerCommon AkSampler2D;
-typedef AkFxSamplerCommon AkSampler3D;
-typedef AkFxSamplerCommon AkSamplerCUBE;
-typedef AkFxSamplerCommon AkSamplerDEPTH;
-typedef AkFxSamplerCommon AkSamplerRECT;
-typedef AkFxSamplerCommon AkSamplerStates;
 
 typedef struct AkFxTexture {
   const char * texture;
@@ -869,7 +801,6 @@ typedef struct AkDoc {
 #include "ak-context.h"
 #include "ak-geom.h"
 #include "ak-image.h"
-#include "ak-states.h"
 #include "ak-string.h"
 #include "ak-coord-util.h"
 #include "ak-lib.h"
@@ -879,7 +810,9 @@ typedef struct AkDoc {
 #include "ak-sid.h"
 #include "ak-light.h"
 #include "ak-node.h"
-
+#include "ak-texture.h"
+#include "ak-states.h"
+  
 AK_EXPORT
 AkResult
 ak_load(AkDoc ** __restrict dest,

@@ -53,9 +53,9 @@ AkResult _assetkit_hide
 ak_dae_fxSampler(AkXmlState * __restrict xst,
                  void * __restrict memParent,
                  const char *elm,
-                 AkFxSamplerCommon ** __restrict dest) {
-  AkFxSamplerCommon *sampler;
-  AkXmlElmState      xest;
+                 AkSampler ** __restrict dest) {
+  AkSampler    *sampler;
+  AkXmlElmState xest;
 
   sampler = ak_heap_calloc(xst->heap,
                            memParent,

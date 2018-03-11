@@ -471,8 +471,8 @@ ak_dae_fxState_sampler(AkXmlState * __restrict xst,
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_value)) {
-      AkFxSamplerCommon * sampler;
-      AkResult ret;
+      AkSampler *sampler;
+      AkResult   ret;
 
       sampler = NULL;
       ret = ak_dae_fxSampler(xst,

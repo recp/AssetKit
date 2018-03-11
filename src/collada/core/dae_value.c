@@ -47,12 +47,12 @@ static ak_value_pair valueMap[] = {
   {_s_dae_float4x4, AKT_FLOAT4x4, 4, 4, sizeof(float[4][4])},
 
   /* samplers */
-  {_s_dae_sampler1d,     AKT_SAMPLER1D,     1, 1, sizeof(AkSampler1D)},
-  {_s_dae_sampler2d,     AKT_SAMPLER2D,     1, 1, sizeof(AkSampler2D)},
-  {_s_dae_sampler3d,     AKT_SAMPLER3D,     1, 1, sizeof(AkSampler3D)},
-  {_s_dae_sampler_cube,  AKT_SAMPLER_CUBE,  1, 1, sizeof(AkSamplerCUBE)},
-  {_s_dae_sampler_rect,  AKT_SAMPLER_RECT,  1, 1, sizeof(AkSamplerRECT)},
-  {_s_dae_sampler_depth, AKT_SAMPLER_DEPTH, 1, 1, sizeof(AkSamplerDEPTH)},
+  {_s_dae_sampler1d,     AKT_SAMPLER1D,     1, 1, sizeof(AkSampler)},
+  {_s_dae_sampler2d,     AKT_SAMPLER2D,     1, 1, sizeof(AkSampler)},
+  {_s_dae_sampler3d,     AKT_SAMPLER3D,     1, 1, sizeof(AkSampler)},
+  {_s_dae_sampler_cube,  AKT_SAMPLER_CUBE,  1, 1, sizeof(AkSampler)},
+  {_s_dae_sampler_rect,  AKT_SAMPLER_RECT,  1, 1, sizeof(AkSampler)},
+  {_s_dae_sampler_depth, AKT_SAMPLER_DEPTH, 1, 1, sizeof(AkSampler)},
 
   /* COLLADA 1.4 */
   {
@@ -192,8 +192,8 @@ ak_dae_value(AkXmlState * __restrict xst,
     case AKT_SAMPLER_CUBE:
     case AKT_SAMPLER_RECT:
     case AKT_SAMPLER_DEPTH: {
-      AkFxSamplerCommon *sampler;
-      AkResult           ret;
+      AkSampler *sampler;
+      AkResult   ret;
 
       sampler = NULL;
       ret = ak_dae_fxSampler(xst,

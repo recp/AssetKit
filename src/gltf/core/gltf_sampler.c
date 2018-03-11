@@ -25,7 +25,7 @@ gltf_samplers(AkGLTFState * __restrict gst) {
   profile       = gltf_profile(gst);
 
   for (i = jsamplerCount; i != 0; i--) {
-    AkSampler2D *sampler;
+    AkSampler   *sampler;
     AkNewParam  *param;
     AkValue     *paramVal;
     json_t      *jsampler;
