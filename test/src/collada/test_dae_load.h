@@ -11,6 +11,6 @@
 #include "../test-common.h"
 
 void
-test_collada_load_folder(void **state);
+test_dae_load_folder(void **state);
 
 #endif /* ak_test_collada_load_simple_h */
