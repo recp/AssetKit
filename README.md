@@ -5,7 +5,7 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/6edde2ba446148759437eb0148c799b6)](https://www.codacy.com/app/recp/assetkit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=recp/assetkit&amp;utm_campaign=Badge_Grade)
 ![status](https://img.shields.io/badge/glTF-2%2E0-green.svg?style=flat)
 
-3D asset importer, exporter library. This library also includes common 3D utils funcs. It is written with C99 but C++ wrappers or other language bindings can be written in the future. 
+3D asset importer, exporter library. This library also includes common 3D utils funcs. It is written with C99 but C++ wrappers or other language bindings can be written in the future.
 
 This library will full support COLLADA specs and glTF specs, plus other 3D formats e.g .obj, .stl maybe supported by sub-libraries e.g. assetkit-stl, assetkit-fbx.
 
@@ -29,6 +29,10 @@ So working on multiple projects ([cglm](https://github.com/recp/cglm), [libgk](h
   - [x] Samplers
   - [x] Textures
   - [ ] PBR Materials
+      - [x] Metallic Roughness
+      - [ ] Specular Glossiness
+  - [ ] Other textures (normalTexture, occlusionTexture, emissiveTexture...)
+  - [ ] alphaMode
 - [ ] Animations
 - [ ] Extensions
   - [ ] Lights
@@ -64,8 +68,8 @@ So working on multiple projects ([cglm](https://github.com/recp/cglm), [libgk](h
        - [x] Transforms
          - [x] Utils for transforms
          - [x] Convert transforms to current coord sys
-       - [x] Implement bind_material 
-  - [x] Load external DAE files and cache them 
+       - [x] Implement bind_material
+  - [x] Load external DAE files and cache them
   - [ ] Load animations
     - [ ] Parse MathML formulas
 - [x] Load FX
@@ -81,7 +85,7 @@ Step 1: First you should build dependencies, do this only once:
 $ sh ./build-deps.sh
 ```
 
-Step 2: Build, Test and Install AssetKit 
+Step 2: Build, Test and Install AssetKit
 ```bash
 $ sh autogen.sh
 $ ./configure
@@ -116,3 +120,4 @@ Currently tests are implemented for Autotools (make check), there is separate re
 - Actual README and documents for how to use this will be written after first version
 - I'm working hard to finish this lib, I'll update README when finished, for now <b>DON'T USE THIS LIB UNTIL FINISHED</b>
 - Don't create pull requests for now, if you really want then, first contact me because I may work on the feature you want or I've planned it with an architecture to do that
+

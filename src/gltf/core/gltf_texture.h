@@ -10,7 +10,15 @@
 
 #include "../gltf_common.h"
 
-void _assetkit_hide
-gltf_textures(AkGLTFState * __restrict gst);
+AkFxTexture* _assetkit_hide
+gltf_texref(AkGLTFState * __restrict gst,
+            AkEffect    * __restrict effect,
+            void        * __restrict parent,
+            json_t      * __restrict jtexinfo);
+
+AkSampler* _assetkit_hide
+gltf_texture(AkGLTFState * __restrict gst,
+             AkEffect    * __restrict effect,
+             int32_t                  index);
 
 #endif /* gltf_texture_h */

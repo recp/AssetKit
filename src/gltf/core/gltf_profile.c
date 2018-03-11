@@ -7,35 +7,26 @@
 
 #include "gltf_profile.h"
 
-void _assetkit_hide
-gltf_setprofile(AkGLTFState * __restrict gst) {
-  AkLibItem     *lib;
-  AkEffect      *effect;
-  AkProfileGLTF *profile;
+AkProfileCommon* _assetkit_hide
+gltf_cmnEffect(AkGLTFState * __restrict gst) {
+  AkLibItem       *lib;
+  AkEffect        *effect;
+  AkProfileCommon *profile;
 
-  if (gst->doc->lib.effects)
-    return;
+  if (!(lib = gst->doc->lib.effects)) {
+    lib = ak_heap_calloc(gst->heap, gst->doc, sizeof(*lib));
+    gst->doc->lib.effects = lib;
+  }
 
-  lib     = ak_heap_calloc(gst->heap, gst->doc, sizeof(*lib));
   effect  = ak_heap_calloc(gst->heap, lib,      sizeof(*effect));
   profile = ak_heap_calloc(gst->heap, effect,   sizeof(*profile));
-  profile->type = AK_PROFILE_TYPE_GLTF;
+  profile->type = AK_PROFILE_TYPE_COMMON;
+
+  lib->count++;
 
   effect->profile = profile;
-  lib->count      = 1;
+  effect->next    = lib->chld;
   lib->chld       = effect;
-
-  gst->doc->lib.effects = lib;
-}
-
-AkProfileGLTF* _assetkit_hide
-gltf_profile(AkGLTFState * __restrict gst) {
-  AkEffect *effect;
-
-  if (!gst->doc->lib.effects)
-    gltf_setprofile(gst);
-
-  effect = gst->doc->lib.effects->chld;
 
   return effect->profile;
 }

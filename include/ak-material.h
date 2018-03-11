@@ -95,8 +95,8 @@ typedef AkPhong AkBlinn;
 typedef struct AkMetallicRoughness {
   AkEffectCmnTechnique base;
   AkColor              baseColor;
-  AkFxTexture         *baseTexture;
-  AkFxTexture         *metallicRoughnessTexture;
+  AkFxTexture         *baseColorTex;
+  AkFxTexture         *metalRoughTex;
   float                metallic;
   float                roughness;
 } AkMetallicRoughness;
@@ -105,8 +105,8 @@ typedef struct AkSpecularGlossiness {
   AkEffectCmnTechnique base;
   AkColor              diffuse;
   AkColor              specular;
-  AkFxTexture         *diffuseTexture;
-  AkFxTexture         *specularGlossinessTexture;
+  AkFxTexture         *diffuseTex;
+  AkFxTexture         *specularGlossTex;
   float                glossiness;
 } AkSpecularGlossiness;
 

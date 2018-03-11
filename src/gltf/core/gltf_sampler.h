@@ -10,7 +10,13 @@
 
 #include "../gltf_common.h"
 
-void _assetkit_hide
-gltf_samplers(AkGLTFState * __restrict gst);
+AkSampler* _assetkit_hide
+gltf_sampler(AkGLTFState * __restrict gst,
+             AkEffect    * __restrict effect,
+             int32_t                  index);
+
+AkSampler* _assetkit_hide
+gltf_newsampler(AkGLTFState * __restrict gst,
+                AkEffect    * __restrict effect);
 
 #endif /* gltf_sampler_h */

@@ -14,6 +14,7 @@
 #include "../ak_utils.h"
 #include "../ak_tree.h"
 #include "../ak_json.h"
+#include "../ak_id.h"
 #include "../resc/ak_curl.h"
 #include "gltf_strpool.h"
 
@@ -34,7 +35,6 @@ typedef struct AkGLTFState {
   json_t       *root;
   FListItem    *buffers;
   RBTree       *bufferViews; /* cache bufferViews to prevent dup */
-  FListItem    *samplers;
   AkGLTFVersion version;
 } AkGLTFState;
 

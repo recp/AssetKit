@@ -9,57 +9,64 @@
 #include "gltf_profile.h"
 #include "gltf_enums.h"
 
-void _assetkit_hide
-gltf_samplers(AkGLTFState * __restrict gst) {
+AkSampler* _assetkit_hide
+gltf_newsampler(AkGLTFState * __restrict gst,
+                AkEffect    * __restrict effect) {
+  AkHeap        *heap;
+  AkProfileGLTF *profile;
+
+  AkSampler     *sampler;
+  AkNewParam    *param;
+  AkValue       *paramVal;
+
+  heap     = gst->heap;
+  profile  = effect->profile; /* there is only one, I hope */
+  param    = ak_heap_calloc(heap, profile,  sizeof(*param));
+  paramVal = ak_heap_calloc(heap, param,    sizeof(*paramVal));
+  sampler  = ak_heap_calloc(heap, paramVal, sizeof(*sampler));
+
+  memcpy(&paramVal->type,
+         ak_typeDesc(AKT_SAMPLER2D),
+         sizeof(paramVal->type));
+
+  paramVal->value   = sampler;
+  param->val        = paramVal;
+
+  if (profile->newparam) {
+    profile->newparam->prev = param;
+    param->next             = profile->newparam;
+  }
+
+  profile->newparam = param;
+
+  return sampler;
+}
+
+AkSampler* _assetkit_hide
+gltf_sampler(AkGLTFState * __restrict gst,
+             AkEffect    * __restrict effect,
+             int32_t                  index) {
   AkHeap        *heap;
   json_t        *jsamplers;
-  AkNewParam    *last_param;
-  AkProfileGLTF *profile;
-  size_t         jsamplerCount, i;
+  AkSampler     *sampler;
+  json_t        *jsampler;
+  int32_t        jsamplerCount;
 
-  heap       = gst->heap;
-  last_param = NULL;
-
+  heap          = gst->heap;
   jsamplers     = json_object_get(gst->root, _s_gltf_samplers);
-  jsamplerCount = json_array_size(jsamplers);
-  profile       = gltf_profile(gst);
+  jsamplerCount = (int32_t)json_array_size(jsamplers);
 
-  for (i = jsamplerCount; i != 0; i--) {
-    AkSampler   *sampler;
-    AkNewParam  *param;
-    AkValue     *paramVal;
-    json_t      *jsampler;
+  if (!(index < jsamplerCount))
+    return NULL;
 
-    jsampler = json_array_get(jsamplers, i - 1);
-    param    = ak_heap_calloc(heap, profile,  sizeof(*param));
-    paramVal = ak_heap_calloc(heap, param,    sizeof(*paramVal));
-    sampler  = ak_heap_calloc(heap, paramVal, sizeof(*sampler));
+  jsampler           = json_array_get(jsamplers, index);
+  sampler            = gltf_newsampler(gst, effect);
 
-    memcpy(&paramVal->type,
-           ak_typeDesc(AKT_SAMPLER2D),
-           sizeof(paramVal->type));
+  sampler->wrapS     = gltf_wrapMode(jsn_i32(jsampler, _s_gltf_wrapS));
+  sampler->wrapT     = gltf_wrapMode(jsn_i32(jsampler, _s_gltf_wrapT));
 
-    paramVal->value = sampler;
-    param->val      = paramVal;
+  sampler->minfilter = gltf_minFilter(jsn_i32(jsampler, _s_gltf_minFilter));
+  sampler->magfilter = gltf_magFilter(jsn_i32(jsampler, _s_gltf_magFilter));
 
-    sampler->wrapS = gltf_wrapMode(jsn_i32(jsampler, _s_gltf_wrapS));
-    sampler->wrapT = gltf_wrapMode(jsn_i32(jsampler, _s_gltf_wrapT));
-
-    sampler->minfilter = gltf_minFilter(jsn_i32(jsampler,
-                                                   _s_gltf_minFilter));
-
-    sampler->magfilter = gltf_magFilter(jsn_i32(jsampler,
-                                                   _s_gltf_magFilter));
-
-    /* TODO: get sampler.name for debug module */
-
-    if (last_param)
-      last_param->next = param;
-    else
-      profile->newparam = param;
-
-    last_param = param;
-
-    flist_sp_insert(&gst->samplers, sampler);
-  }
+  return sampler;
 }

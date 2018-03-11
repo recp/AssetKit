@@ -30,13 +30,14 @@ typedef enum AkProfileType {
 typedef struct AkTechniqueFx {
   /* const char * id; */
   /* const char * sid; */
-  AkAnnotate   * annotate;
-  AkBlinn      * blinn;
-  AkConstantFx * constant;
-  AkLambert    * lambert;
-  AkPhong      * phong;
-  AkPass       * pass;
-  AkTree       * extra;
+  AkAnnotate          *annotate;
+  AkBlinn             *blinn;
+  AkConstantFx        *constant;
+  AkLambert           *lambert;
+  AkPhong             *phong;
+  AkMetallicRoughness *metallicRoughness;
+  AkPass              *pass;
+  AkTree              *extra;
 
   struct AkTechniqueFx * next;
 } AkTechniqueFx;

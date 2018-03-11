@@ -19,6 +19,7 @@
 #include "core/gltf_profile.h"
 #include "core/gltf_sampler.h"
 #include "core/gltf_texture.h"
+#include "core/gltf_material.h"
 
 AkResult _assetkit_hide
 ak_gltf_doc(AkDoc     ** __restrict dest,
@@ -64,17 +65,15 @@ ak_gltf_doc(AkDoc     ** __restrict dest,
                                 ds_cmp_i32p,
                                 NULL);
 
-  /* create a profile for gltf */
-  gltf_setprofile(gst);
-
   gltf_buffers(gst);
   gltf_images(gst);
-  gltf_samplers(gst);
-  gltf_textures(gst);
   gltf_meshes(gst);
   gltf_cameras(gst);
+  gltf_materials(gst);
   gltf_nodes(gst);
   gltf_scenes(gst);
+
+  /* TODO: release resources in GLTFState */
 
   /* set default scene */
   if ((jscene = json_object_get(gst->root, _s_gltf_scene))) {

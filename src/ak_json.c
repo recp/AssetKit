@@ -45,6 +45,11 @@ jsn_flt(json_t *jsn, const char *key) {
   return (float)json_number_value(jval);
 }
 
+float
+jsn_flt_at(json_t *jsn, int32_t index) {
+  return json_number_value(json_array_get(jsn, index));
+}
+
 void
 jsn_flt_if(json_t *jsn, const char *key, float *dest) {
   json_t *jval;

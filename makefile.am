@@ -232,7 +232,8 @@ libassetkit_la_SOURCES=\
     src/gltf/core/gltf_image.c \
     src/gltf/core/gltf_profile.c \
     src/gltf/core/gltf_sampler.c \
-    src/gltf/core/gltf_texture.c
+    src/gltf/core/gltf_texture.c \
+    src/gltf/core/gltf_material.c
 
 test_tests_SOURCES=\
     test/src/test-common.h \
