@@ -447,7 +447,7 @@ ak_heap_rb_printNode(AkHeapSrchCtx * __restrict srchctx,
 
 void
 ak_heap_rb_print(AkHeapSrchCtx * __restrict srchctx) {
-  printf("Asset Kit Memory Id Dump:\n");
+  printf("\nAssetKit Memory Id Dump:\n");
   printf("------------------------\n");
 
   if(srchctx->root->chld[AK__BST_RIGHT] == srchctx->nullNode)
