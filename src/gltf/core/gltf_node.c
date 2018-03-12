@@ -317,10 +317,13 @@ gltf_bindMaterials(AkGLTFState        * __restrict gst,
                    AkInstanceGeometry * __restrict instGeom,
                    int32_t                         meshIndex) {
   AkHeap             *heap;
+  AkBindMaterial     *bindMat;
+  AkInstanceMaterial *last_instMat;
   json_t             *jmesh, *jmeshes, *jprims, *jprim, *jmat, *jattribs, *jval;
   const char         *jkey;
   HTable             *semanticMap;
   size_t              jprimCount, i;
+  bool                materialFound;
 
   heap        = gst->heap;
   jmeshes     = json_object_get(gst->root, _s_gltf_meshes);
@@ -331,10 +334,13 @@ gltf_bindMaterials(AkGLTFState        * __restrict gst,
   if (!(jprims = json_object_get(jmesh, _s_gltf_primitives)))
     return;
 
-  jprimCount = (int32_t)json_array_size(jprims);
+  bindMat       = ak_heap_calloc(heap, instGeom, sizeof(*bindMat));
+  jprimCount    = (int32_t)json_array_size(jprims);
+  last_instMat  = NULL;
+  materialFound = false;
+
   for (i = 0; i < jprimCount; i++) {
     AkMaterial         *mat;
-    AkBindMaterial     *bindMat;
     AkInstanceMaterial *instMat;
     AkBindVertexInput  *last_bvi;
     char               *materialId, *sem;
@@ -358,7 +364,6 @@ gltf_bindMaterials(AkGLTFState        * __restrict gst,
     if (!mat)
       continue;
 
-    bindMat    = ak_heap_calloc(heap, instGeom, sizeof(*bindMat));
     instMat    = ak_heap_calloc(heap, bindMat,  sizeof(*instMat));
 
     materialId = ak_mem_getId(mat);
@@ -367,7 +372,12 @@ gltf_bindMaterials(AkGLTFState        * __restrict gst,
     sem[len]   = '\0';
     sprintf(sem, "%s-%d", materialId, (int32_t)i);
 
-    bindMat->tcommon = instMat;
+    if (last_instMat)
+      last_instMat->base.next = &instMat->base;
+    else
+      bindMat->tcommon = instMat;
+    last_instMat = instMat;
+      
     instMat->symbol  = sem;
     last_bvi         = NULL;
 
@@ -421,10 +431,26 @@ gltf_bindMaterials(AkGLTFState        * __restrict gst,
           else
             instMat->bindVertexInput = bvi;
           last_bvi = bvi;
+
+          materialFound = true;
         }
       } /* if TEXCOORD */
     } /* json_object_foreach */
   } /* for */
+
+  if (!materialFound) {
+    AkInstanceMaterial *instMat, *tofree;
+    instMat = bindMat->tcommon;
+    while (instMat) {
+      tofree = instMat;
+      instMat = (AkInstanceMaterial *)instMat->base.next;
+      ak_free(tofree);
+    }
+
+    ak_free(bindMat);
+  } else {
+    instGeom->bindMaterial = bindMat;
+  }
 
   hash_destroy(semanticMap);
 }
