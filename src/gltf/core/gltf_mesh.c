@@ -38,7 +38,7 @@ gltf_meshes(AkGLTFState * __restrict gst) {
     AkGeometry *geom;
     AkObject   *last_mesh;
 
-    json_t     *jmesh, *jprims;
+    json_t     *jmesh, *jprims, *jmat;
     int32_t     jprimCount, j;
 
     geom       = ak_heap_calloc(heap, lib, sizeof(*geom));
@@ -171,10 +171,36 @@ gltf_meshes(AkGLTFState * __restrict gst) {
         }
       }
 
-      prim->vertices    = mesh->vertices;
-      prim->mesh        = mesh;
-      mesh->primitive   = prim;
+      /* material semantic */
+      if ((jmat = json_object_get(jprim, _s_gltf_material))) {
+        AkMaterial *mat;
+        int32_t     matIndex;
 
+        matIndex = (int32_t)json_integer_value(jmat);
+        mat      = gst->doc->lib.materials->chld;
+        while (matIndex > 0) {
+          mat = mat->next;
+          matIndex--;
+        }
+
+        /* we can use material id as semantic */
+        if (mat) {
+          char  *materialId, *sem;
+          size_t len;
+
+          materialId = ak_mem_getId(mat);
+          len        = strlen(materialId) + 1;
+          sem        = ak_heap_alloc(heap, prim, len);
+          sem[len]   = '\0';
+          sprintf(sem, "%s-%d", materialId, i);
+
+          prim->material = sem;
+        }
+      }
+
+      prim->vertices       = mesh->vertices;
+      prim->mesh           = mesh;
+      mesh->primitive      = prim;
       mesh->primitiveCount = 1;
       mesh->geom = geom;
 

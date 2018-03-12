@@ -78,6 +78,7 @@
   "minFilter": "minFilter",
   "textures": "textures",
   "source": "source",
+  "material": "material",
   "materials": "materials",
   "pbrMetalRough": "pbrMetallicRoughness",
   "normalTex": "normalTexture",
@@ -95,5 +96,6 @@
   "index": "index",
   "texCoord": "texCoord",
   "sid_texcoord": "TEX",
-  "sid_sampler": "smp-"
+  "sid_sampler": "smp-",
+  "id_metalrough": "mtlrough-"
 }

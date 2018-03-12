@@ -19,4 +19,9 @@ gltf_node(AkGLTFState * __restrict gst,
           json_t      * __restrict jnode,
           AkNode     ** __restrict nodechld);
 
+void _assetkit_hide
+gltf_bindMaterials(AkGLTFState        * __restrict gst,
+                   AkInstanceGeometry * __restrict instGeom,
+                   int32_t                         meshIndex);
+
 #endif /* gltf_node_h */

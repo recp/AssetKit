@@ -27,7 +27,8 @@ gltf_materials(AkGLTFState * __restrict gst) {
 
   jmaterials = json_object_get(gst->root, _s_gltf_materials);
   jmatCount  = json_array_size(jmaterials);
-  for (i = 0; i < jmatCount; i++) {
+
+  for (i = jmatCount; i != 0; i--) {
     AkProfileCommon     *pcommon;
     AkTechniqueFx       *technfx;
     AkMaterial          *mat;
@@ -36,7 +37,7 @@ gltf_materials(AkGLTFState * __restrict gst) {
     AkInstanceEffect    *ieff;
     json_t              *jmat, *jmtlrough, *ji;
 
-    jmat     = json_array_get(jmaterials, i);
+    jmat     = json_array_get(jmaterials, i - 1);
     pcommon  = gltf_cmnEffect(gst);
     effect   = ak_mem_parent(pcommon);
     technfx  = ak_heap_calloc(heap, pcommon, sizeof(*technfx));
@@ -46,6 +47,8 @@ gltf_materials(AkGLTFState * __restrict gst) {
     technfx->metallicRoughness = mtlrough;
     pcommon->technique         = technfx;
 
+    ak_setId(mat, ak_id_gen(heap, mat, _s_gltf_id_metalrough));
+
     /* metallic roughness */
 
     /* default values */
@@ -54,10 +57,10 @@ gltf_materials(AkGLTFState * __restrict gst) {
 
     if ((jmtlrough = json_object_get(jmat, _s_gltf_pbrMetalRough))) {
       if ((ji = json_object_get(jmtlrough, _s_gltf_baseColor))) {
-        int32_t i;
+        int32_t j;
 
-        for (i = 0; i < 4; i++)
-          mtlrough->baseColor.vec[i] = jsn_flt_at(ji, i);
+        for (j = 0; j < 4; j++)
+          mtlrough->baseColor.vec[j] = jsn_flt_at(ji, j);
       }
 
       jsn_flt_if(jmtlrough, _s_gltf_metalFac, &mtlrough->metallic);

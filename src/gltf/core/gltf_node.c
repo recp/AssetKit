@@ -8,6 +8,9 @@
 #include "gltf_node.h"
 #include "../../ak_id.h"
 
+#include <ds/hash.h>
+#include <string.h>
+
 void _assetkit_hide
 gltf_nodes(AkGLTFState * __restrict gst) {
   AkHeap     *heap;
@@ -153,13 +156,14 @@ gltf_node(AkGLTFState * __restrict gst,
     AkGeometry *geomIter;
     int32_t     meshIndex;
 
-    meshIndex = (int32_t)json_integer_value(jmesh);
+    meshIndex = i = (int32_t)json_integer_value(jmesh);
     geomIter  = gst->doc->lib.geometries->chld;
-    while (meshIndex > 0) {
+    while (i > 0) {
       geomIter = geomIter->next;
-      meshIndex--;
+      i--;
     }
 
+    /* instance geometry */
     if (geomIter) {
       AkInstanceGeometry *instGeom;
       instGeom = ak_heap_calloc(heap,
@@ -169,8 +173,9 @@ gltf_node(AkGLTFState * __restrict gst,
       instGeom->base.node    = node;
       instGeom->base.type    = AK_INSTANCE_GEOMETRY;
       instGeom->base.url.ptr = geomIter;
+      node->geometry         = instGeom;
 
-      node->geometry = instGeom;
+      gltf_bindMaterials(gst, instGeom, meshIndex);
     }
   }
 
@@ -305,4 +310,121 @@ gltf_node(AkGLTFState * __restrict gst,
   }
 
   return node;
+}
+
+void _assetkit_hide
+gltf_bindMaterials(AkGLTFState        * __restrict gst,
+                   AkInstanceGeometry * __restrict instGeom,
+                   int32_t                         meshIndex) {
+  AkHeap             *heap;
+  json_t             *jmesh, *jmeshes, *jprims, *jprim, *jmat, *jattribs, *jval;
+  const char         *jkey;
+  HTable             *semanticMap;
+  size_t              jprimCount, i;
+
+  heap        = gst->heap;
+  jmeshes     = json_object_get(gst->root, _s_gltf_meshes);
+  jmesh       = json_array_get(jmeshes, meshIndex); /* it was loaded */
+  semanticMap = hash_new_str(8);
+
+  /* instance material */
+  if (!(jprims = json_object_get(jmesh, _s_gltf_primitives)))
+    return;
+
+  jprimCount = (int32_t)json_array_size(jprims);
+  for (i = 0; i < jprimCount; i++) {
+    AkMaterial         *mat;
+    AkBindMaterial     *bindMat;
+    AkInstanceMaterial *instMat;
+    AkBindVertexInput  *last_bvi;
+    char               *materialId, *sem;
+    size_t              len;
+    int32_t             matIndex;
+
+    jprim = json_array_get(jprims, i);
+
+    /* bind material */
+    if (!(jmat = json_object_get(jprim, _s_gltf_material)))
+      continue;
+
+    matIndex = (int32_t)json_integer_value(jmat);
+    mat      = gst->doc->lib.materials->chld;
+    while (matIndex > 0) {
+      mat = mat->next;
+      matIndex--;
+    }
+
+    /* we can use material id as semantic */
+    if (!mat)
+      continue;
+
+    bindMat    = ak_heap_calloc(heap, instGeom, sizeof(*bindMat));
+    instMat    = ak_heap_calloc(heap, bindMat,  sizeof(*instMat));
+
+    materialId = ak_mem_getId(mat);
+    len        = strlen(materialId) + 2;
+    sem        = ak_heap_alloc(heap, instMat, len);
+    sem[len]   = '\0';
+    sprintf(sem, "%s-%d", materialId, (int32_t)i);
+
+    bindMat->tcommon = instMat;
+    instMat->symbol  = sem;
+    last_bvi         = NULL;
+
+    ak_url_init_with_id(heap->allocator,
+                        instMat,
+                        materialId,
+                        &instMat->base.url);
+
+    jattribs = json_object_get(jprim, _s_gltf_attributes);
+    json_object_foreach(jattribs, jkey, jval) {
+      char   *pInpIndex;
+      char   *input;
+      char   *bviSem;
+      int32_t set;
+
+      set         = 0;
+      pInpIndex = strchr(jkey, '_');
+
+      if (!pInpIndex) {
+        input = ak_heap_strdup(heap, instMat, jkey);
+      }
+
+      /* ARRAYs e.g. TEXTURE_0, TEXTURE_1 */
+      else {
+        input = ak_heap_strndup(heap, instMat, jkey, pInpIndex - jkey);
+        if (strlen(pInpIndex) > 1) /* default is 0 with calloc */
+          set = (uint32_t)strtol(pInpIndex + 1, NULL, 10);
+      }
+
+      /* currently bid only TEXCOORDs */
+      if (strcasecmp(input, _s_gltf_TEXCOORD) == 0) {
+
+        /* find if it is already bound */
+        len         = strlen(_s_gltf_sid_texcoord) + ak_digitsize(set) + 1;
+        bviSem      = ak_heap_alloc(heap, NULL, len);
+        bviSem[len] = '\0';
+        sprintf(bviSem, "%s%d", _s_gltf_sid_texcoord, set);
+
+        if (!hash_get(semanticMap, bviSem)) {
+          AkBindVertexInput *bvi;
+
+          bvi  = ak_heap_calloc(heap, instMat,  sizeof(*bvi));
+          bvi->inputSemantic = bviSem;
+          ak_heap_setpm(bviSem, bvi);
+
+          bvi->inputSet = set;
+          bvi->semantic = bviSem;
+
+          if (last_bvi)
+            last_bvi->next = bvi;
+          else
+            instMat->bindVertexInput = bvi;
+          last_bvi = bvi;
+        }
+      } /* if TEXCOORD */
+    } /* json_object_foreach */
+  } /* for */
+
+  hash_destroy(semanticMap);
 }

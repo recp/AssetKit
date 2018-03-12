@@ -92,6 +92,7 @@ const char _s_gltf_pool_0[] =
 "minFilter\0"
 "textures\0"
 "source\0"
+"material\0"
 "materials\0"
 "pbrMetallicRoughness\0"
 "normalTexture\0"
@@ -110,6 +111,7 @@ const char _s_gltf_pool_0[] =
 "texCoord\0"
 "TEX\0"
 "smp-\0"
+"mtlrough-\0"
 ;
 
 #undef _AK_GLTF_STRPOOL_
