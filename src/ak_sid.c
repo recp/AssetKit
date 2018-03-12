@@ -128,8 +128,7 @@ ak_sid_seta(void       *memnode,
     newsize  = *(size_t *)((char *)sidnode->sids) + 1;
     newsize  = newsize * itmsize;
 
-    sidnode->sids = heap->allocator->realloc(sidnode->sids,
-                                             newsize + off0);
+    sidnode->sids = heap->allocator->realloc(sidnode->sids, newsize + off0);
   }
 
   sidptr = sidnode->sids;
@@ -275,9 +274,7 @@ ak_sidElement(AkContext  * __restrict ctx,
     memcpy(id, it, idlen);
     id[idlen] = '\0';
 
-    ret = ak_heap_getNodeById(heap,
-                              (void *)id,
-                              &hnode);
+    ret = ak_heap_getNodeById(heap, (void *)id, &hnode);
     free(id);
     if (ret != AK_OK || !idnode)
       goto err;
@@ -477,6 +474,9 @@ again:
   siddup  = strdup(target + sidoff);
   sid_it  = strtok_r(siddup, "/ \t", &saveptr);
 
+  if (!idnode)
+    return NULL;
+
   chld = ak_sid_chldh(ctx, idnode, NULL);
   if (!chld)
     return NULL;
@@ -579,9 +579,7 @@ again:
   }
 
 ret:
-  found = ak_sid_resolve_attr(sidnode,
-                              off,
-                              sid_it);
+  found = ak_sid_resolve_attr(sidnode, off, sid_it);
 err:
   free(buf[0]);
   free(buf[1]);
