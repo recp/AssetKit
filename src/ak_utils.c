@@ -102,5 +102,8 @@ ak_parse_date(const char * __restrict input,
 AK_EXPORT
 int
 ak_digitsize(size_t number) {
+  if (number == 0)
+    return 1;
+
   return (int)floor(log10(number)) + 1;
 }
