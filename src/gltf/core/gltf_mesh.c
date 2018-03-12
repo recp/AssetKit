@@ -23,7 +23,7 @@ gltf_meshes(AkGLTFState * __restrict gst) {
   json_t     *jmeshes, *jaccessors;
   AkLibItem  *lib;
   AkGeometry *last_geom;
-  int32_t     jmeshCount, i;
+  size_t      jmeshCount, i;
 
   heap        = gst->heap;
   doc         = gst->doc;
@@ -34,7 +34,7 @@ gltf_meshes(AkGLTFState * __restrict gst) {
   jmeshCount = (int32_t)json_array_size(jmeshes);
   jaccessors = json_object_get(gst->root, _s_gltf_accessors);
 
-  for (i = jmeshCount - 1; i >= 0; i--) {
+  for (i = jmeshCount; i != 0; i--) {
     AkGeometry *geom;
     AkObject   *last_mesh;
 
@@ -43,7 +43,7 @@ gltf_meshes(AkGLTFState * __restrict gst) {
 
     geom       = ak_heap_calloc(heap, lib, sizeof(*geom));
 
-    jmesh      = json_array_get(jmeshes, i);
+    jmesh      = json_array_get(jmeshes, i - 1);
     jprims     = json_object_get(jmesh, _s_gltf_primitives);
     jprimCount = (int32_t)json_array_size(jprims);
     last_mesh  = NULL;
@@ -56,7 +56,7 @@ gltf_meshes(AkGLTFState * __restrict gst) {
       json_t          *jprim, *jattribs, *jval, *jindices;
       const char      *jkey;
 
-      jprim   = json_array_get(jprims, i);
+      jprim   = json_array_get(jprims, j);
       meshObj = ak_objAlloc(heap,
                             geom,
                             sizeof(AkMesh),
@@ -138,7 +138,7 @@ gltf_meshes(AkGLTFState * __restrict gst) {
         AkAccessor *indicesAcc;
         AkBuffer   *indicesBuff;
         json_t     *jacc;
-        size_t      count, i, itemSize;
+        size_t      count, k, itemSize;
 
         jacc        = json_array_get(jaccessors, json_integer_value(jindices));
         indicesAcc  = gltf_accessor(gst, prim, jacc);
@@ -162,8 +162,8 @@ gltf_meshes(AkGLTFState * __restrict gst) {
           /* we cannot use memcpy here, because we will promote short, byte
              type to int32 (for now)
            */
-          for (i = 0; i < count; i++) {
-            memcpy(&it1[i], it2 + itemSize * i, itemSize);
+          for (k = 0; k < count; k++) {
+            memcpy(&it1[k], it2 + itemSize * k, itemSize);
           }
 
           prim->indices     = indices;
@@ -192,7 +192,7 @@ gltf_meshes(AkGLTFState * __restrict gst) {
           len        = strlen(materialId) + 1;
           sem        = ak_heap_alloc(heap, prim, len);
           sem[len]   = '\0';
-          sprintf(sem, "%s-%d", materialId, i);
+          sprintf(sem, "%s-%zu", materialId, i);
 
           prim->material = sem;
         }
