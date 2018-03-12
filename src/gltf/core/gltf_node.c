@@ -364,12 +364,13 @@ gltf_bindMaterials(AkGLTFState        * __restrict gst,
     if (!mat)
       continue;
 
-    instMat    = ak_heap_calloc(heap, bindMat,  sizeof(*instMat));
+    materialFound = true;
+    instMat       = ak_heap_calloc(heap, bindMat,  sizeof(*instMat));
 
-    materialId = ak_mem_getId(mat);
-    len        = strlen(materialId) + 2;
-    sem        = ak_heap_alloc(heap, instMat, len);
-    sem[len]   = '\0';
+    materialId    = ak_mem_getId(mat);
+    len           = strlen(materialId) + 2;
+    sem           = ak_heap_alloc(heap, instMat, len);
+    sem[len]      = '\0';
     sprintf(sem, "%s-%d", materialId, (int32_t)i);
 
     if (last_instMat)
@@ -431,8 +432,6 @@ gltf_bindMaterials(AkGLTFState        * __restrict gst,
           else
             instMat->bindVertexInput = bvi;
           last_bvi = bvi;
-
-          materialFound = true;
         }
       } /* if TEXCOORD */
     } /* json_object_foreach */
