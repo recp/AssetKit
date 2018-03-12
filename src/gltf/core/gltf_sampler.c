@@ -46,13 +46,11 @@ AkSampler* _assetkit_hide
 gltf_sampler(AkGLTFState * __restrict gst,
              AkEffect    * __restrict effect,
              int32_t                  index) {
-  AkHeap        *heap;
-  json_t        *jsamplers;
-  AkSampler     *sampler;
-  json_t        *jsampler;
-  int32_t        jsamplerCount;
+  json_t    *jsamplers;
+  AkSampler *sampler;
+  json_t    *jsampler;
+  int32_t    jsamplerCount;
 
-  heap          = gst->heap;
   jsamplers     = json_object_get(gst->root, _s_gltf_samplers);
   jsamplerCount = (int32_t)json_array_size(jsamplers);
 
