@@ -44,6 +44,8 @@ gltf_materials(AkGLTFState * __restrict gst) {
     mtlrough = ak_heap_calloc(heap, technfx, sizeof(*mtlrough));
     mat      = ak_heap_calloc(heap, libmat, sizeof(*mat));
 
+    ak_setypeid(technfx, AKT_TECHNIQUE_FX);
+
     technfx->metallicRoughness = mtlrough;
     pcommon->technique         = technfx;
 

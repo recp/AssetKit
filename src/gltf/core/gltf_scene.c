@@ -34,6 +34,7 @@ gltf_scenes(AkGLTFState * __restrict gst) {
 
     jscene = json_array_get(jscenes, i);
     scene  = ak_heap_calloc(heap, lib, sizeof(*scene));
+    ak_setypeid(scene, AKT_SCENE);
 
     scene->cameras = ak_heap_calloc(heap,
                                     scene,

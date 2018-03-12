@@ -41,7 +41,11 @@ gltf_meshes(AkGLTFState * __restrict gst) {
     json_t     *jmesh, *jprims, *jmat;
     int32_t     jprimCount, j;
 
-    geom       = ak_heap_calloc(heap, lib, sizeof(*geom));
+    geom              = ak_heap_calloc(heap, lib, sizeof(*geom));
+    geom->materialMap = ak_map_new(ak_cmp_str);
+
+    /* destroy heap with this object */
+    ak_setAttachedHeap(geom, geom->materialMap->heap);
 
     jmesh      = json_array_get(jmeshes, i - 1);
     jprims     = json_object_get(jmesh, _s_gltf_primitives);

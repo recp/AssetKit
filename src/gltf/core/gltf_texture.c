@@ -26,7 +26,9 @@ gltf_texref(AkGLTFState * __restrict gst,
   texindex = jsn_i32(jtexinfo, _s_gltf_index);
   texCoord = jsn_i32(jtexinfo, _s_gltf_texCoord);
   sampler  = gltf_texture(gst, effect, texindex);
-  param    = ak_mem_parent(sampler);
+  param    = ak_mem_parent(ak_mem_parent(sampler));
+
+  ak_setypeid(param, AKT_NEWPARAM);
 
   /* set sid for bind_vertex_input */
   sid = (char *)ak_id_gen(heap, param, _s_gltf_sid_sampler);

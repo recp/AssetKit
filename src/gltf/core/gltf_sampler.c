@@ -25,6 +25,8 @@ gltf_newsampler(AkGLTFState * __restrict gst,
   paramVal = ak_heap_calloc(heap, param,    sizeof(*paramVal));
   sampler  = ak_heap_calloc(heap, paramVal, sizeof(*sampler));
 
+  ak_setypeid(param, AKT_NEWPARAM);
+
   memcpy(&paramVal->type,
          ak_typeDesc(AKT_SAMPLER2D),
          sizeof(paramVal->type));
