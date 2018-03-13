@@ -117,6 +117,6 @@ _AK_EXTERN const char _s_gltf_pool_0[];
 #define _s_gltf_texCoord _s_gltf_0(823)
 #define _s_gltf_sid_texcoord _s_gltf_0(832)
 #define _s_gltf_sid_sampler _s_gltf_0(836)
-#define _s_gltf_id_metalrough _s_gltf_0(841)
+#define _s_gltf_id_metalrough _s_gltf_0(840)
 
 #endif /* ak_gltf_strpool_h */

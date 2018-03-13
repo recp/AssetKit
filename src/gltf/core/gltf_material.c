@@ -28,7 +28,7 @@ gltf_materials(AkGLTFState * __restrict gst) {
   jmaterials = json_object_get(gst->root, _s_gltf_materials);
   jmatCount  = json_array_size(jmaterials);
 
-  for (i = jmatCount; i != 0; i--) {
+  for (i = 0; i < jmatCount; i++) {
     AkProfileCommon     *pcommon;
     AkTechniqueFx       *technfx;
     AkMaterial          *mat;
@@ -37,12 +37,12 @@ gltf_materials(AkGLTFState * __restrict gst) {
     AkInstanceEffect    *ieff;
     json_t              *jmat, *jmtlrough, *ji;
 
-    jmat     = json_array_get(jmaterials, i - 1);
+    jmat     = json_array_get(jmaterials, i);
     pcommon  = gltf_cmnEffect(gst);
     effect   = ak_mem_parent(pcommon);
     technfx  = ak_heap_calloc(heap, pcommon, sizeof(*technfx));
     mtlrough = ak_heap_calloc(heap, technfx, sizeof(*mtlrough));
-    mat      = ak_heap_calloc(heap, libmat, sizeof(*mat));
+    mat      = ak_heap_calloc(heap, libmat,  sizeof(*mat));
 
     ak_setypeid(technfx, AKT_TECHNIQUE_FX);
 

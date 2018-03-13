@@ -166,9 +166,7 @@ gltf_node(AkGLTFState * __restrict gst,
     /* instance geometry */
     if (geomIter) {
       AkInstanceGeometry *instGeom;
-      instGeom = ak_heap_calloc(heap,
-                                node,
-                                sizeof(*instGeom));
+      instGeom = ak_heap_calloc(heap, node, sizeof(*instGeom));
 
       instGeom->base.node    = node;
       instGeom->base.type    = AK_INSTANCE_GEOMETRY;
@@ -343,7 +341,7 @@ gltf_bindMaterials(AkGLTFState        * __restrict gst,
     AkMaterial         *mat;
     AkInstanceMaterial *instMat;
     AkBindVertexInput  *last_bvi;
-    char               *materialId, *sem;
+    char               *materialId, *symbol;
     size_t              len;
     int32_t             matIndex;
 
@@ -364,14 +362,14 @@ gltf_bindMaterials(AkGLTFState        * __restrict gst,
     if (!mat)
       continue;
 
-    materialFound = true;
-    instMat       = ak_heap_calloc(heap, bindMat,  sizeof(*instMat));
+    materialFound    = true;
+    instMat          = ak_heap_calloc(heap, bindMat,  sizeof(*instMat));
 
-    materialId    = ak_mem_getId(mat);
-    len           = strlen(materialId) + 2;
-    sem           = ak_heap_alloc(heap, instMat, len);
-    sem[len]      = '\0';
-    sprintf(sem, "%s-%d", materialId, (int32_t)i);
+    materialId       = ak_mem_getId(mat);
+    len              = strlen(materialId) + 1;
+    symbol           = ak_heap_alloc(heap, instMat, len);
+    symbol[len]      = '\0';
+    sprintf(symbol, "%s-%zu", materialId, i);
 
     if (last_instMat)
       last_instMat->base.next = &instMat->base;
@@ -379,7 +377,7 @@ gltf_bindMaterials(AkGLTFState        * __restrict gst,
       bindMat->tcommon = instMat;
     last_instMat = instMat;
       
-    instMat->symbol  = sem;
+    instMat->symbol  = symbol;
     last_bvi         = NULL;
 
     ak_url_init_with_id(heap->allocator,
@@ -394,7 +392,7 @@ gltf_bindMaterials(AkGLTFState        * __restrict gst,
       char   *bviSem;
       int32_t set;
 
-      set         = 0;
+      set       = 0;
       pInpIndex = strchr(jkey, '_');
 
       if (!pInpIndex) {
@@ -420,12 +418,14 @@ gltf_bindMaterials(AkGLTFState        * __restrict gst,
         if (!hash_get(semanticMap, bviSem)) {
           AkBindVertexInput *bvi;
 
-          bvi  = ak_heap_calloc(heap, instMat,  sizeof(*bvi));
-          bvi->inputSemantic = bviSem;
+          bvi = ak_heap_calloc(heap, instMat,  sizeof(*bvi));
+
+          ak_heap_setpm(input,  bvi);
           ak_heap_setpm(bviSem, bvi);
 
-          bvi->inputSet = set;
-          bvi->semantic = bviSem;
+          bvi->inputSet      = set;
+          bvi->semantic      = bviSem;
+          bvi->inputSemantic = input;
 
           if (last_bvi)
             last_bvi->next = bvi;
@@ -433,7 +433,11 @@ gltf_bindMaterials(AkGLTFState        * __restrict gst,
             instMat->bindVertexInput = bvi;
           last_bvi = bvi;
         }
-      } /* if TEXCOORD */
+      }
+
+      else {
+        ak_free(input); /* for now */
+      }
     } /* json_object_foreach */
   } /* for */
 

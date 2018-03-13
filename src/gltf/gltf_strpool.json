@@ -96,6 +96,6 @@
   "index": "index",
   "texCoord": "texCoord",
   "sid_texcoord": "TEX",
-  "sid_sampler": "smp-",
-  "id_metalrough": "mtlrough-"
+  "sid_sampler": "smp",
+  "id_metalrough": "metalrough"
 }

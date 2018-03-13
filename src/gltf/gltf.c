@@ -69,8 +69,8 @@ ak_gltf_doc(AkDoc     ** __restrict dest,
   gltf_images(gst);
   gltf_materials(gst);
   gltf_meshes(gst);
-  gltf_cameras(gst);
   gltf_nodes(gst);
+  gltf_cameras(gst);
   gltf_scenes(gst);
 
   /* TODO: release resources in GLTFState */

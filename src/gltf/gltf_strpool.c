@@ -110,8 +110,8 @@ const char _s_gltf_pool_0[] =
 "index\0"
 "texCoord\0"
 "TEX\0"
-"smp-\0"
-"mtlrough-\0"
+"smp\0"
+"metalrough\0"
 ;
 
 #undef _AK_GLTF_STRPOOL_

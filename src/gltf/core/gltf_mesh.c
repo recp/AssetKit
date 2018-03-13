@@ -34,7 +34,7 @@ gltf_meshes(AkGLTFState * __restrict gst) {
   jmeshCount = (int32_t)json_array_size(jmeshes);
   jaccessors = json_object_get(gst->root, _s_gltf_accessors);
 
-  for (i = jmeshCount; i != 0; i--) {
+  for (i = 0; i < jmeshCount; i++) {
     AkGeometry *geom;
     AkObject   *last_mesh;
 
@@ -47,7 +47,7 @@ gltf_meshes(AkGLTFState * __restrict gst) {
     /* destroy heap with this object */
     ak_setAttachedHeap(geom, geom->materialMap->heap);
 
-    jmesh      = json_array_get(jmeshes, i - 1);
+    jmesh      = json_array_get(jmeshes, i);
     jprims     = json_object_get(jmesh, _s_gltf_primitives);
     jprimCount = (int32_t)json_array_size(jprims);
     last_mesh  = NULL;
@@ -82,9 +82,15 @@ gltf_meshes(AkGLTFState * __restrict gst) {
       vertInp->base.semanticRaw = ak_heap_strdup(heap,
                                                  vertInp,
                                                  _s_gltf_VERTEX);
-      vertInp->base.source.ptr = mesh->vertices;
-      prim->input = last_inp = vertInp;
-      prim->inputCount = 1;
+      vertInp->base.source.ptr  = mesh->vertices;
+
+      prim->input          = last_inp = vertInp;
+      prim->inputCount     = 1;
+      prim->vertices       = mesh->vertices;
+      prim->mesh           = mesh;
+      mesh->primitive      = prim;
+      mesh->primitiveCount = 1;
+      mesh->geom           = geom;
 
       last_vert_inp = NULL;
       jattribs      = json_object_get(jprim, _s_gltf_attributes);
@@ -157,8 +163,7 @@ gltf_meshes(AkGLTFState * __restrict gst) {
 
           indices = ak_heap_calloc(heap,
                                    prim,
-                                   sizeof(*indices)
-                                     + sizeof(AkUInt) * count);
+                                   sizeof(*indices) + sizeof(AkUInt) * count);
           indices->count = count;
           it1 = indices->items;
           it2 = indicesBuff->data;
@@ -189,24 +194,18 @@ gltf_meshes(AkGLTFState * __restrict gst) {
 
         /* we can use material id as semantic */
         if (mat) {
-          char  *materialId, *sem;
+          char  *materialId, *symbol;
           size_t len;
 
-          materialId = ak_mem_getId(mat);
-          len        = strlen(materialId) + 1;
-          sem        = ak_heap_alloc(heap, prim, len);
-          sem[len]   = '\0';
-          sprintf(sem, "%s-%zu", materialId, i);
+          materialId    = ak_mem_getId(mat);
+          len           = strlen(materialId) + 1;
+          symbol        = ak_heap_alloc(heap, prim, len);
+          symbol[len]   = '\0';
+          sprintf(symbol, "%s-%d", materialId, j);
 
-          prim->material = sem;
+          ak_meshSetMaterial(prim, (prim->material = symbol));
         }
       }
-
-      prim->vertices       = mesh->vertices;
-      prim->mesh           = mesh;
-      mesh->primitive      = prim;
-      mesh->primitiveCount = 1;
-      mesh->geom = geom;
 
       if (last_mesh)
         last_mesh->next = meshObj;
