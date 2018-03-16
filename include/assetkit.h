@@ -334,6 +334,7 @@ typedef struct AkDocInf {
   const char  *name;
   size_t       dirlen;
   AkFileType   ftype;
+  bool         flipImage;
 } AkDocInf;
 
 typedef struct AkTechnique {

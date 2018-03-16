@@ -35,9 +35,10 @@ ak_gltf_doc(AkDoc     ** __restrict dest,
   heap = ak_heap_new(NULL, NULL, NULL);
   doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
 
-  doc->inf = ak_heap_calloc(heap, doc, sizeof(*doc->inf));
-  doc->inf->name = filepath;
-  doc->inf->dir  = ak_path_dir(heap, doc, filepath);
+  doc->inf        = ak_heap_calloc(heap, doc, sizeof(*doc->inf));
+  doc->inf->name  = filepath;
+  doc->inf->dir   = ak_path_dir(heap, doc, filepath);
+  doc->inf->ftype = AK_FILE_TYPE_GLTF;
 
   if (doc->inf->dir)
     doc->inf->dirlen = strlen(doc->inf->dir);

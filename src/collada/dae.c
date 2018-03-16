@@ -192,9 +192,11 @@ ak_dae_doc(AkDoc ** __restrict dest,
   heap = ak_heap_new(NULL, NULL, NULL);
   doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
 
-  doc->inf = ak_heap_calloc(heap, doc, sizeof(*doc->inf));
-  doc->inf->name = file;
-  doc->inf->dir  = ak_path_dir(heap, doc, file);
+  doc->inf            = ak_heap_calloc(heap, doc, sizeof(*doc->inf));
+  doc->inf->name      = file;
+  doc->inf->dir       = ak_path_dir(heap, doc, file);
+  doc->inf->flipImage = true;
+  doc->inf->ftype     = AK_FILE_TYPE_COLLADA;
 
   if (doc->inf->dir)
     doc->inf->dirlen = strlen(doc->inf->dir);
@@ -277,9 +279,8 @@ ak_dae_doc(AkDoc ** __restrict dest,
         assetInf = &doc->inf->base;
         ret = ak_dae_assetInf(xst, doc, assetInf);
         if (ret == AK_OK) {
-          doc->inf->ftype = AK_FILE_TYPE_COLLADA;
-          doc->coordSys   = assetInf->coordSys;
-          doc->unit       = assetInf->unit;
+          doc->coordSys = assetInf->coordSys;
+          doc->unit     = assetInf->unit;
         }
 
         break;
