@@ -9,12 +9,12 @@
 #include "../ak_common.h"
 
 float ak__def_transpval = 1.0f;
-AkFxFloatOrParam ak__def_transparency = {
+AkFloatOrParam ak__def_transparency = {
   .val   = &ak__def_transpval,
   .param = NULL
 };
 
-AkFxFloatOrParam*
+AkFloatOrParam*
 ak_def_transparency(void) {
   return &ak__def_transparency;
 }

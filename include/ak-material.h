@@ -34,42 +34,47 @@ typedef enum AkMaterialType {
   AK_MATERIAL_SPECULAR_GLOSSINES = 6   /* PBR Material */
 } AkMaterialType;
 
-typedef struct AkFxColorOrTex {
+typedef struct AkColorDesc {
   AkColor     *color;
   AkParam     *param;
-  AkFxTexture *texture;
+  AkTextureRef *texture;
 } AkColorDesc;
 
-typedef struct AkFxFloatOrParam {
+typedef struct AkFloatOrParam {
   float   *val;
   AkParam *param;
-} AkFxFloatOrParam;
+} AkFloatOrParam;
 
 typedef struct AkTransparent {
-  AkColorDesc   *color;
-  AkFxFloatOrParam *amount;
-  AkAlphaMode       mode;
-  AkOpaque          opaque;
-  float             cutoff;
+  AkColorDesc    *color;
+  AkFloatOrParam *amount;
+  AkAlphaMode     mode;
+  AkOpaque        opaque;
+  float           cutoff;
 } AkTransparent;
 
 typedef struct AkReflective {
-  AkColorDesc   *color;
-  AkFxFloatOrParam *amount;
+  AkColorDesc    *color;
+  AkFloatOrParam *amount;
 } AkReflective;
 
 typedef struct AkEffectCmnTechnique {
-  AkMaterialType    type;
-  AkTransparent    *transparent;
-  AkReflective     *reflective;
-  AkFxFloatOrParam *indexOfRefraction;
+  AkMaterialType  type;
+  AkTransparent  *transparent;
+  AkReflective   *reflective;
+  AkFloatOrParam *indexOfRefraction;
+  AkColorDesc    *ambient;
+  AkColorDesc    *emission;
+  AkColorDesc    *diffuse;
+  AkColorDesc    *specular;
+  AkFloatOrParam *shininess;
 } AkEffectCmnTechnique;
 
 /* Common materials */
 
 typedef struct AkConstantFx {
   AkEffectCmnTechnique base;
-  AkColorDesc      *emission;
+  AkColorDesc         *emission;
 } AkConstantFx;
 
 typedef struct AkLambert {
@@ -85,7 +90,7 @@ typedef struct AkPhong {
   AkColorDesc          *ambient;
   AkColorDesc          *diffuse;
   AkColorDesc          *specular;
-  AkFxFloatOrParam    *shininess;
+  AkFloatOrParam       *shininess;
 } AkPhong;
 
 typedef AkPhong AkBlinn;
@@ -95,8 +100,8 @@ typedef AkPhong AkBlinn;
 typedef struct AkMetallicRoughness {
   AkEffectCmnTechnique base;
   AkColor              baseColor;
-  AkFxTexture         *baseColorTex;
-  AkFxTexture         *metalRoughTex;
+  AkTextureRef        *baseColorTex;
+  AkTextureRef        *metalRoughTex;
   float                metallic;
   float                roughness;
 } AkMetallicRoughness;
@@ -105,8 +110,8 @@ typedef struct AkSpecularGlossiness {
   AkEffectCmnTechnique base;
   AkColor              diffuse;
   AkColor              specular;
-  AkFxTexture         *diffuseTex;
-  AkFxTexture         *specularGlossTex;
+  AkTextureRef        *diffuseTex;
+  AkTextureRef        *specularGlossTex;
   float                glossiness;
 } AkSpecularGlossiness;
 

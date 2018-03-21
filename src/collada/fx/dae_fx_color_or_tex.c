@@ -15,9 +15,9 @@ ak_dae_colorOrTex(AkXmlState   * __restrict xst,
                   void         * __restrict memParent,
                   const char   * elm,
                   AkColorDesc ** __restrict dest) {
-  AkColorDesc *colorOrTex;
-  AkParam        *last_param;
-  AkXmlElmState   xest;
+  AkColorDesc  *colorOrTex;
+  AkParam      *last_param;
+  AkXmlElmState xest;
 
   colorOrTex = ak_heap_calloc(xst->heap,
                               memParent,
@@ -39,7 +39,7 @@ ak_dae_colorOrTex(AkXmlState   * __restrict xst,
       ak_dae_color(xst, color, true, false, color);
       colorOrTex->color = color;
     } else if (ak_xml_eqelm(xst, _s_dae_texture)) {
-      AkFxTexture *tex;
+      AkTextureRef *tex;
 
       tex = ak_heap_calloc(xst->heap,
                            colorOrTex,

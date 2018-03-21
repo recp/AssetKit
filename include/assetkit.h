@@ -393,11 +393,11 @@ typedef struct AkInstanceBase {
   struct AkInstanceBase *next;
 } AkInstanceBase;
 
-typedef struct AkFxTexture {
-  const char * texture;
-  const char * texcoord;
-  AkTree     * extra;
-} AkFxTexture;
+typedef struct AkTextureRef {
+  const char *texture;
+  const char *texcoord;
+  AkTree     *extra;
+} AkTextureRef;
 
 typedef struct AkAnnotate {
   struct AkAnnotate *next;

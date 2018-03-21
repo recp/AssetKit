@@ -10,7 +10,7 @@
 
 #include "../gltf_common.h"
 
-AkFxTexture* _assetkit_hide
+AkTextureRef* _assetkit_hide
 gltf_texref(AkGLTFState * __restrict gst,
             AkEffect    * __restrict effect,
             void        * __restrict parent,

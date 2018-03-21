@@ -10,7 +10,7 @@
 
 #include "../ak_common.h"
 
-AkFxFloatOrParam*
+AkFloatOrParam*
 ak_def_transparency(void);
 
 #endif /* ak_def_material_h */

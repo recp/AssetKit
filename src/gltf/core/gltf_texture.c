@@ -9,7 +9,7 @@
 #include "gltf_profile.h"
 #include "gltf_sampler.h"
 
-AkFxTexture* _assetkit_hide
+AkTextureRef* _assetkit_hide
 gltf_texref(AkGLTFState * __restrict gst,
             AkEffect    * __restrict effect,
             void        * __restrict parent,
@@ -17,7 +17,7 @@ gltf_texref(AkGLTFState * __restrict gst,
   AkHeap      *heap;
   AkSampler   *sampler;
   AkNewParam  *param;
-  AkFxTexture *tex;
+  AkTextureRef *tex;
   char        *sid, *sem;
   int32_t      texindex, texCoord;
   size_t       len;

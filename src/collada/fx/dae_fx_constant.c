@@ -125,8 +125,8 @@ ak_dae_fxConstant(AkXmlState * __restrict xst,
       case k_s_dae_reflectivity:
       case k_s_dae_transparency:
       case k_s_dae_index_of_refraction: {
-        AkFxFloatOrParam *floatOrParam;
-        AkResult          ret;
+        AkFloatOrParam *floatOrParam;
+        AkResult        ret;
 
         ret = ak_dae_floatOrParam(xst,
                                   constant,
