@@ -65,43 +65,48 @@ ak_dae_techniqueFx(AkXmlState * __restrict xst,
       if (ret == AK_OK)
         technique->pass = pass;
 
+    }  else if (ak_xml_eqelm(xst, _s_dae_phong)) {
+      AkTechniqueFxCommon *phong;
+      AkResult             ret;
+
+      ret = ak_dae_phong(xst,
+                         technique,
+                         (const char *)xst->nodeName,
+                         &phong);
+      if (ret == AK_OK) {
+        phong->type        = AK_MATERIAL_PHONG;
+        technique->common = phong;
+      }
     } else if (ak_xml_eqelm(xst, _s_dae_blinn)) {
-      ak_blinn_phong * blinn_phong;
-      AkResult ret;
+      AkTechniqueFxCommon *blinn;
+      AkResult             ret;
 
-      ret = ak_dae_blinn_phong(xst,
-                               technique,
-                               (const char *)xst->nodeName,
-                               &blinn_phong);
-      if (ret == AK_OK)
-        technique->blinn = (AkBlinn *)blinn_phong;
-
-    } else if (ak_xml_eqelm(xst, _s_dae_constant)) {
-      AkConstantFx * constant_fx;
-      AkResult ret;
-
-      ret = ak_dae_fxConstant(xst, technique, &constant_fx);
-      if (ret == AK_OK)
-        technique->constant = constant_fx;
-
+      ret = ak_dae_phong(xst,
+                         technique,
+                         (const char *)xst->nodeName,
+                         &blinn);
+      if (ret == AK_OK) {
+        blinn->type       = AK_MATERIAL_BLINN;
+        technique->common = blinn;
+      }
     } else if (ak_xml_eqelm(xst, _s_dae_lambert)) {
-      AkLambert * lambert;
-      AkResult ret;
+      AkTechniqueFxCommon *lambert;
+      AkResult             ret;
 
       ret = ak_dae_fxLambert(xst, technique, &lambert);
-      if (ret == AK_OK)
-        technique->lambert = lambert;
+      if (ret == AK_OK) {
+        lambert->type     = AK_MATERIAL_LAMBERT;
+        technique->common = lambert;
+      }
+    } else if (ak_xml_eqelm(xst, _s_dae_constant)) {
+      AkTechniqueFxCommon *constantfx;
+      AkResult             ret;
 
-    } else if (ak_xml_eqelm(xst, _s_dae_phong)) {
-      ak_blinn_phong * blinn_phong;
-      AkResult ret;
-
-      ret = ak_dae_blinn_phong(xst,
-                               technique,
-                               (const char *)xst->nodeName,
-                               &blinn_phong);
-      if (ret == AK_OK)
-        technique->phong = (AkPhong *)blinn_phong;
+      ret = ak_dae_fxConstant(xst, technique, &constantfx);
+      if (ret == AK_OK) {
+        constantfx->type  = AK_MATERIAL_CONSTANT;
+        technique->common = constantfx;
+      }
     } else if (xst->version < AK_COLLADA_VERSION_150
                && ak_xml_eqelm(xst, _s_dae_image)) {
       /* migration from 1.4 */

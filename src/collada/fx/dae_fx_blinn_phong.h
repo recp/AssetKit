@@ -11,15 +11,10 @@
 #include "../../../include/assetkit.h"
 #include "../dae_common.h"
 
-typedef union {
-  AkBlinn blinn;
-  AkPhong phong;
-} ak_blinn_phong;
-
 AkResult _assetkit_hide
-ak_dae_blinn_phong(AkXmlState * __restrict xst,
-                   void * __restrict memParent,
-                   const char * elm,
-                   ak_blinn_phong ** __restrict dest);
+ak_dae_phong(AkXmlState           * __restrict xst,
+             void                 * __restrict memParent,
+             const char           * elm,
+             AkTechniqueFxCommon ** __restrict dest);
 
 #endif /* __libassetkit__dae_blinn_phong__h_ */

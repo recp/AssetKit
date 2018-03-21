@@ -39,16 +39,14 @@ static ak_enumpair blinnPhongMap[] = {
 static size_t blinnPhongMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_blinn_phong(AkXmlState * __restrict xst,
-                   void * __restrict memParent,
-                   const char * elm,
-                   ak_blinn_phong ** __restrict dest) {
-  ak_blinn_phong *blinn_phong;
-  AkXmlElmState   xest;
+ak_dae_phong(AkXmlState           * __restrict xst,
+             void                 * __restrict memParent,
+             const char           * elm,
+             AkTechniqueFxCommon ** __restrict dest) {
+  AkTechniqueFxCommon *techn;
+  AkXmlElmState        xest;
 
-  blinn_phong = ak_heap_calloc(xst->heap,
-                               memParent,
-                               sizeof(*blinn_phong));
+  techn = ak_heap_calloc(xst->heap, memParent, sizeof(*techn));
 
   if (blinnPhongMapLen == 0) {
     blinnPhongMapLen = AK_ARRAY_LEN(blinnPhongMap);
@@ -83,60 +81,53 @@ ak_dae_blinn_phong(AkXmlState * __restrict xst,
       case k_s_dae_specular:
       case k_s_dae_reflective:
       case k_s_dae_transparent: {
-        AkColorDesc *colorOrTex;
+        AkColorDesc *colorDesc;
         AkResult     ret;
         AkOpaque     opaque;
 
-        opaque = ak_xml_attrenum(xst,
-                                 _s_dae_opaque,
-                                 ak_dae_fxEnumOpaque);
-
-        ret = ak_dae_colorOrTex(xst,
-                                blinn_phong,
-                                (const char *)xst->nodeName,
-                                &colorOrTex);
+        opaque = ak_xml_attrenum(xst, _s_dae_opaque, ak_dae_fxEnumOpaque);
+        ret    = ak_dae_colorOrTex(xst,
+                                   techn,
+                                   (const char *)xst->nodeName,
+                                   &colorDesc);
         if (ret == AK_OK) {
           switch (found->val) {
             case k_s_dae_emission:
-              blinn_phong->phong.emission = colorOrTex;
+              techn->emission = colorDesc;
               break;
             case k_s_dae_ambient:
-              blinn_phong->phong.ambient = colorOrTex;
+              techn->ambient = colorDesc;
               break;
             case k_s_dae_diffuse:
-              blinn_phong->phong.diffuse = colorOrTex;
+              techn->diffuse = colorDesc;
               break;
             case k_s_dae_specular:
-              blinn_phong->phong.specular = colorOrTex;
+              techn->specular = colorDesc;
               break;
             case k_s_dae_reflective: {
-              if (!blinn_phong->phong.base.reflective) {
+              if (!techn->reflective) {
                 AkReflective *refl;
-                refl = ak_heap_calloc(xst->heap,
-                                      blinn_phong,
-                                      sizeof(*refl));
-                blinn_phong->phong.base.reflective = refl;
+                refl = ak_heap_calloc(xst->heap, techn, sizeof(*refl));
+                techn->reflective = refl;
               }
 
-              blinn_phong->phong.base.reflective->color = colorOrTex;
+              techn->reflective->color = colorDesc;
               break;
             }
             case k_s_dae_transparent: {
-              if (!blinn_phong->phong.base.transparent) {
+              if (!techn->transparent) {
                 AkTransparent    *transp;
-                transp = ak_heap_calloc(xst->heap,
-                                        blinn_phong,
-                                        sizeof(*transp));
+                transp = ak_heap_calloc(xst->heap, techn, sizeof(*transp));
                 transp->amount = ak_def_transparency();
-                blinn_phong->phong.base.transparent = transp;
+                techn->transparent = transp;
               }
 
-              blinn_phong->phong.base.transparent->color  = colorOrTex;
-              blinn_phong->phong.base.transparent->opaque = opaque;
+              techn->transparent->color  = colorDesc;
+              techn->transparent->opaque = opaque;
               break;
             }
             default:
-              ak_free(colorOrTex);
+              ak_free(colorDesc);
               break;
           }
         }
@@ -151,46 +142,42 @@ ak_dae_blinn_phong(AkXmlState * __restrict xst,
         AkResult        ret;
 
         ret = ak_dae_floatOrParam(xst,
-                                  blinn_phong,
+                                  techn,
                                   (const char *)xst->nodeName,
                                   &floatOrParam);
 
         if (ret == AK_OK) {
           switch (found->val) {
             case k_s_dae_shininess:
-              blinn_phong->phong.shininess = floatOrParam;
+              techn->shininess = floatOrParam;
               break;
             case k_s_dae_reflectivity: {
-              if (!blinn_phong->phong.base.reflective) {
+              if (!techn->reflective) {
                 AkReflective *refl;
-                refl = ak_heap_calloc(xst->heap,
-                                      blinn_phong,
-                                      sizeof(*refl));
-                blinn_phong->phong.base.reflective = refl;
+                refl = ak_heap_calloc(xst->heap, techn, sizeof(*refl));
+                techn->reflective = refl;
               }
 
-              blinn_phong->phong.base.reflective->amount = floatOrParam;
+              techn->reflective->amount = floatOrParam;
               break;
             }
             case k_s_dae_transparency: {
-              if (!blinn_phong->phong.base.transparent) {
+              if (!techn->transparent) {
                 AkTransparent *transp;
-                transp = ak_heap_calloc(xst->heap,
-                                        blinn_phong,
-                                        sizeof(*transp));
-                blinn_phong->phong.base.transparent = transp;
+                transp = ak_heap_calloc(xst->heap, techn, sizeof(*transp));
+                techn->transparent = transp;
               }
 
-              blinn_phong->phong.base.transparent->amount = floatOrParam;
+              techn->transparent->amount = floatOrParam;
 
               /* some old version of tools e.g. SketchUp exports incorrect */
               if (ak_opt_get(AK_OPT_BUGFIXES))
-                dae_bugfix_transp(blinn_phong->phong.base.transparent);
+                dae_bugfix_transp(techn->transparent);
 
               break;
             }
             case k_s_dae_index_of_refraction:
-              blinn_phong->phong.base.indexOfRefraction = floatOrParam;
+              techn->indexOfRefraction = floatOrParam;
               break;
             default:
               ak_free(floatOrParam);
@@ -211,7 +198,7 @@ ak_dae_blinn_phong(AkXmlState * __restrict xst,
       break;
   } while (xst->nodeRet);
   
-  *dest = blinn_phong;
+  *dest = techn;
   
   return AK_OK;
 }

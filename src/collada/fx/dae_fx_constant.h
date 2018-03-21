@@ -12,8 +12,8 @@
 #include "../dae_common.h"
 
 AkResult _assetkit_hide
-ak_dae_fxConstant(AkXmlState * __restrict xst,
-                  void * __restrict memParent,
-                  AkConstantFx ** __restrict dest);
+ak_dae_fxConstant(AkXmlState           * __restrict xst,
+                  void                 * __restrict memParent,
+                  AkTechniqueFxCommon ** __restrict dest);
 
 #endif /* __libassetkit__dae_fx_constant__h_ */

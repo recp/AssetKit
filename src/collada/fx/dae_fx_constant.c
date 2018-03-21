@@ -31,15 +31,13 @@ static ak_enumpair constantMap[] = {
 static size_t constantMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_fxConstant(AkXmlState * __restrict xst,
-                  void * __restrict memParent,
-                  AkConstantFx ** __restrict dest) {
-  AkConstantFx *constant;
-  AkXmlElmState xest;
+ak_dae_fxConstant(AkXmlState           * __restrict xst,
+                  void                 * __restrict memParent,
+                  AkTechniqueFxCommon ** __restrict dest) {
+  AkTechniqueFxCommon *techn;
+  AkXmlElmState        xest;
 
-  constant = ak_heap_calloc(xst->heap,
-                            memParent,
-                            sizeof(*constant));
+  techn = ak_heap_calloc(xst->heap, memParent, sizeof(*techn));
 
   if (constantMapLen == 0) {
     constantMapLen = AK_ARRAY_LEN(constantMap);
@@ -71,7 +69,7 @@ ak_dae_fxConstant(AkXmlState * __restrict xst,
       case k_s_dae_emission:
       case k_s_dae_reflective:
       case k_s_dae_transparent: {
-        AkColorDesc *colorOrTex;
+        AkColorDesc *colorDesc;
         AkResult     ret;
         AkOpaque     opaque;
 
@@ -80,42 +78,38 @@ ak_dae_fxConstant(AkXmlState * __restrict xst,
                                  ak_dae_fxEnumOpaque);
 
         ret = ak_dae_colorOrTex(xst,
-                                constant,
+                                techn,
                                 (const char *)xst->nodeName,
-                                &colorOrTex);
+                                &colorDesc);
         if (ret == AK_OK) {
           switch (found->val) {
             case k_s_dae_emission:
-              constant->emission = colorOrTex;
+              techn->emission = colorDesc;
               break;
             case k_s_dae_reflective: {
-              if (!constant->base.reflective) {
+              if (!techn->reflective) {
                 AkReflective *refl;
-                refl = ak_heap_calloc(xst->heap,
-                                      constant,
-                                      sizeof(*refl));
-                constant->base.reflective = refl;
+                refl = ak_heap_calloc(xst->heap, techn, sizeof(*refl));
+                techn->reflective = refl;
               }
 
-              constant->base.reflective->color = colorOrTex;
+              techn->reflective->color = colorDesc;
               break;
             }
             case k_s_dae_transparent: {
-              if (!constant->base.transparent) {
+              if (!techn->transparent) {
                 AkTransparent    *transp;
-                transp = ak_heap_calloc(xst->heap,
-                                        constant,
-                                        sizeof(*transp));
+                transp = ak_heap_calloc(xst->heap, techn, sizeof(*transp));
                 transp->amount = ak_def_transparency();
-                constant->base.transparent = transp;
+                techn->transparent = transp;
               }
 
-              constant->base.transparent->color  = colorOrTex;
-              constant->base.transparent->opaque = opaque;
+              techn->transparent->color  = colorDesc;
+              techn->transparent->opaque = opaque;
               break;
             }
             default:
-              ak_free(colorOrTex);
+              ak_free(colorDesc);
               break;
           }
         }
@@ -129,44 +123,39 @@ ak_dae_fxConstant(AkXmlState * __restrict xst,
         AkResult        ret;
 
         ret = ak_dae_floatOrParam(xst,
-                                  constant,
+                                  techn,
                                   (const char *)xst->nodeName,
                                   &floatOrParam);
 
         if (ret == AK_OK) {
           switch (found->val) {
             case k_s_dae_reflectivity:{
-              if (!constant->base.reflective) {
+              if (!techn->reflective) {
                 AkReflective *refl;
-                refl = ak_heap_calloc(xst->heap,
-                                      constant,
-                                      sizeof(*refl));
-
-                constant->base.reflective = refl;
+                refl = ak_heap_calloc(xst->heap, techn, sizeof(*refl));
+                techn->reflective = refl;
               }
 
-              constant->base.reflective->amount = floatOrParam;
+              techn->reflective->amount = floatOrParam;
               break;
             }
             case k_s_dae_transparency: {
-              if (!constant->base.transparent) {
+              if (!techn->transparent) {
                 AkTransparent *transp;
-                transp = ak_heap_calloc(xst->heap,
-                                        constant,
-                                        sizeof(*transp));
-                constant->base.transparent = transp;
+                transp = ak_heap_calloc(xst->heap, techn, sizeof(*transp));
+                techn->transparent = transp;
               }
 
-              constant->base.transparent->amount = floatOrParam;
+              techn->transparent->amount = floatOrParam;
 
               /* some old version of tools e.g. SketchUp exports incorrect */
               if (ak_opt_get(AK_OPT_BUGFIXES))
-                dae_bugfix_transp(constant->base.transparent);
+                dae_bugfix_transp(techn->transparent);
 
               break;
             }
             case k_s_dae_index_of_refraction:
-              constant->base.indexOfRefraction = floatOrParam;
+              techn->indexOfRefraction = floatOrParam;
               break;
             default:
               ak_free(floatOrParam);
@@ -187,7 +176,7 @@ ak_dae_fxConstant(AkXmlState * __restrict xst,
       break;
   } while (xst->nodeRet);
   
-  *dest = constant;
+  *dest = techn;
   
   return AK_OK;
 }

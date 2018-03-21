@@ -46,8 +46,8 @@ gltf_materials(AkGLTFState * __restrict gst) {
 
     ak_setypeid(technfx, AKT_TECHNIQUE_FX);
 
-    technfx->metallicRoughness = mtlrough;
-    pcommon->technique         = technfx;
+    technfx->common    = &mtlrough->base;
+    pcommon->technique = technfx;
 
     ak_setId(mat, ak_id_gen(heap, mat, _s_gltf_id_metalrough));
 

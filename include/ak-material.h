@@ -58,61 +58,38 @@ typedef struct AkReflective {
   AkFloatOrParam *amount;
 } AkReflective;
 
-typedef struct AkEffectCmnTechnique {
+typedef struct AkTechniqueFxCommon {
   AkMaterialType  type;
-  AkTransparent  *transparent;
-  AkReflective   *reflective;
-  AkFloatOrParam *indexOfRefraction;
+
   AkColorDesc    *ambient;
   AkColorDesc    *emission;
   AkColorDesc    *diffuse;
   AkColorDesc    *specular;
   AkFloatOrParam *shininess;
-} AkEffectCmnTechnique;
 
-/* Common materials */
-
-typedef struct AkConstantFx {
-  AkEffectCmnTechnique base;
-  AkColorDesc         *emission;
-} AkConstantFx;
-
-typedef struct AkLambert {
-  AkEffectCmnTechnique base;
-  AkColorDesc         *emission;
-  AkColorDesc         *ambient;
-  AkColorDesc         *diffuse;
-} AkLambert;
-
-typedef struct AkPhong {
-  AkEffectCmnTechnique base;
-  AkColorDesc          *emission;
-  AkColorDesc          *ambient;
-  AkColorDesc          *diffuse;
-  AkColorDesc          *specular;
-  AkFloatOrParam       *shininess;
-} AkPhong;
-
-typedef AkPhong AkBlinn;
+  AkTransparent  *transparent;
+  AkReflective   *reflective;
+  AkFloatOrParam *indexOfRefraction;
+} AkTechniqueFxCommon;
 
 /* Common PBR Materials */
 
 typedef struct AkMetallicRoughness {
-  AkEffectCmnTechnique base;
-  AkColor              baseColor;
-  AkTextureRef        *baseColorTex;
-  AkTextureRef        *metalRoughTex;
-  float                metallic;
-  float                roughness;
+  AkTechniqueFxCommon base;
+  AkColor             baseColor;
+  AkTextureRef       *baseColorTex;
+  AkTextureRef       *metalRoughTex;
+  float               metallic;
+  float               roughness;
 } AkMetallicRoughness;
 
 typedef struct AkSpecularGlossiness {
-  AkEffectCmnTechnique base;
-  AkColor              diffuse;
-  AkColor              specular;
-  AkTextureRef        *diffuseTex;
-  AkTextureRef        *specularGlossTex;
-  float                glossiness;
+  AkTechniqueFxCommon base;
+  AkColor             diffuse;
+  AkColor             specular;
+  AkTextureRef       *diffuseTex;
+  AkTextureRef       *specularGlossTex;
+  float               glossiness;
 } AkSpecularGlossiness;
 
 #ifdef __cplusplus
