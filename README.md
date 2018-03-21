@@ -34,7 +34,8 @@ So working on multiple projects ([cglm](https://github.com/recp/cglm), [libgk](h
   - [ ] Other textures
       - [x] Occlusion map
       - [x] Emissive map
-      - [ ] Normal Map
+      - [x] Normal Map
+      - [ ] others?
   - [ ] alphaMode
 - [ ] Animations
 - [ ] Extensions

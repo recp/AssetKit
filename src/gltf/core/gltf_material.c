@@ -102,6 +102,18 @@ gltf_materials(AkGLTFState * __restrict gst) {
       mtlrough->base.occlusion = occlusion;
     }
 
+    /* Normap Map */
+    if ((ji = json_object_get(jmat, _s_gltf_normalTex))) {
+      AkNormalMap *normal;
+
+      normal        = ak_heap_alloc(heap, mtlrough, sizeof(*normal));
+      normal->tex   = gltf_texref(gst, effect, normal, ji);
+      normal->scale = 1.0f;
+
+      jsn_flt_if(ji, _s_gltf_scale, &normal->scale);
+      mtlrough->base.normal = normal;
+    }
+
     ieff               = ak_heap_calloc(heap, mat, sizeof(*ieff));
     ieff->base.type    = AK_INSTANCE_EFFECT;
     ieff->base.url.ptr = effect;

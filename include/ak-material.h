@@ -63,6 +63,11 @@ typedef struct AkOcclusion {
   float         strength;
 } AkOcclusion;
 
+typedef struct AkNormalMap {
+  AkTextureRef *tex;
+  float         scale;
+} AkNormalMap;
+
 typedef struct AkTechniqueFxCommon {
   AkMaterialType  type;
 
@@ -77,6 +82,7 @@ typedef struct AkTechniqueFxCommon {
   AkFloatOrParam *indexOfRefraction;
 
   AkOcclusion    *occlusion;
+  AkNormalMap    *normal;
 } AkTechniqueFxCommon;
 
 /* Common PBR Materials */
