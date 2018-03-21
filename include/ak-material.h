@@ -58,6 +58,11 @@ typedef struct AkReflective {
   AkFloatOrParam *amount;
 } AkReflective;
 
+typedef struct AkOcclusion {
+  AkTextureRef *tex;
+  float         strength;
+} AkOcclusion;
+
 typedef struct AkTechniqueFxCommon {
   AkMaterialType  type;
 
@@ -70,6 +75,8 @@ typedef struct AkTechniqueFxCommon {
   AkTransparent  *transparent;
   AkReflective   *reflective;
   AkFloatOrParam *indexOfRefraction;
+
+  AkOcclusion    *occlusion;
 } AkTechniqueFxCommon;
 
 /* Common PBR Materials */

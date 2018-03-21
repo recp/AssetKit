@@ -31,7 +31,10 @@ So working on multiple projects ([cglm](https://github.com/recp/cglm), [libgk](h
   - [ ] PBR Materials
       - [x] Metallic Roughness
       - [ ] Specular Glossiness
-  - [ ] Other textures (normalTexture, occlusionTexture, emissiveTexture...)
+  - [ ] Other textures
+      - [x] Occlusion map
+      - [x] Emissive map
+      - [ ] Normal Map
   - [ ] alphaMode
 - [ ] Animations
 - [ ] Extensions

@@ -83,6 +83,7 @@
   "pbrMetalRough": "pbrMetallicRoughness",
   "normalTex": "normalTexture",
   "occlusionTex": "occlusionTexture",
+  "strength": "strength",
   "emissiveTex": "emissiveTexture",
   "emissiveFac": "emissiveFactor",
   "alphaMode": "alphaMode",

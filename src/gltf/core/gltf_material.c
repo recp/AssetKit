@@ -46,14 +46,15 @@ gltf_materials(AkGLTFState * __restrict gst) {
 
     ak_setypeid(technfx, AKT_TECHNIQUE_FX);
 
-    technfx->common    = &mtlrough->base;
-    pcommon->technique = technfx;
+    mtlrough->base.type = AK_MATERIAL_METALLIC_ROUGHNESS;
+    technfx->common     = &mtlrough->base;
+    pcommon->technique  = technfx;
 
     ak_setId(mat, ak_id_gen(heap, mat, _s_gltf_id_metalrough));
 
-    /* metallic roughness */
+    /* - PBR - */
 
-    /* default values */
+    /* Metallic Roughness */
     glm_vec4_copy(GLM_VEC4_ONE, mtlrough->baseColor.vec);
     mtlrough->metallic = mtlrough->roughness = 1.0f;
 
@@ -75,6 +76,30 @@ gltf_materials(AkGLTFState * __restrict gst) {
         mtlrough->baseColorTex = gltf_texref(gst, effect, mtlrough, ji);
 
       /* TODO: extensions, extras */
+    }
+
+    /* - Other properties - */
+
+    /* Emission Map */
+    if ((ji = json_object_get(jmat, _s_gltf_emissiveTex))) {
+      AkColorDesc *colorDesc;
+
+      colorDesc = ak_heap_calloc(heap, mtlrough, sizeof(*colorDesc));
+
+      colorDesc->texture = gltf_texref(gst, effect, colorDesc, ji);
+      mtlrough->base.emission = colorDesc;
+    }
+
+    /* Occlusion Map */
+    if ((ji = json_object_get(jmat, _s_gltf_occlusionTex))) {
+      AkOcclusion *occlusion;
+
+      occlusion           = ak_heap_alloc(heap, mtlrough, sizeof(*occlusion));
+      occlusion->tex      = gltf_texref(gst, effect, occlusion, ji);
+      occlusion->strength = 1.0f;
+
+      jsn_flt_if(ji, _s_gltf_strength, &occlusion->strength);
+      mtlrough->base.occlusion = occlusion;
     }
 
     ieff               = ak_heap_calloc(heap, mat, sizeof(*ieff));

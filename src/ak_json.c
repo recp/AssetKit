@@ -54,7 +54,7 @@ void
 jsn_flt_if(json_t *jsn, const char *key, float *dest) {
   json_t *jval;
 
-  if (!(jval = json_object_get(jsn, key)))
+  if ((jval = json_object_get(jsn, key)))
     *dest = (float)json_number_value(jval);
 }
 

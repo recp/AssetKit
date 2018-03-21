@@ -97,6 +97,7 @@ const char _s_gltf_pool_0[] =
 "pbrMetallicRoughness\0"
 "normalTexture\0"
 "occlusionTexture\0"
+"strength\0"
 "emissiveTexture\0"
 "emissiveFactor\0"
 "alphaMode\0"
