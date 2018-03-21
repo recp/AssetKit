@@ -11,11 +11,11 @@
 #include "dae_fx_enums.h"
 
 AkResult _assetkit_hide
-ak_dae_colorOrTex(AkXmlState * __restrict xst,
-                  void * __restrict memParent,
-                  const char * elm,
-                  AkFxColorOrTex ** __restrict dest) {
-  AkFxColorOrTex *colorOrTex;
+ak_dae_colorOrTex(AkXmlState   * __restrict xst,
+                  void         * __restrict memParent,
+                  const char   * elm,
+                  AkColorDesc ** __restrict dest) {
+  AkColorDesc *colorOrTex;
   AkParam        *last_param;
   AkXmlElmState   xest;
 

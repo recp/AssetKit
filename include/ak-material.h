@@ -38,7 +38,7 @@ typedef struct AkFxColorOrTex {
   AkColor     *color;
   AkParam     *param;
   AkFxTexture *texture;
-} AkFxColorOrTex;
+} AkColorDesc;
 
 typedef struct AkFxFloatOrParam {
   float   *val;
@@ -46,7 +46,7 @@ typedef struct AkFxFloatOrParam {
 } AkFxFloatOrParam;
 
 typedef struct AkTransparent {
-  AkFxColorOrTex   *color;
+  AkColorDesc   *color;
   AkFxFloatOrParam *amount;
   AkAlphaMode       mode;
   AkOpaque          opaque;
@@ -54,7 +54,7 @@ typedef struct AkTransparent {
 } AkTransparent;
 
 typedef struct AkReflective {
-  AkFxColorOrTex   *color;
+  AkColorDesc   *color;
   AkFxFloatOrParam *amount;
 } AkReflective;
 
@@ -69,22 +69,22 @@ typedef struct AkEffectCmnTechnique {
 
 typedef struct AkConstantFx {
   AkEffectCmnTechnique base;
-  AkFxColorOrTex      *emission;
+  AkColorDesc      *emission;
 } AkConstantFx;
 
 typedef struct AkLambert {
   AkEffectCmnTechnique base;
-  AkFxColorOrTex      *emission;
-  AkFxColorOrTex      *ambient;
-  AkFxColorOrTex      *diffuse;
+  AkColorDesc         *emission;
+  AkColorDesc         *ambient;
+  AkColorDesc         *diffuse;
 } AkLambert;
 
 typedef struct AkPhong {
   AkEffectCmnTechnique base;
-  AkFxColorOrTex      *emission;
-  AkFxColorOrTex      *ambient;
-  AkFxColorOrTex      *diffuse;
-  AkFxColorOrTex      *specular;
+  AkColorDesc          *emission;
+  AkColorDesc          *ambient;
+  AkColorDesc          *diffuse;
+  AkColorDesc          *specular;
   AkFxFloatOrParam    *shininess;
 } AkPhong;
 

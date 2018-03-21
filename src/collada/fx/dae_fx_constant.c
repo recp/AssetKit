@@ -71,9 +71,9 @@ ak_dae_fxConstant(AkXmlState * __restrict xst,
       case k_s_dae_emission:
       case k_s_dae_reflective:
       case k_s_dae_transparent: {
-        AkFxColorOrTex *colorOrTex;
-        AkResult        ret;
-        AkOpaque        opaque;
+        AkColorDesc *colorOrTex;
+        AkResult     ret;
+        AkOpaque     opaque;
 
         opaque = ak_xml_attrenum(xst,
                                  _s_dae_opaque,

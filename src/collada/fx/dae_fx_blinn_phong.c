@@ -83,9 +83,9 @@ ak_dae_blinn_phong(AkXmlState * __restrict xst,
       case k_s_dae_specular:
       case k_s_dae_reflective:
       case k_s_dae_transparent: {
-        AkFxColorOrTex *colorOrTex;
-        AkResult        ret;
-        AkOpaque        opaque;
+        AkColorDesc *colorOrTex;
+        AkResult     ret;
+        AkOpaque     opaque;
 
         opaque = ak_xml_attrenum(xst,
                                  _s_dae_opaque,
