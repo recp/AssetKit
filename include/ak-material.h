@@ -101,7 +101,7 @@ typedef struct AkSpecularGlossiness {
   AkColor             diffuse;
   AkColor             specular;
   AkTextureRef       *diffuseTex;
-  AkTextureRef       *specularGlossTex;
+  AkTextureRef       *specGlossTex;
   float               glossiness;
 } AkSpecularGlossiness;
 

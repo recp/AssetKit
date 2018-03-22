@@ -113,6 +113,13 @@ const char _s_gltf_pool_0[] =
 "TEX\0"
 "smp\0"
 "metalrough\0"
+"specgloss\0"
+"KHR_materials_pbrSpecularGlossiness\0"
+"diffuseFactor\0"
+"specularFactor\0"
+"diffuseTexture\0"
+"glossinessFactor\0"
+"specularGlossinessTexture\0"
 ;
 
 #undef _AK_GLTF_STRPOOL_

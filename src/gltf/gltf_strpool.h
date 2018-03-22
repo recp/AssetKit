@@ -119,5 +119,12 @@ _AK_EXTERN const char _s_gltf_pool_0[];
 #define _s_gltf_sid_texcoord _s_gltf_0(841)
 #define _s_gltf_sid_sampler _s_gltf_0(845)
 #define _s_gltf_id_metalrough _s_gltf_0(849)
+#define _s_gltf_id_specgloss _s_gltf_0(860)
+#define _s_gltf_ext_pbrSpecGloss _s_gltf_0(870)
+#define _s_gltf_diffuseFactor _s_gltf_0(906)
+#define _s_gltf_specFactor _s_gltf_0(920)
+#define _s_gltf_diffuseTexture _s_gltf_0(935)
+#define _s_gltf_glossFactor _s_gltf_0(950)
+#define _s_gltf_specGlossTex _s_gltf_0(967)
 
 #endif /* ak_gltf_strpool_h */

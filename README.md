@@ -28,10 +28,10 @@ So working on multiple projects ([cglm](https://github.com/recp/cglm), [libgk](h
   - [x] Images
   - [x] Samplers
   - [x] Textures
-  - [ ] PBR Materials
+  - [x] PBR Materials
       - [x] Metallic Roughness
-      - [ ] Specular Glossiness
-  - [ ] Other textures
+      - [x] Specular Glossiness
+  - [x] Other textures
       - [x] Occlusion map
       - [x] Emissive map
       - [x] Normal Map
