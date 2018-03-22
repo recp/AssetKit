@@ -30,7 +30,7 @@ So working on multiple projects ([cglm](https://github.com/recp/cglm), [libgk](h
   - [x] Textures
   - [x] PBR Materials
       - [x] Metallic Roughness
-      - [x] Specular Glossiness
+      - [x] Specular Glossiness Extension
   - [x] Other textures
       - [x] Occlusion map
       - [x] Emissive map
@@ -39,6 +39,7 @@ So working on multiple projects ([cglm](https://github.com/recp/cglm), [libgk](h
   - [ ] alphaMode
 - [ ] Animations
 - [ ] Extensions
+  - [x] KHR_materials_pbrSpecularGlossiness
   - [ ] Lights
   - [ ] Common materials
 
