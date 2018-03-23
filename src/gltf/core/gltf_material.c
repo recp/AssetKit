@@ -69,7 +69,8 @@ gltf_materials(AkGLTFState * __restrict gst) {
 
       specGloss->base.type  = AK_MATERIAL_SPECULAR_GLOSSINES;
       specGloss->glossiness = 1.0f;
-      glm_vec_copy(GLM_VEC3_ONE, specGloss->specular.vec);
+      glm_vec_copy(GLM_VEC4_ONE, specGloss->diffuse.vec);
+      glm_vec_copy(GLM_VEC4_ONE, specGloss->specular.vec);
 
       if ((ji = json_object_get(jsg, _s_gltf_diffuseFactor))) {
         for (j = 0; j < 4; j++)
