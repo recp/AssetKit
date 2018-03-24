@@ -101,14 +101,14 @@ gltf_materials(AkGLTFState * __restrict gst) {
 
       metalRough->base.type = AK_MATERIAL_METALLIC_ROUGHNESS;
       metalRough->metallic  = metalRough->roughness = 1.0f;
-      glm_vec4_copy(GLM_VEC4_ONE, metalRough->baseColor.vec);
+      glm_vec4_copy(GLM_VEC4_ONE, metalRough->albedo.vec);
 
       if ((jmtlrough = json_object_get(jmat, _s_gltf_pbrMetalRough))) {
         if ((ji = json_object_get(jmtlrough, _s_gltf_baseColor))) {
           int32_t j;
 
           for (j = 0; j < 4; j++)
-            metalRough->baseColor.vec[j] = jsn_flt_at(ji, j);
+            metalRough->albedo.vec[j] = jsn_flt_at(ji, j);
         }
 
         jsn_flt_if(jmtlrough, _s_gltf_metalFac, &metalRough->metallic);
@@ -118,7 +118,7 @@ gltf_materials(AkGLTFState * __restrict gst) {
           metalRough->metalRoughTex = gltf_texref(gst, effect, metalRough, ji);
 
         if ((ji = json_object_get(jmtlrough, _s_gltf_baseColorTex)))
-          metalRough->baseColorTex = gltf_texref(gst, effect, metalRough, ji);
+          metalRough->albedoTex = gltf_texref(gst, effect, metalRough, ji);
       }
 
       ak_setId(mat, ak_id_gen(heap, mat, _s_gltf_id_metalrough));

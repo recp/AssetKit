@@ -406,7 +406,7 @@ gltf_bindMaterials(AkGLTFState        * __restrict gst,
           set = (uint32_t)strtol(pInpIndex + 1, NULL, 10);
       }
 
-      /* currently bid only TEXCOORDs */
+      /* currently bind only TEXCOORDs to inputs */
       if (strcasecmp(input, _s_gltf_TEXCOORD) == 0) {
 
         /* find if it is already bound */

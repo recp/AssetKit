@@ -89,8 +89,8 @@ typedef struct AkTechniqueFxCommon {
 
 typedef struct AkMetallicRoughness {
   AkTechniqueFxCommon base;
-  AkColor             baseColor;
-  AkTextureRef       *baseColorTex;
+  AkColor             albedo;
+  AkTextureRef       *albedoTex;
   AkTextureRef       *metalRoughTex;
   float               metallic;
   float               roughness;
