@@ -133,7 +133,7 @@ gltf_accessor(AkGLTFState     * __restrict gst,
           break;
         case AKT_BYTE:
         case AKT_UBYTE:
-          ((char *)acc->min)[i] = json_string_value(ival)[0];
+          ((char *)acc->min)[i] = (char)json_number_value(ival);
           break;
         default:
           break;
@@ -170,7 +170,7 @@ gltf_accessor(AkGLTFState     * __restrict gst,
           break;
         case AKT_BYTE:
         case AKT_UBYTE:
-          ((char *)acc->max)[i] = json_string_value(ival)[0];
+          ((char *)acc->max)[i] = (char)json_number_value(ival);
           break;
         default:
           break;
