@@ -24,7 +24,7 @@ So working on multiple projects ([cglm](https://github.com/recp/cglm), [libgk](h
 - [x] Load nodes
 - [x] Load scenes
 - [x] Load cameras
-- [ ] Load materials
+- [x] Load materials
   - [x] Images
   - [x] Samplers
   - [x] Textures
@@ -36,7 +36,9 @@ So working on multiple projects ([cglm](https://github.com/recp/cglm), [libgk](h
       - [x] Emissive map
       - [x] Normal Map
       - [ ] others?
-  - [ ] alphaMode
+  - [x] alphaMode
+  - [x] alphaCutoff
+  - [x] doubleSided
 - [ ] Animations
 - [ ] Extensions
   - [x] KHR_materials_pbrSpecularGlossiness

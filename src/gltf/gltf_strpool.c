@@ -120,6 +120,9 @@ const char _s_gltf_pool_0[] =
 "diffuseTexture\0"
 "glossinessFactor\0"
 "specularGlossinessTexture\0"
+"BLEND\0"
+"MASK\0"
+"OPAQUE\0"
 ;
 
 #undef _AK_GLTF_STRPOOL_

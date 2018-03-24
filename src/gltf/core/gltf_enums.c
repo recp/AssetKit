@@ -114,3 +114,28 @@ gltf_wrapMode(int type) {
   }
   return AK_WRAP_MODE_WRAP;
 }
+
+AkOpaque _assetkit_hide
+gltf_alphaMode(const char *name) {
+  AkEnum val;
+  long glenums_len;
+  long i;
+
+  ak_dae_enum glenums[] = {
+    {_s_gltf_OPAQUE, AK_OPAQUE_OPAQUE},
+    {_s_gltf_MASK,   AK_OPAQUE_MASK},
+    {_s_gltf_BLEND,  AK_OPAQUE_BLEND}
+  };
+
+  val = AK_OPAQUE_OPAQUE;
+  glenums_len = AK_ARRAY_LEN(glenums);
+
+  for (i = 0; i < glenums_len; i++) {
+    if (strcasecmp(name, glenums[i].name) == 0) {
+      val = glenums[i].val;
+      break;
+    }
+  }
+
+  return val;
+}

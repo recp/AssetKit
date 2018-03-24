@@ -568,7 +568,7 @@ ak_dae_fxEnumOpaque(const char * name) {
     {"RGB_ONE",  AK_OPAQUE_RGB_ONE}
   };
 
-  val = 0;
+  val = AK_OPAQUE_A_ONE;
   glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {

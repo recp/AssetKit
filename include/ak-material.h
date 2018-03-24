@@ -11,18 +11,15 @@
 extern "C" {
 #endif
 
-typedef enum AkAlphaMode {
-  AK_ALPHA_OPAQUE,
-  AK_ALPHA_MASK,
-  AK_ALPHA_BLEND
-} AkAlphaMode;
-
 typedef enum AkOpaque {
-  AK_OPAQUE_A_ONE    = 0, /* Default */
-  AK_OPAQUE_A_ZERO   = 1,
-  AK_OPAQUE_RGB_ONE  = 2,
-  AK_OPAQUE_RGB_ZERO = 3,
-  AK_OPAQUE_DEFAULT  = AK_OPAQUE_A_ONE
+  AK_OPAQUE_OPAQUE   = 0, /* fully opaque */
+  AK_OPAQUE_A_ONE    = 1,
+  AK_OPAQUE_A_ZERO   = 2,
+  AK_OPAQUE_RGB_ONE  = 3,
+  AK_OPAQUE_RGB_ZERO = 4,
+  AK_OPAQUE_BLEND    = 5, /* Blend only */
+  AK_OPAQUE_MASK     = 6, /* Activate alpha cutoff */
+  AK_OPAQUE_DEFAULT  = AK_OPAQUE_OPAQUE
 } AkOpaque;
 
 typedef enum AkMaterialType {
@@ -48,7 +45,6 @@ typedef struct AkFloatOrParam {
 typedef struct AkTransparent {
   AkColorDesc    *color;
   AkFloatOrParam *amount;
-  AkAlphaMode     mode;
   AkOpaque        opaque;
   float           cutoff;
 } AkTransparent;
@@ -69,8 +65,6 @@ typedef struct AkNormalMap {
 } AkNormalMap;
 
 typedef struct AkTechniqueFxCommon {
-  AkMaterialType  type;
-
   AkColorDesc    *ambient;
   AkColorDesc    *emission;
   AkColorDesc    *diffuse;
@@ -83,6 +77,9 @@ typedef struct AkTechniqueFxCommon {
 
   AkOcclusion    *occlusion;
   AkNormalMap    *normal;
+
+  AkMaterialType  type;
+  bool            doubleSided;
 } AkTechniqueFxCommon;
 
 /* Common PBR Materials */

@@ -73,9 +73,10 @@ ak_dae_fxConstant(AkXmlState           * __restrict xst,
         AkResult     ret;
         AkOpaque     opaque;
 
-        opaque = ak_xml_attrenum(xst,
-                                 _s_dae_opaque,
-                                 ak_dae_fxEnumOpaque);
+        opaque = ak_xml_attrenum_def(xst,
+                                     _s_dae_opaque,
+                                     ak_dae_fxEnumOpaque,
+                                     AK_OPAQUE_A_ONE);
 
         ret = ak_dae_colorOrTex(xst,
                                 techn,
@@ -143,6 +144,7 @@ ak_dae_fxConstant(AkXmlState           * __restrict xst,
               if (!techn->transparent) {
                 AkTransparent *transp;
                 transp = ak_heap_calloc(xst->heap, techn, sizeof(*transp));
+                transp->opaque     = AK_OPAQUE_A_ONE;
                 techn->transparent = transp;
               }
 

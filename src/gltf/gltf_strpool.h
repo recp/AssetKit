@@ -126,5 +126,8 @@ _AK_EXTERN const char _s_gltf_pool_0[];
 #define _s_gltf_diffuseTexture _s_gltf_0(935)
 #define _s_gltf_glossFactor _s_gltf_0(950)
 #define _s_gltf_specGlossTex _s_gltf_0(967)
+#define _s_gltf_BLEND _s_gltf_0(993)
+#define _s_gltf_MASK _s_gltf_0(999)
+#define _s_gltf_OPAQUE _s_gltf_0(1004)
 
 #endif /* ak_gltf_strpool_h */

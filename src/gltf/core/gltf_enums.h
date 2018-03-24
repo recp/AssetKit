@@ -28,4 +28,7 @@ gltf_magFilter(int type);
 AkEnum _assetkit_hide
 gltf_wrapMode(int type);
 
+AkOpaque _assetkit_hide
+gltf_alphaMode(const char *name);
+
 #endif /* gltf_enums_h */

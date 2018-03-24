@@ -9,6 +9,8 @@
 #include "gltf_profile.h"
 #include "gltf_sampler.h"
 #include "gltf_texture.h"
+#include "gltf_enums.h"
+#include "../../default/ak_def_material.h"
 
 void _assetkit_hide
 gltf_materials(AkGLTFState * __restrict gst) {
@@ -156,6 +158,32 @@ gltf_materials(AkGLTFState * __restrict gst) {
 
       jsn_flt_if(ji, _s_gltf_scale, &normal->scale);
       cmnTechn->normal = normal;
+    }
+
+    /* doubleSided */
+    if ((ji = json_object_get(jmat, _s_gltf_doubleSided)))
+      cmnTechn->doubleSided = json_boolean_value(ji);
+
+    /* alphaMode */
+    if ((ji = json_object_get(jmat, _s_gltf_alphaMode))) {
+      AkOpaque opaque;
+      opaque = gltf_alphaMode(json_string_value(ji));
+      if (opaque != AK_OPAQUE_OPAQUE) {
+        AkTransparent *transp;
+
+        transp = ak_heap_calloc(heap, cmnTechn, sizeof(*transp));
+        transp->amount = ak_def_transparency();
+        transp->opaque = opaque;
+        transp->cutoff = 0.5f;
+
+        cmnTechn->transparent = transp;
+      }
+    }
+
+    /* alphaCutoff */
+    if (cmnTechn->transparent
+        && (ji = json_object_get(jmat, _s_gltf_alphaCutoff))) {
+      cmnTechn->transparent->cutoff = (float)json_number_value(ji);
     }
 
     technfx->common    = cmnTechn;

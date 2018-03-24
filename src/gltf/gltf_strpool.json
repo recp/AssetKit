@@ -105,5 +105,8 @@
   "specFactor": "specularFactor",
   "diffuseTexture": "diffuseTexture",
   "glossFactor": "glossinessFactor",
-  "specGlossTex": "specularGlossinessTexture"
+  "specGlossTex": "specularGlossinessTexture",
+  "BLEND": "BLEND",
+  "MASK": "MASK",
+  "OPAQUE": "OPAQUE"
 }
