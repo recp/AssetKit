@@ -157,10 +157,12 @@ gltf_node(AkGLTFState * __restrict gst,
     int32_t     meshIndex;
 
     meshIndex = i = (int32_t)json_integer_value(jmesh);
-    geomIter  = gst->doc->lib.geometries->chld;
-    while (i > 0) {
-      geomIter = geomIter->next;
-      i--;
+    if ((geomIter  = gst->doc->lib.geometries->chld) && i > 0) {
+      while (i > 0) {
+        if (!(geomIter = geomIter->next))
+          goto n_chld;  /* not foud */
+        i--;
+      }
     }
 
     /* instance geometry */
@@ -180,6 +182,7 @@ gltf_node(AkGLTFState * __restrict gst,
   /* mark child nodes
      we will move the marked nodes into the node after read all nodes.
    */
+n_chld:
   if ((jchld = json_object_get(jnode, _s_gltf_children))) {
     AkNode *chld;
     size_t  arrCount, chldIndex;
