@@ -82,7 +82,7 @@ ak_dae_skin(AkXmlState * __restrict xst,
 
       last_input = NULL;
 
-      ak_xest_init(xest, _s_dae_joints)
+      ak_xest_init(xest2, _s_dae_joints)
 
       do {
         if (ak_xml_begin(&xest2))
