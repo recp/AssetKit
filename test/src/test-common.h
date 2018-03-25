@@ -14,6 +14,6 @@
 #include <setjmp.h>
 #include <cmocka.h>
 
-#include <assetkit.h>
+#include <ak/assetkit.h>
 
 #endif /* ak_test_common_h */
