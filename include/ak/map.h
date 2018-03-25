@@ -15,7 +15,7 @@
 extern "C" {
 #endif
 
-#include "ak-memory.h"
+#include "memory.h"
 #include <stdbool.h>
 
 typedef struct AkMapItem {

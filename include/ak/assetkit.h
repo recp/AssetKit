@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "ak-common.h"
+#include "common.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,58 +20,13 @@ extern "C" {
 struct FList;
 struct FListItem;
 
-typedef const char * AkString;
-typedef char       * AkMutString;
-typedef bool         AkBool;
-typedef int32_t      AkInt;
-typedef uint32_t     AkUInt;
-typedef int64_t      AkInt64;
-typedef uint64_t     AkUInt64;
-typedef float        AkFloat;
-typedef double       AkDouble;
-
-typedef AkBool       AkBool4[4];
-typedef AkInt        AkInt2[2];
-typedef AkInt        AkInt4[4];
-typedef AkFloat      AkFloat2[2];
-typedef AkFloat      AkFloat3[3];
-typedef AkFloat      AkFloat4[4];
-typedef AkDouble     AkDouble2[2];
-typedef AkDouble     AkDouble3[3];
-typedef AkDouble     AkDouble4[4];
-
-typedef AkDouble     AkDouble4x4[4];
-typedef AkFloat4     AkFloat4x4[4];
-
-#undef AK__DEF_ARRAY
-
-#define AK__DEF_ARRAY(TYPE)                                                   \
-  typedef struct TYPE##Array {                                                \
-    size_t count;                                                             \
-    TYPE   items[];                                                           \
-  } TYPE##Array;                                                              \
-                                                                              \
-  typedef struct TYPE##ArrayL {                                               \
-    struct TYPE##ArrayL * next;                                               \
-    size_t count;                                                             \
-    TYPE   items[];                                                           \
-  } TYPE##ArrayL
-
-AK__DEF_ARRAY(AkBool);
-AK__DEF_ARRAY(AkInt);
-AK__DEF_ARRAY(AkUInt);
-AK__DEF_ARRAY(AkFloat);
-AK__DEF_ARRAY(AkDouble);
-AK__DEF_ARRAY(AkString);
-
-#undef AK__DEF_ARRAY
-
 /* End Core Value Types */
 
-#include "ak-memory.h"
-#include "ak-coord.h"
-#include "ak-url.h"
-#include "ak-type.h"
+#include "core-types.h"
+#include "memory.h"
+#include "coord.h"
+#include "url.h"
+#include "type.h"
 
 typedef enum AkModifier {
   AK_MODIFIER_CONST    = 1,
@@ -268,7 +223,7 @@ typedef struct AkTreeNode {
 
 typedef struct AkTreeNode AkTree;
 
-#include "ak-source.h"
+#include "source.h"
 
 typedef struct AkUnit {
   const char * name;
@@ -568,7 +523,7 @@ typedef struct AkPass {
   struct AkPass * next;
 } AkPass;
 
-#include "ak-profile.h"
+#include "profile.h"
 
 typedef struct AkEffect {
   /* const char * id; */
@@ -799,20 +754,20 @@ typedef struct AkDoc {
   AkScene     scene;
 } AkDoc;
 
-#include "ak-context.h"
-#include "ak-geom.h"
-#include "ak-image.h"
-#include "ak-string.h"
-#include "ak-coord-util.h"
-#include "ak-lib.h"
-#include "ak-instance.h"
-#include "ak-cam.h"
-#include "ak-transform.h"
-#include "ak-sid.h"
-#include "ak-light.h"
-#include "ak-node.h"
-#include "ak-texture.h"
-#include "ak-states.h"
+#include "context.h"
+#include "geom.h"
+#include "image.h"
+#include "string.h"
+#include "coord-util.h"
+#include "lib.h"
+#include "instance.h"
+#include "cam.h"
+#include "transform.h"
+#include "sid.h"
+#include "light.h"
+#include "node.h"
+#include "texture.h"
+#include "states.h"
   
 AK_EXPORT
 AkResult

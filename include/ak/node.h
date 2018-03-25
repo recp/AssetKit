@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-#include "ak-common.h"
+#include "common.h"
 
 typedef enum AkNodeFlags {
   AK_NODEF_FIXED_COORD = 1

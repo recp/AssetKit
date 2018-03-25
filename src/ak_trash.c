@@ -7,8 +7,8 @@
 
 #include "ak_trash.h"
 
-#include "../include/assetkit.h"
-#include "../include/ak-trash.h"
+#include "../include/ak/assetkit.h"
+#include "../include/ak/trash.h"
 #include "ak_memory_common.h"
 
 #include <stdlib.h>

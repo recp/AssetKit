@@ -7,7 +7,7 @@
 
 #include "gltf.h"
 #include "../ak_id.h"
-#include "../../include/ak-path.h"
+#include "../../include/ak/path.h"
 #include "core/gltf_asset.h"
 #include "core/gltf_buffer.h"
 #include "core/gltf_mesh.h"

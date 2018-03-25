@@ -13,7 +13,7 @@ extern "C" {
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "ak-type.h"
+#include "type.h"
 
 /*
   Input -> Source -> TechniqueCommon -> Accessor -> Buffer

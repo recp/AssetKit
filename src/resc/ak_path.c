@@ -6,8 +6,8 @@
  */
 
 #include "../ak_common.h"
-#include "../../include/ak-path.h"
-#include "../../include/ak-string.h"
+#include "../../include/ak/path.h"
+#include "../../include/ak/string.h"
 
 #include <limits.h>
 #include <uv.h>

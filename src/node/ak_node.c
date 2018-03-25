@@ -6,9 +6,9 @@
  */
 
 #include "../ak_common.h"
-#include "../../include/assetkit.h"
-#include "../../include/ak-node.h"
-#include "../../include/ak-coord-util.h"
+#include "../../include/ak/assetkit.h"
+#include "../../include/ak/node.h"
+#include "../../include/ak/coord-util.h"
 #include <assert.h>
 
 AK_EXPORT

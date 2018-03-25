@@ -8,7 +8,7 @@
 #ifndef __libassetkit__dae__h_
 #define __libassetkit__dae__h_
 
-#include "../../include/assetkit.h"
+#include "../../include/ak/assetkit.h"
 
 #include <stdlib.h>
 

@@ -7,7 +7,7 @@
 
 #include "../ak_common.h"
 #include "../ak_memory_common.h"
-#include "../../include/ak-coord-util.h"
+#include "../../include/ak/coord-util.h"
 #include "ak_coord_common.h"
 #include <cglm/cglm.h>
 

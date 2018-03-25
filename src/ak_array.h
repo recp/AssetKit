@@ -8,7 +8,7 @@
 #ifndef ak_array_h
 #define ak_array_h
 
-#include "../include/assetkit.h"
+#include "../include/ak/assetkit.h"
 
 AkResult _assetkit_hide
 ak_strtof_arrayL(AkHeap         * __restrict heap,

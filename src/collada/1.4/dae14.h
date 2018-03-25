@@ -8,7 +8,7 @@
 #ifndef dae14_h
 #define dae14_h
 
-#include "../../../include/assetkit.h"
+#include "../../../include/ak/assetkit.h"
 #include "../dae_common.h"
 
 typedef enum AkDae14LoadJobType {

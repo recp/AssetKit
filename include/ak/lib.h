@@ -11,8 +11,8 @@
 extern "C" {
 #endif
 
-#include "ak-cam.h"
-#include "ak-light.h"
+#include "cam.h"
+#include "light.h"
 
 AK_EXPORT
 AkGeometry *

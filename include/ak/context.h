@@ -11,9 +11,9 @@
 extern "C" {
 #endif
 
-#include "ak-common.h"
-#include "ak-map.h"
-#include "ak-util.h"
+#include "common.h"
+#include "map.h"
+#include "util.h"
 
 typedef struct AkContext {
   AkDoc              *doc;

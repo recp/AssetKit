@@ -8,7 +8,7 @@
 #ifndef ak_14_image_h
 #define ak_14_image_h
 
-#include "../../../include/assetkit.h"
+#include "../../../include/ak/assetkit.h"
 #include "../dae_common.h"
 
 void _assetkit_hide

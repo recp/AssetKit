@@ -6,8 +6,8 @@
  */
 
 #include "../ak_common.h"
-#include "../../include/ak-bbox.h"
-#include "../../include/ak-path.h"
+#include "../../include/ak/bbox.h"
+#include "../../include/ak/path.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"

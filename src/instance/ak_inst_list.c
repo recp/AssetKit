@@ -7,7 +7,7 @@
 
 #include "../ak_common.h"
 #include "../ak_memory_common.h"
-#include "../../include/ak-util.h"
+#include "../../include/ak/util.h"
 #include <stdio.h>
 #include <assert.h>
 

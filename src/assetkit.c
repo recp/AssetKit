@@ -5,7 +5,7 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "../include/assetkit.h"
+#include "../include/ak/assetkit.h"
 
 #include "ak_utils.h"
 #include "collada/dae.h"

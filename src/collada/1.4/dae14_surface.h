@@ -8,7 +8,7 @@
 #ifndef ak_surface_h
 #define ak_surface_h
 
-#include "../../../include/assetkit.h"
+#include "../../../include/ak/assetkit.h"
 #include "../dae_common.h"
 #include "dae14.h"
 

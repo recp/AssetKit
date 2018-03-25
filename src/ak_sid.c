@@ -7,7 +7,7 @@
 
 #include "ak_common.h"
 #include "ak_memory_common.h"
-#include "../include/ak-profile.h"
+#include "../include/ak/profile.h"
 #include "ak_sid.h"
 
 #include <stdlib.h>

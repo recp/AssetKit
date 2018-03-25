@@ -8,7 +8,7 @@
 #ifndef ak_util_h
 #define ak_util_h
 
-#include "ak-common.h"
+#include "common.h"
 
 /* pre-defined compare funcs */
 

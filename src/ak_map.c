@@ -5,7 +5,7 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "../include/ak-map.h"
+#include "../include/ak/map.h"
 #include "ak_memory_common.h"
 
 AkMap *

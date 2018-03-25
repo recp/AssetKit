@@ -8,7 +8,7 @@
 #ifndef ak_gltf_commoh_h
 #define ak_gltf_commoh_h
 
-#include "../../include/assetkit.h"
+#include "../../include/ak/assetkit.h"
 #include "../ak_common.h"
 #include "../ak_memory_common.h"
 #include "../ak_utils.h"

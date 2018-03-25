@@ -8,7 +8,7 @@
 #ifndef __libassetkit__dae_float_or_param___h_
 #define __libassetkit__dae_float_or_param___h_
 
-#include "../../../include/assetkit.h"
+#include "../../../include/ak/assetkit.h"
 #include "../dae_common.h"
 
 AkResult _assetkit_hide

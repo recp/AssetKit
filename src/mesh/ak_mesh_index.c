@@ -6,7 +6,7 @@
  */
 
 #include "ak_mesh_index.h"
-#include "../../include/ak-trash.h"
+#include "../../include/ak/trash.h"
 #include "ak_mesh_util.h"
 
 #include <limits.h>

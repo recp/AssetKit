@@ -6,7 +6,7 @@
  */
 
 #include "ak_curl.h"
-#include "../../include/ak-path.h"
+#include "../../include/ak/path.h"
 
 #include <string.h>
 #include <stdio.h>

@@ -8,7 +8,7 @@
 #ifndef __libassetkit__dae_common__h_
 #define __libassetkit__dae_common__h_
 
-#include "../../include/assetkit.h"
+#include "../../include/ak/assetkit.h"
 #include "../ak_libxml.h"
 #include "../ak_common.h"
 #include "../ak_memory_common.h"

@@ -11,7 +11,7 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#include "ak-common.h"
+#include "common.h"
 
 #ifdef __cplusplus
 extern "C" {

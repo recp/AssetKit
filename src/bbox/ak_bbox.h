@@ -9,7 +9,7 @@
 #define ak_src_bbox_h
 
 #include "../ak_common.h"
-#include "../../include/ak-bbox.h"
+#include "../../include/ak/bbox.h"
 
 void
 ak_bbox_pick(float min[3],

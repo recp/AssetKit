@@ -25,7 +25,7 @@
 #include "dae_postscript.h"
 #include "../ak_id.h"
 
-#include "../../include/ak-path.h"
+#include "../../include/ak/path.h"
 
 #define k_s_dae_asset               1
 #define k_s_dae_lib_cameras         2

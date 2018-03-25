@@ -7,7 +7,7 @@
 
 #include "ak_common.h"
 #include "ak_memory_common.h"
-#include "../include/ak-type.h"
+#include "../include/ak/type.h"
 #include "ak_type.h"
 #include "default/ak_def_type.h"
 

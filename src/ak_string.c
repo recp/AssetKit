@@ -9,7 +9,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "../include/assetkit.h"
+#include "../include/ak/assetkit.h"
 
 #define AK_ARRAY_SEP_CHECK (c == ' ' || c == '\n' || c == '\t' || c == '\r')
 

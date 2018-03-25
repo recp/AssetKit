@@ -6,7 +6,7 @@
  */
 
 #include "../ak_common.h"
-#include "../../include/ak-path.h"
+#include "../../include/ak/path.h"
 #include "ak_resource.h"
 #include "ak_curl.h"
 

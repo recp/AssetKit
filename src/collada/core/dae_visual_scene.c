@@ -9,7 +9,7 @@
 #include "../core/dae_asset.h"
 #include "dae_node.h"
 #include "dae_evaluate_scene.h"
-#include "../../../include/ak-light.h"
+#include "../../../include/ak/light.h"
 
 AkResult _assetkit_hide
 ak_dae_visualScene(AkXmlState * __restrict xst,

@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-#include "ak-common.h"
+#include "common.h"
 
 AK_EXPORT
 void ak_trash_add(void *mem);

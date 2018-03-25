@@ -9,7 +9,7 @@
 #ifndef __libassetkit__dae_fx_profile__h_
 #define __libassetkit__dae_fx_profile__h_
 
-#include "../../../include/assetkit.h"
+#include "../../../include/ak/assetkit.h"
 #include "../dae_common.h"
 
 AkResult _assetkit_hide

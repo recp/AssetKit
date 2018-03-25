@@ -11,9 +11,9 @@
 extern "C" {
 #endif
 
-#include "ak-map.h"
-#include "ak-bbox.h"
-#include "ak-map.h"
+#include "map.h"
+#include "bbox.h"
+#include "map.h"
 
 struct RBTree;
 

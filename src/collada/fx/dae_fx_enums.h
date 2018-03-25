@@ -8,7 +8,7 @@
 #ifndef __libassetkit__dae_fx_enums_h_
 #define __libassetkit__dae_fx_enums_h_
 
-#include "../../../include/assetkit.h"
+#include "../../../include/ak/assetkit.h"
 
 AkEnum _assetkit_hide
 ak_dae_fxEnumGlFunc(const char * name);

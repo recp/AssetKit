@@ -15,7 +15,7 @@
 extern "C" {
 #endif
 
-#include "ak-context.h"
+#include "context.h"
 
 AK_EXPORT
 const char *
