@@ -166,7 +166,7 @@ gltf_meshes(AkGLTFState * __restrict gst) {
                                    sizeof(*indices) + sizeof(AkUInt) * count);
           indices->count = count;
           it1 = indices->items;
-          it2 = indicesBuff->data;
+          it2 = (char *)indicesBuff->data + indicesAcc->byteOffset;
 
           /* we cannot use memcpy here, because we will promote short, byte
              type to int32 (for now)

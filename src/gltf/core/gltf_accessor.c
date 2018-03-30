@@ -37,8 +37,8 @@ gltf_accessor(AkGLTFState     * __restrict gst,
   if ((jbuffView = json_object_get(jacc, _s_gltf_bufferView))) {
     AkBuffer *buff;
 
-    acc->byteOffset = jsn_i64(jacc, _s_gltf_byteOffset);
-    acc->stride     = (uint32_t)(acc->byteStride / acc->type->size);
+    acc->byteOffset += jsn_i64(jbuffView, _s_gltf_byteOffset);
+    acc->stride      = (uint32_t)(acc->byteStride / acc->type->size);
 
     buff = gltf_buffer(gst,
                        (int32_t)json_integer_value(jbuffView),
