@@ -61,6 +61,16 @@ ak_coordCvtNodeTransforms(AkDoc  * __restrict doc,
         AK_CVT_VEC(rotate->val);
         break;
       }
+      case AK_TRANSFORM_QUAT: {
+        AkQuaternion *quat;
+        float        *val;
+
+        quat = ak_objGet(transform);
+        val  = &quat->val[1];
+
+        AK_CVT_VEC(val);
+        break;
+      }
       case AK_TRANSFORM_SCALE: {
         AkScale *scale;
         scale = ak_objGet(transform);

@@ -91,6 +91,14 @@ again:
         glm_mat4_mul(mat, tmp, mat);
         break;
       }
+      case AK_TRANSFORM_QUAT: {
+        AkQuaternion *quat;
+
+        quat = ak_objGet(transform);
+        glm_quat_mat4(quat->val, tmp);
+        glm_mat4_mul(mat, tmp, mat);
+        break;
+      }
       case AK_TRANSFORM_SCALE: {
         AkScale *scale;
         scale = ak_objGet(transform);

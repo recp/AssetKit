@@ -73,6 +73,20 @@ ak_transformDup(AkNode * __restrict srcNode,
         glm_vec4_copy(rotate->val, newRotate->val);
         break;
       }
+      case AK_TRANSFORM_QUAT: {
+        AkQuaternion *quat, *newQuat;
+
+        quat = ak_objGet(transItem);
+        newTransItem = ak_objAlloc(heap,
+                                   destNode,
+                                   sizeof(*quat),
+                                   AK_TRANSFORM_QUAT,
+                                   true);
+        newQuat = ak_objGet(newTransItem);
+        ak_sid_dup(newTransItem, transItem);
+        glm_vec4_copy(quat->val, newQuat->val);
+        break;
+      }
       case AK_TRANSFORM_SCALE: {
         AkScale *scale, *newScale;
 
