@@ -17,7 +17,8 @@ typedef enum AkTransformType {
   AK_TRANSFORM_ROTATE    = 3,
   AK_TRANSFORM_SCALE     = 4,
   AK_TRANSFORM_SKEW      = 5,
-  AK_TRANSFORM_TRANSLATE = 6
+  AK_TRANSFORM_TRANSLATE = 6,
+  AK_TRANSFORM_QUAT      = 7 /* quaternion */
 } AkTransformType;
 
 typedef struct AkTransform {
@@ -58,6 +59,10 @@ typedef struct AkTranslate {
   /* const char * sid; */
   AkFloat      val[3];
 } AkTranslate;
+
+typedef struct AkQuaternion {
+  AK_ALIGN(16) AkFloat val[4];
+} AkQuaternion;
 
 /*!
  * @brief build skew matrix from AkSkew

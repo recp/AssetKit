@@ -217,8 +217,7 @@ n_chld:
     matrix = ak_objGet(obj);
     for (i = 0; i < 4; i++) {
       for (j = 0; j < 4; j++) {
-        matrix->val[i][j] = json_number_value(json_array_get(jval,
-                                                             i * 4 + j));
+        matrix->val[i][j] = json_number_value(json_array_get(jval, i * 4 + j));
       }
     }
 
@@ -261,18 +260,20 @@ n_chld:
   }
 
   if ((jval = json_object_get(jnode, _s_gltf_rotation))) {
-    AkObject *obj;
-    AkRotate *rot;
+    AkObject     *obj;
+    AkQuaternion *rot;
 
     obj = ak_objAlloc(heap,
                       node,
                       sizeof(*rot),
-                      AK_TRANSFORM_ROTATE,
+                      AK_TRANSFORM_QUAT,
                       true);
 
     rot = ak_objGet(obj);
-    for (i = 0; i < 4; i++)
-      rot->val[i] = json_number_value(json_array_get(jval, i));
+    rot->val[1] = json_number_value(json_array_get(jval, 0));
+    rot->val[2] = json_number_value(json_array_get(jval, 1));
+    rot->val[3] = json_number_value(json_array_get(jval, 2));
+    rot->val[0] = json_number_value(json_array_get(jval, 3));
 
     if (last_trans)
       last_trans->next = obj;
