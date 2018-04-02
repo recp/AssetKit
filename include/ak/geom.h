@@ -48,6 +48,7 @@ typedef struct AkMeshPrimitive {
   const char             *material;
   AkInput                *input;
   AkVertices             *vertices;
+  AkInput                *pos;
   AkUIntArray            *indices;
   AkTree                 *extra;
   void                   *udata;

@@ -25,21 +25,22 @@ gltf_meshes(AkGLTFState * __restrict gst) {
   AkGeometry *last_geom;
   size_t      jmeshCount, i;
 
-  heap        = gst->heap;
-  doc         = gst->doc;
-  lib         = ak_heap_calloc(heap, doc, sizeof(*lib));
-  last_geom   = NULL;
+  heap       = gst->heap;
+  doc        = gst->doc;
+  lib        = ak_heap_calloc(heap, doc, sizeof(*lib));
+  last_geom  = NULL;
 
   jmeshes    = json_object_get(gst->root, _s_gltf_meshes);
   jmeshCount = (int32_t)json_array_size(jmeshes);
   jaccessors = json_object_get(gst->root, _s_gltf_accessors);
 
   for (i = 0; i < jmeshCount; i++) {
-    AkGeometry *geom;
-    AkObject   *last_mesh;
-
-    json_t     *jmesh, *jprims, *jmat;
-    int32_t     jprimCount, j;
+    AkGeometry      *geom;
+    AkMesh          *mesh;
+    AkObject        *meshObj;
+    AkMeshPrimitive *last_prim;
+    json_t          *jmesh, *jprims, *jmat;
+    int32_t          jprimCount, j;
 
     geom              = ak_heap_calloc(heap, lib, sizeof(*geom));
     geom->materialMap = ak_map_new(ak_cmp_str);
@@ -47,52 +48,36 @@ gltf_meshes(AkGLTFState * __restrict gst) {
     /* destroy heap with this object */
     ak_setAttachedHeap(geom, geom->materialMap->heap);
 
+    meshObj    = ak_objAlloc(heap,
+                             geom,
+                             sizeof(AkMesh),
+                             AK_GEOMETRY_TYPE_MESH,
+                             true);
+    geom->gdata = meshObj;
+    mesh        = ak_objGet(meshObj);
+    mesh->geom  = geom;
+    mesh->primitiveCount = 0;
+
     jmesh      = json_array_get(jmeshes, i);
     jprims     = json_object_get(jmesh, _s_gltf_primitives);
     jprimCount = (int32_t)json_array_size(jprims);
-    last_mesh  = NULL;
+    last_prim  = NULL;
 
     for (j = 0; j < jprimCount; j++) {
-      AkObject        *meshObj;
-      AkMesh          *mesh;
       AkMeshPrimitive *prim;
-      AkInput         *last_inp, *last_vert_inp, *vertInp;
+      AkInput         *last_inp;//, *last_vert_inp, *vertInp;
       json_t          *jprim, *jattribs, *jval, *jindices;
       const char      *jkey;
 
-      jprim   = json_array_get(jprims, j);
-      meshObj = ak_objAlloc(heap,
-                            geom,
-                            sizeof(AkMesh),
-                            AK_GEOMETRY_TYPE_MESH,
-                            true);
-      mesh       = ak_objGet(meshObj);
-      mesh->geom = geom;
-
+      jprim = json_array_get(jprims, j);
       prim  = gltf_allocPrim(heap,
                              meshObj,
                              jsn_i32_def(jprim, _s_gltf_mode, 4));
 
-      mesh->vertices = ak_heap_calloc(heap,
-                                      prim,
-                                      sizeof(*prim->vertices));
+      prim->input      = last_inp = NULL;
+      prim->inputCount = 0;
+      prim->mesh       = mesh;
 
-      vertInp = ak_heap_calloc(heap, prim, sizeof(*vertInp));
-      vertInp->base.semantic    = AK_INPUT_SEMANTIC_VERTEX;
-      vertInp->base.semanticRaw = ak_heap_strdup(heap,
-                                                 vertInp,
-                                                 _s_gltf_VERTEX);
-      vertInp->base.source.ptr  = mesh->vertices;
-
-      prim->input          = last_inp = vertInp;
-      prim->inputCount     = 1;
-      prim->vertices       = mesh->vertices;
-      prim->mesh           = mesh;
-      mesh->primitive      = prim;
-      mesh->primitiveCount = 1;
-      mesh->geom           = geom;
-
-      last_vert_inp = NULL;
       jattribs      = json_object_get(jprim, _s_gltf_attributes);
       json_object_foreach(jattribs, jkey, jval) {
         AkInput    *inp;
@@ -124,24 +109,16 @@ gltf_meshes(AkGLTFState * __restrict gst) {
         inp->base.semantic   = gltf_enumInputSemantic(inp->base.semanticRaw);
         inp->base.source.ptr = source;
 
-        /* TODO: check morph targets to insert them to <vertices> */
-        if (inp->base.semantic == AK_INPUT_SEMANTIC_POSITION) {
-          if (last_vert_inp)
-            last_vert_inp->base.next = &inp->base;
-          else
-            mesh->vertices->input = &inp->base;
+        if (inp->base.semantic == AK_INPUT_SEMANTIC_POSITION)
+          prim->pos = inp;
 
-          last_vert_inp = inp;
-          mesh->vertices->inputCount++;
-        } else {
-          if (last_inp)
-            last_inp->base.next = &inp->base;
-          else
-            prim->input = inp;
+        if (last_inp)
+          last_inp->base.next = &inp->base;
+        else
+          prim->input = inp;
 
-          last_inp = inp;
-          prim->inputCount++;
-        }
+        last_inp = inp;
+        prim->inputCount++;
       }
 
       if ((jindices = json_object_get(jprim, _s_gltf_indices))) {
@@ -207,12 +184,13 @@ gltf_meshes(AkGLTFState * __restrict gst) {
         }
       }
 
-      if (last_mesh)
-        last_mesh->next = meshObj;
+      if (last_prim)
+        last_prim->next = prim;
       else
-        geom->gdata = meshObj;
+        mesh->primitive = prim;
+      last_prim = prim;
 
-      last_mesh = meshObj;
+      mesh->primitiveCount++;
     }
 
     if (last_geom)

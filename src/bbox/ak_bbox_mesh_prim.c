@@ -12,44 +12,29 @@
 
 void
 ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
-  AkHeap             *heap;
-  AkGeometry         *geom;
-  AkMesh             *mesh;
-  AkBuffer           *posbuff;
-  AkFloat            *items;
-  AkInputBasic       *inputb;
-  AkAccessor         *acc;
-  vec3                min, max;
+  AkHeap     *heap;
+  AkGeometry *geom;
+  AkMesh     *mesh;
+  AkBuffer   *posbuff;
+  char       *data;
+  AkSource   *src;
+  AkAccessor *acc;
+  vec3        min, max;
 
   mesh    = prim->mesh;
   geom    = mesh->geom;
-  inputb  = mesh->vertices->input;
   posbuff = NULL;
   acc     = NULL;
 
-  while (inputb) {
-    if (inputb->semantic == AK_INPUT_SEMANTIC_POSITION) {
-      AkSource *src;
-
-      src = ak_getObjectByUrl(&inputb->source);
-      if (!src)
-        break;
-
-      acc = src->tcommon;
-      if (!acc)
-        break;
-
-      posbuff = ak_getObjectByUrl(&acc->source);
-      break;
-    }
-    inputb = inputb->next;
-  }
-
-  /* there is no positions */
-  if (!posbuff || !acc)
+  if (!prim->pos)
     return;
 
-  items = posbuff->data;
+  if (!(src = ak_getObjectByUrl(&prim->pos->base.source))
+      || !(acc = src->tcommon)
+      || !(posbuff = ak_getObjectByUrl(&acc->source)))
+    return;
+
+  data = ((char *)posbuff->data + acc->byteOffset);
 
   glm_vec_broadcast(FLT_MAX, min);
   glm_vec_broadcast(-FLT_MAX, max);
@@ -69,34 +54,28 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
 
     for (i = 0; i < icount; i += st) {
       float *vec;
-      vec = items + ind[i + vo] * acc->stride;
+      vec = (float *)(data + ind[i + vo] * acc->byteStride);
       ak_bbox_pick(min, max, vec);
     }
   } else {
     size_t i;
     for (i = 0; i < acc->count; i++) {
       float *vec;
-      vec = items + acc->offset + acc->stride * i;
+      vec = (float *)(data + acc->byteStride * i);
       ak_bbox_pick(min, max, vec);
     }
   }
 
-  heap = ak_heap_getheap(mesh->vertices->input);
+  heap = ak_heap_getheap(prim);
 
   if (!prim->bbox)
-    prim->bbox = ak_heap_calloc(heap,
-                                prim,
-                                sizeof(*prim->bbox));
+    prim->bbox = ak_heap_calloc(heap, prim, sizeof(*prim->bbox));
 
   if (!mesh->bbox)
-    mesh->bbox = ak_heap_calloc(heap,
-                                prim,
-                                sizeof(*prim->bbox));
+    mesh->bbox = ak_heap_calloc(heap, prim, sizeof(*prim->bbox));
 
   if (!geom->bbox)
-    geom->bbox = ak_heap_calloc(heap,
-                                prim,
-                                sizeof(*prim->bbox));
+    geom->bbox = ak_heap_calloc(heap, prim, sizeof(*prim->bbox));
 
   glm_vec_copy(min, prim->bbox->min);
   glm_vec_copy(max, prim->bbox->max);

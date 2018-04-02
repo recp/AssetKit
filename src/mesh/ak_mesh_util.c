@@ -534,7 +534,7 @@ ak_mesh_vertex_off(AkMeshPrimitive *prim) {
 
   input  = prim->input;
   while (input) {
-    if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX)
+    if (input->base.semantic == AK_INPUT_SEMANTIC_POSITION)
       break;
     input = (AkInput *)input->base.next;
   }
