@@ -9,95 +9,27 @@
 #include <cglm/cglm.h>
 
 void
-ak_bbox_pick(float min[3],
-             float max[3],
-             float vec[3]) {
-  /* min */
-  if (vec[0] < min[0])
-    min[0] = vec[0];
-
-  if (vec[1] < min[1])
-    min[1] = vec[1];
-
-  if (vec[2] < min[2])
-    min[2] = vec[2];
-
-  /* max */
-  if (vec[0] > max[0])
-    max[0] = vec[0];
-
-  if (vec[1] > max[1])
-    max[1] = vec[1];
-
-  if (vec[2] > max[2])
-    max[2] = vec[2];
+ak_bbox_pick(vec3 min, vec3 max, vec3 vec) {
+  glm_vec_minv(min, vec, min);
+  glm_vec_maxv(max, vec, max);
 }
 
 void
 ak_bbox_pick_pbox(AkBoundingBox *parent,
                   AkBoundingBox *chld) {
-  /* min */
-  if (chld->min[0] < parent->min[0])
-    parent->min[0] = chld->min[0];
-
-  if (chld->min[1] < parent->min[1])
-    parent->min[1] = chld->min[1];
-
-  if (chld->min[2] < parent->min[2])
-    parent->min[2] = chld->min[2];
-
-  /* max */
-  if (chld->max[0] > parent->max[0])
-    parent->max[0] = chld->max[0];
-
-  if (chld->max[1] > parent->max[1])
-    parent->max[1] = chld->max[1];
-
-  if (chld->max[2] > parent->max[2])
-    parent->max[2] = chld->max[2];
+  glm_vec_minv(parent->min, chld->min, parent->min);
+  glm_vec_maxv(parent->max, chld->max, parent->max);
 }
 
 void
 ak_bbox_pick_pbox2(AkBoundingBox *parent,
                    float vec1[3],
                    float vec2[3]) {
-  /* min */
-  if (vec1[0] < parent->min[0])
-    parent->min[0] = vec1[0];
+  glm_vec_minv(parent->min, vec1, parent->min);
+  glm_vec_minv(parent->min, vec2, parent->min);
 
-  if (vec1[1] < parent->min[1])
-    parent->min[1] = vec1[1];
-
-  if (vec1[2] < parent->min[2])
-    parent->min[2] = vec1[2];
-
-  if (vec2[0] < parent->min[0])
-    parent->min[0] = vec2[0];
-
-  if (vec2[1] < parent->min[1])
-    parent->min[1] = vec2[1];
-
-  if (vec2[2] < parent->min[2])
-    parent->min[2] = vec2[2];
-
-  /* max */
-  if (vec1[0] > parent->max[0])
-    parent->max[0] = vec1[0];
-
-  if (vec1[1] > parent->max[1])
-    parent->max[1] = vec1[1];
-
-  if (vec1[2] > parent->max[2])
-    parent->max[2] = vec1[2];
-
-  if (vec2[0] > parent->max[0])
-    parent->max[0] = vec2[0];
-
-  if (vec2[1] > parent->max[1])
-    parent->max[1] = vec2[1];
-
-  if (vec2[2] > parent->max[2])
-    parent->max[2] = vec2[2];
+  glm_vec_maxv(parent->max, vec1, parent->max);
+  glm_vec_maxv(parent->max, vec2, parent->max);
 }
 
 void
