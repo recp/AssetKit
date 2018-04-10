@@ -270,10 +270,10 @@ n_chld:
                       true);
 
     rot = ak_objGet(obj);
-    rot->val[1] = json_number_value(json_array_get(jval, 0));
-    rot->val[2] = json_number_value(json_array_get(jval, 1));
-    rot->val[3] = json_number_value(json_array_get(jval, 2));
-    rot->val[0] = json_number_value(json_array_get(jval, 3));
+    rot->val[0] = json_number_value(json_array_get(jval, 0));
+    rot->val[1] = json_number_value(json_array_get(jval, 1));
+    rot->val[2] = json_number_value(json_array_get(jval, 2));
+    rot->val[3] = json_number_value(json_array_get(jval, 3));
 
     if (last_trans)
       last_trans->next = obj;
