@@ -24,6 +24,11 @@ ak_url_init(void  *parent,
             AkURL *dest);
 
 void
+ak_url_dup(AkURL *src,
+           void  *parent,
+           AkURL *dest);
+
+void
 ak_url_init_with_id(AkHeapAllocator *alc,
                     void            *parent,
                     char            *idstirng,

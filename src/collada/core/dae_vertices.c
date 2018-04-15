@@ -43,19 +43,20 @@ ak_dae_vertices(AkXmlState * __restrict xst,
                       input,
                       &input->source);
 
-      if (!input->semanticRaw || !input->source.url)
+      if (!input->semanticRaw || !input->source.url) {
         ak_free(input);
-      else
+      } else {
         input->semantic = ak_dae_enumInputSemantic(input->semanticRaw);
 
-      if (last_input)
-        last_input->next = input;
-      else
-        vertices->input = input;
+        if (last_input)
+          last_input->next = input;
+        else
+          vertices->input = input;
 
-      last_input = input;
+        last_input = input;
 
-      vertices->inputCount++;
+        vertices->inputCount++;
+      }
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;

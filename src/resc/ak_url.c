@@ -40,9 +40,28 @@ ak_url_init(void  *parent,
     return;
   }
 
+  /* TODO: */
   dest->reserved = ak_resc_ins(urlstring);
   dest->url      = ak_path_fragment(urlstring);
   dest->doc      = ((AkResource *)dest->reserved)->doc;
+}
+
+void
+ak_url_dup(AkURL *src,
+           void  *parent,
+           AkURL *dest) {
+
+  assert(parent && "parent must be malloced by ak_heap_alloc/calloc");
+
+  memcpy(dest, src, sizeof(AkURL));
+  if (!src->reserved) {
+    AkHeap *heap;
+    heap      = ak_heap_getheap(parent);
+    dest->url = ak_heap_strdup(heap, parent, dest->url);
+    return;
+  }
+
+  /* TODO: */
 }
 
 void

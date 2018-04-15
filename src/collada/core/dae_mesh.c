@@ -50,6 +50,7 @@ ak_dae_mesh(AkXmlState * __restrict xst,
   AkMeshPrimitive *last_prim;
   AkMesh          *mesh;
   void            *memPtr;
+  AkVertices      *vertices;
   AkXmlElmState    xest;
 
   if (asObject) {
@@ -80,6 +81,7 @@ ak_dae_mesh(AkXmlState * __restrict xst,
 
   last_prim   = NULL;
   last_source = NULL;
+  vertices    = NULL;
 
   ak_xest_init(xest, elm)
 
@@ -116,15 +118,7 @@ ak_dae_mesh(AkXmlState * __restrict xst,
         break;
       }
       case k_s_dae_vertices: {
-        AkVertices *vertices;
-        AkResult ret;
-
-        ret = ak_dae_vertices(xst, memPtr, &vertices);
-        if (ret == AK_OK) {
-          mesh->vertices  = vertices;
-          mesh->positions = ak_mesh_positions(mesh);
-        }
-
+        ak_dae_vertices(xst, memPtr, &vertices);
         break;
       }
       case k_s_dae_lines:
@@ -258,6 +252,38 @@ ak_dae_mesh(AkXmlState * __restrict xst,
     if (ak_xml_end(&xest))
       break;
   } while (xst->nodeRet);
+
+  /* copy <vertices> to all primitives */
+  if (vertices) {
+    AkMeshPrimitive *prim;
+    AkInput         *inp;
+    AkInputBasic    *inpb;
+
+    inpb = vertices->input;
+    prim = mesh->primitive;
+
+    while (prim) {
+      while (inpb) {
+        inp  = ak_heap_calloc(xst->heap, prim, sizeof(*inp));
+        inp->base.semantic = inpb->semantic;
+        if (inpb->semanticRaw)
+          inp->base.semanticRaw = ak_heap_strdup(xst->heap,
+                                                 inp,
+                                                 inpb->semanticRaw);
+
+        ak_url_dup(&inpb->source, prim, &inp->base.source);
+
+        inp->base.next = (AkInputBasic *)prim->input;
+        prim->input    = inp;
+
+        inpb = inpb->next;
+      }
+      prim = prim->next;
+    }
+
+    /* dont keep vertices */
+    ak_free(vertices);
+  }
 
   *dest = mesh;
 
