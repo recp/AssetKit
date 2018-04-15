@@ -40,13 +40,7 @@ AkSource*
 ak_mesh_positions(AkMesh * __restrict mesh);
 
 uint32_t
-ak_mesh_vert_stride(AkMesh *mesh);
-
-uint32_t
 ak_mesh_arr_stride(AkMesh *mesh, AkURL *arrayURL);
-
-uint32_t
-ak_mesh_prim_stride(AkMeshPrimitive *prim);
 
 size_t
 ak_mesh_intr_count(AkMesh *mesh);

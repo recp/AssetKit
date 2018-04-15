@@ -280,56 +280,6 @@ ak_mesh_positions(AkMesh * __restrict mesh) {
 }
 
 uint32_t
-ak_mesh_vert_stride(AkMesh *mesh) {
-  AkMeshPrimitive *primi;
-  AkInputBasic    *inputb;
-  AkSource        *src;
-  uint32_t         stride;
-
-  primi   = mesh->primitive;
-  stride  = 0;
-
-  inputb = primi->vertices->input;
-  while (inputb) {
-    src = ak_getObjectByUrl(&inputb->source);
-    if (src && src->tcommon)
-      stride += src->tcommon->bound;
-
-    inputb = inputb->next;
-  }
-
-  return stride;
-}
-
-uint32_t
-ak_mesh_prim_stride(AkMeshPrimitive *prim) {
-  AkInput  *input;
-  AkSource *src;
-  uint32_t  stride;
-
-  stride = 0;
-
-  if (prim) {
-    input = prim->input;
-
-    while (input) {
-      if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX) {
-        input = (AkInput *)input->base.next;
-        continue;
-      }
-
-      src = ak_getObjectByUrl(&input->base.source);
-      if (src && src->tcommon)
-        stride += src->tcommon->bound;
-
-      input = (AkInput *)input->base.next;
-    }
-  }
-
-  return stride;
-}
-
-uint32_t
 ak_mesh_arr_stride(AkMesh *mesh, AkURL *arrayURL) {
   AkMeshPrimitive *primi;
   AkInputBasic    *inputb;
