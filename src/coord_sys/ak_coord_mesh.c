@@ -18,40 +18,14 @@ ak_changeCoordSysMesh(AkMesh * __restrict mesh,
   AkDoc           *doc;
   AkHeap          *heap;
   AkInput         *input;
-  AkInputBasic    *inputb;
   AkMap           *map;
   AkMapItem       *mapi;
 
-  heap = ak_heap_getheap(mesh->vertices);
+  heap = ak_heap_getheap(mesh->geom);
   doc  = heap->data;
   map  = ak_map_new(NULL);
 
   /* find sources to update */
-  inputb = mesh->vertices->input;
-  while (inputb) {
-    /* TODO: other semantics which are depend on coord sys */
-    if (inputb->semantic == AK_INPUT_SEMANTIC_POSITION
-        || inputb->semantic == AK_INPUT_SEMANTIC_NORMAL) {
-      AkSource *srci;
-
-      /* only current document */
-      if (inputb->source.doc != doc) {
-        inputb = inputb->next;
-        continue;
-      }
-
-      srci = ak_getObjectByUrl(&inputb->source);
-      if (!srci || !srci->tcommon) {
-        inputb = inputb->next;
-        continue;
-      }
-
-      ak_map_addptr(map, srci);
-    }
-    
-    inputb = inputb->next;
-  }
-
   if (!(primi = mesh->primitive))
     return;
 
