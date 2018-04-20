@@ -8,17 +8,14 @@
 
 cd $(dirname "$0")
 
-if [ "$(uname)" = "Darwin" ]; then
-  libtoolBin=$(which glibtoolize)
-  libtoolBinDir=$(dirname "${libtoolBin}")
+autoheader
 
-  if [ ! -f "${libtoolBinDir}/libtoolize" ]; then
-    ln -s $libtoolBin "${libtoolBinDir}/libtoolize"
-  fi
+if [ "$(uname)" = "Darwin" ]; then
+  glibtoolize
+else
+  libtoolize
 fi
 
-autoheader
-libtoolize
 aclocal -I m4
 autoconf
 automake --add-missing --copy
