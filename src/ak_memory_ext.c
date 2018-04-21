@@ -92,7 +92,7 @@ ak_heap_ext_add(AkHeap     * __restrict heap,
   flag_off = ak_bitw_ctz(AK_HEAP_NODE_FLAGS_EXT_FRST);
 
   alc = heap->allocator;
-  sz  = ak_heap_ext_size(hnode->flags);
+  sz  = ak_heap_ext_size(hnode->flags | flag);
   isz = ak__heap_ext_sz[ak_bitw_ctz(flag >> flag_off)];
 
   if (!(hnode->flags & AK_HEAP_NODE_FLAGS_EXT)) {
