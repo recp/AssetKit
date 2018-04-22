@@ -32,11 +32,6 @@ ak_changeCoordSysMesh(AkMesh * __restrict mesh,
   while (primi) {
     input = primi->input;
     while (input) {
-      if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX) {
-        input = (AkInput *)input->base.next;
-        continue;
-      }
-
       /* TODO: other semantics which are depend on coord sys */
       if (input->base.semantic == AK_INPUT_SEMANTIC_POSITION
           || input->base.semantic == AK_INPUT_SEMANTIC_NORMAL) {

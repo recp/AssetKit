@@ -63,7 +63,7 @@ ak_dae_lines(AkXmlState * __restrict xst,
       input->offset = ak_xml_attrui(xst, _s_dae_offset);
       input->set    = ak_xml_attrui(xst, _s_dae_set);
 
-      if (input->base.semantic != AK_INPUT_SEMANTIC_VERTEX) {
+      if ((uint32_t)input->base.semantic != AK_INPUT_SEMANTIC_VERTEX) {
         if (last_input)
           last_input->base.next = &input->base;
         else

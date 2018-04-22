@@ -54,9 +54,6 @@ ak_meshCopyBuffersIfNeeded(AkMesh * __restrict mesh) {
 
     input = primi->input;
     while (input) {
-      if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX)
-        goto cont;
-
       src = ak_getObjectByUrl(&input->base.source);
       if (!src)
         goto cont;

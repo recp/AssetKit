@@ -31,11 +31,6 @@ ak_mesh_src_usg(AkHeap   *heap,
     input = primi->input;
 
     while (input) {
-      if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX) {
-        input = (AkInput *)input->base.next;
-        continue;
-      }
-
       if (input->base.source.doc == doc) {
         src_it = ak_getObjectByUrl(&input->base.source);
         if (src_it && src_it == src)
@@ -285,11 +280,6 @@ ak_mesh_arr_stride(AkMesh *mesh, AkURL *arrayURL) {
     input = primi->input;
 
     while (input) {
-      if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX) {
-        input = (AkInput *)input->base.next;
-        continue;
-      }
-
       src = ak_getObjectByUrl(&input->base.source);
       acc = src->tcommon;
 
@@ -333,11 +323,6 @@ ak_mesh_intr_count(AkMesh *mesh) {
     icount = primi->indices->count / primi->indexStride;
 
     while (input) {
-      if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX) {
-        input = (AkInput *)input->base.next;
-        continue;
-      }
-
       src = ak_getObjectByUrl(&input->base.source);
       if (src && src->tcommon)
         count += src->tcommon->bound * icount;
@@ -480,11 +465,6 @@ ak_meshInspectArray(AkMesh   * __restrict mesh,
     input = primi->input;
 
     while (input) {
-      if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX) {
-        input = (AkInput *)input->base.next;
-        continue;
-      }
-
       src = ak_getObjectByUrl(&input->base.source);
       acc = src->tcommon;
 

@@ -132,8 +132,7 @@ typedef enum AkInputSemantic {
   AK_INPUT_SEMANTIC_TEXCOORD        = 19,
   AK_INPUT_SEMANTIC_TEXTANGENT      = 20,
   AK_INPUT_SEMANTIC_UV              = 21,
-  AK_INPUT_SEMANTIC_VERTEX          = 22,
-  AK_INPUT_SEMANTIC_WEIGHT          = 23
+  AK_INPUT_SEMANTIC_WEIGHT          = 22
 } AkInputSemantic;
 
 typedef enum AkTriangleMode {

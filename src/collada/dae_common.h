@@ -19,4 +19,8 @@
 #include <libxml/xmlreader.h>
 #include <string.h>
 
+#ifndef AK_INPUT_SEMANTIC_VERTEX
+#  define AK_INPUT_SEMANTIC_VERTEX 100001
+#endif
+
 #endif /* __libassetkit__dae_common__h_ */

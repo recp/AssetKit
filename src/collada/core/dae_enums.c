@@ -7,6 +7,7 @@
 
 #include "dae_enums.h"
 #include "../../ak_common.h"
+#include "../dae_common.h"
 #include <string.h>
 
 AkEnum _assetkit_hide
