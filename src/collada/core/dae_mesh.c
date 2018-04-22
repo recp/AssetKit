@@ -273,6 +273,8 @@ ak_dae_mesh(AkXmlState * __restrict xst,
 
         ak_url_dup(&inpb->source, prim, &inp->base.source);
 
+        inp->offset    = prim->reserved1;
+        inp->set       = prim->reserved2;
         inp->base.next = (AkInputBasic *)prim->input;
         prim->input    = inp;
 

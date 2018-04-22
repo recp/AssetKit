@@ -41,13 +41,12 @@ typedef struct AkVertices {
 } AkVertices;
 
 typedef struct AkMeshPrimitive {
-  AkMeshPrimitiveType    type;
+  AkMeshPrimitiveType     type;
   struct AkMesh          *mesh;
   AkBoundingBox          *bbox; /* per-primitive bbox */
   const char             *name;
   const char             *material;
   AkInput                *input;
-  AkVertices             *vertices;
   AkInput                *pos;
   AkUIntArray            *indices;
   AkTree                 *extra;
@@ -56,6 +55,8 @@ typedef struct AkMeshPrimitive {
   uint32_t                count;
   uint32_t                inputCount;
   uint32_t                indexStride;
+  uint32_t                reserved1; /* private member */
+  uint32_t                reserved2; /* private member */
 } AkMeshPrimitive;
 
 typedef struct AkLines {

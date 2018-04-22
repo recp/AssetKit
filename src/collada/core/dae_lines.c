@@ -11,9 +11,9 @@
 
 AkResult _assetkit_hide
 ak_dae_lines(AkXmlState * __restrict xst,
-             void * __restrict memParent,
-             AkLineMode mode,
-             AkLines ** __restrict dest) {
+             void     * __restrict   memParent,
+             AkLineMode              mode,
+             AkLines ** __restrict   dest) {
   AkLines      *lines;
   AkInput      *last_input;
   AkXmlElmState xest;
@@ -63,21 +63,24 @@ ak_dae_lines(AkXmlState * __restrict xst,
       input->offset = ak_xml_attrui(xst, _s_dae_offset);
       input->set    = ak_xml_attrui(xst, _s_dae_set);
 
-      if (last_input)
-        last_input->base.next = &input->base;
-      else
-        lines->base.input = input;
+      if (input->base.semantic != AK_INPUT_SEMANTIC_VERTEX) {
+        if (last_input)
+          last_input->base.next = &input->base;
+        else
+          lines->base.input = input;
 
-      last_input = input;
+        last_input = input;
 
-      lines->base.inputCount++;
+        lines->base.inputCount++;
 
-      /* attach vertices for convenience */
-      if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX)
-        lines->base.vertices = ak_getObjectByUrl(&input->base.source);
-
-      if (input->offset > indexoff)
-        indexoff = input->offset;
+        if (input->offset > indexoff)
+          indexoff = input->offset;
+      } else {
+        /* don't store VERTEX because it will be duplicated to all prims */
+        lines->base.reserved1 = input->offset;
+        lines->base.reserved2 = input->set;
+        ak_free(input);
+      }
     } else if (ak_xml_eqelm(xst, _s_dae_p)) {
       char *content;
 

@@ -10,10 +10,10 @@
 #include "../../ak_array.h"
 
 AkResult _assetkit_hide
-ak_dae_triangles(AkXmlState * __restrict xst,
-                 void * __restrict memParent,
-                 const char * elm,
-                 AkTriangleMode mode,
+ak_dae_triangles(AkXmlState   * __restrict xst,
+                 void         * __restrict memParent,
+                 const char               *elm,
+                 AkTriangleMode            mode,
                  AkTriangles ** __restrict dest) {
   AkTriangles  *triangles;
   AkInput      *last_input;
@@ -67,21 +67,24 @@ ak_dae_triangles(AkXmlState * __restrict xst,
       input->offset = ak_xml_attrui(xst, _s_dae_offset);
       input->set    = ak_xml_attrui(xst, _s_dae_set);
 
-      if (last_input)
-        last_input->base.next = &input->base;
-      else
-        triangles->base.input = input;
+      if (input->base.semantic != AK_INPUT_SEMANTIC_VERTEX) {
+        if (last_input)
+          last_input->base.next = &input->base;
+        else
+          triangles->base.input = input;
 
-      last_input = input;
+        last_input = input;
 
-      triangles->base.inputCount++;
+        triangles->base.inputCount++;
 
-      /* attach vertices for convenience */
-      if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX)
-        triangles->base.vertices = ak_getObjectByUrl(&input->base.source);
-
-      if (input->offset > indexoff)
-        indexoff = input->offset;
+        if (input->offset > indexoff)
+          indexoff = input->offset;
+      } else {
+        /* don't store VERTEX because it will be duplicated to all prims */
+        triangles->base.reserved1 = input->offset;
+        triangles->base.reserved2 = input->set;
+        ak_free(input);
+      }
     } else if (ak_xml_eqelm(xst, _s_dae_p)) {
       AkUIntArray *uintArray;
       char *content;

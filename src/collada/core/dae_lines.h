@@ -12,8 +12,8 @@
 
 AkResult _assetkit_hide
 ak_dae_lines(AkXmlState * __restrict xst,
-             void * __restrict memParent,
-             AkLineMode mode,
-             AkLines ** __restrict dest);
+             void     * __restrict   memParent,
+             AkLineMode              mode,
+             AkLines ** __restrict   dest);
 
 #endif /* __libassetkit__dae_lines_h_ */

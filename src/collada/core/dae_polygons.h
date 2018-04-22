@@ -12,9 +12,9 @@
 
 AkResult _assetkit_hide
 ak_dae_polygon(AkXmlState * __restrict xst,
-               void * __restrict memParent,
-               const char * elm,
-               AkPolygonMode mode,
+               void       * __restrict memParent,
+               const char             *elm,
+               AkPolygonMode           mode,
                AkPolygon ** __restrict dest);
 
 #endif /* __libassetkit__dae_polygons_h_ */

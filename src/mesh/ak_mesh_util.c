@@ -13,11 +13,10 @@
 #include <assert.h>
 
 size_t
-ak_mesh_src_usg(AkHeap *heap,
-                AkMesh *mesh,
+ak_mesh_src_usg(AkHeap   *heap,
+                AkMesh   *mesh,
                 AkSource *src) {
   AkMeshPrimitive *primi;
-  AkInputBasic    *inputb;
   AkInput         *input;
   AkDoc           *doc;
   AkSource        *src_it;
@@ -27,19 +26,7 @@ ak_mesh_src_usg(AkHeap *heap,
   primi  = mesh->primitive;
   count  = 0;
 
-  /* vertices */
-  inputb = primi->vertices->input;
-  while (inputb) {
-    if (inputb->source.doc == doc) {
-      src_it = ak_getObjectByUrl(&inputb->source);
-      if (src_it && src_it == src)
-        count++;
-    }
-
-    inputb = inputb->next;
-  }
-
-  /* other inputs */
+  /* inputs */
   while (primi) {
     input = primi->input;
 
@@ -282,7 +269,6 @@ ak_mesh_positions(AkMesh * __restrict mesh) {
 uint32_t
 ak_mesh_arr_stride(AkMesh *mesh, AkURL *arrayURL) {
   AkMeshPrimitive *primi;
-  AkInputBasic    *inputb;
   AkInput         *input;
   AkSource        *src;
   AkAccessor      *acc;
@@ -290,24 +276,11 @@ ak_mesh_arr_stride(AkMesh *mesh, AkURL *arrayURL) {
   AkMapItem       *mapi;
   uint32_t         stride;
 
-  primi   = mesh->primitive;
-  stride  = 0;
-  map     = ak_map_new(NULL);
+  primi  = mesh->primitive;
+  stride = 0;
+  map    = ak_map_new(NULL);
 
-  /* vertices */
-  inputb = primi->vertices->input;
-  while (inputb) {
-    src = ak_getObjectByUrl(&inputb->source);
-    acc = src->tcommon;
-
-    if (strcmp(acc->source.url, arrayURL->url) == 0
-        && acc->source.doc == arrayURL->doc)
-      ak_map_addptr(map, src);
-
-    inputb = inputb->next;
-  }
-
-  /* other inputs */
+  /* per-primitive inputs */
   while (primi) {
     input = primi->input;
 
@@ -347,7 +320,6 @@ ak_mesh_arr_stride(AkMesh *mesh, AkURL *arrayURL) {
 size_t
 ak_mesh_intr_count(AkMesh *mesh) {
   AkMeshPrimitive *primi;
-  AkInputBasic    *inputb;
   AkInput         *input;
   AkSource        *src;
   size_t           count;
@@ -362,15 +334,6 @@ ak_mesh_intr_count(AkMesh *mesh) {
 
     while (input) {
       if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX) {
-        inputb = primi->vertices->input;
-        while (inputb) {
-          src = ak_getObjectByUrl(&inputb->source);
-          if (src && src->tcommon)
-            count += src->tcommon->bound * icount;
-
-          inputb = inputb->next;
-        }
-
         input = (AkInput *)input->base.next;
         continue;
       }
@@ -501,7 +464,6 @@ ak_meshInspectArray(AkMesh   * __restrict mesh,
                     uint32_t * __restrict stride,
                     size_t   * __restrict count) {
   AkMeshPrimitive *primi;
-  AkInputBasic    *inputb;
   AkInput         *input;
   AkSource        *src;
   AkAccessor      *acc;
@@ -513,20 +475,7 @@ ak_meshInspectArray(AkMesh   * __restrict mesh,
   primi   = mesh->primitive;
   map     = ak_map_new(NULL);
 
-  /* vertices */
-  inputb = primi->vertices->input;
-  while (inputb) {
-    src = ak_getObjectByUrl(&inputb->source);
-    acc = src->tcommon;
-
-    if (strcmp(acc->source.url, arrayURL->url) == 0
-        && acc->source.doc == arrayURL->doc)
-      ak_map_addptr(map, src);
-
-    inputb = inputb->next;
-  }
-
-  /* other inputs */
+  /* inputs */
   while (primi) {
     input = primi->input;
 
