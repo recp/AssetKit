@@ -12,7 +12,14 @@ AK_EXPORT
 uint32_t
 ak_meshInputCount(AkMesh * __restrict mesh) {
   AkMeshPrimitive *prim;
+  uint32_t         count;
 
-  prim = mesh->primitive;
-  return prim->inputCount + prim->vertices->inputCount - 1;
+  count = 0;
+  prim  = mesh->primitive;
+  while (prim) {
+    count += prim->inputCount;
+    prim = prim->next;
+  }
+
+  return count;
 }
