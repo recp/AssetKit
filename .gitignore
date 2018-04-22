@@ -60,3 +60,4 @@ test/ak-tests
 tests.trs
 tests
 *.userprefs
+*.orig
