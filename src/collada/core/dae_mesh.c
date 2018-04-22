@@ -278,6 +278,9 @@ ak_dae_mesh(AkXmlState * __restrict xst,
         inp->base.next = (AkInputBasic *)prim->input;
         prim->input    = inp;
 
+        if (inp->base.semantic == AK_INPUT_SEMANTIC_POSITION)
+          prim->pos = inp;
+
         inpb = inpb->next;
       }
       prim = prim->next;
