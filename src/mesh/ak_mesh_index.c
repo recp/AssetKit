@@ -44,14 +44,14 @@ ak_mesh_fix_pos(AkHeap   *heap,
   dupc       = duplicator->range->dupc;
   extc       = duplicator->dupCount;
 
-  ak_meshFixIndicesArrays(mesh, duplicator);
-  ak_meshReserveArrays(mesh, vc + extc);
+  ak_meshFixIndexBuffer(mesh, duplicator);
+  ak_meshReserveBuffers(mesh, vc + extc);
 
   inputb = mesh->vertices->input;
   while (inputb) {
-    AkBuffer           *oldbuff, *newbuff;
-    AkSourceArrayState *arrstate;
-    void               *buffid;
+    AkBuffer          *oldbuff, *newbuff;
+    AkSourceBuffState *buffstate;
+    void              *buffid;
 
     src = ak_getObjectByUrl(&inputb->source);
     if (!src)
@@ -66,21 +66,21 @@ ak_mesh_fix_pos(AkHeap   *heap,
       goto cont;
 
     buffid   = ak_getId(oldbuff);
-    arrstate = rb_find(edith->arrays, buffid);
-    if (arrstate) {
+    buffstate = rb_find(edith->buffers, buffid);
+    if (buffstate) {
       AkSourceEditHelper *srch;
       AkAccessor *newacc;
       size_t      i, j;
 
-      newbuff  = arrstate->array;
+      newbuff  = buffstate->buff;
       srch     = ak_meshSourceEditHelper(mesh, inputb);
       newacc   = srch->source->tcommon;
       assert(newacc && "accessor is needed!");
 
-      newacc->firstBound = arrstate->lastoffset;
+      newacc->firstBound = buffstate->lastoffset;
       ak_accessor_rebound(heap,
                           newacc,
-                          arrstate->lastoffset);
+                          buffstate->lastoffset);
 
       switch (acc->itemTypeId) {
         case AKT_FLOAT: {
@@ -153,7 +153,7 @@ ak_mesh_fix_idx_df(AkHeap *heap, AkMesh *mesh) {
                         oldSrc,
                         stride);
 
-  ak_meshCopyArraysIfNeeded(mesh);
+  ak_meshCopyBuffersIfNeeded(mesh);
 
   return AK_OK;
 }

@@ -15,7 +15,7 @@ extern const char* ak_mesh_edit_assert1;
 
 AK_EXPORT
 AkResult
-ak_meshCopyArraysIfNeeded(AkMesh * __restrict mesh) {
+ak_meshCopyBuffersIfNeeded(AkMesh * __restrict mesh) {
   AkHeap           *heap;
   AkObject         *meshobj;
   AkMeshEditHelper *edith;
@@ -37,13 +37,13 @@ ak_meshCopyArraysIfNeeded(AkMesh * __restrict mesh) {
   /* per-primitive inputs */
   while (primi) {
     AkBuffer           *oldbuff, *newbuff;
-    AkSourceArrayState *arrstate;
+    AkSourceBuffState *buffstate;
     void               *buffid;
 
     ind1 = primi->indices;
     ind2 = ak_meshIndicesArrayFor(mesh, primi);
 
-    /* same index array */
+    /* same index buff */
     if (!ind1 || ind1 == ind2) {
       primi = primi->next;
       continue;
@@ -70,25 +70,25 @@ ak_meshCopyArraysIfNeeded(AkMesh * __restrict mesh) {
         goto cont;
 
       buffid   = ak_getId(oldbuff);
-      arrstate = rb_find(edith->arrays, buffid);
+      buffstate = rb_find(edith->buffers, buffid);
 
-      /* copy array to mesh */
-      if (arrstate) {
+      /* copy buff to mesh */
+      if (buffstate) {
         AkSourceEditHelper *srch;
         AkAccessor  *newacc;
         AkDataParam *dp;
         size_t       icount, i;
 
-        newbuff = arrstate->array;
+        newbuff = buffstate->buff;
 
         srch   = ak_meshSourceEditHelper(mesh, &input->base);
         newacc = srch->source->tcommon;
         assert(newacc && "accessor is needed!");
 
-        newacc->firstBound = arrstate->lastoffset;
+        newacc->firstBound = buffstate->lastoffset;
         ak_accessor_rebound(heap,
                             newacc,
-                            arrstate->lastoffset);
+                            buffstate->lastoffset);
 
         icount = primi->indices->count / primi->indexStride;
         switch (acc->itemTypeId) {
@@ -109,8 +109,8 @@ ak_meshCopyArraysIfNeeded(AkMesh * __restrict mesh) {
                 if (!dp->name)
                   continue;
 
-                newitms[newindex * arrstate->stride
-                        + arrstate->lastoffset
+                newitms[newindex * buffstate->stride
+                        + buffstate->lastoffset
                         + newacc->firstBound
                         + newacc->offset
                         + j++]

@@ -76,27 +76,27 @@ typedef struct AkDuplicatorRange {
 } AkDuplicatorRange;
 
 typedef struct AkDuplicator {
-  void              *arrstate;
+  void              *buffstate;
   void              *vertices;
   AkDuplicatorRange *range;
   size_t             dupCount;
 } AkDuplicator;
 
-typedef struct AkSourceArrayState {
+typedef struct AkSourceBuffState {
   AkDuplicator *duplicator;
-  void         *array;
+  void         *buff;
   char         *url;
   size_t        count;
   uint32_t      stride;
   uint32_t      lastoffset;
-} AkSourceArrayState;
+} AkSourceBuffState;
 
 typedef struct AkSourceEditHelper {
   struct AkSourceEditHelper *next;
   AkSource *oldsource;
   AkSource *source;
   void     *url;
-  void     *arrayid;
+  void     *buffid;
   bool      isnew;
 } AkSourceEditHelper;
 

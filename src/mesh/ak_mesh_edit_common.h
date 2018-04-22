@@ -38,6 +38,6 @@ typedef struct AkInputDesc {
 } AkInputDesc;
 
 void
-ak_meshFreeRsvArray(RBTree *tree, RBNode *node);
+ak_meshFreeRsvBuff(RBTree *tree, RBNode *node);
 
 #endif /* ak_meh_edit_common_h */

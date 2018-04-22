@@ -285,8 +285,8 @@ ak_meshDuplicatorForIndices(AkMesh * __restrict mesh) {
 
 AK_EXPORT
 void
-ak_meshFixIndicesArrays(AkMesh       * __restrict mesh,
-                        AkDuplicator * __restrict duplicator) {
+ak_meshFixIndexBuffer(AkMesh       * __restrict mesh,
+                      AkDuplicator * __restrict duplicator) {
   AkHeap            *heap;
   AkObject          *meshobj;
   AkMeshPrimitive   *prim;
@@ -345,7 +345,7 @@ ak_meshFixIndicesArrays(AkMesh       * __restrict mesh,
   } else {
     while (prim) {
       AkUIntArray *newind;
-      AkUInt *it, *it2;
+      AkUInt  *it, *it2;
       uint32_t i, j, c, st, vo;
 
       newind = ak_meshIndicesArrayFor(mesh, prim);

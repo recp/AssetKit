@@ -43,21 +43,21 @@ ak_meshBeginEditA(AkMesh  * __restrict mesh,
   }
 
   if ((flags & AK_GEOM_EDIT_FLAG_ARRAYS)
-      && !edith->arrays) {
-    edith->arrays         = rb_newtree_str();
-    edith->detachedArrays = rb_newtree_ptr();
-    edith->inputArrayMap  = ak_map_new(ak_cmp_ptr);
+      && !edith->buffers) {
+    edith->buffers         = rb_newtree_str();
+    edith->detachedBuffers = rb_newtree_ptr();
+    edith->inputBufferMap  = ak_map_new(ak_cmp_ptr);
 
-    ak_dsSetAllocator(heap->allocator, edith->arrays->alc);
-    ak_dsSetAllocator(heap->allocator, edith->detachedArrays->alc);
+    ak_dsSetAllocator(heap->allocator, edith->buffers->alc);
+    ak_dsSetAllocator(heap->allocator, edith->detachedBuffers->alc);
 
-    edith->arrays->onFreeNode = ak_meshFreeRsvArray;
+    edith->buffers->onFreeNode = ak_meshFreeRsvBuff;
 
     edith->flags |= AK_GEOM_EDIT_FLAG_ARRAYS;
   }
 
   if ((flags & AK_GEOM_EDIT_FLAG_INDICES)
-      && !edith->arrays) {
+      && !edith->buffers) {
     edith->indices = rb_newtree_ptr();
     edith->flags  |= AK_GEOM_EDIT_FLAG_INDICES;
     ak_dsSetAllocator(heap->allocator, edith->indices->alc);
@@ -77,19 +77,19 @@ ak_meshEndEdit(AkMesh * __restrict mesh) {
 
   /* finish edit */
   ak_moveIndices(mesh);
-  ak_meshMoveArrays(mesh);
+  ak_meshMoveBuffers(mesh);
 
-  if (edith->arrays)
-    rb_destroy(edith->arrays);
+  if (edith->buffers)
+    rb_destroy(edith->buffers);
 
-  if (edith->detachedArrays)
-    rb_destroy(edith->detachedArrays);
+  if (edith->detachedBuffers)
+    rb_destroy(edith->detachedBuffers);
 
   if (edith->indices)
     rb_destroy(edith->indices);
 
-  if (edith->inputArrayMap)
-    ak_map_destroy(edith->inputArrayMap);
+  if (edith->inputBufferMap)
+    ak_map_destroy(edith->inputBufferMap);
 
   ak_release(edith);
   mesh->edith = NULL;

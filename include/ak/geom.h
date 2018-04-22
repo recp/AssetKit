@@ -79,10 +79,10 @@ typedef struct AkTriangles {
 
 typedef struct AkMeshEditHelper {
   AkGeometryEditFlags flags;
-  struct RBTree      *arrays;         /* new arrays               */
-  struct RBTree      *detachedArrays; /* old array- new array map */
-  struct RBTree      *indices;        /* new indices              */
-  AkMap              *inputArrayMap;  /* input-accessor-array map */
+  struct RBTree      *buffers;         /* new buffers               */
+  struct RBTree      *detachedBuffers; /* old buff- new buffer map */
+  struct RBTree      *indices;         /* new indices              */
+  AkMap              *inputBufferMap;  /* input-accessor-buffer map */
   void               *mutex;
   void               *duplicator;
   size_t              refc;
@@ -416,7 +416,7 @@ ak_meshEndEdit(AkMesh * __restrict mesh);
  * @param mesh  mesh
  * @param input input
  *
- * @return array object
+ * @return buffer object
  */
 AK_EXPORT
 AkObject*
@@ -424,12 +424,12 @@ ak_meshArrayOf(AkMesh   * __restrict mesh,
                AkInput  * __restrict input);
 
 /*!
- * @brief collect array infos, altername would be ak_meshArrayInfos
- *        this function collects array usage (count, stride) in specified mesh
- *        this is useful for shrink array
+ * @brief collect buffer infos, altername would be ak_meshArrayInfos
+ *        this function collects buffer usage (count, stride) in specified mesh
+ *        this is useful for shrink buffer
  *
  * @param[in]  mesh     mesh
- * @param[in]  arrayURL array URL
+ * @param[in]  arrayURL buffer URL
  * @param[out] stride   stride (for mesh)
  * @param[out] count    count  (for mesh)
  */
@@ -445,8 +445,8 @@ ak_meshIndicesArrayFor(AkMesh          * __restrict mesh,
                        AkMeshPrimitive * __restrict prim);
 
 AK_EXPORT
-AkSourceArrayState*
-ak_meshReserveArray(AkMesh * __restrict mesh,
+AkSourceBuffState*
+ak_meshReserveBuffer(AkMesh * __restrict mesh,
                     void   * __restrict buffid,
                     size_t              itemSize,
                     uint32_t            stride,
@@ -454,19 +454,19 @@ ak_meshReserveArray(AkMesh * __restrict mesh,
 
 AK_EXPORT
 void
-ak_meshReserveArrayForInput(AkMesh       * __restrict mesh,
+ak_meshReserveBufferForInput(AkMesh       * __restrict mesh,
                             AkInputBasic * __restrict inputb,
                             uint32_t                  inputOffset,
                             size_t                    count);
 
 AK_EXPORT
 void
-ak_meshReserveArrays(AkMesh * __restrict mesh,
+ak_meshReserveBuffers(AkMesh * __restrict mesh,
                      size_t              count);
 
 AK_EXPORT
 AkResult
-ak_meshCopyArraysIfNeeded(AkMesh * __restrict mesh);
+ak_meshCopyBuffersIfNeeded(AkMesh * __restrict mesh);
 
 AK_EXPORT
 void
@@ -474,7 +474,7 @@ ak_moveIndices(AkMesh * __restrict mesh);
 
 AK_EXPORT
 void
-ak_meshMoveArrays(AkMesh * __restrict mesh);
+ak_meshMoveBuffers(AkMesh * __restrict mesh);
 
 AK_EXPORT
 AkSourceEditHelper*
@@ -487,8 +487,8 @@ ak_meshDuplicatorForIndices(AkMesh * __restrict mesh);
 
 AK_EXPORT
 void
-ak_meshFixIndicesArrays(AkMesh       * __restrict mesh,
-                        AkDuplicator * __restrict duplicator);
+ak_meshFixIndexBuffer(AkMesh       * __restrict mesh,
+                      AkDuplicator * __restrict duplicator);
 
 void
 ak_inputNameIndexed(AkInputBasic * __restrict input,
