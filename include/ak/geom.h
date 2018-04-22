@@ -93,7 +93,6 @@ typedef struct AkMesh {
   const char        *convexHullOf;
   AkSource          *source;
   AkVertices        *vertices;
-  AkSource          *positions;
   AkMeshPrimitive   *primitive;
   AkBoundingBox     *bbox;
   AkTree            *extra;

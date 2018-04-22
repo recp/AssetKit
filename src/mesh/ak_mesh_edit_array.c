@@ -335,9 +335,6 @@ ak_meshMoveBuffers(AkMesh * __restrict mesh) {
                 srch->url,
                 &inputb->source);
 
-    if (inputb->semantic == AK_INPUT_SEMANTIC_POSITION)
-      mesh->positions = ak_mesh_positions(mesh);
-    
     mi = mi->next;
   }
 }
