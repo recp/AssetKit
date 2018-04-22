@@ -332,7 +332,7 @@ ak_meshFixIndexBuffer(AkMesh       * __restrict mesh,
       it     = prim->indices->items;
       it2    = newind->items;
       st     = prim->indexStride;
-      vo     = ak_mesh_vertex_off(prim);
+      vo     = prim->pos->offset;
       c      = (uint32_t)prim->indices->count;
 
       for (i = j = 0; i < c; i += st, j++) {
@@ -352,7 +352,7 @@ ak_meshFixIndexBuffer(AkMesh       * __restrict mesh,
       it     = prim->indices->items;
       it2    = newind->items;
       st     = prim->indexStride;
-      vo     = ak_mesh_vertex_off(prim);
+      vo     = prim->pos->offset;
       c      = (uint32_t)prim->indices->count;
 
       for (i = j = 0; i < c; i += st, j++)

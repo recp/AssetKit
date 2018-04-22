@@ -45,9 +45,6 @@ ak_mesh_arr_stride(AkMesh *mesh, AkURL *arrayURL);
 size_t
 ak_mesh_intr_count(AkMesh *mesh);
 
-int
-ak_mesh_vertex_off(AkMeshPrimitive *prim);
-
 void
 ak_accessor_rebound(AkHeap     *heap,
                     AkAccessor *acc,

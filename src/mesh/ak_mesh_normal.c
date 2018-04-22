@@ -87,12 +87,10 @@ ak_meshPrimGenNormals(AkMeshPrimitive   * __restrict prim,
   AkInt         vo, pos_st;
   size_t        count;
 
-  if (prim->type != AK_MESH_PRIMITIVE_TYPE_TRIANGLES
-      && prim->type != AK_MESH_PRIMITIVE_TYPE_POLYGONS)
-    return;
-
-  vo = ak_mesh_vertex_off(prim);
-  if (vo == -1)
+  if ((prim->type != AK_MESH_PRIMITIVE_TYPE_TRIANGLES
+       && prim->type != AK_MESH_PRIMITIVE_TYPE_POLYGONS)
+      || !prim->pos
+      || (vo = prim->pos->offset) == -1)
     return;
 
   heap   = ak_heap_getheap(prim);

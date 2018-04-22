@@ -239,11 +239,6 @@ ak_meshReserveBuffers(AkMesh * __restrict mesh,
   while (prim) {
     input = prim->input;
     while (input) {
-      if (input->base.semantic == AK_INPUT_SEMANTIC_VERTEX) {
-        input = (AkInput *)input->base.next;
-        continue;
-      }
-
       ak_meshReserveBufferForInput(mesh,
                                   &input->base,
                                   input->offset,

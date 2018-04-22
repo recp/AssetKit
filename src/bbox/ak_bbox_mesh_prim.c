@@ -26,10 +26,8 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
   posbuff = NULL;
   acc     = NULL;
 
-  if (!prim->pos)
-    return;
-
-  if (!(src = ak_getObjectByUrl(&prim->pos->base.source))
+  if (!prim->pos
+      || !(src = ak_getObjectByUrl(&prim->pos->base.source))
       || !(acc = src->tcommon)
       || !(posbuff = ak_getObjectByUrl(&acc->source)))
     return;
@@ -48,7 +46,7 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
     uint32_t st, vo;
 
     icount = prim->indices->count;
-    vo     = ak_mesh_vertex_off(prim);
+    vo     = prim->pos->offset;
     st     = prim->indexStride;
     ind    = prim->indices->items;
 

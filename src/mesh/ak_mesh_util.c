@@ -426,23 +426,6 @@ ak_accessor_rebound(AkHeap     *heap,
   dpu->next        = bound;
 }
 
-int
-ak_mesh_vertex_off(AkMeshPrimitive *prim) {
-  AkInput *input;
-
-  input  = prim->input;
-  while (input) {
-    if (input->base.semantic == AK_INPUT_SEMANTIC_POSITION)
-      break;
-    input = (AkInput *)input->base.next;
-  }
-
-  if (!input)
-    return -1;
-
-  return input->offset;
-}
-
 void
 ak_meshInspectArray(AkMesh   * __restrict mesh,
                     AkURL    * __restrict arrayURL,
