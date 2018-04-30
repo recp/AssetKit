@@ -118,6 +118,7 @@ ak_heap_strdup(AkHeap * __restrict heap,
 
   memsize = strlen(str);
   memptr  = ak_heap_alloc(heap, parent, memsize + 1);
+
   memcpy(memptr, str, memsize);
 
   /* NULL */
@@ -785,9 +786,9 @@ ak_heap_getMemById(AkHeap * __restrict heap,
 }
 
 AK_EXPORT
-size_t
+int
 ak_heap_refc(AkHeapNode * __restrict heapNode) {
-  size_t *refc;
+  int *refc;
 
   refc = ak_heap_ext_get(heapNode, AK_HEAP_NODE_FLAGS_REFC);
   if (!refc)
@@ -797,9 +798,9 @@ ak_heap_refc(AkHeapNode * __restrict heapNode) {
 }
 
 AK_EXPORT
-size_t
+int
 ak_heap_retain(AkHeapNode * __restrict heapNode) {
-  size_t *refc;
+  int *refc;
 
   refc = ak_heap_ext_get(heapNode, AK_HEAP_NODE_FLAGS_REFC);
   if (!refc)
@@ -813,7 +814,7 @@ ak_heap_retain(AkHeapNode * __restrict heapNode) {
 AK_EXPORT
 void
 ak_heap_release(AkHeapNode * __restrict heapNode) {
-  size_t *refc;
+  int *refc;
 
   refc = ak_heap_ext_get(heapNode, AK_HEAP_NODE_FLAGS_REFC);
   if (!refc || !(*refc))
@@ -1002,13 +1003,13 @@ ak_strdup(void       * __restrict parent,
 }
 
 AK_EXPORT
-size_t
+int
 ak_refc(void * __restrict mem) {
   return ak_heap_refc(ak__alignof(mem));
 }
 
 AK_EXPORT
-size_t
+int
 ak_retain(void * __restrict mem) {
   return ak_heap_retain(ak__alignof(mem));
 }

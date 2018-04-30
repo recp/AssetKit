@@ -13,7 +13,7 @@
 static uint8_t ak__heap_ext_sz[] = {
   (uint8_t)sizeof(AkHeapSrchNode),
   (uint8_t)sizeof(AkSIDNode),
-  (uint8_t)sizeof(size_t),
+  (uint8_t)sizeof(int),
   (uint8_t)sizeof(uintptr_t),
   (uint8_t)sizeof(uintptr_t),
   (uint8_t)sizeof(uintptr_t)

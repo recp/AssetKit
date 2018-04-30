@@ -227,11 +227,11 @@ ak_heap_getMemById(AkHeap * __restrict heap,
                    void  ** __restrict dest);
 
 AK_EXPORT
-size_t
+int
 ak_heap_refc(AkHeapNode * __restrict heapNode);
 
 AK_EXPORT
-size_t
+int
 ak_heap_retain(AkHeapNode * __restrict heapNode);
 
 AK_EXPORT
@@ -311,11 +311,11 @@ ak_mem_getMemById(void * __restrict ctx,
                   void ** __restrict dest);
 
 AK_EXPORT
-size_t
+int
 ak_refc(void * __restrict mem);
 
 AK_EXPORT
-size_t
+int
 ak_retain(void * __restrict mem);
 
 AK_EXPORT
