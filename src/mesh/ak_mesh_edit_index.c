@@ -49,13 +49,10 @@ ak_meshIndicesArrayFor(AkMesh          * __restrict mesh,
       AkAccessor *posacc;
       AkBuffer   *posbuff;
 
-      possrc = ak_mesh_pos_src(mesh);
-      if (!possrc || !possrc->tcommon)
-        return NULL;
-
-      posacc = possrc->tcommon;
-      posbuff = ak_getObjectByUrl(&posacc->source);
-      if (!posbuff)
+      if (!prim->pos
+          || !(possrc  = ak_getObjectByUrl(&prim->pos->base.source))
+          || !(posacc  = possrc->tcommon)
+          || !(posbuff = ak_getObjectByUrl(&posacc->source)))
         return NULL;
 
       count = posacc->bound * posacc->count;
