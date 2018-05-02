@@ -21,20 +21,21 @@ ak_mesh_src(AkHeap   *heap,
             AkSource *src,
             uint32_t  max);
 
-AkSource *
-ak_mesh_src_for(AkHeap         *heap,
-                AkMesh         *mesh,
-                AkInputSemantic semantic);
-
 AkSource*
-ak_mesh_src_for_ext(AkHeap         *heap,
-                    AkMesh         *mesh,
-                    char           *srcid,
-                    AkInputSemantic semantic,
-                    size_t          count);
+ak_mesh_src_for(AkHeap          *heap,
+                AkMesh          *mesh,
+                AkMeshPrimitive *prim,
+                AkInputSemantic  semantic);
 
 AkSource *
 ak_mesh_pos_src(AkMesh *mesh);
+AkSource*
+ak_mesh_src_for_ext(AkHeap          *heap,
+                    AkMesh          *mesh,
+                    AkMeshPrimitive *prim,
+                    char            *srcid,
+                    AkInputSemantic  semantic,
+                    size_t           count);
 
 uint32_t
 ak_mesh_arr_stride(AkMesh *mesh, AkURL *arrayURL);

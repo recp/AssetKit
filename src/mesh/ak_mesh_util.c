@@ -111,17 +111,19 @@ ak_mesh_src(AkHeap   *heap,
 }
 
 AkSource*
-ak_mesh_src_for(AkHeap         *heap,
-                AkMesh         *mesh,
-                AkInputSemantic semantic) {
+ak_mesh_src_for(AkHeap          *heap,
+                AkMesh          *mesh,
+                AkMeshPrimitive *prim,
+                AkInputSemantic  semantic) {
   AkBuffer    *buff;
   AkSource    *src,   *possrc;
   AkAccessor  *acc,   *posacc;
   char        *srcid, *buffid, *url;
   size_t       c;
 
-  possrc = ak_mesh_pos_src(mesh);
-  if (!possrc || !(posacc = possrc->tcommon))
+  if (!prim->pos
+      || !(possrc  = ak_getObjectByUrl(&prim->pos->base.source))
+      || !(posacc  = possrc->tcommon))
     return NULL;
 
   c = posacc->count;
@@ -165,18 +167,20 @@ ak_mesh_src_for(AkHeap         *heap,
 }
 
 AkSource*
-ak_mesh_src_for_ext(AkHeap         *heap,
-                    AkMesh         *mesh,
-                    char           *srcid,
-                    AkInputSemantic semantic,
-                    size_t          count) {
+ak_mesh_src_for_ext(AkHeap          *heap,
+                    AkMesh          *mesh,
+                    AkMeshPrimitive *prim,
+                    char            *srcid,
+                    AkInputSemantic  semantic,
+                    size_t           count) {
   AkBuffer    *buff;
   AkSource    *src,    *possrc;
   AkAccessor  *acc,    *posacc;
   char        *buffid, *url;
 
-  possrc = ak_mesh_pos_src(mesh);
-  if (!possrc || !(posacc = possrc->tcommon))
+  if (!prim->pos
+      || !(possrc  = ak_getObjectByUrl(&prim->pos->base.source))
+      || !(posacc  = possrc->tcommon))
     return NULL;
 
   if (count == 0)
