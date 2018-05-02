@@ -231,40 +231,6 @@ ak_mesh_src_for_ext(AkHeap          *heap,
   return src;
 }
 
-AkSource *
-ak_mesh_pos_src(AkMesh *mesh) {
-  AkSource     *src;
-  AkInputBasic *inputb;
-
-  src = NULL;
-  if (!mesh->vertices)
-    goto ret;
-
-  inputb = mesh->vertices->input;
-
-  while (inputb) {
-    if (inputb->semantic == AK_INPUT_SEMANTIC_POSITION) {
-      src = ak_getObjectByUrl(&inputb->source);
-      goto ret;
-    }
-    inputb = inputb->next;
-  }
-
-ret:
-  return src;
-}
-
-AkSource*
-ak_mesh_positions(AkMesh * __restrict mesh) {
-  AkSource *src;
-
-  src = ak_mesh_pos_src(mesh);
-  if (!src || !src->tcommon)
-    return NULL;
-
-  return src;
-}
-
 uint32_t
 ak_mesh_arr_stride(AkMesh *mesh, AkURL *arrayURL) {
   AkMeshPrimitive *primi;

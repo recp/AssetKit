@@ -27,8 +27,6 @@ ak_mesh_src_for(AkHeap          *heap,
                 AkMeshPrimitive *prim,
                 AkInputSemantic  semantic);
 
-AkSource *
-ak_mesh_pos_src(AkMesh *mesh);
 AkSource*
 ak_mesh_src_for_ext(AkHeap          *heap,
                     AkMesh          *mesh,
