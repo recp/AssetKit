@@ -59,12 +59,12 @@ ak_meshDuplicatorForIndices(AkMesh          * __restrict mesh,
   chk_end = icount;
   it      = ind->items;
   it2     = newind->items;
-  inpsz   = sizeof(AkUInt) * inpc;
+  inpsz   = sizeof(AkUInt) * st;
 
   flg     = ak_heap_calloc(heap, prim, sizeof(uint8_t) * icount);
   posflgs = ak_heap_calloc(heap,
                            NULL,
-                           sizeof(AkUInt) * vertc * (inpc + 1));
+                           sizeof(AkUInt) * vertc * (st + 1));
 
   iter = chk = 1;
   while (ccount < icount) {
