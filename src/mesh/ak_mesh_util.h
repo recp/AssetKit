@@ -10,7 +10,7 @@
 
 #include "../ak_common.h"
 
-size_t
+int
 ak_mesh_src_usg(AkHeap *heap,
                 AkMesh *mesh,
                 AkSource *src);
@@ -35,9 +35,6 @@ ak_mesh_src_for_ext(AkHeap         *heap,
 
 AkSource *
 ak_mesh_pos_src(AkMesh *mesh);
-
-AkSource*
-ak_mesh_positions(AkMesh * __restrict mesh);
 
 uint32_t
 ak_mesh_arr_stride(AkMesh *mesh, AkURL *arrayURL);

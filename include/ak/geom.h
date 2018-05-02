@@ -57,6 +57,7 @@ typedef struct AkMeshPrimitive {
   uint32_t                indexStride;
   uint32_t                reserved1; /* private member */
   uint32_t                reserved2; /* private member */
+  void                   *reserved3;
 } AkMeshPrimitive;
 
 typedef struct AkLines {
@@ -92,7 +93,6 @@ typedef struct AkMesh {
   struct AkGeometry *geom;
   const char        *convexHullOf;
   AkSource          *source;
-  AkVertices        *vertices;
   AkMeshPrimitive   *primitive;
   AkBoundingBox     *bbox;
   AkTree            *extra;
@@ -441,7 +441,8 @@ ak_meshInspectArray(AkMesh   * __restrict mesh,
 AK_EXPORT
 AkUIntArray*
 ak_meshIndicesArrayFor(AkMesh          * __restrict mesh,
-                       AkMeshPrimitive * __restrict prim);
+                       AkMeshPrimitive * __restrict prim,
+                       bool                         readonly);
 
 AK_EXPORT
 AkSourceBuffState*
@@ -465,7 +466,7 @@ ak_meshReserveBuffers(AkMesh * __restrict mesh,
 
 AK_EXPORT
 AkResult
-ak_meshCopyBuffersIfNeeded(AkMesh * __restrict mesh);
+ak_meshFillBuffers(AkMesh * __restrict mesh);
 
 AK_EXPORT
 void
@@ -482,7 +483,8 @@ ak_meshSourceEditHelper(AkMesh       * __restrict mesh,
 
 AK_EXPORT
 AkDuplicator*
-ak_meshDuplicatorForIndices(AkMesh * __restrict mesh);
+ak_meshDuplicatorForIndices(AkMesh          * __restrict mesh,
+                            AkMeshPrimitive * __restrict prim);
 
 AK_EXPORT
 void

@@ -57,7 +57,7 @@ ak_meshReserveBuffer(AkMesh * __restrict mesh,
   }
 
   buffstate = rb_find(edith->buffers, buffid);
-  newsize  = itemSize * count;
+  newsize   = itemSize * count;
 
   if (!buffstate) {
     buffstate     = ak_heap_calloc(heap, meshobj, sizeof(*buffstate));
@@ -101,7 +101,7 @@ ak_meshReserveBufferForInput(AkMesh       * __restrict mesh,
   AkAccessor         *acci, *newacc;
   AkBuffer           *buffi;
   void               *buffid;
-  size_t              usg;
+  int                 usg;
 
   meshobj = ak_objFrom(mesh);
   heap    = ak_heap_getheap(meshobj);
@@ -109,16 +109,9 @@ ak_meshReserveBufferForInput(AkMesh       * __restrict mesh,
   edith = mesh->edith;
   assert(edith && ak_mesh_edit_assert1);
 
-  srci = ak_getObjectByUrl(&inputb->source);
-  if (!srci)
-    return;
-
-  acci = srci->tcommon;
-  if (!acci)
-    return;
-
-  buffi = ak_getObjectByUrl(&acci->source);
-  if (!buffi)
+  if (!(srci = ak_getObjectByUrl(&inputb->source))
+      || !(acci = srci->tcommon)
+      || !(buffi = ak_getObjectByUrl(&acci->source)))
     return;
 
   /* TODO: analyze accesor, continuous data */
@@ -134,19 +127,17 @@ ak_meshReserveBufferForInput(AkMesh       * __restrict mesh,
   newacc->count = count;
 
   if (ak_refc(srci) > usg || acci->offset != 0)
-    buffid = (void *)ak_id_gen(heap,
-                               NULL,
-                               NULL);
+    buffid = (void *)ak_id_gen(heap, NULL, NULL);
   else
     buffid = ak_getId(buffi);
 
   /* dont detach buffer */
   if (acci->offset == 0) {
     buffstate = ak_meshReserveBuffer(mesh,
-                                   buffid,
-                                   acci->type->size,
-                                   acci->bound,
-                                   count);
+                                     buffid,
+                                     acci->type->size,
+                                     acci->bound,
+                                     count);
     buffi = buffstate->buff;
   } else {
     AkBuffer *foundbuff;
@@ -160,10 +151,10 @@ ak_meshReserveBufferForInput(AkMesh       * __restrict mesh,
     foundbuff = rb_find(edith->detachedBuffers, acci);
     if (!foundbuff) {
       buffstate = ak_meshReserveBuffer(mesh,
-                                     buffid,
-                                     acci->type->size,
-                                     acci->bound,
-                                     count);
+                                       buffid,
+                                       acci->type->size,
+                                       acci->bound,
+                                       count);
       buffi = buffstate->buff;
       rb_insert(edith->detachedBuffers,
                 acci,
@@ -218,31 +209,17 @@ AK_EXPORT
 void
 ak_meshReserveBuffers(AkMesh * __restrict mesh,
                       size_t              count) {
-  AkMeshEditHelper *edith;
   AkMeshPrimitive  *prim;
-  AkInputBasic     *inputb;
   AkInput          *input;
-
-  edith = mesh->edith;
-  assert(edith && ak_mesh_edit_assert1);
-
-  if (!mesh->vertices)
-    return;
-
-  inputb = mesh->vertices->input;
-  while (inputb) {
-    ak_meshReserveBufferForInput(mesh, inputb, 0, count);
-    inputb = inputb->next;
-  }
 
   prim = mesh->primitive;
   while (prim) {
     input = prim->input;
     while (input) {
       ak_meshReserveBufferForInput(mesh,
-                                  &input->base,
-                                  input->offset,
-                                  count);
+                                   &input->base,
+                                   input->offset,
+                                   count);
       input = (AkInput *)input->base.next;
     }
     prim = prim->next;

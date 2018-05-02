@@ -16,117 +16,71 @@ extern const char* ak_mesh_edit_assert1;
 
 _assetkit_hide
 AkResult
-ak_mesh_fix_pos(AkHeap   *heap,
-                AkMesh   *mesh,
-                AkSource *oldSrc, /* caller alreay has position source */
-                uint32_t  newstride) {
-  AkInputBasic       *inputb;
+ak_movePositions(AkHeap          *heap,
+                 AkMesh          *mesh,
+                 AkMeshPrimitive *prim,
+                 AkDuplicator    *duplicator) {
   AkMeshEditHelper   *edith;
+  AkSourceEditHelper *srch;
+  AkSourceBuffState  *buffstate;
   AkSource           *src;
-  AkAccessor         *acc, *oldAcc;
+  AkAccessor         *acc, *newacc;
   AkDataParam        *dparam;
-  AkUIntArray        *dupc;
-  AkDuplicator       *duplicator;
-  size_t              extc, vc, d, s;
-  uint32_t            stride;
+  AkUIntArray        *dupc, *dupcsum;
+  AkBuffer           *oldbuff, *newbuff;
+  AkFloat            *olditms, *newitms;
+  void               *buffid;
+  size_t              vc, d, s, pno;
+  uint32_t            stride, i, j;
 
-  edith = mesh->edith;
-  assert(edith && ak_mesh_edit_assert1);
-
-  oldAcc = oldSrc->tcommon;
-  if (!ak_getObjectByUrl(&oldAcc->source))
+  if (!prim->pos
+      || !(edith     = mesh->edith)
+      || !(src       = ak_getObjectByUrl(&prim->pos->base.source))
+      || !(acc       = src->tcommon)
+      || !(oldbuff   = ak_getObjectByUrl(&acc->source))
+      || !(buffid    = ak_getId(oldbuff))
+      || !(buffstate = rb_find(edith->buffers, buffid)))
     return AK_ERR;
 
-  stride     = oldAcc->stride;
-  vc         = oldAcc->count;
+  newbuff = buffstate->buff;
+  srch    = ak_meshSourceEditHelper(mesh, &prim->pos->base);
+  newacc  = srch->source->tcommon;
 
-  duplicator = ak_meshDuplicatorForIndices(mesh);
-  dupc       = duplicator->range->dupc;
-  extc       = duplicator->dupCount;
+  if (!newacc)
+    return AK_ERR;
 
-  ak_meshFixIndexBuffer(mesh, duplicator);
-  ak_meshReserveBuffers(mesh, vc + extc);
+  newacc->firstBound = buffstate->lastoffset;
+  ak_accessor_rebound(heap,
+                      newacc,
+                      buffstate->lastoffset);
 
-  inputb = mesh->vertices->input;
-  while (inputb) {
-    AkBuffer          *oldbuff, *newbuff;
-    AkSourceBuffState *buffstate;
-    void              *buffid;
+  dupc    = duplicator->range->dupc;
+  dupcsum = duplicator->range->dupcsum;
+  vc      = duplicator->bufCount;
+  stride  = acc->stride;
+  newitms = newbuff->data;
+  olditms = oldbuff->data;
 
-    src = ak_getObjectByUrl(&inputb->source);
-    if (!src)
-      goto cont;
+  /* copy vert positions to new location */
+  for (i = 0; i < vc; i++) {
+    pno = dupc->items[2 * i];
+    d   = dupc->items[2 * i + 1];
+    s   = dupcsum->items[pno];
 
-    acc = src->tcommon;
-    if (!acc)
-      goto cont;
+    for (j = 0; j <= d; j++) {
+      dparam = acc->param;
 
-    oldbuff = ak_getObjectByUrl(&acc->source);
-    if (!oldbuff)
-      goto cont;
+      while (dparam) {
+        if (!dparam->name)
+          continue;
 
-    buffid   = ak_getId(oldbuff);
-    buffstate = rb_find(edith->buffers, buffid);
-    if (buffstate) {
-      AkSourceEditHelper *srch;
-      AkAccessor *newacc;
-      size_t      i, j;
+        /* in new design newstride is always 1 */
+        newitms[(pno + j + s) * acc->bound + dparam->offset]
+          = olditms[i * stride + dparam->offset];
 
-      newbuff  = buffstate->buff;
-      srch     = ak_meshSourceEditHelper(mesh, inputb);
-      newacc   = srch->source->tcommon;
-      assert(newacc && "accessor is needed!");
-
-      newacc->firstBound = buffstate->lastoffset;
-      ak_accessor_rebound(heap,
-                          newacc,
-                          buffstate->lastoffset);
-
-      switch (acc->itemTypeId) {
-        case AKT_FLOAT: {
-          AkFloat *olditms, *newitms;
-
-          newitms = newbuff->data;
-          olditms = oldbuff->data;
-
-          /* copy single-indexed vert positions */
-          for (s = i = 0; i < vc; i++) {
-            d = dupc->items[i];
-
-            for (j = 0; j <= d; j++) {
-              dparam = oldAcc->param;
-
-              while (dparam) {
-                if (!dparam->name)
-                  continue;
-
-                newitms[(i + j + s) * newstride + dparam->offset]
-                  = olditms[i * stride + dparam->offset];
-
-                dparam = dparam->next;
-              }
-            }
-
-            s += d;
-          }
-
-          break;
-        }
-        case AKT_INT: {
-          break;
-        }
-        case AKT_STRING: {
-          break;
-        }
-        case AKT_BOOL: {
-          break;
-        }
-        default: break;
+        dparam = dparam->next;
       }
     }
-
-  cont:
-    inputb = inputb->next;
   }
 
   return AK_OK;
@@ -134,39 +88,45 @@ ak_mesh_fix_pos(AkHeap   *heap,
 
 _assetkit_hide
 AkResult
-ak_mesh_fix_idx_df(AkHeap *heap, AkMesh *mesh) {
-  AkSource   *oldSrc;
-  AkAccessor *oldAcc;
-  uint32_t    stride;
+ak_primFixIndices(AkHeap          *heap,
+                  AkMesh          *mesh,
+                  AkMeshPrimitive *prim) {
+  AkDuplicator *duplicator;
 
-  oldSrc = ak_mesh_pos_src(mesh);
-  if (!oldSrc || !oldSrc->tcommon)
+  if (!(duplicator = ak_meshDuplicatorForIndices(mesh, prim)))
     return AK_ERR;
 
-  oldAcc = oldSrc->tcommon;
-  if (!oldAcc)
-    return AK_ERR;
-
-  stride = ak_mesh_arr_stride(mesh, &oldAcc->source);
-  (void)ak_mesh_fix_pos(heap,
-                        mesh,
-                        oldSrc,
-                        stride);
-
-  ak_meshCopyBuffersIfNeeded(mesh);
+  ak_meshFixIndexBuffer(mesh, duplicator);
+  ak_meshReserveBuffers(mesh, duplicator->dupCount + duplicator->bufCount);
+  ak_movePositions(heap, mesh, prim, duplicator);
+  ak_meshFillBuffers(mesh);
 
   return AK_OK;
 }
 
 _assetkit_hide
 AkResult
-ak_mesh_fix_indices(AkHeap *heap, AkMesh *mesh) {
+ak_meshFixIndicesDefault(AkHeap *heap, AkMesh *mesh) {
+  AkMeshPrimitive *prim;
+
+  prim = mesh->primitive;
+  while (prim) {
+    ak_primFixIndices(heap, mesh, prim);
+    prim = prim->next;
+  }
+
+  return AK_OK;
+}
+
+_assetkit_hide
+AkResult
+ak_meshFixIndices(AkHeap *heap, AkMesh *mesh) {
   AkResult ret;
 
   ak_meshBeginEdit(mesh);
 
   /* currently only default option */
-  ret = ak_mesh_fix_idx_df(heap, mesh);
+  ret = ak_meshFixIndicesDefault(heap, mesh);
 
   ak_meshEndEdit(mesh);
 

@@ -13,11 +13,8 @@ AkResult _assetkit_hide
 ak_dae_mesh_fixup(AkMesh * mesh) {
   AkHeap *heap;
   AkDoc  *doc;
-  
-  if (!mesh->vertices)
-    return AK_OK;
 
-  heap = ak_heap_getheap(mesh->vertices);
+  heap = ak_heap_getheap(mesh->geom);
   doc  = ak_heap_data(heap);
 
   /* first fixup coord system because verts will be duplicated,
@@ -29,7 +26,7 @@ ak_dae_mesh_fixup(AkMesh * mesh) {
   if (!mesh->primitive)
     return AK_OK;
 
-  ak_mesh_fix_indices(heap, mesh);
+  ak_meshFixIndices(heap, mesh);
 
   if (ak_opt_get(AK_OPT_COMPUTE_BBOX))
     ak_bbox_mesh(mesh);

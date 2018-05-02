@@ -16,7 +16,8 @@ extern const char* ak_mesh_edit_assert1;
 AK_EXPORT
 AkUIntArray*
 ak_meshIndicesArrayFor(AkMesh          * __restrict mesh,
-                       AkMeshPrimitive * __restrict prim) {
+                       AkMeshPrimitive * __restrict prim,
+                       bool                         creat) {
   AkHeap           *heap;
   AkObject         *meshobj;
   AkMeshEditHelper *edith;
@@ -38,6 +39,9 @@ ak_meshIndicesArrayFor(AkMesh          * __restrict mesh,
 
   indices = rb_find(edith->indices, prim);
   if (!indices) {
+    if (!creat)
+      return prim->indices;
+
     if (prim->indices) {
       count = prim->indices->count / prim->indexStride;
     } else {
@@ -57,11 +61,12 @@ ak_meshIndicesArrayFor(AkMesh          * __restrict mesh,
       count = posacc->bound * posacc->count;
     }
 
-    indices = ak_heap_alloc(heap,
-                            prim,
-                            sizeof(*indices)
-                            + sizeof(AkUInt) * count);
+    indices = ak_heap_calloc(heap,
+                             prim,
+                             sizeof(*indices)
+                             + sizeof(AkUInt) * count);
     indices->count = count;
+
     rb_insert(edith->indices, prim, indices);
     return indices;
   }
@@ -80,7 +85,7 @@ ak_moveIndices(AkMesh * __restrict mesh) {
   while (prim) {
     AkUIntArray *indices;
 
-    indices = ak_meshIndicesArrayFor(mesh, prim);
+    indices = ak_meshIndicesArrayFor(mesh, prim, false);
     if (indices != prim->indices)
       ak_free(prim->indices);
 

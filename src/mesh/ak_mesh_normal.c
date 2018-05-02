@@ -282,5 +282,5 @@ ak_meshGenNormals(AkMesh * __restrict mesh) {
   ak_free(dctx);
   heap->allocator->free(srcurl);
 
-  ak_mesh_fix_indices(heap, mesh);
+  ak_meshFixIndices(heap, mesh);
 }

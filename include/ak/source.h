@@ -16,7 +16,7 @@ extern "C" {
 #include "type.h"
 
 /*
-  Input -> Source -> TechniqueCommon -> Accessor -> Buffer
+  Input -> Source -> TechniqueCommon (Accessor) -> Buffer
 */
 
 struct AkTechnique;
@@ -71,6 +71,7 @@ typedef struct AkSource {
 typedef struct AkDuplicatorRange {
   struct AkDuplicatorRange *next;
   AkUIntArray              *dupc;
+  AkUIntArray              *dupcsum;
   size_t                    startIndex;
   size_t                    endIndex;
 } AkDuplicatorRange;
@@ -79,7 +80,9 @@ typedef struct AkDuplicator {
   void              *buffstate;
   void              *vertices;
   AkDuplicatorRange *range;
+  AkAccessor        *accessor;
   size_t             dupCount;
+  size_t             bufCount;
 } AkDuplicator;
 
 typedef struct AkSourceBuffState {

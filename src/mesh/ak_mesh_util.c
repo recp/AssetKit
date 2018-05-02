@@ -12,7 +12,7 @@
 #include "../ak_memory_common.h"
 #include <assert.h>
 
-size_t
+int
 ak_mesh_src_usg(AkHeap   *heap,
                 AkMesh   *mesh,
                 AkSource *src) {
@@ -20,7 +20,7 @@ ak_mesh_src_usg(AkHeap   *heap,
   AkInput         *input;
   AkDoc           *doc;
   AkSource        *src_it;
-  uint32_t         count;
+  int              count;
 
   doc    = ak_heap_data(heap);
   primi  = mesh->primitive;
@@ -55,7 +55,7 @@ ak_mesh_src(AkHeap   *heap,
   AkAccessor  *newacc, *oldacc;
   AkDataParam *dp, *last_dp;
   const char  *newid;
-  size_t       usg;
+  int          usg;
 
   usg = ak_mesh_src_usg(heap, mesh, src);
 

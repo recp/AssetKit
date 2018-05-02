@@ -12,8 +12,8 @@
 void
 ak_xml_attr_url(AkXmlState * __restrict xst,
                 const char * attrName,
-                void  *memparent,
-                AkURL *url) {
+                void       * memparent,
+                AkURL      * url) {
   xmlChar    *attrVal;
   AkURLQueue *urlQueue;
 

@@ -15,33 +15,33 @@ extern const char* ak_mesh_edit_assert1;
 
 AK_EXPORT
 AkResult
-ak_meshCopyBuffersIfNeeded(AkMesh * __restrict mesh) {
-  AkHeap           *heap;
-  AkObject         *meshobj;
-  AkMeshEditHelper *edith;
-  AkInput          *input;
+ak_meshFillBuffers(AkMesh * __restrict mesh) {
+  AkHeap             *heap;
+  AkObject           *meshobj;
+  AkMeshEditHelper   *edith;
+  AkInput            *input;
+  AkMeshPrimitive    *primi;
+  AkSource           *src;
+  AkAccessor         *acc, *newacc;
+  AkUIntArray        *ind1, *ind2;
+  AkUInt             *ind1_it, *ind2_it;
+  AkBuffer           *oldbuff, *newbuff;
+  AkSourceBuffState  *buffstate;
+  void               *buffid;
+  AkSourceEditHelper *srch;
+  AkDataParam        *dp;
+  size_t              icount, i;
+  AkUInt              oldindex, newindex, j;
 
-  AkMeshPrimitive  *primi;
-  AkSource         *src;
-  AkAccessor       *acc;
-  AkUIntArray      *ind1, *ind2;
-  AkUInt           *ind1_it, *ind2_it;
-
-  edith = mesh->edith;
-  assert(edith && ak_mesh_edit_assert1);
-
+  edith   = mesh->edith;
   meshobj = ak_objFrom(mesh);
   heap    = ak_heap_getheap(meshobj);
   primi   = mesh->primitive;
 
   /* per-primitive inputs */
   while (primi) {
-    AkBuffer           *oldbuff, *newbuff;
-    AkSourceBuffState *buffstate;
-    void               *buffid;
-
     ind1 = primi->indices;
-    ind2 = ak_meshIndicesArrayFor(mesh, primi);
+    ind2 = ak_meshIndicesArrayFor(mesh, primi, true);
 
     /* same index buff */
     if (!ind1 || ind1 == ind2) {
@@ -54,28 +54,17 @@ ak_meshCopyBuffersIfNeeded(AkMesh * __restrict mesh) {
 
     input = primi->input;
     while (input) {
-      src = ak_getObjectByUrl(&input->base.source);
-      if (!src)
+      if (input->base.semantic == AK_INPUT_SEMANTIC_POSITION
+          || !(src     = ak_getObjectByUrl(&input->base.source))
+          || !(acc     = src->tcommon)
+          || !(oldbuff = ak_getObjectByUrl(&acc->source)))
         goto cont;
 
-      acc = src->tcommon;
-      if (!acc)
-        goto cont;
-
-      oldbuff = ak_getObjectByUrl(&acc->source);
-      if (!oldbuff)
-        goto cont;
-
-      buffid   = ak_getId(oldbuff);
+      buffid    = ak_getId(oldbuff);
       buffstate = rb_find(edith->buffers, buffid);
 
       /* copy buff to mesh */
       if (buffstate) {
-        AkSourceEditHelper *srch;
-        AkAccessor  *newacc;
-        AkDataParam *dp;
-        size_t       icount, i;
-
         newbuff = buffstate->buff;
 
         srch   = ak_meshSourceEditHelper(mesh, &input->base);
@@ -91,7 +80,6 @@ ak_meshCopyBuffersIfNeeded(AkMesh * __restrict mesh) {
         switch (acc->itemTypeId) {
           case AKT_FLOAT: {
             AkFloat *olditms, *newitms;
-            AkUInt   oldindex, newindex, j;
 
             newitms = newbuff->data;
             olditms = oldbuff->data;
