@@ -38,6 +38,25 @@ ak_xml_attr_url(AkXmlState * __restrict xst,
 }
 
 void
+ak_xml_attr_url2(AkXmlState * __restrict xst,
+                 const char * attrName,
+                 void       * memparent,
+                 AkURL      * url) {
+  xmlChar *attrVal;
+
+  attrVal = xmlTextReaderGetAttribute(xst->reader,
+                                      (const xmlChar *)attrName);
+  if (attrVal) {
+    ak_url_init(memparent, (char *)attrVal, url);
+    xmlFree(attrVal);
+    return;
+  }
+
+  url->reserved = NULL;
+  url->url      = NULL;
+}
+
+void
 ak_xml_readnext(AkXmlState * __restrict xst) {
   xst->nodeRet   = xmlTextReaderRead(xst->reader);
   xst->nodeType  = xmlTextReaderNodeType(xst->reader);

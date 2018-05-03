@@ -83,16 +83,8 @@ ak_dae_morph(AkXmlState * __restrict xst,
         if (ak_xml_eqelm(xst, _s_dae_input)) {
           AkInput *input;
 
-          input = ak_heap_calloc(xst->heap,
-                                 targets,
-                                 sizeof(*input));
-
+          input = ak_heap_calloc(xst->heap, targets, sizeof(*input));
           input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
-
-          ak_xml_attr_url(xst,
-                          _s_dae_source,
-                          input,
-                          &input->source);
 
           if (!input->semanticRaw || !input->source.url)
             ak_free(input);
@@ -104,14 +96,16 @@ ak_dae_morph(AkXmlState * __restrict xst,
               inputSemantic = AK_INPUT_SEMANTIC_OTHER;
 
             input->semantic = inputSemantic;
+
+            ak_xml_attr_url(xst, _s_dae_source, input, &input->source);
+
+            if (last_input)
+              last_input->next = input;
+            else
+              targets->input = input;
+
+            last_input = input;
           }
-
-          if (last_input)
-            last_input->next = input;
-          else
-            targets->input = input;
-
-          last_input = input;
         } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
           xmlNodePtr nodePtr;
           AkTree   *tree;

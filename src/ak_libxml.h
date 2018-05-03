@@ -153,6 +153,12 @@ ak_xml_attr_url(AkXmlState * __restrict xst,
                 AkURL *url);
 
 void
+ak_xml_attr_url2(AkXmlState * __restrict xst,
+                 const char * attrName,
+                 void       * memparent,
+                 AkURL      * url);
+
+void
 ak_xml_readid(AkXmlState * __restrict xst,
               void * __restrict memptr);
 

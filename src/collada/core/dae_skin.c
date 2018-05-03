@@ -91,18 +91,10 @@ ak_dae_skin(AkXmlState * __restrict xst,
         if (ak_xml_eqelm(xst, _s_dae_input)) {
           AkInput *input;
 
-          input = ak_heap_calloc(xst->heap,
-                                 joints,
-                                 sizeof(*input));
-
+          input = ak_heap_calloc(xst->heap, joints, sizeof(*input));
           input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
-          ak_xml_attr_url(xst,
-                          _s_dae_source,
-                          input,
-                          &input->source);
-
-          if (!input->semanticRaw || !input->source.url)
+          if (!input->semanticRaw)
             ak_free(input);
           else {
             AkEnum inputSemantic;
@@ -112,14 +104,16 @@ ak_dae_skin(AkXmlState * __restrict xst,
               inputSemantic = AK_INPUT_SEMANTIC_OTHER;
 
             input->semantic = inputSemantic;
+
+            ak_xml_attr_url(xst, _s_dae_source, input, &input->source);
+
+            if (last_input)
+              last_input->next = input;
+            else
+              joints->input = input;
+
+            last_input = input;
           }
-
-          if (last_input)
-            last_input->next = input;
-          else
-            joints->input = input;
-
-          last_input = input;
         } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
           xmlNodePtr nodePtr;
           AkTree   *tree;
@@ -165,16 +159,8 @@ ak_dae_skin(AkXmlState * __restrict xst,
 
         if (ak_xml_eqelm(xst, _s_dae_input)) {
           AkInput *input;
-          input = ak_heap_calloc(xst->heap,
-                                 vertexWeights,
-                                 sizeof(*input));
-
+          input = ak_heap_calloc(xst->heap, vertexWeights, sizeof(*input));
           input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
-
-          ak_xml_attr_url(xst,
-                          _s_dae_source,
-                          input,
-                          &input->source);
 
           if (!input->semanticRaw || !input->source.url)
             ak_free(input);
@@ -186,17 +172,18 @@ ak_dae_skin(AkXmlState * __restrict xst,
               inputSemantic = AK_INPUT_SEMANTIC_OTHER;
 
             input->semantic = inputSemantic;
+            input->offset   = ak_xml_attrui(xst, _s_dae_offset);
+            input->set      = ak_xml_attrui(xst, _s_dae_set);
+
+            ak_xml_attr_url(xst, _s_dae_source, input, &input->source);
+
+            if (last_input)
+              last_input->next = input;
+            else
+              vertexWeights->input = input;
+
+            last_input = input;
           }
-
-          input->offset = ak_xml_attrui(xst, _s_dae_offset);
-          input->set    = ak_xml_attrui(xst, _s_dae_set);
-
-          if (last_input)
-            last_input->next = input;
-          else
-            vertexWeights->input = input;
-
-          last_input = input;
         } else if (ak_xml_eqelm(xst, _s_dae_vcount)) {
           char *content;
           content = ak_xml_rawval(xst);

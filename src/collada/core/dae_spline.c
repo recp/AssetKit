@@ -79,12 +79,7 @@ ak_dae_spline(AkXmlState * __restrict xst,
           input = ak_heap_calloc(xst->heap, memPtr, sizeof(*input));
           input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
-          ak_xml_attr_url(xst,
-                          _s_dae_source,
-                          input,
-                          &input->source);
-
-          if (!input->semanticRaw || !input->source.url)
+          if (!input->semanticRaw)
             ak_free(input);
           else {
             AkEnum inputSemantic;
@@ -94,14 +89,16 @@ ak_dae_spline(AkXmlState * __restrict xst,
               inputSemantic = AK_INPUT_SEMANTIC_OTHER;
 
             input->semantic = inputSemantic;
+
+            ak_xml_attr_url(xst, _s_dae_source, input, &input->source);
+
+            if (last_input)
+              last_input->next = input;
+            else
+              cverts->input = input;
+
+            last_input = input;
           }
-
-          if (last_input)
-            last_input->next = input;
-          else
-            cverts->input = input;
-
-          last_input = input;
         } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
           xmlNodePtr nodePtr;
           AkTree    *tree;

@@ -34,19 +34,16 @@ ak_dae_vertices(AkXmlState * __restrict xst,
     if (ak_xml_eqelm(xst, _s_dae_input)) {
       AkInput *input;
 
-      input              = ak_heap_calloc(xst->heap, vertices, sizeof(*input));
+      input = ak_heap_calloc(xst->heap, vertices, sizeof(*input));
       input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
-      ak_xml_attr_url(xst,
-                      _s_dae_source,
-                      input,
-                      &input->source);
-
-      if (!input->semanticRaw || !input->source.url) {
+      if (!input->semanticRaw) {
         ak_free(input);
       } else {
         input->semantic = ak_dae_enumInputSemantic(input->semanticRaw);
 
+        ak_xml_attr_url2(xst, _s_dae_source, input, &input->source);
+        
         if (last_input)
           last_input->next = input;
         else

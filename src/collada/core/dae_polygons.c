@@ -54,43 +54,40 @@ ak_dae_polygon(AkXmlState * __restrict xst,
       input = ak_heap_calloc(xst->heap, polygon, sizeof(*input));
       input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
-      ak_xml_attr_url(xst,
-                      _s_dae_source,
-                      input,
-                      &input->source);
-
-      if (!input->semanticRaw || !input->source.url)
+      if (!input->semanticRaw)
         ak_free(input);
       else {
         AkEnum inputSemantic;
+
         inputSemantic = ak_dae_enumInputSemantic(input->semanticRaw);
+        input->offset = ak_xml_attrui(xst, _s_dae_offset);
+        input->set    = ak_xml_attrui(xst, _s_dae_set);
 
         if (inputSemantic < 0)
           inputSemantic = AK_INPUT_SEMANTIC_OTHER;
 
         input->semantic = inputSemantic;
-      }
 
-      input->offset = ak_xml_attrui(xst, _s_dae_offset);
-      input->set    = ak_xml_attrui(xst, _s_dae_set);
+        if ((uint32_t)input->semantic != AK_INPUT_SEMANTIC_VERTEX) {
+          if (last_input)
+            last_input->next = input;
+          else
+            polygon->base.input = input;
 
-      if ((uint32_t)input->semantic != AK_INPUT_SEMANTIC_VERTEX) {
-        if (last_input)
-          last_input->next = input;
-        else
-          polygon->base.input = input;
+          last_input = input;
 
-        last_input = input;
+          polygon->base.inputCount++;
 
-        polygon->base.inputCount++;
+          if (input->offset > indexoff)
+            indexoff = input->offset;
 
-        if (input->offset > indexoff)
-          indexoff = input->offset;
-      } else {
-        /* don't store VERTEX because it will be duplicated to all prims */
-        polygon->base.reserved1 = input->offset;
-        polygon->base.reserved2 = input->set;
-        ak_free(input);
+          ak_xml_attr_url(xst, _s_dae_source, input, &input->source);
+        } else {
+          /* don't store VERTEX because it will be duplicated to all prims */
+          polygon->base.reserved1 = input->offset;
+          polygon->base.reserved2 = input->set;
+          ak_free(input);
+        }
       }
     } else if (ak_xml_eqelm(xst, _s_dae_p)) {
       char *content;
