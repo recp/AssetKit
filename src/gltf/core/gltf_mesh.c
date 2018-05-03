@@ -89,15 +89,15 @@ gltf_meshes(AkGLTFState * __restrict gst) {
         semantic = strchr(jkey, '_');
 
         if (!semantic) {
-          inp->base.semanticRaw = ak_heap_strdup(heap, inp, jkey);
+          inp->semanticRaw = ak_heap_strdup(heap, inp, jkey);
         }
 
         /* ARRAYs e.g. TEXTURE_0, TEXTURE_1 */
         else {
-          inp->base.semanticRaw = ak_heap_strndup(heap,
-                                                  inp,
-                                                  jkey,
-                                                  semantic - jkey);
+          inp->semanticRaw = ak_heap_strndup(heap,
+                                             inp,
+                                             jkey,
+                                             semantic - jkey);
           if (strlen(semantic) > 1) /* default is 0 with calloc */
             inp->set = (uint32_t)strtol(semantic + 1, NULL, 10);
         }
@@ -105,15 +105,15 @@ gltf_meshes(AkGLTFState * __restrict gst) {
         source = ak_heap_calloc(heap, prim, sizeof(*source));
         jacc   = json_array_get(jaccessors, json_integer_value(jval));
 
-        source->tcommon      = gltf_accessor(gst, source, jacc);
-        inp->base.semantic   = gltf_enumInputSemantic(inp->base.semanticRaw);
-        inp->base.source.ptr = source;
+        source->tcommon = gltf_accessor(gst, source, jacc);
+        inp->semantic   = gltf_enumInputSemantic(inp->semanticRaw);
+        inp->source.ptr = source;
 
-        if (inp->base.semantic == AK_INPUT_SEMANTIC_POSITION)
+        if (inp->semantic == AK_INPUT_SEMANTIC_POSITION)
           prim->pos = inp;
 
         if (last_inp)
-          last_inp->base.next = &inp->base;
+          last_inp->next = inp;
         else
           prim->input = inp;
 

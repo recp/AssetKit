@@ -31,13 +31,13 @@ ak_mesh_src_usg(AkHeap   *heap,
     input = primi->input;
 
     while (input) {
-      if (input->base.source.doc == doc) {
-        src_it = ak_getObjectByUrl(&input->base.source);
+      if (input->source.doc == doc) {
+        src_it = ak_getObjectByUrl(&input->source);
         if (src_it && src_it == src)
           count++;
       }
 
-      input = (AkInput *)input->base.next;
+      input = input->next;
     }
 
     primi = primi->next;
@@ -122,7 +122,7 @@ ak_mesh_src_for(AkHeap          *heap,
   size_t       c;
 
   if (!prim->pos
-      || !(possrc  = ak_getObjectByUrl(&prim->pos->base.source))
+      || !(possrc  = ak_getObjectByUrl(&prim->pos->source))
       || !(posacc  = possrc->tcommon))
     return NULL;
 
@@ -179,7 +179,7 @@ ak_mesh_src_for_ext(AkHeap          *heap,
   char        *buffid, *url;
 
   if (!prim->pos
-      || !(possrc  = ak_getObjectByUrl(&prim->pos->base.source))
+      || !(possrc  = ak_getObjectByUrl(&prim->pos->source))
       || !(posacc  = possrc->tcommon))
     return NULL;
 
@@ -250,14 +250,14 @@ ak_mesh_arr_stride(AkMesh *mesh, AkURL *arrayURL) {
     input = primi->input;
 
     while (input) {
-      src = ak_getObjectByUrl(&input->base.source);
+      src = ak_getObjectByUrl(&input->source);
       acc = src->tcommon;
 
       if (strcmp(acc->source.url, arrayURL->url) == 0
           && acc->source.doc == arrayURL->doc)
         ak_map_addptr(map, src);
 
-      input = (AkInput *)input->base.next;
+      input = input->next;
     }
 
     primi = primi->next;
@@ -293,11 +293,11 @@ ak_mesh_intr_count(AkMesh *mesh) {
     icount = primi->indices->count / primi->indexStride;
 
     while (input) {
-      src = ak_getObjectByUrl(&input->base.source);
+      src = ak_getObjectByUrl(&input->source);
       if (src && src->tcommon)
         count += src->tcommon->bound * icount;
 
-      input = (AkInput *)input->base.next;
+      input = input->next;
     }
 
     primi = primi->next;
@@ -418,14 +418,14 @@ ak_meshInspectArray(AkMesh   * __restrict mesh,
     input = primi->input;
 
     while (input) {
-      src = ak_getObjectByUrl(&input->base.source);
+      src = ak_getObjectByUrl(&input->source);
       acc = src->tcommon;
 
       if (strcmp(acc->source.url, arrayURL->url) == 0
           && acc->source.doc == arrayURL->doc)
         ak_map_addptr(map, src);
 
-      input = (AkInput *)input->base.next;
+      input = input->next;
     }
 
     primi = primi->next;
@@ -454,7 +454,7 @@ ak_meshArrayOf(AkMesh  * __restrict mesh,
 
   AK__UNUSED(mesh);
 
-  if (!(src = ak_getObjectByUrl(&input->base.source)))
+  if (!(src = ak_getObjectByUrl(&input->source)))
     return NULL;
 
   if (!(acc = src->tcommon))

@@ -34,10 +34,10 @@ struct AkMesh;
 
 typedef struct AkVertices {
   /* const char   * id; */
-  const char   * name;
-  AkInputBasic * input;
-  uint32_t       inputCount;
-  AkTree       * extra;
+  const char   *name;
+  AkTree       *extra;
+  AkInput      *input;
+  uint32_t      inputCount;
 } AkVertices;
 
 typedef struct AkMeshPrimitive {
@@ -101,8 +101,8 @@ typedef struct AkMesh {
 } AkMesh;
 
 typedef struct AkControlVerts {
-  AkInputBasic *input;
-  AkTree       *extra;
+  AkInput *input;
+  AkTree  *extra;
 } AkControlVerts;
 
 typedef struct AkSpline {
@@ -447,17 +447,17 @@ ak_meshIndicesArrayFor(AkMesh          * __restrict mesh,
 AK_EXPORT
 AkSourceBuffState*
 ak_meshReserveBuffer(AkMesh * __restrict mesh,
-                    void   * __restrict buffid,
-                    size_t              itemSize,
-                    uint32_t            stride,
-                    size_t              acc_count);
+                     void   * __restrict buffid,
+                     size_t              itemSize,
+                     uint32_t            stride,
+                     size_t              acc_count);
 
 AK_EXPORT
 void
-ak_meshReserveBufferForInput(AkMesh       * __restrict mesh,
-                            AkInputBasic * __restrict inputb,
-                            uint32_t                  inputOffset,
-                            size_t                    count);
+ak_meshReserveBufferForInput(AkMesh   * __restrict mesh,
+                             AkInput  * __restrict input,
+                             uint32_t              inputOffset,
+                             size_t                count);
 
 AK_EXPORT
 void
@@ -478,8 +478,8 @@ ak_meshMoveBuffers(AkMesh * __restrict mesh);
 
 AK_EXPORT
 AkSourceEditHelper*
-ak_meshSourceEditHelper(AkMesh       * __restrict mesh,
-                        AkInputBasic * __restrict input);
+ak_meshSourceEditHelper(AkMesh  * __restrict mesh,
+                        AkInput * __restrict input);
 
 AK_EXPORT
 AkDuplicator*
@@ -492,13 +492,13 @@ ak_meshFixIndexBuffer(AkMesh       * __restrict mesh,
                       AkDuplicator * __restrict duplicator);
 
 void
-ak_inputNameIndexed(AkInputBasic * __restrict input,
-                    char         * __restrict buf);
+ak_inputNameIndexed(AkInput * __restrict input,
+                    char    * __restrict buf);
 
 void
 ak_meshReIndexInputs(AkMesh * __restrict mesh);
 
-AkInputBasic*
+AkInput*
 ak_meshInputGet(AkMeshPrimitive *prim,
                 const char      *inputSemantic,
                 uint32_t         set);

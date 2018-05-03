@@ -257,32 +257,32 @@ ak_dae_mesh(AkXmlState * __restrict xst,
   if (vertices) {
     AkMeshPrimitive *prim;
     AkInput         *inp;
-    AkInputBasic    *inpb;
+    AkInput         *inpv;
 
-    inpb = vertices->input;
+    inpv = vertices->input;
     prim = mesh->primitive;
 
     while (prim) {
-      while (inpb) {
+      while (inpv) {
         inp  = ak_heap_calloc(xst->heap, prim, sizeof(*inp));
-        inp->base.semantic = inpb->semantic;
-        if (inpb->semanticRaw)
-          inp->base.semanticRaw = ak_heap_strdup(xst->heap,
-                                                 inp,
-                                                 inpb->semanticRaw);
+        inp->semantic = inpv->semantic;
+        if (inpv->semanticRaw)
+          inp->semanticRaw = ak_heap_strdup(xst->heap,
+                                            inp,
+                                            inpv->semanticRaw);
 
-        ak_url_dup(&inpb->source, prim, &inp->base.source);
+        ak_url_dup(&inpv->source, prim, &inp->source);
 
         inp->offset    = prim->reserved1;
         inp->set       = prim->reserved2;
-        inp->base.next = (AkInputBasic *)prim->input;
+        inp->next      = prim->input;
         prim->input    = inp;
 
-        if (inp->base.semantic == AK_INPUT_SEMANTIC_POSITION)
+        if (inp->semantic == AK_INPUT_SEMANTIC_POSITION)
           prim->pos = inp;
 
         prim->inputCount++;
-        inpb = inpb->next;
+        inpv = inpv->next;
       }
       prim = prim->next;
     }

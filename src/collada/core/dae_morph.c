@@ -65,7 +65,7 @@ ak_dae_morph(AkXmlState * __restrict xst,
       }
     } else if (ak_xml_eqelm(xst, _s_dae_targets)) {
       AkTargets    *targets;
-      AkInputBasic *last_input;
+      AkInput      *last_input;
       AkXmlElmState xest2;
 
       targets = ak_heap_calloc(xst->heap,
@@ -81,7 +81,7 @@ ak_dae_morph(AkXmlState * __restrict xst,
             break;
 
         if (ak_xml_eqelm(xst, _s_dae_input)) {
-          AkInputBasic *input;
+          AkInput *input;
 
           input = ak_heap_calloc(xst->heap,
                                  targets,

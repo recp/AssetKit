@@ -31,7 +31,7 @@ ak_meshDuplicatorForIndices(AkMesh          * __restrict mesh,
   uint32_t            chk, iter, inpc, st, vo, posno, idxp;
 
   if (!prim->pos
-      || !(posSource = ak_getObjectByUrl(&prim->pos->base.source))
+      || !(posSource = ak_getObjectByUrl(&prim->pos->source))
       || !(posAcc    = posSource->tcommon)
       || !(posBuff   = ak_getObjectByUrl(&posAcc->source)))
     return NULL;

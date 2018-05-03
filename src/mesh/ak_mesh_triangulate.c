@@ -25,7 +25,7 @@ ak_meshTriangulatePoly_noindices(AkPolygon * __restrict poly) {
   AkUInt        trianglec, otherc, i, st, isz;
 
   if (!poly->base.pos
-      || !(src  = ak_getObjectByUrl(&poly->base.pos->base.source))
+      || !(src  = ak_getObjectByUrl(&poly->base.pos->source))
       || !(acc  = src->tcommon)
       || !(buff = ak_getObjectByUrl(&acc->source)))
     return 0;

@@ -551,25 +551,20 @@ typedef struct AkMaterial {
   struct AkMaterial *next;
 } AkMaterial;
 
-typedef struct AkInputBasic {
-  AkURL                source;
-  uint32_t             index; /* TEXCOORD0, TEXCOORD1... */
-  bool                 isIndexed;
-  AkInputSemantic      semantic;
-  const char          *semanticRaw;
-  struct AkInputBasic *next;
-} AkInputBasic;
-
 typedef struct AkInput {
-  AkInputBasic base;
-
-  uint32_t offset;
-  uint32_t set;
+  const char     *semanticRaw;
+  struct AkInput *next;
+  AkURL           source;
+  uint32_t        index; /* TEXCOORD0, TEXCOORD1... */
+  bool            isIndexed;
+  AkInputSemantic semantic;
+  uint32_t        offset;
+  uint32_t        set;
 } AkInput;
 
 typedef struct AkJoints {
-  AkInputBasic * input;
-  AkTree       * extra;
+  AkInput *input;
+  AkTree  *extra;
 } AkJoints;
 
 typedef struct AkVertexWeights {
@@ -590,8 +585,8 @@ typedef struct AkSkin {
 } AkSkin;
 
 typedef struct AkTargets {
-  AkInputBasic * input;
-  AkTree       * extra;
+  AkInput *input;
+  AkTree  *extra;
 } AkTargets;
 
 typedef struct AkMorph {

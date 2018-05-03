@@ -18,7 +18,7 @@ ak_meshReIndexInputs(AkMesh * __restrict mesh) {
   AkHeap          *heap;
   AkObject        *meshobj;
   RBTree          *tree;
-  AkInputBasic    *inp;
+  AkInput         *inp;
   AkMeshPrimitive *prim;
   RBNode          *found;
 
@@ -31,7 +31,7 @@ ak_meshReIndexInputs(AkMesh * __restrict mesh) {
 
   if (prim) {
     do {
-      inp = &prim->input->base;
+      inp = prim->input;
       while (inp) {
         found = rb_find_node(tree, (void *)inp->semanticRaw);
         if (found) {
@@ -56,7 +56,7 @@ ak_meshReIndexInputs(AkMesh * __restrict mesh) {
     if (ak_opt_get(AK_OPT_ZERO_INDEXED_INPUT)) {
       prim = mesh->primitive;
       do {
-        inp = &prim->input->base;
+        inp = prim->input;
         while (inp) {
           found = rb_find_node(tree, (void *)inp->semanticRaw);
           if (found && !inp->index && found->val)
@@ -74,8 +74,8 @@ ak_meshReIndexInputs(AkMesh * __restrict mesh) {
 }
 
 void
-ak_inputNameIndexed(AkInputBasic * __restrict input,
-                    char         * __restrict buf) {
+ak_inputNameIndexed(AkInput * __restrict input,
+                    char    * __restrict buf) {
   if (!input->semanticRaw)
     return;
 
@@ -85,7 +85,7 @@ ak_inputNameIndexed(AkInputBasic * __restrict input,
     strcpy(buf, input->semanticRaw);
 }
 
-AkInputBasic*
+AkInput*
 ak_meshInputGet(AkMeshPrimitive *prim,
                 const char      *inputSemantic,
                 uint32_t         set) {
@@ -94,15 +94,15 @@ ak_meshInputGet(AkMeshPrimitive *prim,
   /* first search in primitive */
   input = prim->input;
   while (input) {
-    if (!input->base.semanticRaw)
+    if (!input->semanticRaw)
       goto cont1;
 
-    if (strcmp(input->base.semanticRaw, inputSemantic) == 0
+    if (strcmp(input->semanticRaw, inputSemantic) == 0
         && input->set == set)
-      return &input->base;
+      return input;
 
   cont1:
-    input = (AkInput *)input->base.next;
+    input = input->next;
   }
 
   return NULL;

@@ -27,7 +27,7 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
   acc     = NULL;
 
   if (!prim->pos
-      || !(src = ak_getObjectByUrl(&prim->pos->base.source))
+      || !(src = ak_getObjectByUrl(&prim->pos->source))
       || !(acc = src->tcommon)
       || !(posbuff = ak_getObjectByUrl(&acc->source)))
     return;

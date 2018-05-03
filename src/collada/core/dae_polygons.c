@@ -52,31 +52,31 @@ ak_dae_polygon(AkXmlState * __restrict xst,
       AkInput *input;
 
       input = ak_heap_calloc(xst->heap, polygon, sizeof(*input));
-      input->base.semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
+      input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
       ak_xml_attr_url(xst,
                       _s_dae_source,
                       input,
-                      &input->base.source);
+                      &input->source);
 
-      if (!input->base.semanticRaw || !input->base.source.url)
+      if (!input->semanticRaw || !input->source.url)
         ak_free(input);
       else {
         AkEnum inputSemantic;
-        inputSemantic = ak_dae_enumInputSemantic(input->base.semanticRaw);
+        inputSemantic = ak_dae_enumInputSemantic(input->semanticRaw);
 
         if (inputSemantic < 0)
           inputSemantic = AK_INPUT_SEMANTIC_OTHER;
 
-        input->base.semantic = inputSemantic;
+        input->semantic = inputSemantic;
       }
 
       input->offset = ak_xml_attrui(xst, _s_dae_offset);
       input->set    = ak_xml_attrui(xst, _s_dae_set);
 
-      if ((uint32_t)input->base.semantic != AK_INPUT_SEMANTIC_VERTEX) {
+      if ((uint32_t)input->semantic != AK_INPUT_SEMANTIC_VERTEX) {
         if (last_input)
-          last_input->base.next = &input->base;
+          last_input->next = input;
         else
           polygon->base.input = input;
 

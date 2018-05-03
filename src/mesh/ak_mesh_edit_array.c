@@ -88,10 +88,10 @@ ak_meshReserveBuffer(AkMesh * __restrict mesh,
 
 AK_EXPORT
 void
-ak_meshReserveBufferForInput(AkMesh       * __restrict mesh,
-                             AkInputBasic * __restrict inputb,
-                             uint32_t                  inputOffset,
-                             size_t                    count) {
+ak_meshReserveBufferForInput(AkMesh   * __restrict mesh,
+                             AkInput  * __restrict input,
+                             uint32_t              inputOffset,
+                             size_t                count) {
   AkHeap             *heap;
   AkObject           *meshobj;
   AkMeshEditHelper   *edith;
@@ -109,7 +109,7 @@ ak_meshReserveBufferForInput(AkMesh       * __restrict mesh,
   edith = mesh->edith;
   assert(edith && ak_mesh_edit_assert1);
 
-  if (!(srci = ak_getObjectByUrl(&inputb->source))
+  if (!(srci = ak_getObjectByUrl(&input->source))
       || !(acci = srci->tcommon)
       || !(buffi = ak_getObjectByUrl(&acci->source)))
     return;
@@ -194,14 +194,12 @@ ak_meshReserveBufferForInput(AkMesh       * __restrict mesh,
     srch->url = ak_url_string(heap->allocator, srcid);
     ak_heap_setId(heap, ak__alignof(srch->source), srcid);
   } else {
-    srch->url = (char *)inputb->source.url;
+    srch->url = (char *)input->source.url;
   }
 
   ak_heap_setpm(newacc, srch->source);
 
-  ak_map_add(edith->inputBufferMap,
-             srch,
-             inputb);
+  ak_map_add(edith->inputBufferMap, srch, input);
 }
 
 AK_EXPORT
@@ -215,11 +213,8 @@ ak_meshReserveBuffers(AkMesh * __restrict mesh,
   while (prim) {
     input = prim->input;
     while (input) {
-      ak_meshReserveBufferForInput(mesh,
-                                   &input->base,
-                                   input->offset,
-                                   count);
-      input = (AkInput *)input->base.next;
+      ak_meshReserveBufferForInput(mesh, input, input->offset, count);
+      input = input->next;
     }
     prim = prim->next;
   }
@@ -227,16 +222,15 @@ ak_meshReserveBuffers(AkMesh * __restrict mesh,
 
 AK_EXPORT
 AkSourceEditHelper*
-ak_meshSourceEditHelper(AkMesh       * __restrict mesh,
-                        AkInputBasic * __restrict input) {
+ak_meshSourceEditHelper(AkMesh  * __restrict mesh,
+                        AkInput * __restrict input) {
   AkMeshEditHelper   *edith;
   AkSourceEditHelper *srch;
 
   edith = mesh->edith;
   assert(edith && ak_mesh_edit_assert1);
 
-  srch = (AkSourceEditHelper *)ak_map_find(edith->inputBufferMap,
-                                           input);
+  srch = (AkSourceEditHelper *)ak_map_find(edith->inputBufferMap, input);
 
   /* use old source as new */
   if (!srch) {
@@ -255,7 +249,7 @@ ak_meshMoveBuffers(AkMesh * __restrict mesh) {
   AkSourceEditHelper *srch;
   AkSourceBuffState  *buffstate;
   AkMapItem          *mi;
-  AkInputBasic       *inputb;
+  AkInput            *input;
   void               *foundbuff;
   AkResult            ret;
 
@@ -269,8 +263,8 @@ ak_meshMoveBuffers(AkMesh * __restrict mesh) {
   mi      = edith->inputBufferMap->root;
 
   while (mi) {
-    inputb = ak_heap_getId(mapHeap, ak__alignof(mi));
-    srch   = (AkSourceEditHelper *)mi->data;
+    input = ak_heap_getId(mapHeap, ak__alignof(mi));
+    srch  = (AkSourceEditHelper *)mi->data;
 
     /* move buff */
     buffstate = rb_find(edith->buffers, srch->buffid);
@@ -300,16 +294,14 @@ ak_meshMoveBuffers(AkMesh * __restrict mesh) {
         ak_moveId(srch->oldsource, srch->source);
     }
 
-    ak_url_unref(&inputb->source);
-    if (inputb->source.url != srch->url)
-      ak_free((char *)inputb->source.url);
+    ak_url_unref(&input->source);
+    if (input->source.url != srch->url)
+      ak_free((char *)input->source.url);
 
     ak_release(srch->oldsource);
     ak_retain(srch->source);
 
-    ak_url_init(inputb,
-                srch->url,
-                &inputb->source);
+    ak_url_init(input, srch->url,  &input->source);
 
     mi = mi->next;
   }

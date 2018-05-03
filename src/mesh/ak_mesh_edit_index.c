@@ -50,7 +50,7 @@ ak_meshIndicesArrayFor(AkMesh          * __restrict mesh,
       AkBuffer   *posbuff;
 
       if (!prim->pos
-          || !(possrc  = ak_getObjectByUrl(&prim->pos->base.source))
+          || !(possrc  = ak_getObjectByUrl(&prim->pos->source))
           || !(posacc  = possrc->tcommon)
           || !(posbuff = ak_getObjectByUrl(&posacc->source)))
         return NULL;
@@ -95,7 +95,7 @@ ak_moveIndices(AkMesh * __restrict mesh) {
     input = prim->input;
     while (input) {
       input->offset = 0;
-      input = (AkInput *)input->base.next;
+      input = input->next;
     }
 
     prim = prim->next;

@@ -31,8 +31,8 @@ ak_meshPrimNeedsNormals(AkMeshPrimitive * __restrict prim) {
   ret   = true;
   input = prim->input;
   while (input) {
-    if (input->base.semantic == AK_INPUT_SEMANTIC_NORMAL) {
-      src = ak_getObjectByUrl(&input->base.source);
+    if (input->semantic == AK_INPUT_SEMANTIC_NORMAL) {
+      src = ak_getObjectByUrl(&input->source);
       if (!src
           || !(acc = src->tcommon)
           || !(data = ak_getObjectByUrl(&acc->source)))
@@ -41,7 +41,7 @@ ak_meshPrimNeedsNormals(AkMeshPrimitive * __restrict prim) {
       break;
     }
 
-    input = (AkInput *)input->base.next;
+    input = input->next;
   }
 
   return ret;
@@ -73,8 +73,7 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
   AkFloat       *pos;
   AkUInt        *it, *it2;
   AkHeap        *heap;
-  AkInput       *input;
-  AkInputBasic  *inputb;
+  AkInput       *input, *nextInput;
   AkBuffer      *posBuff, *buff;
   AkSource      *posSource, *src;
   AkAccessor    *posAcc, *acc;
@@ -86,7 +85,7 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
   if ((prim->type != AK_MESH_PRIMITIVE_TYPE_TRIANGLES
        && prim->type != AK_MESH_PRIMITIVE_TYPE_POLYGONS)
       || !prim->pos
-      || !(posSource = ak_getObjectByUrl(&prim->pos->base.source))
+      || !(posSource = ak_getObjectByUrl(&prim->pos->source))
       || !(posAcc    = posSource->tcommon)
       || !(posBuff   = ak_getObjectByUrl(&posAcc->source))
       || (vo = prim->pos->offset) == -1)
@@ -209,17 +208,17 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
   /* add input */
   srcurl = ak_url_string(heap->allocator, ak_getId(src));
   input = ak_heap_calloc(heap, prim, sizeof(*input));
-  input->offset           = st;
-  input->base.semantic    = AK_INPUT_SEMANTIC_NORMAL;
-  input->base.semanticRaw = "NORMAL";
+  input->offset      = st;
+  input->semantic    = AK_INPUT_SEMANTIC_NORMAL;
+  input->semanticRaw = "NORMAL";
 
-  inputb = &prim->input->base;
-  while (inputb->next)
-    inputb = inputb->next;
+  nextInput = prim->input;
+  while (nextInput->next)
+    nextInput = nextInput->next;
 
-  inputb->next = &input->base;
+  nextInput->next = input;
 
-  ak_url_init(input, srcurl, &input->base.source);
+  ak_url_init(input, srcurl, &input->source);
 
   prim->inputCount++;
   prim->indexStride++;

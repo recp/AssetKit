@@ -35,7 +35,7 @@ ak_movePositions(AkHeap          *heap,
 
   if (!prim->pos
       || !(edith     = mesh->edith)
-      || !(src       = ak_getObjectByUrl(&prim->pos->base.source))
+      || !(src       = ak_getObjectByUrl(&prim->pos->source))
       || !(acc       = src->tcommon)
       || !(oldbuff   = ak_getObjectByUrl(&acc->source))
       || !(buffid    = ak_getId(oldbuff))
@@ -43,7 +43,7 @@ ak_movePositions(AkHeap          *heap,
     return AK_ERR;
 
   newbuff = buffstate->buff;
-  srch    = ak_meshSourceEditHelper(mesh, &prim->pos->base);
+  srch    = ak_meshSourceEditHelper(mesh, prim->pos);
   newacc  = srch->source->tcommon;
 
   if (!newacc)

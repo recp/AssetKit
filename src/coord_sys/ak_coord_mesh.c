@@ -33,25 +33,25 @@ ak_changeCoordSysMesh(AkMesh * __restrict mesh,
     input = primi->input;
     while (input) {
       /* TODO: other semantics which are depend on coord sys */
-      if (input->base.semantic == AK_INPUT_SEMANTIC_POSITION
-          || input->base.semantic == AK_INPUT_SEMANTIC_NORMAL) {
+      if (input->semantic == AK_INPUT_SEMANTIC_POSITION
+          || input->semantic == AK_INPUT_SEMANTIC_NORMAL) {
         AkSource *srci;
 
         /* only current document */
-        if (input->base.source.doc != doc) {
-          input = (AkInput *)input->base.next;
+        if (input->source.doc != doc) {
+          input = input->next;
           continue;
         }
 
-        srci = ak_getObjectByUrl(&input->base.source);
+        srci = ak_getObjectByUrl(&input->source);
         if (!srci || !srci->tcommon) {
-          input = (AkInput *)input->base.next;
+          input = input->next;
           continue;
         }
         
         ak_map_addptr(map, srci);
       }
-      input = (AkInput *)input->base.next;
+      input = input->next;
     }
     primi = primi->next;
   }

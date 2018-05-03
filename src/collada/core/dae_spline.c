@@ -61,11 +61,10 @@ ak_dae_spline(AkXmlState * __restrict xst,
       }
     } else if (ak_xml_eqelm(xst, _s_dae_control_vertices)) {
       AkControlVerts *cverts;
-      AkInputBasic   *last_input;
+      AkInput        *last_input;
       AkXmlElmState   xest2;
 
-      cverts = ak_heap_calloc(xst->heap, memPtr, sizeof(*cverts));
-
+      cverts     = ak_heap_calloc(xst->heap, memPtr, sizeof(*cverts));
       last_input = NULL;
 
       ak_xest_init(xest2, _s_dae_control_vertices)
@@ -75,12 +74,9 @@ ak_dae_spline(AkXmlState * __restrict xst,
           break;
 
         if (ak_xml_eqelm(xst, _s_dae_input)) {
-          AkInputBasic *input;
+          AkInput *input;
 
-          input = ak_heap_calloc(xst->heap,
-                                 memPtr,
-                                 sizeof(*input));
-
+          input = ak_heap_calloc(xst->heap, memPtr, sizeof(*input));
           input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
           ak_xml_attr_url(xst,
@@ -108,7 +104,7 @@ ak_dae_spline(AkXmlState * __restrict xst,
           last_input = input;
         } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
           xmlNodePtr nodePtr;
-          AkTree   *tree;
+          AkTree    *tree;
 
           nodePtr = xmlTextReaderExpand(xst->reader);
           tree = NULL;

@@ -39,30 +39,30 @@ ak_dae_edges(AkXmlState * __restrict xst,
                              edges,
                              sizeof(*input));
 
-      input->base.semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
+      input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
       ak_xml_attr_url(xst,
                       _s_dae_source,
                       input,
-                      &input->base.source);
+                      &input->source);
 
-      if (!input->base.semanticRaw || !input->base.source.url)
+      if (!input->semanticRaw || !input->source.url)
         ak_free(input);
       else {
         AkEnum inputSemantic;
-        inputSemantic = ak_dae_enumInputSemantic(input->base.semanticRaw);
+        inputSemantic = ak_dae_enumInputSemantic(input->semanticRaw);
 
         if (inputSemantic < 0)
           inputSemantic = AK_INPUT_SEMANTIC_OTHER;
 
-        input->base.semantic = inputSemantic;
+        input->semantic = inputSemantic;
       }
 
       input->offset = ak_xml_attrui(xst, _s_dae_offset);
       input->set    = ak_xml_attrui(xst, _s_dae_set);
 
       if (last_input)
-        last_input->base.next = &input->base;
+        last_input->next = input;
       else
         edges->input = input;
 
@@ -143,30 +143,30 @@ ak_dae_wires(AkXmlState * __restrict xst,
                              wires,
                              sizeof(*input));
 
-      input->base.semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
+      input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
       ak_xml_attr_url(xst,
                       _s_dae_source,
                       input,
-                      &input->base.source);
+                      &input->source);
 
-      if (!input->base.semanticRaw || !input->base.source.url)
+      if (!input->semanticRaw || !input->source.url)
         ak_free(input);
       else {
         AkEnum inputSemantic;
-        inputSemantic = ak_dae_enumInputSemantic(input->base.semanticRaw);
+        inputSemantic = ak_dae_enumInputSemantic(input->semanticRaw);
 
         if (inputSemantic < 0)
           inputSemantic = AK_INPUT_SEMANTIC_OTHER;
 
-        input->base.semantic = inputSemantic;
+        input->semantic = inputSemantic;
       }
 
       input->offset = ak_xml_attrui(xst, _s_dae_offset);
       input->set    = ak_xml_attrui(xst, _s_dae_set);
 
       if (last_input)
-        last_input->base.next = &input->base;
+        last_input->next = input;
       else
         wires->input = input;
 
@@ -264,30 +264,30 @@ ak_dae_faces(AkXmlState * __restrict xst,
                              faces,
                              sizeof(*input));
 
-      input->base.semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
+      input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
       ak_xml_attr_url(xst,
                       _s_dae_source,
                       input,
-                      &input->base.source);
+                      &input->source);
 
-      if (!input->base.semanticRaw || !input->base.source.url)
+      if (!input->semanticRaw || !input->source.url)
         ak_free(input);
       else {
         AkEnum inputSemantic;
-        inputSemantic = ak_dae_enumInputSemantic(input->base.semanticRaw);
+        inputSemantic = ak_dae_enumInputSemantic(input->semanticRaw);
 
         if (inputSemantic < 0)
           inputSemantic = AK_INPUT_SEMANTIC_OTHER;
 
-        input->base.semantic = inputSemantic;
+        input->semantic = inputSemantic;
       }
 
       input->offset = ak_xml_attrui(xst, _s_dae_offset);
       input->set    = ak_xml_attrui(xst, _s_dae_set);
 
       if (last_input)
-        last_input->base.next = &input->base;
+        last_input->next = input;
       else
         faces->input = input;
 
@@ -385,30 +385,30 @@ ak_dae_pcurves(AkXmlState * __restrict xst,
                              pcurves,
                              sizeof(*input));
 
-      input->base.semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
+      input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
       ak_xml_attr_url(xst,
                       _s_dae_source,
                       input,
-                      &input->base.source);
+                      &input->source);
 
-      if (!input->base.semanticRaw || !input->base.source.url)
+      if (!input->semanticRaw || !input->source.url)
         ak_free(input);
       else {
         AkEnum inputSemantic;
-        inputSemantic = ak_dae_enumInputSemantic(input->base.semanticRaw);
+        inputSemantic = ak_dae_enumInputSemantic(input->semanticRaw);
 
         if (inputSemantic < 0)
           inputSemantic = AK_INPUT_SEMANTIC_OTHER;
 
-        input->base.semantic = inputSemantic;
+        input->semantic = inputSemantic;
       }
 
       input->offset = ak_xml_attrui(xst, _s_dae_offset);
       input->set    = ak_xml_attrui(xst, _s_dae_set);
 
       if (last_input)
-        last_input->base.next = &input->base;
+        last_input->next = input;
       else
         pcurves->input = input;
 
@@ -506,30 +506,30 @@ ak_dae_shells(AkXmlState * __restrict xst,
                              shells,
                              sizeof(*input));
 
-      input->base.semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
+      input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
       ak_xml_attr_url(xst,
                       _s_dae_source,
                       input,
-                      &input->base.source);
+                      &input->source);
 
-      if (!input->base.semanticRaw || !input->base.source.url)
+      if (!input->semanticRaw || !input->source.url)
         ak_free(input);
       else {
         AkEnum inputSemantic;
-        inputSemantic = ak_dae_enumInputSemantic(input->base.semanticRaw);
+        inputSemantic = ak_dae_enumInputSemantic(input->semanticRaw);
 
         if (inputSemantic < 0)
           inputSemantic = AK_INPUT_SEMANTIC_OTHER;
 
-        input->base.semantic = inputSemantic;
+        input->semantic = inputSemantic;
       }
 
       input->offset = ak_xml_attrui(xst, _s_dae_offset);
       input->set    = ak_xml_attrui(xst, _s_dae_set);
 
       if (last_input)
-        last_input->base.next = &input->base;
+        last_input->next = input;
       else
         shells->input = input;
 
@@ -627,30 +627,30 @@ ak_dae_solids(AkXmlState * __restrict xst,
                              solids,
                              sizeof(*input));
 
-      input->base.semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
+      input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
       ak_xml_attr_url(xst,
                       _s_dae_source,
                       input,
-                      &input->base.source);
+                      &input->source);
 
-      if (!input->base.semanticRaw || !input->base.source.url)
+      if (!input->semanticRaw || !input->source.url)
         ak_free(input);
       else {
         AkEnum inputSemantic;
-        inputSemantic = ak_dae_enumInputSemantic(input->base.semanticRaw);
+        inputSemantic = ak_dae_enumInputSemantic(input->semanticRaw);
 
         if (inputSemantic < 0)
           inputSemantic = AK_INPUT_SEMANTIC_OTHER;
 
-        input->base.semantic = inputSemantic;
+        input->semantic = inputSemantic;
       }
 
       input->offset = ak_xml_attrui(xst, _s_dae_offset);
       input->set    = ak_xml_attrui(xst, _s_dae_set);
 
       if (last_input)
-        last_input->base.next = &input->base;
+        last_input->next = input;
       else
         solids->input = input;
 

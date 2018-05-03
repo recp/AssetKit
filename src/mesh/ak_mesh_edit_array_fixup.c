@@ -54,8 +54,8 @@ ak_meshFillBuffers(AkMesh * __restrict mesh) {
 
     input = primi->input;
     while (input) {
-      if (input->base.semantic == AK_INPUT_SEMANTIC_POSITION
-          || !(src     = ak_getObjectByUrl(&input->base.source))
+      if (input->semantic == AK_INPUT_SEMANTIC_POSITION
+          || !(src     = ak_getObjectByUrl(&input->source))
           || !(acc     = src->tcommon)
           || !(oldbuff = ak_getObjectByUrl(&acc->source)))
         goto cont;
@@ -67,7 +67,7 @@ ak_meshFillBuffers(AkMesh * __restrict mesh) {
       if (buffstate) {
         newbuff = buffstate->buff;
 
-        srch   = ak_meshSourceEditHelper(mesh, &input->base);
+        srch   = ak_meshSourceEditHelper(mesh, input);
         newacc = srch->source->tcommon;
         assert(newacc && "accessor is needed!");
 
@@ -124,7 +124,7 @@ ak_meshFillBuffers(AkMesh * __restrict mesh) {
       }
 
     cont:
-      input = (AkInput *)input->base.next;
+      input = input->next;
     }
 
     primi = primi->next;
