@@ -19,7 +19,7 @@ AkSource *
 ak_mesh_src(AkHeap   *heap,
             AkMesh   *mesh,
             AkSource *src,
-            uint32_t  max);
+            int       max);
 
 AkSource*
 ak_mesh_src_for(AkHeap          *heap,
