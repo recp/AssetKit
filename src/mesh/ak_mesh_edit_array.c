@@ -99,7 +99,7 @@ ak_meshReserveBufferForInput(AkMesh       * __restrict mesh,
   AkSourceBuffState  *buffstate;
   AkSource           *srci;
   AkAccessor         *acci, *newacc;
-  AkBuffer           *buffi;
+  AkBuffer           *buffi, *foundbuff;
   void               *buffid;
   int                 usg;
 
@@ -132,6 +132,7 @@ ak_meshReserveBufferForInput(AkMesh       * __restrict mesh,
     buffid = ak_getId(buffi);
 
   /* dont detach buffer */
+  /*
   if (acci->offset == 0) {
     buffstate = ak_meshReserveBuffer(mesh,
                                      buffid,
@@ -140,43 +141,41 @@ ak_meshReserveBufferForInput(AkMesh       * __restrict mesh,
                                      count);
     buffi = buffstate->buff;
   } else {
-    AkBuffer *foundbuff;
+  */
 
-    /* detach buff, because we may need to realloc, realloc-ing continued 
-     * buffers is more expensive than individual buff. But probably sending 
-     * to GPU is faster using continuous buffers. Bu we choice the flexibility 
-     * here because of maintenance of buff. There maybe an option for this 
-     * in the future.
-     */
-    foundbuff = rb_find(edith->detachedBuffers, acci);
-    if (!foundbuff) {
-      buffstate = ak_meshReserveBuffer(mesh,
-                                       buffid,
-                                       acci->type->size,
-                                       acci->bound,
-                                       count);
-      buffi = buffstate->buff;
-      rb_insert(edith->detachedBuffers,
-                acci,
-                buffi);
-    } else {
-      buffi    = foundbuff;
-      buffstate = rb_find(edith->buffers, buffid);
-    }
-
-    ak_accessor_rebound(heap, newacc, 0);
-
-    newacc->firstBound = 0;
-    newacc->offset     = 0;
-    newacc->stride     = newacc->bound;
+  /* detach buff, because we may need to realloc, realloc-ing continued
+   * buffers is more expensive than individual buff. But probably sending
+   * to GPU is faster using continuous buffers. Bu we choice the flexibility
+   * here because of maintenance of buff. There maybe an option for this
+   * in the future.
+   */
+  foundbuff = rb_find(edith->detachedBuffers, acci);
+  if (!foundbuff) {
+    buffstate = ak_meshReserveBuffer(mesh,
+                                     buffid,
+                                     acci->type->size,
+                                     acci->bound,
+                                     count);
+    buffi = buffstate->buff;
+    rb_insert(edith->detachedBuffers,
+              acci,
+              buffi);
+  } else {
+    buffi     = foundbuff;
+    buffstate = rb_find(edith->buffers, buffid);
   }
+
+  ak_accessor_rebound(heap, newacc, 0);
+
+  newacc->firstBound = 0;
+  newacc->offset     = 0;
+  newacc->stride     = newacc->bound;
+  /* } */
 
   if (ak_refc(srci) > usg || acci->offset != 0)
     ak_heap_setpm(buffid, buffi);
 
-  ak_url_init(newacc,
-              buffstate->url,
-              &newacc->source);
+  ak_url_init(newacc, buffstate->url, &newacc->source);
 
   srch = ak_heap_calloc(heap, meshobj, sizeof(*srch));
   srch->isnew           = ak_refc(srci) > usg || acci->offset != 0;
