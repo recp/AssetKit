@@ -259,10 +259,10 @@ ak_dae_mesh(AkXmlState * __restrict xst,
     AkInput         *inp;
     AkInput         *inpv;
 
-    inpv = vertices->input;
     prim = mesh->primitive;
 
     while (prim) {
+      inpv = vertices->input;
       while (inpv) {
         inp  = ak_heap_calloc(xst->heap, prim, sizeof(*inp));
         inp->semantic = inpv->semantic;
