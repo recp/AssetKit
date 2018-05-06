@@ -80,8 +80,8 @@ ak_meshDuplicatorForIndices(AkMesh          * __restrict mesh,
         continue;
 
       idxp  = it[i + vo];
-      inp   = posflgs + idxp * (inpc + 1);
       idxp *= 2;
+      inp   = posflgs + idxp * (st + 1);
 
       if (inp[0] < iter) {
         /* skip first squence */
