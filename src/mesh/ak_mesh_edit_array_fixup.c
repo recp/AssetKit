@@ -27,7 +27,6 @@ ak_meshFillBuffers(AkMesh * __restrict mesh) {
   AkUInt             *ind1_it, *ind2_it;
   AkBuffer           *oldbuff, *newbuff;
   AkSourceBuffState  *buffstate;
-  void               *buffid;
   AkSourceEditHelper *srch;
   AkDataParam        *dp;
   size_t              icount, i;
@@ -41,7 +40,7 @@ ak_meshFillBuffers(AkMesh * __restrict mesh) {
   /* per-primitive inputs */
   while (primi) {
     ind1 = primi->indices;
-    ind2 = ak_meshIndicesArrayFor(mesh, primi, true);
+    ind2 = ak_meshIndicesArrayFor(mesh, primi, false);
 
     /* same index buff */
     if (!ind1 || ind1 == ind2) {
@@ -60,8 +59,7 @@ ak_meshFillBuffers(AkMesh * __restrict mesh) {
           || !(oldbuff = ak_getObjectByUrl(&acc->source)))
         goto cont;
 
-      buffid    = ak_getId(oldbuff);
-      buffstate = rb_find(edith->buffers, buffid);
+      buffstate = rb_find(edith->buffers, input);
 
       /* copy buff to mesh */
       if (buffstate) {

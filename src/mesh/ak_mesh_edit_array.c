@@ -23,8 +23,6 @@ ak_meshFreeRsvBuff(RBTree *tree, RBNode *node) {
     return;
 
   buffstate = node->val;
-
-  tree->alc->free(buffstate->url);
   ak_free(buffstate);
 }
 
@@ -60,14 +58,13 @@ ak_meshReserveBuffer(AkMesh * __restrict mesh,
   newsize   = itemSize * count;
 
   if (!buffstate) {
-    buffstate     = ak_heap_calloc(heap, meshobj, sizeof(*buffstate));
+    buffstate    = ak_heap_calloc(heap, meshobj, sizeof(*buffstate));
     buff         = ak_heap_calloc(heap, meshobj, sizeof(*buff));
     buff->length = newsize;
     buff->data   = ak_heap_calloc(heap, buff, newsize);
 
     buffstate->buff   = buff;
     buffstate->count  = count;
-    buffstate->url    = ak_url_string(heap->allocator, buffid);
     buffstate->stride = stride;
 
     rb_insert(edith->buffers, buffid, buffstate);
@@ -76,10 +73,7 @@ ak_meshReserveBuffer(AkMesh * __restrict mesh,
 
   buff = buffstate->buff;
   if (buff->length < newsize) {
-    buff->data = ak_heap_realloc(heap,
-                                 meshobj,
-                                 buff->data,
-                                 newsize);
+    buff->data   = ak_heap_realloc(heap, meshobj, buff->data, newsize);
     buff->length = newsize;
   }
 
@@ -90,7 +84,6 @@ AK_EXPORT
 void
 ak_meshReserveBufferForInput(AkMesh   * __restrict mesh,
                              AkInput  * __restrict input,
-                             uint32_t              inputOffset,
                              size_t                count) {
   AkHeap             *heap;
   AkObject           *meshobj;
@@ -99,9 +92,8 @@ ak_meshReserveBufferForInput(AkMesh   * __restrict mesh,
   AkSourceBuffState  *buffstate;
   AkSource           *srci;
   AkAccessor         *acci, *newacc;
-  AkBuffer           *buffi, *foundbuff;
+  AkBuffer           *buffi;
   void               *buffid;
-  int                 usg;
 
   meshobj = ak_objFrom(mesh);
   heap    = ak_heap_getheap(meshobj);
@@ -114,22 +106,12 @@ ak_meshReserveBufferForInput(AkMesh   * __restrict mesh,
       || !(buffi = ak_getObjectByUrl(&acci->source)))
     return;
 
-  /* TODO: analyze accesor, continuous data */
-  usg = ak_mesh_src_usg(heap, mesh, srci);
-  if (acci->count == count
-      && inputOffset == 0
-      && acci->offset == 0
-      && ak_refc(srci) <= usg)
-    return;
-
   /* generate new accesor for input */
   newacc = ak_accessor_dup(acci);
   newacc->count = count;
 
-  if (ak_refc(srci) > usg || acci->offset != 0)
-    buffid = (void *)ak_id_gen(heap, NULL, NULL);
-  else
-    buffid = ak_getId(buffi);
+  buffid = input;
+
 
   /* dont detach buffer */
   /*
@@ -149,21 +131,19 @@ ak_meshReserveBufferForInput(AkMesh   * __restrict mesh,
    * here because of maintenance of buff. There maybe an option for this
    * in the future.
    */
-  foundbuff = rb_find(edith->detachedBuffers, acci);
-  if (!foundbuff) {
+//  foundbuff = rb_find(edith->detachedBuffers, acci);
+//  if (!foundbuff) {
     buffstate = ak_meshReserveBuffer(mesh,
                                      buffid,
                                      acci->type->size,
                                      acci->bound,
                                      count);
     buffi = buffstate->buff;
-    rb_insert(edith->detachedBuffers,
-              acci,
-              buffi);
-  } else {
-    buffi     = foundbuff;
-    buffstate = rb_find(edith->buffers, buffid);
-  }
+    rb_insert(edith->detachedBuffers, acci, buffi);
+//  } else {
+//    buffi     = foundbuff;
+//    buffstate = rb_find(edith->buffers, buffid);
+//  }
 
   ak_accessor_rebound(heap, newacc, 0);
 
@@ -172,30 +152,14 @@ ak_meshReserveBufferForInput(AkMesh   * __restrict mesh,
   newacc->stride     = newacc->bound;
   /* } */
 
-  if (ak_refc(srci) > usg || acci->offset != 0)
-    ak_heap_setpm(buffid, buffi);
-
-  ak_url_init(newacc, buffstate->url, &newacc->source);
-
   srch = ak_heap_calloc(heap, meshobj, sizeof(*srch));
-  srch->isnew           = ak_refc(srci) > usg || acci->offset != 0;
   srch->oldsource       = srci;
   srch->source          = ak_heap_calloc(heap, meshobj, sizeof(*srci));
   srch->source->buffer  = buffi;
   srch->source->tcommon = newacc;
-  srch->buffid         = buffid;
+  srch->buffid          = buffid;
 
-  if (srch->isnew) {
-    void *srcid;
-    srcid = (void *)ak_id_gen(heap,
-                              srch->source,
-                              NULL);
-
-    srch->url = ak_url_string(heap->allocator, srcid);
-    ak_heap_setId(heap, ak__alignof(srch->source), srcid);
-  } else {
-    srch->url = (char *)input->source.url;
-  }
+  newacc->source.ptr = buffstate->buff;
 
   ak_heap_setpm(newacc, srch->source);
 
@@ -204,19 +168,15 @@ ak_meshReserveBufferForInput(AkMesh   * __restrict mesh,
 
 AK_EXPORT
 void
-ak_meshReserveBuffers(AkMesh * __restrict mesh,
-                      size_t              count) {
-  AkMeshPrimitive  *prim;
-  AkInput          *input;
+ak_meshReserveBuffers(AkMesh          * __restrict mesh,
+                      AkMeshPrimitive * __restrict prim,
+                      size_t                       count) {
+  AkInput *input;
 
-  prim = mesh->primitive;
-  while (prim) {
-    input = prim->input;
-    while (input) {
-      ak_meshReserveBufferForInput(mesh, input, input->offset, count);
-      input = input->next;
-    }
-    prim = prim->next;
+  input = prim->input;
+  while (input) {
+    ak_meshReserveBufferForInput(mesh, input, count);
+    input = input->next;
   }
 }
 
@@ -243,22 +203,15 @@ ak_meshSourceEditHelper(AkMesh  * __restrict mesh,
 AK_EXPORT
 void
 ak_meshMoveBuffers(AkMesh * __restrict mesh) {
-  AkHeap             *heap, *mapHeap;
+  AkHeap             *mapHeap;
   AkMeshEditHelper   *edith;
   AkObject           *meshobj;
   AkSourceEditHelper *srch;
-  AkSourceBuffState  *buffstate;
   AkMapItem          *mi;
   AkInput            *input;
-  void               *foundbuff;
-  AkResult            ret;
 
-  edith = mesh->edith;
-  assert(edith && ak_mesh_edit_assert1);
-
+  edith   = mesh->edith;
   meshobj = ak_objFrom(mesh);
-  heap    = ak_heap_getheap(meshobj);
-
   mapHeap = edith->inputBufferMap->heap;
   mi      = edith->inputBufferMap->root;
 
@@ -266,43 +219,9 @@ ak_meshMoveBuffers(AkMesh * __restrict mesh) {
     input = ak_heap_getId(mapHeap, ak__alignof(mi));
     srch  = (AkSourceEditHelper *)mi->data;
 
-    /* move buff */
-    buffstate = rb_find(edith->buffers, srch->buffid);
-    ret = ak_heap_getMemById(heap,
-                             srch->buffid,
-                             &foundbuff);
-    if (ret == AK_OK) {
-      if (foundbuff != buffstate->buff) {
-        ak_moveId(foundbuff, buffstate->buff);
-        ak_release(foundbuff);
-      }
-    } else {
-      ak_heap_setId(heap,
-                    ak__alignof(buffstate->buff),
-                    srch->buffid);
-    }
-
-    ak_retain(buffstate->buff);
-
-    /* move source */
-    if (!srch->isnew) {
-      void *foundsource;
-      ret = ak_heap_getMemById(heap,
-                               (char *)srch->url + 1,
-                               &foundsource);
-      if (ret == AK_OK)
-        ak_moveId(srch->oldsource, srch->source);
-    }
-
     ak_url_unref(&input->source);
-    if (input->source.url != srch->url)
-      ak_free((char *)input->source.url);
 
-    ak_release(srch->oldsource);
-    ak_retain(srch->source);
-
-    ak_url_init(input, srch->url,  &input->source);
-
+    input->source.ptr = srch->source;
     mi = mi->next;
   }
 }

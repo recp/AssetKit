@@ -29,8 +29,7 @@ ak_movePositions(AkHeap          *heap,
   AkUIntArray        *dupc, *dupcsum;
   AkBuffer           *oldbuff, *newbuff;
   AkFloat            *olditms, *newitms;
-  void               *buffid;
-  size_t              vc, d, s, pno;
+  size_t              vc, d, s, pno, poo;
   uint32_t            stride, i, j;
 
   if (!prim->pos
@@ -38,8 +37,7 @@ ak_movePositions(AkHeap          *heap,
       || !(src       = ak_getObjectByUrl(&prim->pos->source))
       || !(acc       = src->tcommon)
       || !(oldbuff   = ak_getObjectByUrl(&acc->source))
-      || !(buffid    = ak_getId(oldbuff))
-      || !(buffstate = rb_find(edith->buffers, buffid)))
+      || !(buffstate = rb_find(edith->buffers, prim->pos)))
     return AK_ERR;
 
   newbuff = buffstate->buff;
@@ -56,15 +54,18 @@ ak_movePositions(AkHeap          *heap,
 
   dupc    = duplicator->range->dupc;
   dupcsum = duplicator->range->dupcsum;
-  vc      = duplicator->bufCount;
+  vc      = dupc->count;
   stride  = acc->stride;
   newitms = newbuff->data;
   olditms = oldbuff->data;
 
   /* copy vert positions to new location */
   for (i = 0; i < vc; i++) {
-    pno = dupc->items[2 * i];
-    d   = dupc->items[2 * i + 1];
+    if ((poo = dupc->items[3 * i + 2]) == 0)
+      continue;
+
+    pno = dupc->items[3 * i];
+    d   = dupc->items[3 * i + 1];
     s   = dupcsum->items[pno];
 
     for (j = 0; j <= d; j++) {
@@ -76,7 +77,7 @@ ak_movePositions(AkHeap          *heap,
 
         /* in new design newstride is always 1 */
         newitms[(pno + j + s) * acc->bound + dparam->offset]
-          = olditms[i * stride + dparam->offset];
+          = olditms[(poo - 1) * stride + dparam->offset];
 
         dparam = dparam->next;
       }
@@ -96,10 +97,11 @@ ak_primFixIndices(AkHeap          *heap,
   if (!(duplicator = ak_meshDuplicatorForIndices(mesh, prim)))
     return AK_ERR;
 
-  ak_meshFixIndexBuffer(mesh, duplicator);
-  ak_meshReserveBuffers(mesh, duplicator->dupCount + duplicator->bufCount);
+  ak_meshFixIndexBuffer(mesh, prim, duplicator);
+  ak_meshReserveBuffers(mesh,
+                        prim,
+                        duplicator->dupCount + duplicator->bufCount);
   ak_movePositions(heap, mesh, prim, duplicator);
-  ak_meshFillBuffers(mesh);
 
   return AK_OK;
 }
@@ -115,6 +117,7 @@ ak_meshFixIndicesDefault(AkHeap *heap, AkMesh *mesh) {
     prim = prim->next;
   }
 
+  ak_meshFillBuffers(mesh);
   return AK_OK;
 }
 

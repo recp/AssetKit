@@ -456,13 +456,13 @@ AK_EXPORT
 void
 ak_meshReserveBufferForInput(AkMesh   * __restrict mesh,
                              AkInput  * __restrict input,
-                             uint32_t              inputOffset,
                              size_t                count);
 
 AK_EXPORT
 void
-ak_meshReserveBuffers(AkMesh * __restrict mesh,
-                     size_t              count);
+ak_meshReserveBuffers(AkMesh          * __restrict mesh,
+                      AkMeshPrimitive * __restrict prim,
+                      size_t                       count);
 
 AK_EXPORT
 AkResult
@@ -488,8 +488,9 @@ ak_meshDuplicatorForIndices(AkMesh          * __restrict mesh,
 
 AK_EXPORT
 void
-ak_meshFixIndexBuffer(AkMesh       * __restrict mesh,
-                      AkDuplicator * __restrict duplicator);
+ak_meshFixIndexBuffer(AkMesh          * __restrict mesh,
+                      AkMeshPrimitive * __restrict prim,
+                      AkDuplicator    * __restrict duplicator);
 
 void
 ak_inputNameIndexed(AkInput * __restrict input,

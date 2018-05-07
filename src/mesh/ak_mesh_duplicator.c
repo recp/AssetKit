@@ -28,7 +28,7 @@ ak_meshDuplicatorForIndices(AkMesh          * __restrict mesh,
   uint8_t            *flg;
   size_t              count, ccount, icount, chk_start,
                       chk_end, inpsz, vertc, i, j;
-  uint32_t            chk, iter, inpc, st, vo, posno, idxp;
+  uint32_t            chk, iter, st, vo, posno, idxp;
 
   if (!prim->pos
       || !(posSource = ak_getObjectByUrl(&prim->pos->source))
@@ -36,25 +36,24 @@ ak_meshDuplicatorForIndices(AkMesh          * __restrict mesh,
       || !(posBuff   = ak_getObjectByUrl(&posAcc->source)))
     return NULL;
 
-  chk_start  = icount = ccount = chk = inpc = posno = 0;
   vertc      = posAcc->count;
   meshobj    = ak_objFrom(mesh);
   heap       = ak_heap_getheap(meshobj);
   dupl       = ak_heap_calloc(heap, meshobj, sizeof(*dupl));
+
+  /* TODO: cache this for multiple primitives */
   dupc       = ak_heap_calloc(heap,
                               NULL,
                               sizeof(AkUIntArray)
-                              + sizeof(AkUInt) * vertc * 2);
+                              + sizeof(AkUInt) * vertc * 3);
   dupc->count = posAcc->count;
 
   dupl->accessor = posAcc;
 
-  inpc    = prim->inputCount;
   st      = prim->indexStride;
   vo      = prim->pos->offset;
   ind     = prim->indices;
-  count   = (uint32_t)ind->count;
-  icount  = (uint32_t)count / st;
+  icount  = (uint32_t)ind->count / st;
   newind  = ak_meshIndicesArrayFor(mesh, prim, true);
   chk_end = icount;
   it      = ind->items;
@@ -66,6 +65,7 @@ ak_meshDuplicatorForIndices(AkMesh          * __restrict mesh,
                            NULL,
                            sizeof(AkUInt) * vertc * (st + 1));
 
+  chk_start = ccount = count = chk = posno = 0;
   iter = chk = 1;
   while (ccount < icount) {
     /* nothing to check */
@@ -80,16 +80,16 @@ ak_meshDuplicatorForIndices(AkMesh          * __restrict mesh,
         continue;
 
       idxp  = it[i + vo];
-      idxp *= 2;
       inp   = posflgs + idxp * (st + 1);
 
       if (inp[0] < iter) {
         /* skip first squence */
         if (iter > 1) {
-          dupc->items[idxp + 1]++;
+          dupc->items[3 * idxp + 1]++;
           count++;
         } else {
-          dupc->items[idxp] = posno++;
+          dupc->items[3 * idxp]     = posno++;
+          dupc->items[3 * idxp + 2] = idxp + 1;
         }
 
         inp[0] = iter;
@@ -115,12 +115,22 @@ ak_meshDuplicatorForIndices(AkMesh          * __restrict mesh,
   dupcsum = ak_heap_calloc(heap,
                            dupc,
                            sizeof(AkUIntArray)
-                              + sizeof(AkUInt) * (dupl->accessor->count + 1));
+                              + sizeof(AkUInt) * (posno + 1));
+  dupcsum->count = posno;
 
-  for (i = 0; i < dupc->count; i++)
-    dupcsum->items[dupc->items[i * 2] + 1] = dupc->items[i * 2 + 1];
+  for (i = 0; i < dupc->count; i++) {
+    uint32_t pno, d;
 
-  for (i = 1; i < dupc->count; i++)
+    if (dupc->items[3 * i + 2] == 0)
+      continue;
+
+    pno = dupc->items[i * 3];
+    d   = dupc->items[i * 3 + 1];
+
+    dupcsum->items[pno + 1] = d;
+  }
+
+  for (i = 1; i < dupcsum->count; i++)
     dupcsum->items[i] += dupcsum->items[i - 1];
 
   dupr             = ak_heap_alloc(heap, dupl, sizeof(*dupr));
@@ -142,9 +152,9 @@ ak_meshDuplicatorForIndices(AkMesh          * __restrict mesh,
 
 AK_EXPORT
 void
-ak_meshFixIndexBuffer(AkMesh       * __restrict mesh,
-                      AkDuplicator * __restrict duplicator) {
-  AkMeshPrimitive   *prim;
+ak_meshFixIndexBuffer(AkMesh          * __restrict mesh,
+                      AkMeshPrimitive * __restrict prim,
+                      AkDuplicator    * __restrict duplicator) {
   AkDuplicatorRange *dupr;
   AkUIntArray       *dupc, *dupcsum, *newind;
   AkUInt            *it, *it2;
@@ -157,7 +167,6 @@ ak_meshFixIndexBuffer(AkMesh       * __restrict mesh,
   if (!duplicator->accessor)
     return;
 
-  prim   = mesh->primitive;
   newind = ak_meshIndicesArrayFor(mesh, prim, true);
   it     = prim->indices->items;
   it2    = newind->items;
@@ -166,24 +175,16 @@ ak_meshFixIndexBuffer(AkMesh       * __restrict mesh,
   c      = (uint32_t)prim->indices->count;
 
   if (duplicator->dupCount > 0) {
-    while (prim) {
-      for (i = j = 0; i < c; i += st, j++) {
-        idxp   = it[i + vo];
-        nidxp  = dupc->items[idxp * 2];
-        it2[j] = it2[j] + nidxp + dupcsum->items[nidxp];
-      }
-
-      prim = prim->next;
+    for (i = j = 0; i < c; i += st, j++) {
+      idxp   = it[i + vo];
+      nidxp  = dupc->items[idxp * 3];
+      it2[j] = it2[j] + nidxp + dupcsum->items[nidxp];
     }
   } else {
-    while (prim) {
-      for (i = j = 0; i < c; i += st, j++) {
-        idxp   = it[i + vo];
-        nidxp  = dupc->items[idxp * 2];
-        it2[j] = nidxp;
-      }
-
-      prim = prim->next;
+    for (i = j = 0; i < c; i += st, j++) {
+      idxp   = it[i + vo];
+      nidxp  = dupc->items[idxp * 3];
+      it2[j] = nidxp;
     }
   }
 }

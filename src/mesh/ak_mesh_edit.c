@@ -44,7 +44,7 @@ ak_meshBeginEditA(AkMesh  * __restrict mesh,
 
   if ((flags & AK_GEOM_EDIT_FLAG_ARRAYS)
       && !edith->buffers) {
-    edith->buffers         = rb_newtree_str();
+    edith->buffers         = rb_newtree_ptr();
     edith->detachedBuffers = rb_newtree_ptr();
     edith->inputBufferMap  = ak_map_new(ak_cmp_ptr);
 
