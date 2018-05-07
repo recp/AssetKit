@@ -29,7 +29,6 @@ cache:
 addons:
   apt:
     packages:
-      - clang-3.6
       - lcov
 
 branches:
