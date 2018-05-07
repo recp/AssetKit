@@ -6,8 +6,8 @@
  */
 
 #include "gltf_mesh_fixup.h"
-#include "../ak_memory_common.h"
-#include "../mesh/ak_mesh_index.h"
+#include "../memory_common.h"
+#include "../mesh/mesh_index.h"
 
 void _assetkit_hide
 gltf_mesh_fixup(AkGLTFState * __restrict gst) {

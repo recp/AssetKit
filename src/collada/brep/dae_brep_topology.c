@@ -7,7 +7,7 @@
 
 #include "dae_brep_topology.h"
 #include "../core/dae_enums.h"
-#include "../../ak_array.h"
+#include "../../array.h"
 
 AkResult _assetkit_hide
 ak_dae_edges(AkXmlState * __restrict xst,

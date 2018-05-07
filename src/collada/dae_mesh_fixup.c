@@ -6,8 +6,8 @@
  */
 
 #include "dae_mesh_fixup.h"
-#include "../ak_memory_common.h"
-#include "../mesh/ak_mesh_index.h"
+#include "../memory_common.h"
+#include "../mesh/mesh_index.h"
 
 AkResult _assetkit_hide
 ak_dae_mesh_fixup(AkMesh * mesh) {

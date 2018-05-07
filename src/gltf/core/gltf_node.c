@@ -6,7 +6,7 @@
  */
 
 #include "gltf_node.h"
-#include "../../ak_id.h"
+#include "../../id.h"
 
 #include <ds/hash.h>
 #include <string.h>

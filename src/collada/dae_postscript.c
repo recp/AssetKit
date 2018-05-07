@@ -7,8 +7,8 @@
 
 #include "dae_postscript.h"
 #include "dae_geom_fixup.h"
-#include "../ak_memory_common.h"
-#include "../ak_libxml.h"
+#include "../memory_common.h"
+#include "../libxml.h"
 
 #include "1.4/dae14.h"
 

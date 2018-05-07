@@ -8,7 +8,7 @@
 #include "dae_morph.h"
 #include "dae_source.h"
 #include "dae_enums.h"
-#include "../../ak_array.h"
+#include "../../array.h"
 
 AkResult _assetkit_hide
 ak_dae_morph(AkXmlState * __restrict xst,

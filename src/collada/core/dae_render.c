@@ -6,7 +6,7 @@
  */
 
 #include "dae_render.h"
-#include "../../ak_array.h"
+#include "../../array.h"
 #include "../fx/dae_fx_material.h"
 
 AkResult _assetkit_hide

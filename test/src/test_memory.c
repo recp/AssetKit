@@ -6,8 +6,8 @@
  */
 
 #include "test_memory.h"
-#include "../../src/ak_memory_common.h"
-#include "../../src/ak_memory_lt.h"
+#include "../../src/memory_common.h"
+#include "../../src/memory_lt.h"
 
 #include <stdint.h>
 

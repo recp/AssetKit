@@ -6,7 +6,7 @@
  */
 
 #include "gltf.h"
-#include "../ak_id.h"
+#include "../id.h"
 #include "../../include/ak/path.h"
 #include "core/gltf_asset.h"
 #include "core/gltf_buffer.h"

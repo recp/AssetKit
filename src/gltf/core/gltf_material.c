@@ -10,7 +10,7 @@
 #include "gltf_sampler.h"
 #include "gltf_texture.h"
 #include "gltf_enums.h"
-#include "../../default/ak_def_material.h"
+#include "../../default/def_material.h"
 
 void _assetkit_hide
 gltf_materials(AkGLTFState * __restrict gst) {

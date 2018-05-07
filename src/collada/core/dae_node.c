@@ -8,7 +8,7 @@
 #include "dae_node.h"
 #include "dae_enums.h"
 
-#include "../../ak_array.h"
+#include "../../array.h"
 #include "../core/dae_asset.h"
 #include "../fx/dae_fx_material.h"
 #include "../dae_node_fixup.h"

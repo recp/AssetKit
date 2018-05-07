@@ -9,11 +9,11 @@
 #define __libassetkit__dae_common__h_
 
 #include "../../include/ak/assetkit.h"
-#include "../ak_libxml.h"
-#include "../ak_common.h"
-#include "../ak_memory_common.h"
-#include "../ak_utils.h"
-#include "../ak_tree.h"
+#include "../libxml.h"
+#include "../common.h"
+#include "../memory_common.h"
+#include "../utils.h"
+#include "../tree.h"
 #include "dae_strpool.h"
 
 #include <libxml/xmlreader.h>

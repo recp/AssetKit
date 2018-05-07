@@ -7,7 +7,7 @@
 
 #include "dae_lines.h"
 #include "dae_enums.h"
-#include "../../ak_array.h"
+#include "../../array.h"
 
 AkResult _assetkit_hide
 ak_dae_lines(AkXmlState * __restrict xst,

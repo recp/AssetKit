@@ -7,7 +7,7 @@
 
 #include "dae_triangles.h"
 #include "dae_enums.h"
-#include "../../ak_array.h"
+#include "../../array.h"
 
 AkResult _assetkit_hide
 ak_dae_triangles(AkXmlState   * __restrict xst,

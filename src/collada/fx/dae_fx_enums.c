@@ -6,7 +6,7 @@
  */
 
 #include "dae_fx_enums.h"
-#include "../../ak_common.h"
+#include "../../common.h"
 #include <string.h>
 
 AkEnum _assetkit_hide

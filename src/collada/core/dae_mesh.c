@@ -11,7 +11,7 @@
 #include "dae_lines.h"
 #include "dae_polygons.h"
 #include "dae_triangles.h"
-#include "../../mesh/ak_mesh_util.h"
+#include "../../mesh/mesh_util.h"
 
 #define k_s_dae_source     1
 #define k_s_dae_vertices   2

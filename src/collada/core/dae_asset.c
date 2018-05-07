@@ -6,7 +6,7 @@
  */
 
 #include "dae_asset.h"
-#include "../../ak_memory_common.h"
+#include "../../memory_common.h"
 
 AkResult _assetkit_hide
 ak_dae_assetInf(AkXmlState * __restrict xst,

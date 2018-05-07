@@ -6,7 +6,7 @@
  */
 
 #include "dae_skin.h"
-#include "../../ak_array.h"
+#include "../../array.h"
 #include "dae_source.h"
 #include "dae_enums.h"
 

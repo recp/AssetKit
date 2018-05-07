@@ -7,7 +7,7 @@
 
 #include "dae_brep_curve.h"
 #include "dae_brep_nurbs.h"
-#include "../../ak_array.h"
+#include "../../array.h"
 
 #define k_s_dae_orient 101
 #define k_s_dae_origin 102

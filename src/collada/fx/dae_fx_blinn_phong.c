@@ -8,7 +8,7 @@
 #include "dae_fx_blinn_phong.h"
 #include "dae_fx_color_or_tex.h"
 #include "dae_fx_float_or_param.h"
-#include "../../default/ak_def_material.h"
+#include "../../default/def_material.h"
 #include "dae_fx_enums.h"
 #include "../bugfix/transp.h"
 

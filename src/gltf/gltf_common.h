@@ -9,13 +9,13 @@
 #define ak_gltf_commoh_h
 
 #include "../../include/ak/assetkit.h"
-#include "../ak_common.h"
-#include "../ak_memory_common.h"
-#include "../ak_utils.h"
-#include "../ak_tree.h"
-#include "../ak_json.h"
-#include "../ak_id.h"
-#include "../resc/ak_curl.h"
+#include "../common.h"
+#include "../memory_common.h"
+#include "../utils.h"
+#include "../tree.h"
+#include "../json.h"
+#include "../id.h"
+#include "../resc/curl.h"
 #include "gltf_strpool.h"
 
 #include <string.h>

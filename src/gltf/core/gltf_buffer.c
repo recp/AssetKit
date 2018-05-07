@@ -6,7 +6,7 @@
  */
 
 #include "gltf_buffer.h"
-#include "../../ak_utils.h"
+#include "../../utils.h"
 
 AkBuffer*
 gltf_buffer(AkGLTFState * __restrict gst,

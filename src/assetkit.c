@@ -7,7 +7,7 @@
 
 #include "../include/ak/assetkit.h"
 
-#include "ak_utils.h"
+#include "utils.h"
 #include "collada/dae.h"
 #include "gltf/gltf.h"
 
