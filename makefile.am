@@ -76,7 +76,7 @@ include_HEADERS = include/ak/assetkit.h \
 libassetkit_la_SOURCES=\
     src/assetkit.c \
     src/common.c \
-    src/libxml.c \
+    src/xml.c \
     src/memory.c \
     src/memory_ext.c \
     src/memory_rb.c \

@@ -272,6 +272,7 @@ ak_dae_mesh(AkXmlState * __restrict xst,
                                             inpv->semanticRaw);
 
         ak_url_dup(&inpv->source, prim, &inp->source);
+        ak_xml_url_add(xst, &inp->source);
 
         inp->offset    = prim->reserved1;
         inp->set       = prim->reserved2;

@@ -9,7 +9,7 @@
 #define __libassetkit__dae_common__h_
 
 #include "../../include/ak/assetkit.h"
-#include "../libxml.h"
+#include "../xml.h"
 #include "../common.h"
 #include "../memory_common.h"
 #include "../utils.h"

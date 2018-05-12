@@ -8,7 +8,7 @@
 #include "dae_postscript.h"
 #include "dae_geom_fixup.h"
 #include "../memory_common.h"
-#include "../libxml.h"
+#include "../xml.h"
 
 #include "1.4/dae14.h"
 
@@ -46,7 +46,7 @@ ak_dae_retain_refs(AkXmlState * __restrict xst) {
   AkURLQueue      *it, *tofree;
   AkURL           *url;
   AkHeapNode      *hnode;
-  size_t          *refc;
+  int             *refc;
   AkResult         ret;
 
   alc = xst->heap->allocator;

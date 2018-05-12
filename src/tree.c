@@ -7,7 +7,7 @@
 
 #include "tree.h"
 
-#include "libxml.h"
+#include "xml.h"
 #include "common.h"
 #include "utils.h"
 

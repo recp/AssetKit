@@ -818,10 +818,13 @@ ak_heap_release(AkHeapNode * __restrict heapNode) {
 
   refc = ak_heap_ext_get(heapNode, AK_HEAP_NODE_FLAGS_REFC);
   if (!refc || !(*refc))
+    goto fr;
+
+  if (--(*refc) > 0)
     return;
 
-  if (--(*refc) == 0ul)
-    ak_free(ak__alignas(heapNode));
+fr:
+  ak_free(ak__alignas(heapNode));
 }
 
 AK_EXPORT

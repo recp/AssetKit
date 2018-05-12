@@ -205,13 +205,11 @@ void
 ak_meshMoveBuffers(AkMesh * __restrict mesh) {
   AkHeap             *mapHeap;
   AkMeshEditHelper   *edith;
-  AkObject           *meshobj;
   AkSourceEditHelper *srch;
   AkMapItem          *mi;
   AkInput            *input;
 
   edith   = mesh->edith;
-  meshobj = ak_objFrom(mesh);
   mapHeap = edith->inputBufferMap->heap;
   mi      = edith->inputBufferMap->root;
 
@@ -220,6 +218,9 @@ ak_meshMoveBuffers(AkMesh * __restrict mesh) {
     srch  = (AkSourceEditHelper *)mi->data;
 
     ak_url_unref(&input->source);
+
+    ak_release(srch->oldsource);
+    ak_retain(srch->source);
 
     input->source.ptr = srch->source;
     mi = mi->next;
