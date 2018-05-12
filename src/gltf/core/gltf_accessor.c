@@ -15,16 +15,14 @@ gltf_accessor(AkGLTFState     * __restrict gst,
               void            * __restrict memParent,
               json_t          * __restrict jacc) {
   AkHeap      *heap;
-  AkSource    *src;
   AkAccessor  *acc;
   json_t      *jbuffView, *min, *max;
   AkDataParam *dp, *last_dp;
   uint32_t     bound, i;
 
   heap = gst->heap;
+  acc  = ak_heap_calloc(heap, memParent, sizeof(*acc));
 
-  src  = ak_heap_calloc(heap, memParent, sizeof(*src));
-  acc  = ak_heap_calloc(heap, src, sizeof(*acc));
 
   acc->itemTypeId = gltf_componentType(jsn_i32(jacc, _s_gltf_componentType));
   acc->type       = ak_typeDesc(acc->itemTypeId);
@@ -98,8 +96,6 @@ gltf_accessor(AkGLTFState     * __restrict gst,
       last_dp->next = dp;
     last_dp = dp;
   }
-
-  src->tcommon = acc;
 
   min = json_object_get(jacc, _s_gltf_min);
   max = json_object_get(jacc, _s_gltf_max);
