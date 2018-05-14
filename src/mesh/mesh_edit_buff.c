@@ -110,56 +110,27 @@ ak_meshReserveBufferForInput(AkMesh   * __restrict mesh,
   newacc = ak_accessor_dup(acci);
   newacc->count = count;
 
-  buffid = input;
-
-
-  /* dont detach buffer */
-  /*
-  if (acci->offset == 0) {
-    buffstate = ak_meshReserveBuffer(mesh,
-                                     buffid,
-                                     acci->type->size,
-                                     acci->bound,
-                                     count);
-    buffi = buffstate->buff;
-  } else {
-  */
-
-  /* detach buff, because we may need to realloc, realloc-ing continued
-   * buffers is more expensive than individual buff. But probably sending
-   * to GPU is faster using continuous buffers. Bu we choice the flexibility
-   * here because of maintenance of buff. There maybe an option for this
-   * in the future.
-   */
-//  foundbuff = rb_find(edith->detachedBuffers, acci);
-//  if (!foundbuff) {
-    buffstate = ak_meshReserveBuffer(mesh,
-                                     buffid,
-                                     acci->type->size,
-                                     acci->bound,
-                                     count);
-    buffi = buffstate->buff;
-    rb_insert(edith->detachedBuffers, acci, buffi);
-//  } else {
-//    buffi     = foundbuff;
-//    buffstate = rb_find(edith->buffers, buffid);
-//  }
+  buffid    = input;
+  buffstate = ak_meshReserveBuffer(mesh,
+                                   buffid,
+                                   acci->type->size,
+                                   acci->bound,
+                                   count);
+  buffi = buffstate->buff;
 
   ak_accessor_rebound(heap, newacc, 0);
 
   newacc->firstBound = 0;
   newacc->offset     = 0;
   newacc->stride     = newacc->bound;
-  /* } */
 
-  srch = ak_heap_calloc(heap, meshobj, sizeof(*srch));
+  srch                  = ak_heap_calloc(heap, meshobj, sizeof(*srch));
   srch->oldsource       = srci;
   srch->source          = ak_heap_calloc(heap, meshobj, sizeof(*srci));
   srch->source->buffer  = buffi;
   srch->source->tcommon = newacc;
-  srch->buffid          = buffid;
 
-  newacc->source.ptr = buffstate->buff;
+  newacc->source.ptr    = buffstate->buff;
 
   ak_heap_setpm(newacc, srch->source);
 

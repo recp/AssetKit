@@ -45,11 +45,9 @@ ak_meshBeginEditA(AkMesh  * __restrict mesh,
   if ((flags & AK_GEOM_EDIT_FLAG_ARRAYS)
       && !edith->buffers) {
     edith->buffers         = rb_newtree_ptr();
-    edith->detachedBuffers = rb_newtree_ptr();
     edith->inputBufferMap  = ak_map_new(ak_cmp_ptr);
 
     ak_dsSetAllocator(heap->allocator, edith->buffers->alc);
-    ak_dsSetAllocator(heap->allocator, edith->detachedBuffers->alc);
 
     edith->buffers->onFreeNode = ak_meshFreeRsvBuff;
 
@@ -81,9 +79,6 @@ ak_meshEndEdit(AkMesh * __restrict mesh) {
 
   if (edith->buffers)
     rb_destroy(edith->buffers);
-
-  if (edith->detachedBuffers)
-    rb_destroy(edith->detachedBuffers);
 
   if (edith->indices)
     rb_destroy(edith->indices);

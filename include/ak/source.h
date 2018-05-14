@@ -96,11 +96,8 @@ typedef struct AkSourceBuffState {
 
 typedef struct AkSourceEditHelper {
   struct AkSourceEditHelper *next;
-  AkSource *oldsource;
-  AkSource *source;
-  void     *url;
-  void     *buffid;
-  bool      isnew;
+  AkSource                  *oldsource;
+  AkSource                  *source;
 } AkSourceEditHelper;
 
 AK_EXPORT
