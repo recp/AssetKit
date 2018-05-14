@@ -40,6 +40,7 @@ ak_dae_source(AkXmlState * __restrict xst,
 
   buffer = NULL;
   source = ak_heap_calloc(xst->heap, memParent, sizeof(*source));
+  ak_setypeid(source, AKT_SOURCE);
 
   ak_xml_readid(xst, source);
   source->name = ak_xml_attr(xst, source, _s_dae_name);

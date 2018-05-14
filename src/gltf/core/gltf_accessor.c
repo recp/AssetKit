@@ -23,6 +23,7 @@ gltf_accessor(AkGLTFState     * __restrict gst,
   heap = gst->heap;
   acc  = ak_heap_calloc(heap, memParent, sizeof(*acc));
 
+  ak_setypeid(acc, AKT_ACCESSOR);
 
   acc->itemTypeId = gltf_componentType(jsn_i32(jacc, _s_gltf_componentType));
   acc->type       = ak_typeDesc(acc->itemTypeId);

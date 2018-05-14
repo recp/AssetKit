@@ -55,6 +55,8 @@ ak_accessor_dup(AkAccessor *oldacc) {
 
   memcpy(acc, oldacc, sizeof(*oldacc));
 
+  ak_setypeid(acc, AKT_ACCESSOR);
+  
   last_dp = NULL;
   dp = oldacc->param;
   while (dp) {

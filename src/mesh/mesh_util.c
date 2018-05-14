@@ -68,6 +68,7 @@ ak_mesh_src(AkHeap   *heap,
   newsrc = ak_heap_calloc(heap,
                           ak_objFrom(mesh),
                           sizeof(*src));
+  ak_setypeid(newsrc, AKT_SOURCE);
 
   newid = ak_id_gen(heap,
                     newsrc,
@@ -79,6 +80,7 @@ ak_mesh_src(AkHeap   *heap,
   /* duplicate accesor */
   newacc = ak_heap_alloc(heap, newsrc, sizeof(*newacc));
   memcpy(newacc, oldacc, sizeof(*newacc));
+  ak_setypeid(newsrc, AKT_ACCESSOR);
 
   dp      = oldacc->param;
   last_dp = NULL;
@@ -130,10 +132,12 @@ ak_mesh_src_for(AkHeap          *heap,
 
   /* TODO: find existing src and join data into one */
   src   = ak_heap_calloc(heap, ak_objFrom(mesh), sizeof(*src));
+  acc   = ak_heap_calloc(heap, src, sizeof(*acc));
   srcid = (char *)ak_id_gen(heap, src, NULL);
-  ak_setId(src, srcid);
 
-  acc = ak_heap_calloc(heap, src, sizeof(*acc));
+  ak_setId(src, srcid);
+  ak_setypeid(src, AKT_SOURCE);
+  ak_setypeid(acc, AKT_ACCESSOR);
 
   /* set params */
   ak_accessor_setparams(acc, semantic);
@@ -188,10 +192,13 @@ ak_mesh_src_for_ext(AkHeap          *heap,
 
   /* TODO: find existing src and join data into one */
   src = ak_heap_calloc(heap, ak_objFrom(mesh), sizeof(*src));
+  acc = ak_heap_calloc(heap, src, sizeof(*acc));
+
+  ak_setypeid(src, AKT_SOURCE);
+  ak_setypeid(acc, AKT_ACCESSOR);
+
   if (srcid)
     ak_setId(src, srcid);
-
-  acc = ak_heap_calloc(heap, src, sizeof(*acc));
 
   /* set params */
   ak_accessor_setparams(acc, semantic);

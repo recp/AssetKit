@@ -32,6 +32,8 @@ ak_dae_accessor(AkXmlState * __restrict xst,
                   accessor,
                   &accessor->source);
 
+  ak_setypeid(accessor, AKT_ACCESSOR);
+
   if (xmlTextReaderIsEmptyElement(xst->reader))
     goto done;
 

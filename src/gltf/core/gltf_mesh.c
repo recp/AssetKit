@@ -105,6 +105,8 @@ gltf_meshes(AkGLTFState * __restrict gst) {
         source = ak_heap_calloc(heap, prim, sizeof(*source));
         jacc   = json_array_get(jaccessors, json_integer_value(jval));
 
+        ak_setypeid(source, AKT_SOURCE);
+
         source->tcommon = gltf_accessor(gst, source, jacc);
         inp->semantic   = gltf_enumInputSemantic(inp->semanticRaw);
         inp->source.ptr = source;

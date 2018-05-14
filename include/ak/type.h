@@ -62,7 +62,10 @@ typedef enum AkTypeId {
   AKT_TEXTURE_NAME,
   AKT_TEXCOORD,
   AKT_NODE,
-  AKT_SCENE
+  AKT_SCENE,
+  AKT_SOURCE,
+  AKT_ACCESSOR,
+  AKT_BUFFER
 } AkTypeId;
 
 typedef struct AkTypeDesc {
