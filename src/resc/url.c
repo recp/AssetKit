@@ -7,6 +7,7 @@
 
 #include "../common.h"
 #include "../../include/ak/path.h"
+#include "../memory_common.h"
 #include "resource.h"
 #include "curl.h"
 
@@ -142,4 +143,97 @@ ak_getFileFrom(AkDoc *doc, const char *url) {
 
   path = ak_fullpath(doc, url, pathbuf);
   return ak_strdup(NULL, path);
+}
+
+AK_EXPORT
+void
+ak_retainURL(void * __restrict obj, AkURL * __restrict url) {
+  AkHeap     *heap;
+  AkHeapNode *hnode;
+  AkUrlNode  *urlNode;
+  int        *refc;
+  void       *found, *last, **emptyslot;
+  size_t      len;
+  AkResult    ret;
+
+  heap  = ak_heap_getheap(obj);
+  hnode = ak__alignof(obj);
+
+  /* check if object is available */
+  ret = ak_heap_getNodeByURL(heap, url, &hnode);
+  if (ret != AK_OK || !hnode)
+    return;
+
+  urlNode   = ak_heap_ext_add(heap, hnode, AK_HEAP_NODE_FLAGS_REFC);
+  refc      = ak_heap_ext_add(heap, hnode, AK_HEAP_NODE_FLAGS_REFC);
+  len       = urlNode->len;
+  found     = urlNode->urls[0];
+  last      = urlNode->urls[len];
+  emptyslot = NULL;
+
+  while (found != last) {
+    /* already retained */
+    if (found == url)
+      return;
+
+    if (found == NULL && !emptyslot)
+      emptyslot = found;
+  }
+
+  /* retain */
+  (*refc)++;
+
+  if (emptyslot) {
+    *emptyslot = url;
+    return;
+  }
+
+  /* append url to retained url lists */
+  urlNode->len  = len + 1;
+  urlNode->urls = heap->allocator->realloc(urlNode->urls,
+                                           sizeof(void *) * urlNode->len);
+
+  urlNode->urls[len] = url;
+}
+
+AK_EXPORT
+void
+ak_releaseURL(void * __restrict obj, AkURL * __restrict url) {
+  AkHeap     *heap;
+  AkHeapNode *hnode;
+  AkUrlNode  *urlNode;
+  void       *urlobj;
+  void       **found, **it, *last;
+  size_t      len;
+
+  heap  = ak_heap_getheap(obj);
+  hnode = ak__alignof(obj);
+
+  /* check if object is available */
+  if (!(urlobj = ak_getObjectByUrl(url)))
+    return;
+
+  urlNode = ak_heap_ext_get(hnode, AK_HEAP_NODE_FLAGS_REFC);
+  len     = urlNode->len;
+  it      = urlNode->urls[0];
+  last    = urlNode->urls[len];
+  found   = NULL;
+
+  while (it != last) {
+    /* already retained */
+    if (*it == url) {
+      found = it;
+      break;
+    }
+
+    it++;
+  }
+
+  if (!found)
+    return;
+
+  /* empty slot */
+  *found = NULL;
+
+  ak_release(urlobj);
 }

@@ -16,6 +16,7 @@ static uint8_t ak__heap_ext_sz[] = {
   (uint8_t)sizeof(int),
   (uint8_t)sizeof(uintptr_t),
   (uint8_t)sizeof(uintptr_t),
+  (uint8_t)sizeof(AkUrlNode),
   (uint8_t)sizeof(uintptr_t)
 };
 
@@ -56,6 +57,29 @@ ak_heap_ext_off(uint16_t flags, uint16_t flag) {
   }
 
   return sz;
+}
+
+static
+AK_INLINE
+void
+ak_heap_ext_freeurl(AkHeapNode * __restrict hnode) {
+  AkUrlNode  *urlNode;
+  void       *urlobj;
+  void       **found, **it, *last;
+  size_t      len;
+
+  urlNode = ak_heap_ext_get(hnode, AK_HEAP_NODE_FLAGS_REFC);
+  len     = urlNode->len;
+  it      = urlNode->urls[0];
+  last    = urlNode->urls[len];
+  found   = NULL;
+
+  while (it != last) {
+    /* check if object is available */
+    if ((urlobj = ak_getObjectByUrl(*it)))
+      ak_release(urlobj);
+    it++;
+  }
 }
 
 void *
@@ -176,6 +200,9 @@ ak_heap_ext_rm(AkHeap     * __restrict heap,
       if (hnode->flags & AK_HEAP_NODE_FLAGS_USRF)
         alc->free(&exnode->data[ofst]);
       break;
+    case AK_HEAP_NODE_FLAGS_URL:
+      ak_heap_ext_freeurl(hnode);
+      break;
   }
 
   hnode->flags &= ~flag;
@@ -250,6 +277,10 @@ ak_heap_ext_free(AkHeap     * __restrict heap,
   if (hnode->flags & AK_HEAP_NODE_FLAGS_INF) {
     /* ofst = ak_heap_ext_off(hnode->flags, AK_HEAP_NODE_FLAGS_INF);
        ak_free(&exnode->data[ofst]); */
+  }
+
+  if (hnode->flags & AK_HEAP_NODE_FLAGS_URL) {
+    ak_heap_ext_freeurl(hnode);
   }
 
   if (hnode->flags & AK_HEAP_NODE_FLAGS_USR) {

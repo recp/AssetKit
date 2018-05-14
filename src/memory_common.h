@@ -48,6 +48,11 @@ typedef struct AkSIDNode {
   const char       *sid;
 } AkSIDNode;
 
+typedef struct AkUrlNode {
+  size_t  len;
+  void  **urls;
+} AkUrlNode;
+
 #define AK__HEAPNODE(X)                                                       \
   (((AkHeapNodeExt *)((char *)X - offsetof(AkHeapNodeExt, data)))->node)
 
@@ -79,8 +84,10 @@ struct AkHeapNode {
 
 data: data must contain items with these order with these data types
 -------------------------------------------------------------------------------
-| id       | sid     | refc   | extra     | inf       | usr       |
-| SrchNode | SidNode | size_t | uintptr_t | uintptr_t | uintptr_t |          */
+| id       | sid     | refc   | extra     | inf       | usr       | url       |
+| SrchNode | SidNode | size_t | uintptr_t | uintptr_t | uintptr_t | UrlNode   |
+
+ */
 typedef struct AkHeapNodeExt {
   AkHeapNode *node;
   AkHeapNode *chld;

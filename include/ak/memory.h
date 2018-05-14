@@ -65,8 +65,9 @@ typedef enum AkHeapNodeFlags {
   AK_HEAP_NODE_FLAGS_REFC      = 1 << 6,  /* node is reference counted       */
   AK_HEAP_NODE_FLAGS_EXTRA     = 1 << 7,  /* node has <extra> element        */
   AK_HEAP_NODE_FLAGS_INF       = 1 << 8,  /* node has <asset> element        */
-  AK_HEAP_NODE_FLAGS_USR       = 1 << 9,  /* user data                       */
-  AK_HEAP_NODE_FLAGS_USRF      = 1 << 10, /* user data must be freed         */
+  AK_HEAP_NODE_FLAGS_URL       = 1 << 9,  /* node has retained mem via url   */
+  AK_HEAP_NODE_FLAGS_USR       = 1 << 10, /* user data                       */
+  AK_HEAP_NODE_FLAGS_USRF      = 1 << 11, /* user data must be freed         */
   AK_HEAP_NODE_FLAGS_SID_NODE  = AK_HEAP_NODE_FLAGS_SID,
   AK_HEAP_NODE_FLAGS_EXT_ALL   = AK_HEAP_NODE_FLAGS_EXT
                                | AK_HEAP_NODE_FLAGS_SRCH

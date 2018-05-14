@@ -818,6 +818,14 @@ AK_EXPORT
 bool
 ak_hasCoordSys(void * __restrict obj);
 
+AK_EXPORT
+void
+ak_retainURL(void * __restrict obj, AkURL * __restrict url);
+
+AK_EXPORT
+void
+ak_releaseURL(void * __restrict obj, AkURL * __restrict url);
+
 #ifdef __cplusplus
 }
 #endif
