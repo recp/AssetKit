@@ -19,7 +19,8 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
   char       *data;
   AkSource   *src;
   AkAccessor *acc;
-  vec3        min, max;
+  vec3        center, min, max;
+  size_t      count;
 
   mesh    = prim->mesh;
   geom    = mesh->geom;
@@ -36,6 +37,7 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
 
   glm_vec_broadcast(FLT_MAX, min);
   glm_vec_broadcast(-FLT_MAX, max);
+  glm_vec_broadcast(0.0f, center);
 
   /* we must walk through indices if exists because source may contain
      unrelated data and this will cause get wrong box
@@ -49,20 +51,29 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
     vo     = prim->pos->offset;
     st     = prim->indexStride;
     ind    = prim->indices->items;
+    count  = icount;
 
     for (i = 0; i < icount; i += st) {
       float *vec;
       vec = (float *)(data + ind[i + vo] * acc->byteStride);
+      glm_vec_add(vec, center, center);
       ak_bbox_pick(min, max, vec);
     }
   } else {
     size_t i;
+
+    count = acc->count;
     for (i = 0; i < acc->count; i++) {
       float *vec;
       vec = (float *)(data + acc->byteStride * i);
+      glm_vec_add(vec, center, center);
       ak_bbox_pick(min, max, vec);
     }
   }
+
+  /* calculate exact center of primitive */
+  glm_vec_divs(center, count, center);
+  glm_vec4(center, 1.0f, prim->center);
 
   heap = ak_heap_getheap(prim);
 
