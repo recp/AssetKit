@@ -33,8 +33,9 @@ typedef enum AkOption {
   AK_OPT_ADD_DEFAULT_CAMERA         = 17, /* true     */
   AK_OPT_ADD_DEFAULT_LIGHT          = 18, /* false    */
   AK_OPT_COORD_CONVERT_TYPE         = 19, /* DEFAULT  */
-  AK_OPT_BUGFIXES                   = 20,  /* TRUE     */
-  AK_OPT_GLTF_EXT_SPEC_GLOSS        = 21  /* TRUE     */
+  AK_OPT_BUGFIXES                   = 20, /* TRUE     */
+  AK_OPT_GLTF_EXT_SPEC_GLOSS        = 21, /* TRUE     */
+  AK_OPT_COMPUTE_EXACT_CENTER       = 22  /* FALSE    */
 } AkOption;
 
 AK_EXPORT

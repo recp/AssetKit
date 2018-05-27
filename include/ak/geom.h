@@ -58,7 +58,7 @@ typedef struct AkMeshPrimitive {
   uint32_t                reserved1; /* private member */
   uint32_t                reserved2; /* private member */
   void                   *reserved3;
-  AK_ALIGN(16) float      center[4];
+  AkFloat3                center;
 } AkMeshPrimitive;
 
 typedef struct AkLines {
@@ -98,6 +98,7 @@ typedef struct AkMesh {
   AkTree            *extra;
   AkMeshEditHelper  *edith;
   uint32_t           primitiveCount;
+  AkFloat3           center;
 } AkMesh;
 
 typedef struct AkControlVerts {

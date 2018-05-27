@@ -37,7 +37,8 @@ uintptr_t AK_OPTIONS[] =
   false,                           /* 18: _ADD_DEFAULT_LIGHT           */
   AK_COORD_CVT_DEFAULT,            /* 19: _COORD_CONVERT_TYPE          */
   true,                            /* 20: _BUGFIXES                    */
-  true                             /* 21: _GLTF_EXT_SPEC_GLOSS         */
+  true,                            /* 21: _GLTF_EXT_SPEC_GLOSS         */
+  false                            /* 22: _COMPUTE_EXACT_CENTER        */
 };
 
 AK_EXPORT

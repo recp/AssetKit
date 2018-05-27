@@ -19,8 +19,10 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
   char       *data;
   AkSource   *src;
   AkAccessor *acc;
+  float      *vec;
   vec3        center, min, max;
-  size_t      count;
+  size_t      i, count;
+  bool        exactCenter;
 
   mesh    = prim->mesh;
   geom    = mesh->geom;
@@ -39,12 +41,14 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
   glm_vec_broadcast(-FLT_MAX, max);
   glm_vec_broadcast(0.0f, center);
 
+  exactCenter = ak_opt_get(AK_OPT_COMPUTE_EXACT_CENTER);
+
   /* we must walk through indices if exists because source may contain
      unrelated data and this will cause get wrong box
    */
   if (prim->indices) {
     AkUInt  *ind;
-    size_t   i, icount;
+    size_t   icount;
     uint32_t st, vo;
 
     icount = prim->indices->count;
@@ -53,28 +57,34 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
     ind    = prim->indices->items;
     count  = icount;
 
-    for (i = 0; i < icount; i += st) {
-      float *vec;
-      vec = (float *)(data + ind[i + vo] * acc->byteStride);
-      glm_vec_add(vec, center, center);
-      ak_bbox_pick(min, max, vec);
+    if (!exactCenter) {
+      for (i = 0; i < icount; i += st) {
+        vec = (float *)(data + ind[i + vo] * acc->byteStride);
+        glm_vec_add(vec, center, center);
+        ak_bbox_pick(min, max, vec);
+      }
+    } else {
+      for (i = 0; i < icount; i += st) {
+        vec = (float *)(data + ind[i + vo] * acc->byteStride);
+        ak_bbox_pick(min, max, vec);
+      }
     }
   } else {
-    size_t i;
-
     count = acc->count;
-    for (i = 0; i < acc->count; i++) {
-      float *vec;
-      vec = (float *)(data + acc->byteStride * i);
-      glm_vec_add(vec, center, center);
-      ak_bbox_pick(min, max, vec);
+    if (!exactCenter) {
+      for (i = 0; i < acc->count; i++) {
+        vec = (float *)(data + acc->byteStride * i);
+        ak_bbox_pick(min, max, vec);
+      }
+    } else {
+      for (i = 0; i < acc->count; i++) {
+        vec = (float *)(data + acc->byteStride * i);
+        glm_vec_add(vec, center, center);
+        ak_bbox_pick(min, max, vec);
+      }
     }
   }
-
-  /* calculate exact center of primitive */
-  glm_vec_divs(center, count, center);
-  glm_vec4(center, 1.0f, prim->center);
-
+  
   heap = ak_heap_getheap(prim);
 
   if (!prim->bbox)
@@ -91,4 +101,16 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
 
   ak_bbox_pick_pbox(mesh->bbox, prim->bbox);
   ak_bbox_pick_pbox(geom->bbox, mesh->bbox);
+
+  /* compute centroid */
+  if (!ak_opt_get(AK_OPT_COMPUTE_EXACT_CENTER)) {
+    glm_vec_center(prim->bbox->min,
+                   prim->bbox->max,
+                   prim->center);
+  } else if (count > 0) {
+    /* calculate exact center of primitive */
+    glm_vec_divs(center, count, center);
+  } else {
+    glm_vec_zero(prim->center);
+  }
 }
