@@ -451,5 +451,11 @@
   "all": "all",
   "primary": "primary",
   "order": "order",
-  "sketchup": "sketchup"
+  "sketchup": "sketchup",
+  "lib_animations": "library_animations",
+  "animation": "animation",
+  "sampler": "sampler",
+  "channel": "channel",
+  "pre_behavior": "pre_behavior",
+  "post_behavior": "post_behavior"
 }

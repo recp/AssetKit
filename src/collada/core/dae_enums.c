@@ -103,3 +103,31 @@ ak_dae_enumNodeType(const char * name) {
 
   return val;
 }
+
+AkEnum _assetkit_hide
+ak_dae_enumAnimBehavior(const char * name) {
+  AkEnum val;
+  long glenums_len;
+  long i;
+
+  ak_dae_enum glenums[] = {
+    {"UNDEFINED",      AK_SAMPLER_BEHAVIOR_UNDEFINED},
+    {"CONSTANT",       AK_SAMPLER_BEHAVIOR_CONSTANT},
+    {"GRADIENT",       AK_SAMPLER_BEHAVIOR_GRADIENT},
+    {"CYCLE",          AK_SAMPLER_BEHAVIOR_CYCLE},
+    {"OSCILLATE",      AK_SAMPLER_BEHAVIOR_OSCILLATE},
+    {"CYCLE_RELATIVE", AK_SAMPLER_BEHAVIOR_CYCLE_RELATIVE}
+  };
+
+  val = AK_SAMPLER_BEHAVIOR_UNDEFINED;
+  glenums_len = AK_ARRAY_LEN(glenums);
+
+  for (i = 0; i < glenums_len; i++) {
+    if (strcasecmp(name, glenums[i].name) == 0) {
+      val = glenums[i].val;
+      break;
+    }
+  }
+
+  return val;
+}

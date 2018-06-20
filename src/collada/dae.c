@@ -16,6 +16,7 @@
 #include "core/dae_visual_scene.h"
 #include "core/dae_node.h"
 #include "core/dae_scene.h"
+#include "core/dae_anim.h"
 
 #include "fx/dae_fx_effect.h"
 #include "fx/dae_fx_image.h"
@@ -37,8 +38,9 @@
 #define k_s_dae_lib_controllers     8
 #define k_s_dae_lib_visual_scenes   9
 #define k_s_dae_lib_nodes           10
-#define k_s_dae_scene               11
-#define k_s_dae_extra               12
+#define k_s_dae_lib_anims           11
+#define k_s_dae_scene               12
+#define k_s_dae_extra               13
 
 static ak_enumpair daeMap[] = {
   {_s_dae_asset,             k_s_dae_asset},
@@ -51,6 +53,7 @@ static ak_enumpair daeMap[] = {
   {_s_dae_lib_controllers,   k_s_dae_lib_controllers},
   {_s_dae_lib_visual_scenes, k_s_dae_lib_visual_scenes},
   {_s_dae_lib_nodes,         k_s_dae_lib_nodes},
+  {_s_dae_lib_animations,    k_s_dae_lib_anims},
   {_s_dae_scene,             k_s_dae_scene},
   {_s_dae_extra,             k_s_dae_extra},
 };
@@ -148,6 +151,15 @@ static AkLibChldDesc libchlds[] = {
     offsetof(AkLib, nodes),
     offsetof(AkNode, next),
     offsetof(AkNode, prev)
+  },
+  {
+    NULL,
+    _s_dae_lib_animations,
+    _s_dae_animation,
+    ak_dae_anim,
+    offsetof(AkLib, animations),
+    offsetof(AkAnimation, next),
+    offsetof(AkAnimation, prev)
   }
 };
 

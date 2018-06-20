@@ -735,6 +735,7 @@ typedef struct AkLib {
   AkLibItem *controllers;
   AkLibItem *visualScenes;
   AkLibItem *nodes;
+  AkLibItem *animations;
 
   struct FListItem *buffers;
 } AkLib;
@@ -762,7 +763,8 @@ typedef struct AkDoc {
 #include "node.h"
 #include "texture.h"
 #include "states.h"
-  
+#include "animation.h"
+
 AK_EXPORT
 AkResult
 ak_load(AkDoc ** __restrict dest,

@@ -44,7 +44,7 @@ ak_dae_lib(AkXmlState    * __restrict xst,
 
       libChld = NULL;
       ret = lc->chldFn(xst, xst->doc, &libChld);
-      if (ret == AK_OK) {
+      if (ret == AK_OK && libChld) {
         if (lastLibChld)
           *(void **)(lastLibChld + lc->nextOfset) = libChld;
         else

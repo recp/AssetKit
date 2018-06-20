@@ -480,5 +480,11 @@ _AK_EXTERN const char _s_dae_pool_2[];
 #define _s_dae_primary _s_dae_2(806)
 #define _s_dae_order _s_dae_2(814)
 #define _s_dae_sketchup _s_dae_2(820)
+#define _s_dae_lib_animations _s_dae_2(829)
+#define _s_dae_animation _s_dae_2(848)
+#define _s_dae_sampler _s_dae_2(858)
+#define _s_dae_channel _s_dae_2(866)
+#define _s_dae_pre_behavior _s_dae_2(874)
+#define _s_dae_post_behavior _s_dae_2(887)
 
 #endif /* ak_dae_strpool_h */

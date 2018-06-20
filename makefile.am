@@ -71,7 +71,9 @@ include_HEADERS = include/ak/assetkit.h \
                   include/ak/image.h \
                   include/ak/type.h \
                   include/ak/context.h \
-                  include/ak/node.h
+                  include/ak/node.h \
+                  include/ak/texture.h \
+                  include/ak/animation.h
 
 libassetkit_la_SOURCES=\
     src/assetkit.c \
@@ -185,6 +187,7 @@ libassetkit_la_SOURCES=\
     src/collada/core/dae_render.c \
     src/collada/core/dae_scene.c \
     src/collada/core/dae_accessor.c \
+    src/collada/core/dae_anim.c \
     src/collada/brep/dae_brep.c \
     src/collada/brep/dae_brep_curve.c \
     src/collada/brep/dae_brep_nurbs.c \

@@ -472,6 +472,12 @@ const char _s_dae_pool_2[] =
 "primary\0"
 "order\0"
 "sketchup\0"
+"library_animations\0"
+"animation\0"
+"sampler\0"
+"channel\0"
+"pre_behavior\0"
+"post_behavior\0"
 ;
 
 #undef _AK_DAE_STRPOOL_
