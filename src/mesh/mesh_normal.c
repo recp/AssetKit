@@ -104,10 +104,6 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
   count = prim->indices->count / st;
   newst = st + 1;
 
-  src   = ak_mesh_src_for(heap, prim->mesh, prim, AK_INPUT_SEMANTIC_NORMAL);
-  acc   = src->tcommon;
-  buff  = ak_getObjectByUrl(&acc->source);
-
   /* TODO: for now join this into existing indices,
            but in the future use separate to fix indices  */
   inpIndices = ak_heap_calloc(heap,
@@ -205,9 +201,17 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
       return;
   }
 
+  src   = ak_mesh_src_for_ext(heap,
+                              prim->mesh,
+                              prim,
+                              AK_INPUT_SEMANTIC_NORMAL,
+                              dctx->itemcount);
+  acc   = src->tcommon;
+  buff  = ak_getObjectByUrl(&acc->source);
+
   /* add input */
-  srcurl = ak_url_string(heap->allocator, ak_getId(src));
-  input = ak_heap_calloc(heap, prim, sizeof(*input));
+  srcurl             = ak_url_string(heap->allocator, ak_getId(src));
+  input              = ak_heap_calloc(heap, prim, sizeof(*input));
   input->offset      = st;
   input->semantic    = AK_INPUT_SEMANTIC_NORMAL;
   input->semanticRaw = "NORMAL";
@@ -229,7 +233,7 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
 
   (void)ak_data_join(dctx, buff->data);
   ak_free(dctx);
-  
+
   ak_primFixIndices(heap, prim->mesh, prim);
 }
 
@@ -247,5 +251,6 @@ ak_meshGenNormals(AkMesh * __restrict mesh) {
     prim = prim->next;
   }
 
+  ak_meshFillBuffers(mesh);
   ak_meshEndEdit(mesh);
 }

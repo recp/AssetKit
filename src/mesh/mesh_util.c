@@ -148,16 +148,15 @@ ak_mesh_src_for(AkHeap          *heap,
   acc->type       = ak_typeDesc(acc->itemTypeId);
   src->tcommon    = acc;
 
-  buff = ak_heap_calloc(heap, src, sizeof(*buff));
-  buff->data = ak_heap_alloc(heap,
-                             buff,
-                             c * acc->stride * sizeof(float));
+  buff            = ak_heap_calloc(heap, src, sizeof(*buff));
+  buff->data      = ak_heap_alloc(heap,
+                                  buff,
+                                  c * acc->stride * sizeof(float));
 
+  buff->name      = NULL;
+  buff->length    = c * acc->stride * sizeof(float);
+  buffid          = (char *)ak_id_gen(heap, buff->data, NULL);
 
-  buff->name   = NULL;
-  buff->length = c * acc->stride * sizeof(float);
-
-  buffid = (char *)ak_id_gen(heap, buff->data, NULL);
   ak_setId(buff, buffid);
 
   /* update accessor source url */
@@ -174,13 +173,12 @@ AkSource*
 ak_mesh_src_for_ext(AkHeap          *heap,
                     AkMesh          *mesh,
                     AkMeshPrimitive *prim,
-                    char            *srcid,
                     AkInputSemantic  semantic,
                     size_t           count) {
   AkBuffer    *buff;
   AkSource    *src,    *possrc;
   AkAccessor  *acc,    *posacc;
-  char        *buffid, *url;
+  char        *srcid,  *buffid, *url;
 
   if (!prim->pos
       || !(possrc  = ak_getObjectByUrl(&prim->pos->source))
@@ -191,14 +189,13 @@ ak_mesh_src_for_ext(AkHeap          *heap,
     count = posacc->count;
 
   /* TODO: find existing src and join data into one */
-  src = ak_heap_calloc(heap, ak_objFrom(mesh), sizeof(*src));
-  acc = ak_heap_calloc(heap, src, sizeof(*acc));
+  src   = ak_heap_calloc(heap, ak_objFrom(mesh), sizeof(*src));
+  acc   = ak_heap_calloc(heap, src, sizeof(*acc));
+  srcid = (char *)ak_id_gen(heap, src, NULL);
 
+  ak_setId(src, srcid);
   ak_setypeid(src, AKT_SOURCE);
   ak_setypeid(acc, AKT_ACCESSOR);
-
-  if (srcid)
-    ak_setId(src, srcid);
 
   /* set params */
   ak_accessor_setparams(acc, semantic);
