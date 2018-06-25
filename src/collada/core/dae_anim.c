@@ -41,7 +41,8 @@ ak_dae_anim(AkXmlState   * __restrict xst,
       AkSource *source;
       AkResult ret;
 
-      ret = ak_dae_source(xst, anim, &source);
+      /* store interpolation in char */
+      ret = ak_dae_source(xst, anim, ak_dae_enumAnimInterp, 1, &source);
       if (ret == AK_OK) {
         if (last_source)
            last_source->next = source;

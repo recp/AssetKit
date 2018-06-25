@@ -26,6 +26,18 @@ typedef enum AkAnimSamplerBehavior {
   AK_SAMPLER_BEHAVIOR_CYCLE_RELATIVE = 5
 } AkAnimSamplerBehavior;
 
+typedef enum AkInterpolationType {
+  AK_INTERPOLATION_UNKNOWN  = 0,
+  AK_INTERPOLATION_LINEAR   = 1,
+  AK_INTERPOLATION_BEZIER   = 2,
+  AK_INTERPOLATION_CARDINAL = 3,
+  AK_INTERPOLATION_HERMITE  = 4,
+  AK_INTERPOLATION_BSPLINE  = 5,
+  AK_INTERPOLATION_STEP     = 6,
+
+  AK_INTERPOLATION_MAXLEN   = 255
+} AkInterpolationType;
+
 typedef struct AkAnimSampler {
   AkInput              *input;
   AkAnimSamplerBehavior preBehavior;

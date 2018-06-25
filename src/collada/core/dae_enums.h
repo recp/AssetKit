@@ -22,4 +22,7 @@ ak_dae_enumNodeType(const char * name);
 AkEnum _assetkit_hide
 ak_dae_enumAnimBehavior(const char * name);
 
+AkEnum _assetkit_hide
+ak_dae_enumAnimInterp(const char * name);
+
 #endif /* __libassetkit__dae_fx_enums_h_ */

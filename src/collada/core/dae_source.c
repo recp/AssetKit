@@ -9,6 +9,7 @@
 #include "../core/dae_asset.h"
 #include "../core/dae_technique.h"
 #include "../core/dae_accessor.h"
+#include "../core/dae_enums.h"
 
 #define k_s_dae_asset      1000
 #define k_s_dae_techniquec 1001
@@ -32,6 +33,8 @@ static size_t sourceMapLen = 0;
 AkResult _assetkit_hide
 ak_dae_source(AkXmlState * __restrict xst,
               void       * __restrict memParent,
+              AkEnum                (*asEnum)(const char *name),
+              uint32_t                enumLen,
               AkSource  ** __restrict dest) {
   AkSource     *source;
   AkBuffer     *buffer;
@@ -63,7 +66,6 @@ ak_dae_source(AkXmlState * __restrict xst,
   do {
     const ak_enumpair *found;
     char              *content;
-    size_t             arraySize;
     AkUInt             arrayCount;
 
     if (ak_xml_begin(&xest))
@@ -79,28 +81,13 @@ ak_dae_source(AkXmlState * __restrict xst,
       goto skip;
     }
 
-    arraySize = arrayCount = 0;
-    switch (found->val) {
-      case AKT_FLOAT:
-      case AKT_INT:
-      case AKT_BOOL:
-      case AKT_SIDREF:
-      case AKT_IDREF:
-      case AKT_NAME:
-      case AKT_TOKEN: {
-        buffer = ak_heap_alloc(xst->heap, source, sizeof(*buffer));
-        ak_xml_readid(xst, buffer);
+    arrayCount       = ak_xml_attrui(xst, _s_dae_count);
+    buffer           = ak_heap_alloc(xst->heap, source, sizeof(*buffer));
+    buffer->name     = ak_xml_attr(xst, buffer, _s_dae_name);
+    buffer->reserved = found->val;
+    source->buffer   = buffer;
 
-        arrayCount = ak_xml_attrui(xst, _s_dae_count);
-        arraySize  = sizeof(AkFloat) * arrayCount;
-
-        buffer->name     = ak_xml_attr(xst, buffer, _s_dae_name);
-        buffer->length   = arraySize;
-        buffer->reserved = found->val;
-
-        source->buffer   = buffer;
-      }
-    }
+    ak_xml_readid(xst, buffer);
 
     switch (found->val) {
       case k_s_dae_asset: {
@@ -116,7 +103,8 @@ ak_dae_source(AkXmlState * __restrict xst,
         */
 
         if ((content = ak_xml_rawval(xst))) {
-          buffer->data = ak_heap_alloc(xst->heap, buffer, arraySize);
+          buffer->length = sizeof(AkFloat) * arrayCount;
+          buffer->data   = ak_heap_alloc(xst->heap, buffer, buffer->length);
           ak_strtomf(&content,
                      buffer->data,
                      1,
@@ -135,8 +123,9 @@ ak_dae_source(AkXmlState * __restrict xst,
          */
 
         if ((content = ak_xml_rawval(xst))) {
+          buffer->length   = sizeof(AkInt) * arrayCount;
           buffer->reserved = AKT_INT;
-          buffer->data = ak_heap_alloc(xst->heap, buffer, arraySize);
+          buffer->data     = ak_heap_alloc(xst->heap, buffer, buffer->length);
           ak_strtomi(&content,
                      buffer->data,
                      1,
@@ -148,7 +137,8 @@ ak_dae_source(AkXmlState * __restrict xst,
 
       case AKT_BOOL: {
         if ((content = ak_xml_rawval(xst))) {
-          buffer->data = ak_heap_alloc(xst->heap, buffer, arraySize);
+          buffer->length = sizeof(AkBool) * arrayCount;
+          buffer->data   = ak_heap_alloc(xst->heap, buffer, buffer->length);
           ak_strtomb(&content,
                      buffer->data,
                      1,
@@ -165,7 +155,6 @@ ak_dae_source(AkXmlState * __restrict xst,
         char     *pData;
         char     *tok;
         char    **iter;
-        size_t    arrayDataSize;
 		    uint32_t  idx;
 
         /*
@@ -173,32 +162,51 @@ ak_dae_source(AkXmlState * __restrict xst,
 
          the last one is pointer to all data
          */
-        arraySize = sizeof(char *) * (arrayCount + 1);
         if ((content = ak_xml_rawval(xst))) {
-          arrayDataSize = strlen(content) + arrayCount /* NULL */;
-          iter = buffer->data = ak_heap_alloc(xst->heap,
-                                              buffer,
-                                              arraySize);
+          if (asEnum) {
+            AkEnum enumValue;
 
-          pData = ak_heap_alloc(xst->heap,
-                                buffer,
-                                arrayDataSize);
+            buffer->length = enumLen * arrayCount;
+            buffer->data   = ak_heap_alloc(xst->heap, buffer, buffer->length);
+            pData          = buffer->data;
 
-          iter[arrayCount] = pData;
+            idx = 0;
+            for (tok = strtok(content, " \t\r\n");
+                 tok;
+                 tok = strtok(NULL, " \t\r\n")) {
+              if (idx >= arrayCount)
+                break;
 
-          idx = 0;
-          for (tok = strtok(content, " \t\r\n");
-               tok;
-               tok = strtok(NULL, " \t\r\n")) {
-            if (idx >= arrayCount)
-              break;
+              enumValue = asEnum(tok);
+              memcpy(pData + idx * enumLen, &enumValue, enumLen);
 
-            strcpy(pData, tok);
-            iter[idx++] = pData;
+              idx++;
+            }
+          } else {
+            buffer->length = sizeof(char *) * (arrayCount + 1)
+                               + strlen(content) + arrayCount /* NULL */;
+            iter  = buffer->data = ak_heap_alloc(xst->heap,
+                                                 buffer,
+                                                 buffer->length);
+            pData = (char *)buffer->data + sizeof(char *) * (arrayCount + 1);
 
-            pData += strlen(tok);
-            *pData++ = '\0';
+            iter[arrayCount] = pData;
+
+            idx = 0;
+            for (tok = strtok(content, " \t\r\n");
+                 tok;
+                 tok = strtok(NULL, " \t\r\n")) {
+              if (idx >= arrayCount)
+                break;
+
+              strcpy(pData, tok);
+              iter[idx++] = pData;
+
+              pData += strlen(tok);
+              *pData++ = '\0';
+            }
           }
+
           xmlFree(content);
         }
         break;

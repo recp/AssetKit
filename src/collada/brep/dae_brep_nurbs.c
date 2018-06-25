@@ -51,7 +51,7 @@ ak_dae_nurbs(AkXmlState * __restrict xst,
       AkSource *source;
       AkResult ret;
 
-      ret = ak_dae_source(xst, memPtr,  &source);
+      ret = ak_dae_source(xst, memPtr, NULL, 0, &source);
       if (ret == AK_OK) {
         if (last_source)
           last_source->next = source;
@@ -206,7 +206,7 @@ ak_dae_nurbs_surface(AkXmlState * __restrict xst,
       AkSource *source;
       AkResult ret;
 
-      ret = ak_dae_source(xst, memPtr, &source);
+      ret = ak_dae_source(xst, memPtr, NULL, 0, &source);
       if (ret == AK_OK) {
         if (last_source)
           last_source->next = source;

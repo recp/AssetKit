@@ -131,3 +131,31 @@ ak_dae_enumAnimBehavior(const char * name) {
 
   return val;
 }
+
+AkEnum _assetkit_hide
+ak_dae_enumAnimInterp(const char * name) {
+  AkEnum val;
+  long glenums_len;
+  long i;
+
+  ak_dae_enum glenums[] = {
+    {"LINEAR",   AK_INTERPOLATION_LINEAR},
+    {"BEZIER",   AK_INTERPOLATION_BEZIER},
+    {"CARDINAL", AK_INTERPOLATION_CARDINAL},
+    {"HERMITE",  AK_INTERPOLATION_HERMITE},
+    {"BSPLINE",  AK_INTERPOLATION_BSPLINE},
+    {"STEP",     AK_INTERPOLATION_STEP}
+  };
+
+  val = AK_INTERPOLATION_LINEAR;
+  glenums_len = AK_ARRAY_LEN(glenums);
+
+  for (i = 0; i < glenums_len; i++) {
+    if (strcasecmp(name, glenums[i].name) == 0) {
+      val = glenums[i].val;
+      break;
+    }
+  }
+
+  return val;
+}
