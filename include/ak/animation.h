@@ -17,14 +17,14 @@ extern "C" {
 #include "source.h"
 #include "url.h"
 
-typedef enum AkAnimSamplerBehavior {
+typedef enum AkSamplerBehavior {
   AK_SAMPLER_BEHAVIOR_UNDEFINED      = 0,
   AK_SAMPLER_BEHAVIOR_CONSTANT       = 1,
   AK_SAMPLER_BEHAVIOR_GRADIENT       = 2,
   AK_SAMPLER_BEHAVIOR_CYCLE          = 3,
   AK_SAMPLER_BEHAVIOR_OSCILLATE      = 4,
   AK_SAMPLER_BEHAVIOR_CYCLE_RELATIVE = 5
-} AkAnimSamplerBehavior;
+} AkSamplerBehavior;
 
 typedef enum AkInterpolationType {
   AK_INTERPOLATION_UNKNOWN  = 0,
@@ -39,9 +39,9 @@ typedef enum AkInterpolationType {
 } AkInterpolationType;
 
 typedef struct AkAnimSampler {
-  AkInput              *input;
-  AkAnimSamplerBehavior preBehavior;
-  AkAnimSamplerBehavior postBehavior;
+  AkInput          *input;
+  AkSamplerBehavior pre;
+  AkSamplerBehavior post;
 } AkAnimSampler;
 
 typedef struct AkChannel {

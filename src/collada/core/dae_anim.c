@@ -124,12 +124,12 @@ ak_dae_animSampler(AkXmlState     * __restrict xst,
 
   ak_xml_readid(xst, sampler);
 
-  sampler->preBehavior  = ak_xml_attrenum(xst,
-                                          _s_dae_pre_behavior,
-                                          ak_dae_enumAnimBehavior);
-  sampler->postBehavior = ak_xml_attrenum(xst,
-                                          _s_dae_post_behavior,
-                                          ak_dae_enumAnimBehavior);
+  sampler->pre  = ak_xml_attrenum(xst,
+                                  _s_dae_pre_behavior,
+                                  ak_dae_enumAnimBehavior);
+  sampler->post = ak_xml_attrenum(xst,
+                                  _s_dae_post_behavior,
+                                  ak_dae_enumAnimBehavior);
 
   last_input = NULL;
 
