@@ -191,7 +191,7 @@ ak_dae_channel(AkXmlState  * __restrict xst,
 
   channel = ak_heap_calloc(xst->heap, memParent, sizeof(*channel));
 
-  ak_xml_attr_url(xst, _s_dae_url, channel, &channel->source);
+  ak_xml_attr_url(xst, _s_dae_source, channel, &channel->source);
   channel->target = ak_xml_attr(xst, channel, _s_dae_target);
 
   ak_xest_init(xest, _s_dae_channel);
