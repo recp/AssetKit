@@ -145,168 +145,159 @@ ak_dae_node(AkXmlState    * __restrict xst,
         break;
       }
       case k_s_dae_lookat: {
-        char *content;
+        AkObject *obj;
+        AkLookAt *looakAt;
+        char     *content;
+
+        obj     = ak_objAlloc(xst->heap,
+                              node,
+                              sizeof(*looakAt),
+                              AK_TRANSFORM_LOOKAT,
+                              true);
+        looakAt = ak_objGet(obj);
+
+        ak_xml_readsid(xst, obj);
+
         content = ak_xml_rawval(xst);
 
         if (content) {
-          AkObject *obj;
-          AkLookAt *looakAt;
-
-          obj = ak_objAlloc(xst->heap,
-                            node,
-                            sizeof(*looakAt),
-                            AK_TRANSFORM_LOOKAT,
-                            true);
-
-          looakAt = ak_objGet(obj);
-
-          ak_xml_readsid(xst, obj);
-
           ak_strtof(&content, (float *)looakAt->val, 9);
-
-          if (last_transform)
-            last_transform->next = obj;
-          else {
-            node->transform = ak_heap_calloc(xst->heap,
-                                             node,
-                                             sizeof(*node->transform));
-            node->transform->item = obj;
-          }
-
-          last_transform = obj;
-
           xmlFree(content);
         }
+
+        if (last_transform)
+          last_transform->next = obj;
+        else {
+          node->transform = ak_heap_calloc(xst->heap,
+                                           node,
+                                           sizeof(*node->transform));
+          node->transform->item = obj;
+        }
+
+        last_transform = obj;
         break;
       }
       case k_s_dae_matrix: {
-        char *content;
-        content = ak_xml_rawval(xst);
+        mat4      transform;
+        AkObject *obj;
+        AkMatrix *matrix;
+        char     *content;
 
-        if (content) {
-          AkObject *obj;
-          AkMatrix *matrix;
-          mat4      transform;
-
-          obj = ak_objAlloc(xst->heap,
+        obj   = ak_objAlloc(xst->heap,
                             node,
                             sizeof(*matrix),
                             AK_TRANSFORM_MATRIX,
                             true);
+        matrix = ak_objGet(obj);
 
-          matrix = ak_objGet(obj);
+        ak_xml_readsid(xst, obj);
 
-          ak_xml_readsid(xst, obj);
-
+        content = ak_xml_rawval(xst);
+        if (content) {
           ak_strtof(&content, transform[0], 16);
-
           glm_mat4_transpose_to(transform, matrix->val);
-
-          if (last_transform)
-            last_transform->next = obj;
-          else {
-            node->transform = ak_heap_calloc(xst->heap,
-                                             node,
-                                             sizeof(*node->transform));
-            node->transform->item = obj;
-          }
-
-          last_transform = obj;
-
           xmlFree(content);
+        } else {
+          glm_mat4_identity(matrix->val);
         }
+
+        if (last_transform)
+          last_transform->next = obj;
+        else {
+          node->transform = ak_heap_calloc(xst->heap,
+                                           node,
+                                           sizeof(*node->transform));
+          node->transform->item = obj;
+        }
+
+        last_transform = obj;
         break;
       }
       case k_s_dae_rotate: {
-        char *content;
+        AkObject *obj;
+        AkRotate *rotate;
+        char     *content;
+
+        obj    = ak_objAlloc(xst->heap,
+                             node,
+                             sizeof(*rotate),
+                             AK_TRANSFORM_ROTATE,
+                             true);
+        rotate = ak_objGet(obj);
+
+        ak_xml_readsid(xst, obj);
+
         content = ak_xml_rawval(xst);
-
         if (content) {
-          AkObject *obj;
-          AkRotate *rotate;
-
-          obj = ak_objAlloc(xst->heap,
-                            node,
-                            sizeof(*rotate),
-                            AK_TRANSFORM_ROTATE,
-                            true);
-
-          rotate = ak_objGet(obj);
-
-          ak_xml_readsid(xst, obj);
-
           ak_strtof(&content, (AkFloat *)rotate->val, 4);
           glm_make_rad(&rotate->val[3]);
-
-          if (last_transform)
-            last_transform->next = obj;
-          else {
-            node->transform = ak_heap_calloc(xst->heap,
-                                             node,
-                                             sizeof(*node->transform));
-            node->transform->item = obj;
-          }
-
-          last_transform = obj;
-
           xmlFree(content);
         }
+
+        if (last_transform)
+          last_transform->next = obj;
+        else {
+          node->transform = ak_heap_calloc(xst->heap,
+                                           node,
+                                           sizeof(*node->transform));
+          node->transform->item = obj;
+        }
+
+        last_transform = obj;
         break;
       }
       case k_s_dae_scale: {
-        char *content;
-        content = ak_xml_rawval(xst);
+        AkObject *obj;
+        AkScale  *scale;
+        char     *content;
 
-        if (content) {
-          AkObject *obj;
-          AkScale  *scale;
-
-          obj = ak_objAlloc(xst->heap,
+        obj   = ak_objAlloc(xst->heap,
                             node,
                             sizeof(*scale),
                             AK_TRANSFORM_SCALE,
                             true);
 
-          scale = ak_objGet(obj);
+        scale = ak_objGet(obj);
 
-          ak_xml_readsid(xst, obj);
+        ak_xml_readsid(xst, obj);
 
+        content = ak_xml_rawval(xst);
+        if (content) {
           ak_strtof(&content, (AkFloat *)scale->val, 3);
-
-          if (last_transform)
-            last_transform->next = obj;
-          else {
-            node->transform = ak_heap_calloc(xst->heap,
-                                             node,
-                                             sizeof(*node->transform));
-            node->transform->item = obj;
-          }
-
-          last_transform = obj;
-
           xmlFree(content);
+        } else {
+          glm_vec_one(scale->val);
         }
+
+        if (last_transform)
+          last_transform->next = obj;
+        else {
+          node->transform = ak_heap_calloc(xst->heap,
+                                           node,
+                                           sizeof(*node->transform));
+          node->transform->item = obj;
+        }
+
+        last_transform = obj;
         break;
       }
       case k_s_dae_skew: {
-        char *content;
+        AkObject *obj;
+        AkSkew   *skew;
+        char     *content;
+        AkFloat   tmp[7];
+
+        obj  = ak_objAlloc(xst->heap,
+                           node,
+                           sizeof(*skew),
+                           AK_TRANSFORM_SKEW,
+                           true);
+        skew = ak_objGet(obj);
+
+        ak_xml_readsid(xst, obj);
+
         content = ak_xml_rawval(xst);
-
         if (content) {
-          AkObject *obj;
-          AkSkew   *skew;
-          AkFloat   tmp[7];
-
-          obj = ak_objAlloc(xst->heap,
-                            node,
-                            sizeof(*skew),
-                            AK_TRANSFORM_SKEW,
-                            true);
-
-          skew = ak_objGet(obj);
-
-          ak_xml_readsid(xst, obj);
-
           ak_strtof(&content, (AkFloat *)tmp, 4);
 
           /* COLLADA uses degree here, convert it to radians */
@@ -314,54 +305,51 @@ ak_dae_node(AkXmlState    * __restrict xst,
           glm_vec_copy(&tmp[1], skew->rotateAxis);
           glm_vec_copy(&tmp[4], skew->aroundAxis);
 
-          if (last_transform)
-            last_transform->next = obj;
-          else {
-            node->transform = ak_heap_calloc(xst->heap,
-                                             node,
-                                             sizeof(*node->transform));
-            node->transform->item = obj;
-          }
-
-          last_transform = obj;
-
           xmlFree(content);
         }
+
+        if (last_transform)
+          last_transform->next = obj;
+        else {
+          node->transform = ak_heap_calloc(xst->heap,
+                                           node,
+                                           sizeof(*node->transform));
+          node->transform->item = obj;
+        }
+
+        last_transform = obj;
         break;
       }
       case k_s_dae_translate: {
-        char *content;
+        AkObject    *obj;
+        AkTranslate *translate;
+        char        *content;
+
+        obj       = ak_objAlloc(xst->heap,
+                                node,
+                                sizeof(*translate),
+                                AK_TRANSFORM_TRANSLATE,
+                                true);
+        translate = ak_objGet(obj);
+
+        ak_xml_readsid(xst, obj);
+
         content = ak_xml_rawval(xst);
-
         if (content) {
-          AkObject    *obj;
-          AkTranslate *translate;
-
-          obj = ak_objAlloc(xst->heap,
-                            node,
-                            sizeof(*translate),
-                            AK_TRANSFORM_TRANSLATE,
-                            true);
-
-          translate = ak_objGet(obj);
-
-          ak_xml_readsid(xst, obj);
-
           ak_strtof(&content, (AkFloat *)translate->val, 4);
-
-          if (last_transform)
-            last_transform->next = obj;
-          else {
-            node->transform = ak_heap_calloc(xst->heap,
-                                             node,
-                                             sizeof(*node->transform));
-            node->transform->item = obj;
-          }
-
-          last_transform = obj;
-
           xmlFree(content);
         }
+
+        if (last_transform)
+          last_transform->next = obj;
+        else {
+          node->transform = ak_heap_calloc(xst->heap,
+                                           node,
+                                           sizeof(*node->transform));
+          node->transform->item = obj;
+        }
+
+        last_transform = obj;
         break;
       }
       case k_s_dae_instance_camera: {
