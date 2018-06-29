@@ -1071,6 +1071,8 @@ ak_objAlloc(AkHeap * __restrict heap,
   if (zeroed)
     memset(obj->pData, '\0', typeSize);
 
+  ak_setypeid(obj, AKT_OBJECT);
+
   return obj;
 }
 

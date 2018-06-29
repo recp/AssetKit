@@ -11,16 +11,6 @@
 extern "C" {
 #endif
 
-typedef enum AkTransformType {
-  AK_TRANSFORM_LOOKAT    = 1,
-  AK_TRANSFORM_MATRIX    = 2,
-  AK_TRANSFORM_ROTATE    = 3,
-  AK_TRANSFORM_SCALE     = 4,
-  AK_TRANSFORM_SKEW      = 5,
-  AK_TRANSFORM_TRANSLATE = 6,
-  AK_TRANSFORM_QUAT      = 7 /* quaternion */
-} AkTransformType;
-
 typedef struct AkTransform {
   AkObject *base; /* fixup transform */
   AkObject *item;

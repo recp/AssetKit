@@ -62,14 +62,14 @@ again:
   transform = transformGroup;
   while (transform) {
     switch (transform->type) {
-      case AK_TRANSFORM_MATRIX: {
+      case AKT_MATRIX: {
         AkMatrix *matrix;
         matrix = ak_objGet(transform);
 
         glm_mat4_mul(mat, matrix->val, mat);
         break;
       }
-      case AK_TRANSFORM_LOOKAT: {
+      case AKT_LOOKAT: {
         AkLookAt *lookAt;
         lookAt = ak_objGet(transform);
 
@@ -83,7 +83,7 @@ again:
         glm_mat4_mul(mat, tmp, mat);
         break;
       }
-      case AK_TRANSFORM_ROTATE: {
+      case AKT_ROTATE: {
         AkRotate *rotate;
 
         rotate = ak_objGet(transform);
@@ -91,7 +91,7 @@ again:
         glm_mat4_mul(mat, tmp, mat);
         break;
       }
-      case AK_TRANSFORM_QUAT: {
+      case AKT_QUATERNION: {
         AkQuaternion *quat;
 
         quat = ak_objGet(transform);
@@ -99,7 +99,7 @@ again:
         glm_mat4_mul(mat, tmp, mat);
         break;
       }
-      case AK_TRANSFORM_SCALE: {
+      case AKT_SCALE: {
         AkScale *scale;
         scale = ak_objGet(transform);
 
@@ -107,7 +107,7 @@ again:
         glm_mat4_mul(mat, tmp, mat);
         break;
       }
-      case AK_TRANSFORM_TRANSLATE: {
+      case AKT_TRANSLATE: {
         AkTranslate *translate;
         translate = ak_objGet(transform);
 
@@ -115,7 +115,7 @@ again:
         glm_mat4_mul(mat, tmp, mat);
         break;
       }
-      case AK_TRANSFORM_SKEW: {
+      case AKT_SKEW: {
         AkSkew *skew;
         skew = ak_objGet(transform);
 

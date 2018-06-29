@@ -151,7 +151,7 @@ ak_coordRotNodeForFixedCoord(AkDoc     *doc,
     transformFwd = ak_objAlloc(heap,
                                memparent,
                                sizeof(*rotate),
-                               AK_TRANSFORM_ROTATE,
+                               AKT_ROTATE,
                                true);
 
     rotate = ak_objGet(transformFwd);
@@ -165,7 +165,7 @@ ak_coordRotNodeForFixedCoord(AkDoc     *doc,
     transformUp = ak_objAlloc(heap,
                               memparent,
                               sizeof(*rotate),
-                              AK_TRANSFORM_ROTATE,
+                              AKT_ROTATE,
                               true);
 
     rotate = ak_objGet(transformUp);

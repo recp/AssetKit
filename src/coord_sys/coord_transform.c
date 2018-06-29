@@ -118,7 +118,7 @@ ak_coordFindTransform(AkTransform *transform,
     rotObj = ak_objAlloc(heap,
                          transform,
                          sizeof(*rotObj),
-                         AK_TRANSFORM_ROTATE,
+                         AKT_ROTATE,
                          true);
 
     rot = ak_objGet(rotObj);
@@ -151,7 +151,7 @@ ak_coordFindTransform(AkTransform *transform,
     rotObj = ak_objAlloc(heap,
                          transform,
                          sizeof(*rotObj),
-                         AK_TRANSFORM_ROTATE,
+                         AKT_ROTATE,
                          true);
 
     rot = ak_objGet(rotObj);
@@ -181,7 +181,7 @@ ak_coordFindTransform(AkTransform *transform,
     scaleObj = ak_objAlloc(heap,
                            transform,
                            sizeof(*scaleObj),
-                           AK_TRANSFORM_SCALE,
+                           AKT_SCALE,
                            true);
 
     scale = ak_objGet(scaleObj);

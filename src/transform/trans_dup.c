@@ -28,28 +28,28 @@ ak_transformDup(AkNode * __restrict srcNode,
 
   while (transItem) {
     switch (transItem->type) {
-      case AK_TRANSFORM_MATRIX: {
+      case AKT_MATRIX: {
         AkMatrix *matrix, *newMatrix;
 
         matrix = ak_objGet(transItem);
         newTransItem = ak_objAlloc(heap,
                                    destNode,
                                    sizeof(*matrix),
-                                   AK_TRANSFORM_MATRIX,
+                                   AKT_MATRIX,
                                    true);
         newMatrix = ak_objGet(newTransItem);
         ak_sid_dup(newTransItem, transItem);
         glm_mat4_copy(matrix->val, newMatrix->val);
         break;
       }
-      case AK_TRANSFORM_LOOKAT: {
+      case AKT_LOOKAT: {
         AkLookAt *lookAt, *newLookAt;
 
         lookAt = ak_objGet(transItem);
         newTransItem = ak_objAlloc(heap,
                                    destNode,
                                    sizeof(*lookAt),
-                                   AK_TRANSFORM_LOOKAT,
+                                   AKT_LOOKAT,
                                    true);
         newLookAt = ak_objGet(newTransItem);
         ak_sid_dup(newTransItem, transItem);
@@ -59,70 +59,70 @@ ak_transformDup(AkNode * __restrict srcNode,
         glm_vec_copy(lookAt->val[2], newLookAt->val[2]);
         break;
       }
-      case AK_TRANSFORM_ROTATE: {
+      case AKT_ROTATE: {
         AkRotate *rotate, *newRotate;
 
         rotate = ak_objGet(transItem);
         newTransItem = ak_objAlloc(heap,
                                    destNode,
                                    sizeof(*rotate),
-                                   AK_TRANSFORM_ROTATE,
+                                   AKT_ROTATE,
                                    true);
         newRotate = ak_objGet(newTransItem);
         ak_sid_dup(newTransItem, transItem);
         glm_vec4_copy(rotate->val, newRotate->val);
         break;
       }
-      case AK_TRANSFORM_QUAT: {
+      case AKT_QUATERNION: {
         AkQuaternion *quat, *newQuat;
 
         quat = ak_objGet(transItem);
         newTransItem = ak_objAlloc(heap,
                                    destNode,
                                    sizeof(*quat),
-                                   AK_TRANSFORM_QUAT,
+                                   AKT_QUATERNION,
                                    true);
         newQuat = ak_objGet(newTransItem);
         ak_sid_dup(newTransItem, transItem);
         glm_vec4_copy(quat->val, newQuat->val);
         break;
       }
-      case AK_TRANSFORM_SCALE: {
+      case AKT_SCALE: {
         AkScale *scale, *newScale;
 
         scale = ak_objGet(transItem);
         newTransItem = ak_objAlloc(heap,
                                    destNode,
                                    sizeof(*scale),
-                                   AK_TRANSFORM_SCALE,
+                                   AKT_SCALE,
                                    true);
         newScale = ak_objGet(newTransItem);
         ak_sid_dup(newTransItem, transItem);
         glm_vec_copy(scale->val, newScale->val);
         break;
       }
-      case AK_TRANSFORM_TRANSLATE: {
+      case AKT_TRANSLATE: {
         AkTranslate *translate, *newTranslate;
 
         translate = ak_objGet(transItem);
         newTransItem = ak_objAlloc(heap,
                                    destNode,
                                    sizeof(*translate),
-                                   AK_TRANSFORM_TRANSLATE,
+                                   AKT_TRANSLATE,
                                    true);
         newTranslate = ak_objGet(newTransItem);
         ak_sid_dup(newTransItem, transItem);
         glm_vec_copy(translate->val, newTranslate->val);
         break;
       }
-      case AK_TRANSFORM_SKEW: {
+      case AKT_SKEW: {
         AkSkew *skew, *newSkew;
 
         skew = ak_objGet(transItem);
         newTransItem = ak_objAlloc(heap,
                                    destNode,
                                    sizeof(*skew),
-                                   AK_TRANSFORM_SKEW,
+                                   AKT_SKEW,
                                    true);
         newSkew = ak_objGet(newTransItem);
         ak_sid_dup(newTransItem, transItem);

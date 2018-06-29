@@ -211,7 +211,7 @@ n_chld:
     obj = ak_objAlloc(heap,
                       node,
                       sizeof(*matrix),
-                      AK_TRANSFORM_MATRIX,
+                      AKT_MATRIX,
                       true);
 
     matrix = ak_objGet(obj);
@@ -240,7 +240,7 @@ n_chld:
     obj = ak_objAlloc(heap,
                       node,
                       sizeof(*translate),
-                      AK_TRANSFORM_TRANSLATE,
+                      AKT_TRANSLATE,
                       true);
 
     translate = ak_objGet(obj);
@@ -266,7 +266,7 @@ n_chld:
     obj = ak_objAlloc(heap,
                       node,
                       sizeof(*rot),
-                      AK_TRANSFORM_QUAT,
+                      AKT_QUATERNION,
                       true);
 
     rot = ak_objGet(obj);
@@ -294,7 +294,7 @@ n_chld:
     obj = ak_objAlloc(heap,
                       node,
                       sizeof(*scale),
-                      AK_TRANSFORM_SCALE,
+                      AKT_SCALE,
                       true);
 
     scale = ak_objGet(obj);
