@@ -51,7 +51,7 @@ ak_dae14_loadjobs_finish(AkXmlState * __restrict xst) {
         memset(&ctx, 0, sizeof(ctx));
         ctx.doc = xst->doc;
 
-        surfaceParam = ak_sid_resolve(&ctx, job->value);
+        surfaceParam = ak_sid_resolve(&ctx, job->value, NULL);
         if (surfaceParam) {
           AkSampler      *sampler;
           AkInstanceBase *instanceImage;
@@ -119,7 +119,7 @@ ak_dae14_loadjobs_finish(AkXmlState * __restrict xst) {
         memset(&ctx, 0, sizeof(ctx));
         ctx.doc = xst->doc;
 
-        surfaceParam = ak_sid_resolve(&ctx, job->value);
+        surfaceParam = ak_sid_resolve(&ctx, job->value, NULL);
         if (surfaceParam) {
           void *parentOfParam;
 

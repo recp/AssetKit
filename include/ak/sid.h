@@ -44,8 +44,18 @@ ak_sid_seta(void       *memnode,
 
 AK_EXPORT
 void *
-ak_sid_resolve(AkContext  * __restrict ctx,
-               const char * __restrict target);
+ak_sid_resolve(AkContext   * __restrict ctx,
+               const char  * __restrict target,
+               const char ** __restrict attribString);
+
+AK_EXPORT
+void *
+ak_sid_resolve_val(AkContext  * __restrict ctx,
+                   const char * __restrict target);
+
+AK_EXPORT
+uint32_t
+ak_sid_attr_offset(const char *attr);
 
 #ifdef __cplusplus
 }

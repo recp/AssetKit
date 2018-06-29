@@ -20,11 +20,6 @@ AkHeap ak__sidconst_heap = {
 
 #define sidconst_heap &ak__sidconst_heap
 
-void * _assetkit_hide
-ak_sid_resolve_attr(AkHeapNode *heapNode,
-                    uintptr_t   off,
-                    const char *attr);
-
 AK_EXPORT
 const char *
 ak_sid_get(void *memnode) {
@@ -268,6 +263,7 @@ ak_sidElement(AkContext  * __restrict ctx,
     char     *id;
     ptrdiff_t idlen;
 
+    /* TODO: check # character and external ID element ? */
     idlen = sidp - it;
     id    = malloc(sizeof(char) * idlen + 1);
 
@@ -442,10 +438,11 @@ ak_sid_chldh(AkContext  * __restrict ctx,
 
 AK_EXPORT
 void *
-ak_sid_resolve(AkContext  * __restrict ctx,
-               const char * __restrict target) {
+ak_sid_resolve(AkContext   * __restrict ctx,
+               const char  * __restrict target,
+               const char ** __restrict attribString) {
   AkHeapNode  *idnode, *sidnode, *it, *chld;
-  char        *siddup, *sid_it, *saveptr;
+  char        *siddup, *sid_it, *saveptr, *attrLoc;
   void        *found;
   AkHeapNode **buf[2];
   void        *elm;
@@ -466,13 +463,20 @@ ak_sid_resolve(AkContext  * __restrict ctx,
   buf[0]  = malloc(sizeof(*buf[0]) * bufl[0]);
   buf[1]  = malloc(sizeof(*buf[0]) * bufl[0]);
 
+  if (attribString)
+    *attribString = NULL;
+
 again:
   idnode  = ak__alignof(elm);
   off     = 0;
   sidnode = NULL;
   found   = NULL;
   siddup  = strdup(target + sidoff);
+  attrLoc = strchr(siddup, '.');
   sid_it  = strtok_r(siddup, "/ \t", &saveptr);
+
+  if (attrLoc)
+    attrLoc[0] = '\0';
 
   if (!idnode)
     return NULL;
@@ -579,7 +583,11 @@ again:
   }
 
 ret:
-  found = ak_sid_resolve_attr(sidnode, off, sid_it);
+  if (sidnode) {
+    found = ak__alignas(sidnode);
+    if (attribString && attrLoc)
+      *attribString = ak_strdup(NULL, attrLoc + 1);
+  }
 err:
   free(buf[0]);
   free(buf[1]);
@@ -588,12 +596,69 @@ err:
   return found;
 }
 
-void * _assetkit_hide
-ak_sid_resolve_attr(AkHeapNode *heapNode,
-                    uintptr_t   off,
-                    const char *attr) {
-  /* TODO: */
-  return ak__alignas(heapNode);
+AK_EXPORT
+uint32_t
+ak_sid_attr_offset(const char *attr) {
+  const char *attrs[] = {"X", "Y", "Z", "R", "G", "B", "A", "ANGLE", "S", "T", "U", "V", "W", "P", "Q"};
+  uint32_t    offs[]  = { 0,   1,   2,   0,   1,   2,   3,     3,     0,   1,   0,   1,   3,   2,   3 };
+  uint32_t    i, len;
+
+  if (attr) {
+    len = sizeof(offs) / sizeof(offs[0]);
+
+    for (i = 0; i < len; i++) {
+      /* TODO: use strcmp after cache uppercased attr */
+      if (strcasecmp(attr, attrs[i]) == 0) {
+        return offs[i];
+      }
+    }
+  }
+
+  return -1;
+}
+
+AK_EXPORT
+void*
+ak_sid_resolve_val(AkContext  * __restrict ctx,
+                   const char * __restrict target) {
+  const char *attr;
+  void       *r;
+
+  r = ak_sid_resolve(ctx, target, &attr);
+
+  /* currently only transform elements */
+  if (attr && ak_typeid(r) == AKT_OBJECT) {
+    AkObject *obj;
+    int       off;
+
+    obj = r;
+    off = ak_sid_attr_offset(attr);
+
+    switch (obj->type) {
+      case AKT_ROTATE: {
+        AkRotate *t;
+        t = ak_objGet(obj);
+        return &t->val[off];
+      }
+      case AKT_TRANSLATE: {
+        AkTranslate *t;
+        t = ak_objGet(obj);
+        return &t->val[off];
+        break;
+      }
+      case AKT_SCALE: {
+        AkScale *t;
+        t = ak_objGet(obj);
+        return &t->val[off];
+        break;
+      }
+      default:
+        break;
+    }
+    return (char *)obj->pData + off;
+  }
+
+  return r;
 }
 
 void _assetkit_hide
