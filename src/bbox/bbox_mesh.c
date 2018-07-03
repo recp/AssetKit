@@ -28,10 +28,19 @@ ak_bbox_mesh(struct AkMesh * __restrict mesh) {
     glm_vec_center(mesh->bbox->min,
                    mesh->bbox->max,
                    mesh->center);
-  } else if (primcount > 0) {
-    /* calculate exact center of primitive */
-    glm_vec_divs(center, primcount, mesh->center);
   } else {
-    glm_vec_zero(mesh->center);
+    glm_vec_zero(center);
+
+    /* calculate exact center of primitive */
+    if (primcount > 0) {
+      while (prim) {
+        ak_bbox_mesh_prim(prim);
+
+        glm_vec_add(prim->center, center, center);
+        primcount++;
+        prim = prim->next;
+      }
+      glm_vec_divs(center, primcount, mesh->center);
+    }
   }
 }

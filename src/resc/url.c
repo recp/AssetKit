@@ -199,14 +199,12 @@ ak_retainURL(void * __restrict obj, AkURL * __restrict url) {
 AK_EXPORT
 void
 ak_releaseURL(void * __restrict obj, AkURL * __restrict url) {
-  AkHeap     *heap;
   AkHeapNode *hnode;
   AkUrlNode  *urlNode;
   void       *urlobj;
   void       **found, **it, *last;
   size_t      len;
 
-  heap  = ak_heap_getheap(obj);
   hnode = ak__alignof(obj);
 
   /* check if object is available */

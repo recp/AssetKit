@@ -448,7 +448,6 @@ ak_sid_resolve(AkContext   * __restrict ctx,
   void        *elm;
   size_t       bufl[2], bufc[2], bufi[2];
   int          bufidx;
-  uint16_t     off;
   ptrdiff_t    sidoff;
   bool         isdot;
 
@@ -468,7 +467,6 @@ ak_sid_resolve(AkContext   * __restrict ctx,
 
 again:
   idnode  = ak__alignof(elm);
-  off     = 0;
   sidnode = NULL;
   found   = NULL;
   siddup  = strdup(target + sidoff);
@@ -521,7 +519,6 @@ again:
           end = p + c * (sizeof(char **) + sizeof(uint16_t));
 
           while (p != end) {
-            off = *(uint16_t *)p;
             p  += sizeof(uint16_t);
 
             /* found sid in attr */

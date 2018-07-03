@@ -96,6 +96,8 @@ ak_dae_light_tcommon(AkXmlState   * __restrict xst,
 
   ak_xest_init(xest, _s_dae_techniquec)
 
+  *dest = NULL;
+
   do {
     if (ak_xml_begin(&xest))
       break;
@@ -286,17 +288,19 @@ ak_dae_light_tcommon(AkXmlState   * __restrict xst,
       break;
   } while (xst->nodeRet);
 
-  optCoordSys = (void *)ak_opt_get(AK_OPT_COORD);
-  if (ak_opt_get(AK_OPT_COORD_CONVERT_TYPE) == AK_COORD_CVT_ALL
-      && optCoordSys != xst->doc->coordSys) {
-    /* convert default cone direction to new coord sys */
-    ak_coordCvtVectorTo(xst->doc->coordSys,
-                        (vec3)AK_DEFAULT_LIGHT_DIR,
-                        optCoordSys,
-                        (*dest)->direction);
-  } else {
-    glm_vec_copy((vec3)AK_DEFAULT_LIGHT_DIR,
-                 (*dest)->direction);
+  if (*dest) {
+    optCoordSys = (void *)ak_opt_get(AK_OPT_COORD);
+    if (ak_opt_get(AK_OPT_COORD_CONVERT_TYPE) == AK_COORD_CVT_ALL
+        && optCoordSys != xst->doc->coordSys) {
+      /* convert default cone direction to new coord sys */
+      ak_coordCvtVectorTo(xst->doc->coordSys,
+                          (vec3)AK_DEFAULT_LIGHT_DIR,
+                          optCoordSys,
+                          (*dest)->direction);
+    } else {
+      glm_vec_copy((vec3)AK_DEFAULT_LIGHT_DIR,
+                   (*dest)->direction);
+    }
   }
 
   return AK_OK;
