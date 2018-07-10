@@ -611,7 +611,7 @@ ak_sid_attr_offset(const char *attr) {
     }
   }
 
-  return -1;
+  return 0;
 }
 
 AK_EXPORT
