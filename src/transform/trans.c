@@ -151,3 +151,78 @@ ak_transformFreeBase(AkTransform * __restrict transform) {
 
   transform->base = NULL;
 }
+
+AK_EXPORT
+AkObject*
+ak_getTransformTRS(AkNode *node, AkTypeId transformType) {
+  AkHeap       *heap;
+  AkObject     *obj, *it, *prev;
+  int           indexT, indexR, indexS;
+
+  heap   = ak_heap_getheap(node);
+  indexT = indexR = indexS = 0;
+
+  if (!node->transform)
+    node->transform = ak_heap_calloc(heap, node, sizeof(*node->transform));
+
+  obj = node->transform->item;
+
+  if (obj) {
+    do {
+      if (obj->type == transformType)
+        return obj;
+    } while (obj);
+  }
+
+  switch (transformType) {
+    case AKT_QUATERNION: {
+      AkQuaternion *rot;
+
+      obj = ak_objAlloc(heap, node, sizeof(*rot), AKT_QUATERNION, true);
+      rot = ak_objGet(obj);
+      glm_quat_identity(rot->val);
+
+      break;
+    }
+    case AKT_TRANSLATE: {
+      AkTranslate *tr;
+
+      obj = ak_objAlloc(heap, node, sizeof(*tr), AKT_TRANSLATE, true);
+      tr  = ak_objGet(obj);
+      glm_vec_zero(tr->val);
+
+      break;
+    }
+    case AKT_SCALE: {
+      AkScale *sc;
+
+      obj = ak_objAlloc(heap, node, sizeof(*sc), AKT_SCALE, true);
+      sc  = ak_objGet(obj);
+      glm_vec_zero(sc->val);
+
+      break;
+    }
+    default: break;
+  }
+
+  it = node->transform->item;
+
+  if (!it) {
+    node->transform->item = obj;
+    return obj;
+  }
+
+  prev = it;
+
+  while (it) {
+    if (transformType < it->type) {
+      prev->next = obj;
+      obj->next  = it;
+    }
+
+    it   = it->next;
+    prev = it;
+  }
+
+  return obj;
+}

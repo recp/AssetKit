@@ -123,6 +123,17 @@ const char _s_gltf_pool_0[] =
 "BLEND\0"
 "MASK\0"
 "OPAQUE\0"
+"animations\0"
+"channels\0"
+"target\0"
+"path\0"
+"interpolation\0"
+"input\0"
+"output\0"
+"anim\0"
+"LINEAR\0"
+"STEP\0"
+"CUBICSPLINE\0"
 ;
 
 #undef _AK_GLTF_STRPOOL_

@@ -139,3 +139,28 @@ gltf_alphaMode(const char *name) {
 
   return val;
 }
+
+AkInterpolationType _assetkit_hide
+gltf_interp(const char *name) {
+  AkEnum val;
+  long glenums_len;
+  long i;
+
+  ak_dae_enum glenums[] = {
+    {_s_gltf_LINEAR,       AK_INTERPOLATION_LINEAR},
+    {_s_gltf_STEP,         AK_INTERPOLATION_STEP},
+    {_s_gltf_CUBICSPLINE,  AK_INTERPOLATION_HERMITE}
+  };
+
+  val = AK_INTERPOLATION_LINEAR;
+  glenums_len = AK_ARRAY_LEN(glenums);
+
+  for (i = 0; i < glenums_len; i++) {
+    if (strcasecmp(name, glenums[i].name) == 0) {
+      val = glenums[i].val;
+      break;
+    }
+  }
+
+  return val;
+}

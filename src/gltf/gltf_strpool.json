@@ -108,5 +108,16 @@
   "specGlossTex": "specularGlossinessTexture",
   "BLEND": "BLEND",
   "MASK": "MASK",
-  "OPAQUE": "OPAQUE"
+  "OPAQUE": "OPAQUE",
+  "animations": "animations",
+  "channels": "channels",
+  "target": "target",
+  "path": "path",
+  "interpolation": "interpolation",
+  "input": "input",
+  "output": "output",
+  "anim": "anim",
+  "LINEAR": "LINEAR",
+  "STEP": "STEP",
+  "CUBICSPLINE": "CUBICSPLINE"
 }

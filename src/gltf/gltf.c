@@ -20,6 +20,7 @@
 #include "core/gltf_sampler.h"
 #include "core/gltf_texture.h"
 #include "core/gltf_material.h"
+#include "core/gltf_anim.h"
 
 AkResult _assetkit_hide
 ak_gltf_doc(AkDoc     ** __restrict dest,
@@ -73,6 +74,7 @@ ak_gltf_doc(AkDoc     ** __restrict dest,
   gltf_cameras(gst);
   gltf_nodes(gst);
   gltf_scenes(gst);
+  gltf_animations(gst);
 
   /* TODO: release resources in GLTFState */
 

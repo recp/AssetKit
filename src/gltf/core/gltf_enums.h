@@ -31,4 +31,7 @@ gltf_wrapMode(int type);
 AkOpaque _assetkit_hide
 gltf_alphaMode(const char *name);
 
+AkInterpolationType _assetkit_hide
+gltf_interp(const char *name);
+
 #endif /* gltf_enums_h */

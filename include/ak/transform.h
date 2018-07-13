@@ -106,6 +106,10 @@ AK_EXPORT
 void
 ak_transformFreeBase(AkTransform * __restrict transform);
 
+AK_EXPORT
+AkObject*
+ak_getTransformTRS(AkNode *node, AkTypeId transformType);
+
 #ifdef __cplusplus
 }
 #endif

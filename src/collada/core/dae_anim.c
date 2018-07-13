@@ -18,6 +18,7 @@ ak_dae_anim(AkXmlState   * __restrict xst,
   AkSource      *last_source;
   AkChannel     *last_channel;
   AkAnimation   *last_anim;
+  AkAnimSampler *last_samp;
   AkXmlElmState  xest;
 
   anim = ak_heap_calloc(xst->heap, memParent, sizeof(*anim));
@@ -30,6 +31,7 @@ ak_dae_anim(AkXmlState   * __restrict xst,
   last_source  = NULL;
   last_channel = NULL;
   last_anim    = NULL;
+  last_samp    = NULL;
 
   do {
     if (ak_xml_begin(&xest))
@@ -55,8 +57,13 @@ ak_dae_anim(AkXmlState   * __restrict xst,
       AkResult       ret;
 
       ret = ak_dae_animSampler(xst, anim, &sampler);
-      if (ret == AK_OK)
-        anim->sampler = sampler;
+      if (ret == AK_OK) {
+        if (last_samp)
+          last_samp->next = sampler;
+        else
+          anim->sampler = sampler;
+        last_samp = sampler;
+      }
     } else if (ak_xml_eqelm(xst, _s_dae_channel)) {
       AkChannel *channel;
       AkResult   ret;

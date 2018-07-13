@@ -129,5 +129,16 @@ _AK_EXTERN const char _s_gltf_pool_0[];
 #define _s_gltf_BLEND _s_gltf_0(993)
 #define _s_gltf_MASK _s_gltf_0(999)
 #define _s_gltf_OPAQUE _s_gltf_0(1004)
+#define _s_gltf_animations _s_gltf_0(1011)
+#define _s_gltf_channels _s_gltf_0(1022)
+#define _s_gltf_target _s_gltf_0(1031)
+#define _s_gltf_path _s_gltf_0(1038)
+#define _s_gltf_interpolation _s_gltf_0(1043)
+#define _s_gltf_input _s_gltf_0(1057)
+#define _s_gltf_output _s_gltf_0(1063)
+#define _s_gltf_anim _s_gltf_0(1070)
+#define _s_gltf_LINEAR _s_gltf_0(1075)
+#define _s_gltf_STEP _s_gltf_0(1082)
+#define _s_gltf_CUBICSPLINE _s_gltf_0(1087)
 
 #endif /* ak_gltf_strpool_h */
