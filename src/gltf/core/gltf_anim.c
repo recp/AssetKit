@@ -32,12 +32,14 @@ gltf_animations(AkGLTFState * __restrict gst) {
   for (i = 0; i < janimCount; i++) {
     json_t     *janim, *jchannels, *jsamps;
     AkSource   *last_source;
+    AkInput    *last_input;
     const char *animid;
     const char *sval;
 
     janim       = json_array_get(janims, i);
     anim        = ak_heap_calloc(heap, lib,  sizeof(*anim));
     last_source = NULL;
+    last_input  = NULL;
 
     /* sets id "anim-[i]" */
     animid = ak_id_gen(heap, anim, _s_gltf_anim);
@@ -89,6 +91,12 @@ gltf_animations(AkGLTFState * __restrict gst) {
           else
             anim->source = source;
           last_source = source;
+
+          if (last_input)
+            last_input->next = input;
+          else
+            sampler->input = input;
+          last_input = input;
         }
 
         if ((joutput = json_object_get(jsamp, _s_gltf_output))) {
@@ -111,6 +119,12 @@ gltf_animations(AkGLTFState * __restrict gst) {
           else
             anim->source = source;
           last_source = source;
+
+          if (last_input)
+            last_input->next = input;
+          else
+            sampler->input = input;
+          last_input = input;
         }
 
         if (last_sampler)
@@ -134,6 +148,8 @@ gltf_animations(AkGLTFState * __restrict gst) {
 
         jch = json_array_get(jchannels, j);
         ch  = ak_heap_calloc(heap, anim, sizeof(*ch));
+
+        anim->channel = ch;
 
         if ((jsamp = json_object_get(jch, _s_gltf_sampler))) {
           AkAnimSampler *sampler;
