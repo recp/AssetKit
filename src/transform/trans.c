@@ -160,26 +160,25 @@ ak_getTransformTRS(AkNode *node, AkTypeId transformType) {
 
   heap = ak_heap_getheap(node);
 
-  if (!node->transform)
+  if (node->transform) {
+    obj = node->transform->item;
+
+    if (obj) {
+      do {
+        if (obj->type == transformType)
+          return obj;
+      } while ((obj = obj->next));
+    }
+  } else {
     node->transform = ak_heap_calloc(heap, node, sizeof(*node->transform));
-
-  obj = node->transform->item;
-
-  if (obj) {
-    do {
-      if (obj->type == transformType)
-        return obj;
-    } while ((obj = obj->next));
   }
 
   switch (transformType) {
     case AKT_QUATERNION: {
       AkQuaternion *rot;
-
       obj = ak_objAlloc(heap, node, sizeof(*rot), AKT_QUATERNION, true);
       rot = ak_objGet(obj);
       glm_quat_identity(rot->val);
-
       break;
     }
     case AKT_TRANSLATE: {
@@ -187,10 +186,14 @@ ak_getTransformTRS(AkNode *node, AkTypeId transformType) {
       break;
     }
     case AKT_SCALE: {
-      obj = ak_objAlloc(heap, node, sizeof(AkScale), AKT_SCALE, true);
+      AkScale *scale;
+      obj   = ak_objAlloc(heap, node, sizeof(*scale), AKT_SCALE, true);
+      scale = ak_objGet(obj);
+      glm_vec_one(scale->val);
       break;
     }
-    default: break;
+    default:
+      return NULL;
   }
 
   it = node->transform->item;
@@ -203,19 +206,17 @@ ak_getTransformTRS(AkNode *node, AkTypeId transformType) {
   prev = NULL;
 
   while (it) {
-    if (transformType < it->type) {
-      if (prev)
-        prev->next = obj;
-      else
-        node->transform->item = obj;
-
-      assert(it != prev);
-      obj->next = it;
-    }
-
+    if (transformType < it->type)
+      break;
     prev = it;
     it   = it->next;
   }
+
+  if (prev)
+    prev->next = obj;
+  else
+    node->transform->item = obj;
+  obj->next = it;
 
   return obj;
 }

@@ -53,14 +53,16 @@ gltf_animations(AkGLTFState * __restrict gst) {
       int32_t j, sampCount;
 
       last_sampler = NULL;
+      last_source  = NULL;
       sampCount    = (int32_t)json_array_size(jsamps);
 
       /* samplers */
       for (j = sampCount - 1; j >= 0; j--) {
         json_t *jsamp, *jinput, *joutput, *jinterp, *jacc;
 
-        jsamp   = json_array_get(jsamps, j);
-        sampler = ak_heap_calloc(heap, anim, sizeof(*sampler));
+        jsamp      = json_array_get(jsamps, j);
+        sampler    = ak_heap_calloc(heap, anim, sizeof(*sampler));
+        last_input = NULL;
 
         if ((jinterp = json_object_get(jsamp, _s_gltf_interpolation))) {
           sampler->uniInterpolation = gltf_interp(json_string_value(jinterp));
@@ -149,8 +151,6 @@ gltf_animations(AkGLTFState * __restrict gst) {
         jch = json_array_get(jchannels, j);
         ch  = ak_heap_calloc(heap, anim, sizeof(*ch));
 
-        anim->channel = ch;
-
         if ((jsamp = json_object_get(jch, _s_gltf_sampler))) {
           AkAnimSampler *sampler;
           int32_t        samplerIndex;
@@ -202,6 +202,12 @@ gltf_animations(AkGLTFState * __restrict gst) {
             }
           }
         }
+
+        if (last_ch)
+          last_ch->next = ch;
+        else
+          anim->channel = ch;
+        last_ch = ch;
       }
     }
 
