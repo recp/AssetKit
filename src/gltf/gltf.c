@@ -25,13 +25,14 @@
 AkResult _assetkit_hide
 ak_gltf_doc(AkDoc     ** __restrict dest,
             const char * __restrict filepath) {
-  AkHeap      *heap;
-  AkDoc       *doc;
-  AkAssetInf  *ainf;
-  json_t      *jscene;
-  AkGLTFState  gstVal, *gst;
-  json_error_t error;
-  AkResult     ret;
+  AkHeap        *heap;
+  AkDoc         *doc;
+  AkAssetInf    *ainf;
+  json_t        *jscene;
+  AkVisualScene *scene;
+  AkGLTFState    gstVal, *gst;
+  json_error_t   error;
+  AkResult       ret;
 
   heap = ak_heap_new(NULL, NULL, NULL);
   doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
@@ -78,27 +79,25 @@ ak_gltf_doc(AkDoc     ** __restrict dest,
 
   /* TODO: release resources in GLTFState */
 
+  /* set first scene as default scene if not specified  */
+  scene = doc->lib.visualScenes->chld;
+
   /* set default scene */
   if ((jscene = json_object_get(gst->root, _s_gltf_scene))) {
-    AkVisualScene *scene;
-    int32_t        sceneIndex;
-
-    scene      = doc->lib.visualScenes->chld;
+    int32_t sceneIndex;
     sceneIndex = (int32_t)json_integer_value(jscene);
     while (sceneIndex > 0 && scene) {
       scene = scene->next;
       sceneIndex--;
     }
+  }
 
-    if (scene) {
-      AkInstanceBase *instScene;
-      instScene = ak_heap_calloc(heap,
-                                 doc,
-                                 sizeof(*instScene));
+  if (scene) {
+    AkInstanceBase *instScene;
+    instScene = ak_heap_calloc(heap, doc, sizeof(*instScene));
 
-      instScene->url.ptr = scene;
-      doc->scene.visualScene = instScene;
-    }
+    instScene->url.ptr = scene;
+    doc->scene.visualScene = instScene;
   }
 
   *dest = doc;
