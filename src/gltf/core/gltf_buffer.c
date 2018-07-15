@@ -30,8 +30,6 @@ gltf_buffer(AkGLTFState * __restrict gst,
   if (!jbuffView)
     return NULL;
 
-  bufferIndex = jsn_i32(jbuffView, _s_gltf_bufferView);
-
   jbuffs      = json_object_get(gst->root, _s_gltf_buffers);
   jbuffsSize  = json_array_size(jbuffs);
   if (jbuffsSize < 1)
@@ -47,7 +45,9 @@ gltf_buffer(AkGLTFState * __restrict gst,
   if ((jbuff = json_object_get(jbuffView, _s_gltf_buffer))) {
     FListItem *buffIter;
 
-    buffIter = gst->buffers;
+    buffIter    = gst->buffers;
+    bufferIndex = (int32_t)json_integer_value(jbuff);
+
     while (bufferIndex > 0) {
       buffIter = buffIter->next;
       bufferIndex--;
