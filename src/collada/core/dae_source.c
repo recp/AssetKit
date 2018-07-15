@@ -40,7 +40,9 @@ ak_dae_source(AkXmlState * __restrict xst,
   AkBuffer     *buffer;
   AkTechnique  *last_tq;
   AkXmlElmState xest;
+  bool          isName;
 
+  isName = false;
   buffer = NULL;
   source = ak_heap_calloc(xst->heap, memParent, sizeof(*source));
   ak_setypeid(source, AKT_SOURCE);
@@ -162,6 +164,8 @@ ak_dae_source(AkXmlState * __restrict xst,
 
          the last one is pointer to all data
          */
+
+        isName = true;
         if ((content = ak_xml_rawval(xst))) {
           if (asEnum) {
             AkEnum enumValue;
@@ -222,8 +226,14 @@ ak_dae_source(AkXmlState * __restrict xst,
             break;
 
           if (ak_xml_eqelm(xst, _s_dae_accessor))
-            if (ak_dae_accessor(xst, source, &accessor) == AK_OK)
+            if (ak_dae_accessor(xst, source, &accessor) == AK_OK) {
               source->tcommon = accessor;
+
+              if (asEnum) {
+                accessor->byteStride = enumLen;
+                accessor->byteLength = accessor->count * enumLen;
+              }
+            }
           
           /* end element */
           if (ak_xml_end(&xest2))
@@ -260,6 +270,14 @@ ak_dae_source(AkXmlState * __restrict xst,
   } while (xst->nodeRet);
 
 done:
+
+  if (source->tcommon
+      && isName
+      && asEnum) {
+    source->tcommon->bound  = 1;
+    source->tcommon->stride = 1;
+  }
+
   *dest = source;
 
   return AK_OK;
