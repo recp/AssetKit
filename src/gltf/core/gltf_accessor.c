@@ -43,7 +43,6 @@ gltf_accessor(AkGLTFState     * __restrict gst,
                        (int32_t)json_integer_value(jbuffView),
                        &acc->byteStride);
 
-    acc->byteLength = buff->length;
     acc->source.ptr = buff;
   }
 
@@ -56,6 +55,8 @@ gltf_accessor(AkGLTFState     * __restrict gst,
   acc->stride = acc->bound;
   if (acc->byteStride == 0)
     acc->byteStride = acc->type->size * acc->stride;
+
+  acc->byteLength = acc->type->size * acc->count;
 
   /* prepare accessor params */
   for (i = 0; i < acc->bound; i++) {
