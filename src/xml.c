@@ -389,14 +389,10 @@ ak_xml_attrui_def(AkXmlState * __restrict xst,
   if (xmlAttrVal) {
     attr = (unsigned int)strtoul((char *)xmlAttrVal, &tmp, 10);
     xmlFree(xmlAttrVal);
-
-    if (tmp && *tmp == '\0')
-      return defval;
-
     return attr;
   }
 
-  return 0ul;
+  return defval;
 }
 
 void

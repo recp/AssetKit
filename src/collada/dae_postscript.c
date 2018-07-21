@@ -95,7 +95,7 @@ ak_dae_fixup_accessors(AkXmlState * __restrict xst) {
         goto cont;
 
       acc->byteStride = acc->stride * itemSize;
-      acc->byteLength = acc->count * acc->stride * itemSize;
+      acc->byteLength = acc->count  * acc->stride * itemSize;
       acc->byteOffset = acc->offset * itemSize;
 
       /* convert ANGLE arrays to radians */

@@ -25,7 +25,7 @@ ak_dae_accessor(AkXmlState * __restrict xst,
 
   accessor->count  = ak_xml_attrui(xst, _s_dae_count);
   accessor->offset = ak_xml_attrui(xst, _s_dae_offset);
-  accessor->stride = ak_xml_attrui(xst, _s_dae_stride);
+  accessor->stride = ak_xml_attrui_def(xst, _s_dae_stride, 1);
 
   ak_xml_attr_url(xst,
                   _s_dae_source,
