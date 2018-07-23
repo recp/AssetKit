@@ -36,6 +36,7 @@ ak_dae_lib(AkXmlState    * __restrict xst,
     if (ak_xml_begin(&xest))
       break;
 
+  after_skip:
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
       (void)ak_dae_assetInf(xst, xst->doc, NULL);
     } else if (ak_xml_eqelm(xst, lc->name)) {
@@ -72,6 +73,7 @@ ak_dae_lib(AkXmlState    * __restrict xst,
       ak_xml_skipelm(xst);
     } else {
       ak_xml_skipelm(xst);
+      goto after_skip;
     }
 
     /* end element */
