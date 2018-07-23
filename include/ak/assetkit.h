@@ -135,30 +135,6 @@ typedef enum AkInputSemantic {
   AK_INPUT_SEMANTIC_WEIGHT          = 22
 } AkInputSemantic;
 
-typedef enum AkTriangleMode {
-  AK_TRIANGLE_MODE_TRIANGLES      = 0,
-  AK_TRIANGLE_MODE_TRIANGLE_STRIP = 1,
-  AK_TRIANGLE_MODE_TRIANGLE_FAN   = 2
-} AkTriangleMode;
-
-typedef enum AkLineMode {
-  AK_LINE_MODE_LINES      = 0,
-  AK_LINE_MODE_LINE_LOOP  = 1,
-  AK_LINE_MODE_LINE_STRIP = 2
-} AkLineMode;
-
-typedef enum AkPolygonMode {
-  AK_POLYGON_MODE_POLYLIST = 0,
-  AK_POLYGON_MODE_POLYGONS = 1
-} AkPolygonMode;
-
-typedef enum AkMeshPrimitiveType {
-  AK_MESH_PRIMITIVE_TYPE_LINES      = 1,
-  AK_MESH_PRIMITIVE_TYPE_POLYGONS   = 2,
-  AK_MESH_PRIMITIVE_TYPE_TRIANGLES  = 3,
-  AK_MESH_PRIMITIVE_TYPE_POINTS     = 4
-} AkMeshPrimitiveType;
-
 typedef enum AkCurveElementType {
   AK_CURVE_ELEMENT_TYPE_LINE      = 1,
   AK_CURVE_ELEMENT_TYPE_CIRCLE    = 2,

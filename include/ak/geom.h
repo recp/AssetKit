@@ -16,6 +16,8 @@ extern "C" {
 #include "map.h"
 
 struct RBTree;
+struct AkGeometry;
+struct AkMesh;
 
 typedef enum AkGeometryType {
   AK_GEOMETRY_TYPE_MESH   = 0,
@@ -29,8 +31,29 @@ typedef enum AkGeometryEditFlags {
   AK_GEOM_EDIT_FLAG_MUTEX   = 3
 } AkGeometryEditFlags;
 
-struct AkGeometry;
-struct AkMesh;
+typedef enum AkMeshPrimitiveType {
+  AK_MESH_PRIMITIVE_TYPE_LINES      = 1,
+  AK_MESH_PRIMITIVE_TYPE_POLYGONS   = 2,
+  AK_MESH_PRIMITIVE_TYPE_TRIANGLES  = 3,
+  AK_MESH_PRIMITIVE_TYPE_POINTS     = 4
+} AkMeshPrimitiveType;
+
+typedef enum AkTriangleMode {
+  AK_TRIANGLE_MODE_TRIANGLES      = 0,
+  AK_TRIANGLE_MODE_TRIANGLE_STRIP = 1,
+  AK_TRIANGLE_MODE_TRIANGLE_FAN   = 2
+} AkTriangleMode;
+
+typedef enum AkLineMode {
+  AK_LINE_MODE_LINES      = 0,
+  AK_LINE_MODE_LINE_LOOP  = 1,
+  AK_LINE_MODE_LINE_STRIP = 2
+} AkLineMode;
+
+typedef enum AkPolygonMode {
+  AK_POLYGON_MODE_POLYLIST = 0,
+  AK_POLYGON_MODE_POLYGONS = 1
+} AkPolygonMode;
 
 typedef struct AkVertices {
   /* const char   * id; */
