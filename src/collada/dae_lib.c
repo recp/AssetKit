@@ -9,8 +9,8 @@
 #include "core/dae_asset.h"
 
 void _assetkit_hide
-ak_dae_lib(AkXmlState    * __restrict xst,
-           AkLibChldDesc * __restrict lc) {
+dae_lib(AkXmlState    * __restrict xst,
+        AkLibChldDesc * __restrict lc) {
   AkLibItem    *lib;
   char         *lastLibChld;
   AkXmlElmState xest;
@@ -38,7 +38,7 @@ ak_dae_lib(AkXmlState    * __restrict xst,
 
   after_skip:
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
-      (void)ak_dae_assetInf(xst, xst->doc, NULL);
+      (void)dae_assetInf(xst, xst->doc, NULL);
     } else if (ak_xml_eqelm(xst, lc->name)) {
       void      *libChld;
       AkResult   ret;

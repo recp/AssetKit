@@ -12,8 +12,8 @@
 #include "../dae_common.h"
 
 AkResult _assetkit_hide
-ak_dae_fxBindUniform(AkXmlState * __restrict xst,
-                     void * __restrict memParent,
-                     AkBindUniform ** __restrict dest);
+dae_fxBindUniform(AkXmlState * __restrict xst,
+                  void * __restrict memParent,
+                  AkBindUniform ** __restrict dest);
 
 #endif /* __libassetkit__dae_fx_uniform_h_ */

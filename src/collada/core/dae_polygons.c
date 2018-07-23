@@ -10,11 +10,11 @@
 #include "../../array.h"
 
 AkResult _assetkit_hide
-ak_dae_polygon(AkXmlState * __restrict xst,
-               void       * __restrict memParent,
-               const char             *elm,
-               AkPolygonMode           mode,
-               AkPolygon ** __restrict dest) {
+dae_polygon(AkXmlState * __restrict xst,
+            void       * __restrict memParent,
+            const char             *elm,
+            AkPolygonMode           mode,
+            AkPolygon ** __restrict dest) {
   AkPolygon    *polygon;
   AkInput      *last_input;
   AkXmlElmState xest;
@@ -59,7 +59,7 @@ ak_dae_polygon(AkXmlState * __restrict xst,
       else {
         AkEnum inputSemantic;
 
-        inputSemantic = ak_dae_enumInputSemantic(input->semanticRaw);
+        inputSemantic = dae_enumInputSemantic(input->semanticRaw);
         input->offset = ak_xml_attrui(xst, _s_dae_offset);
         input->set    = ak_xml_attrui(xst, _s_dae_set);
 

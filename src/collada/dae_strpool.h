@@ -5,10 +5,10 @@
  * Full license can be found in the LICENSE file
  */
 
-#ifndef ak_dae_strpool_h
-#  define ak_dae_strpool_h
+#ifndef dae_strpool_h
+#  define dae_strpool_h
 
-#ifndef _AK_DAE_STRPOOL_
+#ifndef _DAE_STRPOOL_
 #  define _AK_EXTERN extern
 #else
 #  define _AK_EXTERN
@@ -487,4 +487,4 @@ _AK_EXTERN const char _s_dae_pool_2[];
 #define _s_dae_pre_behavior _s_dae_2(874)
 #define _s_dae_post_behavior _s_dae_2(887)
 
-#endif /* ak_dae_strpool_h */
+#endif /* dae_strpool_h */

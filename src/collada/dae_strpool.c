@@ -5,8 +5,8 @@
  * Full license can be found in the LICENSE file
  */
 
-#ifndef _AK_DAE_STRPOOL_
-#  define _AK_DAE_STRPOOL_
+#ifndef _DAE_STRPOOL_
+#  define _DAE_STRPOOL_
 #endif
 
 #include "dae_strpool.h"
@@ -480,4 +480,4 @@ const char _s_dae_pool_2[] =
 "post_behavior\0"
 ;
 
-#undef _AK_DAE_STRPOOL_
+#undef _DAE_STRPOOL_

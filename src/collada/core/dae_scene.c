@@ -9,9 +9,9 @@
 #include "dae_visual_scene.h"
 
 AkResult _assetkit_hide
-ak_dae_scene(AkXmlState * __restrict xst,
-             void * __restrict memParent,
-             AkScene * __restrict dest) {
+dae_scene(AkXmlState * __restrict xst,
+          void * __restrict memParent,
+          AkScene * __restrict dest) {
   AkXmlElmState xest;
 
   ak_xest_init(xest, _s_dae_scene)
@@ -24,7 +24,7 @@ ak_dae_scene(AkXmlState * __restrict xst,
       AkInstanceBase *visualScene;
       AkResult ret;
 
-      ret = ak_dae_instanceVisualScene(xst, memParent, &visualScene);
+      ret = dae_instanceVisualScene(xst, memParent, &visualScene);
       if (ret == AK_OK)
         dest->visualScene = visualScene;
 

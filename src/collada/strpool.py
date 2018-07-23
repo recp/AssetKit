@@ -37,10 +37,10 @@ fspool_h.write(copyright_str)
 fspool_c.write(copyright_str)
 
 fspool_h.write("""
-#ifndef ak_dae_strpool_h
-#  define ak_dae_strpool_h
+#ifndef dae_strpool_h
+#  define dae_strpool_h
 
-#ifndef _AK_DAE_STRPOOL_
+#ifndef _DAE_STRPOOL_
 #  define _AK_EXTERN extern
 #else
 #  define _AK_EXTERN
@@ -48,8 +48,8 @@ fspool_h.write("""
 """)
 
 fspool_c.write("""
-#ifndef _AK_DAE_STRPOOL_
-#  define _AK_DAE_STRPOOL_
+#ifndef _DAE_STRPOOL_
+#  define _DAE_STRPOOL_
 #endif
 
 #include "dae_strpool.h"
@@ -83,7 +83,7 @@ for name, val in spool.iteritems():
   pos += valLen
 
 # source file, then close it
-fspool_c.write(";\n\n#undef _AK_DAE_STRPOOL_\n")
+fspool_c.write(";\n\n#undef _DAE_STRPOOL_\n")
 fspool_c.close()
 
 # header file
@@ -99,7 +99,7 @@ for idx in range(spidx + 1):
 
 # write header contents, then close it
 fspool_h.writelines(headerContents)
-fspool_h.write("\n#endif /* ak_dae_strpool_h */\n")
+fspool_h.write("\n#endif /* dae_strpool_h */\n")
 fspool_h.close()
 
 # try free array

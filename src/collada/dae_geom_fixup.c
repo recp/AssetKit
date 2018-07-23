@@ -9,7 +9,7 @@
 #include "dae_mesh_fixup.h"
 
 AkResult _assetkit_hide
-ak_dae_geom_fixup_all(AkDoc * doc) {
+dae_geom_fixup_all(AkDoc * doc) {
   AkLibItem  *geomLib;
   AkGeometry *geom;
 
@@ -17,7 +17,7 @@ ak_dae_geom_fixup_all(AkDoc * doc) {
   while (geomLib) {
     geom = geomLib->chld;
     while (geom) {
-      ak_dae_geom_fixup(geom);
+      dae_geom_fixup(geom);
       geom = geom->next;
     }
 
@@ -28,13 +28,13 @@ ak_dae_geom_fixup_all(AkDoc * doc) {
 }
 
 AkResult _assetkit_hide
-ak_dae_geom_fixup(AkGeometry * geom) {
+dae_geom_fixup(AkGeometry * geom) {
   AkObject *primitive;
 
   primitive = geom->gdata;
   switch ((AkGeometryType)primitive->type) {
     case AK_GEOMETRY_TYPE_MESH:
-      ak_dae_mesh_fixup(ak_objGet(primitive));
+      dae_mesh_fixup(ak_objGet(primitive));
     default:
       break;
   }

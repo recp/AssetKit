@@ -11,9 +11,9 @@
 #include "dae_morph.h"
 
 AkResult _assetkit_hide
-ak_dae_controller(AkXmlState * __restrict xst,
-                  void * __restrict memParent,
-                  void ** __restrict dest) {
+dae_controller(AkXmlState * __restrict xst,
+               void * __restrict memParent,
+               void ** __restrict dest) {
   AkController *controller;
   AkXmlElmState xest;
 
@@ -31,12 +31,12 @@ ak_dae_controller(AkXmlState * __restrict xst,
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
-      (void)ak_dae_assetInf(xst, controller, NULL);
+      (void)dae_assetInf(xst, controller, NULL);
     } else if (ak_xml_eqelm(xst, _s_dae_skin)) {
       AkSkin  *skin;
       AkResult ret;
 
-      ret = ak_dae_skin(xst, controller, true, &skin);
+      ret = dae_skin(xst, controller, true, &skin);
       if (ret == AK_OK)
         controller->data = ak_objFrom(skin);
 
@@ -44,7 +44,7 @@ ak_dae_controller(AkXmlState * __restrict xst,
       AkMorph *morph;
       AkResult ret;
 
-      ret = ak_dae_morph(xst, controller, true, &morph);
+      ret = dae_morph(xst, controller, true, &morph);
       if (ret == AK_OK)
         controller->data = ak_objFrom(morph);
 

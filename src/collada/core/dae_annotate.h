@@ -11,8 +11,8 @@
 #include "../dae_common.h"
 
 AkResult _assetkit_hide
-ak_dae_annotate(AkXmlState * __restrict xst,
-                void * __restrict memParent,
-                AkAnnotate ** __restrict dest);
+dae_annotate(AkXmlState * __restrict xst,
+             void * __restrict memParent,
+             AkAnnotate ** __restrict dest);
 
 #endif /* __libassetkit__dae_annotate__h_ */

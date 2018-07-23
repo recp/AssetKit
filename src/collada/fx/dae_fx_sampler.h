@@ -12,9 +12,9 @@
 #include "../dae_common.h"
 
 AkResult _assetkit_hide
-ak_dae_fxSampler(AkXmlState * __restrict xst,
-                 void * __restrict memParent,
-                 const char *elm,
-                 AkSampler ** __restrict dest);
+dae_fxSampler(AkXmlState * __restrict xst,
+              void * __restrict memParent,
+              const char *elm,
+              AkSampler ** __restrict dest);
 
 #endif /* __libassetkit__dae_fx_sampler_h_ */

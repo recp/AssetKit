@@ -10,10 +10,10 @@
 #include "dae_enums.h"
 
 AkResult _assetkit_hide
-ak_dae_spline(AkXmlState * __restrict xst,
-              void * __restrict memParent,
-              bool asObject,
-              AkSpline ** __restrict dest) {
+dae_spline(AkXmlState * __restrict xst,
+           void * __restrict memParent,
+           bool asObject,
+           AkSpline ** __restrict dest) {
   AkObject    *obj;
   AkSpline    *spline;
   AkSource    *last_source;
@@ -50,7 +50,7 @@ ak_dae_spline(AkXmlState * __restrict xst,
       AkSource *source;
       AkResult ret;
 
-      ret = ak_dae_source(xst, memPtr, NULL, 0, &source);
+      ret = dae_source(xst, memPtr, NULL, 0, &source);
       if (ret == AK_OK) {
         if (last_source)
           last_source->next = source;
@@ -83,7 +83,7 @@ ak_dae_spline(AkXmlState * __restrict xst,
             ak_free(input);
           else {
             AkEnum inputSemantic;
-            inputSemantic = ak_dae_enumInputSemantic(input->semanticRaw);
+            inputSemantic = dae_enumInputSemantic(input->semanticRaw);
 
             if (inputSemantic < 0)
               inputSemantic = AK_INPUT_SEMANTIC_OTHER;

@@ -50,20 +50,17 @@ static ak_enumpair nodeMap[] = {
 static size_t nodeMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_node2(AkXmlState * __restrict xst,
-             void       * __restrict memParent,
-             void      ** __restrict dest) {
-  return ak_dae_node(xst,
-                     memParent,
-                     NULL,
-                     (AkNode **)dest);
+dae_node2(AkXmlState * __restrict xst,
+          void       * __restrict memParent,
+          void      ** __restrict dest) {
+  return dae_node(xst, memParent, NULL, (AkNode **)dest);
 }
 
 AkResult _assetkit_hide
-ak_dae_node(AkXmlState    * __restrict xst,
-            void          * __restrict memParent,
-            AkVisualScene * __restrict scene,
-            AkNode       ** __restrict dest) {
+dae_node(AkXmlState    * __restrict xst,
+         void          * __restrict memParent,
+         AkVisualScene * __restrict scene,
+         AkNode       ** __restrict dest) {
   AkNode               *node, *last_chld;
   AkObject             *last_transform;
   AkInstanceBase       *last_camera;
@@ -84,7 +81,7 @@ ak_dae_node(AkXmlState    * __restrict xst,
 
   node->nodeType = ak_xml_attrenum_def(xst,
                                        _s_dae_type,
-                                       ak_dae_enumNodeType,
+                                       dae_enumNodeType,
                                        AK_NODE_TYPE_NODE);
 
   attrVal = (char *)xmlTextReaderGetAttribute(xst->reader,
@@ -141,7 +138,7 @@ ak_dae_node(AkXmlState    * __restrict xst,
 
     switch (found->val) {
       case k_s_dae_asset: {
-        (void)ak_dae_assetInf(xst, node, NULL);
+        (void)dae_assetInf(xst, node, NULL);
         break;
       }
       case k_s_dae_lookat: {
@@ -466,9 +463,9 @@ ak_dae_node(AkXmlState    * __restrict xst,
             AkBindMaterial *bindMaterial;
             AkResult ret;
 
-            ret = ak_dae_fxBindMaterial(xst,
-                                        instanceController,
-                                        &bindMaterial);
+            ret = dae_fxBindMaterial(xst,
+                                     instanceController,
+                                     &bindMaterial);
             if (ret == AK_OK)
               instanceController->bindMaterial = bindMaterial;
 
@@ -533,7 +530,7 @@ ak_dae_node(AkXmlState    * __restrict xst,
             AkBindMaterial *bindMaterial;
             AkResult ret;
 
-            ret = ak_dae_fxBindMaterial(xst, instanceGeom, &bindMaterial);
+            ret = dae_fxBindMaterial(xst, instanceGeom, &bindMaterial);
             if (ret == AK_OK)
               instanceGeom->bindMaterial = bindMaterial;
 
@@ -706,7 +703,7 @@ ak_dae_node(AkXmlState    * __restrict xst,
         AkResult ret;
 
         subNode = NULL;
-        ret = ak_dae_node(xst, node, scene, &subNode);
+        ret = dae_node(xst, node, scene, &subNode);
         if (ret == AK_OK) {
           if (last_chld)
             last_chld->next = subNode;
@@ -749,7 +746,7 @@ ak_dae_node(AkXmlState    * __restrict xst,
   if (ak_isKindOf(memParent, node))
     node->parent = memParent;
 
-  ak_dae_nodeFixup(xst->heap, node);
+  dae_nodeFixup(xst->heap, node);
 
   *dest = node;
 

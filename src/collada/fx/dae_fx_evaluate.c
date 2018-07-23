@@ -32,9 +32,9 @@ static ak_enumpair evaluateMap[] = {
 static size_t evaluateMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_fxEvaluate(AkXmlState * __restrict xst,
-                  void * __restrict memParent,
-                  AkEvaluate ** __restrict dest) {
+dae_fxEvaluate(AkXmlState * __restrict xst,
+               void * __restrict memParent,
+               AkEvaluate ** __restrict dest) {
   AkEvaluate   *evaluate;
   AkXmlElmState xest;
 
@@ -86,7 +86,7 @@ ak_dae_fxEvaluate(AkXmlState * __restrict xst,
 
         evaluate_target->face  = ak_xml_attrenum(xst,
                                                  _s_dae_face,
-                                                 ak_dae_fxEnumFace);
+                                                 dae_fxEnumFace);
 
         targetNodeName = xst->nodeName;
 
@@ -100,9 +100,7 @@ ak_dae_fxEvaluate(AkXmlState * __restrict xst,
             AkParam * param;
             AkResult   ret;
 
-            ret = ak_dae_param(xst,
-                               evaluate_target,
-                               &param);
+            ret = dae_param(xst, evaluate_target,  &param);
 
             if (ret == AK_OK)
               evaluate_target->param = param;
@@ -110,9 +108,9 @@ ak_dae_fxEvaluate(AkXmlState * __restrict xst,
             AkInstanceBase *instanceImage;
             AkResult        ret;
 
-            ret = ak_dae_fxInstanceImage(xst,
-                                         evaluate_target,
-                                         &instanceImage);
+            ret = dae_fxInstanceImage(xst,
+                                      evaluate_target,
+                                      &instanceImage);
 
             if (ret == AK_OK)
               evaluate_target->instanceImage = instanceImage;
@@ -146,7 +144,7 @@ ak_dae_fxEvaluate(AkXmlState * __restrict xst,
 
         colorClear->index = ak_xml_attrui(xst, _s_dae_index);
 
-        ak_dae_color(xst, colorClear, false, false, &colorClear->val);
+        dae_color(xst, colorClear, false, false, &colorClear->val);
 
         evaluate->colorClear = colorClear;
         break;
@@ -180,7 +178,7 @@ ak_dae_fxEvaluate(AkXmlState * __restrict xst,
         
         if ((strVal = ak_xml_val(xst, evaluate))) {
           evaluate->draw.strVal = strVal;
-          evaluate->draw.enumDraw = ak_dae_fxEnumDraw(strVal);
+          evaluate->draw.enumDraw = dae_fxEnumDraw(strVal);
         }
       }
       default:

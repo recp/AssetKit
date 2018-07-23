@@ -5,13 +5,13 @@
  * Full license can be found in the LICENSE file
  */
 
-#ifndef ak_gltf_h
-#define ak_gltf_h
+#ifndef gltf_h
+#define gltf_h
 
 #include "gltf_common.h"
 
 AkResult _assetkit_hide
-ak_gltf_doc(AkDoc     ** __restrict dest,
-            const char * __restrict filepath);
+gltf_doc(AkDoc     ** __restrict dest,
+         const char * __restrict filepath);
 
-#endif /* ak_gltf_h */
+#endif /* gltf_h */

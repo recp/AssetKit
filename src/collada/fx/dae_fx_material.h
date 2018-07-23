@@ -13,23 +13,23 @@
 #include "../dae_common.h"
 
 AkResult _assetkit_hide
-ak_dae_material(AkXmlState * __restrict xst,
-                void * __restrict memParent,
-                void ** __restrict dest);
+dae_material(AkXmlState * __restrict xst,
+             void * __restrict memParent,
+             void ** __restrict dest);
 
 AkResult _assetkit_hide
-ak_dae_fxBindMaterial(AkXmlState * __restrict xst,
-                      void * __restrict memParent,
-                      AkBindMaterial ** __restrict dest);
+dae_fxBindMaterial(AkXmlState * __restrict xst,
+                   void * __restrict memParent,
+                   AkBindMaterial ** __restrict dest);
 
 AkResult _assetkit_hide
-ak_dae_fxInstanceMaterial(AkXmlState * __restrict xst,
-                          void * __restrict memParent,
-                          AkInstanceMaterial ** __restrict dest);
+dae_fxInstanceMaterial(AkXmlState * __restrict xst,
+                       void * __restrict memParent,
+                       AkInstanceMaterial ** __restrict dest);
 
 AkResult _assetkit_hide
-ak_dae_fxBindMaterial_tcommon(AkXmlState          * __restrict xst,
-                              void                * __restrict memParent,
-                              AkInstanceMaterial ** __restrict dest);
+dae_fxBindMaterial_tcommon(AkXmlState          * __restrict xst,
+                           void                * __restrict memParent,
+                           AkInstanceMaterial ** __restrict dest);
 
 #endif /* __libassetkit__dae_fx_material__h_ */

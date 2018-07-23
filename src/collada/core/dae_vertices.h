@@ -11,8 +11,8 @@
 #include "../dae_common.h"
 
 AkResult _assetkit_hide
-ak_dae_vertices(AkXmlState * __restrict xst,
-                void * __restrict memParent,
-                AkVertices ** __restrict dest);
+dae_vertices(AkXmlState * __restrict xst,
+             void * __restrict memParent,
+             AkVertices ** __restrict dest);
 
 #endif /* __libassetkit__dae_vertices_h_ */

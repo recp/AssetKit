@@ -16,7 +16,7 @@
 #include <unistd.h>
 #include <string.h>
 
-const char *ak_dae_dir = "./test/sample-models/collada/files";
+const char *dae_dir = "./test/sample-models/collada/files";
 
 void
 test_dae_load_folder(void **state) {
@@ -25,7 +25,7 @@ test_dae_load_folder(void **state) {
   AkDoc         *doc;
 
   (void)state;
-  chdir(ak_dae_dir);
+  chdir(dae_dir);
 
   if ((dir = opendir ("./")) != NULL) {
     while ((ent = readdir (dir)) != NULL) {

@@ -11,12 +11,12 @@
 #include "../dae_common.h"
 
 AkResult _assetkit_hide
-ak_dae_value(AkXmlState * __restrict xst,
-             void       * __restrict memParent,
-             AkValue   ** __restrict dest);
+dae_value(AkXmlState * __restrict xst,
+          void       * __restrict memParent,
+          AkValue   ** __restrict dest);
 
 void _assetkit_hide
-ak_dae_dataType(const char *typeName,
-                AkTypeDesc *type);
+dae_dataType(const char *typeName,
+             AkTypeDesc *type);
 
 #endif /* __libassetkit__dae_value__h_ */

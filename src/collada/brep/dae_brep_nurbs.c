@@ -10,10 +10,10 @@
 #include "../core/dae_enums.h"
 
 AkResult _assetkit_hide
-ak_dae_nurbs(AkXmlState * __restrict xst,
-             void * __restrict memParent,
-             bool asObject,
-             AkNurbs ** __restrict dest) {
+dae_nurbs(AkXmlState * __restrict xst,
+          void * __restrict memParent,
+          bool asObject,
+          AkNurbs ** __restrict dest) {
   AkObject     *obj;
   AkNurbs      *nurbs;
   AkSource     *last_source;
@@ -51,7 +51,7 @@ ak_dae_nurbs(AkXmlState * __restrict xst,
       AkSource *source;
       AkResult ret;
 
-      ret = ak_dae_source(xst, memPtr, NULL, 0, &source);
+      ret = dae_source(xst, memPtr, NULL, 0, &source);
       if (ret == AK_OK) {
         if (last_source)
           last_source->next = source;
@@ -95,7 +95,7 @@ ak_dae_nurbs(AkXmlState * __restrict xst,
             ak_free(input);
           else {
             AkEnum inputSemantic;
-            inputSemantic = ak_dae_enumInputSemantic(input->semanticRaw);
+            inputSemantic = dae_enumInputSemantic(input->semanticRaw);
 
             if (inputSemantic < 0)
               inputSemantic = AK_INPUT_SEMANTIC_OTHER;
@@ -163,10 +163,10 @@ ak_dae_nurbs(AkXmlState * __restrict xst,
 }
 
 AkResult _assetkit_hide
-ak_dae_nurbs_surface(AkXmlState * __restrict xst,
-                     void * __restrict memParent,
-                     bool asObject,
-                     AkNurbsSurface ** __restrict dest) {
+dae_nurbs_surface(AkXmlState * __restrict xst,
+                  void * __restrict memParent,
+                  bool asObject,
+                  AkNurbsSurface ** __restrict dest) {
   AkObject       *obj;
   AkNurbsSurface *nurbsSurface;
   AkSource       *last_source;
@@ -206,7 +206,7 @@ ak_dae_nurbs_surface(AkXmlState * __restrict xst,
       AkSource *source;
       AkResult ret;
 
-      ret = ak_dae_source(xst, memPtr, NULL, 0, &source);
+      ret = dae_source(xst, memPtr, NULL, 0, &source);
       if (ret == AK_OK) {
         if (last_source)
           last_source->next = source;
@@ -250,7 +250,7 @@ ak_dae_nurbs_surface(AkXmlState * __restrict xst,
             ak_free(input);
           else {
             AkEnum inputSemantic;
-            inputSemantic = ak_dae_enumInputSemantic(input->semanticRaw);
+            inputSemantic = dae_enumInputSemantic(input->semanticRaw);
 
             if (inputSemantic < 0)
               inputSemantic = AK_INPUT_SEMANTIC_OTHER;

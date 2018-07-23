@@ -11,11 +11,11 @@
 #include "dae_common.h"
 
 void _assetkit_hide
-ak_dae_nodeFixupFixedCoord(AkHeap * __restrict heap,
-                           AkNode * __restrict node);
+dae_nodeFixupFixedCoord(AkHeap * __restrict heap,
+                        AkNode * __restrict node);
 
 void _assetkit_hide
-ak_dae_nodeFixup(AkHeap * __restrict heap,
-                 AkNode*  __restrict node);
+dae_nodeFixup(AkHeap * __restrict heap,
+              AkNode*  __restrict node);
 
 #endif /* dae_node_fixup_h */

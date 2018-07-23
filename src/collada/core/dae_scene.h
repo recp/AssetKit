@@ -11,8 +11,8 @@
 #include "../dae_common.h"
 
 AkResult _assetkit_hide
-ak_dae_scene(AkXmlState * __restrict xst,
-             void * __restrict memParent,
-             AkScene * __restrict dest);
+dae_scene(AkXmlState * __restrict xst,
+          void * __restrict memParent,
+          AkScene * __restrict dest);
 
 #endif /* __libassetkit__dae_scene_h_ */

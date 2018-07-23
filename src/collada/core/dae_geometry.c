@@ -12,9 +12,9 @@
 #include "../brep/dae_brep.h"
 
 AkResult _assetkit_hide
-ak_dae_geometry(AkXmlState * __restrict xst,
-                void * __restrict memParent,
-                void ** __restrict dest) {
+dae_geometry(AkXmlState * __restrict xst,
+             void * __restrict memParent,
+             void ** __restrict dest) {
   AkGeometry   *geometry;
   AkXmlElmState xest;
 
@@ -37,17 +37,17 @@ ak_dae_geometry(AkXmlState * __restrict xst,
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
-      (void)ak_dae_assetInf(xst, geometry, NULL);
+      (void)dae_assetInf(xst, geometry, NULL);
     } else if (ak_xml_eqelm(xst, _s_dae_mesh)
                || ak_xml_eqelm(xst, _s_dae_convex_mesh)) {
       AkMesh  *mesh;
       AkResult ret;
 
-      ret = ak_dae_mesh(xst,
-                        geometry,
-                        (const char *)xst->nodeName,
-                        &mesh,
-                        true);
+      ret = dae_mesh(xst,
+                     geometry,
+                     (const char *)xst->nodeName,
+                     &mesh,
+                     true);
       if (ret == AK_OK)
         geometry->gdata = ak_objFrom(mesh);
 
@@ -55,10 +55,7 @@ ak_dae_geometry(AkXmlState * __restrict xst,
       AkSpline *spline;
       AkResult  ret;
 
-      ret = ak_dae_spline(xst,
-                          geometry,
-                          true,
-                          &spline);
+      ret = dae_spline(xst, geometry, true, &spline);
       if (ret == AK_OK)
         geometry->gdata = ak_objFrom(spline);
 
@@ -66,10 +63,7 @@ ak_dae_geometry(AkXmlState * __restrict xst,
       AkBoundryRep *brep;
       AkResult      ret;
 
-      ret = ak_dae_brep(xst,
-                        geometry,
-                        true,
-                        &brep);
+      ret = dae_brep(xst, geometry, true, &brep);
       if (ret == AK_OK)
         geometry->gdata = ak_objFrom(brep);
 

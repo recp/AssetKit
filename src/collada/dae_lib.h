@@ -25,7 +25,7 @@ typedef struct AkLibChldDesc {
 } AkLibChldDesc;
 
 void _assetkit_hide
-ak_dae_lib(AkXmlState    * __restrict xst,
-           AkLibChldDesc * __restrict lc);
+dae_lib(AkXmlState    * __restrict xst,
+        AkLibChldDesc * __restrict lc);
 
 #endif /* dae_lib_h */

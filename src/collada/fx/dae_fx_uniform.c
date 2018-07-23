@@ -10,9 +10,9 @@
 #include "../core/dae_value.h"
 
 AkResult _assetkit_hide
-ak_dae_fxBindUniform(AkXmlState * __restrict xst,
-                     void * __restrict memParent,
-                     AkBindUniform ** __restrict dest) {
+dae_fxBindUniform(AkXmlState * __restrict xst,
+                  void * __restrict memParent,
+                  AkBindUniform ** __restrict dest) {
   AkBindUniform *bindUniform;
   AkParam       *last_param;
   AkXmlElmState  xest;
@@ -35,9 +35,7 @@ ak_dae_fxBindUniform(AkXmlState * __restrict xst,
       AkParam * param;
       AkResult   ret;
 
-      ret = ak_dae_param(xst,
-                         bindUniform,
-                         &param);
+      ret = dae_param(xst, bindUniform, &param);
 
       if (ret == AK_OK) {
         if (last_param)
@@ -54,9 +52,7 @@ ak_dae_fxBindUniform(AkXmlState * __restrict xst,
         AkValue *val;
         AkResult ret;
 
-        ret = ak_dae_value(xst,
-                           bindUniform,
-                           &val);
+        ret = dae_value(xst,  bindUniform, &val);
 
         if (ret == AK_OK)
           bindUniform->val = val;

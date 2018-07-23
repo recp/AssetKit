@@ -11,9 +11,9 @@
 #include "../dae_common.h"
 
 AkResult _assetkit_hide
-ak_dae_morph(AkXmlState * __restrict xst,
-             void * __restrict memParent,
-             bool asObject,
-             AkMorph ** __restrict dest);
+dae_morph(AkXmlState * __restrict xst,
+          void * __restrict memParent,
+          bool asObject,
+          AkMorph ** __restrict dest);
 
 #endif /* __libassetkit__dae_morph_h_ */

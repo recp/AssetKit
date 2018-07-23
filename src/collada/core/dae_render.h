@@ -11,8 +11,8 @@
 #include "../dae_common.h"
 
 AkResult _assetkit_hide
-ak_dae_render(AkXmlState * __restrict xst,
-              void * __restrict memParent,
-              AkRender ** __restrict dest);
+dae_render(AkXmlState * __restrict xst,
+           void * __restrict memParent,
+           AkRender ** __restrict dest);
 
 #endif /* __libassetkit__dae_render_h_ */

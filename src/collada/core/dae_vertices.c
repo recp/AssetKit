@@ -9,9 +9,9 @@
 #include "dae_enums.h"
 
 AkResult _assetkit_hide
-ak_dae_vertices(AkXmlState * __restrict xst,
-                void * __restrict memParent,
-                AkVertices ** __restrict dest) {
+dae_vertices(AkXmlState * __restrict xst,
+             void * __restrict memParent,
+             AkVertices ** __restrict dest) {
   AkVertices   *vertices;
   AkInput      *last_input;
   AkXmlElmState xest;
@@ -40,7 +40,7 @@ ak_dae_vertices(AkXmlState * __restrict xst,
       if (!input->semanticRaw) {
         ak_free(input);
       } else {
-        input->semantic = ak_dae_enumInputSemantic(input->semanticRaw);
+        input->semantic = dae_enumInputSemantic(input->semanticRaw);
 
         ak_xml_attr_url2(xst, _s_dae_source, input, &input->source);
         

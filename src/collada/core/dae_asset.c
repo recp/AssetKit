@@ -9,9 +9,9 @@
 #include "../../memory_common.h"
 
 AkResult _assetkit_hide
-ak_dae_assetInf(AkXmlState * __restrict xst,
-                void       * __restrict memParent,
-                AkAssetInf * __restrict ainf) {
+dae_assetInf(AkXmlState * __restrict xst,
+             void       * __restrict memParent,
+             AkAssetInf * __restrict ainf) {
   AkAssetInf   **extp;
   AkXmlElmState xest;
 

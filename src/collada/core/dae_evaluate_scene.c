@@ -10,9 +10,9 @@
 #include "../core/dae_asset.h"
 
 AkResult _assetkit_hide
-ak_dae_evaluateScene(AkXmlState * __restrict xst,
-                     void * __restrict memParent,
-                     AkEvaluateScene ** __restrict dest) {
+dae_evaluateScene(AkXmlState * __restrict xst,
+                  void * __restrict memParent,
+                  AkEvaluateScene ** __restrict dest) {
   AkEvaluateScene *evaluateScene;
   AkRender        *last_render;
   AkXmlElmState    xest;
@@ -36,12 +36,12 @@ ak_dae_evaluateScene(AkXmlState * __restrict xst,
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
-      (void)ak_dae_assetInf(xst, evaluateScene, NULL);
+      (void)dae_assetInf(xst, evaluateScene, NULL);
     } else if (ak_xml_eqelm(xst, _s_dae_render)) {
       AkRender *render;
       AkResult  ret;
 
-      ret = ak_dae_render(xst, evaluateScene, &render);
+      ret = dae_render(xst, evaluateScene, &render);
       if (ret == AK_OK) {
         if (last_render)
           last_render->next = render;

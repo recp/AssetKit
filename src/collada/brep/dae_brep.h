@@ -11,9 +11,9 @@
 #include "../dae_common.h"
 
 AkResult _assetkit_hide
-ak_dae_brep(AkXmlState * __restrict xst,
-            void * __restrict memParent,
-            bool asObject,
-            AkBoundryRep ** __restrict dest);
+dae_brep(AkXmlState * __restrict xst,
+         void * __restrict memParent,
+         bool asObject,
+         AkBoundryRep ** __restrict dest);
 
 #endif /* __libassetkit__dae_brep_h_ */

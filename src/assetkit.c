@@ -41,8 +41,8 @@ ak_load(AkDoc ** __restrict dest,
     return AK_EBADF;
 
   floader_t floaders[] = {
-    {"dae",  ak_dae_doc},
-    {"gltf", ak_gltf_doc}
+    {"dae",  dae_doc},
+    {"gltf", gltf_doc}
   };
 
   floader = NULL;

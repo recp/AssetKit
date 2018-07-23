@@ -12,9 +12,9 @@
 #include "../dae_common.h"
 
 AkResult _assetkit_hide
-ak_dae_floatOrParam(AkXmlState      * __restrict xst,
-                    void            * __restrict memParent,
-                    const char      * elm,
-                    AkFloatOrParam ** __restrict dest);
+dae_floatOrParam(AkXmlState      * __restrict xst,
+                 void            * __restrict memParent,
+                 const char      * elm,
+                 AkFloatOrParam ** __restrict dest);
 
 #endif /* __libassetkit__dae_float_or_param___h_ */

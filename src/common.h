@@ -63,7 +63,7 @@ struct ak_enumpair_s {
 typedef struct {
   const char * name;
   AkEnum       val;
-} ak_dae_enum;
+} dae_enum;
 
 int _assetkit_hide
 ak_enumpair_cmp(const void * a, const void * b);

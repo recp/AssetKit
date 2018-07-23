@@ -11,13 +11,13 @@
 #include "../dae_common.h"
 
 AkResult _assetkit_hide
-ak_dae_surface(AkXmlState * __restrict xst,
-               void * __restrict memParent,
-               AkSurface ** __restrict dest);
+dae_surface(AkXmlState * __restrict xst,
+            void * __restrict memParent,
+            AkSurface ** __restrict dest);
 
 AkResult _assetkit_hide
-ak_dae_surfaces(AkXmlState * __restrict xst,
-                void * __restrict memParent,
-                AkSurfaces ** __restrict dest);
+dae_surfaces(AkXmlState * __restrict xst,
+             void * __restrict memParent,
+             AkSurfaces ** __restrict dest);
 
 #endif /* dae_brep_surface_h */

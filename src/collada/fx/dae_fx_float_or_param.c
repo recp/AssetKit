@@ -9,10 +9,10 @@
 #include "../core/dae_param.h"
 
 AkResult _assetkit_hide
-ak_dae_floatOrParam(AkXmlState      * __restrict xst,
-                    void            * __restrict memParent,
-                    const char      * elm,
-                    AkFloatOrParam ** __restrict dest) {
+dae_floatOrParam(AkXmlState      * __restrict xst,
+                 void            * __restrict memParent,
+                 const char      * elm,
+                 AkFloatOrParam ** __restrict dest) {
   AkFloatOrParam *floatOrParam;
   AkParam        *last_param;
   AkXmlElmState   xest;
@@ -47,9 +47,7 @@ ak_dae_floatOrParam(AkXmlState      * __restrict xst,
       AkParam * param;
       AkResult   ret;
 
-      ret = ak_dae_param(xst,
-                         floatOrParam,
-                         &param);
+      ret = dae_param(xst, floatOrParam, &param);
 
       if (ret == AK_OK) {
         if (last_param)

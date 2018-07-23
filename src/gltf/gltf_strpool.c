@@ -5,8 +5,8 @@
  * Full license can be found in the LICENSE file
  */
 
-#ifndef _AK_GLTF_STRPOOL_
-#  define _AK_GLTF_STRPOOL_
+#ifndef _GLTF_STRPOOL_
+#  define _GLTF_STRPOOL_
 #endif
 
 #include "gltf_strpool.h"
@@ -136,4 +136,4 @@ const char _s_gltf_pool_0[] =
 "CUBICSPLINE\0"
 ;
 
-#undef _AK_GLTF_STRPOOL_
+#undef _GLTF_STRPOOL_

@@ -12,8 +12,8 @@
 #include "../dae_common.h"
 
 AkResult _assetkit_hide
-ak_dae_fxPass(AkXmlState * __restrict xst,
-              void * __restrict memParent,
-              AkPass ** __restrict dest);
+dae_fxPass(AkXmlState * __restrict xst,
+           void * __restrict memParent,
+           AkPass ** __restrict dest);
 
 #endif /* __libassetkit__dae_fx_pass_h_ */

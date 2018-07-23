@@ -12,9 +12,9 @@
 #include "dae_fx_effect.h"
 
 AkResult _assetkit_hide
-ak_dae_material(AkXmlState * __restrict xst,
-                void * __restrict memParent,
-                void ** __restrict dest) {
+dae_material(AkXmlState * __restrict xst,
+             void * __restrict memParent,
+             void ** __restrict dest) {
   AkMaterial   *material;
   AkXmlElmState xest;
 
@@ -32,13 +32,13 @@ ak_dae_material(AkXmlState * __restrict xst,
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
-      (void)ak_dae_assetInf(xst, material, NULL);
+      (void)dae_assetInf(xst, material, NULL);
     } else if (ak_xml_eqelm(xst, _s_dae_inst_effect)) {
       AkInstanceEffect *instanceEffect;
       AkResult ret;
 
       instanceEffect = NULL;
-      ret = ak_dae_fxInstanceEffect(xst, material, &instanceEffect);
+      ret = dae_fxInstanceEffect(xst, material, &instanceEffect);
       if (ret == AK_OK)
         material->effect = instanceEffect;
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
@@ -71,9 +71,9 @@ ak_dae_material(AkXmlState * __restrict xst,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxBindMaterial(AkXmlState * __restrict xst,
-                      void * __restrict memParent,
-                      AkBindMaterial ** __restrict dest) {
+dae_fxBindMaterial(AkXmlState * __restrict xst,
+                   void * __restrict memParent,
+                   AkBindMaterial ** __restrict dest) {
   AkBindMaterial *bindMaterial;
   AkParam        *last_param;
   AkTechnique    *last_tq;
@@ -96,9 +96,7 @@ ak_dae_fxBindMaterial(AkXmlState * __restrict xst,
       AkParam * param;
       AkResult   ret;
 
-      ret = ak_dae_param(xst,
-                         bindMaterial,
-                         &param);
+      ret = dae_param(xst, bindMaterial, &param);
 
       if (ret == AK_OK) {
         if (last_param)
@@ -114,9 +112,7 @@ ak_dae_fxBindMaterial(AkXmlState * __restrict xst,
       AkResult            ret;
 
       tcommon = NULL;
-      ret     = ak_dae_fxBindMaterial_tcommon(xst,
-                                              bindMaterial,
-                                              &tcommon);
+      ret     = dae_fxBindMaterial_tcommon(xst, bindMaterial, &tcommon);
       if (ret == AK_OK)
         bindMaterial->tcommon = tcommon;
 
@@ -125,7 +121,7 @@ ak_dae_fxBindMaterial(AkXmlState * __restrict xst,
       AkResult ret;
 
       tq = NULL;
-      ret = ak_dae_technique(xst, bindMaterial, &tq);
+      ret = dae_technique(xst, bindMaterial, &tq);
       if (ret == AK_OK) {
         if (last_tq)
           last_tq->next = tq;
@@ -164,9 +160,9 @@ ak_dae_fxBindMaterial(AkXmlState * __restrict xst,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxInstanceMaterial(AkXmlState * __restrict xst,
-                          void * __restrict memParent,
-                          AkInstanceMaterial ** __restrict dest) {
+dae_fxInstanceMaterial(AkXmlState * __restrict xst,
+                       void * __restrict memParent,
+                       AkInstanceMaterial ** __restrict dest) {
   AkInstanceMaterial *material;
   AkBind             *last_bind;
   AkBindVertexInput  *last_bindVertexInput;
@@ -276,9 +272,9 @@ ak_dae_fxInstanceMaterial(AkXmlState * __restrict xst,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxBindMaterial_tcommon(AkXmlState          * __restrict xst,
-                              void                * __restrict memParent,
-                              AkInstanceMaterial ** __restrict dest) {
+dae_fxBindMaterial_tcommon(AkXmlState          * __restrict xst,
+                           void                * __restrict memParent,
+                           AkInstanceMaterial ** __restrict dest) {
   AkInstanceMaterial *imat, *last_imat;
   AkXmlElmState xest;
 
@@ -293,9 +289,7 @@ ak_dae_fxBindMaterial_tcommon(AkXmlState          * __restrict xst,
     if (ak_xml_eqelm(xst, _s_dae_instance_material)) {
       AkInstanceMaterial *imati;
       AkResult            ret;
-      ret = ak_dae_fxInstanceMaterial(xst,
-                                      memParent,
-                                      &imati);
+      ret = dae_fxInstanceMaterial(xst, memParent, &imati);
 
       if (ret == AK_OK) {
         if (last_imat)

@@ -12,9 +12,9 @@
 #include "../../../include/ak/light.h"
 
 AkResult _assetkit_hide
-ak_dae_visualScene(AkXmlState * __restrict xst,
-                   void * __restrict memParent,
-                   void ** __restrict dest) {
+dae_visualScene(AkXmlState * __restrict xst,
+                void * __restrict memParent,
+                void ** __restrict dest) {
   AkVisualScene   *visualScene;
   AkNode          *last_node;
   AkEvaluateScene *last_evaluateScene;
@@ -45,15 +45,12 @@ ak_dae_visualScene(AkXmlState * __restrict xst,
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
-      (void)ak_dae_assetInf(xst, visualScene, NULL);
+      (void)dae_assetInf(xst, visualScene, NULL);
     } else if (ak_xml_eqelm(xst, _s_dae_node)) {
       AkNode  *node;
       AkResult ret;
 
-      ret = ak_dae_node(xst,
-                        visualScene,
-                        visualScene,
-                        &node);
+      ret = dae_node(xst, visualScene, visualScene, &node);
       if (ret == AK_OK) {
         if (last_node)
           last_node->next = node;
@@ -67,7 +64,7 @@ ak_dae_visualScene(AkXmlState * __restrict xst,
       AkEvaluateScene *evaluateScene;
       AkResult ret;
 
-      ret = ak_dae_evaluateScene(xst, visualScene, &evaluateScene);
+      ret = dae_evaluateScene(xst, visualScene, &evaluateScene);
       if (ret == AK_OK) {
         if (last_evaluateScene)
           last_evaluateScene->next = evaluateScene;
@@ -132,9 +129,9 @@ ak_dae_visualScene(AkXmlState * __restrict xst,
 }
 
 AkResult _assetkit_hide
-ak_dae_instanceVisualScene(AkXmlState * __restrict xst,
-                           void * __restrict memParent,
-                           AkInstanceBase ** __restrict dest) {
+dae_instanceVisualScene(AkXmlState * __restrict xst,
+                        void * __restrict memParent,
+                        AkInstanceBase ** __restrict dest) {
   AkInstanceBase *visualScene;
   AkXmlElmState   xest;
 

@@ -10,12 +10,12 @@
 #include <string.h>
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumGlFunc(const char * name) {
+dae_fxEnumGlFunc(const char * name) {
   AkEnum val;
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {"NEVER",    AK_GL_FUNC_NEVER},
     {"LESS",     AK_GL_FUNC_LESS},
     {"LEQUAL",   AK_GL_FUNC_LEQUAL},
@@ -41,12 +41,12 @@ ak_dae_fxEnumGlFunc(const char * name) {
 }
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumBlend(const char * name) {
+dae_fxEnumBlend(const char * name) {
   AkEnum val;
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {"ZERO",                     AK_GL_BLEND_ZERO},
     {"ONE",                      AK_GL_BLEND_ONE},
     {"SRC_COLOR",                AK_GL_BLEND_SRC_COLOR},
@@ -78,12 +78,12 @@ ak_dae_fxEnumBlend(const char * name) {
 }
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumBlendEq(const char * name) {
+dae_fxEnumBlendEq(const char * name) {
   AkEnum val;
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {"FUNC_ADD",              AK_GL_BLEND_EQUATION_FUNC_ADD},
     {"FUNC_SUBTRACT",         AK_GL_BLEND_EQUATION_FUNC_SUBTRACT},
     {"FUNC_REVERSE_SUBTRACT", AK_GL_BLEND_EQUATION_FUNC_REVERSE_SUBTRACT},
@@ -105,12 +105,12 @@ ak_dae_fxEnumBlendEq(const char * name) {
 }
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumGLFace(const char * name) {
+dae_fxEnumGLFace(const char * name) {
   AkEnum val;
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {"FRONT",          AK_GL_FACE_FRONT},
     {"BACK",           AK_GL_FACE_BACK},
     {"FRONT_AND_BACK", AK_GL_FACE_FRONT_AND_BACK}
@@ -130,12 +130,12 @@ ak_dae_fxEnumGLFace(const char * name) {
 }
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumMaterial(const char * name) {
+dae_fxEnumMaterial(const char * name) {
   AkEnum val;
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {"EMISSION",            AK_GL_MATERIAL_TYPE_EMISSION},
     {"AMBIENT",             AK_GL_MATERIAL_TYPE_AMBIENT},
     {"DIFFUSE",             AK_GL_MATERIAL_TYPE_DIFFUSE},
@@ -157,12 +157,12 @@ ak_dae_fxEnumMaterial(const char * name) {
 }
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumFog(const char * name) {
+dae_fxEnumFog(const char * name) {
   AkEnum val;
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {"LINEAR", AK_GL_FOG_LINEAR},
     {"EXP",    AK_GL_FOG_EXP},
     {"EXP2",   AK_GL_FOG_EXP2}
@@ -182,12 +182,12 @@ ak_dae_fxEnumFog(const char * name) {
 }
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumFogCoordSrc(const char * name) {
+dae_fxEnumFogCoordSrc(const char * name) {
   AkEnum val;
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {"FOG_COORDINATE", AK_GL_FOG_COORD_SRC_FOG_COORDINATE},
     {"FRAGMENT_DEPTH", AK_GL_FOG_COORD_SRC_FRAGMENT_DEPTH}
   };
@@ -206,12 +206,12 @@ ak_dae_fxEnumFogCoordSrc(const char * name) {
 }
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumFrontFace(const char * name) {
+dae_fxEnumFrontFace(const char * name) {
   AkEnum val;
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {"CW",  AK_GL_FRONT_FACE_CW},
     {"CCW", AK_GL_FRONT_FACE_CCW}
   };
@@ -230,12 +230,12 @@ ak_dae_fxEnumFrontFace(const char * name) {
 }
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumLightModelColorCtl(const char * name) {
+dae_fxEnumLightModelColorCtl(const char * name) {
   AkEnum val;
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {"SINGLE_COLOR",
       AK_GL_LIGHT_MODEL_COLOR_CONTROL_SINGLE_COLOR},
     {"SEPARATE_SPECULAR_COLOR",
@@ -256,12 +256,12 @@ ak_dae_fxEnumLightModelColorCtl(const char * name) {
 }
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumLogicOp(const char * name) {
+dae_fxEnumLogicOp(const char * name) {
   AkEnum val;
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {"CLEAR",         AK_GL_LOGIC_OP_CLEAR},
     {"AND",           AK_GL_LOGIC_OP_AND},
     {"AND_REVERSE",   AK_GL_LOGIC_OP_AND_REVERSE},
@@ -293,12 +293,12 @@ ak_dae_fxEnumLogicOp(const char * name) {
 }
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumPolyMode(const char * name) {
+dae_fxEnumPolyMode(const char * name) {
   AkEnum val;
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {"POINT", AK_GL_POLYGON_MODE_POINT},
     {"LINE",  AK_GL_POLYGON_MODE_LINE},
     {"FILL",  AK_GL_POLYGON_MODE_FILL},
@@ -318,12 +318,12 @@ ak_dae_fxEnumPolyMode(const char * name) {
 }
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumShadeModel(const char * name) {
+dae_fxEnumShadeModel(const char * name) {
   AkEnum val;
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {"FLAT",   AK_GL_SHADE_MODEL_FLAT},
     {"SMOOTH", AK_GL_SHADE_MODEL_SMOOTH}
   };
@@ -342,12 +342,12 @@ ak_dae_fxEnumShadeModel(const char * name) {
 }
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumStencilOp(const char * name) {
+dae_fxEnumStencilOp(const char * name) {
   AkEnum val;
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {"KEEP",      AK_GL_STENCIL_OP_KEEP},
     {"ZERO",      AK_GL_STENCIL_OP_ZERO},
     {"REPLACE",   AK_GL_STENCIL_OP_REPLACE},
@@ -372,12 +372,12 @@ ak_dae_fxEnumStencilOp(const char * name) {
 }
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumWrap(const char * name) {
+dae_fxEnumWrap(const char * name) {
   AkEnum val;
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {"WRAP",        AK_WRAP_MODE_WRAP},
     {"CLAMP",       AK_WRAP_MODE_CLAMP},
     {"BORDER",      AK_WRAP_MODE_BORDER},
@@ -399,12 +399,12 @@ ak_dae_fxEnumWrap(const char * name) {
 }
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumMinfilter(const char * name) {
+dae_fxEnumMinfilter(const char * name) {
   AkEnum val;
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {"NEAREST",     AK_MINFILTER_NEAREST},
     {"LINEAR",      AK_MINFILTER_LINEAR},
     {"ANISOTROPIC", AK_MINFILTER_ANISOTROPIC}
@@ -424,12 +424,12 @@ ak_dae_fxEnumMinfilter(const char * name) {
 }
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumMipfilter(const char * name) {
+dae_fxEnumMipfilter(const char * name) {
   AkEnum val;
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {"NONE",    AK_MIPFILTER_NONE},
     {"NEAREST", AK_MIPFILTER_NEAREST},
     {"LINEAR",  AK_MIPFILTER_LINEAR}
@@ -449,12 +449,12 @@ ak_dae_fxEnumMipfilter(const char * name) {
 }
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumMagfilter(const char * name) {
+dae_fxEnumMagfilter(const char * name) {
   AkEnum val;
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {"NEAREST", AK_MAGFILTER_NEAREST},
     {"LINEAR",  AK_MAGFILTER_LINEAR}
   };
@@ -473,12 +473,12 @@ ak_dae_fxEnumMagfilter(const char * name) {
 }
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumShaderStage(const char * name) {
+dae_fxEnumShaderStage(const char * name) {
   AkEnum val;
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {"VERTEX",      AK_PIPELINE_STAGE_VERTEX},
     {"FRAGMENT",    AK_PIPELINE_STAGE_FRAGMENT},
     {"TESSELATION", AK_PIPELINE_STAGE_TESSELATION},
@@ -499,12 +499,12 @@ ak_dae_fxEnumShaderStage(const char * name) {
 }
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumFace(const char * name) {
+dae_fxEnumFace(const char * name) {
   AkEnum val;
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {"POSITIVE_X", AK_FACE_POSITIVE_X},
     {"NEGATIVE_X", AK_FACE_NEGATIVE_X},
     {"POSITIVE_Y", AK_FACE_POSITIVE_Y},
@@ -527,12 +527,12 @@ ak_dae_fxEnumFace(const char * name) {
 }
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumDraw(const char * name) {
+dae_fxEnumDraw(const char * name) {
   AkEnum val;
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {"GEOMETRY",         AK_DRAW_GEOMETRY},
     {"SCENE_GEOMETRY",   AK_DRAW_SCENE_GEOMETRY},
     {"SCENE_IMAGE",      AK_DRAW_SCENE_IMAGE},
@@ -556,12 +556,12 @@ ak_dae_fxEnumDraw(const char * name) {
 }
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumOpaque(const char * name) {
+dae_fxEnumOpaque(const char * name) {
   AkEnum val;
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {"A_ONE",    AK_OPAQUE_A_ONE},
     {"RGB_ZERO", AK_OPAQUE_RGB_ZERO},
     {"A_ZERO",   AK_OPAQUE_A_ZERO},
@@ -582,12 +582,12 @@ ak_dae_fxEnumOpaque(const char * name) {
 }
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumChannel(const char * name) {
+dae_fxEnumChannel(const char * name) {
   AkEnum val;
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {"RGB",  AK_CHANNEL_FORMAT_RGB},
     {"RGBA", AK_CHANNEL_FORMAT_RGBA},
     {"RGBE", AK_CHANNEL_FORMAT_RGBE},
@@ -614,12 +614,12 @@ ak_dae_fxEnumChannel(const char * name) {
 }
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumRange(const char * name) {
+dae_fxEnumRange(const char * name) {
   AkEnum val;
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {"SNORM", AK_RANGE_FORMAT_SNORM},
     {"UNORM", AK_RANGE_FORMAT_UNORM},
     {"SINT",  AK_RANGE_FORMAT_SINT},
@@ -641,12 +641,12 @@ ak_dae_fxEnumRange(const char * name) {
 }
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumPrecision(const char * name) {
+dae_fxEnumPrecision(const char * name) {
   AkEnum val;
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {"DEFAULT", AK_PRECISION_FORMAT_DEFAULT},
     {"LOW",     AK_PRECISION_FORMAT_LOW},
     {"MID",     AK_PRECISION_FORMAT_MID},

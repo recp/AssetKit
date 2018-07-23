@@ -67,8 +67,8 @@ static ak_value_pair valueMap[] = {
 static size_t valueMapLen = 0;
 
 void _assetkit_hide
-ak_dae_dataType(const char *typeName,
-                AkTypeDesc *type) {
+dae_dataType(const char *typeName,
+             AkTypeDesc *type) {
   ak_value_pair *found;
 
   if (valueMapLen == 0) {
@@ -98,9 +98,9 @@ ak_dae_dataType(const char *typeName,
 }
 
 AkResult _assetkit_hide
-ak_dae_value(AkXmlState * __restrict xst,
-             void       * __restrict memParent,
-             AkValue   ** __restrict dest) {
+dae_value(AkXmlState * __restrict xst,
+          void       * __restrict memParent,
+          AkValue   ** __restrict dest) {
   AkValue       *val;
   ak_value_pair *found;
   AkXmlElmState  xest;
@@ -196,10 +196,10 @@ ak_dae_value(AkXmlState * __restrict xst,
       AkResult   ret;
 
       sampler = NULL;
-      ret = ak_dae_fxSampler(xst,
-                             memParent,
-                             found->key,
-                             &sampler);
+      ret = dae_fxSampler(xst,
+                          memParent,
+                          found->key,
+                          &sampler);
 
       if (ret == AK_OK)
         val->value = sampler;
@@ -213,7 +213,7 @@ ak_dae_value(AkXmlState * __restrict xst,
           AkResult        ret;
 
           surface = NULL;
-          ret = ak_dae14_fxSurface(xst, memParent, &surface);
+          ret = dae14_fxSurface(xst, memParent, &surface);
           if (ret == AK_OK)
             val->value = surface;
           break;

@@ -11,7 +11,7 @@
 #include <cglm/cglm.h>
 
 AkResult _assetkit_hide
-ak_dae_camera(AkXmlState * __restrict xst,
+dae_camera(AkXmlState * __restrict xst,
               void * __restrict memParent,
               void ** __restrict  dest) {
   AkCamera     *camera;
@@ -29,7 +29,7 @@ ak_dae_camera(AkXmlState * __restrict xst,
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
-      (void)ak_dae_assetInf(xst, camera, NULL);
+      (void)dae_assetInf(xst, camera, NULL);
     } else if (ak_xml_eqelm(xst, _s_dae_optics)) {
       AkOptics     *optics;
       AkTechnique  *last_tq;
@@ -51,7 +51,7 @@ ak_dae_camera(AkXmlState * __restrict xst,
           AkResult      ret;
 
           tcommon = NULL;
-          ret     = ak_dae_camera_tcommon(xst, optics, &tcommon);
+          ret     = dae_camera_tcommon(xst, optics, &tcommon);
           if (ret == AK_OK)
             optics->tcommon = tcommon;
         } else if (ak_xml_eqelm(xst, _s_dae_technique)) {
@@ -59,7 +59,7 @@ ak_dae_camera(AkXmlState * __restrict xst,
           AkResult ret;
 
           tq = NULL;
-          ret = ak_dae_technique(xst, optics, &tq);
+          ret = dae_technique(xst, optics, &tq);
           if (ret == AK_OK) {
             if (last_tq)
               last_tq->next = tq;
@@ -97,7 +97,7 @@ ak_dae_camera(AkXmlState * __restrict xst,
           AkResult ret;
 
           tq = NULL;
-          ret = ak_dae_technique(xst, imager, &tq);
+          ret = dae_technique(xst, imager, &tq);
           if (ret == AK_OK) {
             if (last_tq)
               last_tq->next = tq;
@@ -159,9 +159,9 @@ ak_dae_camera(AkXmlState * __restrict xst,
 }
 
 AkResult _assetkit_hide
-ak_dae_camera_tcommon(AkXmlState    * __restrict xst,
-                      void          * __restrict memParent,
-                      AkProjection ** __restrict dest) {
+dae_camera_tcommon(AkXmlState    * __restrict xst,
+                   void          * __restrict memParent,
+                   AkProjection ** __restrict dest) {
   AkXmlElmState xest;
 
   ak_xest_init(xest, _s_dae_techniquec)

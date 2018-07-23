@@ -11,12 +11,12 @@
 #include <string.h>
 
 AkEnum _assetkit_hide
-ak_dae_enumInputSemantic(const char * name) {
+dae_enumInputSemantic(const char * name) {
   AkEnum val;
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {"BINORMAL",        AK_INPUT_SEMANTIC_BINORMAL},
     {"COLOR",           AK_INPUT_SEMANTIC_COLOR},
     {"CONTINUITY",      AK_INPUT_SEMANTIC_CONTINUITY},
@@ -57,12 +57,12 @@ ak_dae_enumInputSemantic(const char * name) {
 }
 
 AkEnum _assetkit_hide
-ak_dae_enumMorphMethod(const char * name) {
+dae_enumMorphMethod(const char * name) {
   AkEnum val;
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {"NORMALIZED", AK_MORPH_METHOD_NORMALIZED},
     {"RELATIVE",   AK_MORPH_METHOD_RELATIVE},
   };
@@ -81,12 +81,12 @@ ak_dae_enumMorphMethod(const char * name) {
 }
 
 AkEnum _assetkit_hide
-ak_dae_enumNodeType(const char * name) {
+dae_enumNodeType(const char * name) {
   AkEnum val;
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {"NODE",  AK_NODE_TYPE_NODE},
     {"JOINT", AK_NODE_TYPE_JOINT},
   };
@@ -105,12 +105,12 @@ ak_dae_enumNodeType(const char * name) {
 }
 
 AkEnum _assetkit_hide
-ak_dae_enumAnimBehavior(const char * name) {
+dae_enumAnimBehavior(const char * name) {
   AkEnum val;
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {"UNDEFINED",      AK_SAMPLER_BEHAVIOR_UNDEFINED},
     {"CONSTANT",       AK_SAMPLER_BEHAVIOR_CONSTANT},
     {"GRADIENT",       AK_SAMPLER_BEHAVIOR_GRADIENT},
@@ -133,12 +133,12 @@ ak_dae_enumAnimBehavior(const char * name) {
 }
 
 AkEnum _assetkit_hide
-ak_dae_enumAnimInterp(const char * name) {
+dae_enumAnimInterp(const char * name) {
   AkEnum val;
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {"LINEAR",   AK_INTERPOLATION_LINEAR},
     {"BEZIER",   AK_INTERPOLATION_BEZIER},
     {"CARDINAL", AK_INTERPOLATION_CARDINAL},

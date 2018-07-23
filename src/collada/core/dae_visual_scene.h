@@ -11,13 +11,13 @@
 #include "../dae_common.h"
 
 AkResult _assetkit_hide
-ak_dae_visualScene(AkXmlState * __restrict xst,
-                   void * __restrict memParent,
-                   void ** __restrict dest);
+dae_visualScene(AkXmlState * __restrict xst,
+                void * __restrict memParent,
+                void ** __restrict dest);
 
 AkResult _assetkit_hide
-ak_dae_instanceVisualScene(AkXmlState * __restrict xst,
-                           void * __restrict memParent,
-                           AkInstanceBase ** __restrict dest);
+dae_instanceVisualScene(AkXmlState * __restrict xst,
+                        void * __restrict memParent,
+                        AkInstanceBase ** __restrict dest);
 
 #endif /* __libassetkit__dae_visual_scene_h_ */

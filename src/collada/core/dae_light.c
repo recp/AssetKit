@@ -14,9 +14,9 @@
 #define AK_DEFAULT_LIGHT_DIR {0.0f, 0.0f, -1.0f}
 
 AkResult _assetkit_hide
-ak_dae_light(AkXmlState * __restrict xst,
-             void       * __restrict memParent,
-             void      ** __restrict dest) {
+dae_light(AkXmlState * __restrict xst,
+          void       * __restrict memParent,
+          void      ** __restrict dest) {
   AkLight       *light;
   AkTechnique   *last_tq;
   AkXmlElmState  xest;
@@ -35,13 +35,13 @@ ak_dae_light(AkXmlState * __restrict xst,
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
-      (void)ak_dae_assetInf(xst, light, NULL);
+      (void)dae_assetInf(xst, light, NULL);
     } else if (ak_xml_eqelm(xst, _s_dae_techniquec)) {
       AkLightBase *tcommon;
       AkResult     ret;
 
       tcommon = NULL;
-      ret     = ak_dae_light_tcommon(xst, light, &tcommon);
+      ret     = dae_light_tcommon(xst, light, &tcommon);
       if (ret == AK_OK)
         light->tcommon = tcommon;
     } else if (ak_xml_eqelm(xst, _s_dae_technique)) {
@@ -49,7 +49,7 @@ ak_dae_light(AkXmlState * __restrict xst,
       AkResult ret;
 
       tq = NULL;
-      ret = ak_dae_technique(xst, light, &tq);
+      ret = dae_technique(xst, light, &tq);
       if (ret == AK_OK) {
         if (last_tq)
           last_tq->next = tq;
@@ -88,9 +88,9 @@ ak_dae_light(AkXmlState * __restrict xst,
 }
 
 AkResult _assetkit_hide
-ak_dae_light_tcommon(AkXmlState   * __restrict xst,
-                     void         * __restrict memParent,
-                     AkLightBase ** __restrict dest) {
+dae_light_tcommon(AkXmlState   * __restrict xst,
+                  void         * __restrict memParent,
+                  AkLightBase ** __restrict dest) {
   AkCoordSys   *optCoordSys;
   AkXmlElmState xest;
 
@@ -117,7 +117,7 @@ ak_dae_light_tcommon(AkXmlState   * __restrict xst,
           break;
 
         if (ak_xml_eqelm(xst, _s_dae_color)) {
-          ak_dae_color(xst, ambient, true, true, &ambient->color);
+          dae_color(xst, ambient, true, true, &ambient->color);
         } else {
           ak_xml_skipelm(xst);
         }
@@ -146,7 +146,7 @@ ak_dae_light_tcommon(AkXmlState   * __restrict xst,
           break;
 
         if (ak_xml_eqelm(xst, _s_dae_color)) {
-          ak_dae_color(xst, directional, true, true, &directional->color);
+          dae_color(xst, directional, true, true, &directional->color);
         } else {
           ak_xml_skipelm(xst);
         }
@@ -182,7 +182,7 @@ ak_dae_light_tcommon(AkXmlState   * __restrict xst,
                           point,
                           &point->base.color);
 
-          ak_dae_color(xst, point, true, true, &point->base.color);
+          dae_color(xst, point, true, true, &point->base.color);
         } else if (ak_xml_eqelm(xst, _s_dae_const_attn)) {
           ak_xml_sid_seta(xst,
                           point,
@@ -237,7 +237,7 @@ ak_dae_light_tcommon(AkXmlState   * __restrict xst,
                           spot,
                           &spot->base.color);
 
-          ak_dae_color(xst, spot, true, true, &spot->base.color);
+          dae_color(xst, spot, true, true, &spot->base.color);
         } else if (ak_xml_eqelm(xst, _s_dae_const_attn)) {
           ak_xml_sid_seta(xst,
                           spot,

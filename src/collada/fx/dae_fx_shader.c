@@ -11,9 +11,9 @@
 #include "dae_fx_uniform.h"
 
 AkResult _assetkit_hide
-ak_dae_fxShader(AkXmlState * __restrict xst,
-                void * __restrict memParent,
-                AkShader ** __restrict dest) {
+dae_fxShader(AkXmlState * __restrict xst,
+             void * __restrict memParent,
+             AkShader ** __restrict dest) {
   AkShader      *shader;
   AkCompiler    *last_compiler;
   AkBindUniform *last_bind_uniform;
@@ -25,7 +25,7 @@ ak_dae_fxShader(AkXmlState * __restrict xst,
 
   shader->stage = ak_xml_attrenum(xst,
                                   _s_dae_stage,
-                                  ak_dae_fxEnumShaderStage);
+                                  dae_fxEnumShaderStage);
 
   last_compiler     = NULL;
   last_bind_uniform = NULL;
@@ -116,7 +116,7 @@ ak_dae_fxShader(AkXmlState * __restrict xst,
           AkBinary *binary;
           AkResult  ret;
 
-          ret = ak_dae_fxBinary(xst, compiler, &binary);
+          ret = dae_fxBinary(xst, compiler, &binary);
           if (ret == AK_OK)
             compiler->binary = binary;
         } else {
@@ -138,7 +138,7 @@ ak_dae_fxShader(AkXmlState * __restrict xst,
       AkBindUniform *bindUniform;
       AkResult ret;
 
-      ret = ak_dae_fxBindUniform(xst, shader, &bindUniform);
+      ret = dae_fxBindUniform(xst, shader, &bindUniform);
       if (ret == AK_OK) {
         if (last_bind_uniform)
           last_bind_uniform->next = bindUniform;

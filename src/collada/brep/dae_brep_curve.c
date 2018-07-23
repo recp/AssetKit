@@ -26,10 +26,10 @@ static ak_enumpair curveMap[] = {
 static size_t curveMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_curve(AkXmlState * __restrict xst,
-             void * __restrict memParent,
-             bool asObject,
-             AkCurve ** __restrict dest) {
+dae_curve(AkXmlState * __restrict xst,
+          void * __restrict memParent,
+          bool asObject,
+          AkCurve ** __restrict dest) {
   AkObject       *obj;
   AkCurve        *curve;
   void           *memPtr;
@@ -359,7 +359,7 @@ ak_dae_curve(AkXmlState * __restrict xst,
         AkNurbs *nurbs;
         AkResult ret;
 
-        ret = ak_dae_nurbs(xst, memPtr, true, &nurbs);
+        ret = dae_nurbs(xst, memPtr, true, &nurbs);
         if (ret == AK_OK)
           curve->curve = ak_objFrom(nurbs);
 
@@ -418,9 +418,9 @@ ak_dae_curve(AkXmlState * __restrict xst,
 }
 
 AkResult _assetkit_hide
-ak_dae_curves(AkXmlState * __restrict xst,
-              void * __restrict memParent,
-              AkCurves ** __restrict dest) {
+dae_curves(AkXmlState * __restrict xst,
+           void * __restrict memParent,
+           AkCurves ** __restrict dest) {
   AkCurves     *curves;
   AkCurve      *last_curve;
   AkXmlElmState xest;
@@ -439,7 +439,7 @@ ak_dae_curves(AkXmlState * __restrict xst,
       AkCurve *curve;
       AkResult ret;
 
-      ret = ak_dae_curve(xst, curves, false, &curve);
+      ret = dae_curve(xst, curves, false, &curve);
       if (ret == AK_OK) {
         if (last_curve)
           last_curve->next = curve;

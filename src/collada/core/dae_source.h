@@ -11,10 +11,10 @@
 #include "../dae_common.h"
 
 AkResult _assetkit_hide
-ak_dae_source(AkXmlState * __restrict xst,
-              void       * __restrict memParent,
-              AkEnum                (*asEnum)(const char *name),
-              uint32_t                enumLen,
-              AkSource  ** __restrict dest);
+dae_source(AkXmlState * __restrict xst,
+           void       * __restrict memParent,
+           AkEnum                (*asEnum)(const char *name),
+           uint32_t                enumLen,
+           AkSource  ** __restrict dest);
 
 #endif /* __libassetkit__dae_source_h_ */

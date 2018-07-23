@@ -10,11 +10,11 @@
 #include "../../array.h"
 
 AkResult _assetkit_hide
-ak_dae_triangles(AkXmlState   * __restrict xst,
-                 void         * __restrict memParent,
-                 const char               *elm,
-                 AkTriangleMode            mode,
-                 AkTriangles ** __restrict dest) {
+dae_triangles(AkXmlState   * __restrict xst,
+              void         * __restrict memParent,
+              const char               *elm,
+              AkTriangleMode            mode,
+              AkTriangles ** __restrict dest) {
   AkTriangles  *triangles;
   AkInput      *last_input;
   AkXmlElmState xest;
@@ -50,7 +50,7 @@ ak_dae_triangles(AkXmlState   * __restrict xst,
         ak_free(input);
       else {
         AkEnum inputSemantic;
-        inputSemantic = ak_dae_enumInputSemantic(input->semanticRaw);
+        inputSemantic = dae_enumInputSemantic(input->semanticRaw);
 
         if (inputSemantic < 0)
           inputSemantic = AK_INPUT_SEMANTIC_OTHER;

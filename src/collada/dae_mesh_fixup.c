@@ -10,7 +10,7 @@
 #include "../mesh/mesh_index.h"
 
 AkResult _assetkit_hide
-ak_dae_mesh_fixup(AkMesh * mesh) {
+dae_mesh_fixup(AkMesh * mesh) {
   AkHeap *heap;
   AkDoc  *doc;
 

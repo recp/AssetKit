@@ -11,10 +11,10 @@
 #include "../dae_common.h"
 
 AkResult _assetkit_hide
-ak_dae_color(AkXmlState * __restrict xst,
-             void       * __restrict memParent,
-             bool                    read_sid,
-             bool                    stack,
-             AkColor    * __restrict dest);
+dae_color(AkXmlState * __restrict xst,
+          void       * __restrict memParent,
+          bool                    read_sid,
+          bool                    stack,
+          AkColor    * __restrict dest);
 
 #endif /* __libassetkit__dae_color_h_ */

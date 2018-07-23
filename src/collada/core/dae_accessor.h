@@ -11,8 +11,8 @@
 #include "../dae_common.h"
 
 AkResult _assetkit_hide
-ak_dae_accessor(AkXmlState * __restrict xst,
-                void * __restrict memParent,
-                AkAccessor ** __restrict dest);
+dae_accessor(AkXmlState * __restrict xst,
+             void * __restrict memParent,
+             AkAccessor ** __restrict dest);
 
 #endif /* dae_accessor_h */

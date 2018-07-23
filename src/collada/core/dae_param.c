@@ -22,9 +22,9 @@ static ak_enumpair modifierMap[] = {
 static size_t modifierMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_newparam(AkXmlState  * __restrict xst,
-                void        * __restrict memParent,
-                AkNewParam ** __restrict dest) {
+dae_newparam(AkXmlState  * __restrict xst,
+             void        * __restrict memParent,
+             AkNewParam ** __restrict dest) {
   AkNewParam   *newparam;
   AkAnnotate   *last_annotate;
   AkXmlElmState xest;
@@ -55,7 +55,7 @@ ak_dae_newparam(AkXmlState  * __restrict xst,
       AkAnnotate *annotate;
       AkResult    ret;
 
-      ret = ak_dae_annotate(xst, newparam, &annotate);
+      ret = dae_annotate(xst, newparam, &annotate);
       if (ret == AK_OK) {
         if (last_annotate)
           last_annotate->next = annotate;
@@ -86,9 +86,7 @@ ak_dae_newparam(AkXmlState  * __restrict xst,
         AkValue *val;
         AkResult ret;
 
-        ret = ak_dae_value(xst,
-                           newparam,
-                           &val);
+        ret = dae_value(xst, newparam, &val);
 
         if (ret == AK_OK)
           newparam->val = val;
@@ -106,9 +104,9 @@ ak_dae_newparam(AkXmlState  * __restrict xst,
 }
 
 AkResult _assetkit_hide
-ak_dae_param(AkXmlState * __restrict xst,
-             void       * __restrict memParent,
-             AkParam   ** __restrict dest) {
+dae_param(AkXmlState * __restrict xst,
+          void       * __restrict memParent,
+          AkParam   ** __restrict dest) {
   AkParam      *param;
   AkXmlElmState xest;
 
@@ -130,9 +128,9 @@ ak_dae_param(AkXmlState * __restrict xst,
 }
 
 AkResult _assetkit_hide
-ak_dae_dataparam(AkXmlState   * __restrict xst,
-                 void         * __restrict memParent,
-                 AkDataParam ** __restrict dest) {
+dae_dataparam(AkXmlState   * __restrict xst,
+              void         * __restrict memParent,
+              AkDataParam ** __restrict dest) {
   AkDataParam  *dataParam;
   AkXmlElmState xest;
 
@@ -145,8 +143,8 @@ ak_dae_dataparam(AkXmlState   * __restrict xst,
   dataParam->name     = ak_xml_attr(xst, dataParam, _s_dae_name);
   dataParam->semantic = ak_xml_attr(xst, dataParam, _s_dae_semantic);
 
-  ak_dae_dataType(ak_xml_attr(xst, dataParam, _s_dae_type),
-                  &dataParam->type);
+  dae_dataType(ak_xml_attr(xst, dataParam, _s_dae_type),
+               &dataParam->type);
 
   *dest = dataParam;
 
@@ -157,9 +155,9 @@ ak_dae_dataparam(AkXmlState   * __restrict xst,
 }
 
 AkResult _assetkit_hide
-ak_dae_setparam(AkXmlState  * __restrict xst,
-                void        * __restrict memParent,
-                AkSetParam ** __restrict dest) {
+dae_setparam(AkXmlState  * __restrict xst,
+             void        * __restrict memParent,
+             AkSetParam ** __restrict dest) {
   AkSetParam   *setparam;
   AkXmlElmState xest;
 
@@ -187,9 +185,7 @@ ak_dae_setparam(AkXmlState  * __restrict xst,
       AkValue *val;
       AkResult ret;
 
-      ret = ak_dae_value(xst,
-                         setparam,
-                         &val);
+      ret = dae_value(xst, setparam,  &val);
 
       if (ret == AK_OK)
         setparam->val = val;

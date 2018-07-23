@@ -11,9 +11,9 @@
 #include "../dae_common.h"
 
 AkResult _assetkit_hide
-ak_dae_skin(AkXmlState * __restrict xst,
-            void * __restrict memParent,
-            bool asObject,
-            AkSkin ** __restrict dest);
+dae_skin(AkXmlState * __restrict xst,
+         void * __restrict memParent,
+         bool asObject,
+         AkSkin ** __restrict dest);
 
 #endif /* __libassetkit__dae_skin_h_ */

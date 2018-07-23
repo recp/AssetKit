@@ -5,8 +5,8 @@
  * Full license can be found in the LICENSE file
  */
 
-#ifndef ak_gltf_commoh_h
-#define ak_gltf_commoh_h
+#ifndef gltf_commoh_h
+#define gltf_commoh_h
 
 #include "../../include/ak/assetkit.h"
 #include "../common.h"
@@ -51,4 +51,4 @@ typedef enum AkGLTFType {
   AK_GLTF_MAT4   = (16 << 3) | 4
 } AkGLTFType;
 
-#endif /* ak_gltf_commoh_h */
+#endif /* gltf_commoh_h */

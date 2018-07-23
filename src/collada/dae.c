@@ -75,7 +75,7 @@ static AkLibChldDesc libchlds[] = {
     NULL,
     _s_dae_lib_cameras,
     _s_dae_camera,
-    ak_dae_camera,
+    dae_camera,
     offsetof(AkLib, cameras),
     offsetof(AkCamera, next),
     -1
@@ -84,7 +84,7 @@ static AkLibChldDesc libchlds[] = {
     NULL,
     _s_dae_lib_lights,
     _s_dae_light,
-    ak_dae_light,
+    dae_light,
     offsetof(AkLib, lights),
     offsetof(AkLight, next),
     -1
@@ -93,7 +93,7 @@ static AkLibChldDesc libchlds[] = {
     NULL,
     _s_dae_lib_effects,
     _s_dae_effect,
-    ak_dae_effect,
+    dae_effect,
     offsetof(AkLib, effects),
     offsetof(AkEffect, next),
     -1
@@ -102,7 +102,7 @@ static AkLibChldDesc libchlds[] = {
     NULL,
     _s_dae_lib_images,
     _s_dae_image,
-    ak_dae_fxImage,
+    dae_fxImage,
     offsetof(AkLib, images),
     offsetof(AkImage, next),
     -1
@@ -111,7 +111,7 @@ static AkLibChldDesc libchlds[] = {
     NULL,
     _s_dae_lib_materials,
     _s_dae_material,
-    ak_dae_material,
+    dae_material,
     offsetof(AkLib, materials),
     offsetof(AkMaterial, next),
     -1
@@ -120,7 +120,7 @@ static AkLibChldDesc libchlds[] = {
     NULL,
     _s_dae_lib_geometries,
     _s_dae_geometry,
-    ak_dae_geometry,
+    dae_geometry,
     offsetof(AkLib, geometries),
     offsetof(AkGeometry, next),
     -1
@@ -129,7 +129,7 @@ static AkLibChldDesc libchlds[] = {
     NULL,
     _s_dae_lib_controllers,
     _s_dae_controller,
-    ak_dae_controller,
+    dae_controller,
     offsetof(AkLib, controllers),
     offsetof(AkController, next),
     -1
@@ -138,7 +138,7 @@ static AkLibChldDesc libchlds[] = {
     NULL,
     _s_dae_lib_visual_scenes,
     _s_dae_visual_scene,
-    ak_dae_visualScene,
+    dae_visualScene,
     offsetof(AkLib, visualScenes),
     offsetof(AkVisualScene, next),
     -1
@@ -147,7 +147,7 @@ static AkLibChldDesc libchlds[] = {
     NULL,
     _s_dae_lib_nodes,
     _s_dae_node,
-    ak_dae_node2,
+    dae_node2,
     offsetof(AkLib, nodes),
     offsetof(AkNode, next),
     offsetof(AkNode, prev)
@@ -156,7 +156,7 @@ static AkLibChldDesc libchlds[] = {
     NULL,
     _s_dae_lib_animations,
     _s_dae_animation,
-    ak_dae_anim,
+    dae_anim,
     offsetof(AkLib, animations),
     offsetof(AkAnimation, next),
     offsetof(AkAnimation, prev)
@@ -165,8 +165,8 @@ static AkLibChldDesc libchlds[] = {
 
 AkResult
 _assetkit_hide
-ak_dae_doc(AkDoc ** __restrict dest,
-           const char * __restrict file) {
+dae_doc(AkDoc ** __restrict dest,
+        const char * __restrict file) {
   AkHeap            *heap;
   AkDoc             *doc;
   const ak_enumpair *foundVersion;
@@ -289,7 +289,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
         AkResult    ret;
 
         assetInf = &doc->inf->base;
-        ret = ak_dae_assetInf(xst, doc, assetInf);
+        ret = dae_assetInf(xst, doc, assetInf);
         if (ret == AK_OK) {
           doc->coordSys = assetInf->coordSys;
           doc->unit     = assetInf->unit;
@@ -298,7 +298,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
         break;
       }
       case k_s_dae_scene:
-        ak_dae_scene(xst, doc, &doc->scene);
+        dae_scene(xst, doc, &doc->scene);
         break;
       case k_s_dae_extra: {
         xmlNodePtr nodePtr;
@@ -318,7 +318,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
         break;
       }
       default:
-        ak_dae_lib(xst, &libchlds[found->val - 2]);
+        dae_lib(xst, &libchlds[found->val - 2]);
         break;
     }
 
@@ -338,7 +338,7 @@ ak_dae_doc(AkDoc ** __restrict dest,
   *dest = doc;
 
   /* post-parse operations */
-  ak_dae_postscript(xst);
+  dae_postscript(xst);
 
   return AK_OK;
 }

@@ -11,9 +11,9 @@
 #include <ds/forward-list-sep.h>
 
 AkResult _assetkit_hide
-ak_dae_accessor(AkXmlState * __restrict xst,
-                void * __restrict memParent,
-                AkAccessor ** __restrict dest) {
+dae_accessor(AkXmlState * __restrict xst,
+             void * __restrict memParent,
+             AkAccessor ** __restrict dest) {
   AkAccessor   *accessor;
   AkDataParam  *last_param;
   AkXmlElmState xest;
@@ -50,7 +50,7 @@ ak_dae_accessor(AkXmlState * __restrict xst,
       AkDataParam *dataParam;
       AkResult     ret;
 
-      ret = ak_dae_dataparam(xst, accessor, &dataParam);
+      ret = dae_dataparam(xst, accessor, &dataParam);
       if (ret == AK_OK) {
         if (last_param)
           last_param->next = dataParam;

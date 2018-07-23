@@ -31,11 +31,11 @@ static ak_enumpair sourceMap[] = {
 static size_t sourceMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_source(AkXmlState * __restrict xst,
-              void       * __restrict memParent,
-              AkEnum                (*asEnum)(const char *name),
-              uint32_t                enumLen,
-              AkSource  ** __restrict dest) {
+dae_source(AkXmlState * __restrict xst,
+           void       * __restrict memParent,
+           AkEnum                (*asEnum)(const char *name),
+           uint32_t                enumLen,
+           AkSource  ** __restrict dest) {
   AkSource     *source;
   AkBuffer     *buffer;
   AkTechnique  *last_tq;
@@ -93,7 +93,7 @@ ak_dae_source(AkXmlState * __restrict xst,
 
     switch (found->val) {
       case k_s_dae_asset: {
-        (void)ak_dae_assetInf(xst, source, NULL);
+        (void)dae_assetInf(xst, source, NULL);
         break;
       }
 
@@ -226,7 +226,7 @@ ak_dae_source(AkXmlState * __restrict xst,
             break;
 
           if (ak_xml_eqelm(xst, _s_dae_accessor))
-            if (ak_dae_accessor(xst, source, &accessor) == AK_OK) {
+            if (dae_accessor(xst, source, &accessor) == AK_OK) {
               source->tcommon = accessor;
 
               if (asEnum) {
@@ -247,7 +247,7 @@ ak_dae_source(AkXmlState * __restrict xst,
         AkResult ret;
 
         tq = NULL;
-        ret = ak_dae_technique(xst, source, &tq);
+        ret = dae_technique(xst, source, &tq);
         if (ret == AK_OK) {
           if (last_tq)
             last_tq->next = tq;

@@ -9,9 +9,9 @@
 #include "../dae_common.h"
 
 AkResult _assetkit_hide
-ak_dae_technique(AkXmlState * __restrict xst,
-                 void * __restrict memParent,
-                 AkTechnique ** __restrict dest) {
+dae_technique(AkXmlState * __restrict xst,
+              void * __restrict memParent,
+              AkTechnique ** __restrict dest) {
 
   AkTechnique *technique;
   AkTree      *tree;

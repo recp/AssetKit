@@ -14,9 +14,9 @@
 #include "dae_fx_evaluate.h"
 
 AkResult _assetkit_hide
-ak_dae_fxPass(AkXmlState * __restrict xst,
-              void * __restrict memParent,
-              AkPass ** __restrict dest) {
+dae_fxPass(AkXmlState * __restrict xst,
+           void * __restrict memParent,
+           AkPass ** __restrict dest) {
   AkPass       *pass;
   AkAnnotate   *last_annotate;
   AkXmlElmState xest;
@@ -36,12 +36,12 @@ ak_dae_fxPass(AkXmlState * __restrict xst,
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
-      (void)ak_dae_assetInf(xst, pass, NULL);
+      (void)dae_assetInf(xst, pass, NULL);
     } else if (ak_xml_eqelm(xst, _s_dae_annotate)) {
       AkAnnotate *annotate;
       AkResult    ret;
 
-      ret = ak_dae_annotate(xst, pass, &annotate);
+      ret = dae_annotate(xst, pass, &annotate);
 
       if (ret == AK_OK) {
         if (last_annotate)
@@ -55,7 +55,7 @@ ak_dae_fxPass(AkXmlState * __restrict xst,
       AkStates *states;
       AkResult  ret;
 
-      ret = ak_dae_fxState(xst, pass, &states);
+      ret = dae_fxState(xst, pass, &states);
       if (ret == AK_OK)
         pass->states = states;
 
@@ -63,14 +63,14 @@ ak_dae_fxPass(AkXmlState * __restrict xst,
       AkProgram *prog;
       AkResult   ret;
 
-      ret = ak_dae_fxProg(xst, pass, &prog);
+      ret = dae_fxProg(xst, pass, &prog);
       if (ret == AK_OK)
         pass->program = prog;
     } else if (ak_xml_eqelm(xst, _s_dae_evaluate)) {
       AkEvaluate * evaluate;
       AkResult ret;
 
-      ret = ak_dae_fxEvaluate(xst, pass, &evaluate);
+      ret = dae_fxEvaluate(xst, pass, &evaluate);
       if (ret == AK_OK)
         pass->evaluate = evaluate;
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {

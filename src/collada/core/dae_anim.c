@@ -11,9 +11,9 @@
 #include "dae_enums.h"
 
 AkResult _assetkit_hide
-ak_dae_anim(AkXmlState   * __restrict xst,
-            void         * __restrict memParent,
-            void        ** __restrict dest) {
+dae_anim(AkXmlState   * __restrict xst,
+         void         * __restrict memParent,
+         void        ** __restrict dest) {
   AkAnimation   *anim;
   AkSource      *last_source;
   AkChannel     *last_channel;
@@ -38,13 +38,13 @@ ak_dae_anim(AkXmlState   * __restrict xst,
     break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
-      (void)ak_dae_assetInf(xst, anim, NULL);
+      (void)dae_assetInf(xst, anim, NULL);
     } else if (ak_xml_eqelm(xst, _s_dae_source)) {
       AkSource *source;
       AkResult ret;
 
       /* store interpolation in char */
-      ret = ak_dae_source(xst, anim, ak_dae_enumAnimInterp, 1, &source);
+      ret = dae_source(xst, anim, dae_enumAnimInterp, 1, &source);
       if (ret == AK_OK) {
         if (last_source)
            last_source->next = source;
@@ -56,7 +56,7 @@ ak_dae_anim(AkXmlState   * __restrict xst,
       AkAnimSampler *sampler;
       AkResult       ret;
 
-      ret = ak_dae_animSampler(xst, anim, &sampler);
+      ret = dae_animSampler(xst, anim, &sampler);
       if (ret == AK_OK) {
         if (last_samp)
           last_samp->next = sampler;
@@ -68,7 +68,7 @@ ak_dae_anim(AkXmlState   * __restrict xst,
       AkChannel *channel;
       AkResult   ret;
 
-      ret = ak_dae_channel(xst, anim, &channel);
+      ret = dae_channel(xst, anim, &channel);
       if (ret == AK_OK) {
         if (last_channel)
            last_channel->next = channel;
@@ -80,7 +80,7 @@ ak_dae_anim(AkXmlState   * __restrict xst,
       AkAnimation *subAnim;
       AkResult     ret;
 
-      ret     = ak_dae_anim(xst, anim, (void **)&subAnim);
+      ret     = dae_anim(xst, anim, (void **)&subAnim);
       subAnim = NULL;
 
       if (ret == AK_OK) {
@@ -120,9 +120,9 @@ ak_dae_anim(AkXmlState   * __restrict xst,
 }
 
 AkResult _assetkit_hide
-ak_dae_animSampler(AkXmlState     * __restrict xst,
-                   void           * __restrict memParent,
-                   AkAnimSampler ** __restrict dest) {
+dae_animSampler(AkXmlState     * __restrict xst,
+                void           * __restrict memParent,
+                AkAnimSampler ** __restrict dest) {
   AkAnimSampler *sampler;
   AkInput       *last_input;
   AkXmlElmState  xest;
@@ -133,10 +133,10 @@ ak_dae_animSampler(AkXmlState     * __restrict xst,
 
   sampler->pre  = ak_xml_attrenum(xst,
                                   _s_dae_pre_behavior,
-                                  ak_dae_enumAnimBehavior);
+                                  dae_enumAnimBehavior);
   sampler->post = ak_xml_attrenum(xst,
                                   _s_dae_post_behavior,
-                                  ak_dae_enumAnimBehavior);
+                                  dae_enumAnimBehavior);
 
   last_input = NULL;
 
@@ -157,7 +157,7 @@ ak_dae_animSampler(AkXmlState     * __restrict xst,
       else {
         AkEnum inputSemantic;
 
-        inputSemantic = ak_dae_enumInputSemantic(input->semanticRaw);
+        inputSemantic = dae_enumInputSemantic(input->semanticRaw);
         input->offset = ak_xml_attrui(xst, _s_dae_offset);
         input->set    = ak_xml_attrui(xst, _s_dae_set);
 
@@ -190,9 +190,9 @@ ak_dae_animSampler(AkXmlState     * __restrict xst,
 }
 
 AkResult _assetkit_hide
-ak_dae_channel(AkXmlState  * __restrict xst,
-               void        * __restrict memParent,
-               AkChannel  ** __restrict dest) {
+dae_channel(AkXmlState  * __restrict xst,
+            void        * __restrict memParent,
+            AkChannel  ** __restrict dest) {
   AkChannel     *channel;
   AkXmlElmState  xest;
 

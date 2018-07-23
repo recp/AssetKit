@@ -12,43 +12,43 @@
 
 static
 AkResult
-ak_dae_fxImage_initFrom(AkXmlState * __restrict xst,
-                        void * __restrict memParent,
-                        AkInitFrom ** __restrict dest);
+dae_fxImage_initFrom(AkXmlState * __restrict xst,
+                     void * __restrict memParent,
+                     AkInitFrom ** __restrict dest);
 
 static
 AkResult
-ak_dae_fxImage_format(AkXmlState * __restrict xst,
-                      void * __restrict memParent,
-                      AkImageFormat ** __restrict dest);
+dae_fxImage_format(AkXmlState * __restrict xst,
+                   void * __restrict memParent,
+                   AkImageFormat ** __restrict dest);
 
 static
 AkResult
-ak_dae_fxImage_create2d(AkXmlState * __restrict xst,
-                        void * __restrict memParent,
-                        AkImage2d ** __restrict dest);
+dae_fxImage_create2d(AkXmlState * __restrict xst,
+                     void * __restrict memParent,
+                     AkImage2d ** __restrict dest);
 
 static
 AkResult
-ak_dae_fxImage_create3d(AkXmlState * __restrict xst,
-                        void * __restrict memParent,
-                        AkImage3d ** __restrict dest);
+dae_fxImage_create3d(AkXmlState * __restrict xst,
+                     void * __restrict memParent,
+                     AkImage3d ** __restrict dest);
 
 static
 int
-ak_dae_fxImage_createCube(AkXmlState * __restrict xst,
-                          void * __restrict memParent,
-                          AkImageCube ** __restrict dest);
+dae_fxImage_createCube(AkXmlState * __restrict xst,
+                       void * __restrict memParent,
+                       AkImageCube ** __restrict dest);
 
 AkResult _assetkit_hide
-ak_dae_fxImage(AkXmlState * __restrict xst,
-               void * __restrict memParent,
-               void ** __restrict dest) {
+dae_fxImage(AkXmlState * __restrict xst,
+            void * __restrict memParent,
+            void ** __restrict dest) {
   AkImage      *img;
   AkXmlElmState xest;
 
   if (xst->version < AK_COLLADA_VERSION_150) {
-    ak_dae14_fxMigrateImg(xst, memParent);
+    dae14_fxMigrateImg(xst, memParent);
     return AK_OK;
   }
 
@@ -66,7 +66,7 @@ ak_dae_fxImage(AkXmlState * __restrict xst,
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
-      (void)ak_dae_assetInf(xst, img, NULL);
+      (void)dae_assetInf(xst, img, NULL);
     } else if (ak_xml_eqelm(xst, _s_dae_renderable)) {
       xmlChar *attrValStr;
       attrValStr =
@@ -82,28 +82,28 @@ ak_dae_fxImage(AkXmlState * __restrict xst,
       AkInitFrom *initFrom;
       AkResult      ret;
 
-      ret = ak_dae_fxImage_initFrom(xst, img, &initFrom);
+      ret = dae_fxImage_initFrom(xst, img, &initFrom);
       if (ret == AK_OK)
         img->initFrom = initFrom;
     } else if (ak_xml_eqelm(xst, _s_dae_create_2d)) {
       AkImage2d *image2d;
       AkResult   ret;
 
-      ret = ak_dae_fxImage_create2d(xst, img, &image2d);
+      ret = dae_fxImage_create2d(xst, img, &image2d);
       if (ret == AK_OK)
         img->image = &image2d->base;
     } else if (ak_xml_eqelm(xst, _s_dae_create_3d)) {
       AkImage3d *image3d;
       AkResult    ret;
 
-      ret = ak_dae_fxImage_create3d(xst, img, &image3d);
+      ret = dae_fxImage_create3d(xst, img, &image3d);
       if (ret == AK_OK)
         img->image = &image3d->base;
     } else if (ak_xml_eqelm(xst, _s_dae_create_cube)) {
       AkImageCube *imageCube;
       AkResult ret;
 
-      ret = ak_dae_fxImage_createCube(xst, img, &imageCube);
+      ret = dae_fxImage_createCube(xst, img, &imageCube);
       if (ret == AK_OK)
         img->image = &imageCube->base;
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
@@ -136,9 +136,9 @@ ak_dae_fxImage(AkXmlState * __restrict xst,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxInstanceImage(AkXmlState      * __restrict xst,
-                       void            * __restrict memParent,
-                       AkInstanceBase ** __restrict dest) {
+dae_fxInstanceImage(AkXmlState      * __restrict xst,
+                    void            * __restrict memParent,
+                    AkInstanceBase ** __restrict dest) {
   AkInstanceBase *instanceImage;
   AkXmlElmState   xest;
 
@@ -192,9 +192,9 @@ ak_dae_fxInstanceImage(AkXmlState      * __restrict xst,
 
 static
 AkResult
-ak_dae_fxImage_initFrom(AkXmlState * __restrict xst,
-                        void * __restrict memParent,
-                        AkInitFrom ** __restrict dest) {
+dae_fxImage_initFrom(AkXmlState * __restrict xst,
+                     void * __restrict memParent,
+                     AkInitFrom ** __restrict dest) {
   AkInitFrom   *initFrom;
   char         *attrValStr;
   AkXmlElmState xest;
@@ -212,7 +212,7 @@ ak_dae_fxImage_initFrom(AkXmlState * __restrict xst,
                                     (const xmlChar *)_s_dae_face);
   if (attrValStr) {
     AkEnum attrVal;
-    attrVal = ak_dae_fxEnumFace(attrValStr);
+    attrVal = dae_fxEnumFace(attrValStr);
     if (attrVal != -1)
       initFrom->face = attrVal;
 
@@ -255,9 +255,9 @@ ak_dae_fxImage_initFrom(AkXmlState * __restrict xst,
 
 static
 AkResult
-ak_dae_fxImage_format(AkXmlState * __restrict xst,
-                      void * __restrict memParent,
-                      AkImageFormat ** __restrict dest) {
+dae_fxImage_format(AkXmlState * __restrict xst,
+                   void * __restrict memParent,
+                   AkImageFormat ** __restrict dest) {
   AkImageFormat *format;
   AkXmlElmState  xest;
 
@@ -276,7 +276,7 @@ ak_dae_fxImage_format(AkXmlState * __restrict xst,
                                         (const xmlChar *)_s_dae_channels);
       if (attrValStr) {
         AkEnum attrVal;
-        attrVal = ak_dae_fxEnumChannel(attrValStr);
+        attrVal = dae_fxEnumChannel(attrValStr);
         if (attrVal != -1)
           format->channel = attrVal;
 
@@ -288,7 +288,7 @@ ak_dae_fxImage_format(AkXmlState * __restrict xst,
                                          (const xmlChar *)_s_dae_range);
       if (attrValStr) {
         AkEnum attrVal;
-        attrVal = ak_dae_fxEnumRange(attrValStr);
+        attrVal = dae_fxEnumRange(attrValStr);
         if (attrVal != -1)
           format->range = attrVal;
 
@@ -300,7 +300,7 @@ ak_dae_fxImage_format(AkXmlState * __restrict xst,
                                         (const xmlChar *)_s_dae_precision);
       if (attrValStr) {
         AkEnum attrVal;
-        attrVal = ak_dae_fxEnumPrecision(attrValStr);
+        attrVal = dae_fxEnumPrecision(attrValStr);
         if (attrVal != -1)
           format->range = attrVal;
 
@@ -327,9 +327,9 @@ ak_dae_fxImage_format(AkXmlState * __restrict xst,
 
 static
 AkResult
-ak_dae_fxImage_create2d(AkXmlState * __restrict xst,
-                        void * __restrict memParent,
-                        AkImage2d ** __restrict dest) {
+dae_fxImage_create2d(AkXmlState * __restrict xst,
+                     void * __restrict memParent,
+                     AkImage2d ** __restrict dest) {
   AkImage2d    *image2d;
   AkXmlElmState xest;
 
@@ -386,14 +386,14 @@ ak_dae_fxImage_create2d(AkXmlState * __restrict xst,
       AkImageFormat *imageFormat;
       AkResult ret;
 
-      ret = ak_dae_fxImage_format(xst, image2d, &imageFormat);
+      ret = dae_fxImage_format(xst, image2d, &imageFormat);
       if (ret == AK_OK)
         image2d->base.format = imageFormat;
     } else if (ak_xml_eqelm(xst, _s_dae_size_exact)) {
       AkInitFrom *initFrom;
       AkResult ret;
 
-      ret = ak_dae_fxImage_initFrom(xst, image2d, &initFrom);
+      ret = dae_fxImage_initFrom(xst, image2d, &initFrom);
       if (ret == AK_OK)
         image2d->base.initFrom = initFrom;
     } else {
@@ -412,9 +412,9 @@ ak_dae_fxImage_create2d(AkXmlState * __restrict xst,
 
 static
 AkResult
-ak_dae_fxImage_create3d(AkXmlState * __restrict xst,
-                        void * __restrict memParent,
-                        AkImage3d ** __restrict dest) {
+dae_fxImage_create3d(AkXmlState * __restrict xst,
+                     void * __restrict memParent,
+                     AkImage3d ** __restrict dest) {
   AkImage3d    *image3d;
   AkXmlElmState xest;
 
@@ -442,14 +442,14 @@ ak_dae_fxImage_create3d(AkXmlState * __restrict xst,
       AkImageFormat *imageFormat;
       AkResult ret;
 
-      ret = ak_dae_fxImage_format(xst, image3d, &imageFormat);
+      ret = dae_fxImage_format(xst, image3d, &imageFormat);
       if (ret == AK_OK)
         image3d->base.format = imageFormat;
     } else if (ak_xml_eqelm(xst, _s_dae_size_exact)) {
       AkInitFrom *initFrom;
       AkResult ret;
 
-      ret = ak_dae_fxImage_initFrom(xst, image3d, &initFrom);
+      ret = dae_fxImage_initFrom(xst, image3d, &initFrom);
       if (ret == AK_OK)
         image3d->base.initFrom = initFrom;
     } else {
@@ -468,9 +468,9 @@ ak_dae_fxImage_create3d(AkXmlState * __restrict xst,
 
 static
 AkResult
-ak_dae_fxImage_createCube(AkXmlState * __restrict xst,
-                          void * __restrict memParent,
-                          AkImageCube ** __restrict dest) {
+dae_fxImage_createCube(AkXmlState * __restrict xst,
+                       void * __restrict memParent,
+                       AkImageCube ** __restrict dest) {
   AkImageCube  *imageCube;
   AkXmlElmState xest;
 
@@ -496,14 +496,14 @@ ak_dae_fxImage_createCube(AkXmlState * __restrict xst,
       AkImageFormat *imageFormat;
       AkResult ret;
 
-      ret = ak_dae_fxImage_format(xst, imageCube, &imageFormat);
+      ret = dae_fxImage_format(xst, imageCube, &imageFormat);
       if (ret == AK_OK)
         imageCube->base.format = imageFormat;
     } else if (ak_xml_eqelm(xst, _s_dae_size_exact)) {
       AkInitFrom *initFrom;
       AkResult ret;
 
-      ret = ak_dae_fxImage_initFrom(xst, imageCube, &initFrom);
+      ret = dae_fxImage_initFrom(xst, imageCube, &initFrom);
       if (ret == AK_OK)
         imageCube->base.initFrom = initFrom;
     } else {

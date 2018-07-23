@@ -18,9 +18,9 @@
 #include "dae_fx_pass.h"
 
 AkResult _assetkit_hide
-ak_dae_techniqueFx(AkXmlState * __restrict xst,
-                   void * __restrict memParent,
-                   AkTechniqueFx ** __restrict dest) {
+dae_techniqueFx(AkXmlState * __restrict xst,
+                void * __restrict memParent,
+                AkTechniqueFx ** __restrict dest) {
   AkTechniqueFx *technique;
   AkAnnotate    *last_annotate;
   AkXmlElmState  xest;
@@ -42,12 +42,12 @@ ak_dae_techniqueFx(AkXmlState * __restrict xst,
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
-      (void)ak_dae_assetInf(xst, technique, NULL);
+      (void)dae_assetInf(xst, technique, NULL);
     } else if (ak_xml_eqelm(xst, _s_dae_annotate)) {
       AkAnnotate *annotate;
       AkResult    ret;
 
-      ret = ak_dae_annotate(xst, technique, &annotate);
+      ret = dae_annotate(xst, technique, &annotate);
 
       if (ret == AK_OK) {
         if (last_annotate)
@@ -61,7 +61,7 @@ ak_dae_techniqueFx(AkXmlState * __restrict xst,
       AkPass * pass;
       AkResult ret;
 
-      ret = ak_dae_fxPass(xst, technique, &pass);
+      ret = dae_fxPass(xst, technique, &pass);
       if (ret == AK_OK)
         technique->pass = pass;
 
@@ -69,10 +69,10 @@ ak_dae_techniqueFx(AkXmlState * __restrict xst,
       AkTechniqueFxCommon *phong;
       AkResult             ret;
 
-      ret = ak_dae_phong(xst,
-                         technique,
-                         (const char *)xst->nodeName,
-                         &phong);
+      ret = dae_phong(xst,
+                      technique,
+                      (const char *)xst->nodeName,
+                      &phong);
       if (ret == AK_OK) {
         phong->type        = AK_MATERIAL_PHONG;
         technique->common = phong;
@@ -81,10 +81,10 @@ ak_dae_techniqueFx(AkXmlState * __restrict xst,
       AkTechniqueFxCommon *blinn;
       AkResult             ret;
 
-      ret = ak_dae_phong(xst,
-                         technique,
-                         (const char *)xst->nodeName,
-                         &blinn);
+      ret = dae_phong(xst,
+                      technique,
+                      (const char *)xst->nodeName,
+                      &blinn);
       if (ret == AK_OK) {
         blinn->type       = AK_MATERIAL_BLINN;
         technique->common = blinn;
@@ -93,7 +93,7 @@ ak_dae_techniqueFx(AkXmlState * __restrict xst,
       AkTechniqueFxCommon *lambert;
       AkResult             ret;
 
-      ret = ak_dae_fxLambert(xst, technique, &lambert);
+      ret = dae_fxLambert(xst, technique, &lambert);
       if (ret == AK_OK) {
         lambert->type     = AK_MATERIAL_LAMBERT;
         technique->common = lambert;
@@ -102,7 +102,7 @@ ak_dae_techniqueFx(AkXmlState * __restrict xst,
       AkTechniqueFxCommon *constantfx;
       AkResult             ret;
 
-      ret = ak_dae_fxConstant(xst, technique, &constantfx);
+      ret = dae_fxConstant(xst, technique, &constantfx);
       if (ret == AK_OK) {
         constantfx->type  = AK_MATERIAL_CONSTANT;
         technique->common = constantfx;
@@ -110,7 +110,7 @@ ak_dae_techniqueFx(AkXmlState * __restrict xst,
     } else if (xst->version < AK_COLLADA_VERSION_150
                && ak_xml_eqelm(xst, _s_dae_image)) {
       /* migration from 1.4 */
-      ak_dae14_fxMigrateImg(xst, NULL);
+      dae14_fxMigrateImg(xst, NULL);
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;

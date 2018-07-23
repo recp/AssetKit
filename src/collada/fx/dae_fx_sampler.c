@@ -50,10 +50,10 @@ static ak_enumpair fxSamplerCMap[] = {
 static size_t fxSamplerCMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_fxSampler(AkXmlState * __restrict xst,
-                 void * __restrict memParent,
-                 const char *elm,
-                 AkSampler ** __restrict dest) {
+dae_fxSampler(AkXmlState * __restrict xst,
+              void * __restrict memParent,
+              const char *elm,
+              AkSampler ** __restrict dest) {
   AkSampler    *sampler;
   AkXmlElmState xest;
 
@@ -96,10 +96,10 @@ ak_dae_fxSampler(AkXmlState * __restrict xst,
          /* COLLADA 1.4 uses source -> <surface> for texturing */
         if (source) {
           if (xst->version < AK_COLLADA_VERSION_150) {
-            ak_dae14_loadjobs_add(xst,
-                                  sampler,
-                                  source,
-                                  AK_DAE14_LOADJOB_SURFACE);
+            dae14_loadjobs_add(xst,
+                               sampler,
+                               source,
+                               AK_DAE14_LOADJOB_SURFACE);
           } else {
             ak_xml_skipelm(xst);
           }
@@ -111,7 +111,7 @@ ak_dae_fxSampler(AkXmlState * __restrict xst,
         AkInstanceBase *instanceImage;
         AkResult        ret;
 
-        ret = ak_dae_fxInstanceImage(xst, sampler, &instanceImage);
+        ret = dae_fxInstanceImage(xst, sampler, &instanceImage);
 
         if (ret == AK_OK)
           sampler->instanceImage = instanceImage;
@@ -123,22 +123,22 @@ ak_dae_fxSampler(AkXmlState * __restrict xst,
                                                 _s_dae_semantic);
         break;
       case k_s_dae_wrap_s:
-        sampler->wrapS = ak_xml_readenum(xst, ak_dae_fxEnumWrap);
+        sampler->wrapS = ak_xml_readenum(xst, dae_fxEnumWrap);
         break;
       case k_s_dae_wrap_t:
-        sampler->wrapT = ak_xml_readenum(xst, ak_dae_fxEnumWrap);
+        sampler->wrapT = ak_xml_readenum(xst, dae_fxEnumWrap);
         break;
       case k_s_dae_wrap_p:
-        sampler->wrapP = ak_xml_readenum(xst, ak_dae_fxEnumWrap);
+        sampler->wrapP = ak_xml_readenum(xst, dae_fxEnumWrap);
         break;
       case k_s_dae_minfilter:
-        sampler->minfilter = ak_xml_readenum(xst, ak_dae_fxEnumMinfilter);
+        sampler->minfilter = ak_xml_readenum(xst, dae_fxEnumMinfilter);
         break;
       case k_s_dae_magfilter:
-        sampler->magfilter = ak_xml_readenum(xst, ak_dae_fxEnumMagfilter);
+        sampler->magfilter = ak_xml_readenum(xst, dae_fxEnumMagfilter);
         break;
       case k_s_dae_mipfilter:
-        sampler->mipfilter = ak_xml_readenum(xst, ak_dae_fxEnumMipfilter);
+        sampler->mipfilter = ak_xml_readenum(xst, dae_fxEnumMipfilter);
         break;
       case k_s_dae_border_color: {
         AkColor *color;
@@ -147,7 +147,7 @@ ak_dae_fxSampler(AkXmlState * __restrict xst,
         color = ak_heap_calloc(xst->heap,
                                sampler,
                                sizeof(*color));
-        ret   = ak_dae_color(xst, color, true, false, color);
+        ret   = dae_color(xst, color, true, false, color);
 
         if (ret == AK_OK)
           sampler->borderColor = color;

@@ -8,11 +8,11 @@
 #include "dae_color.h"
 
 AkResult _assetkit_hide
-ak_dae_color(AkXmlState * __restrict xst,
-             void       * __restrict memParent,
-             bool                    read_sid,
-             bool                    stack,
-             AkColor    * __restrict dest) {
+dae_color(AkXmlState * __restrict xst,
+          void       * __restrict memParent,
+          bool                    read_sid,
+          bool                    stack,
+          AkColor    * __restrict dest) {
   char *colorStr;
   void *memp;
 

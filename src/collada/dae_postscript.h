@@ -11,6 +11,6 @@
 #include "dae_common.h"
 
 void _assetkit_hide
-ak_dae_postscript(AkXmlState * __restrict xst);
+dae_postscript(AkXmlState * __restrict xst);
 
 #endif /* dae_postscript_h */

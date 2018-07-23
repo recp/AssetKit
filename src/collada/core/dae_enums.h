@@ -11,18 +11,18 @@
 #include "../../../include/ak/assetkit.h"
 
 AkEnum _assetkit_hide
-ak_dae_enumInputSemantic(const char * name);
+dae_enumInputSemantic(const char * name);
 
 AkEnum _assetkit_hide
-ak_dae_enumMorphMethod(const char * name);
+dae_enumMorphMethod(const char * name);
 
 AkEnum _assetkit_hide
-ak_dae_enumNodeType(const char * name);
+dae_enumNodeType(const char * name);
 
 AkEnum _assetkit_hide
-ak_dae_enumAnimBehavior(const char * name);
+dae_enumAnimBehavior(const char * name);
 
 AkEnum _assetkit_hide
-ak_dae_enumAnimInterp(const char * name);
+dae_enumAnimInterp(const char * name);
 
 #endif /* __libassetkit__dae_fx_enums_h_ */

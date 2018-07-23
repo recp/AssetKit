@@ -11,8 +11,8 @@
 #include "../dae_common.h"
 
 AkResult _assetkit_hide
-ak_dae_geometry(AkXmlState * __restrict xst,
-                void * __restrict memParent,
-                void ** __restrict dest);
+dae_geometry(AkXmlState * __restrict xst,
+             void * __restrict memParent,
+             void ** __restrict dest);
 
 #endif /* __libassetkit__dae_geometry_h_ */

@@ -11,10 +11,10 @@
 
 void
 _assetkit_hide
-ak_dae14_loadjobs_add(AkXmlState * __restrict  xst,
-                      void       *  __restrict parent,
-                      void       * __restrict  value,
-                      AkDae14LoadJobType       type) {
+dae14_loadjobs_add(AkXmlState * __restrict  xst,
+                   void       *  __restrict parent,
+                   void       * __restrict  value,
+                   AkDae14LoadJobType       type) {
   AkDae14LoadJob *job, *last;
 
   if (!xst)
@@ -37,7 +37,7 @@ ak_dae14_loadjobs_add(AkXmlState * __restrict  xst,
 
 void
 _assetkit_hide
-ak_dae14_loadjobs_finish(AkXmlState * __restrict xst) {
+dae14_loadjobs_finish(AkXmlState * __restrict xst) {
   AkDae14LoadJob *job;
 
   job = xst->jobs14;

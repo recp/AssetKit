@@ -11,6 +11,6 @@
 #include "dae_common.h"
 
 AkResult _assetkit_hide
-ak_dae_mesh_fixup(AkMesh * mesh);
+dae_mesh_fixup(AkMesh * mesh);
 
 #endif /* dae_mesh_fixup_h */

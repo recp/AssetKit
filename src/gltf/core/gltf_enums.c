@@ -13,7 +13,7 @@ gltf_enumInputSemantic(const char * name) {
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {_s_gltf_COLOR,     AK_INPUT_SEMANTIC_COLOR},
     {_s_gltf_JOINTS,    AK_INPUT_SEMANTIC_JOINT},
     {_s_gltf_NORMAL,    AK_INPUT_SEMANTIC_NORMAL},
@@ -56,7 +56,7 @@ gltf_type(const char *name) {
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {_s_gltf_SCALAR, AK_GLTF_SCALAR},
     {_s_gltf_VEC2,   AK_GLTF_VEC2},
     {_s_gltf_VEC3,   AK_GLTF_VEC3},
@@ -121,7 +121,7 @@ gltf_alphaMode(const char *name) {
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {_s_gltf_OPAQUE, AK_OPAQUE_OPAQUE},
     {_s_gltf_MASK,   AK_OPAQUE_MASK},
     {_s_gltf_BLEND,  AK_OPAQUE_BLEND}
@@ -146,7 +146,7 @@ gltf_interp(const char *name) {
   long glenums_len;
   long i;
 
-  ak_dae_enum glenums[] = {
+  dae_enum glenums[] = {
     {_s_gltf_LINEAR,       AK_INTERPOLATION_LINEAR},
     {_s_gltf_STEP,         AK_INTERPOLATION_STEP},
     {_s_gltf_CUBICSPLINE,  AK_INTERPOLATION_HERMITE}

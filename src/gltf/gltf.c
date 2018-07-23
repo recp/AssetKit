@@ -23,8 +23,8 @@
 #include "core/gltf_anim.h"
 
 AkResult _assetkit_hide
-ak_gltf_doc(AkDoc     ** __restrict dest,
-            const char * __restrict filepath) {
+gltf_doc(AkDoc     ** __restrict dest,
+         const char * __restrict filepath) {
   AkHeap        *heap;
   AkDoc         *doc;
   AkAssetInf    *ainf;

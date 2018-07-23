@@ -17,9 +17,9 @@
 #include "dae_fx_profile.h"
 
 AkResult _assetkit_hide
-ak_dae_effect(AkXmlState * __restrict xst,
-              void * __restrict memParent,
-              void ** __restrict  dest) {
+dae_effect(AkXmlState * __restrict xst,
+           void * __restrict memParent,
+           void ** __restrict  dest) {
   AkEffect     *effect;
   AkAnnotate   *last_annotate;
   AkNewParam   *last_newparam;
@@ -45,12 +45,12 @@ ak_dae_effect(AkXmlState * __restrict xst,
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
-      (void)ak_dae_assetInf(xst, effect, NULL);
+      (void)dae_assetInf(xst, effect, NULL);
     } else if (ak_xml_eqelm(xst, _s_dae_annotate)) {
       AkAnnotate *annotate;
       AkResult    ret;
 
-      ret = ak_dae_annotate(xst, effect, &annotate);
+      ret = dae_annotate(xst, effect, &annotate);
 
       if (ret == AK_OK) {
         if (last_annotate)
@@ -64,7 +64,7 @@ ak_dae_effect(AkXmlState * __restrict xst,
       AkNewParam *newparam;
       AkResult    ret;
 
-      ret = ak_dae_newparam(xst, effect, &newparam);
+      ret = dae_newparam(xst, effect, &newparam);
 
       if (ret == AK_OK) {
         if (last_newparam)
@@ -84,7 +84,7 @@ ak_dae_effect(AkXmlState * __restrict xst,
       AkProfile *profile;
       AkResult   ret;
 
-      ret = ak_dae_profile(xst, effect, &profile);
+      ret = dae_profile(xst, effect, &profile);
 
       if (ret == AK_OK) {
         if (last_profile)
@@ -97,7 +97,7 @@ ak_dae_effect(AkXmlState * __restrict xst,
     } else if (xst->version < AK_COLLADA_VERSION_150
                && ak_xml_eqelm(xst, _s_dae_image)) {
       /* migration from 1.4 */
-      ak_dae14_fxMigrateImg(xst, NULL);
+      dae14_fxMigrateImg(xst, NULL);
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree   *tree;
@@ -128,9 +128,9 @@ ak_dae_effect(AkXmlState * __restrict xst,
 }
 
 AkResult _assetkit_hide
-ak_dae_fxInstanceEffect(AkXmlState * __restrict xst,
-                        void * __restrict memParent,
-                        AkInstanceEffect ** __restrict dest) {
+dae_fxInstanceEffect(AkXmlState * __restrict xst,
+                     void * __restrict memParent,
+                     AkInstanceEffect ** __restrict dest) {
   AkInstanceEffect *instanceEffect;
   AkTechniqueHint  *last_techHint;
   AkSetParam       *last_setparam;
@@ -182,9 +182,7 @@ ak_dae_fxInstanceEffect(AkXmlState * __restrict xst,
       AkSetParam *setparam;
       AkResult ret;
 
-      ret = ak_dae_setparam(xst,
-                            instanceEffect,
-                            &setparam);
+      ret = dae_setparam(xst, instanceEffect, &setparam);
 
       if (ret == AK_OK) {
         if (last_setparam)

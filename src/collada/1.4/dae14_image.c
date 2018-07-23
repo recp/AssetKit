@@ -10,8 +10,8 @@
 #include "../fx/dae_fx_enums.h"
 
 void _assetkit_hide
-ak_dae14_fxMigrateImg(AkXmlState * __restrict xst,
-                      void       * __restrict memParent) {
+dae14_fxMigrateImg(AkXmlState * __restrict xst,
+                   void       * __restrict memParent) {
   AkImage      *img;
   AkInitFrom   *initFrom;
   const char   *format;
@@ -43,7 +43,7 @@ ak_dae14_fxMigrateImg(AkXmlState * __restrict xst,
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
-      (void)ak_dae_assetInf(xst, img, NULL);
+      (void)dae_assetInf(xst, img, NULL);
     } else if (ak_xml_eqelm(xst, _s_dae_data)) {
       AkHexData *hex;
       hex = ak_heap_calloc(xst->heap,

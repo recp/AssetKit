@@ -13,8 +13,8 @@
 #include "dae14.h"
 
 AkResult _assetkit_hide
-ak_dae14_fxSurface(AkXmlState      * __restrict xst,
-                   void            * __restrict memParent,
-                   AkDae14Surface ** __restrict dest);
+dae14_fxSurface(AkXmlState      * __restrict xst,
+                void            * __restrict memParent,
+                AkDae14Surface ** __restrict dest);
 
 #endif /* ak_surface_h */

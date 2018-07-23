@@ -12,7 +12,7 @@
 #include "../dae_common.h"
 
 void _assetkit_hide
-ak_dae14_fxMigrateImg(AkXmlState * __restrict xst,
-                      void       * __restrict memParent);
+dae14_fxMigrateImg(AkXmlState * __restrict xst,
+                   void       * __restrict memParent);
 
 #endif /* ak_14_image_h */

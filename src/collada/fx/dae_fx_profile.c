@@ -26,9 +26,9 @@ static ak_enumpair profileMap[] = {
 static size_t profileMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_profile(AkXmlState * __restrict xst,
-               void * __restrict memParent,
-               AkProfile ** __restrict dest) {
+dae_profile(AkXmlState * __restrict xst,
+            void * __restrict memParent,
+            AkProfile ** __restrict dest) {
   AkProfile         *profile;
   AkNewParam        *last_newparam;
   AkCode            *last_code;
@@ -149,14 +149,12 @@ ak_dae_profile(AkXmlState * __restrict xst,
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
-      (void)ak_dae_assetInf(xst, profile, NULL);
+      (void)dae_assetInf(xst, profile, NULL);
     } else if (ak_xml_eqelm(xst, _s_dae_newparam)) {
       AkNewParam *newparam;
       AkResult    ret;
 
-      ret = ak_dae_newparam(xst,
-                            profile,
-                            &newparam);
+      ret = dae_newparam(xst, profile, &newparam);
 
       if (ret == AK_OK) {
         if (last_newparam)
@@ -171,9 +169,7 @@ ak_dae_profile(AkXmlState * __restrict xst,
       AkTechniqueFx * technique_fx;
       AkResult ret;
 
-      ret = ak_dae_techniqueFx(xst,
-                               profile,
-                               &technique_fx);
+      ret = dae_techniqueFx(xst,  profile, &technique_fx);
       if (ret == AK_OK) {
         if (last_techfx)
           last_techfx->next = technique_fx;
@@ -185,7 +181,7 @@ ak_dae_profile(AkXmlState * __restrict xst,
     } else if (xst->version < AK_COLLADA_VERSION_150
                && ak_xml_eqelm(xst, _s_dae_image)) {
       /* migration from 1.4 */
-      ak_dae14_fxMigrateImg(xst, NULL);
+      dae14_fxMigrateImg(xst, NULL);
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       xmlNodePtr nodePtr;
       AkTree    *tree;

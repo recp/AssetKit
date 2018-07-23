@@ -43,10 +43,10 @@ static ak_enumpair brepMap[] = {
 static size_t brepMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_brep(AkXmlState * __restrict xst,
-            void * __restrict memParent,
-            bool asObject,
-            AkBoundryRep ** __restrict dest) {
+dae_brep(AkXmlState * __restrict xst,
+         void * __restrict memParent,
+         bool asObject,
+         AkBoundryRep ** __restrict dest) {
   AkObject     *obj;
   AkSource     *last_source;
   AkBoundryRep *brep;
@@ -101,7 +101,7 @@ ak_dae_brep(AkXmlState * __restrict xst,
         AkCurves *curves;
         AkResult  ret;
 
-        ret = ak_dae_curves(xst, memPtr, &curves);
+        ret = dae_curves(xst, memPtr, &curves);
         if (ret == AK_OK)
           brep->curves = curves;
 
@@ -111,7 +111,7 @@ ak_dae_brep(AkXmlState * __restrict xst,
         AkCurves *curves;
         AkResult  ret;
 
-        ret = ak_dae_curves(xst, memPtr, &curves);
+        ret = dae_curves(xst, memPtr, &curves);
         if (ret == AK_OK)
           brep->surfaceCurves = curves;
 
@@ -121,7 +121,7 @@ ak_dae_brep(AkXmlState * __restrict xst,
         AkSurfaces *surfaces;
         AkResult    ret;
 
-        ret = ak_dae_surfaces(xst, memPtr, &surfaces);
+        ret = dae_surfaces(xst, memPtr, &surfaces);
         if (ret == AK_OK)
           brep->surfaces = surfaces;
 
@@ -131,7 +131,7 @@ ak_dae_brep(AkXmlState * __restrict xst,
         AkSource *source;
         AkResult ret;
 
-        ret = ak_dae_source(xst, memPtr, NULL, 0, &source);
+        ret = dae_source(xst, memPtr, NULL, 0, &source);
         if (ret == AK_OK) {
           if (last_source)
             last_source->next = source;
@@ -146,7 +146,7 @@ ak_dae_brep(AkXmlState * __restrict xst,
         AkVertices *vertices;
         AkResult ret;
 
-        ret = ak_dae_vertices(xst, memPtr, &vertices);
+        ret = dae_vertices(xst, memPtr, &vertices);
         if (ret == AK_OK)
           brep->vertices = vertices;
 
@@ -156,7 +156,7 @@ ak_dae_brep(AkXmlState * __restrict xst,
         AkEdges *edges;
         AkResult ret;
 
-        ret = ak_dae_edges(xst, memPtr, &edges);
+        ret = dae_edges(xst, memPtr, &edges);
         if (ret == AK_OK)
           brep->edges = edges;
 
@@ -166,7 +166,7 @@ ak_dae_brep(AkXmlState * __restrict xst,
         AkWires *wires;
         AkResult ret;
 
-        ret = ak_dae_wires(xst, memPtr, &wires);
+        ret = dae_wires(xst, memPtr, &wires);
         if (ret == AK_OK)
           brep->wires = wires;
 
@@ -176,7 +176,7 @@ ak_dae_brep(AkXmlState * __restrict xst,
         AkFaces *faces;
         AkResult ret;
 
-        ret = ak_dae_faces(xst, memPtr, &faces);
+        ret = dae_faces(xst, memPtr, &faces);
         if (ret == AK_OK)
           brep->faces = faces;
 
@@ -186,7 +186,7 @@ ak_dae_brep(AkXmlState * __restrict xst,
         AkPCurves *pcurves;
         AkResult   ret;
 
-        ret = ak_dae_pcurves(xst, memPtr, &pcurves);
+        ret = dae_pcurves(xst, memPtr, &pcurves);
         if (ret == AK_OK)
           brep->pcurves = pcurves;
 
@@ -196,7 +196,7 @@ ak_dae_brep(AkXmlState * __restrict xst,
         AkShells *shells;
         AkResult  ret;
 
-        ret = ak_dae_shells(xst, memPtr, &shells);
+        ret = dae_shells(xst, memPtr, &shells);
         if (ret == AK_OK)
           brep->shells = shells;
 
@@ -206,7 +206,7 @@ ak_dae_brep(AkXmlState * __restrict xst,
         AkSolids *solids;
         AkResult  ret;
 
-        ret = ak_dae_solids(xst, memPtr, &solids);
+        ret = dae_solids(xst, memPtr, &solids);
         if (ret == AK_OK)
           brep->solids = solids;
 

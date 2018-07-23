@@ -8,9 +8,9 @@
 #include "dae_fx_binary.h"
 
 AkResult _assetkit_hide
-ak_dae_fxBinary(AkXmlState * __restrict xst,
-                void * __restrict memParent,
-                AkBinary ** __restrict dest) {
+dae_fxBinary(AkXmlState * __restrict xst,
+             void * __restrict memParent,
+             AkBinary ** __restrict dest) {
   AkBinary     *binary;
   AkXmlElmState xest;
 

@@ -11,75 +11,75 @@
 #include "../../../include/ak/assetkit.h"
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumGlFunc(const char * name);
+dae_fxEnumGlFunc(const char * name);
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumBlend(const char * name);
+dae_fxEnumBlend(const char * name);
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumBlendEq(const char * name);
+dae_fxEnumBlendEq(const char * name);
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumGLFace(const char * name);
+dae_fxEnumGLFace(const char * name);
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumMaterial(const char * name);
+dae_fxEnumMaterial(const char * name);
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumFog(const char * name);
+dae_fxEnumFog(const char * name);
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumFogCoordSrc(const char * name);
+dae_fxEnumFogCoordSrc(const char * name);
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumFrontFace(const char * name);
+dae_fxEnumFrontFace(const char * name);
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumLightModelColorCtl(const char * name);
+dae_fxEnumLightModelColorCtl(const char * name);
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumLogicOp(const char * name);
+dae_fxEnumLogicOp(const char * name);
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumPolyMode(const char * name);
+dae_fxEnumPolyMode(const char * name);
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumShadeModel(const char * name);
+dae_fxEnumShadeModel(const char * name);
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumStencilOp(const char * name);
+dae_fxEnumStencilOp(const char * name);
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumWrap(const char * name);
+dae_fxEnumWrap(const char * name);
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumMinfilter(const char * name);
+dae_fxEnumMinfilter(const char * name);
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumMipfilter(const char * name);
+dae_fxEnumMipfilter(const char * name);
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumMagfilter(const char * name);
+dae_fxEnumMagfilter(const char * name);
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumShaderStage(const char * name);
+dae_fxEnumShaderStage(const char * name);
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumFace(const char * name);
+dae_fxEnumFace(const char * name);
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumDraw(const char * name);
+dae_fxEnumDraw(const char * name);
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumOpaque(const char * name);
+dae_fxEnumOpaque(const char * name);
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumChannel(const char * name);
+dae_fxEnumChannel(const char * name);
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumRange(const char * name);
+dae_fxEnumRange(const char * name);
 
 AkEnum _assetkit_hide
-ak_dae_fxEnumPrecision(const char * name);
+dae_fxEnumPrecision(const char * name);
 
 #endif /* __libassetkit__dae_fx_enums_h_ */

@@ -35,9 +35,9 @@ static ak_enumpair lambertMap[] = {
 static size_t lambertMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_fxLambert(AkXmlState           * __restrict xst,
-                 void                 * __restrict memParent,
-                 AkTechniqueFxCommon ** __restrict dest) {
+dae_fxLambert(AkXmlState           * __restrict xst,
+              void                 * __restrict memParent,
+              AkTechniqueFxCommon ** __restrict dest) {
   AkTechniqueFxCommon *techn;
   AkXmlElmState        xest;
 
@@ -83,13 +83,13 @@ ak_dae_fxLambert(AkXmlState           * __restrict xst,
 
         opaque = ak_xml_attrenum_def(xst,
                                      _s_dae_opaque,
-                                     ak_dae_fxEnumOpaque,
+                                     dae_fxEnumOpaque,
                                      AK_OPAQUE_A_ONE);
 
-        ret = ak_dae_colorOrTex(xst,
-                                techn,
-                                (const char *)xst->nodeName,
-                                &colorDesc);
+        ret = dae_colorOrTex(xst,
+                             techn,
+                             (const char *)xst->nodeName,
+                             &colorDesc);
         if (ret == AK_OK) {
           switch (found->val) {
             case k_s_dae_emission:
@@ -137,10 +137,10 @@ ak_dae_fxLambert(AkXmlState           * __restrict xst,
         AkFloatOrParam *floatOrParam;
         AkResult        ret;
 
-        ret = ak_dae_floatOrParam(xst,
-                                  techn,
-                                  (const char *)xst->nodeName,
-                                  &floatOrParam);
+        ret = dae_floatOrParam(xst,
+                               techn,
+                               (const char *)xst->nodeName,
+                               &floatOrParam);
 
         if (ret == AK_OK) {
           switch (found->val) {

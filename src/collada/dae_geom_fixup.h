@@ -11,9 +11,9 @@
 #include "dae_common.h"
 
 AkResult _assetkit_hide
-ak_dae_geom_fixup(AkGeometry * geom);
+dae_geom_fixup(AkGeometry * geom);
 
 AkResult _assetkit_hide
-ak_dae_geom_fixup_all(AkDoc * doc);
+dae_geom_fixup_all(AkDoc * doc);
 
 #endif /* dae_geom_fixup */

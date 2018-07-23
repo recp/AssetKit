@@ -10,9 +10,9 @@
 #include "../fx/dae_fx_material.h"
 
 AkResult _assetkit_hide
-ak_dae_render(AkXmlState * __restrict xst,
-              void * __restrict memParent,
-              AkRender ** __restrict dest) {
+dae_render(AkXmlState * __restrict xst,
+           void * __restrict memParent,
+           AkRender ** __restrict dest) {
   AkRender           *render;
   AkInstanceMaterial *last_instanceMaterial;
   AkStringArrayL     *last_layer;
@@ -57,9 +57,9 @@ ak_dae_render(AkXmlState * __restrict xst,
     } else if (ak_xml_eqelm(xst, _s_dae_instance_material)) {
       AkInstanceMaterial *instanceMaterial;
       AkResult ret;
-      ret = ak_dae_fxInstanceMaterial(xst,
-                                      memParent,
-                                      &instanceMaterial);
+      ret = dae_fxInstanceMaterial(xst,
+                                   memParent,
+                                   &instanceMaterial);
 
       if (ret == AK_OK) {
         if (last_instanceMaterial)

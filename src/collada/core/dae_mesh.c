@@ -40,11 +40,11 @@ static ak_enumpair meshMap[] = {
 static size_t meshMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_mesh(AkXmlState * __restrict xst,
-            void * __restrict memParent,
-            const char * elm,
-            AkMesh ** __restrict dest,
-            bool asObject) {
+dae_mesh(AkXmlState * __restrict xst,
+         void * __restrict memParent,
+         const char * elm,
+         AkMesh ** __restrict dest,
+         bool asObject) {
   AkObject        *obj;
   AkSource        *last_source;
   AkMeshPrimitive *last_prim;
@@ -106,7 +106,7 @@ ak_dae_mesh(AkXmlState * __restrict xst,
         AkSource *source;
         AkResult ret;
 
-        ret = ak_dae_source(xst, memPtr, NULL, 0, &source);
+        ret = dae_source(xst, memPtr, NULL, 0, &source);
         if (ret == AK_OK) {
           if (last_source)
             last_source->next = source;
@@ -118,7 +118,7 @@ ak_dae_mesh(AkXmlState * __restrict xst,
         break;
       }
       case k_s_dae_vertices: {
-        ak_dae_vertices(xst, memPtr, &vertices);
+        dae_vertices(xst, memPtr, &vertices);
         break;
       }
       case k_s_dae_lines:
@@ -132,10 +132,7 @@ ak_dae_mesh(AkXmlState * __restrict xst,
         else
           lineMode = AK_LINE_MODE_LINE_STRIP;
 
-        ret = ak_dae_lines(xst,
-                           memPtr,
-                           lineMode,
-                           &lines);
+        ret = dae_lines(xst, memPtr, lineMode, &lines);
         if (ret == AK_OK) {
           if (last_prim)
             last_prim->next = &lines->base;
@@ -165,11 +162,7 @@ ak_dae_mesh(AkXmlState * __restrict xst,
         else
           mode = AK_POLYGON_MODE_POLYLIST;
 
-        ret = ak_dae_polygon(xst,
-                             memPtr,
-                             found->key,
-                             mode,
-                             &polygon);
+        ret = dae_polygon(xst, memPtr, found->key, mode, &polygon);
         if (ret == AK_OK) {
           if (last_prim)
             last_prim->next = &polygon->base;
@@ -202,11 +195,7 @@ ak_dae_mesh(AkXmlState * __restrict xst,
         else
           mode = AK_TRIANGLE_MODE_TRIANGLE_FAN;
 
-        ret = ak_dae_triangles(xst,
-                               memPtr,
-                               found->key,
-                               mode,
-                               &triangles);
+        ret = dae_triangles(xst, memPtr, found->key, mode, &triangles);
         if (ret == AK_OK) {
           if (last_prim)
             last_prim->next = &triangles->base;

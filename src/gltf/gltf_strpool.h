@@ -8,7 +8,7 @@
 #ifndef gltf_strpool_h
 #  define gltf_strpool_h
 
-#ifndef _AK_GLTF_STRPOOL_
+#ifndef _GLTF_STRPOOL_
 #  define _AK_EXTERN extern
 #else
 #  define _AK_EXTERN
@@ -141,4 +141,4 @@ _AK_EXTERN const char _s_gltf_pool_0[];
 #define _s_gltf_STEP _s_gltf_0(1082)
 #define _s_gltf_CUBICSPLINE _s_gltf_0(1087)
 
-#endif /* ak_gltf_strpool_h */
+#endif /* gltf_strpool_h */

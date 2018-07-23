@@ -10,9 +10,9 @@
 #include "../../array.h"
 
 AkResult _assetkit_hide
-ak_dae_edges(AkXmlState * __restrict xst,
-             void * __restrict memParent,
-             AkEdges ** __restrict dest) {
+dae_edges(AkXmlState * __restrict xst,
+          void * __restrict memParent,
+          AkEdges ** __restrict dest) {
   AkEdges      *edges;
   AkInput      *last_input;
   AkXmlElmState xest;
@@ -50,7 +50,7 @@ ak_dae_edges(AkXmlState * __restrict xst,
         ak_free(input);
       else {
         AkEnum inputSemantic;
-        inputSemantic = ak_dae_enumInputSemantic(input->semanticRaw);
+        inputSemantic = dae_enumInputSemantic(input->semanticRaw);
 
         if (inputSemantic < 0)
           inputSemantic = AK_INPUT_SEMANTIC_OTHER;
@@ -114,9 +114,9 @@ ak_dae_edges(AkXmlState * __restrict xst,
 }
 
 AkResult _assetkit_hide
-ak_dae_wires(AkXmlState * __restrict xst,
-             void * __restrict memParent,
-             AkWires ** __restrict dest) {
+dae_wires(AkXmlState * __restrict xst,
+          void * __restrict memParent,
+          AkWires ** __restrict dest) {
   AkWires      *wires;
   AkInput      *last_input;
   AkXmlElmState xest;
@@ -154,7 +154,7 @@ ak_dae_wires(AkXmlState * __restrict xst,
         ak_free(input);
       else {
         AkEnum inputSemantic;
-        inputSemantic = ak_dae_enumInputSemantic(input->semanticRaw);
+        inputSemantic = dae_enumInputSemantic(input->semanticRaw);
 
         if (inputSemantic < 0)
           inputSemantic = AK_INPUT_SEMANTIC_OTHER;
@@ -235,9 +235,9 @@ ak_dae_wires(AkXmlState * __restrict xst,
 }
 
 AkResult _assetkit_hide
-ak_dae_faces(AkXmlState * __restrict xst,
-             void * __restrict memParent,
-             AkFaces ** __restrict dest) {
+dae_faces(AkXmlState * __restrict xst,
+          void * __restrict memParent,
+          AkFaces ** __restrict dest) {
   AkFaces      *faces;
   AkInput      *last_input;
   AkXmlElmState xest;
@@ -275,7 +275,7 @@ ak_dae_faces(AkXmlState * __restrict xst,
         ak_free(input);
       else {
         AkEnum inputSemantic;
-        inputSemantic = ak_dae_enumInputSemantic(input->semanticRaw);
+        inputSemantic = dae_enumInputSemantic(input->semanticRaw);
 
         if (inputSemantic < 0)
           inputSemantic = AK_INPUT_SEMANTIC_OTHER;
@@ -356,9 +356,9 @@ ak_dae_faces(AkXmlState * __restrict xst,
 }
 
 AkResult _assetkit_hide
-ak_dae_pcurves(AkXmlState * __restrict xst,
-               void * __restrict memParent,
-               AkPCurves ** __restrict dest) {
+dae_pcurves(AkXmlState * __restrict xst,
+            void * __restrict memParent,
+            AkPCurves ** __restrict dest) {
   AkPCurves    *pcurves;
   AkInput      *last_input;
   AkXmlElmState xest;
@@ -396,7 +396,7 @@ ak_dae_pcurves(AkXmlState * __restrict xst,
         ak_free(input);
       else {
         AkEnum inputSemantic;
-        inputSemantic = ak_dae_enumInputSemantic(input->semanticRaw);
+        inputSemantic = dae_enumInputSemantic(input->semanticRaw);
 
         if (inputSemantic < 0)
           inputSemantic = AK_INPUT_SEMANTIC_OTHER;
@@ -477,9 +477,9 @@ ak_dae_pcurves(AkXmlState * __restrict xst,
 }
 
 AkResult _assetkit_hide
-ak_dae_shells(AkXmlState * __restrict xst,
-              void * __restrict memParent,
-              AkShells ** __restrict dest) {
+dae_shells(AkXmlState * __restrict xst,
+           void * __restrict memParent,
+           AkShells ** __restrict dest) {
   AkShells     *shells;
   AkInput      *last_input;
   AkXmlElmState xest;
@@ -517,7 +517,7 @@ ak_dae_shells(AkXmlState * __restrict xst,
         ak_free(input);
       else {
         AkEnum inputSemantic;
-        inputSemantic = ak_dae_enumInputSemantic(input->semanticRaw);
+        inputSemantic = dae_enumInputSemantic(input->semanticRaw);
 
         if (inputSemantic < 0)
           inputSemantic = AK_INPUT_SEMANTIC_OTHER;
@@ -598,9 +598,9 @@ ak_dae_shells(AkXmlState * __restrict xst,
 }
 
 AkResult _assetkit_hide
-ak_dae_solids(AkXmlState * __restrict xst,
-              void * __restrict memParent,
-              AkSolids ** __restrict dest) {
+dae_solids(AkXmlState * __restrict xst,
+           void * __restrict memParent,
+           AkSolids ** __restrict dest) {
   AkSolids     *solids;
   AkInput      *last_input;
   AkXmlElmState xest;
@@ -638,7 +638,7 @@ ak_dae_solids(AkXmlState * __restrict xst,
         ak_free(input);
       else {
         AkEnum inputSemantic;
-        inputSemantic = ak_dae_enumInputSemantic(input->semanticRaw);
+        inputSemantic = dae_enumInputSemantic(input->semanticRaw);
 
         if (inputSemantic < 0)
           inputSemantic = AK_INPUT_SEMANTIC_OTHER;

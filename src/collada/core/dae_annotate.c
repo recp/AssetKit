@@ -9,9 +9,9 @@
 #include "dae_value.h"
 
 AkResult _assetkit_hide
-ak_dae_annotate(AkXmlState * __restrict xst,
-                void * __restrict memParent,
-                AkAnnotate ** __restrict dest) {
+dae_annotate(AkXmlState * __restrict xst,
+             void * __restrict memParent,
+             AkAnnotate ** __restrict dest) {
   AkAnnotate   *annotate;
   AkXmlElmState xest;
 
@@ -32,9 +32,7 @@ ak_dae_annotate(AkXmlState * __restrict xst,
       AkValue *val;
       AkResult ret;
 
-      ret = ak_dae_value(xst,
-                         annotate,
-                         &val);
+      ret = dae_value(xst, annotate, &val);
 
       if (ret == AK_OK)
         annotate->val = val;

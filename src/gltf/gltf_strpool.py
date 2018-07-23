@@ -40,7 +40,7 @@ fspool_h.write("""
 #ifndef gltf_strpool_h
 #  define gltf_strpool_h
 
-#ifndef _AK_GLTF_STRPOOL_
+#ifndef _GLTF_STRPOOL_
 #  define _AK_EXTERN extern
 #else
 #  define _AK_EXTERN
@@ -48,8 +48,8 @@ fspool_h.write("""
 """)
 
 fspool_c.write("""
-#ifndef _AK_GLTF_STRPOOL_
-#  define _AK_GLTF_STRPOOL_
+#ifndef _GLTF_STRPOOL_
+#  define _GLTF_STRPOOL_
 #endif
 
 #include "gltf_strpool.h"
@@ -83,7 +83,7 @@ for name, val in spool.iteritems():
   pos += valLen
 
 # source file, then close it
-fspool_c.write(";\n\n#undef _AK_GLTF_STRPOOL_\n")
+fspool_c.write(";\n\n#undef _GLTF_STRPOOL_\n")
 fspool_c.close()
 
 # header file
@@ -99,7 +99,7 @@ for idx in range(spidx + 1):
 
 # write header contents, then close it
 fspool_h.writelines(headerContents)
-fspool_h.write("\n#endif /* ak_gltf_strpool_h */\n")
+fspool_h.write("\n#endif /* gltf_strpool_h */\n")
 fspool_h.close()
 
 # try free array

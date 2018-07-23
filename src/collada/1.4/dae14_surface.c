@@ -11,9 +11,9 @@
 #include <string.h>
 
 AkResult _assetkit_hide
-ak_dae14_fxSurface(AkXmlState      * __restrict xst,
-                   void            * __restrict memParent,
-                   AkDae14Surface ** __restrict dest) {
+dae14_fxSurface(AkXmlState      * __restrict xst,
+                void            * __restrict memParent,
+                AkDae14Surface ** __restrict dest) {
   AkDae14Surface *surface;
   AkXmlElmState   xest;
 
@@ -37,7 +37,7 @@ ak_dae14_fxSurface(AkXmlState      * __restrict xst,
       initFrom->image = ak_xml_val(xst, surface);
       initFrom->face  = ak_xml_attrenum_def(xst,
                                             _s_dae_face,
-                                            ak_dae_fxEnumFace,
+                                            dae_fxEnumFace,
                                             AK_FACE_POSITIVE_Y);
       surface->initFrom = initFrom;
     } else if (ak_xml_eqelm(xst, _s_dae_init_as_target)) {
@@ -63,7 +63,7 @@ ak_dae14_fxSurface(AkXmlState      * __restrict xst,
           valStr = ak_xml_rawcval(xst);
           if (valStr) {
             AkEnum attrVal;
-            attrVal = ak_dae_fxEnumChannel(valStr);
+            attrVal = dae_fxEnumChannel(valStr);
             if (attrVal != -1)
               format->channel = attrVal;
           }
@@ -71,7 +71,7 @@ ak_dae14_fxSurface(AkXmlState      * __restrict xst,
           valStr = ak_xml_rawcval(xst);
           if (valStr) {
             AkEnum attrVal;
-            attrVal = ak_dae_fxEnumRange(valStr);
+            attrVal = dae_fxEnumRange(valStr);
             if (attrVal != -1)
               format->range = attrVal;
           }
@@ -79,7 +79,7 @@ ak_dae14_fxSurface(AkXmlState      * __restrict xst,
           valStr = ak_xml_rawcval(xst);
           if (valStr) {
             AkEnum attrVal;
-            attrVal = ak_dae_fxEnumPrecision(valStr);
+            attrVal = dae_fxEnumPrecision(valStr);
             if (attrVal != -1)
               format->range = attrVal;
           }

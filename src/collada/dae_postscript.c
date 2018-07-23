@@ -13,27 +13,27 @@
 #include "1.4/dae14.h"
 
 void _assetkit_hide
-ak_dae_retain_refs(AkXmlState * __restrict xst);
+dae_retain_refs(AkXmlState * __restrict xst);
 
 void _assetkit_hide
-ak_dae_fixup_accessors(AkXmlState * __restrict xst);
+dae_fixup_accessors(AkXmlState * __restrict xst);
 
 void _assetkit_hide
-ak_dae_postscript(AkXmlState * __restrict xst) {
+dae_postscript(AkXmlState * __restrict xst) {
   /* first migrate 1.4 to 1.5 */
   if (xst->version < AK_COLLADA_VERSION_150)
-    ak_dae14_loadjobs_finish(xst);
+    dae14_loadjobs_finish(xst);
 
-  ak_dae_retain_refs(xst);
+  dae_retain_refs(xst);
 
-  ak_dae_fixup_accessors(xst);
+  dae_fixup_accessors(xst);
 
   /* fixup when finished,
      because we need to collect about source/array usages
      also we can run fixups as parallels here
   */
   if (!ak_opt_get(AK_OPT_INDICES_DEFAULT))
-    ak_dae_geom_fixup_all(xst->doc);
+    dae_geom_fixup_all(xst->doc);
 
   /* now set used coordSys */
   if (ak_opt_get(AK_OPT_COORD_CONVERT_TYPE) != AK_COORD_CVT_DISABLED)
@@ -41,7 +41,7 @@ ak_dae_postscript(AkXmlState * __restrict xst) {
 }
 
 void _assetkit_hide
-ak_dae_retain_refs(AkXmlState * __restrict xst) {
+dae_retain_refs(AkXmlState * __restrict xst) {
   AkHeapAllocator *alc;
   AkURLQueue      *it, *tofree;
   AkURL           *url;
@@ -74,7 +74,7 @@ ak_dae_retain_refs(AkXmlState * __restrict xst) {
 }
 
 void _assetkit_hide
-ak_dae_fixup_accessors(AkXmlState * __restrict xst) {
+dae_fixup_accessors(AkXmlState * __restrict xst) {
   FListItem   *item;
   AkAccessor  *acc;
   AkBuffer    *buff;

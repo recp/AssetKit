@@ -11,10 +11,10 @@
 #include "dae_fx_enums.h"
 
 AkResult _assetkit_hide
-ak_dae_colorOrTex(AkXmlState   * __restrict xst,
-                  void         * __restrict memParent,
-                  const char   * elm,
-                  AkColorDesc ** __restrict dest) {
+dae_colorOrTex(AkXmlState   * __restrict xst,
+               void         * __restrict memParent,
+               const char   * elm,
+               AkColorDesc ** __restrict dest) {
   AkColorDesc  *colorOrTex;
   AkParam      *last_param;
   AkXmlElmState xest;
@@ -36,7 +36,7 @@ ak_dae_colorOrTex(AkXmlState   * __restrict xst,
       color = ak_heap_calloc(xst->heap,
                              colorOrTex,
                              sizeof(*color));
-      ak_dae_color(xst, color, true, false, color);
+      dae_color(xst, color, true, false, color);
       colorOrTex->color = color;
     } else if (ak_xml_eqelm(xst, _s_dae_texture)) {
       AkTextureRef *tex;
@@ -94,9 +94,7 @@ ak_dae_colorOrTex(AkXmlState   * __restrict xst,
       AkParam * param;
       AkResult   ret;
 
-      ret = ak_dae_param(xst,
-                         colorOrTex,
-                         &param);
+      ret = dae_param(xst, colorOrTex, &param);
 
       if (ret == AK_OK) {
         if (last_param)

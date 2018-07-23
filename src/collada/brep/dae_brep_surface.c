@@ -28,9 +28,9 @@ static ak_enumpair surfaceMap[] = {
 static size_t surfaceMapLen = 0;
 
 AkResult _assetkit_hide
-ak_dae_surface(AkXmlState * __restrict xst,
-               void * __restrict memParent,
-               AkSurface ** __restrict dest) {
+dae_surface(AkXmlState * __restrict xst,
+            void * __restrict memParent,
+            AkSurface ** __restrict dest) {
   AkSurface     *surface;
   AkFloatArrayL *last_orient;
   AkXmlElmState  xest;
@@ -237,9 +237,9 @@ ak_dae_surface(AkXmlState * __restrict xst,
         AkNurbsSurface *nurbsSurface;
         AkResult ret;
 
-        ret = ak_dae_nurbs_surface(xst,
-                                   surface,
-                                   true,
+        ret = dae_nurbs_surface(xst,
+                                surface,
+                                true,
                                    &nurbsSurface);
         if (ret == AK_OK) {
           surface->surface = ak_objFrom(nurbsSurface);
@@ -375,10 +375,7 @@ ak_dae_surface(AkXmlState * __restrict xst,
             AkCurve *curve;
             AkResult ret;
 
-            ret = ak_dae_curve(xst,
-                               surface,
-                               false,
-                               &curve);
+            ret = dae_curve(xst, surface, false, &curve);
             if (ret == AK_OK)
               sweptSurface->curve = curve;
           } else if (ak_xml_eqelm(xst, _s_dae_direction)) {
@@ -486,9 +483,9 @@ ak_dae_surface(AkXmlState * __restrict xst,
 }
 
 AkResult _assetkit_hide
-ak_dae_surfaces(AkXmlState * __restrict xst,
-                void * __restrict memParent,
-                AkSurfaces ** __restrict dest) {
+dae_surfaces(AkXmlState * __restrict xst,
+             void * __restrict memParent,
+             AkSurfaces ** __restrict dest) {
   AkSurfaces   *surfaces;
   AkSurface    *last_surface;
   AkXmlElmState xest;
@@ -509,7 +506,7 @@ ak_dae_surfaces(AkXmlState * __restrict xst,
       AkSurface *surface;
       AkResult ret;
 
-      ret = ak_dae_surface(xst, surfaces, &surface);
+      ret = dae_surface(xst, surfaces, &surface);
       if (ret == AK_OK) {
         if (last_surface)
           last_surface->next = surface;
