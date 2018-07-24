@@ -59,10 +59,14 @@ ak_xml_attr_url2(AkXmlState * __restrict xst,
 
 void
 ak_xml_readnext(AkXmlState * __restrict xst) {
+again:
   xst->nodeRet   = xmlTextReaderRead(xst->reader);
   xst->nodeType  = xmlTextReaderNodeType(xst->reader);
   xst->nodeName  = xmlTextReaderConstName(xst->reader);
   xst->nodeDepth = xmlTextReaderDepth(xst->reader);
+
+  if (xst->nodeType == XML_COMMENT_NODE)
+    goto again;
 }
 
 bool

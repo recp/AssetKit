@@ -88,6 +88,8 @@ dae_visualScene(AkXmlState * __restrict xst,
       visualScene->extra = tree;
 
       ak_xml_skipelm(xst);
+    } else {
+      ak_xml_skipelm(xst);
     }
 
     /* end element */
@@ -168,6 +170,8 @@ dae_instanceVisualScene(AkXmlState * __restrict xst,
                           NULL);
       visualScene->extra = tree;
 
+      ak_xml_skipelm(xst);
+    } else {
       ak_xml_skipelm(xst);
     }
 
