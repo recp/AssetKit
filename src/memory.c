@@ -353,8 +353,9 @@ ak_heap_alloc(AkHeap * __restrict heap,
   assert(currNode && "malloc failed");
 
   currNode->flags  = 0;
-  currNode->heapid = heap->heapid;
+  currNode->typeid = 0;
   currNode->chld   = NULL;
+  currNode->heapid = heap->heapid;
 
   if (parent) {
     AkHeapNode *chldNode;
