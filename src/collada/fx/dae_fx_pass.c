@@ -74,20 +74,7 @@ dae_fxPass(AkXmlState * __restrict xst,
       if (ret == AK_OK)
         pass->evaluate = evaluate;
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree   *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          pass,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      pass->extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, pass, &pass->extra);
     } else {
       ak_xml_skipelm(xst);
     }

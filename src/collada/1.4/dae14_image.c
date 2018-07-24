@@ -60,20 +60,7 @@ dae14_fxMigrateImg(AkXmlState * __restrict xst,
     } else if (ak_xml_eqelm(xst, _s_dae_init_from)) {
       img->initFrom->ref = ak_xml_val(xst, initFrom);
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree    *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          img,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      img->extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, img, &img->extra);
     } else {
       ak_xml_skipelm(xst);
     }

@@ -59,20 +59,7 @@ dae_light(AkXmlState * __restrict xst,
         last_tq = tq;
       }
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree   *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          light,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      light->extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, light, &light->extra);
     } else {
       ak_xml_skipelm(xst);
     }

@@ -115,20 +115,7 @@ dae_curve(AkXmlState * __restrict xst,
               xmlFree(content);
             }
           } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-            xmlNodePtr nodePtr;
-            AkTree    *tree;
-
-            nodePtr = xmlTextReaderExpand(xst->reader);
-            tree = NULL;
-
-            ak_tree_fromXmlNode(xst->heap,
-                                obj,
-                                nodePtr,
-                                &tree,
-                                NULL);
-            line->extra = tree;
-            
-            ak_xml_skipelm(xst);
+            dae_extra(xst, obj, &line->extra);
             break;
           } else {
             ak_xml_skipelm(xst);
@@ -165,20 +152,7 @@ dae_curve(AkXmlState * __restrict xst,
           if (ak_xml_eqelm(xst, _s_dae_radius)) {
             circle->radius = ak_xml_valf(xst);
           } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-            xmlNodePtr nodePtr;
-            AkTree    *tree;
-
-            nodePtr = xmlTextReaderExpand(xst->reader);
-            tree = NULL;
-
-            ak_tree_fromXmlNode(xst->heap,
-                                obj,
-                                nodePtr,
-                                &tree,
-                                NULL);
-            circle->extra = tree;
-
-            ak_xml_skipelm(xst);
+            dae_extra(xst, obj, &circle->extra);
             break;
           } else {
             ak_xml_skipelm(xst);
@@ -221,20 +195,7 @@ dae_curve(AkXmlState * __restrict xst,
               xmlFree(content);
             }
           } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-            xmlNodePtr nodePtr;
-            AkTree    *tree;
-
-            nodePtr = xmlTextReaderExpand(xst->reader);
-            tree = NULL;
-
-            ak_tree_fromXmlNode(xst->heap,
-                                obj,
-                                nodePtr,
-                                &tree,
-                                NULL);
-            ellipse->extra = tree;
-
-            ak_xml_skipelm(xst);
+            dae_extra(xst, obj, &ellipse->extra);
             break;
           } else {
             ak_xml_skipelm(xst);
@@ -271,20 +232,7 @@ dae_curve(AkXmlState * __restrict xst,
           if (ak_xml_eqelm(xst, _s_dae_radius)) {
             parabola->focal = ak_xml_valf(xst);
           } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-            xmlNodePtr nodePtr;
-            AkTree    *tree;
-
-            nodePtr = xmlTextReaderExpand(xst->reader);
-            tree = NULL;
-
-            ak_tree_fromXmlNode(xst->heap,
-                                obj,
-                                nodePtr,
-                                &tree,
-                                NULL);
-            parabola->extra = tree;
-
-            ak_xml_skipelm(xst);
+            dae_extra(xst, obj, &parabola->extra);
             break;
           } else {
             ak_xml_skipelm(xst);
@@ -327,20 +275,7 @@ dae_curve(AkXmlState * __restrict xst,
               xmlFree(content);
             }
           } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-            xmlNodePtr nodePtr;
-            AkTree    *tree;
-
-            nodePtr = xmlTextReaderExpand(xst->reader);
-            tree = NULL;
-
-            ak_tree_fromXmlNode(xst->heap,
-                                obj,
-                                nodePtr,
-                                &tree,
-                                NULL);
-            hyperbola->extra = tree;
-
-            ak_xml_skipelm(xst);
+            dae_extra(xst, obj, &hyperbola->extra);
             break;
           } else {
             ak_xml_skipelm(xst);
@@ -449,20 +384,7 @@ dae_curves(AkXmlState * __restrict xst,
         last_curve = curve;
       }
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree    *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          curves,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      curves->extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, curves, &curves->extra);
     }
 
     /* end element */

@@ -65,20 +65,7 @@ dae_colorOrTex(AkXmlState   * __restrict xst,
             break;
 
           if (ak_xml_eqelm(xst, _s_dae_extra)) {
-            xmlNodePtr nodePtr;
-            AkTree   *tree;
-
-            nodePtr = xmlTextReaderExpand(xst->reader);
-            tree = NULL;
-
-            ak_tree_fromXmlNode(xst->heap,
-                                tex,
-                                nodePtr,
-                                &tree,
-                                NULL);
-            tex->extra = tree;
-
-            ak_xml_skipelm(xst);
+            dae_extra(xst, tex, &tex->extra);
           } else {
             ak_xml_skipelm(xst);
           }

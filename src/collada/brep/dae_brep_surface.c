@@ -96,20 +96,7 @@ dae_surface(AkXmlState * __restrict xst,
           } else if (ak_xml_eqelm(xst, _s_dae_angle)) {
             cone->radius = ak_xml_valf(xst);
           } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-            xmlNodePtr nodePtr;
-            AkTree    *tree;
-
-            nodePtr = xmlTextReaderExpand(xst->reader);
-            tree = NULL;
-
-            ak_tree_fromXmlNode(xst->heap,
-                                obj,
-                                nodePtr,
-                                &tree,
-                                NULL);
-            cone->extra = tree;
-
-            ak_xml_skipelm(xst);
+            dae_extra(xst, obj, &cone->extra);
             break;
           } else {
             ak_xml_skipelm(xst);
@@ -151,20 +138,7 @@ dae_surface(AkXmlState * __restrict xst,
               xmlFree(content);
             }
           } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-            xmlNodePtr nodePtr;
-            AkTree    *tree;
-
-            nodePtr = xmlTextReaderExpand(xst->reader);
-            tree = NULL;
-
-            ak_tree_fromXmlNode(xst->heap,
-                                obj,
-                                nodePtr,
-                                &tree,
-                                NULL);
-            plane->extra = tree;
-
-            ak_xml_skipelm(xst);
+            dae_extra(xst, obj, &plane->extra);
             break;
           } else {
             ak_xml_skipelm(xst);
@@ -206,20 +180,7 @@ dae_surface(AkXmlState * __restrict xst,
               xmlFree(content);
             }
           } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-            xmlNodePtr nodePtr;
-            AkTree    *tree;
-
-            nodePtr = xmlTextReaderExpand(xst->reader);
-            tree = NULL;
-
-            ak_tree_fromXmlNode(xst->heap,
-                                obj,
-                                nodePtr,
-                                &tree,
-                                NULL);
-            cylinder->extra = tree;
-
-            ak_xml_skipelm(xst);
+            dae_extra(xst, obj, &cylinder->extra);
             break;
           } else {
             ak_xml_skipelm(xst);
@@ -270,20 +231,7 @@ dae_surface(AkXmlState * __restrict xst,
           if (ak_xml_eqelm(xst, _s_dae_radius)) {
             sphere->radius = ak_xml_valf(xst);
           } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-            xmlNodePtr nodePtr;
-            AkTree    *tree;
-
-            nodePtr = xmlTextReaderExpand(xst->reader);
-            tree = NULL;
-
-            ak_tree_fromXmlNode(xst->heap,
-                                obj,
-                                nodePtr,
-                                &tree,
-                                NULL);
-            sphere->extra = tree;
-
-            ak_xml_skipelm(xst);
+            dae_extra(xst, obj, &sphere->extra);
             break;
           } else {
             ak_xml_skipelm(xst);
@@ -325,20 +273,7 @@ dae_surface(AkXmlState * __restrict xst,
               xmlFree(content);
             }
           } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-            xmlNodePtr nodePtr;
-            AkTree    *tree;
-
-            nodePtr = xmlTextReaderExpand(xst->reader);
-            tree = NULL;
-
-            ak_tree_fromXmlNode(xst->heap,
-                                obj,
-                                nodePtr,
-                                &tree,
-                                NULL);
-            torus->extra = tree;
-
-            ak_xml_skipelm(xst);
+            dae_extra(xst, obj, &torus->extra);
             break;
           } else {
             ak_xml_skipelm(xst);
@@ -403,20 +338,7 @@ dae_surface(AkXmlState * __restrict xst,
               xmlFree(content);
             }
           } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-            xmlNodePtr nodePtr;
-            AkTree    *tree;
-
-            nodePtr = xmlTextReaderExpand(xst->reader);
-            tree = NULL;
-
-            ak_tree_fromXmlNode(xst->heap,
-                                obj,
-                                nodePtr,
-                                &tree,
-                                NULL);
-            sweptSurface->extra = tree;
-
-            ak_xml_skipelm(xst);
+            dae_extra(xst, obj, &sweptSurface->extra);
             break;
           } else {
             ak_xml_skipelm(xst);
@@ -516,20 +438,7 @@ dae_surfaces(AkXmlState * __restrict xst,
         last_surface = surface;
       }
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree    *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          surfaces,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      surfaces->extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, surfaces, &surfaces->extra);
     }
 
     /* end element */

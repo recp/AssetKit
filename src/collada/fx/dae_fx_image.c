@@ -107,20 +107,7 @@ dae_fxImage(AkXmlState * __restrict xst,
       if (ret == AK_OK)
         img->image = &imageCube->base;
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree    *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          img,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      img->extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, img, &img->extra);
     } else {
       ak_xml_skipelm(xst);
     }
@@ -162,20 +149,7 @@ dae_fxInstanceImage(AkXmlState      * __restrict xst,
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree   *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          instanceImage,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      instanceImage->extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, instanceImage, &instanceImage->extra);
     } else {
       ak_xml_skipelm(xst);
     }

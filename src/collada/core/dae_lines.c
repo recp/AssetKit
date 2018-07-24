@@ -93,20 +93,7 @@ dae_lines(AkXmlState * __restrict xst,
         xmlFree(content);
       }
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree   *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          lines,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      lines->base.extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, lines, &lines->base.extra);
     }
 
     /* end element */

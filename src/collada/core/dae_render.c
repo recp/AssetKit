@@ -70,20 +70,7 @@ dae_render(AkXmlState * __restrict xst,
         last_instanceMaterial = instanceMaterial;
       }
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree   *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          render,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      render->extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, render, &render->extra);
     }
 
     /* end element */

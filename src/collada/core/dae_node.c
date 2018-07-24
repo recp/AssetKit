@@ -372,20 +372,7 @@ dae_node(AkXmlState    * __restrict xst,
             break;
 
           if (ak_xml_eqelm(xst, _s_dae_extra)) {
-            xmlNodePtr nodePtr;
-            AkTree    *tree;
-
-            nodePtr = xmlTextReaderExpand(xst->reader);
-            tree = NULL;
-
-            ak_tree_fromXmlNode(xst->heap,
-                                instanceCamera,
-                                nodePtr,
-                                &tree,
-                                NULL);
-            instanceCamera->extra = tree;
-
-            ak_xml_skipelm(xst);
+            dae_extra(xst, instanceCamera, &instanceCamera->extra);
             break;
           } else {
             ak_xml_skipelm(xst);
@@ -470,20 +457,7 @@ dae_node(AkXmlState    * __restrict xst,
               instanceController->bindMaterial = bindMaterial;
 
           } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-            xmlNodePtr nodePtr;
-            AkTree    *tree;
-
-            nodePtr = xmlTextReaderExpand(xst->reader);
-            tree = NULL;
-
-            ak_tree_fromXmlNode(xst->heap,
-                                instanceController,
-                                nodePtr,
-                                &tree,
-                                NULL);
-            instanceController->base.extra = tree;
-
-            ak_xml_skipelm(xst);
+            dae_extra(xst, instanceController, &instanceController->base.extra);
             break;
           } else {
             ak_xml_skipelm(xst);
@@ -535,20 +509,7 @@ dae_node(AkXmlState    * __restrict xst,
               instanceGeom->bindMaterial = bindMaterial;
 
           } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-            xmlNodePtr nodePtr;
-            AkTree    *tree;
-
-            nodePtr = xmlTextReaderExpand(xst->reader);
-            tree = NULL;
-
-            ak_tree_fromXmlNode(xst->heap,
-                                instanceGeom,
-                                nodePtr,
-                                &tree,
-                                NULL);
-            instanceGeom->base.extra = tree;
-
-            ak_xml_skipelm(xst);
+            dae_extra(xst, instanceGeom, &instanceGeom->base.extra);
             break;
           } else {
             ak_xml_skipelm(xst);
@@ -594,20 +555,7 @@ dae_node(AkXmlState    * __restrict xst,
             break;
 
           if (ak_xml_eqelm(xst, _s_dae_extra)) {
-            xmlNodePtr nodePtr;
-            AkTree    *tree;
-
-            nodePtr = xmlTextReaderExpand(xst->reader);
-            tree = NULL;
-
-            ak_tree_fromXmlNode(xst->heap,
-                                instanceLight,
-                                nodePtr,
-                                &tree,
-                                NULL);
-            instanceLight->extra = tree;
-
-            ak_xml_skipelm(xst);
+            dae_extra(xst, instanceLight, &instanceLight->extra);
             break;
           } else {
             ak_xml_skipelm(xst);
@@ -662,20 +610,7 @@ dae_node(AkXmlState    * __restrict xst,
             break;
 
           if (ak_xml_eqelm(xst, _s_dae_extra)) {
-            xmlNodePtr nodePtr;
-            AkTree    *tree;
-
-            nodePtr = xmlTextReaderExpand(xst->reader);
-            tree = NULL;
-
-            ak_tree_fromXmlNode(xst->heap,
-                                instanceNode,
-                                nodePtr,
-                                &tree,
-                                NULL);
-            instanceNode->base.extra = tree;
-
-            ak_xml_skipelm(xst);
+            dae_extra(xst, instanceNode, &instanceNode->base.extra);
             break;
           } else {
             ak_xml_skipelm(xst);
@@ -716,20 +651,7 @@ dae_node(AkXmlState    * __restrict xst,
         break;
       }
       case k_s_dae_extra: {
-        xmlNodePtr nodePtr;
-        AkTree    *tree;
-
-        nodePtr = xmlTextReaderExpand(xst->reader);
-        tree = NULL;
-
-        ak_tree_fromXmlNode(xst->heap,
-                            node,
-                            nodePtr,
-                            &tree,
-                            NULL);
-        node->extra = tree;
-
-        ak_xml_skipelm(xst);
+        dae_extra(xst, node, &node->extra);
         break;
       }
       default:

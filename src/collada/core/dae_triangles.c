@@ -95,20 +95,7 @@ dae_triangles(AkXmlState   * __restrict xst,
       }
 
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree   *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          triangles,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      triangles->base.extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, triangles, &triangles->base.extra);
     } else {
       ak_xml_skipelm(xst);
     }

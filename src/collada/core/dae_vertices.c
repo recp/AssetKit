@@ -54,20 +54,7 @@ dae_vertices(AkXmlState * __restrict xst,
         vertices->inputCount++;
       }
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree   *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          vertices,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      vertices->extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, vertices, &vertices->extra);
     }
 
     /* end element */

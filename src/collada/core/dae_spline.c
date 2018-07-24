@@ -100,21 +100,7 @@ dae_spline(AkXmlState * __restrict xst,
             last_input = input;
           }
         } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-          xmlNodePtr nodePtr;
-          AkTree    *tree;
-
-          nodePtr = xmlTextReaderExpand(xst->reader);
-          tree = NULL;
-
-          ak_tree_fromXmlNode(xst->heap,
-                              memPtr,
-                              nodePtr,
-                              &tree,
-                              NULL);
-          cverts->extra = tree;
-
-          ak_xml_skipelm(xst);
-
+          dae_extra(xst, cverts, &cverts->extra);
         } else {
           ak_xml_skipelm(xst);
         }
@@ -126,20 +112,7 @@ dae_spline(AkXmlState * __restrict xst,
 
       spline->cverts = cverts;
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree   *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          memPtr,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      spline->extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, spline, &spline->extra);
     } else {
       ak_xml_skipelm(xst);
     }

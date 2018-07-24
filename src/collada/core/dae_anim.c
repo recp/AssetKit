@@ -91,20 +91,7 @@ dae_anim(AkXmlState   * __restrict xst,
         last_anim = subAnim;
       }
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree   *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          anim,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      anim->extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, anim, &anim->extra);
     } else {
       ak_xml_skipelm(xst);
     }

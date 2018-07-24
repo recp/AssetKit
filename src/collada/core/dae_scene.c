@@ -29,20 +29,7 @@ dae_scene(AkXmlState * __restrict xst,
         dest->visualScene = visualScene;
 
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree   *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          memParent,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      dest->extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, memParent, &dest->extra);
     }
 
     /* end element */

@@ -148,20 +148,7 @@ dae_fxShader(AkXmlState * __restrict xst,
         last_bind_uniform = bindUniform;
       }
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree   *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          shader,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      shader->extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, shader, &shader->extra);
     } else {
       ak_xml_skipelm(xst);
     }

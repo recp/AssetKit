@@ -51,20 +51,7 @@ dae_evaluateScene(AkXmlState * __restrict xst,
         last_render = render;
       }
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree   *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          evaluateScene,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      evaluateScene->extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, evaluateScene, &evaluateScene->extra);
     }
 
     /* end element */

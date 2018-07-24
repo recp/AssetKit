@@ -69,20 +69,7 @@ dae_geometry(AkXmlState * __restrict xst,
         geometry->gdata = ak_objFrom(brep);
 
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree   *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          geometry,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      geometry->extra = tree;
-      
-      ak_xml_skipelm(xst);
+      dae_extra(xst, geometry, &geometry->extra);
     }
 
     /* end element */

@@ -179,20 +179,7 @@ dae_polygon(AkXmlState * __restrict xst,
       } while (xst->nodeRet);
       */
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree   *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          polygon,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      polygon->base.extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, polygon, &polygon->base.extra);
     } else {
       ak_xml_skipelm(xst);
     }

@@ -213,20 +213,7 @@ dae_brep(AkXmlState * __restrict xst,
         break;
       }
       case k_s_dae_extra: {
-        xmlNodePtr nodePtr;
-        AkTree    *tree;
-
-        nodePtr = xmlTextReaderExpand(xst->reader);
-        tree = NULL;
-
-        ak_tree_fromXmlNode(xst->heap,
-                            memPtr,
-                            nodePtr,
-                            &tree,
-                            NULL);
-        brep->extra = tree;
-
-        ak_xml_skipelm(xst);
+        dae_extra(xst, memPtr, &brep->extra);
         break;
       }
       default:

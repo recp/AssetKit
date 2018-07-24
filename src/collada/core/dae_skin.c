@@ -114,21 +114,7 @@ dae_skin(AkXmlState * __restrict xst,
             last_input = input;
           }
         } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-          xmlNodePtr nodePtr;
-          AkTree   *tree;
-
-          nodePtr = xmlTextReaderExpand(xst->reader);
-          tree = NULL;
-
-          ak_tree_fromXmlNode(xst->heap,
-                              joints,
-                              nodePtr,
-                              &tree,
-                              NULL);
-          joints->extra = tree;
-
-          ak_xml_skipelm(xst);
-
+          dae_extra(xst, joints, &joints->extra);
         } else {
           ak_xml_skipelm(xst);
         }
@@ -218,21 +204,7 @@ dae_skin(AkXmlState * __restrict xst,
             xmlFree(content);
           }
         } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-          xmlNodePtr nodePtr;
-          AkTree   *tree;
-
-          nodePtr = xmlTextReaderExpand(xst->reader);
-          tree = NULL;
-
-          ak_tree_fromXmlNode(xst->heap,
-                              vertexWeights,
-                              nodePtr,
-                              &tree,
-                              NULL);
-          vertexWeights->extra = tree;
-
-          ak_xml_skipelm(xst);
-
+          dae_extra(xst, vertexWeights, &vertexWeights->extra);
         } else {
           ak_xml_skipelm(xst);
         }
@@ -244,20 +216,7 @@ dae_skin(AkXmlState * __restrict xst,
 
       skin->vertexWeights = vertexWeights;
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree   *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          memPtr,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      skin->extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, memPtr, &skin->extra);
     } else {
       ak_xml_skipelm(xst);
     }

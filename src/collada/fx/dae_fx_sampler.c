@@ -168,20 +168,7 @@ dae_fxSampler(AkXmlState * __restrict xst,
         sampler->maxAnisotropy = ak_xml_valul_def(xst, 1l);
         break;
       case k_s_dae_extra: {
-        xmlNodePtr nodePtr;
-        AkTree   *tree;
-
-        nodePtr = xmlTextReaderExpand(xst->reader);
-        tree = NULL;
-
-        ak_tree_fromXmlNode(xst->heap,
-                            sampler,
-                            nodePtr,
-                            &tree,
-                            NULL);
-        sampler->extra = tree;
-
-        ak_xml_skipelm(xst);
+        dae_extra(xst, sampler, &sampler->extra);
         break;
       }
       default:

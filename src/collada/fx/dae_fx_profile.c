@@ -183,20 +183,7 @@ dae_profile(AkXmlState * __restrict xst,
       /* migration from 1.4 */
       dae14_fxMigrateImg(xst, NULL);
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree    *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          profile,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      profile->extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, profile, &profile->extra);
     } else if (ak_xml_eqelm(xst, _s_dae_code)) {
       AkCode *code;
 

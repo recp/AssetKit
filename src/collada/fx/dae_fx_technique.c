@@ -112,20 +112,7 @@ dae_techniqueFx(AkXmlState * __restrict xst,
       /* migration from 1.4 */
       dae14_fxMigrateImg(xst, NULL);
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree   *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          technique,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      technique->extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, technique, &technique->extra);
     } else {
       ak_xml_skipelm(xst);
     }

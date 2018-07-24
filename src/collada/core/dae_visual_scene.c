@@ -74,20 +74,7 @@ dae_visualScene(AkXmlState * __restrict xst,
         last_evaluateScene = evaluateScene;
       }
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree   *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          visualScene,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      visualScene->extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, visualScene, &visualScene->extra);
     } else {
       ak_xml_skipelm(xst);
     }
@@ -157,20 +144,7 @@ dae_instanceVisualScene(AkXmlState * __restrict xst,
       break;
 
     if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree   *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          visualScene,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      visualScene->extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, visualScene, &visualScene->extra);
     } else {
       ak_xml_skipelm(xst);
     }

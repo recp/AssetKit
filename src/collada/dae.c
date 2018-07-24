@@ -301,20 +301,7 @@ dae_doc(AkDoc ** __restrict dest,
         dae_scene(xst, doc, &doc->scene);
         break;
       case k_s_dae_extra: {
-        xmlNodePtr nodePtr;
-        AkTree   *tree;
-
-        nodePtr = xmlTextReaderExpand(reader);
-        tree = NULL;
-
-        ak_tree_fromXmlNode(heap,
-                            doc,
-                            nodePtr,
-                            &tree,
-                            NULL);
-        doc->extra = tree;
-
-        ak_xml_skipelm(xst);
+        dae_extra(xst, doc, &doc->extra);
         break;
       }
       default:

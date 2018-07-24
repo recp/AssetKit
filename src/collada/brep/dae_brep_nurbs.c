@@ -110,21 +110,7 @@ dae_nurbs(AkXmlState * __restrict xst,
 
           last_input = input;
         } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-          xmlNodePtr nodePtr;
-          AkTree   *tree;
-
-          nodePtr = xmlTextReaderExpand(xst->reader);
-          tree = NULL;
-
-          ak_tree_fromXmlNode(xst->heap,
-                              memPtr,
-                              nodePtr,
-                              &tree,
-                              NULL);
-          cverts->extra = tree;
-
-          ak_xml_skipelm(xst);
-
+          dae_extra(xst, memPtr, &cverts->extra);
         } else {
           ak_xml_skipelm(xst);
         }
@@ -136,20 +122,7 @@ dae_nurbs(AkXmlState * __restrict xst,
 
       nurbs->cverts = cverts;
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree   *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          memPtr,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      nurbs->extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, memPtr, &nurbs->extra);
     }
 
     /* end element */
@@ -265,21 +238,7 @@ dae_nurbs_surface(AkXmlState * __restrict xst,
 
           last_input = input;
         } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-          xmlNodePtr nodePtr;
-          AkTree   *tree;
-
-          nodePtr = xmlTextReaderExpand(xst->reader);
-          tree = NULL;
-
-          ak_tree_fromXmlNode(xst->heap,
-                              memPtr,
-                              nodePtr,
-                              &tree,
-                              NULL);
-          cverts->extra = tree;
-
-          ak_xml_skipelm(xst);
-
+          dae_extra(xst, memPtr, &cverts->extra);
         } else {
           ak_xml_skipelm(xst);
         }
@@ -291,20 +250,7 @@ dae_nurbs_surface(AkXmlState * __restrict xst,
 
       nurbsSurface->cverts = cverts;
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree   *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          memPtr,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      nurbsSurface->extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, memPtr, &nurbsSurface->extra);
     }
 
     /* end element */

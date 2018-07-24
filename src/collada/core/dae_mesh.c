@@ -215,20 +215,7 @@ dae_mesh(AkXmlState * __restrict xst,
         break;
       }
       case k_s_dae_extra: {
-        xmlNodePtr nodePtr;
-        AkTree    *tree;
-
-        nodePtr = xmlTextReaderExpand(xst->reader);
-        tree = NULL;
-
-        ak_tree_fromXmlNode(xst->heap,
-                            mesh,
-                            nodePtr,
-                            &tree,
-                            NULL);
-        mesh->extra = tree;
-
-        ak_xml_skipelm(xst);
+        dae_extra(xst, memPtr, &mesh->extra);
         break;
       }
       default:

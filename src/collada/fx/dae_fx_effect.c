@@ -99,20 +99,7 @@ dae_effect(AkXmlState * __restrict xst,
       /* migration from 1.4 */
       dae14_fxMigrateImg(xst, NULL);
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree   *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          effect,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      effect->extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, effect, &effect->extra);
     } else {
       ak_xml_skipelm(xst);
     }
@@ -194,20 +181,7 @@ dae_fxInstanceEffect(AkXmlState * __restrict xst,
         last_setparam  = setparam;
       }
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree   *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          instanceEffect,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      instanceEffect->base.extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, instanceEffect, &instanceEffect->base.extra);
     } else {
       ak_xml_skipelm(xst);
     }

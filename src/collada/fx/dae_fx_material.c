@@ -42,20 +42,7 @@ dae_material(AkXmlState * __restrict xst,
       if (ret == AK_OK)
         material->effect = instanceEffect;
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree   *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          material,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      material->extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, material, &material->extra);
     } else {
       ak_xml_skipelm(xst);
     }
@@ -131,20 +118,7 @@ dae_fxBindMaterial(AkXmlState * __restrict xst,
         last_tq = tq;
       }
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree   *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          bindMaterial,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      bindMaterial->extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, bindMaterial, &bindMaterial->extra);
     } else {
       ak_xml_skipelm(xst);
     }
@@ -243,20 +217,7 @@ dae_fxInstanceMaterial(AkXmlState * __restrict xst,
 
       material->techniqueOverride = techniqueOverride;
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree   *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          material,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      material->base.extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, material, &material->base.extra);
     } else {
       ak_xml_skipelm(xst);
     }

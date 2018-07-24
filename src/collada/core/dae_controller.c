@@ -50,20 +50,7 @@ dae_controller(AkXmlState * __restrict xst,
         controller->data = ak_objFrom(morph);
 
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree   *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          controller,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      controller->extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, controller, &controller->extra);
     } else {
       ak_xml_skipelm(xst);
     }

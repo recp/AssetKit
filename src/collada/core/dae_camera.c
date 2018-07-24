@@ -107,20 +107,7 @@ dae_camera(AkXmlState * __restrict xst,
             last_tq = tq;
           }
         } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-          xmlNodePtr nodePtr;
-          AkTree   *tree;
-
-          nodePtr = xmlTextReaderExpand(xst->reader);
-          tree = NULL;
-
-          ak_tree_fromXmlNode(xst->heap,
-                              imager,
-                              nodePtr,
-                              &tree,
-                              NULL);
-          imager->extra = tree;
-
-          ak_xml_skipelm(xst);
+          dae_extra(xst, imager, &imager->extra);
         } else {
           ak_xml_skipelm(xst);
         }
@@ -132,20 +119,7 @@ dae_camera(AkXmlState * __restrict xst,
 
       camera->imager = imager;
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      xmlNodePtr nodePtr;
-      AkTree   *tree;
-
-      nodePtr = xmlTextReaderExpand(xst->reader);
-      tree = NULL;
-
-      ak_tree_fromXmlNode(xst->heap,
-                          camera,
-                          nodePtr,
-                          &tree,
-                          NULL);
-      camera->extra = tree;
-
-      ak_xml_skipelm(xst);
+      dae_extra(xst, camera, &camera->extra);
     }
 
     /* end element */
