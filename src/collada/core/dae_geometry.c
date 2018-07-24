@@ -13,8 +13,8 @@
 
 AkResult _assetkit_hide
 dae_geometry(AkXmlState * __restrict xst,
-             void * __restrict memParent,
-             void ** __restrict dest) {
+             void       * __restrict memParent,
+             void      ** __restrict dest) {
   AkGeometry   *geometry;
   AkXmlElmState xest;
 
@@ -30,6 +30,7 @@ dae_geometry(AkXmlState * __restrict xst,
   ak_xml_readid(xst, geometry);
   geometry->name = ak_xml_attr(xst, geometry, _s_dae_name);
 
+  ak_setypeid(geometry, AKT_GEOMETRY);
   ak_xest_init(xest, _s_dae_geometry)
 
   do {

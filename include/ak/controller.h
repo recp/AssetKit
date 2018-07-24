@@ -11,6 +11,11 @@
 extern "C" {
 #endif
 
+typedef enum AkControllerType {
+  AK_CONTROLLER_MORPH = 1,
+  AK_CONTROLLER_SKIN  = 2
+} AkControllerType;
+
 typedef enum AkMorphMethod {
   AK_MORPH_METHOD_NORMALIZED = 1,
   AK_MORPH_METHOD_RELATIVE   = 2
@@ -30,7 +35,7 @@ typedef struct AkVertexWeights {
 } AkVertexWeights;
 
 typedef struct AkSkin {
-  const char      * baseMesh;
+  AkURL             baseMesh;
   AkDoubleArray   * bindShapeMatrix;
   AkSource        * source;
   AkJoints        * joints;

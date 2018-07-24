@@ -25,7 +25,7 @@ dae_skin(AkXmlState * __restrict xst,
     obj = ak_objAlloc(xst->heap,
                       memParent,
                       sizeof(*skin),
-                      0,
+                      AK_CONTROLLER_SKIN,
                       true);
 
     skin = ak_objGet(obj);
@@ -36,8 +36,7 @@ dae_skin(AkXmlState * __restrict xst,
     memPtr = skin;
   }
 
-  skin->baseMesh = ak_xml_attr(xst, memPtr, _s_dae_source);
-
+  ak_xml_attr_url(xst, _s_dae_source, memPtr, &skin->baseMesh);
   last_source = NULL;
 
   ak_xest_init(xest, _s_dae_skin)

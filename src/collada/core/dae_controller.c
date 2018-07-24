@@ -24,6 +24,7 @@ dae_controller(AkXmlState * __restrict xst,
   ak_xml_readid(xst, controller);
   controller->name = ak_xml_attr(xst, controller, _s_dae_name);
 
+  ak_setypeid(controller, AKT_CONTROLLER);
   ak_xest_init(xest, _s_dae_controller)
 
   do {

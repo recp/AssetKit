@@ -107,7 +107,7 @@ dae_fixup_accessors(AkXmlState * __restrict xst) {
         count       = buff->length / itemSize;
         pbuff       = buff->data;
         do {
-          if (strcasecmp(param->name, _s_dae_angle) == 0) {
+          if (param->name && strcasecmp(param->name, _s_dae_angle) == 0) {
             /* TODO: use SIMD */
             for (i = 0; i < count; i++)
               glm_make_rad(&pbuff[i + paramOffset]);
