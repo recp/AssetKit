@@ -479,16 +479,22 @@ again:
   if (!idnode)
     return NULL;
 
-  chld = ak_sid_chldh(ctx, idnode, NULL);
-  if (!chld)
-    return NULL;
+  /* maybe id node have sid too! */
+  if (idnode->flags & AK_HEAP_NODE_FLAGS_SID) {
+    chld = idnode;
+  } else {
+  sid_chld:
+    chld = ak_sid_chldh(ctx, idnode, NULL);
+    if (!chld)
+      return NULL;
+  }
 
   buf[bufidx][bufi[bufidx]] = chld;
-  bufc[bufidx] = 1;
+  bufc[!bufidx] = bufi[bufidx] = bufi[!bufidx] = 0;
+  bufc[bufidx]  = 1;
 
   /* breadth-first search */
   while (bufc[bufidx] > 0) {
-
     it = buf[bufidx][bufi[bufidx]];
 
     while (it) {
@@ -560,7 +566,13 @@ again:
         }
       }
 
-      it = it->next;
+      if (it != idnode) {
+        it = it->next;
+      } else {
+        /* we were searched in idnode but we did not found sid element
+           so reset search. */
+        goto sid_chld;
+      }
     }
 
     if (++bufi[bufidx] == bufc[bufidx]) {
@@ -591,6 +603,25 @@ err:
   free(siddup);
 
   return found;
+}
+
+AK_EXPORT
+void *
+ak_sid_resolve_from(AkContext   * __restrict ctx,
+                    const char  * __restrict id,
+                    const char  * __restrict sid,
+                    const char ** __restrict attribString) {
+  char target[1024];
+  char *pTarget;
+
+  target[0] = '\0';
+  strcat(target, id);
+  strcat(target, "/");
+  strcat(target, sid);
+
+  pTarget = target[0] == '#' ? &target[1] : target;
+
+  return ak_sid_resolve(ctx, pTarget, attribString);
 }
 
 AK_EXPORT

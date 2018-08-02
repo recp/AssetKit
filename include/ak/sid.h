@@ -50,6 +50,13 @@ ak_sid_resolve(AkContext   * __restrict ctx,
 
 AK_EXPORT
 void *
+ak_sid_resolve_from(AkContext   * __restrict ctx,
+                    const char  * __restrict id,
+                    const char  * __restrict target,
+                    const char ** __restrict attribString);
+  
+AK_EXPORT
+void *
 ak_sid_resolve_val(AkContext  * __restrict ctx,
                    const char * __restrict target);
 
