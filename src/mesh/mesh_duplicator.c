@@ -17,6 +17,7 @@ AkDuplicator*
 ak_meshDuplicatorForIndices(AkMesh          * __restrict mesh,
                             AkMeshPrimitive * __restrict prim) {
   AkHeap             *heap;
+  AkDoc              *doc;
   AkObject           *meshobj;
   AkDuplicator       *dupl;
   AkDuplicatorRange  *dupr;
@@ -36,18 +37,23 @@ ak_meshDuplicatorForIndices(AkMesh          * __restrict mesh,
       || !(posBuff   = ak_getObjectByUrl(&posAcc->source)))
     return NULL;
 
-  vertc      = posAcc->count;
-  meshobj    = ak_objFrom(mesh);
-  heap       = ak_heap_getheap(meshobj);
-  dupl       = ak_heap_calloc(heap, meshobj, sizeof(*dupl));
+  vertc   = posAcc->count;
+  meshobj = ak_objFrom(mesh);
+  heap    = ak_heap_getheap(meshobj);
+  doc     = ak_heap_data(heap);
+
+  if ((dupl = rb_find(doc->reserved, prim))) {
+    rb_remove(doc->reserved, prim);
+    ak_free(dupl); /* or cache maybe if mesh is not edited ? */
+  }
+
+  dupl = ak_heap_calloc(heap, NULL, sizeof(*dupl));
 
   /* TODO: cache this for multiple primitives */
-  dupc       = ak_heap_calloc(heap,
-                              NULL,
-                              sizeof(AkUIntArray)
-                              + sizeof(AkUInt) * vertc * 3);
-  dupc->count = posAcc->count;
-
+  dupc = ak_heap_calloc(heap,
+                        dupl,
+                        sizeof(AkUIntArray) + sizeof(AkUInt) * vertc * 3);
+  dupc->count    = posAcc->count;
   dupl->accessor = posAcc;
 
   st      = prim->indexStride;
@@ -60,9 +66,9 @@ ak_meshDuplicatorForIndices(AkMesh          * __restrict mesh,
   it2     = newind->items;
   inpsz   = sizeof(AkUInt) * st;
 
-  flg     = ak_heap_calloc(heap, prim, sizeof(uint8_t) * icount);
+  flg     = ak_heap_calloc(heap, dupl, sizeof(uint8_t) * icount);
   posflgs = ak_heap_calloc(heap,
-                           NULL,
+                           dupl,
                            sizeof(AkUInt) * vertc * (st + 1));
 
   chk_start = ccount = count = chk = posno = 0;
@@ -146,6 +152,8 @@ ak_meshDuplicatorForIndices(AkMesh          * __restrict mesh,
 
   ak_free(flg);
   ak_free(posflgs);
+
+  rb_insert(doc->reserved, prim, dupl);
 
   return dupl;
 }

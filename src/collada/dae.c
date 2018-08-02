@@ -163,6 +163,10 @@ static AkLibChldDesc libchlds[] = {
   }
 };
 
+static
+void
+ak_daeFreeDupl(RBTree *tree, RBNode *node);
+
 AkResult
 _assetkit_hide
 dae_doc(AkDoc ** __restrict dest,
@@ -209,6 +213,10 @@ dae_doc(AkDoc ** __restrict dest,
   doc->inf->dir       = ak_path_dir(heap, doc, file);
   doc->inf->flipImage = true;
   doc->inf->ftype     = AK_FILE_TYPE_COLLADA;
+
+  /* for fixing skin and morph vertices */
+  doc->reserved = rb_newtree_ptr();
+  ((RBTree *)doc->reserved)->onFreeNode = ak_daeFreeDupl;
 
   if (doc->inf->dir)
     doc->inf->dirlen = strlen(doc->inf->dir);
@@ -327,5 +335,15 @@ dae_doc(AkDoc ** __restrict dest,
   /* post-parse operations */
   dae_postscript(xst);
 
+  rb_destroy(doc->reserved);
+
   return AK_OK;
+}
+
+static
+void
+ak_daeFreeDupl(RBTree *tree, RBNode *node) {
+  if (node == tree->nullNode)
+    return;
+  ak_free(node->val);
 }

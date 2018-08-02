@@ -665,6 +665,7 @@ typedef struct AkDoc {
   AkCoordSys *coordSys;
   AkUnit     *unit;
   AkTree     *extra;
+  void       *reserved;
   AkLib       lib;
   AkScene     scene;
 } AkDoc;
