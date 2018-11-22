@@ -12,9 +12,9 @@
 
 AkResult _assetkit_hide
 dae_skin(AkXmlState * __restrict xst,
-         void * __restrict memParent,
-         bool asObject,
-         AkSkin ** __restrict dest) {
+         void       * __restrict memParent,
+         bool                    asObject,
+         AkSkin    ** __restrict dest) {
   AkObject     *obj;
   AkSkin       *skin;
   AkSource     *last_source;
@@ -36,7 +36,8 @@ dae_skin(AkXmlState * __restrict xst,
     memPtr = skin;
   }
 
-  ak_xml_attr_url(xst, _s_dae_source, memPtr, &skin->baseMesh);
+  ak_xml_attr_url(xst, _s_dae_source, memPtr, &skin->baseGeom);
+
   last_source = NULL;
 
   ak_xest_init(xest, _s_dae_skin)
@@ -48,17 +49,14 @@ dae_skin(AkXmlState * __restrict xst,
     if (ak_xml_eqelm(xst, _s_dae_bind_shape_matrix)) {
       char *content;
       content = ak_xml_rawval(xst);
-
       if (content) {
-        AkDoubleArray *doubleArray;
-        AkResult ret;
-
-        ret = ak_strtod_array(xst->heap, memPtr, content, &doubleArray);
-        if (ret == AK_OK)
-          skin->bindShapeMatrix = doubleArray;
-
+        ak_strtof(&content, skin->bindShapeMatrix[0], 16);
+        glm_mat4_transpose(skin->bindShapeMatrix);
         xmlFree(content);
+      } else {
+        glm_mat4_identity(skin->bindShapeMatrix);
       }
+
     } else if (ak_xml_eqelm(xst, _s_dae_source)) {
       AkSource *source;
       AkResult ret;
@@ -73,13 +71,7 @@ dae_skin(AkXmlState * __restrict xst,
         last_source = source;
       }
     } else if (ak_xml_eqelm(xst, _s_dae_joints)) {
-      AkJoints     *joints;
-      AkInput      *last_input;
       AkXmlElmState xest2;
-
-      joints = ak_heap_calloc(xst->heap, memPtr, sizeof(*joints));
-
-      last_input = NULL;
 
       ak_xest_init(xest2, _s_dae_joints)
 
@@ -90,7 +82,7 @@ dae_skin(AkXmlState * __restrict xst,
         if (ak_xml_eqelm(xst, _s_dae_input)) {
           AkInput *input;
 
-          input = ak_heap_calloc(xst->heap, joints, sizeof(*input));
+          input = ak_heap_calloc(xst->heap, memPtr, sizeof(*input));
           input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
           if (!input->semanticRaw)
@@ -106,15 +98,16 @@ dae_skin(AkXmlState * __restrict xst,
 
             ak_xml_attr_url(xst, _s_dae_source, input, &input->source);
 
-            if (last_input)
-              last_input->next = input;
-            else
-              joints->input = input;
-
-            last_input = input;
+            if (inputSemantic == AK_INPUT_SEMANTIC_JOINT) {
+              skin->reserved[0] = input;
+            } else if (inputSemantic == AK_INPUT_SEMANTIC_INV_BIND_MATRIX) {
+              skin->reserved[1] = input;
+            } else {
+              /* do not support other inputs until needed,
+                 probably will not. */
+              ak_free(input);
+            }
           }
-        } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-          dae_extra(xst, joints, &joints->extra);
         } else {
           ak_xml_skipelm(xst);
         }
@@ -124,17 +117,11 @@ dae_skin(AkXmlState * __restrict xst,
           break;
       } while (xst->nodeRet);
 
-      skin->joints = joints;
     } else if (ak_xml_eqelm(xst, _s_dae_vertex_weights)) {
-      AkVertexWeights *vertexWeights;
-      AkInput         *last_input;
-      AkXmlElmState    xest2;
+      AkBoneWeights *weights;
+      AkXmlElmState  xest2;
 
-      vertexWeights = ak_heap_calloc(xst->heap,
-                                     memPtr,
-                                     sizeof(*vertexWeights));
-
-      last_input = NULL;
+      weights = ak_heap_calloc(xst->heap, memPtr, sizeof(*weights));
 
       ak_xest_init(xest2, _s_dae_vertex_weights)
 
@@ -144,10 +131,10 @@ dae_skin(AkXmlState * __restrict xst,
 
         if (ak_xml_eqelm(xst, _s_dae_input)) {
           AkInput *input;
-          input = ak_heap_calloc(xst->heap, vertexWeights, sizeof(*input));
+          input = ak_heap_calloc(xst->heap, memPtr, sizeof(*input));
           input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
-          if (!input->semanticRaw || !input->source.url)
+          if (!input->semanticRaw)
             ak_free(input);
           else {
             AkEnum inputSemantic;
@@ -158,31 +145,57 @@ dae_skin(AkXmlState * __restrict xst,
 
             input->semantic = inputSemantic;
             input->offset   = ak_xml_attrui(xst, _s_dae_offset);
-            input->set      = ak_xml_attrui(xst, _s_dae_set);
 
             ak_xml_attr_url(xst, _s_dae_source, input, &input->source);
 
-            if (last_input)
-              last_input->next = input;
-            else
-              vertexWeights->input = input;
+            if (inputSemantic == AK_INPUT_SEMANTIC_JOINT) {
+              skin->reserved[2] = input;
+            } else if (inputSemantic == AK_INPUT_SEMANTIC_WEIGHT) {
+              skin->reserved[3] = input;
+            } else {
+              /* do not support other inputs until needed,
+                 probably will not. */
+              ak_free(input);
+            }
 
-            last_input = input;
+            skin->reserved2++;
           }
         } else if (ak_xml_eqelm(xst, _s_dae_vcount)) {
           char *content;
           content = ak_xml_rawval(xst);
 
           if (content) {
-            AkUIntArray *intArray;
-            AkResult     ret;
+            size_t    count, sz, i;
+            uint32_t *pSum, *pCount, next;
 
-            ret = ak_strtoui_array(xst->heap,
-                                   vertexWeights,
-                                   content,
-                                   &intArray);
-            if (ret == AK_OK)
-              vertexWeights->vcount = intArray;
+            if ((count = ak_strtok_count_fast(content, NULL)) > 0) {
+              sz = count * sizeof(uint32_t);
+
+              /*
+
+               we use same temp array to store sum of counts to avoid to
+               create new pointer. Array layout:
+
+               | pCount | pCountSum |
+
+               */
+
+              weights->pCount = pCount = ak_heap_alloc(xst->heap,
+                                                       weights,
+                                                       2 * sz);
+
+              /* must equal to position count, we may fix this in postscript */
+              weights->nVertex = count;
+
+              ak_strtoui_fast(content, pCount, count);
+
+              /* calculate sum */
+              pSum = weights->pCount + count;
+              for (next = i = 0; i < count; i++) {
+                pSum[i] = next;
+                next    = pCount[i] + next;
+              }
+            }
 
             xmlFree(content);
           }
@@ -191,20 +204,17 @@ dae_skin(AkXmlState * __restrict xst,
           content = ak_xml_rawval(xst);
 
           if (content) {
-            AkDoubleArray *doubleArray;
-            AkResult       ret;
+            AkUIntArray *intArray;
+            AkResult     ret;
 
-            ret = ak_strtod_array(xst->heap,
-                                  vertexWeights,
-                                  content,
-                                  &doubleArray);
+            ret = ak_strtoui_array(xst->heap, weights, content, &intArray);
             if (ret == AK_OK)
-              vertexWeights->v = doubleArray;
+              skin->reserved[4] = intArray;
 
             xmlFree(content);
           }
         } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-          dae_extra(xst, vertexWeights, &vertexWeights->extra);
+          dae_extra(xst, weights, &weights->extra);
         } else {
           ak_xml_skipelm(xst);
         }
@@ -214,7 +224,7 @@ dae_skin(AkXmlState * __restrict xst,
           break;
       } while (xst->nodeRet);
 
-      skin->vertexWeights = vertexWeights;
+      skin->weights = (void *)weights;
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       dae_extra(xst, memPtr, &skin->extra);
     } else {

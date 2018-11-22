@@ -11,6 +11,8 @@
 extern "C" {
 #endif
 
+struct AkNode;
+
 typedef enum AkControllerType {
   AK_CONTROLLER_MORPH = 1,
   AK_CONTROLLER_SKIN  = 2
@@ -21,26 +23,33 @@ typedef enum AkMorphMethod {
   AK_MORPH_METHOD_RELATIVE   = 2
 } AkMorphMethod;
 
-typedef struct AkJoints {
-  AkInput *input;
-  AkTree  *extra;
-} AkJoints;
+typedef struct AkBoneWeight {
+  uint32_t joint;
+  float    weight;
+} AkBoneWeight;
 
-typedef struct AkVertexWeights {
-  AkInput       * input;
-  AkUIntArray   * vcount;
-  AkDoubleArray * v;
-  AkTree        * extra;
-  AkUInt          count;
-} AkVertexWeights;
+typedef struct AkBoneWeights {
+  uint32_t     *pCount;   /* joints count by index     */
+  size_t       *pIndex;   /* offset of weight by index */
+  AkBoneWeight *weights;
+  AkTree       *extra;
+  size_t        nWeights; /* cache: count of weights                    */
+  size_t        nVertex;  /* cache: count of pJointsCount/pWeightsIndex */
+} AkBoneWeights;
 
 typedef struct AkSkin {
-  AkURL             baseMesh;
-  AkDoubleArray   * bindShapeMatrix;
-  AkSource        * source;
-  AkJoints        * joints;
-  AkVertexWeights * vertexWeights;
-  AkTree          * extra;
+  struct AkNode **joints;  /* global joints, check instanceController   */
+  AkBoneWeights **weights; /* per primitive                             */
+  AkSource       *source;
+  AkFloat4x4     *invBindMatrices;
+  AkTree         *extra;
+  void           *reserved[5];
+  uint32_t        reserved2;
+  AkURL           baseGeom;
+  uint32_t        nJoints; /* cache: joint count     */
+  uint32_t        nPrims;  /* cache: primitive count */
+  uint32_t        nMaxJoints;
+  AkFloat4x4      bindShapeMatrix;
 } AkSkin;
 
 typedef struct AkTargets {
@@ -59,18 +68,19 @@ typedef struct AkMorph {
 
 typedef struct AkController {
   /* const char * id; */
-  const char * name;
-  AkObject   * data;
-  AkTree     * extra;
-
-  struct AkController * next;
+  const char          *name;
+  AkObject            *data;
+  AkTree              *extra;
+  struct AkController *next;
 } AkController;
 
-typedef struct AkSkeleton {
-  const char * val;
+typedef struct AkInstanceController {
+  AkInstanceBase    base;
+  struct AkNode   **joints;
+  AkBindMaterial   *bindMaterial;
+  struct FListItem *reserved;
+} AkInstanceController;
 
-  struct AkSkeleton * next;
-} AkSkeleton;
 
 #ifdef __cplusplus
 }

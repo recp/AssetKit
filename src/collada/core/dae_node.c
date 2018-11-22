@@ -405,7 +405,6 @@ dae_node(AkXmlState    * __restrict xst,
       }
       case k_s_dae_instance_controller: {
         AkInstanceController *instanceController;
-        AkSkeleton           *last_skeleton;
         AkXmlElmState         xest2;
 
         instanceController = ak_heap_calloc(xst->heap,
@@ -422,8 +421,6 @@ dae_node(AkXmlState    * __restrict xst,
                         instanceController,
                         &instanceController->base.url);
 
-        last_skeleton = NULL;
-
         ak_xest_init(xest2, _s_dae_instance_controller)
 
         do {
@@ -432,19 +429,9 @@ dae_node(AkXmlState    * __restrict xst,
 
           if (ak_xml_eqelm(xst, _s_dae_skeleton)) {
             if (!xmlTextReaderIsEmptyElement(xst->reader)) {
-              AkSkeleton *skeleton;
-              skeleton = ak_heap_calloc(xst->heap,
-                                        instanceController,
-                                        sizeof(*skeleton));
-
-              skeleton->val = ak_xml_val(xst, instanceController);
-
-              if (last_skeleton)
-                last_skeleton->next = skeleton;
-              else
-                instanceController->skeleton = skeleton;
-
-              last_skeleton = skeleton;
+              char *skel;
+              if ((skel = ak_xml_val(xst, instanceController)))
+                flist_sp_insert(&instanceController->reserved, skel);
             }
           } else if (ak_xml_eqelm(xst, _s_dae_bind_material)) {
             AkBindMaterial *bindMaterial;
@@ -476,6 +463,8 @@ dae_node(AkXmlState    * __restrict xst,
         if (last_controller)
           instanceController->base.prev = &last_controller->base;
         last_controller = instanceController;
+
+        flist_sp_insert(&xst->instCtlrs, instanceController);
         break;
       }
       case k_s_dae_instance_geometry: {

@@ -541,12 +541,6 @@ typedef struct AkBindMaterial {
   AkTree                    *extra;
 } AkBindMaterial;
 
-typedef struct AkInstanceController {
-  AkInstanceBase     base;
-  struct AkSkeleton *skeleton;
-  AkBindMaterial    *bindMaterial;
-} AkInstanceController;
-
 typedef struct AkInstanceGeometry {
   AkInstanceBase  base;
   AkBindMaterial *bindMaterial;

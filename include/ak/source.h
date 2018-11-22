@@ -80,7 +80,6 @@ typedef struct AkDuplicator {
   void              *buffstate;
   void              *vertices;
   AkDuplicatorRange *range;
-  AkAccessor        *accessor;
   size_t             dupCount;
   size_t             bufCount;
 } AkDuplicator;
