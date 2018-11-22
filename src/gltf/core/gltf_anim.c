@@ -126,7 +126,7 @@ gltf_animations(AkGLTFState * __restrict gst) {
             last_input->next = input;
           else
             sampler->input = input;
-          last_input = input;
+          /* last_input = input; */
         }
 
         if (last_sampler)

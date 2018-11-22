@@ -92,16 +92,14 @@ AkResult
 ak_primFixIndices(AkHeap          *heap,
                   AkMesh          *mesh,
                   AkMeshPrimitive *prim) {
-  AkDuplicator *duplicator;
+  AkDuplicator *dupl;
 
-  if (!(duplicator = ak_meshDuplicatorForIndices(mesh, prim)))
+  if (!(dupl = ak_meshDuplicatorForIndices(mesh, prim)))
     return AK_ERR;
 
-  ak_meshFixIndexBuffer(mesh, prim, duplicator);
-  ak_meshReserveBuffers(mesh,
-                        prim,
-                        duplicator->dupCount + duplicator->bufCount);
-  ak_movePositions(heap, mesh, prim, duplicator);
+  ak_meshFixIndexBuffer(mesh, prim, dupl);
+  ak_meshReserveBuffers(mesh, prim, dupl->dupCount + dupl->bufCount);
+  ak_movePositions(heap, mesh, prim, dupl);
 
   return AK_OK;
 }

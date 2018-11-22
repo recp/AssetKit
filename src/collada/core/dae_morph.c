@@ -86,7 +86,7 @@ dae_morph(AkXmlState * __restrict xst,
           input = ak_heap_calloc(xst->heap, targets, sizeof(*input));
           input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
-          if (!input->semanticRaw || !input->source.url)
+          if (!input->semanticRaw)
             ak_free(input);
           else {
             AkEnum inputSemantic;

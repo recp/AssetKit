@@ -22,14 +22,14 @@ typedef AkBool       AkBool4[4];
 typedef AkInt        AkInt2[2];
 typedef AkInt        AkInt4[4];
 typedef AkFloat      AkFloat2[2];
-typedef AkFloat      AkFloat3[3];
-typedef AkFloat      AkFloat4[4];
 typedef AkDouble     AkDouble2[2];
-typedef AkDouble     AkDouble3[3];
-typedef AkDouble     AkDouble4[4];
 
-typedef AkDouble     AkDouble4x4[4];
-typedef AkFloat4     AkFloat4x4[4];
+typedef AK_ALIGN(8)  AkFloat  AkFloat3[3];
+typedef AK_ALIGN(8)  AkDouble AkDouble3[3];
+typedef AK_ALIGN(16) AkFloat  AkFloat4[4];
+typedef AK_ALIGN(16) AkDouble AkDouble4[4];
+typedef AK_ALIGN(16) AkDouble AkDouble4x4[4];
+typedef AK_ALIGN(16) AkFloat4 AkFloat4x4[4];
 
 #undef AK__DEF_ARRAY
 

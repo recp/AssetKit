@@ -652,7 +652,8 @@ ak_sid_resolve_val(AkContext  * __restrict ctx,
   const char *attr;
   void       *r;
 
-  r = ak_sid_resolve(ctx, target, &attr);
+  attr = NULL;
+  r    = ak_sid_resolve(ctx, target, &attr);
 
   /* currently only transform elements */
   if (attr && ak_typeid(r) == AKT_OBJECT) {

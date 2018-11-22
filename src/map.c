@@ -102,7 +102,7 @@ ak_multimap_add(AkMap *map,
   if (ret == AK_OK) {
     AkMapItem *mii;
 
-    mi = ak__alignas(hnode);
+    mi     = ak__alignas(hnode);
     subItm = ak_heap_calloc(map->heap, NULL, sizeof(*mi));
     subItm->data = value;
 

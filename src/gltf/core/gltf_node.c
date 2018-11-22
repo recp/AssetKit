@@ -357,7 +357,7 @@ gltf_bindMaterials(AkGLTFState        * __restrict gst,
 
     matIndex = (int32_t)json_integer_value(jmat);
     mat      = gst->doc->lib.materials->chld;
-    while (matIndex > 0) {
+    while (mat && matIndex > 0) {
       mat = mat->next;
       matIndex--;
     }

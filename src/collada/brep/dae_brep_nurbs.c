@@ -91,7 +91,7 @@ dae_nurbs(AkXmlState * __restrict xst,
                           input,
                           &input->source);
 
-          if (!input->semanticRaw || !input->source.url)
+          if (!input->semanticRaw)
             ak_free(input);
           else {
             AkEnum inputSemantic;
@@ -219,7 +219,7 @@ dae_nurbs_surface(AkXmlState * __restrict xst,
                           input,
                           &input->source);
 
-          if (!input->semanticRaw || !input->source.url)
+          if (!input->semanticRaw)
             ak_free(input);
           else {
             AkEnum inputSemantic;

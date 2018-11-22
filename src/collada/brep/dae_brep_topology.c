@@ -46,7 +46,7 @@ dae_edges(AkXmlState * __restrict xst,
                       input,
                       &input->source);
 
-      if (!input->semanticRaw || !input->source.url)
+      if (!input->semanticRaw)
         ak_free(input);
       else {
         AkEnum inputSemantic;
@@ -137,7 +137,7 @@ dae_wires(AkXmlState * __restrict xst,
                       input,
                       &input->source);
 
-      if (!input->semanticRaw || !input->source.url)
+      if (!input->semanticRaw)
         ak_free(input);
       else {
         AkEnum inputSemantic;
@@ -245,7 +245,7 @@ dae_faces(AkXmlState * __restrict xst,
                       input,
                       &input->source);
 
-      if (!input->semanticRaw || !input->source.url)
+      if (!input->semanticRaw)
         ak_free(input);
       else {
         AkEnum inputSemantic;
@@ -353,7 +353,7 @@ dae_pcurves(AkXmlState * __restrict xst,
                       input,
                       &input->source);
 
-      if (!input->semanticRaw || !input->source.url)
+      if (!input->semanticRaw)
         ak_free(input);
       else {
         AkEnum inputSemantic;
@@ -461,7 +461,7 @@ dae_shells(AkXmlState * __restrict xst,
                       input,
                       &input->source);
 
-      if (!input->semanticRaw || !input->source.url)
+      if (!input->semanticRaw)
         ak_free(input);
       else {
         AkEnum inputSemantic;
@@ -569,7 +569,7 @@ dae_solids(AkXmlState * __restrict xst,
                       input,
                       &input->source);
 
-      if (!input->semanticRaw || !input->source.url)
+      if (!input->semanticRaw)
         ak_free(input);
       else {
         AkEnum inputSemantic;
