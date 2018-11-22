@@ -238,6 +238,7 @@ dae_doc(AkDoc ** __restrict dest,
   xstVal.doc      = doc;
   xstVal.heap     = heap;
   xstVal.reader   = reader;
+  xstVal.meshInfo = rb_newtree_ptr();
   xst             = &xstVal;
 
   /* begin parse, get COLLADA element */
@@ -252,8 +253,7 @@ dae_doc(AkDoc ** __restrict dest,
   }
 
   /* get version info */
-  versionAttr = (char *)ak_xml_attr(xst, NULL, _s_dae_version);
-  if (versionAttr) {
+  if ((versionAttr = (char *)ak_xml_attr(xst, NULL, _s_dae_version))) {
     foundVersion = bsearch(versionAttr,
                            daeVersions,
                            daeVersionsLen,

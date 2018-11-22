@@ -234,8 +234,10 @@ dae_mesh(AkXmlState * __restrict xst,
     AkMeshPrimitive *prim;
     AkInput         *inp;
     AkInput         *inpv;
+    bool             setMeshInfo;
 
-    prim = mesh->primitive;
+    prim        = mesh->primitive;
+    setMeshInfo = false;
 
     while (prim) {
       inpv = vertices->input;
@@ -250,13 +252,24 @@ dae_mesh(AkXmlState * __restrict xst,
         ak_url_dup(&inpv->source, prim, &inp->source);
         ak_xml_url_add(xst, &inp->source);
 
-        inp->offset    = prim->reserved1;
-        inp->set       = prim->reserved2;
-        inp->next      = prim->input;
-        prim->input    = inp;
+        inp->offset = prim->reserved1;
+        inp->set    = prim->reserved2;
+        inp->next   = prim->input;
+        prim->input = inp;
 
-        if (inp->semantic == AK_INPUT_SEMANTIC_POSITION)
+        if (inp->semantic == AK_INPUT_SEMANTIC_POSITION) {
           prim->pos = inp;
+          if (!setMeshInfo) {
+            AkDaeMeshInfo *mi;
+
+            mi      = ak_heap_calloc(xst->heap, NULL, sizeof(*mi));
+            mi->pos = inp;
+
+            rb_insert(xst->meshInfo, mesh, mi);
+
+            setMeshInfo = true;
+          }
+        }
 
         prim->inputCount++;
         inpv = inpv->next;

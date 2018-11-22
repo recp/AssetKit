@@ -23,6 +23,11 @@
 #  define AK_INPUT_SEMANTIC_VERTEX 100001
 #endif
 
+typedef struct AkDaeMeshInfo {
+  AkInput *pos;
+  size_t   nVertex;
+} AkDaeMeshInfo;
+
 _assetkit_hide
 void
 dae_extra(AkXmlState * __restrict xst,

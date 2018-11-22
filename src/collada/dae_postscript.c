@@ -19,14 +19,20 @@ void _assetkit_hide
 dae_fixup_accessors(AkXmlState * __restrict xst);
 
 void _assetkit_hide
+dae_pre_mesh(AkXmlState * __restrict xst);
+
+void _assetkit_hide
+dae_pre_walk(RBTree *tree, RBNode *rbnode);
+
+void _assetkit_hide
 dae_postscript(AkXmlState * __restrict xst) {
   /* first migrate 1.4 to 1.5 */
   if (xst->version < AK_COLLADA_VERSION_150)
     dae14_loadjobs_finish(xst);
 
   dae_retain_refs(xst);
-
   dae_fixup_accessors(xst);
+  dae_pre_mesh(xst);
 
   /* fixup when finished,
      because we need to collect about source/array usages
@@ -120,4 +126,31 @@ dae_fixup_accessors(AkXmlState * __restrict xst) {
   cont:
     item = item->next;
   }
+
+  flist_sp_destroy(&xst->accessors);
+}
+
+void _assetkit_hide
+dae_pre_walk(RBTree *tree, RBNode *rbnode) {
+  AkDaeMeshInfo *mi;
+  AkSource      *posSrc;
+  AkAccessor    *posAcc;
+
+  AK__UNUSED(tree);
+
+  mi     = rbnode->val;
+  posSrc = NULL;
+  posAcc = NULL;
+
+  if (!((posSrc = ak_getObjectByUrl(&mi->pos->source))
+      && (posAcc = posSrc->tcommon)))
+    return;
+
+  mi->nVertex = posAcc->count;
+}
+
+void _assetkit_hide
+dae_pre_mesh(AkXmlState * __restrict xst) {
+  rb_walk(xst->meshInfo, dae_pre_walk);
+}
 }
