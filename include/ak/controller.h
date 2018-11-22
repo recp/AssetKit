@@ -46,7 +46,7 @@ typedef struct AkSkin {
   void           *reserved[5];
   uint32_t        reserved2;
   AkURL           baseGeom;
-  uint32_t        nJoints; /* cache: joint count     */
+  size_t          nJoints; /* cache: joint count     */
   uint32_t        nPrims;  /* cache: primitive count */
   uint32_t        nMaxJoints;
   AkFloat4x4      bindShapeMatrix;
@@ -95,10 +95,10 @@ typedef struct AkInstanceController {
  *        AkBoneWeights provides a struct JointID|HointWeight, if that is enough
  *        for you then you do not need to use this func.
  *
- * @param mesh  source    source weights buffer
- * @param mesh  maxJoint  max joint count, 4 is ideal
- * @param mesh  itemCount component count per VERTEX attribute
- * @param flags buff      destination buffer to send GPU
+ * @param source    source weights buffer
+ * @param maxJoint  max joint count, 4 is ideal
+ * @param itemCount component count per VERTEX attribute
+ * @param buff      destination buffer to send GPU
  */
 AK_EXPORT
 size_t
