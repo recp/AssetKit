@@ -1,0 +1,48 @@
+/*
+ * Copyright (c), Recep Aslantas.
+ *
+ * MIT License (MIT), http://opensource.org/licenses/MIT
+ * Full license can be found in the LICENSE file
+ */
+
+#include "../common.h"
+
+AK_EXPORT
+size_t
+ak_skinFill(AkBoneWeights * __restrict source,
+            uint32_t                   maxJoint,
+            uint32_t                   itemCount,
+            void         ** __restrict buff) {
+  AkBoneWeight *bw;
+  char         *tmp, *item;
+  float        *pWeight;
+  uint32_t     *pJoint;
+  size_t        size, szt, i, k;
+  uint32_t      iterCount;
+
+#ifdef DEBUG
+  assert(buff);
+#endif
+
+  szt  = maxJoint * (sizeof(uint32_t) + sizeof(float));
+  size = source->nVertex * szt;
+
+  if (!(tmp = *buff))
+    tmp = *buff = ak_calloc(NULL, size);
+
+  for (i = 0; i < source->nVertex; i++) {
+    iterCount = GLM_MIN(source->pCount[i], GLM_MIN(maxJoint, itemCount));
+    item      = tmp + szt * i;
+
+    pJoint    = (uint32_t *)item;
+    pWeight   = (float *)(item + sizeof(uint32_t) * itemCount);
+
+    for (k = 0; k < iterCount; k++) {
+      bw         = &source->weights[source->pIndex[i] + k];
+      pJoint[k]  = bw->joint;
+      pWeight[k] = bw->weight;
+    }
+  }
+
+  return size;
+}

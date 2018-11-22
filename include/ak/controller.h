@@ -81,6 +81,31 @@ typedef struct AkInstanceController {
   struct FListItem *reserved;
 } AkInstanceController;
 
+/*!
+ * @brief fill a buffer with JointID and JointWeight to feed GPU buffer
+ *        you can send this buffer to GPU buffer (e.g. OpenGL) directly
+ *
+ *        this func makes things easier if you want to send buffer to GPU like:
+ *          | JointIDs (ivec4) | JointWeights(vec4) |
+ *
+ *        or:
+ *           in ivec4 JOINTS;
+ *           in vec4  JOINTWEIGHTS;
+ *
+ *        AkBoneWeights provides a struct JointID|HointWeight, if that is enough
+ *        for you then you do not need to use this func.
+ *
+ * @param mesh  source    source weights buffer
+ * @param mesh  maxJoint  max joint count, 4 is ideal
+ * @param mesh  itemCount component count per VERTEX attribute
+ * @param flags buff      destination buffer to send GPU
+ */
+AK_EXPORT
+size_t
+ak_skinFill(AkBoneWeights * __restrict source,
+            uint32_t                   maxJoint,
+            uint32_t                   itemCount,
+            void         ** __restrict buff);
 
 #ifdef __cplusplus
 }
