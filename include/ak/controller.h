@@ -58,7 +58,7 @@ typedef struct AkTargets {
 } AkTargets;
 
 typedef struct AkMorph {
-  const char  * baseMesh;
+  AkURL         baseGeom;
   AkMorphMethod method;
 
   AkSource    * source;
@@ -106,6 +106,18 @@ ak_skinFill(AkBoneWeights * __restrict source,
             uint32_t                   maxJoint,
             uint32_t                   itemCount,
             void         ** __restrict buff);
+
+AK_EXPORT
+AkGeometry*
+ak_baseGeometry(AkController * __restrict ctlr);
+
+AK_EXPORT
+AkGeometry*
+ak_skinBaseGeometry(AkSkin * __restrict skin);
+
+AK_EXPORT
+AkGeometry*
+ak_morphBaseGeometry(AkMorph * __restrict morph);
 
 #ifdef __cplusplus
 }

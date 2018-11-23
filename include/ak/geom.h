@@ -80,7 +80,7 @@ typedef struct AkMeshPrimitive {
   uint32_t                indexStride;
   uint32_t                reserved1; /* private member */
   uint32_t                reserved2; /* private member */
-  void                   *reserved3;
+  void                   *reserved3; /* private member */
   AkFloat3                center;
 } AkMeshPrimitive;
 

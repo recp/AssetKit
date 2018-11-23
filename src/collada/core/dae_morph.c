@@ -36,7 +36,7 @@ dae_morph(AkXmlState * __restrict xst,
     memPtr = morph;
   }
 
-  morph->baseMesh = ak_xml_attr(xst, memPtr, _s_dae_source);
+  ak_xml_attr_url(xst, _s_dae_source, memPtr, &morph->baseGeom);
 
   morph->method = ak_xml_attrenum_def(xst,
                                       _s_dae_method,

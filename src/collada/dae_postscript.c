@@ -166,12 +166,6 @@ dae_pre_mesh(AkXmlState * __restrict xst) {
   rb_walk(xst->meshInfo, dae_pre_walk);
 }
 
-AK_EXPORT
-AkGeometry*
-ak_baseGeometry(AkURL *source) {
-  return ak_getObjectByUrl(source);
-}
-
 _assetkit_hide
 AkResult
 ak_fixBoneWeights(AkHeap        *heap,
@@ -183,14 +177,13 @@ ak_fixBoneWeights(AkHeap        *heap,
                   AkAccessor    *weightsAcc,
                   uint32_t       jointOffset,
                   uint32_t       weightsOffset) {
-  AkBoneWeight  *w, *iw;
-  AkBuffer      *weightsBuff;
-  AkUIntArray   *dupc, *dupcsum;
-  AkUIntArray   *v;
-  float         *pWeights;
-  uint32_t      *pv, *pOldCount, *pOldCountSum;
-  size_t         vc, d, s, pno, poo, nwsum, newidx, *wi, next, tmp;
-  uint32_t       i, j, k, vcount, count, *nj, viStride;
+  AkBoneWeight *w, *iw;
+  AkBuffer     *weightsBuff;
+  AkUIntArray  *dupc, *dupcsum, *v;
+  float        *pWeights;
+  uint32_t     *pv, *pOldCount, *pOldCountSum;
+  size_t       *wi, vc, d, s, pno, poo, nwsum, newidx, next, tmp;
+  uint32_t     *nj, i, j, k, vcount, count, viStride;
 
   dupc    = duplicator->range->dupc;
   dupcsum = duplicator->range->dupcsum;
@@ -371,7 +364,7 @@ dae_fixup_ctlr(AkXmlState * __restrict xst) {
         AkGeometry *geom;
 
         skin = ak_objGet(ctlr->data);
-        geom = ak_baseGeometry(&skin->baseGeom);
+        geom = ak_skinBaseGeometry(skin);
 
         switch (geom->gdata->type) {
           case AK_GEOMETRY_TYPE_MESH: {
