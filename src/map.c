@@ -111,7 +111,7 @@ ak_multimap_add(AkMap *map,
       mii->prev = subItm;
 
     subItm->next = mii;
-    *(AkMapItem **)mi->data = subItm;
+    mi->data     = subItm;
     return;
   }
 
