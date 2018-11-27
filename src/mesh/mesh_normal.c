@@ -233,21 +233,27 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
 
   (void)ak_data_join(dctx, buff->data);
   ak_free(dctx);
-
-  ak_primFixIndices(heap, prim->mesh, prim);
 }
 
 AK_EXPORT
 void
 ak_meshGenNormals(AkMesh * __restrict mesh) {
-  AkMeshPrimitive *prim;
-
-  prim = mesh->primitive;
+  AkHeap           *heap;
+  AkMeshEditHelper *edith;
+  AkMeshPrimitive  *prim;
 
   ak_meshBeginEdit(mesh);
 
+  heap  = ak_heap_getheap(mesh->geom);
+  prim  = mesh->primitive;
+  edith = mesh->edith;
+
   while (prim) {
     ak_meshPrimGenNormals(prim);
+
+    if (!edith->skipFixIndices)
+      ak_primFixIndices(heap, mesh, prim);
+
     prim = prim->next;
   }
 

@@ -109,7 +109,7 @@ typedef struct AkMeshEditHelper {
   AkMap              *inputBufferMap;  /* input-accessor-buffer map */
   void               *mutex;
   void               *duplicator;
-  size_t              refc;
+  bool                skipFixIndices;
 } AkMeshEditHelper;
 
 typedef struct AkMesh {

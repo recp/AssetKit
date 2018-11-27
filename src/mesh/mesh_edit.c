@@ -33,6 +33,9 @@ ak_meshBeginEditA(AkMesh  * __restrict mesh,
   meshobj = ak_objFrom(mesh);
   heap    = ak_heap_getheap(meshobj);
 
+  if (edith && ak_retain(edith) > 1)
+    return;
+
   if (!edith) {
     mesh->edith = edith = ak_heap_calloc(heap,
                                          ak_objFrom(mesh),
@@ -72,6 +75,11 @@ ak_meshEndEdit(AkMesh * __restrict mesh) {
   edith = mesh->edith;
   if (!edith)
     return;
+
+  if (ak_refc(edith) > 1) {
+    ak_release(edith);
+    return;
+  }
 
   /* finish edit */
   ak_moveIndices(mesh);

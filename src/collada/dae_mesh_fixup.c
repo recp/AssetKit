@@ -11,8 +11,9 @@
 
 AkResult _assetkit_hide
 dae_mesh_fixup(AkMesh * mesh) {
-  AkHeap *heap;
-  AkDoc  *doc;
+  AkMeshEditHelper *edith;
+  AkHeap           *heap;
+  AkDoc            *doc;
 
   heap = ak_heap_getheap(mesh->geom);
   doc  = ak_heap_data(heap);
@@ -26,7 +27,10 @@ dae_mesh_fixup(AkMesh * mesh) {
   if (!mesh->primitive)
     return AK_OK;
 
-  ak_meshFixIndices(heap, mesh);
+  ak_meshBeginEdit(mesh);
+
+  edith                 = mesh->edith;
+  edith->skipFixIndices = true; /* to do it once per mesh */
 
   if (ak_opt_get(AK_OPT_COMPUTE_BBOX))
     ak_bbox_mesh(mesh);
@@ -37,6 +41,11 @@ dae_mesh_fixup(AkMesh * mesh) {
   if (ak_opt_get(AK_OPT_GEN_NORMALS_IF_NEEDED))
     if (ak_meshNeedsNormals(mesh))
       ak_meshGenNormals(mesh);
+
+  edith->skipFixIndices = false;
+  ak_meshFixIndices(heap, mesh);
+
+  ak_meshEndEdit(mesh);
 
   return AK_OK;
 }
