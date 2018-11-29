@@ -29,9 +29,9 @@ ak_transformSkewMatrix(AkSkew * __restrict skew,
 
   s = tanf(skew->angle);
 
-  glm_vec_scale(skew->aroundAxis, skew->rotateAxis[0] * s, mat[0]);
-  glm_vec_scale(skew->aroundAxis, skew->rotateAxis[1] * s, mat[1]);
-  glm_vec_scale(skew->aroundAxis, skew->rotateAxis[2] * s, mat[2]);
+  glm_vec3_scale(skew->aroundAxis, skew->rotateAxis[0] * s, mat[0]);
+  glm_vec3_scale(skew->aroundAxis, skew->rotateAxis[1] * s, mat[1]);
+  glm_vec3_scale(skew->aroundAxis, skew->rotateAxis[2] * s, mat[2]);
 
   mat[0][0] += 1.0f;
   mat[1][1] += 1.0f;
@@ -189,7 +189,7 @@ ak_getTransformTRS(AkNode *node, AkTypeId transformType) {
       AkScale *scale;
       obj   = ak_objAlloc(heap, node, sizeof(*scale), AKT_SCALE, true);
       scale = ak_objGet(obj);
-      glm_vec_one(scale->val);
+      glm_vec3_one(scale->val);
       break;
     }
     default:

@@ -54,9 +54,9 @@ ak_transformDup(AkNode * __restrict srcNode,
         newLookAt = ak_objGet(newTransItem);
         ak_sid_dup(newTransItem, transItem);
 
-        glm_vec_copy(lookAt->val[0], newLookAt->val[0]);
-        glm_vec_copy(lookAt->val[1], newLookAt->val[1]);
-        glm_vec_copy(lookAt->val[2], newLookAt->val[2]);
+        glm_vec3_copy(lookAt->val[0], newLookAt->val[0]);
+        glm_vec3_copy(lookAt->val[1], newLookAt->val[1]);
+        glm_vec3_copy(lookAt->val[2], newLookAt->val[2]);
         break;
       }
       case AKT_ROTATE: {
@@ -98,7 +98,7 @@ ak_transformDup(AkNode * __restrict srcNode,
                                    true);
         newScale = ak_objGet(newTransItem);
         ak_sid_dup(newTransItem, transItem);
-        glm_vec_copy(scale->val, newScale->val);
+        glm_vec3_copy(scale->val, newScale->val);
         break;
       }
       case AKT_TRANSLATE: {
@@ -112,7 +112,7 @@ ak_transformDup(AkNode * __restrict srcNode,
                                    true);
         newTranslate = ak_objGet(newTransItem);
         ak_sid_dup(newTransItem, transItem);
-        glm_vec_copy(translate->val, newTranslate->val);
+        glm_vec3_copy(translate->val, newTranslate->val);
         break;
       }
       case AKT_SKEW: {
@@ -128,8 +128,8 @@ ak_transformDup(AkNode * __restrict srcNode,
         ak_sid_dup(newTransItem, transItem);
 
         newSkew->angle = skew->angle;
-        glm_vec_copy(skew->aroundAxis, newSkew->aroundAxis);
-        glm_vec_copy(skew->rotateAxis, newSkew->rotateAxis);
+        glm_vec3_copy(skew->aroundAxis, newSkew->aroundAxis);
+        glm_vec3_copy(skew->rotateAxis, newSkew->rotateAxis);
         break;
       }
       default:

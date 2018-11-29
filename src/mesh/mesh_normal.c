@@ -142,11 +142,11 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
         b = pos + it[i + vo + st]      * pos_st;
         c = pos + it[i + vo + st + st] * pos_st;
 
-        glm_vec_sub(a, b, v1);
-        glm_vec_sub(b, c, v2);
+        glm_vec3_sub(a, b, v1);
+        glm_vec3_sub(b, c, v2);
 
-        glm_vec_cross(v1, v2, n);
-        glm_vec_normalize(n);
+        glm_vec3_cross(v1, v2, n);
+        glm_vec3_normalize(n);
 
         idx = ak_data_append(dctx, n);
 
@@ -176,11 +176,11 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
         b = pos + it[i + vo + st]      * pos_st;
         c = pos + it[i + vo + st + st] * pos_st;
 
-        glm_vec_sub(a, b, v1);
-        glm_vec_sub(b, c, v2);
+        glm_vec3_sub(a, b, v1);
+        glm_vec3_sub(b, c, v2);
 
-        glm_vec_cross(v1, v2, n);
-        glm_vec_normalize(n);
+        glm_vec3_cross(v1, v2, n);
+        glm_vec3_normalize(n);
 
         idx = ak_data_append(dctx, n);
 

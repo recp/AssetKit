@@ -285,7 +285,7 @@ dae_light_tcommon(AkXmlState   * __restrict xst,
                           optCoordSys,
                           (*dest)->direction);
     } else {
-      glm_vec_copy((vec3)AK_DEFAULT_LIGHT_DIR,
+      glm_vec3_copy((vec3)AK_DEFAULT_LIGHT_DIR,
                    (*dest)->direction);
     }
   }

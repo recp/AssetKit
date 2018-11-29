@@ -37,9 +37,9 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
 
   data = ((char *)posbuff->data + acc->byteOffset);
 
-  glm_vec_broadcast(FLT_MAX, min);
-  glm_vec_broadcast(-FLT_MAX, max);
-  glm_vec_broadcast(0.0f, center);
+  glm_vec3_broadcast(FLT_MAX, min);
+  glm_vec3_broadcast(-FLT_MAX, max);
+  glm_vec3_broadcast(0.0f, center);
 
   exactCenter = ak_opt_get(AK_OPT_COMPUTE_EXACT_CENTER);
 
@@ -60,7 +60,7 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
     if (!exactCenter) {
       for (i = 0; i < icount; i += st) {
         vec = (float *)(data + ind[i + vo] * acc->byteStride);
-        glm_vec_add(vec, center, center);
+        glm_vec3_add(vec, center, center);
         ak_bbox_pick(min, max, vec);
       }
     } else {
@@ -79,7 +79,7 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
     } else {
       for (i = 0; i < acc->count; i++) {
         vec = (float *)(data + acc->byteStride * i);
-        glm_vec_add(vec, center, center);
+        glm_vec3_add(vec, center, center);
         ak_bbox_pick(min, max, vec);
       }
     }
@@ -96,21 +96,21 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
   if (!geom->bbox)
     geom->bbox = ak_heap_calloc(heap, prim, sizeof(*prim->bbox));
 
-  glm_vec_copy(min, prim->bbox->min);
-  glm_vec_copy(max, prim->bbox->max);
+  glm_vec3_copy(min, prim->bbox->min);
+  glm_vec3_copy(max, prim->bbox->max);
 
   ak_bbox_pick_pbox(mesh->bbox, prim->bbox);
   ak_bbox_pick_pbox(geom->bbox, mesh->bbox);
 
   /* compute centroid */
   if (!ak_opt_get(AK_OPT_COMPUTE_EXACT_CENTER)) {
-    glm_vec_center(prim->bbox->min,
+    glm_vec3_center(prim->bbox->min,
                    prim->bbox->max,
                    prim->center);
   } else if (count > 0) {
     /* calculate exact center of primitive */
-    glm_vec_divs(center, count, center);
+    glm_vec3_divs(center, count, center);
   } else {
-    glm_vec_zero(prim->center);
+    glm_vec3_zero(prim->center);
   }
 }

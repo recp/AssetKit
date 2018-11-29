@@ -45,8 +45,8 @@ ak_bbox_node(AkHeap        * __restrict heap,
     AkBoundingBox   bbox;
     vec4            min, max;
 
-    glm_vec_broadcast(FLT_MAX, bbox.min);
-    glm_vec_broadcast(-FLT_MAX, bbox.max);
+    glm_vec3_broadcast(FLT_MAX, bbox.min);
+    glm_vec3_broadcast(-FLT_MAX, bbox.max);
     min[3] = max[3] = 1.0f;
 
     /* find bbox for node to avoid extra calc */
@@ -59,8 +59,8 @@ ak_bbox_node(AkHeap        * __restrict heap,
       geomInst = geomInst->next;
     }
 
-    glm_vec_copy(bbox.min, min);
-    glm_vec_copy(bbox.max, max);
+    glm_vec3_copy(bbox.min, min);
+    glm_vec3_copy(bbox.max, max);
 
     glm_mat4_mulv(matrixWorld, min, min);
     glm_mat4_mulv(matrixWorld, max, max);
@@ -68,8 +68,8 @@ ak_bbox_node(AkHeap        * __restrict heap,
     if (scene->bbox->isvalid) {
       ak_bbox_pick_pbox2(scene->bbox, min, max);
     } else {
-      glm_vec_copy(min, scene->bbox->min);
-      glm_vec_copy(max, scene->bbox->max);
+      glm_vec3_copy(min, scene->bbox->min);
+      glm_vec3_copy(max, scene->bbox->max);
       scene->bbox->isvalid = true;
     }
   }

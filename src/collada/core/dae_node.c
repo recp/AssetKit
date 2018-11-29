@@ -263,7 +263,7 @@ dae_node(AkXmlState    * __restrict xst,
           ak_strtof(&content, (AkFloat *)scale->val, 3);
           xmlFree(content);
         } else {
-          glm_vec_one(scale->val);
+          glm_vec3_one(scale->val);
         }
 
         if (last_transform)
@@ -299,8 +299,8 @@ dae_node(AkXmlState    * __restrict xst,
 
           /* COLLADA uses degree here, convert it to radians */
           skew->angle = glm_rad(tmp[0]);
-          glm_vec_copy(&tmp[1], skew->rotateAxis);
-          glm_vec_copy(&tmp[4], skew->aroundAxis);
+          glm_vec3_copy(&tmp[1], skew->rotateAxis);
+          glm_vec3_copy(&tmp[4], skew->aroundAxis);
 
           xmlFree(content);
         }

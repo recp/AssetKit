@@ -38,50 +38,50 @@ ak_coordRotForFixedCoord(AkCoordSys        *oldCoordSys,
   ak_coordAxisOri(oldCoordSys, *oldAxes, camOriOld);
   ak_coordAxisOri(newCoordSys, *newAxes, camOriNew);
 
-  glm_vec_broadcast(0.0f, v1);
-  glm_vec_broadcast(0.0f, v2);
+  glm_vec3_broadcast(0.0f, v1);
+  glm_vec3_broadcast(0.0f, v2);
 
   /* we want to rotate from new to old!!! */
   v1[abs(camOriNew[2]) - 1] = (float)glm_sign(camOriNew[2]);
   v2[abs(camOriOld[2]) - 1] = (float)glm_sign(camOriOld[2]);
-  glm_vec_cross(v1, v2, v3);
+  glm_vec3_cross(v1, v2, v3);
 
   /* angle for forward axis */
-  fwdAxis[3] = glm_vec_angle(v1, v2);
+  fwdAxis[3] = glm_vec3_angle(v1, v2);
   if (fwdAxis[3] != 0.0f) {
     /* forward axis */
-    glm_vec_copy(v3, fwdAxis);
+    glm_vec3_copy(v3, fwdAxis);
 
     /* convert to current coord sys */
     AK_CVT_VEC(fwdAxis)
   }
 
   /* up axis */
-  glm_vec_broadcast(0.0f, v1);
-  glm_vec_broadcast(0.0f, v2);
+  glm_vec3_broadcast(0.0f, v1);
+  glm_vec3_broadcast(0.0f, v2);
 
   v1[abs(camOriNew[1]) - 1] = (float)glm_sign(camOriNew[1]);
   v2[abs(camOriOld[1]) - 1] = (float)glm_sign(camOriOld[1]);
 
   /* rotate with fwd to find new up (rotated) */
-  glm_vec_rotate(v1, fwdAxis[3], v3);
+  glm_vec3_rotate(v1, fwdAxis[3], v3);
 
-  glm_vec_cross(v1, v2, v3);
+  glm_vec3_cross(v1, v2, v3);
 
   /* angle for up axis */
-  upAxis[3] = glm_vec_angle(v1, v2);
+  upAxis[3] = glm_vec3_angle(v1, v2);
 
   /* up direction */
   if (upAxis[3] != 0.0f) {
     /* up axis */
-    glm_vec_copy(v3, upAxis);
+    glm_vec3_copy(v3, upAxis);
 
     /* convert to current coord sys */
     AK_CVT_VEC(upAxis)
 
     /* rotate found axis with fwd */
     if (fwdAxis[3] != 0.0f)
-      glm_vec_rotate(upAxis, -fwdAxis[3], fwdAxis);
+      glm_vec3_rotate(upAxis, -fwdAxis[3], fwdAxis);
   }
 }
 

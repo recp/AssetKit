@@ -41,7 +41,7 @@ ak_coordCvtTransform(AkCoordSys *oldCoordSystem,
                      eulerNew);
 
   /* apply new rotation direction */
-  glm_vec_scale(angles, rotDirection, angles);
+  glm_vec3_scale(angles, rotDirection, angles);
 
   /* apply new rotation */
   glm_euler_by_order(angles,
@@ -93,9 +93,9 @@ ak_coordFindTransform(AkTransform *transform,
   ak_coordToiVec3(oldCoordSys, oriOld);
   ak_coordToiVec3(newCoordSys, oriNew);
 
-  glm_vec_broadcast(0.0f, x1);
-  glm_vec_broadcast(0.0f, y1);
-  glm_vec_broadcast(0.0f, z1);
+  glm_vec3_broadcast(0.0f, x1);
+  glm_vec3_broadcast(0.0f, y1);
+  glm_vec3_broadcast(0.0f, z1);
   x1[abs(oriOld[0]) - 1] = (float)glm_sign(oriOld[0]);
   y1[abs(oriOld[1]) - 1] = (float)glm_sign(oriOld[1]);
   z1[abs(oriOld[2]) - 1] = (float)glm_sign(oriOld[2]);
@@ -103,12 +103,12 @@ ak_coordFindTransform(AkTransform *transform,
   /* step-1: X axis; a rotation will be enough */
 
   /* find rotation axis */
-  glm_vec_broadcast(0.0f, oth);
+  glm_vec3_broadcast(0.0f, oth);
   oth[abs(oriNew[0]) - 1] = (float)glm_sign(oriNew[0]);
-  glm_vec_cross(x1, oth, axis);
+  glm_vec3_cross(x1, oth, axis);
 
   /* angle for x axis */
-  angle = glm_vec_angle(x1, oth);
+  angle = glm_vec3_angle(x1, oth);
 
   /* append transform */
   if (angle != 0.0f) {
@@ -122,13 +122,13 @@ ak_coordFindTransform(AkTransform *transform,
                          true);
 
     rot = ak_objGet(rotObj);
-    glm_vec_copy(axis, rot->val);
+    glm_vec3_copy(axis, rot->val);
     rot->val[3] = angle;
 
 
     /* rotate y and z */
-    glm_vec_rotate(y1, angle, axis);
-    glm_vec_rotate(z1, angle, axis);
+    glm_vec3_rotate(y1, angle, axis);
+    glm_vec3_rotate(z1, angle, axis);
 
     firstTrans = lastTrans = rotObj;
   }
@@ -136,12 +136,12 @@ ak_coordFindTransform(AkTransform *transform,
   /* step-2: Y axis; an extra rotation around X will be enough */
 
   /* find rotation axis */
-  glm_vec_broadcast(0.0f, oth);
+  glm_vec3_broadcast(0.0f, oth);
   oth[abs(oriNew[1]) - 1] = (float)glm_sign(oriNew[1]);
-  glm_vec_cross(y1, oth, axis);
+  glm_vec3_cross(y1, oth, axis);
 
   /* angle for y axis */
-  angle = glm_vec_angle(y1, oth);
+  angle = glm_vec3_angle(y1, oth);
 
   /* append transform */
   if (angle != 0.0f) {
@@ -155,11 +155,11 @@ ak_coordFindTransform(AkTransform *transform,
                          true);
 
     rot = ak_objGet(rotObj);
-    glm_vec_copy(axis, rot->val);
+    glm_vec3_copy(axis, rot->val);
     rot->val[3] = angle;
 
     /* rotate z, we know that x will keep it orientation */
-    glm_vec_rotate(z1, angle, axis);
+    glm_vec3_rotate(z1, angle, axis);
 
     if (lastTrans)
       lastTrans->next = rotObj;
@@ -171,9 +171,9 @@ ak_coordFindTransform(AkTransform *transform,
   /* step-3: Z axis; we can't add rotation, we need negative scale */
 
   /* check old and new Z axes are same */
-  glm_vec_broadcast(0.0f, oth);
+  glm_vec3_broadcast(0.0f, oth);
   oth[abs(oriNew[2]) - 1] = (float)glm_sign(oriNew[2]);
-  if (!glm_vec_eqv_eps(z1, oth)) {
+  if (!glm_vec3_eqv_eps(z1, oth)) {
     /* fix Z by negative scale */
     AkObject *scaleObj;
     AkScale  *scale;
