@@ -25,9 +25,7 @@ ak_bbox_mesh(struct AkMesh * __restrict mesh) {
   /* compute centroid */
 
   if (!ak_opt_get(AK_OPT_COMPUTE_EXACT_CENTER)) {
-    glm_vec3_center(mesh->bbox->min,
-                   mesh->bbox->max,
-                   mesh->center);
+    ak_bbox_center(mesh->bbox, mesh->center);
   } else {
     glm_vec3_zero(center);
 

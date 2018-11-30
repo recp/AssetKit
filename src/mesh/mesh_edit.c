@@ -82,6 +82,7 @@ ak_meshEndEdit(AkMesh * __restrict mesh) {
   }
 
   /* finish edit */
+  ak_meshFillBuffers(mesh);
   ak_moveIndices(mesh);
   ak_meshMoveBuffers(mesh);
 

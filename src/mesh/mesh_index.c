@@ -115,7 +115,6 @@ ak_meshFixIndicesDefault(AkHeap *heap, AkMesh *mesh) {
     prim = prim->next;
   }
 
-  ak_meshFillBuffers(mesh);
   return AK_OK;
 }
 

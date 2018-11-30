@@ -109,7 +109,7 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
   inpIndices = ak_heap_calloc(heap,
                               prim,
                               sizeof(*inpIndices)
-                              + count * newst * sizeof(AkUInt));
+                              + count * newst * sizeof(*it));
   inpIndices->count = count * newst;
   it2 = inpIndices->items;
 
@@ -117,8 +117,9 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
     case AK_MESH_PRIMITIVE_TYPE_POLYGONS: {
       AkPolygon *poly;
       AkUInt    *vc_it;
+      float     *a, *b, *c;
       vec3       v1, v2, n;
-      size_t     i, k, vc, j;
+      size_t     i, j, k, vc, ist;
       AkUInt     idx;
 
       poly = (AkPolygon *)prim;
@@ -130,17 +131,17 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
       vc_it = poly->vcount->items;
 
       for (i = k = 0; k < poly->vcount->count; k++) {
-        float *a, *b, *c;
-
         vc = vc_it[k];
 
         /* TODO: normals for lines or points ? */
         if (vc < 3)
           continue;
 
-        a = pos + it[i + vo]           * pos_st;
-        b = pos + it[i + vo + st]      * pos_st;
-        c = pos + it[i + vo + st + st] * pos_st;
+        ist = i * st + vo;
+
+        a = pos + it[ist]           * pos_st;
+        b = pos + it[ist + st]      * pos_st;
+        c = pos + it[ist + st + st] * pos_st;
 
         glm_vec3_sub(a, b, v1);
         glm_vec3_sub(b, c, v2);
@@ -154,7 +155,7 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
           /* other inputs */
           memcpy(it2 + j * newst,
                  it  + j * st,
-                 sizeof(AkUInt) * st);
+                 sizeof(*it) * st);
 
           /* normal */
           it2[j * newst + st] = idx;
@@ -165,16 +166,16 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
       break;
     }
     case AK_MESH_PRIMITIVE_TYPE_TRIANGLES: tri: {
-      vec3     v1, v2, n;
-      uint32_t i, j;
-      AkUInt   idx;
+      float *a, *b, *c;
+      vec3   v1, v2, n;
+      AkUInt i, j, idx, ist;
 
       for (i = 0; i < count; i += 3 /* 3: triangle */) {
-        float *a, *b, *c;
+        ist = i * st + vo;
 
-        a = pos + it[i + vo]           * pos_st;
-        b = pos + it[i + vo + st]      * pos_st;
-        c = pos + it[i + vo + st + st] * pos_st;
+        a = pos + it[ist]           * pos_st;
+        b = pos + it[ist + st]      * pos_st;
+        c = pos + it[ist + st + st] * pos_st;
 
         glm_vec3_sub(a, b, v1);
         glm_vec3_sub(b, c, v2);
@@ -188,7 +189,7 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
           /* other inputs */
           memcpy(it2 + j * newst,
                  it  + j * st,
-                 sizeof(AkUInt) * st);
+                 sizeof(*it) * st);
 
           /* normal */
           it2[j * newst + st] = idx;
@@ -257,6 +258,5 @@ ak_meshGenNormals(AkMesh * __restrict mesh) {
     prim = prim->next;
   }
 
-  ak_meshFillBuffers(mesh);
   ak_meshEndEdit(mesh);
 }

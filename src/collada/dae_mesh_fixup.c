@@ -32,9 +32,6 @@ dae_mesh_fixup(AkMesh * mesh) {
   edith                 = mesh->edith;
   edith->skipFixIndices = true; /* to do it once per mesh */
 
-  if (ak_opt_get(AK_OPT_COMPUTE_BBOX))
-    ak_bbox_mesh(mesh);
-
   if (ak_opt_get(AK_OPT_TRIANGULATE))
     ak_meshTriangulate(mesh);
 
@@ -47,5 +44,8 @@ dae_mesh_fixup(AkMesh * mesh) {
 
   ak_meshEndEdit(mesh);
 
+  if (ak_opt_get(AK_OPT_COMPUTE_BBOX))
+    ak_bbox_mesh(mesh);
+  
   return AK_OK;
 }

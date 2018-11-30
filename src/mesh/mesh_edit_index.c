@@ -83,8 +83,13 @@ ak_moveIndices(AkMesh * __restrict mesh) {
     AkUIntArray *indices;
 
     indices = ak_meshIndicesArrayFor(mesh, prim, false);
-    if (indices != prim->indices)
-      ak_free(prim->indices);
+    /* same index buff */
+    if (!indices || indices == prim->indices) {
+      prim = prim->next;
+      continue;
+    }
+
+    ak_free(prim->indices);
 
     prim->indices = indices;
 
