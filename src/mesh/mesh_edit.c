@@ -7,6 +7,7 @@
 
 #include "../common.h"
 #include "../memory_common.h"
+#include "../skin/skin_fix.h"
 #include "mesh_util.h"
 #include "mesh_edit_common.h"
 
@@ -80,6 +81,9 @@ ak_meshEndEdit(AkMesh * __restrict mesh) {
     ak_release(edith);
     return;
   }
+
+  /* fix skin weights */
+  ak_skinFixWeights(mesh);
 
   /* finish edit */
   ak_meshFillBuffers(mesh);

@@ -335,7 +335,8 @@ dae_doc(AkDoc ** __restrict dest,
   /* post-parse operations */
   dae_postscript(xst);
 
-  rb_destroy(doc->reserved);
+  /* TODO: memory leak, free this RBTree*/
+  /* rb_destroy(doc->reserved); */
 
   return AK_OK;
 }

@@ -179,6 +179,7 @@ ak_meshMoveBuffers(AkMesh * __restrict mesh) {
   AkSourceEditHelper *srch;
   AkMapItem          *mi;
   AkInput            *input;
+  AkMeshPrimitive    *prim;
 
   edith   = mesh->edith;
   mapHeap = edith->inputBufferMap->heap;
@@ -187,6 +188,7 @@ ak_meshMoveBuffers(AkMesh * __restrict mesh) {
   while (mi) {
     input = ak_heap_getId(mapHeap, ak__alignof(mi));
     srch  = (AkSourceEditHelper *)mi->data;
+    prim  = ak_mem_parent(input);
 
     ak_url_unref(&input->source);
 
@@ -194,6 +196,10 @@ ak_meshMoveBuffers(AkMesh * __restrict mesh) {
     ak_retain(srch->source);
 
     input->source.ptr = srch->source;
+
+    if (input->semantic == AK_INPUT_SEMANTIC_POSITION)
+      prim->pos = input;
+
     mi = mi->next;
   }
 }

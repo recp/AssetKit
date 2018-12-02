@@ -18,6 +18,7 @@ extern "C" {
 struct RBTree;
 struct AkGeometry;
 struct AkMesh;
+struct FListItem;
 
 typedef enum AkGeometryType {
   AK_GEOMETRY_TYPE_MESH   = 0,
@@ -120,6 +121,7 @@ typedef struct AkMesh {
   AkBoundingBox     *bbox;
   AkTree            *extra;
   AkMeshEditHelper  *edith;
+  struct FListItem  *skins;
   uint32_t           primitiveCount;
   AkFloat3           center;
 } AkMesh;
