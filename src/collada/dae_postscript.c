@@ -396,6 +396,8 @@ dae_fixup_ctlr(AkXmlState * __restrict xst) {
 
             nMeshVertex = meshInfo->nVertex;
 
+            flist_sp_insert(&mesh->skins, skin);
+
             while (prim) {
               AkAccessor    *posAcc;
               AkSource      *posSrc;
