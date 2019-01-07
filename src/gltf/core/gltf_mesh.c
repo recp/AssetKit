@@ -65,7 +65,7 @@ gltf_meshes(AkGLTFState * __restrict gst) {
 
     for (j = 0; j < jprimCount; j++) {
       AkMeshPrimitive *prim;
-      AkInput         *last_inp;//, *last_vert_inp, *vertInp;
+      AkInput         *last_inp;
       json_t          *jprim, *jattribs, *jval, *jindices;
       const char      *jkey;
 
@@ -78,7 +78,7 @@ gltf_meshes(AkGLTFState * __restrict gst) {
       prim->inputCount = 0;
       prim->mesh       = mesh;
 
-      jattribs      = json_object_get(jprim, _s_gltf_attributes);
+      jattribs = json_object_get(jprim, _s_gltf_attributes);
       json_object_foreach(jattribs, jkey, jval) {
         AkInput    *inp;
         const char *semantic;

@@ -86,11 +86,11 @@ typedef struct AkInstanceController {
  *        you can send this buffer to GPU buffer (e.g. OpenGL) directly
  *
  *        this func makes things easier if you want to send buffer to GPU like:
- *          | JointIDs (ivec4) | JointWeights(vec4) |
+ *          | JointIDs (ivec4) | Weights(vec4) |
  *
  *        or:
  *           in ivec4 JOINTS;
- *           in vec4  JOINTWEIGHTS;
+ *           in vec4  WEIGHTS;
  *
  *        AkBoneWeights provides a struct JointID|HointWeight, if that is enough
  *        for you then you do not need to use this func.

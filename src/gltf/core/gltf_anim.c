@@ -57,7 +57,7 @@ gltf_animations(AkGLTFState * __restrict gst) {
       sampCount    = (int32_t)json_array_size(jsamps);
 
       /* samplers */
-      for (j = sampCount - 1; j >= 0; j--) {
+      for (j = 0; j < sampCount; j++) {
         json_t *jsamp, *jinput, *joutput, *jinterp, *jacc;
 
         jsamp      = json_array_get(jsamps, j);
@@ -110,7 +110,7 @@ gltf_animations(AkGLTFState * __restrict gst) {
 
           ak_setypeid(source, AKT_SOURCE);
 
-          input = ak_heap_calloc(heap, sampler, sizeof(*input));
+          input              = ak_heap_calloc(heap, sampler, sizeof(*input));
           input->semanticRaw = ak_heap_strdup(gst->heap, anim, _s_gltf_output);
           input->semantic    = AK_INPUT_SEMANTIC_OUTPUT;
           source->tcommon    = gltf_accessor(gst, source, jacc);

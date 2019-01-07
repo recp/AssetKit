@@ -50,10 +50,7 @@ gltf_nodes(AkGLTFState * __restrict gst) {
 
     /* sets id "node-[i]" for node. */
     nodeid = ak_id_gen(heap, node, _s_gltf_node);
-
-    ak_heap_setId(heap,
-                  ak__alignof(node),
-                  (void *)nodeid);
+    ak_heap_setId(heap, ak__alignof(node), (void *)nodeid);
 
     flist_sp_insert(&nodes, node);
   }
@@ -168,8 +165,7 @@ gltf_node(AkGLTFState * __restrict gst,
     /* instance geometry */
     if (geomIter) {
       AkInstanceGeometry *instGeom;
-      instGeom = ak_heap_calloc(heap, node, sizeof(*instGeom));
-
+      instGeom               = ak_heap_calloc(heap, node, sizeof(*instGeom));
       instGeom->base.node    = node;
       instGeom->base.type    = AK_INSTANCE_GEOMETRY;
       instGeom->base.url.ptr = geomIter;

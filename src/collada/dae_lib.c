@@ -15,9 +15,7 @@ dae_lib(AkXmlState    * __restrict xst,
   char         *lastLibChld;
   AkXmlElmState xest;
 
-  lib = ak_heap_calloc(xst->heap,
-                       xst->doc,
-                       sizeof(*lib));
+  lib = ak_heap_calloc(xst->heap, xst->doc, sizeof(*lib));
   if (lc->lastItem)
     lc->lastItem->next = lib;
   else
@@ -40,8 +38,8 @@ dae_lib(AkXmlState    * __restrict xst,
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
       (void)dae_assetInf(xst, xst->doc, NULL);
     } else if (ak_xml_eqelm(xst, lc->name)) {
-      void      *libChld;
-      AkResult   ret;
+      void    *libChld;
+      AkResult ret;
 
       libChld = NULL;
       ret = lc->chldFn(xst, xst->doc, &libChld);
