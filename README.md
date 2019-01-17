@@ -40,6 +40,9 @@ So working on multiple projects ([cglm](https://github.com/recp/cglm), [libgk](h
   - [x] alphaCutoff
   - [x] doubleSided
 - [ ] Animations
+  - [x] Basic Animations (Transforms)
+  - [x] Skin
+  - [ ] Morph
 - [ ] Extensions
   - [x] KHR_materials_pbrSpecularGlossiness
   - [ ] Lights
