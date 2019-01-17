@@ -169,9 +169,30 @@ gltf_node(AkGLTFState * __restrict gst,
       instGeom->base.node    = node;
       instGeom->base.type    = AK_INSTANCE_GEOMETRY;
       instGeom->base.url.ptr = geomIter;
-      node->geometry         = instGeom;
 
       gltf_bindMaterials(gst, instGeom, meshIndex);
+
+      if ((jval = json_object_get(jnode, _s_gltf_skin))) {
+        char                  skinid[16];
+        AkInstanceController *instCtlr;
+        int32_t               skinIndex;
+
+        instCtlr               = ak_heap_calloc(heap, node, sizeof(*instCtlr));
+        instCtlr->base.type    = AK_INSTANCE_CONTROLLER;
+        instCtlr->geometry.ptr = instGeom;
+
+        skinIndex = (int32_t)json_integer_value(jval);
+        sprintf(skinid, "%s%d", _s_gltf_skin, skinIndex + 1);
+
+        ak_url_init_with_id(heap->allocator,
+                            instCtlr,
+                            skinid,
+                            &instCtlr->base.url);
+
+        node->controller = instCtlr;
+      } else {
+        node->geometry = instGeom;
+      }
     }
   }
 

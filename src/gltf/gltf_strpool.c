@@ -69,6 +69,7 @@ const char _s_gltf_pool_0[] =
 "extensions\0"
 "extras\0"
 "skin\0"
+"skins\0"
 "camera\0"
 "cameras\0"
 "perspective\0"
@@ -134,6 +135,8 @@ const char _s_gltf_pool_0[] =
 "LINEAR\0"
 "STEP\0"
 "CUBICSPLINE\0"
+"inverseBindMatrices\0"
+"joints\0"
 ;
 
 #undef _GLTF_STRPOOL_

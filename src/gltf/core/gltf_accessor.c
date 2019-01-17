@@ -19,6 +19,7 @@ gltf_accessor(AkGLTFState     * __restrict gst,
   json_t      *jbuffView, *min, *max;
   AkDataParam *dp, *last_dp;
   uint32_t     bound, i;
+  AkEnum       itemtype;
 
   heap = gst->heap;
   acc  = ak_heap_calloc(heap, memParent, sizeof(*acc));
@@ -30,24 +31,29 @@ gltf_accessor(AkGLTFState     * __restrict gst,
   acc->byteOffset = jsn_i64(jacc, _s_gltf_byteOffset);
   acc->normalized = json_boolean_value(json_object_get(jacc,
                                                        _s_gltf_normalized));
-  bound      = gltf_type(json_cstr(jacc, _s_gltf_type));
-  acc->count = jsn_i32(jacc, _s_gltf_count) * bound;
+
+  itemtype = gltf_type(json_cstr(jacc, _s_gltf_type));
+  if (itemtype < 5)
+    bound = itemtype;
+  else {
+    bound = itemtype >> 3;
+  }
+
+  acc->count = jsn_i32(jacc, _s_gltf_count);
 
   if ((jbuffView = json_object_get(jacc, _s_gltf_bufferView))) {
     AkBuffer *buff;
 
     acc->byteOffset += jsn_i64(jbuffView, _s_gltf_byteOffset);
     acc->stride      = (uint32_t)(acc->byteStride / acc->type->size);
-
-    buff = gltf_buffer(gst,
-                       (int32_t)json_integer_value(jbuffView),
-                       &acc->byteStride);
-
+    buff             = gltf_buffer(gst,
+                                   (int32_t)json_integer_value(jbuffView),
+                                   &acc->byteStride);
     acc->source.ptr = buff;
   }
 
-  dp          = last_dp = NULL;
-  acc->bound  = bound;
+  dp         = last_dp = NULL;
+  acc->bound = bound;
 
   if (bound > 10)
     acc->bound >>= 3;
@@ -56,7 +62,7 @@ gltf_accessor(AkGLTFState     * __restrict gst,
   if (acc->byteStride == 0)
     acc->byteStride = acc->type->size * acc->stride;
 
-  acc->byteLength = acc->type->size * acc->count;
+  acc->byteLength = acc->type->size * acc->count * acc->bound;
 
   /* prepare accessor params */
   for (i = 0; i < acc->bound; i++) {
@@ -74,7 +80,7 @@ gltf_accessor(AkGLTFState     * __restrict gst,
     else {
       uint32_t s, m, n;
 
-      s = (bound << (32 - 3)) >> (32 - 3);
+      s = bound; /* (bound << (32 - 3)) >> (32 - 3); */
 
       m = i % s;
       n = i / s;

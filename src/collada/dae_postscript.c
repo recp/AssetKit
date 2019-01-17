@@ -188,8 +188,8 @@ ak_fixBoneWeights(AkHeap        *heap,
   dupc    = duplicator->range->dupc;
   dupcsum = duplicator->range->dupcsum;
   vc      = nMeshVertex;
-  nj      = weights->pCount;
-  wi      = weights->pIndex;
+  nj      = weights->counts;
+  wi      = weights->indexes;
   nwsum   = count = 0;
 
   if (!(weightsBuff = ak_getObjectByUrl(&weightsAcc->source))
@@ -202,8 +202,8 @@ ak_fixBoneWeights(AkHeap        *heap,
   assert(nMeshVertex == intrWeights->nVertex);
 #endif
 
-  pOldCount    = intrWeights->pCount;
-  pOldCountSum = intrWeights->pCount + intrWeights->nVertex;
+  pOldCount    = intrWeights->counts;
+  pOldCountSum = intrWeights->counts + intrWeights->nVertex;
   viStride     = skin->reserved2; /* input count in <v> element */
 
   /* copy to new location and duplicate if needed */
@@ -340,9 +340,9 @@ dae_fixup_instctlr(AkXmlState * __restrict xst) {
             glm_mat4_transpose(invm[i]);
           }
 
-          instCtlr->joints      = joints;
-          skin->nJoints         = count;
-          skin->invBindMatrices = invm;
+          instCtlr->joints   = joints;
+          skin->nJoints      = count;
+          skin->invBindPoses = invm;
         }
       }
     }
@@ -411,10 +411,10 @@ dae_fixup_ctlr(AkXmlState * __restrict xst) {
               dupl    = rb_find(doc->reserved, prim);
               weights = ak_heap_calloc(xst->heap, ctlr->data, sizeof(*weights));
 
-              weights->pCount  = ak_heap_alloc(xst->heap,
+              weights->counts  = ak_heap_alloc(xst->heap,
                                                ctlr->data,
                                                count * sizeof(uint32_t));
-              weights->pIndex  = ak_heap_alloc(xst->heap,
+              weights->indexes  = ak_heap_alloc(xst->heap,
                                                ctlr->data,
                                                count * sizeof(size_t));
 
@@ -438,6 +438,7 @@ dae_fixup_ctlr(AkXmlState * __restrict xst) {
             skin->nPrims = primIndex;
 
             ak_free(intrWeights);
+
             break;
           }
           default:

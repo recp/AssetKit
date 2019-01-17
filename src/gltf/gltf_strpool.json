@@ -55,6 +55,7 @@
   "extensions": "extensions",
   "extras": "extras",
   "skin": "skin",
+  "skins": "skins",
   "camera": "camera",
   "cameras": "cameras",
   "perspective": "perspective",
@@ -119,5 +120,7 @@
   "anim": "anim",
   "LINEAR": "LINEAR",
   "STEP": "STEP",
-  "CUBICSPLINE": "CUBICSPLINE"
+  "CUBICSPLINE": "CUBICSPLINE",
+  "inverseBindMatrices": "inverseBindMatrices",
+  "joints": "joints"
 }

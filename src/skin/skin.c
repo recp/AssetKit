@@ -31,14 +31,14 @@ ak_skinFill(AkBoneWeights * __restrict source,
     tmp = *buff = ak_calloc(NULL, size);
 
   for (i = 0; i < source->nVertex; i++) {
-    iterCount = GLM_MIN(source->pCount[i], GLM_MIN(maxJoint, itemCount));
+    iterCount = GLM_MIN(source->counts[i], GLM_MIN(maxJoint, itemCount));
     item      = tmp + szt * i;
 
     pJoint    = (uint32_t *)item;
     pWeight   = (float *)(item + sizeof(uint32_t) * itemCount);
 
     for (k = 0; k < iterCount; k++) {
-      bw         = &source->weights[source->pIndex[i] + k];
+      bw         = &source->weights[source->indexes[i] + k];
       pJoint[k]  = bw->joint;
       pWeight[k] = bw->weight;
     }

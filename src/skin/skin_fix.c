@@ -54,7 +54,7 @@ ak_skinFixWeights(AkMesh * __restrict mesh) {
       wl          = skin->weights[primIndex];
 
       old         = wl->weights;
-      pOldIndex   = wl->pIndex;
+      pOldIndex   = wl->indexes;
       vc          = acci->count;
       dupc        = dupl->range->dupc;
       dupcsum     = dupl->range->dupcsum;
@@ -72,7 +72,7 @@ ak_skinFixWeights(AkMesh * __restrict mesh) {
         pno    = dupc->items[3 * i];
         d      = dupc->items[3 * i + 1];
         s      = dupcsum->items[pno];
-        vcount = wl->pCount[poo - 1];
+        vcount = wl->counts[poo - 1];
 
         for (j = 0; j <= d; j++) {
           newidx     = pno + j + s;
@@ -101,7 +101,7 @@ ak_skinFixWeights(AkMesh * __restrict mesh) {
         pno    = dupc->items[3 * i];
         d      = dupc->items[3 * i + 1];
         s      = dupcsum->items[pno];
-        vcount = wl->pCount[poo - 1];
+        vcount = wl->counts[poo - 1];
 
         for (j = 0; j <= d; j++) {
           newidx = wi[pno + j + s];
@@ -123,11 +123,11 @@ ak_skinFixWeights(AkMesh * __restrict mesh) {
       if (old)
         ak_free(old);
 
-      if (wl->pCount)
-        ak_free(wl->pCount);
+      if (wl->counts)
+        ak_free(wl->counts);
 
-      wl->pCount  = nj;
-      wl->pIndex  = wi;
+      wl->counts  = nj;
+      wl->indexes  = wi;
       wl->weights = w;
 
       primIndex++;

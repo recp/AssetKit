@@ -180,7 +180,7 @@ dae_skin(AkXmlState * __restrict xst,
 
                */
 
-              weights->pCount = pCount = ak_heap_alloc(xst->heap,
+              weights->counts = pCount = ak_heap_alloc(xst->heap,
                                                        weights,
                                                        2 * sz);
 
@@ -190,7 +190,7 @@ dae_skin(AkXmlState * __restrict xst,
               ak_strtoui_fast(content, pCount, count);
 
               /* calculate sum */
-              pSum = weights->pCount + count;
+              pSum = weights->counts + count;
               for (next = i = 0; i < count; i++) {
                 pSum[i] = next;
                 next    = pCount[i] + next;

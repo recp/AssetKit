@@ -29,25 +29,25 @@ typedef struct AkBoneWeight {
 } AkBoneWeight;
 
 typedef struct AkBoneWeights {
-  uint32_t     *pCount;   /* joints count by index     */
-  size_t       *pIndex;   /* offset of weight by index */
+  uint32_t     *counts;    /* joint count per vertex                     */
+  size_t       *indexes;   /* offset of weight at buffer by index        */
   AkBoneWeight *weights;
   AkTree       *extra;
-  size_t        nWeights; /* cache: count of weights                    */
-  size_t        nVertex;  /* cache: count of pJointsCount/pWeightsIndex */
+  size_t        nWeights;  /* cache: count of weights                    */
+  size_t        nVertex;   /* cache: count of pJointsCount/pWeightsIndex */
 } AkBoneWeights;
 
 typedef struct AkSkin {
-  struct AkNode **joints;  /* global joints, check instanceController   */
-  AkBoneWeights **weights; /* per primitive                             */
+  struct AkNode **joints;  /* global joints, check instanceController    */
+  AkFloat4x4     *invBindPoses;
+  AkBoneWeights **weights; /* per primitive                              */
   AkSource       *source;
-  AkFloat4x4     *invBindMatrices;
   AkTree         *extra;
   void           *reserved[5];
   uint32_t        reserved2;
   AkURL           baseGeom;
-  size_t          nJoints; /* cache: joint count     */
-  uint32_t        nPrims;  /* cache: primitive count */
+  size_t          nJoints; /* cache: joint count                        */
+  uint32_t        nPrims;  /* cache: primitive count                    */
   uint32_t        nMaxJoints;
   AkFloat4x4      bindShapeMatrix;
 } AkSkin;
@@ -76,6 +76,7 @@ typedef struct AkController {
 
 typedef struct AkInstanceController {
   AkInstanceBase    base;
+  AkURL             geometry;
   struct AkNode   **joints;
   AkBindMaterial   *bindMaterial;
   struct FListItem *reserved;
