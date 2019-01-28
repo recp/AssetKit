@@ -33,6 +33,7 @@ typedef AK_ALIGN(16) struct AkXmlState {
   AkURLQueue      *urlQueue;
   FListItem       *accessors;
   FListItem       *instCtlrs;
+  FListItem       *toRadiansSampelers;
   RBTree          *meshInfo;
   AkCOLLADAVersion version;
   int              nodeType;

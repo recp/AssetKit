@@ -11,6 +11,7 @@
 #include "../xml.h"
 
 #include "1.4/dae14.h"
+#include "dae_fixangle.h"
 
 void _assetkit_hide
 dae_retain_refs(AkXmlState * __restrict xst);
@@ -56,6 +57,8 @@ dae_postscript(AkXmlState * __restrict xst) {
   /* now set used coordSys */
   if (ak_opt_get(AK_OPT_COORD_CONVERT_TYPE) != AK_COORD_CVT_DISABLED)
     xst->doc->coordSys = (void *)ak_opt_get(AK_OPT_COORD);
+
+  dae_fixAngles(xst);
 }
 
 void _assetkit_hide
@@ -96,7 +99,6 @@ dae_fixup_accessors(AkXmlState * __restrict xst) {
   FListItem   *item;
   AkAccessor  *acc;
   AkBuffer    *buff;
-  AkDataParam *param;
 
   item = xst->accessors;
   while (item) {
@@ -115,24 +117,6 @@ dae_fixup_accessors(AkXmlState * __restrict xst) {
       acc->byteStride = acc->stride * itemSize;
       acc->byteLength = acc->count  * acc->stride * itemSize;
       acc->byteOffset = acc->offset * itemSize;
-
-      /* convert ANGLE arrays to radians */
-      if (acc->itemTypeId == AKT_FLOAT && (param = acc->param)) {
-        float *pbuff;
-        size_t paramOffset, i, count;
-
-        paramOffset = 0;
-        count       = buff->length / itemSize;
-        pbuff       = buff->data;
-        do {
-          if (param->name && strcasecmp(param->name, _s_dae_angle) == 0) {
-            /* TODO: use SIMD */
-            for (i = 0; i < count; i++)
-              glm_make_rad(&pbuff[i + paramOffset]);
-          }
-          paramOffset++;
-        } while ((param = param->next));
-      }
     }
 
   cont:

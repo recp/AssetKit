@@ -161,6 +161,33 @@ dae_animSampler(AkXmlState     * __restrict xst,
         last_input = input;
 
         ak_xml_attr_url(xst, _s_dae_source, input, &input->source);
+
+        /* check if there are angles, because they are in degress,
+           will be converted to radians, we will wait to load whole dae file
+           because all sources may not be loaded at this time
+         */
+        if (input->semantic == AK_INPUT_SEMANTIC_OUTPUT)
+          flist_sp_insert(&xst->toRadiansSampelers, sampler);
+
+        switch (input->semantic) {
+          case AK_INPUT_SEMANTIC_INPUT:
+            sampler->inputInput = input;
+            break;
+          case AK_INPUT_SEMANTIC_OUTPUT:
+            sampler->outputInput = input;
+            break;
+          case AK_INPUT_SEMANTIC_IN_TANGENT:
+            sampler->inTangentInput = input;
+            break;
+          case AK_INPUT_SEMANTIC_OUT_TANGENT:
+            sampler->outTangentInput = input;
+            break;
+          case AK_INPUT_SEMANTIC_INTERPOLATION:
+            sampler->interpInput = input;
+            break;
+          default:
+            break;
+        }
       }
     } else {
       ak_xml_skipelm(xst);

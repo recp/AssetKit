@@ -65,9 +65,7 @@ gltf_doc(AkDoc     ** __restrict dest,
     return ret;
   }
 
-  gst->bufferViews = rb_newtree(ds_allocator(),
-                                ds_cmp_i32p,
-                                NULL);
+  gst->bufferViews = rb_newtree(ds_allocator(), ds_cmp_i32p, NULL);
 
   gltf_buffers(gst);
   gltf_images(gst);
