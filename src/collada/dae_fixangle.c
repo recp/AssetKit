@@ -25,24 +25,26 @@ dae_cvtAngles(AkAccessor * __restrict acc,
               const char * __restrict paramName) {
   AkDataParam *param;
   float       *pbuff;
-  size_t       paramOffset, itemSize, i, count;
+  size_t       po, i, count, st;
 
   if (acc->itemTypeId == AKT_FLOAT && (param = acc->param)) {
-    itemSize    = acc->type->size;
-    paramOffset = 0;
-    count       = buff->length / itemSize;
+    po          = 0;
+    st          = acc->stride;
+    count       = acc->count * st;
     pbuff       = buff->data;
 
     do {
       if (param->name && strcasecmp(param->name, paramName) == 0) {
         /* TODO: use SIMD */
-        for (i = 0; i < count; i++)
-          glm_make_rad(&pbuff[i + paramOffset]);
+        for (i = po; i < count; i += st)
+          glm_make_rad(pbuff + i);
       }
-      paramOffset++;
+      po++;
     } while ((param = param->next));
   }
 }
+
+/* TODO: This works for BERZIER but HERMITE?? */
 
 void _assetkit_hide
 dae_fixAngles(AkXmlState * __restrict xst) {
