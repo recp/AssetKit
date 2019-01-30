@@ -50,6 +50,7 @@ void _assetkit_hide
 dae_fixAngles(AkXmlState * __restrict xst) {
   FListItem     *item;
   AkAnimSampler *sampler;
+  AkDataParam   *param;
   AkInput       *input;
   AkSource      *src;
   AkAccessor    *acc;
@@ -67,6 +68,19 @@ dae_fixAngles(AkXmlState * __restrict xst) {
           && (acc = src->tcommon)
           && acc->type
           && (buff = ak_getObjectByUrl(&acc->source))) {
+      bool foundAngle;
+
+      foundAngle = false;
+
+      if ((param = acc->param)) {
+        do {
+          if (param->name && strcasecmp(param->name, _s_dae_angle) == 0)
+            foundAngle = true;
+        } while ((param = param->next));
+      }
+
+      if (!foundAngle)
+        goto nxt_sampler;
 
       dae_cvtAngles(acc, buff, _s_dae_angle);
 
@@ -93,6 +107,7 @@ dae_fixAngles(AkXmlState * __restrict xst) {
       }
     }
 
+  nxt_sampler:
     item = item->next;
   }
 
