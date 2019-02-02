@@ -90,9 +90,9 @@ dae_fixAngles(AkXmlState * __restrict xst) {
              && acc->type
              && (buff = ak_getObjectByUrl(&acc->source))) {
         if (acc->param && acc->param->next)
-          dae_cvtAngles(acc, buff, _s_dae_Y);
+          dae_cvtAngles(acc, buff, acc->param->next->name);
         else if (acc->param) /* 1D tangents */
-          dae_cvtAngles(acc, buff, _s_dae_X);
+          dae_cvtAngles(acc, buff, acc->param->name);
       }
 
       /* convert out tangents to radians */
@@ -101,9 +101,9 @@ dae_fixAngles(AkXmlState * __restrict xst) {
              && acc->type
              && (buff = ak_getObjectByUrl(&acc->source))) {
         if (acc->param && acc->param->next)
-          dae_cvtAngles(acc, buff, _s_dae_Y);
+          dae_cvtAngles(acc, buff, acc->param->next->name);
         else if (acc->param) /* 1D tangents */
-          dae_cvtAngles(acc, buff, _s_dae_X);
+          dae_cvtAngles(acc, buff, acc->param->name);
       }
     }
 
