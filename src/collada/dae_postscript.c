@@ -348,7 +348,9 @@ dae_fixup_ctlr(AkXmlState * __restrict xst) {
         AkGeometry *geom;
 
         skin = ak_objGet(ctlr->data);
-        geom = ak_skinBaseGeometry(skin);
+        if (!(geom = ak_skinBaseGeometry(skin))) {
+          goto nxt_ctlr;
+        }
 
         switch (geom->gdata->type) {
           case AK_GEOMETRY_TYPE_MESH: {
@@ -433,6 +435,8 @@ dae_fixup_ctlr(AkXmlState * __restrict xst) {
       default:
         break;
     }
+
+  nxt_ctlr:
     ctlr = ctlr->next;
   }
 }
