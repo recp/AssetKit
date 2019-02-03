@@ -51,11 +51,6 @@ typedef enum AkLineMode {
   AK_LINE_MODE_LINE_STRIP = 2
 } AkLineMode;
 
-typedef enum AkPolygonMode {
-  AK_POLYGON_MODE_POLYLIST = 0,
-  AK_POLYGON_MODE_POLYGONS = 1
-} AkPolygonMode;
-
 typedef struct AkVertices {
   /* const char   * id; */
   const char   *name;
@@ -94,7 +89,6 @@ typedef struct AkPolygon {
   AkMeshPrimitive base;
   AkDoubleArrayL *holes;
   AkUIntArray    *vcount;
-  AkPolygonMode   mode;
   AkBool          haveHoles;
 } AkPolygon;
 

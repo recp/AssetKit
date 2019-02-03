@@ -10,6 +10,11 @@
 
 #include "../dae_common.h"
 
+typedef enum AkPolygonMode {
+  AK_POLYGON_MODE_POLYLIST = 0,
+  AK_POLYGON_MODE_POLYGONS = 1
+} AkPolygonMode;
+
 AkResult _assetkit_hide
 dae_polygon(AkXmlState * __restrict xst,
             void       * __restrict memParent,

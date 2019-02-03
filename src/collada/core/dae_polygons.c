@@ -8,6 +8,7 @@
 #include "dae_polygons.h"
 #include "dae_enums.h"
 #include "../../array.h"
+#include "../../data.h"
 
 AkResult _assetkit_hide
 dae_polygon(AkXmlState * __restrict xst,
@@ -15,18 +16,18 @@ dae_polygon(AkXmlState * __restrict xst,
             const char             *elm,
             AkPolygonMode           mode,
             AkPolygon ** __restrict dest) {
-  AkPolygon    *polygon;
-  AkInput      *last_input;
-  AkXmlElmState xest;
-  uint32_t      indexoff;
+  AkPolygon     *polygon;
+  AkInput       *last_input;
+  FListItem     *polygons;
+  AkXmlElmState  xest;
+  uint32_t       indexoff, polygonsCount, indicesCount, st;
 
   polygon = ak_heap_calloc(xst->heap,
                            memParent,
                            sizeof(*polygon));
 
-  polygon->mode      = mode;
-  polygon->haveHoles = false;
-  polygon->base.type = AK_MESH_PRIMITIVE_TYPE_POLYGONS;
+  polygon->haveHoles     = false;
+  polygon->base.type     = AK_MESH_PRIMITIVE_TYPE_POLYGONS;
 
   polygon->base.name     = ak_xml_attr(xst, polygon, _s_dae_name);
   polygon->base.material = ak_xml_attr(xst, polygon, _s_dae_material);
@@ -39,8 +40,11 @@ dae_polygon(AkXmlState * __restrict xst,
                               strtoul, NULL, 10);
    */
 
-  last_input = NULL;
-  indexoff   = 0;
+  last_input    = NULL;
+  polygons      = NULL;
+  indexoff      = 0;
+  polygonsCount = 0;
+  indicesCount  = 0;
 
   ak_xest_init(xest, elm)
 
@@ -98,9 +102,18 @@ dae_polygon(AkXmlState * __restrict xst,
         AkUIntArray *intArray;
         AkResult ret;
 
-        ret = ak_strtoui_array(xst->heap, polygon, content, &intArray);
-        if (ret == AK_OK)
-          polygon->base.indices = intArray;
+        if (mode == AK_POLYGON_MODE_POLYLIST) {
+          ret = ak_strtoui_array(xst->heap, polygon, content, &intArray);
+          if (ret == AK_OK)
+            polygon->base.indices = intArray;
+        } else if (mode == AK_POLYGON_MODE_POLYGONS) {
+          ret = ak_strtoui_array(xst->heap, polygon, content, &intArray);
+          if (ret == AK_OK) {
+            flist_sp_insert(&polygons, intArray);
+            polygonsCount++;
+            indicesCount += intArray->count;
+          }
+        }
 
         xmlFree(content);
       }
@@ -189,7 +202,51 @@ dae_polygon(AkXmlState * __restrict xst,
       break;
   } while (xst->nodeRet);
 
-  polygon->base.indexStride = indexoff + 1;
+  polygon->base.indexStride = st = indexoff + 1;
+
+  if (mode == AK_POLYGON_MODE_POLYGONS) {
+    FListItem   *p;
+    AkUIntArray *indices, *vcount;
+    AkUInt      *pIndices, *pVcount;
+
+    size_t gg;
+    gg = 0;
+    /* alloc indices array */
+    indices = ak_heap_alloc(xst->heap,
+                            polygon,
+                            sizeof(*indices) + sizeof(AkUInt) * indicesCount);
+    indices->count = indicesCount;
+
+    /* alloc vcount */
+    vcount = ak_heap_alloc(xst->heap,
+                           polygon,
+                           sizeof(*vcount) + sizeof(AkUInt) * polygonsCount);
+    vcount->count = polygonsCount;
+
+    pIndices = indices->items;
+    pVcount  = vcount->items;
+
+    p = polygons;
+    while (p) {
+      AkUIntArray *intArray;
+
+      intArray = p->data;
+
+      memcpy(pIndices, intArray->items, sizeof(AkUInt) * intArray->count);
+
+      *pVcount++ = (AkUInt)intArray->count / st;
+      pIndices  += intArray->count;
+
+      ak_free(intArray);
+
+      p = p->next;
+    }
+
+    polygon->base.indices = indices;
+    polygon->vcount       = vcount;
+
+    flist_sp_destroy(&polygons);
+  }
 
   *dest = polygon;
 
