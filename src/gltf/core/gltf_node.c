@@ -383,13 +383,13 @@ gltf_bindMaterials(AkGLTFState        * __restrict gst,
     if (!mat)
       continue;
 
-    materialFound    = true;
-    instMat          = ak_heap_calloc(heap, bindMat,  sizeof(*instMat));
+    materialFound = true;
+    instMat       = ak_heap_calloc(heap, bindMat,  sizeof(*instMat));
 
-    materialId       = ak_mem_getId(mat);
-    len              = strlen(materialId) + 1;
-    symbol           = ak_heap_alloc(heap, instMat, len);
-    symbol[len]      = '\0';
+    materialId    = ak_mem_getId(mat);
+    len           = strlen(materialId) + ak_digitsize(i) + 1;
+    symbol        = ak_heap_alloc(heap, instMat, len + 1);
+    symbol[len]   = '\0';
     sprintf(symbol, "%s-%zu", materialId, i);
 
     if (last_instMat)
@@ -431,8 +431,8 @@ gltf_bindMaterials(AkGLTFState        * __restrict gst,
       if (strcasecmp(input, _s_gltf_TEXCOORD) == 0) {
 
         /* find if it is already bound */
-        len         = strlen(_s_gltf_sid_texcoord) + ak_digitsize(set) + 1;
-        bviSem      = ak_heap_alloc(heap, NULL, len);
+        len         = strlen(_s_gltf_sid_texcoord) + ak_digitsize(set);
+        bviSem      = ak_heap_alloc(heap, NULL, len + 1);
         bviSem[len] = '\0';
         sprintf(bviSem, "%s%d", _s_gltf_sid_texcoord, set);
 

@@ -176,10 +176,10 @@ gltf_meshes(AkGLTFState * __restrict gst) {
           char  *materialId, *symbol;
           size_t len;
 
-          materialId    = ak_mem_getId(mat);
-          len           = strlen(materialId) + 1;
-          symbol        = ak_heap_alloc(heap, prim, len);
-          symbol[len]   = '\0';
+          materialId  = ak_mem_getId(mat);
+          len         = strlen(materialId) + ak_digitsize(j) + 1;
+          symbol      = ak_heap_alloc(heap, prim, len + 1);
+          symbol[len] = '\0';
           sprintf(symbol, "%s-%d", materialId, j);
 
           ak_meshSetMaterial(prim, (prim->material = symbol));

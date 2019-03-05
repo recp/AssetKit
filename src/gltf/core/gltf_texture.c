@@ -37,8 +37,8 @@ gltf_texref(AkGLTFState * __restrict gst,
   tex = ak_heap_calloc(heap, parent, sizeof(*tex));
   ak_setypeid(tex, AKT_TEXTURE);
 
-  len      = strlen(_s_gltf_sid_texcoord) + ak_digitsize(texindex) + 1;
-  sem      = ak_heap_alloc(heap, param, len);
+  len      = strlen(_s_gltf_sid_texcoord) + ak_digitsize(texindex);
+  sem      = ak_heap_alloc(heap, param, len + 1);
   sem[len] = '\0';
   sprintf(sem, "%s%d", _s_gltf_sid_texcoord, texCoord);
 
