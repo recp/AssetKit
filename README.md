@@ -129,5 +129,4 @@ Currently tests are implemented for Autotools (make check), there is separate re
 # Notes
 - Actual README and documents for how to use this will be written after first version
 - I'm working hard to finish this lib, I'll update README when finished, for now <b>DON'T USE THIS LIB UNTIL FINISHED</b>
-- Don't create pull requests for now, if you really want then, first contact me because I may work on the feature you want or I've planned it with an architecture to do that
 
