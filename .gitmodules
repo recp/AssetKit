@@ -1,6 +1,6 @@
 [submodule "lib/libxml2"]
 	path = lib/libxml2
-	url = git://git.gnome.org/libxml2
+	url = https://gitlab.gnome.org/GNOME/libxml2.git
 	branch = master
 	ignore = dirty
 [submodule "lib/jemalloc"]
