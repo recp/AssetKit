@@ -118,6 +118,7 @@ libassetkit_la_SOURCES=\
     src/resc/curl.c \
     src/resc/resource.c \
     src/resc/url.c \
+    src/skin/skin_fix.c \
     src/instance/inst.c \
     src/instance/inst_list.c \
     src/default/def_coord.c \
@@ -152,7 +153,9 @@ libassetkit_la_SOURCES=\
     src/bbox/bbox_mesh.c \
     src/bbox/bbox_mesh_prim.c \
     src/bbox/bbox_scene.c \
+    src/controller/ctlr.c \
     src/image/image.c \
+\
     src/collada/dae.c \
     src/collada/dae_lib.c \
     src/collada/dae_strpool.c \
@@ -189,6 +192,7 @@ libassetkit_la_SOURCES=\
     src/collada/core/dae_accessor.c \
     src/collada/core/dae_anim.c \
     src/collada/brep/dae_brep.c \
+    src/collada/dae_fixangle.c \
     src/collada/brep/dae_brep_curve.c \
     src/collada/brep/dae_brep_nurbs.c \
     src/collada/brep/dae_brep_surface.c \
@@ -213,18 +217,18 @@ libassetkit_la_SOURCES=\
     src/collada/fx/dae_fx_uniform.c \
     src/collada/fx/dae_fx_evaluate.c \
     src/collada/fx/dae_fx_material.c \
-\
     src/collada/1.4/dae14.c \
     src/collada/1.4/dae14_image.c \
     src/collada/1.4/dae14_surface.c \
-\
     src/collada/bugfix/transp.c \
 \
     src/gltf/gltf.c \
     src/gltf/gltf_strpool.c \
     src/gltf/gltf_postscript.c \
     src/gltf/gltf_mesh_fixup.c \
+    src/gltf/core/gltf_anim.c \
     src/gltf/core/gltf_enums.c \
+    src/gltf/core/gltf_skin.c \
     src/gltf/core/gltf_asset.c \
     src/gltf/core/gltf_buffer.c \
     src/gltf/core/gltf_accessor.c \
