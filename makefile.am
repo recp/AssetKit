@@ -142,8 +142,8 @@ libassetkit_la_SOURCES=\
     src/mesh/mesh_triangulate.c \
     src/mesh/mesh_normal.c \
     src/mesh/mesh_edit.c \
-    src/mesh/mesh_edit_array.c \
-    src/mesh/mesh_edit_array_fixup.c \
+    src/mesh/mesh_edit_buff.c \
+    src/mesh/mesh_edit_buff_fixup.c \
     src/mesh/mesh_edit_index.c \
     src/mesh/mesh_duplicator.c \
     src/mesh/mesh_input.c \
