@@ -165,6 +165,7 @@ libassetkit_la_SOURCES=\
     src/collada/dae_geom_fixup.c \
     src/collada/dae_mesh_fixup.c \
     src/collada/dae_node_fixup.c \
+    src/collada/dae_fixangle.c \
     src/collada/dae_strpool.c \
     src/collada/core/dae_asset.c \
     src/collada/core/dae_annotate.c \
@@ -243,8 +244,7 @@ libassetkit_la_SOURCES=\
     src/gltf/core/gltf_texture.c \
     src/gltf/core/gltf_material.c \
     src/gltf/core/gltf_anim.c \
-    src/gltf/core/gltf_skin.c \
-    src/gltf/core/gltf_morph.c
+    src/gltf/core/gltf_skin.c
 
 test_tests_SOURCES=\
     test/src/test-common.h \
