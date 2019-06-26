@@ -24,32 +24,32 @@
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>assetkit</RootNamespace>
     <ProjectName>assetkit</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -73,25 +73,25 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\lib\libuv\include;..\lib\libds\include;..\lib\cglm\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\lib\libuv\include;..\lib\libds\include;..\lib\cglm\include;..\lib\jansson\src;$(IncludePath)</IncludePath>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <IncludePath>..\lib\libuv\include;..\lib\libds\include;..\lib\cglm\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\lib\libuv\include;..\lib\libds\include;..\lib\cglm\include;..\lib\jansson\src;$(IncludePath)</IncludePath>
     <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>true</RunCodeAnalysis>
-    <IncludePath>..\lib\libuv\include;..\lib\libds\include;..\lib\cglm\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\lib\libuv\include;..\lib\libds\include;..\lib\cglm\include;..\lib\jansson\src;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\lib\libuv\include;..\lib\libds\include;..\lib\cglm\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\lib\libuv\include;..\lib\libds\include;..\lib\cglm\include;..\lib\jansson\src;$(IncludePath)</IncludePath>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
@@ -174,270 +174,330 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="..\src\collada\ak_collada_strpool.json" />
-    <None Include="..\src\collada\strpool.py" />
     <None Include="build.bat" />
     <None Include="LICENSE" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\ak-bbox.h" />
-    <ClInclude Include="..\include\ak-cam.h" />
-    <ClInclude Include="..\include\ak-common.h" />
-    <ClInclude Include="..\include\ak-context.h" />
-    <ClInclude Include="..\include\ak-coord-util.h" />
-    <ClInclude Include="..\include\ak-coord.h" />
-    <ClInclude Include="..\include\ak-geom.h" />
-    <ClInclude Include="..\include\ak-image.h" />
-    <ClInclude Include="..\include\ak-instance.h" />
-    <ClInclude Include="..\include\ak-lib.h" />
-    <ClInclude Include="..\include\ak-light.h" />
-    <ClInclude Include="..\include\ak-map.h" />
-    <ClInclude Include="..\include\ak-material.h" />
-    <ClInclude Include="..\include\ak-memory.h" />
-    <ClInclude Include="..\include\ak-node.h" />
-    <ClInclude Include="..\include\ak-options.h" />
-    <ClInclude Include="..\include\ak-path.h" />
-    <ClInclude Include="..\include\ak-profile.h" />
-    <ClInclude Include="..\include\ak-sid.h" />
-    <ClInclude Include="..\include\ak-source.h" />
-    <ClInclude Include="..\include\ak-states.h" />
-    <ClInclude Include="..\include\ak-string.h" />
-    <ClInclude Include="..\include\ak-transform.h" />
-    <ClInclude Include="..\include\ak-trash.h" />
-    <ClInclude Include="..\include\ak-type.h" />
-    <ClInclude Include="..\include\ak-url.h" />
-    <ClInclude Include="..\include\ak-util.h" />
-    <ClInclude Include="..\include\assetkit.h" />
-    <ClInclude Include="..\src\ak_accessor.h" />
-    <ClInclude Include="..\src\ak_array.h" />
-    <ClInclude Include="..\src\ak_common.h" />
-    <ClInclude Include="..\src\ak_data.h" />
-    <ClInclude Include="..\src\ak_id.h" />
-    <ClInclude Include="..\src\ak_libxml.h" />
-    <ClInclude Include="..\src\ak_memory_common.h" />
-    <ClInclude Include="..\src\ak_memory_lt.h" />
-    <ClInclude Include="..\src\ak_memory_rb.h" />
-    <ClInclude Include="..\src\ak_profile.h" />
-    <ClInclude Include="..\src\ak_trash.h" />
-    <ClInclude Include="..\src\ak_tree.h" />
-    <ClInclude Include="..\src\ak_utils.h" />
-    <ClInclude Include="..\src\bbox\ak_bbox.h" />
-    <ClInclude Include="..\src\bitwise\ak_bitwise.h" />
-    <ClInclude Include="..\src\collada\1.4\ak_collada14.h" />
-    <ClInclude Include="..\src\collada\1.4\ak_collada14_image.h" />
-    <ClInclude Include="..\src\collada\1.4\ak_collada14_surface.h" />
-    <ClInclude Include="..\src\collada\ak_collada.h" />
-    <ClInclude Include="..\src\collada\ak_collada_common.h" />
-    <ClInclude Include="..\src\collada\ak_collada_geom_fixup.h" />
-    <ClInclude Include="..\src\collada\ak_collada_lib.h" />
-    <ClInclude Include="..\src\collada\ak_collada_mesh_fixup.h" />
-    <ClInclude Include="..\src\collada\ak_collada_node_fixup.h" />
-    <ClInclude Include="..\src\collada\ak_collada_postscript.h" />
-    <ClInclude Include="..\src\collada\ak_collada_strpool.h" />
-    <ClInclude Include="..\src\collada\brep\ak_collada_brep.h" />
-    <ClInclude Include="..\src\collada\brep\ak_collada_brep_curve.h" />
-    <ClInclude Include="..\src\collada\brep\ak_collada_brep_nurbs.h" />
-    <ClInclude Include="..\src\collada\brep\ak_collada_brep_surface.h" />
-    <ClInclude Include="..\src\collada\brep\ak_collada_brep_topology.h" />
-    <ClInclude Include="..\src\collada\core\ak_collada_accessor.h" />
-    <ClInclude Include="..\src\collada\core\ak_collada_annotate.h" />
-    <ClInclude Include="..\src\collada\core\ak_collada_asset.h" />
-    <ClInclude Include="..\src\collada\core\ak_collada_camera.h" />
-    <ClInclude Include="..\src\collada\core\ak_collada_color.h" />
-    <ClInclude Include="..\src\collada\core\ak_collada_controller.h" />
-    <ClInclude Include="..\src\collada\core\ak_collada_enums.h" />
-    <ClInclude Include="..\src\collada\core\ak_collada_evaluate_scene.h" />
-    <ClInclude Include="..\src\collada\core\ak_collada_geometry.h" />
-    <ClInclude Include="..\src\collada\core\ak_collada_light.h" />
-    <ClInclude Include="..\src\collada\core\ak_collada_lines.h" />
-    <ClInclude Include="..\src\collada\core\ak_collada_mesh.h" />
-    <ClInclude Include="..\src\collada\core\ak_collada_morph.h" />
-    <ClInclude Include="..\src\collada\core\ak_collada_node.h" />
-    <ClInclude Include="..\src\collada\core\ak_collada_param.h" />
-    <ClInclude Include="..\src\collada\core\ak_collada_polygons.h" />
-    <ClInclude Include="..\src\collada\core\ak_collada_render.h" />
-    <ClInclude Include="..\src\collada\core\ak_collada_scene.h" />
-    <ClInclude Include="..\src\collada\core\ak_collada_skin.h" />
-    <ClInclude Include="..\src\collada\core\ak_collada_source.h" />
-    <ClInclude Include="..\src\collada\core\ak_collada_spline.h" />
-    <ClInclude Include="..\src\collada\core\ak_collada_technique.h" />
-    <ClInclude Include="..\src\collada\core\ak_collada_triangles.h" />
-    <ClInclude Include="..\src\collada\core\ak_collada_value.h" />
-    <ClInclude Include="..\src\collada\core\ak_collada_vertices.h" />
-    <ClInclude Include="..\src\collada\core\ak_collada_visual_scene.h" />
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_binary.h" />
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_blinn_phong.h" />
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_color_or_tex.h" />
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_constant.h" />
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_effect.h" />
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_enums.h" />
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_evaluate.h" />
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_float_or_param.h" />
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_image.h" />
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_lambert.h" />
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_material.h" />
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_pass.h" />
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_profile.h" />
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_program.h" />
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_sampler.h" />
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_shader.h" />
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_states.h" />
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_states_detail.h" />
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_technique.h" />
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_uniform.h" />
+    <ClInclude Include="..\include\ak\animation.h" />
+    <ClInclude Include="..\include\ak\assetkit.h" />
+    <ClInclude Include="..\include\ak\bbox.h" />
+    <ClInclude Include="..\include\ak\cam.h" />
+    <ClInclude Include="..\include\ak\common.h" />
+    <ClInclude Include="..\include\ak\context.h" />
+    <ClInclude Include="..\include\ak\controller.h" />
+    <ClInclude Include="..\include\ak\coord-util.h" />
+    <ClInclude Include="..\include\ak\coord.h" />
+    <ClInclude Include="..\include\ak\core-types.h" />
+    <ClInclude Include="..\include\ak\geom.h" />
+    <ClInclude Include="..\include\ak\image.h" />
+    <ClInclude Include="..\include\ak\instance.h" />
+    <ClInclude Include="..\include\ak\lib.h" />
+    <ClInclude Include="..\include\ak\light.h" />
+    <ClInclude Include="..\include\ak\map.h" />
+    <ClInclude Include="..\include\ak\material.h" />
+    <ClInclude Include="..\include\ak\memory.h" />
+    <ClInclude Include="..\include\ak\node.h" />
+    <ClInclude Include="..\include\ak\options.h" />
+    <ClInclude Include="..\include\ak\path.h" />
+    <ClInclude Include="..\include\ak\profile.h" />
+    <ClInclude Include="..\include\ak\sid.h" />
+    <ClInclude Include="..\include\ak\source.h" />
+    <ClInclude Include="..\include\ak\states.h" />
+    <ClInclude Include="..\include\ak\string.h" />
+    <ClInclude Include="..\include\ak\texture.h" />
+    <ClInclude Include="..\include\ak\transform.h" />
+    <ClInclude Include="..\include\ak\trash.h" />
+    <ClInclude Include="..\include\ak\type.h" />
+    <ClInclude Include="..\include\ak\url.h" />
+    <ClInclude Include="..\include\ak\util.h" />
+    <ClInclude Include="..\src\accessor.h" />
+    <ClInclude Include="..\src\array.h" />
+    <ClInclude Include="..\src\bbox\bbox.h" />
+    <ClInclude Include="..\src\bitwise\bitwise.h" />
+    <ClInclude Include="..\src\collada\1.4\dae14.h" />
+    <ClInclude Include="..\src\collada\1.4\dae14_image.h" />
+    <ClInclude Include="..\src\collada\1.4\dae14_surface.h" />
+    <ClInclude Include="..\src\collada\brep\dae_brep.h" />
+    <ClInclude Include="..\src\collada\brep\dae_brep_curve.h" />
+    <ClInclude Include="..\src\collada\brep\dae_brep_nurbs.h" />
+    <ClInclude Include="..\src\collada\brep\dae_brep_surface.h" />
+    <ClInclude Include="..\src\collada\brep\dae_brep_topology.h" />
+    <ClInclude Include="..\src\collada\bugfix\transp.h" />
+    <ClInclude Include="..\src\collada\core\dae_accessor.h" />
+    <ClInclude Include="..\src\collada\core\dae_anim.h" />
+    <ClInclude Include="..\src\collada\core\dae_annotate.h" />
+    <ClInclude Include="..\src\collada\core\dae_asset.h" />
+    <ClInclude Include="..\src\collada\core\dae_camera.h" />
+    <ClInclude Include="..\src\collada\core\dae_color.h" />
+    <ClInclude Include="..\src\collada\core\dae_controller.h" />
+    <ClInclude Include="..\src\collada\core\dae_enums.h" />
+    <ClInclude Include="..\src\collada\core\dae_evaluate_scene.h" />
+    <ClInclude Include="..\src\collada\core\dae_geometry.h" />
+    <ClInclude Include="..\src\collada\core\dae_light.h" />
+    <ClInclude Include="..\src\collada\core\dae_lines.h" />
+    <ClInclude Include="..\src\collada\core\dae_mesh.h" />
+    <ClInclude Include="..\src\collada\core\dae_morph.h" />
+    <ClInclude Include="..\src\collada\core\dae_node.h" />
+    <ClInclude Include="..\src\collada\core\dae_param.h" />
+    <ClInclude Include="..\src\collada\core\dae_polygons.h" />
+    <ClInclude Include="..\src\collada\core\dae_render.h" />
+    <ClInclude Include="..\src\collada\core\dae_scene.h" />
+    <ClInclude Include="..\src\collada\core\dae_skin.h" />
+    <ClInclude Include="..\src\collada\core\dae_source.h" />
+    <ClInclude Include="..\src\collada\core\dae_spline.h" />
+    <ClInclude Include="..\src\collada\core\dae_technique.h" />
+    <ClInclude Include="..\src\collada\core\dae_triangles.h" />
+    <ClInclude Include="..\src\collada\core\dae_value.h" />
+    <ClInclude Include="..\src\collada\core\dae_vertices.h" />
+    <ClInclude Include="..\src\collada\core\dae_visual_scene.h" />
+    <ClInclude Include="..\src\collada\dae.h" />
+    <ClInclude Include="..\src\collada\dae_common.h" />
+    <ClInclude Include="..\src\collada\dae_fixangle.h" />
+    <ClInclude Include="..\src\collada\dae_geom_fixup.h" />
+    <ClInclude Include="..\src\collada\dae_lib.h" />
+    <ClInclude Include="..\src\collada\dae_mesh_fixup.h" />
+    <ClInclude Include="..\src\collada\dae_node_fixup.h" />
+    <ClInclude Include="..\src\collada\dae_postscript.h" />
+    <ClInclude Include="..\src\collada\dae_strpool.h" />
+    <ClInclude Include="..\src\collada\fx\dae_fx_binary.h" />
+    <ClInclude Include="..\src\collada\fx\dae_fx_blinn_phong.h" />
+    <ClInclude Include="..\src\collada\fx\dae_fx_color_or_tex.h" />
+    <ClInclude Include="..\src\collada\fx\dae_fx_constant.h" />
+    <ClInclude Include="..\src\collada\fx\dae_fx_effect.h" />
+    <ClInclude Include="..\src\collada\fx\dae_fx_enums.h" />
+    <ClInclude Include="..\src\collada\fx\dae_fx_evaluate.h" />
+    <ClInclude Include="..\src\collada\fx\dae_fx_float_or_param.h" />
+    <ClInclude Include="..\src\collada\fx\dae_fx_image.h" />
+    <ClInclude Include="..\src\collada\fx\dae_fx_lambert.h" />
+    <ClInclude Include="..\src\collada\fx\dae_fx_material.h" />
+    <ClInclude Include="..\src\collada\fx\dae_fx_pass.h" />
+    <ClInclude Include="..\src\collada\fx\dae_fx_profile.h" />
+    <ClInclude Include="..\src\collada\fx\dae_fx_program.h" />
+    <ClInclude Include="..\src\collada\fx\dae_fx_sampler.h" />
+    <ClInclude Include="..\src\collada\fx\dae_fx_shader.h" />
+    <ClInclude Include="..\src\collada\fx\dae_fx_states.h" />
+    <ClInclude Include="..\src\collada\fx\dae_fx_states_detail.h" />
+    <ClInclude Include="..\src\collada\fx\dae_fx_technique.h" />
+    <ClInclude Include="..\src\collada\fx\dae_fx_uniform.h" />
+    <ClInclude Include="..\src\common.h" />
     <ClInclude Include="..\src\config.h" />
-    <ClInclude Include="..\src\coord_sys\ak_coord_common.h" />
-    <ClInclude Include="..\src\default\ak_def_cam.h" />
-    <ClInclude Include="..\src\default\ak_def_light.h" />
-    <ClInclude Include="..\src\default\ak_def_material.h" />
-    <ClInclude Include="..\src\default\ak_def_opt.h" />
-    <ClInclude Include="..\src\default\ak_def_semantic.h" />
-    <ClInclude Include="..\src\mesh\ak_mesh_edit_common.h" />
-    <ClInclude Include="..\src\mesh\ak_mesh_index.h" />
-    <ClInclude Include="..\src\mesh\ak_mesh_util.h" />
-    <ClInclude Include="..\src\resc\ak_curl.h" />
-    <ClInclude Include="..\src\resc\ak_resource.h" />
+    <ClInclude Include="..\src\coord_sys\coord_common.h" />
+    <ClInclude Include="..\src\data.h" />
+    <ClInclude Include="..\src\default\def_cam.h" />
+    <ClInclude Include="..\src\default\def_light.h" />
+    <ClInclude Include="..\src\default\def_material.h" />
+    <ClInclude Include="..\src\default\def_opt.h" />
+    <ClInclude Include="..\src\default\def_semantic.h" />
+    <ClInclude Include="..\src\default\def_type.h" />
+    <ClInclude Include="..\src\gltf\core\gltf_accessor.h" />
+    <ClInclude Include="..\src\gltf\core\gltf_anim.h" />
+    <ClInclude Include="..\src\gltf\core\gltf_asset.h" />
+    <ClInclude Include="..\src\gltf\core\gltf_buffer.h" />
+    <ClInclude Include="..\src\gltf\core\gltf_camera.h" />
+    <ClInclude Include="..\src\gltf\core\gltf_enums.h" />
+    <ClInclude Include="..\src\gltf\core\gltf_image.h" />
+    <ClInclude Include="..\src\gltf\core\gltf_material.h" />
+    <ClInclude Include="..\src\gltf\core\gltf_mesh.h" />
+    <ClInclude Include="..\src\gltf\core\gltf_morph.h" />
+    <ClInclude Include="..\src\gltf\core\gltf_node.h" />
+    <ClInclude Include="..\src\gltf\core\gltf_profile.h" />
+    <ClInclude Include="..\src\gltf\core\gltf_sampler.h" />
+    <ClInclude Include="..\src\gltf\core\gltf_scene.h" />
+    <ClInclude Include="..\src\gltf\core\gltf_skin.h" />
+    <ClInclude Include="..\src\gltf\core\gltf_texture.h" />
+    <ClInclude Include="..\src\gltf\gltf.h" />
+    <ClInclude Include="..\src\gltf\gltf_common.h" />
+    <ClInclude Include="..\src\gltf\gltf_mesh_fixup.h" />
+    <ClInclude Include="..\src\gltf\gltf_postscript.h" />
+    <ClInclude Include="..\src\gltf\gltf_strpool.h" />
+    <ClInclude Include="..\src\id.h" />
+    <ClInclude Include="..\src\json.h" />
+    <ClInclude Include="..\src\memory_common.h" />
+    <ClInclude Include="..\src\memory_lt.h" />
+    <ClInclude Include="..\src\memory_rb.h" />
+    <ClInclude Include="..\src\mesh\mesh_edit_common.h" />
+    <ClInclude Include="..\src\mesh\mesh_index.h" />
+    <ClInclude Include="..\src\mesh\mesh_util.h" />
+    <ClInclude Include="..\src\profile.h" />
+    <ClInclude Include="..\src\resc\curl.h" />
+    <ClInclude Include="..\src\resc\resource.h" />
+    <ClInclude Include="..\src\sid.h" />
+    <ClInclude Include="..\src\skin\skin_fix.h" />
+    <ClInclude Include="..\src\trash.h" />
+    <ClInclude Include="..\src\tree.h" />
+    <ClInclude Include="..\src\type.h" />
+    <ClInclude Include="..\src\utils.h" />
+    <ClInclude Include="..\src\xml.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\ak_accessor.c" />
-    <ClCompile Include="..\src\ak_array.c" />
-    <ClCompile Include="..\src\ak_asset.c" />
-    <ClCompile Include="..\src\ak_common.c" />
-    <ClCompile Include="..\src\ak_data.c" />
-    <ClCompile Include="..\src\ak_find.c" />
-    <ClCompile Include="..\src\ak_id.c" />
-    <ClCompile Include="..\src\ak_libxml.c" />
-    <ClCompile Include="..\src\ak_main.c" />
-    <ClCompile Include="..\src\ak_map.c" />
-    <ClCompile Include="..\src\ak_memory.c" />
-    <ClCompile Include="..\src\ak_memory_ext.c" />
-    <ClCompile Include="..\src\ak_memory_intr.c" />
-    <ClCompile Include="..\src\ak_memory_lt.c" />
-    <ClCompile Include="..\src\ak_memory_rb.c" />
-    <ClCompile Include="..\src\ak_profile.c" />
-    <ClCompile Include="..\src\ak_sid.c" />
-    <ClCompile Include="..\src\ak_sid_constr.c" />
-    <ClCompile Include="..\src\ak_string.c" />
-    <ClCompile Include="..\src\ak_trash.c" />
-    <ClCompile Include="..\src\ak_tree.c" />
-    <ClCompile Include="..\src\ak_type.c" />
-    <ClCompile Include="..\src\ak_utils.c" />
-    <ClCompile Include="..\src\array\ak_source_array.c" />
+    <ClCompile Include="..\src\accessor.c" />
+    <ClCompile Include="..\src\array.c" />
+    <ClCompile Include="..\src\array\source_array.c" />
+    <ClCompile Include="..\src\asset.c" />
     <ClCompile Include="..\src\assetkit.c" />
-    <ClCompile Include="..\src\bbox\ak_bbox.c" />
-    <ClCompile Include="..\src\bbox\ak_bbox_geom.c" />
-    <ClCompile Include="..\src\bbox\ak_bbox_mesh.c" />
-    <ClCompile Include="..\src\bbox\ak_bbox_mesh_prim.c" />
-    <ClCompile Include="..\src\bbox\ak_bbox_scene.c" />
-    <ClCompile Include="..\src\camera\ak_cam.c" />
-    <ClCompile Include="..\src\collada\1.4\ak_collada14.c" />
-    <ClCompile Include="..\src\collada\1.4\ak_collada14_image.c" />
-    <ClCompile Include="..\src\collada\1.4\ak_collada14_surface.c" />
-    <ClCompile Include="..\src\collada\ak_collada.c" />
-    <ClCompile Include="..\src\collada\ak_collada_common.c" />
-    <ClCompile Include="..\src\collada\ak_collada_geom_fixup.c" />
-    <ClCompile Include="..\src\collada\ak_collada_lib.c" />
-    <ClCompile Include="..\src\collada\ak_collada_mesh_fixup.c" />
-    <ClCompile Include="..\src\collada\ak_collada_node_fixup.c" />
-    <ClCompile Include="..\src\collada\ak_collada_postscript.c" />
-    <ClCompile Include="..\src\collada\ak_collada_strpool.c" />
-    <ClCompile Include="..\src\collada\brep\ak_collada_brep.c" />
-    <ClCompile Include="..\src\collada\brep\ak_collada_brep_curve.c" />
-    <ClCompile Include="..\src\collada\brep\ak_collada_brep_nurbs.c" />
-    <ClCompile Include="..\src\collada\brep\ak_collada_brep_surface.c" />
-    <ClCompile Include="..\src\collada\brep\ak_collada_brep_topology.c" />
-    <ClCompile Include="..\src\collada\core\ak_collada_accessor.c" />
-    <ClCompile Include="..\src\collada\core\ak_collada_annotate.c" />
-    <ClCompile Include="..\src\collada\core\ak_collada_asset.c" />
-    <ClCompile Include="..\src\collada\core\ak_collada_camera.c" />
-    <ClCompile Include="..\src\collada\core\ak_collada_color.c" />
-    <ClCompile Include="..\src\collada\core\ak_collada_controller.c" />
-    <ClCompile Include="..\src\collada\core\ak_collada_enums.c" />
-    <ClCompile Include="..\src\collada\core\ak_collada_evaluate_scene.c" />
-    <ClCompile Include="..\src\collada\core\ak_collada_geometry.c" />
-    <ClCompile Include="..\src\collada\core\ak_collada_light.c" />
-    <ClCompile Include="..\src\collada\core\ak_collada_lines.c" />
-    <ClCompile Include="..\src\collada\core\ak_collada_mesh.c" />
-    <ClCompile Include="..\src\collada\core\ak_collada_morph.c" />
-    <ClCompile Include="..\src\collada\core\ak_collada_node.c" />
-    <ClCompile Include="..\src\collada\core\ak_collada_param.c" />
-    <ClCompile Include="..\src\collada\core\ak_collada_polygons.c" />
-    <ClCompile Include="..\src\collada\core\ak_collada_render.c" />
-    <ClCompile Include="..\src\collada\core\ak_collada_scene.c" />
-    <ClCompile Include="..\src\collada\core\ak_collada_skin.c" />
-    <ClCompile Include="..\src\collada\core\ak_collada_source.c" />
-    <ClCompile Include="..\src\collada\core\ak_collada_spline.c" />
-    <ClCompile Include="..\src\collada\core\ak_collada_technique.c" />
-    <ClCompile Include="..\src\collada\core\ak_collada_triangles.c" />
-    <ClCompile Include="..\src\collada\core\ak_collada_value.c" />
-    <ClCompile Include="..\src\collada\core\ak_collada_vertices.c" />
-    <ClCompile Include="..\src\collada\core\ak_collada_visual_scene.c" />
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_binary.c" />
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_blinn_phong.c" />
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_color_or_tex.c" />
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_constant.c" />
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_effect.c" />
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_enums.c" />
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_evaluate.c" />
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_float_or_param.c" />
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_image.c" />
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_lambert.c" />
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_material.c" />
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_pass.c" />
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_profile.c" />
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_program.c" />
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_sampler.c" />
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_shader.c" />
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_states.c" />
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_states_detail.c" />
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_technique.c" />
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_uniform.c" />
-    <ClCompile Include="..\src\coord_sys\ak_coord_camera.c" />
-    <ClCompile Include="..\src\coord_sys\ak_coord_common.c" />
-    <ClCompile Include="..\src\coord_sys\ak_coord_doc.c" />
-    <ClCompile Include="..\src\coord_sys\ak_coord_geom.c" />
-    <ClCompile Include="..\src\coord_sys\ak_coord_mesh.c" />
-    <ClCompile Include="..\src\coord_sys\ak_coord_node.c" />
-    <ClCompile Include="..\src\coord_sys\ak_coord_scene.c" />
-    <ClCompile Include="..\src\coord_sys\ak_coord_transform.c" />
-    <ClCompile Include="..\src\coord_sys\ak_coord_transforms.c" />
-    <ClCompile Include="..\src\coord_sys\ak_coord_vector.c" />
-    <ClCompile Include="..\src\default\ak_def_cam.c" />
-    <ClCompile Include="..\src\default\ak_def_cmp.c" />
-    <ClCompile Include="..\src\default\ak_def_coord.c" />
-    <ClCompile Include="..\src\default\ak_def_id.c" />
-    <ClCompile Include="..\src\default\ak_def_light.c" />
-    <ClCompile Include="..\src\default\ak_def_material.c" />
-    <ClCompile Include="..\src\default\ak_def_opt.c" />
-    <ClCompile Include="..\src\default\ak_def_semantic.c" />
+    <ClCompile Include="..\src\bbox\bbox.c" />
+    <ClCompile Include="..\src\bbox\bbox_geom.c" />
+    <ClCompile Include="..\src\bbox\bbox_mesh.c" />
+    <ClCompile Include="..\src\bbox\bbox_mesh_prim.c" />
+    <ClCompile Include="..\src\bbox\bbox_scene.c" />
+    <ClCompile Include="..\src\camera\cam.c" />
+    <ClCompile Include="..\src\collada\1.4\dae14.c" />
+    <ClCompile Include="..\src\collada\1.4\dae14_image.c" />
+    <ClCompile Include="..\src\collada\1.4\dae14_surface.c" />
+    <ClCompile Include="..\src\collada\brep\dae_brep.c" />
+    <ClCompile Include="..\src\collada\brep\dae_brep_curve.c" />
+    <ClCompile Include="..\src\collada\brep\dae_brep_nurbs.c" />
+    <ClCompile Include="..\src\collada\brep\dae_brep_surface.c" />
+    <ClCompile Include="..\src\collada\brep\dae_brep_topology.c" />
+    <ClCompile Include="..\src\collada\bugfix\transp.c" />
+    <ClCompile Include="..\src\collada\core\dae_accessor.c" />
+    <ClCompile Include="..\src\collada\core\dae_anim.c" />
+    <ClCompile Include="..\src\collada\core\dae_annotate.c" />
+    <ClCompile Include="..\src\collada\core\dae_asset.c" />
+    <ClCompile Include="..\src\collada\core\dae_camera.c" />
+    <ClCompile Include="..\src\collada\core\dae_color.c" />
+    <ClCompile Include="..\src\collada\core\dae_controller.c" />
+    <ClCompile Include="..\src\collada\core\dae_enums.c" />
+    <ClCompile Include="..\src\collada\core\dae_evaluate_scene.c" />
+    <ClCompile Include="..\src\collada\core\dae_geometry.c" />
+    <ClCompile Include="..\src\collada\core\dae_light.c" />
+    <ClCompile Include="..\src\collada\core\dae_lines.c" />
+    <ClCompile Include="..\src\collada\core\dae_mesh.c" />
+    <ClCompile Include="..\src\collada\core\dae_morph.c" />
+    <ClCompile Include="..\src\collada\core\dae_node.c" />
+    <ClCompile Include="..\src\collada\core\dae_param.c" />
+    <ClCompile Include="..\src\collada\core\dae_polygons.c" />
+    <ClCompile Include="..\src\collada\core\dae_render.c" />
+    <ClCompile Include="..\src\collada\core\dae_scene.c" />
+    <ClCompile Include="..\src\collada\core\dae_skin.c" />
+    <ClCompile Include="..\src\collada\core\dae_source.c" />
+    <ClCompile Include="..\src\collada\core\dae_spline.c" />
+    <ClCompile Include="..\src\collada\core\dae_technique.c" />
+    <ClCompile Include="..\src\collada\core\dae_triangles.c" />
+    <ClCompile Include="..\src\collada\core\dae_value.c" />
+    <ClCompile Include="..\src\collada\core\dae_vertices.c" />
+    <ClCompile Include="..\src\collada\core\dae_visual_scene.c" />
+    <ClCompile Include="..\src\collada\dae.c" />
+    <ClCompile Include="..\src\collada\dae_common.c" />
+    <ClCompile Include="..\src\collada\dae_fixangle.c" />
+    <ClCompile Include="..\src\collada\dae_geom_fixup.c" />
+    <ClCompile Include="..\src\collada\dae_lib.c" />
+    <ClCompile Include="..\src\collada\dae_mesh_fixup.c" />
+    <ClCompile Include="..\src\collada\dae_node_fixup.c" />
+    <ClCompile Include="..\src\collada\dae_postscript.c" />
+    <ClCompile Include="..\src\collada\dae_strpool.c" />
+    <ClCompile Include="..\src\collada\fx\dae_fx_binary.c" />
+    <ClCompile Include="..\src\collada\fx\dae_fx_blinn_phong.c" />
+    <ClCompile Include="..\src\collada\fx\dae_fx_color_or_tex.c" />
+    <ClCompile Include="..\src\collada\fx\dae_fx_constant.c" />
+    <ClCompile Include="..\src\collada\fx\dae_fx_effect.c" />
+    <ClCompile Include="..\src\collada\fx\dae_fx_enums.c" />
+    <ClCompile Include="..\src\collada\fx\dae_fx_evaluate.c" />
+    <ClCompile Include="..\src\collada\fx\dae_fx_float_or_param.c" />
+    <ClCompile Include="..\src\collada\fx\dae_fx_image.c" />
+    <ClCompile Include="..\src\collada\fx\dae_fx_lambert.c" />
+    <ClCompile Include="..\src\collada\fx\dae_fx_material.c" />
+    <ClCompile Include="..\src\collada\fx\dae_fx_pass.c" />
+    <ClCompile Include="..\src\collada\fx\dae_fx_profile.c" />
+    <ClCompile Include="..\src\collada\fx\dae_fx_program.c" />
+    <ClCompile Include="..\src\collada\fx\dae_fx_sampler.c" />
+    <ClCompile Include="..\src\collada\fx\dae_fx_shader.c" />
+    <ClCompile Include="..\src\collada\fx\dae_fx_states.c" />
+    <ClCompile Include="..\src\collada\fx\dae_fx_states_detail.c" />
+    <ClCompile Include="..\src\collada\fx\dae_fx_technique.c" />
+    <ClCompile Include="..\src\collada\fx\dae_fx_uniform.c" />
+    <ClCompile Include="..\src\common.c" />
+    <ClCompile Include="..\src\controller\ctlr.c" />
+    <ClCompile Include="..\src\coord_sys\coord_camera.c" />
+    <ClCompile Include="..\src\coord_sys\coord_common.c" />
+    <ClCompile Include="..\src\coord_sys\coord_doc.c" />
+    <ClCompile Include="..\src\coord_sys\coord_geom.c" />
+    <ClCompile Include="..\src\coord_sys\coord_mesh.c" />
+    <ClCompile Include="..\src\coord_sys\coord_node.c" />
+    <ClCompile Include="..\src\coord_sys\coord_scene.c" />
+    <ClCompile Include="..\src\coord_sys\coord_transform.c" />
+    <ClCompile Include="..\src\coord_sys\coord_transforms.c" />
+    <ClCompile Include="..\src\coord_sys\coord_vector.c" />
+    <ClCompile Include="..\src\data.c" />
+    <ClCompile Include="..\src\default\def_cam.c" />
+    <ClCompile Include="..\src\default\def_cmp.c" />
+    <ClCompile Include="..\src\default\def_coord.c" />
+    <ClCompile Include="..\src\default\def_id.c" />
+    <ClCompile Include="..\src\default\def_light.c" />
+    <ClCompile Include="..\src\default\def_material.c" />
+    <ClCompile Include="..\src\default\def_opt.c" />
+    <ClCompile Include="..\src\default\def_semantic.c" />
+    <ClCompile Include="..\src\default\def_type.c" />
     <ClCompile Include="..\src\dllmain.c" />
-    <ClCompile Include="..\src\geom\ak_geom_mesh.c" />
-    <ClCompile Include="..\src\instance\ak_inst.c" />
-    <ClCompile Include="..\src\instance\ak_inst_list.c" />
-    <ClCompile Include="..\src\lib\ak_lib.c" />
-    <ClCompile Include="..\src\lib\ak_lib_geom.c" />
-    <ClCompile Include="..\src\light\ak_light.c" />
-    <ClCompile Include="..\src\mesh\ak_mesh_duplicator.c" />
-    <ClCompile Include="..\src\mesh\ak_mesh_edit.c" />
-    <ClCompile Include="..\src\mesh\ak_mesh_edit_array.c" />
-    <ClCompile Include="..\src\mesh\ak_mesh_edit_array_fixup.c" />
-    <ClCompile Include="..\src\mesh\ak_mesh_edit_index.c" />
-    <ClCompile Include="..\src\mesh\ak_mesh_index.c" />
-    <ClCompile Include="..\src\mesh\ak_mesh_input.c" />
-    <ClCompile Include="..\src\mesh\ak_mesh_material.c" />
-    <ClCompile Include="..\src\mesh\ak_mesh_normal.c" />
-    <ClCompile Include="..\src\mesh\ak_mesh_triangulate.c" />
-    <ClCompile Include="..\src\mesh\ak_mesh_util.c" />
-    <ClCompile Include="..\src\node\ak_node.c" />
-    <ClCompile Include="..\src\resc\ak_curl.c" />
-    <ClCompile Include="..\src\resc\ak_path.c" />
-    <ClCompile Include="..\src\resc\ak_resource.c" />
-    <ClCompile Include="..\src\resc\ak_url.c" />
-    <ClCompile Include="..\src\transform\ak_trans.c" />
-    <ClCompile Include="..\src\transform\ak_trans_dup.c" />
-    <ClCompile Include="..\src\transform\ak_trans_traverse.c" />
+    <ClCompile Include="..\src\find.c" />
+    <ClCompile Include="..\src\geom\geom_mesh.c" />
+    <ClCompile Include="..\src\gltf\core\gltf_accessor.c" />
+    <ClCompile Include="..\src\gltf\core\gltf_anim.c" />
+    <ClCompile Include="..\src\gltf\core\gltf_asset.c" />
+    <ClCompile Include="..\src\gltf\core\gltf_buffer.c" />
+    <ClCompile Include="..\src\gltf\core\gltf_camera.c" />
+    <ClCompile Include="..\src\gltf\core\gltf_enums.c" />
+    <ClCompile Include="..\src\gltf\core\gltf_image.c" />
+    <ClCompile Include="..\src\gltf\core\gltf_material.c" />
+    <ClCompile Include="..\src\gltf\core\gltf_mesh.c" />
+    <ClCompile Include="..\src\gltf\core\gltf_morph.c" />
+    <ClCompile Include="..\src\gltf\core\gltf_node.c" />
+    <ClCompile Include="..\src\gltf\core\gltf_profile.c" />
+    <ClCompile Include="..\src\gltf\core\gltf_sampler.c" />
+    <ClCompile Include="..\src\gltf\core\gltf_scene.c" />
+    <ClCompile Include="..\src\gltf\core\gltf_skin.c" />
+    <ClCompile Include="..\src\gltf\core\gltf_texture.c" />
+    <ClCompile Include="..\src\gltf\gltf.c" />
+    <ClCompile Include="..\src\gltf\gltf_mesh_fixup.c" />
+    <ClCompile Include="..\src\gltf\gltf_postscript.c" />
+    <ClCompile Include="..\src\gltf\gltf_strpool.c" />
+    <ClCompile Include="..\src\id.c" />
+    <ClCompile Include="..\src\image\image.c" />
+    <ClCompile Include="..\src\instance\inst.c" />
+    <ClCompile Include="..\src\instance\inst_list.c" />
+    <ClCompile Include="..\src\json.c" />
+    <ClCompile Include="..\src\lib\lib.c" />
+    <ClCompile Include="..\src\lib\lib_geom.c" />
+    <ClCompile Include="..\src\light\light.c" />
+    <ClCompile Include="..\src\main.c" />
+    <ClCompile Include="..\src\map.c" />
+    <ClCompile Include="..\src\memory.c" />
+    <ClCompile Include="..\src\memory_ext.c" />
+    <ClCompile Include="..\src\memory_intr.c" />
+    <ClCompile Include="..\src\memory_lt.c" />
+    <ClCompile Include="..\src\memory_rb.c" />
+    <ClCompile Include="..\src\mesh\mesh_duplicator.c" />
+    <ClCompile Include="..\src\mesh\mesh_edit.c" />
+    <ClCompile Include="..\src\mesh\mesh_edit_buff.c" />
+    <ClCompile Include="..\src\mesh\mesh_edit_buff_fixup.c" />
+    <ClCompile Include="..\src\mesh\mesh_edit_index.c" />
+    <ClCompile Include="..\src\mesh\mesh_index.c" />
+    <ClCompile Include="..\src\mesh\mesh_input.c" />
+    <ClCompile Include="..\src\mesh\mesh_material.c" />
+    <ClCompile Include="..\src\mesh\mesh_normal.c" />
+    <ClCompile Include="..\src\mesh\mesh_triangulate.c" />
+    <ClCompile Include="..\src\mesh\mesh_util.c" />
+    <ClCompile Include="..\src\node\node.c" />
+    <ClCompile Include="..\src\profile.c" />
+    <ClCompile Include="..\src\resc\curl.c" />
+    <ClCompile Include="..\src\resc\path.c" />
+    <ClCompile Include="..\src\resc\resource.c" />
+    <ClCompile Include="..\src\resc\url.c" />
+    <ClCompile Include="..\src\sid.c" />
+    <ClCompile Include="..\src\sid_constr.c" />
+    <ClCompile Include="..\src\skin\skin.c" />
+    <ClCompile Include="..\src\skin\skin_fix.c" />
+    <ClCompile Include="..\src\string.c" />
+    <ClCompile Include="..\src\transform\trans.c" />
+    <ClCompile Include="..\src\transform\trans_dup.c" />
+    <ClCompile Include="..\src\transform\trans_traverse.c" />
+    <ClCompile Include="..\src\trash.c" />
+    <ClCompile Include="..\src\tree.c" />
+    <ClCompile Include="..\src\type.c" />
+    <ClCompile Include="..\src\utils.c" />
     <ClCompile Include="..\src\win32\strptime.c" />
+    <ClCompile Include="..\src\xml.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
@@ -449,11 +509,11 @@
     <Import Project="packages\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.targets" Condition="Exists('packages\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.targets')" />
     <Import Project="packages\zlib.redist.1.2.8.7\build\native\zlib.redist.targets" Condition="Exists('packages\zlib.redist.1.2.8.7\build\native\zlib.redist.targets')" />
     <Import Project="packages\curl.redist.7.30.0.2\build\native\curl.redist.targets" Condition="Exists('packages\curl.redist.7.30.0.2\build\native\curl.redist.targets')" />
-    <Import Project="packages\libssh2.redist.1.4.3.1\build\native\libssh2.redist.targets" Condition="Exists('packages\libssh2.redist.1.4.3.1\build\native\libssh2.redist.targets')" />
     <Import Project="packages\openssl.redist.1.0.1.25\build\native\openssl.redist.targets" Condition="Exists('packages\openssl.redist.1.0.1.25\build\native\openssl.redist.targets')" />
     <Import Project="packages\openssl.1.0.1.21\build\native\openssl.targets" Condition="Exists('packages\openssl.1.0.1.21\build\native\openssl.targets')" />
-    <Import Project="packages\libssh2.1.4.3.1\build\native\libssh2.targets" Condition="Exists('packages\libssh2.1.4.3.1\build\native\libssh2.targets')" />
     <Import Project="packages\curl.7.30.0.2\build\native\curl.targets" Condition="Exists('packages\curl.7.30.0.2\build\native\curl.targets')" />
+    <Import Project="packages\libssh2.redist.1.4.3.3\build\native\libssh2.redist.targets" Condition="Exists('packages\libssh2.redist.1.4.3.3\build\native\libssh2.redist.targets')" />
+    <Import Project="packages\libssh2.1.4.3.3\build\native\libssh2.targets" Condition="Exists('packages\libssh2.1.4.3.3\build\native\libssh2.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -467,11 +527,11 @@
     <Error Condition="!Exists('packages\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.targets'))" />
     <Error Condition="!Exists('packages\zlib.redist.1.2.8.7\build\native\zlib.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\zlib.redist.1.2.8.7\build\native\zlib.redist.targets'))" />
     <Error Condition="!Exists('packages\curl.redist.7.30.0.2\build\native\curl.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\curl.redist.7.30.0.2\build\native\curl.redist.targets'))" />
-    <Error Condition="!Exists('packages\libssh2.redist.1.4.3.1\build\native\libssh2.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\libssh2.redist.1.4.3.1\build\native\libssh2.redist.targets'))" />
     <Error Condition="!Exists('packages\openssl.redist.1.0.1.25\build\native\openssl.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\openssl.redist.1.0.1.25\build\native\openssl.redist.targets'))" />
     <Error Condition="!Exists('packages\openssl.1.0.1.21\build\native\openssl.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\openssl.1.0.1.21\build\native\openssl.props'))" />
     <Error Condition="!Exists('packages\openssl.1.0.1.21\build\native\openssl.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\openssl.1.0.1.21\build\native\openssl.targets'))" />
-    <Error Condition="!Exists('packages\libssh2.1.4.3.1\build\native\libssh2.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\libssh2.1.4.3.1\build\native\libssh2.targets'))" />
     <Error Condition="!Exists('packages\curl.7.30.0.2\build\native\curl.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\curl.7.30.0.2\build\native\curl.targets'))" />
+    <Error Condition="!Exists('packages\libssh2.redist.1.4.3.3\build\native\libssh2.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\libssh2.redist.1.4.3.3\build\native\libssh2.redist.targets'))" />
+    <Error Condition="!Exists('packages\libssh2.1.4.3.3\build\native\libssh2.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\libssh2.1.4.3.3\build\native\libssh2.targets'))" />
   </Target>
 </Project>

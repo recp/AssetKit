@@ -3,12 +3,6 @@
   <ItemGroup>
     <None Include="LICENSE" />
     <None Include="packages.config" />
-    <None Include="..\src\collada\ak_collada_strpool.json">
-      <Filter>src\collada</Filter>
-    </None>
-    <None Include="..\src\collada\strpool.py">
-      <Filter>src\collada</Filter>
-    </None>
     <None Include="build.bat" />
   </ItemGroup>
   <ItemGroup>
@@ -90,774 +84,981 @@
     <Filter Include="src\collada\1.4">
       <UniqueIdentifier>{299da012-b922-4b23-a103-44078e2e86e4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\ak">
+      <UniqueIdentifier>{53f90cb3-a93d-42a2-b4f5-73b7a0a9d20f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\controller">
+      <UniqueIdentifier>{741e9362-7cf0-42cc-b5b1-956ef9e13e29}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\skin">
+      <UniqueIdentifier>{58dff77f-1964-46b7-9307-9b7d0e4450e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\collada\bugfix">
+      <UniqueIdentifier>{d6c85e24-c7b0-4bd4-a811-2f0d35b86ab2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\gltf">
+      <UniqueIdentifier>{ac775f6c-aaed-4794-ace3-ed1ce67b85f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\gltf\ext">
+      <UniqueIdentifier>{bd51a387-cd24-4df9-b9a0-c941754dbc45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\gltf\core">
+      <UniqueIdentifier>{76bfcdb1-c8e1-4552-a641-67fd0d0ef374}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\ak-bbox.h">
-      <Filter>include</Filter>
+    <ClInclude Include="..\include\ak\animation.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ak-cam.h">
-      <Filter>include</Filter>
+    <ClInclude Include="..\include\ak\assetkit.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ak-common.h">
-      <Filter>include</Filter>
+    <ClInclude Include="..\include\ak\bbox.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ak-coord.h">
-      <Filter>include</Filter>
+    <ClInclude Include="..\include\ak\cam.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ak-coord-util.h">
-      <Filter>include</Filter>
+    <ClInclude Include="..\include\ak\common.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ak-geom.h">
-      <Filter>include</Filter>
+    <ClInclude Include="..\include\ak\context.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ak-image.h">
-      <Filter>include</Filter>
+    <ClInclude Include="..\include\ak\controller.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ak-instance.h">
-      <Filter>include</Filter>
+    <ClInclude Include="..\include\ak\coord.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ak-lib.h">
-      <Filter>include</Filter>
+    <ClInclude Include="..\include\ak\coord-util.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ak-light.h">
-      <Filter>include</Filter>
+    <ClInclude Include="..\include\ak\core-types.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ak-map.h">
-      <Filter>include</Filter>
+    <ClInclude Include="..\include\ak\geom.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ak-material.h">
-      <Filter>include</Filter>
+    <ClInclude Include="..\include\ak\image.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ak-memory.h">
-      <Filter>include</Filter>
+    <ClInclude Include="..\include\ak\instance.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ak-options.h">
-      <Filter>include</Filter>
+    <ClInclude Include="..\include\ak\lib.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ak-path.h">
-      <Filter>include</Filter>
+    <ClInclude Include="..\include\ak\light.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ak-profile.h">
-      <Filter>include</Filter>
+    <ClInclude Include="..\include\ak\map.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ak-sid.h">
-      <Filter>include</Filter>
+    <ClInclude Include="..\include\ak\material.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ak-source.h">
-      <Filter>include</Filter>
+    <ClInclude Include="..\include\ak\memory.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ak-states.h">
-      <Filter>include</Filter>
+    <ClInclude Include="..\include\ak\node.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ak-string.h">
-      <Filter>include</Filter>
+    <ClInclude Include="..\include\ak\options.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ak-transform.h">
-      <Filter>include</Filter>
+    <ClInclude Include="..\include\ak\path.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ak-trash.h">
-      <Filter>include</Filter>
+    <ClInclude Include="..\include\ak\profile.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ak-url.h">
-      <Filter>include</Filter>
+    <ClInclude Include="..\include\ak\sid.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ak-util.h">
-      <Filter>include</Filter>
+    <ClInclude Include="..\include\ak\source.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\assetkit.h">
-      <Filter>include</Filter>
+    <ClInclude Include="..\include\ak\states.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\bbox\ak_bbox.h">
-      <Filter>src\bbox</Filter>
+    <ClInclude Include="..\include\ak\string.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\bitwise\ak_bitwise.h">
-      <Filter>src\bitwise</Filter>
+    <ClInclude Include="..\include\ak\texture.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\coord_sys\ak_coord_common.h">
-      <Filter>src\coord_sys</Filter>
+    <ClInclude Include="..\include\ak\transform.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\default\ak_def_opt.h">
-      <Filter>src\default</Filter>
+    <ClInclude Include="..\include\ak\trash.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\default\ak_def_semantic.h">
-      <Filter>src\default</Filter>
+    <ClInclude Include="..\include\ak\type.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\mesh\ak_mesh_index.h">
-      <Filter>src\mesh</Filter>
+    <ClInclude Include="..\include\ak\url.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\mesh\ak_mesh_util.h">
-      <Filter>src\mesh</Filter>
+    <ClInclude Include="..\include\ak\util.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\resc\ak_curl.h">
-      <Filter>src\resc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\resc\ak_resource.h">
-      <Filter>src\resc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\core\ak_collada_accessor.h">
-      <Filter>src\collada\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\core\ak_collada_annotate.h">
-      <Filter>src\collada\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\core\ak_collada_asset.h">
-      <Filter>src\collada\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\core\ak_collada_camera.h">
-      <Filter>src\collada\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\core\ak_collada_color.h">
-      <Filter>src\collada\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\core\ak_collada_controller.h">
-      <Filter>src\collada\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\core\ak_collada_enums.h">
-      <Filter>src\collada\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\core\ak_collada_evaluate_scene.h">
-      <Filter>src\collada\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\core\ak_collada_geometry.h">
-      <Filter>src\collada\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\core\ak_collada_light.h">
-      <Filter>src\collada\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\core\ak_collada_lines.h">
-      <Filter>src\collada\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\core\ak_collada_mesh.h">
-      <Filter>src\collada\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\core\ak_collada_morph.h">
-      <Filter>src\collada\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\core\ak_collada_node.h">
-      <Filter>src\collada\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\core\ak_collada_param.h">
-      <Filter>src\collada\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\core\ak_collada_polygons.h">
-      <Filter>src\collada\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\core\ak_collada_render.h">
-      <Filter>src\collada\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\core\ak_collada_scene.h">
-      <Filter>src\collada\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\core\ak_collada_skin.h">
-      <Filter>src\collada\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\core\ak_collada_source.h">
-      <Filter>src\collada\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\core\ak_collada_spline.h">
-      <Filter>src\collada\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\core\ak_collada_technique.h">
-      <Filter>src\collada\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\core\ak_collada_triangles.h">
-      <Filter>src\collada\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\core\ak_collada_value.h">
-      <Filter>src\collada\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\core\ak_collada_vertices.h">
-      <Filter>src\collada\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\core\ak_collada_visual_scene.h">
-      <Filter>src\collada\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_binary.h">
-      <Filter>src\collada\fx</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_blinn_phong.h">
-      <Filter>src\collada\fx</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_color_or_tex.h">
-      <Filter>src\collada\fx</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_constant.h">
-      <Filter>src\collada\fx</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_effect.h">
-      <Filter>src\collada\fx</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_enums.h">
-      <Filter>src\collada\fx</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_evaluate.h">
-      <Filter>src\collada\fx</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_float_or_param.h">
-      <Filter>src\collada\fx</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_image.h">
-      <Filter>src\collada\fx</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_lambert.h">
-      <Filter>src\collada\fx</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_material.h">
-      <Filter>src\collada\fx</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_pass.h">
-      <Filter>src\collada\fx</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_profile.h">
-      <Filter>src\collada\fx</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_program.h">
-      <Filter>src\collada\fx</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_sampler.h">
-      <Filter>src\collada\fx</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_shader.h">
-      <Filter>src\collada\fx</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_states.h">
-      <Filter>src\collada\fx</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_states_detail.h">
-      <Filter>src\collada\fx</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_technique.h">
-      <Filter>src\collada\fx</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\fx\ak_collada_fx_uniform.h">
-      <Filter>src\collada\fx</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\brep\ak_collada_brep.h">
-      <Filter>src\collada\brep</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\brep\ak_collada_brep_curve.h">
-      <Filter>src\collada\brep</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\brep\ak_collada_brep_nurbs.h">
-      <Filter>src\collada\brep</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\brep\ak_collada_brep_surface.h">
-      <Filter>src\collada\brep</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\brep\ak_collada_brep_topology.h">
-      <Filter>src\collada\brep</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\ak_collada.h">
-      <Filter>src\collada</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\ak_collada_common.h">
-      <Filter>src\collada</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\ak_collada_geom_fixup.h">
-      <Filter>src\collada</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\ak_collada_lib.h">
-      <Filter>src\collada</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\ak_collada_mesh_fixup.h">
-      <Filter>src\collada</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\ak_collada_node_fixup.h">
-      <Filter>src\collada</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\ak_collada_postscript.h">
-      <Filter>src\collada</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\ak_collada_strpool.h">
-      <Filter>src\collada</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\ak_accessor.h">
+    <ClInclude Include="..\src\accessor.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\ak_array.h">
+    <ClInclude Include="..\src\array.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\ak_common.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\ak_data.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\ak_id.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\ak_libxml.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\ak_memory_common.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\ak_memory_lt.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\ak_memory_rb.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\ak_trash.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\ak_tree.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\ak_utils.h">
+    <ClInclude Include="..\src\common.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\src\config.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\default\ak_def_cam.h">
-      <Filter>src\default</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\mesh\ak_mesh_edit_common.h">
-      <Filter>src\mesh</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\ak-type.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\ak_profile.h">
+    <ClInclude Include="..\src\data.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ak-context.h">
-      <Filter>include</Filter>
+    <ClInclude Include="..\src\id.h">
+      <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\default\ak_def_light.h">
+    <ClInclude Include="..\src\json.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\memory_common.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\memory_lt.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\memory_rb.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\profile.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\sid.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\trash.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tree.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\type.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\utils.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\xml.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\skin\skin_fix.h">
+      <Filter>src\skin</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\coord_sys\coord_common.h">
+      <Filter>src\coord_sys</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mesh\mesh_edit_common.h">
+      <Filter>src\mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mesh\mesh_index.h">
+      <Filter>src\mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mesh\mesh_util.h">
+      <Filter>src\mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\bbox\bbox.h">
+      <Filter>src\bbox</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\bitwise\bitwise.h">
+      <Filter>src\bitwise</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\resc\curl.h">
+      <Filter>src\resc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\resc\resource.h">
+      <Filter>src\resc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\default\def_cam.h">
       <Filter>src\default</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ak-node.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\1.4\ak_collada14_image.h">
-      <Filter>src\collada\1.4</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\1.4\ak_collada14.h">
-      <Filter>src\collada\1.4</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\collada\1.4\ak_collada14_surface.h">
-      <Filter>src\collada\1.4</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\default\ak_def_material.h">
+    <ClInclude Include="..\src\default\def_light.h">
       <Filter>src\default</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\default\def_material.h">
+      <Filter>src\default</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\default\def_opt.h">
+      <Filter>src\default</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\default\def_semantic.h">
+      <Filter>src\default</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\default\def_type.h">
+      <Filter>src\default</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\bugfix\transp.h">
+      <Filter>src\collada\bugfix</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\1.4\dae14.h">
+      <Filter>src\collada\1.4</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\1.4\dae14_image.h">
+      <Filter>src\collada\1.4</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\1.4\dae14_surface.h">
+      <Filter>src\collada\1.4</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\core\dae_accessor.h">
+      <Filter>src\collada\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\core\dae_anim.h">
+      <Filter>src\collada\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\core\dae_annotate.h">
+      <Filter>src\collada\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\core\dae_asset.h">
+      <Filter>src\collada\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\core\dae_camera.h">
+      <Filter>src\collada\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\core\dae_color.h">
+      <Filter>src\collada\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\core\dae_controller.h">
+      <Filter>src\collada\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\core\dae_enums.h">
+      <Filter>src\collada\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\core\dae_evaluate_scene.h">
+      <Filter>src\collada\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\core\dae_geometry.h">
+      <Filter>src\collada\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\core\dae_light.h">
+      <Filter>src\collada\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\core\dae_lines.h">
+      <Filter>src\collada\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\core\dae_mesh.h">
+      <Filter>src\collada\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\core\dae_morph.h">
+      <Filter>src\collada\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\core\dae_node.h">
+      <Filter>src\collada\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\core\dae_param.h">
+      <Filter>src\collada\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\core\dae_polygons.h">
+      <Filter>src\collada\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\core\dae_render.h">
+      <Filter>src\collada\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\core\dae_scene.h">
+      <Filter>src\collada\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\core\dae_skin.h">
+      <Filter>src\collada\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\core\dae_source.h">
+      <Filter>src\collada\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\core\dae_spline.h">
+      <Filter>src\collada\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\core\dae_technique.h">
+      <Filter>src\collada\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\core\dae_triangles.h">
+      <Filter>src\collada\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\core\dae_value.h">
+      <Filter>src\collada\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\core\dae_vertices.h">
+      <Filter>src\collada\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\core\dae_visual_scene.h">
+      <Filter>src\collada\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\brep\dae_brep.h">
+      <Filter>src\collada\brep</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\brep\dae_brep_curve.h">
+      <Filter>src\collada\brep</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\brep\dae_brep_nurbs.h">
+      <Filter>src\collada\brep</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\brep\dae_brep_surface.h">
+      <Filter>src\collada\brep</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\brep\dae_brep_topology.h">
+      <Filter>src\collada\brep</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\fx\dae_fx_binary.h">
+      <Filter>src\collada\fx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\fx\dae_fx_blinn_phong.h">
+      <Filter>src\collada\fx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\fx\dae_fx_color_or_tex.h">
+      <Filter>src\collada\fx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\fx\dae_fx_constant.h">
+      <Filter>src\collada\fx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\fx\dae_fx_effect.h">
+      <Filter>src\collada\fx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\fx\dae_fx_enums.h">
+      <Filter>src\collada\fx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\fx\dae_fx_evaluate.h">
+      <Filter>src\collada\fx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\fx\dae_fx_float_or_param.h">
+      <Filter>src\collada\fx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\fx\dae_fx_image.h">
+      <Filter>src\collada\fx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\fx\dae_fx_lambert.h">
+      <Filter>src\collada\fx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\fx\dae_fx_material.h">
+      <Filter>src\collada\fx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\fx\dae_fx_pass.h">
+      <Filter>src\collada\fx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\fx\dae_fx_profile.h">
+      <Filter>src\collada\fx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\fx\dae_fx_program.h">
+      <Filter>src\collada\fx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\fx\dae_fx_sampler.h">
+      <Filter>src\collada\fx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\fx\dae_fx_shader.h">
+      <Filter>src\collada\fx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\fx\dae_fx_states.h">
+      <Filter>src\collada\fx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\fx\dae_fx_states_detail.h">
+      <Filter>src\collada\fx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\fx\dae_fx_technique.h">
+      <Filter>src\collada\fx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\fx\dae_fx_uniform.h">
+      <Filter>src\collada\fx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\dae.h">
+      <Filter>src\collada</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\dae_common.h">
+      <Filter>src\collada</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\dae_fixangle.h">
+      <Filter>src\collada</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\dae_geom_fixup.h">
+      <Filter>src\collada</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\dae_lib.h">
+      <Filter>src\collada</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\dae_mesh_fixup.h">
+      <Filter>src\collada</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\dae_node_fixup.h">
+      <Filter>src\collada</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\dae_postscript.h">
+      <Filter>src\collada</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\collada\dae_strpool.h">
+      <Filter>src\collada</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\gltf.h">
+      <Filter>src\gltf</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\gltf_common.h">
+      <Filter>src\gltf</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\gltf_mesh_fixup.h">
+      <Filter>src\gltf</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\gltf_postscript.h">
+      <Filter>src\gltf</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\gltf_strpool.h">
+      <Filter>src\gltf</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\gltf_accessor.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\gltf_anim.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\gltf_asset.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\gltf_buffer.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\gltf_camera.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\gltf_enums.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\gltf_image.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\gltf_material.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\gltf_mesh.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\gltf_morph.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\gltf_node.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\gltf_profile.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\gltf_sampler.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\gltf_scene.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\gltf_skin.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\gltf_texture.h">
+      <Filter>src\gltf\core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\bbox\ak_bbox.c">
-      <Filter>src\bbox</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\bbox\ak_bbox_geom.c">
-      <Filter>src\bbox</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\bbox\ak_bbox_mesh.c">
-      <Filter>src\bbox</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\bbox\ak_bbox_mesh_prim.c">
-      <Filter>src\bbox</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\bbox\ak_bbox_scene.c">
-      <Filter>src\bbox</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\camera\ak_cam.c">
-      <Filter>src\camera</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\coord_sys\ak_coord_camera.c">
-      <Filter>src\coord_sys</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\coord_sys\ak_coord_common.c">
-      <Filter>src\coord_sys</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\coord_sys\ak_coord_doc.c">
-      <Filter>src\coord_sys</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\coord_sys\ak_coord_geom.c">
-      <Filter>src\coord_sys</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\coord_sys\ak_coord_mesh.c">
-      <Filter>src\coord_sys</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\coord_sys\ak_coord_transform.c">
-      <Filter>src\coord_sys</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\coord_sys\ak_coord_transforms.c">
-      <Filter>src\coord_sys</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\coord_sys\ak_coord_vector.c">
-      <Filter>src\coord_sys</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\default\ak_def_cmp.c">
-      <Filter>src\default</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\default\ak_def_coord.c">
-      <Filter>src\default</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\default\ak_def_id.c">
-      <Filter>src\default</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\default\ak_def_opt.c">
-      <Filter>src\default</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\default\ak_def_semantic.c">
-      <Filter>src\default</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\geom\ak_geom_mesh.c">
-      <Filter>src\geom</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\instance\ak_inst.c">
-      <Filter>src\instance</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\instance\ak_inst_list.c">
-      <Filter>src\instance</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\lib\ak_lib_geom.c">
-      <Filter>src\lib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mesh\ak_mesh_index.c">
-      <Filter>src\mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mesh\ak_mesh_material.c">
-      <Filter>src\mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mesh\ak_mesh_normal.c">
-      <Filter>src\mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mesh\ak_mesh_triangulate.c">
-      <Filter>src\mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mesh\ak_mesh_util.c">
-      <Filter>src\mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\resc\ak_curl.c">
-      <Filter>src\resc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\resc\ak_path.c">
-      <Filter>src\resc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\resc\ak_resource.c">
-      <Filter>src\resc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\resc\ak_url.c">
-      <Filter>src\resc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\transform\ak_trans.c">
-      <Filter>src\transform</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\transform\ak_trans_dup.c">
-      <Filter>src\transform</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\transform\ak_trans_traverse.c">
-      <Filter>src\transform</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\win32\strptime.c">
       <Filter>src\win32</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\collada\core\ak_collada_accessor.c">
-      <Filter>src\collada\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\core\ak_collada_annotate.c">
-      <Filter>src\collada\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\core\ak_collada_asset.c">
-      <Filter>src\collada\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\core\ak_collada_camera.c">
-      <Filter>src\collada\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\core\ak_collada_color.c">
-      <Filter>src\collada\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\core\ak_collada_controller.c">
-      <Filter>src\collada\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\core\ak_collada_enums.c">
-      <Filter>src\collada\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\core\ak_collada_evaluate_scene.c">
-      <Filter>src\collada\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\core\ak_collada_geometry.c">
-      <Filter>src\collada\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\core\ak_collada_light.c">
-      <Filter>src\collada\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\core\ak_collada_lines.c">
-      <Filter>src\collada\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\core\ak_collada_mesh.c">
-      <Filter>src\collada\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\core\ak_collada_morph.c">
-      <Filter>src\collada\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\core\ak_collada_node.c">
-      <Filter>src\collada\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\core\ak_collada_param.c">
-      <Filter>src\collada\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\core\ak_collada_polygons.c">
-      <Filter>src\collada\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\core\ak_collada_render.c">
-      <Filter>src\collada\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\core\ak_collada_scene.c">
-      <Filter>src\collada\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\core\ak_collada_skin.c">
-      <Filter>src\collada\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\core\ak_collada_source.c">
-      <Filter>src\collada\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\core\ak_collada_spline.c">
-      <Filter>src\collada\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\core\ak_collada_technique.c">
-      <Filter>src\collada\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\core\ak_collada_triangles.c">
-      <Filter>src\collada\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\core\ak_collada_value.c">
-      <Filter>src\collada\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\core\ak_collada_vertices.c">
-      <Filter>src\collada\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\core\ak_collada_visual_scene.c">
-      <Filter>src\collada\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_binary.c">
-      <Filter>src\collada\fx</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_blinn_phong.c">
-      <Filter>src\collada\fx</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_color_or_tex.c">
-      <Filter>src\collada\fx</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_constant.c">
-      <Filter>src\collada\fx</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_effect.c">
-      <Filter>src\collada\fx</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_enums.c">
-      <Filter>src\collada\fx</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_evaluate.c">
-      <Filter>src\collada\fx</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_float_or_param.c">
-      <Filter>src\collada\fx</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_image.c">
-      <Filter>src\collada\fx</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_lambert.c">
-      <Filter>src\collada\fx</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_material.c">
-      <Filter>src\collada\fx</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_pass.c">
-      <Filter>src\collada\fx</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_profile.c">
-      <Filter>src\collada\fx</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_program.c">
-      <Filter>src\collada\fx</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_sampler.c">
-      <Filter>src\collada\fx</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_shader.c">
-      <Filter>src\collada\fx</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_states.c">
-      <Filter>src\collada\fx</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_states_detail.c">
-      <Filter>src\collada\fx</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_technique.c">
-      <Filter>src\collada\fx</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\fx\ak_collada_fx_uniform.c">
-      <Filter>src\collada\fx</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\brep\ak_collada_brep.c">
-      <Filter>src\collada\brep</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\brep\ak_collada_brep_curve.c">
-      <Filter>src\collada\brep</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\brep\ak_collada_brep_nurbs.c">
-      <Filter>src\collada\brep</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\brep\ak_collada_brep_surface.c">
-      <Filter>src\collada\brep</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\brep\ak_collada_brep_topology.c">
-      <Filter>src\collada\brep</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\ak_collada.c">
-      <Filter>src\collada</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\ak_collada_common.c">
-      <Filter>src\collada</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\ak_collada_geom_fixup.c">
-      <Filter>src\collada</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\ak_collada_lib.c">
-      <Filter>src\collada</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\ak_collada_mesh_fixup.c">
-      <Filter>src\collada</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\ak_collada_node_fixup.c">
-      <Filter>src\collada</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\ak_collada_postscript.c">
-      <Filter>src\collada</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\collada\ak_collada_strpool.c">
-      <Filter>src\collada</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\ak_accessor.c">
+    <ClCompile Include="..\src\dllmain.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\ak_array.c">
+    <ClCompile Include="..\src\accessor.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\ak_common.c">
+    <ClCompile Include="..\src\array.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\ak_data.c">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\ak_find.c">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\ak_id.c">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\ak_libxml.c">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\ak_map.c">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\ak_memory.c">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\ak_memory_ext.c">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\ak_memory_lt.c">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\ak_memory_rb.c">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\ak_sid.c">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\ak_string.c">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\ak_trash.c">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\ak_tree.c">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\ak_utils.c">
+    <ClCompile Include="..\src\asset.c">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\src\assetkit.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\dllmain.c">
+    <ClCompile Include="..\src\common.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\mesh\ak_mesh_duplicator.c">
-      <Filter>src\mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mesh\ak_mesh_edit.c">
-      <Filter>src\mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mesh\ak_mesh_edit_array.c">
-      <Filter>src\mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mesh\ak_mesh_edit_array_fixup.c">
-      <Filter>src\mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mesh\ak_mesh_edit_index.c">
-      <Filter>src\mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\array\ak_source_array.c">
-      <Filter>src\array</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\default\ak_def_cam.c">
-      <Filter>src\default</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\ak_type.c">
+    <ClCompile Include="..\src\data.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\ak_sid_constr.c">
+    <ClCompile Include="..\src\find.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\ak_profile.c">
+    <ClCompile Include="..\src\id.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\mesh\ak_mesh_input.c">
-      <Filter>src\mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\light\ak_light.c">
-      <Filter>src\light</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\default\ak_def_light.c">
-      <Filter>src\default</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\lib\ak_lib.c">
-      <Filter>src\lib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\ak_main.c">
+    <ClCompile Include="..\src\json.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\ak_asset.c">
+    <ClCompile Include="..\src\main.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\node\ak_node.c">
+    <ClCompile Include="..\src\map.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\memory.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\memory_ext.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\memory_intr.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\memory_lt.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\memory_rb.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\profile.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\sid.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\sid_constr.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\string.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\trash.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tree.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\type.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utils.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\xml.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\controller\ctlr.c">
+      <Filter>src\controller</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\skin\skin.c">
+      <Filter>src\skin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\skin\skin_fix.c">
+      <Filter>src\skin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\node\node.c">
       <Filter>src\node</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\coord_sys\ak_coord_node.c">
+    <ClCompile Include="..\src\array\source_array.c">
+      <Filter>src\array</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\image\image.c">
+      <Filter>src\image</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\camera\cam.c">
+      <Filter>src\camera</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\light\light.c">
+      <Filter>src\light</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\coord_sys\coord_camera.c">
       <Filter>src\coord_sys</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\coord_sys\ak_coord_scene.c">
+    <ClCompile Include="..\src\coord_sys\coord_common.c">
       <Filter>src\coord_sys</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\collada\1.4\ak_collada14_image.c">
-      <Filter>src\collada\1.4</Filter>
+    <ClCompile Include="..\src\coord_sys\coord_doc.c">
+      <Filter>src\coord_sys</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\collada\1.4\ak_collada14.c">
-      <Filter>src\collada\1.4</Filter>
+    <ClCompile Include="..\src\coord_sys\coord_geom.c">
+      <Filter>src\coord_sys</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\collada\1.4\ak_collada14_surface.c">
-      <Filter>src\collada\1.4</Filter>
+    <ClCompile Include="..\src\coord_sys\coord_mesh.c">
+      <Filter>src\coord_sys</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\ak_memory_intr.c">
-      <Filter>src</Filter>
+    <ClCompile Include="..\src\coord_sys\coord_node.c">
+      <Filter>src\coord_sys</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\default\ak_def_material.c">
+    <ClCompile Include="..\src\coord_sys\coord_scene.c">
+      <Filter>src\coord_sys</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\coord_sys\coord_transform.c">
+      <Filter>src\coord_sys</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\coord_sys\coord_transforms.c">
+      <Filter>src\coord_sys</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\coord_sys\coord_vector.c">
+      <Filter>src\coord_sys</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mesh\mesh_duplicator.c">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mesh\mesh_edit.c">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mesh\mesh_edit_buff.c">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mesh\mesh_edit_buff_fixup.c">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mesh\mesh_edit_index.c">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mesh\mesh_index.c">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mesh\mesh_input.c">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mesh\mesh_material.c">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mesh\mesh_normal.c">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mesh\mesh_triangulate.c">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mesh\mesh_util.c">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\bbox\bbox.c">
+      <Filter>src\bbox</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\bbox\bbox_geom.c">
+      <Filter>src\bbox</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\bbox\bbox_mesh.c">
+      <Filter>src\bbox</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\bbox\bbox_mesh_prim.c">
+      <Filter>src\bbox</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\bbox\bbox_scene.c">
+      <Filter>src\bbox</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\resc\curl.c">
+      <Filter>src\resc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\resc\path.c">
+      <Filter>src\resc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\resc\resource.c">
+      <Filter>src\resc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\resc\url.c">
+      <Filter>src\resc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\transform\trans.c">
+      <Filter>src\transform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\transform\trans_dup.c">
+      <Filter>src\transform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\transform\trans_traverse.c">
+      <Filter>src\transform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\geom\geom_mesh.c">
+      <Filter>src\geom</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\instance\inst.c">
+      <Filter>src\instance</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\instance\inst_list.c">
+      <Filter>src\instance</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\lib.c">
+      <Filter>src\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\lib_geom.c">
+      <Filter>src\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\default\def_cam.c">
       <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\default\def_cmp.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\default\def_coord.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\default\def_id.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\default\def_light.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\default\def_material.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\default\def_opt.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\default\def_semantic.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\default\def_type.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\bugfix\transp.c">
+      <Filter>src\collada\bugfix</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\1.4\dae14.c">
+      <Filter>src\collada\1.4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\1.4\dae14_image.c">
+      <Filter>src\collada\1.4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\1.4\dae14_surface.c">
+      <Filter>src\collada\1.4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\core\dae_accessor.c">
+      <Filter>src\collada\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\core\dae_anim.c">
+      <Filter>src\collada\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\core\dae_annotate.c">
+      <Filter>src\collada\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\core\dae_asset.c">
+      <Filter>src\collada\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\core\dae_camera.c">
+      <Filter>src\collada\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\core\dae_color.c">
+      <Filter>src\collada\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\core\dae_controller.c">
+      <Filter>src\collada\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\core\dae_enums.c">
+      <Filter>src\collada\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\core\dae_evaluate_scene.c">
+      <Filter>src\collada\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\core\dae_geometry.c">
+      <Filter>src\collada\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\core\dae_light.c">
+      <Filter>src\collada\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\core\dae_lines.c">
+      <Filter>src\collada\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\core\dae_mesh.c">
+      <Filter>src\collada\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\core\dae_morph.c">
+      <Filter>src\collada\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\core\dae_node.c">
+      <Filter>src\collada\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\core\dae_param.c">
+      <Filter>src\collada\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\core\dae_polygons.c">
+      <Filter>src\collada\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\core\dae_render.c">
+      <Filter>src\collada\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\core\dae_scene.c">
+      <Filter>src\collada\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\core\dae_skin.c">
+      <Filter>src\collada\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\core\dae_source.c">
+      <Filter>src\collada\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\core\dae_spline.c">
+      <Filter>src\collada\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\core\dae_technique.c">
+      <Filter>src\collada\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\core\dae_triangles.c">
+      <Filter>src\collada\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\core\dae_value.c">
+      <Filter>src\collada\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\core\dae_vertices.c">
+      <Filter>src\collada\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\core\dae_visual_scene.c">
+      <Filter>src\collada\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\brep\dae_brep.c">
+      <Filter>src\collada\brep</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\brep\dae_brep_curve.c">
+      <Filter>src\collada\brep</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\brep\dae_brep_nurbs.c">
+      <Filter>src\collada\brep</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\brep\dae_brep_surface.c">
+      <Filter>src\collada\brep</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\brep\dae_brep_topology.c">
+      <Filter>src\collada\brep</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\fx\dae_fx_binary.c">
+      <Filter>src\collada\fx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\fx\dae_fx_blinn_phong.c">
+      <Filter>src\collada\fx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\fx\dae_fx_color_or_tex.c">
+      <Filter>src\collada\fx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\fx\dae_fx_constant.c">
+      <Filter>src\collada\fx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\fx\dae_fx_effect.c">
+      <Filter>src\collada\fx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\fx\dae_fx_enums.c">
+      <Filter>src\collada\fx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\fx\dae_fx_evaluate.c">
+      <Filter>src\collada\fx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\fx\dae_fx_float_or_param.c">
+      <Filter>src\collada\fx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\fx\dae_fx_image.c">
+      <Filter>src\collada\fx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\fx\dae_fx_lambert.c">
+      <Filter>src\collada\fx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\fx\dae_fx_material.c">
+      <Filter>src\collada\fx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\fx\dae_fx_pass.c">
+      <Filter>src\collada\fx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\fx\dae_fx_profile.c">
+      <Filter>src\collada\fx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\fx\dae_fx_program.c">
+      <Filter>src\collada\fx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\fx\dae_fx_sampler.c">
+      <Filter>src\collada\fx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\fx\dae_fx_shader.c">
+      <Filter>src\collada\fx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\fx\dae_fx_states.c">
+      <Filter>src\collada\fx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\fx\dae_fx_states_detail.c">
+      <Filter>src\collada\fx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\fx\dae_fx_technique.c">
+      <Filter>src\collada\fx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\fx\dae_fx_uniform.c">
+      <Filter>src\collada\fx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\dae.c">
+      <Filter>src\collada</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\dae_common.c">
+      <Filter>src\collada</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\dae_fixangle.c">
+      <Filter>src\collada</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\dae_geom_fixup.c">
+      <Filter>src\collada</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\dae_lib.c">
+      <Filter>src\collada</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\dae_mesh_fixup.c">
+      <Filter>src\collada</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\dae_node_fixup.c">
+      <Filter>src\collada</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\dae_postscript.c">
+      <Filter>src\collada</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\dae_strpool.c">
+      <Filter>src\collada</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\gltf.c">
+      <Filter>src\gltf</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\gltf_mesh_fixup.c">
+      <Filter>src\gltf</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\gltf_postscript.c">
+      <Filter>src\gltf</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\gltf_strpool.c">
+      <Filter>src\gltf</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\gltf_accessor.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\gltf_anim.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\gltf_asset.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\gltf_buffer.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\gltf_camera.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\gltf_enums.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\gltf_image.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\gltf_material.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\gltf_mesh.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\gltf_morph.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\gltf_node.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\gltf_profile.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\gltf_sampler.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\gltf_scene.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\gltf_skin.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\gltf_texture.c">
+      <Filter>src\gltf\core</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
