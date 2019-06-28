@@ -1,35 +1,40 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.10)
 project(assetio C)
 
 set(CMAKE_C_STANDARD 99)
 
+# TODO: use properties instead of properties
 set(CMAKE_C_FLAGS "-Wall -Wextra -std=gnu99 -Wstrict-aliasing=2 -fstrict-aliasing -pedantic -Wmissing-declarations -Wno-overlength-strings")
 set(CMAKE_C_FLAGS_DEBUG "-g")
 set(CMAKE_C_FLAGS_RELEASE "-O3")
 
 include_directories(
-        "/usr/include"
-        "${PROJECT_SOURCE_DIR}/include/ak")
+        PUBLIC
 
-include_directories(./lib/libxml2/include)
-include_directories(./lib/jemalloc/include)
-include_directories(./lib/cglm/include)
-include_directories(./lib/curl/include)
-include_directories(./lib/libuv/include)
-include_directories(./lib/libds/include)
-include_directories(./lib/stb)
-include_directories(./lib/jansson/src)
+        ${PROJECT_SOURCE_DIR}/include
 
-include_directories(include/)
-include_directories(include/ak)
-include_directories(src/collada/1.4)
-include_directories(src/collada/brep)
-include_directories(src/collada/bugfix)
-include_directories(src/collada/core)
-include_directories(src/collada/fx)
-include_directories(src/gltf/core)
+        PRIVATE
 
-link_directories(/usr/local/lib ./lib/jemalloc/lib ./lib/libxml2/.libs ./lib/curl/lib/.libs ./lib/libuv/.libs ./lib/libds/.libs ./lib/jansson/src/.libs)
+        ${PROJECT_SOURCE_DIR}/lib/libxml2/include
+        ${PROJECT_SOURCE_DIR}/lib/jemalloc/include
+        ${PROJECT_SOURCE_DIR}/lib/cglm/include
+        ${PROJECT_SOURCE_DIR}/lib/curl/include
+        ${PROJECT_SOURCE_DIR}/lib/libuv/include
+        ${PROJECT_SOURCE_DIR}/lib/libds/include
+        ${PROJECT_SOURCE_DIR}/lib/stb
+        ${PROJECT_SOURCE_DIR}/lib/jansson/src
+)
+
+link_directories(
+        PRIVATE
+
+        ${PROJECT_SOURCE_DIR}/lib/jemalloc/lib
+        ${PROJECT_SOURCE_DIR}/lib/libxml2/.libs
+        ${PROJECT_SOURCE_DIR}/lib/curl/lib/.libs
+        ${PROJECT_SOURCE_DIR}/lib/libuv/.libs
+        ${PROJECT_SOURCE_DIR}/lib/libds/.libs
+        ${PROJECT_SOURCE_DIR}/lib/jansson/src/.libs
+)
 
 add_library(assetkit STATIC
         src/array/source_array.c
