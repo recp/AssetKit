@@ -22,6 +22,7 @@ ak_getAssetInfo(void * __restrict obj,
 
   assert(obj && itemOffset < sizeof(AkAssetInf));
 
+  
   hnode = ak__alignof(obj);
 
   do {

@@ -11,6 +11,7 @@
 extern "C" {
 #endif
 
+#include "common.h"
 #include "map.h"
 #include "bbox.h"
 #include "map.h"

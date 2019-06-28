@@ -9,8 +9,10 @@
 #define __libassetkit__common_h
 
 /* since C99 or compiler ext */
-#include <stdbool.h>
 #include <stdint.h>
+#include <stddef.h>
+#include <float.h>
+#include <stdbool.h>
 #include <errno.h>
 
 #ifdef DEBUG

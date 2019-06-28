@@ -8,6 +8,7 @@
 #ifndef ak_bbox_h
 #define ak_bbox_h
 
+#include "common.h"
 #include <stdbool.h>
 
 struct AkMesh;

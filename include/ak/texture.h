@@ -8,6 +8,8 @@
 #ifndef ak_texture_h
 #define ak_texture_h
 
+#include "common.h"
+
 typedef enum AkWrapMode {
   AK_WRAP_MODE_WRAP        = 0,
   AK_WRAP_MODE_MIRROR      = 1,

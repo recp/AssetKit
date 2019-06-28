@@ -11,6 +11,8 @@
 extern "C" {
 #endif
 
+#include "common.h"
+
 struct AkNode;
 
 typedef enum AkControllerType {
@@ -60,10 +62,9 @@ typedef struct AkTargets {
 typedef struct AkMorph {
   AkURL         baseGeom;
   AkMorphMethod method;
-
-  AkSource    * source;
-  AkTargets   * targets;
-  AkTree      * extra;
+  AkSource     *source;
+  AkTargets    *targets;
+  AkTree       *extra;
 } AkMorph;
 
 typedef struct AkController {

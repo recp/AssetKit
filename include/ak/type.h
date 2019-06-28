@@ -8,6 +8,7 @@
 #ifndef ak_types_h
 #define ak_types_h
 
+#include "common.h"
 #include <stdbool.h>
 
 typedef enum AkTypeId {

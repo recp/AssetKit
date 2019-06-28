@@ -8,6 +8,8 @@
 #ifndef ak_image_h
 #define ak_image_h
 
+#include "common.h"
+
 typedef enum AkImageType {
   AK_IMAGE_TYPE_1D   = 0,
   AK_IMAGE_TYPE_2D   = 1,

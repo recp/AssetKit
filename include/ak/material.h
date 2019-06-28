@@ -11,6 +11,8 @@
 extern "C" {
 #endif
 
+#include "common.h"
+
 typedef enum AkOpaque {
   AK_OPAQUE_OPAQUE   = 0, /* fully opaque */
   AK_OPAQUE_A_ONE    = 1,

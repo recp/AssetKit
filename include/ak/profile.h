@@ -11,6 +11,7 @@
 extern "C" {
 #endif
 
+#include "common.h"
 #include "material.h"
 
 struct AkEffect;

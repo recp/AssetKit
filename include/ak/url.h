@@ -11,6 +11,8 @@
 extern "C" {
 #endif
 
+#include "common.h"
+
 typedef struct AkURL {
   const char   *url;      /* only fragment */
   struct AkDoc *doc;      /* document      */

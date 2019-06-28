@@ -11,6 +11,8 @@
 extern "C" {
 #endif
 
+#include "common.h"
+
 typedef enum AkLightType {
   AK_LIGHT_TYPE_AMBIENT     = 1,
   AK_LIGHT_TYPE_DIRECTIONAL = 2,

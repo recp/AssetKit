@@ -15,6 +15,7 @@
 extern "C" {
 #endif
 
+#include "common.h"
 #include "context.h"
 
 AK_EXPORT

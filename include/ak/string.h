@@ -8,6 +8,9 @@
 #ifndef __libassetkit__assetkit_string__h_
 #define __libassetkit__assetkit_string__h_
 
+#include "common.h"
+#include "core-types.h"
+
 AK_EXPORT
 const char*
 ak_strltrim_fast(const char * __restrict str);

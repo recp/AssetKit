@@ -11,6 +11,8 @@
 extern "C" {
 #endif
 
+#include "common.h"
+
 struct AkNode;
 struct AkVisualScene;
 

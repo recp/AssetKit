@@ -11,6 +11,8 @@
 extern "C" {
 #endif
 
+#include "common.h"
+
 typedef enum AkProjectionType {
   AK_PROJECTION_PERSPECTIVE  = 0, /* default */
   AK_PROJECTION_ORTHOGRAPHIC = 1,

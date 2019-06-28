@@ -11,6 +11,8 @@
 extern "C" {
 #endif
 
+#include "common.h"
+
 typedef struct AkTransform {
   AkObject *base; /* fixup transform */
   AkObject *item;

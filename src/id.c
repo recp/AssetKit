@@ -10,6 +10,7 @@
 #include "id.h"
 #include <math.h>
 #include <stdio.h>
+#include <string.h>
 
 void _assetkit_hide
 ak_id_newheap(AkHeap * __restrict heap) {

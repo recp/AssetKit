@@ -11,6 +11,8 @@
 extern "C" {
 #endif
 
+#include "common.h"
+
 /* TODO: */
 typedef enum AkOption {
   AK_OPT_INDICES_DEFAULT            = 0,  /* false    */

@@ -11,6 +11,8 @@
 extern "C" {
 #endif
 
+#include "common.h"
+
 typedef enum AkCoordCvtType {
   AK_COORD_CVT_DISABLED      = 0, /* import document as they are,
                                      don't apply any coord sys operation    */

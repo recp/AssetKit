@@ -12,6 +12,8 @@
 extern "C" {
 #endif
 
+#include "common.h"
+
 typedef enum AkGlFunc {
   AK_GL_FUNC_NEVER    = 1,
   AK_GL_FUNC_LESS     = 2,
