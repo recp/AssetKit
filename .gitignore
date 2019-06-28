@@ -61,3 +61,4 @@ tests.trs
 tests
 *.userprefs
 *.orig
+cmake-build-debug
