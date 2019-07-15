@@ -37,9 +37,6 @@
 [submodule "lib/jansson"]
 	path = lib/jansson
 	url = https://github.com/akheron/jansson.git
-[submodule "lib/jsmn"]
-	path = lib/jsmn
-	url = https://github.com/zserge/jsmn.git
 [submodule "lib/json"]
 	path = lib/json
 	url = https://github.com/recp/json.git
