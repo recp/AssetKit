@@ -12,7 +12,7 @@ mkdir -p .libs
 
 #TODO: implement this to other platforms e.g. linux, windows
 if [ "$(uname)" = "Darwin" ]; then
-  ak_dylib=.libs/libassetkit.dylib
+  ak_dylib=$(realpath .libs/libassetkit.dylib)
 
   libxml2_dylib=$(readlink    ./lib/libxml2/.libs/libxml2.dylib)
   jemalloc_dylib=$(readlink   ./lib/jemalloc/lib/libjemalloc.dylib)
