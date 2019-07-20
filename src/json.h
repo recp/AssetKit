@@ -14,6 +14,17 @@
 /* JSON parser */
 #include <json/json.h>
 
+AK_INLINE
+char *
+json_strdup(const json_t * __restrict jsonObject,
+            AkHeap       * __restrict heap,
+            void         * __restrict parent) {
+  return ak_heap_strndup(heap,
+                         parent,
+                         json_string(jsonObject),
+                         jsonObject->valSize);
+}
+
 const char*
 json_cstr(json_t *jsn, const char *key);
 

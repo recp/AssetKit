@@ -19,8 +19,11 @@ gltf_asset(AkGLTFState  * __restrict gst,
            void         * __restrict memParent,
            const json_t * __restrict json,
            AkAssetInf   * __restrict dest) {
+  AkHeap            *heap;
   AkContributor     *contrib;
   const ak_enumpair *foundVersion;
+
+  heap = gst->heap;
 
  /* instead of keeping version as string we keep enum/int to fast-comparing */
   if (gltfVersionsLen == 0) {
@@ -31,7 +34,7 @@ gltf_asset(AkGLTFState  * __restrict gst,
           ak_enumpair_cmp);
   }
 
-  contrib           = ak_heap_calloc(gst->heap, dest, sizeof(*contrib));
+  contrib           = ak_heap_calloc(heap, dest, sizeof(*contrib));
   dest->contributor = contrib;
 
   while (json) {
@@ -45,15 +48,9 @@ gltf_asset(AkGLTFState  * __restrict gst,
 
       gst->version = foundVersion->val;
     } else if (json_key_eq(json, _s_gltf_copyright)) {
-      contrib->copyright = ak_heap_strndup(gst->heap,
-                                           contrib,
-                                           json_string(json),
-                                           json->valSize);
+      contrib->copyright = json_strdup(json, heap, contrib);
     } else if (json_key_eq(json, _s_gltf_generator)) {
-      contrib->authoringTool = ak_heap_strndup(gst->heap,
-                                               contrib,
-                                               json_string(json),
-                                               json->valSize);
+      contrib->authoringTool = json_strdup(json, heap, contrib);
     }
 
     json = json->next;
@@ -65,11 +62,11 @@ gltf_asset(AkGLTFState  * __restrict gst,
   dest->coordSys = AK_YUP;
 
   /* Unit is meter */
-  dest->unit       = ak_heap_calloc(gst->heap, dest, sizeof(*dest->unit));
+  dest->unit       = ak_heap_calloc(heap, dest, sizeof(*dest->unit));
   dest->unit->dist = 1.0;
-  dest->unit->name = ak_heap_strdup(gst->heap, dest->unit, _s_gltf_meter);
+  dest->unit->name = ak_heap_strdup(heap, dest->unit, _s_gltf_meter);
 
-  *(AkAssetInf **)ak_heap_ext_add(gst->heap,
+  *(AkAssetInf **)ak_heap_ext_add(heap,
                                   ak__alignof(memParent),
                                   AK_HEAP_NODE_FLAGS_INF) = dest;
   return AK_OK;
