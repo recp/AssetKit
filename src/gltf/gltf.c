@@ -25,28 +25,30 @@
 
 #include <json/json.h>
 
-#define k_s_gltf_asset      1
-#define k_s_gltf_buffers    2
-#define k_s_gltf_images     3
-#define k_s_gltf_materials  4
-#define k_s_gltf_meshes     5
-#define k_s_gltf_cameras    6
-#define k_s_gltf_nodes      7
-#define k_s_gltf_scenes     8
-#define k_s_gltf_animations 9
-#define k_s_gltf_skins      10
+#define k_s_gltf_asset       1
+#define k_s_gltf_buffers     2
+#define k_s_gltf_bufferviews 3
+#define k_s_gltf_images      4
+#define k_s_gltf_materials   5
+#define k_s_gltf_meshes      6
+#define k_s_gltf_cameras     7
+#define k_s_gltf_nodes       8
+#define k_s_gltf_scenes      9
+#define k_s_gltf_animations  10
+#define k_s_gltf_skins       11
 
 static ak_enumpair gltfMap[] = {
-  {_s_gltf_asset,      k_s_gltf_asset},
-  {_s_gltf_buffers,    k_s_gltf_buffers},
-  {_s_gltf_images,     k_s_gltf_images},
-  {_s_gltf_materials,  k_s_gltf_materials},
-  {_s_gltf_meshes,     k_s_gltf_meshes},
-  {_s_gltf_cameras,    k_s_gltf_cameras},
-  {_s_gltf_nodes,      k_s_gltf_nodes},
-  {_s_gltf_scenes,     k_s_gltf_scenes},
-  {_s_gltf_animations, k_s_gltf_animations},
-  {_s_gltf_skins,      k_s_gltf_skins}
+  {_s_gltf_asset,       k_s_gltf_asset},
+  {_s_gltf_buffers,     k_s_gltf_buffers},
+  {_s_gltf_bufferViews, k_s_gltf_bufferviews},
+  {_s_gltf_images,      k_s_gltf_images},
+  {_s_gltf_materials,   k_s_gltf_materials},
+  {_s_gltf_meshes,      k_s_gltf_meshes},
+  {_s_gltf_cameras,     k_s_gltf_cameras},
+  {_s_gltf_nodes,       k_s_gltf_nodes},
+  {_s_gltf_scenes,      k_s_gltf_scenes},
+  {_s_gltf_animations,  k_s_gltf_animations},
+  {_s_gltf_skins,       k_s_gltf_skins}
 };
 
 static size_t gltfMapLen = 0;
@@ -143,10 +145,13 @@ gltf_doc(AkDoc     ** __restrict dest,
         break;
       }
 
-      case k_s_gltf_buffers: {
+      case k_s_gltf_buffers:
         gltf_buffers(gst, json->value);
         break;
-      }
+
+      case k_s_gltf_bufferviews:
+        gltf_bufferViews(gst, json->value);
+        break;
     }
   cont:
     json = json->next;

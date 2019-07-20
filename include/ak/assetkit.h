@@ -650,8 +650,9 @@ typedef struct AkLib {
   AkLibItem *visualScenes;
   AkLibItem *nodes;
   AkLibItem *animations;
-
+  
   struct FListItem *buffers;
+  struct FListItem *bufferViews;
 } AkLib;
 
 typedef struct AkDoc {

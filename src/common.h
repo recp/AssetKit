@@ -54,11 +54,10 @@
  */
 #define AK_GET_SIGN(X) ((X >> 31) - (-X >> 31))
 
-typedef struct ak_enumpair_s ak_enumpair;
-struct ak_enumpair_s {
-  const char * key;
-  AkEnum val;
-};
+typedef struct ak_enumpair {
+  const char *key;
+  AkEnum      val;
+} ak_enumpair;
 
 typedef struct {
   const char * name;
@@ -70,6 +69,12 @@ ak_enumpair_cmp(const void * a, const void * b);
 
 int _assetkit_hide
 ak_enumpair_cmp2(const void * a, const void * b);
+
+int _assetkit_hide
+ak_enumpair_json_key_cmp(const void * a, const void * b);
+
+int _assetkit_hide
+ak_enumpair_json_val_cmp(const void * a, const void * b);
 
 AK_EXPORT
 int
