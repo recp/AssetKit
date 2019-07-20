@@ -11,8 +11,9 @@
 #include "../gltf_common.h"
 
 AkResult _assetkit_hide
-gltf_asset(AkGLTFState * __restrict gst,
-           void        * __restrict memParent,
-           AkAssetInf  * __restrict dest);
+gltf_asset(AkGLTFState  * __restrict gst,
+           void         * __restrict memParent,
+           const json_t * __restrict json,
+           AkAssetInf   * __restrict dest);
 
 #endif /* gltf_asset_h */

@@ -12,7 +12,7 @@
 #include <stdlib.h>
 
 /* JSON parser */
-#include <jansson.h>
+#include <json/json.h>
 
 const char*
 json_cstr(json_t *jsn, const char *key);

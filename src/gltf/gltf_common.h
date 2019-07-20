@@ -22,7 +22,7 @@
 #include <stdlib.h>
 
 /* JSON parser */
-#include <jansson.h>
+#include <json/json.h>
 
 typedef enum AkGLTFVersion {
   AK_GLTF_VERSION_10 = 1,
@@ -35,6 +35,7 @@ typedef struct AkGLTFState {
   json_t       *root;
   FListItem    *buffers;
   RBTree       *bufferViews; /* cache bufferViews to prevent dup */
+  RBTree       *meshTargets;
   AkGLTFVersion version;
 } AkGLTFState;
 
