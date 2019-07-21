@@ -209,8 +209,6 @@ dae_polygon(AkXmlState * __restrict xst,
     AkUIntArray *indices, *vcount;
     AkUInt      *pIndices, *pVcount;
 
-    size_t gg;
-    gg = 0;
     /* alloc indices array */
     indices = ak_heap_alloc(xst->heap,
                             polygon,

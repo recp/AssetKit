@@ -75,7 +75,6 @@ extern AkCoordSys * AK_XUP_LH;
 
 struct AkTransform;
 
-static
 AK_INLINE
 void
 ak_coordAxisToiVec3(AkAxisOrientation axisOri, int32_t vec[3]) {
@@ -84,7 +83,6 @@ ak_coordAxisToiVec3(AkAxisOrientation axisOri, int32_t vec[3]) {
   vec[2] = axisOri.fwd;
 }
 
-static
 AK_INLINE
 void
 ak_coordToiVec3(AkCoordSys * __restrict coordSys, int32_t vec[3]) {
@@ -93,7 +91,6 @@ ak_coordToiVec3(AkCoordSys * __restrict coordSys, int32_t vec[3]) {
   vec[2] = coordSys->axis.fwd;
 }
 
-static
 AK_INLINE
 bool
 ak_coordOrientationIsEq(AkCoordSys *c1, AkCoordSys *c2) {

@@ -43,7 +43,6 @@
   X[1] = tmp[1];                                                              \
   X[2] = tmp[2];
 
-static
 AK_INLINE
 void
 ak_coordAxisAccessors(AkCoordSys * __restrict oldCoordSys,
@@ -70,7 +69,6 @@ ak_coordAxisAccessors(AkCoordSys * __restrict oldCoordSys,
   a1->fwd     = abs(newAxis.fwd)   - 1;
 }
 
-static
 AK_INLINE
 void
 ak_coordAxisCamAccessors(AkCoordSys * __restrict newCoordSys,
