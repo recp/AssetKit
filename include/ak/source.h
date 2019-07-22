@@ -22,6 +22,21 @@ extern "C" {
 */
 
 struct AkTechnique;
+struct AkBufferView;
+
+/* for vectors: item count,
+   for matrics: item count | matrix size
+*/
+typedef enum AkComponentSize {
+  AK_COMPONENT_SIZE_UNKNOWN = 0,
+  AK_COMPONENT_SIZE_SCALAR  = 1,
+  AK_COMPONENT_SIZE_VEC2    = 2,
+  AK_COMPONENT_SIZE_VEC3    = 3,
+  AK_COMPONENT_SIZE_VEC4    = 4,
+  AK_COMPONENT_SIZE_MAT2    = (4  << 3) | 2,
+  AK_COMPONENT_SIZE_MAT3    = (9  << 3) | 3,
+  AK_COMPONENT_SIZE_MAT4    = (16 << 3) | 4
+} AkComponentSize;
 
 typedef struct AkDataParam {
   /* const char * sid; */
@@ -37,27 +52,41 @@ typedef struct AkBuffer {
   const char *name;
   void       *data;
   size_t      length;
+
+  /* TODO: remove */
   size_t      reserved;
 } AkBuffer;
 
+typedef struct AkBufferView {
+  AkBuffer   *buffer;
+  const char *name;
+  size_t      byteOffset;
+  size_t      byteLength;
+  size_t      byteStride;
+} AkBufferView;
+
 typedef struct AkAccessor {
-  AkURL               source;
-  AkTypeDesc         *type;
-  struct AkDataParam *param;
-  size_t              count;
-  size_t              offset;
-  uint32_t            firstBound;
-  uint32_t            stride;
-  uint32_t            bound;
-  AkTypeId            itemTypeId;
-  bool                normalized;
+  struct AkBufferView *bufferView;
+  AkTypeDesc          *type;
+  const char          *name;
+  void                *min;
+  void                *max;
+  size_t               byteOffset;
+  size_t               componentBytes;
+  AkComponentSize      componentSize;
+  AkTypeId             componentType;
+  bool                 normalized;
 
-  size_t              byteOffset;
-  size_t              byteLength;
-  size_t              byteStride;
-
-  void               *min;
-  void               *max;
+  /* TODO: DEPRECATED */
+  struct AkDataParam  *param;
+  AkURL                source;
+  size_t               count;
+  size_t               byteStride;
+  size_t               byteLength;
+  size_t               offset;
+  uint32_t             firstBound;
+  uint32_t             stride;
+  uint32_t             bound;
 } AkAccessor;
 
 typedef struct AkSource {

@@ -27,7 +27,7 @@ dae_cvtAngles(AkAccessor * __restrict acc,
   float       *pbuff;
   size_t       po, i, count, st;
 
-  if (acc->itemTypeId == AKT_FLOAT && (param = acc->param)) {
+  if (acc->componentType == AKT_FLOAT && (param = acc->param)) {
     po          = 0;
     st          = acc->stride;
     count       = acc->count * st;

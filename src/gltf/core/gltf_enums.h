@@ -16,8 +16,11 @@ gltf_enumInputSemantic(const char *name);
 AkEnum _assetkit_hide
 gltf_componentType(int type);
 
-AkEnum _assetkit_hide
-gltf_type(const char *name);
+int _assetkit_hide
+gltf_componentLen(int type) ;
+
+AkComponentSize _assetkit_hide
+gltf_type(const char *name, size_t len);
 
 AkEnum _assetkit_hide
 gltf_minFilter(int type);

@@ -25,6 +25,39 @@ json_strdup(const json_t * __restrict jsonObject,
                          jsonObject->valSize);
 }
 
+AK_INLINE
+void
+json_array_set(void         * __restrict p,
+               AkTypeId                  typeId,
+               int                       index,
+               const json_t * __restrict json) {
+  switch (typeId) {
+    case AKT_FLOAT:
+      ((float *)p)[index] = json_float(json, 0.0f);
+      break;
+    case AKT_INT:
+      ((int32_t *)p)[index] = json_int32(json, 0);
+      break;
+    case AKT_UINT:
+      ((int32_t *)p)[index] = json_uint32(json, 0);
+      break;
+    case AKT_SHORT:
+      ((int16_t *)p)[index] = json_int32(json, 0);
+      break;
+    case AKT_USHORT:
+      ((uint16_t *)p)[index] = json_uint32(json, 0);
+      break;
+    case AKT_BYTE:
+      ((char *)p)[index] = json_int32(json, 0);
+      break;
+    case AKT_UBYTE:
+      ((unsigned char *)p)[index] = json_uint32(json, 0);
+      break;
+    default:
+      break;
+  }
+}
+
 const char*
 json_cstr(json_t *jsn, const char *key);
 

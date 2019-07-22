@@ -106,8 +106,8 @@ dae_fixup_accessors(AkXmlState * __restrict xst) {
     if ((buff = ak_getObjectByUrl(&acc->source))) {
       size_t itemSize;
 
-      acc->itemTypeId = (AkTypeId)buff->reserved;
-      acc->type       = ak_typeDesc(acc->itemTypeId);
+      acc->componentType = (AkTypeId)buff->reserved;
+      acc->type       = ak_typeDesc(acc->componentType);
 
       if (acc->type)
         itemSize = acc->type->size;

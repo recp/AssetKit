@@ -10,6 +10,7 @@
 #include "../../include/ak/path.h"
 #include "core/gltf_asset.h"
 #include "core/gltf_buffer.h"
+#include "core/gltf_accessor.h"
 #include "core/gltf_mesh.h"
 #include "core/gltf_node.h"
 #include "core/gltf_scene.h"
@@ -24,23 +25,26 @@
 #include "core/gltf_skin.h"
 
 #include <json/json.h>
+#include <json/print.h>
 
 #define k_s_gltf_asset       1
 #define k_s_gltf_buffers     2
 #define k_s_gltf_bufferviews 3
-#define k_s_gltf_images      4
-#define k_s_gltf_materials   5
-#define k_s_gltf_meshes      6
-#define k_s_gltf_cameras     7
-#define k_s_gltf_nodes       8
-#define k_s_gltf_scenes      9
-#define k_s_gltf_animations  10
-#define k_s_gltf_skins       11
+#define k_s_gltf_accessors   4
+#define k_s_gltf_images      5
+#define k_s_gltf_materials   6
+#define k_s_gltf_meshes      7
+#define k_s_gltf_cameras     8
+#define k_s_gltf_nodes       9
+#define k_s_gltf_scenes      10
+#define k_s_gltf_animations  11
+#define k_s_gltf_skins       12
 
 static ak_enumpair gltfMap[] = {
   {_s_gltf_asset,       k_s_gltf_asset},
   {_s_gltf_buffers,     k_s_gltf_buffers},
   {_s_gltf_bufferViews, k_s_gltf_bufferviews},
+  {_s_gltf_accessors,   k_s_gltf_accessors},
   {_s_gltf_images,      k_s_gltf_images},
   {_s_gltf_materials,   k_s_gltf_materials},
   {_s_gltf_meshes,      k_s_gltf_meshes},
@@ -122,6 +126,9 @@ gltf_doc(AkDoc     ** __restrict dest,
     doc->inf->dirlen = strlen(doc->inf->dir);
   
   json = gltfRawDoc->root->value;
+
+  json_print(json);
+
   while (json) {
     const ak_enumpair *found;
 
@@ -146,11 +153,15 @@ gltf_doc(AkDoc     ** __restrict dest,
       }
 
       case k_s_gltf_buffers:
-        gltf_buffers(gst, json->value);
+        gltf_buffers(gst, json);
         break;
 
       case k_s_gltf_bufferviews:
-        gltf_bufferViews(gst, json->value);
+        gltf_bufferViews(gst, json);
+        break;
+
+      case k_s_gltf_accessors:
+        gltf_accessors(gst, json);
         break;
     }
   cont:

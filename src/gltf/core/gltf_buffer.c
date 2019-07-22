@@ -59,14 +59,12 @@ gltf_buffers(AkGLTFState  * __restrict gst,
   const char         *localurl;
   char               *uri_tmp;
   AkBuffer           *buff;
-  int                 buffIndex;
 
   if (!(jbuffers = json_array(json)))
     return AK_ERR;
 
-  heap      = gst->heap;
-  buffIndex = jbuffers->count - 1;
-  json      = &jbuffers->base;
+  heap = gst->heap;
+  json = &jbuffers->base;
 
   while (json) {
     buff        = ak_heap_calloc(heap, gst->doc, sizeof(*buff));

@@ -50,27 +50,40 @@ gltf_componentType(int type) {
   return AKT_NONE;
 }
 
-AkEnum _assetkit_hide
-gltf_type(const char *name) {
-  AkEnum val;
-  long glenums_len;
-  long i;
+int _assetkit_hide
+gltf_componentLen(int type) {
+  switch (type) {
+    case 5120:            /* AKT_BYTE   */
+    case 5121:  return 1; /* AKT_UBYTE  */
+    case 5122:            /* AKT_SHORT  */
+    case 5123:  return 2; /* AKT_USHORT */
+    case 5125:            /* AKT_UINT   */
+    case 5126:  return 4; /* AKT_FLOAT  */
+    default: return 1;
+  }
+}
+
+AkComponentSize _assetkit_hide
+gltf_type(const char *name, size_t len) {
+  AkComponentSize val;
+  long            glenums_len;
+  long            i;
 
   dae_enum glenums[] = {
-    {_s_gltf_SCALAR, AK_GLTF_SCALAR},
-    {_s_gltf_VEC2,   AK_GLTF_VEC2},
-    {_s_gltf_VEC3,   AK_GLTF_VEC3},
-    {_s_gltf_VEC4,   AK_GLTF_VEC4},
-    {_s_gltf_MAT2,   AK_GLTF_MAT2},
-    {_s_gltf_MAT3,   AK_GLTF_MAT3},
-    {_s_gltf_MAT4,   AK_GLTF_MAT4},
+    {_s_gltf_SCALAR, AK_COMPONENT_SIZE_SCALAR},
+    {_s_gltf_VEC2,   AK_COMPONENT_SIZE_VEC2},
+    {_s_gltf_VEC3,   AK_COMPONENT_SIZE_VEC3},
+    {_s_gltf_VEC4,   AK_COMPONENT_SIZE_VEC4},
+    {_s_gltf_MAT2,   AK_COMPONENT_SIZE_MAT2},
+    {_s_gltf_MAT3,   AK_COMPONENT_SIZE_MAT3},
+    {_s_gltf_MAT4,   AK_COMPONENT_SIZE_MAT4},
   };
 
-  val = AK_GLTF_SCALAR;
+  val = AK_COMPONENT_SIZE_UNKNOWN;
   glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
-    if (strcasecmp(name, glenums[i].name) == 0) {
+    if (strncasecmp(name, glenums[i].name, len) == 0) {
       val = glenums[i].val;
       break;
     }

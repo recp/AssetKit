@@ -75,7 +75,7 @@ ak_meshFillBuffers(AkMesh * __restrict mesh) {
                             buffstate->lastoffset);
 
         icount = primi->indices->count / primi->indexStride;
-        switch (acc->itemTypeId) {
+        switch (acc->componentType) {
           case AKT_FLOAT: {
             AkFloat *olditms, *newitms;
 

@@ -71,7 +71,7 @@ ak_changeCoordSysMesh(AkMesh * __restrict mesh,
     }
 
     /* TODO: INT, DOUBLE.. */
-    if (acci->itemTypeId == AKT_FLOAT) {
+    if (acci->componentType == AKT_FLOAT) {
       ak_coordCvtVectors(doc->coordSys,
                          buffi->data,
                          buffi->length / acci->type->size,

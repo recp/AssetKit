@@ -653,6 +653,7 @@ typedef struct AkLib {
   
   struct FListItem *buffers;
   struct FListItem *bufferViews;
+  struct FListItem *accessors;
 } AkLib;
 
 typedef struct AkDoc {

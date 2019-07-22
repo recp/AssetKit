@@ -124,5 +124,6 @@
   "STEP": "STEP",
   "CUBICSPLINE": "CUBICSPLINE",
   "inverseBindMatrices": "inverseBindMatrices",
-  "joints": "joints"
+  "joints": "joints",
+  "sparse": "sparse"
 }
