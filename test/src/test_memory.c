@@ -5,59 +5,53 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "test_memory.h"
+#include "test_common.h"
 #include "../../src/memory_common.h"
 #include "../../src/memory_lt.h"
 
-#include <stdint.h>
-
 extern AkHeapAllocator ak__allocator;
 
-void
-test_heap(void **state) {
+TEST_IMPL(heap) {
   AkHeap  *heap, *other, staticHeap;
   uint32_t heapid, data;
 
-  (void)state;
-
   heap = ak_heap_new(NULL, NULL, NULL);
-  assert_true(heap->allocator == &ak__allocator);
-  assert_true(ak_heap_allocator(heap) == &ak__allocator);
+  ASSERT(heap->allocator == &ak__allocator);
+  ASSERT(ak_heap_allocator(heap) == &ak__allocator);
 
   heapid = heap->heapid;
-  assert_true(heapid > 0);
-  assert_ptr_equal(ak_heap_lt_find(heap->heapid), heap);
+  ASSERT(heapid > 0);
+  ASSERT(ak_heap_lt_find(heap->heapid) == heap);
 
   other = ak_heap_new(NULL, NULL, NULL);
 
   ak_heap_attach(heap, other);
-  assert_true(heap->chld == other);
+  ASSERT(heap->chld == other);
 
   ak_heap_dettach(heap, other);
-  assert_true(heap->chld == NULL);
+  ASSERT(heap->chld == NULL);
 
   ak_heap_attach(heap, other);
-  assert_true(heap->chld == other);
+  ASSERT(heap->chld == other);
 
   ak_heap_setdata(heap, &data);
-  assert_true(ak_heap_data(heap) == &data);
+  ASSERT(ak_heap_data(heap) == &data);
 
   ak_heap_destroy(heap);
-  assert_true(ak_heap_lt_find(heapid) == NULL);
+  ASSERT(ak_heap_lt_find(heapid) == NULL);
 
   ak_heap_init(&staticHeap, NULL, NULL, NULL);
-  assert_true(staticHeap.heapid > 0);
+  ASSERT(staticHeap.heapid > 0);
 
   ak_heap_lt_remove(staticHeap.heapid);
-  assert_true(ak_heap_lt_find(staticHeap.heapid) == NULL);
+  ASSERT(ak_heap_lt_find(staticHeap.heapid) == NULL);
+
+  TEST_SUCCESS
 }
 
-void
-test_heap_multiple(void **state) {
+TEST_IMPL(heap_multiple) {
   AkHeap  *heap, *root;
   uint32_t i;
-
-  (void)state;
 
   root = ak_heap_new(NULL, NULL, NULL);
 
@@ -103,4 +97,6 @@ test_heap_multiple(void **state) {
     ak_heap_attach(root, heap);
     ak_heap_dettach(root, heap);
   }
+
+  TEST_SUCCESS
 }

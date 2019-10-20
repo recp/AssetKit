@@ -8,11 +8,19 @@
 #ifndef ak_test_common_h
 #define ak_test_common_h
 
+#include "../include/common.h"
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <string.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <setjmp.h>
-#include <cmocka.h>
 
 #include <ak/assetkit.h>
 
