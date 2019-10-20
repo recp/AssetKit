@@ -31,9 +31,7 @@ check_PROGRAMS = test/tests
 TESTS = test/tests
 
 test_tests_LDFLAGS = -L./.libs \
-                     -L./test/lib/cmocka/build/src \
                      -lassetkit \
-                     -lcmocka \
                      -lm \
                      -lxml2 \
                      -ljemalloc \
@@ -41,8 +39,7 @@ test_tests_LDFLAGS = -L./.libs \
                      -luv \
                      -lds
 
-test_tests_CFLAGS = -I./test/lib/cmocka/include \
-                    -I./include
+test_tests_CFLAGS = -I./include
 
 include_HEADERS = include/ak/assetkit.h \
                   include/ak/core-types.h \
@@ -247,8 +244,7 @@ libassetkit_la_SOURCES=\
     src/gltf/core/gltf_skin.c
 
 test_tests_SOURCES=\
-    test/src/test-common.h \
-    test/src/tests.c \
+    test/runner.c \
     test/src/test_memory.c \
     test/src/collada/test_dae_load.c
 
