@@ -10,12 +10,12 @@
 
 #include "../gltf_common.h"
 
-AkResult _assetkit_hide
-gltf_buffers(AkGLTFState  * __restrict gst,
-             const json_t * __restrict json);
+void
+gltf_buffers(json_t * __restrict json,
+             void   * __restrict userdata);
 
-AkResult _assetkit_hide
-gltf_bufferViews(AkGLTFState  * __restrict gst,
-                 const json_t * __restrict json);
+void
+gltf_bufferViews(json_t * __restrict json,
+                 void   * __restrict userdata);
 
 #endif /* gltf_buffer_h */

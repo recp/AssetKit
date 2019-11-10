@@ -36,20 +36,21 @@ static ak_enumpair accMap[] = {
 
 static size_t accMapLen = 0;
 
-AkResult _assetkit_hide
-gltf_accessors(AkGLTFState  * __restrict gst,
-               const json_t * __restrict json) {
+void _assetkit_hide
+gltf_accessors(json_t * __restrict json,
+               void   * __restrict userdata) {
+  AkGLTFState        *gst;
   AkHeap             *heap;
   const json_array_t *jaccessors, *jarr;
   const json_t       *jattr, *jmin, *jmax, *jitem;
   AkAccessor         *acc;
-  FListItem          *buffViewItem;
   int                 componentLen, count, bufferViewIndex;
 
   if (!(jaccessors = json_array(json)))
-    return AK_ERR;
+    return;
 
-  json = json->value;
+  gst  = userdata;
+  json = jaccessors->base.value;
 
   if (accMapLen == 0) {
     accMapLen = AK_ARRAY_LEN(accMap);
@@ -79,10 +80,11 @@ gltf_accessors(AkGLTFState  * __restrict gst,
 
       switch (found->val) {
         case k_s_gltf_bufferView: {
-          if ((bufferViewIndex = json_int32(jattr, -1)) > -1
-              && (buffViewItem = flist_sp_at(&gst->doc->lib.bufferViews,
-                                             bufferViewIndex)))
-            acc->bufferView = buffViewItem->data;
+          if ((bufferViewIndex = json_int32(jattr, -1)) > -1) {
+            acc->bufferView = flist_sp_at(&gst->doc->lib.bufferViews,
+                                          bufferViewIndex);
+            acc->source.ptr = acc->bufferView;
+          }
           break;
         }
         case k_s_gltf_byteOffset:
@@ -113,7 +115,6 @@ gltf_accessors(AkGLTFState  * __restrict gst,
           /* wait to get component type and size */
           jmin = jattr;
           break;
-
         case k_s_gltf_name:
           acc->name = json_strdup(jattr, heap, acc);
           break;
@@ -137,7 +138,7 @@ gltf_accessors(AkGLTFState  * __restrict gst,
         acc->min = ak_heap_alloc(heap, acc, acc->componentBytes);
 
         if ((jarr = json_array(jmin))) {
-          jitem = &jarr->base;
+          jitem = jarr->base.value;
           count = jarr->count;
 
           while (jitem) {
@@ -153,7 +154,7 @@ gltf_accessors(AkGLTFState  * __restrict gst,
         acc->max = ak_heap_alloc(heap, acc, acc->componentBytes);
 
         if ((jarr = json_array(jmax))) {
-          jitem = &jarr->base;
+          jitem = jarr->base.value;
           count = jarr->count;
 
           while (jitem) {
@@ -172,6 +173,4 @@ gltf_accessors(AkGLTFState  * __restrict gst,
     jmax = NULL;
     json = json->next;
   }
-
-  return AK_OK;
 }

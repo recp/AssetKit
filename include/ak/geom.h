@@ -117,6 +117,7 @@ typedef struct AkMesh {
   AkTree            *extra;
   AkMeshEditHelper  *edith;
   struct FListItem  *skins;
+  const char        *name;
   uint32_t           primitiveCount;
   AkFloat3           center;
 } AkMesh;

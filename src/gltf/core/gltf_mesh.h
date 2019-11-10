@@ -11,7 +11,8 @@
 #include "../gltf_common.h"
 
 void _assetkit_hide
-gltf_meshes(AkGLTFState * __restrict gst);
+gltf_meshes(json_t * __restrict json,
+            void   * __restrict userdata);
 
 AkMeshPrimitive* _assetkit_hide
 gltf_allocPrim(AkHeap * __restrict heap,

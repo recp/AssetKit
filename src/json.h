@@ -26,6 +26,18 @@ json_strdup(const json_t * __restrict jsonObject,
 }
 
 AK_INLINE
+char *
+json_strdup_key(const json_t * __restrict jsonObject,
+                AkHeap       * __restrict heap,
+                void         * __restrict parent,
+                size_t                    size) {
+  return ak_heap_strndup(heap,
+                         parent,
+                         json_string(jsonObject),
+                         size);
+}
+
+AK_INLINE
 void
 json_array_set(void         * __restrict p,
                AkTypeId                  typeId,

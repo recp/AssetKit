@@ -12,13 +12,11 @@
 
 AkTextureRef* _assetkit_hide
 gltf_texref(AkGLTFState * __restrict gst,
-            AkEffect    * __restrict effect,
             void        * __restrict parent,
             json_t      * __restrict jtexinfo);
 
-AkSampler* _assetkit_hide
-gltf_texture(AkGLTFState * __restrict gst,
-             AkEffect    * __restrict effect,
-             int32_t                  index);
+void _assetkit_hide
+gltf_textures(json_t * __restrict jtex,
+              void   * __restrict userdata);
 
 #endif /* gltf_texture_h */

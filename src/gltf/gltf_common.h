@@ -37,6 +37,26 @@ typedef struct AkGLTFState {
   RBTree       *bufferViews; /* cache bufferViews to prevent dup */
   RBTree       *meshTargets;
   AkGLTFVersion version;
+  bool          stop;
 } AkGLTFState;
+
+#define I2P (void *)(intptr_t)
+
+#define GETCHILD(INITIAL, ITEM, INDEX)                                        \
+  do {                                                                        \
+    int i;                                                                    \
+    ITEM = NULL;                                                              \
+    i    = INDEX;                                                             \
+    if (i > 0 && (ITEM = INITIAL)) {                                          \
+      while (i > 0) {                                                         \
+        if (!(ITEM = ITEM->next)) {                                           \
+          i     = -1;                                                         \
+          ITEM  = NULL;                                                       \
+          break;  /* not foud */                                              \
+        }                                                                     \
+        i--;                                                                  \
+      }                                                                       \
+    } else { ITEM = NULL; }                                                   \
+  } while (0)
 
 #endif /* gltf_commoh_h */

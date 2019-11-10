@@ -31,8 +31,8 @@ gltf_newsampler(AkGLTFState * __restrict gst,
          ak_typeDesc(AKT_SAMPLER2D),
          sizeof(paramVal->type));
 
-  paramVal->value   = sampler;
-  param->val        = paramVal;
+  paramVal->value = sampler;
+  param->val      = paramVal;
 
   if (profile->newparam) {
     profile->newparam->prev = param;
@@ -44,29 +44,45 @@ gltf_newsampler(AkGLTFState * __restrict gst,
   return sampler;
 }
 
-AkSampler* _assetkit_hide
-gltf_sampler(AkGLTFState * __restrict gst,
-             AkEffect    * __restrict effect,
-             int32_t                  index) {
-  json_t    *jsamplers;
-  AkSampler *sampler;
-  json_t    *jsampler;
-  int32_t    jsamplerCount;
+void _assetkit_hide
+gltf_samplers(json_t * __restrict jsampler,
+              void   * __restrict userdata) {
+  AkGLTFState        *gst;
+  const json_array_t *jsamplers;
+  const json_t       *jsamplerVal;
+  AkSampler          *sampler;
 
-  jsamplers     = json_object_get(gst->root, _s_gltf_samplers);
-  jsamplerCount = (int32_t)json_array_size(jsamplers);
+  if (!(jsamplers = json_array(jsampler)))
+    return;
 
-  if (!(index < jsamplerCount))
-    return NULL;
+  gst = userdata;
 
-  jsampler           = json_array_get(jsamplers, index);
-  sampler            = gltf_newsampler(gst, effect);
+  jsampler = jsamplers->base.value;
+  while (jsampler) {
+    jsamplerVal    = jsampler->value;
+    sampler        = ak_heap_calloc(gst->heap, gst->doc, sizeof(*sampler));
+    sampler->wrapS = AK_WRAP_MODE_WRAP;
+    sampler->wrapT = AK_WRAP_MODE_WRAP;
 
-  sampler->wrapS     = gltf_wrapMode(jsn_i32(jsampler, _s_gltf_wrapS));
-  sampler->wrapT     = gltf_wrapMode(jsn_i32(jsampler, _s_gltf_wrapT));
+    while (jsamplerVal) {
+      if (json_key_eq(jsamplerVal, _s_gltf_wrapS)) {
+        sampler->wrapS = gltf_wrapMode(json_int32(jsamplerVal,
+                                                  AK_WRAP_MODE_WRAP));
+      } else if (json_key_eq(jsamplerVal, _s_gltf_wrapT)) {
+        sampler->wrapS = gltf_wrapMode(json_int32(jsamplerVal,
+                                                  AK_WRAP_MODE_WRAP));
+      } else if (json_key_eq(jsamplerVal, _s_gltf_minFilter)) {
+        sampler->minfilter = gltf_minFilter(json_int32(jsamplerVal, 0));
+      } else if (json_key_eq(jsamplerVal, _s_gltf_magFilter)) {
+        sampler->magfilter = gltf_magFilter(json_int32(jsamplerVal, 0));
+      } else if (json_key_eq(jsamplerVal, _s_gltf_name)) {
+        sampler->name = json_strdup(jsamplerVal, gst->heap, sampler);
+      }
 
-  sampler->minfilter = gltf_minFilter(jsn_i32(jsampler, _s_gltf_minFilter));
-  sampler->magfilter = gltf_magFilter(jsn_i32(jsampler, _s_gltf_magFilter));
+      jsamplerVal = jsamplerVal->next;
+    }
 
-  return sampler;
+    flist_sp_insert(&gst->doc->lib.samplers, sampler);
+    jsampler = jsampler->next;
+  }
 }

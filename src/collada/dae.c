@@ -103,7 +103,7 @@ static AkLibChldDesc libchlds[] = {
     _s_dae_lib_images,
     _s_dae_image,
     dae_fxImage,
-    offsetof(AkLib, images),
+    offsetof(AkLib, libimages),
     offsetof(AkImage, next),
     -1
   },

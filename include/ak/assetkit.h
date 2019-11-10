@@ -318,12 +318,6 @@ typedef struct AkInstanceBase {
   struct AkInstanceBase *next;
 } AkInstanceBase;
 
-typedef struct AkTextureRef {
-  const char *texture;
-  const char *texcoord;
-  AkTree     *extra;
-} AkTextureRef;
-
 typedef struct AkAnnotate {
   struct AkAnnotate *next;
   const char        *name;
@@ -643,7 +637,7 @@ typedef struct AkLib {
   AkLibItem *cameras;
   AkLibItem *lights;
   AkLibItem *effects;
-  AkLibItem *images;
+  AkLibItem *libimages;
   AkLibItem *materials;
   AkLibItem *geometries;
   AkLibItem *controllers;
@@ -654,6 +648,9 @@ typedef struct AkLib {
   struct FListItem *buffers;
   struct FListItem *bufferViews;
   struct FListItem *accessors;
+  struct FListItem *textures;
+  struct FListItem *samplers;
+  struct FListItem *images;
 } AkLib;
 
 typedef struct AkDoc {

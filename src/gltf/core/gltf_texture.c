@@ -11,108 +11,85 @@
 
 AkTextureRef* _assetkit_hide
 gltf_texref(AkGLTFState * __restrict gst,
-            AkEffect    * __restrict effect,
             void        * __restrict parent,
             json_t      * __restrict jtexinfo) {
-  AkHeap      *heap;
-  AkSampler   *sampler;
-  AkNewParam  *param;
-  AkTextureRef *tex;
-  char        *sid, *sem;
-  int32_t      texindex, texCoord;
-  size_t       len;
+  AkHeap       *heap;
+  AkDoc        *doc;
+  AkTextureRef *texref;
+  AkTexture    *tex;
+  char         *texcoord;
+  int32_t       texindex, coordindex;
+  size_t        len;
 
-  heap     = gst->heap;
-  texindex = jsn_i32(jtexinfo, _s_gltf_index);
-  texCoord = jsn_i32(jtexinfo, _s_gltf_texCoord);
-  sampler  = gltf_texture(gst, effect, texindex);
-  param    = ak_mem_parent(ak_mem_parent(sampler));
+  heap       = gst->heap;
+  doc        = gst->doc;
+  texindex   = json_int32(json_get(jtexinfo, _s_gltf_index), 0);
+  coordindex = json_int32(json_get(jtexinfo, _s_gltf_texCoord), 0);
+  tex        = flist_sp_at(&doc->lib.textures, texindex);
 
-  ak_setypeid(param, AKT_NEWPARAM);
+  texref = ak_heap_calloc(heap, parent, sizeof(*texref));
+  ak_setypeid(texref, AKT_TEXTURE_REF);
 
-  /* set sid for bind_vertex_input */
-  sid = (char *)ak_id_gen(heap, param, _s_gltf_sid_sampler);
-  ak_sid_set(param, sid);
+  len           = strlen(_s_gltf_sid_texcoord) + ak_digitsize(coordindex);
+  texcoord      = ak_heap_alloc(heap, texref, len + 1);
+  texcoord[len] = '\0';
+  sprintf(texcoord, "%s%d", _s_gltf_sid_texcoord, coordindex);
 
-  tex = ak_heap_calloc(heap, parent, sizeof(*tex));
-  ak_setypeid(tex, AKT_TEXTURE);
+  texref->texture  = tex;
+  texref->texcoord = texcoord;
 
-  len      = strlen(_s_gltf_sid_texcoord) + ak_digitsize(texindex);
-  sem      = ak_heap_alloc(heap, param, len + 1);
-  sem[len] = '\0';
-  sprintf(sem, "%s%d", _s_gltf_sid_texcoord, texCoord);
-
-  tex->texture  = sid;
-  tex->texcoord = sem;
-
-  if (tex->texture)
-    ak_setypeid((void *)tex->texture, AKT_TEXTURE_NAME);
-
-  if (tex->texcoord)
-    ak_setypeid((void *)tex->texcoord, AKT_TEXCOORD);
-
-  return tex;
+  return texref;
 }
 
-AkSampler* _assetkit_hide
-gltf_texture(AkGLTFState * __restrict gst,
-             AkEffect    * __restrict effect,
-             int32_t                  index) {
-  AkHeap        *heap;
-  AkDoc         *doc;
-  json_t        *jtextures;
-  json_t        *jtexture, *jsampler, *jsource;
-  AkSampler     *sampler;
-  int32_t        jtextureCount;
+void _assetkit_hide
+gltf_textures(json_t * __restrict jtex,
+              void   * __restrict userdata) {
+  AkGLTFState        *gst;
+  AkHeap             *heap;
+  AkDoc              *doc;
+  const json_array_t *jtextures;
+  const json_t       *jtexVal;
+  AkTexture          *tex;
 
-  heap          = gst->heap;
-  doc           = gst->doc;
+  if (!(jtextures = json_array(jtex)))
+    return;
 
-  jtextures     = json_object_get(gst->root, _s_gltf_textures);
-  jtextureCount = (int32_t)json_array_size(jtextures);
+  gst  = userdata;
 
-  if (!(index < jtextureCount))
-    return NULL;
+  heap = gst->heap;
+  doc  = gst->doc;
 
-  sampler  = NULL;
-  jtexture = json_array_get(jtextures, index);
-  if ((jsampler = json_object_get(jtexture, _s_gltf_sampler))) {
-    int32_t samplerIndex;
+  jtex = jtextures->base.value;
+  while (jtex) {
+    AkSampler *sampler;
 
-    samplerIndex = (int32_t)json_integer_value(jsampler);
-    sampler      = gltf_sampler(gst, effect, samplerIndex);
-  }
+    jtexVal = jtex->value;
+    tex     = ak_heap_calloc(gst->heap, gst->doc, sizeof(*tex));
+    sampler = NULL;
 
-  /* create default sampler */
-  if (!sampler) {
-    sampler = gltf_newsampler(gst, effect);
+    while (jtexVal) {
+      if (json_key_eq(jtexVal, _s_gltf_sampler)) {
+        sampler = flist_sp_at(&doc->lib.samplers, json_int32(jtexVal, -1));
+      } else if (json_key_eq(jtexVal, _s_gltf_source)) {
+        tex->image = flist_sp_at(&doc->lib.images, json_int32(jtexVal, -1));
+      } else if (json_key_eq(jtexVal, _s_gltf_name)) {
+        tex->name = json_strdup(jtexVal, gst->heap, tex);
+      }
 
-    sampler->wrapS     = AK_WRAP_MODE_WRAP;
-    sampler->wrapT     = AK_WRAP_MODE_WRAP;
-    sampler->minfilter = AK_MINFILTER_LINEAR;
-    sampler->magfilter = AK_MAGFILTER_LINEAR;
-  }
-
-  if ((jsource = json_object_get(jtexture, _s_gltf_source))) {
-    AkImage *image;
-    int32_t  imageIndex;
-
-    imageIndex = (int32_t)json_integer_value(jsource);
-    image      = doc->lib.images->chld;
-
-    while (imageIndex != 0 && image) {
-      image = image->next;
-      imageIndex--;
+      jtexVal = jtexVal->next;
     }
 
-    if (image) {
-      AkInstanceBase *instImage;
-      instImage = ak_heap_calloc(heap, sampler, sizeof(*instImage));
-      instImage->url.ptr = image;
-
-      sampler->instanceImage = instImage;
+    /* TODO: add option for this */
+    /* create default sampler */
+    if (!sampler) {
+      sampler        = ak_heap_calloc(gst->heap, gst->doc, sizeof(*sampler));
+      sampler->wrapS = AK_WRAP_MODE_WRAP;
+      sampler->wrapT = AK_WRAP_MODE_WRAP;
     }
-  }
 
-  return sampler;
+    tex->sampler = sampler;
+
+    flist_sp_insert(&gst->doc->lib.textures, tex);
+    jtex = jtex->next;
+  }
 }

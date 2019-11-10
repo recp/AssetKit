@@ -8,87 +8,86 @@
 #include "gltf_buffer.h"
 #include "../../utils.h"
 
-AkResult _assetkit_hide
-gltf_bufferViews(AkGLTFState  * __restrict gst,
-                 const json_t * __restrict json) {
+void
+gltf_bufferViews(json_t * __restrict jbuffView,
+                 void   * __restrict userdata) {
+  AkGLTFState        *gst;
   const json_array_t *jbuffers;
-  const json_t       *jbuffAttrib;
+  const json_t       *jbuffVal;
   AkBufferView       *buffView;
-  FListItem          *buffItem;
   int32_t             buffIndex;
 
-  if (!(jbuffers = json_array(json)))
-    return AK_ERR;
+  if (!(jbuffers = json_array(jbuffView)))
+    return;
 
-  json = &jbuffers->base;
-  while (json) {
-    buffView    = ak_heap_calloc(gst->heap, gst->doc, sizeof(*buffView));
-    jbuffAttrib = json->value;
+  gst = userdata;
 
-    while (jbuffAttrib) {
-      if (json_key_eq(jbuffAttrib, _s_gltf_buffer)) {
-        if ((buffIndex = json_int32(jbuffAttrib, -1)) > 0
-            && (buffItem = flist_sp_at(&gst->doc->lib.buffers, buffIndex)))
-          buffView->buffer = buffItem->data;
-      } else if (json_key_eq(jbuffAttrib, _s_gltf_byteLength)) {
-        buffView->byteLength = json_uint64(jbuffAttrib, 0);
-      } else if (json_key_eq(jbuffAttrib, _s_gltf_byteOffset)) {
-        buffView->byteOffset = json_uint64(jbuffAttrib, 0);
-      } else if (json_key_eq(jbuffAttrib, _s_gltf_byteStride)) {
-        buffView->byteStride = json_uint64(jbuffAttrib, 1);
-      } else if (json_key_eq(jbuffAttrib, _s_gltf_name)) {
-        buffView->name = json_strdup(jbuffAttrib, gst->heap, buffView);
+  jbuffView = jbuffers->base.value;
+  while (jbuffView) {
+    buffView = ak_heap_calloc(gst->heap, gst->doc, sizeof(*buffView));
+    jbuffVal = jbuffView->value;
+
+    while (jbuffVal) {
+      if (json_key_eq(jbuffVal, _s_gltf_buffer)) {
+        if ((buffIndex = json_int32(jbuffVal, -1)) > -1)
+          buffView->buffer = flist_sp_at(&gst->doc->lib.buffers, buffIndex);
+      } else if (json_key_eq(jbuffVal, _s_gltf_byteLength)) {
+        buffView->byteLength = json_uint64(jbuffVal, 0);
+      } else if (json_key_eq(jbuffVal, _s_gltf_byteOffset)) {
+        buffView->byteOffset = json_uint64(jbuffVal, 0);
+      } else if (json_key_eq(jbuffVal, _s_gltf_byteStride)) {
+        buffView->byteStride = json_uint64(jbuffVal, 1);
+      } else if (json_key_eq(jbuffVal, _s_gltf_name)) {
+        buffView->name = json_strdup(jbuffVal, gst->heap, buffView);
       }
 
-      jbuffAttrib = jbuffAttrib->next;
+      jbuffVal = jbuffVal->next;
     }
 
     flist_sp_insert(&gst->doc->lib.bufferViews, buffView);
-    json = json->next;
+    jbuffView = jbuffView->next;
   }
-  
-  return AK_OK;
 }
 
-AkResult _assetkit_hide
-gltf_buffers(AkGLTFState  * __restrict gst,
-             const json_t * __restrict json) {
+void
+gltf_buffers(json_t * __restrict jbuff,
+             void   * __restrict userdata) {
+  AkGLTFState        *gst;
   AkHeap             *heap;
   const json_array_t *jbuffers;
-  const json_t       *jbuffAttrib;
+  const json_t       *jbuffVal;
   const char         *localurl;
   char               *uri_tmp;
   AkBuffer           *buff;
+    
+  if (!(jbuffers = json_array(jbuff)))
+    return;
 
-  if (!(jbuffers = json_array(json)))
-    return AK_ERR;
+  gst      = userdata;
+  heap     = gst->heap;
+  jbuff    = jbuffers->base.value;
 
-  heap = gst->heap;
-  json = &jbuffers->base;
+  while (jbuff) {
+    buff     = ak_heap_calloc(heap, gst->doc, sizeof(*buff));
+    jbuffVal = jbuff->value;
 
-  while (json) {
-    buff        = ak_heap_calloc(heap, gst->doc, sizeof(*buff));
-    jbuffAttrib = json->value;
-
-    while (jbuffAttrib) {
-      if (json_key_eq(jbuffAttrib, _s_gltf_uri)) {
-        uri_tmp  = json_string_dup(jbuffAttrib);
+    while (jbuffVal) {
+      if (json_key_eq(jbuffVal, _s_gltf_uri)) {
+        uri_tmp  = json_string_dup(jbuffVal);
         localurl = ak_getFileFrom(gst->doc, uri_tmp);
 
         ak_readfile(localurl, "rb", &buff->data, &buff->length);
         free(uri_tmp);
 
         /* TODO: log if logging enabled (or by log level) */
-      } else if (json_key_eq(jbuffAttrib, _s_gltf_name)) {
-        buff->name = json_strdup(jbuffAttrib, heap, buff);
+      } else if (json_key_eq(jbuffVal, _s_gltf_name)) {
+        buff->name = json_strdup(jbuffVal, heap, buff);
       }
 
-      jbuffAttrib = jbuffAttrib->next;
+      jbuffVal = jbuffVal->next;
     }
 
     flist_sp_insert(&gst->doc->lib.buffers, buff);
-    json = json->next;
+    jbuff = jbuff->next;
   }
-  
-  return AK_OK;
 }

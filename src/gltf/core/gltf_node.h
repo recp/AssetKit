@@ -11,7 +11,8 @@
 #include "../gltf_common.h"
 
 void _assetkit_hide
-gltf_nodes(AkGLTFState * __restrict gst);
+gltf_nodes(json_t * __restrict jnode,
+           void   * __restrict userdata);
 
 AkNode* _assetkit_hide
 gltf_node(AkGLTFState * __restrict gst,

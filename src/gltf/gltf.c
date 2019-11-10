@@ -28,34 +28,34 @@
 #include <json/print.h>
 
 #define k_s_gltf_asset       1
-#define k_s_gltf_buffers     2
-#define k_s_gltf_bufferviews 3
-#define k_s_gltf_accessors   4
-#define k_s_gltf_images      5
-#define k_s_gltf_materials   6
-#define k_s_gltf_meshes      7
-#define k_s_gltf_cameras     8
-#define k_s_gltf_nodes       9
-#define k_s_gltf_scenes      10
-#define k_s_gltf_animations  11
-#define k_s_gltf_skins       12
+//#define k_s_gltf_buffers     2
+//#define k_s_gltf_bufferviews 3
+//#define k_s_gltf_accessors   4
+//#define k_s_gltf_images      5
+//#define k_s_gltf_materials   6
+//#define k_s_gltf_meshes      7
+//#define k_s_gltf_cameras     8
+//#define k_s_gltf_nodes       9
+//#define k_s_gltf_scenes      10
+//#define k_s_gltf_animations  11
+//#define k_s_gltf_skins       12
+//
+//static ak_enumpair gltfMap[] = {
+//  {_s_gltf_asset,       k_s_gltf_asset},
+//  {_s_gltf_buffers,     k_s_gltf_buffers},
+//  {_s_gltf_bufferViews, k_s_gltf_bufferviews},
+//  {_s_gltf_accessors,   k_s_gltf_accessors},
+//  {_s_gltf_images,      k_s_gltf_images},
+//  {_s_gltf_materials,   k_s_gltf_materials},
+//  {_s_gltf_meshes,      k_s_gltf_meshes},
+//  {_s_gltf_cameras,     k_s_gltf_cameras},
+//  {_s_gltf_nodes,       k_s_gltf_nodes},
+//  {_s_gltf_scenes,      k_s_gltf_scenes},
+//  {_s_gltf_animations,  k_s_gltf_animations},
+//  {_s_gltf_skins,       k_s_gltf_skins}
+//};
 
-static ak_enumpair gltfMap[] = {
-  {_s_gltf_asset,       k_s_gltf_asset},
-  {_s_gltf_buffers,     k_s_gltf_buffers},
-  {_s_gltf_bufferViews, k_s_gltf_bufferviews},
-  {_s_gltf_accessors,   k_s_gltf_accessors},
-  {_s_gltf_images,      k_s_gltf_images},
-  {_s_gltf_materials,   k_s_gltf_materials},
-  {_s_gltf_meshes,      k_s_gltf_meshes},
-  {_s_gltf_cameras,     k_s_gltf_cameras},
-  {_s_gltf_nodes,       k_s_gltf_nodes},
-  {_s_gltf_scenes,      k_s_gltf_scenes},
-  {_s_gltf_animations,  k_s_gltf_animations},
-  {_s_gltf_skins,       k_s_gltf_skins}
-};
-
-static size_t gltfMapLen = 0;
+// static size_t gltfMapLen = 0;
 
 static
 void
@@ -74,7 +74,7 @@ gltf_doc(AkDoc     ** __restrict dest,
   json_t           *jscene;
   AkVisualScene    *scene;
   const json_doc_t *gltfRawDoc;
-  const json_t     *json;
+  json_t           *json;
   void             *jsonString;
   size_t            jsonSize;
   AkGLTFState       gstVal, *gst;
@@ -107,14 +107,9 @@ gltf_doc(AkDoc     ** __restrict dest,
   if ((ret = ak_readfile(filepath, "rb", &jsonString, &jsonSize)) != AK_OK)
     return ret;
 
-  gltfRawDoc = json_parse(jsonString);
+  gltfRawDoc = json_parse(jsonString, false);
   if (!gltfRawDoc || !gltfRawDoc->root)
     return AK_ERR;
-
-  if (gltfMapLen == 0) {
-    gltfMapLen = AK_ARRAY_LEN(gltfMap);
-    qsort(gltfMap, gltfMapLen, sizeof(gltfMap[0]), ak_enumpair_cmp);
-  }
 
   doc->inf            = ak_heap_calloc(heap, doc, sizeof(*doc->inf));
   doc->inf->dir       = ak_path_dir(heap, doc, filepath);
@@ -124,55 +119,43 @@ gltf_doc(AkDoc     ** __restrict dest,
 
   if (doc->inf->dir)
     doc->inf->dirlen = strlen(doc->inf->dir);
-  
-  json = gltfRawDoc->root->value;
 
-  json_print(json);
+  json = gltfRawDoc->root;
+
+  json_print_human(stderr, gltfRawDoc->root);
+
+  json_objmap_t gltfMap[] = {
+    JSON_OBJMAP_FN(_s_gltf_asset,       gltf_asset,       gst),
+    JSON_OBJMAP_FN(_s_gltf_buffers,     gltf_buffers,     gst),
+    JSON_OBJMAP_FN(_s_gltf_bufferViews, gltf_bufferViews, gst),
+    JSON_OBJMAP_FN(_s_gltf_accessors,   gltf_accessors,   gst),
+    JSON_OBJMAP_FN(_s_gltf_images,      gltf_images,      gst),
+    JSON_OBJMAP_FN(_s_gltf_samplers,    gltf_samplers,    gst),
+    JSON_OBJMAP_FN(_s_gltf_textures,    gltf_textures,    gst),
+    JSON_OBJMAP_FN(_s_gltf_materials,   gltf_materials,   gst),
+    JSON_OBJMAP_FN(_s_gltf_meshes,      gltf_meshes,      gst),
+    JSON_OBJMAP_FN(_s_gltf_cameras,     gltf_cameras,     gst),
+    JSON_OBJMAP_FN(_s_gltf_nodes,       gltf_nodes,       gst),
+    JSON_OBJMAP_FN(_s_gltf_scenes,      gltf_scenes,      gst),
+    JSON_OBJMAP_FN(_s_gltf_animations,  gltf_animations,  gst)
+  };
 
   while (json) {
-    const ak_enumpair *found;
+    json_objmap_call(json, gltfMap, JSON_ARR_LEN(gltfMap), &gstVal.stop);
 
-    if (!(found = bsearch(json,
-                          gltfMap,
-                          gltfMapLen,
-                          sizeof(gltfMap[0]),
-                          ak_enumpair_json_key_cmp)))
-      goto cont;
-
-    switch (found->val) {
-      case k_s_gltf_asset: {
-        assetInf = &doc->inf->base;
-        ret = gltf_asset(gst, doc, json->value, assetInf);
-
-        if (ret == AK_OK) {
-          doc->coordSys = assetInf->coordSys;
-          doc->unit     = assetInf->unit;
-        }
-
-        break;
-      }
-
-      case k_s_gltf_buffers:
-        gltf_buffers(gst, json);
-        break;
-
-      case k_s_gltf_bufferviews:
-        gltf_bufferViews(gst, json);
-        break;
-
-      case k_s_gltf_accessors:
-        gltf_accessors(gst, json);
-        break;
+    if (gstVal.stop) {
+      ret = AK_EBADF;
+      goto err;
     }
-  cont:
+
     json = json->next;
   }
   
- // gstVal.root = json_load_file(filepath, 0, &error);
+  // gstVal.root = json_load_file(filepath, 0, &error);
+  // ainf = NULL;
+  // ret  = gltf_asset(gst, doc, json, ainf);
 
-//  ainf = NULL;
-//  ret  = gltf_asset(gst, doc, json, ainf);
-
+err:
   /* probably unsupportted version or verion is missing */
   if (ret == AK_EBADF) {
     ak_free(doc);
@@ -182,15 +165,15 @@ gltf_doc(AkDoc     ** __restrict dest,
   gst->bufferViews = rb_newtree(ds_allocator(), ds_cmp_i32p, NULL);
   gst->meshTargets = rb_newtree(ds_allocator(), ds_cmp_ptr,  NULL);
 
-  // gltf_buffers(gst);
-//  gltf_images(gst);
-//  gltf_materials(gst);
-//  gltf_meshes(gst);
-//  gltf_cameras(gst);
-//  gltf_nodes(gst);
-//  gltf_scenes(gst);
-//  gltf_animations(gst);
-//  gltf_skin(gst);
+  //  +gltf_buffers(gst);
+  //  +gltf_images(gst);
+  //  +gltf_materials(gst);
+  //  +gltf_meshes(gst);
+  //  gltf_cameras(gst);
+  //  gltf_nodes(gst);
+  //  gltf_scenes(gst);
+  //  gltf_animations(gst);
+  //  gltf_skin(gst);
 
   /* TODO: release resources in GLTFState */
 

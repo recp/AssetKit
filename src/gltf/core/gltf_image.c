@@ -8,49 +8,39 @@
 #include "gltf_image.h"
 
 void _assetkit_hide
-gltf_images(AkGLTFState * __restrict gst) {
-  AkHeap        *heap;
-  AkDoc         *doc;
-  json_t        *jimages;
-  AkLibItem     *lib;
-  AkImage       *last_img;
-  size_t         jimageCount, i;
+gltf_images(json_t * __restrict jimage,
+            void   * __restrict userdata) {
+  AkGLTFState        *gst;
+  AkHeap             *heap;
+  const json_array_t *jimages;
+  const json_t       *jimVal;
+  AkImage            *image;
 
-  heap     = gst->heap;
-  doc      = gst->doc;
-  lib      = ak_heap_calloc(heap, doc, sizeof(*lib));
-  last_img = NULL;
+  if (!(jimages = json_array(jimage)))
+    return;
 
-  jimages     = json_object_get(gst->root, _s_gltf_images);
-  jimageCount = json_array_size(jimages);
-  for (i = 0; i < jimageCount; i++) {
-    AkImage    *image;
-    AkInitFrom *initFrom;
-    json_t     *jimage;
-    const char *sval;
+  gst    = userdata;
+  heap   = gst->heap;
+  jimage = jimages->base.value;
 
-    jimage = json_array_get(jimages, i);
-    image  = ak_heap_calloc(heap, lib, sizeof(*image));
+  while (jimage) {
+    image  = ak_heap_calloc(gst->heap, gst->doc, sizeof(*image));
+    jimVal = jimage->value;
 
-    if ((sval = json_cstr(jimage, _s_gltf_name)))
-      image->name = ak_heap_strdup(gst->heap, image, sval);
+    while (jimVal) {
+      if (json_key_eq(jimVal, _s_gltf_uri)) {
+        AkInitFrom *initFrom;
+        initFrom        = ak_heap_calloc(heap, image, sizeof(*initFrom));
+        initFrom->ref   = json_strdup(jimVal, gst->heap, initFrom);
+        image->initFrom = initFrom;
+      } else if (json_key_eq(jimVal, _s_gltf_name)) {
+        image->name = json_strdup(jimVal, gst->heap, image);
+      }
 
-    if ((sval = json_cstr(jimage, _s_gltf_uri))) {
-      initFrom        = ak_heap_calloc(heap, image, sizeof(*initFrom));
-      initFrom->ref   = ak_heap_strdup(heap, initFrom, sval);
-      image->initFrom = initFrom;
+      jimVal = jimVal->next;
     }
 
-    /* TODO: init from buffer, init from data url , mimeType */
-
-    if (last_img)
-      last_img->next = image;
-    else
-      lib->chld = image;
-
-    last_img = image;
-    lib->count++;
+    flist_sp_insert(&gst->doc->lib.images, image);
+    jimage = jimage->next;
   }
-
-  doc->lib.images = lib;
 }

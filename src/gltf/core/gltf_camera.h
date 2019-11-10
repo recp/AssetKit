@@ -11,6 +11,7 @@
 #include "../gltf_common.h"
 
 void _assetkit_hide
-gltf_cameras(AkGLTFState * __restrict gst);
+gltf_cameras(json_t * __restrict jcam,
+             void   * __restrict userdata);
 
 #endif /* gltf_camera_h */

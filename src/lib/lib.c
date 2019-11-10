@@ -99,12 +99,12 @@ ak_libFirstOrCreat(AkDoc * __restrict doc,
   lib = ak_heap_calloc(heap,
                        doc,
                        sizeof(*lib));
-  doc->lib.images = lib;
+  doc->lib.libimages = lib;
   return lib;
 }
 
 AK_EXPORT
 AkLibItem*
 ak_libImageFirstOrCreat(AkDoc * __restrict doc) {
-  return ak_libFirstOrCreat(doc, offsetof(AkLib, images));
+  return ak_libFirstOrCreat(doc, offsetof(AkLib, libimages));
 }
