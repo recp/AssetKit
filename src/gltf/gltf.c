@@ -137,7 +137,8 @@ gltf_doc(AkDoc     ** __restrict dest,
     JSON_OBJMAP_FN(_s_gltf_cameras,     gltf_cameras,     gst),
     JSON_OBJMAP_FN(_s_gltf_nodes,       gltf_nodes,       gst),
     JSON_OBJMAP_FN(_s_gltf_scenes,      gltf_scenes,      gst),
-    JSON_OBJMAP_FN(_s_gltf_animations,  gltf_animations,  gst)
+    JSON_OBJMAP_FN(_s_gltf_animations,  gltf_animations,  gst),
+    JSON_OBJMAP_FN(_s_gltf_skin,        gltf_skin,        gst)
   };
 
   while (json) {
