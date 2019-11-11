@@ -545,6 +545,7 @@ gltf_nodes(json_t * __restrict jnode,
   lib       = ak_heap_calloc(heap, doc, sizeof(*lib));
   nodechld  = ak_calloc(NULL, sizeof(*nodechld) * jnodes->count);
   last_node = NULL;
+  nodes     = NULL;
 
   jnode = jnodes->base.value;
   while (jnode) {
@@ -572,7 +573,7 @@ gltf_nodes(json_t * __restrict jnode,
     node       = nodeItem->data;
     parentNode = nodechld[i];
 
-    /* this node ha parent node, move this into parent children link. */
+    /* this node has parent node, move this into parent children link. */
     if (parentNode) {
       AkNode *chld;
       chld = parentNode->chld;
@@ -627,6 +628,7 @@ gltf_node(AkGLTFState * __restrict gst,
   int32_t             i32val;
 
   void *it;
+//  json_print_pretty(stderr, jnode);
 
   heap       = gst->heap;
   doc        = gst->doc;
@@ -656,7 +658,7 @@ gltf_node(AkGLTFState * __restrict gst,
     node->name = json_strdup(it, heap, node);
   }
 
-  if ((i32val = json_int32(nodeMap[k_camera].object, -1) > -1)) {
+  if ((i32val = json_int32(nodeMap[k_camera].object, -1)) > -1) {
     AkCamera *camIter;
 
     GETCHILD(gst->doc->lib.cameras->chld, camIter, i32val);
@@ -675,7 +677,7 @@ gltf_node(AkGLTFState * __restrict gst,
   }
 
   /* instance geometries */
-  if ((i32val = json_int32(nodeMap[k_mesh].object, -1) > -1)) {
+  if ((i32val = json_int32(nodeMap[k_mesh].object, -1)) > -1) {
     GETCHILD(gst->doc->lib.geometries->chld, geomIter, i32val);
 
     /* instance geometry */
@@ -708,6 +710,9 @@ gltf_node(AkGLTFState * __restrict gst,
 
     node->controller = instCtlr;
   }
+  
+  if (!node->controller)
+    node->geometry = instGeom;
 
   /* children */
   if ((it = nodeMap[k_children].object)) {
@@ -717,7 +722,7 @@ gltf_node(AkGLTFState * __restrict gst,
     int           chldIndex;
 
     if ((jchildren = json_array(it))) {
-      jchld = &jchildren->base;
+      jchld = jchildren->base.value;
 
       while (jchld) {
         if ((chldIndex = json_int32(jchld, -1)) > -1) {

@@ -45,9 +45,9 @@ typedef struct AkGLTFState {
 #define GETCHILD(INITIAL, ITEM, INDEX)                                        \
   do {                                                                        \
     int i;                                                                    \
-    ITEM = NULL;                                                              \
+    ITEM = INITIAL;                                                           \
     i    = INDEX;                                                             \
-    if (i > 0 && (ITEM = INITIAL)) {                                          \
+    if (ITEM && i > 0) {                                                      \
       while (i > 0) {                                                         \
         if (!(ITEM = ITEM->next)) {                                           \
           i     = -1;                                                         \
@@ -56,7 +56,7 @@ typedef struct AkGLTFState {
         }                                                                     \
         i--;                                                                  \
       }                                                                       \
-    } else { ITEM = NULL; }                                                   \
+    }                                                                         \
   } while (0)
 
 #endif /* gltf_commoh_h */
