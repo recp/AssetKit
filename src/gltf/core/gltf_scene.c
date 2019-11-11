@@ -104,6 +104,37 @@ gltf_scenes(json_t * __restrict jscene,
    doc->lib.visualScenes = lib;
 }
 
+void _assetkit_hide
+gltf_scene(json_t * __restrict jscene,
+           void   * __restrict userdata) {
+  AkGLTFState   *gst;
+  AkHeap        *heap;
+  AkDoc         *doc;
+  AkVisualScene *scene;
+  int32_t        sceneIndex;
+
+  gst  = userdata;
+  heap = gst->heap;
+  doc  = gst->doc;
+  
+  /* set default scene */
+  scene      = doc->lib.visualScenes->chld;
+  sceneIndex = json_int32(jscene, -1);
+  while (sceneIndex > 0 && scene) {
+    scene = scene->next;
+    sceneIndex--;
+  }
+
+  /* set first scene as default scene if not specified  */
+  if (scene) {
+    AkInstanceBase *instScene;
+    instScene = ak_heap_calloc(heap, doc, sizeof(*instScene));
+    
+    instScene->url.ptr     = scene;
+    doc->scene.visualScene = instScene;
+  }
+}
+
 static
 void
 gltf_setFirstCamera(AkVisualScene *scene, AkNode *node) {
