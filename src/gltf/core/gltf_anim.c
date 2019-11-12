@@ -63,15 +63,14 @@ gltf_animations(json_t * __restrict janim,
       jsampler     = jsamplers->base.value;
       last_sampler = NULL;
       last_source  = NULL;
+      last_input   = NULL;
       
       /* samplers */
       while (jsampler) {
         json_t *jsamplerVal;
         
         jsamplerVal = jsampler->value;
-        
-        sampler    = ak_heap_calloc(heap, anim, sizeof(*sampler));
-        last_input = NULL;
+        sampler     = ak_heap_calloc(heap, anim, sizeof(*sampler));
         
         if (json_key_eq(jsamplerVal, _s_gltf_input)) {
           AkInput  *input;

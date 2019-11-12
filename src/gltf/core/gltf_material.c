@@ -109,7 +109,7 @@ gltf_materials(json_t * __restrict jmaterial,
     }
 
     while (jmatVal) {
-      if (json_key_eq(jmatVal, _s_gltf_pbrMetalRough)) {
+      if (mr && json_key_eq(jmatVal, _s_gltf_pbrMetalRough)) {
         /* Metallic Roughness */
         json_t *jmrVal;
 

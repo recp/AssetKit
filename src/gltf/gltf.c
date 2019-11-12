@@ -75,8 +75,17 @@ gltf_doc(AkDoc     ** __restrict dest,
     return ret;
 
   gltfRawDoc = json_parse(jsonString, true);
-  if (!gltfRawDoc || !gltfRawDoc->root)
+  if (!gltfRawDoc || !gltfRawDoc->root) {
+    ak_free(doc);
+
+    if (jsonString)
+      free(jsonString);
+    
+    if (gltfRawDoc)
+      free((void *)gltfRawDoc);
+      
     return AK_ERR;
+  }
 
   doc->inf            = ak_heap_calloc(heap, doc, sizeof(*doc->inf));
   doc->inf->dir       = ak_path_dir(heap, doc, filepath);

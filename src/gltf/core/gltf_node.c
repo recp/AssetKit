@@ -526,12 +526,9 @@ gltf_nodes(json_t * __restrict jnode,
   AkGLTFState        *gst;
   AkHeap             *heap;
   AkDoc              *doc;
-  AkLibItem          *lib, *lib_morph;
+  AkLibItem          *lib;
   AkNode             *last_node, *node;
-  AkObject           *last_trans;
   const json_array_t *jnodes;
-  const json_t       *jnodeVal;
-  AkBufferView       *buffView;
   FListItem          *nodes, *nodeItem;
   AkNode            **nodechld;
   int                 i;
@@ -616,23 +613,14 @@ gltf_node(AkGLTFState * __restrict gst,
           json_t      * __restrict jnode,
           AkNode     ** __restrict nodechld) {
   AkHeap             *heap;
-  AkDoc              *doc;
-  AkLibItem          *lib, *lib_morph;
-  AkNode             *last_node, *node;
+  AkNode             *node;
   AkObject           *last_trans;
-  const json_array_t *jnodes;
-  AkBufferView       *buffView;
-  FListItem          *nodes;
   AkGeometry         *geomIter;
   AkInstanceGeometry *instGeom;
+  void               *it;
   int32_t             i32val;
 
-  void *it;
-//  json_print_pretty(stderr, jnode);
-
   heap       = gst->heap;
-  doc        = gst->doc;
-  lib        = ak_heap_calloc(heap, doc, sizeof(*lib));
   last_trans = NULL;
   geomIter   = NULL;
   instGeom   = NULL;
@@ -716,7 +704,6 @@ gltf_node(AkGLTFState * __restrict gst,
 
   /* children */
   if ((it = nodeMap[k_children].object)) {
-    AkNode       *chld;
     json_array_t *jchildren;
     json_t       *jchld;
     int           chldIndex;
@@ -726,9 +713,7 @@ gltf_node(AkGLTFState * __restrict gst,
 
       while (jchld) {
         if ((chldIndex = json_int32(jchld, -1)) > -1) {
-          chld = nodechld[chldIndex];
-
-          if (!chld) {
+          if (!nodechld[chldIndex]) {
             nodechld[chldIndex] = node;
           }
 
@@ -822,7 +807,7 @@ gltf_node(AkGLTFState * __restrict gst,
       node->transform->item = obj;
     }
 
-    last_trans = obj;
+    /* last_trans = obj; */
   }
 
   return node;

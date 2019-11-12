@@ -66,7 +66,7 @@ gltf_cameras(json_t * __restrict jcam,
       persp            = ak_heap_calloc(heap, optics, sizeof(*persp));
       persp->base.type = AK_PROJECTION_PERSPECTIVE;
 
-      if ((jtechn = json_json(camMap[k_perspective].object))) {
+      if ((it = camMap[k_perspective].object) && (jtechn = json_json(it))) {
         while (jtechn) {
           if (json_key_eq(jtechn, _s_gltf_xfov)) {
             persp->xfov = json_float(jtechn, 0.0f);
@@ -98,7 +98,7 @@ gltf_cameras(json_t * __restrict jcam,
       ortho            = ak_heap_calloc(heap, optics, sizeof(*ortho));
       ortho->base.type = AK_PROJECTION_ORTHOGRAPHIC;
 
-      if ((jtechn = json_json(camMap[k_orthographic].object))) {
+      if ((it = camMap[k_orthographic].object) && (jtechn = json_json(it))) {
         while (jtechn) {
           if (json_key_eq(jtechn, _s_gltf_xmag)) {
             ortho->xmag = json_float(jtechn, 0.0f);

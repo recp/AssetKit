@@ -27,7 +27,6 @@ gltf_meshes(json_t * __restrict jmesh,
   AkGeometry         *last_geom;
   const json_array_t *jmeshes;
   const json_t       *jmeshVal;
-  AkBufferView       *buffView;
 
   if (!(jmeshes = json_array(jmesh)))
     return;
@@ -64,17 +63,14 @@ gltf_meshes(json_t * __restrict jmesh,
     mesh->primitiveCount = 0;
 
     last_prim = NULL;
-    buffView  = ak_heap_calloc(gst->heap, gst->doc, sizeof(*buffView));
     jmeshVal  = jmesh->value;
 
     while (jmeshVal) {
       if (json_key_eq(jmeshVal, _s_gltf_primitives)
           && json_is_array(jmeshVal)) {
         json_t *jprim;
-        int     primIndex;
 
-        primIndex = 0;
-        jprim     = jmeshVal->value;
+        jprim = jmeshVal->value;
         while (jprim) {
           AkMeshPrimitive *prim;
           AkInput         *last_inp;
