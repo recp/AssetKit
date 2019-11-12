@@ -74,7 +74,7 @@ gltf_doc(AkDoc     ** __restrict dest,
   if ((ret = ak_readfile(filepath, "rb", &jsonString, &jsonSize)) != AK_OK)
     return ret;
 
-  gltfRawDoc = json_parse(jsonString, false);
+  gltfRawDoc = json_parse(jsonString, true);
   if (!gltfRawDoc || !gltfRawDoc->root)
     return AK_ERR;
 
