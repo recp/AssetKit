@@ -44,7 +44,7 @@ gltf_accessors(json_t * __restrict json,
   const json_array_t *jaccessors, *jarr;
   const json_t       *jattr, *jmin, *jmax, *jitem;
   AkAccessor         *acc;
-  int                 componentLen, count, bufferViewIndex;
+  int                 componentLen, count, bufferViewIndex, bound;
 
   if (!(jaccessors = json_array(json)))
     return;
@@ -127,10 +127,15 @@ gltf_accessors(json_t * __restrict json,
       jattr = jattr->next;
     }
 
-    if (acc->componentSize < 5)
-      acc->componentBytes = acc->componentSize * componentLen;
-    else
-      acc->componentBytes = (acc->componentSize >> 3) * componentLen;
+    if (acc->componentSize < 5) {
+      bound               = acc->componentSize;
+      acc->componentBytes = bound * componentLen;
+      acc->bound          = bound;
+    } else {
+      bound               = acc->componentSize >> 3;
+      acc->componentBytes = bound * componentLen;
+      acc->bound          = bound;
+    }
 
     if (acc->componentSize != AK_COMPONENT_SIZE_UNKNOWN
         && acc->componentBytes > 0) {

@@ -164,7 +164,8 @@ gltf_meshes(json_t * __restrict jmesh,
                                         + sizeof(AkUInt) * count);
               indices->count = count;
               it1            = indices->items;
-              it2            = (char *)indicesBuff->data + acc->byteOffset;
+              it2            = ((char *)indicesBuff->data)
+                                 + acc->byteOffset + buffView->byteOffset;
 
               /* we cannot use memcpy here, because we will promote short, byte
                  type to int32 (for now)
