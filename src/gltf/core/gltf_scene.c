@@ -58,8 +58,7 @@ gltf_scenes(json_t * __restrict jscene,
         goto scn_nxt;
       
       /* create instanceNode for each node */
-      jnode     = jnodes->base.value;
-      nodeIndex = jnodes->count;
+      jnode = jnodes->base.value;
 
       while (jnode) {
         char            nodeid[16];
@@ -67,10 +66,12 @@ gltf_scenes(json_t * __restrict jscene,
         AkInstanceNode *instNode;
         
         instNode  = ak_heap_calloc(heap, scene, sizeof(*instNode));
+        if ((nodeIndex = json_int32(jnode, -1)) < 0)
+          goto jnode_nxt;
         
-        sprintf(nodeid, "%s%d", _s_gltf_node, --nodeIndex + 1);
+        sprintf(nodeid, "%s%d", _s_gltf_node, nodeIndex);
         if (!(node = ak_getObjectById(doc, nodeid)))
-          continue;
+          goto jnode_nxt;
         
         instNode->base.node    = node;
         instNode->base.url.ptr = node;
@@ -85,6 +86,8 @@ gltf_scenes(json_t * __restrict jscene,
         
         if (!scene->firstCamNode)
           gltf_setFirstCamera(scene, node);
+        
+      jnode_nxt:
         jnode = jnode->next;
       }
     }

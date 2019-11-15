@@ -46,6 +46,9 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
 
   exactCenter = ak_opt_get(AK_OPT_COMPUTE_EXACT_CENTER);
   byteStride  = buffView->byteStride;
+
+  if (byteStride == 0)
+    byteStride = acc->componentBytes;
   
   /* we must walk through indices if exists because source may contain
      unrelated data and this will cause get wrong box
@@ -61,7 +64,6 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
     ind        = prim->indices->items;
     count      = icount;
     
-
     if (!exactCenter) {
       for (i = 0; i < icount; i += st) {
         vec = (float *)(data + ind[i + vo] * byteStride);

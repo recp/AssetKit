@@ -10,6 +10,7 @@
 
 #include <ds/hash.h>
 #include <string.h>
+#include <json/print.h>
 
 #define k_name          0
 #define k_camera        1
@@ -529,9 +530,10 @@ gltf_nodes(json_t * __restrict jnode,
   AkLibItem          *lib;
   AkNode             *last_node, *node;
   const json_array_t *jnodes;
-  FListItem          *nodes, *nodeItem;
-  AkNode            **nodechld;
-  int                 i;
+  FListItem          *nodes;
+  AkNode            **nodechld, *parentNode;
+  char                nodeid[32];
+  int                 i, jnodeCount2;
 
   if (!(jnodes = json_array(jnode)))
     return;
@@ -540,65 +542,57 @@ gltf_nodes(json_t * __restrict jnode,
   heap      = gst->heap;
   doc       = gst->doc;
   lib       = ak_heap_calloc(heap, doc, sizeof(*lib));
-  nodechld  = ak_calloc(NULL, sizeof(*nodechld) * jnodes->count);
+  nodechld  = ak_calloc(NULL, sizeof(*nodechld) * jnodes->count * 2);
   last_node = NULL;
   nodes     = NULL;
 
-  jnode = jnodes->base.value;
+  jnode       = jnodes->base.value;
+  i           = jnodes->count - 1;
+  jnodeCount2 = jnodes->count * 2;
+  
+  
   while (jnode) {
-    const char *nodeid;
-
-    if (!(node = gltf_node(gst, lib, jnode, nodechld)))
-      continue;
-
-    jnode = jnode->next;
-
+    nodechld[i * 2] = node = gltf_node(gst, lib, jnode, nodechld);
+  
+    /* JSON parse is reverse */
     /* sets id "node-[i]" for node. */
-    nodeid = ak_id_gen(heap, node, _s_gltf_node);
-    ak_heap_setId(heap, ak__alignof(node), (void *)nodeid);
+    sprintf(nodeid, "%s%d", _s_gltf_node, i);
+    ak_heap_setId(heap, ak__alignof(node), ak_heap_strdup(heap, node, nodeid));
 
-    flist_sp_insert(&nodes, node);
+    i--;
+    jnode = jnode->next;
   }
-
-  /* all nodes are parsed, now set children */
-  nodeItem = nodes;
-  i        = jnodes->count - 1;
-
-  while (nodeItem) {
-    AkNode *parentNode;
-
-    node       = nodeItem->data;
-    parentNode = nodechld[i];
-
+  
+  for (i = jnodeCount2 - 2; i >= 0; i -= 2) {
+    node = nodechld[i];
+    
     /* this node has parent node, move this into parent children link. */
-    if (parentNode) {
+    if ((parentNode = nodechld[i + 1])) {
       AkNode *chld;
       chld = parentNode->chld;
       if (chld) {
         chld->prev = node;
         node->next = chld;
       }
-
+      
       parentNode->chld = node;
       node->parent     = parentNode;
-
+      
       /* node ownership */
       ak_heap_setpm(node, parentNode);
     }
-
+    
     /* it is root node, add to library_nodes */
     else {
       if (last_node)
         last_node->next = node;
       else
         lib->chld = node;
-
-      last_node = node;
+      
+      node->prev = last_node;
+      last_node  = node;
       lib->count++;
     }
-
-    nodeItem = nodeItem->next;
-    i--;
   }
 
   flist_sp_destroy(&nodes);
@@ -713,6 +707,8 @@ gltf_node(AkGLTFState * __restrict gst,
 
       while (jchld) {
         if ((chldIndex = json_int32(jchld, -1)) > -1) {
+          chldIndex = chldIndex * 2 + 1;
+
           if (!nodechld[chldIndex]) {
             nodechld[chldIndex] = node;
           }
