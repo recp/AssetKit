@@ -24,7 +24,7 @@ dae_lines(AkXmlState * __restrict xst,
   lines->base.type = AK_MESH_PRIMITIVE_TYPE_LINES;
 
   lines->base.name     = ak_xml_attr(xst, lines, _s_dae_name);
-  lines->base.material = ak_xml_attr(xst, lines, _s_dae_material);
+  lines->base.bindmaterial = ak_xml_attr(xst, lines, _s_dae_material);
   lines->base.count    = ak_xml_attrui(xst, _s_dae_count);
 
   last_input = NULL;

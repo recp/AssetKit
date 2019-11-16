@@ -20,6 +20,7 @@ struct RBTree;
 struct AkGeometry;
 struct AkMesh;
 struct FListItem;
+struct AkMaterial;
 
 typedef enum AkGeometryType {
   AK_GEOMETRY_TYPE_MESH   = 0,
@@ -65,7 +66,8 @@ typedef struct AkMeshPrimitive {
   struct AkMesh          *mesh;
   AkBoundingBox          *bbox; /* per-primitive bbox */
   const char             *name;
-  const char             *material;
+  const char             *bindmaterial;
+  struct AkMaterial      *material;
   AkInput                *input;
   AkInput                *pos;
   AkUIntArray            *indices;

@@ -142,9 +142,9 @@ dae_mesh(AkXmlState * __restrict xst,
           last_prim = &lines->base;
 
           last_prim->mesh = mesh;
-          if (last_prim->material)
+          if (last_prim->bindmaterial)
             ak_meshSetMaterial(last_prim,
-                               last_prim->material);
+                               last_prim->bindmaterial);
 
           mesh->primitiveCount++;
         }
@@ -172,9 +172,9 @@ dae_mesh(AkXmlState * __restrict xst,
           last_prim = &polygon->base;
 
           last_prim->mesh = mesh;
-          if (last_prim->material)
+          if (last_prim->bindmaterial)
             ak_meshSetMaterial(last_prim,
-                               last_prim->material);
+                               last_prim->bindmaterial);
 
           mesh->primitiveCount++;
         }
@@ -205,9 +205,9 @@ dae_mesh(AkXmlState * __restrict xst,
           last_prim = &triangles->base;
 
           last_prim->mesh = mesh;
-          if (last_prim->material)
+          if (last_prim->bindmaterial)
             ak_meshSetMaterial(last_prim,
-                               last_prim->material);
+                               last_prim->bindmaterial);
 
           mesh->primitiveCount++;
         }

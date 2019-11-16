@@ -182,10 +182,12 @@ gltf_meshes(json_t * __restrict jmesh,
 
               matIndex = json_int32(jprimVal, -1);
               mat      = gst->doc->lib.materials->chld;
-              while (matIndex > 0) {
+              while (mat && matIndex > 0) {
                 mat = mat->next;
                 matIndex--;
               }
+
+              prim->material = mat;
 
               /* we can use material id as semantic */
               if (mat) {
@@ -199,7 +201,7 @@ gltf_meshes(json_t * __restrict jmesh,
                 symbol[len] = '\0';
                 sprintf(symbol, "%s-%d", materialId, mesh->primitiveCount);
 
-                ak_meshSetMaterial(prim, (prim->material = symbol));
+                ak_meshSetMaterial(prim, (prim->bindmaterial = symbol));
               }
             } else if (json_key_eq(jprimVal, _s_gltf_targets)) {
 //              if ((jtargets = json_object_get(jprim, _s_gltf_targets))) {
