@@ -97,24 +97,22 @@ gltf_skin(json_t * __restrict jskin,
 //    last_ctlr = ctlr;
 //    lib->count++;
 //  }
-  
+
   AkGLTFState        *gst;
   AkHeap             *heap;
   AkDoc              *doc;
   const json_array_t *jskins;
   AkLibItem          *lib;
-  AkController       *last_ctlr;
 
   if (!(jskins = json_array(jskin)))
     return;
 
-  gst       = userdata;
-  heap      = gst->heap;
-  doc       = gst->doc;
-  jskin     = jskins->base.value;
-  lib       = ak_heap_calloc(heap, doc, sizeof(*lib));
-  last_ctlr = NULL;
-  
+  gst   = userdata;
+  heap  = gst->heap;
+  doc   = gst->doc;
+  jskin = jskins->base.value;
+  lib   = ak_heap_calloc(heap, doc, sizeof(*lib));
+
   while (jskin) {
     AkController *ctlr;
     AkObject     *obj;
@@ -196,12 +194,8 @@ gltf_skin(json_t * __restrict jskin,
       jskinVal = jskinVal->next;
     }
     
-    if (last_ctlr)
-      last_ctlr->next = ctlr;
-    else
-      lib->chld = ctlr;
-    
-    last_ctlr = ctlr;
+    ctlr->next = lib->chld;
+    lib->chld  = ctlr;
     lib->count++;
     
     jskin = jskin->next;

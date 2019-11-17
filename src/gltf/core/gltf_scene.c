@@ -19,17 +19,15 @@ gltf_scenes(json_t * __restrict jscene,
   AkDoc              *doc;
   const json_array_t *jscenes;
   AkLibItem          *lib;
-  AkVisualScene      *last_scene;
 
   if (!(jscenes = json_array(jscene)))
     return;
 
-  gst        = userdata;
-  heap       = gst->heap;
-  doc        = gst->doc;
-  jscene     = jscenes->base.value;
-  lib        = ak_heap_calloc(heap, doc, sizeof(*lib));
-  last_scene = NULL;
+  gst    = userdata;
+  heap   = gst->heap;
+  doc    = gst->doc;
+  jscene = jscenes->base.value;
+  lib    = ak_heap_calloc(heap, doc, sizeof(*lib));
   
   while (jscene) {
     AkVisualScene *scene;
@@ -47,12 +45,9 @@ gltf_scenes(json_t * __restrict jscene,
     if (json_key_eq(jsceneVal, _s_gltf_name)) {
       scene->name = json_strdup(jsceneVal, heap, scene);
     } else if (json_key_eq(jsceneVal, _s_gltf_nodes)) {
-      AkInstanceNode *last_instNode;
-      json_array_t   *jnodes;
-      json_t         *jnode;
-      int32_t         nodeIndex;
-      
-      last_instNode = NULL;
+      json_array_t *jnodes;
+      json_t       *jnode;
+      int32_t       nodeIndex;
       
       if (!(jnodes = json_array(jsceneVal)))
         goto scn_nxt;
@@ -77,12 +72,9 @@ gltf_scenes(json_t * __restrict jscene,
         instNode->base.url.ptr = node;
         instNode->base.type    = AK_INSTANCE_NODE;
         
-        if (last_instNode)
-          last_instNode->base.next = &instNode->base;
-        else
-          scene->node->node = instNode;
-        
-        last_instNode = instNode;
+        if (scene->node && scene->node->node)
+          instNode->base.next = &scene->node->node->base;
+        scene->node->node   = instNode;
         
         if (!scene->firstCamNode)
           gltf_setFirstCamera(scene, node);
@@ -93,12 +85,9 @@ gltf_scenes(json_t * __restrict jscene,
     }
 
   scn_nxt:
-    if (last_scene)
-      last_scene->next = scene;
-    else
-      lib->chld = scene;
-    
-    last_scene = scene;
+
+    scene->next = lib->chld;
+    lib->chld   = scene;
     lib->count++;
     
     jscene = jscene->next;

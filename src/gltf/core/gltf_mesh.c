@@ -23,8 +23,6 @@ gltf_meshes(json_t * __restrict jmesh,
   AkHeap             *heap;
   AkDoc              *doc;
   AkLibItem          *lib, *lib_morph;
-  AkController       *last_morph;
-  AkGeometry         *last_geom;
   const json_array_t *jmeshes;
   const json_t       *jmeshVal;
 
@@ -36,15 +34,12 @@ gltf_meshes(json_t * __restrict jmesh,
   doc        = gst->doc;
   lib        = ak_heap_calloc(heap, doc, sizeof(*lib));
   lib_morph  = doc->lib.controllers;
-  last_geom  = NULL;
-  last_morph = NULL;
 
   jmesh = jmeshes->base.value;
   while (jmesh) {
     AkGeometry      *geom;
     AkMesh          *mesh;
     AkObject        *meshObj;
-    AkMeshPrimitive *last_prim;
 
     geom              = ak_heap_calloc(heap, lib, sizeof(*geom));
     geom->materialMap = ak_map_new(ak_cmp_str);
@@ -62,8 +57,7 @@ gltf_meshes(json_t * __restrict jmesh,
     mesh->geom           = geom;
     mesh->primitiveCount = 0;
 
-    last_prim = NULL;
-    jmeshVal  = jmesh->value;
+    jmeshVal = jmesh->value;
 
     while (jmeshVal) {
       if (json_key_eq(jmeshVal, _s_gltf_primitives)
@@ -73,14 +67,13 @@ gltf_meshes(json_t * __restrict jmesh,
         jprim = jmeshVal->value;
         while (jprim) {
           AkMeshPrimitive *prim;
-          AkInput         *last_inp;
           json_t          *jprimVal;
 
           prim  = gltf_allocPrim(heap,
                                  meshObj,
                                  json_int32(json_get(jprim, _s_gltf_mode), 4));
 
-          prim->input      = last_inp = NULL;
+          prim->input      = NULL;
           prim->inputCount = 0;
           prim->mesh       = mesh;
 
@@ -131,12 +124,8 @@ gltf_meshes(json_t * __restrict jmesh,
                 if (inp->semantic == AK_INPUT_SEMANTIC_POSITION)
                   prim->pos = inp;
 
-                if (last_inp)
-                  last_inp->next = inp;
-                else
-                  prim->input = inp;
-
-                last_inp = inp;
+                inp->next   = prim->input;
+                prim->input = inp;
                 prim->inputCount++;
 
                 jattrib = jattrib->next;
@@ -299,12 +288,8 @@ gltf_meshes(json_t * __restrict jmesh,
             jprimVal = jprimVal->next;
           }
 
-          if (last_prim)
-            last_prim->next = prim;
-          else
-            mesh->primitive = prim;
-          last_prim = prim;
-
+          prim->next      = mesh->primitive;
+          mesh->primitive = prim;
           mesh->primitiveCount++;
 
         prim_next:
@@ -318,13 +303,11 @@ gltf_meshes(json_t * __restrict jmesh,
 
       jmeshVal = jmeshVal->next;
     }
+       
+    /* Reversed */
+    geom->next = lib->chld;
+    lib->chld  = geom;
 
-    if (last_geom)
-      last_geom->next = geom;
-    else
-      lib->chld = geom;
-
-    last_geom = geom;
     lib->count++;
 
     jmesh = jmesh->next;

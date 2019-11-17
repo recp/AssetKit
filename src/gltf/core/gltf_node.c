@@ -28,7 +28,7 @@ gltf_nodes(json_t * __restrict jnode,
   AkHeap             *heap;
   AkDoc              *doc;
   AkLibItem          *lib;
-  AkNode             *last_node, *node;
+  AkNode             *node;
   const json_array_t *jnodes;
   FListItem          *nodes;
   AkNode            **nodechld, *parentNode;
@@ -43,7 +43,6 @@ gltf_nodes(json_t * __restrict jnode,
   doc       = gst->doc;
   lib       = ak_heap_calloc(heap, doc, sizeof(*lib));
   nodechld  = ak_calloc(NULL, sizeof(*nodechld) * jnodes->count * 2);
-  last_node = NULL;
   nodes     = NULL;
 
   jnode       = jnodes->base.value;
@@ -83,13 +82,9 @@ gltf_nodes(json_t * __restrict jnode,
     
     /* it is root node, add to library_nodes */
     else {
-      if (last_node)
-        last_node->next = node;
-      else
-        lib->chld = node;
-      
-      node->prev = last_node;
-      last_node  = node;
+      node->next = lib->chld;
+      lib->chld  = node;
+
       lib->count++;
     }
   }
@@ -107,16 +102,14 @@ gltf_node(AkGLTFState * __restrict gst,
           AkNode     ** __restrict nodechld) {
   AkHeap             *heap;
   AkNode             *node;
-  AkObject           *last_trans;
   AkGeometry         *geomIter;
   AkInstanceGeometry *instGeom;
   void               *it;
   int32_t             i32val;
 
-  heap       = gst->heap;
-  last_trans = NULL;
-  geomIter   = NULL;
-  instGeom   = NULL;
+  heap     = gst->heap;
+  geomIter = NULL;
+  instGeom = NULL;
 
   node = ak_heap_calloc(heap, memParent, sizeof(*node));
   ak_setypeid(node, AKT_NODE);
@@ -231,14 +224,12 @@ gltf_node(AkGLTFState * __restrict gst,
     json_array_float(rawMatrix[0], it, 0.0f, 16, true);
     glm_mat4_ucopy(rawMatrix, matrix->val);
 
-    if (last_trans)
-      last_trans->next = obj;
-    else {
+    if (!node->transform) {
       node->transform = ak_heap_calloc(heap, node, sizeof(*node->transform));
-      node->transform->item = obj;
     }
-
-    last_trans = obj;
+    
+    obj->next             = node->transform->item;
+    node->transform->item = obj;
   }
 
   /* translation */
@@ -251,14 +242,12 @@ gltf_node(AkGLTFState * __restrict gst,
 
     json_array_float(translate->val, it, 0.0f, 3, true);
 
-    if (last_trans)
-      last_trans->next = obj;
-    else {
+    if (!node->transform) {
       node->transform = ak_heap_calloc(heap, node, sizeof(*node->transform));
-      node->transform->item = obj;
     }
-
-    last_trans = obj;
+    
+    obj->next             = node->transform->item;
+    node->transform->item = obj;
   }
 
   /* rotation */
@@ -271,14 +260,12 @@ gltf_node(AkGLTFState * __restrict gst,
 
     json_array_float(rot->val, it, 0.0f, 4, true);
 
-    if (last_trans)
-      last_trans->next = obj;
-    else {
+    if (!node->transform) {
       node->transform = ak_heap_calloc(heap, node, sizeof(*node->transform));
-      node->transform->item = obj;
     }
-
-    last_trans = obj;
+    
+    obj->next             = node->transform->item;
+    node->transform->item = obj;
   }
 
   /* scale */
@@ -291,14 +278,12 @@ gltf_node(AkGLTFState * __restrict gst,
 
     json_array_float(scale->val, it, 0.0f, 3, true);
 
-    if (last_trans)
-      last_trans->next = obj;
-    else {
+    if (!node->transform) {
       node->transform = ak_heap_calloc(heap, node, sizeof(*node->transform));
-      node->transform->item = obj;
     }
-
-    /* last_trans = obj; */
+    
+    obj->next             = node->transform->item;
+    node->transform->item = obj;
   }
 
   return node;

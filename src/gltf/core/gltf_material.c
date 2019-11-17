@@ -20,7 +20,6 @@ gltf_materials(json_t * __restrict jmaterial,
   AkDoc              *doc;
   const json_array_t *jmaterials;
   AkLibItem          *libeffect, *libmat;
-  AkMaterial         *last_mat;
   bool                specGlossExt;
 
   if (!(jmaterials = json_array(jmaterial)))
@@ -34,7 +33,6 @@ gltf_materials(json_t * __restrict jmaterial,
   doc          = gst->doc;
   libeffect    = ak_heap_calloc(heap, doc, sizeof(*libeffect));
   libmat       = ak_heap_calloc(heap, doc, sizeof(*libmat));
-  last_mat     = NULL;
 
   while (jmaterial) {
     json_t               *jmatVal, *jext;
@@ -197,12 +195,8 @@ gltf_materials(json_t * __restrict jmaterial,
     ieff->base.url.ptr = effect;
     mat->effect        = ieff;
 
-    if (last_mat)
-      last_mat->next = mat;
-    else
-      libmat->chld = mat;
-    last_mat = mat;
-
+    mat->next    = libmat->chld = mat;
+    libmat->chld = mat;
     libeffect->count++;
     libmat->count++;
 

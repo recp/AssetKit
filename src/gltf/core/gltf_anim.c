@@ -22,27 +22,22 @@ gltf_animations(json_t * __restrict janim,
   AkDoc              *doc;
   const json_array_t *janims;
   AkLibItem          *lib;
-  AkAnimation        *last_anim, *anim;
+  AkAnimation        *anim;
 
   if (!(janims = json_array(janim)))
     return;
 
-  gst       = userdata;
-  heap      = gst->heap;
-  doc       = gst->doc;
-  janim     = janims->base.value;
-  lib       = ak_heap_calloc(heap, doc, sizeof(*lib));
-  last_anim = NULL;
+  gst   = userdata;
+  heap  = gst->heap;
+  doc   = gst->doc;
+  janim = janims->base.value;
+  lib   = ak_heap_calloc(heap, doc, sizeof(*lib));
   
   while (janim) {
     json_t     *janimVal;
-    AkSource   *last_source;
-    AkInput    *last_input;
     const char *animid;
     
-    anim        = ak_heap_calloc(heap, lib,  sizeof(*anim));
-    last_source = NULL;
-    last_input  = NULL;
+    anim = ak_heap_calloc(heap, lib,  sizeof(*anim));
     
     /* sets id "anim-[i]" */
     animid = ak_id_gen(heap, anim, _s_gltf_anim);
@@ -53,17 +48,14 @@ gltf_animations(json_t * __restrict janim,
     if (json_key_eq(janimVal, _s_gltf_name)) {
       anim->name = json_strdup(janimVal, heap, anim);
     } else if (json_key_eq(janimVal, _s_gltf_samplers)) {
-      AkAnimSampler *sampler, *last_sampler;
+      AkAnimSampler *sampler;
       json_array_t  *jsamplers;
       json_t        *jsampler;
       
       if (!(jsamplers = json_array(janimVal)))
         goto anm_nxt;
 
-      jsampler     = jsamplers->base.value;
-      last_sampler = NULL;
-      last_source  = NULL;
-      last_input   = NULL;
+      jsampler = jsamplers->base.value;
       
       /* samplers */
       while (jsampler) {
@@ -87,17 +79,11 @@ gltf_animations(json_t * __restrict janim,
                                            json_int32(jsamplerVal, -1));
           input->source.ptr  = source;
           
-          if (last_source)
-            last_source->next = source;
-          else
-            anim->source = source;
-          last_source = source;
+          source->next   = anim->source;
+          anim->source   = source;
           
-          if (last_input)
-            last_input->next = input;
-          else
-            sampler->input = input;
-          last_input = input;
+          input->next    = sampler->input;
+          sampler->input = input;
         } else if (json_key_eq(jsamplerVal, _s_gltf_interpolation)) {
           sampler->uniInterpolation = gltf_interp(json_string(jsamplerVal));
         } else if (json_key_eq(jsamplerVal, _s_gltf_output)) {
@@ -115,34 +101,25 @@ gltf_animations(json_t * __restrict janim,
                                             json_int32(jsamplerVal, -1));
           input->source.ptr  = source;
           
-          if (last_source)
-            last_source->next = source;
-          else
-            anim->source = source;
-          last_source = source;
+          source->next   = anim->source;
+          anim->source   = source;
           
-          if (last_input)
-            last_input->next = input;
-          else
-            sampler->input = input;
-          /* last_input = input; */
+          input->next    = sampler->input;
+          sampler->input = input;
         }
 
         /* Default is LINEAR */
         if (sampler->uniInterpolation == AK_INTERPOLATION_UNKNOWN) {
           sampler->uniInterpolation = AK_INTERPOLATION_LINEAR;
         }
-
-        if (last_sampler)
-          last_sampler->next = sampler;
-        else
-          anim->sampler = sampler;
-        last_sampler = sampler;
+        
+        sampler       = anim->sampler;
+        anim->sampler = sampler;
         
         jsampler = jsampler->next;
       }
     } else if (json_key_eq(janimVal, _s_gltf_channels)) {
-      AkChannel     *ch, *last_ch;
+      AkChannel     *ch;
       json_array_t  *jchannels;
       json_t        *jchannel;
       
@@ -150,7 +127,6 @@ gltf_animations(json_t * __restrict janim,
         goto anm_nxt;
       
       jchannel = jchannels->base.value;
-      last_ch  = NULL;
       
       while (jchannel) {
         json_t *jchVal;
@@ -223,11 +199,8 @@ gltf_animations(json_t * __restrict janim,
           } /* if k_node */
         } /* if _s_gltf_target */
         
-        if (last_ch)
-          last_ch->next = ch;
-        else
-          anim->channel = ch;
-        last_ch = ch;
+        ch->next      = anim->channel;
+        anim->channel = ch;
 
         jchannel = jchannel->next;
       }
@@ -235,14 +208,10 @@ gltf_animations(json_t * __restrict janim,
 
   anm_nxt:
 
-    if (last_anim)
-      last_anim->next = anim;
-    else
-      lib->chld = anim;
-    
-    last_anim = anim;
+    anim->next = lib->chld;
+    lib->chld  = anim;
     lib->count++;
-    
+
     janim = janim->next;
   }
 

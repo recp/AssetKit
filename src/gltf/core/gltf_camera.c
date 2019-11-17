@@ -20,8 +20,7 @@ gltf_cameras(json_t * __restrict jcam,
   AkDoc              *doc;
   const json_array_t *jcams;
   AkLibItem          *lib;
-  AkCamera           *last_cam;
-  void *it;
+  void               *it;
 
   if (!(jcams = json_array(jcam)))
     return;
@@ -31,7 +30,6 @@ gltf_cameras(json_t * __restrict jcam,
   doc       = gst->doc;
   jcam      = jcams->base.value;
   lib       = ak_heap_calloc(heap, doc, sizeof(*lib));
-  last_cam  = NULL;
 
   while (jcam) {
     AkCamera   *cam;
@@ -119,13 +117,10 @@ gltf_cameras(json_t * __restrict jcam,
 
       optics->tcommon = &ortho->base;
     }
-
-    if (last_cam)
-      last_cam->next = cam;
-    else
-      lib->chld = cam;
-
-    last_cam = cam;
+    
+    cam->next = lib->chld;
+    lib->chld = cam;
+    
     lib->count++;
 
     jcam = jcam->next;
