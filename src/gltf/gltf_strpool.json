@@ -98,7 +98,7 @@
   "metalRoughTex": "metallicRoughnessTexture",
   "index": "index",
   "texCoord": "texCoord",
-  "texcoordPrefix": "TEXTURE_",
+  "texcoordPrefix": "TEXCOORD",
   "sid_sampler": "smp",
   "id_metalrough": "metalrough",
   "id_specgloss": "specgloss",

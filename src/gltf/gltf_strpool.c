@@ -112,7 +112,7 @@ const char _s_gltf_pool_0[] =
 "metallicRoughnessTexture\0"
 "index\0"
 "texCoord\0"
-"TEXTURE_\0"
+"TEXCOORD\0"
 "smp\0"
 "metalrough\0"
 "specgloss\0"
