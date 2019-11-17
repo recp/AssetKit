@@ -51,7 +51,6 @@ dae_fixAngles(AkXmlState * __restrict xst) {
   FListItem     *item;
   AkAnimSampler *sampler;
   AkDataParam   *param;
-  AkInput       *input;
   AkSource      *src;
   AkAccessor    *acc;
   AkBuffer      *buff;
@@ -59,7 +58,6 @@ dae_fixAngles(AkXmlState * __restrict xst) {
   item = xst->toRadiansSampelers;
   while (item) {
     sampler = item->data;
-    input   = sampler->input;
     src     = NULL;
     acc     = NULL;
     buff    = NULL;

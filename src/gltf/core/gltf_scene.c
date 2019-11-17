@@ -72,10 +72,12 @@ gltf_scenes(json_t * __restrict jscene,
         instNode->base.url.ptr = node;
         instNode->base.type    = AK_INSTANCE_NODE;
         
-        if (scene->node && scene->node->node)
-          instNode->base.next = &scene->node->node->base;
-        scene->node->node   = instNode;
-        
+        if (scene->node) {
+          if (scene->node->node)
+            instNode->base.next = &scene->node->node->base;
+          scene->node->node   = instNode;
+        }
+
         if (!scene->firstCamNode)
           gltf_setFirstCamera(scene, node);
         
