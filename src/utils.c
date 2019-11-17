@@ -14,6 +14,7 @@
 #include <sys/stat.h>
 #include <assert.h>
 #include <math.h>
+#include <errno.h>
 
 char *
 strptime(const char * __restrict buf,
@@ -34,9 +35,11 @@ ak_readfile(const char * __restrict file,
   struct stat infile_st;
   int         infile_no;
   
-  infile    = fopen(file, modes);
-  if (!infile)
+  infile = fopen(file, modes);
+  if (!infile) {
+    fprintf(stderr, "errno: %d: %s", errno, strerror(errno));
     goto err;
+  }
 
   infile_no = fileno(infile);
 
