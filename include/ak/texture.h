@@ -66,7 +66,6 @@ typedef struct AkSampler {
 
 typedef struct AkTexture {
   struct AkTexture *next;
-  AkInstanceBase   *instanceImage;
   AkImage          *image;
   AkSampler        *sampler;
   const char       *name;
@@ -75,8 +74,13 @@ typedef struct AkTexture {
 
 typedef struct AkTextureRef {
   struct AkTexture *texture;
+  /* struct AkInput   *coordInput; */
+  const char       *coordInputName;
+  int               slot;
+  
+  /* TODO: WILL BE DELETED */
   const char       *texcoord;
-  AkTree           *extra;
+  void             *extra;
 } AkTextureRef;
 
 #endif /* ak_texture_h */

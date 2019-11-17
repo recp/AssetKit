@@ -17,26 +17,27 @@ gltf_texref(AkGLTFState * __restrict gst,
   AkDoc        *doc;
   AkTextureRef *texref;
   AkTexture    *tex;
-  char         *texcoord;
-  int32_t       texindex, coordindex;
+  char         *coordInputName;
+  int32_t       texindex, set;
   size_t        len;
 
   heap       = gst->heap;
   doc        = gst->doc;
   texindex   = json_int32(json_get(jtexinfo, _s_gltf_index), 0);
-  coordindex = json_int32(json_get(jtexinfo, _s_gltf_texCoord), 0);
+  set        = json_int32(json_get(jtexinfo, _s_gltf_texCoord), 0);
   tex        = flist_sp_at(&doc->lib.textures, texindex);
-
+  
   texref = ak_heap_calloc(heap, parent, sizeof(*texref));
   ak_setypeid(texref, AKT_TEXTURE_REF);
 
-  len           = strlen(_s_gltf_sid_texcoord) + ak_digitsize(coordindex);
-  texcoord      = ak_heap_alloc(heap, texref, len + 1);
-  texcoord[len] = '\0';
-  sprintf(texcoord, "%s%d", _s_gltf_sid_texcoord, coordindex);
+  len                 = strlen(_s_gltf_texcoordPrefix) + ak_digitsize(set);
+  coordInputName      = ak_heap_alloc(heap, texref, len + 1);
+  coordInputName[len] = '\0';
+  sprintf(coordInputName, "%s%d", _s_gltf_texcoordPrefix, set);
 
-  texref->texture  = tex;
-  texref->texcoord = texcoord;
+  texref->coordInputName = coordInputName;
+  texref->texture        = tex;
+  texref->slot           = set;
 
   return texref;
 }
@@ -63,9 +64,10 @@ gltf_textures(json_t * __restrict jtex,
   while (jtex) {
     AkSampler *sampler;
 
-    jtexVal = jtex->value;
-    tex     = ak_heap_calloc(gst->heap, gst->doc, sizeof(*tex));
-    sampler = NULL;
+    jtexVal   = jtex->value;
+    tex       = ak_heap_calloc(gst->heap, gst->doc, sizeof(*tex));
+    tex->type = AKT_SAMPLER2D;
+    sampler   = NULL;
 
     while (jtexVal) {
       if (json_key_eq(jtexVal, _s_gltf_sampler)) {
@@ -85,6 +87,8 @@ gltf_textures(json_t * __restrict jtex,
       sampler        = ak_heap_calloc(gst->heap, gst->doc, sizeof(*sampler));
       sampler->wrapS = AK_WRAP_MODE_WRAP;
       sampler->wrapT = AK_WRAP_MODE_WRAP;
+      
+      ak_setypeid(sampler, AKT_SAMPLER2D);
     }
 
     tex->sampler = sampler;

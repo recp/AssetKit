@@ -9,41 +9,6 @@
 #include "gltf_profile.h"
 #include "gltf_enums.h"
 
-AkSampler* _assetkit_hide
-gltf_newsampler(AkGLTFState * __restrict gst,
-                AkEffect    * __restrict effect) {
-  AkHeap        *heap;
-  AkProfileGLTF *profile;
-
-  AkSampler     *sampler;
-  AkNewParam    *param;
-  AkValue       *paramVal;
-
-  heap     = gst->heap;
-  profile  = effect->profile; /* there is only one, I hope */
-  param    = ak_heap_calloc(heap, profile,  sizeof(*param));
-  paramVal = ak_heap_calloc(heap, param,    sizeof(*paramVal));
-  sampler  = ak_heap_calloc(heap, paramVal, sizeof(*sampler));
-
-  ak_setypeid(param, AKT_NEWPARAM);
-
-  memcpy(&paramVal->type,
-         ak_typeDesc(AKT_SAMPLER2D),
-         sizeof(paramVal->type));
-
-  paramVal->value = sampler;
-  param->val      = paramVal;
-
-  if (profile->newparam) {
-    profile->newparam->prev = param;
-    param->next             = profile->newparam;
-  }
-
-  profile->newparam = param;
-
-  return sampler;
-}
-
 void _assetkit_hide
 gltf_samplers(json_t * __restrict jsampler,
               void   * __restrict userdata) {
@@ -64,6 +29,8 @@ gltf_samplers(json_t * __restrict jsampler,
     sampler->wrapS = AK_WRAP_MODE_WRAP;
     sampler->wrapT = AK_WRAP_MODE_WRAP;
 
+    ak_setypeid(sampler, AKT_SAMPLER2D);
+    
     while (jsamplerVal) {
       if (json_key_eq(jsamplerVal, _s_gltf_wrapS)) {
         sampler->wrapS = gltf_wrapMode(json_int32(jsamplerVal,
