@@ -21,19 +21,23 @@ gltf_texref(AkGLTFState * __restrict gst,
   int32_t       texindex, set;
   size_t        len;
 
-  heap       = gst->heap;
-  doc        = gst->doc;
-  texindex   = json_int32(json_get(jtexinfo, _s_gltf_index), 0);
-  set        = json_int32(json_get(jtexinfo, _s_gltf_texCoord), 0);
-  tex        = flist_sp_at(&doc->lib.textures, texindex);
+  heap     = gst->heap;
+  doc      = gst->doc;
+  texindex = json_int32(json_get(jtexinfo, _s_gltf_index), 0);
+  set      = json_int32(json_get(jtexinfo, _s_gltf_texCoord), 0);
+  tex      = flist_sp_at(&doc->lib.textures, texindex);
   
   texref = ak_heap_calloc(heap, parent, sizeof(*texref));
   ak_setypeid(texref, AKT_TEXTURE_REF);
 
-  len                 = strlen(_s_gltf_texcoordPrefix) + ak_digitsize(set);
-  coordInputName      = ak_heap_alloc(heap, texref, len + 1);
-  coordInputName[len] = '\0';
-  sprintf(coordInputName, "%s%d", _s_gltf_texcoordPrefix, set);
+  if (set == 0) {
+    coordInputName = ak_heap_strdup(heap, texref, _s_gltf_texcoordPrefix);
+  } else {
+    len                 = strlen(_s_gltf_texcoordPrefix) + ak_digitsize(set);
+    coordInputName      = ak_heap_alloc(heap, texref, len + 1);
+    coordInputName[len] = '\0';
+    sprintf(coordInputName, "%s%d", _s_gltf_texcoordPrefix, set);
+  }
 
   texref->coordInputName = coordInputName;
   texref->texture        = tex;
