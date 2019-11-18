@@ -36,7 +36,7 @@ gltf_samplers(json_t * __restrict jsampler,
         sampler->wrapS = gltf_wrapMode(json_int32(jsamplerVal,
                                                   AK_WRAP_MODE_WRAP));
       } else if (json_key_eq(jsamplerVal, _s_gltf_wrapT)) {
-        sampler->wrapS = gltf_wrapMode(json_int32(jsamplerVal,
+        sampler->wrapT = gltf_wrapMode(json_int32(jsamplerVal,
                                                   AK_WRAP_MODE_WRAP));
       } else if (json_key_eq(jsamplerVal, _s_gltf_minFilter)) {
         sampler->minfilter = gltf_minFilter(json_int32(jsamplerVal, 0));
