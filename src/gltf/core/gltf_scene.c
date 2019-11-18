@@ -112,12 +112,8 @@ gltf_scene(json_t * __restrict jscene,
   doc  = gst->doc;
   
   /* set default scene */
-  scene      = doc->lib.visualScenes->chld;
   sceneIndex = json_int32(jscene, -1);
-  while (sceneIndex > 0 && scene) {
-    scene = scene->next;
-    sceneIndex--;
-  }
+  GETCHILD(doc->lib.visualScenes->chld, scene, sceneIndex);
 
   /* set first scene as default scene if not specified  */
   if (scene) {

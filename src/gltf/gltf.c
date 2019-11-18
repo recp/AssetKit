@@ -138,7 +138,6 @@ err:
     return ret;
   }
 
-  gst->bufferViews = rb_newtree(ds_allocator(), ds_cmp_i32p, NULL);
   gst->meshTargets = rb_newtree(ds_allocator(), ds_cmp_ptr,  NULL);
 
   /* TODO: release resources in GLTFState */
@@ -156,7 +155,6 @@ err:
 
   *dest = doc;
 
-  rb_destroy(gst->bufferViews);
   rb_destroy(gst->meshTargets);
 
   /* post-parse operations */

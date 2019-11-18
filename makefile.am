@@ -99,7 +99,6 @@ libassetkit_la_SOURCES=\
     src/type.c \
     src/profile.c \
     src/asset.c \
-    src/json.c \
     src/controller/ctlr.c \
     src/skin/skin.c \
     src/skin/skin_fix.c \

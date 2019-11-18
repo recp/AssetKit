@@ -82,9 +82,9 @@ gltf_materials(json_t * __restrict jmaterial,
               json_array_float(sg->specular.vec, jspecgVal, 0.0f, 3, true);
               sg->specular.vec[3] = 1.0f;
             } else if (json_key_eq(jspecgVal, _s_gltf_glossFactor)) {
-              sg->glossiness = json_float(jspecgVal, 0.0f);
+              sg->glossiness   = json_float(jspecgVal, 0.0f);
             } else if (json_key_eq(jspecgVal, _s_gltf_diffuseTexture)) {
-              sg->diffuseTex = gltf_texref(gst, sg, jspecGloss);
+              sg->diffuseTex   = gltf_texref(gst, sg, jspecGloss);
             } else if (json_key_eq(jspecgVal, _s_gltf_specGlossTex)) {
               sg->specGlossTex = gltf_texref(gst, sg, jspecGloss);
             }
@@ -114,13 +114,13 @@ gltf_materials(json_t * __restrict jmaterial,
           if (json_key_eq(jmrVal, _s_gltf_baseColor)) {
             json_array_float(mr->albedo.vec, jmrVal,  0.0f, 4, true);
           } else if (json_key_eq(jmrVal, _s_gltf_metalFac)) {
-            mr->metallic = json_float(jmrVal, 0.0f);
+            mr->metallic      = json_float(jmrVal, 0.0f);
           } else if (json_key_eq(jmrVal, _s_gltf_roughFac)) {
-            mr->roughness = json_float(jmrVal, 0.0f);
+            mr->roughness     = json_float(jmrVal, 0.0f);
           } else if (json_key_eq(jmrVal, _s_gltf_metalRoughTex)) {
             mr->metalRoughTex = gltf_texref(gst, mr, jmrVal);
           } else if (json_key_eq(jmrVal, _s_gltf_baseColorTex)) {
-            mr->albedoTex = gltf_texref(gst, mr, jmrVal);
+            mr->albedoTex     = gltf_texref(gst, mr, jmrVal);
           }
 
           jmrVal = jmrVal->next;
@@ -149,7 +149,6 @@ gltf_materials(json_t * __restrict jmaterial,
 
         normal        = ak_heap_alloc(heap, technfx, sizeof(*normal));
         normal->tex   = gltf_texref(gst, normal, jmatVal);
-        normal->scale = 1.0f;
         normal->scale = json_float(json_get(jmatVal, _s_gltf_scale), 1.0f);
 
         cmnTechn->normal = normal;

@@ -70,27 +70,4 @@ json_array_set(void         * __restrict p,
   }
 }
 
-const char*
-json_cstr(json_t *jsn, const char *key);
-
-int32_t
-jsn_i32_def(json_t     *jsn,
-               const char *key,
-               int32_t     def);
-
-int32_t
-jsn_i32(json_t *jsn, const char *key);
-
-int64_t
-jsn_i64(json_t *jsn, const char *key);
-
-float
-jsn_flt(json_t *jsn, const char *key);
-
-float
-jsn_flt_at(json_t *jsn, int32_t index);
-
-void
-jsn_flt_if(json_t *jsn, const char *key, float *dest);
-
 #endif /* ak_json_h */
