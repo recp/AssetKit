@@ -50,10 +50,11 @@ gltf_doc(AkDoc     ** __restrict dest,
   heap = ak_heap_new(NULL, NULL, NULL);
   doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
 
-  doc->inf        = ak_heap_calloc(heap, doc, sizeof(*doc->inf));
-  doc->inf->name  = filepath;
-  doc->inf->dir   = ak_path_dir(heap, doc, filepath);
-  doc->inf->ftype = AK_FILE_TYPE_GLTF;
+  doc->inf            = ak_heap_calloc(heap, doc, sizeof(*doc->inf));
+  doc->inf->dir       = ak_path_dir(heap, doc, filepath);
+  doc->inf->name      = filepath;
+  doc->inf->flipImage = false;
+  doc->inf->ftype     = AK_FILE_TYPE_GLTF;
 
   /* for fixing skin and morph vertices */
   doc->reserved = rb_newtree_ptr();
@@ -86,12 +87,6 @@ gltf_doc(AkDoc     ** __restrict dest,
       
     return AK_ERR;
   }
-
-  doc->inf            = ak_heap_calloc(heap, doc, sizeof(*doc->inf));
-  doc->inf->dir       = ak_path_dir(heap, doc, filepath);
-  doc->inf->name      = filepath;
-  doc->inf->flipImage = true;
-  doc->inf->ftype     = AK_FILE_TYPE_GLTF;
 
   if (doc->inf->dir)
     doc->inf->dirlen = strlen(doc->inf->dir);
@@ -130,6 +125,13 @@ gltf_doc(AkDoc     ** __restrict dest,
   }
 
 err:
+  
+  if (jsonString)
+    free(jsonString);
+  
+  if (gltfRawDoc)
+    free((void *)gltfRawDoc);
+  
   /* probably unsupportted version or verion is missing */
   if (ret == AK_EBADF) {
     ak_free(doc);

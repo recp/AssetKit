@@ -46,7 +46,6 @@ void _assetkit_hide
 gltf_textures(json_t * __restrict jtex,
               void   * __restrict userdata) {
   AkGLTFState        *gst;
-  AkHeap             *heap;
   AkDoc              *doc;
   const json_array_t *jtextures;
   const json_t       *jtexVal;
@@ -56,8 +55,6 @@ gltf_textures(json_t * __restrict jtex,
     return;
 
   gst  = userdata;
-
-  heap = gst->heap;
   doc  = gst->doc;
 
   jtex = jtextures->base.value;
