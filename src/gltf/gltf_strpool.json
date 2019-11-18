@@ -100,7 +100,6 @@
   "texCoord": "texCoord",
   "texcoordPrefix": "TEXCOORD",
   "sid_sampler": "smp",
-  "id_metalrough": "metalrough",
   "id_specgloss": "specgloss",
   "ext_pbrSpecGloss": "KHR_materials_pbrSpecularGlossiness",
   "diffuseFactor": "diffuseFactor",

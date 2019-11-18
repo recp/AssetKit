@@ -114,7 +114,6 @@ const char _s_gltf_pool_0[] =
 "texCoord\0"
 "TEXCOORD\0"
 "smp\0"
-"metalrough\0"
 "specgloss\0"
 "KHR_materials_pbrSpecularGlossiness\0"
 "diffuseFactor\0"

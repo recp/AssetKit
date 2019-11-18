@@ -102,8 +102,6 @@ gltf_materials(json_t * __restrict jmaterial,
       mr->base.type = AK_MATERIAL_METALLIC_ROUGHNESS;
       mr->metallic  = mr->roughness = 1.0f;
       glm_vec4_copy(GLM_VEC4_ONE, mr->albedo.vec);
-
-      ak_setId(mat, ak_id_gen(heap, mat, _s_gltf_id_metalrough));
     }
 
     while (jmatVal) {
@@ -195,7 +193,7 @@ gltf_materials(json_t * __restrict jmaterial,
     ieff->base.url.ptr = effect;
     mat->effect        = ieff;
 
-    mat->next    = libmat->chld = mat;
+    mat->next    = libmat->chld;
     libmat->chld = mat;
     libeffect->count++;
     libmat->count++;

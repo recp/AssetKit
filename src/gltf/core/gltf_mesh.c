@@ -170,28 +170,24 @@ gltf_meshes(json_t * __restrict jmesh,
               int32_t     matIndex;
 
               matIndex = json_int32(jprimVal, -1);
-              mat      = gst->doc->lib.materials->chld;
-              while (mat && matIndex > 0) {
-                mat = mat->next;
-                matIndex--;
-              }
-
+              GETCHILD(gst->doc->lib.materials->chld, mat, matIndex);
+       
               prim->material = mat;
 
               /* we can use material id as semantic */
-              if (mat) {
-                char  *materialId, *symbol;
-                size_t len;
-
-                materialId  = ak_mem_getId(mat);
-                len         = strlen(materialId)
-                              + ak_digitsize(mesh->primitiveCount) + 1;
-                symbol      = ak_heap_alloc(heap, prim, len + 1);
-                symbol[len] = '\0';
-                sprintf(symbol, "%s-%d", materialId, mesh->primitiveCount);
-
-                ak_meshSetMaterial(prim, (prim->bindmaterial = symbol));
-              }
+//              if (mat) {
+//                char  *materialId, *symbol;
+//                size_t len;
+//
+//                materialId  = ak_mem_getId(mat);
+//                len         = strlen(materialId)
+//                              + ak_digitsize(mesh->primitiveCount) + 1;
+//                symbol      = ak_heap_alloc(heap, prim, len + 1);
+//                symbol[len] = '\0';
+//                sprintf(symbol, "%s-%d", materialId, mesh->primitiveCount);
+//
+//                ak_meshSetMaterial(prim, (prim->bindmaterial = symbol));
+//              }
             } else if (json_key_eq(jprimVal, _s_gltf_targets)) {
 //              if ((jtargets = json_object_get(jprim, _s_gltf_targets))) {
 //                AkInput *last_targetinp;
