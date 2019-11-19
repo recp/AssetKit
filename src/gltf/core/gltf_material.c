@@ -44,6 +44,7 @@ gltf_materials(json_t * __restrict jmaterial,
     AkMetallicRoughness  *mr;
     AkSpecularGlossiness *sg;
     AkInstanceEffect     *ieff;
+    float                 cutoff;
 
     pcommon  = gltf_cmnEffect(gst);
     effect   = ak_mem_parent(pcommon);
@@ -52,6 +53,7 @@ gltf_materials(json_t * __restrict jmaterial,
     cmnTechn = NULL;
     mr       = NULL;
     sg       = NULL;
+    cutoff   = 0.5f;
 
     pcommon->technique = technfx;
 
@@ -179,12 +181,15 @@ gltf_materials(json_t * __restrict jmaterial,
         }
       } else if (json_key_eq(jmatVal, _s_gltf_alphaCutoff)) {
         /* alphaCutoff */
-        if (cmnTechn->transparent)
-          cmnTechn->transparent->cutoff = json_float(jmatVal, 0.0f);
+        cutoff = json_float(jmatVal, 0.5f);
       }
 
       jmatVal = jmatVal->next;
     }
+    
+    /* alphaCutoff */
+    if (cmnTechn->transparent)
+      cmnTechn->transparent->cutoff = cutoff;
 
     technfx->common    = cmnTechn;
     ieff               = ak_heap_calloc(heap, mat, sizeof(*ieff));
