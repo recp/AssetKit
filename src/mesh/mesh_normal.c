@@ -22,20 +22,21 @@ ak_meshPrimGenNormals(AkMeshPrimitive    * __restrict prim);
 AK_EXPORT
 bool
 ak_meshPrimNeedsNormals(AkMeshPrimitive * __restrict prim) {
-  AkAccessor *acc;
-  AkSource   *src;
-  AkObject   *data;
-  AkInput    *input;
-  bool        ret;
+  AkAccessor   *acc;
+  AkSource     *src;
+  AkInput      *input;
+  AkBufferView *buffView;
+  AkBuffer     *buff;
+  bool          ret;
 
   ret   = true;
   input = prim->input;
   while (input) {
     if (input->semantic == AK_INPUT_SEMANTIC_NORMAL) {
-      src = ak_getObjectByUrl(&input->source);
-      if (!src
+      if (!(src = ak_getObjectByUrl(&input->source))
           || !(acc = src->tcommon)
-          || !(data = ak_getObjectByUrl(&acc->source)))
+          || !(buffView = acc->bufferView)
+          || !(buff = buffView->buffer))
         return ret;
       ret = false;
       break;
@@ -153,9 +154,7 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
 
         for (j = i; j < i + vc; j++) {
           /* other inputs */
-          memcpy(it2 + j * newst,
-                 it  + j * st,
-                 sizeof(*it) * st);
+          memcpy(it2 + j * newst, it  + j * st, sizeof(*it) * st);
 
           /* normal */
           it2[j * newst + st] = idx;
@@ -187,9 +186,7 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
 
         for (j = i; j < i + 3; j++) {
           /* other inputs */
-          memcpy(it2 + j * newst,
-                 it  + j * st,
-                 sizeof(*it) * st);
+          memcpy(it2 + j * newst, it  + j * st, sizeof(*it) * st);
 
           /* normal */
           it2[j * newst + st] = idx;

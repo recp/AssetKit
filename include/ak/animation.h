@@ -82,10 +82,12 @@ typedef struct AkAnimation {
   struct AkAnimation *next;
   struct AkAnimation *animation;
   AkAnimSampler      *sampler;
-  AkSource           *source;
   AkChannel          *channel;
   const char         *name;
   AkTree             *extra;
+  
+  /* TODO: WILL BE DELETED */
+  AkSource           *source;
 } AkAnimation;
 
 #ifdef __cplusplus

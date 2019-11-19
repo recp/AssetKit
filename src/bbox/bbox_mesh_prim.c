@@ -18,7 +18,6 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
   AkBuffer     *posbuff;
   AkBufferView *buffView;
   char         *data;
-  AkSource     *src;
   AkAccessor   *acc;
   float        *vec;
   vec3          center, min, max;
@@ -31,8 +30,7 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
   acc     = NULL;
 
   if (!prim->pos
-      || !(src = ak_getObjectByUrl(&prim->pos->source))
-      || !(acc = src->tcommon)
+      || !(acc = prim->pos->accessor)
       || !(buffView = acc->bufferView)
       || !(posbuff = buffView->buffer))
      // || !(posbuff = ak_getObjectByUrl(&acc->source)))

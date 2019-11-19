@@ -65,45 +65,27 @@ gltf_animations(json_t * __restrict janim,
         sampler     = ak_heap_calloc(heap, anim, sizeof(*sampler));
         
         if (json_key_eq(jsamplerVal, _s_gltf_input)) {
-          AkInput  *input;
-          AkSource *source;
+          AkInput *input;
           
-          source = ak_heap_calloc(heap, anim, sizeof(*source));
-          
-          ak_setypeid(source, AKT_SOURCE);
-          
-          input = ak_heap_calloc(heap, sampler, sizeof(*input));
+          input              = ak_heap_calloc(heap, sampler, sizeof(*input));
           input->semanticRaw = ak_heap_strdup(gst->heap, anim, _s_gltf_input);
           input->semantic    = AK_INPUT_SEMANTIC_INPUT;
-          source->tcommon    = flist_sp_at(&doc->lib.accessors,
+          input->accessor    = flist_sp_at(&doc->lib.accessors,
                                            json_int32(jsamplerVal, -1));
-          input->source.ptr  = source;
-          
-          source->next   = anim->source;
-          anim->source   = source;
-          
+
           input->next    = sampler->input;
           sampler->input = input;
         } else if (json_key_eq(jsamplerVal, _s_gltf_interpolation)) {
           sampler->uniInterpolation = gltf_interp(json_string(jsamplerVal));
         } else if (json_key_eq(jsamplerVal, _s_gltf_output)) {
-          AkInput  *input;
-          AkSource *source;
-          
-          source = ak_heap_calloc(heap, anim, sizeof(*source));
-          
-          ak_setypeid(source, AKT_SOURCE);
-          
+          AkInput *input;
+    
           input              = ak_heap_calloc(heap, sampler, sizeof(*input));
           input->semanticRaw = ak_heap_strdup(gst->heap, anim, _s_gltf_output);
           input->semantic    = AK_INPUT_SEMANTIC_OUTPUT;
-          source->tcommon    =  flist_sp_at(&doc->lib.accessors,
-                                            json_int32(jsamplerVal, -1));
-          input->source.ptr  = source;
-          
-          source->next   = anim->source;
-          anim->source   = source;
-          
+          input->accessor    = flist_sp_at(&doc->lib.accessors,
+                                           json_int32(jsamplerVal, -1));
+
           input->next    = sampler->input;
           sampler->input = input;
         }

@@ -516,15 +516,20 @@ typedef struct AkMaterial {
   struct AkMaterial *next;
 } AkMaterial;
 
+struct AkAccessor;
+
 typedef struct AkInput {
-  const char     *semanticRaw;
-  struct AkInput *next;
-  AkURL           source;
-  uint32_t        index; /* TEXCOORD0, TEXCOORD1... */
-  bool            isIndexed;
-  AkInputSemantic semantic;
-  uint32_t        offset;
-  uint32_t        set;
+  const char        *semanticRaw;
+  struct AkInput    *next;
+  struct AkAccessor *accessor;
+  uint32_t           index; /* TEXCOORD0, TEXCOORD1... */
+  bool               isIndexed;
+  AkInputSemantic    semantic;
+  uint32_t           offset;
+  uint32_t           set;
+  
+  /* TODO: WILL BE DELETED */
+  AkURL              source;
 } AkInput;
 
 struct AkInstanceMaterial;

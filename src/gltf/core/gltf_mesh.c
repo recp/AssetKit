@@ -88,8 +88,6 @@ gltf_meshes(json_t * __restrict jmesh,
               while (jattrib) {
                 AkInput    *inp;
                 const char *semantic;
-                AkSource   *source;
-                AkAccessor *acc;
 
                 inp      = ak_heap_calloc(heap, prim, sizeof(*inp));
                 semantic = memchr(jattrib->key, '_', jattrib->keySize);
@@ -111,15 +109,9 @@ gltf_meshes(json_t * __restrict jmesh,
                     inp->set = (uint32_t)strtol(semantic + 1, NULL, 10);
                 }
 
-                acc    = flist_sp_at(&doc->lib.accessors,
-                                     json_int32(jattrib, -1));
-                source = ak_heap_calloc(heap, prim, sizeof(*source));
-
-                ak_setypeid(source, AKT_SOURCE);
-
-                source->tcommon = acc;
-                inp->semantic   = gltf_enumInputSemantic(inp->semanticRaw);
-                inp->source.ptr = source;
+                inp->semantic = gltf_enumInputSemantic(inp->semanticRaw);
+                inp->accessor = flist_sp_at(&doc->lib.accessors,
+                                            json_int32(jattrib, -1));
 
                 if (inp->semantic == AK_INPUT_SEMANTIC_POSITION)
                   prim->pos = inp;
