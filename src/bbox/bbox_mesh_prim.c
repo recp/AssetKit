@@ -12,17 +12,16 @@
 
 void
 ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
-  AkHeap       *heap;
-  AkGeometry   *geom;
-  AkMesh       *mesh;
-  AkBuffer     *posbuff;
-  AkBufferView *buffView;
-  char         *data;
-  AkAccessor   *acc;
-  float        *vec;
-  vec3          center, min, max;
-  size_t        i, count, byteStride;
-  bool          exactCenter;
+  AkHeap     *heap;
+  AkGeometry *geom;
+  AkMesh     *mesh;
+  AkBuffer   *posbuff;
+  char       *data;
+  AkAccessor *acc;
+  float      *vec;
+  vec3        center, min, max;
+  size_t      i, count, byteStride;
+  bool        exactCenter;
 
   mesh    = prim->mesh;
   geom    = mesh->geom;
@@ -31,19 +30,18 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
 
   if (!prim->pos
       || !(acc = prim->pos->accessor)
-      || !(buffView = acc->bufferView)
-      || !(posbuff = buffView->buffer))
+      || !(posbuff = acc->buffer))
      // || !(posbuff = ak_getObjectByUrl(&acc->source)))
     return;
 
-  data = ((char *)posbuff->data + buffView->byteOffset + acc->byteOffset);
+  data = ((char *)posbuff->data + acc->byteOffset);
 
   glm_vec3_broadcast(FLT_MAX, min);
   glm_vec3_broadcast(-FLT_MAX, max);
   glm_vec3_broadcast(0.0f, center);
 
   exactCenter = ak_opt_get(AK_OPT_COMPUTE_EXACT_CENTER);
-  byteStride  = buffView->byteStride;
+  byteStride  = acc->byteStride;
 
   if (byteStride == 0)
     byteStride = acc->componentBytes;

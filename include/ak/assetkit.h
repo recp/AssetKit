@@ -651,7 +651,6 @@ typedef struct AkLib {
   AkLibItem *animations;
   
   struct FListItem *buffers;
-  struct FListItem *bufferViews;
   struct FListItem *accessors;
   struct FListItem *textures;
   struct FListItem *samplers;

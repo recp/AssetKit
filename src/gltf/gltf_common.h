@@ -29,11 +29,20 @@ typedef enum AkGLTFVersion {
   AK_GLTF_VERSION_20 = 2
 } AkGLTFVersion;
 
+typedef struct AkBufferView {
+  AkBuffer   *buffer;
+  const char *name;
+  size_t      byteOffset;
+  size_t      byteLength;
+  size_t      byteStride;
+} AkBufferView;
+
 typedef struct AkGLTFState {
   AkHeap       *heap;
   AkDoc        *doc;
   json_t       *root;
   FListItem    *buffers;
+  FListItem    *bufferViews;
   RBTree       *meshTargets;
   AkGLTFVersion version;
   bool          stop;

@@ -30,7 +30,7 @@ gltf_bufferViews(json_t * __restrict jbuffView,
     while (jbuffVal) {
       if (json_key_eq(jbuffVal, _s_gltf_buffer)) {
         if ((buffIndex = json_int32(jbuffVal, -1)) > -1)
-          buffView->buffer = flist_sp_at(&gst->doc->lib.buffers, buffIndex);
+          buffView->buffer = flist_sp_at(&gst->buffers, buffIndex);
       } else if (json_key_eq(jbuffVal, _s_gltf_byteLength)) {
         buffView->byteLength = json_uint64(jbuffVal, 0);
       } else if (json_key_eq(jbuffVal, _s_gltf_byteOffset)) {
@@ -44,7 +44,7 @@ gltf_bufferViews(json_t * __restrict jbuffView,
       jbuffVal = jbuffVal->next;
     }
 
-    flist_sp_insert(&gst->doc->lib.bufferViews, buffView);
+    flist_sp_insert(&gst->bufferViews, buffView);
     jbuffView = jbuffView->next;
   }
 }
@@ -63,9 +63,9 @@ gltf_buffers(json_t * __restrict jbuff,
   if (!(jbuffers = json_array(jbuff)))
     return;
 
-  gst      = userdata;
-  heap     = gst->heap;
-  jbuff    = jbuffers->base.value;
+  gst   = userdata;
+  heap  = gst->heap;
+  jbuff = jbuffers->base.value;
 
   while (jbuff) {
     buff     = ak_heap_calloc(heap, gst->doc, sizeof(*buff));
@@ -87,7 +87,7 @@ gltf_buffers(json_t * __restrict jbuff,
       jbuffVal = jbuffVal->next;
     }
 
-    flist_sp_insert(&gst->doc->lib.buffers, buff);
+    flist_sp_insert(&gst->buffers, buff);
     jbuff = jbuff->next;
   }
 }

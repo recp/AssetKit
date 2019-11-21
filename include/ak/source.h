@@ -22,7 +22,7 @@ extern "C" {
 */
 
 struct AkTechnique;
-struct AkBufferView;
+struct AkBuffer;
 
 /* for vectors: item count,
    for matrics: item count | matrix size
@@ -57,32 +57,24 @@ typedef struct AkBuffer {
   size_t      reserved;
 } AkBuffer;
 
-typedef struct AkBufferView {
-  AkBuffer   *buffer;
-  const char *name;
-  size_t      byteOffset;
-  size_t      byteLength;
-  size_t      byteStride;
-} AkBufferView;
-
 typedef struct AkAccessor {
-  struct AkBufferView *bufferView;
-  AkTypeDesc          *type;
+  struct AkBuffer     *buffer;
   const char          *name;
   void                *min;
   void                *max;
   size_t               byteOffset;
-  size_t               componentBytes;
-  AkComponentSize      componentSize;
-  AkTypeId             componentType;
+  size_t               byteStride;
+  size_t               count;
+  uint32_t             componentBytes; /* component stride in bytes         */
+  AkComponentSize      componentSize;  /* vec1 | vec2 | vec3 | vec4 ...     */
+  AkTypeId             componentType;  /* single component type             */
+  int32_t              gpuTarget;      /* GPU buffer target to bound        */
   bool                 normalized;
 
   /* TODO: DEPRECATED */
+  AkTypeDesc          *type;
   struct AkDataParam  *param;
   AkURL                source;
-  size_t               count;
-  size_t               byteStride;
-  size_t               byteLength;
   size_t               offset;
   uint32_t             firstBound;
   uint32_t             stride;

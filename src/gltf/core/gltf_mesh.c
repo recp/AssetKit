@@ -124,7 +124,6 @@ gltf_meshes(json_t * __restrict jmesh,
               } /* jprimAttrib */
             } else if (json_key_eq(jprimVal, _s_gltf_indices)) {
               AkAccessor   *acc;
-              AkBufferView *buffView;
               AkBuffer     *indicesBuff;
               AkUIntArray  *indices;
               AkUInt       *it1;
@@ -133,8 +132,7 @@ gltf_meshes(json_t * __restrict jmesh,
 
               if (!(acc = flist_sp_at(&doc->lib.accessors,
                                       json_int32(jprimVal, -1)))
-                  || !(buffView = acc->bufferView)
-                  || !(indicesBuff = buffView->buffer))
+                  || !(indicesBuff = acc->buffer))
                 goto prim_next;
 
               itemSize = acc->type->size;
@@ -145,8 +143,7 @@ gltf_meshes(json_t * __restrict jmesh,
                                         + sizeof(AkUInt) * count);
               indices->count = count;
               it1            = indices->items;
-              it2            = ((char *)indicesBuff->data)
-                                 + acc->byteOffset + buffView->byteOffset;
+              it2            = ((char *)indicesBuff->data) + acc->byteOffset;
 
               /* we cannot use memcpy here, because we will promote short, byte
                  type to int32 (for now)

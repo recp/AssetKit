@@ -23,9 +23,7 @@ AK_EXPORT
 bool
 ak_meshPrimNeedsNormals(AkMeshPrimitive * __restrict prim) {
   AkAccessor   *acc;
-  AkSource     *src;
   AkInput      *input;
-  AkBufferView *buffView;
   AkBuffer     *buff;
   bool          ret;
 
@@ -33,10 +31,7 @@ ak_meshPrimNeedsNormals(AkMeshPrimitive * __restrict prim) {
   input = prim->input;
   while (input) {
     if (input->semantic == AK_INPUT_SEMANTIC_NORMAL) {
-      if (!(src = ak_getObjectByUrl(&input->source))
-          || !(acc = src->tcommon)
-          || !(buffView = acc->bufferView)
-          || !(buff = buffView->buffer))
+      if (!(acc = input->accessor) || !(buff = acc->buffer))
         return ret;
       ret = false;
       break;

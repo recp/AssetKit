@@ -138,11 +138,9 @@ gltf_skin(json_t * __restrict jskin,
       if (json_key_eq(jskinVal, _s_gltf_inverseBindMatrices)) {
          AkAccessor   *acc;
          AkBuffer     *buff;
-         AkBufferView *buffView;
          
          if ((acc = flist_sp_at(&doc->lib.accessors, json_int32(jskinVal, -1)))
-             && (buffView = acc->bufferView)
-             && (buff = buffView->buffer)) {
+             && (buff = acc->buffer)) {
            skin->invBindPoses = ak_heap_alloc(heap, obj,
                                               acc->count * sizeof(mat4));
 
