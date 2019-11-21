@@ -118,7 +118,6 @@ gltf_skin(json_t * __restrict jskin,
     AkObject     *obj;
     AkSkin       *skin;
     json_t       *jskinVal;
-    const char   *skinid;
     
     jskinVal = jskin->value;
 
@@ -132,11 +131,7 @@ gltf_skin(json_t * __restrict jskin,
                                    AK_CONTROLLER_SKIN,
                                    true);
     skin = ak_objGet(obj);
-    
-    /* sets id "skinid-[i]" for node. */
-    skinid = ak_id_gen(heap, ctlr, _s_gltf_skin);
-    ak_heap_setId(heap, ak__alignof(ctlr), (void *)skinid);
-    
+
     glm_mat4_identity(skin->bindShapeMatrix);
     
     while (jskinVal) {

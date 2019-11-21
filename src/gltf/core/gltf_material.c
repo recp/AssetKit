@@ -71,8 +71,6 @@ gltf_materials(json_t * __restrict jmaterial,
           sg->base.type  = AK_MATERIAL_SPECULAR_GLOSSINES;
           sg->glossiness = 1.0f;
 
-          ak_setId(mat, ak_id_gen(heap, mat, _s_gltf_id_specgloss));
-
           glm_vec3_copy(GLM_VEC4_ONE, sg->diffuse.vec);
           glm_vec3_copy(GLM_VEC4_ONE, sg->specular.vec);
  
