@@ -35,6 +35,6 @@ AkOpaque _assetkit_hide
 gltf_alphaMode(const char *name);
 
 AkInterpolationType _assetkit_hide
-gltf_interp(const char *name);
+gltf_interp(json_t * __restrict json);
 
 #endif /* gltf_enums_h */

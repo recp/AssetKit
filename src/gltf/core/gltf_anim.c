@@ -66,33 +66,33 @@ gltf_animations(json_t * __restrict janim,
       
       /* samplers */
       while (jsampler) {
-        json_t *jsamplerVal;
+        json_t *jsampVal;
         
-        jsamplerVal = jsampler->value;
+        jsampVal = jsampler->value;
         sampler     = ak_heap_calloc(heap, anim, sizeof(*sampler));
         
-        while (jsamplerVal) {
-          if (json_key_eq(jsamplerVal, _s_gltf_input)) {
+        while (jsampVal) {
+          if (json_key_eq(jsampVal, _s_gltf_input)) {
             AkInput *inp;
             
             inp              = ak_heap_calloc(heap, sampler, sizeof(*inp));
             inp->semanticRaw = ak_heap_strdup(gst->heap, anim, _s_gltf_input);
             inp->semantic    = AK_INPUT_SEMANTIC_INPUT;
             inp->accessor    = flist_sp_at(&doc->lib.accessors,
-                                           json_int32(jsamplerVal, -1));
+                                           json_int32(jsampVal, -1));
             
             inp->next      = sampler->input;
             sampler->input = inp;
-          } else if (json_key_eq(jsamplerVal, _s_gltf_interpolation)) {
-            sampler->uniInterpolation = gltf_interp(json_string(jsamplerVal));
-          } else if (json_key_eq(jsamplerVal, _s_gltf_output)) {
+          } else if (json_key_eq(jsampVal, _s_gltf_interpolation)) {
+            sampler->uniInterpolation = gltf_interp(jsampVal);
+          } else if (json_key_eq(jsampVal, _s_gltf_output)) {
             AkInput *inp;
             
             inp              = ak_heap_calloc(heap, sampler, sizeof(*inp));
             inp->semanticRaw = ak_heap_strdup(gst->heap, anim, _s_gltf_output);
             inp->semantic    = AK_INPUT_SEMANTIC_OUTPUT;
             inp->accessor    = flist_sp_at(&doc->lib.accessors,
-                                           json_int32(jsamplerVal, -1));
+                                           json_int32(jsampVal, -1));
             
             inp->next      = sampler->input;
             sampler->input = inp;
@@ -103,7 +103,7 @@ gltf_animations(json_t * __restrict janim,
             sampler->uniInterpolation = AK_INTERPOLATION_LINEAR;
           }
 
-          jsamplerVal = jsamplerVal->next;
+          jsampVal = jsampVal->next;
         }
 
         sampler->next = anim->sampler;

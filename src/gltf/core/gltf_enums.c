@@ -154,10 +154,10 @@ gltf_alphaMode(const char *name) {
 }
 
 AkInterpolationType _assetkit_hide
-gltf_interp(const char *name) {
+gltf_interp(json_t * __restrict json) {
   AkEnum val;
-  long glenums_len;
-  long i, len;
+  long   glenums_len;
+  long   i;
 
   dae_enum glenums[] = {
     {_s_gltf_LINEAR,       AK_INTERPOLATION_LINEAR},
@@ -165,12 +165,11 @@ gltf_interp(const char *name) {
     {_s_gltf_CUBICSPLINE,  AK_INTERPOLATION_HERMITE}
   };
 
-  len         = strlen(name);
   val         = AK_INTERPOLATION_LINEAR;
   glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
-    if (strncasecmp(name, glenums[i].name, len) == 0) {
+    if (json_val_eq(json, glenums[i].name)) {
       val = glenums[i].val;
       break;
     }
