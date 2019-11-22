@@ -107,7 +107,7 @@ dae_fixup_accessors(AkXmlState * __restrict xst) {
       size_t itemSize;
 
       acc->componentType = (AkTypeId)buff->reserved;
-      acc->type       = ak_typeDesc(acc->componentType);
+      acc->type          = ak_typeDesc(acc->componentType);
 
       if (acc->type)
         itemSize = acc->type->size;
@@ -115,7 +115,7 @@ dae_fixup_accessors(AkXmlState * __restrict xst) {
         goto cont;
 
       acc->byteStride = acc->stride * itemSize;
-      acc->byteLength = acc->count  * acc->stride * itemSize;
+      /* acc->byteLength = acc->count  * acc->stride * itemSize; */
       acc->byteOffset = acc->offset * itemSize;
     }
 
