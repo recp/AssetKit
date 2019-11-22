@@ -64,6 +64,7 @@ typedef struct AkAccessor {
   void                *max;
   size_t               byteOffset;
   size_t               byteStride;
+  size_t               byteLength;
   size_t               count;
   uint32_t             componentBytes; /* component stride in bytes         */
   AkComponentSize      componentSize;  /* vec1 | vec2 | vec3 | vec4 ...     */

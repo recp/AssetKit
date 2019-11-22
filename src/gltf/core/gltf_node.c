@@ -163,7 +163,7 @@ gltf_node(AkGLTFState * __restrict gst,
   }
 
   /* skin */
-  if ((i32val = json_int32(nodeMap[k_skin].object, -1) > -1)) {
+  if ((i32val = json_int32(nodeMap[k_skin].object, -1)) > -1) {
     char                  skinid[16];
     AkInstanceController *instCtlr;
 
@@ -171,7 +171,7 @@ gltf_node(AkGLTFState * __restrict gst,
     instCtlr->base.type    = AK_INSTANCE_CONTROLLER;
     instCtlr->geometry.ptr = instGeom;
 
-    sprintf(skinid, "%s%d", _s_gltf_skin, i32val + 1);
+    sprintf(skinid, "%s%d", _s_gltf_skin, i32val);
 
     ak_url_init_with_id(heap->allocator,
                         instCtlr,

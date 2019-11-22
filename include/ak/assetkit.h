@@ -655,6 +655,7 @@ typedef struct AkLib {
   struct FListItem *textures;
   struct FListItem *samplers;
   struct FListItem *images;
+  struct FListItem *skins;
 } AkLib;
 
 typedef struct AkDoc {
