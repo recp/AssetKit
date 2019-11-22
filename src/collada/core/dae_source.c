@@ -231,7 +231,7 @@ dae_source(AkXmlState * __restrict xst,
 
               if (asEnum) {
                 accessor->byteStride = enumLen;
-                /* accessor->byteLength = accessor->count * enumLen; */
+                accessor->byteLength = accessor->count * enumLen;
               }
             }
           

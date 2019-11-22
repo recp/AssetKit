@@ -94,9 +94,7 @@ gltf_accessors(json_t * __restrict json,
         flist_sp_insert(&doc->lib.buffers, buff);
       }
     }
-    
-    assert(acc->buffer);
-    
+
     if ((it = accMap[k_gltf_byteOffset].object)) {
       acc->byteOffset = json_uint64(it, 0);
     }
@@ -131,6 +129,8 @@ gltf_accessors(json_t * __restrict json,
       acc->componentBytes = bound * componentLen;
       acc->bound          = bound;
     }
+    
+    acc->byteLength = acc->count * acc->componentBytes;
 
     if (acc->componentSize != AK_COMPONENT_SIZE_UNKNOWN
         && acc->componentBytes > 0) {
