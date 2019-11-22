@@ -68,9 +68,10 @@ gltf_doc(AkDoc     ** __restrict dest,
 
   memset(&gstVal, 0, sizeof(gstVal));
 
-  gst         = &gstVal;
-  gstVal.doc  = doc;
-  gstVal.heap = heap;
+  gst            = &gstVal;
+  gstVal.doc     = doc;
+  gstVal.heap    = heap;
+  gst->bufferMap = rb_newtree_ptr();
 
   if ((ret = ak_readfile(filepath, "rb", &jsonString, &jsonSize)) != AK_OK)
     return ret;

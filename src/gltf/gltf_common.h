@@ -42,6 +42,7 @@ typedef struct AkGLTFState {
   AkDoc        *doc;
   json_t       *root;
   FListItem    *buffers;
+  RBTree       *bufferMap;
   FListItem    *bufferViews;
   RBTree       *meshTargets;
   AkGLTFVersion version;
