@@ -57,18 +57,20 @@ gltf_skin(json_t * __restrict jskin,
 
     while (jskinVal) {
       if (json_key_eq(jskinVal, _s_gltf_inverseBindMatrices)) {
-         AkAccessor   *acc;
-         AkBuffer     *buff;
-
-         if ((acc = flist_sp_at(&doc->lib.accessors, json_int32(jskinVal, -1)))
-             && (buff = acc->buffer)) {
-           skin->invBindPoses = ak_heap_alloc(heap, obj,
-                                              acc->count * sizeof(mat4));
-
-           for (size_t k = 0; k < acc->count * 16; k++) {
-             *((float *)skin->invBindPoses + k) = *((float *)buff->data + k);
-           }
-         }
+        AkAccessor *acc;
+        AkBuffer   *buff;
+        float      *pbuff;
+        
+        if ((acc = flist_sp_at(&doc->lib.accessors, json_int32(jskinVal, -1)))
+            && (buff = acc->buffer)) {
+          pbuff = (void *)((char *)buff->data + acc->byteOffset);
+          skin->invBindPoses = ak_heap_alloc(heap, obj,
+                                             acc->count * sizeof(mat4));
+          
+          for (size_t k = 0; k < acc->count * 16; k++) {
+            *((float *)skin->invBindPoses + k) = *(pbuff + k);
+          }
+        }
       } else if (json_key_eq(jskinVal, _s_gltf_joints)) {
         json_array_t *jjoints;
         json_t       *jjoint;

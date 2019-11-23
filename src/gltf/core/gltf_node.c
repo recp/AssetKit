@@ -53,7 +53,6 @@ gltf_nodes(json_t * __restrict jnode,
     nodechld[i * 2] = node = gltf_node(gst, lib, jnode, nodechld);
   
     /* JSON parse is reverse */
-    /* sets id "node-[i]" for node. */
     sprintf(nodeid, "%s%d", _s_gltf_node, i);
     ak_heap_setId(heap, ak__alignof(node), ak_heap_strdup(heap, node, nodeid));
 
