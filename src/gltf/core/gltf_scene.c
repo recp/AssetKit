@@ -42,48 +42,51 @@ gltf_scenes(json_t * __restrict jscene,
     /* root node: to store node instances */
     scene->node = ak_heap_calloc(heap, scene, sizeof(*scene->node));
     
-    if (json_key_eq(jsceneVal, _s_gltf_name)) {
-      scene->name = json_strdup(jsceneVal, heap, scene);
-    } else if (json_key_eq(jsceneVal, _s_gltf_nodes)) {
-      json_array_t *jnodes;
-      json_t       *jnode;
-      int32_t       nodeIndex;
-      
-      if (!(jnodes = json_array(jsceneVal)))
-        goto scn_nxt;
-      
-      /* create instanceNode for each node */
-      jnode = jnodes->base.value;
-
-      while (jnode) {
-        char            nodeid[16];
-        AkNode         *node;
-        AkInstanceNode *instNode;
+    while (jsceneVal) {
+      if (json_key_eq(jsceneVal, _s_gltf_name)) {
+        scene->name = json_strdup(jsceneVal, heap, scene);
+      } else if (json_key_eq(jsceneVal, _s_gltf_nodes)) {
+        json_array_t *jnodes;
+        json_t       *jnode;
+        int32_t       nodeIndex;
         
-        instNode  = ak_heap_calloc(heap, scene, sizeof(*instNode));
-        if ((nodeIndex = json_int32(jnode, -1)) < 0)
-          goto jnode_nxt;
+        if (!(jnodes = json_array(jsceneVal)))
+          goto scn_nxt;
         
-        sprintf(nodeid, "%s%d", _s_gltf_node, nodeIndex);
-        if (!(node = ak_getObjectById(doc, nodeid)))
-          goto jnode_nxt;
+        /* create instanceNode for each node */
+        jnode = jnodes->base.value;
         
-        instNode->base.node    = node;
-        instNode->base.url.ptr = node;
-        instNode->base.type    = AK_INSTANCE_NODE;
-        
-        if (scene->node) {
-          if (scene->node->node)
-            instNode->base.next = &scene->node->node->base;
-          scene->node->node   = instNode;
+        while (jnode) {
+          char            nodeid[16];
+          AkNode         *node;
+          AkInstanceNode *instNode;
+          
+          instNode  = ak_heap_calloc(heap, scene, sizeof(*instNode));
+          if ((nodeIndex = json_int32(jnode, -1)) < 0)
+            goto jnode_nxt;
+          
+          sprintf(nodeid, "%s%d", _s_gltf_node, nodeIndex);
+          if (!(node = ak_getObjectById(doc, nodeid)))
+            goto jnode_nxt;
+          
+          instNode->base.node    = node;
+          instNode->base.url.ptr = node;
+          instNode->base.type    = AK_INSTANCE_NODE;
+          
+          if (scene->node) {
+            if (scene->node->node)
+              instNode->base.next = &scene->node->node->base;
+            scene->node->node   = instNode;
+          }
+          
+          if (!scene->firstCamNode)
+            gltf_setFirstCamera(scene, node);
+          
+        jnode_nxt:
+          jnode = jnode->next;
         }
-
-        if (!scene->firstCamNode)
-          gltf_setFirstCamera(scene, node);
-        
-      jnode_nxt:
-        jnode = jnode->next;
       }
+      jsceneVal = jsceneVal->next;
     }
 
   scn_nxt:
