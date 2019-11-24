@@ -10,6 +10,7 @@
 #include "../../include/ak/path.h"
 #include "core/gltf_asset.h"
 #include "core/gltf_buffer.h"
+#include "core/gltf_accessor.h"
 #include "core/gltf_mesh.h"
 #include "core/gltf_node.h"
 #include "core/gltf_scene.h"
@@ -23,25 +24,41 @@
 #include "core/gltf_anim.h"
 #include "core/gltf_skin.h"
 
+#include <json/json.h>
+#include <json/print.h>
+
+static
+void
+ak_gltfFreeDupl(RBTree *tree, RBNode *node) {
+  if (node == tree->nullNode)
+    return;
+  ak_free(node->val);
+}
+
 AkResult _assetkit_hide
 gltf_doc(AkDoc     ** __restrict dest,
          const char * __restrict filepath) {
-  AkHeap        *heap;
-  AkDoc         *doc;
-  AkAssetInf    *ainf;
-  json_t        *jscene;
-  AkVisualScene *scene;
-  AkGLTFState    gstVal, *gst;
-  json_error_t   error;
-  AkResult       ret;
+  AkHeap           *heap;
+  AkDoc            *doc;
+  const json_doc_t *gltfRawDoc;
+  json_t           *json;
+  void             *jsonString;
+  size_t            jsonSize;
+  AkGLTFState       gstVal, *gst;
+  AkResult          ret;
 
   heap = ak_heap_new(NULL, NULL, NULL);
   doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
 
-  doc->inf        = ak_heap_calloc(heap, doc, sizeof(*doc->inf));
-  doc->inf->name  = filepath;
-  doc->inf->dir   = ak_path_dir(heap, doc, filepath);
-  doc->inf->ftype = AK_FILE_TYPE_GLTF;
+  doc->inf            = ak_heap_calloc(heap, doc, sizeof(*doc->inf));
+  doc->inf->dir       = ak_path_dir(heap, doc, filepath);
+  doc->inf->name      = filepath;
+  doc->inf->flipImage = false;
+  doc->inf->ftype     = AK_FILE_TYPE_GLTF;
+
+  /* for fixing skin and morph vertices */
+  doc->reserved = rb_newtree_ptr();
+  ((RBTree *)doc->reserved)->onFreeNode = ak_gltfFreeDupl;
 
   if (doc->inf->dir)
     doc->inf->dirlen = strlen(doc->inf->dir);
@@ -51,56 +68,95 @@ gltf_doc(AkDoc     ** __restrict dest,
 
   memset(&gstVal, 0, sizeof(gstVal));
 
-  gst         = &gstVal;
-  gstVal.doc  = doc;
-  gstVal.heap = heap;
-  gstVal.root = json_load_file(filepath, 0, &error);
+  gst            = &gstVal;
+  gstVal.doc     = doc;
+  gstVal.heap    = heap;
+  gst->bufferMap = rb_newtree_ptr();
 
-  ainf = NULL;
-  ret  = gltf_asset(gst, doc, ainf);
+  if ((ret = ak_readfile(filepath, "rb", &jsonString, &jsonSize)) != AK_OK)
+    return ret;
 
+  gltfRawDoc = json_parse(jsonString, true);
+  if (!gltfRawDoc || !gltfRawDoc->root) {
+    ak_free(doc);
+
+    if (jsonString)
+      free(jsonString);
+    
+    if (gltfRawDoc)
+      free((void *)gltfRawDoc);
+      
+    return AK_ERR;
+  }
+
+  if (doc->inf->dir)
+    doc->inf->dirlen = strlen(doc->inf->dir);
+
+  json = gltfRawDoc->root;
+
+  /* json_print_human(stderr, gltfRawDoc->root); */
+
+  json_objmap_t gltfMap[] = {
+    JSON_OBJMAP_FN(_s_gltf_asset,       gltf_asset,       gst),
+    JSON_OBJMAP_FN(_s_gltf_buffers,     gltf_buffers,     gst),
+    JSON_OBJMAP_FN(_s_gltf_bufferViews, gltf_bufferViews, gst),
+    JSON_OBJMAP_FN(_s_gltf_accessors,   gltf_accessors,   gst),
+    JSON_OBJMAP_FN(_s_gltf_images,      gltf_images,      gst),
+    JSON_OBJMAP_FN(_s_gltf_samplers,    gltf_samplers,    gst),
+    JSON_OBJMAP_FN(_s_gltf_textures,    gltf_textures,    gst),
+    JSON_OBJMAP_FN(_s_gltf_materials,   gltf_materials,   gst),
+    JSON_OBJMAP_FN(_s_gltf_meshes,      gltf_meshes,      gst),
+    JSON_OBJMAP_FN(_s_gltf_cameras,     gltf_cameras,     gst),
+    JSON_OBJMAP_FN(_s_gltf_nodes,       gltf_nodes,       gst),
+    JSON_OBJMAP_FN(_s_gltf_skins,       gltf_skin,        gst),
+    JSON_OBJMAP_FN(_s_gltf_scenes,      gltf_scenes,      gst),
+    JSON_OBJMAP_FN(_s_gltf_scene,       gltf_scene,       gst),
+    JSON_OBJMAP_FN(_s_gltf_animations,  gltf_animations,  gst)
+  };
+
+  while (json) {
+    json_objmap_call(json, gltfMap, JSON_ARR_LEN(gltfMap), &gstVal.stop);
+
+    if (gstVal.stop) {
+      ret = AK_EBADF;
+      goto err;
+    }
+
+    json = json->next;
+  }
+
+err:
+  
+  if (jsonString)
+    free(jsonString);
+  
+  if (gltfRawDoc)
+    free((void *)gltfRawDoc);
+  
   /* probably unsupportted version or verion is missing */
   if (ret == AK_EBADF) {
     ak_free(doc);
     return ret;
   }
 
-  gst->bufferViews = rb_newtree(ds_allocator(), ds_cmp_i32p, NULL);
-
-  gltf_buffers(gst);
-  gltf_images(gst);
-  gltf_materials(gst);
-  gltf_meshes(gst);
-  gltf_cameras(gst);
-  gltf_nodes(gst);
-  gltf_scenes(gst);
-  gltf_animations(gst);
-  gltf_skin(gst);
+  gst->meshTargets = rb_newtree(ds_allocator(), ds_cmp_ptr,  NULL);
 
   /* TODO: release resources in GLTFState */
 
   /* set first scene as default scene if not specified  */
-  scene = doc->lib.visualScenes->chld;
+  if (!doc->scene.visualScene) {
+    if (doc->lib.visualScenes->chld) {
+      AkInstanceBase *instScene;
+      instScene = ak_heap_calloc(heap, doc, sizeof(*instScene));
 
-  /* set default scene */
-  if ((jscene = json_object_get(gst->root, _s_gltf_scene))) {
-    int32_t sceneIndex;
-    sceneIndex = (int32_t)json_integer_value(jscene);
-    while (sceneIndex > 0 && scene) {
-      scene = scene->next;
-      sceneIndex--;
+      instScene->url.ptr     = doc->lib.visualScenes->chld;
+      doc->scene.visualScene = instScene;
     }
   }
 
-  if (scene) {
-    AkInstanceBase *instScene;
-    instScene = ak_heap_calloc(heap, doc, sizeof(*instScene));
-
-    instScene->url.ptr = scene;
-    doc->scene.visualScene = instScene;
-  }
-
   *dest = doc;
+
+  rb_destroy(gst->meshTargets);
 
   /* post-parse operations */
   gltf_postscript(gst);

@@ -318,12 +318,6 @@ typedef struct AkInstanceBase {
   struct AkInstanceBase *next;
 } AkInstanceBase;
 
-typedef struct AkTextureRef {
-  const char *texture;
-  const char *texcoord;
-  AkTree     *extra;
-} AkTextureRef;
-
 typedef struct AkAnnotate {
   struct AkAnnotate *next;
   const char        *name;
@@ -522,15 +516,20 @@ typedef struct AkMaterial {
   struct AkMaterial *next;
 } AkMaterial;
 
+struct AkAccessor;
+
 typedef struct AkInput {
-  const char     *semanticRaw;
-  struct AkInput *next;
-  AkURL           source;
-  uint32_t        index; /* TEXCOORD0, TEXCOORD1... */
-  bool            isIndexed;
-  AkInputSemantic semantic;
-  uint32_t        offset;
-  uint32_t        set;
+  const char        *semanticRaw;
+  struct AkInput    *next;
+  struct AkAccessor *accessor;
+  uint32_t           index; /* TEXCOORD0, TEXCOORD1... */
+  bool               isIndexed;
+  AkInputSemantic    semantic;
+  uint32_t           offset;
+  uint32_t           set;
+  
+  /* TODO: WILL BE DELETED */
+  AkURL              source;
 } AkInput;
 
 struct AkInstanceMaterial;
@@ -643,15 +642,20 @@ typedef struct AkLib {
   AkLibItem *cameras;
   AkLibItem *lights;
   AkLibItem *effects;
-  AkLibItem *images;
+  AkLibItem *libimages;
   AkLibItem *materials;
   AkLibItem *geometries;
   AkLibItem *controllers;
   AkLibItem *visualScenes;
   AkLibItem *nodes;
   AkLibItem *animations;
-
+  
   struct FListItem *buffers;
+  struct FListItem *accessors;
+  struct FListItem *textures;
+  struct FListItem *samplers;
+  struct FListItem *images;
+  struct FListItem *skins;
 } AkLib;
 
 typedef struct AkDoc {

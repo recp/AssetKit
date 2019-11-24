@@ -54,6 +54,7 @@ typedef struct AkSkin {
   AkFloat4x4      bindShapeMatrix;
 } AkSkin;
 
+/* TODO: merge targets wit morph */
 typedef struct AkTargets {
   AkInput *input;
   AkTree  *extra;

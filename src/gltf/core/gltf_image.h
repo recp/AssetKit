@@ -11,6 +11,7 @@
 #include "../gltf_common.h"
 
 void _assetkit_hide
-gltf_images(AkGLTFState * __restrict gst);
+gltf_images(json_t * __restrict jimage,
+            void   * __restrict userdata);
 
 #endif /* gltf_image_h */

@@ -30,7 +30,7 @@ dae_polygon(AkXmlState * __restrict xst,
   polygon->base.type     = AK_MESH_PRIMITIVE_TYPE_POLYGONS;
 
   polygon->base.name     = ak_xml_attr(xst, polygon, _s_dae_name);
-  polygon->base.material = ak_xml_attr(xst, polygon, _s_dae_material);
+  polygon->base.bindmaterial = ak_xml_attr(xst, polygon, _s_dae_material);
   polygon->base.count    = ak_xml_attrui(xst, _s_dae_count);
 
   /*
@@ -209,8 +209,6 @@ dae_polygon(AkXmlState * __restrict xst,
     AkUIntArray *indices, *vcount;
     AkUInt      *pIndices, *pVcount;
 
-    size_t gg;
-    gg = 0;
     /* alloc indices array */
     indices = ak_heap_alloc(xst->heap,
                             polygon,

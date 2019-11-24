@@ -5,26 +5,15 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "test_dae_load.h"
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <assert.h>
-#include <dirent.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <string.h>
+#include "../test_common.h"
 
 const char *dae_dir = "./test/sample-models/collada/files";
 
-void
-test_dae_load_folder(void **state) {
+TEST_IMPL(dae_load_folder) {
   DIR           *dir;
   struct dirent *ent;
   AkDoc         *doc;
 
-  (void)state;
   chdir(dae_dir);
 
   if ((dir = opendir ("./")) != NULL) {
@@ -40,10 +29,12 @@ test_dae_load_folder(void **state) {
           continue;
       }
 
-      assert(ak_load(&doc, ent->d_name, NULL) == AK_OK);
+      ASSERT(ak_load(&doc, ent->d_name, NULL) == AK_OK);
       ak_free(doc);
     }
     
     closedir(dir);
   }
+
+  TEST_SUCCESS
 }

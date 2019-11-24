@@ -27,7 +27,7 @@ dae_cvtAngles(AkAccessor * __restrict acc,
   float       *pbuff;
   size_t       po, i, count, st;
 
-  if (acc->itemTypeId == AKT_FLOAT && (param = acc->param)) {
+  if (acc->componentType == AKT_FLOAT && (param = acc->param)) {
     po          = 0;
     st          = acc->stride;
     count       = acc->count * st;
@@ -51,7 +51,6 @@ dae_fixAngles(AkXmlState * __restrict xst) {
   FListItem     *item;
   AkAnimSampler *sampler;
   AkDataParam   *param;
-  AkInput       *input;
   AkSource      *src;
   AkAccessor    *acc;
   AkBuffer      *buff;
@@ -59,7 +58,6 @@ dae_fixAngles(AkXmlState * __restrict xst) {
   item = xst->toRadiansSampelers;
   while (item) {
     sampler = item->data;
-    input   = sampler->input;
     src     = NULL;
     acc     = NULL;
     buff    = NULL;

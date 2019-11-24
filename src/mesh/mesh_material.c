@@ -27,6 +27,6 @@ ak_meshSetMaterial(AkMeshPrimitive *prim,
   /* TODO: remove first */
   ak_multimap_add(map, prim, (void *)material);
 
-  prim->material = material;
+  prim->bindmaterial = material;
   return AK_OK;
 }

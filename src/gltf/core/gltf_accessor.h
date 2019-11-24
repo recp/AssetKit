@@ -10,9 +10,8 @@
 
 #include "../gltf_common.h"
 
-AkAccessor* _assetkit_hide
-gltf_accessor(AkGLTFState     * __restrict gst,
-              void            * __restrict memParent,
-              json_t          * __restrict jacc);
+void _assetkit_hide
+gltf_accessors(json_t * __restrict jbuffView,
+               void   * __restrict userdata);
 
 #endif /* gltf_accesor_h */

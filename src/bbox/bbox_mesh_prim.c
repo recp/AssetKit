@@ -17,11 +17,10 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
   AkMesh     *mesh;
   AkBuffer   *posbuff;
   char       *data;
-  AkSource   *src;
   AkAccessor *acc;
   float      *vec;
   vec3        center, min, max;
-  size_t      i, count;
+  size_t      i, count, byteStride;
   bool        exactCenter;
 
   mesh    = prim->mesh;
@@ -30,9 +29,9 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
   acc     = NULL;
 
   if (!prim->pos
-      || !(src = ak_getObjectByUrl(&prim->pos->source))
-      || !(acc = src->tcommon)
-      || !(posbuff = ak_getObjectByUrl(&acc->source)))
+      || !(acc = prim->pos->accessor)
+      || !(posbuff = acc->buffer))
+     // || !(posbuff = ak_getObjectByUrl(&acc->source)))
     return;
 
   data = ((char *)posbuff->data + acc->byteOffset);
@@ -42,7 +41,11 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
   glm_vec3_broadcast(0.0f, center);
 
   exactCenter = ak_opt_get(AK_OPT_COMPUTE_EXACT_CENTER);
+  byteStride  = acc->byteStride;
 
+  if (byteStride == 0)
+    byteStride = acc->componentBytes;
+  
   /* we must walk through indices if exists because source may contain
      unrelated data and this will cause get wrong box
    */
@@ -51,34 +54,34 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
     size_t   icount;
     uint32_t st, vo;
 
-    icount = prim->indices->count;
-    vo     = prim->pos->offset;
-    st     = prim->indexStride;
-    ind    = prim->indices->items;
-    count  = icount;
-
+    icount     = prim->indices->count;
+    vo         = prim->pos->offset;
+    st         = prim->indexStride;
+    ind        = prim->indices->items;
+    count      = icount;
+    
     if (!exactCenter) {
       for (i = 0; i < icount; i += st) {
-        vec = (float *)(data + ind[i + vo] * acc->byteStride);
+        vec = (float *)(data + ind[i + vo] * byteStride);
         glm_vec3_add(vec, center, center);
         ak_bbox_pick(min, max, vec);
       }
     } else {
       for (i = 0; i < icount; i += st) {
-        vec = (float *)(data + ind[i + vo] * acc->byteStride);
+        vec = (float *)(data + ind[i + vo] * byteStride);
         ak_bbox_pick(min, max, vec);
       }
     }
   } else {
     count = acc->count;
     if (!exactCenter) {
-      for (i = 0; i < acc->count; i++) {
-        vec = (float *)(data + acc->byteStride * i);
+      for (i = 0; i < count; i++) {
+        vec = (float *)(data + byteStride * i);
         ak_bbox_pick(min, max, vec);
       }
     } else {
-      for (i = 0; i < acc->count; i++) {
-        vec = (float *)(data + acc->byteStride * i);
+      for (i = 0; i < count; i++) {
+        vec = (float *)(data + byteStride * i);
         glm_vec3_add(vec, center, center);
         ak_bbox_pick(min, max, vec);
       }
@@ -104,9 +107,7 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
 
   /* compute centroid */
   if (!ak_opt_get(AK_OPT_COMPUTE_EXACT_CENTER)) {
-    glm_vec3_center(prim->bbox->min,
-                   prim->bbox->max,
-                   prim->center);
+    glm_vec3_center(prim->bbox->min, prim->bbox->max, prim->center);
   } else if (count > 0) {
     /* calculate exact center of primitive */
     glm_vec3_divs(center, count, center);

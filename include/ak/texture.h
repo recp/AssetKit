@@ -9,6 +9,7 @@
 #define ak_texture_h
 
 #include "common.h"
+#include "image.h"
 
 typedef enum AkWrapMode {
   AK_WRAP_MODE_WRAP        = 0,
@@ -47,6 +48,7 @@ typedef struct AkSampler {
   const char     *texcoordSemantic;
   AkInstanceBase *instanceImage;
   AkTree         *extra;
+  const char     *name;
 
   AkWrapMode      wrapS;
   AkWrapMode      wrapT;
@@ -61,5 +63,24 @@ typedef struct AkSampler {
   unsigned long   mipMinLevel;
   float           mipBias;
 } AkSampler;
+
+typedef struct AkTexture {
+  struct AkTexture *next;
+  AkImage          *image;
+  AkSampler        *sampler;
+  const char       *name;
+  AkTypeId          type;
+} AkTexture;
+
+typedef struct AkTextureRef {
+  struct AkTexture *texture;
+  /* struct AkInput   *coordInput; */
+  const char       *coordInputName;
+  int               slot;
+  
+  /* TODO: WILL BE DELETED */
+  const char       *texcoord;
+  void             *extra;
+} AkTextureRef;
 
 #endif /* ak_texture_h */

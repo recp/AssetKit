@@ -11,213 +11,199 @@
 #include "gltf_accessor.h"
 #include "gltf_enums.h"
 
+#define k_path 0
+#define k_node 1
+
+#define k_anim_samplers 0
+#define k_anim_channels 1
+#define k_anim_name     2
+
 void _assetkit_hide
-gltf_animations(AkGLTFState * __restrict gst) {
-  AkHeap      *heap;
-  AkDoc       *doc;
-  json_t      *janims, *jaccessors;
-  AkLibItem   *lib;
-  AkAnimation *last_anim, *anim;
-  size_t       janimCount, i;
+gltf_animations(json_t * __restrict janim,
+                void   * __restrict userdata) {
+  AkGLTFState        *gst;
+  AkHeap             *heap;
+  AkDoc              *doc;
+  const json_array_t *janims;
+  AkLibItem          *lib;
+  AkAnimation        *anim;
 
-  heap        = gst->heap;
-  doc         = gst->doc;
-  lib         = ak_heap_calloc(heap, doc, sizeof(*lib));
-  last_anim   = NULL;
+  if (!(janims = json_array(janim)))
+    return;
 
-  janims      = json_object_get(gst->root, _s_gltf_animations);
-  janimCount  = json_array_size(janims);
-  jaccessors  = json_object_get(gst->root, _s_gltf_accessors);
+  gst   = userdata;
+  heap  = gst->heap;
+  doc   = gst->doc;
+  janim = janims->base.value;
+  lib   = ak_heap_calloc(heap, doc, sizeof(*lib));
+  
+  while (janim) {
+    json_t *anim_it;
+    
+    json_objmap_t animMap[] = {
+      JSON_OBJMAP_OBJ(_s_gltf_samplers, I2P k_anim_samplers),
+      JSON_OBJMAP_OBJ(_s_gltf_channels, I2P k_anim_channels),
+      JSON_OBJMAP_OBJ(_s_gltf_name,     I2P k_anim_name),
+    };
+    
+    json_objmap(janim, animMap, JSON_ARR_LEN(animMap));
+    
+    anim = ak_heap_calloc(heap, lib,  sizeof(*anim));
 
-  for (i = 0; i < janimCount; i++) {
-    json_t     *janim, *jchannels, *jsamps;
-    AkSource   *last_source;
-    AkInput    *last_input;
-    const char *animid;
-    const char *sval;
-
-    janim       = json_array_get(janims, i);
-    anim        = ak_heap_calloc(heap, lib,  sizeof(*anim));
-    last_source = NULL;
-    last_input  = NULL;
-
-    /* sets id "anim-[i]" */
-    animid = ak_id_gen(heap, anim, _s_gltf_anim);
-    ak_heap_setId(heap, ak__alignof(anim), (void *)animid);
-
-    if ((sval = json_cstr(janim, _s_gltf_name)))
-      anim->name = ak_heap_strdup(gst->heap, anim, sval);
-
-    if ((jsamps = json_object_get(janim, _s_gltf_samplers))) {
-      AkAnimSampler *sampler, *last_sampler;
-      int32_t j, sampCount;
-
-      last_sampler = NULL;
-      last_source  = NULL;
-      sampCount    = (int32_t)json_array_size(jsamps);
-
+    if ((anim_it = animMap[k_anim_name].object)) {
+      anim->name = json_strdup(anim_it, heap, anim);
+    }
+    
+    if ((anim_it = animMap[k_anim_samplers].object)) {
+      AkAnimSampler *sampler;
+      json_array_t  *jsamplers;
+      json_t        *jsampler;
+      
+      if (!(jsamplers = json_array(anim_it)))
+        goto anm_nxt;
+      
+      jsampler = jsamplers->base.value;
+      
       /* samplers */
-      for (j = 0; j < sampCount; j++) {
-        json_t *jsamp, *jinput, *joutput, *jinterp, *jacc;
-
-        jsamp      = json_array_get(jsamps, j);
-        sampler    = ak_heap_calloc(heap, anim, sizeof(*sampler));
-        last_input = NULL;
-
-        if ((jinterp = json_object_get(jsamp, _s_gltf_interpolation))) {
-          sampler->uniInterpolation = gltf_interp(json_string_value(jinterp));
-        }
-
-        /* Default is LINEAR */
-        else {
-          sampler->uniInterpolation = AK_INTERPOLATION_LINEAR;
-        }
-
-        if ((jinput = json_object_get(jsamp, _s_gltf_input))) {
-          AkInput  *input;
-          AkSource *source;
-
-          source = ak_heap_calloc(heap, anim, sizeof(*source));
-          jacc   = json_array_get(jaccessors, json_integer_value(jinput));
-
-          ak_setypeid(source, AKT_SOURCE);
-
-          input = ak_heap_calloc(heap, sampler, sizeof(*input));
-          input->semanticRaw = ak_heap_strdup(gst->heap, anim, _s_gltf_input);
-          input->semantic    = AK_INPUT_SEMANTIC_INPUT;
-          source->tcommon    = gltf_accessor(gst, source, jacc);
-          input->source.ptr  = source;
-
-          if (last_source)
-            last_source->next = source;
-          else
-            anim->source = source;
-          last_source = source;
-
-          if (last_input)
-            last_input->next = input;
-          else
-            sampler->input = input;
-          last_input = input;
-        }
-
-        if ((joutput = json_object_get(jsamp, _s_gltf_output))) {
-          AkInput  *input;
-          AkSource *source;
-
-          source = ak_heap_calloc(heap, anim, sizeof(*source));
-          jacc   = json_array_get(jaccessors, json_integer_value(joutput));
-
-          ak_setypeid(source, AKT_SOURCE);
-
-          input              = ak_heap_calloc(heap, sampler, sizeof(*input));
-          input->semanticRaw = ak_heap_strdup(gst->heap, anim, _s_gltf_output);
-          input->semantic    = AK_INPUT_SEMANTIC_OUTPUT;
-          source->tcommon    = gltf_accessor(gst, source, jacc);
-          input->source.ptr  = source;
-
-          if (last_source)
-            last_source->next = source;
-          else
-            anim->source = source;
-          last_source = source;
-
-          if (last_input)
-            last_input->next = input;
-          else
-            sampler->input = input;
-          /* last_input = input; */
-        }
-
-        if (last_sampler)
-          last_sampler->next = sampler;
-        else
-          anim->sampler = sampler;
-        last_sampler = sampler;
-      }
-    }
-
-    /* channels */
-    if ((jchannels = json_object_get(janim, _s_gltf_channels))) {
-      AkChannel *ch, *last_ch;
-      int32_t j, chCount;
-
-      last_ch = NULL;
-      chCount = (int32_t)json_array_size(jchannels);
-
-      for (j = chCount - 1; j >= 0; j--) {
-        json_t *jch, *jsamp, *jpath, *jtarget, *jnode;
-
-        jch = json_array_get(jchannels, j);
-        ch  = ak_heap_calloc(heap, anim, sizeof(*ch));
-
-        if ((jsamp = json_object_get(jch, _s_gltf_sampler))) {
-          AkAnimSampler *sampler;
-          int32_t        samplerIndex;
-
-          samplerIndex = (int32_t)json_integer_value(jsamp);
-          sampler      = anim->sampler;
-          while (samplerIndex > 0) {
-            sampler = sampler->next;
-            samplerIndex--;
+      while (jsampler) {
+        json_t *jsampVal;
+        
+        jsampVal = jsampler->value;
+        sampler     = ak_heap_calloc(heap, anim, sizeof(*sampler));
+        
+        while (jsampVal) {
+          if (json_key_eq(jsampVal, _s_gltf_input)) {
+            AkInput *inp;
+            
+            inp              = ak_heap_calloc(heap, sampler, sizeof(*inp));
+            inp->semanticRaw = ak_heap_strdup(gst->heap, anim, _s_gltf_input);
+            inp->semantic    = AK_INPUT_SEMANTIC_INPUT;
+            inp->accessor    = flist_sp_at(&doc->lib.accessors,
+                                           json_int32(jsampVal, -1));
+            
+            inp->next      = sampler->input;
+            sampler->input = inp;
+          } else if (json_key_eq(jsampVal, _s_gltf_interpolation)) {
+            sampler->uniInterpolation = gltf_interp(jsampVal);
+          } else if (json_key_eq(jsampVal, _s_gltf_output)) {
+            AkInput *inp;
+            
+            inp              = ak_heap_calloc(heap, sampler, sizeof(*inp));
+            inp->semanticRaw = ak_heap_strdup(gst->heap, anim, _s_gltf_output);
+            inp->semantic    = AK_INPUT_SEMANTIC_OUTPUT;
+            inp->accessor    = flist_sp_at(&doc->lib.accessors,
+                                           json_int32(jsampVal, -1));
+            
+            inp->next      = sampler->input;
+            sampler->input = inp;
+          }
+          
+          /* Default is LINEAR */
+          if (sampler->uniInterpolation == AK_INTERPOLATION_UNKNOWN) {
+            sampler->uniInterpolation = AK_INTERPOLATION_LINEAR;
           }
 
-          if (sampler)
+          jsampVal = jsampVal->next;
+        }
+
+        sampler->next = anim->sampler;
+        anim->sampler = sampler;
+
+        jsampler = jsampler->next;
+      }
+    }
+    
+    if ((anim_it = animMap[k_anim_channels].object)) {
+      AkChannel    *ch;
+      json_array_t *jchannels;
+      json_t       *jchannel;
+      
+      if (!(jchannels = json_array(anim_it)))
+        goto anm_nxt;
+      
+      jchannel = jchannels->base.value;
+      
+      while (jchannel) {
+        json_t *jchVal;
+        
+        ch     = ak_heap_calloc(heap, anim, sizeof(*ch));
+        jchVal = jchannel->value;
+        
+        while (jchVal) {
+          if (json_key_eq(jchVal, _s_gltf_sampler)) {
+            AkAnimSampler *sampler;
+            int32_t        samplerIndex;
+            
+            samplerIndex = json_int32(jchVal, -1);
+            GETCHILD(anim->sampler, sampler, samplerIndex);
             ch->source.ptr = sampler;
-        }
+          } else if (json_key_eq(jchVal, _s_gltf_target)) {
+            const char *path;
+            AkNode     *node;
+            json_t     *it;
+            uint32_t    pathLen;
+            
+            json_objmap_t targetMap[] = {
+              JSON_OBJMAP_OBJ(_s_gltf_path, I2P k_path),
+              JSON_OBJMAP_OBJ(_s_gltf_node, I2P k_node)
+            };
 
-        if ((jtarget = json_object_get(jch, _s_gltf_target))) {
-          const char   *sval;
-          AkNode       *node;
+            json_objmap(jchVal, targetMap, JSON_ARR_LEN(targetMap));
 
-          sval = NULL;
-          if ((jpath = json_object_get(jtarget, _s_gltf_path)))
-            sval = json_string_value(jpath);
+            path    = NULL;
+            pathLen = 0;
 
-          if (sval && (jnode = json_object_get(jtarget, _s_gltf_node))) {
-            char     nodeid[16];
-            uint32_t nodeIndex;
-
-            nodeIndex = (uint32_t)json_integer_value(jnode);
-            sprintf(nodeid, "%s%d", _s_gltf_node, nodeIndex + 1);
-
-            if ((node = ak_getObjectById(doc, nodeid))) {
-              AkObject *transItem;
-
-              /* make sure that node has target element */
-              if (strcasecmp(sval, _s_gltf_rotation) == 0) {
-                ch->targetType = AK_TARGET_QUAT;
-                transItem = ak_getTransformTRS(node, AKT_QUATERNION);
-              } else if (strcasecmp(sval, _s_gltf_translation) == 0) {
-                ch->targetType = AK_TARGET_POSITION;
-                transItem = ak_getTransformTRS(node, AKT_TRANSLATE);
-              } else if (strcasecmp(sval, _s_gltf_scale) == 0) {
-                ch->targetType = AK_TARGET_SCALE;
-                transItem = ak_getTransformTRS(node, AKT_SCALE);
-              } else {
-                transItem = NULL;
-              }
-
-              ch->resolvedTarget = transItem;
+            if ((it = targetMap[k_path].object)) {
+              path    = json_string(it);
+              pathLen = it->valSize;
             }
-          }
-        }
 
-        if (last_ch)
-          last_ch->next = ch;
-        else
-          anim->channel = ch;
-        last_ch = ch;
+            if (path && (it = targetMap[k_node].object)) {
+              char    nodeid[16];
+              int32_t nodeIndex;
+              
+              if ((nodeIndex = json_int32(it, -1)) > -1) {
+                sprintf(nodeid, "%s%d", _s_gltf_node, nodeIndex);
+                
+                if ((node = ak_getObjectById(doc, nodeid))) {
+                  AkObject *transItem;
+                  
+                  /* make sure that node has target element */
+                  if (strncasecmp(path, _s_gltf_rotation, pathLen) == 0) {
+                    ch->targetType = AK_TARGET_QUAT;
+                    transItem      = ak_getTransformTRS(node, AKT_QUATERNION);
+                  } else if (strncasecmp(path, _s_gltf_translation, pathLen) == 0) {
+                    ch->targetType = AK_TARGET_POSITION;
+                    transItem      = ak_getTransformTRS(node, AKT_TRANSLATE);
+                  } else if (strncasecmp(path, _s_gltf_scale, pathLen) == 0) {
+                    ch->targetType = AK_TARGET_SCALE;
+                    transItem      = ak_getTransformTRS(node, AKT_SCALE);
+                  } else {
+                    transItem = NULL;
+                  }
+
+                  ch->resolvedTarget = transItem;
+                }
+              } /* if nodeIndex */
+            } /* if k_node */
+          } /* if _s_gltf_target */
+          
+          jchVal = jchVal->next;
+        }
+        ch->next      = anim->channel;
+        anim->channel = ch;
+        
+        jchannel = jchannel->next;
       }
     }
+    
+  anm_nxt:
 
-    if (last_anim)
-      last_anim->next = anim;
-    else
-      lib->chld = anim;
-
-    last_anim = anim;
+    anim->next = lib->chld;
+    lib->chld  = anim;
     lib->count++;
+
+    janim = janim->next;
   }
 
   doc->lib.animations = lib;

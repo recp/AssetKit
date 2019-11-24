@@ -14,90 +14,71 @@ static ak_enumpair gltfVersions[] = {
 
 static size_t gltfVersionsLen = 0;
 
-AkResult _assetkit_hide
-gltf_asset(AkGLTFState * __restrict gst,
-           void        * __restrict memParent,
-           AkAssetInf  * __restrict dest) {
-  AkAssetInf       **extp;
+void
+gltf_asset(json_t * __restrict json,
+           void   * __restrict userdata) {
+  AkGLTFState       *gst;
+  AkAssetInf        *inf;
+  AkDoc             *doc;
+  AkHeap            *heap;
   AkContributor     *contrib;
-  json_t            *jasset, *jval;
-  const char        *sval;
   const ak_enumpair *foundVersion;
 
-  if (!dest) {
-    dest = ak_heap_calloc(gst->heap,
-                          memParent,
-                          sizeof(*dest));
-  }
+  gst  = userdata;
+  heap = gst->heap;
+  doc  = gst->doc;
+  inf  = &doc->inf->base;
 
-  jasset = json_object_get(gst->root, _s_gltf_asset);
-  jval   = json_object_get(jasset, _s_gltf_version);
-
-  /* glTF version is required to parse / load */
-  if (!jval || !(sval = json_string_value(jval)))
-    goto badf;
-
-  /* instead of keeping version as string we keep enum/int to fast-comparing */
+ /* instead of keeping version as string we keep enum/int to fast-comparing */
   if (gltfVersionsLen == 0) {
-   gltfVersionsLen = AK_ARRAY_LEN(gltfVersions);
+    gltfVersionsLen = AK_ARRAY_LEN(gltfVersions);
     qsort(gltfVersions,
           gltfVersionsLen,
           sizeof(gltfVersions[0]),
           ak_enumpair_cmp);
   }
 
-  /* get version info */
-  foundVersion = bsearch(sval,
-                         gltfVersions,
-                         gltfVersionsLen,
-                         sizeof(gltfVersions[0]),
-                         ak_enumpair_cmp2);
-  if (!foundVersion)
-    goto badf;
+  contrib          = ak_heap_calloc(heap, inf, sizeof(*contrib));
+  inf->contributor = contrib;
 
-  gst->version = foundVersion->val;
+  json = json->value;
+  while (json) {
+    if (json_key_eq(json, _s_gltf_version)) {
+      if (!(foundVersion = bsearch(json,
+                                   gltfVersions,
+                                   gltfVersionsLen,
+                                   sizeof(gltfVersions[0]),
+                                   ak_enumpair_json_val_cmp))) {
+        gst->stop = true;
+        return; /* unsupported version */
+      }
 
-  contrib = NULL;
-  jval = json_object_get(jasset, _s_gltf_copyright);
-  if (jval && (sval = json_string_value(jval))) {
-    if (!contrib) {
-      contrib = ak_heap_calloc(gst->heap, dest, sizeof(*contrib));
-      dest->contributor = contrib;
+      gst->version = foundVersion->val;
+    } else if (json_key_eq(json, _s_gltf_copyright)) {
+      contrib->copyright = json_strdup(json, heap, contrib);
+    } else if (json_key_eq(json, _s_gltf_generator)) {
+      contrib->authoringTool = json_strdup(json, heap, contrib);
     }
 
-    contrib->copyright = ak_heap_strdup(gst->heap, contrib, sval);
+    json = json->next;
   }
-
-  jval = json_object_get(jasset, _s_gltf_generator);
-  if (jval && (sval = json_string_value(jval))) {
-    if (!contrib) {
-      contrib = ak_heap_calloc(gst->heap, dest, sizeof(*contrib));
-      dest->contributor = contrib;
-    }
-
-    contrib->authoringTool = ak_heap_strdup(gst->heap, contrib, sval);
-  }
-
+  
   /* glTF default definitions */
 
   /* CoordSys is Y_UP */
-  dest->coordSys = AK_YUP;
+  inf->coordSys = AK_YUP;
 
   /* Unit is meter */
-  dest->unit = ak_heap_calloc(gst->heap, dest, sizeof(*dest->unit));
-  dest->unit->dist = 1.0;
-  dest->unit->name = ak_heap_strdup(gst->heap,
-                                    dest->unit,
-                                    _s_gltf_meter);
+  inf->unit       = ak_heap_calloc(heap, inf, sizeof(*inf->unit));
+  inf->unit->dist = 1.0;
+  inf->unit->name = ak_heap_strdup(heap, inf->unit, _s_gltf_meter);
 
-  extp = ak_heap_ext_add(gst->heap,
-                         ak__alignof(memParent),
-                         AK_HEAP_NODE_FLAGS_INF);
-  *extp = dest;
+  *(AkAssetInf **)ak_heap_ext_add(heap,
+                                  ak__alignof(doc),
+                                  AK_HEAP_NODE_FLAGS_INF) = inf;
 
-  return AK_OK;
+  doc->coordSys = inf->coordSys;
+  doc->unit     = inf->unit;
 
-badf:
-  ak_free(dest);
-  return AK_EBADF;
+  return;
 }

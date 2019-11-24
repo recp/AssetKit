@@ -69,6 +69,7 @@ const char _s_gltf_pool_0[] =
 "extensions\0"
 "extras\0"
 "skin\0"
+"morph\0"
 "skins\0"
 "camera\0"
 "cameras\0"
@@ -111,9 +112,8 @@ const char _s_gltf_pool_0[] =
 "metallicRoughnessTexture\0"
 "index\0"
 "texCoord\0"
-"TEX\0"
+"TEXCOORD\0"
 "smp\0"
-"metalrough\0"
 "specgloss\0"
 "KHR_materials_pbrSpecularGlossiness\0"
 "diffuseFactor\0"
@@ -127,6 +127,7 @@ const char _s_gltf_pool_0[] =
 "animations\0"
 "channels\0"
 "target\0"
+"targets\0"
 "path\0"
 "interpolation\0"
 "input\0"
@@ -137,6 +138,7 @@ const char _s_gltf_pool_0[] =
 "CUBICSPLINE\0"
 "inverseBindMatrices\0"
 "joints\0"
+"sparse\0"
 ;
 
 #undef _GLTF_STRPOOL_

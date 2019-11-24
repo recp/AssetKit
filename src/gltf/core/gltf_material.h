@@ -11,6 +11,7 @@
 #include "../gltf_common.h"
 
 void _assetkit_hide
-gltf_materials(AkGLTFState * __restrict gst);
+gltf_materials(json_t * __restrict json,
+               void   * __restrict userdata);
 
 #endif /* gltf_material_h */

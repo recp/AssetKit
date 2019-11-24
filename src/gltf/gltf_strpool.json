@@ -55,6 +55,7 @@
   "extensions": "extensions",
   "extras": "extras",
   "skin": "skin",
+  "morph": "morph",
   "skins": "skins",
   "camera": "camera",
   "cameras": "cameras",
@@ -97,9 +98,8 @@
   "metalRoughTex": "metallicRoughnessTexture",
   "index": "index",
   "texCoord": "texCoord",
-  "sid_texcoord": "TEX",
+  "texcoordPrefix": "TEXCOORD",
   "sid_sampler": "smp",
-  "id_metalrough": "metalrough",
   "id_specgloss": "specgloss",
   "ext_pbrSpecGloss": "KHR_materials_pbrSpecularGlossiness",
   "diffuseFactor": "diffuseFactor",
@@ -113,6 +113,7 @@
   "animations": "animations",
   "channels": "channels",
   "target": "target",
+  "targets": "targets",
   "path": "path",
   "interpolation": "interpolation",
   "input": "input",
@@ -122,5 +123,6 @@
   "STEP": "STEP",
   "CUBICSPLINE": "CUBICSPLINE",
   "inverseBindMatrices": "inverseBindMatrices",
-  "joints": "joints"
+  "joints": "joints",
+  "sparse": "sparse"
 }

@@ -11,7 +11,6 @@
 #include "../common.h"
 #include <limits.h>
 
-static
 AK_INLINE
 uint32_t
 ak_bitw_ctz(uint32_t x) {
@@ -27,7 +26,6 @@ ak_bitw_ctz(uint32_t x) {
 #endif
 }
 
-static
 AK_INLINE
 uint32_t
 ak_bitw_ffs(uint32_t x) {
@@ -38,7 +36,6 @@ ak_bitw_ffs(uint32_t x) {
 #endif
 }
 
-static
 AK_INLINE
 uint32_t
 ak_bitw_clz(uint32_t x) {

@@ -28,7 +28,7 @@ dae_triangles(AkXmlState   * __restrict xst,
   triangles->base.type = AK_MESH_PRIMITIVE_TYPE_TRIANGLES;
 
   triangles->base.name     = ak_xml_attr(xst, triangles, _s_dae_name);
-  triangles->base.material = ak_xml_attr(xst, triangles, _s_dae_material);
+  triangles->base.bindmaterial = ak_xml_attr(xst, triangles, _s_dae_material);
   triangles->base.count    = ak_xml_attrui(xst, _s_dae_count);
 
   last_input = NULL;

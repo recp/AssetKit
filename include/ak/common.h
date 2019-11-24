@@ -32,7 +32,7 @@
 #else
 #  define AK_EXPORT      __attribute__((visibility("default")))
 #  define _assetkit_hide __attribute__((visibility("hidden")))
-#  define AK_INLINE inline __attribute((always_inline))
+#  define AK_INLINE static inline __attribute((always_inline))
 #  define AK_ALIGN(X) __attribute((aligned(X)))
 #endif
 

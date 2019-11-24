@@ -11,6 +11,11 @@
 #include "../gltf_common.h"
 
 void _assetkit_hide
-gltf_scenes(AkGLTFState * __restrict gst);
+gltf_scenes(json_t * __restrict jscene,
+            void   * __restrict userdata);
+
+void _assetkit_hide
+gltf_scene(json_t * __restrict jscene,
+           void   * __restrict userdata);
 
 #endif /* gltf_scene_h */

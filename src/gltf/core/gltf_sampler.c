@@ -9,64 +9,47 @@
 #include "gltf_profile.h"
 #include "gltf_enums.h"
 
-AkSampler* _assetkit_hide
-gltf_newsampler(AkGLTFState * __restrict gst,
-                AkEffect    * __restrict effect) {
-  AkHeap        *heap;
-  AkProfileGLTF *profile;
+void _assetkit_hide
+gltf_samplers(json_t * __restrict jsampler,
+              void   * __restrict userdata) {
+  AkGLTFState        *gst;
+  const json_array_t *jsamplers;
+  const json_t       *jsamplerVal;
+  AkSampler          *sampler;
 
-  AkSampler     *sampler;
-  AkNewParam    *param;
-  AkValue       *paramVal;
+  if (!(jsamplers = json_array(jsampler)))
+    return;
 
-  heap     = gst->heap;
-  profile  = effect->profile; /* there is only one, I hope */
-  param    = ak_heap_calloc(heap, profile,  sizeof(*param));
-  paramVal = ak_heap_calloc(heap, param,    sizeof(*paramVal));
-  sampler  = ak_heap_calloc(heap, paramVal, sizeof(*sampler));
+  gst = userdata;
 
-  ak_setypeid(param, AKT_NEWPARAM);
+  jsampler = jsamplers->base.value;
+  while (jsampler) {
+    jsamplerVal    = jsampler->value;
+    sampler        = ak_heap_calloc(gst->heap, gst->doc, sizeof(*sampler));
+    sampler->wrapS = AK_WRAP_MODE_WRAP;
+    sampler->wrapT = AK_WRAP_MODE_WRAP;
 
-  memcpy(&paramVal->type,
-         ak_typeDesc(AKT_SAMPLER2D),
-         sizeof(paramVal->type));
+    ak_setypeid(sampler, AKT_SAMPLER2D);
+    
+    while (jsamplerVal) {
+      if (json_key_eq(jsamplerVal, _s_gltf_wrapS)) {
+        sampler->wrapS = gltf_wrapMode(json_int32(jsamplerVal,
+                                                  AK_WRAP_MODE_WRAP));
+      } else if (json_key_eq(jsamplerVal, _s_gltf_wrapT)) {
+        sampler->wrapT = gltf_wrapMode(json_int32(jsamplerVal,
+                                                  AK_WRAP_MODE_WRAP));
+      } else if (json_key_eq(jsamplerVal, _s_gltf_minFilter)) {
+        sampler->minfilter = gltf_minFilter(json_int32(jsamplerVal, 0));
+      } else if (json_key_eq(jsamplerVal, _s_gltf_magFilter)) {
+        sampler->magfilter = gltf_magFilter(json_int32(jsamplerVal, 0));
+      } else if (json_key_eq(jsamplerVal, _s_gltf_name)) {
+        sampler->name = json_strdup(jsamplerVal, gst->heap, sampler);
+      }
 
-  paramVal->value   = sampler;
-  param->val        = paramVal;
+      jsamplerVal = jsamplerVal->next;
+    }
 
-  if (profile->newparam) {
-    profile->newparam->prev = param;
-    param->next             = profile->newparam;
+    flist_sp_insert(&gst->doc->lib.samplers, sampler);
+    jsampler = jsampler->next;
   }
-
-  profile->newparam = param;
-
-  return sampler;
-}
-
-AkSampler* _assetkit_hide
-gltf_sampler(AkGLTFState * __restrict gst,
-             AkEffect    * __restrict effect,
-             int32_t                  index) {
-  json_t    *jsamplers;
-  AkSampler *sampler;
-  json_t    *jsampler;
-  int32_t    jsamplerCount;
-
-  jsamplers     = json_object_get(gst->root, _s_gltf_samplers);
-  jsamplerCount = (int32_t)json_array_size(jsamplers);
-
-  if (!(index < jsamplerCount))
-    return NULL;
-
-  jsampler           = json_array_get(jsamplers, index);
-  sampler            = gltf_newsampler(gst, effect);
-
-  sampler->wrapS     = gltf_wrapMode(jsn_i32(jsampler, _s_gltf_wrapS));
-  sampler->wrapT     = gltf_wrapMode(jsn_i32(jsampler, _s_gltf_wrapT));
-
-  sampler->minfilter = gltf_minFilter(jsn_i32(jsampler, _s_gltf_minFilter));
-  sampler->magfilter = gltf_magFilter(jsn_i32(jsampler, _s_gltf_magFilter));
-
-  return sampler;
 }

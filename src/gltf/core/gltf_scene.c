@@ -12,88 +12,120 @@ void
 gltf_setFirstCamera(AkVisualScene *scene, AkNode *node);
 
 void _assetkit_hide
-gltf_scenes(AkGLTFState * __restrict gst) {
-  AkHeap        *heap;
-  AkDoc         *doc;
-  json_t        *jscenes;
-  AkLibItem     *lib;
-  AkVisualScene *last_scene;
-  size_t         jsceneCount, i;
+gltf_scenes(json_t * __restrict jscene,
+            void   * __restrict userdata) {
+  AkGLTFState        *gst;
+  AkHeap             *heap;
+  AkDoc              *doc;
+  const json_array_t *jscenes;
+  AkLibItem          *lib;
 
-  heap        = gst->heap;
-  doc         = gst->doc;
-  lib         = ak_heap_calloc(heap, doc, sizeof(*lib));
-  last_scene  = NULL;
+  if (!(jscenes = json_array(jscene)))
+    return;
 
-  jscenes     = json_object_get(gst->root, _s_gltf_scenes);
-  jsceneCount = json_array_size(jscenes);
-  for (i = 0; i < jsceneCount; i++) {
+  gst    = userdata;
+  heap   = gst->heap;
+  doc    = gst->doc;
+  jscene = jscenes->base.value;
+  lib    = ak_heap_calloc(heap, doc, sizeof(*lib));
+  
+  while (jscene) {
     AkVisualScene *scene;
-    json_t        *jscene, *jnodes;
-    const char    *sval;
-
-    jscene = json_array_get(jscenes, i);
-    scene  = ak_heap_calloc(heap, lib, sizeof(*scene));
+    json_t        *jsceneVal;
+    
+    jsceneVal = jscene->value;
+    scene     = ak_heap_calloc(heap, lib, sizeof(*scene));
     ak_setypeid(scene, AKT_SCENE);
-
-    scene->cameras = ak_heap_calloc(heap,
-                                    scene,
-                                    sizeof(*scene->cameras));
-
+    
+    scene->cameras = ak_heap_calloc(heap, scene, sizeof(*scene->cameras));
+    
     /* root node: to store node instances */
-    scene->node = ak_heap_calloc(heap,
-                                 scene,
-                                 sizeof(*scene->node));
-
-    if ((sval = json_cstr(jscene, _s_gltf_name)))
-      scene->name = ak_heap_strdup(gst->heap, scene, sval);
-
-    if ((jnodes = json_object_get(jscene, _s_gltf_nodes))) {
-      AkInstanceNode *last_instNode;
-      int32_t j, nodeCount, nodeIndex;
-
-      last_instNode = NULL;
-      nodeCount     = (int32_t)json_array_size(jnodes);
-
-      /* create instanceNode for each node */
-      for (j = nodeCount - 1; j >= 0; j--) {
-        char            nodeid[16];
-        AkNode         *node;
-        AkInstanceNode *instNode;
-
-        nodeIndex = (int32_t)json_integer_value(json_array_get(jnodes, j));
-        instNode  = ak_heap_calloc(heap, scene, sizeof(*instNode));
-
-        sprintf(nodeid, "%s%d", _s_gltf_node, nodeIndex + 1);
-        if (!(node = ak_getObjectById(doc, nodeid)))
-          continue;
-
-        instNode->base.node    = node;
-        instNode->base.url.ptr = node;
-        instNode->base.type    = AK_INSTANCE_NODE;
-
-        if (last_instNode)
-          last_instNode->base.next = &instNode->base;
-        else
-          scene->node->node = instNode;
-
-        last_instNode = instNode;
-
-        if (!scene->firstCamNode)
-          gltf_setFirstCamera(scene, node);
+    scene->node = ak_heap_calloc(heap, scene, sizeof(*scene->node));
+    
+    while (jsceneVal) {
+      if (json_key_eq(jsceneVal, _s_gltf_name)) {
+        scene->name = json_strdup(jsceneVal, heap, scene);
+      } else if (json_key_eq(jsceneVal, _s_gltf_nodes)) {
+        json_array_t *jnodes;
+        json_t       *jnode;
+        int32_t       nodeIndex;
+        
+        if (!(jnodes = json_array(jsceneVal)))
+          goto scn_nxt;
+        
+        /* create instanceNode for each node */
+        jnode = jnodes->base.value;
+        
+        while (jnode) {
+          char            nodeid[16];
+          AkNode         *node;
+          AkInstanceNode *instNode;
+          
+          instNode  = ak_heap_calloc(heap, scene, sizeof(*instNode));
+          if ((nodeIndex = json_int32(jnode, -1)) < 0)
+            goto jnode_nxt;
+          
+          sprintf(nodeid, "%s%d", _s_gltf_node, nodeIndex);
+          if (!(node = ak_getObjectById(doc, nodeid)))
+            goto jnode_nxt;
+          
+          instNode->base.node    = node;
+          instNode->base.url.ptr = node;
+          instNode->base.type    = AK_INSTANCE_NODE;
+          
+          if (scene->node) {
+            if (scene->node->node)
+              instNode->base.next = &scene->node->node->base;
+            scene->node->node   = instNode;
+          }
+          
+          if (!scene->firstCamNode)
+            gltf_setFirstCamera(scene, node);
+          
+        jnode_nxt:
+          jnode = jnode->next;
+        }
       }
+      jsceneVal = jsceneVal->next;
     }
 
-    if (last_scene)
-      last_scene->next = scene;
-    else
-      lib->chld = scene;
+  scn_nxt:
 
-    last_scene = scene;
+    scene->next = lib->chld;
+    lib->chld   = scene;
     lib->count++;
+    
+    jscene = jscene->next;
   }
+  
+   doc->lib.visualScenes = lib;
+}
 
-  doc->lib.visualScenes = lib;
+void _assetkit_hide
+gltf_scene(json_t * __restrict jscene,
+           void   * __restrict userdata) {
+  AkGLTFState   *gst;
+  AkHeap        *heap;
+  AkDoc         *doc;
+  AkVisualScene *scene;
+  int32_t        sceneIndex;
+
+  gst  = userdata;
+  heap = gst->heap;
+  doc  = gst->doc;
+  
+  /* set default scene */
+  sceneIndex = json_int32(jscene, -1);
+  GETCHILD(doc->lib.visualScenes->chld, scene, sceneIndex);
+
+  /* set first scene as default scene if not specified  */
+  if (scene) {
+    AkInstanceBase *instScene;
+    instScene = ak_heap_calloc(heap, doc, sizeof(*instScene));
+    
+    instScene->url.ptr     = scene;
+    doc->scene.visualScene = instScene;
+  }
 }
 
 static
@@ -103,9 +135,7 @@ gltf_setFirstCamera(AkVisualScene *scene, AkNode *node) {
     if (!scene->firstCamNode)
       scene->firstCamNode = node;
 
-    ak_instanceListAdd(scene->cameras,
-                       node->camera);
-
+    ak_instanceListAdd(scene->cameras, node->camera);
     return;
   }
 

@@ -13,178 +13,181 @@
 #include "../../default/def_material.h"
 
 void _assetkit_hide
-gltf_materials(AkGLTFState * __restrict gst) {
-  AkHeap     *heap;
-  AkDoc      *doc;
-  json_t     *jmaterials;
-  AkLibItem  *libeffect, *libmat;
-  AkMaterial *last_mat;
-  size_t      jmatCount, i;
-  bool        specGlossExt;
+gltf_materials(json_t * __restrict jmaterial,
+               void   * __restrict userdata) {
+  AkGLTFState        *gst;
+  AkHeap             *heap;
+  AkDoc              *doc;
+  const json_array_t *jmaterials;
+  AkLibItem          *libeffect, *libmat;
+  bool                specGlossExt;
+
+  if (!(jmaterials = json_array(jmaterial)))
+    return;
+
+  gst          = userdata;
+  jmaterial    = jmaterials->base.value;
 
   specGlossExt = ak_opt_get(AK_OPT_GLTF_EXT_SPEC_GLOSS);
   heap         = gst->heap;
   doc          = gst->doc;
   libeffect    = ak_heap_calloc(heap, doc, sizeof(*libeffect));
   libmat       = ak_heap_calloc(heap, doc, sizeof(*libmat));
-  last_mat     = NULL;
 
-  jmaterials = json_object_get(gst->root, _s_gltf_materials);
-  jmatCount  = json_array_size(jmaterials);
-
-  for (i = 0; i < jmatCount; i++) {
+  while (jmaterial) {
+    json_t               *jmatVal, *jext;
     AkProfileCommon      *pcommon;
     AkTechniqueFx        *technfx;
     AkTechniqueFxCommon  *cmnTechn;
     AkMaterial           *mat;
     AkEffect             *effect;
-    AkMetallicRoughness  *metalRough;
-    AkSpecularGlossiness *specGloss;
+    AkMetallicRoughness  *mr;
+    AkSpecularGlossiness *sg;
     AkInstanceEffect     *ieff;
-    json_t               *jmat, *jmtlrough, *ji, *jext, *jsg;
+    float                 cutoff;
 
-
-    jmat       = json_array_get(jmaterials, i);
-    pcommon    = gltf_cmnEffect(gst);
-    effect     = ak_mem_parent(pcommon);
-    technfx    = ak_heap_calloc(heap, pcommon, sizeof(*technfx));
-    mat        = ak_heap_calloc(heap, libmat,  sizeof(*mat));
-    cmnTechn   = NULL;
-    metalRough = NULL;
-    specGloss  = NULL;
+    pcommon  = gltf_cmnEffect(gst);
+    effect   = ak_mem_parent(pcommon);
+    technfx  = ak_heap_calloc(heap, pcommon, sizeof(*technfx));
+    mat      = ak_heap_calloc(heap, libmat,  sizeof(*mat));
+    cmnTechn = NULL;
+    mr       = NULL;
+    sg       = NULL;
+    cutoff   = 0.5f;
 
     pcommon->technique = technfx;
 
     ak_setypeid(technfx, AKT_TECHNIQUE_FX);
 
-    jext = json_object_get(jmat, _s_gltf_extensions);
+    jmatVal = jmaterial->value;
 
-    /* - PBR - */
-    /* Specular Gloss Extension */
-    if (specGlossExt
-        && jext
-        && (jsg = json_object_get(jext, _s_gltf_ext_pbrSpecGloss))) {
-      int32_t j;
+    if (specGlossExt) {
+      if ((jext = json_get(jmaterial, _s_gltf_extensions))) {
+        json_t *jspecGloss, *jspecgVal;
+        if ((jspecGloss = json_get(jext, _s_gltf_ext_pbrSpecGloss))) {
+          sg = ak_heap_calloc(heap, technfx, sizeof(*sg));
+          cmnTechn  = &sg->base;
 
-      specGloss = ak_heap_calloc(heap, technfx, sizeof(*specGloss));
-      cmnTechn  = &specGloss->base;
+          sg->base.type  = AK_MATERIAL_SPECULAR_GLOSSINES;
+          sg->glossiness = 1.0f;
 
-      specGloss->base.type  = AK_MATERIAL_SPECULAR_GLOSSINES;
-      specGloss->glossiness = 1.0f;
-      glm_vec3_copy(GLM_VEC4_ONE, specGloss->diffuse.vec);
-      glm_vec3_copy(GLM_VEC4_ONE, specGloss->specular.vec);
-
-      if ((ji = json_object_get(jsg, _s_gltf_diffuseFactor))) {
-        for (j = 0; j < 4; j++)
-          specGloss->diffuse.vec[j] = jsn_flt_at(ji, j);
-      }
-
-      if ((ji = json_object_get(jsg, _s_gltf_specFactor))) {
-        for (j = 0; j < 3; j++)
-          specGloss->specular.vec[j] = jsn_flt_at(ji, j);
-        specGloss->specular.vec[3] = 1.0f;
-      }
-
-      jsn_flt_if(jsg, _s_gltf_glossFactor, &specGloss->glossiness);
-
-      if ((ji = json_object_get(jsg, _s_gltf_diffuseTexture)))
-        specGloss->diffuseTex = gltf_texref(gst, effect, specGloss, ji);
-
-      if ((ji = json_object_get(jsg, _s_gltf_specGlossTex)))
-        specGloss->specGlossTex = gltf_texref(gst, effect, specGloss, ji);
-
-      ak_setId(mat, ak_id_gen(heap, mat, _s_gltf_id_specgloss));
-    }
+          glm_vec3_copy(GLM_VEC4_ONE, sg->diffuse.vec);
+          glm_vec3_copy(GLM_VEC4_ONE, sg->specular.vec);
+ 
+          jspecgVal = jspecGloss->value;
+          while (jspecgVal) {
+            if (json_key_eq(jspecgVal, _s_gltf_diffuseFactor)) {
+              json_array_float(sg->diffuse.vec, jspecgVal, 0.0f, 4, true);
+            } else if (json_key_eq(jspecgVal, _s_gltf_specFactor)) {
+              json_array_float(sg->specular.vec, jspecgVal, 0.0f, 3, true);
+              sg->specular.vec[3] = 1.0f;
+            } else if (json_key_eq(jspecgVal, _s_gltf_glossFactor)) {
+              sg->glossiness   = json_float(jspecgVal, 0.0f);
+            } else if (json_key_eq(jspecgVal, _s_gltf_diffuseTexture)) {
+              sg->diffuseTex   = gltf_texref(gst, sg, jspecGloss);
+            } else if (json_key_eq(jspecgVal, _s_gltf_specGlossTex)) {
+              sg->specGlossTex = gltf_texref(gst, sg, jspecGloss);
+            }
+            jspecgVal = jspecgVal->next;
+          } /* jspecGlossVal */
+        } /* _s_gltf_ext_pbrSpecGloss */
+      } /* _s_gltf_extensions */
+    } /* specGlossExt */
 
     /* Metallic Roughness */
-    if (!specGloss) {
-      metalRough = ak_heap_calloc(heap, technfx, sizeof(*metalRough));
-      cmnTechn   = &metalRough->base;
+    if (!sg) {
+      mr = ak_heap_calloc(heap, technfx, sizeof(*mr));
+      cmnTechn   = &mr->base;
 
-      metalRough->base.type = AK_MATERIAL_METALLIC_ROUGHNESS;
-      metalRough->metallic  = metalRough->roughness = 1.0f;
-      glm_vec4_copy(GLM_VEC4_ONE, metalRough->albedo.vec);
+      mr->base.type = AK_MATERIAL_METALLIC_ROUGHNESS;
+      mr->metallic  = mr->roughness = 1.0f;
+      glm_vec4_copy(GLM_VEC4_ONE, mr->albedo.vec);
+    }
 
-      if ((jmtlrough = json_object_get(jmat, _s_gltf_pbrMetalRough))) {
-        if ((ji = json_object_get(jmtlrough, _s_gltf_baseColor))) {
-          int32_t j;
+    while (jmatVal) {
+      if (mr && json_key_eq(jmatVal, _s_gltf_pbrMetalRough)) {
+        /* Metallic Roughness */
+        json_t *jmrVal;
 
-          for (j = 0; j < 4; j++)
-            metalRough->albedo.vec[j] = jsn_flt_at(ji, j);
+        jmrVal = jmatVal->value;
+        while (jmrVal) {
+          if (json_key_eq(jmrVal, _s_gltf_baseColor)) {
+            json_array_float(mr->albedo.vec, jmrVal,  0.0f, 4, true);
+          } else if (json_key_eq(jmrVal, _s_gltf_metalFac)) {
+            mr->metallic      = json_float(jmrVal, 0.0f);
+          } else if (json_key_eq(jmrVal, _s_gltf_roughFac)) {
+            mr->roughness     = json_float(jmrVal, 0.0f);
+          } else if (json_key_eq(jmrVal, _s_gltf_metalRoughTex)) {
+            mr->metalRoughTex = gltf_texref(gst, mr, jmrVal);
+          } else if (json_key_eq(jmrVal, _s_gltf_baseColorTex)) {
+            mr->albedoTex     = gltf_texref(gst, mr, jmrVal);
+          }
+
+          jmrVal = jmrVal->next;
         }
+      } else if (json_key_eq(jmatVal, _s_gltf_emissiveTex)) {
+        /* Emission Map */
+        AkColorDesc *colorDesc;
 
-        jsn_flt_if(jmtlrough, _s_gltf_metalFac, &metalRough->metallic);
-        jsn_flt_if(jmtlrough, _s_gltf_roughFac, &metalRough->roughness);
+        colorDesc          = ak_heap_calloc(heap, technfx, sizeof(*colorDesc));
+        colorDesc->texture = gltf_texref(gst, colorDesc, jmatVal);
+        cmnTechn->emission = colorDesc;
 
-        if ((ji = json_object_get(jmtlrough, _s_gltf_metalRoughTex)))
-          metalRough->metalRoughTex = gltf_texref(gst, effect, metalRough, ji);
+      } else if (json_key_eq(jmatVal, _s_gltf_occlusionTex)) {
+        /* Occlusion Map */
+        AkOcclusion *occl;
 
-        if ((ji = json_object_get(jmtlrough, _s_gltf_baseColorTex)))
-          metalRough->albedoTex = gltf_texref(gst, effect, metalRough, ji);
+        occl           = ak_heap_alloc(heap, technfx, sizeof(*occl));
+        occl->tex      = gltf_texref(gst, occl, jmatVal);
+        occl->strength = json_float(json_get(jmatVal, _s_gltf_strength), 1.0f);
+
+        cmnTechn->occlusion = occl;
+
+      } else if (json_key_eq(jmatVal, _s_gltf_normalTex)) {
+        /* Normap Map */
+        AkNormalMap *normal;
+
+        normal        = ak_heap_alloc(heap, technfx, sizeof(*normal));
+        normal->tex   = gltf_texref(gst, normal, jmatVal);
+        normal->scale = json_float(json_get(jmatVal, _s_gltf_scale), 1.0f);
+
+        cmnTechn->normal = normal;
+
+      } else if (json_key_eq(jmatVal, _s_gltf_doubleSided)) {
+        /* doubleSided */
+        cmnTechn->doubleSided = json_bool(jmatVal, 0);
+      } else if (json_key_eq(jmatVal, _s_gltf_alphaMode)) {
+        /* alphaMode */
+        char    *alphaModeString;
+        AkOpaque opaque;
+
+        alphaModeString = json_string_dup(jmatVal);
+        opaque          = gltf_alphaMode(alphaModeString);
+
+        if (alphaModeString)
+          free(alphaModeString);
+
+        if (opaque != AK_OPAQUE_OPAQUE) {
+          AkTransparent *transp;
+
+          transp         = ak_heap_calloc(heap, cmnTechn, sizeof(*transp));
+          transp->amount = ak_def_transparency();
+          transp->opaque = opaque;
+          transp->cutoff = 0.5f;
+
+          cmnTechn->transparent = transp;
+        }
+      } else if (json_key_eq(jmatVal, _s_gltf_alphaCutoff)) {
+        /* alphaCutoff */
+        cutoff = json_float(jmatVal, 0.5f);
       }
 
-      ak_setId(mat, ak_id_gen(heap, mat, _s_gltf_id_metalrough));
+      jmatVal = jmatVal->next;
     }
-
-    /* Emission Map */
-    if ((ji = json_object_get(jmat, _s_gltf_emissiveTex))) {
-      AkColorDesc *colorDesc;
-
-      colorDesc = ak_heap_calloc(heap, technfx, sizeof(*colorDesc));
-
-      colorDesc->texture = gltf_texref(gst, effect, colorDesc, ji);
-      cmnTechn->emission = colorDesc;
-    }
-
-    /* Occlusion Map */
-    if ((ji = json_object_get(jmat, _s_gltf_occlusionTex))) {
-      AkOcclusion *occlusion;
-
-      occlusion           = ak_heap_alloc(heap, technfx, sizeof(*occlusion));
-      occlusion->tex      = gltf_texref(gst, effect, occlusion, ji);
-      occlusion->strength = 1.0f;
-
-      jsn_flt_if(ji, _s_gltf_strength, &occlusion->strength);
-      cmnTechn->occlusion = occlusion;
-    }
-
-    /* Normap Map */
-    if ((ji = json_object_get(jmat, _s_gltf_normalTex))) {
-      AkNormalMap *normal;
-
-      normal        = ak_heap_alloc(heap, technfx, sizeof(*normal));
-      normal->tex   = gltf_texref(gst, effect, normal, ji);
-      normal->scale = 1.0f;
-
-      jsn_flt_if(ji, _s_gltf_scale, &normal->scale);
-      cmnTechn->normal = normal;
-    }
-
-    /* doubleSided */
-    if ((ji = json_object_get(jmat, _s_gltf_doubleSided)))
-      cmnTechn->doubleSided = json_boolean_value(ji);
-
-    /* alphaMode */
-    if ((ji = json_object_get(jmat, _s_gltf_alphaMode))) {
-      AkOpaque opaque;
-      opaque = gltf_alphaMode(json_string_value(ji));
-      if (opaque != AK_OPAQUE_OPAQUE) {
-        AkTransparent *transp;
-
-        transp = ak_heap_calloc(heap, cmnTechn, sizeof(*transp));
-        transp->amount = ak_def_transparency();
-        transp->opaque = opaque;
-        transp->cutoff = 0.5f;
-
-        cmnTechn->transparent = transp;
-      }
-    }
-
+    
     /* alphaCutoff */
-    if (cmnTechn->transparent
-        && (ji = json_object_get(jmat, _s_gltf_alphaCutoff))) {
-      cmnTechn->transparent->cutoff = (float)json_number_value(ji);
-    }
+    if (cmnTechn->transparent)
+      cmnTechn->transparent->cutoff = cutoff;
 
     technfx->common    = cmnTechn;
     ieff               = ak_heap_calloc(heap, mat, sizeof(*ieff));
@@ -192,14 +195,12 @@ gltf_materials(AkGLTFState * __restrict gst) {
     ieff->base.url.ptr = effect;
     mat->effect        = ieff;
 
-    if (last_mat)
-      last_mat->next = mat;
-    else
-      libmat->chld = mat;
-    last_mat = mat;
-
+    mat->next    = libmat->chld;
+    libmat->chld = mat;
     libeffect->count++;
     libmat->count++;
+
+    jmaterial = jmaterial->next;
   }
 
   doc->lib.effects   = libeffect;

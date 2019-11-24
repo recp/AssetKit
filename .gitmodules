@@ -25,18 +25,12 @@
 [submodule "test/lib"]
 	path = test/lib
 	url = git://git.cryptomilk.org/projects/cmocka.git
-[submodule "test/lib/cmocka"]
-	path = test/lib/cmocka
-	url = git://git.cryptomilk.org/projects/cmocka.git
 [submodule "test/sample-models"]
 	path = test/sample-models
 	url = https://github.com/recp/sample-models.git
 [submodule "lib/libds"]
 	path = lib/libds
 	url = https://github.com/recp/libds.git
-[submodule "lib/jansson"]
-	path = lib/jansson
-	url = https://github.com/akheron/jansson.git
 [submodule "lib/json"]
 	path = lib/json
 	url = https://github.com/recp/json.git

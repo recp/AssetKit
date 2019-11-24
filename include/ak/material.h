@@ -12,6 +12,7 @@ extern "C" {
 #endif
 
 #include "common.h"
+#include "texture.h"
 
 typedef enum AkOpaque {
   AK_OPAQUE_OPAQUE   = 0, /* fully opaque */
@@ -34,8 +35,8 @@ typedef enum AkMaterialType {
 } AkMaterialType;
 
 typedef struct AkColorDesc {
-  AkColor     *color;
-  AkParam     *param;
+  AkColor      *color;
+  AkParam      *param;
   AkTextureRef *texture;
 } AkColorDesc;
 

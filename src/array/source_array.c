@@ -20,7 +20,7 @@ ak_sourceDetachArray(AkAccessor * __restrict acc) {
   if (!buff)
     return NULL;
 
-  if (acc->itemTypeId == AKT_STRING) {
+  if (acc->componentType == AKT_STRING) {
     /* TODO: */
     return NULL;
   }
@@ -33,7 +33,7 @@ ak_sourceDetachArray(AkAccessor * __restrict acc) {
   newbuff->data = ak_heap_alloc(heap, newbuff, size);
 
 
-  switch (acc->itemTypeId) {
+  switch (acc->componentType) {
     case AKT_FLOAT: {
       AkFloat *olditms, *newitms;
       AkUInt   j;

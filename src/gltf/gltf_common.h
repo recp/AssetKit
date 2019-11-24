@@ -22,33 +22,50 @@
 #include <stdlib.h>
 
 /* JSON parser */
-#include <jansson.h>
+#include <json/json.h>
 
 typedef enum AkGLTFVersion {
   AK_GLTF_VERSION_10 = 1,
   AK_GLTF_VERSION_20 = 2
 } AkGLTFVersion;
 
+typedef struct AkBufferView {
+  AkBuffer   *buffer;
+  const char *name;
+  size_t      byteOffset;
+  size_t      byteLength;
+  size_t      byteStride;
+} AkBufferView;
+
 typedef struct AkGLTFState {
   AkHeap       *heap;
   AkDoc        *doc;
   json_t       *root;
   FListItem    *buffers;
-  RBTree       *bufferViews; /* cache bufferViews to prevent dup */
+  RBTree       *bufferMap;
+  FListItem    *bufferViews;
+  RBTree       *meshTargets;
   AkGLTFVersion version;
+  bool          stop;
 } AkGLTFState;
 
-/* for vectors: item count,
-   for matrics: item count | matrix size 
- */
-typedef enum AkGLTFType {
-  AK_GLTF_SCALAR = 1,
-  AK_GLTF_VEC2   = 2,
-  AK_GLTF_VEC3   = 3,
-  AK_GLTF_VEC4   = 4,
-  AK_GLTF_MAT2   = (4  << 3) | 2,
-  AK_GLTF_MAT3   = (9  << 3) | 3,
-  AK_GLTF_MAT4   = (16 << 3) | 4
-} AkGLTFType;
+#define I2P (void *)(intptr_t)
+
+#define GETCHILD(INITIAL, ITEM, INDEX)                                        \
+  do {                                                                        \
+    int i;                                                                    \
+    ITEM = INITIAL;                                                           \
+    i    = INDEX;                                                             \
+    if (ITEM && i > 0) {                                                      \
+      while (i > 0) {                                                         \
+        if (!(ITEM = ITEM->next)) {                                           \
+          i     = -1;                                                         \
+          ITEM  = NULL;                                                       \
+          break;  /* not foud */                                              \
+        }                                                                     \
+        i--;                                                                  \
+      }                                                                       \
+    }                                                                         \
+  } while (0)
 
 #endif /* gltf_commoh_h */

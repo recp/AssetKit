@@ -20,7 +20,6 @@ static uint8_t ak__heap_ext_sz[] = {
   (uint8_t)sizeof(uintptr_t)
 };
 
-static
 AK_INLINE
 uint32_t
 ak_heap_ext_size(uint16_t flags) {
@@ -41,7 +40,6 @@ ak_heap_ext_size(uint16_t flags) {
   return sz;
 }
 
-static
 AK_INLINE
 uint32_t
 ak_heap_ext_off(uint16_t flags, uint16_t flag) {
@@ -59,7 +57,6 @@ ak_heap_ext_off(uint16_t flags, uint16_t flag) {
   return sz;
 }
 
-static
 AK_INLINE
 void
 ak_heap_ext_freeurl(AkHeapNode * __restrict hnode) {

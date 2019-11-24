@@ -12,7 +12,7 @@ mkdir -p .libs
 
 #TODO: implement this to other platforms e.g. linux, windows
 if [ "$(uname)" = "Darwin" ]; then
-  ak_dylib=.libs/libassetkit.dylib
+  ak_dylib=$(realpath .libs/libassetkit.dylib)
 
   libxml2_dylib=$(readlink    ./lib/libxml2/.libs/libxml2.dylib)
   jemalloc_dylib=$(readlink   ./lib/jemalloc/lib/libjemalloc.dylib)
@@ -47,9 +47,6 @@ if [ "$(uname)" = "Darwin" ]; then
   install_name_tool -change /usr/local/lib/$libjansson_dylib \
                             @loader_path/$libjansson_dylib \
                             $ak_dylib
-
-  ln -sf $(pwd)/test/lib/cmocka/build/src/libcmocka.0.dylib \
-      .libs/libcmocka.0.dylib;
 else
   libxml2_so=$(readlink    ./lib/libxml2/.libs/libxml2.so)
   jemalloc_so=$(readlink   ./lib/jemalloc/lib/libjemalloc.so)
@@ -62,7 +59,4 @@ else
   cp ./lib/curl/lib/.libs/$curl_so          .libs/$curl_so
   cp ./lib/libuv/.libs/$libuv_so            .libs/$libuv_so
   cp ./lib/jansson/src/.libs/$libjansson_so .libs/$libjansson_so
-
-  ln -sf $(pwd)/test/lib/cmocka/build/src/libcmocka.so.0 \
-      .libs/libcmocka.so.0;
 fi
