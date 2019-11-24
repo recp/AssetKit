@@ -211,6 +211,8 @@ gltf_node(AkGLTFState * __restrict gst,
     } /* if children */
   }
 
+  /* first parsed is added to the end so TRS. */
+
   /* matrix */
   if ((it = nodeMap[k_matrix].object)) {
     AkObject *obj;
@@ -230,16 +232,16 @@ gltf_node(AkGLTFState * __restrict gst,
     obj->next             = node->transform->item;
     node->transform->item = obj;
   }
+  
+  /* scale */
+  if ((it = nodeMap[k_scale].object)) {
+    AkObject *obj;
+    AkScale  *scale;
 
-  /* translation */
-  if ((it = nodeMap[k_translation].object)) {
-    AkObject    *obj;
-    AkTranslate *translate;
+    obj   = ak_objAlloc(heap, node, sizeof(*obj), AKT_SCALE, true);
+    scale = ak_objGet(obj);
 
-    obj = ak_objAlloc(heap, node, sizeof(*translate), AKT_TRANSLATE, true);
-    translate = ak_objGet(obj);
-
-    json_array_float(translate->val, it, 0.0f, 3, true);
+    json_array_float(scale->val, it, 0.0f, 3, true);
 
     if (!node->transform) {
       node->transform = ak_heap_calloc(heap, node, sizeof(*node->transform));
@@ -267,15 +269,15 @@ gltf_node(AkGLTFState * __restrict gst,
     node->transform->item = obj;
   }
 
-  /* scale */
-  if ((it = nodeMap[k_scale].object)) {
-    AkObject *obj;
-    AkScale  *scale;
+  /* translation */
+  if ((it = nodeMap[k_translation].object)) {
+    AkObject    *obj;
+    AkTranslate *translate;
 
-    obj   = ak_objAlloc(heap, node, sizeof(*obj), AKT_SCALE, true);
-    scale = ak_objGet(obj);
+    obj = ak_objAlloc(heap, node, sizeof(*translate), AKT_TRANSLATE, true);
+    translate = ak_objGet(obj);
 
-    json_array_float(scale->val, it, 0.0f, 3, true);
+    json_array_float(translate->val, it, 0.0f, 3, true);
 
     if (!node->transform) {
       node->transform = ak_heap_calloc(heap, node, sizeof(*node->transform));
@@ -284,6 +286,6 @@ gltf_node(AkGLTFState * __restrict gst,
     obj->next             = node->transform->item;
     node->transform->item = obj;
   }
-
+  
   return node;
 }
