@@ -24,8 +24,7 @@ libassetkit_la_LDFLAGS = -no-undefined \
                          -ljemalloc \
                          -lcurl \
                          -luv \
-                         -lds \
-                         -ljansson
+                         -lds
 
 check_PROGRAMS = test/tests
 TESTS = test/tests
@@ -230,15 +229,15 @@ libassetkit_la_SOURCES=\
     src/gltf/core/gltf_asset.c \
     src/gltf/core/gltf_buffer.c \
     src/gltf/core/gltf_accessor.c \
-    src/gltf/core/gltf_mesh.c \
-    src/gltf/core/gltf_node.c \
-    src/gltf/core/gltf_scene.c \
-    src/gltf/core/gltf_camera.c \
-    src/gltf/core/gltf_image.c \
     src/gltf/core/gltf_profile.c \
+    src/gltf/core/gltf_image.c \
     src/gltf/core/gltf_sampler.c \
     src/gltf/core/gltf_texture.c \
     src/gltf/core/gltf_material.c \
+    src/gltf/core/gltf_mesh.c \
+    src/gltf/core/gltf_node.c \
+    src/gltf/core/gltf_camera.c \
+    src/gltf/core/gltf_scene.c \
     src/gltf/core/gltf_anim.c \
     src/gltf/core/gltf_skin.c
 

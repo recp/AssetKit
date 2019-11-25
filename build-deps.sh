@@ -58,9 +58,3 @@ cd ../libds
 sh ./autogen.sh
 ./configure
 make -j8
-
-# jansson
-cd ../jansson
-autoreconf -i
-./configure
-make -j8
