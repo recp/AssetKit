@@ -116,7 +116,7 @@ gltf_accessors(json_t * __restrict json,
     }
     
     if ((it = accMap[k_gltf_type].object)) {
-      acc->componentSize = gltf_type(json_string(it), it->valSize);
+      acc->componentSize = gltf_type(it);
     }
 
     /* prepare for min and max */

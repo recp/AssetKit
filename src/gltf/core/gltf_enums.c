@@ -10,8 +10,8 @@
 AkEnum _assetkit_hide
 gltf_enumInputSemantic(const char * name) {
   AkEnum val;
-  long glenums_len;
-  long i;
+  long   glenums_len;
+  long   i;
 
   dae_enum glenums[] = {
     {_s_gltf_COLOR,     AK_INPUT_SEMANTIC_COLOR},
@@ -64,7 +64,7 @@ gltf_componentLen(int type) {
 }
 
 AkComponentSize _assetkit_hide
-gltf_type(const char *name, size_t len) {
+gltf_type(const json_t * __restrict json) {
   AkComponentSize val;
   long            glenums_len;
   long            i;
@@ -79,11 +79,11 @@ gltf_type(const char *name, size_t len) {
     {_s_gltf_MAT4,   AK_COMPONENT_SIZE_MAT4},
   };
 
-  val = AK_COMPONENT_SIZE_UNKNOWN;
+  val         = AK_COMPONENT_SIZE_UNKNOWN;
   glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
-    if (strncasecmp(name, glenums[i].name, len) == 0) {
+    if (json_val_eq(json, glenums[i].name)) {
       val = glenums[i].val;
       break;
     }
@@ -129,10 +129,10 @@ gltf_wrapMode(int type) {
 }
 
 AkOpaque _assetkit_hide
-gltf_alphaMode(const char *name) {
+gltf_alphaMode(const json_t * __restrict json) {
   AkEnum val;
-  long glenums_len;
-  long i;
+  long   glenums_len;
+  long   i;
 
   dae_enum glenums[] = {
     {_s_gltf_OPAQUE, AK_OPAQUE_OPAQUE},
@@ -140,11 +140,11 @@ gltf_alphaMode(const char *name) {
     {_s_gltf_BLEND,  AK_OPAQUE_BLEND}
   };
 
-  val = AK_OPAQUE_OPAQUE;
+  val         = AK_OPAQUE_OPAQUE;
   glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
-    if (strcasecmp(name, glenums[i].name) == 0) {
+    if (json_val_eq(json, glenums[i].name)) {
       val = glenums[i].val;
       break;
     }
@@ -154,7 +154,7 @@ gltf_alphaMode(const char *name) {
 }
 
 AkInterpolationType _assetkit_hide
-gltf_interp(json_t * __restrict json) {
+gltf_interp(const json_t * __restrict json) {
   AkEnum val;
   long   glenums_len;
   long   i;

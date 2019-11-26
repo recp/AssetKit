@@ -158,14 +158,9 @@ gltf_materials(json_t * __restrict jmaterial,
         cmnTechn->doubleSided = json_bool(jmatVal, 0);
       } else if (json_key_eq(jmatVal, _s_gltf_alphaMode)) {
         /* alphaMode */
-        char    *alphaModeString;
         AkOpaque opaque;
 
-        alphaModeString = json_string_dup(jmatVal);
-        opaque          = gltf_alphaMode(alphaModeString);
-
-        if (alphaModeString)
-          free(alphaModeString);
+        opaque = gltf_alphaMode(jmatVal);
 
         if (opaque != AK_OPAQUE_OPAQUE) {
           AkTransparent *transp;

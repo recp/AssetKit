@@ -20,7 +20,7 @@ int _assetkit_hide
 gltf_componentLen(int type) ;
 
 AkComponentSize _assetkit_hide
-gltf_type(const char *name, size_t len);
+gltf_type(const json_t * __restrict json);
 
 AkEnum _assetkit_hide
 gltf_minFilter(int type);
@@ -32,9 +32,9 @@ AkEnum _assetkit_hide
 gltf_wrapMode(int type);
 
 AkOpaque _assetkit_hide
-gltf_alphaMode(const char *name);
+gltf_alphaMode(const json_t * __restrict json);
 
 AkInterpolationType _assetkit_hide
-gltf_interp(json_t * __restrict json);
+gltf_interp(const json_t * __restrict json);
 
 #endif /* gltf_enums_h */
