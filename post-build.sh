@@ -8,6 +8,10 @@
 
 cd $(dirname "$0")
 
+realpath() {
+    [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
+}
+
 mkdir -p .libs
 
 #TODO: implement this to other platforms e.g. linux, windows

@@ -45,8 +45,11 @@ typedef struct AkGLTFState {
   RBTree       *bufferMap;
   FListItem    *bufferViews;
   RBTree       *meshTargets;
+  void         *bindata;
+  size_t        bindataLen;
   AkGLTFVersion version;
   bool          stop;
+  bool          isbinary;
 } AkGLTFState;
 
 #define I2P (void *)(intptr_t)

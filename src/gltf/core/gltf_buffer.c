@@ -68,8 +68,11 @@ gltf_buffers(json_t * __restrict jbuff,
   jbuff = jbuffers->base.value;
 
   while (jbuff) {
+    bool foundUri;
+
     buff     = ak_heap_calloc(heap, gst->doc, sizeof(*buff));
     jbuffVal = jbuff->value;
+    foundUri = false;
 
     while (jbuffVal) {
       if (json_key_eq(jbuffVal, _s_gltf_uri)) {
@@ -79,12 +82,19 @@ gltf_buffers(json_t * __restrict jbuff,
         ak_readfile(localurl, "rb", &buff->data, &buff->length);
         free(uri_tmp);
 
+        foundUri = true;
+
         /* TODO: log if logging enabled (or by log level) */
       } else if (json_key_eq(jbuffVal, _s_gltf_name)) {
         buff->name = json_strdup(jbuffVal, heap, buff);
       }
 
       jbuffVal = jbuffVal->next;
+    }
+    
+    if (!foundUri && gst->bindata) {
+      buff->data   = gst->bindata;
+      buff->length = gst->bindataLen;
     }
 
     flist_sp_insert(&gst->buffers, buff);

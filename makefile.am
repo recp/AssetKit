@@ -40,6 +40,7 @@ test_tests_LDFLAGS = -L./.libs \
 
 test_tests_CFLAGS = -I./include
 
+akdir=$(includedir)/ak
 include_HEADERS = include/ak/assetkit.h \
                   include/ak/core-types.h \
                   include/ak/states.h \
@@ -246,5 +247,11 @@ test_tests_SOURCES=\
     test/src/test_memory.c \
     test/src/collada/test_dae_load.c
 
+# When running configure with --prefix, $VPATH references
+# the source directory that post-build.sh is in. When not
+# using a prefix, $VPATH will be unset, so we need to fall
+# back to using . to run the script.
+#export VPATH
+
 all-local:
-	sh ./post-build.sh
+  sh $${VPATH:-.}/post-build.sh
