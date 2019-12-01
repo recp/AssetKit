@@ -16,17 +16,19 @@
 
 _assetkit_hide
 unsigned char*
-base64_encode(void                * __restrict memparent,
+base64_encode(AkHeap              * __restrict heap,
+              void                * __restrict memparent,
               const unsigned char * __restrict src,
               size_t                           len,
               size_t              * __restrict out_len);
 
 _assetkit_hide
 unsigned char*
-base64_decode(void                * __restrict memparent,
-              const unsigned char *__restrict src,
+base64_decode(AkHeap              * __restrict heap,
+              void                * __restrict memparent,
+              const unsigned char * __restrict src,
               size_t                          len,
-              size_t              *__restrict out_len);
+              size_t              * __restrict out_len);
 
 _assetkit_hide
 void

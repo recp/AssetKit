@@ -27,11 +27,11 @@ static const unsigned char base64_table[65] =
  */
 _assetkit_hide
 unsigned char*
-base64_encode(void                * __restrict memparent,
+base64_encode(AkHeap              * __restrict heap,
+              void                * __restrict memparent,
               const unsigned char * __restrict src,
               size_t                           len,
-              size_t              * __restrict out_len)
-{
+              size_t              * __restrict out_len) {
 	unsigned char       *out, *pos;
 	const unsigned char *end, *in;
 	size_t               olen;
@@ -43,7 +43,7 @@ base64_encode(void                * __restrict memparent,
   
 	if (olen < len)
 		return NULL; /* integer overflow */
-	out = ak_malloc(memparent, olen);
+	out = ak_heap_alloc(heap, memparent, olen);
 	if (out == NULL)
 		return NULL;
 
@@ -99,11 +99,11 @@ base64_encode(void                * __restrict memparent,
  */
 _assetkit_hide
 unsigned char*
-base64_decode(void                * __restrict memparent,
+base64_decode(AkHeap              * __restrict heap,
+              void                * __restrict memparent,
               const unsigned char * __restrict src,
               size_t                           len,
-              size_t              * __restrict out_len)
-{
+              size_t              * __restrict out_len) {
 	unsigned char dtable[256], *out, *pos, block[4], tmp;
 	size_t        i, count, olen;
 	int           pad = 0;
@@ -125,7 +125,7 @@ base64_decode(void                * __restrict memparent,
 		return NULL;
 
 	olen = count / 4 * 3;
-	pos  = out = ak_malloc(memparent, olen);
+	pos  = out = ak_heap_alloc(heap, memparent, olen);
 	if (out == NULL)
 		return NULL;
 
@@ -175,7 +175,8 @@ base64_buff(const char * __restrict b64,
     if (strncmp(b64Data, ";base64,", strlen(";base64,")) == 0) {
       b64Data = strchr(b64, ',') + 1;
       
-      buff->data = base64_decode(buff,
+      buff->data = base64_decode(ak_heap_getheap(buff),
+                                 buff,
                                  (const unsigned char *)b64Data,
                                  len - (uintptr_t)(b64Data - b64),
                                  &buff->length);
