@@ -47,7 +47,10 @@ So working on multiple projects ([cglm](https://github.com/recp/cglm), [libgk](h
   - [x] KHR_materials_pbrSpecularGlossiness
   - [ ] Lights
   - [ ] Common materials
-- [x] Load glb file
+- [x] Load glTF-Separate
+- [x] Load glTF-Binary 
+- [x] Load glTF-Embedded
+- [ ] Load glTF-Draco
 
 ## Tasklist
 
