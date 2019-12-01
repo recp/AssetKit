@@ -27,7 +27,8 @@ static const unsigned char base64_table[65] =
  */
 _assetkit_hide
 unsigned char*
-base64_encode(const unsigned char * __restrict src,
+base64_encode(void                * __restrict memparent,
+              const unsigned char * __restrict src,
               size_t                           len,
               size_t              * __restrict out_len)
 {
@@ -42,7 +43,7 @@ base64_encode(const unsigned char * __restrict src,
   
 	if (olen < len)
 		return NULL; /* integer overflow */
-	out = malloc(olen);
+	out = ak_malloc(memparent, olen);
 	if (out == NULL)
 		return NULL;
 
@@ -98,7 +99,8 @@ base64_encode(const unsigned char * __restrict src,
  */
 _assetkit_hide
 unsigned char*
-base64_decode(const unsigned char * __restrict src,
+base64_decode(void                * __restrict memparent,
+              const unsigned char * __restrict src,
               size_t                           len,
               size_t              * __restrict out_len)
 {
@@ -123,7 +125,7 @@ base64_decode(const unsigned char * __restrict src,
 		return NULL;
 
 	olen = count / 4 * 3;
-	pos  = out = malloc(olen);
+	pos  = out = ak_malloc(memparent, olen);
 	if (out == NULL)
 		return NULL;
 
@@ -149,7 +151,7 @@ base64_decode(const unsigned char * __restrict src,
 					pos -= 2;
 				else {
 					/* Invalid padding */
-					free(out);
+					ak_free(out);
 					return NULL;
 				}
 				break;
@@ -173,7 +175,8 @@ base64_buff(const char * __restrict b64,
     if (strncmp(b64Data, ";base64,", strlen(";base64,")) == 0) {
       b64Data = strchr(b64, ',') + 1;
       
-      buff->data = base64_decode((const unsigned char *)b64Data,
+      buff->data = base64_decode(buff,
+                                 (const unsigned char *)b64Data,
                                  len - (uintptr_t)(b64Data - b64),
                                  &buff->length);
     }
