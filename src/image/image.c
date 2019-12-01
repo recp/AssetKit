@@ -33,6 +33,7 @@ ak_imageLoad(AkImage * __restrict image) {
   AkDoc         *doc;
   AkImageData   *idata;
   unsigned char *data;
+  bool           flipImage;
 
   if (image->data)
     return;
@@ -42,10 +43,15 @@ ak_imageLoad(AkImage * __restrict image) {
   heap   = ak_heap_getheap(image);
   doc    = ak_heap_data(heap);
 
+  /* glTF uses top-left as origin */
+  if (doc->inf->flipImage) {
+    flipImage = ak_opt_get(AK_OPT_IMAGE_LOAD_FLIP_VERTICALLY);
+    stbi_set_flip_vertically_on_load(flipImage);
+  }
+  
   if (image->initFrom) {
     AkInitFrom *initFrom;
     int         x, y, ch;
-    bool        flipImage;
 
     initFrom = image->initFrom;
     if (initFrom->ref) {
@@ -53,13 +59,6 @@ ak_imageLoad(AkImage * __restrict image) {
       const char *path;
 
       path = ak_fullpath(doc, initFrom->ref, pathbuf);
-
-      /* glTF uses top-left as origin */
-      if (doc->inf->flipImage) {
-        flipImage = ak_opt_get(AK_OPT_IMAGE_LOAD_FLIP_VERTICALLY);
-        stbi_set_flip_vertically_on_load(flipImage);
-      }
-
       data = stbi_load(path, &x, &y, &ch, 0);
       if (!data)
         return;
@@ -72,13 +71,6 @@ ak_imageLoad(AkImage * __restrict image) {
 
       image->data   = idata;
     } else if (initFrom->buff && initFrom->buff->data) {
-
-      /* glTF uses top-left as origin */
-      if (doc->inf->flipImage) {
-        flipImage = ak_opt_get(AK_OPT_IMAGE_LOAD_FLIP_VERTICALLY);
-        stbi_set_flip_vertically_on_load(flipImage);
-      }
-
       data = stbi_load_from_memory(initFrom->buff->data,
                                    initFrom->buff->length,
                                    &x, &y, &ch, 0);
