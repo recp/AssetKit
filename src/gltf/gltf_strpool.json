@@ -125,5 +125,5 @@
   "inverseBindMatrices": "inverseBindMatrices",
   "joints": "joints",
   "sparse": "sparse",
-  "b64data": "data:"
+  "b64d": "data:"
 }

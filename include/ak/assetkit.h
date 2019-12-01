@@ -19,6 +19,7 @@ extern "C" {
 
 struct FList;
 struct FListItem;
+struct AkBuffer;
 
 /* End Core Value Types */
 
@@ -298,6 +299,8 @@ typedef struct AkInitFrom {
   struct AkInitFrom *next;
   const char        *ref;
   AkHexData         *hex;
+  struct AkBuffer   *buff;
+  const char        *buffMime;
   AkFace             face;
   AkUInt             mipIndex;
   AkUInt             depth;

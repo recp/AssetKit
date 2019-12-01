@@ -80,7 +80,7 @@ gltf_buffers(json_t * __restrict jbuff,
         uri                    = jbuffVal->value;
         uri[jbuffVal->valSize] = '\0';
 
-        if (strncmp(uri, _s_gltf_b64data, strlen(_s_gltf_b64data)) == 0) {
+        if (strncmp(uri, _s_gltf_b64d, strlen(_s_gltf_b64d)) == 0) {
           base64_buff(uri, jbuffVal->valSize, buff);
         } else {
           localurl = ak_getFileFrom(gst->doc, uri);
