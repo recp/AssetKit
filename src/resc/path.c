@@ -215,10 +215,10 @@ const char*
 ak_fullpath(AkDoc       * __restrict doc,
             const char  * __restrict ref,
             char        * __restrict buf) {
-  size_t     pathlen;
+  size_t      pathlen;
   const char *ptr;
-  char  *fileprefix  = "file:///";
-  char  *fragments[] = {
+  char       *fileprefix  = "file:///";
+  char       *fragments[] = {
     (char *)doc->inf->dir,
     "/",
     (char *)ref,

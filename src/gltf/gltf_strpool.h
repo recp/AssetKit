@@ -145,5 +145,6 @@ _AK_EXTERN const char _s_gltf_pool_0[];
 #define _s_gltf_inverseBindMatrices _s_gltf_0(1113)
 #define _s_gltf_joints _s_gltf_0(1133)
 #define _s_gltf_sparse _s_gltf_0(1140)
+#define _s_gltf_b64data _s_gltf_0(1147)
 
 #endif /* gltf_strpool_h */

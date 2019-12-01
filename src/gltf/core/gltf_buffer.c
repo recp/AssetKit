@@ -7,6 +7,7 @@
 
 #include "gltf_buffer.h"
 #include "../../utils.h"
+#include "base64.h"
 
 void
 gltf_bufferViews(json_t * __restrict jbuffView,
@@ -57,7 +58,7 @@ gltf_buffers(json_t * __restrict jbuff,
   const json_array_t *jbuffers;
   const json_t       *jbuffVal;
   const char         *localurl;
-  char               *uri_tmp;
+  char               *uri;
   AkBuffer           *buff;
     
   if (!(jbuffers = json_array(jbuff)))
@@ -76,11 +77,15 @@ gltf_buffers(json_t * __restrict jbuff,
 
     while (jbuffVal) {
       if (json_key_eq(jbuffVal, _s_gltf_uri)) {
-        uri_tmp  = json_string_dup(jbuffVal);
-        localurl = ak_getFileFrom(gst->doc, uri_tmp);
+        uri                    = jbuffVal->value;
+        uri[jbuffVal->valSize] = '\0';
 
-        ak_readfile(localurl, "rb", &buff->data, &buff->length);
-        free(uri_tmp);
+        if (strncmp(uri, _s_gltf_b64data, strlen(_s_gltf_b64data)) == 0) {
+          base64_buff(uri, jbuffVal->valSize, buff);
+        } else {
+          localurl = ak_getFileFrom(gst->doc, uri);
+          ak_readfile(localurl, "rb", &buff->data, &buff->length);
+        }
 
         foundUri = true;
 

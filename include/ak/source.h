@@ -16,6 +16,8 @@ extern "C" {
 #include <stdint.h>
 #include <stdbool.h>
 #include "type.h"
+#include "url.h"
+#include "core-types.h"
 
 /*
   Input -> Source -> TechniqueCommon (Accessor) -> Buffer

@@ -139,6 +139,7 @@ const char _s_gltf_pool_0[] =
 "inverseBindMatrices\0"
 "joints\0"
 "sparse\0"
+"data:\0"
 ;
 
 #undef _GLTF_STRPOOL_
