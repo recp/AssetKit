@@ -171,29 +171,29 @@ gltf_parse(AkDoc     ** __restrict dest,
   
   memset(&gstVal, 0, sizeof(gstVal));
   
-  gst            = &gstVal;
-  gstVal.doc     = doc;
-  gstVal.heap    = heap;
-  gstVal.bindata = bindata;
-  gst->bufferMap = rb_newtree_ptr();
+  gst              = &gstVal;
+  gstVal.doc       = doc;
+  gstVal.heap      = heap;
+  gstVal.bindata   = bindata;
+  gstVal.tmpParent = ak_heap_alloc(heap, doc, sizeof(void*));
+  gst->bufferMap   = rb_newtree_ptr();
 
   gltfRawDoc = json_parse(contents, true);
   if (!gltfRawDoc || !gltfRawDoc->root) {
     ak_free(doc);
-    
+
     if (gltfRawDoc)
       free((void *)gltfRawDoc);
-
     return AK_ERR;
   }
-  
+
   if (doc->inf->dir)
     doc->inf->dirlen = strlen(doc->inf->dir);
-  
+
   json = gltfRawDoc->root;
-  
+
   /* json_print_human(stderr, gltfRawDoc->root); */
-  
+
   json_objmap_t gltfMap[] = {
     JSON_OBJMAP_FN(_s_gltf_asset,       gltf_asset,       gst),
     JSON_OBJMAP_FN(_s_gltf_buffers,     gltf_buffers,     gst),
@@ -211,7 +211,7 @@ gltf_parse(AkDoc     ** __restrict dest,
     JSON_OBJMAP_FN(_s_gltf_scene,       gltf_scene,       gst),
     JSON_OBJMAP_FN(_s_gltf_animations,  gltf_animations,  gst)
   };
-  
+
   while (json) {
     json_objmap_call(json, gltfMap, JSON_ARR_LEN(gltfMap), &gstVal.stop);
     
@@ -222,18 +222,18 @@ gltf_parse(AkDoc     ** __restrict dest,
     
     json = json->next;
   }
-  
+
 err:
-  
+
   if (gltfRawDoc)
     free((void *)gltfRawDoc);
-  
+
   /* probably unsupportted version or verion is missing */
   if (ret == AK_EBADF) {
     ak_free(doc);
     return ret;
   }
-  
+
   gst->meshTargets = rb_newtree(ds_allocator(), ds_cmp_ptr,  NULL);
 
   /* TODO: release resources in GLTFState */
@@ -248,13 +248,15 @@ err:
       doc->scene.visualScene = instScene;
     }
   }
-  
+
   *dest = doc;
-  
+
   rb_destroy(gst->meshTargets);
-  
+
   /* post-parse operations */
   gltf_postscript(gst);
+
+  ak_free(gstVal.tmpParent);
 
   return ret;
 }

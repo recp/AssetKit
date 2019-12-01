@@ -25,7 +25,7 @@ gltf_bufferViews(json_t * __restrict jbuffView,
 
   jbuffView = jbuffers->base.value;
   while (jbuffView) {
-    buffView = ak_heap_calloc(gst->heap, gst->doc, sizeof(*buffView));
+    buffView = ak_heap_calloc(gst->heap, gst->tmpParent, sizeof(*buffView));
     jbuffVal = jbuffView->value;
 
     while (jbuffVal) {
@@ -71,7 +71,7 @@ gltf_buffers(json_t * __restrict jbuff,
   while (jbuff) {
     bool foundUri;
 
-    buff     = ak_heap_calloc(heap, gst->doc, sizeof(*buff));
+    buff     = ak_heap_calloc(heap, gst->tmpParent, sizeof(*buff));
     jbuffVal = jbuff->value;
     foundUri = false;
 
