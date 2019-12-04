@@ -7,7 +7,7 @@
 
 #include "gltf_buffer.h"
 #include "../../utils.h"
-#include "base64.h"
+#include "../../base64.h"
 
 void
 gltf_bufferViews(json_t * __restrict jbuffView,
