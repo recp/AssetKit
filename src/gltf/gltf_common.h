@@ -14,8 +14,6 @@
 #include "../utils.h"
 #include "../tree.h"
 #include "../json.h"
-#include "../id.h"
-#include "../resc/curl.h"
 #include "gltf_strpool.h"
 
 #include <string.h>
@@ -23,11 +21,6 @@
 
 /* JSON parser */
 #include <json/json.h>
-
-typedef enum AkGLTFVersion {
-  AK_GLTF_VERSION_10 = 1,
-  AK_GLTF_VERSION_20 = 2
-} AkGLTFVersion;
 
 typedef struct AkBufferView {
   AkBuffer   *buffer;
@@ -48,7 +41,6 @@ typedef struct AkGLTFState {
   RBTree       *meshTargets;
   void         *bindata;
   size_t        bindataLen;
-  AkGLTFVersion version;
   bool          stop;
   bool          isbinary;
 } AkGLTFState;

@@ -7,36 +7,19 @@
 
 #include "gltf_asset.h"
 
-static ak_enumpair gltfVersions[] = {
-  {"1.0", AK_GLTF_VERSION_10},
-  {"2.0", AK_GLTF_VERSION_20}
-};
-
-static size_t gltfVersionsLen = 0;
-
 void
 gltf_asset(json_t * __restrict json,
            void   * __restrict userdata) {
-  AkGLTFState       *gst;
-  AkAssetInf        *inf;
-  AkDoc             *doc;
-  AkHeap            *heap;
-  AkContributor     *contrib;
-  const ak_enumpair *foundVersion;
+  AkGLTFState   *gst;
+  AkAssetInf    *inf;
+  AkDoc         *doc;
+  AkHeap        *heap;
+  AkContributor *contrib;
 
   gst  = userdata;
   heap = gst->heap;
   doc  = gst->doc;
   inf  = &doc->inf->base;
-
- /* instead of keeping version as string we keep enum/int to fast-comparing */
-  if (gltfVersionsLen == 0) {
-    gltfVersionsLen = AK_ARRAY_LEN(gltfVersions);
-    qsort(gltfVersions,
-          gltfVersionsLen,
-          sizeof(gltfVersions[0]),
-          ak_enumpair_cmp);
-  }
 
   contrib          = ak_heap_calloc(heap, inf, sizeof(*contrib));
   inf->contributor = contrib;
@@ -44,16 +27,10 @@ gltf_asset(json_t * __restrict json,
   json = json->value;
   while (json) {
     if (json_key_eq(json, _s_gltf_version)) {
-      if (!(foundVersion = bsearch(json,
-                                   gltfVersions,
-                                   gltfVersionsLen,
-                                   sizeof(gltfVersions[0]),
-                                   ak_enumpair_json_val_cmp))) {
+      if (json_float(json, 0.0f) < 2.0f) {
         gst->stop = true;
         return; /* unsupported version */
       }
-
-      gst->version = foundVersion->val;
     } else if (json_key_eq(json, _s_gltf_copyright)) {
       contrib->copyright = json_strdup(json, heap, contrib);
     } else if (json_key_eq(json, _s_gltf_generator)) {
