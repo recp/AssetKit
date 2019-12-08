@@ -78,10 +78,10 @@ gltf_buffers(json_t * __restrict jbuff,
     while (jbuffVal) {
       if (json_key_eq(jbuffVal, _s_gltf_uri)) {
         uri                    = jbuffVal->value;
-        uri[jbuffVal->valSize] = '\0';
+        uri[jbuffVal->valsize] = '\0';
 
         if (strncmp(uri, _s_gltf_b64d, strlen(_s_gltf_b64d)) == 0) {
-          base64_buff(uri, jbuffVal->valSize, buff);
+          base64_buff(uri, jbuffVal->valsize, buff);
         } else {
           localurl = ak_getFileFrom(gst->doc, uri);
           ak_readfile(localurl, "rb", &buff->data, &buff->length);

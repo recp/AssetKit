@@ -155,7 +155,7 @@ gltf_animations(json_t * __restrict janim,
 
             if ((it = targetMap[k_path].object)) {
               path    = json_string(it);
-              pathLen = it->valSize;
+              pathLen = it->valsize;
             }
 
             if (path && (it = targetMap[k_node].object)) {

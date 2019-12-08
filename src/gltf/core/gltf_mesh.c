@@ -90,13 +90,13 @@ gltf_meshes(json_t * __restrict jmesh,
                 const char *semantic;
 
                 inp      = ak_heap_calloc(heap, prim, sizeof(*inp));
-                semantic = memchr(jattrib->key, '_', jattrib->keySize);
+                semantic = memchr(jattrib->key, '_', jattrib->keysize);
 
                 if (!semantic) {
                   inp->semanticRaw = ak_heap_strndup(heap,
                                                      inp,
                                                      jattrib->key,
-                                                     jattrib->keySize);
+                                                     jattrib->keysize);
                 }
 
                 /* ARRAYs e.g. TEXTURE_0, TEXTURE_1 */
