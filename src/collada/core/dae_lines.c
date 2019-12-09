@@ -56,6 +56,8 @@ dae_lines(AkXmlState * __restrict xst,
         input->set      = ak_xml_attrui(xst, _s_dae_set);
 
         if ((uint32_t)input->semantic != AK_INPUT_SEMANTIC_VERTEX) {
+          AkURL *url;
+
           if (last_input)
             last_input->next = input;
           else
@@ -68,7 +70,10 @@ dae_lines(AkXmlState * __restrict xst,
           if (input->offset > indexoff)
             indexoff = input->offset;
 
-          ak_xml_attr_url(xst, _s_dae_source, input, &input->source);
+          url = ak_xmlAttrGetURL(xst, _s_dae_source, input);
+          rb_insert(xst->inputmap, input, url);
+
+          flist_sp_insert(&xst->inputs, input);
         } else {
           /* don't store VERTEX because it will be duplicated to all prims */
           lines->base.reserved1 = input->offset;

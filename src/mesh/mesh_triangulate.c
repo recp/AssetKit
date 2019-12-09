@@ -5,7 +5,6 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "mesh_util.h"
 #include "../common.h"
 
 _assetkit_hide
@@ -20,13 +19,11 @@ ak_meshTriangulatePoly_noindices(AkPolygon * __restrict poly) {
   AkHeap       *heap;
   AkUInt       *vc_it;
   AkAccessor   *acc;
-  AkSource     *src;
   AkFloat      *it_new, *it_old;
   AkUInt        trianglec, otherc, i, st, isz;
 
   if (!poly->base.pos
-      || !(src  = ak_getObjectByUrl(&poly->base.pos->source))
-      || !(acc  = src->tcommon)
+      || !(acc  = poly->base.pos->accessor)
       || !(buff = ak_getObjectByUrl(&acc->source)))
     return 0;
 
@@ -47,10 +44,8 @@ ak_meshTriangulatePoly_noindices(AkPolygon * __restrict poly) {
   st   = acc->stride;
   heap = ak_heap_getheap(poly->vcount);
 
-  newbuff = ak_heap_calloc(heap, poly, sizeof(*newbuff));
-  newbuff->data = ak_heap_alloc(heap,
-                                newbuff,
-                                isz * trianglec * 3 * st);
+  newbuff       = ak_heap_calloc(heap, poly, sizeof(*newbuff));
+  newbuff->data = ak_heap_alloc(heap, newbuff, isz * trianglec * 3 * st);
 
   newbuff->length = isz * trianglec * 3 * st;
 
@@ -66,9 +61,7 @@ ak_meshTriangulatePoly_noindices(AkPolygon * __restrict poly) {
         memcpy(it_new, it_old, st * isz);
         it_new += st;
 
-        memcpy(it_new,
-               it_old + j * st,
-               2 * st * isz);
+        memcpy(it_new, it_old + j * st, 2 * st * isz);
         it_new += 2 * st;
       }
     } else {
@@ -131,9 +124,7 @@ ak_meshTriangulatePoly(AkPolygon * __restrict poly) {
         memcpy(newind_it, ind_it, st * isz);
         newind_it += st;
 
-        memcpy(newind_it,
-               ind_it + j * st,
-               2 * st * isz);
+        memcpy(newind_it, ind_it + j * st, 2 * st * isz);
         newind_it += 2 * st;
       }
     } else {

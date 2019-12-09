@@ -29,16 +29,6 @@ struct AkBuffer;
 #include "url.h"
 #include "type.h"
 
-typedef enum AkModifier {
-  AK_MODIFIER_CONST    = 1,
-  AK_MODIFIER_UNIFORM  = 2,
-  AK_MODIFIER_VARYING  = 3,
-  AK_MODIFIER_STATIC   = 4,
-  AK_MODIFIER_VOLATILE = 5,
-  AK_MODIFIER_EXTERN   = 6,
-  AK_MODIFIER_SHARED   = 7
-} AkModifier;
-
 typedef enum AkFileType {
   AK_FILE_TYPE_AUTO      = 0,
   AK_FILE_TYPE_COLLADA   = 1,
@@ -51,11 +41,6 @@ typedef enum AkAltitudeMode {
   AK_ALTITUDE_RELATIVETOGROUND = 0,
   AK_ALTITUDE_ABSOLUTE         = 1
 } AkAltitudeMode;
-
-typedef enum AkParamType {
-  AK_PARAM_TYPE_BASIC    = 0,
-  AK_PARAM_TYPE_EXTENDED = 1
-} AkParamType;
 
 typedef enum AkFace {
   AK_FACE_POSITIVE_X = 1,
@@ -101,13 +86,6 @@ typedef enum AkDrawType {
   AK_DRAW_FULL_SCREEN_QUAD                 = 4,
   AK_DRAW_FULL_SCREEN_QUAD_PLUS_HALF_PIXEL = 5
 } AkDrawType;
-
-typedef enum AkPipelineStage {
-  AK_PIPELINE_STAGE_VERTEX      = 1,
-  AK_PIPELINE_STAGE_FRAGMENT    = 2,
-  AK_PIPELINE_STAGE_TESSELATION = 3,
-  AK_PIPELINE_STAGE_GEOMETRY    = 4
-} AkPipelineStage;
 
 typedef enum AkInputSemantic {
   /* read semanticRaw */
@@ -321,51 +299,6 @@ typedef struct AkInstanceBase {
   struct AkInstanceBase *next;
 } AkInstanceBase;
 
-typedef struct AkAnnotate {
-  struct AkAnnotate *next;
-  const char        *name;
-  AkValue           *val;
-} AkAnnotate;
-
-typedef struct AkNewParam {
-  /* const char * sid; */
-  struct AkNewParam *prev;
-  struct AkNewParam *next;
-  AkAnnotate        *annotate;
-  const char        *semantic;
-  AkValue           *val;
-  AkModifier         modifier;
-} AkNewParam;
-
-typedef struct AkSetParam {
-  struct AkSetParam *prev;
-  struct AkSetParam *next;
-  const char        *ref;
-  AkValue           *val;
-} AkSetParam;
-
-typedef struct AkCode {
-  /* const char * sid; */
-
-  const char * val;
-
-  struct AkCode * next;
-} AkCode;
-
-typedef struct AkInclude {
-  /* const char * sid; */
-
-  const char * url;
-
-  struct AkInclude * next;
-} AkInclude;
-
-struct AkRenderState;
-typedef struct AkStates {
-  struct AkRenderState * next;
-  long count;
-} AkStates;
-
 typedef struct AkEvaluateTarget {
   AkParam        *param;
   AkInstanceBase *instanceImage;
@@ -375,128 +308,13 @@ typedef struct AkEvaluateTarget {
   AkFace          face;
 } AkEvaluateTarget;
 
-typedef struct AkColorClear {
-  unsigned long index;
-  AkColor       val;
-} AkColorClear;
-
-typedef struct AkDepthClear {
-  unsigned long index;
-  AkFloat       val;
-} AkDepthClear;
-
-typedef struct AkStencilClear {
-  unsigned long index;
-  unsigned long val;
-} AkStencilClear;
-
-typedef struct AkDraw {
-  AkDrawType   enumDraw;
-  const char * strVal;
-} AkDraw;
-
-typedef struct AkEvaluate {
-  AkEvaluateTarget * colorTarget;
-  AkEvaluateTarget * depthTarget;
-  AkEvaluateTarget * stencilTarget;
-  AkColorClear     * colorClear;
-  AkDepthClear     * depthClear;
-  AkStencilClear   * stencilClear;
-  AkDraw             draw;
-} AkEvaluate;
-
-typedef struct AkInline {
-  const char * val;
-  struct AkInline * next;
-} AkInline;
-
-typedef struct AkImport {
-  const char * ref;
-  struct AkImport * next;
-} AkImport;
-
-typedef struct AkSources {
-  const char * entry;
-  AkInline   * inlines;
-  AkImport   * imports;
-} AkSources;
-
-typedef struct AkBinary {
-  const char * ref;
-  AkHexData  * hex;
-
-  struct AkBinary * next;
-} AkBinary;
-
-typedef struct AkCompiler {
-  const char * platform;
-  const char * target;
-  const char * options;
-  AkBinary   * binary;
-
-  struct AkCompiler * next;
-} AkCompiler;
-
-typedef struct AkBindUniform {
-  struct AkBindUniform *next;
-  const char           *symbol;
-  AkParam              *param;
-  AkValue              *val;
-} AkBindUniform;
-
-typedef struct AkBindAttrib {
-  const char * symbol;
-  const char * semantic;
-
-  struct AkBindAttrib * next;
-} AkBindAttrib;
-
-typedef struct AkShader {
-  AkPipelineStage stage;
-
-  AkSources     * sources;
-  AkCompiler    * compiler;
-  AkBindUniform * bindUniform;
-  AkTree        * extra;
-
-  struct AkShader * next;
-} AkShader;
-
-typedef struct AkLinker {
-  const char * platform;
-  const char * target;
-  const char * options;
-  AkBinary   * binary;
-
-  struct AkLinker * next;
-} AkLinker;
-
-typedef struct AkProgram {
-  AkShader      * shader;
-  AkBindAttrib  * bindAttrib;
-  AkBindUniform * bindUniform;
-  AkLinker      * linker;
-} AkProgram;
-
-typedef struct AkPass {
-  /* const char * sid; */
-
-  AkAnnotate * annotate;
-  AkStates   * states;
-  AkEvaluate * evaluate;
-  AkProgram  * program;
-  AkTree     * extra;
-
-  struct AkPass * next;
-} AkPass;
-
 #include "profile.h"
 
+struct AkNewParam;
 typedef struct AkEffect {
   /* const char * id; */
   const char      *name;
-  AkAnnotate      *annotate;
-  AkNewParam      *newparam;
+  struct AkNewParam  *newparam;
   AkProfile       *profile;
   AkTree          *extra;
   struct AkEffect *next;
@@ -508,7 +326,6 @@ typedef struct AkEffect {
 typedef struct AkInstanceEffect {
   AkInstanceBase   base;
   AkTechniqueHint *techniqueHint;
-  AkSetParam      *setparam;
 } AkInstanceEffect;
 
 typedef struct AkMaterial {
@@ -532,7 +349,7 @@ typedef struct AkInput {
   uint32_t           set;
   
   /* TODO: WILL BE DELETED */
-  AkURL              source;
+//  AkURL              source;
 } AkInput;
 
 struct AkInstanceMaterial;
@@ -684,7 +501,6 @@ typedef struct AkDoc {
 #include "light.h"
 #include "node.h"
 #include "texture.h"
-#include "states.h"
 #include "animation.h"
 #include "controller.h"
 

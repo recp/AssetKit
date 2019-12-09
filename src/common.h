@@ -71,9 +71,6 @@ int _assetkit_hide
 ak_enumpair_cmp2(const void * a, const void * b);
 
 int _assetkit_hide
-ak_enumpair_json_key_cmp(const void * a, const void * b);
-
-int _assetkit_hide
 ak_enumpair_json_val_cmp(const void * a, const void * b);
 
 AK_EXPORT

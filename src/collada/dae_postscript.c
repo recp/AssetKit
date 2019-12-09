@@ -13,6 +13,8 @@
 #include "1.4/dae14.h"
 #include "dae_fixangle.h"
 
+#include "dae_tex_fixup.h"
+
 void _assetkit_hide
 dae_retain_refs(AkXmlState * __restrict xst);
 
@@ -32,12 +34,16 @@ void _assetkit_hide
 dae_pre_walk(RBTree *tree, RBNode *rbnode);
 
 void _assetkit_hide
+dae_input_walk(RBTree * __restrict tree, RBNode * __restrict rbnode);
+
+void _assetkit_hide
 dae_postscript(AkXmlState * __restrict xst) {
   /* first migrate 1.4 to 1.5 */
   if (xst->version < AK_COLLADA_VERSION_150)
     dae14_loadjobs_finish(xst);
 
   dae_retain_refs(xst);
+  rb_walk(xst->inputmap, dae_input_walk);
   dae_fixup_accessors(xst);
   dae_pre_mesh(xst);
 
@@ -58,6 +64,7 @@ dae_postscript(AkXmlState * __restrict xst) {
   if (ak_opt_get(AK_OPT_COORD_CONVERT_TYPE) != AK_COORD_CVT_DISABLED)
     xst->doc->coordSys = (void *)ak_opt_get(AK_OPT_COORD);
 
+  dae_fix_textures(xst);
   dae_fixAngles(xst);
 }
 
@@ -82,9 +89,9 @@ dae_retain_refs(AkXmlState * __restrict xst) {
       ret = ak_heap_getNodeByURL(xst->heap, url, &hnode);
       if (ret == AK_OK) {
         /* retain <source> and source arrays ... */
-        refc = ak_heap_ext_add(xst->heap,
-                               hnode,
-                               AK_HEAP_NODE_FLAGS_REFC);
+        refc = ak_heap_ext_add(xst->heap, hnode, AK_HEAP_NODE_FLAGS_REFC);
+//        it->url->ptr = ak__alignof(hnode);
+
         (*refc)++;
       }
     }
@@ -92,6 +99,34 @@ dae_retain_refs(AkXmlState * __restrict xst) {
     it = it->next;
     alc->free(tofree);
   }
+}
+
+void _assetkit_hide
+dae_input_walk(RBTree * __restrict tree, RBNode * __restrict rbnode) {
+  AkAccessor *acc;
+  AkBuffer   *buff;
+  AkSource   *src;
+  AkInput    *inp;
+  AkURL      *url;
+
+  AK__UNUSED(tree);
+
+  inp = rbnode->key;
+  url = rbnode->val;
+  
+  if (!(src = ak_getObjectByUrl(url)))
+    return;
+
+  acc           = src->tcommon;
+  inp->accessor = acc;
+  buff          = ak_getObjectByUrl(&acc->source);
+  acc->buffer   = buff;
+
+  /* TODO: */
+//  ak_free(src);
+//  ak_free(url);
+//
+//  rb_destroy(tree);
 }
 
 void _assetkit_hide
@@ -138,8 +173,7 @@ dae_pre_walk(RBTree *tree, RBNode *rbnode) {
   posSrc = NULL;
   posAcc = NULL;
 
-  if (!((posSrc = ak_getObjectByUrl(&mi->pos->source))
-      && (posAcc = posSrc->tcommon)))
+  if (!(posAcc = mi->pos->accessor))
     return;
 
   mi->nVertex = posAcc->count;
@@ -270,7 +304,6 @@ dae_fixup_instctlr(AkXmlState * __restrict xst) {
         AkSkin     *skin;
         AkNode    **joints;
         AkInput    *jointsInp,  *matrixInp;
-        AkSource   *jointsSrc,  *matrixSrc;
         AkAccessor *jointsAcc,  *matrixAcc;
         AkBuffer   *jointsBuff, *matrixBuff;
         FListItem  *skel;
@@ -285,10 +318,8 @@ dae_fixup_instctlr(AkXmlState * __restrict xst) {
         invm      = NULL;
         joints    = NULL;
 
-        if ((jointsSrc = ak_getObjectByUrl(&jointsInp->source))
-            && (jointsAcc = jointsSrc->tcommon)) {
-          matrixSrc  = ak_getObjectByUrl(&matrixInp->source);
-          matrixAcc  = matrixSrc->tcommon;
+        if ((jointsAcc = jointsInp->accessor)) {
+          matrixAcc  = matrixInp->accessor;
 
           jointsBuff = ak_getObjectByUrl(&jointsAcc->source);
           matrixBuff = ak_getObjectByUrl(&matrixAcc->source);
@@ -359,7 +390,6 @@ dae_fixup_ctlr(AkXmlState * __restrict xst) {
             AkMeshPrimitive *prim;
             AkBoneWeights   *intrWeights; /* interleaved */
             AkInput         *jointswInp,  *weightsInp;
-            AkSource        *weightsSrc;
             AkAccessor      *weightsAcc;
             size_t           nMeshVertex;
             uint32_t         primIndex;
@@ -377,8 +407,7 @@ dae_fixup_ctlr(AkXmlState * __restrict xst) {
             jointswInp  = skin->reserved[2];
             weightsInp  = skin->reserved[3];
 
-            weightsSrc  = ak_getObjectByUrl(&weightsInp->source);
-            weightsAcc  = weightsSrc->tcommon;
+            weightsAcc  = weightsInp->accessor;
 
             nMeshVertex = meshInfo->nVertex;
 
@@ -386,13 +415,11 @@ dae_fixup_ctlr(AkXmlState * __restrict xst) {
 
             while (prim) {
               AkAccessor    *posAcc;
-              AkSource      *posSrc;
               AkBoneWeights *weights; /* per-primitive weights */
               AkDuplicator  *dupl;
               size_t         count;
 
-              posSrc  = ak_getObjectByUrl(&prim->pos->source);
-              posAcc  = posSrc->tcommon;
+              posAcc  = prim->pos->accessor;
               count   = GLM_MAX(posAcc->count, 1);
               dupl    = rb_find(doc->reserved, prim);
               weights = ak_heap_calloc(xst->heap, ctlr->data, sizeof(*weights));

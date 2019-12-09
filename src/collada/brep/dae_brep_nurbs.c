@@ -79,6 +79,7 @@ dae_nurbs(AkXmlState * __restrict xst,
 
         if (ak_xml_eqelm(xst, _s_dae_input)) {
           AkInput *input;
+          AkURL   *url;
 
           input = ak_heap_calloc(xst->heap,
                                  memPtr,
@@ -86,10 +87,8 @@ dae_nurbs(AkXmlState * __restrict xst,
 
           input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
-          ak_xml_attr_url(xst,
-                          _s_dae_source,
-                          input,
-                          &input->source);
+          url = ak_xmlAttrGetURL(xst, _s_dae_source, input);
+          rb_insert(xst->inputmap, input, url);
 
           if (!input->semanticRaw)
             ak_free(input);
@@ -207,6 +206,7 @@ dae_nurbs_surface(AkXmlState * __restrict xst,
 
         if (ak_xml_eqelm(xst, _s_dae_input)) {
           AkInput *input;
+          AkURL   *url;
 
           input = ak_heap_calloc(xst->heap,
                                  memPtr,
@@ -214,10 +214,8 @@ dae_nurbs_surface(AkXmlState * __restrict xst,
 
           input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
-          ak_xml_attr_url(xst,
-                          _s_dae_source,
-                          input,
-                          &input->source);
+          url = ak_xmlAttrGetURL(xst, _s_dae_source, input);
+          rb_insert(xst->inputmap, input, url);
 
           if (!input->semanticRaw)
             ak_free(input);

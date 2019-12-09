@@ -79,7 +79,6 @@ typedef struct AkAccessor {
   struct AkDataParam  *param;
   AkURL                source;
   size_t               offset;
-  uint32_t             firstBound;
   uint32_t             stride;
   uint32_t             bound;
 } AkAccessor;
@@ -116,13 +115,12 @@ typedef struct AkSourceBuffState {
   char         *url;
   size_t        count;
   uint32_t      stride;
-  uint32_t      lastoffset;
 } AkSourceBuffState;
 
 typedef struct AkSourceEditHelper {
   struct AkSourceEditHelper *next;
-  AkSource                  *oldsource;
-  AkSource                  *source;
+  AkAccessor                *oldsource;
+  AkAccessor                *source;
 } AkSourceEditHelper;
 
 AK_EXPORT

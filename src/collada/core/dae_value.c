@@ -196,13 +196,18 @@ dae_value(AkXmlState * __restrict xst,
       AkResult   ret;
 
       sampler = NULL;
-      ret = dae_fxSampler(xst,
-                          memParent,
-                          found->key,
-                          &sampler);
+      ret     = dae_fxSampler(xst, memParent, found->key, &sampler);
 
-      if (ret == AK_OK)
-        val->value = sampler;
+      if (ret == AK_OK) {
+        AkTexture *tex;
+
+        tex = ak_heap_calloc(xst->heap, memParent, sizeof(*tex));
+        ak_setypeid(tex, AKT_TEXTURE);
+
+        tex->sampler = sampler;
+        tex->type    = found->val;
+        val->value   = tex;
+      }
 
       break;
     }

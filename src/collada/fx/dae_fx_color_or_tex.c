@@ -39,11 +39,9 @@ dae_colorOrTex(AkXmlState   * __restrict xst,
       dae_color(xst, color, true, false, color);
       colorOrTex->color = color;
     } else if (ak_xml_eqelm(xst, _s_dae_texture)) {
-      AkTextureRef *tex;
+      AkDAETextureRef *tex;
 
-      tex = ak_heap_calloc(xst->heap,
-                           colorOrTex,
-                           sizeof(*tex));
+      tex = ak_heap_calloc(xst->heap, colorOrTex, sizeof(*tex));
       ak_setypeid(tex, AKT_TEXTURE);
 
       tex->texture  = ak_xml_attr(xst, tex, _s_dae_texture);
@@ -54,29 +52,8 @@ dae_colorOrTex(AkXmlState   * __restrict xst,
 
       if (tex->texcoord)
         ak_setypeid((void *)tex->texcoord, AKT_TEXCOORD);
-
-      if (!xmlTextReaderIsEmptyElement(xst->reader)) {
-        AkXmlElmState xest2;
-
-        ak_xest_init(xest2, _s_dae_texture)
-
-        do {
-          if (ak_xml_begin(&xest2))
-            break;
-
-          if (ak_xml_eqelm(xst, _s_dae_extra)) {
-            dae_extra(xst, tex, &tex->extra);
-          } else {
-            ak_xml_skipelm(xst);
-          }
-
-          /* end element */
-          if (ak_xml_end(&xest2))
-            break;
-        } while (xst->nodeRet);
-      }
-
-      colorOrTex->texture = tex;
+      
+      rb_insert(xst->texmap, colorOrTex, tex);
     } else if (ak_xml_eqelm(xst, _s_dae_param)) {
       AkParam * param;
       AkResult   ret;

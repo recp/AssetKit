@@ -51,21 +51,18 @@ dae_fixAngles(AkXmlState * __restrict xst) {
   FListItem     *item;
   AkAnimSampler *sampler;
   AkDataParam   *param;
-  AkSource      *src;
   AkAccessor    *acc;
   AkBuffer      *buff;
 
   item = xst->toRadiansSampelers;
   while (item) {
     sampler = item->data;
-    src     = NULL;
     acc     = NULL;
     buff    = NULL;
 
-    if ((src = ak_getObjectByUrl(&sampler->outputInput->source))
-          && (acc = src->tcommon)
-          && acc->type
-          && (buff = ak_getObjectByUrl(&acc->source))) {
+    if ((acc = sampler->outputInput->accessor)
+        && acc->type
+        && (buff = ak_getObjectByUrl(&acc->source))) {
       bool foundAngle;
 
       foundAngle = false;
@@ -83,10 +80,9 @@ dae_fixAngles(AkXmlState * __restrict xst) {
       dae_cvtAngles(acc, buff, _s_dae_angle);
 
       /* convert in tangents to radians */
-      if ((src = ak_getObjectByUrl(&sampler->inTangentInput->source))
-             && (acc = src->tcommon)
-             && acc->type
-             && (buff = ak_getObjectByUrl(&acc->source))) {
+      if ((acc = sampler->inTangentInput->accessor)
+          && acc->type
+          && (buff = ak_getObjectByUrl(&acc->source))) {
         if (acc->param && acc->param->next)
           dae_cvtAngles(acc, buff, acc->param->next->name);
         else if (acc->param) /* 1D tangents */
@@ -94,10 +90,9 @@ dae_fixAngles(AkXmlState * __restrict xst) {
       }
 
       /* convert out tangents to radians */
-      if ((src = ak_getObjectByUrl(&sampler->outTangentInput->source))
-             && (acc = src->tcommon)
-             && acc->type
-             && (buff = ak_getObjectByUrl(&acc->source))) {
+      if ((acc = sampler->outTangentInput->accessor)
+          && acc->type
+          && (buff = ak_getObjectByUrl(&acc->source))) {
         if (acc->param && acc->param->next)
           dae_cvtAngles(acc, buff, acc->param->next->name);
         else if (acc->param) /* 1D tangents */

@@ -39,22 +39,22 @@ ak_xml_attr_url(AkXmlState * __restrict xst,
   url->url      = NULL;
 }
 
-void
-ak_xml_attr_url2(AkXmlState * __restrict xst,
-                 const char * attrName,
-                 void       * memparent,
-                 AkURL      * url) {
+AkURL*
+ak_xmlAttrGetURL(AkXmlState * __restrict xst,
+                 const char * __restrict attrName,
+                 void       * __restrict memparent) {
+  AkURL   *url;
   xmlChar *attrVal;
 
   attrVal = xmlTextReaderGetAttribute(xst->reader, (const xmlChar *)attrName);
   if (attrVal) {
-    ak_url_init(memparent, (char *)attrVal, url);
+    url = ak_heap_calloc(ak_heap_getheap(memparent), memparent, sizeof(*url));
+    ak_url_init(url, (char *)attrVal, url);
     xmlFree(attrVal);
-    return;
+    return url;
   }
-
-  url->reserved = NULL;
-  url->url      = NULL;
+  
+  return NULL;
 }
 
 void

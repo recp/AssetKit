@@ -7,7 +7,6 @@
 
 #include "../common.h"
 #include "../memory_common.h"
-#include "mesh_util.h"
 
 #include <assert.h>
 
@@ -45,14 +44,12 @@ ak_meshIndicesArrayFor(AkMesh          * __restrict mesh,
     if (prim->indices) {
       count = prim->indices->count / prim->indexStride;
     } else {
-      AkSource   *possrc;
       AkAccessor *posacc;
       AkBuffer   *posbuff;
 
       if (!prim->pos
-          || !(possrc  = ak_getObjectByUrl(&prim->pos->source))
-          || !(posacc  = possrc->tcommon)
-          || !(posbuff = ak_getObjectByUrl(&posacc->source)))
+          || !(posacc  = prim->pos->accessor)
+          || !(posbuff = posacc->buffer))
         return NULL;
 
       count = posacc->bound * posacc->count;

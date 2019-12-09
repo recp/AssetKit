@@ -8,7 +8,6 @@
 #include "../common.h"
 #include "../memory_common.h"
 #include "mesh_index.h"
-#include "mesh_util.h"
 #include "mesh_edit_common.h"
 #include <limits.h>
 
@@ -23,7 +22,6 @@ ak_meshDuplicatorForIndices(AkMesh          * __restrict mesh,
   AkDuplicatorRange  *dupr;
   AkUIntArray        *dupc, *ind, *newind, *dupcsum;
   uint32_t           *it, *it2, *posflgs, *inp;
-  AkSource           *posSource;
   AkAccessor         *posAcc;
   AkBuffer           *posBuff;
   uint8_t            *flg;
@@ -32,9 +30,8 @@ ak_meshDuplicatorForIndices(AkMesh          * __restrict mesh,
   uint32_t            chk, iter, st, vo, posno, idxp;
 
   if (!prim->pos
-      || !(posSource = ak_getObjectByUrl(&prim->pos->source))
-      || !(posAcc    = posSource->tcommon)
-      || !(posBuff   = ak_getObjectByUrl(&posAcc->source)))
+      || !(posAcc  = prim->pos->accessor)
+      || !(posBuff = posAcc->buffer))
     return NULL;
 
   vertc   = posAcc->count;

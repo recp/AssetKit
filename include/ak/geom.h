@@ -76,6 +76,9 @@ typedef struct AkMeshPrimitive {
   struct AkMeshPrimitive *next;
   uint32_t                count;
   uint32_t                inputCount;
+  AkFloat3                center;
+
+  /* TODO: remove */
   uint32_t                indexStride;
   uint32_t                reserved1; /* private member */
   uint32_t                reserved2; /* private member */
@@ -431,36 +434,6 @@ ak_meshBeginEditA(AkMesh  * __restrict mesh,
 AK_EXPORT
 void
 ak_meshEndEdit(AkMesh * __restrict mesh);
-
-/*!
- * @brief this func returns array of input, because if you want to get array
- *        you need to traverse though input -> source -> technique -> array
- *
- * @param mesh  mesh
- * @param input input
- *
- * @return buffer object
- */
-AK_EXPORT
-AkObject*
-ak_meshArrayOf(AkMesh   * __restrict mesh,
-               AkInput  * __restrict input);
-
-/*!
- * @brief collect buffer infos, altername would be ak_meshArrayInfos
- *        this function collects buffer usage (count, stride) in specified mesh
- *        this is useful for shrink buffer
- *
- * @param[in]  mesh     mesh
- * @param[in]  arrayURL buffer URL
- * @param[out] stride   stride (for mesh)
- * @param[out] count    count  (for mesh)
- */
-void
-ak_meshInspectArray(AkMesh   * __restrict mesh,
-                    AkURL    * __restrict arrayURL,
-                    uint32_t * __restrict stride,
-                    size_t   * __restrict count);
 
 AK_EXPORT
 AkUIntArray*

@@ -9,7 +9,6 @@
 
 #include "../core/dae_asset.h"
 #include "../core/dae_technique.h"
-#include "../core/dae_annotate.h"
 #include "../core/dae_param.h"
 
 #include "../1.4/dae14_image.h"
@@ -21,7 +20,6 @@ dae_effect(AkXmlState * __restrict xst,
            void * __restrict memParent,
            void ** __restrict  dest) {
   AkEffect     *effect;
-  AkAnnotate   *last_annotate;
   AkNewParam   *last_newparam;
   AkProfile    *last_profile;
   AkXmlElmState xest;
@@ -31,7 +29,6 @@ dae_effect(AkXmlState * __restrict xst,
                           sizeof(*effect));
   ak_setypeid(effect, AKT_EFFECT);
 
-  last_annotate = NULL;
   last_newparam = NULL;
   last_profile  = NULL;
 
@@ -46,20 +43,6 @@ dae_effect(AkXmlState * __restrict xst,
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
       (void)dae_assetInf(xst, effect, NULL);
-    } else if (ak_xml_eqelm(xst, _s_dae_annotate)) {
-      AkAnnotate *annotate;
-      AkResult    ret;
-
-      ret = dae_annotate(xst, effect, &annotate);
-
-      if (ret == AK_OK) {
-        if (last_annotate)
-          last_annotate->next = annotate;
-        else
-          effect->annotate = annotate;
-
-        last_annotate = annotate;
-      }
     } else if (ak_xml_eqelm(xst, _s_dae_newparam)) {
       AkNewParam *newparam;
       AkResult    ret;
@@ -75,12 +58,7 @@ dae_effect(AkXmlState * __restrict xst,
         newparam->prev = last_newparam;
         last_newparam  = newparam;
       }
-    } else if (ak_xml_eqelm(xst, _s_dae_prfl_common)
-               || ak_xml_eqelm(xst, _s_dae_prfl_glsl)
-               || ak_xml_eqelm(xst, _s_dae_prfl_gles2)
-               || ak_xml_eqelm(xst, _s_dae_prfl_gles)
-               || ak_xml_eqelm(xst, _s_dae_prfl_cg)
-               || ak_xml_eqelm(xst, _s_dae_prfl_bridge)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_prfl_common)) {
       AkProfile *profile;
       AkResult   ret;
 
@@ -120,7 +98,6 @@ dae_fxInstanceEffect(AkXmlState * __restrict xst,
                      AkInstanceEffect ** __restrict dest) {
   AkInstanceEffect *instanceEffect;
   AkTechniqueHint  *last_techHint;
-  AkSetParam       *last_setparam;
   AkXmlElmState     xest;
 
   instanceEffect = ak_heap_calloc(xst->heap,
@@ -140,7 +117,6 @@ dae_fxInstanceEffect(AkXmlState * __restrict xst,
                   &instanceEffect->base.url);
 
   last_techHint = NULL;
-  last_setparam = NULL;
 
   ak_xest_init(xest, _s_dae_inst_effect)
 
@@ -165,21 +141,6 @@ dae_fxInstanceEffect(AkXmlState * __restrict xst,
         instanceEffect->techniqueHint = techHint;
 
       last_techHint = techHint;
-    } else if (ak_xml_eqelm(xst, _s_dae_setparam)) {
-      AkSetParam *setparam;
-      AkResult ret;
-
-      ret = dae_setparam(xst, instanceEffect, &setparam);
-
-      if (ret == AK_OK) {
-        if (last_setparam)
-          last_setparam->next = setparam;
-        else
-          instanceEffect->setparam = setparam;
-
-        setparam->prev = last_setparam;
-        last_setparam  = setparam;
-      }
     } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
       dae_extra(xst, instanceEffect, &instanceEffect->base.extra);
     } else {

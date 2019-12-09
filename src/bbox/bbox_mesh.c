@@ -16,6 +16,11 @@ ak_bbox_mesh(struct AkMesh * __restrict mesh) {
   primcount = 0;
   prim      = mesh->primitive;
 
+  if (!mesh->bbox)
+    mesh->bbox = ak_heap_calloc(ak_heap_getheap(prim),
+                                ak_objFrom(mesh),
+                                sizeof(*mesh->bbox));
+  
   while (prim) {
     ak_bbox_mesh_prim(prim);
     primcount++;

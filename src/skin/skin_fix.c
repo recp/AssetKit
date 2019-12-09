@@ -20,7 +20,6 @@ ak_skinFixWeights(AkMesh * __restrict mesh) {
   AkBoneWeight    *w, *iw, *old, *oiw;
   AkDuplicator    *dupl;
   AkUIntArray     *dupc, *dupcsum;
-  AkSource        *srci;
   AkAccessor      *acci;
   size_t          *pOldIndex, *wi;
   size_t           vc, d, s, pno, poo, nwsum, newidx, next, tmp, count;
@@ -47,8 +46,7 @@ ak_skinFixWeights(AkMesh * __restrict mesh) {
     while (prim) {
       if (!(dupl = rb_find(doc->reserved, prim))
           || dupl->dupCount < 1
-          || !(srci = ak_getObjectByUrl(&prim->pos->source))
-          || !(acci = srci->tcommon))
+          || !(acci = prim->pos->accessor))
         continue;
 
       wl          = skin->weights[primIndex];

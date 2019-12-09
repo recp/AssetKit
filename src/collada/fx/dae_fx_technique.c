@@ -8,21 +8,18 @@
 #include "dae_fx_technique.h"
 
 #include "../core/dae_asset.h"
-#include "../core/dae_annotate.h"
 
 #include "../1.4/dae14_image.h"
 
 #include "dae_fx_blinn_phong.h"
 #include "dae_fx_constant.h"
 #include "dae_fx_lambert.h"
-#include "dae_fx_pass.h"
 
 AkResult _assetkit_hide
 dae_techniqueFx(AkXmlState * __restrict xst,
                 void * __restrict memParent,
                 AkTechniqueFx ** __restrict dest) {
   AkTechniqueFx *technique;
-  AkAnnotate    *last_annotate;
   AkXmlElmState  xest;
 
   technique = ak_heap_calloc(xst->heap,
@@ -33,8 +30,6 @@ dae_techniqueFx(AkXmlState * __restrict xst,
   ak_xml_readid(xst, technique);
   ak_xml_readsid(xst, technique);
 
-  last_annotate = NULL;
-
   ak_xest_init(xest, _s_dae_technique)
 
   do {
@@ -43,29 +38,7 @@ dae_techniqueFx(AkXmlState * __restrict xst,
 
     if (ak_xml_eqelm(xst, _s_dae_asset)) {
       (void)dae_assetInf(xst, technique, NULL);
-    } else if (ak_xml_eqelm(xst, _s_dae_annotate)) {
-      AkAnnotate *annotate;
-      AkResult    ret;
-
-      ret = dae_annotate(xst, technique, &annotate);
-
-      if (ret == AK_OK) {
-        if (last_annotate)
-          last_annotate->next = annotate;
-        else
-          technique->annotate = annotate;
-
-        last_annotate = annotate;
-      }
-    } else if (ak_xml_eqelm(xst, _s_dae_pass)) {
-      AkPass * pass;
-      AkResult ret;
-
-      ret = dae_fxPass(xst, technique, &pass);
-      if (ret == AK_OK)
-        technique->pass = pass;
-
-    }  else if (ak_xml_eqelm(xst, _s_dae_phong)) {
+    } else if (ak_xml_eqelm(xst, _s_dae_phong)) {
       AkTechniqueFxCommon *phong;
       AkResult             ret;
 

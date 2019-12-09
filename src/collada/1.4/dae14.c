@@ -75,12 +75,14 @@ dae14_loadjobs_finish(AkXmlState * __restrict xst) {
                           instanceImage);
             }
 
+            rb_insert(xst->instanceMap, sampler, instanceImage);
             ak_url_init_with_id(xst->heap->allocator,
                                 instanceImage,
                                 (char *)surface->initFrom->image,
                                 &instanceImage->url);
 
-            sampler->instanceImage = instanceImage;
+            /* TODO: */
+//            sampler->instanceImage = instanceImage;
             surface->instanceImage = instanceImage;
 
             /* convert other params to update/new image */

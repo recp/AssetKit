@@ -7,7 +7,6 @@
 
 #include "../common.h"
 #include "../memory_common.h"
-#include "mesh_util.h"
 
 #include <assert.h>
 
@@ -16,12 +15,9 @@ extern const char* ak_mesh_edit_assert1;
 AK_EXPORT
 AkResult
 ak_meshFillBuffers(AkMesh * __restrict mesh) {
-  AkHeap             *heap;
-  AkObject           *meshobj;
   AkMeshEditHelper   *edith;
   AkInput            *input;
   AkMeshPrimitive    *primi;
-  AkSource           *src;
   AkAccessor         *acc, *newacc;
   AkUIntArray        *ind1, *ind2;
   AkUInt             *ind1_it, *ind2_it;
@@ -33,8 +29,6 @@ ak_meshFillBuffers(AkMesh * __restrict mesh) {
   AkUInt              oldindex, newindex, j;
 
   edith   = mesh->edith;
-  meshobj = ak_objFrom(mesh);
-  heap    = ak_heap_getheap(meshobj);
   primi   = mesh->primitive;
 
   /* per-primitive inputs */
@@ -54,9 +48,8 @@ ak_meshFillBuffers(AkMesh * __restrict mesh) {
     input = primi->input;
     while (input) {
       if (input->semantic == AK_INPUT_SEMANTIC_POSITION
-          || !(src     = ak_getObjectByUrl(&input->source))
-          || !(acc     = src->tcommon)
-          || !(oldbuff = ak_getObjectByUrl(&acc->source)))
+          || !(acc     = input->accessor)
+          || !(oldbuff = acc->buffer))
         goto cont;
 
       buffstate = rb_find(edith->buffers, input);
@@ -66,21 +59,16 @@ ak_meshFillBuffers(AkMesh * __restrict mesh) {
         newbuff = buffstate->buff;
 
         srch   = ak_meshSourceEditHelper(mesh, input);
-        newacc = srch->source->tcommon;
+        newacc = srch->source;
         assert(newacc && "accessor is needed!");
-
-        newacc->firstBound = buffstate->lastoffset;
-        ak_accessor_rebound(heap,
-                            newacc,
-                            buffstate->lastoffset);
 
         icount = primi->indices->count / primi->indexStride;
         switch (acc->componentType) {
           case AKT_FLOAT: {
-            AkFloat *olditms, *newitms;
+            float *olditms, *newitms;
 
-            newitms = newbuff->data;
-            olditms = oldbuff->data;
+            newitms = (void *)((char *)newbuff->data + newacc->byteOffset);
+            olditms = (void *)((char *)oldbuff->data + acc->byteOffset);
 
             for (i = 0; i < icount; i++) {
               j        = 0;
@@ -92,14 +80,9 @@ ak_meshFillBuffers(AkMesh * __restrict mesh) {
                 if (!dp->name)
                   continue;
 
-                newitms[newindex * buffstate->stride
-                        + buffstate->lastoffset
-                        + newacc->firstBound
-                        + newacc->offset
-                        + j++]
-                = olditms[oldindex * acc->stride
-                          + acc->offset
-                          + dp->offset];
+                /* TODO: byteOffset */
+                newitms[newindex * buffstate->stride + j++]
+                = olditms[oldindex * acc->stride + dp->offset];
 
                 dp = dp->next;
               }

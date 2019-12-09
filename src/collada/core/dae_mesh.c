@@ -11,7 +11,6 @@
 #include "dae_lines.h"
 #include "dae_polygons.h"
 #include "dae_triangles.h"
-#include "../../mesh/mesh_util.h"
 
 #define k_s_dae_source     1
 #define k_s_dae_vertices   2
@@ -242,15 +241,14 @@ dae_mesh(AkXmlState * __restrict xst,
     while (prim) {
       inpv = vertices->input;
       while (inpv) {
+        AkURL *url;
+
         inp  = ak_heap_calloc(xst->heap, prim, sizeof(*inp));
         inp->semantic = inpv->semantic;
         if (inpv->semanticRaw)
           inp->semanticRaw = ak_heap_strdup(xst->heap,
                                             inp,
                                             inpv->semanticRaw);
-
-        ak_url_dup(&inpv->source, prim, &inp->source);
-        ak_xml_url_add(xst, &inp->source);
 
         inp->offset = prim->reserved1;
         inp->set    = prim->reserved2;
@@ -270,6 +268,11 @@ dae_mesh(AkXmlState * __restrict xst,
             setMeshInfo = true;
           }
         }
+
+        url = rb_find(xst->inputmap, inpv);
+        rb_insert(xst->inputmap, inp, url);
+        rb_remove(xst->inputmap, inpv);
+        ak_mem_setp(url, inp);
 
         prim->inputCount++;
         inpv = inpv->next;

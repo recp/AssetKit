@@ -5,7 +5,6 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "mesh_util.h"
 #include "../common.h"
 #include "../id.h"
 #include "../memory_common.h"
@@ -65,15 +64,14 @@ _assetkit_hide
 void
 ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
   AkDataContext *dctx;
+  AkDoc         *doc;
   AkUIntArray   *inpIndices;
   AkFloat       *pos;
   AkUInt        *it, *it2;
   AkHeap        *heap;
   AkInput       *input, *nextInput;
   AkBuffer      *posBuff, *buff;
-  AkSource      *posSource, *src;
   AkAccessor    *posAcc, *acc;
-  char          *srcurl;
   AkUInt         st, newst;
   AkInt          vo, pos_st;
   size_t         count;
@@ -81,14 +79,14 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
   if ((prim->type != AK_MESH_PRIMITIVE_TYPE_TRIANGLES
        && prim->type != AK_MESH_PRIMITIVE_TYPE_POLYGONS)
       || !prim->pos
-      || !(posSource = ak_getObjectByUrl(&prim->pos->source))
-      || !(posAcc    = posSource->tcommon)
+      || !(posAcc    = prim->pos->accessor)
       || !(posBuff   = ak_getObjectByUrl(&posAcc->source))
       || (vo = prim->pos->offset) == -1)
     return;
 
   dctx   = ak_data_new(prim, 64, sizeof(vec3), ak_cmp_vec3);
   heap   = ak_heap_getheap(prim);
+  doc    = ak_heap_data(heap);
   pos    = posBuff->data;
   pos_st = posAcc->stride;
 
@@ -194,16 +192,24 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
       return;
   }
 
-  src   = ak_mesh_src_for_ext(heap,
-                              prim->mesh,
-                              prim,
-                              AK_INPUT_SEMANTIC_NORMAL,
-                              dctx->itemcount);
-  acc   = src->tcommon;
-  buff  = ak_getObjectByUrl(&acc->source);
+  acc = ak_heap_calloc(heap, doc, sizeof(*acc));
+  ak_setypeid(acc, AKT_ACCESSOR);
 
+  acc->stride        = 3;
+  acc->count         = count;
+  acc->componentType = AKT_FLOAT;
+  acc->type          = ak_typeDesc(acc->componentType);
+  acc->byteStride    = acc->stride * acc->type->size;
+  acc->byteLength    = acc->count * acc->byteStride;
+  
+  buff               = ak_heap_calloc(heap, doc, sizeof(*buff));
+  buff->data         = ak_heap_alloc(heap, buff, acc->byteLength);
+  buff->length       = acc->byteLength;
+
+  flist_sp_insert(&doc->lib.accessors, acc);
+  flist_sp_insert(&doc->lib.buffers, buff);
+  
   /* add input */
-  srcurl             = ak_url_string(heap->allocator, ak_getId(src));
   input              = ak_heap_calloc(heap, prim, sizeof(*input));
   input->offset      = st;
   input->semantic    = AK_INPUT_SEMANTIC_NORMAL;
@@ -215,14 +221,13 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
 
   nextInput->next = input;
 
-  ak_url_init(input, srcurl, &input->source);
+  input->accessor = acc;
 
   prim->inputCount++;
   prim->indexStride++;
 
   ak_free(prim->indices);
   prim->indices = inpIndices;
-  heap->allocator->free(srcurl);
 
   (void)ak_data_join(dctx, buff->data);
   ak_free(dctx);
@@ -231,13 +236,11 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
 AK_EXPORT
 void
 ak_meshGenNormals(AkMesh * __restrict mesh) {
-  AkHeap           *heap;
   AkMeshEditHelper *edith;
   AkMeshPrimitive  *prim;
 
   ak_meshBeginEdit(mesh);
 
-  heap  = ak_heap_getheap(mesh->geom);
   prim  = mesh->primitive;
   edith = mesh->edith;
 
@@ -245,7 +248,7 @@ ak_meshGenNormals(AkMesh * __restrict mesh) {
     ak_meshPrimGenNormals(prim);
 
     if (!edith->skipFixIndices)
-      ak_primFixIndices(heap, mesh, prim);
+      ak_primFixIndices(mesh, prim);
 
     prim = prim->next;
   }

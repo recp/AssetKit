@@ -51,15 +51,13 @@ static size_t fxSamplerCMapLen = 0;
 
 AkResult _assetkit_hide
 dae_fxSampler(AkXmlState * __restrict xst,
-              void * __restrict memParent,
-              const char *elm,
+              void       * __restrict memParent,
+              const char             *elm,
               AkSampler ** __restrict dest) {
   AkSampler    *sampler;
   AkXmlElmState xest;
 
-  sampler = ak_heap_calloc(xst->heap,
-                           memParent,
-                           sizeof(*sampler));
+  sampler = ak_heap_calloc(xst->heap, memParent, sizeof(*sampler));
   ak_setypeid(sampler, AKT_SAMPLER);
 
   if (fxSamplerCMapLen == 0) {
@@ -96,10 +94,7 @@ dae_fxSampler(AkXmlState * __restrict xst,
          /* COLLADA 1.4 uses source -> <surface> for texturing */
         if (source) {
           if (xst->version < AK_COLLADA_VERSION_150) {
-            dae14_loadjobs_add(xst,
-                               sampler,
-                               source,
-                               AK_DAE14_LOADJOB_SURFACE);
+            dae14_loadjobs_add(xst, sampler, source, AK_DAE14_LOADJOB_SURFACE);
           } else {
             ak_xml_skipelm(xst);
           }
@@ -114,14 +109,9 @@ dae_fxSampler(AkXmlState * __restrict xst,
         ret = dae_fxInstanceImage(xst, sampler, &instanceImage);
 
         if (ret == AK_OK)
-          sampler->instanceImage = instanceImage;
+          rb_insert(xst->instanceMap, sampler, instanceImage);
         break;
       }
-      case k_s_dae_texcoord:
-        sampler->texcoordSemantic = ak_xml_attr(xst,
-                                                sampler,
-                                                _s_dae_semantic);
-        break;
       case k_s_dae_wrap_s:
         sampler->wrapS = ak_xml_readenum(xst, dae_fxEnumWrap);
         break;
@@ -144,9 +134,7 @@ dae_fxSampler(AkXmlState * __restrict xst,
         AkColor *color;
         AkResult  ret;
 
-        color = ak_heap_calloc(xst->heap,
-                               sampler,
-                               sizeof(*color));
+        color = ak_heap_calloc(xst->heap, sampler, sizeof(*color));
         ret   = dae_color(xst, color, true, false, color);
 
         if (ret == AK_OK)

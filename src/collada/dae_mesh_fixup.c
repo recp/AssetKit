@@ -40,7 +40,7 @@ dae_mesh_fixup(AkMesh * mesh) {
       ak_meshGenNormals(mesh);
 
   edith->skipFixIndices = false;
-  ak_meshFixIndices(heap, mesh);
+  ak_meshFixIndices(mesh);
 
   ak_meshEndEdit(mesh);
 

@@ -45,8 +45,7 @@ typedef struct AkSampler {
   const char     *uniformName;
   const char     *coordInputName;
   AkColor        *borderColor;
-  const char     *texcoordSemantic;
-  AkInstanceBase *instanceImage;
+//  AkInstanceBase *instanceImage;
   AkTree         *extra;
   const char     *name;
 
@@ -78,9 +77,9 @@ typedef struct AkTextureRef {
   const char       *coordInputName;
   int               slot;
   
-  /* TODO: WILL BE DELETED */
-  const char       *texcoord;
-  void             *extra;
+//  /* TODO: WILL BE DELETED */
+//  const char       *texcoord;
+//  void             *extra;
 } AkTextureRef;
 
 #endif /* ak_texture_h */

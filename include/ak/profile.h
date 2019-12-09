@@ -19,21 +19,13 @@ struct AkEffect;
 typedef enum AkProfileType {
   AK_PROFILE_TYPE_UNKOWN =-1,
   AK_PROFILE_TYPE_COMMON = 0,
-  AK_PROFILE_TYPE_CG     = 1,
-  AK_PROFILE_TYPE_GLES   = 2,
-  AK_PROFILE_TYPE_GLES2  = 3,
-  AK_PROFILE_TYPE_GLSL   = 4,
-  AK_PROFILE_TYPE_BRIDGE = 5,
-
   AK_PROFILE_TYPE_GLTF   = 6
 } AkProfileType;
 
 typedef struct AkTechniqueFx {
   /* const char * id; */
   /* const char * sid; */
-  AkAnnotate           *annotate;
   AkTechniqueFxCommon  *common;
-  AkPass               *pass;
   AkTree               *extra;
   struct AkTechniqueFx *next;
 } AkTechniqueFx;
@@ -51,55 +43,18 @@ typedef struct AkTechniqueHint {
   AkProfileType           profileType;
 } AkTechniqueHint;
 
+struct AkNewParam;
+
 typedef struct AkProfile {
   /* const char * id; */
   AkProfileType     type;
-  AkNewParam       *newparam;
+  struct AkNewParam       *newparam;
   AkTechniqueFx    *technique;
   AkTree           *extra;
   struct AkProfile *next;
 } AkProfile;
 
 typedef AkProfile AkProfileCommon;
-
-typedef struct AkProfileCG {
-  AkProfile base;
-
-  AkCode     * code;
-  AkInclude  * include;
-  const char * platform;
-} AkProfileCG;
-
-typedef struct AkProfileGLES {
-  AkProfile base;
-
-  const char * platform;
-} AkProfileGLES;
-
-typedef struct AkProfileGLES2 {
-  AkProfile base;
-
-  AkCode     * code;
-  AkInclude  * include;
-  const char * language;
-  const char * platforms;
-} AkProfileGLES2;
-
-typedef struct AkProfileGLSL {
-  AkProfile base;
-
-  AkCode     * code;
-  AkInclude  * include;
-  const char * platform;
-} AkProfileGLSL;
-
-typedef struct AkProfileBridge {
-  AkProfile base;
-
-  const char * platform;
-  const char * url;
-} AkProfileBridge;
-
 typedef AkProfile AkProfileGLTF;
 
 AkProfile*

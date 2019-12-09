@@ -35,16 +35,16 @@ dae_edges(AkXmlState * __restrict xst,
 
     if (ak_xml_eqelm(xst, _s_dae_input)) {
       AkInput *input;
+      AkURL   *url;
+
       input = ak_heap_calloc(xst->heap,
                              edges,
                              sizeof(*input));
 
       input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
-      ak_xml_attr_url(xst,
-                      _s_dae_source,
-                      input,
-                      &input->source);
+      url = ak_xmlAttrGetURL(xst, _s_dae_source, input);
+      rb_insert(xst->inputmap, input, url);
 
       if (!input->semanticRaw)
         ak_free(input);
@@ -126,16 +126,16 @@ dae_wires(AkXmlState * __restrict xst,
 
     if (ak_xml_eqelm(xst, _s_dae_input)) {
       AkInput *input;
+      AkURL   *url;
+
       input = ak_heap_calloc(xst->heap,
                              wires,
                              sizeof(*input));
 
       input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
-      ak_xml_attr_url(xst,
-                      _s_dae_source,
-                      input,
-                      &input->source);
+      url = ak_xmlAttrGetURL(xst, _s_dae_source, input);
+      rb_insert(xst->inputmap, input, url);
 
       if (!input->semanticRaw)
         ak_free(input);
@@ -234,16 +234,16 @@ dae_faces(AkXmlState * __restrict xst,
 
     if (ak_xml_eqelm(xst, _s_dae_input)) {
       AkInput *input;
+      AkURL   *url;
+
       input = ak_heap_calloc(xst->heap,
                              faces,
                              sizeof(*input));
 
       input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
-      ak_xml_attr_url(xst,
-                      _s_dae_source,
-                      input,
-                      &input->source);
+      url = ak_xmlAttrGetURL(xst, _s_dae_source, input);
+      rb_insert(xst->inputmap, input, url);
 
       if (!input->semanticRaw)
         ak_free(input);
@@ -342,16 +342,16 @@ dae_pcurves(AkXmlState * __restrict xst,
 
     if (ak_xml_eqelm(xst, _s_dae_input)) {
       AkInput *input;
+      AkURL   *url;
+
       input = ak_heap_calloc(xst->heap,
                              pcurves,
                              sizeof(*input));
 
       input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
-      ak_xml_attr_url(xst,
-                      _s_dae_source,
-                      input,
-                      &input->source);
+      url = ak_xmlAttrGetURL(xst, _s_dae_source, input);
+      rb_insert(xst->inputmap, input, url);
 
       if (!input->semanticRaw)
         ak_free(input);
@@ -450,16 +450,16 @@ dae_shells(AkXmlState * __restrict xst,
 
     if (ak_xml_eqelm(xst, _s_dae_input)) {
       AkInput *input;
+      AkURL   *url;
+
       input = ak_heap_calloc(xst->heap,
                              shells,
                              sizeof(*input));
 
       input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
-
-      ak_xml_attr_url(xst,
-                      _s_dae_source,
-                      input,
-                      &input->source);
+      
+      url = ak_xmlAttrGetURL(xst, _s_dae_source, input);
+      rb_insert(xst->inputmap, input, url);
 
       if (!input->semanticRaw)
         ak_free(input);
@@ -558,16 +558,16 @@ dae_solids(AkXmlState * __restrict xst,
 
     if (ak_xml_eqelm(xst, _s_dae_input)) {
       AkInput *input;
+      AkURL   *url;
+
       input = ak_heap_calloc(xst->heap,
                              solids,
                              sizeof(*input));
 
       input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
 
-      ak_xml_attr_url(xst,
-                      _s_dae_source,
-                      input,
-                      &input->source);
+      url = ak_xmlAttrGetURL(xst, _s_dae_source, input);
+      rb_insert(xst->inputmap, input, url);
 
       if (!input->semanticRaw)
         ak_free(input);

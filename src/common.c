@@ -21,18 +21,11 @@ ak_enumpair_cmp2(const void * a, const void * b) {
 }
 
 int _assetkit_hide
-ak_enumpair_json_key_cmp(const void * a, const void * b) {
-  return strncmp(((const json_t *)a)->key,
-                 ((const ak_enumpair *)b)->key,
-                 ((const json_t *)a)->keySize);
-}
-
-int _assetkit_hide
 ak_enumpair_json_val_cmp(const void * a, const void * b) {
   const char *s;
   
   if (!(s = json_string(a)))
     return -1;
 
-  return strncmp(s, ((const ak_enumpair *)b)->key, ((json_t *)a)->valSize);
+  return strncmp(s, ((const ak_enumpair *)b)->key, ((json_t *)a)->valsize);
 }

@@ -8,7 +8,6 @@
 #include "../common.h"
 #include "../memory_common.h"
 #include "../skin/skin_fix.h"
-#include "mesh_util.h"
 #include "mesh_edit_common.h"
 
 const char*

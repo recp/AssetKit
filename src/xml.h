@@ -33,8 +33,12 @@ typedef AK_ALIGN(16) struct AkXmlState {
   AkURLQueue      *urlQueue;
   FListItem       *accessors;
   FListItem       *instCtlrs;
+  FListItem       *inputs;
   FListItem       *toRadiansSampelers;
   RBTree          *meshInfo;
+  RBTree          *inputmap;
+  RBTree          *texmap;
+  RBTree          *instanceMap;
   AkCOLLADAVersion version;
   int              nodeType;
   int              nodeRet;
@@ -159,11 +163,10 @@ void
 ak_xml_url_add(AkXmlState * __restrict xst,
                AkURL      * url);
 
-void
-ak_xml_attr_url2(AkXmlState * __restrict xst,
-                 const char * attrName,
-                 void       * memparent,
-                 AkURL      * url);
+AkURL*
+ak_xmlAttrGetURL(AkXmlState * __restrict xst,
+                 const char * __restrict attrName,
+                 void       * __restrict memparent);
 
 void
 ak_xml_readid(AkXmlState * __restrict xst,

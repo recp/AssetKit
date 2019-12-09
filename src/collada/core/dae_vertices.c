@@ -40,10 +40,12 @@ dae_vertices(AkXmlState * __restrict xst,
       if (!input->semanticRaw) {
         ak_free(input);
       } else {
+        AkURL *url;
         input->semantic = dae_enumInputSemantic(input->semanticRaw);
 
-        ak_xml_attr_url2(xst, _s_dae_source, input, &input->source);
-        
+        url = ak_xmlAttrGetURL(xst, _s_dae_source, input);
+        rb_insert(xst->inputmap, input, url);
+
         if (last_input)
           last_input->next = input;
         else

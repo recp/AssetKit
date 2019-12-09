@@ -89,7 +89,9 @@ dae_morph(AkXmlState * __restrict xst,
           if (!input->semanticRaw)
             ak_free(input);
           else {
+            AkURL *url;
             AkEnum inputSemantic;
+
             inputSemantic = dae_enumInputSemantic(input->semanticRaw);
 
             if (inputSemantic < 0)
@@ -97,7 +99,8 @@ dae_morph(AkXmlState * __restrict xst,
 
             input->semantic = inputSemantic;
 
-            ak_xml_attr_url(xst, _s_dae_source, input, &input->source);
+            url = ak_xmlAttrGetURL(xst, _s_dae_source, input);
+            rb_insert(xst->inputmap, input, url);
 
             if (last_input)
               last_input->next = input;

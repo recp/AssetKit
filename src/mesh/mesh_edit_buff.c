@@ -7,7 +7,6 @@
 
 #include "../common.h"
 #include "../memory_common.h"
-#include "mesh_util.h"
 #include "../accessor.h"
 #include "../id.h"
 
@@ -90,7 +89,6 @@ ak_meshReserveBufferForInput(AkMesh   * __restrict mesh,
   AkMeshEditHelper   *edith;
   AkSourceEditHelper *srch;
   AkSourceBuffState  *buffstate;
-  AkSource           *srci;
   AkAccessor         *acci, *newacc;
   AkBuffer           *buffi;
   void               *buffid;
@@ -101,9 +99,8 @@ ak_meshReserveBufferForInput(AkMesh   * __restrict mesh,
   edith = mesh->edith;
   assert(edith && ak_mesh_edit_assert1);
 
-  if (!(srci = ak_getObjectByUrl(&input->source))
-      || !(acci = srci->tcommon)
-      || !(buffi = ak_getObjectByUrl(&acci->source)))
+  if (!(acci = input->accessor)
+      || !(buffi = acci->buffer))
     return;
 
   /* generate new accesor for input */
@@ -118,19 +115,16 @@ ak_meshReserveBufferForInput(AkMesh   * __restrict mesh,
                                    count);
   buffi = buffstate->buff;
 
-  ak_accessor_rebound(heap, newacc, 0);
-
-  newacc->firstBound = 0;
-  newacc->offset     = 0;
-  newacc->stride     = newacc->bound;
+  newacc->byteOffset     = 0;
+  newacc->stride         = newacc->bound;
 
   srch                  = ak_heap_calloc(heap, meshobj, sizeof(*srch));
-  srch->oldsource       = srci;
-  srch->source          = ak_heap_calloc(heap, meshobj, sizeof(*srci));
+  srch->oldsource       = acci;
+  srch->source          = ak_heap_calloc(heap, meshobj, sizeof(*acci));
   srch->source->buffer  = buffi;
-  srch->source->tcommon = newacc;
+  srch->source          = newacc;
 
-  newacc->source.ptr    = buffstate->buff;
+  newacc->buffer        = buffstate->buff;
 
   ak_heap_setpm(newacc, srch->source);
 
@@ -190,12 +184,13 @@ ak_meshMoveBuffers(AkMesh * __restrict mesh) {
     srch  = (AkSourceEditHelper *)mi->data;
     prim  = ak_mem_parent(input);
 
-    ak_url_unref(&input->source);
+    /* TODO */
+    // ak_release(input->accessor);
 
     ak_release(srch->oldsource);
     ak_retain(srch->source);
 
-    input->source.ptr = srch->source;
+    input->accessor = srch->source;
 
     if (input->semantic == AK_INPUT_SEMANTIC_POSITION)
       prim->pos = input;

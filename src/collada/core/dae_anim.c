@@ -142,6 +142,7 @@ dae_animSampler(AkXmlState     * __restrict xst,
       if (!input->semanticRaw)
         ak_free(input);
       else {
+        AkURL *url;
         AkEnum inputSemantic;
 
         inputSemantic = dae_enumInputSemantic(input->semanticRaw);
@@ -160,7 +161,8 @@ dae_animSampler(AkXmlState     * __restrict xst,
 
         last_input = input;
 
-        ak_xml_attr_url(xst, _s_dae_source, input, &input->source);
+        url = ak_xmlAttrGetURL(xst, _s_dae_source, input);
+        rb_insert(xst->inputmap, input, url);
 
         /* check if there are angles, because they are in degress,
            will be converted to radians, we will wait to load whole dae file

@@ -107,10 +107,7 @@ dae_source(AkXmlState * __restrict xst,
         if ((content = ak_xml_rawval(xst))) {
           buffer->length = sizeof(AkFloat) * arrayCount;
           buffer->data   = ak_heap_alloc(xst->heap, buffer, buffer->length);
-          ak_strtomf(&content,
-                     buffer->data,
-                     1,
-                     arrayCount);
+          ak_strtomf(&content, buffer->data, 1, arrayCount);
           xmlFree(content);
         }
 
@@ -128,10 +125,7 @@ dae_source(AkXmlState * __restrict xst,
           buffer->length   = sizeof(AkInt) * arrayCount;
           buffer->reserved = AKT_INT;
           buffer->data     = ak_heap_alloc(xst->heap, buffer, buffer->length);
-          ak_strtomi(&content,
-                     buffer->data,
-                     1,
-                     arrayCount);
+          ak_strtomi(&content, buffer->data, 1, arrayCount);
           xmlFree(content);
         }
         break;
@@ -141,10 +135,7 @@ dae_source(AkXmlState * __restrict xst,
         if ((content = ak_xml_rawval(xst))) {
           buffer->length = sizeof(AkBool) * arrayCount;
           buffer->data   = ak_heap_alloc(xst->heap, buffer, buffer->length);
-          ak_strtomb(&content,
-                     buffer->data,
-                     1,
-                     arrayCount);
+          ak_strtomb(&content, buffer->data, 1, arrayCount);
           xmlFree(content);
         }
         break;

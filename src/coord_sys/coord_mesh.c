@@ -35,21 +35,12 @@ ak_changeCoordSysMesh(AkMesh * __restrict mesh,
       /* TODO: other semantics which are depend on coord sys */
       if (input->semantic == AK_INPUT_SEMANTIC_POSITION
           || input->semantic == AK_INPUT_SEMANTIC_NORMAL) {
-        AkSource *srci;
-
-        /* only current document */
-        if (input->source.doc != doc) {
-          input = input->next;
-          continue;
-        }
-
-        srci = ak_getObjectByUrl(&input->source);
-        if (!srci || !srci->tcommon) {
+        if (!input->accessor) {
           input = input->next;
           continue;
         }
         
-        ak_map_addptr(map, srci);
+        ak_map_addptr(map, input->accessor);
       }
       input = input->next;
     }
@@ -58,13 +49,11 @@ ak_changeCoordSysMesh(AkMesh * __restrict mesh,
 
   mapi = map->root;
   while (mapi) {
-    AkSource   *srci;
     AkAccessor *acci;
     AkBuffer   *buffi;
 
-    srci = ak_getId(mapi);
-    acci = srci->tcommon;
-    buffi = ak_getObjectByUrl(&acci->source);
+    acci  = ak_getId(mapi);
+    buffi = acci->buffer;
     if (!buffi) {
       mapi = mapi->next;
       continue;

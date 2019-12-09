@@ -235,21 +235,23 @@ dae_doc(AkDoc ** __restrict dest,
 
   memset(&xstVal, 0, sizeof(xstVal));
 
-  xstVal.doc      = doc;
-  xstVal.heap     = heap;
-  xstVal.reader   = reader;
-  xstVal.meshInfo = rb_newtree_ptr();
-  xst             = &xstVal;
+  xstVal.doc         = doc;
+  xstVal.heap        = heap;
+  xstVal.reader      = reader;
+  xstVal.meshInfo    = rb_newtree_ptr();
+  xstVal.inputmap    = rb_newtree_ptr();
+  xstVal.texmap      = rb_newtree_ptr();
+  xstVal.instanceMap = rb_newtree_ptr();
+  xst                = &xstVal;
+
+  xstVal.texmap->userData = xst;
 
   /* begin parse, get COLLADA element */
   ak_xml_readnext(xst);
 
   if (daeMapLen == 0) {
     daeMapLen = AK_ARRAY_LEN(daeMap);
-    qsort(daeMap,
-          daeMapLen,
-          sizeof(daeMap[0]),
-          ak_enumpair_cmp);
+    qsort(daeMap, daeMapLen, sizeof(daeMap[0]), ak_enumpair_cmp);
   }
 
   /* get version info */
