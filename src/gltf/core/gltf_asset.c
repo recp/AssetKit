@@ -56,6 +56,4 @@ gltf_asset(json_t * __restrict json,
 
   doc->coordSys = inf->coordSys;
   doc->unit     = inf->unit;
-
-  return;
 }
