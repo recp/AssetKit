@@ -28,139 +28,13 @@
 
 #include "../../include/ak/path.h"
 
-#define k_s_dae_asset               1
-#define k_s_dae_lib_cameras         2
-#define k_s_dae_lib_lights          3
-#define k_s_dae_lib_effects         4
-#define k_s_dae_lib_images          5
-#define k_s_dae_lib_materials       6
-#define k_s_dae_lib_geometries      7
-#define k_s_dae_lib_controllers     8
-#define k_s_dae_lib_visual_scenes   9
-#define k_s_dae_lib_nodes           10
-#define k_s_dae_lib_anims           11
-#define k_s_dae_scene               12
-#define k_s_dae_extra               13
-
-static ak_enumpair daeMap[] = {
-  {_s_dae_asset,             k_s_dae_asset},
-  {_s_dae_lib_cameras,       k_s_dae_lib_cameras},
-  {_s_dae_lib_lights,        k_s_dae_lib_lights},
-  {_s_dae_lib_effects,       k_s_dae_lib_effects},
-  {_s_dae_lib_images,        k_s_dae_lib_images},
-  {_s_dae_lib_materials,     k_s_dae_lib_materials},
-  {_s_dae_lib_geometries,    k_s_dae_lib_geometries},
-  {_s_dae_lib_controllers,   k_s_dae_lib_controllers},
-  {_s_dae_lib_visual_scenes, k_s_dae_lib_visual_scenes},
-  {_s_dae_lib_nodes,         k_s_dae_lib_nodes},
-  {_s_dae_lib_animations,    k_s_dae_lib_anims},
-  {_s_dae_scene,             k_s_dae_scene},
-  {_s_dae_extra,             k_s_dae_extra},
-};
-
-static size_t daeMapLen = 0;
-
 static ak_enumpair daeVersions[] = {
   {"1.5.0",             AK_COLLADA_VERSION_150},
   {"1.5",               AK_COLLADA_VERSION_150},
   {"1.4.1",             AK_COLLADA_VERSION_141},
   {"1.4.0",             AK_COLLADA_VERSION_140},
   {"1.4",               AK_COLLADA_VERSION_140},
-};
-
-static size_t daeVersionsLen = 0;
-
-static AkLibChldDesc libchlds[] = {
-  {
-    NULL,
-    _s_dae_lib_cameras,
-    _s_dae_camera,
-    dae_camera,
-    offsetof(AkLib, cameras),
-    offsetof(AkCamera, next),
-    -1
-  },
-  {
-    NULL,
-    _s_dae_lib_lights,
-    _s_dae_light,
-    dae_light,
-    offsetof(AkLib, lights),
-    offsetof(AkLight, next),
-    -1
-  },
-  {
-    NULL,
-    _s_dae_lib_effects,
-    _s_dae_effect,
-    dae_effect,
-    offsetof(AkLib, effects),
-    offsetof(AkEffect, next),
-    -1
-  },
-  {
-    NULL,
-    _s_dae_lib_images,
-    _s_dae_image,
-    dae_fxImage,
-    offsetof(AkLib, libimages),
-    offsetof(AkImage, next),
-    -1
-  },
-  {
-    NULL,
-    _s_dae_lib_materials,
-    _s_dae_material,
-    dae_material,
-    offsetof(AkLib, materials),
-    offsetof(AkMaterial, next),
-    -1
-  },
-  {
-    NULL,
-    _s_dae_lib_geometries,
-    _s_dae_geometry,
-    dae_geometry,
-    offsetof(AkLib, geometries),
-    offsetof(AkGeometry, next),
-    -1
-  },
-  {
-    NULL,
-    _s_dae_lib_controllers,
-    _s_dae_controller,
-    dae_controller,
-    offsetof(AkLib, controllers),
-    offsetof(AkController, next),
-    -1
-  },
-  {
-    NULL,
-    _s_dae_lib_visual_scenes,
-    _s_dae_visual_scene,
-    dae_visualScene,
-    offsetof(AkLib, visualScenes),
-    offsetof(AkVisualScene, next),
-    -1
-  },
-  {
-    NULL,
-    _s_dae_lib_nodes,
-    _s_dae_node,
-    dae_node2,
-    offsetof(AkLib, nodes),
-    offsetof(AkNode, next),
-    offsetof(AkNode, prev)
-  },
-  {
-    NULL,
-    _s_dae_lib_animations,
-    _s_dae_animation,
-    dae_anim,
-    offsetof(AkLib, animations),
-    offsetof(AkAnimation, next),
-    offsetof(AkAnimation, prev)
-  }
+  {NULL, 0}
 };
 
 static
@@ -169,48 +43,35 @@ ak_daeFreeDupl(RBTree *tree, RBNode *node);
 
 AkResult
 _assetkit_hide
-dae_doc(AkDoc ** __restrict dest,
-        const char * __restrict file) {
+dae_doc(AkDoc     ** __restrict dest,
+        const char * __restrict filepath) {
   AkHeap            *heap;
   AkDoc             *doc;
-  const ak_enumpair *foundVersion;
-  char              *versionAttr;
-  AkXmlState         xstVal, *xst;
-  AkXmlElmState      xest;
+  const xml_doc_t   *xdoc;
+  xml_t             *xml;
+  AkXmlState         dstVal, *dst;
+  xml_attr_t        *versionAttr;
+  void              *xmlString;
+  size_t             xmlSize;
+  AkResult           ret;
 
-  xmlTextReaderPtr   reader;
-  int                xmlReaderFlags;
-  int                i, libchldsCount;
+  if ((ret = ak_readfile(filepath, "rb", &xmlString, &xmlSize)) != AK_OK)
+    return ret;
 
-  /*
-   * this initialize the library and check potential ABI mismatches
-   * between the version it was compiled for and the actual shared
-   * library used.
-   */
-  LIBXML_TEST_VERSION
-
-  xmlReaderFlags = XML_PARSE_NOBLANKS
-  |XML_PARSE_NOCDATA
-  |XML_PARSE_NOXINCNODE
-  |XML_PARSE_NOBASEFIX
-#ifndef DEBUG
-  |XML_PARSE_NOERROR
-  |XML_PARSE_NOWARNING
-#endif
-  ;
-
-  reader = xmlReaderForFile(file, NULL, xmlReaderFlags);
-  if (!reader) {
-    fprintf(stderr, "assetkit: Unable to open %s\n", file);
+  xdoc = xml_parse(xmlString, true, false);
+  if (!xdoc || !(xml = xdoc->root)) {
+    if (xdoc)
+      free((void *)xdoc);
     return AK_ERR;
   }
 
+  ret  = AK_OK;
   heap = ak_heap_new(NULL, NULL, NULL);
   doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
 
   doc->inf            = ak_heap_calloc(heap, doc, sizeof(*doc->inf));
-  doc->inf->name      = file;
-  doc->inf->dir       = ak_path_dir(heap, doc, file);
+  doc->inf->name      = filepath;
+  doc->inf->dir       = ak_path_dir(heap, doc, filepath);
   doc->inf->flipImage = true;
   doc->inf->ftype     = AK_FILE_TYPE_COLLADA;
 
@@ -224,118 +85,53 @@ dae_doc(AkDoc ** __restrict dest,
   ak_heap_setdata(heap, doc);
   ak_id_newheap(heap);
 
-  /* instead of keeping version as string we keep enum/int to fast-comparing */
-  if (daeVersionsLen == 0) {
-    daeVersionsLen = AK_ARRAY_LEN(daeVersions);
-    qsort(daeVersions,
-          daeVersionsLen,
-          sizeof(daeVersions[0]),
-          ak_enumpair_cmp);
-  }
+  memset(&dstVal, 0, sizeof(dstVal));
 
-  memset(&xstVal, 0, sizeof(xstVal));
+  dstVal.doc         = doc;
+  dstVal.heap        = heap;
+  dstVal.meshInfo    = rb_newtree_ptr();
+  dstVal.inputmap    = rb_newtree_ptr();
+  dstVal.texmap      = rb_newtree_ptr();
+  dstVal.instanceMap = rb_newtree_ptr();
+  dst                = &dstVal;
 
-  xstVal.doc         = doc;
-  xstVal.heap        = heap;
-  xstVal.reader      = reader;
-  xstVal.meshInfo    = rb_newtree_ptr();
-  xstVal.inputmap    = rb_newtree_ptr();
-  xstVal.texmap      = rb_newtree_ptr();
-  xstVal.instanceMap = rb_newtree_ptr();
-  xst                = &xstVal;
+  dstVal.texmap->userData = dst;
 
-  xstVal.texmap->userData = xst;
-
-  /* begin parse, get COLLADA element */
-  ak_xml_readnext(xst);
-
-  if (daeMapLen == 0) {
-    daeMapLen = AK_ARRAY_LEN(daeMap);
-    qsort(daeMap, daeMapLen, sizeof(daeMap[0]), ak_enumpair_cmp);
-  }
-
+  
   /* get version info */
-  if ((versionAttr = (char *)ak_xml_attr(xst, NULL, _s_dae_version))) {
-    foundVersion = bsearch(versionAttr,
-                           daeVersions,
-                           daeVersionsLen,
-                           sizeof(daeVersions[0]),
-                           ak_enumpair_cmp2);
-    if (!foundVersion)
-      xst->version = AK_COLLADA_VERSION_141;
-    else
-      xst->version = foundVersion->val;
-    ak_free(versionAttr);
-  } else { /* because it is current and most used version */
-    xst->version = AK_COLLADA_VERSION_141;
-  }
-
-  /* unset lastItem from static structs */
-  libchldsCount = AK_ARRAY_LEN(libchlds);
-  for (i = 0; i < libchldsCount; i++)
-    libchlds[i].lastItem = NULL;
-
-  ak_xest_init(xest, _s_dae_collada)
-
-  do {
-    const ak_enumpair *found;
-
-    if (ak_xml_begin(&xest))
-      break;
-
-    found = bsearch(xst->nodeName,
-                    daeMap,
-                    daeMapLen,
-                    sizeof(daeMap[0]),
-                    ak_enumpair_cmp2);
-    if (!found) {
-      ak_xml_skipelm(xst);
-      goto skip;
-    }
-
-    switch (found->val) {
-      case k_s_dae_asset: {
-        AkAssetInf *assetInf;
-        AkResult    ret;
-
-        assetInf = &doc->inf->base;
-        ret = dae_assetInf(xst, doc, assetInf);
-        if (ret == AK_OK) {
-          doc->coordSys = assetInf->coordSys;
-          doc->unit     = assetInf->unit;
-        }
-
+  /* because it is current and most used version */
+  dst->version = AK_COLLADA_VERSION_141;
+  if ((versionAttr = xml_attr(xml, _s_dae_version))) {
+    ak_enumpair *v;
+    
+    for (v = daeVersions; v->key; v++) {
+      if (!strncmp(v->key, versionAttr->val, versionAttr->valsize)) {
+        dst->version = v->val;
         break;
       }
-      case k_s_dae_scene:
-        dae_scene(xst, doc, &doc->scene);
-        break;
-      case k_s_dae_extra: {
-        dae_extra(xst, doc, &doc->extra);
-        break;
-      }
-      default:
-        dae_lib(xst, &libchlds[found->val - 2]);
-        break;
     }
-
-  skip:
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
-
-  xmlFreeTextReader(reader);
-
-  if (xst->nodeRet == -1) {
-    fprintf(stderr, "%s : failed to parse\n", file);
-    return AK_ERR;
   }
 
+  xml_objmap_t daemap[] = {
+    XML_OBJMAP_FN(_s_dae_asset,       dae_asset,        dst),
+    XML_OBJMAP_FN(_s_dae_lib_cameras,       dae_asset,        dst),
+    XML_OBJMAP_FN(_s_dae_lib_lights,        dae_asset,     dst),
+    XML_OBJMAP_FN(_s_dae_lib_effects,       dae_asset, dst),
+    XML_OBJMAP_FN(_s_dae_lib_images,        dae_asset,   dst),
+    XML_OBJMAP_FN(_s_dae_lib_materials,     dae_asset,      dst),
+    XML_OBJMAP_FN(_s_dae_lib_geometries,    dae_asset, dst),
+    XML_OBJMAP_FN(_s_dae_lib_controllers,   dae_asset,    dst),
+    XML_OBJMAP_FN(_s_dae_lib_visual_scenes, dae_asset,   dst),
+    XML_OBJMAP_FN(_s_dae_lib_nodes,         dae_asset,      dst),
+    XML_OBJMAP_FN(_s_dae_lib_animations,    dae_asset,     dst),
+    XML_OBJMAP_FN(_s_dae_scene,    dae_asset,     dst),
+    XML_OBJMAP_FN(_s_dae_extra,    dae_asset,     dst)
+  };
+  
   *dest = doc;
 
   /* post-parse operations */
-  dae_postscript(xst);
+  dae_postscript(dst);
 
   /* TODO: memory leak, free this RBTree*/
   /* rb_destroy(doc->reserved); */

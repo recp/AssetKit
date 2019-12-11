@@ -12,6 +12,29 @@
 #include "../include/ak/url.h"
 #include <libxml/xmlreader.h>
 #include <ds/forward-list-sep.h>
+#include <xml/xml.h>
+
+AK_INLINE
+char *
+xml_strdup(const xml_t * __restrict xobject,
+           AkHeap      * __restrict heap,
+           void        * __restrict parent) {
+  return ak_heap_strndup(heap,
+                         parent,
+                         xml_string(xobject),
+                         xobject->valsize);
+}
+
+AK_INLINE
+char *
+xml_attr_strdup(const xml_attr_t * __restrict attr,
+                AkHeap           * __restrict heap,
+                void             * __restrict parent) {
+  return ak_heap_strndup(heap,
+                         parent,
+                         attr->val,
+                         attr->valsize);
+}
 
 typedef enum AkCOLLADAVersion {
   AK_COLLADA_VERSION_150 = 150,
@@ -50,6 +73,22 @@ typedef struct AkXmlElmState {
   const char * __restrict name;
   int                     depth;
 } AkXmlElmState;
+
+typedef AK_ALIGN(16) struct DAEState {
+  AkHeap          *heap;
+  void            *jobs14;
+  AkDoc           *doc;
+  AkURLQueue      *urlQueue;
+  FListItem       *accessors;
+  FListItem       *instCtlrs;
+  FListItem       *inputs;
+  FListItem       *toRadiansSampelers;
+  RBTree          *meshInfo;
+  RBTree          *inputmap;
+  RBTree          *texmap;
+  RBTree          *instanceMap;
+  AkCOLLADAVersion version;
+} DAEState;
 
 #define ak_xest_init(XEST, NAME)                                              \
   XEST.xst   = xst;                                                           \

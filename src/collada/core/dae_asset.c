@@ -8,112 +8,104 @@
 #include "dae_asset.h"
 #include "../../memory_common.h"
 
-AkResult _assetkit_hide
-dae_assetInf(AkXmlState * __restrict xst,
-             void       * __restrict memParent,
-             AkAssetInf * __restrict ainf) {
-  AkAssetInf   **extp;
-  AkXmlElmState xest;
+_assetkit_hide
+void
+dae_asset(xml_t * __restrict xml,
+          void  * __restrict userdata) {
+  DAEState      *dst;
+  AkAssetInf    *inf;
+  AkDoc         *doc;
+  AkHeap        *heap;
+  xml_attr_t    *attr;
+  AkContributor *contrib;
+  xml_t         *xcontrib;
+  const char    *val;
 
-  if (!ainf) {
-    ainf = ak_heap_calloc(xst->heap,
-                          memParent,
-                          sizeof(*ainf));
+  dst  = userdata;
+  heap = dst->heap;
+  doc  = dst->doc;
+  inf  = &doc->inf->base;
+
+  /* DAE default definitions */
+  
+  /* CoordSys is Y_UP */
+  inf->coordSys = AK_YUP;
+  
+  /* Unit is 1 meter */
+  inf->unit        = ak_heap_calloc(heap, inf, sizeof(*inf->unit));
+  inf->unit->dist  = 1.0;
+  inf->unit->name  = ak_heap_strdup(heap, inf->unit, _s_dae_meter);
+
+  xml = xml->val;
+  while (xml) {
+    if (xml_tag_eq(xml, _s_dae_contributor)) {
+      contrib  = ak_heap_calloc(heap, inf, sizeof(*contrib));
+      xcontrib = xml->val;
+      while (xcontrib) {
+        if (xml_tag_eq(xcontrib, _s_dae_author))
+          contrib->author = xml_strdup(xml, heap, inf);
+        else if (xml_tag_eq(xcontrib, _s_dae_author_email))
+          contrib->authorEmail = xml_strdup(xml, heap, inf);
+        else if (xml_tag_eq(xcontrib, _s_dae_author_website))
+          contrib->authorWebsite = xml_strdup(xml, heap, inf);
+        else if (xml_tag_eq(xcontrib, _s_dae_authoring_tool))
+          contrib->authoringTool = xml_strdup(xml, heap, inf);
+        else if (xml_tag_eq(xcontrib, _s_dae_comments))
+          contrib->comments = xml_strdup(xml, heap, inf);
+        else if (xml_tag_eq(xcontrib, _s_dae_copyright))
+          contrib->copyright = xml_strdup(xml, heap, inf);
+        else if (xml_tag_eq(xcontrib, _s_dae_source_data))
+          contrib->sourceData = xml_strdup(xml, heap, inf);
+        xcontrib = xcontrib->next;
+      }
+    
+      inf->contributor = contrib;
+    } else if (xml_tag_eq(xml, _s_dae_created)) {
+      if ((val = xml_string(xml))) {
+        memset(&xml[xml->valsize], '\0', xml->valsize);
+        inf->created = ak_parse_date(val, NULL);
+      }
+    } else if (xml_tag_eq(xml, _s_dae_modified)) {
+      if ((val = xml_string(xml))) {
+        memset(&xml[xml->valsize], '\0', xml->valsize);
+        inf->modified = ak_parse_date(val, NULL);
+      }
+    } else if (xml_tag_eq(xml, _s_dae_keywords)) {
+      inf->keywords = xml_strdup(xml, heap, inf);
+    } else if (xml_tag_eq(xml, _s_dae_revision)) {
+      inf->revision = xml_strdup(xml, heap, inf);
+    } else if (xml_tag_eq(xml, _s_dae_subject)) {
+      inf->subject = xml_strdup(xml, heap, inf);
+    } else if (xml_tag_eq(xml, _s_dae_title)) {
+      inf->title = xml_strdup(xml, heap, inf);
+    } else if (xml_tag_eq(xml, _s_dae_unit)) {
+      if ((attr = xml_attr(xml, _s_dae_name)))
+        inf->unit->name = xml_attr_strdup(attr, heap, inf->unit);
+
+      if ((attr = xml_attr(xml, _s_dae_meter))) {
+        memset((char *)attr->val +attr->valsize, '\0', 1);
+        inf->unit->dist = xmla_double(attr, 0.0);
+      }
+    } else if (xml_tag_eq(xml, _s_dae_axis)) {
+      if ((val = xml->val)) {
+        if (strcasecmp(val, _s_dae_z_up) == 0)
+          inf->coordSys = AK_ZUP;
+        else if (strcasecmp(val, _s_dae_x_up) == 0)
+          inf->coordSys = AK_XUP;
+        else
+          inf->coordSys = AK_YUP;
+      }
+    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+      /*  dae_extra(xst, ainf, &ainf->extra); */
+    }
+
+    xml = xml->next;
   }
 
-  ak_xest_init(xest, _s_dae_asset)
+  *(AkAssetInf **)ak_heap_ext_add(heap,
+                                  ak__alignof(doc),
+                                  AK_HEAP_NODE_FLAGS_INF) = inf;
 
-  do {
-    if (ak_xml_begin(&xest))
-      break;
-
-    if (ak_xml_eqelm(xst, _s_dae_contributor)) {
-      AkContributor *contrib;
-      AkXmlElmState  xest2;
-
-      contrib = ak_heap_calloc(xst->heap, ainf, sizeof(*contrib));
-
-      ak_xest_init(xest2, _s_dae_contributor)
-
-      /* contributor */
-      do {
-        if (ak_xml_begin(&xest2))
-          break;
-
-        if (ak_xml_eqelm(xst, _s_dae_author))
-          contrib->author = ak_xml_val(xst, ainf);
-        else if (ak_xml_eqelm(xst, _s_dae_author_email))
-          contrib->authorEmail = ak_xml_val(xst, ainf);
-        else if (ak_xml_eqelm(xst, _s_dae_author_website))
-          contrib->authorWebsite = ak_xml_val(xst, ainf);
-        else if (ak_xml_eqelm(xst, _s_dae_authoring_tool))
-          contrib->authoringTool = ak_xml_val(xst, ainf);
-        else if (ak_xml_eqelm(xst, _s_dae_comments))
-          contrib->comments = ak_xml_val(xst, ainf);
-        else if (ak_xml_eqelm(xst, _s_dae_copyright))
-          contrib->copyright = ak_xml_val(xst, ainf);
-        else if (ak_xml_eqelm(xst, _s_dae_source_data))
-          contrib->sourceData = ak_xml_val(xst, ainf);
-        else
-          ak_xml_skipelm(xst);
-
-        /* end element */
-        if (ak_xml_end(&xest2))
-          break;
-      } while (xst->nodeRet);
-
-      ainf->contributor = contrib;
-    } else if (ak_xml_eqelm(xst, _s_dae_created)) {
-      const char * val;
-      val = ak_xml_rawcval(xst);
-      ainf->created = ak_parse_date(val, NULL);
-    } else if (ak_xml_eqelm(xst, _s_dae_modified)) {
-      const char * val;
-      val = ak_xml_rawcval(xst);
-      ainf->modified = ak_parse_date(val, NULL);
-    } else if (ak_xml_eqelm(xst, _s_dae_keywords)) {
-      ainf->keywords = ak_xml_val(xst, ainf);
-    } else if (ak_xml_eqelm(xst, _s_dae_revision)) {
-      ainf->revision = ak_xml_val(xst, ainf);
-    } else if (ak_xml_eqelm(xst, _s_dae_subject)) {
-      ainf->subject = ak_xml_val(xst, ainf);
-    } else if (ak_xml_eqelm(xst, _s_dae_title)) {
-      ainf->title = ak_xml_val(xst, ainf);
-    } else if (ak_xml_eqelm(xst, _s_dae_unit)) {
-      AkUnit * unit;
-      unit = ak_heap_calloc(xst->heap, ainf, sizeof(*unit));
-
-      unit->name = ak_xml_attr(xst, ainf, _s_dae_name);
-      unit->dist = ak_xml_attrd(xst, _s_dae_meter);
-
-      ainf->unit = unit;
-    } else if (ak_xml_eqelm(xst, _s_dae_up_axis)) {
-      const char *val;
-
-      val = ak_xml_rawcval(xst);
-      if (val) {
-        if (strcasecmp(val, _s_dae_z_up) == 0)
-          ainf->coordSys = AK_ZUP;
-        else if (strcasecmp(val, _s_dae_x_up) == 0)
-          ainf->coordSys = AK_XUP;
-        else
-          ainf->coordSys = AK_YUP;
-      }
-    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      dae_extra(xst, ainf, &ainf->extra);
-    } else {
-      ak_xml_skipelm(xst);
-    }
-    
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
-
-  extp = ak_heap_ext_add(xst->heap,
-                         ak__alignof(memParent),
-                         AK_HEAP_NODE_FLAGS_INF);
-  *extp = ainf;
-
-  return AK_OK;
+  doc->coordSys = inf->coordSys;
+  doc->unit     = inf->unit;
 }

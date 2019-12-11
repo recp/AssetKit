@@ -18,6 +18,7 @@
 
 #include <libxml/xmlreader.h>
 #include <string.h>
+#include <xml/xml.h>
 
 #ifndef AK_INPUT_SEMANTIC_VERTEX 
 #  define AK_INPUT_SEMANTIC_VERTEX 100001
