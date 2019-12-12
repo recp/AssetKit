@@ -96,7 +96,7 @@ dae_asset(xml_t * __restrict xml,
           inf->coordSys = AK_YUP;
       }
     } else if (xml_tag_eq(xml, _s_dae_extra)) {
-      /*  dae_extra(xst, ainf, &ainf->extra); */
+      inf->extra = tree_fromxml(heap, inf, xml);
     }
 
     xml = xml->next;

@@ -42,10 +42,4 @@ typedef struct AkNewParam {
   AkValue           *val;
 } AkNewParam;
 
-_assetkit_hide
-void
-dae_extra(AkXmlState * __restrict xst,
-          void       * __restrict memParent,
-          AkTree    ** __restrict dest);
-
 #endif /* __libassetkit__dae_common__h_ */

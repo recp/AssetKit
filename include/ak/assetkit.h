@@ -149,25 +149,25 @@ typedef struct AkValue {
 } AkValue;
 
 typedef struct AkTreeNodeAttr {
-  const char * name;
-  char       * val;
-
-  struct AkTreeNodeAttr * next;
-  struct AkTreeNodeAttr * prev;
+  const char            *name;
+  char                  *val;
+  struct AkTreeNodeAttr *next;
+  struct AkTreeNodeAttr *prev;
 } AkTreeNodeAttr;
 
 typedef struct AkTreeNode {
-  const char    * name;
-  char          * val;
-  unsigned long   attrc;
-  unsigned long   chldc;
+  AkTreeNodeAttr    *attribs;
+  
+  const char        *name;
+  char              *val;
 
-  AkTreeNodeAttr * attr;
-
-  struct AkTreeNode * chld;
-  struct AkTreeNode * parent;
-  struct AkTreeNode * next;
-  struct AkTreeNode * prev;
+  struct AkTreeNode *chld;
+  struct AkTreeNode *parent;
+  struct AkTreeNode *next;
+  struct AkTreeNode *prev;
+  
+  unsigned long      attrc;
+  unsigned long      chldc;
 } AkTreeNode;
 
 typedef struct AkTreeNode AkTree;
