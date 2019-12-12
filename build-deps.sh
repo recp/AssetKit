@@ -19,22 +19,6 @@ fi
 
 # general deps: gcc make autoconf automake libtool cmake
 
-# libxml2
-# deps:
-#   pkg-config zlib1g-dev node curl libpython-dev
-cd ./lib/libxml2
-
-# Fix libtoolize for macos
-if [ "$(uname)" = "Darwin" ]; then
-  if ! [ -x "$(command -v libtoolize)" ] && [ -x "$(command -v $LIBTOOLIZE)" ]; then
-    sed -i -e "s/libtoolize/$LIBTOOLIZE/g" ./autogen.sh
-  fi
-fi
-
-./autogen.sh
-./configure
-make -j8
-
 # jemalloc
 cd ../jemalloc
 sh ./autogen.sh

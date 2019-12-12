@@ -15,7 +15,6 @@ include_directories(
 
         PRIVATE
 
-        ${PROJECT_SOURCE_DIR}/lib/libxml2/include
         ${PROJECT_SOURCE_DIR}/lib/jemalloc/include
         ${PROJECT_SOURCE_DIR}/lib/cglm/include
         ${PROJECT_SOURCE_DIR}/lib/curl/include
@@ -29,11 +28,9 @@ link_directories(
         PRIVATE
 
         ${PROJECT_SOURCE_DIR}/lib/jemalloc/lib
-        ${PROJECT_SOURCE_DIR}/lib/libxml2/.libs
         ${PROJECT_SOURCE_DIR}/lib/curl/lib/.libs
         ${PROJECT_SOURCE_DIR}/lib/libuv/.libs
         ${PROJECT_SOURCE_DIR}/lib/libds/.libs
-        ${PROJECT_SOURCE_DIR}/lib/jansson/src/.libs
 )
 
 add_library(assetkit STATIC

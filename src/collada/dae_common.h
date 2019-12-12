@@ -16,7 +16,6 @@
 #include "../tree.h"
 #include "dae_strpool.h"
 
-#include <libxml/xmlreader.h>
 #include <string.h>
 #include <xml/xml.h>
 

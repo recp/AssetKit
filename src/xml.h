@@ -10,7 +10,6 @@
 
 #include "common.h"
 #include "../include/ak/url.h"
-#include <libxml/xmlreader.h>
 #include <ds/forward-list-sep.h>
 #include <xml/xml.h>
 

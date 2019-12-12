@@ -14,7 +14,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#include <libxml/tree.h>
 
 typedef struct {
   const char * fext;

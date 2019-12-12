@@ -9,7 +9,6 @@
 #define __libassetkit__tree__h_
 
 #include "../include/ak/assetkit.h"
-#include <libxml/tree.h>
 
 /**
  * @brief load a tree from xml

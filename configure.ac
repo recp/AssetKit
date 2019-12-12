@@ -17,7 +17,7 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([src/])
 AC_CONFIG_HEADERS([config.h])
 
-CFLAGS="$CFLAGS -I./lib/libxml2/include"
+CFLAGS="$CFLAGS -I./lib/xml/include"
 CFLAGS="$CFLAGS -I./lib/jemalloc/include"
 CFLAGS="$CFLAGS -I./lib/cglm/include"
 CFLAGS="$CFLAGS -I./lib/curl/include"
@@ -27,7 +27,6 @@ CFLAGS="$CFLAGS -I./lib/stb"
 CFLAGS="$CFLAGS -I./lib/json/include"
 
 LDFLAGS="$LDFLAGS -L./lib/jemalloc/lib"
-LDFLAGS="$LDFLAGS -L./lib/libxml2/.libs"
 LDFLAGS="$LDFLAGS -L./lib/curl/lib/.libs"
 LDFLAGS="$LDFLAGS -L./lib/libuv/.libs"
 LDFLAGS="$LDFLAGS -L./lib/libds/.libs"
