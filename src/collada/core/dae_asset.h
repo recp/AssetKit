@@ -10,11 +10,6 @@
 
 #include "../dae_common.h"
 
-AkResult _assetkit_hide
-dae_assetInf(AkXmlState * __restrict xst,
-             void       * __restrict memParent,
-             AkAssetInf * __restrict dest);
-
 _assetkit_hide
 void
 dae_asset(xml_t * __restrict xml,

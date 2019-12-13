@@ -80,7 +80,7 @@ dae_asset(xml_t * __restrict xml,
       inf->title = xml_strdup(xml, heap, inf);
     } else if (xml_tag_eq(xml, _s_dae_unit)) {
       if ((attr = xml_attr(xml, _s_dae_name)))
-        inf->unit->name = xml_attr_strdup(attr, heap, inf->unit);
+        inf->unit->name = xmla_strdup(attr, heap, inf->unit);
 
       if ((attr = xml_attr(xml, _s_dae_meter))) {
         memset((char *)attr->val +attr->valsize, '\0', 1);

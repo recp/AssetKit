@@ -8,34 +8,16 @@
 #include "dae_technique.h"
 #include "../dae_common.h"
 
-AkResult _assetkit_hide
-dae_technique(AkXmlState * __restrict xst,
-              void * __restrict memParent,
-              AkTechnique ** __restrict dest) {
-
+AkTechnique*
+dae_technique(xml_t  * __restrict xml,
+              AkHeap * __restrict heap,
+              void   * __restrict memparent) {
   AkTechnique *technique;
-  AkTree      *tree;
-  xmlNodePtr   nodePtr;
 
-  technique = ak_heap_calloc(xst->heap,
-                             memParent,
-                             sizeof(*technique));
+  technique          = ak_heap_calloc(heap, memparent, sizeof(*technique));
+  technique->profile = xmla_strdup_by(xml, heap, _s_dae_profile, technique);
+  technique->xmlns   = xmla_strdup_by(xml, heap, _s_dae_xmlns, technique);
+  technique->chld    = tree_fromxml(heap, technique, xml);
 
-  technique->profile = ak_xml_attr(xst, technique, _s_dae_profile);
-  technique->xmlns   = ak_xml_attr(xst, technique, _s_dae_xmlns);
-
-  nodePtr = xmlTextReaderExpand(xst->reader);
-  tree = NULL;
-
-  ak_tree_fromXmlNode(xst->heap, technique, nodePtr, &tree, NULL);
-  technique->chld = tree;
-
-  xst->nodeName = xmlTextReaderConstName(xst->reader);
-  xst->nodeType = xmlTextReaderNodeType(xst->reader);
-  
-  ak_xml_skipelm(xst);
-
-  *dest = technique;
-
-  return AK_OK;
+  return technique;
 }

@@ -10,9 +10,10 @@
 
 #include "../dae_common.h"
 
-AkResult _assetkit_hide
-dae_technique(AkXmlState * __restrict xst,
-              void * __restrict memParent,
-              AkTechnique ** __restrict dest);
+_assetkit_hide
+AkTechnique*
+dae_technique(xml_t  * __restrict xml,
+              AkHeap * __restrict heap,
+              void   * __restrict memparent);
 
 #endif /* __libassetkit__dae_technique__h_ */

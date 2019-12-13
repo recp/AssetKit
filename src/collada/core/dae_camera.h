@@ -10,14 +10,9 @@
 
 #include "../dae_common.h"
 
-AkResult _assetkit_hide
-dae_camera(AkXmlState * __restrict xst,
-           void * __restrict memParent,
-           void ** __restrict  dest);
-
-AkResult _assetkit_hide
-dae_camera_tcommon(AkXmlState    * __restrict xst,
-                   void          * __restrict memParent,
-                   AkProjection ** __restrict dest);
+_assetkit_hide
+void
+dae_cam(xml_t * __restrict xml,
+        void  * __restrict userdata);
 
 #endif /* __libassetkit__dae_camera__h_ */
