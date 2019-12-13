@@ -10,7 +10,6 @@
 #include "utils.h"
 
 #include "xml.h"
-#include <xml/xml.h>
 
 AkTreeNode* _assetkit_hide
 tree_fromxml(AkHeap * __restrict heap,

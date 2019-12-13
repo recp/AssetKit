@@ -1,222 +1,56 @@
 /*
- * Copyright (c), Recep Aslantas.
- *
- * MIT License (MIT), http://opensource.org/licenses/MIT
- * Full license can be found in the LICENSE file
- */
+* Copyright (c), Recep Aslantas.
+*
+* MIT License (MIT), http://opensource.org/licenses/MIT
+* Full license can be found in the LICENSE file
+*/
 
-#ifndef __libassetkit__libxml__h_
-#define __libassetkit__libxml__h_
-
-#include "common.h"
-#include "../include/ak/url.h"
-#include <ds/forward-list-sep.h>
-#include <xml/xml.h>
+#ifndef ak_src_xml_h
+#define ak_src_xml_h
 
 AK_INLINE
 char *
 xml_strdup(const xml_t * __restrict xobject,
            AkHeap      * __restrict heap,
            void        * __restrict parent) {
-  return ak_heap_strndup(heap,
-                         parent,
-                         xml_string(xobject),
-                         xobject->valsize);
+  return ak_heap_strndup(heap, parent, xml_string(xobject), xobject->valsize);
 }
 
 AK_INLINE
 char *
-xml_attr_strdup(const xml_attr_t * __restrict attr,
-                AkHeap           * __restrict heap,
-                void             * __restrict parent) {
-  return ak_heap_strndup(heap,
-                         parent,
-                         attr->val,
-                         attr->valsize);
+xmla_strdup(const xml_attr_t * __restrict attr,
+            AkHeap           * __restrict heap,
+            void             * __restrict parent) {
+  return ak_heap_strndup(heap, parent, attr->val, attr->valsize);
 }
 
-typedef enum AkCOLLADAVersion {
-  AK_COLLADA_VERSION_150 = 150,
-  AK_COLLADA_VERSION_141 = 141,
-  AK_COLLADA_VERSION_140 = 140
-} AkCOLLADAVersion;
-
-typedef struct AkURLQueue {
-  AkURL *url;
-  struct AkURLQueue *next;
-} AkURLQueue;
-
-typedef AK_ALIGN(16) struct AkXmlState {
-  AkHeap          *heap;
-  void            *jobs14;
-  AkDoc           *doc;
-  xmlTextReaderPtr reader;
-  const xmlChar   *nodeName;
-  AkURLQueue      *urlQueue;
-  FListItem       *accessors;
-  FListItem       *instCtlrs;
-  FListItem       *inputs;
-  FListItem       *toRadiansSampelers;
-  RBTree          *meshInfo;
-  RBTree          *inputmap;
-  RBTree          *texmap;
-  RBTree          *instanceMap;
-  AkCOLLADAVersion version;
-  int              nodeType;
-  int              nodeRet;
-  int              nodeDepth;
-} AkXmlState;
-
-typedef struct AkXmlElmState {
-  AkXmlState * __restrict xst;
-  const char * __restrict name;
-  int                     depth;
-} AkXmlElmState;
-
-typedef AK_ALIGN(16) struct DAEState {
-  AkHeap          *heap;
-  void            *jobs14;
-  AkDoc           *doc;
-  AkURLQueue      *urlQueue;
-  FListItem       *accessors;
-  FListItem       *instCtlrs;
-  FListItem       *inputs;
-  FListItem       *toRadiansSampelers;
-  RBTree          *meshInfo;
-  RBTree          *inputmap;
-  RBTree          *texmap;
-  RBTree          *instanceMap;
-  AkCOLLADAVersion version;
-} DAEState;
-
-#define ak_xest_init(XEST, NAME)                                              \
-  XEST.xst   = xst;                                                           \
-  XEST.name  = NAME;                                                          \
-  XEST.depth = xmlTextReaderDepth(xst->reader);
-
-#define _xml_eq(a, b) (xmlStrcasecmp((xmlChar *)a, (xmlChar *)b) == 0)
-
-void
-ak_xml_readnext(AkXmlState * __restrict xst);
-
-bool
-ak_xml_begin(AkXmlElmState * __restrict xest);
-
-bool
-ak_xml_end(AkXmlElmState * __restrict);
-
-void
-ak_xml_skipelm(AkXmlState * __restrict xst);
-
+AK_INLINE
 char *
-ak_xml_val(AkXmlState * __restrict xst,
-           void * __restrict parent);
+xmla_strdup_by(const xml_t * __restrict xobject,
+               AkHeap      * __restrict heap,
+               const char  * __restrict name,
+               void        * __restrict parent) {
+  xml_attr_t *attr;
+  
+  if ((attr = xml_attr(xobject, name))) {
+    ak_heap_strndup(heap, parent, attr->val, attr->valsize);
+  }
 
+  return NULL;
+}
+
+AK_INLINE
 char *
-ak_xml_rawcval(AkXmlState * __restrict xst);
+xmla_setid(void        * __restrict parent,
+           AkHeap      * __restrict heap,
+           const xml_t * __restrict xobject) {
+  xml_attr_t *attr;
+  
+  if ((attr = xml_attr(xobject, name))) {
+    ak_setId(memptr, ak_heap_strndup(heap, parent, attr->val, attr->valsize));
+  }
+  
+  return NULL;
+}
 
-char *
-ak_xml_rawval(AkXmlState * __restrict xst);
-
-bool
-ak_xml_eqelm(AkXmlState * __restrict xst,
-             const char * s);
-
-bool
-ak_xml_eqdecl(AkXmlState * __restrict xst,
-              const xmlChar * s);
-
-const char *
-ak_xml_attr(AkXmlState * __restrict xst,
-            void * __restrict parent,
-            const char * name);
-
-float
-ak_xml_valf(AkXmlState * __restrict xst);
-
-double
-ak_xml_vald(AkXmlState * __restrict xst);
-
-long
-ak_xml_vall(AkXmlState * __restrict xst);
-
-unsigned long
-ak_xml_valul(AkXmlState * __restrict xst);
-
-unsigned long
-ak_xml_valul_def(AkXmlState * __restrict xst,
-                 unsigned long defval);
-
-AkEnum
-ak_xml_readenum(AkXmlState * __restrict xst,
-                AkEnum (*fn)(const char * name));
-
-AkEnum
-ak_xml_readenum_from(const char *text,
-                     AkEnum (*fn)(const char * name));
-
-AkEnum
-ak_xml_attrenum(AkXmlState * __restrict xst,
-                const char * name,
-                AkEnum (*fn)(const char * name));
-
-AkEnum
-ak_xml_attrenum_def(AkXmlState * __restrict xst,
-                    const char * name,
-                    AkEnum (*fn)(const char * name),
-                    AkEnum defval);
-
-float
-ak_xml_attrf(AkXmlState * __restrict xst,
-             const char * name);
-
-double
-ak_xml_attrd(AkXmlState * __restrict xst,
-             const char * name);
-
-int
-ak_xml_attri(AkXmlState * __restrict xst,
-             const char * name);
-
-unsigned int
-ak_xml_attrui(AkXmlState * __restrict xst,
-              const char * name);
-
-uint64_t
-ak_xml_attrui64(AkXmlState * __restrict xst,
-                const char * name);
-
-unsigned int
-ak_xml_attrui_def(AkXmlState * __restrict xst,
-                  const char * name,
-                  unsigned int defval);
-
-void
-ak_xml_attr_url(AkXmlState * __restrict xst,
-                const char * attrName,
-                void  *memparent,
-                AkURL *url);
-
-void
-ak_xml_url_add(AkXmlState * __restrict xst,
-               AkURL      * url);
-
-AkURL*
-ak_xmlAttrGetURL(AkXmlState * __restrict xst,
-                 const char * __restrict attrName,
-                 void       * __restrict memparent);
-
-void
-ak_xml_readid(AkXmlState * __restrict xst,
-              void * __restrict memptr);
-
-void
-ak_xml_readsid(AkXmlState * __restrict xst,
-               void * __restrict memptr);
-
-void
-ak_xml_sid_seta(AkXmlState * __restrict xst,
-                void *memnode,
-                void *memptr);
-
-#endif /* __libassetkit__libxml__h_ */
+#endif /* ak_src_xml_h */
