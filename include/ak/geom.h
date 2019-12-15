@@ -23,9 +23,9 @@ struct FListItem;
 struct AkMaterial;
 
 typedef enum AkGeometryType {
-  AK_GEOMETRY_TYPE_MESH   = 0,
-  AK_GEOMETRY_TYPE_SPLINE = 1,
-  AK_GEOMETRY_TYPE_BREP   = 2
+  AK_GEOMETRY_MESH   = 0,
+  AK_GEOMETRY_SPLINE = 1,
+  AK_GEOMETRY_BREP   = 2
 } AkGeometryType;
 
 typedef enum AkGeometryEditFlags {

@@ -16,11 +16,11 @@ ak_changeCoordSysGeom(AkGeometry * __restrict geom,
 
   primitive = geom->gdata;
   switch ((AkGeometryType)primitive->type) {
-    case AK_GEOMETRY_TYPE_MESH:
+    case AK_GEOMETRY_MESH:
       ak_changeCoordSysMesh(ak_objGet(primitive), newCoordSys);
       break;
-    case AK_GEOMETRY_TYPE_SPLINE: /* TODO: */
-    case AK_GEOMETRY_TYPE_BREP: /* TODO: */
+    case AK_GEOMETRY_SPLINE: /* TODO: */
+    case AK_GEOMETRY_BREP: /* TODO: */
       break;
   }
 }

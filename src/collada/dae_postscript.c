@@ -384,7 +384,7 @@ dae_fixup_ctlr(AkXmlState * __restrict xst) {
         }
 
         switch (geom->gdata->type) {
-          case AK_GEOMETRY_TYPE_MESH: {
+          case AK_GEOMETRY_MESH: {
             AkMesh          *mesh;
             AkDaeMeshInfo   *meshInfo;
             AkMeshPrimitive *prim;

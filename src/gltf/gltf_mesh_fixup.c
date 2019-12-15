@@ -25,7 +25,7 @@ gltf_mesh_fixup(AkGLTFState * __restrict gst) {
 
       primitive = geom->gdata;
       switch ((AkGeometryType)primitive->type) {
-        case AK_GEOMETRY_TYPE_MESH: {
+        case AK_GEOMETRY_MESH: {
           AkMesh *mesh;
           mesh = ak_objGet(primitive);
 

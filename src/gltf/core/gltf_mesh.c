@@ -50,7 +50,7 @@ gltf_meshes(json_t * __restrict jmesh,
     meshObj = ak_objAlloc(heap,
                           geom,
                           sizeof(AkMesh),
-                          AK_GEOMETRY_TYPE_MESH,
+                          AK_GEOMETRY_MESH,
                           true);
     geom->gdata          = meshObj;
     mesh                 = ak_objGet(meshObj);

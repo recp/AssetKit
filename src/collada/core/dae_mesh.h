@@ -10,11 +10,9 @@
 
 #include "../dae_common.h"
 
-AkResult _assetkit_hide
-dae_mesh(AkXmlState * __restrict xst,
-         void * __restrict memParent,
-         const char * elm,
-         AkMesh ** __restrict dest,
-         bool asObject);
+AkObject _assetkit_hide
+dae_mesh(xml_t * __restrict xml,
+         void  * __restrict userdata,
+         void  * __restrict memParent);
 
 #endif /* __libassetkit__dae_mesh_h_ */

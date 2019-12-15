@@ -33,7 +33,7 @@ dae_geom_fixup(AkGeometry * geom) {
 
   primitive = geom->gdata;
   switch ((AkGeometryType)primitive->type) {
-    case AK_GEOMETRY_TYPE_MESH:
+    case AK_GEOMETRY_MESH:
       dae_mesh_fixup(ak_objGet(primitive));
     default:
       break;
