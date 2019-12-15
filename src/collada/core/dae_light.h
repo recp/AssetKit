@@ -10,14 +10,9 @@
 
 #include "../dae_common.h"
 
-AkResult _assetkit_hide
-dae_light(AkXmlState * __restrict xst,
-          void       * __restrict memParent,
-          void      ** __restrict  dest);
-
-AkResult _assetkit_hide
-dae_light_tcommon(AkXmlState   * __restrict xst,
-                  void         * __restrict memParent,
-                  AkLightBase ** __restrict dest);
+_assetkit_hide
+void
+dae_light(xml_t * __restrict xml,
+          void  * __restrict userdata);
 
 #endif /* __libassetkit__dae_light__h_ */

@@ -85,5 +85,17 @@ sid_seta(xml_t  * __restrict xml,
   ak_sid_seta(memnode, memptr, sid);
 }
 
+AK_INLINE
+void
+sid_set(xml_t  * __restrict xml,
+        AkHeap * __restrict heap,
+        void   * __restrict memnode) {
+  const char *sid;
+  
+  if (!(sid = xmla_strdup_by(xml, heap, _s_dae_sid, memnode)))
+    return;
+  
+  ak_sid_set(memnode, sid);
+}
 
 #endif /* __libassetkit__dae_common__h_ */
