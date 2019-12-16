@@ -10,9 +10,9 @@
 
 #include "../dae_common.h"
 
-AkResult _assetkit_hide
-dae_geometry(AkXmlState * __restrict xst,
-             void * __restrict memParent,
-             void ** __restrict dest);
+_assetkit_hide
+void
+dae_geometry(xml_t * __restrict xml,
+             void  * __restrict userdata);
 
 #endif /* __libassetkit__dae_geometry_h_ */
