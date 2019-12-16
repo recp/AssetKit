@@ -82,6 +82,9 @@ dae_source(DAEState * __restrict dst,
         }
 
         source->tcommon = acc;
+
+        /* append accessor to global list */
+        flist_sp_insert(&dst->accessors, acc);
       }
     } else if (xml_tag_eq(xml, _s_dae_technique)) {
       tq                = dae_technique(xml, heap, source);

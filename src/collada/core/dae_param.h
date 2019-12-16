@@ -20,9 +20,4 @@ dae_param(AkXmlState * __restrict xst,
           void       * __restrict memParent,
           AkParam   ** __restrict dest);
 
-AkResult _assetkit_hide
-dae_dataparam(AkXmlState   * __restrict xst,
-              void         * __restrict memParent,
-              AkDataParam ** __restrict dest);
-
 #endif /* __libassetkit__dae_param__h_ */

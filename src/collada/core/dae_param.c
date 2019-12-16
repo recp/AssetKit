@@ -75,30 +75,3 @@ dae_param(AkXmlState * __restrict xst,
 
   return AK_OK;
 }
-
-AkResult _assetkit_hide
-dae_dataparam(AkXmlState   * __restrict xst,
-              void         * __restrict memParent,
-              AkDataParam ** __restrict dest) {
-  AkDataParam  *dataParam;
-  AkXmlElmState xest;
-
-  dataParam = ak_heap_calloc(xst->heap,
-                             memParent,
-                             sizeof(AkDataParam));
-
-  ak_xml_readsid(xst, dataParam);
-
-  dataParam->name     = ak_xml_attr(xst, dataParam, _s_dae_name);
-  dataParam->semantic = ak_xml_attr(xst, dataParam, _s_dae_semantic);
-
-  dae_dataType(ak_xml_attr(xst, dataParam, _s_dae_type),
-               &dataParam->type);
-
-  *dest = dataParam;
-
-  ak_xest_init(xest, _s_dae_param);
-  ak_xml_end(&xest);
-
-  return AK_OK;
-}
