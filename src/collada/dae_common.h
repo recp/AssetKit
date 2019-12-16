@@ -39,6 +39,7 @@ typedef struct AkURLQueue {
 
 typedef AK_ALIGN(16) struct DAEState {
   AkHeap          *heap;
+  void            *tempmem;
   void            *jobs14;
   AkDoc           *doc;
   AkURLQueue      *urlQueue;
@@ -50,6 +51,7 @@ typedef AK_ALIGN(16) struct DAEState {
   RBTree          *inputmap;
   RBTree          *texmap;
   RBTree          *instanceMap;
+  AkSource        *sources;
   AkCOLLADAVersion version;
 } DAEState;
 
@@ -96,6 +98,31 @@ sid_set(xml_t  * __restrict xml,
     return;
   
   ak_sid_set(memnode, sid);
+}
+
+AK_INLINE
+void
+url_set(DAEState   * __restrict dst,
+        xml_t      * __restrict xml,
+        const char * __restrict name,
+        void       * __restrict memparent,
+        AkURL      * __restrict url) {
+  AkURLQueue *urlQueue;
+  xml_attr_t *attr;
+  char       *attrv;
+
+  if (!(attr = xml_attr(xml, name)) || !(attrv = (char *)attr->val)) {
+    url->reserved = NULL;
+    url->url      = NULL;
+    return;
+  }
+  
+  ak_url_init(memparent, (char *)attrv, url);
+  
+  urlQueue       = dst->heap->allocator->malloc(sizeof(*urlQueue));
+  urlQueue->next = dst->urlQueue;
+  urlQueue->url  = url;
+  dst->urlQueue  = urlQueue;
 }
 
 #endif /* __libassetkit__dae_common__h_ */
