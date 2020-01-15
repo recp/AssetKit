@@ -6,8 +6,8 @@
  */
 
 #include "test_common.h"
-#include "../../src/memory_common.h"
-#include "../../src/memory_lt.h"
+#include "../../src/mem_common.h"
+#include "../../src/mem_lt.h"
 
 extern AkHeapAllocator ak__allocator;
 

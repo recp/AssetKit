@@ -10,7 +10,7 @@
 
 #include "../../include/ak/assetkit.h"
 #include "../common.h"
-#include "../memory_common.h"
+#include "../mem_common.h"
 #include "../utils.h"
 #include "../tree.h"
 #include "../json.h"

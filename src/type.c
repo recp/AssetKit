@@ -6,7 +6,7 @@
  */
 
 #include "common.h"
-#include "memory_common.h"
+#include "mem_common.h"
 #include "../include/ak/type.h"
 #include "type.h"
 #include "default/def_type.h"

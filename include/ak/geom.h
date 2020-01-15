@@ -61,6 +61,12 @@ typedef struct AkVertices {
   uint32_t      inputCount;
 } AkVertices;
 
+typedef struct AkJointDesc {
+  uint32_t *counts;
+  size_t   *indexes;
+  uint32_t  allCount;
+} AkJointDesc;
+
 typedef struct AkMeshPrimitive {
   AkMeshPrimitiveType     type;
   struct AkMesh          *mesh;
@@ -71,6 +77,8 @@ typedef struct AkMeshPrimitive {
   AkInput                *input;
   AkInput                *pos;
   AkUIntArray            *indices;
+  uint32_t               *jointCounts;
+  size_t                 *jointIndexes;
   AkTree                 *extra;
   void                   *udata;
   struct AkMeshPrimitive *next;

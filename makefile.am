@@ -78,11 +78,11 @@ libassetkit_la_SOURCES=\
     src/base64.c \
     src/common.c \
     src/xml.c \
-    src/memory.c \
-    src/memory_ext.c \
-    src/memory_rb.c \
-    src/memory_lt.c \
-    src/memory_intr.c \
+    src/mem.c \
+    src/mem_ext.c \
+    src/mem_rb.c \
+    src/mem_lt.c \
+    src/mem_intr.c \
     src/sid.c \
     src/sid_constr.c \
     src/utils.c \
@@ -164,27 +164,27 @@ libassetkit_la_SOURCES=\
     src/collada/dae_fixangle.c \
     src/collada/dae_strpool.c \
     src/collada/core/dae_asset.c \
-    src/collada/core/dae_camera.c \
+    src/collada/core/dae_cam.c \
     src/collada/core/dae_color.c \
     src/collada/core/dae_light.c \
     src/collada/core/dae_param.c \
-    src/collada/core/dae_technique.c \
+    src/collada/core/dae_techn.c \
     src/collada/core/dae_value.c \
-    src/collada/core/dae_geometry.c \
+    src/collada/core/dae_geom.c \
     src/collada/core/dae_mesh.c \
     src/collada/core/dae_source.c \
-    src/collada/core/dae_vertices.c \
+    src/collada/core/dae_vert.c \
     src/collada/core/dae_enums.c \
     src/collada/core/dae_lines.c \
-    src/collada/core/dae_polygons.c \
+    src/collada/core/dae_poly.c \
     src/collada/core/dae_triangles.c \
     src/collada/core/dae_spline.c \
-    src/collada/core/dae_controller.c \
+    src/collada/core/dae_ctlr.c \
     src/collada/core/dae_skin.c \
     src/collada/core/dae_morph.c \
     src/collada/core/dae_visual_scene.c \
     src/collada/core/dae_node.c \
-    src/collada/core/dae_evaluate_scene.c \
+    src/collada/core/dae_evalscn.c \
     src/collada/core/dae_render.c \
     src/collada/core/dae_scene.c \
     src/collada/core/dae_accessor.c \

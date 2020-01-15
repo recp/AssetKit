@@ -6,7 +6,7 @@
  */
 
 #include "../common.h"
-#include "../memory_common.h"
+#include "../mem_common.h"
 #include "../../include/ak/coord-util.h"
 #include "coord_common.h"
 #include <cglm/cglm.h>

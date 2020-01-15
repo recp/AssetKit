@@ -69,18 +69,18 @@ add_library(assetkit STATIC
         src/collada/core/dae_annotate.h
         src/collada/core/dae_asset.c
         src/collada/core/dae_asset.h
-        src/collada/core/dae_camera.c
-        src/collada/core/dae_camera.h
+        src/collada/core/dae_cam.c
+        src/collada/core/dae_cam.h
         src/collada/core/dae_color.c
         src/collada/core/dae_color.h
-        src/collada/core/dae_controller.c
-        src/collada/core/dae_controller.h
+        src/collada/core/dae_ctlr.c
+        src/collada/core/dae_ctlr.h
         src/collada/core/dae_enums.c
         src/collada/core/dae_enums.h
-        src/collada/core/dae_evaluate_scene.c
-        src/collada/core/dae_evaluate_scene.h
-        src/collada/core/dae_geometry.c
-        src/collada/core/dae_geometry.h
+        src/collada/core/dae_evalscn.c
+        src/collada/core/dae_evalscn.h
+        src/collada/core/dae_geom.c
+        src/collada/core/dae_geom.h
         src/collada/core/dae_light.c
         src/collada/core/dae_light.h
         src/collada/core/dae_lines.c
@@ -93,8 +93,8 @@ add_library(assetkit STATIC
         src/collada/core/dae_node.h
         src/collada/core/dae_param.c
         src/collada/core/dae_param.h
-        src/collada/core/dae_polygons.c
-        src/collada/core/dae_polygons.h
+        src/collada/core/dae_poly.c
+        src/collada/core/dae_poly.h
         src/collada/core/dae_render.c
         src/collada/core/dae_render.h
         src/collada/core/dae_scene.c
@@ -105,16 +105,16 @@ add_library(assetkit STATIC
         src/collada/core/dae_source.h
         src/collada/core/dae_spline.c
         src/collada/core/dae_spline.h
-        src/collada/core/dae_technique.c
-        src/collada/core/dae_technique.h
+        src/collada/core/dae_techn.c
+        src/collada/core/dae_techn.h
         src/collada/core/dae_triangles.c
         src/collada/core/dae_triangles.h
         src/collada/core/dae_value.c
         src/collada/core/dae_value.h
-        src/collada/core/dae_vertices.c
-        src/collada/core/dae_vertices.h
-        src/collada/core/dae_visual_scene.c
-        src/collada/core/dae_visual_scene.h
+        src/collada/core/dae_vert.c
+        src/collada/core/dae_vert.h
+        src/collada/core/dae_vscn.c
+        src/collada/core/dae_vscn.h
         src/collada/fx/dae_fx_binary.c
         src/collada/fx/dae_fx_binary.h
         src/collada/fx/dae_fx_blinn_phong.c
@@ -293,14 +293,14 @@ add_library(assetkit STATIC
         src/json.h
         src/main.c
         src/map.c
-        src/memory.c
-        src/memory_common.h
-        src/memory_ext.c
-        src/memory_intr.c
-        src/memory_lt.c
-        src/memory_lt.h
-        src/memory_rb.c
-        src/memory_rb.h
+        src/mem.c
+        src/mem_common.h
+        src/mem_ext.c
+        src/mem_intr.c
+        src/mem_lt.c
+        src/mem_lt.h
+        src/mem_rb.c
+        src/mem_rb.h
         src/profile.c
         src/profile.h
         src/sid.c

@@ -9,10 +9,10 @@
 #include "dae_common.h"
 
 #include "core/dae_asset.h"
-#include "core/dae_camera.h"
+#include "core/dae_cam.h"
 #include "core/dae_light.h"
-#include "core/dae_geometry.h"
-#include "core/dae_controller.h"
+#include "core/dae_geom.h"
+#include "core/dae_ctlr.h"
 #include "core/dae_visual_scene.h"
 #include "core/dae_node.h"
 #include "core/dae_scene.h"
@@ -49,7 +49,7 @@ dae_doc(AkDoc     ** __restrict dest,
   AkDoc             *doc;
   const xml_doc_t   *xdoc;
   xml_t             *xml;
-  AkXmlState         dstVal, *dst;
+  DAEState           dstVal, *dst;
   xml_attr_t        *versionAttr;
   void              *xmlString;
   size_t             xmlSize;
@@ -97,7 +97,6 @@ dae_doc(AkDoc     ** __restrict dest,
 
   dstVal.texmap->userData = dst;
 
-  
   /* get version info */
   /* because it is current and most used version */
   dst->version = AK_COLLADA_VERSION_141;
@@ -113,21 +112,21 @@ dae_doc(AkDoc     ** __restrict dest,
   }
 
   xml_objmap_t daemap[] = {
-    XML_OBJMAP_FN(_s_dae_asset,       dae_asset,        dst),
-    XML_OBJMAP_FN(_s_dae_lib_cameras,       dae_asset,        dst),
-    XML_OBJMAP_FN(_s_dae_lib_lights,        dae_asset,     dst),
-    XML_OBJMAP_FN(_s_dae_lib_effects,       dae_asset, dst),
-    XML_OBJMAP_FN(_s_dae_lib_images,        dae_asset,   dst),
-    XML_OBJMAP_FN(_s_dae_lib_materials,     dae_asset,      dst),
-    XML_OBJMAP_FN(_s_dae_lib_geometries,    dae_asset, dst),
+    XML_OBJMAP_FN(_s_dae_asset,             dae_asset,    dst),
+    XML_OBJMAP_FN(_s_dae_lib_cameras,       dae_cam,      dst),
+    XML_OBJMAP_FN(_s_dae_lib_lights,        dae_light,    dst),
+    XML_OBJMAP_FN(_s_dae_lib_geometries,    dae_geom,     dst),
+    XML_OBJMAP_FN(_s_dae_lib_effects,       dae_asset,    dst),
+    XML_OBJMAP_FN(_s_dae_lib_images,        dae_asset,    dst),
+    XML_OBJMAP_FN(_s_dae_lib_materials,     dae_asset,    dst),
     XML_OBJMAP_FN(_s_dae_lib_controllers,   dae_asset,    dst),
-    XML_OBJMAP_FN(_s_dae_lib_visual_scenes, dae_asset,   dst),
-    XML_OBJMAP_FN(_s_dae_lib_nodes,         dae_asset,      dst),
-    XML_OBJMAP_FN(_s_dae_lib_animations,    dae_asset,     dst),
-    XML_OBJMAP_FN(_s_dae_scene,    dae_asset,     dst),
-    XML_OBJMAP_FN(_s_dae_extra,    dae_asset,     dst)
+    XML_OBJMAP_FN(_s_dae_lib_visual_scenes, dae_asset,    dst),
+    XML_OBJMAP_FN(_s_dae_lib_nodes,         dae_asset,    dst),
+    XML_OBJMAP_FN(_s_dae_lib_animations,    dae_asset,    dst),
+    XML_OBJMAP_FN(_s_dae_scene,             dae_scene,    dst),
+    XML_OBJMAP_FN(_s_dae_extra,             dae_asset,    dst)
   };
-  
+
   *dest = doc;
 
   /* post-parse operations */

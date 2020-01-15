@@ -21,6 +21,7 @@ extern "C" {
 
 /*
   Input -> Source -> TechniqueCommon (Accessor) -> Buffer
+  Input -> Accessor -> Buffer
 */
 
 struct AkTechnique;

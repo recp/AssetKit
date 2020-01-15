@@ -6,7 +6,7 @@
  */
 
 #include "../common.h"
-#include "../memory_common.h"
+#include "../mem_common.h"
 
 /* TODO: use mutex */
 

@@ -8,6 +8,8 @@
 #ifndef ak_src_xml_h
 #define ak_src_xml_h
 
+#include "collada/dae_strpool.h"
+
 AK_INLINE
 char *
 xml_strdup(const xml_t * __restrict xobject,
@@ -40,17 +42,14 @@ xmla_strdup_by(const xml_t * __restrict xobject,
 }
 
 AK_INLINE
-char *
-xmla_setid(void        * __restrict parent,
+void
+xmla_setid(const xml_t * __restrict xobject,
            AkHeap      * __restrict heap,
-           const xml_t * __restrict xobject) {
+           void        * __restrict memptr) {
   xml_attr_t *attr;
-  
-  if ((attr = xml_attr(xobject, name))) {
-    ak_setId(memptr, ak_heap_strndup(heap, parent, attr->val, attr->valsize));
+  if ((attr = xml_attr(xobject, _s_dae_id))) {
+    ak_setId(memptr, ak_heap_strndup(heap, memptr, attr->val, attr->valsize));
   }
-  
-  return NULL;
 }
 
 #endif /* ak_src_xml_h */
