@@ -8,7 +8,7 @@
 #include "anim.h"
 #include "asset.h"
 #include "source.h"
-#include "enums.h"
+#include "enum.h"
 
 AkResult _assetkit_hide
 dae_anim(AkXmlState   * __restrict xst,

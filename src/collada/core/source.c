@@ -8,7 +8,7 @@
 #include "source.h"
 #include "../core/asset.h"
 #include "../core/techn.h"
-#include "../core/enums.h"
+#include "../core/enum.h"
 #include "../core/value.h"
 
 AkSource* _assetkit_hide

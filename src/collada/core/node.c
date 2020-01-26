@@ -6,11 +6,11 @@
  */
 
 #include "node.h"
-#include "enums.h"
+#include "enum.h"
 
 #include "../../array.h"
 #include "../core/asset.h"
-#include "../fx/material.h"
+#include "../fx/mat.h"
 #include "../fixup/node.h"
 
 #include <cglm/cglm.h>

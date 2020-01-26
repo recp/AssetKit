@@ -6,8 +6,7 @@
  */
 
 #include "value.h"
-#include "../fx/sampler.h"
-
+#include "../fx/samp.h"
 #include "../1.4/surface.h"
 
 #define AK_CUSTOM_TYPE_SURFACE 1

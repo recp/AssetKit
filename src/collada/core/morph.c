@@ -7,7 +7,7 @@
 
 #include "morph.h"
 #include "source.h"
-#include "enums.h"
+#include "enum.h"
 #include "../../array.h"
 
 AkResult _assetkit_hide

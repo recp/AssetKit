@@ -7,7 +7,7 @@
 
 #include "surface.h"
 #include "../core/_asset.h"
-#include "../fx/fx_enums.h"
+#include "../fx/enum.h"
 #include <string.h>
 
 AkResult _assetkit_hide

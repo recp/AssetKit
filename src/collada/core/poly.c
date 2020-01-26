@@ -6,7 +6,7 @@
  */
 
 #include "poly.h"
-#include "enums.h"
+#include "enum.h"
 #include "../../array.h"
 #include "../../data.h"
 

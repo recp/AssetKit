@@ -10,20 +10,19 @@
 
 #include "core/asset.h"
 #include "core/cam.h"
-#include "core/light.h"
-#include "core/geom.h"
-#include "core/ctlr.h"
-#include "core/visual_scene.h"
-#include "core/node.h"
-#include "core/scene.h"
-#include "core/anim.h"
+//#include "core/light.h"
+//#include "core/geom.h"
+//#include "core/ctlr.h"
+//#include "core/node.h"
+//#include "core/scene.h"
+//#include "core/anim.h"
 
-#include "fx/effect.h"
-#include "fx/image.h"
-#include "fx/material.h"
+//#include "fx/effect.h"
+//#include "fx/img.h"
+//#include "fx/mat.h"
 
 #include "lib.h"
-#include "postscript.h"
+//#include "postscript.h"
 #include "../id.h"
 
 #include "../../include/ak/path.h"
@@ -112,25 +111,25 @@ dae_doc(AkDoc     ** __restrict dest,
   }
 
   xml_objmap_t daemap[] = {
-    XML_OBJMAP_FN(_s_dae_asset,             dae_asset,    dst),
-    XML_OBJMAP_FN(_s_dae_lib_cameras,       dae_cam,      dst),
-    XML_OBJMAP_FN(_s_dae_lib_lights,        dae_light,    dst),
-    XML_OBJMAP_FN(_s_dae_lib_geometries,    dae_geom,     dst),
-    XML_OBJMAP_FN(_s_dae_lib_effects,       dae_asset,    dst),
-    XML_OBJMAP_FN(_s_dae_lib_images,        dae_asset,    dst),
-    XML_OBJMAP_FN(_s_dae_lib_materials,     dae_asset,    dst),
-    XML_OBJMAP_FN(_s_dae_lib_controllers,   dae_asset,    dst),
-    XML_OBJMAP_FN(_s_dae_lib_visual_scenes, dae_asset,    dst),
-    XML_OBJMAP_FN(_s_dae_lib_nodes,         dae_asset,    dst),
-    XML_OBJMAP_FN(_s_dae_lib_animations,    dae_asset,    dst),
-    XML_OBJMAP_FN(_s_dae_scene,             dae_scene,    dst),
-    XML_OBJMAP_FN(_s_dae_extra,             dae_asset,    dst)
+//    XML_OBJMAP_FN(_s_dae_asset,             dae_asset,    dst),
+//    XML_OBJMAP_FN(_s_dae_lib_cameras,       dae_cam,      dst),
+//    XML_OBJMAP_FN(_s_dae_lib_lights,        dae_light,    dst),
+//    XML_OBJMAP_FN(_s_dae_lib_geometries,    dae_geom,     dst),
+//    XML_OBJMAP_FN(_s_dae_lib_effects,       dae_asset,    dst),
+//    XML_OBJMAP_FN(_s_dae_lib_images,        dae_asset,    dst),
+//    XML_OBJMAP_FN(_s_dae_lib_materials,     dae_asset,    dst),
+//    XML_OBJMAP_FN(_s_dae_lib_controllers,   dae_asset,    dst),
+//    XML_OBJMAP_FN(_s_dae_lib_visual_scenes, dae_asset,    dst),
+//    XML_OBJMAP_FN(_s_dae_lib_nodes,         dae_asset,    dst),
+//    XML_OBJMAP_FN(_s_dae_lib_animations,    dae_asset,    dst),
+//    XML_OBJMAP_FN(_s_dae_scene,             dae_scene,    dst),
+//    XML_OBJMAP_FN(_s_dae_extra,             dae_asset,    dst)
   };
 
   *dest = doc;
 
   /* post-parse operations */
-  dae_postscript(dst);
+//  dae_postscript(dst);
 
   /* TODO: memory leak, free this RBTree*/
   /* rb_destroy(doc->reserved); */

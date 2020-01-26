@@ -9,6 +9,7 @@
 #define ak_memory_h
 
 #include "../../include/ak/memory.h"
+#include "../common.h"
 #include <ds/allocator.h>
 
 #define ak__align_size 8

@@ -5,7 +5,7 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "enums.h"
+#include "enum.h"
 #include "../../common.h"
 #include "../common.h"
 #include <string.h>

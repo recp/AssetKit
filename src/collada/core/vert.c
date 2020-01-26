@@ -6,7 +6,7 @@
  */
 
 #include "vert.h"
-#include "enums.h"
+#include "enum.h"
 
 AkResult _assetkit_hide
 dae_vert(AkXmlState * __restrict xst,

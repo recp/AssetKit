@@ -7,7 +7,7 @@
 
 #include "spline.h"
 #include "source.h"
-#include "enums.h"
+#include "enum.h"
 
 AkResult _assetkit_hide
 dae_spline(AkXmlState * __restrict xst,

@@ -8,9 +8,9 @@
 #include "mesh.h"
 #include "source.h"
 #include "vert.h"
-#include "lines.h"
+#include "line.h"
 #include "poly.h"
-#include "triangles.h"
+#include "triangle.h"
 
 #define k_s_dae_source     1
 #define k_s_dae_vertices   2

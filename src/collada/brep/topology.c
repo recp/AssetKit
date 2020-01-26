@@ -6,7 +6,7 @@
  */
 
 #include "topology.h"
-#include "../core/enums.h"
+#include "../core/enum.h"
 #include "../../array.h"
 
 AkResult _assetkit_hide

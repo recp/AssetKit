@@ -23,7 +23,7 @@
  * cX: color of X
  */
 
-#include "mem_rb.h"
+#include "rb.h"
 #include <stdio.h>
 
 void

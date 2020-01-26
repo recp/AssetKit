@@ -8,7 +8,7 @@
 #include "skin.h"
 #include "../../array.h"
 #include "source.h"
-#include "enums.h"
+#include "enum.h"
 
 AkResult _assetkit_hide
 dae_skin(AkXmlState * __restrict xst,

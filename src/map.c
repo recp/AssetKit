@@ -6,6 +6,7 @@
  */
 
 #include "../include/ak/map.h"
+#include "../include/ak/util.h"
 #include "mem/common.h"
 
 AkMap *

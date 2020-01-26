@@ -5,9 +5,10 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "mem_lt.h"
+#include "lt.h"
 #include <assert.h>
 #include <math.h>
+#include <string.h>
 
 static AkHeapBucket ak__heap_bucket = {
   .heapEntry       = NULL,
