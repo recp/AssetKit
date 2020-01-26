@@ -6,7 +6,7 @@
  */
 
 #include "triangle.h"
-#include "enums.h"
+#include "enum.h"
 #include "../../array.h"
 
 AkResult _assetkit_hide

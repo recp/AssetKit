@@ -9,7 +9,7 @@
 #define __libassetkit__dae_technique_fx__h_
 
 #include "../../../include/ak/assetkit.h"
-#include "../dae_common.h"
+#include "../common.h"
 
 AkResult _assetkit_hide
 dae_techniqueFx(AkXmlState * __restrict xst,

@@ -9,7 +9,7 @@
 #define __libassetkit__dae_fx_lambert__h_
 
 #include "../../../include/ak/assetkit.h"
-#include "../dae_common.h"
+#include "../common.h"
 
 AkResult _assetkit_hide
 dae_fxLambert(AkXmlState           * __restrict xst,

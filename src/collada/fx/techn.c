@@ -5,15 +5,15 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_fx_technique.h"
+#include "techn.h"
 
-#include "../core/dae_asset.h"
+#include "../core/asset.h"
 
-#include "../1.4/dae14_image.h"
+#include "../1.4/image.h"
 
-#include "dae_fx_blinn_phong.h"
-#include "dae_fx_constant.h"
-#include "dae_fx_lambert.h"
+#include "blinn_phong.h"
+#include "constant.h"
+#include "lambert.h"
 
 AkResult _assetkit_hide
 dae_techniqueFx(AkXmlState * __restrict xst,

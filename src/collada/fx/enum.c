@@ -5,7 +5,7 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_fx_enums.h"
+#include "enum.h"
 #include "../../common.h"
 #include <string.h>
 

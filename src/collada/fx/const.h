@@ -9,7 +9,7 @@
 #define __libassetkit__dae_fx_constant__h_
 
 #include "../../../include/ak/assetkit.h"
-#include "../dae_common.h"
+#include "../common.h"
 
 AkResult _assetkit_hide
 dae_fxConstant(AkXmlState           * __restrict xst,

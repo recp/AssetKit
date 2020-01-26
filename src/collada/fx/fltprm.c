@@ -5,8 +5,8 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_fx_float_or_param.h"
-#include "../core/dae_param.h"
+#include "fltprm.h"
+#include "../core/param.h"
 
 AkResult _assetkit_hide
 dae_floatOrParam(AkXmlState      * __restrict xst,

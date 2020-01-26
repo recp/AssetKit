@@ -8,7 +8,7 @@
 #ifndef ak_src_xml_h
 #define ak_src_xml_h
 
-#include "collada/dae_strpool.h"
+#include "collada/strpool.h"
 
 AK_INLINE
 char *

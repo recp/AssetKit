@@ -5,10 +5,10 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_fx_image.h"
-#include "../core/dae_asset.h"
-#include "../1.4/dae14_image.h"
-#include "dae_fx_enums.h"
+#include "image.h"
+#include "../core/asset.h"
+#include "../1.4/image.h"
+#include "enum.h"
 
 static
 AkResult

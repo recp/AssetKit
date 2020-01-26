@@ -5,15 +5,15 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_fx_effect.h"
+#include "effect.h"
 
-#include "../core/dae_asset.h"
-#include "../core/dae_techn.h"
-#include "../core/dae_param.h"
+#include "../core/asset.h"
+#include "../core/techn.h"
+#include "../core/param.h"
 
-#include "../1.4/dae14_image.h"
+#include "../1.4/image.h"
 
-#include "dae_fx_profile.h"
+#include "profile.h"
 
 AkResult _assetkit_hide
 dae_effect(AkXmlState * __restrict xst,

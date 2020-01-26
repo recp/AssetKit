@@ -5,13 +5,13 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_fx_sampler.h"
-#include "../core/dae_color.h"
-#include "dae_fx_enums.h"
-#include "dae_fx_image.h"
+#include "samp.h"
+#include "../core/color.h"
+#include "enum.h"
+#include "image.h"
 
 #include "../1.4/dae14.h"
-#include "../1.4/dae14_surface.h"
+#include "../1.4/surface.h"
 
 #define k_s_dae_instance_image 1
 #define k_s_dae_texcoord       2

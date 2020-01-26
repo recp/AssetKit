@@ -9,7 +9,7 @@
 #define __libassetkit__dae_blinn_phong__h_
 
 #include "../../../include/ak/assetkit.h"
-#include "../dae_common.h"
+#include "../common.h"
 
 AkResult _assetkit_hide
 dae_phong(AkXmlState           * __restrict xst,

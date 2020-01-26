@@ -5,11 +5,11 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_fx_material.h"
-#include "../core/dae_asset.h"
-#include "../core/dae_param.h"
-#include "../core/dae_tech.h"
-#include "dae_fx_effect.h"
+#include "material.h"
+#include "../core/asset.h"
+#include "../core/param.h"
+#include "../core/tech.h"
+#include "effect.h"
 
 AkResult _assetkit_hide
 dae_material(AkXmlState * __restrict xst,

@@ -9,7 +9,7 @@
 #define __libassetkit__dae_float_or_param___h_
 
 #include "../../../include/ak/assetkit.h"
-#include "../dae_common.h"
+#include "../common.h"
 
 AkResult _assetkit_hide
 dae_floatOrParam(AkXmlState      * __restrict xst,

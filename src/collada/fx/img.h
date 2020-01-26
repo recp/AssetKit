@@ -10,7 +10,7 @@
 #define __libassetkit__dae_fx_image__h_
 
 #include "../../../include/ak/assetkit.h"
-#include "../dae_common.h"
+#include "../common.h"
 
 AkResult _assetkit_hide
 dae_fxImage(AkXmlState * __restrict xst,

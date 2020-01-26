@@ -5,11 +5,11 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_fx_constant.h"
-#include "dae_fx_color_or_tex.h"
-#include "dae_fx_float_or_param.h"
+#include "const.h"
+#include "colortex.h"
+#include "fltprm.h"
 #include "../../default/def_material.h"
-#include "dae_fx_enums.h"
+#include "enum.h"
 #include "../bugfix/transp.h"
 
 #define k_s_dae_emission            1

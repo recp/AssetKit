@@ -5,13 +5,13 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_fx_profile.h"
-#include "../core/dae_param.h"
-#include "../core/dae_asset.h"
+#include "profile.h"
+#include "../core/param.h"
+#include "../core/asset.h"
 
-#include "../1.4/dae14_image.h"
+#include "../1.4/image.h"
 
-#include "dae_fx_technique.h"
+#include "techn.h"
 
 static ak_enumpair profileMap[] = {
   {_s_dae_prfl_common, AK_PROFILE_TYPE_COMMON}

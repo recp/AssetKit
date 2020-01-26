@@ -6,9 +6,9 @@
  */
 
 #include "colortex.h"
-#include "../core/dae_param.h"
-#include "../core/dae_color.h"
-#include "dae_fx_enums.h"
+#include "../core/param.h"
+#include "../core/color.h"
+#include "enum.h"
 
 AkResult _assetkit_hide
 dae_colorOrTex(AkXmlState   * __restrict xst,

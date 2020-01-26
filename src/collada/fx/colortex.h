@@ -9,7 +9,7 @@
 #define __libassetkit__dae_color_or_tex__h_
 
 #include "../../../include/ak/assetkit.h"
-#include "../dae_common.h"
+#include "../common.h"
 
 AkResult _assetkit_hide
 dae_colorOrTex(AkXmlState   * __restrict xst,
