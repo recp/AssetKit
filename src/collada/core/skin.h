@@ -8,7 +8,7 @@
 #ifndef __libassetkit__dae_skin_h_
 #define __libassetkit__dae_skin_h_
 
-#include "../dae_common.h"
+#include "../common.h"
 
 AkResult _assetkit_hide
 dae_skin(AkXmlState * __restrict xst,

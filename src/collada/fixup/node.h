@@ -8,7 +8,7 @@
 #ifndef dae_node_fixup_h
 #define dae_node_fixup_h
 
-#include "dae_common.h"
+#include "../common.h"
 
 void _assetkit_hide
 dae_nodeFixupFixedCoord(AkHeap * __restrict heap,

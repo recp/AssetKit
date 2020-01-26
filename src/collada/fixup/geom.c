@@ -5,8 +5,8 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_geom_fixup.h"
-#include "dae_mesh_fixup.h"
+#include "geom.h"
+#include "mesh.h"
 
 AkResult _assetkit_hide
 dae_geom_fixup_all(AkDoc * doc) {

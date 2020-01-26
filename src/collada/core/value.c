@@ -5,10 +5,10 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_value.h"
-#include "../fx/dae_fx_sampler.h"
+#include "value.h"
+#include "../fx/sampler.h"
 
-#include "../1.4/dae14_surface.h"
+#include "../1.4/surface.h"
 
 #define AK_CUSTOM_TYPE_SURFACE 1
 

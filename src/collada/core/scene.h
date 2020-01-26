@@ -8,7 +8,8 @@
 #ifndef __libassetkit__dae_scene_h_
 #define __libassetkit__dae_scene_h_
 
-#include "../dae_common.h"
+#include "../common.h"
+
 AkResult _assetkit_hide
 dae_visualScene(AkXmlState * __restrict xst,
                 void * __restrict memParent,

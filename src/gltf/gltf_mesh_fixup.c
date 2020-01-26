@@ -6,7 +6,6 @@
  */
 
 #include "gltf_mesh_fixup.h"
-#include "../mem_common.h"
 #include "../mesh/mesh_index.h"
 
 void _assetkit_hide

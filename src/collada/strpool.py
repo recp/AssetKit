@@ -52,7 +52,7 @@ fspool_c.write("""
 #  define _DAE_STRPOOL_
 #endif
 
-#include "dae_strpool.h"
+#include "strpool.h"
 #include <string.h>
 
 const char _s_dae_pool_0[] =

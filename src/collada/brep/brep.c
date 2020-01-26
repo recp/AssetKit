@@ -5,12 +5,12 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_brep.h"
-#include "../core/dae_source.h"
-#include "../core/dae_vert.h"
-#include "dae_brep_curve.h"
-#include "dae_brep_surface.h"
-#include "dae_brep_topology.h"
+#include "brep.h"
+#include "../core/source.h"
+#include "../core/vert.h"
+#include "curve.h"
+#include "surface.h"
+#include "topology.h"
 
 #define k_s_dae_curves         1
 #define k_s_dae_surface_curves 2

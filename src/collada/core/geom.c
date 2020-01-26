@@ -5,11 +5,11 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_geom.h"
-#include "../core/dae_asset.h"
-#include "dae_mesh.h"
-#include "dae_spline.h"
-#include "../brep/dae_brep.h"
+#include "geom.h"
+#include "../core/asset.h"
+#include "mesh.h"
+#include "spline.h"
+#include "../brep/brep.h"
 
 _assetkit_hide
 void

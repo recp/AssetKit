@@ -5,8 +5,8 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_techn.h"
-#include "../dae_common.h"
+#include "techn.h"
+#include "../common.h"
 
 AkTechnique*
 dae_techn(xml_t  * __restrict xml,

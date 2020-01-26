@@ -5,12 +5,12 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_mesh.h"
-#include "dae_source.h"
-#include "dae_vert.h"
-#include "dae_lines.h"
-#include "dae_poly.h"
-#include "dae_triangles.h"
+#include "mesh.h"
+#include "source.h"
+#include "vert.h"
+#include "lines.h"
+#include "poly.h"
+#include "triangles.h"
 
 #define k_s_dae_source     1
 #define k_s_dae_vertices   2

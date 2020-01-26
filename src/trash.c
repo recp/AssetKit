@@ -9,7 +9,7 @@
 
 #include "../include/ak/assetkit.h"
 #include "../include/ak/trash.h"
-#include "mem_common.h"
+#include "mem/common.h"
 
 #include <stdlib.h>
 #include <string.h>

@@ -5,10 +5,10 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_ctlr.h"
-#include "../core/dae_asset.h"
-#include "dae_skin.h"
-#include "dae_morph.h"
+#include "ctlr.h"
+#include "../core/asset.h"
+#include "skin.h"
+#include "morph.h"
 
 AkResult _assetkit_hide
 dae_ctlr(AkXmlState * __restrict xst,

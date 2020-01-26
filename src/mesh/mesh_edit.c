@@ -6,7 +6,6 @@
  */
 
 #include "../common.h"
-#include "../mem_common.h"
 #include "../skin/skin_fix.h"
 #include "mesh_edit_common.h"
 

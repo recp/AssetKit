@@ -5,7 +5,7 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "mem_common.h"
+#include "common.h"
 
 _assetkit_hide
 void

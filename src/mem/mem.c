@@ -6,9 +6,8 @@
  */
 
 #include "common.h"
-#include "mem_common.h"
-#include "mem_rb.h"
-#include "mem_lt.h"
+#include "rb.h"
+#include "lt.h"
 
 #include <stdlib.h>
 #include <stdio.h>

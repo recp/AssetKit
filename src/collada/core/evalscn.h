@@ -8,7 +8,7 @@
 #ifndef __libassetkit__dae_evaluate_scene_h_
 #define __libassetkit__dae_evaluate_scene_h_
 
-#include "../dae_common.h"
+#include "../common.h"
 
 AkEvaluateScene* _assetkit_hide
 dae_evaluateScene(DAEState * __restrict dst,

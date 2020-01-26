@@ -153,16 +153,16 @@ libassetkit_la_SOURCES=\
     src/bbox/bbox_mesh_prim.c \
     src/bbox/bbox_geom.c \
     src/bbox/bbox_scene.c \
-    src/collada/dae_common.c \
+    src/collada/common.c \
     src/collada/dae.c \
-    src/collada/dae_lib.c \
-    src/collada/dae_postscript.c \
-    src/collada/dae_tex_fixup.c \
-    src/collada/dae_geom_fixup.c \
-    src/collada/dae_mesh_fixup.c \
-    src/collada/dae_node_fixup.c \
-    src/collada/dae_fixangle.c \
-    src/collada/dae_strpool.c \
+    src/collada/lib.c \
+    src/collada/postscript.c \
+    src/collada/tex_fixup.c \
+    src/collada/geom_fixup.c \
+    src/collada/mesh_fixup.c \
+    src/collada/node_fixup.c \
+    src/collada/fixangle.c \
+    src/collada/strpool.c \
     src/collada/core/dae_asset.c \
     src/collada/core/dae_cam.c \
     src/collada/core/dae_color.c \

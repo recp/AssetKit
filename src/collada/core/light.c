@@ -5,10 +5,10 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_light.h"
-#include "dae_asset.h"
-#include "dae_techn.h"
-#include "dae_color.h"
+#include "light.h"
+#include "asset.h"
+#include "techn.h"
+#include "color.h"
 
 #define AK_DEFAULT_LIGHT_DIR {0.0f, 0.0f, -1.0f}
 

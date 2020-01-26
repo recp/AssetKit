@@ -8,7 +8,7 @@
 #ifndef dae_brep_curve_h
 #define dae_brep_curve_h
 
-#include "../dae_common.h"
+#include "../common.h"
 
 AkResult _assetkit_hide
 dae_curve(AkXmlState * __restrict xst,

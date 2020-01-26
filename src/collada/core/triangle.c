@@ -5,8 +5,8 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_triangles.h"
-#include "dae_enums.h"
+#include "triangle.h"
+#include "enums.h"
 #include "../../array.h"
 
 AkResult _assetkit_hide

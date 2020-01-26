@@ -5,8 +5,7 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_asset.h"
-#include "../../mem_common.h"
+#include "asset.h"
 
 _assetkit_hide
 void

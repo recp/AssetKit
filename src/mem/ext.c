@@ -6,9 +6,8 @@
  */
 
 #include "common.h"
-#include "mem_common.h"
-#include "mem_rb.h"
-#include "bitwise/bitwise.h"
+#include "rb.h"
+#include "../bitwise/bitwise.h"
 
 static uint8_t ak__heap_ext_sz[] = {
   (uint8_t)sizeof(AkHeapSrchNode),

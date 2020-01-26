@@ -11,11 +11,10 @@
 #include "../../include/ak/assetkit.h"
 #include "../../include/ak/url.h"
 #include "../common.h"
-#include "../mem_common.h"
 #include "../utils.h"
 #include "../tree.h"
 #include "../xml.h"
-#include "dae_strpool.h"
+#include "strpool.h"
 
 #include <ds/forward-list-sep.h>
 #include <string.h>

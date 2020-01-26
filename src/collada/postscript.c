@@ -5,15 +5,14 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_postscript.h"
-#include "dae_geom_fixup.h"
-#include "../mem_common.h"
+#include "postscript.h"
 #include "../xml.h"
 
 #include "1.4/dae14.h"
-#include "dae_fixangle.h"
 
-#include "dae_tex_fixup.h"
+#include "fixup/geom.h"
+#include "fixup/angle.h"
+#include "fixup/tex.h"
 
 void _assetkit_hide
 dae_retain_refs(AkXmlState * __restrict xst);

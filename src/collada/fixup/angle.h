@@ -8,7 +8,7 @@
 #ifndef dae_fixangle_h
 #define dae_fixangle_h
 
-#include "dae_common.h"
+#include "../common.h"
 
 void _assetkit_hide
 dae_fixAngles(AkXmlState * __restrict xst);

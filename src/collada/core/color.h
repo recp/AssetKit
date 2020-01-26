@@ -8,7 +8,7 @@
 #ifndef __libassetkit__dae_color_h_
 #define __libassetkit__dae_color_h_
 
-#include "../dae_common.h"
+#include "../common.h"
 
 void _assetkit_hide
 dae_color(xml_t   * __restrict xml,

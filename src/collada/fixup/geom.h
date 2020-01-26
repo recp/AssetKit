@@ -8,7 +8,7 @@
 #ifndef dae_geom_fixup_h
 #define dae_geom_fixup_h
 
-#include "dae_common.h"
+#include "../common.h"
 
 AkResult _assetkit_hide
 dae_geom_fixup(AkGeometry * geom);

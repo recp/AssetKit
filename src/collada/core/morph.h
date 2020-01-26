@@ -8,7 +8,7 @@
 #ifndef __libassetkit__dae_morph_h_
 #define __libassetkit__dae_morph_h_
 
-#include "../dae_common.h"
+#include "../common.h"
 
 AkResult _assetkit_hide
 dae_morph(AkXmlState * __restrict xst,

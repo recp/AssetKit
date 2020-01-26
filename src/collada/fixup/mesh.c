@@ -5,8 +5,7 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_mesh_fixup.h"
-#include "../mem_common.h"
+#include "mesh.h"
 #include "../mesh/mesh_index.h"
 
 AkResult _assetkit_hide

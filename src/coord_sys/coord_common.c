@@ -7,7 +7,6 @@
 
 
 #include "../common.h"
-#include "../mem_common.h"
 #include "coord_common.h"
 #include <cglm/cglm.h>
 

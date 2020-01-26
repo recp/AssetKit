@@ -5,9 +5,9 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_morph.h"
-#include "dae_source.h"
-#include "dae_enums.h"
+#include "morph.h"
+#include "source.h"
+#include "enums.h"
 #include "../../array.h"
 
 AkResult _assetkit_hide

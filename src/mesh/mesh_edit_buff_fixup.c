@@ -6,7 +6,6 @@
  */
 
 #include "../common.h"
-#include "../mem_common.h"
 
 #include <assert.h>
 

@@ -5,9 +5,9 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_cam.h"
-#include "dae_asset.h"
-#include "dae_techn.h"
+#include "cam.h"
+#include "asset.h"
+#include "techn.h"
 
 _assetkit_hide
 void

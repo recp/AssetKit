@@ -9,7 +9,7 @@
 #define ak_surface_h
 
 #include "../../../include/ak/assetkit.h"
-#include "../dae_common.h"
+#include "../common.h"
 #include "dae14.h"
 
 AkResult _assetkit_hide

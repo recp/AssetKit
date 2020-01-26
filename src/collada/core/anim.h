@@ -8,7 +8,7 @@
 #ifndef dae_anim_h
 #define dae_anim_h
 
-#include "../dae_common.h"
+#include "../common.h"
 
 AkResult _assetkit_hide
 dae_anim(AkXmlState   * __restrict xst,

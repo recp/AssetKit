@@ -5,10 +5,10 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_scene.h"
-#include "../core/dae_asset.h"
-#include "dae_node.h"
-#include "dae_evalscn.h"
+#include "scene.h"
+#include "../core/asset.h"
+#include "node.h"
+#include "evalscn.h"
 #include "../../../include/ak/light.h"
 
 AkResult _assetkit_hide

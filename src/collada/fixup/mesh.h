@@ -8,7 +8,7 @@
 #ifndef dae_mesh_fixup_h
 #define dae_mesh_fixup_h
 
-#include "dae_common.h"
+#include "../common.h"
 
 AkResult _assetkit_hide
 dae_mesh_fixup(AkMesh * mesh);

@@ -5,8 +5,8 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_poly.h"
-#include "dae_enums.h"
+#include "poly.h"
+#include "enums.h"
 #include "../../array.h"
 #include "../../data.h"
 

@@ -5,13 +5,13 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_node.h"
-#include "dae_enums.h"
+#include "node.h"
+#include "enums.h"
 
 #include "../../array.h"
-#include "../core/dae_asset.h"
-#include "../fx/dae_fx_material.h"
-#include "../dae_node_fixup.h"
+#include "../core/asset.h"
+#include "../fx/material.h"
+#include "../fixup/node.h"
 
 #include <cglm/cglm.h>
 

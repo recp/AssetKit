@@ -8,7 +8,7 @@
 #ifndef dae_tex_fixup_h
 #define dae_tex_fixup_h
 
-#include "dae_common.h"
+#include "../common.h"
 
 void _assetkit_hide
 dae_fix_textures(AkXmlState * __restrict xst);

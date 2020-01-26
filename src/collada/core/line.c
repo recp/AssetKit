@@ -5,8 +5,8 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_lines.h"
-#include "dae_enums.h"
+#include "lines.h"
+#include "enums.h"
 #include "../../array.h"
 
 AkResult _assetkit_hide

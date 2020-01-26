@@ -5,8 +5,8 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_brep_curve.h"
-#include "dae_brep_nurbs.h"
+#include "curve.h"
+#include "nurbs.h"
 #include "../../array.h"
 
 #define k_s_dae_orient 101

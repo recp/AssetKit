@@ -16,6 +16,8 @@
 #include "../include/ak/type.h"
 #include "../include/ak/url.h"
 
+#include "mem/common.h"
+
 #include <cglm/cglm.h>
 
 #include <ds/rb.h>

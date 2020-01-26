@@ -8,7 +8,7 @@
 #ifndef __libassetkit__dae_vertices_h_
 #define __libassetkit__dae_vertices_h_
 
-#include "../dae_common.h"
+#include "../common.h"
 
 AkResult _assetkit_hide
 dae_vert(AkXmlState * __restrict xst,

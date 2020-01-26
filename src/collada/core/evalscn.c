@@ -5,8 +5,8 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_evalscn.h"
-#include "../core/dae_asset.h"
+#include "evalscn.h"
+#include "../core/asset.h"
 #include "../../array.h"
 
 AkEvaluateScene* _assetkit_hide

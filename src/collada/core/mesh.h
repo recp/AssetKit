@@ -8,7 +8,7 @@
 #ifndef __libassetkit__dae_mesh_h_
 #define __libassetkit__dae_mesh_h_
 
-#include "../dae_common.h"
+#include "../common.h"
 
 AkObject* _assetkit_hide
 dae_mesh(DAEState    * __restrict dst,

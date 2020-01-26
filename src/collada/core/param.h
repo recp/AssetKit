@@ -8,7 +8,7 @@
 #ifndef __libassetkit__dae_param__h_
 #define __libassetkit__dae_param__h_
 
-#include "../dae_common.h"
+#include "../common.h"
 
 AkResult _assetkit_hide
 dae_newparam(AkXmlState  * __restrict xst,

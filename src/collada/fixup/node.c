@@ -5,7 +5,7 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_node_fixup.h"
+#include "node.h"
 #include <cglm/cglm.h>
 
 /*!

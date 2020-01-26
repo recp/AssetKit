@@ -9,7 +9,7 @@
 #define ak_14_image_h
 
 #include "../../../include/ak/assetkit.h"
-#include "../dae_common.h"
+#include "../common.h"
 
 void _assetkit_hide
 dae14_fxMigrateImg(AkXmlState * __restrict xst,

@@ -5,9 +5,9 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_spline.h"
-#include "dae_source.h"
-#include "dae_enums.h"
+#include "spline.h"
+#include "source.h"
+#include "enums.h"
 
 AkResult _assetkit_hide
 dae_spline(AkXmlState * __restrict xst,

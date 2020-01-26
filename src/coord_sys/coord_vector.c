@@ -6,7 +6,6 @@
  */
 
 #include "../common.h"
-#include "../mem_common.h"
 #include "coord_common.h"
 
 AK_EXPORT

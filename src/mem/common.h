@@ -8,7 +8,7 @@
 #ifndef ak_memory_h
 #define ak_memory_h
 
-#include "common.h"
+#include "../../include/ak/memory.h"
 #include <ds/allocator.h>
 
 #define ak__align_size 8

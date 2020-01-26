@@ -8,7 +8,7 @@
 #ifndef ak_memory_redblack_h
 #define ak_memory_redblack_h
 
-#include "memory_common.h"
+#include "common.h"
 
 #define AK__RB_ISBLACK(X) !((AK__HEAPNODE(X)->flags & AK_HEAP_NODE_FLAGS_RED))
 #define AK__RB_ISRED(X)     (AK__HEAPNODE(X)->flags & AK_HEAP_NODE_FLAGS_RED)

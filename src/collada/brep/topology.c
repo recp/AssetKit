@@ -5,8 +5,8 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_brep_topology.h"
-#include "../core/dae_enums.h"
+#include "topology.h"
+#include "../core/enums.h"
 #include "../../array.h"
 
 AkResult _assetkit_hide

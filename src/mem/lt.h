@@ -8,7 +8,7 @@
 #ifndef ak_hashtable_h
 #define ak_hashtable_h
 
-#include "mem_common.h"
+#include "common.h"
 
 #define AK__LT_BUCKET_IS_FULL(X) (X->count == ak__heap_lt.bucketSize)
 

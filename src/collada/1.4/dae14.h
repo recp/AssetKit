@@ -9,7 +9,7 @@
 #define dae14_h
 
 #include "../../../include/ak/assetkit.h"
-#include "../dae_common.h"
+#include "../common.h"
 
 typedef enum AkDae14LoadJobType {
   AK_DAE14_LOADJOB_SURFACE = 1

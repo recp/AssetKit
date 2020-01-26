@@ -8,7 +8,7 @@
 #ifndef __libassetkit__dae_source_h_
 #define __libassetkit__dae_source_h_
 
-#include "../dae_common.h"
+#include "../common.h"
 
 AkSource* _assetkit_hide
 dae_source(DAEState * __restrict dst,

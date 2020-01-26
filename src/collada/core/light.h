@@ -8,7 +8,7 @@
 #ifndef __libassetkit__dae_light__h_
 #define __libassetkit__dae_light__h_
 
-#include "../dae_common.h"
+#include "../common.h"
 
 _assetkit_hide
 void

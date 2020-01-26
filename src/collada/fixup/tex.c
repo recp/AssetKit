@@ -5,7 +5,7 @@
 * Full license can be found in the LICENSE file
 */
 
-#include "dae_tex_fixup.h"
+#include "tex.h"
 
 void _assetkit_hide
 dae_tex_walk(RBTree * __restrict tree, RBNode * __restrict rbnode);

@@ -5,9 +5,9 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae14_image.h"
-#include "../core/dae_asset.h"
-#include "../fx/dae_fx_enums.h"
+#include "image.h"
+#include "../core/asset.h"
+#include "../fx/fx_enums.h"
 
 void _assetkit_hide
 dae14_fxMigrateImg(AkXmlState * __restrict xst,

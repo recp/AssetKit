@@ -8,7 +8,7 @@
 #ifndef dae_brep_nurbs_h
 #define dae_brep_nurbs_h
 
-#include "../dae_common.h"
+#include "../common.h"
 
 AkResult _assetkit_hide
 dae_nurbs(AkXmlState * __restrict xst,

@@ -6,7 +6,6 @@
  */
 
 #include "resource.h"
-#include "../mem_common.h"
 #include "../../include/ak/path.h"
 #include "curl.h"
 

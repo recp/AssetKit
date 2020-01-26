@@ -5,7 +5,7 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_fx_color_or_tex.h"
+#include "colortex.h"
 #include "../core/dae_param.h"
 #include "../core/dae_color.h"
 #include "dae_fx_enums.h"

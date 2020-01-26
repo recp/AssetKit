@@ -8,7 +8,7 @@
 #ifndef __libassetkit__dae_polygons_h_
 #define __libassetkit__dae_polygons_h_
 
-#include "../dae_common.h"
+#include "../common.h"
 
 typedef enum AkPolygonMode {
   AK_POLYGON_MODE_POLYLIST = 0,

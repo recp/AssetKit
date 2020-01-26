@@ -8,7 +8,7 @@
 #ifndef dae_brep_surface_h
 #define dae_brep_surface_h
 
-#include "../dae_common.h"
+#include "../common.h"
 
 AkResult _assetkit_hide
 dae_surface(AkXmlState * __restrict xst,

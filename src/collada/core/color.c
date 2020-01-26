@@ -5,7 +5,7 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_color.h"
+#include "color.h"
 
 void _assetkit_hide
 dae_color(xml_t   * __restrict xml,

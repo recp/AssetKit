@@ -6,7 +6,6 @@
  */
 
 #include "../common.h"
-#include "../mem_common.h"
 #include "mesh_index.h"
 #include "mesh_edit_common.h"
 #include <limits.h>

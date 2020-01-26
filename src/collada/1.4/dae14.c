@@ -6,7 +6,7 @@
  */
 
 #include "../../../include/ak/assetkit.h"
-#include "../dae_common.h"
+#include "../common.h"
 #include "dae14.h"
 
 void

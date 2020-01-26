@@ -5,8 +5,8 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_vert.h"
-#include "dae_enums.h"
+#include "vert.h"
+#include "enums.h"
 
 AkResult _assetkit_hide
 dae_vert(AkXmlState * __restrict xst,

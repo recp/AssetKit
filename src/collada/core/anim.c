@@ -5,10 +5,10 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_anim.h"
-#include "dae_asset.h"
-#include "dae_source.h"
-#include "dae_enums.h"
+#include "anim.h"
+#include "asset.h"
+#include "source.h"
+#include "enums.h"
 
 AkResult _assetkit_hide
 dae_anim(AkXmlState   * __restrict xst,

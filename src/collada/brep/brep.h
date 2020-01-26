@@ -8,7 +8,7 @@
 #ifndef __libassetkit__dae_brep_h_
 #define __libassetkit__dae_brep_h_
 
-#include "../dae_common.h"
+#include "../common.h"
 
 AkResult _assetkit_hide
 dae_brep(AkXmlState * __restrict xst,

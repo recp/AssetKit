@@ -7,7 +7,6 @@
 
 #include "../common.h"
 #include "../../include/ak/path.h"
-#include "../mem_common.h"
 #include "resource.h"
 #include "curl.h"
 

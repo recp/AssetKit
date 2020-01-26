@@ -5,11 +5,11 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_source.h"
-#include "../core/dae_asset.h"
-#include "../core/dae_techn.h"
-#include "../core/dae_enums.h"
-#include "../core/dae_value.h"
+#include "source.h"
+#include "../core/asset.h"
+#include "../core/techn.h"
+#include "../core/enums.h"
+#include "../core/value.h"
 
 AkSource* _assetkit_hide
 dae_source(DAEState * __restrict dst,

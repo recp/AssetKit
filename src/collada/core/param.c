@@ -5,8 +5,8 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_param.h"
-#include "dae_value.h"
+#include "param.h"
+#include "value.h"
 
 AkResult _assetkit_hide
 dae_newparam(AkXmlState  * __restrict xst,

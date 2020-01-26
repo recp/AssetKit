@@ -5,10 +5,10 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_skin.h"
+#include "skin.h"
 #include "../../array.h"
-#include "dae_source.h"
-#include "dae_enums.h"
+#include "source.h"
+#include "enums.h"
 
 AkResult _assetkit_hide
 dae_skin(AkXmlState * __restrict xst,

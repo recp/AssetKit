@@ -8,7 +8,7 @@
 #ifndef __libassetkit__dae_geometry_h_
 #define __libassetkit__dae_geometry_h_
 
-#include "../dae_common.h"
+#include "../common.h"
 
 _assetkit_hide
 void

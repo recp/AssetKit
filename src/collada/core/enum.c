@@ -5,9 +5,9 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_enums.h"
+#include "enums.h"
 #include "../../common.h"
-#include "../dae_common.h"
+#include "../common.h"
 #include <string.h>
 
 AkEnum _assetkit_hide

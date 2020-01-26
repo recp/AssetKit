@@ -5,7 +5,7 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_fixangle.h"
+#include "fixangle.h"
 
 /*
  COLLADA uses degress for all angles, convert desgress to radians. It may exists

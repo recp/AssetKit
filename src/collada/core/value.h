@@ -8,7 +8,7 @@
 #ifndef __libassetkit__dae_value__h_
 #define __libassetkit__dae_value__h_
 
-#include "../dae_common.h"
+#include "../common.h"
 
 AkResult _assetkit_hide
 dae_value(AkXmlState * __restrict xst,

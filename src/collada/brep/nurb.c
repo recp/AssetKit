@@ -5,9 +5,9 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "dae_brep_nurbs.h"
-#include "../core/dae_source.h"
-#include "../core/dae_enums.h"
+#include "nurbs.h"
+#include "../core/source.h"
+#include "../core/enums.h"
 
 AkResult _assetkit_hide
 dae_nurbs(AkXmlState * __restrict xst,
