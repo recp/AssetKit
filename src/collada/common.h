@@ -125,4 +125,22 @@ url_set(DAEState   * __restrict dst,
   dst->urlQueue  = urlQueue;
 }
 
+AK_INLINE
+AkURL*
+url_alloc(xml_t      * __restrict xml,
+          const char * __restrict name,
+          void       * __restrict memp,
+          AkURL      * __restrict url) {
+  xml_attr_t *attr;
+  char       *attrv;
+
+  if (!(attr = xml_attr(xml, name)) || !(attrv = (char *)attr->val))
+    return NULL;
+  
+  url = ak_heap_calloc(ak_heap_getheap(memp), memp, sizeof(*url));
+  ak_url_init(memp, (char *)attrv, url);
+  
+  return url;
+}
+
 #endif /* __libassetkit__dae_common__h_ */
