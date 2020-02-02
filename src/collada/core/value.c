@@ -6,8 +6,8 @@
  */
 
 #include "value.h"
-#include "../fx/samp.h"
-#include "../1.4/surface.h"
+//#include "../fx/samp.h"
+//#include "../1.4/surface.h"
 
 #define AK_CUSTOM_TYPE_SURFACE 1
 
@@ -54,13 +54,13 @@ static ak_value_pair valueMap[] = {
   {_s_dae_sampler_depth, AKT_SAMPLER_DEPTH, 1, 1, sizeof(AkSampler)},
 
   /* COLLADA 1.4 */
-  {
-    _s_dae_surface,
-    AKT_CUSTOM,
-    AK_CUSTOM_TYPE_SURFACE,
-    1,
-    sizeof(AkDae14Surface)
-  },
+//  {
+//    _s_dae_surface,
+//    AKT_CUSTOM,
+//    AK_CUSTOM_TYPE_SURFACE,
+//    1,
+//    sizeof(AkDae14Surface)
+//  },
 };
 
 static size_t valueMapLen = 0;
@@ -95,146 +95,146 @@ dae_dtype(const char *typeName, AkTypeDesc *type) {
   type->typeName = found->key;
 }
 
-AkResult _assetkit_hide
-dae_value(AkXmlState * __restrict xst,
-          void       * __restrict memParent,
-          AkValue   ** __restrict dest) {
-  AkValue       *val;
-  ak_value_pair *found;
-  AkXmlElmState  xest;
-
-  if (valueMapLen == 0) {
-    valueMapLen = AK_ARRAY_LEN(valueMap);
-    qsort(valueMap,
-          valueMapLen,
-          sizeof(valueMap[0]),
-          valuePairCmp);
-  }
-
-  found = bsearch(xst->nodeName,
-                  valueMap,
-                  valueMapLen,
-                  sizeof(valueMap[0]),
-                  valuePairCmp2);
-
-  if (!found) {
-    *dest = NULL;
-    return AK_EFOUND;
-  }
-
-  val = ak_heap_calloc(xst->heap, memParent, sizeof(*val));
-  val->type.size     = found->size;
-  val->type.typeId   = found->val;
-  val->type.typeName = found->key;
-
-  ak_xest_init(xest, found->key)
-
-  switch (found->val) {
-    case AKT_STRING:
-      val->value = ak_xml_val(xst, NULL);
-      break;
-    case AKT_BOOL:
-    case AKT_BOOL2:
-    case AKT_BOOL3:
-    case AKT_BOOL4:{
-      AkBool *boolVal;
-      char   *nodeVal;
-
-      nodeVal = ak_xml_rawcval(xst);
-      boolVal = ak_heap_calloc(xst->heap,
-                               memParent,
-                               sizeof(*boolVal) * found->m * found->n);
-      ak_strtomb(&nodeVal, boolVal, found->m, found->n);
-
-      val->value = boolVal;
-      break;
-    }
-    case AKT_INT:
-    case AKT_INT2:
-    case AKT_INT3:
-    case AKT_INT4:{
-      AkInt *intVal;
-      char  *nodeVal;
-
-      nodeVal = ak_xml_rawcval(xst);
-      intVal = ak_heap_calloc(xst->heap,
-                              memParent,
-                              sizeof(*intVal) * found->m * found->n);
-      ak_strtomi(&nodeVal, intVal, found->m, found->n);
-
-      val->value = intVal;
-      break;
-    }
-    case AKT_FLOAT:
-    case AKT_FLOAT2:
-    case AKT_FLOAT3:
-    case AKT_FLOAT4:
-    case AKT_FLOAT2x2:
-    case AKT_FLOAT3x3:
-    case AKT_FLOAT4x4:{
-      AkFloat *floatVal;
-      char    *nodeVal;
-
-      nodeVal  = ak_xml_rawcval(xst);
-      floatVal = ak_heap_calloc(xst->heap,
-                                memParent,
-                                sizeof(*floatVal) * found->m * found->n);
-      ak_strtomf(&nodeVal, floatVal, found->m, found->n);
-
-      val->value = floatVal;
-      break;
-    }
-    case AKT_SAMPLER1D:
-    case AKT_SAMPLER2D:
-    case AKT_SAMPLER3D:
-    case AKT_SAMPLER_CUBE:
-    case AKT_SAMPLER_RECT:
-    case AKT_SAMPLER_DEPTH: {
-      AkSampler *sampler;
-      AkResult   ret;
-
-      sampler = NULL;
-      ret     = dae_fxSampler(xst, memParent, found->key, &sampler);
-
-      if (ret == AK_OK) {
-        AkTexture *tex;
-
-        tex = ak_heap_calloc(xst->heap, memParent, sizeof(*tex));
-        ak_setypeid(tex, AKT_TEXTURE);
-
-        tex->sampler = sampler;
-        tex->type    = found->val;
-        val->value   = tex;
-      }
-
-      break;
-    }
-    case AKT_CUSTOM: {
-      switch (found->m) {
-        case AK_CUSTOM_TYPE_SURFACE: {
-          AkDae14Surface *surface;
-          AkResult        ret;
-
-          surface = NULL;
-          ret = dae14_fxSurface(xst, memParent, &surface);
-          if (ret == AK_OK)
-            val->value = surface;
-          break;
-        }
-      }
-      break;
-    }
-    default:
-      break;
-  }
-
-  /* end element */
-  ak_xml_end(&xest);
-
-  *dest = val;
-
-  return AK_OK;
-}
+//AkResult _assetkit_hide
+//dae_value(AkXmlState * __restrict xst,
+//          void       * __restrict memParent,
+//          AkValue   ** __restrict dest) {
+//  AkValue       *val;
+//  ak_value_pair *found;
+//  AkXmlElmState  xest;
+//
+//  if (valueMapLen == 0) {
+//    valueMapLen = AK_ARRAY_LEN(valueMap);
+//    qsort(valueMap,
+//          valueMapLen,
+//          sizeof(valueMap[0]),
+//          valuePairCmp);
+//  }
+//
+//  found = bsearch(xst->nodeName,
+//                  valueMap,
+//                  valueMapLen,
+//                  sizeof(valueMap[0]),
+//                  valuePairCmp2);
+//
+//  if (!found) {
+//    *dest = NULL;
+//    return AK_EFOUND;
+//  }
+//
+//  val = ak_heap_calloc(xst->heap, memParent, sizeof(*val));
+//  val->type.size     = found->size;
+//  val->type.typeId   = found->val;
+//  val->type.typeName = found->key;
+//
+//  ak_xest_init(xest, found->key)
+//
+//  switch (found->val) {
+//    case AKT_STRING:
+//      val->value = ak_xml_val(xst, NULL);
+//      break;
+//    case AKT_BOOL:
+//    case AKT_BOOL2:
+//    case AKT_BOOL3:
+//    case AKT_BOOL4:{
+//      AkBool *boolVal;
+//      char   *nodeVal;
+//
+//      nodeVal = ak_xml_rawcval(xst);
+//      boolVal = ak_heap_calloc(xst->heap,
+//                               memParent,
+//                               sizeof(*boolVal) * found->m * found->n);
+//      ak_strtomb(&nodeVal, boolVal, found->m, found->n);
+//
+//      val->value = boolVal;
+//      break;
+//    }
+//    case AKT_INT:
+//    case AKT_INT2:
+//    case AKT_INT3:
+//    case AKT_INT4:{
+//      AkInt *intVal;
+//      char  *nodeVal;
+//
+//      nodeVal = ak_xml_rawcval(xst);
+//      intVal = ak_heap_calloc(xst->heap,
+//                              memParent,
+//                              sizeof(*intVal) * found->m * found->n);
+//      ak_strtomi(&nodeVal, intVal, found->m, found->n);
+//
+//      val->value = intVal;
+//      break;
+//    }
+//    case AKT_FLOAT:
+//    case AKT_FLOAT2:
+//    case AKT_FLOAT3:
+//    case AKT_FLOAT4:
+//    case AKT_FLOAT2x2:
+//    case AKT_FLOAT3x3:
+//    case AKT_FLOAT4x4:{
+//      AkFloat *floatVal;
+//      char    *nodeVal;
+//
+//      nodeVal  = ak_xml_rawcval(xst);
+//      floatVal = ak_heap_calloc(xst->heap,
+//                                memParent,
+//                                sizeof(*floatVal) * found->m * found->n);
+//      ak_strtomf(&nodeVal, floatVal, found->m, found->n);
+//
+//      val->value = floatVal;
+//      break;
+//    }
+//    case AKT_SAMPLER1D:
+//    case AKT_SAMPLER2D:
+//    case AKT_SAMPLER3D:
+//    case AKT_SAMPLER_CUBE:
+//    case AKT_SAMPLER_RECT:
+//    case AKT_SAMPLER_DEPTH: {
+//      AkSampler *sampler;
+//      AkResult   ret;
+//
+//      sampler = NULL;
+//      ret     = dae_fxSampler(xst, memParent, found->key, &sampler);
+//
+//      if (ret == AK_OK) {
+//        AkTexture *tex;
+//
+//        tex = ak_heap_calloc(xst->heap, memParent, sizeof(*tex));
+//        ak_setypeid(tex, AKT_TEXTURE);
+//
+//        tex->sampler = sampler;
+//        tex->type    = found->val;
+//        val->value   = tex;
+//      }
+//
+//      break;
+//    }
+//    case AKT_CUSTOM: {
+//      switch (found->m) {
+//        case AK_CUSTOM_TYPE_SURFACE: {
+//          AkDae14Surface *surface;
+//          AkResult        ret;
+//
+//          surface = NULL;
+//          ret = dae14_fxSurface(xst, memParent, &surface);
+//          if (ret == AK_OK)
+//            val->value = surface;
+//          break;
+//        }
+//      }
+//      break;
+//    }
+//    default:
+//      break;
+//  }
+//
+//  /* end element */
+//  ak_xml_end(&xest);
+//
+//  *dest = val;
+//
+//  return AK_OK;
+//}
 
 static
 int

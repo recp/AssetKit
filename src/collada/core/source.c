@@ -47,7 +47,7 @@ dae_source(DAEState * __restrict dst,
 
       if ((xacc = xml_elem(xml, _s_dae_accessor))) {
         acc         = ak_heap_calloc(heap, source, sizeof(*acc));
-        acc->count  = xmla_uint32(xml_attr(xacc, _s_dae_count), 0);
+        acc->count  = xmla_uint32(xml_attr(xacc, _s_dae_count),  0);
         acc->offset = xmla_uint32(xml_attr(xacc, _s_dae_offset), 0);
         acc->stride = xmla_uint32(xml_attr(xacc, _s_dae_stride), 1);
 
@@ -62,7 +62,6 @@ dae_source(DAEState * __restrict dst,
           sid_set(xacc, heap, dp);
           
           dp->name = xmla_strdup_by(xacc, heap, _s_dae_name, dp);
-          
           dae_dtype(xmla_strdup_by(xacc, heap, _s_dae_type, dp),  &dp->type);
           
           dp->next   = acc->param;
