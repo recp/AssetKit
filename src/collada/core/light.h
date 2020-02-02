@@ -12,7 +12,6 @@
 
 _assetkit_hide
 void
-dae_light(xml_t * __restrict xml,
-          void  * __restrict userdata);
+dae_light(xml_t * __restrict xml, void * __restrict userdata);
 
 #endif /* __libassetkit__dae_light__h_ */

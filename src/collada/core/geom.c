@@ -13,8 +13,7 @@
 
 _assetkit_hide
 void
-dae_geom(xml_t * __restrict xml,
-         void  * __restrict userdata) {
+dae_geom(xml_t * __restrict xml, void * __restrict userdata) {
   DAEState    *dst;
   AkGeometry  *geom;
   AkDoc       *doc;

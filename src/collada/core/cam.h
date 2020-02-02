@@ -12,7 +12,6 @@
 
 _assetkit_hide
 void
-dae_cam(xml_t * __restrict xml,
-        void  * __restrict userdata);
+dae_cam(xml_t * __restrict xml, void * __restrict userdata);
 
 #endif /* __libassetkit__dae_camera__h_ */

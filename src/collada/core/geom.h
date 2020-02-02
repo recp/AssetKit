@@ -12,7 +12,6 @@
 
 _assetkit_hide
 void
-dae_geom(xml_t * __restrict xml,
-         void  * __restrict userdata);
+dae_geom(xml_t * __restrict xml, void  * __restrict userdata);
 
 #endif /* __libassetkit__dae_geometry_h_ */

@@ -9,8 +9,7 @@
 
 _assetkit_hide
 void
-dae_asset(xml_t * __restrict xml,
-          void  * __restrict userdata) {
+dae_asset(xml_t * __restrict xml, void * __restrict userdata) {
   DAEState      *dst;
   AkAssetInf    *inf;
   AkDoc         *doc;
