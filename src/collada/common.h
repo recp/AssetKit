@@ -105,7 +105,7 @@ void
 url_set(DAEState   * __restrict dst,
         xml_t      * __restrict xml,
         const char * __restrict name,
-        void       * __restrict memparent,
+        void       * __restrict memp,
         AkURL      * __restrict url) {
   AkURLQueue *urlQueue;
   xml_attr_t *attr;
@@ -117,7 +117,7 @@ url_set(DAEState   * __restrict dst,
     return;
   }
   
-  ak_url_init(memparent, (char *)attrv, url);
+  ak_url_init(memp, (char *)attrv, url);
   
   urlQueue       = dst->heap->allocator->malloc(sizeof(*urlQueue));
   urlQueue->next = dst->urlQueue;
@@ -127,10 +127,10 @@ url_set(DAEState   * __restrict dst,
 
 AK_INLINE
 AkURL*
-url_alloc(xml_t      * __restrict xml,
-          const char * __restrict name,
-          void       * __restrict memp,
-          AkURL      * __restrict url) {
+url_from(xml_t      * __restrict xml,
+         const char * __restrict name,
+         void       * __restrict memp) {
+  AkURL      *url;
   xml_attr_t *attr;
   char       *attrv;
 
