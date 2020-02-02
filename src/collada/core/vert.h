@@ -10,9 +10,10 @@
 
 #include "../common.h"
 
-AkResult _assetkit_hide
-dae_vert(AkXmlState * __restrict xst,
-         void * __restrict memParent,
-         AkVertices ** __restrict dest);
+_assetkit_hide
+AkVertices*
+dae_vert(DAEState * __restrict dst,
+         xml_t    * __restrict xml,
+         void     * __restrict memp);
 
 #endif /* __libassetkit__dae_vertices_h_ */

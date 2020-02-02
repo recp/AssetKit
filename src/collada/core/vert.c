@@ -8,63 +8,46 @@
 #include "vert.h"
 #include "enum.h"
 
-AkResult _assetkit_hide
-dae_vert(AkXmlState * __restrict xst,
-         void * __restrict memParent,
-         AkVertices ** __restrict dest) {
-  AkVertices   *vertices;
-  AkInput      *last_input;
-  AkXmlElmState xest;
-
-  vertices = ak_heap_calloc(xst->heap,
-                            memParent,
-                            sizeof(*vertices));
-
-  ak_xml_readid(xst, vertices);
-  vertices->name = ak_xml_attr(xst, vertices, _s_dae_name);
-
-  last_input = NULL;
-
-  ak_xest_init(xest, _s_dae_vertices)
-
-  do {
-    if (ak_xml_begin(&xest))
-      break;
-
-    if (ak_xml_eqelm(xst, _s_dae_input)) {
-      AkInput *input;
-
-      input = ak_heap_calloc(xst->heap, vertices, sizeof(*input));
-      input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
-
-      if (!input->semanticRaw) {
-        ak_free(input);
+_assetkit_hide
+AkVertices*
+dae_vert(DAEState * __restrict dst,
+         xml_t    * __restrict xml,
+         void     * __restrict memp) {
+  AkHeap     *heap;
+  AkVertices *vert;
+  
+  heap = dst->heap;
+  vert = ak_heap_calloc(heap, memp, sizeof(*vert));
+  xmla_setid(xml, heap, vert);
+  
+  vert->name = xmla_strdup_by(xml, heap, _s_dae_name, vert);
+  
+  xml = xml->val;
+  while (xml) {
+    if (xml_tag_eq(xml, _s_dae_input)) {
+      AkInput *inp;
+      
+      inp              = ak_heap_calloc(heap, vert, sizeof(*inp));
+      inp->semanticRaw = xmla_strdup_by(xml, heap, _s_dae_semantic, inp);
+      
+      if (!inp->semanticRaw) {
+        ak_free(inp);
       } else {
         AkURL *url;
-        input->semantic = dae_enumInputSemantic(input->semanticRaw);
-
-        url = ak_xmlAttrGetURL(xst, _s_dae_source, input);
-        rb_insert(xst->inputmap, input, url);
-
-        if (last_input)
-          last_input->next = input;
-        else
-          vertices->input = input;
-
-        last_input = input;
-
-        vertices->inputCount++;
+        inp->semantic = dae_enumInputSemantic(inp->semanticRaw);
+        
+        url = url_from(xml, _s_dae_source, memp);
+        rb_insert(dst->inputmap, inp, url);
+        
+        inp->next   = vert->input;
+        vert->input = inp;
+        vert->inputCount++;
       }
-    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      dae_extra(xst, vertices, &vertices->extra);
+    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+      vert->extra = tree_fromxml(heap, vert, xml);
     }
-
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
-
-  *dest = vertices;
-
-  return AK_OK;
+    xml = xml->next;
+  }
+  
+  return vert;
 }

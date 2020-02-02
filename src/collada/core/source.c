@@ -78,6 +78,7 @@ dae_source(DAEState * __restrict dst,
         source->tcommon = acc;
 
         /* append accessor to global list */
+        /* this will be prepared in postprocess */
         flist_sp_insert(&dst->accessors, acc);
       }
     } else if (xml_tag_eq(xml, _s_dae_technique)) {
