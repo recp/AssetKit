@@ -52,6 +52,7 @@ typedef AK_ALIGN(16) struct DAEState {
   RBTree          *instanceMap;
   AkSource        *sources;
   AkCOLLADAVersion version;
+  bool             stop;
 } DAEState;
 
 typedef struct AkDaeMeshInfo {

@@ -10,7 +10,7 @@
 
 #include "core/asset.h"
 #include "core/cam.h"
-//#include "core/light.h"
+#include "core/light.h"
 //#include "core/geom.h"
 //#include "core/ctlr.h"
 //#include "core/node.h"
@@ -111,9 +111,9 @@ dae_doc(AkDoc     ** __restrict dest,
   }
 
   xml_objmap_t daemap[] = {
-//    XML_OBJMAP_FN(_s_dae_asset,             dae_asset,    dst),
-//    XML_OBJMAP_FN(_s_dae_lib_cameras,       dae_cam,      dst),
-//    XML_OBJMAP_FN(_s_dae_lib_lights,        dae_light,    dst),
+    XML_OBJMAP_FN(_s_dae_asset,             dae_asset,    dst),
+    XML_OBJMAP_FN(_s_dae_lib_cameras,       dae_cam,      dst),
+    XML_OBJMAP_FN(_s_dae_lib_lights,        dae_light,    dst),
 //    XML_OBJMAP_FN(_s_dae_lib_geometries,    dae_geom,     dst),
 //    XML_OBJMAP_FN(_s_dae_lib_effects,       dae_asset,    dst),
 //    XML_OBJMAP_FN(_s_dae_lib_images,        dae_asset,    dst),
@@ -126,6 +126,17 @@ dae_doc(AkDoc     ** __restrict dest,
 //    XML_OBJMAP_FN(_s_dae_extra,             dae_asset,    dst)
   };
 
+  while (xml) {
+    xml_objmap_call(xml, daemap, XML_ARR_LEN(daemap), &dstVal.stop);
+    
+    if (dstVal.stop) {
+      ret = AK_EBADF;
+      goto err;
+    }
+    
+    xml = xml->next;
+  }
+  
   *dest = doc;
 
   /* post-parse operations */
@@ -134,6 +145,7 @@ dae_doc(AkDoc     ** __restrict dest,
   /* TODO: memory leak, free this RBTree*/
   /* rb_destroy(doc->reserved); */
 
+err:
   return AK_OK;
 }
 
