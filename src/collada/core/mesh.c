@@ -27,6 +27,7 @@ AkObject* _assetkit_hide
 dae_mesh(DAEState   * __restrict dst,
          xml_t      * __restrict xml,
          AkGeometry * __restrict geom) {
+  AkVertices  *vert;
   AkObject    *obj;
   AkMesh      *mesh;
   AkDoc       *doc;
@@ -42,13 +43,11 @@ dae_mesh(DAEState   * __restrict dst,
   mesh->geom         = geom;
   mesh->convexHullOf = xmla_strdup_by(xml, heap, _s_dae_convex_hull_of, obj);
 
-  xml = xml->val;
   while (xml) {
     if (xml_tag_eq(xml, _s_dae_source)) {
-      AkSource *source;
-
-      source = dae_source(dst, NULL, 0);
+      (void)dae_source(dst, xml, NULL, 0);
     } else if (xml_tag_eq(xml, _s_dae_vertices)) {
+      vert = dae_vert(dst, xml, obj);
     } else if (xml_tag_eq(xml, _s_dae_lines)) {
     } else if (xml_tag_eq(xml, _s_dae_linestrips)) {
     } else if (xml_tag_eq(xml, _s_dae_polygons)) {
