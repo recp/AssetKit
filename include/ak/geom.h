@@ -42,9 +42,9 @@ typedef enum AkMeshPrimitiveType {
 } AkMeshPrimitiveType;
 
 typedef enum AkTriangleMode {
-  AK_TRIANGLE_MODE_TRIANGLES      = 0,
-  AK_TRIANGLE_MODE_TRIANGLE_STRIP = 1,
-  AK_TRIANGLE_MODE_TRIANGLE_FAN   = 2
+  AK_TRIANGLES      = 0,
+  AK_TRIANGLE_STRIP = 1,
+  AK_TRIANGLE_FAN   = 2
 } AkTriangleMode;
 
 typedef enum AkLineMode {

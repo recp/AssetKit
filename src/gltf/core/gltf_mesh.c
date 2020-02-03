@@ -322,21 +322,21 @@ gltf_allocPrim(AkHeap * __restrict heap,
       AkTriangles *tri;
       tri = ak_heap_calloc(heap, memParent, sizeof(*tri));
       tri->base.type = AK_MESH_PRIMITIVE_TYPE_TRIANGLES;
-      tri->mode      = AK_TRIANGLE_MODE_TRIANGLES;
+      tri->mode      = AK_TRIANGLES;
       return &tri->base;
     }
     case 5: {
       AkTriangles *tri;
       tri = ak_heap_calloc(heap, memParent, sizeof(*tri));
       tri->base.type = AK_MESH_PRIMITIVE_TYPE_TRIANGLES;
-      tri->mode  = AK_TRIANGLE_MODE_TRIANGLE_STRIP;
+      tri->mode  = AK_TRIANGLE_STRIP;
       return &tri->base;
     }
     case 6: {
       AkTriangles *tri;
       tri = ak_heap_calloc(heap, memParent, sizeof(*tri));
       tri->base.type = AK_MESH_PRIMITIVE_TYPE_TRIANGLES;
-      tri->mode  = AK_TRIANGLE_MODE_TRIANGLE_FAN;
+      tri->mode  = AK_TRIANGLE_FAN;
       return &tri->base;
     }
   }
