@@ -10,224 +10,131 @@
 #include "../../array.h"
 #include "../../data.h"
 
-AkResult _assetkit_hide
-dae_poly(AkXmlState * __restrict xst,
-         void       * __restrict memParent,
-         const char             *elm,
-         AkPolygonMode           mode,
-         AkPolygon ** __restrict dest) {
-  AkPolygon     *polygon;
-  AkInput       *last_input;
-  FListItem     *polygons;
-  AkXmlElmState  xest;
-  uint32_t       indexoff, polygonsCount, indicesCount, st;
+_assetkit_hide
+AkPolygon*
+dae_poly(DAEState * __restrict dst,
+         xml_t    * __restrict xml,
+         void     * __restrict memp,
+         AkPolygonMode         mode) {
+  AkPolygon *poly;
+  FListItem *polyi;
+  AkHeap    *heap;
+  uint32_t   indexoff, polygonsCount, indicesCount, st;
+  
+  heap = dst->heap;
+  poly = ak_heap_calloc(heap, memp, sizeof(*poly));
+  
+  poly->haveHoles         = false;
+  poly->base.type         = AK_PRIMITIVE_POLYGONS;
 
-  polygon = ak_heap_calloc(xst->heap,
-                           memParent,
-                           sizeof(*polygon));
+  poly->base.name         = xmla_strdup_by(xml, heap, _s_dae_name, poly);
+  poly->base.bindmaterial = xmla_strdup_by(xml, heap, _s_dae_material, poly);
+  poly->base.count        = xmla_uint32(xml_attr(xml, _s_dae_count), 0);
 
-  polygon->haveHoles     = false;
-  polygon->base.type     = AK_MESH_PRIMITIVE_TYPE_POLYGONS;
-
-  polygon->base.name     = ak_xml_attr(xst, polygon, _s_dae_name);
-  polygon->base.bindmaterial = ak_xml_attr(xst, polygon, _s_dae_material);
-  polygon->base.count    = ak_xml_attrui(xst, _s_dae_count);
-
-  /*
-   _xml_readAttrUsingFnWithDef(polygon->count,
-                              _s_dae_count,
-                              0,
-                              strtoul, NULL, 10);
-   */
-
-  last_input    = NULL;
-  polygons      = NULL;
+  polyi         = NULL;
   indexoff      = 0;
   polygonsCount = 0;
   indicesCount  = 0;
+  
+  xml = xml->val;
+  while (xml) {
+    if (xml_tag_eq(xml, _s_dae_input)) {
+      AkInput *inp;
 
-  ak_xest_init(xest, elm)
+      inp              = ak_heap_calloc(heap, poly, sizeof(*inp));
+      inp->semanticRaw = xmla_strdup_by(xml, heap, _s_dae_semantic, inp);
 
-  do {
-    if (ak_xml_begin(&xest))
-      break;
-
-    if (ak_xml_eqelm(xst, _s_dae_input)) {
-      AkInput *input;
-
-      input = ak_heap_calloc(xst->heap, polygon, sizeof(*input));
-      input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
-
-      if (!input->semanticRaw)
-        ak_free(input);
-      else {
+      if (!inp->semanticRaw) {
+        ak_free(inp);
+      } else {
         AkEnum inputSemantic;
 
-        inputSemantic = dae_enumInputSemantic(input->semanticRaw);
-        input->offset = ak_xml_attrui(xst, _s_dae_offset);
-        input->set    = ak_xml_attrui(xst, _s_dae_set);
+        inputSemantic = dae_enumInputSemantic(inp->semanticRaw);
+        inp->semantic = inputSemantic;
 
         if (inputSemantic < 0)
           inputSemantic = AK_INPUT_SEMANTIC_OTHER;
 
-        input->semantic = inputSemantic;
+        inp->semantic = inputSemantic;
+        inp->offset   = xmla_uint32(xml_attr(xml, _s_dae_offset), 0);
+        inp->set      = xmla_uint32(xml_attr(xml, _s_dae_set),    0);
 
-        if ((uint32_t)input->semantic != AK_INPUT_SEMANTIC_VERTEX) {
+        if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
           AkURL *url;
 
-          if (last_input)
-            last_input->next = input;
-          else
-            polygon->base.input = input;
+          inp->semantic = dae_enumInputSemantic(inp->semanticRaw);
 
-          last_input = input;
+          inp->next        = poly->base.input;
+          poly->base.input = inp;
+          poly->base.inputCount++;
 
-          polygon->base.inputCount++;
+          if (inp->offset > indexoff)
+            indexoff = inp->offset;
 
-          if (input->offset > indexoff)
-            indexoff = input->offset;
-
-          url = ak_xmlAttrGetURL(xst, _s_dae_source, input);
-          rb_insert(xst->inputmap, input, url);
+          url = url_from(xml, _s_dae_source, memp);
+          rb_insert(dst->inputmap, inp, url);
         } else {
           /* don't store VERTEX because it will be duplicated to all prims */
-          polygon->base.reserved1 = input->offset;
-          polygon->base.reserved2 = input->set;
-          ak_free(input);
+          poly->base.reserved1 = inp->offset;
+          poly->base.reserved2 = inp->set;
+          ak_free(inp);
         }
       }
-    } else if (ak_xml_eqelm(xst, _s_dae_p)) {
-      char *content;
-
-      content = ak_xml_rawval(xst);
-
-      if (content) {
-        AkUIntArray *intArray;
-        AkResult ret;
-
-        if (mode == AK_POLYGON_MODE_POLYLIST) {
-          ret = ak_strtoui_array(xst->heap, polygon, content, &intArray);
-          if (ret == AK_OK)
-            polygon->base.indices = intArray;
-        } else if (mode == AK_POLYGON_MODE_POLYGONS) {
-          ret = ak_strtoui_array(xst->heap, polygon, content, &intArray);
-          if (ret == AK_OK) {
-            flist_sp_insert(&polygons, intArray);
+    } else if (xml_tag_eq(xml, _s_dae_p)) {
+      AkUIntArray *intArray;
+      char        *content;
+      
+      if ((content = xml->val)) {
+        if ((ak_strtoui_array(heap, poly, content, &intArray) == AK_OK)) {
+          if (mode == AK_POLY_POLYLIST) {
+            poly->base.indices = intArray;
+          } else if (mode == AK_POLY_POLYGONS) {
+            flist_sp_insert(&polyi, intArray);
             polygonsCount++;
             indicesCount += intArray->count;
           }
         }
-
-        xmlFree(content);
       }
-    } else if (ak_xml_eqelm(xst, _s_dae_vcount)
-               && mode == AK_POLYGON_MODE_POLYLIST) {
-      char *content;
-      content = ak_xml_rawval(xst);
-
-      if (content) {
-        AkUIntArray *uintArray;
-        AkResult     ret;
-
-        ret = ak_strtoui_array(xst->heap, polygon, content, &uintArray);
-        if (ret == AK_OK)
-          polygon->vcount = uintArray;
-
-        xmlFree(content);
-      }
-    } else if (ak_xml_eqelm(xst, _s_dae_ph)) {
-      /* TODO: */
-      /*
-      AkPolygon      *polygon;
-      AkDoubleArrayL *last_array;
-
-      polygon = ak_heap_calloc(heap, polygon, sizeof(*polygon), false);
-      polygon->mode = mode;
-      polygon->haveHoles = true;
-
-      last_array = NULL;
-
-      do {
-        if (ak_xml_beginelm(xst, (_s_dae_ph);
-
-        if (ak_xml_eqelm(xst, _s_dae_p)) {
-          char *content;
-
-          content = ak_xml_rawval(xst);
-
-          if (content) {
-            AkUIntArray *intArray;
-            AkResult ret;
-
-            ret = ak_strtoui_array(heap, polygon, content, &intArray);
-            if (ret == AK_OK)
-              polygon->base.indices = intArray;
-
-            xmlFree(content);
-          }
-        } else if (ak_xml_eqelm(xst, _s_dae_h)) {
-          char *content;
-
-          content = ak_xml_rawval(xst);
-
-          if (content) {
-            AkDoubleArrayL *doubleArray;
-            AkResult ret;
-
-            ret = ak_strtod_arrayL(heap, polygon, content, &doubleArray);
-            if (ret == AK_OK) {
-              if (last_array)
-                last_array->next = doubleArray;
-              else
-                polygon->holes = doubleArray;
-
-              last_array = doubleArray;
-            }
-
-            xmlFree(content);
-          }
-        } else {
-          ak_xml_skipelm(xst);
+    } else if (xml_tag_eq(xml, _s_dae_vcount)) {
+      AkUIntArray *intArray;
+      char        *content;
+      
+      if ((content = xml->val)) {
+        if ((ak_strtoui_array(heap, poly, content, &intArray) == AK_OK)) {
+          poly->vcount = intArray;
         }
-
-        / end element /
-        ak_xml_endelm(xst);
-      } while (xst->nodeRet);
-      */
-    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      dae_extra(xst, polygon, &polygon->base.extra);
-    } else {
-      ak_xml_skipelm(xst);
+      }
+    } else if (xml_tag_eq(xml, _s_dae_vcount)) {
+      /* TODO: */
+    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+      poly->base.extra = tree_fromxml(heap, poly, xml);
     }
+    xml = xml->next;
+  }
 
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
-
-  polygon->base.indexStride = st = indexoff + 1;
-
-  if (mode == AK_POLYGON_MODE_POLYGONS) {
+  poly->base.indexStride = st = indexoff + 1;
+  
+  if (mode == AK_POLY_POLYGONS) {
     FListItem   *p;
     AkUIntArray *indices, *vcount;
     AkUInt      *pIndices, *pVcount;
 
     /* alloc indices array */
-    indices = ak_heap_alloc(xst->heap,
-                            polygon,
+    indices = ak_heap_alloc(heap,
+                            poly,
                             sizeof(*indices) + sizeof(AkUInt) * indicesCount);
     indices->count = indicesCount;
 
     /* alloc vcount */
-    vcount = ak_heap_alloc(xst->heap,
-                           polygon,
+    vcount = ak_heap_alloc(heap,
+                           poly,
                            sizeof(*vcount) + sizeof(AkUInt) * polygonsCount);
     vcount->count = polygonsCount;
 
     pIndices = indices->items;
     pVcount  = vcount->items;
 
-    p = polygons;
+    p = polyi;
     while (p) {
       AkUIntArray *intArray;
 
@@ -243,13 +150,11 @@ dae_poly(AkXmlState * __restrict xst,
       p = p->next;
     }
 
-    polygon->base.indices = indices;
-    polygon->vcount       = vcount;
+    poly->base.indices = indices;
+    poly->vcount       = vcount;
 
-    flist_sp_destroy(&polygons);
+    flist_sp_destroy(&polyi);
   }
 
-  *dest = polygon;
-
-  return AK_OK;
+  return poly;
 }

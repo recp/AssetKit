@@ -11,15 +11,15 @@
 #include "../common.h"
 
 typedef enum AkPolygonMode {
-  AK_POLYGON_MODE_POLYLIST = 0,
-  AK_POLYGON_MODE_POLYGONS = 1
+  AK_POLY_POLYLIST = 0,
+  AK_POLY_POLYGONS = 1
 } AkPolygonMode;
 
-AkResult _assetkit_hide
-dae_poly(AkXmlState * __restrict xst,
-         void       * __restrict memParent,
-         const char             *elm,
-         AkPolygonMode           mode,
-         AkPolygon ** __restrict dest);
+_assetkit_hide
+AkPolygon*
+dae_poly(DAEState * __restrict dst,
+         xml_t    * __restrict xml,
+         void     * __restrict memp,
+         AkPolygonMode         mode);
 
 #endif /* __libassetkit__dae_polygons_h_ */
