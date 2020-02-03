@@ -9,106 +9,97 @@
 #include "enum.h"
 #include "../../array.h"
 
-AkResult _assetkit_hide
-dae_lines(AkXmlState * __restrict xst,
-          void     * __restrict   memParent,
-          AkLineMode              mode,
-          AkLines ** __restrict   dest) {
-  AkLines      *lines;
-  AkInput      *last_input;
-  AkXmlElmState xest;
-  uint32_t      indexoff;
-
-  lines = ak_heap_calloc(xst->heap, memParent, sizeof(*lines));
-  lines->mode = mode;
+_assetkit_hide
+AkLines*
+dae_lines(DAEState * __restrict dst,
+          xml_t    * __restrict xml,
+          void     * __restrict memp,
+          AkLineMode            mode) {
+  AkLines *lines;
+  AkHeap  *heap;
+  uint32_t indexoff;
+  
+  heap = dst->heap;
+  lines  = ak_heap_calloc(heap, memp, sizeof(*lines));
+  
+  lines->mode      = mode;
   lines->base.type = AK_PRIMITIVE_LINES;
-
-  lines->base.name     = ak_xml_attr(xst, lines, _s_dae_name);
-  lines->base.bindmaterial = ak_xml_attr(xst, lines, _s_dae_material);
-  lines->base.count    = ak_xml_attrui(xst, _s_dae_count);
-
-  last_input = NULL;
-  indexoff   = 0;
-
-  ak_xest_init(xest, _s_dae_lines)
-
-  do {
-    if (ak_xml_begin(&xest))
-      break;
-
-    if (ak_xml_eqelm(xst, _s_dae_input)) {
-      AkInput *input;
-
-      input = ak_heap_calloc(xst->heap, lines, sizeof(*input));
-      input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
-
-      if (!input->semanticRaw)
-        ak_free(input);
-      else {
+  
+  lines->base.name         = xmla_strdup_by(xml, heap, _s_dae_name, lines);
+  lines->base.bindmaterial = xmla_strdup_by(xml, heap, _s_dae_name, lines);
+  lines->base.count        = xmla_uint32(xml_attr(xml, _s_dae_count), 0);
+  
+  indexoff = 0;
+  xml      = xml->val;
+  
+  while (xml) {
+    if (xml_tag_eq(xml, _s_dae_input)) {
+      AkInput *inp;
+      
+      inp              = ak_heap_calloc(heap, lines, sizeof(*inp));
+      inp->semanticRaw = xmla_strdup_by(xml, heap, _s_dae_semantic, inp);
+      
+      if (!inp->semanticRaw) {
+        ak_free(inp);
+      } else {
+        AkURL *url;
         AkEnum inputSemantic;
-        inputSemantic = dae_enumInputSemantic(input->semanticRaw);
-
+        
+        inputSemantic = dae_enumInputSemantic(inp->semanticRaw);
+        inp->semantic = inputSemantic;
+        
         if (inputSemantic < 0)
           inputSemantic = AK_INPUT_SEMANTIC_OTHER;
-
-        input->semantic = inputSemantic;
-        input->offset   = ak_xml_attrui(xst, _s_dae_offset);
-        input->set      = ak_xml_attrui(xst, _s_dae_set);
-
-        if ((uint32_t)input->semantic != AK_INPUT_SEMANTIC_VERTEX) {
+        
+        inp->semantic = inputSemantic;
+        inp->offset   = xmla_uint32(xml_attr(xml, _s_dae_offset), 0);
+        inp->set      = xmla_uint32(xml_attr(xml, _s_dae_set),    0);
+        
+        if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
           AkURL *url;
-
-          if (last_input)
-            last_input->next = input;
-          else
-            lines->base.input = input;
-
-          last_input = input;
-
+          
+          inp->semantic = dae_enumInputSemantic(inp->semanticRaw);
+          
+          inp->next       = lines->base.input;
+          lines->base.input = inp;
           lines->base.inputCount++;
-
-          if (input->offset > indexoff)
-            indexoff = input->offset;
-
-          url = ak_xmlAttrGetURL(xst, _s_dae_source, input);
-          rb_insert(xst->inputmap, input, url);
-
-          flist_sp_insert(&xst->inputs, input);
+          
+          if (inp->offset > indexoff)
+            indexoff = inp->offset;
+          
+          url = url_from(xml, _s_dae_source, memp);
+          rb_insert(dst->inputmap, inp, url);
         } else {
           /* don't store VERTEX because it will be duplicated to all prims */
-          lines->base.reserved1 = input->offset;
-          lines->base.reserved2 = input->set;
-          ak_free(input);
+          lines->base.reserved1 = inp->offset;
+          lines->base.reserved2 = inp->set;
+          ak_free(inp);
         }
+        
+        url = url_from(xml, _s_dae_source, memp);
+        rb_insert(dst->inputmap, inp, url);
+        
+        inp->next       = lines->base.input;
+        lines->base.input = inp;
+        lines->base.inputCount++;
       }
-
-    } else if (ak_xml_eqelm(xst, _s_dae_p)) {
-      char *content;
-
-      content = ak_xml_rawval(xst);
-
-      if (content) {
-        AkUIntArray *uintArray;
+    } else if (xml_tag_eq(xml, _s_dae_p)) {
+      AkUIntArray *uintArray;
+      char        *content;
+      
+      if ((content = xml->val)) {
         AkResult ret;
-
-        ret = ak_strtoui_array(xst->heap, lines, content, &uintArray);
+        ret = ak_strtoui_array(heap, lines, content, &uintArray);
         if (ret == AK_OK)
           lines->base.indices = uintArray;
-
-        xmlFree(content);
       }
-    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      dae_extra(xst, lines, &lines->base.extra);
+    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+      lines->base.extra = tree_fromxml(heap, lines, xml);
     }
-
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
-
+    xml = xml->next;
+  }
+  
   lines->base.indexStride = indexoff + 1;
-
-  *dest = lines;
-
-  return AK_OK;
+  
+  return lines;
 }

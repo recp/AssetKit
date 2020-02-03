@@ -8,7 +8,7 @@
 #include "mesh.h"
 #include "source.h"
 #include "vert.h"
-//#include "line.h"
+#include "line.h"
 //#include "poly.h"
 #include "triangle.h"
 
@@ -65,10 +65,21 @@ dae_mesh(DAEState   * __restrict dst,
         mesh->primitiveCount++;
       }
     } else if (xml_tag_eq(xml, _s_dae_polygons)) {
-
     } else if (xml_tag_eq(xml, _s_dae_polylist)) {
-    } else if (xml_tag_eq(xml, _s_dae_lines)) {
-    } else if (xml_tag_eq(xml, _s_dae_linestrips)) {
+    } else if (xml_tag_eq(xml, _s_dae_lines)      & (m = AK_LINES)
+           || (xml_tag_eq(xml, _s_dae_linestrips) & (m = AK_LINE_STRIP))) {
+      AkLines *lines;
+      
+      if ((lines = dae_lines(dst, xml, obj, m))) {
+        lines->base.next = mesh->primitive;
+        mesh->primitive  = &lines->base;
+
+        lines->base.mesh = mesh;
+        if (lines->base.bindmaterial)
+          ak_meshSetMaterial(&lines->base, lines->base.bindmaterial);
+        
+        mesh->primitiveCount++;
+      }
     } else if (xml_tag_eq(xml, _s_dae_extra)) {
       mesh->extra = tree_fromxml(heap, obj, xml);
     }

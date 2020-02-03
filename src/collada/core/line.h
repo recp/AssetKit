@@ -10,10 +10,11 @@
 
 #include "../common.h"
 
-AkResult _assetkit_hide
-dae_lines(AkXmlState * __restrict xst,
-          void     * __restrict   memParent,
-          AkLineMode              mode,
-          AkLines ** __restrict   dest);
+_assetkit_hide
+AkLines*
+dae_lines(DAEState * __restrict dst,
+          xml_t    * __restrict xml,
+          void     * __restrict memp,
+          AkLineMode            mode);
 
 #endif /* __libassetkit__dae_lines_h_ */
