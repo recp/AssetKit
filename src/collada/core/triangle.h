@@ -10,11 +10,11 @@
 
 #include "../common.h"
 
-AkResult _assetkit_hide
-dae_triangles(AkXmlState   * __restrict xst,
-              void         * __restrict memParent,
-              const char               *elm,
-              AkTriangleMode            mode,
-              AkTriangles ** __restrict dest);
+_assetkit_hide
+AkTriangles*
+dae_triangles(DAEState * __restrict dst,
+              xml_t    * __restrict xml,
+              void     * __restrict memp,
+              AkTriangleMode        mode);
 
 #endif /* __libassetkit__dae_triangles_h_ */

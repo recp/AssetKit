@@ -9,108 +9,97 @@
 #include "enum.h"
 #include "../../array.h"
 
-AkResult _assetkit_hide
-dae_triangles(AkXmlState   * __restrict xst,
-              void         * __restrict memParent,
-              const char               *elm,
-              AkTriangleMode            mode,
-              AkTriangles ** __restrict dest) {
-  AkTriangles  *triangles;
-  AkInput      *last_input;
-  AkXmlElmState xest;
-  uint32_t      indexoff;
+_assetkit_hide
+AkTriangles*
+dae_triangles(DAEState * __restrict dst,
+              xml_t    * __restrict xml,
+              void     * __restrict memp,
+              AkTriangleMode        mode) {
+  AkTriangles *tri;
+  AkHeap      *heap;
+  uint32_t     indexoff;
 
-  triangles = ak_heap_calloc(xst->heap,
-                             memParent,
-                             sizeof(*triangles));
+  heap = dst->heap;
+  tri  = ak_heap_calloc(heap, memp, sizeof(*tri));
+  
+  tri->mode      = mode;
+  tri->base.type = AK_MESH_PRIMITIVE_TYPE_TRIANGLES;
 
-  triangles->mode = mode;
-  triangles->base.type = AK_MESH_PRIMITIVE_TYPE_TRIANGLES;
+  tri->base.name         = xmla_strdup_by(xml, heap, _s_dae_name, tri);
+  tri->base.bindmaterial = xmla_strdup_by(xml, heap, _s_dae_name, tri);
+  tri->base.count        = xmla_uint32(xml_attr(xml, _s_dae_count), 0);
+  
+  indexoff = 0;
+  xml      = xml->val;
 
-  triangles->base.name     = ak_xml_attr(xst, triangles, _s_dae_name);
-  triangles->base.bindmaterial = ak_xml_attr(xst, triangles, _s_dae_material);
-  triangles->base.count    = ak_xml_attrui(xst, _s_dae_count);
+  while (xml) {
+    if (xml_tag_eq(xml, _s_dae_input)) {
+      AkInput *inp;
 
-  last_input = NULL;
-  indexoff   = 0;
+      inp              = ak_heap_calloc(heap, tri, sizeof(*inp));
+      inp->semanticRaw = xmla_strdup_by(xml, heap, _s_dae_semantic, inp);
 
-  ak_xest_init(xest, elm)
-
-  do {
-    if (ak_xml_begin(&xest))
-      break;
-
-    if (ak_xml_eqelm(xst, _s_dae_input)) {
-      AkInput *input;
-
-      input = ak_heap_calloc(xst->heap, triangles, sizeof(*input));
-      input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
-
-      if (!input->semanticRaw)
-        ak_free(input);
-      else {
+      if (!inp->semanticRaw) {
+        ak_free(inp);
+      } else {
+        AkURL *url;
         AkEnum inputSemantic;
-        inputSemantic = dae_enumInputSemantic(input->semanticRaw);
+
+        inputSemantic = dae_enumInputSemantic(inp->semanticRaw);
+        inp->semantic = inputSemantic;
 
         if (inputSemantic < 0)
           inputSemantic = AK_INPUT_SEMANTIC_OTHER;
 
-        input->semantic = inputSemantic;
-        input->offset   = ak_xml_attrui(xst, _s_dae_offset);
-        input->set      = ak_xml_attrui(xst, _s_dae_set);
+        inp->semantic = inputSemantic;
+        inp->offset   = xmla_uint32(xml_attr(xml, _s_dae_offset), 0);
+        inp->set      = xmla_uint32(xml_attr(xml, _s_dae_set),    0);
 
-        if ((uint32_t)input->semantic != AK_INPUT_SEMANTIC_VERTEX) {
+        if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
           AkURL *url;
+          
+          inp->semantic = dae_enumInputSemantic(inp->semanticRaw);
+        
+          inp->next       = tri->base.input;
+          tri->base.input = inp;
+          tri->base.inputCount++;
 
-          if (last_input)
-            last_input->next = input;
-          else
-            triangles->base.input = input;
-
-          last_input = input;
-
-          triangles->base.inputCount++;
-
-          if (input->offset > indexoff)
-            indexoff = input->offset;
-
-          url = ak_xmlAttrGetURL(xst, _s_dae_source, input);
-          rb_insert(xst->inputmap, input, url);
+          if (inp->offset > indexoff)
+            indexoff = inp->offset;
+          
+          url = url_from(xml, _s_dae_source, memp);
+          rb_insert(dst->inputmap, inp, url);
         } else {
           /* don't store VERTEX because it will be duplicated to all prims */
-          triangles->base.reserved1 = input->offset;
-          triangles->base.reserved2 = input->set;
-          ak_free(input);
+          tri->base.reserved1 = inp->offset;
+          tri->base.reserved2 = inp->set;
+          ak_free(inp);
         }
+
+        url = url_from(xml, _s_dae_source, memp);
+        rb_insert(dst->inputmap, inp, url);
+
+        inp->next       = tri->base.input;
+        tri->base.input = inp;
+        tri->base.inputCount++;
       }
-    } else if (ak_xml_eqelm(xst, _s_dae_p)) {
+    } else if (xml_tag_eq(xml, _s_dae_p)) {
       AkUIntArray *uintArray;
-      char *content;
-
-      content = ak_xml_rawval(xst);
-      if (content) {
+      char        *content;
+      
+      if ((content = xml->val)) {
         AkResult ret;
-        ret = ak_strtoui_array(xst->heap, triangles, content, &uintArray);
+        ret = ak_strtoui_array(heap, tri, content, &uintArray);
         if (ret == AK_OK)
-          triangles->base.indices = uintArray;
-
-        xmlFree(content);
+          tri->base.indices = uintArray;
       }
-
-    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      dae_extra(xst, triangles, &triangles->base.extra);
-    } else {
-      ak_xml_skipelm(xst);
+    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+      tri->base.extra = tree_fromxml(heap, tri, xml);
     }
+    xml = xml->next;
+  }
 
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
-
-  triangles->base.indexStride = indexoff + 1;
-
-  *dest = triangles;
-
-  return AK_OK;
+  tri->base.indexStride = indexoff + 1;
+  
+  return tri;
 }
