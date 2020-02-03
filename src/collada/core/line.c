@@ -21,7 +21,7 @@ dae_lines(AkXmlState * __restrict xst,
 
   lines = ak_heap_calloc(xst->heap, memParent, sizeof(*lines));
   lines->mode = mode;
-  lines->base.type = AK_MESH_PRIMITIVE_TYPE_LINES;
+  lines->base.type = AK_PRIMITIVE_LINES;
 
   lines->base.name     = ak_xml_attr(xst, lines, _s_dae_name);
   lines->base.bindmaterial = ak_xml_attr(xst, lines, _s_dae_material);

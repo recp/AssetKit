@@ -294,48 +294,48 @@ gltf_allocPrim(AkHeap * __restrict heap,
     case 0: {
       AkMeshPrimitive *prim;
       prim = ak_heap_calloc(heap, memParent, sizeof(*prim));
-      prim->type = AK_MESH_PRIMITIVE_TYPE_POINTS;
+      prim->type = AK_PRIMITIVE_POINTS;
       return prim;
     }
     case 1: {
       AkLines *lines;
       lines = ak_heap_calloc(heap, memParent, sizeof(*lines));
-      lines->base.type = AK_MESH_PRIMITIVE_TYPE_LINES;
-      lines->mode      = AK_LINE_MODE_LINES;
+      lines->base.type = AK_PRIMITIVE_LINES;
+      lines->mode      = AK_LINES;
       return &lines->base;
     }
     case 2: {
       AkLines *lines;
       lines = ak_heap_calloc(heap, memParent, sizeof(*lines));
-      lines->base.type = AK_MESH_PRIMITIVE_TYPE_LINES;
-      lines->mode       = AK_LINE_MODE_LINE_LOOP;
+      lines->base.type = AK_PRIMITIVE_LINES;
+      lines->mode       = AK_LINE_LOOP;
       return &lines->base;
     }
     case 3: {
       AkLines *lines;
       lines = ak_heap_calloc(heap, memParent, sizeof(*lines));
-      lines->base.type = AK_MESH_PRIMITIVE_TYPE_LINES;
-      lines->mode      = AK_LINE_MODE_LINE_STRIP;
+      lines->base.type = AK_PRIMITIVE_LINES;
+      lines->mode      = AK_LINE_STRIP;
       return &lines->base;
     }
     case 4: {
       AkTriangles *tri;
       tri = ak_heap_calloc(heap, memParent, sizeof(*tri));
-      tri->base.type = AK_MESH_PRIMITIVE_TYPE_TRIANGLES;
+      tri->base.type = AK_PRIMITIVE_TRIANGLES;
       tri->mode      = AK_TRIANGLES;
       return &tri->base;
     }
     case 5: {
       AkTriangles *tri;
       tri = ak_heap_calloc(heap, memParent, sizeof(*tri));
-      tri->base.type = AK_MESH_PRIMITIVE_TYPE_TRIANGLES;
+      tri->base.type = AK_PRIMITIVE_TRIANGLES;
       tri->mode  = AK_TRIANGLE_STRIP;
       return &tri->base;
     }
     case 6: {
       AkTriangles *tri;
       tri = ak_heap_calloc(heap, memParent, sizeof(*tri));
-      tri->base.type = AK_MESH_PRIMITIVE_TYPE_TRIANGLES;
+      tri->base.type = AK_PRIMITIVE_TRIANGLES;
       tri->mode  = AK_TRIANGLE_FAN;
       return &tri->base;
     }

@@ -23,7 +23,7 @@ dae_triangles(DAEState * __restrict dst,
   tri  = ak_heap_calloc(heap, memp, sizeof(*tri));
   
   tri->mode      = mode;
-  tri->base.type = AK_MESH_PRIMITIVE_TYPE_TRIANGLES;
+  tri->base.type = AK_PRIMITIVE_TRIANGLES;
 
   tri->base.name         = xmla_strdup_by(xml, heap, _s_dae_name, tri);
   tri->base.bindmaterial = xmla_strdup_by(xml, heap, _s_dae_name, tri);

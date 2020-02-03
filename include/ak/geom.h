@@ -35,10 +35,10 @@ typedef enum AkGeometryEditFlags {
 } AkGeometryEditFlags;
 
 typedef enum AkMeshPrimitiveType {
-  AK_MESH_PRIMITIVE_TYPE_LINES      = 1,
-  AK_MESH_PRIMITIVE_TYPE_POLYGONS   = 2,
-  AK_MESH_PRIMITIVE_TYPE_TRIANGLES  = 3,
-  AK_MESH_PRIMITIVE_TYPE_POINTS     = 4
+  AK_PRIMITIVE_LINES      = 1,
+  AK_PRIMITIVE_POLYGONS   = 2,
+  AK_PRIMITIVE_TRIANGLES  = 3,
+  AK_PRIMITIVE_POINTS     = 4
 } AkMeshPrimitiveType;
 
 typedef enum AkTriangleMode {
@@ -48,9 +48,9 @@ typedef enum AkTriangleMode {
 } AkTriangleMode;
 
 typedef enum AkLineMode {
-  AK_LINE_MODE_LINES      = 0,
-  AK_LINE_MODE_LINE_LOOP  = 1,
-  AK_LINE_MODE_LINE_STRIP = 2
+  AK_LINES      = 0,
+  AK_LINE_LOOP  = 1,
+  AK_LINE_STRIP = 2
 } AkLineMode;
 
 typedef struct AkVertices {

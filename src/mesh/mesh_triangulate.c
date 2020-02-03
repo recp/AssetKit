@@ -154,7 +154,7 @@ ak_meshTriangulate(AkMesh * __restrict mesh) {
   extc = 0;
   prim = mesh->primitive;
   while (prim) {
-    if (prim->type == AK_MESH_PRIMITIVE_TYPE_POLYGONS)
+    if (prim->type == AK_PRIMITIVE_POLYGONS)
       extc += ak_meshTriangulatePoly((AkPolygon *)prim);
 
     prim = prim->next;

@@ -75,8 +75,8 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
   AkInt          vo, pos_st;
   size_t         count;
 
-  if ((prim->type != AK_MESH_PRIMITIVE_TYPE_TRIANGLES
-       && prim->type != AK_MESH_PRIMITIVE_TYPE_POLYGONS)
+  if ((prim->type != AK_PRIMITIVE_TRIANGLES
+       && prim->type != AK_PRIMITIVE_POLYGONS)
       || !prim->pos
       || !(posAcc    = prim->pos->accessor)
       || !(posBuff   = ak_getObjectByUrl(&posAcc->source))
@@ -107,7 +107,7 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
   it2 = inpIndices->items;
 
   switch (prim->type) {
-    case AK_MESH_PRIMITIVE_TYPE_POLYGONS: {
+    case AK_PRIMITIVE_POLYGONS: {
       AkPolygon *poly;
       AkUInt    *vc_it;
       float     *a, *b, *c;
@@ -156,7 +156,7 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
       }
       break;
     }
-    case AK_MESH_PRIMITIVE_TYPE_TRIANGLES: tri: {
+    case AK_PRIMITIVE_TRIANGLES: tri: {
       float *a, *b, *c;
       vec3   v1, v2, n;
       AkUInt i, j, idx, ist;
