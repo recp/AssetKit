@@ -44,6 +44,8 @@ dae_mesh(DAEState   * __restrict dst,
   mesh->geom         = geom;
   mesh->convexHullOf = xmla_strdup_by(xml, heap, _s_dae_convex_hull_of, obj);
 
+  vert = NULL;
+  
   while (xml) {
     if (xml_tag_eq(xml, _s_dae_source)) {
       (void)dae_source(dst, xml, NULL, 0);
