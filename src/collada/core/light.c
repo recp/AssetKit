@@ -52,6 +52,7 @@ dae_light(xml_t * __restrict xml, void * __restrict userdata) {
         
         point            = ak_heap_calloc(heap, light, sizeof(*point));
         point->base.type = AK_LIGHT_TYPE_POINT;
+        lightb           = &point->base;
         
         /* default values */
         point->constAttn = 1.0f;
@@ -78,6 +79,7 @@ dae_light(xml_t * __restrict xml, void * __restrict userdata) {
 
         spot            = ak_heap_calloc(heap, light, sizeof(*spot));
         spot->base.type = AK_LIGHT_TYPE_POINT;
+        lightb          = &spot->base;
 
         /* default values */
         spot->constAttn    = 1.0f;
@@ -106,8 +108,10 @@ dae_light(xml_t * __restrict xml, void * __restrict userdata) {
           }
           xtechv = xtechv->next;
         }
+      } else {
+        goto nxt;
       }
-      
+
       if ((xcolor = xml_elem(xtech, _s_dae_color))) {
         dae_color(xtech, lightb, true, true, &lightb->color);
       } else {
@@ -137,6 +141,7 @@ dae_light(xml_t * __restrict xml, void * __restrict userdata) {
       light->extra = tree_fromxml(heap, light, xml);
     }
 
+  nxt:
     xml = xml->next;
   }
 }
