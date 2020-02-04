@@ -23,9 +23,9 @@ struct FListItem;
 struct AkMaterial;
 
 typedef enum AkGeometryType {
-  AK_GEOMETRY_MESH   = 0,
-  AK_GEOMETRY_SPLINE = 1,
-  AK_GEOMETRY_BREP   = 2
+  AK_GEOMETRY_MESH   = 1,
+  AK_GEOMETRY_SPLINE = 2,
+  AK_GEOMETRY_BREP   = 3
 } AkGeometryType;
 
 typedef enum AkGeometryEditFlags {
@@ -42,15 +42,15 @@ typedef enum AkMeshPrimitiveType {
 } AkMeshPrimitiveType;
 
 typedef enum AkTriangleMode {
-  AK_TRIANGLES      = 0,
-  AK_TRIANGLE_STRIP = 1,
-  AK_TRIANGLE_FAN   = 2
+  AK_TRIANGLES      = 1,
+  AK_TRIANGLE_STRIP = 2,
+  AK_TRIANGLE_FAN   = 3
 } AkTriangleMode;
 
 typedef enum AkLineMode {
-  AK_LINES      = 0,
-  AK_LINE_LOOP  = 1,
-  AK_LINE_STRIP = 2
+  AK_LINES      = 1,
+  AK_LINE_LOOP  = 2,
+  AK_LINE_STRIP = 3
 } AkLineMode;
 
 typedef struct AkVertices {
