@@ -134,16 +134,12 @@ typedef struct AkMesh {
   AkFloat3           center;
 } AkMesh;
 
-typedef struct AkControlVerts {
-  AkInput *input;
-  AkTree  *extra;
-} AkControlVerts;
-
 typedef struct AkSpline {
-  AkSource       *source;
-  AkControlVerts *cverts;
-  AkTree         *extra;
-  AkBool          closed;
+  struct AkGeometry *geom;
+  AkSource          *source;
+  AkVertices        *cverts;
+  AkTree            *extra;
+  AkBool             closed;
 } AkSpline;
 
 typedef struct AkLine {
@@ -173,11 +169,11 @@ typedef struct AkHyperbola {
 } AkHyperbola;
 
 typedef struct AkNurbs {
-  AkSource       *source;
-  AkControlVerts *cverts;
-  AkTree         *extra;
-  AkUInt          degree;
-  AkBool          closed;
+  AkSource   *source;
+  AkVertices *cverts;
+  AkTree     *extra;
+  AkUInt      degree;
+  AkBool      closed;
 } AkNurbs;
 
 typedef struct AkCurve {
@@ -209,13 +205,13 @@ typedef struct AkCylinder {
 } AkCylinder;
 
 typedef struct AkNurbsSurface {
-  AkSource       *source;
-  AkControlVerts *cverts;
-  AkTree         *extra;
-  AkUInt          degree_u;
-  AkUInt          degree_v;
-  AkBool          closed_u;
-  AkBool          closed_v;
+  AkSource   *source;
+  AkVertices *cverts;
+  AkTree     *extra;
+  AkUInt      degree_u;
+  AkUInt      degree_v;
+  AkBool      closed_u;
+  AkBool      closed_v;
 } AkNurbsSurface;
 
 typedef struct AkSphere {

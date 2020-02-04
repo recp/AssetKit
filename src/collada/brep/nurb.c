@@ -61,9 +61,9 @@ dae_nurbs(AkXmlState * __restrict xst,
         last_source = source;
       }
     } else if (ak_xml_eqelm(xst, _s_dae_control_vertices)) {
-      AkControlVerts *cverts;
-      AkInput        *last_input;
-      AkXmlElmState   xest2;
+      AkVertices   *cverts;
+      AkInput      *last_input;
+      AkXmlElmState xest2;
 
       cverts = ak_heap_calloc(xst->heap,
                               memPtr,
@@ -188,9 +188,9 @@ dae_nurbs_surface(AkXmlState * __restrict xst,
         last_source = source;
       }
     } else if (ak_xml_eqelm(xst, _s_dae_control_vertices)) {
-      AkControlVerts *cverts;
-      AkInput        *last_input;
-      AkXmlElmState   xest2;
+      AkVertices   *cverts;
+      AkInput      *last_input;
+      AkXmlElmState xest2;
 
       cverts = ak_heap_calloc(xst->heap,
                               memPtr,

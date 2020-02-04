@@ -8,7 +8,7 @@
 #include "geom.h"
 #include "../core/asset.h"
 #include "mesh.h"
-//#include "spline.h"
+#include "spline.h"
 //#include "../brep/brep.h"
 
 _assetkit_hide
@@ -48,12 +48,7 @@ dae_geom(xml_t * __restrict xml, void * __restrict userdata) {
                    || xml_tag_eq(xgeom, _s_dae_convex_mesh)) {
           geom->gdata = dae_mesh(dst, xgeom, geom);
         } else if (xml_tag_eq(xgeom, _s_dae_spline)) {
-          //      AkSpline *spline;
-          //      AkResult  ret;
-          //
-          //      ret = dae_spline(xml, geom, true, &spline);
-          //      if (ret == AK_OK)
-          //        geom->gdata = ak_objFrom(spline);
+          geom->gdata = dae_spline(dst, xgeom, geom);
         } else if (xml_tag_eq(xgeom, _s_dae_brep)) {
           //      AkBoundryRep *brep;
           //      AkResult      ret;
@@ -64,7 +59,7 @@ dae_geom(xml_t * __restrict xml, void * __restrict userdata) {
         } else if (xml_tag_eq(xgeom, _s_dae_extra)) {
           geom->extra = tree_fromxml(heap, geom, xgeom);
         }
-        
+
         xgeom = xgeom->next;
       }
     }

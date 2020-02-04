@@ -10,10 +10,9 @@
 
 #include "../common.h"
 
-AkResult _assetkit_hide
-dae_spline(AkXmlState * __restrict xst,
-           void * __restrict memParent,
-           bool asObject,
-           AkSpline ** __restrict dest);
+AkObject* _assetkit_hide
+dae_spline(DAEState    * __restrict dst,
+           xml_t       * __restrict xml,
+           AkGeometry  * __restrict geom);
 
 #endif /* __libassetkit__dae_spline_h_ */
