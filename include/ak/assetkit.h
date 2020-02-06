@@ -124,13 +124,13 @@ typedef enum AkCurveElementType {
 } AkCurveElementType;
 
 typedef enum AkSurfaceElementType {
-  AK_SURFACE_ELEMENT_TYPE_CONE          = 1,
-  AK_SURFACE_ELEMENT_TYPE_PLANE         = 2,
-  AK_SURFACE_ELEMENT_TYPE_CYLINDER      = 3,
-  AK_SURFACE_ELEMENT_TYPE_NURBS_SURFACE = 4,
-  AK_SURFACE_ELEMENT_TYPE_SPHERE        = 5,
-  AK_SURFACE_ELEMENT_TYPE_TORUS         = 6,
-  AK_SURFACE_ELEMENT_TYPE_SWEPT_SURFACE = 7
+  AK_SURFACE_CONE          = 1,
+  AK_SURFACE_PLANE         = 2,
+  AK_SURFACE_CYLINDER      = 3,
+  AK_SURFACE_NURBS_SURFACE = 4,
+  AK_SURFACE_SPHERE        = 5,
+  AK_SURFACE_TORUS         = 6,
+  AK_SURFACE_SWEPT_SURFACE = 7
 } AkSurfaceElementType;
 
 typedef enum AkInstanceType {

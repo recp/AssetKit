@@ -14,13 +14,13 @@
 #define k_s_dae_origin 102
 
 static ak_enumpair surfaceMap[] = {
-  {_s_dae_cone,          AK_SURFACE_ELEMENT_TYPE_CONE},
-  {_s_dae_plane,         AK_SURFACE_ELEMENT_TYPE_PLANE},
-  {_s_dae_cylinder,      AK_SURFACE_ELEMENT_TYPE_CYLINDER},
-  {_s_dae_nurbs_surface, AK_SURFACE_ELEMENT_TYPE_NURBS_SURFACE},
-  {_s_dae_sphere,        AK_SURFACE_ELEMENT_TYPE_SPHERE},
-  {_s_dae_torus,         AK_SURFACE_ELEMENT_TYPE_TORUS},
-  {_s_dae_swept_surface, AK_SURFACE_ELEMENT_TYPE_SWEPT_SURFACE},
+  {_s_dae_cone,          AK_SURFACE_CONE},
+  {_s_dae_plane,         AK_SURFACE_PLANE},
+  {_s_dae_cylinder,      AK_SURFACE_CYLINDER},
+  {_s_dae_nurbs_surface, AK_SURFACE_NURBS_SURFACE},
+  {_s_dae_sphere,        AK_SURFACE_SPHERE},
+  {_s_dae_torus,         AK_SURFACE_TORUS},
+  {_s_dae_swept_surface, AK_SURFACE_SWEPT_SURFACE},
   {_s_dae_orient,        k_s_dae_orient},
   {_s_dae_origin,        k_s_dae_origin}
 };
