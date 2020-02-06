@@ -49,6 +49,8 @@
 
 #define AK__UNUSED(X) (void)X
 
+#define I2P (void *)(intptr_t)
+
 /*!
  * @brief get sign of 32 bit integer as +1 or -1
  *

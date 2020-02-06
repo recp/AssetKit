@@ -44,8 +44,6 @@ typedef struct AkGLTFState {
   bool          isbinary;
 } AkGLTFState;
 
-#define I2P (void *)(intptr_t)
-
 #define GETCHILD(INITIAL, ITEM, INDEX)                                        \
   do {                                                                        \
     int i;                                                                    \
