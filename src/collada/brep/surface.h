@@ -10,14 +10,14 @@
 
 #include "../common.h"
 
-AkResult _assetkit_hide
-dae_surface(AkXmlState * __restrict xst,
-            void * __restrict memParent,
-            AkSurface ** __restrict dest);
+AkSurface* _assetkit_hide
+dae_surface(DAEState * __restrict dst,
+            xml_t    * __restrict xml,
+            void     * __restrict memp);
 
-AkResult _assetkit_hide
-dae_surfaces(AkXmlState * __restrict xst,
-             void * __restrict memParent,
-             AkSurfaces ** __restrict dest);
+AkSurfaces* _assetkit_hide
+dae_surfaces(DAEState * __restrict dst,
+             xml_t    * __restrict xml,
+             void     * __restrict memp);
 
 #endif /* dae_brep_surface_h */

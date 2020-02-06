@@ -115,12 +115,12 @@ typedef enum AkInputSemantic {
 } AkInputSemantic;
 
 typedef enum AkCurveElementType {
-  AK_CURVE_ELEMENT_TYPE_LINE      = 1,
-  AK_CURVE_ELEMENT_TYPE_CIRCLE    = 2,
-  AK_CURVE_ELEMENT_TYPE_ELLIPSE   = 3,
-  AK_CURVE_ELEMENT_TYPE_PARABOLA  = 4,
-  AK_CURVE_ELEMENT_TYPE_HYPERBOLA = 5,
-  AK_CURVE_ELEMENT_TYPE_NURBS     = 6,
+  AK_CURVE_LINE      = 1,
+  AK_CURVE_CIRCLE    = 2,
+  AK_CURVE_ELLIPSE   = 3,
+  AK_CURVE_PARABOLA  = 4,
+  AK_CURVE_HYPERBOLA = 5,
+  AK_CURVE_NURBS     = 6,
 } AkCurveElementType;
 
 typedef enum AkSurfaceElementType {

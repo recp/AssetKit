@@ -6,393 +6,165 @@
  */
 
 #include "curve.h"
-#include "nurbs.h"
+#include "nurb.h"
 #include "../../array.h"
 
-#define k_s_dae_orient 101
-#define k_s_dae_origin 102
+AkCurve* _assetkit_hide
+dae_curve(DAEState * __restrict dst,
+          xml_t    * __restrict xml,
+          void     * __restrict memp) {
+  AkHeap        *heap;
+  AkObject      *obj;
+  AkCurve       *curve;
+  char          *sval;
 
-static ak_enumpair curveMap[] = {
-  {_s_dae_line,      AK_CURVE_ELEMENT_TYPE_LINE},
-  {_s_dae_circle,    AK_CURVE_ELEMENT_TYPE_CIRCLE},
-  {_s_dae_ellipse,   AK_CURVE_ELEMENT_TYPE_ELLIPSE},
-  {_s_dae_parabola,  AK_CURVE_ELEMENT_TYPE_PARABOLA},
-  {_s_dae_hyperbola, AK_CURVE_ELEMENT_TYPE_HYPERBOLA},
-  {_s_dae_nurbs,     AK_CURVE_ELEMENT_TYPE_NURBS},
-  {_s_dae_orient,    k_s_dae_orient},
-  {_s_dae_origin,    k_s_dae_origin}
-};
+  heap  = dst->heap;
+  curve = ak_heap_calloc(heap, memp, sizeof(*curve));
 
-static size_t curveMapLen = 0;
+  xml = xml->val;
+  while (xml) {
+    if (xml_tag_eq(xml, _s_dae_line)) {
+      AkLine *line;
+      xml_t  *xline;
+      
+      xline = xml->val;
+      obj   = ak_objAlloc(heap, curve, sizeof(*line), AK_CURVE_LINE, true);
+      line  = ak_objGet(obj);
+      
+      while (xline) {
+        if (xml_tag_eq(xline, _s_dae_origin) && (sval = xline->val)) {
+          ak_strtof(&sval, line->origin, 3);
+        } else if (xml_tag_eq(xline, _s_dae_direction)
+                   && (sval = xline->val)) {
+          ak_strtof(&sval, line->direction, 3);
+        } else if (xml_tag_eq(xline, _s_dae_extra)) {
+          line->extra = tree_fromxml(heap, obj, xml);
+        }
+        
+        xline = xline->next;
+      }
 
-AkResult _assetkit_hide
-dae_curve(AkXmlState * __restrict xst,
-          void * __restrict memParent,
-          bool asObject,
-          AkCurve ** __restrict dest) {
-  AkObject       *obj;
-  AkCurve        *curve;
-  void           *memPtr;
-  AkFloatArrayL  *last_orient;
-  AkXmlElmState   xest;
+      curve->curve = obj;
+    } else if (xml_tag_eq(xml, _s_dae_circle)) {
+      AkCircle *circ;
+      xml_t    *xcirc;
+      
+      xcirc = xml->val;
+      obj     = ak_objAlloc(heap, curve, sizeof(*circ), AK_CURVE_CIRCLE, true);
+      circ  = ak_objGet(obj);
+      
+      while (xcirc) {
+        if (xml_tag_eq(xcirc, _s_dae_radius) && xcirc->val) {
+          circ->radius = xml_float(xcirc->val, 0.0f);
+        } else if (xml_tag_eq(xcirc, _s_dae_extra)) {
+          circ->extra = tree_fromxml(heap, obj, xml);
+        }
+        xcirc = xcirc->next;
+      }
 
-  if (asObject) {
-    obj = ak_objAlloc(xst->heap,
-                      memParent,
-                      sizeof(*curve),
-                      0,
-                      true);
+      curve->curve = obj;
+    } else if (xml_tag_eq(xml, _s_dae_ellipse)) {
+      AkEllipse *ell;
+      xml_t     *xell;
 
-    curve = ak_objGet(obj);
-    memPtr = obj;
-  } else {
-    curve = ak_heap_calloc(xst->heap, memParent, sizeof(*curve));
-    memPtr = curve;
+      xell = xml->val;
+      obj  = ak_objAlloc(heap, curve, sizeof(*ell), AK_CURVE_ELLIPSE, true);
+      ell  = ak_objGet(obj);
+      
+      while (xell) {
+        if (xml_tag_eq(xell, _s_dae_radius) && (sval = xell->val)) {
+          ak_strtof(&sval, (AkFloat *)&ell->radius, 2);
+        } else if (xml_tag_eq(xell, _s_dae_extra)) {
+          ell->extra = tree_fromxml(heap, obj, xml);
+        }
+        xell = xell->next;
+      }
+
+      curve->curve = obj;
+    } else if (xml_tag_eq(xml, _s_dae_parabola)) {
+      AkParabola *par;
+      xml_t      *xpar;
+
+      xpar = xml->val;
+      obj  = ak_objAlloc(heap, curve, sizeof(*par), AK_CURVE_PARABOLA, true);
+      par  = ak_objGet(obj);
+
+      while (xpar) {
+        if (xml_tag_eq(xpar, _s_dae_focal) && xpar->val) {
+          par->focal = xml_float(xpar->val, 0.0f);
+        } else if (xml_tag_eq(xpar, _s_dae_extra)) {
+          par->extra = tree_fromxml(heap, obj, xml);
+        }
+        xpar = xpar->next;
+      }
+
+      curve->curve = obj;
+    } else if (xml_tag_eq(xml, _s_dae_hyperbola)) {
+      AkHyperbola *hpar;
+      xml_t       *xhpar;
+      
+      xhpar = xml->val;
+      obj   = ak_objAlloc(heap,
+                          curve,
+                          sizeof(*hpar),
+                          AK_CURVE_HYPERBOLA,
+                          true);
+      hpar  = ak_objGet(obj);
+      
+      while (xhpar) {
+        if (xml_tag_eq(xhpar, _s_dae_radius) && (sval = xhpar->val)) {
+          ak_strtof(&sval, (AkFloat *)&hpar->radius, 2);
+        } else if (xml_tag_eq(xhpar, _s_dae_extra)) {
+          hpar->extra = tree_fromxml(heap, obj, xml);
+        }
+        xhpar = xhpar->next;
+      }
+      
+      curve->curve = obj;
+    } else if (xml_tag_eq(xml, _s_dae_nurbs)) {
+      curve->curve = dae_nurbs(dst, xml, curve);
+    } else if (xml_tag_eq(xml, _s_dae_orient) && (sval = xml->val)) {
+      AkFloatArrayL *orient;
+      AkResult       ret;
+      
+      ret = ak_strtof_arrayL(heap, curve, sval, &orient);
+      if (ret == AK_OK) {
+        orient->next  = curve->orient;
+        curve->orient = orient;
+      }
+      
+    } else if (xml_tag_eq(xml, _s_dae_origin) && (sval = xml->val)) {
+      ak_strtof(&sval, curve->origin, 3);
+    }
+    xml = xml->next;
   }
 
-  if (curveMapLen == 0) {
-    curveMapLen = AK_ARRAY_LEN(curveMap);
-    qsort(curveMap,
-          curveMapLen,
-          sizeof(curveMap[0]),
-          ak_enumpair_cmp);
-  }
-
-  last_orient = NULL;
-
-  ak_xest_init(xest, _s_dae_curve)
-
-  do {
-    const ak_enumpair *found;
-
-    if (ak_xml_begin(&xest))
-      break;
-
-    found = bsearch(xst->nodeName,
-                    curveMap,
-                    curveMapLen,
-                    sizeof(curveMap[0]),
-                    ak_enumpair_cmp2);
-    if (!found) {
-      ak_xml_skipelm(xst);
-      goto skip;
-    }
-
-    switch (found->val) {
-      case AK_CURVE_ELEMENT_TYPE_LINE: {
-        AkObject     *obj;
-        AkLine       *line;
-        AkXmlElmState xest2;
-
-        obj = ak_objAlloc(xst->heap,
-                          memPtr,
-                          sizeof(*line),
-                          AK_CURVE_ELEMENT_TYPE_LINE,
-                          true);
-
-        line = ak_objGet(obj);
-
-        ak_xest_init(xest2, _s_dae_line)
-
-        do {
-          if (ak_xml_begin(&xest2))
-            break;
-
-          if (ak_xml_eqelm(xst, _s_dae_origin)) {
-            char *content;
-            content = ak_xml_rawval(xst);
-
-            if (content) {
-              ak_strtof(&content, line->origin, 3);
-              xmlFree(content);
-            }
-          } else if (ak_xml_eqelm(xst, _s_dae_direction)) {
-            char *content;
-            content = ak_xml_rawval(xst);
-
-            if (content) {
-              ak_strtof(&content, line->direction, 3);
-              xmlFree(content);
-            }
-          } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-            dae_extra(xst, obj, &line->extra);
-            break;
-          } else {
-            ak_xml_skipelm(xst);
-          }
-          
-          /* end element */
-          if (ak_xml_end(&xest2))
-            break;
-        } while (xst->nodeRet);
-
-        curve->curve = obj;
-
-        break;
-      }
-      case AK_CURVE_ELEMENT_TYPE_CIRCLE: {
-        AkObject     *obj;
-        AkCircle     *circle;
-        AkXmlElmState xest2;
-
-        obj = ak_objAlloc(xst->heap,
-                          memPtr,
-                          sizeof(*circle),
-                          AK_CURVE_ELEMENT_TYPE_CIRCLE,
-                          true);
-
-        circle = ak_objGet(obj);
-
-        ak_xest_init(xest2, _s_dae_circle)
-
-        do {
-          if (ak_xml_begin(&xest2))
-            break;
-
-          if (ak_xml_eqelm(xst, _s_dae_radius)) {
-            circle->radius = ak_xml_valf(xst);
-          } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-            dae_extra(xst, obj, &circle->extra);
-            break;
-          } else {
-            ak_xml_skipelm(xst);
-          }
-
-          /* end element */
-          if (ak_xml_end(&xest2))
-            break;
-        } while (xst->nodeRet);
-        
-        curve->curve = obj;
-        
-        break;
-      }
-      case AK_CURVE_ELEMENT_TYPE_ELLIPSE: {
-        AkObject     *obj;
-        AkEllipse    *ellipse;
-        AkXmlElmState xest2;
-
-        obj = ak_objAlloc(xst->heap,
-                          memPtr,
-                          sizeof(*ellipse),
-                          AK_CURVE_ELEMENT_TYPE_ELLIPSE,
-                          true);
-
-        ellipse = ak_objGet(obj);
-
-        ak_xest_init(xest2, _s_dae_ellipse)
-
-        do {
-          if (ak_xml_begin(&xest2))
-              break;
-
-          if (ak_xml_eqelm(xst, _s_dae_radius)) {
-            char *content;
-            content = ak_xml_rawval(xst);
-
-            if (content) {
-              ak_strtof(&content, (AkFloat *)&ellipse->radius, 2);
-              xmlFree(content);
-            }
-          } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-            dae_extra(xst, obj, &ellipse->extra);
-            break;
-          } else {
-            ak_xml_skipelm(xst);
-          }
-
-          /* end element */
-          if (ak_xml_end(&xest2))
-            break;
-        } while (xst->nodeRet);
-        
-        curve->curve = obj;
-        
-        break;
-      }
-      case AK_CURVE_ELEMENT_TYPE_PARABOLA: {
-        AkObject     *obj;
-        AkParabola   *parabola;
-        AkXmlElmState xest2;
-
-        obj = ak_objAlloc(xst->heap,
-                          memPtr,
-                          sizeof(*parabola),
-                          AK_CURVE_ELEMENT_TYPE_PARABOLA,
-                          true);
-
-        parabola = ak_objGet(obj);
-
-        ak_xest_init(xest2, _s_dae_parabola)
-
-        do {
-          if (ak_xml_begin(&xest2))
-            break;
-
-          if (ak_xml_eqelm(xst, _s_dae_radius)) {
-            parabola->focal = ak_xml_valf(xst);
-          } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-            dae_extra(xst, obj, &parabola->extra);
-            break;
-          } else {
-            ak_xml_skipelm(xst);
-          }
-
-          /* end element */
-          if (ak_xml_end(&xest2))
-            break;
-        } while (xst->nodeRet);
-        
-        curve->curve = obj;
-        
-        break;
-      }
-      case AK_CURVE_ELEMENT_TYPE_HYPERBOLA: {
-        AkObject     *obj;
-        AkHyperbola  *hyperbola;
-        AkXmlElmState xest2;
-
-        obj = ak_objAlloc(xst->heap,
-                          memPtr,
-                          sizeof(*hyperbola),
-                          AK_CURVE_ELEMENT_TYPE_HYPERBOLA,
-                          true);
-
-        hyperbola = ak_objGet(obj);
-
-        ak_xest_init(xest2, _s_dae_hyperbola)
-
-        do {
-          if (ak_xml_begin(&xest2))
-            break;
-
-          if (ak_xml_eqelm(xst, _s_dae_radius)) {
-            char *content;
-            content = ak_xml_rawval(xst);
-
-            if (content) {
-              ak_strtof(&content, (AkFloat *)&hyperbola->radius, 2);
-              xmlFree(content);
-            }
-          } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-            dae_extra(xst, obj, &hyperbola->extra);
-            break;
-          } else {
-            ak_xml_skipelm(xst);
-          }
-
-          /* end element */
-          if (ak_xml_end(&xest2))
-            break;
-        } while (xst->nodeRet);
-        
-        curve->curve = obj;
-        
-        break;
-      }
-      case AK_CURVE_ELEMENT_TYPE_NURBS: {
-        AkNurbs *nurbs;
-        AkResult ret;
-
-        ret = dae_nurbs(xst, memPtr, true, &nurbs);
-        if (ret == AK_OK)
-          curve->curve = ak_objFrom(nurbs);
-
-        break;
-      }
-      case k_s_dae_orient: {
-        char *content;
-        content = ak_xml_rawval(xst);
-
-        if (content) {
-          AkFloatArrayL *orient;
-          AkResult       ret;
-
-          ret = ak_strtof_arrayL(xst->heap,
-                                 memPtr,
-                                 content,
-                                 &orient);
-          if (ret == AK_OK) {
-            if (last_orient)
-              last_orient->next = orient;
-            else
-              curve->orient = orient;
-
-            last_orient = orient;
-          }
-          
-          xmlFree(content);
-        }
-
-        break;
-      }
-      case k_s_dae_origin: {
-        char *content;
-        content = ak_xml_rawval(xst);
-
-        if (content) {
-          ak_strtof(&content, curve->origin, 3);
-          xmlFree(content);
-        }
-        break;
-      }
-      default:
-        ak_xml_skipelm(xst);
-        break;
-    }
-
-  skip:
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
-  
-  *dest = curve;
-  
-  return AK_OK;
+  return curve;
 }
 
-AkResult _assetkit_hide
-dae_curves(AkXmlState * __restrict xst,
-           void * __restrict memParent,
-           AkCurves ** __restrict dest) {
-  AkCurves     *curves;
-  AkCurve      *last_curve;
-  AkXmlElmState xest;
+AkCurves* _assetkit_hide
+dae_curves(DAEState * __restrict dst,
+           xml_t    * __restrict xml,
+           void     * __restrict memp) {
+  AkHeap   *heap;
+  AkCurves *curves;
+  AkCurve  *curve;
 
-  curves = ak_heap_calloc(xst->heap, memParent, sizeof(*curves));
+  heap   = dst->heap;
+  curves = ak_heap_calloc(heap, memp, sizeof(*curves));
 
-  last_curve = NULL;
-
-  ak_xest_init(xest, _s_dae_curves)
-
-  do {
-    if (ak_xml_begin(&xest))
-      break;
-
-    if (ak_xml_eqelm(xst, _s_dae_curve)) {
-      AkCurve *curve;
-      AkResult ret;
-
-      ret = dae_curve(xst, curves, false, &curve);
-      if (ret == AK_OK) {
-        if (last_curve)
-          last_curve->next = curve;
-        else
-          curves->curve = curve;
-
-        last_curve = curve;
+  xml = xml->val;
+  while (xml) {
+    if (xml_tag_eq(xml, _s_dae_curve)) {
+      if ((curve = dae_curve(dst, xml, curves))) {
+        curve->next   = curves->curve;
+        curves->curve = curve;
       }
-    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      dae_extra(xst, curves, &curves->extra);
+    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+      curves->extra = tree_fromxml(heap, curves, xml);
     }
-
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
+    xml = xml->next;
+  }
   
-  *dest = curves;
-  
-  return AK_OK;
+  return curves;
 }

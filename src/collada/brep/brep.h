@@ -10,10 +10,9 @@
 
 #include "../common.h"
 
-AkResult _assetkit_hide
-dae_brep(AkXmlState * __restrict xst,
-         void * __restrict memParent,
-         bool asObject,
-         AkBoundryRep ** __restrict dest);
+AkObject* _assetkit_hide
+dae_brep(DAEState   * __restrict dst,
+         xml_t      * __restrict xml,
+         AkGeometry * __restrict geom);
 
 #endif /* __libassetkit__dae_brep_h_ */

@@ -10,16 +10,14 @@
 
 #include "../common.h"
 
-AkResult _assetkit_hide
-dae_nurbs(AkXmlState * __restrict xst,
-          void * __restrict memParent,
-          bool asObject,
-          AkNurbs ** __restrict dest);
+AkObject* _assetkit_hide
+dae_nurbs(DAEState * __restrict dst,
+          xml_t    * __restrict xml,
+          void     * __restrict memp);
 
-AkResult _assetkit_hide
-dae_nurbs_surface(AkXmlState * __restrict xst,
-                  void * __restrict memParent,
-                  bool asObject,
-                  AkNurbsSurface ** __restrict dest);
+AkObject* _assetkit_hide
+dae_nurbs_surface(DAEState * __restrict dst,
+                  xml_t    * __restrict xml,
+                  void     * __restrict memp);
 
 #endif /* dae_brep_nurbs_h */

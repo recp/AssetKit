@@ -6,257 +6,76 @@
  */
 
 #include "nurb.h"
+#include "vert.h"
 #include "../core/source.h"
 #include "../core/enum.h"
 
-AkResult _assetkit_hide
-dae_nurbs(AkXmlState * __restrict xst,
-          void * __restrict memParent,
-          bool asObject,
-          AkNurbs ** __restrict dest) {
-  AkObject     *obj;
-  AkNurbs      *nurbs;
-  AkSource     *last_source;
-  void         *memPtr;
-  AkXmlElmState xest;
+AkObject* _assetkit_hide
+dae_nurbs(DAEState * __restrict dst,
+          xml_t    * __restrict xml,
+          void     * __restrict memp) {
+  AkHeap   *heap;
+  AkObject *obj;
+  AkNurbs  *nurbs;
+  AkSource *source;
 
-  if (asObject) {
-    obj = ak_objAlloc(xst->heap,
-                      memParent,
-                      sizeof(*nurbs),
-                      0,
-                      true);
+  heap  = dst->heap;
+  obj   = ak_objAlloc(heap, memp, sizeof(*nurbs), 0, true);
+  nurbs = ak_objGet(obj);
 
-    nurbs = ak_objGet(obj);
-    memPtr = obj;
-  } else {
-    nurbs = ak_heap_calloc(xst->heap,
-                           memParent,
-                           sizeof(*nurbs));
-    memPtr = nurbs;
-  }
+  nurbs->degree = xmla_uint32(xml_attr(xml, _s_dae_degree), 0);
+  nurbs->closed = xmla_uint32(xml_attr(xml, _s_dae_closed), 0);
 
-  nurbs->degree = ak_xml_attrui(xst, _s_dae_degree);
-  nurbs->closed = ak_xml_attrui_def(xst, _s_dae_closed, false);
-
-  last_source = NULL;
-
-  ak_xest_init(xest, _s_dae_nurbs)
-
-  do {
-    if (ak_xml_begin(&xest))
-      break;
-
-    if (ak_xml_eqelm(xst, _s_dae_source)) {
-      AkSource *source;
-      AkResult ret;
-
-      ret = dae_source(xst, memPtr, NULL, 0, &source);
-      if (ret == AK_OK) {
-        if (last_source)
-          last_source->next = source;
-        else
-          nurbs->source = source;
-
-        last_source = source;
+  xml = xml->val;
+  while (xml) {
+    if (xml_tag_eq(xml, _s_dae_source)) {
+      if ((source = dae_source(dst, xml, NULL, 0))) {
+        source->next  = nurbs->source;
+        nurbs->source = source;
       }
-    } else if (ak_xml_eqelm(xst, _s_dae_control_vertices)) {
-      AkVertices   *cverts;
-      AkInput      *last_input;
-      AkXmlElmState xest2;
-
-      cverts = ak_heap_calloc(xst->heap,
-                              memPtr,
-                              sizeof(*cverts));
-
-      last_input = NULL;
-
-      ak_xest_init(xest2, _s_dae_control_vertices)
-
-      do {
-        if (ak_xml_begin(&xest2))
-          break;
-
-        if (ak_xml_eqelm(xst, _s_dae_input)) {
-          AkInput *input;
-          AkURL   *url;
-
-          input = ak_heap_calloc(xst->heap,
-                                 memPtr,
-                                 sizeof(*input));
-
-          input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
-
-          url = ak_xmlAttrGetURL(xst, _s_dae_source, input);
-          rb_insert(xst->inputmap, input, url);
-
-          if (!input->semanticRaw)
-            ak_free(input);
-          else {
-            AkEnum inputSemantic;
-            inputSemantic = dae_enumInputSemantic(input->semanticRaw);
-
-            if (inputSemantic < 0)
-              inputSemantic = AK_INPUT_SEMANTIC_OTHER;
-
-            input->semantic = inputSemantic;
-          }
-
-          if (last_input)
-            last_input->next = input;
-          else
-            cverts->input = input;
-
-          last_input = input;
-        } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-          dae_extra(xst, memPtr, &cverts->extra);
-        } else {
-          ak_xml_skipelm(xst);
-        }
-
-        /* end element */
-        if (ak_xml_end(&xest2))
-          break;
-      } while (xst->nodeRet);
-
-      nurbs->cverts = cverts;
-    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      dae_extra(xst, memPtr, &nurbs->extra);
+    } else if (xml_tag_eq(xml, _s_dae_control_vertices)) {
+      nurbs->cverts = dae_vert(dst, xml, obj);
+    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+      nurbs->extra = tree_fromxml(heap, nurbs, xml);
     }
-
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
-
-  *dest = nurbs;
-
-  return AK_OK;
+    xml = xml->next;
+  }
+  
+  return obj;
 }
 
-AkResult _assetkit_hide
-dae_nurbs_surface(AkXmlState * __restrict xst,
-                  void * __restrict memParent,
-                  bool asObject,
-                  AkNurbsSurface ** __restrict dest) {
+AkObject* _assetkit_hide
+dae_nurbs_surface(DAEState * __restrict dst,
+                  xml_t    * __restrict xml,
+                  void     * __restrict memp) {
+  AkHeap         *heap;
   AkObject       *obj;
   AkNurbsSurface *nurbsSurface;
-  AkSource       *last_source;
-  void           *memPtr;
-  AkXmlElmState   xest;
+  AkSource       *source;
 
-  if (asObject) {
-    obj = ak_objAlloc(xst->heap,
-                      memParent,
-                      sizeof(*nurbsSurface),
-                      0,
-                      true);
+  heap  = dst->heap;
+  obj   = ak_objAlloc(heap, memp, sizeof(*nurbsSurface), 0, true);
+  nurbsSurface = ak_objGet(obj);
 
-    nurbsSurface = ak_objGet(obj);
-    memPtr = obj;
-  } else {
-    nurbsSurface = ak_heap_calloc(xst->heap,
-                                  memParent,
-                                  sizeof(*nurbsSurface));
-    memPtr = nurbsSurface;
-  }
-
-  nurbsSurface->degree_u = ak_xml_attrui(xst, _s_dae_degree_u);
-  nurbsSurface->degree_v = ak_xml_attrui(xst, _s_dae_degree_v);
-  nurbsSurface->closed_u = ak_xml_attrui(xst, _s_dae_closed_u);
-  nurbsSurface->closed_v = ak_xml_attrui(xst, _s_dae_closed_v);
-
-  last_source = NULL;
-
-  ak_xest_init(xest, _s_dae_nurbs_surface)
-
-  do {
-    if (ak_xml_begin(&xest))
-      break;
-
-    if (ak_xml_eqelm(xst, _s_dae_source)) {
-      AkSource *source;
-      AkResult ret;
-
-      ret = dae_source(xst, memPtr, NULL, 0, &source);
-      if (ret == AK_OK) {
-        if (last_source)
-          last_source->next = source;
-        else
-          nurbsSurface->source = source;
-
-        last_source = source;
+  nurbsSurface->degree_u = xmla_uint32(xml_attr(xml, _s_dae_degree_u), 0);
+  nurbsSurface->degree_v = xmla_uint32(xml_attr(xml, _s_dae_degree_v), 0);
+  nurbsSurface->closed_u = xmla_uint32(xml_attr(xml, _s_dae_closed_u), 0);
+  nurbsSurface->closed_v = xmla_uint32(xml_attr(xml, _s_dae_closed_v), 0);
+  
+  xml = xml->val;
+  while (xml) {
+    if (xml_tag_eq(xml, _s_dae_source)) {
+      if ((source = dae_source(dst, xml, NULL, 0))) {
+        source->next         = nurbsSurface->source;
+        nurbsSurface->source = source;
       }
-    } else if (ak_xml_eqelm(xst, _s_dae_control_vertices)) {
-      AkVertices   *cverts;
-      AkInput      *last_input;
-      AkXmlElmState xest2;
-
-      cverts = ak_heap_calloc(xst->heap,
-                              memPtr,
-                              sizeof(*cverts));
-
-      last_input = NULL;
-
-      ak_xest_init(xest2, _s_dae_control_vertices)
-
-      do {
-        if (ak_xml_begin(&xest2))
-          break;
-
-        if (ak_xml_eqelm(xst, _s_dae_input)) {
-          AkInput *input;
-          AkURL   *url;
-
-          input = ak_heap_calloc(xst->heap,
-                                 memPtr,
-                                 sizeof(*input));
-
-          input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
-
-          url = ak_xmlAttrGetURL(xst, _s_dae_source, input);
-          rb_insert(xst->inputmap, input, url);
-
-          if (!input->semanticRaw)
-            ak_free(input);
-          else {
-            AkEnum inputSemantic;
-            inputSemantic = dae_enumInputSemantic(input->semanticRaw);
-
-            if (inputSemantic < 0)
-              inputSemantic = AK_INPUT_SEMANTIC_OTHER;
-
-            input->semantic = inputSemantic;
-          }
-
-          if (last_input)
-            last_input->next = input;
-          else
-            cverts->input = input;
-
-          last_input = input;
-        } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-          dae_extra(xst, memPtr, &cverts->extra);
-        } else {
-          ak_xml_skipelm(xst);
-        }
-
-        /* end element */
-        if (ak_xml_end(&xest2))
-          break;
-      } while (xst->nodeRet);
-
-      nurbsSurface->cverts = cverts;
-    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      dae_extra(xst, memPtr, &nurbsSurface->extra);
+    } else if (xml_tag_eq(xml, _s_dae_control_vertices)) {
+      nurbsSurface->cverts = dae_vert(dst, xml, obj);
+    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+      nurbsSurface->extra = tree_fromxml(heap, nurbsSurface, xml);
     }
-
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
-
-  *dest = nurbsSurface;
-
-  return AK_OK;
+    xml = xml->next;
+  }
+  
+  return obj;
 }

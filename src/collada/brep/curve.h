@@ -10,15 +10,14 @@
 
 #include "../common.h"
 
-AkResult _assetkit_hide
-dae_curve(AkXmlState * __restrict xst,
-          void * __restrict memParent,
-          bool asObject,
-          AkCurve ** __restrict dest);
+AkCurve* _assetkit_hide
+dae_curve(DAEState * __restrict dst,
+          xml_t    * __restrict xml,
+          void     * __restrict memp);
 
-AkResult _assetkit_hide
-dae_curves(AkXmlState * __restrict xst,
-           void * __restrict memParent,
-           AkCurves ** __restrict dest);
+AkCurves* _assetkit_hide
+dae_curves(DAEState * __restrict dst,
+           xml_t    * __restrict xml,
+           void     * __restrict memp);
 
 #endif /* dae_brep_curve_h */

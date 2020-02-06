@@ -6,7 +6,7 @@
  */
 
 #include "surface.h"
-#include "nurbs.h"
+#include "nurb.h"
 #include "curve.h"
 #include "../../array.h"
 
@@ -27,17 +27,17 @@ static ak_enumpair surfaceMap[] = {
 
 static size_t surfaceMapLen = 0;
 
-AkResult _assetkit_hide
-dae_surface(AkXmlState * __restrict xst,
-            void * __restrict memParent,
-            AkSurface ** __restrict dest) {
+AkSurface* _assetkit_hide
+dae_surface(DAEState * __restrict dst,
+            xml_t    * __restrict xml,
+            void     * __restrict memp) {
+  AkHeap        *heap;
   AkSurface     *surface;
   AkFloatArrayL *last_orient;
   AkXmlElmState  xest;
 
-  surface = ak_heap_calloc(xst->heap,
-                           memParent,
-                           sizeof(*surface));
+  heap    = dst->heap;
+  surface = ak_heap_calloc(heap, memp, sizeof(*surface));
 
   ak_xml_readsid(xst, surface);
 
@@ -404,49 +404,30 @@ dae_surface(AkXmlState * __restrict xst,
   return AK_OK;
 }
 
-AkResult _assetkit_hide
-dae_surfaces(AkXmlState * __restrict xst,
-             void * __restrict memParent,
-             AkSurfaces ** __restrict dest) {
+AkSurfaces* _assetkit_hide
+dae_surfaces(DAEState * __restrict dst,
+             xml_t    * __restrict xml,
+             void     * __restrict memp) {
+  AkHeap       *heap;
   AkSurfaces   *surfaces;
-  AkSurface    *last_surface;
+  AkSurface    *surface;
   AkXmlElmState xest;
 
-  surfaces = ak_heap_calloc(xst->heap,
-                            memParent,
-                            sizeof(*surfaces));
+  heap     = dst->heap;
+  surfaces = ak_heap_calloc(heap, memp, sizeof(*surfaces));
 
-  last_surface = NULL;
-
-  ak_xest_init(xest, _s_dae_surfaces)
-
-  do {
-    if (ak_xml_begin(&xest))
-      break;
-
-    if (ak_xml_eqelm(xst, _s_dae_surface)) {
-      AkSurface *surface;
-      AkResult ret;
-
-      ret = dae_surface(xst, surfaces, &surface);
-      if (ret == AK_OK) {
-        if (last_surface)
-          last_surface->next = surface;
-        else
-          surfaces->surface = surface;
-
-        last_surface = surface;
+  xml = xml->val;
+  while (xml) {
+    if (xml_tag_eq(xml, _s_dae_surface)) {
+      if ((surface = dae_surface(dst, xml, memp))) {
+        surface->next     = surfaces->surface;
+        surfaces->surface = surface;
       }
-    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      dae_extra(xst, surfaces, &surfaces->extra);
+    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+      surfaces->extra = tree_fromxml(heap, surfaces, xml);
     }
+    xml = xml->next;
+  }
 
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
-  
-  *dest = surfaces;
-  
-  return AK_OK;
+  return surfaces;
 }

@@ -333,5 +333,6 @@ _AK_EXTERN const char _s_dae_pool_1[];
 #define _s_dae_channel _s_dae_1(711)
 #define _s_dae_pre_behavior _s_dae_1(719)
 #define _s_dae_post_behavior _s_dae_1(732)
+#define _s_dae_focal _s_dae_1(746)
 
 #endif /* dae_strpool_h */

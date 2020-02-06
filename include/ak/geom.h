@@ -307,18 +307,19 @@ typedef struct AkSolids {
 } AkSolids;
 
 typedef struct AkBoundryRep {
-  AkCurves   * curves;
-  AkCurves   * surfaceCurves;
-  AkSurfaces * surfaces;
-  AkSource   * source;
-  AkVertices * vertices;
-  AkEdges    * edges;
-  AkWires    * wires;
-  AkFaces    * faces;
-  AkPCurves  * pcurves;
-  AkShells   * shells;
-  AkSolids   * solids;
-  AkTree     * extra;
+  struct AkGeometry *geom;
+  AkCurves          *curves;
+  AkCurves          *surfaceCurves;
+  AkSurfaces        *surfaces;
+  AkSource          *source;
+  AkVertices        *vertices;
+  AkEdges           *edges;
+  AkWires           *wires;
+  AkFaces           *faces;
+  AkPCurves         *pcurves;
+  AkShells          *shells;
+  AkSolids          *solids;
+  AkTree            *extra;
 } AkBoundryRep;
 
 typedef struct AkGeometry {

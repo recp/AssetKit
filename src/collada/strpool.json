@@ -308,5 +308,6 @@
   "sampler": "sampler",
   "channel": "channel",
   "pre_behavior": "pre_behavior",
-  "post_behavior": "post_behavior"
+  "post_behavior": "post_behavior",
+  "focal": "focal"
 }
