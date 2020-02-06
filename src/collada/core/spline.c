@@ -14,10 +14,11 @@ AkObject* _assetkit_hide
 dae_spline(DAEState   * __restrict dst,
            xml_t      * __restrict xml,
            AkGeometry * __restrict geom) {
+  AkHeap   *heap;
+  AkDoc    *doc;
   AkObject *obj;
   AkSpline *spline;
-  AkDoc    *doc;
-  AkHeap   *heap;
+  AkSource *source;
 
   heap   = dst->heap;
   doc    = dst->doc;
@@ -31,8 +32,11 @@ dae_spline(DAEState   * __restrict dst,
   
   while (xml) {
     if (xml_tag_eq(xml, _s_dae_source)) {
-      (void)dae_source(dst, xml, NULL, 0);
-    } else if (xml_tag_eq(xml, _s_dae_vertices)) {
+      if ((source = dae_source(dst, xml, NULL, 0))) {
+        source->next   = spline->source;
+        spline->source = source;
+      }
+    } else if (xml_tag_eq(xml, _s_dae_control_vertices)) {
       spline->cverts = dae_vert(dst, xml, obj);
     } else if (xml_tag_eq(xml, _s_dae_extra)) {
       spline->extra = tree_fromxml(heap, obj, xml);
