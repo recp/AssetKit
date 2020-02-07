@@ -10,34 +10,34 @@
 
 #include "../common.h"
 
-AkResult _assetkit_hide
-dae_edges(AkXmlState * __restrict xst,
-          void * __restrict memParent,
-          AkEdges ** __restrict dest);
+AkEdges* _assetkit_hide
+dae_edges(DAEState * __restrict dst,
+          xml_t    * __restrict xml,
+          void     * __restrict memp);
 
-AkResult _assetkit_hide
-dae_wires(AkXmlState * __restrict xst,
-          void * __restrict memParent,
-          AkWires ** __restrict dest);
+AkWires* _assetkit_hide
+dae_wires(DAEState * __restrict dst,
+          xml_t    * __restrict xml,
+          void     * __restrict memp);
 
-AkResult _assetkit_hide
-dae_faces(AkXmlState * __restrict xst,
-          void * __restrict memParent,
-          AkFaces ** __restrict dest);
+AkFaces* _assetkit_hide
+dae_faces(DAEState * __restrict dst,
+          xml_t    * __restrict xml,
+          void     * __restrict memp);
 
-AkResult _assetkit_hide
-dae_pcurves(AkXmlState * __restrict xst,
-            void * __restrict memParent,
-            AkPCurves ** __restrict dest);
+AkPCurves* _assetkit_hide
+dae_pcurves(DAEState * __restrict dst,
+            xml_t    * __restrict xml,
+            void     * __restrict memp);
 
-AkResult _assetkit_hide
-dae_shells(AkXmlState * __restrict xst,
-           void * __restrict memParent,
-           AkShells ** __restrict dest);
+AkShells* _assetkit_hide
+dae_shells(DAEState * __restrict dst,
+           xml_t    * __restrict xml,
+           void     * __restrict memp);
 
-AkResult _assetkit_hide
-dae_solids(AkXmlState * __restrict xst,
-           void * __restrict memParent,
-           AkSolids ** __restrict dest);
+AkSolids* _assetkit_hide
+dae_solids(DAEState * __restrict dst,
+           xml_t    * __restrict xml,
+           void     * __restrict memp);
 
 #endif /* dae_brep_topology_h */

@@ -254,6 +254,7 @@ typedef struct AkEdges {
   AkUIntArray   *primitives;
   AkTree        *extra;
   AkUInt         count;
+  uint32_t       inputCount;
 } AkEdges;
 
 typedef struct AkWires {
@@ -264,6 +265,7 @@ typedef struct AkWires {
   AkUIntArray *primitives;
   AkTree      *extra;
   AkUInt       count;
+  uint32_t     inputCount;
 } AkWires;
 
 typedef struct AkFaces {
@@ -274,6 +276,7 @@ typedef struct AkFaces {
   AkUIntArray *primitives;
   AkTree      *extra;
   AkUInt       count;
+  uint32_t     inputCount;
 } AkFaces;
 
 typedef struct AkPCurves {
@@ -284,6 +287,7 @@ typedef struct AkPCurves {
   AkUIntArray *primitives;
   AkTree      *extra;
   AkUInt       count;
+  uint32_t     inputCount;
 } AkPCurves;
 
 typedef struct AkShells {
@@ -294,6 +298,7 @@ typedef struct AkShells {
   AkUIntArray *primitives;
   AkTree      *extra;
   AkUInt       count;
+  uint32_t     inputCount;
 } AkShells;
 
 typedef struct AkSolids {
@@ -304,6 +309,7 @@ typedef struct AkSolids {
   AkUIntArray *primitives;
   AkTree      *extra;
   AkUInt       count;
+  uint32_t     inputCount;
 } AkSolids;
 
 typedef struct AkBoundryRep {
