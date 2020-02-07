@@ -327,6 +327,7 @@ const char _s_dae_pool_1[] =
 "pre_behavior\0"
 "post_behavior\0"
 "focal\0"
+"equation\0"
 ;
 
 #undef _DAE_STRPOOL_

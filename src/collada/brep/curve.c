@@ -132,7 +132,6 @@ dae_curve(DAEState * __restrict dst,
         orient->next  = curve->orient;
         curve->orient = orient;
       }
-      
     } else if (xml_tag_eq(xml, _s_dae_origin) && (sval = xml->val)) {
       ak_strtof(&sval, curve->origin, 3);
     }
