@@ -30,7 +30,7 @@ dae_evalScene(DAEState * __restrict dst,
   
   while (xml) {
     if (xml_tag_eq(xml, _s_dae_asset)) {
-      
+       (void)dae_asset(dst, xml, evalScene, NULL);
     } else if (xml_tag_eq(xml, _s_dae_render)) {
       AkRender *ren;
       xml_t    *xren;
