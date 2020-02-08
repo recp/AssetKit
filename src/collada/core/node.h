@@ -10,10 +10,10 @@
 
 #include "../common.h"
 
-AkResult _assetkit_hide
-dae_node(AkXmlState    * __restrict xst,
-         void          * __restrict memParent,
-         AkVisualScene * __restrict scene,
-         AkNode       ** __restrict dest);
+AkNode* _assetkit_hide
+dae_node(DAEState      * __restrict dst,
+         xml_t         * __restrict xml,
+         void          * __restrict memp,
+         AkVisualScene * __restrict scene);
 
 #endif /* __libassetkit__dae_node_h_ */

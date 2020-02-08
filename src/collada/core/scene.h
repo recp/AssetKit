@@ -10,17 +10,17 @@
 
 #include "../common.h"
 
-AkResult _assetkit_hide
-dae_visualScene(AkXmlState * __restrict xst,
-                void * __restrict memParent,
-                void ** __restrict dest);
+AkVisualScene* _assetkit_hide
+dae_visualScene(DAEState * __restrict xst,
+                xml_t    * __restrict xml,
+                void     * __restrict memp);
 
-AkResult _assetkit_hide
-dae_instanceVisualScene(AkXmlState * __restrict xst,
-                        void * __restrict memParent,
-                        AkInstanceBase ** __restrict dest);
+AkInstanceBase* _assetkit_hide
+dae_instVisualScene(DAEState * __restrict dst,
+                    xml_t    * __restrict xml,
+                    void     * __restrict memp);
 void _assetkit_hide
-dae_scene(xml_t * __restrict xml,
-          void  * __restrict userdata);
+dae_scene(DAEState * __restrict dst,
+          xml_t    * __restrict xml);
 
 #endif /* __libassetkit__dae_scene_h_ */

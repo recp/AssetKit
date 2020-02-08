@@ -49,11 +49,11 @@ static ak_enumpair nodeMap[] = {
 
 static size_t nodeMapLen = 0;
 
-AkResult _assetkit_hide
-dae_node(AkXmlState    * __restrict xst,
-         void          * __restrict memParent,
-         AkVisualScene * __restrict scene,
-         AkNode       ** __restrict dest) {
+AkNode* _assetkit_hide
+dae_node(DAEState      * __restrict dst,
+         xml_t         * __restrict xml,
+         void          * __restrict memp,
+         AkVisualScene * __restrict scene) {
   AkNode               *node, *last_chld;
   AkObject             *last_transform;
   AkInstanceBase       *last_camera;

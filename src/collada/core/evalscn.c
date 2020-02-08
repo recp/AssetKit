@@ -10,9 +10,9 @@
 #include "../../array.h"
 
 AkEvaluateScene* _assetkit_hide
-dae_evaluateScene(DAEState * __restrict dst,
-                  xml_t    * __restrict xml,
-                  void     * __restrict memParent) {
+dae_evalScene(DAEState * __restrict dst,
+              xml_t    * __restrict xml,
+              void     * __restrict memParent) {
   AkEvaluateScene *evalScene;
   AkDoc           *doc;
   AkHeap          *heap;
@@ -57,14 +57,14 @@ dae_evaluateScene(DAEState * __restrict dst,
             ren->layer  = layer;
           }
         } else if (xml_tag_eq(xren, _s_dae_instance_material)) {
-          AkInstanceMaterial *instMaterial;
-          AkResult            ret;
-
-          ret = dae_fxInstanceMaterial(dst, xml, memParent, &instMaterial);
-          if (ret == AK_OK) {
-            instMaterial->base.next = &ren->instanceMaterial->base;
-            ren->instanceMaterial   = instMaterial;
-          }
+//          AkInstanceMaterial *instMaterial;
+//          AkResult            ret;
+//
+//          ret = dae_fxInstanceMaterial(dst, xml, memParent, &instMaterial);
+//          if (ret == AK_OK) {
+//            instMaterial->base.next = &ren->instanceMaterial->base;
+//            ren->instanceMaterial   = instMaterial;
+//          }
         } else if (xml_tag_eq(xren, _s_dae_extra)) {
            ren->extra = tree_fromxml(heap, ren, xml);
         }

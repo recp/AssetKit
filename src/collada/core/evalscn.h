@@ -11,8 +11,8 @@
 #include "../common.h"
 
 AkEvaluateScene* _assetkit_hide
-dae_evaluateScene(DAEState * __restrict dst,
-                  xml_t    * __restrict xml,
-                  void     * __restrict memParent);
+dae_evalScene(DAEState * __restrict dst,
+              xml_t    * __restrict xml,
+              void     * __restrict memp);
 
 #endif /* __libassetkit__dae_evaluate_scene_h_ */
