@@ -12,24 +12,24 @@
 #include "../../../include/ak/assetkit.h"
 #include "../common.h"
 
-AkResult _assetkit_hide
-dae_material(AkXmlState * __restrict xst,
-             void * __restrict memParent,
-             void ** __restrict dest);
+AkMaterial* _assetkit_hide
+dae_material(DAEState * __restrict dst,
+             xml_t    * __restrict xml,
+             void     * __restrict memp);
 
-AkResult _assetkit_hide
-dae_fxBindMaterial(AkXmlState * __restrict xst,
-                   void * __restrict memParent,
-                   AkBindMaterial ** __restrict dest);
+AkBindMaterial* _assetkit_hide
+dae_fxBindMaterial(DAEState * __restrict dst,
+                   xml_t    * __restrict xml,
+                   void     * __restrict memp);
 
-AkResult _assetkit_hide
-dae_fxInstanceMaterial(AkXmlState * __restrict xst,
-                       void * __restrict memParent,
-                       AkInstanceMaterial ** __restrict dest);
+AkInstanceMaterial* _assetkit_hide
+dae_fxInstanceMaterial(DAEState * __restrict dst,
+                       xml_t    * __restrict xml,
+                       void     * __restrict memp);
 
-AkResult _assetkit_hide
-dae_fxBindMaterial_tcommon(AkXmlState          * __restrict xst,
-                           void                * __restrict memParent,
-                           AkInstanceMaterial ** __restrict dest);
+AkInstanceMaterial _assetkit_hide
+dae_fxBindMaterial_tcommon(DAEState * __restrict dst,
+                           xml_t    * __restrict xml,
+                           void     * __restrict memp);
 
 #endif /* __libassetkit__dae_fx_material__h_ */
