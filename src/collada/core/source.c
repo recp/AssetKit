@@ -40,7 +40,7 @@ dae_source(DAEState * __restrict dst,
   xml = xml->val;
   while (xml) {
     if (xml_tag_eq(xml, _s_dae_asset)) {
-      dae_asset(xml, dst);
+      (void)dae_asset(xml, dst, source, NULL);
     } else if (xml_tag_eq(xml, _s_dae_techniquec)) {
       xml_t      *xacc;
       AkAccessor *acc;

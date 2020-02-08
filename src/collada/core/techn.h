@@ -14,6 +14,6 @@ _assetkit_hide
 AkTechnique*
 dae_techn(xml_t  * __restrict xml,
           AkHeap * __restrict heap,
-          void   * __restrict memparent);
+          void   * __restrict memp);
 
 #endif /* __libassetkit__dae_technique__h_ */

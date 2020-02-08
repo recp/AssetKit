@@ -11,13 +11,13 @@
 AkTechnique*
 dae_techn(xml_t  * __restrict xml,
           AkHeap * __restrict heap,
-          void   * __restrict memparent) {
-  AkTechnique *technique;
+          void   * __restrict memp) {
+  AkTechnique *techn;
 
-  technique          = ak_heap_calloc(heap, memparent, sizeof(*technique));
-  technique->profile = xmla_strdup_by(xml, heap, _s_dae_profile, technique);
-  technique->xmlns   = xmla_strdup_by(xml, heap, _s_dae_xmlns, technique);
-  technique->chld    = tree_fromxml(heap, technique, xml);
+  techn          = ak_heap_calloc(heap, memp, sizeof(*techn));
+  techn->profile = xmla_strdup_by(xml, heap, _s_dae_profile, techn);
+  techn->xmlns   = xmla_strdup_by(xml, heap, _s_dae_xmlns, techn);
+  techn->chld    = tree_fromxml(heap, techn, xml);
 
-  return technique;
+  return techn;
 }

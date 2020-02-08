@@ -14,14 +14,12 @@
 
 _assetkit_hide
 void
-dae_light(xml_t * __restrict xml, void * __restrict userdata) {
-  DAEState    *dst;
+dae_light(DAEState * __restrict dst, xml_t * __restrict xml) {
   AkLight     *light;
   AkDoc       *doc;
   AkHeap      *heap;
   AkTechnique *tq;
 
-  dst  = userdata;
   heap = dst->heap;
   doc  = dst->doc;
   xml  = xml->val;
@@ -33,7 +31,7 @@ dae_light(xml_t * __restrict xml, void * __restrict userdata) {
     xmla_setid(xml, heap, light);
 
     if (xml_tag_eq(xml, _s_dae_asset)) {
-      dae_asset(xml, dst);
+      (void)dae_asset(dst, xml, light, NULL);
     } else if (xml_tag_eq(xml, _s_dae_techniquec)) {
       xml_t          *xtech, *xtechv, *xcolor;
       AkAmbientLight *lightb;

@@ -13,14 +13,12 @@
 
 _assetkit_hide
 void
-dae_geom(xml_t * __restrict xml, void * __restrict userdata) {
-  DAEState    *dst;
+dae_geom(DAEState * __restrict dst, xml_t * __restrict xml) {
   AkGeometry  *geom;
   AkDoc       *doc;
   AkHeap      *heap;
   xml_t       *xgeom;
 
-  dst  = userdata;
   heap = dst->heap;
   doc  = dst->doc;
   xml  = xml->val;
@@ -43,7 +41,7 @@ dae_geom(xml_t * __restrict xml, void * __restrict userdata) {
         ak_setypeid(geom, AKT_GEOMETRY);
         
         if (xml_tag_eq(xgeom, _s_dae_asset)) {
-          dae_asset(xgeom, dst);
+          (void)dae_asset(dst, xgeom, geom, NULL);
         } else if (xml_tag_eq(xgeom, _s_dae_mesh)
                    || xml_tag_eq(xgeom, _s_dae_convex_mesh)) {
           geom->gdata = dae_mesh(dst, xgeom, geom);

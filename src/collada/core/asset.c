@@ -8,27 +8,27 @@
 #include "asset.h"
 
 _assetkit_hide
-void
-dae_asset(xml_t * __restrict xml, void * __restrict userdata) {
-  DAEState      *dst;
-  AkAssetInf    *inf;
-  AkDoc         *doc;
+AkAssetInf*
+dae_asset(DAEState   * __restrict dst,
+          xml_t      * __restrict xml,
+          void       * __restrict memp,
+          AkAssetInf * __restrict inf) {
   AkHeap        *heap;
   xml_attr_t    *attr;
   AkContributor *contrib;
   xml_t         *xcontrib;
   const char    *val;
 
-  dst  = userdata;
   heap = dst->heap;
-  doc  = dst->doc;
-  inf  = &doc->inf->base;
+
+  if (!inf)
+    inf = ak_heap_alloc(heap, memp, sizeof(*inf));
 
   /* DAE default definitions */
   
   /* CoordSys is Y_UP */
-  inf->coordSys = AK_YUP;
-  
+  inf->coordSys    = AK_YUP;
+
   /* Unit is 1 meter */
   inf->unit        = ak_heap_calloc(heap, inf, sizeof(*inf->unit));
   inf->unit->dist  = 1.0;
@@ -101,9 +101,8 @@ dae_asset(xml_t * __restrict xml, void * __restrict userdata) {
   }
 
   *(AkAssetInf **)ak_heap_ext_add(heap,
-                                  ak__alignof(doc),
+                                  ak__alignof(memp),
                                   AK_HEAP_NODE_FLAGS_INF) = inf;
-
-  doc->coordSys = inf->coordSys;
-  doc->unit     = inf->unit;
+  
+  return inf;
 }

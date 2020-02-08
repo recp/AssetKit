@@ -11,7 +11,10 @@
 #include "../common.h"
 
 _assetkit_hide
-void
-dae_asset(xml_t * __restrict xml, void * __restrict userdata);
+AkAssetInf*
+dae_asset(DAEState   * __restrict dst,
+          xml_t      * __restrict xml,
+          void       * __restrict memp,
+          AkAssetInf * __restrict pinf);
 
 #endif /* __libassetkit__dae_asset__h_ */

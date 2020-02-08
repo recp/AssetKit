@@ -11,14 +11,12 @@
 
 _assetkit_hide
 void
-dae_cam(xml_t * __restrict xml, void * __restrict userdata) {
-  DAEState    *dst;
+dae_cam(DAEState * __restrict dst, xml_t * __restrict xml) {
   AkCamera    *camera;
   AkDoc       *doc;
   AkHeap      *heap;
   AkTechnique *tq;
 
-  dst  = userdata;
   heap = dst->heap;
   doc  = dst->doc;
   xml  = xml->val;
@@ -30,7 +28,7 @@ dae_cam(xml_t * __restrict xml, void * __restrict userdata) {
     xmla_setid(xml, heap, camera);
 
     if (xml_tag_eq(xml, _s_dae_asset)) {
-      dae_asset(xml, dst);
+      (void)dae_asset(dst, xml, camera, NULL);
     } else if (xml_tag_eq(xml, _s_dae_optics)) {
       AkOptics *optics;
       xml_t    *xoptics;
