@@ -14,7 +14,7 @@
 #include "core/geom.h"
 //#include "core/ctlr.h"
 //#include "core/node.h"
-//#include "core/scene.h"
+#include "core/scene.h"
 //#include "core/anim.h"
 
 //#include "fx/effect.h"
@@ -109,34 +109,40 @@ dae_doc(AkDoc     ** __restrict dest,
       }
     }
   }
-
-  xml_objmap_t daemap[] = {
-    XML_OBJMAP_FN(_s_dae_asset,             dae_asset,    dst),
-    XML_OBJMAP_FN(_s_dae_lib_cameras,       dae_cam,      dst),
-    XML_OBJMAP_FN(_s_dae_lib_lights,        dae_light,    dst),
-    XML_OBJMAP_FN(_s_dae_lib_geometries,    dae_geom,     dst),
-//    XML_OBJMAP_FN(_s_dae_lib_effects,       dae_asset,    dst),
-//    XML_OBJMAP_FN(_s_dae_lib_images,        dae_asset,    dst),
-//    XML_OBJMAP_FN(_s_dae_lib_materials,     dae_asset,    dst),
-//    XML_OBJMAP_FN(_s_dae_lib_controllers,   dae_asset,    dst),
-//    XML_OBJMAP_FN(_s_dae_lib_visual_scenes, dae_asset,    dst),
-//    XML_OBJMAP_FN(_s_dae_lib_nodes,         dae_asset,    dst),
-//    XML_OBJMAP_FN(_s_dae_lib_animations,    dae_asset,    dst),
-//    XML_OBJMAP_FN(_s_dae_scene,             dae_scene,    dst),
-//    XML_OBJMAP_FN(_s_dae_extra,             dae_asset,    dst)
-  };
-
+  
+  xml = xml->val;
   while (xml) {
-    xml_objmap_call(xml, daemap, XML_ARR_LEN(daemap), &dstVal.stop);
-    
-    if (dstVal.stop) {
-      ret = AK_EBADF;
-      goto err;
+    if (xml_tag_eq(xml, _s_dae_asset)) {
+      AkAssetInf *inf;
+      AkDocInf   *docInf;
+      
+      docInf = ak_heap_calloc(heap, doc, sizeof(*docInf));
+      inf    = dae_asset(dst, xml, &docInf->base, &docInf->base);
+      
+      doc->coordSys = inf->coordSys;
+      doc->unit     = inf->unit;
+      
+      doc->inf      = docInf;
+    } else if (xml_tag_eq(xml, _s_dae_lib_cameras)) {
+      dae_cam(dst, xml);
+    } else if (xml_tag_eq(xml, _s_dae_lib_lights)) {
+      dae_light(dst, xml);
+    } else if (xml_tag_eq(xml, _s_dae_lib_geometries)) {
+      dae_geom(dst, xml);
+    } else if (xml_tag_eq(xml, _s_dae_lib_effects)) {
+    } else if (xml_tag_eq(xml, _s_dae_lib_images)) {
+    } else if (xml_tag_eq(xml, _s_dae_lib_materials)) {
+    } else if (xml_tag_eq(xml, _s_dae_lib_controllers)) {
+    } else if (xml_tag_eq(xml, _s_dae_lib_visual_scenes)) {
+    } else if (xml_tag_eq(xml, _s_dae_lib_nodes)) {
+    } else if (xml_tag_eq(xml, _s_dae_lib_animations)) {
+    } else if (xml_tag_eq(xml, _s_dae_scene)) {
+      dae_scene(dst, xml);
+    } else if (xml_tag_eq(xml, _s_dae_extra)) {
     }
-    
     xml = xml->next;
   }
-  
+
   *dest = doc;
 
   /* post-parse operations */
