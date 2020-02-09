@@ -9,7 +9,7 @@
 ACLOCAL_AMFLAGS = -I m4
 
 AM_CFLAGS = -Wall \
-            -std=gnu99 \
+            -std=gnu11 \
             -O3 \
             -Wstrict-aliasing=2 \
             -fstrict-aliasing \
@@ -20,7 +20,6 @@ AM_CFLAGS = -Wall \
 lib_LTLIBRARIES = libassetkit.la
 libassetkit_la_LDFLAGS = -no-undefined \
                          -version-info 0:1:0 \
-                         -lxml2 \
                          -ljemalloc \
                          -lcurl \
                          -luv \
@@ -32,7 +31,6 @@ TESTS = test/tests
 test_tests_LDFLAGS = -L./.libs \
                      -lassetkit \
                      -lm \
-                     -lxml2 \
                      -ljemalloc \
                      -lcurl \
                      -luv \
@@ -77,12 +75,6 @@ libassetkit_la_SOURCES=\
     src/assetkit.c \
     src/base64.c \
     src/common.c \
-    src/xml.c \
-    src/mem.c \
-    src/mem_ext.c \
-    src/mem_rb.c \
-    src/mem_lt.c \
-    src/mem_intr.c \
     src/sid.c \
     src/sid_constr.c \
     src/utils.c \
@@ -99,6 +91,11 @@ libassetkit_la_SOURCES=\
     src/type.c \
     src/profile.c \
     src/asset.c \
+    src/mem/lt.c \
+    src/mem/rb.c \
+    src/mem/intr.c \
+    src/mem/ext.c \
+    src/mem/mem.c \
     src/controller/ctlr.c \
     src/skin/skin.c \
     src/skin/skin_fix.c \
@@ -153,9 +150,7 @@ libassetkit_la_SOURCES=\
     src/bbox/bbox_mesh_prim.c \
     src/bbox/bbox_geom.c \
     src/bbox/bbox_scene.c \
-    src/collada/common.c \
     src/collada/dae.c \
-    src/collada/lib.c \
     src/collada/postscript.c \
     src/collada/tex_fixup.c \
     src/collada/geom_fixup.c \
@@ -163,53 +158,50 @@ libassetkit_la_SOURCES=\
     src/collada/node_fixup.c \
     src/collada/fixangle.c \
     src/collada/strpool.c \
-    src/collada/core/dae_asset.c \
-    src/collada/core/dae_cam.c \
-    src/collada/core/dae_color.c \
-    src/collada/core/dae_light.c \
-    src/collada/core/dae_param.c \
-    src/collada/core/dae_techn.c \
-    src/collada/core/dae_value.c \
-    src/collada/core/dae_geom.c \
-    src/collada/core/dae_mesh.c \
-    src/collada/core/dae_source.c \
-    src/collada/core/dae_vert.c \
-    src/collada/core/dae_enums.c \
-    src/collada/core/dae_lines.c \
-    src/collada/core/dae_poly.c \
-    src/collada/core/dae_triangles.c \
-    src/collada/core/dae_spline.c \
-    src/collada/core/dae_ctlr.c \
-    src/collada/core/dae_skin.c \
-    src/collada/core/dae_morph.c \
-    src/collada/core/dae_visual_scene.c \
-    src/collada/core/dae_node.c \
-    src/collada/core/dae_evalscn.c \
-    src/collada/core/dae_render.c \
-    src/collada/core/dae_scene.c \
-    src/collada/core/dae_accessor.c \
-    src/collada/core/dae_anim.c \
-    src/collada/brep/dae_brep.c \
-    src/collada/brep/dae_brep_curve.c \
-    src/collada/brep/dae_brep_nurbs.c \
-    src/collada/brep/dae_brep_surface.c \
-    src/collada/brep/dae_brep_topology.c \
-    src/collada/fx/dae_fx_profile.c \
-    src/collada/fx/dae_fx_effect.c \
-    src/collada/fx/dae_fx_image.c \
-    src/collada/fx/dae_fx_technique.c \
-    src/collada/fx/dae_fx_color_or_tex.c \
-    src/collada/fx/dae_fx_float_or_param.c \
-    src/collada/fx/dae_fx_blinn_phong.c \
-    src/collada/fx/dae_fx_constant.c \
-    src/collada/fx/dae_fx_lambert.c \
-    src/collada/fx/dae_fx_enums.c \
-    src/collada/fx/dae_fx_sampler.c \
-    src/collada/fx/dae_fx_material.c \
+    src/collada/core/enum.c \
+    src/collada/core/color.c \
+    src/collada/core/asset.c \
+    src/collada/core/techn.c \
+    src/collada/core/cam.c \
+    src/collada/core/light.c \
+    src/collada/core/value.c \
+    src/collada/core/source.c \
+    src/collada/core/vert.c \
+    src/collada/core/triangle.c \
+    src/collada/core/line.c \
+    src/collada/core/poly.c \
+    src/collada/core/mesh.c \
+    src/collada/core/spline.c \
+    src/collada/core/geom.c \
+    src/collada/core/skin.c \
+    src/collada/core/morph.c \
+    src/collada/core/ctlr.c \
+    src/collada/core/node.c \
+    src/collada/core/evalscn.c \
+    src/collada/core/scene.c \
+    src/collada/core/anim.c \
+    src/collada/core/param.c \
+    src/collada/brep/brep.c \
+    src/collada/brep/curve.c \
+    src/collada/brep/nurb.c \
+    src/collada/brep/surface.c \
+    #src/collada/brep/topology.c \
+    #src/collada/fx/profile.c \
+    #src/collada/fx/effect.c \
+    #src/collada/fx/img.c \
+    #src/collada/fx/techn.c \
+    #src/collada/fx/colortex.c \
+    #src/collada/fx/fltprm.c \
+    #src/collada/fx/phong.c \
+    #src/collada/fx/const.c \
+    #src/collada/fx/lambert.c \
+    #src/collada/fx/enum.c \
+    #src/collada/fx/samp.c \
+    #src/collada/fx/mat.c \
 \
-    src/collada/1.4/dae14.c \
-    src/collada/1.4/dae14_image.c \
-    src/collada/1.4/dae14_surface.c \
+    #src/collada/1.4/dae14.c \
+    #src/collada/1.4/image.c \
+    #src/collada/1.4/surface.c \
 \
     src/collada/bugfix/transp.c \
 \
