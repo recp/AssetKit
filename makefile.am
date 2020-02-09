@@ -185,23 +185,23 @@ libassetkit_la_SOURCES=\
     src/collada/brep/curve.c \
     src/collada/brep/nurb.c \
     src/collada/brep/surface.c \
-    #src/collada/brep/topology.c \
-    #src/collada/fx/profile.c \
-    #src/collada/fx/effect.c \
-    #src/collada/fx/img.c \
-    #src/collada/fx/techn.c \
-    #src/collada/fx/colortex.c \
-    #src/collada/fx/fltprm.c \
-    #src/collada/fx/phong.c \
-    #src/collada/fx/const.c \
-    #src/collada/fx/lambert.c \
-    #src/collada/fx/enum.c \
-    #src/collada/fx/samp.c \
-    #src/collada/fx/mat.c \
+    src/collada/brep/topology.c \
+    src/collada/fx/profile.c \
+    src/collada/fx/effect.c \
+    src/collada/fx/img.c \
+    src/collada/fx/techn.c \
+    src/collada/fx/colortex.c \
+    src/collada/fx/fltprm.c \
+    src/collada/fx/phong.c \
+    src/collada/fx/const.c \
+    src/collada/fx/lambert.c \
+    src/collada/fx/enum.c \
+    src/collada/fx/samp.c \
+    src/collada/fx/mat.c \
 \
-    #src/collada/1.4/dae14.c \
-    #src/collada/1.4/image.c \
-    #src/collada/1.4/surface.c \
+    src/collada/1.4/dae14.c \
+    src/collada/1.4/image.c \
+    src/collada/1.4/surface.c \
 \
     src/collada/bugfix/transp.c \
 \
