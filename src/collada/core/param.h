@@ -10,14 +10,14 @@
 
 #include "../common.h"
 
-AkResult _assetkit_hide
-dae_newparam(AkXmlState  * __restrict xst,
-             void        * __restrict memParent,
-             AkNewParam ** __restrict dest);
+AkNewParam* _assetkit_hide
+dae_newparam(DAEState * __restrict dst,
+             xml_t    * __restrict xml,
+             void     * __restrict memp);
 
-AkResult _assetkit_hide
-dae_param(AkXmlState * __restrict xst,
-          void       * __restrict memParent,
-          AkParam   ** __restrict dest);
+AkParam* _assetkit_hide
+dae_param(DAEState * __restrict dst,
+          xml_t    * __restrict xml,
+          void     * __restrict memp);
 
 #endif /* __libassetkit__dae_param__h_ */
