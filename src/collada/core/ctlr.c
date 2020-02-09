@@ -10,57 +10,40 @@
 #include "skin.h"
 #include "morph.h"
 
-AkResult _assetkit_hide
-dae_ctlr(AkXmlState * __restrict xst,
-         void * __restrict memParent,
-         void ** __restrict dest) {
-  AkController *controller;
-  AkXmlElmState xest;
+void _assetkit_hide
+dae_ctlr(DAEState * __restrict dst, xml_t * __restrict xml) {
+  AkDoc        *doc;
+  AkHeap       *heap;
+  AkController *ctlr;
+  xml_t        *xctlr;
 
-  controller = ak_heap_calloc(xst->heap,
-                              memParent,
-                              sizeof(*controller));
+  heap = dst->heap;
+  doc  = dst->doc;
+  xml  = xml->val;
 
-  ak_xml_readid(xst, controller);
-  controller->name = ak_xml_attr(xst, controller, _s_dae_name);
+  while (xml) {
+    if (xml_tag_eq(xml, _s_dae_controller)) {
+      xctlr = xml->val;
+      ctlr  = ak_heap_calloc(heap, doc, sizeof(*ctlr));
 
-  ak_setypeid(controller, AKT_CONTROLLER);
-  ak_xest_init(xest, _s_dae_controller)
-
-  do {
-    if (ak_xml_begin(&xest))
-      break;
-
-    if (ak_xml_eqelm(xst, _s_dae_asset)) {
-      (void)dae_assetInf(xst, controller, NULL);
-    } else if (ak_xml_eqelm(xst, _s_dae_skin)) {
-      AkSkin  *skin;
-      AkResult ret;
-
-      ret = dae_skin(xst, controller, true, &skin);
-      if (ret == AK_OK)
-        controller->data = ak_objFrom(skin);
-
-    } else if (ak_xml_eqelm(xst, _s_dae_morph)) {
-      AkMorph *morph;
-      AkResult ret;
-
-      ret = dae_morph(xst, controller, true, &morph);
-      if (ret == AK_OK)
-        controller->data = ak_objFrom(morph);
-
-    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      dae_extra(xst, controller, &controller->extra);
-    } else {
-      ak_xml_skipelm(xst);
+      xmla_setid(xctlr, heap, ctlr);
+      ctlr->name = xmla_strdup_by(xctlr, heap, _s_dae_name, ctlr);
+      
+      ak_setypeid(ctlr, AKT_CONTROLLER);
+      
+      while (xctlr) {
+        if (xml_tag_eq(xctlr, _s_dae_asset)) {
+          (void)dae_asset(dst, xctlr, ctlr, NULL);
+        } else if (xml_tag_eq(xctlr, _s_dae_skin)) {
+          ctlr->data = dae_skin(dst, xctlr, ctlr);
+        } else if (xml_tag_eq(xctlr, _s_dae_morph)) {
+          ctlr->data = dae_morph(dst, xctlr, ctlr);
+        } else if (xml_tag_eq(xctlr, _s_dae_extra)) {
+          ctlr->extra = tree_fromxml(heap, ctlr, xctlr);
+        }
+        xctlr = xctlr->next;
+      }
     }
-    
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
-  
-  *dest = controller;
-  
-  return AK_OK;
+    xml = xml->next;
+  }
 }

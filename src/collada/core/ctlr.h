@@ -10,9 +10,7 @@
 
 #include "../common.h"
 
-AkResult _assetkit_hide
-dae_ctlr(AkXmlState * __restrict xst,
-         void * __restrict memParent,
-         void ** __restrict dest);
+void _assetkit_hide
+dae_ctlr(DAEState * __restrict dst, xml_t * __restrict xml);
 
 #endif /* __libassetkit__dae_controller_h_ */
