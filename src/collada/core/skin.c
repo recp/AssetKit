@@ -21,7 +21,11 @@ dae_skin(DAEState * __restrict dst,
   bool      foundBindShape;
 
   heap           = dst->heap;
-  obj            = ak_objAlloc(heap, memp, sizeof(*skin), AK_CONTROLLER_SKIN, true);
+  obj            = ak_objAlloc(heap,
+                               memp,
+                               sizeof(*skin),
+                               AK_CONTROLLER_SKIN,
+                               true);
   skin           = ak_objGet(obj);
   foundBindShape = false;
 

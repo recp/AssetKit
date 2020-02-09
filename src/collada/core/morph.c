@@ -10,129 +10,80 @@
 #include "enum.h"
 #include "../../array.h"
 
-AkResult _assetkit_hide
-dae_morph(AkXmlState * __restrict xst,
-          void * __restrict memParent,
-          bool asObject,
-          AkMorph ** __restrict dest) {
-  AkObject    *obj;
-  AkMorph     *morph;
-  AkSource    *last_source;
-  void         *memPtr;
-  AkXmlElmState xest;
+AkObject* _assetkit_hide
+dae_morph(DAEState * __restrict dst,
+          xml_t    * __restrict xml,
+          void     * __restrict memp) {
+  AkHeap     *heap;
+  AkObject   *obj;
+  AkMorph    *morph;
+  xml_attr_t *att;
 
-  if (asObject) {
-    obj = ak_objAlloc(xst->heap,
-                      memParent,
-                      sizeof(*morph),
-                      AK_CONTROLLER_MORPH,
-                      true);
+  heap  = dst->heap;
+  obj   = ak_objAlloc(heap, memp, sizeof(*morph), AK_CONTROLLER_MORPH, true);
+  morph = ak_objGet(obj);
 
-    morph = ak_objGet(obj);
+  url_set(dst, xml, _s_dae_source, memp, &morph->baseGeom);
 
-    memPtr = obj;
-  } else {
-    morph = ak_heap_calloc(xst->heap, memParent, sizeof(*morph));
-    memPtr = morph;
-  }
-
-  ak_xml_attr_url(xst, _s_dae_source, memPtr, &morph->baseGeom);
-
-  morph->method = ak_xml_attrenum_def(xst,
-                                      _s_dae_method,
-                                      dae_enumMorphMethod,
-                                      AK_MORPH_METHOD_NORMALIZED);
-  last_source = NULL;
-
-  ak_xest_init(xest, _s_dae_morph)
-
-  do {
-    if (ak_xml_begin(&xest))
-      break;
-
-    if (ak_xml_eqelm(xst, _s_dae_source)) {
+  if ((att = xml_attr(xml, _s_dae_method)))
+    morph->method = dae_enumMorphMethod(att->val);
+  else
+    morph->method = AK_MORPH_METHOD_NORMALIZED;
+  
+  xml = xml->val;
+  while (xml) {
+    if (xml_tag_eq(xml, _s_dae_source)) {
       AkSource *source;
-      AkResult ret;
-
-      ret = dae_source(xst, memPtr, NULL, 0, &source);
-      if (ret == AK_OK) {
-        if (last_source)
-          last_source->next = source;
-        else
-          morph->source = source;
-
-        last_source = source;
+      if ((source = dae_source(dst, xml, NULL, 0))) {
+        source->next  = morph->source;
+        morph->source = source;
       }
-    } else if (ak_xml_eqelm(xst, _s_dae_targets)) {
-      AkTargets    *targets;
-      AkInput      *last_input;
-      AkXmlElmState xest2;
-
-      targets = ak_heap_calloc(xst->heap,
-                               memPtr,
-                               sizeof(*targets));
-
-      last_input = NULL;
-
-      ak_xest_init(xest2, _s_dae_targets)
-
-      do {
-        if (ak_xml_begin(&xest2))
-            break;
-
-        if (ak_xml_eqelm(xst, _s_dae_input)) {
-          AkInput *input;
-
-          input = ak_heap_calloc(xst->heap, targets, sizeof(*input));
-          input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
-
-          if (!input->semanticRaw)
-            ak_free(input);
-          else {
+    } else if (xml_tag_eq(xml, _s_dae_targets)) {
+      AkTargets *targets;
+      AkInput   *inp;
+      xml_t     *xtarg;
+      
+      targets  = ak_heap_calloc(heap,   obj, sizeof(*targets));
+      xtarg = xml->val;
+      
+      while (xtarg) {
+        if (xml_tag_eq(xtarg, _s_dae_input)) {
+          inp              = ak_heap_calloc(heap, obj, sizeof(*inp));
+          inp->semanticRaw = xmla_strdup_by(xtarg, heap, _s_dae_semantic, inp);
+          
+          if (!inp->semanticRaw) {
+            ak_free(inp);
+          } else {
             AkURL *url;
-            AkEnum inputSemantic;
-
-            inputSemantic = dae_enumInputSemantic(input->semanticRaw);
-
+            AkEnum  inputSemantic;
+            
+            inputSemantic = dae_enumInputSemantic(inp->semanticRaw);
+            inp->semantic = inputSemantic;
+            
             if (inputSemantic < 0)
               inputSemantic = AK_INPUT_SEMANTIC_OTHER;
+            
+            inp->semantic = inputSemantic;
+            inp->offset   = xmla_uint32(xml_attr(xtarg, _s_dae_offset), 0);
+            
+            inp->semantic = dae_enumInputSemantic(inp->semanticRaw);
+            
+            url           = url_from(xtarg, _s_dae_source, memp);
+            rb_insert(dst->inputmap, inp, url);
 
-            input->semantic = inputSemantic;
-
-            url = ak_xmlAttrGetURL(xst, _s_dae_source, input);
-            rb_insert(xst->inputmap, input, url);
-
-            if (last_input)
-              last_input->next = input;
-            else
-              targets->input = input;
-
-            last_input = input;
+            inp->next      = targets->input;
+            targets->input = inp;
           }
-        } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-          dae_extra(xst, targets, &targets->extra);
-        } else {
-          ak_xml_skipelm(xst);
+        } else if (xml_tag_eq(xml, _s_dae_extra)) {
+          targets->extra = tree_fromxml(heap, targets, xml);
         }
-
-        /* end element */
-        if (ak_xml_end(&xest2))
-          break;
-      } while (xst->nodeRet);
-
-      morph->targets = targets;
-    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      dae_extra(xst, memPtr, &morph->extra);
-    } else {
-      ak_xml_skipelm(xst);
+        xtarg = xtarg->next;
+      }
+    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+      morph->extra = tree_fromxml(heap, obj, xml);
     }
+    xml = xml->next;
+  }
 
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
-
-  *dest = morph;
-
-  return AK_OK;
+  return obj;
 }

@@ -10,10 +10,9 @@
 
 #include "../common.h"
 
-AkResult _assetkit_hide
-dae_morph(AkXmlState * __restrict xst,
-          void * __restrict memParent,
-          bool asObject,
-          AkMorph ** __restrict dest);
+AkObject* _assetkit_hide
+dae_morph(DAEState * __restrict dst,
+          xml_t    * __restrict xml,
+          void     * __restrict memp);
 
 #endif /* __libassetkit__dae_morph_h_ */
