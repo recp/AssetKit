@@ -10,10 +10,9 @@
 
 #include "../common.h"
 
-AkResult _assetkit_hide
-dae_skin(AkXmlState * __restrict xst,
-         void       * __restrict memParent,
-         bool                    asObject,
-         AkSkin    ** __restrict dest);
+AkObject* _assetkit_hide
+dae_skin(DAEState * __restrict dst,
+         xml_t    * __restrict xml,
+         void     * __restrict memp);
 
 #endif /* __libassetkit__dae_skin_h_ */
