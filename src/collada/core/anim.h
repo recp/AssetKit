@@ -10,19 +10,19 @@
 
 #include "../common.h"
 
-AkResult _assetkit_hide
-dae_anim(AkXmlState   * __restrict xst,
-         void         * __restrict memParent,
-         void        ** __restrict dest);
+AkAnimation* _assetkit_hide
+dae_anim(DAEState * __restrict xst,
+         xml_t    * __restrict xml,
+         void     * __restrict memp);
 
-AkResult _assetkit_hide
-dae_animSampler(AkXmlState     * __restrict xst,
-                void           * __restrict memParent,
-                AkAnimSampler ** __restrict dest);
+AkAnimSampler* _assetkit_hide
+dae_animSampler(DAEState * __restrict dst,
+                xml_t    * __restrict xml,
+                void     * __restrict memp);
 
-AkResult _assetkit_hide
-dae_channel(AkXmlState  * __restrict xst,
-            void        * __restrict memParent,
-            AkChannel  ** __restrict dest);
+AkChannel* _assetkit_hide
+dae_channel(DAEState * __restrict dst,
+            void     * __restrict xml,
+            void     * __restrict memp);
 
 #endif /* dae_anim_h */

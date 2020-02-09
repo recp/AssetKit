@@ -10,224 +10,147 @@
 #include "source.h"
 #include "enum.h"
 
-AkResult _assetkit_hide
-dae_anim(AkXmlState   * __restrict xst,
-         void         * __restrict memParent,
-         void        ** __restrict dest) {
-  AkAnimation   *anim;
-  AkSource      *last_source;
-  AkChannel     *last_channel;
-  AkAnimation   *last_anim;
-  AkAnimSampler *last_samp;
-  AkXmlElmState  xest;
+AkAnimation* _assetkit_hide
+dae_anim(DAEState * __restrict dst,
+         xml_t    * __restrict xml,
+         void     * __restrict memp) {
+  AkHeap      *heap;
+  AkAnimation *anim;
 
-  anim = ak_heap_calloc(xst->heap, memParent, sizeof(*anim));
+  heap = dst->heap;
+  anim = ak_heap_calloc(heap, memp, sizeof(*anim));
 
-  ak_xml_readid(xst, anim);
-  anim->name = ak_xml_attr(xst, anim, _s_dae_name);
+  xmla_setid(xml, heap, anim);
+  
+  anim->name = xmla_strdup_by(xml, heap, _s_dae_name, anim);
 
-  ak_xest_init(xest, _s_dae_animation)
-
-  last_source  = NULL;
-  last_channel = NULL;
-  last_anim    = NULL;
-  last_samp    = NULL;
-
-  do {
-    if (ak_xml_begin(&xest))
-    break;
-
-    if (ak_xml_eqelm(xst, _s_dae_asset)) {
-      (void)dae_assetInf(xst, anim, NULL);
-    } else if (ak_xml_eqelm(xst, _s_dae_source)) {
+  xml = xml->val;
+  while (xml) {
+    if (xml_tag_eq(xml, _s_dae_asset)) {
+      (void)dae_asset(dst, xml, anim, NULL);
+    } else if (xml_tag_eq(xml, _s_dae_source)) {
       AkSource *source;
-      AkResult ret;
-
-      /* store interpolation in char */
-      ret = dae_source(xst, anim, dae_enumAnimInterp, 1, &source);
-      if (ret == AK_OK) {
-        if (last_source)
-           last_source->next = source;
-        else
-           anim->source = source;
-        last_source = source;
+      if ((source = dae_source(dst, xml, NULL, 0))) {
+        source->next = anim->source;
+        anim->source = source;
       }
-    } else if (ak_xml_eqelm(xst, _s_dae_sampler)) {
-      AkAnimSampler *sampler;
-      AkResult       ret;
-
-      ret = dae_animSampler(xst, anim, &sampler);
-      if (ret == AK_OK) {
-        if (last_samp)
-          last_samp->next = sampler;
-        else
-          anim->sampler = sampler;
-        last_samp = sampler;
+    } else if (xml_tag_eq(xml, _s_dae_sampler)) {
+      AkAnimSampler *samp;
+      if ((samp = dae_animSampler(dst, xml, anim))) {
+        samp->next    = anim->sampler;
+        anim->sampler = samp;
       }
-    } else if (ak_xml_eqelm(xst, _s_dae_channel)) {
-      AkChannel *channel;
-      AkResult   ret;
-
-      ret = dae_channel(xst, anim, &channel);
-      if (ret == AK_OK) {
-        if (last_channel)
-           last_channel->next = channel;
-        else
-           anim->channel = channel;
-        last_channel = channel;
+    } else if (xml_tag_eq(xml, _s_dae_channel)) {
+      AkChannel *ch;
+      if ((ch = dae_channel(dst, xml, anim))) {
+        ch->next      = anim->channel;
+        anim->channel = ch;
       }
-    } else if (ak_xml_eqelm(xst, _s_dae_animation)) {
+    } else if (xml_tag_eq(xml, _s_dae_animation)) {
       AkAnimation *subAnim;
-      AkResult     ret;
-
-      ret     = dae_anim(xst, anim, (void **)&subAnim);
-      subAnim = NULL;
-
-      if (ret == AK_OK) {
-        if (last_anim)
-           last_anim->next = subAnim;
-        else
-           anim->animation = subAnim;
-        last_anim = subAnim;
+      if ((subAnim = dae_anim(dst, xml, anim))) {
+        subAnim->next   = anim->animation;
+        anim->animation = subAnim;
       }
-    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      dae_extra(xst, anim, &anim->extra);
-    } else {
-      ak_xml_skipelm(xst);
+    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+      anim->extra = tree_fromxml(heap, anim, xml);
     }
+    xml = xml->next;
+  }
 
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
-
-  *dest = anim;
-
-  return AK_OK;
+  return anim;
 }
 
-AkResult _assetkit_hide
-dae_animSampler(AkXmlState     * __restrict xst,
-                void           * __restrict memParent,
-                AkAnimSampler ** __restrict dest) {
-  AkAnimSampler *sampler;
-  AkInput       *last_input;
-  AkXmlElmState  xest;
+AkAnimSampler* _assetkit_hide
+dae_animSampler(DAEState * __restrict dst,
+                xml_t    * __restrict xml,
+                void     * __restrict memp) {
+  AkHeap        *heap;
+  AkAnimSampler *samp;
+  AkInput       *inp;
+  xml_attr_t    *att;
 
-  sampler = ak_heap_calloc(xst->heap, memParent, sizeof(*sampler));
+  heap = dst->heap;
+  samp = ak_heap_calloc(heap, memp, sizeof(*samp));
 
-  ak_xml_readid(xst, sampler);
+  xmla_setid(xml, heap, samp);
 
-  sampler->pre  = ak_xml_attrenum(xst,
-                                  _s_dae_pre_behavior,
-                                  dae_enumAnimBehavior);
-  sampler->post = ak_xml_attrenum(xst,
-                                  _s_dae_post_behavior,
-                                  dae_enumAnimBehavior);
+  if ((att = xml_attr(xml, _s_dae_pre_behavior)))
+    samp->pre = dae_enumAnimBehavior(att->val);
 
-  last_input = NULL;
+  if ((att = xml_attr(xml, _s_dae_post_behavior)))
+    samp->post = dae_enumAnimBehavior(att->val);
 
-  ak_xest_init(xest, _s_dae_sampler);
-
-  do {
-    if (ak_xml_begin(&xest))
-      break;
-
-    if (ak_xml_eqelm(xst, _s_dae_input)) {
-      AkInput *input;
-
-      input = ak_heap_calloc(xst->heap, sampler, sizeof(*input));
-      input->semanticRaw = ak_xml_attr(xst, input, _s_dae_semantic);
-
-      if (!input->semanticRaw)
-        ak_free(input);
-      else {
+  xml = xml->val;
+  while (xml) {
+    if (xml_tag_eq(xml, _s_dae_input)) {
+      inp              = ak_heap_calloc(heap, samp, sizeof(*inp));
+      inp->semanticRaw = xmla_strdup_by(xml, heap, _s_dae_semantic, inp);
+      
+      if (!inp->semanticRaw) {
+        ak_free(inp);
+      } else {
         AkURL *url;
-        AkEnum inputSemantic;
-
-        inputSemantic = dae_enumInputSemantic(input->semanticRaw);
-        input->offset = ak_xml_attrui(xst, _s_dae_offset);
-        input->set    = ak_xml_attrui(xst, _s_dae_set);
-
+        AkEnum  inputSemantic;
+        
+        inputSemantic = dae_enumInputSemantic(inp->semanticRaw);
+        inp->semantic = inputSemantic;
+        
         if (inputSemantic < 0)
           inputSemantic = AK_INPUT_SEMANTIC_OTHER;
-
-        input->semantic = inputSemantic;
-
-        if (last_input)
-          last_input->next = input;
-        else
-          sampler->input = input;
-
-        last_input = input;
-
-        url = ak_xmlAttrGetURL(xst, _s_dae_source, input);
-        rb_insert(xst->inputmap, input, url);
-
+        
+        inp->semantic = inputSemantic;
+        inp->offset   = xmla_uint32(xml_attr(xml, _s_dae_offset), 0);
+        
+        inp->semantic = dae_enumInputSemantic(inp->semanticRaw);
+        
+        url           = url_from(xml, _s_dae_source, memp);
+        rb_insert(dst->inputmap, inp, url);
+        
         /* check if there are angles, because they are in degress,
-           will be converted to radians, we will wait to load whole dae file
-           because all sources may not be loaded at this time
+         will be converted to radians, we will wait to load whole dae file
+         because all sources may not be loaded at this time
          */
-        if (input->semantic == AK_INPUT_SEMANTIC_OUTPUT)
-          flist_sp_insert(&xst->toRadiansSampelers, sampler);
-
-        switch (input->semantic) {
+        if (inp->semantic == AK_INPUT_SEMANTIC_OUTPUT)
+          flist_sp_insert(&dst->toRadiansSampelers, samp);
+        
+        switch (inp->semantic) {
           case AK_INPUT_SEMANTIC_INPUT:
-            sampler->inputInput = input;
+            samp->inputInput = inp;
             break;
           case AK_INPUT_SEMANTIC_OUTPUT:
-            sampler->outputInput = input;
+            samp->outputInput = inp;
             break;
           case AK_INPUT_SEMANTIC_IN_TANGENT:
-            sampler->inTangentInput = input;
+            samp->inTangentInput = inp;
             break;
           case AK_INPUT_SEMANTIC_OUT_TANGENT:
-            sampler->outTangentInput = input;
+            samp->outTangentInput = inp;
             break;
           case AK_INPUT_SEMANTIC_INTERPOLATION:
-            sampler->interpInput = input;
+            samp->interpInput = inp;
             break;
           default:
             break;
         }
       }
-    } else {
-      ak_xml_skipelm(xst);
     }
+    xml = xml->next;
+  }
 
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
-
-  *dest = sampler;
-
-  return AK_OK;
+  return samp;
 }
 
-AkResult _assetkit_hide
-dae_channel(AkXmlState  * __restrict xst,
-            void        * __restrict memParent,
-            AkChannel  ** __restrict dest) {
-  AkChannel     *channel;
-  AkXmlElmState  xest;
+AkChannel* _assetkit_hide
+dae_channel(DAEState * __restrict dst,
+            void     * __restrict xml,
+            void     * __restrict memp) {
+  AkChannel *ch;
 
-  channel = ak_heap_calloc(xst->heap, memParent, sizeof(*channel));
+  ch = ak_heap_calloc(dst->heap, memp, sizeof(*ch));
 
-  ak_xml_attr_url(xst, _s_dae_source, channel, &channel->source);
-  channel->target = ak_xml_attr(xst, channel, _s_dae_target);
+  url_set(dst, xml, _s_dae_source, ch,  &ch->source);
+  ch->target = xmla_strdup_by(xml, dst->heap, _s_dae_target, ch);
 
-  ak_xest_init(xest, _s_dae_channel);
-
-  do {
-    if (ak_xml_begin(&xest))
-      break;
-    /* end element */
-    if (ak_xml_end(&xest))
-       break;
-  } while (xst->nodeRet);
-
-  *dest = channel;
-
-  return AK_OK;
+  return ch;
 }
