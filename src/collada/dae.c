@@ -21,7 +21,7 @@
 //#include "fx/img.h"
 //#include "fx/mat.h"
 
-#include "lib.h"
+//#include "lib.h"
 //#include "postscript.h"
 #include "../id.h"
 

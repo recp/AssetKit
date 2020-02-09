@@ -6,7 +6,7 @@
  */
 
 #include "nurb.h"
-#include "vert.h"
+#include "../core/vert.h"
 #include "../core/source.h"
 #include "../core/enum.h"
 
