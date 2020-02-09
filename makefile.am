@@ -152,11 +152,11 @@ libassetkit_la_SOURCES=\
     src/bbox/bbox_scene.c \
     src/collada/dae.c \
     src/collada/postscript.c \
-    src/collada/tex_fixup.c \
-    src/collada/geom_fixup.c \
-    src/collada/mesh_fixup.c \
-    src/collada/node_fixup.c \
-    src/collada/fixangle.c \
+    src/collada/fixup/tex.c \
+    src/collada/fixup/geom.c \
+    src/collada/fixup/mesh.c \
+    src/collada/fixup/node.c \
+    src/collada/fixup/angle.c \
     src/collada/strpool.c \
     src/collada/core/enum.c \
     src/collada/core/color.c \
