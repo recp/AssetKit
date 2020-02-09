@@ -11,6 +11,6 @@
 #include "../common.h"
 
 void _assetkit_hide
-dae_fixAngles(AkXmlState * __restrict xst);
+dae_fixAngles(DAEState * __restrict dst);
 
 #endif /* dae_fixangle_h */

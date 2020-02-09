@@ -47,14 +47,14 @@ dae_cvtAngles(AkAccessor * __restrict acc,
 /* TODO: This works for BERZIER but HERMITE?? */
 
 void _assetkit_hide
-dae_fixAngles(AkXmlState * __restrict xst) {
+dae_fixAngles(DAEState * __restrict dst) {
   FListItem     *item;
   AkAnimSampler *sampler;
   AkDataParam   *param;
   AkAccessor    *acc;
   AkBuffer      *buff;
 
-  item = xst->toRadiansSampelers;
+  item = dst->toRadiansSampelers;
   while (item) {
     sampler = item->data;
     acc     = NULL;
@@ -104,5 +104,5 @@ dae_fixAngles(AkXmlState * __restrict xst) {
     item = item->next;
   }
 
-  flist_sp_destroy(&xst->toRadiansSampelers);
+  flist_sp_destroy(&dst->toRadiansSampelers);
 }

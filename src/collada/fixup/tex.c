@@ -11,8 +11,8 @@ void _assetkit_hide
 dae_tex_walk(RBTree * __restrict tree, RBNode * __restrict rbnode);
 
 void _assetkit_hide
-dae_fix_textures(AkXmlState * __restrict xst) {
-  rb_walk(xst->texmap, dae_tex_walk);
+dae_fix_textures(DAEState * __restrict dst) {
+  rb_walk(dst->texmap, dae_tex_walk);
 }
 
 void _assetkit_hide
@@ -24,7 +24,7 @@ dae_tex_walk(RBTree * __restrict tree, RBNode * __restrict rbnode) {
   AkTextureRef    *texref;
   AkTexture       *tex;
   AkImage         *image;
-  AkXmlState      *xst;
+  DAEState        *dst;
   AkInstanceBase  *instanceImage;
   AkContext        actx = {0};
 
@@ -43,8 +43,8 @@ dae_tex_walk(RBTree * __restrict tree, RBNode * __restrict rbnode) {
     return;
   }
 
-  xst           = tree->userData;
-  instanceImage = rb_find(xst->instanceMap, tex->sampler);
+  dst           = tree->userData;
+  instanceImage = rb_find(dst->instanceMap, tex->sampler);
   image         = ak_instanceObject(instanceImage);
   
   texref->texture = tex;

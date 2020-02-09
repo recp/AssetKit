@@ -15,19 +15,19 @@
 #include "fixup/tex.h"
 
 void _assetkit_hide
-dae_retain_refs(AkXmlState * __restrict xst);
+dae_retain_refs(DAEState * __restrict dst);
 
 void _assetkit_hide
-dae_fixup_accessors(AkXmlState * __restrict xst);
+dae_fixup_accessors(DAEState * __restrict dst);
 
 void _assetkit_hide
-dae_fixup_ctlr(AkXmlState * __restrict xst);
+dae_fixup_ctlr(DAEState * __restrict dst);
 
 void _assetkit_hide
-dae_fixup_instctlr(AkXmlState * __restrict xst);
+dae_fixup_instctlr(DAEState * __restrict dst);
 
 void _assetkit_hide
-dae_pre_mesh(AkXmlState * __restrict xst);
+dae_pre_mesh(DAEState * __restrict dst);
 
 void _assetkit_hide
 dae_pre_walk(RBTree *tree, RBNode *rbnode);
@@ -36,39 +36,39 @@ void _assetkit_hide
 dae_input_walk(RBTree * __restrict tree, RBNode * __restrict rbnode);
 
 void _assetkit_hide
-dae_postscript(AkXmlState * __restrict xst) {
+dae_postscript(DAEState * __restrict dst) {
   /* first migrate 1.4 to 1.5 */
-  if (xst->version < AK_COLLADA_VERSION_150)
-    dae14_loadjobs_finish(xst);
+  if (dst->version < AK_COLLADA_VERSION_150)
+    dae14_loadjobs_finish(dst);
 
-  dae_retain_refs(xst);
-  rb_walk(xst->inputmap, dae_input_walk);
-  dae_fixup_accessors(xst);
-  dae_pre_mesh(xst);
+  dae_retain_refs(dst);
+  rb_walk(dst->inputmap, dae_input_walk);
+  dae_fixup_accessors(dst);
+  dae_pre_mesh(dst);
 
   /* fixup when finished,
      because we need to collect about source/array usages
      also we can run fixups as parallels here
   */
   if (!ak_opt_get(AK_OPT_INDICES_DEFAULT))
-    dae_geom_fixup_all(xst->doc);
+    dae_geom_fixup_all(dst->doc);
 
   /* fixup morph and skin because order of vertices may be changed */
-  if (xst->doc->lib.controllers) {
-    dae_fixup_ctlr(xst);
-    dae_fixup_instctlr(xst);
+  if (dst->doc->lib.controllers) {
+    dae_fixup_ctlr(dst);
+    dae_fixup_instctlr(dst);
   }
 
   /* now set used coordSys */
   if (ak_opt_get(AK_OPT_COORD_CONVERT_TYPE) != AK_COORD_CVT_DISABLED)
-    xst->doc->coordSys = (void *)ak_opt_get(AK_OPT_COORD);
+    dst->doc->coordSys = (void *)ak_opt_get(AK_OPT_COORD);
 
-  dae_fix_textures(xst);
-  dae_fixAngles(xst);
+  dae_fix_textures(dst);
+  dae_fixAngles(dst);
 }
 
 void _assetkit_hide
-dae_retain_refs(AkXmlState * __restrict xst) {
+dae_retain_refs(DAEState * __restrict dst) {
   AkHeapAllocator *alc;
   AkURLQueue      *it, *tofree;
   AkURL           *url;
@@ -76,19 +76,19 @@ dae_retain_refs(AkXmlState * __restrict xst) {
   int             *refc;
   AkResult         ret;
 
-  alc = xst->heap->allocator;
-  it  = xst->urlQueue;
+  alc = dst->heap->allocator;
+  it  = dst->urlQueue;
 
   while (it) {
     url    = it->url;
     tofree = it;
 
     /* currently only retain objects in this doc */
-    if (it->url->doc == xst->doc) {
-      ret = ak_heap_getNodeByURL(xst->heap, url, &hnode);
+    if (it->url->doc == dst->doc) {
+      ret = ak_heap_getNodeByURL(dst->heap, url, &hnode);
       if (ret == AK_OK) {
         /* retain <source> and source arrays ... */
-        refc = ak_heap_ext_add(xst->heap, hnode, AK_HEAP_NODE_FLAGS_REFC);
+        refc = ak_heap_ext_add(dst->heap, hnode, AK_HEAP_NODE_FLAGS_REFC);
 //        it->url->ptr = ak__alignof(hnode);
 
         (*refc)++;
@@ -129,12 +129,12 @@ dae_input_walk(RBTree * __restrict tree, RBNode * __restrict rbnode) {
 }
 
 void _assetkit_hide
-dae_fixup_accessors(AkXmlState * __restrict xst) {
+dae_fixup_accessors(DAEState * __restrict dst) {
   FListItem   *item;
   AkAccessor  *acc;
   AkBuffer    *buff;
 
-  item = xst->accessors;
+  item = dst->accessors;
   while (item) {
     acc = item->data;
     if ((buff = ak_getObjectByUrl(&acc->source))) {
@@ -157,7 +157,7 @@ dae_fixup_accessors(AkXmlState * __restrict xst) {
     item = item->next;
   }
 
-  flist_sp_destroy(&xst->accessors);
+  flist_sp_destroy(&dst->accessors);
 }
 
 void _assetkit_hide
@@ -179,8 +179,8 @@ dae_pre_walk(RBTree *tree, RBNode *rbnode) {
 }
 
 void _assetkit_hide
-dae_pre_mesh(AkXmlState * __restrict xst) {
-  rb_walk(xst->meshInfo, dae_pre_walk);
+dae_pre_mesh(DAEState * __restrict dst) {
+  rb_walk(dst->meshInfo, dae_pre_walk);
 }
 
 _assetkit_hide
@@ -286,13 +286,13 @@ ak_fixBoneWeights(AkHeap        *heap,
 }
 
 void _assetkit_hide
-dae_fixup_instctlr(AkXmlState * __restrict xst) {
+dae_fixup_instctlr(DAEState * __restrict dst) {
   FListItem            *item;
   AkInstanceController *instCtlr;
   AkController         *ctlr;
-  AkContext             ctx = { .doc = xst->doc };
+  AkContext             ctx = { .doc = dst->doc };
 
-  item = xst->instCtlrs;
+  item = dst->instCtlrs;
   while (item) {
     instCtlr = item->data;
 
@@ -327,11 +327,11 @@ dae_fixup_instctlr(AkXmlState * __restrict xst) {
           mit        = matrixBuff->data;
 
           count      = jointsAcc->count;
-          joints     = ak_heap_alloc(xst->heap,
+          joints     = ak_heap_alloc(dst->heap,
                                      instCtlr,
                                      sizeof(void **) * count);
 
-          invm       = ak_heap_alloc(xst->heap,
+          invm       = ak_heap_alloc(dst->heap,
                                      ctlr->data,
                                      sizeof(mat4) * count);
 
@@ -365,12 +365,12 @@ dae_fixup_instctlr(AkXmlState * __restrict xst) {
 }
 
 void _assetkit_hide
-dae_fixup_ctlr(AkXmlState * __restrict xst) {
+dae_fixup_ctlr(DAEState * __restrict dst) {
   AkDoc        *doc;
   AkController *ctlr;
 
-  doc  = xst->doc;
-  ctlr = xst->doc->lib.controllers->chld;
+  doc  = dst->doc;
+  ctlr = dst->doc->lib.controllers->chld;
   while (ctlr) {
     switch (ctlr->data->type) {
       case AK_CONTROLLER_SKIN: {
@@ -397,8 +397,8 @@ dae_fixup_ctlr(AkXmlState * __restrict xst) {
             prim          = mesh->primitive;
             intrWeights   = (void *)skin->weights;
             primIndex     = 0;
-            meshInfo      = rb_find(xst->meshInfo, mesh);
-            skin->weights = ak_heap_alloc(xst->heap,
+            meshInfo      = rb_find(dst->meshInfo, mesh);
+            skin->weights = ak_heap_alloc(dst->heap,
                                           ctlr->data,
                                           sizeof(void *)
                                           * mesh->primitiveCount);
@@ -421,18 +421,18 @@ dae_fixup_ctlr(AkXmlState * __restrict xst) {
               posAcc  = prim->pos->accessor;
               count   = GLM_MAX(posAcc->count, 1);
               dupl    = rb_find(doc->reserved, prim);
-              weights = ak_heap_calloc(xst->heap, ctlr->data, sizeof(*weights));
+              weights = ak_heap_calloc(dst->heap, ctlr->data, sizeof(*weights));
 
-              weights->counts  = ak_heap_alloc(xst->heap,
+              weights->counts  = ak_heap_alloc(dst->heap,
                                                ctlr->data,
                                                count * sizeof(uint32_t));
-              weights->indexes  = ak_heap_alloc(xst->heap,
+              weights->indexes  = ak_heap_alloc(dst->heap,
                                                ctlr->data,
                                                count * sizeof(size_t));
 
               weights->nVertex = count;
 
-              ak_fixBoneWeights(xst->heap,
+              ak_fixBoneWeights(dst->heap,
                                 nMeshVertex,
                                 skin,
                                 dupl,

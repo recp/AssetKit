@@ -12,8 +12,8 @@
 #include "core/cam.h"
 #include "core/light.h"
 #include "core/geom.h"
-//#include "core/ctlr.h"
-//#include "core/node.h"
+#include "core/ctlr.h"
+#include "core/node.h"
 #include "core/scene.h"
 //#include "core/anim.h"
 
@@ -21,7 +21,6 @@
 //#include "fx/img.h"
 //#include "fx/mat.h"
 
-//#include "lib.h"
 //#include "postscript.h"
 #include "../id.h"
 
@@ -101,7 +100,7 @@ dae_doc(AkDoc     ** __restrict dest,
   dst->version = AK_COLLADA_VERSION_141;
   if ((versionAttr = xml_attr(xml, _s_dae_version))) {
     ak_enumpair *v;
-    
+
     for (v = daeVersions; v->key; v++) {
       if (!strncmp(v->key, versionAttr->val, versionAttr->valsize)) {
         dst->version = v->val;
@@ -115,13 +114,13 @@ dae_doc(AkDoc     ** __restrict dest,
     if (xml_tag_eq(xml, _s_dae_asset)) {
       AkAssetInf *inf;
       AkDocInf   *docInf;
-      
+
       docInf = ak_heap_calloc(heap, doc, sizeof(*docInf));
       inf    = dae_asset(dst, xml, &docInf->base, &docInf->base);
-      
+
       doc->coordSys = inf->coordSys;
       doc->unit     = inf->unit;
-      
+
       doc->inf      = docInf;
     } else if (xml_tag_eq(xml, _s_dae_lib_cameras)) {
       dae_cam(dst, xml);

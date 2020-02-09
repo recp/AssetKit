@@ -11,6 +11,6 @@
 #include "../common.h"
 
 void _assetkit_hide
-dae_fix_textures(AkXmlState * __restrict xst);
+dae_fix_textures(DAEState * __restrict dst);
 
 #endif /* dae_tex_fixup_h */
