@@ -48,8 +48,10 @@ dae_fxImage(DAEState * __restrict dst,
   AkImage    *img;
   xml_attr_t *att;
 
-  if (dst->version < AK_COLLADA_VERSION_150)
-    return dae14_fxMigrateImg(dst, xml, memp);
+  if (dst->version < AK_COLLADA_VERSION_150) {
+    dae14_fxMigrateImg(dst, xml, memp);
+    return NULL;
+  }
 
   heap = dst->heap;
   img  = ak_heap_calloc(heap, memp, sizeof(*img));
