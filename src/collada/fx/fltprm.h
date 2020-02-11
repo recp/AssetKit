@@ -11,10 +11,9 @@
 #include "../../../include/ak/assetkit.h"
 #include "../common.h"
 
-AkResult _assetkit_hide
-dae_floatOrParam(AkXmlState      * __restrict xst,
-                 void            * __restrict memParent,
-                 const char      * elm,
-                 AkFloatOrParam ** __restrict dest);
+AkFloatOrParam* _assetkit_hide
+dae_floatOrParam(DAEState * __restrict dst,
+                 xml_t    * __restrict xml,
+                 void     * __restrict memp);
 
 #endif /* __libassetkit__dae_float_or_param___h_ */

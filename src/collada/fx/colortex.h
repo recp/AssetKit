@@ -11,10 +11,9 @@
 #include "../../../include/ak/assetkit.h"
 #include "../common.h"
 
-AkResult _assetkit_hide
-dae_colorOrTex(AkXmlState   * __restrict xst,
-               void         * __restrict memParent,
-               const char   * elm,
-               AkColorDesc ** __restrict dest);
+AkColorDesc* _assetkit_hide
+dae_colorOrTex(DAEState * __restrict dst,
+               xml_t    * __restrict xml,
+               void     * __restrict memp);
 
 #endif /* __libassetkit__dae_color_or_tex__h_ */

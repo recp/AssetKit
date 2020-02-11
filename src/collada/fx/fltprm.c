@@ -8,66 +8,41 @@
 #include "fltprm.h"
 #include "../core/param.h"
 
-AkResult _assetkit_hide
-dae_floatOrParam(AkXmlState      * __restrict xst,
-                 void            * __restrict memParent,
-                 const char      * elm,
-                 AkFloatOrParam ** __restrict dest) {
-  AkFloatOrParam *floatOrParam;
-  AkParam        *last_param;
-  AkXmlElmState   xest;
+AkFloatOrParam* _assetkit_hide
+dae_floatOrParam(DAEState * __restrict dst,
+                 xml_t    * __restrict xml,
+                 void     * __restrict memp) {
+  AkHeap         *heap;
+  AkFloatOrParam *flt;
+  char           *sval;
 
-  floatOrParam = ak_heap_calloc(xst->heap,
-                                memParent,
-                                sizeof(*floatOrParam));
-  last_param = NULL;
+  heap = dst->heap;
+  flt  = ak_heap_calloc(heap, memp, sizeof(*flt));
 
-  ak_xest_init(xest, elm)
-
-  do {
-    if (ak_xml_begin(&xest))
-      break;
-
-    if (ak_xml_eqelm(xst, _s_dae_float)) {
-      float      *valuef;
-      const char *floatStr;
-
-      valuef = ak_heap_calloc(xst->heap,
-                              floatOrParam,
-                              sizeof(*valuef));
-
-      ak_xml_readsid(xst, valuef);
-
-      floatStr = ak_xml_rawcval(xst);
-      if (floatStr)
-        *valuef = strtof(floatStr, NULL);
-
-      floatOrParam->val = valuef;
-    } else if (ak_xml_eqelm(xst, _s_dae_param)) {
-      AkParam * param;
-      AkResult   ret;
-
-      ret = dae_param(xst, floatOrParam, &param);
-
-      if (ret == AK_OK) {
-        if (last_param)
-          last_param->next = param;
-        else
-          floatOrParam->param = param;
-
-        param->prev = last_param;
-        last_param  = param;
+  xml = xml->val;
+  while (xml) {
+    if (xml_tag_eq(xml, _s_dae_float) && (sval = xml->val)) {
+      float *valuef;
+      
+      valuef  = ak_heap_calloc(heap, flt, sizeof(*valuef));
+      *valuef = strtof(sval, NULL);
+      
+      sid_set(xml, heap, valuef);
+      
+      flt->val = valuef;
+    } else if (xml_tag_eq(xml, _s_dae_param)) {
+      AkParam *param;
+      
+      if ((param = dae_param(dst, xml, flt))) {
+        if (flt->param)
+          flt->param->prev = param;
+        
+        param->next = flt->param;
+        flt->param  = param;
       }
-    } else {
-      ak_xml_skipelm(xst);
     }
+    xml = xml->next;
+  }
 
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
-  
-  *dest = floatOrParam;
-
-  return AK_OK;
+  return flt;
 }
