@@ -6,133 +6,80 @@
  */
 
 #include "surface.h"
-#include "../core/_asset.h"
+#include "../core/asset.h"
 #include "../fx/enum.h"
-#include <string.h>
 
-AkResult _assetkit_hide
-dae14_fxSurface(AkXmlState      * __restrict xst,
-                void            * __restrict memParent,
-                AkDae14Surface ** __restrict dest) {
-  AkDae14Surface *surface;
-  AkXmlElmState   xest;
+AkDae14Surface* _assetkit_hide
+dae14_fxSurface(DAEState * __restrict dst,
+                xml_t    * __restrict xml,
+                void     * __restrict memp) {
+  AkHeap         *heap;
+  AkDae14Surface *surf;
+  xml_attr_t     *att;
+  char           *sval;
 
-  surface = ak_heap_calloc(xst->heap,
-                           memParent,
-                           sizeof(*surface));
+  heap    = dst->heap;
+  surf = ak_heap_calloc(heap, memp, sizeof(*surf));
 
-  ak_xest_init(xest, _s_dae_surface)
-
-  do {
-    if (ak_xml_begin(&xest))
-      break;
-
-    if (ak_xml_eqelm(xst, _s_dae_init_from)) {
+  xml = xml->val;
+  while (xml) {
+    if (xml_tag_eq(xml, _s_dae_init_from)) {
       AkDae14SurfaceFrom *initFrom;
-      initFrom = ak_heap_calloc(xst->heap,
-                                surface,
-                                sizeof(*xst->heap));
-      initFrom->mip   = ak_xml_attrui(xst, _s_dae_mip);
-      initFrom->slice = ak_xml_attrui(xst, _s_dae_slice);
-      initFrom->image = ak_xml_val(xst, surface);
-      initFrom->face  = ak_xml_attrenum_def(xst,
-                                            _s_dae_face,
-                                            dae_fxEnumFace,
-                                            AK_FACE_POSITIVE_Y);
-      surface->initFrom = initFrom;
-    } else if (ak_xml_eqelm(xst, _s_dae_init_as_target)) {
-      surface->initAsTarget = true; /* becuse the element exists */
-    } else if (ak_xml_eqelm(xst, _s_dae_format)) {
-      surface->format = ak_xml_val(xst, surface);
-    } else if (ak_xml_eqelm(xst, _s_dae_format_hint)) {
-      AkImageFormat *format;
-      AkXmlElmState  xest2;
-
-      format = ak_heap_calloc(xst->heap,
-                              memParent,
-                              sizeof(*format));
-
-      ak_xest_init(xest2, _s_dae_format_hint)
-
-      do {
-        char *valStr;
-        if (ak_xml_begin(&xest2))
-          break;
-
-        if (ak_xml_eqelm(xst, _s_dae_channels)) {
-          valStr = ak_xml_rawcval(xst);
-          if (valStr) {
-            AkEnum attrVal;
-            attrVal = dae_fxEnumChannel(valStr);
-            if (attrVal != -1)
-              format->channel = attrVal;
-          }
-        } else if (ak_xml_eqelm(xst, _s_dae_range)) {
-          valStr = ak_xml_rawcval(xst);
-          if (valStr) {
-            AkEnum attrVal;
-            attrVal = dae_fxEnumRange(valStr);
-            if (attrVal != -1)
-              format->range = attrVal;
-          }
-        } else if (ak_xml_eqelm(xst, _s_dae_precision)) {
-          valStr = ak_xml_rawcval(xst);
-          if (valStr) {
-            AkEnum attrVal;
-            attrVal = dae_fxEnumPrecision(valStr);
-            if (attrVal != -1)
-              format->range = attrVal;
-          }
-        } else if (ak_xml_eqelm(xst, _s_dae_option)) {
-          format->space = ak_xml_val(xst, format);
-        } else if (ak_xml_eqelm(xst, _s_dae_exact)) {
-          format->exact = ak_xml_val(xst, format);
-        } else {
-          ak_xml_skipelm(xst);
-        }
-
-        /* end element */
-        if (ak_xml_end(&xest2))
-          break;
-      } while (xst->nodeRet);
-    } else if (ak_xml_eqelm(xst, _s_dae_size)) {
-      char *content;
-      content = ak_xml_rawcval(xst);
-      if (content) {
-        AkUInt size[3];
-        ak_strtoui_fast(content, size, 3);
-
-        surface->size.width  = size[0];
-        surface->size.height = size[1];
-        surface->size.depth  = size[2];
+      initFrom = ak_heap_calloc(heap, surf, sizeof(*heap));
+      initFrom->mip   = xmla_uint32(xmla(xml, _s_dae_mip),   0);
+      initFrom->slice = xmla_uint32(xmla(xml, _s_dae_slice), 0);
+      
+      if ((att = xmla(xml, _s_dae_face))) {
+        initFrom->face = dae_fxEnumFace(att->val);
+      } else {
+        initFrom->face = AK_FACE_POSITIVE_Y;
       }
-    } else if (ak_xml_eqelm(xst, _s_dae_viewport_ratio)) {
-      char *content;
-      content = ak_xml_rawcval(xst);
-      if (content)
-        ak_strtof_fast(content, surface->viewportRatio, 2);
-    } else if (ak_xml_eqelm(xst, _s_dae_mip_levels)) {
-      char *content;
-      content = ak_xml_rawcval(xst);
-      if (content)
-        surface->mipLevels = (int)strtol(content, NULL, 10);
-    } else if (ak_xml_eqelm(xst, _s_dae_mipmap_generate)) {
-      char *content;
-      content = ak_xml_rawcval(xst);
-      if (content)
-        surface->mipmapGenerate = (bool)strtol(content, NULL, 10);
-    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      dae_extra(xst, surface, &surface->extra);
-    } else {
-      ak_xml_skipelm(xst);
+
+      initFrom->image = xml_strdup(xml, heap, initFrom);
+      surf->initFrom  = initFrom;
+    } else if (xml_tag_eq(xml, _s_dae_init_as_target)) {
+      surf->initAsTarget = true; /* becuse the element exists */
+    } else if (xml_tag_eq(xml, _s_dae_format)) {
+      surf->format = xml_strdup(xml, heap, surf);
+    } else if (xml_tag_eq(xml, _s_dae_format_hint)) {
+      AkImageFormat *format;
+      xml_t         *xfmt;
+      
+      format = ak_heap_calloc(heap, memp, sizeof(*format));
+      
+      xfmt = xml->val;
+      while (xfmt) {
+        if (xml_tag_eq(xfmt, _s_dae_channels) && (sval = xfmt->val)) {
+          format->channel = dae_fxEnumChannel(sval);
+        } else if (xml_tag_eq(xfmt, _s_dae_range) && (sval = xfmt->val)) {
+          format->range = dae_fxEnumRange(sval);
+        } else if (xml_tag_eq(xfmt, _s_dae_precision) && (sval = xfmt->val)) {
+          format->precision = dae_fxEnumPrecision(sval);
+        } else if (xml_tag_eq(xfmt, _s_dae_option)) {
+          format->space = xml_strdup(xml, heap, format);
+        } else if (xml_tag_eq(xfmt, _s_dae_exact)) {
+          format->exact = xml_strdup(xml, heap, format);
+        }
+        xfmt = xfmt->next;
+      }
+    } else if (xml_tag_eq(xml, _s_dae_size) && (sval = xml->val)) {
+      AkUInt size[3];
+      ak_strtoui_fast(sval, size, 3);
+      
+      surf->size.width  = size[0];
+      surf->size.height = size[1];
+      surf->size.depth  = size[2];
+    } else if (xml_tag_eq(xml, _s_dae_viewport_ratio) && (sval = xml->val)) {
+      ak_strtof_fast(sval, surf->viewportRatio, 2);
+    } else if (xml_tag_eq(xml, _s_dae_mip_levels) && (sval = xml->val)) {
+      surf->mipLevels = (int)strtol(sval, NULL, 10);
+    } else if (xml_tag_eq(xml, _s_dae_mipmap_generate) && (sval = xml->val)) {
+      surf->mipmapGenerate = (bool)strtol(sval, NULL, 10);
+    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+      surf->extra = tree_fromxml(heap, surf, xml);
     }
+    xml = xml->next;
+  }
 
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
-
-  *dest = surface;
-
-  return AK_OK;
+  return surf;
 }

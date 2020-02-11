@@ -12,9 +12,9 @@
 #include "../common.h"
 #include "dae14.h"
 
-AkResult _assetkit_hide
-dae14_fxSurface(AkXmlState      * __restrict xst,
-                void            * __restrict memParent,
-                AkDae14Surface ** __restrict dest);
+AkDae14Surface* _assetkit_hide
+dae14_fxSurface(DAEState * __restrict dst,
+                xml_t    * __restrict xml,
+                void     * __restrict memp);
 
 #endif /* ak_surface_h */
