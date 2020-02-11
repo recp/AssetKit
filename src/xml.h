@@ -15,7 +15,12 @@ char *
 xml_strdup(const xml_t * __restrict xobject,
            AkHeap      * __restrict heap,
            void        * __restrict parent) {
-  return ak_heap_strndup(heap, parent, xml_string(xobject), xobject->valsize);
+  const char *s;
+  
+  if (!(s = xml_string(xobject)))
+    return NULL;
+
+  return ak_heap_strndup(heap, parent, s, xobject->valsize);
 }
 
 AK_INLINE
@@ -23,7 +28,12 @@ char *
 xmla_strdup(const xml_attr_t * __restrict attr,
             AkHeap           * __restrict heap,
             void             * __restrict parent) {
-  return ak_heap_strndup(heap, parent, attr->val, attr->valsize);
+  const char *s;
+  
+  if (!attr->val)
+    return NULL;
+
+  return ak_heap_strndup(heap, parent, s, attr->valsize);
 }
 
 AK_INLINE
