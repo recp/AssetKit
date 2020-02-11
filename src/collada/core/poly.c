@@ -29,7 +29,7 @@ dae_poly(DAEState * __restrict dst,
 
   poly->base.name         = xmla_strdup_by(xml, heap, _s_dae_name, poly);
   poly->base.bindmaterial = xmla_strdup_by(xml, heap, _s_dae_material, poly);
-  poly->base.count        = xmla_uint32(xml_attr(xml, _s_dae_count), 0);
+  poly->base.count        = xmla_uint32(xmla(xml, _s_dae_count), 0);
 
   polyi         = NULL;
   indexoff      = 0;
@@ -56,8 +56,8 @@ dae_poly(DAEState * __restrict dst,
           inputSemantic = AK_INPUT_SEMANTIC_OTHER;
 
         inp->semantic = inputSemantic;
-        inp->offset   = xmla_uint32(xml_attr(xml, _s_dae_offset), 0);
-        inp->set      = xmla_uint32(xml_attr(xml, _s_dae_set),    0);
+        inp->offset   = xmla_uint32(xmla(xml, _s_dae_offset), 0);
+        inp->set      = xmla_uint32(xmla(xml, _s_dae_set),    0);
 
         if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
           AkURL *url;

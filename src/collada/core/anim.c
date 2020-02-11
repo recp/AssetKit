@@ -75,10 +75,10 @@ dae_animSampler(DAEState * __restrict dst,
 
   xmla_setid(xml, heap, samp);
 
-  if ((att = xml_attr(xml, _s_dae_pre_behavior)))
+  if ((att = xmla(xml, _s_dae_pre_behavior)))
     samp->pre = dae_enumAnimBehavior(att->val);
 
-  if ((att = xml_attr(xml, _s_dae_post_behavior)))
+  if ((att = xmla(xml, _s_dae_post_behavior)))
     samp->post = dae_enumAnimBehavior(att->val);
 
   xml = xml->val;
@@ -100,7 +100,7 @@ dae_animSampler(DAEState * __restrict dst,
           inputSemantic = AK_INPUT_SEMANTIC_OTHER;
         
         inp->semantic = inputSemantic;
-        inp->offset   = xmla_uint32(xml_attr(xml, _s_dae_offset), 0);
+        inp->offset   = xmla_uint32(xmla(xml, _s_dae_offset), 0);
         
         inp->semantic = dae_enumInputSemantic(inp->semanticRaw);
         

@@ -98,7 +98,7 @@ dae_doc(AkDoc     ** __restrict dest,
   /* get version info */
   /* because it is current and most used version */
   dst->version = AK_COLLADA_VERSION_141;
-  if ((versionAttr = xml_attr(xml, _s_dae_version))) {
+  if ((versionAttr = xmla(xml, _s_dae_version))) {
     ak_enumpair *v;
 
     for (v = daeVersions; v->key; v++) {

@@ -28,7 +28,7 @@ dae_spline(DAEState   * __restrict dst,
   spline = ak_objGet(obj);
 
   spline->geom   = geom;
-  spline->closed = xmla_uint32(xml_attr(xml, _s_dae_closed), 0);
+  spline->closed = xmla_uint32(xmla(xml, _s_dae_closed), 0);
   
   while (xml) {
     if (xml_tag_eq(xml, _s_dae_source)) {

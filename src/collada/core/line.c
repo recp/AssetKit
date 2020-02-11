@@ -27,7 +27,7 @@ dae_lines(DAEState * __restrict dst,
 
   lines->base.name         = xmla_strdup_by(xml, heap, _s_dae_name, lines);
   lines->base.bindmaterial = xmla_strdup_by(xml, heap, _s_dae_material, lines);
-  lines->base.count        = xmla_uint32(xml_attr(xml, _s_dae_count), 0);
+  lines->base.count        = xmla_uint32(xmla(xml, _s_dae_count), 0);
   
   indexoff = 0;
   xml      = xml->val;
@@ -51,8 +51,8 @@ dae_lines(DAEState * __restrict dst,
           inputSemantic = AK_INPUT_SEMANTIC_OTHER;
         
         inp->semantic = inputSemantic;
-        inp->offset   = xmla_uint32(xml_attr(xml, _s_dae_offset), 0);
-        inp->set      = xmla_uint32(xml_attr(xml, _s_dae_set),    0);
+        inp->offset   = xmla_uint32(xmla(xml, _s_dae_offset), 0);
+        inp->set      = xmla_uint32(xmla(xml, _s_dae_set),    0);
         
         if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
           AkURL *url;

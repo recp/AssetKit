@@ -34,7 +34,7 @@ xmla_strdup_by(const xml_t * __restrict xobject,
                void        * __restrict parent) {
   xml_attr_t *attr;
   
-  if ((attr = xml_attr(xobject, name)))
+  if ((attr = xmla(xobject, name)))
     return ak_heap_strndup(heap, parent, attr->val, attr->valsize);
 
   return NULL;
@@ -47,7 +47,7 @@ xmla_setid(const xml_t * __restrict xobject,
            void        * __restrict memptr) {
   xml_attr_t *attr;
   
-  if ((attr = xml_attr(xobject, _s_dae_id)))
+  if ((attr = xmla(xobject, _s_dae_id)))
     ak_setId(memptr, ak_heap_strndup(heap, memptr, attr->val, attr->valsize));
 }
 

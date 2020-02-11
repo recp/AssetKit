@@ -26,7 +26,7 @@ dae_evalScene(DAEState * __restrict dst,
   sid_set(xml, heap, evalScene);
   
   evalScene->name   = xmla_strdup_by(xml, heap, _s_dae_name, evalScene);
-  evalScene->enable = xmla_bool(xml_attr(xml, _s_dae_enable), 0);
+  evalScene->enable = xmla_bool(xmla(xml, _s_dae_enable), 0);
   
   while (xml) {
     if (xml_tag_eq(xml, _s_dae_asset)) {
