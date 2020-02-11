@@ -11,8 +11,9 @@
 #include "../../../include/ak/assetkit.h"
 #include "../common.h"
 
-void _assetkit_hide
-dae14_fxMigrateImg(AkXmlState * __restrict xst,
-                   void       * __restrict memParent);
+AkImage* _assetkit_hide
+dae14_fxMigrateImg(DAEState * __restrict dst,
+                   xml_t    * __restrict xml,
+                   void     * __restrict memp);
 
 #endif /* ak_14_image_h */

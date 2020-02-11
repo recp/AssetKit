@@ -10,6 +10,8 @@
 
 #include "common.h"
 
+struct AkInitFrom;
+
 typedef enum AkImageType {
   AK_IMAGE_TYPE_1D   = 0,
   AK_IMAGE_TYPE_2D   = 1,
@@ -18,25 +20,25 @@ typedef enum AkImageType {
 } AkImageType;
 
 typedef struct AkImageData {
-  void   *data;
-  AkFloat width;
-  AkFloat height;
-  AkEnum  comp;
+  void  *data;
+  float  width;
+  float  height;
+  AkEnum comp;
 } AkImageData;
 
 typedef struct AkSizeExact {
-  AkFloat width;
-  AkFloat height;
+  float width;
+  float height;
 } AkSizeExact;
 
 typedef struct AkSizeRatio {
-  AkFloat width;
-  AkFloat height;
+  float width;
+  float height;
 } AkSizeRatio;
 
 typedef struct AkMips {
-  AkUInt levels;
-  AkBool autoGenerate;
+  uint32_t levels;
+  bool     autoGenerate;
 } AkMips;
 
 typedef struct AkImageFormat {
@@ -54,10 +56,10 @@ typedef struct AkImageSize {
 } AkImageSize;
 
 typedef struct AkImageBase {
-  AkImageFormat *format;
-  AkInitFrom    *initFrom;
-  long           arrayLen;
-  AkImageType    type;
+  AkImageFormat     *format;
+  struct AkInitFrom *initFrom;
+  long               arrayLen;
+  AkImageType        type;
 } AkImageBase;
 
 typedef struct AkImage2d {
@@ -76,19 +78,19 @@ typedef struct AkImage3d {
 
 typedef struct AkImageCube {
   AkImageBase base;
-  AkUInt      width;
+  uint32_t    width;
   AkMips      mips;
 } AkImageCube;
 
 typedef struct AkImage {
   /* const char * id;  */
   /* const char * sid; */
-  const char     *name;
-  AkInitFrom     *initFrom;
-  AkImageBase    *image;
-  AkImageData    *data;
-  AkTree         *extra;
-  struct AkImage *next;
+  const char        *name;
+  struct AkInitFrom *initFrom;
+  AkImageBase       *image;
+  AkImageData       *data;
+  AkTree            *extra;
+  struct AkImage    *next;
 
   AkBool          renderable;
   AkBool          renderableShare;

@@ -5,491 +5,310 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "image.h"
+#include "img.h"
 #include "../core/asset.h"
 #include "../1.4/image.h"
 #include "enum.h"
 
 static
-AkResult
-dae_fxImage_initFrom(AkXmlState * __restrict xst,
-                     void * __restrict memParent,
-                     AkInitFrom ** __restrict dest);
+AkInitFrom*
+dae_fxImage_initFrom(DAEState * __restrict dst,
+                     xml_t    * __restrict xml,
+                     void     * __restrict memp);
 
 static
-AkResult
-dae_fxImage_format(AkXmlState * __restrict xst,
-                   void * __restrict memParent,
-                   AkImageFormat ** __restrict dest);
+AkImageFormat*
+dae_fxImage_format(DAEState * __restrict dst,
+                   xml_t    * __restrict xml,
+                   void     * __restrict memp);
 
 static
-AkResult
-dae_fxImage_create2d(AkXmlState * __restrict xst,
-                     void * __restrict memParent,
-                     AkImage2d ** __restrict dest);
+AkImage2d*
+dae_fxImage_create2d(DAEState * __restrict dst,
+                     xml_t    * __restrict xml,
+                     void     * __restrict memp);
 
 static
-AkResult
-dae_fxImage_create3d(AkXmlState * __restrict xst,
-                     void * __restrict memParent,
-                     AkImage3d ** __restrict dest);
+AkImage3d*
+dae_fxImage_create3d(DAEState * __restrict dst,
+                     xml_t    * __restrict xml,
+                     void     * __restrict memp);
 
 static
-int
-dae_fxImage_createCube(AkXmlState * __restrict xst,
-                       void * __restrict memParent,
-                       AkImageCube ** __restrict dest);
+AkImageCube*
+dae_fxImage_createCube(DAEState * __restrict dst,
+                       xml_t    * __restrict xml,
+                       void     * __restrict memp);
 
-AkResult _assetkit_hide
-dae_fxImage(AkXmlState * __restrict xst,
-            void * __restrict memParent,
-            void ** __restrict dest) {
-  AkImage      *img;
-  AkXmlElmState xest;
+AkImage* _assetkit_hide
+dae_fxImage(DAEState * __restrict dst,
+            xml_t    * __restrict xml,
+            void     * __restrict memp) {
+  AkHeap     *heap;
+  AkImage    *img;
+  xml_attr_t *att;
 
-  if (xst->version < AK_COLLADA_VERSION_150) {
-    dae14_fxMigrateImg(xst, memParent);
-    return AK_OK;
-  }
+  if (dst->version < AK_COLLADA_VERSION_150)
+    return dae14_fxMigrateImg(dst, xml, memp);
 
-  img = ak_heap_calloc(xst->heap, memParent, sizeof(*img));
+  heap = dst->heap;
+  img  = ak_heap_calloc(heap, memp, sizeof(*img));
 
-  ak_xml_readid(xst, img);
-  ak_xml_readsid(xst, img);
+  xmla_setid(xml, heap, img);
+  sid_set(xml, heap, img);
+  
+  img->name = xmla_strdup_by(xml, heap, _s_dae_name, img);
 
-  img->name = ak_xml_attr(xst, img, _s_dae_name);
-
-  ak_xest_init(xest, _s_dae_image)
-
-  do {
-    if (ak_xml_begin(&xest))
-      break;
-
-    if (ak_xml_eqelm(xst, _s_dae_asset)) {
-      (void)dae_assetInf(xst, img, NULL);
-    } else if (ak_xml_eqelm(xst, _s_dae_renderable)) {
-      xmlChar *attrValStr;
-      attrValStr =
-      xmlTextReaderGetAttribute(xst->reader,
-                                (const xmlChar *)_s_dae_renderable);
-      if (attrValStr) {
-        if (xmlStrcasecmp(attrValStr, (const xmlChar *)_s_dae_true))
-          img->renderableShare = true;
-        else
-          img->renderableShare = false;
-      }
-    } else if (ak_xml_eqelm(xst, _s_dae_init_from)) {
-      AkInitFrom *initFrom;
-      AkResult      ret;
-
-      ret = dae_fxImage_initFrom(xst, img, &initFrom);
-      if (ret == AK_OK)
-        img->initFrom = initFrom;
-    } else if (ak_xml_eqelm(xst, _s_dae_create_2d)) {
+  xml = xml->val;
+  while (xml) {
+    if (xml_tag_eq(xml, _s_dae_asset)) {
+      (void)dae_asset(dst, xml, img, NULL);
+    } else if (xml_tag_eq(xml, _s_dae_renderable)) {
+      img->renderable = (att = xmla(xml, _s_dae_share))
+                          && att->val
+                          && strcasecmp(att->val, _s_dae_true) == 0;
+    } else if (xml_tag_eq(xml, _s_dae_init_from)) {
+      img->initFrom = dae_fxImage_initFrom(dst, xml, img);
+    } else if (xml_tag_eq(xml, _s_dae_create_2d)) {
       AkImage2d *image2d;
-      AkResult   ret;
-
-      ret = dae_fxImage_create2d(xst, img, &image2d);
-      if (ret == AK_OK)
-        img->image = &image2d->base;
-    } else if (ak_xml_eqelm(xst, _s_dae_create_3d)) {
+      if ((image2d = dae_fxImage_create2d(dst, xml, img)))
+          img->image = &image2d->base;
+    } else if (xml_tag_eq(xml, _s_dae_create_3d)) {
       AkImage3d *image3d;
-      AkResult    ret;
-
-      ret = dae_fxImage_create3d(xst, img, &image3d);
-      if (ret == AK_OK)
-        img->image = &image3d->base;
-    } else if (ak_xml_eqelm(xst, _s_dae_create_cube)) {
+      if ((image3d = dae_fxImage_create3d(dst, xml, img)))
+          img->image = &image3d->base;
+    } else if (xml_tag_eq(xml, _s_dae_create_cube)) {
       AkImageCube *imageCube;
-      AkResult ret;
-
-      ret = dae_fxImage_createCube(xst, img, &imageCube);
-      if (ret == AK_OK)
-        img->image = &imageCube->base;
-    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      dae_extra(xst, img, &img->extra);
-    } else {
-      ak_xml_skipelm(xst);
+      if ((imageCube = dae_fxImage_createCube(dst, xml, img)))
+          img->image = &imageCube->base;
+    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+      img->extra = tree_fromxml(heap, img, xml);
     }
+    xml = xml->next;
+  }
 
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
-
-  *dest = img;
-
-  return AK_OK;
+  return img;
 }
 
-AkResult _assetkit_hide
-dae_fxInstanceImage(AkXmlState      * __restrict xst,
-                    void            * __restrict memParent,
-                    AkInstanceBase ** __restrict dest) {
-  AkInstanceBase *instanceImage;
-  AkXmlElmState   xest;
+AkInstanceBase* _assetkit_hide
+dae_fxInstanceImage(DAEState * __restrict dst,
+                    xml_t    * __restrict xml,
+                    void     * __restrict memp) {
+  AkHeap         *heap;
+  AkInstanceBase *instImg;
 
-  instanceImage = ak_heap_calloc(xst->heap,
-                                 memParent,
-                                 sizeof(*instanceImage));
+  heap          = dst->heap;
+  instImg       = ak_heap_calloc(heap, memp, sizeof(*instImg));
+  instImg->name = xmla_strdup_by(xml, heap, _s_dae_name, instImg);
+  
+  sid_set(xml, heap, instImg);
+  url_set(dst, xml, _s_dae_url, instImg, &instImg->url);
 
-  ak_xml_readsid(xst, instanceImage);
-
-  instanceImage->name = ak_xml_attr(xst, instanceImage, _s_dae_name);
-
-  ak_xml_attr_url(xst,
-                  _s_dae_url,
-                  instanceImage,
-                  &instanceImage->url);
-
-  ak_xest_init(xest, _s_dae_instance_image)
-
-  do {
-    if (ak_xml_begin(&xest))
-      break;
-
-    if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      dae_extra(xst, instanceImage, &instanceImage->extra);
-    } else {
-      ak_xml_skipelm(xst);
-    }
-
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
-
-  *dest = instanceImage;
-
-  return AK_OK;
+  return instImg;
 }
 
 static
-AkResult
-dae_fxImage_initFrom(AkXmlState * __restrict xst,
-                     void * __restrict memParent,
-                     AkInitFrom ** __restrict dest) {
-  AkInitFrom   *initFrom;
-  char         *attrValStr;
-  AkXmlElmState xest;
+AkInitFrom*
+dae_fxImage_initFrom(DAEState * __restrict dst,
+                     xml_t    * __restrict xml,
+                     void     * __restrict memp) {
+  AkHeap     *heap;
+  AkInitFrom *initFrom;
+  AkHexData  *hex;
+  xml_attr_t *att;
+  AkEnum      en;
+  
+  heap     = dst->heap;
+  initFrom = ak_heap_calloc(heap, memp, sizeof(*initFrom));
+  
+  initFrom->mipsGenerate = xmla_uint32(xmla(xml, _s_dae_mips_generate), 0);
+  initFrom->arrayIndex   = xmla_uint32(xmla(xml, _s_dae_array_index), 0);
+  initFrom->mipIndex     = xmla_uint32(xmla(xml, _s_dae_mip_index), 0);
+  initFrom->depth        = xmla_uint32(xmla(xml, _s_dae_depth), 0);
 
-  initFrom = ak_heap_calloc(xst->heap,
-                            memParent,
-                            sizeof(*initFrom));
-
-  initFrom->mipsGenerate = ak_xml_attrui(xst, _s_dae_mips_generate);
-  initFrom->arrayIndex   = ak_xml_attrui(xst, _s_dae_array_index);
-  initFrom->mipIndex     = ak_xml_attrui(xst, _s_dae_mip_index);
-  initFrom->depth        = ak_xml_attrui(xst, _s_dae_depth);
-
-  attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
-                                    (const xmlChar *)_s_dae_face);
-  if (attrValStr) {
-    AkEnum attrVal;
-    attrVal = dae_fxEnumFace(attrValStr);
-    if (attrVal != -1)
-      initFrom->face = attrVal;
-
-    xmlFree(attrValStr);
+  if ((att = xmla(xml, _s_dae_face)) && att->val) {
+    en = dae_fxEnumFace(att->val);
+    if (en != -1)
+      initFrom->face = en;
   }
 
-  ak_xest_init(xest, _s_dae_init_from)
-
-  do {
-    if (ak_xml_begin(&xest))
-      break;
-
-    if (ak_xml_eqelm(xst, _s_dae_ref)) {
-      initFrom->ref = ak_xml_val(xst, initFrom);
-    } else if (ak_xml_eqelm(xst, _s_dae_hex)) {
-      AkHexData *hex;
-      hex = ak_heap_calloc(xst->heap, initFrom, sizeof(*hex));
-
-      hex->format = ak_xml_attr(xst, hex, _s_dae_format);
+  xml = xml->val;
+  while (xml) {
+    if (xml_tag_eq(xml, _s_dae_ref)) {
+      initFrom->ref = xml_strdup(xml, heap, initFrom);
+    } else if (xml_tag_eq(xml, _s_dae_hex)) {
+      hex         = ak_heap_calloc(heap, initFrom, sizeof(*hex));
+      hex->format = xmla_strdup(xmla(xml, _s_dae_format), heap, hex);
 
       if (hex->format) {
-        hex->hexval = ak_xml_val(xst, hex);
+        hex->hexval = xml_strdup(xml, heap, initFrom);
         initFrom->hex = hex;
       } else {
         ak_free(hex);
       }
-    } else {
-      ak_xml_skipelm(xst);
     }
-
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
-
-  *dest = initFrom;
-
-  return AK_OK;
+    xml = xml->next;
+  }
+  
+  return initFrom;
 }
 
 static
-AkResult
-dae_fxImage_format(AkXmlState * __restrict xst,
-                   void * __restrict memParent,
-                   AkImageFormat ** __restrict dest) {
+AkImageFormat*
+dae_fxImage_format(DAEState * __restrict dst,
+                   xml_t    * __restrict xml,
+                   void     * __restrict memp) {
+  AkHeap        *heap;
   AkImageFormat *format;
-  AkXmlElmState  xest;
+  xml_attr_t    *att;
 
-  format = ak_heap_calloc(xst->heap, memParent, sizeof(*format));
+  heap   = dst->heap;
+  format = ak_heap_calloc(heap, memp, sizeof(*format));
 
-  ak_xest_init(xest, _s_dae_format)
-
-  do {
-    if (ak_xml_begin(&xest))
-      break;
-
-    if (ak_xml_eqelm(xst, _s_dae_hint)) {
-      char *attrValStr;
-
-      attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
-                                        (const xmlChar *)_s_dae_channels);
-      if (attrValStr) {
-        AkEnum attrVal;
-        attrVal = dae_fxEnumChannel(attrValStr);
-        if (attrVal != -1)
-          format->channel = attrVal;
-
-        xmlFree(attrValStr);
-        attrValStr = NULL;
-      }
-
-      attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
-                                         (const xmlChar *)_s_dae_range);
-      if (attrValStr) {
-        AkEnum attrVal;
-        attrVal = dae_fxEnumRange(attrValStr);
-        if (attrVal != -1)
-          format->range = attrVal;
-
-        xmlFree(attrValStr);
-        attrValStr = NULL;
-      }
-
-      attrValStr = (char *)xmlTextReaderGetAttribute(xst->reader,
-                                        (const xmlChar *)_s_dae_precision);
-      if (attrValStr) {
-        AkEnum attrVal;
-        attrVal = dae_fxEnumPrecision(attrValStr);
-        if (attrVal != -1)
-          format->range = attrVal;
-
-        xmlFree(attrValStr);
-        attrValStr = NULL;
-      }
-
-      format->space = ak_xml_attr(xst, format, _s_dae_space);
-    } else if (ak_xml_eqelm(xst, _s_dae_exact)) {
-      format->exact = ak_xml_val(xst, format);
-    } else {
-      ak_xml_skipelm(xst);
+  xml = xml->val;
+  while (xml) {
+    if (xml_tag_eq(xml, _s_dae_hint)) {
+      if ((att = xmla(xml, _s_dae_channels)) && att->val)
+        format->channel = dae_fxEnumChannel(att->val);
+      
+      if ((att = xmla(xml, _s_dae_range)) && att->val)
+        format->range = dae_fxEnumRange(att->val);
+      
+      if ((att = xmla(xml, _s_dae_precision)) && att->val)
+        format->precision = dae_fxEnumPrecision(att->val);
+      
+      if ((att = xmla(xml, _s_dae_space)) && att->val)
+        format->space = xmla_strdup(att, heap, format);
+    } else if (xml_tag_eq(xml, _s_dae_exact)) {
+      format->exact = xml_strdup(xml, heap, format);
     }
+    xml = xml->next;
+  }
 
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
-
-  *dest = format;
-
-  return AK_OK;
+  return format;
 }
 
 static
-AkResult
-dae_fxImage_create2d(AkXmlState * __restrict xst,
-                     void * __restrict memParent,
-                     AkImage2d ** __restrict dest) {
-  AkImage2d    *image2d;
-  AkXmlElmState xest;
+AkImage2d*
+dae_fxImage_create2d(DAEState * __restrict dst,
+                     xml_t    * __restrict xml,
+                     void     * __restrict memp) {
+  AkHeap    *heap;
+  AkImage2d *img;
 
-  image2d = ak_heap_calloc(xst->heap,
-                           memParent,
-                           sizeof(*image2d));
+  heap = dst->heap;
+  img  = ak_heap_calloc(heap, memp, sizeof(*img));
 
-  image2d->base.type = AK_IMAGE_TYPE_2D;
-  ak_xest_init(xest, _s_dae_create_2d)
+  img->base.type = AK_IMAGE_TYPE_2D;
 
-  do {
-    if (ak_xml_begin(&xest))
-      break;
-
-    if (ak_xml_eqelm(xst, _s_dae_size_exact)) {
+  xml = xml->val;
+  while (xml) {
+    if (xml_tag_eq(xml, _s_dae_size_exact)) {
       AkSizeExact *sizeExact;
-
-      sizeExact = ak_heap_calloc(xst->heap,
-                                 image2d,
-                                 sizeof(*sizeExact));
-
-      sizeExact->width  = ak_xml_attrf(xst, _s_dae_width);
-      sizeExact->height = ak_xml_attrf(xst, _s_dae_height);
-
-      image2d->sizeExact = sizeExact;
-    } else if (ak_xml_eqelm(xst, _s_dae_size_ratio)) {
+      
+      sizeExact = ak_heap_calloc(heap, img, sizeof(*sizeExact));
+      
+      sizeExact->width  = xmla_uint32(xmla(xml, _s_dae_width), 0);
+      sizeExact->height = xmla_uint32(xmla(xml, _s_dae_height), 0);
+      
+      img->sizeExact = sizeExact;
+    } else if (xml_tag_eq(xml, _s_dae_size_ratio)) {
       AkSizeRatio *sizeRatio;
-
-      sizeRatio = ak_heap_calloc(xst->heap,
-                                 image2d,
-                                 sizeof(*sizeRatio));
-
-
-      sizeRatio->width  = ak_xml_attrf(xst, _s_dae_width);
-      sizeRatio->height = ak_xml_attrf(xst, _s_dae_height);
-
-      image2d->sizeRatio = sizeRatio;
-    } else if (ak_xml_eqelm(xst, _s_dae_mips)) {
+      
+      sizeRatio = ak_heap_calloc(heap, img, sizeof(*sizeRatio));
+      
+      sizeRatio->width  = xmla_uint32(xmla(xml, _s_dae_width), 0);
+      sizeRatio->height = xmla_uint32(xmla(xml, _s_dae_height), 0);
+      
+      img->sizeRatio = sizeRatio;
+    } else if (xml_tag_eq(xml, _s_dae_mips)) {
       AkMips *mips;
-
-      mips = ak_heap_calloc(xst->heap,
-                            image2d,
-                            sizeof(*mips));
-
-      mips->levels       = ak_xml_attrui(xst, _s_dae_width);
-      mips->autoGenerate = ak_xml_attrui(xst, _s_dae_height);
-
-      image2d->mips = mips;
-    } else if (ak_xml_eqelm(xst, _s_dae_unnormalized)) {
-      image2d->unnormalized = ak_xml_val(xst, image2d);
-    } else if (ak_xml_eqelm(xst, _s_dae_array)) {
-      image2d->base.arrayLen = ak_xml_attrui(xst, _s_dae_length);
-    } else if (ak_xml_eqelm(xst, _s_dae_format)) {
-      AkImageFormat *imageFormat;
-      AkResult ret;
-
-      ret = dae_fxImage_format(xst, image2d, &imageFormat);
-      if (ret == AK_OK)
-        image2d->base.format = imageFormat;
-    } else if (ak_xml_eqelm(xst, _s_dae_size_exact)) {
-      AkInitFrom *initFrom;
-      AkResult ret;
-
-      ret = dae_fxImage_initFrom(xst, image2d, &initFrom);
-      if (ret == AK_OK)
-        image2d->base.initFrom = initFrom;
-    } else {
-      ak_xml_skipelm(xst);
+      
+      mips = ak_heap_calloc(heap, img, sizeof(*mips));
+      
+      mips->levels       = xmla_uint32(xmla(xml, _s_dae_levels), 0);
+      mips->autoGenerate = xmla_uint32(xmla(xml, _s_dae_auto_generate), 0);
+      
+      img->mips = mips;
+    } else if (xml_tag_eq(xml, _s_dae_unnormalized)) {
+      img->unnormalized = xml_strdup(xml, heap, img);
+    } else if (xml_tag_eq(xml, _s_dae_array)) {
+      img->base.arrayLen = xmla_uint32(xmla(xml, _s_dae_length), 0);
+    } else if (xml_tag_eq(xml, _s_dae_format)) {
+      img->base.format = dae_fxImage_format(dst, xml, img);
+    } else if (xml_tag_eq(xml, _s_dae_size_exact)) {
+      img->base.initFrom = dae_fxImage_initFrom(dst, xml, img);
     }
+    xml = xml->next;
+  }
 
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
-
-  *dest = image2d;
-
-  return AK_OK;
+  return img;
 }
 
 static
-AkResult
-dae_fxImage_create3d(AkXmlState * __restrict xst,
-                     void * __restrict memParent,
-                     AkImage3d ** __restrict dest) {
-  AkImage3d    *image3d;
-  AkXmlElmState xest;
+AkImage3d*
+dae_fxImage_create3d(DAEState * __restrict dst,
+                     xml_t    * __restrict xml,
+                     void     * __restrict memp) {
+  AkHeap    *heap;
+  AkImage3d *img;
 
-  image3d = ak_heap_calloc(xst->heap,
-                           memParent,
-                           sizeof(*image3d));
+  heap = dst->heap;
+  img  = ak_heap_calloc(heap, memp, sizeof(*img));
+  
+  img->base.type = AK_IMAGE_TYPE_3D;
 
-  image3d->base.type = AK_IMAGE_TYPE_3D;
-  ak_xest_init(xest, _s_dae_create_3d)
-
-  do {
-    if (ak_xml_begin(&xest))
-      break;
-
-    if (ak_xml_eqelm(xst, _s_dae_size)) {
-      image3d->size.width  = ak_xml_attrui(xst, _s_dae_width);
-      image3d->size.height = ak_xml_attrui(xst, _s_dae_height);
-      image3d->size.depth  = ak_xml_attrui(xst, _s_dae_depth);
-    } else if (ak_xml_eqelm(xst, _s_dae_mips)) {
-      image3d->mips.levels       = ak_xml_attrui(xst, _s_dae_levels);
-      image3d->mips.autoGenerate = ak_xml_attrui(xst, _s_dae_auto_generate);
-    } else if (ak_xml_eqelm(xst, _s_dae_array)) {
-      image3d->base.arrayLen = ak_xml_attrui(xst, _s_dae_length);
-    } else if (ak_xml_eqelm(xst, _s_dae_format)) {
-      AkImageFormat *imageFormat;
-      AkResult ret;
-
-      ret = dae_fxImage_format(xst, image3d, &imageFormat);
-      if (ret == AK_OK)
-        image3d->base.format = imageFormat;
-    } else if (ak_xml_eqelm(xst, _s_dae_size_exact)) {
-      AkInitFrom *initFrom;
-      AkResult ret;
-
-      ret = dae_fxImage_initFrom(xst, image3d, &initFrom);
-      if (ret == AK_OK)
-        image3d->base.initFrom = initFrom;
-    } else {
-      ak_xml_skipelm(xst);
+  xml = xml->val;
+  while (xml) {
+    if (xml_tag_eq(xml, _s_dae_size)) {
+      img->size.width  = xmla_uint32(xmla(xml, _s_dae_width),  0);
+      img->size.height = xmla_uint32(xmla(xml, _s_dae_height), 0);
+      img->size.depth  = xmla_uint32(xmla(xml, _s_dae_depth),  0);
+    } else if (xml_tag_eq(xml, _s_dae_mips)) {
+      img->mips.levels       = xmla_uint32(xmla(xml, _s_dae_levels), 0);
+      img->mips.autoGenerate = xmla_uint32(xmla(xml, _s_dae_auto_generate), 0);
+    } else if (xml_tag_eq(xml, _s_dae_array)) {
+      img->base.arrayLen = xmla_uint32(xmla(xml, _s_dae_length), 0);
+    } else if (xml_tag_eq(xml, _s_dae_format)) {
+      img->base.format = dae_fxImage_format(dst, xml, img);
+    } else if (xml_tag_eq(xml, _s_dae_size_exact)) {
+      img->base.initFrom = dae_fxImage_initFrom(dst, xml, img);
     }
+    xml = xml->next;
+  }
 
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
-
-  *dest = image3d;
-
-  return AK_OK;
+  return img;
 }
 
 static
-AkResult
-dae_fxImage_createCube(AkXmlState * __restrict xst,
-                       void * __restrict memParent,
-                       AkImageCube ** __restrict dest) {
-  AkImageCube  *imageCube;
-  AkXmlElmState xest;
-
-  imageCube = ak_heap_calloc(xst->heap,
-                             memParent,
-                             sizeof(*imageCube));
-
-  imageCube->base.type = AK_IMAGE_TYPE_CUBE;
-  ak_xest_init(xest, _s_dae_create_cube)
-
-  do {
-    if (ak_xml_begin(&xest))
-      break;
-
-    if (ak_xml_eqelm(xst, _s_dae_size)) {
-      imageCube->width = ak_xml_attrui(xst, _s_dae_width);
-    } else if (ak_xml_eqelm(xst, _s_dae_mips)) {
-      imageCube->mips.levels       = ak_xml_attrui(xst, _s_dae_levels);
-      imageCube->mips.autoGenerate = ak_xml_attrui(xst, _s_dae_auto_generate);
-    } else if (ak_xml_eqelm(xst, _s_dae_array)) {
-      imageCube->base.arrayLen = ak_xml_attrui(xst, _s_dae_length);
-    } else if (ak_xml_eqelm(xst, _s_dae_format)) {
-      AkImageFormat *imageFormat;
-      AkResult ret;
-
-      ret = dae_fxImage_format(xst, imageCube, &imageFormat);
-      if (ret == AK_OK)
-        imageCube->base.format = imageFormat;
-    } else if (ak_xml_eqelm(xst, _s_dae_size_exact)) {
-      AkInitFrom *initFrom;
-      AkResult ret;
-
-      ret = dae_fxImage_initFrom(xst, imageCube, &initFrom);
-      if (ret == AK_OK)
-        imageCube->base.initFrom = initFrom;
-    } else {
-      ak_xml_skipelm(xst);
+AkImageCube*
+dae_fxImage_createCube(DAEState * __restrict dst,
+                       xml_t    * __restrict xml,
+                       void     * __restrict memp) {
+  AkHeap      *heap;
+  AkImageCube *img;
+  
+  heap = dst->heap;
+  img  = ak_heap_calloc(heap, memp, sizeof(*img));
+  
+  img->base.type = AK_IMAGE_TYPE_CUBE;
+  
+  xml = xml->val;
+  while (xml) {
+    if (xml_tag_eq(xml, _s_dae_size)) {
+      img->width = xmla_uint32(xmla(xml, _s_dae_width),  0);
+    } else if (xml_tag_eq(xml, _s_dae_mips)) {
+      img->mips.levels       = xmla_uint32(xmla(xml, _s_dae_levels), 0);
+      img->mips.autoGenerate = xmla_uint32(xmla(xml, _s_dae_auto_generate), 0);
+    } else if (xml_tag_eq(xml, _s_dae_array)) {
+      img->base.arrayLen = xmla_uint32(xmla(xml, _s_dae_length), 0);
+    } else if (xml_tag_eq(xml, _s_dae_format)) {
+      img->base.format = dae_fxImage_format(dst, xml, img);
+    } else if (xml_tag_eq(xml, _s_dae_size_exact)) {
+      img->base.initFrom = dae_fxImage_initFrom(dst, xml, img);
     }
+    xml = xml->next;
+  }
 
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
-
-  *dest = imageCube;
-
-  return AK_OK;
+  return img;
 }
