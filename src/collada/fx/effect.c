@@ -6,6 +6,7 @@
  */
 
 #include "effect.h"
+#include "profile.h"
 
 #include "../core/asset.h"
 #include "../core/techn.h"
@@ -13,146 +14,96 @@
 
 #include "../1.4/image.h"
 
-#include "profile.h"
+AkEffect* _assetkit_hide
+dae_effect(DAEState * __restrict dst,
+           xml_t    * __restrict xml,
+           void     * __restrict memp) {
+  AkHeap   *heap;
+  AkEffect *effect;
 
-AkResult _assetkit_hide
-dae_effect(AkXmlState * __restrict xst,
-           void * __restrict memParent,
-           void ** __restrict  dest) {
-  AkEffect     *effect;
-  AkNewParam   *last_newparam;
-  AkProfile    *last_profile;
-  AkXmlElmState xest;
-
-  effect = ak_heap_calloc(xst->heap,
-                          memParent,
-                          sizeof(*effect));
+  heap   = dst->heap;
+  effect = ak_heap_calloc(heap, memp, sizeof(*effect));
   ak_setypeid(effect, AKT_EFFECT);
 
-  last_newparam = NULL;
-  last_profile  = NULL;
+  xmla_setid(xml, heap, effect);
 
-  ak_xml_readid(xst, effect);
-  effect->name = ak_xml_attr(xst, effect, _s_dae_name);
+  effect->name = xmla_strdup_by(xml, heap, _s_dae_name, effect);
 
-  ak_xest_init(xest, _s_dae_effect)
-
-  do {
-    if (ak_xml_begin(&xest))
-      break;
-
-    if (ak_xml_eqelm(xst, _s_dae_asset)) {
-      (void)dae_assetInf(xst, effect, NULL);
-    } else if (ak_xml_eqelm(xst, _s_dae_newparam)) {
+  xml = xml->val;
+  while (xml) {
+    if (xml_tag_eq(xml, _s_dae_asset)) {
+      (void)dae_asset(dst, xml, effect, NULL);
+    } else if (xml_tag_eq(xml, _s_dae_newparam)) {
       AkNewParam *newparam;
-      AkResult    ret;
 
-      ret = dae_newparam(xst, effect, &newparam);
+      if ((newparam = dae_newparam(dst, xml, effect))) {
+        if (effect->newparam)
+          effect->newparam->prev = newparam;
 
-      if (ret == AK_OK) {
-        if (last_newparam)
-          last_newparam->next = newparam;
-        else
-          effect->newparam = newparam;
-
-        newparam->prev = last_newparam;
-        last_newparam  = newparam;
+        newparam->next   = effect->newparam;
+        effect->newparam = newparam;
       }
-    } else if (ak_xml_eqelm(xst, _s_dae_prfl_common)) {
+    } else if (xml_tag_eq(xml, _s_dae_prfl_common)) {
       AkProfile *profile;
-      AkResult   ret;
 
-      ret = dae_profile(xst, effect, &profile);
-
-      if (ret == AK_OK) {
-        if (last_profile)
-          last_profile->next = profile;
-        else
-          effect->profile = profile;
-
-        last_profile = profile;
+      if ((profile = dae_profile(dst, xml, effect))) {
+        profile->next   = effect->profile;
+        effect->profile = profile;
       }
-    } else if (xst->version < AK_COLLADA_VERSION_150
-               && ak_xml_eqelm(xst, _s_dae_image)) {
+    } else if (dst->version < AK_COLLADA_VERSION_150
+               && xml_tag_eq(xml, _s_dae_image)) {
       /* migration from 1.4 */
-      dae14_fxMigrateImg(xst, NULL);
-    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      dae_extra(xst, effect, &effect->extra);
-    } else {
-      ak_xml_skipelm(xst);
+      dae14_fxMigrateImg(dst, xml, NULL);
+    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+      effect->extra = tree_fromxml(heap, effect, xml);
     }
+    xml = xml->val;
+  }
 
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
-
-  *dest = effect;
-
-  return AK_OK;
+  return effect;
 }
 
-AkResult _assetkit_hide
-dae_fxInstanceEffect(AkXmlState * __restrict xst,
-                     void * __restrict memParent,
-                     AkInstanceEffect ** __restrict dest) {
-  AkInstanceEffect *instanceEffect;
-  AkTechniqueHint  *last_techHint;
-  AkXmlElmState     xest;
+AkInstanceEffect* _assetkit_hide
+dae_fxInstanceEffect(DAEState * __restrict dst,
+                     xml_t    * __restrict xml,
+                     void     * __restrict memp) {
+  AkHeap           *heap;
+  AkInstanceEffect *instEffect;
+  xml_attr_t       *att;
 
-  instanceEffect = ak_heap_calloc(xst->heap,
-                                  memParent,
-                                  sizeof(*instanceEffect));
+  heap       = dst->heap;
+  instEffect = ak_heap_calloc(heap, memp, sizeof(*instEffect));
 
-  ak_xml_readsid(xst, instanceEffect);
+  xmla_setid(xml, heap, instEffect);
 
-  instanceEffect->base.type = AK_INSTANCE_EFFECT;
-  instanceEffect->base.name = ak_xml_attr(xst,
-                                          instanceEffect,
-                                          _s_dae_name);
+  instEffect->base.type = AK_INSTANCE_EFFECT;
+  instEffect->base.name = xmla_strdup_by(xml, heap, _s_dae_name, instEffect);
 
-  ak_xml_attr_url(xst,
-                  _s_dae_url,
-                  instanceEffect,
-                  &instanceEffect->base.url);
+  url_set(dst, xml, _s_dae_url, instEffect, &instEffect->base.url);
 
-  last_techHint = NULL;
-
-  ak_xest_init(xest, _s_dae_inst_effect)
-
-  do {
-    if (ak_xml_begin(&xest))
-      break;
-
-    if (ak_xml_eqelm(xst, _s_dae_technique_hint)) {
+  xml = xml->val;
+  while (xml) {
+    if (xml_tag_eq(xml, _s_dae_technique_hint)) {
       AkTechniqueHint *techHint;
+      
+      techHint = ak_heap_calloc(heap, instEffect, sizeof(*techHint));
 
-      techHint = ak_heap_calloc(xst->heap,
-                                instanceEffect,
-                                sizeof(*techHint));
-
-      techHint->ref      = ak_xml_attr(xst, techHint, _s_dae_ref);
-      techHint->profile  = ak_xml_attr(xst, techHint, _s_dae_profile);
-      techHint->platform = ak_xml_attr(xst, techHint, _s_dae_platform);
-
-      if (last_techHint)
-        last_techHint->next = techHint;
-      else
-        instanceEffect->techniqueHint = techHint;
-
-      last_techHint = techHint;
-    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      dae_extra(xst, instanceEffect, &instanceEffect->base.extra);
-    } else {
-      ak_xml_skipelm(xst);
+      if ((att = xmla(xml, _s_dae_ref)))
+        techHint->ref = xmla_strdup(att, heap, techHint);
+      
+      if ((att = xmla(xml, _s_dae_profile)))
+        techHint->profile = xmla_strdup(att, heap, techHint);
+      
+      if ((att = xmla(xml, _s_dae_platform)))
+        techHint->platform = xmla_strdup(att, heap, techHint);
+      
+      techHint->next            = instEffect->techniqueHint;
+      instEffect->techniqueHint = techHint;
+    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+      instEffect->base.extra = tree_fromxml(heap, instEffect, xml);
     }
+    xml = xml->next;
+  }
 
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
-
-  *dest = instanceEffect;
-
-  return AK_OK;
+  return instEffect;
 }
