@@ -5,8 +5,8 @@
  * Full license can be found in the LICENSE file
  */
 
-#ifndef __libassetkit__dae_blinn_phong__h_
-#define __libassetkit__dae_blinn_phong__h_
+#ifndef __libassetkit__dae_techn_cmn__h_
+#define __libassetkit__dae_techn_cmn__h_
 
 #include "../../../include/ak/assetkit.h"
 #include "../common.h"
@@ -16,4 +16,4 @@ dae_phong(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp);
 
-#endif /* __libassetkit__dae_blinn_phong__h_ */
+#endif /* __libassetkit__dae_techn_cmn__h_ */

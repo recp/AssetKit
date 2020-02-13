@@ -5,7 +5,7 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "phong.h"
+#include "techn_cmn.h"
 #include "colortex.h"
 #include "fltprm.h"
 #include "enum.h"

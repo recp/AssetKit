@@ -11,9 +11,9 @@
 #include "../../../include/ak/assetkit.h"
 #include "../common.h"
 
-AkResult _assetkit_hide
-dae_techniqueFx(AkXmlState * __restrict xst,
-                void * __restrict memParent,
-                AkTechniqueFx ** __restrict dest);
+AkTechniqueFx* _assetkit_hide
+dae_techniqueFx(DAEState * __restrict dst,
+                xml_t    * __restrict xml,
+                void     * __restrict memp);
 
 #endif /* __libassetkit__dae_technique_fx__h_ */
