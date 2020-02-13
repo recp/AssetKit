@@ -16,10 +16,8 @@ AkProfile* _assetkit_hide
 dae_profile(DAEState * __restrict dst,
             xml_t    * __restrict xml,
             void     * __restrict memp) {
-  AkHeap        *heap;
-  AkProfile     *profile;
-  AkNewParam    *last_newparam;
-  AkTechniqueFx *last_techfx;
+  AkHeap    *heap;
+  AkProfile *profile;
 
   heap = dst->heap;
 
