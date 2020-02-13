@@ -11,9 +11,9 @@
 #include "../../../include/ak/assetkit.h"
 #include "../common.h"
 
-AkResult _assetkit_hide
-dae_fxLambert(AkXmlState           * __restrict xst,
-              void                 * __restrict memParent,
-              AkTechniqueFxCommon ** __restrict dest);
+AkTechniqueFxCommon* _assetkit_hide
+dae_fxLambert(DAEState * __restrict dst,
+              xml_t    * __restrict xml,
+              void     * __restrict memp);
 
 #endif /* __libassetkit__dae_fx_lambert__h_ */

@@ -11,10 +11,9 @@
 #include "../../../include/ak/assetkit.h"
 #include "../common.h"
 
-AkResult _assetkit_hide
-dae_phong(AkXmlState           * __restrict xst,
-          void                 * __restrict memParent,
-          const char           * elm,
-          AkTechniqueFxCommon ** __restrict dest);
+AkTechniqueFxCommon* _assetkit_hide
+dae_phong(DAEState * __restrict dst,
+          xml_t    * __restrict xml,
+          void     * __restrict memp);
 
 #endif /* __libassetkit__dae_blinn_phong__h_ */
