@@ -12,9 +12,9 @@
 #include "../../../include/ak/assetkit.h"
 #include "../common.h"
 
-AkResult _assetkit_hide
-dae_profile(AkXmlState * __restrict xst,
-            void * __restrict memParent,
-            AkProfile ** __restrict dest);
+AkProfile* _assetkit_hide
+dae_profile(DAEState * __restrict dst,
+            xml_t    * __restrict xml,
+            void     * __restrict memp);
 
 #endif /* __libassetkit__dae_fx_profile__h_ */

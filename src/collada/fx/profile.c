@@ -6,121 +6,62 @@
  */
 
 #include "profile.h"
-#include "../core/param.h"
-#include "../core/asset.h"
-
-#include "../1.4/image.h"
-
 #include "techn.h"
 
-static ak_enumpair profileMap[] = {
-  {_s_dae_prfl_common, AK_PROFILE_TYPE_COMMON}
-};
+#include "../core/param.h"
+#include "../core/asset.h"
+#include "../1.4/image.h"
 
-static size_t profileMapLen = 0;
+AkProfile* _assetkit_hide
+dae_profile(DAEState * __restrict dst,
+            xml_t    * __restrict xml,
+            void     * __restrict memp) {
+  AkHeap        *heap;
+  AkProfile     *profile;
+  AkNewParam    *last_newparam;
+  AkTechniqueFx *last_techfx;
 
-AkResult _assetkit_hide
-dae_profile(AkXmlState * __restrict xst,
-            void * __restrict memParent,
-            AkProfile ** __restrict dest) {
-  AkProfile         *profile;
-  AkNewParam        *last_newparam;
-  AkTechniqueFx     *last_techfx;
-  const ak_enumpair *found;
-  AkXmlElmState      xest;
+  heap = dst->heap;
 
-  xst->nodeName = xmlTextReaderConstName(xst->reader);
-
-  if (profileMapLen == 0) {
-    profileMapLen = AK_ARRAY_LEN(profileMap);
-    qsort(profileMap,
-          profileMapLen,
-          sizeof(profileMap[0]),
-          ak_enumpair_cmp);
-  }
-
-  found = bsearch(xst->nodeName,
-                  profileMap,
-                  profileMapLen,
-                  sizeof(profileMap[0]),
-                  ak_enumpair_cmp2);
-  if (!found) {
-    ak_xml_skipelm(xst);
-    goto err;
-  }
-
-  switch (found->val) {
-    case AK_PROFILE_TYPE_COMMON:
-      profile = ak_heap_calloc(xst->heap,
-                               memParent,
-                               sizeof(AkProfileCommon));
-      break;
-    default:
-      goto err;
-  }
+  if (!xml_tag_eq(xml, _s_dae_prfl_common))
+    return NULL;
+ 
+  profile       = ak_heap_calloc(heap, memp, sizeof(AkProfileCommon));
+  profile->type = AK_PROFILE_TYPE_COMMON;
 
   ak_setypeid(profile, AKT_PROFILE);
-  profile->type = found->val;
+  xmla_setid(xml, heap, profile);
 
-  ak_xml_readid(xst, profile);
-
-  last_newparam = NULL;
-  last_techfx   = NULL;
-
-  ak_xest_init(xest, found->key)
-
-  do {
-    if (ak_xml_begin(&xest))
-      break;
-
-    if (ak_xml_eqelm(xst, _s_dae_asset)) {
-      (void)dae_assetInf(xst, profile, NULL);
-    } else if (ak_xml_eqelm(xst, _s_dae_newparam)) {
+  xml = xml->val;
+  while (xml) {
+    if (xml_tag_eq(xml, _s_dae_asset)) {
+      (void)dae_asset(dst, xml, profile, NULL);
+    } else if (xml_tag_eq(xml, _s_dae_newparam)) {
       AkNewParam *newparam;
-      AkResult    ret;
+      
+      if ((newparam = dae_newparam(dst, xml, profile))) {
+        if (profile->newparam)
+          profile->newparam->prev = newparam;
 
-      ret = dae_newparam(xst, profile, &newparam);
-
-      if (ret == AK_OK) {
-        if (last_newparam)
-          last_newparam->next = newparam;
-        else
-          profile->newparam = newparam;
-
-        newparam->prev = last_newparam;
-        last_newparam  = newparam;
+        newparam->next    = profile->newparam;
+        profile->newparam = newparam;
       }
-    } else if (ak_xml_eqelm(xst, _s_dae_techn)) {
-      AkTechniqueFx * technique_fx;
-      AkResult ret;
-
-      ret = dae_techniqueFx(xst,  profile, &technique_fx);
-      if (ret == AK_OK) {
-        if (last_techfx)
-          last_techfx->next = technique_fx;
-        else
-          profile->technique = technique_fx;
-
-        last_techfx = technique_fx;
+    } else if (xml_tag_eq(xml, _s_dae_technique)) {
+      AkTechniqueFx *techn;
+      
+      if ((techn = dae_techniqueFx(dst, xml, profile))) {
+        techn->next        = profile->technique;
+        profile->technique = techn;
       }
-    } else if (xst->version < AK_COLLADA_VERSION_150
-               && ak_xml_eqelm(xst, _s_dae_image)) {
+    } else if (dst->version < AK_COLLADA_VERSION_150
+               && xml_tag_eq(xml, _s_dae_image)) {
       /* migration from 1.4 */
-      dae14_fxMigrateImg(xst, NULL);
-    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      dae_extra(xst, profile, &profile->extra);
-    }  else {
-      ak_xml_skipelm(xst);
-    } 
-    
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
-  
-  *dest = profile;
-  
-  return AK_OK;
-err:
-  return AK_ERR;
+      dae14_fxMigrateImg(dst, xml, NULL);
+    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+      profile->extra = tree_fromxml(heap, profile, xml);
+    }
+    xml = xml->next;
+  }
+
+  return profile;
 }
