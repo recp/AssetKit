@@ -27,9 +27,4 @@ dae_fxInstanceMaterial(DAEState * __restrict dst,
                        xml_t    * __restrict xml,
                        void     * __restrict memp);
 
-AkInstanceMaterial _assetkit_hide
-dae_fxBindMaterial_tcommon(DAEState * __restrict dst,
-                           xml_t    * __restrict xml,
-                           void     * __restrict memp);
-
 #endif /* __libassetkit__dae_fx_material__h_ */

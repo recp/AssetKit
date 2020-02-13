@@ -5,267 +5,159 @@
  * Full license can be found in the LICENSE file
  */
 
-#include "material.h"
+#include "mat.h"
+#include "effect.h"
 #include "../core/asset.h"
 #include "../core/param.h"
-#include "../core/tech.h"
-#include "effect.h"
+#include "../core/techn.h"
 
-AkResult _assetkit_hide
-dae_material(AkXmlState * __restrict xst,
-             void * __restrict memParent,
-             void ** __restrict dest) {
-  AkMaterial   *material;
-  AkXmlElmState xest;
+AkMaterial* _assetkit_hide
+dae_material(DAEState * __restrict dst,
+             xml_t    * __restrict xml,
+             void     * __restrict memp) {
+  AkHeap     *heap;
+  AkMaterial *mat;
 
-  material = ak_heap_calloc(xst->heap,
-                            memParent,
-                            sizeof(*material));
+  heap = dst->heap;
+  mat  = ak_heap_calloc(heap, memp, sizeof(*mat));
+  
+  xmla_setid(xml, heap, mat);
+  
+  mat->name = xmla_strdup_by(xml, heap, _s_dae_name, mat);
 
-  ak_xml_readid(xst, material);
-  material->name = ak_xml_attr(xst, material, _s_dae_name);
+  xml = xml->val;
+  while (xml) {
+    if (xml_tag_eq(xml, _s_dae_asset)) {
+      (void)dae_asset(dst, xml, mat, NULL);
+    } else if (xml_tag_eq(xml, _s_dae_inst_effect)) {
+      AkInstanceEffect *instEffect;
 
-  ak_xest_init(xest, _s_dae_material)
-
-  do {
-    if (ak_xml_begin(&xest))
-      break;
-
-    if (ak_xml_eqelm(xst, _s_dae_asset)) {
-      (void)dae_assetInf(xst, material, NULL);
-    } else if (ak_xml_eqelm(xst, _s_dae_inst_effect)) {
-      AkInstanceEffect *instanceEffect;
-      AkResult ret;
-
-      instanceEffect = NULL;
-      ret = dae_fxInstanceEffect(xst, material, &instanceEffect);
-      if (ret == AK_OK)
-        material->effect = instanceEffect;
-    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      dae_extra(xst, material, &material->extra);
-    } else {
-      ak_xml_skipelm(xst);
+      if ((instEffect = dae_fxInstanceEffect(dst, xml, mat))) {
+        if (mat->effect) {
+          mat->effect->base.prev = &instEffect->base;
+          instEffect->base.next  = &mat->effect->base;
+        }
+      
+        mat->effect = instEffect;
+      }
+    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+      mat->extra = tree_fromxml(heap, mat, xml);
     }
+    xml = xml->val;
+  }
 
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
-
-  *dest = material;
-
-  return AK_OK;
+  return mat;
 }
 
-AkResult _assetkit_hide
-dae_fxBindMaterial(AkXmlState * __restrict xst,
-                   void * __restrict memParent,
-                   AkBindMaterial ** __restrict dest) {
-  AkBindMaterial *bindMaterial;
-  AkParam        *last_param;
-  AkTechnique    *last_tq;
-  AkXmlElmState   xest;
+AkBindMaterial* _assetkit_hide
+dae_fxBindMaterial(DAEState * __restrict dst,
+                   xml_t    * __restrict xml,
+                   void     * __restrict memp) {
+  AkHeap         *heap;
+  AkBindMaterial *bindmat;
 
-  bindMaterial = ak_heap_calloc(xst->heap,
-                                memParent,
-                                sizeof(*bindMaterial));
-
-  last_param = NULL;
-  last_tq    = NULL;
-
-  ak_xest_init(xest, _s_dae_bind_material)
-
-  do {
-    if (ak_xml_begin(&xest))
-      break;
-
-    if (ak_xml_eqelm(xst, _s_dae_param)) {
-      AkParam * param;
-      AkResult   ret;
-
-      ret = dae_param(xst, bindMaterial, &param);
-
-      if (ret == AK_OK) {
-        if (last_param)
-          last_param->next = param;
-        else
-          bindMaterial->param = param;
-
-        param->prev = last_param;
-        last_param  = param;
+  heap    = dst->heap;
+  bindmat = ak_heap_calloc(heap, memp, sizeof(*bindmat));
+  
+  xml = xml->val;
+  while (xml) {
+    if (xml_tag_eq(xml, _s_dae_param)) {
+      AkParam *param;
+      if ((param = dae_param(dst, xml, bindmat))) {
+        if (bindmat->param) {
+          bindmat->param->prev = param;
+          param->next          = bindmat->param;
+        }
+        bindmat->param = param;
       }
-    } else if (ak_xml_eqelm(xst, _s_dae_techniquec)) {
-      AkInstanceMaterial *tcommon;
-      AkResult            ret;
-
-      tcommon = NULL;
-      ret     = dae_fxBindMaterial_tcommon(xst, bindMaterial, &tcommon);
-      if (ret == AK_OK)
-        bindMaterial->tcommon = tcommon;
-
-    } else if (ak_xml_eqelm(xst, _s_dae_technique)) {
+    } else if (xml_tag_eq(xml, _s_dae_techniquec)) {
+      AkInstanceMaterial *imat;
+      xml_t              *ximat;
+      
+      ximat = xml->val;
+      while (ximat) {
+        if (xml_tag_eq(ximat, _s_dae_instance_material)) {
+          if ((imat = dae_fxInstanceMaterial(dst, ximat, bindmat))) {
+            if (bindmat->tcommon) {
+              bindmat->tcommon->base.prev = &imat->base;
+              imat->base.next             = &bindmat->tcommon->base;
+            }
+            
+            bindmat->tcommon = imat;
+          }
+        }
+        ximat = ximat->next;
+      }
+    } else if (xml_tag_eq(xml, _s_dae_technique)) {
       AkTechnique *tq;
-      AkResult ret;
-
-      tq = NULL;
-      ret = dae_techn(xst, bindMaterial, &tq);
-      if (ret == AK_OK) {
-        if (last_tq)
-          last_tq->next = tq;
-        else
-          bindMaterial->technique = tq;
-
-        last_tq = tq;
+      if ((tq = dae_techn(xml, heap, bindmat))) {
+        tq->next           = bindmat->technique;
+        bindmat->technique = tq;
       }
-    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      dae_extra(xst, bindMaterial, &bindMaterial->extra);
-    } else {
-      ak_xml_skipelm(xst);
+    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+      bindmat->extra = tree_fromxml(heap, bindmat, xml);
     }
+    xml = xml->next;
+  }
 
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
-
-  *dest = bindMaterial;
-
-  return AK_OK;
+  return bindmat;
 }
 
-AkResult _assetkit_hide
-dae_fxInstanceMaterial(AkXmlState * __restrict xst,
-                       void * __restrict memParent,
-                       AkInstanceMaterial ** __restrict dest) {
-  AkInstanceMaterial *material;
-  AkBind             *last_bind;
-  AkBindVertexInput  *last_bindVertexInput;
-  AkXmlElmState       xest;
+AkInstanceMaterial* _assetkit_hide
+dae_fxInstanceMaterial(DAEState * __restrict dst,
+                       xml_t    * __restrict xml,
+                       void     * __restrict memp) {
+  AkHeap             *heap;
+  AkInstanceMaterial *mat;
+  xml_attr_t         *att;
 
-  material = ak_heap_calloc(xst->heap,
-                            memParent,
-                            sizeof(*material));
+  heap = dst->heap;
+  mat  = ak_heap_calloc(heap, memp, sizeof(*mat));
 
-  ak_xml_readsid(xst, material);
+  sid_set(xml, heap, mat);
 
-  material->base.name = ak_xml_attr(xst, material, _s_dae_name);
-  material->symbol    = ak_xml_attr(xst, material, _s_dae_symbol);
+  mat->base.name = xmla_strdup_by(xml, heap, _s_dae_name,   mat);
+  mat->symbol    = xmla_strdup_by(xml, heap, _s_dae_symbol, mat);
 
-  ak_xml_attr_url(xst,
-                  _s_dae_target,
-                  material,
-                  &material->base.url);
+  url_set(dst, xml, _s_dae_target, mat, &mat->base.url);
 
-  last_bind = NULL;
-  last_bindVertexInput = NULL;
-
-  ak_xest_init(xest, _s_dae_instance_material)
-
-  do {
-    if (ak_xml_begin(&xest))
-      break;
-
-    if (ak_xml_eqelm(xst, _s_dae_bind)) {
+  xml = xml->val;
+  while (xml) {
+    if (xml_tag_eq(xml, _s_dae_bind)) {
       AkBind *bind;
-      bind = ak_heap_calloc(xst->heap,
-                            material,
-                            sizeof(*bind));
+      bind = ak_heap_calloc(heap, mat, sizeof(*bind));
+      
+      bind->semantic = xmla_strdup_by(xml, heap, _s_dae_semantic, mat);
+      bind->target   = xmla_strdup_by(xml, heap, _s_dae_target,   mat);
+      
+      bind->next = mat->bind;
+      mat->bind  = bind;
+    } else if (xml_tag_eq(xml, _s_dae_bind_vertex_input)) {
+      AkBindVertexInput *bvi;
+      bvi = ak_heap_calloc(heap, mat, sizeof(*bvi));
+      
+      bvi->semantic      = xmla_strdup_by(xml, heap, _s_dae_semantic, mat);
+      bvi->inputSemantic = xmla_strdup_by(xml, heap, _s_dae_input_semantic,
+                                          mat);
 
-      bind->semantic = ak_xml_attr(xst, bind, _s_dae_semantic);
-      bind->target   = ak_xml_attr(xst, bind, _s_dae_target);
+      if ((att = xmla(xml, _s_dae_input_set)))
+        bvi->inputSet = xmla_uint32(att, 0);
+      
+      bvi->next            = mat->bindVertexInput;
+      mat->bindVertexInput = bvi;
+    } else if (xml_tag_eq(xml, _s_dae_technique_override)) {
+      AkTechniqueOverride *technOv;
 
-      if (last_bind)
-        last_bind->next = bind;
-      else
-        material->bind = bind;
-
-      last_bind = bind;
-    } else if (ak_xml_eqelm(xst, _s_dae_bind_vertex_input)) {
-      AkBindVertexInput *bindVertexInput;
-      bindVertexInput = ak_heap_calloc(xst->heap,
-                                       material,
-                                       sizeof(*bindVertexInput));
-
-      bindVertexInput->semantic = ak_xml_attr(xst,
-                                              bindVertexInput,
-                                              _s_dae_semantic);
-
-      bindVertexInput->inputSemantic = ak_xml_attr(xst,
-                                                   bindVertexInput,
-                                                   _s_dae_input_semantic);
-
-      bindVertexInput->inputSet = ak_xml_attrui(xst, _s_dae_input_set);
-
-      if (last_bindVertexInput)
-        last_bindVertexInput->next = bindVertexInput;
-      else
-        material->bindVertexInput = bindVertexInput;
-
-      last_bindVertexInput = bindVertexInput;
-    } else if (ak_xml_eqelm(xst, _s_dae_technique_override)) {
-      AkTechniqueOverride *techniqueOverride;
-      techniqueOverride = ak_heap_calloc(xst->heap, material, sizeof(*techniqueOverride));
-
-      techniqueOverride->pass = ak_xml_attr(xst,
-                                            techniqueOverride,
-                                            _s_dae_pass);
-      techniqueOverride->ref = ak_xml_attr(xst,
-                                           techniqueOverride,
-                                           _s_dae_ref);
-
-      material->techniqueOverride = techniqueOverride;
-    } else if (ak_xml_eqelm(xst, _s_dae_extra)) {
-      dae_extra(xst, material, &material->base.extra);
-    } else {
-      ak_xml_skipelm(xst);
+      technOv       = ak_heap_calloc(heap, mat, sizeof(*technOv));
+      technOv->pass = xmla_strdup_by(xml, heap, _s_dae_pass, technOv);
+      technOv->ref  = xmla_strdup_by(xml, heap, _s_dae_ref,  technOv);
+      
+      mat->techniqueOverride = technOv;
+    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+      mat->base.extra = tree_fromxml(heap, mat, xml);
     }
+    xml = xml->next;
+  }
 
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
-
-  *dest = material;
-
-  return AK_OK;
-}
-
-AkResult _assetkit_hide
-dae_fxBindMaterial_tcommon(AkXmlState          * __restrict xst,
-                           void                * __restrict memParent,
-                           AkInstanceMaterial ** __restrict dest) {
-  AkInstanceMaterial *imat, *last_imat;
-  AkXmlElmState xest;
-
-  ak_xest_init(xest, _s_dae_techniquec)
-
-  imat = last_imat = NULL;
-
-  do {
-    if (ak_xml_begin(&xest))
-      break;
-
-    if (ak_xml_eqelm(xst, _s_dae_instance_material)) {
-      AkInstanceMaterial *imati;
-      AkResult            ret;
-      ret = dae_fxInstanceMaterial(xst, memParent, &imati);
-
-      if (ret == AK_OK) {
-        if (last_imat)
-          last_imat->base.next = &imati->base;
-        else
-          imat = imati;
-        last_imat = imati;
-      }
-    } else {
-      ak_xml_skipelm(xst);
-    }
-    
-    /* end element */
-    if (ak_xml_end(&xest))
-      break;
-  } while (xst->nodeRet);
-
-  *dest = imat;
-  return AK_OK;
+  return mat;
 }
