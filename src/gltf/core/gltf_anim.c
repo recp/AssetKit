@@ -106,8 +106,8 @@ gltf_animations(json_t * __restrict janim,
           jsampVal = jsampVal->next;
         }
 
-        sampler->next = anim->sampler;
-        anim->sampler = sampler;
+        sampler->base.next = (void *)anim->sampler;
+        anim->sampler      = sampler;
 
         jsampler = jsampler->next;
       }
@@ -199,8 +199,8 @@ gltf_animations(json_t * __restrict janim,
     
   anm_nxt:
 
-    anim->next = lib->chld;
-    lib->chld  = anim;
+    anim->next = (void *)lib->chld;
+    lib->chld  = (void *)anim;
     lib->count++;
 
     janim = janim->next;

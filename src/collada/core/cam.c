@@ -10,42 +10,41 @@
 #include "techn.h"
 
 _assetkit_hide
-void
-dae_cam(DAEState * __restrict dst, xml_t * __restrict xml) {
-  AkCamera    *camera;
-  AkDoc       *doc;
+void*
+dae_cam(DAEState * __restrict dst,
+        xml_t    * __restrict xml,
+        void     * __restrict memp) {
   AkHeap      *heap;
+  AkCamera    *cam;
   AkTechnique *tq;
 
-  heap = dst->heap;
-  doc  = dst->doc;
-  xml  = xml->val;
+  heap      = dst->heap;
+  cam       = ak_heap_calloc(heap, memp, sizeof(*cam));
+  cam->name = xmla_strdup_by(xml, heap, _s_dae_name, cam);
 
+  xmla_setid(xml, heap, cam);
+  
+  xml = xml->val;
   while (xml) {
-    camera       = ak_heap_calloc(heap, doc, sizeof(*camera));
-    camera->name = xmla_strdup_by(xml, heap, _s_dae_name, camera);
-
-    xmla_setid(xml, heap, camera);
-
     if (xml_tag_eq(xml, _s_dae_asset)) {
-      (void)dae_asset(dst, xml, camera, NULL);
+      (void)dae_asset(dst, xml, cam, NULL);
     } else if (xml_tag_eq(xml, _s_dae_optics)) {
       AkOptics *optics;
       xml_t    *xoptics;
 
-      optics  = ak_heap_calloc(heap, camera, sizeof(*optics));
+      optics  = ak_heap_calloc(heap, cam, sizeof(*optics));
       xoptics = xml->val;
 
       while (xoptics) {
         if (xml_tag_eq(xoptics, _s_dae_techniquec)) {
           xml_t *xcam, *xtech, *xtechv;
-          
+
           xtech = xoptics->val;
 
           while (xtech) {
             if (xml_tag_eq(xtech, _s_dae_perspective)) {
               AkPerspective *persp;
-              
+
               persp  = ak_heap_calloc(heap, optics, sizeof(*persp));
               xtechv = xtech->val;
 
@@ -68,7 +67,7 @@ dae_cam(DAEState * __restrict dst, xml_t * __restrict xml) {
                 }
                 xtechv = xtechv->next;
               }
-              
+
               persp->base.type = AK_PROJECTION_PERSPECTIVE;
               if (!persp->aspectRatio && persp->yfov && persp->xfov) {
                 persp->aspectRatio = persp->xfov / persp->yfov;
@@ -77,14 +76,14 @@ dae_cam(DAEState * __restrict dst, xml_t * __restrict xml) {
               } else if (!persp->xfov && persp->aspectRatio && persp->yfov) {
                 persp->xfov = persp->yfov * persp->aspectRatio;
               }
-              
+
               optics->tcommon = &persp->base;
             } else if (xml_tag_eq(xcam, _s_dae_orthographic)) {
               AkOrthographic *ortho;
-              
+
               ortho = ak_heap_calloc(heap, optics, sizeof(*ortho));
               xtechv = xtech->val;
-              
+
               while (xtechv) {
                 if (xml_tag_eq(xtechv, _s_dae_xmag)) {
                   sid_seta(xtechv, heap, ortho, &ortho->xmag);
@@ -126,12 +125,12 @@ dae_cam(DAEState * __restrict dst, xml_t * __restrict xml) {
         xoptics = xoptics->next;
       }
 
-      camera->optics = optics;
+      cam->optics = optics;
     } else if (xml_tag_eq(xml, _s_dae_imager)) {
       AkImager *imager;
       xml_t    *ximager;
 
-      imager  = ak_heap_calloc(heap, camera, sizeof(*imager));
+      imager  = ak_heap_calloc(heap, cam, sizeof(*imager));
       ximager = xml->val;
 
       while (ximager) {
@@ -145,11 +144,13 @@ dae_cam(DAEState * __restrict dst, xml_t * __restrict xml) {
         ximager = ximager->next;
       }
 
-      camera->imager = imager;
+      cam->imager = imager;
     } else if (xml_tag_eq(xml, _s_dae_extra)) {
-      camera->extra = tree_fromxml(heap, camera, xml);
+      cam->extra = tree_fromxml(heap, cam, xml);
     }
 
     xml = xml->next;
   }
+
+  return cam;
 }

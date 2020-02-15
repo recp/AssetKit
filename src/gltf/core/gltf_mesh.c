@@ -275,8 +275,8 @@ gltf_meshes(json_t * __restrict jmesh,
     }
        
     /* Reversed */
-    geom->next = lib->chld;
-    lib->chld  = geom;
+    geom->base.next = lib->chld;
+    lib->chld       = (void *)geom;
 
     lib->count++;
 

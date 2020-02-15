@@ -21,7 +21,7 @@ typedef struct AkLibrary {
   struct AkLibrary *next;
   const char       *name;
   AkTree           *extra;
-  void             *chld;
+  AkOneWayIterBase *chld;
   uint64_t          count;
 } AkLibrary;
 

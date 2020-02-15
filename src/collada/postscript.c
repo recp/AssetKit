@@ -370,7 +370,7 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
   AkController *ctlr;
 
   doc  = dst->doc;
-  ctlr = dst->doc->lib.controllers->chld;
+  ctlr = (void *)dst->doc->lib.controllers->chld;
   while (ctlr) {
     switch (ctlr->data->type) {
       case AK_CONTROLLER_SKIN: {

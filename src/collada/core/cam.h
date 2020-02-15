@@ -11,7 +11,9 @@
 #include "../common.h"
 
 _assetkit_hide
-void
-dae_cam(DAEState * __restrict dst, xml_t * __restrict xml);
+void*
+dae_cam(DAEState * __restrict dst,
+        xml_t    * __restrict xml,
+        void     * __restrict memp);
 
 #endif /* __libassetkit__dae_camera__h_ */

@@ -190,8 +190,8 @@ gltf_materials(json_t * __restrict jmaterial,
     ieff->base.url.ptr = effect;
     mat->effect        = ieff;
 
-    mat->next    = libmat->chld;
-    libmat->chld = mat;
+    mat->base.next     = libmat->chld;
+    libmat->chld       = (void *)mat;
     libeffect->count++;
     libmat->count++;
 

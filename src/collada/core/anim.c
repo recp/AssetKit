@@ -10,7 +10,7 @@
 #include "source.h"
 #include "enum.h"
 
-AkAnimation* _assetkit_hide
+void* _assetkit_hide
 dae_anim(DAEState * __restrict dst,
          xml_t    * __restrict xml,
          void     * __restrict memp) {
@@ -37,8 +37,8 @@ dae_anim(DAEState * __restrict dst,
     } else if (xml_tag_eq(xml, _s_dae_sampler)) {
       AkAnimSampler *samp;
       if ((samp = dae_animSampler(dst, xml, anim))) {
-        samp->next    = anim->sampler;
-        anim->sampler = samp;
+        samp->base.next = (void *)anim->sampler;
+        anim->sampler   = samp;
       }
     } else if (xml_tag_eq(xml, _s_dae_channel)) {
       AkChannel *ch;

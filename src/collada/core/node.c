@@ -15,7 +15,16 @@
 
 #include <cglm/cglm.h>
 
-AkNode* _assetkit_hide
+_assetkit_hide
+void*
+dae_node2(DAEState * __restrict dst,
+          xml_t    * __restrict xml,
+          void     * __restrict memp) {
+  return dae_node(dst, xml, memp, NULL);
+}
+
+_assetkit_hide
+AkNode*
 dae_node(DAEState      * __restrict dst,
          xml_t         * __restrict xml,
          void          * __restrict memp,

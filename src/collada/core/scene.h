@@ -10,10 +10,10 @@
 
 #include "../common.h"
 
-AkVisualScene* _assetkit_hide
-dae_visualScene(DAEState * __restrict dst,
-                xml_t    * __restrict xml,
-                void     * __restrict memp);
+void* _assetkit_hide
+dae_vscene(DAEState * __restrict dst,
+           xml_t    * __restrict xml,
+           void     * __restrict memp);
 
 AkInstanceBase* _assetkit_hide
 dae_instVisualScene(DAEState * __restrict dst,

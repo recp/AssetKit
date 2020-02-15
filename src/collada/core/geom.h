@@ -11,7 +11,9 @@
 #include "../common.h"
 
 _assetkit_hide
-void
-dae_geom(DAEState * __restrict dst, xml_t * __restrict xml);
+void*
+dae_geom(DAEState * __restrict dst,
+         xml_t    * __restrict xml,
+         void     * __restrict memp);
 
 #endif /* __libassetkit__dae_geometry_h_ */

@@ -12,7 +12,7 @@
 #include "../../../include/ak/assetkit.h"
 #include "../common.h"
 
-AkMaterial* _assetkit_hide
+void* _assetkit_hide
 dae_material(DAEState * __restrict dst,
              xml_t    * __restrict xml,
              void     * __restrict memp);

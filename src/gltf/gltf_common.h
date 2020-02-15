@@ -47,11 +47,11 @@ typedef struct AkGLTFState {
 #define GETCHILD(INITIAL, ITEM, INDEX)                                        \
   do {                                                                        \
     int i;                                                                    \
-    ITEM = INITIAL;                                                           \
+    ITEM = (void *)INITIAL;                                                   \
     i    = INDEX;                                                             \
     if (ITEM && i > 0) {                                                      \
       while (i > 0) {                                                         \
-        if (!(ITEM = ITEM->next)) {                                           \
+        if (!(ITEM = (void *)ITEM->base.next)) {                              \
           i     = -1;                                                         \
           ITEM  = NULL;                                                       \
           break;  /* not foud */                                              \

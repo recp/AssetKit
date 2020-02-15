@@ -81,8 +81,8 @@ gltf_nodes(json_t * __restrict jnode,
     
     /* it is root node, add to library_nodes */
     else {
-      node->next = lib->chld;
-      lib->chld  = node;
+      node->next = (void *)lib->chld;
+      lib->chld  = (void *)node;
 
       lib->count++;
     }

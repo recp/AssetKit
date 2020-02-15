@@ -13,23 +13,22 @@
 #define AK_DEFAULT_LIGHT_DIR {0.0f, 0.0f, -1.0f}
 
 _assetkit_hide
-void
-dae_light(DAEState * __restrict dst, xml_t * __restrict xml) {
+void*
+dae_light(DAEState * __restrict dst,
+          xml_t    * __restrict xml,
+          void     * __restrict memp) {
   AkLight     *light;
-  AkDoc       *doc;
   AkHeap      *heap;
   AkTechnique *tq;
 
-  heap = dst->heap;
-  doc  = dst->doc;
-  xml  = xml->val;
+  heap        = dst->heap;
+  light       = ak_heap_calloc(heap, memp, sizeof(*light));
+  light->name = xmla_strdup_by(xml, heap, _s_dae_name, light);
+  
+  xmla_setid(xml, heap, light);
 
+  xml = xml->val;
   while (xml) {
-    light       = ak_heap_calloc(heap, doc, sizeof(*light));
-    light->name = xmla_strdup_by(xml, heap, _s_dae_name, light);
-
-    xmla_setid(xml, heap, light);
-
     if (xml_tag_eq(xml, _s_dae_asset)) {
       (void)dae_asset(dst, xml, light, NULL);
     } else if (xml_tag_eq(xml, _s_dae_techniquec)) {
@@ -140,4 +139,6 @@ dae_light(DAEState * __restrict dst, xml_t * __restrict xml) {
   nxt:
     xml = xml->next;
   }
+  
+  return light;
 }

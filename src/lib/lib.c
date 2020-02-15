@@ -22,12 +22,12 @@ ak_libAddCamera(AkDoc * __restrict doc, AkCamera * __restrict cam) {
     libItem->count   = 1;
   }
 
-  cami = libItem->chld;
+  cami = (void *)libItem->chld;
   if (cami) {
-    cam->next = cami;
+    cam->base.next = &cami->base;
   }
 
-  libItem->chld = cam;
+  libItem->chld = (void *)cam;
 
   return AK_OK;
 }
@@ -48,12 +48,12 @@ ak_libAddLight(AkDoc   * __restrict doc,
     libItem->count   = 1;
   }
 
-  lighti = libItem->chld;
+  lighti = (void *)libItem->chld;
   if (lighti) {
     light->next = lighti;
   }
 
-  libItem->chld = light;
+  libItem->chld = (void *)light;
 
   return AK_OK;
 }
@@ -66,7 +66,7 @@ ak_libInsertInto(AkLibrary *lib,
                  int32_t    nextOffset) {
   char *libChld, *lastLibChld;
 
-  libChld = lastLibChld = lib->chld;
+  libChld = lastLibChld = (void *)lib->chld;
   while (libChld) {
     libChld = *(char **)(lastLibChld + nextOffset);
     if (libChld)

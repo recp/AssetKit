@@ -118,8 +118,8 @@ gltf_cameras(json_t * __restrict jcam,
       optics->tcommon = &ortho->base;
     }
     
-    cam->next = lib->chld;
-    lib->chld = cam;
+    cam->base.next = lib->chld;
+    lib->chld      = (void *)cam;
     
     lib->count++;
 

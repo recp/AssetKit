@@ -91,8 +91,8 @@ gltf_scenes(json_t * __restrict jscene,
 
   scn_nxt:
 
-    scene->next = lib->chld;
-    lib->chld   = scene;
+    scene->base.next = lib->chld;
+    lib->chld        = (void *)scene;
     lib->count++;
     
     jscene = jscene->next;

@@ -331,10 +331,10 @@ typedef struct AkInstanceEffect {
 
 typedef struct AkMaterial {
   /* const char * id; */
+  AkOneWayIterBase   base;
   const char        *name;
   AkInstanceEffect  *effect;
   AkTree            *extra;
-  struct AkMaterial *next;
 } AkMaterial;
 
 struct AkAccessor;
@@ -427,6 +427,7 @@ struct AkInstanceList;
 
 typedef struct AkVisualScene {
   /* const char * id; */
+  AkOneWayIterBase       base;
   const char            *name;
   struct AkNode         *node;
   struct AkNode         *firstCamNode; /* first found camera       */
@@ -435,7 +436,6 @@ typedef struct AkVisualScene {
   AkEvaluateScene       *evaluateScene;
   struct AkBoundingBox  *bbox;
   AkTree                *extra;
-  struct AkVisualScene  *next;
 } AkVisualScene;
 
 typedef struct AkScene {

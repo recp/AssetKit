@@ -10,40 +10,33 @@
 #include "skin.h"
 #include "morph.h"
 
-void _assetkit_hide
-dae_ctlr(DAEState * __restrict dst, xml_t * __restrict xml) {
-  AkDoc        *doc;
+void* _assetkit_hide
+dae_ctlr(DAEState * __restrict dst,
+         xml_t    * __restrict xml,
+         void     * __restrict memp) {
   AkHeap       *heap;
   AkController *ctlr;
-  xml_t        *xctlr;
 
-  heap = dst->heap;
-  doc  = dst->doc;
-  xml  = xml->val;
-
+  heap       = dst->heap;
+  ctlr       = ak_heap_calloc(heap, memp, sizeof(*ctlr));
+  ctlr->name = xmla_strdup_by(xml, heap, _s_dae_name, ctlr);
+  
+  xmla_setid(xml, heap, ctlr);
+  ak_setypeid(ctlr, AKT_CONTROLLER);
+  
+  xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_controller)) {
-      xctlr = xml->val;
-      ctlr  = ak_heap_calloc(heap, doc, sizeof(*ctlr));
-
-      xmla_setid(xctlr, heap, ctlr);
-      ctlr->name = xmla_strdup_by(xctlr, heap, _s_dae_name, ctlr);
-      
-      ak_setypeid(ctlr, AKT_CONTROLLER);
-      
-      while (xctlr) {
-        if (xml_tag_eq(xctlr, _s_dae_asset)) {
-          (void)dae_asset(dst, xctlr, ctlr, NULL);
-        } else if (xml_tag_eq(xctlr, _s_dae_skin)) {
-          ctlr->data = dae_skin(dst, xctlr, ctlr);
-        } else if (xml_tag_eq(xctlr, _s_dae_morph)) {
-          ctlr->data = dae_morph(dst, xctlr, ctlr);
-        } else if (xml_tag_eq(xctlr, _s_dae_extra)) {
-          ctlr->extra = tree_fromxml(heap, ctlr, xctlr);
-        }
-        xctlr = xctlr->next;
-      }
+    if (xml_tag_eq(xml, _s_dae_asset)) {
+      (void)dae_asset(dst, xml, ctlr, NULL);
+    } else if (xml_tag_eq(xml, _s_dae_skin)) {
+      ctlr->data = dae_skin(dst, xml, ctlr);
+    } else if (xml_tag_eq(xml, _s_dae_morph)) {
+      ctlr->data = dae_morph(dst, xml, ctlr);
+    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+      ctlr->extra = tree_fromxml(heap, ctlr, xml);
     }
     xml = xml->next;
   }
+
+  return ctlr;
 }

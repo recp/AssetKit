@@ -15,10 +15,10 @@ dae_geom_fixup_all(AkDoc * doc) {
 
   geomLib = doc->lib.geometries;
   while (geomLib) {
-    geom = geomLib->chld;
+    geom = (void *)geomLib->chld;
     while (geom) {
       dae_geom_fixup(geom);
-      geom = geom->next;
+      geom = (AkGeometry *)geom->base.next;
     }
 
     geomLib = geomLib->next;

@@ -17,11 +17,11 @@ ak_changeCoordSys(AkDoc * __restrict doc,
   libGeom = doc->lib.geometries;
 
   while (libGeom) {
-    geom = libGeom->chld;
+    geom = (void *)libGeom->chld;
 
     while (geom) {
       ak_changeCoordSysGeom(geom, newCoordSys);
-      geom = geom->next;
+      geom = (void *)geom->base.next;
     }
 
     libGeom = libGeom->next;

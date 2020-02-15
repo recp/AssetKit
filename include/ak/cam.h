@@ -13,6 +13,8 @@ extern "C" {
 
 #include "common.h"
 
+struct AkLibraryItemBase;
+
 typedef enum AkProjectionType {
   AK_PROJECTION_PERSPECTIVE  = 0, /* default */
   AK_PROJECTION_ORTHOGRAPHIC = 1,
@@ -54,11 +56,11 @@ typedef struct AkImager {
 
 typedef struct AkCamera {
   /* const char * id; */
+  AkOneWayIterBase base;
   const char      *name;
   AkOptics        *optics;
   AkImager        *imager;
   AkTree          *extra;
-  struct AkCamera *next;
 } AkCamera;
 
 /*!
