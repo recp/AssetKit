@@ -110,8 +110,8 @@ gltf_skin(json_t * __restrict jskin,
       jskinVal = jskinVal->next;
     }
 
-    ctlr->next = lib->chld;
-    lib->chld  = ctlr;
+    ctlr->next = (void *)lib->chld;
+    lib->chld  = (void *)ctlr;
     lib->count++;
 
     flist_sp_insert(&doc->lib.skins, ctlr);

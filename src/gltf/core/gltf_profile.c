@@ -25,8 +25,8 @@ gltf_cmnEffect(AkGLTFState * __restrict gst) {
   lib->count++;
 
   effect->profile = profile;
-  effect->next    = lib->chld;
-  lib->chld       = effect;
+  effect->next    = (void *)lib->chld;
+  lib->chld       = (void *)effect;
 
   ak_setypeid(profile, AKT_PROFILE);
   ak_setypeid(effect,  AKT_EFFECT);

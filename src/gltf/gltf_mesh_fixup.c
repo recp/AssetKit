@@ -18,7 +18,7 @@ gltf_mesh_fixup(AkGLTFState * __restrict gst) {
 
   geomLib = doc->lib.geometries;
   while (geomLib) {
-    geom = geomLib->chld;
+    geom = (void *)geomLib->chld;
     while (geom) {
       AkObject *primitive;
 
@@ -44,7 +44,7 @@ gltf_mesh_fixup(AkGLTFState * __restrict gst) {
         default:
           break;
       }
-      geom = geom->next;
+      geom = (void *)geom->base.next;
     }
 
     geomLib = geomLib->next;
