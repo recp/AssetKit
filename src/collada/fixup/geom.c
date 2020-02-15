@@ -10,7 +10,7 @@
 
 AkResult _assetkit_hide
 dae_geom_fixup_all(AkDoc * doc) {
-  AkLibItem  *geomLib;
+  AkLibrary  *geomLib;
   AkGeometry *geom;
 
   geomLib = doc->lib.geometries;

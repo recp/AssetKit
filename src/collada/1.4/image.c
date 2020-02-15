@@ -18,7 +18,7 @@ dae14_fxMigrateImg(DAEState * __restrict dst,
   AkImage    *img;
   AkInitFrom *initFrom;
   const char *format;
-  AkLibItem  *lib;
+  AkLibrary  *lib;
 
   heap = dst->heap;
   doc  = dst->doc;

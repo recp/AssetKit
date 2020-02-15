@@ -11,7 +11,7 @@ AK_EXPORT
 void
 ak_changeCoordSys(AkDoc * __restrict doc,
                   AkCoordSys * newCoordSys) {
-  AkLibItem  *libGeom;
+  AkLibrary  *libGeom;
   AkGeometry *geom;
 
   libGeom = doc->lib.geometries;

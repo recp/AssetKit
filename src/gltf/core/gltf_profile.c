@@ -9,7 +9,7 @@
 
 AkProfileCommon* _assetkit_hide
 gltf_cmnEffect(AkGLTFState * __restrict gst) {
-  AkLibItem       *lib;
+  AkLibrary       *lib;
   AkEffect        *effect;
   AkProfileCommon *profile;
 

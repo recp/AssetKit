@@ -31,18 +31,18 @@ ak_libAddLight(AkDoc   * __restrict doc,
 
 AK_EXPORT
 void
-ak_libInsertInto(AkLibItem *lib,
+ak_libInsertInto(AkLibrary *lib,
                  void      *item,
                  int32_t    prevOffset,
                  int32_t    nextOffset);
 
 AK_EXPORT
-AkLibItem*
+AkLibrary*
 ak_libFirstOrCreat(AkDoc * __restrict doc,
                    uint32_t           itemOffset);
 
 AK_EXPORT
-AkLibItem*
+AkLibrary*
 ak_libImageFirstOrCreat(AkDoc * __restrict doc);
 
 #ifdef __cplusplus

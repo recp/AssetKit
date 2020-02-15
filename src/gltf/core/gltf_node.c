@@ -27,7 +27,7 @@ gltf_nodes(json_t * __restrict jnode,
   AkGLTFState        *gst;
   AkHeap             *heap;
   AkDoc              *doc;
-  AkLibItem          *lib;
+  AkLibrary          *lib;
   AkNode             *node;
   const json_array_t *jnodes;
   FListItem          *nodes;

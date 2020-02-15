@@ -447,28 +447,27 @@ typedef struct AkScene {
   AkTree * extra;
 } AkScene;
 
-typedef struct AkLibItem {
+typedef struct AkLibrary {
   /* const char * id; */
 
-  const char *name;
-  AkTree     *extra;
-  void       *chld;
-  uint64_t    count;
+  struct AkLibrary *next;
+  const char       *name;
+  AkTree           *extra;
+  void             *chld;
+  uint64_t          count;
+} AkLibrary;
 
-  struct AkLibItem *next;
-} AkLibItem;
-
-typedef struct AkLib {
-  AkLibItem *cameras;
-  AkLibItem *lights;
-  AkLibItem *effects;
-  AkLibItem *libimages;
-  AkLibItem *materials;
-  AkLibItem *geometries;
-  AkLibItem *controllers;
-  AkLibItem *visualScenes;
-  AkLibItem *nodes;
-  AkLibItem *animations;
+typedef struct AkLibraries {
+  AkLibrary *cameras;
+  AkLibrary *lights;
+  AkLibrary *effects;
+  AkLibrary *libimages;
+  AkLibrary *materials;
+  AkLibrary *geometries;
+  AkLibrary *controllers;
+  AkLibrary *visualScenes;
+  AkLibrary *nodes;
+  AkLibrary *animations;
   
   struct FListItem *buffers;
   struct FListItem *accessors;
@@ -476,7 +475,7 @@ typedef struct AkLib {
   struct FListItem *samplers;
   struct FListItem *images;
   struct FListItem *skins;
-} AkLib;
+} AkLibraries;
 
 typedef struct AkDoc {
   AkDocInf   *inf;
@@ -484,7 +483,7 @@ typedef struct AkDoc {
   AkUnit     *unit;
   AkTree     *extra;
   void       *reserved;
-  AkLib       lib;
+  AkLibraries lib;
   AkScene     scene;
 } AkDoc;
 

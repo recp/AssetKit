@@ -22,7 +22,7 @@ gltf_meshes(json_t * __restrict jmesh,
   AkGLTFState        *gst;
   AkHeap             *heap;
   AkDoc              *doc;
-  AkLibItem          *lib, *lib_morph;
+  AkLibrary          *lib, *lib_morph;
   const json_array_t *jmeshes;
   const json_t       *jmeshVal;
 

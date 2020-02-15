@@ -25,7 +25,7 @@ gltf_animations(json_t * __restrict janim,
   AkHeap             *heap;
   AkDoc              *doc;
   const json_array_t *janims;
-  AkLibItem          *lib;
+  AkLibrary          *lib;
   AkAnimation        *anim;
 
   if (!(janims = json_array(janim)))

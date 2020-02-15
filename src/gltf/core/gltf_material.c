@@ -19,7 +19,7 @@ gltf_materials(json_t * __restrict jmaterial,
   AkHeap             *heap;
   AkDoc              *doc;
   const json_array_t *jmaterials;
-  AkLibItem          *libeffect, *libmat;
+  AkLibrary          *libeffect, *libmat;
   bool                specGlossExt;
 
   if (!(jmaterials = json_array(jmaterial)))

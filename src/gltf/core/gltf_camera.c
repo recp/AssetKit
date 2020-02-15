@@ -19,7 +19,7 @@ gltf_cameras(json_t * __restrict jcam,
   AkHeap             *heap;
   AkDoc              *doc;
   const json_array_t *jcams;
-  AkLibItem          *lib;
+  AkLibrary          *lib;
   json_t             *it;
 
   if (!(jcams = json_array(jcam)))
