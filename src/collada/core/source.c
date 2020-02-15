@@ -17,7 +17,6 @@ dae_source(DAEState * __restrict dst,
            AkEnum              (*asEnum)(const char *name),
            uint32_t              enumLen) {
   AkHeap      *heap;
-  AkDoc       *doc;
   AkSource    *source;
   AkBuffer    *buffer;
   AkTechnique *tq;
@@ -25,9 +24,8 @@ dae_source(DAEState * __restrict dst,
   uint32_t     count;
   bool         isName;
 
-  heap = dst->heap;
-  doc  = dst->doc;
-  xml  = xml->val;
+  heap   = dst->heap;
+  xml    = xml->val;
 
   isName = false;
   buffer = NULL;

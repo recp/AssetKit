@@ -18,12 +18,10 @@ dae_brep(DAEState   * __restrict dst,
          AkGeometry * __restrict geom) {
   AkObject     *obj;
   AkBoundryRep *brep;
-  AkDoc        *doc;
   AkHeap       *heap;
   AkSource     *source;
 
   heap   = dst->heap;
-  doc    = dst->doc;
   xml    = xml->val;
 
   obj    = ak_objAlloc(heap, geom, sizeof(*brep), AK_GEOMETRY_BREP, true);

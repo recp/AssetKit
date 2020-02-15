@@ -15,13 +15,11 @@ dae_spline(DAEState   * __restrict dst,
            xml_t      * __restrict xml,
            AkGeometry * __restrict geom) {
   AkHeap   *heap;
-  AkDoc    *doc;
   AkObject *obj;
   AkSpline *spline;
   AkSource *source;
 
   heap   = dst->heap;
-  doc    = dst->doc;
   xml    = xml->val;
 
   obj    = ak_objAlloc(heap, geom, sizeof(*spline), AK_GEOMETRY_SPLINE, true);

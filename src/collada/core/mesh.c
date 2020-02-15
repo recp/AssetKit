@@ -19,12 +19,10 @@ dae_mesh(DAEState   * __restrict dst,
   AkVertices  *vert;
   AkObject    *obj;
   AkMesh      *mesh;
-  AkDoc       *doc;
   AkHeap      *heap;
   uint32_t     m;
 
   heap = dst->heap;
-  doc  = dst->doc;
   xml  = xml->val;
 
   obj  = ak_objAlloc(heap, geom, sizeof(*mesh), AK_GEOMETRY_MESH, true);

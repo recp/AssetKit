@@ -30,28 +30,12 @@ dae_phong(DAEState * __restrict dst,
   while (xml) {
     if (xml_tag_eq(xml, _s_dae_emission)) {
       techn->emission = dae_colorOrTex(dst, xml, techn);
-      if ((att = xmla(xml, _s_dae_opaque)))
-        opaque = dae_fxEnumOpaque(att->val);
-      else
-        opaque = AK_OPAQUE_A_ONE;
     } else if (xml_tag_eq(xml, _s_dae_ambient)) {
       techn->ambient = dae_colorOrTex(dst, xml, techn);
-      if ((att = xmla(xml, _s_dae_opaque)))
-        opaque = dae_fxEnumOpaque(att->val);
-      else
-        opaque = AK_OPAQUE_A_ONE;
     } else if (xml_tag_eq(xml, _s_dae_diffuse)) {
       techn->diffuse = dae_colorOrTex(dst, xml, techn);
-      if ((att = xmla(xml, _s_dae_opaque)))
-        opaque = dae_fxEnumOpaque(att->val);
-      else
-        opaque = AK_OPAQUE_A_ONE;
     } else if (xml_tag_eq(xml, _s_dae_specular)) {
       techn->specular = dae_colorOrTex(dst, xml, techn);
-      if ((att = xmla(xml, _s_dae_opaque)))
-        opaque = dae_fxEnumOpaque(att->val);
-      else
-        opaque = AK_OPAQUE_A_ONE;
     } else if (xml_tag_eq(xml, _s_dae_reflective)) {
       if (!techn->reflective)
         techn->reflective = ak_heap_calloc(heap, techn, sizeof(*refl));
