@@ -9,8 +9,7 @@
 
 AK_EXPORT
 AkResult
-ak_libAddCamera(AkDoc    * __restrict doc,
-                AkCamera * __restrict cam) {
+ak_libAddCamera(AkDoc * __restrict doc, AkCamera * __restrict cam) {
   AkHeap    *heap;
   AkLibrary *libItem;
   AkCamera  *cami;
@@ -105,5 +104,5 @@ ak_libFirstOrCreat(AkDoc * __restrict doc,
 AK_EXPORT
 AkLibrary*
 ak_libImageFirstOrCreat(AkDoc * __restrict doc) {
-  return ak_libFirstOrCreat(doc, offsetof(AkLib, libimages));
+  return ak_libFirstOrCreat(doc, offsetof(AkLibraries, libimages));
 }

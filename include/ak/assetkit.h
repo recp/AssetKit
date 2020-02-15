@@ -20,6 +20,7 @@ extern "C" {
 struct FList;
 struct FListItem;
 struct AkBuffer;
+struct AkLibrary;
 
 /* End Core Value Types */
 
@@ -447,27 +448,17 @@ typedef struct AkScene {
   AkTree * extra;
 } AkScene;
 
-typedef struct AkLibrary {
-  /* const char * id; */
-
-  struct AkLibrary *next;
-  const char       *name;
-  AkTree           *extra;
-  void             *chld;
-  uint64_t          count;
-} AkLibrary;
-
 typedef struct AkLibraries {
-  AkLibrary *cameras;
-  AkLibrary *lights;
-  AkLibrary *effects;
-  AkLibrary *libimages;
-  AkLibrary *materials;
-  AkLibrary *geometries;
-  AkLibrary *controllers;
-  AkLibrary *visualScenes;
-  AkLibrary *nodes;
-  AkLibrary *animations;
+  struct AkLibrary *cameras;
+  struct AkLibrary *lights;
+  struct AkLibrary *effects;
+  struct AkLibrary *libimages;
+  struct AkLibrary *materials;
+  struct AkLibrary *geometries;
+  struct AkLibrary *controllers;
+  struct AkLibrary *visualScenes;
+  struct AkLibrary *nodes;
+  struct AkLibrary *animations;
   
   struct FListItem *buffers;
   struct FListItem *accessors;
@@ -492,7 +483,7 @@ typedef struct AkDoc {
 #include "image.h"
 #include "string.h"
 #include "coord-util.h"
-#include "lib.h"
+#include "library.h"
 #include "instance.h"
 #include "cam.h"
 #include "transform.h"
