@@ -11,7 +11,7 @@
 #include "../common.h"
 
 AkVisualScene* _assetkit_hide
-dae_visualScene(DAEState * __restrict xst,
+dae_visualScene(DAEState * __restrict dst,
                 xml_t    * __restrict xml,
                 void     * __restrict memp);
 

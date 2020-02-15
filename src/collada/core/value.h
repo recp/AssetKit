@@ -11,7 +11,7 @@
 #include "../common.h"
 
 AkValue* _assetkit_hide
-dae_value(DAEState * __restrict xst,
+dae_value(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp);
 
