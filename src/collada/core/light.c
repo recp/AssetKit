@@ -58,7 +58,6 @@ dae_light(DAEState * __restrict dst, xml_t * __restrict xml) {
         xtechv = xtech->val;
         while (xtechv) {
           if (xml_tag_eq(xtechv, _s_dae_color)) {
-            xcolor = xtechv;
             sid_seta(xtechv, heap, point, &point->base.color);
           } else if (xml_tag_eq(xtechv, _s_dae_const_attn)) {
             sid_seta(xtechv, heap, point, &point->constAttn);
@@ -86,7 +85,6 @@ dae_light(DAEState * __restrict dst, xml_t * __restrict xml) {
         xtechv = xtech->val;
         while (xtechv) {
           if (xml_tag_eq(xtechv, _s_dae_color)) {
-            xcolor = xtechv;
             sid_seta(xtechv, heap, spot, &spot->base.color);
           } else if (xml_tag_eq(xtechv, _s_dae_const_attn)) {
             sid_seta(xtechv, heap, spot, &spot->constAttn);
