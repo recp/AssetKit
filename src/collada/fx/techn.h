@@ -11,14 +11,10 @@
 #include "../../../include/ak/assetkit.h"
 #include "../common.h"
 
-AkTechniqueFx* _assetkit_hide
+_assetkit_hide
+AkTechniqueFx*
 dae_techniqueFx(DAEState * __restrict dst,
                 xml_t    * __restrict xml,
                 void     * __restrict memp);
-
-AkTechniqueFxCommon* _assetkit_hide
-dae_phong(DAEState * __restrict dst,
-          xml_t    * __restrict xml,
-          void     * __restrict memp);
 
 #endif /* __libassetkit__dae_technique_fx__h_ */
