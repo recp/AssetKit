@@ -38,9 +38,7 @@ static ak_enumpair daeVersions[] = {
 typedef void*(*AkLoadLibraryItemFn)(DAEState * __restrict dst,
                                     xml_t    * __restrict xml,
                                     void     * __restrict memp);
-static
-void
-ak_daeFreeDupl(RBTree *tree, RBNode *node);
+static void ak_daeFreeDupl(RBTree *, RBNode *);
 
 static
 _assetkit_hide
@@ -167,10 +165,12 @@ dae_doc(AkDoc     ** __restrict dest,
   /* post-parse operations */
   dae_postscript(dst);
 
+  if (xdoc)
+    free((void *)xdoc);
+
   /* TODO: memory leak, free this RBTree*/
   /* rb_destroy(doc->reserved); */
 
-err:
   return AK_OK;
 }
 
@@ -201,6 +201,7 @@ dae_lib(DAEState   * __restrict dst,
   lib       = ak_heap_calloc(heap, doc, sizeof(*lib));
   lib->name = xmla_strdup_by(xml, heap, _s_dae_name, lib);
 
+  xml = xml->val;
   while (xml) {
     if (xml_tag_eq(xml, name)) {
       if ((it = loadfn(dst, xml->val, lib))) {
