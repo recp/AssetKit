@@ -14,7 +14,8 @@
 
 #include "../1.4/image.h"
 
-void* _assetkit_hide
+ _assetkit_hide
+void*
 dae_effect(DAEState * __restrict dst,
            xml_t    * __restrict xml,
            void     * __restrict memp) {
@@ -63,10 +64,11 @@ dae_effect(DAEState * __restrict dst,
   return effect;
 }
 
-AkInstanceEffect* _assetkit_hide
-dae_fxInstanceEffect(DAEState * __restrict dst,
-                     xml_t    * __restrict xml,
-                     void     * __restrict memp) {
+_assetkit_hide
+AkInstanceEffect*
+dae_instEffect(DAEState * __restrict dst,
+               xml_t    * __restrict xml,
+               void     * __restrict memp) {
   AkHeap           *heap;
   AkInstanceEffect *instEffect;
   xml_attr_t       *att;

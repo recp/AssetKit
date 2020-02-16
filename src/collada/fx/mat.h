@@ -12,19 +12,22 @@
 #include "../../../include/ak/assetkit.h"
 #include "../common.h"
 
-void* _assetkit_hide
+_assetkit_hide
+void*
 dae_material(DAEState * __restrict dst,
              xml_t    * __restrict xml,
              void     * __restrict memp);
 
-AkBindMaterial* _assetkit_hide
-dae_fxBindMaterial(DAEState * __restrict dst,
-                   xml_t    * __restrict xml,
-                   void     * __restrict memp);
+_assetkit_hide
+AkBindMaterial*
+dae_bindMaterial(DAEState * __restrict dst,
+                 xml_t    * __restrict xml,
+                 void     * __restrict memp);
 
-AkInstanceMaterial* _assetkit_hide
-dae_fxInstanceMaterial(DAEState * __restrict dst,
-                       xml_t    * __restrict xml,
-                       void     * __restrict memp);
+_assetkit_hide
+AkInstanceMaterial*
+dae_instMaterial(DAEState * __restrict dst,
+                 xml_t    * __restrict xml,
+                 void     * __restrict memp);
 
 #endif /* __libassetkit__dae_fx_material__h_ */

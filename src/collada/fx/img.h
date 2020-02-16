@@ -12,14 +12,16 @@
 #include "../../../include/ak/assetkit.h"
 #include "../common.h"
 
-void* _assetkit_hide
-dae_fxImage(DAEState * __restrict dst,
-            xml_t    * __restrict xml,
-            void     * __restrict memp);
+_assetkit_hide
+void*
+dae_image(DAEState * __restrict dst,
+          xml_t    * __restrict xml,
+          void     * __restrict memp);
 
-AkInstanceBase* _assetkit_hide
-dae_fxInstanceImage(DAEState * __restrict dst,
-                    xml_t    * __restrict xml,
-                    void     * __restrict memp);
+_assetkit_hide
+AkInstanceBase*
+dae_instImage(DAEState * __restrict dst,
+              xml_t    * __restrict xml,
+              void     * __restrict memp);
 
 #endif /* __libassetkit__dae_fx_image__h_ */

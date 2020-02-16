@@ -13,10 +13,11 @@
 #include "../1.4/dae14.h"
 #include "../1.4/surface.h"
 
-AkSampler* _assetkit_hide
-dae_fxSampler(DAEState * __restrict dst,
-              xml_t    * __restrict xml,
-              void     * __restrict memp) {
+_assetkit_hide
+AkSampler*
+dae_sampler(DAEState * __restrict dst,
+            xml_t    * __restrict xml,
+            void     * __restrict memp) {
   AkHeap    *heap;
   AkSampler *samp;
   char      *sval;
@@ -38,7 +39,7 @@ dae_fxSampler(DAEState * __restrict dst,
       }
     } else if (xml_tag_eq(xml, _s_dae_instance_image)) {
       AkInstanceBase *instImage;
-      if ((instImage = dae_fxInstanceImage(dst, xml, samp)))
+      if ((instImage = dae_instImage(dst, xml, samp)))
         rb_insert(dst->instanceMap, samp, instImage);
     } else if (xml_tag_eq(xml, _s_dae_wrap_s) && (sval = xml->val)) {
       if ((en = dae_fxEnumWrap(sval)))

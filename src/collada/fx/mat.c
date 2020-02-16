@@ -11,7 +11,8 @@
 #include "../core/param.h"
 #include "../core/techn.h"
 
-void* _assetkit_hide
+_assetkit_hide
+void*
 dae_material(DAEState * __restrict dst,
              xml_t    * __restrict xml,
              void     * __restrict memp) {
@@ -32,7 +33,7 @@ dae_material(DAEState * __restrict dst,
     } else if (xml_tag_eq(xml, _s_dae_inst_effect)) {
       AkInstanceEffect *instEffect;
 
-      if ((instEffect = dae_fxInstanceEffect(dst, xml, mat))) {
+      if ((instEffect = dae_instEffect(dst, xml, mat))) {
         if (mat->effect) {
           mat->effect->base.prev = &instEffect->base;
           instEffect->base.next  = &mat->effect->base;
@@ -49,10 +50,11 @@ dae_material(DAEState * __restrict dst,
   return mat;
 }
 
-AkBindMaterial* _assetkit_hide
-dae_fxBindMaterial(DAEState * __restrict dst,
-                   xml_t    * __restrict xml,
-                   void     * __restrict memp) {
+_assetkit_hide
+AkBindMaterial*
+dae_bindMaterial(DAEState * __restrict dst,
+                 xml_t    * __restrict xml,
+                 void     * __restrict memp) {
   AkHeap         *heap;
   AkBindMaterial *bindmat;
 
@@ -77,7 +79,7 @@ dae_fxBindMaterial(DAEState * __restrict dst,
       ximat = xml->val;
       while (ximat) {
         if (xml_tag_eq(ximat, _s_dae_instance_material)) {
-          if ((imat = dae_fxInstanceMaterial(dst, ximat, bindmat))) {
+          if ((imat = dae_instMaterial(dst, ximat, bindmat))) {
             if (bindmat->tcommon) {
               bindmat->tcommon->base.prev = &imat->base;
               imat->base.next             = &bindmat->tcommon->base;
@@ -103,10 +105,11 @@ dae_fxBindMaterial(DAEState * __restrict dst,
   return bindmat;
 }
 
-AkInstanceMaterial* _assetkit_hide
-dae_fxInstanceMaterial(DAEState * __restrict dst,
-                       xml_t    * __restrict xml,
-                       void     * __restrict memp) {
+_assetkit_hide
+AkInstanceMaterial*
+dae_instMaterial(DAEState * __restrict dst,
+                 xml_t    * __restrict xml,
+                 void     * __restrict memp) {
   AkHeap             *heap;
   AkInstanceMaterial *mat;
   xml_attr_t         *att;

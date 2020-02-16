@@ -11,9 +11,10 @@
 #include "../../../include/ak/assetkit.h"
 #include "../common.h"
 
-AkSampler* _assetkit_hide
-dae_fxSampler(DAEState * __restrict dst,
-              xml_t    * __restrict xml,
-              void     * __restrict memp);
+_assetkit_hide
+AkSampler*
+dae_sampler(DAEState * __restrict dst,
+            xml_t    * __restrict xml,
+            void     * __restrict memp);
 
 #endif /* __libassetkit__dae_fx_sampler_h_ */

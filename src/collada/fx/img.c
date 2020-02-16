@@ -40,10 +40,11 @@ dae_fxImage_createCube(DAEState * __restrict dst,
                        xml_t    * __restrict xml,
                        void     * __restrict memp);
 
-void* _assetkit_hide
-dae_fxImage(DAEState * __restrict dst,
-            xml_t    * __restrict xml,
-            void     * __restrict memp) {
+_assetkit_hide
+void*
+dae_image(DAEState * __restrict dst,
+          xml_t    * __restrict xml,
+          void     * __restrict memp) {
   AkHeap     *heap;
   AkImage    *img;
   xml_attr_t *att;
@@ -92,10 +93,11 @@ dae_fxImage(DAEState * __restrict dst,
   return img;
 }
 
-AkInstanceBase* _assetkit_hide
-dae_fxInstanceImage(DAEState * __restrict dst,
-                    xml_t    * __restrict xml,
-                    void     * __restrict memp) {
+_assetkit_hide
+AkInstanceBase*
+dae_instImage(DAEState * __restrict dst,
+              xml_t    * __restrict xml,
+              void     * __restrict memp) {
   AkHeap         *heap;
   AkInstanceBase *instImg;
 
@@ -129,7 +131,7 @@ dae_fxImage_initFrom(DAEState * __restrict dst,
   initFrom->depth        = xmla_uint32(xmla(xml, _s_dae_depth), 0);
 
   if ((att = xmla(xml, _s_dae_face)) && att->val) {
-    en = dae_fxEnumFace(att->val);
+    en = dae_face(att->val);
     if (en != -1)
       initFrom->face = en;
   }

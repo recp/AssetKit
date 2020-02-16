@@ -12,14 +12,16 @@
 #include "../../../include/ak/assetkit.h"
 #include "../common.h"
 
-void* _assetkit_hide
+_assetkit_hide
+void*
 dae_effect(DAEState * __restrict dst,
            xml_t    * __restrict xml,
            void     * __restrict memp);
 
-AkInstanceEffect* _assetkit_hide
-dae_fxInstanceEffect(DAEState * __restrict dst,
-                     xml_t    * __restrict xml,
-                     void     * __restrict memp);
+_assetkit_hide
+AkInstanceEffect*
+dae_instEffect(DAEState * __restrict dst,
+               xml_t    * __restrict xml,
+               void     * __restrict memp);
 
 #endif /* __libassetkit__dae_fx_effect__h_ */

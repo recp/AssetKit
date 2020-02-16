@@ -146,7 +146,7 @@ dae_doc(AkDoc     ** __restrict dest,
     } else if (xml_tag_eq(xml, _s_dae_lib_effects)) {
       dae_lib(dst, xml, _s_dae_effect, dae_effect, &libs->effects);
     } else if (xml_tag_eq(xml, _s_dae_lib_images)) {
-      dae_lib(dst, xml, _s_dae_image, dae_fxImage, &libs->libimages);
+      dae_lib(dst, xml, _s_dae_image, dae_image, &libs->libimages);
     } else if (xml_tag_eq(xml, _s_dae_lib_materials)) {
       dae_lib(dst, xml, _s_dae_material, dae_material, &libs->materials);
     } else if (xml_tag_eq(xml, _s_dae_lib_controllers)) {

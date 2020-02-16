@@ -198,7 +198,7 @@ dae_node(DAEState      * __restrict dst,
           if ((sval = xml_strdup(xinstctl, heap, instctl)))
             flist_sp_insert(&instctl->reserved, sval);
         } else if (xml_tag_eq(xinstctl, _s_dae_bind_material)) {
-          instctl->bindMaterial = dae_fxBindMaterial(dst, xinstctl, instctl);
+          instctl->bindMaterial = dae_bindMaterial(dst, xinstctl, instctl);
         } else if (xml_tag_eq(xinstctl, _s_dae_extra)) {
           instctl->base.extra = tree_fromxml(heap, instctl, xinstctl);
         }
@@ -228,7 +228,7 @@ dae_node(DAEState      * __restrict dst,
       xinstgeo           = xml->val;
       while (xinstgeo) {
         if (xml_tag_eq(xinstgeo, _s_dae_bind_material)) {
-          instgeo->bindMaterial = dae_fxBindMaterial(dst, xinstgeo, instgeo);
+          instgeo->bindMaterial = dae_bindMaterial(dst, xinstgeo, instgeo);
         } else if (xml_tag_eq(xinstgeo, _s_dae_extra)) {
           instgeo->base.extra = tree_fromxml(heap, instgeo, xinstgeo);
         }
