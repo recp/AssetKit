@@ -60,7 +60,7 @@ dae14_fxMigrateImg(DAEState * __restrict dst,
     } else if (xml_tag_eq(xml, _s_dae_extra)) {
       img->extra = tree_fromxml(heap, img, xml);
     }
-    xml = xml->val;
+    xml = xml->next;
   }
 
   if (!memp)

@@ -29,7 +29,7 @@ dae_newparam(DAEState * __restrict dst,
         newparam->val = dae_value(dst, xml, newparam);
       }
     }
-    xml = xml->val;
+    xml = xml->next;
   }
 
   return newparam;

@@ -44,7 +44,7 @@ dae_material(DAEState * __restrict dst,
     } else if (xml_tag_eq(xml, _s_dae_extra)) {
       mat->extra = tree_fromxml(heap, mat, xml);
     }
-    xml = xml->val;
+    xml = xml->next;
   }
 
   return mat;

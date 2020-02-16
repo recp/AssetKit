@@ -70,7 +70,7 @@ dae_sampler(DAEState * __restrict dst,
     } else if (xml_tag_eq(xml, _s_dae_extra)) {
       samp->extra = tree_fromxml(heap, samp, xml);
     }
-    xml = xml->val;
+    xml = xml->next;
   }
 
   return samp;

@@ -128,7 +128,7 @@ dae_techniqueFxCmn(DAEState * __restrict dst,
     } else if (xml_tag_eq(xml, _s_dae_index_of_refraction)) {
       techn->indexOfRefraction = dae_floatOrParam(dst, xml, techn);
     }
-    xml = xml->val;
+    xml = xml->next;
   }
 
   return techn;

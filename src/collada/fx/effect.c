@@ -58,7 +58,7 @@ dae_effect(DAEState * __restrict dst,
     } else if (xml_tag_eq(xml, _s_dae_extra)) {
       effect->extra = tree_fromxml(heap, effect, xml);
     }
-    xml = xml->val;
+    xml = xml->next;
   }
 
   return effect;
