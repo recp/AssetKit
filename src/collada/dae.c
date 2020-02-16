@@ -76,7 +76,6 @@ dae_doc(AkDoc     ** __restrict dest,
     return AK_ERR;
   }
 
-  ret  = AK_OK;
   heap = ak_heap_new(NULL, NULL, NULL);
   doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
 

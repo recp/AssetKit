@@ -14,11 +14,9 @@ dae_evalScene(DAEState * __restrict dst,
               xml_t    * __restrict xml,
               void     * __restrict memParent) {
   AkEvaluateScene *evalScene;
-  AkDoc           *doc;
   AkHeap          *heap;
 
   heap = dst->heap;
-  doc  = dst->doc;
   xml  = xml->val;
 
   evalScene = ak_heap_calloc(heap, memParent, sizeof(*evalScene));

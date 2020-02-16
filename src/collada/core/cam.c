@@ -37,7 +37,7 @@ dae_cam(DAEState * __restrict dst,
 
       while (xoptics) {
         if (xml_tag_eq(xoptics, _s_dae_techniquec)) {
-          xml_t *xcam, *xtech, *xtechv;
+          xml_t *xtech, *xtechv;
 
           xtech = xoptics->val;
 
@@ -78,7 +78,7 @@ dae_cam(DAEState * __restrict dst,
               }
 
               optics->tcommon = &persp->base;
-            } else if (xml_tag_eq(xcam, _s_dae_orthographic)) {
+            } else if (xml_tag_eq(xtech, _s_dae_orthographic)) {
               AkOrthographic *ortho;
 
               ortho = ak_heap_calloc(heap, optics, sizeof(*ortho));

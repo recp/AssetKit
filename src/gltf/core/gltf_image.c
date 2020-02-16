@@ -31,11 +31,9 @@ gltf_images(json_t * __restrict jimage,
 
   while (jimage) {
     AkInitFrom *initFrom;
-    bool        foundUri;
 
     image    = ak_heap_calloc(gst->heap, gst->doc, sizeof(*image));
     initFrom = NULL;
-    foundUri = false;
     
     json_objmap_t imgMap[] = {
       JSON_OBJMAP_OBJ(_s_gltf_name,       I2P k_name),
