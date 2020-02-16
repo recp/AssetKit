@@ -59,7 +59,7 @@ dae_skin(DAEState * __restrict dst,
             AkURL *url;
             AkEnum  inputSemantic;
             
-            inputSemantic = dae_enumInputSemantic(inp->semanticRaw);
+            inputSemantic = dae_semantic(inp->semanticRaw);
             inp->semantic = inputSemantic;
             
             if (inputSemantic < 0)
@@ -68,7 +68,7 @@ dae_skin(DAEState * __restrict dst,
             inp->semantic = inputSemantic;
             inp->offset   = xmla_uint32(xmla(xjoints, _s_dae_offset), 0);
             
-            inp->semantic = dae_enumInputSemantic(inp->semanticRaw);
+            inp->semantic = dae_semantic(inp->semanticRaw);
             
             url           = url_from(xjoints, _s_dae_source, memp);
             
@@ -106,7 +106,7 @@ dae_skin(DAEState * __restrict dst,
             AkURL *url;
             AkEnum  inputSemantic;
             
-            inputSemantic = dae_enumInputSemantic(inp->semanticRaw);
+            inputSemantic = dae_semantic(inp->semanticRaw);
             inp->semantic = inputSemantic;
             
             if (inputSemantic < 0)
@@ -115,7 +115,7 @@ dae_skin(DAEState * __restrict dst,
             inp->semantic = inputSemantic;
             inp->offset   = xmla_uint32(xmla(xwei, _s_dae_offset), 0);
             
-            inp->semantic = dae_enumInputSemantic(inp->semanticRaw);
+            inp->semantic = dae_semantic(inp->semanticRaw);
             
             url           = url_from(xwei, _s_dae_source, memp);
             

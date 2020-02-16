@@ -38,7 +38,7 @@ dae_edges(DAEState * __restrict dst,
       } else {
         AkEnum inputSemantic;
         
-        inputSemantic = dae_enumInputSemantic(inp->semanticRaw);
+        inputSemantic = dae_semantic(inp->semanticRaw);
         inp->semantic = inputSemantic;
         
         if (inputSemantic < 0)
@@ -51,7 +51,7 @@ dae_edges(DAEState * __restrict dst,
         if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
           AkURL *url;
           
-          inp->semantic = dae_enumInputSemantic(inp->semanticRaw);
+          inp->semantic = dae_semantic(inp->semanticRaw);
           
           inp->next     = edges->input;
           edges->input  = inp;
@@ -108,7 +108,7 @@ dae_wires(DAEState * __restrict dst,
       } else {
         AkEnum inputSemantic;
         
-        inputSemantic = dae_enumInputSemantic(inp->semanticRaw);
+        inputSemantic = dae_semantic(inp->semanticRaw);
         inp->semantic = inputSemantic;
         
         if (inputSemantic < 0)
@@ -121,7 +121,7 @@ dae_wires(DAEState * __restrict dst,
         if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
           AkURL *url;
           
-          inp->semantic = dae_enumInputSemantic(inp->semanticRaw);
+          inp->semantic = dae_semantic(inp->semanticRaw);
           
           inp->next     = wires->input;
           wires->input  = inp;
@@ -185,7 +185,7 @@ dae_faces(DAEState * __restrict dst,
       } else {
         AkEnum inputSemantic;
         
-        inputSemantic = dae_enumInputSemantic(inp->semanticRaw);
+        inputSemantic = dae_semantic(inp->semanticRaw);
         inp->semantic = inputSemantic;
         
         if (inputSemantic < 0)
@@ -198,7 +198,7 @@ dae_faces(DAEState * __restrict dst,
         if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
           AkURL *url;
           
-          inp->semantic = dae_enumInputSemantic(inp->semanticRaw);
+          inp->semantic = dae_semantic(inp->semanticRaw);
           
           inp->next     = faces->input;
           faces->input  = inp;
@@ -262,7 +262,7 @@ dae_pcurves(DAEState * __restrict dst,
       } else {
         AkEnum inputSemantic;
         
-        inputSemantic = dae_enumInputSemantic(inp->semanticRaw);
+        inputSemantic = dae_semantic(inp->semanticRaw);
         inp->semantic = inputSemantic;
         
         if (inputSemantic < 0)
@@ -275,7 +275,7 @@ dae_pcurves(DAEState * __restrict dst,
         if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
           AkURL *url;
           
-          inp->semantic = dae_enumInputSemantic(inp->semanticRaw);
+          inp->semantic = dae_semantic(inp->semanticRaw);
           
           inp->next     = pcurves->input;
           pcurves->input  = inp;
@@ -339,7 +339,7 @@ dae_shells(DAEState * __restrict dst,
       } else {
         AkEnum inputSemantic;
         
-        inputSemantic = dae_enumInputSemantic(inp->semanticRaw);
+        inputSemantic = dae_semantic(inp->semanticRaw);
         inp->semantic = inputSemantic;
         
         if (inputSemantic < 0)
@@ -352,7 +352,7 @@ dae_shells(DAEState * __restrict dst,
         if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
           AkURL *url;
           
-          inp->semantic = dae_enumInputSemantic(inp->semanticRaw);
+          inp->semantic = dae_semantic(inp->semanticRaw);
           
           inp->next     = shells->input;
           shells->input  = inp;
@@ -416,7 +416,7 @@ dae_solids(DAEState * __restrict dst,
       } else {
         AkEnum inputSemantic;
         
-        inputSemantic = dae_enumInputSemantic(inp->semanticRaw);
+        inputSemantic = dae_semantic(inp->semanticRaw);
         inp->semantic = inputSemantic;
         
         if (inputSemantic < 0)
@@ -429,7 +429,7 @@ dae_solids(DAEState * __restrict dst,
         if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
           AkURL *url;
           
-          inp->semantic = dae_enumInputSemantic(inp->semanticRaw);
+          inp->semantic = dae_semantic(inp->semanticRaw);
           
           inp->next     = solids->input;
           solids->input  = inp;

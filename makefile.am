@@ -193,7 +193,6 @@ libassetkit_la_SOURCES=\
     src/collada/fx/colortex.c \
     src/collada/fx/fltprm.c \
     src/collada/fx/techn_cmn.c \
-    src/collada/fx/enum.c \
     src/collada/fx/samp.c \
     src/collada/fx/mat.c \
 \

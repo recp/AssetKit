@@ -8,7 +8,7 @@
 #include "colortex.h"
 #include "../core/param.h"
 #include "../core/color.h"
-#include "enum.h"
+#include "../core/enum.h"
 
 AkColorDesc* _assetkit_hide
 dae_colorOrTex(DAEState * __restrict dst,

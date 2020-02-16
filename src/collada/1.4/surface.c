@@ -7,7 +7,7 @@
 
 #include "surface.h"
 #include "../core/asset.h"
-#include "../fx/enum.h"
+#include "../core/enum.h"
 
 AkDae14Surface* _assetkit_hide
 dae14_fxSurface(DAEState * __restrict dst,

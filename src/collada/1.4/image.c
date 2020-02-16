@@ -7,7 +7,7 @@
 
 #include "image.h"
 #include "../core/asset.h"
-#include "../fx/enum.h"
+#include "../core/enum.h"
 
 void _assetkit_hide
 dae14_fxMigrateImg(DAEState * __restrict dst,

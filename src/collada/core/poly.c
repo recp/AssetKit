@@ -49,7 +49,7 @@ dae_poly(DAEState * __restrict dst,
       } else {
         AkEnum inputSemantic;
 
-        inputSemantic = dae_enumInputSemantic(inp->semanticRaw);
+        inputSemantic = dae_semantic(inp->semanticRaw);
         inp->semantic = inputSemantic;
 
         if (inputSemantic < 0)
@@ -62,7 +62,7 @@ dae_poly(DAEState * __restrict dst,
         if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
           AkURL *url;
 
-          inp->semantic = dae_enumInputSemantic(inp->semanticRaw);
+          inp->semantic = dae_semantic(inp->semanticRaw);
 
           inp->next        = poly->base.input;
           poly->base.input = inp;

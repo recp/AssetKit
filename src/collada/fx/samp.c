@@ -6,9 +6,9 @@
  */
 
 #include "samp.h"
-#include "../core/color.h"
-#include "enum.h"
 #include "img.h"
+#include "../core/color.h"
+#include "../core/enum.h"
 
 #include "../1.4/dae14.h"
 #include "../1.4/surface.h"

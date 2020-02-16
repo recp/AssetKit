@@ -42,7 +42,7 @@ dae_node(DAEState      * __restrict dst,
   sid_set(xml, heap, node);
   
   node->name     = xmla_strdup_by(xml, heap, _s_dae_name, node);
-  node->nodeType = dae_enumNodeType(xmla(xml, _s_dae_type)->val);
+  node->nodeType = dae_nodeType(xmla(xml, _s_dae_type)->val);
   if (node->nodeType < 1)
     node->nodeType = AK_NODE_TYPE_NODE;
 

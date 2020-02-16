@@ -8,7 +8,7 @@
 #include "techn_cmn.h"
 #include "colortex.h"
 #include "fltprm.h"
-#include "enum.h"
+#include "../core/enum.h"
 #include "../bugfix/transp.h"
 #include "../../default/def_material.h"
 

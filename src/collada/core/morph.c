@@ -26,7 +26,7 @@ dae_morph(DAEState * __restrict dst,
   url_set(dst, xml, _s_dae_source, memp, &morph->baseGeom);
 
   if ((att = xmla(xml, _s_dae_method)))
-    morph->method = dae_enumMorphMethod(att->val);
+    morph->method = dae_morphMethod(att->val);
   else
     morph->method = AK_MORPH_METHOD_NORMALIZED;
   
@@ -57,7 +57,7 @@ dae_morph(DAEState * __restrict dst,
             AkURL *url;
             AkEnum  inputSemantic;
             
-            inputSemantic = dae_enumInputSemantic(inp->semanticRaw);
+            inputSemantic = dae_semantic(inp->semanticRaw);
             inp->semantic = inputSemantic;
             
             if (inputSemantic < 0)
@@ -66,7 +66,7 @@ dae_morph(DAEState * __restrict dst,
             inp->semantic = inputSemantic;
             inp->offset   = xmla_uint32(xmla(xtarg, _s_dae_offset), 0);
             
-            inp->semantic = dae_enumInputSemantic(inp->semanticRaw);
+            inp->semantic = dae_semantic(inp->semanticRaw);
             
             url           = url_from(xtarg, _s_dae_source, memp);
             rb_insert(dst->inputmap, inp, url);

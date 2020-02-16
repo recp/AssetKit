@@ -45,7 +45,7 @@ dae_triangles(DAEState * __restrict dst,
         AkURL *url;
         AkEnum inputSemantic;
 
-        inputSemantic = dae_enumInputSemantic(inp->semanticRaw);
+        inputSemantic = dae_semantic(inp->semanticRaw);
         inp->semantic = inputSemantic;
 
         if (inputSemantic < 0)
@@ -58,7 +58,7 @@ dae_triangles(DAEState * __restrict dst,
         if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
           AkURL *url;
           
-          inp->semantic = dae_enumInputSemantic(inp->semanticRaw);
+          inp->semantic = dae_semantic(inp->semanticRaw);
         
           inp->next       = tri->base.input;
           tri->base.input = inp;

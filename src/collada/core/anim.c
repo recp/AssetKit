@@ -76,10 +76,10 @@ dae_animSampler(DAEState * __restrict dst,
   xmla_setid(xml, heap, samp);
 
   if ((att = xmla(xml, _s_dae_pre_behavior)))
-    samp->pre = dae_enumAnimBehavior(att->val);
+    samp->pre = dae_animBehavior(att->val);
 
   if ((att = xmla(xml, _s_dae_post_behavior)))
-    samp->post = dae_enumAnimBehavior(att->val);
+    samp->post = dae_animBehavior(att->val);
 
   xml = xml->val;
   while (xml) {
@@ -93,7 +93,7 @@ dae_animSampler(DAEState * __restrict dst,
         AkURL *url;
         AkEnum  inputSemantic;
         
-        inputSemantic = dae_enumInputSemantic(inp->semanticRaw);
+        inputSemantic = dae_semantic(inp->semanticRaw);
         inp->semantic = inputSemantic;
         
         if (inputSemantic < 0)
@@ -102,7 +102,7 @@ dae_animSampler(DAEState * __restrict dst,
         inp->semantic = inputSemantic;
         inp->offset   = xmla_uint32(xmla(xml, _s_dae_offset), 0);
         
-        inp->semantic = dae_enumInputSemantic(inp->semanticRaw);
+        inp->semantic = dae_semantic(inp->semanticRaw);
         
         url           = url_from(xml, _s_dae_source, memp);
         rb_insert(dst->inputmap, inp, url);

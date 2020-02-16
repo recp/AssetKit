@@ -8,7 +8,7 @@
 #include "img.h"
 #include "../core/asset.h"
 #include "../1.4/image.h"
-#include "enum.h"
+#include "../core/enum.h"
 
 static
 AkInitFrom*

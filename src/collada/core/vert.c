@@ -34,7 +34,7 @@ dae_vert(DAEState * __restrict dst,
         ak_free(inp);
       } else {
         AkURL *url;
-        inp->semantic = dae_enumInputSemantic(inp->semanticRaw);
+        inp->semantic = dae_semantic(inp->semanticRaw);
         
         url = url_from(xml, _s_dae_source, memp);
         rb_insert(dst->inputmap, inp, url);
