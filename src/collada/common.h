@@ -108,16 +108,16 @@ url_set(DAEState   * __restrict dst,
         void       * __restrict memp,
         AkURL      * __restrict url) {
   AkURLQueue *urlQueue;
-  xml_attr_t *attr;
-  char       *attrv;
+  xml_attr_t *att;
+  char       *attv;
 
-  if (!(attr = xmla(xml, name)) || !(attrv = (char *)attr->val)) {
+  if (!(att = xmla(xml, name)) || !(attv = (char *)att->val)) {
     url->reserved = NULL;
     url->url      = NULL;
     return;
   }
   
-  ak_url_init(memp, (char *)attrv, url);
+  ak_url_init(memp, xmla_strdup(att, dst->heap, memp), url);
   
   urlQueue       = dst->heap->allocator->malloc(sizeof(*urlQueue));
   urlQueue->next = dst->urlQueue;
