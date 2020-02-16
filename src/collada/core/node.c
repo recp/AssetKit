@@ -237,7 +237,7 @@ dae_node(DAEState      * __restrict dst,
 
       instgeo->base.node = node;
 
-      instgeo->base.next = &node->geometry->base;
+      instgeo->base.next = (void *)node->geometry;
       node->geometry     = instgeo;
 
       if (node->controller) {
