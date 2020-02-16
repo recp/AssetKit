@@ -49,7 +49,7 @@ dae_phong(DAEState * __restrict dst,
       }
       
       if ((att = xmla(xml, _s_dae_opaque)))
-        opaque = dae_fxEnumOpaque(att->val);
+        opaque = dae_opaque(att);
       else
         opaque = AK_OPAQUE_A_ONE;
       

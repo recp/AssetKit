@@ -30,7 +30,7 @@ dae14_fxSurface(DAEState * __restrict dst,
       initFrom->slice = xmla_uint32(xmla(xml, _s_dae_slice), 0);
       
       if ((att = xmla(xml, _s_dae_face))) {
-        initFrom->face = dae_fxEnumFace(att->val);
+        initFrom->face = dae_face(att);
       } else {
         initFrom->face = AK_FACE_POSITIVE_Y;
       }
@@ -50,11 +50,11 @@ dae14_fxSurface(DAEState * __restrict dst,
       xfmt = xml->val;
       while (xfmt) {
         if (xml_tag_eq(xfmt, _s_dae_channels) && (sval = xfmt->val)) {
-          format->channel = dae_fxEnumChannel(sval);
+          format->channel = dae_enumChannel(sval, xfmt->valsize);
         } else if (xml_tag_eq(xfmt, _s_dae_range) && (sval = xfmt->val)) {
-          format->range = dae_fxEnumRange(sval);
+          format->range = dae_range(sval, xfmt->valsize);
         } else if (xml_tag_eq(xfmt, _s_dae_precision) && (sval = xfmt->val)) {
-          format->precision = dae_fxEnumPrecision(sval);
+          format->precision = dae_precision(sval, xfmt->valsize);
         } else if (xml_tag_eq(xfmt, _s_dae_option)) {
           format->space = xml_strdup(xml, heap, format);
         } else if (xml_tag_eq(xfmt, _s_dae_exact)) {

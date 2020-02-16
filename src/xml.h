@@ -9,6 +9,7 @@
 #define ak_src_xml_h
 
 #include "collada/strpool.h"
+#include <xml/xml.h>
 
 AK_INLINE
 char *

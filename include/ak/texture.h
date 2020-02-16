@@ -12,11 +12,11 @@
 #include "image.h"
 
 typedef enum AkWrapMode {
-  AK_WRAP_MODE_WRAP        = 0,
-  AK_WRAP_MODE_MIRROR      = 1,
-  AK_WRAP_MODE_CLAMP       = 2,
-  AK_WRAP_MODE_BORDER      = 3,
-  AK_WRAP_MODE_MIRROR_ONCE = 4
+  AK_WRAP_MODE_WRAP        = 1,
+  AK_WRAP_MODE_MIRROR      = 2,
+  AK_WRAP_MODE_CLAMP       = 3,
+  AK_WRAP_MODE_BORDER      = 4,
+  AK_WRAP_MODE_MIRROR_ONCE = 5
 } AkWrapMode;
 
 typedef enum AkMinFilter {

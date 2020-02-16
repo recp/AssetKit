@@ -12,33 +12,33 @@
 
 static
 AkInitFrom*
-dae_fxImage_initFrom(DAEState * __restrict dst,
-                     xml_t    * __restrict xml,
-                     void     * __restrict memp);
+dae_initFrom(DAEState * __restrict dst,
+             xml_t    * __restrict xml,
+             void     * __restrict memp);
 
 static
 AkImageFormat*
-dae_fxImage_format(DAEState * __restrict dst,
-                   xml_t    * __restrict xml,
-                   void     * __restrict memp);
+dae_imageFormat(DAEState * __restrict dst,
+                xml_t    * __restrict xml,
+                void     * __restrict memp);
 
 static
 AkImage2d*
-dae_fxImage_create2d(DAEState * __restrict dst,
-                     xml_t    * __restrict xml,
-                     void     * __restrict memp);
+dae_create2d(DAEState * __restrict dst,
+             xml_t    * __restrict xml,
+             void     * __restrict memp);
 
 static
 AkImage3d*
-dae_fxImage_create3d(DAEState * __restrict dst,
-                     xml_t    * __restrict xml,
-                     void     * __restrict memp);
+dae_create3d(DAEState * __restrict dst,
+             xml_t    * __restrict xml,
+             void     * __restrict memp);
 
 static
 AkImageCube*
-dae_fxImage_createCube(DAEState * __restrict dst,
-                       xml_t    * __restrict xml,
-                       void     * __restrict memp);
+dae_createCube(DAEState * __restrict dst,
+               xml_t    * __restrict xml,
+               void     * __restrict memp);
 
 _assetkit_hide
 void*
@@ -71,18 +71,18 @@ dae_image(DAEState * __restrict dst,
                           && att->val
                           && strcasecmp(att->val, _s_dae_true) == 0;
     } else if (xml_tag_eq(xml, _s_dae_init_from)) {
-      img->initFrom = dae_fxImage_initFrom(dst, xml, img);
+      img->initFrom = dae_initFrom(dst, xml, img);
     } else if (xml_tag_eq(xml, _s_dae_create_2d)) {
       AkImage2d *image2d;
-      if ((image2d = dae_fxImage_create2d(dst, xml, img)))
+      if ((image2d = dae_create2d(dst, xml, img)))
           img->image = &image2d->base;
     } else if (xml_tag_eq(xml, _s_dae_create_3d)) {
       AkImage3d *image3d;
-      if ((image3d = dae_fxImage_create3d(dst, xml, img)))
+      if ((image3d = dae_create3d(dst, xml, img)))
           img->image = &image3d->base;
     } else if (xml_tag_eq(xml, _s_dae_create_cube)) {
       AkImageCube *imageCube;
-      if ((imageCube = dae_fxImage_createCube(dst, xml, img)))
+      if ((imageCube = dae_createCube(dst, xml, img)))
           img->image = &imageCube->base;
     } else if (xml_tag_eq(xml, _s_dae_extra)) {
       img->extra = tree_fromxml(heap, img, xml);
@@ -113,14 +113,13 @@ dae_instImage(DAEState * __restrict dst,
 
 static
 AkInitFrom*
-dae_fxImage_initFrom(DAEState * __restrict dst,
-                     xml_t    * __restrict xml,
-                     void     * __restrict memp) {
+dae_initFrom(DAEState * __restrict dst,
+             xml_t    * __restrict xml,
+             void     * __restrict memp) {
   AkHeap     *heap;
   AkInitFrom *initFrom;
   AkHexData  *hex;
   xml_attr_t *att;
-  AkEnum      en;
   
   heap     = dst->heap;
   initFrom = ak_heap_calloc(heap, memp, sizeof(*initFrom));
@@ -130,11 +129,8 @@ dae_fxImage_initFrom(DAEState * __restrict dst,
   initFrom->mipIndex     = xmla_uint32(xmla(xml, _s_dae_mip_index), 0);
   initFrom->depth        = xmla_uint32(xmla(xml, _s_dae_depth), 0);
 
-  if ((att = xmla(xml, _s_dae_face)) && att->val) {
-    en = dae_face(att->val);
-    if (en != -1)
-      initFrom->face = en;
-  }
+  if ((att = xmla(xml, _s_dae_face)) && att->val)
+    initFrom->face = dae_face(att);
 
   xml = xml->val;
   while (xml) {
@@ -159,9 +155,9 @@ dae_fxImage_initFrom(DAEState * __restrict dst,
 
 static
 AkImageFormat*
-dae_fxImage_format(DAEState * __restrict dst,
-                   xml_t    * __restrict xml,
-                   void     * __restrict memp) {
+dae_imageFormat(DAEState * __restrict dst,
+                xml_t    * __restrict xml,
+                void     * __restrict memp) {
   AkHeap        *heap;
   AkImageFormat *format;
   xml_attr_t    *att;
@@ -173,13 +169,13 @@ dae_fxImage_format(DAEState * __restrict dst,
   while (xml) {
     if (xml_tag_eq(xml, _s_dae_hint)) {
       if ((att = xmla(xml, _s_dae_channels)) && att->val)
-        format->channel = dae_fxEnumChannel(att->val);
+        format->channel = dae_enumChannel(att->val, att->valsize);
       
       if ((att = xmla(xml, _s_dae_range)) && att->val)
-        format->range = dae_fxEnumRange(att->val);
+        format->range = dae_range(att->val, att->valsize);
       
       if ((att = xmla(xml, _s_dae_precision)) && att->val)
-        format->precision = dae_fxEnumPrecision(att->val);
+        format->precision = dae_precision(att->val, att->valsize);
       
       if ((att = xmla(xml, _s_dae_space)) && att->val)
         format->space = xmla_strdup(att, heap, format);
@@ -194,9 +190,9 @@ dae_fxImage_format(DAEState * __restrict dst,
 
 static
 AkImage2d*
-dae_fxImage_create2d(DAEState * __restrict dst,
-                     xml_t    * __restrict xml,
-                     void     * __restrict memp) {
+dae_create2d(DAEState * __restrict dst,
+             xml_t    * __restrict xml,
+             void     * __restrict memp) {
   AkHeap    *heap;
   AkImage2d *img;
 
@@ -239,9 +235,9 @@ dae_fxImage_create2d(DAEState * __restrict dst,
     } else if (xml_tag_eq(xml, _s_dae_array)) {
       img->base.arrayLen = xmla_uint32(xmla(xml, _s_dae_length), 0);
     } else if (xml_tag_eq(xml, _s_dae_format)) {
-      img->base.format = dae_fxImage_format(dst, xml, img);
+      img->base.format = dae_imageFormat(dst, xml, img);
     } else if (xml_tag_eq(xml, _s_dae_size_exact)) {
-      img->base.initFrom = dae_fxImage_initFrom(dst, xml, img);
+      img->base.initFrom = dae_initFrom(dst, xml, img);
     }
     xml = xml->next;
   }
@@ -251,9 +247,9 @@ dae_fxImage_create2d(DAEState * __restrict dst,
 
 static
 AkImage3d*
-dae_fxImage_create3d(DAEState * __restrict dst,
-                     xml_t    * __restrict xml,
-                     void     * __restrict memp) {
+dae_create3d(DAEState * __restrict dst,
+             xml_t    * __restrict xml,
+             void     * __restrict memp) {
   AkHeap    *heap;
   AkImage3d *img;
 
@@ -274,9 +270,9 @@ dae_fxImage_create3d(DAEState * __restrict dst,
     } else if (xml_tag_eq(xml, _s_dae_array)) {
       img->base.arrayLen = xmla_uint32(xmla(xml, _s_dae_length), 0);
     } else if (xml_tag_eq(xml, _s_dae_format)) {
-      img->base.format = dae_fxImage_format(dst, xml, img);
+      img->base.format = dae_imageFormat(dst, xml, img);
     } else if (xml_tag_eq(xml, _s_dae_size_exact)) {
-      img->base.initFrom = dae_fxImage_initFrom(dst, xml, img);
+      img->base.initFrom = dae_initFrom(dst, xml, img);
     }
     xml = xml->next;
   }
@@ -286,9 +282,9 @@ dae_fxImage_create3d(DAEState * __restrict dst,
 
 static
 AkImageCube*
-dae_fxImage_createCube(DAEState * __restrict dst,
-                       xml_t    * __restrict xml,
-                       void     * __restrict memp) {
+dae_createCube(DAEState * __restrict dst,
+               xml_t    * __restrict xml,
+               void     * __restrict memp) {
   AkHeap      *heap;
   AkImageCube *img;
   
@@ -307,9 +303,9 @@ dae_fxImage_createCube(DAEState * __restrict dst,
     } else if (xml_tag_eq(xml, _s_dae_array)) {
       img->base.arrayLen = xmla_uint32(xmla(xml, _s_dae_length), 0);
     } else if (xml_tag_eq(xml, _s_dae_format)) {
-      img->base.format = dae_fxImage_format(dst, xml, img);
+      img->base.format = dae_imageFormat(dst, xml, img);
     } else if (xml_tag_eq(xml, _s_dae_size_exact)) {
-      img->base.initFrom = dae_fxImage_initFrom(dst, xml, img);
+      img->base.initFrom = dae_initFrom(dst, xml, img);
     }
     xml = xml->next;
   }

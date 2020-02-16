@@ -21,7 +21,6 @@ dae_sampler(DAEState * __restrict dst,
   AkHeap    *heap;
   AkSampler *samp;
   char      *sval;
-  AkEnum     en;
 
   heap = dst->heap;
   samp = ak_heap_calloc(heap, memp, sizeof(*samp));
@@ -41,24 +40,18 @@ dae_sampler(DAEState * __restrict dst,
       AkInstanceBase *instImage;
       if ((instImage = dae_instImage(dst, xml, samp)))
         rb_insert(dst->instanceMap, samp, instImage);
-    } else if (xml_tag_eq(xml, _s_dae_wrap_s) && (sval = xml->val)) {
-      if ((en = dae_fxEnumWrap(sval)))
-        samp->wrapS = en;
-    } else if (xml_tag_eq(xml, _s_dae_wrap_t) && (sval = xml->val)) {
-      if ((en = dae_fxEnumWrap(sval)))
-        samp->wrapT = en;
-    } else if (xml_tag_eq(xml, _s_dae_wrap_p) && (sval = xml->val)) {
-      if ((en = dae_fxEnumWrap(sval)))
-        samp->wrapP = en;
-    } else if (xml_tag_eq(xml, _s_dae_minfilter) && (sval = xml->val)) {
-      if ((en = dae_fxEnumMinfilter(sval)))
-        samp->minfilter = en;
-    } else if (xml_tag_eq(xml, _s_dae_magfilter) && (sval = xml->val)) {
-      if ((en = dae_fxEnumMagfilter(sval)))
-        samp->magfilter = en;
-    } else if (xml_tag_eq(xml, _s_dae_mipfilter) && (sval = xml->val)) {
-      if ((en = dae_fxEnumMipfilter(sval)))
-        samp->mipfilter = en;
+    } else if (xml_tag_eq(xml, _s_dae_wrap_s)) {
+      samp->wrapS = dae_wrap(xml);
+    } else if (xml_tag_eq(xml, _s_dae_wrap_t)) {
+      samp->wrapT = dae_wrap(xml);
+    } else if (xml_tag_eq(xml, _s_dae_wrap_p)) {
+      samp->wrapP = dae_wrap(xml);
+    } else if (xml_tag_eq(xml, _s_dae_minfilter)) {
+      samp->minfilter = dae_minfilter(xml);
+    } else if (xml_tag_eq(xml, _s_dae_magfilter)) {
+      samp->magfilter = dae_magfilter(xml);
+    } else if (xml_tag_eq(xml, _s_dae_mipfilter)) {
+      samp->mipfilter = dae_mipfilter(xml);
     } else if (xml_tag_eq(xml, _s_dae_border_color)) {
       AkColor *color;
 

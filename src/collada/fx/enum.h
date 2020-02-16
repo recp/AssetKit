@@ -9,35 +9,33 @@
 #define __libassetkit__dae_fx_enums_h_
 
 #include "../../../include/ak/assetkit.h"
+#include "../../xml.h"
 
 AkEnum _assetkit_hide
-dae_fxEnumMaterial(const char * name);
+dae_wrap(const xml_t * __restrict xml);
 
 AkEnum _assetkit_hide
-dae_fxEnumWrap(const char * name);
+dae_minfilter(const xml_t * __restrict xml);
 
 AkEnum _assetkit_hide
-dae_fxEnumMinfilter(const char * name);
+dae_mipfilter(const xml_t * __restrict xml);
 
 AkEnum _assetkit_hide
-dae_fxEnumMipfilter(const char * name);
+dae_magfilter(const xml_t * __restrict xml);
 
 AkEnum _assetkit_hide
-dae_fxEnumMagfilter(const char * name);
+dae_face(const xml_attr_t * __restrict xatt);
 
 AkEnum _assetkit_hide
-dae_fxEnumFace(const char * name);
+dae_opaque(const xml_attr_t * __restrict xatt);
 
 AkEnum _assetkit_hide
-dae_fxEnumOpaque(const char * name);
+dae_enumChannel(const char *name, size_t len);
 
 AkEnum _assetkit_hide
-dae_fxEnumChannel(const char * name);
+dae_range(const char *name, size_t len);
 
 AkEnum _assetkit_hide
-dae_fxEnumRange(const char * name);
-
-AkEnum _assetkit_hide
-dae_fxEnumPrecision(const char * name);
+dae_precision(const char *name, size_t len);
 
 #endif /* __libassetkit__dae_fx_enums_h_ */

@@ -7,40 +7,13 @@
 
 #include "enum.h"
 #include "../../common.h"
+#include "../../xml.h"
 #include <string.h>
 
 AkEnum _assetkit_hide
-dae_fxEnumMaterial(const char * name) {
+dae_wrap(const xml_t * __restrict xml) {
   AkEnum val;
-  long glenums_len;
-  long i;
-
-  dae_enum glenums[] = {
-    {"EMISSION",            AK_GL_MATERIAL_TYPE_EMISSION},
-    {"AMBIENT",             AK_GL_MATERIAL_TYPE_AMBIENT},
-    {"DIFFUSE",             AK_GL_MATERIAL_TYPE_DIFFUSE},
-    {"SPECULAR",            AK_GL_MATERIAL_TYPE_SPECULAR},
-    {"AMBIENT_AND_DIFFUSE", AK_GL_MATERIAL_TYPE_AMBIENT_AND_DIFFUSE},
-  };
-
-  val = -1;
-  glenums_len = AK_ARRAY_LEN(glenums);
-
-  for (i = 0; i < glenums_len; i++) {
-    if (strcasecmp(name, glenums[i].name) == 0) {
-      val = glenums[i].val;
-      break;
-    }
-  }
-
-  return val;
-}
-
-AkEnum _assetkit_hide
-dae_fxEnumWrap(const char * name) {
-  AkEnum val;
-  long glenums_len;
-  long i;
+  long   glenums_len, i;
 
   dae_enum glenums[] = {
     {"WRAP",        AK_WRAP_MODE_WRAP},
@@ -50,11 +23,11 @@ dae_fxEnumWrap(const char * name) {
     {"MIRROR_ONCE", AK_WRAP_MODE_MIRROR_ONCE}
   };
 
-  val = -1;
+  val         = 0;
   glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
-    if (strcasecmp(name, glenums[i].name) == 0) {
+    if (xml_val_eq(xml, glenums[i].name)) {
       val = glenums[i].val;
       break;
     }
@@ -64,10 +37,9 @@ dae_fxEnumWrap(const char * name) {
 }
 
 AkEnum _assetkit_hide
-dae_fxEnumMinfilter(const char * name) {
+dae_minfilter(const xml_t * __restrict xml) {
   AkEnum val;
-  long glenums_len;
-  long i;
+  long   glenums_len, i;
 
   dae_enum glenums[] = {
     {"NEAREST",     AK_MINFILTER_NEAREST},
@@ -75,11 +47,11 @@ dae_fxEnumMinfilter(const char * name) {
     {"ANISOTROPIC", AK_MINFILTER_ANISOTROPIC}
   };
 
-  val = -1;
+  val         = 0;
   glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
-    if (strcasecmp(name, glenums[i].name) == 0) {
+    if (xml_val_eq(xml, glenums[i].name)) {
       val = glenums[i].val;
       break;
     }
@@ -89,10 +61,9 @@ dae_fxEnumMinfilter(const char * name) {
 }
 
 AkEnum _assetkit_hide
-dae_fxEnumMipfilter(const char * name) {
+dae_mipfilter(const xml_t * __restrict xml) {
   AkEnum val;
-  long glenums_len;
-  long i;
+  long   glenums_len, i;
 
   dae_enum glenums[] = {
     {"NONE",    AK_MIPFILTER_NONE},
@@ -100,11 +71,11 @@ dae_fxEnumMipfilter(const char * name) {
     {"LINEAR",  AK_MIPFILTER_LINEAR}
   };
 
-  val = -1;
+  val         = 0;
   glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
-    if (strcasecmp(name, glenums[i].name) == 0) {
+    if (xml_val_eq(xml, glenums[i].name)) {
       val = glenums[i].val;
       break;
     }
@@ -114,21 +85,20 @@ dae_fxEnumMipfilter(const char * name) {
 }
 
 AkEnum _assetkit_hide
-dae_fxEnumMagfilter(const char * name) {
+dae_magfilter(const xml_t * __restrict xml) {
   AkEnum val;
-  long glenums_len;
-  long i;
+  long   glenums_len, i;
 
   dae_enum glenums[] = {
     {"NEAREST", AK_MAGFILTER_NEAREST},
     {"LINEAR",  AK_MAGFILTER_LINEAR}
   };
 
-  val = -1;
+  val         = 0;
   glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
-    if (strcasecmp(name, glenums[i].name) == 0) {
+    if (xml_val_eq(xml, glenums[i].name)) {
       val = glenums[i].val;
       break;
     }
@@ -138,10 +108,9 @@ dae_fxEnumMagfilter(const char * name) {
 }
 
 AkEnum _assetkit_hide
-dae_fxEnumFace(const char * name) {
+dae_face(const xml_attr_t * __restrict xatt) {
   AkEnum val;
-  long glenums_len;
-  long i;
+  long   glenums_len, i;
 
   dae_enum glenums[] = {
     {"POSITIVE_X", AK_FACE_POSITIVE_X},
@@ -152,11 +121,11 @@ dae_fxEnumFace(const char * name) {
     {"NEGATIVE_Z", AK_FACE_NEGATIVE_Z}
   };
 
-  val = -1;
+  val         = 0;
   glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
-    if (strcasecmp(name, glenums[i].name) == 0) {
+    if (strncasecmp(xatt->val, glenums[i].name, xatt->valsize)) {
       val = glenums[i].val;
       break;
     }
@@ -166,10 +135,9 @@ dae_fxEnumFace(const char * name) {
 }
 
 AkEnum _assetkit_hide
-dae_fxEnumOpaque(const char * name) {
+dae_opaque(const xml_attr_t * __restrict xatt) {
   AkEnum val;
-  long glenums_len;
-  long i;
+  long  glenums_len, i;
 
   dae_enum glenums[] = {
     {"A_ONE",    AK_OPAQUE_A_ONE},
@@ -178,11 +146,11 @@ dae_fxEnumOpaque(const char * name) {
     {"RGB_ONE",  AK_OPAQUE_RGB_ONE}
   };
 
-  val = AK_OPAQUE_A_ONE;
+  val         = AK_OPAQUE_A_ONE;
   glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
-    if (strcasecmp(name, glenums[i].name) == 0) {
+    if (strncasecmp(xatt->val, glenums[i].name, xatt->valsize)) {
       val = glenums[i].val;
       break;
     }
@@ -192,10 +160,9 @@ dae_fxEnumOpaque(const char * name) {
 }
 
 AkEnum _assetkit_hide
-dae_fxEnumChannel(const char * name) {
+dae_enumChannel(const char *name, size_t len) {
   AkEnum val;
-  long glenums_len;
-  long i;
+  long   glenums_len, i;
 
   dae_enum glenums[] = {
     {"RGB",  AK_CHANNEL_FORMAT_RGB},
@@ -210,11 +177,11 @@ dae_fxEnumChannel(const char * name) {
     {"XYZW", AK_CHANNEL_FORMAT_XYZW}
   };
 
-  val = 0;
+  val         = 0;
   glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
-    if (strcasecmp(name, glenums[i].name) == 0) {
+    if (strncasecmp(name, glenums[i].name, len)) {
       val = glenums[i].val;
       break;
     }
@@ -224,10 +191,9 @@ dae_fxEnumChannel(const char * name) {
 }
 
 AkEnum _assetkit_hide
-dae_fxEnumRange(const char * name) {
+dae_range(const char *name, size_t len) {
   AkEnum val;
-  long glenums_len;
-  long i;
+  long   glenums_len, i;
 
   dae_enum glenums[] = {
     {"SNORM", AK_RANGE_FORMAT_SNORM},
@@ -237,11 +203,11 @@ dae_fxEnumRange(const char * name) {
     {"FLOAT", AK_RANGE_FORMAT_FLOAT}
   };
 
-  val = 0;
+  val         = 0;
   glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
-    if (strcasecmp(name, glenums[i].name) == 0) {
+    if (strncasecmp(name, glenums[i].name, len)) {
       val = glenums[i].val;
       break;
     }
@@ -251,10 +217,9 @@ dae_fxEnumRange(const char * name) {
 }
 
 AkEnum _assetkit_hide
-dae_fxEnumPrecision(const char * name) {
+dae_precision(const char *name, size_t len) {
   AkEnum val;
-  long glenums_len;
-  long i;
+  long   glenums_len, i;
 
   dae_enum glenums[] = {
     {"DEFAULT", AK_PRECISION_FORMAT_DEFAULT},
@@ -264,11 +229,11 @@ dae_fxEnumPrecision(const char * name) {
     {"MAX",     AK_PRECISION_FORMAT_MAX}
   };
 
-  val = 0;
+  val         = 0;
   glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
-    if (strcasecmp(name, glenums[i].name) == 0) {
+    if (strncasecmp(name, glenums[i].name, len)) {
       val = glenums[i].val;
       break;
     }
