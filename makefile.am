@@ -177,7 +177,6 @@ libassetkit_la_SOURCES=\
     src/collada/core/morph.c \
     src/collada/core/ctlr.c \
     src/collada/core/node.c \
-    src/collada/core/evalscn.c \
     src/collada/core/scene.c \
     src/collada/core/anim.c \
     src/collada/core/param.c \
