@@ -76,10 +76,10 @@ dae_animSampler(DAEState * __restrict dst,
   xmla_setid(xml, heap, samp);
 
   if ((att = xmla(xml, _s_dae_pre_behavior)))
-    samp->pre = dae_animBehavior(att->val);
+    samp->pre = dae_animBehavior(att);
 
   if ((att = xmla(xml, _s_dae_post_behavior)))
-    samp->post = dae_animBehavior(att->val);
+    samp->post = dae_animBehavior(att);
 
   xml = xml->val;
   while (xml) {

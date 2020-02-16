@@ -26,7 +26,7 @@ dae_morph(DAEState * __restrict dst,
   url_set(dst, xml, _s_dae_source, memp, &morph->baseGeom);
 
   if ((att = xmla(xml, _s_dae_method)))
-    morph->method = dae_morphMethod(att->val);
+    morph->method = dae_morphMethod(att);
   else
     morph->method = AK_MORPH_METHOD_NORMALIZED;
   

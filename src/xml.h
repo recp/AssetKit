@@ -31,7 +31,7 @@ xmla_strdup(const xml_attr_t * __restrict attr,
             void             * __restrict parent) {
   const char *s;
   
-  if (!attr->val)
+  if (!(s = attr->val))
     return NULL;
 
   return ak_heap_strndup(heap, parent, s, attr->valsize);
@@ -43,10 +43,10 @@ xmla_strdup_by(const xml_t * __restrict xobject,
                AkHeap      * __restrict heap,
                const char  * __restrict name,
                void        * __restrict parent) {
-  xml_attr_t *attr;
+  xml_attr_t *att;
   
-  if ((attr = xmla(xobject, name)))
-    return ak_heap_strndup(heap, parent, attr->val, attr->valsize);
+  if ((att = xmla(xobject, name)))
+    return ak_heap_strndup(heap, parent, att->val, att->valsize);
 
   return NULL;
 }
@@ -56,10 +56,10 @@ void
 xmla_setid(const xml_t * __restrict xobject,
            AkHeap      * __restrict heap,
            void        * __restrict memptr) {
-  xml_attr_t *attr;
+  xml_attr_t *att;
   
-  if ((attr = xmla(xobject, _s_dae_id)))
-    ak_setId(memptr, ak_heap_strndup(heap, memptr, attr->val, attr->valsize));
+  if ((att = xmla(xobject, _s_dae_id)))
+    ak_setId(memptr, ak_heap_strndup(heap, memptr, att->val, att->valsize));
 }
 
 #endif /* ak_src_xml_h */
