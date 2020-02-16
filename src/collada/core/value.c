@@ -6,28 +6,23 @@
  */
 
 #include "value.h"
-//#include "../fx/samp.h"
-//#include "../1.4/surface.h"
+#include "../fx/samp.h"
+#include "../1.4/surface.h"
 
 #define AK_CUSTOM_TYPE_SURFACE 1
 
-typedef struct {
+typedef struct valpair {
   const char *key;
   AkTypeId    val;
   int         m; /* this is userData for _CUSTOM */
   int         n;
   int         size;
-} ak_value_pair;
+} valpair;
 
-static
-int
-valuePairCmp(const void *, const void *);
+static int valpair_cmp1(const void *, const void *);
+static int valpair_cmp2(const void *, const void *);
 
-static
-int
-valuePairCmp2(const void *, const void *);
-
-static ak_value_pair valueMap[] = {
+static valpair valmap[] = {
   {_s_dae_string,   AKT_STRING,   1, 1, sizeof(char *)},
   {_s_dae_bool,     AKT_BOOL,     1, 1, sizeof(bool)},
   {_s_dae_bool2,    AKT_BOOL2,    1, 2, sizeof(bool[2])},
@@ -54,34 +49,34 @@ static ak_value_pair valueMap[] = {
   {_s_dae_sampler_depth, AKT_SAMPLER_DEPTH, 1, 1, sizeof(AkSampler)},
 
   /* COLLADA 1.4 */
-//  {
-//    _s_dae_surface,
-//    AKT_CUSTOM,
-//    AK_CUSTOM_TYPE_SURFACE,
-//    1,
-//    sizeof(AkDae14Surface)
-//  },
+  {
+    _s_dae_surface,
+    AKT_CUSTOM,
+    AK_CUSTOM_TYPE_SURFACE,
+    1,
+    sizeof(AkDae14Surface)
+  },
 };
 
-static size_t valueMapLen = 0;
+static size_t valmapLen = 0;
 
 void _assetkit_hide
 dae_dtype(const char *typeName, AkTypeDesc *type) {
-  ak_value_pair *found;
+  valpair *found;
 
-  if (valueMapLen == 0) {
-    valueMapLen = AK_ARRAY_LEN(valueMap);
-    qsort(valueMap,
-          valueMapLen,
-          sizeof(valueMap[0]),
-          valuePairCmp);
+  if (valmapLen == 0) {
+    valmapLen = AK_ARRAY_LEN(valmap);
+    qsort(valmap,
+          valmapLen,
+          sizeof(valmap[0]),
+          valpair_cmp1);
   }
 
   found = bsearch(typeName,
-                  valueMap,
-                  valueMapLen,
-                  sizeof(valueMap[0]),
-                  valuePairCmp2);
+                  valmap,
+                  valmapLen,
+                  sizeof(valmap[0]),
+                  valpair_cmp2);
 
   if (!found) {
     type->typeId   = AKT_UNKNOWN;
@@ -95,161 +90,131 @@ dae_dtype(const char *typeName, AkTypeDesc *type) {
   type->typeName = found->key;
 }
 
-//AkResult _assetkit_hide
-//dae_value(AkXmlState * __restrict xst,
-//          void       * __restrict memParent,
-//          AkValue   ** __restrict dest) {
-//  AkValue       *val;
-//  ak_value_pair *found;
-//  AkXmlElmState  xest;
-//
-//  if (valueMapLen == 0) {
-//    valueMapLen = AK_ARRAY_LEN(valueMap);
-//    qsort(valueMap,
-//          valueMapLen,
-//          sizeof(valueMap[0]),
-//          valuePairCmp);
-//  }
-//
-//  found = bsearch(xst->nodeName,
-//                  valueMap,
-//                  valueMapLen,
-//                  sizeof(valueMap[0]),
-//                  valuePairCmp2);
-//
-//  if (!found) {
-//    *dest = NULL;
-//    return AK_EFOUND;
-//  }
-//
-//  val = ak_heap_calloc(xst->heap, memParent, sizeof(*val));
-//  val->type.size     = found->size;
-//  val->type.typeId   = found->val;
-//  val->type.typeName = found->key;
-//
-//  ak_xest_init(xest, found->key)
-//
-//  switch (found->val) {
-//    case AKT_STRING:
-//      val->value = ak_xml_val(xst, NULL);
-//      break;
-//    case AKT_BOOL:
-//    case AKT_BOOL2:
-//    case AKT_BOOL3:
-//    case AKT_BOOL4:{
-//      AkBool *boolVal;
-//      char   *nodeVal;
-//
-//      nodeVal = ak_xml_rawcval(xst);
-//      boolVal = ak_heap_calloc(xst->heap,
-//                               memParent,
-//                               sizeof(*boolVal) * found->m * found->n);
-//      ak_strtomb(&nodeVal, boolVal, found->m, found->n);
-//
-//      val->value = boolVal;
-//      break;
-//    }
-//    case AKT_INT:
-//    case AKT_INT2:
-//    case AKT_INT3:
-//    case AKT_INT4:{
-//      AkInt *intVal;
-//      char  *nodeVal;
-//
-//      nodeVal = ak_xml_rawcval(xst);
-//      intVal = ak_heap_calloc(xst->heap,
-//                              memParent,
-//                              sizeof(*intVal) * found->m * found->n);
-//      ak_strtomi(&nodeVal, intVal, found->m, found->n);
-//
-//      val->value = intVal;
-//      break;
-//    }
-//    case AKT_FLOAT:
-//    case AKT_FLOAT2:
-//    case AKT_FLOAT3:
-//    case AKT_FLOAT4:
-//    case AKT_FLOAT2x2:
-//    case AKT_FLOAT3x3:
-//    case AKT_FLOAT4x4:{
-//      AkFloat *floatVal;
-//      char    *nodeVal;
-//
-//      nodeVal  = ak_xml_rawcval(xst);
-//      floatVal = ak_heap_calloc(xst->heap,
-//                                memParent,
-//                                sizeof(*floatVal) * found->m * found->n);
-//      ak_strtomf(&nodeVal, floatVal, found->m, found->n);
-//
-//      val->value = floatVal;
-//      break;
-//    }
-//    case AKT_SAMPLER1D:
-//    case AKT_SAMPLER2D:
-//    case AKT_SAMPLER3D:
-//    case AKT_SAMPLER_CUBE:
-//    case AKT_SAMPLER_RECT:
-//    case AKT_SAMPLER_DEPTH: {
-//      AkSampler *sampler;
-//      AkResult   ret;
-//
-//      sampler = NULL;
-//      ret     = dae_fxSampler(xst, memParent, found->key, &sampler);
-//
-//      if (ret == AK_OK) {
-//        AkTexture *tex;
-//
-//        tex = ak_heap_calloc(xst->heap, memParent, sizeof(*tex));
-//        ak_setypeid(tex, AKT_TEXTURE);
-//
-//        tex->sampler = sampler;
-//        tex->type    = found->val;
-//        val->value   = tex;
-//      }
-//
-//      break;
-//    }
-//    case AKT_CUSTOM: {
-//      switch (found->m) {
-//        case AK_CUSTOM_TYPE_SURFACE: {
-//          AkDae14Surface *surface;
-//          AkResult        ret;
-//
-//          surface = NULL;
-//          ret = dae14_fxSurface(xst, memParent, &surface);
-//          if (ret == AK_OK)
-//            val->value = surface;
-//          break;
-//        }
-//      }
-//      break;
-//    }
-//    default:
-//      break;
-//  }
-//
-//  /* end element */
-//  ak_xml_end(&xest);
-//
-//  *dest = val;
-//
-//  return AK_OK;
-//}
+AkValue* _assetkit_hide
+dae_value(DAEState * __restrict dst,
+          xml_t    * __restrict xml,
+          void     * __restrict memp) {
+  AkHeap        *heap;
+  AkValue       *val;
+  valpair       *found;
+  char          *sval;
 
-static
-int
-valuePairCmp(const void * a, const void * b) {
-  const ak_value_pair * _a = a;
-  const ak_value_pair * _b = b;
+  heap = dst->heap;
+  xml  = xml->val;
+  sval = xml->val;
+  
+  if (valmapLen == 0) {
+    valmapLen = AK_ARRAY_LEN(valmap);
+    qsort(valmap, valmapLen, sizeof(valmap[0]), valpair_cmp1);
+  }
 
-  return strcmp(_a->key, _b->key);
+  memset((void *)(xml->tag + xml->tagsize), '\0', sizeof(char));
+  memset((void *)(sval + xml->valsize), '\0', sizeof(char));
+  
+  found = bsearch(xml->tag, valmap, valmapLen, sizeof(valmap[0]), valpair_cmp2);
+
+  if (!found)
+    return NULL;
+
+  val                = ak_heap_calloc(heap, memp, sizeof(*val));
+  val->type.size     = found->size;
+  val->type.typeId   = found->val;
+  val->type.typeName = found->key;
+
+  switch (found->val) {
+    case AKT_STRING:
+      val->value = xml_strdup(xml, heap, val);
+      break;
+    case AKT_BOOL:
+    case AKT_BOOL2:
+    case AKT_BOOL3:
+    case AKT_BOOL4:{
+      AkBool *boolVal;
+
+      boolVal = ak_heap_calloc(heap,
+                               val,
+                               sizeof(*boolVal) * found->m * found->n);
+      ak_strtomb(&sval, boolVal, found->m, found->n);
+
+      val->value = boolVal;
+      break;
+    }
+    case AKT_INT:
+    case AKT_INT2:
+    case AKT_INT3:
+    case AKT_INT4:{
+      AkInt *intVal;
+  
+      intVal = ak_heap_calloc(heap,
+                              memp,
+                              sizeof(*intVal) * found->m * found->n);
+      ak_strtomi(&sval, intVal, found->m, found->n);
+
+      val->value = intVal;
+      break;
+    }
+    case AKT_FLOAT:
+    case AKT_FLOAT2:
+    case AKT_FLOAT3:
+    case AKT_FLOAT4:
+    case AKT_FLOAT2x2:
+    case AKT_FLOAT3x3:
+    case AKT_FLOAT4x4:{
+      AkFloat *floatVal;
+
+      floatVal = ak_heap_calloc(heap,
+                                memp,
+                                sizeof(*floatVal) * found->m * found->n);
+      ak_strtomf(&sval, floatVal, found->m, found->n);
+
+      val->value = floatVal;
+      break;
+    }
+    case AKT_SAMPLER1D:
+    case AKT_SAMPLER2D:
+    case AKT_SAMPLER3D:
+    case AKT_SAMPLER_CUBE:
+    case AKT_SAMPLER_RECT:
+    case AKT_SAMPLER_DEPTH: {
+      AkSampler *sampler;
+
+      if ((sampler = dae_sampler(dst, xml, val))) {
+        AkTexture *tex;
+        
+        tex = ak_heap_calloc(heap, val, sizeof(*tex));
+        ak_setypeid(tex, AKT_TEXTURE);
+
+        tex->sampler = sampler;
+        tex->type    = found->val;
+        val->value   = tex;
+      }
+
+      break;
+    }
+    case AKT_CUSTOM: {
+      switch (found->m) {
+        case AK_CUSTOM_TYPE_SURFACE: {
+          val->value = dae14_surface(dst, xml, val);
+          break;
+        }
+      }
+      break;
+    }
+    default:
+      break;
+  }
+
+  return val;
 }
 
 static
 int
-valuePairCmp2(const void * a, const void * b) {
-  const char * _a = a;
-  const ak_value_pair * _b = b;
-  
-  return strcmp(_a, _b->key);
+valpair_cmp1(const void * a, const void * b) {
+  return strcmp(((const valpair *)a)->key, ((const valpair *)b)->key);
+}
+
+static
+int
+valpair_cmp2(const void * a, const void * b) {  
+  return strcmp(a, ((const valpair *)b)->key);
 }

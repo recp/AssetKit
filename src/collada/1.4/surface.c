@@ -10,15 +10,15 @@
 #include "../core/enum.h"
 
 AkDae14Surface* _assetkit_hide
-dae14_fxSurface(DAEState * __restrict dst,
-                xml_t    * __restrict xml,
-                void     * __restrict memp) {
+dae14_surface(DAEState * __restrict dst,
+              xml_t    * __restrict xml,
+              void     * __restrict memp) {
   AkHeap         *heap;
   AkDae14Surface *surf;
   xml_attr_t     *att;
   char           *sval;
 
-  heap    = dst->heap;
+  heap = dst->heap;
   surf = ak_heap_calloc(heap, memp, sizeof(*surf));
 
   xml = xml->val;
