@@ -42,7 +42,6 @@ dae_triangles(DAEState * __restrict dst,
       if (!inp->semanticRaw) {
         ak_free(inp);
       } else {
-        AkURL *url;
         AkEnum inputSemantic;
 
         inputSemantic = dae_semantic(inp->semanticRaw);
@@ -75,13 +74,6 @@ dae_triangles(DAEState * __restrict dst,
           tri->base.reserved2 = inp->set;
           ak_free(inp);
         }
-
-        url = url_from(xml, _s_dae_source, memp);
-        rb_insert(dst->inputmap, inp, url);
-
-        inp->next       = tri->base.input;
-        tri->base.input = inp;
-        tri->base.inputCount++;
       }
     } else if (xml_tag_eq(xml, _s_dae_p)) {
       AkUIntArray *uintArray;
