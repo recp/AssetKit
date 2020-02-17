@@ -13,15 +13,15 @@
 
 AK_INLINE
 char *
-xml_strdup(const xml_t * __restrict xobject,
+xml_strdup(const xml_t * __restrict xobj,
            AkHeap      * __restrict heap,
            void        * __restrict parent) {
   const char *s;
-  
-  if (!(s = xml_string(xobject)))
+
+  if (!(xobj = xobj->val) || !(s = xml_string(xobj)))
     return NULL;
 
-  return ak_heap_strndup(heap, parent, s, xobject->valsize);
+  return ak_heap_strndup(heap, parent, s, xobj->valsize);
 }
 
 AK_INLINE
