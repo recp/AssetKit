@@ -38,6 +38,7 @@ ak_getAssetInfo(void * __restrict obj,
 AK_EXPORT
 AkCoordSys*
 ak_getCoordSys(void * __restrict obj) {
+  /* TODO: return default coord sys if null */
   return ak_getAssetInfo(obj, offsetof(AkAssetInf, coordSys));
 }
 

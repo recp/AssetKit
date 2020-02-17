@@ -15,8 +15,8 @@ dae_asset(DAEState   * __restrict dst,
           AkAssetInf * __restrict inf) {
   AkHeap        *heap;
   xml_attr_t    *attr;
-  AkContributor *contrib;
-  xml_t         *xcontrib;
+  AkContributor *cont;
+  xml_t         *xcont;
   const char    *val;
 
   heap = dst->heap;
@@ -37,27 +37,27 @@ dae_asset(DAEState   * __restrict dst,
   xml = xml->val;
   while (xml) {
     if (xml_tag_eq(xml, _s_dae_contributor)) {
-      contrib  = ak_heap_calloc(heap, inf, sizeof(*contrib));
-      xcontrib = xml->val;
-      while (xcontrib) {
-        if (xml_tag_eq(xcontrib, _s_dae_author))
-          contrib->author = xml_strdup(xml, heap, inf);
-        else if (xml_tag_eq(xcontrib, _s_dae_author_email))
-          contrib->authorEmail = xml_strdup(xml, heap, inf);
-        else if (xml_tag_eq(xcontrib, _s_dae_author_website))
-          contrib->authorWebsite = xml_strdup(xml, heap, inf);
-        else if (xml_tag_eq(xcontrib, _s_dae_authoring_tool))
-          contrib->authoringTool = xml_strdup(xml, heap, inf);
-        else if (xml_tag_eq(xcontrib, _s_dae_comments))
-          contrib->comments = xml_strdup(xml, heap, inf);
-        else if (xml_tag_eq(xcontrib, _s_dae_copyright))
-          contrib->copyright = xml_strdup(xml, heap, inf);
-        else if (xml_tag_eq(xcontrib, _s_dae_source_data))
-          contrib->sourceData = xml_strdup(xml, heap, inf);
-        xcontrib = xcontrib->next;
+      cont  = ak_heap_calloc(heap, inf, sizeof(*cont));
+      xcont = xml->val;
+      while (xcont) {
+        if (xml_tag_eq(xcont, _s_dae_author))
+          cont->author = xml_strdup(xcont, heap, inf);
+        else if (xml_tag_eq(xcont, _s_dae_author_email))
+          cont->authorEmail = xml_strdup(xcont, heap, inf);
+        else if (xml_tag_eq(xcont, _s_dae_author_website))
+          cont->authorWebsite = xml_strdup(xcont, heap, inf);
+        else if (xml_tag_eq(xcont, _s_dae_authoring_tool))
+          cont->authoringTool = xml_strdup(xcont, heap, inf);
+        else if (xml_tag_eq(xcont, _s_dae_comments))
+          cont->comments = xml_strdup(xcont, heap, inf);
+        else if (xml_tag_eq(xcont, _s_dae_copyright))
+          cont->copyright = xml_strdup(xcont, heap, inf);
+        else if (xml_tag_eq(xcont, _s_dae_source_data))
+          cont->sourceData = xml_strdup(xcont, heap, inf);
+        xcont = xcont->next;
       }
     
-      inf->contributor = contrib;
+      inf->contributor = cont;
     } else if (xml_tag_eq(xml, _s_dae_created)) {
       if ((val = xml_string(xml))) {
         memset(&xml[xml->valsize], '\0', xml->valsize);
