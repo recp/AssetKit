@@ -31,7 +31,7 @@ dae_geom(DAEState * __restrict dst,
   ak_setypeid(geom, AKT_GEOMETRY);
   
   xml = xml->val;
-  /* geometry */
+
   while (xml) {
     if (xml_tag_eq(xml, _s_dae_asset)) {
       (void)dae_asset(dst, xml, geom, NULL);

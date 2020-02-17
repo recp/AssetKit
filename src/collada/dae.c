@@ -204,7 +204,7 @@ dae_lib(DAEState   * __restrict dst,
   xml = xml->val;
   while (xml) {
     if (xml_tag_eq(xml, name)) {
-      if ((it = loadfn(dst, xml->val, lib))) {
+      if ((it = loadfn(dst, xml, lib))) {
         it->next  = lib->chld;
         lib->chld = it;
         lib->count++;
