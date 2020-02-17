@@ -100,7 +100,6 @@ dae_value(DAEState * __restrict dst,
   char          *sval;
 
   heap = dst->heap;
-  xml  = xml->val;
   sval = xml->val;
   
   if (valmapLen == 0) {
