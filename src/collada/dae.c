@@ -128,11 +128,10 @@ dae_doc(AkDoc     ** __restrict dest,
       AkDocInf   *docInf;
 
       docInf = ak_heap_calloc(heap, doc, sizeof(*docInf));
-      inf    = dae_asset(dst, xml, &docInf->base, &docInf->base);
+      inf    = dae_asset(dst, xml, doc, &docInf->base);
 
       doc->coordSys = inf->coordSys;
       doc->unit     = inf->unit;
-
       doc->inf      = docInf;
     } else if (xml_tag_eq(xml, _s_dae_lib_cameras) && (xlib = xml->val)) {
       dae_lib(dst, xml, _s_dae_camera, dae_cam, &libs->cameras);
