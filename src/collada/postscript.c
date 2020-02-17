@@ -65,6 +65,15 @@ dae_postscript(DAEState * __restrict dst) {
 
   dae_fix_textures(dst);
   dae_fixAngles(dst);
+  
+  if (dst->doc && dst->doc->lib.visualScenes) {
+    for (AkVisualScene *vscn = (void *)dst->doc->lib.visualScenes->chld;
+         vscn;
+         vscn = (void *)vscn->base.next) {
+      if (ak_opt_get(AK_OPT_COORD_CONVERT_TYPE) != AK_COORD_CVT_DISABLED)
+        ak_fixSceneCoordSys(vscn);
+    }
+  }
 }
 
 void _assetkit_hide

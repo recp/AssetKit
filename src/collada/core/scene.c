@@ -90,9 +90,6 @@ dae_vscene(DAEState * __restrict dst,
     }
   }
 
-  if (ak_opt_get(AK_OPT_COORD_CONVERT_TYPE) != AK_COORD_CVT_DISABLED)
-    ak_fixSceneCoordSys(vscn);
-
   return vscn;
 }
 
