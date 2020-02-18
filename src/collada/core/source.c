@@ -25,8 +25,6 @@ dae_source(DAEState * __restrict dst,
   bool         isName;
 
   heap   = dst->heap;
-  xml    = xml->val;
-
   isName = false;
   buffer = NULL;
   source = ak_heap_calloc(heap, dst->tempmem, sizeof(*source));
