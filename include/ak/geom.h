@@ -123,7 +123,6 @@ typedef struct AkMeshEditHelper {
 typedef struct AkMesh {
   struct AkGeometry *geom;
   const char        *convexHullOf;
-  AkSource          *source;
   AkMeshPrimitive   *primitive;
   AkBoundingBox     *bbox;
   AkTree            *extra;
