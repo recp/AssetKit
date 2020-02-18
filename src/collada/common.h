@@ -130,15 +130,17 @@ AkURL*
 url_from(xml_t      * __restrict xml,
          const char * __restrict name,
          void       * __restrict memp) {
+  AkHeap     *heap;
   AkURL      *url;
-  xml_attr_t *attr;
-  char       *attrv;
+  xml_attr_t *att;
+  char       *attv;
 
-  if (!(attr = xmla(xml, name)) || !(attrv = (char *)attr->val))
+  if (!(att = xmla(xml, name)) || !(attv = (char *)att->val))
     return NULL;
   
-  url = ak_heap_calloc(ak_heap_getheap(memp), memp, sizeof(*url));
-  ak_url_init(memp, (char *)attrv, url);
+  heap = ak_heap_getheap(memp);
+  url  = ak_heap_calloc(heap, memp, sizeof(*url));
+  ak_url_init(memp, xmla_strdup(att, heap, memp), url);
   
   return url;
 }
