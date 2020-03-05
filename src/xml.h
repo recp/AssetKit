@@ -18,7 +18,7 @@ xml_strdup(const xml_t * __restrict xobj,
            void        * __restrict parent) {
   const char *s;
 
-  if (!(xobj = xobj->val) || !(s = xml_string(xobj)))
+  if (!(xobj = xobj->val) || !(s = xmls(xobj)))
     return NULL;
 
   return ak_heap_strndup(heap, parent, s, xobj->valsize);

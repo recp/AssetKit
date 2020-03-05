@@ -23,7 +23,7 @@ dae_color(xml_t   * __restrict xml,
   if (read_sid)
     sid_set(xml, heap, memp);
 
-  colorstr = (char *)xml_string(xml);
+  colorstr = (char *)xmls(xml);
   memset(colorstr + xml->valsize, '\0', 1);
 
   if (colorstr) {

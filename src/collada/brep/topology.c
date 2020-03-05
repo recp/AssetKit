@@ -23,7 +23,7 @@ dae_edges(DAEState * __restrict dst,
   xmla_setid(xml, heap, edges);
 
   edges->name  = xmla_strdup_by(xml, heap, _s_dae_name, edges);
-  edges->count = xmla_uint32(xmla(xml, _s_dae_count), 0);
+  edges->count = xmla_u32(xmla(xml, _s_dae_count), 0);
 
   xml = xml->val;
   while (xml) {
@@ -45,8 +45,8 @@ dae_edges(DAEState * __restrict dst,
           inputSemantic = AK_INPUT_SEMANTIC_OTHER;
         
         inp->semantic = inputSemantic;
-        inp->offset   = xmla_uint32(xmla(xml, _s_dae_offset), 0);
-        inp->set      = xmla_uint32(xmla(xml, _s_dae_set),    0);
+        inp->offset   = xmla_u32(xmla(xml, _s_dae_offset), 0);
+        inp->set      = xmla_u32(xmla(xml, _s_dae_set),    0);
         
         if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
           AkURL *url;
@@ -93,7 +93,7 @@ dae_wires(DAEState * __restrict dst,
   xmla_setid(xml, heap, wires);
 
   wires->name  = xmla_strdup_by(xml, heap, _s_dae_name, wires);
-  wires->count = xmla_uint32(xmla(xml, _s_dae_count), 0);
+  wires->count = xmla_u32(xmla(xml, _s_dae_count), 0);
 
   xml = xml->val;
   while (xml) {
@@ -115,8 +115,8 @@ dae_wires(DAEState * __restrict dst,
           inputSemantic = AK_INPUT_SEMANTIC_OTHER;
         
         inp->semantic = inputSemantic;
-        inp->offset   = xmla_uint32(xmla(xml, _s_dae_offset), 0);
-        inp->set      = xmla_uint32(xmla(xml, _s_dae_set),    0);
+        inp->offset   = xmla_u32(xmla(xml, _s_dae_offset), 0);
+        inp->set      = xmla_u32(xmla(xml, _s_dae_set),    0);
         
         if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
           AkURL *url;
@@ -170,7 +170,7 @@ dae_faces(DAEState * __restrict dst,
   xmla_setid(xml, heap, faces);
 
   faces->name  = xmla_strdup_by(xml, heap, _s_dae_name, faces);
-  faces->count = xmla_uint32(xmla(xml, _s_dae_count), 0);
+  faces->count = xmla_u32(xmla(xml, _s_dae_count), 0);
 
   xml = xml->val;
   while (xml) {
@@ -192,8 +192,8 @@ dae_faces(DAEState * __restrict dst,
           inputSemantic = AK_INPUT_SEMANTIC_OTHER;
         
         inp->semantic = inputSemantic;
-        inp->offset   = xmla_uint32(xmla(xml, _s_dae_offset), 0);
-        inp->set      = xmla_uint32(xmla(xml, _s_dae_set),    0);
+        inp->offset   = xmla_u32(xmla(xml, _s_dae_offset), 0);
+        inp->set      = xmla_u32(xmla(xml, _s_dae_set),    0);
         
         if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
           AkURL *url;
@@ -247,7 +247,7 @@ dae_pcurves(DAEState * __restrict dst,
   xmla_setid(xml, heap, pcurves);
 
   pcurves->name  = xmla_strdup_by(xml, heap, _s_dae_name, pcurves);
-  pcurves->count = xmla_uint32(xmla(xml, _s_dae_count), 0);
+  pcurves->count = xmla_u32(xmla(xml, _s_dae_count), 0);
 
   xml = xml->val;
   while (xml) {
@@ -269,8 +269,8 @@ dae_pcurves(DAEState * __restrict dst,
           inputSemantic = AK_INPUT_SEMANTIC_OTHER;
         
         inp->semantic = inputSemantic;
-        inp->offset   = xmla_uint32(xmla(xml, _s_dae_offset), 0);
-        inp->set      = xmla_uint32(xmla(xml, _s_dae_set),    0);
+        inp->offset   = xmla_u32(xmla(xml, _s_dae_offset), 0);
+        inp->set      = xmla_u32(xmla(xml, _s_dae_set),    0);
         
         if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
           AkURL *url;
@@ -324,7 +324,7 @@ dae_shells(DAEState * __restrict dst,
   xmla_setid(xml, heap, shells);
 
   shells->name  = xmla_strdup_by(xml, heap, _s_dae_name, shells);
-  shells->count = xmla_uint32(xmla(xml, _s_dae_count), 0);
+  shells->count = xmla_u32(xmla(xml, _s_dae_count), 0);
 
   xml = xml->val;
   while (xml) {
@@ -346,8 +346,8 @@ dae_shells(DAEState * __restrict dst,
           inputSemantic = AK_INPUT_SEMANTIC_OTHER;
         
         inp->semantic = inputSemantic;
-        inp->offset   = xmla_uint32(xmla(xml, _s_dae_offset), 0);
-        inp->set      = xmla_uint32(xmla(xml, _s_dae_set),    0);
+        inp->offset   = xmla_u32(xmla(xml, _s_dae_offset), 0);
+        inp->set      = xmla_u32(xmla(xml, _s_dae_set),    0);
         
         if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
           AkURL *url;
@@ -401,7 +401,7 @@ dae_solids(DAEState * __restrict dst,
   xmla_setid(xml, heap, solids);
 
   solids->name  = xmla_strdup_by(xml, heap, _s_dae_name, solids);
-  solids->count = xmla_uint32(xmla(xml, _s_dae_count), 0);
+  solids->count = xmla_u32(xmla(xml, _s_dae_count), 0);
 
   xml = xml->val;
   while (xml) {
@@ -423,8 +423,8 @@ dae_solids(DAEState * __restrict dst,
           inputSemantic = AK_INPUT_SEMANTIC_OTHER;
         
         inp->semantic = inputSemantic;
-        inp->offset   = xmla_uint32(xmla(xml, _s_dae_offset), 0);
-        inp->set      = xmla_uint32(xmla(xml, _s_dae_set),    0);
+        inp->offset   = xmla_u32(xmla(xml, _s_dae_offset), 0);
+        inp->set      = xmla_u32(xmla(xml, _s_dae_set),    0);
         
         if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
           AkURL *url;

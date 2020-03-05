@@ -123,7 +123,7 @@ dae_node(DAEState      * __restrict dst,
       
       obj->next             = node->transform->item;
       node->transform->item = obj;
-    } else if (xml_tag_eq(xml, _s_dae_skew) && (sval = xml->val)) {
+    } else if (xml_tag_eq(xml, _s_dae_skew) && (sval = xmls(xml))) {
       AkObject *obj;
       AkSkew   *skew;
       AkFloat   tmp[7];

@@ -23,8 +23,8 @@ dae_nurbs(DAEState * __restrict dst,
   obj   = ak_objAlloc(heap, memp, sizeof(*nurbs), 0, true);
   nurbs = ak_objGet(obj);
 
-  nurbs->degree = xmla_uint32(xmla(xml, _s_dae_degree), 0);
-  nurbs->closed = xmla_uint32(xmla(xml, _s_dae_closed), 0);
+  nurbs->degree = xmla_u32(xmla(xml, _s_dae_degree), 0);
+  nurbs->closed = xmla_u32(xmla(xml, _s_dae_closed), 0);
 
   xml = xml->val;
   while (xml) {
@@ -57,10 +57,10 @@ dae_nurbs_surface(DAEState * __restrict dst,
   obj   = ak_objAlloc(heap, memp, sizeof(*nurbsSurface), 0, true);
   nurbsSurface = ak_objGet(obj);
 
-  nurbsSurface->degree_u = xmla_uint32(xmla(xml, _s_dae_degree_u), 0);
-  nurbsSurface->degree_v = xmla_uint32(xmla(xml, _s_dae_degree_v), 0);
-  nurbsSurface->closed_u = xmla_uint32(xmla(xml, _s_dae_closed_u), 0);
-  nurbsSurface->closed_v = xmla_uint32(xmla(xml, _s_dae_closed_v), 0);
+  nurbsSurface->degree_u = xmla_u32(xmla(xml, _s_dae_degree_u), 0);
+  nurbsSurface->degree_v = xmla_u32(xmla(xml, _s_dae_degree_v), 0);
+  nurbsSurface->closed_u = xmla_u32(xmla(xml, _s_dae_closed_u), 0);
+  nurbsSurface->closed_v = xmla_u32(xmla(xml, _s_dae_closed_v), 0);
   
   xml = xml->val;
   while (xml) {

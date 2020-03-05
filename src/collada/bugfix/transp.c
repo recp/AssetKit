@@ -31,5 +31,5 @@ dae_bugfix_transp(AkTransparent * __restrict transp) {
         }
       }
     }
-  }
+  } /* _s_dae_sketchup */
 }

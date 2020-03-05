@@ -43,9 +43,9 @@ dae_source(DAEState * __restrict dst,
 
       if ((xacc = xml_elem(xml, _s_dae_accessor))) {
         acc         = ak_heap_calloc(heap, source, sizeof(*acc));
-        acc->count  = xmla_uint32(xmla(xacc, _s_dae_count),  0);
-        acc->offset = xmla_uint32(xmla(xacc, _s_dae_offset), 0);
-        acc->stride = xmla_uint32(xmla(xacc, _s_dae_stride), 1);
+        acc->count  = xmla_u32(xmla(xacc, _s_dae_count),  0);
+        acc->offset = xmla_u32(xmla(xacc, _s_dae_offset), 0);
+        acc->stride = xmla_u32(xmla(xacc, _s_dae_stride), 1);
 
         ak_setypeid(acc, AKT_ACCESSOR);
         url_set(dst, xacc, _s_dae_source, acc, &acc->source);
@@ -82,8 +82,8 @@ dae_source(DAEState * __restrict dst,
       tq->next          = source->technique;
       source->technique = tq;
     } else if (xml_valtype(xml) == XML_STRING
-               && (content = (char *)xml_string(xml))) {
-      count            = xmla_uint32(xmla(xml, _s_dae_count), 0);
+               && (content = (char *)xmls(xml))) {
+      count            = xmla_u32(xmla(xml, _s_dae_count), 0);
       buffer           = ak_heap_alloc(heap, source, sizeof(*buffer));
       buffer->name     = xmla_strdup_by(xml, heap, _s_dae_name, buffer);
       source->buffer   = buffer;

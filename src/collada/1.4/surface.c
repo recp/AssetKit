@@ -26,8 +26,8 @@ dae14_surface(DAEState * __restrict dst,
     if (xml_tag_eq(xml, _s_dae_init_from)) {
       AkDae14SurfaceFrom *initFrom;
       initFrom = ak_heap_calloc(heap, surf, sizeof(*heap));
-      initFrom->mip   = xmla_uint32(xmla(xml, _s_dae_mip),   0);
-      initFrom->slice = xmla_uint32(xmla(xml, _s_dae_slice), 0);
+      initFrom->mip   = xmla_u32(xmla(xml, _s_dae_mip),   0);
+      initFrom->slice = xmla_u32(xmla(xml, _s_dae_slice), 0);
       
       if ((att = xmla(xml, _s_dae_face))) {
         initFrom->face = dae_face(att);

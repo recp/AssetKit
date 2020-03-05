@@ -38,7 +38,7 @@ dae14_fxMigrateImg(DAEState * __restrict dst,
 
   format = xmla_strdup_by(xml, heap, _s_dae_format, img->initFrom);
   initFrom->mipsGenerate = false; /* 1.4's default, 1.5's is true */
-  initFrom->depth        = xmla_uint32(xmla(xml, _s_dae_depth), 0);
+  initFrom->depth        = xmla_u32(xmla(xml, _s_dae_depth), 0);
   
   xml = xml->val;
   while (xml) {

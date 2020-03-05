@@ -144,7 +144,7 @@ dae_instMaterial(DAEState * __restrict dst,
                                           mat);
 
       if ((att = xmla(xml, _s_dae_input_set)))
-        bvi->inputSet = xmla_uint32(att, 0);
+        bvi->inputSet = xmla_u32(att, 0);
       
       bvi->next            = mat->bindVertexInput;
       mat->bindVertexInput = bvi;

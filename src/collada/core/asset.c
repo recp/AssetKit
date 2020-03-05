@@ -59,12 +59,12 @@ dae_asset(DAEState   * __restrict dst,
     
       inf->contributor = cont;
     } else if (xml_tag_eq(xml, _s_dae_created)) {
-      if ((val = xml_string(xml))) {
+      if ((val = xmls(xml))) {
         memset(&xml[xml->valsize], '\0', xml->valsize);
         inf->created = ak_parse_date(val, NULL);
       }
     } else if (xml_tag_eq(xml, _s_dae_modified)) {
-      if ((val = xml_string(xml))) {
+      if ((val = xmls(xml))) {
         memset(&xml[xml->valsize], '\0', xml->valsize);
         inf->modified = ak_parse_date(val, NULL);
       }

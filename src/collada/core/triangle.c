@@ -27,7 +27,7 @@ dae_triangles(DAEState * __restrict dst,
 
   tri->base.name         = xmla_strdup_by(xml, heap, _s_dae_name, tri);
   tri->base.bindmaterial = xmla_strdup_by(xml, heap, _s_dae_name, tri);
-  tri->base.count        = xmla_uint32(xmla(xml, _s_dae_count), 0);
+  tri->base.count        = xmla_u32(xmla(xml, _s_dae_count), 0);
   
   indexoff = 0;
   xml      = xml->val;
@@ -51,8 +51,8 @@ dae_triangles(DAEState * __restrict dst,
           inputSemantic = AK_INPUT_SEMANTIC_OTHER;
 
         inp->semantic = inputSemantic;
-        inp->offset   = xmla_uint32(xmla(xml, _s_dae_offset), 0);
-        inp->set      = xmla_uint32(xmla(xml, _s_dae_set),    0);
+        inp->offset   = xmla_u32(xmla(xml, _s_dae_offset), 0);
+        inp->set      = xmla_u32(xmla(xml, _s_dae_set),    0);
 
         if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
           AkURL *url;
