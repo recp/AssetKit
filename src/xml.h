@@ -16,12 +16,24 @@ char *
 xml_strdup(const xml_t * __restrict xobj,
            AkHeap      * __restrict heap,
            void        * __restrict parent) {
-  const char *s;
+  char        *s, *p;
+  const xml_t *v;
+  size_t       len;
 
-  if (!(xobj = xobj->val) || !(s = xmls(xobj)))
+  if ((len = xmls_sumlen(xobj)) < 1)
     return NULL;
 
-  return ak_heap_strndup(heap, parent, s, xobj->valsize);
+  s = p = ak_heap_alloc(heap, parent, len);
+  v = xmls(xobj); /* because len > 0 */
+
+  do {
+    memcpy(p, v->val, v->valsize);
+    p += v->valsize;
+  } while ((v = xmls_next(v)));
+
+  s[len] = '\0';
+  
+  return s;
 }
 
 AK_INLINE

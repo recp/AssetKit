@@ -67,7 +67,7 @@ dae_doc(AkDoc     ** __restrict dest,
   if ((ret = ak_readfile(filepath, "rb", &xmlString, &xmlSize)) != AK_OK)
     return ret;
 
-  xdoc = xml_parse(xmlString, true, false);
+  xdoc = xml_parse(xmlString, XML_DEFAULTS);
   if (!xdoc || !(xml = xdoc->root)) {
     if (xdoc)
       free((void *)xdoc);
