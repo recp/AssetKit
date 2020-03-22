@@ -56,6 +56,18 @@ ak_strtoui_fast(char   * __restrict src,
 
 AK_EXPORT
 int
+ak_strtoi_fast(char  * __restrict src,
+               AkInt * __restrict dest,
+               unsigned long n);
+
+AK_EXPORT
+int
+ak_strtob_fast(char   * __restrict src,
+               AkBool * __restrict dest,
+               unsigned long n);
+
+AK_EXPORT
+int
 ak_strtod(char ** __restrict src,
           AkDouble * __restrict dest,
           unsigned long n);
