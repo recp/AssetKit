@@ -17,7 +17,7 @@ dae_asset(DAEState   * __restrict dst,
   xml_attr_t    *attr;
   AkContributor *cont;
   xml_t         *xcont;
-  const char    *val;
+  char          *val;
 
   heap = dst->heap;
 
@@ -59,14 +59,16 @@ dae_asset(DAEState   * __restrict dst,
     
       inf->contributor = cont;
     } else if (xml_tag_eq(xml, _s_dae_created)) {
-      if ((val = xmls(xml))) {
+      if ((val = xml_strdup(xml, heap, inf))) {
         memset(&xml[xml->valsize], '\0', xml->valsize);
         inf->created = ak_parse_date(val, NULL);
+        ak_free(val);
       }
     } else if (xml_tag_eq(xml, _s_dae_modified)) {
-      if ((val = xmls(xml))) {
+      if ((val = xml_strdup(xml, heap, inf))) {
         memset(&xml[xml->valsize], '\0', xml->valsize);
         inf->modified = ak_parse_date(val, NULL);
+        ak_free(val);
       }
     } else if (xml_tag_eq(xml, _s_dae_keywords)) {
       inf->keywords = xml_strdup(xml, heap, inf);
@@ -85,13 +87,14 @@ dae_asset(DAEState   * __restrict dst,
         inf->unit->dist = xmla_double(attr, 0.0);
       }
     } else if (xml_tag_eq(xml, _s_dae_axis)) {
-      if ((val = xml->val)) {
+      if ((val = xml_strdup(xml, heap, inf))) {
         if (strcasecmp(val, _s_dae_z_up) == 0)
           inf->coordSys = AK_ZUP;
         else if (strcasecmp(val, _s_dae_x_up) == 0)
           inf->coordSys = AK_XUP;
         else
           inf->coordSys = AK_YUP;
+        ak_free(val);
       }
     } else if (xml_tag_eq(xml, _s_dae_extra)) {
       inf->extra = tree_fromxml(heap, inf, xml);
@@ -103,6 +106,6 @@ dae_asset(DAEState   * __restrict dst,
   *(AkAssetInf **)ak_heap_ext_add(heap,
                                   ak__alignof(memp),
                                   AK_HEAP_NODE_FLAGS_INF) = inf;
-  
+
   return inf;
 }

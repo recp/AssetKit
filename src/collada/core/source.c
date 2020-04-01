@@ -20,7 +20,8 @@ dae_source(DAEState * __restrict dst,
   AkSource    *source;
   AkBuffer    *buffer;
   AkTechnique *tq;
-  char        *content;
+  const xml_t       *sval;
+  const char *content;
   uint32_t     count;
   bool         isName;
 
@@ -81,8 +82,7 @@ dae_source(DAEState * __restrict dst,
       tq                = dae_techn(xml, heap, source);
       tq->next          = source->technique;
       source->technique = tq;
-    } else if (xml_valtype(xml) == XML_STRING
-               && (content = (char *)xmls(xml))) {
+    } else if (xml_valtype(xml) == XML_STRING && (sval = xmls(xml))) {
       count            = xmla_u32(xmla(xml, _s_dae_count), 0);
       buffer           = ak_heap_alloc(heap, source, sizeof(*buffer));
       buffer->name     = xmla_strdup_by(xml, heap, _s_dae_name, buffer);
@@ -92,17 +92,19 @@ dae_source(DAEState * __restrict dst,
       
       if (xml_tag_eq(xml, _s_dae_float_array)) {
         buffer->length = sizeof(float) * count;
+        buffer->reserved = AKT_FLOAT;
         buffer->data   = ak_heap_alloc(heap, buffer, buffer->length);
-        ak_strtomf(&content, buffer->data, 1, count);
+        xml_strtof_fast(sval, buffer->data, count);
       } else if (xml_tag_eq(xml, _s_dae_int_array)) {
         buffer->length   = sizeof(uint32_t) * count;
         buffer->reserved = AKT_INT;
         buffer->data     = ak_heap_alloc(heap, buffer, buffer->length);
-        ak_strtomi(&content, buffer->data, 1, count);
+        xml_strtoi_fast(sval, buffer->data, count);
       } else if (xml_tag_eq(xml, _s_dae_bool_array)) {
         buffer->length = sizeof(bool) * count;
+        buffer->reserved = AKT_BOOL;
         buffer->data   = ak_heap_alloc(heap, buffer, buffer->length);
-        ak_strtomb(&content, buffer->data, 1, count);
+        xml_strtob_fast(sval, buffer->data, count);
       } else if (xml_tag_eq(xml, _s_dae_IDREF_array)
                  || xml_tag_eq(xml, _s_dae_Name_array)
                  || xml_tag_eq(xml, _s_dae_SIDREF_array)
@@ -123,6 +125,7 @@ dae_source(DAEState * __restrict dst,
           AkEnum enumValue;
           
           buffer->length = enumLen * count;
+          buffer->reserved = AKT_STRING;
           buffer->data   = ak_heap_alloc(heap, buffer, buffer->length);
           pData          = buffer->data;
           

@@ -14,18 +14,18 @@ dae_floatOrParam(DAEState * __restrict dst,
                  void     * __restrict memp) {
   AkHeap         *heap;
   AkFloatOrParam *flt;
-  char           *sval;
+  const xml_t    *sval;
 
   heap = dst->heap;
   flt  = ak_heap_calloc(heap, memp, sizeof(*flt));
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_float) && (sval = xml->val)) {
+    if (xml_tag_eq(xml, _s_dae_float) && (sval = xmls(xml))) {
       float *valuef;
       
       valuef  = ak_heap_calloc(heap, flt, sizeof(*valuef));
-      *valuef = strtof(sval, NULL);
+      xml_strtof_fast(sval, valuef, 1);
       
       sid_set(xml, heap, valuef);
       

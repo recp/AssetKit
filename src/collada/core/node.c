@@ -29,10 +29,10 @@ dae_node(DAEState      * __restrict dst,
          xml_t         * __restrict xml,
          void          * __restrict memp,
          AkVisualScene * __restrict scene) {
-  AkHeap     *heap;
-  AkNode     *node;
-  char       *sval;
-  xml_attr_t *att;
+  AkHeap      *heap;
+  AkNode      *node;
+  const xml_t *sval;
+  xml_attr_t  *att;
 
   heap = dst->heap;
   node = ak_heap_calloc(heap, memp, sizeof(*node));
@@ -59,7 +59,7 @@ dae_node(DAEState      * __restrict dst,
   while (xml) {
     if (xml_tag_eq(xml, _s_dae_asset)) {
       (void)dae_asset(dst, xml, node, NULL);
-    } else if (xml_tag_eq(xml, _s_dae_lookat) && (sval = xml->val)) {
+    } else if (xml_tag_eq(xml, _s_dae_lookat) && (sval = xmls(xml))) {
       AkObject *obj;
       AkLookAt *looakAt;
       
@@ -67,14 +67,14 @@ dae_node(DAEState      * __restrict dst,
       looakAt = ak_objGet(obj);
       
       sid_set(xml, heap, obj);
-      ak_strtof(&sval, (float *)looakAt->val, 9);
+      xml_strtof_fast(sval, (float *)looakAt->val, 9);
       
       if (!node->transform)
         node->transform = ak_heap_calloc(heap, node, sizeof(*node->transform));
       
       obj->next             = node->transform->item;
       node->transform->item = obj;
-    } else if (xml_tag_eq(xml, _s_dae_matrix) && (sval = xml->val)) {
+    } else if (xml_tag_eq(xml, _s_dae_matrix) && (sval = xmls(xml))) {
       mat4      transform;
       AkObject *obj;
       AkMatrix *matrix;
@@ -84,7 +84,7 @@ dae_node(DAEState      * __restrict dst,
       matrix = ak_objGet(obj);
 
       sid_set(xml, heap, obj);
-      ak_strtof(&sval, transform[0], 16);
+      xml_strtof_fast(sval, transform[0], 16);
       glm_mat4_transpose_to(transform, matrix->val);
   
       if (!node->transform)
@@ -92,7 +92,7 @@ dae_node(DAEState      * __restrict dst,
 
       obj->next             = node->transform->item;
       node->transform->item = obj;
-    } else if (xml_tag_eq(xml, _s_dae_rotate) && (sval = xml->val)) {
+    } else if (xml_tag_eq(xml, _s_dae_rotate) && (sval = xmls(xml))) {
       AkObject *obj;
       AkRotate *rotate;
       
@@ -100,7 +100,7 @@ dae_node(DAEState      * __restrict dst,
       rotate = ak_objGet(obj);
       
       sid_set(xml, heap, obj);
-      ak_strtof(&sval, (AkFloat *)rotate->val, 4);
+      xml_strtof_fast(sval, (AkFloat *)rotate->val, 4);
       glm_make_rad(&rotate->val[3]);
       
       if (!node->transform)
@@ -108,7 +108,7 @@ dae_node(DAEState      * __restrict dst,
       
       obj->next             = node->transform->item;
       node->transform->item = obj;
-    } else if (xml_tag_eq(xml, _s_dae_scale) && (sval = xml->val)) {
+    } else if (xml_tag_eq(xml, _s_dae_scale) && (sval = xmls(xml))) {
       AkObject *obj;
       AkScale  *scale;
       
@@ -116,7 +116,7 @@ dae_node(DAEState      * __restrict dst,
       scale = ak_objGet(obj);
       
       sid_set(xml, heap, obj);
-      ak_strtof(&sval, (AkFloat *)scale->val, 3);
+      xml_strtof_fast(sval, (AkFloat *)scale->val, 3);
       
       if (!node->transform)
         node->transform = ak_heap_calloc(heap, node, sizeof(*node->transform));
@@ -132,7 +132,7 @@ dae_node(DAEState      * __restrict dst,
       skew = ak_objGet(obj);
       
       sid_set(xml, heap, obj);
-      ak_strtof(&sval, (AkFloat *)tmp, 4);
+      xml_strtof_fast(sval, (AkFloat *)tmp, 4);
       
       /* COLLADA uses degree here, convert it to radians */
       skew->angle = glm_rad(tmp[0]);
@@ -144,7 +144,7 @@ dae_node(DAEState      * __restrict dst,
       
       obj->next             = node->transform->item;
       node->transform->item = obj;
-    } else if (xml_tag_eq(xml, _s_dae_translate) && (sval = xml->val)) {
+    } else if (xml_tag_eq(xml, _s_dae_translate) && (sval = xmls(xml))) {
       AkObject    *obj;
       AkTranslate *transl;
       
@@ -152,7 +152,7 @@ dae_node(DAEState      * __restrict dst,
       transl = ak_objGet(obj);
       
       sid_set(xml, heap, obj);
-      ak_strtof(&sval, (AkFloat *)transl->val, 4);
+      xml_strtof_fast(sval, (AkFloat *)transl->val, 4);
       
       if (!node->transform)
         node->transform = ak_heap_calloc(heap, node, sizeof(*node->transform));
@@ -194,9 +194,10 @@ dae_node(DAEState      * __restrict dst,
       
       xinstctl           = xml->val;
       while (xinstctl) {
-        if (xml_tag_eq(xinstctl, _s_dae_skeleton) && (sval = xinstctl->val)) {
-          if ((sval = xml_strdup(xinstctl, heap, instctl)))
-            flist_sp_insert(&instctl->reserved, sval);
+        if (xml_tag_eq(xinstctl, _s_dae_skeleton) && (sval = xmls(xinstctl))) {
+          char *skel;
+          if ((skel = xml_strdup(xinstctl, heap, instctl)))
+            flist_sp_insert(&instctl->reserved, skel);
         } else if (xml_tag_eq(xinstctl, _s_dae_bind_material)) {
           instctl->bindMaterial = dae_bindMaterial(dst, xinstctl, instctl);
         } else if (xml_tag_eq(xinstctl, _s_dae_extra)) {

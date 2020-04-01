@@ -75,16 +75,13 @@ dae_lines(DAEState * __restrict dst,
           ak_free(inp);
         }
       }
-    } else if (xml_tag_eq(xml, _s_dae_p)) {
+    } else if (xml_tag_eq(xml, _s_dae_p) && xml->val) {
       AkUIntArray *uintArray;
-      char        *content;
-      
-      if ((content = xml->val)) {
-        AkResult ret;
-        ret = ak_strtoui_array(heap, lines, content, &uintArray);
-        if (ret == AK_OK)
-          lines->base.indices = uintArray;
-      }
+      AkResult     ret;
+
+      ret = xml_strtoui_array(heap, lines, xml->val, &uintArray);
+      if (ret == AK_OK)
+        lines->base.indices = uintArray;
     } else if (xml_tag_eq(xml, _s_dae_extra)) {
       lines->base.extra = tree_fromxml(heap, lines, xml);
     }

@@ -37,6 +37,158 @@ xml_strdup(const xml_t * __restrict xobj,
 }
 
 AK_INLINE
+int
+xml_strtof_fast(const xml_t * __restrict xobj,
+                AkFloat * __restrict dest,
+                unsigned long        n) {
+  const xml_t   *v;
+  unsigned long rem;
+  
+//  if (!(v = xmls(xobj)))
+//    return 0;
+
+  v = xobj;
+  while ((rem = ak_strtof_fast(v->val, dest, n)) > 0
+         && (v = xmls_next(v))
+         && (dest += n - rem));
+  
+  return (int)rem;
+}
+
+AK_INLINE
+int
+xml_strtoui_fast(const xml_t  * __restrict xobj,
+                 AkUInt * __restrict dest,
+                 unsigned long       n) {
+  const xml_t   *v;
+  unsigned long rem;
+  
+//  if (!(v = xmls(xobj)))
+//    return 0;
+  v = xobj;
+  while ((rem = ak_strtoui_fast(v->val, dest, n)) > 0
+         && (dest += n - rem)
+         && (v = xmls_next(v)));
+
+  return (int)rem;
+}
+
+AK_INLINE
+int
+xml_strtoi_fast(const xml_t * __restrict xobj,
+                AkInt * __restrict dest,
+                unsigned long      n) {
+  const xml_t  *v;
+  unsigned long rem;
+  
+//  if (!(v = xmls(xobj)))
+//    return 0;
+  v = xobj;
+  while ((rem = ak_strtoi_fast(v->val, dest, n)) > 0
+         && (dest += n - rem)
+         && (v = xmls_next(v)));
+
+  /*
+  do {
+    s     = v->val;
+    rem   = ak_strtoi_fast(s, dest, n);
+    dest += n - rem;
+  } while (rem > 0 && (v = xmls_next(v)));
+  */
+
+  return (int)rem;
+}
+
+AK_INLINE
+int
+xml_strtob_fast(const xml_t  * __restrict xobj,
+                AkBool * __restrict dest,
+                unsigned long       n) {
+  const xml_t  *v;
+  unsigned long rem;
+//
+//  if (!(v = xmls(xobj)))
+//    return 0;
+  v = xobj;
+  while ((rem = ak_strtob_fast(v->val, dest, n)) > 0
+         && (dest += n - rem)
+         && (v = xmls_next(v)));
+
+  return (int)rem;
+}
+
+AK_INLINE
+size_t
+xml_strtok_count_fast(const xml_t  * __restrict xobj, size_t * __restrict len) {
+  const xml_t *v, *p;
+  size_t       count, len_total, l;
+  
+//  if (!(v = xmls(xobj)))
+//    return 0;
+  
+  v = xobj;
+
+  len_total = 0;
+  count     = 0;
+  p         = v;
+
+  do {
+    count     += ak_strtok_count_fast(p->val, &l);
+    len_total += l;
+  } while ((p = xmls_next(p)));
+
+  if (len)
+    *len = len_total;
+
+  return count;
+}
+
+AK_INLINE
+AkResult
+xml_strtof_arrayL(AkHeap         * __restrict heap,
+                  void           * __restrict memp,
+                  const xml_t    * __restrict xobj,
+                  AkFloatArrayL ** __restrict array) {
+  AkFloatArrayL *arr;
+  size_t         count;
+
+  if ((count = xml_strtok_count_fast(xobj, NULL)) == 0)
+    return AK_ERR;
+
+  arr = ak_heap_alloc(heap, memp, sizeof(*arr) + sizeof(AkFloat) * count);
+  xml_strtof_fast(xobj, arr->items, count);
+
+  arr->count = count;
+  arr->next  = NULL;
+
+  *array = arr;
+
+  return AK_OK;
+}
+
+AK_INLINE
+AkResult
+xml_strtoui_array(AkHeap       * __restrict heap,
+                  void         * __restrict memp,
+                  const xml_t  * __restrict xobj,
+                  AkUIntArray ** __restrict array) {
+  AkUIntArray *arr;
+  size_t       count;
+
+  if ((count = xml_strtok_count_fast(xobj, NULL)) == 0)
+    return AK_ERR;
+
+  arr = ak_heap_alloc(heap, memp, sizeof(*arr) + sizeof(AkUInt) * count);
+  xml_strtoui_fast(xobj, arr->items, count);
+
+  arr->count = count;
+
+  *array = arr;
+
+  return AK_OK;
+}
+
+AK_INLINE
 char *
 xmla_strdup(const xml_attr_t * __restrict attr,
             AkHeap           * __restrict heap,

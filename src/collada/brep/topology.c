@@ -13,9 +13,9 @@ AkEdges* _assetkit_hide
 dae_edges(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp) {
-  AkHeap  *heap;
-  AkEdges *edges;
-  char    *sval;
+  AkHeap      *heap;
+  AkEdges     *edges;
+  const xml_t *sval;
 
   heap  = dst->heap;
   edges = ak_heap_calloc(heap, memp, sizeof(*edges));
@@ -63,11 +63,11 @@ dae_edges(DAEState * __restrict dst,
           ak_free(inp);
         }
       }
-    } else if (xml_tag_eq(xml, _s_dae_p) && (sval = xml->val)) {
+    } else if (xml_tag_eq(xml, _s_dae_p) && (sval = xmls(xml))) {
       AkUIntArray *prims;
       AkResult     ret;
       
-      ret = ak_strtoui_array(heap, edges, sval, &prims);
+      ret = xml_strtoui_array(heap, edges, sval, &prims);
       if (ret == AK_OK)
         edges->primitives = prims;
     } else if (xml_tag_eq(xml, _s_dae_extra)) {
@@ -83,9 +83,9 @@ AkWires* _assetkit_hide
 dae_wires(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp) {
-  AkHeap  *heap;
-  AkWires *wires;
-  char    *sval;
+  AkHeap      *heap;
+  AkWires     *wires;
+  const xml_t *sval;
 
   heap  = dst->heap;
   wires = ak_heap_calloc(heap, memp, sizeof(*wires));
@@ -133,18 +133,18 @@ dae_wires(DAEState * __restrict dst,
           ak_free(inp);
         }
       }
-    } else if (xml_tag_eq(xml, _s_dae_vcount) && (sval = xml->val)) {
+    } else if (xml_tag_eq(xml, _s_dae_vcount) && (sval = xmls(xml))) {
       AkUIntArray *vcount;
       AkResult     ret;
       
-      ret = ak_strtoui_array(heap, wires, sval, &vcount);
+      ret = xml_strtoui_array(heap, wires, sval, &vcount);
       if (ret == AK_OK)
         wires->vcount = vcount;
-    } else if (xml_tag_eq(xml, _s_dae_p) && (sval = xml->val)) {
+    } else if (xml_tag_eq(xml, _s_dae_p) && (sval = xmls(xml))) {
       AkUIntArray *prims;
       AkResult     ret;
       
-      ret = ak_strtoui_array(heap, wires, sval, &prims);
+      ret = xml_strtoui_array(heap, wires, sval, &prims);
       if (ret == AK_OK)
         wires->primitives = prims;
     } else if (xml_tag_eq(xml, _s_dae_extra)) {
@@ -160,9 +160,9 @@ AkFaces* _assetkit_hide
 dae_faces(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp) {
-  AkHeap  *heap;
-  AkFaces *faces;
-  char    *sval;
+  AkHeap      *heap;
+  AkFaces     *faces;
+  const xml_t *sval;
 
   heap  = dst->heap;
   faces = ak_heap_calloc(heap, memp, sizeof(*faces));
@@ -210,18 +210,18 @@ dae_faces(DAEState * __restrict dst,
           ak_free(inp);
         }
       }
-    } else if (xml_tag_eq(xml, _s_dae_vcount) && (sval = xml->val)) {
+    } else if (xml_tag_eq(xml, _s_dae_vcount) && (sval = xmls(xml))) {
       AkUIntArray *vcount;
       AkResult     ret;
       
-      ret = ak_strtoui_array(heap, faces, sval, &vcount);
+      ret = xml_strtoui_array(heap, faces, sval, &vcount);
       if (ret == AK_OK)
         faces->vcount = vcount;
-    } else if (xml_tag_eq(xml, _s_dae_p) && (sval = xml->val)) {
+    } else if (xml_tag_eq(xml, _s_dae_p) && (sval = xmls(xml))) {
       AkUIntArray *prims;
       AkResult     ret;
       
-      ret = ak_strtoui_array(heap, faces, sval, &prims);
+      ret = xml_strtoui_array(heap, faces, sval, &prims);
       if (ret == AK_OK)
         faces->primitives = prims;
     } else if (xml_tag_eq(xml, _s_dae_extra)) {
@@ -237,9 +237,9 @@ AkPCurves* _assetkit_hide
 dae_pcurves(DAEState * __restrict dst,
             xml_t    * __restrict xml,
             void     * __restrict memp) {
-  AkHeap    *heap;
-  AkPCurves *pcurves;
-  char      *sval;
+  AkHeap      *heap;
+  AkPCurves   *pcurves;
+  const xml_t *sval;
 
   heap  = dst->heap;
   pcurves = ak_heap_calloc(heap, memp, sizeof(*pcurves));
@@ -287,18 +287,18 @@ dae_pcurves(DAEState * __restrict dst,
           ak_free(inp);
         }
       }
-    } else if (xml_tag_eq(xml, _s_dae_vcount) && (sval = xml->val)) {
+    } else if (xml_tag_eq(xml, _s_dae_vcount) && (sval = xmls(xml))) {
       AkUIntArray *vcount;
       AkResult     ret;
       
-      ret = ak_strtoui_array(heap, pcurves, sval, &vcount);
+      ret = xml_strtoui_array(heap, pcurves, sval, &vcount);
       if (ret == AK_OK)
         pcurves->vcount = vcount;
-    } else if (xml_tag_eq(xml, _s_dae_p) && (sval = xml->val)) {
+    } else if (xml_tag_eq(xml, _s_dae_p) && (sval = xmls(xml))) {
       AkUIntArray *prims;
       AkResult     ret;
       
-      ret = ak_strtoui_array(heap, pcurves, sval, &prims);
+      ret = xml_strtoui_array(heap, pcurves, sval, &prims);
       if (ret == AK_OK)
         pcurves->primitives = prims;
     } else if (xml_tag_eq(xml, _s_dae_extra)) {
@@ -314,9 +314,9 @@ AkShells* _assetkit_hide
 dae_shells(DAEState * __restrict dst,
            xml_t    * __restrict xml,
            void     * __restrict memp) {
-  AkHeap   *heap;
-  AkShells *shells;
-  char     *sval;
+  AkHeap      *heap;
+  AkShells    *shells;
+  const xml_t *sval;
 
   heap  = dst->heap;
   shells = ak_heap_calloc(heap, memp, sizeof(*shells));
@@ -364,18 +364,18 @@ dae_shells(DAEState * __restrict dst,
           ak_free(inp);
         }
       }
-    } else if (xml_tag_eq(xml, _s_dae_vcount) && (sval = xml->val)) {
+    } else if (xml_tag_eq(xml, _s_dae_vcount) && (sval = xmls(xml))) {
       AkUIntArray *vcount;
       AkResult     ret;
       
-      ret = ak_strtoui_array(heap, shells, sval, &vcount);
+      ret = xml_strtoui_array(heap, shells, sval, &vcount);
       if (ret == AK_OK)
         shells->vcount = vcount;
-    } else if (xml_tag_eq(xml, _s_dae_p) && (sval = xml->val)) {
+    } else if (xml_tag_eq(xml, _s_dae_p) && (sval = xmls(xml))) {
       AkUIntArray *prims;
       AkResult     ret;
       
-      ret = ak_strtoui_array(heap, shells, sval, &prims);
+      ret = xml_strtoui_array(heap, shells, sval, &prims);
       if (ret == AK_OK)
         shells->primitives = prims;
     } else if (xml_tag_eq(xml, _s_dae_extra)) {
@@ -391,9 +391,9 @@ AkSolids* _assetkit_hide
 dae_solids(DAEState * __restrict dst,
            xml_t    * __restrict xml,
            void     * __restrict memp){
-  AkHeap   *heap;
-  AkSolids *solids;
-  char     *sval;
+  AkHeap      *heap;
+  AkSolids    *solids;
+  const xml_t *sval;
 
   heap  = dst->heap;
   solids = ak_heap_calloc(heap, memp, sizeof(*solids));
@@ -441,18 +441,18 @@ dae_solids(DAEState * __restrict dst,
           ak_free(inp);
         }
       }
-    } else if (xml_tag_eq(xml, _s_dae_vcount) && (sval = xml->val)) {
+    } else if (xml_tag_eq(xml, _s_dae_vcount) && (sval = xmls(xml))) {
       AkUIntArray *vcount;
       AkResult     ret;
       
-      ret = ak_strtoui_array(heap, solids, sval, &vcount);
+      ret = xml_strtoui_array(heap, solids, sval, &vcount);
       if (ret == AK_OK)
         solids->vcount = vcount;
-    } else if (xml_tag_eq(xml, _s_dae_p) && (sval = xml->val)) {
+    } else if (xml_tag_eq(xml, _s_dae_p) && (sval = xmls(xml))) {
       AkUIntArray *prims;
       AkResult     ret;
       
-      ret = ak_strtoui_array(heap, solids, sval, &prims);
+      ret = xml_strtoui_array(heap, solids, sval, &prims);
       if (ret == AK_OK)
         solids->primitives = prims;
     } else if (xml_tag_eq(xml, _s_dae_extra)) {

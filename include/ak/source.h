@@ -89,6 +89,7 @@ typedef struct AkSource {
   const char         *name;
   AkBuffer           *buffer;
   AkAccessor         *tcommon;
+  
   struct AkTechnique *technique;
   struct AkSource    *next;
   int32_t             target;

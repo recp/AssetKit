@@ -75,16 +75,13 @@ dae_triangles(DAEState * __restrict dst,
           ak_free(inp);
         }
       }
-    } else if (xml_tag_eq(xml, _s_dae_p)) {
+    } else if (xml_tag_eq(xml, _s_dae_p) && xml->val) {
       AkUIntArray *uintArray;
-      char        *content;
+      AkResult     ret;
       
-      if ((content = xml->val)) {
-        AkResult ret;
-        ret = ak_strtoui_array(heap, tri, content, &uintArray);
-        if (ret == AK_OK)
-          tri->base.indices = uintArray;
-      }
+      ret = xml_strtoui_array(heap, tri, xml->val, &uintArray);
+      if (ret == AK_OK)
+        tri->base.indices = uintArray;
     } else if (xml_tag_eq(xml, _s_dae_extra)) {
       tri->base.extra = tree_fromxml(heap, tri, xml);
     }

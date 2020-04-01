@@ -13,10 +13,10 @@ AkCurve* _assetkit_hide
 dae_curve(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp) {
-  AkHeap        *heap;
-  AkObject      *obj;
-  AkCurve       *curve;
-  char          *sval;
+  AkHeap      *heap;
+  AkObject    *obj;
+  AkCurve     *curve;
+  const xml_t *sval;
 
   heap  = dst->heap;
   curve = ak_heap_calloc(heap, memp, sizeof(*curve));
@@ -32,11 +32,10 @@ dae_curve(DAEState * __restrict dst,
       line  = ak_objGet(obj);
       
       while (xline) {
-        if (xml_tag_eq(xline, _s_dae_origin) && (sval = xline->val)) {
-          ak_strtof(&sval, line->origin, 3);
-        } else if (xml_tag_eq(xline, _s_dae_direction)
-                   && (sval = xline->val)) {
-          ak_strtof(&sval, line->direction, 3);
+        if (xml_tag_eq(xline, _s_dae_origin) && (sval = xmls(xline))) {
+          xml_strtof_fast(sval, line->origin, 3);
+        } else if (xml_tag_eq(xline, _s_dae_direction) && (sval = xmls(xline))) {
+          xml_strtof_fast(sval, line->direction, 3);
         } else if (xml_tag_eq(xline, _s_dae_extra)) {
           line->extra = tree_fromxml(heap, obj, xml);
         }
@@ -72,8 +71,8 @@ dae_curve(DAEState * __restrict dst,
       ell  = ak_objGet(obj);
       
       while (xell) {
-        if (xml_tag_eq(xell, _s_dae_radius) && (sval = xell->val)) {
-          ak_strtof(&sval, (AkFloat *)&ell->radius, 2);
+        if (xml_tag_eq(xell, _s_dae_radius) && (sval = xmls(xell))) {
+          xml_strtof_fast(sval, (AkFloat *)&ell->radius, 2);
         } else if (xml_tag_eq(xell, _s_dae_extra)) {
           ell->extra = tree_fromxml(heap, obj, xml);
         }
@@ -112,8 +111,8 @@ dae_curve(DAEState * __restrict dst,
       hpar  = ak_objGet(obj);
       
       while (xhpar) {
-        if (xml_tag_eq(xhpar, _s_dae_radius) && (sval = xhpar->val)) {
-          ak_strtof(&sval, (AkFloat *)&hpar->radius, 2);
+        if (xml_tag_eq(xhpar, _s_dae_radius) && (sval = xmls(xhpar))) {
+          xml_strtof_fast(sval, (AkFloat *)&hpar->radius, 2);
         } else if (xml_tag_eq(xhpar, _s_dae_extra)) {
           hpar->extra = tree_fromxml(heap, obj, xml);
         }
@@ -123,17 +122,17 @@ dae_curve(DAEState * __restrict dst,
       curve->curve = obj;
     } else if (xml_tag_eq(xml, _s_dae_nurbs)) {
       curve->curve = dae_nurbs(dst, xml, curve);
-    } else if (xml_tag_eq(xml, _s_dae_orient) && (sval = xml->val)) {
+    } else if (xml_tag_eq(xml, _s_dae_orient) && (sval = xmls(xml))) {
       AkFloatArrayL *orient;
       AkResult       ret;
       
-      ret = ak_strtof_arrayL(heap, curve, sval, &orient);
+      ret = xml_strtof_arrayL(heap, curve, sval, &orient);
       if (ret == AK_OK) {
         orient->next  = curve->orient;
         curve->orient = orient;
       }
-    } else if (xml_tag_eq(xml, _s_dae_origin) && (sval = xml->val)) {
-      ak_strtof(&sval, curve->origin, 3);
+    } else if (xml_tag_eq(xml, _s_dae_origin) && (sval = xmls(xml))) {
+      xml_strtof_fast(sval, curve->origin, 3);
     }
     xml = xml->next;
   }

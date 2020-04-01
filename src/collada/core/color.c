@@ -14,25 +14,19 @@ dae_color(xml_t   * __restrict xml,
           bool                 stack,
           AkColor * __restrict dest) {
   AkHeap *heap;
-  char   *colorstr;
   void   *memp;
+  int     c;
 
   heap = ak_heap_getheap(memparent);
   memp = stack ? memparent : dest;
 
   if (read_sid)
     sid_set(xml, heap, memp);
-
-  colorstr = (char *)xmls(xml);
-  memset(colorstr + xml->valsize, '\0', 1);
-
-  if (colorstr) {
-    int c;
-    c = ak_strtof4(&colorstr, &dest->vec);
-    if (c > 0) {
-      do {
-        dest->vec[4 - c--] = 1.0f;
-      } while (c > 0);
-    }
+  
+  c = xml_strtof_fast(xml, dest->vec, 4);
+  if (c > 0) {
+    do {
+      dest->vec[4 - c--] = 1.0f;
+    } while (c > 0);
   }
 }

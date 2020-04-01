@@ -44,6 +44,9 @@ ak_instanceMake(AkHeap * __restrict heap,
 AK_EXPORT
 void *
 ak_instanceObject(AkInstanceBase *instanceBase) {
+  if (!instanceBase)
+    return NULL;
+
   if (!instanceBase->object)
     instanceBase->object = ak_getObjectByUrl(&instanceBase->url);
 

@@ -160,6 +160,9 @@ dae_fixup_accessors(DAEState * __restrict dst) {
       acc->byteStride = acc->stride * itemSize;
       acc->byteLength = acc->count  * acc->stride * itemSize;
       acc->byteOffset = acc->offset * itemSize;
+      acc->bound = acc->stride; /* TODO: will be removed soon */
+      
+      acc->componentBytes = acc->type->size;
     }
 
   cont:

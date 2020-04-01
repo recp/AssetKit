@@ -14,11 +14,11 @@ AkObject* _assetkit_hide
 dae_skin(DAEState * __restrict dst,
          xml_t    * __restrict xml,
          void     * __restrict memp) {
-  AkHeap   *heap;
-  AkObject *obj;
-  AkSkin   *skin;
-  char     *sval;
-  bool      foundBindShape;
+  AkHeap      *heap;
+  AkObject    *obj;
+  AkSkin      *skin;
+  const xml_t *sval;
+  bool         foundBindShape;
 
   heap           = dst->heap;
   obj            = ak_objAlloc(heap,
@@ -33,8 +33,8 @@ dae_skin(DAEState * __restrict dst,
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_bind_shape_matrix) && (sval = xml->val)) {
-      ak_strtof(&sval, skin->bindShapeMatrix[0], 16);
+    if (xml_tag_eq(xml, _s_dae_bind_shape_matrix) && (sval = xmls(xml))) {
+      xml_strtof_fast(sval, skin->bindShapeMatrix[0], 16);
       glm_mat4_transpose(skin->bindShapeMatrix);
       foundBindShape = true;
     } else if (xml_tag_eq(xml, _s_dae_source)) {
@@ -133,11 +133,11 @@ dae_skin(DAEState * __restrict dst,
             
             skin->reserved2++;
           }
-        } else if (xml_tag_eq(xwei, _s_dae_vcount) && (sval = xwei->val)) {
+        } else if (xml_tag_eq(xwei, _s_dae_vcount) && (sval = xmls(xwei))) {
           size_t    count, sz, i;
           uint32_t *pSum, *pCount, next;
           
-          if ((count = ak_strtok_count_fast(sval, NULL)) > 0) {
+          if ((count = xml_strtok_count_fast(sval, NULL)) > 0) {
             sz = count * sizeof(uint32_t);
             
             /*
@@ -154,7 +154,7 @@ dae_skin(DAEState * __restrict dst,
             /* must equal to position count, we may fix this in postscript */
             wei->nVertex = count;
             
-            ak_strtoui_fast(sval, pCount, count);
+            xml_strtoui_fast(sval, pCount, count);
             
             /* calculate sum */
             pSum = wei->counts + count;
@@ -163,11 +163,11 @@ dae_skin(DAEState * __restrict dst,
               next    = pCount[i] + next;
             }
           }
-        } else if (xml_tag_eq(xwei, _s_dae_v) && (sval = xwei->val)) {
+        } else if (xml_tag_eq(xwei, _s_dae_v) && (sval = xmls(xwei))) {
           AkUIntArray *intArray;
           AkResult     ret;
           
-          ret = ak_strtoui_array(heap, wei, sval, &intArray);
+          ret = xml_strtoui_array(heap, wei, sval, &intArray);
           if (ret == AK_OK)
             skin->reserved[4] = intArray;
         } else if (xml_tag_eq(xwei, _s_dae_extra)) {

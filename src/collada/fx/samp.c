@@ -18,9 +18,9 @@ AkSampler*
 dae_sampler(DAEState * __restrict dst,
             xml_t    * __restrict xml,
             void     * __restrict memp) {
-  AkHeap    *heap;
-  AkSampler *samp;
-  char      *sval;
+  AkHeap      *heap;
+  AkSampler   *samp;
+  const xml_t *sval;
 
   heap = dst->heap;
   samp = ak_heap_calloc(heap, memp, sizeof(*samp));
@@ -28,7 +28,7 @@ dae_sampler(DAEState * __restrict dst,
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_source) && (sval = xml->val)) {
+    if (xml_tag_eq(xml, _s_dae_source) && (sval = xmls(xml))) {
       /* COLLADA 1.4 uses source -> <surface> for texturing */
       if (dst->version < AK_COLLADA_VERSION_150) {
         dae14_loadjobs_add(dst,

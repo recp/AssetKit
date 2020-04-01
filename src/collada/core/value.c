@@ -97,18 +97,18 @@ dae_value(DAEState * __restrict dst,
   AkHeap        *heap;
   AkValue       *val;
   valpair       *found;
-  char          *sval;
+  const xml_t   *sval;
 
   heap = dst->heap;
-  sval = xml->val;
+  sval = xmls(xml);
   
   if (valmapLen == 0) {
     valmapLen = AK_ARRAY_LEN(valmap);
     qsort(valmap, valmapLen, sizeof(valmap[0]), valpair_cmp1);
   }
 
-  memset((void *)(xml->tag + xml->tagsize), '\0', sizeof(char));
-  memset((void *)(sval + xml->valsize), '\0', sizeof(char));
+//  memset((void *)(xml->tag + xml->tagsize), '\0', sizeof(char));
+//  memset((void *)(sval + xml->valsize), '\0', sizeof(char));
   
   found = bsearch(xml->tag, valmap, valmapLen, sizeof(valmap[0]), valpair_cmp2);
 
@@ -133,7 +133,7 @@ dae_value(DAEState * __restrict dst,
       boolVal = ak_heap_calloc(heap,
                                val,
                                sizeof(*boolVal) * found->m * found->n);
-      ak_strtomb(&sval, boolVal, found->m, found->n);
+      xml_strtob_fast(sval, boolVal, found->m * found->n);
 
       val->value = boolVal;
       break;
@@ -147,7 +147,7 @@ dae_value(DAEState * __restrict dst,
       intVal = ak_heap_calloc(heap,
                               memp,
                               sizeof(*intVal) * found->m * found->n);
-      ak_strtomi(&sval, intVal, found->m, found->n);
+      xml_strtoi_fast(sval, intVal, found->m * found->n);
 
       val->value = intVal;
       break;
@@ -164,7 +164,7 @@ dae_value(DAEState * __restrict dst,
       floatVal = ak_heap_calloc(heap,
                                 memp,
                                 sizeof(*floatVal) * found->m * found->n);
-      ak_strtomf(&sval, floatVal, found->m, found->n);
+      xml_strtof_fast(sval, floatVal, found->m * found->n);
 
       val->value = floatVal;
       break;

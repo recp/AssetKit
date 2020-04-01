@@ -80,29 +80,22 @@ dae_poly(DAEState * __restrict dst,
           ak_free(inp);
         }
       }
-    } else if (xml_tag_eq(xml, _s_dae_p)) {
+    } else if (xml_tag_eq(xml, _s_dae_p) && xml->val) {
       AkUIntArray *intArray;
-      char        *content;
       
-      if ((content = xml->val)) {
-        if ((ak_strtoui_array(heap, poly, content, &intArray) == AK_OK)) {
-          if (mode == AK_POLY_POLYLIST) {
-            poly->base.indices = intArray;
-          } else if (mode == AK_POLY_POLYGONS) {
-            flist_sp_insert(&polyi, intArray);
-            polygonsCount++;
-            indicesCount += intArray->count;
-          }
+      if ((xml_strtoui_array(heap, poly, xml->val, &intArray) == AK_OK)) {
+        if (mode == AK_POLY_POLYLIST) {
+          poly->base.indices = intArray;
+        } else if (mode == AK_POLY_POLYGONS) {
+          flist_sp_insert(&polyi, intArray);
+          polygonsCount++;
+          indicesCount += intArray->count;
         }
       }
-    } else if (xml_tag_eq(xml, _s_dae_vcount)) {
+    } else if (xml_tag_eq(xml, _s_dae_vcount) && xml->val) {
       AkUIntArray *intArray;
-      char        *content;
-      
-      if ((content = xml->val)) {
-        if ((ak_strtoui_array(heap, poly, content, &intArray) == AK_OK)) {
-          poly->vcount = intArray;
-        }
+      if ((xml_strtoui_array(heap, poly, xml->val, &intArray) == AK_OK)) {
+        poly->vcount = intArray;
       }
     } else if (xml_tag_eq(xml, _s_dae_vcount)) {
       /* TODO: */
