@@ -9,31 +9,6 @@
 #include <string.h>
 
 AkResult _assetkit_hide
-ak_strtof_arrayL(AkHeap         * __restrict heap,
-                 void           * __restrict memParent,
-                 char                       *content,
-                 AkFloatArrayL ** __restrict array) {
-  AkFloatArrayL *arr;
-  size_t         count;
-
-  count = ak_strtok_count_fast(content, NULL);
-  if (count == 0)
-    return AK_ERR;
-
-  arr = ak_heap_alloc(heap,
-                      memParent,
-                      sizeof(*arr)
-                      + sizeof(AkFloat) * count);
-  ak_strtof_fast(content, arr->items, count);
-  arr->count = count;
-  arr->next  = NULL;
-
-  *array = arr;
-
-  return AK_OK;
-}
-
-AkResult _assetkit_hide
 ak_strtod_array(AkHeap         * __restrict heap,
                 void           * __restrict memParent,
                 char                       *content,
@@ -51,31 +26,6 @@ ak_strtod_array(AkHeap         * __restrict heap,
                       + sizeof(AkDouble) * count);
   ak_strtod_fast(content, arr->items, count);
   arr->count = count;
-
-  *array = arr;
-
-  return AK_OK;
-}
-
-AkResult _assetkit_hide
-ak_strtod_arrayL(AkHeap          * __restrict heap,
-                 void            * __restrict memParent,
-                 char                        *content,
-                 AkDoubleArrayL ** __restrict array) {
-  AkDoubleArrayL *arr;
-  size_t          count;
-
-  count = ak_strtok_count_fast(content, NULL);
-  if (count == 0)
-    return AK_ERR;
-
-  arr = ak_heap_alloc(heap,
-                      memParent,
-                      sizeof(*arr)
-                      + sizeof(AkDouble) * count);
-  ak_strtod_fast(content, arr->items, count);
-  arr->count = count;
-  arr->next  = NULL;
 
   *array = arr;
 
