@@ -15,6 +15,9 @@ dae_semantic(const char * name) {
   AkEnum val;
   long   glenums_len, i;
 
+  if (!name)
+    return AK_INPUT_SEMANTIC_OTHER;
+  
   dae_enum glenums[] = {
     {"BINORMAL",        AK_INPUT_SEMANTIC_BINORMAL},
     {"COLOR",           AK_INPUT_SEMANTIC_COLOR},
@@ -60,6 +63,9 @@ dae_morphMethod(const xml_attr_t * __restrict xatt) {
   AkEnum val;
   long   glenums_len, i;
 
+  if (!xatt)
+    return AK_MORPH_METHOD_NORMALIZED;
+  
   dae_enum glenums[] = {
     {"NORMALIZED", AK_MORPH_METHOD_NORMALIZED},
     {"RELATIVE",   AK_MORPH_METHOD_RELATIVE},
@@ -82,6 +88,9 @@ AkEnum _assetkit_hide
 dae_nodeType(const xml_attr_t * __restrict xatt) {
   AkEnum val;
   long   glenums_len, i;
+  
+  if (!xatt)
+    return AK_NODE_TYPE_NODE;
 
   dae_enum glenums[] = {
     {"NODE",  AK_NODE_TYPE_NODE},
@@ -106,6 +115,9 @@ dae_animBehavior(const xml_attr_t * __restrict xatt) {
   AkEnum val;
   long   glenums_len, i;
 
+  if (!xatt)
+    return AK_SAMPLER_BEHAVIOR_UNDEFINED;
+  
   dae_enum glenums[] = {
     {"UNDEFINED",      AK_SAMPLER_BEHAVIOR_UNDEFINED},
     {"CONSTANT",       AK_SAMPLER_BEHAVIOR_CONSTANT},
@@ -133,6 +145,9 @@ dae_animInterp(const char * name) {
   AkEnum val;
   long   glenums_len, i;
 
+  if (!name)
+    return AK_INTERPOLATION_LINEAR;
+  
   dae_enum glenums[] = {
     {"LINEAR",   AK_INTERPOLATION_LINEAR},
     {"BEZIER",   AK_INTERPOLATION_BEZIER},
@@ -160,6 +175,9 @@ dae_wrap(const xml_t * __restrict xml) {
   AkEnum val;
   long   glenums_len, i;
 
+  if (!xml)
+    return 0;
+  
   dae_enum glenums[] = {
     {"WRAP",        AK_WRAP_MODE_WRAP},
     {"CLAMP",       AK_WRAP_MODE_CLAMP},
@@ -186,6 +204,9 @@ dae_minfilter(const xml_t * __restrict xml) {
   AkEnum val;
   long   glenums_len, i;
 
+  if (!xml)
+    return 0;
+  
   dae_enum glenums[] = {
     {"NEAREST",     AK_MINFILTER_NEAREST},
     {"LINEAR",      AK_MINFILTER_LINEAR},
@@ -210,6 +231,9 @@ dae_mipfilter(const xml_t * __restrict xml) {
   AkEnum val;
   long   glenums_len, i;
 
+  if (!xml)
+    return 0;
+  
   dae_enum glenums[] = {
     {"NONE",    AK_MIPFILTER_NONE},
     {"NEAREST", AK_MIPFILTER_NEAREST},
@@ -234,6 +258,9 @@ dae_magfilter(const xml_t * __restrict xml) {
   AkEnum val;
   long   glenums_len, i;
 
+  if (!xml)
+    return 0;
+  
   dae_enum glenums[] = {
     {"NEAREST", AK_MAGFILTER_NEAREST},
     {"LINEAR",  AK_MAGFILTER_LINEAR}
@@ -257,6 +284,9 @@ dae_face(const xml_attr_t * __restrict xatt) {
   AkEnum val;
   long   glenums_len, i;
 
+  if (!xatt)
+    return 0;
+  
   dae_enum glenums[] = {
     {"POSITIVE_X", AK_FACE_POSITIVE_X},
     {"NEGATIVE_X", AK_FACE_NEGATIVE_X},
@@ -284,6 +314,9 @@ dae_opaque(const xml_attr_t * __restrict xatt) {
   AkEnum val;
   long  glenums_len, i;
 
+  if (!xatt)
+    return AK_OPAQUE_A_ONE;
+  
   dae_enum glenums[] = {
     {"A_ONE",    AK_OPAQUE_A_ONE},
     {"RGB_ZERO", AK_OPAQUE_RGB_ZERO},
@@ -309,6 +342,9 @@ dae_enumChannel(const char *name, size_t len) {
   AkEnum val;
   long   glenums_len, i;
 
+  if (!name)
+    return 0;
+  
   dae_enum glenums[] = {
     {"RGB",  AK_CHANNEL_FORMAT_RGB},
     {"RGBA", AK_CHANNEL_FORMAT_RGBA},
@@ -340,6 +376,9 @@ dae_range(const char *name, size_t len) {
   AkEnum val;
   long   glenums_len, i;
 
+  if (!name)
+    return 0;
+  
   dae_enum glenums[] = {
     {"SNORM", AK_RANGE_FORMAT_SNORM},
     {"UNORM", AK_RANGE_FORMAT_UNORM},
@@ -365,6 +404,9 @@ AkEnum _assetkit_hide
 dae_precision(const char *name, size_t len) {
   AkEnum val;
   long   glenums_len, i;
+
+  if (!name)
+    return 0;
 
   dae_enum glenums[] = {
     {"DEFAULT", AK_PRECISION_FORMAT_DEFAULT},
