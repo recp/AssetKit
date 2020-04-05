@@ -11,18 +11,6 @@
 #include "../include/ak/assetkit.h"
 
 AkResult _assetkit_hide
-ak_strtod_array(AkHeap         * __restrict heap,
-                void           * __restrict memParent,
-                char                       *content,
-                AkDoubleArray ** __restrict array);
-
-AkResult _assetkit_hide
-ak_strtoui_array(AkHeap       * __restrict heap,
-                 void         * __restrict memParent,
-                 char                     *content,
-                 AkUIntArray ** __restrict array);
-
-AkResult _assetkit_hide
 ak_strtostr_array(AkHeap         * __restrict heap,
                   void           * __restrict memParent,
                   char                       *content,
