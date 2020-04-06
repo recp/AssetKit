@@ -13,9 +13,9 @@ dae_color(xml_t   * __restrict xml,
           bool                 read_sid,
           bool                 stack,
           AkColor * __restrict dest) {
-  AkHeap *heap;
-  void   *memp;
-  int     c;
+  AkHeap       *heap;
+  void         *memp;
+  unsigned long c;
 
   heap = ak_heap_getheap(memparent);
   memp = stack ? memparent : dest;
@@ -23,7 +23,8 @@ dae_color(xml_t   * __restrict xml,
   if (read_sid)
     sid_set(xml, heap, memp);
   
-  c = xml_strtof_fast(xml, dest->vec, 4);
+  c = xml_strtof_fast(xml->val, dest->vec, 4);
+  
   if (c > 0) {
     do {
       dest->vec[4 - c--] = 1.0f;

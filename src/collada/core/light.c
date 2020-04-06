@@ -108,7 +108,7 @@ dae_light(DAEState * __restrict dst,
       }
 
       if ((xcolor = xml_elem(xtech, _s_dae_color))) {
-        dae_color(xtech, lightb, true, true, &lightb->color);
+        dae_color(xcolor, lightb, true, true, &lightb->color);
       } else {
         glm_vec4_one(lightb->color.vec);
       }
