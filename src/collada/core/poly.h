@@ -11,8 +11,8 @@
 #include "../common.h"
 
 typedef enum AkPolygonMode {
-  AK_POLY_POLYLIST = 0,
-  AK_POLY_POLYGONS = 1
+  AK_POLY_POLYLIST = 1,
+  AK_POLY_POLYGONS = 2
 } AkPolygonMode;
 
 _assetkit_hide
