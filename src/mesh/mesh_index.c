@@ -84,7 +84,9 @@ ak_primFixIndices(AkMesh          *mesh,
                   AkMeshPrimitive *prim) {
   AkDuplicator *dupl;
 
-  if (!prim->indices || !(dupl = ak_meshDuplicatorForIndices(mesh, prim)))
+  if ((prim->indexStride == 1)
+      || !prim->indices
+      || !(dupl = ak_meshDuplicatorForIndices(mesh, prim)))
     return AK_ERR;
 
   ak_meshFixIndexBuffer(mesh, prim, dupl);
