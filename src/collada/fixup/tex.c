@@ -28,9 +28,9 @@ dae_tex_walk(RBTree * __restrict tree, RBNode * __restrict rbnode) {
   AkInstanceBase  *instanceImage;
   AkContext        actx = {0};
 
-  cd     = rbnode->key;
-  dtex   = rbnode->val;
-  heap   = ak_heap_getheap(cd);
+  cd       = rbnode->key;
+  dtex     = rbnode->val;
+  heap     = ak_heap_getheap(cd);
   
   actx.doc = ak_heap_data(heap);
 
@@ -54,4 +54,7 @@ dae_tex_walk(RBTree * __restrict tree, RBNode * __restrict rbnode) {
   texref->coordInputName = ak_heap_strdup(heap, texref, "TEXCOORD");
   tex->image             = image;
   cd->texture            = texref;
+  
+  if (dtex->texcoord)
+    texref->texcoord = ak_heap_strdup(heap, texref, dtex->texcoord);
 }

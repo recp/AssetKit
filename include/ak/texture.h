@@ -73,13 +73,9 @@ typedef struct AkTexture {
 
 typedef struct AkTextureRef {
   struct AkTexture *texture;
-  /* struct AkInput   *coordInput; */
+  const char       *texcoord; /* to bind texture to input coord dynamically */
   const char       *coordInputName;
   int               slot;
-  
-//  /* TODO: WILL BE DELETED */
-//  const char       *texcoord;
-//  void             *extra;
 } AkTextureRef;
 
 #endif /* ak_texture_h */
