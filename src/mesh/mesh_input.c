@@ -83,6 +83,18 @@ ak_inputNameIndexed(AkInput * __restrict input,
     strcpy(buf, input->semanticRaw);
 }
 
+void
+ak_inputNameBySet(AkInput * __restrict input,
+                  char    * __restrict buf) {
+  if (!input->semanticRaw)
+    return;
+
+  if (input->set > 0)
+    sprintf(buf, "%s%d", input->semanticRaw, input->set);
+  else
+    strcpy(buf, input->semanticRaw);
+}
+
 AkInput*
 ak_meshInputGet(AkMeshPrimitive *prim,
                 const char      *inputSemantic,
