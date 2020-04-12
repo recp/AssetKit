@@ -82,6 +82,7 @@ dae_doc(AkDoc     ** __restrict dest,
   doc->inf->dir       = ak_path_dir(heap, doc, filepath);
   doc->inf->flipImage = true;
   doc->inf->ftype     = AK_FILE_TYPE_COLLADA;
+  doc->coordSys       = AK_YUP; /* Default */
 
   /* for fixing skin and morph vertices */
   doc->reserved = rb_newtree_ptr();
@@ -125,14 +126,11 @@ dae_doc(AkDoc     ** __restrict dest,
   while (xml) {
     if (xml_tag_eq(xml, _s_dae_asset)) {
       AkAssetInf *inf;
-      AkDocInf   *docInf;
 
-      docInf = ak_heap_calloc(heap, doc, sizeof(*docInf));
-      inf    = dae_asset(dst, xml, doc, &docInf->base);
-
-      doc->coordSys = inf->coordSys;
-      doc->unit     = inf->unit;
-      doc->inf      = docInf;
+      if ((inf = dae_asset(dst, xml, doc, &doc->inf->base))) {
+        doc->coordSys = inf->coordSys;
+        doc->unit     = inf->unit;
+      }
     } else if (xml_tag_eq(xml, _s_dae_lib_cameras)) {
       dae_lib(dst, xml, _s_dae_camera, dae_cam, &libs->cameras);
     } else if (xml_tag_eq(xml, _s_dae_lib_lights)) {

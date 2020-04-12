@@ -84,7 +84,7 @@ dae_bindMaterial(DAEState * __restrict dst,
               bindmat->tcommon->base.prev = &imat->base;
               imat->base.next             = &bindmat->tcommon->base;
             }
-            
+
             bindmat->tcommon = imat;
           }
         }
