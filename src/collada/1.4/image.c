@@ -29,7 +29,7 @@ dae14_fxMigrateImg(DAEState * __restrict dst,
     lib = ak_libImageFirstOrCreat(doc);
 
   img           = ak_heap_calloc(heap, lib, sizeof(*img));
-  initFrom      = ak_heap_alloc(heap, img, sizeof(*img->initFrom));
+  initFrom      = ak_heap_calloc(heap, img, sizeof(*img->initFrom));
   img->initFrom = initFrom;
 
   xmla_setid(xml, heap, img);
