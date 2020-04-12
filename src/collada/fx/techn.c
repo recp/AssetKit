@@ -43,10 +43,10 @@ dae_techniqueFx(DAEState * __restrict dst,
   while (xml) {
     if (xml_tag_eq(xml, _s_dae_asset)) {
       (void)dae_asset(dst, xml, techn, NULL);
-    } else if ((xml_tag_eq(xml, _s_dae_phong)   & (m = AK_MATERIAL_PHONG))
-           || (xml_tag_eq(xml, _s_dae_blinn)    & (m = AK_MATERIAL_BLINN))
-           || (xml_tag_eq(xml, _s_dae_lambert)  & (m = AK_MATERIAL_LAMBERT))
-           || (xml_tag_eq(xml, _s_dae_constant) & (m = AK_MATERIAL_CONSTANT))) {
+    } else if ((xml_tag_eq(xml, _s_dae_phong)   && (m = AK_MATERIAL_PHONG))
+           || (xml_tag_eq(xml, _s_dae_blinn)    && (m = AK_MATERIAL_BLINN))
+           || (xml_tag_eq(xml, _s_dae_lambert)  && (m = AK_MATERIAL_LAMBERT))
+           || (xml_tag_eq(xml, _s_dae_constant) && (m = AK_MATERIAL_CONSTANT))) {
       techn->common = dae_techniqueFxCmn(dst, xml, techn, m);
     } else if (dst->version < AK_COLLADA_VERSION_150
                && xml_tag_eq(xml, _s_dae_image)) {
