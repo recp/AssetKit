@@ -20,7 +20,7 @@ xml_strdup(const xml_t * __restrict xobj,
   if ((len = xmls_sumlen(xobj)) < 1)
     return NULL;
 
-  s = p = ak_heap_alloc(heap, parent, len + 1);
+  s = p = ak_heap_alloc(heap, parent, len);
   v = xmls(xobj); /* because len > 0 */
 
   do {
@@ -28,7 +28,7 @@ xml_strdup(const xml_t * __restrict xobj,
     p += v->valsize;
   } while ((v = xmls_next(v)));
 
-  s[len] = '\0';
+  s[len - 1] = '\0';
   
   return s;
 }
