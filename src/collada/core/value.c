@@ -21,6 +21,7 @@ typedef struct valpair {
 
 static int valpair_cmp1(const void *, const void *);
 static int valpair_cmp2(const void *, const void *);
+static int valpair_cmpxt(const void *, const void *);
 
 static valpair valmap[] = {
   {_s_dae_string,   AKT_STRING,   1, 1, sizeof(char *)},
@@ -106,11 +107,8 @@ dae_value(DAEState * __restrict dst,
     valmapLen = AK_ARRAY_LEN(valmap);
     qsort(valmap, valmapLen, sizeof(valmap[0]), valpair_cmp1);
   }
-
-//  memset((void *)(xml->tag + xml->tagsize), '\0', sizeof(char));
-//  memset((void *)(sval + xml->valsize), '\0', sizeof(char));
   
-  found = bsearch(xml->tag, valmap, valmapLen, sizeof(valmap[0]), valpair_cmp2);
+  found = bsearch(xml, valmap, valmapLen, sizeof(valmap[0]), valpair_cmpxt);
 
   if (!found)
     return NULL;
@@ -216,4 +214,9 @@ static
 int
 valpair_cmp2(const void * a, const void * b) {  
   return strcmp(a, ((const valpair *)b)->key);
+}
+
+static int
+valpair_cmpxt(const void *a, const void *b) {
+  return xml_tag_cmp(a, ((const valpair *)b)->key);
 }
