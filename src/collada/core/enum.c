@@ -75,7 +75,7 @@ dae_morphMethod(const xml_attr_t * __restrict xatt) {
   glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
-    if (strncasecmp(xatt->val, glenums[i].name, xatt->valsize)) {
+    if (strncasecmp(xatt->val, glenums[i].name, xatt->valsize) == 0) {
       val = glenums[i].val;
       break;
     }
@@ -101,7 +101,7 @@ dae_nodeType(const xml_attr_t * __restrict xatt) {
   glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
-    if (strncasecmp(xatt->val, glenums[i].name, xatt->valsize)) {
+    if (strncasecmp(xatt->val, glenums[i].name, xatt->valsize) == 0) {
       val = glenums[i].val;
       break;
     }
@@ -131,7 +131,7 @@ dae_animBehavior(const xml_attr_t * __restrict xatt) {
   glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
-    if (strncasecmp(xatt->val, glenums[i].name, xatt->valsize)) {
+    if (strncasecmp(xatt->val, glenums[i].name, xatt->valsize) == 0) {
       val = glenums[i].val;
       break;
     }
@@ -300,7 +300,7 @@ dae_face(const xml_attr_t * __restrict xatt) {
   glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
-    if (strncasecmp(xatt->val, glenums[i].name, xatt->valsize)) {
+    if (strncasecmp(xatt->val, glenums[i].name, xatt->valsize) == 0) {
       val = glenums[i].val;
       break;
     }
@@ -328,7 +328,7 @@ dae_opaque(const xml_attr_t * __restrict xatt) {
   glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
-    if (strncasecmp(xatt->val, glenums[i].name, xatt->valsize)) {
+    if (strncasecmp(xatt->val, glenums[i].name, xatt->valsize) == 0) {
       val = glenums[i].val;
       break;
     }
@@ -362,7 +362,7 @@ dae_enumChannel(const char *name, size_t len) {
   glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
-    if (strncasecmp(name, glenums[i].name, len)) {
+    if (strncasecmp(name, glenums[i].name, len) == 0) {
       val = glenums[i].val;
       break;
     }
@@ -391,7 +391,7 @@ dae_range(const char *name, size_t len) {
   glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
-    if (strncasecmp(name, glenums[i].name, len)) {
+    if (strncasecmp(name, glenums[i].name, len) == 0) {
       val = glenums[i].val;
       break;
     }
@@ -420,7 +420,7 @@ dae_precision(const char *name, size_t len) {
   glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
-    if (strncasecmp(name, glenums[i].name, len)) {
+    if (strncasecmp(name, glenums[i].name, len) == 0) {
       val = glenums[i].val;
       break;
     }
