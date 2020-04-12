@@ -44,11 +44,10 @@ ak_meshIndicesArrayFor(AkMesh          * __restrict mesh,
       count = prim->indices->count / prim->indexStride;
     } else {
       AkAccessor *posacc;
-      AkBuffer   *posbuff;
 
       if (!prim->pos
           || !(posacc  = prim->pos->accessor)
-          || !(posbuff = posacc->buffer))
+          || !posacc->buffer)
         return NULL;
 
       count = posacc->bound * posacc->count;

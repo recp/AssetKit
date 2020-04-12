@@ -22,12 +22,11 @@ ak_movePositions(AkMesh          *mesh,
   AkSourceEditHelper *srch;
   AkSourceBuffState  *buffstate;
   AkAccessor         *acc, *newacc;
-  AkDataParam        *dparam;
   AkUIntArray        *dupc, *dupcsum;
   AkBuffer           *oldbuff, *newbuff;
-  AkFloat            *olditms, *newitms;
-  size_t              vc, d, s, pno, poo;
-  uint32_t            stride, i, j;
+  char               *olditms, *newitms;
+  size_t              vc, d, s, pno, poo, byteStride;
+  uint32_t            i, j;
 
   if (!prim->pos
       || !(edith     = mesh->edith)
@@ -43,12 +42,12 @@ ak_movePositions(AkMesh          *mesh,
   if (!newacc)
     return AK_ERR;
 
-  dupc    = duplicator->range->dupc;
-  dupcsum = duplicator->range->dupcsum;
-  vc      = dupc->count;
-  stride  = acc->stride;
-  newitms = newbuff->data;
-  olditms = oldbuff->data;
+  dupc       = duplicator->range->dupc;
+  dupcsum    = duplicator->range->dupcsum;
+  vc         = dupc->count;
+  newitms    = newbuff->data;
+  olditms    = oldbuff->data;
+  byteStride = acc->byteStride;
 
   /* copy vert positions to new location */
   for (i = 0; i < vc; i++) {
@@ -60,18 +59,9 @@ ak_movePositions(AkMesh          *mesh,
     s   = dupcsum->items[pno];
 
     for (j = 0; j <= d; j++) {
-      dparam = acc->param;
-
-      while (dparam) {
-        if (!dparam->name)
-          continue;
-
-        /* in new design newstride is always 1 */
-        newitms[(pno + j + s) * acc->bound + dparam->offset]
-          = olditms[(poo - 1) * stride + dparam->offset];
-
-        dparam = dparam->next;
-      }
+      memcpy(newitms + byteStride * (pno + j + s),
+             olditms + byteStride * (poo - 1),
+             byteStride);
     }
   }
 

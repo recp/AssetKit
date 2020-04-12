@@ -48,7 +48,6 @@ typedef struct AkDataParam {
   const char         *name;
   const char         *semantic;
   AkTypeDesc          type;
-  uint32_t            offset;
 } AkDataParam;
 
 typedef struct AkBuffer {
@@ -61,19 +60,19 @@ typedef struct AkBuffer {
 } AkBuffer;
 
 typedef struct AkAccessor {
-  struct AkBuffer     *buffer;
-  const char          *name;
-  void                *min;
-  void                *max;
-  size_t               byteOffset;     /* byte offset on the buffer         */
-  size_t               byteStride;     /* strin in bytes                    */
-  size_t               byteLength;     /* total bytes for this accessor     */
-  size_t               count;          /* count to access buffer            */
-  uint32_t             componentBytes; /* component stride in bytes         */
-  AkComponentSize      componentSize;  /* vec1 | vec2 | vec3 | vec4 ...     */
-  AkTypeId             componentType;  /* single component type             */
-  int32_t              gpuTarget;      /* GPU buffer target to bound        */
-  bool                 normalized;
+  struct AkBuffer *buffer;
+  const char      *name;
+  void            *min;
+  void            *max;
+  size_t           byteOffset;     /* byte offset on the buffer         */
+  size_t           byteStride;     /* strin in bytes                    */
+  size_t           byteLength;     /* total bytes for this accessor     */
+  uint32_t         count;          /* count to access buffer            */
+  uint32_t         componentBytes; /* component stride in bytes         */
+  AkComponentSize  componentSize;  /* vec1 | vec2 | vec3 | vec4 ...     */
+  AkTypeId         componentType;  /* single component type             */
+  int32_t          gpuTarget;      /* GPU buffer target to bound        */
+  bool             normalized;
 
   /* TODO: DEPRECATED */
   AkTypeDesc          *type;

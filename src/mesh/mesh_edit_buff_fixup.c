@@ -23,13 +23,13 @@ ak_meshFillBuffers(AkMesh * __restrict mesh) {
   AkBuffer           *oldbuff, *newbuff;
   AkSourceBuffState  *buffstate;
   AkSourceEditHelper *srch;
-  AkDataParam        *dp;
+  char               *olditms, *newitms;
   size_t              icount, i;
-  AkUInt              oldindex, newindex, j;
+  AkUInt              oldidx, newidx;
 
-  edith   = mesh->edith;
-  primi   = mesh->primitive;
-
+  edith = mesh->edith;
+  primi = mesh->primitive;
+ 
   /* per-primitive inputs */
   while (primi) {
     ind1 = primi->indices;
@@ -43,63 +43,36 @@ ak_meshFillBuffers(AkMesh * __restrict mesh) {
 
     ind1_it = ind1->items;
     ind2_it = ind2->items;
+    input   = primi->input;
 
-    input = primi->input;
     while (input) {
       if (input->semantic == AK_INPUT_SEMANTIC_POSITION
           || !(acc     = input->accessor)
           || !(oldbuff = acc->buffer))
         goto cont;
 
-      buffstate = rb_find(edith->buffers, input);
-
       /* copy buff to mesh */
-      if (buffstate) {
+      if ((buffstate = rb_find(edith->buffers, input))) {
+        srch    = ak_meshSourceEditHelper(mesh, input);
         newbuff = buffstate->buff;
+        newacc  = srch->source;
 
-        srch   = ak_meshSourceEditHelper(mesh, input);
-        newacc = srch->source;
         assert(newacc && "accessor is needed!");
 
-        icount = primi->indices->count / primi->indexStride;
-        switch (acc->componentType) {
-          case AKT_FLOAT: {
-            float *olditms, *newitms;
-
-            newitms = (void *)((char *)newbuff->data + newacc->byteOffset);
-            olditms = (void *)((char *)oldbuff->data + acc->byteOffset);
-
-            for (i = 0; i < icount; i++) {
-              j        = 0;
-              dp       = acc->param;
-              oldindex = ind1_it[i * primi->indexStride + input->offset];
-              newindex = ind2_it[i];
-
-              while (dp) {
-                if (!dp->name)
-                  continue;
-
-                /* TODO: byteOffset */
-                newitms[newindex * buffstate->stride + j++]
-                = olditms[oldindex * acc->stride + dp->offset];
-
-                dp = dp->next;
-              }
-            }
-            break;
-          }
-          case AKT_INT: {
-            break;
-          }
-          case AKT_STRING: {
-            break;
-          }
-          case AKT_BOOL: {
-            break;
-          }
-          default: break;
+        icount  = primi->indices->count / primi->indexStride;
+        newitms = (char *)newbuff->data + newacc->byteOffset;
+        olditms = (char *)oldbuff->data + acc->byteOffset;
+        
+        for (i = 0; i < icount; i++) {
+          oldidx = ind1_it[i * primi->indexStride + input->offset];
+          newidx = ind2_it[i];
+          
+          memcpy(newitms + newacc->byteStride * newidx,
+                 olditms + acc->byteStride    * oldidx,
+                 acc->byteStride);
         }
 
+        /* to prevent duplication operation for next time */
         input->offset = 0;
       }
 

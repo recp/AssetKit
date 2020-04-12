@@ -20,6 +20,7 @@ dae_source(DAEState * __restrict dst,
   AkSource    *source;
   AkBuffer    *buffer;
   AkTechnique *tq;
+  
   const xml_t       *sval;
   const char *content;
   uint32_t     count;
@@ -39,9 +40,9 @@ dae_source(DAEState * __restrict dst,
     if (xml_tag_eq(xml, _s_dae_asset)) {
       (void)dae_asset(dst, xml, source, NULL);
     } else if (xml_tag_eq(xml, _s_dae_techniquec)) {
-      xml_t      *xacc;
-      AkAccessor *acc;
-      uint32_t    dpoff;
+      xml_t       *xacc;
+      AkAccessor  *acc;
+      AkDataParam *dp_last;
 
       if ((xacc = xml_elem(xml, _s_dae_accessor))) {
         acc         = ak_heap_calloc(heap, source, sizeof(*acc));
@@ -51,22 +52,25 @@ dae_source(DAEState * __restrict dst,
 
         ak_setypeid(acc, AKT_ACCESSOR);
         url_set(dst, xacc, _s_dae_source, acc, &acc->source);
-        
-        dpoff = 0;
-        xacc  = xacc->val;
+
+        xacc    = xacc->val;
+        dp_last = NULL;
+
         while (xacc) {
           AkDataParam *dp;
           
           dp = ak_heap_calloc(heap, acc, sizeof(*dp));
           sid_set(xacc, heap, dp);
-          
-          dp->offset = dpoff++;
+
           dp->name   = xmla_strdup_by(xacc, heap, _s_dae_name, dp);
           dae_dtype(xmla_strdup_by(xacc, heap, _s_dae_type, dp),  &dp->type);
           
-          dp->next   = acc->param;
-          acc->param = dp;
-          
+          if (dp_last)
+            dp_last->next = dp;
+          else
+            acc->param = dp;
+          dp_last = dp;
+        
           xacc = xacc->next;
         }
 

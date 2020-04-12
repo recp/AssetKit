@@ -140,7 +140,7 @@ dae_mesh(DAEState   * __restrict dst,
     }
     
     /* dont keep vertices */
-//    ak_free(vert);
+    ak_free(vert);
   }
 
   return obj;

@@ -139,15 +139,21 @@ dae_input_walk(RBTree * __restrict tree, RBNode * __restrict rbnode) {
 
 void _assetkit_hide
 dae_fixup_accessors(DAEState * __restrict dst) {
-  FListItem   *item;
-  AkAccessor  *acc;
-  AkBuffer    *buff;
+  AkHeap     *heap;
+  AkDoc      *doc;
+  FListItem  *item;
+  AkAccessor *acc;
+  AkBuffer   *buff;
 
   item = dst->accessors;
+  heap = dst->heap;
+  doc  = dst->doc;
+  
   while (item) {
     acc = item->data;
     if ((buff = ak_getObjectByUrl(&acc->source))) {
-      size_t itemSize;
+      size_t   itemSize;
+      uint32_t componentBytes;
 
       acc->componentType = (AkTypeId)buff->reserved;
       acc->type          = ak_typeDesc(acc->componentType);
@@ -157,12 +163,62 @@ dae_fixup_accessors(DAEState * __restrict dst) {
       else
         goto cont;
 
-      acc->byteStride = acc->stride * itemSize;
-      acc->byteLength = acc->count  * acc->stride * itemSize;
-      acc->byteOffset = acc->offset * itemSize;
-      acc->bound = acc->stride; /* TODO: will be removed soon */
+      acc->byteStride     = acc->stride * itemSize;
+      acc->byteLength     = acc->count  * acc->stride * itemSize;
+      acc->byteOffset     = acc->offset * itemSize;
+      acc->bound          = acc->stride; /* TODO: will be removed soon */
+    
+      componentBytes      = acc->type->size;
+      acc->componentBytes = componentBytes;
       
-      acc->componentBytes = acc->type->size;
+      /*--------------------------------------------------------------------*
+
+         eliminate / remove Data Params e.g. X, Y, Z
+         to make Accessor more small and cleaner
+       
+       *--------------------------------------------------------------------*/
+      
+      /* the buffer is used more than one place, so duplicate data */
+      /* TODO: check param that has empty name */
+      if (ak_refc(buff) > 1) {
+        AkBuffer    *newbuff;
+        AkDataParam *dp;
+        char        *olditms, *newitms;
+        uint32_t     i, j, count, dpoff;
+        size_t       oldByteStride, newByteStride;
+
+        count           = acc->count;
+        oldByteStride   = acc->byteStride;
+        newByteStride   = acc->bound * componentBytes;
+        newbuff         = ak_heap_calloc(heap, doc, sizeof(*newbuff));
+        newbuff->length = count * newByteStride;
+        newbuff->data   = ak_heap_calloc(heap, newbuff, newbuff->length);
+
+        newitms         = (char *)newbuff->data;
+        olditms         = (char *)buff->data + acc->byteOffset;
+        
+        for (i = 0; i < count; i++) {
+          j     = 0;
+          dpoff = 0;
+          dp    = acc->param;
+
+          while (dp) {
+            if (dp->name) {
+              memcpy(newitms + newByteStride * i + componentBytes * j++,
+                     olditms + oldByteStride * i + dpoff,
+                     dp->type.size);
+            }
+
+            dpoff += dp->type.size;
+            dp     = dp->next;
+          }
+        }
+        
+        ak_release(acc->buffer);
+        ak_retain(newbuff);
+
+        acc->buffer = newbuff;
+      }
     }
 
   cont:

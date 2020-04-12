@@ -22,14 +22,13 @@ bool
 ak_meshPrimNeedsNormals(AkMeshPrimitive * __restrict prim) {
   AkAccessor   *acc;
   AkInput      *input;
-  AkBuffer     *buff;
   bool          ret;
 
   ret   = true;
   input = prim->input;
   while (input) {
     if (input->semantic == AK_INPUT_SEMANTIC_NORMAL) {
-      if (!(acc = input->accessor) || !(buff = acc->buffer))
+      if (!(acc = input->accessor) || !acc->buffer)
         return ret;
       ret = false;
       break;
@@ -73,14 +72,14 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
   AkAccessor    *posAcc, *acc;
   AkUInt         st, newst;
   AkInt          vo, pos_st;
-  size_t         count;
+  uint32_t       count;
 
-  if ((prim->type != AK_PRIMITIVE_TRIANGLES
+  if ((prim->type    != AK_PRIMITIVE_TRIANGLES
        && prim->type != AK_PRIMITIVE_POLYGONS)
       || !prim->pos
-      || !(posAcc    = prim->pos->accessor)
-      || !(posBuff   = ak_getObjectByUrl(&posAcc->source))
-      || (vo = prim->pos->offset) == -1)
+      || !(posAcc     = prim->pos->accessor)
+      || !(posBuff    = posAcc->buffer)
+      || (vo          = prim->pos->offset) == -1)
     return;
 
   dctx   = ak_data_new(prim, 64, sizeof(vec3), ak_cmp_vec3);
@@ -194,16 +193,21 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
   acc = ak_heap_calloc(heap, doc, sizeof(*acc));
   ak_setypeid(acc, AKT_ACCESSOR);
 
-  acc->stride        = 3;
-  acc->count         = count;
-  acc->componentType = AKT_FLOAT;
-  acc->type          = ak_typeDesc(acc->componentType);
-  acc->byteStride    = acc->stride * acc->type->size;
-  acc->byteLength    = acc->count * acc->byteStride;
-  
-  buff               = ak_heap_calloc(heap, doc, sizeof(*buff));
-  buff->data         = ak_heap_alloc(heap, buff, acc->byteLength);
-  buff->length       = acc->byteLength;
+  acc->stride         = 3;
+  acc->bound          = 3;
+  acc->count          = count;
+  acc->componentType  = AKT_FLOAT;
+  acc->type           = ak_typeDesc(acc->componentType);
+  acc->componentSize  = AK_COMPONENT_SIZE_VEC3;
+  acc->componentBytes = acc->type->size;
+  acc->byteStride     = acc->stride * acc->type->size;
+  acc->byteLength     = acc->count * acc->byteStride;
+   
+  buff                = ak_heap_calloc(heap, doc, sizeof(*buff));
+  buff->data          = ak_heap_alloc(heap, buff, acc->byteLength);
+  buff->length        = acc->byteLength;
+
+  acc->buffer         = buff;
 
   flist_sp_insert(&doc->lib.accessors, acc);
   flist_sp_insert(&doc->lib.buffers, buff);
