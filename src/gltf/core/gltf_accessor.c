@@ -111,7 +111,7 @@ gltf_accessors(json_t * __restrict json,
     }
     
     if ((it = accMap[k_gltf_count].object)) {
-      acc->count = json_int64(it, 0);
+      acc->count = json_uint32(it, 0);
     }
     
     if ((it = accMap[k_gltf_type].object)) {

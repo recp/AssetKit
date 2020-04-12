@@ -109,9 +109,8 @@ url_set(DAEState   * __restrict dst,
         AkURL      * __restrict url) {
   AkURLQueue *urlQueue;
   xml_attr_t *att;
-  char       *attv;
 
-  if (!(att = xmla(xml, name)) || !(attv = (char *)att->val)) {
+  if (!(att = xmla(xml, name)) || !att->val) {
     url->reserved = NULL;
     url->url      = NULL;
     return;
@@ -133,9 +132,8 @@ url_from(xml_t      * __restrict xml,
   AkHeap     *heap;
   AkURL      *url;
   xml_attr_t *att;
-  char       *attv;
 
-  if (!(att = xmla(xml, name)) || !(attv = (char *)att->val))
+  if (!(att = xmla(xml, name)) || ! att->val)
     return NULL;
   
   heap = ak_heap_getheap(memp);

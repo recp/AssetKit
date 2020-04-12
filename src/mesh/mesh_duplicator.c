@@ -22,15 +22,12 @@ ak_meshDuplicatorForIndices(AkMesh          * __restrict mesh,
   AkUIntArray        *dupc, *ind, *newind, *dupcsum;
   uint32_t           *it, *it2, *posflgs, *inp;
   AkAccessor         *posAcc;
-  AkBuffer           *posBuff;
   uint8_t            *flg;
   size_t              count, ccount, icount, chk_start,
                       chk_end, inpsz, vertc, i, j;
   uint32_t            chk, iter, st, vo, posno, idxp;
 
-  if (!prim->pos
-      || !(posAcc  = prim->pos->accessor)
-      || !(posBuff = posAcc->buffer))
+  if (!prim->pos || !(posAcc = prim->pos->accessor))
     return NULL;
 
   vertc   = posAcc->count;
@@ -66,7 +63,7 @@ ak_meshDuplicatorForIndices(AkMesh          * __restrict mesh,
                            dupl,
                            sizeof(AkUInt) * vertc * (st + 1));
 
-  chk_start = ccount = count = chk = posno = 0;
+  chk_start = ccount = count = posno = 0;
   iter = chk = 1;
   while (ccount < icount) {
     /* nothing to check */
@@ -115,8 +112,7 @@ ak_meshDuplicatorForIndices(AkMesh          * __restrict mesh,
 
   dupcsum = ak_heap_calloc(heap,
                            dupc,
-                           sizeof(AkUIntArray)
-                              + sizeof(AkUInt) * (posno + 1));
+                           sizeof(AkUIntArray) + sizeof(AkUInt) * (posno + 1));
   dupcsum->count = posno;
 
   for (i = 0; i < dupc->count; i++) {

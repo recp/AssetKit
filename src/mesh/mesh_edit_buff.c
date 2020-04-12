@@ -99,12 +99,12 @@ ak_meshReserveBufferForInput(AkMesh   * __restrict mesh,
   assert(edith && ak_mesh_edit_assert1);
 
   if (!(acci = input->accessor)
-      || !(buffi = acci->buffer))
+      || !acci->buffer)
     return;
 
   /* generate new accesor for input */
-  newacc = ak_accessor_dup(acci);
-  newacc->count = count;
+  newacc        = ak_accessor_dup(acci);
+  newacc->count = (uint32_t)count;
 
   buffid    = input;
   buffstate = ak_meshReserveBuffer(mesh,
@@ -114,16 +114,13 @@ ak_meshReserveBufferForInput(AkMesh   * __restrict mesh,
                                    count);
   buffi = buffstate->buff;
 
-  newacc->byteOffset     = 0;
-  newacc->stride         = newacc->bound;
+  newacc->byteOffset    = 0;
+  newacc->stride        = newacc->bound;
 
   srch                  = ak_heap_calloc(heap, meshobj, sizeof(*srch));
   srch->oldsource       = acci;
-  srch->source          = ak_heap_calloc(heap, meshobj, sizeof(*acci));
-  srch->source->buffer  = buffi;
   srch->source          = newacc;
-
-  newacc->buffer        = buffstate->buff;
+  newacc->buffer        = buffi;
 
   ak_heap_setpm(newacc, srch->source);
 

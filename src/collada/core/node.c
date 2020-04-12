@@ -86,7 +86,6 @@ dae_node(DAEState      * __restrict dst,
       AkObject *obj;
       AkMatrix *matrix;
 
-
       obj    = ak_objAlloc(heap, node, sizeof(*matrix), AKT_MATRIX, true);
       matrix = ak_objGet(obj);
 
@@ -221,7 +220,7 @@ dae_node(DAEState      * __restrict dst,
       
       xinstctl           = xml->val;
       while (xinstctl) {
-        if (xml_tag_eq(xinstctl, _s_dae_skeleton) && (sval = xmls(xinstctl))) {
+        if (xml_tag_eq(xinstctl, _s_dae_skeleton)) {
           char *skel;
           if ((skel = xml_strdup(xinstctl, heap, instctl)))
             flist_sp_insert(&instctl->reserved, skel);

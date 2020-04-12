@@ -56,7 +56,7 @@ dae_doc(AkDoc     ** __restrict dest,
   AkHeap            *heap;
   AkDoc             *doc;
   const xml_doc_t   *xdoc;
-  xml_t             *xml, *xlib;
+  xml_t             *xml;
   DAEState           dstVal, *dst;
   xml_attr_t        *versionAttr;
   void              *xmlString;
@@ -133,7 +133,7 @@ dae_doc(AkDoc     ** __restrict dest,
       doc->coordSys = inf->coordSys;
       doc->unit     = inf->unit;
       doc->inf      = docInf;
-    } else if (xml_tag_eq(xml, _s_dae_lib_cameras) && (xlib = xml->val)) {
+    } else if (xml_tag_eq(xml, _s_dae_lib_cameras)) {
       dae_lib(dst, xml, _s_dae_camera, dae_cam, &libs->cameras);
     } else if (xml_tag_eq(xml, _s_dae_lib_lights)) {
       dae_lib(dst, xml, _s_dae_light, dae_light, &libs->lights);
