@@ -86,7 +86,7 @@ dae_asset(DAEState   * __restrict dst,
         memset((char *)attr->val +attr->valsize, '\0', 1);
         inf->unit->dist = xmla_double(attr, 0.0);
       }
-    } else if (xml_tag_eq(xml, _s_dae_axis)) {
+    } else if (xml_tag_eq(xml, _s_dae_up_axis)) {
       if ((val = xml_strdup(xml, heap, inf))) {
         if (strcasecmp(val, _s_dae_z_up) == 0)
           inf->coordSys = AK_ZUP;
