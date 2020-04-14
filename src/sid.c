@@ -476,7 +476,7 @@ again:
     attrLoc[0] = '\0';
 
   if (!idnode)
-    return NULL;
+    goto err;
 
   /* maybe id node have sid too! */
   if (idnode->flags & AK_HEAP_NODE_FLAGS_SID) {
@@ -485,7 +485,7 @@ again:
   sid_chld:
     chld = ak_sid_chldh(ctx, idnode, NULL);
     if (!chld)
-      return NULL;
+      goto err;
   }
 
   buf[bufidx][bufi[bufidx]] = chld;
@@ -596,6 +596,7 @@ ret:
     if (attribString && attrLoc)
       *attribString = ak_strdup(NULL, attrLoc + 1);
   }
+
 err:
   free(buf[0]);
   free(buf[1]);
