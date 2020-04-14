@@ -26,7 +26,7 @@ dae_triangles(DAEState * __restrict dst,
   tri->base.type = AK_PRIMITIVE_TRIANGLES;
 
   tri->base.name         = xmla_strdup_by(xml, heap, _s_dae_name, tri);
-  tri->base.bindmaterial = xmla_strdup_by(xml, heap, _s_dae_name, tri);
+  tri->base.bindmaterial = xmla_strdup_by(xml, heap, _s_dae_material, tri);
   tri->base.count        = xmla_u32(xmla(xml, _s_dae_count), 0);
   
   indexoff = 0;
