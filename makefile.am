@@ -46,7 +46,7 @@ include_HEADERS = include/ak/assetkit.h \
                   include/ak/common.h \
                   include/ak/coord.h \
                   include/ak/coord-util.h \
-                  include/ak/lib.h \
+                  include/ak/library.h \
                   include/ak/instance.h \
                   include/ak/geom.h \
                   include/ak/transform.h \
@@ -73,8 +73,9 @@ include_HEADERS = include/ak/assetkit.h \
 
 libassetkit_la_SOURCES=\
     src/assetkit.c \
-    src/base64.c \
     src/common.c \
+    src/base64.c \
+    src/xml.c \
     src/sid.c \
     src/sid_constr.c \
     src/utils.c \
@@ -152,12 +153,12 @@ libassetkit_la_SOURCES=\
     src/bbox/bbox_scene.c \
     src/collada/dae.c \
     src/collada/postscript.c \
+    src/collada/strpool.c \
     src/collada/fixup/tex.c \
-    src/collada/fixup/geom.c \
     src/collada/fixup/mesh.c \
+    src/collada/fixup/geom.c \
     src/collada/fixup/node.c \
     src/collada/fixup/angle.c \
-    src/collada/strpool.c \
     src/collada/core/enum.c \
     src/collada/core/color.c \
     src/collada/core/asset.c \
@@ -185,13 +186,13 @@ libassetkit_la_SOURCES=\
     src/collada/brep/nurb.c \
     src/collada/brep/surface.c \
     src/collada/brep/topology.c \
-    src/collada/fx/profile.c \
-    src/collada/fx/effect.c \
-    src/collada/fx/img.c \
-    src/collada/fx/techn.c \
     src/collada/fx/colortex.c \
     src/collada/fx/fltprm.c \
+    src/collada/fx/img.c \
     src/collada/fx/samp.c \
+    src/collada/fx/techn.c \
+    src/collada/fx/profile.c \
+    src/collada/fx/effect.c \
     src/collada/fx/mat.c \
 \
     src/collada/1.4/dae14.c \
