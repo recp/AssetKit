@@ -16,11 +16,11 @@ AkObject* _assetkit_hide
 dae_mesh(DAEState   * __restrict dst,
          xml_t      * __restrict xml,
          AkGeometry * __restrict geom) {
-  AkVertices  *vert;
-  AkObject    *obj;
-  AkMesh      *mesh;
-  AkHeap      *heap;
-  uint32_t     m;
+  AkVertices *vert;
+  AkObject   *obj;
+  AkMesh     *mesh;
+  AkHeap     *heap;
+  uint32_t    m;
 
   heap = dst->heap;
   xml  = xml->val;
