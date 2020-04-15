@@ -128,11 +128,11 @@ dae_mesh(DAEState   * __restrict dst,
           }
         }
         
-        url = rb_find(dst->inputmap, inpv);
-        rb_insert(dst->inputmap, inp, url);
-        rb_remove(dst->inputmap, inpv);
-        ak_mem_setp(url, inp);
-        
+        if ((url = rb_find(dst->inputmap, inpv))) {
+          ak_url_dup(url, inp, url);
+          rb_insert(dst->inputmap, inp, url);
+        }
+
         prim->inputCount++;
         inpv = inpv->next;
       }
@@ -140,6 +140,19 @@ dae_mesh(DAEState   * __restrict dst,
     }
     
     /* dont keep vertices */
+    inpv = vert->input;
+    while (inpv) {
+      AkURL *url;
+      
+      url = rb_find(dst->inputmap, inpv);
+      inp = inpv;
+      
+      assert(url);
+      rb_remove(dst->inputmap, inpv);
+
+      inpv = inpv->next;
+      ak_free(inp);
+    }
     ak_free(vert);
   }
 
