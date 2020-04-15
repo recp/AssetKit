@@ -92,7 +92,7 @@ ak_path_trim(const char *path,
   int         proto;
   int         local;
 
-  len = skp = proto = local = 0;
+  len = skp = proto = 0;
   it1 = path;
   it2 = trimmed;
 
@@ -122,7 +122,7 @@ ak_path_trim(const char *path,
   while (*--it2 && (*it2 == ' ' || *it2 == '/' || *it2 == '\\'))
     len--;
 
-  *(it2 += len > 0) = '\0';
+  *(it2 + (len > 0)) = '\0';
 
   return len;
 }

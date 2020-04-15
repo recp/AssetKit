@@ -12,11 +12,11 @@
 #include "image.h"
 
 typedef enum AkWrapMode {
-  AK_WRAP_MODE_WRAP        = 0,
-  AK_WRAP_MODE_MIRROR      = 1,
-  AK_WRAP_MODE_CLAMP       = 2,
-  AK_WRAP_MODE_BORDER      = 3,
-  AK_WRAP_MODE_MIRROR_ONCE = 4
+  AK_WRAP_MODE_WRAP        = 1,
+  AK_WRAP_MODE_MIRROR      = 2,
+  AK_WRAP_MODE_CLAMP       = 3,
+  AK_WRAP_MODE_BORDER      = 4,
+  AK_WRAP_MODE_MIRROR_ONCE = 5
 } AkWrapMode;
 
 typedef enum AkMinFilter {
@@ -45,8 +45,7 @@ typedef struct AkSampler {
   const char     *uniformName;
   const char     *coordInputName;
   AkColor        *borderColor;
-  const char     *texcoordSemantic;
-  AkInstanceBase *instanceImage;
+//  AkInstanceBase *instanceImage;
   AkTree         *extra;
   const char     *name;
 
@@ -74,13 +73,9 @@ typedef struct AkTexture {
 
 typedef struct AkTextureRef {
   struct AkTexture *texture;
-  /* struct AkInput   *coordInput; */
+  const char       *texcoord; /* to bind texture to input coord dynamically */
   const char       *coordInputName;
   int               slot;
-  
-  /* TODO: WILL BE DELETED */
-  const char       *texcoord;
-  void             *extra;
 } AkTextureRef;
 
 #endif /* ak_texture_h */

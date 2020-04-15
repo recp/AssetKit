@@ -28,7 +28,7 @@ gltf_accessors(json_t * __restrict json,
   AkDoc              *doc;
   AkHeap             *heap;
   const json_array_t *jaccessors, *jarr;
-  const json_t       *jattr, *jitem, *it;
+  const json_t       *jitem, *it;
   AkAccessor         *acc;
   int                 componentLen, count, bound;
 
@@ -42,8 +42,7 @@ gltf_accessors(json_t * __restrict json,
   componentLen = 1;
 
   while (json) {
-    acc   = ak_heap_calloc(heap, doc, sizeof(*acc));
-    jattr = json->value;
+    acc = ak_heap_calloc(heap, doc, sizeof(*acc));
 
     ak_setypeid(acc, AKT_ACCESSOR);
 
@@ -112,7 +111,7 @@ gltf_accessors(json_t * __restrict json,
     }
     
     if ((it = accMap[k_gltf_count].object)) {
-      acc->count = json_int64(it, 0);
+      acc->count = json_uint32(it, 0);
     }
     
     if ((it = accMap[k_gltf_type].object)) {

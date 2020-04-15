@@ -16,13 +16,13 @@ destdir        = dirname(realpath(__file__))
 spidx          = 0
 pos            = 0
 
-fspoolJson = open(destdir + "/dae_strpool.json")
+fspoolJson = open(destdir + "/strpool.json")
 spool      = json.loads(fspoolJson.read(),
                         object_pairs_hook=OrderedDict)
 fspoolJson.close()
 
-fspool_h = open(destdir + "/dae_strpool.h", "wb");
-fspool_c = open(destdir + "/dae_strpool.c", "wb");
+fspool_h = open(destdir + "/strpool.h", "wb");
+fspool_c = open(destdir + "/strpool.c", "wb");
 
 copyright_str = """\
 /*
@@ -52,7 +52,7 @@ fspool_c.write("""
 #  define _DAE_STRPOOL_
 #endif
 
-#include "dae_strpool.h"
+#include "strpool.h"
 #include <string.h>
 
 const char _s_dae_pool_0[] =

@@ -9,7 +9,7 @@
 #define dae14_h
 
 #include "../../../include/ak/assetkit.h"
-#include "../dae_common.h"
+#include "../common.h"
 
 typedef enum AkDae14LoadJobType {
   AK_DAE14_LOADJOB_SURFACE = 1
@@ -48,13 +48,13 @@ typedef struct AkDae14Surface {
 
 void
 _assetkit_hide
-dae14_loadjobs_add(AkXmlState * __restrict  xst,
+dae14_loadjobs_add(DAEState   * __restrict  dst,
                    void       *  __restrict parent,
                    void       * __restrict  value,
                    AkDae14LoadJobType       type);
 
 void
 _assetkit_hide
-dae14_loadjobs_finish(AkXmlState * __restrict xst);
+dae14_loadjobs_finish(DAEState * __restrict dst);
 
 #endif /* dae14_h */

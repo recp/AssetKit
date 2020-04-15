@@ -11,7 +11,8 @@
 
 #include "../include/ak/assetkit.h"
 
-#define AK_ARRAY_SEP_CHECK (c == ' ' || c == '\n' || c == '\t' || c == '\r')
+#define AK_ARRAY_SEP_CHECK (c == ' ' || c == '\n' || c == '\t' \
+                              || c == '\r' || c == '\f' || c == '\v')
 
 AK_EXPORT
 const char*
@@ -132,237 +133,224 @@ ak_strtok_count_fast(char * __restrict buff,
   return itemc + 1;
 }
 
-
 AK_EXPORT
-int
+unsigned long
 ak_strtof_fast(char    * __restrict src,
-               AkFloat * __restrict dest,
-               unsigned long n) {
-  char *tok, *end;
+               size_t               srclen,
+               unsigned long        n,
+               AkFloat * __restrict dest) {
+  char *tok, *tok_end, *end;
   char  c;
 
   if (n == 0)
     return 0;
 
   dest = dest + n - 1ul;
-
   tok = src;
-  while ((void)(c = *tok), AK_ARRAY_SEP_CHECK)
-    tok++;
 
-  while (n > 1ul) {
-    *(dest - --n) = strtof(tok, &end);
-    tok = end;
-
-    while ((void)(c = *tok), AK_ARRAY_SEP_CHECK)
-      tok++;
+  if (srclen != 0) {
+    end = src + srclen;
+    
+    do {
+      while (tok < end && ((void)(c = *tok), AK_ARRAY_SEP_CHECK))
+        tok++;
+      
+      *(dest - --n) = strtof(tok, &tok_end);
+      tok = tok_end;
+      
+      while (tok < end && ((void)(c = *tok), AK_ARRAY_SEP_CHECK))
+        tok++;
+    } while (n > 0ul && tok < end);
+  } else {
+    do {
+      while (((void)(c = *tok), AK_ARRAY_SEP_CHECK))
+        tok++;
+      
+      *(dest - --n) = strtof(tok, &tok_end);
+      tok = tok_end;
+      
+      while (((void)(c = *tok), AK_ARRAY_SEP_CHECK))
+        tok++;
+    } while (n > 0ul && *tok != '\0');
   }
 
-  *(dest - --n) = strtof(tok, NULL);
-
-  return (int)n;
+  return n;
 }
 
 AK_EXPORT
-int
+unsigned long
 ak_strtod_fast(char     * __restrict src,
-               AkDouble * __restrict dest,
-               unsigned long n) {
-  char *tok, *end;
+               size_t                srclen,
+               unsigned long         n,
+               AkDouble * __restrict dest) {
+  char *tok, *tok_end, *end;
   char  c;
 
   if (n == 0)
     return 0;
 
   dest = dest + n - 1ul;
-
   tok = src;
-  while ((void)(c = *tok), AK_ARRAY_SEP_CHECK)
-    tok++;
 
-  while (n > 1ul) {
-    *(dest - --n) = strtod(tok, &end);
-    tok = end;
-
-    while ((void)(c = *tok), AK_ARRAY_SEP_CHECK)
-      tok++;
+  if (srclen != 0) {
+    end = src + srclen;
+    
+    do {
+      while (tok < end && ((void)(c = *tok), AK_ARRAY_SEP_CHECK))
+        tok++;
+      
+      *(dest - --n) = strtod(tok, &tok_end);
+      tok = tok_end;
+      
+      while (tok < end && ((void)(c = *tok), AK_ARRAY_SEP_CHECK))
+        tok++;
+    } while (n > 0ul && tok < end);
+  } else {
+    do {
+      while (((void)(c = *tok), AK_ARRAY_SEP_CHECK))
+        tok++;
+      
+      *(dest - --n) = strtod(tok, &tok_end);
+      tok = tok_end;
+      
+      while (((void)(c = *tok), AK_ARRAY_SEP_CHECK))
+        tok++;
+    } while (n > 0ul && *tok != '\0');
   }
 
-  *(dest - --n) = strtod(tok, NULL);
-
-  return (int)n;
+  return n;
 }
 
 AK_EXPORT
-int
-ak_strtoui_fast(char   * __restrict src,
-                AkUInt * __restrict dest,
-                unsigned long n) {
-  char *tok, *end;
+unsigned long
+ak_strtoui_fast(char    * __restrict src,
+                size_t               srclen,
+                unsigned long        n,
+                AkUInt  * __restrict dest) {
+  char *tok, *tok_end, *end;
   char  c;
 
   if (n == 0)
     return 0;
 
   dest = dest + n - 1ul;
-
   tok = src;
-  while ((void)(c = *tok), AK_ARRAY_SEP_CHECK)
-    tok++;
 
-  while (n > 1ul) {
-    *(dest - --n) = (AkUInt)strtoul(tok, &end, 10);
-    tok = end;
-
-    while ((void)(c = *tok), AK_ARRAY_SEP_CHECK)
-      tok++;
+  if (srclen != 0) {
+    end = src + srclen;
+    
+    do {
+      while (tok < end && ((void)(c = *tok), AK_ARRAY_SEP_CHECK))
+        tok++;
+      
+      *(dest - --n) = (AkUInt)strtoul(tok, &tok_end, 10);
+      tok = tok_end;
+      
+      while (tok < end && ((void)(c = *tok), AK_ARRAY_SEP_CHECK))
+        tok++;
+    } while (n > 0ul && tok < end);
+  } else {
+    do {
+      while (((void)(c = *tok), AK_ARRAY_SEP_CHECK))
+        tok++;
+      
+      *(dest - --n) = (AkUInt)strtoul(tok, &tok_end, 10);
+      tok = tok_end;
+      
+      while (((void)(c = *tok), AK_ARRAY_SEP_CHECK))
+        tok++;
+    } while (n > 0ul && *tok != '\0');
   }
 
-  *(dest - --n) = (AkUInt)strtoul(tok, NULL, 10);
-
-  return (int)n;
+  return n;
 }
 
 AK_EXPORT
-int
-ak_strtod(char ** __restrict src,
-          AkDouble * __restrict dest,
-          unsigned long n) {
-  char *tok;
-
+unsigned long
+ak_strtoi_fast(char    * __restrict src,
+               size_t               srclen,
+               unsigned long        n,
+               AkInt   * __restrict dest) {
+  char *tok, *tok_end, *end;
+  char  c;
+  
+  if (n == 0)
+    return 0;
+  
   dest = dest + n - 1ul;
-
-  for (tok = strtok(*src, " \t\r\n");
-       tok && n > 0ul;
-       tok = strtok(NULL, " \t\r\n"))
-    *(dest - --n) = strtod(tok, NULL);
-
-  return (int)n;
+  tok = src;
+  
+  if (srclen != 0) {
+    end = src + srclen;
+    
+    do {
+      while (tok < end && ((void)(c = *tok), AK_ARRAY_SEP_CHECK))
+        tok++;
+      
+      *(dest - --n) = (AkUInt)strtol(tok, &tok_end, 10);
+      tok = tok_end;
+      
+      while (tok < end && ((void)(c = *tok), AK_ARRAY_SEP_CHECK))
+        tok++;
+    } while (n > 0ul && tok < end);
+  } else {
+    do {
+      while (((void)(c = *tok), AK_ARRAY_SEP_CHECK))
+        tok++;
+      
+      *(dest - --n) = (AkUInt)strtol(tok, &tok_end, 10);
+      tok = tok_end;
+      
+      while (((void)(c = *tok), AK_ARRAY_SEP_CHECK))
+        tok++;
+    } while (n > 0ul && *tok != '\0');
+  }
+  
+  return n;
 }
 
 AK_EXPORT
-int
-ak_strtof(char ** __restrict src,
-           AkFloat * __restrict dest,
-           unsigned long n) {
-  char *tok;
+unsigned long
+ak_strtob_fast(char    * __restrict src,
+               size_t               srclen,
+               unsigned long        n,
+               AkBool  * __restrict dest) {
+  char *tok, *end;
+  char  c;
 
+  if (n == 0)
+    return 0;
+  
   dest = dest + n - 1ul;
-
-  for (tok = strtok(*src, " \t\r\n");
-       tok && n > 0ul;
-       tok = strtok(NULL, " \t\r\n"))
-    *(dest - --n) = strtof(tok, NULL);
-
-  return (int)n;
-}
-
-AK_EXPORT
-int
-ak_strtoui(char   ** __restrict src,
-           AkUInt * __restrict dest,
-           unsigned long n) {
-  char *tok;
-
-  dest = dest + n - 1ul;
-
-  for (tok = strtok(*src, " \t\r\n");
-       tok && n > 0ul;
-       tok = strtok(NULL, " \t\r\n"))
-    *(dest - --n) = (AkUInt)strtoul(tok, NULL, 10);
-
-  return (int)n;
-}
-
-AK_EXPORT
-int
-ak_strtomf(char ** __restrict src,
-            AkFloat * __restrict dest,
-            unsigned long m,
-            unsigned long n) {
-  char * tok;
-  unsigned long idx;
-
-  idx = m * n;
-  dest = dest + idx - 1ul;
-
-  for (tok = strtok(*src, " \t\r\n");
-       tok && idx > 0ul;
-       tok = strtok(NULL, " \t\r\n"))
-    *(dest - --idx) = strtof(tok, NULL);
-
-  return (int)idx;
-}
-
-AK_EXPORT
-int
-ak_strtomb(char ** __restrict src,
-            AkBool * __restrict dest,
-            unsigned long m,
-            unsigned long n) {
-  char * tok;
-  unsigned long idx;
-
-  idx = m * n;
-  dest = dest + idx - 1ul;
-
-  for (tok = strtok(*src, " \t\r\n");
-       tok && idx > 0ul;
-       tok = strtok(NULL, " \t\r\n"))
-    *(dest - --idx) = (bool)strtol(tok, NULL, 10);
-
-  return (int)idx;
-}
-
-AK_EXPORT
-int
-ak_strtomi(char ** __restrict src,
-            AkInt * __restrict dest,
-            unsigned long m,
-            unsigned long n) {
-  char * tok;
-  unsigned long idx;
-
-  idx = m * n;
-  dest = dest + idx - 1ul;
-
-  for (tok = strtok(*src, " \t\r\n");
-       tok && idx > 0ul;
-       tok = strtok(NULL, " \t\r\n"))
-    *(dest - --idx) = (AkInt)strtol(tok, NULL, 10);
-
-  return (int)idx;
-}
-
-AK_EXPORT
-int
-ak_strtof_s(const char * __restrict src,
-             AkFloat * __restrict dest,
-             unsigned long n) {
-  char *raw;
-  int   ret;
-
-  raw = strdup(src);
-  ret = ak_strtof(&raw, dest, n);
-  free(raw);
-
-  return ret;
-}
-
-AK_EXPORT
-inline
-int
-ak_strtof4(char ** __restrict src,
-            AkFloat4 * __restrict dest) {
-  return ak_strtof(src, *dest, 4);
-}
-
-AK_EXPORT
-inline
-int
-ak_strtof4_s(const char * __restrict src,
-              AkFloat4 * __restrict dest) {
-  return ak_strtof_s(src, *dest, 4);
+  tok = src;
+  
+  if (srclen != 0) {
+    end = src + srclen;
+    
+    do {
+      while (tok < end && ((void)(c = *tok), AK_ARRAY_SEP_CHECK))
+        tok++;
+      
+      *(dest - --n) = tok[0] == 't' || tok[0] == 'T';
+      tok++;
+      
+      while (tok < end && ((void)(c = *tok), AK_ARRAY_SEP_CHECK))
+        tok++;
+    } while (n > 0ul && tok < end);
+  } else {
+    do {
+      while (((void)(c = *tok), AK_ARRAY_SEP_CHECK))
+        tok++;
+      
+      *(dest - --n) = tok[0] == 't' || tok[0] == 'T';
+      tok++;
+      
+      while (((void)(c = *tok), AK_ARRAY_SEP_CHECK))
+        tok++;
+    } while (n > 0ul && *tok != '\0');
+  }
+  
+  return n;
 }
 
 AK_EXPORT

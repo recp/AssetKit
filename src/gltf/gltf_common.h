@@ -10,12 +10,9 @@
 
 #include "../../include/ak/assetkit.h"
 #include "../common.h"
-#include "../memory_common.h"
 #include "../utils.h"
 #include "../tree.h"
 #include "../json.h"
-#include "../id.h"
-#include "../resc/curl.h"
 #include "gltf_strpool.h"
 
 #include <string.h>
@@ -23,11 +20,6 @@
 
 /* JSON parser */
 #include <json/json.h>
-
-typedef enum AkGLTFVersion {
-  AK_GLTF_VERSION_10 = 1,
-  AK_GLTF_VERSION_20 = 2
-} AkGLTFVersion;
 
 typedef struct AkBufferView {
   AkBuffer   *buffer;
@@ -48,21 +40,18 @@ typedef struct AkGLTFState {
   RBTree       *meshTargets;
   void         *bindata;
   size_t        bindataLen;
-  AkGLTFVersion version;
   bool          stop;
   bool          isbinary;
 } AkGLTFState;
 
-#define I2P (void *)(intptr_t)
-
 #define GETCHILD(INITIAL, ITEM, INDEX)                                        \
   do {                                                                        \
     int i;                                                                    \
-    ITEM = INITIAL;                                                           \
+    ITEM = (void *)INITIAL;                                                   \
     i    = INDEX;                                                             \
     if (ITEM && i > 0) {                                                      \
       while (i > 0) {                                                         \
-        if (!(ITEM = ITEM->next)) {                                           \
+        if (!(ITEM = (void *)ITEM->base.next)) {                              \
           i     = -1;                                                         \
           ITEM  = NULL;                                                       \
           break;  /* not foud */                                              \

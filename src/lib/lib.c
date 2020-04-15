@@ -6,14 +6,12 @@
  */
 
 #include "../common.h"
-#include "../memory_common.h"
 
 AK_EXPORT
 AkResult
-ak_libAddCamera(AkDoc    * __restrict doc,
-                AkCamera * __restrict cam) {
+ak_libAddCamera(AkDoc * __restrict doc, AkCamera * __restrict cam) {
   AkHeap    *heap;
-  AkLibItem *libItem;
+  AkLibrary *libItem;
   AkCamera  *cami;
 
   heap    = ak_heap_getheap(doc);
@@ -24,12 +22,12 @@ ak_libAddCamera(AkDoc    * __restrict doc,
     libItem->count   = 1;
   }
 
-  cami = libItem->chld;
+  cami = (void *)libItem->chld;
   if (cami) {
-    cam->next = cami;
+    cam->base.next = &cami->base;
   }
 
-  libItem->chld = cam;
+  libItem->chld = (void *)cam;
 
   return AK_OK;
 }
@@ -39,7 +37,7 @@ AkResult
 ak_libAddLight(AkDoc   * __restrict doc,
                AkLight * __restrict light) {
   AkHeap    *heap;
-  AkLibItem *libItem;
+  AkLibrary *libItem;
   AkLight   *lighti;
 
   heap    = ak_heap_getheap(doc);
@@ -50,25 +48,25 @@ ak_libAddLight(AkDoc   * __restrict doc,
     libItem->count   = 1;
   }
 
-  lighti = libItem->chld;
+  lighti = (void *)libItem->chld;
   if (lighti) {
     light->next = lighti;
   }
 
-  libItem->chld = light;
+  libItem->chld = (void *)light;
 
   return AK_OK;
 }
 
 AK_EXPORT
 void
-ak_libInsertInto(AkLibItem *lib,
+ak_libInsertInto(AkLibrary *lib,
                  void      *item,
                  int32_t    prevOffset,
                  int32_t    nextOffset) {
   char *libChld, *lastLibChld;
 
-  libChld = lastLibChld = lib->chld;
+  libChld = lastLibChld = (void *)lib->chld;
   while (libChld) {
     libChld = *(char **)(lastLibChld + nextOffset);
     if (libChld)
@@ -85,11 +83,11 @@ ak_libInsertInto(AkLibItem *lib,
 }
 
 AK_EXPORT
-AkLibItem*
+AkLibrary*
 ak_libFirstOrCreat(AkDoc * __restrict doc,
                    uint32_t           itemOffset) {
   AkHeap    *heap;
-  AkLibItem *lib;
+  AkLibrary *lib;
 
   heap = ak_heap_getheap(doc);
   lib  = *(void **)((char *)&doc->lib + itemOffset);
@@ -104,7 +102,7 @@ ak_libFirstOrCreat(AkDoc * __restrict doc,
 }
 
 AK_EXPORT
-AkLibItem*
+AkLibrary*
 ak_libImageFirstOrCreat(AkDoc * __restrict doc) {
-  return ak_libFirstOrCreat(doc, offsetof(AkLib, libimages));
+  return ak_libFirstOrCreat(doc, offsetof(AkLibraries, libimages));
 }

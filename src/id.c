@@ -6,7 +6,6 @@
  */
 
 #include "common.h"
-#include "memory_common.h"
 #include "id.h"
 #include <math.h>
 #include <stdio.h>

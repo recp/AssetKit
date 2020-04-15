@@ -16,6 +16,8 @@
 #include "../include/ak/type.h"
 #include "../include/ak/url.h"
 
+#include "mem/common.h"
+
 #include <cglm/cglm.h>
 
 #include <ds/rb.h>
@@ -47,6 +49,8 @@
 
 #define AK__UNUSED(X) (void)X
 
+#define I2P (void *)(intptr_t)
+
 /*!
  * @brief get sign of 32 bit integer as +1 or -1
  *
@@ -69,9 +73,6 @@ ak_enumpair_cmp(const void * a, const void * b);
 
 int _assetkit_hide
 ak_enumpair_cmp2(const void * a, const void * b);
-
-int _assetkit_hide
-ak_enumpair_json_key_cmp(const void * a, const void * b);
 
 int _assetkit_hide
 ak_enumpair_json_val_cmp(const void * a, const void * b);

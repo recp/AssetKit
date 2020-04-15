@@ -60,6 +60,8 @@ typedef struct AkNode {
 
   AkInstanceBase              *camera;
   struct AkInstanceController *controller;
+  void *morpher;
+  void *skinner;
   AkInstanceGeometry          *geometry;
   AkInstanceBase              *light;
   AkInstanceNode              *node;

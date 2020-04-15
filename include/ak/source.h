@@ -21,6 +21,7 @@ extern "C" {
 
 /*
   Input -> Source -> TechniqueCommon (Accessor) -> Buffer
+  Input -> Accessor -> Buffer
 */
 
 struct AkTechnique;
@@ -47,7 +48,6 @@ typedef struct AkDataParam {
   const char         *name;
   const char         *semantic;
   AkTypeDesc          type;
-  uint32_t            offset;
 } AkDataParam;
 
 typedef struct AkBuffer {
@@ -60,26 +60,25 @@ typedef struct AkBuffer {
 } AkBuffer;
 
 typedef struct AkAccessor {
-  struct AkBuffer     *buffer;
-  const char          *name;
-  void                *min;
-  void                *max;
-  size_t               byteOffset;     /* byte offset on the buffer         */
-  size_t               byteStride;     /* strin in bytes                    */
-  size_t               byteLength;     /* total bytes for this accessor     */
-  size_t               count;          /* count to access buffer            */
-  uint32_t             componentBytes; /* component stride in bytes         */
-  AkComponentSize      componentSize;  /* vec1 | vec2 | vec3 | vec4 ...     */
-  AkTypeId             componentType;  /* single component type             */
-  int32_t              gpuTarget;      /* GPU buffer target to bound        */
-  bool                 normalized;
+  struct AkBuffer *buffer;
+  const char      *name;
+  void            *min;
+  void            *max;
+  size_t           byteOffset;     /* byte offset on the buffer         */
+  size_t           byteStride;     /* strin in bytes                    */
+  size_t           byteLength;     /* total bytes for this accessor     */
+  uint32_t         count;          /* count to access buffer            */
+  uint32_t         componentBytes; /* component stride in bytes         */
+  AkComponentSize  componentSize;  /* vec1 | vec2 | vec3 | vec4 ...     */
+  AkTypeId         componentType;  /* single component type             */
+  int32_t          gpuTarget;      /* GPU buffer target to bound        */
+  bool             normalized;
 
   /* TODO: DEPRECATED */
   AkTypeDesc          *type;
   struct AkDataParam  *param;
   AkURL                source;
   size_t               offset;
-  uint32_t             firstBound;
   uint32_t             stride;
   uint32_t             bound;
 } AkAccessor;
@@ -89,6 +88,7 @@ typedef struct AkSource {
   const char         *name;
   AkBuffer           *buffer;
   AkAccessor         *tcommon;
+  
   struct AkTechnique *technique;
   struct AkSource    *next;
   int32_t             target;
@@ -116,13 +116,12 @@ typedef struct AkSourceBuffState {
   char         *url;
   size_t        count;
   uint32_t      stride;
-  uint32_t      lastoffset;
 } AkSourceBuffState;
 
 typedef struct AkSourceEditHelper {
   struct AkSourceEditHelper *next;
-  AkSource                  *oldsource;
-  AkSource                  *source;
+  AkAccessor                *oldsource;
+  AkAccessor                *source;
 } AkSourceEditHelper;
 
 AK_EXPORT

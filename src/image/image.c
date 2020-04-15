@@ -48,7 +48,7 @@ ak_imageLoad(AkImage * __restrict image) {
     flipImage = ak_opt_get(AK_OPT_IMAGE_LOAD_FLIP_VERTICALLY);
     stbi_set_flip_vertically_on_load(flipImage);
   }
-  
+
   if (image->initFrom) {
     AkInitFrom *initFrom;
     int         x, y, ch;

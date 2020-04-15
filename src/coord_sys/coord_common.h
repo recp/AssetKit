@@ -9,7 +9,6 @@
 #define ak_coord_common_h
 
 #include "../common.h"
-#include "../memory_common.h"
 
 #define AK__Z_RH {AK_AXIS_POSITIVE_X, AK_AXIS_POSITIVE_Z, AK_AXIS_POSITIVE_Y}
 #define AK__Y_RH {AK_AXIS_POSITIVE_X, AK_AXIS_POSITIVE_Y, AK_AXIS_NEGATIVE_Z}

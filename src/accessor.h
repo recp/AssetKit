@@ -10,16 +10,6 @@
 
 #include "common.h"
 
-/*!
- * @brief set accessor params with well-defined param names
- *
- * @param acc      Accessor (must be allocated by ak_heap_malloc)
- * @param semantic Common input semantic
- */
-void
-ak_accessor_setparams(AkAccessor     *acc,
-                      AkInputSemantic semantic);
-
 AkAccessor*
 ak_accessor_dup(AkAccessor *oldacc);
 

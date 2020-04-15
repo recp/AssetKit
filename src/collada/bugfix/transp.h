@@ -8,7 +8,7 @@
 #ifndef dae_bugfix_transp_h
 #define dae_bugfix_transp_h
 
-#include "../dae_common.h"
+#include "../common.h"
 
 void _assetkit_hide
 dae_bugfix_transp(AkTransparent * __restrict transp);

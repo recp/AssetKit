@@ -6,7 +6,6 @@
  */
 
 #include "../common.h"
-#include "../memory_common.h"
 #include "../default/def_light.h"
 #include <cglm/cglm.h>
 

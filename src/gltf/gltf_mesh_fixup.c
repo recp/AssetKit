@@ -6,26 +6,25 @@
  */
 
 #include "gltf_mesh_fixup.h"
-#include "../memory_common.h"
 #include "../mesh/mesh_index.h"
 
 void _assetkit_hide
 gltf_mesh_fixup(AkGLTFState * __restrict gst) {
   AkDoc      *doc;
-  AkLibItem  *geomLib;
+  AkLibrary  *geomLib;
   AkGeometry *geom;
 
   doc = gst->doc;
 
   geomLib = doc->lib.geometries;
   while (geomLib) {
-    geom = geomLib->chld;
+    geom = (void *)geomLib->chld;
     while (geom) {
       AkObject *primitive;
 
       primitive = geom->gdata;
       switch ((AkGeometryType)primitive->type) {
-        case AK_GEOMETRY_TYPE_MESH: {
+        case AK_GEOMETRY_MESH: {
           AkMesh *mesh;
           mesh = ak_objGet(primitive);
 
@@ -45,7 +44,7 @@ gltf_mesh_fixup(AkGLTFState * __restrict gst) {
         default:
           break;
       }
-      geom = geom->next;
+      geom = (void *)geom->base.next;
     }
 
     geomLib = geomLib->next;

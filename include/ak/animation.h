@@ -55,7 +55,7 @@ typedef enum AkInterpolationType {
 } AkInterpolationType;
 
 typedef struct AkAnimSampler {
-  struct AkAnimSampler *next;
+  AkOneWayIterBase      base;
   AkInput              *input;
 
   AkInput              *inputInput;

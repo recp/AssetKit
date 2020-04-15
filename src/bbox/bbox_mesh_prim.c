@@ -6,7 +6,6 @@
  */
 
 #include "bbox.h"
-#include "../mesh/mesh_util.h"
 #include <cglm/cglm.h>
 #include <float.h>
 
@@ -31,7 +30,6 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
   if (!prim->pos
       || !(acc = prim->pos->accessor)
       || !(posbuff = acc->buffer))
-     // || !(posbuff = ak_getObjectByUrl(&acc->source)))
     return;
 
   data = ((char *)posbuff->data + acc->byteOffset);

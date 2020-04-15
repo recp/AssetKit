@@ -19,7 +19,7 @@ gltf_cameras(json_t * __restrict jcam,
   AkHeap             *heap;
   AkDoc              *doc;
   const json_array_t *jcams;
-  AkLibItem          *lib;
+  AkLibrary          *lib;
   json_t             *it;
 
   if (!(jcams = json_array(jcam)))
@@ -58,7 +58,7 @@ gltf_cameras(json_t * __restrict jcam,
       continue;
     }
     
-    if (json_val_eqsz(it, _s_gltf_perspective, it->valSize)) {
+    if (json_val_eqsz(it, _s_gltf_perspective, it->valsize)) {
       AkPerspective *persp;
       
       persp            = ak_heap_calloc(heap, optics, sizeof(*persp));
@@ -90,7 +90,7 @@ gltf_cameras(json_t * __restrict jcam,
       }
 
       optics->tcommon = &persp->base;
-    } else if (json_val_eqsz(it, _s_gltf_orthographic, it->valSize)) {
+    } else if (json_val_eqsz(it, _s_gltf_orthographic, it->valsize)) {
       AkOrthographic *ortho;
 
       ortho            = ak_heap_calloc(heap, optics, sizeof(*ortho));
@@ -118,8 +118,8 @@ gltf_cameras(json_t * __restrict jcam,
       optics->tcommon = &ortho->base;
     }
     
-    cam->next = lib->chld;
-    lib->chld = cam;
+    cam->base.next = lib->chld;
+    lib->chld      = (void *)cam;
     
     lib->count++;
 

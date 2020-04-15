@@ -12,6 +12,7 @@
 
 #include <stdlib.h>
 #include <memory.h>
+#include "../include/ak/memory.h"
 #include "../include/ak/source.h"
 
 _assetkit_hide

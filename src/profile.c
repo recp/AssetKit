@@ -6,7 +6,6 @@
  */
 
 #include "common.h"
-#include "memory_common.h"
 #include "profile.h"
 
 #include <stdlib.h>

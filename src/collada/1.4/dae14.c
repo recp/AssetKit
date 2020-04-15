@@ -6,41 +6,41 @@
  */
 
 #include "../../../include/ak/assetkit.h"
-#include "../dae_common.h"
+#include "../common.h"
 #include "dae14.h"
 
 void
 _assetkit_hide
-dae14_loadjobs_add(AkXmlState * __restrict  xst,
+dae14_loadjobs_add(DAEState   * __restrict  dst,
                    void       *  __restrict parent,
                    void       * __restrict  value,
                    AkDae14LoadJobType       type) {
   AkDae14LoadJob *job, *last;
 
-  if (!xst)
+  if (!dst)
     return;
 
-  job = ak_heap_calloc(xst->heap,
+  job = ak_heap_calloc(dst->heap,
                        NULL,
                        sizeof(*job));
   job->parent = parent;
   job->type   = type;
   job->value  = value;
 
-  last = xst->jobs14;
+  last = dst->jobs14;
   if (last)
     last->prev = job;
 
-  job->next   = xst->jobs14;
-  xst->jobs14 = job;
+  job->next   = dst->jobs14;
+  dst->jobs14 = job;
 }
 
 void
 _assetkit_hide
-dae14_loadjobs_finish(AkXmlState * __restrict xst) {
+dae14_loadjobs_finish(DAEState * __restrict dst) {
   AkDae14LoadJob *job;
 
-  job = xst->jobs14;
+  job = dst->jobs14;
   while (job) {
     switch (job->type) {
       case AK_DAE14_LOADJOB_SURFACE: {
@@ -49,7 +49,7 @@ dae14_loadjobs_finish(AkXmlState * __restrict xst) {
         AkContext       ctx;
 
         memset(&ctx, 0, sizeof(ctx));
-        ctx.doc = xst->doc;
+        ctx.doc = dst->doc;
 
         surfaceParam = ak_sid_resolve(&ctx, job->value, NULL);
         if (surfaceParam) {
@@ -65,7 +65,7 @@ dae14_loadjobs_finish(AkXmlState * __restrict xst) {
             sampler = job->parent;
 
             /* convert initFrom to instance_image */
-            instanceImage = ak_heap_calloc(xst->heap,
+            instanceImage = ak_heap_calloc(dst->heap,
                                            sampler,
                                            sizeof(*instanceImage));
             if (surface->extra) {
@@ -75,12 +75,14 @@ dae14_loadjobs_finish(AkXmlState * __restrict xst) {
                           instanceImage);
             }
 
-            ak_url_init_with_id(xst->heap->allocator,
+            rb_insert(dst->instanceMap, sampler, instanceImage);
+            ak_url_init_with_id(dst->heap->allocator,
                                 instanceImage,
                                 (char *)surface->initFrom->image,
                                 &instanceImage->url);
 
-            sampler->instanceImage = instanceImage;
+            /* TODO: */
+//            sampler->instanceImage = instanceImage;
             surface->instanceImage = instanceImage;
 
             /* convert other params to update/new image */
@@ -105,7 +107,7 @@ dae14_loadjobs_finish(AkXmlState * __restrict xst) {
   }
 
   /* cleanup */
-  job = xst->jobs14;
+  job = dst->jobs14;
   while (job) {
     AkDae14LoadJob *tofree;
     
@@ -117,7 +119,7 @@ dae14_loadjobs_finish(AkXmlState * __restrict xst) {
         AkContext       ctx;
 
         memset(&ctx, 0, sizeof(ctx));
-        ctx.doc = xst->doc;
+        ctx.doc = dst->doc;
 
         surfaceParam = ak_sid_resolve(&ctx, job->value, NULL);
         if (surfaceParam) {
@@ -166,5 +168,5 @@ dae14_loadjobs_finish(AkXmlState * __restrict xst) {
     ak_free(tofree);
   }
 
-  xst->jobs14 = NULL;
+  dst->jobs14 = NULL;
 }

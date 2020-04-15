@@ -6,8 +6,6 @@
  */
 
 #include "../common.h"
-#include "../memory_common.h"
-#include "mesh_util.h"
 
 #include <assert.h>
 
@@ -16,27 +14,22 @@ extern const char* ak_mesh_edit_assert1;
 AK_EXPORT
 AkResult
 ak_meshFillBuffers(AkMesh * __restrict mesh) {
-  AkHeap             *heap;
-  AkObject           *meshobj;
   AkMeshEditHelper   *edith;
   AkInput            *input;
   AkMeshPrimitive    *primi;
-  AkSource           *src;
   AkAccessor         *acc, *newacc;
   AkUIntArray        *ind1, *ind2;
   AkUInt             *ind1_it, *ind2_it;
   AkBuffer           *oldbuff, *newbuff;
   AkSourceBuffState  *buffstate;
   AkSourceEditHelper *srch;
-  AkDataParam        *dp;
+  char               *olditms, *newitms;
   size_t              icount, i;
-  AkUInt              oldindex, newindex, j;
+  AkUInt              oldidx, newidx;
 
-  edith   = mesh->edith;
-  meshobj = ak_objFrom(mesh);
-  heap    = ak_heap_getheap(meshobj);
-  primi   = mesh->primitive;
-
+  edith = mesh->edith;
+  primi = mesh->primitive;
+ 
   /* per-primitive inputs */
   while (primi) {
     ind1 = primi->indices;
@@ -50,74 +43,36 @@ ak_meshFillBuffers(AkMesh * __restrict mesh) {
 
     ind1_it = ind1->items;
     ind2_it = ind2->items;
+    input   = primi->input;
 
-    input = primi->input;
     while (input) {
       if (input->semantic == AK_INPUT_SEMANTIC_POSITION
-          || !(src     = ak_getObjectByUrl(&input->source))
-          || !(acc     = src->tcommon)
-          || !(oldbuff = ak_getObjectByUrl(&acc->source)))
+          || !(acc     = input->accessor)
+          || !(oldbuff = acc->buffer))
         goto cont;
 
-      buffstate = rb_find(edith->buffers, input);
-
       /* copy buff to mesh */
-      if (buffstate) {
+      if ((buffstate = rb_find(edith->buffers, input))) {
+        srch    = ak_meshSourceEditHelper(mesh, input);
         newbuff = buffstate->buff;
+        newacc  = srch->source;
 
-        srch   = ak_meshSourceEditHelper(mesh, input);
-        newacc = srch->source->tcommon;
         assert(newacc && "accessor is needed!");
 
-        newacc->firstBound = buffstate->lastoffset;
-        ak_accessor_rebound(heap,
-                            newacc,
-                            buffstate->lastoffset);
-
-        icount = primi->indices->count / primi->indexStride;
-        switch (acc->componentType) {
-          case AKT_FLOAT: {
-            AkFloat *olditms, *newitms;
-
-            newitms = newbuff->data;
-            olditms = oldbuff->data;
-
-            for (i = 0; i < icount; i++) {
-              j        = 0;
-              dp       = acc->param;
-              oldindex = ind1_it[i * primi->indexStride + input->offset];
-              newindex = ind2_it[i];
-
-              while (dp) {
-                if (!dp->name)
-                  continue;
-
-                newitms[newindex * buffstate->stride
-                        + buffstate->lastoffset
-                        + newacc->firstBound
-                        + newacc->offset
-                        + j++]
-                = olditms[oldindex * acc->stride
-                          + acc->offset
-                          + dp->offset];
-
-                dp = dp->next;
-              }
-            }
-            break;
-          }
-          case AKT_INT: {
-            break;
-          }
-          case AKT_STRING: {
-            break;
-          }
-          case AKT_BOOL: {
-            break;
-          }
-          default: break;
+        icount  = primi->indices->count / primi->indexStride;
+        newitms = (char *)newbuff->data + newacc->byteOffset;
+        olditms = (char *)oldbuff->data + acc->byteOffset;
+        
+        for (i = 0; i < icount; i++) {
+          oldidx = ind1_it[i * primi->indexStride + input->offset];
+          newidx = ind2_it[i];
+          
+          memcpy(newitms + newacc->byteStride * newidx,
+                 olditms + acc->byteStride    * oldidx,
+                 acc->byteStride);
         }
 
+        /* to prevent duplication operation for next time */
         input->offset = 0;
       }
 

@@ -6,7 +6,6 @@
  */
 
 #include "../common.h"
-#include "../memory_common.h"
 
 AK_EXPORT
 uint32_t

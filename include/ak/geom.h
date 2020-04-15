@@ -23,9 +23,9 @@ struct FListItem;
 struct AkMaterial;
 
 typedef enum AkGeometryType {
-  AK_GEOMETRY_TYPE_MESH   = 0,
-  AK_GEOMETRY_TYPE_SPLINE = 1,
-  AK_GEOMETRY_TYPE_BREP   = 2
+  AK_GEOMETRY_MESH   = 1,
+  AK_GEOMETRY_SPLINE = 2,
+  AK_GEOMETRY_BREP   = 3
 } AkGeometryType;
 
 typedef enum AkGeometryEditFlags {
@@ -35,22 +35,22 @@ typedef enum AkGeometryEditFlags {
 } AkGeometryEditFlags;
 
 typedef enum AkMeshPrimitiveType {
-  AK_MESH_PRIMITIVE_TYPE_LINES      = 1,
-  AK_MESH_PRIMITIVE_TYPE_POLYGONS   = 2,
-  AK_MESH_PRIMITIVE_TYPE_TRIANGLES  = 3,
-  AK_MESH_PRIMITIVE_TYPE_POINTS     = 4
+  AK_PRIMITIVE_LINES      = 1,
+  AK_PRIMITIVE_POLYGONS   = 2,
+  AK_PRIMITIVE_TRIANGLES  = 3,
+  AK_PRIMITIVE_POINTS     = 4
 } AkMeshPrimitiveType;
 
 typedef enum AkTriangleMode {
-  AK_TRIANGLE_MODE_TRIANGLES      = 0,
-  AK_TRIANGLE_MODE_TRIANGLE_STRIP = 1,
-  AK_TRIANGLE_MODE_TRIANGLE_FAN   = 2
+  AK_TRIANGLES      = 1,
+  AK_TRIANGLE_STRIP = 2,
+  AK_TRIANGLE_FAN   = 3
 } AkTriangleMode;
 
 typedef enum AkLineMode {
-  AK_LINE_MODE_LINES      = 0,
-  AK_LINE_MODE_LINE_LOOP  = 1,
-  AK_LINE_MODE_LINE_STRIP = 2
+  AK_LINES      = 1,
+  AK_LINE_LOOP  = 2,
+  AK_LINE_STRIP = 3
 } AkLineMode;
 
 typedef struct AkVertices {
@@ -60,6 +60,12 @@ typedef struct AkVertices {
   AkInput      *input;
   uint32_t      inputCount;
 } AkVertices;
+
+typedef struct AkJointDesc {
+  uint32_t *counts;
+  size_t   *indexes;
+  uint32_t  allCount;
+} AkJointDesc;
 
 typedef struct AkMeshPrimitive {
   AkMeshPrimitiveType     type;
@@ -71,16 +77,20 @@ typedef struct AkMeshPrimitive {
   AkInput                *input;
   AkInput                *pos;
   AkUIntArray            *indices;
+  uint32_t               *jointCounts;
+  size_t                 *jointIndexes;
   AkTree                 *extra;
   void                   *udata;
   struct AkMeshPrimitive *next;
   uint32_t                count;
   uint32_t                inputCount;
+  AkFloat3                center;
+
+  /* TODO: remove */
   uint32_t                indexStride;
   uint32_t                reserved1; /* private member */
   uint32_t                reserved2; /* private member */
   void                   *reserved3; /* private member */
-  AkFloat3                center;
 } AkMeshPrimitive;
 
 typedef struct AkLines {
@@ -113,7 +123,6 @@ typedef struct AkMeshEditHelper {
 typedef struct AkMesh {
   struct AkGeometry *geom;
   const char        *convexHullOf;
-  AkSource          *source;
   AkMeshPrimitive   *primitive;
   AkBoundingBox     *bbox;
   AkTree            *extra;
@@ -124,16 +133,12 @@ typedef struct AkMesh {
   AkFloat3           center;
 } AkMesh;
 
-typedef struct AkControlVerts {
-  AkInput *input;
-  AkTree  *extra;
-} AkControlVerts;
-
 typedef struct AkSpline {
-  AkSource       *source;
-  AkControlVerts *cverts;
-  AkTree         *extra;
-  AkBool          closed;
+  struct AkGeometry *geom;
+  AkSource          *source;
+  AkVertices        *cverts;
+  AkTree            *extra;
+  AkBool             closed;
 } AkSpline;
 
 typedef struct AkLine {
@@ -163,11 +168,11 @@ typedef struct AkHyperbola {
 } AkHyperbola;
 
 typedef struct AkNurbs {
-  AkSource       *source;
-  AkControlVerts *cverts;
-  AkTree         *extra;
-  AkUInt          degree;
-  AkBool          closed;
+  AkSource   *source;
+  AkVertices *cverts;
+  AkTree     *extra;
+  AkUInt      degree;
+  AkBool      closed;
 } AkNurbs;
 
 typedef struct AkCurve {
@@ -199,13 +204,13 @@ typedef struct AkCylinder {
 } AkCylinder;
 
 typedef struct AkNurbsSurface {
-  AkSource       *source;
-  AkControlVerts *cverts;
-  AkTree         *extra;
-  AkUInt          degree_u;
-  AkUInt          degree_v;
-  AkBool          closed_u;
-  AkBool          closed_v;
+  AkSource   *source;
+  AkVertices *cverts;
+  AkTree     *extra;
+  AkUInt      degree_u;
+  AkUInt      degree_v;
+  AkBool      closed_u;
+  AkBool      closed_v;
 } AkNurbsSurface;
 
 typedef struct AkSphere {
@@ -248,6 +253,7 @@ typedef struct AkEdges {
   AkUIntArray   *primitives;
   AkTree        *extra;
   AkUInt         count;
+  uint32_t       inputCount;
 } AkEdges;
 
 typedef struct AkWires {
@@ -258,6 +264,7 @@ typedef struct AkWires {
   AkUIntArray *primitives;
   AkTree      *extra;
   AkUInt       count;
+  uint32_t     inputCount;
 } AkWires;
 
 typedef struct AkFaces {
@@ -268,6 +275,7 @@ typedef struct AkFaces {
   AkUIntArray *primitives;
   AkTree      *extra;
   AkUInt       count;
+  uint32_t     inputCount;
 } AkFaces;
 
 typedef struct AkPCurves {
@@ -278,6 +286,7 @@ typedef struct AkPCurves {
   AkUIntArray *primitives;
   AkTree      *extra;
   AkUInt       count;
+  uint32_t     inputCount;
 } AkPCurves;
 
 typedef struct AkShells {
@@ -288,6 +297,7 @@ typedef struct AkShells {
   AkUIntArray *primitives;
   AkTree      *extra;
   AkUInt       count;
+  uint32_t     inputCount;
 } AkShells;
 
 typedef struct AkSolids {
@@ -298,31 +308,33 @@ typedef struct AkSolids {
   AkUIntArray *primitives;
   AkTree      *extra;
   AkUInt       count;
+  uint32_t     inputCount;
 } AkSolids;
 
 typedef struct AkBoundryRep {
-  AkCurves   * curves;
-  AkCurves   * surfaceCurves;
-  AkSurfaces * surfaces;
-  AkSource   * source;
-  AkVertices * vertices;
-  AkEdges    * edges;
-  AkWires    * wires;
-  AkFaces    * faces;
-  AkPCurves  * pcurves;
-  AkShells   * shells;
-  AkSolids   * solids;
-  AkTree     * extra;
+  struct AkGeometry *geom;
+  AkCurves          *curves;
+  AkCurves          *surfaceCurves;
+  AkSurfaces        *surfaces;
+  AkSource          *source;
+  AkVertices        *vertices;
+  AkEdges           *edges;
+  AkWires           *wires;
+  AkFaces           *faces;
+  AkPCurves         *pcurves;
+  AkShells          *shells;
+  AkSolids          *solids;
+  AkTree            *extra;
 } AkBoundryRep;
 
 typedef struct AkGeometry {
   /* const char * id; */
+  AkOneWayIterBase   base;
   const char        *name;
   AkObject          *gdata;
   AkTree            *extra;
   AkMap             *materialMap;
   AkBoundingBox     *bbox;
-  struct AkGeometry *next;
 } AkGeometry;
 
 /*!
@@ -432,36 +444,6 @@ AK_EXPORT
 void
 ak_meshEndEdit(AkMesh * __restrict mesh);
 
-/*!
- * @brief this func returns array of input, because if you want to get array
- *        you need to traverse though input -> source -> technique -> array
- *
- * @param mesh  mesh
- * @param input input
- *
- * @return buffer object
- */
-AK_EXPORT
-AkObject*
-ak_meshArrayOf(AkMesh   * __restrict mesh,
-               AkInput  * __restrict input);
-
-/*!
- * @brief collect buffer infos, altername would be ak_meshArrayInfos
- *        this function collects buffer usage (count, stride) in specified mesh
- *        this is useful for shrink buffer
- *
- * @param[in]  mesh     mesh
- * @param[in]  arrayURL buffer URL
- * @param[out] stride   stride (for mesh)
- * @param[out] count    count  (for mesh)
- */
-void
-ak_meshInspectArray(AkMesh   * __restrict mesh,
-                    AkURL    * __restrict arrayURL,
-                    uint32_t * __restrict stride,
-                    size_t   * __restrict count);
-
 AK_EXPORT
 AkUIntArray*
 ak_meshIndicesArrayFor(AkMesh          * __restrict mesh,
@@ -519,6 +501,10 @@ ak_meshFixIndexBuffer(AkMesh          * __restrict mesh,
 void
 ak_inputNameIndexed(AkInput * __restrict input,
                     char    * __restrict buf);
+
+void
+ak_inputNameBySet(AkInput * __restrict input,
+                  char    * __restrict buf);
 
 void
 ak_meshReIndexInputs(AkMesh * __restrict mesh);

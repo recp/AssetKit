@@ -18,7 +18,7 @@ gltf_scenes(json_t * __restrict jscene,
   AkHeap             *heap;
   AkDoc              *doc;
   const json_array_t *jscenes;
-  AkLibItem          *lib;
+  AkLibrary          *lib;
 
   if (!(jscenes = json_array(jscene)))
     return;
@@ -91,8 +91,8 @@ gltf_scenes(json_t * __restrict jscene,
 
   scn_nxt:
 
-    scene->next = lib->chld;
-    lib->chld   = scene;
+    scene->base.next = lib->chld;
+    lib->chld        = (void *)scene;
     lib->count++;
     
     jscene = jscene->next;

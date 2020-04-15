@@ -24,9 +24,6 @@
 #include "core/gltf_anim.h"
 #include "core/gltf_skin.h"
 
-#include <json/json.h>
-#include <json/print.h>
-
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 #  define le_uint32(X, DATA) \
   do {                                                                        \

@@ -37,79 +37,39 @@ ak_strtok_count_fast(char * __restrict buff,
 
 
 AK_EXPORT
-int
+unsigned long
 ak_strtof_fast(char    * __restrict src,
-               AkFloat * __restrict dest,
-               unsigned long n);
+               size_t               srclen,
+               unsigned long        n,
+               AkFloat * __restrict dest);
 
 AK_EXPORT
-int
+unsigned long
 ak_strtod_fast(char     * __restrict src,
-               AkDouble * __restrict dest,
-               unsigned long n);
+               size_t                srclen,
+               unsigned long         n,
+               AkDouble * __restrict dest);
 
 AK_EXPORT
-int
-ak_strtoui_fast(char   * __restrict src,
-                AkUInt * __restrict dest,
-                unsigned long n);
+unsigned long
+ak_strtoui_fast(char    * __restrict src,
+                size_t               srclen,
+                unsigned long        n,
+                AkUInt  * __restrict dest);
 
 AK_EXPORT
-int
-ak_strtod(char ** __restrict src,
-          AkDouble * __restrict dest,
-          unsigned long n);
+unsigned long
+ak_strtoi_fast(char    * __restrict src,
+               size_t               srclen,
+               unsigned long        n,
+               AkInt   * __restrict dest);
 
 AK_EXPORT
-int
-ak_strtof(char ** __restrict src,
-           AkFloat * __restrict dest,
-           unsigned long n);
-
-AK_EXPORT
-int
-ak_strtoui(char   ** __restrict src,
-           AkUInt * __restrict dest,
-           unsigned long n);
-
-AK_EXPORT
-int
-ak_strtomb(char ** __restrict src,
-            AkBool * __restrict dest,
-            unsigned long m,
-            unsigned long n);
-
-AK_EXPORT
-int
-ak_strtomi(char ** __restrict src,
-            AkInt * __restrict dest,
-            unsigned long m,
-            unsigned long n);
-
-AK_EXPORT
-int
-ak_strtomf(char ** __restrict src,
-            AkFloat * __restrict dest,
-            unsigned long m,
-            unsigned long n);
-
-AK_EXPORT
-int
-ak_strtof_s(const char * __restrict src,
-             AkFloat * __restrict dest,
-             unsigned long n);
-
-AK_EXPORT
-extern
-int
-ak_strtof4(char ** __restrict src,
-            AkFloat4 * __restrict dest);
-
-AK_EXPORT
-extern
-int
-ak_strtof4_s(const char * __restrict src,
-              AkFloat4 * __restrict dest);
+unsigned long
+ak_strtob_fast(char    * __restrict src,
+               size_t               srclen,
+               unsigned long        n,
+               AkBool  * __restrict dest);
 
 AK_EXPORT
 char*

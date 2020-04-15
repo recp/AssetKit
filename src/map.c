@@ -6,7 +6,8 @@
  */
 
 #include "../include/ak/map.h"
-#include "memory_common.h"
+#include "../include/ak/util.h"
+#include "mem/common.h"
 
 AkMap *
 ak_map_new(AkMapCmp cmp) {

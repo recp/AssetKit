@@ -6,9 +6,7 @@
  */
 
 #include "../common.h"
-#include "../memory_common.h"
 #include "mesh_index.h"
-#include "mesh_util.h"
 #include "mesh_edit_common.h"
 #include <stdio.h>
 #include <string.h>
@@ -81,6 +79,18 @@ ak_inputNameIndexed(AkInput * __restrict input,
 
   if (input->isIndexed)
     sprintf(buf, "%s%d", input->semanticRaw, input->index);
+  else
+    strcpy(buf, input->semanticRaw);
+}
+
+void
+ak_inputNameBySet(AkInput * __restrict input,
+                  char    * __restrict buf) {
+  if (!input->semanticRaw)
+    return;
+
+  if (input->set > 0)
+    sprintf(buf, "%s%d", input->semanticRaw, input->set);
   else
     strcpy(buf, input->semanticRaw);
 }

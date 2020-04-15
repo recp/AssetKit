@@ -55,4 +55,13 @@ typedef enum AkResult {
   AK_EBADF    = -EBADF /* docoumnt couldn't parsed / loaded */
 } AkResult;
 
+typedef struct AkOneWayIterBase {
+  struct AkOneWayIterBase *next;
+} AkOneWayIterBase;
+
+typedef struct AkTwoWayIterBase {
+  struct AkTwoWayIterBase *next;
+  struct AkTwoWayIterBase *prev;
+} AkTwoWayIterBase;
+
 #endif /* __libassetkit__common_h */

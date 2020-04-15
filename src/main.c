@@ -6,9 +6,8 @@
  */
 
 #include "common.h"
-#include "memory_common.h"
-#include "memory_rb.h"
-#include "memory_lt.h"
+#include "mem/rb.h"
+#include "mem/lt.h"
 #include "trash.h"
 #include "sid.h"
 #include "profile.h"

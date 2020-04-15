@@ -6,23 +6,22 @@
  */
 
 #include "../common.h"
-#include "../memory_common.h"
 
 AK_EXPORT
 void
 ak_changeCoordSys(AkDoc * __restrict doc,
                   AkCoordSys * newCoordSys) {
-  AkLibItem  *libGeom;
+  AkLibrary  *libGeom;
   AkGeometry *geom;
 
   libGeom = doc->lib.geometries;
 
   while (libGeom) {
-    geom = libGeom->chld;
+    geom = (void *)libGeom->chld;
 
     while (geom) {
       ak_changeCoordSysGeom(geom, newCoordSys);
-      geom = geom->next;
+      geom = (void *)geom->base.next;
     }
 
     libGeom = libGeom->next;

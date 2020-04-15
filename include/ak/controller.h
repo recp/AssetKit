@@ -34,6 +34,8 @@ typedef struct AkBoneWeights {
   uint32_t     *counts;    /* joint count per vertex                     */
   size_t       *indexes;   /* offset of weight at buffer by index        */
   AkBoneWeight *weights;
+//  AkAccessor   *joints;
+//  AkAccessor   *weights;
   AkTree       *extra;
   size_t        nWeights;  /* cache: count of weights                    */
   size_t        nVertex;   /* cache: count of pJointsCount/pWeightsIndex */
@@ -42,6 +44,7 @@ typedef struct AkBoneWeights {
 typedef struct AkSkin {
   struct AkNode **joints;  /* global joints, check instanceController    */
   AkFloat4x4     *invBindPoses;
+//  AkAccessor     *invBindPosesAcc;
   AkBoneWeights **weights; /* per primitive                              */
   AkSource       *source;
   AkTree         *extra;

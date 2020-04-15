@@ -12,16 +12,15 @@
 
 _assetkit_hide
 AkResult
-ak_meshFixIndices(AkHeap *heap, AkMesh *mesh);
+ak_meshFixIndices(AkMesh *mesh);
 
 _assetkit_hide
 AkResult
-ak_primFixIndices(AkHeap          *heap,
-                  AkMesh          *mesh,
+ak_primFixIndices(AkMesh          *mesh,
                   AkMeshPrimitive *prim);
 
 _assetkit_hide
 AkResult
-ak_meshFixIndicesDefault(AkHeap *heap, AkMesh *mesh);
+ak_meshFixIndicesDefault(AkMesh *mesh);
 
 #endif /* ak_mesh_index_h */
