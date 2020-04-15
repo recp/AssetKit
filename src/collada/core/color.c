@@ -30,4 +30,6 @@ dae_color(xml_t   * __restrict xml,
       dest->vec[4 - c--] = 1.0f;
     } while (c > 0);
   }
+  
+  glm_vec4_clamp(dest->vec, 0.0f, 1.0f);
 }
