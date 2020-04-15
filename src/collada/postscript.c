@@ -180,7 +180,7 @@ dae_fixup_accessors(DAEState * __restrict dst) {
       
       /* the buffer is used more than one place, so duplicate data */
       /* TODO: check param that has empty name */
-      if (ak_refc(buff) > 1) {
+      if (acc->buffer && ak_refc(buff) > 1) {
         AkBuffer    *newbuff;
         AkDataParam *dp;
         char        *olditms, *newitms;
