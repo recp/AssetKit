@@ -12,14 +12,16 @@
 void _assetkit_hide
 dae_bugfix_transp(AkTransparent * __restrict transp) {
   AkContributor *contr;
-  const char    *tool;
+  char          *tool;
 
   if (!(contr = ak_getAssetInfo(transp, offsetof(AkAssetInf, contributor)))
-      || !(tool = contr->authoringTool))
+      || !(tool = (char *)contr->authoringTool))
     return;
 
+  tool = ak_tolower(strdup(tool));
+
   /* fix old SketchUp transparency bug */
-  if (strcasestr(tool, _s_dae_sketchup)) {
+  if (strstr(tool, _s_dae_sketchup)) {
     int major, minor, patch;
     if(sscanf(tool, "%*[^0123456789]%d%*[. ]%d%*[. ]%d",
               &major, &minor, &patch)) {
@@ -32,4 +34,6 @@ dae_bugfix_transp(AkTransparent * __restrict transp) {
       }
     }
   } /* _s_dae_sketchup */
+  
+  free(tool);
 }
