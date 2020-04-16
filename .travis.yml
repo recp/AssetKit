@@ -43,8 +43,8 @@ script:
     else
       ./configure;
     fi
-  - make
-  - make check
+  - make -j8
+#  - make check
 
 after_success:
   - if [[ "$CC" == "gcc" && "$CODE_COVERAGE" == "ON" ]]; then
