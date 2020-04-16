@@ -80,7 +80,7 @@ dae_node(DAEState      * __restrict dst,
       else
         node->transform->item = obj;
       
-      last_trans = node->transform->item;
+      last_trans = obj;
     } else if (xml_tag_eq(xml, _s_dae_matrix) && (sval = xmls(xml))) {
       mat4      transform;
       AkObject *obj;
@@ -101,7 +101,7 @@ dae_node(DAEState      * __restrict dst,
       else
         node->transform->item = obj;
       
-      last_trans = node->transform->item;
+      last_trans = obj;
     } else if (xml_tag_eq(xml, _s_dae_rotate) && (sval = xmls(xml))) {
       AkObject *obj;
       AkRotate *rotate;
@@ -121,7 +121,7 @@ dae_node(DAEState      * __restrict dst,
       else
         node->transform->item = obj;
 
-      last_trans = node->transform->item;
+      last_trans = obj;
     } else if (xml_tag_eq(xml, _s_dae_scale) && (sval = xmls(xml))) {
       AkObject *obj;
       AkScale  *scale;
@@ -140,7 +140,7 @@ dae_node(DAEState      * __restrict dst,
       else
         node->transform->item = obj;
       
-      last_trans = node->transform->item;
+      last_trans = obj;
     } else if (xml_tag_eq(xml, _s_dae_skew) && (sval = xmls(xml))) {
       AkObject *obj;
       AkSkew   *skew;
@@ -165,7 +165,7 @@ dae_node(DAEState      * __restrict dst,
       else
         node->transform->item = obj;
       
-      last_trans = node->transform->item;
+      last_trans = obj;
     } else if (xml_tag_eq(xml, _s_dae_translate) && (sval = xmls(xml))) {
       AkObject    *obj;
       AkTranslate *transl;
@@ -184,7 +184,7 @@ dae_node(DAEState      * __restrict dst,
       else
         node->transform->item = obj;
       
-      last_trans = node->transform->item;
+      last_trans = obj;
     } else if (xml_tag_eq(xml, _s_dae_instance_camera)) {
       AkInstanceBase *instcam;
 
