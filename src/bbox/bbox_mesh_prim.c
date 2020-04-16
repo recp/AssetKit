@@ -108,7 +108,7 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
     glm_vec3_center(prim->bbox->min, prim->bbox->max, prim->center);
   } else if (count > 0) {
     /* calculate exact center of primitive */
-    glm_vec3_divs(center, count, center);
+    glm_vec3_divs(center, (float)count, center);
   } else {
     glm_vec3_zero(prim->center);
   }

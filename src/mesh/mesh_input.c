@@ -34,7 +34,7 @@ ak_meshReIndexInputs(AkMesh * __restrict mesh) {
         found = rb_find_node(tree, (void *)inp->semanticRaw);
         if (found) {
           found->val = ((char *)found->val) + 1;
-          inp->index = (int32_t)found->val;
+          inp->index = (int32_t)(uintptr_t)found->val;
           inp->isIndexed = true;
         } else {
           rb_insert(tree, (void *)inp->semanticRaw, NULL);

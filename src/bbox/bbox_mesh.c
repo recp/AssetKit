@@ -43,7 +43,7 @@ ak_bbox_mesh(struct AkMesh * __restrict mesh) {
         primcount++;
         prim = prim->next;
       }
-      glm_vec3_divs(center, primcount, mesh->center);
+      glm_vec3_divs(center, (float)primcount, mesh->center);
     }
   }
 }

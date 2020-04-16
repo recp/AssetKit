@@ -20,10 +20,10 @@ typedef enum AkImageType {
 } AkImageType;
 
 typedef struct AkImageData {
-  void  *data;
-  float  width;
-  float  height;
-  AkEnum comp;
+  void    *data;
+  uint32_t width;
+  uint32_t height;
+  AkEnum   comp;
 } AkImageData;
 
 typedef struct AkSizeExact {
