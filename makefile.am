@@ -21,7 +21,6 @@ lib_LTLIBRARIES = libassetkit.la
 libassetkit_la_LDFLAGS = -no-undefined \
                          -version-info 0:1:0 \
                          -ljemalloc \
-                         -luv \
                          -lds
 
 check_PROGRAMS = test/tests
