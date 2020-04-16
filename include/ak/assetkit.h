@@ -468,6 +468,8 @@ typedef struct AkLibraries {
   struct FListItem *skins;
 } AkLibraries;
 
+typedef const char* (*AkFetchFromURLHandler)(const char * __restrict url);
+
 typedef struct AkDoc {
   AkDocInf   *inf;
   AkCoordSys *coordSys;
@@ -556,6 +558,10 @@ ak_retainURL(void * __restrict obj, AkURL * __restrict url);
 AK_EXPORT
 void
 ak_releaseURL(void * __restrict obj, AkURL * __restrict url);
+
+AK_EXPORT
+void
+ak_setFetchFromURLHandler(AkFetchFromURLHandler handler);
 
 #ifdef __cplusplus
 }

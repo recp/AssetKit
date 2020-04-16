@@ -7,7 +7,6 @@
 
 #include "resource.h"
 #include "../../include/ak/path.h"
-#include "curl.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -16,11 +15,19 @@
 #include <string.h>
 #include <stdio.h>
 
+static AkFetchFromURLHandler ak__urlhandler = NULL;
+
 static AkHeap ak__resc_heap = {
   .flags = 0
 };
 
 #define resc_heap &ak__resc_heap
+
+AK_EXPORT
+void
+ak_setFetchFromURLHandler(AkFetchFromURLHandler handler) {
+  ak__urlhandler = handler;
+}
 
 AkResource *
 ak_resc_ins(const char *url) {
@@ -85,8 +92,12 @@ ak_resc_ins(const char *url) {
    * to do this the remote file must send file size
    */
 
-  /* TODO: check preferences, user may want to download manually */
-  resc->localurl = ak_curl_dwn(resc->url);
+  if (!ak__urlhandler) {
+    ak_free(resc);
+    return NULL;
+  }
+
+  resc->localurl = ak__urlhandler(resc->url);
   ak_heap_setpm((void *)resc->localurl, resc);
 
   resc->result = ak_load(&resc->doc,

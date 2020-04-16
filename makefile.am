@@ -21,7 +21,6 @@ lib_LTLIBRARIES = libassetkit.la
 libassetkit_la_LDFLAGS = -no-undefined \
                          -version-info 0:1:0 \
                          -ljemalloc \
-                         -lcurl \
                          -luv \
                          -lds
 
@@ -32,7 +31,6 @@ test_tests_LDFLAGS = -L./.libs \
                      -lassetkit \
                      -lm \
                      -ljemalloc \
-                     -lcurl \
                      -luv \
                      -lds
 
@@ -116,7 +114,6 @@ libassetkit_la_SOURCES=\
     src/coord_sys/coord_node.c \
     src/coord_sys/coord_scene.c \
     src/resc/path.c \
-    src/resc/curl.c \
     src/resc/resource.c \
     src/resc/url.c \
     src/instance/inst.c \

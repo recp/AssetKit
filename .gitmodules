@@ -6,10 +6,6 @@
 [submodule "lib/cglm"]
 	path = lib/cglm
 	url = https://recp@github.com/recp/cglm.git
-[submodule "lib/curl"]
-	path = lib/curl
-	url = https://github.com/curl/curl.git
-	branch = master
 [submodule "lib/libuv"]
 	path = lib/libuv
 	url = https://github.com/libuv/libuv.git

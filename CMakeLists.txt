@@ -17,7 +17,6 @@ include_directories(
 
         ${PROJECT_SOURCE_DIR}/lib/jemalloc/include
         ${PROJECT_SOURCE_DIR}/lib/cglm/include
-        ${PROJECT_SOURCE_DIR}/lib/curl/include
         ${PROJECT_SOURCE_DIR}/lib/libuv/include
         ${PROJECT_SOURCE_DIR}/lib/libds/include
         ${PROJECT_SOURCE_DIR}/lib/stb
@@ -28,7 +27,6 @@ link_directories(
         PRIVATE
 
         ${PROJECT_SOURCE_DIR}/lib/jemalloc/lib
-        ${PROJECT_SOURCE_DIR}/lib/curl/lib/.libs
         ${PROJECT_SOURCE_DIR}/lib/libuv/.libs
         ${PROJECT_SOURCE_DIR}/lib/libds/.libs
 )
@@ -38,7 +36,7 @@ add_library(assetkit STATIC
         src/bbox/bbox.c
         src/bbox/bbox.h)
 
-target_link_libraries(assetkit -ljemalloc -lcurl -luv -lds -ljansson)
+target_link_libraries(assetkit -ljemalloc -luv -lds -ljansson)
 
 #src/win32/strptime.c
 # src/dllmain.c

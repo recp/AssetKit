@@ -8,7 +8,6 @@
 #include "../common.h"
 #include "../../include/ak/path.h"
 #include "resource.h"
-#include "curl.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -132,7 +131,7 @@ ak_getFile(const char *url) {
            option for how to store this file,
            option for when to remove it
    */
-  return ak_curl_dwn(url);
+  return NULL;
 }
 
 const char*

@@ -25,12 +25,6 @@ sh ./autogen.sh
 ./configure
 make -j8
 
-# curl
-cd ../curl
-sh ./buildconf
-./configure
-make -j8
-
 # libuv
 cd ../libuv
 sh ./autogen.sh
