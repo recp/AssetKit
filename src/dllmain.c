@@ -6,7 +6,7 @@
  */
 
 #include "config.h"
-#include "ak_memory_common.h"
+#include "mem/common.h"
 
 void
 AK_CONSTRUCTOR
