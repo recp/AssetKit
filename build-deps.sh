@@ -24,3 +24,5 @@ cd ./lib/libds
 sh ./autogen.sh
 ./configure
 make -j8
+
+cd ../../
