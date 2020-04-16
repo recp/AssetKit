@@ -146,8 +146,7 @@ dae_mesh(DAEState   * __restrict dst,
       
       url = rb_find(dst->inputmap, inpv);
       inp = inpv;
-      
-      assert(url);
+
       rb_remove(dst->inputmap, inpv);
 
       inpv = inpv->next;
