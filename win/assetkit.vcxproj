@@ -24,7 +24,7 @@
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>assetkit</RootNamespace>
     <ProjectName>assetkit</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -73,25 +73,25 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\lib\libuv\include;..\lib\libds\include;..\lib\cglm\include;..\lib\jansson\src;$(IncludePath)</IncludePath>
+    <IncludePath>..\lib\stb;..\lib\json\include;..\lib\xml\include;..\lib\libds\include;..\lib\cglm\include;$(IncludePath)</IncludePath>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <IncludePath>..\lib\libuv\include;..\lib\libds\include;..\lib\cglm\include;..\lib\jansson\src;$(IncludePath)</IncludePath>
+    <IncludePath>..\lib\stb;..\lib\json\include;..\lib\xml\include;..\lib\libds\include;..\lib\cglm\include;$(IncludePath)</IncludePath>
     <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>true</RunCodeAnalysis>
-    <IncludePath>..\lib\libuv\include;..\lib\libds\include;..\lib\cglm\include;..\lib\jansson\src;$(IncludePath)</IncludePath>
+    <IncludePath>..\lib\stb;..\lib\json\include;..\lib\xml\include;..\lib\libds\include;..\lib\cglm\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\lib\libuv\include;..\lib\libds\include;..\lib\cglm\include;..\lib\jansson\src;$(IncludePath)</IncludePath>
+    <IncludePath>..\lib\stb;..\lib\json\include;..\lib\xml\include;..\lib\libds\include;..\lib\cglm\include;$(IncludePath)</IncludePath>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
@@ -104,11 +104,12 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_assetkit_dll;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <EnablePREfast>true</EnablePREfast>
+      <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>.\packages\libxml2.2.7.8.7\build\native\lib\v110\Win32\Debug\dynamic\cdecl\libxml2.lib;.\packages\curl.7.30.0.2\build\native\lib\v110\Win32\Debug\dynamic\libcurl.lib;..\lib\libuv\Debug\lib\libuv.lib;..\lib\libds\win\Release\libds.lib;advapi32.lib;iphlpapi.lib;psapi.lib;shell32.lib;ws2_32.lib;userenv.lib;ucrtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;iphlpapi.lib;psapi.lib;shell32.lib;ws2_32.lib;userenv.lib;ucrtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>LIBCMTD.lib</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
@@ -122,12 +123,13 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_assetkit_dll;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <EnablePREfast>true</EnablePREfast>
+      <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>.\packages\libxml2.2.7.8.7\build\native\lib\v110\Win32\Debug\dynamic\cdecl\libxml2.lib;.\packages\curl.7.30.0.2\build\native\lib\v110\Win32\Debug\dynamic\libcurl.lib;..\lib\libuv\Debug\lib\libuv.lib;..\lib\libds\win\Release\libds.lib;advapi32.lib;iphlpapi.lib;psapi.lib;shell32.lib;ws2_32.lib;userenv.lib;ucrtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;iphlpapi.lib;psapi.lib;shell32.lib;ws2_32.lib;userenv.lib;ucrtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>LIBCMTD.lib</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
@@ -143,13 +145,14 @@
       <EnablePREfast>true</EnablePREfast>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <CompileAs>CompileAsC</CompileAs>
+      <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>.\packages\libxml2.2.7.8.7\build\native\lib\v110\Win32\Debug\dynamic\cdecl\libxml2.lib;.\packages\curl.7.30.0.2\build\native\lib\v110\Win32\Debug\dynamic\libcurl.lib;..\lib\libuv\Debug\lib\libuv.lib;..\lib\libds\win\Release\libds.lib;advapi32.lib;iphlpapi.lib;psapi.lib;shell32.lib;ws2_32.lib;userenv.lib;ucrtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;iphlpapi.lib;psapi.lib;shell32.lib;ws2_32.lib;userenv.lib;ucrtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>LIBCMTD.lib</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
@@ -163,13 +166,14 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_assetkit_dll;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsC</CompileAs>
       <EnablePREfast>true</EnablePREfast>
+      <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>.\packages\libxml2.2.7.8.7\build\native\lib\v110\Win32\Debug\dynamic\cdecl\libxml2.lib;.\packages\curl.7.30.0.2\build\native\lib\v110\Win32\Debug\dynamic\libcurl.lib;..\lib\libuv\Debug\lib\libuv.lib;..\lib\libds\win\Release\libds.lib;advapi32.lib;iphlpapi.lib;psapi.lib;shell32.lib;ws2_32.lib;userenv.lib;ucrtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;iphlpapi.lib;psapi.lib;shell32.lib;ws2_32.lib;userenv.lib;ucrtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>LIBCMTD.lib</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
@@ -213,73 +217,57 @@
     <ClInclude Include="..\include\ak\util.h" />
     <ClInclude Include="..\src\accessor.h" />
     <ClInclude Include="..\src\array.h" />
+    <ClInclude Include="..\src\base64.h" />
     <ClInclude Include="..\src\bbox\bbox.h" />
     <ClInclude Include="..\src\bitwise\bitwise.h" />
     <ClInclude Include="..\src\collada\1.4\dae14.h" />
-    <ClInclude Include="..\src\collada\1.4\dae14_image.h" />
-    <ClInclude Include="..\src\collada\1.4\dae14_surface.h" />
-    <ClInclude Include="..\src\collada\brep\dae_brep.h" />
-    <ClInclude Include="..\src\collada\brep\dae_brep_curve.h" />
-    <ClInclude Include="..\src\collada\brep\dae_brep_nurbs.h" />
-    <ClInclude Include="..\src\collada\brep\dae_brep_surface.h" />
-    <ClInclude Include="..\src\collada\brep\dae_brep_topology.h" />
+    <ClInclude Include="..\src\collada\1.4\image.h" />
+    <ClInclude Include="..\src\collada\1.4\surface.h" />
+    <ClInclude Include="..\src\collada\brep\brep.h" />
+    <ClInclude Include="..\src\collada\brep\curve.h" />
+    <ClInclude Include="..\src\collada\brep\nurb.h" />
+    <ClInclude Include="..\src\collada\brep\surface.h" />
+    <ClInclude Include="..\src\collada\brep\topology.h" />
     <ClInclude Include="..\src\collada\bugfix\transp.h" />
-    <ClInclude Include="..\src\collada\core\dae_accessor.h" />
-    <ClInclude Include="..\src\collada\core\dae_anim.h" />
-    <ClInclude Include="..\src\collada\core\dae_annotate.h" />
-    <ClInclude Include="..\src\collada\core\dae_asset.h" />
-    <ClInclude Include="..\src\collada\core\dae_camera.h" />
-    <ClInclude Include="..\src\collada\core\dae_color.h" />
-    <ClInclude Include="..\src\collada\core\dae_controller.h" />
-    <ClInclude Include="..\src\collada\core\dae_enums.h" />
-    <ClInclude Include="..\src\collada\core\dae_evaluate_scene.h" />
-    <ClInclude Include="..\src\collada\core\dae_geometry.h" />
-    <ClInclude Include="..\src\collada\core\dae_light.h" />
-    <ClInclude Include="..\src\collada\core\dae_lines.h" />
-    <ClInclude Include="..\src\collada\core\dae_mesh.h" />
-    <ClInclude Include="..\src\collada\core\dae_morph.h" />
-    <ClInclude Include="..\src\collada\core\dae_node.h" />
-    <ClInclude Include="..\src\collada\core\dae_param.h" />
-    <ClInclude Include="..\src\collada\core\dae_polygons.h" />
-    <ClInclude Include="..\src\collada\core\dae_render.h" />
-    <ClInclude Include="..\src\collada\core\dae_scene.h" />
-    <ClInclude Include="..\src\collada\core\dae_skin.h" />
-    <ClInclude Include="..\src\collada\core\dae_source.h" />
-    <ClInclude Include="..\src\collada\core\dae_spline.h" />
-    <ClInclude Include="..\src\collada\core\dae_technique.h" />
-    <ClInclude Include="..\src\collada\core\dae_triangles.h" />
-    <ClInclude Include="..\src\collada\core\dae_value.h" />
-    <ClInclude Include="..\src\collada\core\dae_vertices.h" />
-    <ClInclude Include="..\src\collada\core\dae_visual_scene.h" />
+    <ClInclude Include="..\src\collada\common.h" />
+    <ClInclude Include="..\src\collada\core\anim.h" />
+    <ClInclude Include="..\src\collada\core\asset.h" />
+    <ClInclude Include="..\src\collada\core\cam.h" />
+    <ClInclude Include="..\src\collada\core\color.h" />
+    <ClInclude Include="..\src\collada\core\ctlr.h" />
+    <ClInclude Include="..\src\collada\core\enum.h" />
+    <ClInclude Include="..\src\collada\core\geom.h" />
+    <ClInclude Include="..\src\collada\core\light.h" />
+    <ClInclude Include="..\src\collada\core\line.h" />
+    <ClInclude Include="..\src\collada\core\mesh.h" />
+    <ClInclude Include="..\src\collada\core\morph.h" />
+    <ClInclude Include="..\src\collada\core\node.h" />
+    <ClInclude Include="..\src\collada\core\param.h" />
+    <ClInclude Include="..\src\collada\core\poly.h" />
+    <ClInclude Include="..\src\collada\core\scene.h" />
+    <ClInclude Include="..\src\collada\core\skin.h" />
+    <ClInclude Include="..\src\collada\core\source.h" />
+    <ClInclude Include="..\src\collada\core\spline.h" />
+    <ClInclude Include="..\src\collada\core\techn.h" />
+    <ClInclude Include="..\src\collada\core\triangle.h" />
+    <ClInclude Include="..\src\collada\core\value.h" />
+    <ClInclude Include="..\src\collada\core\vert.h" />
     <ClInclude Include="..\src\collada\dae.h" />
-    <ClInclude Include="..\src\collada\dae_common.h" />
-    <ClInclude Include="..\src\collada\dae_fixangle.h" />
-    <ClInclude Include="..\src\collada\dae_geom_fixup.h" />
-    <ClInclude Include="..\src\collada\dae_lib.h" />
-    <ClInclude Include="..\src\collada\dae_mesh_fixup.h" />
-    <ClInclude Include="..\src\collada\dae_node_fixup.h" />
-    <ClInclude Include="..\src\collada\dae_postscript.h" />
-    <ClInclude Include="..\src\collada\dae_strpool.h" />
-    <ClInclude Include="..\src\collada\fx\dae_fx_binary.h" />
-    <ClInclude Include="..\src\collada\fx\dae_fx_blinn_phong.h" />
-    <ClInclude Include="..\src\collada\fx\dae_fx_color_or_tex.h" />
-    <ClInclude Include="..\src\collada\fx\dae_fx_constant.h" />
-    <ClInclude Include="..\src\collada\fx\dae_fx_effect.h" />
-    <ClInclude Include="..\src\collada\fx\dae_fx_enums.h" />
-    <ClInclude Include="..\src\collada\fx\dae_fx_evaluate.h" />
-    <ClInclude Include="..\src\collada\fx\dae_fx_float_or_param.h" />
-    <ClInclude Include="..\src\collada\fx\dae_fx_image.h" />
-    <ClInclude Include="..\src\collada\fx\dae_fx_lambert.h" />
-    <ClInclude Include="..\src\collada\fx\dae_fx_material.h" />
-    <ClInclude Include="..\src\collada\fx\dae_fx_pass.h" />
-    <ClInclude Include="..\src\collada\fx\dae_fx_profile.h" />
-    <ClInclude Include="..\src\collada\fx\dae_fx_program.h" />
-    <ClInclude Include="..\src\collada\fx\dae_fx_sampler.h" />
-    <ClInclude Include="..\src\collada\fx\dae_fx_shader.h" />
-    <ClInclude Include="..\src\collada\fx\dae_fx_states.h" />
-    <ClInclude Include="..\src\collada\fx\dae_fx_states_detail.h" />
-    <ClInclude Include="..\src\collada\fx\dae_fx_technique.h" />
-    <ClInclude Include="..\src\collada\fx\dae_fx_uniform.h" />
+    <ClInclude Include="..\src\collada\fixup\angle.h" />
+    <ClInclude Include="..\src\collada\fixup\geom.h" />
+    <ClInclude Include="..\src\collada\fixup\mesh.h" />
+    <ClInclude Include="..\src\collada\fixup\node.h" />
+    <ClInclude Include="..\src\collada\fixup\tex.h" />
+    <ClInclude Include="..\src\collada\fx\colortex.h" />
+    <ClInclude Include="..\src\collada\fx\effect.h" />
+    <ClInclude Include="..\src\collada\fx\fltprm.h" />
+    <ClInclude Include="..\src\collada\fx\img.h" />
+    <ClInclude Include="..\src\collada\fx\mat.h" />
+    <ClInclude Include="..\src\collada\fx\profile.h" />
+    <ClInclude Include="..\src\collada\fx\samp.h" />
+    <ClInclude Include="..\src\collada\fx\techn.h" />
+    <ClInclude Include="..\src\collada\postscript.h" />
+    <ClInclude Include="..\src\collada\strpool.h" />
     <ClInclude Include="..\src\common.h" />
     <ClInclude Include="..\src\config.h" />
     <ClInclude Include="..\src\coord_sys\coord_common.h" />
@@ -313,14 +301,12 @@
     <ClInclude Include="..\src\gltf\gltf_strpool.h" />
     <ClInclude Include="..\src\id.h" />
     <ClInclude Include="..\src\json.h" />
-    <ClInclude Include="..\src\memory_common.h" />
-    <ClInclude Include="..\src\memory_lt.h" />
-    <ClInclude Include="..\src\memory_rb.h" />
+    <ClInclude Include="..\src\mem\common.h" />
+    <ClInclude Include="..\src\mem\lt.h" />
+    <ClInclude Include="..\src\mem\rb.h" />
     <ClInclude Include="..\src\mesh\mesh_edit_common.h" />
     <ClInclude Include="..\src\mesh\mesh_index.h" />
-    <ClInclude Include="..\src\mesh\mesh_util.h" />
     <ClInclude Include="..\src\profile.h" />
-    <ClInclude Include="..\src\resc\curl.h" />
     <ClInclude Include="..\src\resc\resource.h" />
     <ClInclude Include="..\src\sid.h" />
     <ClInclude Include="..\src\skin\skin_fix.h" />
@@ -336,6 +322,7 @@
     <ClCompile Include="..\src\array\source_array.c" />
     <ClCompile Include="..\src\asset.c" />
     <ClCompile Include="..\src\assetkit.c" />
+    <ClCompile Include="..\src\base64.c" />
     <ClCompile Include="..\src\bbox\bbox.c" />
     <ClCompile Include="..\src\bbox\bbox_geom.c" />
     <ClCompile Include="..\src\bbox\bbox_mesh.c" />
@@ -343,70 +330,52 @@
     <ClCompile Include="..\src\bbox\bbox_scene.c" />
     <ClCompile Include="..\src\camera\cam.c" />
     <ClCompile Include="..\src\collada\1.4\dae14.c" />
-    <ClCompile Include="..\src\collada\1.4\dae14_image.c" />
-    <ClCompile Include="..\src\collada\1.4\dae14_surface.c" />
-    <ClCompile Include="..\src\collada\brep\dae_brep.c" />
-    <ClCompile Include="..\src\collada\brep\dae_brep_curve.c" />
-    <ClCompile Include="..\src\collada\brep\dae_brep_nurbs.c" />
-    <ClCompile Include="..\src\collada\brep\dae_brep_surface.c" />
-    <ClCompile Include="..\src\collada\brep\dae_brep_topology.c" />
+    <ClCompile Include="..\src\collada\1.4\image.c" />
+    <ClCompile Include="..\src\collada\1.4\surface.c" />
+    <ClCompile Include="..\src\collada\brep\brep.c" />
+    <ClCompile Include="..\src\collada\brep\curve.c" />
+    <ClCompile Include="..\src\collada\brep\nurb.c" />
+    <ClCompile Include="..\src\collada\brep\surface.c" />
+    <ClCompile Include="..\src\collada\brep\topology.c" />
     <ClCompile Include="..\src\collada\bugfix\transp.c" />
-    <ClCompile Include="..\src\collada\core\dae_accessor.c" />
-    <ClCompile Include="..\src\collada\core\dae_anim.c" />
-    <ClCompile Include="..\src\collada\core\dae_annotate.c" />
-    <ClCompile Include="..\src\collada\core\dae_asset.c" />
-    <ClCompile Include="..\src\collada\core\dae_camera.c" />
-    <ClCompile Include="..\src\collada\core\dae_color.c" />
-    <ClCompile Include="..\src\collada\core\dae_controller.c" />
-    <ClCompile Include="..\src\collada\core\dae_enums.c" />
-    <ClCompile Include="..\src\collada\core\dae_evaluate_scene.c" />
-    <ClCompile Include="..\src\collada\core\dae_geometry.c" />
-    <ClCompile Include="..\src\collada\core\dae_light.c" />
-    <ClCompile Include="..\src\collada\core\dae_lines.c" />
-    <ClCompile Include="..\src\collada\core\dae_mesh.c" />
-    <ClCompile Include="..\src\collada\core\dae_morph.c" />
-    <ClCompile Include="..\src\collada\core\dae_node.c" />
-    <ClCompile Include="..\src\collada\core\dae_param.c" />
-    <ClCompile Include="..\src\collada\core\dae_polygons.c" />
-    <ClCompile Include="..\src\collada\core\dae_render.c" />
-    <ClCompile Include="..\src\collada\core\dae_scene.c" />
-    <ClCompile Include="..\src\collada\core\dae_skin.c" />
-    <ClCompile Include="..\src\collada\core\dae_source.c" />
-    <ClCompile Include="..\src\collada\core\dae_spline.c" />
-    <ClCompile Include="..\src\collada\core\dae_technique.c" />
-    <ClCompile Include="..\src\collada\core\dae_triangles.c" />
-    <ClCompile Include="..\src\collada\core\dae_value.c" />
-    <ClCompile Include="..\src\collada\core\dae_vertices.c" />
-    <ClCompile Include="..\src\collada\core\dae_visual_scene.c" />
+    <ClCompile Include="..\src\collada\core\anim.c" />
+    <ClCompile Include="..\src\collada\core\asset.c" />
+    <ClCompile Include="..\src\collada\core\cam.c" />
+    <ClCompile Include="..\src\collada\core\color.c" />
+    <ClCompile Include="..\src\collada\core\ctlr.c" />
+    <ClCompile Include="..\src\collada\core\enum.c" />
+    <ClCompile Include="..\src\collada\core\geom.c" />
+    <ClCompile Include="..\src\collada\core\light.c" />
+    <ClCompile Include="..\src\collada\core\line.c" />
+    <ClCompile Include="..\src\collada\core\mesh.c" />
+    <ClCompile Include="..\src\collada\core\morph.c" />
+    <ClCompile Include="..\src\collada\core\node.c" />
+    <ClCompile Include="..\src\collada\core\param.c" />
+    <ClCompile Include="..\src\collada\core\poly.c" />
+    <ClCompile Include="..\src\collada\core\scene.c" />
+    <ClCompile Include="..\src\collada\core\skin.c" />
+    <ClCompile Include="..\src\collada\core\source.c" />
+    <ClCompile Include="..\src\collada\core\spline.c" />
+    <ClCompile Include="..\src\collada\core\techn.c" />
+    <ClCompile Include="..\src\collada\core\triangle.c" />
+    <ClCompile Include="..\src\collada\core\value.c" />
+    <ClCompile Include="..\src\collada\core\vert.c" />
     <ClCompile Include="..\src\collada\dae.c" />
-    <ClCompile Include="..\src\collada\dae_common.c" />
-    <ClCompile Include="..\src\collada\dae_fixangle.c" />
-    <ClCompile Include="..\src\collada\dae_geom_fixup.c" />
-    <ClCompile Include="..\src\collada\dae_lib.c" />
-    <ClCompile Include="..\src\collada\dae_mesh_fixup.c" />
-    <ClCompile Include="..\src\collada\dae_node_fixup.c" />
-    <ClCompile Include="..\src\collada\dae_postscript.c" />
-    <ClCompile Include="..\src\collada\dae_strpool.c" />
-    <ClCompile Include="..\src\collada\fx\dae_fx_binary.c" />
-    <ClCompile Include="..\src\collada\fx\dae_fx_blinn_phong.c" />
-    <ClCompile Include="..\src\collada\fx\dae_fx_color_or_tex.c" />
-    <ClCompile Include="..\src\collada\fx\dae_fx_constant.c" />
-    <ClCompile Include="..\src\collada\fx\dae_fx_effect.c" />
-    <ClCompile Include="..\src\collada\fx\dae_fx_enums.c" />
-    <ClCompile Include="..\src\collada\fx\dae_fx_evaluate.c" />
-    <ClCompile Include="..\src\collada\fx\dae_fx_float_or_param.c" />
-    <ClCompile Include="..\src\collada\fx\dae_fx_image.c" />
-    <ClCompile Include="..\src\collada\fx\dae_fx_lambert.c" />
-    <ClCompile Include="..\src\collada\fx\dae_fx_material.c" />
-    <ClCompile Include="..\src\collada\fx\dae_fx_pass.c" />
-    <ClCompile Include="..\src\collada\fx\dae_fx_profile.c" />
-    <ClCompile Include="..\src\collada\fx\dae_fx_program.c" />
-    <ClCompile Include="..\src\collada\fx\dae_fx_sampler.c" />
-    <ClCompile Include="..\src\collada\fx\dae_fx_shader.c" />
-    <ClCompile Include="..\src\collada\fx\dae_fx_states.c" />
-    <ClCompile Include="..\src\collada\fx\dae_fx_states_detail.c" />
-    <ClCompile Include="..\src\collada\fx\dae_fx_technique.c" />
-    <ClCompile Include="..\src\collada\fx\dae_fx_uniform.c" />
+    <ClCompile Include="..\src\collada\fixup\angle.c" />
+    <ClCompile Include="..\src\collada\fixup\geom.c" />
+    <ClCompile Include="..\src\collada\fixup\mesh.c" />
+    <ClCompile Include="..\src\collada\fixup\node.c" />
+    <ClCompile Include="..\src\collada\fixup\tex.c" />
+    <ClCompile Include="..\src\collada\fx\colortex.c" />
+    <ClCompile Include="..\src\collada\fx\effect.c" />
+    <ClCompile Include="..\src\collada\fx\fltprm.c" />
+    <ClCompile Include="..\src\collada\fx\img.c" />
+    <ClCompile Include="..\src\collada\fx\mat.c" />
+    <ClCompile Include="..\src\collada\fx\profile.c" />
+    <ClCompile Include="..\src\collada\fx\samp.c" />
+    <ClCompile Include="..\src\collada\fx\techn.c" />
+    <ClCompile Include="..\src\collada\postscript.c" />
+    <ClCompile Include="..\src\collada\strpool.c" />
     <ClCompile Include="..\src\common.c" />
     <ClCompile Include="..\src\controller\ctlr.c" />
     <ClCompile Include="..\src\coord_sys\coord_camera.c" />
@@ -456,17 +425,16 @@
     <ClCompile Include="..\src\image\image.c" />
     <ClCompile Include="..\src\instance\inst.c" />
     <ClCompile Include="..\src\instance\inst_list.c" />
-    <ClCompile Include="..\src\json.c" />
     <ClCompile Include="..\src\lib\lib.c" />
     <ClCompile Include="..\src\lib\lib_geom.c" />
     <ClCompile Include="..\src\light\light.c" />
     <ClCompile Include="..\src\main.c" />
     <ClCompile Include="..\src\map.c" />
-    <ClCompile Include="..\src\memory.c" />
-    <ClCompile Include="..\src\memory_ext.c" />
-    <ClCompile Include="..\src\memory_intr.c" />
-    <ClCompile Include="..\src\memory_lt.c" />
-    <ClCompile Include="..\src\memory_rb.c" />
+    <ClCompile Include="..\src\mem\ext.c" />
+    <ClCompile Include="..\src\mem\intr.c" />
+    <ClCompile Include="..\src\mem\lt.c" />
+    <ClCompile Include="..\src\mem\mem.c" />
+    <ClCompile Include="..\src\mem\rb.c" />
     <ClCompile Include="..\src\mesh\mesh_duplicator.c" />
     <ClCompile Include="..\src\mesh\mesh_edit.c" />
     <ClCompile Include="..\src\mesh\mesh_edit_buff.c" />
@@ -477,10 +445,8 @@
     <ClCompile Include="..\src\mesh\mesh_material.c" />
     <ClCompile Include="..\src\mesh\mesh_normal.c" />
     <ClCompile Include="..\src\mesh\mesh_triangulate.c" />
-    <ClCompile Include="..\src\mesh\mesh_util.c" />
     <ClCompile Include="..\src\node\node.c" />
     <ClCompile Include="..\src\profile.c" />
-    <ClCompile Include="..\src\resc\curl.c" />
     <ClCompile Include="..\src\resc\path.c" />
     <ClCompile Include="..\src\resc\resource.c" />
     <ClCompile Include="..\src\resc\url.c" />
@@ -499,39 +465,10 @@
     <ClCompile Include="..\src\win32\strptime.c" />
     <ClCompile Include="..\src\xml.c" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\lib\libds\win\libds.vcxproj">
+      <Project>{ca8bcaf9-cd25-4133-8f62-3d1449b5d2fc}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-    <Import Project="packages\libxml2.redist.2.7.8.7\build\native\libxml2.redist.targets" Condition="Exists('packages\libxml2.redist.2.7.8.7\build\native\libxml2.redist.targets')" />
-    <Import Project="packages\libxml2.2.7.8.7\build\native\libxml2.targets" Condition="Exists('packages\libxml2.2.7.8.7\build\native\libxml2.targets')" />
-    <Import Project="packages\libiconv.redist.1.14.0.11\build\native\libiconv.redist.targets" Condition="Exists('packages\libiconv.redist.1.14.0.11\build\native\libiconv.redist.targets')" />
-    <Import Project="packages\libiconv.1.14.0.11\build\native\libiconv.targets" Condition="Exists('packages\libiconv.1.14.0.11\build\native\libiconv.targets')" />
-    <Import Project="packages\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.targets" Condition="Exists('packages\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.targets')" />
-    <Import Project="packages\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.targets" Condition="Exists('packages\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.targets')" />
-    <Import Project="packages\zlib.redist.1.2.8.7\build\native\zlib.redist.targets" Condition="Exists('packages\zlib.redist.1.2.8.7\build\native\zlib.redist.targets')" />
-    <Import Project="packages\curl.redist.7.30.0.2\build\native\curl.redist.targets" Condition="Exists('packages\curl.redist.7.30.0.2\build\native\curl.redist.targets')" />
-    <Import Project="packages\openssl.redist.1.0.1.25\build\native\openssl.redist.targets" Condition="Exists('packages\openssl.redist.1.0.1.25\build\native\openssl.redist.targets')" />
-    <Import Project="packages\openssl.1.0.1.21\build\native\openssl.targets" Condition="Exists('packages\openssl.1.0.1.21\build\native\openssl.targets')" />
-    <Import Project="packages\curl.7.30.0.2\build\native\curl.targets" Condition="Exists('packages\curl.7.30.0.2\build\native\curl.targets')" />
-    <Import Project="packages\libssh2.redist.1.4.3.3\build\native\libssh2.redist.targets" Condition="Exists('packages\libssh2.redist.1.4.3.3\build\native\libssh2.redist.targets')" />
-    <Import Project="packages\libssh2.1.4.3.3\build\native\libssh2.targets" Condition="Exists('packages\libssh2.1.4.3.3\build\native\libssh2.targets')" />
-  </ImportGroup>
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('packages\libxml2.redist.2.7.8.7\build\native\libxml2.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\libxml2.redist.2.7.8.7\build\native\libxml2.redist.targets'))" />
-    <Error Condition="!Exists('packages\libxml2.2.7.8.7\build\native\libxml2.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\libxml2.2.7.8.7\build\native\libxml2.targets'))" />
-    <Error Condition="!Exists('packages\libiconv.redist.1.14.0.11\build\native\libiconv.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\libiconv.redist.1.14.0.11\build\native\libiconv.redist.targets'))" />
-    <Error Condition="!Exists('packages\libiconv.1.14.0.11\build\native\libiconv.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\libiconv.1.14.0.11\build\native\libiconv.targets'))" />
-    <Error Condition="!Exists('packages\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.targets'))" />
-    <Error Condition="!Exists('packages\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.targets'))" />
-    <Error Condition="!Exists('packages\zlib.redist.1.2.8.7\build\native\zlib.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\zlib.redist.1.2.8.7\build\native\zlib.redist.targets'))" />
-    <Error Condition="!Exists('packages\curl.redist.7.30.0.2\build\native\curl.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\curl.redist.7.30.0.2\build\native\curl.redist.targets'))" />
-    <Error Condition="!Exists('packages\openssl.redist.1.0.1.25\build\native\openssl.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\openssl.redist.1.0.1.25\build\native\openssl.redist.targets'))" />
-    <Error Condition="!Exists('packages\openssl.1.0.1.21\build\native\openssl.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\openssl.1.0.1.21\build\native\openssl.props'))" />
-    <Error Condition="!Exists('packages\openssl.1.0.1.21\build\native\openssl.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\openssl.1.0.1.21\build\native\openssl.targets'))" />
-    <Error Condition="!Exists('packages\curl.7.30.0.2\build\native\curl.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\curl.7.30.0.2\build\native\curl.targets'))" />
-    <Error Condition="!Exists('packages\libssh2.redist.1.4.3.3\build\native\libssh2.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\libssh2.redist.1.4.3.3\build\native\libssh2.redist.targets'))" />
-    <Error Condition="!Exists('packages\libssh2.1.4.3.3\build\native\libssh2.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\libssh2.1.4.3.3\build\native\libssh2.targets'))" />
-  </Target>
 </Project>

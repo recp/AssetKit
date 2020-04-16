@@ -10,18 +10,18 @@
 
 void _assetkit_hide
 gltf_morph(AkGLTFState * __restrict gst) {
-  AkHeap       *heap;
-  AkDoc        *doc;
-  json_t       *jskins, *jaccessors;
-  AkLibItem    *lib;
-  size_t        jskinCount, i;
+  //AkHeap       *heap;
+  //AkDoc        *doc;
+  //json_t       *jskins, *jaccessors;
+  //AkLibItem    *lib;
+  //size_t        jskinCount, i;
 
-  heap       = gst->heap;
-  doc        = gst->doc;
-  lib        = ak_heap_calloc(heap, doc, sizeof(*lib));
+  //heap       = gst->heap;
+  //doc        = gst->doc;
+  //lib        = ak_heap_calloc(heap, doc, sizeof(*lib));
 
-  jskins     = json_object_get(gst->root, _s_gltf_skins);
-  jskinCount = (int32_t)json_array_size(jskins);
-  jaccessors = json_object_get(gst->root, _s_gltf_accessors);
+  //jskins     = json_object_get(gst->root, _s_gltf_skins);
+  //jskinCount = (int32_t)json_array_size(jskins);
+  //jaccessors = json_object_get(gst->root, _s_gltf_accessors);
 
 }
