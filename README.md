@@ -113,7 +113,7 @@ Step 3: Change install name if required, after make finished make automaticall r
 ### Windows (MSBuild)
 Windows related build files, project files are located in `win` folder, make sure you are inside `assetkit/win` folder. Code Analysis are enabled to it may take awhile to build
 
-`git`, `nuget` and `python` commands should be installed/accessible.
+`git` and `python` commands should be installed/accessible.
 
 ```Powershell
 $ cd win
@@ -129,8 +129,3 @@ $ devenv assetkit.sln /Build Release
 Currently tests are implemented for Autotools (make check), there is separate repo for storing test models to avoid increase repo size: http://github.com/recp/sample-models . By running `build-deps.sh`, `git submodule update --init --recursive` command will be executed and all sample models will be fecthed for testing into `assetkit/test` folder
 
 `make check` uses this repo samples to test.
-
-# Notes
-- Actual README and documents for how to use this will be written after first version
-- I'm working hard to finish this lib, I'll update README when finished, for now <b>DON'T USE THIS LIB UNTIL FINISHED</b>
-
