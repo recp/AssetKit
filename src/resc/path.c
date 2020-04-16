@@ -10,7 +10,6 @@
 #include "../../include/ak/string.h"
 
 #include <limits.h>
-#include <uv.h>
 
 #ifdef _MSC_VER
 #  ifndef PATH_MAX
@@ -239,37 +238,4 @@ ak_fullpath(AkDoc       * __restrict doc,
   }
 
   return ptr;
-}
-
-AK_EXPORT
-char *
-ak_path_tmpfilepath() {
-  char   path[PATH_MAX];
-  size_t size;
-  int    ret;
-
-  ret = uv_os_tmpdir(path, &size);
-  if (ret < 0)
-    return NULL;
-
-  strcat(path, "/ak-XXXXXX");
-
-  return ak_strdup(NULL, mktemp(path));
-}
-
-AK_EXPORT
-FILE *
-ak_path_tmpfile() {
-  char   path[PATH_MAX];
-  size_t size;
-  int    ret;
-
-  ret = uv_os_tmpdir(path, &size);
-  if (ret < 0)
-    return NULL;
-
-  strcat(path, "/ak-XXXXXX");
-
-  /* TODO: include io.h for windows */
-  return fopen(mktemp(path), "wb+");
 }
