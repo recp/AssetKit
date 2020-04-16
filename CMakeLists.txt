@@ -15,17 +15,14 @@ include_directories(
 
         PRIVATE
 
-        ${PROJECT_SOURCE_DIR}/lib/jemalloc/include
         ${PROJECT_SOURCE_DIR}/lib/cglm/include
         ${PROJECT_SOURCE_DIR}/lib/libds/include
         ${PROJECT_SOURCE_DIR}/lib/stb
-        ${PROJECT_SOURCE_DIR}/lib/jansson/src
 )
 
 link_directories(
         PRIVATE
 
-        ${PROJECT_SOURCE_DIR}/lib/jemalloc/lib
         ${PROJECT_SOURCE_DIR}/lib/libds/.libs
 )
 
@@ -34,7 +31,7 @@ add_library(assetkit STATIC
         src/bbox/bbox.c
         src/bbox/bbox.h)
 
-target_link_libraries(assetkit -ljemalloc -lds -ljansson)
+target_link_libraries(assetkit -lds)
 
 #src/win32/strptime.c
 # src/dllmain.c

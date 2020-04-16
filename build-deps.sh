@@ -19,18 +19,6 @@ fi
 
 # general deps: gcc make autoconf automake libtool cmake
 
-# jemalloc
-cd ../jemalloc
-sh ./autogen.sh
-./configure
-make -j8
-
-# libuv
-cd ../libuv
-sh ./autogen.sh
-./configure
-make -j8
-
 # libds
 cd ../libds
 sh ./autogen.sh

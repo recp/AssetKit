@@ -20,7 +20,6 @@ AM_CFLAGS = -Wall \
 lib_LTLIBRARIES = libassetkit.la
 libassetkit_la_LDFLAGS = -no-undefined \
                          -version-info 0:1:0 \
-                         -ljemalloc \
                          -lds
 
 check_PROGRAMS = test/tests
@@ -29,7 +28,6 @@ TESTS = test/tests
 test_tests_LDFLAGS = -L./.libs \
                      -lassetkit \
                      -lm \
-                     -ljemalloc \
                      -luv \
                      -lds
 

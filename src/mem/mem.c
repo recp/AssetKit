@@ -14,17 +14,6 @@
 #include <string.h>
 #include <assert.h>
 
-#if !defined(_WIN32) && defined(USE_JEMALLOC)
-#  include <jemalloc/jemalloc.h>
-#else
-# ifndef JEMALLOC_VERSION
-#   define je_malloc(size)          malloc(size)
-#   define je_calloc(size, count)   calloc(size, count)
-#   define je_realloc(ptr, newsize) realloc(ptr, newsize)
-#   define je_free(ptr)             free(ptr)
-# endif
-#endif
-
 static
 int
 ak__heap_srch_cmp(void * __restrict key1,
@@ -47,20 +36,12 @@ ak_heap_moveh_chld(AkHeap     * __restrict heap,
 static void * ak__emptystr = "";
 
 AkHeapAllocator ak__allocator = {
-#ifdef JEMALLOC_VERSION
-  .malloc   = je_malloc,
-  .calloc   = je_calloc,
-  .realloc  = je_realloc,
-  .memalign = je_posix_memalign,
-  .free     = je_free,
-#else
   .malloc   = malloc,
   .calloc   = calloc,
   .realloc  = realloc,
   .free     = free,
 #ifndef _WIN32
   .memalign = posix_memalign,
-#endif
 #endif
   .strdup   = ak__heap_strdup_def
 };

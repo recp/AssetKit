@@ -18,13 +18,11 @@ AC_CONFIG_SRCDIR([src/])
 AC_CONFIG_HEADERS([config.h])
 
 CFLAGS="$CFLAGS -I./lib/xml/include"
-CFLAGS="$CFLAGS -I./lib/jemalloc/include"
 CFLAGS="$CFLAGS -I./lib/cglm/include"
 CFLAGS="$CFLAGS -I./lib/libds/include"
 CFLAGS="$CFLAGS -I./lib/stb"
 CFLAGS="$CFLAGS -I./lib/json/include"
 
-LDFLAGS="$LDFLAGS -L./lib/jemalloc/lib"
 LDFLAGS="$LDFLAGS -L./lib/libds/.libs"
 
 # Checks for programs.
