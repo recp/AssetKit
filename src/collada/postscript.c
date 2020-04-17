@@ -130,6 +130,8 @@ dae_input_walk(RBTree * __restrict tree, RBNode * __restrict rbnode) {
   buff          = ak_getObjectByUrl(&acc->source);
   acc->buffer   = buff;
 
+  ak_retain(acc);
+
   /* TODO: */
 //  ak_free(src);
 //  ak_free(url);
