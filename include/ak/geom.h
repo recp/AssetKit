@@ -499,15 +499,8 @@ ak_meshFixIndexBuffer(AkMesh          * __restrict mesh,
                       AkDuplicator    * __restrict duplicator);
 
 void
-ak_inputNameIndexed(AkInput * __restrict input,
-                    char    * __restrict buf);
-
-void
 ak_inputNameBySet(AkInput * __restrict input,
                   char    * __restrict buf);
-
-void
-ak_meshReIndexInputs(AkMesh * __restrict mesh);
 
 AkInput*
 ak_meshInputGet(AkMeshPrimitive *prim,
