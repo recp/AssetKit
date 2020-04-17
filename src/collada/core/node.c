@@ -305,10 +305,11 @@ dae_node(DAEState      * __restrict dst,
       instnode->proxy     = xmla_strdup_by(xml, heap, _s_dae_proxy, instnode);
       url_set(dst, xml, _s_dae_url, instnode, &instnode->base.url);
       
+      if (node->node)
+        instnode->base.next = &node->node->base;
+
       instnode->base.node = node;
-      
-      instnode->base.next = &node->node->base;
-      node->node         = instnode;
+      node->node          = instnode;
       
       if (node->node) {
         instnode->base.prev   = &node->node->base;
