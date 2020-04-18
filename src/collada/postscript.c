@@ -112,7 +112,6 @@ dae_retain_refs(DAEState * __restrict dst) {
 void _assetkit_hide
 dae_input_walk(RBTree * __restrict tree, RBNode * __restrict rbnode) {
   AkAccessor *acc;
-  AkBuffer   *buff;
   AkSource   *src;
   AkInput    *inp;
   AkURL      *url;
@@ -127,8 +126,6 @@ dae_input_walk(RBTree * __restrict tree, RBNode * __restrict rbnode) {
 
   acc           = src->tcommon;
   inp->accessor = acc;
-  buff          = ak_getObjectByUrl(&acc->source);
-  acc->buffer   = buff;
 
   ak_retain(acc);
 
@@ -141,37 +138,42 @@ dae_input_walk(RBTree * __restrict tree, RBNode * __restrict rbnode) {
 
 void _assetkit_hide
 dae_fixup_accessors(DAEState * __restrict dst) {
-  AkHeap     *heap;
-  AkDoc      *doc;
-  FListItem  *item;
-  AkAccessor *acc;
-  AkBuffer   *buff;
+  AkHeap        *heap;
+  AkDoc         *doc;
+  FListItem     *item;
+  AkAccessor    *acc;
+  AkAccessorDAE *accdae;
+  AkBuffer      *buff;
 
   item = dst->accessors;
   heap = dst->heap;
   doc  = dst->doc;
   
   while (item) {
-    acc = item->data;
-    if ((buff = ak_getObjectByUrl(&acc->source))) {
-      size_t   itemSize;
+    acc         = item->data;
+    accdae      = ak_userData(acc);
+    buff        = ak_getObjectByUrl(&accdae->source);
+    acc->buffer = buff;
+
+    if ((buff = ak_getObjectByUrl(&accdae->source))) {
       uint32_t componentBytes;
 
       acc->componentType = (AkTypeId)buff->reserved;
-      acc->type          = ak_typeDesc(acc->componentType);
+      accdae->type       = ak_typeDesc(acc->componentType);
 
-      if (acc->type)
-        itemSize = acc->type->size;
+      if (accdae->type)
+        componentBytes = accdae->type->size;
       else
         goto cont;
 
-      acc->byteStride     = acc->stride * itemSize;
-      acc->byteLength     = acc->count  * acc->stride * itemSize;
-      acc->byteOffset     = acc->offset * itemSize;
-      acc->bound          = acc->stride; /* TODO: will be removed soon */
+      acc->byteStride          = accdae->stride * componentBytes;
+      acc->byteLength          = acc->count * accdae->stride * componentBytes;
+      acc->byteOffset          = accdae->offset * componentBytes;
+      accdae->bound            = accdae->stride;
     
-      componentBytes      = acc->type->size;
-      acc->componentBytes = componentBytes;
+      acc->fillByteSize = accdae->bound * componentBytes;
+      acc->componentCount      = accdae->bound;
+      acc->componentBytes      = componentBytes;
       
       /*--------------------------------------------------------------------*
 
@@ -191,7 +193,7 @@ dae_fixup_accessors(DAEState * __restrict dst) {
 
         count           = acc->count;
         oldByteStride   = acc->byteStride;
-        newByteStride   = acc->bound * componentBytes;
+        newByteStride   = accdae->bound * componentBytes;
         newbuff         = ak_heap_calloc(heap, doc, sizeof(*newbuff));
         newbuff->length = count * newByteStride;
         newbuff->data   = ak_heap_calloc(heap, newbuff, newbuff->length);
@@ -202,7 +204,7 @@ dae_fixup_accessors(DAEState * __restrict dst) {
         for (i = 0; i < count; i++) {
           j     = 0;
           dpoff = 0;
-          dp    = acc->param;
+          dp    = accdae->param;
 
           while (dp) {
             if (dp->name) {
@@ -279,7 +281,7 @@ ak_fixBoneWeights(AkHeap        *heap,
   wi      = weights->indexes;
   nwsum   = count = 0;
 
-  if (!(weightsBuff = ak_getObjectByUrl(&weightsAcc->source))
+  if (!(weightsBuff = weightsAcc->buffer)
       || !(pWeights = weightsBuff->data)
       || !(v        = skin->reserved[4])
       || !(pv       = v->items))
@@ -390,8 +392,8 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
         if ((jointsAcc = jointsInp->accessor)) {
           matrixAcc  = matrixInp->accessor;
 
-          jointsBuff = ak_getObjectByUrl(&jointsAcc->source);
-          matrixBuff = ak_getObjectByUrl(&matrixAcc->source);
+          jointsBuff = jointsAcc->buffer;
+          matrixBuff = matrixAcc->buffer;
 
           it         = jointsBuff->data;
           mit        = matrixBuff->data;

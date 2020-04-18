@@ -64,23 +64,17 @@ typedef struct AkAccessor {
   const char      *name;
   void            *min;
   void            *max;
-  size_t           byteOffset;     /* byte offset on the buffer         */
-  size_t           byteStride;     /* strin in bytes                    */
-  size_t           byteLength;     /* total bytes for this accessor     */
-  uint32_t         count;          /* count to access buffer            */
-  uint32_t         componentBytes; /* component stride in bytes         */
-  AkComponentSize  componentSize;  /* vec1 | vec2 | vec3 | vec4 ...     */
-  AkTypeId         componentType;  /* single component type             */
-  int32_t          gpuTarget;      /* GPU buffer target to bound        */
+  size_t           byteOffset;           /* byte offset on the buffer        */
+  size_t           byteStride;           /* stride in bytes                  */
+  size_t           byteLength;           /* total bytes for this accessor    */
+  uint32_t         count;                /* count to access buffer           */
+  uint32_t         componentBytes;       /* component stride in bytes        */
+  AkComponentSize  componentSize;        /* vec1 | vec2 | vec3 | vec4 ...    */
+  AkTypeId         componentType;        /* single component type            */
+  uint32_t         componentCount;
+  size_t           fillByteSize;         /* filled size for single access    */
+  int32_t          gpuTarget;            /* GPU buffer target to bound       */
   bool             normalized;
-
-  /* TODO: DEPRECATED */
-  AkTypeDesc          *type;
-  struct AkDataParam  *param;
-  AkURL                source;
-  size_t               offset;
-  uint32_t             stride;
-  uint32_t             bound;
 } AkAccessor;
 
 typedef struct AkSource {
@@ -103,9 +97,9 @@ typedef struct AkDuplicatorRange {
 } AkDuplicatorRange;
 
 typedef struct AkDuplicator {
+  AkDuplicatorRange *range;
   void              *buffstate;
   void              *vertices;
-  AkDuplicatorRange *range;
   size_t             dupCount;
   size_t             bufCount;
 } AkDuplicator;

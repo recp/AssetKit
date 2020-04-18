@@ -109,14 +109,12 @@ ak_meshReserveBufferForInput(AkMesh   * __restrict mesh,
   buffid    = input;
   buffstate = ak_meshReserveBuffer(mesh,
                                    buffid,
-                                   acci->type->size,
-                                   acci->bound,
+                                   acci->componentBytes,
+                                   acci->componentCount,
                                    count);
   buffi = buffstate->buff;
 
   newacc->byteOffset    = 0;
-  newacc->stride        = newacc->bound;
-
   srch                  = ak_heap_calloc(heap, meshobj, sizeof(*srch));
   srch->oldsource       = acci;
   srch->source          = newacc;

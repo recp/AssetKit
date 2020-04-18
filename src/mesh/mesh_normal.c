@@ -86,7 +86,7 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
   heap   = ak_heap_getheap(prim);
   doc    = ak_heap_data(heap);
   pos    = posBuff->data;
-  pos_st = posAcc->stride;
+  pos_st = posAcc->componentCount;
 
   if (!prim->indices || prim->indices->count == 0)
     return;
@@ -193,15 +193,16 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
   acc = ak_heap_calloc(heap, doc, sizeof(*acc));
   ak_setypeid(acc, AKT_ACCESSOR);
 
-  acc->stride         = 3;
-  acc->bound          = 3;
+  
+  acc->componentCount = 3;
   acc->count          = count;
   acc->componentType  = AKT_FLOAT;
-  acc->type           = ak_typeDesc(acc->componentType);
   acc->componentSize  = AK_COMPONENT_SIZE_VEC3;
-  acc->componentBytes = acc->type->size;
-  acc->byteStride     = acc->stride * acc->type->size;
+  acc->componentBytes = ak_typeDesc(acc->componentType)->size;
+  acc->byteStride     = acc->componentCount * acc->componentBytes;
+  acc->fillByteSize   = acc->byteStride;
   acc->byteLength     = acc->count * acc->byteStride;
+  
    
   buff                = ak_heap_calloc(heap, doc, sizeof(*buff));
   buff->data          = ak_heap_alloc(heap, buff, acc->byteLength);

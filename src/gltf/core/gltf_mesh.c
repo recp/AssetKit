@@ -135,7 +135,7 @@ gltf_meshes(json_t * __restrict jmesh,
                   || !(indicesBuff = acc->buffer))
                 goto prim_next;
 
-              itemSize = acc->type->size;
+              itemSize = acc->componentBytes;
               count    = acc->count;
               indices  = ak_heap_calloc(heap,
                                         prim,

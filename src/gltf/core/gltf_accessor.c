@@ -88,7 +88,6 @@ gltf_accessors(json_t * __restrict json,
         
         acc->byteStride = buffView->byteStride;
         acc->buffer     = buff;
-        acc->source.ptr = buff;
         
         flist_sp_insert(&doc->lib.buffers, buff);
       }
@@ -103,7 +102,6 @@ gltf_accessors(json_t * __restrict json,
       componentType      = json_int32(it, -1);
       acc->componentType = gltf_componentType(componentType);
       componentLen       = gltf_componentLen(componentType);
-      acc->type          = ak_typeDesc(acc->componentType);
     }
     
     if ((it = accMap[k_gltf_normalized].object)) {
@@ -122,11 +120,11 @@ gltf_accessors(json_t * __restrict json,
     if (acc->componentSize < 5) {
       bound               = acc->componentSize;
       acc->componentBytes = bound * componentLen;
-      acc->bound          = bound;
+      acc->componentCount = bound;
     } else {
       bound               = acc->componentSize >> 3;
       acc->componentBytes = bound * componentLen;
-      acc->bound          = bound;
+      acc->componentCount = bound;
     }
     
     acc->byteLength = acc->count * acc->componentBytes;

@@ -16,10 +16,12 @@ dae_source(DAEState * __restrict dst,
            xml_t    * __restrict xml,
            AkEnum              (*asEnum)(const char *name),
            uint32_t              enumLen) {
-  AkHeap      *heap;
-  AkSource    *source;
-  AkBuffer    *buffer;
-  AkTechnique *tq;
+  AkHeap        *heap;
+  AkSource      *source;
+  AkBuffer      *buffer;
+  AkTechnique   *tq;
+  AkAccessor    *acc;
+  AkAccessorDAE *accdae;
   
   const xml_t       *sval;
   const char *content;
@@ -41,17 +43,20 @@ dae_source(DAEState * __restrict dst,
       (void)dae_asset(dst, xml, source, NULL);
     } else if (xml_tag_eq(xml, _s_dae_techniquec)) {
       xml_t       *xacc;
-      AkAccessor  *acc;
       AkDataParam *dp_last;
 
       if ((xacc = xml_elem(xml, _s_dae_accessor))) {
         acc         = ak_heap_calloc(heap, source, sizeof(*acc));
-        acc->count  = xmla_u32(xmla(xacc, _s_dae_count),  0);
-        acc->offset = xmla_u32(xmla(xacc, _s_dae_offset), 0);
-        acc->stride = xmla_u32(xmla(xacc, _s_dae_stride), 1);
+        accdae      = ak_heap_calloc(heap, acc, sizeof(*accdae));
+        
+        ak_heap_setUserData(heap, acc, accdae);
+        
+        acc->count     = xmla_u32(xmla(xacc, _s_dae_count),  0);
+        accdae->offset = xmla_u32(xmla(xacc, _s_dae_offset), 0);
+        accdae->stride = xmla_u32(xmla(xacc, _s_dae_stride), 1);
 
         ak_setypeid(acc, AKT_ACCESSOR);
-        url_set(dst, xacc, _s_dae_source, acc, &acc->source);
+        url_set(dst, xacc, _s_dae_source, accdae, &accdae->source);
 
         xacc    = xacc->val;
         dp_last = NULL;
@@ -68,7 +73,7 @@ dae_source(DAEState * __restrict dst,
           if (dp_last)
             dp_last->next = dp;
           else
-            acc->param = dp;
+            accdae->param = dp;
           dp_last = dp;
         
           xacc = xacc->next;
@@ -176,9 +181,13 @@ dae_source(DAEState * __restrict dst,
     xml = xml->next;
   }
 
-  if (source->tcommon && isName && asEnum) {
-    source->tcommon->bound  = 1;
-    source->tcommon->stride = 1;
+  if (source->tcommon
+      && isName
+      && asEnum
+      && (accdae = ak_userData(source->tcommon))) {
+
+    accdae->bound  = 1;
+    accdae->stride = 1;
   }
 
   return source;

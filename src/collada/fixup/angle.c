@@ -23,86 +23,89 @@ void _assetkit_hide
 dae_cvtAngles(AkAccessor * __restrict acc,
               AkBuffer   * __restrict buff,
               const char * __restrict paramName) {
-  AkDataParam *param;
-  float       *pbuff;
-  size_t       po, i, count, st;
+  /* TODO: */
 
-  if (acc->componentType == AKT_FLOAT && (param = acc->param)) {
-    po          = 0;
-    st          = acc->stride;
-    count       = acc->count * st;
-    pbuff       = buff->data;
-
-    do {
-      if (param->name && strcasecmp(param->name, paramName) == 0) {
-        /* TODO: use SIMD */
-        for (i = po; i < count; i += st)
-          glm_make_rad(pbuff + i);
-      }
-      po++;
-    } while ((param = param->next));
-  }
+//  AkDataParam *param;
+//  float       *pbuff;
+//  size_t       po, i, count, st;
+//
+//  if (acc->componentType == AKT_FLOAT && (param = acc->param)) {
+//    po          = 0;
+//    st          = acc->stride;
+//    count       = acc->count * st;
+//    pbuff       = buff->data;
+//
+//    do {
+//      if (param->name && strcasecmp(param->name, paramName) == 0) {
+//        /* TODO: use SIMD */
+//        for (i = po; i < count; i += st)
+//          glm_make_rad(pbuff + i);
+//      }
+//      po++;
+//    } while ((param = param->next));
+//  }
 }
 
 /* TODO: This works for BERZIER but HERMITE?? */
 
 void _assetkit_hide
 dae_fixAngles(DAEState * __restrict dst) {
-  FListItem     *item;
-  AkAnimSampler *sampler;
-  AkDataParam   *param;
-  AkAccessor    *acc;
-  AkBuffer      *buff;
-
-  item = dst->toRadiansSampelers;
-  while (item) {
-    sampler = item->data;
-    acc     = NULL;
-    buff    = NULL;
-
-    if ((acc = sampler->outputInput->accessor)
-        && acc->type
-        && (buff = ak_getObjectByUrl(&acc->source))) {
-      bool foundAngle;
-
-      foundAngle = false;
-
-      if ((param = acc->param)) {
-        do {
-          if (param->name && strcasecmp(param->name, _s_dae_angle) == 0)
-            foundAngle = true;
-        } while ((param = param->next));
-      }
-
-      if (!foundAngle)
-        goto nxt_sampler;
-
-      dae_cvtAngles(acc, buff, _s_dae_angle);
-
-      /* convert in tangents to radians */
-      if ((acc = sampler->inTangentInput->accessor)
-          && acc->type
-          && (buff = ak_getObjectByUrl(&acc->source))) {
-        if (acc->param && acc->param->next)
-          dae_cvtAngles(acc, buff, acc->param->next->name);
-        else if (acc->param) /* 1D tangents */
-          dae_cvtAngles(acc, buff, acc->param->name);
-      }
-
-      /* convert out tangents to radians */
-      if ((acc = sampler->outTangentInput->accessor)
-          && acc->type
-          && (buff = ak_getObjectByUrl(&acc->source))) {
-        if (acc->param && acc->param->next)
-          dae_cvtAngles(acc, buff, acc->param->next->name);
-        else if (acc->param) /* 1D tangents */
-          dae_cvtAngles(acc, buff, acc->param->name);
-      }
-    }
-
-  nxt_sampler:
-    item = item->next;
-  }
-
-  flist_sp_destroy(&dst->toRadiansSampelers);
+  /* TODO: */
+//  FListItem     *item;
+//  AkAnimSampler *sampler;
+//  AkDataParam   *param;
+//  AkAccessor    *acc;
+//  AkBuffer      *buff;
+//
+//  item = dst->toRadiansSampelers;
+//  while (item) {
+//    sampler = item->data;
+//    acc     = NULL;
+//    buff    = NULL;
+//
+//    if ((acc = sampler->outputInput->accessor)
+//        && acc->type
+//        && (buff = ak_getObjectByUrl(&acc->source))) {
+//      bool foundAngle;
+//
+//      foundAngle = false;
+//
+//      if ((param = acc->param)) {
+//        do {
+//          if (param->name && strcasecmp(param->name, _s_dae_angle) == 0)
+//            foundAngle = true;
+//        } while ((param = param->next));
+//      }
+//
+//      if (!foundAngle)
+//        goto nxt_sampler;
+//
+//      dae_cvtAngles(acc, buff, _s_dae_angle);
+//
+//      /* convert in tangents to radians */
+//      if ((acc = sampler->inTangentInput->accessor)
+//          && acc->type
+//          && (buff = ak_getObjectByUrl(&acc->source))) {
+//        if (acc->param && acc->param->next)
+//          dae_cvtAngles(acc, buff, acc->param->next->name);
+//        else if (acc->param) /* 1D tangents */
+//          dae_cvtAngles(acc, buff, acc->param->name);
+//      }
+//
+//      /* convert out tangents to radians */
+//      if ((acc = sampler->outTangentInput->accessor)
+//          && acc->type
+//          && (buff = ak_getObjectByUrl(&acc->source))) {
+//        if (acc->param && acc->param->next)
+//          dae_cvtAngles(acc, buff, acc->param->next->name);
+//        else if (acc->param) /* 1D tangents */
+//          dae_cvtAngles(acc, buff, acc->param->name);
+//      }
+//    }
+//
+//  nxt_sampler:
+//    item = item->next;
+//  }
+//
+//  flist_sp_destroy(&dst->toRadiansSampelers);
 }

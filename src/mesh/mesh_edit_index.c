@@ -50,7 +50,7 @@ ak_meshIndicesArrayFor(AkMesh          * __restrict mesh,
           || !posacc->buffer)
         return NULL;
 
-      count = posacc->bound * posacc->count;
+      count = posacc->componentCount * posacc->count;
     }
 
     indices = ak_heap_calloc(heap,

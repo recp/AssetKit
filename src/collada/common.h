@@ -73,6 +73,15 @@ typedef struct AkNewParam {
   AkValue           *val;
 } AkNewParam;
 
+typedef struct AkAccessorDAE {
+  AkTypeDesc          *type;
+  struct AkDataParam  *param;
+  AkURL                source;
+  size_t               offset;
+  uint32_t             stride;
+  uint32_t             bound;
+} AkAccessorDAE;
+
 AK_INLINE
 void
 sid_seta(xml_t  * __restrict xml,

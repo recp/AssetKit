@@ -20,11 +20,12 @@ ak_meshTriangulatePoly_noindices(AkPolygon * __restrict poly) {
   AkUInt       *vc_it;
   AkAccessor   *acc;
   AkFloat      *it_new, *it_old;
-  AkUInt        trianglec, otherc, i, st, isz;
+  AkUInt        trianglec, otherc, i, isz;
+  size_t        st;
 
   if (!poly->base.pos
       || !(acc  = poly->base.pos->accessor)
-      || !(buff = ak_getObjectByUrl(&acc->source)))
+      || !(buff = acc->buffer))
     return 0;
 
   otherc    = 0;
@@ -41,7 +42,7 @@ ak_meshTriangulatePoly_noindices(AkPolygon * __restrict poly) {
     return 0;
 
   isz  = sizeof(AkFloat);
-  st   = acc->stride;
+  st   = acc->byteStride;
   heap = ak_heap_getheap(poly->vcount);
 
   newbuff       = ak_heap_calloc(heap, poly, sizeof(*newbuff));

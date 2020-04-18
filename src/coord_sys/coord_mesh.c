@@ -62,7 +62,7 @@ ak_changeCoordSysMesh(AkMesh * __restrict mesh,
     if (acci->componentType == AKT_FLOAT) {
       ak_coordCvtVectors(doc->coordSys,
                          buffi->data,
-                         buffi->length / acci->type->size,
+                         buffi->length / acci->componentBytes,
                          newCoordSys);
     }
     mapi = mapi->next;
