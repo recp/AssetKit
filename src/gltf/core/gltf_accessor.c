@@ -88,7 +88,7 @@ gltf_accessors(json_t * __restrict json,
         
         acc->byteStride = buffView->byteStride;
         acc->buffer     = buff;
-        
+
         flist_sp_insert(&doc->lib.buffers, buff);
       }
     }
@@ -127,7 +127,8 @@ gltf_accessors(json_t * __restrict json,
       acc->componentCount = bound;
     }
     
-    acc->byteLength = acc->count * acc->componentBytes;
+    acc->byteLength   = acc->count * acc->componentBytes;
+    acc->fillByteSize = acc->componentBytes * acc->componentCount;
 
     if (acc->componentSize != AK_COMPONENT_SIZE_UNKNOWN
         && acc->componentBytes > 0) {
