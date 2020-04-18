@@ -30,7 +30,9 @@ dae_anim(DAEState * __restrict dst,
       (void)dae_asset(dst, xml, anim, NULL);
     } else if (xml_tag_eq(xml, _s_dae_source)) {
       AkSource *source;
-      if ((source = dae_source(dst, xml, NULL, 0))) {
+      
+      /* store interpolation in char */
+      if ((source = dae_source(dst, xml, dae_animInterp, 1))) {
         source->next = anim->source;
         anim->source = source;
       }

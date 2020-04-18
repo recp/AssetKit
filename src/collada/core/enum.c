@@ -141,7 +141,7 @@ dae_animBehavior(const xml_attr_t * __restrict xatt) {
 }
 
 AkEnum _assetkit_hide
-dae_animInterp(const char * name) {
+dae_animInterp(const char *name, size_t len) {
   AkEnum val;
   long   glenums_len, i;
 
@@ -161,7 +161,7 @@ dae_animInterp(const char * name) {
   glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {
-    if (strcasecmp(name, glenums[i].name) == 0) {
+    if (strncasecmp(name, glenums[i].name, len) == 0) {
       val = glenums[i].val;
       break;
     }

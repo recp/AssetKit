@@ -233,11 +233,10 @@ dae_node(DAEState      * __restrict dst,
       }
 
       instctl->base.node = node;
-      instctl->base.next = &node->controller->base;
       
       if (node->controller) {
+        node->controller->base.next = &instctl->base;
         instctl->base.prev          = &node->controller->base;
-        node->controller->base.prev = &instctl->base;
       }
 
       flist_sp_insert(&dst->instCtlrs, instctl);

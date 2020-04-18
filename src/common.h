@@ -58,6 +58,9 @@
  */
 #define AK_GET_SIGN(X) ((X >> 31) - (-X >> 31))
 
+#define AK_ARRAY_SEP_CHECK (c == ' ' || c == '\n' || c == '\t' \
+                              || c == '\r' || c == '\f' || c == '\v')
+
 typedef struct ak_enumpair {
   const char *key;
   AkEnum      val;

@@ -14,7 +14,7 @@
 AkSource* _assetkit_hide
 dae_source(DAEState * __restrict dst,
            xml_t    * __restrict xml,
-           AkEnum              (*asEnum)(const char *name),
+           AkEnum              (*asEnum)(const char *name, size_t nameLen),
            uint32_t              enumLen) {
   AkHeap        *heap;
   AkSource      *source;
@@ -22,11 +22,9 @@ dae_source(DAEState * __restrict dst,
   AkTechnique   *tq;
   AkAccessor    *acc;
   AkAccessorDAE *accdae;
-  
-  const xml_t       *sval;
-  const char *content;
-  uint32_t     count;
-  bool         isName;
+  const xml_t   *sval;
+  uint32_t       count;
+  bool           isName;
 
   heap   = dst->heap;
   isName = false;
@@ -120,15 +118,16 @@ dae_source(DAEState * __restrict dst,
         xml_strtob_fast(sval, buffer->data, count);
         
         ak_setUserData(buffer, (void *)(uintptr_t)AKT_BOOL);
-      } else if (xml_tag_eq(xml, _s_dae_IDREF_array)
-                 || xml_tag_eq(xml, _s_dae_Name_array)
+      } else if (xml_tag_eq(xml, _s_dae_Name_array)
+                 || xml_tag_eq(xml, _s_dae_IDREF_array)
                  || xml_tag_eq(xml, _s_dae_SIDREF_array)
                  || xml_tag_eq(xml, _s_dae_token_array)) {
-        char    *pData;
-        char    *tok;
-        char   **iter;
-        uint32_t idx;
-        
+        char        *pData, **iter, *tok, *tok_begin, *end, c;
+        const xml_t *v;
+        size_t       srclen, toklen;
+        uint32_t     idx;
+        AkEnum       enumValue;
+
         /*
          |pSTR1|pSTR2|pSTR3|STR1\0STR2\0STR3|
          
@@ -136,47 +135,75 @@ dae_source(DAEState * __restrict dst,
          */
         
         isName = true;
+        idx    = 0;
+        
         if (asEnum) {
-          AkEnum enumValue;
-          
-          ak_setUserData(buffer, (void *)(uintptr_t)AKT_STRING);
+          ak_setUserData(buffer, (void *)(uintptr_t)AKT_INT);
           
           buffer->length = enumLen * count;
           buffer->data   = ak_heap_alloc(heap, buffer, buffer->length);
           pData          = buffer->data;
-          
-          idx = 0;
-          for (tok = strtok(content, " \t\r\n");
-               tok;
-               tok = strtok(NULL, " \t\r\n")) {
-            if (idx >= count)
-              break;
-            
-            enumValue = asEnum(tok);
-            memcpy(pData + idx * enumLen, &enumValue, enumLen);
-            
-            idx++;
+
+          if ((v = sval) && (tok = v->val)) {
+            do {
+              if (idx >= count)
+                break;
+
+              srclen = v->valsize;
+              end    = tok + srclen;
+
+              do {
+                while (tok < end && ((void)(c = *tok), AK_ARRAY_SEP_CHECK))
+                  tok++;
+                
+                tok_begin = tok;
+                
+                while (tok < end && !((void)(c = *tok), AK_ARRAY_SEP_CHECK))
+                  tok++;
+                
+                toklen    = tok - tok_begin;
+                enumValue = asEnum(tok, toklen);
+                memcpy(pData + idx * enumLen, &enumValue, enumLen);
+
+                idx++;
+              } while (idx < count && tok < end);
+            } while ((v = xmls_next(v)) && (tok = v->val));
           }
         } else {
-          buffer->length = sizeof(char *) * (count + 1)
-                            + strlen(content) + count /* NULL */;
+          ak_setUserData(buffer, (void *)(uintptr_t)AKT_STRING);
+
+          buffer->length = sizeof(char *) * count * 2
+                            + xmls_sumlen(sval) + 1 /* NULL */;
           iter  = buffer->data = ak_heap_alloc(heap, buffer, buffer->length);
           pData = (char *)buffer->data + sizeof(char *) * (count + 1);
           
           iter[count] = pData;
-          
-          idx = 0;
-          for (tok = strtok(content, " \t\r\n");
-               tok;
-               tok = strtok(NULL, " \t\r\n")) {
-            if (idx >= count)
-              break;
 
-            strcpy(pData, tok);
-            iter[idx++] = pData;
+          if ((v = sval) && (tok = v->val)) {
+            do {
+              if (idx >= count)
+                break;
 
-            pData += strlen(tok);
-            *pData++ = '\0';
+              srclen = v->valsize;
+              end    = tok + srclen;
+
+              do {
+                while (tok < end && ((void)(c = *tok), AK_ARRAY_SEP_CHECK))
+                  tok++;
+                
+                tok_begin = tok;
+                
+                while (tok < end && !((void)(c = *tok), AK_ARRAY_SEP_CHECK))
+                  tok++;
+
+                toklen = tok - tok_begin;
+                memcpy(pData, tok_begin, toklen);
+                iter[idx++] = pData;
+                
+                pData += toklen;
+                *pData++ = '\0';
+              } while (idx < count && tok < end);
+            } while ((v = xmls_next(v)) && (tok = v->val));
           }
         } /* if asEnum */
       }

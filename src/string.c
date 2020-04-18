@@ -10,9 +10,7 @@
 #include <ctype.h>
 
 #include "../include/ak/assetkit.h"
-
-#define AK_ARRAY_SEP_CHECK (c == ' ' || c == '\n' || c == '\t' \
-                              || c == '\r' || c == '\f' || c == '\v')
+#include "common.h"
 
 AK_EXPORT
 const char*
