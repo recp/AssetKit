@@ -225,6 +225,10 @@ dae_fixup_accessors(DAEState * __restrict dst) {
       }
     }
 
+    ak_heap_ext_rm(heap, ak__alignof(accdae), AK_HEAP_NODE_FLAGS_USR);
+    ak_setUserData(acc, NULL);
+    ak_free(accdae);
+    
   cont:
     item = item->next;
   }
