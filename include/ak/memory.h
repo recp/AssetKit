@@ -334,6 +334,14 @@ ak_objAlloc(AkHeap * __restrict heap,
             bool zeroed);
 
 AK_EXPORT
+void*
+ak_userData(void * __restrict mem);
+
+AK_EXPORT
+void*
+ak_setUserData(void * __restrict mem);
+
+AK_EXPORT
 AkObject*
 ak_objFrom(void * __restrict memptr);
 

@@ -1058,6 +1058,27 @@ ak_objAlloc(AkHeap * __restrict heap,
 }
 
 AK_EXPORT
+void*
+ak_userData(void * __restrict mem) {
+  if (!mem)
+    return NULL;
+
+  return ak_heap_ext_get(ak__alignof(mem),
+                         AK_HEAP_NODE_FLAGS_USR);
+}
+
+AK_EXPORT
+void*
+ak_setUserData(void * __restrict mem) {
+  AkHeap *heap;
+  
+  if (!mem || (heap = ak_heap_getheap(mem)))
+    return NULL;
+
+  return ak_heap_ext_add(heap, ak__alignof(mem), AK_HEAP_NODE_FLAGS_USR);
+}
+
+AK_EXPORT
 AkObject*
 ak_objFrom(void * __restrict memptr) {
   AkObject *obj;
