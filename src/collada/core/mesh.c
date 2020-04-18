@@ -142,9 +142,6 @@ dae_mesh(DAEState   * __restrict dst,
     /* dont keep vertices */
     inpv = vert->input;
     while (inpv) {
-      AkURL *url;
-      
-      url = rb_find(dst->inputmap, inpv);
       inp = inpv;
 
       rb_remove(dst->inputmap, inpv);

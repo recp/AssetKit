@@ -93,7 +93,7 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
 
   it    = prim->indices->items + vo;
   st    = prim->indexStride;
-  count = prim->indices->count / st;
+  count = (uint32_t)prim->indices->count / st;
   newst = st + 1;
 
   /* TODO: for now join this into existing indices,
