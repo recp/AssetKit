@@ -1080,12 +1080,19 @@ void*
 ak_heap_setUserData(AkHeap * __restrict heap,
                     void   * __restrict mem,
                     void   * __restrict userData) {
+  uintptr_t tmp;
+  void     *ext;
+  
   if (!mem)
     return NULL;
   
-  return (*(void **)ak_heap_ext_add(heap,
-                                   ak__alignof(mem),
-                                   AK_HEAP_NODE_FLAGS_USR) = userData);
+  if (!(ext = ak_heap_ext_add(heap, ak__alignof(mem), AK_HEAP_NODE_FLAGS_USR)))
+    return NULL;
+  
+  tmp = (uintptr_t)userData;
+  memcpy(ext, &tmp, sizeof(void *));
+
+  return ext;
 }
 
 AK_EXPORT
