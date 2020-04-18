@@ -1072,7 +1072,7 @@ void*
 ak_setUserData(void * __restrict mem) {
   AkHeap *heap;
   
-  if (!mem || (heap = ak_heap_getheap(mem)))
+  if (!mem || !(heap = ak_heap_getheap(mem)))
     return NULL;
 
   return ak_heap_ext_add(heap, ak__alignof(mem), AK_HEAP_NODE_FLAGS_USR);
