@@ -14,9 +14,9 @@ ak_baseGeometry(AkController * __restrict ctlr) {
 
   obj = ak_objGet(ctlr->data);
   switch (ctlr->data->type) {
-    case AKT_SKIN:  return ak_skinBaseGeometry(obj);
-    case AKT_MORPH: return ak_morphBaseGeometry(obj);
-    default:        return NULL;
+    case AK_CONTROLLER_SKIN:  return ak_skinBaseGeometry(obj);
+    case AK_CONTROLLER_MORPH: return ak_morphBaseGeometry(obj);
+    default:                  return NULL;
   }
   return NULL;
 }
