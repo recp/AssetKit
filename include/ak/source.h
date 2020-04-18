@@ -54,9 +54,6 @@ typedef struct AkBuffer {
   const char *name;
   void       *data;
   size_t      length;
-
-  /* TODO: remove */
-  size_t      reserved;
 } AkBuffer;
 
 typedef struct AkAccessor {

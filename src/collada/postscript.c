@@ -158,7 +158,7 @@ dae_fixup_accessors(DAEState * __restrict dst) {
     if ((buff = ak_getObjectByUrl(&accdae->source))) {
       uint32_t componentBytes;
 
-      acc->componentType = (AkTypeId)buff->reserved;
+      acc->componentType = (AkTypeId)(uintptr_t)ak_userData(buff);
       accdae->type       = ak_typeDesc(acc->componentType);
 
       if (accdae->type)
@@ -223,12 +223,13 @@ dae_fixup_accessors(DAEState * __restrict dst) {
 
         acc->buffer = newbuff;
       }
+
+      ak_heap_ext_rm(heap, ak__alignof(buff), AK_HEAP_NODE_FLAGS_USR);
     }
 
     ak_heap_ext_rm(heap, ak__alignof(accdae), AK_HEAP_NODE_FLAGS_USR);
-    ak_setUserData(acc, NULL);
     ak_free(accdae);
-    
+
   cont:
     item = item->next;
   }

@@ -104,19 +104,22 @@ dae_source(DAEState * __restrict dst,
       
       if (xml_tag_eq(xml, _s_dae_float_array)) {
         buffer->length = sizeof(float) * count;
-        buffer->reserved = AKT_FLOAT;
         buffer->data   = ak_heap_alloc(heap, buffer, buffer->length);
         xml_strtof_fast(sval, buffer->data, count);
+        
+        ak_setUserData(buffer, (void *)(uintptr_t)AKT_FLOAT);
       } else if (xml_tag_eq(xml, _s_dae_int_array)) {
-        buffer->length   = sizeof(uint32_t) * count;
-        buffer->reserved = AKT_INT;
-        buffer->data     = ak_heap_alloc(heap, buffer, buffer->length);
+        buffer->length = sizeof(uint32_t) * count;
+        buffer->data   = ak_heap_alloc(heap, buffer, buffer->length);
         xml_strtoi_fast(sval, buffer->data, count);
+        
+        ak_setUserData(buffer, (void *)(uintptr_t)AKT_INT);
       } else if (xml_tag_eq(xml, _s_dae_bool_array)) {
         buffer->length = sizeof(bool) * count;
-        buffer->reserved = AKT_BOOL;
         buffer->data   = ak_heap_alloc(heap, buffer, buffer->length);
         xml_strtob_fast(sval, buffer->data, count);
+        
+        ak_setUserData(buffer, (void *)(uintptr_t)AKT_BOOL);
       } else if (xml_tag_eq(xml, _s_dae_IDREF_array)
                  || xml_tag_eq(xml, _s_dae_Name_array)
                  || xml_tag_eq(xml, _s_dae_SIDREF_array)
@@ -136,8 +139,9 @@ dae_source(DAEState * __restrict dst,
         if (asEnum) {
           AkEnum enumValue;
           
+          ak_setUserData(buffer, (void *)(uintptr_t)AKT_STRING);
+          
           buffer->length = enumLen * count;
-          buffer->reserved = AKT_STRING;
           buffer->data   = ak_heap_alloc(heap, buffer, buffer->length);
           pData          = buffer->data;
           
