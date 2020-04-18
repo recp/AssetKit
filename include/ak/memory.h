@@ -228,6 +228,12 @@ ak_heap_getMemById(AkHeap * __restrict heap,
                    void  ** __restrict dest);
 
 AK_EXPORT
+void*
+ak_heap_setUserData(AkHeap * __restrict heap,
+                    void   * __restrict mem,
+                    void   * __restrict userData);
+
+AK_EXPORT
 int
 ak_heap_refc(AkHeapNode * __restrict heapNode);
 
@@ -339,7 +345,7 @@ ak_userData(void * __restrict mem);
 
 AK_EXPORT
 void*
-ak_setUserData(void * __restrict mem);
+ak_setUserData(void * __restrict mem, void * __restrict userData);
 
 AK_EXPORT
 AkObject*

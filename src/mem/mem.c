@@ -1060,22 +1060,43 @@ ak_objAlloc(AkHeap * __restrict heap,
 AK_EXPORT
 void*
 ak_userData(void * __restrict mem) {
+  uintptr_t *r, tmp;
+  
   if (!mem)
     return NULL;
 
-  return ak_heap_ext_get(ak__alignof(mem),
-                         AK_HEAP_NODE_FLAGS_USR);
+  if ((r = (uintptr_t *)ak_heap_ext_get(ak__alignof(mem),
+                                        AK_HEAP_NODE_FLAGS_USR))) {
+    /* to fix 8-byte alignment issue for uintptr_t */
+    memcpy(&tmp, r, sizeof(tmp));
+    return (void *)tmp;
+  }
+
+  return NULL;
 }
 
 AK_EXPORT
 void*
-ak_setUserData(void * __restrict mem) {
+ak_heap_setUserData(AkHeap * __restrict heap,
+                    void   * __restrict mem,
+                    void   * __restrict userData) {
+  if (!mem)
+    return NULL;
+  
+  return (*(void **)ak_heap_ext_add(heap,
+                                   ak__alignof(mem),
+                                   AK_HEAP_NODE_FLAGS_USR) = userData);
+}
+
+AK_EXPORT
+void*
+ak_setUserData(void * __restrict mem, void * __restrict userData) {
   AkHeap *heap;
   
   if (!mem || !(heap = ak_heap_getheap(mem)))
     return NULL;
 
-  return ak_heap_ext_add(heap, ak__alignof(mem), AK_HEAP_NODE_FLAGS_USR);
+  return ak_heap_setUserData(heap, mem, userData);
 }
 
 AK_EXPORT
