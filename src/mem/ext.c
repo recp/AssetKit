@@ -16,6 +16,7 @@ static uint8_t ak__heap_ext_sz[] = {
   (uint8_t)sizeof(uintptr_t),
   (uint8_t)sizeof(uintptr_t),
   (uint8_t)sizeof(AkUrlNode),
+  (uint8_t)sizeof(uintptr_t),
   (uint8_t)sizeof(uintptr_t)
 };
 
@@ -116,13 +117,13 @@ ak_heap_ext_add(AkHeap     * __restrict heap,
   isz = ak__heap_ext_sz[ak_bitw_ctz(flag >> flag_off)];
 
   if (!(hnode->flags & AK_HEAP_NODE_FLAGS_EXT)) {
-    exnode        = alc->malloc(sizeof(*exnode) + sz + isz);
+    exnode        = alc->malloc(sizeof(*exnode) + sz);
     exnode->node  = hnode;
     exnode->chld  = hnode->chld;
     hnode->flags |= AK_HEAP_NODE_FLAGS_EXT;
   } else {
     AkHeapSrchNode *curr, *parent;
-    int side;
+    int side, tomove;
 
     exnode = hnode->chld;
     parent = NULL;
@@ -131,17 +132,16 @@ ak_heap_ext_add(AkHeap     * __restrict heap,
     /* save link */
     if (hnode->flags & AK_HEAP_NODE_FLAGS_SRCH) {
       curr = (AkHeapSrchNode *)exnode->data;
-      side = ak_heap_rb_parent(heap->srchctx,
-                               curr->key,
-                               &parent);
+      side = ak_heap_rb_parent(heap->srchctx, curr->key, &parent);
     }
 
-    exnode = alc->realloc(exnode, sizeof(*exnode) + sz + isz);
-
-    if (sz > ofst)
-      memmove(&exnode->data[ofst],
-              &exnode->data[ofst] + isz,
-              sz - ofst);
+    exnode = alc->realloc(exnode, sizeof(*exnode) + sz);
+    tomove = sz - isz - ofst;
+    
+    if (tomove > 0)
+      memmove(&exnode->data[ofst + isz],
+              &exnode->data[ofst],
+              tomove);
 
     /* update link */
     if (parent) {
