@@ -14,6 +14,6 @@ AkSource* _assetkit_hide
 dae_source(DAEState * __restrict dst,
            xml_t    * __restrict xml,
            AkEnum              (*asEnum)(const char *name, size_t nameLen),
-           uint32_t              enumLen);
+           AkTypeId              enumType);
 
 #endif /* __libassetkit__dae_source_h_ */

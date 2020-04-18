@@ -74,7 +74,6 @@ typedef struct AkNewParam {
 } AkNewParam;
 
 typedef struct AkAccessorDAE {
-  AkTypeDesc          *type;
   struct AkDataParam  *param;
   AkURL                source;
   size_t               offset;

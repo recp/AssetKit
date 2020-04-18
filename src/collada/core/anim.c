@@ -32,7 +32,7 @@ dae_anim(DAEState * __restrict dst,
       AkSource *source;
       
       /* store interpolation in char */
-      if ((source = dae_source(dst, xml, dae_animInterp, 1))) {
+      if ((source = dae_source(dst, xml, dae_animInterp, AKT_UBYTE))) {
         source->next = anim->source;
         anim->source = source;
       }
@@ -135,6 +135,9 @@ dae_animSampler(DAEState * __restrict dst,
           default:
             break;
         }
+        
+        inp->next   = samp->input;
+        samp->input = inp;
       }
     }
     xml = xml->next;

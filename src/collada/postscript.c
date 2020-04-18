@@ -144,6 +144,7 @@ dae_fixup_accessors(DAEState * __restrict dst) {
   AkAccessor    *acc;
   AkAccessorDAE *accdae;
   AkBuffer      *buff;
+  AkTypeDesc    *type;
 
   item = dst->accessors;
   heap = dst->heap;
@@ -159,10 +160,9 @@ dae_fixup_accessors(DAEState * __restrict dst) {
       uint32_t componentBytes;
 
       acc->componentType = (AkTypeId)(uintptr_t)ak_userData(buff);
-      accdae->type       = ak_typeDesc(acc->componentType);
 
-      if (accdae->type)
-        componentBytes = accdae->type->size;
+      if ((type = ak_typeDesc(acc->componentType)))
+        componentBytes = type->size;
       else
         goto cont;
 

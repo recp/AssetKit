@@ -15,7 +15,7 @@ AkSource* _assetkit_hide
 dae_source(DAEState * __restrict dst,
            xml_t    * __restrict xml,
            AkEnum              (*asEnum)(const char *name, size_t nameLen),
-           uint32_t              enumLen) {
+           AkTypeId              enumType) {
   AkHeap        *heap;
   AkSource      *source;
   AkBuffer      *buffer;
@@ -65,7 +65,7 @@ dae_source(DAEState * __restrict dst,
           dp = ak_heap_calloc(heap, acc, sizeof(*dp));
           sid_set(xacc, heap, dp);
 
-          dp->name   = xmla_strdup_by(xacc, heap, _s_dae_name, dp);
+          dp->name = xmla_strdup_by(xacc, heap, _s_dae_name, dp);
           dae_dtype(xmla_strdup_by(xacc, heap, _s_dae_type, dp),  &dp->type);
           
           if (dp_last)
@@ -75,11 +75,6 @@ dae_source(DAEState * __restrict dst,
           dp_last = dp;
         
           xacc = xacc->next;
-        }
-
-        if (asEnum) {
-          acc->byteStride = enumLen;
-          acc->byteLength = acc->count * enumLen;
         }
 
         source->tcommon = acc;
@@ -124,7 +119,7 @@ dae_source(DAEState * __restrict dst,
                  || xml_tag_eq(xml, _s_dae_token_array)) {
         char        *pData, **iter, *tok, *tok_begin, *end, c;
         const xml_t *v;
-        size_t       srclen, toklen;
+        size_t       srclen, toklen, enumLen;
         uint32_t     idx;
         AkEnum       enumValue;
 
@@ -136,10 +131,11 @@ dae_source(DAEState * __restrict dst,
         
         isName = true;
         idx    = 0;
-        
+
         if (asEnum) {
-          ak_setUserData(buffer, (void *)(uintptr_t)AKT_INT);
+          ak_setUserData(buffer, (void *)(uintptr_t)enumType);
           
+          enumLen        = ak_typeDesc(enumType)->size;
           buffer->length = enumLen * count;
           buffer->data   = ak_heap_alloc(heap, buffer, buffer->length);
           pData          = buffer->data;
