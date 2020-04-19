@@ -15,62 +15,91 @@ AkTreeNode* _assetkit_hide
 tree_fromxml(AkHeap * __restrict heap,
              void   * __restrict memParent,
              xml_t  * __restrict xml) {
-  AkTreeNode     *tree, *root, *node, *pa;
+  AkTreeNode     *tree, *node, *inode, *pa;
   AkTreeNodeAttr *att;
-  xml_t          *xpa;
+  xml_t          *root, *xpa;
   xml_attr_t     *xatt;
-  
+  size_t          namelen;
+
   tree = ak_heap_calloc(heap, memParent, sizeof(*tree));
-  root = tree;
+
+  root = xml;
+  xml  = xml->val;
+  node = tree;
+  pa   = NULL;
 
   while (xml) {
-    if (xml->type == XML_ELEMENT) {
-      node = ak_heap_calloc(heap, memParent, sizeof(*node));
-      
-      if ((xatt = xml->attr)) {
-        do {
-          att       = ak_heap_calloc(heap, node, sizeof(*att));
-          att->name = ak_heap_strndup(heap, att, xatt->name, xatt->namesize);
-          att->val  = ak_heap_strndup(heap, att, xatt->val,  xatt->valsize);
-          
-          att->next     = node->attribs;
-          node->attribs = att;
-
-          node->attrc++;
-        } while ((xatt = xatt->next));
-      }
-      
-      if (root)
-        root->prev = node;
-
-      node->next   = root->chld;
-      root->chld   = node;
-      node->parent = root;
-      root->chldc++;
-    } else if (xml->type == XML_STRING) {
-      if (xml->parent)
-        xml->parent->val = xml_strdup(xml, heap, xml->parent);
-    }
-    
-    if (xml->next) {
-      xml = xml->next;
-    } else if ((xpa = xml->parent)) {
-      do {
-        pa = pa->parent;
-
-        if (xpa->type == XML_ELEMENT) {
-          
+    switch (xml->type) {
+      case XML_ELEMENT: {
+        inode = ak_heap_calloc(heap, memParent, sizeof(*inode));
+        namelen = xml->tagsize;
+        
+        if (xml->prefix)
+          namelen += xml->prefixsize;
+        
+        inode->name = ak_heap_alloc(heap, inode, namelen + 1);
+        
+        if (xml->prefix) {
+          memcpy((void *)inode->name, xml->prefix, xml->prefixsize);
+          memcpy((void *)(inode->name + xml->prefixsize), xml->tag, xml->tagsize);
+        } else {
+          memcpy((void *)inode->name, xml->tag, xml->tagsize);
         }
         
-        xml = xpa->next;
-        xpa = xpa->parent;
+        memset((void *)(inode->name + namelen), '\0', 1);
+        
+        if ((xatt = xml->attr)) {
+          do {
+            att       = ak_heap_calloc(heap, inode, sizeof(*att));
+            att->name = ak_heap_strndup(heap, att, xatt->name, xatt->namesize);
+            att->val  = ak_heap_strndup(heap, att, xatt->val,  xatt->valsize);
+            
+            att->next      = inode->attribs;
+            inode->attribs = att;
+            
+            inode->attrc++;
+          } while ((xatt = xatt->next));
+        }
+        
+        if (node->chld)
+          node->chld->prev = inode;
+        
+        inode->next   = node->chld;
+        node->chld    = inode;
+        inode->parent = node;
+        node->chldc++;
+        
+        node = inode;
+        
+        if (xml->val) {
+          xml = xml->val;
+          continue;
+        }
+        break;
+      }
+      case XML_STRING:
+        node->val = xml_strdup(xml, heap, xml->parent);
+        break;
+      default:
+        break;
+    }
+
+    if (xml->next) {
+      xml = xml->next;
+    } else if ((xpa = xml->parent) != root) {
+      do {
+        node = node->parent;
+        xml  = xpa->next;
+        xpa  = xpa->parent;
+        
+        if (xpa == root || xml == root)
+          goto end;
       } while (!xml && xpa);
     } else {
       break;
     }
-    
-    xml = xml->next;
-  }
+  } /* while (xml)  */
 
+end:
   return tree;
 }
