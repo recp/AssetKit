@@ -43,6 +43,7 @@ dae_postscript(DAEState * __restrict dst) {
 
   dae_retain_refs(dst);
   rb_walk(dst->inputmap, dae_input_walk);
+  dae_fixAngles(dst);
   dae_fixup_accessors(dst);
   dae_pre_mesh(dst);
 
@@ -64,7 +65,6 @@ dae_postscript(DAEState * __restrict dst) {
     dst->doc->coordSys = (void *)ak_opt_get(AK_OPT_COORD);
 
   dae_fix_textures(dst);
-  dae_fixAngles(dst);
   
   if (dst->doc && dst->doc->lib.visualScenes) {
     for (AkVisualScene *vscn = (void *)dst->doc->lib.visualScenes->chld;
@@ -157,7 +157,11 @@ dae_fixup_accessors(DAEState * __restrict dst) {
     acc->buffer = buff;
 
     if ((buff = ak_getObjectByUrl(&accdae->source))) {
-      uint32_t componentBytes;
+      AkBuffer    *newbuff;
+      AkDataParam *dp;
+      char        *olditms, *newitms;
+      uint32_t     i, j, count, dpoff, componentBytes;
+      size_t       oldByteStride, newByteStride;
 
       acc->componentType = (AkTypeId)(uintptr_t)ak_userData(buff);
 
@@ -166,15 +170,16 @@ dae_fixup_accessors(DAEState * __restrict dst) {
       else
         goto cont;
 
+      count                    = acc->count;
       acc->byteStride          = accdae->stride * componentBytes;
-      acc->byteLength          = acc->count * accdae->stride * componentBytes;
+      acc->byteLength          = count * accdae->stride * componentBytes;
       acc->byteOffset          = accdae->offset * componentBytes;
       accdae->bound            = accdae->stride;
     
-      acc->fillByteSize = accdae->bound * componentBytes;
+      acc->fillByteSize        = accdae->bound * componentBytes;
       acc->componentCount      = accdae->bound;
       acc->componentBytes      = componentBytes;
-      
+
       /*--------------------------------------------------------------------*
 
          eliminate / remove Data Params e.g. X, Y, Z
@@ -185,13 +190,6 @@ dae_fixup_accessors(DAEState * __restrict dst) {
       /* the buffer is used more than one place, so duplicate data */
       /* TODO: check param that has empty name */
       if (acc->buffer && ak_refc(buff) > 1) {
-        AkBuffer    *newbuff;
-        AkDataParam *dp;
-        char        *olditms, *newitms;
-        uint32_t     i, j, count, dpoff;
-        size_t       oldByteStride, newByteStride;
-
-        count           = acc->count;
         oldByteStride   = acc->byteStride;
         newByteStride   = accdae->bound * componentBytes;
         newbuff         = ak_heap_calloc(heap, doc, sizeof(*newbuff));
