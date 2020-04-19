@@ -79,15 +79,6 @@ typedef enum AkPrecisionFormat {
   AK_PRECISION_FORMAT_MAX     = 5
 } AkPrecisionFormat;
 
-typedef enum AkDrawType {
-  AK_DRAW_READ_STR_VAL                     = 0,
-  AK_DRAW_GEOMETRY                         = 1,
-  AK_DRAW_SCENE_GEOMETRY                   = 2,
-  AK_DRAW_SCENE_IMAGE                      = 3,
-  AK_DRAW_FULL_SCREEN_QUAD                 = 4,
-  AK_DRAW_FULL_SCREEN_QUAD_PLUS_HALF_PIXEL = 5
-} AkDrawType;
-
 typedef enum AkInputSemantic {
   /* read semanticRaw */
   AK_INPUT_SEMANTIC_OTHER           = 0,
