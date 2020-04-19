@@ -74,7 +74,7 @@ dae_light(DAEState * __restrict dst,
         AkSpotLight *spot;
 
         spot            = ak_heap_calloc(heap, light, sizeof(*spot));
-        spot->base.type = AK_LIGHT_TYPE_POINT;
+        spot->base.type = AK_LIGHT_TYPE_SPOT;
         lightb          = &spot->base;
 
         /* default values */
@@ -97,6 +97,7 @@ dae_light(DAEState * __restrict dst,
           } else if (xml_tag_eq(xtechv, _s_dae_falloff_angle)) {
             sid_seta(xtechv, heap, spot, &spot->falloffAngle);
             spot->falloffAngle = xml_float(xtechv, 0.0f);
+            glm_make_rad(&spot->falloffAngle);
           } else if (xml_tag_eq(xtechv, _s_dae_falloff_exp)) {
             sid_seta(xtechv, heap, spot, &spot->falloffExp);
             spot->falloffExp = xml_float(xtechv, 0.0f);
