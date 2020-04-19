@@ -199,8 +199,8 @@ gltf_animations(json_t * __restrict janim,
     
   anm_nxt:
 
-    anim->next = (void *)lib->chld;
-    lib->chld  = (void *)anim;
+    anim->base.next = (void *)lib->chld;
+    lib->chld       = (void *)anim;
     lib->count++;
 
     janim = janim->next;

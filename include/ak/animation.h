@@ -78,8 +78,7 @@ typedef struct AkChannel {
 } AkChannel;
 
 typedef struct AkAnimation {
-  struct AkAnimation *prev;
-  struct AkAnimation *next;
+  AkOneWayIterBase    base;
   struct AkAnimation *animation;
   AkAnimSampler      *sampler;
   AkChannel          *channel;

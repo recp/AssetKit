@@ -51,8 +51,8 @@ dae_anim(DAEState * __restrict dst,
     } else if (xml_tag_eq(xml, _s_dae_animation)) {
       AkAnimation *subAnim;
       if ((subAnim = dae_anim(dst, xml, anim))) {
-        subAnim->next   = anim->animation;
-        anim->animation = subAnim;
+        subAnim->base.next = (AkOneWayIterBase *)anim->animation;
+        anim->animation    = subAnim;
       }
     } else if (xml_tag_eq(xml, _s_dae_extra)) {
       anim->extra = tree_fromxml(heap, anim, xml);
