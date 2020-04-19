@@ -33,11 +33,11 @@ gltf_bufferViews(json_t * __restrict jbuffView,
         if ((buffIndex = json_int32(jbuffVal, -1)) > -1)
           buffView->buffer = flist_sp_at(&gst->buffers, buffIndex);
       } else if (json_key_eq(jbuffVal, _s_gltf_byteLength)) {
-        buffView->byteLength = json_uint64(jbuffVal, 0);
+        buffView->byteLength = (size_t)json_uint64(jbuffVal, 0);
       } else if (json_key_eq(jbuffVal, _s_gltf_byteOffset)) {
-        buffView->byteOffset = json_uint64(jbuffVal, 0);
+        buffView->byteOffset = (size_t)json_uint64(jbuffVal, 0);
       } else if (json_key_eq(jbuffVal, _s_gltf_byteStride)) {
-        buffView->byteStride = json_uint64(jbuffVal, 1);
+        buffView->byteStride = (size_t)json_uint64(jbuffVal, 1);
       } else if (json_key_eq(jbuffVal, _s_gltf_name)) {
         buffView->name = json_strdup(jbuffVal, gst->heap, buffView);
       }

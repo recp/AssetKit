@@ -27,8 +27,8 @@ typedef struct AkImageData {
 } AkImageData;
 
 typedef struct AkSizeExact {
-  float width;
-  float height;
+  uint32_t width;
+  uint32_t height;
 } AkSizeExact;
 
 typedef struct AkSizeRatio {

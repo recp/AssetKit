@@ -57,9 +57,9 @@ typedef struct AkSampler {
   AkMagFilter     magfilter;
   AkMipFilter     mipfilter;
 
-  unsigned long   maxAnisotropy;
-  unsigned long   mipMaxLevel;
-  unsigned long   mipMinLevel;
+  uint32_t        maxAnisotropy;
+  uint32_t        mipMaxLevel;
+  uint32_t        mipMinLevel;
   float           mipBias;
 } AkSampler;
 

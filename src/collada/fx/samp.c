@@ -59,13 +59,13 @@ dae_sampler(DAEState * __restrict dst,
       
       samp->borderColor = color;
     } else if (xml_tag_eq(xml, _s_dae_mip_max_level)) {
-      samp->mipMaxLevel = xml_u64(xml, 0);
+      samp->mipMaxLevel = xml_u32(xml, 0);
     } else if (xml_tag_eq(xml, _s_dae_mip_min_level)) {
-      samp->mipMinLevel = xml_u64(xml, 0);
+      samp->mipMinLevel = xml_u32(xml, 0);
     } else if (xml_tag_eq(xml, _s_dae_mip_bias)) {
-      samp->mipBias = xml_u64(xml, 0);
+      samp->mipBias = xml_float(xml, 0);
     } else if (xml_tag_eq(xml, _s_dae_max_anisotropy)) {
-      samp->maxAnisotropy = xml_u64(xml, 1l);
+      samp->maxAnisotropy = xml_u32(xml, 1l);
     } else if (xml_tag_eq(xml, _s_dae_extra)) {
       samp->extra = tree_fromxml(heap, samp, xml);
     }

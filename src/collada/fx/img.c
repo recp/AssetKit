@@ -210,17 +210,15 @@ dae_create2d(DAEState * __restrict dst,
       
       sizeExact->width  = xmla_u32(xmla(xml, _s_dae_width), 0);
       sizeExact->height = xmla_u32(xmla(xml, _s_dae_height), 0);
-      
-      img->sizeExact = sizeExact;
+      img->sizeExact    = sizeExact;
     } else if (xml_tag_eq(xml, _s_dae_size_ratio)) {
       AkSizeRatio *sizeRatio;
       
       sizeRatio = ak_heap_calloc(heap, img, sizeof(*sizeRatio));
       
-      sizeRatio->width  = xmla_u32(xmla(xml, _s_dae_width), 0);
-      sizeRatio->height = xmla_u32(xmla(xml, _s_dae_height), 0);
-      
-      img->sizeRatio = sizeRatio;
+      sizeRatio->width  = xmla_float(xmla(xml, _s_dae_width), 0);
+      sizeRatio->height = xmla_float(xmla(xml, _s_dae_height), 0);
+      img->sizeRatio    = sizeRatio;
     } else if (xml_tag_eq(xml, _s_dae_mips)) {
       AkMips *mips;
       
@@ -228,8 +226,7 @@ dae_create2d(DAEState * __restrict dst,
       
       mips->levels       = xmla_u32(xmla(xml, _s_dae_levels), 0);
       mips->autoGenerate = xmla_u32(xmla(xml, _s_dae_auto_generate), 0);
-      
-      img->mips = mips;
+      img->mips          = mips;
     } else if (xml_tag_eq(xml, _s_dae_unnormalized)) {
       img->unnormalized = xml_strdup(xml, heap, img);
     } else if (xml_tag_eq(xml, _s_dae_array)) {
