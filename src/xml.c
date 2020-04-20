@@ -182,9 +182,9 @@ xml_strtof_arrayL(AkHeap         * __restrict heap,
                   const xml_t    * __restrict xobj,
                   AkFloatArrayL ** __restrict array) {
   AkFloatArrayL *arr;
-  size_t         count;
+  unsigned long  count;
 
-  if ((count = xml_strtok_count_fast(xobj, NULL)) == 0)
+  if ((count = (unsigned long)xml_strtok_count_fast(xobj, NULL)) == 0)
     return AK_ERR;
 
   arr = ak_heap_alloc(heap, memp, sizeof(*arr) + sizeof(AkFloat) * count);
@@ -204,10 +204,10 @@ xml_strtoui_array(AkHeap       * __restrict heap,
                   void         * __restrict memp,
                   const xml_t  * __restrict xobj,
                   AkUIntArray ** __restrict array) {
-  AkUIntArray *arr;
-  size_t       count;
+  AkUIntArray  *arr;
+  unsigned long count;
 
-  if ((count = xml_strtok_count_fast(xobj, NULL)) == 0)
+  if ((count = (unsigned long)xml_strtok_count_fast(xobj, NULL)) == 0)
     return AK_ERR;
 
   arr = ak_heap_alloc(heap, memp, sizeof(*arr) + sizeof(AkUInt) * count);

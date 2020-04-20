@@ -154,11 +154,11 @@ dae_skin(DAEState * __restrict dst,
             /* must equal to position count, we may fix this in postscript */
             wei->nVertex = count;
             
-            xml_strtoui_fast(sval, pCount, count);
+            xml_strtoui_fast(sval, pCount, (unsigned long)count);
             
             /* calculate sum */
             pSum = wei->counts + count;
-            for (next = i = 0; i < count; i++) {
+            for (i = next = 0; i < count; i++) {
               pSum[i] = next;
               next    = pCount[i] + next;
             }

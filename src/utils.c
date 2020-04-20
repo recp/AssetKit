@@ -107,6 +107,6 @@ int
 ak_digitsize(size_t number) {
   if (number == 0)
     return 1;
-
-  return (int)floor(log10(number)) + 1;
+  
+  return (int)floor(log10((double)number)) + 1;
 }

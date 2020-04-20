@@ -19,7 +19,8 @@ dae_poly(DAEState * __restrict dst,
   AkPolygon *poly;
   FListItem *polyi;
   AkHeap    *heap;
-  uint32_t   indexoff, polygonsCount, indicesCount, st;
+  uint32_t   indexoff, polygonsCount, st;
+  size_t     indicesCount;
   
   heap = dst->heap;
   poly = ak_heap_calloc(heap, memp, sizeof(*poly));

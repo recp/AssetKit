@@ -129,7 +129,7 @@ libassetkit_la_SOURCES=\
     src/transform/dup.c \
     src/transform/traverse.c \
     src/lib/lib.c \
-    src/lib/lib_geom.c \
+    src/lib/geom.c \
     src/mesh/index.c \
     src/mesh/material.c \
     src/mesh/triangulate.c \

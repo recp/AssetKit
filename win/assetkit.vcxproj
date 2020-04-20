@@ -424,9 +424,9 @@
     <ClCompile Include="..\src\id.c" />
     <ClCompile Include="..\src\image\image.c" />
     <ClCompile Include="..\src\instance\inst.c" />
-    <ClCompile Include="..\src\instance\inst_list.c" />
+    <ClCompile Include="..\src\instance\list.c" />
+    <ClCompile Include="..\src\lib\geom.c" />
     <ClCompile Include="..\src\lib\lib.c" />
-    <ClCompile Include="..\src\lib\lib_geom.c" />
     <ClCompile Include="..\src\light\light.c" />
     <ClCompile Include="..\src\main.c" />
     <ClCompile Include="..\src\map.c" />
