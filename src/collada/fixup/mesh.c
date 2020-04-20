@@ -6,7 +6,7 @@
  */
 
 #include "mesh.h"
-#include "../../mesh/mesh_index.h"
+#include "../../mesh/index.h"
 
 AkResult _assetkit_hide
 dae_mesh_fixup(AkMesh * mesh) {

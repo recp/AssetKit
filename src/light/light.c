@@ -6,7 +6,7 @@
  */
 
 #include "../common.h"
-#include "../default/def_light.h"
+#include "../default/light.h"
 #include <cglm/cglm.h>
 
 /* this duplicates default light to new light,

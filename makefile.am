@@ -92,59 +92,59 @@ libassetkit_la_SOURCES=\
     src/mem/intr.c \
     src/mem/ext.c \
     src/mem/mem.c \
-    src/controller/ctlr.c \
+    src/ctlr/ctlr.c \
     src/skin/skin.c \
-    src/skin/skin_fix.c \
+    src/skin/fix.c \
     src/node/node.c \
     src/array/source_array.c \
     src/image/image.c \
     src/camera/cam.c \
     src/light/light.c \
-    src/coord_sys/coord_common.c \
-    src/coord_sys/coord_doc.c \
-    src/coord_sys/coord_mesh.c \
-    src/coord_sys/coord_geom.c \
-    src/coord_sys/coord_vector.c \
-    src/coord_sys/coord_transform.c \
-    src/coord_sys/coord_transforms.c \
-    src/coord_sys/coord_camera.c \
-    src/coord_sys/coord_node.c \
-    src/coord_sys/coord_scene.c \
+    src/coord/common.c \
+    src/coord/doc.c \
+    src/coord/mesh.c \
+    src/coord/geom.c \
+    src/coord/vector.c \
+    src/coord/transform.c \
+    src/coord/transforms.c \
+    src/coord/camera.c \
+    src/coord/node.c \
+    src/coord/scene.c \
     src/resc/path.c \
     src/resc/resource.c \
     src/resc/url.c \
     src/instance/inst.c \
-    src/instance/inst_list.c \
-    src/default/def_coord.c \
-    src/default/def_id.c \
-    src/default/def_opt.c \
-    src/default/def_cmp.c \
-    src/default/def_semantic.c \
-    src/default/def_cam.c \
-    src/default/def_light.c \
-    src/default/def_type.c \
-    src/default/def_material.c \
-    src/geom/geom_mesh.c \
+    src/instance/list.c \
+    src/default/coord.c \
+    src/default/id.c \
+    src/default/opt.c \
+    src/default/cmp.c \
+    src/default/semantic.c \
+    src/default/cam.c \
+    src/default/light.c \
+    src/default/type.c \
+    src/default/material.c \
+    src/geom/mesh.c \
     src/transform/trans.c \
-    src/transform/trans_dup.c \
-    src/transform/trans_traverse.c \
+    src/transform/dup.c \
+    src/transform/traverse.c \
     src/lib/lib.c \
     src/lib/lib_geom.c \
-    src/mesh/mesh_index.c \
-    src/mesh/mesh_material.c \
-    src/mesh/mesh_triangulate.c \
-    src/mesh/mesh_normal.c \
-    src/mesh/mesh_edit.c \
-    src/mesh/mesh_edit_buff.c \
-    src/mesh/mesh_edit_buff_fixup.c \
-    src/mesh/mesh_edit_index.c \
-    src/mesh/mesh_duplicator.c \
-    src/mesh/mesh_input.c \
+    src/mesh/index.c \
+    src/mesh/material.c \
+    src/mesh/triangulate.c \
+    src/mesh/normal.c \
+    src/mesh/edit.c \
+    src/mesh/edit_buff.c \
+    src/mesh/edit_buff_fixup.c \
+    src/mesh/edit_index.c \
+    src/mesh/duplicator.c \
+    src/mesh/input.c \
     src/bbox/bbox.c \
-    src/bbox/bbox_mesh.c \
-    src/bbox/bbox_mesh_prim.c \
-    src/bbox/bbox_geom.c \
-    src/bbox/bbox_scene.c \
+    src/bbox/mesh.c \
+    src/bbox/mesh_prim.c \
+    src/bbox/geom.c \
+    src/bbox/scene.c \
     src/collada/dae.c \
     src/collada/postscript.c \
     src/collada/strpool.c \
@@ -196,24 +196,24 @@ libassetkit_la_SOURCES=\
     src/collada/bugfix/transp.c \
 \
     src/gltf/gltf.c \
-    src/gltf/gltf_mesh_fixup.c \
-    src/gltf/gltf_postscript.c \
-    src/gltf/gltf_strpool.c \
-    src/gltf/core/gltf_enums.c \
-    src/gltf/core/gltf_asset.c \
-    src/gltf/core/gltf_buffer.c \
-    src/gltf/core/gltf_accessor.c \
-    src/gltf/core/gltf_profile.c \
-    src/gltf/core/gltf_image.c \
-    src/gltf/core/gltf_sampler.c \
-    src/gltf/core/gltf_texture.c \
-    src/gltf/core/gltf_material.c \
-    src/gltf/core/gltf_mesh.c \
-    src/gltf/core/gltf_node.c \
-    src/gltf/core/gltf_camera.c \
-    src/gltf/core/gltf_scene.c \
-    src/gltf/core/gltf_anim.c \
-    src/gltf/core/gltf_skin.c
+    src/gltf/mesh_fixup.c \
+    src/gltf/postscript.c \
+    src/gltf/strpool.c \
+    src/gltf/core/enum.c \
+    src/gltf/core/asset.c \
+    src/gltf/core/buffer.c \
+    src/gltf/core/accessor.c \
+    src/gltf/core/profile.c \
+    src/gltf/core/image.c \
+    src/gltf/core/sampler.c \
+    src/gltf/core/texture.c \
+    src/gltf/core/material.c \
+    src/gltf/core/mesh.c \
+    src/gltf/core/node.c \
+    src/gltf/core/camera.c \
+    src/gltf/core/scene.c \
+    src/gltf/core/anim.c \
+    src/gltf/core/skin.c
 
 test_tests_SOURCES=\
     test/runner.c \

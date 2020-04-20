@@ -8,7 +8,7 @@
 #ifndef gltf_h
 #define gltf_h
 
-#include "gltf_common.h"
+#include "common.h"
 
 AkResult _assetkit_hide
 gltf_gltf(AkDoc     ** __restrict dest,

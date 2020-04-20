@@ -66,9 +66,6 @@
     <Filter Include="src\default">
       <UniqueIdentifier>{039358a9-b2b8-4e65-9977-79d31f26f798}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\coord_sys">
-      <UniqueIdentifier>{6baf1360-5a46-41cd-ae5d-a0e0e1b0f7e6}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\win32">
       <UniqueIdentifier>{40e7b53a-e724-492f-8b13-10585f5a9706}</UniqueIdentifier>
     </Filter>
@@ -86,9 +83,6 @@
     </Filter>
     <Filter Include="include\ak">
       <UniqueIdentifier>{53f90cb3-a93d-42a2-b4f5-73b7a0a9d20f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\controller">
-      <UniqueIdentifier>{741e9362-7cf0-42cc-b5b1-956ef9e13e29}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\skin">
       <UniqueIdentifier>{58dff77f-1964-46b7-9307-9b7d0e4450e8}</UniqueIdentifier>
@@ -110,6 +104,12 @@
     </Filter>
     <Filter Include="src\collada\fixup">
       <UniqueIdentifier>{2402b686-ab12-4b3f-9878-00035951cd58}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\coord">
+      <UniqueIdentifier>{6baf1360-5a46-41cd-ae5d-a0e0e1b0f7e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\ctlr">
+      <UniqueIdentifier>{741e9362-7cf0-42cc-b5b1-956ef9e13e29}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -209,44 +209,11 @@
     <ClInclude Include="..\include\ak\util.h">
       <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\skin\skin_fix.h">
-      <Filter>src\skin</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\coord_sys\coord_common.h">
-      <Filter>src\coord_sys</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\bbox\bbox.h">
-      <Filter>src\bbox</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\bitwise\bitwise.h">
       <Filter>src\bitwise</Filter>
     </ClInclude>
     <ClInclude Include="..\src\resc\resource.h">
       <Filter>src\resc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\default\def_cam.h">
-      <Filter>src\default</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\default\def_light.h">
-      <Filter>src\default</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\default\def_material.h">
-      <Filter>src\default</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\default\def_opt.h">
-      <Filter>src\default</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\default\def_semantic.h">
-      <Filter>src\default</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\default\def_type.h">
-      <Filter>src\default</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\mesh\mesh_edit_common.h">
-      <Filter>src\mesh</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\mesh\mesh_index.h">
-      <Filter>src\mesh</Filter>
     </ClInclude>
     <ClInclude Include="..\src\mem\common.h">
       <Filter>src\mem</Filter>
@@ -304,66 +271,6 @@
     </ClInclude>
     <ClInclude Include="..\src\gltf\gltf.h">
       <Filter>src\gltf</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\gltf\gltf_common.h">
-      <Filter>src\gltf</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\gltf\gltf_mesh_fixup.h">
-      <Filter>src\gltf</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\gltf\gltf_postscript.h">
-      <Filter>src\gltf</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\gltf\gltf_strpool.h">
-      <Filter>src\gltf</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\gltf\core\gltf_accessor.h">
-      <Filter>src\gltf\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\gltf\core\gltf_anim.h">
-      <Filter>src\gltf\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\gltf\core\gltf_asset.h">
-      <Filter>src\gltf\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\gltf\core\gltf_buffer.h">
-      <Filter>src\gltf\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\gltf\core\gltf_camera.h">
-      <Filter>src\gltf\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\gltf\core\gltf_enums.h">
-      <Filter>src\gltf\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\gltf\core\gltf_image.h">
-      <Filter>src\gltf\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\gltf\core\gltf_material.h">
-      <Filter>src\gltf\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\gltf\core\gltf_mesh.h">
-      <Filter>src\gltf\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\gltf\core\gltf_morph.h">
-      <Filter>src\gltf\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\gltf\core\gltf_node.h">
-      <Filter>src\gltf\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\gltf\core\gltf_profile.h">
-      <Filter>src\gltf\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\gltf\core\gltf_sampler.h">
-      <Filter>src\gltf\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\gltf\core\gltf_scene.h">
-      <Filter>src\gltf\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\gltf\core\gltf_skin.h">
-      <Filter>src\gltf\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\gltf\core\gltf_texture.h">
-      <Filter>src\gltf\core</Filter>
     </ClInclude>
     <ClInclude Include="..\src\collada\1.4\dae14.h">
       <Filter>src\collada\1.4</Filter>
@@ -509,18 +416,105 @@
     <ClInclude Include="..\src\collada\strpool.h">
       <Filter>src\collada</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\gltf\core\accessor.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\anim.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\asset.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\buffer.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\camera.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\enum.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\image.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\material.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\mesh.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\morph.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\node.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\profile.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\sampler.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\scene.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\skin.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\core\texture.h">
+      <Filter>src\gltf\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\common.h">
+      <Filter>src\gltf</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\mesh_fixup.h">
+      <Filter>src\gltf</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\postscript.h">
+      <Filter>src\gltf</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gltf\strpool.h">
+      <Filter>src\gltf</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\bbox\bbox.h">
+      <Filter>src\bbox</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mesh\edit_common.h">
+      <Filter>src\mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mesh\index.h">
+      <Filter>src\mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\default\cam.h">
+      <Filter>src\default</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\default\light.h">
+      <Filter>src\default</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\default\material.h">
+      <Filter>src\default</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\default\opt.h">
+      <Filter>src\default</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\default\semantic.h">
+      <Filter>src\default</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\default\type.h">
+      <Filter>src\default</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\coord\common.h">
+      <Filter>src\coord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\skin\fix.h">
+      <Filter>src\skin</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\win32\strptime.c">
       <Filter>src\win32</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\controller\ctlr.c">
-      <Filter>src\controller</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\skin\skin.c">
-      <Filter>src\skin</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\skin\skin_fix.c">
       <Filter>src\skin</Filter>
     </ClCompile>
     <ClCompile Include="..\src\node\node.c">
@@ -538,51 +532,6 @@
     <ClCompile Include="..\src\light\light.c">
       <Filter>src\light</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\coord_sys\coord_camera.c">
-      <Filter>src\coord_sys</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\coord_sys\coord_common.c">
-      <Filter>src\coord_sys</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\coord_sys\coord_doc.c">
-      <Filter>src\coord_sys</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\coord_sys\coord_geom.c">
-      <Filter>src\coord_sys</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\coord_sys\coord_mesh.c">
-      <Filter>src\coord_sys</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\coord_sys\coord_node.c">
-      <Filter>src\coord_sys</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\coord_sys\coord_scene.c">
-      <Filter>src\coord_sys</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\coord_sys\coord_transform.c">
-      <Filter>src\coord_sys</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\coord_sys\coord_transforms.c">
-      <Filter>src\coord_sys</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\coord_sys\coord_vector.c">
-      <Filter>src\coord_sys</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\bbox\bbox.c">
-      <Filter>src\bbox</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\bbox\bbox_geom.c">
-      <Filter>src\bbox</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\bbox\bbox_mesh.c">
-      <Filter>src\bbox</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\bbox\bbox_mesh_prim.c">
-      <Filter>src\bbox</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\bbox\bbox_scene.c">
-      <Filter>src\bbox</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\resc\path.c">
       <Filter>src\resc</Filter>
     </ClCompile>
@@ -595,15 +544,6 @@
     <ClCompile Include="..\src\transform\trans.c">
       <Filter>src\transform</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\transform\trans_dup.c">
-      <Filter>src\transform</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\transform\trans_traverse.c">
-      <Filter>src\transform</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\geom\geom_mesh.c">
-      <Filter>src\geom</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\instance\inst.c">
       <Filter>src\instance</Filter>
     </ClCompile>
@@ -615,63 +555,6 @@
     </ClCompile>
     <ClCompile Include="..\src\lib\lib_geom.c">
       <Filter>src\lib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\default\def_cam.c">
-      <Filter>src\default</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\default\def_cmp.c">
-      <Filter>src\default</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\default\def_coord.c">
-      <Filter>src\default</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\default\def_id.c">
-      <Filter>src\default</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\default\def_light.c">
-      <Filter>src\default</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\default\def_material.c">
-      <Filter>src\default</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\default\def_opt.c">
-      <Filter>src\default</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\default\def_semantic.c">
-      <Filter>src\default</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\default\def_type.c">
-      <Filter>src\default</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mesh\mesh_duplicator.c">
-      <Filter>src\mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mesh\mesh_edit.c">
-      <Filter>src\mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mesh\mesh_edit_buff.c">
-      <Filter>src\mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mesh\mesh_edit_buff_fixup.c">
-      <Filter>src\mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mesh\mesh_edit_index.c">
-      <Filter>src\mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mesh\mesh_index.c">
-      <Filter>src\mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mesh\mesh_input.c">
-      <Filter>src\mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mesh\mesh_material.c">
-      <Filter>src\mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mesh\mesh_normal.c">
-      <Filter>src\mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mesh\mesh_triangulate.c">
-      <Filter>src\mesh</Filter>
     </ClCompile>
     <ClCompile Include="..\src\mem\ext.c">
       <Filter>src\mem</Filter>
@@ -753,63 +636,6 @@
     </ClCompile>
     <ClCompile Include="..\src\gltf\gltf.c">
       <Filter>src\gltf</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\gltf\gltf_mesh_fixup.c">
-      <Filter>src\gltf</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\gltf\gltf_postscript.c">
-      <Filter>src\gltf</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\gltf\gltf_strpool.c">
-      <Filter>src\gltf</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\gltf\core\gltf_accessor.c">
-      <Filter>src\gltf\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\gltf\core\gltf_anim.c">
-      <Filter>src\gltf\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\gltf\core\gltf_asset.c">
-      <Filter>src\gltf\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\gltf\core\gltf_buffer.c">
-      <Filter>src\gltf\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\gltf\core\gltf_camera.c">
-      <Filter>src\gltf\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\gltf\core\gltf_enums.c">
-      <Filter>src\gltf\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\gltf\core\gltf_image.c">
-      <Filter>src\gltf\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\gltf\core\gltf_material.c">
-      <Filter>src\gltf\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\gltf\core\gltf_mesh.c">
-      <Filter>src\gltf\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\gltf\core\gltf_morph.c">
-      <Filter>src\gltf\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\gltf\core\gltf_node.c">
-      <Filter>src\gltf\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\gltf\core\gltf_profile.c">
-      <Filter>src\gltf\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\gltf\core\gltf_sampler.c">
-      <Filter>src\gltf\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\gltf\core\gltf_scene.c">
-      <Filter>src\gltf\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\gltf\core\gltf_skin.c">
-      <Filter>src\gltf\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\gltf\core\gltf_texture.c">
-      <Filter>src\gltf\core</Filter>
     </ClCompile>
     <ClCompile Include="..\src\collada\1.4\dae14.c">
       <Filter>src\collada\1.4</Filter>
@@ -951,6 +777,180 @@
     </ClCompile>
     <ClCompile Include="..\src\collada\strpool.c">
       <Filter>src\collada</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\accessor.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\anim.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\asset.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\buffer.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\camera.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\enum.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\image.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\material.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\mesh.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\morph.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\node.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\profile.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\sampler.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\scene.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\skin.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\core\texture.c">
+      <Filter>src\gltf\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\mesh_fixup.c">
+      <Filter>src\gltf</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\postscript.c">
+      <Filter>src\gltf</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gltf\strpool.c">
+      <Filter>src\gltf</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\bbox\bbox.c">
+      <Filter>src\bbox</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\bbox\geom.c">
+      <Filter>src\bbox</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\bbox\mesh.c">
+      <Filter>src\bbox</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\bbox\mesh_prim.c">
+      <Filter>src\bbox</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\bbox\scene.c">
+      <Filter>src\bbox</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mesh\duplicator.c">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mesh\edit.c">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mesh\edit_buff.c">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mesh\edit_buff_fixup.c">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mesh\edit_index.c">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mesh\index.c">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mesh\input.c">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mesh\material.c">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mesh\normal.c">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mesh\triangulate.c">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\transform\dup.c">
+      <Filter>src\transform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\transform\traverse.c">
+      <Filter>src\transform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\geom\mesh.c">
+      <Filter>src\geom</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\default\cam.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\default\cmp.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\default\coord.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\default\id.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\default\light.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\default\material.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\default\opt.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\default\semantic.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\default\type.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\coord\camera.c">
+      <Filter>src\coord</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\coord\common.c">
+      <Filter>src\coord</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\coord\doc.c">
+      <Filter>src\coord</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\coord\geom.c">
+      <Filter>src\coord</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\coord\mesh.c">
+      <Filter>src\coord</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\coord\node.c">
+      <Filter>src\coord</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\coord\scene.c">
+      <Filter>src\coord</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\coord\transform.c">
+      <Filter>src\coord</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\coord\transforms.c">
+      <Filter>src\coord</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\coord\vector.c">
+      <Filter>src\coord</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\skin\fix.c">
+      <Filter>src\skin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ctlr\ctlr.c">
+      <Filter>src\ctlr</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -6,7 +6,7 @@
  */
 
 #include "accessor.h"
-#include "default/def_semantic.h"
+#include "default/semantic.h"
 #include <assert.h>
 
 AkAccessor*

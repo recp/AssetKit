@@ -13,7 +13,7 @@
 #include "../core/enum.h"
 #include "../1.4/image.h"
 #include "../bugfix/transp.h"
-#include "../../default/def_material.h"
+#include "../../default/material.h"
 
 static
 _assetkit_hide

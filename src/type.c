@@ -8,7 +8,7 @@
 #include "common.h"
 #include "../include/ak/type.h"
 #include "type.h"
-#include "default/def_type.h"
+#include "default/type.h"
 
 #include <ds/rb.h>
 

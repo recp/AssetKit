@@ -6,7 +6,7 @@
  */
 
 #include "../common.h"
-#include "../default/def_cam.h"
+#include "../default/cam.h"
 #include <cglm/cglm.h>
 
 AK_EXPORT
