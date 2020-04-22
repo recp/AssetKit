@@ -69,19 +69,20 @@ typedef struct AkJointDesc {
 
 typedef struct AkMeshPrimitive {
   AkMeshPrimitiveType     type;
+  struct AkMeshPrimitive *next;
   struct AkMesh          *mesh;
-  AkBoundingBox          *bbox; /* per-primitive bbox */
+  AkBoundingBox          *bbox;   /* per-primitive bbox */
   const char             *name;
   const char             *bindmaterial;
   struct AkMaterial      *material;
   AkInput                *input;
+  AkInput                *targets; /* morph targets    */
   AkInput                *pos;
   AkUIntArray            *indices;
   uint32_t               *jointCounts;
   size_t                 *jointIndexes;
   AkTree                 *extra;
   void                   *udata;
-  struct AkMeshPrimitive *next;
   uint32_t                count;
   uint32_t                inputCount;
   AkFloat3                center;
@@ -129,6 +130,7 @@ typedef struct AkMesh {
   AkMeshEditHelper  *edith;
   struct FListItem  *skins;
   const char        *name;
+  AkFloatArray      *weights;
   uint32_t           primitiveCount;
   AkFloat3           center;
 } AkMesh;

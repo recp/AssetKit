@@ -37,13 +37,13 @@ gltf_meshes(json_t * __restrict jmesh,
 
   jmesh = jmeshes->base.value;
   while (jmesh) {
-    AkGeometry      *geom;
-    AkMesh          *mesh;
-    AkObject        *meshObj;
+    AkGeometry *geom;
+    AkMesh     *mesh;
+    AkObject   *meshObj;
 
     geom              = ak_heap_calloc(heap, lib, sizeof(*geom));
     geom->materialMap = ak_map_new(ak_cmp_str);
-
+    
     /* destroy heap with this object */
     ak_setAttachedHeap(geom, geom->materialMap->heap);
 
@@ -163,98 +163,63 @@ gltf_meshes(json_t * __restrict jmesh,
        
               prim->material = mat;
             } else if (json_key_eq(jprimVal, _s_gltf_targets)) {
-//              if ((jtargets = json_object_get(jprim, _s_gltf_targets))) {
-//                AkInput *last_targetinp;
-//                size_t   jtargetsCount, j;
-//
-//
-//                jtargetsCount  = json_array_size(jtargets);
-//
-//                for (j = 0; j < jtargetsCount; j++) {
-//                  json_t *jtarget;
-//
-//                  jtarget        = json_array_get(jtargets, j);
-//                  last_targetinp = NULL;
-//
-//                  json_object_foreach(jtarget, jkey, jval) {
-//                    AkInput    *inp;
-//                    const char *semantic;
-//                    AkSource   *source;
-//                    json_t     *jacc;
-//
-//                    inp      = ak_heap_calloc(heap, prim, sizeof(*inp));
-//                    semantic = strchr(jkey, '_');
-//
-//                    if (!semantic) {
-//                      inp->semanticRaw = ak_heap_strdup(heap, inp, jkey);
-//                    }
-//
-//                    /* ARRAYs e.g. TEXTURE_0, TEXTURE_1 */
-//                    else {
-//                      inp->semanticRaw = ak_heap_strndup(heap,
-//                                                         inp,
-//                                                         jkey,
-//                                                         semantic - jkey);
-//                      if (strlen(semantic) > 1) /* default is 0 with calloc */
-//                        inp->set = (uint32_t)strtol(semantic + 1, NULL, 10);
-//                    }
-//
-//                    source = ak_heap_calloc(heap, prim, sizeof(*source));
-//                    jacc   = json_array_get(jaccessors, json_integer_value(jval));
-//
-//                    ak_setypeid(source, AKT_SOURCE);
-//
-//                    source->tcommon = gltf_accessor(gst, source, jacc);
-//                    inp->semantic   = gltf_enumInputSemantic(inp->semanticRaw);
-//                    inp->source.ptr = source;
-//
-//                    if (last_targetinp)
-//                      last_targetinp->next = inp;
-//                    else
-//                      last_targetinp = inp;
-//                  }
-//
-//                  /* there must least one input to create morph object */
-//                  if (last_targetinp) {
-//                    AkController *ctlr;
-//                    AkObject     *obj;
-//                    AkMorph      *morph;
-//                    AkTargets    *targets;
-//                    char          morphid[32];
-//
-//                    ctlr = ak_heap_calloc(heap, lib_morph, sizeof(*ctlr));
-//                    ak_setypeid(ctlr, AKT_CONTROLLER);
-//
-//                    ctlr->data = obj = ak_objAlloc(heap,
-//                                                   ctlr,
-//                                                   sizeof(*morph),
-//                                                   AK_CONTROLLER_MORPH,
-//                                                   true);
-//                    morph   = ak_objGet(obj);
-//                    targets = ak_heap_calloc(gst->heap, ctlr, sizeof(*targets));
-//
-//                    /* sets id as morph-meshindex-targetindex */
-//                    sprintf(morphid, "%s-%zu-%zu", _s_gltf_morph, i, j);
-//                    ak_heap_setId(heap,
-//                                  ak__alignof(ctlr),
-//                                  ak_heap_strdup(gst->heap, ctlr, morphid));
-//
-//                    rb_insert(gst->meshTargets, mesh, ctlr);
-//
-//                    morph->targets = targets;
-//
-//                    if (last_morph)
-//                      last_morph->next = ctlr;
-//                    else
-//                      lib_morph->chld = ctlr;
-//
-//                    last_morph = ctlr;
-//                    lib_morph->count++;
-//                  }
-//                }
-//              }
+              json_array_t *jtargets;
+              json_t       *jtarget, *jattrib;
+              AkInput      *last_inp;
+
+              if (!(jtargets = json_array(jprimVal)))
+                goto prmv_nxt;
+
+              jtarget  = jtargets->base.value;
+              last_inp = NULL;
+
+              while (jtarget) {
+                jattrib = jtarget->value;
+                while (jattrib) {
+                  AkInput    *inp;
+                  const char *semantic;
+                  
+                  inp      = ak_heap_calloc(heap, prim, sizeof(*inp));
+                  semantic = memchr(jattrib->key, '_', jattrib->keysize);
+                  
+                  if (!semantic) {
+                    inp->semanticRaw = ak_heap_strndup(heap,
+                                                       inp,
+                                                       jattrib->key,
+                                                       jattrib->keysize);
+                  }
+                  
+                  /* ARRAYs e.g. TEXTURE_0, TEXTURE_1 */
+                  else {
+                    inp->semanticRaw = ak_heap_strndup(heap,
+                                                       inp,
+                                                       jattrib->key,
+                                                       semantic - jattrib->key);
+                    if (strlen(semantic) > 1) /* default is 0 with calloc */
+                      inp->set = (uint32_t)strtol(semantic + 1, NULL, 10);
+                  }
+                  
+                  inp->semantic = gltf_enumInputSemantic(inp->semanticRaw);
+                  inp->accessor = flist_sp_at(&doc->lib.accessors,
+                                              json_int32(jattrib, -1));
+                  
+                  if (inp->semantic == AK_INPUT_SEMANTIC_POSITION)
+                    prim->pos = inp;
+                  
+                  if (last_inp)
+                    last_inp->next = inp;
+                  else
+                    prim->targets = inp;
+
+                  last_inp = inp;
+
+                  jattrib = jattrib->next;
+                } /* jattrib */
+                jtarget = jtarget->next;
+              } /* jtarget */
             }
 
+          prmv_nxt:
             jprimVal = jprimVal->next;
           }
 
@@ -266,14 +231,30 @@ gltf_meshes(json_t * __restrict jmesh,
           jprim = jprim->next;
         }
       } else if (json_key_eq(jmeshVal, _s_gltf_weights)) {
-        /* TODO: */
+        AkFloatArray *weights;
+        json_array_t *jarr;
+
+        if ((jarr = json_array(jmeshVal))) {
+          weights = ak_heap_alloc(heap,
+                                  meshObj,
+                                  sizeof(*weights)
+                                   + sizeof(float) * jarr->count);
+          json_array_float(weights->items,
+                           jmeshVal->value,
+                           0.0f,
+                           jarr->count,
+                           true);
+          
+          weights->count = jarr->count;
+          mesh->weights  = weights;
+        }
       } else if (json_key_eq(jmeshVal, _s_gltf_name)) {
         mesh->name = json_strdup(jmeshVal, heap, meshObj);
       }
 
       jmeshVal = jmeshVal->next;
     }
-       
+
     /* Reversed */
     geom->base.next = lib->chld;
     lib->chld       = (void *)geom;
@@ -293,50 +274,50 @@ gltf_allocPrim(AkHeap * __restrict heap,
   switch (mode) {
     case 0: {
       AkMeshPrimitive *prim;
-      prim = ak_heap_calloc(heap, memParent, sizeof(*prim));
+      prim       = ak_heap_calloc(heap, memParent, sizeof(*prim));
       prim->type = AK_PRIMITIVE_POINTS;
       return prim;
     }
     case 1: {
       AkLines *lines;
-      lines = ak_heap_calloc(heap, memParent, sizeof(*lines));
+      lines            = ak_heap_calloc(heap, memParent, sizeof(*lines));
       lines->base.type = AK_PRIMITIVE_LINES;
       lines->mode      = AK_LINES;
       return &lines->base;
     }
     case 2: {
       AkLines *lines;
-      lines = ak_heap_calloc(heap, memParent, sizeof(*lines));
+      lines            = ak_heap_calloc(heap, memParent, sizeof(*lines));
       lines->base.type = AK_PRIMITIVE_LINES;
-      lines->mode       = AK_LINE_LOOP;
+      lines->mode      = AK_LINE_LOOP;
       return &lines->base;
     }
     case 3: {
       AkLines *lines;
-      lines = ak_heap_calloc(heap, memParent, sizeof(*lines));
+      lines            = ak_heap_calloc(heap, memParent, sizeof(*lines));
       lines->base.type = AK_PRIMITIVE_LINES;
       lines->mode      = AK_LINE_STRIP;
       return &lines->base;
     }
     case 4: {
       AkTriangles *tri;
-      tri = ak_heap_calloc(heap, memParent, sizeof(*tri));
+      tri            = ak_heap_calloc(heap, memParent, sizeof(*tri));
       tri->base.type = AK_PRIMITIVE_TRIANGLES;
       tri->mode      = AK_TRIANGLES;
       return &tri->base;
     }
     case 5: {
       AkTriangles *tri;
-      tri = ak_heap_calloc(heap, memParent, sizeof(*tri));
+      tri            = ak_heap_calloc(heap, memParent, sizeof(*tri));
       tri->base.type = AK_PRIMITIVE_TRIANGLES;
-      tri->mode  = AK_TRIANGLE_STRIP;
+      tri->mode      = AK_TRIANGLE_STRIP;
       return &tri->base;
     }
     case 6: {
       AkTriangles *tri;
-      tri = ak_heap_calloc(heap, memParent, sizeof(*tri));
+      tri            = ak_heap_calloc(heap, memParent, sizeof(*tri));
       tri->base.type = AK_PRIMITIVE_TRIANGLES;
-      tri->mode  = AK_TRIANGLE_FAN;
+      tri->mode      = AK_TRIANGLE_FAN;
       return &tri->base;
     }
   }
