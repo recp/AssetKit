@@ -86,12 +86,12 @@ ak_morphInterleave(void    * __restrict buff,
   if (!(target = morph->target))
     return;
 
-  inpOffsets       = alloca(desiredInputsCount * sizeof(uint32_t));
+  inpOffsets       = alloca(desiredInputsCount * sizeof(*inpOffsets));
   inpOffset        = 0;
   foundInpCount    = 0;
   targetByteStride = 0;
   
-  memset(inpOffsets, 0, desiredInputsCount * sizeof(uint32_t));
+  memset(inpOffsets, 0, desiredInputsCount * sizeof(*inpOffsets));
   
   /* collect stride  for each each input */
   do {
