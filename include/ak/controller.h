@@ -22,7 +22,8 @@ typedef enum AkControllerType {
 
 typedef enum AkMorphMethod {
   AK_MORPH_METHOD_NORMALIZED = 1,
-  AK_MORPH_METHOD_RELATIVE   = 2
+  AK_MORPH_METHOD_RELATIVE   = 2,
+  AK_MORPH_METHOD_ADDITIVE   = AK_MORPH_METHOD_RELATIVE
 } AkMorphMethod;
 
 typedef struct AkBoneWeight {
@@ -57,19 +58,28 @@ typedef struct AkSkin {
   AkFloat4x4      bindShapeMatrix;
 } AkSkin;
 
-/* TODO: merge targets wit morph */
-typedef struct AkTargets {
-  AkInput *input;
-  AkTree  *extra;
-} AkTargets;
+typedef struct AkMorphTarget {
+  struct AkMorphTarget *next;
+  AkMeshPrimitive      *prim;   /* mesh primitive             */
+  AkInput              *input;  /* per-target inputs to morph */
+  float                 weight; /* per-target default weight  */
+  uint32_t              inputCount;
+} AkMorphTarget;
 
 typedef struct AkMorph {
-  AkURL         baseGeom;
-  AkMorphMethod method;
-  AkSource     *source;
-  AkTargets    *targets;
-  AkTree       *extra;
+  AkOneWayIterBase base;
+  AkMorphTarget   *target;
+  AkMorphMethod    method;
+  uint32_t         targetCount;
+  uint32_t         maxInputCount;
+  /* uint32_t         maxIterleavedStride; */
 } AkMorph;
+
+typedef struct AkInstanceMorph {
+  AkGeometry *baseGeometry;
+  AkMorph    *morph;
+  float      *overrideWeights; /* override default weights or NULL */
+} AkInstanceMorph;
 
 typedef struct AkController {
   /* const char * id; */
@@ -122,8 +132,19 @@ AkGeometry*
 ak_skinBaseGeometry(AkSkin * __restrict skin);
 
 AK_EXPORT
-AkGeometry*
-ak_morphBaseGeometry(AkMorph * __restrict morph);
+void
+ak_morphInterleaveInspect(size_t  * __restrict bufferSize,
+                          size_t  * __restrict byteStride,
+                          AkMorph * __restrict morph,
+                          AkInputSemantic      desiredInputs[],
+                          uint8_t              desiredInputsCount);
+
+AK_EXPORT
+void
+ak_morphInterleave(void    * __restrict buff,
+                   AkMorph * __restrict morph,
+                   AkInputSemantic      desiredInputs[],
+                   uint32_t             desiredInputsCount);
 
 #ifdef __cplusplus
 }

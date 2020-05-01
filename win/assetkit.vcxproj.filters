@@ -111,6 +111,9 @@
     <Filter Include="src\inst">
       <UniqueIdentifier>{724e58f5-bb09-42d5-b543-9f33391e4364}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\morph">
+      <UniqueIdentifier>{9be77bd2-9b8c-4a7c-9f63-57e7e2f28b7b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\ak\animation.h">
@@ -508,6 +511,9 @@
     </ClInclude>
     <ClInclude Include="..\src\skin\fix.h">
       <Filter>src\skin</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\ak\library.h">
+      <Filter>include\ak</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -951,6 +957,9 @@
     </ClCompile>
     <ClCompile Include="..\src\lib\geom.c">
       <Filter>src\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\morph\intr.c">
+      <Filter>src\morph</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

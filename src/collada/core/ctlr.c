@@ -31,7 +31,7 @@ dae_ctlr(DAEState * __restrict dst,
     } else if (xml_tag_eq(xml, _s_dae_skin)) {
       ctlr->data = dae_skin(dst, xml, ctlr);
     } else if (xml_tag_eq(xml, _s_dae_morph)) {
-      ctlr->data = dae_morph(dst, xml, ctlr);
+//      ctlr->data = dae_morph(dst, xml, ctlr);
     } else if (xml_tag_eq(xml, _s_dae_extra)) {
       ctlr->extra = tree_fromxml(heap, ctlr, xml);
     }

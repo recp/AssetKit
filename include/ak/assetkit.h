@@ -439,6 +439,8 @@ typedef struct AkScene {
   AkTree * extra;
 } AkScene;
 
+struct AkMorph;
+
 typedef struct AkLibraries {
   struct AkLibrary *cameras;
   struct AkLibrary *lights;
@@ -457,6 +459,7 @@ typedef struct AkLibraries {
   struct FListItem *samplers;
   struct FListItem *images;
   struct FListItem *skins;
+  struct AkMorph   *morphs;
 } AkLibraries;
 
 typedef const char* (*AkFetchFromURLHandler)(const char * __restrict url);

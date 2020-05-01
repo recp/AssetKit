@@ -197,6 +197,7 @@
     <ClInclude Include="..\include\ak\image.h" />
     <ClInclude Include="..\include\ak\instance.h" />
     <ClInclude Include="..\include\ak\lib.h" />
+    <ClInclude Include="..\include\ak\library.h" />
     <ClInclude Include="..\include\ak\light.h" />
     <ClInclude Include="..\include\ak\map.h" />
     <ClInclude Include="..\include\ak\material.h" />
@@ -445,6 +446,7 @@
     <ClCompile Include="..\src\mesh\material.c" />
     <ClCompile Include="..\src\mesh\normal.c" />
     <ClCompile Include="..\src\mesh\triangulate.c" />
+    <ClCompile Include="..\src\morph\intr.c" />
     <ClCompile Include="..\src\node\node.c" />
     <ClCompile Include="..\src\profile.c" />
     <ClCompile Include="..\src\resc\path.c" />

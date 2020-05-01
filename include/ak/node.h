@@ -13,6 +13,8 @@ extern "C" {
 
 #include "common.h"
 
+struct AkInstanceMorph;
+
 typedef enum AkNodeFlags {
   AK_NODEF_FIXED_COORD = 1
 } AkNodeFlags;
@@ -60,7 +62,7 @@ typedef struct AkNode {
 
   AkInstanceBase              *camera;
   struct AkInstanceController *controller;
-  void *morpher;
+  struct AkInstanceMorph      *morpher;
   void *skinner;
   AkInstanceGeometry          *geometry;
   AkInstanceBase              *light;
