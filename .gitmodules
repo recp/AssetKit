@@ -4,9 +4,6 @@
 [submodule "lib/stb"]
 	path = lib/stb
 	url = https://github.com/nothings/stb.git
-[submodule "test/lib"]
-	path = test/lib
-	url = git://git.cryptomilk.org/projects/cmocka.git
 [submodule "test/sample-models"]
 	path = test/sample-models
 	url = https://github.com/recp/sample-models.git
