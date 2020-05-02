@@ -153,7 +153,7 @@ calc_off:
       compSize        = acc->fillByteSize;
       
       for (i = 0; i < count; i++) {
-        memcpy(buff + targetByteStride * i + inpOffset,
+        memcpy((char *)buff + targetByteStride * i + inpOffset,
                pi   + inputByteStride * i,
                compSize);
       }
