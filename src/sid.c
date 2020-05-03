@@ -481,96 +481,102 @@ again:
   /* maybe id node have sid too! */
   if (idnode->flags & AK_HEAP_NODE_FLAGS_SID) {
     chld = idnode;
+    
+    buf[bufidx][bufi[bufidx]] = chld;
+    bufc[bufidx]  = 1;
   } else {
-  sid_chld:
     chld = ak_sid_chldh(ctx, idnode, NULL);
     if (!chld)
       goto err;
+    
+    while (chld) {
+      if (bufi[bufidx] == bufl[bufidx]) {
+        bufl[bufidx] += 16;
+        buf[bufidx]   = realloc(buf[bufidx],
+                                 sizeof(*buf[bufidx]) * bufl[bufidx]);
+      }
+
+      buf[bufidx][bufi[bufidx]] = chld;
+      bufi[bufidx]++;
+      bufc[bufidx]++;
+
+      chld = ak_sid_chldh(ctx, idnode, chld);
+    }
   }
 
-  buf[bufidx][bufi[bufidx]] = chld;
-  bufc[!bufidx] = bufi[bufidx] = bufi[!bufidx] = 0;
-  bufc[bufidx]  = 1;
+  bufi[bufidx] = bufi[!bufidx] = 0;
 
   /* breadth-first search */
   while (bufc[bufidx] > 0) {
     it = buf[bufidx][bufi[bufidx]];
 
-    while (it) {
-      if (it->flags & AK_HEAP_NODE_FLAGS_SID) {
-        AkSIDNode *snode;
-
-        snode = ak_heap_ext_get(it, AK_HEAP_NODE_FLAGS_SID);
-        if (snode->sid && strcmp(snode->sid, sid_it) == 0) {
-          char *tok;
-
-          sidnode = it;
-
-          /* go for next */
-          tok = strtok_r(NULL, "/ \t", &saveptr);
-          if (!tok)
+    if (it->flags & AK_HEAP_NODE_FLAGS_SID) {
+      AkSIDNode *snode;
+      
+      snode = ak_heap_ext_get(it, AK_HEAP_NODE_FLAGS_SID);
+      if (snode->sid && strcmp(snode->sid, sid_it) == 0) {
+        char *tok;
+        
+        sidnode = it;
+        
+        /* go for next */
+        tok = strtok_r(NULL, "/ \t", &saveptr);
+        if (!tok)
+          goto ret;
+        
+        sid_it = tok;
+      }
+      
+      /* check attrs */
+      if (snode->sids) {
+        char  *p, *end;
+        size_t c;
+        
+        c   = *(size_t *)snode->sids;
+        p   = (char *)snode->sids + sizeof(size_t);
+        end = p + c * (sizeof(char **) + sizeof(uint16_t));
+        
+        while (p != end) {
+          p  += sizeof(uint16_t);
+          
+          /* found sid in attr */
+          if (strcmp(*(char **)p, sid_it) == 0) {
+            char *tok;
+            
+            sidnode = it;
+            
+            /* there is no way to go down */
+            tok = strtok_r(NULL, "/ \t", &saveptr);
+            if (tok)
+              goto err;
+            
             goto ret;
-
-          sid_it = tok;
-        }
-
-        /* check attrs */
-        if (snode->sids) {
-          char  *p, *end;
-          size_t c;
-
-          c   = *(size_t *)snode->sids;
-          p   = (char *)snode->sids + sizeof(size_t);
-          end = p + c * (sizeof(char **) + sizeof(uint16_t));
-
-          while (p != end) {
-            p  += sizeof(uint16_t);
-
-            /* found sid in attr */
-            if (strcmp(*(char **)p, sid_it) == 0) {
-              char *tok;
-
-              sidnode = it;
-
-              /* there is no way to go down */
-              tok = strtok_r(NULL, "/ \t", &saveptr);
-              if (tok)
-                goto err;
-
-              goto ret;
-            }
-
-            p += sizeof(char **) + sizeof(uint16_t);
           }
+          
+          p += sizeof(char **) + sizeof(uint16_t);
         }
       }
+    }
+    
+    if (it->flags & AK_HEAP_NODE_FLAGS_SID_CHLD) {
+      /* keep all children */
+      AkHeapNode *it2;
 
-      if (it->flags & AK_HEAP_NODE_FLAGS_SID_CHLD) {
-        /* keep all children */
-        AkHeapNode *it2;
+      it2 = ak_sid_chldh(ctx, it, NULL);
+      while (it2) {
+        if (bufi[!bufidx] == bufl[!bufidx]) {
+          bufl[!bufidx] += 16;
+          buf[!bufidx]   = realloc(buf[!bufidx],
+                                   sizeof(*buf[!bufidx]) * bufl[!bufidx]);
+        }
 
-        it2 = ak_sid_chldh(ctx, it, NULL);
-        while (it2) {
-          if (bufi[!bufidx] == bufl[!bufidx]) {
-            bufl[!bufidx] += 16;
-            buf[!bufidx]   = realloc(buf[!bufidx],
-                                     sizeof(*buf[!bufidx]) * bufl[!bufidx]);
-          }
-
+        if (it2->flags & (AK_HEAP_NODE_FLAGS_SID_CHLD | AK_HEAP_NODE_FLAGS_SID)) {
           buf[!bufidx][bufi[!bufidx]] = it2;
           bufi[!bufidx]++;
           bufc[!bufidx]++;
-
-          it2 = ak_sid_chldh(ctx, it, it2);
         }
-      }
 
-      if (it != idnode) {
-        it = it->next;
-      } else {
-        /* we were searched in idnode but we did not found sid element
-           so reset search. */
-        goto sid_chld;
+        it2 = ak_sid_chldh(ctx, it, it2);
       }
     }
 

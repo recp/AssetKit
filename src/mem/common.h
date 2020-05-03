@@ -84,7 +84,7 @@ struct AkHeapNode {
               |
 
 data: data must contain items with these order with these data types
--------------------------------------------------------------------------------
+*-----------------------------------------------------------------------------*
 | id       | sid     | refc   | extra     | inf       | usr       | url       |
 | SrchNode | SidNode | size_t | uintptr_t | uintptr_t | uintptr_t | UrlNode   |
 
