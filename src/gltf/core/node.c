@@ -20,6 +20,7 @@
 #define k_translation   6
 #define k_rotation      7
 #define k_scale         8
+#define k_weights       9
 
 void _assetkit_hide
 gltf_nodes(json_t * __restrict jnode,
@@ -122,7 +123,8 @@ gltf_node(AkGLTFState * __restrict gst,
     JSON_OBJMAP_OBJ(_s_gltf_matrix,      I2P k_matrix),
     JSON_OBJMAP_OBJ(_s_gltf_translation, I2P k_translation),
     JSON_OBJMAP_OBJ(_s_gltf_rotation,    I2P k_rotation),
-    JSON_OBJMAP_OBJ(_s_gltf_scale,       I2P k_scale)
+    JSON_OBJMAP_OBJ(_s_gltf_scale,       I2P k_scale),
+    JSON_OBJMAP_OBJ(_s_gltf_weights,     I2P k_weights)
   };
 
   json_objmap(jnode, nodeMap, JSON_ARR_LEN(nodeMap));
@@ -287,5 +289,26 @@ gltf_node(AkGLTFState * __restrict gst,
     node->transform->item = obj;
   }
   
+  /* morph target weights */
+  if ((it = json_array(nodeMap[k_weights].object))) {
+    AkInstanceMorph *morphInst;
+    float           *weights;
+    json_array_t    *jsonArr;
+    AkGeometry      *geom;
+
+    jsonArr                 = it;
+    geom                    = ak_instanceObjectGeom(node);
+    morphInst               = ak_heap_alloc(heap, node, sizeof(*morphInst));
+
+    weights = ak_heap_calloc(heap, morphInst, sizeof(*weights) * jsonArr->count);
+    json_array_float(weights, it, 0.0f, jsonArr->count, true);
+
+    morphInst->overrideWeights = weights;
+    morphInst->baseGeometry    = geom;
+    morphInst->morph           = rb_find(gst->meshTargets, geom);
+
+    node->morpher = morphInst;
+  }
+
   return node;
 }

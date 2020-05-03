@@ -174,6 +174,7 @@ gltf_parse(AkDoc     ** __restrict dest,
   gstVal.bindata   = bindata;
   gstVal.tmpParent = ak_heap_alloc(heap, doc, sizeof(void*));
   gst->bufferMap   = rb_newtree_ptr();
+  gst->meshTargets = rb_newtree_ptr();
 
   gltfRawDoc = json_parse(contents, true);
   if (!gltfRawDoc || !gltfRawDoc->root) {
@@ -231,7 +232,6 @@ err:
     return ret;
   }
 
-  gst->meshTargets = rb_newtree(ds_allocator(), ds_cmp_ptr,  NULL);
 
   /* TODO: release resources in GLTFState */
   

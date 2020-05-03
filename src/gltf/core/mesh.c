@@ -39,7 +39,9 @@ gltf_meshes(json_t * __restrict jmesh,
     AkGeometry *geom;
     AkMesh     *mesh;
     AkObject   *meshObj;
+    AkMorph    *morph;
 
+    morph             = NULL;
     geom              = ak_heap_calloc(heap, lib, sizeof(*geom));
     geom->materialMap = ak_map_new(ak_cmp_str);
     
@@ -165,7 +167,6 @@ gltf_meshes(json_t * __restrict jmesh,
               json_array_t  *jtargets;
               json_t        *jtarget, *jattrib;
               AkInput       *last_inp;
-              AkMorph       *morph;
               AkMorphTarget *target, *last_target;
 
               if (!(jtargets = json_array(jprimVal)))
@@ -282,6 +283,9 @@ gltf_meshes(json_t * __restrict jmesh,
     /* Reversed */
     geom->base.next = lib->chld;
     lib->chld       = (void *)geom;
+
+    if (morph)
+      rb_insert(gst->meshTargets, geom, morph);
 
     lib->count++;
 
