@@ -5,6 +5,7 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/6edde2ba446148759437eb0148c799b6)](https://www.codacy.com/app/recp/assetkit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=recp/assetkit&amp;utm_campaign=Badge_Grade)
 ![status](https://img.shields.io/badge/glTF-2%2E0-green.svg?style=flat)
 
+
 3D asset importer, exporter library. This library also includes common 3D utils funcs. It is written with C99 but C++ wrappers or other language bindings can be written in the future.
 
 This library will full support COLLADA specs and glTF specs, plus other 3D formats e.g .obj, .stl maybe supported by sub-libraries e.g. assetkit-stl, assetkit-fbx.
@@ -13,83 +14,138 @@ There is also an optional renderer library called [libgk](https://github.com/rec
 
 I've also created a basic program (included a screenshot of render result and dae) to show full steps: [simple-collada-viewer](http://github.com/recp/simple-collada-viewer)
 
+<table>
+<tr>
+<td width="50%">
+<img src="https://www.khronos.org/assets/images/api_logos/gltf.svg" style="max-height: 128px">
+</td>
+<td width="50%">
+<img src="https://www.khronos.org/assets/images/api_logos/collada.svg"> 
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+- ✅ Single Interface for glTF and COLLADA
+- ✅ glTF 2.0
+- ✅ Options to Generate Mesh Normals
+- ✅ Acessors, Buffers / BufferViews
+- ✅ Geometries (Triangles, Polygons, Lines)
+- ✅ Nodes
+- ✅ Scenes
+- ✅ Cameras
+- ✅ Materials
+  - ✅ Images
+  - ✅ Samplers
+  - ✅ Textures
+  - ✅ PBR Materials
+      - ✅ Metallic Roughness
+      - ✅ Specular Glossiness Extension
+  - ✅ Other textures
+      - ✅ Occlusion map
+      - ✅ Emissive map
+      - ✅ Normal Map
+      - [ ] other textures?
+  - ✅ alphaMode
+  - ✅ alphaCutoff
+  - ✅ doubleSided
+- ✅ Skin
+- ✅ Morph
+- ✅ Animations
+- Extensions 
+  - ✅ KHR_materials_pbrSpecularGlossiness
+  - [ ] Lights (TODO)
+  - [ ] Common materials (TODO)
+- ✅ glTF-Separate
+- ✅ glTF-Binary 
+- ✅ glTF-Embedded
+- [ ] Load glTF-Draco (TODO)
+
+
+</td>
+<td valign="top">
+
+- ✅ Single Interface for glTF and COLLADA
+- ✅ COLLADA 1.4 / 1.4.1
+- ✅ COLLADA 1.5
+- ✅ Object-based Asset support
+  - Resolving Asset support for an element
+- ✅ Fix / Convert UP axis to any other
+- ✅ ID resolving
+- ✅ SID resolving
+- ✅ Bugfix some DAE files
+- ✅ Convert angles to Radians 
+- ✅ Convert Multi-Index indices to Single-Index indices by keeping primitive indices
+- ✅ Options to Generate Mesh Normals
+- ✅ Option to Triangulate Polygons
+- ✅ Libraries support
+- ✅ Geometries
+  - ✅ Meshes (Triangles, Polygons, Lines)
+  - ✅ Brep
+    - Curves, Nurbs, Solids... 
+- ✅ Nodes
+  - ✅ Instances (instance Geometry, Light, Camera...)
+  - ✅ Simplified Controller mechanism into **node->morpher** and **node->skinner**
+  - ✅ Fix camera node transform
+  - ✅ **bind_material** and bind vertex input support to bind material dynamically 
+- ✅ Scenes
+  - Active Scene
+  - Visual Scenes
+- ✅ Cameras
+- ✅ Lights
+- ✅ Materials
+  - ✅ Images
+  - ✅ Samplers
+  - ✅ Textures
+  - ✅ Common Profile
+      - ✅ Phong, Blinn, Lambert and Constant
+  - ⚠️ Other profiles were supported, but currently they are removed. But multi profile is still supported. We can support other profiles in the future.
+  - ✅ Transparency (A_ONE, RGB_ONE, A_ZERO, RGB_ZERO)
+- ✅ Skin
+- ✅ Morph
+- ✅ Animations
+- ✅ Extra
+- ✅ Load external DAE files and cache them
+- [ ] Parse MathML formulas
+- [ ] Physics
+- [ ] Kinematics
+- [ ] ZAE
+- [ ] More to work on...
+</td>
+</tr>
+<tr>
+<td colspan="2">
+
+<div style="text-align: center">
+<h3>Common</h3>
+<div>
+
+<div style="text-align: left">
+
+- ✅ Options to Generate Mesh Normals *(Default: enabled)*
+- ✅ Option to Triangulate Polygons *(Default: enabled)*
+- ✅ Option to change Coordinate System *(Default: enabled)*
+- ✅ Option to calculate Bounding Boxes *(Default: enabled)*
+- ✅ Unique and Flexible Coordinate System
+  - Support multiple coordinate system
+  - Can convert any coordinate system to another with adding transform or with changing transform, vertex data...
+- ✅ Unique and Flexible Memory Management System
+  - Hierarchical unique memory management
+    - When a node is freed then all sub memories will be freed
+  - COLLADA's **sid** and **ID** values are mapped to memory nodes itself to reduce memory size and make it easy to manage things.
+  - Allow attach ID, sid or user data to a memory node
+- ✅ Very very small and very fast library
+- ✅ Javascript-like API to get URL or ID `obj = ak_getObjectById(doc, objectId)`...
+- ✅ Will be optimized to be fastest, smallest and most flexible, extendible Asset loader.
+</div>
+</td>
+</tr>
+</table>
+
 ## Project Status
 Currently I'm working on renderer which is also important to test AssetKit. When I implement a feature in AssetKit then I'm adding extra features to [Graphics Kernel / Graphics Kit](https://github.com/recp/libgk) to test AssetKit. The renderer is not just for testing purpose so I'm trying to do my best and this takes some time.
 
 So working on multiple projects ([cglm](https://github.com/recp/cglm), [libgk](https://github.com/recp/libgk), [libds](https://github.com/recp/libds), ...) makes the progress very slow, but in the end the results will be perfect
-
-## glTF
-- [x] Load buffers, bufferViews
-- [x] Load acessors, meshes / primitives
-- [x] Load nodes
-- [x] Load scenes
-- [x] Load cameras
-- [x] Load materials
-  - [x] Images
-  - [x] Samplers
-  - [x] Textures
-  - [x] PBR Materials
-      - [x] Metallic Roughness
-      - [x] Specular Glossiness Extension
-  - [x] Other textures
-      - [x] Occlusion map
-      - [x] Emissive map
-      - [x] Normal Map
-      - [ ] others?
-  - [x] alphaMode
-  - [x] alphaCutoff
-  - [x] doubleSided
-- [x] Animations
-  - [x] Basic Animations (Transforms)
-  - [x] Skin
-  - [x] Morph
-- [ ] Extensions
-  - [x] KHR_materials_pbrSpecularGlossiness
-  - [ ] Lights
-  - [ ] Common materials
-- [x] Load glTF-Separate
-- [x] Load glTF-Binary 
-- [x] Load glTF-Embedded
-- [ ] Load glTF-Draco
-
-## Tasklist
-
-- [x] Hierarchical Allocator
-  - [x] Extensible memory node
-- [x] Flexible Coordinate System, loader can laod any coords sys and can convert it to any coord sys even left handed
-- [x] Implement RB-tree for ID resolver
-- [x] Options
-- [x] Load Core elements
-  - [x] Geometries
-    - [x] Meshes
-      - [x] Load Polygons
-      - [x] Load Triangles
-      - [x] Load Lines
-      - [x] Convert multi-index mesh to single-index mesh if wanted
-         - [x] Find and fix edges attribs e.g. same position can't use different normals
-      - [x] Convert mesh data (positions, normals...) to current coord sys
-      - [x] Compute bounding box if wanted
-      - [x] Triangulate Polygons if wanted
-      - [x] Material resolver
-      - [ ] Generate face normals if wanted
-    - [x] B-rep
-  - [x] Cameras
-    - [x] Attach first found camera to scene as default camera
-    - [x] Attach all camera instances to scene
-  - [x] Scenes
-     - [x] Nodes
-       - [x] Fix camera node transform
-       - [x] Transforms
-         - [x] Utils for transforms
-         - [x] Convert transforms to current coord sys
-       - [x] Implement bind_material
-  - [x] Load external DAE files and cache them
-  - [ ] Load animations
-    - [ ] Parse MathML formulas
-- [x] Load FX
-- [ ] Load Physics
-- [ ] Load Kinematics
-- [ ] Exporting
 
 ## Build
 
