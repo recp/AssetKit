@@ -39,10 +39,10 @@ So working on multiple projects ([cglm](https://github.com/recp/cglm), [libgk](h
   - [x] alphaMode
   - [x] alphaCutoff
   - [x] doubleSided
-- [ ] Animations
+- [x] Animations
   - [x] Basic Animations (Transforms)
   - [x] Skin
-  - [ ] Morph
+  - [x] Morph
 - [ ] Extensions
   - [x] KHR_materials_pbrSpecularGlossiness
   - [ ] Lights
