@@ -12,7 +12,7 @@ This library will full support COLLADA specs and glTF specs, plus other 3D forma
 
 There is also an optional renderer library called [libgk](https://github.com/recp/libgk) for render AssetKit contents. You can see how to load AssetKit to libgk in [assetkit-gl](https://github.com/recp/assetkit-gl) lib/repo.
 
-I've also created a basic program (included a screenshot of render result and dae) to show full steps: [simple-collada-viewer](http://github.com/recp/simple-collada-viewer)
+I've also created a basic program (included a screenshot of render result and dae) to show full steps: [simple-collada-viewer](http://github.com/recp/simple-collada-viewer) (todo: outdated.)
 
 <table>
 <tr>
@@ -142,11 +142,6 @@ I've also created a basic program (included a screenshot of render result and da
 </tr>
 </table>
 
-## Project Status
-Currently I'm working on renderer which is also important to test AssetKit. When I implement a feature in AssetKit then I'm adding extra features to [Graphics Kernel / Graphics Kit](https://github.com/recp/libgk) to test AssetKit. The renderer is not just for testing purpose so I'm trying to do my best and this takes some time.
-
-So working on multiple projects ([cglm](https://github.com/recp/cglm), [libgk](https://github.com/recp/libgk), [libds](https://github.com/recp/libds), ...) makes the progress very slow, but in the end the results will be perfect
-
 ## Build
 
 ### Unix (Autotools)
@@ -180,11 +175,6 @@ if `msbuild` won't work correctly then try to build with `devenv`:
 ```Powershell
 $ devenv assetkit.sln /Build Release
 ```
-
-### Test
-Currently tests are implemented for Autotools (make check), there is separate repo for storing test models to avoid increase repo size: http://github.com/recp/sample-models . By running `build-deps.sh`, `git submodule update --init --recursive` command will be executed and all sample models will be fecthed for testing into `assetkit/test` folder
-
-`make check` uses this repo samples to test.
 
 ### Trademarks
 
