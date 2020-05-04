@@ -185,3 +185,7 @@ $ devenv assetkit.sln /Build Release
 Currently tests are implemented for Autotools (make check), there is separate repo for storing test models to avoid increase repo size: http://github.com/recp/sample-models . By running `build-deps.sh`, `git submodule update --init --recursive` command will be executed and all sample models will be fecthed for testing into `assetkit/test` folder
 
 `make check` uses this repo samples to test.
+
+### Trademarks
+
+glTF and COLLADA and their logos are trademarks of Khronos Group.
