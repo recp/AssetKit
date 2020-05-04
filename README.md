@@ -137,6 +137,9 @@ I've also created a basic program (included a screenshot of render result and da
 - ✅ Very very small and very fast library
 - ✅ Javascript-like API to get URL or ID `obj = ak_getObjectById(doc, objectId)`...
 - ✅ Will be optimized to be fastest, smallest and most flexible, extendible Asset loader.
+- [ ] Documentation
+- [ ] Cmake support
+- [ ] Tests
 </div>
 </td>
 </tr>
