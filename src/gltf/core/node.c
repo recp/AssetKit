@@ -292,7 +292,7 @@ gltf_node(AkGLTFState * __restrict gst,
   /* morph target weights */
   if ((it = json_array(nodeMap[k_weights].object))) {
     AkInstanceMorph *morphInst;
-    float           *weights;
+    AkFloatArray    *weights;
     json_array_t    *jsonArr;
     AkGeometry      *geom;
 
@@ -300,9 +300,13 @@ gltf_node(AkGLTFState * __restrict gst,
     geom                    = ak_instanceObjectGeom(node);
     morphInst               = ak_heap_alloc(heap, node, sizeof(*morphInst));
 
-    weights = ak_heap_calloc(heap, morphInst, sizeof(*weights) * jsonArr->count);
-    json_array_float(weights, it, 0.0f, jsonArr->count, true);
+    weights = ak_heap_calloc(heap,
+                             morphInst,
+                             sizeof(*weights)
+                             + sizeof(weights->items[0]) * jsonArr->count);
+    json_array_float(weights->items, it, 0.0f, jsonArr->count, true);
 
+    weights->count             = jsonArr->count;
     morphInst->overrideWeights = weights;
     morphInst->baseGeometry    = geom;
     morphInst->morph           = rb_find(gst->meshTargets, geom);

@@ -164,23 +164,24 @@ gltf_animations(json_t * __restrict janim,
                 sprintf(nodeid, "%s%d", _s_gltf_node, nodeIndex);
                 
                 if ((node = ak_getObjectById(doc, nodeid))) {
-                  AkObject *transItem;
                   
                   /* make sure that node has target element */
                   if (strncasecmp(path, _s_gltf_rotation, pathLen) == 0) {
-                    ch->targetType = AK_TARGET_QUAT;
-                    transItem      = ak_getTransformTRS(node, AKT_QUATERNION);
+                    ch->targetType     = AK_TARGET_QUAT;
+                    ch->resolvedTarget = ak_getTransformTRS(node, AKT_QUATERNION);
                   } else if (strncasecmp(path, _s_gltf_translation, pathLen) == 0) {
-                    ch->targetType = AK_TARGET_POSITION;
-                    transItem      = ak_getTransformTRS(node, AKT_TRANSLATE);
+                    ch->targetType     = AK_TARGET_POSITION;
+                    ch->resolvedTarget = ak_getTransformTRS(node, AKT_TRANSLATE);
                   } else if (strncasecmp(path, _s_gltf_scale, pathLen) == 0) {
-                    ch->targetType = AK_TARGET_SCALE;
-                    transItem      = ak_getTransformTRS(node, AKT_SCALE);
-                  } else {
-                    transItem = NULL;
-                  }
+                    ch->targetType     = AK_TARGET_SCALE;
+                    ch->resolvedTarget = ak_getTransformTRS(node, AKT_SCALE);
+                  } else if (strncasecmp(path, _s_gltf_weights, pathLen) == 0) {
+                    AkInstanceMorph *morpher;
 
-                  ch->resolvedTarget = transItem;
+                    ch->targetType = AK_TARGET_WEIGHTS;
+                    if ((morpher = node->morpher))
+                      ch->resolvedTarget = morpher->overrideWeights;
+                  }
                 }
               } /* if nodeIndex */
             } /* if k_node */

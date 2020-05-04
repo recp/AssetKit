@@ -76,9 +76,9 @@ typedef struct AkMorph {
 } AkMorph;
 
 typedef struct AkInstanceMorph {
-  AkGeometry *baseGeometry;
-  AkMorph    *morph;
-  float      *overrideWeights; /* override default weights or NULL */
+  AkGeometry   *baseGeometry;
+  AkMorph      *morph;
+  AkFloatArray *overrideWeights; /* override default weights or NULL */
 } AkInstanceMorph;
 
 typedef struct AkController {
