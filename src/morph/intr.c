@@ -18,18 +18,17 @@ ak_morphInterleaveInspect(size_t  * __restrict bufferSize,
   AkInput        *inp;
   AkAccessor     *acc;
   RBTree         *foundInputs;
-  size_t          targetStride, *inpSizes, buffSize;
+  size_t          targetStride, *inpSizes;
   uint32_t        i, count, foundInpCount;
   
   if (!(target = morph->target))
     return;
   
-  inpSizes         = alloca(desiredInputsCount * sizeof(uint32_t));
-  foundInputs      = rb_newtree_ptr();
-  foundInpCount    = 0;
-  targetStride = 0;
-  count            = 0;
-  buffSize         = 0;
+  inpSizes      = alloca(desiredInputsCount * sizeof(uint32_t));
+  foundInputs   = rb_newtree_ptr();
+  foundInpCount = 0;
+  targetStride  = 0;
+  count         = 0;
   
   /* collect stride  for each each input */
   do {
@@ -83,27 +82,26 @@ ak_morphInterleave(void    * __restrict buff,
                    AkMorph * __restrict morph,
                    AkInputSemantic      desiredInputs[],
                    uint32_t             desiredInputsCount) {
-  AkMorphTarget   *target;
-  AkInput         *inp;
-  AkAccessor      *acc;
-  AkBuffer        *buf;
-  RBTree          *foundInputs;
-  char            *pi, *pi_dest;
-  size_t           inputByteStride, targetStride, *inpOffsets, byteOffset;
-  size_t           inpOffset, targetOffset, compSize;
-  uint32_t         i, count, foundInpCount, targetIndex, nTargets;
-  bool             found;
+  AkMorphTarget *target;
+  AkInput       *inp;
+  AkAccessor    *acc;
+  AkBuffer      *buf;
+  RBTree        *foundInputs;
+  char          *pi, *pi_dest;
+  size_t         inputByteStride, targetStride, *inpOffsets, byteOffset;
+  size_t         inpOffset, targetOffset, compSize;
+  uint32_t       i, count, foundInpCount, targetIndex, nTargets;
+  bool           found;
   
   if (desiredInputsCount < 1 || !(target = morph->target))
     return;
 
-  inpOffsets       = alloca(desiredInputsCount * sizeof(*inpOffsets));
-  foundInputs      = rb_newtree_ptr();
-  inpOffset        = 0;
-  foundInpCount    = 0;
-  targetStride = 0;
-  targetIndex      = 0;
-  nTargets         = morph->targetCount;
+  inpOffsets    = alloca(desiredInputsCount * sizeof(*inpOffsets));
+  foundInputs   = rb_newtree_ptr();
+  foundInpCount = 0;
+  targetStride  = 0;
+  targetIndex   = 0;
+  nTargets      = morph->targetCount;
   
   memset(inpOffsets, 0, desiredInputsCount * sizeof(*inpOffsets));
   
