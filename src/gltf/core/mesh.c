@@ -166,25 +166,20 @@ gltf_meshes(json_t * __restrict jmesh,
             } else if (json_key_eq(jprimVal, _s_gltf_targets)) {
               json_array_t  *jtargets;
               json_t        *jtarget, *jattrib;
-              AkInput       *last_inp;
-              AkMorphTarget *target, *last_target;
+              AkMorphTarget *target;
 
               if (!(jtargets = json_array(jprimVal)))
                 goto prmv_nxt;
               
-              last_target   = NULL;
               morph         = ak_heap_calloc(heap, doc, sizeof(*morph));
               morph->method = AK_MORPH_METHOD_ADDITIVE;
-
-              jtarget  = jtargets->base.value;
-              last_inp = NULL;
-
+              jtarget       = jtargets->base.value;
+              
               while (jtarget) {
                 jattrib = jtarget->value;
                 
                 target       = ak_heap_calloc(heap, morph, sizeof(*target));
                 target->prim = prim;
-                last_inp     = NULL;
 
                 while (jattrib) {
                   AkInput    *inp;
@@ -217,25 +212,17 @@ gltf_meshes(json_t * __restrict jmesh,
                   if (inp->semantic == AK_INPUT_SEMANTIC_POSITION)
                     prim->pos = inp;
                   
-                  if (last_inp)
-                    last_inp->next = inp;
-                  else
-                    target->input = inp;
-
-                  last_inp = inp;
-
+                  inp->next     = target->input;
+                  target->input = inp;
                   target->inputCount++;
 
                   jattrib = jattrib->next;
                 } /* jattrib */
                 
-                if (last_target)
-                  last_target->next = target;
-                else
-                  morph->target = target;
-                
-                last_target = target;
+                target->next  = morph->target;
+                morph->target = target;
 
+                morph->targetCount++;
                 jtarget = jtarget->next;
               } /* jtarget */
               
