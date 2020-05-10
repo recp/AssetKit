@@ -17,16 +17,19 @@ ak_morphInterleaveInspect(size_t  * __restrict bufferSize,
   AkMorphTarget  *target;
   AkInput        *inp;
   AkAccessor     *acc;
-  size_t          targetByteStride, *inpSizes;
+  RBTree         *foundInputs;
+  size_t          targetStride, *inpSizes, buffSize;
   uint32_t        i, count, foundInpCount;
   
   if (!(target = morph->target))
     return;
   
-  inpSizes       = alloca(desiredInputsCount * sizeof(uint32_t));
+  inpSizes         = alloca(desiredInputsCount * sizeof(uint32_t));
+  foundInputs      = rb_newtree_ptr();
   foundInpCount    = 0;
-  targetByteStride = 0;
+  targetStride = 0;
   count            = 0;
+  buffSize         = 0;
   
   /* collect stride  for each each input */
   do {
@@ -35,11 +38,14 @@ ak_morphInterleaveInspect(size_t  * __restrict bufferSize,
 
     do {
       for (i = 0; i < desiredInputsCount; i++) {
-        if (desiredInputs[i] == inp->semantic
+        if (!rb_find(foundInputs, (void *)(uintptr_t)inp->semantic)
+            && desiredInputs[i] == inp->semantic
             && (acc = inp->accessor)) {
 
           inpSizes[i]       = acc->fillByteSize;
-          targetByteStride += acc->fillByteSize;
+          targetStride += acc->fillByteSize;
+
+          rb_insert(foundInputs, (void *)(uintptr_t)inp->semantic, inp);
 
           if (acc->count > count)
             count = acc->count;
@@ -58,11 +64,15 @@ ak_morphInterleaveInspect(size_t  * __restrict bufferSize,
 
 calc:
 
+  rb_destroy(foundInputs);
+
+  targetStride *= morph->targetCount;
+
   if (byteStride)
-    *byteStride = targetByteStride;
+    *byteStride = targetStride;
 
   if (bufferSize)
-    *bufferSize = targetByteStride * count;
+    *bufferSize = targetStride * count;
 
   return;
 }
@@ -73,23 +83,27 @@ ak_morphInterleave(void    * __restrict buff,
                    AkMorph * __restrict morph,
                    AkInputSemantic      desiredInputs[],
                    uint32_t             desiredInputsCount) {
-  AkMorphTarget  *target;
-  AkInput        *inp;
-  AkAccessor     *acc;
-  AkBuffer       *buf;
-  char           *pi;
-  size_t          inputByteStride, targetByteStride, *inpOffsets;
-  size_t          inpOffset, compSize;
-  uint32_t        i, count, foundInpCount;
-  bool            found;
+  AkMorphTarget   *target;
+  AkInput         *inp;
+  AkAccessor      *acc;
+  AkBuffer        *buf;
+  RBTree          *foundInputs;
+  char            *pi, *pi_dest;
+  size_t           inputByteStride, targetStride, *inpOffsets, byteOffset;
+  size_t           inpOffset, targetOffset, compSize;
+  uint32_t         i, count, foundInpCount, targetIndex, nTargets;
+  bool             found;
   
-  if (!(target = morph->target))
+  if (desiredInputsCount < 1 || !(target = morph->target))
     return;
 
   inpOffsets       = alloca(desiredInputsCount * sizeof(*inpOffsets));
+  foundInputs      = rb_newtree_ptr();
   inpOffset        = 0;
   foundInpCount    = 0;
-  targetByteStride = 0;
+  targetStride = 0;
+  targetIndex      = 0;
+  nTargets         = morph->targetCount;
   
   memset(inpOffsets, 0, desiredInputsCount * sizeof(*inpOffsets));
   
@@ -100,15 +114,18 @@ ak_morphInterleave(void    * __restrict buff,
 
     do {
       for (i = 0; i < desiredInputsCount; i++) {
-        if (desiredInputs[i] == inp->semantic
+        if (!rb_find(foundInputs, (void *)(uintptr_t)inp->semantic)
+            && desiredInputs[i] == inp->semantic
             && (acc = inp->accessor)) {
 
           inpOffsets[i]     = acc->fillByteSize;
-          targetByteStride += acc->fillByteSize;
+          targetStride += acc->fillByteSize;
+
+          rb_insert(foundInputs, (void *)(uintptr_t)inp->semantic, inp);
 
           if (++foundInpCount >= desiredInputsCount)
             goto calc_off;
-          
+
           break;
         }
       }
@@ -118,14 +135,24 @@ ak_morphInterleave(void    * __restrict buff,
       goto calc_off;
   } while ((target = target->next));
   
+  rb_destroy(foundInputs);
+  
 calc_off:
+  
+  inpOffset = 0;
+
   /* calc offsets */
-  for (i = 1; i < desiredInputsCount; i++)
-    inpOffsets[i] += inpOffsets[i - 1];
+  for (i = 0; i < desiredInputsCount; i++) {
+    size_t tmp;
+    tmp           = inpOffsets[i];
+    inpOffsets[i] = inpOffset;
+    inpOffset    += tmp * nTargets;
+  }
 
   /* fill buffer */
 
-  target = morph->target;
+  targetStride *= nTargets;
+  target        = morph->target;
 
   do {
     if (!(inp = target->input))
@@ -151,12 +178,19 @@ calc_off:
       count           = acc->count;
       inputByteStride = acc->byteStride;
       compSize        = acc->fillByteSize;
-      
+      byteOffset      = acc->byteOffset;
+      targetOffset    = targetIndex * compSize;
+
+      pi     += byteOffset;
+      pi_dest = (char *)buff;
+
       for (i = 0; i < count; i++) {
-        memcpy((char *)buff + targetByteStride * i + inpOffset,
-               pi   + inputByteStride * i,
+        memcpy(pi_dest + targetStride * i + inpOffset + targetOffset,
+               pi + inputByteStride * i,
                compSize);
       }
     } while ((inp = inp->next));
+    
+    targetIndex++;
   } while ((target = target->next));
 }
