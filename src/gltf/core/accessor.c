@@ -65,7 +65,7 @@ gltf_accessors(json_t * __restrict json,
       acc->name = json_strdup(it, heap, acc);
     }
     
-    /* convert merge bufferView with acessor and buffer */
+    /*  merge bufferView with acessor and buffer */
     if ((it = accMap[k_gltf_bufferView].object)) {
       AkBuffer     *buff, *tmpbuff;
       AkBufferView *buffView;
@@ -128,7 +128,7 @@ gltf_accessors(json_t * __restrict json,
     }
     
     acc->byteLength   = acc->count * acc->componentBytes;
-    acc->fillByteSize = acc->componentBytes * acc->componentCount;
+    acc->fillByteSize = acc->componentBytes;
 
     if (acc->componentSize != AK_COMPONENT_SIZE_UNKNOWN
         && acc->componentBytes > 0) {
