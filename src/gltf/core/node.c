@@ -105,6 +105,7 @@ gltf_node(AkGLTFState * __restrict gst,
   AkGeometry         *geomIter;
   AkInstanceGeometry *instGeom;
   void               *it;
+  AkMorph            *morph;
   int32_t             i32val;
 
   heap     = gst->heap;
@@ -290,26 +291,26 @@ gltf_node(AkGLTFState * __restrict gst,
   }
   
   /* morph target weights */
-  if ((it = json_array(nodeMap[k_weights].object))) {
+  if (geomIter && (morph = rb_find(gst->meshTargets, geomIter))) {
     AkInstanceMorph *morphInst;
     AkFloatArray    *weights;
-    json_array_t    *jsonArr;
-    AkGeometry      *geom;
+    
+    morphInst = ak_heap_alloc(heap, node, sizeof(*morphInst));
+    weights   = ak_heap_calloc(heap,
+                               morphInst,
+                               sizeof(*weights)
+                               + sizeof(weights->items[0]) * morph->targetCount);
 
-    jsonArr                 = it;
-    geom                    = ak_instanceObjectGeom(node);
-    morphInst               = ak_heap_alloc(heap, node, sizeof(*morphInst));
+    if ((it = json_array(nodeMap[k_weights].object))) {
+      json_array_t *jsonArr;
+      jsonArr = it;
+      json_array_float(weights->items, it, 0.0f, jsonArr->count, true);
+    }
 
-    weights = ak_heap_calloc(heap,
-                             morphInst,
-                             sizeof(*weights)
-                             + sizeof(weights->items[0]) * jsonArr->count);
-    json_array_float(weights->items, it, 0.0f, jsonArr->count, true);
-
-    weights->count             = jsonArr->count;
+    weights->count             = morph->targetCount;
     morphInst->overrideWeights = weights;
-    morphInst->baseGeometry    = geom;
-    morphInst->morph           = rb_find(gst->meshTargets, geom);
+    morphInst->baseGeometry    = geomIter;
+    morphInst->morph           = rb_find(gst->meshTargets, geomIter);
 
     node->morpher = morphInst;
   }
