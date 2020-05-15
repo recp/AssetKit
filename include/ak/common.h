@@ -42,6 +42,15 @@
 
 #define AK_ARRAY_LEN(ARR) sizeof(ARR) / sizeof(ARR[0])
 
+#define AK_APPEND_FLINK(SRC,LAST,ITEM)                                        \
+  do {                                                                        \
+    if (LAST)                                                                 \
+      LAST->next = ITEM;                                                      \
+    else                                                                      \
+      SRC = ITEM;                                                             \
+    LAST = ITEM;                                                              \
+  } while (0)
+
 typedef int32_t AkEnum;
 
 typedef enum AkResult {

@@ -75,12 +75,7 @@ dae_node(DAEState      * __restrict dst,
       if (!node->transform)
         node->transform = ak_heap_calloc(heap, node, sizeof(*node->transform));
       
-      if (last_trans)
-        last_trans->next = obj;
-      else
-        node->transform->item = obj;
-      
-      last_trans = obj;
+      AK_APPEND_FLINK(node->transform->item, last_trans, obj);
     } else if (xml_tag_eq(xml, _s_dae_matrix) && (sval = xmls(xml))) {
       mat4      transform;
       AkObject *obj;
@@ -96,12 +91,7 @@ dae_node(DAEState      * __restrict dst,
       if (!node->transform)
         node->transform = ak_heap_calloc(heap, node, sizeof(*node->transform));
 
-      if (last_trans)
-        last_trans->next = obj;
-      else
-        node->transform->item = obj;
-      
-      last_trans = obj;
+      AK_APPEND_FLINK(node->transform->item, last_trans, obj);
     } else if (xml_tag_eq(xml, _s_dae_rotate) && (sval = xmls(xml))) {
       AkObject *obj;
       AkRotate *rotate;
@@ -116,12 +106,7 @@ dae_node(DAEState      * __restrict dst,
       if (!node->transform)
         node->transform = ak_heap_calloc(heap, node, sizeof(*node->transform));
       
-      if (last_trans)
-        last_trans->next = obj;
-      else
-        node->transform->item = obj;
-
-      last_trans = obj;
+      AK_APPEND_FLINK(node->transform->item, last_trans, obj);
     } else if (xml_tag_eq(xml, _s_dae_scale) && (sval = xmls(xml))) {
       AkObject *obj;
       AkScale  *scale;
@@ -135,12 +120,7 @@ dae_node(DAEState      * __restrict dst,
       if (!node->transform)
         node->transform = ak_heap_calloc(heap, node, sizeof(*node->transform));
       
-      if (last_trans)
-        last_trans->next = obj;
-      else
-        node->transform->item = obj;
-      
-      last_trans = obj;
+      AK_APPEND_FLINK(node->transform->item, last_trans, obj);
     } else if (xml_tag_eq(xml, _s_dae_skew) && (sval = xmls(xml))) {
       AkObject *obj;
       AkSkew   *skew;
@@ -160,12 +140,7 @@ dae_node(DAEState      * __restrict dst,
       if (!node->transform)
         node->transform = ak_heap_calloc(heap, node, sizeof(*node->transform));
       
-      if (last_trans)
-        last_trans->next = obj;
-      else
-        node->transform->item = obj;
-      
-      last_trans = obj;
+      AK_APPEND_FLINK(node->transform->item, last_trans, obj);
     } else if (xml_tag_eq(xml, _s_dae_translate) && (sval = xmls(xml))) {
       AkObject    *obj;
       AkTranslate *transl;
@@ -179,12 +154,7 @@ dae_node(DAEState      * __restrict dst,
       if (!node->transform)
         node->transform = ak_heap_calloc(heap, node, sizeof(*node->transform));
       
-      if (last_trans)
-        last_trans->next = obj;
-      else
-        node->transform->item = obj;
-      
-      last_trans = obj;
+      AK_APPEND_FLINK(node->transform->item, last_trans, obj);
     } else if (xml_tag_eq(xml, _s_dae_instance_camera)) {
       AkInstanceBase *instcam;
 

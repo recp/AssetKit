@@ -68,12 +68,7 @@ dae_source(DAEState * __restrict dst,
           dp->name = xmla_strdup_by(xacc, heap, _s_dae_name, dp);
           dae_dtype(xmla_strdup_by(xacc, heap, _s_dae_type, dp),  &dp->type);
           
-          if (dp_last)
-            dp_last->next = dp;
-          else
-            accdae->param = dp;
-          dp_last = dp;
-        
+          AK_APPEND_FLINK(accdae->param, dp_last, dp);
           xacc = xacc->next;
         }
 
