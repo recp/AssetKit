@@ -158,7 +158,7 @@ dae_source(DAEState * __restrict dst,
                   tok++;
                 
                 toklen    = tok - tok_begin;
-                enumValue = asEnum(tok, toklen);
+                enumValue = asEnum(tok_begin, toklen);
                 memcpy(pData + idx * enumLen, &enumValue, enumLen);
 
                 idx++;
