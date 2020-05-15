@@ -105,11 +105,12 @@ dae_fixAngles(DAEState * __restrict dst) {
           for (i = 0; i < index && dp; i++)
             dp = dp->next;
           
-          if (dp)
+          if (dp) {
             dae_cvtAngles(acc, buff, dp->name);
-          
-          if (dp->next)
-            dae_cvtAngles(acc, buff, dp->next->name);
+
+            if (dp->next)
+              dae_cvtAngles(acc, buff, dp->next->name);
+          }
         } else if (accdae->param) { /* 1D tangents */
           dae_cvtAngles(acc, buff, accdae->param->name);
         }
@@ -124,11 +125,12 @@ dae_fixAngles(DAEState * __restrict dst) {
           for (i = 0; i < index && dp; i++)
             dp = dp->next;
 
-          if (dp)
+          if (dp) {
             dae_cvtAngles(acc, buff, dp->name);
-          
-          if (dp->next)
-            dae_cvtAngles(acc, buff, dp->next->name);
+
+            if (dp->next)
+              dae_cvtAngles(acc, buff, dp->next->name);
+          }
         } else if (accdae->param) { /* 1D tangents */
           dae_cvtAngles(acc, buff, accdae->param->name);
         }
