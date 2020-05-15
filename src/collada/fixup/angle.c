@@ -63,6 +63,8 @@ dae_fixAngles(DAEState * __restrict dst) {
   AkAccessor    *acc;
   AkBuffer      *buff;
   AkAccessorDAE *accdae;
+  AkDataParam   *dp;
+  int            index, i;
   
   item = dst->toRadiansSampelers;
   while (item) {
@@ -76,11 +78,16 @@ dae_fixAngles(DAEState * __restrict dst) {
       bool foundAngle;
 
       foundAngle = false;
+      index      = 0;
 
       if ((param = accdae->param)) {
         do {
-          if (param->name && strcasecmp(param->name, _s_dae_angle) == 0)
+          if (param->name && strcasecmp(param->name, _s_dae_angle) == 0) {
             foundAngle = true;
+            break;
+          }
+          
+          index++;
         } while ((param = param->next));
       }
 
@@ -91,20 +98,40 @@ dae_fixAngles(DAEState * __restrict dst) {
 
       /* convert in tangents to radians */
       if ((acc = sampler->inTangentInput->accessor)
+          && (accdae = ak_userData(acc))
           && (buff = ak_getObjectByUrl(&accdae->source))) {
-        if (accdae->param && accdae->param->next)
-          dae_cvtAngles(acc, buff, accdae->param->next->name);
-        else if (accdae->param) /* 1D tangents */
+        if (accdae->param && accdae->param->next) {
+          dp = accdae->param;
+          for (i = 0; i < index && dp; i++)
+            dp = dp->next;
+          
+          if (dp)
+            dae_cvtAngles(acc, buff, dp->name);
+          
+          if (dp->next)
+            dae_cvtAngles(acc, buff, dp->next->name);
+        } else if (accdae->param) { /* 1D tangents */
           dae_cvtAngles(acc, buff, accdae->param->name);
+        }
       }
 
       /* convert out tangents to radians */
       if ((acc = sampler->outTangentInput->accessor)
+          && (accdae = ak_userData(acc))
           && (buff = ak_getObjectByUrl(&accdae->source))) {
-        if (accdae->param && accdae->param->next)
-          dae_cvtAngles(acc, buff, accdae->param->next->name);
-        else if (accdae->param) /* 1D tangents */
+        if (accdae->param && accdae->param->next) {
+          dp = accdae->param;
+          for (i = 0; i < index && dp; i++)
+            dp = dp->next;
+
+          if (dp)
+            dae_cvtAngles(acc, buff, dp->name);
+          
+          if (dp->next)
+            dae_cvtAngles(acc, buff, dp->next->name);
+        } else if (accdae->param) { /* 1D tangents */
           dae_cvtAngles(acc, buff, accdae->param->name);
+        }
       }
     }
 
