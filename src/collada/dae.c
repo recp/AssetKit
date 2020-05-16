@@ -125,10 +125,15 @@ dae_doc(AkDoc     ** __restrict dest,
   assetEl = NULL;
   xml     = xml->val;
 
+  /* with default Asset Parameters */
+  assetEl = xml_elem(xml->parent, _s_dae_asset);
+  if ((inf = dae_asset(dst, assetEl, doc, &doc->inf->base))) {
+    doc->coordSys = inf->coordSys;
+    doc->unit     = inf->unit;
+  }
+  
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_asset)) {
-      assetEl = xml;
-    } else if (xml_tag_eq(xml, _s_dae_lib_cameras)) {
+    if (xml_tag_eq(xml, _s_dae_lib_cameras)) {
       dae_lib(dst, xml, _s_dae_camera, dae_cam, &libs->cameras);
     } else if (xml_tag_eq(xml, _s_dae_lib_lights)) {
       dae_lib(dst, xml, _s_dae_light, dae_light, &libs->lights);
@@ -152,12 +157,6 @@ dae_doc(AkDoc     ** __restrict dest,
       dae_scene(dst, xml);
     }
     xml = xml->next;
-  }
-  
-  /* with default Asset Parameters */
-  if ((inf = dae_asset(dst, assetEl, doc, &doc->inf->base))) {
-    doc->coordSys = inf->coordSys;
-    doc->unit     = inf->unit;
   }
 
   *dest = doc;
