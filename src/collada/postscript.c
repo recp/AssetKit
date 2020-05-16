@@ -94,11 +94,12 @@ dae_retain_refs(DAEState * __restrict dst) {
 
     /* currently only retain objects in this doc */
     if (it->url->doc == dst->doc) {
-      ret = ak_heap_getNodeByURL(dst->heap, url, &hnode);
-      if (ret == AK_OK) {
+      hnode = NULL;
+      ret   = ak_heap_getNodeByURL(dst->heap, url, &hnode);
+      if (ret == AK_OK && hnode) {
         /* retain <source> and source arrays ... */
-        refc = ak_heap_ext_add(dst->heap, hnode, AK_HEAP_NODE_FLAGS_REFC);
-//        it->url->ptr = ak__alignof(hnode);
+        refc         = ak_heap_ext_add(dst->heap, hnode, AK_HEAP_NODE_FLAGS_REFC);
+        it->url->ptr = ak__alignas(hnode);
 
         (*refc)++;
       }
@@ -501,7 +502,7 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
               weights->counts  = ak_heap_alloc(dst->heap,
                                                ctlr->data,
                                                count * sizeof(uint32_t));
-              weights->indexes  = ak_heap_alloc(dst->heap,
+              weights->indexes = ak_heap_alloc(dst->heap,
                                                ctlr->data,
                                                count * sizeof(size_t));
 
