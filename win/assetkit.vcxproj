@@ -289,7 +289,6 @@
     <ClInclude Include="..\src\gltf\core\image.h" />
     <ClInclude Include="..\src\gltf\core\material.h" />
     <ClInclude Include="..\src\gltf\core\mesh.h" />
-    <ClInclude Include="..\src\gltf\core\morph.h" />
     <ClInclude Include="..\src\gltf\core\node.h" />
     <ClInclude Include="..\src\gltf\core\profile.h" />
     <ClInclude Include="..\src\gltf\core\sampler.h" />
@@ -411,7 +410,6 @@
     <ClCompile Include="..\src\gltf\core\image.c" />
     <ClCompile Include="..\src\gltf\core\material.c" />
     <ClCompile Include="..\src\gltf\core\mesh.c" />
-    <ClCompile Include="..\src\gltf\core\morph.c" />
     <ClCompile Include="..\src\gltf\core\node.c" />
     <ClCompile Include="..\src\gltf\core\profile.c" />
     <ClCompile Include="..\src\gltf\core\sampler.c" />

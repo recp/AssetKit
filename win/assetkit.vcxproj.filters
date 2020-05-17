@@ -446,9 +446,6 @@
     <ClInclude Include="..\src\gltf\core\mesh.h">
       <Filter>src\gltf\core</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\gltf\core\morph.h">
-      <Filter>src\gltf\core</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\gltf\core\node.h">
       <Filter>src\gltf\core</Filter>
     </ClInclude>
@@ -803,9 +800,6 @@
       <Filter>src\gltf\core</Filter>
     </ClCompile>
     <ClCompile Include="..\src\gltf\core\mesh.c">
-      <Filter>src\gltf\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\gltf\core\morph.c">
       <Filter>src\gltf\core</Filter>
     </ClCompile>
     <ClCompile Include="..\src\gltf\core\node.c">
