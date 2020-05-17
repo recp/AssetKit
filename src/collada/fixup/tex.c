@@ -8,7 +8,7 @@
 #include "tex.h"
 
 void _assetkit_hide
-dae_tex_walk(RBTree * __restrict tree, RBNode * __restrict rbnode);
+dae_tex_walk(RBTree *tree, RBNode *rbnode);
 
 void _assetkit_hide
 dae_fix_textures(DAEState * __restrict dst) {
@@ -16,7 +16,7 @@ dae_fix_textures(DAEState * __restrict dst) {
 }
 
 void _assetkit_hide
-dae_tex_walk(RBTree * __restrict tree, RBNode * __restrict rbnode) {
+dae_tex_walk(RBTree *tree, RBNode *rbnode) {
   AkHeap          *heap;
   AkNewParam      *newparam;
   AkColorDesc     *cd;

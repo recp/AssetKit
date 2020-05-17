@@ -271,7 +271,7 @@ gltf_node(AkGLTFState * __restrict gst,
   }
   
   /* morph target weights */
-  if (geomIter && (morph = rb_find(gst->meshTargets, geomIter))) {
+  if (geomIter && instGeom && (morph = rb_find(gst->meshTargets, geomIter))) {
     AkInstanceMorph *morpher;
     AkFloatArray    *weights;
     
@@ -297,7 +297,7 @@ gltf_node(AkGLTFState * __restrict gst,
   }
   
   /* skin */
-  if ((i32val = json_int32(nodeMap[k_skin].object, -1)) > -1) {
+  if (instGeom && (i32val = json_int32(nodeMap[k_skin].object, -1)) > -1) {
     char            skinid[16];
     AkInstanceSkin *skinner;
 

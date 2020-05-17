@@ -72,7 +72,7 @@ ak_imageLoad(AkImage * __restrict image) {
       image->data   = idata;
     } else if (initFrom->buff && initFrom->buff->data) {
       data = stbi_load_from_memory(initFrom->buff->data,
-                                   initFrom->buff->length,
+                                   (int)initFrom->buff->length,
                                    &x, &y, &ch, 0);
       if (!data)
         return;

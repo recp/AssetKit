@@ -33,7 +33,7 @@ void _assetkit_hide
 dae_pre_walk(RBTree *tree, RBNode *rbnode);
 
 void _assetkit_hide
-dae_input_walk(RBTree * __restrict tree, RBNode * __restrict rbnode);
+dae_input_walk(RBTree *tree, RBNode *rbnode);
 
 void _assetkit_hide
 dae_postscript(DAEState * __restrict dst) {
@@ -111,7 +111,7 @@ dae_retain_refs(DAEState * __restrict dst) {
 }
 
 void _assetkit_hide
-dae_input_walk(RBTree * __restrict tree, RBNode * __restrict rbnode) {
+dae_input_walk(RBTree *tree, RBNode *rbnode) {
   AkAccessor *acc;
   AkSource   *src;
   AkInput    *inp;
