@@ -18,13 +18,12 @@ ak_morphInterleaveInspect(size_t  * __restrict bufferSize,
   AkInput        *inp;
   AkAccessor     *acc;
   RBTree         *foundInputs;
-  size_t          targetStride, *inpSizes;
+  size_t          targetStride;
   uint32_t        i, count, foundInpCount;
   
   if (!(target = morph->target))
     return;
-  
-  inpSizes      = alloca(desiredInputsCount * sizeof(*inpSizes));
+
   foundInputs   = rb_newtree_ptr();
   foundInpCount = 0;
   targetStride  = 0;
@@ -41,7 +40,6 @@ ak_morphInterleaveInspect(size_t  * __restrict bufferSize,
             && desiredInputs[i] == inp->semantic
             && (acc = inp->accessor)) {
 
-          inpSizes[i]   = acc->fillByteSize;
           targetStride += acc->fillByteSize;
 
           rb_insert(foundInputs, (void *)(uintptr_t)inp->semantic, inp);
