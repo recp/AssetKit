@@ -81,6 +81,15 @@ typedef struct AkAccessorDAE {
   uint32_t             bound;
 } AkAccessorDAE;
 
+/* TODO: Will be removed */
+typedef struct AkInstanceController {
+  AkInstanceBase    base;
+  AkURL             geometry;
+  struct AkNode   **joints;
+  AkBindMaterial   *bindMaterial;
+  struct FListItem *reserved;
+} AkInstanceController;
+
 AK_INLINE
 void
 sid_seta(xml_t  * __restrict xml,
