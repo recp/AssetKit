@@ -15,7 +15,6 @@ gltf_skin(json_t * __restrict jskin,
   AkHeap             *heap;
   AkDoc              *doc;
   const json_array_t *jskins;
-  AkLibrary          *lib;
   uint32_t            skinIndex;
 
   if (!(jskins = json_array(jskin)))
@@ -25,33 +24,20 @@ gltf_skin(json_t * __restrict jskin,
   heap      = gst->heap;
   doc       = gst->doc;
   jskin     = jskins->base.value;
-  lib       = ak_heap_calloc(heap, doc, sizeof(*lib));
   skinIndex = jskins->count - 1;
 
   while (jskin) {
-    AkController *ctlr;
-    AkObject     *obj;
-    AkSkin       *skin;
-    json_t       *jskinVal;
-    char          skinid[16];
+    AkSkin *skin;
+    json_t *jskinVal;
+    char    skinid[16];
     
     jskinVal = jskin->value;
+    skin     = ak_heap_calloc(heap, doc, sizeof(*skin));
 
-    ctlr = ak_heap_calloc(heap, lib, sizeof(*ctlr));
-
-    ak_setypeid(ctlr, AKT_CONTROLLER);
-
-    ctlr->data = obj = ak_objAlloc(heap,
-                                   ctlr,
-                                   sizeof(*skin),
-                                   AK_CONTROLLER_SKIN,
-                                   true);
-    skin = ak_objGet(obj);
-    
     sprintf(skinid, "%s%d", _s_gltf_skin, skinIndex);
     ak_heap_setId(heap,
-                  ak__alignof(ctlr),
-                  ak_heap_strdup(heap, ctlr, (void *)skinid));
+                  ak__alignof(skin),
+                  ak_heap_strdup(heap, skin, (void *)skinid));
 
     glm_mat4_identity(skin->bindShapeMatrix);
 
@@ -64,7 +50,7 @@ gltf_skin(json_t * __restrict jskin,
         if ((acc = flist_sp_at(&doc->lib.accessors, json_int32(jskinVal, -1)))
             && (buff = acc->buffer)) {
           pbuff = (void *)((char *)buff->data + acc->byteOffset);
-          skin->invBindPoses = ak_heap_alloc(heap, obj,
+          skin->invBindPoses = ak_heap_alloc(heap, skin,
                                              acc->count * sizeof(mat4));
           
           for (size_t k = 0; k < acc->count * 16; k++) {
@@ -78,7 +64,7 @@ gltf_skin(json_t * __restrict jskin,
         
         if ((jjoints = json_array(jskinVal))) {
           skin->joints = ak_heap_alloc(heap,
-                                       obj,
+                                       skin,
                                        sizeof(void **) * jjoints->count);
 
           jjoint = jjoints->base.value;
@@ -109,16 +95,13 @@ gltf_skin(json_t * __restrict jskin,
 
       jskinVal = jskinVal->next;
     }
-
-    ctlr->next = (void *)lib->chld;
-    lib->chld  = (void *)ctlr;
-    lib->count++;
-
-    flist_sp_insert(&doc->lib.skins, ctlr);
+    
+    if (doc->lib.skins)
+      skin->base.next = &doc->lib.skins->base;
+    
+    doc->lib.skins = skin;
 
     skinIndex--;
     jskin = jskin->next;
   }
-
-  doc->lib.controllers = lib;
 }

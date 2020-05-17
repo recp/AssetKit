@@ -176,10 +176,12 @@ gltf_animations(json_t * __restrict janim,
                     ch->targetType     = AK_TARGET_SCALE;
                     ch->resolvedTarget = ak_getTransformTRS(node, AKT_SCALE);
                   } else if (strncasecmp(path, _s_gltf_weights, pathLen) == 0) {
-                    AkInstanceMorph *morpher;
+                    AkInstanceMorph    *morpher;
+                    AkInstanceGeometry *instGeom;
 
                     ch->targetType = AK_TARGET_WEIGHTS;
-                    if ((morpher = node->morpher))
+                    if ((instGeom = node->geometry)
+                        && (morpher = instGeom->morpher))
                       ch->resolvedTarget = morpher->overrideWeights;
                   }
                 }

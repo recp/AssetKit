@@ -22,8 +22,7 @@ dae_nodeFixupFixedCoord(AkHeap * __restrict heap,
        && !node->light)
       return;
 
-  if (!node->controller
-      && !node->geometry
+  if (!node->geometry
       && !node->chld
       && !node->node) {
     node->flags |= AK_NODEF_FIXED_COORD;

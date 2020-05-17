@@ -203,15 +203,7 @@ dae_node(DAEState      * __restrict dst,
       }
 
       instctl->base.node = node;
-      
-      if (node->controller) {
-        node->controller->base.next = &instctl->base;
-        instctl->base.prev          = &node->controller->base;
-      }
-
-      flist_sp_insert(&dst->instCtlrs, instctl);
-      
-      node->controller   = instctl;
+      flist_sp_insert(&dst->instCtlrs, instctl);;
     } else if (xml_tag_eq(xml, _s_dae_instance_geometry)) {
       AkInstanceGeometry *instgeo;
       xml_t              *xinstgeo;
@@ -235,13 +227,6 @@ dae_node(DAEState      * __restrict dst,
 
       instgeo->base.next = (void *)node->geometry;
       node->geometry     = instgeo;
-
-      if (node->controller) {
-        instgeo->base.prev          = &node->controller->base;
-        node->controller->base.prev = &instgeo->base;
-
-        flist_sp_insert(&dst->instCtlrs, instgeo);
-      }
     } else if (xml_tag_eq(xml, _s_dae_instance_light)) {
       AkInstanceBase *instlight;
       

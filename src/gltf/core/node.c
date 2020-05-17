@@ -161,30 +161,10 @@ gltf_node(AkGLTFState * __restrict gst,
       instGeom->base.node    = node;
       instGeom->base.type    = AK_INSTANCE_GEOMETRY;
       instGeom->base.url.ptr = geomIter;
+
+      node->geometry         = instGeom;
     } /* if (geomIter) */
   }
-
-  /* skin */
-  if ((i32val = json_int32(nodeMap[k_skin].object, -1)) > -1) {
-    char                  skinid[16];
-    AkInstanceController *instCtlr;
-
-    instCtlr               = ak_heap_calloc(heap, node, sizeof(*instCtlr));
-    instCtlr->base.type    = AK_INSTANCE_CONTROLLER;
-    instCtlr->geometry.ptr = instGeom;
-
-    sprintf(skinid, "%s%d", _s_gltf_skin, i32val);
-
-    ak_url_init_with_id(heap->allocator,
-                        instCtlr,
-                        skinid,
-                        &instCtlr->base.url);
-
-    node->controller = instCtlr;
-  }
-  
-  if (!node->controller)
-    node->geometry = instGeom;
 
   /* children */
   if ((it = nodeMap[k_children].object)) {
@@ -292,12 +272,12 @@ gltf_node(AkGLTFState * __restrict gst,
   
   /* morph target weights */
   if (geomIter && (morph = rb_find(gst->meshTargets, geomIter))) {
-    AkInstanceMorph *morphInst;
+    AkInstanceMorph *morpher;
     AkFloatArray    *weights;
     
-    morphInst = ak_heap_alloc(heap, node, sizeof(*morphInst));
+    morpher = ak_heap_alloc(heap, node, sizeof(*morpher));
     weights   = ak_heap_calloc(heap,
-                               morphInst,
+                               morpher,
                                sizeof(*weights)
                                + sizeof(weights->items[0]) * morph->targetCount);
 
@@ -307,12 +287,27 @@ gltf_node(AkGLTFState * __restrict gst,
       json_array_float(weights->items, it, 0.0f, jsonArr->count, true);
     }
 
-    weights->count             = morph->targetCount;
-    morphInst->overrideWeights = weights;
-    morphInst->baseGeometry    = geomIter;
-    morphInst->morph           = rb_find(gst->meshTargets, geomIter);
+    weights->count           = morph->targetCount;
+    
+    morpher->overrideWeights = weights;
+    morpher->morph           = rb_find(gst->meshTargets, geomIter);
+    instGeom->morpher        = morpher;
+    
+    /* TODO: what if there is no Geomerty? */
+  }
+  
+  /* skin */
+  if ((i32val = json_int32(nodeMap[k_skin].object, -1)) > -1) {
+    char            skinid[16];
+    AkInstanceSkin *skinner;
 
-    node->morpher = morphInst;
+    sprintf(skinid, "%s%d", _s_gltf_skin, i32val);
+    
+    skinner           = ak_heap_calloc(heap, node, sizeof(*skinner));
+    skinner->skin     = ak_getObjectById(gst->doc, skinid);
+    instGeom->skinner = skinner;
+    
+    /* TODO: what if there is no Geomerty? */
   }
 
   return node;

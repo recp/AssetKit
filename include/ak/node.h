@@ -59,12 +59,9 @@ typedef struct AkNode {
   struct AkMatrix             *matrix;
   struct AkMatrix             *matrixWorld;
   struct AkBoundingBox        *bbox;
-
-  AkInstanceBase              *camera;
-  struct AkInstanceController *controller;
-  struct AkInstanceMorph      *morpher;
-  void *skinner;
+  
   AkInstanceGeometry          *geometry;
+  AkInstanceBase              *camera;
   AkInstanceBase              *light;
   AkInstanceNode              *node;
 

@@ -122,9 +122,6 @@ ak_instanceMoveToSubNode(AkNode * __restrict node,
     case AK_INSTANCE_NODE:
       off = offsetof(AkNode, node);
       break;
-    case AK_INSTANCE_CONTROLLER:
-      off = offsetof(AkNode, controller);
-      break;
     default:
       ak_free(subNode);
       return NULL;
@@ -159,7 +156,6 @@ ak_instanceMoveToSubNodeIfNeeded(AkNode * __restrict node,
   AkInstanceBase *insti;
   AkInstanceBase *instArray[] = {(AkInstanceBase *)node->geometry,
                                  (AkInstanceBase *)node->node,
-                                 (AkInstanceBase *)node->controller,
                                  node->camera,
                                  node->light};
   int             i, instArrayLen;

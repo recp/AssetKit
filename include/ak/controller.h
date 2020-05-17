@@ -35,27 +35,29 @@ typedef struct AkBoneWeights {
   uint32_t     *counts;    /* joint count per vertex                     */
   size_t       *indexes;   /* offset of weight at buffer by index        */
   AkBoneWeight *weights;
-//  AkAccessor   *joints;
-//  AkAccessor   *weights;
-  AkTree       *extra;
   size_t        nWeights;  /* cache: count of weights                    */
   size_t        nVertex;   /* cache: count of pJointsCount/pWeightsIndex */
+  
+  /* TODO: Will be removed */
+  AkTree       *extra;
 } AkBoneWeights;
 
 typedef struct AkSkin {
-  struct AkNode **joints;  /* global joints, check instanceController    */
-  AkFloat4x4     *invBindPoses;
-//  AkAccessor     *invBindPosesAcc;
-  AkBoneWeights **weights; /* per primitive                              */
+  AkOneWayIterBase base;
+  struct AkNode  **joints;  /* global joints, check instanceController    */
+  AkFloat4x4      *invBindPoses;
+  AkBoneWeights  **weights; /* per primitive                              */
+  AkURL            baseGeom;
+  size_t           nJoints; /* cache: joint count                        */
+  uint32_t         nPrims;  /* cache: primitive count                    */
+  uint32_t         nMaxJoints;
+  AkFloat4x4       bindShapeMatrix;
+  
+  /* TODO: Will be removed */
   AkSource       *source;
   AkTree         *extra;
   void           *reserved[5];
   uint32_t        reserved2;
-  AkURL           baseGeom;
-  size_t          nJoints; /* cache: joint count                        */
-  uint32_t        nPrims;  /* cache: primitive count                    */
-  uint32_t        nMaxJoints;
-  AkFloat4x4      bindShapeMatrix;
 } AkSkin;
 
 typedef struct AkMorphTarget {
@@ -76,10 +78,14 @@ typedef struct AkMorph {
 } AkMorph;
 
 typedef struct AkInstanceMorph {
-  AkGeometry   *baseGeometry;
   AkMorph      *morph;
   AkFloatArray *overrideWeights; /* override default weights or NULL */
 } AkInstanceMorph;
+
+typedef struct AkInstanceSkin {
+  AkSkin         *skin;
+  struct AkNode **overrideJoints;
+} AkInstanceSkin;
 
 typedef struct AkController {
   /* const char * id; */
@@ -88,14 +94,6 @@ typedef struct AkController {
   AkTree              *extra;
   struct AkController *next;
 } AkController;
-
-typedef struct AkInstanceController {
-  AkInstanceBase    base;
-  AkURL             geometry;
-  struct AkNode   **joints;
-  AkBindMaterial   *bindMaterial;
-  struct FListItem *reserved;
-} AkInstanceController;
 
 /*!
  * @brief fill a buffer with JointID and JointWeight to feed GPU buffer

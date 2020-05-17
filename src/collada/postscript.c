@@ -366,26 +366,33 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
   FListItem            *item;
   AkInstanceController *instCtlr;
   AkController         *ctlr;
+  AkNode               *node;
+  AkInstanceGeometry   *instGeom;
   AkContext             ctx = { .doc = dst->doc };
 
   item = dst->instCtlrs;
   while (item) {
     instCtlr = item->data;
+    ctlr     = ak_instanceObject(&instCtlr->base);
+    node     = instCtlr->base.node;
 
-    ctlr = ak_instanceObject(&instCtlr->base);
+    instGeom = ak_heap_calloc(dst->heap, node, sizeof(*instGeom));
 
     switch (ctlr->data->type) {
       case AK_CONTROLLER_SKIN: {
-        AkSkin     *skin;
-        AkNode    **joints;
-        AkInput    *jointsInp,  *matrixInp;
-        AkAccessor *jointsAcc,  *matrixAcc;
-        AkBuffer   *jointsBuff, *matrixBuff;
-        FListItem  *skel;
-        const char *sid, **it;
-        AkFloat    *mit;
-        AkFloat4x4 *invm;
-        size_t      count, i;
+        AkInstanceSkin *instSkin;
+        AkSkin         *skin;
+        AkNode        **joints;
+        AkInput        *jointsInp,  *matrixInp;
+        AkAccessor     *jointsAcc,  *matrixAcc;
+        AkBuffer       *jointsBuff, *matrixBuff;
+        FListItem      *skel;
+        const char     *sid, **it;
+        AkFloat        *mit;
+        AkFloat4x4     *invm;
+        size_t          count, i;
+
+        instSkin  = ak_heap_calloc(dst->heap, node, sizeof(*instSkin));
 
         skin      = ak_objGet(ctlr->data);
         jointsInp = skin->reserved[0];
@@ -430,9 +437,22 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
             glm_mat4_transpose(invm[i]);
           }
 
-          instCtlr->joints   = joints;
           skin->nJoints      = count;
           skin->invBindPoses = invm;
+
+          instSkin->skin           = skin;
+          instSkin->overrideJoints = joints;
+          
+          /* create instance geometry for skin */
+          instGeom->skinner      = instSkin;
+          instGeom->bindMaterial = instCtlr->bindMaterial;
+          instGeom->base.object  = skin->baseGeom.ptr;
+          ak_heap_setpm(instCtlr->bindMaterial, instGeom);
+          
+          instGeom->base.next = (AkInstanceBase *)node->geometry;
+          if (node->geometry)
+            node->geometry->base.prev = (AkInstanceBase *)instGeom;
+          node->geometry = instGeom;
         }
       }
     }

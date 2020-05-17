@@ -353,8 +353,11 @@ typedef struct AkBindMaterial {
 } AkBindMaterial;
 
 typedef struct AkInstanceGeometry {
-  AkInstanceBase  base;
-  AkBindMaterial *bindMaterial;
+  AkInstanceBase          base;
+
+  AkBindMaterial         *bindMaterial;
+  struct AkInstanceMorph *morpher;
+  struct AkInstanceSkin  *skinner;
 } AkInstanceGeometry;
 
 typedef struct AkInstanceNode {
@@ -440,6 +443,7 @@ typedef struct AkScene {
 } AkScene;
 
 struct AkMorph;
+struct AkSkin;
 
 typedef struct AkLibraries {
   struct AkLibrary *cameras;
@@ -458,8 +462,8 @@ typedef struct AkLibraries {
   struct FListItem *textures;
   struct FListItem *samplers;
   struct FListItem *images;
-  struct FListItem *skins;
   struct AkMorph   *morphs;
+  struct AkSkin    *skins;
 } AkLibraries;
 
 typedef const char* (*AkFetchFromURLHandler)(const char * __restrict url);
@@ -492,7 +496,7 @@ typedef struct AkDoc {
 
 AK_EXPORT
 AkResult
-ak_load(AkDoc ** __restrict dest,
+ak_load(AkDoc     ** __restrict dest,
         const char * __restrict url,
         .../* options */);
 
@@ -502,7 +506,7 @@ ak_getId(void * __restrict objptr);
 
 AK_EXPORT
 AkResult
-ak_setId(void * __restrict objptr,
+ak_setId(void       * __restrict objptr,
          const char * __restrict objectId);
 
 AK_EXPORT
@@ -512,7 +516,7 @@ ak_moveId(void * __restrict objptrOld,
 
 AK_EXPORT
 void *
-ak_getObjectById(AkDoc * __restrict doc,
+ak_getObjectById(AkDoc      * __restrict doc,
                  const char * __restrict objectId);
 
 AK_EXPORT
