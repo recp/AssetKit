@@ -24,7 +24,7 @@
 #include "postscript.h"
 #include "../id.h"
 
-#include "../../include/ak/path.h"
+#include "../../../include/ak/path.h"
 
 static ak_enumpair daeVersions[] = {
   {"1.5.0",             AK_COLLADA_VERSION_150},

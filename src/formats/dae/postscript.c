@@ -6,7 +6,7 @@
  */
 
 #include "postscript.h"
-#include "../xml.h"
+#include "../../xml.h"
 
 #include "1.4/dae14.h"
 

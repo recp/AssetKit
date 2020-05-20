@@ -8,12 +8,12 @@
 #ifndef __libassetkit__dae_common__h_
 #define __libassetkit__dae_common__h_
 
-#include "../../include/ak/assetkit.h"
-#include "../../include/ak/url.h"
-#include "../common.h"
-#include "../utils.h"
-#include "../tree.h"
-#include "../xml.h"
+#include "../../../include/ak/assetkit.h"
+#include "../../../include/ak/url.h"
+#include "../../common.h"
+#include "../../utils.h"
+#include "../../tree.h"
+#include "../../xml.h"
 #include "strpool.h"
 
 #include <ds/forward-list-sep.h>
