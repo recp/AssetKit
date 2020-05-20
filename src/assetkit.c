@@ -8,8 +8,9 @@
 #include "../include/ak/assetkit.h"
 
 #include "utils.h"
-#include "collada/dae.h"
-#include "gltf/gltf.h"
+#include "io/dae/dae.h"
+#include "io/gltf/gltf.h"
+#include "io/obj/wobj.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -42,7 +43,8 @@ ak_load(AkDoc ** __restrict dest,
   floader_t floaders[] = {
     {"dae",  dae_doc},
     {"gltf", gltf_gltf},
-    {"glb",  gltf_glb}
+    {"glb",  gltf_glb},
+//    {"obj",  wobj_obj}
   };
 
   floader = NULL;

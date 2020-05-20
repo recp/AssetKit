@@ -254,6 +254,6 @@ xmla_setid(const xml_t * __restrict xobject,
            void        * __restrict memptr) {
   xml_attr_t *att;
   
-  if ((att = xmla(xobject, _s_dae_id)))
+  if ((att = xmla(xobject, "id")))
     ak_setId(memptr, ak_heap_strndup(heap, memptr, att->val, att->valsize));
 }
