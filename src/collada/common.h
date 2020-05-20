@@ -123,8 +123,13 @@ typedef struct AkSkinDAE {
   AkSkinJointsDAE  joints;
   AkSkinWeightsDAE weights;
   uint32_t         inputCount;
-    uint32_t        reserved2;
 } AkSkinDAE;
+
+typedef struct AkMorphDAE {
+  AkURL            baseGeom;
+  AkSource        *source;
+  AkTree          *extra;
+} AkMorphDAE;
 
 AK_INLINE
 void

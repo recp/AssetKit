@@ -10,7 +10,7 @@
 
 #include "../common.h"
 
-AkObject* _assetkit_hide
+AkMorph* _assetkit_hide
 dae_morph(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp);
