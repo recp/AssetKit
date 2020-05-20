@@ -553,25 +553,6 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
 
             skin->nPrims = primIndex;
 
-//            /* free up old data */
-//            srci = skin->source;
-//            while (srci) {
-//              void *tofree;
-//
-//              tofree = srci;
-//              srci = srci->next;
-//
-//              ak_release(tofree);
-//            }
-//
-//            ak_free(skin->reserved[0]);
-//            ak_free(skin->reserved[1]);
-//            ak_free(skin->reserved[2]);
-//            ak_free(skin->reserved[3]);
-//            ak_free(skin->reserved[4]);
-//
-//            memset(skin->reserved, 0, sizeof(void *) * 5);
-
             ak_free(intrWeights);
 
             break;
