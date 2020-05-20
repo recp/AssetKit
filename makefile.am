@@ -92,7 +92,6 @@ libassetkit_la_SOURCES=\
     src/mem/intr.c \
     src/mem/ext.c \
     src/mem/mem.c \
-    src/ctlr/ctlr.c \
     src/morph/intr.c \
     src/skin/skin.c \
     src/skin/fix.c \
@@ -147,6 +146,7 @@ libassetkit_la_SOURCES=\
     src/bbox/geom.c \
     src/bbox/scene.c \
     src/collada/dae.c \
+    src/collada/ctlr.c \
     src/collada/postscript.c \
     src/collada/strpool.c \
     src/collada/fixup/tex.c \

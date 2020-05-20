@@ -10,26 +10,25 @@
 #include "source.h"
 #include "enum.h"
 
-AkObject* _assetkit_hide
+AkSkin* _assetkit_hide
 dae_skin(DAEState * __restrict dst,
          xml_t    * __restrict xml,
          void     * __restrict memp) {
   AkHeap      *heap;
-  AkObject    *obj;
   AkSkin      *skin;
+  AkSkinDAE   *skindae;
   const xml_t *sval;
   bool         foundBindShape;
 
   heap           = dst->heap;
-  obj            = ak_objAlloc(heap,
-                               memp,
-                               sizeof(*skin),
-                               AK_CONTROLLER_SKIN,
-                               true);
-  skin           = ak_objGet(obj);
+  skin           = ak_heap_calloc(heap, memp, sizeof(*skin));
+  skindae        = ak_heap_calloc(heap, skin, sizeof(*skindae));
   foundBindShape = false;
+  
+  ak_heap_setUserData(heap, skin, skindae);
+  flist_sp_insert(&dst->linkedUserData, skin);
 
-  url_set(dst, xml, _s_dae_source, memp, &skin->baseGeom);
+  url_set(dst, xml, _s_dae_source, memp, &skindae->baseGeom);
 
   xml = xml->val;
   while (xml) {
@@ -40,8 +39,8 @@ dae_skin(DAEState * __restrict dst,
     } else if (xml_tag_eq(xml, _s_dae_source)) {
       AkSource *source;
       if ((source = dae_source(dst, xml, NULL, 0))) {
-        source->next = skin->source;
-        skin->source = source;
+        source->next    = skindae->source;
+        skindae->source = source;
       }
     } else if (xml_tag_eq(xml, _s_dae_joints)) {
       AkInput *inp;
@@ -50,7 +49,7 @@ dae_skin(DAEState * __restrict dst,
       xjoints = xml->val;
       while (xjoints) {
         if (xml_tag_eq(xjoints, _s_dae_input)) {
-          inp              = ak_heap_calloc(heap, obj, sizeof(*inp));
+          inp              = ak_heap_calloc(heap, skin, sizeof(*inp));
           inp->semanticRaw = xmla_strdup_by(xjoints, heap, _s_dae_semantic, inp);
           
           if (!inp->semanticRaw) {
@@ -73,10 +72,10 @@ dae_skin(DAEState * __restrict dst,
             url           = url_from(xjoints, _s_dae_source, memp);
             
             if (inputSemantic == AK_INPUT_SEMANTIC_JOINT) {
-              skin->reserved[0] = inp;
+              skindae->joints.joints = inp;
               rb_insert(dst->inputmap, inp, url);
             } else if (inputSemantic == AK_INPUT_SEMANTIC_INV_BIND_MATRIX) {
-              skin->reserved[1] = inp;
+              skindae->joints.invBindMatrix = inp;
               rb_insert(dst->inputmap, inp, url);
             } else {
               /* do not support other inputs until needed,
@@ -92,12 +91,12 @@ dae_skin(DAEState * __restrict dst,
       AkInput       *inp;
       xml_t         *xwei;
       
-      wei  = ak_heap_calloc(heap, obj, sizeof(*wei));
+      wei  = ak_heap_calloc(heap, skin, sizeof(*wei));
       xwei = xml->val;
 
       while (xwei) {
         if (xml_tag_eq(xwei, _s_dae_input)) {
-          inp              = ak_heap_calloc(heap, obj, sizeof(*inp));
+          inp              = ak_heap_calloc(heap, skin, sizeof(*inp));
           inp->semanticRaw = xmla_strdup_by(xwei, heap, _s_dae_semantic, inp);
           
           if (!inp->semanticRaw) {
@@ -120,10 +119,10 @@ dae_skin(DAEState * __restrict dst,
             url           = url_from(xwei, _s_dae_source, memp);
             
             if (inputSemantic == AK_INPUT_SEMANTIC_JOINT) {
-              skin->reserved[2] = inp;
+              skindae->weights.joints = inp;
               rb_insert(dst->inputmap, inp, url);
             } else if (inputSemantic == AK_INPUT_SEMANTIC_WEIGHT) {
-              skin->reserved[3] = inp;
+              skindae->weights.weights = inp;
               rb_insert(dst->inputmap, inp, url);
             } else {
               /* do not support other inputs until needed,
@@ -131,7 +130,7 @@ dae_skin(DAEState * __restrict dst,
               ak_free(inp);
             }
             
-            skin->reserved2++;
+            skindae->inputCount++;
           }
         } else if (xml_tag_eq(xwei, _s_dae_vcount) && (sval = xmls(xwei))) {
           size_t    count, sz, i;
@@ -169,7 +168,7 @@ dae_skin(DAEState * __restrict dst,
           
           ret = xml_strtoui_array(heap, wei, sval, &intArray);
           if (ret == AK_OK)
-            skin->reserved[4] = intArray;
+            skindae->weights.v = intArray;
         } else if (xml_tag_eq(xwei, _s_dae_extra)) {
           wei->extra = tree_fromxml(heap, wei, xwei);
         }
@@ -178,7 +177,7 @@ dae_skin(DAEState * __restrict dst,
       
        skin->weights = (void *)wei;
     } else if (xml_tag_eq(xml, _s_dae_extra)) {
-      skin->extra = tree_fromxml(heap, obj, xml);
+      skindae->extra = tree_fromxml(heap, skindae, xml);
     }
     xml = xml->next;
   }
@@ -187,5 +186,5 @@ dae_skin(DAEState * __restrict dst,
     glm_mat4_identity(skin->bindShapeMatrix);
   }
 
-  return obj;
+  return skin;
 }

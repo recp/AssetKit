@@ -12,7 +12,6 @@ void
 ak_skinFixWeights(AkMesh * __restrict mesh) {
   AkHeap          *heap;
   AkDoc           *doc;
-  AkGeometry      *geom;
   AkMeshPrimitive *prim;
   AkSkin          *skin;
   FListItem       *skinItem;
@@ -34,12 +33,7 @@ ak_skinFixWeights(AkMesh * __restrict mesh) {
 
   /* fix every skin that attached to the mesh */
   do {
-    skin = skinItem->data;
-    geom = ak_skinBaseGeometry(skin);
-
-    if (ak_objGet(geom->gdata) != mesh)
-      goto skin_cont;
-
+    skin      = skinItem->data;
     prim      = mesh->primitive;
     primIndex = 0;
 
@@ -132,7 +126,6 @@ ak_skinFixWeights(AkMesh * __restrict mesh) {
       prim = prim->next;
     }
 
-  skin_cont:
     skinItem = skinItem->next;
   } while (skinItem);
 }

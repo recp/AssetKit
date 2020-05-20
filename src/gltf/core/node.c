@@ -275,11 +275,11 @@ gltf_node(AkGLTFState * __restrict gst,
     AkInstanceMorph *morpher;
     AkFloatArray    *weights;
     
-    morpher = ak_heap_alloc(heap, node, sizeof(*morpher));
-    weights   = ak_heap_calloc(heap,
-                               morpher,
-                               sizeof(*weights)
-                               + sizeof(weights->items[0]) * morph->targetCount);
+    morpher = ak_heap_calloc(heap, node, sizeof(*morpher));
+    weights = ak_heap_calloc(heap,
+                             morpher,
+                             sizeof(*weights)
+                             + sizeof(weights->items[0]) * morph->targetCount);
 
     if ((it = json_array(nodeMap[k_weights].object))) {
       json_array_t *jsonArr;

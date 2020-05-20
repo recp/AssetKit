@@ -31,6 +31,11 @@ typedef enum AkCOLLADAVersion {
   AK_COLLADA_VERSION_140 = 140
 } AkCOLLADAVersion;
 
+typedef enum AkControllerType {
+  AK_CONTROLLER_MORPH = 1,
+  AK_CONTROLLER_SKIN  = 2
+} AkControllerType;
+
 typedef struct AkURLQueue {
   AkURL *url;
   struct AkURLQueue *next;
@@ -46,6 +51,7 @@ typedef AK_ALIGN(16) struct DAEState {
   FListItem       *instCtlrs;
   FListItem       *inputs;
   FListItem       *toRadiansSampelers;
+  FListItem       *linkedUserData;
   RBTree          *meshInfo;
   RBTree          *inputmap;
   RBTree          *texmap;
@@ -73,15 +79,15 @@ typedef struct AkNewParam {
   AkValue           *val;
 } AkNewParam;
 
-typedef struct AkAccessorDAE {
-  struct AkDataParam  *param;
-  AkURL                source;
-  size_t               offset;
-  uint32_t             stride;
-  uint32_t             bound;
-} AkAccessorDAE;
+typedef struct AkController {
+  /* const char * id; */
+  const char          *name;
+  void                *data;
+  AkTree              *extra;
+  struct AkController *next;
+  AkControllerType     type;
+} AkController;
 
-/* TODO: Will be removed */
 typedef struct AkInstanceController {
   AkInstanceBase    base;
   AkURL             geometry;
@@ -89,6 +95,36 @@ typedef struct AkInstanceController {
   AkBindMaterial   *bindMaterial;
   struct FListItem *reserved;
 } AkInstanceController;
+
+typedef struct AkAccessorDAE {
+  struct AkDataParam *param;
+  AkURL               source;
+  size_t              offset;
+  uint32_t            stride;
+  uint32_t            bound;
+} AkAccessorDAE;
+
+typedef struct AkSkinJointsDAE {
+  AkInput *joints;
+  AkInput *invBindMatrix;
+} AkSkinJointsDAE;
+
+typedef struct AkSkinWeightsDAE {
+  AkInput     *joints;
+  AkInput     *weights;
+  AkUIntArray *v;
+} AkSkinWeightsDAE;
+
+typedef struct AkSkinDAE {
+  AkURL            baseGeom;
+  AkSource        *source;
+  AkTree          *extra;
+
+  AkSkinJointsDAE  joints;
+  AkSkinWeightsDAE weights;
+  uint32_t         inputCount;
+    uint32_t        reserved2;
+} AkSkinDAE;
 
 AK_INLINE
 void
@@ -159,5 +195,9 @@ url_from(xml_t      * __restrict xml,
   
   return url;
 }
+
+AK_EXPORT
+AkGeometry*
+ak_baseGeometry(AkURL * __restrict baseurl);
 
 #endif /* __libassetkit__dae_common__h_ */

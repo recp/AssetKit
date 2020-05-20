@@ -15,11 +15,6 @@ extern "C" {
 
 struct AkNode;
 
-typedef enum AkControllerType {
-  AK_CONTROLLER_MORPH = 1,
-  AK_CONTROLLER_SKIN  = 2
-} AkControllerType;
-
 typedef enum AkMorphMethod {
   AK_MORPH_METHOD_NORMALIZED = 1,
   AK_MORPH_METHOD_RELATIVE   = 2,
@@ -47,17 +42,10 @@ typedef struct AkSkin {
   struct AkNode  **joints;  /* global joints, check instanceController    */
   AkFloat4x4      *invBindPoses;
   AkBoneWeights  **weights; /* per primitive                              */
-  AkURL            baseGeom;
-  size_t           nJoints; /* cache: joint count                        */
-  uint32_t         nPrims;  /* cache: primitive count                    */
+  size_t           nJoints; /* cache: joint count                         */
+  uint32_t         nPrims;  /* cache: primitive count                     */
   uint32_t         nMaxJoints;
   AkFloat4x4       bindShapeMatrix;
-  
-  /* TODO: Will be removed */
-  AkSource       *source;
-  AkTree         *extra;
-  void           *reserved[5];
-  uint32_t        reserved2;
 } AkSkin;
 
 typedef struct AkMorphTarget {
@@ -87,14 +75,6 @@ typedef struct AkInstanceSkin {
   struct AkNode **overrideJoints;
 } AkInstanceSkin;
 
-typedef struct AkController {
-  /* const char * id; */
-  const char          *name;
-  AkObject            *data;
-  AkTree              *extra;
-  struct AkController *next;
-} AkController;
-
 /*!
  * @brief fill a buffer with JointID and JointWeight to feed GPU buffer
  *        you can send this buffer to GPU buffer (e.g. OpenGL) directly
@@ -106,7 +86,7 @@ typedef struct AkController {
  *           in ivec4 JOINTS;
  *           in vec4  WEIGHTS;
  *
- *        AkBoneWeights provides a struct JointID|HointWeight, if that is enough
+ *        AkBoneWeights provides a struct JointID|JointWeight, if that is enough
  *        for you then you do not need to use this func.
  *
  * @param source    source weights buffer
@@ -120,14 +100,6 @@ ak_skinFill(AkBoneWeights * __restrict source,
             uint32_t                   maxJoint,
             uint32_t                   itemCount,
             void         ** __restrict buff);
-
-AK_EXPORT
-AkGeometry*
-ak_baseGeometry(AkController * __restrict ctlr);
-
-AK_EXPORT
-AkGeometry*
-ak_skinBaseGeometry(AkSkin * __restrict skin);
 
 AK_EXPORT
 void

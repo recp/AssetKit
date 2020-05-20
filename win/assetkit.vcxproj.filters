@@ -105,9 +105,6 @@
     <Filter Include="src\coord">
       <UniqueIdentifier>{6baf1360-5a46-41cd-ae5d-a0e0e1b0f7e6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\ctlr">
-      <UniqueIdentifier>{741e9362-7cf0-42cc-b5b1-956ef9e13e29}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\inst">
       <UniqueIdentifier>{724e58f5-bb09-42d5-b543-9f33391e4364}</UniqueIdentifier>
     </Filter>
@@ -943,9 +940,6 @@
     <ClCompile Include="..\src\skin\fix.c">
       <Filter>src\skin</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\ctlr\ctlr.c">
-      <Filter>src\ctlr</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\instance\list.c">
       <Filter>src\inst</Filter>
     </ClCompile>
@@ -954,6 +948,9 @@
     </ClCompile>
     <ClCompile Include="..\src\morph\intr.c">
       <Filter>src\morph</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\collada\ctlr.c">
+      <Filter>src\collada</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

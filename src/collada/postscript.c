@@ -171,15 +171,15 @@ dae_fixup_accessors(DAEState * __restrict dst) {
       else
         goto cont;
 
-      count                    = acc->count;
-      acc->byteStride          = accdae->stride * componentBytes;
-      acc->byteLength          = count * accdae->stride * componentBytes;
-      acc->byteOffset          = accdae->offset * componentBytes;
-      accdae->bound            = accdae->stride;
-    
-      acc->fillByteSize        = accdae->bound * componentBytes;
-      acc->componentCount      = accdae->bound;
-      acc->componentBytes      = componentBytes;
+      count               = acc->count;
+      acc->byteStride     = accdae->stride * componentBytes;
+      acc->byteLength     = count * accdae->stride * componentBytes;
+      acc->byteOffset     = accdae->offset * componentBytes;
+      accdae->bound       = accdae->stride;
+
+      acc->fillByteSize   = accdae->bound * componentBytes;
+      acc->componentCount = accdae->bound;
+      acc->componentBytes = componentBytes;
 
       /*--------------------------------------------------------------------*
 
@@ -270,6 +270,7 @@ ak_fixBoneWeights(AkHeap        *heap,
                   AkAccessor    *weightsAcc,
                   uint32_t       jointOffset,
                   uint32_t       weightsOffset) {
+  AkSkinDAE    *skindae;
   AkBoneWeight *w, *iw;
   AkBuffer     *weightsBuff;
   AkUIntArray  *dupc, *dupcsum, *v;
@@ -283,11 +284,12 @@ ak_fixBoneWeights(AkHeap        *heap,
   vc      = nMeshVertex;
   nj      = weights->counts;
   wi      = weights->indexes;
+  skindae = ak_userData(skin);
   nwsum   = count = 0;
 
   if (!(weightsBuff = weightsAcc->buffer)
       || !(pWeights = weightsBuff->data)
-      || !(v        = skin->reserved[4])
+      || !(v        = skindae->weights.v)
       || !(pv       = v->items))
     return AK_ERR;
 
@@ -297,7 +299,7 @@ ak_fixBoneWeights(AkHeap        *heap,
 
   pOldCount    = intrWeights->counts;
   pOldCountSum = intrWeights->counts + intrWeights->nVertex;
-  viStride     = skin->reserved2; /* input count in <v> element */
+  viStride     = skindae->inputCount; /* input count in <v> element */
 
   /* copy to new location and duplicate if needed */
   for (i = 0; i < vc; i++) {
@@ -363,6 +365,7 @@ ak_fixBoneWeights(AkHeap        *heap,
 
 void _assetkit_hide
 dae_fixup_instctlr(DAEState * __restrict dst) {
+  AkSkinDAE            *skindae;
   FListItem            *item;
   AkInstanceController *instCtlr;
   AkController         *ctlr;
@@ -378,7 +381,7 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
 
     instGeom = ak_heap_calloc(dst->heap, node, sizeof(*instGeom));
 
-    switch (ctlr->data->type) {
+    switch (ctlr->type) {
       case AK_CONTROLLER_SKIN: {
         AkInstanceSkin *instSkin;
         AkSkin         *skin;
@@ -392,11 +395,13 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
         AkFloat4x4     *invm;
         size_t          count, i;
 
+        skin      = ctlr->data;
+        skindae   = ak_userData(skin);
         instSkin  = ak_heap_calloc(dst->heap, node, sizeof(*instSkin));
 
-        skin      = ak_objGet(ctlr->data);
-        jointsInp = skin->reserved[0];
-        matrixInp = skin->reserved[1];
+        skin      = ctlr->data;
+        jointsInp = skindae->joints.joints;
+        matrixInp = skindae->joints.invBindMatrix;
         invm      = NULL;
         joints    = NULL;
 
@@ -446,7 +451,7 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
           /* create instance geometry for skin */
           instGeom->skinner      = instSkin;
           instGeom->bindMaterial = instCtlr->bindMaterial;
-          instGeom->base.object  = skin->baseGeom.ptr;
+          instGeom->base.object  = skindae->baseGeom.ptr;
           ak_heap_setpm(instCtlr->bindMaterial, instGeom);
           
           instGeom->base.next = (AkInstanceBase *)node->geometry;
@@ -455,6 +460,7 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
           node->geometry = instGeom;
         }
       }
+      default: break;
     }
     item = item->next;
   }
@@ -468,13 +474,15 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
   doc  = dst->doc;
   ctlr = (void *)dst->doc->lib.controllers->chld;
   while (ctlr) {
-    switch (ctlr->data->type) {
+    switch (ctlr->type) {
       case AK_CONTROLLER_SKIN: {
         AkSkin     *skin;
+        AkSkinDAE  *skindae;
         AkGeometry *geom;
 
-        skin = ak_objGet(ctlr->data);
-        if (!(geom = ak_skinBaseGeometry(skin))) {
+        skin    = ctlr->data;
+        skindae = ak_userData(skin);
+        if (!(geom = ak_baseGeometry(&skindae->baseGeom))) {
           goto nxt_ctlr;
         }
 
@@ -499,8 +507,8 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
                                           sizeof(void *)
                                           * mesh->primitiveCount);
 
-            jointswInp  = skin->reserved[2];
-            weightsInp  = skin->reserved[3];
+            jointswInp  = skindae->weights.joints;
+            weightsInp  = skindae->weights.weights;
 
             weightsAcc  = weightsInp->accessor;
 

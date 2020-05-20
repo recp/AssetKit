@@ -47,30 +47,30 @@ typedef struct AkNode {
   /* const char * id;  */
   /* const char * sid; */
 
-  const char                  *name;
-  AkNodeFlags                  flags;
-  AkNodeType                   nodeType;
-  AkStringArray               *layer;
-  struct AkTransform          *transform;
+  const char           *name;
+  AkNodeFlags           flags;
+  AkNodeType            nodeType;
+  AkStringArray        *layer;
+  struct AkTransform   *transform;
 
   /* only avilable if library is forced to calculate them
      check these two matrix to avoid extra or same calculation
    */
-  struct AkMatrix             *matrix;
-  struct AkMatrix             *matrixWorld;
-  struct AkBoundingBox        *bbox;
+  struct AkMatrix      *matrix;
+  struct AkMatrix      *matrixWorld;
+  struct AkBoundingBox *bbox;
   
-  AkInstanceGeometry          *geometry;
-  AkInstanceBase              *camera;
-  AkInstanceBase              *light;
-  AkInstanceNode              *node;
+  AkInstanceGeometry   *geometry;
+  AkInstanceBase       *camera;
+  AkInstanceBase       *light;
+  AkInstanceNode       *node;
 
-  AkTree                      *extra;
+  AkTree               *extra;
 
-  struct AkNode               *prev;
-  struct AkNode               *next;
-  struct AkNode               *chld;
-  struct AkNode               *parent;
+  struct AkNode        *prev;
+  struct AkNode        *next;
+  struct AkNode        *chld;
+  struct AkNode        *parent;
 } AkNode;
 
 AK_EXPORT

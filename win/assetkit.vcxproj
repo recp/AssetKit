@@ -368,6 +368,7 @@
     <ClCompile Include="..\src\collada\core\triangle.c" />
     <ClCompile Include="..\src\collada\core\value.c" />
     <ClCompile Include="..\src\collada\core\vert.c" />
+    <ClCompile Include="..\src\collada\ctlr.c" />
     <ClCompile Include="..\src\collada\dae.c" />
     <ClCompile Include="..\src\collada\fixup\angle.c" />
     <ClCompile Include="..\src\collada\fixup\geom.c" />
@@ -395,7 +396,6 @@
     <ClCompile Include="..\src\coord\transform.c" />
     <ClCompile Include="..\src\coord\transforms.c" />
     <ClCompile Include="..\src\coord\vector.c" />
-    <ClCompile Include="..\src\ctlr\ctlr.c" />
     <ClCompile Include="..\src\data.c" />
     <ClCompile Include="..\src\default\cam.c" />
     <ClCompile Include="..\src\default\cmp.c" />

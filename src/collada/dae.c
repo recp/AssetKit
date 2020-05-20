@@ -61,6 +61,7 @@ dae_doc(AkDoc     ** __restrict dest,
   xml_attr_t        *versionAttr;
   void              *xmlString;
   AkLibraries       *libs;
+  FListItem         *freeUsrData;
   DAEState           dstVal, *dst;
   size_t             xmlSize;
   AkResult           ret;
@@ -163,6 +164,20 @@ dae_doc(AkDoc     ** __restrict dest,
 
   /* post-parse operations */
   dae_postscript(dst);
+
+  /* cleanup up details */
+  freeUsrData = dst->linkedUserData;
+  while (freeUsrData) {
+    void *tofree;
+
+    if ((tofree = ak_userData(freeUsrData->data)))
+      ak_free(tofree);
+
+    ak_heap_ext_rm(heap, ak__alignof(freeUsrData->data), AK_HEAP_NODE_FLAGS_USR);
+    freeUsrData = freeUsrData->next;
+  }
+
+  flist_sp_destroy(&dst->linkedUserData);
 
   if (xdoc)
     free((void *)xdoc);
