@@ -33,8 +33,8 @@ copyright_str = """\
  */
 """
 
-fspool_h.write(copyright_str)
-fspool_c.write(copyright_str)
+fspool_h.write(copyright_str.encode())
+fspool_c.write(copyright_str.encode())
 
 fspool_h.write("""
 #ifndef gltf_strpool_h
@@ -45,7 +45,7 @@ fspool_h.write("""
 #else
 #  define _AK_EXTERN
 #endif
-""")
+""".encode())
 
 fspool_c.write("""
 #ifndef _GLTF_STRPOOL_
@@ -56,11 +56,11 @@ fspool_c.write("""
 #include <string.h>
 
 const char _s_gltf_pool_0[] =
-""")
+""".encode())
 
 headerContents.append("\n/* _s_gltf_pool_0 */\n")
 
-for name, val in spool.iteritems():
+for name, val in spool.items():
   valLen = len(val) + 1
 
   # string literal size: 2048
@@ -69,13 +69,12 @@ for name, val in spool.iteritems():
     spidx += 1
 
     fspool_c.write(";\n\nconst char _s_gltf_pool_{0}[] =\n"
-                     .format(str(spidx)))
+                     .format(str(spidx)).encode())
 
     headerContents.append("\n/* _s_gltf_pool_{0} */\n"
                             .format(spidx))
 
-  fspool_c.write("\"{0}\\0\"\n"
-                   .format(val))
+  fspool_c.write("\"{0}\\0\"\n".format(val).encode())
 
   headerContents.append("#define _s_gltf_{0} _s_gltf_{1}({2})\n"
                           .format(name, str(spidx), str(pos)))
@@ -83,23 +82,23 @@ for name, val in spool.iteritems():
   pos += valLen
 
 # source file, then close it
-fspool_c.write(";\n\n#undef _GLTF_STRPOOL_\n")
+fspool_c.write(";\n\n#undef _GLTF_STRPOOL_\n".encode())
 fspool_c.close()
 
 # header file
 for idx in range(spidx + 1):
   fspool_h.write("\n_AK_EXTERN const char _s_gltf_pool_{0}[];"
-                   .format(str(idx)))
+                   .format(str(idx)).encode())
 
-fspool_h.write("\n\n")
+fspool_h.write("\n\n".encode())
 
 for idx in range(spidx + 1):
   fspool_h.write("#define _s_gltf_{0}(x) (_s_gltf_pool_{0} + x)\n"
-                   .format(str(idx)))
+                   .format(str(idx)).encode())
 
 # write header contents, then close it
-fspool_h.writelines(headerContents)
-fspool_h.write("\n#endif /* gltf_strpool_h */\n")
+fspool_h.writelines(map(lambda x: x.encode(), headerContents))
+fspool_h.write("\n#endif /* gltf_strpool_h */\n".encode())
 fspool_h.close()
 
 # try free array
