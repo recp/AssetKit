@@ -1,11 +1,33 @@
-# 🎨 AssetKit
-[![Build Status](https://travis-ci.org/recp/assetkit.svg?branch=master)](https://travis-ci.org/recp/assetkit)
-[![Build status](https://ci.appveyor.com/api/projects/status/e52s0fr8mnbmsqy4?svg=true)](https://ci.appveyor.com/project/recp/assetkit)
-[![Coverage Status](https://coveralls.io/repos/github/recp/assetkit/badge.svg?branch=master)](https://coveralls.io/github/recp/assetkit?branch=master)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/6edde2ba446148759437eb0148c799b6)](https://www.codacy.com/app/recp/assetkit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=recp/assetkit&amp;utm_campaign=Badge_Grade)
-![status](https://img.shields.io/badge/glTF-2%2E0-green.svg?style=flat)
+<p align="center">
+   <img alt="" src="assetkit.png" style="max-width: 600px" />
+</p>
+<br>
 
+<p align="center">
+    <a href="https://travis-ci.org/recp/assetkit">
+        <img src="https://travis-ci.org/recp/assetkit.svg?branch=master"
+             alt="Build Status">
+    </a>
+    <a href="https://ci.appveyor.com/project/recp/assetkit">
+        <img src="https://ci.appveyor.com/api/projects/status/e52s0fr8mnbmsqy4?svg=true"
+             alt="Build Status">
+    </a>
+    <a href="https://www.codacy.com/app/recp/assetkit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=recp/assetkit&amp;utm_campaign=Badge_Grade">
+        <img src="https://api.codacy.com/project/badge/Grade/6edde2ba446148759437eb0148c799b6"
+             alt="Codacy Badge"/>
+    </a>
+    <a href="https://coveralls.io/github/recp/assetkit?branch=master">
+        <img src="https://coveralls.io/repos/github/recp/assetkit/badge.svg?branch=master"
+             alt="Coverage Status"/>
+    </a>
+    <img src="https://img.shields.io/badge/glTF-2%2E0-green.svg?style=flat"
+         alt="glTF Badge">
+    <br />
+</p>
 
+<br>
+
+<p align="center">
 3D asset importer, exporter library. This library also includes common 3D utils funcs. It is written with C99 but C++ wrappers or other language bindings can be written in the future.
 
 This library will full support COLLADA specs and glTF specs, plus other 3D formats e.g .obj, .stl maybe supported by sub-libraries e.g. assetkit-stl, assetkit-fbx.
@@ -13,6 +35,7 @@ This library will full support COLLADA specs and glTF specs, plus other 3D forma
 There is also an optional renderer library called [libgk](https://github.com/recp/libgk) for render AssetKit contents. You can see how to load AssetKit to libgk in [assetkit-gl](https://github.com/recp/assetkit-gl) lib/repo.
 
 I've also created a basic program (included a screenshot of render result and dae) to show full steps: [simple-collada-viewer](http://github.com/recp/simple-collada-viewer) (todo: outdated.)
+</p>
 
 <table>
 <tr>
