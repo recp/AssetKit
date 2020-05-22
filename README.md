@@ -1,5 +1,5 @@
 <p align="center">
-   <img alt="" src="assetkit.png" width="600" />
+   <img alt="" src="assetkit.png" width="550" />
 </p>
 <br>
 
