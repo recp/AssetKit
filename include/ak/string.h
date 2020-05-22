@@ -45,6 +45,13 @@ ak_strtof_fast(char    * __restrict src,
 
 AK_EXPORT
 unsigned long
+ak_strtof_fast_line(char    * __restrict src,
+                    size_t               srclen,
+                    unsigned long        n,
+                    AkFloat * __restrict dest);
+
+AK_EXPORT
+unsigned long
 ak_strtod_fast(char     * __restrict src,
                size_t                srclen,
                unsigned long         n,
@@ -63,6 +70,13 @@ ak_strtoi_fast(char    * __restrict src,
                size_t               srclen,
                unsigned long        n,
                AkInt   * __restrict dest);
+
+AK_EXPORT
+unsigned long
+ak_strtoi_fast_line(char    * __restrict src,
+                    size_t               srclen,
+                    unsigned long        n,
+                    AkInt   * __restrict dest);
 
 AK_EXPORT
 unsigned long

@@ -65,6 +65,10 @@
 #define AK_ARRAY_SEP_CHECK (c == ' ' || c == '\n' || c == '\t' \
                               || c == '\r' || c == '\f' || c == '\v')
 
+#define AK_ARRAY_SEPLINE_CHECK (c == ' ' || c == '\t'  || c == '\f' || c == '\v')
+#define AK_ARRAY_SPACE_CHECK (c == ' ' || c == '\t' || c == '\f' || c == '\v')
+#define AK_ARRAY_NLINE_CHECK (c == '\n' || c == '\r')
+
 typedef struct ak_enumpair {
   const char *key;
   AkEnum      val;
@@ -99,6 +103,10 @@ ak_cmp_i32(void *key1, void *key2);
 AK_EXPORT
 int
 ak_cmp_vec3(void * key1, void *key2);
+
+AK_EXPORT
+int
+ak_cmp_vec4(void *key1, void *key2);
 
 typedef int (*AkCmpFn)(void * key1, void *key2);
 

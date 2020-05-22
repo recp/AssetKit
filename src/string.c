@@ -177,6 +177,50 @@ ak_strtof_fast(char    * __restrict src,
 
 AK_EXPORT
 unsigned long
+ak_strtof_fast_line(char    * __restrict src,
+                    size_t               srclen,
+                    unsigned long        n,
+                    AkFloat * __restrict dest) {
+  char *tok, *tok_end, *end;
+  char  c;
+
+  if (n == 0)
+    return 0;
+
+  dest = dest + n - 1ul;
+  tok = src;
+
+  if (srclen != 0) {
+    end = src + srclen;
+    
+    do {
+      while (tok < end && ((void)(c = *tok), AK_ARRAY_SEPLINE_CHECK))
+        tok++;
+      
+      *(dest - --n) = strtof(tok, &tok_end);
+      tok = tok_end;
+      
+      while (tok < end && ((void)(c = *tok), AK_ARRAY_SEPLINE_CHECK))
+        tok++;
+    } while (n > 0ul && tok < end);
+  } else {
+    do {
+      while (((void)(c = *tok), AK_ARRAY_SEPLINE_CHECK))
+        tok++;
+      
+      *(dest - --n) = strtof(tok, &tok_end);
+      tok = tok_end;
+      
+      while (((void)(c = *tok), AK_ARRAY_SEPLINE_CHECK))
+        tok++;
+    } while (n > 0ul && *tok != '\0');
+  }
+
+  return n;
+}
+
+AK_EXPORT
+unsigned long
 ak_strtod_fast(char     * __restrict src,
                size_t                srclen,
                unsigned long         n,
@@ -300,6 +344,50 @@ ak_strtoi_fast(char    * __restrict src,
       tok = tok_end;
       
       while (((void)(c = *tok), AK_ARRAY_SEP_CHECK))
+        tok++;
+    } while (n > 0ul && *tok != '\0');
+  }
+  
+  return n;
+}
+
+AK_EXPORT
+unsigned long
+ak_strtoi_fast_line(char    * __restrict src,
+                    size_t               srclen,
+                    unsigned long        n,
+                    AkInt   * __restrict dest) {
+  char *tok, *tok_end, *end;
+  char  c;
+  
+  if (n == 0)
+    return 0;
+  
+  dest = dest + n - 1ul;
+  tok = src;
+  
+  if (srclen != 0) {
+    end = src + srclen;
+    
+    do {
+      while (tok < end && ((void)(c = *tok), AK_ARRAY_SEPLINE_CHECK))
+        tok++;
+      
+      *(dest - --n) = (AkUInt)strtol(tok, &tok_end, 10);
+      tok = tok_end;
+      
+      while (tok < end && ((void)(c = *tok), AK_ARRAY_SEPLINE_CHECK))
+        tok++;
+    } while (n > 0ul && tok < end);
+  } else {
+    do {
+      while (((void)(c = *tok), AK_ARRAY_SEPLINE_CHECK))
+        tok++;
+      
+      *(dest - --n) = (AkUInt)strtol(tok, &tok_end, 10);
+      tok = tok_end;
+      
+      while (((void)(c = *tok), AK_ARRAY_SEPLINE_CHECK))
         tok++;
     } while (n > 0ul && *tok != '\0');
   }
