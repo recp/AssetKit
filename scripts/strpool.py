@@ -13,8 +13,8 @@ from os.path import dirname
 basedir = dirname(realpath(__file__)) + '/../'
 
 strpools = [
-  'io/dae/strpool.py',
-  'io/gltf/strpool.py'
+  'src/io/dae/strpool.py',
+  'src/io/gltf/strpool.py'
 ]
 
 for sp in strpools:
