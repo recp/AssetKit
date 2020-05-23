@@ -37,6 +37,28 @@ There is also an optional renderer library called [libgk](https://github.com/rec
 I've also created a basic program (included a screenshot of render result and dae) to show full steps: [simple-collada-viewer](http://github.com/recp/simple-collada-viewer) (todo: outdated.)
 </p>
 
+## Features
+
+- Single interface for glTF 2.0 (with extensions), COLLADA 1.4/1.4.1/1.5, Wawefront Obj and others...
+- Very very small and very fast library
+- Javascript-like API to get URL or ID `obj = ak_getObjectById(doc, objectId)`...
+- Options to Generate Mesh Normals *(Default: enabled)*
+- Option to Triangulate Polygons *(Default: enabled)*
+- Option to change Coordinate System *(Default: enabled)*
+- Option to calculate Bounding Boxes *(Default: enabled)*
+- Unique and Flexible Coordinate System
+  - Support multiple coordinate system
+  - Can convert any coordinate system to another with adding transform or with changing transform, vertex data...
+- Unique and Flexible Memory Management System
+  - Hierarchical unique memory management
+    - When a node is freed then all sub memories will be freed
+  - COLLADA's **sid** and **ID** values are mapped to memory nodes itself to reduce memory size and make it easy to manage things.
+  - Allow attach ID, sid or user data to a memory node
+- Will be optimized to be fastest, smallest and most flexible, extendible Asset loader.
+- [ ] Documentation
+- [ ] Cmake support
+- [ ] Tests
+
 <table>
 <tr>
 <td width="50%">
@@ -134,36 +156,6 @@ I've also created a basic program (included a screenshot of render result and da
 - [ ] Kinematics
 - [ ] ZAE
 - [ ] More to work on...
-</td>
-</tr>
-<tr>
-<td colspan="2">
-
-<div style="text-align: center">
-<h3>Common</h3>
-<div>
-
-<div style="text-align: left">
-
-- ✅ Options to Generate Mesh Normals *(Default: enabled)*
-- ✅ Option to Triangulate Polygons *(Default: enabled)*
-- ✅ Option to change Coordinate System *(Default: enabled)*
-- ✅ Option to calculate Bounding Boxes *(Default: enabled)*
-- ✅ Unique and Flexible Coordinate System
-  - Support multiple coordinate system
-  - Can convert any coordinate system to another with adding transform or with changing transform, vertex data...
-- ✅ Unique and Flexible Memory Management System
-  - Hierarchical unique memory management
-    - When a node is freed then all sub memories will be freed
-  - COLLADA's **sid** and **ID** values are mapped to memory nodes itself to reduce memory size and make it easy to manage things.
-  - Allow attach ID, sid or user data to a memory node
-- ✅ Very very small and very fast library
-- ✅ Javascript-like API to get URL or ID `obj = ak_getObjectById(doc, objectId)`...
-- ✅ Will be optimized to be fastest, smallest and most flexible, extendible Asset loader.
-- [ ] Documentation
-- [ ] Cmake support
-- [ ] Tests
-</div>
 </td>
 </tr>
 </table>
