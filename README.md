@@ -37,9 +37,22 @@ There is also an optional renderer library called [libgk](https://github.com/rec
 I've also created a basic program (included a screenshot of render result and dae) to show full steps: [simple-collada-viewer](http://github.com/recp/simple-collada-viewer) (todo: outdated.)
 </p>
 
+## Supported Formats
+
+* [x] COLLADA 1.4 and COLLADA 1.4.1
+* [x] COLLADA 1.5
+* [x] glTF 2.0
+* [ ] Wavefront Obj (working on this)
+* [ ] Stl
+* [ ] Ply
+* [ ] USD and friends (License?)
+* [ ] Alembic (License?)
+* [ ] Draco
+* [x] in progress for next...
+
 ## Features
 
-- Single interface for glTF 2.0 (with extensions), COLLADA 1.4/1.4.1/1.5, Wawefront Obj and others...
+- Single interface for glTF 2.0 (with extensions), COLLADA 1.4/1.4.1/1.5, Wavefront Obj and others...
 - Very very small and very fast library
 - Javascript-like API to get URL or ID `obj = ak_getObjectById(doc, objectId)`...
 - Options to Generate Mesh Normals *(Default: enabled)*
