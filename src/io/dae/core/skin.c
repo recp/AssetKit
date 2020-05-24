@@ -169,9 +169,13 @@ dae_skin(DAEState * __restrict dst,
           ret = xml_strtoui_array(heap, wei, sval, &intArray);
           if (ret == AK_OK)
             skindae->weights.v = intArray;
-        } else if (xml_tag_eq(xwei, _s_dae_extra)) {
+        }
+        
+        /*
+        else if (xml_tag_eq(xwei, _s_dae_extra)) {
           wei->extra = tree_fromxml(heap, wei, xwei);
         }
+        */
         xwei = xwei->next;
       }
       
