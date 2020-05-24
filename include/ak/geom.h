@@ -69,7 +69,6 @@ typedef struct AkJointDesc {
 } AkJointDesc;
 
 typedef struct AkMeshPrimitive {
-  AkMeshPrimitiveType     type;
   struct AkMeshPrimitive *next;
   struct AkMesh          *mesh;
   AkBoundingBox          *bbox;   /* per-primitive bbox */
@@ -79,10 +78,9 @@ typedef struct AkMeshPrimitive {
   AkInput                *input;
   AkInput                *pos;
   AkUIntArray            *indices;
-  uint32_t               *jointCounts;
-  size_t                 *jointIndexes;
   AkTree                 *extra;
   void                   *udata;
+  AkMeshPrimitiveType     type;
   uint32_t                count;
   uint32_t                inputCount;
   AkFloat3                center;
