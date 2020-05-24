@@ -27,20 +27,17 @@ typedef struct AkBoneWeight {
 } AkBoneWeight;
 
 typedef struct AkBoneWeights {
-  uint32_t     *counts;    /* joint count per vertex                     */
-  size_t       *indexes;   /* offset of weight at buffer by index        */
+  uint32_t     *counts;     /* joint count per vertex                     */
+  size_t       *indexes;    /* offset of weight at buffer by index        */
   AkBoneWeight *weights;
-  size_t        nWeights;  /* cache: count of weights                    */
-  size_t        nVertex;   /* cache: count of pJointsCount/pWeightsIndex */
-  
-  /* TODO: Will be removed */
-  AkTree       *extra;
+  size_t        nWeights;   /* cache: count of weights                    */
+  size_t        nVertex;    /* cache: count of pJointsCount/pWeightsIndex */
 } AkBoneWeights;
 
 typedef struct AkSkin {
   AkOneWayIterBase base;
-  struct AkNode  **joints;  /* global joints, check instanceController    */
   AkFloat4x4      *invBindPoses;
+  struct AkNode  **joints;  /* default joints                             */
   AkBoneWeights  **weights; /* per primitive                              */
   size_t           nJoints; /* cache: joint count                         */
   uint32_t         nPrims;  /* cache: primitive count                     */
@@ -67,12 +64,12 @@ typedef struct AkMorph {
 
 typedef struct AkInstanceMorph {
   AkMorph      *morph;
-  AkFloatArray *overrideWeights; /* override default weights or NULL */
+  AkFloatArray *overrideWeights;  /* override default weights or NULL */
 } AkInstanceMorph;
 
 typedef struct AkInstanceSkin {
   AkSkin         *skin;
-  struct AkNode **overrideJoints;
+  struct AkNode **overrideJoints; /* override default joints or NULL  */
 } AkInstanceSkin;
 
 /*!
@@ -101,6 +98,17 @@ ak_skinFill(AkBoneWeights * __restrict source,
             uint32_t                   itemCount,
             void         ** __restrict buff);
 
+/*!
+* @brief inspect a morph to get bufferSize and bufferStride to alloc memory for
+*        interleaved morph buffer with desired inputs,
+*        (other inputs will be ignored)
+*
+* @param[out] bufferSize         buffer size in bytes
+* @param[out] byteStride         target byte stride in bytes
+* @param[in]  morph              AkMorph object
+* @param[in]  desiredInputs      desired inputs (other inputs will be ignored)
+* @param[in]  desiredInputsCount desired inputs count
+*/
 AK_EXPORT
 void
 ak_morphInterleaveInspect(size_t  * __restrict bufferSize,
@@ -109,6 +117,22 @@ ak_morphInterleaveInspect(size_t  * __restrict bufferSize,
                           AkInputSemantic      desiredInputs[],
                           uint8_t              desiredInputsCount);
 
+/*!
+* @brief interleave morph object with desired inputs with desired input orders.
+*
+*        Make sure that you called ak_morphInterleaveInspect() to get buffSize
+*        and alloc a buffer with that size.
+*
+*        All inputs except desired inputs will be ignored. If morph object don't
+*        contain a desired input than it will be ignored too.
+*
+*        You can send this buffer to GPU and use directly.
+*
+* @param[out] buff               pre-allocated buffer
+* @param[in]  morph              AkMorph object
+* @param[in]  desiredInputs      desired inputs (other inputs will be ignored)
+* @param[in]  desiredInputsCount desired inputs count
+*/
 AK_EXPORT
 void
 ak_morphInterleave(void    * __restrict buff,
