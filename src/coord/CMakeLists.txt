@@ -1,0 +1,14 @@
+target_sources(${PROJECT_NAME} 
+  PRIVATE
+  camera.c
+  common.h
+  common.c
+  doc.c
+  geom.c
+  mesh.c
+  node.c
+  scene.c
+  transform.c
+  transforms.c
+  vector.c
+)

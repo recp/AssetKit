@@ -1,0 +1,9 @@
+target_sources(${PROJECT_NAME} 
+  PRIVATE
+  bbox.h
+  bbox.c
+  geom.c
+  mesh_prim.c
+  mesh.c
+  scene.c
+)

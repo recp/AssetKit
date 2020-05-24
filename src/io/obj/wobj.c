@@ -15,6 +15,7 @@
  */
 
 #include "wobj.h"
+#include "common.h"
 #include "../../id.h"
 #include "../../data.h"
 #include "../../../include/ak/path.h"

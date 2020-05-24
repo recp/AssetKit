@@ -507,10 +507,12 @@ ak_meshFixIndexBuffer(AkMesh          * __restrict mesh,
                       AkMeshPrimitive * __restrict prim,
                       AkDuplicator    * __restrict duplicator);
 
+AK_EXPORT
 void
 ak_inputNameBySet(AkInput * __restrict input,
                   char    * __restrict buf);
 
+AK_EXPORT
 AkInput*
 ak_meshInputGet(AkMeshPrimitive *prim,
                 const char      *inputSemantic,

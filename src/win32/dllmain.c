@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include "config.h"
-#include "mem/common.h"
+#include "../config.h"
+#include "../mem/common.h"
 
 void
 AK_CONSTRUCTOR
