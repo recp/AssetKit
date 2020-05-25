@@ -892,7 +892,7 @@ static void    *stbi__pnm_load(stbi__context *s, int *x, int *y, int *comp, int 
 static int      stbi__pnm_info(stbi__context *s, int *x, int *y, int *comp);
 #endif
 
-static
+STBIDEF
 #ifdef STBI_THREAD_LOCAL
 STBI_THREAD_LOCAL
 #endif
