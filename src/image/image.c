@@ -26,7 +26,7 @@
 #define STBI_FREE(p)              ak_free(p)
 
 #define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
+#include "stb_image.h"
 
 #pragma GCC diagnostic pop
 
