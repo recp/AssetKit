@@ -175,6 +175,38 @@ I've also created a basic program (included a screenshot of render result and da
 
 ## Build
 
+### CMake (All platforms)
+```bash
+$ mkdir build
+$ cd build
+$ cmake .. # [Optional] -DAK_SHARED=ON
+$ make
+$ sudo make install # [Optional]
+```
+
+##### Cmake options with Defaults:
+
+```CMake
+option(AK_SHARED "Shared build" ON)
+option(AK_STATIC "Static build" OFF)
+option(AK_USE_TEST "Enable Tests" OFF) # for make check - make test
+```
+
+#### Use with your CMake project
+* Example:
+```cmake
+cmake_minimum_required(VERSION 3.8.2)
+
+project(<Your Project Name>)
+
+add_executable(${PROJECT_NAME} src/main.c)
+target_link_libraries(${LIBRARY_NAME} PRIVATE assetkit)
+
+add_subdirectory(external/assetkit/)
+
+# or you can use find_package() to configure assetkit
+```
+
 ### Unix (Autotools)
 Step 1: First you should build dependencies, do this only once:
 ```bash

@@ -50,48 +50,56 @@ include(CPack)
 
 # Target Start
 add_library(${PROJECT_NAME} ${AK_BUILD} "")
-
-add_subdirectory(src)
-
-set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/lib/)
-find_package(ds)
-
-
-# include_directories(
-#   PUBLIC
-  
-#   ${PROJECT_SOURCE_DIR}/include
-  
-#   PRIVATE
-  
-#   ${PROJECT_SOURCE_DIR}/lib/cglm/include
-#   ${PROJECT_SOURCE_DIR}/lib/libds/include
-#   ${PROJECT_SOURCE_DIR}/lib/json/include
-#   ${PROJECT_SOURCE_DIR}/lib/xml/include
-#   ${PROJECT_SOURCE_DIR}/lib/stb
-# )
-
-# link_directories(
-#   PRIVATE
-#   ${PROJECT_SOURCE_DIR}/lib/libds/.libs
-# )
-
-target_link_libraries(${PROJECT_NAME} INTERFACE ${ds})
-
 set_target_properties(${PROJECT_NAME} PROPERTIES
                               VERSION ${PROJECT_VERSION} 
                             SOVERSION ${PROJECT_VERSION_MAJOR})
 
-target_include_directories(${PROJECT_NAME} PRIVATE include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+add_subdirectory(src)
 
-# Install 
-install(TARGETS ${PROJECT_NAME}
-        EXPORT  ${PROJECT_NAME}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+# Dependencies && Submodules
 
-install(DIRECTORY include/${PROJECT_NAME} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-        PATTERN ".*" EXCLUDE)
+find_package(Git QUIET)
+if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
+# Update submodules as needed
+    option(GIT_SUBMODULE "Check submodules during build" ON)
+    if(GIT_SUBMODULE)
+        message(STATUS "Submodule update")
+        execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
+                        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                        RESULT_VARIABLE GIT_SUBMOD_RESULT)
+        if(NOT GIT_SUBMOD_RESULT EQUAL "0")
+            message(FATAL_ERROR "git submodule update --init failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
+        endif()
+    endif()
+endif()
+
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/lib/cglm/CMakeLists.txt")
+    message(FATAL_ERROR "The submodules were not downloaded! GIT_SUBMODULE was turned off or failed. Please update submodules and try again.")
+endif()
+
+add_subdirectory(lib/libds)
+add_dependencies(${PROJECT_NAME} ds)
+
+# set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/lib" ${CMAKE_MODULE_PATH})
+# find_package(ds REQUIRED)
+# target_link_libraries(${PROJECT_NAME} ds::ds)
+
+# Include Dirs
+target_include_directories(${PROJECT_NAME}
+    PUBLIC 
+        $<INSTALL_INTERFACE:include>    
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+
+        ${PROJECT_SOURCE_DIR}/lib/cglm/include
+        ${PROJECT_SOURCE_DIR}/lib/libds/include
+        ${PROJECT_SOURCE_DIR}/lib/json/include
+        ${PROJECT_SOURCE_DIR}/lib/xml/include
+        ${PROJECT_SOURCE_DIR}/lib/stb
+)
+
+target_link_libraries(${PROJECT_NAME} ds)
 
 # Test Configuration
 if(AK_USE_TEST)
@@ -99,3 +107,23 @@ if(AK_USE_TEST)
   enable_testing()
   add_subdirectory(test)
 endif()
+
+# Install 
+install(TARGETS ${PROJECT_NAME}
+        EXPORT  ${PROJECT_NAME}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+install(DIRECTORY include/${PROJECT_NAME} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        PATTERN ".*" EXCLUDE)
+
+# Config
+export(TARGETS ${PROJECT_NAME}
+       NAMESPACE ${PROJECT_NAME}::
+       FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+)
+
+install(EXPORT      ${PROJECT_NAME}
+        NAMESPACE   ${PROJECT_NAME}::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}/cmake)
