@@ -91,7 +91,7 @@ RECENT REVISION HISTORY:
     Carmelo J Fdez-Aguera
 
  Bug & warning fixes
-    Marc LeBlanc            David Woo          Guillaume George   Martins Mozeiko
+    Marc LeBlanc            David Woo          Guillaume George   Martins Mozeiko        Alexander Veselov
     Christpher Lloyd        Jerry Jansson      Joseph Thomson     Phil Jordan
     Dave Moore              Roy Eltham         Hayaki Saito       Nathan Reed
     Won Chun                Luke Graham        Johan Duparc       Nick Verigakis
@@ -106,6 +106,7 @@ RECENT REVISION HISTORY:
     Julian Raschke          Gregory Mullen     Baldur Karlsson    github:poppolopoppo
     Christian Floisand      Kevin Schmidt      JR Smith           github:darealshinji
     Blazej Dariusz Roszkowski                                     github:Michaelangel007
+    Matvey Cherevko
 */
 
 #ifndef STBI_INCLUDE_STB_IMAGE_H
@@ -898,11 +899,13 @@ STBIDEF const char *stbi_failure_reason(void)
    return stbi__g_failure_reason;
 }
 
+#ifndef STBI_NO_FAILURE_STRINGS
 static int stbi__err(const char *str)
 {
    stbi__g_failure_reason = str;
    return 0;
 }
+#endif
 
 static void *stbi__malloc(size_t size)
 {
@@ -1056,6 +1059,8 @@ static void *stbi__load_main(stbi__context *s, int *x, int *y, int *comp, int re
    #endif
    #ifndef STBI_NO_PSD
    if (stbi__psd_test(s))  return stbi__psd_load(s,x,y,comp,req_comp, ri, bpc);
+   #else
+   STBI_NOTUSED(bpc);
    #endif
    #ifndef STBI_NO_PIC
    if (stbi__pic_test(s))  return stbi__pic_load(s,x,y,comp,req_comp, ri);
@@ -4975,6 +4980,8 @@ static int stbi__parse_png_file(stbi__png *z, int scan, int req_comp)
                ++s->img_n;
             }
             STBI_FREE(z->expanded); z->expanded = NULL;
+            // end of PNG chunk, read and skip CRC
+            stbi__get32be(s);
             return 1;
          }
 
@@ -5144,7 +5151,7 @@ static int stbi__shiftsigned(unsigned int v, int shift, int bits)
       v <<= -shift;
    else
       v >>= shift;
-   STBI_ASSERT(v >= 0 && v < 256);
+   STBI_ASSERT(v < 256);
    v >>= (8-bits);
    STBI_ASSERT(bits >= 0 && bits <= 8);
    return (int) ((unsigned) v * mul_table[bits]) >> shift_table[bits];
@@ -6649,7 +6656,15 @@ static void *stbi__load_gif_main(stbi__context *s, int **delays, int *x, int *y,
             stride = g.w * g.h * 4; 
          
             if (out) {
-               out = (stbi_uc*) STBI_REALLOC( out, layers * stride ); 
+               void *tmp = (stbi_uc*) STBI_REALLOC( out, layers * stride );
+               if (NULL == tmp) {
+                  STBI_FREE(g.out);
+                  STBI_FREE(g.history);
+                  STBI_FREE(g.background);
+                  return stbi__errpuc("outofmem", "Out of memory");
+               }
+               else
+                  out = (stbi_uc*) tmp;
                if (delays) {
                   *delays = (int*) STBI_REALLOC( *delays, sizeof(int) * layers ); 
                }
