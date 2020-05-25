@@ -312,6 +312,8 @@
     <ClInclude Include="..\src\io\gltf\postscript.h" />
     <ClInclude Include="..\src\io\gltf\strpool.h" />
     <ClInclude Include="..\src\id.h" />
+    <ClInclude Include="..\src\io\obj\common.h" />
+    <ClInclude Include="..\src\io\obj\wobj.h" />
     <ClInclude Include="..\src\json.h" />
     <ClInclude Include="..\src\mem\common.h" />
     <ClInclude Include="..\src\mem\lt.h" />
@@ -362,7 +364,6 @@
     <ClCompile Include="..\src\default\opt.c" />
     <ClCompile Include="..\src\default\semantic.c" />
     <ClCompile Include="..\src\default\type.c" />
-    <ClCompile Include="..\src\dllmain.c" />
     <ClCompile Include="..\src\find.c" />
     <ClCompile Include="..\src\io\dae\1.4\dae14.c" />
     <ClCompile Include="..\src\io\dae\1.4\image.c" />
@@ -436,6 +437,7 @@
     <ClCompile Include="..\src\image\image.c" />
     <ClCompile Include="..\src\instance\inst.c" />
     <ClCompile Include="..\src\instance\list.c" />
+    <ClCompile Include="..\src\io\obj\wobj.c" />
     <ClCompile Include="..\src\lib\geom.c" />
     <ClCompile Include="..\src\lib\lib.c" />
     <ClCompile Include="..\src\light\light.c" />
@@ -474,6 +476,7 @@
     <ClCompile Include="..\src\tree.c" />
     <ClCompile Include="..\src\type.c" />
     <ClCompile Include="..\src\utils.c" />
+    <ClCompile Include="..\src\win32\dllmain.c" />
     <ClCompile Include="..\src\win32\strptime.c" />
     <ClCompile Include="..\src\xml.c" />
   </ItemGroup>

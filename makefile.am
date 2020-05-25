@@ -223,7 +223,9 @@ libassetkit_la_SOURCES=\
     src/io/gltf/core/camera.c \
     src/io/gltf/core/scene.c \
     src/io/gltf/core/anim.c \
-    src/io/gltf/core/skin.c
+    src/io/gltf/core/skin.c \
+\
+    src/io/obj/wobj.c
 
 test_tests_SOURCES=\
     test/runner.c \

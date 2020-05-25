@@ -126,6 +126,9 @@
     <Filter Include="src\io\gltf\core">
       <UniqueIdentifier>{76bfcdb1-c8e1-4552-a641-67fd0d0ef374}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\io\obj">
+      <UniqueIdentifier>{1e2ff758-3ecb-4d70-82e4-38921e492ad0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\ak\animation.h">
@@ -524,6 +527,12 @@
     <ClInclude Include="..\src\io\gltf\strpool.h">
       <Filter>src\io\gltf</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\io\obj\common.h">
+      <Filter>src\io\obj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\io\obj\wobj.h">
+      <Filter>src\io\obj</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\win32\strptime.c">
@@ -599,9 +608,6 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\src\data.c">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\dllmain.c">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\src\find.c">
@@ -966,6 +972,12 @@
     </ClCompile>
     <ClCompile Include="..\src\io\gltf\strpool.c">
       <Filter>src\io\gltf</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\obj\wobj.c">
+      <Filter>src\io\obj</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win32\dllmain.c">
+      <Filter>src\win32</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
