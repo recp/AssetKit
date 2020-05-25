@@ -25,6 +25,7 @@
 #define STBI_REALLOC(p,newsz)     ak_realloc(NULL, p, newsz)
 #define STBI_FREE(p)              ak_free(p)
 
+#define STB_IMAGE_STATIC
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
