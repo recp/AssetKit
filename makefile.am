@@ -43,37 +43,37 @@ test_tests_LDFLAGS = -L./.libs \
 test_tests_CFLAGS = -I./include
 
 akdir=$(includedir)/ak
-include_HEADERS = include/ak/assetkit.h \
-                  include/ak/core-types.h \
-                  include/ak/string.h \
-                  include/ak/memory.h \
-                  include/ak/common.h \
-                  include/ak/coord.h \
-                  include/ak/coord-util.h \
-                  include/ak/library.h \
-                  include/ak/instance.h \
-                  include/ak/geom.h \
-                  include/ak/transform.h \
-                  include/ak/cam.h \
-                  include/ak/source.h \
-                  include/ak/path.h \
-                  include/ak/url.h \
-                  include/ak/sid.h \
-                  include/ak/options.h \
-                  include/ak/trash.h \
-                  include/ak/light.h \
-                  include/ak/profile.h \
-                  include/ak/material.h \
-                  include/ak/map.h \
-                  include/ak/util.h \
-                  include/ak/bbox.h \
-                  include/ak/image.h \
-                  include/ak/type.h \
-                  include/ak/context.h \
-                  include/ak/node.h \
-                  include/ak/texture.h \
-                  include/ak/animation.h \
-                  include/ak/controller.h
+ak_HEADERS = include/ak/assetkit.h \
+             include/ak/core-types.h \
+             include/ak/string.h \
+             include/ak/memory.h \
+             include/ak/common.h \
+             include/ak/coord.h \
+             include/ak/coord-util.h \
+             include/ak/library.h \
+             include/ak/instance.h \
+             include/ak/geom.h \
+             include/ak/transform.h \
+             include/ak/cam.h \
+             include/ak/source.h \
+             include/ak/path.h \
+             include/ak/url.h \
+             include/ak/sid.h \
+             include/ak/options.h \
+             include/ak/trash.h \
+             include/ak/light.h \
+             include/ak/profile.h \
+             include/ak/material.h \
+             include/ak/map.h \
+             include/ak/util.h \
+             include/ak/bbox.h \
+             include/ak/image.h \
+             include/ak/type.h \
+             include/ak/context.h \
+             include/ak/node.h \
+             include/ak/texture.h \
+             include/ak/animation.h \
+             include/ak/controller.h
 
 libassetkit_la_SOURCES=\
     src/assetkit.c \
