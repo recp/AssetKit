@@ -37,10 +37,10 @@ ak_allocMesh(AkHeap * __restrict heap, void * __restrict memp) {
   /* destroy heap with this object */
   ak_setAttachedHeap(geom, geom->materialMap->heap);
   
-  meshObj = ak_objAlloc(heap, geom, sizeof(AkMesh), AK_GEOMETRY_MESH, true);
-  geom->gdata          = meshObj;
-  mesh                 = ak_objGet(meshObj);
-  mesh->geom           = geom;
+  meshObj     = ak_objAlloc(heap, geom, sizeof(AkMesh), AK_GEOMETRY_MESH, true);
+  geom->gdata = meshObj;
+  mesh        = ak_objGet(meshObj);
+  mesh->geom  = geom;
   
   return mesh;
 }
@@ -55,7 +55,8 @@ wobj_obj(AkDoc     ** __restrict dest,
   char          *p;
   AkLibrary     *lib_geom, *lib_vscene;
   AkMesh        *mesh;
-  AkDataContext *dctx_pos, *dctx_ind;
+  AkDataContext *dc_pos, *dc_tex, *dc_nor;
+  AkDataContext *dc_indv, *dc_indt, *dc_indn;
   AkVisualScene *vscene;
   AkNode        *node;
   float          v[4];
@@ -88,17 +89,30 @@ wobj_obj(AkDoc     ** __restrict dest,
   /* create libraries */
   lib_geom   = ak_heap_calloc(heap, doc, sizeof(*lib_geom));
   lib_vscene = ak_heap_calloc(heap, doc, sizeof(*lib_vscene));
-  
-  /* create defaul mesh */
+
+  /* create default mesh */
   mesh = ak_allocMesh(heap, lib_geom);
 
-  dctx_pos = ak_data_new(doc, 128, sizeof(vec4), ak_cmp_vec4);
-  dctx_ind = ak_data_new(doc, 128, sizeof(vec4), ak_cmp_vec4);
+  /* vertex data  */
+  dc_pos  = ak_data_new(doc, 128, sizeof(vec4),    ak_cmp_vec4);
+  dc_tex  = ak_data_new(doc, 128, sizeof(vec3),    ak_cmp_vec3);
+  dc_nor  = ak_data_new(doc, 128, sizeof(vec3),    ak_cmp_vec3);
 
+  /* vertex indices */
+  dc_indv = ak_data_new(doc, 128, sizeof(vec3), ak_cmp_vec3);
+
+#define skip_spaces \
+  do { \
+    while (c != '\0' && AK_ARRAY_SPACE_CHECK) c = *++p; \
+    if (c == '\0') \
+      continue; /* to break loop */ \
+  } while (0)
+
+  /* parse .obj */
   do {
     /* skip spaces */
-    while (c != '\0' && AK_ARRAY_SPACE_CHECK) c = *++p;
-    
+    skip_spaces;
+
     if (p[1] == ' ') {
       switch (c) {
         case '#': {
@@ -110,21 +124,29 @@ wobj_obj(AkDoc     ** __restrict dest,
         case 'v': {
           if (*++p == '\0')
             goto err;
-          ak_strtof_fast_line(p, 0, 4, v);
-          idx = ak_data_append(dctx_pos, v);
+          ak_strtof_line(p, 0, 4, v);
+          ak_data_append(dc_pos, v);
           break;
         }
         case 'f': {
-          if (*++p == '\0')
+          if ((c = *(p += 2)) == '\0')
             goto err;
-          ak_strtoi_fast_line(p, 0, 4, vi);
-          idx = ak_data_append(dctx_ind, vi);
+
+          do {
+            /* found single or indices group */
+            skip_spaces;
+            
+            
+          } while (p
+                   && p[0] != '\0'
+                   && (c = *++p) != '\0'
+                   && !AK_ARRAY_NLINE_CHECK);
         }
         case 'o': {
-          
+
         }
         case 'g': {
-          
+
         }
         default:
           break;
@@ -136,7 +158,7 @@ wobj_obj(AkDoc     ** __restrict dest,
   *dest = doc;
 
   return AK_OK;
-  
+
 err:
   ak_free(doc);
   return AK_ERR;

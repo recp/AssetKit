@@ -47,52 +47,52 @@ ak_strtok_count_fast(char * __restrict buff,
 
 AK_EXPORT
 unsigned long
-ak_strtof_fast(char    * __restrict src,
+ak_strtof(char    * __restrict src,
+          size_t               srclen,
+          unsigned long        n,
+          AkFloat * __restrict dest);
+
+AK_EXPORT
+unsigned long
+ak_strtof_line(char    * __restrict src,
                size_t               srclen,
                unsigned long        n,
                AkFloat * __restrict dest);
 
 AK_EXPORT
 unsigned long
-ak_strtof_fast_line(char    * __restrict src,
-                    size_t               srclen,
-                    unsigned long        n,
-                    AkFloat * __restrict dest);
+ak_strtod(char     * __restrict src,
+          size_t                srclen,
+          unsigned long         n,
+          AkDouble * __restrict dest);
 
 AK_EXPORT
 unsigned long
-ak_strtod_fast(char     * __restrict src,
-               size_t                srclen,
-               unsigned long         n,
-               AkDouble * __restrict dest);
+ak_strtoui(char    * __restrict src,
+           size_t               srclen,
+           unsigned long        n,
+           AkUInt  * __restrict dest);
 
 AK_EXPORT
 unsigned long
-ak_strtoui_fast(char    * __restrict src,
-                size_t               srclen,
-                unsigned long        n,
-                AkUInt  * __restrict dest);
+ak_strtoi(char    * __restrict src,
+          size_t               srclen,
+          unsigned long        n,
+          AkInt   * __restrict dest);
 
 AK_EXPORT
 unsigned long
-ak_strtoi_fast(char    * __restrict src,
+ak_strtoi_line(char    * __restrict src,
                size_t               srclen,
                unsigned long        n,
                AkInt   * __restrict dest);
 
 AK_EXPORT
 unsigned long
-ak_strtoi_fast_line(char    * __restrict src,
-                    size_t               srclen,
-                    unsigned long        n,
-                    AkInt   * __restrict dest);
-
-AK_EXPORT
-unsigned long
-ak_strtob_fast(char    * __restrict src,
-               size_t               srclen,
-               unsigned long        n,
-               AkBool  * __restrict dest);
+ak_strtob(char    * __restrict src,
+          size_t               srclen,
+          unsigned long        n,
+          AkBool  * __restrict dest);
 
 AK_EXPORT
 char*

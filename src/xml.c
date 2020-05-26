@@ -61,10 +61,10 @@ xml_strtof_fast(const xml_t * __restrict xobj,
       || (rem = n) < 1)
     return 0;
   
-  while ((rem = ak_strtof_fast(v->val,
-                               v->valsize,
-                               rem,
-                               dest + n - rem))
+  while ((rem = ak_strtof(v->val,
+                          v->valsize,
+                          rem,
+                          dest + n - rem))
          && (v = xmls_next(v)));
   
   return rem;
@@ -89,10 +89,10 @@ xml_strtoui_fast(const xml_t  * __restrict xobj,
       || (rem = n) < 1)
     return 0;
   
-  while ((rem = ak_strtoui_fast(v->val,
-                                v->valsize,
-                                rem,
-                                dest + n - rem))
+  while ((rem = ak_strtoui(v->val,
+                           v->valsize,
+                           rem,
+                           dest + n - rem))
          && (v = xmls_next(v)));
   
 
@@ -119,10 +119,10 @@ xml_strtoi_fast(const xml_t * __restrict xobj,
       || (rem = n) < 1)
     return 0;
 
-  while ((rem = ak_strtoi_fast(v->val,
-                               v->valsize,
-                               rem,
-                               dest + n - rem))
+  while ((rem = ak_strtoi(v->val,
+                          v->valsize,
+                          rem,
+                          dest + n - rem))
          && (v = xmls_next(v)));
 
   return rem;
@@ -148,10 +148,10 @@ xml_strtob_fast(const xml_t  * __restrict xobj,
     return 0;
 
   
-  while ((rem = ak_strtob_fast(v->val,
-                               v->valsize,
-                               rem,
-                               dest + n - rem))
+  while ((rem = ak_strtob(v->val,
+                          v->valsize,
+                          rem,
+                          dest + n - rem))
          && (v = xmls_next(v)));
 
   return rem;
