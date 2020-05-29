@@ -32,7 +32,7 @@ if(MSVC)
   add_definitions(-DNDEBUG -D_WINDOWS -D_USRDLL -DAK_EXPORTS -D_assetkit_dll_DLL)
   add_compile_options(/W3 /Ox /Gy /Oi /TC)
 else()
-  add_compile_options(-Wall -Wextra -O3 -Wstrict-aliasing=2 -pedantic -Wno-overlength-strings -Wmissing-declarations)
+  add_compile_options(-Wall -Wextra -O3 -Wstrict-aliasing=2 -Wno-overlength-strings -Wmissing-declarations)
 endif()
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)

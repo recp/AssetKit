@@ -22,7 +22,6 @@ AM_CFLAGS = -Wall \
             -O3 \
             -Wstrict-aliasing=2 \
             -fstrict-aliasing \
-            -pedantic \
             -Wmissing-declarations \
             -Wno-overlength-strings
 
