@@ -22,7 +22,11 @@
     </a>
     <img src="https://img.shields.io/badge/glTF-2%2E0-green.svg?style=flat"
          alt="glTF Badge">
-    <br />
+    <br /><br />
+    <a href="https://patreon.com/recp">
+      <img src="https://img.shields.io/badge/Patreon-Become a patron-orange.svg"
+           alt="Patreon: Become a patron">
+    </a>
 </p>
 
 <br>
