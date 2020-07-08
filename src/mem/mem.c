@@ -275,6 +275,9 @@ ak_heap_init(AkHeap          * __restrict heap,
   heap->next      = NULL;
   heap->root      = NULL;
   heap->trash     = NULL;
+  heap->data      = NULL;
+  heap->idheap    = NULL;
+  heap->heapid    = 0;
   heap->allocator = alc;
   heap->srchctx   = srchctx;
   heap->flags    |= AK_HEAP_FLAGS_INITIALIZED;
