@@ -44,6 +44,12 @@ ak_instanceMake(AkHeap * __restrict heap,
                 void   * __restrict object);
 
 AK_EXPORT
+AkInstanceGeometry*
+ak_instanceMakeGeom(AkHeap     * __restrict heap,
+                    void       * __restrict memparent,
+                    AkGeometry * __restrict object);
+
+AK_EXPORT
 void
 ak_instanceListAdd(AkInstanceList *list,
                    AkInstanceBase *inst);

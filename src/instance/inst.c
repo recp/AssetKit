@@ -18,6 +18,21 @@
 #include "../id.h"
 
 AK_EXPORT
+AkInstanceGeometry*
+ak_instanceMakeGeom(AkHeap     * __restrict heap,
+                    void       * __restrict memparent,
+                    AkGeometry * __restrict object) {
+  AkInstanceGeometry *instGeom;
+  
+  instGeom               = ak_heap_calloc(heap, memparent, sizeof(*instGeom));
+  instGeom->base.url.ptr = object;
+  instGeom->base.object  = object;
+  instGeom->base.type    = AK_INSTANCE_GEOMETRY;
+
+  return instGeom;
+}
+
+AK_EXPORT
 AkInstanceBase*
 ak_instanceMake(AkHeap * __restrict heap,
                 void   * __restrict memparent,
