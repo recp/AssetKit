@@ -22,14 +22,25 @@
 #include "../../utils.h"
 #include "../../tree.h"
 #include "../../json.h"
+#include "../../data.h"
 
 #include <string.h>
 #include <stdlib.h>
 
-typedef struct AkWOBJState {
-  AkHeap       *heap;
-  AkDoc        *doc;
-  void         *tmpParent;
-} AkWOBJState;
+typedef struct WOObject {
+  AkGeometry    *geom;
+  AkDataContext *dc_indv, *dc_indt, *dc_indn;
+  AkDataContext *dc_pos, *dc_tex, *dc_nor;
+  AkDataContext *dc_vcount;
+} WOObject;
+
+typedef struct WOState {
+  AkHeap        *heap;
+  AkDoc         *doc;
+  void          *tmpParent;
+  AkLibrary     *lib_geom;
+  AkNode        *node;
+  WOObject      obj;
+} WOState;
 
 #endif /* wobj_commoh_h */
