@@ -224,7 +224,9 @@ libassetkit_la_SOURCES=\
     src/io/gltf/core/anim.c \
     src/io/gltf/core/skin.c \
 \
-    src/io/obj/wobj.c
+    src/io/obj/wobj.c \
+    src/io/obj/grroup.c \
+    src/io/obj/postscript.c
 
 test_tests_SOURCES=\
     test/runner.c \
