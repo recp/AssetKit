@@ -105,6 +105,8 @@ wobj_finishObject(WOState * __restrict wst) {
   AkAccessor         *acc_p;
   AkInput            *inp_p;
 
+  /* TODO: Release resources */
+
   if (!wst->obj.geom)
     return;
 
@@ -208,7 +210,7 @@ wobj_switchObject(WOState * __restrict wst) {
   wst->obj.dc_pos    = ak_data_new(wst->doc, 128, sizeof(vec4), ak_cmp_vec4);
   wst->obj.dc_tex    = ak_data_new(wst->doc, 128, sizeof(vec3), ak_cmp_vec3);
   wst->obj.dc_nor    = ak_data_new(wst->doc, 128, sizeof(vec3), ak_cmp_vec3);
-  wst->obj.dc_vcount = ak_data_new(wst->doc, 128, sizeof(AkUInt), ak_cmp_i32);
+  wst->obj.dc_vcount = ak_data_new(wst->doc, 128, sizeof(int32_t), ak_cmp_i32);
 }
 
 void
@@ -234,7 +236,7 @@ wobj_obj(AkDoc     ** __restrict dest,
   float               v[4];
   size_t              objstrSize;
   AkResult            ret;
-  size_t              indexSize;
+  size_t              faceSize;
   char                c;
 
   if ((ret = ak_readfile(filepath, "rb", &objstr, &objstrSize)) != AK_OK)
@@ -294,8 +296,8 @@ wobj_obj(AkDoc     ** __restrict dest,
       switch (c) {
         case '#': {
           /* ignore comments */
-//          while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
-//          while ((c = *++p) != '\0' &&  AK_ARRAY_NLINE_CHECK);
+          while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
+          /* while ((c = *++p) != '\0' &&  AK_ARRAY_NLINE_CHECK); */
           break;
         }
         case 'v': {
@@ -304,25 +306,26 @@ wobj_obj(AkDoc     ** __restrict dest,
 
           ak_strtof_line(p, 0, 4, v);
           ak_data_append(wst->obj.dc_pos, v);
-          
-//          NEXT_LINE
-
           break;
         }
         case 'f': {
           if ((c = *(p += 2)) == '\0')
             goto err;
 
-          indexSize = 0;
+          faceSize = 0;
           do {
-            char  *endp;
-            AkUInt indv;
+            char   *endp;
+            int32_t indv;
 
             SKIP_SPACES
             
-            indv       = strtol(p, &endp, 10);
-            indv--;
-            indexSize += 1;
+            indv = (int32_t)strtol(p, &endp, 10);
+            
+            /* TODO: handle negative indices */
+            if (indv > 0)
+              indv--;
+
+            faceSize += 1;
 
             ak_data_append(wst->obj.dc_indv, &indv);
           } while (p
@@ -330,17 +333,15 @@ wobj_obj(AkDoc     ** __restrict dest,
                    && (c = *++p) != '\0'
                    && !AK_ARRAY_NLINE_CHECK);
           
-          ak_data_append(wst->obj.dc_vcount, &indexSize);
+          ak_data_append(wst->obj.dc_vcount, &faceSize);
           break;
         }
         case 'o': {
           wobj_switchObject(wst);
-//          NEXT_LINE
           break;
         }
         case 'g': {
           wobj_switchGroup(wst);
-//          NEXT_LINE
           break;
         }
         default:
