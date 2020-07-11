@@ -15,6 +15,7 @@
  */
 
 #include "postscript.h"
+#include "../../mesh/index.h"
 
 void _assetkit_hide
 wobj_postscript(WOState * __restrict wst) {
@@ -33,18 +34,31 @@ wobj_postscript(WOState * __restrict wst) {
       primitive = geom->gdata;
       switch ((AkGeometryType)primitive->type) {
         case AK_GEOMETRY_MESH: {
-          AkMesh *mesh;
-          mesh = ak_objGet(primitive);
+          AkMesh           *mesh;
+          AkMeshEditHelper *edith;
 
-          if (ak_opt_get(AK_OPT_COMPUTE_BBOX))
-            ak_bbox_mesh(mesh);
+          mesh = ak_objGet(primitive);
+          
+          ak_meshBeginEdit(mesh);
+
+          edith                 = mesh->edith;
+          edith->skipFixIndices = true; /* to do it once per mesh */
+
+          if (ak_opt_get(AK_OPT_TRIANGULATE))
+            ak_meshTriangulate(mesh);
 
           if (ak_opt_get(AK_OPT_GEN_NORMALS_IF_NEEDED))
             if (ak_meshNeedsNormals(mesh))
               ak_meshGenNormals(mesh);
+
+          edith->skipFixIndices = false;
+          ak_meshFixIndices(mesh);
+
+          ak_meshEndEdit(mesh);
+
+          if (ak_opt_get(AK_OPT_COMPUTE_BBOX))
+            ak_bbox_mesh(mesh);
           
-          if (ak_opt_get(AK_OPT_TRIANGULATE))
-            ak_meshTriangulate(mesh);
         }
         default:
           break;
@@ -54,4 +68,5 @@ wobj_postscript(WOState * __restrict wst) {
 
     geomLib = geomLib->next;
   }
+  
 }

@@ -188,6 +188,14 @@ wobj_obj(AkDoc     ** __restrict dest,
         default:
           break;
       }
+    } else if (p[2] == ' ' || p[2] == '\t') {
+      if (p[0] == 'v' && p[1] == 'n') {
+        if (*(p += 2) == '\0')
+          goto err;
+
+        ak_strtof_line(p, 0, 3, v);
+        ak_data_append(wst->obj.dc_nor, v);
+      }
     }
     
     NEXT_LINE
