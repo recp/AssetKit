@@ -2,7 +2,7 @@
 
 - [x] Load Positions
 - [ ] Load Texture Coords
--   Load Normals
+- [ ] Load Normals
 - [x] Load Faces/Indices
 - [x] Fix Indices 
 - [ ] Materials
