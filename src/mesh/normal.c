@@ -242,7 +242,7 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
   ak_free(prim->indices);
   prim->indices = inpIndices;
 
-  (void)ak_data_join(dctx, buff->data);
+  (void)ak_data_join(dctx, buff->data, 0, 0);
   ak_free(dctx);
 }
 

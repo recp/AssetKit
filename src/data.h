@@ -53,14 +53,18 @@ ak_data_new(void   *memparent,
 /*!
  * @brief join batch data into continued array
  *
- * @param dctx data context
- * @param buff buffer
+ * @param dctx     data context
+ * @param buff     buffer
+ * @param stride   bytes stride
+ * @param buff     bytesgap gap between item stride
  *
  * @return array count
  */
 size_t
 ak_data_join(AkDataContext *dctx,
-             void          *buff);
+             void          *buff,
+             size_t         stride,
+             size_t         bytesgap);
 
 /*!
  * @brief append item, this will copy data by size of itemsize into context

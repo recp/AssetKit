@@ -145,7 +145,9 @@ ak_data_exists(AkDataContext *dctx, void *item) {
 
 size_t
 ak_data_join(AkDataContext *dctx,
-             void          *buff) {
+             void          *buff,
+             size_t         bytesoff,
+             size_t         stride) {
   AkDataChunk *chunk;
   char        *pmem, *data;
   size_t isz, csz, i, count;
@@ -159,12 +161,19 @@ ak_data_join(AkDataContext *dctx,
   chunk = dctx->data;
 
   pmem = buff;
+  
+  if (bytesoff > 0)
+    pmem += bytesoff;
+  
+  if (stride == 0)
+    stride = isz;
+
   while (chunk) {
     csz  = chunk->usedsize;
     data = chunk->data;
     for (i = 0; i < csz; i += isz) {
       memcpy(pmem, data, isz);
-      pmem += isz;
+      pmem += stride;
       data += isz;
       count++;
     }
