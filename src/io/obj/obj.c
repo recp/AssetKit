@@ -17,37 +17,18 @@
 /*
  Resources:
    https://all3dp.com/1/obj-file-format-3d-printing-cad/
+   http://paulbourke.net/dataformats/obj/
+   http://paulbourke.net/dataformats/mtl/
 */
 
 #include "obj.h"
 #include "common.h"
 #include "group.h"
+#include "mtl.h"
 #include "postscript.h"
 #include "../../id.h"
 #include "../../data.h"
 #include "../../../include/ak/path.h"
-
-#define SKIP_SPACES                                                           \
-  {                                                                           \
-    while (c != '\0' && AK_ARRAY_SPACE_CHECK) c = *++p;                       \
-    if (c == '\0')                                                            \
-      continue; /* to break loop */                                           \
-  }
-
-#define NEXT_LINE                                                             \
-  do {                                                                        \
-    while (p                                                                  \
-           && p[0] != '\0'                                                    \
-           && !AK_ARRAY_NLINE_CHECK                                           \
-           && (c = *++p) != '\0'                                              \
-           && !AK_ARRAY_NLINE_CHECK);                                         \
-                                                                              \
-    while (p                                                                  \
-           && p[0] != '\0'                                                    \
-           && AK_ARRAY_NLINE_CHECK                                            \
-           && (c = *++p) != '\0'                                              \
-           && AK_ARRAY_NLINE_CHECK);                                          \
-  } while(0);
 
 static
 void
@@ -59,7 +40,7 @@ wobj_obj(AkDoc     ** __restrict dest,
   AkHeap             *heap;
   AkDoc              *doc;
   void               *objstr;
-  char               *p;
+  char               *p, *begin, *end, *m;
   AkLibrary          *lib_geom, *lib_vscene;
   AkVisualScene      *scene;
   WOState             wstVal = {0}, *wst;
@@ -202,6 +183,23 @@ wobj_obj(AkDoc     ** __restrict dest,
         ak_strtof_line(p, 0, 2, v);
         ak_data_append(wst->obj.dc_tex, v);
       }
+    } else if (p[0] == 'm'
+               && p[1] == 't'
+               && p[2] == 'l'
+               && p[3] == 'l'
+               && p[4] == 'i'
+               && p[5] == 'b'
+               && (p[6] == ' ' || p[6] == '\t')) {
+      p += 6;
+      SKIP_SPACES
+
+      begin = ++p;
+      while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
+      end = p;
+
+      if (end > begin
+          && (m = ak_heap_strndup(heap, wst->doc, begin, end - begin)))
+        wobj_mtl(wst, m);
     }
     
     NEXT_LINE

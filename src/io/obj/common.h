@@ -43,4 +43,26 @@ typedef struct WOState {
   WOObject      obj;
 } WOState;
 
+#define SKIP_SPACES                                                           \
+  {                                                                           \
+    while (c != '\0' && AK_ARRAY_SPACE_CHECK) c = *++p;                       \
+    if (c == '\0')                                                            \
+      break; /* to break loop */                                           \
+  }
+
+#define NEXT_LINE                                                             \
+  do {                                                                        \
+    while (p                                                                  \
+           && p[0] != '\0'                                                    \
+           && !AK_ARRAY_NLINE_CHECK                                           \
+           && (c = *++p) != '\0'                                              \
+           && !AK_ARRAY_NLINE_CHECK);                                         \
+                                                                              \
+    while (p                                                                  \
+           && p[0] != '\0'                                                    \
+           && AK_ARRAY_NLINE_CHECK                                            \
+           && (c = *++p) != '\0'                                              \
+           && AK_ARRAY_NLINE_CHECK);                                          \
+  } while(0);
+
 #endif /* wobj_commoh_h */

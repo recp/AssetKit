@@ -63,7 +63,7 @@ gltf_materials(json_t * __restrict jmaterial,
     mr       = NULL;
     sg       = NULL;
     cutoff   = 0.5f;
-
+    
     pcommon->technique = technfx;
 
     ak_setypeid(technfx, AKT_TECHNIQUE_FX);
