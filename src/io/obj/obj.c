@@ -19,7 +19,7 @@
    https://all3dp.com/1/obj-file-format-3d-printing-cad/
 */
 
-#include "wobj.h"
+#include "obj.h"
 #include "common.h"
 #include "group.h"
 #include "postscript.h"

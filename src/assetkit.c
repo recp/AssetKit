@@ -19,7 +19,7 @@
 #include "utils.h"
 #include "io/dae/dae.h"
 #include "io/gltf/gltf.h"
-#include "io/obj/wobj.h"
+#include "io/obj/obj.h"
 
 #include <stdlib.h>
 #include <string.h>
