@@ -43,6 +43,25 @@ ak_allocMesh(AkHeap      * __restrict heap,
 }
 
 void
+wobj_fixIndices(AkUIntArray * __restrict indices,
+                AkAccessor  * __restrict posAcc) {
+  AkUInt *it;
+  size_t  i;
+  
+  /* TODO: handle texture and normals */
+
+  it = indices->items;
+
+  for (i = 0; i < indices->count; i++) {
+    if (it[i] > 0) {
+      it[i]--;
+    } else {
+      it[i] = posAcc->count - it[i]; /* count - 1 == last */
+    }
+  }
+}
+
+void
 wobj_finishObject(WOState * __restrict wst) {
   AkHeap             *heap;
   AkDoc              *doc;
@@ -99,7 +118,7 @@ wobj_finishObject(WOState * __restrict wst) {
                                       + wst->obj.dc_pos->usedsize);
   poly->base.indices->count = wst->obj.dc_indv->itemcount;
   ak_data_join(wst->obj.dc_indv, poly->base.indices->items);
-
+  
   poly->vcount = ak_heap_calloc(heap,
                                 poly,
                                 sizeof(*poly->vcount)
@@ -130,6 +149,10 @@ wobj_finishObject(WOState * __restrict wst) {
 
   poly->base.input = inp_p;
   poly->base.pos   = inp_p;
+  
+  wobj_fixIndices(poly->base.indices, acc_p);
+  
+  wst->obj.geom = NULL;
 }
 
 void
@@ -154,6 +177,8 @@ wobj_switchObject(WOState * __restrict wst) {
   
   /* vertex index */
   wst->obj.dc_indv = ak_data_new(wst->doc, 128, sizeof(AkUInt), NULL);
+  wst->obj.dc_indt = ak_data_new(wst->doc, 128, sizeof(AkUInt), NULL);
+  wst->obj.dc_indn = ak_data_new(wst->doc, 128, sizeof(AkUInt), NULL);
 
   /* vertex data */
   wst->obj.dc_pos    = ak_data_new(wst->doc, 128, sizeof(vec4), ak_cmp_vec4);
@@ -164,10 +189,10 @@ wobj_switchObject(WOState * __restrict wst) {
 
 void
 wobj_switchGroup(WOState * __restrict wst) {
-  
+  wobj_switchObject(wst);
 }
 
 void
 wobj_finishGroup(WOState * __restrict wst) {
-  
+  wobj_finishObject(wst);
 }

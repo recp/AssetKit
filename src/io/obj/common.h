@@ -30,7 +30,7 @@
 typedef struct WOObject {
   AkGeometry    *geom;
   AkDataContext *dc_indv, *dc_indt, *dc_indn;
-  AkDataContext *dc_pos, *dc_tex, *dc_nor;
+  AkDataContext *dc_pos,  *dc_tex,  *dc_nor;
   AkDataContext *dc_vcount;
 } WOObject;
 

@@ -38,20 +38,16 @@
   do {                                                                        \
     while (p                                                                  \
            && p[0] != '\0'                                                    \
+           && !AK_ARRAY_NLINE_CHECK                                           \
            && (c = *++p) != '\0'                                              \
            && !AK_ARRAY_NLINE_CHECK);                                         \
                                                                               \
     while (p                                                                  \
            && p[0] != '\0'                                                    \
+           && AK_ARRAY_NLINE_CHECK                                            \
            && (c = *++p) != '\0'                                              \
            && AK_ARRAY_NLINE_CHECK);                                          \
   } while(0);
-
-typedef struct AkObjFace {
-  long vp;
-  long vt;
-  long vn;
-} AkObjFace;
 
 static
 void
@@ -147,23 +143,33 @@ wobj_obj(AkDoc     ** __restrict dest,
             goto err;
 
           faceSize = 0;
-          do {
-            char   *endp;
-            int32_t indv;
 
+          do {
+            int32_t ind;
+
+            /* vertex index */
             SKIP_SPACES
+            ind = (int32_t)strtol(p, &p, 10);
+            ak_data_append(wst->obj.dc_indv, &ind);
+
+            /* texture index */
+            SKIP_SPACES
+            if (p && p[0] == '/') {
+              ind = (int32_t)strtol(++p, &p, 10);
+              ak_data_append(wst->obj.dc_indt, &ind);
+            }
             
-            indv = (int32_t)strtol(p, &endp, 10);
-            
-            /* TODO: handle negative indices */
-            if (indv > 0)
-              indv--;
+            /* normal index */
+            SKIP_SPACES
+            if (p && p[0] == '/') {
+              ind = (int32_t)strtol(++p, &p, 10);
+              ak_data_append(wst->obj.dc_indn, &ind);
+            }
 
             faceSize += 1;
-
-            ak_data_append(wst->obj.dc_indv, &indv);
           } while (p
-                   && p[0] != '\0'
+                   && (c = p[0]) != '\0'
+                   && !AK_ARRAY_NLINE_CHECK
                    && (c = *++p) != '\0'
                    && !AK_ARRAY_NLINE_CHECK);
           
