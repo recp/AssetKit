@@ -87,6 +87,7 @@ ak_load(AkDoc ** __restrict dest,
         break;
       }
       case AK_FILE_TYPE_WAVEFRONT:
+        floader = &floaders[3];
         break;
       case AK_FILE_TYPE_FBX:
         break;
