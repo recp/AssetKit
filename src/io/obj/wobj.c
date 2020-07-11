@@ -134,7 +134,8 @@ wobj_obj(AkDoc     ** __restrict dest,
           if (*++p == '\0')
             goto err;
 
-          ak_strtof_line(p, 0, 4, v);
+          /* TODO: handle 4 components */
+          ak_strtof_line(p, 0, 3, v);
           ak_data_append(wst->obj.dc_pos, v);
           break;
         }

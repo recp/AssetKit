@@ -44,7 +44,10 @@ ak_allocMesh(AkHeap      * __restrict heap,
 
 void
 wobj_fixIndices(AkUIntArray * __restrict indices,
-                AkAccessor  * __restrict posAcc) {
+                int                      indexStride,
+                AkAccessor  * __restrict posAcc,
+                AkAccessor  * __restrict posTex,
+                AkAccessor  * __restrict posNorm) {
   AkUInt *it;
   size_t  i;
   
@@ -52,13 +55,61 @@ wobj_fixIndices(AkUIntArray * __restrict indices,
 
   it = indices->items;
 
-  for (i = 0; i < indices->count; i++) {
+  for (i = 0; i < indices->count; i += indexStride) {
     if (it[i] > 0) {
       it[i]--;
     } else {
       it[i] = posAcc->count - it[i]; /* count - 1 == last */
     }
   }
+}
+
+AkInput*
+wobj_addInput(WOState         * __restrict wst,
+              AkDataContext   * __restrict dctx,
+              AkMeshPrimitive * __restrict prim,
+              AkInputSemantic              sem,
+              const char      * __restrict semRaw,
+              AkComponentSize              compSize,
+              AkTypeId                     type) {
+  AkHeap     *heap;
+  AkBuffer   *buff;
+  AkAccessor *acc;
+  AkInput    *inp;
+  AkTypeDesc *typeDesc;
+  int         nComponents;
+
+  heap        = wst->heap;
+  typeDesc    = ak_typeDesc(type);
+  nComponents = (int)compSize;
+
+  buff         = ak_heap_calloc(heap, wst->doc, sizeof(*buff));
+  buff->data   = ak_heap_alloc(heap, buff, dctx->usedsize);
+  buff->length = dctx->usedsize;
+  ak_data_join(dctx, buff->data);
+  
+  flist_sp_insert(&wst->doc->lib.buffers, buff);
+  
+  acc                 = ak_heap_calloc(heap, wst->doc, sizeof(*acc));
+  acc->buffer         = buff;
+  acc->byteLength     = buff->length;
+  acc->byteStride     = typeDesc->size * nComponents;
+  acc->componentSize  = compSize;
+  acc->componentType  = type;
+  acc->componentBytes = typeDesc->size * nComponents;
+  acc->componentCount = nComponents;
+  acc->fillByteSize   = typeDesc->size * nComponents;
+  acc->count          = (uint32_t)dctx->itemcount;
+
+  inp                 = ak_heap_calloc(heap, prim, sizeof(*inp));
+  inp->accessor       = acc;
+  inp->semantic       = sem;
+  inp->semanticRaw    = ak_heap_strdup(heap, inp, semRaw);
+  
+  inp->next   = prim->input;
+  prim->input = inp;
+  
+  return inp;
 }
 
 void
@@ -69,9 +120,6 @@ wobj_finishObject(WOState * __restrict wst) {
   AkGeometry         *geom;
   AkMesh             *mesh;
   AkPolygon          *poly;
-  AkBuffer           *buff_p;
-  AkAccessor         *acc_p;
-  AkInput            *inp_p;
 
   /* TODO: Release resources */
 
@@ -101,17 +149,6 @@ wobj_finishObject(WOState * __restrict wst) {
   instGeom->base.next = (void *)wst->node->geometry;
   wst->node->geometry = instGeom;
   
-  /* prepare buffers */
-  
-  /* move data to buffers */
-  buff_p = ak_heap_calloc(heap, doc, sizeof(*buff_p));
-
-  flist_sp_insert(&doc->lib.buffers, buff_p);
-
-  buff_p->data   = ak_heap_alloc(heap, buff_p, wst->obj.dc_pos->usedsize);
-  buff_p->length = wst->obj.dc_pos->usedsize;
-  ak_data_join(wst->obj.dc_pos, buff_p->data);
-  
   poly->base.indices = ak_heap_calloc(heap,
                                       poly,
                                       sizeof(*poly->base.indices)
@@ -130,29 +167,49 @@ wobj_finishObject(WOState * __restrict wst) {
   poly->base.inputCount  = 1;
   poly->base.type        = AK_PRIMITIVE_POLYGONS;
   poly->base.count       = 6;
-
-  acc_p                 = ak_heap_calloc(heap, doc, sizeof(*acc_p));
-  acc_p->buffer         = buff_p;
-  acc_p->byteLength     = buff_p->length;
-  acc_p->byteStride     = sizeof(float) * 4;
-  acc_p->componentSize  = AK_COMPONENT_SIZE_VEC3;
-  acc_p->componentType  = AKT_FLOAT;
-  acc_p->componentBytes = sizeof(float) * 3;
-  acc_p->componentCount = 3;
-  acc_p->fillByteSize   = sizeof(float) * 3;
-  acc_p->count          = (uint32_t)wst->obj.dc_pos->itemcount;
-
-  inp_p              = ak_heap_calloc(heap, poly, sizeof(*inp_p));
-  inp_p->accessor    = acc_p;
-  inp_p->semantic    = AK_INPUT_SEMANTIC_POSITION;
-  inp_p->semanticRaw = ak_heap_strdup(heap, inp_p, "POSITION");
-
-  poly->base.input = inp_p;
-  poly->base.pos   = inp_p;
   
-  wobj_fixIndices(poly->base.indices, acc_p);
+  poly->base.pos =
+  wobj_addInput(wst, wst->obj.dc_pos,
+                (void *)poly,
+                AK_INPUT_SEMANTIC_POSITION,
+                "POSITION",
+                AK_COMPONENT_SIZE_VEC3,
+                AKT_FLOAT);
   
-  wst->obj.geom = NULL;
+  if (wst->obj.dc_nor->itemcount > 0) {
+    wobj_addInput(wst,
+                  wst->obj.dc_nor,
+                  (void *)poly,
+                  AK_INPUT_SEMANTIC_NORMAL,
+                  "NORMAL",
+                  AK_COMPONENT_SIZE_VEC3,
+                  AKT_FLOAT);
+  }
+  
+  if (wst->obj.dc_tex->itemcount > 0) {
+    wobj_addInput(wst,
+                  wst->obj.dc_tex,
+                  (void *)poly,
+                  AK_INPUT_SEMANTIC_TEXCOORD,
+                  "TEXCOORD",
+                  AK_COMPONENT_SIZE_VEC3,
+                  AKT_FLOAT);
+  }
+  
+  wobj_fixIndices(poly->base.indices, poly->base.indexStride, poly->base.pos->accessor, NULL, NULL);
+
+  /* cleanup */
+  if (wst->obj.dc_indv) {
+    ak_free(wst->obj.dc_indv);
+    ak_free(wst->obj.dc_indt);
+    ak_free(wst->obj.dc_indn);
+    ak_free(wst->obj.dc_pos);
+    ak_free(wst->obj.dc_tex);
+    ak_free(wst->obj.dc_nor);
+    ak_free(wst->obj.dc_vcount);
+  }
+  
+  memset(&wst->obj, 0, sizeof(wst->obj));
 }
 
 void
@@ -181,7 +238,7 @@ wobj_switchObject(WOState * __restrict wst) {
   wst->obj.dc_indn = ak_data_new(wst->doc, 128, sizeof(AkUInt), NULL);
 
   /* vertex data */
-  wst->obj.dc_pos    = ak_data_new(wst->doc, 128, sizeof(vec4), ak_cmp_vec4);
+  wst->obj.dc_pos    = ak_data_new(wst->doc, 128, sizeof(vec3), ak_cmp_vec3);
   wst->obj.dc_tex    = ak_data_new(wst->doc, 128, sizeof(vec3), ak_cmp_vec3);
   wst->obj.dc_nor    = ak_data_new(wst->doc, 128, sizeof(vec3), ak_cmp_vec3);
   wst->obj.dc_vcount = ak_data_new(wst->doc, 128, sizeof(int32_t), ak_cmp_i32);
