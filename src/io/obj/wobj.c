@@ -195,6 +195,12 @@ wobj_obj(AkDoc     ** __restrict dest,
 
         ak_strtof_line(p, 0, 3, v);
         ak_data_append(wst->obj.dc_nor, v);
+      } else if (p[0] == 'v' && p[1] == 't') {
+        if (*(p += 2) == '\0')
+          goto err;
+
+        ak_strtof_line(p, 0, 2, v);
+        ak_data_append(wst->obj.dc_tex, v);
       }
     }
     

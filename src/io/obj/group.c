@@ -90,7 +90,7 @@ wobj_finishObject(WOState * __restrict wst) {
                   (void *)poly,
                   AK_INPUT_SEMANTIC_TEXCOORD,
                   "TEXCOORD",
-                  AK_COMPONENT_SIZE_VEC3,
+                  AK_COMPONENT_SIZE_VEC2,
                   AKT_FLOAT,
                   2);
   }
@@ -140,7 +140,7 @@ wobj_switchObject(WOState * __restrict wst) {
 
   /* vertex data */
   wst->obj.dc_pos    = ak_data_new(wst->doc, 128, sizeof(vec3),    NULL);
-  wst->obj.dc_tex    = ak_data_new(wst->doc, 128, sizeof(vec3),    NULL);
+  wst->obj.dc_tex    = ak_data_new(wst->doc, 128, sizeof(vec2),    NULL);
   wst->obj.dc_nor    = ak_data_new(wst->doc, 128, sizeof(vec3),    NULL);
   wst->obj.dc_vcount = ak_data_new(wst->doc, 128, sizeof(int32_t), NULL);
 }
