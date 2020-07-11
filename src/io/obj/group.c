@@ -16,6 +16,27 @@
 
 #include "group.h"
 
+static
+AkMesh*
+ak_allocMesh(AkHeap      * __restrict heap,
+             AkLibrary   * __restrict memp,
+             AkGeometry ** __restrict geomLink);
+
+static
+void
+wobj_fixIndices(AkMeshPrimitive * __restrict prim);
+
+static
+AkInput*
+wobj_addInput(WOState         * __restrict wst,
+              AkDataContext   * __restrict dctx,
+              AkMeshPrimitive * __restrict prim,
+              AkInputSemantic              sem,
+              const char      * __restrict semRaw,
+              AkComponentSize              compSize,
+              AkTypeId                     type);
+
+static
 AkMesh*
 ak_allocMesh(AkHeap      * __restrict heap,
              AkLibrary   * __restrict memp,
@@ -42,28 +63,40 @@ ak_allocMesh(AkHeap      * __restrict heap,
   return mesh;
 }
 
+static
 void
-wobj_fixIndices(AkUIntArray * __restrict indices,
-                int                      indexStride,
-                AkAccessor  * __restrict posAcc,
-                AkAccessor  * __restrict posTex,
-                AkAccessor  * __restrict posNorm) {
-  AkUInt *it;
-  size_t  i;
-  
-  /* TODO: handle texture and normals */
+wobj_fixIndices(AkMeshPrimitive * __restrict prim) {
+  AkUInt      *it;
+  AkUIntArray *indices;
+  AkAccessor  *acc;
+  AkInput     *inp;
+  int          indexStride;
+  size_t       i, j;
 
-  it = indices->items;
+  indices     = prim->indices;
+  it          = indices->items;
+  indexStride = prim->indexStride;
 
   for (i = 0; i < indices->count; i += indexStride) {
-    if (it[i] > 0) {
-      it[i]--;
-    } else {
-      it[i] = posAcc->count - it[i]; /* count - 1 == last */
+    inp = prim->input;
+    j   = 0;
+
+    while (inp) {
+      acc = inp->accessor;
+      
+      if (it[i + j] > 0) {
+        it[i + j]--;
+      } else {
+        it[i + j] = acc->count - it[i + j]; /* count - 1 == last */
+      }
+
+      j++;
+      inp = inp->next;
     }
   }
 }
 
+static
 AkInput*
 wobj_addInput(WOState         * __restrict wst,
               AkDataContext   * __restrict dctx,
@@ -112,10 +145,10 @@ wobj_addInput(WOState         * __restrict wst,
   return inp;
 }
 
+_assetkit_hide
 void
 wobj_finishObject(WOState * __restrict wst) {
   AkHeap             *heap;
-  AkDoc              *doc;
   AkInstanceGeometry *instGeom;
   AkGeometry         *geom;
   AkMesh             *mesh;
@@ -129,7 +162,6 @@ wobj_finishObject(WOState * __restrict wst) {
   /* Buffer > Accessor > Input > Prim > Mesh > Geom > InstanceGeom > Node */
 
   heap = wst->heap;
-  doc  = wst->doc;
   geom = wst->obj.geom;
   mesh = ak_objGet(geom->gdata);
   poly = (void *)mesh->primitive;
@@ -195,8 +227,8 @@ wobj_finishObject(WOState * __restrict wst) {
                   AK_COMPONENT_SIZE_VEC3,
                   AKT_FLOAT);
   }
-  
-  wobj_fixIndices(poly->base.indices, poly->base.indexStride, poly->base.pos->accessor, NULL, NULL);
+
+  wobj_fixIndices((void *)poly);
 
   /* cleanup */
   if (wst->obj.dc_indv) {
@@ -212,6 +244,7 @@ wobj_finishObject(WOState * __restrict wst) {
   memset(&wst->obj, 0, sizeof(wst->obj));
 }
 
+_assetkit_hide
 void
 wobj_switchObject(WOState * __restrict wst) {
   AkGeometry *geom;
@@ -244,11 +277,13 @@ wobj_switchObject(WOState * __restrict wst) {
   wst->obj.dc_vcount = ak_data_new(wst->doc, 128, sizeof(int32_t), ak_cmp_i32);
 }
 
+_assetkit_hide
 void
 wobj_switchGroup(WOState * __restrict wst) {
   wobj_switchObject(wst);
 }
 
+_assetkit_hide
 void
 wobj_finishGroup(WOState * __restrict wst) {
   wobj_finishObject(wst);
