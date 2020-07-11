@@ -535,7 +535,7 @@ ak_getObjectByUrl(AkURL * __restrict url);
 const char*
 ak_getFile(const char *url);
 
-const char*
+char*
 ak_getFileFrom(AkDoc *doc, const char *url);
 
 AK_EXPORT

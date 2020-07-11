@@ -66,7 +66,7 @@ gltf_buffers(json_t * __restrict jbuff,
   AkHeap             *heap;
   const json_array_t *jbuffers;
   const json_t       *jbuffVal;
-  const char         *localurl;
+  char               *localurl;
   char               *uri;
   AkBuffer           *buff;
     
@@ -94,7 +94,7 @@ gltf_buffers(json_t * __restrict jbuff,
         } else {
           localurl = ak_getFileFrom(gst->doc, uri);
           ak_readfile(localurl, "rb", &buff->data, &buff->length);
-          ak_free((void *)localurl);
+          ak_free(localurl);
         }
 
         foundUri = true;

@@ -143,7 +143,7 @@ ak_getFile(const char *url) {
   return NULL;
 }
 
-const char*
+char*
 ak_getFileFrom(AkDoc *doc, const char *url) {
   char        pathbuf[PATH_MAX];
   const char *path;
