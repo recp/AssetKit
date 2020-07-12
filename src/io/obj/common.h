@@ -51,6 +51,7 @@ typedef struct WOObject {
   AkDataContext *dc_pos,  *dc_tex,  *dc_nor;
   AkDataContext *dc_vcount;
   char          *mtlname;
+  bool           isdefault;
 } WOObject;
 
 typedef struct WOState {

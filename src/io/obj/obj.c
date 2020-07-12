@@ -100,6 +100,7 @@ wobj_obj(AkDoc     ** __restrict dest,
 
   /* default group */
   wobj_switchGroup(wst);
+  wst->obj.isdefault = true;
 
   /* parse .obj */
   do {

@@ -30,6 +30,12 @@ wobj_finishObject(WOState * __restrict wst) {
 
   if (!wst->obj.geom)
     return;
+  
+  if (wst->obj.isdefault) {
+    /* clean the geom if none resource is found */
+    if (wst->obj.dc_pos->itemcount < 1)
+      goto cle;
+  }
 
   /* Buffer > Accessor > Input > Prim > Mesh > Geom > InstanceGeom > Node */
 
@@ -73,7 +79,7 @@ wobj_finishObject(WOState * __restrict wst) {
                 AKT_FLOAT,
                 0);
   
-  if (wst->mtlib)
+  if (wst->mtlib && wst->obj.mtlname)
     poly->base.material = rb_find(wst->mtlib->materials, wst->obj.mtlname);
   
   if (wst->obj.dc_nor->itemcount > 0) {
@@ -101,6 +107,7 @@ wobj_finishObject(WOState * __restrict wst) {
   wobj_joinIndices(wst, (void *)poly);
   wobj_fixIndices((void *)poly);
 
+cle:
   /* cleanup */
   if (wst->obj.dc_indv) {
     ak_free(wst->obj.dc_indv);
