@@ -27,11 +27,30 @@
 #include <string.h>
 #include <stdlib.h>
 
+typedef struct WOMtl {
+  char *name;
+  char *map_Ka;
+  char *map_Kd;
+  vec3  Ka;
+  vec3  Kd;
+  vec3  Ks;
+  vec3  Ke;
+  float Ni;
+  float Ns; /* exponent */
+  int   illum;
+} WOMtl;
+
+typedef struct WOMtlLib {
+  char   *name;
+  RBTree *materials;
+} WOMtlLib;
+
 typedef struct WOObject {
   AkGeometry    *geom;
   AkDataContext *dc_indv, *dc_indt, *dc_indn;
   AkDataContext *dc_pos,  *dc_tex,  *dc_nor;
   AkDataContext *dc_vcount;
+  char          *mtlname;
 } WOObject;
 
 typedef struct WOState {
@@ -40,7 +59,8 @@ typedef struct WOState {
   void          *tmpParent;
   AkLibrary     *lib_geom;
   AkNode        *node;
-  WOObject      obj;
+  WOMtlLib      *mtlib;
+  WOObject       obj;
 } WOState;
 
 #define SKIP_SPACES                                                           \

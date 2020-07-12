@@ -73,6 +73,9 @@ wobj_finishObject(WOState * __restrict wst) {
                 AKT_FLOAT,
                 0);
   
+  if (wst->mtlib)
+    poly->base.material = rb_find(wst->mtlib->materials, wst->obj.mtlname);
+  
   if (wst->obj.dc_nor->itemcount > 0) {
     wobj_addInput(wst,
                   wst->obj.dc_nor,

@@ -19,24 +19,6 @@
 
 #include "common.h"
 
-typedef struct WOMtl {
-  char *name;
-  char *map_Ka;
-  char *map_Kd;
-  vec3  Ka;
-  vec3  Kd;
-  vec3  Ks;
-  vec3  Ke;
-  float Ni;
-  float Ns; /* exponent */
-  int   illum;
-} WOMtl;
-
-typedef struct WOMtlLib {
-  char   *name;
-  RBTree *materials;
-} WOMtlLib;
-
 WOMtlLib* _assetkit_hide
 wobj_mtl(WOState    * __restrict wst,
          const char * __restrict name);

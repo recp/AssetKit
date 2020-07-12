@@ -106,6 +106,14 @@ wobj_mtl(WOState    * __restrict wst,
           p += 2;
           break;
       }
+    } else if (p[0] == 'i'
+               && p[1] == 'l'
+               && p[2] == 'l'
+               && p[3] == 'u'
+               && p[4] == 'm'
+               && (p[5] == ' ' || p[5] == '\t')) {
+      p += 5;
+      ak_strtoi_line(p, 0, 1, &mtl->illum);
     } else if (p[0] == 'n'
                && p[1] == 'e'
                && p[2] == 'w'
@@ -137,7 +145,7 @@ wobj_mtl(WOState    * __restrict wst,
 
 ret:
   ak_free((void *)localurl);
-  return NULL;
+  return mtllib;
 }
 
 static
@@ -249,10 +257,10 @@ wobj_handleMaterial(WOState  * __restrict wst,
   cmnTechn->shininess         = wobj_flt(heap, cmnTechn, mtl->Ns);
   cmnTechn->indexOfRefraction = wobj_flt(heap, cmnTechn, mtl->Ni);
   
+  technfx->common    = cmnTechn;
   technfx->next      = pcommon->technique;
   pcommon->technique = technfx;
   
-  technfx->common    = cmnTechn;
   ieff               = ak_heap_calloc(heap, mat, sizeof(*ieff));
   ieff->base.type    = AK_INSTANCE_EFFECT;
   ieff->base.url.ptr = effect;

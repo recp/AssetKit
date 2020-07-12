@@ -199,7 +199,23 @@ wobj_obj(AkDoc     ** __restrict dest,
 
       if (end > begin
           && (m = ak_heap_strndup(heap, wst->doc, begin, end - begin)))
-        wobj_mtl(wst, m);
+        wst->mtlib = wobj_mtl(wst, m);
+    } else if (p[0] == 'u'
+               && p[1] == 's'
+               && p[2] == 'e'
+               && p[3] == 'm'
+               && p[4] == 't'
+               && p[5] == 'l'
+               && (p[6] == ' ' || p[6] == '\t')) {
+      p += 6;
+      SKIP_SPACES
+
+      begin = ++p;
+      while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
+      end = p;
+
+      if (end > begin)
+        wst->obj.mtlname = ak_heap_strndup(heap, wst->doc, begin, end - begin);
     }
     
     NEXT_LINE
