@@ -213,8 +213,9 @@ wobj_mtl(WOState    * __restrict wst,
         mtl->name = ak_heap_strndup(heap, mtl, begin, end - begin);
         
         /* default params */
-        mtl->Tr   = 0.0f;
-        mtl->d    = 1.0f;
+        mtl->Tr    = 0.0f;
+        mtl->d     = 1.0f;
+        mtl->illum = 1;
       }
     }
 
