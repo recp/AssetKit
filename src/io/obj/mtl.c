@@ -33,6 +33,10 @@ wobj_handleMaterial(WOState  * __restrict wst,
                     WOMtlLib * __restrict mtllib,
                     WOMtl    * __restrict mtl);
 
+static
+AkTextureRef*
+wobj_texref(WOState * __restrict wst, void * __restrict memp, char* name);
+
 WOMtlLib* _assetkit_hide
 wobj_mtl(WOState    * __restrict wst,
          const char * __restrict name) {
@@ -45,6 +49,7 @@ wobj_mtl(WOState    * __restrict wst,
   AkResult  ret;
   char      c;
 
+  mtllib   = NULL;
   c        = '\0';
   localurl = ak_getFileFrom(wst->doc, name);
 
@@ -105,6 +110,62 @@ wobj_mtl(WOState    * __restrict wst,
         default:
           p += 2;
           break;
+      }
+    } else if (p[0] == 'm'
+               && p[1] == 'a'
+               && p[2] == 'p'
+               && p[3] == '_') {
+      p += 4;
+      switch (p[0]) {
+        case 'K':
+          switch (p[1]) {
+            case 'a':
+              p += 2;
+              SKIP_SPACES
+
+              begin = ++p;
+              while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
+              end = p;
+              
+              mtl->map_Ka = ak_heap_strndup(heap, mtl, begin, end - begin);
+              break;
+            case 'd':
+              p += 2;
+              SKIP_SPACES
+
+              begin = ++p;
+              while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
+              end = p;
+              
+              mtl->map_Kd = ak_heap_strndup(heap, mtl, begin, end - begin);
+              
+              break;
+            case 's':
+              p += 2;
+              SKIP_SPACES
+
+              begin = ++p;
+              while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
+              end = p;
+              
+              mtl->map_Ks = ak_heap_strndup(heap, mtl, begin, end - begin);
+              
+              break;
+            case 'e':
+              p += 2;
+              SKIP_SPACES
+
+              begin = ++p;
+              while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
+              end = p;
+              
+              mtl->map_Ke = ak_heap_strndup(heap, mtl, begin, end - begin);
+              
+              break;
+            default: break;
+          }
+          break;
+        default: break;
       }
     } else if (p[0] == 'i'
                && p[1] == 'l'
@@ -178,17 +239,25 @@ wobj_cmnEffect(WOState * __restrict wst) {
 
 AK_INLINE
 AkColorDesc*
-wobj_color_rgb(AkHeap * __restrict heap,
-               void   * __restrict memp,
-               vec3                rgb) {
-  AkColorDesc *colorDesc;
+wobj_clrtex(WOState    * __restrict wst,
+            void       * __restrict memp,
+            float      *            rgb,
+            char       * __restrict map) {
+  AkColorDesc *clr;
 
-  colorDesc        = ak_heap_calloc(heap, memp, sizeof(*colorDesc));
-  colorDesc->color = ak_heap_calloc(heap, colorDesc, sizeof(*colorDesc->color));
-  glm_vec3_copy(rgb, colorDesc->color->vec);
-  colorDesc->color->vec[3] = 1.0f;
+  clr = ak_heap_calloc(wst->heap, memp, sizeof(*clr));
+  
+  if (rgb) {
+    clr->color = ak_heap_calloc(wst->heap, clr,  sizeof(*clr->color));
+    glm_vec3_copy(rgb, clr->color->vec);
+    clr->color->vec[3] = 1.0f;
+  }
 
-  return colorDesc;
+  if (map) {
+    clr->texture = wobj_texref(wst, memp, map);
+  }
+
+  return clr;
 }
 
 AK_INLINE
@@ -249,10 +318,10 @@ wobj_handleMaterial(WOState  * __restrict wst,
       break;
   }
   
-  cmnTechn->ambient           = wobj_color_rgb(heap, cmnTechn, mtl->Ka);
-  cmnTechn->diffuse           = wobj_color_rgb(heap, cmnTechn, mtl->Kd);
-  cmnTechn->specular          = wobj_color_rgb(heap, cmnTechn, mtl->Ks);
-  cmnTechn->emission          = wobj_color_rgb(heap, cmnTechn, mtl->Ke);
+  cmnTechn->ambient  = wobj_clrtex(wst, cmnTechn, mtl->Ka, mtl->map_Ka);
+  cmnTechn->diffuse  = wobj_clrtex(wst, cmnTechn, mtl->Kd, mtl->map_Kd);
+  cmnTechn->specular = wobj_clrtex(wst, cmnTechn, mtl->Ks, mtl->map_Ks);
+  cmnTechn->emission = wobj_clrtex(wst, cmnTechn, mtl->Ke, mtl->map_Ke);
 
   cmnTechn->shininess         = wobj_flt(heap, cmnTechn, mtl->Ns);
   cmnTechn->indexOfRefraction = wobj_flt(heap, cmnTechn, mtl->Ni);
@@ -271,4 +340,52 @@ wobj_handleMaterial(WOState  * __restrict wst,
   libmat->count++;
 
   rb_insert(mtllib->materials, mtl->name, mat);
+}
+
+static
+AkTextureRef*
+wobj_texref(WOState * __restrict wst, void * __restrict memp, char* name) {
+  AkHeap       *heap;
+  AkDoc        *doc;
+  AkImage      *image;
+  AkInitFrom   *initFrom;
+  AkTexture    *tex;
+  AkSampler    *sampler;
+  AkTextureRef *texref;
+ 
+  heap = wst->heap;
+  doc  = wst->doc;
+  
+  /* create image */
+  image           = ak_heap_calloc(heap, doc, sizeof(*image));
+  initFrom        = ak_heap_calloc(heap, image, sizeof(*initFrom));
+  initFrom->ref   = name;
+  image->initFrom = initFrom;
+
+  ak_mem_setp(name, initFrom);
+  flist_sp_insert(&doc->lib.images, image);
+
+  /* create sampler */
+  sampler        = ak_heap_calloc(heap, doc, sizeof(*sampler));
+  sampler->wrapS = AK_WRAP_MODE_WRAP;
+  sampler->wrapT = AK_WRAP_MODE_WRAP;
+  ak_setypeid(sampler, AKT_SAMPLER2D);
+  
+  /* create texture */
+  tex          = ak_heap_calloc(heap, doc, sizeof(*tex));
+  tex->type    = AKT_SAMPLER2D;
+  tex->image   = image;
+  tex->sampler = sampler;
+
+  flist_sp_insert(&doc->lib.textures, tex);
+
+  /* create texture ref */
+  texref = ak_heap_calloc(heap, memp, sizeof(*texref));
+  ak_setypeid(texref, AKT_TEXTURE_REF);
+  
+  texref->coordInputName = "TEXCOORD";
+  texref->texture        = tex;
+  texref->slot           = 0;
+
+  return texref;
 }

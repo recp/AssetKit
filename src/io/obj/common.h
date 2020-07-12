@@ -31,6 +31,8 @@ typedef struct WOMtl {
   char *name;
   char *map_Ka;
   char *map_Kd;
+  char *map_Ks;
+  char *map_Ke;
   vec3  Ka;
   vec3  Kd;
   vec3  Ks;
