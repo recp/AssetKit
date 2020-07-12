@@ -19,6 +19,7 @@
    https://all3dp.com/1/obj-file-format-3d-printing-cad/
    http://paulbourke.net/dataformats/obj/
    http://paulbourke.net/dataformats/mtl/
+   https://en.wikipedia.org/wiki/Wavefront_.obj_file
 */
 
 #include "obj.h"

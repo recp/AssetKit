@@ -39,6 +39,8 @@ typedef struct WOMtl {
   vec3  Ke;
   float Ni;
   float Ns; /* exponent */
+  float d;  /* dissolve */
+  float Tr; /* Transparent (1 - d) */
   int   illum;
 } WOMtl;
 

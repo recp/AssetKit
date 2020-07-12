@@ -21,6 +21,7 @@
    https://all3dp.com/1/obj-file-format-3d-printing-cad/
    http://paulbourke.net/dataformats/obj/
    http://paulbourke.net/dataformats/mtl/
+   https://en.wikipedia.org/wiki/Wavefront_.obj_file#Material_template_library
 */
 
 static
@@ -107,9 +108,24 @@ wobj_mtl(WOState    * __restrict wst,
               break;
           }
           break;
+        case 'T':
+          switch (p[1]) {
+            case 'r':
+              p += 2;
+              ak_strtof_line(p, 0, 1, &mtl->Tr);
+              break;
+            default:
+              p += 2;
+              break;
+          }
         default:
           p += 2;
           break;
+      }
+    } else if (mtl && (p[1] == ' ' || p[1] == '\t')) {
+      if (p[0] == 'd') {
+        p++;
+        ak_strtof_line(p, 0, 1, &mtl->d);
       }
     } else if (p[0] == 'm'
                && p[1] == 'a'
@@ -195,6 +211,10 @@ wobj_mtl(WOState    * __restrict wst,
         
         mtl       = ak_heap_calloc(heap, wst->tmpParent, sizeof(*mtl));
         mtl->name = ak_heap_strndup(heap, mtl, begin, end - begin);
+        
+        /* default params */
+        mtl->Tr   = 0.0f;
+        mtl->d    = 1.0f;
       }
     }
 
@@ -326,6 +346,22 @@ wobj_handleMaterial(WOState  * __restrict wst,
   cmnTechn->shininess         = wobj_flt(heap, cmnTechn, mtl->Ns);
   cmnTechn->indexOfRefraction = wobj_flt(heap, cmnTechn, mtl->Ni);
   
+  if (mtl->Tr > 0.0f || mtl->d < 1.0f) {
+    AkTransparent *transp;
+    float          t;
+
+    if (mtl->d < 1.0f)
+      t = mtl->d;
+    else
+      t = 1.0f - mtl->Tr;
+
+    transp         = ak_heap_calloc(heap, cmnTechn, sizeof(*transp));
+    transp->amount = wobj_flt(heap, transp, t);
+    transp->opaque = AK_OPAQUE_BLEND;
+
+    cmnTechn->transparent = transp;
+  }
+
   technfx->common    = cmnTechn;
   technfx->next      = pcommon->technique;
   pcommon->technique = technfx;
