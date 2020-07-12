@@ -36,19 +36,14 @@ wobj_handleMaterial(WOState  * __restrict wst,
 WOMtlLib* _assetkit_hide
 wobj_mtl(WOState    * __restrict wst,
          const char * __restrict name) {
-  AkHeap               *heap;
-  void                 *mtlstr;
-  AkProfileCommon      *pcommon;
-  AkTechniqueFx        *technfx;
-  AkTechniqueFxCommon  *cmnTechn;
-  AkEffect             *effect;
-  char                 *p, *localurl, *begin, *end;
-  AkLibrary            *libmat;
-  WOMtlLib             *mtllib;
-  WOMtl                *mtl;
-  size_t                mtlstrSize;
-  AkResult              ret;
-  char                  c;
+  AkHeap   *heap;
+  void     *mtlstr;
+  char     *p, *localurl, *begin, *end;
+  WOMtlLib *mtllib;
+  WOMtl    *mtl;
+  size_t    mtlstrSize;
+  AkResult  ret;
+  char      c;
 
   c        = '\0';
   localurl = ak_getFileFrom(wst->doc, name);
@@ -58,11 +53,6 @@ wobj_mtl(WOState    * __restrict wst,
     goto ret;
 
   heap              = wst->heap;
-  pcommon           = wobj_cmnEffect(wst);
-  effect            = ak_mem_parent(pcommon);
-  libmat            = ak_heap_calloc(heap, wst->doc, sizeof(*libmat));
-  technfx           = NULL;
-  cmnTechn          = NULL;
   mtl               = NULL;
   mtllib            = ak_heap_calloc(heap, wst->tmpParent, sizeof(*mtllib));
   mtllib->materials = rb_newtree_str();
@@ -92,7 +82,9 @@ wobj_mtl(WOState    * __restrict wst,
               p += 2;
               ak_strtof_line(p, 0, 3, mtl->Ke);
               break;
-            default: break;
+            default:
+              p += 2;
+              break;
           }
           break;
         case 'N':
@@ -105,10 +97,14 @@ wobj_mtl(WOState    * __restrict wst,
               p += 2;
               ak_strtof_line(p, 0, 1, &mtl->Ni);
               break;
-            default: break;
+            default:
+              p += 2;
+              break;
           }
           break;
-        default: break;
+        default:
+          p += 2;
+          break;
       }
     } else if (p[0] == 'n'
                && p[1] == 'e'
@@ -125,7 +121,6 @@ wobj_mtl(WOState    * __restrict wst,
       end = p;
 
       if (end > begin) {
-
         if (mtl)
           wobj_handleMaterial(wst, mtllib, mtl);
         
@@ -136,6 +131,9 @@ wobj_mtl(WOState    * __restrict wst,
 
     NEXT_LINE
   } while (p && p[0] != '\0'/* && (c = *++p) != '\0'*/);
+
+  if (mtl)
+    wobj_handleMaterial(wst, mtllib, mtl);
 
 ret:
   ak_free((void *)localurl);
@@ -170,20 +168,99 @@ wobj_cmnEffect(WOState * __restrict wst) {
   return effect->profile;
 }
 
+AK_INLINE
+AkColorDesc*
+wobj_color_rgb(AkHeap * __restrict heap,
+               void   * __restrict memp,
+               vec3                rgb) {
+  AkColorDesc *colorDesc;
+
+  colorDesc        = ak_heap_calloc(heap, memp, sizeof(*colorDesc));
+  colorDesc->color = ak_heap_calloc(heap, colorDesc, sizeof(*colorDesc->color));
+  glm_vec3_copy(rgb, colorDesc->color->vec);
+  colorDesc->color->vec[3] = 1.0f;
+
+  return colorDesc;
+}
+
+AK_INLINE
+AkFloatOrParam*
+wobj_flt(AkHeap * __restrict heap,
+         void   * __restrict memp,
+         float               val) {
+  AkFloatOrParam *flt;
+
+  flt       = ak_heap_calloc(heap, memp, sizeof(*flt));
+  flt->val  = ak_heap_calloc(heap, flt, sizeof(*flt->val));
+  *flt->val = val;
+
+  return flt;
+}
+
 static
 void
 wobj_handleMaterial(WOState  * __restrict wst,
                     WOMtlLib * __restrict mtllib,
                     WOMtl    * __restrict mtl) {
-  AkMaterial *mat;
+  AkHeap               *heap;
+  AkDoc                *doc;
+  AkLibrary            *libmat;
+  AkProfileCommon      *pcommon;
+  AkTechniqueFx        *technfx;
+  AkTechniqueFxCommon  *cmnTechn;
+  AkEffect             *effect;
+  AkInstanceEffect     *ieff;
+  AkMaterial           *mat;
  
-  //        technfx  = ak_heap_calloc(heap, pcommon, sizeof(*technfx));
-  //        mat      = ak_heap_calloc(heap, libmat,  sizeof(*mat));
-  //
-  //        ak_setypeid(technfx, AKT_TECHNIQUE_FX);
-  //
-  //        technfx->next      = pcommon->technique;
-  //        pcommon->technique = technfx;
+  heap = wst->heap;
+  doc  = wst->doc;
+  
+  if (!(libmat = doc->lib.materials)) {
+    libmat             = ak_heap_calloc(heap, wst->doc, sizeof(*libmat));
+    doc->lib.materials = libmat;
+  }
+
+  pcommon = wobj_cmnEffect(wst);
+  effect  = ak_mem_parent(pcommon);
+  technfx = ak_heap_calloc(heap, pcommon, sizeof(*technfx));
+  mat     = ak_heap_calloc(heap, libmat,  sizeof(*mat));
+
+  ak_setypeid(technfx, AKT_TECHNIQUE_FX);
+
+  cmnTechn = ak_heap_calloc(heap, technfx, sizeof(*cmnTechn));
+  switch (mtl->illum) {
+    case 0: /* Constant */
+      cmnTechn->type = AK_MATERIAL_CONSTANT;
+      break;
+    case 1: /* Lambert */
+      cmnTechn->type = AK_MATERIAL_LAMBERT;
+      break;
+    case 2: /* TODO: Currently all others are Blinn */
+      cmnTechn->type = AK_MATERIAL_BLINN;
+    default:
+      break;
+  }
+  
+  cmnTechn->ambient           = wobj_color_rgb(heap, cmnTechn, mtl->Ka);
+  cmnTechn->diffuse           = wobj_color_rgb(heap, cmnTechn, mtl->Kd);
+  cmnTechn->specular          = wobj_color_rgb(heap, cmnTechn, mtl->Ks);
+  cmnTechn->emission          = wobj_color_rgb(heap, cmnTechn, mtl->Ke);
+
+  cmnTechn->shininess         = wobj_flt(heap, cmnTechn, mtl->Ns);
+  cmnTechn->indexOfRefraction = wobj_flt(heap, cmnTechn, mtl->Ni);
+  
+  technfx->next      = pcommon->technique;
+  pcommon->technique = technfx;
+  
+  technfx->common    = cmnTechn;
+  ieff               = ak_heap_calloc(heap, mat, sizeof(*ieff));
+  ieff->base.type    = AK_INSTANCE_EFFECT;
+  ieff->base.url.ptr = effect;
+  mat->effect        = ieff;
+  
+  mat->base.next     = libmat->chld;
+  libmat->chld       = (void *)mat;
+  libmat->count++;
 
   rb_insert(mtllib->materials, mtl->name, mat);
 }
