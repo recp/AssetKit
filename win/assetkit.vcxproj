@@ -313,7 +313,11 @@
     <ClInclude Include="..\src\io\gltf\strpool.h" />
     <ClInclude Include="..\src\id.h" />
     <ClInclude Include="..\src\io\obj\common.h" />
-    <ClInclude Include="..\src\io\obj\wobj.h" />
+    <ClInclude Include="..\src\io\obj\group.h" />
+    <ClInclude Include="..\src\io\obj\mtl.h" />
+    <ClInclude Include="..\src\io\obj\obj.h" />
+    <ClInclude Include="..\src\io\obj\postscript.h" />
+    <ClInclude Include="..\src\io\obj\util.h" />
     <ClInclude Include="..\src\json.h" />
     <ClInclude Include="..\src\mem\common.h" />
     <ClInclude Include="..\src\mem\lt.h" />
@@ -437,7 +441,11 @@
     <ClCompile Include="..\src\image\image.c" />
     <ClCompile Include="..\src\instance\inst.c" />
     <ClCompile Include="..\src\instance\list.c" />
-    <ClCompile Include="..\src\io\obj\wobj.c" />
+    <ClCompile Include="..\src\io\obj\group.c" />
+    <ClCompile Include="..\src\io\obj\mtl.c" />
+    <ClCompile Include="..\src\io\obj\obj.c" />
+    <ClCompile Include="..\src\io\obj\postscript.c" />
+    <ClCompile Include="..\src\io\obj\util.c" />
     <ClCompile Include="..\src\lib\geom.c" />
     <ClCompile Include="..\src\lib\lib.c" />
     <ClCompile Include="..\src\light\light.c" />

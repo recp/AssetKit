@@ -530,7 +530,19 @@
     <ClInclude Include="..\src\io\obj\common.h">
       <Filter>src\io\obj</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\io\obj\wobj.h">
+    <ClInclude Include="..\src\io\obj\group.h">
+      <Filter>src\io\obj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\io\obj\mtl.h">
+      <Filter>src\io\obj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\io\obj\obj.h">
+      <Filter>src\io\obj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\io\obj\postscript.h">
+      <Filter>src\io\obj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\io\obj\util.h">
       <Filter>src\io\obj</Filter>
     </ClInclude>
   </ItemGroup>
@@ -973,11 +985,23 @@
     <ClCompile Include="..\src\io\gltf\strpool.c">
       <Filter>src\io\gltf</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\io\obj\wobj.c">
-      <Filter>src\io\obj</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\win32\dllmain.c">
       <Filter>src\win32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\obj\group.c">
+      <Filter>src\io\obj</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\obj\mtl.c">
+      <Filter>src\io\obj</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\obj\obj.c">
+      <Filter>src\io\obj</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\obj\postscript.c">
+      <Filter>src\io\obj</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\obj\util.c">
+      <Filter>src\io\obj</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
