@@ -98,6 +98,9 @@ wobj_obj(AkDoc     ** __restrict dest,
   wstVal.node      = scene->node;
   wstVal.lib_geom  = doc->lib.geometries;
 
+  /* default group */
+  wobj_switchGroup(wst);
+
   /* parse .obj */
   do {
     /* skip spaces */
