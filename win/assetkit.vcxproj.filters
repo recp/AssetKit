@@ -129,6 +129,12 @@
     <Filter Include="src\io\obj">
       <UniqueIdentifier>{1e2ff758-3ecb-4d70-82e4-38921e492ad0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\io\stl">
+      <UniqueIdentifier>{787d0996-5cff-4c0a-b7d6-92aa63600b81}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\io\common">
+      <UniqueIdentifier>{06f7130e-47ee-40ab-aebc-c1395473e7b7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\ak\animation.h">
@@ -544,6 +550,18 @@
     </ClInclude>
     <ClInclude Include="..\src\io\obj\util.h">
       <Filter>src\io\obj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\io\common\util.h">
+      <Filter>src\io\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\io\stl\common.h">
+      <Filter>src\io\stl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\io\stl\postscript.h">
+      <Filter>src\io\stl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\io\stl\stl.h">
+      <Filter>src\io\stl</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1002,6 +1020,15 @@
     </ClCompile>
     <ClCompile Include="..\src\io\obj\util.c">
       <Filter>src\io\obj</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\common\util.c">
+      <Filter>src\io\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\stl\postscript.c">
+      <Filter>src\io\stl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\stl\stl.c">
+      <Filter>src\io\stl</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
