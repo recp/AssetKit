@@ -228,7 +228,12 @@ libassetkit_la_SOURCES=\
     src/io/obj/group.c \
     src/io/obj/mtl.c \
     src/io/obj/obj.c \
-    src/io/obj/postscript.c
+    src/io/obj/postscript.c \
+\
+    src/io/common/util.c \
+\
+    src/io/stl/stl.c \
+    src/io/stl/postscript.c
 
 test_tests_SOURCES=\
     test/runner.c \

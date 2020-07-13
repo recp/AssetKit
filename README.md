@@ -47,7 +47,7 @@ I've also created a basic program (included a screenshot of render result and da
 * [x] COLLADA 1.5
 * [x] glTF 2.0
 * [x] Wavefront Obj
-* [ ] Stl  (working on this)
+* [x] Stl  (working on this)
 * [ ] Ply
 * [ ] USD and friends (License?)
 * [ ] Alembic (License?)

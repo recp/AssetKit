@@ -20,6 +20,7 @@
 #include "io/dae/dae.h"
 #include "io/gltf/gltf.h"
 #include "io/obj/obj.h"
+#include "io/stl/stl.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -27,14 +28,12 @@
 
 typedef struct {
   const char * fext;
-  AkResult (*floader_fn)(AkDoc ** __restrict,
-                    const char * __restrict);
+  AkResult (*floader_fn)(AkDoc ** __restrict, const char * __restrict);
 } floader_t;
 
 AK_EXPORT
 AkResult
-ak_load(AkDoc ** __restrict dest,
-         const char * __restrict url, ...) {
+ak_load(AkDoc ** __restrict dest, const char * __restrict url, ...) {
   floader_t  *floader;
   const char *localurl;
   int         file_type;
@@ -53,7 +52,8 @@ ak_load(AkDoc ** __restrict dest,
     {"dae",  dae_doc},
     {"gltf", gltf_gltf},
     {"glb",  gltf_glb},
-    {"obj",  wobj_obj}
+    {"obj",  wobj_obj},
+    {"stl",  stl_stl}
   };
 
   floader = NULL;
@@ -89,7 +89,8 @@ ak_load(AkDoc ** __restrict dest,
       case AK_FILE_TYPE_WAVEFRONT:
         floader = &floaders[3];
         break;
-      case AK_FILE_TYPE_FBX:
+      case AK_FILE_TYPE_STL:
+        floader = &floaders[4];
         break;
       default:
         *dest = NULL;

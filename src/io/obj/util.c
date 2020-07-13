@@ -17,33 +17,6 @@
 #include "util.h"
 
 _assetkit_hide
-AkMesh*
-ak_allocMesh(AkHeap      * __restrict heap,
-             AkLibrary   * __restrict memp,
-             AkGeometry ** __restrict geomLink) {
-  AkGeometry *geom;
-  AkObject   *meshObj;
-  AkMesh     *mesh;
-
-  /* create geometries */
-  geom              = ak_heap_calloc(heap, memp, sizeof(*geom));
-  geom->materialMap = ak_map_new(ak_cmp_str);
-
-  /* destroy heap with this object */
-  ak_setAttachedHeap(geom, geom->materialMap->heap);
-
-  meshObj     = ak_objAlloc(heap, geom, sizeof(AkMesh), AK_GEOMETRY_MESH, true);
-  geom->gdata = meshObj;
-  mesh        = ak_objGet(meshObj);
-  mesh->geom  = geom;
-  
-  if (geomLink)
-    *geomLink = geom;
-
-  return mesh;
-}
-
-_assetkit_hide
 void
 wobj_fixIndices(AkMeshPrimitive * __restrict prim) {
   AkUInt      *it;
@@ -123,6 +96,7 @@ wobj_addInput(WOState         * __restrict wst,
 
   inp->next   = prim->input;
   prim->input = inp;
+  prim->inputCount++;
   
   return inp;
 }

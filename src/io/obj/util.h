@@ -18,12 +18,7 @@
 #define wobj_util_h
 
 #include "common.h"
-
-_assetkit_hide
-AkMesh*
-ak_allocMesh(AkHeap      * __restrict heap,
-             AkLibrary   * __restrict memp,
-             AkGeometry ** __restrict geomLink);
+#include "../common/util.h"
 
 _assetkit_hide
 void
