@@ -232,6 +232,9 @@ wobj_obj(AkDoc     ** __restrict dest,
   wobj_postscript(wst);
 
   *dest = doc;
+  
+  /* cleanup */
+  ak_free(wst->tmpParent);
 
   return AK_OK;
 

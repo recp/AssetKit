@@ -26,8 +26,6 @@ wobj_finishObject(WOState * __restrict wst) {
   AkMesh             *mesh;
   AkPolygon          *poly;
 
-  /* TODO: Release resources */
-
   if (!wst->obj.geom)
     return;
   
@@ -49,7 +47,7 @@ wobj_finishObject(WOState * __restrict wst) {
   wst->lib_geom->chld = &geom->base;
   
   /* make instance geeometry and attach to the root node  */
-  instGeom = ak_instanceMakeGeom(wst->heap, wst->node, wst->obj.geom);
+  instGeom = ak_instanceMakeGeom(heap, wst->node, geom);
   
   if (wst->node->geometry) {
     wst->node->geometry->base.prev = (void *)instGeom;
@@ -66,10 +64,7 @@ wobj_finishObject(WOState * __restrict wst) {
   poly->vcount->count = wst->obj.dc_vcount->itemcount;
   ak_data_join(wst->obj.dc_vcount, poly->vcount->items, 0, 0);
 
-  poly->base.inputCount  = 1;
-  poly->base.type        = AK_PRIMITIVE_POLYGONS;
-  poly->base.count       = 6;
-  
+  poly->base.type = AK_PRIMITIVE_POLYGONS;
   poly->base.pos =
   wobj_addInput(wst, wst->obj.dc_pos,
                 (void *)poly,
@@ -144,13 +139,13 @@ wobj_switchObject(WOState * __restrict wst) {
   wst->obj.geom = geom;
   
   /* vertex index */
-  wst->obj.dc_indv = ak_data_new(wst->doc, 128, sizeof(int32_t), NULL);
-  wst->obj.dc_indt = ak_data_new(wst->doc, 128, sizeof(int32_t), NULL);
-  wst->obj.dc_indn = ak_data_new(wst->doc, 128, sizeof(int32_t), NULL);
+  wst->obj.dc_indv = ak_data_new(wst->tmpParent, 128, sizeof(int32_t), NULL);
+  wst->obj.dc_indt = ak_data_new(wst->tmpParent, 128, sizeof(int32_t), NULL);
+  wst->obj.dc_indn = ak_data_new(wst->tmpParent, 128, sizeof(int32_t), NULL);
 
   /* vertex data */
-  wst->obj.dc_pos    = ak_data_new(wst->doc, 128, sizeof(vec3),    NULL);
-  wst->obj.dc_tex    = ak_data_new(wst->doc, 128, sizeof(vec2),    NULL);
-  wst->obj.dc_nor    = ak_data_new(wst->doc, 128, sizeof(vec3),    NULL);
-  wst->obj.dc_vcount = ak_data_new(wst->doc, 128, sizeof(int32_t), NULL);
+  wst->obj.dc_pos    = ak_data_new(wst->tmpParent, 128, sizeof(vec3),    NULL);
+  wst->obj.dc_tex    = ak_data_new(wst->tmpParent, 128, sizeof(vec2),    NULL);
+  wst->obj.dc_nor    = ak_data_new(wst->tmpParent, 128, sizeof(vec3),    NULL);
+  wst->obj.dc_vcount = ak_data_new(wst->tmpParent, 128, sizeof(int32_t), NULL);
 }
