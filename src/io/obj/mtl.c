@@ -47,14 +47,13 @@ wobj_mtl(WOState    * __restrict wst,
   WOMtlLib *mtllib;
   WOMtl    *mtl;
   size_t    mtlstrSize;
-  AkResult  ret;
   char      c;
 
   mtllib   = NULL;
   c        = '\0';
   localurl = ak_getFileFrom(wst->doc, name);
 
-  if ((ret = ak_readfile(localurl, "rb", &mtlstr, &mtlstrSize)) != AK_OK
+  if (ak_readfile(localurl, "rb", &mtlstr, &mtlstrSize) != AK_OK
       || !((p = mtlstr) && (c = *p) != '\0'))
     goto ret;
 
@@ -127,7 +126,8 @@ wobj_mtl(WOState    * __restrict wst,
         p++;
         ak_strtof_line(p, 0, 1, &mtl->d);
       }
-    } else if (p[0] == 'm'
+    } else if (mtl
+               && p[0] == 'm'
                && p[1] == 'a'
                && p[2] == 'p'
                && p[3] == '_') {

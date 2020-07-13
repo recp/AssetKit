@@ -72,7 +72,7 @@ typedef struct WOState {
   {                                                                           \
     while (c != '\0' && AK_ARRAY_SPACE_CHECK) c = *++p;                       \
     if (c == '\0')                                                            \
-      break; /* to break loop */                                           \
+      break; /* to break loop */                                              \
   }
 
 #define NEXT_LINE                                                             \
