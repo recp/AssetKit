@@ -27,12 +27,7 @@ _assetkit_hide
 void
 wobj_switchObject(WOState * __restrict wst);
 
-_assetkit_hide
-void
-wobj_switchGroup(WOState * __restrict wst);
-
-_assetkit_hide
-void
-wobj_finishGroup(WOState * __restrict wst);
+#define wobj_switchGroup(wst) wobj_switchObject(wst)
+#define wobj_finishGroup(wst) wobj_finishObject(wst)
 
 #endif /* wobj_group_h */

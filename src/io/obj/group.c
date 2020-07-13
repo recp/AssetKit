@@ -154,15 +154,3 @@ wobj_switchObject(WOState * __restrict wst) {
   wst->obj.dc_nor    = ak_data_new(wst->doc, 128, sizeof(vec3),    NULL);
   wst->obj.dc_vcount = ak_data_new(wst->doc, 128, sizeof(int32_t), NULL);
 }
-
-_assetkit_hide
-void
-wobj_switchGroup(WOState * __restrict wst) {
-  wobj_switchObject(wst);
-}
-
-_assetkit_hide
-void
-wobj_finishGroup(WOState * __restrict wst) {
-  wobj_finishObject(wst);
-}
