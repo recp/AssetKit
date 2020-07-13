@@ -44,4 +44,37 @@ io_addInput(AkHeap          * __restrict heap,
             AkTypeId                     type,
             uint32_t                     offset);
 
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#  define le_uint32(X, DATA) \
+  do {                                                                        \
+    memcpy(&X, DATA, sizeof(uint32_t));                                       \
+    DATA = (char *)DATA + sizeof(uint32_t);                                   \
+  } while (0)
+#else
+# include <arpa/inet.h>
+AK_INLINE
+uint32_t
+bswapu32(uint32_t val) {
+  
+  /*
+   val = ((val << 8) & 0xFF00FF00) | ((val >> 8) & 0xFF00FF);
+   return (val << 16) | (val >> 16);
+   */
+
+  #if defined(__llvm__)
+    return __builtin_bswap32(val);
+  #else
+    __asm__ ("bswap   %0" : "+r" (val));
+    return val;
+  #endif
+}
+# define le_uint32(X, DATA)                                                  \
+  do {                                                                        \
+    memcpy(&X, DATA, sizeof(uint32_t));                                       \
+    X    = bswapu32(magic);                                                   \
+    X    = ntohl(magic);                                                      \
+    DATA = (char *)DATA + sizeof(uint32_t);                                   \
+  } while (0)
+#endif
+
 #endif /* io_common_util_h */

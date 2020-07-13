@@ -27,4 +27,12 @@ _assetkit_hide
 void
 sst_finish(STLState * __restrict sst);
 
+_assetkit_hide
+void
+stl_ascii(STLState * __restrict sst, char * __restrict p);
+
+_assetkit_hide
+void
+stl_binary(STLState * __restrict sst, char * __restrict p);
+
 #endif /* stl_h */

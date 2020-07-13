@@ -35,8 +35,8 @@ typedef struct STLState {
   AkGeometry    *geom;
   AkDataContext *dc_ind, *dc_pos, *dc_nor, *dc_vcount;
   AkNode        *node;
-  int32_t        maxVC;
-  int32_t        count;
+  uint32_t       maxVC;
+  uint32_t       count;
 } STLState;
 
 #define SKIP_SPACES                                                           \

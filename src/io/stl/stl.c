@@ -39,26 +39,26 @@ stl_stl(AkDoc     ** __restrict dest,
   AkLibrary     *lib_geom, *lib_vscene;
   AkVisualScene *scene;
   STLState       sstVal = {0}, *sst;
-  float          n[4], v[4];
   size_t         stlstrSize;
-  int32_t        vc, count;
   AkResult       ret;
-  char           c;
+  bool           isAscii;
 
   if ((ret = ak_readfile(filepath, "rb", &stlstr, &stlstrSize)) != AK_OK
-      || !((p = stlstr) && (c = *p) != '\0'))
+      || !((p = stlstr) && *p != '\0'))
     return AK_ERR;
 
-  if (!(p[0] == 's'
-     && p[1] == 'o'
-     && p[2] == 'l'
-     && p[3] == 'i'
-     && p[4] == 'd')) {
+  if (p[0] == 's'
+   && p[1] == 'o'
+   && p[2] == 'l'
+   && p[3] == 'i'
+   && p[4] == 'd') {
+    isAscii = true;
+  } else if (p[0] != '\0' && stlstrSize > 80) {
+    isAscii = false;
+  } else {
     return AK_ERR;
   }
   
-  count = 0;
-  c     = '\0';
   heap  = ak_heap_new(NULL, NULL, NULL);
   doc   = ak_heap_calloc(heap, NULL, sizeof(*doc));
 
@@ -94,13 +94,86 @@ stl_stl(AkDoc     ** __restrict dest,
   sstVal.node      = scene->node;
   sstVal.lib_geom  = doc->lib.geometries;
   
-  NEXT_LINE
-  
   sst->dc_ind    = ak_data_new(sst->tmpParent, 128, sizeof(int32_t), NULL);
   sst->dc_pos    = ak_data_new(sst->tmpParent, 128, sizeof(vec3),    NULL);
   sst->dc_nor    = ak_data_new(sst->tmpParent, 128, sizeof(vec3),    NULL);
   sst->dc_vcount = ak_data_new(sst->tmpParent, 128, sizeof(int32_t), NULL);
+
+  if (!isAscii) {
+    stl_binary(sst, p);
+  } else {
+    stl_ascii(sst, p);
+  }
   
+  sst_finish(sst);
+  stl_postscript(sst);
+  
+  *dest = doc;
+
+  /* cleanup */
+  ak_free(sst->tmpParent);
+
+  return AK_OK;
+}
+
+_assetkit_hide
+void
+stl_binary(STLState * __restrict sst, char * __restrict p) {
+  vec4     v, n;
+  uint32_t count,  nTriangles, i;
+  char     c;
+
+  c = '\0';
+  
+  /* skip 80-char header */
+  p += 80;
+
+  le_uint32(nTriangles, p);
+
+  count      = nTriangles * 3;
+  sst->maxVC = 3;
+
+  /* TODO: Handle if Little-Endian floats to Native order. */
+
+  for (i = 0; i < nTriangles; i++) {
+    /* normal */
+    memcpy(n, p, 12);
+    p += 12;
+    
+    ak_data_append(sst->dc_nor, n);
+    ak_data_append(sst->dc_nor, n);
+    ak_data_append(sst->dc_nor, n);
+    
+    /* vertex */
+    memcpy(v, p, 12);
+    ak_data_append(sst->dc_pos, v);
+    p += 12;
+    
+    memcpy(v, p, 12);
+    ak_data_append(sst->dc_pos, v);
+    p += 12;
+    
+    memcpy(v, p, 12);
+    ak_data_append(sst->dc_pos, v);
+    p += 12;
+    p += 2;
+  }
+  
+  sst->count = count;
+}
+
+_assetkit_hide
+void
+stl_ascii(STLState * __restrict sst, char * __restrict p) {
+  vec4     v, n;
+  uint32_t vc, count;
+  char     c;
+
+  c     = '\0';
+  count = 0;
+
+  NEXT_LINE
+
   /* parse ASCII STL */
   do {
     /* skip spaces */
@@ -153,17 +226,8 @@ stl_stl(AkDoc     ** __restrict dest,
 
     NEXT_LINE
   } while (p && p[0] != '\0'/* && (c = *++p) != '\0'*/);
-
-  sst->count = count;
-  sst_finish(sst);
-  stl_postscript(sst);
   
-  *dest = doc;
-
-  /* cleanup */
-  ak_free(sst->tmpParent);
-
-  return AK_OK;
+  sst->count = count;
 }
 
 _assetkit_hide

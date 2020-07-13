@@ -1,1 +1,1 @@
-# AssetKit: Standard Tessellation Language (stl) Status
+# AssetKit: Standard Tesselated Geometry File Format (stl) Status
