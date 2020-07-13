@@ -48,7 +48,7 @@ wobj_obj(AkDoc     ** __restrict dest,
   float               v[4];
   size_t              objstrSize;
   AkResult            ret;
-  size_t              faceSize;
+  int32_t             vc;
   char                c;
 
   if ((ret = ak_readfile(filepath, "rb", &objstr, &objstrSize)) != AK_OK)
@@ -129,7 +129,7 @@ wobj_obj(AkDoc     ** __restrict dest,
           if ((c = *(p += 2)) == '\0')
             goto err;
 
-          faceSize = 0;
+          vc = 0;
 
           do {
             int32_t ind;
@@ -153,14 +153,14 @@ wobj_obj(AkDoc     ** __restrict dest,
               ak_data_append(wst->obj.dc_indn, &ind);
             }
 
-            faceSize += 1;
+            vc += 1;
           } while (p
                    && (c = p[0]) != '\0'
                    && !AK_ARRAY_NLINE_CHECK
                    && (c = *++p) != '\0'
                    && !AK_ARRAY_NLINE_CHECK);
           
-          ak_data_append(wst->obj.dc_vcount, &faceSize);
+          ak_data_append(wst->obj.dc_vcount, &vc);
           break;
         }
         case 'o': {
