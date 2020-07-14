@@ -21,6 +21,7 @@
 #include "io/gltf/gltf.h"
 #include "io/obj/obj.h"
 #include "io/stl/stl.h"
+#include "io/ply/ply.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -53,7 +54,8 @@ ak_load(AkDoc ** __restrict dest, const char * __restrict url, ...) {
     {"gltf", gltf_gltf},
     {"glb",  gltf_glb},
     {"obj",  wobj_obj},
-    {"stl",  stl_stl}
+    {"stl",  stl_stl},
+    {"ply",  ply_ply},
   };
 
   floader = NULL;
@@ -91,6 +93,9 @@ ak_load(AkDoc ** __restrict dest, const char * __restrict url, ...) {
         break;
       case AK_FILE_TYPE_STL:
         floader = &floaders[4];
+        break;
+      case AK_FILE_TYPE_PLY:
+        floader = &floaders[5];
         break;
       default:
         *dest = NULL;

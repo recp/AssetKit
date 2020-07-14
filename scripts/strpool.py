@@ -23,7 +23,8 @@ basedir = dirname(realpath(__file__)) + '/../'
 
 strpools = [
   'src/io/dae/strpool.py',
-  'src/io/gltf/strpool.py'
+  'src/io/gltf/strpool.py',
+  'src/io/ply/strpool.py'
 ]
 
 for sp in strpools:
