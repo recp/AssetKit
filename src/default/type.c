@@ -47,7 +47,21 @@ AkTypeDesc ak_def_type_descs[] = {
 
   {"sampler2D", AKT_SAMPLER2D, sizeof(AkSampler),          0},
 
-  {NULL,       0,            0,                            0}
+  /* for PLY  */
+  {"char",      AKT_BYTE,      sizeof(char),               0},
+  {"uchar",     AKT_UBYTE,     sizeof(char),               0},
+  {"double",    AKT_DOUBLE,    sizeof(AkDouble),           0},
+  
+  {"int8",      AKT_INT,       sizeof(char),               0},
+  {"uint8",     AKT_UINT,      sizeof(char),               0},
+  {"int16",     AKT_SHORT,     sizeof(AkInt16),            0},
+  {"uint16",    AKT_USHORT,    sizeof(AkUInt16),           0},
+  {"int32",     AKT_UINT,      sizeof(AkInt),              0},
+  {"uint32",    AKT_UINT,      sizeof(AkUInt),             0},
+  {"float32",   AKT_FLOAT,     sizeof(AkFloat),            0},
+  {"float64",   AKT_DOUBLE,    sizeof(AkDouble),           0},
+
+  {NULL,        0,             0,                          0}
 };
 
 const AkTypeDesc*

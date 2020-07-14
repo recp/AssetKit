@@ -20,6 +20,8 @@
 typedef const char           *AkString;
 typedef char                 *AkMutString;
 typedef bool                  AkBool;
+typedef int16_t               AkInt16;
+typedef uint16_t              AkUInt16;
 typedef int32_t               AkInt;
 typedef uint32_t              AkUInt;
 typedef int64_t               AkInt64;
