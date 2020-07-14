@@ -21,13 +21,16 @@
 
 #include <ds/rb.h>
 
-RBTree *ak__typetree = NULL;
+RBTree *ak__typetree        = NULL;
+RBTree *ak__typetree_byname = NULL;
 
+AK_EXPORT
 AkTypeId
 ak_typeidh(AkHeapNode * __restrict hnode) {
   return hnode->typeid;
 }
 
+AK_EXPORT
 AkTypeId
 ak_typeid(void * __restrict mem) {
   AkHeapNode *hnode;
@@ -36,6 +39,7 @@ ak_typeid(void * __restrict mem) {
   return hnode->typeid;
 }
 
+AK_EXPORT
 void
 ak_setypeid(void * __restrict mem,
             AkTypeId tid) {
@@ -45,6 +49,7 @@ ak_setypeid(void * __restrict mem,
   hnode->typeid = tid;
 }
 
+AK_EXPORT
 bool
 ak_isKindOf(void * __restrict mem,
             void * __restrict other) {
@@ -59,21 +64,33 @@ ak_isKindOf(void * __restrict mem,
   return hnode1->typeid == hnode2->typeid;
 }
 
+AK_EXPORT
 AkTypeDesc*
 ak_typeDesc(AkTypeId typeId) {
   return rb_find(ak__typetree, (void *)typeId);
 }
 
+AK_EXPORT
+AkTypeDesc*
+ak_typeDescByName(const char * __restrict name) {
+  return rb_find(ak__typetree_byname, (void *)name);
+}
+
+AK_EXPORT
 void
 ak_registerType(AkTypeId typeId, AkTypeDesc *desc) {
   rb_insert(ak__typetree, (void *)typeId, desc);
+
+  if (desc->typeName)
+    rb_insert(ak__typetree_byname, (void *)desc->typeName, desc);
 }
 
 void _assetkit_hide
 ak_type_init() {
   AkTypeDesc *it;
 
-  ak__typetree = rb_newtree(NULL, ds_cmp_i32p, NULL);
+  ak__typetree        = rb_newtree(NULL, ds_cmp_i32p, NULL);
+  ak__typetree_byname = rb_newtree(NULL, ds_cmp_str,  NULL);
 
   /* register predefined type descs */
   it = (AkTypeDesc *)ak_def_typedesc();
@@ -88,4 +105,5 @@ ak_type_init() {
 void _assetkit_hide
 ak_type_deinit() {
   rb_destroy(ak__typetree);
+  rb_destroy(ak__typetree_byname);
 }

@@ -101,23 +101,33 @@ typedef struct AkTypeDesc {
   int         userData;
 } AkTypeDesc;
 
+AK_EXPORT
 AkTypeId
 ak_typeid(void * __restrict mem);
 
+AK_EXPORT
 AkTypeId
 ak_typeidh(AkHeapNode * __restrict hnode);
 
+AK_EXPORT
 void
 ak_setypeid(void * __restrict mem,
             AkTypeId tid);
 
+AK_EXPORT
 bool
 ak_isKindOf(void * __restrict mem,
             void * __restrict other);
 
+AK_EXPORT
 AkTypeDesc*
 ak_typeDesc(AkTypeId typeId);
 
+AK_EXPORT
+AkTypeDesc*
+ak_typeDescByName(const char * __restrict name);
+
+AK_EXPORT
 void
 ak_registerType(AkTypeId typeId, AkTypeDesc *desc);
 
