@@ -105,7 +105,7 @@ _assetkit_hide
 void
 wobj_joinIndices(WOState * __restrict wst, AkMeshPrimitive * __restrict prim) {
   void    *it;
-  size_t   stride, isz_v, isz_t, isz_n, count;
+  size_t   stride, isz_v, isz_t, isz_n, count, offset;
   uint32_t istride;
 
   isz_v   = wst->obj.dc_indv->itemsize;
@@ -137,9 +137,18 @@ wobj_joinIndices(WOState * __restrict wst, AkMeshPrimitive * __restrict prim) {
   prim->indices->count = count;
   prim->indexStride    = istride;
 
-  it = prim->indices->items;
-
-  ak_data_join(wst->obj.dc_indv, it, 0,             stride);
-  ak_data_join(wst->obj.dc_indn, it, isz_v,         stride);
-  ak_data_join(wst->obj.dc_indt, it, isz_v + isz_n, stride);
+  it     = prim->indices->items;
+  offset = isz_v;
+  
+  ak_data_join(wst->obj.dc_indv, it, 0, stride);
+  
+  if (wst->obj.dc_indn->itemcount > 0) {
+    ak_data_join(wst->obj.dc_indn, it, offset, stride);
+    offset += isz_n;
+  }
+  
+  if (wst->obj.dc_indt->itemcount > 0) {
+    ak_data_join(wst->obj.dc_indt, it, offset, stride);
+    /* offset += isz_t; */
+  }
 }

@@ -25,6 +25,7 @@ wobj_finishObject(WOState * __restrict wst) {
   AkGeometry         *geom;
   AkMesh             *mesh;
   AkPolygon          *poly;
+  uint32_t            inputOffset;
 
   if (!wst->obj.geom)
     return;
@@ -37,10 +38,11 @@ wobj_finishObject(WOState * __restrict wst) {
 
   /* Buffer > Accessor > Input > Prim > Mesh > Geom > InstanceGeom > Node */
 
-  heap = wst->heap;
-  geom = wst->obj.geom;
-  mesh = ak_objGet(geom->gdata);
-  poly = (void *)mesh->primitive;
+  heap        = wst->heap;
+  geom        = wst->obj.geom;
+  mesh        = ak_objGet(geom->gdata);
+  poly        = (void *)mesh->primitive;
+  inputOffset = 0;
 
   /* add to library */
   geom->base.next     = wst->lib_geom->chld;
@@ -72,7 +74,7 @@ wobj_finishObject(WOState * __restrict wst) {
                 "POSITION",
                 AK_COMPONENT_SIZE_VEC3,
                 AKT_FLOAT,
-                0);
+                inputOffset++);
   
   if (wst->mtlib && wst->obj.mtlname)
     poly->base.material = rb_find(wst->mtlib->materials, wst->obj.mtlname);
@@ -85,7 +87,7 @@ wobj_finishObject(WOState * __restrict wst) {
                   "NORMAL",
                   AK_COMPONENT_SIZE_VEC3,
                   AKT_FLOAT,
-                  1);
+                  inputOffset++);
   }
   
   if (wst->obj.dc_tex->itemcount > 0) {
@@ -96,7 +98,7 @@ wobj_finishObject(WOState * __restrict wst) {
                   "TEXCOORD",
                   AK_COMPONENT_SIZE_VEC2,
                   AKT_FLOAT,
-                  2);
+                  inputOffset);
   }
 
   wobj_joinIndices(wst, (void *)poly);
