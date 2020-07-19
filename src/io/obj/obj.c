@@ -48,7 +48,7 @@ wobj_obj(AkDoc     ** __restrict dest,
   float               v[4];
   size_t              objstrSize;
   AkResult            ret;
-  int32_t             vc;
+  uint32_t            vc;
   char                c;
 
   if ((ret = ak_readfile(filepath, "rb", &objstr, &objstrSize)) != AK_OK)
@@ -160,6 +160,7 @@ wobj_obj(AkDoc     ** __restrict dest,
                    && (c = *++p) != '\0'
                    && !AK_ARRAY_NLINE_CHECK);
           
+          wst->maxVC = GLM_MAX(wst->maxVC, vc);
           ak_data_append(wst->obj.dc_vcount, &vc);
           break;
         }

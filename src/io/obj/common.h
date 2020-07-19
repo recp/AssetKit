@@ -50,12 +50,13 @@ typedef struct WOMtlLib {
 } WOMtlLib;
 
 typedef struct WOObject {
-  AkGeometry    *geom;
-  AkDataContext *dc_indv, *dc_indt, *dc_indn;
-  AkDataContext *dc_pos,  *dc_tex,  *dc_nor;
-  AkDataContext *dc_vcount;
-  char          *mtlname;
-  bool           isdefault;
+  AkGeometry      *geom;
+  AkMeshPrimitive *prim;
+  AkDataContext   *dc_indv, *dc_indt, *dc_indn;
+  AkDataContext   *dc_pos,  *dc_tex,  *dc_nor;
+  AkDataContext   *dc_vcount;
+  char            *mtlname;
+  bool             isdefault;
 } WOObject;
 
 typedef struct WOState {
@@ -66,6 +67,7 @@ typedef struct WOState {
   AkNode        *node;
   WOMtlLib      *mtlib;
   WOObject       obj;
+  uint32_t       maxVC;
 } WOState;
 
 #define SKIP_SPACES                                                           \
