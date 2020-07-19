@@ -24,7 +24,7 @@
 
 #include <cglm/cglm.h>
 
-_assetkit_hide
+AK_HIDE
 void*
 dae_node2(DAEState * __restrict dst,
           xml_t    * __restrict xml,
@@ -32,7 +32,7 @@ dae_node2(DAEState * __restrict dst,
   return dae_node(dst, xml, memp, NULL);
 }
 
-_assetkit_hide
+AK_HIDE
 AkNode*
 dae_node(DAEState      * __restrict dst,
          xml_t         * __restrict xml,
