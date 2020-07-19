@@ -27,7 +27,4 @@ AK_HIDE
 void
 wobj_switchObject(WOState * __restrict wst);
 
-#define wobj_switchGroup(wst) wobj_switchObject(wst)
-#define wobj_finishGroup(wst) wobj_finishObject(wst)
-
 #endif /* wobj_group_h */

@@ -100,7 +100,7 @@ wobj_obj(AkDoc     ** __restrict dest,
   wstVal.lib_geom  = doc->lib.geometries;
 
   /* default group */
-  wobj_switchGroup(wst);
+  wobj_switchObject(wst);
   wst->obj.isdefault = true;
 
   /* parse .obj */
@@ -164,12 +164,9 @@ wobj_obj(AkDoc     ** __restrict dest,
           ak_data_append(wst->obj.dc_vcount, &vc);
           break;
         }
-        case 'o': {
-          wobj_switchObject(wst);
-          break;
-        }
+        case 'o':
         case 'g': {
-          wobj_switchGroup(wst);
+          wobj_switchObject(wst);
           break;
         }
         default:
@@ -228,7 +225,6 @@ wobj_obj(AkDoc     ** __restrict dest,
   } while (p && p[0] != '\0'/* && (c = *++p) != '\0'*/);
 
   wobj_finishObject(wst);
-  wobj_finishGroup(wst);
   
   wobj_postscript(wst);
 
