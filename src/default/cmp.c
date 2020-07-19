@@ -72,6 +72,32 @@ ak_cmp_vec3(void *key1, void *key2) {
 
 AK_EXPORT
 int
+ak_cmp_ivec3(void *key1, void *key2) {
+  int32_t *v1, *v2;
+
+  v1  = key1;
+  v2  = key2;
+
+  if (v1[0] > v2[0])
+    return 1;
+  else if (v1[0] < v2[0])
+    return -1;
+
+  if (v1[1] > v2[1])
+    return 1;
+  else if (v1[1] < v2[1])
+    return -1;
+
+  if (v1[2] > v2[2])
+    return 1;
+  else if (v1[2] < v2[2])
+    return -1;
+
+  return 0;
+}
+
+AK_EXPORT
+int
 ak_cmp_vec4(void *key1, void *key2) {
   float *v1, *v2;
 
