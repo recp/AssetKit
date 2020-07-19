@@ -19,7 +19,7 @@
 #include "enum.h"
 #include "vert.h"
 
-AkObject* _assetkit_hide
+AkObject* AK_HIDE
 dae_spline(DAEState   * __restrict dst,
            xml_t      * __restrict xml,
            AkGeometry * __restrict geom) {

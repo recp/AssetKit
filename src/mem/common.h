@@ -139,7 +139,7 @@ void
 ak_heap_ext_free(AkHeap     * __restrict heap,
                  AkHeapNode * __restrict hnode);
 
-void _assetkit_hide
+void AK_HIDE
 ak_freeh(AkHeapNode * __restrict heapNode);
 
 void
@@ -148,7 +148,7 @@ ak_mem_init(void);
 void
 ak_mem_deinit(void);
 
-_assetkit_hide
+AK_HIDE
 void
 ak_dsSetAllocator(AkHeapAllocator * __restrict alc,
                   DsAllocator     * __restrict dsalc);

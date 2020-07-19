@@ -25,7 +25,7 @@ static const unsigned char base64_table[65] =
  * nul terminated to make it easier to use as a C string. The nul terminator is
  * not included in out_len.
  */
-_assetkit_hide
+AK_HIDE
 unsigned char*
 base64_encode(AkHeap              * __restrict heap,
               void                * __restrict memparent,
@@ -97,7 +97,7 @@ base64_encode(AkHeap              * __restrict heap,
  *
  * Caller is responsible for freeing the returned buffer.
  */
-_assetkit_hide
+AK_HIDE
 unsigned char*
 base64_decode(AkHeap              * __restrict heap,
               void                * __restrict memparent,
@@ -163,7 +163,7 @@ base64_decode(AkHeap              * __restrict heap,
 	return out;
 }
 
-_assetkit_hide
+AK_HIDE
 void
 base64_buff(const char * __restrict b64,
             size_t                  len,

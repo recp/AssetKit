@@ -19,10 +19,10 @@
 
 #include "common.h"
 
-void _assetkit_hide
+void AK_HIDE
 ak_trash_init(void);
 
-void _assetkit_hide
+void AK_HIDE
 ak_trash_deinit(void);
 
 #endif /* ak_src_trash_h */

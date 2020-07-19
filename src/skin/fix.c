@@ -16,7 +16,7 @@
 
 #include "fix.h"
 
-_assetkit_hide
+AK_HIDE
 void
 ak_skinFixWeights(AkMesh * __restrict mesh) {
   AkHeap          *heap;

@@ -19,13 +19,13 @@
 
 #include "../common.h"
 
-_assetkit_hide
+AK_HIDE
 void*
 dae_image(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp);
 
-_assetkit_hide
+AK_HIDE
 AkInstanceBase*
 dae_instImage(DAEState * __restrict dst,
               xml_t    * __restrict xml,

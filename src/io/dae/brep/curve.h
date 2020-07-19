@@ -19,12 +19,12 @@
 
 #include "../common.h"
 
-AkCurve* _assetkit_hide
+AkCurve* AK_HIDE
 dae_curve(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp);
 
-AkCurves* _assetkit_hide
+AkCurves* AK_HIDE
 dae_curves(DAEState * __restrict dst,
            xml_t    * __restrict xml,
            void     * __restrict memp);

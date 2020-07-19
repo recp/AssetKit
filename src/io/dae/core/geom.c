@@ -20,7 +20,7 @@
 #include "../core/asset.h"
 #include "../brep/brep.h"
 
-_assetkit_hide
+AK_HIDE
 void*
 dae_geom(DAEState * __restrict dst,
          xml_t    * __restrict xml,

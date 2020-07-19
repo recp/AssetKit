@@ -20,7 +20,7 @@ static
 void
 gltf_setFirstCamera(AkVisualScene *scene, AkNode *node);
 
-void _assetkit_hide
+void AK_HIDE
 gltf_scenes(json_t * __restrict jscene,
             void   * __restrict userdata) {
   AkGLTFState        *gst;
@@ -110,7 +110,7 @@ gltf_scenes(json_t * __restrict jscene,
    doc->lib.visualScenes = lib;
 }
 
-void _assetkit_hide
+void AK_HIDE
 gltf_scene(json_t * __restrict jscene,
            void   * __restrict userdata) {
   AkGLTFState   *gst;

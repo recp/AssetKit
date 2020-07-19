@@ -19,13 +19,13 @@
 
 #include "../common.h"
 
-_assetkit_hide
+AK_HIDE
 void*
 dae_node2(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp);
 
-_assetkit_hide
+AK_HIDE
 AkNode*
 dae_node(DAEState      * __restrict dst,
          xml_t         * __restrict xml,

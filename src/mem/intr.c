@@ -16,7 +16,7 @@
 
 #include "common.h"
 
-_assetkit_hide
+AK_HIDE
 void
 ak_dsSetAllocator(AkHeapAllocator * __restrict alc,
                   DsAllocator     * __restrict dsalc) {

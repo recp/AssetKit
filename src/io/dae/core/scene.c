@@ -23,13 +23,13 @@
 #include "../../../../include/ak/light.h"
 
 static
-_assetkit_hide
+AK_HIDE
 AkEvaluateScene*
 dae_evalScene(DAEState * __restrict dst,
               xml_t    * __restrict xml,
               void     * __restrict memp);
 
-void* _assetkit_hide
+void* AK_HIDE
 dae_vscene(DAEState * __restrict dst,
            xml_t    * __restrict xml,
            void     * __restrict memp) {
@@ -102,7 +102,7 @@ dae_vscene(DAEState * __restrict dst,
   return vscn;
 }
 
-AkInstanceBase* _assetkit_hide
+AkInstanceBase* AK_HIDE
 dae_instVisualScene(DAEState * __restrict dst,
                     xml_t    * __restrict xml,
                     void     * __restrict memp) {
@@ -121,7 +121,7 @@ dae_instVisualScene(DAEState * __restrict dst,
 }
 
 static
-_assetkit_hide
+AK_HIDE
 AkEvaluateScene*
 dae_evalScene(DAEState * __restrict dst,
               xml_t    * __restrict xml,
@@ -194,7 +194,7 @@ dae_evalScene(DAEState * __restrict dst,
   return evalScene;
 }
 
-void _assetkit_hide
+void AK_HIDE
 dae_scene(DAEState * __restrict dst,
           xml_t    * __restrict xml) {
   AkDoc    *doc;

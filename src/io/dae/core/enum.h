@@ -19,46 +19,46 @@
 
 #include "../../../xml.h"
 
-AkEnum _assetkit_hide
+AkEnum AK_HIDE
 dae_semantic(const char * name);
 
-AkEnum _assetkit_hide
+AkEnum AK_HIDE
 dae_morphMethod(const xml_attr_t * __restrict xatt);
 
-AkEnum _assetkit_hide
+AkEnum AK_HIDE
 dae_nodeType(const xml_attr_t * __restrict xatt);
 
-AkEnum _assetkit_hide
+AkEnum AK_HIDE
 dae_animBehavior(const xml_attr_t * __restrict xatt);
 
-AkEnum _assetkit_hide
+AkEnum AK_HIDE
 dae_animInterp(const char * name, size_t len);
 
-AkEnum _assetkit_hide
+AkEnum AK_HIDE
 dae_wrap(const xml_t * __restrict xml);
 
-AkEnum _assetkit_hide
+AkEnum AK_HIDE
 dae_minfilter(const xml_t * __restrict xml);
 
-AkEnum _assetkit_hide
+AkEnum AK_HIDE
 dae_mipfilter(const xml_t * __restrict xml);
 
-AkEnum _assetkit_hide
+AkEnum AK_HIDE
 dae_magfilter(const xml_t * __restrict xml);
 
-AkEnum _assetkit_hide
+AkEnum AK_HIDE
 dae_face(const xml_attr_t * __restrict xatt);
 
-AkEnum _assetkit_hide
+AkEnum AK_HIDE
 dae_opaque(const xml_attr_t * __restrict xatt);
 
-AkEnum _assetkit_hide
+AkEnum AK_HIDE
 dae_enumChannel(const char *name, size_t len);
 
-AkEnum _assetkit_hide
+AkEnum AK_HIDE
 dae_range(const char *name, size_t len);
 
-AkEnum _assetkit_hide
+AkEnum AK_HIDE
 dae_precision(const char *name, size_t len);
 
 #endif /* dae_enums_h */

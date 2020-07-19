@@ -19,16 +19,16 @@
 
 #include "../common.h"
 
-_assetkit_hide
+AK_HIDE
 AkResult
 ak_meshFixIndices(AkMesh *mesh);
 
-_assetkit_hide
+AK_HIDE
 AkResult
 ak_primFixIndices(AkMesh          *mesh,
                   AkMeshPrimitive *prim);
 
-_assetkit_hide
+AK_HIDE
 AkResult
 ak_meshFixIndicesDefault(AkMesh *mesh);
 

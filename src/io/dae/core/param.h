@@ -19,12 +19,12 @@
 
 #include "../common.h"
 
-AkNewParam* _assetkit_hide
+AkNewParam* AK_HIDE
 dae_newparam(DAEState * __restrict dst,
              xml_t    * __restrict xml,
              void     * __restrict memp);
 
-AkParam* _assetkit_hide
+AkParam* AK_HIDE
 dae_param(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp);

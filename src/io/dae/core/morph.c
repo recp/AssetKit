@@ -19,7 +19,7 @@
 #include "enum.h"
 #include "../../../array.h"
 
-AkMorph* _assetkit_hide
+AkMorph* AK_HIDE
 dae_morph(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp) {

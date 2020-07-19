@@ -19,17 +19,17 @@
 
 #include "../common.h"
 
-void* _assetkit_hide
+void* AK_HIDE
 dae_anim(DAEState * __restrict dst,
          xml_t    * __restrict xml,
          void     * __restrict memp);
 
-AkAnimSampler* _assetkit_hide
+AkAnimSampler* AK_HIDE
 dae_animSampler(DAEState * __restrict dst,
                 xml_t    * __restrict xml,
                 void     * __restrict memp);
 
-AkChannel* _assetkit_hide
+AkChannel* AK_HIDE
 dae_channel(DAEState * __restrict dst,
             void     * __restrict xml,
             void     * __restrict memp);

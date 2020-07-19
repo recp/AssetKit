@@ -18,7 +18,7 @@
 #include "../core/enum.h"
 #include "../../../array.h"
 
-AkEdges* _assetkit_hide
+AkEdges* AK_HIDE
 dae_edges(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp) {
@@ -88,7 +88,7 @@ dae_edges(DAEState * __restrict dst,
   return edges;
 }
 
-AkWires* _assetkit_hide
+AkWires* AK_HIDE
 dae_wires(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp) {
@@ -165,7 +165,7 @@ dae_wires(DAEState * __restrict dst,
   return wires;
 }
 
-AkFaces* _assetkit_hide
+AkFaces* AK_HIDE
 dae_faces(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp) {
@@ -242,7 +242,7 @@ dae_faces(DAEState * __restrict dst,
   return faces;
 }
 
-AkPCurves* _assetkit_hide
+AkPCurves* AK_HIDE
 dae_pcurves(DAEState * __restrict dst,
             xml_t    * __restrict xml,
             void     * __restrict memp) {
@@ -319,7 +319,7 @@ dae_pcurves(DAEState * __restrict dst,
   return pcurves;
 }
 
-AkShells* _assetkit_hide
+AkShells* AK_HIDE
 dae_shells(DAEState * __restrict dst,
            xml_t    * __restrict xml,
            void     * __restrict memp) {
@@ -396,7 +396,7 @@ dae_shells(DAEState * __restrict dst,
   return shells;
 }
 
-AkSolids* _assetkit_hide
+AkSolids* AK_HIDE
 dae_solids(DAEState * __restrict dst,
            xml_t    * __restrict xml,
            void     * __restrict memp){

@@ -19,10 +19,10 @@
 
 #include "../common.h"
 
-AkResult _assetkit_hide
+AkResult AK_HIDE
 dae_geom_fixup(AkGeometry * geom);
 
-AkResult _assetkit_hide
+AkResult AK_HIDE
 dae_geom_fixup_all(AkDoc * doc);
 
 #endif /* dae_geom_fixup */

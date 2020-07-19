@@ -19,17 +19,17 @@
 
 #include "../common.h"
 
-void _assetkit_hide
+void AK_HIDE
 gltf_nodes(json_t * __restrict jnode,
            void   * __restrict userdata);
 
-AkNode* _assetkit_hide
+AkNode* AK_HIDE
 gltf_node(AkGLTFState * __restrict gst,
           void        * __restrict memParent,
           json_t      * __restrict jnode,
           AkNode     ** __restrict nodechld);
 
-void _assetkit_hide
+void AK_HIDE
 gltf_bindMaterials(AkGLTFState        * __restrict gst,
                    AkInstanceGeometry * __restrict instGeom,
                    int32_t                         meshIndex);

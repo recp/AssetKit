@@ -35,7 +35,7 @@ static
 void
 ak_wobjFreeDupl(RBTree *tree, RBNode *node);
 
-AkResult _assetkit_hide
+AkResult AK_HIDE
 wobj_obj(AkDoc     ** __restrict dest,
          const char * __restrict filepath) {
   AkHeap             *heap;

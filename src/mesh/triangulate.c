@@ -16,12 +16,12 @@
 
 #include "../common.h"
 
-_assetkit_hide
+AK_HIDE
 uint32_t
 ak_meshTriangulatePoly_noindices(AkPolygon * __restrict poly);
 
 /* not tested yet! */
-_assetkit_hide
+AK_HIDE
 uint32_t
 ak_meshTriangulatePoly_noindices(AkPolygon * __restrict poly) {
   AkBuffer     *buff, *newbuff;

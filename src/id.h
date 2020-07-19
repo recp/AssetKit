@@ -19,10 +19,10 @@
 
 #include "common.h"
 
-void _assetkit_hide
+void AK_HIDE
 ak_id_newheap(AkHeap * __restrict heap);
 
-_assetkit_hide
+AK_HIDE
 const char *
 ak_id_gen(AkHeap     * __restrict heap,
           void       * __restrict parentmem,

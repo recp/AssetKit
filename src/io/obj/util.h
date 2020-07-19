@@ -20,11 +20,11 @@
 #include "common.h"
 #include "../common/util.h"
 
-_assetkit_hide
+AK_HIDE
 void
 wobj_fixIndices(AkMeshPrimitive * __restrict prim);
 
-_assetkit_hide
+AK_HIDE
 AkInput*
 wobj_addInput(WOState         * __restrict wst,
               AkDataContext   * __restrict dctx,
@@ -35,7 +35,7 @@ wobj_addInput(WOState         * __restrict wst,
               AkTypeId                     type,
               uint32_t                     offset);
 
-_assetkit_hide
+AK_HIDE
 void
 wobj_joinIndices(WOState * __restrict wst, AkMeshPrimitive * __restrict prim);
 

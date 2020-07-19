@@ -19,7 +19,7 @@
 
 #include "../common.h"
 
-AkSkin* _assetkit_hide
+AkSkin* AK_HIDE
 dae_skin(DAEState * __restrict dst,
          xml_t    * __restrict xml,
          void     * __restrict memp);

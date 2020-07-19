@@ -16,15 +16,15 @@
 
 #include "tex.h"
 
-void _assetkit_hide
+void AK_HIDE
 dae_tex_walk(RBTree *tree, RBNode *rbnode);
 
-void _assetkit_hide
+void AK_HIDE
 dae_fix_textures(DAEState * __restrict dst) {
   rb_walk(dst->texmap, dae_tex_walk);
 }
 
-void _assetkit_hide
+void AK_HIDE
 dae_tex_walk(RBTree *tree, RBNode *rbnode) {
   AkHeap          *heap;
   AkNewParam      *newparam;

@@ -18,7 +18,7 @@
 #include "../core/asset.h"
 #include "../core/enum.h"
 
-void _assetkit_hide
+void AK_HIDE
 dae14_fxMigrateImg(DAEState * __restrict dst,
                    xml_t    * __restrict xml,
                    void     * __restrict memp) {

@@ -16,7 +16,7 @@
 
 #include "util.h"
 
-_assetkit_hide
+AK_HIDE
 AkMesh*
 ak_allocMesh(AkHeap      * __restrict heap,
              AkLibrary   * __restrict memp,
@@ -43,7 +43,7 @@ ak_allocMesh(AkHeap      * __restrict heap,
   return mesh;
 }
 
-_assetkit_hide
+AK_HIDE
 AkInput*
 io_addInput(AkHeap          * __restrict heap,
             AkDataContext   * __restrict dctx,

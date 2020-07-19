@@ -29,7 +29,7 @@
 #include "../../../include/ak/path.h"
 #include "../common/util.h"
 
-AkResult _assetkit_hide
+AkResult AK_HIDE
 stl_stl(AkDoc     ** __restrict dest,
         const char * __restrict filepath) {
   AkHeap        *heap;
@@ -116,7 +116,7 @@ stl_stl(AkDoc     ** __restrict dest,
   return AK_OK;
 }
 
-_assetkit_hide
+AK_HIDE
 void
 stl_binary(STLState * __restrict sst, char * __restrict p) {
   vec4     v, n;
@@ -162,7 +162,7 @@ stl_binary(STLState * __restrict sst, char * __restrict p) {
   sst->count = count;
 }
 
-_assetkit_hide
+AK_HIDE
 void
 stl_ascii(STLState * __restrict sst, char * __restrict p) {
   vec4     v, n;
@@ -230,7 +230,7 @@ stl_ascii(STLState * __restrict sst, char * __restrict p) {
   sst->count = count;
 }
 
-_assetkit_hide
+AK_HIDE
 void
 sst_finish(STLState * __restrict sst) {
   AkHeap             *heap;

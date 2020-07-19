@@ -19,7 +19,7 @@
 
 #include "../common.h"
 
-_assetkit_hide
+AK_HIDE
 AkTechnique*
 dae_techn(xml_t  * __restrict xml,
           AkHeap * __restrict heap,

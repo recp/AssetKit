@@ -25,7 +25,7 @@
 */
 
 static
-AkProfileCommon* _assetkit_hide
+AkProfileCommon* AK_HIDE
 wobj_cmnEffect(WOState * __restrict wst);
 
 static
@@ -38,7 +38,7 @@ static
 AkTextureRef*
 wobj_texref(WOState * __restrict wst, void * __restrict memp, char* name);
 
-WOMtlLib* _assetkit_hide
+WOMtlLib* AK_HIDE
 wobj_mtl(WOState    * __restrict wst,
          const char * __restrict name) {
   AkHeap   *heap;
@@ -231,7 +231,7 @@ ret:
 }
 
 static
-AkProfileCommon* _assetkit_hide
+AkProfileCommon* AK_HIDE
 wobj_cmnEffect(WOState * __restrict wst) {
   AkLibrary       *lib;
   AkEffect        *effect;

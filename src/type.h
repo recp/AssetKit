@@ -17,10 +17,10 @@
 #ifndef ak_src_type_h
 #define ak_src_type_h
 
-void _assetkit_hide
+void AK_HIDE
 ak_type_init(void);
 
-void _assetkit_hide
+void AK_HIDE
 ak_type_deinit(void);
 
 #endif /* ak_src_type_h */

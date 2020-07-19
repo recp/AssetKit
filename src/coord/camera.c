@@ -18,7 +18,7 @@
 #include "common.h"
 #include <cglm/cglm.h>
 
-_assetkit_hide
+AK_HIDE
 void
 ak_coordRotForFixedCoord(AkCoordSys        *oldCoordSys,
                          AkCoordSys        *newCoordSys,
@@ -27,7 +27,7 @@ ak_coordRotForFixedCoord(AkCoordSys        *oldCoordSys,
                          vec4               fwdAxis,
                          vec4               upAxis);
 
-_assetkit_hide
+AK_HIDE
 void
 ak_coordRotForFixedCoord(AkCoordSys        *oldCoordSys,
                          AkCoordSys        *newCoordSys,

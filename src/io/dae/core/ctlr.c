@@ -19,7 +19,7 @@
 #include "morph.h"
 #include "../core/asset.h"
 
-void* _assetkit_hide
+void* AK_HIDE
 dae_ctlr(DAEState * __restrict dst,
          xml_t    * __restrict xml,
          void     * __restrict memp) {

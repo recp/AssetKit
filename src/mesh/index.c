@@ -22,7 +22,7 @@
 
 extern const char* ak_mesh_edit_assert1;
 
-_assetkit_hide
+AK_HIDE
 AkResult
 ak_movePositions(AkMesh          *mesh,
                  AkMeshPrimitive *prim,
@@ -77,7 +77,7 @@ ak_movePositions(AkMesh          *mesh,
   return AK_OK;
 }
 
-_assetkit_hide
+AK_HIDE
 AkResult
 ak_primFixIndices(AkMesh          *mesh,
                   AkMeshPrimitive *prim) {
@@ -95,7 +95,7 @@ ak_primFixIndices(AkMesh          *mesh,
   return AK_OK;
 }
 
-_assetkit_hide
+AK_HIDE
 AkResult
 ak_meshFixIndicesDefault(AkMesh *mesh) {
   AkMeshPrimitive *prim;
@@ -109,7 +109,7 @@ ak_meshFixIndicesDefault(AkMesh *mesh) {
   return AK_OK;
 }
 
-_assetkit_hide
+AK_HIDE
 AkResult
 ak_meshFixIndices(AkMesh *mesh) {
   AkResult ret;

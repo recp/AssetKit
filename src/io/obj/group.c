@@ -17,7 +17,7 @@
 #include "group.h"
 #include "util.h"
 
-_assetkit_hide
+AK_HIDE
 void
 wobj_finishObject(WOState * __restrict wst) {
   AkHeap             *heap;
@@ -118,7 +118,7 @@ cle:
   memset(&wst->obj, 0, sizeof(wst->obj));
 }
 
-_assetkit_hide
+AK_HIDE
 void
 wobj_switchObject(WOState * __restrict wst) {
   AkGeometry *geom;

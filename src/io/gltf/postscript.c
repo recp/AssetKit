@@ -17,7 +17,7 @@
 #include "postscript.h"
 #include "mesh_fixup.h"
 
-void _assetkit_hide
+void AK_HIDE
 gltf_postscript(AkGLTFState * __restrict gst) {
   gltf_mesh_fixup(gst);
 }

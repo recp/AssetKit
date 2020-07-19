@@ -18,7 +18,7 @@
 #include "enum.h"
 #include "../../../array.h"
 
-_assetkit_hide
+AK_HIDE
 AkLines*
 dae_lines(DAEState * __restrict dst,
           xml_t    * __restrict xml,

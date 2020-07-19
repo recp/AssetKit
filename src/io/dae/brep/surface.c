@@ -19,7 +19,7 @@
 #include "curve.h"
 #include "../../../array.h"
 
-AkSurface* _assetkit_hide
+AkSurface* AK_HIDE
 dae_surface(DAEState * __restrict dst,
             xml_t    * __restrict xml,
             void     * __restrict memp) {
@@ -177,7 +177,7 @@ dae_surface(DAEState * __restrict dst,
   return surf;
 }
 
-AkSurfaces* _assetkit_hide
+AkSurfaces* AK_HIDE
 dae_surfaces(DAEState * __restrict dst,
              xml_t    * __restrict xml,
              void     * __restrict memp) {

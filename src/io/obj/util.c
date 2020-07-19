@@ -16,7 +16,7 @@
 
 #include "util.h"
 
-_assetkit_hide
+AK_HIDE
 void
 wobj_fixIndices(AkMeshPrimitive * __restrict prim) {
   AkUInt      *it;
@@ -49,7 +49,7 @@ wobj_fixIndices(AkMeshPrimitive * __restrict prim) {
   }
 }
 
-_assetkit_hide
+AK_HIDE
 AkInput*
 wobj_addInput(WOState         * __restrict wst,
               AkDataContext   * __restrict dctx,
@@ -101,7 +101,7 @@ wobj_addInput(WOState         * __restrict wst,
   return inp;
 }
 
-_assetkit_hide
+AK_HIDE
 void
 wobj_joinIndices(WOState * __restrict wst, AkMeshPrimitive * __restrict prim) {
   void    *it;

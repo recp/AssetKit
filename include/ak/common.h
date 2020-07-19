@@ -35,14 +35,14 @@
 #  else
 #    define AK_EXPORT __declspec(dllimport)
 #  endif
-#  define _assetkit_hide
-#  define AK_INLINE __forceinline
+#  define AK_HIDE
+#  define AK_INLINE   __forceinline
 #  define AK_ALIGN(X) __declspec(align(X))
 #else
-#  define AK_EXPORT      __attribute__((visibility("default")))
-#  define _assetkit_hide __attribute__((visibility("hidden")))
-#  define AK_INLINE static inline __attribute((always_inline))
+#  define AK_EXPORT   __attribute__((visibility("default")))
+#  define AK_HIDE     __attribute__((visibility("hidden")))
 #  define AK_ALIGN(X) __attribute((aligned(X)))
+#  define AK_INLINE   static inline __attribute((always_inline))
 #endif
 
 #ifndef __has_builtin

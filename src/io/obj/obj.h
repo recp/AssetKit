@@ -19,7 +19,7 @@
 
 #include "common.h"
 
-AkResult _assetkit_hide
+AkResult AK_HIDE
 wobj_obj(AkDoc     ** __restrict dest,
          const char * __restrict filepath);
 

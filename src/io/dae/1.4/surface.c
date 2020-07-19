@@ -18,7 +18,7 @@
 #include "../core/asset.h"
 #include "../core/enum.h"
 
-AkDae14Surface* _assetkit_hide
+AkDae14Surface* AK_HIDE
 dae14_surface(DAEState * __restrict dst,
               xml_t    * __restrict xml,
               void     * __restrict memp) {

@@ -32,10 +32,10 @@ typedef struct AkSidConstr {
   AkSidConstrItem *item;
 } AkSidConstr;
 
-void _assetkit_hide
+void AK_HIDE
 ak_sid_init(void);
 
-void _assetkit_hide
+void AK_HIDE
 ak_sid_deinit(void);
 
 void
@@ -49,24 +49,24 @@ ak_sidConstraintTo(AkTypeId         typeId,
                    AkSidConstrItem *constrs,
                    AkEnum           method);
 
-_assetkit_hide
+AK_HIDE
 AkHeapNode*
 ak_sid_profile(AkContext  * __restrict ctx,
                AkHeapNode * __restrict parent,
                AkHeapNode * __restrict after);
 
-_assetkit_hide
+AK_HIDE
 AkHeapNode*
 ak_sid_technique(AkContext  * __restrict ctx,
                  AkHeapNode * __restrict chld);
 
-_assetkit_hide
+AK_HIDE
 AkHeapNode*
 ak_sid_chldh(AkContext  * __restrict ctx,
              AkHeapNode * __restrict parent,
              AkHeapNode * __restrict after);
 
-_assetkit_hide
+AK_HIDE
 ptrdiff_t
 ak_sidElement(AkContext  * __restrict ctx,
               const char * __restrict target,

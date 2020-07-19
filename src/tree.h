@@ -22,7 +22,7 @@
 /**
  * @brief load a tree from xml
  */
-AkTreeNode* _assetkit_hide
+AkTreeNode* AK_HIDE
 tree_fromxml(AkHeap * __restrict heap,
              void   * __restrict memParent,
              xml_t  * __restrict xml);

@@ -17,7 +17,7 @@
 #include "geom.h"
 #include "mesh.h"
 
-AkResult _assetkit_hide
+AkResult AK_HIDE
 dae_geom_fixup_all(AkDoc * doc) {
   AkLibrary  *geomLib;
   AkGeometry *geom;
@@ -36,7 +36,7 @@ dae_geom_fixup_all(AkDoc * doc) {
   return AK_OK;
 }
 
-AkResult _assetkit_hide
+AkResult AK_HIDE
 dae_geom_fixup(AkGeometry * geom) {
   AkObject *primitive;
 

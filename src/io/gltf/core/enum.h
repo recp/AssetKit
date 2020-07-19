@@ -19,31 +19,31 @@
 
 #include "../common.h"
 
-AkEnum _assetkit_hide
+AkEnum AK_HIDE
 gltf_enumInputSemantic(const char *name);
 
-AkEnum _assetkit_hide
+AkEnum AK_HIDE
 gltf_componentType(int type);
 
-int _assetkit_hide
+int AK_HIDE
 gltf_componentLen(int type) ;
 
-AkComponentSize _assetkit_hide
+AkComponentSize AK_HIDE
 gltf_type(const json_t * __restrict json);
 
-AkEnum _assetkit_hide
+AkEnum AK_HIDE
 gltf_minFilter(int type);
 
-AkEnum _assetkit_hide
+AkEnum AK_HIDE
 gltf_magFilter(int type);
 
-AkEnum _assetkit_hide
+AkEnum AK_HIDE
 gltf_wrapMode(int type);
 
-AkOpaque _assetkit_hide
+AkOpaque AK_HIDE
 gltf_alphaMode(const json_t * __restrict json);
 
-AkInterpolationType _assetkit_hide
+AkInterpolationType AK_HIDE
 gltf_interp(const json_t * __restrict json);
 
 #endif /* gltf_enums_h */

@@ -19,12 +19,12 @@
 
 #include "../common.h"
 
-AkSurface* _assetkit_hide
+AkSurface* AK_HIDE
 dae_surface(DAEState * __restrict dst,
             xml_t    * __restrict xml,
             void     * __restrict memp);
 
-AkSurfaces* _assetkit_hide
+AkSurfaces* AK_HIDE
 dae_surfaces(DAEState * __restrict dst,
              xml_t    * __restrict xml,
              void     * __restrict memp);

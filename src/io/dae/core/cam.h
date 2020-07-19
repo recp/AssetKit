@@ -19,7 +19,7 @@
 
 #include "../common.h"
 
-_assetkit_hide
+AK_HIDE
 void*
 dae_cam(DAEState * __restrict dst,
         xml_t    * __restrict xml,

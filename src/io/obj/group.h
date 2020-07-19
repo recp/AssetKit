@@ -19,11 +19,11 @@
 
 #include "common.h"
 
-_assetkit_hide
+AK_HIDE
 void
 wobj_finishObject(WOState * __restrict wst);
 
-_assetkit_hide
+AK_HIDE
 void
 wobj_switchObject(WOState * __restrict wst);
 

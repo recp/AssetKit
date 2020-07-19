@@ -19,7 +19,7 @@
 
 #include "../common.h"
 
-AkProfile* _assetkit_hide
+AkProfile* AK_HIDE
 dae_profile(DAEState * __restrict dst,
             xml_t    * __restrict xml,
             void     * __restrict memp);

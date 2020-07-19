@@ -24,7 +24,7 @@ typedef enum AkPolygonMode {
   AK_POLY_POLYGONS = 2
 } AkPolygonMode;
 
-_assetkit_hide
+AK_HIDE
 AkPolygon*
 dae_poly(DAEState * __restrict dst,
          xml_t    * __restrict xml,

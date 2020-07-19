@@ -19,7 +19,7 @@
 
 #include "../common.h"
 
-void _assetkit_hide
+void AK_HIDE
 gltf_cameras(json_t * __restrict jcam,
              void   * __restrict userdata);
 

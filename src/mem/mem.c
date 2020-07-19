@@ -36,7 +36,7 @@ static
 char*
 ak__heap_strdup_def(const char * str);
 
-_assetkit_hide
+AK_HIDE
 void
 ak_heap_moveh_chld(AkHeap     * __restrict heap,
                    AkHeap     * __restrict newheap,
@@ -532,7 +532,7 @@ ak_heap_setp(AkHeapNode * __restrict heapNode,
     heapNode->next->prev = heapNode;
 }
 
-_assetkit_hide
+AK_HIDE
 void
 ak_heap_moveh_chld(AkHeap     * __restrict heap,
                    AkHeap     * __restrict newheap,
@@ -587,7 +587,7 @@ ak_heap_setpm(void * __restrict memptr,
                ak__alignof(newparent));
 }
 
-void _assetkit_hide
+void AK_HIDE
 ak_freeh(AkHeapNode * __restrict heapNode) {
   if (heapNode->flags & AK_HEAP_NODE_FLAGS_HEAP_CHLD) {
     AkHeap *attachedHeap;

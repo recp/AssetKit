@@ -19,12 +19,12 @@
 
 #include "../common.h"
 
-AkValue* _assetkit_hide
+AkValue* AK_HIDE
 dae_value(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp);
 
-void _assetkit_hide
+void AK_HIDE
 dae_dtype(const char *typeName, AkTypeDesc *type);
 
 #endif /* dae_value_h */

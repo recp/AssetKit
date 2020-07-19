@@ -19,14 +19,14 @@
 
 #include "../include/ak/assetkit.h"
 
-AkResult _assetkit_hide
+AkResult AK_HIDE
 ak_strtostr_array(AkHeap         * __restrict heap,
                   void           * __restrict memParent,
                   char                       *content,
                   char                        separator,
                   AkStringArray ** __restrict array);
 
-AkResult _assetkit_hide
+AkResult AK_HIDE
 ak_strtostr_arrayL(AkHeap          * __restrict heap,
                    void            * __restrict memParent,
                    char                        *content,

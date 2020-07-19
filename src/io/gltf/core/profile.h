@@ -19,7 +19,7 @@
 
 #include "../common.h"
 
-AkProfileCommon* _assetkit_hide
+AkProfileCommon* AK_HIDE
 gltf_cmnEffect(AkGLTFState * __restrict gst);
 
 #endif /* gltf_profile_h */

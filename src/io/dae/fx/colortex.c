@@ -19,7 +19,7 @@
 #include "../core/color.h"
 #include "../core/enum.h"
 
-AkColorDesc* _assetkit_hide
+AkColorDesc* AK_HIDE
 dae_colorOrTex(DAEState * __restrict dst,
                xml_t    * __restrict xml,
                void     * __restrict memp) {

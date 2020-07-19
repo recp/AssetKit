@@ -19,7 +19,7 @@
 
 #include "../common.h"
 
-AkSource* _assetkit_hide
+AkSource* AK_HIDE
 dae_source(DAEState * __restrict dst,
            xml_t    * __restrict xml,
            AkEnum              (*asEnum)(const char *name, size_t nameLen),

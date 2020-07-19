@@ -19,7 +19,7 @@
 
 #include "../common.h"
 
-void _assetkit_hide
+void AK_HIDE
 gltf_samplers(json_t * __restrict jsampler,
               void   * __restrict userdata);
 

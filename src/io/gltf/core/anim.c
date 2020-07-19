@@ -25,7 +25,7 @@
 #define k_anim_channels 1
 #define k_anim_name     2
 
-void _assetkit_hide
+void AK_HIDE
 gltf_animations(json_t * __restrict janim,
                 void   * __restrict userdata) {
   AkGLTFState        *gst;

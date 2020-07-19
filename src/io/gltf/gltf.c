@@ -67,7 +67,7 @@ bswapu32(uint32_t val) {
 #endif
 
 static
-AkResult _assetkit_hide
+AkResult AK_HIDE
 gltf_parse(AkDoc     ** __restrict dest,
            const char * __restrict filepath,
            const char * __restrict contents,
@@ -77,7 +77,7 @@ static
 void
 ak_gltfFreeDupl(RBTree *tree, RBNode *node);
 
-AkResult _assetkit_hide
+AkResult AK_HIDE
 gltf_glb(AkDoc     ** __restrict dest,
          const char * __restrict filepath) {
   void             *data, *bindata;
@@ -121,7 +121,7 @@ gltf_glb(AkDoc     ** __restrict dest,
   return ret;
 }
 
-AkResult _assetkit_hide
+AkResult AK_HIDE
 gltf_gltf(AkDoc     ** __restrict dest,
           const char * __restrict filepath) {
   void             *jsonString;
@@ -140,7 +140,7 @@ gltf_gltf(AkDoc     ** __restrict dest,
 }
 
 static
-AkResult _assetkit_hide
+AkResult AK_HIDE
 gltf_parse(AkDoc     ** __restrict dest,
            const char * __restrict filepath,
            const char * __restrict contents,

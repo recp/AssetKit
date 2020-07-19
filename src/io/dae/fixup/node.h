@@ -19,11 +19,11 @@
 
 #include "../common.h"
 
-void _assetkit_hide
+void AK_HIDE
 dae_nodeFixupFixedCoord(AkHeap * __restrict heap,
                         AkNode * __restrict node);
 
-void _assetkit_hide
+void AK_HIDE
 dae_nodeFixup(AkHeap * __restrict heap,
               AkNode*  __restrict node);
 

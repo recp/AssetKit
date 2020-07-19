@@ -19,7 +19,7 @@
 #include "../core/source.h"
 #include "../core/enum.h"
 
-AkObject* _assetkit_hide
+AkObject* AK_HIDE
 dae_nurbs(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp) {
@@ -53,7 +53,7 @@ dae_nurbs(DAEState * __restrict dst,
   return obj;
 }
 
-AkObject* _assetkit_hide
+AkObject* AK_HIDE
 dae_nurbs_surface(DAEState * __restrict dst,
                   xml_t    * __restrict xml,
                   void     * __restrict memp) {

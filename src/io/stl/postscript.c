@@ -17,7 +17,7 @@
 #include "postscript.h"
 #include "../../mesh/index.h"
 
-void _assetkit_hide
+void AK_HIDE
 stl_postscript(STLState * __restrict sst) {
   AkDoc      *doc;
   AkLibrary  *geomLib;

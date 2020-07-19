@@ -21,7 +21,7 @@
 #define k_bufferView    1
 #define k_uri           2
 
-void _assetkit_hide
+void AK_HIDE
 gltf_images(json_t * __restrict jimage,
             void   * __restrict userdata) {
   AkGLTFState        *gst;

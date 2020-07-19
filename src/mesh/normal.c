@@ -22,7 +22,7 @@
 
 #include <cglm/cglm.h>
 
-_assetkit_hide
+AK_HIDE
 void
 ak_meshPrimGenNormals(AkMeshPrimitive    * __restrict prim);
 
@@ -67,7 +67,7 @@ ak_meshNeedsNormals(AkMesh * __restrict mesh) {
   return ret;
 }
 
-_assetkit_hide
+AK_HIDE
 void
 ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
   AkDataContext *dctx;

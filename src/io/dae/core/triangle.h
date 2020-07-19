@@ -19,7 +19,7 @@
 
 #include "../common.h"
 
-_assetkit_hide
+AK_HIDE
 AkTriangles*
 dae_triangles(DAEState * __restrict dst,
               xml_t    * __restrict xml,

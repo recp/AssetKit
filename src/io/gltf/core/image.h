@@ -19,7 +19,7 @@
 
 #include "../common.h"
 
-void _assetkit_hide
+void AK_HIDE
 gltf_images(json_t * __restrict jimage,
             void   * __restrict userdata);
 

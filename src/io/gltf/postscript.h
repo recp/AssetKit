@@ -19,7 +19,7 @@
 
 #include "common.h"
 
-void _assetkit_hide
+void AK_HIDE
 gltf_postscript(AkGLTFState * __restrict gst);
 
 #endif /* gltf_postscript_h */

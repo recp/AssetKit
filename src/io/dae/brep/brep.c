@@ -21,7 +21,7 @@
 #include "surface.h"
 #include "topology.h"
 
-AkObject* _assetkit_hide
+AkObject* AK_HIDE
 dae_brep(DAEState   * __restrict dst,
          xml_t      * __restrict xml,
          AkGeometry * __restrict geom) {

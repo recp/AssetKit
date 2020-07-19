@@ -163,12 +163,12 @@ ak_resc_print() {
   ak_heap_printKeys(resc_heap);
 }
 
-void _assetkit_hide
+void AK_HIDE
 ak_resc_init() {
   ak_heap_init(resc_heap, NULL, NULL, NULL);
 }
 
-void _assetkit_hide
+void AK_HIDE
 ak_resc_deinit() {
   ak_heap_destroy(resc_heap);
 }

@@ -17,7 +17,7 @@
 #include "array.h"
 #include <string.h>
 
-AkResult _assetkit_hide
+AkResult AK_HIDE
 ak_strtostr_array(AkHeap         * __restrict heap,
                   void           * __restrict memParent,
                   char                       *content,
@@ -80,7 +80,7 @@ ak_strtostr_array(AkHeap         * __restrict heap,
   return AK_OK;
 }
 
-AkResult _assetkit_hide
+AkResult AK_HIDE
 ak_strtostr_arrayL(AkHeap * __restrict heap,
                    void * __restrict memParent,
                    char * stringRep,

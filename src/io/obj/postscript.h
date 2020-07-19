@@ -19,7 +19,7 @@
 
 #include "common.h"
 
-void _assetkit_hide
+void AK_HIDE
 wobj_postscript(WOState * __restrict wst);
 
 #endif /* wobj_postscript_h */

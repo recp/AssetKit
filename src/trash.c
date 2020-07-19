@@ -81,12 +81,12 @@ ak_trash_empty() {
   }
 }
 
-void _assetkit_hide
+void AK_HIDE
 ak_trash_init() {
   ak_heap_init(trash_heap, NULL, ak__trash_cmp, NULL);
 }
 
-void _assetkit_hide
+void AK_HIDE
 ak_trash_deinit() {
   ak_heap_destroy(trash_heap);
 }

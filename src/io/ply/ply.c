@@ -29,7 +29,7 @@
 #include "../../../include/ak/path.h"
 #include "../common/util.h"
 
-AkResult _assetkit_hide
+AkResult AK_HIDE
 ply_ply(AkDoc     ** __restrict dest,
         const char * __restrict filepath) {
   AkHeap        *heap;

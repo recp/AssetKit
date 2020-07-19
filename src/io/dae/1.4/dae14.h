@@ -55,14 +55,14 @@ typedef struct AkDae14Surface {
 } AkDae14Surface;
 
 void
-_assetkit_hide
+AK_HIDE
 dae14_loadjobs_add(DAEState   * __restrict  dst,
                    void       *  __restrict parent,
                    void       * __restrict  value,
                    AkDae14LoadJobType       type);
 
 void
-_assetkit_hide
+AK_HIDE
 dae14_loadjobs_finish(DAEState * __restrict dst);
 
 #endif /* dae14_h */

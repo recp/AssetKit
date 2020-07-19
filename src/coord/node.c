@@ -20,14 +20,14 @@
 #include <cglm/cglm.h>
 
 bool
-_assetkit_hide
+AK_HIDE
 ak_fixInstanceTransform(AkNode         *node,
                         AkInstanceBase *inst,
                         AkCoordSys     *instCoordSys,
                         AkCoordSys     *coordSys);
 
 bool
-_assetkit_hide
+AK_HIDE
 ak_fixInstanceTransform(AkNode         *node,
                         AkInstanceBase *inst,
                         AkCoordSys     *instCoordSys,

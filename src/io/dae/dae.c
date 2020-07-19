@@ -50,7 +50,7 @@ typedef void*(*AkLoadLibraryItemFn)(DAEState * __restrict dst,
 static void ak_daeFreeDupl(RBTree *, RBNode *);
 
 static
-_assetkit_hide
+AK_HIDE
 void
 dae_lib(DAEState   * __restrict dst,
         xml_t      * __restrict xml,
@@ -59,7 +59,7 @@ dae_lib(DAEState   * __restrict dst,
         AkLibrary ** __restrict dest);
 
 AkResult
-_assetkit_hide
+AK_HIDE
 dae_doc(AkDoc     ** __restrict dest,
         const char * __restrict filepath) {
   AkHeap            *heap;
@@ -206,7 +206,7 @@ ak_daeFreeDupl(RBTree *tree, RBNode *node) {
 }
 
 static
-_assetkit_hide
+AK_HIDE
 void
 dae_lib(DAEState   * __restrict dst,
         xml_t      * __restrict xml,

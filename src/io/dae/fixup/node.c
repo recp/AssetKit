@@ -22,7 +22,7 @@
  *
  * @todo new node lost its id, sid and name, FIX THIS!
  */
-void _assetkit_hide
+void AK_HIDE
 dae_nodeFixupFixedCoord(AkHeap * __restrict heap,
                         AkNode * __restrict node) {
   AkNode *newNode;
@@ -74,7 +74,7 @@ dae_nodeFixupFixedCoord(AkHeap * __restrict heap,
   ak_transformDup(node, newNode);
 }
 
-void _assetkit_hide
+void AK_HIDE
 dae_nodeFixup(AkHeap * __restrict heap,
               AkNode * __restrict node) {
   if (node->camera || node->light)

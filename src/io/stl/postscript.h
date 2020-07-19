@@ -19,7 +19,7 @@
 
 #include "common.h"
 
-void _assetkit_hide
+void AK_HIDE
 stl_postscript(STLState * __restrict sst);
 
 #endif /* wobj_postscript_h */

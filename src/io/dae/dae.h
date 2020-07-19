@@ -21,7 +21,7 @@
 
 #include <stdlib.h>
 
-AkResult _assetkit_hide
+AkResult AK_HIDE
 dae_doc(AkDoc     ** __restrict dest,
         const char * __restrict filepath);
 

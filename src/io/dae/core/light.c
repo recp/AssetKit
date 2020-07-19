@@ -21,7 +21,7 @@
 
 #define AK_DEFAULT_LIGHT_DIR {0.0f, 0.0f, -1.0f}
 
-_assetkit_hide
+AK_HIDE
 void*
 dae_light(DAEState * __restrict dst,
           xml_t    * __restrict xml,

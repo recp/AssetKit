@@ -17,7 +17,7 @@
 #include "postscript.h"
 #include "../../mesh/index.h"
 
-void _assetkit_hide
+void AK_HIDE
 wobj_postscript(WOState * __restrict wst) {
   AkDoc      *doc;
   AkLibrary  *geomLib;

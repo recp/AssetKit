@@ -15,7 +15,7 @@
 #include "../include/ak/memory.h"
 #include "../include/ak/source.h"
 
-_assetkit_hide
+AK_HIDE
 unsigned char*
 base64_encode(AkHeap              * __restrict heap,
               void                * __restrict memparent,
@@ -23,7 +23,7 @@ base64_encode(AkHeap              * __restrict heap,
               size_t                           len,
               size_t              * __restrict out_len);
 
-_assetkit_hide
+AK_HIDE
 unsigned char*
 base64_decode(AkHeap              * __restrict heap,
               void                * __restrict memparent,
@@ -31,7 +31,7 @@ base64_decode(AkHeap              * __restrict heap,
               size_t                          len,
               size_t              * __restrict out_len);
 
-_assetkit_hide
+AK_HIDE
 void
 base64_buff(const char * __restrict b64,
             size_t                  len,

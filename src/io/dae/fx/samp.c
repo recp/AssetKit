@@ -22,7 +22,7 @@
 #include "../1.4/dae14.h"
 #include "../1.4/surface.h"
 
-_assetkit_hide
+AK_HIDE
 AkSampler*
 dae_sampler(DAEState * __restrict dst,
             xml_t    * __restrict xml,

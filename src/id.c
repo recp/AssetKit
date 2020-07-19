@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include <string.h>
 
-void _assetkit_hide
+void AK_HIDE
 ak_id_newheap(AkHeap * __restrict heap) {
   size_t *idp;
   void   *idpstr;
@@ -48,7 +48,7 @@ ak_generatId(AkDoc      * __restrict doc,
                    prefix);
 }
 
-_assetkit_hide
+AK_HIDE
 const char *
 ak_id_gen(AkHeap     * __restrict heap,
           void       * __restrict parentmem,

@@ -17,7 +17,7 @@
 #include "param.h"
 #include "value.h"
 
-AkNewParam* _assetkit_hide
+AkNewParam* AK_HIDE
 dae_newparam(DAEState * __restrict dst,
              xml_t    * __restrict xml,
              void     * __restrict memp) {
@@ -44,7 +44,7 @@ dae_newparam(DAEState * __restrict dst,
   return newparam;
 }
 
-AkParam* _assetkit_hide
+AkParam* AK_HIDE
 dae_param(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp) {

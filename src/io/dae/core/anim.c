@@ -19,7 +19,7 @@
 #include "source.h"
 #include "enum.h"
 
-void* _assetkit_hide
+void* AK_HIDE
 dae_anim(DAEState * __restrict dst,
          xml_t    * __restrict xml,
          void     * __restrict memp) {
@@ -72,7 +72,7 @@ dae_anim(DAEState * __restrict dst,
   return anim;
 }
 
-AkAnimSampler* _assetkit_hide
+AkAnimSampler* AK_HIDE
 dae_animSampler(DAEState * __restrict dst,
                 xml_t    * __restrict xml,
                 void     * __restrict memp) {
@@ -155,7 +155,7 @@ dae_animSampler(DAEState * __restrict dst,
   return samp;
 }
 
-AkChannel* _assetkit_hide
+AkChannel* AK_HIDE
 dae_channel(DAEState * __restrict dst,
             void     * __restrict xml,
             void     * __restrict memp) {

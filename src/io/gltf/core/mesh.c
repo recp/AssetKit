@@ -25,7 +25,7 @@
   glTF primitives  -> AkMeshPrimitive
  */
 
-void _assetkit_hide
+void AK_HIDE
 gltf_meshes(json_t * __restrict jmesh,
             void   * __restrict userdata) {
   AkGLTFState        *gst;
@@ -292,7 +292,7 @@ gltf_meshes(json_t * __restrict jmesh,
   doc->lib.geometries = lib;
 }
 
-AkMeshPrimitive* _assetkit_hide
+AkMeshPrimitive* AK_HIDE
 gltf_allocPrim(AkHeap * __restrict heap,
                void   * __restrict memParent,
                int                 mode) {

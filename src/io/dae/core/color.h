@@ -19,7 +19,7 @@
 
 #include "../common.h"
 
-void _assetkit_hide
+void AK_HIDE
 dae_color(xml_t   * __restrict xml,
           void    * __restrict memparent,
           bool                 read_sid,

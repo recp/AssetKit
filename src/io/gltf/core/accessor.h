@@ -19,7 +19,7 @@
 
 #include "../common.h"
 
-void _assetkit_hide
+void AK_HIDE
 gltf_accessors(json_t * __restrict jbuffView,
                void   * __restrict userdata);
 

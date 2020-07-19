@@ -19,11 +19,11 @@
 
 #include "../common.h"
 
-void _assetkit_hide
+void AK_HIDE
 gltf_scenes(json_t * __restrict jscene,
             void   * __restrict userdata);
 
-void _assetkit_hide
+void AK_HIDE
 gltf_scene(json_t * __restrict jscene,
            void   * __restrict userdata);
 

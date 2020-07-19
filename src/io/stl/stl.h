@@ -19,19 +19,19 @@
 
 #include "common.h"
 
-AkResult _assetkit_hide
+AkResult AK_HIDE
 stl_stl(AkDoc     ** __restrict dest,
         const char * __restrict filepath);
 
-_assetkit_hide
+AK_HIDE
 void
 sst_finish(STLState * __restrict sst);
 
-_assetkit_hide
+AK_HIDE
 void
 stl_ascii(STLState * __restrict sst, char * __restrict p);
 
-_assetkit_hide
+AK_HIDE
 void
 stl_binary(STLState * __restrict sst, char * __restrict p);
 

@@ -27,13 +27,13 @@
 #include <string.h>
 #include <stdlib.h>
 
-_assetkit_hide
+AK_HIDE
 AkMesh*
 ak_allocMesh(AkHeap      * __restrict heap,
              AkLibrary   * __restrict memp,
              AkGeometry ** __restrict geomLink);
 
-_assetkit_hide
+AK_HIDE
 AkInput*
 io_addInput(AkHeap          * __restrict heap,
             AkDataContext   * __restrict dctx,

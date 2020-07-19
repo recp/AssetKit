@@ -139,7 +139,7 @@ ak_setPlatform(const char platform[64]) {
   strcpy(ak__platform, platform);
 }
 
-void _assetkit_hide
+void AK_HIDE
 ak_profile_init() {
   /* default platform */
   strcpy(ak__platform, "GL");
@@ -149,7 +149,7 @@ ak_profile_init() {
   ak__profileTypesCount = 1;
 }
 
-void _assetkit_hide
+void AK_HIDE
 ak_profile_deinit() {
   ak_free(ak__profileTypes);
 }

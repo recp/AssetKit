@@ -19,7 +19,7 @@
 
 #include "common.h"
 
-WOMtlLib* _assetkit_hide
+WOMtlLib* AK_HIDE
 wobj_mtl(WOState    * __restrict wst,
          const char * __restrict name);
 

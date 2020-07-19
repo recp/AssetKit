@@ -19,11 +19,11 @@
 
 #include "common.h"
 
-AkResult _assetkit_hide
+AkResult AK_HIDE
 gltf_gltf(AkDoc     ** __restrict dest,
           const char * __restrict filepath);
 
-AkResult _assetkit_hide
+AkResult AK_HIDE
 gltf_glb(AkDoc     ** __restrict dest,
          const char * __restrict filepath);
 

@@ -23,28 +23,28 @@
 #include "fixup/angle.h"
 #include "fixup/tex.h"
 
-void _assetkit_hide
+void AK_HIDE
 dae_retain_refs(DAEState * __restrict dst);
 
-void _assetkit_hide
+void AK_HIDE
 dae_fixup_accessors(DAEState * __restrict dst);
 
-void _assetkit_hide
+void AK_HIDE
 dae_fixup_ctlr(DAEState * __restrict dst);
 
-void _assetkit_hide
+void AK_HIDE
 dae_fixup_instctlr(DAEState * __restrict dst);
 
-void _assetkit_hide
+void AK_HIDE
 dae_pre_mesh(DAEState * __restrict dst);
 
-void _assetkit_hide
+void AK_HIDE
 dae_pre_walk(RBTree *tree, RBNode *rbnode);
 
-void _assetkit_hide
+void AK_HIDE
 dae_input_walk(RBTree *tree, RBNode *rbnode);
 
-void _assetkit_hide
+void AK_HIDE
 dae_postscript(DAEState * __restrict dst) {
   /* first migrate 1.4 to 1.5 */
   if (dst->version < AK_COLLADA_VERSION_150)
@@ -85,7 +85,7 @@ dae_postscript(DAEState * __restrict dst) {
   }
 }
 
-void _assetkit_hide
+void AK_HIDE
 dae_retain_refs(DAEState * __restrict dst) {
   AkHeapAllocator *alc;
   AkURLQueue      *it, *tofree;
@@ -119,7 +119,7 @@ dae_retain_refs(DAEState * __restrict dst) {
   }
 }
 
-void _assetkit_hide
+void AK_HIDE
 dae_input_walk(RBTree *tree, RBNode *rbnode) {
   AkAccessor *acc;
   AkSource   *src;
@@ -146,7 +146,7 @@ dae_input_walk(RBTree *tree, RBNode *rbnode) {
 //  rb_destroy(tree);
 }
 
-void _assetkit_hide
+void AK_HIDE
 dae_fixup_accessors(DAEState * __restrict dst) {
   AkHeap        *heap;
   AkDoc         *doc;
@@ -245,7 +245,7 @@ dae_fixup_accessors(DAEState * __restrict dst) {
   flist_sp_destroy(&dst->accessors);
 }
 
-void _assetkit_hide
+void AK_HIDE
 dae_pre_walk(RBTree *tree, RBNode *rbnode) {
   AkDaeMeshInfo *mi;
   AkSource      *posSrc;
@@ -263,12 +263,12 @@ dae_pre_walk(RBTree *tree, RBNode *rbnode) {
   mi->nVertex = posAcc->count;
 }
 
-void _assetkit_hide
+void AK_HIDE
 dae_pre_mesh(DAEState * __restrict dst) {
   rb_walk(dst->meshInfo, dae_pre_walk);
 }
 
-_assetkit_hide
+AK_HIDE
 AkResult
 ak_fixBoneWeights(AkHeap        *heap,
                   size_t         nMeshVertex,
@@ -372,7 +372,7 @@ ak_fixBoneWeights(AkHeap        *heap,
   return AK_OK;
 }
 
-void _assetkit_hide
+void AK_HIDE
 dae_fixup_instctlr(DAEState * __restrict dst) {
   AkSkinDAE            *skindae;
   FListItem            *item;
@@ -475,7 +475,7 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
   }
 }
 
-void _assetkit_hide
+void AK_HIDE
 dae_fixup_ctlr(DAEState * __restrict dst) {
   AkDoc        *doc;
   AkController *ctlr;

@@ -19,7 +19,7 @@
 
 #include "../common.h"
 
-_assetkit_hide
+AK_HIDE
 AkSampler*
 dae_sampler(DAEState * __restrict dst,
             xml_t    * __restrict xml,

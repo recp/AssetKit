@@ -25,14 +25,14 @@
 #include "../../../default/material.h"
 
 static
-_assetkit_hide
+AK_HIDE
 AkTechniqueFxCommon*
 dae_techniqueFxCmn(DAEState * __restrict dst,
                    xml_t    * __restrict xml,
                    void     * __restrict memp,
                    AkMaterialType        mattype);
 
-_assetkit_hide
+AK_HIDE
 AkTechniqueFx*
 dae_techniqueFx(DAEState * __restrict dst,
                 xml_t    * __restrict xml,
@@ -71,7 +71,7 @@ dae_techniqueFx(DAEState * __restrict dst,
 }
 
 static
-_assetkit_hide
+AK_HIDE
 AkTechniqueFxCommon*
 dae_techniqueFxCmn(DAEState * __restrict dst,
                    xml_t    * __restrict xml,

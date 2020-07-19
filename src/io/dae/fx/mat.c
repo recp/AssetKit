@@ -20,7 +20,7 @@
 #include "../core/param.h"
 #include "../core/techn.h"
 
-_assetkit_hide
+AK_HIDE
 void*
 dae_material(DAEState * __restrict dst,
              xml_t    * __restrict xml,
@@ -59,7 +59,7 @@ dae_material(DAEState * __restrict dst,
   return mat;
 }
 
-_assetkit_hide
+AK_HIDE
 AkBindMaterial*
 dae_bindMaterial(DAEState * __restrict dst,
                  xml_t    * __restrict xml,
@@ -114,7 +114,7 @@ dae_bindMaterial(DAEState * __restrict dst,
   return bindmat;
 }
 
-_assetkit_hide
+AK_HIDE
 AkInstanceMaterial*
 dae_instMaterial(DAEState * __restrict dst,
                  xml_t    * __restrict xml,

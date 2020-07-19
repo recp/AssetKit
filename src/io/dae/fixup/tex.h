@@ -19,7 +19,7 @@
 
 #include "../common.h"
 
-void _assetkit_hide
+void AK_HIDE
 dae_fix_textures(DAEState * __restrict dst);
 
 #endif /* dae_tex_fixup_h */

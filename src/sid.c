@@ -177,7 +177,7 @@ ak_sid_destroy(AkHeap * __restrict heap,
     alc->free(snode->sids);
 }
 
-_assetkit_hide
+AK_HIDE
 ptrdiff_t
 ak_sidElement(AkContext  * __restrict ctx,
               const char * __restrict target,
@@ -295,7 +295,7 @@ err:
   return -1;
 }
 
-_assetkit_hide
+AK_HIDE
 AkHeapNode*
 ak_sid_profile(AkContext  * __restrict ctx,
                AkHeapNode * __restrict parent,
@@ -337,7 +337,7 @@ err:
   return NULL;
 }
 
-_assetkit_hide
+AK_HIDE
 AkHeapNode*
 ak_sid_technique(AkContext  * __restrict ctx,
                  AkHeapNode * __restrict chld) {
@@ -416,7 +416,7 @@ err:
   return NULL;
 }
 
-_assetkit_hide
+AK_HIDE
 AkHeapNode*
 ak_sid_chldh(AkContext  * __restrict ctx,
              AkHeapNode * __restrict parent,
@@ -705,7 +705,7 @@ ak_sid_resolve_val(AkContext  * __restrict ctx,
   return r;
 }
 
-void _assetkit_hide
+void AK_HIDE
 ak_sid_init() {
   ak_heap_init(sidconst_heap,
                NULL,
@@ -714,7 +714,7 @@ ak_sid_init() {
   ak_sidInitConstr();
 }
 
-void _assetkit_hide
+void AK_HIDE
 ak_sid_deinit() {
   ak_heap_destroy(sidconst_heap);
 }

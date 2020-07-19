@@ -19,7 +19,7 @@
 
 #include "../common.h"
 
-void _assetkit_hide
+void AK_HIDE
 dae_bugfix_transp(AkTransparent * __restrict transp);
 
 #endif /* dae_bugfix_transp_h */

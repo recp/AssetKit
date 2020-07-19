@@ -19,13 +19,13 @@
 
 #include "../common.h"
 
-_assetkit_hide
+AK_HIDE
 void*
 dae_effect(DAEState * __restrict dst,
            xml_t    * __restrict xml,
            void     * __restrict memp);
 
-_assetkit_hide
+AK_HIDE
 AkInstanceEffect*
 dae_instEffect(DAEState * __restrict dst,
                xml_t    * __restrict xml,

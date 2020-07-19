@@ -19,7 +19,7 @@
 #include "dae14.h"
 
 void
-_assetkit_hide
+AK_HIDE
 dae14_loadjobs_add(DAEState   * __restrict  dst,
                    void       *  __restrict parent,
                    void       * __restrict  value,
@@ -45,7 +45,7 @@ dae14_loadjobs_add(DAEState   * __restrict  dst,
 }
 
 void
-_assetkit_hide
+AK_HIDE
 dae14_loadjobs_finish(DAEState * __restrict dst) {
   AkDae14LoadJob *job;
 

@@ -19,10 +19,10 @@
 
 #include "common.h"
 
-void _assetkit_hide
+void AK_HIDE
 ak_profile_init(void);
 
-void _assetkit_hide
+void AK_HIDE
 ak_profile_deinit(void);
 
 #endif /* ak_src_profile_h */
