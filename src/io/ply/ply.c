@@ -173,7 +173,7 @@ ply_ply(AkDoc     ** __restrict dest,
                   && b[3] == 't';
       
       if (!prop->islist)
-        prop->type = ak_heap_strndup(heap, doc, b, e - b);
+        prop->typestr = ak_heap_strndup(heap, doc, b, e - b);
       else {
         /* 1.1 count type */
         SKIP_SPACES
@@ -191,7 +191,7 @@ ply_ply(AkDoc     ** __restrict dest,
         while ((c = *++p) != '\0' && !AK_ARRAY_SEP_CHECK);
         e = p;
         
-        prop->type = ak_heap_strndup(heap, doc, b, e - b);
+        prop->typestr = ak_heap_strndup(heap, doc, b, e - b);
       }
       
       /* 2. name */
@@ -203,6 +203,43 @@ ply_ply(AkDoc     ** __restrict dest,
       e = p;
 
       prop->name = ak_heap_strndup(heap, doc, b, e - b);
+      
+      if (e - b == 1) {
+        switch (b[0]) {
+          case 'x': prop->type = PLY_PROP_X; break;
+          case 'y': prop->type = PLY_PROP_Y; break;
+          case 'z': prop->type = PLY_PROP_Z; break;
+          case 's':
+          case 'u': prop->type = PLY_PROP_S; break;
+          case 't':
+          case 'v': prop->type = PLY_PROP_T; break;
+          case 'r': prop->type = PLY_PROP_R; break;
+          case 'g': prop->type = PLY_PROP_G; break;
+          case 'b': prop->type = PLY_PROP_B; break;
+          default:
+            prop->type = PLY_PROP_UNSUPPORTED;
+            prop->ignore   = true;
+            break;
+        }
+      } else if (e - b == 2) {
+        switch (b[0]) {
+          case 'n':
+            switch (b[1]) {
+              case 'x': prop->type = PLY_PROP_NX; break;
+              case 'y': prop->type = PLY_PROP_NY; break;
+              case 'z': prop->type = PLY_PROP_NZ; break;
+              default:
+                prop->type = PLY_PROP_UNSUPPORTED;
+                prop->ignore   = true;
+                break;
+            }
+            break;
+          default:
+            prop->type = PLY_PROP_UNSUPPORTED;
+            prop->ignore   = true;
+            break;
+        }
+      }
     } else if (EQT7('e', 'n', 'd', '_', 'h', 'e', 'a')) {
       NEXT_LINE
       break;

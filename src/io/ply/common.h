@@ -27,12 +27,29 @@
 #include <string.h>
 #include <stdlib.h>
 
+typedef enum PLYPropertyType {
+  PLY_PROP_UNSUPPORTED = 0,
+  PLY_PROP_X,
+  PLY_PROP_Y,
+  PLY_PROP_Z,
+  PLY_PROP_S,
+  PLY_PROP_T,
+  PLY_PROP_NX,
+  PLY_PROP_NY,
+  PLY_PROP_NZ,
+  PLY_PROP_R,
+  PLY_PROP_G,
+  PLY_PROP_B
+} PLYPropertyType;
+
 typedef struct PLYProperty {
   struct PLYProperty *next;
   char               *name;
-  char               *type;
+  char               *typestr;
+  PLYPropertyType     type;
   char               *listCountType;
   bool                islist;
+  bool                ignore;
 } PLYProperty;
 
 typedef enum PLYElementType {
