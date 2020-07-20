@@ -17,45 +17,28 @@
 #include "group.h"
 #include "util.h"
 
+/* Buffer > Accessor > Input > Prim > Mesh > Geom > InstanceGeom > Node */
+
+static
 AK_HIDE
 void
-wobj_finishObject(WOState * __restrict wst) {
+wobj_finishPrim(WOState * __restrict wst, WOPrim * __restrict wp) {
   AkHeap             *heap;
-  AkInstanceGeometry *instGeom;
   AkGeometry         *geom;
   AkMesh             *mesh;
   AkMeshPrimitive    *prim;
   uint32_t            inputOffset;
-  
-  if (!wst->obj.geom || !wst->obj.dc_pos)
-    return;
-  
-  /* clean the geom if none resource is found for default state */
-  if (wst->obj.isdefault && wst->obj.dc_pos->itemcount < 1)
+
+  if (wp->maxVC == 0)
     goto cle;
 
   heap        = wst->heap;
   geom        = wst->obj.geom;
   mesh        = ak_objGet(geom->gdata);
   inputOffset = 0;
-  
-  /* add to library */
-  geom->base.next     = wst->lib_geom->chld;
-  wst->lib_geom->chld = &geom->base;
-  
-  /* make instance geeometry and attach to the root node  */
-  instGeom = ak_instanceMakeGeom(wst->heap, wst->node, geom);
-  
-  if (wst->node->geometry) {
-    wst->node->geometry->base.prev = (void *)instGeom;
-    instGeom->base.next            = &wst->node->geometry->base;
-  }
-
-  instGeom->base.next = (void *)wst->node->geometry;
-  wst->node->geometry = instGeom;
 
   /* finish prim */
-  if (wst->maxVC == 3) {
+  if (wp->maxVC == 3) {
     AkTriangles *tri;
     
     tri = ak_heap_calloc(heap, ak_objFrom(mesh), sizeof(*tri));
@@ -71,9 +54,9 @@ wobj_finishObject(WOState * __restrict wst) {
     poly->vcount = ak_heap_calloc(heap,
                                   poly,
                                   sizeof(*poly->vcount)
-                                  + wst->obj.dc_vcount->usedsize);
-    poly->vcount->count = wst->obj.dc_vcount->itemcount;
-    ak_data_join(wst->obj.dc_vcount, poly->vcount->items, 0, 0);
+                                  + wp->dc_vcount->usedsize);
+    poly->vcount->count = wp->dc_vcount->itemcount;
+    ak_data_join(wp->dc_vcount, poly->vcount->items, 0, 0);
     
     prim = (AkMeshPrimitive *)poly;
   }
@@ -83,39 +66,99 @@ wobj_finishObject(WOState * __restrict wst) {
   mesh->primitive = prim;
   mesh->primitiveCount++;
   
-  prim->pos =
-  wobj_addInput(wst, wst->obj.dc_pos, prim, AK_INPUT_SEMANTIC_POSITION,
-                "POSITION", AK_COMPONENT_SIZE_VEC3, AKT_FLOAT, inputOffset++);
+  prim->pos = wobj_input(wst, prim, wst->obj.ac_pos,
+                         AK_INPUT_SEMANTIC_POSITION, "POSITION", inputOffset++);
   
-  if (wst->mtlib && wst->obj.mtlname)
-    prim->material = rb_find(wst->mtlib->materials, wst->obj.mtlname);
+  if (wst->mtlib && wp->mtlname)
+    prim->material = rb_find(wst->mtlib->materials, (void *)wp->mtlname);
   
-  if (wst->obj.dc_nor->itemcount > 0) {
-    wobj_addInput(wst, wst->obj.dc_nor, prim, AK_INPUT_SEMANTIC_NORMAL,
-                  "NORMAL", AK_COMPONENT_SIZE_VEC3, AKT_FLOAT, inputOffset++);
-  }
+  if (wst->obj.dc_nor->itemcount > 0)
+    wobj_input(wst, prim, wst->obj.ac_nor,
+               AK_INPUT_SEMANTIC_NORMAL, "NORMAL", inputOffset++);
   
-  if (wst->obj.dc_tex->itemcount > 0) {
-    wobj_addInput(wst, wst->obj.dc_tex, prim, AK_INPUT_SEMANTIC_TEXCOORD,
-                  "TEXCOORD", AK_COMPONENT_SIZE_VEC2, AKT_FLOAT, inputOffset);
-  }
+  if (wst->obj.dc_tex->itemcount > 0)
+    wobj_input(wst, prim, wst->obj.ac_tex,
+               AK_INPUT_SEMANTIC_TEXCOORD, "TEXCOORD", inputOffset);
 
-  wobj_joinIndices(wst, prim);
-  wobj_fixIndices(prim);
+  /* fix indices */
+  wobj_joinIndices(wst, wp, prim);
 
 cle:
   /* cleanup */
-  if (wst->obj.dc_indv) {
-    ak_free(wst->obj.dc_indv);
-    ak_free(wst->obj.dc_indt);
-    ak_free(wst->obj.dc_indn);
-    ak_free(wst->obj.dc_pos);
-    ak_free(wst->obj.dc_tex);
-    ak_free(wst->obj.dc_nor);
-    ak_free(wst->obj.dc_vcount);
+  ak_free(wp->dc_face);
+  ak_free(wp->dc_vcount);
+  ak_free(wp);
+}
+
+AK_HIDE
+WOPrim*
+wobj_switchPrim(WOState * __restrict wst, const char *mtlname) {
+  WOPrim *wp;
+
+  wp            = ak_heap_calloc(wst->heap, wst->tmpParent, sizeof(*wp));
+  wp->dc_face   = ak_data_new(wst->tmpParent, 128, sizeof(ivec3), ak_cmp_ivec3);
+  wp->dc_vcount = ak_data_new(wst->tmpParent, 128, sizeof(int32_t), NULL);
+  wp->mtlname   = mtlname;
+  wp->next      = wst->obj.prim;
+  wst->obj.prim = wp;
+
+  return wp;
+}
+
+AK_HIDE
+void
+wobj_finishObject(WOState * __restrict wst) {
+  WOObject           *obj;
+  WOPrim             *wp, *next;
+  AkInstanceGeometry *instGeom;
+  AkGeometry         *geom;
+
+  obj = &wst->obj;
+  
+  if (!obj->geom || !obj->dc_pos)
+    return;
+  
+  /* clean the geom if none resource is found for default state */
+  if (obj->isdefault && obj->dc_pos->itemcount < 1)
+    goto cle;
+
+  geom = obj->geom;
+
+  /* add to library */
+  geom->base.next     = wst->lib_geom->chld;
+  wst->lib_geom->chld = &geom->base;
+  
+  /* make instance geeometry and attach to the root node  */
+  instGeom = ak_instanceMakeGeom(wst->heap, wst->node, geom);
+  
+  if (wst->node->geometry) {
+    wst->node->geometry->base.prev = (void *)instGeom;
+    instGeom->base.next            = &wst->node->geometry->base;
   }
 
-  memset(&wst->obj, 0, sizeof(wst->obj));
+  instGeom->base.next = (void *)wst->node->geometry;
+  wst->node->geometry = instGeom;
+  
+  obj->ac_pos = wobj_acc(wst, obj->dc_pos, AK_COMPONENT_SIZE_VEC3, AKT_FLOAT);
+  obj->ac_nor = wobj_acc(wst, obj->dc_nor, AK_COMPONENT_SIZE_VEC3, AKT_FLOAT);
+  obj->ac_tex = wobj_acc(wst, obj->dc_tex, AK_COMPONENT_SIZE_VEC2, AKT_FLOAT);
+
+  /* mesh primitives */
+  wp = obj->prim;
+  do {
+    next = wp->next;
+    wobj_finishPrim(wst, wp);
+  } while ((wp = next));
+
+cle:
+  /* cleanup */
+  if (obj->dc_pos) {
+    ak_free(obj->dc_pos);
+    ak_free(obj->dc_tex);
+    ak_free(obj->dc_nor);
+  }
+
+  memset(obj, 0, sizeof(WOObject));
 }
 
 AK_HIDE
@@ -130,14 +173,11 @@ wobj_switchObject(WOState * __restrict wst) {
   /* set current geometry */
   wst->obj.geom = geom;
   
-  /* vertex index */
-  wst->obj.dc_indv = ak_data_new(wst->tmpParent, 128, sizeof(int32_t), NULL);
-  wst->obj.dc_indt = ak_data_new(wst->tmpParent, 128, sizeof(int32_t), NULL);
-  wst->obj.dc_indn = ak_data_new(wst->tmpParent, 128, sizeof(int32_t), NULL);
-
   /* vertex data */
   wst->obj.dc_pos    = ak_data_new(wst->tmpParent, 128, sizeof(vec3),    NULL);
   wst->obj.dc_tex    = ak_data_new(wst->tmpParent, 128, sizeof(vec2),    NULL);
   wst->obj.dc_nor    = ak_data_new(wst->tmpParent, 128, sizeof(vec3),    NULL);
-  wst->obj.dc_vcount = ak_data_new(wst->tmpParent, 128, sizeof(int32_t), NULL);
+
+  wobj_switchPrim(wst, NULL);
+  wst->obj.prim->isdefault = true;
 }

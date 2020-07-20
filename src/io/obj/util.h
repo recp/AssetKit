@@ -21,22 +21,25 @@
 #include "../common/util.h"
 
 AK_HIDE
-void
-wobj_fixIndices(AkMeshPrimitive * __restrict prim);
+AkAccessor*
+wobj_acc(WOState         * __restrict wst,
+                 AkDataContext   * __restrict dctx,
+                 AkComponentSize              compSize,
+                 AkTypeId                     type);
 
 AK_HIDE
 AkInput*
-wobj_addInput(WOState         * __restrict wst,
-              AkDataContext   * __restrict dctx,
-              AkMeshPrimitive * __restrict prim,
-              AkInputSemantic              sem,
-              const char      * __restrict semRaw,
-              AkComponentSize              compSize,
-              AkTypeId                     type,
-              uint32_t                     offset);
+wobj_input(WOState         * __restrict wst,
+           AkMeshPrimitive * __restrict prim,
+           AkAccessor      * __restrict acc,
+           AkInputSemantic              sem,
+           const char      * __restrict semRaw,
+           uint32_t                     offset);
 
 AK_HIDE
 void
-wobj_joinIndices(WOState * __restrict wst, AkMeshPrimitive * __restrict prim);
+wobj_joinIndices(WOState         * __restrict wst,
+                 WOPrim          * __restrict wp,
+                 AkMeshPrimitive * __restrict prim);
 
 #endif /* wobj_util_h */

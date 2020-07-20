@@ -68,5 +68,4 @@ wobj_postscript(WOState * __restrict wst) {
 
     geomLib = geomLib->next;
   }
-  
 }

@@ -19,6 +19,9 @@
 
 #include "common.h"
 
+WOPrim*
+wobj_switchPrim(WOState * __restrict wst, const char *mtlname);
+
 AK_HIDE
 void
 wobj_finishObject(WOState * __restrict wst);

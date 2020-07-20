@@ -49,14 +49,23 @@ typedef struct WOMtlLib {
   RBTree *materials;
 } WOMtlLib;
 
+typedef struct WOPrim {
+  struct WOPrim *next;
+  const char    *mtlname;
+  AkDataContext *dc_face;
+  AkDataContext *dc_vcount;
+  uint32_t       maxVC;
+  bool           isdefault;
+  bool           hasTexture;
+  bool           hasNormal;
+} WOPrim;
+
 typedef struct WOObject {
-  AkGeometry      *geom;
-  AkMeshPrimitive *prim;
-  AkDataContext   *dc_indv, *dc_indt, *dc_indn;
-  AkDataContext   *dc_pos,  *dc_tex,  *dc_nor;
-  AkDataContext   *dc_vcount;
-  char            *mtlname;
-  bool             isdefault;
+  AkGeometry    *geom;
+  WOPrim        *prim;
+  AkDataContext *dc_pos, *dc_tex, *dc_nor;
+  AkAccessor    *ac_pos, *ac_tex, *ac_nor;
+  bool           isdefault;
 } WOObject;
 
 typedef struct WOState {
@@ -67,7 +76,6 @@ typedef struct WOState {
   AkNode        *node;
   WOMtlLib      *mtlib;
   WOObject       obj;
-  uint32_t       maxVC;
 } WOState;
 
 #define SKIP_SPACES                                                           \

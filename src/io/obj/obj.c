@@ -44,6 +44,7 @@ wobj_obj(AkDoc     ** __restrict dest,
   char               *p, *begin, *end, *m;
   AkLibrary          *lib_geom, *lib_vscene;
   AkVisualScene      *scene;
+  WOPrim             *prim;
   WOState             wstVal = {0}, *wst;
   float               v[4];
   size_t              objstrSize;
@@ -102,7 +103,8 @@ wobj_obj(AkDoc     ** __restrict dest,
   /* default group */
   wobj_switchObject(wst);
   wst->obj.isdefault = true;
-
+  prim = wst->obj.prim;
+  
   /* parse .obj */
   do {
     /* skip spaces */
@@ -132,27 +134,33 @@ wobj_obj(AkDoc     ** __restrict dest,
           vc = 0;
 
           do {
-            int32_t ind;
+            ivec3 face;
 
             /* vertex index */
             SKIP_SPACES
-            ind = (int32_t)strtol(p, &p, 10);
-            ak_data_append(wst->obj.dc_indv, &ind);
+            face[0] = (int32_t)strtol(p, &p, 10);
+            face[1] = 0;
+            face[2] = 0;
 
             /* texture index */
             SKIP_SPACES
             if (p && p[0] == '/') {
-              ind = (int32_t)strtol(++p, &p, 10);
-              ak_data_append(wst->obj.dc_indt, &ind);
+              face[1] = (int32_t)strtol(++p, &p, 10);
+              
+              if (!prim->hasTexture)
+                prim->hasTexture = true;
             }
             
             /* normal index */
             SKIP_SPACES
             if (p && p[0] == '/') {
-              ind = (int32_t)strtol(++p, &p, 10);
-              ak_data_append(wst->obj.dc_indn, &ind);
+              face[2] = (int32_t)strtol(++p, &p, 10);
+
+              if (!prim->hasNormal)
+                prim->hasNormal = true;
             }
 
+            ak_data_append(prim->dc_face, face);
             vc += 1;
           } while (p
                    && (c = p[0]) != '\0'
@@ -160,13 +168,14 @@ wobj_obj(AkDoc     ** __restrict dest,
                    && (c = *++p) != '\0'
                    && !AK_ARRAY_NLINE_CHECK);
           
-          wst->maxVC = GLM_MAX(wst->maxVC, vc);
-          ak_data_append(wst->obj.dc_vcount, &vc);
+          prim->maxVC = GLM_MAX(prim->maxVC, vc);
+          ak_data_append(prim->dc_vcount, &vc);
           break;
         }
         case 'o':
         case 'g': {
           wobj_switchObject(wst);
+          prim = wst->obj.prim;
           break;
         }
         default:
@@ -217,8 +226,11 @@ wobj_obj(AkDoc     ** __restrict dest,
       while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
       end = p;
 
+      m = NULL;
       if (end > begin)
-        wst->obj.mtlname = ak_heap_strndup(heap, wst->doc, begin, end - begin);
+        m = ak_heap_strndup(heap, wst->doc, begin, end - begin);
+      
+      prim = wobj_switchPrim(wst, m);
     }
     
     NEXT_LINE
