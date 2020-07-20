@@ -22,5 +22,6 @@
   - [x] illum: Blinn
   - [ ] illum: Others
 - [x] Convert Multi Indices to Single Index Buffer
+- [x] Group/Separate mesh primitives by usemtl
 - [ ] ...
 
