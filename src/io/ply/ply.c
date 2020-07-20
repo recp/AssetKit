@@ -22,7 +22,7 @@
 
 #include "ply.h"
 #include "common.h"
-#include "postscript.h"
+//#include "postscript.h"
 #include "strpool.h"
 #include "../../id.h"
 #include "../../data.h"
