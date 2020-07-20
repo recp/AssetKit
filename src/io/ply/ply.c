@@ -16,6 +16,7 @@
 
 /*
  Resources:
+   http://people.math.sc.edu/Burkardt/data/ply/ply.txt
    http://paulbourke.net/dataformats/ply/
    https://en.wikipedia.org/wiki/PLY_(file_format)
 */
@@ -35,7 +36,7 @@ ply_ply(AkDoc     ** __restrict dest,
   AkHeap        *heap;
   AkDoc         *doc;
   void          *stlstr;
-  char          *p, *begin, *end;
+  char          *p, *b, *e;
   AkTypeDesc    *typeDesc;
   AkLibrary     *lib_geom, *lib_vscene;
   AkVisualScene *scene;
@@ -162,46 +163,46 @@ ply_ply(AkDoc     ** __restrict dest,
       
       /* 1. type */
       
-      begin = p;
+      b = p;
       while ((c = *++p) != '\0' && !AK_ARRAY_SPACE_CHECK);
-      end = p;
+      e = p;
       
-      prop->islist = begin[0] == 'l'
-                  && begin[1] == 'i'
-                  && begin[2] == 's'
-                  && begin[3] == 't';
+      prop->islist = b[0] == 'l'
+                  && b[1] == 'i'
+                  && b[2] == 's'
+                  && b[3] == 't';
       
       if (!prop->islist)
-        prop->type = ak_heap_strndup(heap, doc, begin, end - begin);
+        prop->type = ak_heap_strndup(heap, doc, b, e - b);
       else {
         /* 1.1 count type */
         SKIP_SPACES
         
-        begin = p;
+        b = p;
         while ((c = *++p) != '\0' && !AK_ARRAY_SEP_CHECK);
-        end = p;
+        e = p;
         
-        prop->listCountType = ak_heap_strndup(heap, doc, begin, end - begin);
+        prop->listCountType = ak_heap_strndup(heap, doc, b, e - b);
         
         /* 1.2 type */
         SKIP_SPACES
         
-        begin = p;
+        b = p;
         while ((c = *++p) != '\0' && !AK_ARRAY_SEP_CHECK);
-        end = p;
+        e = p;
         
-        prop->type = ak_heap_strndup(heap, doc, begin, end - begin);
+        prop->type = ak_heap_strndup(heap, doc, b, e - b);
       }
       
       /* 2. name */
       
       SKIP_SPACES
       
-      begin = p;
+      b = p;
       while ((c = *++p) != '\0' && !AK_ARRAY_SEP_CHECK);
-      end = p;
+      e = p;
 
-      prop->name = ak_heap_strndup(heap, doc, begin, end - begin);
+      prop->name = ak_heap_strndup(heap, doc, b, e - b);
     } else if (EQT7('e', 'n', 'd', '_', 'h', 'e', 'a')) {
       NEXT_LINE
       break;

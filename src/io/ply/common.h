@@ -56,7 +56,7 @@ typedef struct PLYState {
   void          *tmpParent;
   AkLibrary     *lib_geom;
   AkGeometry    *geom;
-  AkDataContext *dc_ind, *dc_pos, *dc_nor, *dc_vcount;
+  AkDataContext *dc_ind, *dc_pos, *dc_nor, *dc_tex, *dc_vcount;
   AkNode        *node;
   PLYElement    *element;
   PLYElement    *lastElement;
