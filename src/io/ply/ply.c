@@ -35,21 +35,20 @@ ply_ply(AkDoc     ** __restrict dest,
         const char * __restrict filepath) {
   AkHeap        *heap;
   AkDoc         *doc;
-  void          *stlstr;
+  void          *plystr;
   char          *p, *b, *e;
-  AkTypeDesc    *typeDesc;
   AkLibrary     *lib_geom, *lib_vscene;
   AkVisualScene *scene;
   PLYElement    *elem;
   PLYProperty   *prop;
   PLYState       pstVal = {0}, *pst;
-  size_t         stlstrSize;
+  size_t         plystrSize;
   AkResult       ret;
   bool           isAscii, isBigEndian;
   char           c;
 
-  if ((ret = ak_readfile(filepath, "rb", &stlstr, &stlstrSize)) != AK_OK
-      || !((p = stlstr) && *p != '\0'))
+  if ((ret = ak_readfile(filepath, "rb", &plystr, &plystrSize)) != AK_OK
+      || !((p = plystr) && *p != '\0'))
     return AK_ERR;
 
   if (!(p[0] == 'p' && p[1] == 'l' && p[2] == 'y'))
@@ -78,8 +77,8 @@ ply_ply(AkDoc     ** __restrict dest,
 
   /* libraries */
   doc->lib.geometries = ak_heap_calloc(heap, doc, sizeof(*lib_geom));
-  lib_vscene = ak_heap_calloc(heap, doc, sizeof(*lib_vscene));
-  
+  lib_vscene          = ak_heap_calloc(heap, doc, sizeof(*lib_vscene));
+
   /* default scene */
   scene                  = ak_heap_calloc(heap, doc, sizeof(*scene));
   scene->node            = ak_heap_calloc(heap, doc, sizeof(*scene->node));
@@ -96,7 +95,7 @@ ply_ply(AkDoc     ** __restrict dest,
   pstVal.tmpParent = ak_heap_alloc(heap, doc, sizeof(void*));
   pstVal.node      = scene->node;
   pstVal.lib_geom  = doc->lib.geometries;
-  
+
   pst->dc_ind    = ak_data_new(pst->tmpParent, 128, sizeof(int32_t), NULL);
   pst->dc_pos    = ak_data_new(pst->tmpParent, 128, sizeof(vec3),    NULL);
   pst->dc_nor    = ak_data_new(pst->tmpParent, 128, sizeof(vec3),    NULL);
@@ -172,9 +171,10 @@ ply_ply(AkDoc     ** __restrict dest,
                   && b[2] == 's'
                   && b[3] == 't';
       
-      if (!prop->islist)
-        prop->typestr = ak_heap_strndup(heap, doc, b, e - b);
-      else {
+      if (!prop->islist) {
+        prop->typestr  = ak_heap_strndup(heap, doc, b, e - b);
+        prop->typeDesc = ak_typeDescByName(prop->typestr);
+      } else {
         /* 1.1 count type */
         SKIP_SPACES
         
@@ -182,8 +182,9 @@ ply_ply(AkDoc     ** __restrict dest,
         while ((c = *++p) != '\0' && !AK_ARRAY_SEP_CHECK);
         e = p;
         
-        prop->listCountType = ak_heap_strndup(heap, doc, b, e - b);
-        
+        prop->listCountType     = ak_heap_strndup(heap, doc, b, e - b);
+        prop->listCountTypeDesc = ak_typeDescByName(prop->listCountType);
+
         /* 1.2 type */
         SKIP_SPACES
         
@@ -204,39 +205,42 @@ ply_ply(AkDoc     ** __restrict dest,
 
       prop->name = ak_heap_strndup(heap, doc, b, e - b);
       
+      if (prop->typeDesc)
+        elem->buffsize += prop->typeDesc->size;
+
       if (e - b == 1) {
         switch (b[0]) {
-          case 'x': prop->type = PLY_PROP_X; break;
-          case 'y': prop->type = PLY_PROP_Y; break;
-          case 'z': prop->type = PLY_PROP_Z; break;
+          case 'x': prop->semantic = PLY_PROP_X; break;
+          case 'y': prop->semantic = PLY_PROP_Y; break;
+          case 'z': prop->semantic = PLY_PROP_Z; break;
           case 's':
-          case 'u': prop->type = PLY_PROP_S; break;
+          case 'u': prop->semantic = PLY_PROP_S; break;
           case 't':
-          case 'v': prop->type = PLY_PROP_T; break;
-          case 'r': prop->type = PLY_PROP_R; break;
-          case 'g': prop->type = PLY_PROP_G; break;
-          case 'b': prop->type = PLY_PROP_B; break;
+          case 'v': prop->semantic = PLY_PROP_T; break;
+          case 'r': prop->semantic = PLY_PROP_R; break;
+          case 'g': prop->semantic = PLY_PROP_G; break;
+          case 'b': prop->semantic = PLY_PROP_B; break;
           default:
-            prop->type = PLY_PROP_UNSUPPORTED;
-            prop->ignore   = true;
+            prop->semantic   = PLY_PROP_UNSUPPORTED;
+            prop->ignore = true;
             break;
         }
       } else if (e - b == 2) {
         switch (b[0]) {
           case 'n':
             switch (b[1]) {
-              case 'x': prop->type = PLY_PROP_NX; break;
-              case 'y': prop->type = PLY_PROP_NY; break;
-              case 'z': prop->type = PLY_PROP_NZ; break;
+              case 'x': prop->semantic = PLY_PROP_NX; break;
+              case 'y': prop->semantic = PLY_PROP_NY; break;
+              case 'z': prop->semantic = PLY_PROP_NZ; break;
               default:
-                prop->type = PLY_PROP_UNSUPPORTED;
-                prop->ignore   = true;
+                prop->semantic   = PLY_PROP_UNSUPPORTED;
+                prop->ignore = true;
                 break;
             }
             break;
           default:
-            prop->type = PLY_PROP_UNSUPPORTED;
-            prop->ignore   = true;
+            prop->semantic   = PLY_PROP_UNSUPPORTED;
+            prop->ignore = true;
             break;
         }
       }
@@ -247,6 +251,13 @@ ply_ply(AkDoc     ** __restrict dest,
 
     NEXT_LINE
   } while (p && p[0] != '\0'/* && (c = *++p) != '\0'*/);
+
+  /* prepare buffers */
+  
+  /*  parse */
+  if (isAscii) {
+    ply_ascii(p, pst);
+  }
 
   *dest = doc;
 
@@ -259,4 +270,95 @@ err:
   ak_free(pst->tmpParent);
   ak_free(doc);
   return AK_ERR;
+}
+
+AK_HIDE
+void
+ply_ascii(char * __restrict src, PLYState * __restrict pst) {
+  char          *p;
+  PLYElement    *elem;
+  PLYProperty   *prop;
+  char           c;
+  
+  p    = src;
+  c    = *p;
+  elem = pst->element;
+
+  while (elem) {
+    if (elem->type == PLY_ELEM_VERTEX) {
+      do {
+        SKIP_SPACES
+
+        prop = elem->property;
+        while (prop) {
+
+          prop = prop->next;
+        }
+
+        NEXT_LINE
+      } while (p && p[0] != '\0');
+    }
+    elem = elem->next;
+  }
+}
+
+AK_HIDE
+void
+ply_finish(PLYState * __restrict pst) {
+  AkHeap             *heap;
+  AkGeometry         *geom;
+  AkMesh             *mesh;
+  AkMeshPrimitive    *prim;
+  AkInstanceGeometry *instGeom;
+  AkTriangles        *tri;
+
+  /* Buffer > Accessor > Input > Prim > Mesh > Geom > InstanceGeom > Node */
+  
+  heap = pst->heap;
+  mesh = ak_allocMesh(pst->heap, pst->lib_geom, &geom);
+
+  tri = ak_heap_calloc(pst->heap, ak_objFrom(mesh), sizeof(*tri));
+  tri->mode      = AK_TRIANGLE_FAN;
+  tri->base.type = AK_PRIMITIVE_TRIANGLES;
+  prim = (AkMeshPrimitive *)tri;
+
+  prim->count          = pst->count;
+  prim->mesh           = mesh;
+  mesh->primitive      = prim;
+  mesh->primitiveCount = 1;
+
+  /* add to library */
+  geom->base.next     = pst->lib_geom->chld;
+  pst->lib_geom->chld = &geom->base;
+  
+  /* make instance geeometry and attach to the root node  */
+  instGeom = ak_instanceMakeGeom(heap, pst->node, geom);
+  if (pst->node->geometry) {
+    pst->node->geometry->base.prev = (void *)instGeom;
+    instGeom->base.next            = &pst->node->geometry->base;
+  }
+
+  instGeom->base.next = (void *)pst->node->geometry;
+  pst->node->geometry = instGeom;
+  
+  prim->pos = io_addInput(heap, pst->dc_pos, prim, AK_INPUT_SEMANTIC_POSITION,
+                          "POSITION", AK_COMPONENT_SIZE_VEC3, AKT_FLOAT, 0);
+
+  if (pst->dc_nor->itemcount > 0) {
+    io_addInput(heap, pst->dc_nor, prim, AK_INPUT_SEMANTIC_NORMAL,
+                "NORMAL", AK_COMPONENT_SIZE_VEC3, AKT_FLOAT, 1);
+  }
+
+  /* cleanup */
+  if (pst->dc_ind) {
+    ak_free(pst->dc_ind);
+    ak_free(pst->dc_pos);
+    ak_free(pst->dc_nor);
+    ak_free(pst->dc_vcount);
+  }
+  
+  pst->dc_ind    = NULL;
+  pst->dc_pos    = NULL;
+  pst->dc_nor    = NULL;
+  pst->dc_vcount = NULL;
 }

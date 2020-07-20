@@ -46,8 +46,10 @@ typedef struct PLYProperty {
   struct PLYProperty *next;
   char               *name;
   char               *typestr;
-  PLYPropertyType     type;
+  AkTypeDesc         *typeDesc;
   char               *listCountType;
+  AkTypeDesc         *listCountTypeDesc;
+  PLYPropertyType     semantic;
   bool                islist;
   bool                ignore;
 } PLYProperty;
@@ -65,6 +67,7 @@ typedef struct PLYElement {
   char              *name;
   size_t             count;
   PLYElementType     type;
+  size_t             buffsize;
 } PLYElement;
 
 typedef struct PLYState {
@@ -77,6 +80,8 @@ typedef struct PLYState {
   AkNode        *node;
   PLYElement    *element;
   PLYElement    *lastElement;
+  size_t         vertBuffsize;
+  size_t         indBuffsize;
   uint32_t       maxVC;
   uint32_t       count;
 } PLYState;

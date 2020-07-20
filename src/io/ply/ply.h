@@ -23,4 +23,16 @@ AkResult AK_HIDE
 ply_ply(AkDoc     ** __restrict dest,
         const char * __restrict filepath);
 
+AK_HIDE
+void
+ply_ascii(char * __restrict src, PLYState * __restrict pst);
+
+AK_HIDE
+void
+ply_bin_le(PLYState * __restrict pst);
+
+AK_HIDE
+void
+ply_bin_be(PLYState * __restrict pst);
+
 #endif /* stl_h */
