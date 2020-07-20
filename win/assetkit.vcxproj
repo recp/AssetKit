@@ -319,6 +319,9 @@
     <ClInclude Include="..\src\io\obj\obj.h" />
     <ClInclude Include="..\src\io\obj\postscript.h" />
     <ClInclude Include="..\src\io\obj\util.h" />
+    <ClInclude Include="..\src\io\ply\common.h" />
+    <ClInclude Include="..\src\io\ply\ply.h" />
+    <ClInclude Include="..\src\io\ply\strpool.h" />
     <ClInclude Include="..\src\io\stl\common.h" />
     <ClInclude Include="..\src\io\stl\postscript.h" />
     <ClInclude Include="..\src\io\stl\stl.h" />
@@ -451,6 +454,8 @@
     <ClCompile Include="..\src\io\obj\obj.c" />
     <ClCompile Include="..\src\io\obj\postscript.c" />
     <ClCompile Include="..\src\io\obj\util.c" />
+    <ClCompile Include="..\src\io\ply\ply.c" />
+    <ClCompile Include="..\src\io\ply\strpool.c" />
     <ClCompile Include="..\src\io\stl\postscript.c" />
     <ClCompile Include="..\src\io\stl\stl.c" />
     <ClCompile Include="..\src\lib\geom.c" />
