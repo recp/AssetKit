@@ -40,9 +40,10 @@ ply_ply(AkDoc     ** __restrict dest,
   AkLibrary     *lib_geom, *lib_vscene;
   AkVisualScene *scene;
   PLYElement    *elem;
-  PLYProperty   *prop;
+  PLYProperty   *prop, *pit;
   PLYState       pstVal = {0}, *pst;
-  size_t         plystrSize;
+  size_t         plystrSize, off;
+  uint32_t       i;
   AkResult       ret;
   bool           isAscii, isBigEndian;
   char           c;
@@ -92,14 +93,14 @@ ply_ply(AkDoc     ** __restrict dest,
   pst              = &pstVal;
   pstVal.doc       = doc;
   pstVal.heap      = heap;
-  pstVal.tmpParent = ak_heap_alloc(heap, doc, sizeof(void*));
+  pstVal.tmp = ak_heap_alloc(heap, doc, sizeof(void*));
   pstVal.node      = scene->node;
   pstVal.lib_geom  = doc->lib.geometries;
 
-  pst->dc_ind    = ak_data_new(pst->tmpParent, 128, sizeof(int32_t), NULL);
-  pst->dc_pos    = ak_data_new(pst->tmpParent, 128, sizeof(vec3),    NULL);
-  pst->dc_nor    = ak_data_new(pst->tmpParent, 128, sizeof(vec3),    NULL);
-  pst->dc_vcount = ak_data_new(pst->tmpParent, 128, sizeof(int32_t), NULL);
+  pst->dc_ind    = ak_data_new(pst->tmp, 128, sizeof(int32_t), NULL);
+  pst->dc_pos    = ak_data_new(pst->tmp, 128, sizeof(vec3),    NULL);
+  pst->dc_nor    = ak_data_new(pst->tmp, 128, sizeof(vec3),    NULL);
+  pst->dc_vcount = ak_data_new(pst->tmp, 128, sizeof(int32_t), NULL);
 
   isAscii     = false;
   isBigEndian = false;
@@ -127,7 +128,7 @@ ply_ply(AkDoc     ** __restrict dest,
     } else if (EQ7('e', 'l', 'e', 'm', 'e', 'n', 't')) {
       p += 8;
       
-      elem = ak_heap_calloc(heap, pst->tmpParent, sizeof(*elem));
+      elem = ak_heap_calloc(heap, pst->tmp, sizeof(*elem));
       
       if (!pst->element)
         pst->element = elem;
@@ -151,14 +152,7 @@ ply_ply(AkDoc     ** __restrict dest,
       p += 9;
       SKIP_SPACES
       
-      prop = ak_heap_calloc(heap, pst->tmpParent, sizeof(*prop));
-      
-      if (!elem->property)
-        elem->property = prop;
-
-      if (elem->lastProperty)
-        elem->lastProperty->next = prop;
-      elem->lastProperty = prop;
+      prop = ak_heap_calloc(heap, pst->tmp, sizeof(*prop));
       
       /* 1. type */
       
@@ -244,6 +238,40 @@ ply_ply(AkDoc     ** __restrict dest,
             break;
         }
       }
+      
+      if (!elem->property) {
+        elem->property = prop;
+      } else {
+        PLYProperty *last_prop;
+        
+        /* insert propety by ORDER */
+        last_prop = pit = elem->property;
+        while (pit) {
+          if ((int)prop->semantic < (int)pit->semantic) {
+            if (pit->prev) {
+              pit->prev->next = prop;
+              prop->prev      = pit->prev;
+            }
+
+            prop->next = pit;
+            pit->prev  = prop;
+            
+            if (pit == elem->property)
+              elem->property = prop;
+            
+            break;
+          }
+
+          last_prop = pit;
+          pit       = pit->next;
+        }
+        
+        /* couldn't add, so add to last */
+        if (!pit && last_prop) {
+          last_prop->next = prop;
+          prop->prev      = last_prop;
+        }
+      }
     } else if (EQT7('e', 'n', 'd', '_', 'h', 'e', 'a')) {
       NEXT_LINE
       break;
@@ -252,9 +280,39 @@ ply_ply(AkDoc     ** __restrict dest,
     NEXT_LINE
   } while (p && p[0] != '\0'/* && (c = *++p) != '\0'*/);
 
-  /* prepare buffers */
+  /* prepare property offsets/slots */
+  i    = off = 0;
+  elem = pst->element;
+  while (elem) {
+    pit = elem->property;
+    if (!pit->islist) {
+      while (pit) {
+        if (!pit->ignore) {
+          pit->slot = i++;
+          pit->off  = off;
+          /* TODO: currently all are floats */
+          off      += sizeof(float); /* pit->typeDesc->size; */
+          
+          if (pit->typeDesc)
+            elem->knownByteStride += pit->typeDesc->size;
+          elem->knownCount++;
+        }
+        
+        if (pit->typeDesc)
+          elem->byteStride += pit->typeDesc->size;
+        pit = pit->next;
+      }
+    }
+
+    /* alloc buffer */
+    elem->buff         = ak_heap_calloc(heap, pst->tmp, sizeof(*elem->buff));
+    elem->buff->length = off * elem->count;
+    elem->buff->data   = ak_heap_alloc(heap, elem->buff, elem->buff->length);
+
+    elem = elem->next;
+  }
   
-  /*  parse */
+  /* parse */
   if (isAscii) {
     ply_ascii(p, pst);
   }
@@ -262,12 +320,12 @@ ply_ply(AkDoc     ** __restrict dest,
   *dest = doc;
 
   /* cleanup */
-  ak_free(pst->tmpParent);
+  ak_free(pst->tmp);
 
   return AK_OK;
   
 err:
-  ak_free(pst->tmpParent);
+  ak_free(pst->tmp);
   ak_free(doc);
   return AK_ERR;
 }
@@ -275,27 +333,41 @@ err:
 AK_HIDE
 void
 ply_ascii(char * __restrict src, PLYState * __restrict pst) {
-  char          *p;
-  PLYElement    *elem;
-  PLYProperty   *prop;
-  char           c;
+  char        *p;
+  float       *b;
+  PLYElement  *elem;
+  PLYProperty *prop;
+  AkBuffer    *buff;
+  char         c;
+  uint32_t     i, stride;
   
   p    = src;
   c    = *p;
   elem = pst->element;
+  i    = 0;
 
   while (elem) {
     if (elem->type == PLY_ELEM_VERTEX) {
+      buff   = elem->buff;
+      b      = buff->data; /* TODO: all vertices are floats for now */
+      stride = elem->knownCount;
+
       do {
         SKIP_SPACES
 
         prop = elem->property;
         while (prop) {
-
+          if (!prop->ignore)
+            b[prop->slot] = strtof(p, &p);
           prop = prop->next;
         }
 
+        b += stride;
+
         NEXT_LINE
+
+        if (++i >= elem->count)
+          break;
       } while (p && p[0] != '\0');
     }
     elem = elem->next;

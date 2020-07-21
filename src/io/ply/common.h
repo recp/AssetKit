@@ -43,6 +43,7 @@ typedef enum PLYPropertyType {
 } PLYPropertyType;
 
 typedef struct PLYProperty {
+  struct PLYProperty *prev;
   struct PLYProperty *next;
   char               *name;
   char               *typestr;
@@ -50,6 +51,8 @@ typedef struct PLYProperty {
   char               *listCountType;
   AkTypeDesc         *listCountTypeDesc;
   PLYPropertyType     semantic;
+  uint32_t            slot;
+  size_t              off;
   bool                islist;
   bool                ignore;
 } PLYProperty;
@@ -62,10 +65,13 @@ typedef enum PLYElementType {
 
 typedef struct PLYElement {
   struct PLYElement *next;
-  PLYProperty       *lastProperty;
   PLYProperty       *property;
+  AkBuffer          *buff;
   char              *name;
-  size_t             count;
+  uint32_t           count;
+  uint32_t           knownCount;
+  uint32_t           byteStride;
+  uint32_t           knownByteStride;
   PLYElementType     type;
   size_t             buffsize;
 } PLYElement;
@@ -73,7 +79,7 @@ typedef struct PLYElement {
 typedef struct PLYState {
   AkHeap        *heap;
   AkDoc         *doc;
-  void          *tmpParent;
+  void          *tmp;
   AkLibrary     *lib_geom;
   AkGeometry    *geom;
   AkDataContext *dc_ind, *dc_pos, *dc_nor, *dc_tex, *dc_vcount;
