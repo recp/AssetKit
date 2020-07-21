@@ -380,15 +380,15 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
   uint32_t     i, stride;
   
   p    = src;
-  c    = *p;
   elem = pst->element;
-  i    = 0;
 
   while (elem) {
     if (elem->type == PLY_ELEM_VERTEX) {
       buff   = elem->buff;
       b      = buff->data; /* TODO: all vertices are floats for now */
       stride = elem->knownCount;
+      i      = 0;
+      c      = *p;
 
       do {
         SKIP_SPACES
@@ -407,6 +407,34 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
         if (++i >= elem->count)
           break;
       } while (p && p[0] != '\0');
+    } else if (elem->type == PLY_ELEM_FACE) {
+      int32_t faceCount, j, ind, count;
+      
+      i     = 0;
+      c     = *p;
+      count = 0;
+
+      pst->dc_ind = ak_data_new(pst->tmp, 128, sizeof(AkUInt), NULL);
+      
+      do {
+        SKIP_SPACES
+        
+        faceCount = (int32_t)strtol(p, &p, 10);
+
+        for (j = 0; j < faceCount; j++) {
+          ind = (int32_t)strtol(p, &p, 10);
+          ak_data_append(pst->dc_ind, &ind);
+        }
+
+        count += faceCount;
+
+        NEXT_LINE
+
+        if (++i >= elem->count)
+          break;
+      } while (p && p[0] != '\0');
+      
+      pst->count = count;
     }
     elem = elem->next;
   }
@@ -471,4 +499,12 @@ ply_finish(PLYState * __restrict pst) {
   /* vertex colors */
   if (pst->ac_rgb)
     io_input(heap, prim, pst->ac_nor, AK_INPUT_SEMANTIC_COLOR, "COLOR", ioff++);
+  
+  /* indices */
+  tri->base.indices = ak_heap_calloc(heap,
+                                     tri,
+                                     sizeof(*tri->base.indices)
+                                      + pst->dc_ind->usedsize);
+  tri->base.indices->count = pst->count;
+  ak_data_join(pst->dc_ind, tri->base.indices->items, 0, 0);
 }
