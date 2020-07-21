@@ -288,6 +288,38 @@ ply_ply(AkDoc     ** __restrict dest,
     if (!pit->islist) {
       while (pit) {
         if (!pit->ignore) {
+          /* validate, check missing properties in the group */
+          if (pit->semantic == PLY_PROP_X) {
+            if ((!pit->next || pit->next->semantic != PLY_PROP_Y)
+                ||(!pit->next->next || pit->next->next->semantic != PLY_PROP_Z))
+              goto err; /* we cannot load this PLY, TODO: */
+            
+            /* alloc input and accessor for positions */
+          }
+          
+          if (pit->semantic == PLY_PROP_NX) {
+            if ((!pit->next || pit->next->semantic != PLY_PROP_NY)
+                ||(!pit->next->next || pit->next->next->semantic != PLY_PROP_NZ))
+              goto err; /* we cannot load this PLY, TODO: */
+            
+            /* alloc input and accessor for normals */
+          }
+          
+          if (pit->semantic == PLY_PROP_S) {
+            if ((!pit->next || pit->next->semantic != PLY_PROP_T))
+              goto ign; /* ignore, TODO: */
+            
+            /* alloc input and accessor for tex coords */
+          }
+          
+          if (pit->semantic == PLY_PROP_R) {
+            if ((!pit->next || pit->next->semantic != PLY_PROP_G)
+                ||(!pit->next->next || pit->next->next->semantic != PLY_PROP_B))
+              goto ign; /* ignore, TODO: */
+            
+            /* alloc input and accessor for vertex colors */
+          }
+          
           pit->slot = i++;
           pit->off  = off;
           /* TODO: currently all are floats */
@@ -300,6 +332,7 @@ ply_ply(AkDoc     ** __restrict dest,
         
         if (pit->typeDesc)
           elem->byteStride += pit->typeDesc->size;
+      ign:
         pit = pit->next;
       }
     }
