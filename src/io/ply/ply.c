@@ -23,7 +23,7 @@
 
 #include "ply.h"
 #include "common.h"
-//#include "postscript.h"
+#include "postscript.h"
 #include "strpool.h"
 #include "../../id.h"
 #include "../../data.h"
@@ -65,6 +65,9 @@ ply_ply(AkDoc     ** __restrict dest,
   heap = ak_heap_new(NULL, NULL, NULL);
   doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
 
+  /* for fixing skin and morph vertices */
+  doc->reserved = rb_newtree_ptr();
+  
   doc->inf                = ak_heap_calloc(heap, doc, sizeof(*doc->inf));
   doc->inf->name          = filepath;
   doc->inf->dir           = ak_path_dir(heap, doc, filepath);
@@ -281,6 +284,9 @@ ply_ply(AkDoc     ** __restrict dest,
   while (elem) {
     pit = elem->property;
     if (elem->type == PLY_ELEM_VERTEX) {
+      size_t byteSffset;
+      
+      byteSffset = 0;
       elem->buff = ak_heap_calloc(heap, pst->doc, sizeof(*elem->buff));
 
       while (pit) {
@@ -299,7 +305,7 @@ ply_ply(AkDoc     ** __restrict dest,
           if (pit->semantic == PLY_PROP_NX) {
             if ((!pit->next || pit->next->semantic != PLY_PROP_NY)
                 ||(!pit->next->next || pit->next->next->semantic != PLY_PROP_NZ))
-              goto err; /* we cannot load this PLY, TODO: */
+              goto ign; /* we cannot load this PLY, TODO: */
             
             /* alloc input and accessor for normals */
             pst->ac_nor = io_acc(heap, doc, AK_COMPONENT_SIZE_VEC3,
@@ -331,20 +337,46 @@ ply_ply(AkDoc     ** __restrict dest,
           off      += sizeof(float); /* pit->typeDesc->size; */
           
           if (pit->typeDesc)
-            elem->knownByteStride += pit->typeDesc->size;
+            pst->byteStride += pit->typeDesc->size;
           elem->knownCount++;
         }
-        
-        if (pit->typeDesc)
-          elem->byteStride += pit->typeDesc->size;
       ign:
         pit = pit->next;
       }
       
       /* alloc buffer for vertex element */
-      elem->buff->length = off * elem->count;
+      pst->vertBuffsize  = off * elem->count;
+      elem->buff->length = pst->vertBuffsize;
       elem->buff->data   = ak_heap_alloc(heap, elem->buff, elem->buff->length);
       flist_sp_insert(&pst->doc->lib.buffers, elem->buff);
+
+      /* prepare accessors' misssing params */
+      if (pst->ac_pos) {
+        pst->ac_pos->byteLength = pst->vertBuffsize;
+        pst->ac_pos->byteStride = pst->byteStride;
+        byteSffset += sizeof(float) * 3;
+      }
+      
+      if (pst->ac_nor) {
+        pst->ac_nor->byteLength = pst->vertBuffsize;
+        pst->ac_nor->byteStride = pst->byteStride;
+        pst->ac_nor->byteOffset = byteSffset;
+        byteSffset += sizeof(float) * 3;
+      }
+
+      if (pst->ac_tex) {
+        pst->ac_tex->byteStride = pst->byteStride;
+        pst->ac_tex->byteLength = pst->vertBuffsize;
+        pst->ac_tex->byteOffset = byteSffset;
+        byteSffset += sizeof(float) * 2;
+      }
+       
+      if (pst->ac_rgb) {
+        pst->ac_rgb->byteStride = pst->byteStride;
+        pst->ac_rgb->byteLength = pst->vertBuffsize;
+        pst->ac_rgb->byteOffset = byteSffset;
+        byteSffset += sizeof(float) * 3;
+      }
     }
 
     elem = elem->next;
@@ -354,6 +386,8 @@ ply_ply(AkDoc     ** __restrict dest,
   if (isAscii) {
     ply_ascii(p, pst);
   }
+
+  ply_postscript(pst);
 
   *dest = doc;
 
@@ -408,7 +442,8 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
           break;
       } while (p && p[0] != '\0');
     } else if (elem->type == PLY_ELEM_FACE) {
-      int32_t faceCount, j, ind, count;
+      int32_t faceCount, j, count;
+      AkUInt *f, center;
       
       i     = 0;
       c     = *p;
@@ -420,13 +455,23 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
         SKIP_SPACES
         
         faceCount = (int32_t)strtol(p, &p, 10);
-
-        for (j = 0; j < faceCount; j++) {
-          ind = (int32_t)strtol(p, &p, 10);
-          ak_data_append(pst->dc_ind, &ind);
+        
+        if (faceCount >= 3) {
+          f = alloca(sizeof(AkUInt) * faceCount);
+          
+          for (j = 0; j < faceCount; j++) {
+            f[j] = (int32_t)strtol(p, &p, 10);
+          }
+          
+          center = f[0];
+          for (j = 0; j < faceCount - 2; j++) {
+            ak_data_append(pst->dc_ind, &center);
+            ak_data_append(pst->dc_ind, &f[j + 1]);
+            ak_data_append(pst->dc_ind, &f[j + 2]);
+            
+            count += 3;
+          }
         }
-
-        count += faceCount;
 
         NEXT_LINE
 
@@ -451,7 +496,6 @@ ply_finish(PLYState * __restrict pst) {
   AkMeshPrimitive    *prim;
   AkInstanceGeometry *instGeom;
   AkTriangles        *tri;
-  uint32_t            ioff;
 
   /* Buffer > Accessor > Input > Prim > Mesh > Geom > InstanceGeom > Node */
   
@@ -459,15 +503,15 @@ ply_finish(PLYState * __restrict pst) {
   mesh = ak_allocMesh(pst->heap, pst->lib_geom, &geom);
 
   tri            = ak_heap_calloc(pst->heap, ak_objFrom(mesh), sizeof(*tri));
-  tri->mode      = AK_TRIANGLE_FAN;
+  tri->mode      = AK_TRIANGLES;
   tri->base.type = AK_PRIMITIVE_TRIANGLES;
   prim           = (AkMeshPrimitive *)tri;
 
+  prim->indexStride    = 1;
   prim->count          = pst->count;
   prim->mesh           = mesh;
   mesh->primitive      = prim;
   mesh->primitiveCount = 1;
-  ioff                 = 0;
 
   /* add to library */
   geom->base.next     = pst->lib_geom->chld;
@@ -486,25 +530,25 @@ ply_finish(PLYState * __restrict pst) {
   /* positions */
   if (pst->ac_pos)
     prim->pos = io_input(heap, prim, pst->ac_pos,
-                         AK_INPUT_SEMANTIC_POSITION, "POSITION", ioff++);
+                         AK_INPUT_SEMANTIC_POSITION, "POSITION", 0);
 
   /* normals */
   if (pst->ac_nor)
-    io_input(heap, prim, pst->ac_nor, AK_INPUT_SEMANTIC_NORMAL, "NORMAL", ioff++);
+    io_input(heap, prim, pst->ac_nor, AK_INPUT_SEMANTIC_NORMAL, "NORMAL", 0);
 
   /* tex coords */
   if (pst->ac_tex)
-    io_input(heap, prim, pst->ac_nor, AK_INPUT_SEMANTIC_TEXCOORD, "TEXCOORD", ioff++);
+    io_input(heap, prim, pst->ac_nor, AK_INPUT_SEMANTIC_TEXCOORD, "TEXCOORD", 0);
   
   /* vertex colors */
   if (pst->ac_rgb)
-    io_input(heap, prim, pst->ac_nor, AK_INPUT_SEMANTIC_COLOR, "COLOR", ioff++);
+    io_input(heap, prim, pst->ac_nor, AK_INPUT_SEMANTIC_COLOR, "COLOR", 0);
   
   /* indices */
-  tri->base.indices = ak_heap_calloc(heap,
-                                     tri,
-                                     sizeof(*tri->base.indices)
-                                      + pst->dc_ind->usedsize);
-  tri->base.indices->count = pst->count;
-  ak_data_join(pst->dc_ind, tri->base.indices->items, 0, 0);
+  prim->indices = ak_heap_calloc(heap,
+                                 tri,
+                                 sizeof(*prim->indices)
+                                 + pst->dc_ind->usedsize);
+  prim->indices->count = pst->dc_ind->itemcount;
+  ak_data_join(pst->dc_ind, prim->indices->items, 0, 0);
 }

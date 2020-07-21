@@ -70,8 +70,6 @@ typedef struct PLYElement {
   char              *name;
   uint32_t           count;
   uint32_t           knownCount;
-  uint32_t           byteStride;
-  uint32_t           knownByteStride;
   PLYElementType     type;
   size_t             buffsize;
 } PLYElement;
@@ -88,7 +86,7 @@ typedef struct PLYState {
   PLYElement    *element;
   PLYElement    *lastElement;
   size_t         vertBuffsize;
-  size_t         indBuffsize;
+  uint32_t       byteStride;
   uint32_t       maxVC;
   uint32_t       count;
 } PLYState;

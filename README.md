@@ -48,7 +48,7 @@ I've also created a basic program (included a screenshot of render result and da
 * [x] glTF 2.0 (.gltf, .glb, ...)
 * [x] Wavefront Obj (.obj + .mtl)
 * [x] STL (ASCII + Binary)
-* [ ] Ply   (working on this)
+* [x] Ply (ASCII + Binary)  (working on this)
 * [ ] USD and friends (License?)
 * [ ] Alembic (License?)
 * [ ] Draco
