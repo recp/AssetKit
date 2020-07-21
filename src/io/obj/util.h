@@ -23,9 +23,9 @@
 AK_HIDE
 AkAccessor*
 wobj_acc(WOState         * __restrict wst,
-                 AkDataContext   * __restrict dctx,
-                 AkComponentSize              compSize,
-                 AkTypeId                     type);
+         AkDataContext   * __restrict dctx,
+         AkComponentSize              compSize,
+         AkTypeId                     type);
 
 AK_HIDE
 AkInput*

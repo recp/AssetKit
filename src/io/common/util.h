@@ -44,6 +44,24 @@ io_addInput(AkHeap          * __restrict heap,
             AkTypeId                     type,
             uint32_t                     offset);
 
+AK_HIDE
+AkAccessor*
+io_acc(AkHeap          * __restrict heap,
+       AkDoc           * __restrict doc,
+       AkComponentSize              compSize,
+       AkTypeId                     type,
+       uint32_t                     count,
+       AkBuffer        * __restrict buff);
+
+AK_HIDE
+AkInput*
+io_input(AkHeap          * __restrict heap,
+         AkMeshPrimitive * __restrict prim,
+         AkAccessor      * __restrict acc,
+         AkInputSemantic              sem,
+         const char      * __restrict semRaw,
+         uint32_t                     offset);
+
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 #  define le_uint32(X, DATA) \
   do {                                                                        \

@@ -35,4 +35,8 @@ AK_HIDE
 void
 ply_bin_be(PLYState * __restrict pst);
 
+AK_HIDE
+void
+ply_finish(PLYState * __restrict pst);
+
 #endif /* stl_h */

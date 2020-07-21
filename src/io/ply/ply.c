@@ -97,11 +97,6 @@ ply_ply(AkDoc     ** __restrict dest,
   pstVal.node      = scene->node;
   pstVal.lib_geom  = doc->lib.geometries;
 
-  pst->dc_ind    = ak_data_new(pst->tmp, 128, sizeof(int32_t), NULL);
-  pst->dc_pos    = ak_data_new(pst->tmp, 128, sizeof(vec3),    NULL);
-  pst->dc_nor    = ak_data_new(pst->tmp, 128, sizeof(vec3),    NULL);
-  pst->dc_vcount = ak_data_new(pst->tmp, 128, sizeof(int32_t), NULL);
-
   isAscii     = false;
   isBigEndian = false;
 
@@ -140,12 +135,12 @@ ply_ply(AkDoc     ** __restrict dest,
       if (EQ6('v', 'e', 'r', 't', 'e', 'x')) {
         p += 7;
         SKIP_SPACES
-        elem->count = strtoul(p, &p, 10);
+        elem->count = (uint32_t)strtoul(p, &p, 10);
         elem->type  = PLY_ELEM_VERTEX;
       } else if (EQ4('f', 'a', 'c', 'e')) {
         p += 5;
         SKIP_SPACES
-        elem->count = strtoul(p, &p, 10);
+        elem->count = (uint32_t)strtoul(p, &p, 10);
         elem->type  = PLY_ELEM_FACE;
       }
     } else if (EQ8('p', 'r', 'o', 'p', 'e', 'r', 't', 'y')) {
@@ -285,7 +280,9 @@ ply_ply(AkDoc     ** __restrict dest,
   elem = pst->element;
   while (elem) {
     pit = elem->property;
-    if (!pit->islist) {
+    if (elem->type == PLY_ELEM_VERTEX) {
+      elem->buff = ak_heap_calloc(heap, pst->doc, sizeof(*elem->buff));
+
       while (pit) {
         if (!pit->ignore) {
           /* validate, check missing properties in the group */
@@ -295,6 +292,8 @@ ply_ply(AkDoc     ** __restrict dest,
               goto err; /* we cannot load this PLY, TODO: */
             
             /* alloc input and accessor for positions */
+            pst->ac_pos = io_acc(heap, doc, AK_COMPONENT_SIZE_VEC3,
+                                 AKT_FLOAT, elem->count, elem->buff);
           }
           
           if (pit->semantic == PLY_PROP_NX) {
@@ -303,6 +302,8 @@ ply_ply(AkDoc     ** __restrict dest,
               goto err; /* we cannot load this PLY, TODO: */
             
             /* alloc input and accessor for normals */
+            pst->ac_nor = io_acc(heap, doc, AK_COMPONENT_SIZE_VEC3,
+                                 AKT_FLOAT, elem->count, elem->buff);
           }
           
           if (pit->semantic == PLY_PROP_S) {
@@ -310,6 +311,8 @@ ply_ply(AkDoc     ** __restrict dest,
               goto ign; /* ignore, TODO: */
             
             /* alloc input and accessor for tex coords */
+            pst->ac_tex = io_acc(heap, doc, AK_COMPONENT_SIZE_VEC2,
+                                 AKT_FLOAT, elem->count, elem->buff);
           }
           
           if (pit->semantic == PLY_PROP_R) {
@@ -318,6 +321,8 @@ ply_ply(AkDoc     ** __restrict dest,
               goto ign; /* ignore, TODO: */
             
             /* alloc input and accessor for vertex colors */
+            pst->ac_rgb = io_acc(heap, doc, AK_COMPONENT_SIZE_VEC3,
+                                 AKT_FLOAT, elem->count, elem->buff);
           }
           
           pit->slot = i++;
@@ -335,12 +340,12 @@ ply_ply(AkDoc     ** __restrict dest,
       ign:
         pit = pit->next;
       }
+      
+      /* alloc buffer for vertex element */
+      elem->buff->length = off * elem->count;
+      elem->buff->data   = ak_heap_alloc(heap, elem->buff, elem->buff->length);
+      flist_sp_insert(&pst->doc->lib.buffers, elem->buff);
     }
-
-    /* alloc buffer */
-    elem->buff         = ak_heap_calloc(heap, pst->tmp, sizeof(*elem->buff));
-    elem->buff->length = off * elem->count;
-    elem->buff->data   = ak_heap_alloc(heap, elem->buff, elem->buff->length);
 
     elem = elem->next;
   }
@@ -405,6 +410,8 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
     }
     elem = elem->next;
   }
+  
+  ply_finish(pst);
 }
 
 AK_HIDE
@@ -416,21 +423,23 @@ ply_finish(PLYState * __restrict pst) {
   AkMeshPrimitive    *prim;
   AkInstanceGeometry *instGeom;
   AkTriangles        *tri;
+  uint32_t            ioff;
 
   /* Buffer > Accessor > Input > Prim > Mesh > Geom > InstanceGeom > Node */
   
   heap = pst->heap;
   mesh = ak_allocMesh(pst->heap, pst->lib_geom, &geom);
 
-  tri = ak_heap_calloc(pst->heap, ak_objFrom(mesh), sizeof(*tri));
+  tri            = ak_heap_calloc(pst->heap, ak_objFrom(mesh), sizeof(*tri));
   tri->mode      = AK_TRIANGLE_FAN;
   tri->base.type = AK_PRIMITIVE_TRIANGLES;
-  prim = (AkMeshPrimitive *)tri;
+  prim           = (AkMeshPrimitive *)tri;
 
   prim->count          = pst->count;
   prim->mesh           = mesh;
   mesh->primitive      = prim;
   mesh->primitiveCount = 1;
+  ioff                 = 0;
 
   /* add to library */
   geom->base.next     = pst->lib_geom->chld;
@@ -446,24 +455,20 @@ ply_finish(PLYState * __restrict pst) {
   instGeom->base.next = (void *)pst->node->geometry;
   pst->node->geometry = instGeom;
   
-  prim->pos = io_addInput(heap, pst->dc_pos, prim, AK_INPUT_SEMANTIC_POSITION,
-                          "POSITION", AK_COMPONENT_SIZE_VEC3, AKT_FLOAT, 0);
+  /* positions */
+  if (pst->ac_pos)
+    prim->pos = io_input(heap, prim, pst->ac_pos,
+                         AK_INPUT_SEMANTIC_POSITION, "POSITION", ioff++);
 
-  if (pst->dc_nor->itemcount > 0) {
-    io_addInput(heap, pst->dc_nor, prim, AK_INPUT_SEMANTIC_NORMAL,
-                "NORMAL", AK_COMPONENT_SIZE_VEC3, AKT_FLOAT, 1);
-  }
+  /* normals */
+  if (pst->ac_nor)
+    io_input(heap, prim, pst->ac_nor, AK_INPUT_SEMANTIC_NORMAL, "NORMAL", ioff++);
 
-  /* cleanup */
-  if (pst->dc_ind) {
-    ak_free(pst->dc_ind);
-    ak_free(pst->dc_pos);
-    ak_free(pst->dc_nor);
-    ak_free(pst->dc_vcount);
-  }
+  /* tex coords */
+  if (pst->ac_tex)
+    io_input(heap, prim, pst->ac_nor, AK_INPUT_SEMANTIC_TEXCOORD, "TEXCOORD", ioff++);
   
-  pst->dc_ind    = NULL;
-  pst->dc_pos    = NULL;
-  pst->dc_nor    = NULL;
-  pst->dc_vcount = NULL;
+  /* vertex colors */
+  if (pst->ac_rgb)
+    io_input(heap, prim, pst->ac_nor, AK_INPUT_SEMANTIC_COLOR, "COLOR", ioff++);
 }

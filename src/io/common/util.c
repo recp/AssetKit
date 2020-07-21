@@ -94,3 +94,56 @@ io_addInput(AkHeap          * __restrict heap,
   
   return inp;
 }
+
+AK_HIDE
+AkAccessor*
+io_acc(AkHeap          * __restrict heap,
+       AkDoc           * __restrict doc,
+       AkComponentSize              compSize,
+       AkTypeId                     type,
+       uint32_t                     count,
+       AkBuffer        * __restrict buff) {
+  AkAccessor *acc;
+  AkTypeDesc *typeDesc;
+  int         nComponents;
+
+  typeDesc    = ak_typeDesc(type);
+  nComponents = (int)compSize;
+  
+  acc                 = ak_heap_calloc(heap, doc, sizeof(*acc));
+  acc->buffer         = buff;
+  acc->byteLength     = buff->length;
+  acc->byteStride     = typeDesc->size * nComponents;
+  acc->componentSize  = compSize;
+  acc->componentType  = type;
+  acc->componentBytes = typeDesc->size * nComponents;
+  acc->componentCount = nComponents;
+  acc->fillByteSize   = typeDesc->size * nComponents;
+  acc->count          = count;
+
+  return acc;
+}
+
+AK_HIDE
+AkInput*
+io_input(AkHeap          * __restrict heap,
+         AkMeshPrimitive * __restrict prim,
+         AkAccessor      * __restrict acc,
+         AkInputSemantic              sem,
+         const char      * __restrict semRaw,
+         uint32_t                     offset) {
+  AkInput *inp;
+
+  inp                 = ak_heap_calloc(heap, prim, sizeof(*inp));
+  inp->accessor       = acc;
+  inp->semantic       = sem;
+  inp->semanticRaw    = ak_heap_strdup(heap, inp, semRaw);
+  inp->offset         = offset;
+
+  inp->next   = prim->input;
+  prim->input = inp;
+  prim->inputCount++;
+  
+  return inp;
+}
+

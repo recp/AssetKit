@@ -19,9 +19,9 @@
 AK_HIDE
 AkAccessor*
 wobj_acc(WOState         * __restrict wst,
-                 AkDataContext   * __restrict dctx,
-                 AkComponentSize              compSize,
-                 AkTypeId                     type) {
+         AkDataContext   * __restrict dctx,
+         AkComponentSize              compSize,
+         AkTypeId                     type) {
   AkHeap     *heap;
   AkBuffer   *buff;
   AkAccessor *acc;
