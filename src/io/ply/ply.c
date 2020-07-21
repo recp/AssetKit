@@ -118,9 +118,9 @@ ply_ply(AkDoc     ** __restrict dest,
 
       if (EQ5('a', 's', 'c', 'i', 'i')) {
         isAscii = true;
-      } else if (strncmp(p, _s_ply_binary_little_endian, 21) == 0) {
+      } else if (strncmp(p, "binary_little_endian", 21) == 0) {
         isBigEndian = false;
-      } else if (strncmp(p, _s_ply_binary_big_endian, 18) == 0) {
+      } else if (strncmp(p, "binary_big_endian", 18) == 0) {
         isBigEndian = true;
       } else {
         goto err; /* unknown format */

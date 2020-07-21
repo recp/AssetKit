@@ -235,8 +235,7 @@ libassetkit_la_SOURCES=\
     src/io/stl/stl.c \
     src/io/stl/postscript.c \
 \
-    src/io/ply/ply.c \
-    src/io/ply/strpool.c
+    src/io/ply/ply.c
 
 test_tests_SOURCES=\
     test/runner.c \

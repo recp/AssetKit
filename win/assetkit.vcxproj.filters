@@ -572,9 +572,6 @@
     <ClInclude Include="..\src\io\ply\ply.h">
       <Filter>src\io\ply</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\io\ply\strpool.h">
-      <Filter>src\io\ply</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\win32\strptime.c">
@@ -1043,9 +1040,6 @@
       <Filter>src\io\stl</Filter>
     </ClCompile>
     <ClCompile Include="..\src\io\ply\ply.c">
-      <Filter>src\io\ply</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\io\ply\strpool.c">
       <Filter>src\io\ply</Filter>
     </ClCompile>
   </ItemGroup>
