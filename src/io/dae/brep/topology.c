@@ -51,7 +51,7 @@ dae_edges(DAEState * __restrict dst,
         inp->semantic = inputSemantic;
         
         if (inputSemantic < 0)
-          inputSemantic = AK_INPUT_SEMANTIC_OTHER;
+          inputSemantic = AK_INPUT_OTHER;
         
         inp->semantic = inputSemantic;
         inp->offset   = xmla_u32(xmla(xml, _s_dae_offset), 0);
@@ -121,7 +121,7 @@ dae_wires(DAEState * __restrict dst,
         inp->semantic = inputSemantic;
         
         if (inputSemantic < 0)
-          inputSemantic = AK_INPUT_SEMANTIC_OTHER;
+          inputSemantic = AK_INPUT_OTHER;
         
         inp->semantic = inputSemantic;
         inp->offset   = xmla_u32(xmla(xml, _s_dae_offset), 0);
@@ -198,7 +198,7 @@ dae_faces(DAEState * __restrict dst,
         inp->semantic = inputSemantic;
         
         if (inputSemantic < 0)
-          inputSemantic = AK_INPUT_SEMANTIC_OTHER;
+          inputSemantic = AK_INPUT_OTHER;
         
         inp->semantic = inputSemantic;
         inp->offset   = xmla_u32(xmla(xml, _s_dae_offset), 0);
@@ -275,7 +275,7 @@ dae_pcurves(DAEState * __restrict dst,
         inp->semantic = inputSemantic;
         
         if (inputSemantic < 0)
-          inputSemantic = AK_INPUT_SEMANTIC_OTHER;
+          inputSemantic = AK_INPUT_OTHER;
         
         inp->semantic = inputSemantic;
         inp->offset   = xmla_u32(xmla(xml, _s_dae_offset), 0);
@@ -352,7 +352,7 @@ dae_shells(DAEState * __restrict dst,
         inp->semantic = inputSemantic;
         
         if (inputSemantic < 0)
-          inputSemantic = AK_INPUT_SEMANTIC_OTHER;
+          inputSemantic = AK_INPUT_OTHER;
         
         inp->semantic = inputSemantic;
         inp->offset   = xmla_u32(xmla(xml, _s_dae_offset), 0);
@@ -429,7 +429,7 @@ dae_solids(DAEState * __restrict dst,
         inp->semantic = inputSemantic;
         
         if (inputSemantic < 0)
-          inputSemantic = AK_INPUT_SEMANTIC_OTHER;
+          inputSemantic = AK_INPUT_OTHER;
         
         inp->semantic = inputSemantic;
         inp->offset   = xmla_u32(xmla(xml, _s_dae_offset), 0);

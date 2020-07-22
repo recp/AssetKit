@@ -41,8 +41,8 @@ ak_changeCoordSysMesh(AkMesh * __restrict mesh,
     input = primi->input;
     while (input) {
       /* TODO: other semantics which are depend on coord sys */
-      if (input->semantic == AK_INPUT_SEMANTIC_POSITION
-          || input->semantic == AK_INPUT_SEMANTIC_NORMAL) {
+      if (input->semantic == AK_INPUT_POSITION
+          || input->semantic == AK_INPUT_NORMAL) {
         if (!input->accessor) {
           input = input->next;
           continue;

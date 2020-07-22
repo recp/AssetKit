@@ -286,11 +286,11 @@ sst_finish(STLState * __restrict sst) {
   instGeom->base.next = (void *)sst->node->geometry;
   sst->node->geometry = instGeom;
   
-  prim->pos = io_addInput(heap, sst->dc_pos, prim, AK_INPUT_SEMANTIC_POSITION,
+  prim->pos = io_addInput(heap, sst->dc_pos, prim, AK_INPUT_POSITION,
                           "POSITION", AK_COMPONENT_SIZE_VEC3, AKT_FLOAT, 0);
 
   if (sst->dc_nor->itemcount > 0) {
-    io_addInput(heap, sst->dc_nor, prim, AK_INPUT_SEMANTIC_NORMAL,
+    io_addInput(heap, sst->dc_nor, prim, AK_INPUT_NORMAL,
                 "NORMAL", AK_COMPONENT_SIZE_VEC3, AKT_FLOAT, 1);
   }
 

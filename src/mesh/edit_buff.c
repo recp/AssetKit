@@ -195,7 +195,7 @@ ak_meshMoveBuffers(AkMesh * __restrict mesh) {
 
     input->accessor = srch->source;
 
-    if (input->semantic == AK_INPUT_SEMANTIC_POSITION)
+    if (input->semantic == AK_INPUT_POSITION)
       prim->pos = input;
 
     mi = mi->next;

@@ -108,7 +108,7 @@ dae_animSampler(DAEState * __restrict dst,
         inp->semantic = inputSemantic;
         
         if (inputSemantic < 0)
-          inputSemantic = AK_INPUT_SEMANTIC_OTHER;
+          inputSemantic = AK_INPUT_OTHER;
         
         inp->semantic = inputSemantic;
         inp->offset   = xmla_u32(xmla(xml, _s_dae_offset), 0);
@@ -122,23 +122,23 @@ dae_animSampler(DAEState * __restrict dst,
          will be converted to radians, we will wait to load whole dae file
          because all sources may not be loaded at this time
          */
-        if (inp->semantic == AK_INPUT_SEMANTIC_OUTPUT)
+        if (inp->semantic == AK_INPUT_OUTPUT)
           flist_sp_insert(&dst->toRadiansSampelers, samp);
         
         switch (inp->semantic) {
-          case AK_INPUT_SEMANTIC_INPUT:
+          case AK_INPUT_INPUT:
             samp->inputInput = inp;
             break;
-          case AK_INPUT_SEMANTIC_OUTPUT:
+          case AK_INPUT_OUTPUT:
             samp->outputInput = inp;
             break;
-          case AK_INPUT_SEMANTIC_IN_TANGENT:
+          case AK_INPUT_IN_TANGENT:
             samp->inTangentInput = inp;
             break;
-          case AK_INPUT_SEMANTIC_OUT_TANGENT:
+          case AK_INPUT_OUT_TANGENT:
             samp->outTangentInput = inp;
             break;
-          case AK_INPUT_SEMANTIC_INTERPOLATION:
+          case AK_INPUT_INTERPOLATION:
             samp->interpInput = inp;
             break;
           default:

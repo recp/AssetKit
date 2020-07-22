@@ -55,7 +55,7 @@ ak_meshFillBuffers(AkMesh * __restrict mesh) {
     input   = primi->input;
 
     while (input) {
-      if (input->semantic == AK_INPUT_SEMANTIC_POSITION
+      if (input->semantic == AK_INPUT_POSITION
           || !(acc     = input->accessor)
           || !(oldbuff = acc->buffer))
         goto cont;

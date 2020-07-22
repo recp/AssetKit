@@ -71,7 +71,7 @@ dae_skin(DAEState * __restrict dst,
             inp->semantic = inputSemantic;
             
             if (inputSemantic < 0)
-              inputSemantic = AK_INPUT_SEMANTIC_OTHER;
+              inputSemantic = AK_INPUT_OTHER;
             
             inp->semantic = inputSemantic;
             inp->offset   = xmla_u32(xmla(xjoints, _s_dae_offset), 0);
@@ -80,10 +80,10 @@ dae_skin(DAEState * __restrict dst,
             
             url           = url_from(xjoints, _s_dae_source, memp);
             
-            if (inputSemantic == AK_INPUT_SEMANTIC_JOINT) {
+            if (inputSemantic == AK_INPUT_JOINT) {
               skindae->joints.joints = inp;
               rb_insert(dst->inputmap, inp, url);
-            } else if (inputSemantic == AK_INPUT_SEMANTIC_INV_BIND_MATRIX) {
+            } else if (inputSemantic == AK_INPUT_INV_BIND_MATRIX) {
               skindae->joints.invBindMatrix = inp;
               rb_insert(dst->inputmap, inp, url);
             } else {
@@ -118,7 +118,7 @@ dae_skin(DAEState * __restrict dst,
             inp->semantic = inputSemantic;
             
             if (inputSemantic < 0)
-              inputSemantic = AK_INPUT_SEMANTIC_OTHER;
+              inputSemantic = AK_INPUT_OTHER;
             
             inp->semantic = inputSemantic;
             inp->offset   = xmla_u32(xmla(xwei, _s_dae_offset), 0);
@@ -127,10 +127,10 @@ dae_skin(DAEState * __restrict dst,
             
             url           = url_from(xwei, _s_dae_source, memp);
             
-            if (inputSemantic == AK_INPUT_SEMANTIC_JOINT) {
+            if (inputSemantic == AK_INPUT_JOINT) {
               skindae->weights.joints = inp;
               rb_insert(dst->inputmap, inp, url);
-            } else if (inputSemantic == AK_INPUT_SEMANTIC_WEIGHT) {
+            } else if (inputSemantic == AK_INPUT_WEIGHT) {
               skindae->weights.weights = inp;
               rb_insert(dst->inputmap, inp, url);
             } else {

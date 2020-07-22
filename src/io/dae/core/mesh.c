@@ -123,7 +123,7 @@ dae_mesh(DAEState   * __restrict dst,
         inp->next   = prim->input;
         prim->input = inp;
         
-        if (inp->semantic == AK_INPUT_SEMANTIC_POSITION) {
+        if (inp->semantic == AK_INPUT_POSITION) {
           prim->pos = inp;
           if (!setMeshInfo) {
             AkDaeMeshInfo *mi;

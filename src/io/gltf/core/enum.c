@@ -23,16 +23,16 @@ gltf_enumInputSemantic(const char * name) {
   long   i;
 
   dae_enum glenums[] = {
-    {_s_gltf_COLOR,     AK_INPUT_SEMANTIC_COLOR},
-    {_s_gltf_JOINTS,    AK_INPUT_SEMANTIC_JOINT},
-    {_s_gltf_NORMAL,    AK_INPUT_SEMANTIC_NORMAL},
-    {_s_gltf_POSITION,  AK_INPUT_SEMANTIC_POSITION},
-    {_s_gltf_TANGENT,   AK_INPUT_SEMANTIC_TANGENT},
-    {_s_gltf_TEXCOORD,  AK_INPUT_SEMANTIC_TEXCOORD},
-    {_s_gltf_WEIGHTS,   AK_INPUT_SEMANTIC_WEIGHT},
+    {_s_gltf_COLOR,     AK_INPUT_COLOR},
+    {_s_gltf_JOINTS,    AK_INPUT_JOINT},
+    {_s_gltf_NORMAL,    AK_INPUT_NORMAL},
+    {_s_gltf_POSITION,  AK_INPUT_POSITION},
+    {_s_gltf_TANGENT,   AK_INPUT_TANGENT},
+    {_s_gltf_TEXCOORD,  AK_INPUT_TEXCOORD},
+    {_s_gltf_WEIGHTS,   AK_INPUT_WEIGHT},
   };
 
-  val = AK_INPUT_SEMANTIC_OTHER;
+  val = AK_INPUT_OTHER;
   glenums_len = AK_ARRAY_LEN(glenums);
 
   for (i = 0; i < glenums_len; i++) {

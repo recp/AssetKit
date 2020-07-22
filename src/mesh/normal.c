@@ -36,7 +36,7 @@ ak_meshPrimNeedsNormals(AkMeshPrimitive * __restrict prim) {
   ret   = true;
   input = prim->input;
   while (input) {
-    if (input->semantic == AK_INPUT_SEMANTIC_NORMAL) {
+    if (input->semantic == AK_INPUT_NORMAL) {
       if (!(acc = input->accessor) || !acc->buffer)
         return ret;
       ret = false;
@@ -225,7 +225,7 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
   /* add input */
   input              = ak_heap_calloc(heap, prim, sizeof(*input));
   input->offset      = st;
-  input->semantic    = AK_INPUT_SEMANTIC_NORMAL;
+  input->semantic    = AK_INPUT_NORMAL;
   input->semanticRaw = "NORMAL";
 
   nextInput = prim->input;

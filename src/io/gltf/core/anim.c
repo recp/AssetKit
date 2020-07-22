@@ -84,7 +84,7 @@ gltf_animations(json_t * __restrict janim,
             
             inp              = ak_heap_calloc(heap, sampler, sizeof(*inp));
             inp->semanticRaw = ak_heap_strdup(gst->heap, anim, _s_gltf_input);
-            inp->semantic    = AK_INPUT_SEMANTIC_INPUT;
+            inp->semantic    = AK_INPUT_INPUT;
             inp->accessor    = flist_sp_at(&doc->lib.accessors,
                                            json_int32(jsampVal, -1));
             
@@ -97,7 +97,7 @@ gltf_animations(json_t * __restrict janim,
             
             inp              = ak_heap_calloc(heap, sampler, sizeof(*inp));
             inp->semanticRaw = ak_heap_strdup(gst->heap, anim, _s_gltf_output);
-            inp->semantic    = AK_INPUT_SEMANTIC_OUTPUT;
+            inp->semantic    = AK_INPUT_OUTPUT;
             inp->accessor    = flist_sp_at(&doc->lib.accessors,
                                            json_int32(jsampVal, -1));
             

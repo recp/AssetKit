@@ -123,7 +123,7 @@ gltf_meshes(json_t * __restrict jmesh,
                 inp->accessor = flist_sp_at(&doc->lib.accessors,
                                             json_int32(jattrib, -1));
 
-                if (inp->semantic == AK_INPUT_SEMANTIC_POSITION)
+                if (inp->semantic == AK_INPUT_POSITION)
                   prim->pos = inp;
 
                 inp->next   = prim->input;
@@ -218,7 +218,7 @@ gltf_meshes(json_t * __restrict jmesh,
                   inp->accessor = flist_sp_at(&doc->lib.accessors,
                                               json_int32(jattrib, -1));
                   
-                  if (inp->semantic == AK_INPUT_SEMANTIC_POSITION)
+                  if (inp->semantic == AK_INPUT_POSITION)
                     prim->pos = inp;
                   
                   inp->next     = target->input;

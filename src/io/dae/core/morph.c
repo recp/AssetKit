@@ -73,7 +73,7 @@ dae_morph(DAEState * __restrict dst,
             inp->semantic = inputSemantic;
             
             if (inputSemantic < 0)
-              inputSemantic = AK_INPUT_SEMANTIC_OTHER;
+              inputSemantic = AK_INPUT_OTHER;
             
             inp->semantic = inputSemantic;
             inp->offset   = xmla_u32(xmla(xtarg, _s_dae_offset), 0);
