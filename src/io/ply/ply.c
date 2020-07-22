@@ -479,6 +479,11 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
       } while (p && p[0] != '\0');
       
       pst->count = count;
+    } else {
+      /* skip unsupported elements */
+      for (i = 0; i < elem->count; i++) {
+        NEXT_LINE
+      }
     }
     elem = elem->next;
   }
