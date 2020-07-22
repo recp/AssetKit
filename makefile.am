@@ -231,7 +231,7 @@ libassetkit_la_SOURCES=\
 \
     src/io/common/util.c \
 \
-    src/io/stl/stl.c
+    src/io/stl/stl.c \
 \
     src/io/ply/ply.c
 
