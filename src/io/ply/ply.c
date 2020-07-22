@@ -293,56 +293,79 @@ ply_ply(AkDoc     ** __restrict dest,
       elem->buff = ak_heap_calloc(heap, pst->doc, sizeof(*elem->buff));
 
       while (pit) {
-        if (!pit->ignore) {
-          /* validate, check missing properties in the group */
-          if (pit->semantic == PLY_PROP_X) {
-            if ((!pit->next || pit->next->semantic != PLY_PROP_Y)
-                ||(!pit->next->next || pit->next->next->semantic != PLY_PROP_Z))
-              goto err; /* we cannot load this PLY, TODO: */
-            
-            /* alloc input and accessor for positions */
-            pst->ac_pos = io_acc(heap, doc, AK_COMPONENT_SIZE_VEC3,
-                                 AKT_FLOAT, elem->count, elem->buff);
-          }
+        if (!pit->ignore)
+          goto ign;
+
+        /* validate, check missing properties in the group */
+        if (pit->semantic == PLY_PROP_X) {
+          if ((!pit->next || pit->next->semantic != PLY_PROP_Y)
+              ||(!pit->next->next || pit->next->next->semantic != PLY_PROP_Z))
+            goto err; /* we cannot load this PLY, TODO: */
           
-          if (pit->semantic == PLY_PROP_NX) {
-            if ((!pit->next || pit->next->semantic != PLY_PROP_NY)
-                ||(!pit->next->next || pit->next->next->semantic != PLY_PROP_NZ))
-              goto ign; /* we cannot load this PLY, TODO: */
-            
-            /* alloc input and accessor for normals */
-            pst->ac_nor = io_acc(heap, doc, AK_COMPONENT_SIZE_VEC3,
-                                 AKT_FLOAT, elem->count, elem->buff);
-          }
-          
-          if (pit->semantic == PLY_PROP_S) {
-            if ((!pit->next || pit->next->semantic != PLY_PROP_T))
-              goto ign; /* ignore, TODO: */
-            
-            /* alloc input and accessor for tex coords */
-            pst->ac_tex = io_acc(heap, doc, AK_COMPONENT_SIZE_VEC2,
-                                 AKT_FLOAT, elem->count, elem->buff);
-          }
-          
-          if (pit->semantic == PLY_PROP_R) {
-            if ((!pit->next || pit->next->semantic != PLY_PROP_G)
-                ||(!pit->next->next || pit->next->next->semantic != PLY_PROP_B))
-              goto ign; /* ignore, TODO: */
-            
-            /* alloc input and accessor for vertex colors */
-            pst->ac_rgb = io_acc(heap, doc, AK_COMPONENT_SIZE_VEC3,
-                                 AKT_FLOAT, elem->count, elem->buff);
-          }
-          
-          pit->slot = i++;
-          pit->off  = off;
-          /* TODO: currently all are floats */
-          off      += sizeof(float); /* pit->typeDesc->size; */
-          
-          if (pit->typeDesc)
-            pst->byteStride += pit->typeDesc->size;
-          elem->knownCount++;
+          /* alloc input and accessor for positions */
+          pst->ac_pos = io_acc(heap, doc, AK_COMPONENT_SIZE_VEC3,
+                               AKT_FLOAT, elem->count, elem->buff);
         }
+        
+        if (pit->semantic == PLY_PROP_NX) {
+          if ((!pit->next || pit->next->semantic != PLY_PROP_NY)
+              ||(!pit->next->next || pit->next->next->semantic != PLY_PROP_NZ)) {
+            pit->ignore = true;
+            
+            if (pit->next)
+              pit->next->ignore = true;
+            
+            if (pit->next->next)
+              pit->next->next->ignore = true;
+            
+            goto ign; /* we cannot load this PLY, TODO: */
+          }
+          
+          /* alloc input and accessor for normals */
+          pst->ac_nor = io_acc(heap, doc, AK_COMPONENT_SIZE_VEC3,
+                               AKT_FLOAT, elem->count, elem->buff);
+        }
+        
+        if (pit->semantic == PLY_PROP_S) {
+          if ((!pit->next || pit->next->semantic != PLY_PROP_T)) {
+            pit->ignore = true;
+            if (pit->next->next)
+              pit->next->ignore = true;
+            goto ign; /* ignore, TODO: */
+          }
+          
+          /* alloc input and accessor for tex coords */
+          pst->ac_tex = io_acc(heap, doc, AK_COMPONENT_SIZE_VEC2,
+                               AKT_FLOAT, elem->count, elem->buff);
+        }
+        
+        if (pit->semantic == PLY_PROP_R) {
+          if ((!pit->next || pit->next->semantic != PLY_PROP_G)
+              ||(!pit->next->next || pit->next->next->semantic != PLY_PROP_B)) {
+            pit->ignore = true;
+            
+            if (pit->next)
+              pit->next->ignore = true;
+            
+            if (pit->next->next)
+              pit->next->next->ignore = true;
+            goto ign; /* ignore, TODO: */
+          }
+          
+          /* alloc input and accessor for vertex colors */
+          pst->ac_rgb = io_acc(heap, doc, AK_COMPONENT_SIZE_VEC3,
+                               AKT_FLOAT, elem->count, elem->buff);
+        }
+        
+        pit->slot = i++;
+        pit->off  = off;
+        /* TODO: currently all are floats */
+        off      += sizeof(float); /* pit->typeDesc->size; */
+        
+        if (pit->typeDesc)
+          pst->byteStride += pit->typeDesc->size;
+        elem->knownCount++;
+        
       ign:
         pit = pit->next;
       }
