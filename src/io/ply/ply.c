@@ -24,7 +24,6 @@
 #include "ply.h"
 #include "common.h"
 #include "postscript.h"
-#include "strpool.h"
 #include "../../id.h"
 #include "../../data.h"
 #include "../../../include/ak/path.h"
