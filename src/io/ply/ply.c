@@ -28,6 +28,7 @@
 #include "../../../include/ak/path.h"
 #include "../common/util.h"
 #include "../common/postscript.h"
+#include <ctype.h>
 
 AkResult AK_HIDE
 ply_ply(AkDoc     ** __restrict dest,
@@ -51,7 +52,7 @@ ply_ply(AkDoc     ** __restrict dest,
       || !((p = plystr) && *p != '\0'))
     return AK_ERR;
 
-  if (!(p[0] == 'p' && p[1] == 'l' && p[2] == 'y'))
+  if (!(tolower(p[0]) == 'p' && tolower(p[1]) == 'l' && tolower(p[2]) == 'y'))
     return AK_ERR;
   
   p += 3;
@@ -297,7 +298,7 @@ ply_ply(AkDoc     ** __restrict dest,
       elem->buff = ak_heap_calloc(heap, pst->doc, sizeof(*elem->buff));
 
       while (pit) {
-        if (!pit->ignore)
+        if (pit->ignore)
           goto ign;
 
         /* validate, check missing properties in the group */
@@ -373,6 +374,10 @@ ply_ply(AkDoc     ** __restrict dest,
       ign:
         pit = pit->next;
       }
+
+      /* empty buffer */
+      if (off <= 0)
+        goto err;
       
       /* alloc buffer for vertex element */
       pst->vertBuffsize  = off * elem->count;
@@ -457,6 +462,10 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
       stride = elem->knownCount;
       i      = 0;
       c      = *p;
+
+      /* stop */
+      if (!elem->buff || elem->buff->length == 0)
+        return;
 
       do {
         SKIP_SPACES
