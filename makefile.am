@@ -230,6 +230,7 @@ libassetkit_la_SOURCES=\
     src/io/obj/obj.c \
 \
     src/io/common/util.c \
+    src/io/common/postscript.c \
 \
     src/io/stl/stl.c \
 \
