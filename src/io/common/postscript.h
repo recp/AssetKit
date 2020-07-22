@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-#ifndef wobj_postscript_h
-#define wobj_postscript_h
+#ifndef ply_postscript_h
+#define ply_postscript_h
 
-#include "common.h"
+#include "../../../include/ak/assetkit.h"
 
 void AK_HIDE
-wobj_postscript(WOState * __restrict wst);
+io_postscript(AkDoc * __restrict doc);
 
-#endif /* wobj_postscript_h */
+#endif /* ply_postscript_h */

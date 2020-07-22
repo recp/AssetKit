@@ -23,11 +23,11 @@
 
 #include "stl.h"
 #include "common.h"
-#include "postscript.h"
 #include "../../id.h"
 #include "../../data.h"
 #include "../../../include/ak/path.h"
 #include "../common/util.h"
+#include "../common/postscript.h"
 
 AkResult AK_HIDE
 stl_stl(AkDoc     ** __restrict dest,
@@ -106,7 +106,7 @@ stl_stl(AkDoc     ** __restrict dest,
   }
   
   sst_finish(sst);
-  stl_postscript(sst);
+  io_postscript(doc);
   
   *dest = doc;
 

@@ -23,11 +23,11 @@
 
 #include "ply.h"
 #include "common.h"
-#include "postscript.h"
 #include "../../id.h"
 #include "../../data.h"
 #include "../../../include/ak/path.h"
 #include "../common/util.h"
+#include "../common/postscript.h"
 
 AkResult AK_HIDE
 ply_ply(AkDoc     ** __restrict dest,
@@ -386,7 +386,7 @@ ply_ply(AkDoc     ** __restrict dest,
     ply_ascii(p, pst);
   }
 
-  ply_postscript(pst);
+  io_postscript(doc);
 
   *dest = doc;
 

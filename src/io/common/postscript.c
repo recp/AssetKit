@@ -18,12 +18,9 @@
 #include "../../mesh/index.h"
 
 void AK_HIDE
-ply_postscript(PLYState * __restrict pst) {
-  AkDoc      *doc;
+io_postscript(AkDoc * __restrict doc) {
   AkLibrary  *geomLib;
   AkGeometry *geom;
-
-  doc = pst->doc;
 
   geomLib = doc->lib.geometries;
   while (geomLib) {

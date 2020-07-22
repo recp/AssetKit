@@ -26,7 +26,7 @@
 #include "common.h"
 #include "group.h"
 #include "mtl.h"
-#include "postscript.h"
+#include "../common/postscript.h"
 #include "../../id.h"
 #include "../../data.h"
 #include "../../../include/ak/path.h"
@@ -237,8 +237,8 @@ wobj_obj(AkDoc     ** __restrict dest,
   } while (p && p[0] != '\0'/* && (c = *++p) != '\0'*/);
 
   wobj_finishObject(wst);
-  
-  wobj_postscript(wst);
+
+  io_postscript(doc);
 
   *dest = doc;
   

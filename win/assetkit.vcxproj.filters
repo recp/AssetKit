@@ -548,9 +548,6 @@
     <ClInclude Include="..\src\io\obj\obj.h">
       <Filter>src\io\obj</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\io\obj\postscript.h">
-      <Filter>src\io\obj</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\io\obj\util.h">
       <Filter>src\io\obj</Filter>
     </ClInclude>
@@ -558,9 +555,6 @@
       <Filter>src\io\common</Filter>
     </ClInclude>
     <ClInclude Include="..\src\io\stl\common.h">
-      <Filter>src\io\stl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\io\stl\postscript.h">
       <Filter>src\io\stl</Filter>
     </ClInclude>
     <ClInclude Include="..\src\io\stl\stl.h">
@@ -572,8 +566,8 @@
     <ClInclude Include="..\src\io\ply\ply.h">
       <Filter>src\io\ply</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\io\ply\postscript.h">
-      <Filter>src\io\ply</Filter>
+    <ClInclude Include="..\src\io\common\postscript.h">
+      <Filter>src\io\common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1027,17 +1021,11 @@
     <ClCompile Include="..\src\io\obj\obj.c">
       <Filter>src\io\obj</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\io\obj\postscript.c">
-      <Filter>src\io\obj</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\io\obj\util.c">
       <Filter>src\io\obj</Filter>
     </ClCompile>
     <ClCompile Include="..\src\io\common\util.c">
       <Filter>src\io\common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\io\stl\postscript.c">
-      <Filter>src\io\stl</Filter>
     </ClCompile>
     <ClCompile Include="..\src\io\stl\stl.c">
       <Filter>src\io\stl</Filter>
@@ -1045,8 +1033,8 @@
     <ClCompile Include="..\src\io\ply\ply.c">
       <Filter>src\io\ply</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\io\ply\postscript.c">
-      <Filter>src\io\ply</Filter>
+    <ClCompile Include="..\src\io\common\postscript.c">
+      <Filter>src\io\common</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
