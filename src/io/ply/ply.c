@@ -44,7 +44,7 @@ ply_ply(AkDoc     ** __restrict dest,
   size_t         plystrSize, off;
   uint32_t       i;
   AkResult       ret;
-  bool           isAscii, isBigEndian;
+  bool           isAscii, isLittleEndian;
   char           c;
 
   if ((ret = ak_readfile(filepath, "rb", &plystr, &plystrSize)) != AK_OK
@@ -100,7 +100,7 @@ ply_ply(AkDoc     ** __restrict dest,
   pstVal.lib_geom  = doc->lib.geometries;
 
   isAscii     = false;
-  isBigEndian = false;
+  isLittleEndian = false;
 
   /* parse header */
   do {
@@ -115,10 +115,14 @@ ply_ply(AkDoc     ** __restrict dest,
 
       if (EQ5('a', 's', 'c', 'i', 'i')) {
         isAscii = true;
-      } else if (strncmp(p, "binary_little_endian", 21) == 0) {
-        isBigEndian = false;
-      } else if (strncmp(p, "binary_big_endian", 18) == 0) {
-        isBigEndian = true;
+      } else if (p[0] == 'b' && p[1] == 'i' && p[2] == 'n'
+                 && p[7] == 'l' && p[8] == 'i' && p[9] == 't') {
+        /* strncmp(p, "binary_little_endian", 20) == 0 */
+        isLittleEndian = true;
+      } else if (p[0] == 'b' && p[1] == 'i' && p[2] == 'n'
+                 && p[7] == 'b' && p[8] == 'i' && p[9] == 'g') {
+        /* strncmp(p, "binary_big_endian", 17) == 0 */
+        isLittleEndian = false;
       } else {
         goto err; /* unknown format */
       }
@@ -380,10 +384,14 @@ ply_ply(AkDoc     ** __restrict dest,
 
     elem = elem->next;
   }
-  
+
   /* parse */
   if (isAscii) {
     ply_ascii(p, pst);
+  } else if (isLittleEndian) {
+    ply_bin_le(pst);
+  } else {
+    ply_bin_be(pst);
   }
 
   io_postscript(doc);
@@ -489,6 +497,18 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
   }
   
   ply_finish(pst);
+}
+
+AK_HIDE
+void
+ply_bin_le(PLYState * __restrict pst) {
+  printf("little\n");
+}
+
+AK_HIDE
+void
+ply_bin_be(PLYState * __restrict pst) {
+  printf("big\n");
 }
 
 AK_HIDE
