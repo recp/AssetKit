@@ -47,7 +47,7 @@ bswapu64(uint64_t val) {
   #if defined(__llvm__)
     return __builtin_bswap64(val);
   #elif defined(__x86_64__)
-    __asm__ ("bswap   %0" : "+r" (_data));
+    __asm__ ("bswap   %0" : "+r" (val));
     return val;
   #elif defined(__i386__)
     __asm__ ("bswap   %%eax\n\t"
