@@ -62,6 +62,8 @@ typedef enum AkTypeId {
   AKT_SHORT         = 31,
   AKT_USHORT        = 32,
   AKT_DOUBLE        = 33,
+  AKT_INT64         = 34,
+  AKT_UINT64        = 35,
 
   AKT_EFFECT,
   AKT_PROFILE,

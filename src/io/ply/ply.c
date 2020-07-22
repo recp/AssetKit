@@ -23,11 +23,13 @@
 
 #include "ply.h"
 #include "common.h"
+#include "util.h"
 #include "../../id.h"
 #include "../../data.h"
 #include "../../../include/ak/path.h"
 #include "../common/util.h"
 #include "../common/postscript.h"
+#include "../../endian.h"
 #include <ctype.h>
 
 AkResult AK_HIDE
@@ -420,10 +422,8 @@ ply_ply(AkDoc     ** __restrict dest,
   /* parse */
   if (isAscii) {
     ply_ascii(p, pst);
-  } else if (isLittleEndian) {
-    ply_bin_le(pst);
   } else {
-    ply_bin_be(pst);
+    ply_bin(p, pst, isLittleEndian);
   }
 
   io_postscript(doc);
@@ -537,14 +537,88 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
 
 AK_HIDE
 void
-ply_bin_le(PLYState * __restrict pst) {
-  printf("little\n");
-}
+ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
+  char        *p;
+  float       *b;
+  PLYElement  *elem;
+  PLYProperty *prop;
+  AkBuffer    *buff;
+  char         c;
+  uint32_t     i, stride;
+  
+  p    = src;
+  elem = pst->element;
 
-AK_HIDE
-void
-ply_bin_be(PLYState * __restrict pst) {
-  printf("big\n");
+  while (elem) {
+    if (elem->type == PLY_ELEM_VERTEX) {
+      buff   = elem->buff;
+      b      = buff->data; /* TODO: all vertices are floats for now */
+      stride = elem->knownCount;
+      i      = 0;
+      c      = *p;
+
+      /* stop */
+      if (!elem->buff || elem->buff->length == 0)
+        return;
+
+      do {
+        prop = elem->property;
+        while (prop) {
+          if (!prop->ignore)
+            b[prop->slot] = ply_flt(p, prop, le);
+          p   += prop->typeDesc->size;
+          prop = prop->next;
+        }
+
+        b += stride;
+
+        if (++i >= elem->count)
+          break;
+      } while (p && p[0] != '\0');
+    } else if (elem->type == PLY_ELEM_FACE) {
+      AkUInt *f, center, fc, j, count, last_fc;
+      
+      pst->dc_ind = ak_data_new(pst->tmp, 128, sizeof(AkUInt), NULL);
+      c           = *p;
+      f           = NULL;
+      i           = 0;
+      count       = 0;
+      last_fc     = 0;
+
+      do {
+        fc = (AkUInt)strtol(p, &p, 10);
+        if (fc >= 3) {
+          if (!f && last_fc != fc)
+            f = alloca(sizeof(AkUInt) * fc);
+          
+          for (j = 0; j < fc; j++)
+            f[j] = (AkUInt)strtol(p, &p, 10);
+          
+          center = f[0];
+          for (j = 0; j < fc - 2; j++) {
+            ak_data_append(pst->dc_ind, &center);
+            ak_data_append(pst->dc_ind, &f[j + 1]);
+            ak_data_append(pst->dc_ind, &f[j + 2]);
+            count += 3;
+          }
+        }
+
+        last_fc = fc;
+        if (++i >= elem->count)
+          break;
+      } while (p && p[0] != '\0');
+      
+      pst->count = count;
+    } else {
+      /* skip unsupported elements */
+      for (i = 0; i < elem->count; i++) {
+        NEXT_LINE
+      }
+    }
+    elem = elem->next;
+  }
+  
+  ply_finish(pst);
 }
 
 AK_HIDE
