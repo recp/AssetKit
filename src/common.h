@@ -49,7 +49,10 @@
 #  define strncasecmp _strnicmp
 #  define strcasecmp  _stricmp
 #  define strtok_r    strtok_s
-#  define mktemp      _mktemp 
+#  define mktemp      _mktemp
+#  define ASM __asm
+# else
+#  define ASM __asm__
 #endif
 
 #ifdef __GNUC__

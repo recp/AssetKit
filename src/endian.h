@@ -29,7 +29,7 @@ bswapu32(uint32_t val) {
   #if defined(__llvm__)
     return __builtin_bswap32(val);
   #else
-    __asm__ ("bswap   %0" : "+r" (val));
+    ASM ("bswap   %0" : "+r" (val));
     return val;
   #endif
 }
@@ -40,7 +40,7 @@ bswapu64(uint64_t val) {
   #if defined(__llvm__)
     return __builtin_bswap64(val);
   #else
-    __asm__ ("bswap   %0" : "+r" (val));
+    ASM ("bswap   %0" : "+r" (val));
     return val;
   #endif
 }
