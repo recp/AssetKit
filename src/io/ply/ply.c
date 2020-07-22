@@ -200,8 +200,12 @@ ply_ply(AkDoc     ** __restrict dest,
 
       prop->name = ak_heap_strndup(heap, doc, b, e - b);
       
-      if (prop->typeDesc)
+      if (prop->typeDesc) {
         elem->buffsize += prop->typeDesc->size;
+      } else if (!isAscii) {
+        /* we cannot traverse the binary because we don't know some types */
+        goto err;
+      }
 
       if (e - b == 1) {
         switch (b[0]) {
