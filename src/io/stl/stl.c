@@ -28,6 +28,7 @@
 #include "../../../include/ak/path.h"
 #include "../common/util.h"
 #include "../common/postscript.h"
+#include "../../endian.h"
 
 AkResult AK_HIDE
 stl_stl(AkDoc     ** __restrict dest,
@@ -128,34 +129,37 @@ stl_binary(STLState * __restrict sst, char * __restrict p) {
   /* skip 80-char header */
   p += 80;
 
-  le_uint32(nTriangles, p);
+  /* parse integers from little endian to native */
+  le_32(nTriangles, p);
 
   count      = nTriangles * 3;
   sst->maxVC = 3;
 
-  /* TODO: Handle if Little-Endian floats to Native order. */
-
   for (i = 0; i < nTriangles; i++) {
     /* normal */
-    memcpy(n, p, 12);
-    p += 12;
+    le_32(v[0], p);
+    le_32(v[1], p);
+    le_32(v[2], p);
     
     ak_data_append(sst->dc_nor, n);
     ak_data_append(sst->dc_nor, n);
     ak_data_append(sst->dc_nor, n);
     
     /* vertex */
-    memcpy(v, p, 12);
+    le_32(v[0], p);
+    le_32(v[1], p);
+    le_32(v[2], p);
     ak_data_append(sst->dc_pos, v);
-    p += 12;
     
-    memcpy(v, p, 12);
+    le_32(v[0], p);
+    le_32(v[1], p);
+    le_32(v[2], p);
     ak_data_append(sst->dc_pos, v);
-    p += 12;
     
-    memcpy(v, p, 12);
+    le_32(v[0], p);
+    le_32(v[1], p);
+    le_32(v[2], p);
     ak_data_append(sst->dc_pos, v);
-    p += 12;
     p += 2;
   }
   

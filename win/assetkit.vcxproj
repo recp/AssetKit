@@ -243,6 +243,7 @@
     <ClInclude Include="..\src\default\opt.h" />
     <ClInclude Include="..\src\default\semantic.h" />
     <ClInclude Include="..\src\default\type.h" />
+    <ClInclude Include="..\src\endian.h" />
     <ClInclude Include="..\src\io\common\postscript.h" />
     <ClInclude Include="..\src\io\common\util.h" />
     <ClInclude Include="..\src\io\dae\1.4\dae14.h" />

@@ -569,6 +569,9 @@
     <ClInclude Include="..\src\io\common\postscript.h">
       <Filter>src\io\common</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\endian.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\win32\strptime.c">

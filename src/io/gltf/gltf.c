@@ -32,39 +32,7 @@
 #include "core/anim.h"
 #include "core/skin.h"
 #include "postscript.h"
-
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-#  define le_uint32(X, DATA) \
-  do {                                                                        \
-    memcpy(&X, DATA, sizeof(uint32_t));                                       \
-    DATA = (char *)DATA + sizeof(uint32_t);                                   \
-  } while (0)
-#else
-# include <arpa/inet.h>
-AK_INLINE
-uint32_t
-bswapu32(uint32_t val) {
-  
-  /*
-   val = ((val << 8) & 0xFF00FF00) | ((val >> 8) & 0xFF00FF);
-   return (val << 16) | (val >> 16);
-   */
-
-  #if defined(__llvm__)
-    return __builtin_bswap32(val);
-  #else
-    __asm__ ("bswap   %0" : "+r" (val));
-    return val;
-  #endif
-}
-#  define le_uint32(X, DATA)                                                  \
-  do {                                                                        \
-    memcpy(&X, DATA, sizeof(uint32_t));                                       \
-    X    = bswapu32(magic);                                                   \
-    X    = ntohl(magic);                                                      \
-    DATA = (char *)DATA + sizeof(uint32_t);                                   \
-  } while (0)
-#endif
+#include "../../endian.h"
 
 static
 AkResult AK_HIDE
@@ -93,19 +61,19 @@ gltf_glb(AkDoc     ** __restrict dest,
   pdata = data;
 
   /* check if the is is glTF */
-  le_uint32(magic, pdata);
+  le_32(magic, pdata);
   if (magic != 0x46546C67)
     return AK_ERR;
 
-  le_uint32(version,     pdata);
-  le_uint32(length,      pdata);
-  le_uint32(chunkLength, pdata);
-  le_uint32(chunkType ,  pdata);
+  le_32(version,     pdata);
+  le_32(length,      pdata);
+  le_32(chunkLength, pdata);
+  le_32(chunkType ,  pdata);
 
   bindata = pdata + chunkLength;
 
-  le_uint32(buffLen,  bindata);
-  le_uint32(buffType, bindata);
+  le_32(buffLen,  bindata);
+  le_32(buffType, bindata);
 
   if (buffType != 0x004E4942)
     bindata = NULL;
