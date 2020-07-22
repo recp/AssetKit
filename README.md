@@ -45,10 +45,10 @@ I've also created a basic program (included a screenshot of render result and da
 
 * [x] COLLADA 1.4 and COLLADA 1.4.1
 * [x] COLLADA 1.5
-* [x] glTF 2.0 (.gltf, .glb, ...)
+* [x] glTF 2.0 (Embedded or Separated (.gltf), Binary (.glb), Extensions...)
 * [x] Wavefront Obj (.obj + .mtl)
-* [x] STL (ASCII + Binary)
-* [x] Ply (ASCII + Binary)
+* [x] STL (ASCII, Binary)
+* [x] Ply (ASCII, Binary)
 * [ ] USD and friends (License?)
 * [ ] Alembic (License?)
 * [ ] Draco
