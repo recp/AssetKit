@@ -322,6 +322,7 @@
     <ClInclude Include="..\src\io\obj\util.h" />
     <ClInclude Include="..\src\io\ply\common.h" />
     <ClInclude Include="..\src\io\ply\ply.h" />
+    <ClInclude Include="..\src\io\ply\util.h" />
     <ClInclude Include="..\src\io\stl\common.h" />
     <ClInclude Include="..\src\io\stl\stl.h" />
     <ClInclude Include="..\src\json.h" />
@@ -453,6 +454,8 @@
     <ClCompile Include="..\src\io\obj\mtl.c" />
     <ClCompile Include="..\src\io\obj\obj.c" />
     <ClCompile Include="..\src\io\obj\util.c" />
+    <ClCompile Include="..\src\io\ply\ascii.c" />
+    <ClCompile Include="..\src\io\ply\bin.c" />
     <ClCompile Include="..\src\io\ply\ply.c" />
     <ClCompile Include="..\src\io\stl\stl.c" />
     <ClCompile Include="..\src\lib\geom.c" />

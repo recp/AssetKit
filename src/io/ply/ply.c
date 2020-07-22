@@ -19,6 +19,8 @@
    http://people.math.sc.edu/Burkardt/data/ply/ply.txt
    http://paulbourke.net/dataformats/ply/
    https://en.wikipedia.org/wiki/PLY_(file_format)
+   http://gamma.cs.unc.edu/POWERPLANT/papers/ply.pdf
+   https://people.sc.fsu.edu/~jburkardt/data/ply/ply.html            (samples)
 */
 
 #include "ply.h"
@@ -29,12 +31,9 @@
 #include "../../../include/ak/path.h"
 #include "../common/util.h"
 #include "../common/postscript.h"
-#include "../../endian.h"
-#include <ctype.h>
 
 AkResult AK_HIDE
-ply_ply(AkDoc     ** __restrict dest,
-        const char * __restrict filepath) {
+ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
   AkHeap        *heap;
   AkDoc         *doc;
   void          *plystr;
@@ -144,8 +143,9 @@ ply_ply(AkDoc     ** __restrict dest,
       if (EQ6('v', 'e', 'r', 't', 'e', 'x')) {
         p += 7;
         SKIP_SPACES
-        elem->count = (uint32_t)strtoul(p, &p, 10);
-        elem->type  = PLY_ELEM_VERTEX;
+        elem->count    = (uint32_t)strtoul(p, &p, 10);
+        elem->type     = PLY_ELEM_VERTEX;
+        pst->vertcount = elem->count;
       } else if (EQ4('f', 'a', 'c', 'e')) {
         p += 5;
         SKIP_SPACES
@@ -170,8 +170,7 @@ ply_ply(AkDoc     ** __restrict dest,
                   && b[3] == 't';
       
       if (!prop->islist) {
-        prop->typestr  = ak_heap_strndup(heap, doc, b, e - b);
-        prop->typeDesc = ak_typeDescByName(prop->typestr);
+        prop->typestr = ak_heap_strndup(heap, doc, b, e - b);
       } else {
         /* 1.1 count type */
         SKIP_SPACES
@@ -193,6 +192,8 @@ ply_ply(AkDoc     ** __restrict dest,
         prop->typestr = ak_heap_strndup(heap, doc, b, e - b);
       }
       
+      prop->typeDesc = ak_typeDescByName(prop->typestr);
+      
       /* 2. name */
       
       SKIP_SPACES
@@ -205,7 +206,7 @@ ply_ply(AkDoc     ** __restrict dest,
       
       if (prop->typeDesc) {
         elem->buffsize += prop->typeDesc->size;
-      } else if (!isAscii) {
+      } else if (!prop->islist && !isAscii) {
         /* we cannot traverse the binary because we don't know some types */
         goto err;
       }
@@ -439,186 +440,6 @@ err:
   ak_free(pst->tmp);
   ak_free(doc);
   return AK_ERR;
-}
-
-AK_HIDE
-void
-ply_ascii(char * __restrict src, PLYState * __restrict pst) {
-  char        *p;
-  float       *b;
-  PLYElement  *elem;
-  PLYProperty *prop;
-  AkBuffer    *buff;
-  char         c;
-  uint32_t     i, stride;
-  
-  p    = src;
-  elem = pst->element;
-
-  while (elem) {
-    if (elem->type == PLY_ELEM_VERTEX) {
-      buff   = elem->buff;
-      b      = buff->data; /* TODO: all vertices are floats for now */
-      stride = elem->knownCount;
-      i      = 0;
-      c      = *p;
-
-      /* stop */
-      if (!elem->buff || elem->buff->length == 0)
-        return;
-
-      do {
-        SKIP_SPACES
-
-        prop = elem->property;
-        while (prop) {
-          if (!prop->ignore)
-            b[prop->slot] = strtof(p, &p);
-          prop = prop->next;
-        }
-
-        b += stride;
-
-        NEXT_LINE
-
-        if (++i >= elem->count)
-          break;
-      } while (p && p[0] != '\0');
-    } else if (elem->type == PLY_ELEM_FACE) {
-      AkUInt *f, center, fc, j, count, last_fc;
-      
-      pst->dc_ind = ak_data_new(pst->tmp, 128, sizeof(AkUInt), NULL);
-      c           = *p;
-      f           = NULL;
-      i           = 0;
-      count       = 0;
-      last_fc     = 0;
-
-      do {
-        SKIP_SPACES
-        
-        fc = (AkUInt)strtol(p, &p, 10);
-        if (fc >= 3) {
-          if (!f && last_fc != fc)
-            f = alloca(sizeof(AkUInt) * fc);
-          
-          for (j = 0; j < fc; j++)
-            f[j] = (AkUInt)strtol(p, &p, 10);
-          
-          center = f[0];
-          for (j = 0; j < fc - 2; j++) {
-            ak_data_append(pst->dc_ind, &center);
-            ak_data_append(pst->dc_ind, &f[j + 1]);
-            ak_data_append(pst->dc_ind, &f[j + 2]);
-            count += 3;
-          }
-        }
-
-        last_fc = fc;
-
-        NEXT_LINE
-
-        if (++i >= elem->count)
-          break;
-      } while (p && p[0] != '\0');
-      
-      pst->count = count;
-    } else {
-      /* skip unsupported elements */
-      for (i = 0; i < elem->count; i++) {
-        NEXT_LINE
-      }
-    }
-    elem = elem->next;
-  }
-  
-  ply_finish(pst);
-}
-
-AK_HIDE
-void
-ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
-  char        *p;
-  float       *b;
-  PLYElement  *elem;
-  PLYProperty *prop;
-  AkBuffer    *buff;
-  char         c;
-  uint32_t     i, stride;
-  
-  p    = src;
-  elem = pst->element;
-
-  while (elem) {
-    if (elem->type == PLY_ELEM_VERTEX) {
-      buff   = elem->buff;
-      b      = buff->data; /* TODO: all vertices are floats for now */
-      stride = elem->knownCount;
-      i      = 0;
-      c      = *p;
-
-      /* stop */
-      if (!elem->buff || elem->buff->length == 0)
-        return;
-
-      do {
-        prop = elem->property;
-        while (prop) {
-          if (!prop->ignore)
-            b[prop->slot] = ply_flt(p, prop, le);
-          p   += prop->typeDesc->size;
-          prop = prop->next;
-        }
-
-        b += stride;
-
-        if (++i >= elem->count)
-          break;
-      } while (p && p[0] != '\0');
-    } else if (elem->type == PLY_ELEM_FACE) {
-      AkUInt *f, center, fc, j, count, last_fc;
-      
-      pst->dc_ind = ak_data_new(pst->tmp, 128, sizeof(AkUInt), NULL);
-      c           = *p;
-      f           = NULL;
-      i           = 0;
-      count       = 0;
-      last_fc     = 0;
-
-      do {
-        fc = (AkUInt)strtol(p, &p, 10);
-        if (fc >= 3) {
-          if (!f && last_fc != fc)
-            f = alloca(sizeof(AkUInt) * fc);
-          
-          for (j = 0; j < fc; j++)
-            f[j] = (AkUInt)strtol(p, &p, 10);
-          
-          center = f[0];
-          for (j = 0; j < fc - 2; j++) {
-            ak_data_append(pst->dc_ind, &center);
-            ak_data_append(pst->dc_ind, &f[j + 1]);
-            ak_data_append(pst->dc_ind, &f[j + 2]);
-            count += 3;
-          }
-        }
-
-        last_fc = fc;
-        if (++i >= elem->count)
-          break;
-      } while (p && p[0] != '\0');
-      
-      pst->count = count;
-    } else {
-      /* skip unsupported elements */
-      for (i = 0; i < elem->count; i++) {
-        NEXT_LINE
-      }
-    }
-    elem = elem->next;
-  }
-  
-  ply_finish(pst);
 }
 
 AK_HIDE

@@ -20,208 +20,37 @@
 #include "common.h"
 #include "../../endian.h"
 
-AK_INLINE
-float
-ply_flt(char * __restrict p, PLYProperty * __restrict prop, bool isLittleEndian) {
-  if (prop->typeDesc->size == 4) {
-    switch (prop->typeDesc->typeId) {
-      case AKT_FLOAT: {
-        float f;
-        if (isLittleEndian) {
-          le_32(f, p);
-        } else {
-          be_32(f, p);
-        }
-        return f;
-      }
-      case AKT_INT: {
-        int32_t f;
-        if (isLittleEndian) {
-          le_32(f, p);
-        } else {
-          be_32(f, p);
-        }
-        return (float)f;
-      }
-      case AKT_UINT: {
-        uint32_t f;
-        if (isLittleEndian) {
-          le_32(f, p);
-        } else {
-          be_32(f, p);
-        }
-        return (float)f;
-      }
-      default: return 0.0f;
-    }
-  } else if (prop->typeDesc->size == 8) {
-    switch (prop->typeDesc->typeId) {
-      case AKT_DOUBLE: {
-        double f;
-        if (isLittleEndian) {
-          le_64(f, p);
-        } else {
-          be_64(f, p);
-        }
-        return (float)f;
-      }
-      case AKT_INT64: {
-        int64_t f;
-        if (isLittleEndian) {
-          le_64(f, p);
-        } else {
-          be_64(f, p);
-        }
-        return (float)f;
-      }
-      case AKT_UINT64: {
-        uint64_t f;
-        if (isLittleEndian) {
-          le_64(f, p);
-        } else {
-          be_64(f, p);
-        }
-        return (float)f;
-      }
-      default: return 0.0f;
-    }
-  } else if (prop->typeDesc->size == 2) {
-    switch (prop->typeDesc->typeId) {
-      case AKT_SHORT: {
-        int16_t f;
-        memcpy(&f, p, 2);
-        p += 2;
-        return (float)f;
-      }
-      case AKT_USHORT: {
-        uint16_t f;
-        memcpy(&f, p, 2);
-        p += 2;
-        return (float)f;
-      }
-      default: return 0.0f;
-    }
-  } else if (prop->typeDesc->size == 1) {
-    switch (prop->typeDesc->typeId) {
-      case AKT_BYTE: {
-        int8_t f;
-        memcpy(&f, p, 1);
-        p += 2;
-        return (float)f;
-      }
-      case AKT_UBYTE: {
-        uint8_t f;
-        memcpy(&f, p, 1);
-        p += 2;
-        return (float)f;
-      }
-      default: return 0.0f;
-    }
-  }
-  
-  return 0.0f;
-}
-
-AK_INLINE
-uint32_t
-ply_u32(char * __restrict p, PLYProperty * __restrict prop, bool isLittleEndian) {
-  if (prop->typeDesc->size == 4) {
-    switch (prop->typeDesc->typeId) {
-      case AKT_INT: {
-        int32_t f;
-        if (isLittleEndian) {
-          le_32(f, p);
-        } else {
-          be_32(f, p);
-        }
-        return (uint32_t)f;
-      }
-      case AKT_UINT: {
-        uint32_t f;
-        if (isLittleEndian) {
-          le_32(f, p);
-        } else {
-          be_32(f, p);
-        }
-        return f;
-      }
-      case AKT_FLOAT: {
-        float f;
-        if (isLittleEndian) {
-          le_32(f, p);
-        } else {
-          be_32(f, p);
-        }
-        return (uint32_t)f;
-      }
-      default: return 0;
-    }
-  } else if (prop->typeDesc->size == 8) {
-    switch (prop->typeDesc->typeId) {
-      case AKT_INT64: {
-        int64_t f;
-        if (isLittleEndian) {
-          le_64(f, p);
-        } else {
-          be_64(f, p);
-        }
-        return (uint32_t)f;
-      }
-      case AKT_UINT64: {
-        uint64_t f;
-        if (isLittleEndian) {
-          le_64(f, p);
-        } else {
-          be_64(f, p);
-        }
-        return (uint32_t)f;
-      }
-      case AKT_DOUBLE: {
-        double f;
-        if (isLittleEndian) {
-          le_64(f, p);
-        } else {
-          be_64(f, p);
-        }
-        return (uint32_t)f;
-      }
-      default: return 0;
-    }
-  } else if (prop->typeDesc->size == 2) {
-    switch (prop->typeDesc->typeId) {
-      case AKT_SHORT: {
-        int16_t f;
-        memcpy(&f, p, 2);
-        p += 2;
-        return (uint32_t)f;
-      }
-      case AKT_USHORT: {
-        uint16_t f;
-        memcpy(&f, p, 2);
-        p += 2;
-        return (uint32_t)f;
-      }
-      default: return 0;
-    }
-  } else if (prop->typeDesc->size == 1) {
-    switch (prop->typeDesc->typeId) {
-      case AKT_BYTE: {
-        int8_t f;
-        memcpy(&f, p, 1);
-        p += 2;
-        return (uint32_t)f;
-      }
-      case AKT_UBYTE: {
-        uint8_t f;
-        memcpy(&f, p, 1);
-        p += 2;
-        return (uint32_t)f;
-      }
-      default: return 0;
-    }
-  }
-  
-  return 0;
-}
+#define ply_val(p, typeDesc, leEndian, T, DEST, DEFAULT)                      \
+  do {                                                                        \
+    uint64_t buf;                                                             \
+                                                                              \
+    switch (typeDesc->typeId) {                                               \
+      case AKT_FLOAT:                                                         \
+      case AKT_INT:                                                           \
+      case AKT_UINT:   memcpy_endian32(leEndian, buf, p); break;              \
+      case AKT_DOUBLE:                                                        \
+      case AKT_INT64:                                                         \
+      case AKT_UINT64: memcpy_endian64(leEndian, buf, p); break;              \
+      case AKT_SHORT:                                                         \
+      case AKT_USHORT: memcpy_endian16(leEndian, buf, p); break;              \
+      case AKT_BYTE:                                                          \
+      case AKT_UBYTE:  memcpy(&buf, p++, 1);              break;              \
+      default:         DEST = DEFAULT;                    break;              \
+    }                                                                         \
+                                                                              \
+    switch (typeDesc->typeId) {                                               \
+      case AKT_FLOAT:  DEST = (T)(*(float    *)&buf);     break;              \
+      case AKT_INT:    DEST = (T)(*(int32_t  *)&buf);     break;              \
+      case AKT_UINT:   DEST = (T)(*(uint32_t *)&buf);     break;              \
+      case AKT_DOUBLE: DEST = (T)(*(double   *)&buf);     break;              \
+      case AKT_INT64:  DEST = (T)(*(int64_t  *)&buf);     break;              \
+      case AKT_UINT64: DEST = (T)(*(uint64_t *)&buf);     break;              \
+      case AKT_SHORT:  DEST = (T)(*(int16_t  *)&buf);     break;              \
+      case AKT_USHORT: DEST = (T)(*(uint16_t *)&buf);     break;              \
+      case AKT_BYTE:   DEST = (T)(*(int8_t   *)&buf);     break;              \
+      case AKT_UBYTE:  DEST = (T)(*(uint8_t  *)&buf);     break;              \
+      default:         DEST = DEFAULT;                    break;              \
+    }                                                                         \
+  } while (0)
 
 #endif /* ply_util_h */

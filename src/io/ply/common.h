@@ -87,8 +87,8 @@ typedef struct PLYState {
   PLYElement    *lastElement;
   size_t         vertBuffsize;
   uint32_t       byteStride;
-  uint32_t       maxVC;
   uint32_t       count;
+  uint32_t       vertcount;
 } PLYState;
 
 #define SKIP_SPACES                                                           \

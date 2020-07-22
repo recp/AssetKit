@@ -20,8 +20,7 @@
 #include "common.h"
 
 AkResult AK_HIDE
-ply_ply(AkDoc     ** __restrict dest,
-        const char * __restrict filepath);
+ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath);
 
 AK_HIDE
 void

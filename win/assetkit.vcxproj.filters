@@ -572,6 +572,9 @@
     <ClInclude Include="..\src\endian.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\io\ply\util.h">
+      <Filter>src\io\ply</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\win32\strptime.c">
@@ -1038,6 +1041,12 @@
     </ClCompile>
     <ClCompile Include="..\src\io\common\postscript.c">
       <Filter>src\io\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\ply\ascii.c">
+      <Filter>src\io\ply</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\ply\bin.c">
+      <Filter>src\io\ply</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
