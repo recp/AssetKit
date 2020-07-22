@@ -1,7 +1,7 @@
 # AssetKit: Polygon File Format (ply) Status
 
 - [x] ASCII
-- [ ] Binary
+- [x] Binary
 - [x] X, Y, Z 
 - [x] NX, NY, NZ
 - [x] S, T, U, V
