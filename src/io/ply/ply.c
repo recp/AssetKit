@@ -441,36 +441,36 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
           break;
       } while (p && p[0] != '\0');
     } else if (elem->type == PLY_ELEM_FACE) {
-      int32_t faceCount, j, count;
-      AkUInt *f, center;
+      AkUInt *f, center, fc, j, count, last_fc;
       
-      i     = 0;
-      c     = *p;
-      count = 0;
-
       pst->dc_ind = ak_data_new(pst->tmp, 128, sizeof(AkUInt), NULL);
-      
+      c           = *p;
+      f           = NULL;
+      i           = 0;
+      count       = 0;
+      last_fc     = 0;
+
       do {
         SKIP_SPACES
         
-        faceCount = (int32_t)strtol(p, &p, 10);
-        
-        if (faceCount >= 3) {
-          f = alloca(sizeof(AkUInt) * faceCount);
+        fc = (AkUInt)strtol(p, &p, 10);
+        if (fc >= 3) {
+          if (!f && last_fc != fc)
+            f = alloca(sizeof(AkUInt) * fc);
           
-          for (j = 0; j < faceCount; j++) {
-            f[j] = (int32_t)strtol(p, &p, 10);
-          }
+          for (j = 0; j < fc; j++)
+            f[j] = (AkUInt)strtol(p, &p, 10);
           
           center = f[0];
-          for (j = 0; j < faceCount - 2; j++) {
+          for (j = 0; j < fc - 2; j++) {
             ak_data_append(pst->dc_ind, &center);
             ak_data_append(pst->dc_ind, &f[j + 1]);
             ak_data_append(pst->dc_ind, &f[j + 2]);
-            
             count += 3;
           }
         }
+
+        last_fc = fc;
 
         NEXT_LINE
 
