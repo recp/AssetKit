@@ -62,21 +62,26 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
           break;
       } while (p && p[0] != '\0');
     } else if (elem->type == PLY_ELEM_FACE) {
-      AkUInt *f, center, fc, j, count, last_fc, valid;
+      char   *e;
+      AkUInt *f, center, fc, j, count, last_fc, valid, elemc;
 
       pst->dc_ind = ak_data_new(pst->tmp, 128, sizeof(AkUInt), NULL);
-      c           = *p;
+      elemc       = elem->count;
+      e           = pst->end;
       f           = NULL;
       i           = 0;
       count       = 0;
       last_fc     = 0;
 
-      do {
+      while (/*p && p < pst->plystr && */i++ < elemc) {
         prop = elem->property;
         
         /* iterate thorough list and other properties */
         while (prop) {
           if (!prop->ignore && prop->islist) { /* TODO: */
+            if ((p + prop->typeDesc->size) > e)
+              goto fns;
+
             ply_val(p, prop->listCountTypeDesc, le, AkUInt, fc, 0);
             
             if (fc >= 3) {
@@ -87,6 +92,9 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
 
               /* copy data */
               for (j = 0; j < fc; j++) {
+                if ((p + prop->typeDesc->size) > e)
+                  goto fns;
+
                 ply_val(p, prop->typeDesc, le, uint32_t, f[j], 0);
                 valid += f[j] < vertcount;
               }
@@ -101,17 +109,20 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
                   count += 3;
                 }
               }
+            } else if (fc > 0) {
+              for (j = 0; j < fc; j++)
+                p += prop->typeDesc->size;
             }
             
             last_fc = fc;
+          } else {
+            /* do ignore */
+            /* TODO: */
           }
 
           prop = prop->next;
         }
-
-        if (++i >= elem->count)
-          break;
-      } while (p && p[0] != '\0');
+      }
 
       pst->count = count;
     } else {
@@ -121,5 +132,6 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
     elem = elem->next;
   }
   
+fns:
   ply_finish(pst);
 }

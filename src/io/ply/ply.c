@@ -45,11 +45,10 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
   PLYState       pstVal = {0}, *pst;
   size_t         plystrSize, off;
   uint32_t       i;
-  AkResult       ret;
   bool           isAscii, isLittleEndian;
   char           c;
 
-  if ((ret = ak_readfile(filepath, "rb", &plystr, &plystrSize)) != AK_OK
+  if (ak_readfile(filepath, "rb", &plystr, &plystrSize) != AK_OK
       || !((p = plystr) && *p != '\0'))
     return AK_ERR;
 
@@ -101,9 +100,10 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
   pstVal.node      = scene->node;
   pstVal.lib_geom  = doc->lib.geometries;
 
-  isAscii     = false;
+  isAscii        = false;
   isLittleEndian = false;
-
+  pst->end       = plystr + plystrSize;
+  
   /* parse header */
   do {
     /* skip spaces */
@@ -413,7 +413,7 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
         pst->ac_rgb->byteStride = pst->byteStride;
         pst->ac_rgb->byteLength = pst->vertBuffsize;
         pst->ac_rgb->byteOffset = byteSffset;
-        byteSffset += sizeof(float) * 3;
+        /* byteSffset += sizeof(float) * 3; */
       }
     }
 

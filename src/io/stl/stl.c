@@ -41,10 +41,9 @@ stl_stl(AkDoc     ** __restrict dest,
   AkVisualScene *scene;
   STLState       sstVal = {0}, *sst;
   size_t         stlstrSize;
-  AkResult       ret;
   bool           isAscii;
 
-  if ((ret = ak_readfile(filepath, "rb", &stlstr, &stlstrSize)) != AK_OK
+  if (ak_readfile(filepath, "rb", &stlstr, &stlstrSize) != AK_OK
       || !((p = stlstr) && *p != '\0'))
     return AK_ERR;
 
