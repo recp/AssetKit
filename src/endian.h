@@ -20,24 +20,47 @@
 #include "common.h"
 #include <ctype.h>
 
+#if _MSC_VER
+# if (defined(_M_IX86) || defined(_M_X64))
+#  define ARCH_X86
+# endif
+# if (defined(_M_AMD64) || defined(_M_X64))
+#  define ARCH_X86_64
+# endif
+#else
+# ifdef __i386__
+#  define ARCH_X86
+# endif
+# ifdef __x86_64__
+#  define ARCH_X86_64
+# endif
+#endif
+
 AK_INLINE
 uint16_t
 bswapu16(uint16_t val) {
+#if !defined(_MSC_VER)
   return (uint16_t)((val << 8) | (val >> 8));
+#else
+  return _byteswap_ushort(val);
+#endif
 }
 
 AK_INLINE
 uint32_t
 bswapu32(uint32_t val) {
-  /*
-   val = ((val << 8) & 0xFF00FF00) | ((val >> 8) & 0xFF00FF);
-   return (val << 16) | (val >> 16);
-   */
   #if defined(__llvm__)
     return __builtin_bswap32(val);
-  #elif defined(__i386__)
+  #elif defined(ARCH_X86)
+  # if !defined(_MSC_VER)
     __asm__ ("bswap   %0" : "+r" (val));
     return val;
+  # else
+    return _byteswap_ulong(val);
+  # endif
+  #else
+    val = ((val << 8) & 0xFF00FF00) | ((val >> 8) & 0xFF00FF);
+    return (val << 16) | (val >> 16);
   #endif
 }
 
@@ -46,17 +69,28 @@ uint64_t
 bswapu64(uint64_t val) {
   #if defined(__llvm__)
     return __builtin_bswap64(val);
-  #elif defined(__x86_64__)
+  #elif defined(ARCH_X86_64)
+  # if !defined(_MSC_VER)
     __asm__ ("bswap   %0" : "+r" (val));
     return val;
-  #elif defined(__i386__)
+  # else
+    return _byteswap_uint64(val);
+  # endif
+  #elif defined(ARCH_X86)
     __asm__ ("bswap   %%eax\n\t"
              "bswap   %%edx\n\t"
              "xchgl   %%eax, %%edx"
              : "+A" (val));
     return val;
   #else
-  #  error Unknown architecture
+    return ((((val) & 0xff00000000000000ull) >> 56)
+          | (((val) & 0x00ff000000000000ull) >> 40)
+          | (((val) & 0x0000ff0000000000ull) >> 24)
+          | (((val) & 0x000000ff00000000ull) >> 8)
+          | (((val) & 0x00000000ff000000ull) << 8)
+          | (((val) & 0x0000000000ff0000ull) << 24)
+          | (((val) & 0x000000000000ff00ull) << 40)
+          | (((val) & 0x00000000000000ffull) << 56));
   #endif
 }
 

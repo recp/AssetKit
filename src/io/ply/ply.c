@@ -102,7 +102,7 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
 
   isAscii        = false;
   isLittleEndian = false;
-  pst->end       = plystr + plystrSize;
+  pst->end       = (char *)plystr + plystrSize;
   
   /* parse header */
   do {
@@ -290,8 +290,10 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
   } while (p && p[0] != '\0'/* && (c = *++p) != '\0'*/);
 
   /* prepare property offsets/slots */
-  i    = off = 0;
+  i    = 0;
+  off  = 0;
   elem = pst->element;
+
   while (elem) {
     pit = elem->property;
     if (elem->type == PLY_ELEM_VERTEX) {
