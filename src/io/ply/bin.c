@@ -73,7 +73,7 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
       count       = 0;
       last_fc     = 0;
 
-      while (/*p && p < pst->plystr && */i++ < elemc) {
+      while (i++ < elemc) {
         prop = elem->property;
         
         /* iterate thorough list and other properties */
