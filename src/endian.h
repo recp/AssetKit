@@ -77,11 +77,15 @@ bswapu64(uint64_t val) {
     return _byteswap_uint64(val);
   # endif
   #elif defined(ARCH_X86)
+  # if !defined(_MSC_VER)
     __asm__ ("bswap   %%eax\n\t"
              "bswap   %%edx\n\t"
              "xchgl   %%eax, %%edx"
              : "+A" (val));
     return val;
+  # else
+    return _byteswap_uint64(val);
+  # endif
   #else
     /*
     return ((((val) & 0xff00000000000000ull) >> 56)
