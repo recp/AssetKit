@@ -38,6 +38,9 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
 
   while (elem) {
     if (elem->type == PLY_ELEM_VERTEX) {
+      AkUInt elemc;
+      
+      elemc  = elem->count;
       buff   = elem->buff;
       b      = buff->data; /* TODO: all vertices are floats for now */
       stride = elem->knownCount;
@@ -48,7 +51,7 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
       if (!elem->buff || elem->buff->length == 0)
         return;
 
-      do {
+      while (i++ < elemc) {
         prop = elem->property;
         while (prop) {
           if (!prop->ignore)
@@ -57,10 +60,7 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
         }
 
         b += stride;
-
-        if (++i >= elem->count)
-          break;
-      } while (p && p[0] != '\0');
+      }
     } else if (elem->type == PLY_ELEM_FACE) {
       char   *e;
       AkUInt *f, center, fc, j, count, last_fc, valid, elemc;
