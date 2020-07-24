@@ -76,6 +76,7 @@ ak_HEADERS = include/ak/assetkit.h \
 
 libassetkit_la_SOURCES=\
     src/assetkit.c \
+    src/strpool.c \
     src/common.c \
     src/base64.c \
     src/xml.c \
