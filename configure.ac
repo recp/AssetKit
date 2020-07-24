@@ -28,7 +28,7 @@ AC_CONFIG_HEADERS([config.h])
 
 CFLAGS="$CFLAGS -I./deps/xml/include"
 CFLAGS="$CFLAGS -I./deps/cglm/include"
-CFLAGS="$CFLAGS -I./deps/libds/include"
+CFLAGS="$CFLAGS -I./deps/ds/include"
 CFLAGS="$CFLAGS -I./deps/json/include"
 
 LDFLAGS="$LDFLAGS -L./deps/ds/.libs"
