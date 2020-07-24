@@ -17,19 +17,7 @@
 #include "../common.h"
 #include "../../include/ak/bbox.h"
 #include "../../include/ak/path.h"
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
-#define STBI_MALLOC(sz)           ak_malloc(NULL, sz)
-#define STBI_REALLOC(p,newsz)     ak_realloc(NULL, p, newsz)
-#define STBI_FREE(p)              ak_free(p)
-
-#define STBIDEF static inline
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
-#pragma GCC diagnostic pop
+#include <limits.h>
 
 #ifdef _MSC_VER
 #  ifndef PATH_MAX
@@ -37,6 +25,32 @@
 #  endif
 #endif
 
+typedef struct AkImageConf {
+  void* (*loadFromFile)(const char * __restrict path,
+                        int        * __restrict width,
+                        int        * __restrict height,
+                        int        * __restrict components);
+  void* (*loadFromMemory)(const char * __restrict data,
+                          size_t                  len,
+                          int        * __restrict width,
+                          int        * __restrict height,
+                          int        * __restrict components);
+  void (*flipVerticallyOnLoad)(bool flip);
+} AkImageConf;
+
+static AkImageConf ak__img_conf = {0};
+
+AK_EXPORT
+void
+ak_imageInitLoader(AkImageLoadFromFileFn       * __restrict fromFile,
+                   AkImageLoadFromMemoryFn     * __restrict fromMemory,
+                   AkImageFlipVerticallyOnLoad * __restrict flipper) {
+  ak__img_conf.loadFromFile         = fromFile;
+  ak__img_conf.loadFromMemory       = fromMemory;
+  ak__img_conf.flipVerticallyOnLoad = flipper;
+}
+
+AK_EXPORT
 void
 ak_imageLoad(AkImage * __restrict image) {
   AkHeap        *heap;
@@ -48,15 +62,15 @@ ak_imageLoad(AkImage * __restrict image) {
   if (image->data)
     return;
 
-  idata  = NULL;
-  data   = NULL;
-  heap   = ak_heap_getheap(image);
-  doc    = ak_heap_data(heap);
+  idata = NULL;
+  data  = NULL;
+  heap  = ak_heap_getheap(image);
+  doc   = ak_heap_data(heap);
 
   /* glTF uses top-left as origin */
   if (doc->inf->flipImage) {
     flipImage = ak_opt_get(AK_OPT_IMAGE_LOAD_FLIP_VERTICALLY);
-    stbi_set_flip_vertically_on_load(flipImage);
+    ak__img_conf.flipVerticallyOnLoad(flipImage);
   }
 
   if (image->initFrom) {
@@ -68,8 +82,11 @@ ak_imageLoad(AkImage * __restrict image) {
       char        pathbuf[PATH_MAX];
       const char *path;
 
+      if (!ak__img_conf.loadFromFile)
+        return;
+
       path = ak_fullpath(doc, initFrom->ref, pathbuf);
-      data = stbi_load(path, &x, &y, &ch, 0);
+      data = ak__img_conf.loadFromFile(path, &x, &y, &ch);
       if (!data)
         return;
 
@@ -81,18 +98,21 @@ ak_imageLoad(AkImage * __restrict image) {
 
       image->data   = idata;
     } else if (initFrom->buff && initFrom->buff->data) {
-      data = stbi_load_from_memory(initFrom->buff->data,
-                                   (int)initFrom->buff->length,
-                                   &x, &y, &ch, 0);
+      if (!ak__img_conf.loadFromMemory)
+        return;
+
+      data = ak__img_conf.loadFromMemory(initFrom->buff->data,
+                                         (int)initFrom->buff->length,
+                                         &x, &y, &ch);
+
       if (!data)
         return;
 
-      idata = ak_heap_calloc(heap, image, sizeof(*idata));
+      idata         = ak_heap_calloc(heap, image, sizeof(*idata));
       idata->width  = x;
       idata->height = y;
       idata->comp   = ch;
       idata->data   = data;
-
       image->data   = idata;
     } else if (initFrom->hex) {
       /* TODO: */

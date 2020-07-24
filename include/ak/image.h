@@ -105,7 +105,26 @@ typedef struct AkImage {
   AkBool          renderableShare;
 } AkImage;
 
+AK_EXPORT
 void
 ak_imageLoad(AkImage * __restrict image);
+
+/* Loader Configurator */
+typedef void* (*AkImageLoadFromFileFn)(const char * __restrict path,
+                                       int        * __restrict width,
+                                       int        * __restrict height,
+                                       int        * __restrict components);
+typedef void* (*AkImageLoadFromMemoryFn)(const char * __restrict data,
+                                         size_t                  len,
+                                         int        * __restrict width,
+                                         int        * __restrict height,
+                                         int        * __restrict components);
+typedef void (*AkImageFlipVerticallyOnLoad)(bool flip);
+
+AK_EXPORT
+void
+ak_imageInitLoader(AkImageLoadFromFileFn       * __restrict fromFile,
+                   AkImageLoadFromMemoryFn     * __restrict fromMemory,
+                   AkImageFlipVerticallyOnLoad * __restrict flipper);
 
 #endif /* ak_image_h */
