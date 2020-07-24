@@ -60,7 +60,7 @@ wobj_mtl(WOState    * __restrict wst,
 
   heap              = wst->heap;
   mtl               = NULL;
-  mtllib            = ak_heap_calloc(heap, wst->tmpParent, sizeof(*mtllib));
+  mtllib            = ak_heap_calloc(heap, wst->tmp, sizeof(*mtllib));
   mtllib->materials = rb_newtree_str();
   
   /* parse .mtl */
@@ -210,7 +210,7 @@ wobj_mtl(WOState    * __restrict wst,
         if (mtl)
           wobj_handleMaterial(wst, mtllib, mtl);
         
-        mtl       = ak_heap_calloc(heap, wst->tmpParent, sizeof(*mtl));
+        mtl       = ak_heap_calloc(heap, wst->tmp, sizeof(*mtl));
         mtl->name = ak_heap_strndup(heap, mtl, begin, end - begin);
         
         /* default params */

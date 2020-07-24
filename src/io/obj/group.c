@@ -96,9 +96,9 @@ WOPrim*
 wobj_switchPrim(WOState * __restrict wst, const char *mtlname) {
   WOPrim *wp;
 
-  wp            = ak_heap_calloc(wst->heap, wst->tmpParent, sizeof(*wp));
-  wp->dc_face   = ak_data_new(wst->tmpParent, 128, sizeof(ivec3), ak_cmp_ivec3);
-  wp->dc_vcount = ak_data_new(wst->tmpParent, 128, sizeof(int32_t), NULL);
+  wp            = ak_heap_calloc(wst->heap, wst->tmp, sizeof(*wp));
+  wp->dc_face   = ak_data_new(wst->tmp, 128, sizeof(ivec3), ak_cmp_ivec3);
+  wp->dc_vcount = ak_data_new(wst->tmp, 128, sizeof(int32_t), NULL);
   wp->mtlname   = mtlname;
   wp->next      = wst->obj.prim;
   wst->obj.prim = wp;
@@ -175,9 +175,9 @@ wobj_switchObject(WOState * __restrict wst) {
   wst->obj.geom = geom;
   
   /* vertex data */
-  wst->obj.dc_pos    = ak_data_new(wst->tmpParent, 128, sizeof(vec3),    NULL);
-  wst->obj.dc_tex    = ak_data_new(wst->tmpParent, 128, sizeof(vec2),    NULL);
-  wst->obj.dc_nor    = ak_data_new(wst->tmpParent, 128, sizeof(vec3),    NULL);
+  wst->obj.dc_pos    = ak_data_new(wst->tmp, 128, sizeof(vec3),    NULL);
+  wst->obj.dc_tex    = ak_data_new(wst->tmp, 128, sizeof(vec2),    NULL);
+  wst->obj.dc_nor    = ak_data_new(wst->tmp, 128, sizeof(vec3),    NULL);
 
   wobj_switchPrim(wst, NULL);
   wst->obj.prim->isdefault = true;

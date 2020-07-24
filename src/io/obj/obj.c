@@ -96,7 +96,7 @@ wobj_obj(AkDoc     ** __restrict dest,
   wst              = &wstVal;
   wstVal.doc       = doc;
   wstVal.heap      = heap;
-  wstVal.tmpParent = ak_heap_alloc(heap, doc, sizeof(void*));
+  wstVal.tmp       = ak_heap_alloc(heap, doc, sizeof(void*));
   wstVal.node      = scene->node;
   wstVal.lib_geom  = doc->lib.geometries;
 
@@ -243,7 +243,7 @@ wobj_obj(AkDoc     ** __restrict dest,
   *dest = doc;
   
   /* cleanup */
-  ak_free(wst->tmpParent);
+  ak_free(wst->tmp);
 
   return AK_OK;
 

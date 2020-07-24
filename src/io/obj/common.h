@@ -71,7 +71,7 @@ typedef struct WOObject {
 typedef struct WOState {
   AkHeap        *heap;
   AkDoc         *doc;
-  void          *tmpParent;
+  void          *tmp;
   AkLibrary     *lib_geom;
   AkNode        *node;
   WOMtlLib      *mtlib;

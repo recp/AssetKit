@@ -91,14 +91,14 @@ stl_stl(AkDoc     ** __restrict dest,
   sst              = &sstVal;
   sstVal.doc       = doc;
   sstVal.heap      = heap;
-  sstVal.tmpParent = ak_heap_alloc(heap, doc, sizeof(void*));
+  sstVal.tmp       = ak_heap_alloc(heap, doc, sizeof(void*));
   sstVal.node      = scene->node;
   sstVal.lib_geom  = doc->lib.geometries;
   
-  sst->dc_ind    = ak_data_new(sst->tmpParent, 128, sizeof(int32_t), NULL);
-  sst->dc_pos    = ak_data_new(sst->tmpParent, 128, sizeof(vec3),    NULL);
-  sst->dc_nor    = ak_data_new(sst->tmpParent, 128, sizeof(vec3),    NULL);
-  sst->dc_vcount = ak_data_new(sst->tmpParent, 128, sizeof(int32_t), NULL);
+  sst->dc_ind    = ak_data_new(sst->tmp, 128, sizeof(int32_t), NULL);
+  sst->dc_pos    = ak_data_new(sst->tmp, 128, sizeof(vec3),    NULL);
+  sst->dc_nor    = ak_data_new(sst->tmp, 128, sizeof(vec3),    NULL);
+  sst->dc_vcount = ak_data_new(sst->tmp, 128, sizeof(int32_t), NULL);
 
   if (!isAscii) {
     stl_binary(sst, p);
@@ -112,7 +112,7 @@ stl_stl(AkDoc     ** __restrict dest,
   *dest = doc;
 
   /* cleanup */
-  ak_free(sst->tmpParent);
+  ak_free(sst->tmp);
 
   return AK_OK;
 }
@@ -137,9 +137,9 @@ stl_binary(STLState * __restrict sst, char * __restrict p) {
 
   for (i = 0; i < nTriangles; i++) {
     /* normal */
-    le_32(v[0], p);
-    le_32(v[1], p);
-    le_32(v[2], p);
+    le_32(n[0], p);
+    le_32(n[1], p);
+    le_32(n[2], p);
     
     ak_data_append(sst->dc_nor, n);
     ak_data_append(sst->dc_nor, n);
