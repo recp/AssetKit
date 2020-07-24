@@ -29,7 +29,7 @@ fi
 # general deps: gcc make autoconf automake libtool cmake
 
 # libds
-cd ./lib/libds
+cd ./deps/ds
 sh ./autogen.sh
 ./configure
 make -j8

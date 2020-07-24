@@ -26,13 +26,12 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([src/])
 AC_CONFIG_HEADERS([config.h])
 
-CFLAGS="$CFLAGS -I./lib/xml/include"
-CFLAGS="$CFLAGS -I./lib/cglm/include"
-CFLAGS="$CFLAGS -I./lib/libds/include"
-CFLAGS="$CFLAGS -I./lib/stb"
-CFLAGS="$CFLAGS -I./lib/json/include"
+CFLAGS="$CFLAGS -I./deps/xml/include"
+CFLAGS="$CFLAGS -I./deps/cglm/include"
+CFLAGS="$CFLAGS -I./deps/libds/include"
+CFLAGS="$CFLAGS -I./deps/json/include"
 
-LDFLAGS="$LDFLAGS -L./lib/libds/.libs"
+LDFLAGS="$LDFLAGS -L./deps/ds/.libs"
 
 # Checks for programs.
 AC_PROG_CC

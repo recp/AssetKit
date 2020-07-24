@@ -73,25 +73,25 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\lib\stb;..\lib\json\include;..\lib\xml\include;..\lib\libds\include;..\lib\cglm\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\deps\stb;..\deps\json\include;..\deps\xml\include;..\deps\ds\include;..\deps\cglm\include;$(IncludePath)</IncludePath>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <IncludePath>..\lib\stb;..\lib\json\include;..\lib\xml\include;..\lib\libds\include;..\lib\cglm\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\deps\stb;..\deps\json\include;..\deps\xml\include;..\deps\ds\include;..\deps\cglm\include;$(IncludePath)</IncludePath>
     <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>true</RunCodeAnalysis>
-    <IncludePath>..\lib\stb;..\lib\json\include;..\lib\xml\include;..\lib\libds\include;..\lib\cglm\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\deps\stb;..\deps\json\include;..\deps\xml\include;..\deps\ds\include;..\deps\cglm\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\lib\stb;..\lib\json\include;..\lib\xml\include;..\lib\libds\include;..\lib\cglm\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\deps\stb;..\deps\json\include;..\deps\xml\include;..\deps\ds\include;..\deps\cglm\include;$(IncludePath)</IncludePath>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
@@ -504,7 +504,7 @@
     <ClCompile Include="..\src\xml.c" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\lib\libds\win\libds.vcxproj">
+    <ProjectReference Include="..\deps\ds\win\libds.vcxproj">
       <Project>{ca8bcaf9-cd25-4133-8f62-3d1449b5d2fc}</Project>
     </ProjectReference>
   </ItemGroup>

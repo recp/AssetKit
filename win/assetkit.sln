@@ -8,7 +8,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "assetkit", "assetkit.vcxpro
 		{CA8BCAF9-CD25-4133-8F62-3D1449B5D2FC} = {CA8BCAF9-CD25-4133-8F62-3D1449B5D2FC}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libds", "..\lib\libds\win\libds.vcxproj", "{CA8BCAF9-CD25-4133-8F62-3D1449B5D2FC}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libds", "..\deps\ds\win\libds.vcxproj", "{CA8BCAF9-CD25-4133-8F62-3D1449B5D2FC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

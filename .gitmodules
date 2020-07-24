@@ -1,15 +1,15 @@
-[submodule "lib/cglm"]
-	path = lib/cglm
-	url = https://recp@github.com/recp/cglm.git
 [submodule "test/sample-models"]
 	path = test/sample-models
 	url = https://github.com/recp/sample-models.git
-[submodule "lib/libds"]
-	path = lib/libds
-	url = https://github.com/recp/libds.git
-[submodule "lib/json"]
-	path = lib/json
+[submodule "deps/cglm"]
+	path = deps/cglm
+	url = https://recp@github.com/recp/cglm.git
+[submodule "deps/json"]
+	path = deps/json
 	url = https://github.com/recp/json.git
-[submodule "lib/xml"]
-	path = lib/xml
+[submodule "deps/xml"]
+	path = deps/xml
 	url = https://github.com/recp/xml.git
+[submodule "deps/ds"]
+	path = deps/ds
+	url = https://github.com/recp/ds.git

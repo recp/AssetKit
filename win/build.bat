@@ -15,7 +15,7 @@ echo.
 echo Build libds
 echo.
 
-cd %CUR_DR%\..\lib\libds\win
+cd %CUR_DR%\..\deps\ds\win
 call .\build.bat
 
 cd %CUR_DR%

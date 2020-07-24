@@ -73,14 +73,14 @@ if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
     endif()
 endif()
 
-if(NOT EXISTS "${PROJECT_SOURCE_DIR}/lib/cglm/CMakeLists.txt")
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/deps/cglm/CMakeLists.txt")
     message(FATAL_ERROR "The submodules were not downloaded! GIT_SUBMODULE was turned off or failed. Please update submodules and try again.")
 endif()
 
-add_subdirectory(lib/libds)
+add_subdirectory(deps/ds)
 add_dependencies(${PROJECT_NAME} ds)
 
-# set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/lib" ${CMAKE_MODULE_PATH})
+# set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/deps" ${CMAKE_MODULE_PATH})
 # find_package(ds REQUIRED)
 # target_link_libraries(${PROJECT_NAME} ds::ds)
 
@@ -92,11 +92,10 @@ target_include_directories(${PROJECT_NAME}
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 
-        ${PROJECT_SOURCE_DIR}/lib/cglm/include
-        ${PROJECT_SOURCE_DIR}/lib/libds/include
-        ${PROJECT_SOURCE_DIR}/lib/json/include
-        ${PROJECT_SOURCE_DIR}/lib/xml/include
-        ${PROJECT_SOURCE_DIR}/lib/stb
+        ${PROJECT_SOURCE_DIR}/deps/cglm/include
+        ${PROJECT_SOURCE_DIR}/deps/ds/include
+        ${PROJECT_SOURCE_DIR}/deps/json/include
+        ${PROJECT_SOURCE_DIR}/deps/xml/include
 )
 
 target_link_libraries(${PROJECT_NAME} ds)
