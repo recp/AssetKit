@@ -27,7 +27,7 @@ ak_inputNameBySet(AkInput * __restrict input,
     return;
 
   if (input->set > 0)
-    sprintf(buf, "%s%d", input->semanticRaw, input->set);
+    sprintf(buf, "%s%u", input->semanticRaw, input->set);
   else
     strcpy(buf, input->semanticRaw);
 }

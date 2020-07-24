@@ -42,7 +42,7 @@ wobj_obj(AkDoc     ** __restrict dest,
   AkDoc              *doc;
   void               *objstr;
   char               *p, *begin, *end, *m;
-  AkLibrary          *lib_geom, *lib_vscene;
+  AkLibrary          *lib_vscene;
   AkVisualScene      *scene;
   WOPrim             *prim;
   WOState             wstVal = {0}, *wst;
@@ -80,7 +80,7 @@ wobj_obj(AkDoc     ** __restrict dest,
   ak_id_newheap(heap);
 
   /* libraries */
-  doc->lib.geometries = ak_heap_calloc(heap, doc, sizeof(*lib_geom));
+  doc->lib.geometries = ak_heap_calloc(heap, doc, sizeof(AkLibrary));
   lib_vscene = ak_heap_calloc(heap, doc, sizeof(*lib_vscene));
   
   /* default scene */

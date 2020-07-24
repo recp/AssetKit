@@ -38,7 +38,7 @@ stl_stl(AkDoc     ** __restrict dest,
   AkDoc         *doc;
   void          *stlstr;
   char          *p;
-  AkLibrary     *lib_geom, *lib_vscene;
+  AkLibrary     *lib_vscene;
   AkVisualScene *scene;
   STLState       sstVal = {0}, *sst;
   size_t         stlstrSize;
@@ -75,7 +75,7 @@ stl_stl(AkDoc     ** __restrict dest,
   ak_id_newheap(heap);
 
   /* libraries */
-  doc->lib.geometries = ak_heap_calloc(heap, doc, sizeof(*lib_geom));
+  doc->lib.geometries = ak_heap_calloc(heap, doc, sizeof(AkGeometry));
   lib_vscene = ak_heap_calloc(heap, doc, sizeof(*lib_vscene));
   
   /* default scene */
@@ -277,17 +277,17 @@ sst_finish(STLState * __restrict sst) {
   mesh->primitiveCount = 1;
 
   /* add to library */
-  geom->base.next     = sst->lib_geom->chld;
-  sst->lib_geom->chld = &geom->base;
+  geom->base.next      = sst->lib_geom->chld;
+  sst->lib_geom->chld  = &geom->base;
+  sst->lib_geom->count = 1;
   
   /* make instance geeometry and attach to the root node  */
   instGeom = ak_instanceMakeGeom(heap, sst->node, geom);
   if (sst->node->geometry) {
     sst->node->geometry->base.prev = (void *)instGeom;
-    instGeom->base.next            = &sst->node->geometry->base;
+    instGeom->base.next            = (void *)sst->node->geometry;
   }
 
-  instGeom->base.next = (void *)sst->node->geometry;
   sst->node->geometry = instGeom;
   
   prim->pos = io_addInput(heap, sst->dc_pos, prim, AK_INPUT_POSITION,

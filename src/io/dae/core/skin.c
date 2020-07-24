@@ -68,7 +68,6 @@ dae_skin(DAEState * __restrict dst,
             AkEnum  inputSemantic;
             
             inputSemantic = dae_semantic(inp->semanticRaw);
-            inp->semantic = inputSemantic;
             
             if (inputSemantic < 0)
               inputSemantic = AK_INPUT_OTHER;
@@ -115,7 +114,6 @@ dae_skin(DAEState * __restrict dst,
             AkEnum  inputSemantic;
             
             inputSemantic = dae_semantic(inp->semanticRaw);
-            inp->semantic = inputSemantic;
             
             if (inputSemantic < 0)
               inputSemantic = AK_INPUT_OTHER;

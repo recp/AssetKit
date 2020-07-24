@@ -39,7 +39,7 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
   AkDoc         *doc;
   void          *plystr;
   char          *p, *b, *e;
-  AkLibrary     *lib_geom, *lib_vscene;
+  AkLibrary     *lib_vscene;
   AkVisualScene *scene;
   PLYElement    *elem;
   PLYProperty   *prop, *pit;
@@ -81,7 +81,7 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
   ak_id_newheap(heap);
 
   /* libraries */
-  doc->lib.geometries = ak_heap_calloc(heap, doc, sizeof(*lib_geom));
+  doc->lib.geometries = ak_heap_calloc(heap, doc, sizeof(AkLibrary));
   lib_vscene          = ak_heap_calloc(heap, doc, sizeof(*lib_vscene));
 
   /* default scene */
@@ -383,7 +383,7 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
       }
 
       /* empty buffer */
-      if (off <= 0)
+      if (off < 1)
         goto err;
       
       /* alloc buffer for vertex element */
@@ -473,17 +473,17 @@ ply_finish(PLYState * __restrict pst) {
   mesh->primitiveCount = 1;
 
   /* add to library */
-  geom->base.next     = pst->lib_geom->chld;
-  pst->lib_geom->chld = &geom->base;
+  geom->base.next      = pst->lib_geom->chld;
+  pst->lib_geom->chld  = &geom->base;
+  pst->lib_geom->count = 1;
   
   /* make instance geeometry and attach to the root node  */
   instGeom = ak_instanceMakeGeom(heap, pst->node, geom);
   if (pst->node->geometry) {
     pst->node->geometry->base.prev = (void *)instGeom;
-    instGeom->base.next            = &pst->node->geometry->base;
+    instGeom->base.next            = (void *)pst->node->geometry;
   }
 
-  instGeom->base.next = (void *)pst->node->geometry;
   pst->node->geometry = instGeom;
   
   /* positions */

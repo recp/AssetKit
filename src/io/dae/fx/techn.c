@@ -80,7 +80,6 @@ dae_techniqueFxCmn(DAEState * __restrict dst,
   AkHeap              *heap;
   AkTechniqueFxCommon *techn;
   xml_attr_t          *att;
-  AkReflective        *refl;
   AkTransparent       *transp;
   AkOpaque             opaque;
 
@@ -100,8 +99,7 @@ dae_techniqueFxCmn(DAEState * __restrict dst,
       techn->specular = dae_colorOrTex(dst, xml, techn);
     } else if (xml_tag_eq(xml, _s_dae_reflective)) {
       if (!techn->reflective)
-        techn->reflective = ak_heap_calloc(heap, techn, sizeof(*refl));
-
+        techn->reflective = ak_heap_calloc(heap, techn, sizeof(*techn->reflective));
       techn->reflective->color = dae_colorOrTex(dst, xml, techn);
     } else if (xml_tag_eq(xml, _s_dae_transparent)) {
       if (!techn->transparent) {
@@ -121,7 +119,7 @@ dae_techniqueFxCmn(DAEState * __restrict dst,
       techn->shininess = dae_floatOrParam(dst, xml, techn);
     } else if (xml_tag_eq(xml, _s_dae_reflectivity)) {
       if (!techn->reflective)
-        techn->reflective = ak_heap_calloc(heap, techn, sizeof(*refl));
+        techn->reflective = ak_heap_calloc(heap, techn, sizeof(*techn->reflective));
       techn->reflective->amount = dae_floatOrParam(dst, xml, techn);
     } else if (xml_tag_eq(xml, _s_dae_transparency)) {
       if (!techn->transparent) {

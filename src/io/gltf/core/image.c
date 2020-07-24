@@ -28,7 +28,6 @@ gltf_images(json_t * __restrict jimage,
   AkHeap             *heap;
   const json_array_t *jimages;
   AkImage            *image;
-  AkBuffer           *buff;
   json_t             *it;
 
   if (!(jimages = json_array(jimage)))
@@ -65,7 +64,9 @@ gltf_images(json_t * __restrict jimage,
           && (buffView = flist_sp_at(&gst->bufferViews, buffViewIndex))
           && (tmpbuff = buffView->buffer)) {
         initFrom             = ak_heap_calloc(heap, image, sizeof(*initFrom));
-        initFrom->buff       = ak_heap_calloc(heap, gst->doc, sizeof(*buff));
+        initFrom->buff       = ak_heap_calloc(heap,
+                                              gst->doc,
+                                              sizeof(*initFrom->buff));
         initFrom->buff->data = ak_heap_alloc(heap,
                                              initFrom->buff,
                                              buffView->byteLength);
@@ -86,7 +87,7 @@ gltf_images(json_t * __restrict jimage,
         uri              = it->value;
         uri[it->valsize] = '\0';
         
-        initFrom->buff = ak_heap_calloc(heap, gst->doc, sizeof(*buff));
+        initFrom->buff = ak_heap_calloc(heap, gst->doc, sizeof(*initFrom->buff));
         base64_buff(uri, it->valsize, initFrom->buff);
       } else {
         initFrom->ref = json_strdup(it, gst->heap, initFrom);

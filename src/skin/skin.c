@@ -44,7 +44,7 @@ ak_skinFill(AkBoneWeights * __restrict source,
     item      = tmp + szt * i;
 
     pJoint    = (uint32_t *)item;
-    pWeight   = (float *)(item + sizeof(uint32_t) * itemCount);
+    pWeight   = (float *)(void *)(item + sizeof(uint32_t) * itemCount);
 
     for (k = 0; k < iterCount; k++) {
       bw         = &source->weights[source->indexes[i] + k];

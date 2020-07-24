@@ -48,7 +48,6 @@ dae_edges(DAEState * __restrict dst,
         AkEnum inputSemantic;
         
         inputSemantic = dae_semantic(inp->semanticRaw);
-        inp->semantic = inputSemantic;
         
         if (inputSemantic < 0)
           inputSemantic = AK_INPUT_OTHER;
@@ -118,7 +117,6 @@ dae_wires(DAEState * __restrict dst,
         AkEnum inputSemantic;
         
         inputSemantic = dae_semantic(inp->semanticRaw);
-        inp->semantic = inputSemantic;
         
         if (inputSemantic < 0)
           inputSemantic = AK_INPUT_OTHER;
@@ -195,7 +193,6 @@ dae_faces(DAEState * __restrict dst,
         AkEnum inputSemantic;
         
         inputSemantic = dae_semantic(inp->semanticRaw);
-        inp->semantic = inputSemantic;
         
         if (inputSemantic < 0)
           inputSemantic = AK_INPUT_OTHER;
@@ -272,7 +269,6 @@ dae_pcurves(DAEState * __restrict dst,
         AkEnum inputSemantic;
         
         inputSemantic = dae_semantic(inp->semanticRaw);
-        inp->semantic = inputSemantic;
         
         if (inputSemantic < 0)
           inputSemantic = AK_INPUT_OTHER;
@@ -349,7 +345,6 @@ dae_shells(DAEState * __restrict dst,
         AkEnum inputSemantic;
         
         inputSemantic = dae_semantic(inp->semanticRaw);
-        inp->semantic = inputSemantic;
         
         if (inputSemantic < 0)
           inputSemantic = AK_INPUT_OTHER;
@@ -426,7 +421,6 @@ dae_solids(DAEState * __restrict dst,
         AkEnum inputSemantic;
         
         inputSemantic = dae_semantic(inp->semanticRaw);
-        inp->semantic = inputSemantic;
         
         if (inputSemantic < 0)
           inputSemantic = AK_INPUT_OTHER;

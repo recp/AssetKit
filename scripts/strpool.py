@@ -15,7 +15,6 @@
 # limitations under the License.
 #
 
-import os
 from os.path import realpath
 from os.path import dirname
 

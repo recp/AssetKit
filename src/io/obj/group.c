@@ -128,16 +128,16 @@ wobj_finishObject(WOState * __restrict wst) {
   /* add to library */
   geom->base.next     = wst->lib_geom->chld;
   wst->lib_geom->chld = &geom->base;
+  wst->lib_geom->count++;
   
   /* make instance geeometry and attach to the root node  */
   instGeom = ak_instanceMakeGeom(wst->heap, wst->node, geom);
   
   if (wst->node->geometry) {
     wst->node->geometry->base.prev = (void *)instGeom;
-    instGeom->base.next            = &wst->node->geometry->base;
+    instGeom->base.next            = (void *)wst->node->geometry;
   }
 
-  instGeom->base.next = (void *)wst->node->geometry;
   wst->node->geometry = instGeom;
   
   obj->ac_pos = wobj_acc(wst, obj->dc_pos, AK_COMPONENT_SIZE_VEC3, AKT_FLOAT);
