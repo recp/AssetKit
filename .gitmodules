@@ -1,9 +1,6 @@
 [submodule "lib/cglm"]
 	path = lib/cglm
 	url = https://recp@github.com/recp/cglm.git
-[submodule "lib/stb"]
-	path = lib/stb
-	url = https://github.com/nothings/stb.git
 [submodule "test/sample-models"]
 	path = test/sample-models
 	url = https://github.com/recp/sample-models.git
