@@ -32,14 +32,17 @@
 <br>
 
 <p align="center">
-3D asset importer, exporter library. This library also includes common 3D utils funcs. It is written with C99 but C++ wrappers or other language bindings can be written in the future.
+Brand-new modern 3D asset importer, exporter library. This library will include common 3D utils funcs. It is written with C99 but C++ wrappers or other language bindings can be written in the future.
 
-This library will full support COLLADA specs and glTF specs, plus other 3D formats e.g .obj, .stl maybe supported by sub-libraries e.g. assetkit-stl, assetkit-fbx.
+This library will try to full support COLLADA specs and glTF specs, plus well-known other 3D formats e.g .obj, .stl, .ply... 
 
-There is also an optional renderer library called [libgk](https://github.com/recp/libgk) for render AssetKit contents. You can see how to load AssetKit to libgk in [assetkit-gl](https://github.com/recp/assetkit-gl) lib/repo.
+There is also an optional renderer library called [libgk](https://github.com/recp/libgk) for render AssetKit contents. You can see how to load AssetKit to libgk in [assetkit-gl](https://github.com/recp/assetkit-gl) repo.
 
-I've also created a basic program (included a screenshot of render result and dae) to show full steps: [simple-collada-viewer](http://github.com/recp/simple-collada-viewer) (todo: outdated.)
 </p>
+
+#### Documentation
+
+Soon.
 
 ## Supported Formats
 
@@ -48,7 +51,7 @@ I've also created a basic program (included a screenshot of render result and da
 * [x] glTF 2.0 (Embedded or Separated (.gltf), Binary (.glb), Extensions...)
 * [x] Wavefront Obj (.obj + .mtl)
 * [x] STL (ASCII, Binary)
-* [x] Ply (ASCII, Binary)
+* [x] PLY (ASCII, Binary)
 * [ ] USD and friends (License?)
 * [ ] Alembic (License?)
 * [ ] Draco
@@ -71,111 +74,12 @@ I've also created a basic program (included a screenshot of render result and da
     - When a node is freed then all sub memories will be freed
   - COLLADA's **sid** and **ID** values are mapped to memory nodes itself to reduce memory size and make it easy to manage things.
   - Allow attach ID, sid or user data to a memory node
+- Object-based Asset support; resolve asset element for any element
+- Bugfix some DAE files
 - Will be optimized to be fastest, smallest and most flexible, extendible Asset loader.
 - [ ] Documentation
-- [ ] Cmake support
+- [x] Cmake support
 - [ ] Tests
-
-<table>
-<tr>
-<td width="50%">
-<img src="https://www.khronos.org/assets/images/api_logos/gltf.svg" style="max-height: 128px">
-</td>
-<td width="50%">
-<img src="https://www.khronos.org/assets/images/api_logos/collada.svg"> 
-</td>
-</tr>
-<tr>
-<td valign="top">
-
-- ✅ Single Interface for glTF and COLLADA
-- ✅ glTF 2.0
-- ✅ Options to Generate Mesh Normals
-- ✅ Acessors, Buffers / BufferViews
-- ✅ Geometries (Triangles, Polygons, Lines)
-- ✅ Nodes
-- ✅ Scenes
-- ✅ Cameras
-- ✅ Materials
-  - ✅ Images
-  - ✅ Samplers
-  - ✅ Textures
-  - ✅ PBR Materials
-      - ✅ Metallic Roughness
-      - ✅ Specular Glossiness Extension
-  - ✅ Other textures
-      - ✅ Occlusion map
-      - ✅ Emissive map
-      - ✅ Normal Map
-      - [ ] other textures?
-  - ✅ alphaMode
-  - ✅ alphaCutoff
-  - ✅ doubleSided
-- ✅ Skin
-- ✅ Morph
-- ✅ Animations
-- Extensions 
-  - ✅ KHR_materials_pbrSpecularGlossiness
-  - [ ] Lights (TODO)
-  - [ ] Common materials (TODO)
-- ✅ glTF-Separate
-- ✅ glTF-Binary 
-- ✅ glTF-Embedded
-- [ ] Load glTF-Draco (TODO)
-
-
-</td>
-<td valign="top">
-
-- ✅ Single Interface for glTF and COLLADA
-- ✅ COLLADA 1.4 / 1.4.1
-- ✅ COLLADA 1.5
-- ✅ Object-based Asset support
-  - Resolving Asset support for an element
-- ✅ Fix / Convert UP axis to any other
-- ✅ ID resolving
-- ✅ SID resolving
-- ✅ Bugfix some DAE files
-- ✅ Convert angles to Radians 
-- ✅ Convert Multi-Index indices to Single-Index indices by keeping primitive indices
-- ✅ Options to Generate Mesh Normals
-- ✅ Option to Triangulate Polygons
-- ✅ Libraries support
-- ✅ Geometries
-  - ✅ Meshes (Triangles, Polygons, Lines)
-  - ✅ Brep
-    - Curves, Nurbs, Solids... 
-- ✅ Nodes
-  - ✅ Instances (instance Geometry, Light, Camera...)
-  - ✅ Simplified Controller mechanism into **node->morpher** and **node->skinner**
-  - ✅ Fix camera node transform
-  - ✅ **bind_material** and bind vertex input support to bind material dynamically 
-- ✅ Scenes
-  - Active Scene
-  - Visual Scenes
-- ✅ Cameras
-- ✅ Lights
-- ✅ Materials
-  - ✅ Images
-  - ✅ Samplers
-  - ✅ Textures
-  - ✅ Common Profile
-      - ✅ Phong, Blinn, Lambert and Constant
-  - ⚠️ Other profiles were supported, but currently they are removed. But multi profile is still supported. We can support other profiles in the future.
-  - ✅ Transparency (A_ONE, RGB_ONE, A_ZERO, RGB_ZERO)
-- ✅ Skin
-- ✅ Morph
-- ✅ Animations
-- ✅ Extra
-- ✅ Load external DAE files and cache them
-- [ ] Parse MathML formulas
-- [ ] Physics
-- [ ] Kinematics
-- [ ] ZAE
-- [ ] More to work on...
-</td>
-</tr>
-</table>
 
 ## Build
 
