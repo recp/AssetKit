@@ -26,25 +26,18 @@
 #endif
 
 typedef struct AkImageConf {
-  void* (*loadFromFile)(const char * __restrict path,
-                        int        * __restrict width,
-                        int        * __restrict height,
-                        int        * __restrict components);
-  void* (*loadFromMemory)(const char * __restrict data,
-                          size_t                  len,
-                          int        * __restrict width,
-                          int        * __restrict height,
-                          int        * __restrict components);
-  void (*flipVerticallyOnLoad)(bool flip);
+  AkImageLoadFromFileFn       loadFromFile;
+  AkImageLoadFromMemoryFn     loadFromMemory;
+  AkImageFlipVerticallyOnLoad flipVerticallyOnLoad;
 } AkImageConf;
 
 static AkImageConf ak__img_conf = {0};
 
 AK_EXPORT
 void
-ak_imageInitLoader(AkImageLoadFromFileFn       * __restrict fromFile,
-                   AkImageLoadFromMemoryFn     * __restrict fromMemory,
-                   AkImageFlipVerticallyOnLoad * __restrict flipper) {
+ak_imageInitLoader(AkImageLoadFromFileFn       fromFile,
+                   AkImageLoadFromMemoryFn     fromMemory,
+                   AkImageFlipVerticallyOnLoad flipper) {
   ak__img_conf.loadFromFile         = fromFile;
   ak__img_conf.loadFromMemory       = fromMemory;
   ak__img_conf.flipVerticallyOnLoad = flipper;

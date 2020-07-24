@@ -34,6 +34,9 @@ dae_color(xml_t   * __restrict xml,
   
   c = xml_strtof_fast(xml->val, dest->vec, 4);
   
+  if (c > 4)
+    c = 4;
+
   if (c > 0) {
     do {
       dest->vec[4 - c--] = 1.0f;

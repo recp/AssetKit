@@ -123,8 +123,8 @@ typedef void (*AkImageFlipVerticallyOnLoad)(bool flip);
 
 AK_EXPORT
 void
-ak_imageInitLoader(AkImageLoadFromFileFn       * __restrict fromFile,
-                   AkImageLoadFromMemoryFn     * __restrict fromMemory,
-                   AkImageFlipVerticallyOnLoad * __restrict flipper);
+ak_imageInitLoader(AkImageLoadFromFileFn       fromFile,
+                   AkImageLoadFromMemoryFn     fromMemory,
+                   AkImageFlipVerticallyOnLoad flipper);
 
 #endif /* ak_image_h */

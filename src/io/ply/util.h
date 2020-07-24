@@ -24,6 +24,7 @@
   do {                                                                        \
     uint64_t buf;                                                             \
                                                                               \
+    buf = 0;                                                                  \
     switch (typeDesc->typeId) {                                               \
       case AKT_FLOAT:                                                         \
       case AKT_INT:                                                           \

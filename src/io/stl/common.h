@@ -48,7 +48,7 @@ typedef struct STLState {
 
 #define NEXT_LINE                                                             \
   do {                                                                        \
-    c = *p;                                                                   \
+    c = p ? *p : '\0';                                                        \
     while (p                                                                  \
            && p[0] != '\0'                                                    \
            && !AK_ARRAY_NLINE_CHECK                                           \

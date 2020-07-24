@@ -323,12 +323,12 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
               ||(!pit->next->next || pit->next->next->semantic != PLY_PROP_NZ)) {
             pit->ignore = true;
             
-            if (pit->next)
+            if (pit->next) {
               pit->next->ignore = true;
-            
-            if (pit->next->next)
-              pit->next->next->ignore = true;
-            
+              if (pit->next->next)
+                pit->next->next->ignore = true;
+            }
+
             goto ign; /* we cannot load this PLY, TODO: */
           }
           
@@ -352,14 +352,15 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
         
         if (pit->semantic == PLY_PROP_R) {
           if ((!pit->next || pit->next->semantic != PLY_PROP_G)
-              ||(!pit->next->next || pit->next->next->semantic != PLY_PROP_B)) {
+              || (!pit->next->next || pit->next->next->semantic != PLY_PROP_B)) {
             pit->ignore = true;
             
-            if (pit->next)
+            if (pit->next) {
               pit->next->ignore = true;
-            
-            if (pit->next->next)
-              pit->next->next->ignore = true;
+              if (pit->next->next)
+                pit->next->next->ignore = true;
+            }
+
             goto ign; /* ignore, TODO: */
           }
           
