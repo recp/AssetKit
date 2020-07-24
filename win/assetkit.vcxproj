@@ -336,6 +336,7 @@
     <ClInclude Include="..\src\resc\resource.h" />
     <ClInclude Include="..\src\sid.h" />
     <ClInclude Include="..\src\skin\fix.h" />
+    <ClInclude Include="..\src\strpool.h" />
     <ClInclude Include="..\src\trash.h" />
     <ClInclude Include="..\src\tree.h" />
     <ClInclude Include="..\src\type.h" />
@@ -490,6 +491,7 @@
     <ClCompile Include="..\src\skin\fix.c" />
     <ClCompile Include="..\src\skin\skin.c" />
     <ClCompile Include="..\src\string.c" />
+    <ClCompile Include="..\src\strpool.c" />
     <ClCompile Include="..\src\transform\dup.c" />
     <ClCompile Include="..\src\transform\trans.c" />
     <ClCompile Include="..\src\transform\traverse.c" />

@@ -29,6 +29,7 @@
 #include "../common/util.h"
 #include "../common/postscript.h"
 #include "../../endian.h"
+#include "../../strpool.h"
 
 AkResult AK_HIDE
 stl_stl(AkDoc     ** __restrict dest,
@@ -290,11 +291,11 @@ sst_finish(STLState * __restrict sst) {
   sst->node->geometry = instGeom;
   
   prim->pos = io_addInput(heap, sst->dc_pos, prim, AK_INPUT_POSITION,
-                          "POSITION", AK_COMPONENT_SIZE_VEC3, AKT_FLOAT, 0);
+                          _s_POSITION, AK_COMPONENT_SIZE_VEC3, AKT_FLOAT, 0);
 
   if (sst->dc_nor->itemcount > 0) {
     io_addInput(heap, sst->dc_nor, prim, AK_INPUT_NORMAL,
-                "NORMAL", AK_COMPONENT_SIZE_VEC3, AKT_FLOAT, 1);
+                _s_NORMAL, AK_COMPONENT_SIZE_VEC3, AKT_FLOAT, 1);
   }
 
   /* cleanup */

@@ -15,6 +15,7 @@
  */
 
 #include "mtl.h"
+#include "../../strpool.h"
 
 /*
  Resources:
@@ -420,7 +421,7 @@ wobj_texref(WOState * __restrict wst, void * __restrict memp, char* name) {
   texref = ak_heap_calloc(heap, memp, sizeof(*texref));
   ak_setypeid(texref, AKT_TEXTURE_REF);
   
-  texref->coordInputName = "TEXCOORD";
+  texref->coordInputName = _s_TEXCOORD;
   texref->texture        = tex;
   texref->slot           = 0;
 

@@ -578,6 +578,9 @@
     <ClInclude Include="..\include\ak\version.h">
       <Filter>include\ak</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\strpool.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\win32\strptime.c">
@@ -1050,6 +1053,9 @@
     </ClCompile>
     <ClCompile Include="..\src\io\ply\bin.c">
       <Filter>src\io\ply</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\strpool.c">
+      <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

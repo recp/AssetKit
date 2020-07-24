@@ -16,6 +16,7 @@
 
 #include "group.h"
 #include "util.h"
+#include "../../strpool.h"
 
 /* Buffer > Accessor > Input > Prim > Mesh > Geom > InstanceGeom > Node */
 
@@ -67,18 +68,18 @@ wobj_finishPrim(WOState * __restrict wst, WOPrim * __restrict wp) {
   mesh->primitiveCount++;
   
   prim->pos = wobj_input(wst, prim, wst->obj.ac_pos,
-                         AK_INPUT_POSITION, "POSITION", inputOffset++);
+                         AK_INPUT_POSITION, _s_POSITION, inputOffset++);
   
   if (wst->mtlib && wp->mtlname)
     prim->material = rb_find(wst->mtlib->materials, (void *)wp->mtlname);
   
   if (wst->obj.dc_nor->itemcount > 0)
     wobj_input(wst, prim, wst->obj.ac_nor,
-               AK_INPUT_NORMAL, "NORMAL", inputOffset++);
+               AK_INPUT_NORMAL, _s_NORMAL, inputOffset++);
   
   if (wst->obj.dc_tex->itemcount > 0)
     wobj_input(wst, prim, wst->obj.ac_tex,
-               AK_INPUT_TEXCOORD, "TEXCOORD", inputOffset);
+               AK_INPUT_TEXCOORD, _s_TEXCOORD, inputOffset);
 
   /* fix indices */
   wobj_joinIndices(wst, wp, prim);

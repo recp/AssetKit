@@ -31,6 +31,7 @@
 #include "../../../include/ak/path.h"
 #include "../common/util.h"
 #include "../common/postscript.h"
+#include "../../strpool.h"
 
 AkResult AK_HIDE
 ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
@@ -487,19 +488,19 @@ ply_finish(PLYState * __restrict pst) {
   /* positions */
   if (pst->ac_pos)
     prim->pos = io_input(heap, prim, pst->ac_pos,
-                         AK_INPUT_POSITION, "POSITION", 0);
+                         AK_INPUT_POSITION, _s_POSITION, 0);
 
   /* normals */
   if (pst->ac_nor)
-    io_input(heap, prim, pst->ac_nor, AK_INPUT_NORMAL, "NORMAL", 0);
+    io_input(heap, prim, pst->ac_nor, AK_INPUT_NORMAL, _s_NORMAL, 0);
 
   /* tex coords */
   if (pst->ac_tex)
-    io_input(heap, prim, pst->ac_nor, AK_INPUT_TEXCOORD, "TEXCOORD", 0);
+    io_input(heap, prim, pst->ac_nor, AK_INPUT_TEXCOORD, _s_TEXCOORD, 0);
   
   /* vertex colors */
   if (pst->ac_rgb)
-    io_input(heap, prim, pst->ac_nor, AK_INPUT_COLOR, "COLOR", 0);
+    io_input(heap, prim, pst->ac_nor, AK_INPUT_COLOR, _s_COLOR, 0);
   
   /* indices */
   prim->indices = ak_heap_calloc(heap,

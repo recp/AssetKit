@@ -22,6 +22,7 @@ from os.path import dirname
 basedir = dirname(realpath(__file__)) + '/../'
 
 strpools = [
+  'src/strpool.py',
   'src/io/dae/strpool.py',
   'src/io/gltf/strpool.py'
 ]
