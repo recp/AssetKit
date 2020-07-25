@@ -78,7 +78,7 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
         
         fc = (AkUInt)strtol(p, &p, 10);
         if (fc >= 3) {
-          if (!f && last_fc != fc)
+          if (!f || last_fc < fc)
             f = alloca(sizeof(AkUInt) * fc);
           
           for (j = 0; j < fc; j++)

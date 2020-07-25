@@ -122,9 +122,6 @@ void
 stl_binary(STLState * __restrict sst, char * __restrict p) {
   vec4     v, n;
   uint32_t count,  nTriangles, i;
-  char     c;
-
-  c = '\0';
   
   /* skip 80-char header */
   p += 80;
@@ -173,7 +170,7 @@ stl_ascii(STLState * __restrict sst, char * __restrict p) {
   uint32_t vc, count;
   char     c;
 
-  c     = '\0';
+  /* c     = '\0'; */
   count = 0;
 
   NEXT_LINE

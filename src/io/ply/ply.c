@@ -57,7 +57,7 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
     return AK_ERR;
   
   p += 3;
-  c  = *p;
+  /* c  = *p; */
 
   NEXT_LINE
 
@@ -153,7 +153,7 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
         elem->count = (uint32_t)strtoul(p, &p, 10);
         elem->type  = PLY_ELEM_FACE;
       }
-    } else if (EQ8('p', 'r', 'o', 'p', 'e', 'r', 't', 'y')) {
+    } else if (elem && EQ8('p', 'r', 'o', 'p', 'e', 'r', 't', 'y')) {
       p += 9;
       SKIP_SPACES
       
@@ -338,9 +338,9 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
         }
         
         if (pit->semantic == PLY_PROP_S) {
-          if ((!pit->next || pit->next->semantic != PLY_PROP_T)) {
+          if (!pit->next || pit->next->semantic != PLY_PROP_T) {
             pit->ignore = true;
-            if (pit->next->next)
+            if (pit->next && pit->next->next)
               pit->next->ignore = true;
             goto ign; /* ignore, TODO: */
           }

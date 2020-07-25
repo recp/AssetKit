@@ -29,7 +29,6 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
   PLYElement  *elem;
   PLYProperty *prop;
   AkBuffer    *buff;
-  char         c;
   uint32_t     i, stride, vertcount;
   
   p         = src;
@@ -45,7 +44,6 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
       b      = buff->data; /* TODO: all vertices are floats for now */
       stride = elem->knownCount;
       i      = 0;
-      c      = *p;
 
       /* stop */
       if (!elem->buff || elem->buff->length == 0)
