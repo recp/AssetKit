@@ -433,17 +433,24 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
                                      sizeof(mat4) * count);
 
           for (i = 0; i < count; i++) {
-            sid = it[i];
+            if (!(sid = it[i]))
+              continue;
 
-            if ((skel = instCtlr->reserved)) {
-               do {
-                if ((joints[i] = ak_sid_resolve_from(&ctx,
-                                                     skel->data,
-                                                     sid,
-                                                     NULL))) {
-                  break;
+            switch (jointsAcc->componentType) {
+              case AKT_IDREF:
+                joints[i] = ak_getObjectById(dst->doc, sid);
+                break;
+              case AKT_SIDREF:
+              case AKT_NAME:
+                if ((skel = instCtlr->reserved)) {
+                  do {
+                    if ((joints[i] = ak_sid_resolve_from(&ctx, skel->data, sid, NULL)))
+                      break;
+                  } while ((skel = skel->next));
                 }
-               } while ((skel = skel->next));
+                break;
+              default:
+                break;
             }
 
             /* move invBindMatrix to new location */

@@ -30,12 +30,16 @@ xml_strdup(const xml_t * __restrict xobj,
     return NULL;
 
   s = p = ak_heap_alloc(heap, parent, len);
-  v = xmls(xobj); /* because len > 0 */
-
-  do {
-    memcpy(p, v->val, v->valsize);
-    p += v->valsize;
-  } while ((v = xmls_next(v)));
+  if (xobj->type!= XML_STRING) {
+    v = xmls(xobj); /* because len > 0 */
+    
+    do {
+      memcpy(p, v->val, v->valsize);
+      p += v->valsize;
+    } while ((v = xmls_next(v)));
+  } else {
+    memcpy(p, xobj->val, xobj->valsize);
+  }
 
   s[len - 1] = '\0';
   

@@ -33,6 +33,7 @@ dae_source(DAEState * __restrict dst,
   AkAccessorDAE *accdae;
   const xml_t   *sval;
   uint32_t       count;
+  AkTypeId       t;
   bool           isName;
 
   heap   = dst->heap;
@@ -117,10 +118,10 @@ dae_source(DAEState * __restrict dst,
         xml_strtob_fast(sval, buffer->data, count);
         
         ak_setUserData(buffer, (void *)(uintptr_t)AKT_BOOL);
-      } else if (xml_tag_eq(xml, _s_dae_Name_array)
-                 || xml_tag_eq(xml, _s_dae_IDREF_array)
-                 || xml_tag_eq(xml, _s_dae_SIDREF_array)
-                 || xml_tag_eq(xml, _s_dae_token_array)) {
+      } else if ((xml_tag_eq(xml, _s_dae_Name_array)   & (1|(t = AKT_NAME)))
+              || (xml_tag_eq(xml, _s_dae_IDREF_array)  & (1|(t = AKT_IDREF)))
+              || (xml_tag_eq(xml, _s_dae_SIDREF_array) & (1|(t = AKT_SIDREF)))
+              || (xml_tag_eq(xml, _s_dae_token_array)  & (1|(t = AKT_TOKEN)))) {
         char        *pData, **iter, *tok, *tok_begin, *end, c;
         const xml_t *v;
         size_t       srclen, toklen, enumLen;
@@ -170,7 +171,7 @@ dae_source(DAEState * __restrict dst,
             } while ((v = xmls_next(v)) && (tok = v->val));
           }
         } else {
-          ak_setUserData(buffer, (void *)(uintptr_t)AKT_STRING);
+          ak_setUserData(buffer, (void *)(uintptr_t)t);
 
           buffer->length = sizeof(char *) * count * 2
                             + xmls_sumlen(sval) + 1 /* NULL */;
