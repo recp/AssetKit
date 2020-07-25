@@ -55,6 +55,7 @@ Soon.
 * [ ] USD and friends (License?)
 * [ ] Alembic (License?)
 * [ ] Draco
+* [ ] X3D
 * [x] in progress for next...
 
 ## Features
