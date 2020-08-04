@@ -40,7 +40,7 @@ There is also an optional renderer library called [libgk](https://github.com/rec
 
 </p>
 
-#### [Documentation (In Progress)](http://assetkit.readthedocs.io)
+#### Documentation (In Progress)
 
 Almost all functions (inline versions) and parameters will be documented inside the corresponding headers. <br />
 Complete documentation: http://assetkit.readthedocs.io
