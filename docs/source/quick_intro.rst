@@ -67,6 +67,15 @@ Just ensure that you set image loader before loading images. It is good to set i
 b. Setting Options if Needed
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Make sure that you set UP axis if you want to different one from **Y_UP**. 
+For instance if you want to load contents as **Z_UP** 
+
+.. code-block:: c
+
+  ak_opt_set(AK_OPT_COORD, (uintptr_t)AK_ZUP);
+
+see options in the documentation. If the default values don't work for you then just change them before :c:func:`ak_load`.
+
 3. Load Document
 ----------------
 
