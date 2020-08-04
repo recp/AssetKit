@@ -141,8 +141,37 @@ There are **scene library** and **scene** in AssetKit **document**. The **scene*
     scene = (AkVisualScene *)ak_instanceObject(doc->scene.visualScene);
   }
 
-`scene.visualScene` is instance reference ( :c:type:`AkInstanceBase` ), any scene may be instantiated with this link/object.
+`scene.visualScene` is instance reference ( :c:type:`AkInstanceBase` ), any scene may be instanced with this link/object.
 Another instance objects may have different types e.g. instance geometry (inherited from :c:type:`AkInstanceBase`).
 
 We need to get actual scene object from instance object. There are a few helpers for this task.
 But we will use :c:func:`ak_instanceObject` here. 
+
+5. Load Nodes[s]
+----------------
+
+After you get a scene, you can iterate through root nodes. There are also nodes in NodeLibrary in document but in this way you only get used nodes.
+
+There are a few elements in nodes
+
+- Node Transform
+- One or more instance geometries
+- One or more instance cameras
+- One or more instance lights
+- One or more instance nodes
+- One or more child nodes
+- Bounding Box as AABB of Node
+- ...
+
+5.1 Transforms
+~~~~~~~~~~~~~~~~
+
+You must multiply node's transform with its parent to get transform in WORLD space for each node recursively.
+
+A node can contain Matrix or individual Transform Elements like Rotation, Translation or Scaling. 
+**AssetKit** also provides a util to combine these individual transforms into matrix with :c:func:`ak_transformCombine`.
+
+**AssetKit** does not combines them automatically because they may be referenced to animated individually.
+
+5.2 Instance Geometries
+~~~~~~~~~~~~~~~~~~~~~~~~
