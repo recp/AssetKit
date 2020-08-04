@@ -175,3 +175,46 @@ A node can contain Matrix or individual Transform Elements like Rotation, Transl
 
 5.2 Instance Geometries
 ~~~~~~~~~~~~~~~~~~~~~~~~
+
+This is the one of critical sections to understand. Nodes uses :c:type:`AkInstanceGeometry` type to reference a :c:type:`AkGeometry`.
+
+A :c:type:`AkInstanceGeometry` object may store these informations:
+
+* Instance to geometry
+* Material to bind
+* Instance to morpher
+* Instance to skinner
+
+5.2.1 Instance to geometry
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A node may contain multiple geometries, so you must iterate each one and get the geometry with :c:func:`ak_instanceObject` function.
+
+After you get the geometry you can load geeometry elements. A :c:type:`AkGeometry` object can contain one of mesh, spline and brep.
+
+.. code-block:: c
+  :linenos:
+
+  AkObject *prim;
+  AkResult  ret;
+
+  /* 
+     return if the geometry is already loaded, 
+     you can use a RBTree or HasMap... (see https://github.com/recp/ds) 
+    */
+
+  prim = geom->gdata;
+  switch ((AkGeometryType)prim->type) {
+    case AK_GEOMETRY_MESH:
+       /* load mesh */
+      ret = loadMesh(...);
+      break;
+    default:
+      ret = AK_ERR;
+  }
+
+  return ret;
+
+Now it is time to load a mesh.
+
+**AssetKit** provides unique design to load Skin and Morph data. 
