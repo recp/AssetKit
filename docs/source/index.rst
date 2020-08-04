@@ -60,6 +60,12 @@ Features
    getting_started
 
 .. toctree::
+   :maxdepth: 3
+   :caption: Tutorials:
+
+   quick_intro
+
+.. toctree::
    :maxdepth: 2
    :caption: API:
 
