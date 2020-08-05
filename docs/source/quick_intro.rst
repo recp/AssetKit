@@ -185,8 +185,8 @@ A :c:type:`AkInstanceGeometry` object may store these informations:
 * Instance to morpher
 * Instance to skinner
 
-5.2.1 Instance to geometry
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5.2.1 Instance to geometry | Loading Geometry
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A node may contain multiple geometries, so you must iterate each one and get the geometry with :c:func:`ak_instanceObject` function.
 
@@ -217,4 +217,41 @@ After you get the geometry you can load geeometry elements. A :c:type:`AkGeometr
 
 Now it is time to load a mesh.
 
-**AssetKit** provides unique design to load Skin and Morph data. 
+5.2.2 Loading mesh
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This tutorial will only cover loading meshes, extra tutorials may be provided in the future for loading curves, nurbs...
+
+A mesh object is packed as :c:type:`AkObject` inside :c:type:`AkGeometry`. In previous section you may see that we have 
+a switch control to check whether we have a mesh inside geometry or not.
+
+**AssetKit** provides unique design to store this kind of objects with :c:type:`AkObject`. 
+(Think :c:type:`AkObject` as **Object** class in .NET or **NSObject** in ObjC.)
+Otherwise we would store 
+additional pointers or inherits Mesh from Geometry and then cast it to mesh. This is another option of course, 
+even **AssetKit** may change to this design in the future if needed. Currently we are not doing this because geometry 
+object is top container.
+
+**AssetKit** provides a helper to get object from :c:type:`AkObject` with :c:func:`ak_objGet` macro.
+
+We can get :c:type:`AkMesh` object from :c:type:`AkGeometry` as
+
+.. code-block:: c
+  :linenos:
+
+  AkMesh *mesh;
+  
+  mesh = ak_objGet(geom->gdata);
+
+Now we have mesh object. Let's inspect a mesh type.
+
+A mesh contains one or more primitives (or submeshes) as :c:type:`AkMeshPrimitive`. 
+Each primitive contains AABB, the mesh also contains an AABB which is sum of all.
+
+A mesh also contains default weights for morph targets but a Node in Scene object can override that.
+
+5.2.2.1 Loading mesh primitives
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A mesh primitive may be one of :c:type:`AkLines`, :c:type:`AkPolygon` or :c:type:`AkTriangles`. 
+:c:type:`AkMeshPrimitive` is base type for all of them. You can cast them to :c:type:`AkMeshPrimitive` or you can use **.base** member.
