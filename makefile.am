@@ -163,6 +163,7 @@ libassetkit_la_SOURCES=\
     src/io/dae/fixup/geom.c \
     src/io/dae/fixup/node.c \
     src/io/dae/fixup/angle.c \
+    src/io/dae/fixup/ctlr.c \
     src/io/dae/core/enum.c \
     src/io/dae/core/color.c \
     src/io/dae/core/asset.c \
