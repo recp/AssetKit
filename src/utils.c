@@ -65,8 +65,11 @@ ak_readfile(const char * __restrict file,
 #ifndef _MSC_VER
   if (ak_opt_get(AK_OPT_USE_MMAP)) {
     *dest = mmap(0, fsize, PROT_READ, MAP_SHARED, infile_no, 0);
-    *size = fsize;
-    return AK_OK;
+    if (*dest != MAP_FAILED) {
+      *size = fsize;
+      madvise(*dest, fsize, MADV_SEQUENTIAL);
+      return AK_OK;
+    }
   }
 #endif
   
