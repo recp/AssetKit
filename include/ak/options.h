@@ -46,7 +46,8 @@ typedef enum AkOption {
   AK_OPT_COORD_CONVERT_TYPE         = 19, /* DEFAULT  */
   AK_OPT_BUGFIXES                   = 20, /* TRUE     */
   AK_OPT_GLTF_EXT_SPEC_GLOSS        = 21, /* TRUE     */
-  AK_OPT_COMPUTE_EXACT_CENTER       = 22  /* FALSE    */
+  AK_OPT_COMPUTE_EXACT_CENTER       = 22, /* FALSE    */
+  AK_OPT_USE_MMAP                   = 23  /* TRUE     */
 } AkOption;
 
 AK_EXPORT

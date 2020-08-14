@@ -53,8 +53,10 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
       || !((p = plystr) && *p != '\0'))
     return AK_ERR;
 
-  if (!(tolower(p[0]) == 'p' && tolower(p[1]) == 'l' && tolower(p[2]) == 'y'))
+  if (!(tolower(p[0]) == 'p' && tolower(p[1]) == 'l' && tolower(p[2]) == 'y')) {
+    ak_releasefile(plystr, plystrSize);
     return AK_ERR;
+  }
   
   p += 3;
   /* c  = *p; */
@@ -437,12 +439,14 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
 
   /* cleanup */
   ak_free(pst->tmp);
+  ak_releasefile(plystr, plystrSize);
 
   return AK_OK;
   
 err:
   ak_free(pst->tmp);
   ak_free(doc);
+  ak_releasefile(plystr, plystrSize);
   return AK_ERR;
 }
 

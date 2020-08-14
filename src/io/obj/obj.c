@@ -69,6 +69,7 @@ wobj_obj(AkDoc     ** __restrict dest,
 
   if (!((p = objstr) && (c = *p) != '\0')) {
     ak_free(doc);
+    ak_releasefile(objstr, objstrSize);
     return AK_ERR;
   }
   
@@ -244,11 +245,16 @@ wobj_obj(AkDoc     ** __restrict dest,
   
   /* cleanup */
   ak_free(wst->tmp);
+  ak_releasefile(objstr, objstrSize);
 
   return AK_OK;
 
 err:
   ak_free(doc);
+  
+  if (objstr)
+    ak_releasefile(objstr, objstrSize);
+
   return AK_ERR;
 }
 

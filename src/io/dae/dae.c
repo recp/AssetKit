@@ -78,10 +78,11 @@ dae_doc(AkDoc     ** __restrict dest,
   if ((ret = ak_readfile(filepath, &xmlString, &xmlSize)) != AK_OK)
     return ret;
 
-  xdoc = xml_parse(xmlString, XML_DEFAULTS);
+  xdoc = xml_parse(xmlString, XML_PREFIXES | XML_READONLY);
   if (!xdoc || !(xml = xdoc->root)) {
     if (xdoc)
       free((void *)xdoc);
+    ak_releasefile(xmlString, xmlSize);
     return AK_ERR;
   }
 
@@ -190,6 +191,9 @@ dae_doc(AkDoc     ** __restrict dest,
 
   if (xdoc)
     free((void *)xdoc);
+  
+  if (xmlString)
+    ak_releasefile(xmlString, xmlSize);
 
   /* TODO: memory leak, free this RBTree*/
   /* rb_destroy(doc->reserved); */

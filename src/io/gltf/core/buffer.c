@@ -86,8 +86,7 @@ gltf_buffers(json_t * __restrict jbuff,
 
     while (jbuffVal) {
       if (json_key_eq(jbuffVal, _s_gltf_uri)) {
-        uri                    = jbuffVal->value;
-        uri[jbuffVal->valsize] = '\0';
+        uri = json_string_dup(jbuffVal);
 
         if (strncmp(uri, _s_gltf_b64d, strlen(_s_gltf_b64d)) == 0) {
           base64_buff(uri, jbuffVal->valsize, buff);
@@ -96,6 +95,9 @@ gltf_buffers(json_t * __restrict jbuff,
           ak_readfile(localurl, &buff->data, &buff->length);
           ak_free(localurl);
         }
+
+        if (uri)
+          free(uri);
 
         foundUri = true;
 

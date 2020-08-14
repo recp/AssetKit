@@ -27,5 +27,8 @@ ak_readfile(const char * __restrict file,
 time_t
 ak_parse_date(const char * __restrict input,
               const char ** __restrict ret);
+AK_HIDE
+void
+ak_releasefile(void *file, size_t size);
 
 #endif /* __libassetkit__aioutils__h_ */

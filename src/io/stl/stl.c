@@ -113,6 +113,7 @@ stl_stl(AkDoc     ** __restrict dest,
 
   /* cleanup */
   ak_free(sst->tmp);
+  ak_releasefile(stlstr, stlstrSize);
 
   return AK_OK;
 }

@@ -47,7 +47,13 @@ uintptr_t AK_OPTIONS[] =
   AK_COORD_CVT_DEFAULT,            /* 19: _COORD_CONVERT_TYPE          */
   true,                            /* 20: _BUGFIXES                    */
   true,                            /* 21: _GLTF_EXT_SPEC_GLOSS         */
-  false                            /* 22: _COMPUTE_EXACT_CENTER        */
+  false,                           /* 22: _COMPUTE_EXACT_CENTER        */
+
+#ifndef _MSC_VER
+  true                             /* 23: _USE_MMAP                    */
+#else
+  false
+#endif
 };
 
 AK_EXPORT

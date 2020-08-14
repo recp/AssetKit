@@ -84,7 +84,7 @@ gltf_glb(AkDoc     ** __restrict dest,
   ret = gltf_parse(dest, filepath, pdata, bindata);
 
   if (data)
-    free(data);
+    ak_releasefile(data, jsonSize);
 
   return ret;
 }
@@ -102,7 +102,7 @@ gltf_gltf(AkDoc     ** __restrict dest,
   ret = gltf_parse(dest, filepath, jsonString, NULL);
 
   if (jsonString)
-    free(jsonString);
+    ak_releasefile(jsonString, jsonSize);
 
   return ret;
 }
