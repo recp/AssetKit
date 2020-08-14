@@ -171,7 +171,7 @@ ak_retainURL(void * __restrict obj, AkURL * __restrict url) {
   if (ret != AK_OK || !hnode)
     return;
 
-  urlNode   = ak_heap_ext_add(heap, hnode, AK_HEAP_NODE_FLAGS_REFC);
+  urlNode   = ak_heap_ext_add(heap, hnode, AK_HEAP_NODE_FLAGS_URL);
   refc      = ak_heap_ext_add(heap, hnode, AK_HEAP_NODE_FLAGS_REFC);
   len       = urlNode->len;
   found     = urlNode->urls[0];
@@ -218,7 +218,7 @@ ak_releaseURL(void * __restrict obj, AkURL * __restrict url) {
   if (!(urlobj = ak_getObjectByUrl(url)))
     return;
 
-  urlNode = ak_heap_ext_get(hnode, AK_HEAP_NODE_FLAGS_REFC);
+  urlNode = ak_heap_ext_get(hnode, AK_HEAP_NODE_FLAGS_URL);
   len     = urlNode->len;
   it      = urlNode->urls[0];
   last    = urlNode->urls[len];
