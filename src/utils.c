@@ -64,13 +64,13 @@ ak_readfile(const char * __restrict file,
   /* TODO: Windows */
 #ifndef _MSC_VER
   if (ak_opt_get(AK_OPT_USE_MMAP)) {
-    *dest = mmap(0, fsize, PROT_READ, MAP_SHARED, infile_no, 0);
-    if (*dest != MAP_FAILED) {
+    void *mapped;
+    mapped = mmap(0, fsize, PROT_READ, MAP_SHARED, infile_no, 0);
+    if (mapped != MAP_FAILED) {
+      madvise(mapped, fsize, MADV_SEQUENTIAL);
       *size = fsize;
-      madvise(*dest, fsize, MADV_SEQUENTIAL);
+      *dest = mapped;
       return AK_OK;
-    } else {
-      *dest = NULL;
     }
   }
 #endif
