@@ -42,6 +42,7 @@ ak_strtok_count(char * __restrict buff,
 AK_EXPORT
 int
 ak_strtok_count_fast(char * __restrict buff,
+                     size_t            srclen,
                      size_t           *len);
 
 

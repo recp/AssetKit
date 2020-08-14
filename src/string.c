@@ -95,11 +95,16 @@ ak_strtok_count(char * __restrict buff,
 AK_EXPORT
 int
 ak_strtok_count_fast(char * __restrict buff,
+                     size_t            srclen,
                      size_t           *len) {
-  int i, count, itemc, buflen, found_sep;
+  int  i, count, itemc, buflen, found_sep;
   char c;
 
-  buflen = (int)strlen(buff);
+  if (srclen != 0)
+    buflen = (int)srclen;
+  else
+    buflen = (int)strlen(buff);
+
   if (buflen == 0)
     return 0;
 

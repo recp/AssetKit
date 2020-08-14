@@ -171,4 +171,3 @@ ak_meshTriangulate(AkMesh * __restrict mesh) {
   }
   return extc;
 }
-

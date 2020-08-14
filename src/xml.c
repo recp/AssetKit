@@ -178,7 +178,7 @@ xml_strtok_count_fast(const xml_t  * __restrict xobj,
   p         = v;
 
   do {
-    count     += ak_strtok_count_fast(p->val, &l);
+    count     += ak_strtok_count_fast(p->val, p->valsize, &l);
     len_total += l;
   } while ((p = xmls_next(p)));
 
