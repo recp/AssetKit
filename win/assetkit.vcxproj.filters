@@ -581,6 +581,9 @@
     <ClInclude Include="..\src\strpool.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\io\dae\fixup\ctlr.h">
+      <Filter>src\io\dae\fixup</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\win32\strptime.c">
@@ -1056,6 +1059,9 @@
     </ClCompile>
     <ClCompile Include="..\src\strpool.c">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\dae\fixup\ctlr.c">
+      <Filter>src\io\dae\fixup</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

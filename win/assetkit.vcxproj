@@ -281,6 +281,7 @@
     <ClInclude Include="..\src\io\dae\core\vert.h" />
     <ClInclude Include="..\src\io\dae\dae.h" />
     <ClInclude Include="..\src\io\dae\fixup\angle.h" />
+    <ClInclude Include="..\src\io\dae\fixup\ctlr.h" />
     <ClInclude Include="..\src\io\dae\fixup\geom.h" />
     <ClInclude Include="..\src\io\dae\fixup\mesh.h" />
     <ClInclude Include="..\src\io\dae\fixup\node.h" />
@@ -414,6 +415,7 @@
     <ClCompile Include="..\src\io\dae\ctlr.c" />
     <ClCompile Include="..\src\io\dae\dae.c" />
     <ClCompile Include="..\src\io\dae\fixup\angle.c" />
+    <ClCompile Include="..\src\io\dae\fixup\ctlr.c" />
     <ClCompile Include="..\src\io\dae\fixup\geom.c" />
     <ClCompile Include="..\src\io\dae\fixup\mesh.c" />
     <ClCompile Include="..\src\io\dae\fixup\node.c" />
