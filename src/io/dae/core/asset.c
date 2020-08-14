@@ -93,7 +93,7 @@ dae_asset(DAEState   * __restrict dst,
           inf->unit->name = xmla_strdup(attr, heap, inf->unit);
         
         if ((attr = xmla(xml, _s_dae_meter))) {
-          memset((char *)attr->val +attr->valsize, '\0', 1);
+          /* memset((char *)attr->val +attr->valsize, '\0', 1); */
           inf->unit->dist = xmla_double(attr, 0.0);
         }
       } else if (xml_tag_eq(xml, _s_dae_up_axis)) {

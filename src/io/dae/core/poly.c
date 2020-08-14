@@ -106,8 +106,6 @@ dae_poly(DAEState * __restrict dst,
       if ((xml_strtoui_array(heap, poly, xml->val, &intArray) == AK_OK)) {
         poly->vcount = intArray;
       }
-    } else if (xml_tag_eq(xml, _s_dae_vcount)) {
-      /* TODO: */
     } else if (xml_tag_eq(xml, _s_dae_extra)) {
       poly->base.extra = tree_fromxml(heap, poly, xml);
     }
