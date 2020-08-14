@@ -58,9 +58,9 @@ ak_readfile(const char * __restrict file,
 
   if (fstat(infile_no, &infile_st) != 0)
     goto err;
-  
+
   fsize = infile_st.st_size;
-  
+
   /* TODO: Windows */
 #ifndef _MSC_VER
   if (ak_opt_get(AK_OPT_USE_MMAP)) {
@@ -69,10 +69,12 @@ ak_readfile(const char * __restrict file,
       *size = fsize;
       madvise(*dest, fsize, MADV_SEQUENTIAL);
       return AK_OK;
+    } else {
+      *dest = NULL;
     }
   }
 #endif
-  
+
 #ifndef _MSC_VER
   blksize = infile_st.st_blksize;
 #else
