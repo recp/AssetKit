@@ -79,6 +79,7 @@ Complete documentation: http://assetkit.readthedocs.io
 - Object-based Asset support; resolve asset element for any element
 - Bugfix some DAE files
 - Will be optimized to be fastest, smallest and most flexible, extendible Asset loader.
+- Uses **mmap** to load files, you can disable this if needed
 - [ ] Documentation
 - [x] Cmake support
 - [ ] Tests
