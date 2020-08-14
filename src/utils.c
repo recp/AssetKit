@@ -28,6 +28,10 @@
 
 #ifndef _MSC_VER
 #  include <sys/mman.h>
+#else
+#  define WIN32_LEAN_AND_MEAN
+#  include <windows.h>
+#  include <io.h>
 #endif
 
 char *
@@ -61,9 +65,8 @@ ak_readfile(const char * __restrict file,
 
   fsize = infile_st.st_size;
 
-  /* TODO: Windows */
-#ifndef _MSC_VER
   if (ak_opt_get(AK_OPT_USE_MMAP)) {
+#ifndef _MSC_VER
     void *mapped;
     mapped = mmap(0, fsize, PROT_READ, MAP_SHARED, infile_no, 0);
     if (mapped != MAP_FAILED) {
@@ -72,8 +75,19 @@ ak_readfile(const char * __restrict file,
       *dest = mapped;
       return AK_OK;
     }
-  }
+#else
+    HANDLE hmap;
+    void  *mapped;
+
+    if ((hmap = CreateFileMapping((HANDLE)_get_osfhandle(infile_no), 0, PAGE_READONLY, 0, 0, 0)
+        && (mapped = MapViewOfFileEx(hmap, FILE_MAP_READ, 0, 0, fsize, 0)))) {
+      CloseHandle(hmap);
+      *size = fsize;
+      *dest = mapped;
+      return AK_OK;
+    }
 #endif
+  }
 
 #ifndef _MSC_VER
   blksize = infile_st.st_blksize;
@@ -142,12 +156,14 @@ ak_digitsize(size_t number) {
 AK_HIDE
 void
 ak_releasefile(void *file, size_t size) {
-#ifndef _MSC_VER
   if (ak_opt_get(AK_OPT_USE_MMAP)) {
+#ifndef _MSC_VER
     munmap(file, size);
+#else
+    UnmapViewOfFile(file);
+#endif
     return;
   }
-#endif
   
   free(file);
 }
