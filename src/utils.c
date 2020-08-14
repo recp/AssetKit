@@ -32,7 +32,6 @@ strptime(const char * __restrict buf,
 
 AkResult
 ak_readfile(const char * __restrict file,
-            const char * __restrict modes,
             void      ** __restrict dest,
             size_t     * __restrict size) {
   FILE      * infile;
@@ -44,7 +43,7 @@ ak_readfile(const char * __restrict file,
   struct stat infile_st;
   int         infile_no;
   
-  infile = fopen(file, modes);
+  infile = fopen(file, "rb");
   if (!infile) {
     fprintf(stderr, "errno: %d: %s", errno, strerror(errno));
     goto err;

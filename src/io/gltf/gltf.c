@@ -55,7 +55,7 @@ gltf_glb(AkDoc     ** __restrict dest,
   uint32_t          magic, version, length, chunkLength, chunkType;
   uint32_t          buffLen, buffType;
 
-  if ((ret = ak_readfile(filepath, "rb", &data, &jsonSize)) != AK_OK)
+  if ((ret = ak_readfile(filepath, &data, &jsonSize)) != AK_OK)
     return ret;
 
   pdata = data;
@@ -96,7 +96,7 @@ gltf_gltf(AkDoc     ** __restrict dest,
   size_t            jsonSize;
   AkResult          ret;
 
-  if ((ret = ak_readfile(filepath, "rb", &jsonString, &jsonSize)) != AK_OK)
+  if ((ret = ak_readfile(filepath, &jsonString, &jsonSize)) != AK_OK)
     return ret;
 
   ret = gltf_parse(dest, filepath, jsonString, NULL);

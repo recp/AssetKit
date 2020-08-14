@@ -49,7 +49,7 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
   bool           isAscii, isLittleEndian;
   char           c;
 
-  if (ak_readfile(filepath, "rb", &plystr, &plystrSize) != AK_OK
+  if (ak_readfile(filepath, &plystr, &plystrSize) != AK_OK
       || !((p = plystr) && *p != '\0'))
     return AK_ERR;
 

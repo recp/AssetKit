@@ -22,7 +22,6 @@
 
 AkResult
 ak_readfile(const char * __restrict file,
-            const char * __restrict modes,
             void      ** __restrict dest,
             size_t     * __restrict size);
 time_t

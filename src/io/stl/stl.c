@@ -44,7 +44,7 @@ stl_stl(AkDoc     ** __restrict dest,
   size_t         stlstrSize;
   bool           isAscii;
 
-  if (ak_readfile(filepath, "rb", &stlstr, &stlstrSize) != AK_OK
+  if (ak_readfile(filepath, &stlstr, &stlstrSize) != AK_OK
       || !((p = stlstr) && *p != '\0'))
     return AK_ERR;
 

@@ -54,7 +54,7 @@ wobj_mtl(WOState    * __restrict wst,
   c        = '\0';
   localurl = ak_getFileFrom(wst->doc, name);
 
-  if (ak_readfile(localurl, "rb", &mtlstr, &mtlstrSize) != AK_OK
+  if (ak_readfile(localurl, &mtlstr, &mtlstrSize) != AK_OK
       || !((p = mtlstr) && (c = *p) != '\0'))
     goto ret;
 
