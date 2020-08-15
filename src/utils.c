@@ -35,6 +35,7 @@ strptime(const char * __restrict buf,
 
 AkResult
 ak_readfile(const char * __restrict file,
+            void       * __restrict parent,
             void      ** __restrict dest,
             size_t     * __restrict size) {
   FILE      * infile;
@@ -62,6 +63,8 @@ ak_readfile(const char * __restrict file,
   if (ak_opt_get(AK_OPT_USE_MMAP)
       && (*dest = ak_mmap_rdonly(infile_no, fsize))) {
     *size = fsize;
+    if (parent)
+      ak_mmap_attach(parent, *dest, fsize);
     return AK_OK;
   }
 

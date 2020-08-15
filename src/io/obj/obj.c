@@ -52,7 +52,7 @@ wobj_obj(AkDoc     ** __restrict dest,
   uint32_t            vc;
   char                c;
 
-  if ((ret = ak_readfile(filepath, &objstr, &objstrSize)) != AK_OK)
+  if ((ret = ak_readfile(filepath, NULL, &objstr, &objstrSize)) != AK_OK)
     return ret;
 
   c    = '\0';

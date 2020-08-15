@@ -49,9 +49,12 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
   bool           isAscii, isLittleEndian;
   char           c;
 
-  if (ak_readfile(filepath, &plystr, &plystrSize) != AK_OK
-      || !((p = plystr) && *p != '\0'))
+  if (ak_readfile(filepath, NULL, &plystr, &plystrSize) != AK_OK
+      || !((p = plystr) && *p != '\0')) {
+    if (plystr)
+      ak_releasefile(plystr, plystrSize);
     return AK_ERR;
+  }
 
   if (!(tolower(p[0]) == 'p' && tolower(p[1]) == 'l' && tolower(p[2]) == 'y')) {
     ak_releasefile(plystr, plystrSize);

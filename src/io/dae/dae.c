@@ -75,7 +75,7 @@ dae_doc(AkDoc     ** __restrict dest,
   size_t             xmlSize;
   AkResult           ret;
 
-  if ((ret = ak_readfile(filepath, &xmlString, &xmlSize)) != AK_OK)
+  if ((ret = ak_readfile(filepath, NULL, &xmlString, &xmlSize)) != AK_OK)
     return ret;
 
   xdoc = xml_parse(xmlString, XML_PREFIXES | XML_READONLY);

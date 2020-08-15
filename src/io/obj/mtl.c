@@ -54,7 +54,7 @@ wobj_mtl(WOState    * __restrict wst,
   c        = '\0';
   localurl = ak_getFileFrom(wst->doc, name);
 
-  if (ak_readfile(localurl, &mtlstr, &mtlstrSize) != AK_OK
+  if (ak_readfile(localurl, NULL, &mtlstr, &mtlstrSize) != AK_OK
       || !((p = mtlstr) && (c = *p) != '\0'))
     goto ret;
 
@@ -227,6 +227,8 @@ wobj_mtl(WOState    * __restrict wst,
     wobj_handleMaterial(wst, mtllib, mtl);
 
 ret:
+  if (mtlstr)
+    ak_releasefile(mtlstr, mtlstrSize);
   ak_free((void *)localurl);
   return mtllib;
 }
