@@ -66,20 +66,21 @@ ak_mmap_attach(void * __restrict obj, void * __restrict mapped, size_t sized) {
   AkHeapNode      *hnode;
   AkMemoryMapNode **mmapNode, *mmapNodeNew;
 
-  heap        = ak_heap_getheap(obj);
-  hnode       = ak__alignof(obj);
-  mmapNode    = (AkMemoryMapNode **)ak_heap_ext_add(heap, hnode, AK_HEAP_NODE_FLAGS_MMAP);
-  mmapNodeNew = ak_heap_calloc(heap, obj, sizeof(*mmapNodeNew));
+  heap     = ak_heap_getheap(obj);
+  hnode    = ak__alignof(obj);
+  mmapNode = (AkMemoryMapNode **)ak_heap_ext_add(heap, hnode, AK_HEAP_NODE_FLAGS_MMAP);
 
-  mmapNodeNew->mapped = mapped;
-  mmapNodeNew->sized  = sized;
-  
-  if (mmapNode && *mmapNode) {
-    mmapNodeNew->next = *mmapNode;
-    (*mmapNode)->prev = mmapNodeNew;
+  if (mmapNode) {
+    mmapNodeNew         = ak_heap_calloc(heap, obj, sizeof(*mmapNodeNew));
+    mmapNodeNew->mapped = mapped;
+    mmapNodeNew->sized  = sized;
+    
+    if (*mmapNode) {
+      mmapNodeNew->next = *mmapNode;
+      (*mmapNode)->prev = mmapNodeNew;
+    }
+    *mmapNode = mmapNodeNew;
   }
-  
-  *mmapNode = mmapNodeNew;
 }
 
 AK_EXPORT
