@@ -101,6 +101,7 @@ libassetkit_la_SOURCES=\
     src/mem/intr.c \
     src/mem/ext.c \
     src/mem/mem.c \
+    src/mem/mmap.c \
     src/morph/intr.c \
     src/skin/skin.c \
     src/skin/fix.c \

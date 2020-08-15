@@ -471,6 +471,7 @@
     <ClCompile Include="..\src\mem\intr.c" />
     <ClCompile Include="..\src\mem\lt.c" />
     <ClCompile Include="..\src\mem\mem.c" />
+    <ClCompile Include="..\src\mem\mmap.c" />
     <ClCompile Include="..\src\mem\rb.c" />
     <ClCompile Include="..\src\mesh\duplicator.c" />
     <ClCompile Include="..\src\mesh\edit.c" />

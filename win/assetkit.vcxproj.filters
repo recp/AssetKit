@@ -1063,5 +1063,8 @@
     <ClCompile Include="..\src\io\dae\fixup\ctlr.c">
       <Filter>src\io\dae\fixup</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\mem\mmap.c">
+      <Filter>src\mem</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

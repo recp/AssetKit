@@ -139,6 +139,14 @@ void
 ak_heap_ext_free(AkHeap     * __restrict heap,
                  AkHeapNode * __restrict hnode);
 
+AK_HIDE
+void*
+ak_mmap_rdonly(int fd, size_t size);
+
+AK_HIDE
+void
+ak_unmap(void *file, size_t size);
+
 void AK_HIDE
 ak_freeh(AkHeapNode * __restrict heapNode);
 

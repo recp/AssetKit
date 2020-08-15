@@ -42,10 +42,6 @@
 #include <stdarg.h>
 
 #ifdef _MSC_VER
-#  define WIN32_LEAN_AND_MEAN
-#  include <windows.h>
-#  include <io.h>
-
 #  define strncasecmp _strnicmp
 #  define strcasecmp  _stricmp
 #  define strtok_r    strtok_s

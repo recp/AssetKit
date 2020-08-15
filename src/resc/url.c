@@ -25,7 +25,7 @@
 
 #ifdef _MSC_VER
 #  ifndef PATH_MAX
-#    define PATH_MAX MAX_PATH
+#    define PATH_MAX 260
 #  endif
 #endif
 
