@@ -77,6 +77,7 @@ typedef enum AkHeapNodeFlags {
   AK_HEAP_NODE_FLAGS_URL       = 1 << 9,  /* node has retained mem via url   */
   AK_HEAP_NODE_FLAGS_USR       = 1 << 10, /* user data                       */
   AK_HEAP_NODE_FLAGS_USRF      = 1 << 11, /* user data must be freed         */
+  AK_HEAP_NODE_FLAGS_MMAP      = 1 << 12, /* attached mmap-ed memory list    */
   AK_HEAP_NODE_FLAGS_SID_NODE  = AK_HEAP_NODE_FLAGS_SID,
   AK_HEAP_NODE_FLAGS_EXT_ALL   = AK_HEAP_NODE_FLAGS_EXT
                                | AK_HEAP_NODE_FLAGS_SRCH
@@ -84,8 +85,10 @@ typedef enum AkHeapNodeFlags {
                                | AK_HEAP_NODE_FLAGS_REFC
                                | AK_HEAP_NODE_FLAGS_EXTRA
                                | AK_HEAP_NODE_FLAGS_INF
+                               | AK_HEAP_NODE_FLAGS_URL
                                | AK_HEAP_NODE_FLAGS_USR
-                               | AK_HEAP_NODE_FLAGS_USRF,
+                               | AK_HEAP_NODE_FLAGS_USRF
+                               | AK_HEAP_NODE_FLAGS_MMAP,
   AK_HEAP_NODE_FLAGS_EXT_FRST = AK_HEAP_NODE_FLAGS_SRCH
 } AkHeapNodeFlags;
 
@@ -358,6 +361,22 @@ ak_setUserData(void * __restrict mem, void * __restrict userData);
 AK_EXPORT
 AkObject*
 ak_objFrom(void * __restrict memptr);
+
+AK_EXPORT
+void*
+ak_mmap_rdonly(int fd, size_t size);
+
+AK_EXPORT
+void
+ak_unmap(void *file, size_t size);
+
+AK_EXPORT
+void
+ak_mmap_attach(void * __restrict obj, void * __restrict mapped, size_t sized);
+
+AK_EXPORT
+void
+ak_unmmap_attached(void * __restrict obj);
 
 #ifdef __cplusplus
 }

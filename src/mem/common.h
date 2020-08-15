@@ -63,6 +63,13 @@ typedef struct AkUrlNode {
   void  **urls;
 } AkUrlNode;
 
+typedef struct AkMemoryMapNode {
+  struct AkMemoryMapNode *prev;
+  struct AkMemoryMapNode *next;
+  void                   *mapped;
+  size_t                  sized;
+} AkMemoryMapNode;
+
 #define AK__HEAPNODE(X)                                                       \
   (((AkHeapNodeExt *)((char *)X - offsetof(AkHeapNodeExt, data)))->node)
 
@@ -138,14 +145,6 @@ ak_heap_ext_rm(AkHeap     * __restrict heap,
 void
 ak_heap_ext_free(AkHeap     * __restrict heap,
                  AkHeapNode * __restrict hnode);
-
-AK_HIDE
-void*
-ak_mmap_rdonly(int fd, size_t size);
-
-AK_HIDE
-void
-ak_unmap(void *file, size_t size);
 
 void AK_HIDE
 ak_freeh(AkHeapNode * __restrict heapNode);

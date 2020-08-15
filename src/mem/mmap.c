@@ -24,7 +24,7 @@
 #  include <io.h>
 #endif
 
-AK_HIDE
+AK_EXPORT
 void*
 ak_mmap_rdonly(int fd, size_t size) {
   void *mapped;
@@ -49,7 +49,7 @@ ak_mmap_rdonly(int fd, size_t size) {
   return mapped;
 }
 
-AK_HIDE
+AK_EXPORT
 void
 ak_unmap(void *file, size_t size) {
 #ifndef _MSC_VER
@@ -57,4 +57,48 @@ ak_unmap(void *file, size_t size) {
 #else
   UnmapViewOfFile(file);
 #endif
+}
+
+AK_EXPORT
+void
+ak_mmap_attach(void * __restrict obj, void * __restrict mapped, size_t sized) {
+  AkHeap          *heap;
+  AkHeapNode      *hnode;
+  AkMemoryMapNode **mmapNode, *mmapNodeNew;
+
+  heap        = ak_heap_getheap(obj);
+  hnode       = ak__alignof(obj);
+  mmapNode    = (AkMemoryMapNode **)ak_heap_ext_add(heap, hnode, AK_HEAP_NODE_FLAGS_MMAP);
+  mmapNodeNew = ak_heap_calloc(heap, obj, sizeof(*mmapNodeNew));
+
+  mmapNodeNew->mapped = mapped;
+  mmapNodeNew->sized  = sized;
+  
+  if (mmapNode && *mmapNode) {
+    mmapNodeNew->next = *mmapNode;
+    (*mmapNode)->prev = mmapNodeNew;
+  }
+  
+  *mmapNode = mmapNodeNew;
+}
+
+AK_EXPORT
+void
+ak_unmmap_attached(void * __restrict obj) {
+  AkHeapNode      *hnode;
+  AkMemoryMapNode **mmapNode, *it;
+  void            *tofree;
+
+  hnode = ak__alignof(obj);
+  if ((mmapNode = ak_heap_ext_get(hnode, AK_HEAP_NODE_FLAGS_MMAP))
+      && (it = *mmapNode)) {
+    while (it) {
+      ak_unmap(it->mapped, it->sized);
+      tofree = it;
+      it = it->next;
+      ak_free(tofree);
+    }
+    
+    *mmapNode = NULL;
+  }
 }

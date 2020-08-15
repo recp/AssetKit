@@ -19,14 +19,15 @@
 #include "../bitwise/bitwise.h"
 
 static uint8_t ak__heap_ext_sz[] = {
-  (uint8_t)sizeof(AkHeapSrchNode),
-  (uint8_t)sizeof(AkSIDNode),
-  (uint8_t)sizeof(int),
-  (uint8_t)sizeof(uintptr_t),
-  (uint8_t)sizeof(uintptr_t),
-  (uint8_t)sizeof(AkUrlNode),
-  (uint8_t)sizeof(uintptr_t),
-  (uint8_t)sizeof(uintptr_t)
+  (uint8_t)sizeof(AkHeapSrchNode), /* AK_HEAP_NODE_FLAGS_SRCH  */
+  (uint8_t)sizeof(AkSIDNode),      /* AK_HEAP_NODE_FLAGS_SID   */
+  (uint8_t)sizeof(int),            /* AK_HEAP_NODE_FLAGS_REFC  */
+  (uint8_t)sizeof(uintptr_t),      /* AK_HEAP_NODE_FLAGS_EXTRA */
+  (uint8_t)sizeof(uintptr_t),      /* AK_HEAP_NODE_FLAGS_INF   */
+  (uint8_t)sizeof(AkUrlNode),      /* AK_HEAP_NODE_FLAGS_URL   */
+  (uint8_t)sizeof(uintptr_t),      /* AK_HEAP_NODE_FLAGS_USR   */
+  (uint8_t)0,                      /* AK_HEAP_NODE_FLAGS_USRF  */
+  (uint8_t)sizeof(uintptr_t)       /* AK_HEAP_NODE_FLAGS_MMAP  */
 };
 
 AK_INLINE
@@ -284,15 +285,17 @@ ak_heap_ext_free(AkHeap     * __restrict heap,
        ak_free(&exnode->data[ofst]); */
   }
 
-  if (hnode->flags & AK_HEAP_NODE_FLAGS_URL) {
+  if (hnode->flags & AK_HEAP_NODE_FLAGS_URL)
     ak_heap_ext_freeurl(hnode);
-  }
 
   if (hnode->flags & AK_HEAP_NODE_FLAGS_USR) {
     ofst = ak_heap_ext_off(hnode->flags, AK_HEAP_NODE_FLAGS_INF);
     if (hnode->flags & AK_HEAP_NODE_FLAGS_USRF)
       alc->free(&exnode->data[ofst]);
   }
+  
+  if (hnode->flags & AK_HEAP_NODE_FLAGS_MMAP)
+    ak_unmmap_attached(ak__alignas(hnode));
 
   hnode->chld = exnode->chld;
   alc->free(exnode);
