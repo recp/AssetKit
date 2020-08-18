@@ -56,7 +56,6 @@ typedef struct AkSkin {
 
 typedef struct AkMorphTarget {
   struct AkMorphTarget *next;
-  AkMeshPrimitive      *prim;   /* mesh primitive             */
   AkInput              *input;  /* per-target inputs to morph */
   float                 weight; /* per-target default weight  */
   uint32_t              inputCount;
