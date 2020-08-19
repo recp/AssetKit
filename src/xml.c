@@ -240,7 +240,7 @@ xmla_strdup(const xml_attr_t * __restrict attr,
             void             * __restrict parent) {
   const char *s;
   
-  if (!(s = attr->val))
+  if (!attr || !(s = attr->val))
     return NULL;
 
   return ak_heap_strndup(heap, parent, s, attr->valsize);
