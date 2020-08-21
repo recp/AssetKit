@@ -101,10 +101,10 @@ typedef struct AkInstanceSkin {
  */
 AK_EXPORT
 size_t
-ak_skinFill(AkBoneWeights * __restrict source,
-            uint32_t                   maxJoint,
-            uint32_t                   itemCount,
-            void         ** __restrict buff);
+ak_skinInterleave(AkBoneWeights * __restrict source,
+                  uint32_t                   maxJoint,
+                  uint32_t                   itemCount,
+                  void         ** __restrict buff);
 
 /*!
 * @brief inspect a morph to get bufferSize and bufferStride to alloc memory for

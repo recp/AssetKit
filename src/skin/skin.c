@@ -18,10 +18,10 @@
 
 AK_EXPORT
 size_t
-ak_skinFill(AkBoneWeights * __restrict source,
-            uint32_t                   maxJoint,
-            uint32_t                   itemCount,
-            void         ** __restrict buff) {
+ak_skinInterleave(AkBoneWeights * __restrict source,
+                  uint32_t                   maxJoint,
+                  uint32_t                   itemCount,
+                  void         ** __restrict buff) {
   AkBoneWeight *bw;
   char         *tmp, *item;
   float        *pWeight;
