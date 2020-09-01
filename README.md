@@ -47,6 +47,7 @@ Complete documentation: http://assetkit.readthedocs.io
 
 ## Supported Formats
 
+* [ ] Asset Exchange (todo) http://github.com/AssetExchange/spec
 * [x] COLLADA 1.4 and COLLADA 1.4.1
 * [x] COLLADA 1.5
 * [x] glTF 2.0 (Embedded or Separated (.gltf), Binary (.glb), Extensions...)
