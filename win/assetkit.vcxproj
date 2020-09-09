@@ -347,7 +347,6 @@
   <ItemGroup>
     <ClCompile Include="..\src\accessor.c" />
     <ClCompile Include="..\src\array.c" />
-    <ClCompile Include="..\src\array\source_array.c" />
     <ClCompile Include="..\src\asset.c" />
     <ClCompile Include="..\src\assetkit.c" />
     <ClCompile Include="..\src\base64.c" />

@@ -60,9 +60,6 @@
     <Filter Include="src\win32">
       <UniqueIdentifier>{40e7b53a-e724-492f-8b13-10585f5a9706}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\array">
-      <UniqueIdentifier>{e75c3a9a-56ed-4934-b5d7-fde390896868}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\light">
       <UniqueIdentifier>{e9c5a211-a5c2-44f9-b202-74b018e2ea0a}</UniqueIdentifier>
     </Filter>
@@ -594,9 +591,6 @@
     </ClCompile>
     <ClCompile Include="..\src\node\node.c">
       <Filter>src\node</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\array\source_array.c">
-      <Filter>src\array</Filter>
     </ClCompile>
     <ClCompile Include="..\src\image\image.c">
       <Filter>src\image</Filter>

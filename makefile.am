@@ -106,7 +106,6 @@ libassetkit_la_SOURCES=\
     src/skin/skin.c \
     src/skin/fix.c \
     src/node/node.c \
-    src/array/source_array.c \
     src/image/image.c \
     src/camera/cam.c \
     src/light/light.c \
