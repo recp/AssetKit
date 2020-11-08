@@ -346,6 +346,12 @@ typedef struct AkGeometry {
   AkBoundingBox     *bbox;
 } AkGeometry;
 
+typedef enum AkMeshIsolateType {
+  AK_MESH_ISOLATE_NONE      = 0 << 0,
+  AK_MESH_ISOLATE_BUFFERS   = 1 << 1,
+  AK_MESH_ISOLATE_ACCESSORS = 2 << 2
+} AkMeshIsolateType;
+
 /*!
  * @brief Total input count except VERTEX input
  *
@@ -517,6 +523,30 @@ AkInput*
 ak_meshInputGet(AkMeshPrimitive *prim,
                 const char      *inputSemantic,
                 uint32_t         set);
+
+AK_EXPORT
+bool
+ak_meshIsIsolated(AkMesh *mesh);
+
+/*!
+ * @brief current isolation rule
+ *
+ * 1. Separated buffer per accessor
+ * 2. Separated accessor per input
+ *
+ * @return true if the rules are match
+ */
+AK_EXPORT
+bool
+ak_meshIsPrimIsolated(AkMeshPrimitive *prim);
+
+AK_EXPORT
+void
+ak_meshIsolate(AkMesh *mesh);
+
+AK_EXPORT
+void
+ak_meshIsolatePrim(AkMeshPrimitive *prim);
 
 #ifdef __cplusplus
 }
