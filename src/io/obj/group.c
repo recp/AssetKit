@@ -73,14 +73,14 @@ wobj_finishPrim(WOState * __restrict wst, WOPrim * __restrict wp) {
   if (wst->mtlib && wp->mtlname)
     prim->material = rb_find(wst->mtlib->materials, (void *)wp->mtlname);
   
-  if (wst->obj.dc_nor->itemcount > 0)
-    wobj_input(wst, prim, wst->obj.ac_nor,
-               AK_INPUT_NORMAL, _s_NORMAL, inputOffset++);
-  
   if (wst->obj.dc_tex->itemcount > 0)
     wobj_input(wst, prim, wst->obj.ac_tex,
-               AK_INPUT_TEXCOORD, _s_TEXCOORD, inputOffset);
+               AK_INPUT_TEXCOORD, _s_TEXCOORD, inputOffset++);
 
+  if (wst->obj.dc_nor->itemcount > 0)
+    wobj_input(wst, prim, wst->obj.ac_nor,
+               AK_INPUT_NORMAL, _s_NORMAL, inputOffset);
+  
   /* fix indices */
   wobj_joinIndices(wst, wp, prim);
 
