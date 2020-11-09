@@ -89,19 +89,20 @@ void
 ak_data_walk(AkDataContext *dctx) {
   AkDataChunk *chunk;
   void  *data;
-  size_t isz, csz, i;
+  size_t isz, csz, i, index;
 
   if (!dctx->data)
     return;
 
   isz   = dctx->itemsize;
   chunk = dctx->data;
+  index = 0;
 
   while (chunk) {
     csz = dctx->nodesize - chunk->usedsize;
     for (i = isz; i < csz; i += isz) {
       data = chunk->data;
-      dctx->walkFn(dctx, data);
+      dctx->walkFn(dctx, data, index++);
     }
     chunk = chunk->next;
   }

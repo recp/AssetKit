@@ -22,7 +22,8 @@
 struct AkDataContext;
 
 typedef void (*AkDataContextWalkFn)(struct AkDataContext *dctx,
-                                    void                 *item);
+                                    void                 *item,
+                                    size_t                index);
 
 typedef struct AkDataChunk {
   struct AkDataChunk *next;
