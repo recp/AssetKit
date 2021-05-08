@@ -79,7 +79,9 @@ gltf_glb(AkDoc     ** __restrict dest,
     bindata = NULL;
   
   /* make the json NULL terminated */
-  pdata[chunkLength] = '\0';
+  /*
+   pdata[chunkLength] = '\0';
+   */
 
   ret = gltf_parse(dest, filepath, pdata, bindata);
 
