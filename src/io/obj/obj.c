@@ -26,6 +26,7 @@
 #include "common.h"
 #include "group.h"
 #include "mtl.h"
+#include "util.h"
 #include "../common/postscript.h"
 #include "../../id.h"
 #include "../../data.h"
@@ -101,10 +102,15 @@ wobj_obj(AkDoc     ** __restrict dest,
   wstVal.node      = scene->node;
   wstVal.lib_geom  = doc->lib.geometries;
 
+  /* vertex data (shared across file) */
+  wst->dc_pos      = ak_data_new(wst->tmp, 128, sizeof(vec3), NULL);
+  wst->dc_tex      = ak_data_new(wst->tmp, 128, sizeof(vec2), NULL);
+  wst->dc_nor      = ak_data_new(wst->tmp, 128, sizeof(vec3), NULL);
+
   /* default group */
   wobj_switchObject(wst);
-  wst->obj.isdefault = true;
-  prim = wst->obj.prim;
+
+  prim = wst->obj->prim;
   
   /* parse .obj */
   do {
@@ -125,7 +131,7 @@ wobj_obj(AkDoc     ** __restrict dest,
 
           /* TODO: handle 4 components */
           ak_strtof_line(p, 0, 3, v);
-          ak_data_append(wst->obj.dc_pos, v);
+          ak_data_append(wst->dc_pos, v);
           break;
         }
         case 'f': {
@@ -176,7 +182,7 @@ wobj_obj(AkDoc     ** __restrict dest,
         case 'o':
         case 'g': {
           wobj_switchObject(wst);
-          prim = wst->obj.prim;
+          prim = wst->obj->prim;
           break;
         }
         default:
@@ -188,13 +194,13 @@ wobj_obj(AkDoc     ** __restrict dest,
           goto err;
 
         ak_strtof_line(p, 0, 3, v);
-        ak_data_append(wst->obj.dc_nor, v);
+        ak_data_append(wst->dc_nor, v);
       } else if (p[0] == 'v' && p[1] == 't') {
         if (*(p += 2) == '\0')
           goto err;
 
         ak_strtof_line(p, 0, 2, v);
-        ak_data_append(wst->obj.dc_tex, v);
+        ak_data_append(wst->dc_tex, v);
       }
     } else if (p[0] == 'm'
                && p[1] == 't'
@@ -237,7 +243,11 @@ wobj_obj(AkDoc     ** __restrict dest,
     NEXT_LINE
   } while (p && p[0] != '\0'/* && (c = *++p) != '\0'*/);
 
-  wobj_finishObject(wst);
+  wst->ac_pos = wobj_acc(wst, wst->dc_pos, AK_COMPONENT_SIZE_VEC3, AKT_FLOAT);
+  wst->ac_nor = wobj_acc(wst, wst->dc_nor, AK_COMPONENT_SIZE_VEC3, AKT_FLOAT);
+  wst->ac_tex = wobj_acc(wst, wst->dc_tex, AK_COMPONENT_SIZE_VEC2, AKT_FLOAT);
+
+  wobj_finishObjects(wst);
 
   io_postscript(doc);
 

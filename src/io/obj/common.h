@@ -55,17 +55,14 @@ typedef struct WOPrim {
   AkDataContext *dc_face;
   AkDataContext *dc_vcount;
   uint32_t       maxVC;
-  bool           isdefault;
   bool           hasTexture;
   bool           hasNormal;
 } WOPrim;
 
 typedef struct WOObject {
-  AkGeometry    *geom;
-  WOPrim        *prim;
-  AkDataContext *dc_pos, *dc_tex, *dc_nor;
-  AkAccessor    *ac_pos, *ac_tex, *ac_nor;
-  bool           isdefault;
+  struct WOObject *next;
+  AkGeometry      *geom;
+  WOPrim          *prim;
 } WOObject;
 
 typedef struct WOState {
@@ -75,7 +72,9 @@ typedef struct WOState {
   AkLibrary     *lib_geom;
   AkNode        *node;
   WOMtlLib      *mtlib;
-  WOObject       obj;
+  AkDataContext *dc_pos, *dc_tex, *dc_nor;
+  AkAccessor    *ac_pos, *ac_tex, *ac_nor;
+  WOObject      *obj;
 } WOState;
 
 #define SKIP_SPACES                                                           \

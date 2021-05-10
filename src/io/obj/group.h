@@ -19,12 +19,17 @@
 
 #include "common.h"
 
+AK_HIDE
 WOPrim*
-wobj_switchPrim(WOState * __restrict wst, const char *mtlname);
+wobj_switchPrim(WOState * __restrict wst, const char * __restrict mtlname);
 
 AK_HIDE
 void
-wobj_finishObject(WOState * __restrict wst);
+wobj_finishObject(WOState * __restrict wst, WOObject * __restrict obj);
+
+AK_HIDE
+void
+wobj_finishObjects(WOState * __restrict wst);
 
 AK_HIDE
 void

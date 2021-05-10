@@ -20,10 +20,11 @@
 
 /* Buffer > Accessor > Input > Prim > Mesh > Geom > InstanceGeom > Node */
 
-static
 AK_HIDE
-void
-wobj_finishPrim(WOState * __restrict wst, WOPrim * __restrict wp) {
+static void
+wobj_finishPrim(WOState  * __restrict wst,
+                WOObject * __restrict wo,
+                WOPrim   * __restrict wp) {
   AkHeap             *heap;
   AkGeometry         *geom;
   AkMesh             *mesh;
@@ -31,10 +32,10 @@ wobj_finishPrim(WOState * __restrict wst, WOPrim * __restrict wp) {
   uint32_t            inputOffset;
 
   if (wp->maxVC == 0)
-    goto cle;
+    return;
 
   heap        = wst->heap;
-  geom        = wst->obj.geom;
+  geom        = wo->geom;
   mesh        = ak_objGet(geom->gdata);
   inputOffset = 0;
 
@@ -67,61 +68,57 @@ wobj_finishPrim(WOState * __restrict wst, WOPrim * __restrict wp) {
   mesh->primitive = prim;
   mesh->primitiveCount++;
   
-  prim->pos = wobj_input(wst, prim, wst->obj.ac_pos,
+  prim->pos = wobj_input(wst, prim, wst->ac_pos,
                          AK_INPUT_POSITION, _s_POSITION, inputOffset++);
   
   if (wst->mtlib && wp->mtlname)
     prim->material = rb_find(wst->mtlib->materials, (void *)wp->mtlname);
   
-  if (wst->obj.dc_tex->itemcount > 0)
-    wobj_input(wst, prim, wst->obj.ac_tex,
-               AK_INPUT_TEXCOORD, _s_TEXCOORD, inputOffset++);
-
-  if (wst->obj.dc_nor->itemcount > 0)
-    wobj_input(wst, prim, wst->obj.ac_nor,
-               AK_INPUT_NORMAL, _s_NORMAL, inputOffset);
-  
+   if (wst->dc_tex->itemcount > 0)
+     wobj_input(wst, prim, wst->ac_tex,
+                AK_INPUT_TEXCOORD, _s_TEXCOORD, inputOffset++);
+ 
+   if (wst->dc_nor->itemcount > 0)
+     wobj_input(wst, prim, wst->ac_nor,
+                AK_INPUT_NORMAL, _s_NORMAL, inputOffset);
+   
   /* fix indices */
   wobj_joinIndices(wst, wp, prim);
-
-cle:
-  /* cleanup */
-  ak_free(wp->dc_face);
-  ak_free(wp->dc_vcount);
-  ak_free(wp);
 }
 
 AK_HIDE
 WOPrim*
-wobj_switchPrim(WOState * __restrict wst, const char *mtlname) {
+wobj_switchPrim(WOState * __restrict wst, const char * __restrict mtlname) {
   WOPrim *wp;
 
-  wp            = ak_heap_calloc(wst->heap, wst->tmp, sizeof(*wp));
-  wp->dc_face   = ak_data_new(wst->tmp, 128, sizeof(ivec3), ak_cmp_ivec3);
-  wp->dc_vcount = ak_data_new(wst->tmp, 128, sizeof(int32_t), NULL);
-  wp->mtlname   = mtlname;
-  wp->next      = wst->obj.prim;
-  wst->obj.prim = wp;
+  if ((wp = wst->obj->prim) && wp->dc_face->itemcount == 0) {
+    wp->mtlname = mtlname;
+    return wst->obj->prim;
+  }
+
+  wp             = ak_heap_calloc(wst->heap, wst->tmp, sizeof(*wp));
+  wp->dc_face    = ak_data_new(wst->tmp, 128, sizeof(ivec3), ak_cmp_ivec3);
+  wp->dc_vcount  = ak_data_new(wst->tmp, 128, sizeof(int32_t), NULL);
+  wp->mtlname    = mtlname;
+  wp->next       = wst->obj->prim;
+  wst->obj->prim = wp;
 
   return wp;
 }
 
 AK_HIDE
 void
-wobj_finishObject(WOState * __restrict wst) {
-  WOObject           *obj;
+wobj_finishObject(WOState * __restrict wst, WOObject * __restrict obj) {
   WOPrim             *wp, *next;
   AkInstanceGeometry *instGeom;
   AkGeometry         *geom;
-
-  obj = &wst->obj;
   
-  if (!obj->geom || !obj->dc_pos)
+  if (!obj->geom)
     return;
   
   /* clean the geom if none resource is found for default state */
-  if (obj->isdefault && obj->dc_pos->itemcount < 1)
-    goto cle;
+  if (wst->dc_pos->itemcount < 1)
+    return;
 
   geom = obj->geom;
 
@@ -139,46 +136,44 @@ wobj_finishObject(WOState * __restrict wst) {
   }
 
   wst->node->geometry = instGeom;
-  
-  obj->ac_pos = wobj_acc(wst, obj->dc_pos, AK_COMPONENT_SIZE_VEC3, AKT_FLOAT);
-  obj->ac_nor = wobj_acc(wst, obj->dc_nor, AK_COMPONENT_SIZE_VEC3, AKT_FLOAT);
-  obj->ac_tex = wobj_acc(wst, obj->dc_tex, AK_COMPONENT_SIZE_VEC2, AKT_FLOAT);
 
   /* mesh primitives */
   wp = obj->prim;
   do {
     next = wp->next;
-    wobj_finishPrim(wst, wp);
+    wobj_finishPrim(wst, obj, wp);
   } while ((wp = next));
+}
 
-cle:
-  /* cleanup */
-  if (obj->dc_pos) {
-    ak_free(obj->dc_pos);
-    ak_free(obj->dc_tex);
-    ak_free(obj->dc_nor);
+AK_HIDE
+void
+wobj_finishObjects(WOState * __restrict wst) {
+  WOObject *obj;
+
+  obj = wst->obj;
+  while (obj) {
+    wobj_finishObject(wst, obj);
+    obj = obj->next;
   }
-
-  memset(obj, 0, sizeof(WOObject));
 }
 
 AK_HIDE
 void
 wobj_switchObject(WOState * __restrict wst) {
+  WOObject   *obj;
   AkGeometry *geom;
   
-  wobj_finishObject(wst);
+  if (wst->obj && wst->obj->prim && wst->obj->prim->dc_face->itemcount == 0)
+    return;
 
+  obj       = ak_heap_calloc(wst->heap, wst->tmp, sizeof(*obj));
+  obj->next = wst->obj;
+  wst->obj  = obj;
+  
   ak_allocMesh(wst->heap, wst->lib_geom, &geom);
-  
+
   /* set current geometry */
-  wst->obj.geom = geom;
-  
-  /* vertex data */
-  wst->obj.dc_pos    = ak_data_new(wst->tmp, 128, sizeof(vec3),    NULL);
-  wst->obj.dc_tex    = ak_data_new(wst->tmp, 128, sizeof(vec2),    NULL);
-  wst->obj.dc_nor    = ak_data_new(wst->tmp, 128, sizeof(vec3),    NULL);
+  obj->geom = geom;
 
   wobj_switchPrim(wst, NULL);
-  wst->obj.prim->isdefault = true;
 }
