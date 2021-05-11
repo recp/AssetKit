@@ -94,9 +94,9 @@ wobj_joinIndices(WOState         * __restrict wst,
   count   = wp->dc_face->itemcount;
   istride = 1;
 
-  count_pos = wst->obj.ac_pos->count;
-  count_tex = wst->obj.ac_tex->count;
-  count_nor = wst->obj.ac_nor->count;
+  count_pos = wst->ac_pos->count;
+  count_tex = wst->ac_tex->count;
+  count_nor = wst->ac_nor->count;
 
   if (wp->hasTexture || wp->hasNormal) {
     istride += (int)wp->hasNormal + (int)wp->hasTexture;

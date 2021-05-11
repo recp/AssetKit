@@ -19,6 +19,6 @@
 
 #define AK_VERSION_MAJOR 0
 #define AK_VERSION_MINOR 3
-#define AK_VERSION_PATCH 1
+#define AK_VERSION_PATCH 2
 
 #endif /* ak_version_h */
