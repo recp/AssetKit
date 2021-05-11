@@ -87,6 +87,8 @@ io_addInput(AkHeap          * __restrict heap,
   inp->semantic       = sem;
   inp->semanticRaw    = ak_heap_strdup(heap, inp, semRaw);
   inp->offset         = offset;
+  
+  ak_retain(acc);
 
   inp->next   = prim->input;
   prim->input = inp;

@@ -73,6 +73,8 @@ wobj_input(WOState         * __restrict wst,
   prim->input = inp;
   prim->inputCount++;
   
+  ak_retain(acc);
+
   return inp;
 }
 
