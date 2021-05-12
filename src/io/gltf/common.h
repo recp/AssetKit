@@ -46,6 +46,7 @@ typedef struct AkGLTFState {
   FListItem    *buffers;
   RBTree       *bufferMap;
   FListItem    *bufferViews;
+  RBTree       *skinBound;
   RBTree       *meshTargets;
   void         *bindata;
   size_t        bindataLen;

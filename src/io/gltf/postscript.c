@@ -17,7 +17,34 @@
 #include "postscript.h"
 #include "mesh_fixup.h"
 
+AK_HIDE
+void
+gltf_setskinners(RBTree *tree, RBNode *rbnode);
+
 void AK_HIDE
 gltf_postscript(AkGLTFState * __restrict gst) {
   gltf_mesh_fixup(gst);
+  rb_walk(gst->skinBound, gltf_setskinners);
+}
+
+AK_HIDE
+void
+gltf_setskinners(RBTree *tree, RBNode *rbnode) {
+  char                skinid[16];
+  AkGLTFState        *gst;
+  AkInstanceSkin     *skinner;
+  AkNode             *node;
+  AkInstanceGeometry *instGeom;
+  int32_t             i32val;
+
+  gst               = tree->userData;
+  node              = rbnode->key;
+  instGeom          = node->geometry;
+  i32val            = (int32_t)(intptr_t)rbnode->val;
+  
+  sprintf(skinid, "%s%d", _s_gltf_skin, i32val);
+  
+  skinner           = ak_heap_calloc(gst->heap, node, sizeof(*skinner));
+  skinner->skin     = ak_getObjectById(gst->doc, skinid);
+  instGeom->skinner = skinner;
 }

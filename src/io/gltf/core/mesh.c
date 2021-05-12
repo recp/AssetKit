@@ -188,7 +188,8 @@ gltf_meshes(json_t * __restrict jmesh,
                 jattrib = jtarget->value;
                 
                 target       = ak_heap_calloc(heap, morph, sizeof(*target));
-                target->prim = prim;
+                /* TODO: Important!!! */
+                /* target->prim = prim; */
 
                 while (jattrib) {
                   AkInput    *inp;

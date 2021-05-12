@@ -154,7 +154,9 @@ gltf_parse(AkDoc     ** __restrict dest,
   gstVal.tmpParent = ak_heap_alloc(heap, doc, sizeof(void*));
   gst->bufferMap   = rb_newtree_ptr();
   gst->meshTargets = rb_newtree_ptr();
-
+  gst->skinBound   = rb_newtree_ptr();
+  gst->skinBound->userData = gst;
+  
   gltfRawDoc = json_parse(contents, true);
   if (!gltfRawDoc || !gltfRawDoc->root) {
     ak_free(doc);
@@ -234,6 +236,7 @@ err:
 
   rb_destroy(gst->bufferMap);
   rb_destroy(gst->meshTargets);
+  rb_destroy(gst->skinBound);
 
   return ret;
 }

@@ -305,17 +305,11 @@ gltf_node(AkGLTFState * __restrict gst,
     /* TODO: what if there is no Geomerty? */
   }
   
-  /* skin */
+  /* bind skinnerr after skin is loaded */
   if (instGeom && (i32val = json_int32(nodeMap[k_skin].object, -1)) > -1) {
-    char            skinid[16];
-    AkInstanceSkin *skinner;
 
-    sprintf(skinid, "%s%d", _s_gltf_skin, i32val);
-    
-    skinner           = ak_heap_calloc(heap, node, sizeof(*skinner));
-    skinner->skin     = ak_getObjectById(gst->doc, skinid);
-    instGeom->skinner = skinner;
-    
+    rb_insert(gst->skinBound, node, I2P i32val);
+
     /* TODO: what if there is no Geomerty? */
   }
 
