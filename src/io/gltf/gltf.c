@@ -227,12 +227,13 @@ err:
 
   *dest = doc;
 
-  rb_destroy(gst->meshTargets);
-
   /* post-parse operations */
   gltf_postscript(gst);
-
+  
   ak_free(gstVal.tmpParent);
+
+  rb_destroy(gst->bufferMap);
+  rb_destroy(gst->meshTargets);
 
   return ret;
 }
