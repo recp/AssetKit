@@ -220,7 +220,6 @@
     <ClInclude Include="..\include\ak\profile.h" />
     <ClInclude Include="..\include\ak\sid.h" />
     <ClInclude Include="..\include\ak\source.h" />
-    <ClInclude Include="..\include\ak\states.h" />
     <ClInclude Include="..\include\ak\string.h" />
     <ClInclude Include="..\include\ak\texture.h" />
     <ClInclude Include="..\include\ak\transform.h" />

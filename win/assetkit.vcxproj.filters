@@ -209,9 +209,6 @@
     <ClInclude Include="..\include\ak\source.h">
       <Filter>include\ak</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ak\states.h">
-      <Filter>include\ak</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\ak\string.h">
       <Filter>include\ak</Filter>
     </ClInclude>
