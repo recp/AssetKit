@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ak_trash_h
-#define ak_trash_h
+#ifndef assetkit_trash_h
+#define assetkit_trash_h
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -32,4 +32,4 @@ ak_trash_empty(void);
 #ifdef __cplusplus
 }
 #endif
-#endif /* ak_trash_h */
+#endif /* assetkit_trash_h */

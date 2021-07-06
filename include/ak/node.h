@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ak_node_h
-#define ak_node_h
+#ifndef assetkit_node_h
+#define assetkit_node_h
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -91,4 +91,4 @@ ak_addSubNode(AkNode * __restrict parent,
 #ifdef __cplusplus
 }
 #endif
-#endif /* ak_node_h */
+#endif /* assetkit_node_h */

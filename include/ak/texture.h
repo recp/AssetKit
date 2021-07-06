@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ak_texture_h
-#define ak_texture_h
+#ifndef assetkit_texture_h
+#define assetkit_texture_h
 
 #include "common.h"
 #include "image.h"
@@ -87,4 +87,4 @@ typedef struct AkTextureRef {
   int               slot;
 } AkTextureRef;
 
-#endif /* ak_texture_h */
+#endif /* assetkit_texture_h */

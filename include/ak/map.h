@@ -18,8 +18,8 @@
  *       this map impl have many TODOs
  */
 
-#ifndef ak_map_h
-#define ak_map_h
+#ifndef assetkit_map_h
+#define assetkit_map_h
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -70,4 +70,4 @@ ak_map_destroy(AkMap *map);
 #ifdef __cplusplus
 }
 #endif
-#endif /* ak_map_linear_h */
+#endif /* assetkit_map_h */

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ak_types_h
-#define ak_types_h
+#ifndef assetkit_types_h
+#define assetkit_types_h
 
 #include "common.h"
 #include <stdbool.h>
@@ -134,4 +134,4 @@ AK_EXPORT
 void
 ak_registerType(AkTypeId typeId, AkTypeDesc *desc);
 
-#endif /* ak_types_h */
+#endif /* assetkit_types_h */

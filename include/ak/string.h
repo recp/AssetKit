@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __libassetkit__assetkit_string__h_
-#define __libassetkit__assetkit_string__h_
+#ifndef assetkit_string_h
+#define assetkit_string_h
 
 #include "common.h"
 #include "core-types.h"
@@ -103,4 +103,4 @@ AK_EXPORT
 char*
 ak_toupper(char *str);
 
-#endif /* __libassetkit__assetkit_string__h_ */
+#endif /* assetkit_string_h */

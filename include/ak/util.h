@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ak_util_h
-#define ak_util_h
+#ifndef assetkit_util_h
+#define assetkit_util_h
 
 #include "common.h"
 
@@ -33,4 +33,4 @@ AK_EXPORT
 int
 ak_digitsize(size_t number);
 
-#endif /* ak_util_h */
+#endif /* assetkit_util_h */

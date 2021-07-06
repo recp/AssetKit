@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ak_image_h
-#define ak_image_h
+#ifndef assetkit_image_h
+#define assetkit_image_h
 
 #include "common.h"
 
@@ -127,4 +127,4 @@ ak_imageInitLoader(AkImageLoadFromFileFn       fromFile,
                    AkImageLoadFromMemoryFn     fromMemory,
                    AkImageFlipVerticallyOnLoad flipper);
 
-#endif /* ak_image_h */
+#endif /* assetkit_image_h */

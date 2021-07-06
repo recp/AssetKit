@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ak_cam_h
-#define ak_cam_h
+#ifndef assetkit_cam_h
+#define assetkit_cam_h
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -101,4 +101,4 @@ ak_defaultCamera(void * __restrict memparent);
 #ifdef __cplusplus
 }
 #endif
-#endif /* ak_cam_h */
+#endif /* assetkit_cam_h */

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ak_core_types_h
-#define ak_core_types_h
+#ifndef assetkit_core_types_h
+#define assetkit_core_types_h
 
 typedef const char           *AkString;
 typedef char                 *AkMutString;
@@ -65,4 +65,4 @@ AK__DEF_ARRAY(AkString);
 
 #undef AK__DEF_ARRAY
 
-#endif /* ak_core_types_h */
+#endif /* assetkit_core_types_h */

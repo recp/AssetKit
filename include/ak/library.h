@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ak_lib_h
-#define ak_lib_h
+#ifndef assetkit_lib_h
+#define assetkit_lib_h
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -61,4 +61,4 @@ ak_libImageFirstOrCreat(AkDoc * __restrict doc);
 #ifdef __cplusplus
 }
 #endif
-#endif /* ak_lib_h */
+#endif /* assetkit_lib_h */

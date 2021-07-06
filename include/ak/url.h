@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ak_url_h
-#define ak_url_h
+#ifndef assetkit_url_h
+#define assetkit_url_h
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -57,4 +57,4 @@ ak_url_unref(AkURL *url);
 #ifdef __cplusplus
 }
 #endif
-#endif /* ak_url_h */
+#endif /* assetkit_url_h */

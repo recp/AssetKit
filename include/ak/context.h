@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ak_context_h
-#define ak_context_h
+#ifndef assetkit_context_h
+#define assetkit_context_h
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -34,4 +34,4 @@ typedef struct AkContext {
 #ifdef __cplusplus
 }
 #endif
-#endif /* ak_context_h */
+#endif /* assetkit_context_h */

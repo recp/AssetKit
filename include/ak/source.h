@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ak_source_h
-#define ak_source_h
+#ifndef assetkit_source_h
+#define assetkit_source_h
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -131,4 +131,4 @@ ak_sourceDetachArray(AkAccessor * __restrict acc);
 #ifdef __cplusplus
 }
 #endif
-#endif /* ak_source_h */
+#endif /* assetkit_source_h */

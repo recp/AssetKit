@@ -18,8 +18,8 @@
  * TODO: maybe there is better way to implement sid addressing?
  */
 
-#ifndef ak_sid_h
-#define ak_sid_h
+#ifndef assetkit_sid_h
+#define assetkit_sid_h
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -77,4 +77,4 @@ ak_sid_attr_offset(const char *attr);
 #ifdef __cplusplus
 }
 #endif
-#endif /* ak_sid_h */
+#endif /* assetkit_sid_h */

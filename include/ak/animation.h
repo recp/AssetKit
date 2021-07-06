@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ak_animation_h
-#define ak_animation_h
+#ifndef assetkit_animation_h
+#define assetkit_animation_h
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -102,4 +102,4 @@ typedef struct AkAnimation {
 #ifdef __cplusplus
 }
 #endif
-#endif /* ak_animation_h */
+#endif /* assetkit_animation_h */

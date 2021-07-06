@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ak_path_h
-#define ak_path_h
+#ifndef assetkit_path_h
+#define assetkit_path_h
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -60,4 +60,4 @@ ak_fullpath(struct AkDoc * __restrict doc,
 #ifdef __cplusplus
 }
 #endif
-#endif /* ak_path_h */
+#endif /* assetkit_path_h */

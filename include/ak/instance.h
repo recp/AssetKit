@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ak_instance_h
-#define ak_instance_h
+#ifndef assetkit_instance_h
+#define assetkit_instance_h
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -96,4 +96,4 @@ ak_instanceMoveToSubNodeIfNeeded(AkNode * __restrict node,
 #ifdef __cplusplus
 }
 #endif
-#endif /* ak_instance_h */
+#endif /* assetkit_instance_h */

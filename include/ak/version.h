@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-#ifndef ak_version_h
-#define ak_version_h
+#ifndef assetkit_version_h
+#define assetkit_version_h
 
 #define AK_VERSION_MAJOR 0
 #define AK_VERSION_MINOR 3
 #define AK_VERSION_PATCH 2
 
-#endif /* ak_version_h */
+#endif /* assetkit_version_h */

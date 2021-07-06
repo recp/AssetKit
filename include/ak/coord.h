@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ak_coord_h
-#define ak_coord_h
+#ifndef assetkit_coord_h
+#define assetkit_coord_h
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -164,4 +164,4 @@ ak_coordCvtNodeTransforms(struct AkDoc  * __restrict doc,
 #ifdef __cplusplus
 }
 #endif
-#endif /* ak_coord_h */
+#endif /* assetkit_coord_h */

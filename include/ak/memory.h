@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __libassetkit__memory__h_
-#define __libassetkit__memory__h_
+#ifndef assetkit_memory_h
+#define assetkit_memory_h
 
 #include <stdint.h>
 #include <sys/types.h>
@@ -382,4 +382,4 @@ ak_unmmap_attached(void * __restrict obj);
 }
 #endif
 
-#endif /* __libassetkit__memory__h_ */
+#endif /* assetkit_memory_h */

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ak_transform_h
-#define ak_transform_h
+#ifndef assetkit_transform_h
+#define assetkit_transform_h
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -124,4 +124,4 @@ ak_getTransformTRS(AkNode *node, AkTypeId transformType);
 #ifdef __cplusplus
 }
 #endif
-#endif /* ak_transform_h */
+#endif /* assetkit_transform_h */

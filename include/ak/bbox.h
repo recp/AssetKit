@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ak_bbox_h
-#define ak_bbox_h
+#ifndef assetkit_bbox_h
+#define assetkit_bbox_h
 
 #include "common.h"
 #include <stdbool.h>
@@ -88,4 +88,4 @@ ak_bbox_center(AkBoundingBox * __restrict bbox,
 float
 ak_bbox_radius(AkBoundingBox * __restrict bbox);
 
-#endif /* ak_bbox_h */
+#endif /* assetkit_bbox_h */

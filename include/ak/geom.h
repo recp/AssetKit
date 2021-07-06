@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ak_geom_h
-#define ak_geom_h
+#ifndef assetkit_geom_h
+#define assetkit_geom_h
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -551,4 +551,4 @@ ak_meshIsolatePrim(AkMeshPrimitive *prim);
 #ifdef __cplusplus
 }
 #endif
-#endif /* ak_geom_h */
+#endif /* assetkit_geom_h */

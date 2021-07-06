@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __libassetkit__common_h
-#define __libassetkit__common_h
+#ifndef assetkit_common_h
+#define assetkit_common_h
 
 /* since C99 or compiler ext */
 #include <stdint.h>
@@ -82,4 +82,4 @@ typedef struct AkTwoWayIterBase {
   struct AkTwoWayIterBase *prev;
 } AkTwoWayIterBase;
 
-#endif /* __libassetkit__common_h */
+#endif /* assetkit_common_h */

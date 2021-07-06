@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ak_controller_h
-#define ak_controller_h
+#ifndef assetkit_controller_h
+#define assetkit_controller_h
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -151,4 +151,4 @@ ak_morphInterleave(void    * __restrict buff,
 #ifdef __cplusplus
 }
 #endif
-#endif /* ak_controller_h */
+#endif /* assetkit_controller_h */

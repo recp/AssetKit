@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ak_light_h
-#define ak_light_h
+#ifndef assetkit_light_h
+#define assetkit_light_h
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -72,4 +72,4 @@ ak_defaultLight(void * __restrict memparent);
 #ifdef __cplusplus
 }
 #endif
-#endif /* ak_light_h */
+#endif /* assetkit_light_h */

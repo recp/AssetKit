@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ak_options_h
-#define ak_options_h
+#ifndef assetkit_options_h
+#define assetkit_options_h
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -65,4 +65,4 @@ ak_opt_set_str(AkOption option, const char *value);
 #ifdef __cplusplus
 }
 #endif
-#endif /* ak_options_h */
+#endif /* assetkit_options_h */

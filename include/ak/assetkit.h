@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __libassetkit__assetkit__h_
-#define __libassetkit__assetkit__h_
+#ifndef assetkit_h
+#define assetkit_h
 
 #include <stdlib.h>
 #include <time.h>
@@ -574,4 +574,4 @@ ak_setFetchFromURLHandler(AkFetchFromURLHandler handler);
 #ifdef __cplusplus
 }
 #endif
-#endif /* __libassetkit__assetkit__h_ */
+#endif /* assetkit_h */

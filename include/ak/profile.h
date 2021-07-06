@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ak_profile_h
-#define ak_profile_h
+#ifndef assetkit_profile_h
+#define assetkit_profile_h
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -89,4 +89,4 @@ ak_setPlatform(const char platform[64]);
 #ifdef __cplusplus
 }
 #endif
-#endif /* ak_profile_h */
+#endif /* assetkit_profile_h */

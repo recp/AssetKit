@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ak_material_h
-#define ak_material_h
+#ifndef assetkit_material_h
+#define assetkit_material_h
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -125,4 +125,4 @@ typedef struct AkSpecularGlossiness {
 #ifdef __cplusplus
 }
 #endif
-#endif /* ak_material_h */
+#endif /* assetkit_material_h */
