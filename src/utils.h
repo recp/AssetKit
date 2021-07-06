@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __libassetkit__aioutils__h_
-#define __libassetkit__aioutils__h_
+#ifndef ak_src_utils_h
+#define ak_src_utils_h
 
 #include "../include/ak/assetkit.h"
 #include "../include/ak/util.h"
@@ -32,4 +32,4 @@ AK_HIDE
 void
 ak_releasefile(void *file, size_t size);
 
-#endif /* __libassetkit__aioutils__h_ */
+#endif /* ak_src_utils_h */

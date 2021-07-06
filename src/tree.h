@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __libassetkit__tree__h_
-#define __libassetkit__tree__h_
+#ifndef ak_src_tree_h
+#define ak_src_tree_h
 
 #include "../include/ak/assetkit.h"
 #include <xml/xml.h>
@@ -27,4 +27,4 @@ tree_fromxml(AkHeap * __restrict heap,
              void   * __restrict memParent,
              xml_t  * __restrict xml);
 
-#endif /* __libassetkit__tree__h_ */
+#endif /* ak_src_tree_h */
