@@ -140,7 +140,7 @@ wobj_mtl(WOState    * __restrict wst,
               p += 2;
               SKIP_SPACES
 
-              begin = ++p;
+              begin = p;
               while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
               end = p;
               
@@ -150,7 +150,7 @@ wobj_mtl(WOState    * __restrict wst,
               p += 2;
               SKIP_SPACES
 
-              begin = ++p;
+              begin = p;
               while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
               end = p;
               
@@ -161,7 +161,7 @@ wobj_mtl(WOState    * __restrict wst,
               p += 2;
               SKIP_SPACES
 
-              begin = ++p;
+              begin = p;
               while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
               end = p;
               
@@ -172,7 +172,7 @@ wobj_mtl(WOState    * __restrict wst,
               p += 2;
               SKIP_SPACES
 
-              begin = ++p;
+              begin = p;
               while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
               end = p;
               
@@ -202,7 +202,7 @@ wobj_mtl(WOState    * __restrict wst,
       p += 6;
       SKIP_SPACES
 
-      begin = ++p;
+      begin = p;
       while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
       end = p;
 

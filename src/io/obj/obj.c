@@ -145,6 +145,10 @@ wobj_obj(AkDoc     ** __restrict dest,
 
             /* vertex index */
             SKIP_SPACES
+
+            if (AK_ARRAY_NLINE_CHECK)
+              break;
+            
             face[0] = (int32_t)strtol(p, &p, 10);
             face[1] = 0;
             face[2] = 0;
@@ -169,6 +173,8 @@ wobj_obj(AkDoc     ** __restrict dest,
 
             ak_data_append(prim->dc_face, face);
             vc += 1;
+
+            c = *p;
           } while (p
                    && (c = p[0]) != '\0'
                    && !AK_ARRAY_NLINE_CHECK
@@ -209,10 +215,10 @@ wobj_obj(AkDoc     ** __restrict dest,
                && p[4] == 'i'
                && p[5] == 'b'
                && (p[6] == ' ' || p[6] == '\t')) {
-      p += 6;
+      p += 7;
       SKIP_SPACES
 
-      begin = ++p;
+      begin = p;
       while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
       end = p;
 
@@ -226,10 +232,10 @@ wobj_obj(AkDoc     ** __restrict dest,
                && p[4] == 't'
                && p[5] == 'l'
                && (p[6] == ' ' || p[6] == '\t')) {
-      p += 6;
+      p += 7;
       SKIP_SPACES
 
-      begin = ++p;
+      begin = p;
       while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
       end = p;
 

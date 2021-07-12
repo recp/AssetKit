@@ -79,6 +79,7 @@ typedef struct WOState {
 
 #define SKIP_SPACES                                                           \
   {                                                                           \
+    c = p ? *p : '\0';                                                        \
     while (c != '\0' && AK_ARRAY_SPACE_CHECK) c = *++p;                       \
     if (c == '\0')                                                            \
       break; /* to break loop */                                              \
