@@ -74,11 +74,11 @@ wobj_finishPrim(WOState  * __restrict wst,
   if (wst->mtlib && wp->mtlname)
     prim->material = rb_find(wst->mtlib->materials, (void *)wp->mtlname);
   
-   if (wst->dc_tex->itemcount > 0)
+   if (wp->hasTexture && wst->dc_tex->itemcount > 0)
      wobj_input(wst, prim, wst->ac_tex,
                 AK_INPUT_TEXCOORD, _s_TEXCOORD, inputOffset++);
  
-   if (wst->dc_nor->itemcount > 0)
+   if (wp->hasNormal && wst->dc_nor->itemcount > 0)
      wobj_input(wst, prim, wst->ac_nor,
                 AK_INPUT_NORMAL, _s_NORMAL, inputOffset);
    

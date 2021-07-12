@@ -56,7 +56,6 @@ wobj_obj(AkDoc     ** __restrict dest,
   if ((ret = ak_readfile(filepath, NULL, &objstr, &objstrSize)) != AK_OK)
     return ret;
 
-  c    = '\0';
   heap = ak_heap_new(NULL, NULL, NULL);
   doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
 
@@ -156,10 +155,14 @@ wobj_obj(AkDoc     ** __restrict dest,
             /* texture index */
             SKIP_SPACES
             if (p && p[0] == '/') {
-              face[1] = (int32_t)strtol(++p, &p, 10);
-              
-              if (!prim->hasTexture)
-                prim->hasTexture = true;
+              if (p[1] != '/') {
+                face[1] = (int32_t)strtol(++p, &p, 10);
+                
+                if (!prim->hasTexture)
+                  prim->hasTexture = true;
+              } else {
+                p++;
+              }
             }
             
             /* normal index */
@@ -180,7 +183,7 @@ wobj_obj(AkDoc     ** __restrict dest,
                    && !AK_ARRAY_NLINE_CHECK
                    && (c = *++p) != '\0'
                    && !AK_ARRAY_NLINE_CHECK);
-          
+
           prim->maxVC = GLM_MAX(prim->maxVC, vc);
           ak_data_append(prim->dc_vcount, &vc);
           break;
