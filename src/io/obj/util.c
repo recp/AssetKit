@@ -16,6 +16,8 @@
 
 #include "util.h"
 
+#define wobj_real_index(count, val) val > 0 ? val - 1 : count - val
+
 AK_HIDE
 AkAccessor*
 wobj_acc(WOState         * __restrict wst,
@@ -78,7 +80,6 @@ wobj_input(WOState         * __restrict wst,
   return inp;
 }
 
-
 AK_HIDE
 void
 wobj_joinIndices(WOState         * __restrict wst,
@@ -126,15 +127,15 @@ wobj_joinIndices(WOState         * __restrict wst,
       for (i = 0; i < csz; i += isz) {
         /* position */
         val = *it2;
-        *it = val > 0 ? val - 1 : count_pos - val;
-        
+        *it = wobj_real_index(count_pos, val);
+
         /* texture */
         val = *(it2 + 1);
-        *(it + 1) = val > 0 ? val - 1 : count_tex - val;
-        
+        *(it + 1) = wobj_real_index(count_tex, val);
+
         /* normal */
         val = *(it2 + 2);
-        *(it + 2) = val > 0 ? val - 1 : count_nor - val;
+        *(it + 2) = wobj_real_index(count_nor, val);
 
         it  += 3;
         it2 += 3;
@@ -149,11 +150,11 @@ wobj_joinIndices(WOState         * __restrict wst,
       for (i = 0; i < csz; i += isz) {
         /* position */
         val = *it2;
-        *it = val > 0 ? val - 1 : count_pos - val;
+        *it = wobj_real_index(count_pos, val);
         
         /* normal */
         val = *(it2 + 2);
-        *(it + 1) = val > 0 ? val - 1 : count_nor - val;
+        *(it + 1) = wobj_real_index(count_nor, val);
 
         it  += 2;
         it2 += 3;
@@ -168,11 +169,11 @@ wobj_joinIndices(WOState         * __restrict wst,
       for (i = 0; i < csz; i += isz) {
         /* position */
         val = *it2;
-        *it = val > 0 ? val - 1 : count_pos - val;
+        *it = wobj_real_index(count_pos, val);
         
         /* texture */
         val = *(it2 + 1);
-        *(it + 1) = val > 0 ? val - 1 : count_tex - val;
+        *(it + 1) = wobj_real_index(count_tex, val);
 
         it  += 2;
         it2 += 3;
@@ -187,7 +188,7 @@ wobj_joinIndices(WOState         * __restrict wst,
       for (i = 0; i < csz; i += isz) {
         /* position */
         val = *it2;
-        *it = val > 0 ? val - 1 : count_pos - val;
+        *it = wobj_real_index(count_pos, val);
 
         it  += 1;
         it2 += 3;
@@ -196,88 +197,3 @@ wobj_joinIndices(WOState         * __restrict wst,
     }
   }
 }
-
-//AK_HIDE
-//void
-//wobj_fixIndices(AkMeshPrimitive * __restrict prim) {
-//  AkUInt      *it;
-//  AkUIntArray *indices;
-//  AkAccessor  *acc;
-//  AkInput     *inp;
-//  int          j, indexStride;
-//  size_t       i;
-//
-//  indices     = prim->indices;
-//  it          = indices->items;
-//  indexStride = prim->indexStride;
-//
-//  for (i = 0; i < indices->count; i += indexStride) {
-//    inp = prim->input;
-//    j   = 0;
-//
-//    while (inp && j < indexStride) {
-//      acc = inp->accessor;
-//
-//      if (it[i + j] > 0) {
-//        it[i + j]--;
-//      } else {
-//        it[i + j] = acc->count - it[i + j]; /* count - 1 == last */
-//      }
-//
-//      j++;
-//      inp = inp->next;
-//    }
-//  }
-//}
-
-//AK_HIDE
-//void
-//wobj_joinIndices(WOState * __restrict wst, AkMeshPrimitive * __restrict prim) {
-//  void    *it;
-//  size_t   stride, isz_v, isz_t, isz_n, count, offset;
-//  uint32_t istride;
-//
-//  isz_v   = wst->obj.dc_indv->itemsize;
-//  isz_t   = wst->obj.dc_indt->itemsize;
-//  isz_n   = wst->obj.dc_indn->itemsize;
-//
-//  count   = wst->obj.dc_indv->itemcount;
-//  stride  = isz_v;
-//  istride = 1;
-//
-//  if (wst->obj.dc_indn->itemcount > 0) {
-//    count  += wst->obj.dc_indn->itemcount;
-//    stride += isz_n;
-//    istride++;
-//  }
-//
-//  if (wst->obj.dc_indt->itemcount > 0) {
-//    count  += wst->obj.dc_indt->itemcount;
-//    stride += isz_t;
-//    istride++;
-//  }
-//
-//  prim->indices = ak_heap_calloc(wst->heap,
-//                                 prim,
-//                                 sizeof(*prim->indices)
-//                                 + wst->obj.dc_indv->usedsize
-//                                 + wst->obj.dc_indn->usedsize
-//                                 + wst->obj.dc_indt->usedsize);
-//  prim->indices->count = count;
-//  prim->indexStride    = istride;
-//
-//  it     = prim->indices->items;
-//  offset = isz_v;
-//
-//  ak_data_join(wst->obj.dc_indv, it, 0, stride);
-//
-//  if (wst->obj.dc_indn->itemcount > 0) {
-//    ak_data_join(wst->obj.dc_indn, it, offset, stride);
-//    offset += isz_n;
-//  }
-//
-//  if (wst->obj.dc_indt->itemcount > 0) {
-//    ak_data_join(wst->obj.dc_indt, it, offset, stride);
-//    /* offset += isz_t; */
-//  }
-//}
