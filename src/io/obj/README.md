@@ -17,6 +17,7 @@
   - [x] map_Ke - Emission Texture
   - [x] Ns - Shininess/specular exponent
   - [x] Ni - Index of refraction
+  - [x] bump - Bump/Normal map
   - [x] illum: Constant
   - [x] illum: Lambert
   - [x] illum: Blinn
