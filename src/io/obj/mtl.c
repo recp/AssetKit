@@ -66,145 +66,21 @@ wobj_mtl(WOState    * __restrict wst,
   do {
     /* skip spaces */
     SKIP_SPACES
-
-    if (mtl && (p[2] == ' ' || p[2] == '\t')) {
-      switch (p[0]) {
-        case 'K':
-          switch (p[1]) {
-            case 'a':
-              p += 2;
-              ak_strtof_line(p, 0, 3, mtl->Ka);
-              break;
-            case 'd':
-              p += 2;
-              ak_strtof_line(p, 0, 3, mtl->Kd);
-              break;
-            case 's':
-              p += 2;
-              ak_strtof_line(p, 0, 3, mtl->Ks);
-              break;
-            case 'e':
-              p += 2;
-              ak_strtof_line(p, 0, 3, mtl->Ke);
-              break;
-            default:
-              p += 2;
-              break;
-          }
-          break;
-        case 'N':
-          switch (p[1]) {
-            case 's':
-              p += 2;
-              ak_strtof_line(p, 0, 1, &mtl->Ns);
-              break;
-            case 'i':
-              p += 2;
-              ak_strtof_line(p, 0, 1, &mtl->Ni);
-              break;
-            default:
-              p += 2;
-              break;
-          }
-          break;
-        case 'T':
-          switch (p[1]) {
-            case 'r':
-              p += 2;
-              ak_strtof_line(p, 0, 1, &mtl->Tr);
-              break;
-            default:
-              p += 2;
-              break;
-          }
-        default:
-          p += 2;
-          break;
-      }
-    } else if (mtl && (p[1] == ' ' || p[1] == '\t')) {
-      if (p[0] == 'd') {
-        p++;
-        ak_strtof_line(p, 0, 1, &mtl->d);
-      }
-    } else if (mtl
-               && p[0] == 'm'
-               && p[1] == 'a'
-               && p[2] == 'p'
-               && p[3] == '_') {
-      p += 4;
-      switch (p[0]) {
-        case 'K':
-          switch (p[1]) {
-            case 'a':
-              p += 2;
-              SKIP_SPACES
-
-              begin = p;
-              while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
-              end = p;
-              
-              mtl->map_Ka = ak_heap_strndup(heap, mtl, begin, end - begin);
-              break;
-            case 'd':
-              p += 2;
-              SKIP_SPACES
-
-              begin = p;
-              while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
-              end = p;
-              
-              mtl->map_Kd = ak_heap_strndup(heap, mtl, begin, end - begin);
-              
-              break;
-            case 's':
-              p += 2;
-              SKIP_SPACES
-
-              begin = p;
-              while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
-              end = p;
-              
-              mtl->map_Ks = ak_heap_strndup(heap, mtl, begin, end - begin);
-              
-              break;
-            case 'e':
-              p += 2;
-              SKIP_SPACES
-
-              begin = p;
-              while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
-              end = p;
-              
-              mtl->map_Ke = ak_heap_strndup(heap, mtl, begin, end - begin);
-              
-              break;
-            default: break;
-          }
-          break;
-        default: break;
-      }
-    } else if (p[0] == 'i'
-               && p[1] == 'l'
-               && p[2] == 'l'
-               && p[3] == 'u'
-               && p[4] == 'm'
-               && (p[5] == ' ' || p[5] == '\t')) {
-      p += 5;
-      ak_strtoi_line(p, 0, 1, &mtl->illum);
-    } else if (p[0] == 'n'
-               && p[1] == 'e'
-               && p[2] == 'w'
-               && p[3] == 'm'
-               && p[4] == 't'
-               && p[5] == 'l'
-               && (p[6] == ' ' || p[6] == '\t')) {
+    
+    if (p[0] == 'n'
+        && p[1] == 'e'
+        && p[2] == 'w'
+        && p[3] == 'm'
+        && p[4] == 't'
+        && p[5] == 'l'
+        && (p[6] == ' ' || p[6] == '\t')) {
       p += 6;
       SKIP_SPACES
-
+      
       begin = p;
       while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
       end = p;
-
+      
       if (end > begin) {
         if (mtl)
           wobj_handleMaterial(wst, mtllib, mtl);
@@ -216,6 +92,144 @@ wobj_mtl(WOState    * __restrict wst,
         mtl->Tr    = 0.0f;
         mtl->d     = 1.0f;
         mtl->illum = 1;
+      }
+    } else if (mtl) {
+      if (p[1] == ' ' || p[1] == '\t') {
+        if (p[0] == 'd') {
+          p++;
+          ak_strtof_line(p, 0, 1, &mtl->d);
+        }
+      } else if (p[2] == ' ' || p[2] == '\t') {
+        switch (p[0]) {
+          case 'K':
+            switch (p[1]) {
+              case 'a':
+                p += 2;
+                ak_strtof_line(p, 0, 3, mtl->Ka);
+                break;
+              case 'd':
+                p += 2;
+                ak_strtof_line(p, 0, 3, mtl->Kd);
+                break;
+              case 's':
+                p += 2;
+                ak_strtof_line(p, 0, 3, mtl->Ks);
+                break;
+              case 'e':
+                p += 2;
+                ak_strtof_line(p, 0, 3, mtl->Ke);
+                break;
+              default:
+                p += 2;
+                break;
+            }
+            break;
+          case 'N':
+            switch (p[1]) {
+              case 's':
+                p += 2;
+                ak_strtof_line(p, 0, 1, &mtl->Ns);
+                break;
+              case 'i':
+                p += 2;
+                ak_strtof_line(p, 0, 1, &mtl->Ni);
+                break;
+              default:
+                p += 2;
+                break;
+            }
+            break;
+          case 'T':
+            switch (p[1]) {
+              case 'r':
+                p += 2;
+                ak_strtof_line(p, 0, 1, &mtl->Tr);
+                break;
+              default:
+                p += 2;
+                break;
+            }
+          default:
+            p += 2;
+            break;
+        }
+      } else if (p[0] == 'm'
+                 && p[1] == 'a'
+                 && p[2] == 'p'
+                 && p[3] == '_') {
+        p += 4;
+        switch (p[0]) {
+          case 'K':
+            switch (p[1]) {
+              case 'a':
+                p += 2;
+                SKIP_SPACES
+
+                begin = p;
+                while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
+                end = p;
+                
+                mtl->map_Ka = ak_heap_strndup(heap, mtl, begin, end - begin);
+                break;
+              case 'd':
+                p += 2;
+                SKIP_SPACES
+
+                begin = p;
+                while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
+                end = p;
+                
+                mtl->map_Kd = ak_heap_strndup(heap, mtl, begin, end - begin);
+                
+                break;
+              case 's':
+                p += 2;
+                SKIP_SPACES
+
+                begin = p;
+                while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
+                end = p;
+                
+                mtl->map_Ks = ak_heap_strndup(heap, mtl, begin, end - begin);
+                
+                break;
+              case 'e':
+                p += 2;
+                SKIP_SPACES
+
+                begin = p;
+                while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
+                end = p;
+                
+                mtl->map_Ke = ak_heap_strndup(heap, mtl, begin, end - begin);
+                
+                break;
+              default: break;
+            }
+            break;
+          default: break;
+        }
+      } else if (p[0] == 'b'
+                 && p[1] == 'u'
+                 && p[2] == 'm'
+                 && p[3] == 'p') {
+        p += 4;
+
+        SKIP_SPACES
+
+        begin = p;
+        while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
+        end = p;
+
+        mtl->bump = ak_heap_strndup(heap, mtl, begin, end - begin);
+      } else if (p[0] == 'i'
+                 && p[1] == 'l'
+                 && p[2] == 'l'
+                 && p[3] == 'u'
+                 && p[4] == 'm'
+                 && (p[5] == ' ' || p[5] == '\t')) {
+        p += 5;
+        ak_strtoi_line(p, 0, 1, &mtl->illum);
       }
     }
 
