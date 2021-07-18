@@ -362,6 +362,12 @@ wobj_handleMaterial(WOState  * __restrict wst,
 
   cmnTechn->shininess         = wobj_flt(heap, cmnTechn, mtl->Ns);
   cmnTechn->indexOfRefraction = wobj_flt(heap, cmnTechn, mtl->Ni);
+
+  if (mtl->bump) {
+    cmnTechn->normal        = ak_heap_calloc(heap, cmnTechn, sizeof(*cmnTechn->normal));
+    cmnTechn->normal->scale = 1.0f;
+    cmnTechn->normal->tex   = wobj_texref(wst, cmnTechn, mtl->bump);
+  }
   
   if (mtl->Tr > 0.0f || mtl->d < 1.0f) {
     AkTransparent *transp;
