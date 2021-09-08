@@ -169,7 +169,7 @@ This project exists thanks to all the people who contribute. [[Contribute](CONTR
 
 Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/assetkit#backer)]
 
-<a href="https://opencollective.com/assetkit#backers" target="_blank"><img src="https://opencollective.com/cglm/backers.svg?width=890"></a>
+<a href="https://opencollective.com/assetkit#backers" target="_blank"><img src="https://opencollective.com/assetkit/backers.svg?width=890"></a>
 
 
 ## Sponsors
