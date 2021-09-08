@@ -27,6 +27,14 @@
       <img src="https://img.shields.io/badge/Patreon-Become a patron-orange.svg"
            alt="Patreon: Become a patron">
     </a>
+    <a href="#sponsors">
+        <img src="https://opencollective.com/assetkit/sponsors/badge.svg"
+             alt="Sponsors on Open Collective"/>
+    </a>
+    <a href="#backers">
+        <img src="https://opencollective.com/assetkit/backers/badge.svg"
+             alt="Backers on Open Collective"/>
+    </a>
 </p>
 
 <br>
@@ -150,6 +158,35 @@ if `msbuild` won't work correctly then try to build with `devenv`:
 ```Powershell
 $ devenv assetkit.sln /Build Release
 ```
+
+## Contributors
+
+This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+<a href="https://github.com/recp/assetkit/graphs/contributors"><img src="https://opencollective.com/assetkit/contributors.svg?width=890&button=false" /></a>
+
+
+## Backers
+
+Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/assetkit#backer)]
+
+<a href="https://opencollective.com/assetkit#backers" target="_blank"><img src="https://opencollective.com/cglm/backers.svg?width=890"></a>
+
+
+## Sponsors
+
+Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/assetkit#sponsor)]
+
+<a href="https://opencollective.com/assetkit/sponsor/0/website" target="_blank"><img src="https://opencollective.com/assetkit/sponsor/0/avatar.svg"></a>
+<a href="https://opencollective.com/assetkit/sponsor/1/website" target="_blank"><img src="https://opencollective.com/assetkit/sponsor/1/avatar.svg"></a>
+<a href="https://opencollective.com/assetkit/sponsor/2/website" target="_blank"><img src="https://opencollective.com/assetkit/sponsor/2/avatar.svg"></a>
+<a href="https://opencollective.com/assetkit/sponsor/3/website" target="_blank"><img src="https://opencollective.com/assetkit/sponsor/3/avatar.svg"></a>
+<a href="https://opencollective.com/assetkit/sponsor/4/website" target="_blank"><img src="https://opencollective.com/assetkit/sponsor/4/avatar.svg"></a>
+<a href="https://opencollective.com/assetkit/sponsor/5/website" target="_blank"><img src="https://opencollective.com/assetkit/sponsor/5/avatar.svg"></a>
+<a href="https://opencollective.com/assetkit/sponsor/6/website" target="_blank"><img src="https://opencollective.com/assetkit/sponsor/6/avatar.svg"></a>
+<a href="https://opencollective.com/assetkit/sponsor/7/website" target="_blank"><img src="https://opencollective.com/assetkit/sponsor/7/avatar.svg"></a>
+<a href="https://opencollective.com/assetkit/sponsor/8/website" target="_blank"><img src="https://opencollective.com/assetkit/sponsor/8/avatar.svg"></a>
+<a href="https://opencollective.com/assetkit/sponsor/9/website" target="_blank"><img src="https://opencollective.com/assetkit/sponsor/9/avatar.svg"></a>
+
 
 ### Trademarks
 
