@@ -320,6 +320,7 @@ typedef struct AkSolids {
   uint32_t     inputCount;
 } AkSolids;
 
+/* TODO: */
 typedef struct AkBoundryRep {
   struct AkGeometry *geom;
   AkCurves          *curves;

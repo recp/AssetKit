@@ -45,9 +45,8 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
 
         skin    = ctlr->data;
         skindae = ak_userData(skin);
-        if (!(geom = ak_baseGeometry(&skindae->baseGeom))) {
+        if (!(geom = ak_baseGeometry(&skindae->baseGeom)))
           goto nxt_ctlr;
-        }
 
         switch (geom->gdata->type) {
           case AK_GEOMETRY_MESH: {
@@ -119,8 +118,6 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
             break;
           }
           default:
-            
-            
             break;
         }
         break;
@@ -149,7 +146,6 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
     instCtlr = item->data;
     ctlr     = ak_instanceObject(&instCtlr->base);
     node     = instCtlr->base.node;
-
     instGeom = ak_heap_calloc(dst->heap, node, sizeof(*instGeom));
 
     switch (ctlr->type) {
@@ -178,21 +174,14 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
 
         if ((jointsAcc = jointsInp->accessor)) {
           matrixAcc  = matrixInp->accessor;
-
           jointsBuff = jointsAcc->buffer;
           matrixBuff = matrixAcc->buffer;
 
           it         = jointsBuff->data;
           mit        = matrixBuff->data;
-
           count      = jointsAcc->count;
-          joints     = ak_heap_alloc(dst->heap,
-                                     instCtlr,
-                                     sizeof(void **) * count);
-
-          invm       = ak_heap_alloc(dst->heap,
-                                     ctlr->data,
-                                     sizeof(mat4) * count);
+          joints     = ak_heap_alloc(dst->heap, instCtlr, sizeof(void **) * count);
+          invm       = ak_heap_alloc(dst->heap, ctlr->data, sizeof(mat4) * count);
 
           for (i = 0; i < count; i++) {
             if (!(sid = it[i]))
@@ -220,16 +209,16 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
             glm_mat4_transpose(invm[i]);
           }
 
-          skin->nJoints      = count;
-          skin->invBindPoses = invm;
+          skin->nJoints            = count;
+          skin->invBindPoses       = invm;
 
           instSkin->skin           = skin;
           instSkin->overrideJoints = joints;
           
           /* create instance geometry for skin */
-          instGeom->skinner      = instSkin;
-          instGeom->bindMaterial = instCtlr->bindMaterial;
-          instGeom->base.object  = skindae->baseGeom.ptr;
+          instGeom->skinner        = instSkin;
+          instGeom->bindMaterial   = instCtlr->bindMaterial;
+          instGeom->base.object    = skindae->baseGeom.ptr;
           ak_heap_setpm(instCtlr->bindMaterial, instGeom);
           
           instGeom->base.next = (AkInstanceBase *)node->geometry;

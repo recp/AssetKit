@@ -68,7 +68,6 @@ gltf_meshes(json_t * __restrict jmesh,
     mesh->primitiveCount = 0;
 
     jmeshVal = jmesh->value;
-
     while (jmeshVal) {
       if (json_key_eq(jmeshVal, _s_gltf_primitives)
           && json_is_array(jmeshVal)) {
@@ -179,7 +178,7 @@ gltf_meshes(json_t * __restrict jmesh,
 
               if (!(jtargets = json_array(jprimVal)))
                 goto prmv_nxt;
-              
+
               morph         = ak_heap_calloc(heap, doc, sizeof(*morph));
               morph->method = AK_MORPH_METHOD_ADDITIVE;
               jtarget       = jtargets->base.value;
@@ -197,14 +196,14 @@ gltf_meshes(json_t * __restrict jmesh,
                   
                   inp      = ak_heap_calloc(heap, prim, sizeof(*inp));
                   semantic = memchr(jattrib->key, '_', jattrib->keysize);
-                  
+
                   if (!semantic) {
                     inp->semanticRaw = ak_heap_strndup(heap,
                                                        inp,
                                                        jattrib->key,
                                                        jattrib->keysize);
                   }
-                  
+
                   /* ARRAYs e.g. TEXTURE_0, TEXTURE_1 */
                   else {
                     inp->semanticRaw = ak_heap_strndup(heap,
@@ -214,11 +213,11 @@ gltf_meshes(json_t * __restrict jmesh,
                     if (strlen(semantic) > 1) /* default is 0 with calloc */
                       inp->set = (uint32_t)strtol(semantic + 1, NULL, 10);
                   }
-                  
+
                   inp->semantic = gltf_enumInputSemantic(inp->semanticRaw);
                   inp->accessor = flist_sp_at(&doc->lib.accessors,
                                               json_int32(jattrib, -1));
-                  
+
                   if (inp->semantic == AK_INPUT_POSITION)
                     prim->pos = inp;
                   
@@ -228,17 +227,17 @@ gltf_meshes(json_t * __restrict jmesh,
 
                   jattrib = jattrib->next;
                 } /* jattrib */
-                
+
                 target->next  = morph->target;
                 morph->target = target;
 
                 morph->targetCount++;
                 jtarget = jtarget->next;
               } /* jtarget */
-              
+
               if (doc->lib.morphs)
                 morph->base.next = &doc->lib.morphs->base;
-              
+
               doc->lib.morphs = morph;
             }
 
