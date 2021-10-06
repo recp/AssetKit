@@ -33,16 +33,24 @@ typedef struct WOMtl {
   char *map_Kd;
   char *map_Ks;
   char *map_Ke;
+  char *map_Ns;
+  char *map_d;
+  char *decal;
+  char *disp;
   char *bump;
   vec3  Ka;
   vec3  Kd;
   vec3  Ks;
   vec3  Ke;
+  vec3  Tf;
   float Ni;
-  float Ns; /* exponent */
-  float d;  /* dissolve */
-  float Tr; /* Transparent (1 - d) */
+  float Ns;     /* exponent */
+  float d;      /* dissolve */
+  float dHalo;  /* dissolve halo */
+  float Tr;     /* Transparent (1 - d) */
+  float sharpness; /* The default is 60   */
   int   illum;
+  bool  map_aat;
 } WOMtl;
 
 typedef struct WOMtlLib {
