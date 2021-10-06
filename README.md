@@ -44,16 +44,16 @@ Brand-new modern 3D asset importer, exporter library. This library will include 
 
 This library will try to full support COLLADA specs and glTF specs, plus well-known other 3D formats e.g .obj, .stl, .ply... 
 
-There is also an optional renderer library called [libgk](https://github.com/recp/libgk) for render AssetKit contents. You can see how to load AssetKit to libgk in [assetkit-gl](https://github.com/recp/assetkit-gl) repo.
+📌 There is also an optional renderer library called [Graphics Kernel (Realtime Rendering)](https://github.com/recp/libgk) and [rays (Path/Ray Tracer)](https://github.com/recp/rays) which can render **AssetKit** contents. You can see how to load **AssetKit** to [Graphics Kernel](https://github.com/recp/libgk) in [AssetKit-GL](https://github.com/recp/assetkit-gl) repo. Both renderers and documentation with samples will be updated regularly...  
 
 </p>
 
-#### Documentation (In Progress)
+#### 📚 Documentation (In Progress)
 
 Almost all functions (inline versions) and parameters will be documented inside the corresponding headers. <br />
 Complete documentation: http://assetkit.readthedocs.io
 
-## Supported Formats
+## 💪 Supported Formats
 
 * [ ] Asset Exchange (todo) http://github.com/AssetExchange/spec
 * [x] COLLADA 1.4 and COLLADA 1.4.1
@@ -68,7 +68,7 @@ Complete documentation: http://assetkit.readthedocs.io
 * [ ] X3D
 * [x] in progress for next...
 
-## Features
+## 🚀 Features
 
 - Single interface for glTF 2.0 (with extensions), COLLADA 1.4/1.4.1/1.5, Wavefront Obj and others...
 - Very very small and very fast library
@@ -93,7 +93,7 @@ Complete documentation: http://assetkit.readthedocs.io
 - [x] Cmake support
 - [ ] Tests
 
-## Build
+## 🔨 Build
 
 ### CMake (All platforms)
 ```bash
