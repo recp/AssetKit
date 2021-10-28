@@ -17,6 +17,10 @@
 #ifndef endian_h
 #define endian_h
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "common.h"
 #include <ctype.h>
 
@@ -232,4 +236,7 @@ bswapu64(uint64_t val) {
     }                                                                         \
   } while (0)
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* endian_h */
