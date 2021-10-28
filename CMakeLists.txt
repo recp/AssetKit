@@ -24,7 +24,7 @@ else(AK_STATIC)
   set(AK_BUILD STATIC)
 endif()
 
-if(aK_USE_C99)
+if(AK_USE_C99)
   set(C_STANDARD 99)
 endif()
 
@@ -54,7 +54,10 @@ include(GNUInstallDirs)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-include(CPack)
+
+if(NOT CPack_CMake_INCLUDED)
+  include(CPack)
+endif()
 
 # Target Start
 add_library(${PROJECT_NAME} ${AK_BUILD} "")
