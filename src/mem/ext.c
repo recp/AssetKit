@@ -72,14 +72,13 @@ void
 ak_heap_ext_freeurl(AkHeapNode * __restrict hnode) {
   AkUrlNode  *urlNode;
   void       *urlobj;
-  void       **found, **it, *last;
+  void       **it, *last;
   size_t      len;
 
   urlNode = ak_heap_ext_get(hnode, AK_HEAP_NODE_FLAGS_REFC);
   len     = urlNode->len;
   it      = urlNode->urls[0];
   last    = urlNode->urls[len];
-  found   = NULL;
 
   while (it != last) {
     /* check if object is available */
