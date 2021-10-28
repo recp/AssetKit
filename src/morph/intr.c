@@ -29,7 +29,7 @@ ak_morphInterleaveInspect(size_t  * __restrict bufferSize,
   RBTree         *foundInputs;
   size_t          targetStride;
   uint32_t        i, count, foundInpCount;
-  
+
   if (!(target = morph->target))
     return;
 
@@ -58,12 +58,12 @@ ak_morphInterleaveInspect(size_t  * __restrict bufferSize,
 
           if (++foundInpCount >= desiredInputsCount)
             goto calc;
-          
+
           break;
         }
       }
     } while ((inp = inp->next));
-    
+
     if (foundInpCount >= desiredInputsCount)
       goto calc;
   } while ((target = target->next));
@@ -123,7 +123,7 @@ ak_morphInterleave(void    * __restrict buff,
             && desiredInputs[i] == inp->semantic
             && (acc = inp->accessor)) {
 
-          inpOffsets[i]     = acc->fillByteSize;
+          inpOffsets[i] = acc->fillByteSize;
           targetStride += acc->fillByteSize;
 
           rb_insert(foundInputs, (void *)(uintptr_t)inp->semantic, inp);
@@ -135,15 +135,15 @@ ak_morphInterleave(void    * __restrict buff,
         }
       }
     } while ((inp = inp->next));
-    
+
     if (foundInpCount >= desiredInputsCount)
       goto calc_off;
   } while ((target = target->next));
-  
+
   rb_destroy(foundInputs);
-  
+
 calc_off:
-  
+
   inpOffset = 0;
 
   /* calc offsets */
@@ -195,7 +195,7 @@ calc_off:
                compSize);
       }
     } while ((inp = inp->next));
-    
+
     targetIndex++;
   } while ((target = target->next));
 }

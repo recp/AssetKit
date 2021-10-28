@@ -49,7 +49,6 @@ typedef void*(*AkLoadLibraryItemFn)(DAEState * __restrict dst,
                                     void     * __restrict memp);
 static void ak_daeFreeDupl(RBTree *, RBNode *);
 
-AK_HIDE
 static
 void
 dae_lib(DAEState   * __restrict dst,
@@ -209,7 +208,6 @@ ak_daeFreeDupl(RBTree *tree, RBNode *node) {
   ak_free(node->val);
 }
 
-AK_HIDE
 static
 void
 dae_lib(DAEState   * __restrict dst,

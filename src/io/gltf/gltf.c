@@ -34,7 +34,6 @@
 #include "postscript.h"
 #include "../../endian.h"
 
-AK_HIDE
 static
 AkResult
 gltf_parse(AkDoc     ** __restrict dest,
@@ -112,7 +111,6 @@ gltf_gltf(AkDoc     ** __restrict dest,
   return ret;
 }
 
-AK_HIDE
 static
 AkResult
 gltf_parse(AkDoc     ** __restrict dest,

@@ -25,7 +25,6 @@
    https://en.wikipedia.org/wiki/Wavefront_.obj_file#Material_template_library
 */
 
-AK_HIDE
 static
 AkProfileCommon*
 wobj_cmnEffect(WOState * __restrict wst);
@@ -249,7 +248,6 @@ ret:
   return mtllib;
 }
 
-AK_HIDE
 static
 AkProfileCommon*
 wobj_cmnEffect(WOState * __restrict wst) {

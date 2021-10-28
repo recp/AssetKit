@@ -16,7 +16,6 @@
 
 #include "ctlr.h"
 
-AK_HIDE
 static
 AkResult
 ak_fixBoneWeights(AkHeap        *heap,
@@ -235,7 +234,6 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
   }
 }
 
-AK_HIDE
 static
 AkResult
 ak_fixBoneWeights(AkHeap        *heap,

@@ -22,7 +22,6 @@
 #include "../../../array.h"
 #include "../../../../include/ak/light.h"
 
-AK_HIDE
 static
 AkEvaluateScene*
 dae_evalScene(DAEState * __restrict dst,
@@ -122,7 +121,6 @@ dae_instVisualScene(DAEState * __restrict dst,
   return visualScene;
 }
 
-AK_HIDE
 static
 AkEvaluateScene*
 dae_evalScene(DAEState * __restrict dst,

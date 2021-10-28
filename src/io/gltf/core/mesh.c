@@ -183,7 +183,7 @@ gltf_meshes(json_t * __restrict jmesh,
               morph         = ak_heap_calloc(heap, doc, sizeof(*morph));
               morph->method = AK_MORPH_METHOD_ADDITIVE;
               jtarget       = jtargets->base.value;
-              
+
               while (jtarget) {
                 jattrib = jtarget->value;
                 
@@ -194,7 +194,7 @@ gltf_meshes(json_t * __restrict jmesh,
                 while (jattrib) {
                   AkInput    *inp;
                   const char *semantic;
-                  
+
                   inp      = ak_heap_calloc(heap, prim, sizeof(*inp));
                   semantic = memchr(jattrib->key, '_', jattrib->keysize);
 

@@ -20,8 +20,14 @@
 
 /* Buffer > Accessor > Input > Prim > Mesh > Geom > InstanceGeom > Node */
 
-AK_HIDE
-static void
+static
+void
+wobj_finishPrim(WOState  * __restrict wst,
+                WOObject * __restrict wo,
+                WOPrim   * __restrict wp);
+
+static
+void
 wobj_finishPrim(WOState  * __restrict wst,
                 WOObject * __restrict wo,
                 WOPrim   * __restrict wp) {

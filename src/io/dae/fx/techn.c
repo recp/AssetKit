@@ -24,7 +24,6 @@
 #include "../bugfix/transp.h"
 #include "../../../default/material.h"
 
-AK_HIDE
 static
 AkTechniqueFxCommon*
 dae_techniqueFxCmn(DAEState * __restrict dst,
@@ -70,7 +69,6 @@ dae_techniqueFx(DAEState * __restrict dst,
   return techn;
 }
 
-AK_HIDE
 static
 AkTechniqueFxCommon*
 dae_techniqueFxCmn(DAEState * __restrict dst,
