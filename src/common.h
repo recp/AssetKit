@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ak_common_h
-#define ak_common_h
+#ifndef ak_src_common_h
+#define ak_src_common_h
 
 #define AK_INTERN
 
@@ -122,4 +122,4 @@ ak_cmp_vec4(void *key1, void *key2);
 
 typedef int (*AkCmpFn)(void * key1, void *key2);
 
-#endif /* ak_common_h */
+#endif /* ak_src_common_h */
