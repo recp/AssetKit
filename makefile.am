@@ -43,6 +43,7 @@ test_tests_CFLAGS = -I./include
 
 akdir=$(includedir)/ak
 ak_HEADERS = include/ak/assetkit.h \
+             include/ak/version.h \
              include/ak/core-types.h \
              include/ak/string.h \
              include/ak/memory.h \
@@ -96,12 +97,14 @@ libassetkit_la_SOURCES=\
     src/type.c \
     src/profile.c \
     src/asset.c \
+\
     src/mem/lt.c \
     src/mem/rb.c \
     src/mem/intr.c \
     src/mem/ext.c \
     src/mem/mem.c \
     src/mem/mmap.c \
+\
     src/morph/intr.c \
     src/skin/skin.c \
     src/skin/fix.c \
@@ -109,6 +112,7 @@ libassetkit_la_SOURCES=\
     src/image/image.c \
     src/camera/cam.c \
     src/light/light.c \
+\
     src/coord/common.c \
     src/coord/doc.c \
     src/coord/mesh.c \
@@ -119,6 +123,7 @@ libassetkit_la_SOURCES=\
     src/coord/camera.c \
     src/coord/node.c \
     src/coord/scene.c \
+\
     src/resc/path.c \
     src/resc/resource.c \
     src/resc/url.c \
@@ -133,6 +138,7 @@ libassetkit_la_SOURCES=\
     src/default/light.c \
     src/default/type.c \
     src/default/material.c \
+\
     src/geom/mesh.c \
     src/transform/trans.c \
     src/transform/dup.c \
@@ -149,11 +155,14 @@ libassetkit_la_SOURCES=\
     src/mesh/edit_index.c \
     src/mesh/duplicator.c \
     src/mesh/input.c \
+    src/mesh/isolate.c \
+\
     src/bbox/bbox.c \
     src/bbox/mesh.c \
     src/bbox/mesh_prim.c \
     src/bbox/geom.c \
     src/bbox/scene.c \
+\
     src/io/dae/dae.c \
     src/io/dae/ctlr.c \
     src/io/dae/postscript.c \
