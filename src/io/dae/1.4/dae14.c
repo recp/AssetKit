@@ -18,8 +18,8 @@
 #include "../common.h"
 #include "dae14.h"
 
-void
 AK_HIDE
+void
 dae14_loadjobs_add(DAEState   * __restrict  dst,
                    void       *  __restrict parent,
                    void       * __restrict  value,
@@ -44,8 +44,8 @@ dae14_loadjobs_add(DAEState   * __restrict  dst,
   dst->jobs14 = job;
 }
 
-void
 AK_HIDE
+void
 dae14_loadjobs_finish(DAEState * __restrict dst) {
   AkDae14LoadJob *job;
 

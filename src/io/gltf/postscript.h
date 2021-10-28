@@ -19,7 +19,8 @@
 
 #include "common.h"
 
-void AK_HIDE
+AK_HIDE
+void
 gltf_postscript(AkGLTFState * __restrict gst);
 
 #endif /* gltf_postscript_h */

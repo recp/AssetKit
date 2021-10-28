@@ -19,12 +19,14 @@
 
 #include "../common.h"
 
-AkSurface* AK_HIDE
+AK_HIDE
+AkSurface*
 dae_surface(DAEState * __restrict dst,
             xml_t    * __restrict xml,
             void     * __restrict memp);
 
-AkSurfaces* AK_HIDE
+AK_HIDE
+AkSurfaces*
 dae_surfaces(DAEState * __restrict dst,
              xml_t    * __restrict xml,
              void     * __restrict memp);

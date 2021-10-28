@@ -21,7 +21,8 @@
 #define k_perspective  2
 #define k_orthographic 3
 
-void AK_HIDE
+AK_HIDE
+void
 gltf_cameras(json_t * __restrict jcam,
              void   * __restrict userdata) {
   AkGLTFState        *gst;

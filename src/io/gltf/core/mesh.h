@@ -19,11 +19,13 @@
 
 #include "../common.h"
 
-void AK_HIDE
+AK_HIDE
+void
 gltf_meshes(json_t * __restrict json,
             void   * __restrict userdata);
 
-AkMeshPrimitive* AK_HIDE
+AK_HIDE
+AkMeshPrimitive*
 gltf_allocPrim(AkHeap * __restrict heap,
                void   * __restrict memParent,
                int                 mode);

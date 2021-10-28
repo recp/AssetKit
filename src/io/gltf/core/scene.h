@@ -19,11 +19,13 @@
 
 #include "../common.h"
 
-void AK_HIDE
+AK_HIDE
+void
 gltf_scenes(json_t * __restrict jscene,
             void   * __restrict userdata);
 
-void AK_HIDE
+AK_HIDE
+void
 gltf_scene(json_t * __restrict jscene,
            void   * __restrict userdata);
 

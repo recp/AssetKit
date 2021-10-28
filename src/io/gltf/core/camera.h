@@ -19,7 +19,8 @@
 
 #include "../common.h"
 
-void AK_HIDE
+AK_HIDE
+void
 gltf_cameras(json_t * __restrict jcam,
              void   * __restrict userdata);
 

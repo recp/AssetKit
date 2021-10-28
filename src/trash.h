@@ -19,10 +19,12 @@
 
 #include "common.h"
 
-void AK_HIDE
+AK_HIDE
+void
 ak_trash_init(void);
 
-void AK_HIDE
+AK_HIDE
+void
 ak_trash_deinit(void);
 
 #endif /* ak_src_trash_h */

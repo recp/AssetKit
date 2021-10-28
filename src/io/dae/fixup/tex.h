@@ -19,7 +19,8 @@
 
 #include "../common.h"
 
-void AK_HIDE
+AK_HIDE
+void
 dae_fix_textures(DAEState * __restrict dst);
 
 #endif /* dae_tex_fixup_h */

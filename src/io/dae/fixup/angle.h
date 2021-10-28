@@ -19,7 +19,8 @@
 
 #include "../common.h"
 
-void AK_HIDE
+AK_HIDE
+void
 dae_fixAngles(DAEState * __restrict dst);
 
 #endif /* dae_fixangle_h */

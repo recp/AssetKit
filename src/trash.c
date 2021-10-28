@@ -81,12 +81,14 @@ ak_trash_empty() {
   }
 }
 
-void AK_HIDE
+AK_HIDE
+void
 ak_trash_init() {
   ak_heap_init(trash_heap, NULL, ak__trash_cmp, NULL);
 }
 
-void AK_HIDE
+AK_HIDE
+void
 ak_trash_deinit() {
   ak_heap_destroy(trash_heap);
 }

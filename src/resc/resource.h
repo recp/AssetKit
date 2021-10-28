@@ -31,10 +31,12 @@ typedef struct AkResource {
   AkResult    result;
 } AkResource;
 
-void AK_HIDE
+AK_HIDE
+void
 ak_resc_init(void);
 
-void AK_HIDE
+AK_HIDE
+void
 ak_resc_deinit(void);
 
 AkResource *

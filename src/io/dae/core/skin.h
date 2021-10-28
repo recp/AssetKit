@@ -19,7 +19,8 @@
 
 #include "../common.h"
 
-AkSkin* AK_HIDE
+AK_HIDE
+AkSkin*
 dae_skin(DAEState * __restrict dst,
          xml_t    * __restrict xml,
          void     * __restrict memp);

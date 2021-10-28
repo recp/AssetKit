@@ -19,32 +19,32 @@
 
 #include "../common.h"
 
-AkEdges* AK_HIDE
+AK_HIDE AkEdges*
 dae_edges(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp);
 
-AkWires* AK_HIDE
+AK_HIDE AkWires*
 dae_wires(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp);
 
-AkFaces* AK_HIDE
+AK_HIDE AkFaces*
 dae_faces(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp);
 
-AkPCurves* AK_HIDE
+AK_HIDE AkPCurves*
 dae_pcurves(DAEState * __restrict dst,
             xml_t    * __restrict xml,
             void     * __restrict memp);
 
-AkShells* AK_HIDE
+AK_HIDE AkShells*
 dae_shells(DAEState * __restrict dst,
            xml_t    * __restrict xml,
            void     * __restrict memp);
 
-AkSolids* AK_HIDE
+AK_HIDE AkSolids*
 dae_solids(DAEState * __restrict dst,
            xml_t    * __restrict xml,
            void     * __restrict memp);

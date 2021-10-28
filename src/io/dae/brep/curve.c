@@ -18,7 +18,8 @@
 #include "nurb.h"
 #include "../../../array.h"
 
-AkCurve* AK_HIDE
+AK_HIDE
+AkCurve*
 dae_curve(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp) {
@@ -149,7 +150,8 @@ dae_curve(DAEState * __restrict dst,
   return curve;
 }
 
-AkCurves* AK_HIDE
+AK_HIDE
+AkCurves*
 dae_curves(DAEState * __restrict dst,
            xml_t    * __restrict xml,
            void     * __restrict memp) {

@@ -87,13 +87,13 @@ typedef struct {
   AkEnum       val;
 } dae_enum;
 
-int AK_HIDE
+AK_HIDE int
 ak_enumpair_cmp(const void * a, const void * b);
 
-int AK_HIDE
+AK_HIDE int
 ak_enumpair_cmp2(const void * a, const void * b);
 
-int AK_HIDE
+AK_HIDE int
 ak_enumpair_json_val_cmp(const void * a, const void * b);
 
 AK_EXPORT

@@ -19,7 +19,8 @@
 
 #include "../../../include/ak/assetkit.h"
 
-void AK_HIDE
+AK_HIDE
+void
 io_postscript(AkDoc * __restrict doc);
 
 #endif /* ply_postscript_h */

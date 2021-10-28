@@ -19,15 +19,15 @@
 #include "common.h"
 #include <cglm/cglm.h>
 
-bool
 AK_HIDE
+bool
 ak_fixInstanceTransform(AkNode         *node,
                         AkInstanceBase *inst,
                         AkCoordSys     *instCoordSys,
                         AkCoordSys     *coordSys);
 
-bool
 AK_HIDE
+bool
 ak_fixInstanceTransform(AkNode         *node,
                         AkInstanceBase *inst,
                         AkCoordSys     *instCoordSys,

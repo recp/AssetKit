@@ -19,7 +19,8 @@
 
 #include "../common.h"
 
-void AK_HIDE
+AK_HIDE
+void
 dae_color(xml_t   * __restrict xml,
           void    * __restrict memparent,
           bool                 read_sid,

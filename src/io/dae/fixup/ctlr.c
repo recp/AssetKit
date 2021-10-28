@@ -16,8 +16,8 @@
 
 #include "ctlr.h"
 
-static
 AK_HIDE
+static
 AkResult
 ak_fixBoneWeights(AkHeap        *heap,
                   size_t         nMeshVertex,
@@ -29,7 +29,8 @@ ak_fixBoneWeights(AkHeap        *heap,
                   uint32_t       jointOffset,
                   uint32_t       weightsOffset);
 
-void AK_HIDE
+AK_HIDE
+void
 dae_fixup_ctlr(DAEState * __restrict dst) {
   AkDoc        *doc;
   AkController *ctlr;
@@ -131,7 +132,8 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
   }
 }
 
-void AK_HIDE
+AK_HIDE
+void
 dae_fixup_instctlr(DAEState * __restrict dst) {
   AkSkinDAE            *skindae;
   FListItem            *item;
@@ -233,8 +235,8 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
   }
 }
 
-static
 AK_HIDE
+static
 AkResult
 ak_fixBoneWeights(AkHeap        *heap,
                   size_t         nMeshVertex,

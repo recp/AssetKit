@@ -19,7 +19,8 @@
 
 #include "common.h"
 
-void AK_HIDE
+AK_HIDE
+void
 ak_id_newheap(AkHeap * __restrict heap);
 
 AK_HIDE

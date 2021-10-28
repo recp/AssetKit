@@ -32,10 +32,10 @@ typedef struct AkSidConstr {
   AkSidConstrItem *item;
 } AkSidConstr;
 
-void AK_HIDE
+AK_HIDE void
 ak_sid_init(void);
 
-void AK_HIDE
+AK_HIDE void
 ak_sid_deinit(void);
 
 void

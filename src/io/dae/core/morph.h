@@ -19,7 +19,8 @@
 
 #include "../common.h"
 
-AkMorph* AK_HIDE
+AK_HIDE
+AkMorph*
 dae_morph(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp);

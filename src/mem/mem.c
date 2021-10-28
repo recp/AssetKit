@@ -587,7 +587,8 @@ ak_heap_setpm(void * __restrict memptr,
                ak__alignof(newparent));
 }
 
-void AK_HIDE
+AK_HIDE
+void
 ak_freeh(AkHeapNode * __restrict heapNode) {
   if (heapNode->flags & AK_HEAP_NODE_FLAGS_HEAP_CHLD) {
     AkHeap *attachedHeap;

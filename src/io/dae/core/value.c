@@ -70,7 +70,8 @@ static valpair valmap[] = {
 
 static size_t valmapLen = 0;
 
-void AK_HIDE
+AK_HIDE
+void
 dae_dtype(const char *typeName, AkTypeDesc *type) {
   valpair *found;
 
@@ -100,7 +101,8 @@ dae_dtype(const char *typeName, AkTypeDesc *type) {
   type->typeName = found->key;
 }
 
-AkValue* AK_HIDE
+AK_HIDE
+AkValue*
 dae_value(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp) {

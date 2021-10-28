@@ -19,7 +19,8 @@
 
 #include "../common.h"
 
-void AK_HIDE
+AK_HIDE
+void
 gltf_animations(json_t * __restrict janim,
                 void   * __restrict userdata);
 

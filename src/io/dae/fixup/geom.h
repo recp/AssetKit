@@ -19,10 +19,12 @@
 
 #include "../common.h"
 
-AkResult AK_HIDE
+AK_HIDE
+AkResult
 dae_geom_fixup(AkGeometry * geom);
 
-AkResult AK_HIDE
+AK_HIDE
+AkResult
 dae_geom_fixup_all(AkDoc * doc);
 
 #endif /* dae_geom_fixup */

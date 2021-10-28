@@ -19,7 +19,8 @@
 
 #include "common.h"
 
-WOMtlLib* AK_HIDE
+AK_HIDE
+WOMtlLib*
 wobj_mtl(WOState    * __restrict wst,
          const char * __restrict name);
 

@@ -22,7 +22,8 @@
 /**
  * @brief load a tree from xml
  */
-AkTreeNode* AK_HIDE
+AK_HIDE
+AkTreeNode*
 tree_fromxml(AkHeap * __restrict heap,
              void   * __restrict memParent,
              xml_t  * __restrict xml);

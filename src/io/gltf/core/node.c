@@ -31,7 +31,8 @@
 #define k_scale         8
 #define k_weights       9
 
-void AK_HIDE
+AK_HIDE
+void
 gltf_nodes(json_t * __restrict jnode,
            void   * __restrict userdata) {
   AkGLTFState        *gst;
@@ -104,7 +105,8 @@ gltf_nodes(json_t * __restrict jnode,
   doc->lib.nodes = lib;
 }
 
-AkNode* AK_HIDE
+AK_HIDE
+AkNode*
 gltf_node(AkGLTFState * __restrict gst,
           void        * __restrict memParent,
           json_t      * __restrict jnode,

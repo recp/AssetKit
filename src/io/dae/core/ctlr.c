@@ -19,7 +19,8 @@
 #include "morph.h"
 #include "../core/asset.h"
 
-void* AK_HIDE
+AK_HIDE
+void*
 dae_ctlr(DAEState * __restrict dst,
          xml_t    * __restrict xml,
          void     * __restrict memp) {

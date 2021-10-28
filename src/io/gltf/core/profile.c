@@ -16,7 +16,8 @@
 
 #include "profile.h"
 
-AkProfileCommon* AK_HIDE
+AK_HIDE
+AkProfileCommon*
 gltf_cmnEffect(AkGLTFState * __restrict gst) {
   AkLibrary       *lib;
   AkEffect        *effect;

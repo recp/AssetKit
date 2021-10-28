@@ -17,10 +17,12 @@
 #ifndef ak_src_type_h
 #define ak_src_type_h
 
-void AK_HIDE
+AK_HIDE
+void
 ak_type_init(void);
 
-void AK_HIDE
+AK_HIDE
+void
 ak_type_deinit(void);
 
 #endif /* ak_src_type_h */

@@ -18,7 +18,8 @@
 #include "profile.h"
 #include "sampler.h"
 
-AkTextureRef* AK_HIDE
+AK_HIDE
+AkTextureRef*
 gltf_texref(AkGLTFState * __restrict gst,
             void        * __restrict parent,
             json_t      * __restrict jtexinfo) {
@@ -55,7 +56,8 @@ gltf_texref(AkGLTFState * __restrict gst,
   return texref;
 }
 
-void AK_HIDE
+AK_HIDE
+void
 gltf_textures(json_t * __restrict jtex,
               void   * __restrict userdata) {
   AkGLTFState        *gst;

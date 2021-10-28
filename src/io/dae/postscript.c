@@ -24,22 +24,22 @@
 #include "fixup/tex.h"
 #include "fixup/ctlr.h"
 
-void AK_HIDE
+AK_HIDE void
 dae_retain_refs(DAEState * __restrict dst);
 
-void AK_HIDE
+AK_HIDE void
 dae_fixup_accessors(DAEState * __restrict dst);
 
-void AK_HIDE
+AK_HIDE void
 dae_pre_mesh(DAEState * __restrict dst);
 
-void AK_HIDE
+AK_HIDE void
 dae_pre_walk(RBTree *tree, RBNode *rbnode);
 
-void AK_HIDE
+AK_HIDE void
 dae_input_walk(RBTree *tree, RBNode *rbnode);
 
-void AK_HIDE
+AK_HIDE void
 dae_postscript(DAEState * __restrict dst) {
   /* first migrate 1.4 to 1.5 */
   if (dst->version < AK_COLLADA_VERSION_150)
@@ -80,7 +80,7 @@ dae_postscript(DAEState * __restrict dst) {
   }
 }
 
-void AK_HIDE
+AK_HIDE void
 dae_retain_refs(DAEState * __restrict dst) {
   AkHeapAllocator *alc;
   AkURLQueue      *it, *tofree;
@@ -114,7 +114,7 @@ dae_retain_refs(DAEState * __restrict dst) {
   }
 }
 
-void AK_HIDE
+AK_HIDE void
 dae_input_walk(RBTree *tree, RBNode *rbnode) {
   AkAccessor *acc;
   AkSource   *src;
@@ -141,7 +141,7 @@ dae_input_walk(RBTree *tree, RBNode *rbnode) {
 //  rb_destroy(tree);
 }
 
-void AK_HIDE
+AK_HIDE void
 dae_fixup_accessors(DAEState * __restrict dst) {
   AkHeap        *heap;
   AkDoc         *doc;
@@ -240,7 +240,7 @@ dae_fixup_accessors(DAEState * __restrict dst) {
   flist_sp_destroy(&dst->accessors);
 }
 
-void AK_HIDE
+AK_HIDE void
 dae_pre_walk(RBTree *tree, RBNode *rbnode) {
   AkDaeMeshInfo *mi;
   AkSource      *posSrc;
@@ -258,7 +258,7 @@ dae_pre_walk(RBTree *tree, RBNode *rbnode) {
   mi->nVertex = posAcc->count;
 }
 
-void AK_HIDE
+AK_HIDE void
 dae_pre_mesh(DAEState * __restrict dst) {
   rb_walk(dst->meshInfo, dae_pre_walk);
 }

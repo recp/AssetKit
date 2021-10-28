@@ -19,11 +19,13 @@
 
 #include "common.h"
 
-AkResult AK_HIDE
+AK_HIDE
+AkResult
 gltf_gltf(AkDoc     ** __restrict dest,
           const char * __restrict filepath);
 
-AkResult AK_HIDE
+AK_HIDE
+AkResult
 gltf_glb(AkDoc     ** __restrict dest,
          const char * __restrict filepath);
 

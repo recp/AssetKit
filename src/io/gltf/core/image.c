@@ -21,7 +21,8 @@
 #define k_bufferView    1
 #define k_uri           2
 
-void AK_HIDE
+AK_HIDE
+void
 gltf_images(json_t * __restrict jimage,
             void   * __restrict userdata) {
   AkGLTFState        *gst;

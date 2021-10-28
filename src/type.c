@@ -85,7 +85,8 @@ ak_registerType(AkTypeId typeId, AkTypeDesc *desc) {
     rb_insert(ak__typetree_byname, (void *)desc->typeName, desc);
 }
 
-void AK_HIDE
+AK_HIDE
+void
 ak_type_init() {
   AkTypeDesc *it;
 
@@ -102,7 +103,8 @@ ak_type_init() {
   }
 }
 
-void AK_HIDE
+AK_HIDE
+void
 ak_type_deinit() {
   rb_destroy(ak__typetree);
   rb_destroy(ak__typetree_byname);

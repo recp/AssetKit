@@ -19,12 +19,14 @@
 
 #include "../common.h"
 
-AkObject* AK_HIDE
+AK_HIDE
+AkObject*
 dae_nurbs(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp);
 
-AkObject* AK_HIDE
+AK_HIDE
+AkObject*
 dae_nurbs_surface(DAEState * __restrict dst,
                   xml_t    * __restrict xml,
                   void     * __restrict memp);

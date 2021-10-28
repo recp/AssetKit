@@ -19,11 +19,13 @@
 
 #include "../common.h"
 
-void AK_HIDE
+AK_HIDE
+void
 dae_nodeFixupFixedCoord(AkHeap * __restrict heap,
                         AkNode * __restrict node);
 
-void AK_HIDE
+AK_HIDE
+void
 dae_nodeFixup(AkHeap * __restrict heap,
               AkNode*  __restrict node);
 

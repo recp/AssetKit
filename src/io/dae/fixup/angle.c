@@ -28,7 +28,8 @@
 
  */
 
-void AK_HIDE
+AK_HIDE
+void
 dae_cvtAngles(AkAccessor * __restrict acc,
               AkBuffer   * __restrict buff,
               const char * __restrict paramName) {
@@ -62,8 +63,8 @@ dae_cvtAngles(AkAccessor * __restrict acc,
 }
 
 /* TODO: This works for BERZIER but HERMITE?? */
-
-void AK_HIDE
+AK_HIDE
+void
 dae_fixAngles(DAEState * __restrict dst) {
   /* TODO: */
   FListItem     *item;

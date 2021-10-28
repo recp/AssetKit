@@ -20,7 +20,8 @@
 #include "../core/enum.h"
 #include "../core/value.h"
 
-AkSource* AK_HIDE
+AK_HIDE
+AkSource*
 dae_source(DAEState * __restrict dst,
            xml_t    * __restrict xml,
            AkEnum              (*asEnum)(const char *name, size_t nameLen),

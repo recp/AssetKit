@@ -31,7 +31,8 @@
 #include "../../endian.h"
 #include "../../strpool.h"
 
-AkResult AK_HIDE
+AK_HIDE
+AkResult
 stl_stl(AkDoc     ** __restrict dest,
         const char * __restrict filepath) {
   AkHeap        *heap;

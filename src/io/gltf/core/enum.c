@@ -16,7 +16,7 @@
 
 #include "enum.h"
 
-AkEnum AK_HIDE
+AK_HIDE AkEnum
 gltf_enumInputSemantic(const char * name) {
   AkEnum val;
   long   glenums_len;
@@ -45,7 +45,7 @@ gltf_enumInputSemantic(const char * name) {
   return val;
 }
 
-AkEnum AK_HIDE
+AK_HIDE AkEnum
 gltf_componentType(int type) {
   switch (type) {
     case 5120:  return AKT_BYTE;   break;
@@ -59,7 +59,7 @@ gltf_componentType(int type) {
   return AKT_NONE;
 }
 
-int AK_HIDE
+AK_HIDE int
 gltf_componentLen(int type) {
   switch (type) {
     case 5120:            /* AKT_BYTE   */
@@ -72,7 +72,7 @@ gltf_componentLen(int type) {
   }
 }
 
-AkComponentSize AK_HIDE
+AK_HIDE AkComponentSize
 gltf_type(const json_t * __restrict json) {
   AkComponentSize val;
   long            glenums_len;
@@ -101,7 +101,7 @@ gltf_type(const json_t * __restrict json) {
   return val;
 }
 
-AkEnum AK_HIDE
+AK_HIDE AkEnum
 gltf_minFilter(int type) {
   switch (type) {
     case 9728:  return AK_MAGFILTER_NEAREST;       break;
@@ -116,7 +116,7 @@ gltf_minFilter(int type) {
   return 0;
 }
 
-AkEnum AK_HIDE
+AK_HIDE AkEnum
 gltf_magFilter(int type) {
   switch (type) {
     case 9728:  return AK_MINFILTER_NEAREST;   break;
@@ -126,7 +126,7 @@ gltf_magFilter(int type) {
   return 0;
 }
 
-AkEnum AK_HIDE
+AK_HIDE AkEnum
 gltf_wrapMode(int type) {
   switch (type) {
     case 33071:  return AK_WRAP_MODE_CLAMP;       break;
@@ -137,7 +137,7 @@ gltf_wrapMode(int type) {
   return AK_WRAP_MODE_WRAP;
 }
 
-AkOpaque AK_HIDE
+AK_HIDE AkOpaque
 gltf_alphaMode(const json_t * __restrict json) {
   AkEnum val;
   long   glenums_len;
@@ -162,7 +162,7 @@ gltf_alphaMode(const json_t * __restrict json) {
   return val;
 }
 
-AkInterpolationType AK_HIDE
+AK_HIDE AkInterpolationType
 gltf_interp(const json_t * __restrict json) {
   AkEnum val;
   long   glenums_len;

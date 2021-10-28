@@ -17,7 +17,8 @@
 #include "param.h"
 #include "value.h"
 
-AkNewParam* AK_HIDE
+AK_HIDE
+AkNewParam*
 dae_newparam(DAEState * __restrict dst,
              xml_t    * __restrict xml,
              void     * __restrict memp) {
@@ -44,7 +45,8 @@ dae_newparam(DAEState * __restrict dst,
   return newparam;
 }
 
-AkParam* AK_HIDE
+AK_HIDE
+AkParam*
 dae_param(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp) {

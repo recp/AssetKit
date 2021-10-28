@@ -146,7 +146,8 @@ void
 ak_heap_ext_free(AkHeap     * __restrict heap,
                  AkHeapNode * __restrict hnode);
 
-void AK_HIDE
+AK_HIDE
+void
 ak_freeh(AkHeapNode * __restrict heapNode);
 
 void

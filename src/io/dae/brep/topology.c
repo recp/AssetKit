@@ -18,7 +18,7 @@
 #include "../core/enum.h"
 #include "../../../array.h"
 
-AkEdges* AK_HIDE
+AK_HIDE AkEdges*
 dae_edges(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp) {
@@ -87,7 +87,7 @@ dae_edges(DAEState * __restrict dst,
   return edges;
 }
 
-AkWires* AK_HIDE
+AK_HIDE AkWires*
 dae_wires(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp) {
@@ -163,7 +163,7 @@ dae_wires(DAEState * __restrict dst,
   return wires;
 }
 
-AkFaces* AK_HIDE
+AK_HIDE AkFaces*
 dae_faces(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp) {
@@ -239,7 +239,7 @@ dae_faces(DAEState * __restrict dst,
   return faces;
 }
 
-AkPCurves* AK_HIDE
+AK_HIDE AkPCurves*
 dae_pcurves(DAEState * __restrict dst,
             xml_t    * __restrict xml,
             void     * __restrict memp) {
@@ -315,7 +315,7 @@ dae_pcurves(DAEState * __restrict dst,
   return pcurves;
 }
 
-AkShells* AK_HIDE
+AK_HIDE AkShells*
 dae_shells(DAEState * __restrict dst,
            xml_t    * __restrict xml,
            void     * __restrict memp) {
@@ -391,7 +391,7 @@ dae_shells(DAEState * __restrict dst,
   return shells;
 }
 
-AkSolids* AK_HIDE
+AK_HIDE AkSolids*
 dae_solids(DAEState * __restrict dst,
            xml_t    * __restrict xml,
            void     * __restrict memp){

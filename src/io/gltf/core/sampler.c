@@ -18,7 +18,8 @@
 #include "profile.h"
 #include "enum.h"
 
-void AK_HIDE
+AK_HIDE
+void
 gltf_samplers(json_t * __restrict jsampler,
               void   * __restrict userdata) {
   AkGLTFState        *gst;

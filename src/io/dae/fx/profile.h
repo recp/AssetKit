@@ -19,7 +19,8 @@
 
 #include "../common.h"
 
-AkProfile* AK_HIDE
+AK_HIDE
+AkProfile*
 dae_profile(DAEState * __restrict dst,
             xml_t    * __restrict xml,
             void     * __restrict memp);

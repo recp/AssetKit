@@ -21,7 +21,8 @@
 
 #include <stdlib.h>
 
-AkResult AK_HIDE
+AK_HIDE
+AkResult
 dae_doc(AkDoc     ** __restrict dest,
         const char * __restrict filepath);
 

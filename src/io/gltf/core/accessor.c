@@ -30,7 +30,8 @@
 #define k_gltf_sparse        8
 #define k_gltf_name          9
 
-void AK_HIDE
+AK_HIDE
+void
 gltf_accessors(json_t * __restrict json,
                void   * __restrict userdata) {
   AkGLTFState        *gst;

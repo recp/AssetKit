@@ -17,7 +17,8 @@
 #include "mesh_fixup.h"
 #include "../../mesh/index.h"
 
-void AK_HIDE
+AK_HIDE
+void
 gltf_mesh_fixup(AkGLTFState * __restrict gst) {
   AkDoc      *doc;
   AkLibrary  *geomLib;

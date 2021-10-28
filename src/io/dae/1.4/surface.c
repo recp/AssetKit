@@ -18,7 +18,8 @@
 #include "../core/asset.h"
 #include "../core/enum.h"
 
-AkDae14Surface* AK_HIDE
+AK_HIDE
+AkDae14Surface*
 dae14_surface(DAEState * __restrict dst,
               xml_t    * __restrict xml,
               void     * __restrict memp) {

@@ -20,7 +20,8 @@
 #include <stdio.h>
 #include <string.h>
 
-void AK_HIDE
+AK_HIDE
+void
 ak_id_newheap(AkHeap * __restrict heap) {
   size_t *idp;
   void   *idpstr;

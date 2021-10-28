@@ -17,7 +17,8 @@
 #include "skin.h"
 #include "accessor.h"
 
-void AK_HIDE
+AK_HIDE
+void
 gltf_skin(json_t * __restrict jskin,
           void   * __restrict userdata) {
   AkGLTFState        *gst;

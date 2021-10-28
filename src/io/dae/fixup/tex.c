@@ -16,15 +16,18 @@
 
 #include "tex.h"
 
-void AK_HIDE
+AK_HIDE
+void
 dae_tex_walk(RBTree *tree, RBNode *rbnode);
 
-void AK_HIDE
+AK_HIDE
+void
 dae_fix_textures(DAEState * __restrict dst) {
   rb_walk(dst->texmap, dae_tex_walk);
 }
 
-void AK_HIDE
+AK_HIDE
+void
 dae_tex_walk(RBTree *tree, RBNode *rbnode) {
   AkHeap          *heap;
   AkNewParam      *newparam;

@@ -19,7 +19,7 @@
 #include "../common.h"
 #include <string.h>
 
-AkEnum AK_HIDE
+AK_HIDE AkEnum
 dae_semantic(const char * name) {
   AkEnum val;
   long   glenums_len, i;
@@ -67,7 +67,7 @@ dae_semantic(const char * name) {
   return val;
 }
 
-AkEnum AK_HIDE
+AK_HIDE AkEnum
 dae_morphMethod(const xml_attr_t * __restrict xatt) {
   AkEnum val;
   long   glenums_len, i;
@@ -93,7 +93,7 @@ dae_morphMethod(const xml_attr_t * __restrict xatt) {
   return val;
 }
 
-AkEnum AK_HIDE
+AK_HIDE AkEnum
 dae_nodeType(const xml_attr_t * __restrict xatt) {
   AkEnum val;
   long   glenums_len, i;
@@ -119,7 +119,7 @@ dae_nodeType(const xml_attr_t * __restrict xatt) {
   return val;
 }
 
-AkEnum AK_HIDE
+AK_HIDE AkEnum
 dae_animBehavior(const xml_attr_t * __restrict xatt) {
   AkEnum val;
   long   glenums_len, i;
@@ -149,7 +149,7 @@ dae_animBehavior(const xml_attr_t * __restrict xatt) {
   return val;
 }
 
-AkEnum AK_HIDE
+AK_HIDE AkEnum
 dae_animInterp(const char *name, size_t len) {
   AkEnum val;
   long   glenums_len, i;
@@ -179,7 +179,7 @@ dae_animInterp(const char *name, size_t len) {
   return val;
 }
 
-AkEnum AK_HIDE
+AK_HIDE AkEnum
 dae_wrap(const xml_t * __restrict xml) {
   AkEnum val;
   long   glenums_len, i;
@@ -208,7 +208,7 @@ dae_wrap(const xml_t * __restrict xml) {
   return val;
 }
 
-AkEnum AK_HIDE
+AK_HIDE AkEnum
 dae_minfilter(const xml_t * __restrict xml) {
   AkEnum val;
   long   glenums_len, i;
@@ -235,7 +235,7 @@ dae_minfilter(const xml_t * __restrict xml) {
   return val;
 }
 
-AkEnum AK_HIDE
+AK_HIDE AkEnum
 dae_mipfilter(const xml_t * __restrict xml) {
   AkEnum val;
   long   glenums_len, i;
@@ -262,7 +262,7 @@ dae_mipfilter(const xml_t * __restrict xml) {
   return val;
 }
 
-AkEnum AK_HIDE
+AK_HIDE AkEnum
 dae_magfilter(const xml_t * __restrict xml) {
   AkEnum val;
   long   glenums_len, i;
@@ -288,7 +288,7 @@ dae_magfilter(const xml_t * __restrict xml) {
   return val;
 }
 
-AkEnum AK_HIDE
+AK_HIDE AkEnum
 dae_face(const xml_attr_t * __restrict xatt) {
   AkEnum val;
   long   glenums_len, i;
@@ -318,7 +318,7 @@ dae_face(const xml_attr_t * __restrict xatt) {
   return val;
 }
 
-AkEnum AK_HIDE
+AK_HIDE AkEnum
 dae_opaque(const xml_attr_t * __restrict xatt) {
   AkEnum val;
   long  glenums_len, i;
@@ -346,7 +346,7 @@ dae_opaque(const xml_attr_t * __restrict xatt) {
   return val;
 }
 
-AkEnum AK_HIDE
+AK_HIDE AkEnum
 dae_enumChannel(const char *name, size_t len) {
   AkEnum val;
   long   glenums_len, i;
@@ -380,7 +380,7 @@ dae_enumChannel(const char *name, size_t len) {
   return val;
 }
 
-AkEnum AK_HIDE
+AK_HIDE AkEnum
 dae_range(const char *name, size_t len) {
   AkEnum val;
   long   glenums_len, i;
@@ -409,7 +409,7 @@ dae_range(const char *name, size_t len) {
   return val;
 }
 
-AkEnum AK_HIDE
+AK_HIDE AkEnum
 dae_precision(const char *name, size_t len) {
   AkEnum val;
   long   glenums_len, i;

@@ -25,8 +25,9 @@
    https://en.wikipedia.org/wiki/Wavefront_.obj_file#Material_template_library
 */
 
+AK_HIDE
 static
-AkProfileCommon* AK_HIDE
+AkProfileCommon*
 wobj_cmnEffect(WOState * __restrict wst);
 
 static
@@ -39,7 +40,8 @@ static
 AkTextureRef*
 wobj_texref(WOState * __restrict wst, void * __restrict memp, char* name);
 
-WOMtlLib* AK_HIDE
+AK_HIDE
+WOMtlLib*
 wobj_mtl(WOState    * __restrict wst,
          const char * __restrict name) {
   AkHeap   *heap;
@@ -246,8 +248,9 @@ ret:
   return mtllib;
 }
 
+AK_HIDE
 static
-AkProfileCommon* AK_HIDE
+AkProfileCommon*
 wobj_cmnEffect(WOState * __restrict wst) {
   AkLibrary       *lib;
   AkEffect        *effect;

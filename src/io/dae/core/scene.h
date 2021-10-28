@@ -19,16 +19,20 @@
 
 #include "../common.h"
 
-void* AK_HIDE
+AK_HIDE
+void*
 dae_vscene(DAEState * __restrict dst,
            xml_t    * __restrict xml,
            void     * __restrict memp);
 
-AkInstanceBase* AK_HIDE
+AK_HIDE
+AkInstanceBase*
 dae_instVisualScene(DAEState * __restrict dst,
                     xml_t    * __restrict xml,
                     void     * __restrict memp);
-void AK_HIDE
+
+AK_HIDE
+void
 dae_scene(DAEState * __restrict dst,
           xml_t    * __restrict xml);
 

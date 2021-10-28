@@ -19,12 +19,14 @@
 
 #include "../common.h"
 
-AkTextureRef* AK_HIDE
+AK_HIDE
+AkTextureRef*
 gltf_texref(AkGLTFState * __restrict gst,
             void        * __restrict parent,
             json_t      * __restrict jtexinfo);
 
-void AK_HIDE
+AK_HIDE
+void
 gltf_textures(json_t * __restrict jtex,
               void   * __restrict userdata);
 

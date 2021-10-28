@@ -17,7 +17,8 @@
 #include "mesh.h"
 #include "../../../mesh/index.h"
 
-AkResult AK_HIDE
+AK_HIDE
+AkResult
 dae_mesh_fixup(AkMesh * mesh) {
   AkMeshEditHelper *edith;
   AkHeap           *heap;

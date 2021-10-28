@@ -19,7 +19,8 @@
 
 #include "../common.h"
 
-void AK_HIDE
+AK_HIDE
+void
 gltf_images(json_t * __restrict jimage,
             void   * __restrict userdata);
 

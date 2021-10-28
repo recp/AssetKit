@@ -19,10 +19,12 @@
 
 #include "common.h"
 
-void AK_HIDE
+AK_HIDE
+void
 ak_profile_init(void);
 
-void AK_HIDE
+AK_HIDE
+void
 ak_profile_deinit(void);
 
 #endif /* ak_src_profile_h */

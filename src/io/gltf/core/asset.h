@@ -19,7 +19,8 @@
 
 #include "../common.h"
 
-void AK_HIDE
+AK_HIDE
+void
 gltf_asset(json_t * __restrict json,
            void   * __restrict userdata);
 

@@ -21,7 +21,8 @@
 #include "poly.h"
 #include "line.h"
 
-AkObject* AK_HIDE
+AK_HIDE
+AkObject*
 dae_mesh(DAEState   * __restrict dst,
          xml_t      * __restrict xml,
          AkGeometry * __restrict geom) {

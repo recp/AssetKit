@@ -19,7 +19,8 @@
 
 #include "../common.h"
 
-void AK_HIDE
+AK_HIDE
+void
 gltf_accessors(json_t * __restrict jbuffView,
                void   * __restrict userdata);
 

@@ -18,7 +18,8 @@
 #include "../core/asset.h"
 #include "../core/enum.h"
 
-void AK_HIDE
+AK_HIDE
+void
 dae14_fxMigrateImg(DAEState * __restrict dst,
                    xml_t    * __restrict xml,
                    void     * __restrict memp) {

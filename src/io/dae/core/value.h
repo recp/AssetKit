@@ -19,12 +19,14 @@
 
 #include "../common.h"
 
-AkValue* AK_HIDE
+AK_HIDE
+AkValue*
 dae_value(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp);
 
-void AK_HIDE
+AK_HIDE
+void
 dae_dtype(const char *typeName, AkTypeDesc *type);
 
 #endif /* dae_value_h */

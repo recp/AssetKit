@@ -19,7 +19,8 @@
 
 #include "../common.h"
 
-AkResult AK_HIDE
+AK_HIDE
+AkResult
 dae_mesh_fixup(AkMesh * mesh);
 
 #endif /* dae_mesh_fixup_h */

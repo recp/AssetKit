@@ -19,7 +19,7 @@
 
 #include "../common.h"
 
-AkColorDesc* AK_HIDE
+AK_HIDE AkColorDesc*
 dae_colorOrTex(DAEState * __restrict dst,
                xml_t    * __restrict xml,
                void     * __restrict memp);

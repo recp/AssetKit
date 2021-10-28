@@ -19,10 +19,12 @@
 
 #include "../common.h"
 
-void AK_HIDE
+AK_HIDE
+void
 dae_fixup_ctlr(DAEState * __restrict dst);
 
-void AK_HIDE
+AK_HIDE
+void
 dae_fixup_instctlr(DAEState * __restrict dst);
 
 #endif /* dae_ctlr_h */

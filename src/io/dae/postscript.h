@@ -19,7 +19,8 @@
 
 #include "common.h"
 
-void AK_HIDE
+AK_HIDE
+void
 dae_postscript(DAEState * __restrict dst);
 
 #endif /* dae_postscript_h */

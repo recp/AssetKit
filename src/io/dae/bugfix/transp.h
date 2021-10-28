@@ -19,7 +19,8 @@
 
 #include "../common.h"
 
-void AK_HIDE
+AK_HIDE
+void
 dae_bugfix_transp(AkTransparent * __restrict transp);
 
 #endif /* dae_bugfix_transp_h */

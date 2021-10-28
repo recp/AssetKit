@@ -19,17 +19,20 @@
 
 #include "../common.h"
 
-void* AK_HIDE
+AK_HIDE
+void*
 dae_anim(DAEState * __restrict dst,
          xml_t    * __restrict xml,
          void     * __restrict memp);
 
-AkAnimSampler* AK_HIDE
+AK_HIDE
+AkAnimSampler*
 dae_animSampler(DAEState * __restrict dst,
                 xml_t    * __restrict xml,
                 void     * __restrict memp);
 
-AkChannel* AK_HIDE
+AK_HIDE
+AkChannel*
 dae_channel(DAEState * __restrict dst,
             void     * __restrict xml,
             void     * __restrict memp);

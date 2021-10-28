@@ -22,14 +22,15 @@
 #include "../../../array.h"
 #include "../../../../include/ak/light.h"
 
-static
 AK_HIDE
+static
 AkEvaluateScene*
 dae_evalScene(DAEState * __restrict dst,
               xml_t    * __restrict xml,
               void     * __restrict memp);
 
-void* AK_HIDE
+AK_HIDE
+void*
 dae_vscene(DAEState * __restrict dst,
            xml_t    * __restrict xml,
            void     * __restrict memp) {
@@ -102,7 +103,8 @@ dae_vscene(DAEState * __restrict dst,
   return vscn;
 }
 
-AkInstanceBase* AK_HIDE
+AK_HIDE
+AkInstanceBase*
 dae_instVisualScene(DAEState * __restrict dst,
                     xml_t    * __restrict xml,
                     void     * __restrict memp) {
@@ -120,8 +122,8 @@ dae_instVisualScene(DAEState * __restrict dst,
   return visualScene;
 }
 
-static
 AK_HIDE
+static
 AkEvaluateScene*
 dae_evalScene(DAEState * __restrict dst,
               xml_t    * __restrict xml,
@@ -194,7 +196,8 @@ dae_evalScene(DAEState * __restrict dst,
   return evalScene;
 }
 
-void AK_HIDE
+AK_HIDE
+void
 dae_scene(DAEState * __restrict dst,
           xml_t    * __restrict xml) {
   AkDoc    *doc;

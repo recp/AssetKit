@@ -21,7 +21,8 @@
 #include "enum.h"
 #include "../../../default/material.h"
 
-void AK_HIDE
+AK_HIDE
+void
 gltf_materials(json_t * __restrict jmaterial,
                void   * __restrict userdata) {
   AkGLTFState        *gst;

@@ -18,7 +18,8 @@
 #include <string.h>
 #include <ctype.h>
 
-void AK_HIDE
+AK_HIDE
+void
 dae_bugfix_transp(AkTransparent * __restrict transp) {
   AkContributor *contr;
   char          *tool;

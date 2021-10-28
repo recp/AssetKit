@@ -34,8 +34,9 @@
 #include "postscript.h"
 #include "../../endian.h"
 
+AK_HIDE
 static
-AkResult AK_HIDE
+AkResult
 gltf_parse(AkDoc     ** __restrict dest,
            const char * __restrict filepath,
            const char * __restrict contents,
@@ -45,7 +46,8 @@ static
 void
 ak_gltfFreeDupl(RBTree *tree, RBNode *node);
 
-AkResult AK_HIDE
+AK_HIDE
+AkResult
 gltf_glb(AkDoc     ** __restrict dest,
          const char * __restrict filepath) {
   void             *data, *bindata;
@@ -91,7 +93,8 @@ gltf_glb(AkDoc     ** __restrict dest,
   return ret;
 }
 
-AkResult AK_HIDE
+AK_HIDE
+AkResult
 gltf_gltf(AkDoc     ** __restrict dest,
           const char * __restrict filepath) {
   void             *jsonString;
@@ -109,8 +112,9 @@ gltf_gltf(AkDoc     ** __restrict dest,
   return ret;
 }
 
+AK_HIDE
 static
-AkResult AK_HIDE
+AkResult
 gltf_parse(AkDoc     ** __restrict dest,
            const char * __restrict filepath,
            const char * __restrict contents,

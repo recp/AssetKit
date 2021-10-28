@@ -17,7 +17,7 @@
 #include "fltprm.h"
 #include "../core/param.h"
 
-AkFloatOrParam* AK_HIDE
+AK_HIDE AkFloatOrParam*
 dae_floatOrParam(DAEState * __restrict dst,
                  xml_t    * __restrict xml,
                  void     * __restrict memp) {

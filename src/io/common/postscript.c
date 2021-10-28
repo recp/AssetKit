@@ -17,7 +17,8 @@
 #include "postscript.h"
 #include "../../mesh/index.h"
 
-void AK_HIDE
+AK_HIDE
+void
 io_postscript(AkDoc * __restrict doc) {
   AkLibrary  *geomLib;
   AkGeometry *geom;

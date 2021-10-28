@@ -21,7 +21,8 @@ AK_HIDE
 void
 gltf_setskinners(RBTree *tree, RBNode *rbnode);
 
-void AK_HIDE
+AK_HIDE
+void
 gltf_postscript(AkGLTFState * __restrict gst) {
   gltf_mesh_fixup(gst);
   rb_walk(gst->skinBound, gltf_setskinners);

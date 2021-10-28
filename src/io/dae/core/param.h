@@ -19,12 +19,14 @@
 
 #include "../common.h"
 
-AkNewParam* AK_HIDE
+AK_HIDE
+AkNewParam*
 dae_newparam(DAEState * __restrict dst,
              xml_t    * __restrict xml,
              void     * __restrict memp);
 
-AkParam* AK_HIDE
+AK_HIDE
+AkParam*
 dae_param(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp);

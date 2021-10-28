@@ -54,15 +54,15 @@ typedef struct AkDae14Surface {
   AkDae14SurfaceFrom   *initFrom;
 } AkDae14Surface;
 
-void
 AK_HIDE
+void
 dae14_loadjobs_add(DAEState   * __restrict  dst,
                    void       *  __restrict parent,
                    void       * __restrict  value,
                    AkDae14LoadJobType       type);
 
-void
 AK_HIDE
+void
 dae14_loadjobs_finish(DAEState * __restrict dst);
 
 #endif /* dae14_h */
