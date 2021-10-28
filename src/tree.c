@@ -25,7 +25,7 @@ AkTreeNode*
 tree_fromxml(AkHeap * __restrict heap,
              void   * __restrict memParent,
              xml_t  * __restrict xml) {
-  AkTreeNode     *tree, *node, *inode, *pa;
+  AkTreeNode     *tree, *node, *inode/*, *pa*/;
   AkTreeNodeAttr *att;
   xml_t          *root, *xpa;
   xml_attr_t     *xatt;
@@ -36,7 +36,7 @@ tree_fromxml(AkHeap * __restrict heap,
   root = xml;
   xml  = xml->val;
   node = tree;
-  pa   = NULL;
+  /* pa   = NULL; */
 
   while (xml) {
     switch (xml->type) {
