@@ -4,7 +4,7 @@
 <br>
 
 <p align="center">
-    <a href="https://travis-ci.org/recp/assetkit">
+    <a href="https://app.travis-ci.com/recp/AssetKit">
         <img src="https://app.travis-ci.com/recp/AssetKit.svg?branch=master"
              alt="Build Status">
     </a>
