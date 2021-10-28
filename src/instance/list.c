@@ -129,7 +129,7 @@ ak_instanceName(AkInstanceListItem *item) {
                              item,
                              idlen + indexDigit + 2);
 
-  strncpy(name, objId, idlen);
+  memcpy(name, objId, idlen);
   sprintf(name + idlen, "-%zu", item->index);
   name[idlen + indexDigit + 1] = '\0';
 

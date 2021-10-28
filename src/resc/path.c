@@ -32,7 +32,7 @@
 #define STR_SLASH       "/"
 #define APPEND_SLASH                                                          \
   do {                                                                        \
-    strncpy(buf++, STR_SLASH, 1);                                             \
+    *buf++ = CHR_SLASH;                                                       \
     len++;                                                                    \
   } while (0)
 
@@ -206,7 +206,7 @@ ak_path_join(char   *fragments[],
     frag_len = ++frag_end - frag;
     len += frag_len;
 
-    strncpy(buf, frag, frag_len);
+    memcpy(buf, frag, frag_len);
 
     buf += frag_len;
     frag_idx_v++;
