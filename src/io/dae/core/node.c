@@ -36,8 +36,8 @@ AK_HIDE
 AkNode*
 dae_node(DAEState      * __restrict dst,
          xml_t         * __restrict xml,
-         void          * __restrict memp,
-         AkVisualScene * __restrict scene) {
+         void          *            memp,
+         AkVisualScene *            scene) {
   AkHeap      *heap;
   AkNode      *node;
   const xml_t *sval;

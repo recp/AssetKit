@@ -22,9 +22,9 @@
 AK_HIDE
 void
 dae_color(xml_t   * __restrict xml,
-          void    * __restrict memparent,
+          void    *            memparent,
           bool                 read_sid,
           bool                 stack,
-          AkColor * __restrict dest);
+          AkColor *            dest);
 
 #endif /* dae_color_h */
