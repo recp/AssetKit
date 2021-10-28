@@ -39,12 +39,20 @@ typedef struct STLState {
   uint32_t       count;
 } STLState;
 
+#ifdef SKIP_SPACES
+# undef SKIP_SPACES
+#endif
+
 #define SKIP_SPACES                                                           \
   {                                                                           \
     while (c != '\0' && AK_ARRAY_SPACE_CHECK) c = *++p;                       \
     if (c == '\0')                                                            \
       break; /* to break loop */                                              \
   }
+
+#ifdef NEXT_LINE
+# undef NEXT_LINE
+#endif
 
 #define NEXT_LINE                                                             \
   do {                                                                        \

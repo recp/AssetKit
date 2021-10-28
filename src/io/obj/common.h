@@ -86,6 +86,10 @@ typedef struct WOState {
   WOObject      *obj;
 } WOState;
 
+#ifdef SKIP_SPACES
+# undef SKIP_SPACES
+#endif
+
 #define SKIP_SPACES                                                           \
   {                                                                           \
     c = p ? *p : '\0';                                                        \
@@ -93,6 +97,10 @@ typedef struct WOState {
     if (c == '\0')                                                            \
       break; /* to break loop */                                              \
   }
+
+#ifdef NEXT_LINE
+# undef NEXT_LINE
+#endif
 
 #define NEXT_LINE                                                             \
   do {                                                                        \
