@@ -31,6 +31,14 @@ endif()
 if(MSVC)
   add_definitions(-DNDEBUG -D_WINDOWS -D_USRDLL -DAK_EXPORTS -D_assetkit_dll_DLL)
   add_compile_options(/W3 /Ox /Gy /Oi /TC)
+  
+  # Ref: https://skia.googlesource.com/third_party/sdl/+/refs/heads/master/CMakeLists.txt#225
+  # Make sure /RTC1 is disabled, otherwise it will use functions from the CRT
+  foreach(flag_var
+      CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
+      CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO)
+    string(REGEX REPLACE "/RTC(su|[1su])" "" ${flag_var} "${${flag_var}}")
+  endforeach(flag_var)
 else()
   add_compile_options(-Wall -Wextra -O3 -Wstrict-aliasing=2 -Wno-overlength-strings -Wmissing-declarations)
 endif()
@@ -47,6 +55,12 @@ include(GNUInstallDirs)
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
+
+if(AK_SHARED)
+  add_definitions(-DAK_EXPORTS)
+else()
+  target_compile_definitions(${PROJECT_NAME} PUBLIC -DAK_STATIC)
+endif()
 
 # Target Start
 add_library(${PROJECT_NAME} ${AK_BUILD} "")
