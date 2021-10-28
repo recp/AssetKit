@@ -52,8 +52,14 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
       while (i++ < elemc) {
         prop = elem->property;
         while (prop) {
-          if (!prop->ignore)
+          if (!prop->ignore) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+
             ply_val(p, prop->typeDesc, le, float, b[prop->slot], 0.0f);
+            
+#pragma GCC diagnostic pop
+          }
           prop = prop->next;
         }
 
@@ -80,8 +86,13 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
             if ((p + prop->typeDesc->size) > e)
               goto fns;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+            
             ply_val(p, prop->listCountTypeDesc, le, AkUInt, fc, 0);
             
+#pragma GCC diagnostic pop
+
             if (fc >= 3) {
               if (!f || fc > last_fc)
                 f = alloca(sizeof(*f) * fc);
@@ -93,7 +104,13 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
                 if ((p + prop->typeDesc->size) > e)
                   goto fns;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+                
                 ply_val(p, prop->typeDesc, le, uint32_t, f[j], 0);
+                
+#pragma GCC diagnostic pop
+
                 valid += f[j] < vertcount;
               }
               
