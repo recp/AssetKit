@@ -20,6 +20,9 @@
 #include "common.h"
 #include "../../endian.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+
 #define ply_val(p, typeDesc, leEndian, T, DEST, DEFAULT)                      \
   do {                                                                        \
     uint64_t buf;                                                             \
@@ -53,5 +56,7 @@
       default:         DEST = DEFAULT;                    break;              \
     }                                                                         \
   } while (0)
+
+#pragma GCC diagnostic pop
 
 #endif /* ply_util_h */
