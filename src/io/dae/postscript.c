@@ -243,13 +243,11 @@ dae_fixup_accessors(DAEState * __restrict dst) {
 AK_HIDE void
 dae_pre_walk(RBTree *tree, RBNode *rbnode) {
   AkDaeMeshInfo *mi;
-  AkSource      *posSrc;
   AkAccessor    *posAcc;
 
   AK__UNUSED(tree);
 
   mi     = rbnode->val;
-  posSrc = NULL;
   posAcc = NULL;
 
   if (!(posAcc = mi->pos->accessor))
