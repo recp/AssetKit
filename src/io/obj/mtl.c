@@ -151,6 +151,7 @@ wobj_mtl(WOState    * __restrict wst,
                 p += 2;
                 break;
             }
+            break;
           default:
             p += 2;
             break;
