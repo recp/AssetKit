@@ -40,16 +40,16 @@
     }                                                                         \
                                                                               \
     switch (typeDesc->typeId) {                                               \
-      case AKT_FLOAT:  DEST = (T)(*(float    *)&buf);     break;              \
-      case AKT_INT:    DEST = (T)(*(int32_t  *)&buf);     break;              \
-      case AKT_UINT:   DEST = (T)(*(uint32_t *)&buf);     break;              \
-      case AKT_DOUBLE: DEST = (T)(*(double   *)&buf);     break;              \
-      case AKT_INT64:  DEST = (T)(*(int64_t  *)&buf);     break;              \
-      case AKT_UINT64: DEST = (T)(*(uint64_t *)&buf);     break;              \
-      case AKT_SHORT:  DEST = (T)(*(int16_t  *)&buf);     break;              \
-      case AKT_USHORT: DEST = (T)(*(uint16_t *)&buf);     break;              \
-      case AKT_BYTE:   DEST = (T)(*(int8_t   *)&buf);     break;              \
-      case AKT_UBYTE:  DEST = (T)(*(uint8_t  *)&buf);     break;              \
+      case AKT_FLOAT:  DEST = (T)(*(float    *)(void *)&buf);     break;      \
+      case AKT_INT:    DEST = (T)(*(int32_t  *)(void *)&buf);     break;      \
+      case AKT_UINT:   DEST = (T)(*(uint32_t *)(void *)&buf);     break;      \
+      case AKT_DOUBLE: DEST = (T)(*(double   *)(void *)&buf);     break;      \
+      case AKT_INT64:  DEST = (T)(*(int64_t  *)(void *)&buf);     break;      \
+      case AKT_UINT64: DEST = (T)(*(uint64_t *)(void *)&buf);     break;      \
+      case AKT_SHORT:  DEST = (T)(*(int16_t  *)(void *)&buf);     break;      \
+      case AKT_USHORT: DEST = (T)(*(uint16_t *)(void *)&buf);     break;      \
+      case AKT_BYTE:   DEST = (T)(*(int8_t   *)(void *)&buf);     break;      \
+      case AKT_UBYTE:  DEST = (T)(*(uint8_t  *)(void *)&buf);     break;      \
       default:         DEST = DEFAULT;                    break;              \
     }                                                                         \
   } while (0)
