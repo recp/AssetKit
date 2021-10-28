@@ -29,8 +29,10 @@
 #  include <stdio.h>
 #endif
 
-#if defined(_WIN32)
-#  ifdef _assetkit_dll
+#if defined(_MSC_VER)
+#  ifdef AK_STATIC
+#    define AK_EXPORT
+#  elif defined(AK_EXPORTS)
 #    define AK_EXPORT __declspec(dllexport)
 #  else
 #    define AK_EXPORT __declspec(dllimport)
