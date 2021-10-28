@@ -32,4 +32,10 @@ AK_HIDE
 AkResult
 ak_meshFixIndicesDefault(AkMesh *mesh);
 
+AK_HIDE
+AkResult
+ak_movePositions(AkMesh          *mesh,
+                 AkMeshPrimitive *prim,
+                 AkDuplicator    *duplicator);
+
 #endif /* ak_mesh_index_h */

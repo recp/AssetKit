@@ -20,6 +20,8 @@
 
 #include <assert.h>
 
+#include "edit_common.h"
+
 extern const char* ak_mesh_edit_assert1;
 
 void
