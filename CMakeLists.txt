@@ -56,14 +56,15 @@ set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
 
+# Target Start
+add_library(${PROJECT_NAME} ${AK_BUILD} "")
+
 if(AK_SHARED)
   add_definitions(-DAK_EXPORTS)
 else()
   target_compile_definitions(${PROJECT_NAME} PUBLIC -DAK_STATIC)
 endif()
 
-# Target Start
-add_library(${PROJECT_NAME} ${AK_BUILD} "")
 set_target_properties(${PROJECT_NAME} PROPERTIES
                               VERSION ${PROJECT_VERSION} 
                             SOVERSION ${PROJECT_VERSION_MAJOR})
