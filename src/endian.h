@@ -21,7 +21,7 @@
 extern "C" {
 #endif
 
-#include "common.h"
+#include "../include/ak/common.h"
 #include <ctype.h>
 
 #if _MSC_VER
