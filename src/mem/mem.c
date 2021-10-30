@@ -449,6 +449,7 @@ ak_heap_realloc(AkHeap * __restrict heap,
   return ak__alignas(newNode);
 }
 
+AK_EXPORT
 void *
 ak_heap_chld(AkHeapNode *heapNode) {
   if (heapNode->flags & AK_HEAP_NODE_FLAGS_EXT)
@@ -457,6 +458,7 @@ ak_heap_chld(AkHeapNode *heapNode) {
   return heapNode->chld;
 }
 
+AK_EXPORT
 void
 ak_heap_chld_set(AkHeapNode * __restrict heapNode,
                  AkHeapNode * __restrict chldNode) {

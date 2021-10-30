@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <string.h>
 
+AK_EXPORT
 void
 ak_inputNameBySet(AkInput * __restrict input,
                   char    * __restrict buf) {
@@ -32,6 +33,7 @@ ak_inputNameBySet(AkInput * __restrict input,
     strcpy(buf, input->semanticRaw);
 }
 
+AK_EXPORT
 AkInput*
 ak_meshInputGet(AkMeshPrimitive *prim,
                 const char      *inputSemantic,
