@@ -80,6 +80,8 @@ static const u_char *conv_num (const unsigned char *, int *,
 static const u_char *find_string (const u_char *, int *, const char * const *,
                                   const char * const *, int);
 
+const char *
+strptime (const char *buf, const char *fmt, struct tm *tm);
 
 const char *
 strptime (const char *buf, const char *fmt, struct tm *tm)

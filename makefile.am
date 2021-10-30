@@ -249,6 +249,18 @@ libassetkit_la_SOURCES=\
     src/io/ply/ascii.c \
     src/io/ply/bin.c
 
+if MSYS
+libassetkit_la_SOURCES+=\
+    src/win32/dllmain.c \
+    src/win32/strptime.c
+endif
+
+if MINGW
+libassetkit_la_SOURCES+=\
+    src/win32/dllmain.c \
+    src/win32/strptime.c
+endif
+
 test_tests_SOURCES=\
     test/runner.c \
     test/src/test_memory.c \

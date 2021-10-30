@@ -29,7 +29,11 @@
 #  include <stdio.h>
 #endif
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__MINGW32__) || defined(__MINGW64__)
+#  define AK_WINAPI
+#endif
+
+#if defined(_MSC_VER) || defined(__MINGW32__) || defined(__MINGW64__)
 #  ifdef AK_STATIC
 #    define AK_EXPORT
 #  elif defined(AK_EXPORTS)
@@ -38,14 +42,19 @@
 #    define AK_EXPORT __declspec(dllimport)
 #  endif
 #  define AK_HIDE
-#  define AK_INLINE   __forceinline
-#  define AK_ALIGN(X) __declspec(align(X))
 #else
 #  define AK_EXPORT   __attribute__((visibility("default")))
 #  define AK_HIDE     __attribute__((visibility("hidden")))
+#endif
+
+#if defined(_MSC_VER)
+#  define AK_INLINE   __forceinline
+#  define AK_ALIGN(X) __declspec(align(X))
+#else
 #  define AK_ALIGN(X) __attribute((aligned(X)))
 #  define AK_INLINE   static inline __attribute((always_inline))
 #endif
+
 
 #ifndef __has_builtin
 #  define __has_builtin(x) 0

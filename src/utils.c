@@ -68,7 +68,7 @@ ak_readfile(const char * __restrict file,
     return AK_OK;
   }
 
-#ifndef _MSC_VER
+#ifndef AK_WINAPI
   blksize = infile_st.st_blksize;
 #else
   blksize = 512;

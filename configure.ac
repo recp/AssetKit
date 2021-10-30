@@ -92,6 +92,9 @@ AC_CHECK_FUNCS([floor \
                 strtol \
                 strtoul])
 
+AM_CONDITIONAL([MSYS],     [AS_CASE([$host_os],[msys*],         [true], [false])])
+AM_CONDITIONAL([MINGW],    [AS_CASE([$host_os],[mingw*],        [true], [false])])
+
 AC_CONFIG_FILES([makefile])
 
 AC_OUTPUT
