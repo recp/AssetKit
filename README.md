@@ -4,13 +4,17 @@
 <br>
 
 <p align="center">
-    <a href="https://app.travis-ci.com/recp/AssetKit">
-        <img src="https://app.travis-ci.com/recp/AssetKit.svg?branch=master"
-             alt="Build Status">
+    <a href="https://github.com/recp/AssetKit/actions/workflows/c-cpp.yml">
+        <img src="https://github.com/recp/AssetKit/actions/workflows/c-cpp.yml/badge.svg"
+             alt="C/C++ CI">
     </a>
-    <a href="https://ci.appveyor.com/project/recp/assetkit">
-        <img src="https://ci.appveyor.com/api/projects/status/e52s0fr8mnbmsqy4?svg=true"
-             alt="Build Status">
+    <a href="https://github.com/recp/AssetKit/actions/workflows/cmake.yml">
+        <img src="https://github.com/recp/AssetKit/actions/workflows/cmake.yml/badge.svg"
+             alt="CMake">
+    </a>
+    <a href="https://github.com/recp/AssetKit/actions/workflows/msbuild.yml">
+        <img src="https://github.com/recp/AssetKit/actions/workflows/msbuild.yml/badge.svg"
+             alt="MSBuild">
     </a>
     <a href="https://www.codacy.com/app/recp/assetkit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=recp/assetkit&amp;utm_campaign=Badge_Grade">
         <img src="https://api.codacy.com/project/badge/Grade/6edde2ba446148759437eb0148c799b6"
