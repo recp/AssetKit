@@ -55,6 +55,7 @@ ak_unmap(void *file, size_t size) {
 #ifndef AK_WINAPI
   munmap(file, size);
 #else
+  AK__UNUSED(size);
   UnmapViewOfFile(file);
 #endif
 }
