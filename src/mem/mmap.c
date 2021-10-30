@@ -16,7 +16,7 @@
 
 #include "common.h"
 
-#ifndef _MSC_VER
+#ifndef AK_WINAPI
 #  include <sys/mman.h>
 #else
 #  define WIN32_LEAN_AND_MEAN
@@ -31,7 +31,7 @@ ak_mmap_rdonly(int fd, size_t size) {
   
   mapped = NULL;
 
-#ifndef _MSC_VER
+#ifndef AK_WINAPI
   mapped = mmap(0, size, PROT_READ, MAP_SHARED, fd, 0);
   if (!mapped || mapped == MAP_FAILED)
     return NULL;
@@ -52,7 +52,7 @@ ak_mmap_rdonly(int fd, size_t size) {
 AK_EXPORT
 void
 ak_unmap(void *file, size_t size) {
-#ifndef _MSC_VER
+#ifndef AK_WINAPI
   munmap(file, size);
 #else
   UnmapViewOfFile(file);

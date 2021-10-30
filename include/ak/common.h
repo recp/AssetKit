@@ -30,6 +30,10 @@
 #endif
 
 #if defined(_MSC_VER) || defined(__MINGW32__) || defined(__MINGW64__)
+#  define AK_WINAPI
+#endif
+
+#if defined(_MSC_VER) || defined(__MINGW32__) || defined(__MINGW64__)
 #  ifdef AK_STATIC
 #    define AK_EXPORT
 #  elif defined(AK_EXPORTS)
