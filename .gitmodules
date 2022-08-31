@@ -1,6 +1,6 @@
 [submodule "deps/cglm"]
 	path = deps/cglm
-	url = https://recp@github.com/recp/cglm.git
+	url = https://github.com/recp/cglm.git
 [submodule "deps/json"]
 	path = deps/json
 	url = https://github.com/recp/json.git
