@@ -71,6 +71,7 @@ Complete documentation: http://assetkit.readthedocs.io
 * [ ] Draco
 * [ ] X3D
 * [x] in progress for next...
+* [ ] Exporter
 
 ## 🚀 Features
 
