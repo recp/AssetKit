@@ -132,7 +132,10 @@ dae_input_walk(RBTree *tree, RBNode *rbnode) {
   acc           = src->tcommon;
   inp->accessor = acc;
 
-  ak_retain(acc);
+  /* TODO: handle error if null?? */
+  if (acc) {
+    ak_retain(acc);
+  }
 
   /* TODO: */
 //  ak_free(src);
