@@ -72,6 +72,8 @@ ak_meshBeginEditA(AkMesh  * __restrict mesh,
     ak_dsSetAllocator(heap->allocator, edith->indices->alc);
   }
 
+  ak_meshReIndexInputs(mesh);
+
   ak_retain(edith);
 }
 

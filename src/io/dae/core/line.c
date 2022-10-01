@@ -51,36 +51,36 @@ dae_lines(DAEState * __restrict dst,
       if (!inp->semanticRaw) {
         ak_free(inp);
       } else {
+        AkURL *url;
         AkEnum inputSemantic;
-        
+
         inputSemantic = dae_semantic(inp->semanticRaw);
-        
+
         if (inputSemantic < 0)
           inputSemantic = AK_INPUT_OTHER;
-        
+
         inp->semantic = inputSemantic;
         inp->offset   = xmla_u32(xmla(xml, _s_dae_offset), 0);
         inp->set      = xmla_u32(xmla(xml, _s_dae_set),    0);
-        
+
+        url = url_from(xml, _s_dae_source, memp);
+        rb_insert(dst->inputmap, inp, url);
+
         if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
-          AkURL *url;
-          
-          inp->semantic = dae_semantic(inp->semanticRaw);
-          
-          inp->next       = lines->base.input;
+          inp->semantic     = dae_semantic(inp->semanticRaw);
+          inp->next         = lines->base.input;
           lines->base.input = inp;
           lines->base.inputCount++;
-          
+
           if (inp->offset > indexoff)
             indexoff = inp->offset;
-          
-          url = url_from(xml, _s_dae_source, memp);
-          rb_insert(dst->inputmap, inp, url);
         } else {
+          dae_vertmap_add(dst, inp, &lines->base);
+
           /* don't store VERTEX because it will be duplicated to all prims */
-          lines->base.reserved1 = inp->offset;
-          lines->base.reserved2 = inp->set;
-          ak_free(inp);
+          // lines->base.reserved1 = inp->offset;
+          // lines->base.reserved2 = inp->set;
+          // ak_free(inp);
         }
       }
     } else if (xml_tag_eq(xml, _s_dae_p) && xml->val) {

@@ -33,14 +33,17 @@ dae_source(DAEState * __restrict dst,
   AkAccessor    *acc;
   AkAccessorDAE *accdae;
   const xml_t   *sval;
+  void          *rootmemp, *tempmem;
   uint32_t       count;
   AkTypeId       t;
   bool           isName;
 
-  heap   = dst->heap;
-  isName = false;
-  buffer = NULL;
-  source = ak_heap_calloc(heap, dst->tempmem, sizeof(*source));
+  heap     = dst->heap;
+  rootmemp = ak_heap_data(heap->data);
+  tempmem  = dst->tempmem;
+  isName   = false;
+  buffer   = NULL;
+  source   = ak_heap_calloc(heap, tempmem, sizeof(*source));
   ak_setypeid(source, AKT_SOURCE);
 
   xmla_setid(xml, heap, source);
@@ -55,8 +58,8 @@ dae_source(DAEState * __restrict dst,
       AkDataParam *dp_last;
 
       if ((xacc = xml_elem(xml, _s_dae_accessor))) {
-        acc         = ak_heap_calloc(heap, source, sizeof(*acc));
-        accdae      = ak_heap_calloc(heap, acc, sizeof(*accdae));
+        acc         = ak_heap_calloc(heap, rootmemp, sizeof(*acc));
+        accdae      = ak_heap_calloc(heap, tempmem,  sizeof(*accdae));
         
         ak_heap_setUserData(heap, acc, accdae);
         
@@ -73,7 +76,7 @@ dae_source(DAEState * __restrict dst,
         while (xacc) {
           AkDataParam *dp;
           
-          dp = ak_heap_calloc(heap, acc, sizeof(*dp));
+          dp = ak_heap_calloc(heap, accdae, sizeof(*dp));
           sid_set(xacc, heap, dp);
 
           dp->name = xmla_strdup_by(xacc, heap, _s_dae_name, dp);
@@ -95,7 +98,7 @@ dae_source(DAEState * __restrict dst,
       source->technique = tq;
     } else if (xml_valtype(xml) == XML_STRING && (sval = xmls(xml))) {
       count            = xmla_u32(xmla(xml, _s_dae_count), 0);
-      buffer           = ak_heap_alloc(heap, source, sizeof(*buffer));
+      buffer           = ak_heap_alloc(heap, rootmemp, sizeof(*buffer));
       buffer->name     = xmla_strdup_by(xml, heap, _s_dae_name, buffer);
       source->buffer   = buffer;
       

@@ -39,8 +39,76 @@ dae_pre_walk(RBTree *tree, RBNode *rbnode);
 AK_HIDE void
 dae_input_walk(RBTree *tree, RBNode *rbnode);
 
+AK_HIDE
+void
+dae_spread_vert(DAEState * __restrict dst) {
+  AkHeap               *heap;
+  AkVertices           *vert;
+  AkMeshPrimitive      *prim;
+  AkDAEVerticesMapItem *item;
+  FListItem            *fitem;
+  AkInput              *inp;
+  AkInput              *inpv;
+  AkURL                *url;
+
+  if (!(heap = dst->heap) || !(fitem = dst->vertMap)) {
+    return;
+  }
+
+  /* copy <vertices> to all primitives */
+  do {
+    item = fitem->data;
+    prim = item->prim;
+    inp  = item->inp;
+    url  = rb_find(dst->inputmap, inp);
+
+    if (!(vert = ak_getObjectByUrl(url)))
+      continue;
+
+    inpv = vert->input;
+
+    while (inpv) {
+      inp  = ak_heap_calloc(heap, prim, sizeof(*inp));
+      inp->semantic = inpv->semantic;
+      if (inpv->semanticRaw)
+        inp->semanticRaw = ak_heap_strdup(heap, inp, inpv->semanticRaw);
+
+      inp->offset = prim->reserved1;
+      inp->set    = prim->reserved2;
+      inp->next   = prim->input;
+      prim->input = inp;
+
+      if (inp->semantic == AK_INPUT_POSITION) {
+        prim->pos = inp;
+        if (!rb_find(dst->meshInfo, prim->mesh)) {
+          AkDaeMeshInfo *mi;
+
+          mi      = ak_heap_calloc(heap, NULL, sizeof(*mi));
+          mi->pos = inp;
+
+          rb_insert(dst->meshInfo, prim->mesh, mi);
+        }
+      }
+
+      if ((url = rb_find(dst->inputmap, inpv))) {
+        ak_url_dup(url, inp, url);
+        rb_insert(dst->inputmap, inp, url);
+      }
+
+      prim->inputCount++;
+      inpv = inpv->next;
+    }
+
+    /* cleanup will be automatically,
+       because same vertices may be used in multiple places
+     */
+  } while ((fitem = fitem->next));
+}
+
 AK_HIDE void
 dae_postscript(DAEState * __restrict dst) {
+  dae_spread_vert(dst);
+
   /* first migrate 1.4 to 1.5 */
   if (dst->version < AK_COLLADA_VERSION_150)
     dae14_loadjobs_finish(dst);
@@ -124,8 +192,11 @@ dae_input_walk(RBTree *tree, RBNode *rbnode) {
   AK__UNUSED(tree);
 
   inp = rbnode->key;
+  if (inp->semantic == AK_INPUT_SEMANTIC_VERTEX) {
+    return;
+  }
+
   url = rbnode->val;
-  
   if (!(src = ak_getObjectByUrl(url)))
     return;
 

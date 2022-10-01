@@ -50,6 +50,11 @@ typedef struct AkURLQueue {
   struct AkURLQueue *next;
 } AkURLQueue;
 
+typedef struct AkDAEVerticesMapItem {
+  AkInput         *inp;
+  AkMeshPrimitive *prim;
+} AkDAEVerticesMapItem;
+
 typedef AK_ALIGN(16) struct DAEState {
   AkHeap          *heap;
   void            *tempmem;
@@ -65,6 +70,7 @@ typedef AK_ALIGN(16) struct DAEState {
   RBTree          *inputmap;
   RBTree          *texmap;
   RBTree          *instanceMap;
+  FListItem       *vertMap;
   AkSource        *sources;
   AkCOLLADAVersion version;
   bool             stop;
@@ -135,9 +141,10 @@ typedef struct AkSkinDAE {
 } AkSkinDAE;
 
 typedef struct AkMorphDAE {
-  AkURL            baseGeom;
-  AkSource        *source;
-  AkTree          *extra;
+  AkURL     baseGeom;
+  AkSource *source;
+  AkTree   *extra;
+  AkInput  *input;
 } AkMorphDAE;
 
 AK_INLINE
@@ -189,6 +196,23 @@ url_set(DAEState   * __restrict dst,
   urlQueue->next = dst->urlQueue;
   urlQueue->url  = url;
   dst->urlQueue  = urlQueue;
+}
+
+
+AK_INLINE
+void
+dae_vertmap_add(DAEState     * __restrict dst,
+                AkInput         * __restrict inp,
+                AkMeshPrimitive * __restrict prim) {
+  AkDAEVerticesMapItem *item;
+
+  if (!inp || !prim) { return; }
+
+  item       = ak_heap_calloc(dst->heap, dst->tempmem, sizeof(*item));
+  item->inp  = inp;
+  item->prim = prim;
+
+  flist_sp_insert(&dst->vertMap, item);
 }
 
 AK_INLINE

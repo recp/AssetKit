@@ -514,6 +514,14 @@ ak_meshFixIndexBuffer(AkMesh          * __restrict mesh,
                       AkMeshPrimitive * __restrict prim,
                       AkDuplicator    * __restrict duplicator);
 
+
+void
+ak_meshReIndexInputs(AkMesh * __restrict mesh);
+
+void
+ak_inputNameIndexed(AkInput * __restrict input,
+                    char    * __restrict buf);
+
 AK_EXPORT
 void
 ak_inputNameBySet(AkInput * __restrict input,

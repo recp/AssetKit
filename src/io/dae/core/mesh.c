@@ -26,7 +26,6 @@ AkObject*
 dae_mesh(DAEState   * __restrict dst,
          xml_t      * __restrict xml,
          AkGeometry * __restrict geom) {
-  AkVertices *vert;
   AkObject   *obj;
   AkMesh     *mesh;
   AkHeap     *heap;
@@ -41,13 +40,11 @@ dae_mesh(DAEState   * __restrict dst,
   mesh->geom         = geom;
   mesh->convexHullOf = xmla_strdup_by(xml, heap, _s_dae_convex_hull_of, obj);
 
-  vert = NULL;
-  
   while (xml) {
     if (xml_tag_eq(xml, _s_dae_source)) {
       (void)dae_source(dst, xml, NULL, 0);
     } else if (xml_tag_eq(xml, _s_dae_vertices)) {
-      vert = dae_vert(dst, xml, obj);
+      (void)dae_vert(dst, xml, dst->tempmem);
     } else if ((xml_tag_eq(xml, _s_dae_triangles) & (m = AK_TRIANGLES))
             || (xml_tag_eq(xml, _s_dae_trifans)   & (m = AK_TRIANGLE_FAN))
             || (xml_tag_eq(xml, _s_dae_tristrips) & (m = AK_TRIANGLE_STRIP))) {
@@ -97,69 +94,6 @@ dae_mesh(DAEState   * __restrict dst,
     }
 
     xml = xml->next;
-  }
-
-  /* copy <vertices> to all primitives */
-  if (vert) {
-    AkMeshPrimitive *prim;
-    AkInput         *inp;
-    AkInput         *inpv;
-    bool             setMeshInfo;
-    
-    prim        = mesh->primitive;
-    setMeshInfo = false;
-    
-    while (prim) {
-      inpv = vert->input;
-      while (inpv) {
-        AkURL *url;
-        
-        inp  = ak_heap_calloc(heap, prim, sizeof(*inp));
-        inp->semantic = inpv->semantic;
-        if (inpv->semanticRaw)
-          inp->semanticRaw = ak_heap_strdup(heap, inp, inpv->semanticRaw);
-        
-        inp->offset = prim->reserved1;
-        inp->set    = prim->reserved2;
-        inp->next   = prim->input;
-        prim->input = inp;
-        
-        if (inp->semantic == AK_INPUT_POSITION) {
-          prim->pos = inp;
-          if (!setMeshInfo) {
-            AkDaeMeshInfo *mi;
-            
-            mi      = ak_heap_calloc(heap, NULL, sizeof(*mi));
-            mi->pos = inp;
-            
-            rb_insert(dst->meshInfo, mesh, mi);
-            
-            setMeshInfo = true;
-          }
-        }
-        
-        if ((url = rb_find(dst->inputmap, inpv))) {
-          ak_url_dup(url, inp, url);
-          rb_insert(dst->inputmap, inp, url);
-        }
-
-        prim->inputCount++;
-        inpv = inpv->next;
-      }
-      prim = prim->next;
-    }
-    
-    /* dont keep vertices */
-    inpv = vert->input;
-    while (inpv) {
-      inp = inpv;
-
-      rb_remove(dst->inputmap, inpv);
-
-      inpv = inpv->next;
-      ak_free(inp);
-    }
-    ak_free(vert);
   }
 
   return obj;

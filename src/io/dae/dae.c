@@ -107,13 +107,16 @@ dae_doc(AkDoc     ** __restrict dest,
 
   memset(&dstVal, 0, sizeof(dstVal));
 
-  dstVal.doc         = doc;
-  dstVal.heap        = heap;
-  dstVal.meshInfo    = rb_newtree_ptr();
-  dstVal.inputmap    = rb_newtree_ptr();
-  dstVal.texmap      = rb_newtree_ptr();
-  dstVal.instanceMap = rb_newtree_ptr();
-  dst                = &dstVal;
+  dstVal.doc          = doc;
+  dstVal.heap         = heap;
+  dstVal.tempmem      = ak_heap_alloc(heap, doc, sizeof(void*));
+  dstVal.meshInfo     = rb_newtree_ptr();
+  dstVal.inputmap     = rb_newtree_ptr();
+  dstVal.texmap       = rb_newtree_ptr();
+  dstVal.instanceMap  = rb_newtree_ptr();
+
+
+  dst                 = &dstVal;
 
   dstVal.texmap->userData = dst;
 
@@ -186,7 +189,17 @@ dae_doc(AkDoc     ** __restrict dest,
     freeUsrData = freeUsrData->next;
   }
 
+  ak_free(dstVal.tempmem);
+
   flist_sp_destroy(&dst->linkedUserData);
+
+  rb_destroy(dstVal.meshInfo);
+  rb_destroy(dstVal.inputmap);
+  rb_destroy(dstVal.texmap);
+  rb_destroy(dstVal.instanceMap);
+
+  flist_sp_destroy(&dstVal.vertMap);
+
 
   if (xdoc)
     free((void *)xdoc);
