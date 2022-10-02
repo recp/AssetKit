@@ -97,14 +97,20 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
   
   heap = ak_heap_getheap(prim);
 
-  if (!prim->bbox)
+  if (!prim->bbox) {
     prim->bbox = ak_heap_calloc(heap, prim, sizeof(*prim->bbox));
+    ak_bbox_invalidate(prim->bbox);
+  }
 
-  if (!mesh->bbox)
+  if (!mesh->bbox) {
     mesh->bbox = ak_heap_calloc(heap, prim, sizeof(*prim->bbox));
+    ak_bbox_invalidate(mesh->bbox);
+  }
 
-  if (!geom->bbox)
+  if (!geom->bbox) {
     geom->bbox = ak_heap_calloc(heap, prim, sizeof(*prim->bbox));
+    ak_bbox_invalidate(geom->bbox);
+  }
 
   glm_vec3_copy(min, prim->bbox->min);
   glm_vec3_copy(max, prim->bbox->max);

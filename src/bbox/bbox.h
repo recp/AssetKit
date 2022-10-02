@@ -20,6 +20,13 @@
 #include "../common.h"
 #include "../../include/ak/bbox.h"
 
+AK_INLINE
+void
+ak_bbox_invalidate(AkBoundingBox * __restrict bbox) {
+  glm_vec3_broadcast(FLT_MAX,  bbox->min);
+  glm_vec3_broadcast(-FLT_MAX, bbox->max);
+}
+
 void
 ak_bbox_pick(float min[3],
              float max[3],

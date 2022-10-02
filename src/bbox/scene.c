@@ -112,8 +112,10 @@ ak_bbox_scene(struct AkVisualScene * __restrict scene) {
   node = scene->node;
   heap = ak_heap_getheap(scene);
 
-  if (!scene->bbox)
+  if (!scene->bbox) {
     scene->bbox = ak_heap_calloc(heap, scene, sizeof(*scene->bbox));
+    ak_bbox_invalidate(scene->bbox);
+  }
 
   while (node) {
     ak_bbox_node(heap, scene, node, trans);

@@ -29,6 +29,8 @@ ak_bbox_mesh(struct AkMesh * __restrict mesh) {
     mesh->bbox = ak_heap_calloc(ak_heap_getheap(prim),
                                 ak_objFrom(mesh),
                                 sizeof(*mesh->bbox));
+
+  ak_bbox_invalidate(mesh->bbox);
   
   while (prim) {
     ak_bbox_mesh_prim(prim);
