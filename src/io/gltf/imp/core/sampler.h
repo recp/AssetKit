@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef gltf_sampler_h
-#define gltf_sampler_h
+#ifndef gltf_imp_core_sampler_h
+#define gltf_imp_core_sampler_h
 
 #include "../common.h"
 
@@ -24,4 +24,4 @@ void
 gltf_samplers(json_t * __restrict jsampler,
               void   * __restrict userdata);
 
-#endif /* gltf_sampler_h */
+#endif /* gltf_imp_core_sampler_h */

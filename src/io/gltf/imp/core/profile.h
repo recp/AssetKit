@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef gltf_profile_h
-#define gltf_profile_h
+#ifndef gltf_imp_core_profile_h
+#define gltf_imp_core_profile_h
 
 #include "../common.h"
 
@@ -23,4 +23,4 @@ AK_HIDE
 AkProfileCommon*
 gltf_cmnEffect(AkGLTFState * __restrict gst);
 
-#endif /* gltf_profile_h */
+#endif /* gltf_imp_core_profile_h */

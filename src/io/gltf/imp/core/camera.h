@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef gltf_camera_h
-#define gltf_camera_h
+#ifndef gltf_imp_core_camera_h
+#define gltf_imp_core_camera_h
 
 #include "../common.h"
 
@@ -24,4 +24,4 @@ void
 gltf_cameras(json_t * __restrict jcam,
              void   * __restrict userdata);
 
-#endif /* gltf_camera_h */
+#endif /* gltf_imp_core_camera_h */

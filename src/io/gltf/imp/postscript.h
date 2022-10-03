@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef gltf_postscript_h
-#define gltf_postscript_h
+#ifndef gltf_imp_postscript_h
+#define gltf_imp_postscript_h
 
 #include "common.h"
 
@@ -23,4 +23,4 @@ AK_HIDE
 void
 gltf_postscript(AkGLTFState * __restrict gst);
 
-#endif /* gltf_postscript_h */
+#endif /* gltf_imp_postscript_h */

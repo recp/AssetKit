@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef gltf_scene_h
-#define gltf_scene_h
+#ifndef gltf_imp_core_scene_h
+#define gltf_imp_core_scene_h
 
 #include "../common.h"
 
@@ -29,4 +29,4 @@ void
 gltf_scene(json_t * __restrict jscene,
            void   * __restrict userdata);
 
-#endif /* gltf_scene_h */
+#endif /* gltf_imp_core_scene_h */

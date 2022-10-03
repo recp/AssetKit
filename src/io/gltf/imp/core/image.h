@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef gltf_image_h
-#define gltf_image_h
+#ifndef gltf_imp_core_image_h
+#define gltf_imp_core_image_h
 
 #include "../common.h"
 
@@ -24,4 +24,4 @@ void
 gltf_images(json_t * __restrict jimage,
             void   * __restrict userdata);
 
-#endif /* gltf_image_h */
+#endif /* gltf_imp_core_image_h */

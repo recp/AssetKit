@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef gltf_buffer_h
-#define gltf_buffer_h
+#ifndef gltf_imp_core_buffer_h
+#define gltf_imp_core_buffer_h
 
 #include "../common.h"
 
@@ -27,4 +27,4 @@ void
 gltf_bufferViews(json_t * __restrict json,
                  void   * __restrict userdata);
 
-#endif /* gltf_buffer_h */
+#endif /* gltf_imp_core_buffer_h */

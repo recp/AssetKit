@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef gltf_material_h
-#define gltf_material_h
+#ifndef gltf_imp_core_material_h
+#define gltf_imp_core_material_h
 
 #include "../common.h"
 
@@ -24,4 +24,4 @@ void
 gltf_materials(json_t * __restrict json,
                void   * __restrict userdata);
 
-#endif /* gltf_material_h */
+#endif /* gltf_imp_core_material_h */

@@ -18,7 +18,7 @@
 
 #include "utils.h"
 #include "io/dae/dae.h"
-#include "io/gltf/gltf.h"
+#include "io/gltf/imp/gltf.h"
 #include "io/obj/obj.h"
 #include "io/stl/stl.h"
 #include "io/ply/ply.h"

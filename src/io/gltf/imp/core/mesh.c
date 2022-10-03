@@ -18,7 +18,8 @@
 #include "enum.h"
 #include "accessor.h"
 #include "buffer.h"
-#include "../../../accessor.h"
+#include "../../../../accessor.h"
+#include "../../../common/util.h"
 
 /*
   glTF meshes      -> AkGeometry > AkMesh

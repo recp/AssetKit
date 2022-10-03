@@ -15,7 +15,7 @@
  */
 
 #include "image.h"
-#include "../../../base64.h"
+#include "../../../../base64.h"
 
 #define k_name          0
 #define k_bufferView    1

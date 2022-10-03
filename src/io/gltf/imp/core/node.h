@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef gltf_node_h
-#define gltf_node_h
+#ifndef gltf_imp_core_node_h
+#define gltf_imp_core_node_h
 
 #include "../common.h"
 
@@ -37,4 +37,4 @@ gltf_bindMaterials(AkGLTFState        * __restrict gst,
                    AkInstanceGeometry * __restrict instGeom,
                    int32_t                         meshIndex);
 
-#endif /* gltf_node_h */
+#endif /* gltf_imp_core_node_h */

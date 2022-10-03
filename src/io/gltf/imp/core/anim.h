@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef gltf_anim_h
-#define gltf_anim_h
+#ifndef gltf_imp_core_anim_h
+#define gltf_imp_core_anim_h
 
 #include "../common.h"
 
@@ -24,4 +24,4 @@ void
 gltf_animations(json_t * __restrict janim,
                 void   * __restrict userdata);
 
-#endif /* gltf_anim_h */
+#endif /* gltf_imp_core_anim_h */

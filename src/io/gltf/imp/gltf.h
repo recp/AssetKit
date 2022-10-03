@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef gltf_h
-#define gltf_h
+#ifndef gltf_imp_h
+#define gltf_imp_h
 
 #include "common.h"
 
@@ -29,4 +29,4 @@ AkResult
 gltf_glb(AkDoc     ** __restrict dest,
          const char * __restrict filepath);
 
-#endif /* gltf_h */
+#endif /* gltf_imp_h */

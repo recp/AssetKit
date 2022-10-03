@@ -17,7 +17,7 @@
 #include "accessor.h"
 #include "enum.h"
 #include "buffer.h"
-#include "../../../accessor.h"
+#include "../../../../accessor.h"
 
 #define k_gltf_bufferView    0
 #define k_gltf_byteOffset    1

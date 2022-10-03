@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef gltf_mesh_h
-#define gltf_mesh_h
+#ifndef gltf_imp_core_mesh_h
+#define gltf_imp_core_mesh_h
 
 #include "../common.h"
 
@@ -30,4 +30,4 @@ gltf_allocPrim(AkHeap * __restrict heap,
                void   * __restrict memParent,
                int                 mode);
 
-#endif /* gltf_mesh_h */
+#endif /* gltf_imp_core_mesh_h */

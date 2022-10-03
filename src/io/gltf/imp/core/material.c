@@ -19,7 +19,7 @@
 #include "sampler.h"
 #include "texture.h"
 #include "enum.h"
-#include "../../../default/material.h"
+#include "../../../../default/material.h"
 
 AK_HIDE
 void

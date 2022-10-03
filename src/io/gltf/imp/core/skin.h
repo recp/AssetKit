@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef gltf_skin_h
-#define gltf_skin_h
+#ifndef gltf_imp_core_skin_h
+#define gltf_imp_core_skin_h
 
 #include "../common.h"
 
@@ -24,4 +24,4 @@ void
 gltf_skin(json_t * __restrict jskin,
           void   * __restrict userdata);
 
-#endif /* gltf_skin_h */
+#endif /* gltf_imp_core_skin_h */

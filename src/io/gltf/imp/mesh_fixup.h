@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef gltf_mesh_fixup_h
-#define gltf_mesh_fixup_h
+#ifndef gltf_imp_mesh_fixup_h
+#define gltf_imp_mesh_fixup_h
 
 #include "common.h"
 
@@ -23,4 +23,4 @@ AK_HIDE
 void
 gltf_mesh_fixup(AkGLTFState * __restrict gst);
 
-#endif /* gltf_mesh_fixup_h */
+#endif /* gltf_imp_mesh_fixup_h */

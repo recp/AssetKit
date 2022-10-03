@@ -15,8 +15,9 @@
  */
 
 #include "gltf.h"
-#include "../../id.h"
-#include "../../../include/ak/path.h"
+#include "../../../id.h"
+#include "../../../../include/ak/path.h"
+#include "../../../endian.h"
 #include "core/asset.h"
 #include "core/buffer.h"
 #include "core/accessor.h"
@@ -32,7 +33,6 @@
 #include "core/anim.h"
 #include "core/skin.h"
 #include "postscript.h"
-#include "../../endian.h"
 
 static
 AkResult

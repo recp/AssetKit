@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef gltf_texture_h
-#define gltf_texture_h
+#ifndef gltf_imp_core_texture_h
+#define gltf_imp_core_texture_h
 
 #include "../common.h"
 
@@ -30,4 +30,4 @@ void
 gltf_textures(json_t * __restrict jtex,
               void   * __restrict userdata);
 
-#endif /* gltf_texture_h */
+#endif /* gltf_imp_core_texture_h */

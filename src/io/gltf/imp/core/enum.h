@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef gltf_enums_h
-#define gltf_enums_h
+#ifndef gltf_imp_core_enums_h
+#define gltf_imp_core_enums_h
 
 #include "../common.h"
 
@@ -46,4 +46,4 @@ gltf_alphaMode(const json_t * __restrict json);
 AK_HIDE AkInterpolationType
 gltf_interp(const json_t * __restrict json);
 
-#endif /* gltf_enums_h */
+#endif /* gltf_imp_core_enums_h */

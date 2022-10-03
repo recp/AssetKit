@@ -15,7 +15,7 @@
  */
 
 #include "mesh_fixup.h"
-#include "../../mesh/index.h"
+#include "../../../mesh/index.h"
 
 AK_HIDE
 void

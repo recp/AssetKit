@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef gltf_asset_h
-#define gltf_asset_h
+#ifndef gltf_imp_core_asset_h
+#define gltf_imp_core_asset_h
 
 #include "../common.h"
 
@@ -24,4 +24,4 @@ void
 gltf_asset(json_t * __restrict json,
            void   * __restrict userdata);
 
-#endif /* gltf_asset_h */
+#endif /* gltf_imp_core_asset_h */

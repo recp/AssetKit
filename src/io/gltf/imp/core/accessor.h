@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef gltf_accesor_h
-#define gltf_accesor_h
+#ifndef gltf_imp_core_accesor_h
+#define gltf_imp_core_accesor_h
 
 #include "../common.h"
 
@@ -24,4 +24,4 @@ void
 gltf_accessors(json_t * __restrict jbuffView,
                void   * __restrict userdata);
 
-#endif /* gltf_accesor_h */
+#endif /* gltf_imp_core_accesor_h */
