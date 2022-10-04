@@ -1,4 +1,28 @@
 {
   "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools",
-  "restructuredtext.confPath": "${workspaceFolder}/docs/source"
+  "workbench.colorTheme": "Visual Studio Dark - C++",
+  "editor.inlineSuggest.enabled": true,
+  "cmake.configureOnOpen": true,
+  "theme-by-language.themes": {
+       "c": "Visual Studio Dark - C++",
+       "javascript": "GitHub Light Default"
+   },
+   "debug.onTaskErrors": "showErrors",
+   "editor.fontSize": 14,
+   "editor.minimap.enabled": false,
+   "window.commandCenter": true,
+   "workbench.editorAssociations": {
+       "*.dae": "3dviewer.viewer"
+   },
+   "editor.fontWeight": "normal",
+   "workbench.colorCustomizations": {
+       "editor.background": "#1D1D25",
+       "sideBar.background": "#1D1D25",
+       "statusBar.background": "#1D1D25",
+       "titleBar.activeBackground": "#1D1D25",
+       "tab.activeBackground": "#2C2C3A",
+       "tab.inactiveBackground": "#1D1D25",
+       "activityBar.background": "#1D1D25",
+       "editorGroupHeader.tabsBackground": "#1D1D25"
+   }
 }
