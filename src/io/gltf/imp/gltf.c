@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-#include "gltf.h"
-#include "../../../id.h"
 #include "../../../../include/ak/path.h"
+#include "../../../id.h"
 #include "../../../endian.h"
+#include "gltf.h"
 #include "core/asset.h"
 #include "core/buffer.h"
 #include "core/accessor.h"
