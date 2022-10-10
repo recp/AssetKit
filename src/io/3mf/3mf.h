@@ -17,7 +17,7 @@
 #ifndef _3mf_h
 #define _3mf_h
 
-#include "common.h"
+#include "../../common.h"
 
 AK_HIDE
 AkResult
