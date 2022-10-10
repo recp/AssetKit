@@ -42,28 +42,35 @@ typedef struct AkMap {
 
 typedef AkHeapSrchCmpFn AkMapCmp;
 
+AK_EXPORT
 void
 ak_map_addptr(AkMap *map, void *ptr);
 
+AK_EXPORT
 void*
 ak_map_find(AkMap *map, void *id);
 
+AK_EXPORT
 AkMapItem*
 ak_map_findm(AkMap *map, void *id);
 
+AK_EXPORT
 void
 ak_map_add(AkMap *map,
            void  *value,
            void  *id);
 
+AK_EXPORT
 void
 ak_multimap_add(AkMap *map,
                 void  *value,
                 void  *id);
 
+AK_EXPORT
 AkMap *
 ak_map_new(AkMapCmp cmp);
 
+AK_EXPORT
 void
 ak_map_destroy(AkMap *map);
 
