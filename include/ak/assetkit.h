@@ -45,7 +45,8 @@ typedef enum AkFileType {
   AK_FILE_TYPE_GLTF      = 2,
   AK_FILE_TYPE_WAVEFRONT = 3,
   AK_FILE_TYPE_STL       = 4,
-  AK_FILE_TYPE_PLY       = 5
+  AK_FILE_TYPE_PLY       = 5,
+  AK_FILE_TYPE_3MF       = 6
 } AkFileType;
 
 typedef enum AkAltitudeMode {

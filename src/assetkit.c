@@ -22,6 +22,7 @@
 #include "io/obj/obj.h"
 #include "io/stl/stl.h"
 #include "io/ply/ply.h"
+#include "io/3mf/3mf.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -56,6 +57,7 @@ ak_load(AkDoc ** __restrict dest, const char * __restrict url, ...) {
     {"obj",  wobj_obj},
     {"stl",  stl_stl},
     {"ply",  ply_ply},
+    {"3mf",  imp_3mf},
   };
 
   floader = NULL;
@@ -96,6 +98,9 @@ ak_load(AkDoc ** __restrict dest, const char * __restrict url, ...) {
         break;
       case AK_FILE_TYPE_PLY:
         floader = &floaders[5];
+        break;
+      case AK_FILE_TYPE_3MF:
+        floader = &floaders[6];
         break;
       default:
         *dest = NULL;
