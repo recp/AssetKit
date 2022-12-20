@@ -66,6 +66,7 @@ Complete documentation: http://assetkit.readthedocs.io
 * [x] Wavefront Obj (.obj + .mtl)
 * [x] STL (ASCII, Binary)
 * [x] PLY (ASCII, Binary)
+* [ ] 3MF (in progress)
 * [ ] USD and friends (License?)
 * [ ] Alembic (License?)
 * [ ] Draco
