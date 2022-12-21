@@ -67,6 +67,7 @@ Complete documentation: http://assetkit.readthedocs.io
 * [x] STL (ASCII, Binary)
 * [x] PLY (ASCII, Binary)
 * [ ] 3MF (in progress)
+* [ ] FBX (License?, probably need to download FBX SDK externally)
 * [ ] USD and friends (License?)
 * [ ] Alembic (License?)
 * [ ] Draco
