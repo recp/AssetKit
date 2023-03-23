@@ -16,7 +16,7 @@
    },
    "editor.fontWeight": "normal",
    "workbench.colorCustomizations": {
-	"[Default Light+*]": {
+	"[Light*]": {
   	    "editor.background": "#fefefe",
   	    "sideBar.background": "#fefefe",
   	    "sideBar.foreground": "#343436",
@@ -29,7 +29,7 @@
   	    "activityBar.background": "#fefefe",
   	    "editorGroupHeader.tabsBackground": "#fefefe"
 	},
-	"[Default Dark+*]": {
+	"[*Dark*]": {
 		"editor.background": "#1D1D25",
 		"sideBar.background": "#1D1D25",
 		"statusBar.background": "#1D1D25",
