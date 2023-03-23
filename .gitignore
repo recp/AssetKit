@@ -65,3 +65,4 @@ cmake-build-debug
 win/x64/*
 win/x86/*
 build/
+.cache/
