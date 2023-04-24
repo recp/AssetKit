@@ -66,3 +66,6 @@ win/x64/*
 win/x86/*
 build/
 .cache/
+.scannerwork/
+.project
+.cproject
