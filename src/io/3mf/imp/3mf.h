@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-#include "3mf.h"
+#ifndef _3mf_h
+#define _3mf_h
+
+#include "common.h"
 
 AK_HIDE
 AkResult
-imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
-  return AK_OK;
-}
+imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath);
+
+#endif /* _3mf_h */

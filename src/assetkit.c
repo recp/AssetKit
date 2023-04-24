@@ -22,7 +22,7 @@
 #include "io/obj/obj.h"
 #include "io/stl/stl.h"
 #include "io/ply/ply.h"
-#include "io/3mf/3mf.h"
+#include "io/3mf/imp/3mf.h"
 
 #include <stdlib.h>
 #include <string.h>

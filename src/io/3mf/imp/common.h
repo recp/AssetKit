@@ -14,13 +14,25 @@
  * limitations under the License.
  */
 
-#ifndef _3mf_h
-#define _3mf_h
+#ifndef _3mf_common_h
+#define _3mf_common_h
 
-#include "../../common.h"
+#include "../../../../include/ak/assetkit.h"
+#include "../../../../include/ak/url.h"
+#include "../../../common.h"
+#include "../../../utils.h"
+#include "../../../xml.h"
 
-AK_HIDE
-AkResult
-imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath);
+#include <ds/forward-list-sep.h>
+#include <string.h>
+#include <xml/xml.h>
+#include <xml/attrib.h>
 
-#endif /* _3mf_h */
+typedef AK_ALIGN(16) struct _3MFState {
+  AkHeap          *heap;
+  void            *tempmem;
+  AkDoc           *doc;
+  bool             stop;
+} _3MFState;
+
+#endif /* _3mf_common_h */
