@@ -17,7 +17,7 @@
 
 AC_PREREQ([2.69])
 AC_INIT([assetkit], [0.3.2], [info@recp.me])
-AM_INIT_AUTOMAKE([-Wall -Werror foreign subdir-objects])
+AM_INIT_AUTOMAKE([-Wall foreign subdir-objects])
 
 # Don't use the default cflags (-O2 -g), we set ours manually in Makefile.am.
 : ${CFLAGS=""}
