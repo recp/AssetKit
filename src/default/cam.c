@@ -40,6 +40,6 @@ const AkCamera ak_def_cam = {
 };
 
 const AkCamera*
-ak_def_camera() {
+ak_def_camera(void) {
   return &ak_def_cam;
 }

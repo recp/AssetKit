@@ -91,7 +91,7 @@ ak_sidConstraintTo(AkTypeId         typeId,
 }
 
 void
-ak_sidInitConstr() {
+ak_sidInitConstr(void) {
   ak_sidConstraintTo(AKT_TEXTURE_NAME, &ak__sidConstrEffect, 0);
   ak_sidConstraintTo(AKT_TEXCOORD,     &ak__sidConstrEffect, 0);
   ak_sidConstraintTo(AKT_TEXTURE,      &ak__sidConstrEffect, 0);

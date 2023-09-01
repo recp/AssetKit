@@ -87,7 +87,7 @@ ak_registerType(AkTypeId typeId, AkTypeDesc *desc) {
 
 AK_HIDE
 void
-ak_type_init() {
+ak_type_init(void) {
   AkTypeDesc *it;
 
   ak__typetree        = rb_newtree(NULL, ds_cmp_i32p, NULL);
@@ -105,7 +105,7 @@ ak_type_init() {
 
 AK_HIDE
 void
-ak_type_deinit() {
+ak_type_deinit(void) {
   rb_destroy(ak__typetree);
   rb_destroy(ak__typetree_byname);
 }

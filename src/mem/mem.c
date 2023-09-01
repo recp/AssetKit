@@ -141,7 +141,7 @@ ak_heap_allocator(AkHeap * __restrict heap) {
 
 AK_EXPORT
 AkHeap *
-ak_heap_default() {
+ak_heap_default(void) {
   return &ak__heap;
 }
 
@@ -862,13 +862,13 @@ ak_setAttachedHeap(void   * __restrict memptr,
 
 AK_EXPORT
 AkHeapAllocator *
-ak_mem_allocator() {
+ak_mem_allocator(void) {
   return ak__heap.allocator;
 }
 
 AK_EXPORT
 void
-ak_mem_printKeys() {
+ak_mem_printKeys(void) {
   ak_heap_rb_print(ak__heap.srchctx);
 }
 
@@ -1130,7 +1130,7 @@ ak_objFrom(void * __restrict memptr) {
 }
 
 void
-ak_mem_init() {
+ak_mem_init(void) {
   ak__heap_sub = rb_newtree_ptr();
   ak_heap_init(&ak__heap, NULL, NULL, NULL);
   ak_heap_lt_init(&ak__heap);
@@ -1139,7 +1139,7 @@ ak_mem_init() {
 }
 
 void
-ak_mem_deinit() {
+ak_mem_deinit(void) {
   ak_heap_destroy(&ak__heap);
   ak_heap_lt_cleanup();
   rb_destroy(ak__heap_sub);

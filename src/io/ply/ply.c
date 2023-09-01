@@ -137,7 +137,7 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
       }
     } else if (EQ7('e', 'l', 'e', 'm', 'e', 'n', 't')) {
       p += 8;
-      
+
       elem = ak_heap_calloc(heap, pst->tmp, sizeof(*elem));
       
       if (!pst->element)

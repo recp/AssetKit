@@ -33,7 +33,7 @@ ak__cleanup(void);
 
 void
 AK_CONSTRUCTOR
-ak__init() {
+ak__init(void) {
   ak_mem_init();
   ak_trash_init();
   ak_resc_init();
@@ -44,7 +44,7 @@ ak__init() {
 
 void
 AK_DESTRUCTOR
-ak__cleanup() {
+ak__cleanup(void) {
   ak_profile_deinit();
   ak_sid_deinit();
   ak_type_deinit();

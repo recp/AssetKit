@@ -70,7 +70,7 @@ ak_trash_add(void *mem) {
 
 AK_EXPORT
 void
-ak_trash_empty() {
+ak_trash_empty(void) {
   while (ak__trash) {
     AkTrashItem *tofree;
     tofree    = ak__trash;
@@ -83,12 +83,12 @@ ak_trash_empty() {
 
 AK_HIDE
 void
-ak_trash_init() {
+ak_trash_init(void) {
   ak_heap_init(trash_heap, NULL, ak__trash_cmp, NULL);
 }
 
 AK_HIDE
 void
-ak_trash_deinit() {
+ak_trash_deinit(void) {
   ak_heap_destroy(trash_heap);
 }

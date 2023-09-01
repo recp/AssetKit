@@ -64,11 +64,11 @@ const AkInputSemanticPair* ak_def_sm_pairs[] = {
 };
 
 const AkInputSemanticPair**
-ak_def_semantic() {
+ak_def_semantic(void) {
   return ak_def_sm_pairs;
 }
 
 uint32_t
-ak_def_semanticc() {
+ak_def_semanticc(void) {
   return AK_ARRAY_LEN(ak_def_sm_pairs);
 }

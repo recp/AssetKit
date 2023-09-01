@@ -47,7 +47,7 @@ ak_transformDup(AkNode * __restrict srcNode,
                                    true);
         newMatrix = ak_objGet(newTransItem);
         ak_sid_dup(newTransItem, transItem);
-        glm_mat4_copy(matrix->val, newMatrix->val);
+        glm_mat4_ucopy(matrix->val, newMatrix->val);
         break;
       }
       case AKT_LOOKAT: {

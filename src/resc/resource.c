@@ -159,18 +159,18 @@ ak_resc_unref_url(const char *url) {
 }
 
 void
-ak_resc_print() {
+ak_resc_print(void) {
   ak_heap_printKeys(resc_heap);
 }
 
 AK_HIDE
 void
-ak_resc_init() {
+ak_resc_init(void) {
   ak_heap_init(resc_heap, NULL, NULL, NULL);
 }
 
 AK_HIDE
 void
-ak_resc_deinit() {
+ak_resc_deinit(void) {
   ak_heap_destroy(resc_heap);
 }

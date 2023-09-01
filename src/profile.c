@@ -130,7 +130,7 @@ ak_setSupportedProfiles(AkProfileType profileTypes[],
 }
 
 const char*
-ak_platform() {
+ak_platform(void) {
   return ak__platform;
 }
 
@@ -141,7 +141,7 @@ ak_setPlatform(const char platform[64]) {
 
 AK_HIDE
 void
-ak_profile_init() {
+ak_profile_init(void) {
   /* default platform */
   strcpy(ak__platform, "GL");
 
@@ -152,6 +152,6 @@ ak_profile_init() {
 
 AK_HIDE
 void
-ak_profile_deinit() {
+ak_profile_deinit(void) {
   ak_free(ak__profileTypes);
 }

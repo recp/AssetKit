@@ -707,7 +707,7 @@ ak_sid_resolve_val(AkContext  * __restrict ctx,
 
 AK_HIDE
 void
-ak_sid_init() {
+ak_sid_init(void) {
   ak_heap_init(sidconst_heap,
                NULL,
                ak_cmp_i32,
@@ -717,6 +717,6 @@ ak_sid_init() {
 
 AK_HIDE
 void
-ak_sid_deinit() {
+ak_sid_deinit(void) {
   ak_heap_destroy(sidconst_heap);
 }

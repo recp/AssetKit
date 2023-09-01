@@ -32,6 +32,6 @@ AkLight akdef_light = {
 };
 
 const AkLight*
-ak_def_light() {
+ak_def_light(void) {
   return &akdef_light;
 }
