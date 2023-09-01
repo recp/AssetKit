@@ -22,4 +22,16 @@
 AkAccessor*
 ak_accessor_dup(AkAccessor *oldacc);
 
+AK_INLINE
+bool
+ak_areSimilarLayouts(AkAccessor *acc1, AkAccessor *acc2) {
+  return (acc1 == acc2) || (
+                            acc1->componentType     == acc2->componentType
+                            && acc1->count          == acc2->count
+                            && acc1->componentCount == acc2->componentCount
+                            && acc1->componentSize  == acc2->componentSize
+                            );
+}
+
+
 #endif /* ak_accessor_h */
