@@ -21,6 +21,8 @@
 #include "../../../../accessor.h"
 #include "../../../common/util.h"
 
+#include <ds/rb.h>
+
 /*
   glTF meshes      -> AkGeometry > AkMesh
   glTF primitives  -> AkMeshPrimitive
@@ -162,21 +164,36 @@ gltf_meshes(json_t * __restrict jmesh,
             } else if (json_key_eq(jprimVal, _s_gltf_targets)) {
               json_array_t  *jtargets;
               json_t        *jtarget, *jattrib;
+              AkMorph       *morph;
               AkMorphTarget *target;
+              AkObject      *targetObj;
+              AkMorphable   *morphable;
+              // AkGeometry    *targetGeom;
+              // AkMesh        *targetMesh;
+              // RBTree        *targetsMap;
+              // int32_t        targetIndex;
 
               if (!(jtargets = json_array(jprimVal)))
                 goto prmv_nxt;
 
+              // targetIndex   = 0;
+              // targetsMap    = rb_newtree(NULL, ak_cmp_i32, NULL);
               morph         = ak_heap_calloc(heap, doc, sizeof(*morph));
               morph->method = AK_MORPH_METHOD_ADDITIVE;
               jtarget       = jtargets->base.value;
 
               while (jtarget) {
                 jattrib = jtarget->value;
-                
-                target       = ak_heap_calloc(heap, morph, sizeof(*target));
-                /* TODO: Important!!! */
-                /* target->prim = prim; */
+
+                target    = ak_heap_calloc(heap, morph,  sizeof(*target));
+                targetObj = ak_objAlloc(heap, target, sizeof(*morphable), AK_MORPHABLE_MORPHABLE, true);
+                morphable = ak_objGet(targetObj);
+
+                /*
+                 TODO: when we want to keep these targets as mesg geometries...:
+                if (!(targetMesh = rb_find(targetsMap, I2P targetIndex)))
+                  targetMesh = ak_allocMesh(heap, lib, &targetGeom);
+                */
 
                 while (jattrib) {
                   AkInput    *inp;
@@ -208,17 +225,19 @@ gltf_meshes(json_t * __restrict jmesh,
 
                   if (inp->semantic == AK_INPUT_POSITION)
                     prim->pos = inp;
-                  
-                  inp->next     = target->input;
-                  target->input = inp;
-                  target->inputCount++;
+
+                  inp->next          = morphable->input;
+                  morphable->input = inp;
+                  morphable->inputCount++;
 
                   jattrib = jattrib->next;
                 } /* jattrib */
 
-                target->next  = morph->target;
-                morph->target = target;
+                target->target = targetObj;
+                target->next   = morph->target;
+                morph->target  = target;
 
+                // targetIndex++;
                 morph->targetCount++;
                 jtarget = jtarget->next;
               } /* jtarget */
@@ -227,6 +246,8 @@ gltf_meshes(json_t * __restrict jmesh,
                 morph->base.next = &doc->lib.morphs->base;
 
               doc->lib.morphs = morph;
+
+              rb_insert(gst->meshTargets, geom, morph);
             }
 
           prmv_nxt:
@@ -268,9 +289,6 @@ gltf_meshes(json_t * __restrict jmesh,
     /* Reversed */
     geom->base.next = lib->chld;
     lib->chld       = (void *)geom;
-
-    if (morph)
-      rb_insert(gst->meshTargets, geom, morph);
 
     lib->count++;
 
