@@ -11,191 +11,236 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. 
  */
 
 #include "../common.h"
+#include "../accessor.h"
 
-AK_EXPORT
-void
-ak_morphInterleaveInspect(size_t  * __restrict bufferSize,
-                          size_t  * __restrict byteStride,
-                          AkMorph * __restrict morph,
-                          AkInputSemantic      desiredInputs[],
-                          uint8_t              desiredInputsCount) {
-  AkMorphTarget  *target;
-  AkInput        *inp;
-  AkAccessor     *acc;
-  RBTree         *foundInputs;
-  size_t          targetStride;
-  uint32_t        i, count, foundInpCount;
-
-  if (!(target = morph->target))
-    return;
-
-  foundInputs   = rb_newtree_ptr();
-  foundInpCount = 0;
-  targetStride  = 0;
-  count         = 0;
-  
-  /* collect stride  for each each input */
+AK_INLINE
+AkInput*
+ak_getPositionInput(AkInput *inp) {
   do {
-    if (!(inp = target->input))
-      continue;
+    if (inp->semantic == AK_INPUT_POSITION)
+      return inp;
+  } while ((inp = inp->next));
 
-    do {
-      for (i = 0; i < desiredInputsCount; i++) {
-        if (!rb_find(foundInputs, (void *)(uintptr_t)inp->semantic)
-            && desiredInputs[i] == inp->semantic
-            && (acc = inp->accessor)) {
-
-          targetStride += acc->fillByteSize;
-
-          rb_insert(foundInputs, (void *)(uintptr_t)inp->semantic, inp);
-
-          if (acc->count > count)
-            count = acc->count;
-
-          if (++foundInpCount >= desiredInputsCount)
-            goto calc;
-
-          break;
-        }
-      }
-    } while ((inp = inp->next));
-
-    if (foundInpCount >= desiredInputsCount)
-      goto calc;
-  } while ((target = target->next));
-
-calc:
-
-  rb_destroy(foundInputs);
-
-  targetStride *= morph->targetCount;
-
-  if (byteStride)
-    *byteStride = targetStride;
-
-  if (bufferSize)
-    *bufferSize = targetStride * count;
-
-  return;
+  return NULL;
 }
 
 AK_EXPORT
-void
-ak_morphInterleave(void    * __restrict buff,
-                   AkMorph * __restrict morph,
-                   AkInputSemantic      desiredInputs[],
-                   uint32_t             desiredInputsCount) {
-  AkMorphTarget *target;
-  AkInput       *inp;
-  AkAccessor    *acc;
-  AkBuffer      *buf;
-  RBTree        *foundInputs;
-  char          *pi, *pi_dest;
-  size_t         inputByteStride, targetStride, *inpOffsets, byteOffset;
-  size_t         inpOffset, targetOffset, compSize;
-  uint32_t       i, count, foundInpCount, targetIndex, nTargets;
-  bool           found;
-  
-  if (desiredInputsCount < 1 || !(target = morph->target))
-    return;
+AkResult
+ak_morphInspect(AkGeometry * __restrict baseMesh,
+                AkMorph    * __restrict morph,
+                AkInputSemantic         desiredInputs[],
+                uint8_t                 desiredInputsCount,
+                bool                    ignoreUncommonInputs) {
+  AkHeap                   *heap;
+  AkMorphInspectView       *view;
+  AkMorphInspectTargetView *targetView, *last;
+  AkMorphTarget            *target;
+  AkMorphable              *morphable;
+  AkGeometry               *geom;
+  AkInput                  *inp, *inpPosition;
+  AkAccessor               *posAcc, *acc;
+  AkObject                 *targetObj, *geomPrimObj;
+  void                     *targetPtr;
+  AkMesh                   *mesh;
+  AkMeshPrimitive          *prim;
+  uint32_t                  i, count;
+  size_t                    targetStride;
 
-  inpOffsets    = alloca(desiredInputsCount * sizeof(*inpOffsets));
-  foundInputs   = rb_newtree_ptr();
-  foundInpCount = 0;
+  if (!baseMesh || !(target = morph->target)) { return AK_ERR; }
+
   targetStride  = 0;
-  targetIndex   = 0;
-  nTargets      = morph->targetCount;
-  
-  memset(inpOffsets, 0, desiredInputsCount * sizeof(*inpOffsets));
-  
-  /* collect stride  for each each input */
+  count         = 0;
+  last          = NULL;
+  heap          = ak_heap_getheap(morph);
+  view          = ak_heap_calloc(heap, morph, sizeof(*view));
+
+#define COLLECT_INPUTS                                                        \
+  do {                                                                        \
+    /* validate POSITION; all positions must be similar layout,               \
+       otherwise ignore target to morph */                                    \
+    if (!(acc = inp->accessor) || acc->count != count) { continue; }          \
+                                                                              \
+    targetStride += acc->fillByteSize;                                        \
+                                                                              \
+    /* if desiredInputsCount > 0 then collect desired inputs */               \
+    if (desiredInputsCount > 0) {                                             \
+      for (i = 0; i < desiredInputsCount; i++) {                              \
+        if (desiredInputs[i] == inp->semantic) {                              \
+          flist_sp_insert(&targetView->inputs, inp);                          \
+          targetView->inputsCount++;                                          \
+        }                                                                     \
+      }                                                                       \
+      continue;                                                               \
+    }                                                                         \
+                                                                              \
+    /* otherwsie collect all inputs */                                        \
+    flist_sp_insert(&targetView->inputs, inp);                                \
+    targetView->inputsCount++;                                                \
+  } while ((inp = inp->next))
+
+#define COLLECT_TARGET                                                        \
+  targetView         = ak_heap_calloc(heap, view, sizeof(*targetView));       \
+  targetView->weight = target->weight;                                        \
+  COLLECT_INPUTS;                                                             \
+  AK_APPEND_FLINK(view->targets, last, targetView);
+
+  /* collect base mesh */
+  if (!(geomPrimObj   = baseMesh->gdata)
+     || (geomPrimObj->type != AK_GEOMETRY_MESH)
+     || !(mesh        = ak_objGet(geomPrimObj))
+     || !(prim        = mesh->primitive)
+     || !(inpPosition = inp = prim->pos)
+     || !(posAcc      = inpPosition->accessor)
+     || !(count       = posAcc->count)) { 
+    return AK_ERR;
+  } 
+  do { COLLECT_TARGET } while((prim = prim->next));
+
+  /* collect morph targets */
   do {
-    if (!(inp = target->input))
-      continue;
+   if (!(targetObj = target->target) || !(targetPtr = ak_objGet(targetObj)))
+     continue;
 
-    do {
-      for (i = 0; i < desiredInputsCount; i++) {
-        if (!rb_find(foundInputs, (void *)(uintptr_t)inp->semantic)
-            && desiredInputs[i] == inp->semantic
-            && (acc = inp->accessor)) {
-
-          inpOffsets[i] = acc->fillByteSize;
-          targetStride += acc->fillByteSize;
-
-          rb_insert(foundInputs, (void *)(uintptr_t)inp->semantic, inp);
-
-          if (++foundInpCount >= desiredInputsCount)
-            goto calc_off;
-
-          break;
+    switch (targetObj->type) {
+      case AK_MORPHABLE_MORPHABLE: {
+        morphable = targetPtr;
+        if (!(inp = morphable->input) 
+           || !(inpPosition = ak_getPositionInput(inp))
+           || !(posAcc      = inpPosition->accessor)
+           || !(count       = posAcc->count)) {
+          continue;
         }
+        do { COLLECT_TARGET } while((morphable = morphable->next)); 
+        break;
       }
-    } while ((inp = inp->next));
-
-    if (foundInpCount >= desiredInputsCount)
-      goto calc_off;
+      case AK_MORPHABLE_GEOMETRY: {
+        geom = targetPtr;
+        if (!(geomPrimObj   = geom->gdata)
+           || (geomPrimObj->type != AK_GEOMETRY_MESH)
+           || !(mesh        = ak_objGet(geomPrimObj))
+           || !(prim        = mesh->primitive)
+           || !(inpPosition = inp = prim->pos)
+           || !(posAcc      = inpPosition->accessor)
+           || !(count       = posAcc->count)) { 
+          continue;
+        }
+        do { COLLECT_TARGET } while((prim = prim->next));
+        break;
+      }
+      default: goto err;
+    }
   } while ((target = target->next));
 
-  rb_destroy(foundInputs);
+  targetStride              *= morph->targetCount;
+  view->interleaveByteStride = targetStride;
+  view->interleaveBufferSize = targetStride * count;
+  view->accessorAccessCount  = count;
+  morph->inspectResult       = view;
 
-calc_off:
+#undef COLLECT_INPUTS
+#undef COLLECT_TARGET
 
-  inpOffset = 0;
+  return AK_OK;
+err: 
+  ak_free(view);
+  return AK_ERR;
+}
 
-  /* calc offsets */
-  for (i = 0; i < desiredInputsCount; i++) {
-    size_t tmp;
-    tmp           = inpOffsets[i];
-    inpOffsets[i] = inpOffset;
-    inpOffset    += tmp * nTargets;
+AK_EXPORT
+AkResult
+ak_morphInterleave(AkGeometry * __restrict baseMesh,
+                   AkMorph    * __restrict morph, 
+                   AkMorphInterleaveLayout layout, 
+                   void       * __restrict destBuff) {
+  AkMorphInspectView       *morphView;
+  AkMorphInspectTargetView *targetView, *base;
+  AkInput                  *inp;
+  AkAccessor               *acc;
+  AkBuffer                 *buf;
+  FListItem                *finp;
+  char                     *src, *dst;
+  uint16_t                 *offs2, *offs1;
+  size_t                    srcStride, targetStride, compSize;
+  uint32_t                  j, k, count, nTargets, inpOff;
+
+  /* ispect is not called, we need to inspect it with default behavior */
+  if (!morph->inspectResult) { 
+    if (ak_morphInspect(baseMesh, morph, NULL, 0, true) != AK_OK) { return AK_ERR; }
   }
 
-  /* fill buffer */
+  if (!(morphView     = morph->inspectResult)
+      || !(targetView = base = morphView->targets)) {
+    return AK_ERR;
+  }
 
-  targetStride *= nTargets;
-  target        = morph->target;
+  dst          = (char *)destBuff;
+  nTargets     = morphView->nTargets;
+  targetStride = morphView->interleaveByteStride;
+  count        = morphView->accessorAccessCount;
+  offs1        = alloca(base->inputsCount * sizeof(*offs1));
+  offs2        = alloca(base->inputsCount * sizeof(*offs2));
+  finp         = targetView->inputs;
 
-  do {
-    if (!(inp = target->input))
-      continue;
+  /*  currently two layouts are supported: 
+      ------------------------------------------------------------------------
+      P1 P2 P3    N1 N2 N3    T01 T02 T03 ...
+      P1 N1 T01   P2 N2 T02   P3  N3  T03 ...
 
-    do {
-      found = false;
-
-      for (i = 0; i < desiredInputsCount; i++) {
-        if (desiredInputs[i] == inp->semantic) {
-          found     = true;
-          inpOffset = inpOffsets[i];
-          break;
-        }
+      offs1 -- P1  -- offs2 --  P2
+   */
+  switch (layout) {
+    case AK_MORPH_ILAYOUT_P1P2N1N2: {
+      for (j = 0, inpOff = 0; 
+           finp && (inp = finp->data) && (acc = inp->accessor); 
+           finp = finp->next, j++) {
+        compSize = acc->fillByteSize;
+        offs1[j] = inpOff + compSize * nTargets;
+        offs2[j] = targetStride - offs1[j];
+        inpOff  += offs1[j];
       }
-
-      if (!found
-          || !(acc = inp->accessor)
-          || !(buf = acc->buffer)
-          || !(pi  = buf->data))
-        continue;
-
-      count           = acc->count;
-      inputByteStride = acc->byteStride;
-      compSize        = acc->fillByteSize;
-      byteOffset      = acc->byteOffset;
-      targetOffset    = targetIndex * compSize;
-
-      pi     += byteOffset;
-      pi_dest = (char *)buff;
-
-      for (i = 0; i < count; i++) {
-        memcpy(pi_dest + targetStride * i + inpOffset + targetOffset,
-               pi + inputByteStride * i,
-               compSize);
+      break;
+    }
+    case AK_MORPH_ILAYOUT_P1N1P2N2: {
+      for (j = 0, inpOff = 0; 
+           finp && (inp = finp->data) && (acc = inp->accessor); 
+           finp = finp->next, j++) {
+        compSize = acc->fillByteSize;
+        offs1[j] = inpOff + compSize;
+        offs2[j] = targetStride - offs1[j];
+        inpOff  += offs1[j];
       }
-    } while ((inp = inp->next));
+      break;
+    }
+    default: return AK_ERR;
+  }
 
-    targetIndex++;
-  } while ((target = target->next));
+  /* TODO: optimize these operations */
+
+  for (;
+       targetView && (finp = targetView->inputs);
+       targetView = targetView->next)
+  {
+    for (j = 0;
+         finp
+         && (inp = finp->data)
+         && (acc = inp->accessor)
+         && (buf = acc->buffer)
+         && (src = (char *)buf->data + acc->byteOffset);
+         finp = finp->next, j++)
+    {
+      srcStride = acc->byteStride;
+      compSize  = acc->fillByteSize;
+      inpOff    = offs1[j] + offs2[j];
+
+      for (k = 0; k < count; k++) {
+        memcpy(dst + inpOff * k, src + srcStride * k, compSize);
+      }
+    }
+  }
+
+  return AK_OK;
 }
