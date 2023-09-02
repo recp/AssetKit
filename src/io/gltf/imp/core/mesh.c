@@ -50,23 +50,9 @@ gltf_meshes(json_t * __restrict jmesh,
     AkGeometry *geom;
     AkMesh     *mesh;
     AkObject   *meshObj;
-    AkMorph    *morph;
 
-    morph             = NULL;
-    geom              = ak_heap_calloc(heap, lib, sizeof(*geom));
-    geom->materialMap = ak_map_new(ak_cmp_str);
-    
-    /* destroy heap with this object */
-    ak_setAttachedHeap(geom, geom->materialMap->heap);
-
-    meshObj = ak_objAlloc(heap,
-                          geom,
-                          sizeof(AkMesh),
-                          AK_GEOMETRY_MESH,
-                          true);
-    geom->gdata          = meshObj;
-    mesh                 = ak_objGet(meshObj);
-    mesh->geom           = geom;
+    mesh                 = ak_allocMesh(heap, lib, &geom);
+    meshObj              = ak_objFrom(mesh);
     mesh->primitiveCount = 0;
 
     jmeshVal = jmesh->value;
@@ -80,9 +66,9 @@ gltf_meshes(json_t * __restrict jmesh,
           AkMeshPrimitive *prim;
           json_t          *jprimVal;
 
-          prim  = gltf_allocPrim(heap,
-                                 meshObj,
-                                 json_int32(json_get(jprim, _s_gltf_mode), 4));
+          prim = gltf_allocPrim(heap,
+                                meshObj,
+                                json_int32(json_get(jprim, _s_gltf_mode), 4));
 
           prim->input      = NULL;
           prim->inputCount = 0;
