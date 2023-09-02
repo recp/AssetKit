@@ -23,6 +23,7 @@ extern "C" {
 #include "common.h"
 
 struct AkNode;
+struct FListItem;
 
 typedef enum AkMorphMethod {
   AK_MORPH_METHOD_NORMALIZED = 1,
@@ -54,20 +55,55 @@ typedef struct AkSkin {
   AkFloat4x4       bindShapeMatrix;
 } AkSkin;
 
+typedef enum AkMorphableType {
+  AK_MORPHABLE_GEOMETRY, /* per-target geometry, must be same as base  */
+  AK_MORPHABLE_MORPHABLE /* morph inputs if no geometry object is used */
+} AkMorphableType;
+
+/* per-target inputs to morph */
+typedef struct AkMorphable {
+  struct AkMorphable  *next;
+  AkInput             *input;  
+  uint32_t             inputCount;
+} AkMorphable;
+
 typedef struct AkMorphTarget {
-  struct AkMorphTarget *next;
-  AkInput              *input;  /* per-target inputs to morph */
-  float                 weight; /* per-target default weight  */
-  uint32_t              inputCount;
+  struct AkMorphTarget *next; 
+  AkObject             *target;      /* AkGeometry or AkMorphable to morph */
+  uint32_t              targetCount; /* number of mesh primitives to moprh */
+  float                 weight;      /* per-target default weight          */
 } AkMorphTarget;
 
+typedef struct AkMorphInspectTargetInput {
+  AkInput                         *input;
+  uint32_t                         s;
+  uint32_t                         inputsCount;
+  float                            weight;
+} AkMorphInspectTargetInput;
+
+typedef struct AkMorphInspectTargetView {
+  struct AkMorphInspectTargetView *next;
+  struct FListItem                *inputs;
+  uint32_t                         inputsCount;
+  float                            weight;
+} AkMorphInspectTargetView;
+
+/* helper struct to show */
+typedef struct AkMorphInspectView {
+  /* first one is baseShape */
+  AkMorphInspectTargetView *targets;
+  uint32_t                  nTargets;
+  size_t                    interleaveBufferSize;
+  size_t                    interleaveByteStride;
+  uint32_t                  accessorAccessCount;
+} AkMorphInspectView;
+
 typedef struct AkMorph {
-  AkOneWayIterBase base;
-  AkMorphTarget   *target;
-  AkMorphMethod    method;
-  uint32_t         targetCount;
-  uint32_t         maxInputCount;
-  /* uint32_t         maxIterleavedStride; */
+  AkOneWayIterBase    base;
+  AkMorphTarget      *target;
+  AkMorphInspectView *inspectResult;
+  AkMorphMethod       method;
+  uint32_t            targetCount;
 } AkMorph;
 
 typedef struct AkInstanceMorph {
@@ -80,11 +116,21 @@ typedef struct AkInstanceSkin {
   struct AkNode **overrideJoints; /* override default joints or NULL  */
 } AkInstanceSkin;
 
+/**
+ * @brief input/attribute layout in shader orr in interleaved buffer
+ */
+typedef enum AkMorphInterleaveLayout {
+  AK_MORPH_ILAYOUT_P1P2N1N2 = 0,
+  AK_MORPH_ILAYOUT_P1N1P2N2 = 1
+} AkMorphInterleaveLayout;
+
 /*!
  * @brief fill a buffer with JointID and JointWeight to feed GPU buffer
- *        you can send this buffer to GPU buffer (e.g. OpenGL) directly
+ *        you can send this buffer to GPU buffer (e.g. OpenGL) as interleaved 
+ *        single buffer.
  *
- *        this func makes things easier if you want to send buffer to GPU like:
+ *        this func makes things easier if you want to send data in single 
+ *        buffer to GPU like:
  *          | JointIDs (ivec4) | Weights(vec4) |
  *
  *        or:
@@ -107,46 +153,58 @@ ak_skinInterleave(AkBoneWeights * __restrict source,
                   void         ** __restrict buff);
 
 /*!
-* @brief inspect a morph to get bufferSize and bufferStride to alloc memory for
-*        interleaved morph buffer with desired inputs,
-*        (other inputs will be ignored)
-*
-* @param[out] bufferSize         buffer size in bytes
-* @param[out] byteStride         target byte stride in bytes
-* @param[in]  morph              AkMorph object
-* @param[in]  desiredInputs      desired inputs (other inputs will be ignored)
-* @param[in]  desiredInputsCount desired inputs count
-*/
+ * @brief inspect a morph to get bufferSize and bufferStride to alloc memory for
+ *        interleaved morph buffer with desired inputs. Also returns a list of 
+ *        inputs for each target. You can use this list to collect inputs from
+ *        morph targets. 
+ *
+ *        inspected result will be stored in morph->inspectResult. You can use
+ *        this result to collect inputs same order as baseShape's inputs' order
+ *        from morph targets. Inputs that dont exists in baseShape will be ignored.
+ *        If you need them, pass ignoreUncommonInputs = false.
+ * 
+ * @param[in]  baseMesh               base mesh to morph
+ * @param[in]  morph                  AkMorph object
+ * @param[in]  desiredInputs          desired inputs (other inputs will be ignored)
+ *                                        or NULL to collect all inputs, desiredInputsCount must be 0 in this case
+ * @param[in]  desiredInputsCount     desired inputs count or 0 to collect all inputs
+ * @param[in]  ignoreUncommonInputs   if true, all inputs that dont exist in base mesh will be ignored
+ */
 AK_EXPORT
-void
-ak_morphInterleaveInspect(size_t  * __restrict bufferSize,
-                          size_t  * __restrict byteStride,
-                          AkMorph * __restrict morph,
-                          AkInputSemantic      desiredInputs[],
-                          uint8_t              desiredInputsCount);
+AkResult
+ak_morphInspect(AkGeometry * __restrict baseMesh,
+                AkMorph    * __restrict morph,
+                AkInputSemantic         desiredInputs[],
+                uint8_t                 desiredInputsCount,
+                bool                    ignoreUncommonInputs);
 
 /*!
-* @brief interleave morph object with desired inputs with desired input orders.
-*
-*        Make sure that you called ak_morphInterleaveInspect() to get buffSize
-*        and alloc a buffer with that size.
-*
-*        All inputs except desired inputs will be ignored. If morph object don't
-*        contain a desired input than it will be ignored too.
-*
-*        You can send this buffer to GPU and use directly.
-*
-* @param[out] buff               pre-allocated buffer
-* @param[in]  morph              AkMorph object
-* @param[in]  desiredInputs      desired inputs (other inputs will be ignored)
-* @param[in]  desiredInputsCount desired inputs count
-*/
+ * @brief interleave morph object with desired inputs with desired input orders.
+ *
+ *        Make sure that you called ak_morphInspect() to get buffSize
+ *        and alloc a buffer with that size.
+ *
+ *        All inputs except desired inputs will be ignored. If morph object don't
+ *        contain a desired input than it will be ignored too.
+ *
+ *        You can send this buffer to GPU and use directly.
+ * 
+ *        WARN: all inputs that dont exist in base mesh will be ignored
+ *              if you need them, you can use ak_morphInspect() to get all 
+ *              inputs for your own interleave() implementation. Create an issue 
+ *              if you need bring this feature to here.
+ *
+ * @param[in]  baseMesh      base mesh to morph
+ * @param[in]  morph         AkMorph object
+ * @param[in]  layout        interleave layout e.g. p1p2n1n2 or p1n1p2n2
+ * @param[out] destBuff      pre-allocated buffer to store interleaved data
+ */
 AK_EXPORT
-void
-ak_morphInterleave(void    * __restrict buff,
-                   AkMorph * __restrict morph,
-                   AkInputSemantic      desiredInputs[],
-                   uint32_t             desiredInputsCount);
+AkResult
+ak_morphInterleave(AkGeometry * __restrict baseMesh,
+                   AkMorph    * __restrict morph, 
+                   AkMorphInterleaveLayout layout, 
+                   void       * __restrict destBuff);
 
 #ifdef __cplusplus
 }
