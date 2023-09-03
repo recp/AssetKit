@@ -85,6 +85,7 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
 #define COLLECT_TARGET                                                        \
   targetView         = ak_heap_calloc(heap, view, sizeof(*targetView));       \
   targetView->weight = target->weight;                                        \
+  view->nTargets++;                                                           \
   COLLECT_INPUTS;                                                             \
   AK_APPEND_FLINK(view->targets, last, targetView);
 
@@ -97,7 +98,7 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
      || !(posAcc      = inpPosition->accessor)
      || !(count       = posAcc->count)) { 
     return AK_ERR;
-  } 
+  }
   do { COLLECT_TARGET } while((prim = prim->next));
 
   /* collect morph targets */
