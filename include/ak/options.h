@@ -47,7 +47,13 @@ typedef enum AkOption {
   AK_OPT_BUGFIXES                   = 20, /* TRUE     */
   AK_OPT_GLTF_EXT_SPEC_GLOSS        = 21, /* TRUE     */
   AK_OPT_COMPUTE_EXACT_CENTER       = 22, /* FALSE    */
-  AK_OPT_USE_MMAP                   = 23  /* TRUE     */
+  AK_OPT_USE_MMAP                   = 23, /* TRUE     */
+
+  /* TODO: not implemented yet,
+     https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#mikktspace
+     https://github.com/mmikk/MikkTSpace 
+   */
+  AK_OPT_GEN_TANGENTS_IF_NEEDED     = 24, /* true     */
 } AkOption;
 
 AK_EXPORT
