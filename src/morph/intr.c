@@ -164,6 +164,9 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
     }
   } while ((target = target->next));
 
+  view->base = view->targets;
+
+  /* ignore base mesh in interleaved data if needed */
   if (!includeBaseShape) {
     if (view->targets) view->targets = view->targets->next;
     view->nTargets--;
@@ -209,7 +212,8 @@ ak_morphInterleave(AkGeometry * __restrict baseMesh,
   }
 
   if (!(morphView     = morph->inspectResult)
-      || !(targetView = base = morphView->targets)) {
+      || !(base       = morphView->base)
+      || !(targetView = morphView->targets)) {
     return AK_ERR;
   }
 
@@ -219,7 +223,7 @@ ak_morphInterleave(AkGeometry * __restrict baseMesh,
   count        = morphView->accessorAccessCount;
   offs1        = alloca(base->inputsCount * sizeof(*offs1));
   offs2        = alloca(base->inputsCount * sizeof(*offs2));
-  finp         = targetView->inputs;
+  finp         = base->inputs;
 
   /*  currently two layouts are supported: 
       ------------------------------------------------------------------------
@@ -230,7 +234,7 @@ ak_morphInterleave(AkGeometry * __restrict baseMesh,
    */
   switch (layout) {
     case AK_MORPH_ILAYOUT_P1P2N1N2: {
-      for (j = 0, inpOff = 0; 
+      for (j = 0, inpOff = 0;
            finp && (inp = finp->data) && (acc = inp->accessor); 
            finp = finp->next, j++) {
         compSize = acc->fillByteSize;
@@ -241,7 +245,7 @@ ak_morphInterleave(AkGeometry * __restrict baseMesh,
       break;
     }
     case AK_MORPH_ILAYOUT_P1N1P2N2: {
-      for (j = 0, inpOff = 0; 
+      for (j = 0, inpOff = 0;
            finp && (inp = finp->data) && (acc = inp->accessor); 
            finp = finp->next, j++) {
         compSize = acc->fillByteSize;
@@ -251,12 +255,11 @@ ak_morphInterleave(AkGeometry * __restrict baseMesh,
       }
       break;
     }
+    case AK_MORPH_ILAYOUT_P1N1P2N2_ORIGINAL: {
+      printf("AK_MORPH_ILAYOUT_P1N1P2N2_ORIGINAL is not implemented yet.");
+      return AK_ERR;
+    }
     default: return AK_ERR;
-  }
-
-  /* ignore base mesh in interleaved data if needed */
-  if (!morphView->includeBaseShape) {
-    targetView = targetView->next;
   }
 
   /* TODO: optimize these operations */
