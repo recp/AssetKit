@@ -91,6 +91,7 @@ typedef struct AkMorphInspectTargetView {
 /* helper struct to show */
 typedef struct AkMorphInspectView {
   /* first one is baseShape */
+  AkMorphInspectTargetView *base;
   AkMorphInspectTargetView *targets;
   uint32_t                  nTargets;
   size_t                    interleaveBufferSize;
