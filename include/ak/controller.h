@@ -96,6 +96,7 @@ typedef struct AkMorphInspectView {
   size_t                    interleaveBufferSize;
   size_t                    interleaveByteStride;
   uint32_t                  accessorAccessCount;
+  bool                      includeBaseShape;
 } AkMorphInspectView;
 
 typedef struct AkMorph {
@@ -120,8 +121,9 @@ typedef struct AkInstanceSkin {
  * @brief input/attribute layout in shader orr in interleaved buffer
  */
 typedef enum AkMorphInterleaveLayout {
-  AK_MORPH_ILAYOUT_P1P2N1N2 = 0,
-  AK_MORPH_ILAYOUT_P1N1P2N2 = 1
+  AK_MORPH_ILAYOUT_P1P2N1N2          = 0,
+  AK_MORPH_ILAYOUT_P1N1P2N2          = 1,
+  AK_MORPH_ILAYOUT_P1N1P2N2_ORIGINAL = 2,
 } AkMorphInterleaveLayout;
 
 /*!
@@ -168,6 +170,7 @@ ak_skinInterleave(AkBoneWeights * __restrict source,
  * @param[in]  desiredInputs          desired inputs (other inputs will be ignored)
  *                                        or NULL to collect all inputs, desiredInputsCount must be 0 in this case
  * @param[in]  desiredInputsCount     desired inputs count or 0 to collect all inputs
+ * @param[in]  includeBaseShape       if true, baseShape will be included in result e.g. bytes stride, buffer size etc.
  * @param[in]  ignoreUncommonInputs   if true, all inputs that dont exist in base mesh will be ignored
  */
 AK_EXPORT
@@ -176,6 +179,7 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
                 AkMorph    * __restrict morph,
                 AkInputSemantic         desiredInputs[],
                 uint8_t                 desiredInputsCount,
+                bool                    includeBaseShape,
                 bool                    ignoreUncommonInputs);
 
 /*!
@@ -203,7 +207,7 @@ AK_EXPORT
 AkResult
 ak_morphInterleave(AkGeometry * __restrict baseMesh,
                    AkMorph    * __restrict morph, 
-                   AkMorphInterleaveLayout layout, 
+                   AkMorphInterleaveLayout layout,
                    void       * __restrict destBuff);
 
 #ifdef __cplusplus

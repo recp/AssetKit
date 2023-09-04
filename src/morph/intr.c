@@ -34,6 +34,7 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
                 AkMorph    * __restrict morph,
                 AkInputSemantic         desiredInputs[],
                 uint8_t                 desiredInputsCount,
+                bool                    includeBaseShape,
                 bool                    ignoreUncommonInputs) {
   AkHeap                   *heap;
   AkMorphInspectView       *view;
@@ -47,16 +48,40 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
   void                     *targetPtr;
   AkMesh                   *mesh;
   AkMeshPrimitive          *prim;
-  uint32_t                  i, count;
+  AkInput                 **baseMeshInputs;
+  uint32_t                  i, count, nBaseMeshInputs;
   size_t                    targetStride;
 
   if (!baseMesh || !(target = morph->target)) { return AK_ERR; }
 
-  targetStride  = 0;
-  count         = 0;
-  last          = NULL;
-  heap          = ak_heap_getheap(morph);
-  view          = ak_heap_calloc(heap, morph, sizeof(*view));
+  targetStride = 0;
+  count        = 0;
+  last         = NULL;
+  heap         = ak_heap_getheap(morph);
+  view         = ak_heap_calloc(heap, morph, sizeof(*view));
+
+#define ak__collectBaseInput(inp)                                             \
+  do {                                                                        \
+    flist_sp_insert(&targetView->inputs, inp);                                \
+    baseMeshInputs[targetView->inputsCount++] = inp;                          \
+    if (includeBaseShape)                                                     \
+      targetStride += acc->fillByteSize;                                      \
+  } while (0)
+
+#define ak__collectTargetInput(inp)                                           \
+  do {                                                                        \
+    AkInput *_inp;                                                            \
+    for (i = 0; i < nBaseMeshInputs; i++) {                                   \
+      _inp = baseMeshInputs[i];                                               \
+      if (!ignoreUncommonInputs                                               \
+           || (_inp->semantic == inp->semantic && _inp->set == inp->set)) {   \
+        flist_sp_insert(&targetView->inputs, inp);                            \
+        targetView->inputsCount++;                                            \
+        targetStride += acc->fillByteSize;                                    \
+        break;                                                                \
+      }                                                                       \
+    }                                                                         \
+  } while (0)
 
 #define COLLECT_INPUTS                                                        \
   do {                                                                        \
@@ -64,22 +89,19 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
        otherwise ignore target to morph */                                    \
     if (!(acc = inp->accessor) || acc->count != count) { continue; }          \
                                                                               \
-    targetStride += acc->fillByteSize;                                        \
-                                                                              \
     /* if desiredInputsCount > 0 then collect desired inputs */               \
     if (desiredInputsCount > 0) {                                             \
       for (i = 0; i < desiredInputsCount; i++) {                              \
         if (desiredInputs[i] == inp->semantic) {                              \
-          flist_sp_insert(&targetView->inputs, inp);                          \
-          targetView->inputsCount++;                                          \
+          ak__collectInput(inp);                                              \
+          break;                                                              \
         }                                                                     \
       }                                                                       \
       continue;                                                               \
     }                                                                         \
                                                                               \
     /* otherwsie collect all inputs */                                        \
-    flist_sp_insert(&targetView->inputs, inp);                                \
-    targetView->inputsCount++;                                                \
+    ak__collectInput(inp);                                                    \
   } while ((inp = inp->next))
 
 #define COLLECT_TARGET                                                        \
@@ -99,7 +121,13 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
      || !(count       = posAcc->count)) { 
     return AK_ERR;
   }
+
+#define ak__collectInput ak__collectBaseInput
+  nBaseMeshInputs = prim->inputCount;
+  baseMeshInputs  = alloca(nBaseMeshInputs * sizeof(*baseMeshInputs));
   do { COLLECT_TARGET } while((prim = prim->next));
+#undef ak__collectInput
+#define ak__collectInput ak__collectTargetInput
 
   /* collect morph targets */
   do {
@@ -126,7 +154,7 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
            || !(prim        = mesh->primitive)
            || !(inpPosition = inp = prim->pos)
            || !(posAcc      = inpPosition->accessor)
-           || !(count       = posAcc->count)) { 
+           || !(count       = posAcc->count)) {
           continue;
         }
         do { COLLECT_TARGET } while((prim = prim->next));
@@ -136,14 +164,21 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
     }
   } while ((target = target->next));
 
-  targetStride              *= morph->targetCount;
+  if (!includeBaseShape) {
+    if (view->targets) view->targets = view->targets->next;
+    view->nTargets--;
+  }
+
   view->interleaveByteStride = targetStride;
-  view->interleaveBufferSize = targetStride * count;
+  view->interleaveBufferSize = targetStride * morph->targetCount * count;
   view->accessorAccessCount  = count;
+  view->includeBaseShape     = includeBaseShape;
   morph->inspectResult       = view;
 
 #undef COLLECT_INPUTS
 #undef COLLECT_TARGET
+#undef ak__collectBaseInput
+#undef ak__collectTargetInput
 
   return AK_OK;
 err: 
@@ -170,7 +205,7 @@ ak_morphInterleave(AkGeometry * __restrict baseMesh,
 
   /* ispect is not called, we need to inspect it with default behavior */
   if (!morph->inspectResult) { 
-    if (ak_morphInspect(baseMesh, morph, NULL, 0, true) != AK_OK) { return AK_ERR; }
+    if (ak_morphInspect(baseMesh, morph, NULL, 0, false, true) != AK_OK) { return AK_ERR; }
   }
 
   if (!(morphView     = morph->inspectResult)
@@ -217,6 +252,11 @@ ak_morphInterleave(AkGeometry * __restrict baseMesh,
       break;
     }
     default: return AK_ERR;
+  }
+
+  /* ignore base mesh in interleaved data if needed */
+  if (!morphView->includeBaseShape) {
+    targetView = targetView->next;
   }
 
   /* TODO: optimize these operations */
