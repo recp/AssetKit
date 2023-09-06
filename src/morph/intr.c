@@ -203,12 +203,13 @@ ak_morphInterleave(AkGeometry * __restrict baseMesh,
   FListItem                *finp;
   char                     *src, *dst;
   uint16_t                 *offs2, *offs1;
-  size_t                    srcStride, targetStride, compSize;
-  uint32_t                  j, k, count, nTargets, inpOff;
+  uint32_t                  srcStride, targetStride, compSize;
+  uint32_t                  i, j, k, count, nTargets, inpOff, inpOff2;
 
   /* ispect is not called, we need to inspect it with default behavior */
-  if (!morph->inspectResult) { 
-    if (ak_morphInspect(baseMesh, morph, NULL, 0, false, true) != AK_OK) { return AK_ERR; }
+  if (!morph->inspectResult
+      || ak_morphInspect(baseMesh, morph, NULL, 0, false, true) != AK_OK) { 
+    return AK_ERR; 
   }
 
   if (!(morphView     = morph->inspectResult)
@@ -219,7 +220,7 @@ ak_morphInterleave(AkGeometry * __restrict baseMesh,
 
   dst          = (char *)destBuff;
   nTargets     = morphView->nTargets;
-  targetStride = morphView->interleaveByteStride;
+  targetStride = (uint32_t)morphView->interleaveByteStride;
   count        = morphView->accessorAccessCount;
   offs1        = alloca(base->inputsCount * sizeof(*offs1));
   offs2        = alloca(base->inputsCount * sizeof(*offs2));
@@ -233,30 +234,32 @@ ak_morphInterleave(AkGeometry * __restrict baseMesh,
       offs1 -- P1  -- offs2 --  P2
    */
   switch (layout) {
-    case AK_MORPH_ILAYOUT_P1P2N1N2: {
+    case AK_MORPH_P1P2N1N2: {
       for (j = 0, inpOff = 0;
            finp && (inp = finp->data) && (acc = inp->accessor); 
            finp = finp->next, j++) {
-        compSize = acc->fillByteSize;
-        offs1[j] = inpOff + compSize * nTargets;
+        compSize = (uint32_t)acc->fillByteSize;
+        offs1[j] = inpOff;
+        offs2[j] = compSize;
+        inpOff  += compSize * nTargets;
+      }
+      break;
+    }
+    case AK_MORPH_P1N1P2N2: {
+      for (j = 0, inpOff = 0;
+           finp && (inp = finp->data) && (acc = inp->accessor); 
+           finp = finp->next, j++) {
+        compSize = (uint32_t)acc->fillByteSize;
+        offs1[j] = inpOff;
         offs2[j] = targetStride - offs1[j];
         inpOff  += offs1[j];
       }
       break;
     }
-    case AK_MORPH_ILAYOUT_P1N1P2N2: {
-      for (j = 0, inpOff = 0;
-           finp && (inp = finp->data) && (acc = inp->accessor); 
-           finp = finp->next, j++) {
-        compSize = acc->fillByteSize;
-        offs1[j] = inpOff + compSize;
-        offs2[j] = targetStride - offs1[j];
-        inpOff  += offs1[j];
-      }
-      break;
-    }
-    case AK_MORPH_ILAYOUT_P1N1P2N2_ORIGINAL: {
-      printf("AK_MORPH_ILAYOUT_P1N1P2N2_ORIGINAL is not implemented yet.");
+    case AK_MORPH_P1P2N1N2_IDENTICAL:
+    case AK_MORPH_P1N1P2N2_IDENTICAL: {
+      // TODO: implement these
+      printf("not implemented yet.");
       return AK_ERR;
     }
     default: return AK_ERR;
@@ -264,9 +267,9 @@ ak_morphInterleave(AkGeometry * __restrict baseMesh,
 
   /* TODO: optimize these operations */
 
-  for (;
+  for (i = 0;
        targetView && (finp = targetView->inputs);
-       targetView = targetView->next)
+       targetView = targetView->next, i++)
   {
     for (j = 0;
          finp
@@ -276,12 +279,13 @@ ak_morphInterleave(AkGeometry * __restrict baseMesh,
          && (src = (char *)buf->data + acc->byteOffset);
          finp = finp->next, j++)
     {
-      srcStride = acc->byteStride;
-      compSize  = acc->fillByteSize;
-      inpOff    = offs1[j] + offs2[j];
+      srcStride = (uint32_t)acc->byteStride;
+      compSize  = (uint32_t)acc->fillByteSize;
+      inpOff    = offs1[j] + offs2[j] * i;
+      inpOff2   = targetStride - compSize;
 
       for (k = 0; k < count; k++) {
-        memcpy(dst + inpOff * k, src + srcStride * k, compSize);
+        memcpy(dst + inpOff + targetStride * k, src + srcStride * k, compSize);
       }
     }
   }

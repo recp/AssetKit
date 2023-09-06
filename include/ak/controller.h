@@ -122,9 +122,10 @@ typedef struct AkInstanceSkin {
  * @brief input/attribute layout in shader orr in interleaved buffer
  */
 typedef enum AkMorphInterleaveLayout {
-  AK_MORPH_ILAYOUT_P1P2N1N2          = 0,
-  AK_MORPH_ILAYOUT_P1N1P2N2          = 1,
-  AK_MORPH_ILAYOUT_P1N1P2N2_ORIGINAL = 2,
+  AK_MORPH_P1P2N1N2           = 0,
+  AK_MORPH_P1N1P2N2           = 1,
+  AK_MORPH_P1P2N1N2_IDENTICAL = 2,
+  AK_MORPH_P1N1P2N2_IDENTICAL = 3,
 } AkMorphInterleaveLayout;
 
 /*!
