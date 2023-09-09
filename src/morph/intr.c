@@ -123,7 +123,8 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
      || (geomPrimObj->type != AK_GEOMETRY_MESH)
      || !(mesh        = ak_objGet(geomPrimObj))
      || !(prim        = mesh->primitive)
-     || !(inpPosition = inp = prim->pos)
+     || !(inpPosition = prim->pos)
+     || !(inp         = prim->input)
      || !(posAcc      = inpPosition->accessor)
      || !(count       = posAcc->count)) { 
     return AK_ERR;
@@ -145,9 +146,7 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
       case AK_MORPHABLE_MORPHABLE: {
         morphable = targetPtr;
         if (!(inp = morphable->input) 
-           || !(inpPosition = ak_getPositionInput(inp))
-           || !(posAcc      = inpPosition->accessor)
-           || !(count       = posAcc->count)) {
+           || !ak_getPositionInput(inp)) {
           continue;
         }
         do { COLLECT_TARGET } while((morphable = morphable->next)); 
@@ -159,9 +158,8 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
            || (geomPrimObj->type != AK_GEOMETRY_MESH)
            || !(mesh        = ak_objGet(geomPrimObj))
            || !(prim        = mesh->primitive)
-           || !(inpPosition = inp = prim->pos)
-           || !(posAcc      = inpPosition->accessor)
-           || !(count       = posAcc->count)) {
+           || !prim->pos
+           || !(inp         = prim->input)) {
           continue;
         }
         do { COLLECT_TARGET } while((prim = prim->next));
