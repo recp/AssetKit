@@ -124,7 +124,6 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
      || !(mesh        = ak_objGet(geomPrimObj))
      || !(prim        = mesh->primitive)
      || !(inpPosition = prim->pos)
-     || !(inp         = prim->input)
      || !(posAcc      = inpPosition->accessor)
      || !(count       = posAcc->count)) { 
     return AK_ERR;
@@ -133,7 +132,10 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
 #define ak__collectInput ak__collectBaseInput
   nBaseMeshInputs = prim->inputCount;
   baseMeshInputs  = alloca(nBaseMeshInputs * sizeof(*baseMeshInputs));
-  do { COLLECT_TARGET } while((prim = prim->next));
+  do {
+    if (!(inp = prim->input)) { continue; }
+    COLLECT_TARGET
+  } while((prim = prim->next));
 #undef ak__collectInput
 #define ak__collectInput ak__collectTargetInput
 
@@ -145,24 +147,29 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
     switch (targetObj->type) {
       case AK_MORPHABLE_MORPHABLE: {
         morphable = targetPtr;
-        if (!(inp = morphable->input) 
-           || !ak_getPositionInput(inp)) {
-          continue;
-        }
-        do { COLLECT_TARGET } while((morphable = morphable->next)); 
+        do {
+          /* TODO: maybe position can be optional in future desired... */
+          if (!(inp = morphable->input)
+              || !ak_getPositionInput(inp)) {
+            continue;
+          }
+          COLLECT_TARGET
+        } while((morphable = morphable->next));
         break;
       }
       case AK_MORPHABLE_GEOMETRY: {
         geom = targetPtr;
-        if (!(geomPrimObj   = geom->gdata)
+        if (!(geomPrimObj         = geom->gdata)
            || (geomPrimObj->type != AK_GEOMETRY_MESH)
-           || !(mesh        = ak_objGet(geomPrimObj))
-           || !(prim        = mesh->primitive)
-           || !prim->pos
-           || !(inp         = prim->input)) {
+           || !(mesh              = ak_objGet(geomPrimObj))
+           || !(prim              = mesh->primitive)
+           || !prim->pos) {
           continue;
         }
-        do { COLLECT_TARGET } while((prim = prim->next));
+        do {
+          if (!(inp = prim->input)) { continue; }
+          COLLECT_TARGET
+        } while((prim = prim->next));
         break;
       }
       default: goto err;
