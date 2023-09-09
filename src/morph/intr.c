@@ -49,7 +49,7 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
   AkMesh                     *mesh;
   AkMeshPrimitive            *prim;
   AkMorphInspectTargetInput **baseMeshInputs;
-  uint32_t                    i, count, nBaseMeshInputs;
+  uint32_t                    i, j, count, nBaseMeshInputs;
   size_t                      targetStride;
 
   if (!baseMesh || !(target = morph->target)) { return AK_ERR; }
@@ -74,8 +74,8 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
 #define ak__collectTargetInput(inp)                                           \
   do {                                                                        \
     AkMorphInspectTargetInput *iti, *iti_t;                                   \
-    for (i = 0; i < nBaseMeshInputs; i++) {                                   \
-      iti = baseMeshInputs[i];                                                \
+    for (j = 0; j < nBaseMeshInputs; j++) {                                   \
+      iti = baseMeshInputs[j];                                                \
       if (!ignoreUncommonInputs                                               \
            || (iti->input->semantic == inp->semantic                          \
                && iti->input->set == inp->set)) {                             \
@@ -133,11 +133,16 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
   nBaseMeshInputs = prim->inputCount;
   baseMeshInputs  = alloca(nBaseMeshInputs * sizeof(*baseMeshInputs));
   do {
-    if (!(inp = prim->input)) { continue; }
+    if (!(inp = prim->input)) {
+      nBaseMeshInputs--;
+      continue;
+    }
     COLLECT_TARGET
   } while((prim = prim->next));
 #undef ak__collectInput
 #define ak__collectInput ak__collectTargetInput
+
+  if (nBaseMeshInputs < 1) { return AK_ERR; }
 
   /* collect morph targets */
   do {
