@@ -60,6 +60,24 @@ typedef enum AkMorphableType {
   AK_MORPHABLE_MORPHABLE /* morph inputs if no geometry object is used */
 } AkMorphableType;
 
+/**
+ * @brief input/attribute layout in shader orr in interleaved buffer
+ * 
+ *   currently two layouts are supported: 
+ *     ------------------------------------------------------------------------
+ *     P1 P2 P3    N1 N2 N3    T01 T02 T03 ...
+ *     P1 N1 T01   P2 N2 T02   P3  N3  T03 ... (natural layout)
+ * 
+ *  IMPORTANT: in natural layout, input orders may not same as baseShape
+ *             if you need same order as baseShape, use P1P2N1N2 layout
+ *             or create an issue to bring this feature to here which is in TODO.
+ */
+typedef enum AkMorphInterleaveLayout {
+  AK_MORPH_UNKNOWN  = 0,
+  AK_MORPH_P1P2N1N2 = 1, /* each target's inputs are groupped by input type */
+  AK_MORPH_NATURAL  = 3  /* P1N1 P2N2 but input orders are natural as target */
+} AkMorphInterleaveLayout;
+
 /* per-target inputs to morph */
 typedef struct AkMorphable {
   struct AkMorphable  *next;
@@ -68,22 +86,26 @@ typedef struct AkMorphable {
 } AkMorphable;
 
 typedef struct AkMorphTarget {
-  struct AkMorphTarget *next; 
+  struct AkMorphTarget *next;
   AkObject             *target;      /* AkGeometry or AkMorphable to morph */
   uint32_t              targetCount; /* number of mesh primitives to moprh */
   float                 weight;      /* per-target default weight          */
 } AkMorphTarget;
 
 typedef struct AkMorphInspectTargetInput {
-  AkInput                         *input;
-  uint32_t                         s;
-  uint32_t                         inputsCount;
-  float                            weight;
+  struct AkMorphInspectTargetInput *next;
+  AkInput                          *input;
+  uint32_t                          intrOffset;
+  union {
+    bool                            inBaseMesh;
+    bool                            inTarget;
+  };
 } AkMorphInspectTargetInput;
 
 typedef struct AkMorphInspectTargetView {
   struct AkMorphInspectTargetView *next;
-  struct FListItem                *inputs;
+  AkMorphInspectTargetInput       *input;
+  AkMorphInspectTargetInput       *lastInput;
   uint32_t                         inputsCount;
   float                            weight;
 } AkMorphInspectTargetView;
@@ -98,6 +120,8 @@ typedef struct AkMorphInspectView {
   size_t                    interleaveByteStride;
   uint32_t                  accessorAccessCount;
   bool                      includeBaseShape;
+  bool                      ignoreUncommonInputs;
+  AkMorphInterleaveLayout   layout;
 } AkMorphInspectView;
 
 typedef struct AkMorph {
@@ -117,16 +141,6 @@ typedef struct AkInstanceSkin {
   AkSkin         *skin;
   struct AkNode **overrideJoints; /* override default joints or NULL  */
 } AkInstanceSkin;
-
-/**
- * @brief input/attribute layout in shader orr in interleaved buffer
- */
-typedef enum AkMorphInterleaveLayout {
-  AK_MORPH_P1P2N1N2           = 0,
-  AK_MORPH_P1N1P2N2           = 1,
-  AK_MORPH_P1P2N1N2_IDENTICAL = 2,
-  AK_MORPH_P1N1P2N2_IDENTICAL = 3,
-} AkMorphInterleaveLayout;
 
 /*!
  * @brief fill a buffer with JointID and JointWeight to feed GPU buffer
@@ -183,6 +197,22 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
                 uint8_t                 desiredInputsCount,
                 bool                    includeBaseShape,
                 bool                    ignoreUncommonInputs);
+
+/*!
+  * @brief prepare morph inspect result to interleave morph object with desired inputs
+  *        this prepares inputs order by specified layout parameter and sets intrOffset, 
+  *        inBaseMesh etc. properties.
+  *
+  *        make sure that you called ak_morphInspect() to get buffSize
+  *        and alloc a buffer with that size.
+  *
+  * @param[in]  inspectView  inspect result
+  * @param[in]  layout       interleave layout e.g. p1p2n1n2 or p1n1p2n2
+  */
+AK_EXPORT
+AkResult
+ak_morphInspectPrepareLayout(AkMorphInspectView * __restrict inspectView, 
+                             AkMorphInterleaveLayout         layout);
 
 /*!
  * @brief interleave morph object with desired inputs with desired input orders.

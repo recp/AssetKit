@@ -36,46 +36,53 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
                 uint8_t                 desiredInputsCount,
                 bool                    includeBaseShape,
                 bool                    ignoreUncommonInputs) {
-  AkHeap                   *heap;
-  AkMorphInspectView       *view;
-  AkMorphInspectTargetView *targetView, *last;
-  AkMorphTarget            *target;
-  AkMorphable              *morphable;
-  AkGeometry               *geom;
-  AkInput                  *inp, *inpPosition;
-  AkAccessor               *posAcc, *acc;
-  AkObject                 *targetObj, *geomPrimObj;
-  void                     *targetPtr;
-  AkMesh                   *mesh;
-  AkMeshPrimitive          *prim;
-  AkInput                 **baseMeshInputs;
-  uint32_t                  i, count, nBaseMeshInputs;
-  size_t                    targetStride;
+  AkHeap                     *heap;
+  AkMorphInspectView         *view;
+  AkMorphInspectTargetView   *targetView, *last;
+  AkMorphTarget              *target;
+  AkMorphable                *morphable;
+  AkGeometry                 *geom;
+  AkInput                    *inp, *inpPosition;
+  AkAccessor                 *posAcc, *acc;
+  AkObject                   *targetObj, *geomPrimObj;
+  void                       *targetPtr;
+  AkMesh                     *mesh;
+  AkMeshPrimitive            *prim;
+  AkMorphInspectTargetInput **baseMeshInputs;
+  uint32_t                    i, count, nBaseMeshInputs;
+  size_t                      targetStride;
 
   if (!baseMesh || !(target = morph->target)) { return AK_ERR; }
 
   targetStride = 0;
-  count        = 0;
   last         = NULL;
   heap         = ak_heap_getheap(morph);
   view         = ak_heap_calloc(heap, morph, sizeof(*view));
 
 #define ak__collectBaseInput(inp)                                             \
   do {                                                                        \
-    flist_sp_insert(&targetView->inputs, inp);                                \
-    baseMeshInputs[targetView->inputsCount++] = inp;                          \
+    AkMorphInspectTargetInput *iti;                                           \
+    iti             = ak_heap_calloc(heap, targetView, sizeof(*iti));         \
+    iti->input      = inp;                                                    \
+    iti->inBaseMesh = true;                                                   \
+    AK_APPEND_FLINK(targetView->input, targetView->lastInput, iti);           \
+    baseMeshInputs[targetView->inputsCount++] = iti;                          \
     if (includeBaseShape)                                                     \
       targetStride += acc->fillByteSize;                                      \
   } while (0)
 
 #define ak__collectTargetInput(inp)                                           \
   do {                                                                        \
-    AkInput *_inp;                                                            \
+    AkMorphInspectTargetInput *iti, *iti_t;                                   \
     for (i = 0; i < nBaseMeshInputs; i++) {                                   \
-      _inp = baseMeshInputs[i];                                               \
+      iti = baseMeshInputs[i];                                                \
       if (!ignoreUncommonInputs                                               \
-           || (_inp->semantic == inp->semantic && _inp->set == inp->set)) {   \
-        flist_sp_insert(&targetView->inputs, inp);                            \
+           || (iti->input->semantic == inp->semantic                          \
+               && iti->input->set == inp->set)) {                             \
+        iti_t           = ak_heap_calloc(heap, targetView, sizeof(*iti_t));   \
+        iti_t->input    = inp;                                                \
+        iti_t->inTarget = true;                                               \
+        AK_APPEND_FLINK(targetView->input, targetView->lastInput, iti_t);     \
         targetView->inputsCount++;                                            \
         targetStride += acc->fillByteSize;                                    \
         break;                                                                \
@@ -131,8 +138,8 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
 
   /* collect morph targets */
   do {
-   if (!(targetObj = target->target) || !(targetPtr = ak_objGet(targetObj)))
-     continue;
+    if (!(targetObj = target->target) || !(targetPtr = ak_objGet(targetObj)))
+      continue;
 
     switch (targetObj->type) {
       case AK_MORPHABLE_MORPHABLE: {
@@ -191,101 +198,164 @@ err:
 
 AK_EXPORT
 AkResult
+ak_morphInspectPrepareLayout(AkMorphInspectView * __restrict inspectView, 
+                             AkMorphInterleaveLayout         layout) {                            
+  AkMorphInspectTargetView  *targetView, *base;
+  AkMorphInspectTargetInput *tinp, *tinpt;
+  AkInput                   *inp;
+  AkAccessor                *acc;
+  uint32_t                   inpOff;
+  bool                       includeBaseShape, ignoreUncommonInputs;
+
+  if (!(base = inspectView->base) || !(tinp = base->input)) { return AK_ERR; }
+  if (inspectView->layout == layout)                        { return AK_OK;  }
+
+  includeBaseShape     = inspectView->includeBaseShape;
+  ignoreUncommonInputs = inspectView->ignoreUncommonInputs;
+  inpOff               = 0;
+
+  switch (layout) {
+    case AK_MORPH_P1P2N1N2: {
+      /* inputs are in base mesh */
+      do {
+        for (targetView = inspectView->targets;
+             targetView && (tinpt = targetView->input);
+             targetView = targetView->next) {
+          do {
+            if ((!tinp->inTarget && !includeBaseShape)
+                || !(tinpt->input->semantic == tinp->input->semantic 
+                    && tinpt->input->set == tinp->input->set)
+                || (ignoreUncommonInputs && !tinpt->inBaseMesh)) { 
+              continue;
+            }
+
+            inp               = tinpt->input;
+            acc               = inp->accessor;
+            tinpt->intrOffset = inpOff;
+            inpOff           += (uint32_t)acc->fillByteSize;
+            goto nxt;
+          } while ((tinpt = tinpt->next));
+        nxt: continue;
+        }
+      } while ((tinp = tinp->next));
+
+      /* put all inputs that are not in base mesh at last
+               without grouping them (TODO?) */
+      if (!ignoreUncommonInputs) {
+        for (targetView = inspectView->targets;
+             targetView;
+             targetView = targetView->next) {
+          if ((tinp = targetView->input)) {
+            do {
+              /* get only that are not in base */
+              if (tinp->inBaseMesh) { continue; }
+              inp              = tinp->input;
+              acc              = inp->accessor;
+              tinp->intrOffset = inpOff;
+              inpOff          += (uint32_t)acc->fillByteSize;
+            } while ((tinp = tinp->next));
+          }
+        }
+      }
+      return AK_OK;
+    }
+    // case AK_MORPH_P1N1P2N2: {
+    //   for (targetView = inspectView->targets;
+    //        targetView;
+    //        targetView = targetView->next) {
+    //     if ((tinpt = targetView->inputs)) {
+    //       tinp = base->input;
+    //       do {
+    //         do {
+    //           if (!tinp->inTarget 
+    //               || !(tinpt->input->semantic == tinp->input->semantic 
+    //                    && tinpt->input->set == tinpt->input->set)) { 
+    //             continue; 
+    //           }
+    //           inp               = tinpt->input;
+    //           acc               = inp->accessor;
+    //           tinpt->intrOffset = inpOff;
+    //           inpOff          += (uint32_t)acc->fillByteSize;
+    //         } while ((tinp = tinp->next));
+
+    //         tinpt = targetView->inputs;
+    //       } while ((tinp = tinp->next));
+    //     } else { continue; }
+    //   }
+    //   return AK_OK;
+    // }
+    case AK_MORPH_NATURAL: {
+      for (targetView = inspectView->targets;
+           targetView;
+           targetView = targetView->next) {
+        if ((tinp = targetView->input)) {
+          do {
+            /* if (!tinp->inBaseMesh) { continue; } */
+            inp              = tinp->input;
+            acc              = inp->accessor;
+            tinp->intrOffset = inpOff;
+            inpOff          += (uint32_t)acc->fillByteSize;
+          } while ((tinp = tinp->next));
+        }
+      }
+      return AK_OK;
+    }
+    default: break;
+  }
+
+  return AK_ERR;
+}
+
+AK_EXPORT
+AkResult
 ak_morphInterleave(AkGeometry * __restrict baseMesh,
                    AkMorph    * __restrict morph, 
                    AkMorphInterleaveLayout layout, 
                    void       * __restrict destBuff) {
-  AkMorphInspectView       *morphView;
-  AkMorphInspectTargetView *targetView, *base;
-  AkInput                  *inp;
-  AkAccessor               *acc;
-  AkBuffer                 *buf;
-  FListItem                *finp;
-  char                     *src, *dst;
-  uint16_t                 *offs2, *offs1;
-  uint32_t                  srcStride, targetStride, compSize;
-  uint32_t                  i, j, k, count, nTargets, inpOff, inpOff2;
+  AkMorphInspectView        *morphView;
+  AkMorphInspectTargetView  *targetView;
+  AkMorphInspectTargetInput *tinp;
+  AkInput                   *inp;
+  AkAccessor                *acc;
+  AkBuffer                  *buf;
+  char                      *src, *dst;
+  uint32_t                   srcStride, targetStride, compSize;
+  uint32_t                   i, j, k, count, intrOffset;
 
   /* ispect is not called, we need to inspect it with default behavior */
-  if (!morph->inspectResult
-      || ak_morphInspect(baseMesh, morph, NULL, 0, false, true) != AK_OK) { 
+  if ((!(morphView = morph->inspectResult)
+         && ak_morphInspect(baseMesh, morph, NULL, 0, false, true) != AK_OK)
+      || !(morphView = morph->inspectResult)
+      || (layout != morphView->layout
+          && ak_morphInspectPrepareLayout(morphView, layout) != AK_OK)
+      || !(targetView = morphView->targets)) { 
     return AK_ERR; 
   }
 
-  if (!(morphView     = morph->inspectResult)
-      || !(base       = morphView->base)
-      || !(targetView = morphView->targets)) {
-    return AK_ERR;
-  }
-
   dst          = (char *)destBuff;
-  nTargets     = morphView->nTargets;
   targetStride = (uint32_t)morphView->interleaveByteStride;
   count        = morphView->accessorAccessCount;
-  offs1        = alloca(base->inputsCount * sizeof(*offs1));
-  offs2        = alloca(base->inputsCount * sizeof(*offs2));
-  finp         = base->inputs;
-
-  /*  currently two layouts are supported: 
-      ------------------------------------------------------------------------
-      P1 P2 P3    N1 N2 N3    T01 T02 T03 ...
-      P1 N1 T01   P2 N2 T02   P3  N3  T03 ...
-
-      offs1 -- P1  -- offs2 --  P2
-   */
-  switch (layout) {
-    case AK_MORPH_P1P2N1N2: {
-      for (j = 0, inpOff = 0;
-           finp && (inp = finp->data) && (acc = inp->accessor); 
-           finp = finp->next, j++) {
-        compSize = (uint32_t)acc->fillByteSize;
-        offs1[j] = inpOff;
-        offs2[j] = compSize;
-        inpOff  += compSize * nTargets;
-      }
-      break;
-    }
-    case AK_MORPH_P1N1P2N2: {
-      for (j = 0, inpOff = 0;
-           finp && (inp = finp->data) && (acc = inp->accessor); 
-           finp = finp->next, j++) {
-        compSize = (uint32_t)acc->fillByteSize;
-        offs1[j] = inpOff;
-        offs2[j] = targetStride - offs1[j];
-        inpOff  += offs1[j];
-      }
-      break;
-    }
-    case AK_MORPH_P1P2N1N2_IDENTICAL:
-    case AK_MORPH_P1N1P2N2_IDENTICAL: {
-      // TODO: implement these
-      printf("not implemented yet.");
-      return AK_ERR;
-    }
-    default: return AK_ERR;
-  }
 
   /* TODO: optimize these operations */
 
   for (i = 0;
-       targetView && (finp = targetView->inputs);
+       targetView && (tinp = targetView->input);
        targetView = targetView->next, i++)
   {
     for (j = 0;
-         finp
-         && (inp = finp->data)
+         tinp
+         && (inp = tinp->input)
          && (acc = inp->accessor)
          && (buf = acc->buffer)
          && (src = (char *)buf->data + acc->byteOffset);
-         finp = finp->next, j++)
+         tinp = tinp->next, j++)
     {
-      srcStride = (uint32_t)acc->byteStride;
-      compSize  = (uint32_t)acc->fillByteSize;
-      inpOff    = offs1[j] + offs2[j] * i;
-      inpOff2   = targetStride - compSize;
+      srcStride  = (uint32_t)acc->byteStride;
+      compSize   = (uint32_t)acc->fillByteSize;
+      intrOffset = tinp->intrOffset;
 
       for (k = 0; k < count; k++) {
-        memcpy(dst + inpOff + targetStride * k, src + srcStride * k, compSize);
+        memcpy(dst + intrOffset + targetStride * k, src + srcStride * k, compSize);
       }
     }
   }

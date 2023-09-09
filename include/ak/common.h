@@ -81,7 +81,8 @@ typedef enum AkResult {
   AK_EFOUND   = -1000,
   AK_ENOMEM   = -ENOMEM,
   AK_EPERM    = -EPERM,
-  AK_EBADF    = -EBADF /* docoumnt couldn't parsed / loaded */
+  AK_EBADF    = -EBADF, /* docoumnt couldn't parsed / loaded */
+  AK_EINVAL   = -EINVAL
 } AkResult;
 
 typedef struct AkOneWayIterBase {
