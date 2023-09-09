@@ -112,7 +112,7 @@ typedef struct AkMorphInspectTargetView {
 
 /* helper struct to show */
 typedef struct AkMorphInspectView {
-  /* first one is baseShape */
+  /* first one is baseShape if includeBaseShape param is set to 'true' */
   AkMorphInspectTargetView *base;
   AkMorphInspectTargetView *targets;
   uint32_t                  nTargets;
