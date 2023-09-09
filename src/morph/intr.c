@@ -155,7 +155,9 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
         do {
           /* TODO: maybe position can be optional in future desired... */
           if (!(inp = morphable->input)
-              || !ak_getPositionInput(inp)) {
+              || !(inpPosition = ak_getPositionInput(inp))
+              || !(posAcc      = inpPosition->accessor)
+              || !(count       = posAcc->count)) {
             continue;
           }
           COLLECT_TARGET
@@ -168,7 +170,9 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
            || (geomPrimObj->type != AK_GEOMETRY_MESH)
            || !(mesh              = ak_objGet(geomPrimObj))
            || !(prim              = mesh->primitive)
-           || !prim->pos) {
+           || !(inpPosition       = prim->pos)
+           || !(posAcc            = inpPosition->accessor)
+           || !(count             = posAcc->count)) {
           continue;
         }
         do {
