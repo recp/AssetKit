@@ -323,8 +323,8 @@ ak_morphInterleave(AkGeometry * __restrict baseMesh,
   uint32_t                   i, j, k, count, intrOffset;
 
   /* ispect is not called, we need to inspect it with default behavior */
-  if ((!(morphView = morph->inspectResult)
-         && ak_morphInspect(baseMesh, morph, NULL, 0, false, true) != AK_OK)
+  if (!(morphView = morph->inspectResult)
+      || ak_morphInspect(baseMesh, morph, NULL, 0, false, true) != AK_OK
       || !(morphView = morph->inspectResult)
       || (layout != morphView->layout
           && ak_morphInspectPrepareLayout(morphView, layout) != AK_OK)
