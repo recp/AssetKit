@@ -26,9 +26,17 @@ struct AkNode;
 struct FListItem;
 
 typedef enum AkMorphMethod {
-  AK_MORPH_METHOD_NORMALIZED = 1,
-  AK_MORPH_METHOD_RELATIVE   = 2,
-  AK_MORPH_METHOD_ADDITIVE   = AK_MORPH_METHOD_RELATIVE
+  /* Weights of blend shapes normalized to 1 (or 100%) */
+  AK_MORPH_METHOD_NORMALIZED = 1,  
+
+  /* Blend shapes defined as a difference from the base shape */
+  AK_MORPH_METHOD_RELATIVE   = 2,  
+
+  /* Alias for RELATIVE, treat additive as relative in this context */
+  AK_MORPH_METHOD_ADDITIVE   = AK_MORPH_METHOD_RELATIVE,
+
+  /* Each blend shape applied fully on top of the previous one */
+  AK_MORPH_METHOD_ABSOLUTE   = 3
 } AkMorphMethod;
 
 typedef struct AkBoneWeight {
