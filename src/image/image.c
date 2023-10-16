@@ -79,7 +79,7 @@ ak_imageLoad(AkImage * __restrict image) {
         return;
 
       path = ak_fullpath(doc, initFrom->ref, pathbuf);
-      data = ak__img_conf.loadFromFile(path, &x, &y, &ch);
+      data = ak__img_conf.loadFromFile(heap, image, path, &x, &y, &ch);
       if (!data)
         return;
 
@@ -94,7 +94,9 @@ ak_imageLoad(AkImage * __restrict image) {
       if (!ak__img_conf.loadFromMemory)
         return;
 
-      data = ak__img_conf.loadFromMemory(initFrom->buff->data,
+      data = ak__img_conf.loadFromMemory(heap,
+                                         image,
+                                         initFrom->buff->data,
                                          (int)initFrom->buff->length,
                                          &x, &y, &ch);
 

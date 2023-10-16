@@ -110,11 +110,15 @@ void
 ak_imageLoad(AkImage * __restrict image);
 
 /* Loader Configurator */
-typedef void* (*AkImageLoadFromFileFn)(const char * __restrict path,
+typedef void* (*AkImageLoadFromFileFn)(AkHeap     * __restrict heap,
+                                       void       * __restrict memparent,
+                                       const char * __restrict path,
                                        int        * __restrict width,
                                        int        * __restrict height,
                                        int        * __restrict components);
-typedef void* (*AkImageLoadFromMemoryFn)(const char * __restrict data,
+typedef void* (*AkImageLoadFromMemoryFn)(AkHeap     * __restrict heap,
+                                         void       * __restrict memparent,
+                                         const char * __restrict data,
                                          size_t                  len,
                                          int        * __restrict width,
                                          int        * __restrict height,
