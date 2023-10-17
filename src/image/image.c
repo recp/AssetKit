@@ -26,21 +26,18 @@
 #endif
 
 typedef struct AkImageConf {
-  AkImageLoadFromFileFn       loadFromFile;
-  AkImageLoadFromMemoryFn     loadFromMemory;
-  AkImageFlipVerticallyOnLoad flipVerticallyOnLoad;
+  AkImageLoadFromFileFn   loadFromFile;
+  AkImageLoadFromMemoryFn loadFromMemory;
 } AkImageConf;
 
 static AkImageConf ak__img_conf = {0};
 
 AK_EXPORT
 void
-ak_imageInitLoader(AkImageLoadFromFileFn       fromFile,
-                   AkImageLoadFromMemoryFn     fromMemory,
-                   AkImageFlipVerticallyOnLoad flipper) {
+ak_imageInitLoader(AkImageLoadFromFileFn   fromFile,
+                   AkImageLoadFromMemoryFn fromMemory) {
   ak__img_conf.loadFromFile         = fromFile;
   ak__img_conf.loadFromMemory       = fromMemory;
-  ak__img_conf.flipVerticallyOnLoad = flipper;
 }
 
 AK_EXPORT
@@ -55,15 +52,15 @@ ak_imageLoad(AkImage * __restrict image) {
   if (image->data)
     return;
 
-  idata = NULL;
-  data  = NULL;
-  heap  = ak_heap_getheap(image);
-  doc   = ak_heap_data(heap);
+  idata     = NULL;
+  data      = NULL;
+  heap      = ak_heap_getheap(image);
+  doc       = ak_heap_data(heap);
+  flipImage = false;
 
   /* glTF uses top-left as origin */
   if (doc->inf->flipImage) {
     flipImage = ak_opt_get(AK_OPT_IMAGE_LOAD_FLIP_VERTICALLY);
-    ak__img_conf.flipVerticallyOnLoad(flipImage);
   }
 
   if (image->initFrom) {
@@ -78,37 +75,13 @@ ak_imageLoad(AkImage * __restrict image) {
       if (!ak__img_conf.loadFromFile)
         return;
 
-      path = ak_fullpath(doc, initFrom->ref, pathbuf);
-      data = ak__img_conf.loadFromFile(heap, image, path, &x, &y, &ch);
-      if (!data)
-        return;
-
-      idata = ak_heap_calloc(heap, image, sizeof(*idata));
-      idata->width  = x;
-      idata->height = y;
-      idata->comp   = ch;
-      idata->data   = data;
-
-      image->data   = idata;
+      path        = ak_fullpath(doc, initFrom->ref, pathbuf);
+      image->data = ak__img_conf.loadFromFile(heap, image, path, flipImage);
     } else if (initFrom->buff && initFrom->buff->data) {
       if (!ak__img_conf.loadFromMemory)
         return;
 
-      data = ak__img_conf.loadFromMemory(heap,
-                                         image,
-                                         initFrom->buff->data,
-                                         (int)initFrom->buff->length,
-                                         &x, &y, &ch);
-
-      if (!data)
-        return;
-
-      idata         = ak_heap_calloc(heap, image, sizeof(*idata));
-      idata->width  = x;
-      idata->height = y;
-      idata->comp   = ch;
-      idata->data   = data;
-      image->data   = idata;
+      image->data = ak__img_conf.loadFromMemory(heap, image, initFrom->buff, flipImage);
     } else if (initFrom->hex) {
       /* TODO: */
     }

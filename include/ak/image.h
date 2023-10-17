@@ -101,8 +101,10 @@ typedef struct AkImage {
   AkTree            *extra;
   struct AkImage    *next;
 
-  AkBool          renderable;
-  AkBool          renderableShare;
+  AkBool             renderable;
+  AkBool             renderableShare;
+
+  bool               flipOnLoad;
 } AkImage;
 
 AK_EXPORT
@@ -110,25 +112,21 @@ void
 ak_imageLoad(AkImage * __restrict image);
 
 /* Loader Configurator */
-typedef void* (*AkImageLoadFromFileFn)(AkHeap     * __restrict heap,
-                                       void       * __restrict memparent,
-                                       const char * __restrict path,
-                                       int        * __restrict width,
-                                       int        * __restrict height,
-                                       int        * __restrict components);
-typedef void* (*AkImageLoadFromMemoryFn)(AkHeap     * __restrict heap,
-                                         void       * __restrict memparent,
-                                         const char * __restrict data,
-                                         size_t                  len,
-                                         int        * __restrict width,
-                                         int        * __restrict height,
-                                         int        * __restrict components);
-typedef void (*AkImageFlipVerticallyOnLoad)(bool flip);
+typedef AkImageData* (*AkImageLoadFromFileFn)(AkHeap     * __restrict heap,
+                                              AkImage    * __restrict image,
+                                              const char * __restrict path,
+                                              bool                    flipVertically);
+
+typedef AkImageData* (*AkImageLoadFromMemoryFn)(AkHeap   * __restrict heap,
+                                                AkImage  * __restrict image,
+                                                AkBuffer * __restrict buff,
+                                                bool                  flipVertically);
+
+typedef void  (*AkImageFlipVerticallyOnLoad)(bool flip);
 
 AK_EXPORT
 void
-ak_imageInitLoader(AkImageLoadFromFileFn       fromFile,
-                   AkImageLoadFromMemoryFn     fromMemory,
-                   AkImageFlipVerticallyOnLoad flipper);
+ak_imageInitLoader(AkImageLoadFromFileFn   fromFile,
+                   AkImageLoadFromMemoryFn fromMemory);
 
 #endif /* assetkit_image_h */
