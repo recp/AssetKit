@@ -25,11 +25,11 @@ ak_transformCombineWorld(AkNode * __restrict node,
   mat4    mat;
   mat4    ptrans;
 
-  ak_transformCombine(node, mat[0]);
+  ak_transformCombine(node->transform, mat[0]);
 
   parentNode = node->parent;
   while (parentNode) {
-    ak_transformCombine(parentNode, ptrans[0]);
+    ak_transformCombine(parentNode->transform, ptrans[0]);
 
     glm_mat4_mul(ptrans, mat, mat);
     parentNode = parentNode->parent;

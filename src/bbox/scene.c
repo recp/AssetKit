@@ -45,7 +45,7 @@ ak_bbox_node(AkHeap        * __restrict heap,
 
   matrixWorld = node->matrixWorld->val;
 
-  ak_transformCombine(node, node->matrix->val[0]);
+  ak_transformCombine(node->transform, node->matrix->val[0]);
   glm_mat4_mul(parentTrans, node->matrix->val, matrixWorld);
 
   if (node->geometry) {

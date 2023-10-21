@@ -24,6 +24,7 @@
 #include "../include/ak/map.h"
 #include "../include/ak/type.h"
 #include "../include/ak/url.h"
+#include "../include/ak/transform.h"
 
 #include "mem/common.h"
 

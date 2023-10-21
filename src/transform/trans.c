@@ -55,31 +55,31 @@ ak_transformSkewMatrix(AkSkew * __restrict skew,
 
 AK_EXPORT
 void
-ak_transformCombine(AkNode * __restrict node,
-                    float  * matrix) {
-  AkObject *transform, *transformGroup;
+ak_transformCombine(AkTransform * __restrict transform,
+                    float       * __restrict matrix) {
+  AkObject *transformItem, *transformGroup;
   mat4      mat = GLM_MAT4_IDENTITY_INIT;
   mat4      tmp;
 
-  if (!node->transform)
+  if (!transform || !matrix)
     goto ret;
 
-  transformGroup = node->transform->base;
+  transformGroup = transform->base;
 
 again:
-  transform = transformGroup;
-  while (transform) {
-    switch (transform->type) {
+  transformItem = transformGroup;
+  while (transformItem) {
+    switch (transformItem->type) {
       case AKT_MATRIX: {
         AkMatrix *matrix;
-        matrix = ak_objGet(transform);
+        matrix = ak_objGet(transformItem);
 
         glm_mat4_mul(mat, matrix->val, mat);
         break;
       }
       case AKT_LOOKAT: {
         AkLookAt *lookAt;
-        lookAt = ak_objGet(transform);
+        lookAt = ak_objGet(transformItem);
 
         glm_lookat(lookAt->val[0],
                    lookAt->val[1],
@@ -94,7 +94,7 @@ again:
       case AKT_ROTATE: {
         AkRotate *rotate;
 
-        rotate = ak_objGet(transform);
+        rotate = ak_objGet(transformItem);
         glm_rotate_make(tmp, rotate->val[3], rotate->val);
         glm_mat4_mul(mat, tmp, mat);
         break;
@@ -102,14 +102,14 @@ again:
       case AKT_QUATERNION: {
         AkQuaternion *quat;
 
-        quat = ak_objGet(transform);
+        quat = ak_objGet(transformItem);
         glm_quat_mat4(quat->val, tmp);
         glm_mat4_mul(mat, tmp, mat);
         break;
       }
       case AKT_SCALE: {
         AkScale *scale;
-        scale = ak_objGet(transform);
+        scale = ak_objGet(transformItem);
 
         glm_scale_make(tmp, scale->val);
         glm_mat4_mul(mat, tmp, mat);
@@ -117,7 +117,7 @@ again:
       }
       case AKT_TRANSLATE: {
         AkTranslate *translate;
-        translate = ak_objGet(transform);
+        translate = ak_objGet(transformItem);
 
         glm_translate_make(tmp, translate->val);
         glm_mat4_mul(mat, tmp, mat);
@@ -125,7 +125,7 @@ again:
       }
       case AKT_SKEW: {
         AkSkew *skew;
-        skew = ak_objGet(transform);
+        skew = ak_objGet(transformItem);
 
         ak_transformSkewMatrix(skew, tmp[0]);
         glm_mat4_mul(mat, tmp, mat);
@@ -133,11 +133,11 @@ again:
       }
     }
 
-    transform = transform->next;
+    transformItem = transformItem->next;
   }
 
-  if (transformGroup != node->transform->item) {
-    transformGroup = node->transform->item;
+  if (transformGroup != transform->item) {
+    transformGroup = transform->item;
     goto again;
   }
 
