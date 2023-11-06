@@ -29,7 +29,7 @@ ak_meshTriangulatePoly_noindices(AkPolygon * __restrict poly) {
   AkUInt       *vc_it;
   AkAccessor   *acc;
   AkFloat      *it_new, *it_old;
-  AkUInt        trianglec, otherc, i, isz;
+  AkUInt        nGenTrigs, nTrigs, i, isz;
   size_t        st;
 
   if (!poly->base.pos
@@ -37,27 +37,24 @@ ak_meshTriangulatePoly_noindices(AkPolygon * __restrict poly) {
       || !(buff = acc->buffer))
     return 0;
 
-  otherc    = 0;
-  trianglec = 0;
+  nTrigs    = 0;
+  nGenTrigs = 0;
   vc_it     = poly->vcount->items;
+
   for (i = 0; i < poly->vcount->count; i++) {
-    if (vc_it[i] > 3)
-      trianglec += vc_it[i] - 2;
-    else
-      otherc += vc_it[i];
+    if (vc_it[i] > 3) { nGenTrigs += vc_it[i] - 2; }
+    else              { nTrigs    += 1;            }
   }
 
-  if (trianglec == 0)
-    return 0;
+  if (!nGenTrigs) return 0;
 
   isz  = sizeof(AkFloat);
   st   = acc->byteStride;
   heap = ak_heap_getheap(poly->vcount);
 
-  newbuff       = ak_heap_calloc(heap, poly, sizeof(*newbuff));
-  newbuff->data = ak_heap_alloc(heap, newbuff, isz * trianglec * 3 * st);
-
-  newbuff->length = isz * trianglec * 3 * st;
+  newbuff         = ak_heap_calloc(heap, poly, sizeof(*newbuff));
+  newbuff->data   = ak_heap_alloc(heap, newbuff, isz * (nTrigs + nGenTrigs) * 3 * st);
+  newbuff->length = isz * nGenTrigs * 3 * st;
 
   it_old = newbuff->data;
   it_new = buff->data;
@@ -82,7 +79,7 @@ ak_meshTriangulatePoly_noindices(AkPolygon * __restrict poly) {
     it_old += vc * st;
   }
 
-  return trianglec;
+  return nGenTrigs;
 }
 
 AK_EXPORT
@@ -91,7 +88,7 @@ ak_meshTriangulatePoly(AkPolygon * __restrict poly) {
   AkHeap      *heap;
   AkUIntArray *newind;
   AkUInt      *vc_it, *ind_it, *newind_it;
-  AkUInt       trianglec, otherc, i, st;
+  AkUInt       nGenTrigs, nTrigs, i, st;
   AkUInt       isz;
 
   if (!poly->vcount)
@@ -101,18 +98,16 @@ ak_meshTriangulatePoly(AkPolygon * __restrict poly) {
   if (!poly->base.indices)
     return ak_meshTriangulatePoly_noindices(poly);
 
-  otherc    = 0;
-  trianglec = 0;
+  nTrigs    = 0;
+  nGenTrigs = 0;
   vc_it     = poly->vcount->items;
+
   for (i = 0; i < poly->vcount->count; i++) {
-    if (vc_it[i] > 3)
-      trianglec += vc_it[i] - 2;
-    else
-      otherc += vc_it[i];
+    if (vc_it[i] > 3) { nGenTrigs += vc_it[i] - 2; }
+    else              { nTrigs    += 1;           }
   }
 
-  if (!trianglec)
-    return trianglec;
+  if (!nGenTrigs) return 0;
 
   isz    = sizeof(AkUInt);
   heap   = ak_heap_getheap(poly->vcount);
@@ -121,8 +116,8 @@ ak_meshTriangulatePoly(AkPolygon * __restrict poly) {
   newind = ak_heap_alloc(heap,
                          poly,
                          sizeof(*newind)
-                         + isz * (otherc + trianglec * 3) * st);
-  newind->count = (otherc + trianglec * 3) * st;
+                         + isz * ((nTrigs + nGenTrigs) * 3) * st);
+  newind->count = ((nTrigs + nGenTrigs) * 3) * st;
   newind_it     = newind->items;
 
   for (i = 0; i < poly->vcount->count; i++) {
@@ -147,13 +142,13 @@ ak_meshTriangulatePoly(AkPolygon * __restrict poly) {
 
   ak_free(poly->base.indices);
   poly->base.indices = newind;
+  poly->base.count   = nGenTrigs + nTrigs;
 
   /* no need to this info anymore, save space! */
   ak_free(poly->vcount);
   poly->vcount = NULL;
-  poly->base.count = trianglec;
 
-  return trianglec;
+  return nGenTrigs;
 }
 
 AK_EXPORT
