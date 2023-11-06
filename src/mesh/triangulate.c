@@ -151,6 +151,7 @@ ak_meshTriangulatePoly(AkPolygon * __restrict poly) {
   /* no need to this info anymore, save space! */
   ak_free(poly->vcount);
   poly->vcount = NULL;
+  poly->base.count = trianglec;
 
   return trianglec;
 }
