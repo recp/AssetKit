@@ -86,6 +86,10 @@ ak_platform(void);
 void
 ak_setPlatform(const char platform[64]);
 
+AK_EXPORT
+AkProfileCommon*
+ak_getProfileCommon(struct AkEffect * __restrict effect);
+
 #ifdef __cplusplus
 }
 #endif

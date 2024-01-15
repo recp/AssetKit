@@ -155,3 +155,18 @@ void
 ak_profile_deinit(void) {
   ak_free(ak__profileTypes);
 }
+
+AK_EXPORT
+AkProfileCommon*
+ak_getProfileCommon(struct AkEffect * __restrict effect) {
+  AkProfile *profile;
+
+  profile = effect->profile;
+  while (profile) {
+    if (profile->type == AK_PROFILE_TYPE_COMMON)
+      break;
+    profile = profile->next;
+  }
+
+  return (AkProfileCommon *)profile;
+}
