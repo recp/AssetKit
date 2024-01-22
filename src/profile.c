@@ -170,3 +170,18 @@ ak_getProfileCommon(struct AkEffect * __restrict effect) {
 
   return (AkProfileCommon *)profile;
 }
+
+AK_EXPORT
+AkTechniqueFxCommon*
+ak_getProfileTechniqueCommon(struct AkEffect * __restrict effect) {
+  AkProfileCommon     *profileCommon;
+  AkTechniqueFx       *techn;
+  AkTechniqueFxCommon *technCommon;
+
+  if ((profileCommon = ak_getProfileCommon(effect))
+      && (techn = profileCommon->technique)) {
+    return techn->common;
+  }
+
+  return NULL;
+}

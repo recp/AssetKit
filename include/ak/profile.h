@@ -90,6 +90,10 @@ AK_EXPORT
 AkProfileCommon*
 ak_getProfileCommon(struct AkEffect * __restrict effect);
 
+AK_EXPORT
+AkTechniqueFxCommon*
+ak_getProfileTechniqueCommon(struct AkEffect * __restrict effect);
+
 #ifdef __cplusplus
 }
 #endif
