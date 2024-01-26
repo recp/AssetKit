@@ -30,4 +30,8 @@ gltf_allocPrim(AkHeap * __restrict heap,
                void   * __restrict memParent,
                int                 mode);
 
+AK_HIDE
+uint32_t
+gltf_polyCount(AkMeshPrimitive *prim, uint32_t mode);
+
 #endif /* gltf_imp_core_mesh_h */

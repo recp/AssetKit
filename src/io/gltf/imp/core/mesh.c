@@ -68,9 +68,8 @@ gltf_meshes(json_t * __restrict jmesh,
           AkMeshPrimitive *prim;
           json_t          *jprimVal;
 
-          prim = gltf_allocPrim(heap,
-                                meshObj,
-                                json_int32(json_get(jprim, _s_gltf_mode), 4));
+          mode = json_int32(json_get(jprim, _s_gltf_mode), 4);
+          prim = gltf_allocPrim(heap, meshObj, mode);
 
           prim->input      = NULL;
           prim->inputCount = 0;
@@ -258,6 +257,8 @@ gltf_meshes(json_t * __restrict jmesh,
           mesh->primitive = prim;
           mesh->primitiveCount++;
 
+          prim->nPolygons = gltf_polyCount(prim, mode);
+
         prim_next:
           jprim = jprim->next;
         }
@@ -355,4 +356,38 @@ gltf_allocPrim(AkHeap * __restrict heap,
   }
 
   return NULL;
+}
+
+AK_HIDE
+uint32_t
+gltf_polyCount(AkMeshPrimitive *prim, uint32_t mode) {
+  AkInput    *pos;
+  AkAccessor *acc;
+  uint32_t    n;
+
+  if (prim->indices) {
+    n = (uint32_t)prim->indices->count;
+  } else if ((pos = prim->pos) && (acc = pos->accessor)) {
+    n = (uint32_t)acc->count;
+  } else {
+    goto err;
+  }
+
+  switch (mode) {
+    /* 0: points, 2: line loops */
+    case 0:
+    case 2: return n;
+    /* 1: lines */
+    case 1: return n * 0.5;
+    /* 3: line strip */
+    case 3: return n - 1;
+    /* 4: triangles */
+    case 4: return n / 3;
+    /* 5: triangle strip, 6: triangle fan */
+    case 5:
+    case 6: return n - 2;
+  }
+
+err:
+  return 0;
 }
