@@ -120,7 +120,7 @@ ak_meshReserveBufferForInput(AkMesh   * __restrict mesh,
   buffid    = input;
   buffstate = ak_meshReserveBuffer(mesh,
                                    buffid,
-                                   acci->componentBytes,
+                                   acci->bytesPerComponent,
                                    acci->componentCount,
                                    count);
   buffi = buffstate->buff;

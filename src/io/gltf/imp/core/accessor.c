@@ -128,22 +128,22 @@ gltf_accessors(json_t * __restrict json,
 
     /* prepare for min and max */
     if (acc->componentSize < 5) {
-      bound               = acc->componentSize;
-      acc->componentBytes = bound * componentLen;
-      acc->componentCount = bound;
+      bound                  = acc->componentSize;
+      acc->bytesPerComponent = componentLen;
+      acc->componentCount    = bound;
     } else {
-      bound               = acc->componentSize >> 3;
-      acc->componentBytes = bound * componentLen;
-      acc->componentCount = bound;
+      bound                  = acc->componentSize >> 3;
+      acc->bytesPerComponent = componentLen;
+      acc->componentCount    = bound;
     }
     
-    acc->byteLength   = acc->count * acc->componentBytes;
-    acc->fillByteSize = acc->componentBytes;
+    acc->byteLength   = acc->bytesPerComponent * acc->count;
+    acc->fillByteSize = acc->bytesPerComponent * bound;
 
     if (acc->componentSize != AK_COMPONENT_SIZE_UNKNOWN
-        && acc->componentBytes > 0) {
+        && acc->fillByteSize > 0) {
       if ((it = accMap[k_gltf_min].object) && it->value) {
-        acc->min = ak_heap_alloc(heap, acc, acc->componentBytes);
+        acc->min = ak_heap_alloc(heap, acc, acc->fillByteSize);
 
         if ((jarr = json_array(it))) {
           jitem = jarr->base.value;
@@ -159,7 +159,7 @@ gltf_accessors(json_t * __restrict json,
       }
 
       if ((it = accMap[k_gltf_max].object) && it->value) {
-        acc->max = ak_heap_alloc(heap, acc, acc->componentBytes);
+        acc->max = ak_heap_alloc(heap, acc, acc->fillByteSize);
 
         if ((jarr = json_array(it))) {
           jitem = jarr->base.value;

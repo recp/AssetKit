@@ -239,25 +239,25 @@ dae_fixup_accessors(DAEState * __restrict dst) {
       AkBuffer    *newbuff;
       AkDataParam *dp;
       char        *olditms, *newitms;
-      uint32_t     i, j, count, dpoff, componentBytes;
+      uint32_t     i, j, count, dpoff, bytesPerComponent;
       size_t       oldByteStride, newByteStride;
 
       acc->componentType = (AkTypeId)(uintptr_t)ak_userData(buff);
 
       if ((type = ak_typeDesc(acc->componentType)))
-        componentBytes = type->size;
+        bytesPerComponent = type->size;
       else
         goto cont;
 
-      count               = acc->count;
-      acc->byteStride     = accdae->stride * componentBytes;
-      acc->byteLength     = count * accdae->stride * componentBytes;
-      acc->byteOffset     = accdae->offset * componentBytes;
-      accdae->bound       = accdae->stride;
+      count                  = acc->count;
+      acc->byteStride        = accdae->stride * bytesPerComponent;
+      acc->byteLength        = count * accdae->stride * bytesPerComponent;
+      acc->byteOffset        = accdae->offset * bytesPerComponent;
+      accdae->bound          = accdae->stride;
 
-      acc->fillByteSize   = accdae->bound * componentBytes;
-      acc->componentCount = accdae->bound;
-      acc->componentBytes = componentBytes;
+      acc->fillByteSize      = accdae->bound * bytesPerComponent;
+      acc->componentCount    = accdae->bound;
+      acc->bytesPerComponent = bytesPerComponent;
 
       /*--------------------------------------------------------------------*
 
@@ -270,7 +270,7 @@ dae_fixup_accessors(DAEState * __restrict dst) {
       /* TODO: check param that has empty name */
       if (acc->buffer && ak_refc(buff) > 1) {
         oldByteStride   = acc->byteStride;
-        newByteStride   = accdae->bound * componentBytes;
+        newByteStride   = accdae->bound * bytesPerComponent;
         newbuff         = ak_heap_calloc(heap, doc, sizeof(*newbuff));
         newbuff->length = count * newByteStride;
         newbuff->data   = ak_heap_calloc(heap, newbuff, newbuff->length);
@@ -285,7 +285,7 @@ dae_fixup_accessors(DAEState * __restrict dst) {
 
           while (dp) {
             if (dp->name) {
-              memcpy(newitms + newByteStride * i + componentBytes * j++,
+              memcpy(newitms + newByteStride * i + bytesPerComponent * j++,
                      olditms + oldByteStride * i + dpoff,
                      dp->type.size);
             }

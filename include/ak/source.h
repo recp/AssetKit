@@ -74,7 +74,7 @@ typedef struct AkAccessor {
   size_t           byteStride;           /* stride in bytes                  */
   size_t           byteLength;           /* total bytes for this accessor    */
   uint32_t         count;                /* count to access buffer           */
-  uint32_t         componentBytes;       /* component stride in bytes        */
+  uint32_t         bytesPerComponent;    /* component stride in bytes        */
   AkComponentSize  componentSize;        /* vec1 | vec2 | vec3 | vec4 ...    */
   AkTypeId         componentType;        /* single component type            */
   uint32_t         componentCount;

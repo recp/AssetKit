@@ -51,8 +51,8 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
   byteStride  = acc->byteStride;
 
   if (byteStride == 0)
-    byteStride = acc->componentBytes;
-  
+    byteStride = acc->fillByteSize;
+
   /* we must walk through indices if exists because source may contain
      unrelated data and this will cause get wrong box
    */

@@ -52,6 +52,7 @@ gltf_meshes(json_t * __restrict jmesh,
     AkGeometry *geom;
     AkMesh     *mesh;
     AkObject   *meshObj;
+    uint32_t    mode;
 
     mesh                 = ak_allocMesh(heap, lib, &geom);
     meshObj              = ak_objFrom(mesh);
@@ -133,7 +134,7 @@ gltf_meshes(json_t * __restrict jmesh,
                   || !(indicesBuff = acc->buffer))
                 goto prim_next;
 
-              itemSize = acc->componentBytes;
+              itemSize = acc->bytesPerComponent;
               count    = acc->count;
               indices  = ak_heap_calloc(heap,
                                         prim,

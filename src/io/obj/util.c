@@ -41,16 +41,16 @@ wobj_acc(WOState         * __restrict wst,
   
   flist_sp_insert(&wst->doc->lib.buffers, buff);
   
-  acc                 = ak_heap_calloc(heap, wst->doc, sizeof(*acc));
-  acc->buffer         = buff;
-  acc->byteLength     = buff->length;
-  acc->byteStride     = typeDesc->size * nComponents;
-  acc->componentSize  = compSize;
-  acc->componentType  = type;
-  acc->componentBytes = typeDesc->size * nComponents;
-  acc->componentCount = nComponents;
-  acc->fillByteSize   = typeDesc->size * nComponents;
-  acc->count          = (uint32_t)dctx->itemcount;
+  acc                    = ak_heap_calloc(heap, wst->doc, sizeof(*acc));
+  acc->buffer            = buff;
+  acc->byteLength        = buff->length;
+  acc->byteStride        = typeDesc->size * nComponents;
+  acc->componentSize     = compSize;
+  acc->componentType     = type;
+  acc->bytesPerComponent = typeDesc->size;
+  acc->componentCount    = nComponents;
+  acc->fillByteSize      = typeDesc->size * nComponents;
+  acc->count             = (uint32_t)dctx->itemcount;
 
   return acc;
 }

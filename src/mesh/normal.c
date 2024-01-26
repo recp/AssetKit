@@ -203,21 +203,21 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
   ak_setypeid(acc, AKT_ACCESSOR);
 
   
-  acc->componentCount = 3;
-  acc->count          = count;
-  acc->componentType  = AKT_FLOAT;
-  acc->componentSize  = AK_COMPONENT_SIZE_VEC3;
-  acc->componentBytes = ak_typeDesc(acc->componentType)->size;
-  acc->byteStride     = acc->componentCount * acc->componentBytes;
-  acc->fillByteSize   = acc->byteStride;
-  acc->byteLength     = acc->count * acc->byteStride;
-  
-   
-  buff                = ak_heap_calloc(heap, doc, sizeof(*buff));
-  buff->data          = ak_heap_alloc(heap, buff, acc->byteLength);
-  buff->length        = acc->byteLength;
+  acc->componentCount    = 3;
+  acc->count             = count;
+  acc->componentType     = AKT_FLOAT;
+  acc->componentSize     = AK_COMPONENT_SIZE_VEC3;
+  acc->bytesPerComponent = ak_typeDesc(acc->componentType)->size;
+  acc->byteStride        = acc->componentCount * acc->bytesPerComponent;
+  acc->fillByteSize      = acc->byteStride;
+  acc->byteLength        = acc->count * acc->byteStride;
 
-  acc->buffer         = buff;
+   
+  buff                   = ak_heap_calloc(heap, doc, sizeof(*buff));
+  buff->data             = ak_heap_alloc(heap, buff, acc->byteLength);
+  buff->length           = acc->byteLength;
+
+  acc->buffer            = buff;
 
   flist_sp_insert(&doc->lib.accessors, acc);
   flist_sp_insert(&doc->lib.buffers, buff);

@@ -205,7 +205,7 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
 #undef ak__collectTargetInput
 
   return AK_OK;
-err: 
+err:
   ak_free(view);
   return AK_ERR;
 }
