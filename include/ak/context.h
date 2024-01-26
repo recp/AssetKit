@@ -31,6 +31,8 @@ typedef struct AkContext {
   //  AkMap              *bindVertexInput;
 } AkContext;
 
+AK_INLINE AkContext AkContextZeroed(void) { return (AkContext){0}; }
+
 #ifdef __cplusplus
 }
 #endif
