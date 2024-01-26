@@ -90,7 +90,7 @@ typedef struct AkMeshPrimitive {
   AkTree                 *extra;
   void                   *udata;
   AkMeshPrimitiveType     type;
-  uint32_t                count;
+  uint32_t                nPolygons;
   uint32_t                inputCount;
   AkFloat3                center;
 
