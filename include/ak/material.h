@@ -23,6 +23,11 @@ extern "C" {
 #include "common.h"
 #include "texture.h"
 
+struct AkBindMaterial;
+struct AkMeshPrimitive;
+struct AkEffect;
+struct AkInstanceMaterial;
+
 typedef enum AkGlMaterialType {
   AK_GL_MATERIAL_TYPE_EMISSION            = 1,
   AK_GL_MATERIAL_TYPE_AMBIENT             = 2,
@@ -121,6 +126,21 @@ typedef struct AkSpecularGlossiness {
   AkTextureRef       *specGlossTex;
   float               glossiness;
 } AkSpecularGlossiness;
+
+/*!
+ * @brief a helper that returns effect for given mesh prim for a bindMaterial
+ *
+ * @param bindMat      bind material object in AkNode
+ * @param meshPrim     mesh primitive
+ * @param foundInstMat instance material
+ *
+ * @return effect that points by a AkMaterial
+ */
+AK_EXPORT
+struct AkEffect*
+ak_effectForBindMaterial(struct AkBindMaterial      * __restrict bindMat,
+                         struct AkMeshPrimitive     * __restrict meshPrim,
+                         struct AkInstanceMaterial ** __restrict foundInstMat);
 
 #ifdef __cplusplus
 }

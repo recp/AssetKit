@@ -82,7 +82,12 @@ typedef struct AkTexture {
 
 typedef struct AkTextureRef {
   struct AkTexture *texture;
-  const char       *texcoord; /* to bind texture to input coord dynamically */
+
+  /* to bind texture to input coord dynamically, e.g. used by bindMaterial in 
+     node like COLLADA  */
+  const char       *texcoord;
+
+  /* glTF like texture bind */
   const char       *coordInputName;
   int               slot;
 } AkTextureRef;
