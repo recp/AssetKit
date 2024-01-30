@@ -202,9 +202,8 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
   acc = ak_heap_calloc(heap, doc, sizeof(*acc));
   ak_setypeid(acc, AKT_ACCESSOR);
 
-  
   acc->componentCount    = 3;
-  acc->count             = count;
+  acc->count             = (uint32_t)dctx->itemcount;
   acc->componentType     = AKT_FLOAT;
   acc->componentSize     = AK_COMPONENT_SIZE_VEC3;
   acc->bytesPerComponent = ak_typeDesc(acc->componentType)->size;
@@ -212,7 +211,6 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
   acc->fillByteSize      = acc->byteStride;
   acc->byteLength        = acc->count * acc->byteStride;
 
-   
   buff                   = ak_heap_calloc(heap, doc, sizeof(*buff));
   buff->data             = ak_heap_alloc(heap, buff, acc->byteLength);
   buff->length           = acc->byteLength;
