@@ -182,6 +182,11 @@ gltf_accessors(json_t * __restrict json,
     }
      */
     
+    /* elements are tightly packed */
+    if (acc->byteStride == 0) {
+      acc->byteStride = acc->fillByteSize;
+    }
+
     flist_sp_insert(&gst->doc->lib.accessors, acc);
 
     json = json->next;
