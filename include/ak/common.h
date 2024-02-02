@@ -94,4 +94,19 @@ typedef struct AkTwoWayIterBase {
   struct AkTwoWayIterBase *prev;
 } AkTwoWayIterBase;
 
+#define AK_PATH_FROM_DOC(DOC, DEST, FILE_NAME)                                \
+  do {                                                                        \
+    size_t dirLength, newPathLength;                                          \
+                                                                              \
+    dirLength     = strlen(DOC->inf->dir);                                    \
+    newPathLength = dirLength + strlen(FILE_NAME) + 1;                        \
+                                                                              \
+    DEST = alloca(newPathLength + 1);                                         \
+    strcpy(DEST, DOC->inf->dir);                                              \
+    if (DOC->inf->dir[dirLength - 1] != '/') {                                \
+      strcat(DEST, "/");                                                      \
+    }                                                                         \
+    strcat(DEST, FILE_NAME);                                                  \
+  } while (0)
+
 #endif /* assetkit_common_h */
