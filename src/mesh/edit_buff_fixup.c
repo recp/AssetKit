@@ -34,7 +34,7 @@ ak_meshFillBuffers(AkMesh * __restrict mesh) {
   AkSourceEditHelper *srch;
   char               *olditms, *newitms;
   size_t              icount, i;
-  AkUInt              oldidx, newidx;
+  AkUInt              oldidx, newidx, oldByteSt, newByteSt, fillSize;
 
   edith = mesh->edith;
   primi = mesh->primitive;
@@ -62,9 +62,12 @@ ak_meshFillBuffers(AkMesh * __restrict mesh) {
 
       /* copy buff to mesh */
       if ((buffstate = rb_find(edith->buffers, input))) {
-        srch    = ak_meshSourceEditHelper(mesh, input);
-        newbuff = buffstate->buff;
-        newacc  = srch->source;
+        srch      = ak_meshSourceEditHelper(mesh, input);
+        newbuff   = buffstate->buff;
+        newacc    = srch->source;
+        oldByteSt = (AkUInt)acc->byteStride;
+        newByteSt = (AkUInt)newacc->byteStride;
+        fillSize  = (AkUInt)acc->fillByteSize;
 
         assert(newacc && "accessor is needed!");
 
@@ -76,9 +79,9 @@ ak_meshFillBuffers(AkMesh * __restrict mesh) {
           oldidx = ind1_it[i * primi->indexStride + input->offset];
           newidx = ind2_it[i];
           
-          memcpy(newitms + newacc->byteStride * newidx,
-                 olditms + acc->byteStride    * oldidx,
-                 acc->fillByteSize);
+          memcpy(newitms + newByteSt * newidx,
+                 olditms + oldByteSt * oldidx,
+                 fillSize);
         }
 
         /* to prevent duplication operation for next time */
