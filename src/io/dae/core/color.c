@@ -45,4 +45,9 @@ dae_color(xml_t   * __restrict xml,
   }
   
   glm_vec4_clamp(dest->vec, 0.0f, 1.0f);
+
+  /* BUGIFX: assume alpha=0 is an export BUG */
+  if (dest->vec[3] < 0.125) {
+    dest->vec[3] = 1.0f - dest->vec[3];
+  }
 }
