@@ -103,7 +103,7 @@ typedef struct AkTwoWayIterBase {
                                                                               \
     DEST = alloca(newPathLength + 1);                                         \
     strcpy(DEST, DOC->inf->dir);                                              \
-    if (DOC->inf->dir[dirLength - 1] != '/') {                                \
+    if (DOC->inf->dir[dirLength - 1] != '/' && FILE_NAME[0] != '/') {         \
       strcat(DEST, "/");                                                      \
     }                                                                         \
     strcat(DEST, FILE_NAME);                                                  \
