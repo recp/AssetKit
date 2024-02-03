@@ -283,8 +283,9 @@ ak_strtoui(char    * __restrict src,
            size_t               srclen,
            unsigned long        n,
            AkUInt  * __restrict dest) {
-  char *tok, *tok_end, *end;
-  char  c;
+  char    *tok, *tok_end, *end;
+  char     c;
+  AkUInt64 val;
 
   if (n == 0)
     return 0;
@@ -299,9 +300,16 @@ ak_strtoui(char    * __restrict src,
       while (tok < end && ((void)(c = *tok), AK_ARRAY_SEP_CHECK))
         tok++;
       
-      *(dest - --n) = (AkUInt)strtoul(tok, &tok_end, 10);
+      val = strtoul(tok, &tok_end, 10);
       tok = tok_end;
-      
+
+      /* BUGFIX: some indices may come as -1 as BUG, fix this. */
+      if (val < UINT32_MAX) {
+        *(dest - --n) = (AkUInt)val;
+      } else {
+        *(dest - --n) = 0;
+      }
+
       while (tok < end && ((void)(c = *tok), AK_ARRAY_SEP_CHECK))
         tok++;
     } while (n > 0ul && tok < end);
@@ -310,9 +318,16 @@ ak_strtoui(char    * __restrict src,
       while (((void)(c = *tok), AK_ARRAY_SEP_CHECK))
         tok++;
       
-      *(dest - --n) = (AkUInt)strtoul(tok, &tok_end, 10);
+      val = strtoul(tok, &tok_end, 10);
       tok = tok_end;
-      
+
+      /* BUGFIX: some indices may come as -1 as BUG, fix this. */
+      if (val < UINT32_MAX) {
+        *(dest - --n) = (AkUInt)val;
+      } else {
+        *(dest - --n) = 0;
+      }
+
       while (((void)(c = *tok), AK_ARRAY_SEP_CHECK))
         tok++;
     } while (n > 0ul && *tok != '\0');
