@@ -130,6 +130,7 @@ ak_meshReserveBufferForInput(AkMesh   * __restrict mesh,
   srch->oldsource       = acci;
   srch->source          = newacc;
   newacc->buffer        = buffi;
+  newacc->byteLength    = newacc->count * newacc->fillByteSize;
 
   ak_heap_setpm(newacc, srch->source);
 
