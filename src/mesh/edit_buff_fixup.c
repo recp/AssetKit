@@ -78,7 +78,7 @@ ak_meshFillBuffers(AkMesh * __restrict mesh) {
           
           memcpy(newitms + newacc->byteStride * newidx,
                  olditms + acc->byteStride    * oldidx,
-                 acc->byteStride);
+                 acc->fillByteSize);
         }
 
         /* to prevent duplication operation for next time */
