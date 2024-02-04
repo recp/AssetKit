@@ -211,13 +211,11 @@ gltf_node(AkGLTFState * __restrict gst,
   if ((it = nodeMap[k_matrix].object)) {
     AkObject *obj;
     AkMatrix *matrix;
-    float     rawMatrix[4][4];
 
     obj    = ak_objAlloc(heap, node, sizeof(*matrix), AKT_MATRIX, true);
     matrix = ak_objGet(obj);
 
-    json_array_float(rawMatrix[0], it, 0.0f, 16, true);
-    glm_mat4_ucopy(rawMatrix, matrix->val);
+    json_array_float(matrix->val[0], it, 0.0f, 16, true);
 
     if (!node->transform) {
       node->transform = ak_heap_calloc(heap, node, sizeof(*node->transform));
