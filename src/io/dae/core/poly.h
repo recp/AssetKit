@@ -21,7 +21,7 @@
 
 typedef enum AkPolygonMode {
   AK_POLY_POLYLIST = 1,
-  AK_POLY_POLYGONS = 2
+  AK_POLY_POLYGONS = 3
 } AkPolygonMode;
 
 AK_HIDE
