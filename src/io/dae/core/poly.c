@@ -95,6 +95,7 @@ dae_poly(DAEState * __restrict dst,
         if (mode == AK_POLY_POLYLIST) {
           poly->base.indices = intArray;
         } else if (mode == AK_POLY_POLYGONS) {
+          /* TODO: do this for POLYLIST if vcount not exists */
           flist_sp_insert(&polyi, intArray);
           polygonsCount++;
           indicesCount += intArray->count;
