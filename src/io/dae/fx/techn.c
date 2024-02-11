@@ -94,7 +94,21 @@ dae_techniqueFxCmn(DAEState * __restrict dst,
     } else if (xml_tag_eq(xml, _s_dae_diffuse)) {
       techn->diffuse = dae_colorOrTex(dst, xml, techn);
     } else if (xml_tag_eq(xml, _s_dae_specular)) {
-      techn->specular = dae_colorOrTex(dst, xml, techn);
+      AkMaterialSpecularProp *specularProp;
+      AkColorDesc            *colorDesc;
+      specularProp = ak_heap_calloc(heap, techn, sizeof(*specularProp));
+
+      colorDesc = dae_colorOrTex(dst, xml, specularProp);
+
+      if (colorDesc) {
+        if (colorDesc->color) {
+          specularProp->colorFactor = *colorDesc->color;
+        }
+
+        if (colorDesc->texture) {
+          specularProp->colorTex = colorDesc->texture;
+        }
+      }
     } else if (xml_tag_eq(xml, _s_dae_reflective)) {
       if (!techn->reflective)
         techn->reflective = ak_heap_calloc(heap, techn, sizeof(*techn->reflective));

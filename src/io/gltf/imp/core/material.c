@@ -52,7 +52,6 @@ gltf_materials(json_t * __restrict jmaterial,
     AkEffect               *effect;
     AkInstanceEffect       *ieff;
     float                   cutoff;
-    bool                    hasSpecGlossExt;
 
     pcommon         = gltf_cmnEffect(gst);
     effect          = ak_mem_parent(pcommon);
@@ -60,7 +59,6 @@ gltf_materials(json_t * __restrict jmaterial,
     mat             = ak_heap_calloc(heap, libmat,  sizeof(*mat));
     cmnTechn        = ak_heap_calloc(heap, technfx, sizeof(*cmnTechn));;
     cutoff          = 0.5f;
-    hasSpecGlossExt = false;
 
     pcommon->technique = technfx;
 
@@ -103,11 +101,35 @@ gltf_materials(json_t * __restrict jmaterial,
             }
             jspecgVal = jspecgVal->next;
           } /* jspecGlossVal */
-
-          hasSpecGlossExt = true;
         } /* _s_gltf_ext_pbrSpecGloss */
       } /* _s_gltf_extensions */
     } /* specGlossExt */
+
+    if ((jext = json_get(jmaterial, _s_gltf_extensions))) {
+      json_t *jspec, *jval;
+      if ((jspec = json_get(jext, _s_gltf_ext_KHR_materials_specular))) {
+        AkMaterialSpecularProp *specularProp;
+
+        specularProp       = ak_heap_calloc(heap, cmnTechn, sizeof(*specularProp));
+        cmnTechn->specular = specularProp;
+
+        glm_vec4_copy(GLM_VEC4_ONE, specularProp->colorFactor.vec);
+
+        jval = jspec->value;
+        while (jval) {
+          if (json_key_eq(jval, _s_gltf_specularFactor)) {
+            specularProp->strength = json_float(jval, 1.0f);
+          } else if (json_key_eq(jval, _s_gltf_specularTexture)) {
+            specularProp->specularTex = gltf_texref(gst, cmnTechn, jspec);
+          } else if (json_key_eq(jval, _s_gltf_specularColorFactor)) {
+            json_array_float(specularProp->colorFactor.vec, jval, 0.0f, 3, true);
+          } else if (json_key_eq(jval, _s_gltf_specularColorTexture)) {
+            specularProp->colorTex = gltf_texref(gst, cmnTechn, jspec);
+          }
+          jval = jval->next;
+        }
+      }
+    } /* _s_gltf_extensions */
 
     while (jmatVal) {
       /* Metallic Roughness */
