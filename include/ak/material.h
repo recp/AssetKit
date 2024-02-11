@@ -53,7 +53,8 @@ typedef enum AkMaterialType {
   AK_MATERIAL_LAMBERT            = 3,
   AK_MATERIAL_CONSTANT           = 4,
   AK_MATERIAL_METALLIC_ROUGHNESS = 5,  /* PBR Material */
-  AK_MATERIAL_SPECULAR_GLOSSINES = 6   /* PBR Material */
+  AK_MATERIAL_SPECULAR_GLOSSINES = 6,  /* PBR Material */
+  AK_MATERIAL_PBR                = 7   /* PBR Material */
 } AkMaterialType;
 
 typedef struct AkColorDesc {
@@ -89,43 +90,50 @@ typedef struct AkNormalMap {
   float         scale;
 } AkNormalMap;
 
+typedef struct AkMaterialMetallicProp {
+  AkTextureRef   *tex;
+  float           intensity;
+
+  /* TODO: add texture channel[s] */
+} AkMaterialMetallicProp;
+
+typedef struct AkMaterialSpecularProp {
+  AkTextureRef *specularTex;
+  AkTextureRef *colorTex;
+  AkColor       colorFactor;
+  float         strength;
+} AkMaterialSpecularProp;
+
 typedef struct AkTechniqueFxCommon {
-  AkColorDesc    *ambient;
-  AkColorDesc    *emission;
-  AkColorDesc    *diffuse;
-  AkColorDesc    *specular;
-  AkFloatOrParam *shininess;
+  AkColorDesc            *ambient;
+  AkColorDesc            *emission;
 
-  AkTransparent  *transparent;
-  AkReflective   *reflective;
-  AkFloatOrParam *indexOfRefraction;
+  union {
+    AkColorDesc          *diffuse;
+    AkColorDesc          *albedo;
+  };
 
-  AkOcclusion    *occlusion;
-  AkNormalMap    *normal;
+  // AkColorDesc           *specular;
+  AkFloatOrParam         *shininess;
 
-  AkMaterialType  type;
-  bool            doubleSided;
+  AkTransparent          *transparent;
+  AkReflective           *reflective;
+  AkFloatOrParam         *indexOfRefraction;
+
+  AkOcclusion            *occlusion;
+  AkNormalMap            *normal;
+
+  /* metallic properties  */
+  AkMaterialMetallicProp *metalness;
+  AkMaterialMetallicProp *roughness;
+
+  /* specular */
+  AkMaterialSpecularProp *specular;
+
+  /* common */
+  AkMaterialType          type;
+  bool                    doubleSided;
 } AkTechniqueFxCommon;
-
-/* Common PBR Materials */
-
-typedef struct AkMetallicRoughness {
-  AkTechniqueFxCommon base;
-  AkColor             albedo;
-  AkTextureRef       *albedoTex;
-  AkTextureRef       *metalRoughTex;
-  float               metallic;
-  float               roughness;
-} AkMetallicRoughness;
-
-typedef struct AkSpecularGlossiness {
-  AkTechniqueFxCommon base;
-  AkColor             diffuse;
-  AkColor             specular;
-  AkTextureRef       *diffuseTex;
-  AkTextureRef       *specGlossTex;
-  float               glossiness;
-} AkSpecularGlossiness;
 
 /*!
  * @brief a helper that returns effect for given mesh prim for a bindMaterial
