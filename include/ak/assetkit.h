@@ -194,6 +194,16 @@ typedef union AkColor {
   AK_ALIGN(16) AkFloat4    vec;
 } AkColor;
 
+AK_INLINE
+bool
+ak_colorLessThanOne(AkColor color) {
+  return color.rgba.R < 0.999
+      || color.rgba.G < 0.999
+      || color.rgba.B < 0.999
+      || color.rgba.A < 0.999
+  ;
+}
+
 typedef struct AkContributor {
   const char * author;
   const char * authorEmail;
