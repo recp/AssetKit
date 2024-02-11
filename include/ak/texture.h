@@ -90,6 +90,9 @@ typedef struct AkTextureRef {
   /* glTF like texture bind */
   const char       *coordInputName;
   int               slot;
+
+  /* Texture Transform */
+  /* TODO: */
 } AkTextureRef;
 
 #endif /* assetkit_texture_h */
