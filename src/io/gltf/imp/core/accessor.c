@@ -137,7 +137,7 @@ gltf_accessors(json_t * __restrict json,
       acc->componentCount    = bound;
     }
     
-    acc->byteLength   = acc->bytesPerComponent * acc->count;
+    acc->byteLength   = acc->bytesPerComponent * bound * acc->count;
     acc->fillByteSize = acc->bytesPerComponent * bound;
 
     if (acc->componentSize != AK_COMPONENT_SIZE_UNKNOWN

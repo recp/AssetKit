@@ -172,14 +172,27 @@ gltf_materials(json_t * __restrict jmaterial,
 
           jmrVal = jmrVal->next;
         }
+      } else if (json_key_eq(jmatVal, _s_gltf_emissiveFac)) {
+        AkColorDesc *colorDesc;
+
+        if (!(colorDesc = cmnTechn->emission)) {
+          colorDesc          = ak_heap_calloc(heap, technfx, sizeof(*colorDesc));
+          cmnTechn->emission = colorDesc;
+        }
+
+        colorDesc->color = ak_heap_calloc(heap, colorDesc, sizeof(*colorDesc->color));
+        json_array_float(colorDesc->color->vec, jmatVal, 0.0f, 3, true);
+        colorDesc->color->vec[3] = 1.0f;
       } else if (json_key_eq(jmatVal, _s_gltf_emissiveTex)) {
         /* Emission Map */
         AkColorDesc *colorDesc;
 
-        colorDesc          = ak_heap_calloc(heap, technfx, sizeof(*colorDesc));
-        colorDesc->texture = gltf_texref(gst, colorDesc, jmatVal);
-        cmnTechn->emission = colorDesc;
+        if (!(colorDesc = cmnTechn->emission)) {
+          colorDesc          = ak_heap_calloc(heap, technfx, sizeof(*colorDesc));
+          cmnTechn->emission = colorDesc;
+        }
 
+        colorDesc->texture = gltf_texref(gst, colorDesc, jmatVal);
       } else if (json_key_eq(jmatVal, _s_gltf_occlusionTex)) {
         /* Occlusion Map */
         AkOcclusion *occl;
