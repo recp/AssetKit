@@ -73,9 +73,12 @@ gltf_materials(json_t * __restrict jmaterial,
         json_t *jspecGloss, *jspecgVal;
         if ((jspecGloss = json_get(jext, _s_gltf_ext_pbrSpecGloss))) {
           AkMaterialSpecularProp *specularProp;
+          AkColorDesc            *specularColor;
 
           specularProp             = ak_heap_calloc(heap, cmnTechn, sizeof(*specularProp));
           cmnTechn->specular       = specularProp;
+          specularColor            = ak_heap_calloc(heap, specularProp, sizeof(*specularColor));
+          specularColor->color     = ak_heap_calloc(heap, specularColor, sizeof(*specularColor->color));
 
           if (!cmnTechn->albedo) {
             cmnTechn->diffuse = ak_heap_calloc(heap, cmnTechn, sizeof(*cmnTechn->diffuse));
@@ -83,15 +86,15 @@ gltf_materials(json_t * __restrict jmaterial,
           cmnTechn->diffuse->color = ak_heap_calloc(heap, cmnTechn, sizeof(*cmnTechn->diffuse->color));
 
           glm_vec4_copy(GLM_VEC4_ONE, cmnTechn->diffuse->color->vec);
-          glm_vec4_copy(GLM_VEC4_ONE, specularProp->colorFactor.vec);
+          glm_vec4_copy(GLM_VEC4_ONE, specularColor->color->vec);
 
           jspecgVal = jspecGloss->value;
           while (jspecgVal) {
             if (json_key_eq(jspecgVal, _s_gltf_diffuseFactor)) {
               json_array_float(cmnTechn->diffuse->color->vec, jspecgVal, 0.0f, 4, true);
             } else if (json_key_eq(jspecgVal, _s_gltf_specFactor)) {
-              json_array_float(specularProp->colorFactor.vec, jspecgVal, 0.0f, 3, true);
-              specularProp->colorFactor.vec[3] = 1.0f;
+              json_array_float(specularColor->color->vec, jspecgVal, 0.0f, 3, true);
+              specularColor->color->vec[3] = 1.0f;
             } else if (json_key_eq(jspecgVal, _s_gltf_glossFactor)) {
               specularProp->strength = json_float(jspecgVal, 0.0f);
             } else if (json_key_eq(jspecgVal, _s_gltf_diffuseTexture)) {
@@ -109,11 +112,14 @@ gltf_materials(json_t * __restrict jmaterial,
       json_t *jspec, *jval;
       if ((jspec = json_get(jext, _s_gltf_ext_KHR_materials_specular))) {
         AkMaterialSpecularProp *specularProp;
+        AkColorDesc            *specularColor;
 
-        specularProp       = ak_heap_calloc(heap, cmnTechn, sizeof(*specularProp));
-        cmnTechn->specular = specularProp;
+        specularProp         = ak_heap_calloc(heap, cmnTechn, sizeof(*specularProp));
+        cmnTechn->specular   = specularProp;
+        specularColor        = ak_heap_calloc(heap, specularProp, sizeof(*specularColor));
+        specularColor->color = ak_heap_calloc(heap, specularColor, sizeof(*specularColor->color));
 
-        glm_vec4_copy(GLM_VEC4_ONE, specularProp->colorFactor.vec);
+        glm_vec4_copy(GLM_VEC4_ONE, specularColor->color->vec);
 
         jval = jspec->value;
         while (jval) {
@@ -122,9 +128,10 @@ gltf_materials(json_t * __restrict jmaterial,
           } else if (json_key_eq(jval, _s_gltf_specularTexture)) {
             specularProp->specularTex = gltf_texref(gst, cmnTechn, jspec);
           } else if (json_key_eq(jval, _s_gltf_specularColorFactor)) {
-            json_array_float(specularProp->colorFactor.vec, jval, 0.0f, 3, true);
+            json_array_float(specularColor->color->vec, jval, 0.0f, 3, true);
+            specularColor->color->vec[3] = 1.0f;
           } else if (json_key_eq(jval, _s_gltf_specularColorTexture)) {
-            specularProp->colorTex = gltf_texref(gst, cmnTechn, jspec);
+            specularColor->texture = gltf_texref(gst, cmnTechn, jspec);
           }
           jval = jval->next;
         }

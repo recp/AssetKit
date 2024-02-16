@@ -96,19 +96,13 @@ dae_techniqueFxCmn(DAEState * __restrict dst,
     } else if (xml_tag_eq(xml, _s_dae_specular)) {
       AkMaterialSpecularProp *specularProp;
       AkColorDesc            *colorDesc;
-      specularProp = ak_heap_calloc(heap, techn, sizeof(*specularProp));
 
-      colorDesc = dae_colorOrTex(dst, xml, specularProp);
-
-      if (colorDesc) {
-        if (colorDesc->color) {
-          specularProp->colorFactor = *colorDesc->color;
-        }
-
-        if (colorDesc->texture) {
-          specularProp->colorTex = colorDesc->texture;
-        }
+      if (!(specularProp = techn->specular)) {
+        specularProp    = ak_heap_calloc(heap, techn, sizeof(*specularProp));
+        techn->specular = specularProp;
       }
+
+      specularProp->color = dae_colorOrTex(dst, xml, specularProp);
     } else if (xml_tag_eq(xml, _s_dae_reflective)) {
       if (!techn->reflective)
         techn->reflective = ak_heap_calloc(heap, techn, sizeof(*techn->reflective));
@@ -128,7 +122,18 @@ dae_techniqueFxCmn(DAEState * __restrict dst,
       techn->transparent->color  = dae_colorOrTex(dst, xml, techn);
       techn->transparent->opaque = opaque;
     } else if (xml_tag_eq(xml, _s_dae_shininess)) {
+      AkMaterialSpecularProp *specularProp;
+
+      if (!(specularProp = techn->specular)) {
+        specularProp    = ak_heap_calloc(heap, techn, sizeof(*specularProp));
+        techn->specular = specularProp;
+      }
+
       techn->shininess = dae_floatOrParam(dst, xml, techn);
+
+      if (techn->shininess && techn->shininess->val) {
+        specularProp->strength = *techn->shininess->val;
+      }
     } else if (xml_tag_eq(xml, _s_dae_reflectivity)) {
       if (!techn->reflective)
         techn->reflective = ak_heap_calloc(heap, techn, sizeof(*techn->reflective));

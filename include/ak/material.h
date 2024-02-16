@@ -99,8 +99,7 @@ typedef struct AkMaterialMetallicProp {
 
 typedef struct AkMaterialSpecularProp {
   AkTextureRef *specularTex;
-  AkTextureRef *colorTex;
-  AkColor       colorFactor;
+  AkColorDesc  *color;
   float         strength;
 } AkMaterialSpecularProp;
 
