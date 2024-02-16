@@ -1009,12 +1009,14 @@ ak_refc(void * __restrict mem) {
 AK_EXPORT
 int
 ak_retain(void * __restrict mem) {
+  if (!mem) return 0;
   return ak_heap_retain(ak__alignof(mem));
 }
 
 AK_EXPORT
 void
 ak_release(void * __restrict mem) {
+  if (!mem) return;
   ak_heap_release(ak__alignof(mem));
 }
 

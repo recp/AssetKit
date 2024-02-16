@@ -89,6 +89,8 @@ gltf_animations(json_t * __restrict janim,
             inp->accessor    = flist_sp_at(&doc->lib.accessors,
                                            json_int32(jsampVal, -1));
             
+            ak_retain(inp->accessor);
+
             inp->next      = sampler->input;
             sampler->input = inp;
           } else if (json_key_eq(jsampVal, _s_gltf_interpolation)) {
@@ -102,6 +104,8 @@ gltf_animations(json_t * __restrict janim,
             inp->accessor    = flist_sp_at(&doc->lib.accessors,
                                            json_int32(jsampVal, -1));
             
+            ak_retain(inp->accessor);
+
             inp->next      = sampler->input;
             sampler->input = inp;
           }
