@@ -47,9 +47,9 @@ gltf_mesh_fixup(AkGLTFState * __restrict gst) {
           if (ak_opt_get(AK_OPT_COMPUTE_BBOX))
             ak_bbox_mesh(mesh);
 
-          if (ak_opt_get(AK_OPT_GEN_NORMALS_IF_NEEDED))
-            if (ak_meshNeedsNormals(mesh))
-              ak_meshGenNormals(mesh);
+//          if (ak_opt_get(AK_OPT_GEN_NORMALS_IF_NEEDED))
+//            if (ak_meshNeedsNormals(mesh))
+//              ak_meshGenNormals(mesh);
         }
         default:
           break;

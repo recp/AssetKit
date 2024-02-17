@@ -50,10 +50,15 @@ uintptr_t AK_OPTIONS[] =
   false,                           /* 22: _COMPUTE_EXACT_CENTER        */
 
 #ifndef _MSC_VER
-  true                             /* 23: _USE_MMAP                    */
+  true,                            /* 23: _USE_MMAP                    */
 #else
-  false
+  false,
 #endif
+  true,                            /* 24: _GEN_TANGENTS_IF_NEEDED      */
+  false,                           /* 25: _CVT_TRIANGLESTRIP           */
+  false,                           /* 26: _CVT_TRIANGLEFAN             */
+  false,                           /* 27: _CVT_LINELOOP                */
+  false                            /* 28: _CVT_LINESTRIP               */
 };
 
 AK_EXPORT

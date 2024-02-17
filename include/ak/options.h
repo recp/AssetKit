@@ -54,6 +54,16 @@ typedef enum AkOption {
      https://github.com/mmikk/MikkTSpace 
    */
   AK_OPT_GEN_TANGENTS_IF_NEEDED     = 24, /* true     */
+
+  /* if your engine doesnt support triangle strip, triangle fan,
+     let AssetKit convert them to TRIANGLES */
+  AK_OPT_CVT_TRIANGLESTRIP          = 25, /* false    */
+  AK_OPT_CVT_TRIANGLEFAN            = 26, /* false    */
+
+  /* if your engine doesnt support line loop, line strip,
+     let AssetKit convert them to LINES */
+  AK_OPT_CVT_LINELOOP               = 27, /* false    */
+  AK_OPT_CVT_LINESTRIP              = 28, /* false    */
 } AkOption;
 
 AK_EXPORT

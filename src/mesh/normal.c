@@ -165,32 +165,84 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
       break;
     }
     case AK_PRIMITIVE_TRIANGLES: tri: {
+      AkTriangles *tri;
       float *a, *b, *c;
       vec3   v1, v2, n;
       AkUInt i, j, idx, ist;
 
-      for (i = 0; i < count; i += 3 /* 3: triangle */) {
-        ist = i * st + vo;
+      tri = (AkTriangles *)prim;
+      switch (tri->mode) {
+        case AK_TRIANGLES:
+          for (i = 0; i < count; i += 3 /* 3: triangle */) {
+            ist = i * st + vo;
 
-        a = pos + it[ist]           * pos_st;
-        b = pos + it[ist + st]      * pos_st;
-        c = pos + it[ist + st + st] * pos_st;
+            a = pos + it[ist]           * pos_st;
+            b = pos + it[ist + st]      * pos_st;
+            c = pos + it[ist + st + st] * pos_st;
 
-        glm_vec3_sub(a, b, v1);
-        glm_vec3_sub(b, c, v2);
+            glm_vec3_sub(a, b, v1);
+            glm_vec3_sub(b, c, v2);
 
-        glm_vec3_cross(v1, v2, n);
-        glm_vec3_normalize(n);
+            glm_vec3_cross(v1, v2, n);
+            glm_vec3_normalize(n);
 
-        idx = ak_data_append(dctx, n);
+            idx = ak_data_append(dctx, n);
 
-        for (j = i; j < i + 3; j++) {
-          /* other inputs */
-          memcpy(it2 + j * newst, it  + j * st, sizeof(*it) * st);
+            for (j = i; j < i + 3; j++) {
+              /* other inputs */
+              memcpy(it2 + j * newst, it  + j * st, sizeof(*it) * st);
 
-          /* normal */
-          it2[j * newst + st] = idx;
+              /* normal */
+              it2[j * newst + st] = idx;
+            }
+          }
+          break;
+        case AK_TRIANGLE_FAN: {
+          float *central = pos + it[vo] * pos_st; // Central vertex
+          for (i = 1; i < count - 1; i++) {
+            a = central;
+            b = pos + it[vo + i * st] * pos_st;
+            c = pos + it[vo + (i + 1) * st] * pos_st;
+
+            // Calculate normal
+            glm_vec3_sub(b, a, v1);
+            glm_vec3_sub(c, a, v2);
+            glm_vec3_cross(v1, v2, n);
+            glm_vec3_normalize(n);
+
+            idx = ak_data_append(dctx, n);
+
+            // Assign normals to central, current, and next vertex
+            it2[vo * newst + st] = idx; // Central vertex normal (may need adjustment)
+            it2[(vo + i * st) * newst + st] = idx; // Current vertex normal
+            it2[(vo + (i + 1) * st) * newst + st] = idx; // Next vertex normal
+          }
+          break;
         }
+        case AK_TRIANGLE_STRIP: {
+          for (i = 0; i < count - 2; i++) {
+            a = pos + it[vo + i * st] * pos_st;
+            b = pos + it[vo + (i + 1) * st] * pos_st;
+            c = pos + it[vo + (i + 2) * st] * pos_st;
+
+            // Calculate normal
+            glm_vec3_sub(b, a, v1);
+            glm_vec3_sub(c, b, v2);
+            glm_vec3_cross(v1, v2, n);
+            glm_vec3_normalize(n);
+
+            idx = ak_data_append(dctx, n);
+
+            // Assign normals to the three vertices of the triangle
+            it2[(vo + i * st) * newst + st] = idx;
+            it2[(vo + (i + 1) * st) * newst + st] = idx;
+            it2[(vo + (i + 2) * st) * newst + st] = idx;
+          }
+          break;
+        }
+
+        default:
+          break;
       }
       break;
     }
