@@ -16,6 +16,9 @@
 
 #include "mesh_fixup.h"
 
+/* create indices to fix topology,
+   an alternative way could be work with each input,
+   this can be provided by an option maybe in the future. */
 AK_HIDE
 void
 topofix_noind(AkHeap          * __restrict heap,
@@ -25,16 +28,124 @@ topofix_noind(AkHeap          * __restrict heap,
               uint8_t                      line_loop,
               uint8_t                      line_strip) {
   /* TODO: no indices, handle inputs... */
-  AkInput    *input;
-  AkAccessor *acc;
-  AkBuffer   *buff;
+  AkInput     *input;
+  AkAccessor  *acc;
+  AkBuffer    *buff;
+  AkUIntArray *indices;
+  AkUInt      *it, nVertices, i, j;
 
-  input = prim->input;
-  while (input) {
-    if ((acc = input->accessor) && (buff = acc->buffer)) {
-      /* TODO: handle data */
+  if (!(input = prim->pos)
+      || !(acc  = input->accessor)
+      || !(buff = acc->buffer)) {
+    return;
+  }
+
+  nVertices = acc->count;
+
+  switch (prim->type) {
+    case AK_PRIMITIVE_TRIANGLES: {
+      if (trig_fan || trig_strip) {
+        AkTriangles *trig;
+        AkUInt       ntrigs;
+
+        trig = (AkTriangles *)prim;
+
+        switch (trig->mode) {
+          case AK_TRIANGLE_FAN:
+          case AK_TRIANGLE_STRIP: break;
+          default:                return;
+        }
+
+        ntrigs         = nVertices - 2;
+        indices        = ak_heap_calloc(heap, prim, sizeof(*indices) + sizeof(AkUInt) * ntrigs * 3);
+        indices->count = ntrigs * 3;
+        it             = indices->items;
+
+        switch (trig->mode) {
+          case AK_TRIANGLE_FAN:
+            if (trig_fan) {
+              for (i = 0, j = 0; i < ntrigs; ++i) {
+                it[j++] = 0; /* center vertex */
+                it[j++] = i + 1;
+                it[j++] = i + 2;
+              }
+            }
+            break;
+          case AK_TRIANGLE_STRIP:
+            if (trig_strip) {
+              for (i = 0, j = 0; i < ntrigs; ++i) {
+                if (i % 2 == 0) {
+                  it[j++] = i;
+                  it[j++] = i + 1;
+                  it[j++] = i + 2;
+                } else {
+                  it[j++] = i + 2;
+                  it[j++] = i + 1;
+                  it[j++] = i;
+                }
+              }
+            }
+            break;
+          default: break;
+        }
+
+        trig->mode        = AK_TRIANGLES;
+        prim->indices     = indices;
+        prim->indexStride = 1;
+      }
+      break;
     }
-    input = input->next;
+    case AK_PRIMITIVE_LINES:
+      if (line_loop || line_strip) {
+        AkLines *lines;
+        AkUInt   nlines;
+
+        lines = (AkLines *)prim;
+
+        switch (lines->mode) {
+          case AK_LINE_LOOP:
+            if (line_loop) {
+              nlines         = nVertices;
+              indices        = ak_heap_calloc(heap, prim, sizeof(*indices) + sizeof(AkUInt) * nlines * 2);
+              indices->count = nlines * 2;
+              it             = indices->items;
+
+              for (i = 0; i < nVertices - 1; ++i) {
+                it[i * 2]     = i;
+                it[i * 2 + 1] = i + 1;
+              }
+
+              /* close the loop */
+              it[(nVertices - 1) * 2] = nVertices - 1;
+              it[(nVertices - 1) * 2 + 1] = 0;
+
+              lines->mode       = AK_LINES;
+              prim->indices     = indices;
+              prim->indexStride = 1;
+            }
+            break;
+          case AK_LINE_STRIP:
+            if (line_strip) {
+              nlines         = nVertices - 1;
+              indices        = ak_heap_calloc(heap, prim, sizeof(*indices) + sizeof(AkUInt) * nlines * 2);
+              indices->count = nlines * 2;
+              it             = indices->items;
+
+              for (i = 0; i < nlines; ++i) {
+                it[i * 2]     = i;
+                it[i * 2 + 1] = i + 1;
+              }
+
+              lines->mode       = AK_LINES;
+              prim->indices     = indices;
+              prim->indexStride = 1;
+            }
+            break;
+          default: break;
+        }
+      }
+      break;
+    default: break;
   }
 }
 
