@@ -16,6 +16,7 @@
 
 #include "mesh_fixup.h"
 #include "../../../mesh/index.h"
+#include "../../../topo/topo.h"
 
 AK_HIDE
 void
@@ -37,6 +38,8 @@ gltf_mesh_fixup(AkGLTFState * __restrict gst) {
         case AK_GEOMETRY_MESH: {
           AkMesh *mesh;
           mesh = ak_objGet(primitive);
+
+          topofix(mesh);
 
           /* first fixup coord system because verts will be duplicated,
              reduce extra process */
