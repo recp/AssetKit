@@ -95,7 +95,6 @@ dae_techniqueFxCmn(DAEState * __restrict dst,
       techn->diffuse = dae_colorOrTex(dst, xml, techn);
     } else if (xml_tag_eq(xml, _s_dae_specular)) {
       AkMaterialSpecularProp *specularProp;
-      AkColorDesc            *colorDesc;
 
       if (!(specularProp = techn->specular)) {
         specularProp    = ak_heap_calloc(heap, techn, sizeof(*specularProp));

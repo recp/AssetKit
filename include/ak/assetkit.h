@@ -204,6 +204,42 @@ ak_colorLessThanOne(AkColor color) {
   ;
 }
 
+AK_INLINE 
+float
+ak_sRGB_linearf(float channel) {
+  if (channel <= 0.04045) {
+    return channel / 12.92;
+  } else {
+    return powf((channel + 0.055) / 1.055, 2.4);
+  }
+}
+
+AK_INLINE
+float
+ak_linear_sRGBf(float channel) {
+  if (channel <= 0.0031308f) {
+    return channel * 12.92f;
+  } else {
+    return 1.055f * powf(channel, 1.0f / 2.4f) - 0.055f;
+  }
+}
+
+AK_INLINE
+void
+ak_sRGB_linear(AkColor * __restrict color) {
+  color->rgba.R = ak_sRGB_linearf(color->rgba.R);
+  color->rgba.G = ak_sRGB_linearf(color->rgba.G);
+  color->rgba.B = ak_sRGB_linearf(color->rgba.B);
+}
+
+AK_INLINE 
+void
+ak_linear_sRGB(AkColor * __restrict color) {
+  color->rgba.R = ak_linear_sRGBf(color->rgba.R);
+  color->rgba.G = ak_linear_sRGBf(color->rgba.G);
+  color->rgba.B = ak_linear_sRGBf(color->rgba.B);
+}
+
 typedef struct AkContributor {
   const char * author;
   const char * authorEmail;
