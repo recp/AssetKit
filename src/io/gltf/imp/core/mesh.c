@@ -162,7 +162,8 @@ gltf_meshes(json_t * __restrict jmesh,
               matIndex = json_int32(jprimVal, -1);
               GETCHILD(gst->doc->lib.materials->chld, mat, matIndex);
        
-              prim->material = mat;
+              if (mat) { prim->material = mat;                  }
+              else     { prim->material = gst->defaultMaterial; }
             } else if (json_key_eq(jprimVal, _s_gltf_targets)) {
               json_array_t  *jtargets;
               json_t        *jtarget, *jattrib;
@@ -264,6 +265,9 @@ gltf_meshes(json_t * __restrict jmesh,
 
           prim->nPolygons = gltf_polyCount(prim, mode);
 
+          if (!prim->material) {
+            prim->material = gst->defaultMaterial;
+          }
         prim_next:
           jprim = jprim->next;
         }

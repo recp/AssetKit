@@ -22,6 +22,69 @@
 #include "../../../../default/material.h"
 
 AK_HIDE
+AkMaterial*
+gltf_default_mat(AkGLTFState *gst, AkLibrary *libmat) {
+  AkHeap                 *heap;
+  AkInstanceEffect       *ieff;
+  AkEffect               *effect;
+  AkProfileCommon        *pcommon;
+  AkTechniqueFx          *technfx;
+  AkTechniqueFxCommon    *cmnTechn;
+  AkMaterial             *mat;
+  AkMaterialMetallicProp *metalness, *roughness;
+  AkColorDesc            *colorDesc;
+  AkTransparent          *transp;
+
+  heap               = gst->heap;
+  pcommon            = gltf_cmnEffect(gst);
+  effect             = ak_mem_parent(pcommon);
+  technfx            = ak_heap_calloc(heap, pcommon, sizeof(*technfx));
+  mat                = ak_heap_calloc(heap, libmat,  sizeof(*mat));
+  cmnTechn           = ak_heap_calloc(heap, technfx, sizeof(*cmnTechn));;
+  pcommon->technique = technfx;
+
+  ak_setypeid(technfx, AKT_TECHNIQUE_FX);
+
+  cmnTechn->type = AK_MATERIAL_PBR;
+
+  metalness               = ak_heap_calloc(heap, cmnTechn, sizeof(*metalness));
+  roughness               = ak_heap_calloc(heap, cmnTechn, sizeof(*roughness));
+
+  metalness->intensity    = 1.0f;
+  roughness->intensity    = 1.0f;
+
+  cmnTechn->metalness     = metalness;
+  cmnTechn->roughness     = roughness;
+
+  cmnTechn->albedo        = ak_heap_calloc(heap, cmnTechn, sizeof(*cmnTechn->albedo));
+  cmnTechn->albedo->color = ak_heap_calloc(heap, cmnTechn, sizeof(*cmnTechn->albedo->color));
+
+  /* DEFAULT value by spec */
+  glm_vec4_copy(GLM_VEC4_ONE, cmnTechn->albedo->color->vec);
+
+  /* emissive */
+  colorDesc                = ak_heap_calloc(heap, technfx, sizeof(*colorDesc));
+  colorDesc->color         = ak_heap_calloc(heap, colorDesc, sizeof(*colorDesc->color));
+  colorDesc->color->vec[3] = 1.0f;
+  cmnTechn->emission       = colorDesc;
+
+  /* transparent */
+  transp                = ak_heap_calloc(heap, cmnTechn, sizeof(*transp));
+  transp->amount        = ak_def_transparency();
+  transp->opaque        = AK_OPAQUE_OPAQUE;
+  transp->cutoff        = 0.5f;
+  cmnTechn->transparent = transp;
+
+  technfx->common    = cmnTechn;
+  ieff               = ak_heap_calloc(heap, mat, sizeof(*ieff));
+  ieff->base.type    = AK_INSTANCE_EFFECT;
+  ieff->base.url.ptr = effect;
+  mat->effect        = ieff;
+
+  return mat;
+}
+
+AK_HIDE
 void
 gltf_materials(json_t * __restrict jmaterial,
                void   * __restrict userdata) {
@@ -32,17 +95,19 @@ gltf_materials(json_t * __restrict jmaterial,
   AkLibrary          *libmat;
   bool                specGlossExt;
 
-  if (!(jmaterials = json_array(jmaterial)))
-    return;
-
   gst          = userdata;
-  jmaterial    = jmaterials->base.value;
-
   specGlossExt = ak_opt_get(AK_OPT_GLTF_EXT_SPEC_GLOSS);
   heap         = gst->heap;
   doc          = gst->doc;
   libmat       = ak_heap_calloc(heap, doc, sizeof(*libmat));
+  doc->lib.materials = libmat;
 
+  gst->defaultMaterial = gltf_default_mat(gst, libmat);
+
+  if (!(jmaterials = json_array(jmaterial)))
+    return;
+
+  jmaterial = jmaterials->base.value;
   while (jmaterial) {
     json_t                 *jmatVal, *jext;
     AkProfileCommon        *pcommon;
@@ -51,15 +116,12 @@ gltf_materials(json_t * __restrict jmaterial,
     AkMaterial             *mat;
     AkEffect               *effect;
     AkInstanceEffect       *ieff;
-    float                   cutoff;
 
-    pcommon         = gltf_cmnEffect(gst);
-    effect          = ak_mem_parent(pcommon);
-    technfx         = ak_heap_calloc(heap, pcommon, sizeof(*technfx));
-    mat             = ak_heap_calloc(heap, libmat,  sizeof(*mat));
-    cmnTechn        = ak_heap_calloc(heap, technfx, sizeof(*cmnTechn));;
-    cutoff          = 0.5f;
-
+    pcommon            = gltf_cmnEffect(gst);
+    effect             = ak_mem_parent(pcommon);
+    technfx            = ak_heap_calloc(heap, pcommon, sizeof(*technfx));
+    mat                = ak_heap_calloc(heap, libmat,  sizeof(*mat));
+    cmnTechn           = ak_heap_calloc(heap, technfx, sizeof(*cmnTechn));;
     pcommon->technique = technfx;
 
     ak_setypeid(technfx, AKT_TECHNIQUE_FX);
@@ -224,32 +286,33 @@ gltf_materials(json_t * __restrict jmaterial,
         /* doubleSided */
         cmnTechn->doubleSided = json_bool(jmatVal, 0);
       } else if (json_key_eq(jmatVal, _s_gltf_alphaMode)) {
-        /* alphaMode */
-        AkOpaque opaque;
+        AkTransparent *transp;
 
-        opaque = gltf_alphaMode(jmatVal);
-
-        if (opaque != AK_OPAQUE_OPAQUE) {
-          AkTransparent *transp;
-
-          transp         = ak_heap_calloc(heap, cmnTechn, sizeof(*transp));
-          transp->amount = ak_def_transparency();
-          transp->opaque = opaque;
-          transp->cutoff = 0.5f;
-
+        if (!(transp = cmnTechn->transparent)) {
+          transp                = ak_heap_calloc(heap, cmnTechn, sizeof(*transp));
+          transp->amount        = ak_def_transparency();
+          transp->cutoff        = 0.5f;
+          transp->opaque        = AK_OPAQUE_OPAQUE;
           cmnTechn->transparent = transp;
         }
+
+        transp->opaque = gltf_alphaMode(jmatVal);
       } else if (json_key_eq(jmatVal, _s_gltf_alphaCutoff)) {
-        /* alphaCutoff */
-        cutoff = json_float(jmatVal, 0.5f);
+        AkTransparent *transp;
+
+        if (!(transp = cmnTechn->transparent)) {
+          transp                = ak_heap_calloc(heap, cmnTechn, sizeof(*transp));
+          transp->amount        = ak_def_transparency();
+          transp->cutoff        = 0.5f;
+          transp->opaque        = AK_OPAQUE_OPAQUE;
+          cmnTechn->transparent = transp;
+        }
+
+        transp->cutoff = json_float(jmatVal, 0.5f);
       }
 
       jmatVal = jmatVal->next;
     }
-    
-    /* alphaCutoff */
-    if (cmnTechn->transparent)
-      cmnTechn->transparent->cutoff = cutoff;
 
     technfx->common    = cmnTechn;
     ieff               = ak_heap_calloc(heap, mat, sizeof(*ieff));
@@ -263,6 +326,4 @@ gltf_materials(json_t * __restrict jmaterial,
 
     jmaterial = jmaterial->next;
   }
-
-  doc->lib.materials = libmat;
 }
