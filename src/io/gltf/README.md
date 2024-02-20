@@ -30,6 +30,7 @@
   - [x] KHR_materials_pbrSpecularGlossiness
   - [x] KHR_texture_specular
   - [x] KHR_texture_transform
+  - [x] KHR_materials_clearcoat
   - [ ] Lights (TODO)
   - [ ] Common materials (TODO)
 - [x] glTF-Separate

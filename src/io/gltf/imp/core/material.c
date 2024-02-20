@@ -197,6 +197,27 @@ gltf_materials(json_t * __restrict jmaterial,
           }
           jval = jval->next;
         }
+      } else if ((jspec = json_get(jext, _s_gltf_KHR_materials_clearcoat))) {
+        AkMaterialClearcoat *clearcoat;
+        clearcoat = ak_heap_calloc(heap, cmnTechn, sizeof(*clearcoat));
+
+        jval = jspec->value;
+        while (jval) {
+          if (json_key_eq(jval, _s_gltf_clearcoatFactor)) {
+            clearcoat->intensity = json_float(jval, 0.0f);
+          } else if (json_key_eq(jval, _s_gltf_clearcoatTexture)) {
+            clearcoat->texture = gltf_texref(gst, cmnTechn, jval);
+          } else if (json_key_eq(jval, _s_gltf_clearcoatRoughnessFactor)) {
+            clearcoat->roughness = json_float(jval, 0.0f);
+          } else if (json_key_eq(jval, _s_gltf_clearcoatRoughnessTexture)) {
+            clearcoat->roughnessTexture = gltf_texref(gst, cmnTechn, jval);
+          } else if (json_key_eq(jval, _s_gltf_clearcoatNormalTexture)) {
+            clearcoat->normalTexture = gltf_texref(gst, cmnTechn, jval);
+          }
+          jval = jval->next;
+        }
+
+        cmnTechn->clearcoat = clearcoat;
       }
     } /* _s_gltf_extensions */
 

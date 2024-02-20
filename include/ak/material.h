@@ -103,6 +103,15 @@ typedef struct AkMaterialSpecularProp {
   float         strength;
 } AkMaterialSpecularProp;
 
+typedef struct AkMaterialClearcoat {
+  AkTextureRef *roughnessTexture;
+  AkTextureRef *normalTexture;
+
+  AkTextureRef *texture;
+  float         intensity;
+  float         roughness;
+} AkMaterialClearcoat;
+
 typedef struct AkTechniqueFxCommon {
   AkColorDesc            *ambient;
   AkColorDesc            *emission;
@@ -121,6 +130,7 @@ typedef struct AkTechniqueFxCommon {
 
   AkOcclusion            *occlusion;
   AkNormalMap            *normal;
+  AkMaterialClearcoat    *clearcoat;
 
   /* metallic properties  */
   AkMaterialMetallicProp *metalness;

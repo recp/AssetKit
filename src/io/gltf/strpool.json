@@ -132,6 +132,12 @@
   "joints": "joints",
   "sparse": "sparse",
   "b64d": "data:",
+  "offset": "offset",
   "KHR_texture_transform": "KHR_texture_transform",
-  "offset": "offset"
+  "KHR_materials_clearcoat": "KHR_materials_clearcoat",
+  "clearcoatFactor": "clearcoatFactor",
+  "clearcoatTexture": "clearcoatTexture",
+  "clearcoatRoughnessFactor": "clearcoatRoughnessFactor",
+  "clearcoatRoughnessTexture": "clearcoatRoughnessTexture",
+  "clearcoatNormalTexture": "clearcoatNormalTexture"
 }

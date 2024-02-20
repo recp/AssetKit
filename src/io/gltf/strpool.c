@@ -155,8 +155,14 @@ const char _s_gltf_pool_0[] =
 "joints\0"
 "sparse\0"
 "data:\0"
-"KHR_texture_transform\0"
 "offset\0"
+"KHR_texture_transform\0"
+"KHR_materials_clearcoat\0"
+"clearcoatFactor\0"
+"clearcoatTexture\0"
+"clearcoatRoughnessFactor\0"
+"clearcoatRoughnessTexture\0"
+"clearcoatNormalTexture\0"
 ;
 
 #undef _GLTF_STRPOOL_

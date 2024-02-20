@@ -161,7 +161,13 @@ _AK_EXTERN const char _s_gltf_pool_0[];
 #define _s_gltf_joints _s_gltf_0(1246)
 #define _s_gltf_sparse _s_gltf_0(1253)
 #define _s_gltf_b64d _s_gltf_0(1260)
-#define _s_gltf_KHR_texture_transform _s_gltf_0(1266)
-#define _s_gltf_offset _s_gltf_0(1288)
+#define _s_gltf_offset _s_gltf_0(1266)
+#define _s_gltf_KHR_texture_transform _s_gltf_0(1273)
+#define _s_gltf_KHR_materials_clearcoat _s_gltf_0(1295)
+#define _s_gltf_clearcoatFactor _s_gltf_0(1319)
+#define _s_gltf_clearcoatTexture _s_gltf_0(1335)
+#define _s_gltf_clearcoatRoughnessFactor _s_gltf_0(1352)
+#define _s_gltf_clearcoatRoughnessTexture _s_gltf_0(1377)
+#define _s_gltf_clearcoatNormalTexture _s_gltf_0(1403)
 
 #endif /* gltf_strpool_h */
