@@ -131,5 +131,7 @@
   "inverseBindMatrices": "inverseBindMatrices",
   "joints": "joints",
   "sparse": "sparse",
-  "b64d": "data:"
+  "b64d": "data:",
+  "KHR_texture_transform": "KHR_texture_transform",
+  "offset": "offset"
 }

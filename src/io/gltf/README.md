@@ -28,6 +28,8 @@
 - [x] Animations
 - Extensions 
   - [x] KHR_materials_pbrSpecularGlossiness
+  - [x] KHR_texture_specular
+  - [x] KHR_texture_transform
   - [ ] Lights (TODO)
   - [ ] Common materials (TODO)
 - [x] glTF-Separate

@@ -155,6 +155,8 @@ const char _s_gltf_pool_0[] =
 "joints\0"
 "sparse\0"
 "data:\0"
+"KHR_texture_transform\0"
+"offset\0"
 ;
 
 #undef _GLTF_STRPOOL_

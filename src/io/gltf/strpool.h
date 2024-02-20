@@ -161,5 +161,7 @@ _AK_EXTERN const char _s_gltf_pool_0[];
 #define _s_gltf_joints _s_gltf_0(1246)
 #define _s_gltf_sparse _s_gltf_0(1253)
 #define _s_gltf_b64d _s_gltf_0(1260)
+#define _s_gltf_KHR_texture_transform _s_gltf_0(1266)
+#define _s_gltf_offset _s_gltf_0(1288)
 
 #endif /* gltf_strpool_h */
