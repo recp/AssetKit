@@ -357,13 +357,13 @@ wobj_handleMaterial(WOState  * __restrict wst,
       break;
   }
   
-  cmnTechn->ambient  = wobj_clrtex(wst, cmnTechn, mtl->Ka, mtl->map_Ka);
-  cmnTechn->diffuse  = wobj_clrtex(wst, cmnTechn, mtl->Kd, mtl->map_Kd);
-  cmnTechn->specular = wobj_clrtex(wst, cmnTechn, mtl->Ks, mtl->map_Ks);
-  cmnTechn->emission = wobj_clrtex(wst, cmnTechn, mtl->Ke, mtl->map_Ke);
+  cmnTechn->ambient   = wobj_clrtex(wst, cmnTechn, mtl->Ka, mtl->map_Ka);
+  cmnTechn->diffuse   = wobj_clrtex(wst, cmnTechn, mtl->Kd, mtl->map_Kd);
+  cmnTechn->specular  = wobj_clrtex(wst, cmnTechn, mtl->Ks, mtl->map_Ks);
+  cmnTechn->emission  = wobj_clrtex(wst, cmnTechn, mtl->Ke, mtl->map_Ke);
 
-  cmnTechn->shininess         = wobj_flt(heap, cmnTechn, mtl->Ns);
-  cmnTechn->indexOfRefraction = wobj_flt(heap, cmnTechn, mtl->Ni);
+  cmnTechn->shininess = wobj_flt(heap, cmnTechn, mtl->Ns);
+  cmnTechn->ior       = wobj_flt(heap, cmnTechn, mtl->Ni);
 
   if (mtl->bump) {
     cmnTechn->normal        = ak_heap_calloc(heap, cmnTechn, sizeof(*cmnTechn->normal));

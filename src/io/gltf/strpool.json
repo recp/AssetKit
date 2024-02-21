@@ -139,5 +139,7 @@
   "clearcoatTexture": "clearcoatTexture",
   "clearcoatRoughnessFactor": "clearcoatRoughnessFactor",
   "clearcoatRoughnessTexture": "clearcoatRoughnessTexture",
-  "clearcoatNormalTexture": "clearcoatNormalTexture"
+  "clearcoatNormalTexture": "clearcoatNormalTexture",
+  "KHR_materials_ior": "KHR_materials_ior",
+  "ior": "ior"
 }

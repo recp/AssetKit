@@ -126,7 +126,7 @@ typedef struct AkTechniqueFxCommon {
 
   AkTransparent          *transparent;
   AkReflective           *reflective;
-  AkFloatOrParam         *indexOfRefraction;
+  AkFloatOrParam         *ior;
 
   AkOcclusion            *occlusion;
   AkNormalMap            *normal;

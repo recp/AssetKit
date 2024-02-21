@@ -169,5 +169,7 @@ _AK_EXTERN const char _s_gltf_pool_0[];
 #define _s_gltf_clearcoatRoughnessFactor _s_gltf_0(1352)
 #define _s_gltf_clearcoatRoughnessTexture _s_gltf_0(1377)
 #define _s_gltf_clearcoatNormalTexture _s_gltf_0(1403)
+#define _s_gltf_KHR_materials_ior _s_gltf_0(1426)
+#define _s_gltf_ior _s_gltf_0(1444)
 
 #endif /* gltf_strpool_h */

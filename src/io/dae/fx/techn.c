@@ -149,7 +149,7 @@ dae_techniqueFxCmn(DAEState * __restrict dst,
       if (ak_opt_get(AK_OPT_BUGFIXES))
         dae_bugfix_transp(techn->transparent);
     } else if (xml_tag_eq(xml, _s_dae_index_of_refraction)) {
-      techn->indexOfRefraction = dae_floatOrParam(dst, xml, techn);
+      techn->ior = dae_floatOrParam(dst, xml, techn);
     }
     xml = xml->next;
   }
