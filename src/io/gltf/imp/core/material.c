@@ -220,6 +220,15 @@ gltf_materials(json_t * __restrict jmaterial,
         cmnTechn->clearcoat = clearcoat;
       } else if ((jspec = json_get(jext, _s_gltf_KHR_materials_unlit))) {
         cmnTechn->type = AK_MATERIAL_CONSTANT;
+      } else if ((jspec = json_get(jext, _s_gltf_KHR_materials_emissive_strength))) {
+        AkMaterialEmission *emission;
+
+        if (!(emission = cmnTechn->emission)) {
+          emission           = ak_heap_calloc(heap, technfx, sizeof(*emission));
+          cmnTechn->emission = emission;
+        }
+
+        emission->strength = json_float(json_get(jspec, _s_gltf_emissiveStrength), 1.0f);
       }
     } /* _s_gltf_extensions */
 
@@ -265,26 +274,29 @@ gltf_materials(json_t * __restrict jmaterial,
           jmrVal = jmrVal->next;
         }
       } else if (json_key_eq(jmatVal, _s_gltf_emissiveFac)) {
-        AkColorDesc *colorDesc;
+        AkMaterialEmission *emission;
+        AkColor            *color;
 
-        if (!(colorDesc = cmnTechn->emission)) {
-          colorDesc          = ak_heap_calloc(heap, technfx, sizeof(*colorDesc));
-          cmnTechn->emission = colorDesc;
+        if (!(emission = cmnTechn->emission)) {
+          emission           = ak_heap_calloc(heap, technfx, sizeof(*emission));
+          cmnTechn->emission = emission;
         }
 
-        colorDesc->color = ak_heap_calloc(heap, colorDesc, sizeof(*colorDesc->color));
-        json_array_float(colorDesc->color->vec, jmatVal, 0.0f, 3, true);
-        colorDesc->color->vec[3] = 1.0f;
+        if (!(color = emission->color.color)) {
+          emission->color.color = color = ak_heap_calloc(heap, emission, sizeof(*color));
+        }
+
+        json_array_float(color->vec, jmatVal, 0.0f, 3, true);
+        color->vec[3] = 1.0f;
       } else if (json_key_eq(jmatVal, _s_gltf_emissiveTex)) {
-        /* Emission Map */
-        AkColorDesc *colorDesc;
+        AkMaterialEmission *emission;
 
-        if (!(colorDesc = cmnTechn->emission)) {
-          colorDesc          = ak_heap_calloc(heap, technfx, sizeof(*colorDesc));
-          cmnTechn->emission = colorDesc;
+        if (!(emission = cmnTechn->emission)) {
+          emission           = ak_heap_calloc(heap, technfx, sizeof(*emission));
+          cmnTechn->emission = emission;
         }
 
-        colorDesc->texture = gltf_texref(gst, colorDesc, jmatVal);
+        emission->color.texture = gltf_texref(gst, emission, jmatVal);
       } else if (json_key_eq(jmatVal, _s_gltf_occlusionTex)) {
         /* Occlusion Map */
         AkOcclusion *occl;

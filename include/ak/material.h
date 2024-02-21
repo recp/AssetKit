@@ -119,9 +119,14 @@ typedef struct AkMaterialClearcoat {
   float         roughness;
 } AkMaterialClearcoat;
 
+typedef struct AkMaterialEmission {
+  AkColorDesc color;
+  float       strength;
+} AkMaterialEmission;
+
 typedef struct AkTechniqueFxCommon {
   AkColorDesc            *ambient;
-  AkColorDesc            *emission;
+  AkMaterialEmission     *emission;
 
   union {
     AkColorDesc          *diffuse;

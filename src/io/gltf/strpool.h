@@ -172,5 +172,7 @@ _AK_EXTERN const char _s_gltf_pool_0[];
 #define _s_gltf_KHR_materials_ior _s_gltf_0(1426)
 #define _s_gltf_ior _s_gltf_0(1444)
 #define _s_gltf_KHR_materials_unlit _s_gltf_0(1448)
+#define _s_gltf_KHR_materials_emissive_strength _s_gltf_0(1468)
+#define _s_gltf_emissiveStrength _s_gltf_0(1500)
 
 #endif /* gltf_strpool_h */
