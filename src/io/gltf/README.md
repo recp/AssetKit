@@ -31,6 +31,7 @@
   - [x] KHR_texture_specular
   - [x] KHR_texture_transform
   - [x] KHR_materials_clearcoat
+  - [x] KHR_materials_unlit
   - [ ] Lights (TODO)
   - [ ] Common materials (TODO)
 - [x] glTF-Separate

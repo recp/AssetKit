@@ -165,6 +165,7 @@ const char _s_gltf_pool_0[] =
 "clearcoatNormalTexture\0"
 "KHR_materials_ior\0"
 "ior\0"
+"KHR_materials_unlit\0"
 ;
 
 #undef _GLTF_STRPOOL_

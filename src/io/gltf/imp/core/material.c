@@ -218,6 +218,8 @@ gltf_materials(json_t * __restrict jmaterial,
         }
 
         cmnTechn->clearcoat = clearcoat;
+      } else if ((jspec = json_get(jext, _s_gltf_KHR_materials_unlit))) {
+        cmnTechn->type = AK_MATERIAL_CONSTANT;
       }
     } /* _s_gltf_extensions */
 
