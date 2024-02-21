@@ -127,6 +127,7 @@ gltf_materials(json_t * __restrict jmaterial,
     ak_setypeid(technfx, AKT_TECHNIQUE_FX);
 
     cmnTechn->type = AK_MATERIAL_PBR;
+    cmnTechn->ior  = 1.5f;
 
     jmatVal = jmaterial->value;
 
@@ -229,6 +230,8 @@ gltf_materials(json_t * __restrict jmaterial,
         }
 
         emission->strength = json_float(json_get(jspec, _s_gltf_emissiveStrength), 1.0f);
+      } else if ((jspec = json_get(jext, _s_gltf_KHR_materials_ior))) {
+        cmnTechn->ior = json_float(json_get(jspec, _s_gltf_ior), 1.5f);
       }
     } /* _s_gltf_extensions */
 
