@@ -63,21 +63,23 @@ typedef struct AkColorDesc {
   AkTextureRef *texture;
 } AkColorDesc;
 
+/*
 typedef struct AkFloatOrParam {
   float   *val;
   AkParam *param;
 } AkFloatOrParam;
+*/
 
 typedef struct AkTransparent {
   AkColorDesc    *color;
-  AkFloatOrParam *amount;
+  float           amount;
   AkOpaque        opaque;
   float           cutoff;
 } AkTransparent;
 
 typedef struct AkReflective {
   AkColorDesc    *color;
-  AkFloatOrParam *amount;
+  float           amount;
 } AkReflective;
 
 typedef struct AkOcclusion {
@@ -100,7 +102,10 @@ typedef struct AkMaterialMetallicProp {
 typedef struct AkMaterialSpecularProp {
   AkTextureRef *specularTex;
   AkColorDesc  *color;
-  float         strength;
+  union {
+    float       strength;
+    float       shininess;
+  };
 } AkMaterialSpecularProp;
 
 typedef struct AkMaterialClearcoat {
@@ -121,13 +126,6 @@ typedef struct AkTechniqueFxCommon {
     AkColorDesc          *albedo;
   };
 
-  // AkColorDesc           *specular;
-  AkFloatOrParam         *shininess;
-
-  AkTransparent          *transparent;
-  AkReflective           *reflective;
-  AkFloatOrParam         *ior;
-
   AkOcclusion            *occlusion;
   AkNormalMap            *normal;
   AkMaterialClearcoat    *clearcoat;
@@ -138,6 +136,13 @@ typedef struct AkTechniqueFxCommon {
 
   /* specular */
   AkMaterialSpecularProp *specular;
+
+  /* reflectivity */
+  AkReflective           *reflective;
+  float                   ior;
+
+  /* transparency */
+  AkTransparent          *transparent;
 
   /* common */
   AkMaterialType          type;

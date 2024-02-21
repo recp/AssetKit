@@ -70,7 +70,7 @@ gltf_default_mat(AkGLTFState *gst, AkLibrary *libmat) {
 
   /* transparent */
   transp                = ak_heap_calloc(heap, cmnTechn, sizeof(*transp));
-  transp->amount        = ak_def_transparency();
+  transp->amount        = 1.0f;
   transp->opaque        = AK_OPAQUE_OPAQUE;
   transp->cutoff        = 0.5f;
   cmnTechn->transparent = transp;
@@ -311,7 +311,7 @@ gltf_materials(json_t * __restrict jmaterial,
 
         if (!(transp = cmnTechn->transparent)) {
           transp                = ak_heap_calloc(heap, cmnTechn, sizeof(*transp));
-          transp->amount        = ak_def_transparency();
+          transp->amount        = 1.0f;
           transp->cutoff        = 0.5f;
           transp->opaque        = AK_OPAQUE_OPAQUE;
           cmnTechn->transparent = transp;
@@ -323,7 +323,7 @@ gltf_materials(json_t * __restrict jmaterial,
 
         if (!(transp = cmnTechn->transparent)) {
           transp                = ak_heap_calloc(heap, cmnTechn, sizeof(*transp));
-          transp->amount        = ak_def_transparency();
+          transp->amount        = 1.0f;
           transp->cutoff        = 0.5f;
           transp->opaque        = AK_OPAQUE_OPAQUE;
           cmnTechn->transparent = transp;

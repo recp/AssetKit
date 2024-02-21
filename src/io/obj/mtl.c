@@ -130,6 +130,7 @@ wobj_mtl(WOState    * __restrict wst,
               case 's':
                 p += 2;
                 ak_strtof_line(p, 0, 1, &mtl->Ns);
+                mtl->has_Ns = true;
                 break;
               case 'i':
                 p += 2;
@@ -299,19 +300,19 @@ wobj_clrtex(WOState    * __restrict wst,
   return clr;
 }
 
-AK_INLINE
-AkFloatOrParam*
-wobj_flt(AkHeap * __restrict heap,
-         void   * __restrict memp,
-         float               val) {
-  AkFloatOrParam *flt;
-
-  flt       = ak_heap_calloc(heap, memp, sizeof(*flt));
-  flt->val  = ak_heap_calloc(heap, flt, sizeof(*flt->val));
-  *flt->val = val;
-
-  return flt;
-}
+//AK_INLINE
+//AkFloatOrParam*
+//wobj_flt(AkHeap * __restrict heap,
+//         void   * __restrict memp,
+//         float               val) {
+//  AkFloatOrParam *flt;
+//
+//  flt       = ak_heap_calloc(heap, memp, sizeof(*flt));
+//  flt->val  = ak_heap_calloc(heap, flt, sizeof(*flt->val));
+//  *flt->val = val;
+//
+//  return flt;
+//}
 
 static
 void
@@ -362,8 +363,18 @@ wobj_handleMaterial(WOState  * __restrict wst,
   cmnTechn->specular  = wobj_clrtex(wst, cmnTechn, mtl->Ks, mtl->map_Ks);
   cmnTechn->emission  = wobj_clrtex(wst, cmnTechn, mtl->Ke, mtl->map_Ke);
 
-  cmnTechn->shininess = wobj_flt(heap, cmnTechn, mtl->Ns);
-  cmnTechn->ior       = wobj_flt(heap, cmnTechn, mtl->Ni);
+  if (mtl->has_Ns) {
+    AkMaterialSpecularProp *specularProp;
+
+    if (!(specularProp = cmnTechn->specular)) {
+      specularProp       = ak_heap_calloc(heap, cmnTechn, sizeof(*specularProp));
+      cmnTechn->specular = specularProp;
+    }
+
+    specularProp->shininess = mtl->Ns;
+  }
+
+  cmnTechn->ior = mtl->Ni;
 
   if (mtl->bump) {
     cmnTechn->normal        = ak_heap_calloc(heap, cmnTechn, sizeof(*cmnTechn->normal));
@@ -381,7 +392,7 @@ wobj_handleMaterial(WOState  * __restrict wst,
       t = 1.0f - mtl->Tr;
 
     transp         = ak_heap_calloc(heap, cmnTechn, sizeof(*transp));
-    transp->amount = wobj_flt(heap, transp, t);
+    transp->amount = t;
     transp->opaque = AK_OPAQUE_BLEND;
 
     cmnTechn->transparent = transp;
