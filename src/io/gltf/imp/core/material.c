@@ -279,6 +279,7 @@ gltf_materials(json_t * __restrict jmaterial,
 
         if (!(emission = cmnTechn->emission)) {
           emission           = ak_heap_calloc(heap, technfx, sizeof(*emission));
+          emission->strength = 1.0f;
           cmnTechn->emission = emission;
         }
 
@@ -293,6 +294,7 @@ gltf_materials(json_t * __restrict jmaterial,
 
         if (!(emission = cmnTechn->emission)) {
           emission           = ak_heap_calloc(heap, technfx, sizeof(*emission));
+          emission->strength = 1.0f;
           cmnTechn->emission = emission;
         }
 
