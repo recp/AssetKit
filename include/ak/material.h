@@ -54,7 +54,9 @@ typedef enum AkMaterialType {
   AK_MATERIAL_CONSTANT           = 4,
   AK_MATERIAL_METALLIC_ROUGHNESS = 5,  /* PBR Material */
   AK_MATERIAL_SPECULAR_GLOSSINES = 6,  /* PBR Material */
-  AK_MATERIAL_PBR                = 7   /* PBR Material */
+  AK_MATERIAL_PBR                = 7,  /* PBR Material */
+
+  AK_MATERIAL_UNLIT              = AK_MATERIAL_CONSTANT
 } AkMaterialType;
 
 typedef struct AkColorDesc {
