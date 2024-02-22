@@ -28,14 +28,6 @@ struct AkMeshPrimitive;
 struct AkEffect;
 struct AkInstanceMaterial;
 
-typedef enum AkGlMaterialType {
-  AK_GL_MATERIAL_TYPE_EMISSION            = 1,
-  AK_GL_MATERIAL_TYPE_AMBIENT             = 2,
-  AK_GL_MATERIAL_TYPE_DIFFUSE             = 3,
-  AK_GL_MATERIAL_TYPE_SPECULAR            = 4,
-  AK_GL_MATERIAL_TYPE_AMBIENT_AND_DIFFUSE = 5
-} AkGlMaterialType;
-
 typedef enum AkOpaque {
   AK_OPAQUE_OPAQUE   = 0, /* fully opaque */
   AK_OPAQUE_A_ONE    = 1,
