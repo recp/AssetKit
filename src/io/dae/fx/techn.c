@@ -88,7 +88,15 @@ dae_techniqueFxCmn(DAEState * __restrict dst,
 
   while (xml) {
     if (xml_tag_eq(xml, _s_dae_emission)) {
-      techn->emission = dae_colorOrTex(dst, xml, techn);
+      AkMaterialEmissionProp *emission;
+
+      if (!(emission = techn->emission)) {
+        emission           = ak_heap_calloc(heap, techn, sizeof(*emission));
+        techn->emission    = emission;
+        emission->strength = 1.0f;
+      }
+
+      dae_colorOrTexSet(dst, xml, techn, &techn->emission->color);
     } else if (xml_tag_eq(xml, _s_dae_ambient)) {
       techn->ambient = dae_colorOrTex(dst, xml, techn);
     } else if (xml_tag_eq(xml, _s_dae_diffuse)) {

@@ -63,10 +63,11 @@ gltf_default_mat(AkGLTFState *gst, AkLibrary *libmat) {
   glm_vec4_copy(GLM_VEC4_ONE, cmnTechn->albedo->color->vec);
 
   /* emissive */
-  colorDesc                = ak_heap_calloc(heap, technfx, sizeof(*colorDesc));
-  colorDesc->color         = ak_heap_calloc(heap, colorDesc, sizeof(*colorDesc->color));
-  colorDesc->color->vec[3] = 1.0f;
-  cmnTechn->emission       = colorDesc;
+  cmnTechn->emission           = ak_heap_calloc(heap, technfx, sizeof(*cmnTechn->emission));
+  colorDesc                    = &cmnTechn->emission->color;
+  colorDesc->color             = ak_heap_calloc(heap, colorDesc, sizeof(*colorDesc->color));
+  colorDesc->color->vec[3]     = 1.0f;
+  cmnTechn->emission->strength = 1.0f;
 
   /* transparent */
   transp                = ak_heap_calloc(heap, cmnTechn, sizeof(*transp));
@@ -222,7 +223,7 @@ gltf_materials(json_t * __restrict jmaterial,
       } else if ((jspec = json_get(jext, _s_gltf_KHR_materials_unlit))) {
         cmnTechn->type = AK_MATERIAL_CONSTANT;
       } else if ((jspec = json_get(jext, _s_gltf_KHR_materials_emissive_strength))) {
-        AkMaterialEmission *emission;
+        AkMaterialEmissionProp *emission;
 
         if (!(emission = cmnTechn->emission)) {
           emission           = ak_heap_calloc(heap, cmnTechn, sizeof(*emission));
@@ -294,8 +295,8 @@ gltf_materials(json_t * __restrict jmaterial,
           jmrVal = jmrVal->next;
         }
       } else if (json_key_eq(jmatVal, _s_gltf_emissiveFac)) {
-        AkMaterialEmission *emission;
-        AkColor            *color;
+        AkMaterialEmissionProp *emission;
+        AkColor                *color;
 
         if (!(emission = cmnTechn->emission)) {
           emission           = ak_heap_calloc(heap, technfx, sizeof(*emission));
@@ -310,7 +311,7 @@ gltf_materials(json_t * __restrict jmaterial,
         json_array_float(color->vec, jmatVal, 0.0f, 3, true);
         color->vec[3] = 1.0f;
       } else if (json_key_eq(jmatVal, _s_gltf_emissiveTex)) {
-        AkMaterialEmission *emission;
+        AkMaterialEmissionProp *emission;
 
         if (!(emission = cmnTechn->emission)) {
           emission           = ak_heap_calloc(heap, technfx, sizeof(*emission));

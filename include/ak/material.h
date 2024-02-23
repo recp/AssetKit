@@ -51,18 +51,18 @@ typedef enum AkMaterialType {
   AK_MATERIAL_UNLIT              = AK_MATERIAL_CONSTANT
 } AkMaterialType;
 
-typedef struct AkColorDesc {
-  AkColor      *color;
-  AkParam      *param;
-  AkTextureRef *texture;
-} AkColorDesc;
-
 /*
 typedef struct AkFloatOrParam {
   float   *val;
   AkParam *param;
 } AkFloatOrParam;
 */
+
+typedef struct AkColorDesc {
+  AkColor      *color;
+  AkParam      *param;
+  AkTextureRef *texture;
+} AkColorDesc;
 
 typedef struct AkTransparent {
   AkColorDesc    *color;
@@ -111,41 +111,49 @@ typedef struct AkMaterialClearcoat {
   float         roughness;
 } AkMaterialClearcoat;
 
-typedef struct AkMaterialEmission {
+typedef struct AkMaterialEmissionProp {
   AkColorDesc color;
   float       strength;
-} AkMaterialEmission;
+} AkMaterialEmissionProp;
+
+/* KHR_materials_transmission */
+typedef struct AkMaterialTransmissionProp {
+  AkTextureRef *texture;
+  float         factor;
+} AkMaterialTransmissionProp;
 
 typedef struct AkTechniqueFxCommon {
-  AkColorDesc            *ambient;
-  AkMaterialEmission     *emission;
+  AkColorDesc                *ambient;
+  AkMaterialEmissionProp      *emission;
 
   union {
-    AkColorDesc          *diffuse;
-    AkColorDesc          *albedo;
+    AkColorDesc              *diffuse;
+    AkColorDesc              *albedo;
   };
 
-  AkOcclusion            *occlusion;
-  AkNormalMap            *normal;
-  AkMaterialClearcoat    *clearcoat;
+  AkOcclusion                *occlusion;
+  AkNormalMap                *normal;
+  AkMaterialClearcoat        *clearcoat;
 
-  /* metallic properties  */
-  AkMaterialMetallicProp *metalness;
-  AkMaterialMetallicProp *roughness;
+  /* metallic properties      */
+  AkMaterialMetallicProp     *metalness;
+  AkMaterialMetallicProp     *roughness;
 
   /* specular */
-  AkMaterialSpecularProp *specular;
+  AkMaterialSpecularProp     *specular;
 
   /* reflectivity */
-  AkReflective           *reflective;
-  float                   ior;
+  AkReflective               *reflective;
+  float                       ior;
 
+  /* TODO: can we merge transparent and transmission */
   /* transparency */
-  AkTransparent          *transparent;
+  AkTransparent              *transparent;
+  AkMaterialTransmissionProp *transmission;
 
   /* common */
-  AkMaterialType          type;
-  bool                    doubleSided;
+  AkMaterialType              type;
+  bool                        doubleSided;
 } AkTechniqueFxCommon;
 
 /*!
