@@ -144,5 +144,8 @@
   "ior": "ior",
   "KHR_materials_unlit": "KHR_materials_unlit",
   "KHR_materials_emissive_strength": "KHR_materials_emissive_strength",
-  "emissiveStrength": "emissiveStrength"
+  "emissiveStrength": "emissiveStrength",
+  "KHR_materials_transmission": "KHR_materials_transmission",
+  "transmissionFactor": "transmissionFactor",
+  "transmissionTexture": "transmissionTexture"
 }

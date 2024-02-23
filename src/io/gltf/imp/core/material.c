@@ -225,13 +225,30 @@ gltf_materials(json_t * __restrict jmaterial,
         AkMaterialEmission *emission;
 
         if (!(emission = cmnTechn->emission)) {
-          emission           = ak_heap_calloc(heap, technfx, sizeof(*emission));
+          emission           = ak_heap_calloc(heap, cmnTechn, sizeof(*emission));
           cmnTechn->emission = emission;
         }
 
         emission->strength = json_float(json_get(jspec, _s_gltf_emissiveStrength), 1.0f);
       } else if ((jspec = json_get(jext, _s_gltf_KHR_materials_ior))) {
         cmnTechn->ior = json_float(json_get(jspec, _s_gltf_ior), 1.5f);
+      } else if ((jspec = json_get(jext, _s_gltf_KHR_materials_transmission))) {
+        AkMaterialTransmissionProp *transmissionProp;
+
+        if (!(transmissionProp = cmnTechn->transmission)) {
+          transmissionProp       = ak_heap_calloc(heap, cmnTechn, sizeof(*transmissionProp));
+          cmnTechn->transmission = transmissionProp;
+        }
+
+        jval = jspec->value;
+        while (jval) {
+          if (json_key_eq(jval, _s_gltf_transmissionFactor)) {
+            transmissionProp->factor  = json_float(jval, 0.0f);
+          } else if (json_key_eq(jval, _s_gltf_transmissionTexture)) {
+            transmissionProp->texture = gltf_texref(gst, cmnTechn, jval);
+          }
+          jval = jval->next;
+        }
       }
     } /* _s_gltf_extensions */
 

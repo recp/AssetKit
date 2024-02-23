@@ -34,6 +34,7 @@
   - [x] KHR_materials_unlit
   - [x] KHR_materials_emissive_strength
   - [x] KHR_materials_ior
+  - [x] KHR_materials_transmission
   - [ ] Lights (TODO)
   - [ ] Common materials (TODO)
 - [x] glTF-Separate
