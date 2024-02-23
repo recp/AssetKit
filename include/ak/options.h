@@ -45,25 +45,24 @@ typedef enum AkOption {
   AK_OPT_ADD_DEFAULT_LIGHT          = 18, /* false    */
   AK_OPT_COORD_CONVERT_TYPE         = 19, /* DEFAULT  */
   AK_OPT_BUGFIXES                   = 20, /* TRUE     */
-  AK_OPT_GLTF_EXT_SPEC_GLOSS        = 21, /* TRUE     */
-  AK_OPT_COMPUTE_EXACT_CENTER       = 22, /* FALSE    */
-  AK_OPT_USE_MMAP                   = 23, /* TRUE     */
+  AK_OPT_COMPUTE_EXACT_CENTER       = 21, /* FALSE    */
+  AK_OPT_USE_MMAP                   = 22, /* TRUE     */
 
   /* TODO: not implemented yet,
      https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#mikktspace
      https://github.com/mmikk/MikkTSpace 
    */
-  AK_OPT_GEN_TANGENTS_IF_NEEDED     = 24, /* true     */
+  AK_OPT_GEN_TANGENTS_IF_NEEDED     = 23, /* true     */
 
   /* if your engine doesnt support triangle strip, triangle fan,
      let AssetKit convert them to TRIANGLES */
-  AK_OPT_CVT_TRIANGLESTRIP          = 25, /* false    */
-  AK_OPT_CVT_TRIANGLEFAN            = 26, /* false    */
+  AK_OPT_CVT_TRIANGLESTRIP          = 24, /* false    */
+  AK_OPT_CVT_TRIANGLEFAN            = 25, /* false    */
 
   /* if your engine doesnt support line loop, line strip,
      let AssetKit convert them to LINES */
-  AK_OPT_CVT_LINELOOP               = 27, /* false    */
-  AK_OPT_CVT_LINESTRIP              = 28, /* false    */
+  AK_OPT_CVT_LINELOOP               = 26, /* false    */
+  AK_OPT_CVT_LINESTRIP              = 27, /* false    */
 } AkOption;
 
 AK_EXPORT

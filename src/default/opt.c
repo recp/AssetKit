@@ -46,19 +46,18 @@ uintptr_t AK_OPTIONS[] =
   false,                           /* 18: _ADD_DEFAULT_LIGHT           */
   AK_COORD_CVT_DEFAULT,            /* 19: _COORD_CONVERT_TYPE          */
   true,                            /* 20: _BUGFIXES                    */
-  true,                            /* 21: _GLTF_EXT_SPEC_GLOSS         */
-  false,                           /* 22: _COMPUTE_EXACT_CENTER        */
+  false,                           /* 21: _COMPUTE_EXACT_CENTER        */
 
 #ifndef _MSC_VER
-  true,                            /* 23: _USE_MMAP                    */
+  true,                            /* 22: _USE_MMAP                    */
 #else
   false,
 #endif
-  true,                            /* 24: _GEN_TANGENTS_IF_NEEDED      */
-  false,                           /* 25: _CVT_TRIANGLESTRIP           */
-  false,                           /* 26: _CVT_TRIANGLEFAN             */
-  false,                           /* 27: _CVT_LINELOOP                */
-  false                            /* 28: _CVT_LINESTRIP               */
+  true,                            /* 23: _GEN_TANGENTS_IF_NEEDED      */
+  false,                           /* 24: _CVT_TRIANGLESTRIP           */
+  false,                           /* 25: _CVT_TRIANGLEFAN             */
+  false,                           /* 26: _CVT_LINELOOP                */
+  false                            /* 27: _CVT_LINESTRIP               */
 };
 
 AK_EXPORT

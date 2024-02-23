@@ -135,40 +135,7 @@ gltf_materials(json_t * __restrict jmaterial,
     if (specGlossExt) {
       if ((jext = json_get(jmaterial, _s_gltf_extensions))) {
         json_t *jspecGloss, *jspecgVal;
-        if ((jspecGloss = json_get(jext, _s_gltf_ext_pbrSpecGloss))) {
-          AkMaterialSpecularProp *specularProp;
-          AkColorDesc            *specularColor;
 
-          specularProp             = ak_heap_calloc(heap, cmnTechn, sizeof(*specularProp));
-          cmnTechn->specular       = specularProp;
-          specularColor            = ak_heap_calloc(heap, specularProp, sizeof(*specularColor));
-          specularColor->color     = ak_heap_calloc(heap, specularColor, sizeof(*specularColor->color));
-
-          if (!cmnTechn->albedo) {
-            cmnTechn->diffuse = ak_heap_calloc(heap, cmnTechn, sizeof(*cmnTechn->diffuse));
-          }
-          cmnTechn->diffuse->color = ak_heap_calloc(heap, cmnTechn, sizeof(*cmnTechn->diffuse->color));
-
-          glm_vec4_copy(GLM_VEC4_ONE, cmnTechn->diffuse->color->vec);
-          glm_vec4_copy(GLM_VEC4_ONE, specularColor->color->vec);
-
-          jspecgVal = jspecGloss->value;
-          while (jspecgVal) {
-            if (json_key_eq(jspecgVal, _s_gltf_diffuseFactor)) {
-              json_array_float(cmnTechn->diffuse->color->vec, jspecgVal, 0.0f, 4, true);
-            } else if (json_key_eq(jspecgVal, _s_gltf_specFactor)) {
-              json_array_float(specularColor->color->vec, jspecgVal, 0.0f, 3, true);
-              specularColor->color->vec[3] = 1.0f;
-            } else if (json_key_eq(jspecgVal, _s_gltf_glossFactor)) {
-              specularProp->strength = json_float(jspecgVal, 0.0f);
-            } else if (json_key_eq(jspecgVal, _s_gltf_diffuseTexture)) {
-              cmnTechn->diffuse->texture = gltf_texref(gst, cmnTechn, jspecgVal);
-            } else if (json_key_eq(jspecgVal, _s_gltf_specGlossTex)) {
-              specularProp->specularTex = gltf_texref(gst, cmnTechn, jspecgVal);
-            }
-            jspecgVal = jspecgVal->next;
-          } /* jspecGlossVal */
-        } /* _s_gltf_ext_pbrSpecGloss */
       } /* _s_gltf_extensions */
     } /* specGlossExt */
 
@@ -247,6 +214,41 @@ gltf_materials(json_t * __restrict jmaterial,
             transmissionProp->factor  = json_float(jval, 0.0f);
           } else if (json_key_eq(jval, _s_gltf_transmissionTexture)) {
             transmissionProp->texture = gltf_texref(gst, cmnTechn, jval);
+          }
+          jval = jval->next;
+        }
+      }
+      /* ARCHIVED: Superseded by KHR_materials_specular */
+      else if ((jspec = json_get(jext, _s_gltf_ext_pbrSpecGloss))) {
+        AkMaterialSpecularProp *specularProp;
+        AkColorDesc            *specularColor;
+
+        specularProp             = ak_heap_calloc(heap, cmnTechn, sizeof(*specularProp));
+        cmnTechn->specular       = specularProp;
+        specularColor            = ak_heap_calloc(heap, specularProp, sizeof(*specularColor));
+        specularColor->color     = ak_heap_calloc(heap, specularColor, sizeof(*specularColor->color));
+
+        if (!cmnTechn->albedo) {
+          cmnTechn->diffuse = ak_heap_calloc(heap, cmnTechn, sizeof(*cmnTechn->diffuse));
+        }
+        cmnTechn->diffuse->color = ak_heap_calloc(heap, cmnTechn, sizeof(*cmnTechn->diffuse->color));
+
+        glm_vec4_copy(GLM_VEC4_ONE, cmnTechn->diffuse->color->vec);
+        glm_vec4_copy(GLM_VEC4_ONE, specularColor->color->vec);
+
+        jval = jspec->value;
+        while (jval) {
+          if (json_key_eq(jval, _s_gltf_diffuseFactor)) {
+            json_array_float(cmnTechn->diffuse->color->vec, jval, 0.0f, 4, true);
+          } else if (json_key_eq(jval, _s_gltf_specFactor)) {
+            json_array_float(specularColor->color->vec, jval, 0.0f, 3, true);
+            specularColor->color->vec[3] = 1.0f;
+          } else if (json_key_eq(jval, _s_gltf_glossFactor)) {
+            specularProp->strength = json_float(jval, 0.0f);
+          } else if (json_key_eq(jval, _s_gltf_diffuseTexture)) {
+            cmnTechn->diffuse->texture = gltf_texref(gst, cmnTechn, jval);
+          } else if (json_key_eq(jval, _s_gltf_specGlossTex)) {
+            specularProp->specularTex = gltf_texref(gst, cmnTechn, jval);
           }
           jval = jval->next;
         }
