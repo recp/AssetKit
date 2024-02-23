@@ -94,10 +94,8 @@ gltf_materials(json_t * __restrict jmaterial,
   AkDoc              *doc;
   const json_array_t *jmaterials;
   AkLibrary          *libmat;
-  bool                specGlossExt;
 
   gst          = userdata;
-  specGlossExt = ak_opt_get(AK_OPT_GLTF_EXT_SPEC_GLOSS);
   heap         = gst->heap;
   doc          = gst->doc;
   libmat       = ak_heap_calloc(heap, doc, sizeof(*libmat));
@@ -131,14 +129,6 @@ gltf_materials(json_t * __restrict jmaterial,
     cmnTechn->ior  = 1.5f;
 
     jmatVal = jmaterial->value;
-
-    if (specGlossExt) {
-      if ((jext = json_get(jmaterial, _s_gltf_extensions))) {
-        json_t *jspecGloss, *jspecgVal;
-
-      } /* _s_gltf_extensions */
-    } /* specGlossExt */
-
     if ((jext = json_get(jmaterial, _s_gltf_extensions))) {
       json_t *jspec, *jval;
       if ((jspec = json_get(jext, _s_gltf_ext_KHR_materials_specular))) {
