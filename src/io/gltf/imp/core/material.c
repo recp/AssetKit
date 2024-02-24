@@ -139,6 +139,7 @@ gltf_materials(json_t * __restrict jmaterial,
         cmnTechn->specular   = specularProp;
         specularColor        = ak_heap_calloc(heap, specularProp, sizeof(*specularColor));
         specularColor->color = ak_heap_calloc(heap, specularColor, sizeof(*specularColor->color));
+        specularProp->color  = specularColor;
 
         glm_vec4_copy(GLM_VEC4_ONE, specularColor->color->vec);
 
@@ -213,10 +214,11 @@ gltf_materials(json_t * __restrict jmaterial,
         AkMaterialSpecularProp *specularProp;
         AkColorDesc            *specularColor;
 
-        specularProp             = ak_heap_calloc(heap, cmnTechn, sizeof(*specularProp));
-        cmnTechn->specular       = specularProp;
-        specularColor            = ak_heap_calloc(heap, specularProp, sizeof(*specularColor));
-        specularColor->color     = ak_heap_calloc(heap, specularColor, sizeof(*specularColor->color));
+        specularProp         = ak_heap_calloc(heap, cmnTechn, sizeof(*specularProp));
+        cmnTechn->specular   = specularProp;
+        specularColor        = ak_heap_calloc(heap, specularProp, sizeof(*specularColor));
+        specularColor->color = ak_heap_calloc(heap, specularColor, sizeof(*specularColor->color));
+        specularProp->color  = specularColor;
 
         if (!cmnTechn->albedo) {
           cmnTechn->diffuse = ak_heap_calloc(heap, cmnTechn, sizeof(*cmnTechn->diffuse));
