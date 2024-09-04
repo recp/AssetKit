@@ -75,8 +75,9 @@ ak_imageLoad(AkImage * __restrict image) {
       if (!ak__img_conf.loadFromFile)
         return;
 
-      path        = ak_fullpath(doc, initFrom->ref, pathbuf);
-      image->data = ak__img_conf.loadFromFile(heap, image, path, flipImage);
+      path                       = ak_fullpath(doc, initFrom->ref, pathbuf);
+      initFrom->resolvedFullPath = ak_strdup(initFrom, pathbuf);
+      image->data                = ak__img_conf.loadFromFile(heap, image, path, flipImage);
     } else if (initFrom->buff && initFrom->buff->data) {
       if (!ak__img_conf.loadFromMemory)
         return;

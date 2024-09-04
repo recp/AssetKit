@@ -325,6 +325,7 @@ typedef struct AkHexData {
 typedef struct AkInitFrom {
   struct AkInitFrom *next;
   const char        *ref;
+  const char        *resolvedFullPath;
   AkHexData         *hex;
   struct AkBuffer   *buff;
   const char        *buffMime;
