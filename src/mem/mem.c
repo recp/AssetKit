@@ -984,13 +984,15 @@ AK_EXPORT
 char*
 ak_strdup(void       * __restrict parent,
           const char * __restrict str) {
-  void  *memptr;
-  size_t memsize;
+  AkHeap *heap;
+  void   *memptr;
+  size_t  memsize;
+
+  if (parent) { heap = ak_heap_getheap(parent); }
+  else        { heap = &ak__heap;               }
 
   memsize = strlen(str);
-  memptr  = ak_heap_alloc(&ak__heap,
-                          parent,
-                          memsize + 1);
+  memptr  = ak_heap_alloc(heap, parent, memsize + 1);
 
   memcpy(memptr, str, memsize);
 
