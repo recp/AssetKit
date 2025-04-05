@@ -103,4 +103,16 @@ typedef struct AkTextureRef {
   AkTextureTransform *transform;
 } AkTextureRef;
 
+#ifdef __cglm__
+AK_INLINE
+mat4s
+ak_textrans_mat4(AkTextureTransform *transform) {
+  return glms_mat4_(textrans)(transform->scale[0],
+                              transform->scale[1],
+                              transform->rotation,
+                              transform->offset[0],
+                              transform->offset[1]);
+}
+#endif
+
 #endif /* assetkit_texture_h */
