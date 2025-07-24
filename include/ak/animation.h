@@ -99,6 +99,32 @@ typedef struct AkAnimation {
   AkSource           *source;
 } AkAnimation;
 
+typedef struct AkResolvedTarget {
+  void    *target;
+  uint32_t off;
+} AkResolvedTarget;
+
+AK_INLINE
+AkResolvedTarget
+ak_channelTarget(AkContext * __restrict ctx,
+                 AkChannel * __restrict ch) {
+  const char      *sidAttrib;
+  AkResolvedTarget resolved = {0};
+
+  if (ch->target) {
+    if ((resolved.target = ak_sid_resolve(ctx, ch->target, &sidAttrib))) {
+      resolved.off = ak_sid_attr_offset(sidAttrib);
+    }
+  } else if (ch->resolvedTarget) {
+    resolved.target = ch->resolvedTarget;
+  }
+
+  return resolved;
+}
+
+#define ak_inputBegin(INP, T) (*(T*)INP->data)
+#define ak_inputEnd(INP, T)   (*(T*)((char*)INP->data + INP->len - sizeof(T)))
+
 #ifdef __cplusplus
 }
 #endif
