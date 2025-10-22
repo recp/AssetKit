@@ -143,6 +143,7 @@ ak_meshTriangulatePoly(AkPolygon * __restrict poly) {
   ak_free(poly->base.indices);
   poly->base.indices   = newind;
   poly->base.nPolygons = nGenTrigs + nTrigs;
+  poly->base.type      = AK_PRIMITIVE_TRIANGLES;
 
   /* no need to this info anymore, save space! */
   ak_free(poly->vcount);
