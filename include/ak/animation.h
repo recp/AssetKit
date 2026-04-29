@@ -24,6 +24,7 @@ extern "C" {
   
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
 #include "type.h"
 #include "source.h"
 #include "url.h"
@@ -79,17 +80,23 @@ typedef struct AkAnimSampler {
   AkSamplerBehavior     post;
 } AkAnimSampler;
 
+typedef struct AkResolvedTarget {
+  void    *target;
+  uint32_t off;
+  bool     isPartial;
+} AkResolvedTarget;
+
 typedef struct AkChannel {
   struct AkChannel    *next;
   const char          *target;
-  void                *resolvedTarget;
+  AkResolvedTarget    *resolvedTarget;
   AkURL                source;
   AkTargetPropertyType targetType;
 } AkChannel;
 
 typedef struct AkAnimation {
   AkOneWayIterBase    base;
-  struct AkAnimation *animation;
+  struct AkAnimation *animation; /* subanimation */
   AkAnimSampler      *sampler;
   AkChannel          *channel;
   const char         *name;
@@ -99,10 +106,24 @@ typedef struct AkAnimation {
   AkSource           *source;
 } AkAnimation;
 
-typedef struct AkResolvedTarget {
-  void    *target;
-  uint32_t off;
-} AkResolvedTarget;
+AK_INLINE
+bool
+ak_channelTargetIsPartial(const AkChannel *ch) {
+  return ch->target && strchr(ch->target, '.') != NULL;
+}
+
+/**
+ * returns NULL if no attribute (whole target animation),
+ * otherwise pointer into ch->target after the '.'
+ * result lifetime tied to ch->target — do NOT free
+ */
+AK_INLINE
+const char *
+ak_channelTargetAttr(const AkChannel *ch) {
+  const char *dot;
+  if (!ch->target || !(dot = strchr(ch->target, '.'))) return NULL;
+  return dot + 1;
+}
 
 AK_INLINE
 AkResolvedTarget
@@ -110,13 +131,32 @@ ak_channelTarget(AkContext * __restrict ctx,
                  AkChannel * __restrict ch) {
   const char      *sidAttrib;
   AkResolvedTarget resolved = {0};
+  uint32_t         attrOff;
 
   if (ch->target) {
-    if ((resolved.target = ak_sid_resolve(ctx, ch->target, &sidAttrib))) {
-      resolved.off = ak_sid_attr_offset(sidAttrib);
+      /** DAE example:
+         for sid => "node1/translate.Y":
+
+         resolved.target = AkTranslate*
+         sidAttrib       = "Y"
+       */ 
+    if ((resolved.target = ak_sid_resolve(ctx, ch->target, &sidAttrib))
+        && (attrOff = ak_sid_attr_offset(sidAttrib)) != UINT32_MAX) {
+      resolved.isPartial = sidAttrib != NULL;
+      resolved.off       = attrOff;
+      /* for invalid attribute we skip channel for now */
     }
   } else if (ch->resolvedTarget) {
-    resolved.target = ch->resolvedTarget;
+    /** 
+      glTF example:
+        for target => "translation":
+
+        ch->resolvedTarget = AkResolvedTarget* with target = AkTranslate* and off = 0
+
+        because glTF donest't animate to specific attribute like "translation.Y", 
+        it animates whole transform element, so offset is always 0.
+     */
+    return *ch->resolvedTarget;
   }
 
   return resolved;
