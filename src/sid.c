@@ -655,6 +655,8 @@ ak_sid_attr_offset(const char *attr) {
         return offs[i];
       }
     }
+
+    return UINT32_MAX;
   }
 
   return 0;
