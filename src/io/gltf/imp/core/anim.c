@@ -178,25 +178,51 @@ gltf_animations(json_t * __restrict janim,
                 sprintf(nodeid, "%s%d", _s_gltf_node, nodeIndex);
                 
                 if ((node = ak_getObjectById(doc, nodeid))) {
-                  
-                  /* make sure that node has target element */
+                  AkObject *xform = NULL;
+
+                  /* glTF always animates whole vec/quat (no partial component),
+                     so isPartial = false and off = 0 for all paths below. */
                   if (strncasecmp(path, _s_gltf_rotation, pathLen) == 0) {
-                    ch->targetType     = AK_TARGET_QUAT;
-                    ch->resolvedTarget = ak_getTransformTRS(node, AKT_QUATERNION);
+                    ch->targetType = AK_TARGET_QUAT;
+                    xform          = ak_getTransformTRS(node, AKT_QUATERNION);
                   } else if (strncasecmp(path, _s_gltf_translation, pathLen) == 0) {
-                    ch->targetType     = AK_TARGET_POSITION;
-                    ch->resolvedTarget = ak_getTransformTRS(node, AKT_TRANSLATE);
+                    ch->targetType = AK_TARGET_POSITION;
+                    xform          = ak_getTransformTRS(node, AKT_TRANSLATE);
                   } else if (strncasecmp(path, _s_gltf_scale, pathLen) == 0) {
-                    ch->targetType     = AK_TARGET_SCALE;
-                    ch->resolvedTarget = ak_getTransformTRS(node, AKT_SCALE);
+                    ch->targetType = AK_TARGET_SCALE;
+                    xform          = ak_getTransformTRS(node, AKT_SCALE);
                   } else if (strncasecmp(path, _s_gltf_weights, pathLen) == 0) {
-                    AkInstanceMorph    *morpher;
                     AkInstanceGeometry *instGeom;
+                    AkInstanceMorph    *morpher;
 
                     ch->targetType = AK_TARGET_WEIGHTS;
+
                     if ((instGeom = node->geometry)
-                        && (morpher = instGeom->morpher))
-                      ch->resolvedTarget = morpher->overrideWeights;
+                        && (morpher = instGeom->morpher)) {
+                      AkResolvedTarget *rt;
+
+                      rt = ak_heap_calloc(heap, ch, sizeof(*rt));
+                      ak_setypeid(rt, AKT_RESOLVED_TARGET);
+
+                      rt->target         = morpher;
+                      rt->off            = 0;
+                      rt->isPartial      = false;
+                      ch->resolvedTarget = rt;
+                    }
+                    /* else: morpher not yet set, channel left un-resolved */
+                  }
+
+                  /* common: wrap transform component in AkResolvedTarget */
+                  if (xform) {
+                    AkResolvedTarget *rt;
+
+                    rt = ak_heap_calloc(heap, ch, sizeof(*rt));
+                    ak_setypeid(rt, AKT_RESOLVED_TARGET);
+
+                    rt->target         = xform;
+                    rt->off            = 0;
+                    rt->isPartial      = false;
+                    ch->resolvedTarget = rt;
                   }
                 }
               } /* if nodeIndex */

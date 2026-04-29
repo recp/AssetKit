@@ -289,6 +289,7 @@ gltf_node(AkGLTFState * __restrict gst,
                              morpher,
                              sizeof(*weights)
                              + sizeof(weights->items[0]) * morph->targetCount);
+    ak_setypeid(morpher, AKT_MORPH_INST);
 
     if ((it = json_array(nodeMap[k_weights].object))) {
       json_array_t *jsonArr;
