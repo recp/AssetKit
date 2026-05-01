@@ -106,6 +106,7 @@ libassetkit_la_SOURCES=\
     src/mem/mmap.c \
 \
     src/morph/intr.c \
+    src/anim/conflict.c \
     src/skin/skin.c \
     src/skin/fix.c \
     src/node/node.c \

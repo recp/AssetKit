@@ -133,30 +133,30 @@ ak_channelTarget(AkContext * __restrict ctx,
   AkResolvedTarget resolved = {0};
   uint32_t         attrOff;
 
-  if (ch->target) {
-      /** DAE example:
-         for sid => "node1/translate.Y":
+  /** glTF (and DAE post-fixup) provide a pre-resolved target. Honor it
+      first — the SID string in ch->target is then optional and used only
+      as a debug/lookup hint.
 
-         resolved.target = AkTranslate*
-         sidAttrib       = "Y"
-       */ 
+      glTF example: target => "translation"
+        ch->resolvedTarget = AkResolvedTarget* with target = AkTranslate*
+        and off = 0 (glTF animates the whole transform element).
+
+      DAE example for morph weights: target => "morph-weights(0)"
+        dae_fixup_channel resolves the source-and-(idx) pattern at fixup
+        time and writes ch->resolvedTarget = AkResolvedTarget* with target
+        = AkInstanceMorph*, off = idx, isPartial = true. */
+  if (ch->resolvedTarget)
+    return *ch->resolvedTarget;
+
+  /** DAE SID path: "node1/translate.Y"
+      resolved.target = AkTranslate*, sidAttrib = "Y" */
+  if (ch->target) {
     if ((resolved.target = ak_sid_resolve(ctx, ch->target, &sidAttrib))
         && (attrOff = ak_sid_attr_offset(sidAttrib)) != UINT32_MAX) {
       resolved.isPartial = sidAttrib != NULL;
       resolved.off       = attrOff;
       /* for invalid attribute we skip channel for now */
     }
-  } else if (ch->resolvedTarget) {
-    /** 
-      glTF example:
-        for target => "translation":
-
-        ch->resolvedTarget = AkResolvedTarget* with target = AkTranslate* and off = 0
-
-        because glTF donest't animate to specific attribute like "translation.Y", 
-        it animates whole transform element, so offset is always 0.
-     */
-    return *ch->resolvedTarget;
   }
 
   return resolved;
@@ -164,6 +164,85 @@ ak_channelTarget(AkContext * __restrict ctx,
 
 #define ak_inputBegin(INP, T) (*(T*)INP->data)
 #define ak_inputEnd(INP, T)   (*(T*)((char*)INP->data + INP->len - sizeof(T)))
+
+/*!
+ * @brief Test whether two animations would write to any of the same
+ *        animatable slot. Two channels conflict iff they resolve (via
+ *        ak_channelTarget) to the same target pointer AND either at least
+ *        one is a whole-target write, or they share the same partial slot
+ *        offset.
+ *
+ *        Useful for runtime players that pick which animations may run in
+ *        parallel — overlapping writes otherwise produce undefined ordering.
+ *
+ * @param ctx resolution context (used to evaluate SID-targeted channels)
+ * @param a   first animation
+ * @param b   second animation
+ * @return    true iff any pair of channels conflicts
+ */
+AK_EXPORT
+bool
+ak_animationsConflict(AkContext   * __restrict ctx,
+                      AkAnimation * __restrict a,
+                      AkAnimation * __restrict b);
+
+/*!
+ * @brief Build the maximal conflict-free set anchored at `primary`.
+ *
+ *        `primary` is always selected (it's the animation the caller wants
+ *        to activate). Then each candidate is tested against everything
+ *        already selected — added if it doesn't conflict with any of them.
+ *
+ *        First-fit greedy: candidate iteration order decides which side
+ *        of a conflict wins. Pass candidates in the priority order you
+ *        want (typically: doc order with `primary` excluded).
+ *
+ *        Use case: a UI like "user clicked Animation 2 — what other
+ *        animations can stay enabled in parallel?"
+ *
+ * @param ctx              resolution context
+ * @param primary          anchor animation (must be in result, may be NULL)
+ * @param candidates       array of candidate AkAnimation* pointers
+ * @param candidatesCount  length of candidates
+ * @param outCompatible    pre-allocated buffer of at least
+ *                         `candidatesCount + 1` AkAnimation* slots
+ * @return count of selected animations (= written into outCompatible)
+ */
+AK_EXPORT
+size_t
+ak_animationsCompatibleSet(AkContext         * __restrict ctx,
+                           AkAnimation       * __restrict primary,
+                           AkAnimation      ** __restrict candidates,
+                           size_t                         candidatesCount,
+                           AkAnimation      ** __restrict outCompatible);
+
+/*!
+ * @brief Total number of animations across every animation library on the
+ *        document. Useful for sizing buffers passed to the *FromDoc
+ *        compatible-set helper.
+ */
+AK_EXPORT
+size_t
+ak_animationsCount(struct AkDoc * __restrict doc);
+
+/*!
+ * @brief Convenience over `ak_animationsCompatibleSet` that walks the
+ *        document's animation libraries itself — so callers don't have to
+ *        materialise a `candidates[]` array.
+ *
+ * @param ctx           resolution context
+ * @param doc           the AssetKit document
+ * @param primary       anchor animation (must be in result, may be NULL)
+ * @param outCompatible pre-allocated buffer of at least
+ *                      `ak_animationsCount(doc) + 1` slots
+ * @return count of selected animations
+ */
+AK_EXPORT
+size_t
+ak_animationsCompatibleSetFromDoc(AkContext     * __restrict ctx,
+                                  struct AkDoc  * __restrict doc,
+                                  AkAnimation   * __restrict primary,
+                                  AkAnimation  ** __restrict outCompatible);
 
 #ifdef __cplusplus
 }

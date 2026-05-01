@@ -4,6 +4,7 @@ target_sources(${PROJECT_NAME}
   ${CSources}
 )
 
+add_subdirectory(anim)
 add_subdirectory(bbox)
 add_subdirectory(bitwise)
 add_subdirectory(camera)
