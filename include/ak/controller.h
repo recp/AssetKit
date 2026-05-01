@@ -243,32 +243,47 @@ typedef struct AkInstanceSkin {
 } AkInstanceSkin;
 
 /*!
- * @brief fill a buffer with JointID and JointWeight to feed GPU buffer
- *        you can send this buffer to GPU buffer (e.g. OpenGL) as interleaved 
- *        single buffer.
+ * @brief format-agnostic per-vertex bone-data extraction with INTERLEAVED
+ *        output, suitable for a single GPU vertex buffer (OpenGL/Metal/
+ *        Vulkan typical layout).
  *
- *        this func makes things easier if you want to send data in single 
- *        buffer to GPU like:
- *          | JointIDs (ivec4) | Weights(vec4) |
+ *        Per-vertex layout in the output buffer:
  *
- *        or:
- *           in ivec4 JOINTS;
+ *          | JointIDs[maxJoint] (uint32) | Weights[maxJoint] (float) |
+ *
+ *        Matches a shader vertex input like:
+ *
+ *           in uvec4 JOINTS;
  *           in vec4  WEIGHTS;
  *
- *        AkBoneWeights provides a struct JointID|JointWeight, if that is enough
- *        for you then you do not need to use this func.
+ *        Quality is identical to ak_skinFillWeights() — same format-
+ *        agnostic core (DAE CSR + glTF accessors), same top-N selection
+ *        when authored joint count exceeds maxJoint, same renormalize so
+ *        weights sum to 1. Only the output packing differs (interleaved
+ *        single buffer vs. separate idx/wgt arrays).
  *
- * @param source    source weights buffer
- * @param maxJoint  max joint count, 4 is ideal
- * @param itemCount component count per VERTEX attribute
- * @param buff      destination buffer to send GPU
+ *        For the SceneKit/RealityKit path use ak_skinFillWeights()
+ *        instead — Apple's APIs require separate boneIndices and
+ *        boneWeights SCNGeometrySources.
+ *
+ *        Layout: per vertex `[J0..J(N-1) (uint16) W0..W(N-1) (float)]`.
+ *
+ * @param skin      AkSkin (for both DAE-CSR and glTF-accessor inputs)
+ * @param prim      mesh primitive being skinned (vertex order source)
+ * @param primIdx   primitive index in the mesh (DAE skin->weights[])
+ * @param maxJoint  storage slots per vertex (typically 4)
+ * @param buff      destination buffer; if *buff is NULL one is alloc'd
+ *                  with ak_calloc(NULL, ...) and stored back into *buff
+ *                  (caller frees with ak_free)
+ * @return  total bytes written, or 0 on failure
  */
 AK_EXPORT
 size_t
-ak_skinInterleave(AkBoneWeights * __restrict source,
-                  uint32_t                   maxJoint,
-                  uint32_t                   itemCount,
-                  void         ** __restrict buff);
+ak_skinInterleave(AkSkin          * __restrict skin,
+                  AkMeshPrimitive * __restrict prim,
+                  uint32_t                     primIdx,
+                  uint32_t                     maxJoint,
+                  void           ** __restrict buff);
 
 /*!
  * @brief format-agnostic per-vertex bone-data extraction for one primitive.
@@ -291,8 +306,8 @@ ak_skinInterleave(AkBoneWeights * __restrict source,
  * @param[in]  prim        mesh primitive at index `primIdx`
  * @param[in]  primIdx     primitive index in mesh
  * @param[in]  maxJoint    fixed slot count per vertex (typically 4)
- * @param[out] outIndices  buffer for vertexCount × maxJoint uint32 entries
- * @param[out] outWeights  buffer for vertexCount × maxJoint float  entries
+ * @param[out] outIndices  buffer for vertexCount × maxJoint × sizeof(uint16_t)
+ * @param[out] outWeights  buffer for vertexCount × maxJoint × sizeof(float)
  * @return     vertex count on success, 0 on error.
  */
 AK_EXPORT
@@ -301,7 +316,7 @@ ak_skinFillWeights(AkSkin          * __restrict skin,
                    AkMeshPrimitive * __restrict prim,
                    uint32_t                     primIdx,
                    uint32_t                     maxJoint,
-                   uint32_t        * __restrict outIndices,
+                   uint16_t        * __restrict outIndices,
                    float           * __restrict outWeights);
 
 /*!

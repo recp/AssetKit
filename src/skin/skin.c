@@ -20,42 +20,79 @@
 
 AK_EXPORT
 size_t
-ak_skinInterleave(AkBoneWeights * __restrict source,
-                  uint32_t                   maxJoint,
-                  uint32_t                   itemCount,
-                  void         ** __restrict buff) {
-  AkBoneWeight *bw;
-  char         *tmp, *item;
-  float        *pWeight;
-  uint32_t     *pJoint;
-  size_t        size, szt, i, k;
-  uint32_t      iterCount;
+ak_skinInterleave(AkSkin          * __restrict skin,
+                  AkMeshPrimitive * __restrict prim,
+                  uint32_t                     primIdx,
+                  uint32_t                     maxJoint,
+                  void           ** __restrict buff) {
+  AkInput  *inp;
+  uint16_t *idxScratch;
+  float    *wgtScratch;
+  char     *out;
+  size_t    vCount, written, outBytes, v;
+  uint32_t  k;
+  size_t    rowBytes;
 
-#ifdef DEBUG
-  assert(buff);
-#endif
+  if (!skin || !prim || !buff || maxJoint == 0)
+    return 0;
 
-  szt  = maxJoint * (sizeof(uint32_t) + sizeof(float));
-  size = source->nVertex * szt;
+  /*------------------------------------------------------------------*/
+  /* Determine vCount up front so we can size output + scratch.       */
+  /* DAE: skin->weights[primIdx]->nVertex.                            */
+  /* glTF: from JOINTS_n accessor on prim->input.                     */
+  /*------------------------------------------------------------------*/
+  vCount = 0;
+  if (skin->weights && skin->weights[primIdx]) {
+    vCount = skin->weights[primIdx]->nVertex;
+  } else {
+    for (inp = prim->input; inp; inp = inp->next) {
+      if (inp->semantic == AK_INPUT_JOINT && inp->accessor) {
+        vCount = inp->accessor->count;
+        break;
+      }
+    }
+  }
+  if (vCount == 0)
+    return 0;
 
-  if (!(tmp = *buff))
-    tmp = *buff = ak_calloc(NULL, size);
+  /*------------------------------------------------------------------*/
+  /* Extract via shared core (top-N + normalize). Scratch arrays are  */
+  /* the separate-output form ak_skinFillWeights expects.             */
+  /*------------------------------------------------------------------*/
+  idxScratch = ak_calloc(NULL, vCount * maxJoint * sizeof(uint16_t));
+  wgtScratch = ak_calloc(NULL, vCount * maxJoint * sizeof(float));
 
-  for (i = 0; i < source->nVertex; i++) {
-    iterCount = GLM_MIN(source->counts[i], GLM_MIN(maxJoint, itemCount));
-    item      = tmp + szt * i;
+  written = ak_skinFillWeights(skin, prim, primIdx, maxJoint,
+                               idxScratch, wgtScratch);
+  if (written == 0) {
+    ak_free(idxScratch);
+    ak_free(wgtScratch);
+    return 0;
+  }
 
-    pJoint    = (uint32_t *)item;
-    pWeight   = (float *)(void *)(item + sizeof(uint32_t) * itemCount);
+  /*------------------------------------------------------------------*/
+  /* Pack into interleaved output: per-vertex                         */
+  /*   [J0..J(N-1) (uint16)] [W0..W(N-1) (float)]                     */
+  /* No padding between joint and weight blocks. N == maxJoint.       */
+  /*------------------------------------------------------------------*/
+  rowBytes = maxJoint * (sizeof(uint16_t) + sizeof(float));
+  outBytes = vCount * rowBytes;
+  if (!(out = *buff))
+    out = *buff = ak_calloc(NULL, outBytes);
 
-    for (k = 0; k < iterCount; k++) {
-      bw         = &source->weights[source->indexes[i] + k];
-      pJoint[k]  = bw->joint;
-      pWeight[k] = bw->weight;
+  for (v = 0; v < vCount; v++) {
+    char     *row = out + v * rowBytes;
+    uint16_t *vJ  = (uint16_t *)row;
+    float    *vW  = (float *)(vJ + maxJoint);
+    for (k = 0; k < maxJoint; k++) {
+      vJ[k] = idxScratch[v * maxJoint + k];
+      vW[k] = wgtScratch[v * maxJoint + k];
     }
   }
 
-  return size;
+  ak_free(idxScratch);
+  ak_free(wgtScratch);
+  return outBytes;
 }
 
 AK_EXPORT
@@ -64,7 +101,7 @@ ak_skinFillWeights(AkSkin          * __restrict skin,
                    AkMeshPrimitive * __restrict prim,
                    uint32_t                     primIdx,
                    uint32_t                     maxJoint,
-                   uint32_t        * __restrict outIndices,
+                   uint16_t        * __restrict outIndices,
                    float           * __restrict outWeights) {
   AkBoneWeights *bw;
   AkInput       *inp, *jointInp, *weightInp;
@@ -84,8 +121,24 @@ ak_skinFillWeights(AkSkin          * __restrict skin,
   /* < authored joint count).                                         */
   /*------------------------------------------------------------------*/
   if (skin->weights && (bw = skin->weights[primIdx])) {
+    /* Clamp to prim's POSITION accessor count when smaller. DAE assets
+       (e.g. Seymour) can leave skin->weights[primIdx]->nVertex larger
+       than the mesh's actual vertex count after AssetKit's vertex
+       dedup/expansion — extra weight entries have no corresponding
+       mesh vertex and are silently dropped. The renderer's vertex
+       array is sized from POSITION; that's what the caller's output
+       buffers were allocated to match. */
+    AkInput *posInp;
     vCount = bw->nVertex;
-    memset(outIndices, 0, vCount * maxJoint * sizeof(uint32_t));
+    for (posInp = prim->input; posInp; posInp = posInp->next) {
+      if (posInp->semantic == AK_INPUT_POSITION
+          && posInp->accessor
+          && posInp->accessor->count < vCount) {
+        vCount = posInp->accessor->count;
+        break;
+      }
+    }
+    memset(outIndices, 0, vCount * maxJoint * sizeof(uint16_t));
     memset(outWeights, 0, vCount * maxJoint * sizeof(float));
 
     for (v = 0; v < vCount; v++) {
@@ -97,7 +150,7 @@ ak_skinFillWeights(AkSkin          * __restrict skin,
         /* fits — copy as-is */
         for (k = 0; k < slotCount; k++) {
           AkBoneWeight *src     = &bw->weights[bw->indexes[v] + k];
-          outIndices[outRow + k] = src->joint;
+          outIndices[outRow + k] = (uint16_t)src->joint;
           outWeights[outRow + k] = src->weight;
         }
         kept = slotCount;
@@ -106,7 +159,7 @@ ak_skinFillWeights(AkSkin          * __restrict skin,
         for (k = 0; k < slotCount; k++) {
           AkBoneWeight *src = &bw->weights[bw->indexes[v] + k];
           if (kept < maxJoint) {
-            outIndices[outRow + kept] = src->joint;
+            outIndices[outRow + kept] = (uint16_t)src->joint;
             outWeights[outRow + kept] = src->weight;
             kept++;
           } else {
@@ -120,7 +173,7 @@ ak_skinFillWeights(AkSkin          * __restrict skin,
               }
             }
             if (src->weight > minW) {
-              outIndices[outRow + minIdx] = src->joint;
+              outIndices[outRow + minIdx] = (uint16_t)src->joint;
               outWeights[outRow + minIdx] = src->weight;
             }
           }
@@ -166,7 +219,7 @@ ak_skinFillWeights(AkSkin          * __restrict skin,
   if (!jStride) jStride = (uint32_t)jointAcc->fillByteSize;
   if (!wStride) wStride = (uint32_t)weightAcc->fillByteSize;
 
-  memset(outIndices, 0, vCount * maxJoint * sizeof(uint32_t));
+  memset(outIndices, 0, vCount * maxJoint * sizeof(uint16_t));
   memset(outWeights, 0, vCount * maxJoint * sizeof(float));
 
   for (v = 0; v < vCount; v++) {
@@ -178,7 +231,10 @@ ak_skinFillWeights(AkSkin          * __restrict skin,
                        + (size_t)v * wStride;
     outRow = (size_t)v * maxJoint;
 
-    /* widen joint indices */
+    /* glTF spec caps JOINTS_n at UBYTE or USHORT — both fit in uint16
+       natively. UINT path is defensive (custom format, will truncate
+       silently if a single asset exceeded 65k joints which no real
+       authoring tool emits). */
     for (k = 0; k < slotCount; k++) {
       switch (jointAcc->componentType) {
         case AKT_UBYTE:
@@ -188,10 +244,9 @@ ak_skinFillWeights(AkSkin          * __restrict skin,
           outIndices[outRow + k] = ((const uint16_t *)jSrc)[k];
           break;
         case AKT_UINT:
-          outIndices[outRow + k] = ((const uint32_t *)jSrc)[k];
+          outIndices[outRow + k] = (uint16_t)((const uint32_t *)jSrc)[k];
           break;
         default:
-          /* spec says JOINTS_n must be UBYTE or USHORT; defensive */
           outIndices[outRow + k] = 0;
           break;
       }
