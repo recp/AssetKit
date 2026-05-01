@@ -130,6 +130,7 @@
   "CUBICSPLINE": "CUBICSPLINE",
   "inverseBindMatrices": "inverseBindMatrices",
   "joints": "joints",
+  "skeleton": "skeleton",
   "sparse": "sparse",
   "b64d": "data:",
   "offset": "offset",

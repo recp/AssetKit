@@ -153,6 +153,7 @@ const char _s_gltf_pool_0[] =
 "CUBICSPLINE\0"
 "inverseBindMatrices\0"
 "joints\0"
+"skeleton\0"
 "sparse\0"
 "data:\0"
 "offset\0"
