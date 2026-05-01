@@ -1078,14 +1078,16 @@ ak_objAlloc(AkHeap * __restrict heap,
 AK_EXPORT
 void*
 ak_userData(void * __restrict mem) {
-  uintptr_t *r, tmp;
-  
+  void      *r;
+  uintptr_t  tmp;
+
   if (!mem)
     return NULL;
 
-  if ((r = (uintptr_t *)ak_heap_ext_get(ak__alignof(mem),
-                                        AK_HEAP_NODE_FLAGS_USR))) {
-    /* to fix 8-byte alignment issue for uintptr_t */
+  /* Keep `r` as void* (not uintptr_t*) — the storage may be misaligned
+     for uintptr_t, and UBSan flags the typed pointer even when the only
+     read is a memcpy. memcpy on void* is alignment-agnostic. */
+  if ((r = ak_heap_ext_get(ak__alignof(mem), AK_HEAP_NODE_FLAGS_USR))) {
     memcpy(&tmp, r, sizeof(tmp));
     return (void *)tmp;
   }

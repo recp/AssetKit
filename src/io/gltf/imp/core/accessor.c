@@ -83,19 +83,24 @@ gltf_accessors(json_t * __restrict json,
       
       if ((buffViewIndex = json_int32(it, -1)) > -1
           && (buffView = flist_sp_at(&gst->bufferViews, buffViewIndex))
-          && (tmpbuff = buffView->buffer)) {
+          && (tmpbuff = buffView->buffer)
+          /* tmpbuff->data is NULL when the source buffer is supplied via
+             an unsupported extension (EXT_meshopt_compression,
+             KHR_draco_mesh_compression, ...). Skip — accessor will be
+             buffer-less rather than reading from a NULL pointer. */
+          && tmpbuff->data) {
         if (!(buff = rb_find(gst->bufferMap, buffView))) {
           buff         = ak_heap_calloc(heap, doc, sizeof(*buff));
           buff->data   = ak_heap_alloc(heap, buff, buffView->byteLength);
           buff->length = buffView->byteLength;
-          
+
           memcpy(buff->data,
                  (char *)tmpbuff->data + buffView->byteOffset,
                  buffView->byteLength);
-          
+
           rb_insert(gst->bufferMap, buffView, buff);
         }
-        
+
         acc->byteStride = buffView->byteStride;
         acc->buffer     = buff;
 
