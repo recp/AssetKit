@@ -21,6 +21,7 @@ extern "C" {
 #endif
 
 #include "common.h"
+#include "geom.h"
 
 struct AkNode;
 struct FListItem;
@@ -86,6 +87,12 @@ typedef enum AkMorphInterleaveLayout {
   AK_MORPH_NATURAL  = 3  /* P1N1 P2N2 but input orders are natural as target */
 } AkMorphInterleaveLayout;
 
+// typedef struct AkSparseMorphInfo {
+//   uint32_t *affectedVertices;  /* indices of vertices that change            */
+//   uint32_t  nAffectedVertices;
+//   float     sparsityRatio;     /* 0.0-1.0, useful for optimization decisions */
+// } AkSparseMorphInfo;
+
 /* per-target inputs to morph */
 typedef struct AkMorphable {
   struct AkMorphable  *next;
@@ -93,40 +100,81 @@ typedef struct AkMorphable {
   uint32_t             inputCount;
 } AkMorphable;
 
+/* TODO:
+    AkMorphPreset presets[3] = {
+      { "neutral", neutralWeights },
+      { "smile",   smileWeights },
+      { "blink",   blinkWeights }
+    };
+    morph.presets = presets;
+    morph.presetCount = 3;
+ */
+typedef struct AkMorphPreset {
+  const char   *name;      /* "neutral", "smile_max", ... */
+  AkFloatArray *weights;   /* length = morph->targetCount */
+} AkMorphPreset;
+
 typedef struct AkMorphTarget {
   struct AkMorphTarget *next;
-  AkObject             *target;      /* AkGeometry or AkMorphable to morph */
-  uint32_t              targetCount; /* number of mesh primitives to moprh */
-  float                 weight;      /* per-target default weight          */
+  AkObject             *target;         /* AkGeometry or AkMorphable to morph */
+  uint32_t              primitiveCount; /* number of mesh primitives to morph */
 } AkMorphTarget;
 
-typedef struct AkMorphInspectTargetInput {
-  struct AkMorphInspectTargetInput *next;
-  AkInput                          *input;
-  uint32_t                          intrOffset;
+typedef struct AkMorphInspectInput {
+  struct AkMorphInspectInput *next;
+  AkInput                    *input;
+  uint32_t                    intrOffset;
   union {
-    bool                            inBaseMesh;
-    bool                            inTarget;
+    bool                      inBaseMesh;
+    bool                      inTarget;
   };
-} AkMorphInspectTargetInput;
+} AkMorphInspectInput;
+
+typedef struct AkMorphInspectMorphable {
+  struct AkMorphInspectMorphable *next;
+  AkMorphInspectInput            *input;
+  AkMorphInspectInput            *lastInput;
+  uint32_t                        inputsCount;
+  float                           weight;
+} AkMorphInspectMorphable;
 
 typedef struct AkMorphInspectTargetView {
   struct AkMorphInspectTargetView *next;
-  AkMorphInspectTargetInput       *input;
-  AkMorphInspectTargetInput       *lastInput;
-  uint32_t                         inputsCount;
-  float                            weight;
+  AkMorphInspectMorphable         *morphable;
+  uint32_t                         nTargets;
+  size_t                           interleaveBufferSize;
+  size_t                           interleaveByteStride;
+  uint32_t                         accessorAccessCount;
 } AkMorphInspectTargetView;
 
-/* helper struct to show */
+/*
+  AkMorphInspectView
+         o
+         |
+         o -> AkMorphInspectTargetView ( like Mesh )
+                         o
+                         | 
+                         o ->  AkMorphInspectMorphable 1 ( like Mesh Primitive )
+                                         o
+                                         -> AkMorphInspectInput 1
+                                         -> AkMorphInspectInput 2
+                                         -> AkMorphInspectInput 3
+                         o ->  AkMorphInspectMorphable 2
+                         o ->  AkMorphInspectMorphable 3
+        o -> AkMorphInspectTargetView
+                         o
+                         | 
+                         o ->  AkMorphInspectMorphable 1
+                         o ->  AkMorphInspectMorphable 2
+                         o ->  AkMorphInspectMorphable 3
+*/
 typedef struct AkMorphInspectView {
   /* first one is baseShape if includeBaseShape param is set to 'true' */
   AkMorphInspectTargetView *base;
   AkMorphInspectTargetView *targets;
+  AkFloatArray             *initialWeights;
   uint32_t                  nTargets;
-  size_t                    interleaveBufferSize;
-  size_t                    interleaveByteStride;
-  uint32_t                  accessorAccessCount;
+  size_t                    interleaveTotalBufferSize;
   bool                      includeBaseShape;
   bool                      ignoreUncommonInputs;
   AkMorphInterleaveLayout   layout;
@@ -136,13 +184,15 @@ typedef struct AkMorph {
   AkOneWayIterBase    base;
   AkMorphTarget      *target;
   AkMorphInspectView *inspectResult;
+  AkFloatArray       *defaultWeights; /* this overrides mesh.weights        */
+  const char        **targetNames;    /* optional, length = targetCount     */
   AkMorphMethod       method;
   uint32_t            targetCount;
 } AkMorph;
 
 typedef struct AkInstanceMorph {
   AkMorph      *morph;
-  AkFloatArray *overrideWeights;  /* override default weights or NULL */
+  AkFloatArray *overrideWeights;  /* override morph.weights and mesh.weight or NULL */
 } AkInstanceMorph;
 
 typedef struct AkInstanceSkin {
@@ -250,6 +300,98 @@ ak_morphInterleave(AkGeometry * __restrict baseMesh,
                    AkMorphInterleaveLayout layout,
                    void       * __restrict destBuff);
 
+AK_INLINE
+bool
+ak_morphHasOverride(const AkInstanceMorph* inst) {
+  return inst && inst->overrideWeights && inst->overrideWeights->count > 0;
+}
+
+/* TODO: CPU morph evaluator (utility, low priority)
+ *
+ * Computes the final blended vertex data on the CPU using base mesh + targets
+ * + weights. Output is a "final deformed mesh" ready to be uploaded as a
+ * single static draw — no GPU-side blending required.
+ *
+ * Use cases:
+ *   - mesh export / bake tools (e.g., bake "smile_max" pose as a static asset)
+ *   - software renderers without GPU shader blending
+ *   - pre-bake / asset pipeline tooling
+ *
+ * Modern engines (SceneKit, RealityKit, custom Metal/Vulkan) do NOT need this:
+ * they consume ak_morphInterleave output + a weights uniform array and blend
+ * on the GPU. This evaluator is purely for the niche cases above.
+ *
+ * Sketch:
+ *
+ * AK_EXPORT
+ * AkResult
+ * ak_morphEvaluate(AkGeometry            * __restrict baseMesh,
+ *                  AkMorph               * __restrict morph,
+ *                  const AkInstanceMorph * __restrict inst,     // NULL → defaults
+ *                  void                  * __restrict destBuff);// pre-alloc base layout
+ */
+
+//AkResult
+//ak_morphEvaluateWeights(const AkMorph         * __restrict morph,
+//                        const AkInstanceMorph * __restrict inst,
+//                        AkFloat                ** __restrict out /* len = morph->targetCount */) {
+//  AkFloatArray *ov;
+//  AkFloatArray *def;
+//  AkMesh       *mesh;
+//  uint32_t      n;
+//
+//  if (!morph || !out)
+//    return AK_ERR;
+//
+//  n   = morph->targetCount;
+//  ov  = (inst) ? inst->overrideWeights : NULL;
+//
+//  /* 1) Kaynak seçimi ve kopyalama (override > default > zeros) */
+//  if (ov && ov->count) {
+//    *out = ov->items;
+//    return AK_OK;
+//  } else if ((def = morph->defaultWeights) && def->count) {
+//    *out = def->items;
+//    return AK_OK;
+//  } else if ((ak_objGet(morph->target->target))) {
+//
+//
+//    return mesh->weights;
+//  }
+//
+//  return AK_OK;
+//}
+
+/*
+typedef void (*AkMorphProgressCallback)(float progress, void *userData);
+
+AK_EXPORT
+AkResult
+ak_morphInterleaveWithProgress(AkGeometry * __restrict baseMesh,
+                               AkMorph    * __restrict morph,
+                               AkMorphInterleaveLayout layout,
+                               void       * __restrict destBuff,
+                               AkMorphProgressCallback callback,
+                               void       *            userData);
+
+typedef enum AkMorphResult {
+  AK_MORPH_OK = 0,
+  AK_MORPH_INCOMPATIBLE_TOPOLOGY,
+  AK_MORPH_MISSING_INPUT,
+  AK_MORPH_INVALID_WEIGHT_COUNT,
+  /* ... * /
+} AkMorphResult;
+
+AK_EXPORT
+AkResult
+ak_morphValidateTarget(AkGeometry    * __restrict baseMesh,
+                       AkMorphTarget * __restrict target);
+
+AK_EXPORT
+bool
+ak_morphIsCompatible(AkGeometry * __restrict mesh1,
+                     AkGeometry * __restrict mesh2);
+*/
 #ifdef __cplusplus
 }
 #endif
