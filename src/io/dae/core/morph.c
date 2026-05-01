@@ -52,23 +52,21 @@ dae_morph(DAEState * __restrict dst,
         morphdae->source = source;
       }
     } else if (xml_tag_eq(xml, _s_dae_targets)) {
-      AkMorphTarget *targets;
       AkInput   *inp;
       xml_t     *xtarg;
       
-      targets  = ak_heap_calloc(heap, morph, sizeof(*targets));
       xtarg = xml->val;
       
       while (xtarg) {
         if (xml_tag_eq(xtarg, _s_dae_input)) {
-          inp              = ak_heap_calloc(heap, morph, sizeof(*inp));
+          inp              = ak_heap_calloc(heap, morphdae, sizeof(*inp));
           inp->semanticRaw = xmla_strdup_by(xtarg, heap, _s_dae_semantic, inp);
           
           if (!inp->semanticRaw) {
             ak_free(inp);
           } else {
             AkURL *url;
-            AkEnum  inputSemantic;
+            AkEnum inputSemantic;
             
             inputSemantic = dae_semantic(inp->semanticRaw);
             
@@ -83,8 +81,8 @@ dae_morph(DAEState * __restrict dst,
             url           = url_from(xtarg, _s_dae_source, memp);
             rb_insert(dst->inputmap, inp, url);
 
-            inp->next      = targets->input;
-            targets->input = inp;
+            inp->next       = morphdae->input;
+            morphdae->input = inp;
           }
         }
         xtarg = xtarg->next;

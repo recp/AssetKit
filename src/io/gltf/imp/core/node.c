@@ -279,31 +279,35 @@ gltf_node(AkGLTFState * __restrict gst,
     node->transform->item = obj;
   }
   
-  /* morph target weights */
+  /* morph instance + (optional) node-level weight override */
   if (geomIter && instGeom && (morph = rb_find(gst->meshTargets, geomIter))) {
     AkInstanceMorph *morpher;
-    AkFloatArray    *weights;
-    
+
     morpher = ak_heap_calloc(heap, node, sizeof(*morpher));
-    weights = ak_heap_calloc(heap,
-                             morpher,
-                             sizeof(*weights)
-                             + sizeof(weights->items[0]) * morph->targetCount);
     ak_setypeid(morpher, AKT_MORPH_INST);
 
-    if ((it = json_array(nodeMap[k_weights].object))) {
-      json_array_t *jsonArr;
-      jsonArr = it;
-      json_array_float(weights->items, it, 0.0f, jsonArr->count, true);
-    }
+    morpher->morph    = morph;
+    instGeom->morpher = morpher;
 
-    weights->count           = morph->targetCount;
-    
-    morpher->overrideWeights = weights;
-    morpher->morph           = rb_find(gst->meshTargets, geomIter);
-    instGeom->morpher        = morpher;
-    
-    /* TODO: what if there is no Geomerty? */
+    /* overrideWeights is set ONLY when the glTF node carries an explicit
+       "weights" property. Otherwise it stays NULL so that:
+         - ak_morphHasOverride()     returns false
+         - defaults flow through:    morph.defaultWeights → mesh.weights → 0
+       Allocating a zero-filled array unconditionally would silently override
+       any defaults — see ak_morphInspect_initialWeight precedence. */
+    if ((it = json_array(nodeMap[k_weights].object))) {
+      AkFloatArray *weights;
+      json_array_t *jsonArr;
+
+      jsonArr = it;
+      weights = ak_heap_calloc(heap,
+                               morpher,
+                               sizeof(*weights)
+                               + sizeof(weights->items[0]) * morph->targetCount);
+      json_array_float(weights->items, it, 0.0f, jsonArr->count, true);
+      weights->count           = morph->targetCount;
+      morpher->overrideWeights = weights;
+    }
   }
   
   /* bind skinnerr after skin is loaded */

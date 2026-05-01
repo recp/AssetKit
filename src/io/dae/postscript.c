@@ -23,6 +23,7 @@
 #include "fixup/angle.h"
 #include "fixup/tex.h"
 #include "fixup/ctlr.h"
+#include "fixup/channel.h"
 
 AK_HIDE void
 dae_retain_refs(DAEState * __restrict dst);
@@ -38,6 +39,9 @@ dae_pre_walk(RBTree *tree, RBNode *rbnode);
 
 AK_HIDE void
 dae_input_walk(RBTree *tree, RBNode *rbnode);
+
+AK_HIDE void
+dae_attach_orphan_morphs(DAEState * __restrict dst);
 
 AK_HIDE
 void
@@ -130,7 +134,22 @@ dae_postscript(DAEState * __restrict dst) {
   if (dst->doc->lib.controllers) {
     dae_fixup_ctlr(dst);
     dae_fixup_instctlr(dst);
+
+    /* Soft attach: many DAE assets — particularly glTF→DAE converted ones —
+       reference the morph base mesh via <instance_geometry url="#mesh"/>
+       and forget to wrap it in <instance_controller>. The morph controller
+       is in the library but never instanced, so dae_fixup_instctlr never
+       sees it. Walk the scene graph and attach any morph controller that
+       targets this geometry. */
+    dae_attach_orphan_morphs(dst);
   }
+
+  /* Resolve animation channel targets that need controller/instance
+     topology — currently the indexed-array form used for morph weights,
+     e.g. <channel target="morph-weights(0)"/>. Must run after morph
+     instances exist (including the orphan-attach pass above). */
+  if (dst->doc->lib.animations)
+    dae_fixup_channel(dst);
 
   /* now set used coordSys */
   if (ak_opt_get(AK_OPT_COORD_CONVERT_TYPE) != AK_COORD_CVT_DISABLED)
@@ -179,6 +198,58 @@ dae_retain_refs(DAEState * __restrict dst) {
 
     it = it->next;
     alc->free(tofree);
+  }
+}
+
+/*
+ * For every <instance_geometry> in the scene graph, check whether the
+ * geometry it references has a registered morph controller in
+ * ctlrMorphMap. If so, synthesize an AkInstanceMorph and attach it. This
+ * compensates for DAE exporters (typically glTF→DAE converters) that
+ * emit a morph controller but reference the base geometry directly via
+ * <instance_geometry> rather than wrapping it in <instance_controller>.
+ *
+ * Idempotent: skips instGeoms that already have a morpher (real
+ * <instance_controller> path already attached one in dae_fixup_instctlr).
+ */
+static
+void
+dae_attach_orphan_morphs_node(DAEState * __restrict dst, AkNode *node) {
+  AkInstanceGeometry *instGeom;
+  AkInstanceMorph    *instMorph;
+  AkMorph            *morph;
+  AkGeometry         *geom;
+
+  for (; node; node = (AkNode *)node->next) {
+    for (instGeom = node->geometry; instGeom;
+         instGeom = (AkInstanceGeometry *)instGeom->base.next) {
+      if (instGeom->morpher)                         continue;
+      if (!(geom = instGeom->base.url.ptr))          continue;
+      if (ak_typeid(geom) != AKT_GEOMETRY)           continue;
+      if (!(morph = rb_find(dst->ctlrMorphMap, geom))) continue;
+
+      instMorph                  = ak_heap_calloc(dst->heap, node,
+                                                  sizeof(*instMorph));
+      instMorph->morph           = morph;
+      instMorph->overrideWeights = NULL;
+      instGeom->morpher          = instMorph;
+    }
+
+    if (node->chld)
+      dae_attach_orphan_morphs_node(dst, node->chld);
+  }
+}
+
+AK_HIDE void
+dae_attach_orphan_morphs(DAEState * __restrict dst) {
+  AkVisualScene *vscn;
+
+  if (!dst->ctlrMorphMap || !dst->doc->lib.visualScenes) return;
+
+  for (vscn = (void *)dst->doc->lib.visualScenes->chld;
+       vscn;
+       vscn = (void *)vscn->base.next) {
+    dae_attach_orphan_morphs_node(dst, vscn->node);
   }
 }
 

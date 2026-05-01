@@ -122,6 +122,157 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
         }
         break;
       }
+      case AK_CONTROLLER_MORPH: {
+        AkMorph       *morph;
+        AkMorphDAE    *morphdae;
+        AkGeometry    *baseGeom;
+        AkInput       *input, *targetInput, *weightInput;
+        AkAccessor    *targetAcc, *weightAcc;
+        AkBuffer      *targetBuff, *weightBuff;
+        AkMorphTarget *prevTarget;
+        uint32_t       basePrimCount;
+        size_t         count, i;
+        AkContext      sidCtx = { .doc = doc };
+
+        morph    = ctlr->data;
+        morphdae = ak_userData(morph);
+        if (!(baseGeom = ak_baseGeometry(&morphdae->baseGeom)))
+          goto nxt_ctlr;
+
+        /* DAE morph has exactly one MORPH_TARGET input (a NAME/IDREF/SIDREF
+           array of per-target geometries) and one MORPH_WEIGHT input (a
+           float array of default weights). Split the chain so we can walk
+           targets while still having the weights handy for defaultWeights. */
+        targetInput = weightInput = NULL;
+        for (input = morphdae->input; input; input = input->next) {
+          if      (input->semantic == AK_INPUT_MORPH_TARGET) targetInput = input;
+          else if (input->semantic == AK_INPUT_MORPH_WEIGHT) weightInput = input;
+        }
+        if (!targetInput || !(targetAcc = targetInput->accessor)
+            || !(targetBuff = targetAcc->buffer)
+            || !targetBuff->data
+            || targetAcc->count == 0)
+          goto nxt_ctlr;
+
+        /* Per AkMorphTarget, primitiveCount mirrors the base mesh — DAE
+           assumes target geometries share the base topology (same prim
+           layout, same vertex count). Compute once. */
+        basePrimCount = (baseGeom->gdata
+                         && baseGeom->gdata->type == AK_GEOMETRY_MESH)
+                          ? ((AkMesh *)ak_objGet(baseGeom->gdata))->primitiveCount
+                          : 1;
+
+        /* Build AkMorphTarget chain in source order (tail-insert). DAE
+           animation channels reference targets via position — preserving
+           parse order keeps weight indices aligned with the source <Name>
+           array. */
+        count      = targetAcc->count;
+        prevTarget = NULL;
+
+        for (i = 0; i < count; i++) {
+          const char    *id;
+          void          *resolved;
+          AkObject      *wrap;
+          AkMorphTarget *target;
+          const char   **idArr;
+
+          /* Source array entries are typed by the accessor's componentType.
+             COLLADA 1.4/1.5 spec lists IDREF and Name as the typical morph
+             target source types; SIDREF is technically allowed via the
+             generic <param> mechanism. */
+          idArr = targetBuff->data;
+          if (!(id = idArr[i])) continue;
+
+          switch (targetAcc->componentType) {
+            case AKT_IDREF:
+            case AKT_NAME:
+              resolved = ak_getObjectById(doc, id);
+              break;
+            case AKT_SIDREF:
+              resolved = ak_sid_resolve_from(&sidCtx, doc, id, NULL);
+              break;
+            default:
+              resolved = NULL;
+              break;
+          }
+          if (!resolved || ak_typeid(resolved) != AKT_GEOMETRY)
+            continue;
+
+          /* AkObject wrap carries the type tag used by intr.c switch
+             dispatch. Payload is one pointer-sized slot storing the
+             AkGeometry* — read back via ak_objGetTarget on C/Swift sides.
+             The geometry itself stays in doc->lib.geometries with its own
+             lifetime; this wrap just references it. */
+          wrap = ak_objAlloc(dst->heap, morph,
+                             sizeof(AkGeometry *),
+                             AK_MORPHABLE_GEOMETRY,
+                             true);
+          ak_objGetTarget(wrap) = (AkGeometry *)resolved;
+
+          target                 = ak_heap_calloc(dst->heap, morph,
+                                                  sizeof(*target));
+          target->target         = wrap;
+          target->primitiveCount = basePrimCount;
+
+          if (prevTarget) prevTarget->next = target;
+          else            morph->target    = target;
+          prevTarget = target;
+          morph->targetCount++;
+        }
+
+        if (morph->targetCount == 0)
+          goto nxt_ctlr;
+
+        /* MORPH_WEIGHT → defaultWeights. Spec requires the weight array's
+           length to match the target count; if it mismatches we still take
+           min(count, targetCount) so partial assets don't silently drop
+           on the floor. */
+        if (weightInput
+            && (weightAcc  = weightInput->accessor)
+            && (weightBuff = weightAcc->buffer)
+            && weightBuff->data
+            && weightAcc->count > 0) {
+          AkFloatArray *defaults;
+          float        *src;
+          size_t        nWeights;
+
+          nWeights = weightAcc->count < morph->targetCount
+                       ? weightAcc->count
+                       : morph->targetCount;
+
+          defaults = ak_heap_alloc(dst->heap, morph,
+                                   sizeof(*defaults)
+                                    + sizeof(float) * nWeights);
+          defaults->count = nWeights;
+
+          /* Weights are stored densely in the source's accessor; respect
+             stride for safety (DAE float source from <float_array> is
+             typically tightly packed but technically allowed to be
+             interleaved within its <source>). */
+          src = weightBuff->data;
+          if (weightAcc->byteStride
+              && weightAcc->byteStride != sizeof(float)) {
+            char *base = (char *)src + weightAcc->byteOffset;
+            for (i = 0; i < nWeights; i++) {
+              defaults->items[i] =
+                *(float *)(base + i * weightAcc->byteStride);
+            }
+          } else {
+            src = (float *)((char *)src + weightAcc->byteOffset);
+            for (i = 0; i < nWeights; i++)
+              defaults->items[i] = src[i];
+          }
+
+          morph->defaultWeights = defaults;
+        }
+
+        /* Register geom→morph for instance hookup later (DAE node walker
+           reads ctlrMorphMap to attach AkInstanceMorph when it sees an
+           <instance_controller> referring to a morph controller). */
+        rb_insert(dst->ctlrMorphMap, baseGeom, morph);
+
+        break;
+      }
       default:
         break;
     }
@@ -144,6 +295,8 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
 
   item = dst->instCtlrs;
   while (item) {
+    AkMorphDAE *morphdae;
+
     instCtlr = item->data;
     ctlr     = ak_instanceObject(&instCtlr->base);
     node     = instCtlr->base.node;
@@ -227,6 +380,30 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
             node->geometry->base.prev = (AkInstanceBase *)instGeom;
           node->geometry = instGeom;
         }
+        break;
+      }
+      case AK_CONTROLLER_MORPH: {
+        AkInstanceMorph *instMorph;
+        AkMorph         *morph;
+
+        morph     = ctlr->data;
+        morphdae  = ak_userData(morph);
+        instMorph = ak_heap_calloc(dst->heap, node, sizeof(*instMorph));
+
+        instMorph->morph           = morph;
+        instMorph->overrideWeights = NULL; /* DAE has no per-instance weights;
+                                              animation drives morph.targets   */
+
+        instGeom->morpher          = instMorph;
+        instGeom->bindMaterial     = instCtlr->bindMaterial;
+        instGeom->base.object      = morphdae->baseGeom.ptr;
+        ak_heap_setpm(instCtlr->bindMaterial, instGeom);
+
+        instGeom->base.next = (AkInstanceBase *)node->geometry;
+        if (node->geometry)
+          node->geometry->base.prev = (AkInstanceBase *)instGeom;
+        node->geometry = instGeom;
+        break;
       }
       default: break;
     }

@@ -30,6 +30,8 @@
 #include <xml/xml.h>
 #include <xml/attrib.h>
 
+#include "bugfix/url.h"
+
 #ifndef AK_INPUT_SEMANTIC_VERTEX 
 #  define AK_INPUT_SEMANTIC_VERTEX 100001
 #endif
@@ -71,6 +73,8 @@ typedef AK_ALIGN(16) struct DAEState {
   RBTree          *texmap;
   RBTree          *instanceMap;
   FListItem       *vertMap;
+  RBTree          *ctlrSkinMap;
+  RBTree          *ctlrMorphMap;
   AkSource        *sources;
   AkCOLLADAVersion version;
   bool             stop;
@@ -189,9 +193,12 @@ url_set(DAEState   * __restrict dst,
     url->url      = NULL;
     return;
   }
-  
-  ak_url_init(memp, xmla_strdup(att, dst->heap, memp), url);
-  
+
+  /* DAE_URL_INIT_FIXED normalizes bare ids ("foo" → "#foo") emitted by
+     non-conforming exporters via stack alloca; well-formed input is a
+     no-op. See bugfix/url.h. */
+  DAE_URL_INIT_FIXED(memp, xmla_strdup(att, dst->heap, memp), url);
+
   urlQueue       = dst->heap->allocator->malloc(sizeof(*urlQueue));
   urlQueue->next = dst->urlQueue;
   urlQueue->url  = url;
@@ -226,11 +233,13 @@ url_from(xml_t      * __restrict xml,
 
   if (!(att = xmla(xml, name)) || ! att->val)
     return NULL;
-  
+
   heap = ak_heap_getheap(memp);
   url  = ak_heap_calloc(heap, memp, sizeof(*url));
-  ak_url_init(memp, xmla_strdup(att, heap, memp), url);
-  
+
+  /* see url_set: normalize bare-id industry bug before init. */
+  DAE_URL_INIT_FIXED(memp, xmla_strdup(att, heap, memp), url);
+
   return url;
 }
 

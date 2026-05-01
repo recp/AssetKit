@@ -49,10 +49,22 @@ gltf_meshes(json_t * __restrict jmesh,
 
   jmesh = jmeshes->base.value;
   while (jmesh) {
-    AkGeometry *geom;
-    AkMesh     *mesh;
-    AkObject   *meshObj;
-    uint32_t    mode;
+    AkGeometry      *geom;
+    AkMesh          *mesh;
+    AkObject        *meshObj;
+    uint32_t         mode;
+
+    /* mesh-level morph state — built lazily on first primitive that has
+       targets, then re-used by subsequent primitives so that all primitives
+       of the mesh share one AkMorph (per glTF spec, weights are mesh-level). */
+    AkMorph         *meshMorph        = NULL;
+    AkMorphTarget  **meshTargetArr    = NULL;
+    uint32_t         meshTargetCnt    = 0;
+
+    /* mesh.extras.targetNames (blend shape names) — parsed independently of
+       primitive order; attached to meshMorph after all keys are processed. */
+    const char     **morphTargetNames = NULL;
+    uint32_t         morphTargetNamesN = 0;
 
     mesh                 = ak_allocMesh(heap, lib, &geom);
     meshObj              = ak_objFrom(mesh);
@@ -167,37 +179,82 @@ gltf_meshes(json_t * __restrict jmesh,
             } else if (json_key_eq(jprimVal, _s_gltf_targets)) {
               json_array_t  *jtargets;
               json_t        *jtarget, *jattrib;
-              AkMorph       *morph;
               AkMorphTarget *target;
-              AkObject      *targetObj;
               AkMorphable   *morphable;
-              // AkGeometry    *targetGeom;
-              // AkMesh        *targetMesh;
-              // RBTree        *targetsMap;
-              // int32_t        targetIndex;
+              uint32_t       targetIdx;
 
               if (!(jtargets = json_array(jprimVal)))
                 goto prmv_nxt;
 
-              // targetIndex   = 0;
-              // targetsMap    = rb_newtree(NULL, ak_cmp_i32, NULL);
-              morph         = ak_heap_calloc(heap, doc, sizeof(*morph));
-              morph->method = AK_MORPH_METHOD_ADDITIVE;
-              jtarget       = jtargets->base.value;
+              /* Lazy-init the mesh-level morph and pre-allocate one
+                 AkMorphTarget per blend shape. All primitives of the mesh
+                 share these targets — each adds one AkMorphable to each
+                 target's chain. (glTF spec: every primitive in the mesh
+                 has the same number of morph targets in the same order.) */
+              if (!meshMorph) {
+                AkMorphTarget *prev;
+                uint32_t       i;
 
-              while (jtarget) {
+                meshMorph         = ak_heap_calloc(heap, doc, sizeof(*meshMorph));
+                meshMorph->method = AK_MORPH_METHOD_ADDITIVE;
+                meshTargetCnt     = (uint32_t)jtargets->count;
+                meshTargetArr     = ak_heap_calloc(heap, meshMorph,
+                                                   sizeof(*meshTargetArr) * meshTargetCnt);
+
+                prev = NULL;
+                for (i = 0; i < meshTargetCnt; i++) {
+                  target           = ak_heap_calloc(heap, meshMorph, sizeof(*target));
+                  meshTargetArr[i] = target;
+
+                  if (prev) prev->next      = target;
+                  else      meshMorph->target = target;
+                  prev = target;
+                  meshMorph->targetCount++;
+                }
+              }
+
+              /* For this primitive, append one AkMorphable to each blend
+                 shape's chain (one per target). The first primitive's
+                 morphable is wrapped in an AkObject (carries the type tag
+                 used by intr.c switch dispatch); subsequent primitives'
+                 morphables are plain calloc'd and linked via .next.
+
+                 The JSON parser walks the targets array in reverse source
+                 order (an artifact of the reader's reverse-prepend
+                 strategy). The pre-allocated meshTargetArr[] is in chain
+                 (forward) order, so we mirror the index when filling: the
+                 first jtarget we visit (source LAST) populates the last
+                 chain slot, and the last jtarget visited (source FIRST)
+                 populates chain[0] — i.e. meshMorph->target ends up =
+                 source targets[0], matching glTF semantics where weight[i]
+                 drives mesh.primitives[].targets[i]. Without this swap,
+                 weight[0] animates the wrong blend shape and the morph
+                 visually plays in reverse target order. */
+              jtarget   = jtargets->base.value;
+              targetIdx = 0;
+
+              while (jtarget && targetIdx < meshTargetCnt) {
+                target = meshTargetArr[meshTargetCnt - 1 - targetIdx];
+
+                if (!target->target) {
+                  AkObject *targetObj;
+                  targetObj      = ak_objAlloc(heap, target, sizeof(*morphable),
+                                               AK_MORPHABLE_MORPHABLE, true);
+                  morphable      = ak_objGet(targetObj);
+                  target->target = targetObj;
+                } else {
+                  AkMorphable *head;
+                  morphable  = ak_heap_calloc(heap, target, sizeof(*morphable));
+                  head       = ak_objGet(target->target);
+                  while (head->next) head = head->next;
+                  head->next = morphable;
+                }
+                target->primitiveCount++;
+
+                /* fill morphable->input from the target's attribute deltas.
+                   IMPORTANT: do NOT touch prim->pos here — that's the base
+                   primitive's POSITION binding; target POSITION is a delta. */
                 jattrib = jtarget->value;
-
-                target    = ak_heap_calloc(heap, morph,  sizeof(*target));
-                targetObj = ak_objAlloc(heap, target, sizeof(*morphable), AK_MORPHABLE_MORPHABLE, true);
-                morphable = ak_objGet(targetObj);
-
-                /*
-                 TODO: when we want to keep these targets as mesg geometries...:
-                if (!(targetMesh = rb_find(targetsMap, I2P targetIndex)))
-                  targetMesh = ak_allocMesh(heap, lib, &targetGeom);
-                */
-
                 while (jattrib) {
                   AkInput    *inp;
                   const char *semantic;
@@ -210,15 +267,13 @@ gltf_meshes(json_t * __restrict jmesh,
                                                        inp,
                                                        jattrib->key,
                                                        jattrib->keysize);
-                  }
-
-                  /* ARRAYs e.g. TEXTURE_0, TEXTURE_1 */
-                  else {
+                  } else {
+                    /* indexed (e.g. TEXCOORD_0, COLOR_1) */
                     inp->semanticRaw = ak_heap_strndup(heap,
                                                        inp,
                                                        jattrib->key,
                                                        semantic - jattrib->key);
-                    if (strlen(semantic) > 1) /* default is 0 with calloc */
+                    if (strlen(semantic) > 1)
                       inp->set = (uint32_t)strtol(semantic + 1, NULL, 10);
                   }
 
@@ -228,31 +283,16 @@ gltf_meshes(json_t * __restrict jmesh,
 
                   ak_retain(inp->accessor);
 
-                  if (inp->semantic == AK_INPUT_POSITION)
-                    prim->pos = inp;
-
-                  inp->next          = morphable->input;
+                  inp->next        = morphable->input;
                   morphable->input = inp;
                   morphable->inputCount++;
 
                   jattrib = jattrib->next;
                 } /* jattrib */
 
-                target->target = targetObj;
-                target->next   = morph->target;
-                morph->target  = target;
-
-                // targetIndex++;
-                morph->targetCount++;
                 jtarget = jtarget->next;
+                targetIdx++;
               } /* jtarget */
-
-              if (doc->lib.morphs)
-                morph->base.next = &doc->lib.morphs->base;
-
-              doc->lib.morphs = morph;
-
-              rb_insert(gst->meshTargets, geom, morph);
             }
 
           prmv_nxt:
@@ -280,20 +320,64 @@ gltf_meshes(json_t * __restrict jmesh,
                                   meshObj,
                                   sizeof(*weights)
                                    + sizeof(float) * jarr->count);
+          /* Pass jmeshVal (the array NODE), not jmeshVal->value (its first
+             child). json_array_float internally casts arg via json_array(). */
           json_array_float(weights->items,
-                           jmeshVal->value,
+                           jmeshVal,
                            0.0f,
                            jarr->count,
                            true);
-          
+
           weights->count = jarr->count;
           mesh->weights  = weights;
         }
       } else if (json_key_eq(jmeshVal, _s_gltf_name)) {
         mesh->name = json_strdup(jmeshVal, heap, meshObj);
+      } else if (json_key_eq(jmeshVal, _s_gltf_extras)) {
+        /* glTF spec: blend shape names live in mesh.extras.targetNames as a
+           string array of length morph.targetCount. Parse here regardless of
+           whether the morph has been built yet — attached after primitives. */
+        json_t       *jnames;
+        json_array_t *jarr;
+
+        if ((jnames = json_get(jmeshVal, "targetNames"))
+            && (jarr = json_array(jnames))
+            && jarr->count > 0) {
+          json_t   *jname;
+          uint32_t  i;
+
+          morphTargetNamesN = (uint32_t)jarr->count;
+          morphTargetNames  = ak_heap_calloc(heap, meshObj,
+                                             sizeof(const char *) * morphTargetNamesN);
+
+          /* JSON parser walks the names array in reverse source order;
+             mirror the index so targetNames[i] aligns with mesh's
+             primitives[].targets[i] (and morph weight slot i). */
+          jname = jarr->base.value;
+          i     = 0;
+          while (jname && i < morphTargetNamesN) {
+            morphTargetNames[morphTargetNamesN - 1 - i] =
+              json_strdup(jname, heap, meshObj);
+            i++;
+            jname = jname->next;
+          }
+        }
       }
 
       jmeshVal = jmeshVal->next;
+    }
+
+    /* Register the mesh-level morph once all keys are processed, so that
+       extras.targetNames (which can come after primitives in JSON order) is
+       attached as well. Keyed by geometry so node.c finds it via meshTargets. */
+    if (meshMorph) {
+      if (morphTargetNames && morphTargetNamesN > 0) {
+        meshMorph->targetNames = morphTargetNames;
+      }
+      if (doc->lib.morphs)
+        meshMorph->base.next = &doc->lib.morphs->base;
+      doc->lib.morphs = meshMorph;
+      rb_insert(gst->meshTargets, geom, meshMorph);
     }
 
     /* Reversed */

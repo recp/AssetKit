@@ -505,23 +505,23 @@ struct AkSkin;
 
 typedef struct AkLibraries {
   struct AkLibrary *cameras;
-  struct AkLibrary *lights;
-  struct AkLibrary *effects;
-  struct AkLibrary *libimages;
-  struct AkLibrary *materials;
-  struct AkLibrary *geometries;
-  struct AkLibrary *controllers;
-  struct AkLibrary *visualScenes;
-  struct AkLibrary *nodes;
-  struct AkLibrary *animations;
-  
-  struct FListItem *buffers;
-  struct FListItem *accessors;
-  struct FListItem *textures;
-  struct FListItem *samplers;
-  struct FListItem *images;
-  struct AkMorph   *morphs;
-  struct AkSkin    *skins;
+  struct AkLibrary   *lights;
+  struct AkLibrary   *effects;
+  struct AkLibrary   *libimages;
+  struct AkLibrary   *materials;
+  struct AkLibrary   *geometries;
+  struct AkLibrary   *controllers;
+  struct AkLibrary   *visualScenes;
+  struct AkLibrary   *nodes;
+  struct AkLibrary   *animations;
+    
+  struct FListItem   *buffers;
+  struct FListItem   *accessors;
+  struct FListItem   *textures;
+  struct FListItem   *samplers;
+  struct FListItem   *images;
+  struct AkMorph     *morphs;
+  struct AkSkin      *skins;
 } AkLibraries;
 
 typedef const char* (*AkFetchFromURLHandler)(const char * __restrict url);
@@ -532,6 +532,8 @@ typedef struct AkDoc {
   AkUnit     *unit;
   AkTree     *extra;
   void       *reserved;
+  void       *userData;
+  float       loadMillis;
   AkLibraries lib;
   AkScene     scene;
 } AkDoc;

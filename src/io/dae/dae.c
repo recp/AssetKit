@@ -115,6 +115,8 @@ dae_doc(AkDoc     ** __restrict dest,
   dstVal.texmap       = rb_newtree_ptr();
   dstVal.instanceMap  = rb_newtree_ptr();
 
+  dstVal.ctlrSkinMap  = rb_newtree_ptr();
+  dstVal.ctlrMorphMap = rb_newtree_ptr();
 
   dst                 = &dstVal;
 
@@ -200,6 +202,8 @@ dae_doc(AkDoc     ** __restrict dest,
 
   flist_sp_destroy(&dstVal.vertMap);
 
+  rb_destroy(dstVal.ctlrSkinMap);
+  rb_destroy(dstVal.ctlrMorphMap);
 
   if (xdoc)
     free((void *)xdoc);
