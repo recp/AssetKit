@@ -34,8 +34,18 @@ typedef struct AkObject {
   char   data[];
 } AkObject;
 
+/* Inline payload access — pData is the start of the struct copy living
+   inside the AkObject's tail buffer. Used when ak_objAlloc was invoked
+   with sizeof(SomeStruct). */
 #define ak_objGetOrNull(OBJ) (OBJ ? (OBJ)->pData : NULL)
 #define ak_objGet(OBJ)       ((OBJ)->pData)
+
+/* Pointer-storage access — when ak_objAlloc was invoked with
+   sizeof(SomePtr) the inline payload is one pointer-sized slot holding a
+   reference to an external object (the referenced object owns its own
+   lifetime). ak_objGetTarget dereferences once to recover that pointer. */
+#define ak_objGetTarget(OBJ) (*(void **)((OBJ)->pData))
+
 #define ak_allocator ak_mem_allocator()
 
 typedef struct AkHeapAllocator {
