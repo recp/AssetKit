@@ -190,6 +190,22 @@ typedef struct AkMorph {
   uint32_t            targetCount;
 } AkMorph;
 
+// TODO: multi-morph-per-mesh just thought loudly ?
+// typedef struct AkPrimitiveMorph {
+//   AkOneWayIterBase    base;
+//   AkMorphTarget      *target;
+//   AkMorphInspectView *inspectResult;
+//   AkFloatArray       *weights; /* default weights or NULL to zero */
+//   AkMorphMethod       method;
+//   uint32_t            targetCount; 
+// } AkPrimitiveMorph;
+// 
+// typedef struct AkMeshMorph {
+//   AkOneWayIterBase  base;
+//   AkPrimitiveMorph *morph;
+//   float             weight;
+// } AkMeshMorph;
+
 typedef struct AkInstanceMorph {
   AkMorph      *morph;
   AkFloatArray *overrideWeights;  /* override morph.weights and mesh.weight or NULL */
