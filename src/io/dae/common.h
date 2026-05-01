@@ -100,10 +100,10 @@ typedef struct AkNewParam {
 
 typedef struct AkController {
   /* const char * id; */
+  AkOneWayIterBase     base;
   const char          *name;
   void                *data;
   AkTree              *extra;
-  struct AkController *next;
   AkControllerType     type;
 } AkController;
 

@@ -278,7 +278,7 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
     }
 
   nxt_ctlr:
-    ctlr = ctlr->next;
+    ctlr = (AkController *)ctlr->base.next;
   }
 }
 
@@ -368,13 +368,44 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
 
           instSkin->skin           = skin;
           instSkin->overrideJoints = joints;
-          
+
+          /* COLLADA permits chained controllers — skin's source can be
+             another controller (typically a morph from Maya):
+                 <skin source="#someMorph"/>
+                 <morph source="#baseGeom"/>
+             Single-level lookahead is enough: AkInstanceGeometry has
+             one morpher + one skinner slot, and no GPU renderer
+             (SceneKit / Three.js / Filament / typical Metal/Vulkan
+             pipelines) consumes a deeper controller stack — the spec's
+             "arbitrary recursion" was never adopted in practice.
+             ak_baseGeometry() collapses the rest of the chain when
+             resolving `base.object`. */
+          {
+            void *src = ak_getObjectByUrl(&skindae->baseGeom);
+            if (src && ak_typeid(src) == AKT_CONTROLLER) {
+              AkController *intermediate = src;
+              if (intermediate->type == AK_CONTROLLER_MORPH) {
+                AkMorphDAE      *morphdae2;
+                AkInstanceMorph *instMorph;
+                morphdae2 = ak_userData(intermediate->data);
+                instMorph = ak_heap_calloc(dst->heap, node,
+                                           sizeof(*instMorph));
+                instMorph->morph           = intermediate->data;
+                instMorph->overrideWeights = NULL;
+                instGeom->morpher          = instMorph;
+                (void)morphdae2;
+              }
+              /* skin→skin nesting is exotic and the data model can't
+                 represent two skinners — silently use the outer one. */
+            }
+            instGeom->base.object = ak_baseGeometry(&skindae->baseGeom);
+          }
+
           /* create instance geometry for skin */
           instGeom->skinner        = instSkin;
           instGeom->bindMaterial   = instCtlr->bindMaterial;
-          instGeom->base.object    = skindae->baseGeom.ptr;
           ak_heap_setpm(instCtlr->bindMaterial, instGeom);
-          
+
           instGeom->base.next = (AkInstanceBase *)node->geometry;
           if (node->geometry)
             node->geometry->base.prev = (AkInstanceBase *)instGeom;
@@ -396,7 +427,23 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
 
         instGeom->morpher          = instMorph;
         instGeom->bindMaterial     = instCtlr->bindMaterial;
-        instGeom->base.object      = morphdae->baseGeom.ptr;
+
+        /* Symmetric to SKIN case: morph→skin→geom is rare but spec-allowed.
+           Single-level lookahead; deeper chains collapse via ak_baseGeometry. */
+        {
+          void *src = ak_getObjectByUrl(&morphdae->baseGeom);
+          if (src && ak_typeid(src) == AKT_CONTROLLER) {
+            AkController *intermediate = src;
+            if (intermediate->type == AK_CONTROLLER_SKIN) {
+              AkInstanceSkin *instSkin = ak_heap_calloc(dst->heap, node,
+                                                        sizeof(*instSkin));
+              instSkin->skin           = intermediate->data;
+              instSkin->overrideJoints = NULL; /* picked up from default joints */
+              instGeom->skinner        = instSkin;
+            }
+          }
+        }
+        instGeom->base.object = ak_baseGeometry(&morphdae->baseGeom);
         ak_heap_setpm(instCtlr->bindMaterial, instGeom);
 
         instGeom->base.next = (AkInstanceBase *)node->geometry;

@@ -125,7 +125,7 @@ dae_findControllerForSource(AkDoc * __restrict doc, AkSource *src) {
 
   for (ctlr = (AkController *)doc->lib.controllers->chld;
        ctlr;
-       ctlr = ctlr->next) {
+       ctlr = (AkController *)ctlr->base.next) {
     if (ctlr->type != AK_CONTROLLER_MORPH)              continue;
     if (!(morph = ctlr->data))                          continue;
     if (!(morphdae = ak_userData(morph)))               continue;
