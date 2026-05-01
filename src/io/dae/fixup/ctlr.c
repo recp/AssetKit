@@ -267,9 +267,9 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
         }
 
         /* Register geom→morph for instance hookup later (DAE node walker
-           reads ctlrMorphMap to attach AkInstanceMorph when it sees an
+           reads meshTargets to attach AkInstanceMorph when it sees an
            <instance_controller> referring to a morph controller). */
-        rb_insert(dst->ctlrMorphMap, baseGeom, morph);
+        rb_insert(dst->meshTargets, baseGeom, morph);
 
         break;
       }
@@ -365,6 +365,22 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
 
           skin->nJoints            = count;
           skin->invBindPoses       = invm;
+
+          /* DAE persists skeleton root as <skeleton> URL on each
+             <instance_controller>; the same skin can be re-used with
+             different skeletons per instance, but for a single-instance
+             setup the first URL is a faithful AkSkin.skeleton hint.
+             Fall back silently when missing — callers default to
+             joints[0]. */
+          if (!skin->skeleton && instCtlr->reserved) {
+            const char *skelUrl = instCtlr->reserved->data;
+            void       *resolved;
+            if (skelUrl
+                && (resolved = ak_getObjectById(dst->doc, skelUrl + 1))
+                && ak_typeid(resolved) == AKT_NODE) {
+              skin->skeleton = resolved;
+            }
+          }
 
           instSkin->skin           = skin;
           instSkin->overrideJoints = joints;

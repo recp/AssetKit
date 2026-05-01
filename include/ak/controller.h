@@ -69,14 +69,23 @@ typedef struct AkBoneWeights {
  * Default joints (`joints[]`) are populated for glTF; DAE leaves it NULL
  * and resolves joints per-instance via AkInstanceSkin.overrideJoints (DAE
  * lets the same skin bind to different skeletons per instance).
+ *
+ * `skeleton` is the closest common ancestor of joints, used by Apple
+ * SCNSkinner.skeleton (and similar engines) as the coordinate-space
+ * reference for bone lookups. Optional — when NULL, callers fall back
+ * to joints[0] (typically the root joint by convention). glTF: filled
+ * from the optional `skin.skeleton` JSON hint. DAE: filled from
+ * <instance_controller>'s first <skeleton> URL when fixing the
+ * instance.
  */
 typedef struct AkSkin {
   AkOneWayIterBase base;
   AkFloat4x4      *invBindPoses;
-  struct AkNode  **joints;  /* default joints (glTF; NULL for DAE)        */
-  AkBoneWeights  **weights; /* per primitive (DAE only; NULL for glTF)    */
-  size_t           nJoints; /* cache: joint count                         */
-  uint32_t         nPrims;  /* cache: primitive count                     */
+  struct AkNode  **joints;   /* default joints (glTF; NULL for DAE)        */
+  AkBoneWeights  **weights;  /* per primitive (DAE only; NULL for glTF)    */
+  struct AkNode   *skeleton; /* common ancestor; NULL if not authored      */
+  size_t           nJoints;  /* cache: joint count                         */
+  uint32_t         nPrims;   /* cache: primitive count                     */
   uint32_t         nMaxJoints;
   AkFloat4x4       bindShapeMatrix;
 } AkSkin;

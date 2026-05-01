@@ -204,7 +204,7 @@ dae_retain_refs(DAEState * __restrict dst) {
 /*
  * For every <instance_geometry> in the scene graph, check whether the
  * geometry it references has a registered morph controller in
- * ctlrMorphMap. If so, synthesize an AkInstanceMorph and attach it. This
+ * meshTargets. If so, synthesize an AkInstanceMorph and attach it. This
  * compensates for DAE exporters (typically glTF→DAE converters) that
  * emit a morph controller but reference the base geometry directly via
  * <instance_geometry> rather than wrapping it in <instance_controller>.
@@ -226,7 +226,7 @@ dae_attach_orphan_morphs_node(DAEState * __restrict dst, AkNode *node) {
       if (instGeom->morpher)                         continue;
       if (!(geom = instGeom->base.url.ptr))          continue;
       if (ak_typeid(geom) != AKT_GEOMETRY)           continue;
-      if (!(morph = rb_find(dst->ctlrMorphMap, geom))) continue;
+      if (!(morph = rb_find(dst->meshTargets, geom))) continue;
 
       instMorph                  = ak_heap_calloc(dst->heap, node,
                                                   sizeof(*instMorph));
@@ -244,7 +244,7 @@ AK_HIDE void
 dae_attach_orphan_morphs(DAEState * __restrict dst) {
   AkVisualScene *vscn;
 
-  if (!dst->ctlrMorphMap || !dst->doc->lib.visualScenes) return;
+  if (!dst->meshTargets || !dst->doc->lib.visualScenes) return;
 
   for (vscn = (void *)dst->doc->lib.visualScenes->chld;
        vscn;

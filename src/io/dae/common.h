@@ -73,8 +73,13 @@ typedef AK_ALIGN(16) struct DAEState {
   RBTree          *texmap;
   RBTree          *instanceMap;
   FListItem       *vertMap;
-  RBTree          *ctlrSkinMap;
-  RBTree          *ctlrMorphMap;
+  /* maps base AkGeometry* → AkMorph*. Populated by dae_fixup_ctlr's
+     MORPH case so that the postscript orphan-attach pass can wrap
+     <instance_geometry> uses of the base mesh in an AkInstanceMorph
+     (DAE exporters — especially glTF→DAE — frequently emit a morph
+     controller without ever wrapping the geometry in
+     <instance_controller>, leaving the morph dangling otherwise). */
+  RBTree          *meshTargets;
   AkSource        *sources;
   AkCOLLADAVersion version;
   bool             stop;
