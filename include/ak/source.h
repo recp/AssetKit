@@ -81,6 +81,17 @@ typedef struct AkAccessor {
   size_t           fillByteSize;         /* filled size for single access    */
   int32_t          gpuTarget;            /* GPU buffer target to bound       */
   bool             normalized;
+
+  /* Source-side metadata preserved across dequantize. When AssetKit
+     widens a normalized integer / KHR_mesh_quantization integer
+     attribute to float, componentType becomes AKT_FLOAT and normalized
+     is cleared — but the original encoding is kept here so callers can
+     reason about the source format (and reconstruct the quantized
+     mapping if needed). When AK_OPT_PRESERVE_QUANTIZED_ATTRS is set
+     and the buffer is left as integers, originalComponentType ==
+     componentType and originallyNormalized == normalized. */
+  AkTypeId         originalComponentType;
+  bool             originallyNormalized;
 } AkAccessor;
 
 typedef struct AkSource {
@@ -127,6 +138,35 @@ typedef struct AkSourceEditHelper {
 AK_EXPORT
 AkBuffer*
 ak_sourceDetachArray(AkAccessor * __restrict acc);
+
+/* Dequantize an accessor's source data into a caller-supplied float buffer.
+   Always writes (count * componentCount) floats; outCapacity must be at
+   least that many. Uses originalComponentType / originallyNormalized to
+   drive integer-to-float conversion (normalized integers divide by the
+   type max, non-normalized integers cast to float). Accessors that
+   already store floats are copied through unchanged.
+
+   This is the on-demand path callers reach for when AssetKit was asked to
+   keep the raw quantized buffer (AK_OPT_PRESERVE_QUANTIZED_ATTRS) but a
+   particular consumer wants floats for one accessor.
+
+   Returns the number of floats written (0 on error or zero count). */
+AK_EXPORT
+size_t
+ak_accessorAsFloat(AkAccessor * __restrict acc,
+                   float      * __restrict out,
+                   size_t                  outCapacity);
+
+/* In-place dequantize: replaces the accessor's buffer with a tightly-packed
+   float buffer, updates componentType / byteStride / fillByteSize /
+   normalized, and registers the new buffer on the owning doc. Idempotent —
+   accessors that are already AKT_FLOAT are left untouched.
+
+   originalComponentType / originallyNormalized are preserved so callers
+   can still recover the source-side encoding after the in-place widen. */
+AK_EXPORT
+void
+ak_accessorMakeFloat(AkAccessor * __restrict acc);
 
 #ifdef __cplusplus
 }

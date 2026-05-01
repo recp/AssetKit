@@ -63,6 +63,18 @@ typedef enum AkOption {
      let AssetKit convert them to LINES */
   AK_OPT_CVT_LINELOOP               = 26, /* false    */
   AK_OPT_CVT_LINESTRIP              = 27, /* false    */
+
+  /* KHR_mesh_quantization opt-out: by default AssetKit dequantizes
+     normalized integer attributes (BYTE/UBYTE/SHORT/USHORT) and the
+     non-normalized vec2/vec3 integer attributes (POSITION/TEXCOORD)
+     to packed floats — most engines expect float vertex attributes.
+     Renderers that decode quantized data on the GPU may want the raw
+     integer buffer (smaller upload). Set this to true to skip the
+     in-place dequantize. Either way originalComponentType and
+     originallyNormalized are preserved on AkAccessor so callers can
+     recover the source layout, and ak_accessorAsFloat /
+     ak_accessorMakeFloat let callers dequantize on demand. */
+  AK_OPT_PRESERVE_QUANTIZED_ATTRS   = 28, /* false    */
 } AkOption;
 
 AK_EXPORT

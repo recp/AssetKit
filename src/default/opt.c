@@ -57,7 +57,8 @@ uintptr_t AK_OPTIONS[] =
   false,                           /* 24: _CVT_TRIANGLESTRIP           */
   false,                           /* 25: _CVT_TRIANGLEFAN             */
   false,                           /* 26: _CVT_LINELOOP                */
-  false                            /* 27: _CVT_LINESTRIP               */
+  false,                           /* 27: _CVT_LINESTRIP               */
+  false                            /* 28: _PRESERVE_QUANTIZED_ATTRS    */
 };
 
 AK_EXPORT
