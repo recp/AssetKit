@@ -53,11 +53,28 @@ typedef struct AkBoneWeights {
   size_t        nVertex;    /* cache: count of pJointsCount/pWeightsIndex */
 } AkBoneWeights;
 
+/**
+ * Skin controller — vertex skinning data.
+ *
+ * Per-vertex bone data storage differs by source format:
+ *   - DAE: variable-count CSR layout in `weights[primIdx]` (filled by
+ *     dae_fixup_ctlr).
+ *   - glTF: raw vec4 JOINTS_n / WEIGHTS_n accessors stay in `prim->input`
+ *     (no aggregation — the format is already GPU-ready).
+ *
+ * Bridges should call ak_skinFillWeights() rather than touching `weights[]`
+ * or `prim->input` directly. The helper hides this format divergence and
+ * yields fixed-N (typically 4) flat buffers ready for upload.
+ *
+ * Default joints (`joints[]`) are populated for glTF; DAE leaves it NULL
+ * and resolves joints per-instance via AkInstanceSkin.overrideJoints (DAE
+ * lets the same skin bind to different skeletons per instance).
+ */
 typedef struct AkSkin {
   AkOneWayIterBase base;
   AkFloat4x4      *invBindPoses;
-  struct AkNode  **joints;  /* default joints                             */
-  AkBoneWeights  **weights; /* per primitive                              */
+  struct AkNode  **joints;  /* default joints (glTF; NULL for DAE)        */
+  AkBoneWeights  **weights; /* per primitive (DAE only; NULL for glTF)    */
   size_t           nJoints; /* cache: joint count                         */
   uint32_t         nPrims;  /* cache: primitive count                     */
   uint32_t         nMaxJoints;
@@ -243,6 +260,40 @@ ak_skinInterleave(AkBoneWeights * __restrict source,
                   uint32_t                   maxJoint,
                   uint32_t                   itemCount,
                   void         ** __restrict buff);
+
+/*!
+ * @brief format-agnostic per-vertex bone-data extraction for one primitive.
+ *
+ *        Fills caller-provided fixed-N flat buffers (joint indices + weights)
+ *        regardless of the asset's source format:
+ *
+ *          - DAE  primitives use the CSR layout in skin->weights[primIdx];
+ *                 variable joint count per vertex → top-N selected by weight,
+ *                 zero-padded if count<N, normalized so weights sum to 1.
+ *          - glTF primitives keep JOINTS_n / WEIGHTS_n as raw accessors in
+ *                 prim->input; vec4 fixed-4 layout copied through directly
+ *                 (UBYTE/USHORT joint indices widened to uint32).
+ *
+ *        Bridges should call this rather than reading skin->weights[] or
+ *        prim->input directly — the dual storage is an implementation
+ *        detail of the parsers.
+ *
+ * @param[in]  skin        skin owning the bone data
+ * @param[in]  prim        mesh primitive at index `primIdx`
+ * @param[in]  primIdx     primitive index in mesh
+ * @param[in]  maxJoint    fixed slot count per vertex (typically 4)
+ * @param[out] outIndices  buffer for vertexCount × maxJoint uint32 entries
+ * @param[out] outWeights  buffer for vertexCount × maxJoint float  entries
+ * @return     vertex count on success, 0 on error.
+ */
+AK_EXPORT
+size_t
+ak_skinFillWeights(AkSkin          * __restrict skin,
+                   AkMeshPrimitive * __restrict prim,
+                   uint32_t                     primIdx,
+                   uint32_t                     maxJoint,
+                   uint32_t        * __restrict outIndices,
+                   float           * __restrict outWeights);
 
 /*!
  * @brief inspect a morph to get bufferSize and bufferStride to alloc memory for

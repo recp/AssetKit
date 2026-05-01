@@ -126,6 +126,13 @@ ak_meshReserveBufferForInput(AkMesh   * __restrict mesh,
   buffi = buffstate->buff;
 
   newacc->byteOffset    = 0;
+  /* New buffer is tightly-packed for this input alone (one accessor →
+     one buffer). ak_accessor_dup memcpy'd the SOURCE byteStride which
+     is wrong here when the source was interleaved (stride > fillByteSize):
+     ak_meshFillBuffers would then write at `newByteSt * newidx` past the
+     buffer end. Reset to fillByteSize so writes match the layout we
+     allocated for. */
+  newacc->byteStride    = newacc->fillByteSize;
   srch                  = ak_heap_calloc(heap, meshobj, sizeof(*srch));
   srch->oldsource       = acci;
   srch->source          = newacc;
