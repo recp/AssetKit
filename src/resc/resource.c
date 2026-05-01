@@ -51,8 +51,13 @@ ak_resc_ins(const char *url) {
 
   ak_path_trim(url, tmp);
 
+  /* ak_path_fragment returns strrchr(path, '#') which is NULL when the
+     URL has no fragment — common for malformed DAE source attributes
+     ("source=foo" instead of "source=#foo", typical of Blender/Maya
+     exports). Treat the whole string as the resource identifier in that
+     case rather than dereferencing NULL. */
   fragment = ak_path_fragment(tmp);
-  if (strlen(fragment) > 0)
+  if (fragment && strlen(fragment) > 0)
     trimmedURLSize = fragment - tmp;
   else
     trimmedURLSize = strlen(tmp);
