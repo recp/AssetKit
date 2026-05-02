@@ -50,6 +50,23 @@
 #define BAKE_MAX_XFORM_OBJECTS 64
 #define BAKE_MAX_CHANNELS      256
 
+/* Maximum time gap between adjacent samples in the baked output.
+   Reason: consumers (Apple SCNAnimation, three.js KeyframeTrack, ...)
+   linearly interpolate the 4×4 matrix elements between adjacent
+   samples. Linear lerp between rotation matrices is NOT slerp — for
+   large angular deltas (e.g. a propeller spinning 348° in 1 second
+   with only two authored keyframes) the lerp goes through the
+   *interior* of the rotation manifold, producing a near-identity
+   intermediate matrix and a visibly tiny wobble instead of a full
+   spin. Inserting subdivisions every BAKE_MAX_STEP seconds bounds the
+   per-pair angular delta so the lerp approximates a slerp closely
+   enough for typical playback.
+
+   30 Hz target (~33 ms). Fine balance: dense enough to handle 360°/s
+   rotations without artifacts (max ~12° between samples), sparse
+   enough to keep memory + decode cost low for long animations. */
+#define BAKE_MAX_STEP 0.0333f
+
 /* Per-channel binding: where to write the sampled value, and where to
    read it from. */
 typedef struct ChannelBind {
@@ -152,16 +169,18 @@ ak_nodeBakeAnimation(AkDoc  * __restrict doc,
   AkOneWayIterBase *animIt;
   AkAnimation      *anim;
   AkChannel        *ch;
-  AkResolvedTarget  rt;
   AkAnimSampler    *samp;
   AkInput          *inp, *inputInput, *outputInput;
   AkObject         *xformObjects[BAKE_MAX_XFORM_OBJECTS];
   AkObject         *it;
-  ChannelBind       binds[BAKE_MAX_CHANNELS];
-  AkContext         actx;
   AkBakedAnimation *out;
-  float            *allTimes;
-  size_t            totalTimes, uniqueCount, i, k, t_idx;
+  float            *allTimes, *dense;
+  ChannelBind       binds[BAKE_MAX_CHANNELS];
+  AkResolvedTarget  rt;
+  AkContext         actx;
+  size_t            totalTimes, uniqueCount, denseCount, subdivs, d, s;
+  size_t            i, k, t_idx;
+  float             t0, t1, gap;
   int               nXform, nBinds, j;
   bool              isOurs;
 
@@ -284,6 +303,43 @@ ak_nodeBakeAnimation(AkDoc  * __restrict doc,
     if (uniqueCount == 0 || allTimes[i] > allTimes[uniqueCount - 1]) {
       allTimes[uniqueCount++] = allTimes[i];
     }
+  }
+
+  /* 4b. Densify: insert subdivisions between adjacent samples whose
+        gap exceeds BAKE_MAX_STEP. Without this, sparse keyframes (e.g.
+        2 frames spanning a 348° rotation) would force the consumer to
+        linearly interpolate matrix elements across the gap — that
+        misses the rotation manifold and renders as a near-identity
+        wobble. Densifying bounds the per-pair angular delta. */
+  denseCount = 1;  /* first sample always emitted */
+  for (i = 1; i < uniqueCount; i++) {
+    gap = allTimes[i] - allTimes[i - 1];
+    if (gap > BAKE_MAX_STEP) {
+      denseCount += (size_t)(gap / BAKE_MAX_STEP);  /* subdivisions, including the endpoint */
+    } else {
+      denseCount += 1;
+    }
+  }
+
+  if (denseCount > uniqueCount) {
+    dense      = ak_calloc(NULL, sizeof(float) * denseCount);
+    d          = 0;
+    dense[d++] = allTimes[0];
+
+    for (i = 1; i < uniqueCount; i++) {
+      t0      = allTimes[i - 1];
+      t1      = allTimes[i];
+      gap     = t1 - t0;
+      subdivs = (gap > BAKE_MAX_STEP) ? (size_t)(gap / BAKE_MAX_STEP) : 1;
+
+      for (s = 1; s <= subdivs; s++) {
+        dense[d++] = t0 + (gap * (float)s / (float)subdivs);
+      }
+    }
+
+    ak_free(allTimes);
+    allTimes    = dense;
+    uniqueCount = denseCount;
   }
 
   /* 5. Allocate the result. The matrices/times buffers parent off `out`,
