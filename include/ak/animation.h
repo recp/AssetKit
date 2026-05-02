@@ -106,6 +106,21 @@ typedef struct AkAnimation {
   AkSource           *source;
 } AkAnimation;
 
+/*!
+ * Per-frame transform sequence produced by ak_nodeBakeAnimation().
+ * `matrices` is `count × 16` floats, column-major (cglm convention),
+ * each block mapping a node-local point into its parent's space.
+ * `times` is `count` floats, parallel to the matrix array.
+ *
+ * Free with ak_free(out) — the inner buffers were sub-allocated under
+ * the struct and cascade in the AssetKit heap.
+ */
+typedef struct AkBakedAnimation {
+  float    *matrices;  /* count × 16 floats, column-major */
+  float    *times;     /* count floats                    */
+  uint32_t  count;
+} AkBakedAnimation;
+
 AK_INLINE
 bool
 ak_channelTargetIsPartial(const AkChannel *ch) {
@@ -243,6 +258,56 @@ ak_animationsCompatibleSetFromDoc(AkContext     * __restrict ctx,
                                   struct AkDoc  * __restrict doc,
                                   AkAnimation   * __restrict primary,
                                   AkAnimation  ** __restrict outCompatible);
+
+
+/*!
+ * @brief Hint that the node's animation should be baked rather than
+ *        driven via per-property channels.
+ *
+ *        Returns true when the node's transform chain holds 2+ rotate
+ *        elements — the canonical case is a Maya joint with
+ *        jointOrient{XYZ} + rotate{XYZ} (six <rotate> elements in one
+ *        chain, only three Euler slots in any decomposed-property
+ *        animation API: SCNNode.eulerAngles, three.js Object3D.rotation,
+ *        Filament TransformManager rotation).
+ *
+ *        Renderers that animate via decomposed properties MUST bake
+ *        these nodes — partial rotates clobber each other in the
+ *        Euler slot. Renderers that compose joint world matrices on
+ *        the CPU per frame (assetkit-opengl/gk pattern) don't need
+ *        this and can keep their per-channel walk.
+ */
+AK_EXPORT
+bool
+ak_nodeNeedsBaking(struct AkNode * __restrict node);
+
+/*!
+ * @brief Sample every animation channel that targets any AkObject in
+ *        `node->transform` (translate / rotate / scale / matrix /
+ *        skew / quat) on a shared time grid and emit a stream of 4×4
+ *        local matrices.
+ *
+ *        Time grid is the union of the involved channels' keyframe
+ *        times (no resampling — every original keyframe is preserved
+ *        exactly; channels that lack a value at some t are linearly
+ *        interpolated). STEP interpolation is honored; BEZIER /
+ *        HERMITE fall back to LINEAR (the bake is keyframe-aligned,
+ *        so engine-side interpolation can refine the curve).
+ *
+ *        Static AkObjects in the chain (those with no targeting
+ *        channel) keep their authored values — bind pose is preserved
+ *        between animated frames. The function snapshot/restores
+ *        animated AkObject state so callers can keep using
+ *        node->transform for bind-pose composition afterwards.
+ *
+ *        Output AkBakedAnimation is heap-allocated; caller frees with
+ *        ak_free(out). Returns NULL when the node has no transform or
+ *        no channel targets any element of its chain.
+ */
+AK_EXPORT
+AkBakedAnimation*
+ak_nodeBakeAnimation(struct AkDoc  * __restrict doc,
+                     struct AkNode * __restrict node);
 
 #ifdef __cplusplus
 }
