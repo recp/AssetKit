@@ -68,7 +68,31 @@ typedef struct AkLight {
 AK_EXPORT
 AkLight*
 ak_defaultLight(void * __restrict memparent);
-  
+
+/*!
+ * @brief Allocate a light of the given type with sensible defaults
+ *        (white color, downward direction for directional/spot,
+ *        constant attenuation for point/spot, 30° spot falloff)
+ *        and register it in the document's lights library.
+ *
+ * Wires up AkLight + the matching tcommon variant (AkLightBase for
+ * ambient/directional, AkPointLight, or AkSpotLight) in one call.
+ * Pair with ak_nodeAttachLight() to expose the light in the scene
+ * tree.
+ *
+ * @param[in]  doc        document the light will live in (required)
+ * @param[in]  memparent  heap parent for ownership (NULL → doc)
+ * @param[in]  type       AK_LIGHT_TYPE_AMBIENT/DIRECTIONAL/POINT/SPOT
+ *
+ * @return Newly allocated AkLight, or NULL on failure (unsupported
+ *         type, allocation failure, etc.)
+ */
+AK_EXPORT
+AkLight *
+ak_lightMake(AkDoc * __restrict doc,
+             void  * __restrict memparent,
+             AkLightType type);
+
 #ifdef __cplusplus
 }
 #endif
