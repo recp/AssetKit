@@ -69,3 +69,4 @@ build/
 .scannerwork/
 .project
 .cproject
+.vscode/
