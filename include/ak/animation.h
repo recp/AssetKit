@@ -170,7 +170,8 @@ ak_channelTarget(AkContext * __restrict ctx,
         && (attrOff = ak_sid_attr_offset(sidAttrib)) != UINT32_MAX) {
       resolved.isPartial = sidAttrib != NULL;
       resolved.off       = attrOff;
-      /* for invalid attribute we skip channel for now */
+    } else {
+      resolved.target    = NULL;
     }
   }
 
