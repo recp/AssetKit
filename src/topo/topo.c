@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "mesh_fixup.h"
+#include "topo.h"
 
 /* create indices to fix topology,
    an alternative way could be work with each input,
