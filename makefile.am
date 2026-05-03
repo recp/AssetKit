@@ -107,8 +107,10 @@ libassetkit_la_SOURCES=\
 \
     src/morph/intr.c \
     src/anim/conflict.c \
+    src/anim/bake.c \
     src/skin/skin.c \
     src/skin/fix.c \
+    src/topo/topo.c \
     src/node/node.c \
     src/image/image.c \
     src/camera/cam.c \

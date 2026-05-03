@@ -22,6 +22,7 @@ add_subdirectory(morph)
 add_subdirectory(node)
 add_subdirectory(resc)
 add_subdirectory(skin)
+add_subdirectory(topo)
 add_subdirectory(transform)
 add_subdirectory(miniz)
 
