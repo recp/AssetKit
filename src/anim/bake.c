@@ -42,6 +42,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 
 /* Cap mostly to keep the per-node fixed-size scratch arrays small.
@@ -310,12 +311,17 @@ ak_nodeBakeAnimation(AkDoc  * __restrict doc,
         2 frames spanning a 348° rotation) would force the consumer to
         linearly interpolate matrix elements across the gap — that
         misses the rotation manifold and renders as a near-identity
-        wobble. Densifying bounds the per-pair angular delta. */
+        wobble. Densifying bounds the per-pair angular delta.
+
+        Use ceil rather than floor: a 50 ms gap with 33.3 ms step
+        truncates to 1 subdivision (still 50 ms wide) under floor
+        division, leaving the per-pair gap above the stated maximum.
+        ceilf bounds it. */
   denseCount = 1;  /* first sample always emitted */
   for (i = 1; i < uniqueCount; i++) {
     gap = allTimes[i] - allTimes[i - 1];
     if (gap > BAKE_MAX_STEP) {
-      denseCount += (size_t)(gap / BAKE_MAX_STEP);  /* subdivisions, including the endpoint */
+      denseCount += (size_t)ceilf(gap / BAKE_MAX_STEP);
     } else {
       denseCount += 1;
     }
@@ -330,7 +336,7 @@ ak_nodeBakeAnimation(AkDoc  * __restrict doc,
       t0      = allTimes[i - 1];
       t1      = allTimes[i];
       gap     = t1 - t0;
-      subdivs = (gap > BAKE_MAX_STEP) ? (size_t)(gap / BAKE_MAX_STEP) : 1;
+      subdivs = (gap > BAKE_MAX_STEP) ? (size_t)ceilf(gap / BAKE_MAX_STEP) : 1;
 
       for (s = 1; s <= subdivs; s++) {
         dense[d++] = t0 + (gap * (float)s / (float)subdivs);
