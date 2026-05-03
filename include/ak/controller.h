@@ -162,15 +162,27 @@ typedef struct AkMorphInspectMorphable {
   AkMorphInspectInput            *lastInput;
   uint32_t                        inputsCount;
   float                           weight;
+
+  /* Per-primitive sizing. With multi-primitive morphs each
+     primitive can have its own vertex count and stride; storing
+     them here lets the interleave pass walk every morphable
+     instead of treating primitive 0 as the canonical sample.
+     `bufferOffset` is the byte offset of this primitive's data
+     within its targetView's slice; `bufferSize`/`stridePerVertex`
+     are derived from the input chain and `vertexCount`. */
+  uint32_t                        vertexCount;
+  uint32_t                        stridePerVertex;
+  size_t                          bufferOffset;
+  size_t                          bufferSize;
 } AkMorphInspectMorphable;
 
 typedef struct AkMorphInspectTargetView {
   struct AkMorphInspectTargetView *next;
   AkMorphInspectMorphable         *morphable;
   uint32_t                         nTargets;
+  /* Total byte size of this target slice, summed across all
+     per-primitive morphables. */
   size_t                           interleaveBufferSize;
-  size_t                           interleaveByteStride;
-  uint32_t                         accessorAccessCount;
 } AkMorphInspectTargetView;
 
 /*
@@ -249,11 +261,11 @@ typedef struct AkInstanceSkin {
  *
  *        Per-vertex layout in the output buffer:
  *
- *          | JointIDs[maxJoint] (uint32) | Weights[maxJoint] (float) |
+ *          | JointIDs[maxJoint] (uint16) | Weights[maxJoint] (float) |
  *
  *        Matches a shader vertex input like:
  *
- *           in uvec4 JOINTS;
+ *           in uvec4 JOINTS;  (backed by uint16 vertex input)
  *           in vec4  WEIGHTS;
  *
  *        Quality is identical to ak_skinFillWeights() — same format-
@@ -292,11 +304,11 @@ ak_skinInterleave(AkSkin          * __restrict skin,
  *        regardless of the asset's source format:
  *
  *          - DAE  primitives use the CSR layout in skin->weights[primIdx];
- *                 variable joint count per vertex → top-N selected by weight,
+ *                 variable joint count per vertex -> top-N selected by weight,
  *                 zero-padded if count<N, normalized so weights sum to 1.
- *          - glTF primitives keep JOINTS_n / WEIGHTS_n as raw accessors in
- *                 prim->input; vec4 fixed-4 layout copied through directly
- *                 (UBYTE/USHORT joint indices widened to uint32).
+ *          - glTF primitives keep JOINTS_n / WEIGHTS_n sets as raw accessors
+ *                 in prim->input; all sets are merged, top-N is selected, and
+ *                 UBYTE/USHORT joint indices are written as uint16_t.
  *
  *        Bridges should call this rather than reading skin->weights[] or
  *        prim->input directly — the dual storage is an implementation

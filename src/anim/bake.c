@@ -50,6 +50,7 @@
    or ~256 channels — neither shows up in real assets. */
 #define BAKE_MAX_XFORM_OBJECTS 64
 #define BAKE_MAX_CHANNELS      256
+#define BAKE_MAX_ANIM_STACK    256
 
 /* Maximum time gap between adjacent samples in the baked output.
    Reason: consumers (Apple SCNAnimation, three.js KeyframeTrack, ...)
@@ -141,6 +142,78 @@ bake_sampleScalar(const ChannelBind *b, size_t componentIdx, float t) {
   return v0 * (1.0f - alpha) + v1 * alpha;
 }
 
+static void
+bake_collectChannels(AkAnimation  * __restrict anim,
+                     AkContext    * __restrict actx,
+                     AkObject    ** __restrict xformObjects,
+                     int                       nXform,
+                     ChannelBind  * __restrict binds,
+                     int          * __restrict nBinds) {
+  AkAnimation     *stack[BAKE_MAX_ANIM_STACK], *next;
+  AkChannel       *ch;
+  AkAnimSampler   *samp;
+  AkInput         *inp, *inputInput, *outputInput;
+  AkResolvedTarget rt;
+  int              j, top;
+  bool             isOurs;
+
+  top = 0;
+  while (anim && *nBinds < BAKE_MAX_CHANNELS) {
+    for (ch = anim->channel; ch && *nBinds < BAKE_MAX_CHANNELS; ch = ch->next) {
+      rt = ak_channelTarget(actx, ch);
+      if (!rt.target) continue;
+
+      isOurs = false;
+      for (j = 0; j < nXform; j++) {
+        if (rt.target == xformObjects[j]) { isOurs = true; break; }
+      }
+      if (!isOurs) continue;
+
+      samp = ak_getObjectByUrl(&ch->source);
+      if (!samp) continue;
+
+      inputInput = outputInput = NULL;
+      for (inp = samp->input; inp; inp = inp->next) {
+        if      (inp->semantic == AK_INPUT_INPUT  && !inputInput)  inputInput  = inp;
+        else if (inp->semantic == AK_INPUT_OUTPUT && !outputInput) outputInput = inp;
+      }
+
+      if (!inputInput  || !inputInput->accessor  || !inputInput->accessor->buffer
+          || !inputInput->accessor->buffer->data
+          || !outputInput || !outputInput->accessor || !outputInput->accessor->buffer
+          || !outputInput->accessor->buffer->data)
+        continue;
+
+      binds[*nBinds].target      = rt.target;
+      binds[*nBinds].off         = rt.off;
+      binds[*nBinds].isPartial   = rt.isPartial;
+      binds[*nBinds].keyTimes    = (const float *)
+        ((const char *)inputInput->accessor->buffer->data
+         + inputInput->accessor->byteOffset);
+      binds[*nBinds].keyCount    = inputInput->accessor->count;
+      binds[*nBinds].keyValues   = (const float *)
+        ((const char *)outputInput->accessor->buffer->data
+         + outputInput->accessor->byteOffset);
+      binds[*nBinds].valueStride = outputInput->accessor->componentCount;
+      binds[*nBinds].interp      = samp->uniInterpolation;
+      (*nBinds)++;
+    }
+
+    if (anim->animation) {
+      next = (AkAnimation *)anim->base.next;
+      if (next && top < BAKE_MAX_ANIM_STACK)
+        stack[top++] = next;
+      anim = anim->animation;
+    } else if (anim->base.next) {
+      anim = (AkAnimation *)anim->base.next;
+    } else if (top > 0) {
+      anim = stack[--top];
+    } else {
+      anim = NULL;
+    }
+  }
+}
+
 AK_EXPORT
 bool
 ak_nodeNeedsBaking(AkNode * __restrict node) {
@@ -168,22 +241,16 @@ ak_nodeBakeAnimation(AkDoc  * __restrict doc,
                      AkNode * __restrict node) {
   AkLibrary        *animLib;
   AkOneWayIterBase *animIt;
-  AkAnimation      *anim;
-  AkChannel        *ch;
-  AkAnimSampler    *samp;
-  AkInput          *inp, *inputInput, *outputInput;
   AkObject         *xformObjects[BAKE_MAX_XFORM_OBJECTS];
   AkObject         *it;
   AkBakedAnimation *out;
   float            *allTimes, *dense;
   ChannelBind       binds[BAKE_MAX_CHANNELS];
-  AkResolvedTarget  rt;
   AkContext         actx;
   size_t            totalTimes, uniqueCount, denseCount, subdivs, d, s;
   size_t            i, k, t_idx;
   float             t0, t1, gap;
   int               nXform, nBinds, j;
-  bool              isOurs;
 
   if (!doc || !node || !node->transform) return NULL;
 
@@ -215,50 +282,9 @@ ak_nodeBakeAnimation(AkDoc  * __restrict doc,
 
   for (animLib = doc->lib.animations; animLib; animLib = animLib->next) {
     for (animIt = animLib->chld; animIt; animIt = animIt->next) {
-      anim = (AkAnimation *)animIt;
-      for (ch = anim->channel; ch; ch = ch->next) {
-        rt = ak_channelTarget(&actx, ch);
-        if (!rt.target) continue;
-
-        isOurs = false;
-        for (j = 0; j < nXform; j++) {
-          if (rt.target == xformObjects[j]) { isOurs = true; break; }
-        }
-    
-        if (!isOurs) continue;
-
-        /* Resolve the sampler this channel reads from */
-        samp = ak_getObjectByUrl(&ch->source);
-        if (!samp) continue;
-
-        inputInput = outputInput = NULL;
-        for (inp = samp->input; inp; inp = inp->next) {
-          if      (inp->semantic == AK_INPUT_INPUT  && !inputInput)  inputInput  = inp;
-          else if (inp->semantic == AK_INPUT_OUTPUT && !outputInput) outputInput = inp;
-        }
-
-        if (!inputInput  || !inputInput->accessor  || !inputInput->accessor->buffer
-            || !inputInput->accessor->buffer->data
-            || !outputInput || !outputInput->accessor || !outputInput->accessor->buffer
-            || !outputInput->accessor->buffer->data)
-          continue;
-
-        if (nBinds >= BAKE_MAX_CHANNELS) break;
-
-        binds[nBinds].target      = rt.target;
-        binds[nBinds].off         = rt.off;
-        binds[nBinds].isPartial   = rt.isPartial;
-        binds[nBinds].keyTimes    = (const float *)
-          ((const char *)inputInput->accessor->buffer->data
-           + inputInput->accessor->byteOffset);
-        binds[nBinds].keyCount    = inputInput->accessor->count;
-        binds[nBinds].keyValues   = (const float *)
-          ((const char *)outputInput->accessor->buffer->data
-           + outputInput->accessor->byteOffset);
-        binds[nBinds].valueStride = outputInput->accessor->componentCount;
-        binds[nBinds].interp      = samp->uniInterpolation;
-        nBinds++;
-      }
+      bake_collectChannels((AkAnimation *)animIt, &actx,
+                           xformObjects, nXform, binds, &nBinds);
+      if (nBinds >= BAKE_MAX_CHANNELS) break;
     }
   }
 

@@ -119,16 +119,27 @@ AkInstanceBase *
 ak_nodeAttachCamera(AkNode   * __restrict node,
                     AkCamera * __restrict cam) {
   AkHeap         *heap;
-  AkInstanceBase *inst;
+  AkInstanceBase *inst, *head;
 
   if (!node || !cam) return NULL;
 
   heap       = ak_heap_getheap(node);
   inst       = ak_instanceMake(heap, node, cam);
   inst->type = AK_INSTANCE_CAMERA;
+  /* `ak_instanceMake` doesn't backfill `node`; do it here so
+     downstream APIs (`ak_instanceName`, list-unlink, move-to-subnode)
+     don't see a NULL parent. */
+  inst->node = node;
 
-  /* Chain in front of any existing camera instance(s) on the node. */
-  inst->next   = node->camera;
+  /* Chain in front of any existing camera instance(s) on the node.
+     Maintain `prev` on the existing head so the chain stays
+     doubly-linked. */
+  head         = node->camera;
+  inst->next   = head;
+  inst->prev   = NULL;
+  if (head) {
+    head->prev = inst;
+  }
   node->camera = inst;
 
   return inst;
@@ -139,15 +150,21 @@ AkInstanceBase *
 ak_nodeAttachLight(AkNode  * __restrict node,
                    AkLight * __restrict light) {
   AkHeap         *heap;
-  AkInstanceBase *inst;
+  AkInstanceBase *inst, *head;
 
   if (!node || !light) return NULL;
 
   heap       = ak_heap_getheap(node);
   inst       = ak_instanceMake(heap, node, light);
   inst->type = AK_INSTANCE_LIGHT;
+  inst->node = node;
 
-  inst->next  = node->light;
+  head        = node->light;
+  inst->next  = head;
+  inst->prev  = NULL;
+  if (head) {
+    head->prev = inst;
+  }
   node->light = inst;
 
   return inst;

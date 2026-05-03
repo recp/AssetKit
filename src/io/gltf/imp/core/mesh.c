@@ -213,7 +213,7 @@ gltf_meshes(json_t * __restrict jmesh,
                 }
               }
 
-              /* For this primitive, append one AkMorphable to each blend
+              /* For this primitive, prepend one AkMorphable to each blend
                  shape's chain (one per target). The first primitive's
                  morphable is wrapped in an AkObject (carries the type tag
                  used by intr.c switch dispatch); subsequent primitives'
@@ -229,7 +229,12 @@ gltf_meshes(json_t * __restrict jmesh,
                  source targets[0], matching glTF semantics where weight[i]
                  drives mesh.primitives[].targets[i]. Without this swap,
                  weight[0] animates the wrong blend shape and the morph
-                 visually plays in reverse target order. */
+                 visually plays in reverse target order.
+
+                 Primitive nodes below are linked with head-prepend. Prepending
+                 morphables here keeps each target's morphable chain in the
+                 same order as mesh->primitive, so inspect can walk both chains
+                 lock-step for multi-primitive morphs. */
               jtarget   = jtargets->base.value;
               targetIdx = 0;
 
@@ -243,11 +248,15 @@ gltf_meshes(json_t * __restrict jmesh,
                   morphable      = ak_objGet(targetObj);
                   target->target = targetObj;
                 } else {
-                  AkMorphable *head;
-                  morphable  = ak_heap_calloc(heap, target, sizeof(*morphable));
-                  head       = ak_objGet(target->target);
-                  while (head->next) head = head->next;
-                  head->next = morphable;
+                  AkMorphable *head, *oldHead;
+
+                  head    = ak_objGet(target->target);
+                  oldHead = ak_heap_calloc(heap, target, sizeof(*oldHead));
+                  memcpy(oldHead, head, sizeof(*oldHead));
+
+                  memset(head, 0, sizeof(*head));
+                  head->next = oldHead;
+                  morphable  = head;
                 }
                 target->primitiveCount++;
 

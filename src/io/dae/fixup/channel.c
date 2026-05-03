@@ -35,7 +35,7 @@ dae_parseChannelTargetIndexed(const char  *target,
                               const char **outIdStart,
                               size_t      *outIdLen,
                               uint32_t    *outIdx) {
-  const char *open, *close, *idStart;
+  const char *open, *close, *idStart, *p;
   long        idx;
   char       *end;
 
@@ -58,6 +58,12 @@ dae_parseChannelTargetIndexed(const char  *target,
     idStart = target;
 
   if (idStart >= open) return false; /* "(N)" with empty id */
+
+  /* Matrix element targets use forms like "matrix(0)(0)"; those are not
+     morph weight arrays and must stay on the normal SID resolver path. */
+  for (p = idStart; p < open; p++) {
+    if (*p == '(' || *p == ')') return false;
+  }
 
   *outIdStart = idStart;
   *outIdLen   = (size_t)(open - idStart);
@@ -137,54 +143,6 @@ dae_findControllerForSource(AkDoc * __restrict doc, AkSource *src) {
   return NULL;
 }
 
-/* Fallback: when the channel target is too malformed to identify the
-   source by id (bare "(N)" with no id, or id resolution fails), pick
-   the only morph instance in the doc. Returns NULL if zero or more
-   than one morpher exists, which makes the channel resolution fail
-   loud rather than guessing wrong. */
-static
-AkInstanceMorph *
-dae_singletonMorpher(AkDoc * __restrict doc) {
-  AkVisualScene      *vscn;
-  AkInstanceMorph    *only;
-  AkInstanceGeometry *instGeom;
-  uint32_t            count;
-
-  only  = NULL;
-  count = 0;
-
-  if (!doc->lib.visualScenes) return NULL;
-
-  for (vscn = (void *)doc->lib.visualScenes->chld;
-       vscn;
-       vscn = (void *)vscn->base.next) {
-    AkNode *stack[64];
-    int     top = 0;
-    if (vscn->node) stack[top++] = vscn->node;
-
-    while (top > 0) {
-      AkNode *node = stack[--top];
-      while (node) {
-        for (instGeom = node->geometry; instGeom;
-             instGeom = (AkInstanceGeometry *)instGeom->base.next) {
-          if (instGeom->morpher) {
-            if (++count > 1) return NULL;
-            only = instGeom->morpher;
-          }
-        }
-        if (node->chld && top < (int)(sizeof(stack)/sizeof(stack[0])))
-          stack[top++] = node->chld;
-        node = (AkNode *)node->next;
-      }
-    }
-  }
-  return (count == 1) ? only : NULL;
-}
-
-/*----------------------------------------------------------------------------
- * Resolver
- *--------------------------------------------------------------------------*/
-
 static
 AkInstanceMorph *
 dae_resolveMorpher(AkDoc      * __restrict doc,
@@ -193,12 +151,11 @@ dae_resolveMorpher(AkDoc      * __restrict doc,
   void           *element;
   AkController   *ctlr;
   char            idbuf[256];
-  size_t          n;
 
   /* Bounded inline copy to NUL-terminate the id slice. Source ids in DAE
      are typically short (<64 chars); the buffer is generous. Rather than
      allocate, we just bail if it's longer than expected. */
-  if (idLen == 0 || idLen >= sizeof(idbuf)) goto fallback;
+  if (idLen == 0 || idLen >= sizeof(idbuf)) return NULL;
   memcpy(idbuf, idStart, idLen);
   idbuf[idLen] = '\0';
 
@@ -206,20 +163,13 @@ dae_resolveMorpher(AkDoc      * __restrict doc,
      channel target is typically the SID inside a controller scope; many
      real-world exporters set the source's id to the same string as the
      SID, so the doc id table catches the common case. */
-  if (!(element = ak_getObjectById(doc, idbuf))) goto fallback;
-  if (ak_typeid(element) != AKT_SOURCE)          goto fallback;
+  if (!(element = ak_getObjectById(doc, idbuf))) return NULL;
+  if (ak_typeid(element) != AKT_SOURCE)          return NULL;
 
   if (!(ctlr = dae_findControllerForSource(doc, (AkSource *)element)))
-    goto fallback;
+    return NULL;
 
   return dae_findInstanceMorph(doc, (AkMorph *)ctlr->data);
-
-fallback:
-  /* Single-morpher unambiguous fallback for malformed channels. NULL when
-     there's zero or >1 morpher — better to leave the channel unresolved
-     than to silently bind to the wrong target. */
-  (void)idLen;
-  return dae_singletonMorpher(doc);
 }
 
 static
@@ -245,11 +195,7 @@ dae_fixup_channel_walk(DAEState    * __restrict dst,
       if (!dae_parseChannelTargetIndexed(ch->target, &idStart, &idLen, &idx))
         continue;
 
-      /* Today the only DAE consumer of "(N)" we recognize is morph
-         weights. Matrix element channels ("matrix(0)(0)") would land
-         here with two trailing parens; dae_parseChannelTargetIndexed
-         already accepts only a single trailing pair, so they fall
-         through to ak_channelTarget's SID path naturally. */
+      /* Today the only DAE consumer of "(N)" we recognize is morph weights. */
       morpher = dae_resolveMorpher(dst->doc, idStart, idLen);
       if (!morpher) continue;
 

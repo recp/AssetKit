@@ -96,13 +96,14 @@ ak_morphInspect_isDesired(AkInputSemantic   sem,
 AK_INLINE
 bool
 ak_morphInspect_inBase(const AkInput              *inp,
-                       AkMorphInspectInput * const *base,
-                       uint32_t                     baseCount) {
-  uint32_t  i;
-  AkInput  *binp;
+                       const AkMorphInspectMorphable *base) {
+  AkMorphInspectInput *bi;
+  AkInput             *binp;
 
-  for (i = 0; i < baseCount; i++) {
-    binp = base[i]->input;
+  if (!inp || !base) return false;
+
+  for (bi = base->input; bi; bi = bi->next) {
+    binp = bi->input;
     if (binp->semantic == inp->semantic && binp->set == inp->set)
       return true;
   }
@@ -198,8 +199,7 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
   AkMorphInspectView         *view;
   AkMorphInspectTargetView   *tv,        *lastTV;
   AkMorphInspectMorphable    *m,         *lastM;
-  AkMorphInspectInput        *iiOut,     *lastInput;
-  AkMorphInspectInput       **baseInputs;        /* matching scratch (first base prim) */
+  AkMorphInspectInput        *lastInput;
   AkMorphTarget              *target;
   AkObject                   *gdataObj,  *targetObj;
   AkMesh                     *mesh,      *targetMesh;
@@ -210,10 +210,8 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
   AkGeometry                 *targetGeom;
   void                       *targetPtr;
   uint32_t                    primIdx,   primCount;
-  uint32_t                    vertexCount;
   uint32_t                    baseInputsCount;
   uint32_t                    targetIdx;
-  size_t                      stridePerVertex;
   bool                        inBase;
 
   if (!baseMesh || !morph) return AK_ERR;
@@ -249,49 +247,46 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
   tv          = ak_heap_calloc(heap, view, sizeof(*tv));
   view->base  = tv;
 
-  baseInputs      = NULL;
   baseInputsCount = 0;
-  vertexCount     = 0;
-  stridePerVertex = 0;
   lastM           = NULL;
+
+  size_t baseBufOff = 0;
 
   primIdx = 0;
   for (prim = mesh->primitive; prim && primIdx < primCount;
        prim = prim->next, primIdx++) {
     if (!prim->pos || !(acc = prim->pos->accessor)) continue;
 
-    /* anchor: use first primitive's POSITION count as the canonical
-       vertex count and allocate the matching scratch */
-    if (primIdx == 0) {
-      vertexCount = acc->count;
-      if (prim->inputCount > 0)
-        baseInputs = alloca(sizeof(*baseInputs) * prim->inputCount);
-    }
+    uint32_t primVertCount = (uint32_t)acc->count;
+    if (primVertCount == 0) continue;
 
-    m         = ak_morphInspect_appendMorphable(heap, tv, &lastM, 0.0f);
-    lastInput = NULL;
+    m              = ak_morphInspect_appendMorphable(heap, tv, &lastM, 0.0f);
+    m->vertexCount = primVertCount;
+    lastInput      = NULL;
 
+    uint32_t primStride = 0;
     for (inp = prim->input; inp; inp = inp->next) {
       if (!ak_morphInspect_isDesired(inp->semantic, desiredInputs,
                                      desiredInputsCount))
         continue;
-      if (!(acc = inp->accessor) || acc->count != vertexCount)
+      if (!(acc = inp->accessor) || acc->count != primVertCount)
         continue;
 
-      iiOut = ak_morphInspect_appendInput(heap, m, &lastInput, inp, true);
-
-      /* matching scratch + stride contribution: only first primitive */
-      if (primIdx == 0 && baseInputs) {
-        baseInputs[baseInputsCount++] = iiOut;
-        if (includeBaseShape)
-          stridePerVertex += acc->fillByteSize;
-      }
+      ak_morphInspect_appendInput(heap, m, &lastInput, inp, true);
+      primStride += (uint32_t)acc->fillByteSize;
+      baseInputsCount++;
     }
 
+    m->stridePerVertex = primStride;
+    m->bufferOffset    = baseBufOff;
+    m->bufferSize      = (size_t)primStride * primVertCount;
+    baseBufOff        += m->bufferSize;
+
     m->lastInput = lastInput;
+
   }
 
-  if (vertexCount == 0 || baseInputsCount == 0) return AK_ERR;
+  if (baseInputsCount == 0) return AK_ERR;
 
   /*========================================================================*/
   /* Phase 3: build TargetView per AkMorphTarget                            */
@@ -309,44 +304,61 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
     tv    = ak_morphInspect_appendTargetView(heap, view, &lastTV);
     lastM = NULL;
 
+    size_t                   targetBufOff = 0;
+    AkMorphInspectMorphable *baseM        = view->base ? view->base->morphable : NULL;
+
     /* polymorphic dispatch on AkMorphableType (kept as enum slot in
        AkObject.type — see controller.h) */
     switch (targetObj->type) {
       case AK_MORPHABLE_MORPHABLE: {
-        /* glTF-style: AkMorphable chain, one per primitive */
+        /* glTF-style: AkMorphable chain, one per primitive. Walk
+           the target's morphable chain in lockstep with the base
+           morphables so each target primitive gets sized against
+           its corresponding base primitive's vertex count rather
+           than a single global anchor. */
         morphable = targetPtr;
         primIdx   = 0;
 
         for (; morphable && primIdx < primCount;
              morphable = morphable->next, primIdx++) {
+          uint32_t expectedCount = baseM ? baseM->vertexCount : 0;
+
           if (!(posInp = ak_morphInspect_findPosition(morphable->input))
               || !(acc = posInp->accessor)
-              || acc->count != vertexCount)
-            continue;
+              || (expectedCount > 0 && (uint32_t)acc->count != expectedCount))
+            goto stepBaseM_a;
+          uint32_t targetVertCount = (uint32_t)acc->count;
 
           m = ak_morphInspect_appendMorphable(
               heap, tv, &lastM,
               ak_morphInspect_initialWeight(morph, mesh, targetIdx));
-          lastInput = NULL;
+          m->vertexCount = targetVertCount;
+          lastInput      = NULL;
 
+          uint32_t targetStride = 0;
           for (inp = morphable->input; inp; inp = inp->next) {
             if (!ak_morphInspect_isDesired(inp->semantic, desiredInputs,
                                            desiredInputsCount))
               continue;
-            if (!(acc = inp->accessor) || acc->count != vertexCount)
+            if (!(acc = inp->accessor) || acc->count != targetVertCount)
               continue;
 
-            inBase = ak_morphInspect_inBase(inp, baseInputs, baseInputsCount);
+            inBase = ak_morphInspect_inBase(inp, baseM);
             if (ignoreUncommonInputs && !inBase) continue;
 
             ak_morphInspect_appendInput(heap, m, &lastInput, inp, inBase);
+            targetStride += (uint32_t)acc->fillByteSize;
 
-            /* stride: only first target's first primitive contributes
-               (uniform layout assumed across targets) */
-            if (primIdx == 0 && targetIdx == 0)
-              stridePerVertex += acc->fillByteSize;
           }
-          m->lastInput = lastInput;
+
+          m->stridePerVertex = targetStride;
+          m->bufferOffset    = targetBufOff;
+          m->bufferSize      = (size_t)targetStride * targetVertCount;
+          targetBufOff      += m->bufferSize;
+          m->lastInput       = lastInput;
+
+stepBaseM_a:
+          if (baseM) baseM = baseM->next;
         }
         break;
       }
@@ -365,32 +377,44 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
         for (targetPrim = targetMesh->primitive;
              targetPrim && primIdx < primCount;
              targetPrim = targetPrim->next, primIdx++) {
+          uint32_t expectedCount = baseM ? baseM->vertexCount : 0;
+
           if (!targetPrim->pos
               || !(acc = targetPrim->pos->accessor)
-              || acc->count != vertexCount)
-            continue;
+              || (expectedCount > 0 && (uint32_t)acc->count != expectedCount))
+            goto stepBaseM_b;
+          uint32_t targetVertCount = (uint32_t)acc->count;
 
           m = ak_morphInspect_appendMorphable(
               heap, tv, &lastM,
               ak_morphInspect_initialWeight(morph, mesh, targetIdx));
-          lastInput = NULL;
+          m->vertexCount = targetVertCount;
+          lastInput      = NULL;
 
+          uint32_t targetStride = 0;
           for (inp = targetPrim->input; inp; inp = inp->next) {
             if (!ak_morphInspect_isDesired(inp->semantic, desiredInputs,
                                            desiredInputsCount))
               continue;
-            if (!(acc = inp->accessor) || acc->count != vertexCount)
+            if (!(acc = inp->accessor) || acc->count != targetVertCount)
               continue;
 
-            inBase = ak_morphInspect_inBase(inp, baseInputs, baseInputsCount);
+            inBase = ak_morphInspect_inBase(inp, baseM);
             if (ignoreUncommonInputs && !inBase) continue;
 
             ak_morphInspect_appendInput(heap, m, &lastInput, inp, inBase);
+            targetStride += (uint32_t)acc->fillByteSize;
 
-            if (primIdx == 0 && targetIdx == 0)
-              stridePerVertex += acc->fillByteSize;
           }
-          m->lastInput = lastInput;
+
+          m->stridePerVertex = targetStride;
+          m->bufferOffset    = targetBufOff;
+          m->bufferSize      = (size_t)targetStride * targetVertCount;
+          targetBufOff      += m->bufferSize;
+          m->lastInput       = lastInput;
+
+stepBaseM_b:
+          if (baseM) baseM = baseM->next;
         }
         break;
       }
@@ -412,16 +436,21 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
   }
 
   /*========================================================================*/
-  /* Phase 5: summary fields                                                */
+  /* Phase 5: target slice sizes                                            */
   /*========================================================================*/
 
-  view->interleaveTotalBufferSize = stridePerVertex * vertexCount
-                                  * view->nTargets;
-
+  /* Per-morphable bufferSize is the source of truth — sum across
+     a target's morphables to get its slice size, then sum across
+     targets for the whole-buffer size. */
+  view->interleaveTotalBufferSize = 0;
   for (tv = view->targets; tv; tv = tv->next) {
-    tv->interleaveByteStride = stridePerVertex;
-    tv->interleaveBufferSize = stridePerVertex * vertexCount;
-    tv->accessorAccessCount  = vertexCount;
+    AkMorphInspectMorphable *mIter;
+    size_t                   tvSize = 0;
+    for (mIter = tv->morphable; mIter; mIter = mIter->next) {
+      tvSize += mIter->bufferSize;
+    }
+    tv->interleaveBufferSize = tvSize;
+    view->interleaveTotalBufferSize += tvSize;
   }
 
   /* convenience cache: per-blend-shape initial weights for runtime
@@ -469,49 +498,73 @@ ak_morphInspectPrepareLayout(AkMorphInspectView * __restrict inspectView,
 
   includeBaseShape     = inspectView->includeBaseShape;
   ignoreUncommonInputs = inspectView->ignoreUncommonInputs;
-  inpOff               = 0;
 
+  /* Layout model:
+   *
+   *   destBuff = [target0 slice][target1 slice][target2 slice] ...
+   *      target slice = [morphable0 sub-slice][morphable1 sub-slice] ...
+   *           sub-slice = vertexCount × stridePerVertex bytes
+   *
+   * `intrOffset` for each input is the byte offset *within* its
+   * morphable's stride row (0 .. morphable.stridePerVertex). The
+   * morphable's `bufferOffset` (set during inspect) places the
+   * sub-slice within its target's slice. The interleave pass
+   * advances `dst` by `targetView->interleaveBufferSize` per
+   * target, then for each morphable computes
+   *   `dst_morph = dst_target + morphable.bufferOffset`
+   * and writes inputs at
+   *   `dst_morph + input.intrOffset + stride*k`.
+   *
+   * P1P2N1N2 = within each morphable, walk inputs grouped by
+   *            base-input order (POSITION → NORMAL → TANGENT, ...)
+   * NATURAL  = within each morphable, walk inputs in authored
+   *            order.
+   */
   switch (layout) {
     case AK_MORPH_P1P2N1N2: {
-      /* group by input type: P1 P2 P3 ... N1 N2 N3 ... */
-      do {
-        for (targetView = inspectView->targets;
-             targetView
-             && (inspMorphable = targetView->morphable)
-             && (tinpt = inspMorphable->input);
-             targetView = targetView->next) {
-          do {
-            if ((!tinp->inTarget && !includeBaseShape)
-                || !(tinpt->input->semantic == tinp->input->semantic
-                     && tinpt->input->set == tinp->input->set)
-                || (ignoreUncommonInputs && !tinpt->inBaseMesh))
-              continue;
+      AkMorphInspectMorphable *baseMorph;
+      for (targetView = inspectView->targets;
+           targetView;
+           targetView = targetView->next) {
+        baseMorph     = inspectView->base ? inspectView->base->morphable : NULL;
+        inspMorphable = targetView->morphable;
+        while (inspMorphable) {
+          inpOff = 0;
 
-            inp               = tinpt->input;
-            acc               = inp->accessor;
-            tinpt->intrOffset = inpOff;
-            inpOff           += (uint32_t)acc->fillByteSize;
-            goto nxt;
-          } while ((tinpt = tinpt->next));
-        nxt: continue;
-        }
-      } while ((tinp = tinp->next));
+          /* Use the paired base morphable's input ordering as the
+             template, when available; this gives target inputs
+             offsets matching base order. */
+          if (baseMorph) {
+            for (tinp = baseMorph->input; tinp; tinp = tinp->next) {
+              if (!tinp->inTarget && !includeBaseShape) continue;
+              for (tinpt = inspMorphable->input; tinpt; tinpt = tinpt->next) {
+                if (!(tinpt->input->semantic == tinp->input->semantic
+                      && tinpt->input->set == tinp->input->set)
+                    || (ignoreUncommonInputs && !tinpt->inBaseMesh))
+                  continue;
 
-      /* trailing: inputs that don't exist in base, ungrouped */
-      if (!ignoreUncommonInputs) {
-        for (targetView = inspectView->targets;
-             targetView;
-             targetView = targetView->next) {
-          if ((inspMorphable = targetView->morphable)
-              && (tinp = inspMorphable->input)) {
-            do {
-              if (tinp->inBaseMesh) continue;
-              inp              = tinp->input;
-              acc              = inp->accessor;
-              tinp->intrOffset = inpOff;
-              inpOff          += (uint32_t)acc->fillByteSize;
-            } while ((tinp = tinp->next));
+                inp               = tinpt->input;
+                acc               = inp->accessor;
+                tinpt->intrOffset = inpOff;
+                inpOff           += (uint32_t)acc->fillByteSize;
+                break;  /* one target input assigned per base input */
+              }
+            }
           }
+
+          /* Trailing target-only inputs (rare). */
+          if (!ignoreUncommonInputs) {
+            for (tinpt = inspMorphable->input; tinpt; tinpt = tinpt->next) {
+              if (tinpt->inBaseMesh) continue;
+              inp                = tinpt->input;
+              acc                = inp->accessor;
+              tinpt->intrOffset  = inpOff;
+              inpOff            += (uint32_t)acc->fillByteSize;
+            }
+          }
+
+          inspMorphable = inspMorphable->next;
+          if (baseMorph) baseMorph = baseMorph->next;
         }
       }
       inspectView->layout = layout;
@@ -519,18 +572,20 @@ ak_morphInspectPrepareLayout(AkMorphInspectView * __restrict inspectView,
     }
 
     case AK_MORPH_NATURAL: {
-      /* natural order: P1 N1 T1   P2 N2 T2   ... */
+      /* Per-morphable scoped offsets in authored input order. */
       for (targetView = inspectView->targets;
            targetView;
            targetView = targetView->next) {
-        if ((inspMorphable = targetView->morphable)
-            && (tinp = inspMorphable->input)) {
-          do {
+        for (inspMorphable = targetView->morphable;
+             inspMorphable;
+             inspMorphable = inspMorphable->next) {
+          inpOff = 0;
+          for (tinp = inspMorphable->input; tinp; tinp = tinp->next) {
             inp              = tinp->input;
             acc              = inp->accessor;
             tinp->intrOffset = inpOff;
             inpOff          += (uint32_t)acc->fillByteSize;
-          } while ((tinp = tinp->next));
+          }
         }
       }
       inspectView->layout = layout;
@@ -562,8 +617,8 @@ ak_morphInterleave(AkGeometry * __restrict baseMesh,
   AkAccessor                *acc;
   AkBuffer                  *buf;
   char                      *src,        *dst;
-  uint32_t                   srcStride,  targetStride, compSize;
-  uint32_t                   k,          count, intrOffset;
+  uint32_t                   srcStride,  compSize;
+  uint32_t                   k,          intrOffset;
 
   /* lazy-inspect with default options if caller didn't run it explicitly */
   if (!(morphView = morph->inspectResult)) {
@@ -581,12 +636,17 @@ ak_morphInterleave(AkGeometry * __restrict baseMesh,
   dst = (char *)destBuff;
 
   for (; targetView; targetView = targetView->next) {
-    targetStride = (uint32_t)targetView->interleaveByteStride;
-    count        = targetView->accessorAccessCount;
-
+    /* Per morphable: walk inputs, write at the morphable's
+       sub-slice using its own per-primitive stride and vertex
+       count. */
+    char *targetDst = dst;
     for (inspMorphable = targetView->morphable;
          inspMorphable && (tinp = inspMorphable->input);
          inspMorphable = inspMorphable->next) {
+      char    *morphDst = targetDst + inspMorphable->bufferOffset;
+      uint32_t mStride  = inspMorphable->stridePerVertex;
+      uint32_t mCount   = inspMorphable->vertexCount;
+
       for (; tinp
              && (inp = tinp->input)
              && (acc = inp->accessor)
@@ -597,13 +657,16 @@ ak_morphInterleave(AkGeometry * __restrict baseMesh,
         compSize   = (uint32_t)acc->fillByteSize;
         intrOffset = tinp->intrOffset;
 
-        for (k = 0; k < count; k++) {
-          memcpy(dst + intrOffset + targetStride * k,
+        for (k = 0; k < mCount; k++) {
+          memcpy(morphDst + intrOffset + mStride * k,
                  src + srcStride * k,
                  compSize);
         }
       }
     }
+
+    /* Advance to the next target's slice. */
+    dst += targetView->interleaveBufferSize;
   }
 
   return AK_OK;
