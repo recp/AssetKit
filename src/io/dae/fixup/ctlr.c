@@ -189,7 +189,12 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
               resolved = ak_getObjectById(doc, id);
               break;
             case AKT_SIDREF:
-              resolved = ak_sid_resolve_from(&sidCtx, doc, id, NULL);
+              /* SIDREF source-array entries store the absolute scoped
+                 path (e.g. "geom_id/sid_path"). Resolve directly via
+                 ak_sid_resolve — `ak_sid_resolve_from` is for
+                 already-split (id, sid) pairs and would mis-prefix
+                 the path here. */
+              resolved = ak_sid_resolve(&sidCtx, id, NULL);
               break;
             default:
               resolved = NULL;
@@ -203,11 +208,11 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
              AkGeometry* — read back via ak_objGetTarget on C/Swift sides.
              The geometry itself stays in doc->lib.geometries with its own
              lifetime; this wrap just references it. */
-          wrap = ak_objAlloc(dst->heap, morph,
-                             sizeof(AkGeometry *),
-                             AK_MORPHABLE_GEOMETRY,
-                             true);
-          ak_objGetTarget(wrap) = (AkGeometry *)resolved;
+          wrap                   = ak_objAlloc(dst->heap, morph,
+                                               sizeof(AkGeometry *),
+                                               AK_MORPHABLE_GEOMETRY,
+                                               true);
+          ak_objGetTarget(wrap)  = (AkGeometry *)resolved;
 
           target                 = ak_heap_calloc(dst->heap, morph,
                                                   sizeof(*target));
