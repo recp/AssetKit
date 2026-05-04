@@ -292,7 +292,7 @@ topofix(AkMesh * mesh) {
   uint8_t          trig_fan, trig_strip, line_loop, line_strip;
 
   trig_fan   = (int)ak_opt_get(AK_OPT_CVT_TRIANGLEFAN);
-  trig_strip = (int)ak_opt_get(AK_OPT_CVT_TRIANGLEFAN);
+  trig_strip = (int)ak_opt_get(AK_OPT_CVT_TRIANGLESTRIP);
   line_loop  = (int)ak_opt_get(AK_OPT_CVT_LINELOOP);
   line_strip = (int)ak_opt_get(AK_OPT_CVT_LINESTRIP);
 

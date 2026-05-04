@@ -505,11 +505,11 @@ ply_finish(PLYState * __restrict pst) {
 
   /* tex coords */
   if (pst->ac_tex)
-    io_input(heap, prim, pst->ac_nor, AK_INPUT_TEXCOORD, _s_TEXCOORD, 0);
+    io_input(heap, prim, pst->ac_tex, AK_INPUT_TEXCOORD, _s_TEXCOORD, 0);
   
   /* vertex colors */
   if (pst->ac_rgb)
-    io_input(heap, prim, pst->ac_nor, AK_INPUT_COLOR, _s_COLOR, 0);
+    io_input(heap, prim, pst->ac_rgb, AK_INPUT_COLOR, _s_COLOR, 0);
   
   /* indices */
   prim->indices = ak_heap_calloc(heap,
