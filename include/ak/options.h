@@ -75,6 +75,9 @@ typedef enum AkOption {
      recover the source layout, and ak_accessorAsFloat /
      ak_accessorMakeFloat let callers dequantize on demand. */
   AK_OPT_PRESERVE_QUANTIZED_ATTRS   = 28, /* false    */
+  AK_OPT_GLTF_EXT_DECODER_AUTOLOAD   = 29, /* true     */
+  AK_OPT_GLTF_MESHOPT_DECODER_PATH   = 30, /* NULL     */
+  AK_OPT_GLTF_DRACO_DECODER_PATH     = 31, /* NULL     */
 } AkOption;
 
 AK_EXPORT
