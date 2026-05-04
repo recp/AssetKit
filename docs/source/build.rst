@@ -1,7 +1,8 @@
 Build AssetKit
 ================================
 
-| **AssetKit** does not have any external dependencies.
+| **AssetKit** core uses bundled submodules. Optional glTF decoder side
+  libraries can fetch their decoder dependencies when enabled.
 
 CMake (All platforms):
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -9,11 +10,9 @@ CMake (All platforms):
 .. code-block:: bash
   :linenos:
 
-  $ mkdir build
-  $ cd build
-  $ cmake .. # [Optional] -DAK_SHARED=ON
-  $ make
-  $ sudo make install # [Optional]
+  $ cmake -S . -B build
+  $ cmake --build build
+  $ cmake --install build # [Optional]
 
 **make** will build **AssetKit** into **build** folder.
 If you don't want to install **AssetKit** to your system's folder you can get static and dynamic libs in this folder.
@@ -27,6 +26,9 @@ If you don't want to install **AssetKit** to your system's folder you can get st
   option(AK_STATIC "Static build" OFF)
   option(AK_USE_C99 "" OFF) # C11 
   option(AK_USE_TEST "Enable Tests" OFF) # for make check - make test
+  option(AK_BUILD_GLTF_DRACO_DECODER "Build optional glTF Draco decoder shim" ON)
+  option(AK_BUILD_GLTF_MESHOPT_DECODER "Build optional glTF meshoptimizer decoder shim" ON)
+  option(AK_FETCH_DEPS "Fetch optional decoder dependencies into AK_DEPS_ROOT when missing" ON)
 
 **Use with your CMake project example**
 
@@ -42,47 +44,32 @@ If you don't want to install **AssetKit** to your system's folder you can get st
   
   add_subdirectory(external/assetkit/)
 
-Unix (Autotools):
+Optional glTF compression decoders:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: bash
   :linenos:
 
-  $ sh autogen.sh
-  $ ./configure
-  $ make
-  $ make check            # run tests (optional)
-  $ [sudo] make install   # install to system (optional)
+  $ cmake -S . -B build
+  $ cmake --build build
 
-**make** will build **AssetKit** to **.libs** sub folder in project folder.
-If you don't want to install **AssetKit** to your system's folder you can get static and dynamic libs in this folder.
+Decoder side libraries are built next to ``libassetkit`` by default, but not
+linked into the main C library. CMake fetches missing decoder dependencies into
+``deps/`` by default. Use ``-DAK_FETCH_DEPS=OFF`` with ``AK_DRACO_ROOT`` /
+``AK_MESHOPT_ROOT`` for offline or packaged builds. Use
+``-DAK_BUILD_GLTF_DRACO_DECODER=OFF`` or
+``-DAK_BUILD_GLTF_MESHOPT_DECODER=OFF`` to skip these side libraries.
 
-**NOTE:**: Change install name if required; after build is finished, **make** automatically runs `sh ./post-build.sh` script. 
-It changes install names. You may want to edit build scripts and `post-build.sh` script if you want to build AssetKit with existing libraries. 
-Default behavior is that AssetKit will look up sub libraries inside 
-`.libs` folder, if you only need to change `.libs` name then change it in `post-build.sh` script file.
-
-Windows (MSBuild):
+Windows:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Windows related build files, project files are located in `win` folder,
-make sure you are inside in assetkit/win folder.
-
-Code Analysis are enabled, it may take awhile to build.
+Windows builds use CMake.
 
 .. code-block:: bash
   :linenos:
 
-  $ cd win
-  $ .\build.bat
-
-if *msbuild* is not worked (because of multi versions of Visual Studio)
-then try to build with *devenv*:
-
-.. code-block:: bash
-  :linenos:
-
-  $ devenv assetkit.sln /Build Release
+  $ cmake -S . -B build
+  $ cmake --build build --config Release
 
 Currently tests are not available on Windows.
 

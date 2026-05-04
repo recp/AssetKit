@@ -65,6 +65,8 @@ cmake-build-debug
 win/x64/*
 win/x86/*
 build/
+/deps/draco/
+/deps/meshoptimizer/
 .cache/
 .scannerwork/
 .project

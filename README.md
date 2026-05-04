@@ -12,10 +12,6 @@
         <img src="https://github.com/recp/AssetKit/actions/workflows/cmake.yml/badge.svg"
              alt="CMake">
     </a>
-    <a href="https://github.com/recp/AssetKit/actions/workflows/msbuild.yml">
-        <img src="https://github.com/recp/AssetKit/actions/workflows/msbuild.yml/badge.svg"
-             alt="MSBuild">
-    </a>
     <a href="https://www.codacy.com/app/recp/assetkit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=recp/assetkit&amp;utm_campaign=Badge_Grade">
         <img src="https://api.codacy.com/project/badge/Grade/6edde2ba446148759437eb0148c799b6"
              alt="Codacy Badge"/>
@@ -104,11 +100,9 @@ Complete documentation: http://assetkit.readthedocs.io
 
 ### CMake (All platforms)
 ```bash
-$ mkdir build
-$ cd build
-$ cmake .. # [Optional] -DAK_SHARED=ON
-$ make
-$ sudo make install # [Optional]
+$ cmake -S . -B build
+$ cmake --build build
+$ cmake --install build # [Optional]
 ```
 
 ##### Cmake options with Defaults:
@@ -117,7 +111,23 @@ $ sudo make install # [Optional]
 option(AK_SHARED "Shared build" ON)
 option(AK_STATIC "Static build" OFF)
 option(AK_USE_TEST "Enable Tests" OFF) # for make check - make test
+option(AK_BUILD_GLTF_DRACO_DECODER "Build optional glTF Draco decoder shim" ON)
+option(AK_BUILD_GLTF_MESHOPT_DECODER "Build optional glTF meshoptimizer decoder shim" ON)
+option(AK_FETCH_DEPS "Fetch optional decoder dependencies into AK_DEPS_ROOT when missing" ON)
 ```
+
+Optional glTF compression decoders are side libraries. They are built next to
+the main C library by default, but not linked into `libassetkit`. CMake fetches
+missing decoder dependencies into `deps/` by default:
+
+```bash
+$ cmake -S . -B build
+$ cmake --build build
+```
+
+Use `-DAK_FETCH_DEPS=OFF` with `AK_DRACO_ROOT` / `AK_MESHOPT_ROOT` for
+offline or packaged builds. Use `-DAK_BUILD_GLTF_DRACO_DECODER=OFF` or
+`-DAK_BUILD_GLTF_MESHOPT_DECODER=OFF` to skip these side libraries.
 
 #### Use with your CMake project
 * Example:
@@ -134,36 +144,14 @@ add_subdirectory(external/assetkit/)
 # or you can use find_package() to configure assetkit
 ```
 
-### Unix (Autotools)
-Step 1: First you should build dependencies, do this only once:
-```bash
-$ sh ./build-deps.sh
-```
-
-Step 2: Build, Test and Install AssetKit
-```bash
-$ sh autogen.sh
-$ ./configure
-$ make
-$ make check
-$ [sudo] make install
-```
-
-Step 3: Change install name if required, after make finished make automaticall runs `sh ./post-build.sh` script. It changes install names. You may want to edit build scripts and `post-build.sh` script if you want to build AssetKit with existing libraries. Default behavior is that AssetKit will look up sub libraries inside `.libs` folder, if you only need to change `.libs` name then change it in `post-build.sh` script file.
-
-### Windows (MSBuild)
-Windows related build files, project files are located in `win` folder, make sure you are inside `assetkit/win` folder. Code Analysis are enabled to it may take awhile to build
+### Windows
+Windows builds are supported through CMake.
 
 `git` and `python` commands should be installed/accessible.
 
 ```Powershell
-$ cd win
-$ .\build.bat
-$ msbuild assetkit.vcxproj /p:Configuration=Release
-```
-if `msbuild` won't work correctly then try to build with `devenv`:
-```Powershell
-$ devenv assetkit.sln /Build Release
+$ cmake -S . -B build
+$ cmake --build build --config Release
 ```
 
 ## Contributors
