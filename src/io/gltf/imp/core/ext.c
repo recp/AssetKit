@@ -265,7 +265,7 @@ gltf_ext_lights(AkGLTFState * __restrict gst,
       spot->innerConeAngle = json_float(json_get(it, _s_gltf_innerConeAngle),
                                         0.0f);
       spot->outerConeAngle = json_float(json_get(it, _s_gltf_outerConeAngle),
-                                        0.78539816339f);
+                                        GLM_PI_4f);
     }
 
   nxt:
