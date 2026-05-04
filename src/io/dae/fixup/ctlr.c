@@ -28,26 +28,6 @@ ak_fixBoneWeights(AkHeap        *heap,
                   uint32_t       jointOffset,
                   uint32_t       weightsOffset);
 
-static
-void
-ak_daeReverseSkinWeights(AkSkin * __restrict skin) {
-  AkBoneWeights *tmp;
-  uint32_t       i, j;
-
-  if (!skin || !skin->weights || skin->nPrims < 2)
-    return;
-
-  i = 0;
-  j = skin->nPrims - 1;
-  while (i < j) {
-    tmp              = skin->weights[i];
-    skin->weights[i] = skin->weights[j];
-    skin->weights[j] = tmp;
-    i++;
-    j--;
-  }
-}
-
 AK_INLINE
 uint32_t
 ak_daeSafeWeightCount(AkBoneWeights * __restrict intrWeights,
@@ -200,7 +180,6 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
             }
 
             skin->nPrims = primIndex;
-            ak_daeReverseSkinWeights(skin);
 
             ak_free(intrWeights);
 

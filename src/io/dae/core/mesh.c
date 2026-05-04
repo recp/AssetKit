@@ -21,18 +21,35 @@
 #include "poly.h"
 #include "line.h"
 
+AK_INLINE
+void
+dae_mesh_appendPrim(AkMesh           * __restrict mesh,
+                    AkMeshPrimitive ** __restrict lastPrim,
+                    AkMeshPrimitive  * __restrict prim) {
+  prim->next = NULL;
+  prim->mesh = mesh;
+
+  if (*lastPrim) (*lastPrim)->next = prim;
+  else           mesh->primitive   = prim;
+
+  *lastPrim = prim;
+  mesh->primitiveCount++;
+}
+
 AK_HIDE
 AkObject*
 dae_mesh(DAEState   * __restrict dst,
          xml_t      * __restrict xml,
          AkGeometry * __restrict geom) {
-  AkObject   *obj;
-  AkMesh     *mesh;
-  AkHeap     *heap;
-  uint32_t    m;
+  AkObject        *obj;
+  AkMesh          *mesh;
+  AkMeshPrimitive *lastPrim;
+  AkHeap          *heap;
+  uint32_t         m;
 
-  heap = dst->heap;
-  xml  = xml->val;
+  heap     = dst->heap;
+  xml      = xml->val;
+  lastPrim = NULL;
 
   obj  = ak_objAlloc(heap, geom, sizeof(*mesh), AK_GEOMETRY_MESH, true);
   mesh = ak_objGet(obj);
@@ -51,28 +68,20 @@ dae_mesh(DAEState   * __restrict dst,
       AkTriangles *tri;
       
       if ((tri = dae_triangles(dst, xml, obj, m))) {
-        tri->base.next  = mesh->primitive;
-        mesh->primitive = &tri->base;
+        dae_mesh_appendPrim(mesh, &lastPrim, &tri->base);
 
-        tri->base.mesh  = mesh;
         if (tri->base.bindmaterial)
           ak_meshSetMaterial(&tri->base, tri->base.bindmaterial);
-        
-        mesh->primitiveCount++;
       }
     } else if ((xml_tag_eq(xml, _s_dae_polygons) & (m = AK_POLY_POLYGONS))
             || (xml_tag_eq(xml, _s_dae_polylist) & (m = AK_POLY_POLYLIST))) {
       AkPolygon *poly;
 
       if ((poly = dae_poly(dst, xml, obj, m))) {
-        poly->base.next = mesh->primitive;
-        mesh->primitive = &poly->base;
-      
-        poly->base.mesh = mesh;
+        dae_mesh_appendPrim(mesh, &lastPrim, &poly->base);
+
         if (poly->base.bindmaterial)
           ak_meshSetMaterial(&poly->base, poly->base.bindmaterial);
-        
-        mesh->primitiveCount++;
       }
       
     } else if (xml_tag_eq(xml, _s_dae_lines)      & (m = AK_LINES)
@@ -80,14 +89,10 @@ dae_mesh(DAEState   * __restrict dst,
       AkLines *lines;
       
       if ((lines = dae_lines(dst, xml, obj, m))) {
-        lines->base.next = mesh->primitive;
-        mesh->primitive  = &lines->base;
+        dae_mesh_appendPrim(mesh, &lastPrim, &lines->base);
 
-        lines->base.mesh = mesh;
         if (lines->base.bindmaterial)
           ak_meshSetMaterial(&lines->base, lines->base.bindmaterial);
-        
-        mesh->primitiveCount++;
       }
     } else if (xml_tag_eq(xml, _s_dae_extra)) {
       mesh->extra = tree_fromxml(heap, obj, xml);

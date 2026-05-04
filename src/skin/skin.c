@@ -61,7 +61,7 @@ ak_skinWeightsForPrimitive(AkSkin          * __restrict skin,
                            AkMeshPrimitive * __restrict prim,
                            uint32_t                     primIdx) {
   AkMeshPrimitive *it;
-  uint32_t         idx, srcIdx;
+  uint32_t         idx;
 
   if (!skin || !skin->weights || skin->nPrims == 0)
     return NULL;
@@ -72,11 +72,9 @@ ak_skinWeightsForPrimitive(AkSkin          * __restrict skin,
       if (it != prim)
         continue;
 
-      if (idx < skin->nPrims) {
-        srcIdx = skin->nPrims - 1 - idx;
-        if (srcIdx < skin->nPrims && skin->weights[srcIdx])
-          return skin->weights[srcIdx];
-      }
+      if (idx < skin->nPrims && skin->weights[idx])
+        return skin->weights[idx];
+
       break;
     }
   }
