@@ -178,6 +178,77 @@ dae_resolveMorpher(AkDoc      * __restrict doc,
 }
 
 static
+bool
+dae_resolveMatrixElement(AkContext        * __restrict ctx,
+                         const char       * __restrict target,
+                         AkResolvedTarget * __restrict rt) {
+  const char *seg, *open1, *close1, *open2, *close2, *attr;
+  AkObject   *obj;
+  long        a, b;
+  char       *end;
+  char        base[512];
+  size_t      n;
+
+  if (!ctx || !target || !rt)
+    return false;
+
+  if ((seg = strrchr(target, '/')))
+    seg++;
+  else
+    seg = target;
+
+  if (!(open1 = strchr(seg, '('))
+      || !(close1 = strchr(open1 + 1, ')'))
+      || close1 == open1 + 1)
+    return false;
+
+  a = strtol(open1 + 1, &end, 10);
+  if (end != close1 || a < 0)
+    return false;
+
+  open2 = close2 = NULL;
+  b     = -1;
+  if (*(close1 + 1) == '(') {
+    open2 = close1 + 1;
+    if (!(close2 = strchr(open2 + 1, ')')) || close2 == open2 + 1)
+      return false;
+
+    b = strtol(open2 + 1, &end, 10);
+    if (end != close2 || b < 0 || close2[1] != '\0')
+      return false;
+  } else if (close1[1] != '\0') {
+    return false;
+  }
+
+  n = (size_t)(open1 - target);
+  if (n == 0 || n >= sizeof(base))
+    return false;
+
+  memcpy(base, target, n);
+  base[n] = '\0';
+
+  attr = NULL;
+  obj  = ak_sid_resolve(ctx, base, &attr);
+  if (!obj || attr || ak_typeid(obj) != AKT_OBJECT
+      || (AkTypeId)obj->type != AKT_MATRIX)
+    return false;
+
+  if (b >= 0) {
+    if (a >= 4 || b >= 4)
+      return false;
+    rt->off = (uint32_t)(b * 4 + a);
+  } else {
+    if (a >= 16)
+      return false;
+    rt->off = (uint32_t)((a % 4) * 4 + (a / 4));
+  }
+
+  rt->target    = obj;
+  rt->isPartial = true;
+  return true;
+}
+
+static
 AkInput *
 dae_animSamplerInput(AkAnimSampler    * __restrict samp,
                      AkInputSemantic               sem) {
@@ -228,7 +299,7 @@ dae_matrixAnimMark(DAEState          * __restrict dst,
 }
 
 static
-void
+bool
 dae_transposeMat4Output(AkAccessor * __restrict acc) {
   char     *base;
   float    *m;
@@ -240,7 +311,7 @@ dae_transposeMat4Output(AkAccessor * __restrict acc) {
       || !acc->buffer->data
       || acc->componentType != AKT_FLOAT
       || acc->componentCount != 16)
-    return;
+    return false;
 
   st = acc->byteStride;
   if (st == 0)
@@ -251,6 +322,8 @@ dae_transposeMat4Output(AkAccessor * __restrict acc) {
     m = (float *)(base + st * i);
     glm_mat4_transpose((vec4 *)m);
   }
+
+  return true;
 }
 
 static
@@ -266,8 +339,8 @@ dae_fixupMatrixAccessor(DAEState          * __restrict dst,
   if (dae_matrixAnimFixed(*done, acc))
     return;
 
-  dae_transposeMat4Output(acc);
-  dae_matrixAnimMark(dst, done, acc);
+  if (dae_transposeMat4Output(acc))
+    dae_matrixAnimMark(dst, done, acc);
 }
 
 static
@@ -315,6 +388,7 @@ dae_fixup_channel_walk(DAEState          * __restrict dst,
   AkAnimation      *sub;
   AkChannel        *ch;
   AkResolvedTarget *rt;
+  AkResolvedTarget  mrt;
   AkInstanceMorph  *morpher;
   const char       *idStart;
   size_t            idLen;
@@ -322,15 +396,27 @@ dae_fixup_channel_walk(DAEState          * __restrict dst,
 
   for (; anim; anim = (AkAnimation *)anim->base.next) {
     for (ch = anim->channel; ch; ch = ch->next) {
-      if (!ch->resolvedTarget
-          && dae_parseChannelTargetIndexed(ch->target, &idStart, &idLen, &idx)
-          && (morpher = dae_resolveMorpher(dst->doc, idStart, idLen))) {
-        rt                 = ak_heap_calloc(dst->heap, ch, sizeof(*rt));
-        rt->target         = morpher;
-        rt->off            = idx;
-        rt->isPartial      = true;
-        ch->resolvedTarget = rt;
-        ch->targetType     = AK_TARGET_WEIGHTS;
+      if (!ch->resolvedTarget) {
+        memset(&mrt, 0, sizeof(mrt));
+        if (dae_resolveMatrixElement(ctx, ch->target, &mrt)) {
+          rt                 = ak_heap_calloc(dst->heap, ch, sizeof(*rt));
+          *rt                = mrt;
+          ch->resolvedTarget = rt;
+          ch->targetType     = AK_TARGET_FLOAT;
+        } else if (dae_parseChannelTargetIndexed(ch->target,
+                                                 &idStart,
+                                                 &idLen,
+                                                 &idx)
+                   && (morpher = dae_resolveMorpher(dst->doc,
+                                                    idStart,
+                                                    idLen))) {
+          rt                 = ak_heap_calloc(dst->heap, ch, sizeof(*rt));
+          rt->target         = morpher;
+          rt->off            = idx;
+          rt->isPartial      = true;
+          ch->resolvedTarget = rt;
+          ch->targetType     = AK_TARGET_WEIGHTS;
+        }
       }
 
       dae_fixupMatrixChannel(dst, ctx, ch, done);

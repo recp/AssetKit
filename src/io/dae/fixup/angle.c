@@ -28,6 +28,34 @@
 
  */
 
+static
+void
+dae_cvtAnglesAt(AkAccessor * __restrict acc,
+                AkBuffer   * __restrict buff,
+                uint32_t                paramIndex) {
+  AkAccessorDAE *accdae;
+  float         *pbuff;
+  size_t         i, count, st, off;
+
+  if (!acc || !buff || !buff->data || !(accdae = ak_userData(acc)))
+    return;
+
+  acc->componentType = (AkTypeId)(uintptr_t)ak_userData(buff);
+  if (acc->componentType != AKT_FLOAT)
+    return;
+
+  st = accdae->stride ? accdae->stride : 1;
+  if (paramIndex >= st)
+    return;
+
+  off   = accdae->offset + paramIndex;
+  count = acc->count;
+  pbuff = buff->data;
+
+  for (i = 0; i < count; i++)
+    glm_make_rad(pbuff + off + i * st);
+}
+
 AK_HIDE
 void
 dae_cvtAngles(AkAccessor * __restrict acc,
@@ -35,31 +63,57 @@ dae_cvtAngles(AkAccessor * __restrict acc,
               const char * __restrict paramName) {
   AkAccessorDAE *accdae;
   AkDataParam   *param;
-  float         *pbuff;
-  size_t         po, i, count, st;
+  uint32_t       index;
   
   if (!(accdae = ak_userData(acc)))
     return;
-  
-  /* TODO: */
 
-  acc->componentType = (AkTypeId)(uintptr_t)ak_userData(buff);
+  index = 0;
+  param = accdae->param;
+  while (param) {
+    if (param->name && strcasecmp(param->name, paramName) == 0)
+      dae_cvtAnglesAt(acc, buff, index);
 
-  if (acc->componentType == AKT_FLOAT && (param = accdae->param)) {
-    po          = 0;
-    st          = accdae->stride;
-    count       = acc->count * st;
-    pbuff       = buff->data;
-
-    do {
-      if (param->name && strcasecmp(param->name, paramName) == 0) {
-        /* TODO: use SIMD */
-        for (i = po; i < count; i += st)
-          glm_make_rad(pbuff + i);
-      }
-      po++;
-    } while ((param = param->next));
+    index++;
+    param = param->next;
   }
+}
+
+static
+void
+dae_fixAngleTangent(AkInput  * __restrict inp,
+                    uint32_t              outputAngleIndex,
+                    uint32_t              outputStride) {
+  AkAccessor    *acc;
+  AkAccessorDAE *accdae;
+  AkBuffer      *buff;
+  uint32_t       st;
+  uint32_t       idx;
+
+  if (!inp
+      || !(acc = inp->accessor)
+      || !(accdae = ak_userData(acc))
+      || !(buff = ak_getObjectByUrl(&accdae->source)))
+    return;
+
+  st = accdae->stride ? accdae->stride : 1;
+
+  if (st == outputStride) {
+    idx = outputAngleIndex;
+  } else if (st >= outputStride * 2
+             && outputAngleIndex * 2 + 1 < st) {
+    /* Bezier-style tangents are usually (time, value) pairs. Only the
+       value component is angular; the time component stays seconds. */
+    idx = outputAngleIndex * 2 + 1;
+  } else if (st == 1) {
+    idx = 0;
+  } else if (outputAngleIndex < st) {
+    idx = outputAngleIndex;
+  } else {
+    return;
+  }
+
+  dae_cvtAnglesAt(acc, buff, idx);
 }
 
 /* TODO: This works for BERZIER but HERMITE?? */
@@ -73,8 +127,7 @@ dae_fixAngles(DAEState * __restrict dst) {
   AkAccessor    *acc;
   AkBuffer      *buff;
   AkAccessorDAE *accdae;
-  AkDataParam   *dp;
-  int            index, i;
+  uint32_t       index, outStride;
   
   item = dst->toRadiansSampelers;
   while (item) {
@@ -89,6 +142,7 @@ dae_fixAngles(DAEState * __restrict dst) {
 
       foundAngle = false;
       index      = 0;
+      outStride  = accdae->stride ? accdae->stride : 1;
 
       if ((param = accdae->param)) {
         do {
@@ -106,45 +160,8 @@ dae_fixAngles(DAEState * __restrict dst) {
 
       dae_cvtAngles(acc, buff, _s_dae_angle);
 
-      /* convert in tangents to radians */
-      if ((acc = sampler->inTangentInput->accessor)
-          && (accdae = ak_userData(acc))
-          && (buff = ak_getObjectByUrl(&accdae->source))) {
-        if (accdae->param && accdae->param->next) {
-          dp = accdae->param;
-          for (i = 0; i < index && dp; i++)
-            dp = dp->next;
-          
-          if (dp) {
-            dae_cvtAngles(acc, buff, dp->name);
-
-            if (dp->next)
-              dae_cvtAngles(acc, buff, dp->next->name);
-          }
-        } else if (accdae->param) { /* 1D tangents */
-          dae_cvtAngles(acc, buff, accdae->param->name);
-        }
-      }
-
-      /* convert out tangents to radians */
-      if ((acc = sampler->outTangentInput->accessor)
-          && (accdae = ak_userData(acc))
-          && (buff = ak_getObjectByUrl(&accdae->source))) {
-        if (accdae->param && accdae->param->next) {
-          dp = accdae->param;
-          for (i = 0; i < index && dp; i++)
-            dp = dp->next;
-
-          if (dp) {
-            dae_cvtAngles(acc, buff, dp->name);
-
-            if (dp->next)
-              dae_cvtAngles(acc, buff, dp->next->name);
-          }
-        } else if (accdae->param) { /* 1D tangents */
-          dae_cvtAngles(acc, buff, accdae->param->name);
-        }
-      }
+      dae_fixAngleTangent(sampler->inTangentInput,  index, outStride);
+      dae_fixAngleTangent(sampler->outTangentInput, index, outStride);
     }
 
   nxt_sampler:

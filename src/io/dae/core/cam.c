@@ -96,10 +96,10 @@ dae_cam(DAEState * __restrict dst,
               while (xtechv) {
                 if (xml_tag_eq(xtechv, _s_dae_xmag)) {
                   sid_seta(xtechv, heap, ortho, &ortho->xmag);
-                  ortho->xmag = glm_rad(xml_float(xtechv, 0.0f));
+                  ortho->xmag = xml_float(xtechv, 0.0f);
                 } else if (xml_tag_eq(xtechv, _s_dae_ymag)) {
                   sid_seta(xtechv, heap, ortho, &ortho->ymag);
-                  ortho->ymag = glm_rad(xml_float(xtechv, 0.0f));
+                  ortho->ymag = xml_float(xtechv, 0.0f);
                 } else if (xml_tag_eq(xtechv, _s_dae_aspect_ratio)) {
                   sid_seta(xtechv, heap, ortho, &ortho->aspectRatio);
                   ortho->aspectRatio = xml_float(xtechv, 0.0f);

@@ -83,7 +83,7 @@ ak_lightMake(AkDoc * __restrict doc,
     s->quadAttn     = 0.0f;
     s->innerConeAngle = 0.0f;
     s->outerConeAngle = GLM_PI_4f;
-    s->falloffAngle = 30.0f;   /* degrees per COLLADA convention */
+    s->falloffAngle = glm_rad(30.0f);
     s->falloffExp   = 1.0f;
   }
 

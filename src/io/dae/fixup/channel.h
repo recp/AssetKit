@@ -23,6 +23,8 @@
  * Resolve/fix DAE animation channels that need loader-side help:
  *   - parenthesized index syntax used for morph weights, e.g.
  *     <channel target="morph-weights(0)">
+ *   - matrix component targets, e.g. <channel target="node/matrix(1)(2)">
+ *     where DAE row/column indices need AssetKit column-major offsets
  *   - row-major MAT4 OUTPUT arrays targeting <matrix> transforms; static
  *     DAE matrices are normalized to AssetKit column-major during node
  *     parse, so animation matrices are normalized here to match.
