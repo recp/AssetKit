@@ -76,6 +76,13 @@ ak_HEADERS = include/ak/assetkit.h \
              include/ak/animation.h \
              include/ak/controller.h
 
+akappledir=$(includedir)/ak/apple
+akapple_HEADERS = include/ak/apple/modelio.h \
+                  include/ak/apple/realitykit.h \
+                  include/ak/apple/scenekit.h \
+                  include/ak/apple/simd.h \
+                  include/ak/apple/swift.h
+
 libassetkit_la_SOURCES=\
     src/assetkit.c \
     src/strpool.c \
@@ -117,6 +124,7 @@ libassetkit_la_SOURCES=\
     src/image/image.c \
     src/camera/cam.c \
     src/light/light.c \
+    src/mat/mat.c \
 \
     src/coord/common.c \
     src/coord/doc.c \
@@ -177,6 +185,7 @@ libassetkit_la_SOURCES=\
     src/io/dae/fixup/geom.c \
     src/io/dae/fixup/node.c \
     src/io/dae/fixup/angle.c \
+    src/io/dae/fixup/channel.c \
     src/io/dae/fixup/ctlr.c \
     src/io/dae/core/enum.c \
     src/io/dae/core/color.c \
@@ -220,25 +229,26 @@ libassetkit_la_SOURCES=\
 \
     src/io/dae/bugfix/transp.c \
 \
-    src/io/gltf/gltf.c \
-    src/io/gltf/mesh_fixup.c \
-    src/io/gltf/postscript.c \
+    src/io/gltf/imp/gltf.c \
+    src/io/gltf/imp/mesh_fixup.c \
+    src/io/gltf/imp/postscript.c \
     src/io/gltf/strpool.c \
-    src/io/gltf/core/enum.c \
-    src/io/gltf/core/asset.c \
-    src/io/gltf/core/buffer.c \
-    src/io/gltf/core/accessor.c \
-    src/io/gltf/core/profile.c \
-    src/io/gltf/core/image.c \
-    src/io/gltf/core/sampler.c \
-    src/io/gltf/core/texture.c \
-    src/io/gltf/core/material.c \
-    src/io/gltf/core/mesh.c \
-    src/io/gltf/core/node.c \
-    src/io/gltf/core/camera.c \
-    src/io/gltf/core/scene.c \
-    src/io/gltf/core/anim.c \
-    src/io/gltf/core/skin.c \
+    src/io/gltf/imp/core/enum.c \
+    src/io/gltf/imp/core/asset.c \
+    src/io/gltf/imp/core/buffer.c \
+    src/io/gltf/imp/core/accessor.c \
+    src/io/gltf/imp/core/profile.c \
+    src/io/gltf/imp/core/image.c \
+    src/io/gltf/imp/core/sampler.c \
+    src/io/gltf/imp/core/texture.c \
+    src/io/gltf/imp/core/material.c \
+    src/io/gltf/imp/core/mesh.c \
+    src/io/gltf/imp/core/node.c \
+    src/io/gltf/imp/core/camera.c \
+    src/io/gltf/imp/core/scene.c \
+    src/io/gltf/imp/core/anim.c \
+    src/io/gltf/imp/core/skin.c \
+    src/io/gltf/imp/core/ext.c \
 \
     src/io/obj/util.c \
     src/io/obj/group.c \
@@ -252,7 +262,11 @@ libassetkit_la_SOURCES=\
 \
     src/io/ply/ply.c \
     src/io/ply/ascii.c \
-    src/io/ply/bin.c
+    src/io/ply/bin.c \
+\
+    src/io/3mf/imp/3mf.c \
+\
+    src/miniz/miniz.c
 
 if MSYS
 libassetkit_la_SOURCES+=\
