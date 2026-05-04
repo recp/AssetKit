@@ -16,6 +16,38 @@
 
 #include "fix.h"
 
+static
+AkBoneWeights*
+ak_skinFixWeightsForPrimitive(AkSkin          * __restrict skin,
+                              AkMeshPrimitive * __restrict prim,
+                              uint32_t                     primIdx) {
+  AkMeshPrimitive *it;
+  uint32_t         idx, srcIdx;
+
+  if (!skin || !skin->weights || skin->nPrims == 0)
+    return NULL;
+
+  if (prim && prim->mesh) {
+    idx = 0;
+    for (it = prim->mesh->primitive; it; it = it->next, idx++) {
+      if (it != prim)
+        continue;
+
+      if (idx < skin->nPrims) {
+        srcIdx = skin->nPrims - 1 - idx;
+        if (srcIdx < skin->nPrims && skin->weights[srcIdx])
+          return skin->weights[srcIdx];
+      }
+      break;
+    }
+  }
+
+  if (primIdx < skin->nPrims)
+    return skin->weights[primIdx];
+
+  return NULL;
+}
+
 AK_HIDE
 void
 ak_skinFixWeights(AkMesh * __restrict mesh) {
@@ -31,6 +63,7 @@ ak_skinFixWeights(AkMesh * __restrict mesh) {
   AkAccessor      *acci;
   size_t          *pOldIndex, *wi;
   size_t           vc, d, s, pno, poo, nwsum, newidx, next, tmp, count;
+  size_t           oldVertex;
   uint32_t        *nj, i, j, k, vcount, primIndex;
 
   if (!(skinItem = mesh->skins))
@@ -49,16 +82,27 @@ ak_skinFixWeights(AkMesh * __restrict mesh) {
     while (prim) {
       if (!(dupl = rb_find(doc->reserved, prim))
           || dupl->dupCount < 1
+          || !dupl->range
+          || !prim->pos
           || !(acci = prim->pos->accessor))
-        continue;
+        goto nxt_prim;
 
-      wl          = skin->weights[primIndex];
+      wl          = ak_skinFixWeightsForPrimitive(skin, prim, primIndex);
+      if (!wl || !wl->counts || !wl->indexes || !wl->weights)
+        goto nxt_prim;
 
       old         = wl->weights;
       pOldIndex   = wl->indexes;
+      oldVertex   = wl->nVertex;
       vc          = acci->count;
       dupc        = dupl->range->dupc;
       dupcsum     = dupl->range->dupcsum;
+      if (!dupc || !dupcsum)
+        goto nxt_prim;
+
+      if (dupc->count < vc)
+        vc = dupc->count;
+
       nwsum       = 0;
 
       wl->nVertex = count = dupl->bufCount + dupl->dupCount;
@@ -69,19 +113,25 @@ ak_skinFixWeights(AkMesh * __restrict mesh) {
       for (i = 0; i < vc; i++) {
         if ((poo = dupc->items[3 * i + 2]) == 0)
           continue;
+        if (poo > oldVertex)
+          continue;
 
         pno    = dupc->items[3 * i];
         d      = dupc->items[3 * i + 1];
+        if (pno >= dupcsum->count)
+          continue;
+
         s      = dupcsum->items[pno];
         vcount = wl->counts[poo - 1];
 
         for (j = 0; j <= d; j++) {
           newidx     = pno + j + s;
+          if (newidx >= count)
+            continue;
           wi[newidx] = vcount; /* weight index     */
           nj[newidx] = vcount; /* number of joints */
+          nwsum     += vcount;
         }
-
-        nwsum += vcount * (d + 1);
       }
 
       /* prepare weight index */
@@ -98,14 +148,23 @@ ak_skinFixWeights(AkMesh * __restrict mesh) {
       for (i = 0; i < vc; i++) {
         if ((poo = dupc->items[3 * i + 2]) == 0)
           continue;
+        if (poo > oldVertex)
+          continue;
 
         pno    = dupc->items[3 * i];
         d      = dupc->items[3 * i + 1];
+        if (pno >= dupcsum->count)
+          continue;
+
         s      = dupcsum->items[pno];
         vcount = wl->counts[poo - 1];
 
         for (j = 0; j <= d; j++) {
-          newidx = wi[pno + j + s];
+          tmp = pno + j + s;
+          if (tmp >= count)
+            continue;
+
+          newidx = wi[tmp];
 
           for (k = 0; k < vcount; k++) {
             iw         = &w[newidx + k];
@@ -113,9 +172,9 @@ ak_skinFixWeights(AkMesh * __restrict mesh) {
             iw->joint  = oiw->joint;
             iw->weight = oiw->weight;
           }
-        }
 
-        nwsum += vcount * (d + 1);
+          nwsum += vcount;
+        }
       }
 
       if (pOldIndex)
@@ -131,6 +190,7 @@ ak_skinFixWeights(AkMesh * __restrict mesh) {
       wl->indexes  = wi;
       wl->weights = w;
 
+    nxt_prim:
       primIndex++;
       prim = prim->next;
     }

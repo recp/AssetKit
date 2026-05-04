@@ -16,7 +16,6 @@
 
 #include "ext.h"
 #include "../../../../platform/dylib.h"
-#include <ak/options.h>
 
 typedef int
 (*AkMeshoptDecodeBufferFn)(void                *destination,

@@ -57,8 +57,8 @@ typedef struct AkBoneWeights {
  * Skin controller — vertex skinning data.
  *
  * Per-vertex bone data storage differs by source format:
- *   - DAE: variable-count CSR layout in `weights[primIdx]` (filled by
- *     dae_fixup_ctlr).
+ *   - DAE: variable-count CSR layout in `weights[]` (filled by
+ *     dae_fixup_ctlr in authored primitive order).
  *   - glTF: raw vec4 JOINTS_n / WEIGHTS_n accessors stay in `prim->input`
  *     (no aggregation — the format is already GPU-ready).
  *
@@ -277,7 +277,7 @@ typedef struct AkInstanceSkin {
  *
  * @param skin      AkSkin (for both DAE-CSR and glTF-accessor inputs)
  * @param prim      mesh primitive being skinned (vertex order source)
- * @param primIdx   primitive index in the mesh (DAE skin->weights[])
+ * @param primIdx   primitive index fallback; prim pointer is authoritative
  * @param maxJoint  storage slots per vertex (typically 4)
  * @param buff      destination buffer; if *buff is NULL one is alloc'd
  *                  with ak_calloc(NULL, ...) and stored back into *buff
@@ -298,7 +298,7 @@ ak_skinInterleave(AkSkin          * __restrict skin,
  *        Fills caller-provided fixed-N flat buffers (joint indices + weights)
  *        regardless of the asset's source format:
  *
- *          - DAE  primitives use the CSR layout in skin->weights[primIdx];
+ *          - DAE  primitives use the CSR layout in skin->weights[];
  *                 variable joint count per vertex -> top-N selected by weight,
  *                 zero-padded if count<N, normalized so weights sum to 1.
  *          - glTF primitives keep JOINTS_n / WEIGHTS_n sets as raw accessors
@@ -310,8 +310,8 @@ ak_skinInterleave(AkSkin          * __restrict skin,
  *        detail of the parsers.
  *
  * @param[in]  skin        skin owning the bone data
- * @param[in]  prim        mesh primitive at index `primIdx`
- * @param[in]  primIdx     primitive index in mesh
+ * @param[in]  prim        mesh primitive being skinned
+ * @param[in]  primIdx     primitive index fallback; prim pointer is authoritative
  * @param[in]  maxJoint    fixed slot count per vertex (typically 4)
  * @param[out] outIndices  buffer for vertexCount × maxJoint × sizeof(uint16_t)
  * @param[out] outWeights  buffer for vertexCount × maxJoint × sizeof(float)

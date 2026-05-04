@@ -56,6 +56,38 @@ ak_skinPrimitiveVertexCount(AkMeshPrimitive * __restrict prim) {
 }
 
 AK_INLINE
+AkBoneWeights*
+ak_skinWeightsForPrimitive(AkSkin          * __restrict skin,
+                           AkMeshPrimitive * __restrict prim,
+                           uint32_t                     primIdx) {
+  AkMeshPrimitive *it;
+  uint32_t         idx, srcIdx;
+
+  if (!skin || !skin->weights || skin->nPrims == 0)
+    return NULL;
+
+  if (prim && prim->mesh) {
+    idx = 0;
+    for (it = prim->mesh->primitive; it; it = it->next, idx++) {
+      if (it != prim)
+        continue;
+
+      if (idx < skin->nPrims) {
+        srcIdx = skin->nPrims - 1 - idx;
+        if (srcIdx < skin->nPrims && skin->weights[srcIdx])
+          return skin->weights[srcIdx];
+      }
+      break;
+    }
+  }
+
+  if (primIdx < skin->nPrims)
+    return skin->weights[primIdx];
+
+  return NULL;
+}
+
+AK_INLINE
 uint32_t
 ak_skinAccessorPairCapacity(AkMeshPrimitive * __restrict prim) {
   AkInput *inp;
@@ -335,7 +367,7 @@ ak_skinInterleave(AkSkin          * __restrict skin,
   if (!skin || !prim || !buff || maxJoint == 0)
     return 0;
 
-  bw        = skin->weights ? skin->weights[primIdx] : NULL;
+  bw        = ak_skinWeightsForPrimitive(skin, prim, primIdx);
   pairs     = NULL;
   pairCount = 0;
 
@@ -443,7 +475,7 @@ ak_skinFillWeights(AkSkin          * __restrict skin,
   /* missing slots, normalize so sum==1 (graceful degradation when N  */
   /* < authored joint count).                                         */
   /*------------------------------------------------------------------*/
-  if (skin->weights && (bw = skin->weights[primIdx])) {
+  if ((bw = ak_skinWeightsForPrimitive(skin, prim, primIdx))) {
     vCount = bw->nVertex;
     posCount = ak_skinPrimitiveVertexCount(prim);
     if (posCount > 0 && posCount < vCount)
@@ -552,7 +584,7 @@ ak_skinVerticesForJoint(AkSkin          * __restrict skin,
   found   = 0;
   written = 0;
 
-  if (skin->weights && (bw = skin->weights[primIdx])) {
+  if ((bw = ak_skinWeightsForPrimitive(skin, prim, primIdx))) {
     vCount = bw->nVertex;
     posCount = ak_skinPrimitiveVertexCount(prim);
     if (posCount > 0 && posCount < vCount)
