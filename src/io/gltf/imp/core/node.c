@@ -15,6 +15,7 @@
  */
 
 #include "node.h"
+#include "ext.h"
 #include "../../../../id.h"
 
 #include <ds/hash.h>
@@ -30,6 +31,7 @@
 #define k_rotation      7
 #define k_scale         8
 #define k_weights       9
+#define k_extensions    10
 
 AK_HIDE
 void
@@ -125,6 +127,7 @@ gltf_node(AkGLTFState * __restrict gst,
 
   node = ak_heap_calloc(heap, memParent, sizeof(*node));
   ak_setypeid(node, AKT_NODE);
+  node->visible = true;
 
   json_objmap_t nodeMap[] = {
     JSON_OBJMAP_OBJ(_s_gltf_name,        I2P k_name),
@@ -136,13 +139,20 @@ gltf_node(AkGLTFState * __restrict gst,
     JSON_OBJMAP_OBJ(_s_gltf_translation, I2P k_translation),
     JSON_OBJMAP_OBJ(_s_gltf_rotation,    I2P k_rotation),
     JSON_OBJMAP_OBJ(_s_gltf_scale,       I2P k_scale),
-    JSON_OBJMAP_OBJ(_s_gltf_weights,     I2P k_weights)
+    JSON_OBJMAP_OBJ(_s_gltf_weights,     I2P k_weights),
+    JSON_OBJMAP_OBJ(_s_gltf_extensions,  I2P k_extensions)
   };
 
   json_objmap(jnode, nodeMap, JSON_ARR_LEN(nodeMap));
 
   if ((it = nodeMap[k_name].object)) {
     node->name = json_strdup(it, heap, node);
+  }
+
+  if ((it = nodeMap[k_extensions].object)
+      && !gltf_ext_node(gst, node, it)) {
+    gst->stop = true;
+    return node;
   }
 
   if (gst->doc->lib.cameras
@@ -211,13 +221,11 @@ gltf_node(AkGLTFState * __restrict gst,
   if ((it = nodeMap[k_matrix].object)) {
     AkObject *obj;
     AkMatrix *matrix;
-    float     rawMatrix[4][4];
 
     obj    = ak_objAlloc(heap, node, sizeof(*matrix), AKT_MATRIX, true);
     matrix = ak_objGet(obj);
 
-    json_array_float(rawMatrix[0], it, 0.0f, 16, true);
-    glm_mat4_ucopy(rawMatrix, matrix->val);
+    json_array_float(matrix->val[0], it, 0.0f, 16, true);
 
     if (!node->transform) {
       node->transform = ak_heap_calloc(heap, node, sizeof(*node->transform));
@@ -281,30 +289,35 @@ gltf_node(AkGLTFState * __restrict gst,
     node->transform->item = obj;
   }
   
-  /* morph target weights */
+  /* morph instance + (optional) node-level weight override */
   if (geomIter && instGeom && (morph = rb_find(gst->meshTargets, geomIter))) {
     AkInstanceMorph *morpher;
-    AkFloatArray    *weights;
-    
+
     morpher = ak_heap_calloc(heap, node, sizeof(*morpher));
-    weights = ak_heap_calloc(heap,
-                             morpher,
-                             sizeof(*weights)
-                             + sizeof(weights->items[0]) * morph->targetCount);
+    ak_setypeid(morpher, AKT_MORPH_INST);
 
+    morpher->morph    = morph;
+    instGeom->morpher = morpher;
+
+    /* overrideWeights is set ONLY when the glTF node carries an explicit
+       "weights" property. Otherwise it stays NULL so that:
+         - ak_morphHasOverride()     returns false
+         - defaults flow through:    morph.defaultWeights → mesh.weights → 0
+       Allocating a zero-filled array unconditionally would silently override
+       any defaults — see ak_morphInspect_initialWeight precedence. */
     if ((it = json_array(nodeMap[k_weights].object))) {
+      AkFloatArray *weights;
       json_array_t *jsonArr;
-      jsonArr = it;
-      json_array_float(weights->items, it, 0.0f, jsonArr->count, true);
-    }
 
-    weights->count           = morph->targetCount;
-    
-    morpher->overrideWeights = weights;
-    morpher->morph           = rb_find(gst->meshTargets, geomIter);
-    instGeom->morpher        = morpher;
-    
-    /* TODO: what if there is no Geomerty? */
+      jsonArr = it;
+      weights = ak_heap_calloc(heap,
+                               morpher,
+                               sizeof(*weights)
+                               + sizeof(weights->items[0]) * morph->targetCount);
+      json_array_float(weights->items, it, 0.0f, jsonArr->count, true);
+      weights->count           = morph->targetCount;
+      morpher->overrideWeights = weights;
+    }
   }
   
   /* bind skinnerr after skin is loaded */

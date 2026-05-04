@@ -52,14 +52,14 @@ typedef enum AkMeshPrimitiveType {
 
 typedef enum AkTriangleMode {
   AK_TRIANGLES      = 1,
-  AK_TRIANGLE_STRIP = 2,
-  AK_TRIANGLE_FAN   = 3
+  AK_TRIANGLE_STRIP = 3,
+  AK_TRIANGLE_FAN   = 5
 } AkTriangleMode;
 
 typedef enum AkLineMode {
   AK_LINES      = 1,
-  AK_LINE_LOOP  = 2,
-  AK_LINE_STRIP = 3
+  AK_LINE_LOOP  = 3,
+  AK_LINE_STRIP = 5
 } AkLineMode;
 
 typedef struct AkVertices {
@@ -90,7 +90,7 @@ typedef struct AkMeshPrimitive {
   AkTree                 *extra;
   void                   *udata;
   AkMeshPrimitiveType     type;
-  uint32_t                count;
+  uint32_t                nPolygons;
   uint32_t                inputCount;
   AkFloat3                center;
 

@@ -39,7 +39,7 @@ dae_poly(DAEState * __restrict dst,
 
   poly->base.name         = xmla_strdup_by(xml, heap, _s_dae_name, poly);
   poly->base.bindmaterial = xmla_strdup_by(xml, heap, _s_dae_material, poly);
-  poly->base.count        = xmla_u32(xmla(xml, _s_dae_count), 0);
+  poly->base.nPolygons    = xmla_u32(xmla(xml, _s_dae_count), 0);
 
   polyi         = NULL;
   indexoff      = 0;
@@ -95,6 +95,7 @@ dae_poly(DAEState * __restrict dst,
         if (mode == AK_POLY_POLYLIST) {
           poly->base.indices = intArray;
         } else if (mode == AK_POLY_POLYGONS) {
+          /* TODO: do this for POLYLIST if vcount not exists */
           flist_sp_insert(&polyi, intArray);
           polygonsCount++;
           indicesCount += intArray->count;

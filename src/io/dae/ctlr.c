@@ -22,6 +22,7 @@ ak_baseGeometry(AkURL * __restrict baseurl) {
   void         *found;
   AkController *ctlr;
   AkSkinDAE    *skindae;
+  AkMorphDAE   *morphdae;
   AkTypeId      foundType;
 
   if ((found = ak_getObjectByUrl(baseurl))) {
@@ -30,10 +31,16 @@ ak_baseGeometry(AkURL * __restrict baseurl) {
       case AKT_GEOMETRY:
         return found;
       case AKT_CONTROLLER: {
+        /* `ctlr->data` is the cross-format AkSkin/AkMorph (no baseGeom).
+           DAE-specific URL lives on the AkSkinDAE/AkMorphDAE attached as
+           userData by the parser. */
         ctlr = found;
         if (ctlr->type == AK_CONTROLLER_SKIN
-            && (skindae = ctlr->data)) {
+            && (skindae = ak_userData(ctlr->data))) {
           return ak_baseGeometry(&skindae->baseGeom);
+        } else if (ctlr->type == AK_CONTROLLER_MORPH
+                   && (morphdae = ak_userData(ctlr->data))) {
+          return ak_baseGeometry(&morphdae->baseGeom);
         }
       }
       default: break;

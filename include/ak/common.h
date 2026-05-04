@@ -23,6 +23,7 @@
 #include <float.h>
 #include <stdbool.h>
 #include <errno.h>
+#include <math.h>
 
 #ifdef DEBUG
 #  include <assert.h>
@@ -81,7 +82,8 @@ typedef enum AkResult {
   AK_EFOUND   = -1000,
   AK_ENOMEM   = -ENOMEM,
   AK_EPERM    = -EPERM,
-  AK_EBADF    = -EBADF /* docoumnt couldn't parsed / loaded */
+  AK_EBADF    = -EBADF, /* docoumnt couldn't parsed / loaded */
+  AK_EINVAL   = -EINVAL
 } AkResult;
 
 typedef struct AkOneWayIterBase {
@@ -92,5 +94,20 @@ typedef struct AkTwoWayIterBase {
   struct AkTwoWayIterBase *next;
   struct AkTwoWayIterBase *prev;
 } AkTwoWayIterBase;
+
+#define AK_PATH_FROM_DOC(DOC, DEST, FILE_NAME)                                \
+  do {                                                                        \
+    size_t dirLength, newPathLength;                                          \
+                                                                              \
+    dirLength     = strlen(DOC->inf->dir);                                    \
+    newPathLength = dirLength + strlen(FILE_NAME) + 1;                        \
+                                                                              \
+    DEST = alloca(newPathLength + 1);                                         \
+    strcpy(DEST, DOC->inf->dir);                                              \
+    if (DOC->inf->dir[dirLength - 1] != '/' && FILE_NAME[0] != '/') {         \
+      strcat(DEST, "/");                                                      \
+    }                                                                         \
+    strcat(DEST, FILE_NAME);                                                  \
+  } while (0)
 
 #endif /* assetkit_common_h */

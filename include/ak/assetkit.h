@@ -194,6 +194,52 @@ typedef union AkColor {
   AK_ALIGN(16) AkFloat4    vec;
 } AkColor;
 
+AK_INLINE
+bool
+ak_colorLessThanOne(AkColor color) {
+  return color.rgba.R < 0.999
+      || color.rgba.G < 0.999
+      || color.rgba.B < 0.999
+      || color.rgba.A < 0.999
+  ;
+}
+
+AK_INLINE 
+float
+ak_sRGB_linearf(float channel) {
+  if (channel <= 0.04045) {
+    return channel / 12.92;
+  } else {
+    return powf((channel + 0.055) / 1.055, 2.4);
+  }
+}
+
+AK_INLINE
+float
+ak_linear_sRGBf(float channel) {
+  if (channel <= 0.0031308f) {
+    return channel * 12.92f;
+  } else {
+    return 1.055f * powf(channel, 1.0f / 2.4f) - 0.055f;
+  }
+}
+
+AK_INLINE
+void
+ak_sRGB_linear(AkColor * __restrict color) {
+  color->rgba.R = ak_sRGB_linearf(color->rgba.R);
+  color->rgba.G = ak_sRGB_linearf(color->rgba.G);
+  color->rgba.B = ak_sRGB_linearf(color->rgba.B);
+}
+
+AK_INLINE 
+void
+ak_linear_sRGB(AkColor * __restrict color) {
+  color->rgba.R = ak_linear_sRGBf(color->rgba.R);
+  color->rgba.G = ak_linear_sRGBf(color->rgba.G);
+  color->rgba.B = ak_linear_sRGBf(color->rgba.B);
+}
+
 typedef struct AkContributor {
   const char * author;
   const char * authorEmail;
@@ -279,6 +325,7 @@ typedef struct AkHexData {
 typedef struct AkInitFrom {
   struct AkInitFrom *next;
   const char        *ref;
+  const char        *resolvedFullPath;
   AkHexData         *hex;
   struct AkBuffer   *buff;
   const char        *buffMime;
@@ -458,23 +505,23 @@ struct AkSkin;
 
 typedef struct AkLibraries {
   struct AkLibrary *cameras;
-  struct AkLibrary *lights;
-  struct AkLibrary *effects;
-  struct AkLibrary *libimages;
-  struct AkLibrary *materials;
-  struct AkLibrary *geometries;
-  struct AkLibrary *controllers;
-  struct AkLibrary *visualScenes;
-  struct AkLibrary *nodes;
-  struct AkLibrary *animations;
-  
-  struct FListItem *buffers;
-  struct FListItem *accessors;
-  struct FListItem *textures;
-  struct FListItem *samplers;
-  struct FListItem *images;
-  struct AkMorph   *morphs;
-  struct AkSkin    *skins;
+  struct AkLibrary   *lights;
+  struct AkLibrary   *effects;
+  struct AkLibrary   *libimages;
+  struct AkLibrary   *materials;
+  struct AkLibrary   *geometries;
+  struct AkLibrary   *controllers;
+  struct AkLibrary   *visualScenes;
+  struct AkLibrary   *nodes;
+  struct AkLibrary   *animations;
+    
+  struct FListItem   *buffers;
+  struct FListItem   *accessors;
+  struct FListItem   *textures;
+  struct FListItem   *samplers;
+  struct FListItem   *images;
+  struct AkMorph     *morphs;
+  struct AkSkin      *skins;
 } AkLibraries;
 
 typedef const char* (*AkFetchFromURLHandler)(const char * __restrict url);
@@ -485,6 +532,8 @@ typedef struct AkDoc {
   AkUnit     *unit;
   AkTree     *extra;
   void       *reserved;
+  void       *userData;
+  float       loadMillis;
   AkLibraries lib;
   AkScene     scene;
 } AkDoc;

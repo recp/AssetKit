@@ -36,7 +36,7 @@ dae_lines(DAEState * __restrict dst,
 
   lines->base.name         = xmla_strdup_by(xml, heap, _s_dae_name, lines);
   lines->base.bindmaterial = xmla_strdup_by(xml, heap, _s_dae_material, lines);
-  lines->base.count        = xmla_u32(xmla(xml, _s_dae_count), 0);
+  lines->base.nPolygons    = xmla_u32(xmla(xml, _s_dae_count), 0);
   
   indexoff = 0;
   xml      = xml->val;

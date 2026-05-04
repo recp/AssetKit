@@ -17,6 +17,10 @@ option(AK_SHARED "Shared build" ON)
 option(AK_STATIC "Static build" OFF)
 option(AK_USE_C99 "" OFF)
 option(AK_USE_TEST "Enable Tests" OFF)
+option(AK_BUILD_GLTF_DRACO_DECODER "Build optional glTF Draco decoder shim" OFF)
+option(AK_BUILD_GLTF_MESHOPT_DECODER "Build optional glTF meshoptimizer decoder shim" OFF)
+set(AK_DRACO_ROOT "" CACHE PATH "Optional Draco install/source root")
+set(AK_MESHOPT_ROOT "" CACHE PATH "Optional meshoptimizer source root")
 
 if(NOT AK_STATIC AND AK_SHARED)
   set(AK_BUILD SHARED)
@@ -116,7 +120,111 @@ target_include_directories(${PROJECT_NAME}
         ${PROJECT_SOURCE_DIR}/deps/xml/include
 )
 
-target_link_libraries(${PROJECT_NAME} ds)
+target_link_libraries(${PROJECT_NAME} ds ${CMAKE_DL_LIBS})
+
+if(AK_BUILD_GLTF_DRACO_DECODER OR AK_BUILD_GLTF_MESHOPT_DECODER)
+  enable_language(CXX)
+endif()
+
+if(AK_BUILD_GLTF_DRACO_DECODER)
+  find_path(AK_DRACO_INCLUDE_DIR
+            NAMES draco/compression/decode.h
+            HINTS ${AK_DRACO_ROOT}
+                  ${AK_DRACO_ROOT}/include
+                  ${PROJECT_SOURCE_DIR}/deps/draco
+                  ${PROJECT_SOURCE_DIR}/deps/draco/include
+            PATH_SUFFIXES include)
+  find_library(AK_DRACO_LIBRARY
+               NAMES draco
+               HINTS ${AK_DRACO_ROOT}
+                     ${AK_DRACO_ROOT}/lib
+                     ${PROJECT_SOURCE_DIR}/deps/draco
+                     ${PROJECT_SOURCE_DIR}/deps/draco/lib
+               PATH_SUFFIXES lib)
+
+  if(NOT AK_DRACO_INCLUDE_DIR OR NOT AK_DRACO_LIBRARY)
+    message(FATAL_ERROR
+            "Draco decoder requested but Draco was not found. "
+            "Set AK_DRACO_ROOT or disable AK_BUILD_GLTF_DRACO_DECODER.")
+  endif()
+
+  add_library(assetkit_draco SHARED
+              extras/decoders/gltf/draco/assetkit_draco.cc)
+  target_include_directories(assetkit_draco
+      SYSTEM
+      PRIVATE
+          ${AK_DRACO_INCLUDE_DIR})
+  target_include_directories(assetkit_draco
+      PRIVATE
+          ${CMAKE_CURRENT_SOURCE_DIR}/include
+          ${CMAKE_CURRENT_SOURCE_DIR}/src
+          ${PROJECT_SOURCE_DIR}/deps/cglm/include
+          ${PROJECT_SOURCE_DIR}/deps/ds/include
+          ${PROJECT_SOURCE_DIR}/deps/json/include
+          ${PROJECT_SOURCE_DIR}/deps/xml/include)
+  target_link_libraries(assetkit_draco
+      PRIVATE
+          ${PROJECT_NAME}
+          ds
+          ${AK_DRACO_LIBRARY})
+  set_target_properties(assetkit_draco PROPERTIES
+                        CXX_STANDARD 11
+                        CXX_STANDARD_REQUIRED YES
+                        CXX_VISIBILITY_PRESET hidden
+                        VISIBILITY_INLINES_HIDDEN YES)
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(assetkit_draco
+        PRIVATE
+            -Wno-deprecated-copy-with-user-provided-copy
+            -Wno-ignored-qualifiers
+            -Wno-implicit-const-int-float-conversion
+            -Wno-sign-compare)
+  endif()
+
+  install(TARGETS assetkit_draco
+          LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+          RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endif()
+
+if(AK_BUILD_GLTF_MESHOPT_DECODER)
+  find_path(AK_MESHOPT_INCLUDE_DIR
+            NAMES meshoptimizer.h
+            HINTS ${AK_MESHOPT_ROOT}
+                  ${AK_MESHOPT_ROOT}/src
+                  ${PROJECT_SOURCE_DIR}/deps/meshoptimizer
+                  ${PROJECT_SOURCE_DIR}/deps/meshoptimizer/src
+            PATH_SUFFIXES src)
+  set(AK_MESHOPT_SOURCES
+      ${AK_MESHOPT_INCLUDE_DIR}/indexcodec.cpp
+      ${AK_MESHOPT_INCLUDE_DIR}/vertexcodec.cpp
+      ${AK_MESHOPT_INCLUDE_DIR}/vertexfilter.cpp)
+
+  if(NOT AK_MESHOPT_INCLUDE_DIR
+     OR NOT EXISTS "${AK_MESHOPT_INCLUDE_DIR}/indexcodec.cpp"
+     OR NOT EXISTS "${AK_MESHOPT_INCLUDE_DIR}/vertexcodec.cpp"
+     OR NOT EXISTS "${AK_MESHOPT_INCLUDE_DIR}/vertexfilter.cpp")
+    message(FATAL_ERROR
+            "meshoptimizer decoder requested but source files were not found. "
+            "Set AK_MESHOPT_ROOT to a meshoptimizer checkout or disable "
+            "AK_BUILD_GLTF_MESHOPT_DECODER.")
+  endif()
+
+  add_library(assetkit_meshoptimizer SHARED
+              extras/decoders/gltf/meshopt/assetkit_meshoptimizer.cc
+              ${AK_MESHOPT_SOURCES})
+  target_include_directories(assetkit_meshoptimizer
+      PRIVATE
+          ${AK_MESHOPT_INCLUDE_DIR})
+  set_target_properties(assetkit_meshoptimizer PROPERTIES
+                        CXX_STANDARD 11
+                        CXX_STANDARD_REQUIRED YES
+                        CXX_VISIBILITY_PRESET hidden
+                        VISIBILITY_INLINES_HIDDEN YES)
+
+  install(TARGETS assetkit_meshoptimizer
+          LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+          RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endif()
 
 # Test Configuration
 if(AK_USE_TEST)

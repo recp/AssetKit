@@ -19,9 +19,17 @@
 
 #include "../common.h"
 
-AK_HIDE AkFloatOrParam*
-dae_floatOrParam(DAEState * __restrict dst,
-                 xml_t    * __restrict xml,
-                 void     * __restrict memp);
+//AK_HIDE AkFloatOrParam*
+//dae_floatOrParam(DAEState * __restrict dst,
+//                 xml_t    * __restrict xml,
+//                 void     * __restrict memp);
+
+AK_HIDE
+float
+dae_float(DAEState * __restrict dst,
+          xml_t    * __restrict xml,
+          void     * __restrict memp,
+          size_t                off,
+          float                 defaultVal);
 
 #endif /* dae_fltprm_h */

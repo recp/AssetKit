@@ -4,6 +4,7 @@ target_sources(${PROJECT_NAME}
   ${CSources}
 )
 
+add_subdirectory(anim)
 add_subdirectory(bbox)
 add_subdirectory(bitwise)
 add_subdirectory(camera)
@@ -19,8 +20,10 @@ add_subdirectory(mem)
 add_subdirectory(mesh)
 add_subdirectory(morph)
 add_subdirectory(node)
+add_subdirectory(platform)
 add_subdirectory(resc)
 add_subdirectory(skin)
+add_subdirectory(topo)
 add_subdirectory(transform)
 add_subdirectory(miniz)
 

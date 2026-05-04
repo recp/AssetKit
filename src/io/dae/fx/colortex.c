@@ -19,40 +19,40 @@
 #include "../core/color.h"
 #include "../core/enum.h"
 
-AK_HIDE AkColorDesc*
-dae_colorOrTex(DAEState * __restrict dst,
-               xml_t    * __restrict xml,
-               void     * __restrict memp) {
+AK_HIDE
+void
+dae_colorOrTexSet(DAEState    * __restrict dst,
+                  xml_t       * __restrict xml,
+                  void        * __restrict memp,
+                  AkColorDesc * __restrict clr) {
   AkHeap      *heap;
-  AkColorDesc *clr;
 
   heap = dst->heap;
-  clr  = ak_heap_calloc(heap, memp, sizeof(*clr));
+  xml  = xml->val;
 
-  xml = xml->val;
   while (xml) {
     if (xml_tag_eq(xml, _s_dae_color)) {
-      clr->color = ak_heap_calloc(heap, clr, sizeof(*clr->color));
+      clr->color = ak_heap_calloc(heap, memp, sizeof(*clr->color));
       dae_color(xml, clr->color, true, false, clr->color);
     } else if (xml_tag_eq(xml, _s_dae_texture)) {
       AkDAETextureRef *tex;
-      
-      tex = ak_heap_calloc(heap, clr, sizeof(*tex));
+
+      tex = ak_heap_calloc(heap, memp, sizeof(*tex));
       ak_setypeid(tex, AKT_TEXTURE);
-      
+
       tex->texture  = xmla_strdup(xmla(xml, _s_dae_texture),  heap, tex);
       tex->texcoord = xmla_strdup(xmla(xml, _s_dae_texcoord), heap, tex);
-      
+
       if (tex->texture)
         ak_setypeid((void *)tex->texture, AKT_TEXTURE_NAME);
-      
+
       if (tex->texcoord)
         ak_setypeid((void *)tex->texcoord, AKT_TEXCOORD);
-      
+
       rb_insert(dst->texmap, clr, tex);
     } else if (xml_tag_eq(xml, _s_dae_param)) {
       AkParam *param;
-      
+
       if ((param = dae_param(dst, xml, clr))) {
         if (clr->param)
           clr->param->prev = param;
@@ -63,6 +63,4 @@ dae_colorOrTex(DAEState * __restrict dst,
     }
     xml = xml->next;
   }
-
-  return clr;
 }

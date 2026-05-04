@@ -28,6 +28,58 @@ ak_fixBoneWeights(AkHeap        *heap,
                   uint32_t       jointOffset,
                   uint32_t       weightsOffset);
 
+AK_INLINE
+uint32_t
+ak_daeSafeWeightCount(AkBoneWeights * __restrict intrWeights,
+                      AkUIntArray   * __restrict v,
+                      uint32_t                   viStride,
+                      size_t                     oldIdx) {
+  uint32_t *pCount;
+  uint32_t *pSum;
+  size_t    off;
+  size_t    avail;
+  uint32_t  count;
+
+  if (!intrWeights || !intrWeights->counts || !v || viStride == 0)
+    return 0;
+  if (oldIdx >= intrWeights->nVertex)
+    return 0;
+
+  pCount = intrWeights->counts;
+  pSum   = intrWeights->counts + intrWeights->nVertex;
+  off    = pSum[oldIdx];
+  count  = pCount[oldIdx];
+
+  if (off > v->count / viStride)
+    return 0;
+
+  avail = v->count / viStride - off;
+  if (count > avail)
+    count = (uint32_t)avail;
+
+  return count;
+}
+
+AK_INLINE
+float
+ak_daeReadSkinWeight(AkAccessor * __restrict acc,
+                     uint32_t                idx) {
+  AkBuffer *buff;
+  char     *base;
+  size_t    stride;
+  float     val;
+
+  if (!acc || idx >= acc->count || !(buff = acc->buffer) || !buff->data)
+    return 0.0f;
+
+  stride = acc->byteStride ? acc->byteStride : sizeof(float);
+  base   = (char *)buff->data + acc->byteOffset;
+
+  memcpy(&val, base + (size_t)idx * stride, sizeof(val));
+
+  return val;
+}
+
 AK_HIDE
 void
 dae_fixup_ctlr(DAEState * __restrict dst) {
@@ -62,17 +114,23 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
             mesh          = ak_objGet(geom->gdata);
             prim          = mesh->primitive;
             intrWeights   = (void *)skin->weights;
+            if (!intrWeights || !intrWeights->counts)
+              goto nxt_ctlr;
+
             primIndex     = 0;
             meshInfo      = rb_find(dst->meshInfo, mesh);
-            skin->weights = ak_heap_alloc(dst->heap,
-                                          ctlr->data,
-                                          sizeof(void *)
-                                          * mesh->primitiveCount);
 
             jointswInp  = skindae->weights.joints;
             weightsInp  = skindae->weights.weights;
-            weightsAcc  = weightsInp->accessor;
-            nMeshVertex = meshInfo->nVertex;
+            if (!jointswInp || !weightsInp || !(weightsAcc = weightsInp->accessor))
+              goto nxt_ctlr;
+
+            skin->weights = ak_heap_calloc(dst->heap,
+                                           ctlr->data,
+                                           sizeof(void *)
+                                           * mesh->primitiveCount);
+
+            nMeshVertex = meshInfo ? meshInfo->nVertex : intrWeights->nVertex;
 
             flist_sp_insert(&mesh->skins, skin);
 
@@ -82,17 +140,27 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
               AkDuplicator  *dupl;
               size_t         count;
 
-              posAcc  = prim->pos->accessor;
-              count   = GLM_MAX(posAcc->count, 1);
+              if (!prim->pos || !(posAcc = prim->pos->accessor)) {
+                primIndex++;
+                prim = prim->next;
+                continue;
+              }
+
               dupl    = rb_find(doc->reserved, prim);
+              count = 0;
+              if (dupl && dupl->range)
+                count = dupl->bufCount + dupl->dupCount;
+              if (count == 0)
+                count = posAcc->count;
+
               weights = ak_heap_calloc(dst->heap, ctlr->data, sizeof(*weights));
 
-              weights->counts  = ak_heap_alloc(dst->heap,
-                                               ctlr->data,
-                                               count * sizeof(uint32_t));
-              weights->indexes = ak_heap_alloc(dst->heap,
-                                               ctlr->data,
-                                               count * sizeof(size_t));
+              weights->counts  = ak_heap_calloc(dst->heap,
+                                                ctlr->data,
+                                                count * sizeof(uint32_t));
+              weights->indexes = ak_heap_calloc(dst->heap,
+                                                ctlr->data,
+                                                count * sizeof(size_t));
 
               weights->nVertex = count;
 
@@ -122,12 +190,168 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
         }
         break;
       }
+      case AK_CONTROLLER_MORPH: {
+        AkMorph       *morph;
+        AkMorphDAE    *morphdae;
+        AkGeometry    *baseGeom;
+        AkInput       *input, *targetInput, *weightInput;
+        AkAccessor    *targetAcc, *weightAcc;
+        AkBuffer      *targetBuff, *weightBuff;
+        AkMorphTarget *prevTarget;
+        uint32_t       basePrimCount;
+        size_t         count, i;
+        AkContext      sidCtx = { .doc = doc };
+
+        morph    = ctlr->data;
+        morphdae = ak_userData(morph);
+        if (!(baseGeom = ak_baseGeometry(&morphdae->baseGeom)))
+          goto nxt_ctlr;
+
+        /* DAE morph has exactly one MORPH_TARGET input (a NAME/IDREF/SIDREF
+           array of per-target geometries) and one MORPH_WEIGHT input (a
+           float array of default weights). Split the chain so we can walk
+           targets while still having the weights handy for defaultWeights. */
+        targetInput = weightInput = NULL;
+        for (input = morphdae->input; input; input = input->next) {
+          if      (input->semantic == AK_INPUT_MORPH_TARGET) targetInput = input;
+          else if (input->semantic == AK_INPUT_MORPH_WEIGHT) weightInput = input;
+        }
+        if (!targetInput || !(targetAcc = targetInput->accessor)
+            || !(targetBuff = targetAcc->buffer)
+            || !targetBuff->data
+            || targetAcc->count == 0)
+          goto nxt_ctlr;
+
+        /* Per AkMorphTarget, primitiveCount mirrors the base mesh — DAE
+           assumes target geometries share the base topology (same prim
+           layout, same vertex count). Compute once. */
+        basePrimCount = (baseGeom->gdata
+                         && baseGeom->gdata->type == AK_GEOMETRY_MESH)
+                          ? ((AkMesh *)ak_objGet(baseGeom->gdata))->primitiveCount
+                          : 1;
+
+        /* Build AkMorphTarget chain in source order (tail-insert). DAE
+           animation channels reference targets via position — preserving
+           parse order keeps weight indices aligned with the source <Name>
+           array. */
+        count      = targetAcc->count;
+        prevTarget = NULL;
+
+        for (i = 0; i < count; i++) {
+          const char    *id;
+          void          *resolved;
+          AkObject      *wrap;
+          AkMorphTarget *target;
+          const char   **idArr;
+
+          /* Source array entries are typed by the accessor's componentType.
+             COLLADA 1.4/1.5 spec lists IDREF and Name as the typical morph
+             target source types; SIDREF is technically allowed via the
+             generic <param> mechanism. */
+          idArr = targetBuff->data;
+          if (!(id = idArr[i])) continue;
+
+          switch (targetAcc->componentType) {
+            case AKT_IDREF:
+            case AKT_NAME:
+              resolved = ak_getObjectById(doc, id);
+              break;
+            case AKT_SIDREF:
+              /* SIDREF source-array entries store the absolute scoped
+                 path (e.g. "geom_id/sid_path"). Resolve directly via
+                 ak_sid_resolve — `ak_sid_resolve_from` is for
+                 already-split (id, sid) pairs and would mis-prefix
+                 the path here. */
+              resolved = ak_sid_resolve(&sidCtx, id, NULL);
+              break;
+            default:
+              resolved = NULL;
+              break;
+          }
+          if (!resolved || ak_typeid(resolved) != AKT_GEOMETRY)
+            continue;
+
+          /* AkObject wrap carries the type tag used by intr.c switch
+             dispatch. Payload is one pointer-sized slot storing the
+             AkGeometry* — read back via ak_objGetTarget on C/Swift sides.
+             The geometry itself stays in doc->lib.geometries with its own
+             lifetime; this wrap just references it. */
+          wrap                   = ak_objAlloc(dst->heap, morph,
+                                               sizeof(AkGeometry *),
+                                               AK_MORPHABLE_GEOMETRY,
+                                               true);
+          ak_objGetTarget(wrap)  = (AkGeometry *)resolved;
+
+          target                 = ak_heap_calloc(dst->heap, morph,
+                                                  sizeof(*target));
+          target->target         = wrap;
+          target->primitiveCount = basePrimCount;
+
+          if (prevTarget) prevTarget->next = target;
+          else            morph->target    = target;
+          prevTarget = target;
+          morph->targetCount++;
+        }
+
+        if (morph->targetCount == 0)
+          goto nxt_ctlr;
+
+        /* MORPH_WEIGHT → defaultWeights. Spec requires the weight array's
+           length to match the target count; if it mismatches we still take
+           min(count, targetCount) so partial assets don't silently drop
+           on the floor. */
+        if (weightInput
+            && (weightAcc  = weightInput->accessor)
+            && (weightBuff = weightAcc->buffer)
+            && weightBuff->data
+            && weightAcc->count > 0) {
+          AkFloatArray *defaults;
+          float        *src;
+          size_t        nWeights;
+
+          nWeights = weightAcc->count < morph->targetCount
+                       ? weightAcc->count
+                       : morph->targetCount;
+
+          defaults = ak_heap_alloc(dst->heap, morph,
+                                   sizeof(*defaults)
+                                    + sizeof(float) * nWeights);
+          defaults->count = nWeights;
+
+          /* Weights are stored densely in the source's accessor; respect
+             stride for safety (DAE float source from <float_array> is
+             typically tightly packed but technically allowed to be
+             interleaved within its <source>). */
+          src = weightBuff->data;
+          if (weightAcc->byteStride
+              && weightAcc->byteStride != sizeof(float)) {
+            char *base = (char *)src + weightAcc->byteOffset;
+            for (i = 0; i < nWeights; i++) {
+              defaults->items[i] =
+                *(float *)(base + i * weightAcc->byteStride);
+            }
+          } else {
+            src = (float *)((char *)src + weightAcc->byteOffset);
+            for (i = 0; i < nWeights; i++)
+              defaults->items[i] = src[i];
+          }
+
+          morph->defaultWeights = defaults;
+        }
+
+        /* Register geom→morph for instance hookup later (DAE node walker
+           reads meshTargets to attach AkInstanceMorph when it sees an
+           <instance_controller> referring to a morph controller). */
+        rb_insert(dst->meshTargets, baseGeom, morph);
+
+        break;
+      }
       default:
         break;
     }
 
   nxt_ctlr:
-    ctlr = ctlr->next;
+    ctlr = (AkController *)ctlr->base.next;
   }
 }
 
@@ -144,6 +368,8 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
 
   item = dst->instCtlrs;
   while (item) {
+    AkMorphDAE *morphdae;
+
     instCtlr = item->data;
     ctlr     = ak_instanceObject(&instCtlr->base);
     node     = instCtlr->base.node;
@@ -213,20 +439,107 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
           skin->nJoints            = count;
           skin->invBindPoses       = invm;
 
+          /* DAE persists skeleton root as <skeleton> URL on each
+             <instance_controller>; the same skin can be re-used with
+             different skeletons per instance, but for a single-instance
+             setup the first URL is a faithful AkSkin.skeleton hint.
+             Fall back silently when missing — callers default to
+             joints[0]. */
+          if (!skin->skeleton && instCtlr->reserved) {
+            const char *skelUrl = instCtlr->reserved->data;
+            void       *resolved;
+            if (skelUrl
+                && (resolved = ak_getObjectById(dst->doc, skelUrl + 1))
+                && ak_typeid(resolved) == AKT_NODE) {
+              skin->skeleton = resolved;
+            }
+          }
+
           instSkin->skin           = skin;
           instSkin->overrideJoints = joints;
-          
+
+          /* COLLADA permits chained controllers — skin's source can be
+             another controller (typically a morph from Maya):
+                 <skin source="#someMorph"/>
+                 <morph source="#baseGeom"/>
+             Single-level lookahead is enough: AkInstanceGeometry has
+             one morpher + one skinner slot, and no GPU renderer
+             (SceneKit / Three.js / Filament / typical Metal/Vulkan
+             pipelines) consumes a deeper controller stack — the spec's
+             "arbitrary recursion" was never adopted in practice.
+             ak_baseGeometry() collapses the rest of the chain when
+             resolving `base.object`. */
+          {
+            void *src = ak_getObjectByUrl(&skindae->baseGeom);
+            if (src && ak_typeid(src) == AKT_CONTROLLER) {
+              AkController *intermediate = src;
+              if (intermediate->type == AK_CONTROLLER_MORPH) {
+                AkMorphDAE      *morphdae2;
+                AkInstanceMorph *instMorph;
+                morphdae2 = ak_userData(intermediate->data);
+                instMorph = ak_heap_calloc(dst->heap, node,
+                                           sizeof(*instMorph));
+                instMorph->morph           = intermediate->data;
+                instMorph->overrideWeights = NULL;
+                instGeom->morpher          = instMorph;
+                (void)morphdae2;
+              }
+              /* skin→skin nesting is exotic and the data model can't
+                 represent two skinners — silently use the outer one. */
+            }
+            instGeom->base.object = ak_baseGeometry(&skindae->baseGeom);
+          }
+
           /* create instance geometry for skin */
           instGeom->skinner        = instSkin;
           instGeom->bindMaterial   = instCtlr->bindMaterial;
-          instGeom->base.object    = skindae->baseGeom.ptr;
           ak_heap_setpm(instCtlr->bindMaterial, instGeom);
-          
+
           instGeom->base.next = (AkInstanceBase *)node->geometry;
           if (node->geometry)
             node->geometry->base.prev = (AkInstanceBase *)instGeom;
           node->geometry = instGeom;
         }
+        break;
+      }
+      case AK_CONTROLLER_MORPH: {
+        AkInstanceMorph *instMorph;
+        AkMorph         *morph;
+
+        morph     = ctlr->data;
+        morphdae  = ak_userData(morph);
+        instMorph = ak_heap_calloc(dst->heap, node, sizeof(*instMorph));
+
+        instMorph->morph           = morph;
+        instMorph->overrideWeights = NULL; /* DAE has no per-instance weights;
+                                              animation drives morph.targets   */
+
+        instGeom->morpher          = instMorph;
+        instGeom->bindMaterial     = instCtlr->bindMaterial;
+
+        /* Symmetric to SKIN case: morph→skin→geom is rare but spec-allowed.
+           Single-level lookahead; deeper chains collapse via ak_baseGeometry. */
+        {
+          void *src = ak_getObjectByUrl(&morphdae->baseGeom);
+          if (src && ak_typeid(src) == AKT_CONTROLLER) {
+            AkController *intermediate = src;
+            if (intermediate->type == AK_CONTROLLER_SKIN) {
+              AkInstanceSkin *instSkin = ak_heap_calloc(dst->heap, node,
+                                                        sizeof(*instSkin));
+              instSkin->skin           = intermediate->data;
+              instSkin->overrideJoints = NULL; /* picked up from default joints */
+              instGeom->skinner        = instSkin;
+            }
+          }
+        }
+        instGeom->base.object = ak_baseGeometry(&morphdae->baseGeom);
+        ak_heap_setpm(instCtlr->bindMaterial, instGeom);
+
+        instGeom->base.next = (AkInstanceBase *)node->geometry;
+        if (node->geometry)
+          node->geometry->base.prev = (AkInstanceBase *)instGeom;
+        node->geometry = instGeom;
+        break;
       }
       default: break;
     }
@@ -249,51 +562,81 @@ ak_fixBoneWeights(AkHeap        *heap,
   AkBoneWeight *w, *iw;
   AkBuffer     *weightsBuff;
   AkUIntArray  *dupc, *dupcsum, *v;
-  float        *pWeights;
-  uint32_t     *pv, *pOldCount, *pOldCountSum;
+  uint32_t     *pv, *pOldCountSum, *old;
   size_t       *wi, vc, d, s, pno, poo, nwsum, newidx, next, tmp;
-  uint32_t     *nj, i, j, k, vcount, count, viStride;
+  uint32_t     *nj, i, j, k, vcount, viStride, widx;
+  bool          useDupl;
 
-  dupc    = duplicator->range->dupc;
-  dupcsum = duplicator->range->dupcsum;
-  vc      = nMeshVertex;
-  nj      = weights->counts;
-  wi      = weights->indexes;
-  skindae = ak_userData(skin);
-  nwsum   = count = 0;
+  if (!skin || !intrWeights || !weights || !weightsAcc)
+    return AK_ERR;
 
-  if (!(weightsBuff = weightsAcc->buffer)
-      || !(pWeights = weightsBuff->data)
+  skindae  = ak_userData(skin);
+  dupc     = NULL;
+  dupcsum  = NULL;
+  useDupl  = false;
+  nj       = weights->counts;
+  wi       = weights->indexes;
+  nwsum    = 0;
+
+  if (duplicator && duplicator->range) {
+    dupc    = duplicator->range->dupc;
+    dupcsum = duplicator->range->dupcsum;
+    useDupl = dupc && dupcsum;
+  }
+
+  if (!nj || !wi
+      || !intrWeights->counts
+      || !(weightsBuff = weightsAcc->buffer)
+      || !weightsBuff->data
       || !(v        = skindae->weights.v)
       || !(pv       = v->items))
     return AK_ERR;
 
-#ifdef DEBUG
-  assert(nMeshVertex == intrWeights->nVertex);
-#endif
-
-  pOldCount    = intrWeights->counts;
   pOldCountSum = intrWeights->counts + intrWeights->nVertex;
   viStride     = skindae->inputCount; /* input count in <v> element */
+  if (viStride == 0
+      || jointOffset >= viStride
+      || weightsOffset >= viStride)
+    return AK_ERR;
+
+  vc = nMeshVertex;
+  if (intrWeights->nVertex < vc)
+    vc = intrWeights->nVertex;
+  if (useDupl && dupc->count < vc)
+    vc = dupc->count;
+  if (!useDupl && weights->nVertex < vc)
+    vc = weights->nVertex;
 
   /* copy to new location and duplicate if needed */
-  for (i = 0; i < vc; i++) {
-    if ((poo = dupc->items[3 * i + 2]) == 0)
-      continue;
+  if (useDupl) {
+    for (i = 0; i < vc; i++) {
+      if ((poo = dupc->items[3 * i + 2]) == 0)
+        continue;
 
-    pno    = dupc->items[3 * i];
-    d      = dupc->items[3 * i + 1];
-    s      = dupcsum->items[pno];
-    vcount = pOldCount[poo - 1];
+      pno    = dupc->items[3 * i];
+      d      = dupc->items[3 * i + 1];
+      if (pno >= dupcsum->count)
+        continue;
 
-    for (j = 0; j <= d; j++) {
-      newidx     = pno + j + s;
-      wi[newidx] = vcount;
-      nj[newidx] = vcount;
+      s      = dupcsum->items[pno];
+      vcount = ak_daeSafeWeightCount(intrWeights, v, viStride, poo - 1);
+
+      for (j = 0; j <= d; j++) {
+        newidx = pno + j + s;
+        if (newidx >= weights->nVertex)
+          continue;
+        wi[newidx] = vcount;
+        nj[newidx] = vcount;
+        nwsum     += vcount;
+      }
     }
-
-    nwsum += vcount * (d + 1);
-    count++;
+  } else {
+    for (i = 0; i < vc; i++) {
+      vcount = ak_daeSafeWeightCount(intrWeights, v, viStride, i);
+      wi[i]  = vcount;
+      nj[i]  = vcount;
+      nwsum += vcount;
+    }
   }
 
   /* prepare weight index */
@@ -304,32 +647,54 @@ ak_fixBoneWeights(AkHeap        *heap,
   }
 
   /* now we know the size of arrays: weights, pJointsCount, npWeightsIndex */
-  w     = ak_heap_alloc(heap, weights, sizeof(*w) * nwsum);
+  w     = nwsum > 0 ? ak_heap_alloc(heap, weights, sizeof(*w) * nwsum) : NULL;
   nwsum = 0;
 
-  for (i = 0; i < vc; i++) {
-    uint32_t *old;
+  if (useDupl) {
+    for (i = 0; i < vc; i++) {
+      if ((poo = dupc->items[3 * i + 2]) == 0)
+        continue;
+      pno    = dupc->items[3 * i];
+      d      = dupc->items[3 * i + 1];
+      if (pno >= dupcsum->count)
+        continue;
 
-    if ((poo = dupc->items[3 * i + 2]) == 0)
-      continue;
+      s      = dupcsum->items[pno];
+      vcount = ak_daeSafeWeightCount(intrWeights, v, viStride, poo - 1);
+      old    = &pv[pOldCountSum[poo - 1] * viStride];
 
-    pno    = dupc->items[3 * i];
-    d      = dupc->items[3 * i + 1];
-    s      = dupcsum->items[pno];
-    vcount = pOldCount[poo - 1];
-    old    = &pv[pOldCountSum[poo - 1] * viStride];
+      for (j = 0; j <= d; j++) {
+        tmp = pno + j + s;
+        if (tmp >= weights->nVertex)
+          continue;
 
-    for (j = 0; j <= d; j++) {
-      newidx = wi[pno + j + s];
+        newidx = wi[tmp];
 
-      for (k = 0; k < vcount; k++) {
-        iw         = &w[newidx + k];
-        iw->joint  = old[k * viStride + jointOffset];
-        iw->weight = pWeights[old[k * viStride + weightsOffset]];
+        for (k = 0; k < vcount; k++) {
+          widx       = old[k * viStride + weightsOffset];
+          iw         = &w[newidx + k];
+          iw->joint  = old[k * viStride + jointOffset];
+          iw->weight = ak_daeReadSkinWeight(weightsAcc, widx);
+        }
+
+        nwsum += vcount;
       }
     }
+  } else {
+    for (i = 0; i < vc; i++) {
+      vcount = ak_daeSafeWeightCount(intrWeights, v, viStride, i);
+      old    = &pv[pOldCountSum[i] * viStride];
+      newidx = wi[i];
 
-    nwsum += vcount * (d + 1);
+      for (k = 0; k < vcount; k++) {
+        widx       = old[k * viStride + weightsOffset];
+        iw         = &w[newidx + k];
+        iw->joint  = old[k * viStride + jointOffset];
+        iw->weight = ak_daeReadSkinWeight(weightsAcc, widx);
+      }
+
+      nwsum += vcount;
+    }
   }
 
   weights->weights  = w;

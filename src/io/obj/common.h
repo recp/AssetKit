@@ -51,6 +51,7 @@ typedef struct WOMtl {
   float sharpness; /* The default is 60   */
   int   illum;
   bool  map_aat;
+  bool  has_Ns;
 } WOMtl;
 
 typedef struct WOMtlLib {

@@ -63,12 +63,15 @@ wobj_finishPrim(WOState  * __restrict wst,
                                   poly,
                                   sizeof(*poly->vcount)
                                   + wp->dc_vcount->usedsize);
-    poly->vcount->count = wp->dc_vcount->itemcount;
+
+    poly->vcount->count  = wp->dc_vcount->itemcount;
+    poly->base.nPolygons = (uint32_t)poly->vcount->count;
+
     ak_data_join(wp->dc_vcount, poly->vcount->items, 0, 0);
-    
+
     prim = (AkMeshPrimitive *)poly;
   }
-  
+
   prim->mesh      = mesh;
   prim->next      = mesh->primitive;
   mesh->primitive = prim;
@@ -90,6 +93,10 @@ wobj_finishPrim(WOState  * __restrict wst,
    
   /* fix indices */
   wobj_joinIndices(wst, wp, prim);
+
+  if (wp->maxVC == 3) {
+    prim->nPolygons = (uint32_t)prim->indices->count / 3;
+  }
 }
 
 AK_HIDE

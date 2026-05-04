@@ -130,6 +130,7 @@ wobj_mtl(WOState    * __restrict wst,
               case 's':
                 p += 2;
                 ak_strtof_line(p, 0, 1, &mtl->Ns);
+                mtl->has_Ns = true;
                 break;
               case 'i':
                 p += 2;
@@ -277,15 +278,13 @@ wobj_cmnEffect(WOState * __restrict wst) {
 }
 
 AK_INLINE
-AkColorDesc*
-wobj_clrtex(WOState    * __restrict wst,
-            void       * __restrict memp,
-            float      *            rgb,
-            char       * __restrict map) {
-  AkColorDesc *clr;
+void
+wobj_clrtexset(WOState     * __restrict wst,
+               void        * __restrict memp,
+               float       *            rgb,
+               char        * __restrict map,
+               AkColorDesc * __restrict clr) {
 
-  clr = ak_heap_calloc(wst->heap, memp, sizeof(*clr));
-  
   if (rgb) {
     clr->color = ak_heap_calloc(wst->heap, clr,  sizeof(*clr->color));
     glm_vec3_copy(rgb, clr->color->vec);
@@ -295,39 +294,51 @@ wobj_clrtex(WOState    * __restrict wst,
   if (map) {
     clr->texture = wobj_texref(wst, memp, map);
   }
-
-  return clr;
 }
 
 AK_INLINE
-AkFloatOrParam*
-wobj_flt(AkHeap * __restrict heap,
-         void   * __restrict memp,
-         float               val) {
-  AkFloatOrParam *flt;
-
-  flt       = ak_heap_calloc(heap, memp, sizeof(*flt));
-  flt->val  = ak_heap_calloc(heap, flt, sizeof(*flt->val));
-  *flt->val = val;
-
-  return flt;
+AkColorDesc*
+wobj_clrtex(WOState    * __restrict wst,
+            void       * __restrict memp,
+            float      *            rgb,
+            char       * __restrict map) {
+  AkColorDesc *clr;
+  clr = ak_heap_calloc(wst->heap, memp, sizeof(*clr));
+  wobj_clrtexset(wst, memp, rgb, map, clr);
+  return clr;
 }
+
+//AK_INLINE
+//AkFloatOrParam*
+//wobj_flt(AkHeap * __restrict heap,
+//         void   * __restrict memp,
+//         float               val) {
+//  AkFloatOrParam *flt;
+//
+//  flt       = ak_heap_calloc(heap, memp, sizeof(*flt));
+//  flt->val  = ak_heap_calloc(heap, flt, sizeof(*flt->val));
+//  *flt->val = val;
+//
+//  return flt;
+//}
 
 static
 void
 wobj_handleMaterial(WOState  * __restrict wst,
                     WOMtlLib * __restrict mtllib,
                     WOMtl    * __restrict mtl) {
-  AkHeap               *heap;
-  AkDoc                *doc;
-  AkLibrary            *libmat;
-  AkProfileCommon      *pcommon;
-  AkTechniqueFx        *technfx;
-  AkTechniqueFxCommon  *cmnTechn;
-  AkEffect             *effect;
-  AkInstanceEffect     *ieff;
-  AkMaterial           *mat;
- 
+  AkHeap                 *heap;
+  AkDoc                  *doc;
+  AkLibrary              *libmat;
+  AkProfileCommon        *pcommon;
+  AkTechniqueFx          *technfx;
+  AkTechniqueFxCommon    *cmnTechn;
+  AkEffect               *effect;
+  AkInstanceEffect       *ieff;
+  AkMaterial             *mat;
+  AkMaterialSpecularProp *specularProp;
+  AkMaterialEmissionProp *emissionProp;
+
   heap = wst->heap;
   doc  = wst->doc;
   
@@ -356,14 +367,22 @@ wobj_handleMaterial(WOState  * __restrict wst,
     default:
       break;
   }
-  
-  cmnTechn->ambient  = wobj_clrtex(wst, cmnTechn, mtl->Ka, mtl->map_Ka);
-  cmnTechn->diffuse  = wobj_clrtex(wst, cmnTechn, mtl->Kd, mtl->map_Kd);
-  cmnTechn->specular = wobj_clrtex(wst, cmnTechn, mtl->Ks, mtl->map_Ks);
-  cmnTechn->emission = wobj_clrtex(wst, cmnTechn, mtl->Ke, mtl->map_Ke);
 
-  cmnTechn->shininess         = wobj_flt(heap, cmnTechn, mtl->Ns);
-  cmnTechn->indexOfRefraction = wobj_flt(heap, cmnTechn, mtl->Ni);
+  cmnTechn->ambient       = wobj_clrtex(wst, cmnTechn, mtl->Ka, mtl->map_Ka);
+  cmnTechn->diffuse       = wobj_clrtex(wst, cmnTechn, mtl->Kd, mtl->map_Kd);
+
+  specularProp            = ak_heap_calloc(heap, cmnTechn, sizeof(*specularProp));
+  cmnTechn->specular      = specularProp;
+  specularProp->shininess = mtl->Ns;
+  specularProp->color     = wobj_clrtex(wst, cmnTechn, mtl->Ks, mtl->map_Ks);
+
+  emissionProp            = ak_heap_calloc(heap, cmnTechn, sizeof(*emissionProp));
+  cmnTechn->emission      = emissionProp;
+  emissionProp->strength  = 1.0f;
+
+  wobj_clrtexset(wst, cmnTechn, mtl->Ke, mtl->map_Ke, &emissionProp->color);
+
+  cmnTechn->ior = mtl->Ni;
 
   if (mtl->bump) {
     cmnTechn->normal        = ak_heap_calloc(heap, cmnTechn, sizeof(*cmnTechn->normal));
@@ -381,7 +400,7 @@ wobj_handleMaterial(WOState  * __restrict wst,
       t = 1.0f - mtl->Tr;
 
     transp         = ak_heap_calloc(heap, cmnTechn, sizeof(*transp));
-    transp->amount = wobj_flt(heap, transp, t);
+    transp->amount = t;
     transp->opaque = AK_OPAQUE_BLEND;
 
     cmnTechn->transparent = transp;

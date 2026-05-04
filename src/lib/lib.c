@@ -28,7 +28,6 @@ ak_libAddCamera(AkDoc * __restrict doc, AkCamera * __restrict cam) {
   if (!libItem) {
     libItem = ak_heap_calloc(heap, doc, sizeof(*libItem));
     doc->lib.cameras = libItem;
-    libItem->count   = 1;
   }
 
   cami = (void *)libItem->chld;
@@ -37,6 +36,11 @@ ak_libAddCamera(AkDoc * __restrict doc, AkCamera * __restrict cam) {
   }
 
   libItem->chld = (void *)cam;
+  /* Increment on every add — earlier this was set to 1 on library
+     creation only, so adding a second / third camera left
+     `count` at 1 and downstream code that sized arrays from this
+     value silently truncated. */
+  libItem->count++;
 
   return AK_OK;
 }
@@ -54,7 +58,6 @@ ak_libAddLight(AkDoc   * __restrict doc,
   if (!libItem) {
     libItem = ak_heap_calloc(heap, doc, sizeof(*libItem));
     doc->lib.lights = libItem;
-    libItem->count   = 1;
   }
 
   lighti = (void *)libItem->chld;
@@ -63,6 +66,7 @@ ak_libAddLight(AkDoc   * __restrict doc,
   }
 
   libItem->chld = (void *)light;
+  libItem->count++;
 
   return AK_OK;
 }

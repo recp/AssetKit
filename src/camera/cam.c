@@ -139,3 +139,69 @@ ak_defaultCamera(void * __restrict memparent) {
 
   return cam;
 }
+
+AK_EXPORT
+AkCamera *
+ak_camMakePerspective(AkDoc * __restrict doc,
+                      void  * __restrict memparent,
+                      float yfov,
+                      float aspect,
+                      float znear,
+                      float zfar) {
+  AkHeap        *heap;
+  AkCamera      *cam;
+  AkPerspective *persp;
+
+  if (!doc) return NULL;
+
+  heap        = ak_heap_getheap(doc);
+  cam         = ak_heap_calloc(heap, memparent ? memparent : (void *)doc,
+                                     sizeof(*cam));
+  cam->optics = ak_heap_calloc(heap, cam, sizeof(*cam->optics));
+
+  /* Concrete projection lives in the camera's heap region so it's
+     freed with the camera. */
+  persp                = ak_heap_calloc(heap, cam, sizeof(*persp));
+  persp->base.type     = AK_PROJECTION_PERSPECTIVE;
+  persp->yfov          = yfov;
+  persp->aspectRatio   = aspect;
+  persp->znear         = znear;
+  persp->zfar          = zfar;
+  cam->optics->tcommon = (AkProjection *)persp;
+
+  ak_libAddCamera(doc, cam);
+  return cam;
+}
+
+AK_EXPORT
+AkCamera *
+ak_camMakeOrthographic(AkDoc * __restrict doc,
+                       void  * __restrict memparent,
+                       float xmag,
+                       float ymag,
+                       float aspect,
+                       float znear,
+                       float zfar) {
+  AkHeap         *heap;
+  AkCamera       *cam;
+  AkOrthographic *ortho;
+
+  if (!doc) return NULL;
+
+  heap        = ak_heap_getheap(doc);
+  cam         = ak_heap_calloc(heap, memparent ? memparent : (void *)doc,
+                                     sizeof(*cam));
+  cam->optics = ak_heap_calloc(heap, cam, sizeof(*cam->optics));
+
+  ortho                = ak_heap_calloc(heap, cam, sizeof(*ortho));
+  ortho->base.type     = AK_PROJECTION_ORTHOGRAPHIC;
+  ortho->xmag          = xmag;
+  ortho->ymag          = ymag;
+  ortho->aspectRatio   = aspect;
+  ortho->znear         = znear;
+  ortho->zfar          = zfar;
+  cam->optics->tcommon = (AkProjection *)ortho;
+
+  ak_libAddCamera(doc, cam);
+  return cam;
+}

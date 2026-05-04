@@ -132,6 +132,7 @@ ak_instanceMoveToSubNode(AkNode * __restrict node,
 
   heap    = ak_heap_getheap(node);
   subNode = ak_heap_calloc(heap, node, sizeof(*node));
+  subNode->visible = true;
 
   switch (inst->type) {
     case AK_INSTANCE_GEOMETRY:

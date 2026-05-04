@@ -16,6 +16,7 @@
 
 #include "mesh.h"
 #include "../../../mesh/index.h"
+#include "../../../topo/topo.h"
 
 AK_HIDE
 AkResult
@@ -26,6 +27,8 @@ dae_mesh_fixup(AkMesh * mesh) {
 
   heap = ak_heap_getheap(mesh->geom);
   doc  = ak_heap_data(heap);
+
+  topofix(mesh);
 
   /* first fixup coord system because verts will be duplicated,
      reduce extra process */

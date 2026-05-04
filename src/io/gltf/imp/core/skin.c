@@ -101,6 +101,19 @@ gltf_skin(json_t * __restrict jskin,
             jjoint = jjoint->next;
           } /* while (jjoint) */
         }
+      } else if (json_key_eq(jskinVal, _s_gltf_skeleton)) {
+        /* glTF spec: optional hint to the closest common ancestor of the
+           joints. Engines (Apple SCNSkinner.skeleton, Three.js Skeleton)
+           use it as the coordinate-space reference. We resolve the node
+           id to AkNode* — fall back to NULL if missing or unresolved
+           (callers default to joints[0]). */
+        char    skelid[16];
+        int32_t skelIndex;
+
+        if ((skelIndex = json_int32(jskinVal, -1)) > -1) {
+          sprintf(skelid, "%s%d", _s_gltf_node, skelIndex);
+          skin->skeleton = ak_getObjectById(doc, skelid);
+        }
       } /* if _s_gltf_joints */
 
       jskinVal = jskinVal->next;

@@ -30,6 +30,8 @@
 #include <xml/xml.h>
 #include <xml/attrib.h>
 
+#include "bugfix/url.h"
+
 #ifndef AK_INPUT_SEMANTIC_VERTEX 
 #  define AK_INPUT_SEMANTIC_VERTEX 100001
 #endif
@@ -71,6 +73,13 @@ typedef AK_ALIGN(16) struct DAEState {
   RBTree          *texmap;
   RBTree          *instanceMap;
   FListItem       *vertMap;
+  /* maps base AkGeometry* → AkMorph*. Populated by dae_fixup_ctlr's
+     MORPH case so that the postscript orphan-attach pass can wrap
+     <instance_geometry> uses of the base mesh in an AkInstanceMorph
+     (DAE exporters — especially glTF→DAE — frequently emit a morph
+     controller without ever wrapping the geometry in
+     <instance_controller>, leaving the morph dangling otherwise). */
+  RBTree          *meshTargets;
   AkSource        *sources;
   AkCOLLADAVersion version;
   bool             stop;
@@ -96,10 +105,10 @@ typedef struct AkNewParam {
 
 typedef struct AkController {
   /* const char * id; */
+  AkOneWayIterBase     base;
   const char          *name;
   void                *data;
   AkTree              *extra;
-  struct AkController *next;
   AkControllerType     type;
 } AkController;
 
@@ -189,9 +198,12 @@ url_set(DAEState   * __restrict dst,
     url->url      = NULL;
     return;
   }
-  
-  ak_url_init(memp, xmla_strdup(att, dst->heap, memp), url);
-  
+
+  /* DAE_URL_INIT_FIXED normalizes bare ids ("foo" → "#foo") emitted by
+     non-conforming exporters via stack alloca; well-formed input is a
+     no-op. See bugfix/url.h. */
+  DAE_URL_INIT_FIXED(memp, xmla_strdup(att, dst->heap, memp), url);
+
   urlQueue       = dst->heap->allocator->malloc(sizeof(*urlQueue));
   urlQueue->next = dst->urlQueue;
   urlQueue->url  = url;
@@ -226,11 +238,13 @@ url_from(xml_t      * __restrict xml,
 
   if (!(att = xmla(xml, name)) || ! att->val)
     return NULL;
-  
+
   heap = ak_heap_getheap(memp);
   url  = ak_heap_calloc(heap, memp, sizeof(*url));
-  ak_url_init(memp, xmla_strdup(att, heap, memp), url);
-  
+
+  /* see url_set: normalize bare-id industry bug before init. */
+  DAE_URL_INIT_FIXED(memp, xmla_strdup(att, heap, memp), url);
+
   return url;
 }
 

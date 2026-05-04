@@ -270,7 +270,7 @@ sst_finish(STLState * __restrict sst) {
     prim = (AkMeshPrimitive *)poly;
   }
   
-  prim->count          = sst->count;
+  prim->nPolygons      = sst->count;
   prim->mesh           = mesh;
   mesh->primitive      = prim;
   mesh->primitiveCount = 1;

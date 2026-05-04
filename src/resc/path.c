@@ -233,18 +233,17 @@ ak_fullpath(AkDoc       * __restrict doc,
     NULL
   };
 
-  ak_path_join(fragments,
-               buf,
-               &pathlen);
+  if (strncmp(ref, fileprefix, strlen(fileprefix)) == 0) {
+    return ref + strlen(fileprefix)
+#ifndef _WIN32
+    - 1
+#endif
+    ;
+  }
+
+  ak_path_join(fragments, buf, &pathlen);
 
   ptr = ak_strltrim_fast(buf);
-  if (strncmp(ptr, fileprefix, strlen(fileprefix)) == 0) {
-#ifndef _WIN32
-    ptr += strlen(fileprefix) - 1;
-#else
-    ptr += strlen(fileprefix);
-#endif
-  }
 
   return ptr;
 }

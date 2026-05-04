@@ -21,13 +21,23 @@ extern "C" {
 #endif
 
 #include "common.h"
+#include "geom.h"
 
 struct AkNode;
+struct FListItem;
 
 typedef enum AkMorphMethod {
-  AK_MORPH_METHOD_NORMALIZED = 1,
-  AK_MORPH_METHOD_RELATIVE   = 2,
-  AK_MORPH_METHOD_ADDITIVE   = AK_MORPH_METHOD_RELATIVE
+  /* Weights of blend shapes normalized to 1 (or 100%) */
+  AK_MORPH_METHOD_NORMALIZED = 1,  
+
+  /* Blend shapes defined as a difference from the base shape */
+  AK_MORPH_METHOD_RELATIVE   = 2,  
+
+  /* Alias for RELATIVE, treat additive as relative in this context */
+  AK_MORPH_METHOD_ADDITIVE   = AK_MORPH_METHOD_RELATIVE,
+
+  /* Each blend shape applied fully on top of the previous one */
+  AK_MORPH_METHOD_ABSOLUTE   = 3
 } AkMorphMethod;
 
 typedef struct AkBoneWeight {
@@ -43,36 +53,195 @@ typedef struct AkBoneWeights {
   size_t        nVertex;    /* cache: count of pJointsCount/pWeightsIndex */
 } AkBoneWeights;
 
+/**
+ * Skin controller — vertex skinning data.
+ *
+ * Per-vertex bone data storage differs by source format:
+ *   - DAE: variable-count CSR layout in `weights[]` (filled by
+ *     dae_fixup_ctlr in authored primitive order).
+ *   - glTF: raw vec4 JOINTS_n / WEIGHTS_n accessors stay in `prim->input`
+ *     (no aggregation — the format is already GPU-ready).
+ *
+ * Bridges should call ak_skinFillWeights() rather than touching `weights[]`
+ * or `prim->input` directly. The helper hides this format divergence and
+ * yields fixed-N (typically 4) flat buffers ready for upload.
+ *
+ * Default joints (`joints[]`) are populated for glTF; DAE leaves it NULL
+ * and resolves joints per-instance via AkInstanceSkin.overrideJoints (DAE
+ * lets the same skin bind to different skeletons per instance).
+ *
+ * `skeleton` is the closest common ancestor of joints, used by Apple
+ * SCNSkinner.skeleton (and similar engines) as the coordinate-space
+ * reference for bone lookups. Optional — when NULL, callers fall back
+ * to joints[0] (typically the root joint by convention). glTF: filled
+ * from the optional `skin.skeleton` JSON hint. DAE: filled from
+ * <instance_controller>'s first <skeleton> URL when fixing the
+ * instance.
+ */
 typedef struct AkSkin {
   AkOneWayIterBase base;
   AkFloat4x4      *invBindPoses;
-  struct AkNode  **joints;  /* default joints                             */
-  AkBoneWeights  **weights; /* per primitive                              */
-  size_t           nJoints; /* cache: joint count                         */
-  uint32_t         nPrims;  /* cache: primitive count                     */
+  struct AkNode  **joints;   /* default joints (glTF; NULL for DAE)        */
+  AkBoneWeights  **weights;  /* per primitive (DAE only; NULL for glTF)    */
+  struct AkNode   *skeleton; /* common ancestor; NULL if not authored      */
+  void            *inspectResult; /* private cache for raw accessor pairs   */
+  size_t           nJoints;  /* cache: joint count                         */
+  uint32_t         nPrims;   /* cache: primitive count                     */
   uint32_t         nMaxJoints;
   AkFloat4x4       bindShapeMatrix;
 } AkSkin;
 
+typedef enum AkMorphableType {
+  AK_MORPHABLE_GEOMETRY, /* per-target geometry, must be same as base  */
+  AK_MORPHABLE_MORPHABLE /* morph inputs if no geometry object is used */
+} AkMorphableType;
+
+/**
+ * @brief input/attribute layout in shader orr in interleaved buffer
+ * 
+ *   currently two layouts are supported: 
+ *     ------------------------------------------------------------------------
+ *     P1 P2 P3    N1 N2 N3    T01 T02 T03 ...
+ *     P1 N1 T01   P2 N2 T02   P3  N3  T03 ... (natural layout)
+ * 
+ *  IMPORTANT: in natural layout, input orders may not same as baseShape
+ *             if you need same order as baseShape, use P1P2N1N2 layout
+ *             or create an issue to bring this feature to here which is in TODO.
+ */
+typedef enum AkMorphInterleaveLayout {
+  AK_MORPH_UNKNOWN  = 0,
+  AK_MORPH_P1P2N1N2 = 1, /* each target's inputs are groupped by input type */
+  AK_MORPH_NATURAL  = 3  /* P1N1 P2N2 but input orders are natural as target */
+} AkMorphInterleaveLayout;
+
+// typedef struct AkSparseMorphInfo {
+//   uint32_t *affectedVertices;  /* indices of vertices that change            */
+//   uint32_t  nAffectedVertices;
+//   float     sparsityRatio;     /* 0.0-1.0, useful for optimization decisions */
+// } AkSparseMorphInfo;
+
+/* per-target inputs to morph */
+typedef struct AkMorphable {
+  struct AkMorphable  *next;
+  AkInput             *input;  
+  uint32_t             inputCount;
+} AkMorphable;
+
+typedef struct AkMorphPreset {
+  const char   *name;      /* "neutral", "smile_max", ... */
+  AkFloatArray *weights;   /* length = morph->targetCount */
+} AkMorphPreset;
+
 typedef struct AkMorphTarget {
   struct AkMorphTarget *next;
-  AkInput              *input;  /* per-target inputs to morph */
-  float                 weight; /* per-target default weight  */
-  uint32_t              inputCount;
+  AkObject             *target;         /* AkGeometry or AkMorphable to morph */
+  uint32_t              primitiveCount; /* number of mesh primitives to morph */
 } AkMorphTarget;
 
+typedef struct AkMorphInspectInput {
+  struct AkMorphInspectInput *next;
+  AkInput                    *input;
+  uint32_t                    intrOffset;
+  union {
+    bool                      inBaseMesh;
+    bool                      inTarget;
+  };
+} AkMorphInspectInput;
+
+typedef struct AkMorphInspectMorphable {
+  struct AkMorphInspectMorphable *next;
+  AkMorphInspectInput            *input;
+  AkMorphInspectInput            *lastInput;
+  uint32_t                        inputsCount;
+  float                           weight;
+
+  /* Per-primitive slice inside a target view. Multi-primitive meshes can
+     have different vertex counts and strides per primitive. */
+  uint32_t                        vertexCount;
+  uint32_t                        stridePerVertex;
+  size_t                          bufferOffset;
+  size_t                          bufferSize;
+} AkMorphInspectMorphable;
+
+typedef struct AkMorphInspectTargetView {
+  struct AkMorphInspectTargetView *next;
+  AkMorphInspectMorphable         *morphable;
+  uint32_t                         nTargets;
+  /* Total byte size of this target slice, summed across all
+     per-primitive morphables. */
+  size_t                           interleaveBufferSize;
+} AkMorphInspectTargetView;
+
+/*
+  AkMorphInspectView
+         o
+         |
+         o -> AkMorphInspectTargetView ( like Mesh )
+                         o
+                         | 
+                         o ->  AkMorphInspectMorphable 1 ( like Mesh Primitive )
+                                         o
+                                         -> AkMorphInspectInput 1
+                                         -> AkMorphInspectInput 2
+                                         -> AkMorphInspectInput 3
+                         o ->  AkMorphInspectMorphable 2
+                         o ->  AkMorphInspectMorphable 3
+        o -> AkMorphInspectTargetView
+                         o
+                         | 
+                         o ->  AkMorphInspectMorphable 1
+                         o ->  AkMorphInspectMorphable 2
+                         o ->  AkMorphInspectMorphable 3
+*/
+typedef struct AkMorphInspectView {
+  /* first one is baseShape if includeBaseShape param is set to 'true' */
+  AkMorphInspectTargetView *base;
+  AkMorphInspectTargetView *targets;
+  AkFloatArray             *initialWeights;
+  uint32_t                  nTargets;
+  size_t                    interleaveTotalBufferSize;
+  bool                      includeBaseShape;
+  bool                      ignoreUncommonInputs;
+  AkMorphInterleaveLayout   layout;
+} AkMorphInspectView;
+
 typedef struct AkMorph {
-  AkOneWayIterBase base;
-  AkMorphTarget   *target;
-  AkMorphMethod    method;
-  uint32_t         targetCount;
-  uint32_t         maxInputCount;
-  /* uint32_t         maxIterleavedStride; */
+  AkOneWayIterBase    base;
+  AkMorphTarget      *target;
+  AkMorphInspectView *inspectResult;
+  AkFloatArray       *defaultWeights; /* this overrides mesh.weights        */
+  const char        **targetNames;    /* optional, length = targetCount     */
+  AkMorphPreset      *presets;        /* optional named weight sets         */
+  AkMorphMethod       method;
+  uint32_t            targetCount;
+  uint32_t            presetCount;
 } AkMorph;
+
+typedef bool
+(*AkMorphProgressFn)(AkMorph * __restrict morph,
+                     uint32_t             targetIndex,
+                     uint32_t             targetCount,
+                     void   * __restrict userdata);
+
+// TODO: multi-morph-per-mesh just thought loudly ?
+// typedef struct AkPrimitiveMorph {
+//   AkOneWayIterBase    base;
+//   AkMorphTarget      *target;
+//   AkMorphInspectView *inspectResult;
+//   AkFloatArray       *weights; /* default weights or NULL to zero */
+//   AkMorphMethod       method;
+//   uint32_t            targetCount; 
+// } AkPrimitiveMorph;
+// 
+// typedef struct AkMeshMorph {
+//   AkOneWayIterBase  base;
+//   AkPrimitiveMorph *morph;
+//   float             weight;
+// } AkMeshMorph;
 
 typedef struct AkInstanceMorph {
   AkMorph      *morph;
-  AkFloatArray *overrideWeights;  /* override default weights or NULL */
+  AkFloatArray *overrideWeights;  /* override morph.weights and mesh.weight or NULL */
 } AkInstanceMorph;
 
 typedef struct AkInstanceSkin {
@@ -81,72 +250,261 @@ typedef struct AkInstanceSkin {
 } AkInstanceSkin;
 
 /*!
- * @brief fill a buffer with JointID and JointWeight to feed GPU buffer
- *        you can send this buffer to GPU buffer (e.g. OpenGL) directly
+ * @brief format-agnostic per-vertex bone-data extraction with INTERLEAVED
+ *        output, suitable for a single GPU vertex buffer (OpenGL/Metal/
+ *        Vulkan typical layout).
  *
- *        this func makes things easier if you want to send buffer to GPU like:
- *          | JointIDs (ivec4) | Weights(vec4) |
+ *        Per-vertex layout in the output buffer:
  *
- *        or:
- *           in ivec4 JOINTS;
+ *          | JointIDs[maxJoint] (uint16) | Weights[maxJoint] (float) |
+ *
+ *        Matches a shader vertex input like:
+ *
+ *           in uvec4 JOINTS;  (backed by uint16 vertex input)
  *           in vec4  WEIGHTS;
  *
- *        AkBoneWeights provides a struct JointID|JointWeight, if that is enough
- *        for you then you do not need to use this func.
+ *        Quality is identical to ak_skinFillWeights() — same format-
+ *        agnostic core (DAE CSR + glTF accessors), same top-N selection
+ *        when authored joint count exceeds maxJoint, same renormalize so
+ *        weights sum to 1. Only the output packing differs (interleaved
+ *        single buffer vs. separate idx/wgt arrays).
  *
- * @param source    source weights buffer
- * @param maxJoint  max joint count, 4 is ideal
- * @param itemCount component count per VERTEX attribute
- * @param buff      destination buffer to send GPU
+ *        For the SceneKit/RealityKit path use ak_skinFillWeights()
+ *        instead — Apple's APIs require separate boneIndices and
+ *        boneWeights SCNGeometrySources.
+ *
+ *        Layout: per vertex `[J0..J(N-1) (uint16) W0..W(N-1) (float)]`.
+ *
+ * @param skin      AkSkin (for both DAE-CSR and glTF-accessor inputs)
+ * @param prim      mesh primitive being skinned (vertex order source)
+ * @param primIdx   primitive index fallback; prim pointer is authoritative
+ * @param maxJoint  storage slots per vertex (typically 4)
+ * @param buff      destination buffer; if *buff is NULL one is alloc'd
+ *                  with ak_calloc(NULL, ...) and stored back into *buff
+ *                  (caller frees with ak_free)
+ * @return  total bytes written, or 0 on failure
  */
 AK_EXPORT
 size_t
-ak_skinInterleave(AkBoneWeights * __restrict source,
-                  uint32_t                   maxJoint,
-                  uint32_t                   itemCount,
-                  void         ** __restrict buff);
+ak_skinInterleave(AkSkin          * __restrict skin,
+                  AkMeshPrimitive * __restrict prim,
+                  uint32_t                     primIdx,
+                  uint32_t                     maxJoint,
+                  void           ** __restrict buff);
 
 /*!
-* @brief inspect a morph to get bufferSize and bufferStride to alloc memory for
-*        interleaved morph buffer with desired inputs,
-*        (other inputs will be ignored)
-*
-* @param[out] bufferSize         buffer size in bytes
-* @param[out] byteStride         target byte stride in bytes
-* @param[in]  morph              AkMorph object
-* @param[in]  desiredInputs      desired inputs (other inputs will be ignored)
-* @param[in]  desiredInputsCount desired inputs count
-*/
+ * @brief format-agnostic per-vertex bone-data extraction for one primitive.
+ *
+ *        Fills caller-provided fixed-N flat buffers (joint indices + weights)
+ *        regardless of the asset's source format:
+ *
+ *          - DAE  primitives use the CSR layout in skin->weights[];
+ *                 variable joint count per vertex -> top-N selected by weight,
+ *                 zero-padded if count<N, normalized so weights sum to 1.
+ *          - glTF primitives keep JOINTS_n / WEIGHTS_n sets as raw accessors
+ *                 in prim->input; all sets are merged, top-N is selected, and
+ *                 UBYTE/USHORT joint indices are written as uint16_t.
+ *
+ *        Bridges should call this rather than reading skin->weights[] or
+ *        prim->input directly — the dual storage is an implementation
+ *        detail of the parsers.
+ *
+ * @param[in]  skin        skin owning the bone data
+ * @param[in]  prim        mesh primitive being skinned
+ * @param[in]  primIdx     primitive index fallback; prim pointer is authoritative
+ * @param[in]  maxJoint    fixed slot count per vertex (typically 4)
+ * @param[out] outIndices  buffer for vertexCount × maxJoint × sizeof(uint16_t)
+ * @param[out] outWeights  buffer for vertexCount × maxJoint × sizeof(float)
+ * @return     vertex count on success, 0 on error.
+ */
 AK_EXPORT
-void
-ak_morphInterleaveInspect(size_t  * __restrict bufferSize,
-                          size_t  * __restrict byteStride,
-                          AkMorph * __restrict morph,
-                          AkInputSemantic      desiredInputs[],
-                          uint8_t              desiredInputsCount);
+size_t
+ak_skinFillWeights(AkSkin          * __restrict skin,
+                   AkMeshPrimitive * __restrict prim,
+                   uint32_t                     primIdx,
+                   uint32_t                     maxJoint,
+                   uint16_t        * __restrict outIndices,
+                   float           * __restrict outWeights);
 
 /*!
-* @brief interleave morph object with desired inputs with desired input orders.
-*
-*        Make sure that you called ak_morphInterleaveInspect() to get buffSize
-*        and alloc a buffer with that size.
-*
-*        All inputs except desired inputs will be ignored. If morph object don't
-*        contain a desired input than it will be ignored too.
-*
-*        You can send this buffer to GPU and use directly.
-*
-* @param[out] buff               pre-allocated buffer
-* @param[in]  morph              AkMorph object
-* @param[in]  desiredInputs      desired inputs (other inputs will be ignored)
-* @param[in]  desiredInputsCount desired inputs count
-*/
+ * @brief collect vertex indices affected by one joint for one primitive.
+ *
+ *        Works for both DAE CSR skin weights and glTF JOINTS_n/WEIGHTS_n
+ *        accessors. The function returns the total matching vertex count even
+ *        when `outVertices` is NULL or `capacity` is smaller than the result,
+ *        so callers can first query size and then fill a buffer.
+ *
+ * @param[in]  skin         skin owning the bone data
+ * @param[in]  prim         mesh primitive at index `primIdx`
+ * @param[in]  primIdx      primitive index in mesh
+ * @param[in]  jointIdx     joint index to scan for
+ * @param[out] outVertices  optional vertex-index buffer
+ * @param[in]  capacity     number of uint32_t slots in outVertices
+ * @return     total number of affected vertices.
+ */
 AK_EXPORT
-void
-ak_morphInterleave(void    * __restrict buff,
-                   AkMorph * __restrict morph,
-                   AkInputSemantic      desiredInputs[],
-                   uint32_t             desiredInputsCount);
+size_t
+ak_skinVerticesForJoint(AkSkin          * __restrict skin,
+                        AkMeshPrimitive * __restrict prim,
+                        uint32_t                     primIdx,
+                        uint32_t                     jointIdx,
+                        uint32_t        * __restrict outVertices,
+                        size_t                       capacity);
+
+/*!
+ * @brief inspect a morph to get bufferSize and bufferStride to alloc memory for
+ *        interleaved morph buffer with desired inputs. Also returns a list of 
+ *        inputs for each target. You can use this list to collect inputs from
+ *        morph targets. 
+ *
+ *        inspected result will be stored in morph->inspectResult. You can use
+ *        this result to collect inputs same order as baseShape's inputs' order
+ *        from morph targets. Inputs that dont exists in baseShape will be ignored.
+ *        If you need them, pass ignoreUncommonInputs = false.
+ * 
+ * @param[in]  baseMesh               base mesh to morph
+ * @param[in]  morph                  AkMorph object
+ * @param[in]  desiredInputs          desired inputs (other inputs will be ignored)
+ *                                        or NULL to collect all inputs, desiredInputsCount must be 0 in this case
+ * @param[in]  desiredInputsCount     desired inputs count or 0 to collect all inputs
+ * @param[in]  includeBaseShape       if true, baseShape will be included in result e.g. bytes stride, buffer size etc.
+ * @param[in]  ignoreUncommonInputs   if true, all inputs that dont exist in base mesh will be ignored
+ */
+AK_EXPORT
+AkResult
+ak_morphInspect(AkGeometry * __restrict baseMesh,
+                AkMorph    * __restrict morph,
+                AkInputSemantic         desiredInputs[],
+                uint8_t                 desiredInputsCount,
+                bool                    includeBaseShape,
+                bool                    ignoreUncommonInputs);
+
+/*!
+  * @brief prepare morph inspect result to interleave morph object with desired inputs
+  *        this prepares inputs order by specified layout parameter and sets intrOffset, 
+  *        inBaseMesh etc. properties.
+  *
+  *        make sure that you called ak_morphInspect() to get buffSize
+  *        and alloc a buffer with that size.
+  *
+  * @param[in]  inspectView  inspect result
+  * @param[in]  layout       interleave layout e.g. p1p2n1n2 or p1n1p2n2
+  */
+AK_EXPORT
+AkResult
+ak_morphInspectPrepareLayout(AkMorphInspectView * __restrict inspectView, 
+                             AkMorphInterleaveLayout         layout);
+
+/*!
+ * @brief interleave morph object with desired inputs with desired input orders.
+ *
+ *        Make sure that you called ak_morphInspect() to get buffSize
+ *        and alloc a buffer with that size.
+ *
+ *        All inputs except desired inputs will be ignored. If morph object don't
+ *        contain a desired input than it will be ignored too.
+ *
+ *        You can send this buffer to GPU and use directly.
+ * 
+ *        WARN: all inputs that dont exist in base mesh will be ignored
+ *              if you need them, you can use ak_morphInspect() to get all 
+ *              inputs for your own interleave() implementation. Create an issue 
+ *              if you need bring this feature to here.
+ *
+ * @param[in]  baseMesh      base mesh to morph
+ * @param[in]  morph         AkMorph object
+ * @param[in]  layout        interleave layout e.g. p1p2n1n2 or p1n1p2n2
+ * @param[out] destBuff      pre-allocated buffer to store interleaved data
+ */
+AK_EXPORT
+AkResult
+ak_morphInterleave(AkGeometry * __restrict baseMesh,
+                   AkMorph    * __restrict morph,
+                   AkMorphInterleaveLayout layout,
+                   void       * __restrict destBuff);
+
+AK_EXPORT
+AkResult
+ak_morphInterleaveWithProgress(AkGeometry         * __restrict baseMesh,
+                               AkMorph            * __restrict morph,
+                               AkMorphInterleaveLayout         layout,
+                               void               * __restrict destBuff,
+                               AkMorphProgressFn                progress,
+                               void               * __restrict userdata);
+
+AK_EXPORT
+const AkMorphPreset*
+ak_morphPresetByName(AkMorph    * __restrict morph,
+                     const char * __restrict name);
+
+AK_EXPORT
+bool
+ak_morphApplyPreset(AkMorph    * __restrict morph,
+                    const char * __restrict presetName,
+                    float      * __restrict outWeights,
+                    uint32_t                capacity);
+
+AK_INLINE
+bool
+ak_morphHasOverride(const AkInstanceMorph* inst) {
+  return inst && inst->overrideWeights && inst->overrideWeights->count > 0;
+}
+
+/* TODO: CPU morph evaluator (utility, low priority)
+ *
+ * Computes the final blended vertex data on the CPU using base mesh + targets
+ * + weights. Output is a "final deformed mesh" ready to be uploaded as a
+ * single static draw — no GPU-side blending required.
+ *
+ * Use cases:
+ *   - mesh export / bake tools (e.g., bake "smile_max" pose as a static asset)
+ *   - software renderers without GPU shader blending
+ *   - pre-bake / asset pipeline tooling
+ *
+ * Modern engines (SceneKit, RealityKit, custom Metal/Vulkan) do NOT need this:
+ * they consume ak_morphInterleave output + a weights uniform array and blend
+ * on the GPU. This evaluator is purely for the niche cases above.
+ *
+ * Sketch:
+ *
+ * AK_EXPORT
+ * AkResult
+ * ak_morphEvaluate(AkGeometry            * __restrict baseMesh,
+ *                  AkMorph               * __restrict morph,
+ *                  const AkInstanceMorph * __restrict inst,     // NULL → defaults
+ *                  void                  * __restrict destBuff);// pre-alloc base layout
+ */
+
+//AkResult
+//ak_morphEvaluateWeights(const AkMorph         * __restrict morph,
+//                        const AkInstanceMorph * __restrict inst,
+//                        AkFloat                ** __restrict out /* len = morph->targetCount */) {
+//  AkFloatArray *ov;
+//  AkFloatArray *def;
+//  AkMesh       *mesh;
+//  uint32_t      n;
+//
+//  if (!morph || !out)
+//    return AK_ERR;
+//
+//  n   = morph->targetCount;
+//  ov  = (inst) ? inst->overrideWeights : NULL;
+//
+//  /* 1) Kaynak seçimi ve kopyalama (override > default > zeros) */
+//  if (ov && ov->count) {
+//    *out = ov->items;
+//    return AK_OK;
+//  } else if ((def = morph->defaultWeights) && def->count) {
+//    *out = def->items;
+//    return AK_OK;
+//  } else if ((ak_objGet(morph->target->target))) {
+//
+//
+//    return mesh->weights;
+//  }
+//
+//  return AK_OK;
+//}
 
 #ifdef __cplusplus
 }

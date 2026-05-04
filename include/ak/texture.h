@@ -80,11 +80,39 @@ typedef struct AkTexture {
   AkTypeId          type;
 } AkTexture;
 
+typedef struct AkTextureTransform {
+  AkFloat2    offset;
+  float       rotation;
+  AkFloat2    scale;
+  int         slot;
+  const char *coordInputName;
+} AkTextureTransform;
+
 typedef struct AkTextureRef {
-  struct AkTexture *texture;
-  const char       *texcoord; /* to bind texture to input coord dynamically */
-  const char       *coordInputName;
-  int               slot;
+  struct AkTexture   *texture;
+
+  /* to bind texture to input coord dynamically, e.g. used by bindMaterial in 
+     node like COLLADA  */
+  const char         *texcoord;
+
+  /* glTF like texture bind */
+  const char         *coordInputName;
+  int                 slot;
+
+  /* Texture Transform */
+  AkTextureTransform *transform;
 } AkTextureRef;
+
+#ifdef __cglm__
+AK_INLINE
+mat4s
+ak_textrans_mat4(AkTextureTransform *transform) {
+  return glms_mat4_(textrans)(transform->scale[0],
+                              transform->scale[1],
+                              transform->rotation,
+                              transform->offset[0],
+                              transform->offset[1]);
+}
+#endif
 
 #endif /* assetkit_texture_h */

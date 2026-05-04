@@ -98,6 +98,64 @@ AK_EXPORT
 const AkCamera*
 ak_defaultCamera(void * __restrict memparent);
 
+/*!
+ * @brief Allocate a fresh perspective camera and register it in the
+ *        document's cameras library.
+ *
+ * Wires up AkCamera + AkOptics + AkPerspective in one shot using the
+ * heap that owns @p doc. The returned pointer is owned by that heap;
+ * its lifetime is tied to @p memparent (or the document if memparent
+ * is NULL). After this call the camera is queryable via the cameras
+ * library — callers don't need to do their own lib-list management.
+ *
+ * The camera is *not* attached to any scene node here — use
+ * ak_nodeAttachCamera() for that.
+ *
+ * @param[in]  doc        document the camera will live in (required)
+ * @param[in]  memparent  heap parent for ownership (NULL → doc)
+ * @param[in]  yfov       vertical field of view in radians
+ * @param[in]  aspect     aspect ratio (width / height); 0 → unset
+ * @param[in]  znear      near clipping distance
+ * @param[in]  zfar       far clipping distance
+ *
+ * @return Newly allocated AkCamera, or NULL on allocation failure.
+ */
+AK_EXPORT
+AkCamera *
+ak_camMakePerspective(AkDoc * __restrict doc,
+                      void  * __restrict memparent,
+                      float yfov,
+                      float aspect,
+                      float znear,
+                      float zfar);
+
+/*!
+ * @brief Allocate a fresh orthographic camera and register it in the
+ *        document's cameras library.
+ *
+ * Mirrors ak_camMakePerspective(): allocates AkCamera + AkOptics +
+ * AkOrthographic, wires them, and adds the camera to doc->lib.cameras.
+ *
+ * @param[in]  doc        document the camera will live in (required)
+ * @param[in]  memparent  heap parent for ownership (NULL → doc)
+ * @param[in]  xmag       half-width of the view volume
+ * @param[in]  ymag       half-height of the view volume
+ * @param[in]  aspect     aspect ratio (width / height); 0 → unset
+ * @param[in]  znear      near clipping distance
+ * @param[in]  zfar       far clipping distance
+ *
+ * @return Newly allocated AkCamera, or NULL on allocation failure.
+ */
+AK_EXPORT
+AkCamera *
+ak_camMakeOrthographic(AkDoc * __restrict doc,
+                       void  * __restrict memparent,
+                       float xmag,
+                       float ymag,
+                       float aspect,
+                       float znear,
+                       float zfar);
+
 #ifdef __cplusplus
 }
 #endif

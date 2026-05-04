@@ -19,9 +19,27 @@
 
 #include "../common.h"
 
-AK_HIDE AkColorDesc*
+AK_HIDE
+void
+dae_colorOrTexSet(DAEState    * __restrict dst,
+                  xml_t       * __restrict xml,
+                  void        * __restrict memp,
+                  AkColorDesc * __restrict clr);
+
+AK_INLINE
+AkColorDesc*
 dae_colorOrTex(DAEState * __restrict dst,
                xml_t    * __restrict xml,
-               void     * __restrict memp);
+               void     * __restrict memp) {
+  AkHeap      *heap;
+  AkColorDesc *clr;
+
+  heap = dst->heap;
+  clr  = ak_heap_calloc(heap, memp, sizeof(*clr));
+
+  dae_colorOrTexSet(dst, xml, clr, clr);
+
+  return clr;
+}
 
 #endif /* dae_colortex_h */

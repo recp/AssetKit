@@ -23,13 +23,10 @@ extern "C" {
 #include "common.h"
 #include "texture.h"
 
-typedef enum AkGlMaterialType {
-  AK_GL_MATERIAL_TYPE_EMISSION            = 1,
-  AK_GL_MATERIAL_TYPE_AMBIENT             = 2,
-  AK_GL_MATERIAL_TYPE_DIFFUSE             = 3,
-  AK_GL_MATERIAL_TYPE_SPECULAR            = 4,
-  AK_GL_MATERIAL_TYPE_AMBIENT_AND_DIFFUSE = 5
-} AkGlMaterialType;
+struct AkBindMaterial;
+struct AkMeshPrimitive;
+struct AkEffect;
+struct AkInstanceMaterial;
 
 typedef enum AkOpaque {
   AK_OPAQUE_OPAQUE   = 0, /* fully opaque */
@@ -48,8 +45,18 @@ typedef enum AkMaterialType {
   AK_MATERIAL_LAMBERT            = 3,
   AK_MATERIAL_CONSTANT           = 4,
   AK_MATERIAL_METALLIC_ROUGHNESS = 5,  /* PBR Material */
-  AK_MATERIAL_SPECULAR_GLOSSINES = 6   /* PBR Material */
+  AK_MATERIAL_SPECULAR_GLOSSINES = 6,  /* PBR Material */
+  AK_MATERIAL_PBR                = 7,  /* PBR Material */
+
+  AK_MATERIAL_UNLIT              = AK_MATERIAL_CONSTANT
 } AkMaterialType;
+
+/*
+typedef struct AkFloatOrParam {
+  float   *val;
+  AkParam *param;
+} AkFloatOrParam;
+*/
 
 typedef struct AkColorDesc {
   AkColor      *color;
@@ -57,21 +64,16 @@ typedef struct AkColorDesc {
   AkTextureRef *texture;
 } AkColorDesc;
 
-typedef struct AkFloatOrParam {
-  float   *val;
-  AkParam *param;
-} AkFloatOrParam;
-
 typedef struct AkTransparent {
   AkColorDesc    *color;
-  AkFloatOrParam *amount;
+  float           amount;
   AkOpaque        opaque;
   float           cutoff;
 } AkTransparent;
 
 typedef struct AkReflective {
   AkColorDesc    *color;
-  AkFloatOrParam *amount;
+  float           amount;
 } AkReflective;
 
 typedef struct AkOcclusion {
@@ -84,43 +86,135 @@ typedef struct AkNormalMap {
   float         scale;
 } AkNormalMap;
 
+typedef struct AkMaterialMetallicProp {
+  AkTextureRef   *tex;
+  float           intensity;
+
+  /* TODO: add texture channel[s] */
+} AkMaterialMetallicProp;
+
+typedef struct AkMaterialSpecularProp {
+  AkTextureRef *specularTex;
+  AkColorDesc  *color;
+  union {
+    float       strength;
+    float       shininess;
+  };
+} AkMaterialSpecularProp;
+
+typedef struct AkMaterialClearcoat {
+  AkTextureRef *roughnessTexture;
+  AkTextureRef *normalTexture;
+
+  AkTextureRef *texture;
+  float         intensity;
+  float         roughness;
+  float         normalScale;
+} AkMaterialClearcoat;
+
+typedef struct AkMaterialEmissionProp {
+  AkColorDesc color;
+  float       strength;
+} AkMaterialEmissionProp;
+
+/* KHR_materials_transmission */
+typedef struct AkMaterialTransmissionProp {
+  AkTextureRef *texture;
+  float         factor;
+} AkMaterialTransmissionProp;
+
+typedef struct AkMaterialSheen {
+  AkColorDesc  *color;
+  AkTextureRef *roughnessTexture;
+  float         roughness;
+} AkMaterialSheen;
+
+typedef struct AkMaterialIridescence {
+  AkTextureRef *texture;
+  AkTextureRef *thicknessTexture;
+  float         factor;
+  float         ior;
+  float         thicknessMinimum;
+  float         thicknessMaximum;
+} AkMaterialIridescence;
+
+typedef struct AkMaterialVolume {
+  AkTextureRef *thicknessTexture;
+  AkColor       attenuationColor;
+  float         thicknessFactor;
+  float         attenuationDistance;
+} AkMaterialVolume;
+
+typedef struct AkMaterialAnisotropy {
+  AkTextureRef *texture;
+  float         strength;
+  float         rotation;
+} AkMaterialAnisotropy;
+
+typedef struct AkMaterialDispersion {
+  float         dispersion;
+} AkMaterialDispersion;
+
+typedef struct AkMaterialDiffuseTransmission {
+  AkTextureRef *texture;
+  AkColorDesc  *color;
+  float         factor;
+} AkMaterialDiffuseTransmission;
+
 typedef struct AkTechniqueFxCommon {
-  AkColorDesc    *ambient;
-  AkColorDesc    *emission;
-  AkColorDesc    *diffuse;
-  AkColorDesc    *specular;
-  AkFloatOrParam *shininess;
+  AkColorDesc                *ambient;
+  AkMaterialEmissionProp      *emission;
 
-  AkTransparent  *transparent;
-  AkReflective   *reflective;
-  AkFloatOrParam *indexOfRefraction;
+  union {
+    AkColorDesc              *diffuse;
+    AkColorDesc              *albedo;
+  };
 
-  AkOcclusion    *occlusion;
-  AkNormalMap    *normal;
+  AkOcclusion                *occlusion;
+  AkNormalMap                *normal;
+  AkMaterialClearcoat        *clearcoat;
 
-  AkMaterialType  type;
-  bool            doubleSided;
+  /* metallic properties      */
+  AkMaterialMetallicProp     *metalness;
+  AkMaterialMetallicProp     *roughness;
+
+  /* specular */
+  AkMaterialSpecularProp     *specular;
+
+  /* reflectivity */
+  AkReflective               *reflective;
+  float                       ior;
+
+  /* TODO: can we merge transparent and transmission */
+  /* transparency */
+  AkTransparent              *transparent;
+  AkMaterialTransmissionProp *transmission;
+  AkMaterialSheen            *sheen;
+  AkMaterialIridescence      *iridescence;
+  AkMaterialVolume           *volume;
+  AkMaterialAnisotropy       *anisotropy;
+  AkMaterialDispersion       *dispersion;
+  AkMaterialDiffuseTransmission *diffuseTransmission;
+
+  /* common */
+  AkMaterialType              type;
+  bool                        doubleSided;
 } AkTechniqueFxCommon;
 
-/* Common PBR Materials */
-
-typedef struct AkMetallicRoughness {
-  AkTechniqueFxCommon base;
-  AkColor             albedo;
-  AkTextureRef       *albedoTex;
-  AkTextureRef       *metalRoughTex;
-  float               metallic;
-  float               roughness;
-} AkMetallicRoughness;
-
-typedef struct AkSpecularGlossiness {
-  AkTechniqueFxCommon base;
-  AkColor             diffuse;
-  AkColor             specular;
-  AkTextureRef       *diffuseTex;
-  AkTextureRef       *specGlossTex;
-  float               glossiness;
-} AkSpecularGlossiness;
+/*!
+ * @brief a helper that returns effect for given mesh prim for a bindMaterial
+ *
+ * @param bindMat      bind material object in AkNode
+ * @param meshPrim     mesh primitive
+ * @param foundInstMat instance material
+ *
+ * @return effect that points by a AkMaterial
+ */
+AK_EXPORT
+struct AkEffect*
+ak_effectForBindMaterial(struct AkBindMaterial      * __restrict bindMat,
+                         struct AkMeshPrimitive     * __restrict meshPrim,
+                         struct AkInstanceMaterial ** __restrict foundInstMat);
 
 #ifdef __cplusplus
 }

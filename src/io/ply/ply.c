@@ -475,7 +475,7 @@ ply_finish(PLYState * __restrict pst) {
   prim           = (AkMeshPrimitive *)tri;
 
   prim->indexStride    = 1;
-  prim->count          = pst->count;
+  prim->nPolygons      = pst->count;
   prim->mesh           = mesh;
   mesh->primitive      = prim;
   mesh->primitiveCount = 1;

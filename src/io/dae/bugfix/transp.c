@@ -38,9 +38,7 @@ dae_bugfix_transp(AkTransparent * __restrict transp) {
 
       /* don't flip >= 7.1.1 */
       if (major <= 7 && minor < 2 && patch < 1) {
-        if (transp->amount->val) {
-          *transp->amount->val = 1.0f - *transp->amount->val;
-        }
+        transp->amount = 1.0f - transp->amount;
       }
     }
   } /* _s_dae_sketchup */

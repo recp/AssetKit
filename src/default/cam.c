@@ -22,8 +22,8 @@ AkPerspective ak_def_cam_tcommon = {
 	.type = AK_PROJECTION_PERSPECTIVE,
 	.tag = 0
   },
-  .yfov = (float)CGLM_PI_4,
-  .xfov = (float)CGLM_PI_2,
+  .yfov = GLM_PI_4f,
+  .xfov = GLM_PI_2f,
   .aspectRatio = 0.5f,
   .znear = 0.01f,
   .zfar = 100.0f

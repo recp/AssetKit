@@ -81,13 +81,13 @@ ak_transformSkewMatrix(AkSkew * __restrict skew,
  *
  * if there is no transform then this returns identity matrix
  *
- * @param node   node
- * @param matrix combined transform (must be aligned 16)
+ * @param transform transform
+ * @param matrix    combined transform (must be aligned 16)
  */
 AK_EXPORT
 void
-ak_transformCombine(AkNode * __restrict node,
-                    float  * matrix);
+ak_transformCombine(AkTransform * __restrict transform,
+                    float       * __restrict matrix);
 
 /*!
  * @brief combines all node's transform elements in **world coord sys**

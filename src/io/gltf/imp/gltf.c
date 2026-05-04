@@ -32,6 +32,7 @@
 #include "core/material.h"
 #include "core/anim.h"
 #include "core/skin.h"
+#include "core/ext.h"
 #include "postscript.h"
 
 static
@@ -172,6 +173,7 @@ gltf_parse(AkDoc     ** __restrict dest,
     doc->inf->dirlen = strlen(doc->inf->dir);
 
   json = gltfRawDoc->root;
+  gltf_ext_root(json_get(json, _s_gltf_extensions), gst);
 
   /* json_print_human(stderr, gltfRawDoc->root); */
 
@@ -183,6 +185,7 @@ gltf_parse(AkDoc     ** __restrict dest,
     JSON_OBJMAP_FN(_s_gltf_images,      gltf_images,      gst),
     JSON_OBJMAP_FN(_s_gltf_samplers,    gltf_samplers,    gst),
     JSON_OBJMAP_FN(_s_gltf_textures,    gltf_textures,    gst),
+    JSON_OBJMAP_FN(_s_gltf_extensionsRequired, gltf_exts,  gst),
     JSON_OBJMAP_FN(_s_gltf_materials,   gltf_materials,   gst),
     JSON_OBJMAP_FN(_s_gltf_meshes,      gltf_meshes,      gst),
     JSON_OBJMAP_FN(_s_gltf_cameras,     gltf_cameras,     gst),
@@ -208,6 +211,8 @@ err:
 
   if (gltfRawDoc)
     free((void *)gltfRawDoc);
+
+  gltf_ext_close(gst);
 
   /* probably unsupportted version or verion is missing */
   if (ret == AK_EBADF) {

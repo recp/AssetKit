@@ -18,6 +18,27 @@
 #include "profile.h"
 #include "sampler.h"
 
+AK_INLINE
+char*
+coordInputName(AkHeap * __restrict heap,
+               void   * __restrict parent,
+               int                 set) {
+  char  *coordInputName;
+  size_t len;
+
+  if (set == 0) {
+    coordInputName = ak_heap_strdup(heap, parent, _s_gltf_texcoordPrefix);
+  } else {
+    len                 = strlen(_s_gltf_texcoordPrefix) + ak_digitsize(set);
+    coordInputName      = ak_heap_alloc(heap, parent, len + 1);
+    coordInputName[len] = '\0';
+    /* sprintf(coordInputName, "%s%d", _s_gltf_texcoordPrefix, set); */
+    snprintf(coordInputName, len + 1, "%s%d", _s_gltf_texcoordPrefix, set);
+  }
+
+  return coordInputName;
+}
+
 AK_HIDE
 AkTextureRef*
 gltf_texref(AkGLTFState * __restrict gst,
@@ -27,9 +48,8 @@ gltf_texref(AkGLTFState * __restrict gst,
   AkDoc        *doc;
   AkTextureRef *texref;
   AkTexture    *tex;
-  char         *coordInputName;
+  json_t       *jext;
   int32_t       texindex, set;
-  size_t        len;
 
   heap     = gst->heap;
   doc      = gst->doc;
@@ -40,18 +60,38 @@ gltf_texref(AkGLTFState * __restrict gst,
   texref = ak_heap_calloc(heap, parent, sizeof(*texref));
   ak_setypeid(texref, AKT_TEXTURE_REF);
 
-  if (set == 0) {
-    coordInputName = ak_heap_strdup(heap, texref, _s_gltf_texcoordPrefix);
-  } else {
-    len                 = strlen(_s_gltf_texcoordPrefix) + ak_digitsize(set);
-    coordInputName      = ak_heap_alloc(heap, texref, len + 1);
-    coordInputName[len] = '\0';
-    sprintf(coordInputName, "%s%d", _s_gltf_texcoordPrefix, set);
+  texref->coordInputName = coordInputName(heap, texref, set);
+
+  if ((jext = json_get(jtexinfo, _s_gltf_extensions))) {
+    json_t *jval;
+    if ((jval = json_get(jext, _s_gltf_KHR_texture_transform))) {
+      AkTextureTransform *texTransf;
+
+      texTransf               = ak_heap_calloc(heap, texref, sizeof(*texTransf));
+      texref->transform       = texTransf;
+      texTransf->slot = -1;
+      texTransf->scale[0]     = 1.0;
+      texTransf->scale[1]     = 1.0;
+
+      jval = jval->value;
+      while (jval) {
+        if (json_key_eq(jval, _s_gltf_offset)) {
+          json_array_float(texTransf->offset, jval, 0.0f, 2, true);
+        } else if (json_key_eq(jval, _s_gltf_rotation)) {
+          texTransf->rotation = json_float(jval, 0.0f);
+        } else if (json_key_eq(jval, _s_gltf_scale)) {
+          json_array_float(texTransf->scale, jval, 0.0f, 2, true);
+        } else if (json_key_eq(jval, _s_gltf_texCoord)) {
+          texTransf->slot           = json_int32(jval, -1);
+          texTransf->coordInputName = coordInputName(heap, texTransf, texTransf->slot);
+        }
+        jval = jval->next;
+      }
+    }
   }
 
-  texref->coordInputName = coordInputName;
-  texref->texture        = tex;
-  texref->slot           = set;
+  texref->texture = tex;
+  texref->slot    = set;
 
   return texref;
 }

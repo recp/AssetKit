@@ -71,23 +71,23 @@ io_addInput(AkHeap          * __restrict heap,
   
   flist_sp_insert(&doc->lib.buffers, buff);
   
-  acc                 = ak_heap_calloc(heap, doc, sizeof(*acc));
-  acc->buffer         = buff;
-  acc->byteLength     = buff->length;
-  acc->byteStride     = typeDesc->size * nComponents;
-  acc->componentSize  = compSize;
-  acc->componentType  = type;
-  acc->componentBytes = typeDesc->size * nComponents;
-  acc->componentCount = nComponents;
-  acc->fillByteSize   = typeDesc->size * nComponents;
-  acc->count          = (uint32_t)dctx->itemcount;
+  acc                    = ak_heap_calloc(heap, doc, sizeof(*acc));
+  acc->buffer            = buff;
+  acc->byteLength        = buff->length;
+  acc->byteStride        = typeDesc->size * nComponents;
+  acc->componentSize     = compSize;
+  acc->componentType     = type;
+  acc->bytesPerComponent = typeDesc->size;
+  acc->componentCount    = nComponents;
+  acc->fillByteSize      = typeDesc->size * nComponents;
+  acc->count             = (uint32_t)dctx->itemcount;
 
-  inp                 = ak_heap_calloc(heap, prim, sizeof(*inp));
-  inp->accessor       = acc;
-  inp->semantic       = sem;
-  inp->semanticRaw    = ak_heap_strdup(heap, inp, semRaw);
-  inp->offset         = offset;
-  
+  inp                    = ak_heap_calloc(heap, prim, sizeof(*inp));
+  inp->accessor          = acc;
+  inp->semantic          = sem;
+  inp->semanticRaw       = ak_heap_strdup(heap, inp, semRaw);
+  inp->offset            = offset;
+
   ak_retain(acc);
 
   inp->next   = prim->input;
@@ -112,16 +112,16 @@ io_acc(AkHeap          * __restrict heap,
   typeDesc    = ak_typeDesc(type);
   nComponents = (int)compSize;
   
-  acc                 = ak_heap_calloc(heap, doc, sizeof(*acc));
-  acc->buffer         = buff;
-  acc->byteLength     = buff->length;
-  acc->byteStride     = typeDesc->size * nComponents;
-  acc->componentSize  = compSize;
-  acc->componentType  = type;
-  acc->componentBytes = typeDesc->size * nComponents;
-  acc->componentCount = nComponents;
-  acc->fillByteSize   = typeDesc->size * nComponents;
-  acc->count          = count;
+  acc                    = ak_heap_calloc(heap, doc, sizeof(*acc));
+  acc->buffer            = buff;
+  acc->byteLength        = buff->length;
+  acc->byteStride        = typeDesc->size * nComponents;
+  acc->componentSize     = compSize;
+  acc->componentType     = type;
+  acc->bytesPerComponent = typeDesc->size;
+  acc->componentCount    = nComponents;
+  acc->fillByteSize      = typeDesc->size * nComponents;
+  acc->count             = count;
 
   return acc;
 }

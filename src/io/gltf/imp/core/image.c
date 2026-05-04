@@ -85,8 +85,7 @@ gltf_images(json_t * __restrict jimage,
       
       if (!strncmp(it->value, _s_gltf_b64d, strlen(_s_gltf_b64d))) {
         char *uri;
-        uri              = it->value;
-        uri[it->valsize] = '\0';
+        uri = it->value;
         
         initFrom->buff = ak_heap_calloc(heap, gst->doc, sizeof(*initFrom->buff));
         base64_buff(uri, it->valsize, initFrom->buff);

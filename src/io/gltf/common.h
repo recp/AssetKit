@@ -38,6 +38,9 @@ typedef struct AkBufferView {
   size_t      byteStride;
 } AkBufferView;
 
+typedef struct AkGLTFMeshoptLib AkGLTFMeshoptLib;
+typedef struct AkGLTFDracoLib   AkGLTFDracoLib;
+
 typedef struct AkGLTFState {
   AkHeap       *heap;
   AkDoc        *doc;
@@ -49,17 +52,20 @@ typedef struct AkGLTFState {
   RBTree       *skinBound;
   RBTree       *meshTargets;
   void         *bindata;
+  void         *defaultMaterial;
+  AkGLTFMeshoptLib *meshopt;
+  AkGLTFDracoLib   *draco;
   size_t        bindataLen;
   bool          stop;
   bool          isbinary;
+  bool          animPointerRequired;
 } AkGLTFState;
 
 #define GETCHILD(INITIAL, ITEM, INDEX)                                        \
   do {                                                                        \
     int i;                                                                    \
-    ITEM = (void *)INITIAL;                                                   \
-    i    = INDEX;                                                             \
-    if (ITEM && i > 0) {                                                      \
+    if (INITIAL && (i = INDEX) >= 0) {                                        \
+      ITEM = (void *)INITIAL;                                                 \
       while (i > 0) {                                                         \
         if (!(ITEM = (void *)ITEM->base.next)) {                              \
           i     = -1;                                                         \
@@ -68,6 +74,8 @@ typedef struct AkGLTFState {
         }                                                                     \
         i--;                                                                  \
       }                                                                       \
+    } else {                                                                  \
+      ITEM = NULL;                                                            \
     }                                                                         \
   } while (0)
 
