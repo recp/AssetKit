@@ -12,8 +12,16 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED YES)
 set(DEFAULT_BUILD_TYPE "Release")
 
+get_directory_property(AK_HAS_PARENT PARENT_DIRECTORY)
+
 set(CMAKE_C_FLAGS_DEBUG "-g")
-set(CMAKE_C_FLAGS_RELEASE "-O3")
+if(MSVC)
+  set(CMAKE_C_FLAGS_RELEASE "/Ox /DNDEBUG")
+  set(CMAKE_CXX_FLAGS_RELEASE "/Ox /DNDEBUG")
+else()
+  set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG")
+  set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+endif()
 
 set(AK_BUILD)
 option(AK_SHARED "Shared build" ON)
@@ -23,9 +31,14 @@ option(AK_USE_TEST "Enable Tests" OFF)
 option(AK_BUILD_GLTF_DRACO_DECODER "Build optional glTF Draco decoder shim" ON)
 option(AK_BUILD_GLTF_MESHOPT_DECODER "Build optional glTF meshoptimizer decoder shim" ON)
 option(AK_FETCH_DEPS "Fetch optional decoder dependencies into AK_DEPS_ROOT when missing" ON)
+option(AK_ENABLE_LTO "Enable link-time optimization for release builds" OFF)
 set(AK_DRACO_ROOT "" CACHE PATH "Optional Draco install/source root")
 set(AK_MESHOPT_ROOT "" CACHE PATH "Optional meshoptimizer source root")
 set(AK_DEPS_ROOT "${PROJECT_SOURCE_DIR}/deps" CACHE PATH "AssetKit dependency checkout root")
+
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 
 if(NOT AK_STATIC AND AK_SHARED)
   set(AK_BUILD SHARED)
@@ -34,13 +47,10 @@ else(AK_STATIC)
 endif()
 
 if(AK_USE_C99)
-  set(C_STANDARD 99)
+  set(CMAKE_C_STANDARD 99)
 endif()
 
 if(MSVC)
-  add_definitions(-DNDEBUG -D_WINDOWS -D_USRDLL -DAK_EXPORTS -D_assetkit_dll_DLL)
-  add_compile_options(/W3 /Ox /Gy /Oi /TC)
-  
   # Ref: https://skia.googlesource.com/third_party/sdl/+/refs/heads/master/CMakeLists.txt#225
   # Make sure /RTC1 is disabled, otherwise it will use functions from the CRT
   foreach(flag_var
@@ -48,16 +58,56 @@ if(MSVC)
       CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO)
     string(REGEX REPLACE "/RTC(su|[1su])" "" ${flag_var} "${${flag_var}}")
   endforeach(flag_var)
-else()
-  add_compile_options(-Wall -Wextra -O3 -Wstrict-aliasing=2 -Wno-overlength-strings -Wmissing-declarations)
 endif()
 
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+if(NOT AK_HAS_PARENT AND NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   message(STATUS "Setting build type to '${DEFAULT_BUILD_TYPE}' as none was specified.")
   set(CMAKE_BUILD_TYPE "${DEFAULT_BUILD_TYPE}" CACHE STRING "Choose the type of build." FORCE)
   # Set the possible values of build type for cmake-gui
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
+
+if(AK_ENABLE_LTO)
+  include(CheckIPOSupported)
+  check_ipo_supported(RESULT AK_LTO_OK OUTPUT AK_LTO_MSG)
+  if(AK_LTO_OK)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO ON)
+  else()
+    message(WARNING "LTO was requested but is not supported: ${AK_LTO_MSG}")
+  endif()
+endif()
+
+function(ak_target_common_options target)
+  if(MSVC)
+    target_compile_options(${target}
+        PRIVATE
+            /W3
+            $<$<CONFIG:Release>:/Gy>
+            $<$<CONFIG:Release>:/Oi>
+            $<$<CONFIG:RelWithDebInfo>:/Gy>
+            $<$<CONFIG:RelWithDebInfo>:/Oi>)
+  else()
+    target_compile_options(${target}
+        PRIVATE
+            -Wall
+            -Wextra
+            -Wstrict-aliasing=2
+            -Wno-overlength-strings
+            $<$<COMPILE_LANGUAGE:C>:-Wmissing-declarations>)
+  endif()
+endfunction()
+
+function(ak_target_c_options target)
+  ak_target_common_options(${target})
+  if(MSVC)
+    target_compile_options(${target} PRIVATE /TC)
+  endif()
+endfunction()
+
+function(ak_target_cxx_options target)
+  ak_target_common_options(${target})
+endfunction()
 
 include(GNUInstallDirs)
 
@@ -70,16 +120,35 @@ endif()
 
 # Target Start
 add_library(${PROJECT_NAME} ${AK_BUILD} "")
+add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+ak_target_c_options(${PROJECT_NAME})
+
+if(APPLE)
+  set(AK_INSTALL_RPATH "@loader_path")
+elseif(UNIX)
+  set(AK_INSTALL_RPATH "\$ORIGIN")
+endif()
 
 if(AK_SHARED)
-  add_definitions(-DAK_EXPORTS)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE AK_EXPORTS)
+  if(MSVC)
+    target_compile_definitions(${PROJECT_NAME}
+        PRIVATE
+            _WINDOWS
+            _USRDLL
+            _assetkit_dll_DLL)
+  endif()
 else()
-  target_compile_definitions(${PROJECT_NAME} PUBLIC -DAK_STATIC)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC AK_STATIC)
 endif()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
                               VERSION ${PROJECT_VERSION} 
                             SOVERSION ${PROJECT_VERSION_MAJOR})
+if(AK_INSTALL_RPATH)
+  set_target_properties(${PROJECT_NAME} PROPERTIES
+                        INSTALL_RPATH "${AK_INSTALL_RPATH}")
+endif()
 
 add_subdirectory(src)
 
@@ -125,7 +194,7 @@ target_include_directories(${PROJECT_NAME}
         ${PROJECT_SOURCE_DIR}/deps/xml/include
 )
 
-target_link_libraries(${PROJECT_NAME} ds ${CMAKE_DL_LIBS})
+target_link_libraries(${PROJECT_NAME} PRIVATE ds ${CMAKE_DL_LIBS})
 
 if(AK_BUILD_GLTF_DRACO_DECODER OR AK_BUILD_GLTF_MESHOPT_DECODER)
   enable_language(CXX)
@@ -200,6 +269,7 @@ if(AK_BUILD_GLTF_DRACO_DECODER)
 
   add_library(assetkit_draco SHARED
               src/decoders/gltf/draco/assetkit_draco.cc)
+  ak_target_cxx_options(assetkit_draco)
   if(TARGET assetkit_draco_dep)
     add_dependencies(assetkit_draco assetkit_draco_dep)
   endif()
@@ -225,6 +295,10 @@ if(AK_BUILD_GLTF_DRACO_DECODER)
                         CXX_STANDARD_REQUIRED YES
                         CXX_VISIBILITY_PRESET hidden
                         VISIBILITY_INLINES_HIDDEN YES)
+  if(AK_INSTALL_RPATH)
+    set_target_properties(assetkit_draco PROPERTIES
+                          INSTALL_RPATH "${AK_INSTALL_RPATH}")
+  endif()
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(assetkit_draco
         PRIVATE
@@ -236,7 +310,7 @@ if(AK_BUILD_GLTF_DRACO_DECODER)
 
   install(TARGETS assetkit_draco
           LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-          RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR})
+          RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 
 if(AK_BUILD_GLTF_MESHOPT_DECODER)
@@ -283,6 +357,7 @@ if(AK_BUILD_GLTF_MESHOPT_DECODER)
   add_library(assetkit_meshoptimizer SHARED
               src/decoders/gltf/meshopt/assetkit_meshoptimizer.cc
               ${AK_MESHOPT_SOURCES})
+  ak_target_cxx_options(assetkit_meshoptimizer)
   target_include_directories(assetkit_meshoptimizer
       PRIVATE
           ${AK_MESHOPT_INCLUDE_DIR})
@@ -291,10 +366,14 @@ if(AK_BUILD_GLTF_MESHOPT_DECODER)
                         CXX_STANDARD_REQUIRED YES
                         CXX_VISIBILITY_PRESET hidden
                         VISIBILITY_INLINES_HIDDEN YES)
+  if(AK_INSTALL_RPATH)
+    set_target_properties(assetkit_meshoptimizer PROPERTIES
+                          INSTALL_RPATH "${AK_INSTALL_RPATH}")
+  endif()
 
   install(TARGETS assetkit_meshoptimizer
           LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-          RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR})
+          RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 
 # Test Configuration
@@ -309,7 +388,7 @@ install(TARGETS ${PROJECT_NAME}
         EXPORT  ${PROJECT_NAME}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR})
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 install(DIRECTORY include/ak DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
         PATTERN ".*" EXCLUDE)
@@ -321,5 +400,6 @@ export(TARGETS ${PROJECT_NAME}
 )
 
 install(EXPORT      ${PROJECT_NAME}
+        FILE        "${PROJECT_NAME}Config.cmake"
         NAMESPACE   ${PROJECT_NAME}::
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}/cmake)
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})

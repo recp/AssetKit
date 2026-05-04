@@ -98,27 +98,48 @@ Complete documentation: http://assetkit.readthedocs.io
 
 ## 🔨 Build
 
-### CMake (All platforms)
+AssetKit uses CMake on macOS, Linux and Windows. It can be built as a
+standalone project, embedded with `add_subdirectory()` or installed and used
+with `find_package()`.
+
+### Standalone CMake build
+
 ```bash
-$ cmake -S . -B build
+$ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 $ cmake --build build
 $ cmake --install build # [Optional]
 ```
 
-##### Cmake options with Defaults:
+On multi-config generators such as Visual Studio or Xcode:
+
+```bash
+$ cmake -S . -B build
+$ cmake --build build --config Release
+$ cmake --install build --config Release # [Optional]
+```
+
+Release builds use the platform compiler's optimized release mode. AssetKit
+also has `AK_ENABLE_LTO=ON` for link-time optimization when the compiler and
+generator support it; it is off by default for predictable cross-platform
+builds.
+
+##### CMake options with defaults:
 
 ```CMake
 option(AK_SHARED "Shared build" ON)
 option(AK_STATIC "Static build" OFF)
-option(AK_USE_TEST "Enable Tests" OFF) # for make check - make test
+option(AK_USE_TEST "Enable Tests" OFF)
 option(AK_BUILD_GLTF_DRACO_DECODER "Build optional glTF Draco decoder shim" ON)
 option(AK_BUILD_GLTF_MESHOPT_DECODER "Build optional glTF meshoptimizer decoder shim" ON)
 option(AK_FETCH_DEPS "Fetch optional decoder dependencies into AK_DEPS_ROOT when missing" ON)
+option(AK_ENABLE_LTO "Enable link-time optimization for release builds" OFF)
 ```
 
 Optional glTF compression decoders are side libraries. They are built next to
 the main C library by default, but not linked into `libassetkit`. CMake fetches
-missing decoder dependencies into `deps/` by default:
+missing decoder dependencies into `deps/` by default, so a normal standalone
+build produces `libassetkit`, `libassetkit_draco` and
+`libassetkit_meshoptimizer` when network access is available:
 
 ```bash
 $ cmake -S . -B build
@@ -129,25 +150,44 @@ Use `-DAK_FETCH_DEPS=OFF` with `AK_DRACO_ROOT` / `AK_MESHOPT_ROOT` for
 offline or packaged builds. Use `-DAK_BUILD_GLTF_DRACO_DECODER=OFF` or
 `-DAK_BUILD_GLTF_MESHOPT_DECODER=OFF` to skip these side libraries.
 
-#### Use with your CMake project
-* Example:
+### Embedded in another CMake project
+
+AssetKit can be used like a submodule:
+
 ```cmake
-cmake_minimum_required(VERSION 3.8.2)
+cmake_minimum_required(VERSION 3.16)
 
-project(<Your Project Name>)
+project(my_app LANGUAGES C)
 
-add_executable(${PROJECT_NAME} src/main.c)
-target_link_libraries(${LIBRARY_NAME} PRIVATE assetkit)
+add_subdirectory(external/assetkit)
 
-add_subdirectory(external/assetkit/)
+add_executable(my_app src/main.c)
+target_link_libraries(my_app PRIVATE assetkit::assetkit)
+```
 
-# or you can use find_package() to configure assetkit
+When embedded, AssetKit does not force a default build type on the parent
+project. If you do not want CMake to fetch optional decoder dependencies while
+configuring your parent project, pass:
+
+```cmake
+set(AK_FETCH_DEPS OFF CACHE BOOL "" FORCE)
+set(AK_BUILD_GLTF_DRACO_DECODER OFF CACHE BOOL "" FORCE)
+set(AK_BUILD_GLTF_MESHOPT_DECODER OFF CACHE BOOL "" FORCE)
+add_subdirectory(external/assetkit)
+```
+
+### Installed package
+
+After `cmake --install`, consumers can use:
+
+```cmake
+find_package(assetkit CONFIG REQUIRED)
+target_link_libraries(my_app PRIVATE assetkit::assetkit)
 ```
 
 ### Windows
-Windows builds are supported through CMake.
-
-`git` and `python` commands should be installed/accessible.
+Windows builds are supported through CMake. `git` must be available when
+`GIT_SUBMODULE=ON` or `AK_FETCH_DEPS=ON`.
 
 ```Powershell
 $ cmake -S . -B build

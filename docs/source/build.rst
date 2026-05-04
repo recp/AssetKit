@@ -2,20 +2,31 @@ Build AssetKit
 ================================
 
 | **AssetKit** core uses bundled submodules. Optional glTF decoder side
-  libraries can fetch their decoder dependencies when enabled.
+  libraries can fetch their decoder dependencies when enabled. The same CMake
+  project can be used standalone, as a subdirectory in another CMake project,
+  or as an installed package.
 
-CMake (All platforms):
+Standalone CMake build:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: bash
   :linenos:
 
-  $ cmake -S . -B build
+  $ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
   $ cmake --build build
   $ cmake --install build # [Optional]
 
-**make** will build **AssetKit** into **build** folder.
-If you don't want to install **AssetKit** to your system's folder you can get static and dynamic libs in this folder.
+With multi-config generators such as Visual Studio or Xcode:
+
+.. code-block:: bash
+  :linenos:
+
+  $ cmake -S . -B build
+  $ cmake --build build --config Release
+  $ cmake --install build --config Release # [Optional]
+
+The build folder contains the main AssetKit library and, by default, optional
+glTF decoder side libraries.
 
 **CMake Options:**
 
@@ -29,20 +40,46 @@ If you don't want to install **AssetKit** to your system's folder you can get st
   option(AK_BUILD_GLTF_DRACO_DECODER "Build optional glTF Draco decoder shim" ON)
   option(AK_BUILD_GLTF_MESHOPT_DECODER "Build optional glTF meshoptimizer decoder shim" ON)
   option(AK_FETCH_DEPS "Fetch optional decoder dependencies into AK_DEPS_ROOT when missing" ON)
+  option(AK_ENABLE_LTO "Enable link-time optimization for release builds" OFF)
 
-**Use with your CMake project example**
+``AK_ENABLE_LTO`` is optional. Release builds already use optimized compiler
+flags; LTO is off by default because support differs by compiler, generator and
+platform.
+
+Embedded in another CMake project:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: CMake
   :linenos:
 
-  cmake_minimum_required(VERSION 3.8.2)
+  cmake_minimum_required(VERSION 3.16)
   
-  project(<Your Project Name>)
-  
-  add_executable(${PROJECT_NAME} src/main.c)
-  target_link_libraries(${LIBRARY_NAME} PRIVATE assetkit)
+  project(my_app LANGUAGES C)
   
   add_subdirectory(external/assetkit/)
+
+  add_executable(my_app src/main.c)
+  target_link_libraries(my_app PRIVATE assetkit::assetkit)
+
+When embedded, AssetKit does not force a default build type on the parent
+project. If dependency fetching is not wanted during parent configure:
+
+.. code-block:: CMake
+  :linenos:
+
+  set(AK_FETCH_DEPS OFF CACHE BOOL "" FORCE)
+  set(AK_BUILD_GLTF_DRACO_DECODER OFF CACHE BOOL "" FORCE)
+  set(AK_BUILD_GLTF_MESHOPT_DECODER OFF CACHE BOOL "" FORCE)
+  add_subdirectory(external/assetkit/)
+
+Installed package:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: CMake
+  :linenos:
+
+  find_package(assetkit CONFIG REQUIRED)
+  target_link_libraries(my_app PRIVATE assetkit::assetkit)
 
 Optional glTF compression decoders:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -63,7 +100,8 @@ linked into the main C library. CMake fetches missing decoder dependencies into
 Windows:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Windows builds use CMake.
+Windows builds use CMake. ``git`` must be available when ``GIT_SUBMODULE=ON``
+or ``AK_FETCH_DEPS=ON``.
 
 .. code-block:: bash
   :linenos:
