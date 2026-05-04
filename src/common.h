@@ -28,6 +28,10 @@
 
 #include "mem/common.h"
 
+#ifndef CGLM_ALL_UNALIGNED
+#  define CGLM_ALL_UNALIGNED
+#endif
+
 #include <cglm/cglm.h>
 
 #include <ds/rb.h>

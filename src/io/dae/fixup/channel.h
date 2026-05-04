@@ -20,14 +20,18 @@
 #include "../common.h"
 
 /*
- * Resolve DAE animation channel targets that ak_sid_resolve cannot handle
- * by itself — currently the parenthesized index syntax used for morph
- * weights, e.g. <channel target="morph-weights(0)"/>.
+ * Resolve/fix DAE animation channels that need loader-side help:
+ *   - parenthesized index syntax used for morph weights, e.g.
+ *     <channel target="morph-weights(0)">
+ *   - row-major MAT4 OUTPUT arrays targeting <matrix> transforms; static
+ *     DAE matrices are normalized to AssetKit column-major during node
+ *     parse, so animation matrices are normalized here to match.
  *
- * For matched patterns this builds an AkResolvedTarget pointing at the
- * AkInstanceMorph (target), the index inside the parentheses (off), and
- * isPartial=true; ak_channelTarget then returns it directly. Channels
- * with conventional "node/transform.attr" SID syntax are left alone.
+ * For matched morph patterns this builds an AkResolvedTarget pointing at
+ * the AkInstanceMorph (target), the index inside the parentheses (off),
+ * and isPartial=true; ak_channelTarget then returns it directly. Channels
+ * with conventional "node/transform.attr" SID syntax stay on the normal
+ * resolver path.
  *
  * Must run AFTER dae_fixup_instctlr so AkInstanceMorph instances exist.
  */

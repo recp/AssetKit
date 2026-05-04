@@ -18,6 +18,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+typedef struct DAEMatrixAnimFix {
+  struct DAEMatrixAnimFix *next;
+  AkAccessor             *acc;
+} DAEMatrixAnimFix;
+
 /*----------------------------------------------------------------------------
  * Channel target parsing.
  *
@@ -173,9 +178,140 @@ dae_resolveMorpher(AkDoc      * __restrict doc,
 }
 
 static
+AkInput *
+dae_animSamplerInput(AkAnimSampler    * __restrict samp,
+                     AkInputSemantic               sem) {
+  AkInput *inp;
+
+  if (!samp) return NULL;
+
+  switch (sem) {
+    case AK_INPUT_INPUT:         if (samp->inputInput)      return samp->inputInput;      break;
+    case AK_INPUT_OUTPUT:        if (samp->outputInput)     return samp->outputInput;     break;
+    case AK_INPUT_IN_TANGENT:    if (samp->inTangentInput)  return samp->inTangentInput;  break;
+    case AK_INPUT_OUT_TANGENT:   if (samp->outTangentInput) return samp->outTangentInput; break;
+    case AK_INPUT_INTERPOLATION: if (samp->interpInput)     return samp->interpInput;     break;
+    default: break;
+  }
+
+  for (inp = samp->input; inp; inp = inp->next) {
+    if (inp->semantic == sem)
+      return inp;
+  }
+
+  return NULL;
+}
+
+static
+bool
+dae_matrixAnimFixed(DAEMatrixAnimFix * __restrict it,
+                    AkAccessor       * __restrict acc) {
+  for (; it; it = it->next) {
+    if (it->acc == acc)
+      return true;
+  }
+
+  return false;
+}
+
+static
 void
-dae_fixup_channel_walk(DAEState    * __restrict dst,
-                       AkAnimation * __restrict anim) {
+dae_matrixAnimMark(DAEState          * __restrict dst,
+                   DAEMatrixAnimFix ** __restrict done,
+                   AkAccessor        * __restrict acc) {
+  DAEMatrixAnimFix *it;
+
+  it      = ak_heap_calloc(dst->heap, dst->doc, sizeof(*it));
+  it->acc = acc;
+  it->next = *done;
+  *done   = it;
+}
+
+static
+void
+dae_transposeMat4Output(AkAccessor * __restrict acc) {
+  char     *base;
+  float    *m;
+  size_t    st;
+  uint32_t  i;
+
+  if (!acc
+      || !acc->buffer
+      || !acc->buffer->data
+      || acc->componentType != AKT_FLOAT
+      || acc->componentCount != 16)
+    return;
+
+  st = acc->byteStride;
+  if (st == 0)
+    st = sizeof(float) * 16;
+
+  base = (char *)acc->buffer->data + acc->byteOffset;
+  for (i = 0; i < acc->count; i++) {
+    m = (float *)(base + st * i);
+    glm_mat4_transpose((vec4 *)m);
+  }
+}
+
+static
+void
+dae_fixupMatrixAccessor(DAEState          * __restrict dst,
+                        AkInput           * __restrict inp,
+                        DAEMatrixAnimFix ** __restrict done) {
+  AkAccessor *acc;
+
+  if (!inp || !(acc = inp->accessor))
+    return;
+
+  if (dae_matrixAnimFixed(*done, acc))
+    return;
+
+  dae_transposeMat4Output(acc);
+  dae_matrixAnimMark(dst, done, acc);
+}
+
+static
+void
+dae_fixupMatrixChannel(DAEState          * __restrict dst,
+                       AkContext         * __restrict ctx,
+                       AkChannel         * __restrict ch,
+                       DAEMatrixAnimFix ** __restrict done) {
+  AkResolvedTarget rt;
+  AkAnimSampler   *samp;
+  AkObject        *obj;
+
+  rt = ak_channelTarget(ctx, ch);
+  if (!rt.target || ak_typeid(rt.target) != AKT_OBJECT)
+    return;
+
+  obj = rt.target;
+  if ((AkTypeId)obj->type != AKT_MATRIX)
+    return;
+
+  samp = ak_getObjectByUrl(&ch->source);
+
+  /* DAE <matrix> values are authored row-major. Static node matrices are
+     normalized to cglm/AssetKit column-major during node parse; animation
+     OUTPUT matrices need the same one-time normalization. Tangents are not
+     evaluated today, but if an exporter authors 16-float matrix tangents,
+     keep them in the same convention for future Bezier/Hermite support. */
+  dae_fixupMatrixAccessor(dst,
+                          dae_animSamplerInput(samp, AK_INPUT_OUTPUT),
+                          done);
+  dae_fixupMatrixAccessor(dst,
+                          dae_animSamplerInput(samp, AK_INPUT_IN_TANGENT),
+                          done);
+  dae_fixupMatrixAccessor(dst,
+                          dae_animSamplerInput(samp, AK_INPUT_OUT_TANGENT),
+                          done);
+}
+
+static
+void
+dae_fixup_channel_walk(DAEState          * __restrict dst,
+                       AkAnimation       * __restrict anim,
+                       AkContext         * __restrict ctx,
+                       DAEMatrixAnimFix ** __restrict done) {
   AkAnimation      *sub;
   AkChannel        *ch;
   AkResolvedTarget *rt;
@@ -186,39 +322,38 @@ dae_fixup_channel_walk(DAEState    * __restrict dst,
 
   for (; anim; anim = (AkAnimation *)anim->base.next) {
     for (ch = anim->channel; ch; ch = ch->next) {
-      /* Skip already-resolved channels (defensive). */
-      if (ch->resolvedTarget) continue;
+      if (!ch->resolvedTarget
+          && dae_parseChannelTargetIndexed(ch->target, &idStart, &idLen, &idx)
+          && (morpher = dae_resolveMorpher(dst->doc, idStart, idLen))) {
+        rt                 = ak_heap_calloc(dst->heap, ch, sizeof(*rt));
+        rt->target         = morpher;
+        rt->off            = idx;
+        rt->isPartial      = true;
+        ch->resolvedTarget = rt;
+        ch->targetType     = AK_TARGET_WEIGHTS;
+      }
 
-      /* Only the indexed-array form is handled here. SID-with-attribute
-         channels ("node/translate.X") still go through ak_channelTarget's
-         SID fallback. */
-      if (!dae_parseChannelTargetIndexed(ch->target, &idStart, &idLen, &idx))
-        continue;
-
-      /* Today the only DAE consumer of "(N)" we recognize is morph weights. */
-      morpher = dae_resolveMorpher(dst->doc, idStart, idLen);
-      if (!morpher) continue;
-
-      rt                 = ak_heap_calloc(dst->heap, ch, sizeof(*rt));
-      rt->target         = morpher;
-      rt->off            = idx;
-      rt->isPartial      = true;
-      ch->resolvedTarget = rt;
-      ch->targetType     = AK_TARGET_WEIGHTS;
+      dae_fixupMatrixChannel(dst, ctx, ch, done);
     }
 
     if ((sub = anim->animation))
-      dae_fixup_channel_walk(dst, sub);
+      dae_fixup_channel_walk(dst, sub, ctx, done);
   }
 }
 
 AK_HIDE
 void
 dae_fixup_channel(DAEState * __restrict dst) {
-  AkAnimation *anim;
+  AkAnimation      *anim;
+  DAEMatrixAnimFix *done;
+  AkContext         ctx;
 
   if (!dst->doc->lib.animations) return;
 
-  anim = (AkAnimation *)dst->doc->lib.animations->chld;
-  dae_fixup_channel_walk(dst, anim);
+  anim    = (AkAnimation *)dst->doc->lib.animations->chld;
+  done    = NULL;
+  memset(&ctx, 0, sizeof(ctx));
+  ctx.doc = dst->doc;
+
+  dae_fixup_channel_walk(dst, anim, &ctx, &done);
 }
