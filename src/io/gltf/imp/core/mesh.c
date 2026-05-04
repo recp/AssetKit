@@ -18,6 +18,7 @@
 #include "enum.h"
 #include "accessor.h"
 #include "buffer.h"
+#include "ext.h"
 #include "../../../../accessor.h"
 #include "../../../common/util.h"
 
@@ -27,6 +28,63 @@
   glTF meshes      -> AkGeometry > AkMesh
   glTF primitives  -> AkMeshPrimitive
  */
+
+static
+AkMorphPreset*
+gltf_meshMorphPresets(AkGLTFState * __restrict gst,
+                      void        * __restrict parent,
+                      json_t      * __restrict jpresets,
+                      uint32_t    * __restrict count) {
+  json_array_t *jarr;
+  json_t       *jpreset;
+  json_t       *jname;
+  json_t       *jweights;
+  json_array_t *jwarr;
+  AkMorphPreset *presets;
+  AkMorphPreset *preset;
+  AkFloatArray *weights;
+  AkHeap       *heap;
+  uint32_t      n, i;
+
+  *count = 0;
+
+  if (!(jarr = json_array(jpresets)) || jarr->count == 0)
+    return NULL;
+
+  heap    = gst->heap;
+  n       = (uint32_t)jarr->count;
+  presets = ak_heap_calloc(heap, parent, sizeof(*presets) * n);
+  jpreset = jarr->base.value;
+  i       = 0;
+
+  while (jpreset && i < n) {
+    preset = &presets[n - 1 - i];
+
+    if ((jname = json_get(jpreset, _s_gltf_name)))
+      preset->name = json_strdup(jname, heap, parent);
+
+    if ((jweights = json_get(jpreset, _s_gltf_weights))
+        && (jwarr = json_array(jweights))
+        && jwarr->count > 0) {
+      weights = ak_heap_alloc(heap,
+                              parent,
+                              sizeof(*weights) + sizeof(float) * jwarr->count);
+      json_array_float(weights->items,
+                       jweights,
+                       0.0f,
+                       jwarr->count,
+                       true);
+      weights->count   = jwarr->count;
+      preset->weights  = weights;
+    }
+
+    i++;
+    jpreset = jpreset->next;
+  }
+
+  *count = n;
+  return presets;
+}
 
 AK_HIDE
 void
@@ -65,6 +123,10 @@ gltf_meshes(json_t * __restrict jmesh,
        primitive order; attached to meshMorph after all keys are processed. */
     const char     **morphTargetNames = NULL;
     uint32_t         morphTargetNamesN = 0;
+    AkMorphPreset   *morphPresets      = NULL;
+    uint32_t         morphPresetCount  = 0;
+    uint32_t         morphPresetIdx;
+    uint32_t         morphPresetWrite;
 
     mesh                 = ak_allocMesh(heap, lib, &geom);
     meshObj              = ak_objFrom(mesh);
@@ -302,6 +364,11 @@ gltf_meshes(json_t * __restrict jmesh,
                 jtarget = jtarget->next;
                 targetIdx++;
               } /* jtarget */
+            } else if (json_key_eq(jprimVal, _s_gltf_extensions)) {
+              if (!gltf_ext_dracoPrimitive(gst, prim, jprim)) {
+                gst->stop = true;
+                return;
+              }
             }
 
           prmv_nxt:
@@ -343,13 +410,11 @@ gltf_meshes(json_t * __restrict jmesh,
       } else if (json_key_eq(jmeshVal, _s_gltf_name)) {
         mesh->name = json_strdup(jmeshVal, heap, meshObj);
       } else if (json_key_eq(jmeshVal, _s_gltf_extras)) {
-        /* glTF spec: blend shape names live in mesh.extras.targetNames as a
-           string array of length morph.targetCount. Parse here regardless of
-           whether the morph has been built yet — attached after primitives. */
         json_t       *jnames;
+        json_t       *jpresets;
         json_array_t *jarr;
 
-        if ((jnames = json_get(jmeshVal, "targetNames"))
+        if ((jnames = json_get(jmeshVal, _s_gltf_targetNames))
             && (jarr = json_array(jnames))
             && jarr->count > 0) {
           json_t   *jname;
@@ -359,9 +424,6 @@ gltf_meshes(json_t * __restrict jmesh,
           morphTargetNames  = ak_heap_calloc(heap, meshObj,
                                              sizeof(const char *) * morphTargetNamesN);
 
-          /* JSON parser walks the names array in reverse source order;
-             mirror the index so targetNames[i] aligns with mesh's
-             primitives[].targets[i] (and morph weight slot i). */
           jname = jarr->base.value;
           i     = 0;
           while (jname && i < morphTargetNamesN) {
@@ -370,6 +432,13 @@ gltf_meshes(json_t * __restrict jmesh,
             i++;
             jname = jname->next;
           }
+        }
+
+        if ((jpresets = json_get(jmeshVal, _s_gltf_morphPresets))) {
+          morphPresets = gltf_meshMorphPresets(gst,
+                                               meshObj,
+                                               jpresets,
+                                               &morphPresetCount);
         }
       }
 
@@ -382,6 +451,24 @@ gltf_meshes(json_t * __restrict jmesh,
     if (meshMorph) {
       if (morphTargetNames && morphTargetNamesN > 0) {
         meshMorph->targetNames = morphTargetNames;
+      }
+      if (morphPresets && morphPresetCount > 0) {
+        morphPresetWrite = 0;
+        for (morphPresetIdx = 0;
+             morphPresetIdx < morphPresetCount;
+             morphPresetIdx++) {
+          if (!morphPresets[morphPresetIdx].weights
+              || morphPresets[morphPresetIdx].weights->count != meshMorph->targetCount)
+            continue;
+          if (morphPresetWrite != morphPresetIdx)
+            morphPresets[morphPresetWrite] = morphPresets[morphPresetIdx];
+          morphPresetWrite++;
+        }
+
+        if (morphPresetWrite > 0) {
+          meshMorph->presets    = morphPresets;
+          meshMorph->presetCount = morphPresetWrite;
+        }
       }
       if (doc->lib.morphs)
         meshMorph->base.next = &doc->lib.morphs->base;

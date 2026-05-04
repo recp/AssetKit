@@ -38,6 +38,9 @@ typedef struct AkBufferView {
   size_t      byteStride;
 } AkBufferView;
 
+typedef struct AkGLTFMeshoptLib AkGLTFMeshoptLib;
+typedef struct AkGLTFDracoLib   AkGLTFDracoLib;
+
 typedef struct AkGLTFState {
   AkHeap       *heap;
   AkDoc        *doc;
@@ -50,9 +53,12 @@ typedef struct AkGLTFState {
   RBTree       *meshTargets;
   void         *bindata;
   void         *defaultMaterial;
+  AkGLTFMeshoptLib *meshopt;
+  AkGLTFDracoLib   *draco;
   size_t        bindataLen;
   bool          stop;
   bool          isbinary;
+  bool          animPointerRequired;
 } AkGLTFState;
 
 #define GETCHILD(INITIAL, ITEM, INDEX)                                        \

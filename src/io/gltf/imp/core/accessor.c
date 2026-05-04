@@ -213,9 +213,9 @@ gltf_accessors(json_t * __restrict json,
       int32_t       idxBVIdx, valBVIdx;
       AkTypeId      idxComponentType;
 
-      jsCount   = json_get(it, "count");
-      jsIndices = json_get(it, "indices");
-      jsValues  = json_get(it, "values");
+      jsCount   = json_get(it, _s_gltf_count);
+      jsIndices = json_get(it, _s_gltf_indices);
+      jsValues  = json_get(it, _s_gltf_values);
 
       if (jsCount && jsIndices && jsValues
           && (sparseCount = json_uint32(jsCount, 0)) > 0

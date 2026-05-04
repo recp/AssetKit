@@ -64,10 +64,10 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
             intrWeights   = (void *)skin->weights;
             primIndex     = 0;
             meshInfo      = rb_find(dst->meshInfo, mesh);
-            skin->weights = ak_heap_alloc(dst->heap,
-                                          ctlr->data,
-                                          sizeof(void *)
-                                          * mesh->primitiveCount);
+            skin->weights = ak_heap_calloc(dst->heap,
+                                           ctlr->data,
+                                           sizeof(void *)
+                                           * mesh->primitiveCount);
 
             jointswInp  = skindae->weights.joints;
             weightsInp  = skindae->weights.weights;
@@ -83,16 +83,24 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
               size_t         count;
 
               posAcc  = prim->pos->accessor;
-              count   = GLM_MAX(posAcc->count, 1);
               dupl    = rb_find(doc->reserved, prim);
+              if (!dupl || !dupl->range) {
+                primIndex++;
+                prim = prim->next;
+                continue;
+              }
+
+              count   = dupl->bufCount + dupl->dupCount;
+              if (count == 0)
+                count = GLM_MAX(posAcc->count, 1);
               weights = ak_heap_calloc(dst->heap, ctlr->data, sizeof(*weights));
 
-              weights->counts  = ak_heap_alloc(dst->heap,
-                                               ctlr->data,
-                                               count * sizeof(uint32_t));
-              weights->indexes = ak_heap_alloc(dst->heap,
-                                               ctlr->data,
-                                               count * sizeof(size_t));
+              weights->counts  = ak_heap_calloc(dst->heap,
+                                                ctlr->data,
+                                                count * sizeof(uint32_t));
+              weights->indexes = ak_heap_calloc(dst->heap,
+                                                ctlr->data,
+                                                count * sizeof(size_t));
 
               weights->nVertex = count;
 
@@ -495,17 +503,25 @@ ak_fixBoneWeights(AkHeap        *heap,
   AkBuffer     *weightsBuff;
   AkUIntArray  *dupc, *dupcsum, *v;
   float        *pWeights;
-  uint32_t     *pv, *pOldCount, *pOldCountSum;
+  uint32_t     *pv, *pOldCount, *pOldCountSum, *old;
   size_t       *wi, vc, d, s, pno, poo, nwsum, newidx, next, tmp;
-  uint32_t     *nj, i, j, k, vcount, count, viStride;
+  uint32_t     *nj, i, j, k, vcount, viStride;
+
+  if (!duplicator || !duplicator->range)
+    return AK_ERR;
 
   dupc    = duplicator->range->dupc;
   dupcsum = duplicator->range->dupcsum;
+  if (!dupc || !dupcsum)
+    return AK_ERR;
+
   vc      = nMeshVertex;
+  if (dupc->count < vc)
+    vc = dupc->count;
   nj      = weights->counts;
   wi      = weights->indexes;
   skindae = ak_userData(skin);
-  nwsum   = count = 0;
+  nwsum   = 0;
 
   if (!(weightsBuff = weightsAcc->buffer)
       || !(pWeights = weightsBuff->data)
@@ -525,6 +541,8 @@ ak_fixBoneWeights(AkHeap        *heap,
   for (i = 0; i < vc; i++) {
     if ((poo = dupc->items[3 * i + 2]) == 0)
       continue;
+    if (poo > intrWeights->nVertex)
+      continue;
 
     pno    = dupc->items[3 * i];
     d      = dupc->items[3 * i + 1];
@@ -533,12 +551,12 @@ ak_fixBoneWeights(AkHeap        *heap,
 
     for (j = 0; j <= d; j++) {
       newidx     = pno + j + s;
+      if (newidx >= weights->nVertex)
+        continue;
       wi[newidx] = vcount;
       nj[newidx] = vcount;
+      nwsum     += vcount;
     }
-
-    nwsum += vcount * (d + 1);
-    count++;
   }
 
   /* prepare weight index */
@@ -553,9 +571,9 @@ ak_fixBoneWeights(AkHeap        *heap,
   nwsum = 0;
 
   for (i = 0; i < vc; i++) {
-    uint32_t *old;
-
     if ((poo = dupc->items[3 * i + 2]) == 0)
+      continue;
+    if (poo > intrWeights->nVertex)
       continue;
 
     pno    = dupc->items[3 * i];
@@ -565,16 +583,20 @@ ak_fixBoneWeights(AkHeap        *heap,
     old    = &pv[pOldCountSum[poo - 1] * viStride];
 
     for (j = 0; j <= d; j++) {
-      newidx = wi[pno + j + s];
+      tmp = pno + j + s;
+      if (tmp >= weights->nVertex)
+        continue;
+
+      newidx = wi[tmp];
 
       for (k = 0; k < vcount; k++) {
         iw         = &w[newidx + k];
         iw->joint  = old[k * viStride + jointOffset];
         iw->weight = pWeights[old[k * viStride + weightsOffset]];
       }
-    }
 
-    nwsum += vcount * (d + 1);
+      nwsum += vcount;
+    }
   }
 
   weights->weights  = w;

@@ -15,6 +15,7 @@
  */
 
 #include "buffer.h"
+#include "ext.h"
 #include "../../../../utils.h"
 #include "../../../../base64.h"
 
@@ -24,6 +25,7 @@ gltf_bufferViews(json_t * __restrict jbuffView,
   AkGLTFState        *gst;
   const json_array_t *jbuffers;
   const json_t       *jbuffVal;
+  const json_t       *jext;
   AkBufferView       *buffView;
   int32_t             buffIndex;
 
@@ -36,6 +38,7 @@ gltf_bufferViews(json_t * __restrict jbuffView,
   while (jbuffView) {
     buffView = ak_heap_calloc(gst->heap, gst->tmpParent, sizeof(*buffView));
     jbuffVal = jbuffView->value;
+    jext     = NULL;
 
     while (jbuffVal) {
       if (json_key_eq(jbuffVal, _s_gltf_buffer)) {
@@ -46,12 +49,19 @@ gltf_bufferViews(json_t * __restrict jbuffView,
       } else if (json_key_eq(jbuffVal, _s_gltf_byteOffset)) {
         buffView->byteOffset = (size_t)json_uint64(jbuffVal, 0);
       } else if (json_key_eq(jbuffVal, _s_gltf_byteStride)) {
-        buffView->byteStride = (size_t)json_uint64(jbuffVal, 1);
+        buffView->byteStride = (size_t)json_uint64(jbuffVal, 0);
       } else if (json_key_eq(jbuffVal, _s_gltf_name)) {
         buffView->name = json_strdup(jbuffVal, gst->heap, buffView);
+      } else if (json_key_eq(jbuffVal, _s_gltf_extensions)) {
+        jext = jbuffVal;
       }
 
       jbuffVal = jbuffVal->next;
+    }
+
+    if (!gltf_ext_bufferView(gst, buffView, jext)) {
+      gst->stop = true;
+      return;
     }
 
     flist_sp_insert(&gst->bufferViews, buffView);

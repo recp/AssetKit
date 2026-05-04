@@ -58,7 +58,10 @@ uintptr_t AK_OPTIONS[] =
   false,                           /* 25: _CVT_TRIANGLEFAN             */
   false,                           /* 26: _CVT_LINELOOP                */
   false,                           /* 27: _CVT_LINESTRIP               */
-  false                            /* 28: _PRESERVE_QUANTIZED_ATTRS    */
+  false,                           /* 28: _PRESERVE_QUANTIZED_ATTRS    */
+  true,                            /* 29: _GLTF_EXT_DECODER_AUTOLOAD   */
+  (uintptr_t)NULL,                 /* 30: _GLTF_MESHOPT_DECODER_PATH   */
+  (uintptr_t)NULL                  /* 31: _GLTF_DRACO_DECODER_PATH     */
 };
 
 AK_EXPORT

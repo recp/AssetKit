@@ -50,7 +50,13 @@ typedef enum AkTargetPropertyType {
   AK_TARGET_SCALE    = 8,
   AK_TARGET_ROTATE   = 9,
   AK_TARGET_QUAT     = 10,
-  AK_TARGET_WEIGHTS  = 11
+  AK_TARGET_WEIGHTS  = 11,
+  AK_TARGET_FLOAT    = 12,
+  AK_TARGET_VEC2     = 13,
+  AK_TARGET_VEC3     = 14,
+  AK_TARGET_VEC4     = 15,
+  AK_TARGET_COLOR    = 16,
+  AK_TARGET_BOOL     = 17
 } AkTargetPropertyType;
 
 typedef enum AkInterpolationType {

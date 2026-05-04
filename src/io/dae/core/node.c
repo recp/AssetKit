@@ -47,6 +47,7 @@ dae_node(DAEState      * __restrict dst,
   heap = dst->heap;
   node = ak_heap_calloc(heap, memp, sizeof(*node));
   ak_setypeid(node, AKT_NODE);
+  node->visible = true;
 
   xmla_setid(xml, heap, node);
   sid_set(xml, heap, node);

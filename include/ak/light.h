@@ -35,6 +35,8 @@ typedef struct AkLightBase {
   uint32_t    ctype; /* custom type, because type always is custom */
   AkColor     color;
   AkFloat3    direction;
+  float       intensity;
+  float       range;
 } AkLightBase;
 
 typedef AkLightBase AkAmbientLight;
@@ -52,6 +54,8 @@ typedef struct AkSpotLight {
   float       constAttn;
   float       linearAttn;
   float       quadAttn;
+  float       innerConeAngle;
+  float       outerConeAngle;
   float       falloffAngle;
   float       falloffExp;
 } AkSpotLight;

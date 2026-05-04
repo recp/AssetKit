@@ -85,6 +85,291 @@ gltf_default_mat(AkGLTFState *gst, AkLibrary *libmat) {
   return mat;
 }
 
+static
+AkColorDesc*
+gltf_materialColorDesc(AkGLTFState * __restrict gst,
+                       void        * __restrict parent,
+                       float                    r,
+                       float                    g,
+                       float                    b,
+                       float                    a) {
+  AkColorDesc *desc;
+
+  desc        = ak_heap_calloc(gst->heap, parent, sizeof(*desc));
+  desc->color = ak_heap_calloc(gst->heap, desc, sizeof(*desc->color));
+
+  desc->color->vec[0] = r;
+  desc->color->vec[1] = g;
+  desc->color->vec[2] = b;
+  desc->color->vec[3] = a;
+
+  return desc;
+}
+
+static
+void
+gltf_materialParseSpecular(AkGLTFState         * __restrict gst,
+                           AkTechniqueFxCommon * __restrict cmnTechn,
+                           json_t              * __restrict jspec) {
+  AkMaterialSpecularProp *specularProp;
+  json_t                 *jval;
+
+  if (!(specularProp = cmnTechn->specular)) {
+    specularProp           = ak_heap_calloc(gst->heap, cmnTechn,
+                                            sizeof(*specularProp));
+    specularProp->strength = 1.0f;
+    specularProp->color    = gltf_materialColorDesc(gst, specularProp,
+                                                    1.0f, 1.0f, 1.0f, 1.0f);
+    cmnTechn->specular     = specularProp;
+  }
+
+  jval = jspec->value;
+  while (jval) {
+    if (json_key_eq(jval, _s_gltf_specularFactor)) {
+      specularProp->strength = json_float(jval, 1.0f);
+    } else if (json_key_eq(jval, _s_gltf_specularTexture)) {
+      specularProp->specularTex = gltf_texref(gst, cmnTechn, jval);
+    } else if (json_key_eq(jval, _s_gltf_specularColorFactor)) {
+      json_array_float(specularProp->color->color->vec, jval, 0.0f, 3, true);
+      specularProp->color->color->vec[3] = 1.0f;
+    } else if (json_key_eq(jval, _s_gltf_specularColorTexture)) {
+      specularProp->color->texture = gltf_texref(gst, cmnTechn, jval);
+    }
+    jval = jval->next;
+  }
+}
+
+static
+void
+gltf_materialParseClearcoat(AkGLTFState         * __restrict gst,
+                            AkTechniqueFxCommon * __restrict cmnTechn,
+                            json_t              * __restrict jspec) {
+  AkMaterialClearcoat *clearcoat;
+  json_t              *jval;
+
+  if (!(clearcoat = cmnTechn->clearcoat)) {
+    clearcoat           = ak_heap_calloc(gst->heap, cmnTechn,
+                                         sizeof(*clearcoat));
+    clearcoat->normalScale = 1.0f;
+    cmnTechn->clearcoat = clearcoat;
+  }
+
+  jval = jspec->value;
+  while (jval) {
+    if (json_key_eq(jval, _s_gltf_clearcoatFactor)) {
+      clearcoat->intensity = json_float(jval, 0.0f);
+    } else if (json_key_eq(jval, _s_gltf_clearcoatTexture)) {
+      clearcoat->texture = gltf_texref(gst, cmnTechn, jval);
+    } else if (json_key_eq(jval, _s_gltf_clearcoatRoughnessFactor)) {
+      clearcoat->roughness = json_float(jval, 0.0f);
+    } else if (json_key_eq(jval, _s_gltf_clearcoatRoughnessTexture)) {
+      clearcoat->roughnessTexture = gltf_texref(gst, cmnTechn, jval);
+    } else if (json_key_eq(jval, _s_gltf_clearcoatNormalTexture)) {
+      clearcoat->normalTexture = gltf_texref(gst, cmnTechn, jval);
+      clearcoat->normalScale   = json_float(json_get(jval, _s_gltf_scale),
+                                            1.0f);
+    }
+    jval = jval->next;
+  }
+}
+
+static
+void
+gltf_materialParseTransmission(AkGLTFState         * __restrict gst,
+                               AkTechniqueFxCommon * __restrict cmnTechn,
+                               json_t              * __restrict jspec) {
+  AkMaterialTransmissionProp *transmissionProp;
+  json_t                     *jval;
+
+  if (!(transmissionProp = cmnTechn->transmission)) {
+    transmissionProp       = ak_heap_calloc(gst->heap, cmnTechn,
+                                            sizeof(*transmissionProp));
+    cmnTechn->transmission = transmissionProp;
+  }
+
+  jval = jspec->value;
+  while (jval) {
+    if (json_key_eq(jval, _s_gltf_transmissionFactor)) {
+      transmissionProp->factor = json_float(jval, 0.0f);
+    } else if (json_key_eq(jval, _s_gltf_transmissionTexture)) {
+      transmissionProp->texture = gltf_texref(gst, cmnTechn, jval);
+    }
+    jval = jval->next;
+  }
+}
+
+static
+void
+gltf_materialParseSheen(AkGLTFState         * __restrict gst,
+                        AkTechniqueFxCommon * __restrict cmnTechn,
+                        json_t              * __restrict jspec) {
+  AkMaterialSheen *sheen;
+  json_t          *jval;
+
+  if (!(sheen = cmnTechn->sheen)) {
+    sheen          = ak_heap_calloc(gst->heap, cmnTechn, sizeof(*sheen));
+    sheen->color   = gltf_materialColorDesc(gst, sheen,
+                                            0.0f, 0.0f, 0.0f, 1.0f);
+    cmnTechn->sheen = sheen;
+  }
+
+  jval = jspec->value;
+  while (jval) {
+    if (json_key_eq(jval, _s_gltf_sheenColorFactor)) {
+      json_array_float(sheen->color->color->vec, jval, 0.0f, 3, true);
+      sheen->color->color->vec[3] = 1.0f;
+    } else if (json_key_eq(jval, _s_gltf_sheenColorTexture)) {
+      sheen->color->texture = gltf_texref(gst, sheen, jval);
+    } else if (json_key_eq(jval, _s_gltf_sheenRoughnessFactor)) {
+      sheen->roughness = json_float(jval, 0.0f);
+    } else if (json_key_eq(jval, _s_gltf_sheenRoughnessTexture)) {
+      sheen->roughnessTexture = gltf_texref(gst, sheen, jval);
+    }
+    jval = jval->next;
+  }
+}
+
+static
+void
+gltf_materialParseIridescence(AkGLTFState         * __restrict gst,
+                              AkTechniqueFxCommon * __restrict cmnTechn,
+                              json_t              * __restrict jspec) {
+  AkMaterialIridescence *iri;
+  json_t                *jval;
+
+  if (!(iri = cmnTechn->iridescence)) {
+    iri                   = ak_heap_calloc(gst->heap, cmnTechn, sizeof(*iri));
+    iri->ior              = 1.3f;
+    iri->thicknessMinimum = 100.0f;
+    iri->thicknessMaximum = 400.0f;
+    cmnTechn->iridescence = iri;
+  }
+
+  jval = jspec->value;
+  while (jval) {
+    if (json_key_eq(jval, _s_gltf_iridescenceFactor)) {
+      iri->factor = json_float(jval, 0.0f);
+    } else if (json_key_eq(jval, _s_gltf_iridescenceTexture)) {
+      iri->texture = gltf_texref(gst, iri, jval);
+    } else if (json_key_eq(jval, _s_gltf_iridescenceIor)) {
+      iri->ior = json_float(jval, 1.3f);
+    } else if (json_key_eq(jval, _s_gltf_iridescenceThicknessMinimum)) {
+      iri->thicknessMinimum = json_float(jval, 100.0f);
+    } else if (json_key_eq(jval, _s_gltf_iridescenceThicknessMaximum)) {
+      iri->thicknessMaximum = json_float(jval, 400.0f);
+    } else if (json_key_eq(jval, _s_gltf_iridescenceThicknessTexture)) {
+      iri->thicknessTexture = gltf_texref(gst, iri, jval);
+    }
+    jval = jval->next;
+  }
+}
+
+static
+void
+gltf_materialParseVolume(AkGLTFState         * __restrict gst,
+                         AkTechniqueFxCommon * __restrict cmnTechn,
+                         json_t              * __restrict jspec) {
+  AkMaterialVolume *vol;
+  json_t           *jval;
+
+  if (!(vol = cmnTechn->volume)) {
+    vol = ak_heap_calloc(gst->heap, cmnTechn, sizeof(*vol));
+    vol->attenuationColor.vec[0] = 1.0f;
+    vol->attenuationColor.vec[1] = 1.0f;
+    vol->attenuationColor.vec[2] = 1.0f;
+    vol->attenuationColor.vec[3] = 1.0f;
+    vol->attenuationDistance = INFINITY;
+    cmnTechn->volume = vol;
+  }
+
+  jval = jspec->value;
+  while (jval) {
+    if (json_key_eq(jval, _s_gltf_thicknessFactor)) {
+      vol->thicknessFactor = json_float(jval, 0.0f);
+    } else if (json_key_eq(jval, _s_gltf_thicknessTexture)) {
+      vol->thicknessTexture = gltf_texref(gst, vol, jval);
+    } else if (json_key_eq(jval, _s_gltf_attenuationDistance)) {
+      vol->attenuationDistance = json_float(jval, INFINITY);
+    } else if (json_key_eq(jval, _s_gltf_attenuationColor)) {
+      json_array_float(vol->attenuationColor.vec, jval, 1.0f, 3, true);
+      vol->attenuationColor.vec[3] = 1.0f;
+    }
+    jval = jval->next;
+  }
+}
+
+static
+void
+gltf_materialParseAnisotropy(AkGLTFState         * __restrict gst,
+                             AkTechniqueFxCommon * __restrict cmnTechn,
+                             json_t              * __restrict jspec) {
+  AkMaterialAnisotropy *aniso;
+  json_t               *jval;
+
+  if (!(aniso = cmnTechn->anisotropy)) {
+    aniso                 = ak_heap_calloc(gst->heap, cmnTechn,
+                                           sizeof(*aniso));
+    cmnTechn->anisotropy  = aniso;
+  }
+
+  jval = jspec->value;
+  while (jval) {
+    if (json_key_eq(jval, _s_gltf_anisotropyStrength)) {
+      aniso->strength = json_float(jval, 0.0f);
+    } else if (json_key_eq(jval, _s_gltf_anisotropyRotation)) {
+      aniso->rotation = json_float(jval, 0.0f);
+    } else if (json_key_eq(jval, _s_gltf_anisotropyTexture)) {
+      aniso->texture = gltf_texref(gst, aniso, jval);
+    }
+    jval = jval->next;
+  }
+}
+
+static
+void
+gltf_materialParseDispersion(AkGLTFState         * __restrict gst,
+                             AkTechniqueFxCommon * __restrict cmnTechn,
+                             json_t              * __restrict jspec) {
+  AkMaterialDispersion *disp;
+
+  if (!(disp = cmnTechn->dispersion)) {
+    disp                 = ak_heap_calloc(gst->heap, cmnTechn, sizeof(*disp));
+    cmnTechn->dispersion = disp;
+  }
+
+  disp->dispersion = json_float(json_get(jspec, _s_gltf_dispersion), 0.0f);
+}
+
+static
+void
+gltf_materialParseDiffuseTransmission(AkGLTFState         * __restrict gst,
+                                      AkTechniqueFxCommon * __restrict cmnTechn,
+                                      json_t              * __restrict jspec) {
+  AkMaterialDiffuseTransmission *dt;
+  json_t                        *jval;
+
+  if (!(dt = cmnTechn->diffuseTransmission)) {
+    dt        = ak_heap_calloc(gst->heap, cmnTechn, sizeof(*dt));
+    dt->color = gltf_materialColorDesc(gst, dt, 1.0f, 1.0f, 1.0f, 1.0f);
+    cmnTechn->diffuseTransmission = dt;
+  }
+
+  jval = jspec->value;
+  while (jval) {
+    if (json_key_eq(jval, _s_gltf_diffuseTransmissionFactor)) {
+      dt->factor = json_float(jval, 0.0f);
+    } else if (json_key_eq(jval, _s_gltf_diffuseTransmissionTexture)) {
+      dt->texture = gltf_texref(gst, dt, jval);
+    } else if (json_key_eq(jval, _s_gltf_diffuseTransmissionColorFactor)) {
+      json_array_float(dt->color->color->vec, jval, 1.0f, 3, true);
+      dt->color->color->vec[3] = 1.0f;
+    } else if (json_key_eq(jval, _s_gltf_diffuseTransmissionColorTexture)) {
+      dt->color->texture = gltf_texref(gst, dt, jval);
+    }
+    jval = jval->next;
+  }
+}
+
 AK_HIDE
 void
 gltf_materials(json_t * __restrict jmaterial,
@@ -131,56 +416,17 @@ gltf_materials(json_t * __restrict jmaterial,
     jmatVal = jmaterial->value;
     if ((jext = json_get(jmaterial, _s_gltf_extensions))) {
       json_t *jspec, *jval;
-      if ((jspec = json_get(jext, _s_gltf_ext_KHR_materials_specular))) {
-        AkMaterialSpecularProp *specularProp;
-        AkColorDesc            *specularColor;
 
-        specularProp         = ak_heap_calloc(heap, cmnTechn, sizeof(*specularProp));
-        cmnTechn->specular   = specularProp;
-        specularColor        = ak_heap_calloc(heap, specularProp, sizeof(*specularColor));
-        specularColor->color = ak_heap_calloc(heap, specularColor, sizeof(*specularColor->color));
-        specularProp->color  = specularColor;
+      if ((jspec = json_get(jext, _s_gltf_ext_KHR_materials_specular)))
+        gltf_materialParseSpecular(gst, cmnTechn, jspec);
 
-        glm_vec4_copy(GLM_VEC4_ONE, specularColor->color->vec);
+      if ((jspec = json_get(jext, _s_gltf_KHR_materials_clearcoat)))
+        gltf_materialParseClearcoat(gst, cmnTechn, jspec);
 
-        jval = jspec->value;
-        while (jval) {
-          if (json_key_eq(jval, _s_gltf_specularFactor)) {
-            specularProp->strength = json_float(jval, 1.0f);
-          } else if (json_key_eq(jval, _s_gltf_specularTexture)) {
-            specularProp->specularTex = gltf_texref(gst, cmnTechn, jval);
-          } else if (json_key_eq(jval, _s_gltf_specularColorFactor)) {
-            json_array_float(specularColor->color->vec, jval, 0.0f, 3, true);
-            specularColor->color->vec[3] = 1.0f;
-          } else if (json_key_eq(jval, _s_gltf_specularColorTexture)) {
-            specularColor->texture = gltf_texref(gst, cmnTechn, jval);
-          }
-          jval = jval->next;
-        }
-      } else if ((jspec = json_get(jext, _s_gltf_KHR_materials_clearcoat))) {
-        AkMaterialClearcoat *clearcoat;
-        clearcoat = ak_heap_calloc(heap, cmnTechn, sizeof(*clearcoat));
-
-        jval = jspec->value;
-        while (jval) {
-          if (json_key_eq(jval, _s_gltf_clearcoatFactor)) {
-            clearcoat->intensity = json_float(jval, 0.0f);
-          } else if (json_key_eq(jval, _s_gltf_clearcoatTexture)) {
-            clearcoat->texture = gltf_texref(gst, cmnTechn, jval);
-          } else if (json_key_eq(jval, _s_gltf_clearcoatRoughnessFactor)) {
-            clearcoat->roughness = json_float(jval, 0.0f);
-          } else if (json_key_eq(jval, _s_gltf_clearcoatRoughnessTexture)) {
-            clearcoat->roughnessTexture = gltf_texref(gst, cmnTechn, jval);
-          } else if (json_key_eq(jval, _s_gltf_clearcoatNormalTexture)) {
-            clearcoat->normalTexture = gltf_texref(gst, cmnTechn, jval);
-          }
-          jval = jval->next;
-        }
-
-        cmnTechn->clearcoat = clearcoat;
-      } else if ((jspec = json_get(jext, _s_gltf_KHR_materials_unlit))) {
+      if ((jspec = json_get(jext, _s_gltf_KHR_materials_unlit)))
         cmnTechn->type = AK_MATERIAL_CONSTANT;
-      } else if ((jspec = json_get(jext, _s_gltf_KHR_materials_emissive_strength))) {
+
+      if ((jspec = json_get(jext, _s_gltf_KHR_materials_emissive_strength))) {
         AkMaterialEmissionProp *emission;
 
         if (!(emission = cmnTechn->emission)) {
@@ -189,28 +435,34 @@ gltf_materials(json_t * __restrict jmaterial,
         }
 
         emission->strength = json_float(json_get(jspec, _s_gltf_emissiveStrength), 1.0f);
-      } else if ((jspec = json_get(jext, _s_gltf_KHR_materials_ior))) {
-        cmnTechn->ior = json_float(json_get(jspec, _s_gltf_ior), 1.5f);
-      } else if ((jspec = json_get(jext, _s_gltf_KHR_materials_transmission))) {
-        AkMaterialTransmissionProp *transmissionProp;
-
-        if (!(transmissionProp = cmnTechn->transmission)) {
-          transmissionProp       = ak_heap_calloc(heap, cmnTechn, sizeof(*transmissionProp));
-          cmnTechn->transmission = transmissionProp;
-        }
-
-        jval = jspec->value;
-        while (jval) {
-          if (json_key_eq(jval, _s_gltf_transmissionFactor)) {
-            transmissionProp->factor  = json_float(jval, 0.0f);
-          } else if (json_key_eq(jval, _s_gltf_transmissionTexture)) {
-            transmissionProp->texture = gltf_texref(gst, cmnTechn, jval);
-          }
-          jval = jval->next;
-        }
       }
+
+      if ((jspec = json_get(jext, _s_gltf_KHR_materials_ior)))
+        cmnTechn->ior = json_float(json_get(jspec, _s_gltf_ior), 1.5f);
+
+      if ((jspec = json_get(jext, _s_gltf_KHR_materials_transmission)))
+        gltf_materialParseTransmission(gst, cmnTechn, jspec);
+
+      if ((jspec = json_get(jext, _s_gltf_KHR_materials_sheen)))
+        gltf_materialParseSheen(gst, cmnTechn, jspec);
+
+      if ((jspec = json_get(jext, _s_gltf_KHR_materials_iridescence)))
+        gltf_materialParseIridescence(gst, cmnTechn, jspec);
+
+      if ((jspec = json_get(jext, _s_gltf_KHR_materials_volume)))
+        gltf_materialParseVolume(gst, cmnTechn, jspec);
+
+      if ((jspec = json_get(jext, _s_gltf_KHR_materials_anisotropy)))
+        gltf_materialParseAnisotropy(gst, cmnTechn, jspec);
+
+      if ((jspec = json_get(jext, _s_gltf_KHR_materials_dispersion)))
+        gltf_materialParseDispersion(gst, cmnTechn, jspec);
+
+      if ((jspec = json_get(jext, _s_gltf_KHR_materials_diffuse_transmission)))
+        gltf_materialParseDiffuseTransmission(gst, cmnTechn, jspec);
+
       /* ARCHIVED: Superseded by KHR_materials_specular */
-      else if ((jspec = json_get(jext, _s_gltf_ext_pbrSpecGloss))) {
+      if ((jspec = json_get(jext, _s_gltf_ext_pbrSpecGloss))) {
         AkMaterialSpecularProp *specularProp;
         AkColorDesc            *specularColor;
 

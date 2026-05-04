@@ -61,6 +61,7 @@ typedef struct AkNode {
   AkNodeType            nodeType;
   AkStringArray        *layer;
   struct AkTransform   *transform;
+  bool                  visible;
 
   /* only avilable if library is forced to calculate them
      check these two matrix to avoid extra or same calculation

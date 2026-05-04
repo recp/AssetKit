@@ -28,6 +28,18 @@ typedef struct AkSkinAccessorPair {
   uint32_t    slotCount;
 } AkSkinAccessorPair;
 
+typedef struct AkSkinInspectPrimitive {
+  struct AkSkinInspectPrimitive *next;
+  AkMeshPrimitive               *prim;
+  AkSkinAccessorPair            *pairs;
+  size_t                         vertexCount;
+  uint32_t                       pairCount;
+} AkSkinInspectPrimitive;
+
+typedef struct AkSkinInspectView {
+  AkSkinInspectPrimitive *primitive;
+} AkSkinInspectView;
+
 AK_INLINE
 size_t
 ak_skinPrimitiveVertexCount(AkMeshPrimitive * __restrict prim) {
@@ -41,6 +53,144 @@ ak_skinPrimitiveVertexCount(AkMeshPrimitive * __restrict prim) {
   }
 
   return 0;
+}
+
+AK_INLINE
+uint32_t
+ak_skinAccessorPairCapacity(AkMeshPrimitive * __restrict prim) {
+  AkInput *inp;
+  uint32_t count;
+
+  count = 0;
+  for (inp = prim->input; inp; inp = inp->next) {
+    if (inp->semantic == AK_INPUT_JOINT)
+      count++;
+  }
+
+  return count;
+}
+
+AK_INLINE
+uint32_t
+ak_skinCollectAccessorPairs(AkMeshPrimitive    * __restrict prim,
+                            AkSkinAccessorPair * __restrict pairs,
+                            uint32_t                        pairCap,
+                            size_t            * __restrict vCount) {
+  AkSkinAccessorPair *pair;
+  AkAccessor         *jointAcc, *weightAcc;
+  AkBuffer           *jointBuf, *weightBuf;
+  AkInput            *jointInp, *weightInp, *scan;
+  uint32_t            pairCount;
+  size_t              count;
+
+  if (!prim || !pairs || pairCap == 0 || !vCount)
+    return 0;
+
+  count     = ak_skinPrimitiveVertexCount(prim);
+  pairCount = 0;
+
+  for (jointInp = prim->input; jointInp; jointInp = jointInp->next) {
+    if (jointInp->semantic != AK_INPUT_JOINT)
+      continue;
+
+    weightInp = NULL;
+    for (scan = prim->input; scan; scan = scan->next) {
+      if (scan->semantic == AK_INPUT_WEIGHT && scan->set == jointInp->set) {
+        weightInp = scan;
+        break;
+      }
+    }
+    if (!weightInp)
+      continue;
+
+    jointAcc  = jointInp->accessor;
+    weightAcc = weightInp->accessor;
+    if (!jointAcc || !weightAcc)
+      continue;
+
+    jointBuf  = jointAcc->buffer;
+    weightBuf = weightAcc->buffer;
+    if (!jointBuf || !jointBuf->data || !weightBuf || !weightBuf->data)
+      continue;
+
+    if (pairCount >= pairCap)
+      break;
+
+    pair            = &pairs[pairCount];
+    pair->jointAcc  = jointAcc;
+    pair->weightAcc = weightAcc;
+    pair->jointBuf  = jointBuf;
+    pair->weightBuf = weightBuf;
+    pair->jStride   = (uint32_t)jointAcc->byteStride;
+    pair->wStride   = (uint32_t)weightAcc->byteStride;
+    if (!pair->jStride) pair->jStride = (uint32_t)jointAcc->fillByteSize;
+    if (!pair->wStride) pair->wStride = (uint32_t)weightAcc->fillByteSize;
+
+    pair->slotCount = jointAcc->componentCount;
+    if (weightAcc->componentCount < pair->slotCount)
+      pair->slotCount = weightAcc->componentCount;
+    if (pair->slotCount == 0)
+      continue;
+
+    if (count == 0 || jointAcc->count < count)
+      count = jointAcc->count;
+    if (weightAcc->count < count)
+      count = weightAcc->count;
+
+    pairCount++;
+  }
+
+  *vCount = count;
+  return pairCount;
+}
+
+static
+AkSkinInspectPrimitive*
+ak_skinInspectPrimitive(AkSkin          * __restrict skin,
+                        AkMeshPrimitive * __restrict prim) {
+  AkSkinInspectView      *view;
+  AkSkinInspectPrimitive *insp;
+  AkSkinAccessorPair     *pairs;
+  uint32_t                pairCap, pairCount;
+  size_t                  vCount;
+
+  if (!skin || !prim)
+    return NULL;
+
+  view = skin->inspectResult;
+  if (view) {
+    for (insp = view->primitive; insp; insp = insp->next) {
+      if (insp->prim == prim)
+        return insp;
+    }
+  } else {
+    view = ak_calloc(skin, sizeof(*view));
+    if (!view)
+      return NULL;
+    skin->inspectResult = view;
+  }
+
+  pairCap = ak_skinAccessorPairCapacity(prim);
+  if (pairCap == 0)
+    return NULL;
+
+  pairs = ak_calloc(view, sizeof(*pairs) * pairCap);
+  if (!pairs)
+    return NULL;
+
+  pairCount = ak_skinCollectAccessorPairs(prim, pairs, pairCap, &vCount);
+  if (pairCount == 0 || vCount == 0)
+    return NULL;
+
+  insp              = ak_calloc(view, sizeof(*insp));
+  insp->prim        = prim;
+  insp->pairs       = pairs;
+  insp->pairCount   = pairCount;
+  insp->vertexCount = vCount;
+  insp->next        = view->primitive;
+  view->primitive   = insp;
+
+  return insp;
 }
 
 AK_INLINE
@@ -86,6 +236,37 @@ ak_skinReadWeight(const char *src, AkTypeId componentType, uint32_t k) {
     default:
       return 0.0f;
   }
+}
+
+AK_INLINE
+void
+ak_skinNormalizeWeights(float * __restrict weights, uint32_t maxJoint) {
+  float    sum;
+  float    inv;
+  uint32_t k;
+
+  sum = 0.0f;
+  for (k = 0; k < maxJoint; k++)
+    sum += weights[k];
+
+  if (sum > 0.0f && isfinite(sum)) {
+    inv = 1.0f / sum;
+    for (k = 0; k < maxJoint; k++)
+      weights[k] *= inv;
+  }
+}
+
+AK_INLINE
+void
+ak_skinWriteInterleavedRow(char           * __restrict row,
+                           const uint16_t * __restrict joints,
+                           const float    * __restrict weights,
+                           uint32_t                    maxJoint) {
+  size_t jointBytes;
+
+  jointBytes = sizeof(uint16_t) * maxJoint;
+  memcpy(row, joints, jointBytes);
+  memcpy(row + jointBytes, weights, sizeof(float) * maxJoint);
 }
 
 AK_INLINE
@@ -137,91 +318,99 @@ ak_skinInterleave(AkSkin          * __restrict skin,
                   uint32_t                     primIdx,
                   uint32_t                     maxJoint,
                   void           ** __restrict buff) {
-  AkInput  *inp;
-  uint16_t *idxScratch;
-  float    *wgtScratch;
-  char     *out;
-  size_t    vCount, written, outBytes, v;
-  uint32_t  k;
-  size_t    rowBytes;
+  AkBoneWeights      *bw;
+  AkBoneWeight       *src;
+  AkSkinInspectPrimitive *insp;
+  AkSkinAccessorPair *pairs;
+  AkSkinAccessorPair *pair;
+  uint16_t           *idxScratch;
+  uint16_t            joint;
+  float              *wgtScratch;
+  char               *out;
+  const char         *jSrc, *wSrc;
+  size_t              vCount, outBytes, v, posCount;
+  size_t              rowBytes;
+  uint32_t            k, pairCount, pairIdx, slotCount;
 
   if (!skin || !prim || !buff || maxJoint == 0)
     return 0;
 
-  /*------------------------------------------------------------------*/
-  /* Determine vCount up front so we can size output + scratch.       */
-  /* DAE: skin->weights[primIdx]->nVertex.                            */
-  /* raw accessors: from JOINTS_n accessor on prim->input.            */
-  /*------------------------------------------------------------------*/
-  vCount = 0;
-  if (skin->weights && skin->weights[primIdx]) {
-    vCount = skin->weights[primIdx]->nVertex;
-    {
-      size_t posCount = ak_skinPrimitiveVertexCount(prim);
-      if (posCount > 0 && posCount < vCount)
-        vCount = posCount;
-    }
+  bw        = skin->weights ? skin->weights[primIdx] : NULL;
+  pairs     = NULL;
+  pairCount = 0;
+
+  if (bw) {
+    vCount   = bw->nVertex;
+    posCount = ak_skinPrimitiveVertexCount(prim);
+    if (posCount > 0 && posCount < vCount)
+      vCount = posCount;
   } else {
-    vCount = ak_skinPrimitiveVertexCount(prim);
-    for (inp = prim->input; inp; inp = inp->next) {
-      if (inp->semantic == AK_INPUT_JOINT && inp->accessor) {
-        if (vCount == 0 || inp->accessor->count < vCount)
-          vCount = inp->accessor->count;
-        break;
-      }
-    }
+    if (!(insp = ak_skinInspectPrimitive(skin, prim)))
+      return 0;
+
+    pairs     = insp->pairs;
+    pairCount = insp->pairCount;
+    vCount    = insp->vertexCount;
   }
+
   if (vCount == 0)
     return 0;
 
-  /*------------------------------------------------------------------*/
-  /* Extract via shared core (top-N + normalize). Scratch arrays are  */
-  /* the separate-output form ak_skinFillWeights expects.             */
-  /*------------------------------------------------------------------*/
-  idxScratch = ak_calloc(NULL, vCount * maxJoint * sizeof(uint16_t));
-  wgtScratch = ak_calloc(NULL, vCount * maxJoint * sizeof(float));
-  if (!idxScratch || !wgtScratch) {
-    ak_free(idxScratch);
-    ak_free(wgtScratch);
-    return 0;
-  }
-
-  written = ak_skinFillWeights(skin, prim, primIdx, maxJoint,
-                               idxScratch, wgtScratch);
-  if (written == 0) {
-    ak_free(idxScratch);
-    ak_free(wgtScratch);
-    return 0;
-  }
-  vCount = written;
-
-  /*------------------------------------------------------------------*/
-  /* Pack into interleaved output: per-vertex                         */
-  /*   [J0..J(N-1) (uint16)] [W0..W(N-1) (float)]                     */
-  /* No padding between joint and weight blocks. N == maxJoint.       */
-  /*------------------------------------------------------------------*/
   rowBytes = maxJoint * (sizeof(uint16_t) + sizeof(float));
   outBytes = vCount * rowBytes;
   if (!(out = *buff))
     out = *buff = ak_calloc(NULL, outBytes);
-  if (!out) {
-    ak_free(idxScratch);
-    ak_free(wgtScratch);
+  if (!out)
     return 0;
-  }
+
+  idxScratch = alloca(sizeof(uint16_t) * maxJoint);
+  wgtScratch = alloca(sizeof(float)    * maxJoint);
 
   for (v = 0; v < vCount; v++) {
-    char     *row = out + v * rowBytes;
-    uint16_t *vJ  = (uint16_t *)row;
-    float    *vW  = (float *)(vJ + maxJoint);
-    for (k = 0; k < maxJoint; k++) {
-      vJ[k] = idxScratch[v * maxJoint + k];
-      vW[k] = wgtScratch[v * maxJoint + k];
+    memset(idxScratch, 0, sizeof(uint16_t) * maxJoint);
+    memset(wgtScratch, 0, sizeof(float)    * maxJoint);
+
+    if (bw) {
+      slotCount = bw->counts[v];
+      for (k = 0; k < slotCount; k++) {
+        src = &bw->weights[bw->indexes[v] + k];
+        if (ak_skinJointToU16(src->joint, &joint))
+          ak_skinKeepInfluence(idxScratch, wgtScratch,
+                               maxJoint, joint, src->weight);
+      }
+    } else {
+      for (pairIdx = 0; pairIdx < pairCount; pairIdx++) {
+        pair = &pairs[pairIdx];
+        jSrc = (const char *)pair->jointBuf->data
+               + pair->jointAcc->byteOffset
+               + (size_t)v * pair->jStride;
+        wSrc = (const char *)pair->weightBuf->data
+               + pair->weightAcc->byteOffset
+               + (size_t)v * pair->wStride;
+
+        slotCount = pair->slotCount;
+        for (k = 0; k < slotCount; k++) {
+          if (ak_skinReadJoint(jSrc,
+                               pair->jointAcc->componentType,
+                               (uint32_t)k,
+                               &joint)) {
+            ak_skinKeepInfluence(idxScratch, wgtScratch,
+                                 maxJoint, joint,
+                                 ak_skinReadWeight(wSrc,
+                                                   pair->weightAcc->componentType,
+                                                   (uint32_t)k));
+          }
+        }
+      }
     }
+
+    ak_skinNormalizeWeights(wgtScratch, maxJoint);
+    ak_skinWriteInterleavedRow(out + v * rowBytes,
+                               idxScratch,
+                               wgtScratch,
+                               maxJoint);
   }
 
-  ak_free(idxScratch);
-  ak_free(wgtScratch);
   return outBytes;
 }
 
@@ -233,13 +422,17 @@ ak_skinFillWeights(AkSkin          * __restrict skin,
                    uint32_t                     maxJoint,
                    uint16_t        * __restrict outIndices,
                    float           * __restrict outWeights) {
-  AkBoneWeights *bw;
-  AkInput       *inp, *jointInp, *weightInp, *scan;
-  AkAccessor    *jointAcc, *weightAcc;
-  AkBuffer      *jointBuf, *weightBuf;
-  size_t         vCount, v, k;
-  uint32_t       slotCount, kept, j;
-  size_t         outRow;
+  AkBoneWeights      *bw;
+  AkBoneWeight       *src;
+  AkSkinInspectPrimitive *insp;
+  AkSkinAccessorPair *pairs, *pair;
+  const char         *jSrc, *wSrc;
+  size_t              vCount, v, k, posCount;
+  size_t              outRow;
+  uint32_t            pairCount, pairIdx;
+  uint32_t            slotCount;
+  uint16_t            joint;
+  float               weight;
 
   if (!skin || !prim || !outIndices || !outWeights || maxJoint == 0)
     return 0;
@@ -251,9 +444,6 @@ ak_skinFillWeights(AkSkin          * __restrict skin,
   /* < authored joint count).                                         */
   /*------------------------------------------------------------------*/
   if (skin->weights && (bw = skin->weights[primIdx])) {
-    /* Clamp to primitive POSITION count when smaller. */
-    size_t posCount;
-
     vCount = bw->nVertex;
     posCount = ak_skinPrimitiveVertexCount(prim);
     if (posCount > 0 && posCount < vCount)
@@ -265,65 +455,19 @@ ak_skinFillWeights(AkSkin          * __restrict skin,
     for (v = 0; v < vCount; v++) {
       slotCount = bw->counts[v];
       outRow    = (size_t)v * maxJoint;
-      kept      = 0;
 
-      if (slotCount <= maxJoint) {
-        for (k = 0; k < slotCount; k++) {
-          AkBoneWeight *src = &bw->weights[bw->indexes[v] + k];
-          uint16_t      joint;
-
-          if (!ak_skinJointToU16(src->joint, &joint)
-              || !(src->weight > 0.0f)
-              || !isfinite(src->weight))
-            continue;
-
-          outIndices[outRow + kept] = joint;
-          outWeights[outRow + kept] = src->weight;
-          kept++;
-        }
-      } else {
-        /* > maxJoint authored joints: keep top-N by weight magnitude */
-        for (k = 0; k < slotCount; k++) {
-          AkBoneWeight *src = &bw->weights[bw->indexes[v] + k];
-          uint16_t      joint;
-
-          if (!ak_skinJointToU16(src->joint, &joint)
-              || !(src->weight > 0.0f)
-              || !isfinite(src->weight))
-            continue;
-
-          if (kept < maxJoint) {
-            outIndices[outRow + kept] = joint;
-            outWeights[outRow + kept] = src->weight;
-            kept++;
-          } else {
-            /* find current min in kept set */
-            uint32_t minIdx = 0;
-            float    minW   = outWeights[outRow + 0];
-            for (j = 1; j < maxJoint; j++) {
-              if (outWeights[outRow + j] < minW) {
-                minW = outWeights[outRow + j];
-                minIdx = j;
-              }
-            }
-            if (src->weight > minW) {
-              outIndices[outRow + minIdx] = joint;
-              outWeights[outRow + minIdx] = src->weight;
-            }
-          }
+      for (k = 0; k < slotCount; k++) {
+        src = &bw->weights[bw->indexes[v] + k];
+        if (ak_skinJointToU16(src->joint, &joint)) {
+          ak_skinKeepInfluence(&outIndices[outRow],
+                               &outWeights[outRow],
+                               maxJoint,
+                               joint,
+                               src->weight);
         }
       }
 
-      /* renormalize so weights sum to 1 (handles both truncation and
-         authored asymmetric weights — common after top-N selection) */
-      {
-        float sum = 0.0f;
-        for (k = 0; k < maxJoint; k++) sum += outWeights[outRow + k];
-        if (sum > 0.0f && isfinite(sum)) {
-          float inv = 1.0f / sum;
-          for (k = 0; k < maxJoint; k++) outWeights[outRow + k] *= inv;
-        }
-      }
+      ak_skinNormalizeWeights(&outWeights[outRow], maxJoint);
     }
     return vCount;
   }
@@ -332,131 +476,163 @@ ak_skinFillWeights(AkSkin          * __restrict skin,
   /* Raw accessor path: collect every JOINTS_n / WEIGHTS_n pair, then */
   /* keep the top maxJoint influences per vertex and normalize.       */
   /*------------------------------------------------------------------*/
-  {
-    AkSkinAccessorPair *pairs, *pair;
-    uint32_t            pairCount, pairIdx, pairCap;
+  if (!(insp = ak_skinInspectPrimitive(skin, prim))) {
+    return 0;
+  }
 
-    pairCap = 0;
-    for (inp = prim->input; inp; inp = inp->next) {
-      if (inp->semantic == AK_INPUT_JOINT)
-        pairCap++;
+  pairs     = insp->pairs;
+  pairCount = insp->pairCount;
+  vCount    = insp->vertexCount;
+
+  memset(outIndices, 0, vCount * maxJoint * sizeof(uint16_t));
+  memset(outWeights, 0, vCount * maxJoint * sizeof(float));
+
+  for (v = 0; v < vCount; v++) {
+    outRow = (size_t)v * maxJoint;
+
+    for (pairIdx = 0; pairIdx < pairCount; pairIdx++) {
+      pair = &pairs[pairIdx];
+
+      jSrc = (const char *)pair->jointBuf->data
+             + pair->jointAcc->byteOffset
+             + (size_t)v * pair->jStride;
+      wSrc = (const char *)pair->weightBuf->data
+             + pair->weightAcc->byteOffset
+             + (size_t)v * pair->wStride;
+
+      slotCount = pair->slotCount;
+      for (k = 0; k < slotCount; k++) {
+        if (!ak_skinReadJoint(jSrc,
+                              pair->jointAcc->componentType,
+                              (uint32_t)k,
+                              &joint))
+          continue;
+
+        weight = ak_skinReadWeight(wSrc,
+                                   pair->weightAcc->componentType,
+                                   (uint32_t)k);
+        ak_skinKeepInfluence(&outIndices[outRow],
+                             &outWeights[outRow],
+                             maxJoint,
+                             joint,
+                             weight);
+      }
     }
-    if (pairCap == 0)
-      return 0;
 
-    pairCount = 0;
-    pairs     = ak_calloc(NULL, sizeof(*pairs) * pairCap);
-    if (!pairs)
-      return 0;
+    ak_skinNormalizeWeights(&outWeights[outRow], maxJoint);
+  }
 
-    vCount = ak_skinPrimitiveVertexCount(prim);
+  return vCount;
+}
 
-    for (jointInp = prim->input; jointInp; jointInp = jointInp->next) {
-      if (jointInp->semantic != AK_INPUT_JOINT)
-        continue;
+AK_EXPORT
+size_t
+ak_skinVerticesForJoint(AkSkin          * __restrict skin,
+                        AkMeshPrimitive * __restrict prim,
+                        uint32_t                     primIdx,
+                        uint32_t                     jointIdx,
+                        uint32_t        * __restrict outVertices,
+                        size_t                       capacity) {
+  AkBoneWeights      *bw;
+  AkBoneWeight       *src;
+  AkSkinInspectPrimitive *insp;
+  AkSkinAccessorPair *pairs, *pair;
+  const char         *jSrc, *wSrc;
+  size_t              vCount, posCount, v, k;
+  size_t              found, written;
+  uint32_t            pairCount, pairIdx;
+  uint32_t            slotCount;
+  uint16_t            joint;
+  float               weight;
+  bool                matched;
 
-      weightInp = NULL;
-      for (scan = prim->input; scan; scan = scan->next) {
-        if (scan->semantic == AK_INPUT_WEIGHT && scan->set == jointInp->set) {
-          weightInp = scan;
+  if (!skin || !prim)
+    return 0;
+
+  found   = 0;
+  written = 0;
+
+  if (skin->weights && (bw = skin->weights[primIdx])) {
+    vCount = bw->nVertex;
+    posCount = ak_skinPrimitiveVertexCount(prim);
+    if (posCount > 0 && posCount < vCount)
+      vCount = posCount;
+
+    for (v = 0; v < vCount; v++) {
+      matched   = false;
+      slotCount = bw->counts[v];
+
+      for (k = 0; k < slotCount; k++) {
+        src = &bw->weights[bw->indexes[v] + k];
+        if (src->joint == jointIdx
+            && src->weight > 0.0f
+            && isfinite(src->weight)) {
+          matched = true;
           break;
         }
       }
-      if (!weightInp)
+
+      if (!matched)
         continue;
 
-      jointAcc  = jointInp->accessor;
-      weightAcc = weightInp->accessor;
-      if (!jointAcc || !weightAcc)
-        continue;
-      jointBuf  = jointAcc->buffer;
-      weightBuf = weightAcc->buffer;
-      if (!jointBuf || !jointBuf->data || !weightBuf || !weightBuf->data)
-        continue;
-
-      pair            = &pairs[pairCount];
-      pair->jointAcc  = jointAcc;
-      pair->weightAcc = weightAcc;
-      pair->jointBuf  = jointBuf;
-      pair->weightBuf = weightBuf;
-      pair->jStride   = (uint32_t)jointAcc->byteStride;
-      pair->wStride   = (uint32_t)weightAcc->byteStride;
-      if (!pair->jStride) pair->jStride = (uint32_t)jointAcc->fillByteSize;
-      if (!pair->wStride) pair->wStride = (uint32_t)weightAcc->fillByteSize;
-
-      pair->slotCount = jointAcc->componentCount;
-      if (weightAcc->componentCount < pair->slotCount)
-        pair->slotCount = weightAcc->componentCount;
-      if (pair->slotCount == 0)
-        continue;
-
-      if (vCount == 0 || jointAcc->count < vCount)
-        vCount = jointAcc->count;
-      if (weightAcc->count < vCount)
-        vCount = weightAcc->count;
-
-      pairCount++;
+      if (outVertices && written < capacity)
+        outVertices[written++] = (uint32_t)v;
+      found++;
     }
 
-    if (pairCount == 0 || vCount == 0) {
-      ak_free(pairs);
-      return 0;
-    }
+    return found;
+  }
 
-    memset(outIndices, 0, vCount * maxJoint * sizeof(uint16_t));
-    memset(outWeights, 0, vCount * maxJoint * sizeof(float));
+  if (jointIdx > UINT16_MAX)
+    return 0;
 
-    for (v = 0; v < vCount; v++) {
-      outRow = (size_t)v * maxJoint;
+  if (!(insp = ak_skinInspectPrimitive(skin, prim)))
+    return 0;
 
-      for (pairIdx = 0; pairIdx < pairCount; pairIdx++) {
-        const char *jSrc, *wSrc;
-        uint16_t    joint;
-        float       weight;
+  pairs     = insp->pairs;
+  pairCount = insp->pairCount;
+  vCount    = insp->vertexCount;
 
-        pair = &pairs[pairIdx];
-        if (v >= pair->jointAcc->count || v >= pair->weightAcc->count)
+  for (v = 0; v < vCount; v++) {
+    matched = false;
+
+    for (pairIdx = 0; pairIdx < pairCount && !matched; pairIdx++) {
+      pair = &pairs[pairIdx];
+
+      jSrc = (const char *)pair->jointBuf->data
+             + pair->jointAcc->byteOffset
+             + (size_t)v * pair->jStride;
+      wSrc = (const char *)pair->weightBuf->data
+             + pair->weightAcc->byteOffset
+             + (size_t)v * pair->wStride;
+
+      slotCount = pair->slotCount;
+      for (k = 0; k < slotCount; k++) {
+        if (!ak_skinReadJoint(jSrc,
+                              pair->jointAcc->componentType,
+                              (uint32_t)k,
+                              &joint))
           continue;
 
-        jSrc = (const char *)pair->jointBuf->data
-               + pair->jointAcc->byteOffset
-               + (size_t)v * pair->jStride;
-        wSrc = (const char *)pair->weightBuf->data
-               + pair->weightAcc->byteOffset
-               + (size_t)v * pair->wStride;
-
-        slotCount = pair->slotCount;
-        for (k = 0; k < slotCount; k++) {
-          if (!ak_skinReadJoint(jSrc,
-                                pair->jointAcc->componentType,
-                                (uint32_t)k,
-                                &joint))
-            continue;
-
-          weight = ak_skinReadWeight(wSrc,
-                                     pair->weightAcc->componentType,
-                                     (uint32_t)k);
-          ak_skinKeepInfluence(&outIndices[outRow],
-                               &outWeights[outRow],
-                               maxJoint,
-                               joint,
-                               weight);
-        }
-      }
-
-      {
-        float sum = 0.0f;
-        for (k = 0; k < maxJoint; k++)
-          sum += outWeights[outRow + k];
-        if (sum > 0.0f && isfinite(sum)) {
-          float inv = 1.0f / sum;
-          for (k = 0; k < maxJoint; k++)
-            outWeights[outRow + k] *= inv;
+        weight = ak_skinReadWeight(wSrc,
+                                   pair->weightAcc->componentType,
+                                   (uint32_t)k);
+        if ((uint32_t)joint == jointIdx
+            && weight > 0.0f
+            && isfinite(weight)) {
+          matched = true;
+          break;
         }
       }
     }
 
-    ak_free(pairs);
-    return vCount;
+    if (!matched)
+      continue;
+
+    if (outVertices && written < capacity)
+      outVertices[written++] = (uint32_t)v;
+    found++;
   }
+
+  return found;
 }

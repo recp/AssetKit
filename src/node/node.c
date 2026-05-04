@@ -71,6 +71,7 @@ ak_nodeMake(AkDoc      * __restrict doc,
   heap      = ak_heap_getheap(doc);
   memparent = parent ? (void *)parent : (void *)doc;
   node      = ak_heap_calloc(heap, memparent, sizeof(*node));
+  node->visible = true;
 
   if (name)
     node->name = ak_heap_strdup(heap, node, name);
@@ -237,6 +238,7 @@ ak_sceneFindOrMakeRoot(AkDoc         * __restrict doc,
      child — so we allocate directly. */
   heap = ak_heap_getheap(doc);
   node = ak_heap_calloc(heap, scene, sizeof(*node));
+  node->visible = true;
   if (name)
     node->name = ak_heap_strdup(heap, node, name);
 

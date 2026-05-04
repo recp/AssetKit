@@ -15,6 +15,7 @@
  */
 
 #include "node.h"
+#include "ext.h"
 #include "../../../../id.h"
 
 #include <ds/hash.h>
@@ -30,6 +31,7 @@
 #define k_rotation      7
 #define k_scale         8
 #define k_weights       9
+#define k_extensions    10
 
 AK_HIDE
 void
@@ -125,6 +127,7 @@ gltf_node(AkGLTFState * __restrict gst,
 
   node = ak_heap_calloc(heap, memParent, sizeof(*node));
   ak_setypeid(node, AKT_NODE);
+  node->visible = true;
 
   json_objmap_t nodeMap[] = {
     JSON_OBJMAP_OBJ(_s_gltf_name,        I2P k_name),
@@ -136,13 +139,20 @@ gltf_node(AkGLTFState * __restrict gst,
     JSON_OBJMAP_OBJ(_s_gltf_translation, I2P k_translation),
     JSON_OBJMAP_OBJ(_s_gltf_rotation,    I2P k_rotation),
     JSON_OBJMAP_OBJ(_s_gltf_scale,       I2P k_scale),
-    JSON_OBJMAP_OBJ(_s_gltf_weights,     I2P k_weights)
+    JSON_OBJMAP_OBJ(_s_gltf_weights,     I2P k_weights),
+    JSON_OBJMAP_OBJ(_s_gltf_extensions,  I2P k_extensions)
   };
 
   json_objmap(jnode, nodeMap, JSON_ARR_LEN(nodeMap));
 
   if ((it = nodeMap[k_name].object)) {
     node->name = json_strdup(it, heap, node);
+  }
+
+  if ((it = nodeMap[k_extensions].object)
+      && !gltf_ext_node(gst, node, it)) {
+    gst->stop = true;
+    return node;
   }
 
   if (gst->doc->lib.cameras

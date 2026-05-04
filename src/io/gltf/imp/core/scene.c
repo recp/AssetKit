@@ -51,6 +51,7 @@ gltf_scenes(json_t * __restrict jscene,
     
     /* root node: to store node instances */
     scene->node = ak_heap_calloc(heap, scene, sizeof(*scene->node));
+    scene->node->visible = true;
     
     while (jsceneVal) {
       if (json_key_eq(jsceneVal, _s_gltf_name)) {

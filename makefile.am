@@ -28,7 +28,8 @@ AM_CFLAGS = -Wall \
 lib_LTLIBRARIES = libassetkit.la
 libassetkit_la_LDFLAGS = -no-undefined \
                          -version-info 0:1:0 \
-                         -lds
+                         -lds \
+                         -ldl
 
 check_PROGRAMS = test/tests
 TESTS = test/tests
@@ -104,6 +105,7 @@ libassetkit_la_SOURCES=\
     src/mem/ext.c \
     src/mem/mem.c \
     src/mem/mmap.c \
+    src/platform/dylib.c \
 \
     src/morph/intr.c \
     src/anim/conflict.c \

@@ -84,6 +84,7 @@ typedef struct AkSkin {
   struct AkNode  **joints;   /* default joints (glTF; NULL for DAE)        */
   AkBoneWeights  **weights;  /* per primitive (DAE only; NULL for glTF)    */
   struct AkNode   *skeleton; /* common ancestor; NULL if not authored      */
+  void            *inspectResult; /* private cache for raw accessor pairs   */
   size_t           nJoints;  /* cache: joint count                         */
   uint32_t         nPrims;   /* cache: primitive count                     */
   uint32_t         nMaxJoints;
@@ -126,15 +127,6 @@ typedef struct AkMorphable {
   uint32_t             inputCount;
 } AkMorphable;
 
-/* TODO:
-    AkMorphPreset presets[3] = {
-      { "neutral", neutralWeights },
-      { "smile",   smileWeights },
-      { "blink",   blinkWeights }
-    };
-    morph.presets = presets;
-    morph.presetCount = 3;
- */
 typedef struct AkMorphPreset {
   const char   *name;      /* "neutral", "smile_max", ... */
   AkFloatArray *weights;   /* length = morph->targetCount */
@@ -163,13 +155,8 @@ typedef struct AkMorphInspectMorphable {
   uint32_t                        inputsCount;
   float                           weight;
 
-  /* Per-primitive sizing. With multi-primitive morphs each
-     primitive can have its own vertex count and stride; storing
-     them here lets the interleave pass walk every morphable
-     instead of treating primitive 0 as the canonical sample.
-     `bufferOffset` is the byte offset of this primitive's data
-     within its targetView's slice; `bufferSize`/`stridePerVertex`
-     are derived from the input chain and `vertexCount`. */
+  /* Per-primitive slice inside a target view. Multi-primitive meshes can
+     have different vertex counts and strides per primitive. */
   uint32_t                        vertexCount;
   uint32_t                        stridePerVertex;
   size_t                          bufferOffset;
@@ -224,9 +211,17 @@ typedef struct AkMorph {
   AkMorphInspectView *inspectResult;
   AkFloatArray       *defaultWeights; /* this overrides mesh.weights        */
   const char        **targetNames;    /* optional, length = targetCount     */
+  AkMorphPreset      *presets;        /* optional named weight sets         */
   AkMorphMethod       method;
   uint32_t            targetCount;
+  uint32_t            presetCount;
 } AkMorph;
+
+typedef bool
+(*AkMorphProgressFn)(AkMorph * __restrict morph,
+                     uint32_t             targetIndex,
+                     uint32_t             targetCount,
+                     void   * __restrict userdata);
 
 // TODO: multi-morph-per-mesh just thought loudly ?
 // typedef struct AkPrimitiveMorph {
@@ -332,6 +327,31 @@ ak_skinFillWeights(AkSkin          * __restrict skin,
                    float           * __restrict outWeights);
 
 /*!
+ * @brief collect vertex indices affected by one joint for one primitive.
+ *
+ *        Works for both DAE CSR skin weights and glTF JOINTS_n/WEIGHTS_n
+ *        accessors. The function returns the total matching vertex count even
+ *        when `outVertices` is NULL or `capacity` is smaller than the result,
+ *        so callers can first query size and then fill a buffer.
+ *
+ * @param[in]  skin         skin owning the bone data
+ * @param[in]  prim         mesh primitive at index `primIdx`
+ * @param[in]  primIdx      primitive index in mesh
+ * @param[in]  jointIdx     joint index to scan for
+ * @param[out] outVertices  optional vertex-index buffer
+ * @param[in]  capacity     number of uint32_t slots in outVertices
+ * @return     total number of affected vertices.
+ */
+AK_EXPORT
+size_t
+ak_skinVerticesForJoint(AkSkin          * __restrict skin,
+                        AkMeshPrimitive * __restrict prim,
+                        uint32_t                     primIdx,
+                        uint32_t                     jointIdx,
+                        uint32_t        * __restrict outVertices,
+                        size_t                       capacity);
+
+/*!
  * @brief inspect a morph to get bufferSize and bufferStride to alloc memory for
  *        interleaved morph buffer with desired inputs. Also returns a list of 
  *        inputs for each target. You can use this list to collect inputs from
@@ -399,9 +419,30 @@ ak_morphInspectPrepareLayout(AkMorphInspectView * __restrict inspectView,
 AK_EXPORT
 AkResult
 ak_morphInterleave(AkGeometry * __restrict baseMesh,
-                   AkMorph    * __restrict morph, 
+                   AkMorph    * __restrict morph,
                    AkMorphInterleaveLayout layout,
                    void       * __restrict destBuff);
+
+AK_EXPORT
+AkResult
+ak_morphInterleaveWithProgress(AkGeometry         * __restrict baseMesh,
+                               AkMorph            * __restrict morph,
+                               AkMorphInterleaveLayout         layout,
+                               void               * __restrict destBuff,
+                               AkMorphProgressFn                progress,
+                               void               * __restrict userdata);
+
+AK_EXPORT
+const AkMorphPreset*
+ak_morphPresetByName(AkMorph    * __restrict morph,
+                     const char * __restrict name);
+
+AK_EXPORT
+bool
+ak_morphApplyPreset(AkMorph    * __restrict morph,
+                    const char * __restrict presetName,
+                    float      * __restrict outWeights,
+                    uint32_t                capacity);
 
 AK_INLINE
 bool
@@ -465,36 +506,6 @@ ak_morphHasOverride(const AkInstanceMorph* inst) {
 //  return AK_OK;
 //}
 
-/*
-typedef void (*AkMorphProgressCallback)(float progress, void *userData);
-
-AK_EXPORT
-AkResult
-ak_morphInterleaveWithProgress(AkGeometry * __restrict baseMesh,
-                               AkMorph    * __restrict morph,
-                               AkMorphInterleaveLayout layout,
-                               void       * __restrict destBuff,
-                               AkMorphProgressCallback callback,
-                               void       *            userData);
-
-typedef enum AkMorphResult {
-  AK_MORPH_OK = 0,
-  AK_MORPH_INCOMPATIBLE_TOPOLOGY,
-  AK_MORPH_MISSING_INPUT,
-  AK_MORPH_INVALID_WEIGHT_COUNT,
-  /* ... * /
-} AkMorphResult;
-
-AK_EXPORT
-AkResult
-ak_morphValidateTarget(AkGeometry    * __restrict baseMesh,
-                       AkMorphTarget * __restrict target);
-
-AK_EXPORT
-bool
-ak_morphIsCompatible(AkGeometry * __restrict mesh1,
-                     AkGeometry * __restrict mesh2);
-*/
 #ifdef __cplusplus
 }
 #endif
