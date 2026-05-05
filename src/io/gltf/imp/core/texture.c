@@ -15,6 +15,7 @@
  */
 
 #include "texture.h"
+#include "ext.h"
 #include "profile.h"
 #include "sampler.h"
 
@@ -128,6 +129,31 @@ gltf_textures(json_t * __restrict jtex,
         tex->image = flist_sp_at(&doc->lib.images, json_int32(jtexVal, -1));
       } else if (json_key_eq(jtexVal, _s_gltf_name)) {
         tex->name = json_strdup(jtexVal, gst->heap, tex);
+      } else if (json_key_eq(jtexVal, _s_gltf_extensions)) {
+        /* Texture-source extensions. WebP can go through the normal image
+           loader. KTX2/BasisU is selected only when the optional decoder
+           shim is available, so a PNG/JPEG fallback remains intact. */
+        json_t *jwebp;
+        json_t *jktx2;
+        json_t *jaltSrc;
+
+        jwebp = json_get(jtexVal, _s_gltf_EXT_texture_webp);
+        jktx2 = json_get(jtexVal, _s_gltf_KHR_texture_basisu);
+
+        if (jktx2
+            && gltf_ext_textureBasisu(gst)
+            && (jaltSrc = json_get(jktx2, _s_gltf_source))) {
+          AkImage *altImage = flist_sp_at(&doc->lib.images,
+                                          json_int32(jaltSrc, -1));
+          if (altImage)
+            tex->image = altImage;
+        }
+        if (jwebp && (jaltSrc = json_get(jwebp, _s_gltf_source))) {
+          AkImage *altImage = flist_sp_at(&doc->lib.images,
+                                          json_int32(jaltSrc, -1));
+          if (altImage)
+            tex->image = altImage;
+        }
       }
 
       jtexVal = jtexVal->next;

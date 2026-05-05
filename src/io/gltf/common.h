@@ -40,6 +40,8 @@ typedef struct AkBufferView {
 
 typedef struct AkGLTFMeshoptLib AkGLTFMeshoptLib;
 typedef struct AkGLTFDracoLib   AkGLTFDracoLib;
+typedef struct AkGLTFSPZLib     AkGLTFSPZLib;
+typedef struct AkGLTFKTX2Lib    AkGLTFKTX2Lib;
 
 typedef struct AkGLTFState {
   AkHeap       *heap;
@@ -55,6 +57,8 @@ typedef struct AkGLTFState {
   void         *defaultMaterial;
   AkGLTFMeshoptLib *meshopt;
   AkGLTFDracoLib   *draco;
+  AkGLTFSPZLib     *spz;   /* Gaussian splat (SPZ) decoder, optional */
+  AkGLTFKTX2Lib    *ktx2;  /* KTX2/BasisU decoder, optional */
   size_t        bindataLen;
   bool          stop;
   bool          isbinary;

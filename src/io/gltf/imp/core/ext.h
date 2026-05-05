@@ -47,8 +47,44 @@ gltf_ext_bufferView(AkGLTFState  * __restrict gst,
 
 AK_HIDE
 bool
+gltf_ext_textureBasisu(AkGLTFState * __restrict gst);
+
+AK_HIDE
+bool
 gltf_ext_dracoPrimitive(AkGLTFState     * __restrict gst,
                         AkMeshPrimitive * __restrict prim,
                         const json_t    * __restrict jprim);
+
+/*!
+ * @brief Parse `KHR_materials_variants` mappings on a mesh primitive.
+ *
+ * Reads `primitive.extensions.KHR_materials_variants.mappings[]` from
+ * `jprim` and populates `prim->variantMappings`. The doc-level variant
+ * list must already be resolved (gltf_ext_root). Returns true on
+ * success or absence; false only on irrecoverable error.
+ */
+AK_HIDE
+bool
+gltf_ext_primitiveVariants(AkGLTFState     * __restrict gst,
+                           AkMeshPrimitive * __restrict prim,
+                           const json_t    * __restrict jprim);
+
+/*!
+ * @brief Parse `KHR_gaussian_splatting` on a mesh primitive.
+ *
+ * Reads `primitive.extensions.KHR_gaussian_splatting.{kernel,colorSpace,
+ * projection,sortingMethod}` and populates `prim->gsplat`. If the
+ * extension carries a compression sub-extension (future spec) and an
+ * external Gaussian splat decoder is loaded (see
+ * AK_OPT_GLTF_GSPLAT_DECODER_PATH), the decoder is invoked to populate
+ * `gsplat->decodedData`. Without compression and without a decoder the
+ * primitive's standard accessor chain stays authoritative — renderers
+ * that don't recognize the extension fall back to point-cloud display.
+ */
+AK_HIDE
+bool
+gltf_ext_primitiveGaussianSplat(AkGLTFState     * __restrict gst,
+                                AkMeshPrimitive * __restrict prim,
+                                const json_t    * __restrict jprim);
 
 #endif /* gltf_imp_core_ext_h */

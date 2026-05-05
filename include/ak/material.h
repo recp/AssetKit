@@ -27,6 +27,32 @@ struct AkBindMaterial;
 struct AkMeshPrimitive;
 struct AkEffect;
 struct AkInstanceMaterial;
+struct AkMaterial;
+struct AkDoc;
+struct AkTreeNode;
+
+/*!
+ * @brief Named material variant from KHR_materials_variants.
+ */
+typedef struct AkMaterialVariant {
+  struct AkMaterialVariant *next;
+  const char               *name;
+  struct AkTreeNode        *extras;
+} AkMaterialVariant;
+
+/*!
+ * @brief Primitive material override for a document variant index.
+ */
+typedef struct AkMaterialVariantMapping {
+  struct AkMaterialVariantMapping *next;
+  struct AkMaterial               *material;
+  uint32_t                         variantIndex;
+} AkMaterialVariantMapping;
+
+AK_EXPORT
+AkMaterialVariant*
+ak_materialVariantByName(struct AkDoc * __restrict doc,
+                         const char   * __restrict name);
 
 typedef enum AkOpaque {
   AK_OPAQUE_OPAQUE   = 0, /* fully opaque */

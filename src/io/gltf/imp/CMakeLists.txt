@@ -5,3 +5,4 @@ target_sources(${PROJECT_NAME}
 )
 
 add_subdirectory(core)
+add_subdirectory(ext)

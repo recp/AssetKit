@@ -25,6 +25,10 @@ ak_dylib_open(const char * __restrict path);
 
 AK_HIDE
 void*
+ak_dylib_openName(const char * __restrict name);
+
+AK_HIDE
+void*
 ak_dylib_sym(void       * __restrict lib,
              const char * __restrict name);
 

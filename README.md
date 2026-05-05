@@ -53,6 +53,11 @@ This library will try to full support COLLADA specs and glTF specs, plus well-kn
 Almost all functions (inline versions) and parameters will be documented inside the corresponding headers. <br />
 Complete documentation: http://assetkit.readthedocs.io
 
+Runtime metadata and extension notes:
+
+- [Extras and extension data](EXTRAS.md)
+- [glTF extensions and optional decoders](EXTENSIONS.md)
+
 ## 💪 Supported Formats
 
 * [ ] Asset Exchange (todo) http://github.com/AssetExchange/spec

@@ -33,6 +33,7 @@
 #include "core/anim.h"
 #include "core/skin.h"
 #include "core/ext.h"
+#include "extra.h"
 #include "postscript.h"
 
 static
@@ -173,6 +174,10 @@ gltf_parse(AkDoc     ** __restrict dest,
     doc->inf->dirlen = strlen(doc->inf->dir);
 
   json = gltfRawDoc->root;
+  gltf_extra(gst,
+             doc,
+             json_get(json, _s_gltf_extras),
+             json_get(json, _s_gltf_extensions));
   gltf_ext_root(json_get(json, _s_gltf_extensions), gst);
 
   /* json_print_human(stderr, gltfRawDoc->root); */

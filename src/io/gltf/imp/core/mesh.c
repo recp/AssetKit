@@ -19,6 +19,7 @@
 #include "accessor.h"
 #include "buffer.h"
 #include "ext.h"
+#include "../extra.h"
 #include "../../../../accessor.h"
 #include "../../../common/util.h"
 
@@ -132,6 +133,12 @@ gltf_meshes(json_t * __restrict jmesh,
     meshObj              = ak_objFrom(mesh);
     mesh->primitiveCount = 0;
 
+    gltf_extra(gst,
+               meshObj,
+               json_get(jmesh, _s_gltf_extras),
+               json_get(jmesh, _s_gltf_extensions));
+    mesh->extra = ak_extra(meshObj);
+
     jmeshVal = jmesh->value;
     while (jmeshVal) {
       if (json_key_eq(jmeshVal, _s_gltf_primitives)
@@ -149,6 +156,12 @@ gltf_meshes(json_t * __restrict jmesh,
           prim->input      = NULL;
           prim->inputCount = 0;
           prim->mesh       = mesh;
+
+          gltf_extra(gst,
+                     prim,
+                     json_get(jprim, _s_gltf_extras),
+                     json_get(jprim, _s_gltf_extensions));
+          prim->extra = ak_extra(prim);
 
           jprimVal = jprim->value;
 
@@ -366,6 +379,11 @@ gltf_meshes(json_t * __restrict jmesh,
               } /* jtarget */
             } else if (json_key_eq(jprimVal, _s_gltf_extensions)) {
               if (!gltf_ext_dracoPrimitive(gst, prim, jprim)) {
+                gst->stop = true;
+                return;
+              }
+              if (!gltf_ext_primitiveVariants(gst, prim, jprim)
+                  || !gltf_ext_primitiveGaussianSplat(gst, prim, jprim)) {
                 gst->stop = true;
                 return;
               }

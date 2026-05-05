@@ -175,6 +175,23 @@ typedef struct AkTreeNode {
 
 typedef struct AkTreeNode AkTree;
 
+/*!
+ * @brief Return optional metadata attached to an AssetKit object.
+ *
+ * COLLADA <extra> and preserved glTF extras/extensions are exposed as
+ * AkTree. The returned tree is owned by the document heap.
+ */
+AK_EXPORT
+AkTree*
+ak_extra(void * __restrict obj);
+
+/*!
+ * @brief Attach optional metadata to an AssetKit object.
+ */
+AK_EXPORT
+void
+ak_extra_set(void   * __restrict obj, AkTree * __restrict extra);
+
 #include "source.h"
 
 typedef struct AkUnit {
@@ -536,6 +553,10 @@ typedef struct AkDoc {
   float       loadMillis;
   AkLibraries lib;
   AkScene     scene;
+
+  /* KHR_materials_variants: document-level variant names. */
+  struct AkMaterialVariant *materialVariants;
+  uint32_t                  materialVariantCount;
 } AkDoc;
 
 #include "context.h"
@@ -553,6 +574,7 @@ typedef struct AkDoc {
 #include "texture.h"
 #include "animation.h"
 #include "controller.h"
+#include "gsplat.h"
 
 AK_EXPORT
 AkResult

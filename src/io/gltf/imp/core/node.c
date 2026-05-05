@@ -16,6 +16,7 @@
 
 #include "node.h"
 #include "ext.h"
+#include "../extra.h"
 #include "../../../../id.h"
 
 #include <ds/hash.h>
@@ -32,6 +33,7 @@
 #define k_scale         8
 #define k_weights       9
 #define k_extensions    10
+#define k_extras        11
 
 AK_HIDE
 void
@@ -140,7 +142,8 @@ gltf_node(AkGLTFState * __restrict gst,
     JSON_OBJMAP_OBJ(_s_gltf_rotation,    I2P k_rotation),
     JSON_OBJMAP_OBJ(_s_gltf_scale,       I2P k_scale),
     JSON_OBJMAP_OBJ(_s_gltf_weights,     I2P k_weights),
-    JSON_OBJMAP_OBJ(_s_gltf_extensions,  I2P k_extensions)
+    JSON_OBJMAP_OBJ(_s_gltf_extensions,  I2P k_extensions),
+    JSON_OBJMAP_OBJ(_s_gltf_extras,      I2P k_extras)
   };
 
   json_objmap(jnode, nodeMap, JSON_ARR_LEN(nodeMap));
@@ -148,6 +151,11 @@ gltf_node(AkGLTFState * __restrict gst,
   if ((it = nodeMap[k_name].object)) {
     node->name = json_strdup(it, heap, node);
   }
+
+  gltf_extra(gst,
+             node,
+             nodeMap[k_extras].object,
+             nodeMap[k_extensions].object);
 
   if ((it = nodeMap[k_extensions].object)
       && !gltf_ext_node(gst, node, it)) {

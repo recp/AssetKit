@@ -99,6 +99,14 @@ typedef struct AkMeshPrimitive {
   uint32_t                reserved1; /* private member */
   uint32_t                reserved2; /* private member */
   void                   *reserved3; /* private member */
+
+  /* KHR_materials_variants: optional material overrides. */
+  struct AkMaterialVariantMapping *variantMappings;
+  uint32_t                         variantMappingCount;
+
+  /* KHR_gaussian_splatting: optional splat metadata. Splat inputs stay
+     in the normal primitive input chain. */
+  struct AkGaussianSplat          *gsplat;
 } AkMeshPrimitive;
 
 typedef struct AkLines {

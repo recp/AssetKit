@@ -15,6 +15,7 @@
  */
 
 #include "image.h"
+#include "../extra.h"
 #include "../../../../base64.h"
 
 #define k_name          0
@@ -43,6 +44,10 @@ gltf_images(json_t * __restrict jimage,
 
     image    = ak_heap_calloc(gst->heap, gst->doc, sizeof(*image));
     initFrom = NULL;
+    gltf_extra(gst,
+               image,
+               json_get(jimage, _s_gltf_extras),
+               json_get(jimage, _s_gltf_extensions));
     
     json_objmap_t imgMap[] = {
       JSON_OBJMAP_OBJ(_s_gltf_name,       I2P k_name),

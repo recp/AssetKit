@@ -15,6 +15,7 @@
  */
 
 #include "camera.h"
+#include "../extra.h"
 
 #define k_name         0
 #define k_type         1
@@ -49,6 +50,11 @@ gltf_cameras(json_t * __restrict jcam,
     cam         = ak_heap_calloc(heap, lib, sizeof(*cam));
     optics      = ak_heap_calloc(heap, cam, sizeof(*optics));
     cam->optics = optics;
+
+    gltf_extra(gst,
+               cam,
+               json_get(jcam, _s_gltf_extras),
+               json_get(jcam, _s_gltf_extensions));
 
     json_objmap_t camMap[] = {
       JSON_OBJMAP_OBJ(_s_gltf_name,         I2P k_name),

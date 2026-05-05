@@ -61,7 +61,9 @@ uintptr_t AK_OPTIONS[] =
   false,                           /* 28: _PRESERVE_QUANTIZED_ATTRS    */
   true,                            /* 29: _GLTF_EXT_DECODER_AUTOLOAD   */
   (uintptr_t)NULL,                 /* 30: _GLTF_MESHOPT_DECODER_PATH   */
-  (uintptr_t)NULL                  /* 31: _GLTF_DRACO_DECODER_PATH     */
+  (uintptr_t)NULL,                 /* 31: _GLTF_DRACO_DECODER_PATH     */
+  (uintptr_t)NULL,                 /* 32: _GLTF_GSPLAT_DECODER_PATH    */
+  (uintptr_t)NULL                  /* 33: _GLTF_KTX2_DECODER_PATH      */
 };
 
 AK_EXPORT

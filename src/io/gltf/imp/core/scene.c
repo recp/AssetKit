@@ -15,6 +15,7 @@
  */
 
 #include "scene.h"
+#include "../extra.h"
 
 static
 void
@@ -46,6 +47,10 @@ gltf_scenes(json_t * __restrict jscene,
     jsceneVal = jscene->value;
     scene     = ak_heap_calloc(heap, lib, sizeof(*scene));
     ak_setypeid(scene, AKT_SCENE);
+    gltf_extra(gst,
+               scene,
+               json_get(jscene, _s_gltf_extras),
+               json_get(jscene, _s_gltf_extensions));
     
     scene->cameras = ak_heap_calloc(heap, scene, sizeof(*scene->cameras));
     

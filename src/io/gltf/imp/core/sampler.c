@@ -17,6 +17,7 @@
 #include "sampler.h"
 #include "profile.h"
 #include "enum.h"
+#include "../extra.h"
 
 AK_HIDE
 void
@@ -40,6 +41,10 @@ gltf_samplers(json_t * __restrict jsampler,
     sampler->wrapT = AK_WRAP_MODE_WRAP;
 
     ak_setypeid(sampler, AKT_SAMPLER2D);
+    gltf_extra(gst,
+               sampler,
+               json_get(jsampler, _s_gltf_extras),
+               json_get(jsampler, _s_gltf_extensions));
     
     while (jsamplerVal) {
       if (json_key_eq(jsamplerVal, _s_gltf_wrapS)) {

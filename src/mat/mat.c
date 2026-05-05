@@ -18,6 +18,25 @@
 #include "../../include/ak/material.h"
 
 AK_EXPORT
+AkMaterialVariant*
+ak_materialVariantByName(AkDoc       * __restrict doc,
+                         const char  * __restrict name) {
+  AkMaterialVariant *it;
+
+  if (!doc || !name)
+    return NULL;
+
+  it = doc->materialVariants;
+  while (it) {
+    if (it->name && strcmp(it->name, name) == 0)
+      return it;
+    it = it->next;
+  }
+
+  return NULL;
+}
+
+AK_EXPORT
 AkEffect*
 ak_effectForBindMaterial(AkBindMaterial      * __restrict bindMat,
                          AkMeshPrimitive     * __restrict meshPrim,

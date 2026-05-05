@@ -20,6 +20,83 @@
 #include <string.h>
 #include <assert.h>
 
+static
+AkTree**
+ak_extraField(void * __restrict obj) {
+  AkHeap *heap;
+
+  if (!obj)
+    return NULL;
+
+  heap = ak_heap_getheap(obj);
+  if (heap && ak_heap_data(heap) == obj)
+    return &((AkDoc *)obj)->extra;
+
+  switch (ak_typeid(obj)) {
+    case AKT_NODE:
+      return &((AkNode *)obj)->extra;
+    case AKT_SCENE:
+      return &((AkVisualScene *)obj)->extra;
+    case AKT_GEOMETRY:
+      return &((AkGeometry *)obj)->extra;
+    case AKT_MESH:
+      return &((AkMesh *)obj)->extra;
+    case AKT_EFFECT:
+      return &((AkEffect *)obj)->extra;
+    case AKT_PROFILE:
+      return &((AkProfile *)obj)->extra;
+    case AKT_TECHNIQUE_FX:
+      return &((AkTechniqueFx *)obj)->extra;
+    case AKT_SAMPLER:
+    case AKT_SAMPLER2D:
+      return &((AkSampler *)obj)->extra;
+    default:
+      break;
+  }
+
+  return NULL;
+}
+
+AK_EXPORT
+AkTree*
+ak_extra(void * __restrict obj) {
+  AkHeapNode *hnode;
+  AkTree    **extra;
+
+  if (!obj)
+    return NULL;
+
+  hnode = ak__alignof(obj);
+  if ((extra = ak_heap_ext_get(hnode, AK_HEAP_NODE_FLAGS_EXTRA)) && *extra)
+    return *extra;
+
+  if ((extra = ak_extraField(obj)))
+    return *extra;
+
+  return NULL;
+}
+
+AK_EXPORT
+void
+ak_extra_set(void   * __restrict obj,
+             AkTree * __restrict extra) {
+  AkHeap     *heap;
+  AkHeapNode *hnode;
+  AkTree    **slot;
+  AkTree    **field;
+
+  if (!obj)
+    return;
+
+  heap  = ak_heap_getheap(obj);
+  hnode = ak__alignof(obj);
+  slot  = ak_heap_ext_add(heap, hnode, AK_HEAP_NODE_FLAGS_EXTRA);
+  *slot = extra;
+
+  if ((field = ak_extraField(obj)))
+    *field = extra;
+}
+
 AK_EXPORT
 void*
 ak_getAssetInfo(void * __restrict obj,

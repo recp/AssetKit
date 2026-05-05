@@ -23,10 +23,21 @@ extern "C" {
 #include "common.h"
 
 struct AkInstanceMorph;
+struct AkAccessor;
 
 typedef enum AkNodeFlags {
   AK_NODEF_FIXED_COORD = 1
 } AkNodeFlags;
+
+/*!
+ * @brief Per-instance TRS accessors for EXT_mesh_gpu_instancing.
+ */
+typedef struct AkInstanceAttribs {
+  struct AkAccessor *translation;  /* optional, vec3 x count */
+  struct AkAccessor *rotation;     /* optional, vec4 x count (quaternion) */
+  struct AkAccessor *scale;        /* optional, vec3 x count */
+  uint32_t           count;        /* number of instances */
+} AkInstanceAttribs;
 
 typedef enum AkNodeType {
   AK_NODE_TYPE_NODE        = 1,
@@ -74,6 +85,9 @@ typedef struct AkNode {
   AkInstanceBase       *camera;
   AkInstanceBase       *light;
   AkInstanceNode       *node;
+
+  /* EXT_mesh_gpu_instancing, NULL if not authored. */
+  AkInstanceAttribs    *instancing;
 
   AkTree               *extra;
 

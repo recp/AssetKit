@@ -64,20 +64,15 @@ typedef enum AkOption {
   AK_OPT_CVT_LINELOOP               = 26, /* false    */
   AK_OPT_CVT_LINESTRIP              = 27, /* false    */
 
-  /* KHR_mesh_quantization opt-out: by default AssetKit dequantizes
-     normalized integer attributes (BYTE/UBYTE/SHORT/USHORT) and the
-     non-normalized vec2/vec3 integer attributes (POSITION/TEXCOORD)
-     to packed floats — most engines expect float vertex attributes.
-     Renderers that decode quantized data on the GPU may want the raw
-     integer buffer (smaller upload). Set this to true to skip the
-     in-place dequantize. Either way originalComponentType and
-     originallyNormalized are preserved on AkAccessor so callers can
-     recover the source layout, and ak_accessorAsFloat /
-     ak_accessorMakeFloat let callers dequantize on demand. */
+  /* Keep KHR_mesh_quantization accessors in their authored integer form. */
   AK_OPT_PRESERVE_QUANTIZED_ATTRS   = 28, /* false    */
+
+  /* Optional glTF extension decoder settings. */
   AK_OPT_GLTF_EXT_DECODER_AUTOLOAD   = 29, /* true     */
   AK_OPT_GLTF_MESHOPT_DECODER_PATH   = 30, /* NULL     */
   AK_OPT_GLTF_DRACO_DECODER_PATH     = 31, /* NULL     */
+  AK_OPT_GLTF_GSPLAT_DECODER_PATH    = 32, /* NULL     */
+  AK_OPT_GLTF_KTX2_DECODER_PATH      = 33, /* NULL     */
 } AkOption;
 
 AK_EXPORT

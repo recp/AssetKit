@@ -19,6 +19,7 @@
 #include "sampler.h"
 #include "texture.h"
 #include "enum.h"
+#include "../extra.h"
 #include "../../../../default/material.h"
 
 AK_HIDE
@@ -414,6 +415,11 @@ gltf_materials(json_t * __restrict jmaterial,
     cmnTechn->ior  = 1.5f;
 
     jmatVal = jmaterial->value;
+    gltf_extra(gst,
+               mat,
+               json_get(jmaterial, _s_gltf_extras),
+               json_get(jmaterial, _s_gltf_extensions));
+
     if ((jext = json_get(jmaterial, _s_gltf_extensions))) {
       json_t *jspec, *jval;
 
