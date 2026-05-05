@@ -181,6 +181,7 @@ ak_skinInspectPrimitive(AkSkin          * __restrict skin,
   AkSkinInspectView      *view;
   AkSkinInspectPrimitive *insp;
   AkSkinAccessorPair     *pairs;
+  AkHeap                 *heap;
   uint32_t                pairCap, pairCount;
   size_t                  vCount;
 
@@ -194,7 +195,8 @@ ak_skinInspectPrimitive(AkSkin          * __restrict skin,
         return insp;
     }
   } else {
-    view = ak_calloc(skin, sizeof(*view));
+    heap = ak_heap_getheap(skin);
+    view = ak_heap_calloc(heap, skin, sizeof(*view));
     if (!view)
       return NULL;
     skin->inspectResult = view;
@@ -204,7 +206,8 @@ ak_skinInspectPrimitive(AkSkin          * __restrict skin,
   if (pairCap == 0)
     return NULL;
 
-  pairs = ak_calloc(view, sizeof(*pairs) * pairCap);
+  heap = ak_heap_getheap(view);
+  pairs = ak_heap_calloc(heap, view, sizeof(*pairs) * pairCap);
   if (!pairs)
     return NULL;
 
@@ -212,7 +215,7 @@ ak_skinInspectPrimitive(AkSkin          * __restrict skin,
   if (pairCount == 0 || vCount == 0)
     return NULL;
 
-  insp              = ak_calloc(view, sizeof(*insp));
+  insp              = ak_heap_calloc(heap, view, sizeof(*insp));
   insp->prim        = prim;
   insp->pairs       = pairs;
   insp->pairCount   = pairCount;
