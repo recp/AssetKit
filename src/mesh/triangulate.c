@@ -20,6 +20,16 @@ AK_HIDE
 uint32_t
 ak_meshTriangulatePoly_noindices(AkPolygon * __restrict poly);
 
+AK_INLINE
+void
+ak_meshPolyMarkTriangles(AkPolygon * __restrict poly, AkUInt nTrigs) {
+  poly->base.nPolygons = nTrigs;
+  poly->base.type      = AK_PRIMITIVE_TRIANGLES;
+
+  ak_free(poly->vcount);
+  poly->vcount = NULL;
+}
+
 /* not tested yet! */
 AK_HIDE
 uint32_t
@@ -30,6 +40,7 @@ ak_meshTriangulatePoly_noindices(AkPolygon * __restrict poly) {
   AkAccessor   *acc;
   AkFloat      *it_new, *it_old;
   AkUInt        nGenTrigs, nTrigs, i, isz;
+  AkBool        isTriList;
   size_t        st;
 
   if (!poly->base.pos
@@ -39,14 +50,26 @@ ak_meshTriangulatePoly_noindices(AkPolygon * __restrict poly) {
 
   nTrigs    = 0;
   nGenTrigs = 0;
+  isTriList = true;
   vc_it     = poly->vcount->items;
 
   for (i = 0; i < poly->vcount->count; i++) {
-    if (vc_it[i] > 3) { nGenTrigs += vc_it[i] - 2; }
-    else              { nTrigs    += 1;            }
+    if (vc_it[i] > 3) {
+      nGenTrigs += vc_it[i] - 2;
+      isTriList = false;
+    } else {
+      nTrigs += 1;
+      if (vc_it[i] != 3)
+        isTriList = false;
+    }
   }
 
-  if (!nGenTrigs) return 0;
+  if (!nGenTrigs) {
+    if (isTriList && nTrigs > 0)
+      ak_meshPolyMarkTriangles(poly, nTrigs);
+
+    return 0;
+  }
 
   isz  = sizeof(AkFloat);
   st   = acc->byteStride;
@@ -90,6 +113,7 @@ ak_meshTriangulatePoly(AkPolygon * __restrict poly) {
   AkUInt      *vc_it, *ind_it, *newind_it;
   AkUInt       nGenTrigs, nTrigs, i, st;
   AkUInt       isz;
+  AkBool       isTriList;
 
   if (!poly->vcount)
     return 0;
@@ -100,14 +124,26 @@ ak_meshTriangulatePoly(AkPolygon * __restrict poly) {
 
   nTrigs    = 0;
   nGenTrigs = 0;
+  isTriList = true;
   vc_it     = poly->vcount->items;
 
   for (i = 0; i < poly->vcount->count; i++) {
-    if (vc_it[i] > 3) { nGenTrigs += vc_it[i] - 2; }
-    else              { nTrigs    += 1;           }
+    if (vc_it[i] > 3) {
+      nGenTrigs += vc_it[i] - 2;
+      isTriList = false;
+    } else {
+      nTrigs += 1;
+      if (vc_it[i] != 3)
+        isTriList = false;
+    }
   }
 
-  if (!nGenTrigs) return 0;
+  if (!nGenTrigs) {
+    if (isTriList && nTrigs > 0)
+      ak_meshPolyMarkTriangles(poly, nTrigs);
+
+    return 0;
+  }
 
   isz    = sizeof(AkUInt);
   heap   = ak_heap_getheap(poly->vcount);
@@ -142,12 +178,7 @@ ak_meshTriangulatePoly(AkPolygon * __restrict poly) {
 
   ak_free(poly->base.indices);
   poly->base.indices   = newind;
-  poly->base.nPolygons = nGenTrigs + nTrigs;
-  poly->base.type      = AK_PRIMITIVE_TRIANGLES;
-
-  /* no need to this info anymore, save space! */
-  ak_free(poly->vcount);
-  poly->vcount = NULL;
+  ak_meshPolyMarkTriangles(poly, nGenTrigs + nTrigs);
 
   return nGenTrigs;
 }
