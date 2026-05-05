@@ -30,10 +30,14 @@ option(AK_USE_C99 "" OFF)
 option(AK_USE_TEST "Enable Tests" OFF)
 option(AK_BUILD_GLTF_DRACO_DECODER "Build optional glTF Draco decoder shim" ON)
 option(AK_BUILD_GLTF_MESHOPT_DECODER "Build optional glTF meshoptimizer decoder shim" ON)
+option(AK_BUILD_GLTF_SPZ_DECODER "Build optional glTF Gaussian splatting (SPZ) decoder shim" ON)
+option(AK_BUILD_GLTF_KTX2_DECODER "Build optional glTF KHR_texture_basisu (KTX2/BasisU) decoder shim" ON)
 option(AK_FETCH_DEPS "Fetch optional decoder dependencies into AK_DEPS_ROOT when missing" ON)
 option(AK_ENABLE_LTO "Enable link-time optimization for release builds" OFF)
 set(AK_DRACO_ROOT "" CACHE PATH "Optional Draco install/source root")
 set(AK_MESHOPT_ROOT "" CACHE PATH "Optional meshoptimizer source root")
+set(AK_SPZ_ROOT "" CACHE PATH "Optional SPZ install/source root")
+set(AK_KTX2_ROOT "" CACHE PATH "Optional KTX-Software install/source root")
 set(AK_DEPS_ROOT "${PROJECT_SOURCE_DIR}/deps" CACHE PATH "AssetKit dependency checkout root")
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
@@ -196,7 +200,8 @@ target_include_directories(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME} PRIVATE ds ${CMAKE_DL_LIBS})
 
-if(AK_BUILD_GLTF_DRACO_DECODER OR AK_BUILD_GLTF_MESHOPT_DECODER)
+if(AK_BUILD_GLTF_DRACO_DECODER OR AK_BUILD_GLTF_MESHOPT_DECODER
+   OR AK_BUILD_GLTF_SPZ_DECODER OR AK_BUILD_GLTF_KTX2_DECODER)
   enable_language(CXX)
 endif()
 
@@ -374,6 +379,228 @@ if(AK_BUILD_GLTF_MESHOPT_DECODER)
   install(TARGETS assetkit_meshoptimizer
           LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
           RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+endif()
+
+# ---------------------------------------------------------------------------
+# Optional Gaussian splat (SPZ) decoder shim — KHR_gaussian_splatting future
+# compression sub-extension support. Niantic Spatial's libspz handles the
+# format; we link statically and expose the AssetKit decoder API.
+# ---------------------------------------------------------------------------
+if(AK_BUILD_GLTF_SPZ_DECODER)
+  find_path(AK_SPZ_INCLUDE_DIR
+            NAMES spz/spz.h
+            HINTS ${AK_SPZ_ROOT}
+                  ${AK_SPZ_ROOT}/install
+                  ${AK_SPZ_ROOT}/include
+                  ${AK_DEPS_ROOT}/spz/install
+                  ${AK_DEPS_ROOT}/spz
+                  ${AK_DEPS_ROOT}/spz/include
+            PATH_SUFFIXES include
+            NO_DEFAULT_PATH)
+  find_library(AK_SPZ_LIBRARY
+               NAMES spz
+               HINTS ${AK_SPZ_ROOT}
+                     ${AK_SPZ_ROOT}/install
+                     ${AK_SPZ_ROOT}/lib
+                     ${AK_DEPS_ROOT}/spz/install
+                     ${AK_DEPS_ROOT}/spz
+                     ${AK_DEPS_ROOT}/spz/lib
+               PATH_SUFFIXES lib
+               NO_DEFAULT_PATH)
+
+  if((NOT AK_SPZ_INCLUDE_DIR OR NOT AK_SPZ_LIBRARY) AND AK_FETCH_DEPS)
+    include(ExternalProject)
+
+    set(AK_SPZ_INSTALL_DIR "${AK_DEPS_ROOT}/spz/install")
+    set(AK_SPZ_INCLUDE_DIR "${AK_SPZ_INSTALL_DIR}/include")
+    if(WIN32)
+      set(AK_SPZ_LIBRARY "${AK_SPZ_INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/spz.lib")
+    else()
+      set(AK_SPZ_LIBRARY "${AK_SPZ_INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/libspz.a")
+    endif()
+
+    ExternalProject_Add(assetkit_spz_dep
+        GIT_REPOSITORY https://github.com/nianticlabs/spz.git
+        GIT_TAG main
+        GIT_SHALLOW TRUE
+        SOURCE_DIR "${AK_DEPS_ROOT}/spz"
+        BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/assetkit_spz-build"
+        INSTALL_DIR "${AK_SPZ_INSTALL_DIR}"
+        BUILD_BYPRODUCTS "${AK_SPZ_LIBRARY}"
+        CMAKE_ARGS
+            -Wno-dev
+            -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+            -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+            -DBUILD_SHARED_LIBS=OFF)
+  endif()
+
+  if(NOT AK_SPZ_INCLUDE_DIR OR NOT AK_SPZ_LIBRARY)
+    message(WARNING
+            "SPZ Gaussian-splat decoder requested but libspz was not found. "
+            "Set AK_SPZ_ROOT, enable AK_FETCH_DEPS, or disable "
+            "AK_BUILD_GLTF_SPZ_DECODER. Skipping decoder build for now.")
+  else()
+    add_library(assetkit_spz SHARED
+                src/decoders/gltf/spz/assetkit_spz.cc)
+    ak_target_cxx_options(assetkit_spz)
+    if(TARGET assetkit_spz_dep)
+      add_dependencies(assetkit_spz assetkit_spz_dep)
+    endif()
+    target_include_directories(assetkit_spz
+        SYSTEM PRIVATE
+            ${AK_SPZ_INCLUDE_DIR})
+    target_include_directories(assetkit_spz
+        PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/include
+            ${CMAKE_CURRENT_SOURCE_DIR}/src
+            ${PROJECT_SOURCE_DIR}/deps/cglm/include
+            ${PROJECT_SOURCE_DIR}/deps/ds/include
+            ${PROJECT_SOURCE_DIR}/deps/json/include)
+    # SPZ depends on zstd + zlib (for ngsp/zstd-compressed streams + the gzip
+     # codec). On macOS both ship with the SDK; elsewhere we expect system
+     # packages. find_package handles missing libraries gracefully.
+    find_package(ZLIB)
+    find_library(AK_SPZ_ZSTD_LIB
+                 NAMES zstd
+                 HINTS /opt/homebrew/lib /usr/local/lib /usr/lib)
+
+    target_link_libraries(assetkit_spz
+        PRIVATE
+            ${PROJECT_NAME}
+            ds
+            ${AK_SPZ_LIBRARY})
+
+    if(ZLIB_FOUND)
+      target_link_libraries(assetkit_spz PRIVATE ZLIB::ZLIB)
+    endif()
+    if(AK_SPZ_ZSTD_LIB)
+      target_link_libraries(assetkit_spz PRIVATE ${AK_SPZ_ZSTD_LIB})
+    else()
+      message(WARNING
+              "libzstd not found — SPZ ngsp/zstd-compressed splat streams "
+              "will fail at runtime. Install via 'brew install zstd' on "
+              "macOS or your distro's package manager.")
+    endif()
+    set_target_properties(assetkit_spz PROPERTIES
+                          CXX_STANDARD 17
+                          CXX_STANDARD_REQUIRED YES
+                          CXX_VISIBILITY_PRESET hidden
+                          VISIBILITY_INLINES_HIDDEN YES)
+    if(AK_INSTALL_RPATH)
+      set_target_properties(assetkit_spz PROPERTIES
+                            INSTALL_RPATH "${AK_INSTALL_RPATH}")
+    endif()
+
+    install(TARGETS assetkit_spz
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+  endif()
+endif()
+
+# ---------------------------------------------------------------------------
+# Optional KTX2 / BasisU texture decoder shim — KHR_texture_basisu support.
+# Khronos KTX-Software provides libktx with built-in BasisU transcoding
+# (UASTC / ETC1S → RGBA8 / BC7 / ASTC depending on target). The shim
+# decodes a KTX2 buffer into an RGBA8 AkImage so the renderer can consume
+# it like any other Core Graphics-decoded texture.
+# ---------------------------------------------------------------------------
+if(AK_BUILD_GLTF_KTX2_DECODER)
+  find_path(AK_KTX2_INCLUDE_DIR
+            NAMES ktx.h
+            HINTS ${AK_KTX2_ROOT}
+                  ${AK_KTX2_ROOT}/install
+                  ${AK_KTX2_ROOT}/include
+                  ${AK_DEPS_ROOT}/ktx/install
+                  ${AK_DEPS_ROOT}/ktx
+                  ${AK_DEPS_ROOT}/ktx/include
+            PATH_SUFFIXES include
+            NO_DEFAULT_PATH)
+  find_library(AK_KTX2_LIBRARY
+               NAMES ktx ktx_read
+               HINTS ${AK_KTX2_ROOT}
+                     ${AK_KTX2_ROOT}/install
+                     ${AK_KTX2_ROOT}/lib
+                     ${AK_DEPS_ROOT}/ktx/install
+                     ${AK_DEPS_ROOT}/ktx
+                     ${AK_DEPS_ROOT}/ktx/lib
+               PATH_SUFFIXES lib
+               NO_DEFAULT_PATH)
+
+  if((NOT AK_KTX2_INCLUDE_DIR OR NOT AK_KTX2_LIBRARY) AND AK_FETCH_DEPS)
+    include(ExternalProject)
+
+    set(AK_KTX2_INSTALL_DIR "${AK_DEPS_ROOT}/ktx/install")
+    set(AK_KTX2_INCLUDE_DIR "${AK_KTX2_INSTALL_DIR}/include")
+    if(WIN32)
+      set(AK_KTX2_LIBRARY "${AK_KTX2_INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/ktx.lib")
+    else()
+      set(AK_KTX2_LIBRARY "${AK_KTX2_INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/libktx.a")
+    endif()
+
+    ExternalProject_Add(assetkit_ktx2_dep
+        GIT_REPOSITORY https://github.com/KhronosGroup/KTX-Software.git
+        GIT_TAG main
+        GIT_SHALLOW TRUE
+        SOURCE_DIR "${AK_DEPS_ROOT}/ktx"
+        BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/assetkit_ktx2-build"
+        INSTALL_DIR "${AK_KTX2_INSTALL_DIR}"
+        BUILD_BYPRODUCTS "${AK_KTX2_LIBRARY}"
+        CMAKE_ARGS
+            -Wno-dev
+            -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+            -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+            -DKTX_FEATURE_TESTS=OFF
+            -DKTX_FEATURE_TOOLS=OFF
+            -DKTX_FEATURE_DOC=OFF
+            -DKTX_FEATURE_LOADTEST_APPS=OFF
+            -DKTX_FEATURE_STATIC_LIBRARY=ON
+            -DBASISU_SUPPORT_SSE=ON
+            -DBUILD_SHARED_LIBS=OFF)
+  endif()
+
+  if(NOT AK_KTX2_INCLUDE_DIR OR NOT AK_KTX2_LIBRARY)
+    message(WARNING
+            "KTX2/BasisU decoder requested but libktx was not found. "
+            "Set AK_KTX2_ROOT, enable AK_FETCH_DEPS, or disable "
+            "AK_BUILD_GLTF_KTX2_DECODER. Skipping decoder build for now.")
+  else()
+    add_library(assetkit_ktx2 SHARED
+                src/decoders/gltf/ktx2/assetkit_ktx2.cc)
+    ak_target_cxx_options(assetkit_ktx2)
+    if(TARGET assetkit_ktx2_dep)
+      add_dependencies(assetkit_ktx2 assetkit_ktx2_dep)
+    endif()
+    target_include_directories(assetkit_ktx2
+        SYSTEM PRIVATE
+            ${AK_KTX2_INCLUDE_DIR})
+    target_include_directories(assetkit_ktx2
+        PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/include
+            ${CMAKE_CURRENT_SOURCE_DIR}/src
+            ${PROJECT_SOURCE_DIR}/deps/cglm/include
+            ${PROJECT_SOURCE_DIR}/deps/ds/include
+            ${PROJECT_SOURCE_DIR}/deps/json/include)
+    target_link_libraries(assetkit_ktx2
+        PRIVATE
+            ${PROJECT_NAME}
+            ds
+            ${AK_KTX2_LIBRARY})
+    set_target_properties(assetkit_ktx2 PROPERTIES
+                          CXX_STANDARD 17
+                          CXX_STANDARD_REQUIRED YES
+                          CXX_VISIBILITY_PRESET hidden
+                          VISIBILITY_INLINES_HIDDEN YES)
+    if(AK_INSTALL_RPATH)
+      set_target_properties(assetkit_ktx2 PROPERTIES
+                            INSTALL_RPATH "${AK_INSTALL_RPATH}")
+    endif()
+
+    install(TARGETS assetkit_ktx2
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+  endif()
 endif()
 
 # Test Configuration
