@@ -112,8 +112,17 @@ dae_spread_vert(DAEState * __restrict dst) {
 AK_HIDE void
 dae_postscript(DAEState * __restrict dst) {
   AkCoordCvtType coordCvtType;
+  AkCoordSys    *sourceCoordSys, *targetCoordSys;
+  bool           fixTransform;
 
-  coordCvtType = (AkCoordCvtType)ak_opt_get(AK_OPT_COORD_CONVERT_TYPE);
+  coordCvtType    = (AkCoordCvtType)ak_opt_get(AK_OPT_COORD_CONVERT_TYPE);
+  sourceCoordSys  = dst->doc ? dst->doc->coordSys : NULL;
+  targetCoordSys  = (void *)ak_opt_get(AK_OPT_COORD);
+  fixTransform    = coordCvtType == AK_COORD_CVT_FIX_TRANSFORM
+                    && sourceCoordSys
+                    && targetCoordSys
+                    && sourceCoordSys != targetCoordSys
+                    && !ak_coordOrientationIsEq(sourceCoordSys, targetCoordSys);
 
   dae_spread_vert(dst);
 
@@ -157,7 +166,7 @@ dae_postscript(DAEState * __restrict dst) {
 
   /* now set used coordSys */
   if (coordCvtType != AK_COORD_CVT_DISABLED)
-    dst->doc->coordSys = (void *)ak_opt_get(AK_OPT_COORD);
+    dst->doc->coordSys = targetCoordSys;
 
   dae_fix_textures(dst);
   
@@ -165,7 +174,7 @@ dae_postscript(DAEState * __restrict dst) {
     for (AkVisualScene *vscn = (void *)dst->doc->lib.visualScenes->chld;
          vscn;
          vscn = (void *)vscn->base.next) {
-      if (coordCvtType == AK_COORD_CVT_FIX_TRANSFORM)
+      if (fixTransform)
         ak_fixSceneCoordSys(vscn);
     }
   }

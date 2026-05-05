@@ -26,20 +26,29 @@ AK_HIDE
 void
 gltf_postscript(AkGLTFState * __restrict gst) {
   AkCoordCvtType coordCvtType;
+  AkCoordSys    *sourceCoordSys, *targetCoordSys;
   AkVisualScene *vscn;
+  bool           fixTransform;
 
-  coordCvtType = (AkCoordCvtType)ak_opt_get(AK_OPT_COORD_CONVERT_TYPE);
+  coordCvtType   = (AkCoordCvtType)ak_opt_get(AK_OPT_COORD_CONVERT_TYPE);
+  sourceCoordSys = gst->doc ? gst->doc->coordSys : NULL;
+  targetCoordSys = (void *)ak_opt_get(AK_OPT_COORD);
+  fixTransform   = coordCvtType == AK_COORD_CVT_FIX_TRANSFORM
+                   && sourceCoordSys
+                   && targetCoordSys
+                   && sourceCoordSys != targetCoordSys
+                   && !ak_coordOrientationIsEq(sourceCoordSys, targetCoordSys);
 
   gltf_mesh_fixup(gst);
 
   if (coordCvtType != AK_COORD_CVT_DISABLED)
-    gst->doc->coordSys = (void *)ak_opt_get(AK_OPT_COORD);
+    gst->doc->coordSys = targetCoordSys;
 
   if (gst->doc && gst->doc->lib.visualScenes) {
     for (vscn = (void *)gst->doc->lib.visualScenes->chld;
          vscn;
          vscn = (void *)vscn->base.next) {
-      if (coordCvtType == AK_COORD_CVT_FIX_TRANSFORM)
+      if (fixTransform)
         ak_fixSceneCoordSys(vscn);
     }
   }
