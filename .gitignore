@@ -67,8 +67,11 @@ win/x86/*
 build/
 /deps/draco/
 /deps/meshoptimizer/
+/deps/spz/
+/deps/ktx/
 .cache/
 .scannerwork/
 .project
 .cproject
 .vscode/
+proj/
