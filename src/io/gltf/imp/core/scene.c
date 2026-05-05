@@ -21,6 +21,12 @@ static
 void
 gltf_setFirstCamera(AkVisualScene *scene, AkNode *node);
 
+static AkNode *
+gltf_findNodeById(AkNode *node, const char *nodeid);
+
+static AkNode *
+gltf_nodeByIndex(AkDoc *doc, int32_t nodeIndex);
+
 AK_HIDE
 void
 gltf_scenes(json_t * __restrict jscene,
@@ -73,7 +79,6 @@ gltf_scenes(json_t * __restrict jscene,
         jnode = jnodes->base.value;
         
         while (jnode) {
-          char            nodeid[16];
           AkNode         *node;
           AkInstanceNode *instNode;
           
@@ -81,8 +86,7 @@ gltf_scenes(json_t * __restrict jscene,
           if ((nodeIndex = json_int32(jnode, -1)) < 0)
             goto jnode_nxt;
           
-          sprintf(nodeid, "%s%d", _s_gltf_node, nodeIndex);
-          if (!(node = ak_getObjectById(doc, nodeid)))
+          if (!(node = gltf_nodeByIndex(doc, nodeIndex)))
             goto jnode_nxt;
           
           instNode->base.node    = node;
@@ -143,6 +147,36 @@ gltf_scene(json_t * __restrict jscene,
     instScene->url.ptr     = scene;
     doc->scene.visualScene = instScene;
   }
+}
+
+static AkNode *
+gltf_findNodeById(AkNode *node, const char *nodeid) {
+  const char *id;
+  AkNode *found;
+
+  while (node) {
+    id = (const char *)ak_mem_getId(node);
+    if (id && strcmp(id, nodeid) == 0)
+      return node;
+
+    if (node->chld && (found = gltf_findNodeById(node->chld, nodeid)))
+      return found;
+
+    node = node->next;
+  }
+
+  return NULL;
+}
+
+static AkNode *
+gltf_nodeByIndex(AkDoc *doc, int32_t nodeIndex) {
+  char nodeid[16];
+
+  if (!doc || !doc->lib.nodes || nodeIndex < 0)
+    return NULL;
+
+  sprintf(nodeid, "%s%d", _s_gltf_node, nodeIndex);
+  return gltf_findNodeById((AkNode *)doc->lib.nodes->chld, nodeid);
 }
 
 static

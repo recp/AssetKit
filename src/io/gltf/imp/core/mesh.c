@@ -198,8 +198,10 @@ gltf_meshes(json_t * __restrict jmesh,
                 inp->semantic = gltf_enumInputSemantic(inp->semanticRaw);
                 inp->accessor = flist_sp_at(&doc->lib.accessors,
                                             json_int32(jattrib, -1));
-
-                ak_retain(inp->accessor);
+                if (!inp->accessor) {
+                  jattrib = jattrib->next;
+                  continue;
+                }
 
                 if (inp->semantic == AK_INPUT_POSITION)
                   prim->pos = inp;
@@ -364,8 +366,10 @@ gltf_meshes(json_t * __restrict jmesh,
                   inp->semantic = gltf_enumInputSemantic(inp->semanticRaw);
                   inp->accessor = flist_sp_at(&doc->lib.accessors,
                                               json_int32(jattrib, -1));
-
-                  ak_retain(inp->accessor);
+                  if (!inp->accessor) {
+                    jattrib = jattrib->next;
+                    continue;
+                  }
 
                   inp->next        = morphable->input;
                   morphable->input = inp;

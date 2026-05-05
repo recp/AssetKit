@@ -90,8 +90,7 @@ gltf_nodes(json_t * __restrict jnode,
       parentNode->chld = node;
       node->parent     = parentNode;
       
-      /* node ownership */
-      ak_heap_setpm(node, parentNode);
+      /* Keep heap ownership in the node library; parent is logical scene graph. */
     }
     
     /* it is root node, add to library_nodes */
