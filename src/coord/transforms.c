@@ -74,7 +74,7 @@ ak_coordCvtNodeTransforms(AkDoc  * __restrict doc,
         float        *val;
 
         quat = ak_objGet(transform);
-        val  = &quat->val[1];
+        val  = quat->val;
 
         AK_CVT_VEC(val);
         break;

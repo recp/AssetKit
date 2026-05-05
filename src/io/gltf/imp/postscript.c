@@ -16,6 +16,7 @@
 
 #include "postscript.h"
 #include "mesh_fixup.h"
+#include "ak/coord-util.h"
 
 AK_HIDE
 void
@@ -24,7 +25,25 @@ gltf_setskinners(RBTree *tree, RBNode *rbnode);
 AK_HIDE
 void
 gltf_postscript(AkGLTFState * __restrict gst) {
+  AkCoordCvtType coordCvtType;
+  AkVisualScene *vscn;
+
+  coordCvtType = (AkCoordCvtType)ak_opt_get(AK_OPT_COORD_CONVERT_TYPE);
+
   gltf_mesh_fixup(gst);
+
+  if (coordCvtType != AK_COORD_CVT_DISABLED)
+    gst->doc->coordSys = (void *)ak_opt_get(AK_OPT_COORD);
+
+  if (gst->doc && gst->doc->lib.visualScenes) {
+    for (vscn = (void *)gst->doc->lib.visualScenes->chld;
+         vscn;
+         vscn = (void *)vscn->base.next) {
+      if (coordCvtType == AK_COORD_CVT_FIX_TRANSFORM)
+        ak_fixSceneCoordSys(vscn);
+    }
+  }
+
   rb_walk(gst->skinBound, gltf_setskinners);
 }
 
