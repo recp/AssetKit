@@ -33,6 +33,11 @@ ak_meshPrimNeedsNormals(AkMeshPrimitive * __restrict prim) {
   AkInput      *input;
   bool          ret;
 
+  if (!prim
+      || (prim->type != AK_PRIMITIVE_TRIANGLES
+          && prim->type != AK_PRIMITIVE_POLYGONS))
+    return false;
+
   ret   = true;
   input = prim->input;
   while (input) {

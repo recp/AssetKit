@@ -66,7 +66,7 @@ ak_meshBeginEditA(AkMesh  * __restrict mesh,
   }
 
   if ((flags & AK_GEOM_EDIT_FLAG_INDICES)
-      && !edith->buffers) {
+      && !edith->indices) {
     edith->indices = rb_newtree_ptr();
     edith->flags  |= AK_GEOM_EDIT_FLAG_INDICES;
     ak_dsSetAllocator(heap->allocator, edith->indices->alc);
