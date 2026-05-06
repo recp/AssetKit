@@ -31,6 +31,52 @@
  */
 
 static
+bool
+gltf_attrIndexedSemantic(const char * __restrict key,
+                         size_t                  keysize,
+                         const char ** __restrict semantic) {
+  const char *sep, *end, *c;
+
+  if (!key || keysize == 0)
+    return false;
+
+  sep = memchr(key, '_', keysize);
+  end = key + keysize;
+  if (!sep || sep == key || sep + 1 >= end)
+    return false;
+
+  for (c = sep + 1; c < end; c++) {
+    if (*c < '0' || *c > '9')
+      return false;
+  }
+
+  if (semantic)
+    *semantic = sep;
+  return true;
+}
+
+static
+void
+gltf_inputSemantic(AkHeap * __restrict heap,
+                   AkInput * __restrict inp,
+                   json_t  * __restrict jattrib) {
+  const char *semantic;
+
+  if (gltf_attrIndexedSemantic(jattrib->key, jattrib->keysize, &semantic)) {
+    inp->semanticRaw = ak_heap_strndup(heap,
+                                       inp,
+                                       jattrib->key,
+                                       semantic - jattrib->key);
+    inp->set = (uint32_t)strtol(semantic + 1, NULL, 10);
+  } else {
+    inp->semanticRaw = ak_heap_strndup(heap,
+                                       inp,
+                                       jattrib->key,
+                                       jattrib->keysize);
+  }
+}
+
+static
 AkMorphPreset*
 gltf_meshMorphPresets(AkGLTFState * __restrict gst,
                       void        * __restrict parent,
@@ -173,27 +219,9 @@ gltf_meshes(json_t * __restrict jmesh,
               jattrib = jprimVal->value;
               while (jattrib) {
                 AkInput    *inp;
-                const char *semantic;
 
                 inp      = ak_heap_calloc(heap, prim, sizeof(*inp));
-                semantic = memchr(jattrib->key, '_', jattrib->keysize);
-
-                if (!semantic) {
-                  inp->semanticRaw = ak_heap_strndup(heap,
-                                                     inp,
-                                                     jattrib->key,
-                                                     jattrib->keysize);
-                }
-
-                /* ARRAYs e.g. TEXTURE_0, TEXTURE_1 */
-                else {
-                  inp->semanticRaw = ak_heap_strndup(heap,
-                                                     inp,
-                                                     jattrib->key,
-                                                     semantic - jattrib->key);
-                  if (strlen(semantic) > 1) /* default is 0 with calloc */
-                    inp->set = (uint32_t)strtol(semantic + 1, NULL, 10);
-                }
+                gltf_inputSemantic(heap, inp, jattrib);
 
                 inp->semantic = gltf_enumInputSemantic(inp->semanticRaw);
                 inp->accessor = flist_sp_at(&doc->lib.accessors,
@@ -343,25 +371,9 @@ gltf_meshes(json_t * __restrict jmesh,
                 jattrib = jtarget->value;
                 while (jattrib) {
                   AkInput    *inp;
-                  const char *semantic;
 
                   inp      = ak_heap_calloc(heap, prim, sizeof(*inp));
-                  semantic = memchr(jattrib->key, '_', jattrib->keysize);
-
-                  if (!semantic) {
-                    inp->semanticRaw = ak_heap_strndup(heap,
-                                                       inp,
-                                                       jattrib->key,
-                                                       jattrib->keysize);
-                  } else {
-                    /* indexed (e.g. TEXCOORD_0, COLOR_1) */
-                    inp->semanticRaw = ak_heap_strndup(heap,
-                                                       inp,
-                                                       jattrib->key,
-                                                       semantic - jattrib->key);
-                    if (strlen(semantic) > 1)
-                      inp->set = (uint32_t)strtol(semantic + 1, NULL, 10);
-                  }
+                  gltf_inputSemantic(heap, inp, jattrib);
 
                   inp->semantic = gltf_enumInputSemantic(inp->semanticRaw);
                   inp->accessor = flist_sp_at(&doc->lib.accessors,
