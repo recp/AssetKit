@@ -472,8 +472,10 @@ gltf_materials(json_t * __restrict jmaterial,
         AkMaterialSpecularProp *specularProp;
         AkColorDesc            *specularColor;
 
-        specularProp         = ak_heap_calloc(heap, cmnTechn, sizeof(*specularProp));
-        cmnTechn->specular   = specularProp;
+        specularProp           = ak_heap_calloc(heap, cmnTechn, sizeof(*specularProp));
+        specularProp->strength = 1.0f;
+        cmnTechn->specular     = specularProp;
+        cmnTechn->type         = AK_MATERIAL_SPECULAR_GLOSSINES;
         specularColor        = ak_heap_calloc(heap, specularProp, sizeof(*specularColor));
         specularColor->color = ak_heap_calloc(heap, specularColor, sizeof(*specularColor->color));
         specularProp->color  = specularColor;
@@ -494,7 +496,7 @@ gltf_materials(json_t * __restrict jmaterial,
             json_array_float(specularColor->color->vec, jval, 0.0f, 3, true);
             specularColor->color->vec[3] = 1.0f;
           } else if (json_key_eq(jval, _s_gltf_glossFactor)) {
-            specularProp->strength = json_float(jval, 0.0f);
+            specularProp->strength = json_float(jval, 1.0f);
           } else if (json_key_eq(jval, _s_gltf_diffuseTexture)) {
             cmnTechn->diffuse->texture = gltf_texref(gst, cmnTechn, jval);
           } else if (json_key_eq(jval, _s_gltf_specGlossTex)) {
