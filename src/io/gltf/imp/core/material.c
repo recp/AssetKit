@@ -509,7 +509,9 @@ gltf_materials(json_t * __restrict jmaterial,
 
     while (jmatVal) {
       /* Metallic Roughness */
-      if (json_key_eq(jmatVal, _s_gltf_pbrMetalRough)) {
+      if (json_key_eq(jmatVal, _s_gltf_name)) {
+        mat->name = json_strdup(jmatVal, heap, mat);
+      } else if (json_key_eq(jmatVal, _s_gltf_pbrMetalRough)) {
         AkMaterialMetallicProp *metalness, *roughness;
         json_t *jmrVal;
 
