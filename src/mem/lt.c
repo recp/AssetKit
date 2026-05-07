@@ -16,7 +16,6 @@
 
 #include "lt.h"
 #include <assert.h>
-#include <math.h>
 #include <string.h>
 
 static AkHeapBucket ak__heap_bucket = {
@@ -33,6 +32,60 @@ static AkHeapLookupTable ak__heap_lt = {
   .size             = 1,
   .bucketSize       = 4,
 };
+
+static
+AkHeapBucket *
+ak__heap_lt_find_bucket(uint32_t bucketIndex,
+                        AkHeapBucket ** __restrict prev) {
+  AkHeapBucket *bucket, *prevBucket;
+
+  bucket     = ak__heap_lt.rootBucket;
+  prevBucket = NULL;
+
+  while (bucket && bucket->bucketIndex < bucketIndex) {
+    prevBucket = bucket;
+    bucket     = bucket->next;
+  }
+
+  if (prev)
+    *prev = prevBucket;
+
+  if (!bucket || bucket->bucketIndex != bucketIndex)
+    return NULL;
+
+  return bucket;
+}
+
+static
+AkHeapBucket *
+ak__heap_lt_find_avail_from(AkHeapBucket * __restrict bucket) {
+  while (bucket && AK__LT_BUCKET_IS_FULL(bucket))
+    bucket = bucket->next;
+
+  return bucket;
+}
+
+static
+bool
+ak__heap_lt_entry_in_bucket(AkHeapBucket      * __restrict bucket,
+                            AkHeapBucketEntry * __restrict entry) {
+  return entry >= bucket->heapEntry
+         && entry < bucket->heapEntry + ak__heap_lt.bucketSize;
+}
+
+static
+void
+ak__heap_lt_clear_last_used(AkHeapBucket      * __restrict bucket,
+                            AkHeapBucketEntry * __restrict entry,
+                            bool                            clearBucket) {
+  if (!ak__heap_lt.lastUsedEntry)
+    return;
+
+  if (ak__heap_lt.lastUsedEntry == entry
+      || (clearBucket
+          && ak__heap_lt_entry_in_bucket(bucket, ak__heap_lt.lastUsedEntry)))
+    ak__heap_lt.lastUsedEntry = NULL;
+}
 
 void
 ak_heap_lt_init(AkHeap * __restrict initialHeap) {
@@ -60,7 +113,7 @@ ak_heap_lt_insert(AkHeap * __restrict heap) {
   bucket = ak__heap_lt.firstAvailBucket;
 
   /* all buckets are full */
-  if (!bucket || bucket->firstAvailEntry >= ak__heap_lt.bucketSize - 1) {
+  if (!bucket || AK__LT_BUCKET_IS_FULL(bucket)) {
     bucket = calloc(1, sizeof(*bucket));
     assert(bucket && "malloc failed");
 
@@ -86,13 +139,12 @@ ak_heap_lt_insert(AkHeap * __restrict heap) {
   heap->heapid = heapid;
 
   /* find next avail entry */
-  while (bucket->firstAvailEntry++ < ak__heap_lt.bucketSize - 1) {
-    assert(bucket->firstAvailEntry < 4);
-    if (bucket->heapEntry[bucket->firstAvailEntry].heapid == 0)
+  while (++bucket->firstAvailEntry < ak__heap_lt.bucketSize) {
+    if (!bucket->heapEntry[bucket->firstAvailEntry].heap)
       break;
   }
 
-  if (bucket->firstAvailEntry >= ak__heap_lt.bucketSize - 1)
+  if (AK__LT_BUCKET_IS_FULL(bucket))
     ak__heap_lt.firstAvailBucket = NULL;
 
   bucket->count++;
@@ -104,30 +156,27 @@ AkHeap *
 ak_heap_lt_find(uint32_t heapid) {
   AkHeapBucket      *bucket;
   AkHeapBucketEntry *entry;
-  int bucketIndex;
-  int entryIndex;
-
-  if (heapid >= ak__heap_lt.size * ak__heap_lt.bucketSize)
-    return NULL;
+  uint32_t           bucketIndex;
+  uint32_t           entryIndex;
 
   if (ak__heap_lt.lastUsedEntry
+      && ak__heap_lt.lastUsedEntry->heap
       && ak__heap_lt.lastUsedEntry->heapid == heapid)
     return ak__heap_lt.lastUsedEntry->heap;
 
-  bucket      = ak__heap_lt.rootBucket;
-  bucketIndex = (int)floor(heapid / ak__heap_lt.bucketSize);
+  bucketIndex = heapid / ak__heap_lt.bucketSize;
   entryIndex  = heapid % ak__heap_lt.bucketSize;
 
-  for (; bucketIndex > 0; bucketIndex--)
-    bucket = bucket->next;
-
+  bucket = ak__heap_lt_find_bucket(bucketIndex, NULL);
   if (!bucket)
     return NULL;
 
   entry = &bucket->heapEntry[entryIndex];
-  ak__heap_lt.lastUsedEntry = entry;
+  if (!entry->heap || entry->heapid != heapid)
+    return NULL;
 
-  return entry->heapid == heapid ? entry->heap : NULL;
+  ak__heap_lt.lastUsedEntry = entry;
+  return entry->heap;
 }
 
 void
@@ -135,28 +184,19 @@ ak_heap_lt_remove(uint32_t heapid) {
   AkHeapBucket      *prevBucket;
   AkHeapBucket      *bucket;
   AkHeapBucketEntry *entry;
-  int bucketIndex;
-  int entryIndex;
+  uint32_t           bucketIndex;
+  uint32_t           entryIndex;
+  bool               destroyBucket;
 
-  if (heapid >= ak__heap_lt.size * ak__heap_lt.bucketSize)
-    return;
-
-  bucket      = ak__heap_lt.rootBucket;
-  prevBucket  = ak__heap_lt.rootBucket;
-
-  bucketIndex = (int)floor(heapid / ak__heap_lt.bucketSize);
+  bucketIndex = heapid / ak__heap_lt.bucketSize;
   entryIndex  = heapid % ak__heap_lt.bucketSize;
 
-  for (; bucketIndex > 0; bucketIndex--) {
-    prevBucket = bucket;
-    bucket     = bucket->next;
-  }
-
+  bucket = ak__heap_lt_find_bucket(bucketIndex, &prevBucket);
   if (!bucket)
     return;
 
   entry = &bucket->heapEntry[entryIndex];
-  if (entry) {
+  if (entry && entry->heap && entry->heapid == heapid) {
     memset(&bucket->heapEntry[entryIndex],
            '\0',
            sizeof(AkHeapBucketEntry));
@@ -165,18 +205,12 @@ ak_heap_lt_remove(uint32_t heapid) {
     if (!AK__LT_BUCKET_IS_FULL(bucket))
       bucket->firstAvailEntry = entryIndex;
 
-    if (bucket->count < 1 && bucket != &ak__heap_bucket) {
+    destroyBucket = bucket->count < 1 && bucket != &ak__heap_bucket;
+    ak__heap_lt_clear_last_used(bucket, entry, destroyBucket);
+
+    if (destroyBucket) {
       if (ak__heap_lt.firstAvailBucket == bucket) {
-        AkHeapBucket *nextAvailBucket;
-
-        nextAvailBucket = bucket->next;
-        for (; nextAvailBucket && AK__LT_BUCKET_IS_FULL(nextAvailBucket);)
-          nextAvailBucket = bucket->next;
-
-        if (nextAvailBucket)
-          ak__heap_lt.firstAvailBucket = nextAvailBucket;
-        else
-          ak__heap_lt.firstAvailBucket = NULL;
+        ak__heap_lt.firstAvailBucket = ak__heap_lt_find_avail_from(bucket->next);
       }
 
       if (ak__heap_lt.lastBucket == bucket)
@@ -188,10 +222,11 @@ ak_heap_lt_remove(uint32_t heapid) {
       free(bucket);
 
       ak__heap_lt.size--;
+    } else {
+      if (!ak__heap_lt.firstAvailBucket
+          || bucket->bucketIndex < ak__heap_lt.firstAvailBucket->bucketIndex)
+        ak__heap_lt.firstAvailBucket = bucket;
     }
-
-    if (ak__heap_lt.lastUsedEntry == entry)
-      ak__heap_lt.lastUsedEntry = NULL;
   }
 }
 
