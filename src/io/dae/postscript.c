@@ -24,6 +24,7 @@
 #include "fixup/tex.h"
 #include "fixup/ctlr.h"
 #include "fixup/channel.h"
+#include "bugfix/scenekit.h"
 
 AK_HIDE void
 dae_retain_refs(DAEState * __restrict dst);
@@ -135,6 +136,7 @@ dae_postscript(DAEState * __restrict dst) {
   dae_fixAngles(dst);
   dae_fixup_accessors(dst);
   dae_pre_mesh(dst);
+  dae_bugfix_scenekit_backfaces(dst);
 
   /* fixup when finished,
      because we need to collect about source/array usages
