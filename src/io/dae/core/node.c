@@ -60,8 +60,12 @@ dae_node(DAEState      * __restrict dst,
   if ((att = xmla(xml, _s_dae_layer))) {
     AkStringArray *strArray;
     AkResult       ret;
+    char          *layer;
 
-    ret = ak_strtostr_array(heap, node, (char *)att->val, ' ', &strArray);
+    layer = xmla_strdup(att, heap, node);
+    ret   = layer
+            ? ak_strtostr_array(heap, node, layer, ' ', &strArray)
+            : AK_ERR;
     if (ret == AK_OK)
       node->layer = strArray;
   }

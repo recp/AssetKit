@@ -17,6 +17,35 @@
 #include "array.h"
 #include <string.h>
 
+static bool
+ak_strarray_is_sep(char c, char separator) {
+  return c == separator || c == '\n' || c == '\r' || c == '\t';
+}
+
+static size_t
+ak_strarray_count(const char *content, char separator) {
+  size_t count;
+  bool   inTok;
+
+  count = 0;
+  inTok = false;
+
+  if (!content)
+    return 0;
+
+  while (*content) {
+    if (ak_strarray_is_sep(*content, separator)) {
+      inTok = false;
+    } else if (!inTok) {
+      inTok = true;
+      count++;
+    }
+    content++;
+  }
+
+  return count;
+}
+
 AK_HIDE
 AkResult
 ak_strtostr_array(AkHeap         * __restrict heap,
@@ -27,24 +56,24 @@ ak_strtostr_array(AkHeap         * __restrict heap,
   AkStringArray  *stringArray;
   char           *pData;
   char           *tok;
-  char            separatorStr[4];
+  char            separatorStr[5];
   size_t          arrayIndex;
   size_t          itemCount;
   size_t          arraySize;
   size_t          arrayDataSize;
 
   arrayIndex = 0;
-  itemCount  = 0;
+
+  if (!content || !array)
+    return AK_EINVAL;
+
+  itemCount  = ak_strarray_count(content, separator);
 
   separatorStr[0] = separator;
   separatorStr[1] = '\n';
   separatorStr[2] = '\r';
   separatorStr[3] = '\t';
-
-  pData = content;
-  while (*pData != '\0'
-         && *++pData == separator)
-    itemCount++;
+  separatorStr[4] = '\0';
 
   /*
    |pSTR1|pSTR2|pSTR3|STR1\0STR2\0STR3|
@@ -52,18 +81,23 @@ ak_strtostr_array(AkHeap         * __restrict heap,
    the last one is pointer to all data
    */
   arraySize = sizeof(char *) * (itemCount + 1);
-  arrayDataSize = strlen(content) + itemCount /* NULL */;
+  arrayDataSize = strlen(content) + itemCount + 1 /* NULL */;
 
   stringArray = ak_heap_alloc(heap,
                               memParent,
                               sizeof(*stringArray) + arraySize);
+  if (!stringArray)
+    return AK_ENOMEM;
 
   pData = ak_heap_alloc(heap,
                         stringArray,
                         arrayDataSize);
+  if (!pData)
+    return AK_ENOMEM;
 
   stringArray->count = itemCount;
   stringArray->items[itemCount] = pData;
+  pData[0] = '\0';
 
   tok = strtok(content, separatorStr);
   while (tok) {
@@ -91,24 +125,24 @@ ak_strtostr_arrayL(AkHeap * __restrict heap,
   AkStringArrayL *stringArray;
   char           *pData;
   char           *tok;
-  char            separatorStr[4];
+  char            separatorStr[5];
   size_t          arrayIndex;
   size_t          itemCount;
   size_t          arraySize;
   size_t          arrayDataSize;
 
   arrayIndex = 0;
-  itemCount  = 0;
+
+  if (!stringRep || !array)
+    return AK_EINVAL;
+
+  itemCount  = ak_strarray_count(stringRep, separator);
 
   separatorStr[0] = separator;
   separatorStr[1] = '\n';
   separatorStr[2] = '\r';
   separatorStr[3] = '\t';
-
-  pData = stringRep;
-  while (*pData != '\0'
-         && *++pData == separator)
-    itemCount++;
+  separatorStr[4] = '\0';
 
   /*
    |pSTR1|pSTR2|pSTR3|STR1\0STR2\0STR3|
@@ -116,18 +150,23 @@ ak_strtostr_arrayL(AkHeap * __restrict heap,
    the last one is pointer to all data
    */
   arraySize = sizeof(char *) * (itemCount + 1);
-  arrayDataSize = strlen(stringRep) + itemCount /* NULL */;
+  arrayDataSize = strlen(stringRep) + itemCount + 1 /* NULL */;
 
   stringArray = ak_heap_alloc(heap,
                               memParent,
                               sizeof(*stringArray) + arraySize);
+  if (!stringArray)
+    return AK_ENOMEM;
 
   pData = ak_heap_alloc(heap,
                         stringArray,
                         arrayDataSize);
+  if (!pData)
+    return AK_ENOMEM;
 
   stringArray->count = itemCount;
   stringArray->items[itemCount] = pData;
+  pData[0] = '\0';
 
   tok = strtok(stringRep, separatorStr);
   while (tok) {
