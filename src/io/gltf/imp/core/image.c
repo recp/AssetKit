@@ -21,6 +21,32 @@
 #define k_name          0
 #define k_bufferView    1
 #define k_uri           2
+#define k_mimeType      3
+
+static
+char*
+gltf_imageDataUriMime(AkHeap      * __restrict heap,
+                      void        * __restrict parent,
+                      const char  * __restrict uri,
+                      int                      len) {
+  const char *start;
+  const char *end;
+  int         prefixLen;
+
+  if (!uri || len <= 0)
+    return NULL;
+
+  prefixLen = (int)strlen(_s_gltf_b64d);
+  if (len <= prefixLen || strncmp(uri, _s_gltf_b64d, (size_t)prefixLen) != 0)
+    return NULL;
+
+  start = uri + prefixLen;
+  end   = memchr(start, ';', (size_t)(len - prefixLen));
+  if (!end || end <= start)
+    return NULL;
+
+  return ak_heap_strndup(heap, parent, start, (size_t)(end - start));
+}
 
 AK_HIDE
 void
@@ -52,7 +78,8 @@ gltf_images(json_t * __restrict jimage,
     json_objmap_t imgMap[] = {
       JSON_OBJMAP_OBJ(_s_gltf_name,       I2P k_name),
       JSON_OBJMAP_OBJ(_s_gltf_bufferView, I2P k_bufferView),
-      JSON_OBJMAP_OBJ(_s_gltf_uri,        I2P k_uri)
+      JSON_OBJMAP_OBJ(_s_gltf_uri,        I2P k_uri),
+      JSON_OBJMAP_OBJ("mimeType",         I2P k_mimeType)
     };
 
     json_objmap(jimage, imgMap, JSON_ARR_LEN(imgMap));
@@ -81,6 +108,8 @@ gltf_images(json_t * __restrict jimage,
         memcpy(initFrom->buff->data,
                (char *)tmpbuff->data + buffView->byteOffset,
                buffView->byteLength);
+        if ((it = imgMap[k_mimeType].object))
+          initFrom->buffMime = json_strdup(it, heap, initFrom);
         image->initFrom = initFrom;
       }
     }
@@ -91,9 +120,13 @@ gltf_images(json_t * __restrict jimage,
       if (!strncmp(it->value, _s_gltf_b64d, strlen(_s_gltf_b64d))) {
         char *uri;
         uri = it->value;
-        
+
         initFrom->buff = ak_heap_calloc(heap, gst->doc, sizeof(*initFrom->buff));
         base64_buff(uri, it->valsize, initFrom->buff);
+        if (imgMap[k_mimeType].object)
+          initFrom->buffMime = json_strdup(imgMap[k_mimeType].object, heap, initFrom);
+        else
+          initFrom->buffMime = gltf_imageDataUriMime(heap, initFrom, uri, it->valsize);
       } else {
         initFrom->ref = json_strdup(it, gst->heap, initFrom);
       }
