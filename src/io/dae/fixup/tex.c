@@ -60,6 +60,7 @@ dae_tex_walk(RBTree *tree, RBNode *rbnode) {
   image         = ak_instanceObject(instanceImage);
   
   texref->texture = tex;
+  ak_texref_usage(texref, dtex->colorSpace, dtex->channels);
   
   /* this is the default */
   /* use bind_material to set texcoord */

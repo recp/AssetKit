@@ -50,6 +50,27 @@ typedef enum AkMipFilter {
   AK_MIPFILTER_NEAREST = 2
 } AkMipFilter;
 
+typedef enum AkTextureColorSpace {
+  AK_TEXTURE_COLORSPACE_UNSPECIFIED = 0,
+  AK_TEXTURE_COLORSPACE_LINEAR      = 1,
+  AK_TEXTURE_COLORSPACE_SRGB        = 2
+} AkTextureColorSpace;
+
+typedef enum AkTextureChannels {
+  AK_TEXTURE_CHANNEL_NONE = 0,
+  AK_TEXTURE_CHANNEL_R    = 1 << 0,
+  AK_TEXTURE_CHANNEL_G    = 1 << 1,
+  AK_TEXTURE_CHANNEL_B    = 1 << 2,
+  AK_TEXTURE_CHANNEL_A    = 1 << 3,
+  AK_TEXTURE_CHANNEL_RGB  = AK_TEXTURE_CHANNEL_R
+                            | AK_TEXTURE_CHANNEL_G
+                            | AK_TEXTURE_CHANNEL_B,
+  AK_TEXTURE_CHANNEL_RGBA = AK_TEXTURE_CHANNEL_RGB
+                            | AK_TEXTURE_CHANNEL_A,
+  AK_TEXTURE_CHANNEL_GB   = AK_TEXTURE_CHANNEL_G
+                            | AK_TEXTURE_CHANNEL_B
+} AkTextureChannels;
+
 typedef struct AkSampler {
   const char     *uniformName;
   const char     *coordInputName;
@@ -99,9 +120,24 @@ typedef struct AkTextureRef {
   const char         *coordInputName;
   int                 slot;
 
+  AkTextureColorSpace colorSpace;
+  AkTextureChannels   channels;
+
   /* Texture Transform */
   AkTextureTransform *transform;
 } AkTextureRef;
+
+AK_INLINE
+AkTextureRef*
+ak_texref_usage(AkTextureRef        *texref,
+                AkTextureColorSpace  colorSpace,
+                AkTextureChannels    channels) {
+  if (texref) {
+    texref->colorSpace = colorSpace;
+    texref->channels   = channels;
+  }
+  return texref;
+}
 
 #ifdef __cglm__
 AK_INLINE

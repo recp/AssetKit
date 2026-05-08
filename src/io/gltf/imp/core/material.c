@@ -108,6 +108,18 @@ gltf_materialColorDesc(AkGLTFState * __restrict gst,
 }
 
 static
+AkTextureRef*
+gltf_materialTexRef(AkGLTFState        * __restrict gst,
+                    void               * __restrict parent,
+                    json_t             * __restrict jtexinfo,
+                    AkTextureColorSpace             colorSpace,
+                    AkTextureChannels               channels) {
+  return ak_texref_usage(gltf_texref(gst, parent, jtexinfo),
+                         colorSpace,
+                         channels);
+}
+
+static
 void
 gltf_materialParseSpecular(AkGLTFState         * __restrict gst,
                            AkTechniqueFxCommon * __restrict cmnTechn,
@@ -129,12 +141,21 @@ gltf_materialParseSpecular(AkGLTFState         * __restrict gst,
     if (json_key_eq(jval, _s_gltf_specularFactor)) {
       specularProp->strength = json_float(jval, 1.0f);
     } else if (json_key_eq(jval, _s_gltf_specularTexture)) {
-      specularProp->specularTex = gltf_texref(gst, cmnTechn, jval);
+      specularProp->specularTex = gltf_materialTexRef(gst,
+                                                       cmnTechn,
+                                                       jval,
+                                                       AK_TEXTURE_COLORSPACE_LINEAR,
+                                                       AK_TEXTURE_CHANNEL_A);
+      specularProp->textureChannels = AK_TEXTURE_CHANNEL_A;
     } else if (json_key_eq(jval, _s_gltf_specularColorFactor)) {
       json_array_float(specularProp->color->color->vec, jval, 0.0f, 3, true);
       specularProp->color->color->vec[3] = 1.0f;
     } else if (json_key_eq(jval, _s_gltf_specularColorTexture)) {
-      specularProp->color->texture = gltf_texref(gst, cmnTechn, jval);
+      specularProp->color->texture = gltf_materialTexRef(gst,
+                                                          cmnTechn,
+                                                          jval,
+                                                          AK_TEXTURE_COLORSPACE_SRGB,
+                                                          AK_TEXTURE_CHANNEL_RGB);
     }
     jval = jval->next;
   }
@@ -160,13 +181,27 @@ gltf_materialParseClearcoat(AkGLTFState         * __restrict gst,
     if (json_key_eq(jval, _s_gltf_clearcoatFactor)) {
       clearcoat->intensity = json_float(jval, 0.0f);
     } else if (json_key_eq(jval, _s_gltf_clearcoatTexture)) {
-      clearcoat->texture = gltf_texref(gst, cmnTechn, jval);
+      clearcoat->texture = gltf_materialTexRef(gst,
+                                                cmnTechn,
+                                                jval,
+                                                AK_TEXTURE_COLORSPACE_LINEAR,
+                                                AK_TEXTURE_CHANNEL_R);
+      clearcoat->textureChannels = AK_TEXTURE_CHANNEL_R;
     } else if (json_key_eq(jval, _s_gltf_clearcoatRoughnessFactor)) {
       clearcoat->roughness = json_float(jval, 0.0f);
     } else if (json_key_eq(jval, _s_gltf_clearcoatRoughnessTexture)) {
-      clearcoat->roughnessTexture = gltf_texref(gst, cmnTechn, jval);
+      clearcoat->roughnessTexture = gltf_materialTexRef(gst,
+                                                         cmnTechn,
+                                                         jval,
+                                                         AK_TEXTURE_COLORSPACE_LINEAR,
+                                                         AK_TEXTURE_CHANNEL_G);
+      clearcoat->roughnessTextureChannels = AK_TEXTURE_CHANNEL_G;
     } else if (json_key_eq(jval, _s_gltf_clearcoatNormalTexture)) {
-      clearcoat->normalTexture = gltf_texref(gst, cmnTechn, jval);
+      clearcoat->normalTexture = gltf_materialTexRef(gst,
+                                                      cmnTechn,
+                                                      jval,
+                                                      AK_TEXTURE_COLORSPACE_LINEAR,
+                                                      AK_TEXTURE_CHANNEL_RGB);
       clearcoat->normalScale   = json_float(json_get(jval, _s_gltf_scale),
                                             1.0f);
     }
@@ -193,7 +228,12 @@ gltf_materialParseTransmission(AkGLTFState         * __restrict gst,
     if (json_key_eq(jval, _s_gltf_transmissionFactor)) {
       transmissionProp->factor = json_float(jval, 0.0f);
     } else if (json_key_eq(jval, _s_gltf_transmissionTexture)) {
-      transmissionProp->texture = gltf_texref(gst, cmnTechn, jval);
+      transmissionProp->texture = gltf_materialTexRef(gst,
+                                                       cmnTechn,
+                                                       jval,
+                                                       AK_TEXTURE_COLORSPACE_LINEAR,
+                                                       AK_TEXTURE_CHANNEL_R);
+      transmissionProp->textureChannels = AK_TEXTURE_CHANNEL_R;
     }
     jval = jval->next;
   }
@@ -220,11 +260,20 @@ gltf_materialParseSheen(AkGLTFState         * __restrict gst,
       json_array_float(sheen->color->color->vec, jval, 0.0f, 3, true);
       sheen->color->color->vec[3] = 1.0f;
     } else if (json_key_eq(jval, _s_gltf_sheenColorTexture)) {
-      sheen->color->texture = gltf_texref(gst, sheen, jval);
+      sheen->color->texture = gltf_materialTexRef(gst,
+                                                   sheen,
+                                                   jval,
+                                                   AK_TEXTURE_COLORSPACE_SRGB,
+                                                   AK_TEXTURE_CHANNEL_RGB);
     } else if (json_key_eq(jval, _s_gltf_sheenRoughnessFactor)) {
       sheen->roughness = json_float(jval, 0.0f);
     } else if (json_key_eq(jval, _s_gltf_sheenRoughnessTexture)) {
-      sheen->roughnessTexture = gltf_texref(gst, sheen, jval);
+      sheen->roughnessTexture = gltf_materialTexRef(gst,
+                                                     sheen,
+                                                     jval,
+                                                     AK_TEXTURE_COLORSPACE_LINEAR,
+                                                     AK_TEXTURE_CHANNEL_A);
+      sheen->roughnessTextureChannels = AK_TEXTURE_CHANNEL_A;
     }
     jval = jval->next;
   }
@@ -251,7 +300,12 @@ gltf_materialParseIridescence(AkGLTFState         * __restrict gst,
     if (json_key_eq(jval, _s_gltf_iridescenceFactor)) {
       iri->factor = json_float(jval, 0.0f);
     } else if (json_key_eq(jval, _s_gltf_iridescenceTexture)) {
-      iri->texture = gltf_texref(gst, iri, jval);
+      iri->texture = gltf_materialTexRef(gst,
+                                          iri,
+                                          jval,
+                                          AK_TEXTURE_COLORSPACE_LINEAR,
+                                          AK_TEXTURE_CHANNEL_R);
+      iri->textureChannels = AK_TEXTURE_CHANNEL_R;
     } else if (json_key_eq(jval, _s_gltf_iridescenceIor)) {
       iri->ior = json_float(jval, 1.3f);
     } else if (json_key_eq(jval, _s_gltf_iridescenceThicknessMinimum)) {
@@ -259,7 +313,12 @@ gltf_materialParseIridescence(AkGLTFState         * __restrict gst,
     } else if (json_key_eq(jval, _s_gltf_iridescenceThicknessMaximum)) {
       iri->thicknessMaximum = json_float(jval, 400.0f);
     } else if (json_key_eq(jval, _s_gltf_iridescenceThicknessTexture)) {
-      iri->thicknessTexture = gltf_texref(gst, iri, jval);
+      iri->thicknessTexture = gltf_materialTexRef(gst,
+                                                   iri,
+                                                   jval,
+                                                   AK_TEXTURE_COLORSPACE_LINEAR,
+                                                   AK_TEXTURE_CHANNEL_G);
+      iri->thicknessTextureChannels = AK_TEXTURE_CHANNEL_G;
     }
     jval = jval->next;
   }
@@ -288,7 +347,12 @@ gltf_materialParseVolume(AkGLTFState         * __restrict gst,
     if (json_key_eq(jval, _s_gltf_thicknessFactor)) {
       vol->thicknessFactor = json_float(jval, 0.0f);
     } else if (json_key_eq(jval, _s_gltf_thicknessTexture)) {
-      vol->thicknessTexture = gltf_texref(gst, vol, jval);
+      vol->thicknessTexture = gltf_materialTexRef(gst,
+                                                  vol,
+                                                  jval,
+                                                  AK_TEXTURE_COLORSPACE_LINEAR,
+                                                  AK_TEXTURE_CHANNEL_G);
+      vol->thicknessTextureChannels = AK_TEXTURE_CHANNEL_G;
     } else if (json_key_eq(jval, _s_gltf_attenuationDistance)) {
       vol->attenuationDistance = json_float(jval, INFINITY);
     } else if (json_key_eq(jval, _s_gltf_attenuationColor)) {
@@ -320,7 +384,11 @@ gltf_materialParseAnisotropy(AkGLTFState         * __restrict gst,
     } else if (json_key_eq(jval, _s_gltf_anisotropyRotation)) {
       aniso->rotation = json_float(jval, 0.0f);
     } else if (json_key_eq(jval, _s_gltf_anisotropyTexture)) {
-      aniso->texture = gltf_texref(gst, aniso, jval);
+      aniso->texture = gltf_materialTexRef(gst,
+                                            aniso,
+                                            jval,
+                                            AK_TEXTURE_COLORSPACE_LINEAR,
+                                            AK_TEXTURE_CHANNEL_RGB);
     }
     jval = jval->next;
   }
@@ -360,12 +428,21 @@ gltf_materialParseDiffuseTransmission(AkGLTFState         * __restrict gst,
     if (json_key_eq(jval, _s_gltf_diffuseTransmissionFactor)) {
       dt->factor = json_float(jval, 0.0f);
     } else if (json_key_eq(jval, _s_gltf_diffuseTransmissionTexture)) {
-      dt->texture = gltf_texref(gst, dt, jval);
+      dt->texture = gltf_materialTexRef(gst,
+                                         dt,
+                                         jval,
+                                         AK_TEXTURE_COLORSPACE_LINEAR,
+                                         AK_TEXTURE_CHANNEL_A);
+      dt->textureChannels = AK_TEXTURE_CHANNEL_A;
     } else if (json_key_eq(jval, _s_gltf_diffuseTransmissionColorFactor)) {
       json_array_float(dt->color->color->vec, jval, 1.0f, 3, true);
       dt->color->color->vec[3] = 1.0f;
     } else if (json_key_eq(jval, _s_gltf_diffuseTransmissionColorTexture)) {
-      dt->color->texture = gltf_texref(gst, dt, jval);
+      dt->color->texture = gltf_materialTexRef(gst,
+                                                dt,
+                                                jval,
+                                                AK_TEXTURE_COLORSPACE_SRGB,
+                                                AK_TEXTURE_CHANNEL_RGB);
     }
     jval = jval->next;
   }
@@ -498,9 +575,17 @@ gltf_materials(json_t * __restrict jmaterial,
           } else if (json_key_eq(jval, _s_gltf_glossFactor)) {
             specularProp->strength = json_float(jval, 1.0f);
           } else if (json_key_eq(jval, _s_gltf_diffuseTexture)) {
-            cmnTechn->diffuse->texture = gltf_texref(gst, cmnTechn, jval);
+            cmnTechn->diffuse->texture = gltf_materialTexRef(gst,
+                                                              cmnTechn,
+                                                              jval,
+                                                              AK_TEXTURE_COLORSPACE_SRGB,
+                                                              AK_TEXTURE_CHANNEL_RGBA);
           } else if (json_key_eq(jval, _s_gltf_specGlossTex)) {
-            specularProp->specularTex = gltf_texref(gst, cmnTechn, jval);
+            specularProp->specularTex = gltf_materialTexRef(gst,
+                                                             cmnTechn,
+                                                             jval,
+                                                             AK_TEXTURE_COLORSPACE_SRGB,
+                                                             AK_TEXTURE_CHANNEL_RGBA);
           }
           jval = jval->next;
         }
@@ -542,10 +627,20 @@ gltf_materials(json_t * __restrict jmaterial,
           } else if (json_key_eq(jmrVal, _s_gltf_roughFac)) {
             roughness->intensity = json_float(jmrVal, 0.0f);
           } else if (json_key_eq(jmrVal, _s_gltf_metalRoughTex)) {
-            metalness->tex = gltf_texref(gst, metalness, jmrVal);
+            metalness->tex = gltf_materialTexRef(gst,
+                                                  metalness,
+                                                  jmrVal,
+                                                  AK_TEXTURE_COLORSPACE_LINEAR,
+                                                  AK_TEXTURE_CHANNEL_GB);
+            metalness->textureChannels = AK_TEXTURE_CHANNEL_B;
             roughness->tex = metalness->tex;
+            roughness->textureChannels = AK_TEXTURE_CHANNEL_G;
           } else if (json_key_eq(jmrVal, _s_gltf_baseColorTex)) {
-            cmnTechn->albedo->texture = gltf_texref(gst, cmnTechn->albedo, jmrVal);
+            cmnTechn->albedo->texture = gltf_materialTexRef(gst,
+                                                             cmnTechn->albedo,
+                                                             jmrVal,
+                                                             AK_TEXTURE_COLORSPACE_SRGB,
+                                                             AK_TEXTURE_CHANNEL_RGBA);
           }
 
           jmrVal = jmrVal->next;
@@ -575,14 +670,23 @@ gltf_materials(json_t * __restrict jmaterial,
           cmnTechn->emission = emission;
         }
 
-        emission->color.texture = gltf_texref(gst, emission, jmatVal);
+        emission->color.texture = gltf_materialTexRef(gst,
+                                                       emission,
+                                                       jmatVal,
+                                                       AK_TEXTURE_COLORSPACE_SRGB,
+                                                       AK_TEXTURE_CHANNEL_RGB);
       } else if (json_key_eq(jmatVal, _s_gltf_occlusionTex)) {
         /* Occlusion Map */
         AkOcclusion *occl;
 
         occl           = ak_heap_calloc(heap, technfx, sizeof(*occl));
-        occl->tex      = gltf_texref(gst, occl, jmatVal);
+        occl->tex      = gltf_materialTexRef(gst,
+                                              occl,
+                                              jmatVal,
+                                              AK_TEXTURE_COLORSPACE_LINEAR,
+                                              AK_TEXTURE_CHANNEL_R);
         occl->strength = json_float(json_get(jmatVal, _s_gltf_strength), 1.0f);
+        occl->textureChannels = AK_TEXTURE_CHANNEL_R;
 
         cmnTechn->occlusion = occl;
 
@@ -591,7 +695,11 @@ gltf_materials(json_t * __restrict jmaterial,
         AkNormalMap *normal;
 
         normal        = ak_heap_calloc(heap, technfx, sizeof(*normal));
-        normal->tex   = gltf_texref(gst, normal, jmatVal);
+        normal->tex   = gltf_materialTexRef(gst,
+                                             normal,
+                                             jmatVal,
+                                             AK_TEXTURE_COLORSPACE_LINEAR,
+                                             AK_TEXTURE_CHANNEL_RGB);
         normal->scale = json_float(json_get(jmatVal, _s_gltf_scale), 1.0f);
 
         cmnTechn->normal = normal;

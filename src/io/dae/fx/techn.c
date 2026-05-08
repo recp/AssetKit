@@ -70,6 +70,39 @@ dae_techniqueFx(DAEState * __restrict dst,
 }
 
 static
+void
+dae_colorDescTextureUsage(DAEState            * __restrict dst,
+                          AkColorDesc         * __restrict clr,
+                          AkTextureColorSpace              colorSpace,
+                          AkTextureChannels                channels) {
+  AkDAETextureRef *tex;
+
+  if (!clr || !dst->texmap)
+    return;
+
+  if ((tex = rb_find(dst->texmap, clr))) {
+    tex->colorSpace = colorSpace;
+    tex->channels   = channels;
+  }
+}
+
+static
+AkTextureChannels
+dae_transparentTextureChannels(AkOpaque opaque) {
+  switch (opaque) {
+    case AK_OPAQUE_A_ONE:
+    case AK_OPAQUE_A_ZERO:
+    case AK_OPAQUE_MASK:
+      return AK_TEXTURE_CHANNEL_A;
+    case AK_OPAQUE_RGB_ONE:
+    case AK_OPAQUE_RGB_ZERO:
+      return AK_TEXTURE_CHANNEL_RGB;
+    default:
+      return AK_TEXTURE_CHANNEL_RGBA;
+  }
+}
+
+static
 AkTechniqueFxCommon*
 dae_techniqueFxCmn(DAEState * __restrict dst,
                    xml_t    * __restrict xml,
@@ -97,10 +130,19 @@ dae_techniqueFxCmn(DAEState * __restrict dst,
       }
 
       dae_colorOrTexSet(dst, xml, techn, &techn->emission->color);
+      dae_colorDescTextureUsage(dst, &techn->emission->color,
+                                AK_TEXTURE_COLORSPACE_SRGB,
+                                AK_TEXTURE_CHANNEL_RGB);
     } else if (xml_tag_eq(xml, _s_dae_ambient)) {
       techn->ambient = dae_colorOrTex(dst, xml, techn);
+      dae_colorDescTextureUsage(dst, techn->ambient,
+                                AK_TEXTURE_COLORSPACE_SRGB,
+                                AK_TEXTURE_CHANNEL_RGB);
     } else if (xml_tag_eq(xml, _s_dae_diffuse)) {
       techn->diffuse = dae_colorOrTex(dst, xml, techn);
+      dae_colorDescTextureUsage(dst, techn->diffuse,
+                                AK_TEXTURE_COLORSPACE_SRGB,
+                                AK_TEXTURE_CHANNEL_RGBA);
     } else if (xml_tag_eq(xml, _s_dae_specular)) {
       AkMaterialSpecularProp *specularProp;
 
@@ -110,10 +152,16 @@ dae_techniqueFxCmn(DAEState * __restrict dst,
       }
 
       specularProp->color = dae_colorOrTex(dst, xml, specularProp);
+      dae_colorDescTextureUsage(dst, specularProp->color,
+                                AK_TEXTURE_COLORSPACE_SRGB,
+                                AK_TEXTURE_CHANNEL_RGB);
     } else if (xml_tag_eq(xml, _s_dae_reflective)) {
       if (!techn->reflective)
         techn->reflective = ak_heap_calloc(heap, techn, sizeof(*techn->reflective));
       techn->reflective->color = dae_colorOrTex(dst, xml, techn);
+      dae_colorDescTextureUsage(dst, techn->reflective->color,
+                                AK_TEXTURE_COLORSPACE_SRGB,
+                                AK_TEXTURE_CHANNEL_RGB);
     } else if (xml_tag_eq(xml, _s_dae_transparent)) {
       if (!techn->transparent) {
         transp             = ak_heap_calloc(heap, techn, sizeof(*transp));
@@ -128,6 +176,9 @@ dae_techniqueFxCmn(DAEState * __restrict dst,
       
       techn->transparent->color  = dae_colorOrTex(dst, xml, techn);
       techn->transparent->opaque = opaque;
+      dae_colorDescTextureUsage(dst, techn->transparent->color,
+                                AK_TEXTURE_COLORSPACE_SRGB,
+                                dae_transparentTextureChannels(opaque));
     } else if (xml_tag_eq(xml, _s_dae_shininess)) {
       AkMaterialSpecularProp *specularProp;
 

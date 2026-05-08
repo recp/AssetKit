@@ -168,11 +168,15 @@ static
 AkTextureRef*
 gltf_animEnsureTexRef(AkGLTFState     * __restrict gst,
                       AkTextureRef   ** __restrict texref,
-                      void            * __restrict parent) {
+                      void            * __restrict parent,
+                      AkTextureColorSpace          colorSpace,
+                      AkTextureChannels            channels) {
   if (!*texref) {
     *texref       = ak_heap_calloc(gst->heap, parent, sizeof(**texref));
     (*texref)->slot = -1;
   }
+
+  ak_texref_usage(*texref, colorSpace, channels);
 
   return *texref;
 }
@@ -517,7 +521,11 @@ gltf_animResolveMaterialPBR(AkGLTFState          * __restrict gst,
     return gltf_animResolveTexTransform(
              gst,
              ch,
-             gltf_animEnsureTexRef(gst, &cmn->albedo->texture, cmn->albedo),
+             gltf_animEnsureTexRef(gst,
+                                   &cmn->albedo->texture,
+                                   cmn->albedo,
+                                   AK_TEXTURE_COLORSPACE_SRGB,
+                                   AK_TEXTURE_CHANNEL_RGBA),
              p,
              end);
   }
@@ -525,8 +533,14 @@ gltf_animResolveMaterialPBR(AkGLTFState          * __restrict gst,
   if (gltf_animSegEq(seg, segLen, _s_gltf_metalRoughTex)) {
     prop  = gltf_animEnsureMetalProp(gst, cmn, &cmn->metalness);
     rough = gltf_animEnsureMetalProp(gst, cmn, &cmn->roughness);
+    prop->textureChannels  = AK_TEXTURE_CHANNEL_B;
+    rough->textureChannels = AK_TEXTURE_CHANNEL_G;
     if (!prop->tex)
-      prop->tex = gltf_animEnsureTexRef(gst, &prop->tex, prop);
+      prop->tex = gltf_animEnsureTexRef(gst,
+                                        &prop->tex,
+                                        prop,
+                                        AK_TEXTURE_COLORSPACE_LINEAR,
+                                        AK_TEXTURE_CHANNEL_GB);
     if (!rough->tex)
       rough->tex = prop->tex;
     return gltf_animResolveTexTransform(gst, ch, prop->tex, p, end);
@@ -595,23 +609,33 @@ gltf_animResolveMaterialExt(AkGLTFState          * __restrict gst,
       cmn->clearcoat->normalScale = 1.0f;
     }
     if (gltf_animSegEq(seg, segLen, _s_gltf_clearcoatTexture))
+      cmn->clearcoat->textureChannels = AK_TEXTURE_CHANNEL_R;
+    if (gltf_animSegEq(seg, segLen, _s_gltf_clearcoatTexture))
       return gltf_animResolveTexTransform(
                gst, ch,
                gltf_animEnsureTexRef(gst, &cmn->clearcoat->texture,
-                                     cmn->clearcoat),
+                                     cmn->clearcoat,
+                                     AK_TEXTURE_COLORSPACE_LINEAR,
+                                     AK_TEXTURE_CHANNEL_R),
                p, end);
+    if (gltf_animSegEq(seg, segLen, _s_gltf_clearcoatRoughnessTexture))
+      cmn->clearcoat->roughnessTextureChannels = AK_TEXTURE_CHANNEL_G;
     if (gltf_animSegEq(seg, segLen, _s_gltf_clearcoatRoughnessTexture))
       return gltf_animResolveTexTransform(
                gst, ch,
                gltf_animEnsureTexRef(gst,
                                      &cmn->clearcoat->roughnessTexture,
-                                     cmn->clearcoat),
+                                     cmn->clearcoat,
+                                     AK_TEXTURE_COLORSPACE_LINEAR,
+                                     AK_TEXTURE_CHANNEL_G),
                p, end);
     if (gltf_animSegEq(seg, segLen, _s_gltf_clearcoatNormalTexture))
       return gltf_animResolveTexTransform(
                gst, ch,
                gltf_animEnsureTexRef(gst, &cmn->clearcoat->normalTexture,
-                                     cmn->clearcoat),
+                                     cmn->clearcoat,
+                                     AK_TEXTURE_COLORSPACE_LINEAR,
+                                     AK_TEXTURE_CHANNEL_RGB),
                p, end)
              || (gltf_animPtrSeg(&p, end, _s_gltf_scale)
                  && p == end
@@ -622,10 +646,14 @@ gltf_animResolveMaterialExt(AkGLTFState          * __restrict gst,
   if (gltf_animSegEq(ext, extLen, _s_gltf_ext_KHR_materials_specular)
       && cmn->specular) {
     if (gltf_animSegEq(seg, segLen, _s_gltf_specularTexture))
+      cmn->specular->textureChannels = AK_TEXTURE_CHANNEL_A;
+    if (gltf_animSegEq(seg, segLen, _s_gltf_specularTexture))
       return gltf_animResolveTexTransform(
                gst, ch,
                gltf_animEnsureTexRef(gst, &cmn->specular->specularTex,
-                                     cmn->specular),
+                                     cmn->specular,
+                                     AK_TEXTURE_COLORSPACE_LINEAR,
+                                     AK_TEXTURE_CHANNEL_A),
                p, end);
     if (gltf_animSegEq(seg, segLen, _s_gltf_specularColorTexture))
       return cmn->specular->color
@@ -633,17 +661,25 @@ gltf_animResolveMaterialExt(AkGLTFState          * __restrict gst,
                   gst, ch,
                   gltf_animEnsureTexRef(gst,
                                         &cmn->specular->color->texture,
-                                        cmn->specular->color),
+                                        cmn->specular->color,
+                                        AK_TEXTURE_COLORSPACE_SRGB,
+                                        AK_TEXTURE_CHANNEL_RGB),
                   p, end);
   }
 
   if (gltf_animSegEq(ext, extLen, _s_gltf_KHR_materials_transmission)
       && cmn->transmission
       && gltf_animSegEq(seg, segLen, _s_gltf_transmissionTexture))
+    cmn->transmission->textureChannels = AK_TEXTURE_CHANNEL_R;
+  if (gltf_animSegEq(ext, extLen, _s_gltf_KHR_materials_transmission)
+      && cmn->transmission
+      && gltf_animSegEq(seg, segLen, _s_gltf_transmissionTexture))
     return gltf_animResolveTexTransform(
              gst, ch,
              gltf_animEnsureTexRef(gst, &cmn->transmission->texture,
-                                   cmn->transmission),
+                                   cmn->transmission,
+                                   AK_TEXTURE_COLORSPACE_LINEAR,
+                                   AK_TEXTURE_CHANNEL_R),
              p, end);
 
   if (gltf_animSegEq(ext, extLen, _s_gltf_KHR_materials_sheen)) {
@@ -652,35 +688,61 @@ gltf_animResolveMaterialExt(AkGLTFState          * __restrict gst,
       return gltf_animResolveTexTransform(
                gst, ch,
                gltf_animEnsureTexRef(gst, &sheen->color->texture,
-                                     sheen->color),
+                                     sheen->color,
+                                     AK_TEXTURE_COLORSPACE_SRGB,
+                                     AK_TEXTURE_CHANNEL_RGB),
                p, end);
+    if (gltf_animSegEq(seg, segLen, _s_gltf_sheenRoughnessTexture))
+      sheen->roughnessTextureChannels = AK_TEXTURE_CHANNEL_A;
     if (gltf_animSegEq(seg, segLen, _s_gltf_sheenRoughnessTexture))
       return gltf_animResolveTexTransform(
                gst, ch,
-               gltf_animEnsureTexRef(gst, &sheen->roughnessTexture, sheen),
+               gltf_animEnsureTexRef(gst,
+                                     &sheen->roughnessTexture,
+                                     sheen,
+                                     AK_TEXTURE_COLORSPACE_LINEAR,
+                                     AK_TEXTURE_CHANNEL_A),
                p, end);
   }
 
   if (gltf_animSegEq(ext, extLen, _s_gltf_KHR_materials_iridescence)) {
     iri = gltf_animEnsureIridescence(gst, cmn);
     if (gltf_animSegEq(seg, segLen, _s_gltf_iridescenceTexture))
+      iri->textureChannels = AK_TEXTURE_CHANNEL_R;
+    if (gltf_animSegEq(seg, segLen, _s_gltf_iridescenceTexture))
       return gltf_animResolveTexTransform(
                gst, ch,
-               gltf_animEnsureTexRef(gst, &iri->texture, iri),
+               gltf_animEnsureTexRef(gst,
+                                     &iri->texture,
+                                     iri,
+                                     AK_TEXTURE_COLORSPACE_LINEAR,
+                                     AK_TEXTURE_CHANNEL_R),
                p, end);
+    if (gltf_animSegEq(seg, segLen, _s_gltf_iridescenceThicknessTexture))
+      iri->thicknessTextureChannels = AK_TEXTURE_CHANNEL_G;
     if (gltf_animSegEq(seg, segLen, _s_gltf_iridescenceThicknessTexture))
       return gltf_animResolveTexTransform(
                gst, ch,
-               gltf_animEnsureTexRef(gst, &iri->thicknessTexture, iri),
+               gltf_animEnsureTexRef(gst,
+                                     &iri->thicknessTexture,
+                                     iri,
+                                     AK_TEXTURE_COLORSPACE_LINEAR,
+                                     AK_TEXTURE_CHANNEL_G),
                p, end);
   }
 
   if (gltf_animSegEq(ext, extLen, _s_gltf_KHR_materials_volume)) {
     vol = gltf_animEnsureVolume(gst, cmn);
     if (gltf_animSegEq(seg, segLen, _s_gltf_thicknessTexture))
+      vol->thicknessTextureChannels = AK_TEXTURE_CHANNEL_G;
+    if (gltf_animSegEq(seg, segLen, _s_gltf_thicknessTexture))
       return gltf_animResolveTexTransform(
                gst, ch,
-               gltf_animEnsureTexRef(gst, &vol->thicknessTexture, vol),
+               gltf_animEnsureTexRef(gst,
+                                     &vol->thicknessTexture,
+                                     vol,
+                                     AK_TEXTURE_COLORSPACE_LINEAR,
+                                     AK_TEXTURE_CHANNEL_G),
                p, end);
   }
 
@@ -689,7 +751,11 @@ gltf_animResolveMaterialExt(AkGLTFState          * __restrict gst,
     if (gltf_animSegEq(seg, segLen, _s_gltf_anisotropyTexture))
       return gltf_animResolveTexTransform(
                gst, ch,
-               gltf_animEnsureTexRef(gst, &aniso->texture, aniso),
+               gltf_animEnsureTexRef(gst,
+                                     &aniso->texture,
+                                     aniso,
+                                     AK_TEXTURE_COLORSPACE_LINEAR,
+                                     AK_TEXTURE_CHANNEL_RGB),
                p, end);
   }
 
@@ -697,14 +763,24 @@ gltf_animResolveMaterialExt(AkGLTFState          * __restrict gst,
                      _s_gltf_KHR_materials_diffuse_transmission)) {
     dt = gltf_animEnsureDiffuseTransmission(gst, cmn);
     if (gltf_animSegEq(seg, segLen, _s_gltf_diffuseTransmissionTexture))
+      dt->textureChannels = AK_TEXTURE_CHANNEL_A;
+    if (gltf_animSegEq(seg, segLen, _s_gltf_diffuseTransmissionTexture))
       return gltf_animResolveTexTransform(
                gst, ch,
-               gltf_animEnsureTexRef(gst, &dt->texture, dt),
+               gltf_animEnsureTexRef(gst,
+                                     &dt->texture,
+                                     dt,
+                                     AK_TEXTURE_COLORSPACE_LINEAR,
+                                     AK_TEXTURE_CHANNEL_A),
                p, end);
     if (gltf_animSegEq(seg, segLen, _s_gltf_diffuseTransmissionColorTexture))
       return gltf_animResolveTexTransform(
                gst, ch,
-               gltf_animEnsureTexRef(gst, &dt->color->texture, dt->color),
+               gltf_animEnsureTexRef(gst,
+                                     &dt->color->texture,
+                                     dt->color,
+                                     AK_TEXTURE_COLORSPACE_SRGB,
+                                     AK_TEXTURE_CHANNEL_RGB),
                p, end);
   }
 
@@ -887,7 +963,11 @@ gltf_animResolveMaterialPointer(AkGLTFState     * __restrict gst,
       return gltf_animSetFloatTarget(gst, ch, &cmn->normal->scale);
     return gltf_animResolveTexTransform(
              gst, ch,
-             gltf_animEnsureTexRef(gst, &cmn->normal->tex, cmn->normal),
+             gltf_animEnsureTexRef(gst,
+                                   &cmn->normal->tex,
+                                   cmn->normal,
+                                   AK_TEXTURE_COLORSPACE_LINEAR,
+                                   AK_TEXTURE_CHANNEL_RGB),
              p, end);
   }
 
@@ -899,9 +979,14 @@ gltf_animResolveMaterialPointer(AkGLTFState     * __restrict gst,
     q = p;
     if (gltf_animPtrSeg(&q, end, _s_gltf_strength) && q == end)
       return gltf_animSetFloatTarget(gst, ch, &cmn->occlusion->strength);
+    cmn->occlusion->textureChannels = AK_TEXTURE_CHANNEL_R;
     return gltf_animResolveTexTransform(
              gst, ch,
-             gltf_animEnsureTexRef(gst, &cmn->occlusion->tex, cmn->occlusion),
+             gltf_animEnsureTexRef(gst,
+                                   &cmn->occlusion->tex,
+                                   cmn->occlusion,
+                                   AK_TEXTURE_COLORSPACE_LINEAR,
+                                   AK_TEXTURE_CHANNEL_R),
              p, end);
   }
 
@@ -913,7 +998,9 @@ gltf_animResolveMaterialPointer(AkGLTFState     * __restrict gst,
     return gltf_animResolveTexTransform(
              gst, ch,
              gltf_animEnsureTexRef(gst, &cmn->emission->color.texture,
-                                   cmn->emission),
+                                   cmn->emission,
+                                   AK_TEXTURE_COLORSPACE_SRGB,
+                                   AK_TEXTURE_CHANNEL_RGB),
              p, end);
   }
 

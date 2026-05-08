@@ -103,8 +103,9 @@ typedef struct AkReflective {
 } AkReflective;
 
 typedef struct AkOcclusion {
-  AkTextureRef *tex;
-  float         strength;
+  AkTextureRef      *tex;
+  float              strength;
+  AkTextureChannels  textureChannels;
 } AkOcclusion;
 
 typedef struct AkNormalMap {
@@ -113,29 +114,31 @@ typedef struct AkNormalMap {
 } AkNormalMap;
 
 typedef struct AkMaterialMetallicProp {
-  AkTextureRef   *tex;
-  float           intensity;
-
-  /* TODO: add texture channel[s] */
+  AkTextureRef      *tex;
+  float              intensity;
+  AkTextureChannels  textureChannels;
 } AkMaterialMetallicProp;
 
 typedef struct AkMaterialSpecularProp {
-  AkTextureRef *specularTex;
-  AkColorDesc  *color;
+  AkTextureRef      *specularTex;
+  AkColorDesc       *color;
   union {
-    float       strength;
-    float       shininess;
+    float            strength;
+    float            shininess;
   };
+  AkTextureChannels  textureChannels;
 } AkMaterialSpecularProp;
 
 typedef struct AkMaterialClearcoat {
-  AkTextureRef *roughnessTexture;
-  AkTextureRef *normalTexture;
+  AkTextureRef      *roughnessTexture;
+  AkTextureRef      *normalTexture;
 
-  AkTextureRef *texture;
-  float         intensity;
-  float         roughness;
-  float         normalScale;
+  AkTextureRef      *texture;
+  float              intensity;
+  float              roughness;
+  float              normalScale;
+  AkTextureChannels  textureChannels;
+  AkTextureChannels  roughnessTextureChannels;
 } AkMaterialClearcoat;
 
 typedef struct AkMaterialEmissionProp {
@@ -145,30 +148,35 @@ typedef struct AkMaterialEmissionProp {
 
 /* KHR_materials_transmission */
 typedef struct AkMaterialTransmissionProp {
-  AkTextureRef *texture;
-  float         factor;
+  AkTextureRef      *texture;
+  float              factor;
+  AkTextureChannels  textureChannels;
 } AkMaterialTransmissionProp;
 
 typedef struct AkMaterialSheen {
-  AkColorDesc  *color;
-  AkTextureRef *roughnessTexture;
-  float         roughness;
+  AkColorDesc       *color;
+  AkTextureRef      *roughnessTexture;
+  float              roughness;
+  AkTextureChannels  roughnessTextureChannels;
 } AkMaterialSheen;
 
 typedef struct AkMaterialIridescence {
-  AkTextureRef *texture;
-  AkTextureRef *thicknessTexture;
-  float         factor;
-  float         ior;
-  float         thicknessMinimum;
-  float         thicknessMaximum;
+  AkTextureRef      *texture;
+  AkTextureRef      *thicknessTexture;
+  float              factor;
+  float              ior;
+  float              thicknessMinimum;
+  float              thicknessMaximum;
+  AkTextureChannels  textureChannels;
+  AkTextureChannels  thicknessTextureChannels;
 } AkMaterialIridescence;
 
 typedef struct AkMaterialVolume {
-  AkTextureRef *thicknessTexture;
-  AkColor       attenuationColor;
-  float         thicknessFactor;
-  float         attenuationDistance;
+  AkTextureRef      *thicknessTexture;
+  AkColor            attenuationColor;
+  float              thicknessFactor;
+  float              attenuationDistance;
+  AkTextureChannels  thicknessTextureChannels;
 } AkMaterialVolume;
 
 typedef struct AkMaterialAnisotropy {
@@ -182,9 +190,10 @@ typedef struct AkMaterialDispersion {
 } AkMaterialDispersion;
 
 typedef struct AkMaterialDiffuseTransmission {
-  AkTextureRef *texture;
-  AkColorDesc  *color;
-  float         factor;
+  AkTextureRef      *texture;
+  AkColorDesc       *color;
+  float              factor;
+  AkTextureChannels  textureChannels;
 } AkMaterialDiffuseTransmission;
 
 typedef struct AkTechniqueFxCommon {

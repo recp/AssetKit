@@ -91,8 +91,10 @@ typedef struct AkDaeMeshInfo {
 } AkDaeMeshInfo;
 
 typedef struct AkDAETextureRef {
-  const char *texture;
-  const char *texcoord;
+  const char          *texture;
+  const char          *texcoord;
+  AkTextureColorSpace  colorSpace;
+  AkTextureChannels    channels;
 } AkDAETextureRef;
 
 typedef struct AkNewParam {

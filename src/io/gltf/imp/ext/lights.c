@@ -5,6 +5,7 @@
  */
 
 #include "lights.h"
+#include "../extra.h"
 
 static
 AkLightType
@@ -42,6 +43,11 @@ gltf_ext_lights(AkGLTFState * __restrict gst,
     light = ak_lightMake(gst->doc, gst->doc, gltf_ext_lightType(it));
     if (!light)
       goto nxt;
+
+    gltf_extra(gst,
+               light,
+               json_get(jlight, _s_gltf_extras),
+               json_get(jlight, _s_gltf_extensions));
 
     base = light->tcommon;
     if ((it = json_get(jlight, _s_gltf_name)))
