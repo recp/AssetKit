@@ -18,6 +18,7 @@
 #include "ext.h"
 #include "profile.h"
 #include "sampler.h"
+#include "../extra.h"
 
 AK_INLINE
 char*
@@ -60,6 +61,10 @@ gltf_texref(AkGLTFState * __restrict gst,
   
   texref = ak_heap_calloc(heap, parent, sizeof(*texref));
   ak_setypeid(texref, AKT_TEXTURE_REF);
+  gltf_extra(gst,
+             texref,
+             json_get(jtexinfo, _s_gltf_extras),
+             json_get(jtexinfo, _s_gltf_extensions));
 
   texref->coordInputName = coordInputName(heap, texref, set);
 
@@ -121,6 +126,10 @@ gltf_textures(json_t * __restrict jtex,
     tex       = ak_heap_calloc(gst->heap, gst->doc, sizeof(*tex));
     tex->type = AKT_SAMPLER2D;
     sampler   = NULL;
+    gltf_extra(gst,
+               tex,
+               json_get(jtex, _s_gltf_extras),
+               json_get(jtex, _s_gltf_extensions));
 
     while (jtexVal) {
       if (json_key_eq(jtexVal, _s_gltf_sampler)) {

@@ -220,7 +220,7 @@ gltf_ext_node(AkGLTFState * __restrict gst,
   if (jvisible)
     node->visible = json_bool(jvisible, true);
 
-  if ((jinstancing = json_get(jext, _s_gltf_EXT_mesh_gpu_instancing)))) {
+  if ((jinstancing = json_get(jext, _s_gltf_EXT_mesh_gpu_instancing))) {
     node->instancing = gltf_ext_meshGPUInstancing(gst, node, jinstancing);
     if (gst->stop)
       return false;
