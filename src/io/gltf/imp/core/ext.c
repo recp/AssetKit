@@ -20,65 +20,134 @@
 #include "../ext/lights.h"
 #include "../ext/variants.h"
 
+typedef struct AkGLTFExtName {
+  const char *name;
+  size_t      nameSize;
+} AkGLTFExtName;
+
+#define GLTF_EXT_NAME(NAME) { _s_gltf_ ## NAME, sizeof(#NAME) - 1 }
+
+static
+int
+gltf_extNameCmp(const void * __restrict a,
+                const void * __restrict b) {
+  const AkGLTFExtName *extname;
+  const char *val;
+  size_t      valSize;
+  size_t      minSize;
+  int         res;
+
+  extname = b;
+  if (!(val = json_string(a)))
+    return -1;
+
+  valSize = (size_t)((const json_t *)a)->valsize;
+  minSize = valSize < extname->nameSize ? valSize : extname->nameSize;
+  res     = strncmp(val, extname->name, minSize);
+
+  if (res != 0)                    return res;
+  if (valSize < extname->nameSize) return -1;
+  if (valSize > extname->nameSize) return 1;
+
+  return 0;
+}
+
+static inline
+bool
+gltf_extNameSearch(const json_t        * __restrict ext,
+                   const AkGLTFExtName * __restrict names,
+                   size_t                           count) {
+  return ext && bsearch(ext,
+                        names,
+                        count,
+                        sizeof(names[0]),
+                        gltf_extNameCmp) != NULL;
+}
+
+static
+bool
+gltf_ext_preserved_supported(const json_t * __restrict ext) {
+  static const AkGLTFExtName names[] = {
+    GLTF_EXT_NAME(ADOBE_materials_clearcoat_specular),
+    GLTF_EXT_NAME(ADOBE_materials_clearcoat_tint),
+    GLTF_EXT_NAME(ADOBE_materials_thin_transparency),
+    GLTF_EXT_NAME(AGI_articulations),
+    GLTF_EXT_NAME(AGI_stk_metadata),
+    GLTF_EXT_NAME(CESIUM_primitive_outline),
+    GLTF_EXT_NAME(EXT_gsplat_compression_spz),
+    GLTF_EXT_NAME(EXT_lights_ies),
+    GLTF_EXT_NAME(EXT_lights_image_based),
+    GLTF_EXT_NAME(EXT_mesh_manifold),
+    GLTF_EXT_NAME(EXT_mesh_primitive_restart),
+    GLTF_EXT_NAME(EXT_texture_astc),
+    GLTF_EXT_NAME(FB_geometry_metadata),
+    GLTF_EXT_NAME(GODOT_single_root),
+    GLTF_EXT_NAME(GRIFFEL_bim_data),
+    GLTF_EXT_NAME(KHR_techniques_webgl),
+    GLTF_EXT_NAME(KHR_xmp),
+    GLTF_EXT_NAME(MPEG_accessor_timed),
+    GLTF_EXT_NAME(MPEG_animation_timing),
+    GLTF_EXT_NAME(MPEG_audio_spatial),
+    GLTF_EXT_NAME(MPEG_buffer_circular),
+    GLTF_EXT_NAME(MPEG_media),
+    GLTF_EXT_NAME(MPEG_mesh_linking),
+    GLTF_EXT_NAME(MPEG_scene_dynamic),
+    GLTF_EXT_NAME(MPEG_texture_video),
+    GLTF_EXT_NAME(MPEG_viewport_recommended),
+    GLTF_EXT_NAME(MSFT_lod),
+    GLTF_EXT_NAME(MSFT_packing_normalRoughnessMetallic),
+    GLTF_EXT_NAME(MSFT_packing_occlusionRoughnessMetallic),
+    GLTF_EXT_NAME(MSFT_texture_dds),
+    GLTF_EXT_NAME(NV_materials_mdl)
+  };
+
+  return gltf_extNameSearch(ext, names, AK_ARRAY_LEN(names));
+}
+
 static
 bool
 gltf_ext_supported(AkGLTFState      * __restrict gst,
                    const json_t     * __restrict ext) {
+  static const AkGLTFExtName names[] = {
+    GLTF_EXT_NAME(EXT_mesh_gpu_instancing),
+    GLTF_EXT_NAME(EXT_texture_webp),
+    GLTF_EXT_NAME(KHR_animation_pointer),
+    GLTF_EXT_NAME(KHR_gaussian_splatting),
+    GLTF_EXT_NAME(KHR_lights_punctual),
+    GLTF_EXT_NAME(KHR_materials_anisotropy),
+    GLTF_EXT_NAME(KHR_materials_clearcoat),
+    GLTF_EXT_NAME(KHR_materials_diffuse_transmission),
+    GLTF_EXT_NAME(KHR_materials_dispersion),
+    GLTF_EXT_NAME(KHR_materials_emissive_strength),
+    GLTF_EXT_NAME(KHR_materials_ior),
+    GLTF_EXT_NAME(KHR_materials_iridescence),
+    GLTF_EXT_NAME(KHR_materials_pbrSpecularGlossiness),
+    GLTF_EXT_NAME(KHR_materials_sheen),
+    GLTF_EXT_NAME(KHR_materials_specular),
+    GLTF_EXT_NAME(KHR_materials_transmission),
+    GLTF_EXT_NAME(KHR_materials_unlit),
+    GLTF_EXT_NAME(KHR_materials_variants),
+    GLTF_EXT_NAME(KHR_materials_volume),
+    GLTF_EXT_NAME(KHR_mesh_quantization),
+    GLTF_EXT_NAME(KHR_node_visibility),
+    GLTF_EXT_NAME(KHR_texture_transform),
+    GLTF_EXT_NAME(KHR_xmp_json_ld)
+  };
+
   if (!ext)
     return false;
 
-  if (json_val_eq(ext, _s_gltf_KHR_texture_transform))
+  if (gltf_extNameSearch(ext, names, AK_ARRAY_LEN(names)))
     return true;
-  if (json_val_eq(ext, _s_gltf_KHR_materials_clearcoat))
-    return true;
-  if (json_val_eq(ext, _s_gltf_KHR_materials_emissive_strength))
-    return true;
-  if (json_val_eq(ext, _s_gltf_KHR_materials_ior))
-    return true;
-  if (json_val_eq(ext, _s_gltf_KHR_materials_sheen))
-    return true;
-  if (json_val_eq(ext, _s_gltf_KHR_materials_iridescence))
-    return true;
-  if (json_val_eq(ext, _s_gltf_KHR_materials_volume))
-    return true;
-  if (json_val_eq(ext, _s_gltf_KHR_materials_anisotropy))
-    return true;
-  if (json_val_eq(ext, _s_gltf_KHR_materials_dispersion))
-    return true;
-  if (json_val_eq(ext, _s_gltf_KHR_materials_diffuse_transmission))
-    return true;
-  if (json_val_eq(ext, _s_gltf_ext_pbrSpecGloss))
-    return true;
-  if (json_val_eq(ext, _s_gltf_ext_KHR_materials_specular))
-    return true;
-  if (json_val_eq(ext, _s_gltf_KHR_materials_transmission))
-    return true;
-  if (json_val_eq(ext, _s_gltf_KHR_materials_unlit))
-    return true;
-  if (json_val_eq(ext, _s_gltf_KHR_animation_pointer))
-    return true;
-  if (json_val_eq(ext, _s_gltf_KHR_node_visibility))
-    return true;
-  if (json_val_eq(ext, _s_gltf_KHR_mesh_quantization))
-    return true;
+
   if (json_val_eq(ext, _s_gltf_EXT_meshopt_compression)
       || json_val_eq(ext, _s_gltf_KHR_meshopt_compression))
     return gltf_ext_meshopt(gst);
   if (json_val_eq(ext, _s_gltf_KHR_draco_mesh_compression))
     return gltf_ext_draco(gst);
-  if (json_val_eq(ext, _s_gltf_KHR_lights_punctual))
-    return true;
-  if (json_val_eq(ext, _s_gltf_EXT_mesh_gpu_instancing))
-    return true;
-  if (json_val_eq(ext, _s_gltf_KHR_materials_variants))
-    return true;
-  if (json_val_eq(ext, _s_gltf_EXT_texture_webp))
-    return true;
   if (json_val_eq(ext, _s_gltf_KHR_texture_basisu))
     return gltf_ext_ktx2(gst);
-  if (json_val_eq(ext, _s_gltf_KHR_xmp_json_ld))
-    return true;
-  if (json_val_eq(ext, _s_gltf_KHR_gaussian_splatting))
+  if (gltf_ext_preserved_supported(ext))
     return true;
 
   return false;
@@ -147,11 +216,11 @@ gltf_ext_node(AkGLTFState * __restrict gst,
 
   jvis     = json_get(jext, _s_gltf_KHR_node_visibility);
   jvisible = jvis ? json_get(jvis, _s_gltf_visible) : NULL;
+
   if (jvisible)
     node->visible = json_bool(jvisible, true);
 
-  jinstancing = json_get(jext, _s_gltf_EXT_mesh_gpu_instancing);
-  if (jinstancing) {
+  if ((jinstancing = json_get(jext, _s_gltf_EXT_mesh_gpu_instancing)))) {
     node->instancing = gltf_ext_meshGPUInstancing(gst, node, jinstancing);
     if (gst->stop)
       return false;

@@ -114,18 +114,12 @@ gltf_treeFromJson(AkHeap      * __restrict heap,
   return node;
 }
 
-AK_HIDE
-void
-gltf_extra(AkGLTFState * __restrict gst,
-           void        * __restrict owner,
-           const json_t * __restrict jextras,
-           const json_t * __restrict jextensions) {
+static
+AkTreeNode*
+gltf_extraRoot(AkGLTFState * __restrict gst,
+               void        * __restrict owner) {
   AkHeap     *heap;
   AkTreeNode *root;
-  AkTreeNode *node;
-
-  if (!gst || !owner || (!jextras && !jextensions))
-    return;
 
   heap = gst->heap;
   root = ak_extra(owner);
@@ -135,21 +129,35 @@ gltf_extra(AkGLTFState * __restrict gst,
     ak_extra_set(owner, root);
   }
 
-  if (jextensions) {
-    node = gltf_treeFromJson(heap,
-                             root,
-                             jextensions,
-                             _s_gltf_extensions,
-                             strlen(_s_gltf_extensions));
-    gltf_treeAppend(root, node);
-  }
+  return root;
+}
 
-  if (jextras) {
-    node = gltf_treeFromJson(heap,
-                             root,
-                             jextras,
-                             _s_gltf_extras,
-                             strlen(_s_gltf_extras));
-    gltf_treeAppend(root, node);
-  }
+AK_HIDE
+void
+gltf_extra_node(AkGLTFState * __restrict gst,
+                void        * __restrict owner,
+                const char  * __restrict name,
+                const json_t * __restrict json) {
+  AkTreeNode *root;
+  AkTreeNode *node;
+
+  if (!gst || !owner || !name || !json)
+    return;
+
+  root = gltf_extraRoot(gst, owner);
+  node = gltf_treeFromJson(gst->heap, root, json, name, strlen(name));
+  gltf_treeAppend(root, node);
+}
+
+AK_HIDE
+void
+gltf_extra(AkGLTFState * __restrict gst,
+           void        * __restrict owner,
+           const json_t * __restrict jextras,
+           const json_t * __restrict jextensions) {
+  if (!gst || !owner || (!jextras && !jextensions))
+    return;
+
+  gltf_extra_node(gst, owner, _s_gltf_extensions, jextensions);
+  gltf_extra_node(gst, owner, _s_gltf_extras, jextras);
 }

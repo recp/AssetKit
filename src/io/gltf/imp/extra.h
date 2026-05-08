@@ -16,4 +16,11 @@ gltf_extra(AkGLTFState * __restrict gst,
            const json_t * __restrict jextras,
            const json_t * __restrict jextensions);
 
+AK_HIDE
+void
+gltf_extra_node(AkGLTFState * __restrict gst,
+                void        * __restrict owner,
+                const char  * __restrict name,
+                const json_t * __restrict json);
+
 #endif /* gltf_imp_extra_h */

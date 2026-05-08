@@ -500,7 +500,7 @@ gltf_materials(json_t * __restrict jmaterial,
     if ((jext = json_get(jmaterial, _s_gltf_extensions))) {
       json_t *jspec, *jval;
 
-      if ((jspec = json_get(jext, _s_gltf_ext_KHR_materials_specular)))
+      if ((jspec = json_get(jext, _s_gltf_KHR_materials_specular)))
         gltf_materialParseSpecular(gst, cmnTechn, jspec);
 
       if ((jspec = json_get(jext, _s_gltf_KHR_materials_clearcoat)))
@@ -545,7 +545,7 @@ gltf_materials(json_t * __restrict jmaterial,
         gltf_materialParseDiffuseTransmission(gst, cmnTechn, jspec);
 
       /* ARCHIVED: Superseded by KHR_materials_specular */
-      if ((jspec = json_get(jext, _s_gltf_ext_pbrSpecGloss))) {
+      if ((jspec = json_get(jext, _s_gltf_KHR_materials_pbrSpecularGlossiness))) {
         AkMaterialSpecularProp *specularProp;
         AkColorDesc            *specularColor;
 

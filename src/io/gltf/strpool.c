@@ -77,6 +77,7 @@ const char _s_gltf_pool_0[] =
 "translation\0"
 "weights\0"
 "extensions\0"
+"extensionsUsed\0"
 "extensionsRequired\0"
 "extras\0"
 "skin\0"
@@ -196,6 +197,7 @@ const char _s_gltf_pool_0[] =
 "EXT_mesh_manifold\0"
 "EXT_mesh_primitive_restart\0"
 "EXT_texture_astc\0"
+"EXT_gsplat_compression_spz\0"
 "ADOBE_materials_clearcoat_specular\0"
 "ADOBE_materials_clearcoat_tint\0"
 "ADOBE_materials_thin_transparency\0"
@@ -203,11 +205,11 @@ const char _s_gltf_pool_0[] =
 "AGI_stk_metadata\0"
 "CESIUM_primitive_outline\0"
 "FB_geometry_metadata\0"
-"GODOT_single_root\0"
-"GRIFFEL_bim_data\0"
 ;
 
 const char _s_gltf_pool_1[] =
+"GODOT_single_root\0"
+"GRIFFEL_bim_data\0"
 "MPEG_accessor_timed\0"
 "MPEG_animation_timing\0"
 "MPEG_audio_spatial\0"
@@ -225,6 +227,8 @@ const char _s_gltf_pool_1[] =
 "KHR_lights_punctual\0"
 "KHR_materials_variants\0"
 "KHR_texture_basisu\0"
+"KHR_techniques_webgl\0"
+"KHR_xmp\0"
 "KHR_xmp_json_ld\0"
 "KHR_gaussian_splatting\0"
 "packet\0"

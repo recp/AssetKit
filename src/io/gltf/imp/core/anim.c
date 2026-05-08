@@ -643,7 +643,7 @@ gltf_animResolveMaterialExt(AkGLTFState          * __restrict gst,
                                             &cmn->clearcoat->normalScale));
   }
 
-  if (gltf_animSegEq(ext, extLen, _s_gltf_ext_KHR_materials_specular)
+  if (gltf_animSegEq(ext, extLen, _s_gltf_KHR_materials_specular)
       && cmn->specular) {
     if (gltf_animSegEq(seg, segLen, _s_gltf_specularTexture))
       cmn->specular->textureChannels = AK_TEXTURE_CHANNEL_A;
@@ -826,7 +826,7 @@ gltf_animResolveMaterialExt(AkGLTFState          * __restrict gst,
       return gltf_animSetFloatTarget(gst, ch, &cmn->clearcoat->roughness);
   }
 
-  if (gltf_animSegEq(ext, extLen, _s_gltf_ext_KHR_materials_specular)) {
+  if (gltf_animSegEq(ext, extLen, _s_gltf_KHR_materials_specular)) {
     if (!cmn->specular)
       cmn->specular = ak_heap_calloc(gst->heap, cmn, sizeof(*cmn->specular));
     if (gltf_animSegEq(seg, segLen, _s_gltf_specularFactor))
