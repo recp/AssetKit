@@ -37,7 +37,11 @@ wobj_handleMaterial(WOState  * __restrict wst,
 
 static
 AkTextureRef*
-wobj_texref(WOState * __restrict wst, void * __restrict memp, char* name);
+wobj_texref(WOState            * __restrict wst,
+            void               * __restrict memp,
+            char               *            name,
+            AkTextureColorSpace             colorSpace,
+            AkTextureChannels               channels);
 
 AK_HIDE
 WOMtlLib*
@@ -283,7 +287,9 @@ wobj_clrtexset(WOState     * __restrict wst,
                void        * __restrict memp,
                float       *            rgb,
                char        * __restrict map,
-               AkColorDesc * __restrict clr) {
+               AkColorDesc * __restrict clr,
+               AkTextureColorSpace      colorSpace,
+               AkTextureChannels        channels) {
 
   if (rgb) {
     clr->color = ak_heap_calloc(wst->heap, clr,  sizeof(*clr->color));
@@ -292,7 +298,7 @@ wobj_clrtexset(WOState     * __restrict wst,
   }
 
   if (map) {
-    clr->texture = wobj_texref(wst, memp, map);
+    clr->texture = wobj_texref(wst, memp, map, colorSpace, channels);
   }
 }
 
@@ -301,10 +307,12 @@ AkColorDesc*
 wobj_clrtex(WOState    * __restrict wst,
             void       * __restrict memp,
             float      *            rgb,
-            char       * __restrict map) {
+            char       * __restrict map,
+            AkTextureColorSpace     colorSpace,
+            AkTextureChannels       channels) {
   AkColorDesc *clr;
   clr = ak_heap_calloc(wst->heap, memp, sizeof(*clr));
-  wobj_clrtexset(wst, memp, rgb, map, clr);
+  wobj_clrtexset(wst, memp, rgb, map, clr, colorSpace, channels);
   return clr;
 }
 
@@ -368,26 +376,36 @@ wobj_handleMaterial(WOState  * __restrict wst,
       break;
   }
 
-  cmnTechn->ambient       = wobj_clrtex(wst, cmnTechn, mtl->Ka, mtl->map_Ka);
-  cmnTechn->diffuse       = wobj_clrtex(wst, cmnTechn, mtl->Kd, mtl->map_Kd);
+  cmnTechn->ambient       = wobj_clrtex(wst, cmnTechn, mtl->Ka, mtl->map_Ka,
+                                        AK_TEXTURE_COLORSPACE_SRGB,
+                                        AK_TEXTURE_CHANNEL_RGB);
+  cmnTechn->diffuse       = wobj_clrtex(wst, cmnTechn, mtl->Kd, mtl->map_Kd,
+                                        AK_TEXTURE_COLORSPACE_SRGB,
+                                        AK_TEXTURE_CHANNEL_RGBA);
 
   specularProp            = ak_heap_calloc(heap, cmnTechn, sizeof(*specularProp));
   cmnTechn->specular      = specularProp;
   specularProp->shininess = mtl->Ns;
-  specularProp->color     = wobj_clrtex(wst, cmnTechn, mtl->Ks, mtl->map_Ks);
+  specularProp->color     = wobj_clrtex(wst, cmnTechn, mtl->Ks, mtl->map_Ks,
+                                        AK_TEXTURE_COLORSPACE_SRGB,
+                                        AK_TEXTURE_CHANNEL_RGB);
 
   emissionProp            = ak_heap_calloc(heap, cmnTechn, sizeof(*emissionProp));
   cmnTechn->emission      = emissionProp;
   emissionProp->strength  = 1.0f;
 
-  wobj_clrtexset(wst, cmnTechn, mtl->Ke, mtl->map_Ke, &emissionProp->color);
+  wobj_clrtexset(wst, cmnTechn, mtl->Ke, mtl->map_Ke, &emissionProp->color,
+                 AK_TEXTURE_COLORSPACE_SRGB,
+                 AK_TEXTURE_CHANNEL_RGB);
 
   cmnTechn->ior = mtl->Ni;
 
   if (mtl->bump) {
     cmnTechn->normal        = ak_heap_calloc(heap, cmnTechn, sizeof(*cmnTechn->normal));
     cmnTechn->normal->scale = 1.0f;
-    cmnTechn->normal->tex   = wobj_texref(wst, cmnTechn, mtl->bump);
+    cmnTechn->normal->tex   = wobj_texref(wst, cmnTechn, mtl->bump,
+                                          AK_TEXTURE_COLORSPACE_LINEAR,
+                                          AK_TEXTURE_CHANNEL_RGB);
   }
   
   if (mtl->Tr > 0.0f || mtl->d < 1.0f) {
@@ -424,7 +442,11 @@ wobj_handleMaterial(WOState  * __restrict wst,
 
 static
 AkTextureRef*
-wobj_texref(WOState * __restrict wst, void * __restrict memp, char* name) {
+wobj_texref(WOState            * __restrict wst,
+            void               * __restrict memp,
+            char               *            name,
+            AkTextureColorSpace             colorSpace,
+            AkTextureChannels               channels) {
   AkHeap       *heap;
   AkDoc        *doc;
   AkImage      *image;
@@ -466,6 +488,7 @@ wobj_texref(WOState * __restrict wst, void * __restrict memp, char* name) {
   texref->coordInputName = _s_TEXCOORD;
   texref->texture        = tex;
   texref->slot           = 0;
+  ak_texref_usage(texref, colorSpace, channels);
 
   return texref;
 }
