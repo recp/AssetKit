@@ -41,7 +41,8 @@ AkResult
 gltf_parse(AkDoc     ** __restrict dest,
            const char * __restrict filepath,
            const char * __restrict contents,
-           void       * __restrict bindata);
+           void       * __restrict bindata,
+           size_t                  bindataLen);
 
 static
 void
@@ -52,44 +53,68 @@ AkResult
 gltf_glb(AkDoc     ** __restrict dest,
          const char * __restrict filepath) {
   void             *data, *bindata;
-  char             *pdata;
-  size_t            jsonSize;
+  char             *pdata, *jsonData, *binData;
+  size_t            fileSize, bindataLen;
   AkResult          ret;
   uint32_t          magic, version, length, chunkLength, chunkType;
   uint32_t          buffLen, buffType;
 
-  if ((ret = ak_readfile(filepath, NULL, &data, &jsonSize)) != AK_OK)
+  if ((ret = ak_readfile(filepath, NULL, &data, &fileSize)) != AK_OK)
     return ret;
 
   pdata = data;
+  bindata = NULL;
+  bindataLen = 0;
 
   /* check if the is is glTF */
   le_32(magic, pdata);
-  if (magic != 0x46546C67)
-    return AK_ERR;
+  if (magic != 0x46546C67) {
+    ret = AK_ERR;
+    goto done;
+  }
 
   le_32(version,     pdata);
   le_32(length,      pdata);
   le_32(chunkLength, pdata);
   le_32(chunkType ,  pdata);
 
-  bindata = pdata + chunkLength;
+  if (chunkType != 0x4E4F534A
+      || length > fileSize
+      || chunkLength > fileSize
+      || (size_t)(pdata - (char *)data) > fileSize - chunkLength) {
+    ret = AK_ERR;
+    goto done;
+  }
 
-  le_32(buffLen,  bindata);
-  le_32(buffType, bindata);
+  jsonData = pdata;
+  binData  = jsonData + chunkLength;
 
-  if (buffType != 0x004E4942)
-    bindata = NULL;
-  
+  if ((size_t)(binData - (char *)data) <= fileSize - 8) {
+    le_32(buffLen,  binData);
+    le_32(buffType, binData);
+
+    if (buffType == 0x004E4942
+        && buffLen <= fileSize
+        && (size_t)(binData - (char *)data) <= fileSize - buffLen) {
+      bindata    = binData;
+      bindataLen = buffLen;
+    }
+  }
+
   /* make the json NULL terminated */
   /*
    pdata[chunkLength] = '\0';
    */
 
-  ret = gltf_parse(dest, filepath, pdata, bindata);
+  ret = gltf_parse(dest, filepath, jsonData, bindata, bindataLen);
 
-  if (data)
-    ak_releasefile(data, jsonSize);
+done:
+  if (data) {
+    if (ret == AK_OK && dest && *dest && bindata && ak_opt_get(AK_OPT_USE_MMAP))
+      ak_mmap_attach(*dest, data, fileSize);
+    else
+      ak_releasefile(data, fileSize);
+  }
 
   return ret;
 }
@@ -105,7 +130,7 @@ gltf_gltf(AkDoc     ** __restrict dest,
   if ((ret = ak_readfile(filepath, NULL, &jsonString, &jsonSize)) != AK_OK)
     return ret;
 
-  ret = gltf_parse(dest, filepath, jsonString, NULL);
+  ret = gltf_parse(dest, filepath, jsonString, NULL, 0);
 
   if (jsonString)
     ak_releasefile(jsonString, jsonSize);
@@ -118,7 +143,8 @@ AkResult
 gltf_parse(AkDoc     ** __restrict dest,
            const char * __restrict filepath,
            const char * __restrict contents,
-           void       * __restrict bindata) {
+           void       * __restrict bindata,
+           size_t                  bindataLen) {
   AkHeap           *heap;
   AkDoc            *doc;
   const json_doc_t *gltfRawDoc;
@@ -155,6 +181,8 @@ gltf_parse(AkDoc     ** __restrict dest,
   gstVal.doc       = doc;
   gstVal.heap      = heap;
   gstVal.bindata   = bindata;
+  gstVal.bindataLen = bindataLen;
+  gstVal.borrowBufferViews = bindata != NULL && ak_opt_get(AK_OPT_USE_MMAP);
   gstVal.tmpParent = ak_heap_alloc(heap, doc, sizeof(void*));
   gst->bufferMap   = rb_newtree_ptr();
   gst->meshTargets = rb_newtree_ptr();

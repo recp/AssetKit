@@ -63,6 +63,7 @@ typedef struct AkGLTFState {
   bool          stop;
   bool          isbinary;
   bool          animPointerRequired;
+  bool          borrowBufferViews;
 } AkGLTFState;
 
 #define GETCHILD(INITIAL, ITEM, INDEX)                                        \

@@ -100,14 +100,19 @@ gltf_images(json_t * __restrict jimage,
         initFrom->buff       = ak_heap_calloc(heap,
                                               gst->doc,
                                               sizeof(*initFrom->buff));
-        initFrom->buff->data = ak_heap_alloc(heap,
-                                             initFrom->buff,
-                                             buffView->byteLength);
         initFrom->buff->length = buffView->byteLength;
-        
-        memcpy(initFrom->buff->data,
-               (char *)tmpbuff->data + buffView->byteOffset,
-               buffView->byteLength);
+
+        if (gst->borrowBufferViews) {
+          initFrom->buff->data = (char *)tmpbuff->data + buffView->byteOffset;
+          initFrom->buff->name = "assetkit:gltf-buffer-view-slice";
+        } else {
+          initFrom->buff->data = ak_heap_alloc(heap,
+                                               initFrom->buff,
+                                               buffView->byteLength);
+          memcpy(initFrom->buff->data,
+                 (char *)tmpbuff->data + buffView->byteOffset,
+                 buffView->byteLength);
+        }
         if ((it = imgMap[k_mimeType].object))
           initFrom->buffMime = json_strdup(it, heap, initFrom);
         image->initFrom = initFrom;
