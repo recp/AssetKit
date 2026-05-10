@@ -8,10 +8,30 @@
  */
 
 #include "base64.h"
+#include "simd/base64.h"
 #include <string.h>
 
 static const unsigned char base64_table[65] =
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+static const unsigned char base64_dtable[256] = {
+	0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+	0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+	0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x3e, 0x80, 0x80, 0x80, 0x3f,
+	0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3a, 0x3b, 0x3c, 0x3d, 0x80, 0x80, 0x80, 0x00, 0x80, 0x80,
+	0x80, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e,
+	0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x80, 0x80, 0x80, 0x80, 0x80,
+	0x80, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f, 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28,
+	0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f, 0x30, 0x31, 0x32, 0x33, 0x80, 0x80, 0x80, 0x80, 0x80,
+	0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+	0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+	0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+	0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+	0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+	0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+	0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+	0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80
+};
 
 /**
  * base64_encode - Base64 encode
@@ -99,11 +119,11 @@ base64_encode(AkHeap              * __restrict heap,
  */
 AK_HIDE
 unsigned char*
-base64_decode(AkHeap              * __restrict heap,
-              void                * __restrict memparent,
-              const unsigned char * __restrict src,
-              size_t                           len,
-              size_t              * __restrict out_len) {
+base64_decode_slow(AkHeap              * __restrict heap,
+                   void                * __restrict memparent,
+                   const unsigned char * __restrict src,
+                   size_t                           len,
+                   size_t              * __restrict out_len) {
 	unsigned char dtable[256], *out, *pos, block[4], tmp;
 	size_t        i, count, olen;
 	int           pad = 0;
@@ -163,23 +183,99 @@ base64_decode(AkHeap              * __restrict heap,
 	return out;
 }
 
+/**
+ * Fast path for compact data URIs. glTF embedded buffers/images are normally
+ * emitted without whitespace, so avoid the validation/counting pass.
+ */
+AK_HIDE
+unsigned char*
+base64_decode(AkHeap              * __restrict heap,
+              void                * __restrict memparent,
+              const unsigned char * __restrict src,
+              size_t                           len,
+              size_t              * __restrict out_len) {
+	unsigned char *out, *pos;
+	size_t         i, olen;
+	size_t         simd_consumed, simd_written;
+	int            pad;
+
+	if (len == 0 || (len & 3) != 0)
+		return base64_decode_slow(heap, memparent, src, len, out_len);
+
+	pad = 0;
+	if (src[len - 1] == '=') {
+		pad++;
+		if (src[len - 2] == '=')
+			pad++;
+	}
+
+	olen = len / 4 * 3 - (size_t)pad;
+	pos  = out = ak_heap_alloc(heap, memparent, olen ? olen : 1);
+	if (out == NULL)
+		return NULL;
+
+	if (!ak_simd_base64_decode(src, len, out, &simd_consumed, &simd_written)) {
+		ak_free(out);
+		return base64_decode_slow(heap, memparent, src, len, out_len);
+	}
+	i = simd_consumed;
+	pos = out + simd_written;
+
+	for (; i < len; i += 4) {
+		unsigned char a, b, c, d;
+		int           final;
+
+		final = i + 4 == len;
+		if (src[i] == '=' || src[i + 1] == '='
+		    || ((src[i + 2] == '=' || src[i + 3] == '=') && !final)
+		    || (src[i + 2] == '=' && src[i + 3] != '=')) {
+			ak_free(out);
+			return base64_decode_slow(heap, memparent, src, len, out_len);
+		}
+
+		a = base64_dtable[src[i]];
+		b = base64_dtable[src[i + 1]];
+		c = src[i + 2] == '=' ? 0 : base64_dtable[src[i + 2]];
+		d = src[i + 3] == '=' ? 0 : base64_dtable[src[i + 3]];
+
+		if ((a | b | c | d) & 0x80) {
+			ak_free(out);
+			return base64_decode_slow(heap, memparent, src, len, out_len);
+		}
+
+		*pos++ = (unsigned char)((a << 2) | (b >> 4));
+		if (src[i + 2] != '=') {
+			*pos++ = (unsigned char)((b << 4) | (c >> 2));
+			if (src[i + 3] != '=')
+				*pos++ = (unsigned char)((c << 6) | d);
+		}
+	}
+
+	*out_len = (size_t)(pos - out);
+	return out;
+}
+
 AK_HIDE
 void
 base64_buff(const char * __restrict b64,
             size_t                  len,
             AkBuffer   * __restrict buff) {
   const char *b64Data;
+  const char *marker;
+  size_t      markerLen;
 
-  b64Data = strchr(b64, ';');
-  if (b64Data) {
-    if (strncmp(b64Data, ";base64,", strlen(";base64,")) == 0) {
-      b64Data = strchr(b64, ',') + 1;
-      
-      buff->data = base64_decode(ak_heap_getheap(buff),
-                                 buff,
-                                 (const unsigned char *)b64Data,
-                                 len - (uintptr_t)(b64Data - b64),
-                                 &buff->length);
-    }
-  }
+  markerLen = sizeof(";base64,") - 1;
+  marker    = memchr(b64, ';', len);
+  if (!marker || (size_t)(len - (uintptr_t)(marker - b64)) <= markerLen)
+    return;
+
+  if (memcmp(marker, ";base64,", markerLen) != 0)
+    return;
+
+  b64Data = marker + markerLen;
+  buff->data = base64_decode(ak_heap_getheap(buff),
+                             buff,
+                             (const unsigned char *)b64Data,
+                             len - (uintptr_t)(b64Data - b64),
+                             &buff->length);
 }
