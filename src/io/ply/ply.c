@@ -31,6 +31,7 @@
 #include "../../../include/ak/path.h"
 #include "../common/util.h"
 #include "../common/postscript.h"
+#include "../../string_fast.h"
 #include "../../strpool.h"
 
 AK_HIDE
@@ -148,15 +149,21 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
       pst->lastElement = elem;
 
       if (EQ6('v', 'e', 'r', 't', 'e', 'x')) {
+        AkUInt parsedCount;
+
         p += 7;
         SKIP_SPACES
-        elem->count    = (uint32_t)strtoul(p, &p, 10);
+        p = ak_strtoui_one_fast(p, &parsedCount);
+        elem->count    = (uint32_t)parsedCount;
         elem->type     = PLY_ELEM_VERTEX;
         pst->vertcount = elem->count;
       } else if (EQ4('f', 'a', 'c', 'e')) {
+        AkUInt parsedCount;
+
         p += 5;
         SKIP_SPACES
-        elem->count = (uint32_t)strtoul(p, &p, 10);
+        p = ak_strtoui_one_fast(p, &parsedCount);
+        elem->count = (uint32_t)parsedCount;
         elem->type  = PLY_ELEM_FACE;
       }
     } else if (elem && EQ8('p', 'r', 'o', 'p', 'e', 'r', 't', 'y')) {

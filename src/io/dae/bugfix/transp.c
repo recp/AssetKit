@@ -16,25 +16,87 @@
 
 #include "transp.h"
 #include <string.h>
-#include <ctype.h>
+
+static
+char
+dae_ascii_tolower(char c) {
+  if (c >= 'A' && c <= 'Z')
+    return (char)(c + ('a' - 'A'));
+
+  return c;
+}
+
+static
+bool
+dae_contains_nocase(const char * __restrict str,
+                    const char * __restrict needle) {
+  const char *s, *n, *p;
+
+  if (!str || !needle || !needle[0])
+    return false;
+
+  for (p = str; *p; p++) {
+    s = p;
+    n = needle;
+
+    while (*s
+           && *n
+           && dae_ascii_tolower(*s) == dae_ascii_tolower(*n)) {
+      s++;
+      n++;
+    }
+
+    if (!*n)
+      return true;
+  }
+
+  return false;
+}
+
+static
+const char*
+dae_parse_next_uint(const char * __restrict p,
+                    int        * __restrict out) {
+  int  value;
+  bool found;
+
+  while (*p && (*p < '0' || *p > '9'))
+    p++;
+
+  value = 0;
+  found = false;
+  while (*p >= '0' && *p <= '9') {
+    value = value * 10 + (*p - '0');
+    p++;
+    found = true;
+  }
+
+  if (!found)
+    return NULL;
+
+  *out = value;
+  return p;
+}
 
 AK_HIDE
 void
 dae_bugfix_transp(AkTransparent * __restrict transp) {
   AkContributor *contr;
-  char          *tool;
+  const char    *tool;
 
   if (!(contr = ak_getAssetInfo(transp, offsetof(AkAssetInf, contributor)))
-      || !(tool = (char *)contr->authoringTool))
+      || !(tool = (const char *)contr->authoringTool))
     return;
 
-  tool = ak_tolower(strdup(tool));
-
   /* fix old SketchUp transparency bug */
-  if (strstr(tool, _s_dae_sketchup)) {
-    int major, minor, patch;
-    if(sscanf(tool, "%*[^0123456789]%d%*[. ]%d%*[. ]%d",
-              &major, &minor, &patch)) {
+  if (dae_contains_nocase(tool, _s_dae_sketchup)) {
+    const char *p;
+    int         major, minor, patch;
+
+    major = minor = patch = 0;
+    if ((p = dae_parse_next_uint(tool, &major))) {
+      if ((p = dae_parse_next_uint(p, &minor)))
+        dae_parse_next_uint(p, &patch);
 
       /* don't flip >= 7.1.1 */
       if (major <= 7 && minor < 2 && patch < 1) {
@@ -42,6 +104,4 @@ dae_bugfix_transp(AkTransparent * __restrict transp) {
       }
     }
   } /* _s_dae_sketchup */
-  
-  free(tool);
 }

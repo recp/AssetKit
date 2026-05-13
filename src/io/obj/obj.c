@@ -30,6 +30,7 @@
 #include "../common/postscript.h"
 #include "../../id.h"
 #include "../../data.h"
+#include "../../string_fast.h"
 #include "../../../include/ak/path.h"
 
 static
@@ -142,6 +143,7 @@ wobj_obj(AkDoc     ** __restrict dest,
 
           do {
             ivec3 face;
+            AkInt idx;
 
             /* vertex index */
             SKIP_SPACES
@@ -149,7 +151,8 @@ wobj_obj(AkDoc     ** __restrict dest,
             if (AK_ARRAY_NLINE_CHECK)
               break;
             
-            face[0] = (int32_t)strtol(p, &p, 10);
+            p = ak_strtoi_one_fast(p, &idx);
+            face[0] = idx;
             face[1] = 0;
             face[2] = 0;
 
@@ -157,7 +160,8 @@ wobj_obj(AkDoc     ** __restrict dest,
             SKIP_SPACES
             if (p && p[0] == '/') {
               if (p[1] != '/') {
-                face[1] = (int32_t)strtol(++p, &p, 10);
+                p = ak_strtoi_one_fast(++p, &idx);
+                face[1] = idx;
                 
                 if (!prim->hasTexture)
                   prim->hasTexture = true;
@@ -169,7 +173,8 @@ wobj_obj(AkDoc     ** __restrict dest,
             /* normal index */
             SKIP_SPACES
             if (p && p[0] == '/') {
-              face[2] = (int32_t)strtol(++p, &p, 10);
+              p = ak_strtoi_one_fast(++p, &idx);
+              face[2] = idx;
 
               if (!prim->hasNormal)
                 prim->hasNormal = true;

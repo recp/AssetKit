@@ -19,6 +19,7 @@
 #include "util.h"
 #include "../common/util.h"
 #include "../../data.h"
+#include "../../string_fast.h"
 
 AK_HIDE
 void
@@ -51,8 +52,11 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
 
         prop = elem->property;
         while (prop) {
+          AkFloat value;
+
+          p = ak_strtof_one_fast(p, &value);
           if (!prop->ignore)
-            b[prop->slot] = strtof(p, &p);
+            b[prop->slot] = value;
           prop = prop->next;
         }
 
@@ -76,13 +80,13 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
       do {
         SKIP_SPACES
         
-        fc = (AkUInt)strtol(p, &p, 10);
+        p = ak_strtoui_one_fast(p, &fc);
         if (fc >= 3) {
           if (!f || last_fc < fc)
             f = alloca(sizeof(AkUInt) * fc);
           
           for (j = 0; j < fc; j++)
-            f[j] = (AkUInt)strtol(p, &p, 10);
+            p = ak_strtoui_one_fast(p, &f[j]);
           
           center = f[0];
           for (j = 0; j < fc - 2; j++) {
