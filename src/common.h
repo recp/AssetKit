@@ -28,6 +28,10 @@
 
 #include "mem/common.h"
 
+/* AssetKit often runs cglm directly on imported/accessor-backed memory.
+   Those buffers are byte-aligned by file layout, not by cglm's 16/32-byte
+   mat alignment contract. Keep cglm's SIMD paths, but use unaligned
+   loads/stores inside AssetKit sources. */
 #ifndef CGLM_ALL_UNALIGNED
 #  define CGLM_ALL_UNALIGNED
 #endif

@@ -22,7 +22,6 @@
 #include <time.h>
 #include <sys/stat.h>
 #include <assert.h>
-#include <math.h>
 #include <errno.h>
 #include "../include/ak/options.h"
 
@@ -126,10 +125,15 @@ ak_parse_date(const char * __restrict input,
 AK_EXPORT
 int
 ak_digitsize(size_t number) {
-  if (number == 0)
-    return 1;
+  int digits;
+
+  digits = 1;
+  while (number >= 10) {
+    number /= 10;
+    digits++;
+  }
   
-  return (int)floor(log10((double)number)) + 1;
+  return digits;
 }
 
 AK_HIDE
