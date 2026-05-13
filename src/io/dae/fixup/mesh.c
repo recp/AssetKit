@@ -23,29 +23,61 @@
 #include <time.h>
 
 static
-bool
-dae_mesh_needs_triangulate(AkMesh * __restrict mesh) {
+void
+dae_mesh_needs_edit(AkMesh * __restrict mesh,
+                    bool                 checkTriangulate,
+                    bool                 checkNormals,
+                    bool              * __restrict needsTriangulate,
+                    bool              * __restrict needsNormals,
+                    bool              * __restrict needsFixIndices) {
   AkMeshPrimitive *prim;
+  AkAccessor      *acc;
+  AkInput         *input;
+  bool             foundNormal;
+
+  *needsTriangulate = false;
+  *needsNormals     = false;
+  *needsFixIndices  = false;
 
   for (prim = mesh->primitive; prim; prim = prim->next) {
-    if (prim->type == AK_PRIMITIVE_POLYGONS)
-      return true;
+    if (checkTriangulate
+        && !*needsTriangulate
+        && prim->type == AK_PRIMITIVE_POLYGONS)
+      *needsTriangulate = true;
+
+    if (!*needsFixIndices && prim->indices && prim->indexStride > 1)
+      *needsFixIndices = true;
+
+    if (checkNormals
+        && !*needsNormals
+        && (prim->type == AK_PRIMITIVE_TRIANGLES
+            || prim->type == AK_PRIMITIVE_POLYGONS)) {
+      foundNormal = false;
+      input       = prim->input;
+
+      while (input) {
+        if (input->semantic == AK_INPUT_NORMAL) {
+          foundNormal = true;
+          acc         = input->accessor;
+
+          if (!acc || !acc->buffer)
+            *needsNormals = true;
+
+          break;
+        }
+
+        input = input->next;
+      }
+
+      if (!foundNormal)
+        *needsNormals = true;
+    }
+
+    if ((!checkTriangulate || *needsTriangulate)
+        && (!checkNormals || *needsNormals)
+        && *needsFixIndices)
+      break;
   }
-
-  return false;
-}
-
-static
-bool
-dae_mesh_needs_fix_indices(AkMesh * __restrict mesh) {
-  AkMeshPrimitive *prim;
-
-  for (prim = mesh->primitive; prim; prim = prim->next) {
-    if (prim->indices && prim->indexStride > 1)
-      return true;
-  }
-
-  return false;
 }
 
 static
@@ -96,11 +128,12 @@ dae_mesh_fixup(AkMesh * mesh) {
   if (!mesh->primitive)
     return AK_OK;
 
-  needsTriangulate = ak_opt_get(AK_OPT_TRIANGULATE)
-                     && dae_mesh_needs_triangulate(mesh);
-  needsNormals     = ak_opt_get(AK_OPT_GEN_NORMALS_IF_NEEDED)
-                     && ak_meshNeedsNormals(mesh);
-  needsFixIndices  = dae_mesh_needs_fix_indices(mesh);
+  dae_mesh_needs_edit(mesh,
+                      ak_opt_get(AK_OPT_TRIANGULATE),
+                      ak_opt_get(AK_OPT_GEN_NORMALS_IF_NEEDED),
+                      &needsTriangulate,
+                      &needsNormals,
+                      &needsFixIndices);
 
   if (!needsTriangulate && !needsNormals && !needsFixIndices) {
     if (ak_opt_get(AK_OPT_COMPUTE_BBOX))
