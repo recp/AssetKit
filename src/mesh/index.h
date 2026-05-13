@@ -29,6 +29,10 @@ ak_primFixIndices(AkMesh          *mesh,
                   AkMeshPrimitive *prim);
 
 AK_HIDE
+bool
+ak_primCollapseIdentityIndices(AkMeshPrimitive *prim);
+
+AK_HIDE
 AkResult
 ak_meshFixIndicesDefault(AkMesh *mesh);
 

@@ -19,8 +19,81 @@
 
 #include <limits.h>
 #include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
 extern const char* ak_mesh_edit_assert1;
+
+static
+bool
+ak_mesh_index_profile_enabled(void) {
+  const char *value;
+  static int  enabled = -1;
+
+  if (enabled >= 0)
+    return enabled != 0;
+
+  value = getenv("ASSETKIT_MESH_INDEX_PROFILE");
+  enabled = value && value[0] && value[0] != '0';
+
+  return enabled != 0;
+}
+
+static
+double
+ak_mesh_index_profile_now_ms(void) {
+  struct timespec ts;
+
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+
+  return (double)ts.tv_sec * 1000.0 + (double)ts.tv_nsec / 1000000.0;
+}
+
+AK_HIDE
+bool
+ak_primCollapseIdentityIndices(AkMeshPrimitive *prim) {
+  AkUIntArray *indices;
+  AkInput     *input;
+  AkUInt      *items;
+  uint32_t     st, vo;
+  size_t       count, i, j, base;
+  AkUInt       posidx;
+
+  if (!prim
+      || prim->indexStride <= 1
+      || !(indices = prim->indices)
+      || !(items = indices->items)
+      || !prim->pos)
+    return false;
+
+  st = prim->indexStride;
+  vo = prim->pos->offset;
+  if (st == 0 || vo >= st || indices->count == 0 || indices->count % st != 0)
+    return false;
+
+  count = indices->count / st;
+  for (i = 0; i < count; i++) {
+    base   = i * st;
+    posidx = items[base + vo];
+    for (j = 0; j < st; j++) {
+      if (items[base + j] != posidx)
+        return false;
+    }
+  }
+
+  for (i = 0; i < count; i++)
+    items[i] = items[i * st + vo];
+
+  indices->count    = count;
+  prim->indexStride = 1;
+  prim->pos->offset = 0;
+
+  for (input = prim->input; input; input = input->next)
+    input->offset = 0;
+
+  return true;
+}
 
 AK_HIDE
 AkResult
@@ -82,15 +155,73 @@ AkResult
 ak_primFixIndices(AkMesh          *mesh,
                   AkMeshPrimitive *prim) {
   AkDuplicator *dupl;
+  double        t0, tCollapse, tDuplicator, tFixBuffer, tReserve, tMove,
+                total;
+  size_t        indexCount;
+  bool          profile;
 
-  if ((prim->indexStride == 1)
-      || !prim->indices
-      || !(dupl = ak_meshDuplicatorForIndices(mesh, prim)))
+  if (prim->indexStride == 1 || !prim->indices)
+    return AK_OK;
+
+  profile    = ak_mesh_index_profile_enabled();
+  indexCount = prim->indices->count;
+  t0         = profile ? ak_mesh_index_profile_now_ms() : 0.0;
+
+  tCollapse = profile ? ak_mesh_index_profile_now_ms() : 0.0;
+  if (ak_primCollapseIdentityIndices(prim)) {
+    if (profile) {
+      tCollapse = ak_mesh_index_profile_now_ms() - tCollapse;
+      total     = ak_mesh_index_profile_now_ms() - t0;
+      if (total > 0.25) {
+        fprintf(stderr,
+                "[AssetKit mesh index] total=%.3fms collapse=%.3fms "
+                "dupl=0.000ms fixbuf=0.000ms reserve=0.000ms move=0.000ms "
+                "stride=1 indices=%zu dup=0 buf=0\n",
+                total,
+                tCollapse,
+                indexCount);
+      }
+    }
+    return AK_OK;
+  }
+  tCollapse = profile ? ak_mesh_index_profile_now_ms() - tCollapse : 0.0;
+
+  tDuplicator = profile ? ak_mesh_index_profile_now_ms() : 0.0;
+  if (!(dupl = ak_meshDuplicatorForIndices(mesh, prim)))
     return AK_ERR;
+  tDuplicator = profile ? ak_mesh_index_profile_now_ms() - tDuplicator : 0.0;
 
+  tFixBuffer = profile ? ak_mesh_index_profile_now_ms() : 0.0;
   ak_meshFixIndexBuffer(mesh, prim, dupl);
+  tFixBuffer = profile ? ak_mesh_index_profile_now_ms() - tFixBuffer : 0.0;
+
+  tReserve = profile ? ak_mesh_index_profile_now_ms() : 0.0;
   ak_meshReserveBuffers(mesh, prim, dupl->dupCount + dupl->bufCount);
+  tReserve = profile ? ak_mesh_index_profile_now_ms() - tReserve : 0.0;
+
+  tMove = profile ? ak_mesh_index_profile_now_ms() : 0.0;
   ak_movePositions(mesh, prim, dupl);
+  tMove = profile ? ak_mesh_index_profile_now_ms() - tMove : 0.0;
+
+  if (profile) {
+    total = ak_mesh_index_profile_now_ms() - t0;
+    if (total > 0.25) {
+      fprintf(stderr,
+              "[AssetKit mesh index] total=%.3fms collapse=%.3fms "
+              "dupl=%.3fms fixbuf=%.3fms reserve=%.3fms move=%.3fms "
+              "stride=%u indices=%zu dup=%zu buf=%zu\n",
+              total,
+              tCollapse,
+              tDuplicator,
+              tFixBuffer,
+              tReserve,
+              tMove,
+              prim->indexStride,
+              indexCount,
+              dupl->dupCount,
+              dupl->bufCount);
+    }
+  }
 
   return AK_OK;
 }

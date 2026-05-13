@@ -16,6 +16,39 @@
 
 #include "topo.h"
 
+static
+bool
+topofix_prim_needs(AkMeshPrimitive * __restrict prim,
+                   uint8_t                      trig_fan,
+                   uint8_t                      trig_strip,
+                   uint8_t                      line_loop,
+                   uint8_t                      line_strip) {
+  switch (prim->type) {
+    case AK_PRIMITIVE_TRIANGLES: {
+      AkTriangles *trig;
+
+      if (!trig_fan && !trig_strip)
+        return false;
+
+      trig = (AkTriangles *)prim;
+      return (trig_fan   && trig->mode == AK_TRIANGLE_FAN)
+             || (trig_strip && trig->mode == AK_TRIANGLE_STRIP);
+    }
+    case AK_PRIMITIVE_LINES: {
+      AkLines *lines;
+
+      if (!line_loop && !line_strip)
+        return false;
+
+      lines = (AkLines *)prim;
+      return (line_loop  && lines->mode == AK_LINE_LOOP)
+             || (line_strip && lines->mode == AK_LINE_STRIP);
+    }
+    default:
+      return false;
+  }
+}
+
 /* create indices to fix topology,
    an alternative way could be work with each input,
    this can be provided by an option maybe in the future. */
@@ -303,12 +336,16 @@ topofix(AkMesh * mesh) {
   prim       = mesh->primitive;
 
   while (prim) {
+    if (!topofix_prim_needs(prim, trig_fan, trig_strip, line_loop, line_strip))
+      goto next;
+
     if (prim->indices) {
       topofix_ind(heap, prim, trig_fan, trig_strip, line_loop, line_strip);
     } else {
       topofix_noind(heap, prim, trig_fan, trig_strip, line_loop, line_strip);
     }
 
+  next:
     prim = prim->next;
   }
 }

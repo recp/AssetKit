@@ -19,6 +19,84 @@
 #include "edit_common.h"
 #include <limits.h>
 
+static
+uint32_t
+ak_indexTupleHash(const AkUInt * __restrict tuple,
+                  uint32_t                  stride) {
+  uint32_t hash, i;
+
+  hash = 2166136261u;
+
+#define AK_INDEX_HASH_STEP(IDX) \
+  do {                          \
+    hash ^= tuple[IDX];         \
+    hash *= 16777619u;          \
+  } while (0)
+
+  switch (stride) {
+    case 1:
+      AK_INDEX_HASH_STEP(0);
+      break;
+    case 2:
+      AK_INDEX_HASH_STEP(0);
+      AK_INDEX_HASH_STEP(1);
+      break;
+    case 3:
+      AK_INDEX_HASH_STEP(0);
+      AK_INDEX_HASH_STEP(1);
+      AK_INDEX_HASH_STEP(2);
+      break;
+    case 4:
+      AK_INDEX_HASH_STEP(0);
+      AK_INDEX_HASH_STEP(1);
+      AK_INDEX_HASH_STEP(2);
+      AK_INDEX_HASH_STEP(3);
+      break;
+    default:
+      for (i = 0; i < stride; i++) {
+        AK_INDEX_HASH_STEP(i);
+      }
+      break;
+  }
+
+#undef AK_INDEX_HASH_STEP
+
+  return hash ? hash : 1u;
+}
+
+static
+bool
+ak_indexTupleEq(const AkUInt * __restrict a,
+                const AkUInt * __restrict b,
+                uint32_t                  stride) {
+  switch (stride) {
+    case 1:
+      return a[0] == b[0];
+    case 2:
+      return a[0] == b[0] && a[1] == b[1];
+    case 3:
+      return a[0] == b[0] && a[1] == b[1] && a[2] == b[2];
+    case 4:
+      return a[0] == b[0] && a[1] == b[1] && a[2] == b[2] && a[3] == b[3];
+    default:
+      return memcmp(a, b, sizeof(*a) * stride) == 0;
+  }
+}
+
+static
+size_t
+ak_indexHashCap(size_t count) {
+  size_t cap, need;
+
+  need = count < (SIZE_MAX / 2) ? count * 2 : count;
+  cap  = 16;
+
+  while (cap < need && cap < (SIZE_MAX / 2))
+    cap <<= 1;
+
+  return cap;
+}
+
 AK_EXPORT
 AkDuplicator*
 ak_meshDuplicatorForIndices(AkMesh          * __restrict mesh,
@@ -29,12 +107,11 @@ ak_meshDuplicatorForIndices(AkMesh          * __restrict mesh,
   AkDuplicator       *dupl;
   AkDuplicatorRange  *dupr;
   AkUIntArray        *dupc, *ind, *newind, *dupcsum;
-  uint32_t           *it, *it2, *posflgs, *inp;
+  uint32_t           *it, *it2, *hashes;
   AkAccessor         *posAcc;
-  uint8_t            *flg;
-  size_t              count, ccount, icount, chk_start,
-                      chk_end, inpsz, vertc, i, j;
-  uint32_t            chk, iter, st, vo, posno, idxp;
+  size_t              count, hcap, hmask, hpos, hslot, icount,
+                      vertc, i, j;
+  uint32_t            st, vo, posno, idxp, ord;
 
   if (!prim->pos || !(posAcc = prim->pos->accessor))
     return NULL;
@@ -62,61 +139,45 @@ ak_meshDuplicatorForIndices(AkMesh          * __restrict mesh,
   ind     = prim->indices;
   icount  = (uint32_t)ind->count / st;
   newind  = ak_meshIndicesArrayFor(mesh, prim, true);
-  chk_end = icount;
   it      = ind->items;
   it2     = newind->items;
-  inpsz   = sizeof(AkUInt) * st;
 
-  flg     = ak_heap_calloc(heap, dupl, sizeof(uint8_t) * icount);
-  posflgs = ak_heap_calloc(heap,
-                           dupl,
-                           sizeof(AkUInt) * vertc * (st + 1));
+  hcap   = ak_indexHashCap(icount);
+  hmask  = hcap - 1;
+  hashes = ak_heap_calloc(heap, dupl, sizeof(uint32_t) * hcap);
 
-  chk_start = ccount = count = posno = 0;
-  iter = chk = 1;
-  while (ccount < icount) {
-    /* nothing to check */
-    if (chk_start >= chk_end)
-      break;
+  count = posno = 0;
+  for (j = i = 0; j < icount; j++, i += st) {
+    idxp = it[i + vo];
+    if (idxp >= vertc)
+      goto fail;
 
-    j = chk_start;
-    i = j * st;
-
-    for (; j < chk_end; i += st, j++) {
-      if (flg[j] == chk)
-        continue;
-
-      idxp  = it[i + vo];
-      inp   = posflgs + idxp * (st + 1);
-
-      if (inp[0] < iter) {
-        /* skip first squence */
-        if (iter > 1) {
-          dupc->items[3 * idxp + 1]++;
-          count++;
-        } else {
+    hpos = ak_indexTupleHash(&it[i], st) & hmask;
+    for (;;) {
+      hslot = hashes[hpos];
+      if (!hslot) {
+        if (dupc->items[3 * idxp + 2] == 0) {
           dupc->items[3 * idxp]     = posno++;
           dupc->items[3 * idxp + 2] = idxp + 1;
+          ord = 0;
+        } else {
+          ord = ++dupc->items[3 * idxp + 1];
+          count++;
         }
 
-        inp[0] = iter;
-        memcpy(&inp[1], &it[i], inpsz);
-      } else if (memcmp(&it[i], &inp[1], inpsz) != 0) {
-        it2[j]++;
-        continue;
+        hashes[hpos] = (uint32_t)j + 1;
+        it2[j]       = ord;
+        break;
       }
 
-      ccount++;
-      flg[j] = chk;
+      hslot--;
+      if (ak_indexTupleEq(&it[i], &it[hslot * st], st)) {
+        it2[j] = it2[hslot];
+        break;
+      }
 
-      /* shrink the check range for next iter */
-      if (j == chk_start)
-        chk_start++;
-      else if (j == chk_end)
-        chk_end--;
+      hpos = (hpos + 1) & hmask;
     }
-
-    iter++;
   }
 
   dupcsum = ak_heap_calloc(heap,
@@ -150,12 +211,15 @@ ak_meshDuplicatorForIndices(AkMesh          * __restrict mesh,
   dupl->dupCount   = count;
   dupl->bufCount   = posno;
 
-  ak_free(flg);
-  ak_free(posflgs);
+  ak_free(hashes);
 
   rb_insert(doc->reserved, prim, dupl);
 
   return dupl;
+
+fail:
+  ak_free(dupl);
+  return NULL;
 }
 
 AK_EXPORT
