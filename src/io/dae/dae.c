@@ -35,6 +35,10 @@
 
 #include "../../../include/ak/path.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
 static ak_enumpair daeVersions[] = {
   {"1.5.0",             AK_COLLADA_VERSION_150},
   {"1.5",               AK_COLLADA_VERSION_150},
@@ -48,6 +52,48 @@ typedef void*(*AkLoadLibraryItemFn)(DAEState * __restrict dst,
                                     xml_t    * __restrict xml,
                                     void     * __restrict memp);
 static void ak_daeFreeDupl(RBTree *, RBNode *);
+
+static
+bool
+dae_profile_enabled(void) {
+  const char *value;
+
+  value = getenv("ASSETKIT_DAE_PROFILE");
+  if (!value)
+    value = getenv("ASSETKIT_BLENDER_PROFILE");
+
+  return value && value[0] && value[0] != '0';
+}
+
+static
+double
+dae_profile_now_ms(void) {
+  struct timespec ts;
+
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+
+  return (double)ts.tv_sec * 1000.0 + (double)ts.tv_nsec / 1000000.0;
+}
+
+static
+void
+dae_profile_log(bool enabled, const char *name, double start) {
+  if (!enabled)
+    return;
+
+  fprintf(stderr,
+          "[AssetKit DAE] %s=%.3fms\n",
+          name,
+          dae_profile_now_ms() - start);
+}
+
+#define DAE_PROFILE_CALL(PROFILE, NAME, CALL) do {                         \
+    double _dae_profile_call_start = 0.0;                                   \
+    if (PROFILE)                                                            \
+      _dae_profile_call_start = dae_profile_now_ms();                       \
+    CALL;                                                                   \
+    dae_profile_log(PROFILE, NAME, _dae_profile_call_start);                \
+  } while (0)
 
 static
 void
@@ -73,11 +119,19 @@ dae_doc(AkDoc     ** __restrict dest,
   DAEState           dstVal, *dst;
   size_t             xmlSize;
   AkResult           ret;
+  double             totalStart, stepStart;
+  bool               profile;
 
+  profile    = dae_profile_enabled();
+  totalStart = dae_profile_now_ms();
+  stepStart  = totalStart;
   if ((ret = ak_readfile(filepath, NULL, &xmlString, &xmlSize)) != AK_OK)
     return ret;
+  dae_profile_log(profile, "readfile", stepStart);
 
+  stepStart = dae_profile_now_ms();
   xdoc = xml_parse(xmlString, XML_PREFIXES | XML_READONLY);
+  dae_profile_log(profile, "xml_parse", stepStart);
   if (!xdoc || !(xml = xdoc->root)) {
     if (xdoc)
       free((void *)xdoc);
@@ -85,6 +139,7 @@ dae_doc(AkDoc     ** __restrict dest,
     return AK_ERR;
   }
 
+  stepStart = dae_profile_now_ms();
   heap = ak_heap_new(NULL, NULL, NULL);
   doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
 
@@ -120,6 +175,7 @@ dae_doc(AkDoc     ** __restrict dest,
   dst                 = &dstVal;
 
   dstVal.texmap->userData = dst;
+  dae_profile_log(profile, "setup", stepStart);
 
   /* get version info */
   /* because it is current and most used version */
@@ -140,45 +196,72 @@ dae_doc(AkDoc     ** __restrict dest,
   xml     = xml->val;
 
   /* with default Asset Parameters */
+  stepStart = dae_profile_now_ms();
   assetEl = xml_elem(xml->parent, _s_dae_asset);
   if ((inf = dae_asset(dst, assetEl, doc, &doc->inf->base))) {
     doc->coordSys = inf->coordSys;
     doc->unit     = inf->unit;
   }
+  dae_profile_log(profile, "asset", stepStart);
   
+  stepStart = dae_profile_now_ms();
   while (xml) {
     if (xml_tag_eq(xml, _s_dae_lib_cameras)) {
-      dae_lib(dst, xml, _s_dae_camera, dae_cam, &libs->cameras);
+      DAE_PROFILE_CALL(profile,
+                       "library_cameras",
+                       dae_lib(dst, xml, _s_dae_camera, dae_cam, &libs->cameras));
     } else if (xml_tag_eq(xml, _s_dae_lib_lights)) {
-      dae_lib(dst, xml, _s_dae_light, dae_light, &libs->lights);
+      DAE_PROFILE_CALL(profile,
+                       "library_lights",
+                       dae_lib(dst, xml, _s_dae_light, dae_light, &libs->lights));
     } else if (xml_tag_eq(xml, _s_dae_lib_geometries)) {
-      dae_lib(dst, xml, _s_dae_geometry, dae_geom, &libs->geometries);
+      DAE_PROFILE_CALL(profile,
+                       "library_geometries",
+                       dae_lib(dst, xml, _s_dae_geometry, dae_geom, &libs->geometries));
     } else if (xml_tag_eq(xml, _s_dae_lib_effects)) {
-      dae_lib(dst, xml, _s_dae_effect, dae_effect, &libs->effects);
+      DAE_PROFILE_CALL(profile,
+                       "library_effects",
+                       dae_lib(dst, xml, _s_dae_effect, dae_effect, &libs->effects));
     } else if (xml_tag_eq(xml, _s_dae_lib_images)) {
-      dae_lib(dst, xml, _s_dae_image, dae_image, &libs->libimages);
+      DAE_PROFILE_CALL(profile,
+                       "library_images",
+                       dae_lib(dst, xml, _s_dae_image, dae_image, &libs->libimages));
     } else if (xml_tag_eq(xml, _s_dae_lib_materials)) {
-      dae_lib(dst, xml, _s_dae_material, dae_material, &libs->materials);
+      DAE_PROFILE_CALL(profile,
+                       "library_materials",
+                       dae_lib(dst, xml, _s_dae_material, dae_material, &libs->materials));
     } else if (xml_tag_eq(xml, _s_dae_lib_controllers)) {
-      dae_lib(dst, xml, _s_dae_controller, dae_ctlr, &libs->controllers);
+      DAE_PROFILE_CALL(profile,
+                       "library_controllers",
+                       dae_lib(dst, xml, _s_dae_controller, dae_ctlr, &libs->controllers));
     } else if (xml_tag_eq(xml, _s_dae_lib_visual_scenes)) {
-      dae_lib(dst, xml, _s_dae_visual_scene, dae_vscene, &libs->visualScenes);
+      DAE_PROFILE_CALL(profile,
+                       "library_visual_scenes",
+                       dae_lib(dst, xml, _s_dae_visual_scene, dae_vscene, &libs->visualScenes));
     } else if (xml_tag_eq(xml, _s_dae_lib_nodes)) {
-      dae_lib(dst, xml, _s_dae_node, dae_node2, &libs->nodes);
+      DAE_PROFILE_CALL(profile,
+                       "library_nodes",
+                       dae_lib(dst, xml, _s_dae_node, dae_node2, &libs->nodes));
     } else if (xml_tag_eq(xml, _s_dae_lib_animations)) {
-      dae_lib(dst, xml, _s_dae_animation, dae_anim, &libs->animations);
+      DAE_PROFILE_CALL(profile,
+                       "library_animations",
+                       dae_lib(dst, xml, _s_dae_animation, dae_anim, &libs->animations));
     } else if (xml_tag_eq(xml, _s_dae_scene)) {
-      dae_scene(dst, xml);
+      DAE_PROFILE_CALL(profile, "scene", dae_scene(dst, xml));
     }
     xml = xml->next;
   }
+  dae_profile_log(profile, "libraries", stepStart);
 
   *dest = doc;
 
   /* post-parse operations */
+  stepStart = dae_profile_now_ms();
   dae_postscript(dst);
+  dae_profile_log(profile, "postscript", stepStart);
 
   /* cleanup up details */
+  stepStart = dae_profile_now_ms();
   freeUsrData = dst->linkedUserData;
   while (freeUsrData) {
     void *tofree;
@@ -211,6 +294,8 @@ dae_doc(AkDoc     ** __restrict dest,
 
   /* TODO: memory leak, free this RBTree*/
   /* rb_destroy(doc->reserved); */
+  dae_profile_log(profile, "cleanup", stepStart);
+  dae_profile_log(profile, "total", totalStart);
 
   return AK_OK;
 }

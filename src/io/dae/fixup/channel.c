@@ -15,13 +15,35 @@
  */
 
 #include "channel.h"
-#include <stdlib.h>
 #include <string.h>
 
 typedef struct DAEMatrixAnimFix {
   struct DAEMatrixAnimFix *next;
   AkAccessor             *acc;
 } DAEMatrixAnimFix;
+
+static
+bool
+dae_parse_u32_between(const char * __restrict begin,
+                      const char * __restrict end,
+                      uint32_t   * __restrict out) {
+  uint32_t value;
+
+  if (!begin || !end || begin >= end)
+    return false;
+
+  value = 0;
+  do {
+    char c = *begin++;
+    if (c < '0' || c > '9')
+      return false;
+    value = value * 10u + (uint32_t)(c - '0');
+  } while (begin < end);
+
+  *out = value;
+
+  return true;
+}
 
 /*----------------------------------------------------------------------------
  * Channel target parsing.
@@ -41,8 +63,7 @@ dae_parseChannelTargetIndexed(const char  *target,
                               size_t      *outIdLen,
                               uint32_t    *outIdx) {
   const char *open, *close, *idStart, *p;
-  long        idx;
-  char       *end;
+  uint32_t    idx;
 
   if (!target) return false;
 
@@ -52,8 +73,7 @@ dae_parseChannelTargetIndexed(const char  *target,
       || close == open + 1)
     return false;
 
-  idx = strtol(open + 1, &end, 10);
-  if (end != close || idx < 0)
+  if (!dae_parse_u32_between(open + 1, close, &idx))
     return false;
 
   /* Id portion: everything from the last '/' (or start) up to '('. */
@@ -72,7 +92,7 @@ dae_parseChannelTargetIndexed(const char  *target,
 
   *outIdStart = idStart;
   *outIdLen   = (size_t)(open - idStart);
-  *outIdx     = (uint32_t)idx;
+  *outIdx     = idx;
   return true;
 }
 
@@ -184,10 +204,10 @@ dae_resolveMatrixElement(AkContext        * __restrict ctx,
                          AkResolvedTarget * __restrict rt) {
   const char *seg, *open1, *close1, *open2, *close2, *attr;
   AkObject   *obj;
-  long        a, b;
-  char       *end;
+  uint32_t    a, b;
   char        base[512];
   size_t      n;
+  bool        hasB;
 
   if (!ctx || !target || !rt)
     return false;
@@ -202,20 +222,20 @@ dae_resolveMatrixElement(AkContext        * __restrict ctx,
       || close1 == open1 + 1)
     return false;
 
-  a = strtol(open1 + 1, &end, 10);
-  if (end != close1 || a < 0)
+  if (!dae_parse_u32_between(open1 + 1, close1, &a))
     return false;
 
   open2 = close2 = NULL;
-  b     = -1;
+  b     = 0;
+  hasB  = false;
   if (*(close1 + 1) == '(') {
     open2 = close1 + 1;
     if (!(close2 = strchr(open2 + 1, ')')) || close2 == open2 + 1)
       return false;
 
-    b = strtol(open2 + 1, &end, 10);
-    if (end != close2 || b < 0 || close2[1] != '\0')
+    if (!dae_parse_u32_between(open2 + 1, close2, &b) || close2[1] != '\0')
       return false;
+    hasB = true;
   } else if (close1[1] != '\0') {
     return false;
   }
@@ -233,7 +253,7 @@ dae_resolveMatrixElement(AkContext        * __restrict ctx,
       || (AkTypeId)obj->type != AKT_MATRIX)
     return false;
 
-  if (b >= 0) {
+  if (hasB) {
     if (a >= 4 || b >= 4)
       return false;
     rt->off = (uint32_t)(b * 4 + a);

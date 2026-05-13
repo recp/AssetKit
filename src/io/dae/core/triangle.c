@@ -86,8 +86,16 @@ dae_triangles(DAEState * __restrict dst,
     } else if (xml_tag_eq(xml, _s_dae_p) && xml->val) {
       AkUIntArray *uintArray;
       AkResult     ret;
+      uint32_t     indexStride;
+      unsigned long expectedCount;
       
-      ret = xml_strtoui_array(heap, tri, xml->val, &uintArray);
+      indexStride   = indexoff + 1;
+      expectedCount = mode == AK_TRIANGLES
+                      ? (unsigned long)tri->base.nPolygons * 3ul * indexStride
+                      : 0ul;
+      ret = expectedCount > 0
+            ? xml_strtoui_arrayN(heap, tri, xml->val, expectedCount, &uintArray)
+            : xml_strtoui_array(heap, tri, xml->val, &uintArray);
       if (ret == AK_OK)
         tri->base.indices = uintArray;
     } else if (xml_tag_eq(xml, _s_dae_extra)) {

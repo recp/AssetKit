@@ -234,6 +234,33 @@ xml_strtoui_array(AkHeap       * __restrict heap,
 }
 
 AK_EXPORT
+AkResult
+xml_strtoui_arrayN(AkHeap       * __restrict heap,
+                   void         * __restrict memp,
+                   const xml_t  * __restrict xobj,
+                   unsigned long             count,
+                   AkUIntArray ** __restrict array) {
+  AkUIntArray *arr;
+  unsigned long rem;
+
+  if (count == 0)
+    return AK_ERR;
+
+  arr = ak_heap_alloc(heap, memp, sizeof(*arr) + sizeof(AkUInt) * count);
+  rem = xml_strtoui_fast(xobj, arr->items, count);
+  if (rem != 0) {
+    ak_free(arr);
+    return xml_strtoui_array(heap, memp, xobj, array);
+  }
+
+  arr->count = count;
+
+  *array = arr;
+
+  return AK_OK;
+}
+
+AK_EXPORT
 char *
 xmla_strdup(const xml_attr_t * __restrict attr,
             AkHeap           * __restrict heap,

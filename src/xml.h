@@ -61,6 +61,14 @@ xml_strtoui_array(AkHeap       * __restrict heap,
                   AkUIntArray ** __restrict array);
 
 AK_EXPORT
+AkResult
+xml_strtoui_arrayN(AkHeap       * __restrict heap,
+                   void         * __restrict memp,
+                   const xml_t  * __restrict xobj,
+                   unsigned long             count,
+                   AkUIntArray ** __restrict array);
+
+AK_EXPORT
 char *
 xmla_strdup(const xml_attr_t * __restrict attr,
             AkHeap           * __restrict heap,

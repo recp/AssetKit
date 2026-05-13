@@ -86,8 +86,16 @@ dae_lines(DAEState * __restrict dst,
     } else if (xml_tag_eq(xml, _s_dae_p) && xml->val) {
       AkUIntArray *uintArray;
       AkResult     ret;
+      uint32_t     indexStride;
+      unsigned long expectedCount;
 
-      ret = xml_strtoui_array(heap, lines, xml->val, &uintArray);
+      indexStride   = indexoff + 1;
+      expectedCount = mode == AK_LINES
+                      ? (unsigned long)lines->base.nPolygons * 2ul * indexStride
+                      : 0ul;
+      ret = expectedCount > 0
+            ? xml_strtoui_arrayN(heap, lines, xml->val, expectedCount, &uintArray)
+            : xml_strtoui_array(heap, lines, xml->val, &uintArray);
       if (ret == AK_OK)
         lines->base.indices = uintArray;
     } else if (xml_tag_eq(xml, _s_dae_extra)) {

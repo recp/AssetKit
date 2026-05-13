@@ -82,9 +82,13 @@ dae14_surface(DAEState * __restrict dst,
     } else if (xml_tag_eq(xml, _s_dae_viewport_ratio) && (sval = xmls(xml))) {
       xml_strtof_fast(sval, surf->viewportRatio, 2);
     } else if (xml_tag_eq(xml, _s_dae_mip_levels) && (sval = xmls(xml))) {
-      surf->mipLevels = (int)strtol(sval->val, NULL, 10);
+      surf->mipLevels = (int)xml__parse_int64(sval->val,
+                                               sval->val + sval->valsize,
+                                               0);
     } else if (xml_tag_eq(xml, _s_dae_mipmap_generate) && (sval = xmls(xml))) {
-      surf->mipmapGenerate = (bool)strtol(sval->val, NULL, 10);
+      surf->mipmapGenerate = (bool)xml__parse_int64(sval->val,
+                                                    sval->val + sval->valsize,
+                                                    0);
     } else if (xml_tag_eq(xml, _s_dae_extra)) {
       surf->extra = tree_fromxml(heap, surf, xml);
     }
