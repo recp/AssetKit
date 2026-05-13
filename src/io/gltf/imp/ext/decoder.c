@@ -244,7 +244,7 @@ gltf_ext_dracoPrimitive(AkGLTFState     * __restrict gst,
     return true;
 
   if (!gltf_ext_draco(gst))
-    return true;
+    return false;
 
   return gst->draco->decodePrimitive(gst, prim, jprim, jdraco) == 0;
 }

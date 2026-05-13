@@ -457,6 +457,7 @@ gltf_materials(json_t * __restrict jmaterial,
   AkDoc              *doc;
   const json_array_t *jmaterials;
   AkLibrary          *libmat;
+  size_t              materialIndex;
 
   gst          = userdata;
   heap         = gst->heap;
@@ -469,6 +470,12 @@ gltf_materials(json_t * __restrict jmaterial,
   if (!(jmaterials = json_array(jmaterial)))
     return;
 
+  gst->materialsCount   = jmaterials->count;
+  gst->materialsByIndex = ak_heap_calloc(heap,
+                                         gst->tmpParent,
+                                         sizeof(*gst->materialsByIndex)
+                                         * gst->materialsCount);
+  materialIndex = gst->materialsCount;
   jmaterial = jmaterials->base.value;
   while (jmaterial) {
     json_t                 *jmatVal, *jext;
@@ -492,12 +499,13 @@ gltf_materials(json_t * __restrict jmaterial,
     cmnTechn->ior  = 1.5f;
 
     jmatVal = jmaterial->value;
+    jext    = gltf_jsonGetLen(jmaterial, _s_gltf_extensions, 10);
     gltf_extra(gst,
                mat,
-               json_get(jmaterial, _s_gltf_extras),
-               json_get(jmaterial, _s_gltf_extensions));
+               gltf_jsonGetLen(jmaterial, _s_gltf_extras, 6),
+               jext);
 
-    if ((jext = json_get(jmaterial, _s_gltf_extensions))) {
+    if (jext) {
       json_t *jspec, *jval;
 
       if ((jspec = json_get(jext, _s_gltf_KHR_materials_specular)))
@@ -567,20 +575,20 @@ gltf_materials(json_t * __restrict jmaterial,
 
         jval = jspec->value;
         while (jval) {
-          if (json_key_eq(jval, _s_gltf_diffuseFactor)) {
+          if (gltf_jsonKeyEqLen(jval, _s_gltf_diffuseFactor, 13)) {
             json_array_float(cmnTechn->diffuse->color->vec, jval, 0.0f, 4, true);
-          } else if (json_key_eq(jval, _s_gltf_specFactor)) {
+          } else if (gltf_jsonKeyEqLen(jval, _s_gltf_specFactor, 14)) {
             json_array_float(specularColor->color->vec, jval, 0.0f, 3, true);
             specularColor->color->vec[3] = 1.0f;
-          } else if (json_key_eq(jval, _s_gltf_glossFactor)) {
+          } else if (gltf_jsonKeyEqLen(jval, _s_gltf_glossFactor, 16)) {
             specularProp->strength = json_float(jval, 1.0f);
-          } else if (json_key_eq(jval, _s_gltf_diffuseTexture)) {
+          } else if (gltf_jsonKeyEqLen(jval, _s_gltf_diffuseTexture, 14)) {
             cmnTechn->diffuse->texture = gltf_materialTexRef(gst,
                                                               cmnTechn,
                                                               jval,
                                                               AK_TEXTURE_COLORSPACE_SRGB,
                                                               AK_TEXTURE_CHANNEL_RGBA);
-          } else if (json_key_eq(jval, _s_gltf_specGlossTex)) {
+          } else if (gltf_jsonKeyEqLen(jval, _s_gltf_specGlossTex, 25)) {
             specularProp->specularTex = gltf_materialTexRef(gst,
                                                              cmnTechn,
                                                              jval,
@@ -594,9 +602,9 @@ gltf_materials(json_t * __restrict jmaterial,
 
     while (jmatVal) {
       /* Metallic Roughness */
-      if (json_key_eq(jmatVal, _s_gltf_name)) {
+      if (gltf_jsonKeyEqLen(jmatVal, _s_gltf_name, 4)) {
         mat->name = json_strdup(jmatVal, heap, mat);
-      } else if (json_key_eq(jmatVal, _s_gltf_pbrMetalRough)) {
+      } else if (gltf_jsonKeyEqLen(jmatVal, _s_gltf_pbrMetalRough, 20)) {
         AkMaterialMetallicProp *metalness, *roughness;
         json_t *jmrVal;
 
@@ -620,13 +628,13 @@ gltf_materials(json_t * __restrict jmaterial,
 
         jmrVal = jmatVal->value;
         while (jmrVal) {
-          if (json_key_eq(jmrVal, _s_gltf_baseColor)) {
+          if (gltf_jsonKeyEqLen(jmrVal, _s_gltf_baseColor, 15)) {
             json_array_float(cmnTechn->albedo->color->vec, jmrVal,  0.0f, 4, true);
-          } else if (json_key_eq(jmrVal, _s_gltf_metalFac)) {
+          } else if (gltf_jsonKeyEqLen(jmrVal, _s_gltf_metalFac, 14)) {
             metalness->intensity = json_float(jmrVal, 0.0f);
-          } else if (json_key_eq(jmrVal, _s_gltf_roughFac)) {
+          } else if (gltf_jsonKeyEqLen(jmrVal, _s_gltf_roughFac, 15)) {
             roughness->intensity = json_float(jmrVal, 0.0f);
-          } else if (json_key_eq(jmrVal, _s_gltf_metalRoughTex)) {
+          } else if (gltf_jsonKeyEqLen(jmrVal, _s_gltf_metalRoughTex, 24)) {
             metalness->tex = gltf_materialTexRef(gst,
                                                   metalness,
                                                   jmrVal,
@@ -635,7 +643,7 @@ gltf_materials(json_t * __restrict jmaterial,
             metalness->textureChannels = AK_TEXTURE_CHANNEL_B;
             roughness->tex = metalness->tex;
             roughness->textureChannels = AK_TEXTURE_CHANNEL_G;
-          } else if (json_key_eq(jmrVal, _s_gltf_baseColorTex)) {
+          } else if (gltf_jsonKeyEqLen(jmrVal, _s_gltf_baseColorTex, 16)) {
             cmnTechn->albedo->texture = gltf_materialTexRef(gst,
                                                              cmnTechn->albedo,
                                                              jmrVal,
@@ -645,7 +653,7 @@ gltf_materials(json_t * __restrict jmaterial,
 
           jmrVal = jmrVal->next;
         }
-      } else if (json_key_eq(jmatVal, _s_gltf_emissiveFac)) {
+      } else if (gltf_jsonKeyEqLen(jmatVal, _s_gltf_emissiveFac, 14)) {
         AkMaterialEmissionProp *emission;
         AkColor                *color;
 
@@ -661,7 +669,7 @@ gltf_materials(json_t * __restrict jmaterial,
 
         json_array_float(color->vec, jmatVal, 0.0f, 3, true);
         color->vec[3] = 1.0f;
-      } else if (json_key_eq(jmatVal, _s_gltf_emissiveTex)) {
+      } else if (gltf_jsonKeyEqLen(jmatVal, _s_gltf_emissiveTex, 15)) {
         AkMaterialEmissionProp *emission;
 
         if (!(emission = cmnTechn->emission)) {
@@ -675,7 +683,7 @@ gltf_materials(json_t * __restrict jmaterial,
                                                        jmatVal,
                                                        AK_TEXTURE_COLORSPACE_SRGB,
                                                        AK_TEXTURE_CHANNEL_RGB);
-      } else if (json_key_eq(jmatVal, _s_gltf_occlusionTex)) {
+      } else if (gltf_jsonKeyEqLen(jmatVal, _s_gltf_occlusionTex, 16)) {
         /* Occlusion Map */
         AkOcclusion *occl;
 
@@ -690,7 +698,7 @@ gltf_materials(json_t * __restrict jmaterial,
 
         cmnTechn->occlusion = occl;
 
-      } else if (json_key_eq(jmatVal, _s_gltf_normalTex)) {
+      } else if (gltf_jsonKeyEqLen(jmatVal, _s_gltf_normalTex, 13)) {
         /* Normap Map */
         AkNormalMap *normal;
 
@@ -704,10 +712,10 @@ gltf_materials(json_t * __restrict jmaterial,
 
         cmnTechn->normal = normal;
 
-      } else if (json_key_eq(jmatVal, _s_gltf_doubleSided)) {
+      } else if (gltf_jsonKeyEqLen(jmatVal, _s_gltf_doubleSided, 11)) {
         /* doubleSided */
         cmnTechn->doubleSided = json_bool(jmatVal, 0);
-      } else if (json_key_eq(jmatVal, _s_gltf_alphaMode)) {
+      } else if (gltf_jsonKeyEqLen(jmatVal, _s_gltf_alphaMode, 9)) {
         AkTransparent *transp;
 
         if (!(transp = cmnTechn->transparent)) {
@@ -719,7 +727,7 @@ gltf_materials(json_t * __restrict jmaterial,
         }
 
         transp->opaque = gltf_alphaMode(jmatVal);
-      } else if (json_key_eq(jmatVal, _s_gltf_alphaCutoff)) {
+      } else if (gltf_jsonKeyEqLen(jmatVal, _s_gltf_alphaCutoff, 11)) {
         AkTransparent *transp;
 
         if (!(transp = cmnTechn->transparent)) {
@@ -745,6 +753,8 @@ gltf_materials(json_t * __restrict jmaterial,
     mat->base.next     = libmat->chld;
     libmat->chld       = (void *)mat;
     libmat->count++;
+    if (materialIndex > 0)
+      gst->materialsByIndex[--materialIndex] = mat;
 
     jmaterial = jmaterial->next;
   }

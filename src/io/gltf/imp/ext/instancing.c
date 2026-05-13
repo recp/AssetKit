@@ -25,7 +25,6 @@ gltf_ext_meshGPUInstancing(AkGLTFState * __restrict gst,
                            AkNode      * __restrict node,
                            const json_t * __restrict jinstancing) {
   AkInstanceAttribs *attribs;
-  AkDoc             *doc;
   json_t            *jattrs;
   json_t            *jattr;
   AkAccessor        *acc;
@@ -37,7 +36,6 @@ gltf_ext_meshGPUInstancing(AkGLTFState * __restrict gst,
   if (!(jattrs = json_get(jinstancing, _s_gltf_attributes)))
     return NULL;
 
-  doc     = gst->doc;
   attribs = ak_heap_calloc(gst->heap, node, sizeof(*attribs));
   count   = 0;
 
@@ -67,7 +65,7 @@ gltf_ext_meshGPUInstancing(AkGLTFState * __restrict gst,
       gst->stop = true;
       return NULL;
     }
-    if (!(acc = flist_sp_at(&doc->lib.accessors, accIdx)))
+    if (!(acc = gltf_accessor_at(gst, accIdx)))
       goto malformed;
     if (!gltf_ext_instanceAccOK(acc, compCount))
       goto malformed;

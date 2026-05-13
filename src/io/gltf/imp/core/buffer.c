@@ -19,52 +19,116 @@
 #include "../../../../utils.h"
 #include "../../../../base64.h"
 
+typedef struct AkGLTFBufferViewProps {
+  const json_t *buffer;
+  const json_t *byteLength;
+  const json_t *byteOffset;
+  const json_t *byteStride;
+  const json_t *name;
+  const json_t *extensions;
+} AkGLTFBufferViewProps;
+
+static inline
+void
+gltf_bufferViewProps(const json_t           * __restrict jbuffView,
+                     AkGLTFBufferViewProps * __restrict props) {
+  const json_t *it;
+  char          first;
+
+  if (!jbuffView || jbuffView->type != JSON_OBJECT)
+    return;
+
+  for (it = jbuffView->value; it; it = it->next) {
+    if (!it->key)
+      continue;
+
+    first = it->key[0];
+    switch (it->keysize) {
+      case 4:
+        if (first == 'n' && gltf_jsonKeyEqLen(it, _s_gltf_name, 4))
+          props->name = it;
+        break;
+      case 6:
+        if (first == 'b' && gltf_jsonKeyEqLen(it, _s_gltf_buffer, 6))
+          props->buffer = it;
+        break;
+      case 10:
+        if (first == 'e' && gltf_jsonKeyEqLen(it, _s_gltf_extensions, 10)) {
+          props->extensions = it;
+        } else if (first == 'b') {
+          switch (it->key[4]) {
+            case 'L':
+              if (gltf_jsonKeyEqLen(it, _s_gltf_byteLength, 10))
+                props->byteLength = it;
+              break;
+            case 'O':
+              if (gltf_jsonKeyEqLen(it, _s_gltf_byteOffset, 10))
+                props->byteOffset = it;
+              break;
+            case 'S':
+              if (gltf_jsonKeyEqLen(it, _s_gltf_byteStride, 10))
+                props->byteStride = it;
+              break;
+            default:
+              break;
+          }
+        }
+        break;
+      default:
+        break;
+    }
+  }
+}
+
 void
 gltf_bufferViews(json_t * __restrict jbuffView,
                  void   * __restrict userdata) {
   AkGLTFState        *gst;
   const json_array_t *jbuffers;
-  const json_t       *jbuffVal;
-  const json_t       *jext;
+  const json_t       *it;
   AkBufferView       *buffView;
+  AkGLTFBufferViewProps props;
+  size_t              buffViewIndex;
   int32_t             buffIndex;
 
   if (!(jbuffers = json_array(jbuffView)))
     return;
 
   gst = userdata;
+  gst->bufferViewsCount   = jbuffers->count;
+  gst->bufferViewsByIndex = ak_heap_calloc(gst->heap,
+                                           gst->tmpParent,
+                                           sizeof(*gst->bufferViewsByIndex)
+                                           * gst->bufferViewsCount);
+  buffViewIndex = gst->bufferViewsCount;
 
   jbuffView = jbuffers->base.value;
   while (jbuffView) {
     buffView = ak_heap_calloc(gst->heap, gst->tmpParent, sizeof(*buffView));
-    jbuffVal = jbuffView->value;
-    jext     = NULL;
+    props    = (AkGLTFBufferViewProps){0};
 
-    while (jbuffVal) {
-      if (json_key_eq(jbuffVal, _s_gltf_buffer)) {
-        if ((buffIndex = json_int32(jbuffVal, -1)) > -1)
-          buffView->buffer = flist_sp_at(&gst->buffers, buffIndex);
-      } else if (json_key_eq(jbuffVal, _s_gltf_byteLength)) {
-        buffView->byteLength = (size_t)json_uint64(jbuffVal, 0);
-      } else if (json_key_eq(jbuffVal, _s_gltf_byteOffset)) {
-        buffView->byteOffset = (size_t)json_uint64(jbuffVal, 0);
-      } else if (json_key_eq(jbuffVal, _s_gltf_byteStride)) {
-        buffView->byteStride = (size_t)json_uint64(jbuffVal, 0);
-      } else if (json_key_eq(jbuffVal, _s_gltf_name)) {
-        buffView->name = json_strdup(jbuffVal, gst->heap, buffView);
-      } else if (json_key_eq(jbuffVal, _s_gltf_extensions)) {
-        jext = jbuffVal;
-      }
+    gltf_bufferViewProps(jbuffView, &props);
 
-      jbuffVal = jbuffVal->next;
-    }
+    if ((it = props.buffer)
+        && (buffIndex = json_int32(it, -1)) > -1)
+      buffView->buffer = gltf_buffer_at(gst, buffIndex);
+    if ((it = props.byteLength))
+      buffView->byteLength = (size_t)json_uint64(it, 0);
+    if ((it = props.byteOffset))
+      buffView->byteOffset = (size_t)json_uint64(it, 0);
+    if ((it = props.byteStride))
+      buffView->byteStride = (size_t)json_uint64(it, 0);
+    if ((it = props.name))
+      buffView->name = json_strdup(it, gst->heap, buffView);
 
-    if (!gltf_ext_bufferView(gst, buffView, jext)) {
+    if (!gltf_ext_bufferView(gst, buffView, props.extensions)) {
       gst->stop = true;
       return;
     }
 
     flist_sp_insert(&gst->bufferViews, buffView);
+    if (buffViewIndex > 0)
+      gst->bufferViewsByIndex[--buffViewIndex] = buffView;
     jbuffView = jbuffView->next;
   }
 }
@@ -79,6 +143,7 @@ gltf_buffers(json_t * __restrict jbuff,
   char               *localurl;
   char               *uri;
   AkBuffer           *buff;
+  size_t              buffIndex;
     
   if (!(jbuffers = json_array(jbuff)))
     return;
@@ -86,16 +151,24 @@ gltf_buffers(json_t * __restrict jbuff,
   gst   = userdata;
   heap  = gst->heap;
   jbuff = jbuffers->base.value;
+  gst->buffersCount   = jbuffers->count;
+  gst->buffersByIndex = ak_heap_calloc(heap,
+                                       gst->tmpParent,
+                                       sizeof(*gst->buffersByIndex)
+                                       * gst->buffersCount);
+  buffIndex = gst->buffersCount;
 
   while (jbuff) {
     bool foundUri;
+    void *buffParent;
 
-    buff     = ak_heap_calloc(heap, gst->tmpParent, sizeof(*buff));
+    buffParent = gst->borrowBufferViews ? gst->doc : gst->tmpParent;
+    buff       = ak_heap_calloc(heap, buffParent, sizeof(*buff));
     jbuffVal = jbuff->value;
     foundUri = false;
 
     while (jbuffVal) {
-      if (json_key_eq(jbuffVal, _s_gltf_uri)) {
+      if (gltf_jsonKeyEqLen(jbuffVal, _s_gltf_uri, 3)) {
         uri = json_string_dup(jbuffVal);
 
         if (strncmp(uri, _s_gltf_b64d, strlen(_s_gltf_b64d)) == 0) {
@@ -112,7 +185,7 @@ gltf_buffers(json_t * __restrict jbuff,
         foundUri = true;
 
         /* TODO: log if logging enabled (or by log level) */
-      } else if (json_key_eq(jbuffVal, _s_gltf_name)) {
+      } else if (gltf_jsonKeyEqLen(jbuffVal, _s_gltf_name, 4)) {
         buff->name = json_strdup(jbuffVal, heap, buff);
       }
 
@@ -125,6 +198,10 @@ gltf_buffers(json_t * __restrict jbuff,
     }
 
     flist_sp_insert(&gst->buffers, buff);
+    if (gst->borrowBufferViews)
+      flist_sp_insert(&gst->doc->lib.buffers, buff);
+    if (buffIndex > 0)
+      gst->buffersByIndex[--buffIndex] = buff;
     jbuff = jbuff->next;
   }
 }

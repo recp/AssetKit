@@ -18,31 +18,42 @@
 
 AK_HIDE AkEnum
 gltf_enumInputSemantic(const char * name) {
-  AkEnum val;
-  long   glenums_len;
-  long   i;
+  if (!name)
+    return AK_INPUT_OTHER;
 
-  dae_enum glenums[] = {
-    {_s_gltf_COLOR,     AK_INPUT_COLOR},
-    {_s_gltf_JOINTS,    AK_INPUT_JOINT},
-    {_s_gltf_NORMAL,    AK_INPUT_NORMAL},
-    {_s_gltf_POSITION,  AK_INPUT_POSITION},
-    {_s_gltf_TANGENT,   AK_INPUT_TANGENT},
-    {_s_gltf_TEXCOORD,  AK_INPUT_TEXCOORD},
-    {_s_gltf_WEIGHTS,   AK_INPUT_WEIGHT},
-  };
-
-  val = AK_INPUT_OTHER;
-  glenums_len = AK_ARRAY_LEN(glenums);
-
-  for (i = 0; i < glenums_len; i++) {
-    if (strcasecmp(name, glenums[i].name) == 0) {
-      val = glenums[i].val;
+  switch (name[0]) {
+    case 'C':
+      if (strcmp(name, _s_gltf_COLOR) == 0) return AK_INPUT_COLOR;
       break;
-    }
+    case 'J':
+      if (strcmp(name, _s_gltf_JOINTS) == 0) return AK_INPUT_JOINT;
+      break;
+    case 'N':
+      if (strcmp(name, _s_gltf_NORMAL) == 0) return AK_INPUT_NORMAL;
+      break;
+    case 'P':
+      if (strcmp(name, _s_gltf_POSITION) == 0) return AK_INPUT_POSITION;
+      break;
+    case 'T':
+      if (strcmp(name, _s_gltf_TANGENT) == 0) return AK_INPUT_TANGENT;
+      if (strcmp(name, _s_gltf_TEXCOORD) == 0) return AK_INPUT_TEXCOORD;
+      break;
+    case 'W':
+      if (strcmp(name, _s_gltf_WEIGHTS) == 0) return AK_INPUT_WEIGHT;
+      break;
+    default:
+      break;
   }
 
-  return val;
+  if (strcasecmp(name, _s_gltf_COLOR) == 0)    return AK_INPUT_COLOR;
+  if (strcasecmp(name, _s_gltf_JOINTS) == 0)   return AK_INPUT_JOINT;
+  if (strcasecmp(name, _s_gltf_NORMAL) == 0)   return AK_INPUT_NORMAL;
+  if (strcasecmp(name, _s_gltf_POSITION) == 0) return AK_INPUT_POSITION;
+  if (strcasecmp(name, _s_gltf_TANGENT) == 0)  return AK_INPUT_TANGENT;
+  if (strcasecmp(name, _s_gltf_TEXCOORD) == 0) return AK_INPUT_TEXCOORD;
+  if (strcasecmp(name, _s_gltf_WEIGHTS) == 0)  return AK_INPUT_WEIGHT;
+
+  return AK_INPUT_OTHER;
 }
 
 AK_HIDE AkEnum
@@ -74,31 +85,36 @@ gltf_componentLen(int type) {
 
 AK_HIDE AkComponentSize
 gltf_type(const json_t * __restrict json) {
-  AkComponentSize val;
-  long            glenums_len;
-  long            i;
+  const char *value;
 
-  dae_enum glenums[] = {
-    {_s_gltf_SCALAR, AK_COMPONENT_SIZE_SCALAR},
-    {_s_gltf_VEC2,   AK_COMPONENT_SIZE_VEC2},
-    {_s_gltf_VEC3,   AK_COMPONENT_SIZE_VEC3},
-    {_s_gltf_VEC4,   AK_COMPONENT_SIZE_VEC4},
-    {_s_gltf_MAT2,   AK_COMPONENT_SIZE_MAT2},
-    {_s_gltf_MAT3,   AK_COMPONENT_SIZE_MAT3},
-    {_s_gltf_MAT4,   AK_COMPONENT_SIZE_MAT4},
-  };
+  if (!json || !json->value)
+    return AK_COMPONENT_SIZE_UNKNOWN;
 
-  val         = AK_COMPONENT_SIZE_UNKNOWN;
-  glenums_len = AK_ARRAY_LEN(glenums);
-
-  for (i = 0; i < glenums_len; i++) {
-    if (json_val_eq(json, glenums[i].name)) {
-      val = glenums[i].val;
+  value = json->value;
+  switch (json->valsize) {
+    case 4:
+      if (memcmp(value, _s_gltf_VEC2, 4) == 0)
+        return AK_COMPONENT_SIZE_VEC2;
+      if (memcmp(value, _s_gltf_VEC3, 4) == 0)
+        return AK_COMPONENT_SIZE_VEC3;
+      if (memcmp(value, _s_gltf_VEC4, 4) == 0)
+        return AK_COMPONENT_SIZE_VEC4;
+      if (memcmp(value, _s_gltf_MAT2, 4) == 0)
+        return AK_COMPONENT_SIZE_MAT2;
+      if (memcmp(value, _s_gltf_MAT3, 4) == 0)
+        return AK_COMPONENT_SIZE_MAT3;
+      if (memcmp(value, _s_gltf_MAT4, 4) == 0)
+        return AK_COMPONENT_SIZE_MAT4;
       break;
-    }
+    case 6:
+      if (memcmp(value, _s_gltf_SCALAR, 6) == 0)
+        return AK_COMPONENT_SIZE_SCALAR;
+      break;
+    default:
+      break;
   }
 
-  return val;
+  return AK_COMPONENT_SIZE_UNKNOWN;
 }
 
 AK_HIDE AkEnum
@@ -139,27 +155,30 @@ gltf_wrapMode(int type) {
 
 AK_HIDE AkOpaque
 gltf_alphaMode(const json_t * __restrict json) {
-  AkEnum val;
-  long   glenums_len;
-  long   i;
+  const char *value;
 
-  dae_enum glenums[] = {
-    {_s_gltf_OPAQUE, AK_OPAQUE_OPAQUE},
-    {_s_gltf_MASK,   AK_OPAQUE_MASK},
-    {_s_gltf_BLEND,  AK_OPAQUE_BLEND}
-  };
+  if (!json || !json->value)
+    return AK_OPAQUE_OPAQUE;
 
-  val         = AK_OPAQUE_OPAQUE;
-  glenums_len = AK_ARRAY_LEN(glenums);
-
-  for (i = 0; i < glenums_len; i++) {
-    if (json_val_eq(json, glenums[i].name)) {
-      val = glenums[i].val;
+  value = json->value;
+  switch (json->valsize) {
+    case 4:
+      if (memcmp(value, _s_gltf_MASK, 4) == 0)
+        return AK_OPAQUE_MASK;
       break;
-    }
+    case 5:
+      if (memcmp(value, _s_gltf_BLEND, 5) == 0)
+        return AK_OPAQUE_BLEND;
+      break;
+    case 6:
+      if (memcmp(value, _s_gltf_OPAQUE, 6) == 0)
+        return AK_OPAQUE_OPAQUE;
+      break;
+    default:
+      break;
   }
 
-  return val;
+  return AK_OPAQUE_OPAQUE;
 }
 
 AK_HIDE AkInterpolationType

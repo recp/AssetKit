@@ -27,11 +27,18 @@ gltf_samplers(json_t * __restrict jsampler,
   const json_array_t *jsamplers;
   const json_t       *jsamplerVal;
   AkSampler          *sampler;
+  size_t              samplerIndex;
 
   if (!(jsamplers = json_array(jsampler)))
     return;
 
   gst = userdata;
+  gst->samplersCount   = jsamplers->count;
+  gst->samplersByIndex = ak_heap_calloc(gst->heap,
+                                        gst->tmpParent,
+                                        sizeof(*gst->samplersByIndex)
+                                        * gst->samplersCount);
+  samplerIndex = gst->samplersCount;
 
   jsampler = jsamplers->base.value;
   while (jsampler) {
@@ -65,6 +72,8 @@ gltf_samplers(json_t * __restrict jsampler,
     }
 
     flist_sp_insert(&gst->doc->lib.samplers, sampler);
+    if (samplerIndex > 0)
+      gst->samplersByIndex[--samplerIndex] = sampler;
     jsampler = jsampler->next;
   }
 }

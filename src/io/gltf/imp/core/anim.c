@@ -240,7 +240,6 @@ gltf_animResolveNodePointer(AkGLTFState     * __restrict gst,
   uint32_t            nodeIndex;
   uint32_t            itemIndex;
   bool                hasItemIndex;
-  char                nodeid[16];
 
   if (!ptr || ptrLen == 0)
     return false;
@@ -269,8 +268,7 @@ gltf_animResolveNodePointer(AkGLTFState     * __restrict gst,
   hasItemIndex = false;
   itemIndex    = 0;
 
-  sprintf(nodeid, "%s%d", _s_gltf_node, nodeIndex);
-  if (!(node = ak_getObjectById(gst->doc, nodeid)))
+  if (!(node = gltf_node_at(gst, nodeIndex)))
     return false;
 
   if (gltf_animSegEq(prop, propLen, _s_gltf_extensions)) {
@@ -940,7 +938,7 @@ gltf_animResolveMaterialPointer(AkGLTFState     * __restrict gst,
       || p >= end || *p != '/')
     return false;
 
-  GETCHILD(gst->doc->lib.materials->chld, mat, matIndex);
+  mat = gltf_material_at(gst, matIndex);
   if (!(cmn = gltf_animMaterialCommon(mat)))
     return false;
 
@@ -1064,7 +1062,7 @@ gltf_animResolveCameraPointer(AkGLTFState     * __restrict gst,
   if (!gltf_animPtrIndex(&p, end, &camIndex))
     return false;
 
-  GETCHILD(gst->doc->lib.cameras->chld, cam, camIndex);
+  cam = gltf_camera_at(gst, camIndex);
   if (!cam || !cam->optics || !(proj = cam->optics->tcommon))
     return false;
 
@@ -1265,8 +1263,7 @@ gltf_animations(json_t * __restrict janim,
             inp              = ak_heap_calloc(heap, sampler, sizeof(*inp));
             inp->semanticRaw = ak_heap_strdup(gst->heap, anim, _s_gltf_input);
             inp->semantic    = AK_INPUT_INPUT;
-            inp->accessor    = flist_sp_at(&doc->lib.accessors,
-                                           json_int32(jsampVal, -1));
+            inp->accessor    = gltf_accessor_at(gst, json_int32(jsampVal, -1));
             
             ak_retain(inp->accessor);
 
@@ -1280,8 +1277,7 @@ gltf_animations(json_t * __restrict janim,
             inp              = ak_heap_calloc(heap, sampler, sizeof(*inp));
             inp->semanticRaw = ak_heap_strdup(gst->heap, anim, _s_gltf_output);
             inp->semantic    = AK_INPUT_OUTPUT;
-            inp->accessor    = flist_sp_at(&doc->lib.accessors,
-                                           json_int32(jsampVal, -1));
+            inp->accessor    = gltf_accessor_at(gst, json_int32(jsampVal, -1));
             
             ak_retain(inp->accessor);
 
@@ -1355,13 +1351,10 @@ gltf_animations(json_t * __restrict janim,
               if (!gltf_animResolvePointer(gst, ch, it))
                 gst->stop = gst->animPointerRequired;
             } else if (path && (it = targetMap[k_node].object)) {
-              char    nodeid[16];
               int32_t nodeIndex;
               
               if ((nodeIndex = json_int32(it, -1)) > -1) {
-                sprintf(nodeid, "%s%d", _s_gltf_node, nodeIndex);
-                
-                if ((node = ak_getObjectById(doc, nodeid))) {
+                if ((node = gltf_node_at(gst, nodeIndex))) {
                   AkObject *xform = NULL;
 
                   /* glTF always animates whole vec/quat (no partial component),

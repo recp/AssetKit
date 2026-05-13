@@ -95,9 +95,7 @@ gltf_ext_primitiveVariants(AkGLTFState     * __restrict gst,
     if (matIdx < 0)
       continue;
 
-    material = NULL;
-    if (gst->doc->lib.materials)
-      GETCHILD(gst->doc->lib.materials->chld, material, matIdx);
+    material = gltf_material_at(gst, matIdx);
     if (!material)
       continue;
 

@@ -22,18 +22,107 @@
 #include <ds/hash.h>
 #include <string.h>
 
-#define k_name          0
-#define k_camera        1
-#define k_mesh          2
-#define k_skin          3
-#define k_children      4
-#define k_matrix        5
-#define k_translation   6
-#define k_rotation      7
-#define k_scale         8
-#define k_weights       9
-#define k_extensions    10
-#define k_extras        11
+typedef struct AkGLTFNodeProps {
+  json_t *name;
+  json_t *camera;
+  json_t *mesh;
+  json_t *skin;
+  json_t *children;
+  json_t *matrix;
+  json_t *translation;
+  json_t *rotation;
+  json_t *scale;
+  json_t *weights;
+  json_t *extensions;
+  json_t *extras;
+} AkGLTFNodeProps;
+
+static inline
+void
+gltf_nodeProps(json_t          * __restrict jnode,
+               AkGLTFNodeProps * __restrict props) {
+  json_t *it;
+  char    first;
+
+  if (!jnode || jnode->type != JSON_OBJECT)
+    return;
+
+  for (it = jnode->value; it; it = it->next) {
+    if (!it->key)
+      continue;
+
+    first = it->key[0];
+
+    switch (it->keysize) {
+      case 4:
+        if (first == 'n' && gltf_jsonKeyEqLen(it, _s_gltf_name, 4)) {
+          props->name = it;
+        } else if (first == 'm' && gltf_jsonKeyEqLen(it, _s_gltf_mesh, 4)) {
+          props->mesh = it;
+        } else if (first == 's' && gltf_jsonKeyEqLen(it, _s_gltf_skin, 4)) {
+          props->skin = it;
+        }
+        break;
+      case 5:
+        if (first == 's' && gltf_jsonKeyEqLen(it, _s_gltf_scale, 5))
+          props->scale = it;
+        break;
+      case 6:
+        if (first == 'c' && gltf_jsonKeyEqLen(it, _s_gltf_camera, 6)) {
+          props->camera = it;
+        } else if (first == 'm' && gltf_jsonKeyEqLen(it, _s_gltf_matrix, 6)) {
+          props->matrix = it;
+        } else if (first == 'e' && gltf_jsonKeyEqLen(it, _s_gltf_extras, 6)) {
+          props->extras = it;
+        }
+        break;
+      case 7:
+        if (first == 'w' && gltf_jsonKeyEqLen(it, _s_gltf_weights, 7))
+          props->weights = it;
+        break;
+      case 8:
+        if (first == 'c' && gltf_jsonKeyEqLen(it, _s_gltf_children, 8)) {
+          props->children = it;
+        } else if (first == 'r' && gltf_jsonKeyEqLen(it, _s_gltf_rotation, 8)) {
+          props->rotation = it;
+        }
+        break;
+      case 10:
+        if (first == 'e' && gltf_jsonKeyEqLen(it, _s_gltf_extensions, 10))
+          props->extensions = it;
+        break;
+      case 11:
+        if (first == 't' && gltf_jsonKeyEqLen(it, _s_gltf_translation, 11))
+          props->translation = it;
+        break;
+      default:
+        break;
+    }
+  }
+}
+
+static inline
+void
+gltf_nodeId(char * __restrict dst, unsigned int index) {
+  char         tmp[16];
+  char        *p;
+  unsigned int n;
+
+  memcpy(dst, _s_gltf_node, 4);
+  p = dst + 4;
+  n = 0;
+
+  do {
+    tmp[n++] = (char)('0' + index % 10);
+    index /= 10;
+  } while (index);
+
+  do {
+    *p++ = tmp[--n];
+  } while (n);
+
+  *p = '\0';
+}
 
 AK_HIDE
 void
@@ -57,6 +146,11 @@ gltf_nodes(json_t * __restrict jnode,
   heap      = gst->heap;
   doc       = gst->doc;
   lib       = ak_heap_calloc(heap, doc, sizeof(*lib));
+  gst->nodesCount   = jnodes->count;
+  gst->nodesByIndex = ak_heap_calloc(heap,
+                                     gst->tmpParent,
+                                     sizeof(*gst->nodesByIndex)
+                                     * gst->nodesCount);
   nodechld  = ak_calloc(NULL, sizeof(*nodechld) * jnodes->count * 2);
   nodes     = NULL;
 
@@ -66,9 +160,10 @@ gltf_nodes(json_t * __restrict jnode,
   
   while (jnode) {
     nodechld[i * 2] = node = gltf_node(gst, lib, jnode, nodechld);
+    gst->nodesByIndex[i] = node;
   
     /* JSON parse is reverse */
-    sprintf(nodeid, "%s%d", _s_gltf_node, i);
+    gltf_nodeId(nodeid, (unsigned int)i);
     ak_heap_setId(heap, ak__alignof(node), ak_heap_strdup(heap, node, nodeid));
 
     i--;
@@ -118,6 +213,7 @@ gltf_node(AkGLTFState * __restrict gst,
   AkNode             *node;
   AkGeometry         *geomIter;
   AkInstanceGeometry *instGeom;
+  AkGLTFNodeProps     props;
   void               *it;
   AkMorph            *morph;
   int32_t             i32val;
@@ -125,48 +221,34 @@ gltf_node(AkGLTFState * __restrict gst,
   heap     = gst->heap;
   geomIter = NULL;
   instGeom = NULL;
+  props    = (AkGLTFNodeProps){0};
 
   node = ak_heap_calloc(heap, memParent, sizeof(*node));
   ak_setypeid(node, AKT_NODE);
   node->visible = true;
 
-  json_objmap_t nodeMap[] = {
-    JSON_OBJMAP_OBJ(_s_gltf_name,        I2P k_name),
-    JSON_OBJMAP_OBJ(_s_gltf_camera,      I2P k_camera),
-    JSON_OBJMAP_OBJ(_s_gltf_mesh,        I2P k_mesh),
-    JSON_OBJMAP_OBJ(_s_gltf_skin,        I2P k_skin),
-    JSON_OBJMAP_OBJ(_s_gltf_children,    I2P k_children),
-    JSON_OBJMAP_OBJ(_s_gltf_matrix,      I2P k_matrix),
-    JSON_OBJMAP_OBJ(_s_gltf_translation, I2P k_translation),
-    JSON_OBJMAP_OBJ(_s_gltf_rotation,    I2P k_rotation),
-    JSON_OBJMAP_OBJ(_s_gltf_scale,       I2P k_scale),
-    JSON_OBJMAP_OBJ(_s_gltf_weights,     I2P k_weights),
-    JSON_OBJMAP_OBJ(_s_gltf_extensions,  I2P k_extensions),
-    JSON_OBJMAP_OBJ(_s_gltf_extras,      I2P k_extras)
-  };
+  gltf_nodeProps(jnode, &props);
 
-  json_objmap(jnode, nodeMap, JSON_ARR_LEN(nodeMap));
-
-  if ((it = nodeMap[k_name].object)) {
+  if ((it = props.name)) {
     node->name = json_strdup(it, heap, node);
   }
 
   gltf_extra(gst,
              node,
-             nodeMap[k_extras].object,
-             nodeMap[k_extensions].object);
+             props.extras,
+             props.extensions);
 
-  if ((it = nodeMap[k_extensions].object)
+  if ((it = props.extensions)
       && !gltf_ext_node(gst, node, it)) {
     gst->stop = true;
     return node;
   }
 
   if (gst->doc->lib.cameras
-      && (i32val = json_int32(nodeMap[k_camera].object, -1)) > -1) {
+      && (i32val = json_int32(props.camera, -1)) > -1) {
     AkCamera *camIter;
 
-    GETCHILD(gst->doc->lib.cameras->chld, camIter, i32val);
+    camIter = gltf_camera_at(gst, i32val);
 
     if (camIter) {
       AkInstanceBase *instCamera;
@@ -180,8 +262,8 @@ gltf_node(AkGLTFState * __restrict gst,
   }
 
   /* instance geometries */
-  if ((i32val = json_int32(nodeMap[k_mesh].object, -1)) > -1) {
-    GETCHILD(gst->doc->lib.geometries->chld, geomIter, i32val);
+  if ((i32val = json_int32(props.mesh, -1)) > -1) {
+    geomIter = gltf_geometry_at(gst, i32val);
 
     /* instance geometry */
     if (geomIter) {
@@ -195,7 +277,7 @@ gltf_node(AkGLTFState * __restrict gst,
   }
 
   /* children */
-  if ((it = nodeMap[k_children].object)) {
+  if ((it = props.children)) {
     json_array_t *jchildren;
     json_t       *jchld;
     int           chldIndex;
@@ -225,11 +307,11 @@ gltf_node(AkGLTFState * __restrict gst,
   /* first parsed is added to the end so TRS. */
 
   /* matrix */
-  if ((it = nodeMap[k_matrix].object)) {
+  if ((it = props.matrix)) {
     AkObject *obj;
     AkMatrix *matrix;
 
-    obj    = ak_objAlloc(heap, node, sizeof(*matrix), AKT_MATRIX, true);
+    obj    = ak_objAlloc(heap, node, sizeof(*matrix), AKT_MATRIX, false);
     matrix = ak_objGet(obj);
 
     json_array_float(matrix->val[0], it, 0.0f, 16, true);
@@ -243,11 +325,11 @@ gltf_node(AkGLTFState * __restrict gst,
   }
   
   /* scale */
-  if ((it = nodeMap[k_scale].object)) {
+  if ((it = props.scale)) {
     AkObject *obj;
     AkScale  *scale;
 
-    obj   = ak_objAlloc(heap, node, sizeof(*obj), AKT_SCALE, true);
+    obj   = ak_objAlloc(heap, node, sizeof(*scale), AKT_SCALE, false);
     scale = ak_objGet(obj);
 
     json_array_float(scale->val, it, 0.0f, 3, true);
@@ -261,11 +343,11 @@ gltf_node(AkGLTFState * __restrict gst,
   }
 
   /* rotation */
-  if ((it = nodeMap[k_rotation].object)) {
+  if ((it = props.rotation)) {
     AkObject     *obj;
     AkQuaternion *rot;
 
-    obj = ak_objAlloc(heap, node, sizeof(*obj), AKT_QUATERNION, true);
+    obj = ak_objAlloc(heap, node, sizeof(*rot), AKT_QUATERNION, false);
     rot = ak_objGet(obj);
 
     json_array_float(rot->val, it, 0.0f, 4, true);
@@ -279,11 +361,11 @@ gltf_node(AkGLTFState * __restrict gst,
   }
 
   /* translation */
-  if ((it = nodeMap[k_translation].object)) {
+  if ((it = props.translation)) {
     AkObject    *obj;
     AkTranslate *translate;
 
-    obj = ak_objAlloc(heap, node, sizeof(*translate), AKT_TRANSLATE, true);
+    obj = ak_objAlloc(heap, node, sizeof(*translate), AKT_TRANSLATE, false);
     translate = ak_objGet(obj);
 
     json_array_float(translate->val, it, 0.0f, 3, true);
@@ -312,7 +394,7 @@ gltf_node(AkGLTFState * __restrict gst,
          - defaults flow through:    morph.defaultWeights → mesh.weights → 0
        Allocating a zero-filled array unconditionally would silently override
        any defaults — see ak_morphInspect_initialWeight precedence. */
-    if ((it = json_array(nodeMap[k_weights].object))) {
+    if ((it = json_array(props.weights))) {
       AkFloatArray *weights;
       json_array_t *jsonArr;
 
@@ -328,7 +410,7 @@ gltf_node(AkGLTFState * __restrict gst,
   }
   
   /* bind skinnerr after skin is loaded */
-  if (instGeom && (i32val = json_int32(nodeMap[k_skin].object, -1)) > -1) {
+  if (instGeom && (i32val = json_int32(props.skin, -1)) > -1) {
 
     rb_insert(gst->skinBound, node, I2P i32val);
 

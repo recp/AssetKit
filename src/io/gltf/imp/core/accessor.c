@@ -19,16 +19,76 @@
 #include "buffer.h"
 #include "../../../../accessor.h"
 
-#define k_gltf_bufferView    0
-#define k_gltf_byteOffset    1
-#define k_gltf_componentType 2
-#define k_gltf_normalized    3
-#define k_gltf_count         4
-#define k_gltf_type          5
-#define k_gltf_max           6
-#define k_gltf_min           7
-#define k_gltf_sparse        8
-#define k_gltf_name          9
+typedef struct AkGLTFAccessorProps {
+  const json_t *bufferView;
+  const json_t *byteOffset;
+  const json_t *componentType;
+  const json_t *normalized;
+  const json_t *count;
+  const json_t *type;
+  const json_t *max;
+  const json_t *min;
+  const json_t *sparse;
+  const json_t *name;
+} AkGLTFAccessorProps;
+
+static inline
+void
+gltf_accessorProps(const json_t       * __restrict jacc,
+                   AkGLTFAccessorProps * __restrict props) {
+  const json_t *it;
+  char          first;
+
+  if (!jacc || jacc->type != JSON_OBJECT)
+    return;
+
+  for (it = jacc->value; it; it = it->next) {
+    if (!it->key)
+      continue;
+
+    first = it->key[0];
+
+    switch (it->keysize) {
+      case 3:
+        if (first == 'm' && gltf_jsonKeyEqLen(it, _s_gltf_max, 3)) {
+          props->max = it;
+        } else if (first == 'm' && gltf_jsonKeyEqLen(it, _s_gltf_min, 3)) {
+          props->min = it;
+        }
+        break;
+      case 4:
+        if (first == 'n' && gltf_jsonKeyEqLen(it, _s_gltf_name, 4)) {
+          props->name = it;
+        } else if (first == 't' && gltf_jsonKeyEqLen(it, _s_gltf_type, 4)) {
+          props->type = it;
+        }
+        break;
+      case 5:
+        if (first == 'c' && gltf_jsonKeyEqLen(it, _s_gltf_count, 5))
+          props->count = it;
+        break;
+      case 6:
+        if (first == 's' && gltf_jsonKeyEqLen(it, _s_gltf_sparse, 6))
+          props->sparse = it;
+        break;
+      case 10:
+        if (first == 'b' && gltf_jsonKeyEqLen(it, _s_gltf_bufferView, 10)) {
+          props->bufferView = it;
+        } else if (first == 'b' && gltf_jsonKeyEqLen(it, _s_gltf_byteOffset, 10)) {
+          props->byteOffset = it;
+        } else if (first == 'n' && gltf_jsonKeyEqLen(it, _s_gltf_normalized, 10)) {
+          props->normalized = it;
+        }
+        break;
+      case 13:
+        if (first == 'c' && gltf_jsonKeyEqLen(it, _s_gltf_componentType, 13))
+          props->componentType = it;
+        break;
+      default:
+        break;
+    }
+  }
+}
 
 AK_HIDE
 void
@@ -39,7 +99,9 @@ gltf_accessors(json_t * __restrict json,
   AkHeap             *heap;
   const json_array_t *jaccessors, *jarr;
   const json_t       *jitem, *it;
+  AkGLTFAccessorProps accProps;
   AkAccessor         *acc;
+  size_t              accIndex;
   int                 componentLen, count, bound;
 
   if (!(jaccessors = json_array(json)))
@@ -50,84 +112,83 @@ gltf_accessors(json_t * __restrict json,
   heap         = gst->heap;
   json         = jaccessors->base.value;
   componentLen = 1;
+  gst->accessorsCount   = jaccessors->count;
+  gst->accessorsByIndex = ak_heap_calloc(heap,
+                                         gst->tmpParent,
+                                         sizeof(*gst->accessorsByIndex)
+                                         * gst->accessorsCount);
+  accIndex     = gst->accessorsCount;
 
   while (json) {
     acc = ak_heap_calloc(heap, doc, sizeof(*acc));
 
     ak_setypeid(acc, AKT_ACCESSOR);
 
-    json_objmap_t accMap[] = {
-      JSON_OBJMAP_OBJ(_s_gltf_bufferView,    I2P k_gltf_bufferView),
-      JSON_OBJMAP_OBJ(_s_gltf_byteOffset,    I2P k_gltf_byteOffset),
-      JSON_OBJMAP_OBJ(_s_gltf_componentType, I2P k_gltf_componentType),
-      JSON_OBJMAP_OBJ(_s_gltf_normalized,    I2P k_gltf_normalized),
-      JSON_OBJMAP_OBJ(_s_gltf_count,         I2P k_gltf_count),
-      JSON_OBJMAP_OBJ(_s_gltf_type,          I2P k_gltf_type),
-      JSON_OBJMAP_OBJ(_s_gltf_max,           I2P k_gltf_max),
-      JSON_OBJMAP_OBJ(_s_gltf_min,           I2P k_gltf_min),
-      JSON_OBJMAP_OBJ(_s_gltf_sparse,        I2P k_gltf_sparse),
-      JSON_OBJMAP_OBJ(_s_gltf_name,          I2P k_gltf_name)
-    };
-
-    json_objmap(json, accMap, JSON_ARR_LEN(accMap));
+    accProps = (AkGLTFAccessorProps){0};
+    gltf_accessorProps(json, &accProps);
   
-    if ((it = accMap[k_gltf_name].object)) {
+    if ((it = accProps.name)) {
       acc->name = json_strdup(it, heap, acc);
     }
     
+    if ((it = accProps.byteOffset)) {
+      acc->byteOffset = json_uint64(it, 0);
+    }
+
     /*  merge bufferView with acessor and buffer */
-    if ((it = accMap[k_gltf_bufferView].object)) {
+    if ((it = accProps.bufferView)) {
       AkBuffer     *buff, *tmpbuff;
       AkBufferView *buffView;
       int32_t       buffViewIndex;
       
       if ((buffViewIndex = json_int32(it, -1)) > -1
-          && (buffView = flist_sp_at(&gst->bufferViews, buffViewIndex))
+          && (buffView = gltf_bufferView_at(gst, buffViewIndex))
           && (tmpbuff = buffView->buffer)
           /* tmpbuff->data is NULL when the source buffer is supplied via
              an unsupported extension (EXT_meshopt_compression,
              KHR_draco_mesh_compression, ...). Skip — accessor will be
              buffer-less rather than reading from a NULL pointer. */
           && tmpbuff->data) {
-        if (!(buff = rb_find(gst->bufferMap, buffView))) {
-          buff         = ak_heap_calloc(heap, doc, sizeof(*buff));
-          buff->data   = ak_heap_alloc(heap, buff, buffView->byteLength);
-          buff->length = buffView->byteLength;
+        if (gst->borrowBufferViews) {
+          buff = tmpbuff;
+          acc->byteOffset += buffView->byteOffset;
+        } else {
+          if (!(buff = rb_find(gst->bufferMap, buffView))) {
+            buff         = ak_heap_calloc(heap, doc, sizeof(*buff));
+            buff->data   = ak_heap_alloc(heap, buff, buffView->byteLength);
+            buff->length = buffView->byteLength;
 
-          memcpy(buff->data,
-                 (char *)tmpbuff->data + buffView->byteOffset,
-                 buffView->byteLength);
+            memcpy(buff->data,
+                   (char *)tmpbuff->data + buffView->byteOffset,
+                   buffView->byteLength);
 
-          rb_insert(gst->bufferMap, buffView, buff);
+            rb_insert(gst->bufferMap, buffView, buff);
+          }
+
+          flist_sp_insert(&doc->lib.buffers, buff);
         }
 
         acc->byteStride = buffView->byteStride;
         acc->buffer     = buff;
-
-        flist_sp_insert(&doc->lib.buffers, buff);
       }
     }
-
-    if ((it = accMap[k_gltf_byteOffset].object)) {
-      acc->byteOffset = json_uint64(it, 0);
-    }
     
-    if ((it = accMap[k_gltf_componentType].object)) {
+    if ((it = accProps.componentType)) {
       int componentType;
       componentType      = json_int32(it, -1);
       acc->componentType = gltf_componentType(componentType);
       componentLen       = gltf_componentLen(componentType);
     }
     
-    if ((it = accMap[k_gltf_normalized].object)) {
+    if ((it = accProps.normalized)) {
       acc->normalized = json_bool(it, false);
     }
     
-    if ((it = accMap[k_gltf_count].object)) {
+    if ((it = accProps.count)) {
       acc->count = json_uint32(it, 0);
     }
     
-    if ((it = accMap[k_gltf_type].object)) {
+    if ((it = accProps.type)) {
       acc->componentSize = gltf_type(it);
     }
 
@@ -164,7 +225,7 @@ gltf_accessors(json_t * __restrict json,
 
     if (acc->componentSize != AK_COMPONENT_SIZE_UNKNOWN
         && acc->fillByteSize > 0) {
-      if ((it = accMap[k_gltf_min].object) && it->value) {
+      if ((it = accProps.min) && it->value) {
         acc->min = ak_heap_alloc(heap, acc, acc->fillByteSize);
 
         if ((jarr = json_array(it))) {
@@ -172,7 +233,7 @@ gltf_accessors(json_t * __restrict json,
           count = jarr->count;
 
           while (jitem) {
-            json_array_set(acc->min, acc->componentType, --count, it);
+            json_array_set(acc->min, acc->componentType, --count, jitem);
             jitem = jitem->next;
           }
         } else {
@@ -180,7 +241,7 @@ gltf_accessors(json_t * __restrict json,
         }
       }
 
-      if ((it = accMap[k_gltf_max].object) && it->value) {
+      if ((it = accProps.max) && it->value) {
         acc->max = ak_heap_alloc(heap, acc, acc->fillByteSize);
 
         if ((jarr = json_array(it))) {
@@ -188,7 +249,7 @@ gltf_accessors(json_t * __restrict json,
           count = jarr->count;
 
           while (jitem) {
-            json_array_set(acc->max, acc->componentType, --count, it);
+            json_array_set(acc->max, acc->componentType, --count, jitem);
             jitem = jitem->next;
           }
         } else {
@@ -203,7 +264,7 @@ gltf_accessors(json_t * __restrict json,
        buffer is initialized to zeros; otherwise it starts as a copy of the
        referenced bufferView slice. Then sparse.values overwrite the entries
        at sparse.indices. */
-    if ((it = accMap[k_gltf_sparse].object)) {
+    if ((it = accProps.sparse)) {
       json_t       *jsCount, *jsIndices, *jsValues, *node;
       AkBufferView *idxBV, *valBV;
       AkBuffer     *denseBuff;
@@ -237,10 +298,8 @@ gltf_accessors(json_t * __restrict json,
         valByteOffset = (node = json_get(jsValues, _s_gltf_byteOffset))
                           ? json_uint64(node, 0) : 0;
 
-        idxBV = (idxBVIdx >= 0)
-                  ? flist_sp_at(&gst->bufferViews, idxBVIdx) : NULL;
-        valBV = (valBVIdx >= 0)
-                  ? flist_sp_at(&gst->bufferViews, valBVIdx) : NULL;
+        idxBV = gltf_bufferView_at(gst, idxBVIdx);
+        valBV = gltf_bufferView_at(gst, valBVIdx);
 
         if (idxBV && valBV && idxBV->buffer && valBV->buffer) {
           totalSize         = (size_t)acc->fillByteSize * acc->count;
@@ -438,6 +497,8 @@ gltf_accessors(json_t * __restrict json,
     /* (byteStride normalization done up front, before sparse + dequantize) */
 
     flist_sp_insert(&gst->doc->lib.accessors, acc);
+    if (accIndex > 0)
+      gst->accessorsByIndex[--accIndex] = acc;
 
     json = json->next;
   }

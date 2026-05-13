@@ -57,7 +57,7 @@ gltf_skin(json_t * __restrict jskin,
         AkBuffer   *buff;
         float      *pbuff;
         
-        if ((acc = flist_sp_at(&doc->lib.accessors, json_int32(jskinVal, -1)))
+        if ((acc = gltf_accessor_at(gst, json_int32(jskinVal, -1)))
             && (buff = acc->buffer)) {
           pbuff = (void *)((char *)buff->data + acc->byteOffset);
           skin->invBindPoses = ak_heap_alloc(heap, skin,
@@ -80,14 +80,11 @@ gltf_skin(json_t * __restrict jskin,
           jjoint = jjoints->base.value;
           j      = jjoints->count - 1; /* json parser is reverse */
           while (jjoint) {
-            char     nodeid[16];
             AkNode  *node;
             int32_t  nodeIndex;
 
             if ((nodeIndex = json_int32(jjoint, -1)) > -1) {
-              sprintf(nodeid, "%s%d", _s_gltf_node, nodeIndex);
-
-              if ((node = ak_getObjectById(doc, nodeid))) {
+              if ((node = gltf_node_at(gst, nodeIndex))) {
                 skin->joints[j] = node;
               } else {
                 skin->joints[j] = NULL;
@@ -107,12 +104,10 @@ gltf_skin(json_t * __restrict jskin,
            use it as the coordinate-space reference. We resolve the node
            id to AkNode* — fall back to NULL if missing or unresolved
            (callers default to joints[0]). */
-        char    skelid[16];
         int32_t skelIndex;
 
         if ((skelIndex = json_int32(jskinVal, -1)) > -1) {
-          sprintf(skelid, "%s%d", _s_gltf_node, skelIndex);
-          skin->skeleton = ak_getObjectById(doc, skelid);
+          skin->skeleton = gltf_node_at(gst, skelIndex);
         }
       } /* if _s_gltf_joints */
 

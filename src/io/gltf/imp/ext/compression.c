@@ -90,7 +90,7 @@ gltf_ext_bufferView(AkGLTFState  * __restrict gst,
   it      = json_get(jmo, _s_gltf_buffer);
   buffIdx = it ? json_int32(it, -1) : -1;
   if (buffIdx < 0
-      || !(srcBuff = flist_sp_at(&gst->buffers, buffIdx))
+      || !(srcBuff = gltf_buffer_at(gst, buffIdx))
       || !srcBuff->data)
     return false;
 

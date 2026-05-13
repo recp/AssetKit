@@ -114,7 +114,7 @@ gltf_ext_primitiveGaussianSplat(AkGLTFState     * __restrict gst,
         return false;
 
       bvIdx = json_int32(jbv, -1);
-      bv    = (bvIdx >= 0) ? flist_sp_at(&gst->bufferViews, bvIdx) : NULL;
+      bv    = gltf_bufferView_at(gst, bvIdx);
       if (!bv || !bv->buffer || !bv->buffer->data || bv->byteLength == 0)
         return false;
 

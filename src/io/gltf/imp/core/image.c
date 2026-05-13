@@ -57,6 +57,7 @@ gltf_images(json_t * __restrict jimage,
   const json_array_t *jimages;
   AkImage            *image;
   json_t             *it;
+  size_t              imageIndex;
 
   if (!(jimages = json_array(jimage)))
     return;
@@ -64,6 +65,12 @@ gltf_images(json_t * __restrict jimage,
   gst    = userdata;
   heap   = gst->heap;
   jimage = jimages->base.value;
+  gst->imagesCount   = jimages->count;
+  gst->imagesByIndex = ak_heap_calloc(heap,
+                                      gst->tmpParent,
+                                      sizeof(*gst->imagesByIndex)
+                                      * gst->imagesCount);
+  imageIndex = gst->imagesCount;
 
   while (jimage) {
     AkInitFrom *initFrom;
@@ -94,7 +101,7 @@ gltf_images(json_t * __restrict jimage,
       int32_t       buffViewIndex;
       
       if ((buffViewIndex = json_int32(it, -1)) > -1
-          && (buffView = flist_sp_at(&gst->bufferViews, buffViewIndex))
+          && (buffView = gltf_bufferView_at(gst, buffViewIndex))
           && (tmpbuff = buffView->buffer)) {
         initFrom             = ak_heap_calloc(heap, image, sizeof(*initFrom));
         initFrom->buff       = ak_heap_calloc(heap,
@@ -139,6 +146,8 @@ gltf_images(json_t * __restrict jimage,
     }
 
     flist_sp_insert(&gst->doc->lib.images, image);
+    if (imageIndex > 0)
+      gst->imagesByIndex[--imageIndex] = image;
     jimage = jimage->next;
   }
 }

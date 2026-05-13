@@ -17,7 +17,6 @@
 #include <draco/compression/decode.h>
 
 #include <memory>
-#include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -139,17 +138,42 @@ typedef struct AkGLTFState {
   json_t       *root;
   void         *tmpParent;
   FListItem    *buffers;
+  AkBuffer    **buffersByIndex;
   RBTree       *bufferMap;
   FListItem    *bufferViews;
+  AkBufferView **bufferViewsByIndex;
+  AkAccessor  **accessorsByIndex;
+  void        **imagesByIndex;
+  void        **samplersByIndex;
+  void        **texturesByIndex;
+  void        **materialsByIndex;
+  void        **geometriesByIndex;
+  void        **camerasByIndex;
+  void        **nodesByIndex;
   RBTree       *skinBound;
   RBTree       *meshTargets;
   void         *bindata;
   void         *defaultMaterial;
   void         *meshopt;
   void         *draco;
+  void         *spz;
+  void         *ktx2;
+  void         *defaultSampler;
   size_t        bindataLen;
+  size_t        buffersCount;
+  size_t        bufferViewsCount;
+  size_t        accessorsCount;
+  size_t        imagesCount;
+  size_t        samplersCount;
+  size_t        texturesCount;
+  size_t        materialsCount;
+  size_t        geometriesCount;
+  size_t        camerasCount;
+  size_t        nodesCount;
   bool          stop;
   bool          isbinary;
+  bool          animPointerRequired;
+  bool          borrowBufferViews;
 } AkGLTFState;
 
 extern "C" {
@@ -166,18 +190,29 @@ extern "C" {
 static
 int32_t
 ak_draco_json_int32(const json_t * __restrict obj, int32_t def) {
-  char *end;
-  long  val;
+  const char *p;
+  const char *end;
+  int32_t     val;
+  bool        neg;
 
   if (!obj || obj->type != JSON_STRING || !obj->value)
     return def;
 
-  errno = 0;
-  val   = strtol((const char *)obj->value, &end, 10);
-  if (errno != 0 || end == (const char *)obj->value)
+  p   = (const char *)obj->value;
+  end = p + obj->valsize;
+  neg = p < end && *p == '-';
+  if (neg || (p < end && *p == '+'))
+    p++;
+  if (p >= end || *p < '0' || *p > '9')
     return def;
 
-  return (int32_t)val;
+  val = 0;
+  do {
+    val = val * 10 + (*p - '0');
+    p++;
+  } while (p < end && *p >= '0' && *p <= '9');
+
+  return neg ? -val : val;
 }
 
 static
@@ -202,6 +237,28 @@ ak_draco_json_get(const json_t * __restrict object,
 
 #define json_get   ak_draco_json_get
 #define json_int32 ak_draco_json_int32
+
+static
+AkAccessor*
+ak_draco_accessor_at(AkGLTFState * __restrict gst, int32_t index) {
+  if (index >= 0
+      && (size_t)index < gst->accessorsCount
+      && gst->accessorsByIndex)
+    return gst->accessorsByIndex[(size_t)index];
+
+  return (AkAccessor *)flist_sp_at(&gst->doc->lib.accessors, index);
+}
+
+static
+AkBufferView*
+ak_draco_bufferView_at(AkGLTFState * __restrict gst, int32_t index) {
+  if (index >= 0
+      && (size_t)index < gst->bufferViewsCount
+      && gst->bufferViewsByIndex)
+    return gst->bufferViewsByIndex[(size_t)index];
+
+  return (AkBufferView *)flist_sp_at(&gst->bufferViews, index);
+}
 
 static
 json_t*
@@ -438,7 +495,7 @@ ak_draco_fill_primitive(AkGLTFState       * __restrict gst,
   jidx = json_get(jprim, _s_gltf_indices);
   if (jidx) {
     accIdx = json_int32(jidx, -1);
-    acc    = (AkAccessor *)flist_sp_at(&gst->doc->lib.accessors, accIdx);
+    acc    = ak_draco_accessor_at(gst, accIdx);
     if (!acc || !ak_draco_fill_indices(gst, mesh, acc))
       return false;
   }
@@ -456,7 +513,7 @@ ak_draco_fill_primitive(AkGLTFState       * __restrict gst,
 
     accIdx = json_int32(jattr,  -1);
     attId  = json_int32(jdattr, -1);
-    acc    = (AkAccessor *)flist_sp_at(&gst->doc->lib.accessors, accIdx);
+    acc    = ak_draco_accessor_at(gst, accIdx);
     if (!acc)
       return false;
 
@@ -498,7 +555,7 @@ ak_draco_decode_gltf_primitive(AkGLTFState     *gst,
   if (bvIdx < 0)
     return -1;
 
-  bv = (AkBufferView *)flist_sp_at(&gst->bufferViews, bvIdx);
+  bv = ak_draco_bufferView_at(gst, bvIdx);
   if (!bv || !(buff = bv->buffer) || !buff->data)
     return -1;
 

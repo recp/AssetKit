@@ -36,17 +36,34 @@
 #include "extra.h"
 #include "postscript.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
 static
 AkResult
 gltf_parse(AkDoc     ** __restrict dest,
            const char * __restrict filepath,
            const char * __restrict contents,
+           size_t                  contentsLen,
            void       * __restrict bindata,
            size_t                  bindataLen);
 
 static
 void
 ak_gltfFreeDupl(RBTree *tree, RBNode *node);
+
+static
+bool
+gltf_profile_enabled(void);
+
+static
+double
+gltf_profile_now_ms(void);
+
+static
+void
+gltf_profile_log(const char *name, double elapsed);
 
 AK_HIDE
 AkResult
@@ -106,7 +123,7 @@ gltf_glb(AkDoc     ** __restrict dest,
    pdata[chunkLength] = '\0';
    */
 
-  ret = gltf_parse(dest, filepath, jsonData, bindata, bindataLen);
+  ret = gltf_parse(dest, filepath, jsonData, chunkLength, bindata, bindataLen);
 
 done:
   if (data) {
@@ -130,7 +147,7 @@ gltf_gltf(AkDoc     ** __restrict dest,
   if ((ret = ak_readfile(filepath, NULL, &jsonString, &jsonSize)) != AK_OK)
     return ret;
 
-  ret = gltf_parse(dest, filepath, jsonString, NULL, 0);
+  ret = gltf_parse(dest, filepath, jsonString, jsonSize, NULL, 0);
 
   if (jsonString)
     ak_releasefile(jsonString, jsonSize);
@@ -143,19 +160,24 @@ AkResult
 gltf_parse(AkDoc     ** __restrict dest,
            const char * __restrict filepath,
            const char * __restrict contents,
+           size_t                  contentsLen,
            void       * __restrict bindata,
            size_t                  bindataLen) {
   AkHeap           *heap;
   AkDoc            *doc;
-  const json_doc_t *gltfRawDoc;
+  json_doc_t       *gltfRawDoc;
   json_t           *json;
   AkGLTFState       gstVal, *gst;
   AkResult          ret;
+  double            profStart, profSection;
+  bool              prof;
   
-  if (!contents)
+  if (!contents || contentsLen == 0)
     return AK_ERR;
 
   ret  = AK_OK;
+  prof = gltf_profile_enabled();
+  profStart = profSection = prof ? gltf_profile_now_ms() : 0.0;
   heap = ak_heap_new(NULL, NULL, NULL);
   doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
   
@@ -182,19 +204,24 @@ gltf_parse(AkDoc     ** __restrict dest,
   gstVal.heap      = heap;
   gstVal.bindata   = bindata;
   gstVal.bindataLen = bindataLen;
-  gstVal.borrowBufferViews = bindata != NULL && ak_opt_get(AK_OPT_USE_MMAP);
+  gstVal.borrowBufferViews = ak_opt_get(AK_OPT_USE_MMAP)
+                              && (AkCoordCvtType)ak_opt_get(AK_OPT_COORD_CONVERT_TYPE)
+                                 != AK_COORD_CVT_ALL;
   gstVal.tmpParent = ak_heap_alloc(heap, doc, sizeof(void*));
   gst->bufferMap   = rb_newtree_ptr();
   gst->meshTargets = rb_newtree_ptr();
   gst->skinBound   = rb_newtree_ptr();
   gst->skinBound->userData = gst;
   
-  gltfRawDoc = json_parse(contents, true);
+  profSection = prof ? gltf_profile_now_ms() : 0.0;
+  gltfRawDoc = json_parse_len(contents, contentsLen, true);
+  if (prof)
+    gltf_profile_log("json_parse", gltf_profile_now_ms() - profSection);
   if (!gltfRawDoc || !gltfRawDoc->root) {
     ak_free(doc);
 
     if (gltfRawDoc)
-      free((void *)gltfRawDoc);
+      json_free(gltfRawDoc);
     return AK_ERR;
   }
 
@@ -202,6 +229,7 @@ gltf_parse(AkDoc     ** __restrict dest,
     doc->inf->dirlen = strlen(doc->inf->dir);
 
   json = gltfRawDoc->root;
+  profSection = prof ? gltf_profile_now_ms() : 0.0;
   gltf_extra(gst,
              doc,
              json_get(json, _s_gltf_extras),
@@ -215,6 +243,8 @@ gltf_parse(AkDoc     ** __restrict dest,
                   _s_gltf_extensionsRequired,
                   json_get(json, _s_gltf_extensionsRequired));
   gltf_ext_root(json_get(json, _s_gltf_extensions), gst);
+  if (prof)
+    gltf_profile_log("root_extra", gltf_profile_now_ms() - profSection);
 
   /* json_print_human(stderr, gltfRawDoc->root); */
 
@@ -238,7 +268,31 @@ gltf_parse(AkDoc     ** __restrict dest,
   };
 
   while (json) {
-    json_objmap_call(json, gltfMap, JSON_ARR_LEN(gltfMap), &gstVal.stop);
+    size_t i;
+
+    profSection = prof ? gltf_profile_now_ms() : 0.0;
+    json_objmap(json, gltfMap, JSON_ARR_LEN(gltfMap));
+    if (prof)
+      gltf_profile_log("root_objmap", gltf_profile_now_ms() - profSection);
+
+    for (i = 0; i < JSON_ARR_LEN(gltfMap); i++) {
+      json_objmap_t *item;
+
+      if (gstVal.stop)
+        break;
+
+      item = &gltfMap[i];
+      if (item->object) {
+        if (item->foundFunc.func) {
+          profSection = prof ? gltf_profile_now_ms() : 0.0;
+          item->foundFunc.func(item->object, item->foundFunc.param);
+          if (prof)
+            gltf_profile_log(item->key, gltf_profile_now_ms() - profSection);
+        }
+      } else if (item->notFoundFunc.func) {
+        item->notFoundFunc.func(item->object, item->notFoundFunc.param);
+      }
+    }
     
     if (gstVal.stop) {
       ret = AK_EBADF;
@@ -250,8 +304,12 @@ gltf_parse(AkDoc     ** __restrict dest,
 
 err:
 
-  if (gltfRawDoc)
-    free((void *)gltfRawDoc);
+  if (gltfRawDoc) {
+    profSection = prof ? gltf_profile_now_ms() : 0.0;
+    json_free(gltfRawDoc);
+    if (prof)
+      gltf_profile_log("json_free", gltf_profile_now_ms() - profSection);
+  }
 
   gltf_ext_close(gst);
 
@@ -278,7 +336,12 @@ err:
   *dest = doc;
 
   /* post-parse operations */
+  profSection = prof ? gltf_profile_now_ms() : 0.0;
   gltf_postscript(gst);
+  if (prof) {
+    gltf_profile_log("postscript", gltf_profile_now_ms() - profSection);
+    gltf_profile_log("total", gltf_profile_now_ms() - profStart);
+  }
   
   ak_free(gstVal.tmpParent);
 
@@ -295,4 +358,31 @@ ak_gltfFreeDupl(RBTree *tree, RBNode *node) {
   if (node == tree->nullNode)
     return;
   ak_free(node->val);
+}
+
+static
+bool
+gltf_profile_enabled(void) {
+  const char *value;
+
+  value = getenv("ASSETKIT_GLTF_PROFILE");
+  if (!value || !value[0])
+    value = getenv("ASSETKIT_BLENDER_PROFILE");
+
+  return value && value[0] && value[0] != '0';
+}
+
+static
+double
+gltf_profile_now_ms(void) {
+  struct timespec ts;
+
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  return (double)ts.tv_sec * 1000.0 + (double)ts.tv_nsec / 1000000.0;
+}
+
+static
+void
+gltf_profile_log(const char *name, double elapsed) {
+  fprintf(stderr, "[AssetKit glTF] %s=%.3fms\n", name, elapsed);
 }

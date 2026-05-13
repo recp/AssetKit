@@ -24,11 +24,138 @@
 #include "../../../common/util.h"
 
 #include <ds/rb.h>
+#include <stdint.h>
 
 /*
   glTF meshes      -> AkGeometry > AkMesh
   glTF primitives  -> AkMeshPrimitive
  */
+
+typedef struct AkGLTFPrimProps {
+  json_t *mode;
+  json_t *attributes;
+  json_t *indices;
+  json_t *material;
+  json_t *targets;
+  json_t *extensions;
+  json_t *extras;
+} AkGLTFPrimProps;
+
+AK_INLINE
+void
+gltf_promoteIndices(AkUInt * __restrict dst,
+                    char   * __restrict src,
+                    size_t              count,
+                    size_t              itemSize) {
+  size_t k;
+
+  switch (itemSize) {
+    case 1: {
+      uint8_t *s;
+
+      s = (uint8_t *)src;
+      for (k = 0; k < count; k++)
+        dst[k] = s[k];
+      break;
+    }
+    case 2: {
+      if (((uintptr_t)src & (sizeof(uint16_t) - 1)) == 0) {
+        uint16_t *s;
+
+        s = (uint16_t *)src;
+        for (k = 0; k < count; k++)
+          dst[k] = s[k];
+      } else {
+        for (k = 0; k < count; k++) {
+          uint16_t v;
+
+          memcpy(&v, src + sizeof(v) * k, sizeof(v));
+          dst[k] = v;
+        }
+      }
+      break;
+    }
+    case 4:
+      memcpy(dst, src, sizeof(*dst) * count);
+      break;
+    default:
+      for (k = 0; k < count; k++) {
+        AkUInt v;
+
+        v = 0;
+        memcpy(&v,
+               src + itemSize * k,
+               itemSize < sizeof(v) ? itemSize : sizeof(v));
+        dst[k] = v;
+      }
+      break;
+  }
+}
+
+static inline
+void
+gltf_primProps(json_t          * __restrict jprim,
+               AkGLTFPrimProps * __restrict props) {
+  json_t *it;
+  char    first;
+
+  if (!jprim || jprim->type != JSON_OBJECT)
+    return;
+
+  for (it = jprim->value; it; it = it->next) {
+    if (!it->key)
+      continue;
+
+    first = it->key[0];
+
+    switch (it->keysize) {
+      case 4:
+        if (first == 'm' && gltf_jsonKeyEqLen(it, _s_gltf_mode, 4))
+          props->mode = it;
+        break;
+      case 6:
+        if (first == 'e' && gltf_jsonKeyEqLen(it, _s_gltf_extras, 6))
+          props->extras = it;
+        break;
+      case 7:
+        if (first == 'i' && gltf_jsonKeyEqLen(it, _s_gltf_indices, 7)) {
+          props->indices = it;
+        } else if (first == 't' && gltf_jsonKeyEqLen(it, _s_gltf_targets, 7)) {
+          props->targets = it;
+        }
+        break;
+      case 8:
+        if (first == 'm' && gltf_jsonKeyEqLen(it, _s_gltf_material, 8))
+          props->material = it;
+        break;
+      case 10:
+        if (first == 'a' && gltf_jsonKeyEqLen(it, _s_gltf_attributes, 10)) {
+          props->attributes = it;
+        } else if (first == 'e' && gltf_jsonKeyEqLen(it, _s_gltf_extensions, 10)) {
+          props->extensions = it;
+        }
+        break;
+      default:
+        break;
+    }
+  }
+}
+
+static inline
+uint32_t
+gltf_childCount(const json_t * __restrict json) {
+  const json_t *it;
+  uint32_t      count;
+
+  count = 0;
+  if (!json)
+    return 0;
+
+  for (it = json->value; it; it = it->next)
+    count++;
+
+  return count;
+}
 
 static
 bool
@@ -56,23 +183,111 @@ gltf_attrIndexedSemantic(const char * __restrict key,
 }
 
 static
+uint32_t
+gltf_attrSemanticSet(const char * __restrict begin,
+                     const char * __restrict end) {
+  uint32_t set;
+
+  set = 0;
+  while (begin < end)
+    set = set * 10u + (uint32_t)(*begin++ - '0');
+
+  return set;
+}
+
+static
+bool
+gltf_attrKnownSemantic(const char       * __restrict key,
+                       size_t                         keysize,
+                       const char       ** __restrict raw,
+                       AkInputSemantic   * __restrict semantic) {
+  switch (keysize) {
+    case 5:
+      if (memcmp(key, _s_gltf_COLOR, 5) == 0) {
+        *raw      = _s_gltf_COLOR;
+        *semantic = AK_INPUT_COLOR;
+        return true;
+      }
+      break;
+    case 6:
+      if (memcmp(key, _s_gltf_NORMAL, 6) == 0) {
+        *raw      = _s_gltf_NORMAL;
+        *semantic = AK_INPUT_NORMAL;
+        return true;
+      }
+      if (memcmp(key, _s_gltf_JOINTS, 6) == 0) {
+        *raw      = _s_gltf_JOINTS;
+        *semantic = AK_INPUT_JOINT;
+        return true;
+      }
+      break;
+    case 7:
+      if (memcmp(key, _s_gltf_TANGENT, 7) == 0) {
+        *raw      = _s_gltf_TANGENT;
+        *semantic = AK_INPUT_TANGENT;
+        return true;
+      }
+      if (memcmp(key, _s_gltf_WEIGHTS, 7) == 0) {
+        *raw      = _s_gltf_WEIGHTS;
+        *semantic = AK_INPUT_WEIGHT;
+        return true;
+      }
+      break;
+    case 8:
+      if (memcmp(key, _s_gltf_POSITION, 8) == 0) {
+        *raw      = _s_gltf_POSITION;
+        *semantic = AK_INPUT_POSITION;
+        return true;
+      }
+      if (memcmp(key, _s_gltf_TEXCOORD, 8) == 0) {
+        *raw      = _s_gltf_TEXCOORD;
+        *semantic = AK_INPUT_TEXCOORD;
+        return true;
+      }
+      break;
+    default:
+      break;
+  }
+
+  return false;
+}
+
+static
 void
 gltf_inputSemantic(AkHeap * __restrict heap,
                    AkInput * __restrict inp,
                    json_t  * __restrict jattrib) {
-  const char *semantic;
+  const char      *semanticSep;
+  const char      *raw;
+  AkInputSemantic  sem;
+  size_t           rawLen;
 
-  if (gltf_attrIndexedSemantic(jattrib->key, jattrib->keysize, &semantic)) {
-    inp->semanticRaw = ak_heap_strndup(heap,
-                                       inp,
-                                       jattrib->key,
-                                       semantic - jattrib->key);
-    inp->set = (uint32_t)strtol(semantic + 1, NULL, 10);
+  if (gltf_attrIndexedSemantic(jattrib->key, jattrib->keysize, &semanticSep)) {
+    rawLen = (size_t)(semanticSep - jattrib->key);
+    if (gltf_attrKnownSemantic(jattrib->key, rawLen, &raw, &sem)) {
+      inp->semanticRaw = raw;
+      inp->semantic    = sem;
+    } else {
+      inp->semanticRaw = ak_heap_strndup(heap, inp, jattrib->key, rawLen);
+      inp->semantic    = gltf_enumInputSemantic(inp->semanticRaw);
+    }
+
+    inp->set = gltf_attrSemanticSet(semanticSep + 1,
+                                    jattrib->key + jattrib->keysize);
   } else {
-    inp->semanticRaw = ak_heap_strndup(heap,
-                                       inp,
-                                       jattrib->key,
-                                       jattrib->keysize);
+    if (gltf_attrKnownSemantic(jattrib->key,
+                               jattrib->keysize,
+                               &raw,
+                               &sem)) {
+      inp->semanticRaw = raw;
+      inp->semantic    = sem;
+    } else {
+      inp->semanticRaw = ak_heap_strndup(heap,
+                                         inp,
+                                         jattrib->key,
+                                         jattrib->keysize);
+      inp->semantic    = gltf_enumInputSemantic(inp->semanticRaw);
+    }
   }
 }
 
@@ -143,6 +358,7 @@ gltf_meshes(json_t * __restrict jmesh,
   AkLibrary          *lib;
   const json_array_t *jmeshes;
   const json_t       *jmeshVal;
+  size_t              meshIndex;
 
   if (!(jmeshes = json_array(jmesh)))
     return;
@@ -151,6 +367,12 @@ gltf_meshes(json_t * __restrict jmesh,
   heap       = gst->heap;
   doc        = gst->doc;
   lib        = ak_heap_calloc(heap, doc, sizeof(*lib));
+  gst->geometriesCount   = jmeshes->count;
+  gst->geometriesByIndex = ak_heap_calloc(heap,
+                                          gst->tmpParent,
+                                          sizeof(*gst->geometriesByIndex)
+                                          * gst->geometriesCount);
+  meshIndex = gst->geometriesCount;
 
   jmesh = jmeshes->base.value;
   while (jmesh) {
@@ -181,22 +403,26 @@ gltf_meshes(json_t * __restrict jmesh,
 
     gltf_extra(gst,
                meshObj,
-               json_get(jmesh, _s_gltf_extras),
-               json_get(jmesh, _s_gltf_extensions));
+               gltf_jsonGetLen(jmesh, _s_gltf_extras, 6),
+               gltf_jsonGetLen(jmesh, _s_gltf_extensions, 10));
     mesh->extra = ak_extra(meshObj);
 
     jmeshVal = jmesh->value;
     while (jmeshVal) {
-      if (json_key_eq(jmeshVal, _s_gltf_primitives)
+      if (gltf_jsonKeyEqLen(jmeshVal, _s_gltf_primitives, 10)
           && json_is_array(jmeshVal)) {
         json_t *jprim;
 
         jprim = jmeshVal->value;
         while (jprim) {
           AkMeshPrimitive *prim;
+          AkGLTFPrimProps  primProps;
           json_t          *jprimVal;
 
-          mode = json_int32(json_get(jprim, _s_gltf_mode), 4);
+          primProps = (AkGLTFPrimProps){0};
+          gltf_primProps(jprim, &primProps);
+
+          mode = json_int32(primProps.mode, 4);
           prim = gltf_allocPrim(heap, meshObj, mode);
 
           prim->input      = NULL;
@@ -205,92 +431,97 @@ gltf_meshes(json_t * __restrict jmesh,
 
           gltf_extra(gst,
                      prim,
-                     json_get(jprim, _s_gltf_extras),
-                     json_get(jprim, _s_gltf_extensions));
+                     primProps.extras,
+                     primProps.extensions);
           prim->extra = ak_extra(prim);
 
-          jprimVal = jprim->value;
+          if (primProps.extensions && !gltf_ext_dracoPrimitive(gst, prim, jprim)) {
+            gst->stop = true;
+            return;
+          }
 
-          while (jprimVal) {
-            if (json_key_eq(jprimVal, _s_gltf_attributes)) {
-              json_t *jattrib;
+          if ((jprimVal = primProps.attributes)) {
+            json_t *jattrib;
+            AkInput *inputs;
+            uint32_t attrIndex;
 
-              /* attributes */
-              jattrib = jprimVal->value;
-              while (jattrib) {
-                AkInput    *inp;
+            /* attributes */
+            inputs = ak_heap_calloc(heap,
+                                    prim,
+                                    sizeof(*inputs)
+                                    * gltf_childCount(jprimVal));
+            attrIndex = 0;
+            jattrib = jprimVal->value;
+            while (jattrib) {
+              AkInput *inp;
 
-                inp      = ak_heap_calloc(heap, prim, sizeof(*inp));
-                gltf_inputSemantic(heap, inp, jattrib);
+              inp = &inputs[attrIndex++];
+              gltf_inputSemantic(heap, inp, jattrib);
 
-                inp->semantic = gltf_enumInputSemantic(inp->semanticRaw);
-                inp->accessor = flist_sp_at(&doc->lib.accessors,
-                                            json_int32(jattrib, -1));
-                if (!inp->accessor) {
-                  jattrib = jattrib->next;
-                  continue;
-                }
-
-                if (inp->semantic == AK_INPUT_POSITION)
-                  prim->pos = inp;
-
-                inp->next   = prim->input;
-                prim->input = inp;
-                prim->inputCount++;
-
+              inp->accessor = gltf_accessor_at(gst, json_int32(jattrib, -1));
+              if (!inp->accessor) {
                 jattrib = jattrib->next;
-              } /* jprimAttrib */
-            } else if (json_key_eq(jprimVal, _s_gltf_indices)) {
-              AkAccessor   *acc;
-              AkBuffer     *indicesBuff;
-              AkUIntArray  *indices;
-              AkUInt       *it1;
-              char         *it2;
-              size_t        count, k, itemSize;
-
-              if (!(acc = flist_sp_at(&doc->lib.accessors,
-                                      json_int32(jprimVal, -1)))
-                  || !(indicesBuff = acc->buffer))
-                goto prim_next;
-
-              itemSize = acc->bytesPerComponent;
-              count    = acc->count;
-              indices  = ak_heap_calloc(heap,
-                                        prim,
-                                        sizeof(*indices)
-                                        + sizeof(AkUInt) * count);
-              indices->count = count;
-              it1            = indices->items;
-              it2            = ((char *)indicesBuff->data) + acc->byteOffset;
-
-              /* we cannot use memcpy here, because we will promote short, byte
-                 type to int32 (for now)
-               */
-              for (k = 0; k < count; k++) {
-                memcpy(&it1[k], it2 + itemSize * k, itemSize);
+                continue;
               }
 
-              prim->indices     = indices;
-              prim->indexStride = 1;
-            } else if (json_key_eq(jprimVal, _s_gltf_material)) {
-              AkMaterial *mat;
-              int32_t     matIndex;
+              if (inp->semantic == AK_INPUT_POSITION)
+                prim->pos = inp;
 
-              matIndex = json_int32(jprimVal, -1);
-              GETCHILD(gst->doc->lib.materials->chld, mat, matIndex);
-       
-              if (mat) { prim->material = mat;                  }
-              else     { prim->material = gst->defaultMaterial; }
-            } else if (json_key_eq(jprimVal, _s_gltf_targets)) {
-              json_array_t  *jtargets;
-              json_t        *jtarget, *jattrib;
-              AkMorphTarget *target;
-              AkMorphable   *morphable;
-              uint32_t       targetIdx;
+              inp->next   = prim->input;
+              prim->input = inp;
+              prim->inputCount++;
 
-              if (!(jtargets = json_array(jprimVal)))
-                goto prmv_nxt;
+              jattrib = jattrib->next;
+            } /* jprimAttrib */
+          }
 
+          if ((jprimVal = primProps.indices)) {
+            AkAccessor   *acc;
+            AkBuffer     *indicesBuff;
+            AkUIntArray  *indices;
+            AkUInt       *it1;
+            char         *it2;
+            size_t        count, itemSize;
+
+            if (!(acc = gltf_accessor_at(gst, json_int32(jprimVal, -1)))
+                || !(indicesBuff = acc->buffer))
+              goto prim_next;
+
+            itemSize = acc->bytesPerComponent;
+            count    = acc->count;
+            indices  = ak_heap_alloc(heap,
+                                     prim,
+                                     sizeof(*indices)
+                                      + sizeof(*it1) * count);
+            indices->count = count;
+            it1            = indices->items;
+            it2            = ((char *)indicesBuff->data) + acc->byteOffset;
+
+            gltf_promoteIndices(it1, it2, count, itemSize);
+
+            prim->indices     = indices;
+            prim->indexStride = 1;
+          }
+
+          if ((jprimVal = primProps.material)) {
+            AkMaterial *mat;
+            int32_t     matIndex;
+
+            matIndex = json_int32(jprimVal, -1);
+            mat = gltf_material_at(gst, matIndex);
+
+            if (mat) { prim->material = mat;                  }
+            else     { prim->material = gst->defaultMaterial; }
+          }
+
+          if ((jprimVal = primProps.targets)) {
+            json_array_t  *jtargets;
+            json_t        *jtarget, *jattrib;
+            AkMorphTarget *target;
+            AkMorphable   *morphable;
+            uint32_t       targetIdx;
+
+            if ((jtargets = json_array(jprimVal))) {
               /* Lazy-init the mesh-level morph and pre-allocate one
                  AkMorphTarget per blend shape. All primitives of the mesh
                  share these targets — each adds one AkMorphable to each
@@ -344,6 +575,9 @@ gltf_meshes(json_t * __restrict jmesh,
               targetIdx = 0;
 
               while (jtarget && targetIdx < meshTargetCnt) {
+                AkInput *inputs;
+                uint32_t attrIndex;
+
                 target = meshTargetArr[meshTargetCnt - 1 - targetIdx];
 
                 if (!target->target) {
@@ -368,16 +602,19 @@ gltf_meshes(json_t * __restrict jmesh,
                 /* fill morphable->input from the target's attribute deltas.
                    IMPORTANT: do NOT touch prim->pos here — that's the base
                    primitive's POSITION binding; target POSITION is a delta. */
+                inputs = ak_heap_calloc(heap,
+                                        prim,
+                                        sizeof(*inputs)
+                                        * gltf_childCount(jtarget));
+                attrIndex = 0;
                 jattrib = jtarget->value;
                 while (jattrib) {
-                  AkInput    *inp;
+                  AkInput *inp;
 
-                  inp      = ak_heap_calloc(heap, prim, sizeof(*inp));
+                  inp = &inputs[attrIndex++];
                   gltf_inputSemantic(heap, inp, jattrib);
 
-                  inp->semantic = gltf_enumInputSemantic(inp->semanticRaw);
-                  inp->accessor = flist_sp_at(&doc->lib.accessors,
-                                              json_int32(jattrib, -1));
+                  inp->accessor = gltf_accessor_at(gst, json_int32(jattrib, -1));
                   if (!inp->accessor) {
                     jattrib = jattrib->next;
                     continue;
@@ -393,20 +630,15 @@ gltf_meshes(json_t * __restrict jmesh,
                 jtarget = jtarget->next;
                 targetIdx++;
               } /* jtarget */
-            } else if (json_key_eq(jprimVal, _s_gltf_extensions)) {
-              if (!gltf_ext_dracoPrimitive(gst, prim, jprim)) {
-                gst->stop = true;
-                return;
-              }
-              if (!gltf_ext_primitiveVariants(gst, prim, jprim)
-                  || !gltf_ext_primitiveGaussianSplat(gst, prim, jprim)) {
-                gst->stop = true;
-                return;
-              }
             }
+          }
 
-          prmv_nxt:
-            jprimVal = jprimVal->next;
+          if (primProps.extensions) {
+            if (!gltf_ext_primitiveVariants(gst, prim, jprim)
+                || !gltf_ext_primitiveGaussianSplat(gst, prim, jprim)) {
+              gst->stop = true;
+              return;
+            }
           }
 
           prim->next      = mesh->primitive;
@@ -421,7 +653,7 @@ gltf_meshes(json_t * __restrict jmesh,
         prim_next:
           jprim = jprim->next;
         }
-      } else if (json_key_eq(jmeshVal, _s_gltf_weights)) {
+      } else if (gltf_jsonKeyEqLen(jmeshVal, _s_gltf_weights, 7)) {
         AkFloatArray *weights;
         json_array_t *jarr;
 
@@ -441,14 +673,14 @@ gltf_meshes(json_t * __restrict jmesh,
           weights->count = jarr->count;
           mesh->weights  = weights;
         }
-      } else if (json_key_eq(jmeshVal, _s_gltf_name)) {
+      } else if (gltf_jsonKeyEqLen(jmeshVal, _s_gltf_name, 4)) {
         mesh->name = json_strdup(jmeshVal, heap, meshObj);
-      } else if (json_key_eq(jmeshVal, _s_gltf_extras)) {
+      } else if (gltf_jsonKeyEqLen(jmeshVal, _s_gltf_extras, 6)) {
         json_t       *jnames;
         json_t       *jpresets;
         json_array_t *jarr;
 
-        if ((jnames = json_get(jmeshVal, _s_gltf_targetNames))
+        if ((jnames = gltf_jsonGetLen(jmeshVal, _s_gltf_targetNames, 11))
             && (jarr = json_array(jnames))
             && jarr->count > 0) {
           json_t   *jname;
@@ -468,7 +700,7 @@ gltf_meshes(json_t * __restrict jmesh,
           }
         }
 
-        if ((jpresets = json_get(jmeshVal, _s_gltf_morphPresets))) {
+        if ((jpresets = gltf_jsonGetLen(jmeshVal, _s_gltf_morphPresets, 12))) {
           morphPresets = gltf_meshMorphPresets(gst,
                                                meshObj,
                                                jpresets,
@@ -515,6 +747,8 @@ gltf_meshes(json_t * __restrict jmesh,
     lib->chld       = (void *)geom;
 
     lib->count++;
+    if (meshIndex > 0)
+      gst->geometriesByIndex[--meshIndex] = geom;
 
     jmesh = jmesh->next;
   }
