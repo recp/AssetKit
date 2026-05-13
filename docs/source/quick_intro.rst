@@ -7,7 +7,7 @@ Also assuming you already linked **AssetKit** to your project and set include pa
 1. Include
 ----------------
 
-**AssetKit** uses **ak** prefix for all functions and type names. To include **AssetKit** 
+**AssetKit** uses **ak** prefix for all functions and type names. To include **AssetKit**
 
 .. code-block:: c
   :linenos:
@@ -21,13 +21,13 @@ Also assuming you already linked **AssetKit** to your project and set include pa
 2. Preparing
 ----------------
 
-You may want to prepare loader before call :c:func:`ak_load` load function. 
+You may want to prepare loader before call :c:func:`ak_load` load function.
 
 a. Setting Image loader
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 There was image loader inside **AssetKit** but it has been dropped to make it more generic.
-Becasue you may already have an image loader e.g. stb_image ... 
+Becasue you may already have an image loader e.g. stb_image ...
 
 **AssetKit** can trigger images and cache them for you, if it is already loaded than it will return loaded contents.
 
@@ -67,8 +67,8 @@ Just ensure that you set image loader before loading images. It is good to set i
 b. Setting Options if Needed
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Make sure that you set UP axis if you want to different one from **Y_UP**. 
-For instance if you want to load contents as **Z_UP** 
+Make sure that you set UP axis if you want to different one from **Y_UP**.
+For instance if you want to load contents as **Z_UP**
 
 .. code-block:: c
 
@@ -87,20 +87,20 @@ You must check the result/return, it must be AK_OK otherwise, document is not lo
 
   AkDoc   *doc;
   AkResult ret;
-  
+
   if ((ret = ak_load(&doc, "[Path to a file e.g ./sample.gltf]", NULL) != AK_OK) {
      printf("Document couldn't be loaded");
      return;
   }
 
-or 
+or
 
 .. code-block:: c
   :linenos:
 
   AkDoc   *doc;
   AkResult ret;
-  
+
   ret = ak_load(&doc, "[Path to a file e.g ./sample.gltf]", NULL);
   if (ret != AK_OK) {
      printf("Document couldn't be loaded");
@@ -145,7 +145,7 @@ There are **scene library** and **scene** in AssetKit **document**. The **scene*
 Another instance objects may have different types e.g. instance geometry (inherited from :c:type:`AkInstanceBase`).
 
 We need to get actual scene object from instance object. There are a few helpers for this task.
-But we will use :c:func:`ak_instanceObject` here. 
+But we will use :c:func:`ak_instanceObject` here.
 
 5. Load Nodes[s]
 ----------------
@@ -168,7 +168,7 @@ There are a few elements in nodes
 
 You must multiply node's transform with its parent to get transform in WORLD space for each node recursively.
 
-A node can contain Matrix or individual Transform Elements like Rotation, Translation or Scaling. 
+A node can contain Matrix or individual Transform Elements like Rotation, Translation or Scaling.
 **AssetKit** also provides a util to combine these individual transforms into matrix with :c:func:`ak_transformCombine`.
 
 **AssetKit** does not combines them automatically because they may be referenced to animated individually.
@@ -198,9 +198,9 @@ After you get the geometry you can load geeometry elements. A :c:type:`AkGeometr
   AkObject *prim;
   AkResult  ret;
 
-  /* 
-     return if the geometry is already loaded, 
-     you can use a RBTree or HasMap... (see https://github.com/recp/ds) 
+  /*
+     return if the geometry is already loaded,
+     you can use a RBTree or HasMap... (see https://github.com/recp/ds)
     */
 
   prim = geom->gdata;
@@ -222,14 +222,14 @@ Now it is time to load a mesh.
 
 This tutorial will only cover loading meshes, extra tutorials may be provided in the future for loading curves, nurbs...
 
-A mesh object is packed as :c:type:`AkObject` inside :c:type:`AkGeometry`. In previous section you may see that we have 
+A mesh object is packed as :c:type:`AkObject` inside :c:type:`AkGeometry`. In previous section you may see that we have
 a switch control to check whether we have a mesh inside geometry or not.
 
-**AssetKit** provides unique design to store this kind of objects with :c:type:`AkObject`. 
+**AssetKit** provides unique design to store this kind of objects with :c:type:`AkObject`.
 (Think :c:type:`AkObject` as **Object** class in .NET or **NSObject** in ObjC.)
-Otherwise we would store 
-additional pointers or inherits Mesh from Geometry and then cast it to mesh. This is another option of course, 
-even **AssetKit** may change to this design in the future if needed. Currently we are not doing this because geometry 
+Otherwise we would store
+additional pointers or inherits Mesh from Geometry and then cast it to mesh. This is another option of course,
+even **AssetKit** may change to this design in the future if needed. Currently we are not doing this because geometry
 object is top container.
 
 **AssetKit** provides a helper to get object from :c:type:`AkObject` with :c:func:`ak_objGet` macro.
@@ -240,12 +240,12 @@ We can get :c:type:`AkMesh` object from :c:type:`AkGeometry` as
   :linenos:
 
   AkMesh *mesh;
-  
+
   mesh = ak_objGet(geom->gdata);
 
 Now we have mesh object. Let's inspect a mesh type.
 
-A mesh contains one or more primitives (or submeshes) as :c:type:`AkMeshPrimitive`. 
+A mesh contains one or more primitives (or submeshes) as :c:type:`AkMeshPrimitive`.
 Each primitive contains AABB, the mesh also contains an AABB which is sum of all.
 
 A mesh also contains default weights for morph targets but a Node in Scene object can override that.
@@ -253,5 +253,102 @@ A mesh also contains default weights for morph targets but a Node in Scene objec
 5.2.2.1 Loading mesh primitives
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A mesh primitive may be one of :c:type:`AkLines`, :c:type:`AkPolygon` or :c:type:`AkTriangles`. 
+A mesh primitive may be one of :c:type:`AkLines`, :c:type:`AkPolygon` or :c:type:`AkTriangles`.
 :c:type:`AkMeshPrimitive` is base type for all of them. You can cast them to :c:type:`AkMeshPrimitive` or you can use **.base** member.
+
+Now it is time to be ready send/fill GPU buffers with AssetKit.
+
+.. code-block:: c
+  :linenos:
+
+  AkMeshPrimitive *prim;
+
+  prim = mesh->primitive;
+  while (prim) {
+    /* OpenGL: glGenVertexArrays() here if you use VAO and bind */
+
+    /* per-primitive inputs */
+    input = prim->input;
+    while (input) {
+      loadSourceOnce(/* using input */);
+      input = input->next;
+    }
+
+    /* indexed draw */
+    if ((indices = prim->indices)) {
+      /* use indices (prim->indices) to load your index buffer */
+      /* use DRAW_ELEMENTS or similar */
+      count = indices->count;
+    }
+
+    /* else direct draw */
+    else {
+      /* use DRAW_ARRAYS or similar */
+      count = prim->count;
+    }
+
+    mode = gl_drawMode(prim);
+
+    if (prim->bbox) {
+      glm_vec3_copy(prim->bbox->min, gpuPrim->bbox[0]);
+      glm_vec3_copy(prim->bbox->max, gpuPrim->bbox[1]);
+    }
+
+    if (prim->material)
+      loadPrimMaterial(/* use prim to load material (if not loaded) and bind it */);
+
+    prim = prim->next;
+  }
+
+  /* nothing to render */
+  if (mesh->primitiveCount < 1)
+    goto err;
+
+  if (mesh->bbox) {
+    glm_vec3_copy(mesh->bbox->min, gpuMesh->bbox[0]);
+    glm_vec3_copy(mesh->bbox->max, gpuMesh->bbox[1]);
+  }
+
+  glm_vec3_copy(mesh->center, gpuMesh->center);
+
+loadSourceOnce(/* using input */):
+.. code-block:: c
+  :linenos:
+
+  void
+  loadSourceOnce(/* other helper params here */, AkInput * __restrict inp) {
+    AkBuffer      *akbuff;
+    GkGpuBuffer   *buff;
+    GkVertexInput *vi;
+    AkAccessor    *acc;
+    GkGPUAccessor *gacc;
+    char           attribName[64];
+
+    /* optimization: check if this input is bound or not */
+    if (!acc || !inp->semanticRaw)
+      return;
+
+    ak_inputNameBySet(inp, attribName);
+
+    if (!(akbuff = acc->buffer))
+      return; /* TODO: assert or log */
+
+    buff = rb_find(ctx->bufftree, akbuff);
+    if (!buff) {
+      buff = gkGpuBufferNew(ctx->ctx, GK_ARRAY, akbuff->length);
+      gkGpuBufferFeed(buff, GK_STATIC_DRAW, akbuff->data);
+      gkPrimAddBuffer(gprim, buff);
+
+      rb_insert(ctx->bufftree, akbuff, buff);
+    } else {
+      glBindBuffer(buff->target, buff->vbo);
+    }
+
+    gacc         = agkAccessor(acc, buff);
+    vi           = gkMakeVertexInput(attribName, gacc->itemType, 0);
+    vi->accessor = gacc;
+
+    gk_bindInputTo(gprim, vi);
+  }
+
+See OpenGL helpers this documentation to get :c:func:`gl_drawMode` function.

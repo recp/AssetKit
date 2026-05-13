@@ -73,6 +73,13 @@ Features
 
 .. toctree::
    :maxdepth: 2
+   :caption: Data Model:
+
+   extras
+   extensions
+
+.. toctree::
+   :maxdepth: 2
    :caption: Options:
 
    opt
