@@ -67,7 +67,6 @@ dae_triangles(DAEState * __restrict dst,
         rb_insert(dst->inputmap, inp, url);
 
         if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
-          inp->semantic   = dae_semantic(inp->semanticRaw);
           inp->next       = tri->base.input;
           tri->base.input = inp;
           tri->base.inputCount++;

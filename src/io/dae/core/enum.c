@@ -19,52 +19,110 @@
 #include "../common.h"
 #include <string.h>
 
-AK_HIDE AkEnum
-dae_semantic(const char * name) {
-  AkEnum val;
-  long   glenums_len, i;
+AK_INLINE
+char
+dae_ascii_lower(char c) {
+  return (c >= 'A' && c <= 'Z') ? (char)(c + ('a' - 'A')) : c;
+}
 
-  if (!name)
-    return AK_INPUT_OTHER;
-  
-  dae_enum glenums[] = {
-    {"BINORMAL",        AK_INPUT_BINORMAL},
-    {"COLOR",           AK_INPUT_COLOR},
-    {"CONTINUITY",      AK_INPUT_CONTINUITY},
-    {"IMAGE",           AK_INPUT_IMAGE},
-    {"INPUT",           AK_INPUT_INPUT},
-    {"IN_TANGENT",      AK_INPUT_IN_TANGENT},
-    {"INTERPOLATION",   AK_INPUT_INTERPOLATION},
-    {"INV_BIND_MATRIX", AK_INPUT_INV_BIND_MATRIX},
-    {"JOINT",           AK_INPUT_JOINT},
-    {"LINEAR_STEPS",    AK_INPUT_LINEAR_STEPS},
-    {"MORPH_TARGET",    AK_INPUT_MORPH_TARGET},
-    {"MORPH_WEIGHT",    AK_INPUT_MORPH_WEIGHT},
-    {"NORMAL",          AK_INPUT_NORMAL},
-    {"OUTPUT",          AK_INPUT_OUTPUT},
-    {"OUT_TANGENT",     AK_INPUT_OUT_TANGENT},
-    {"POSITION",        AK_INPUT_POSITION},
-    {"TANGENT",         AK_INPUT_TANGENT},
-    {"TEXBINORMAL",     AK_INPUT_TEXBINORMAL},
-    {"TEXCOORD",        AK_INPUT_TEXCOORD},
-    {"TEXTANGENT",      AK_INPUT_TEXTANGENT},
-    {"UV",              AK_INPUT_UV},
-    {"VERTEX",          AK_INPUT_SEMANTIC_VERTEX},
-    {"WEIGHT",          AK_INPUT_WEIGHT},
-  };
+AK_INLINE
+bool
+dae_ascii_eq(const char * __restrict s,
+             const char * __restrict lit) {
+  while (*s && *lit) {
+    if (dae_ascii_lower(*s) != dae_ascii_lower(*lit))
+      return false;
 
-  /* COLLADA 1.5: ALWAYS is the default */
-  val         = AK_INPUT_OTHER;
-  glenums_len = AK_ARRAY_LEN(glenums);
-
-  for (i = 0; i < glenums_len; i++) {
-    if (strcasecmp(name, glenums[i].name) == 0) {
-      val = glenums[i].val;
-      break;
-    }
+    s++;
+    lit++;
   }
 
-  return val;
+  return *s == *lit;
+}
+
+AK_HIDE AkEnum
+dae_semantic(const char * name) {
+  if (!name)
+    return AK_INPUT_OTHER;
+
+  switch (dae_ascii_lower(name[0])) {
+    case 'b':
+      if (dae_ascii_eq(name, "BINORMAL"))
+        return AK_INPUT_BINORMAL;
+      break;
+    case 'c':
+      if (dae_ascii_eq(name, "COLOR"))
+        return AK_INPUT_COLOR;
+      if (dae_ascii_eq(name, "CONTINUITY"))
+        return AK_INPUT_CONTINUITY;
+      break;
+    case 'i':
+      if (dae_ascii_eq(name, "IMAGE"))
+        return AK_INPUT_IMAGE;
+      if (dae_ascii_eq(name, "INPUT"))
+        return AK_INPUT_INPUT;
+      if (dae_ascii_eq(name, "IN_TANGENT"))
+        return AK_INPUT_IN_TANGENT;
+      if (dae_ascii_eq(name, "INTERPOLATION"))
+        return AK_INPUT_INTERPOLATION;
+      if (dae_ascii_eq(name, "INV_BIND_MATRIX"))
+        return AK_INPUT_INV_BIND_MATRIX;
+      break;
+    case 'j':
+      if (dae_ascii_eq(name, "JOINT"))
+        return AK_INPUT_JOINT;
+      break;
+    case 'l':
+      if (dae_ascii_eq(name, "LINEAR_STEPS"))
+        return AK_INPUT_LINEAR_STEPS;
+      break;
+    case 'm':
+      if (dae_ascii_eq(name, "MORPH_TARGET"))
+        return AK_INPUT_MORPH_TARGET;
+      if (dae_ascii_eq(name, "MORPH_WEIGHT"))
+        return AK_INPUT_MORPH_WEIGHT;
+      break;
+    case 'n':
+      if (dae_ascii_eq(name, "NORMAL"))
+        return AK_INPUT_NORMAL;
+      break;
+    case 'o':
+      if (dae_ascii_eq(name, "OUTPUT"))
+        return AK_INPUT_OUTPUT;
+      if (dae_ascii_eq(name, "OUT_TANGENT"))
+        return AK_INPUT_OUT_TANGENT;
+      break;
+    case 'p':
+      if (dae_ascii_eq(name, "POSITION"))
+        return AK_INPUT_POSITION;
+      break;
+    case 't':
+      if (dae_ascii_eq(name, "TANGENT"))
+        return AK_INPUT_TANGENT;
+      if (dae_ascii_eq(name, "TEXBINORMAL"))
+        return AK_INPUT_TEXBINORMAL;
+      if (dae_ascii_eq(name, "TEXCOORD"))
+        return AK_INPUT_TEXCOORD;
+      if (dae_ascii_eq(name, "TEXTANGENT"))
+        return AK_INPUT_TEXTANGENT;
+      break;
+    case 'u':
+      if (dae_ascii_eq(name, "UV"))
+        return AK_INPUT_UV;
+      break;
+    case 'v':
+      if (dae_ascii_eq(name, "VERTEX"))
+        return AK_INPUT_SEMANTIC_VERTEX;
+      break;
+    case 'w':
+      if (dae_ascii_eq(name, "WEIGHT"))
+        return AK_INPUT_WEIGHT;
+      break;
+    default:
+      break;
+  }
+
+  return AK_INPUT_OTHER;
 }
 
 AK_HIDE AkEnum

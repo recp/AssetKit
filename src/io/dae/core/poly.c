@@ -73,7 +73,6 @@ dae_poly(DAEState * __restrict dst,
         rb_insert(dst->inputmap, inp, url);
 
         if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
-          inp->semantic    = dae_semantic(inp->semanticRaw);
           inp->next        = poly->base.input;
           poly->base.input = inp;
           poly->base.inputCount++;
