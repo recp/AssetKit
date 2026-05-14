@@ -54,7 +54,7 @@ dae_poly(DAEState * __restrict dst,
       AkInput *inp;
       profStep = DAE_PROF_START(dst);
 
-      inp              = ak_heap_calloc(heap, poly, sizeof(*inp));
+      inp              = dae_input_new(heap, poly);
       inp->semanticRaw = dae_semanticRaw(DAE_XMLA8(xml, semantic),
                                          heap,
                                          inp,

@@ -409,6 +409,8 @@ typedef struct AkInput {
   const char        *semanticRaw;
   struct AkInput    *next;
   struct AkAccessor *accessor;
+  void              *reserved; /* private member */
+
   uint32_t           index; /* TEXCOORD0, TEXCOORD1... */
   bool               isIndexed;
   AkInputSemantic    semantic;

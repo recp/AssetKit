@@ -121,12 +121,18 @@ typedef struct AkDuplicator {
   size_t             bufCount;
 } AkDuplicator;
 
+struct AkSourceEditHelper;
+
 typedef struct AkSourceBuffState {
-  AkDuplicator *duplicator;
-  void         *buff;
-  char         *url;
-  size_t        count;
-  uint32_t      stride;
+  AkDuplicator              *duplicator;
+  void                      *buff;
+  char                      *url;
+  struct AkSourceBuffState  *next;
+  struct AkSourceEditHelper *sourceEdit;
+  void                      *input;
+
+  size_t                     count;
+  uint32_t                   stride;
 } AkSourceBuffState;
 
 typedef struct AkSourceEditHelper {

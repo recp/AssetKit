@@ -59,7 +59,7 @@ dae_morph(DAEState * __restrict dst,
       
       while (xtarg) {
         if (DAE_XML_TAG_EQ8(xtarg, input)) {
-          inp              = ak_heap_calloc(heap, morphdae, sizeof(*inp));
+          inp              = dae_input_new(heap, morphdae);
           inp->semanticRaw = dae_semanticRaw(DAE_XMLA8(xtarg, semantic),
                                              heap,
                                              inp,

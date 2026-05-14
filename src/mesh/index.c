@@ -124,7 +124,6 @@ AkResult
 ak_movePositions(AkMesh          *mesh,
                  AkMeshPrimitive *prim,
                  AkDuplicator    *duplicator) {
-  AkMeshEditHelper   *edith;
   AkSourceEditHelper *srch;
   AkSourceBuffState  *buffstate;
   AkAccessor         *acc, *newacc;
@@ -135,14 +134,16 @@ ak_movePositions(AkMesh          *mesh,
   uint32_t            i, j;
 
   if (!prim->pos
-      || !(edith     = mesh->edith)
+      || !mesh->edith
       || !(acc       = prim->pos->accessor)
       || !(oldbuff   = acc->buffer)
-      || !(buffstate = rb_find(edith->buffers, prim->pos)))
+      || !(buffstate = prim->pos->reserved))
     return AK_ERR;
 
   newbuff = buffstate->buff;
-  srch    = ak_meshSourceEditHelper(mesh, prim->pos);
+  srch    = buffstate->sourceEdit;
+  if (!srch)
+    return AK_ERR;
   newacc  = srch->source;
 
   if (!newacc)
