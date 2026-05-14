@@ -27,6 +27,7 @@ dae_asset(DAEState   * __restrict dst,
   xml_attr_t    *attr;
   AkContributor *cont;
   xml_t         *xcont;
+  const xml_t   *sval;
   char          *val;
 
   heap = dst->heap;
@@ -98,14 +99,14 @@ dae_asset(DAEState   * __restrict dst,
           inf->unit->dist = xmla_double(attr, 0.0);
         }
       } else if (DAE_XML_TAG_EQ8(xml, up_axis)) {
-        if (xml->val) {
-          if (ak_str_eq_packed_ci_fast(xml->val,
-                                       xml->valsize,
+        if ((sval = xmls(xml)) && sval->val) {
+          if (ak_str_eq_packed_ci_fast(sval->val,
+                                       sval->valsize,
                                        _s_dae_z_up_u32,
                                        _s_dae_z_up_len))
             inf->coordSys = AK_ZUP;
-          else if (ak_str_eq_packed_ci_fast(xml->val,
-                                            xml->valsize,
+          else if (ak_str_eq_packed_ci_fast(sval->val,
+                                            sval->valsize,
                                             _s_dae_x_up_u32,
                                             _s_dae_x_up_len))
             inf->coordSys = AK_XUP;
