@@ -87,6 +87,41 @@ dae_profile_log(bool enabled, const char *name, double start) {
           dae_profile_now_ms() - start);
 }
 
+static
+void
+dae_profile_log_geometry(DAEState * __restrict dst) {
+  if (!dst || !dst->profile)
+    return;
+
+  fprintf(stderr,
+          "[AssetKit DAE geom] geometry=%.3fms/%u mesh=%.3fms/%u "
+          "source=%.3fms/%u accessor=%.3fms/%u array=%.3fms/%u "
+          "input=%.3fms/%u index_array=%.3fms/%u vertices=%.3fms/%u "
+          "tri=%.3fms/%u poly=%.3fms/%u line=%.3fms/%u\n",
+          dst->profGeom,
+          dst->profGeomCount,
+          dst->profGeomMesh,
+          dst->profGeomMeshCount,
+          dst->profGeomSource,
+          dst->profGeomSourceCount,
+          dst->profGeomAccessor,
+          dst->profGeomAccessorCount,
+          dst->profGeomArray,
+          dst->profGeomArrayCount,
+          dst->profGeomInput,
+          dst->profGeomInputCount,
+          dst->profGeomIndexArray,
+          dst->profGeomIndexArrayCount,
+          dst->profGeomVertices,
+          dst->profGeomVerticesCount,
+          dst->profGeomTriangles,
+          dst->profGeomTrianglesCount,
+          dst->profGeomPolygons,
+          dst->profGeomPolygonsCount,
+          dst->profGeomLines,
+          dst->profGeomLinesCount);
+}
+
 #define DAE_PROFILE_CALL(PROFILE, NAME, CALL) do {                         \
     double _dae_profile_call_start = 0.0;                                   \
     if (PROFILE)                                                            \
@@ -164,6 +199,7 @@ dae_doc(AkDoc     ** __restrict dest,
 
   dstVal.doc          = doc;
   dstVal.heap         = heap;
+  dstVal.profile      = profile;
   dstVal.tempmem      = ak_heap_alloc(heap, doc, sizeof(void*));
   dstVal.meshInfo     = rb_newtree_ptr();
   dstVal.inputmap     = rb_newtree_ptr();
@@ -180,7 +216,7 @@ dae_doc(AkDoc     ** __restrict dest,
   /* get version info */
   /* because it is current and most used version */
   dst->version = AK_COLLADA_VERSION_141;
-  if ((versionAttr = xmla(xml, _s_dae_version))) {
+  if ((versionAttr = DAE_XMLA8(xml, version))) {
     ak_enumpair *v;
 
     for (v = daeVersions; v->key; v++) {
@@ -197,7 +233,7 @@ dae_doc(AkDoc     ** __restrict dest,
 
   /* with default Asset Parameters */
   stepStart = dae_profile_now_ms();
-  assetEl = xml_elem(xml->parent, _s_dae_asset);
+  assetEl = DAE_XML_ELEM8(xml->parent, asset);
   if ((inf = dae_asset(dst, assetEl, doc, &doc->inf->base))) {
     doc->coordSys = inf->coordSys;
     doc->unit     = inf->unit;
@@ -206,47 +242,48 @@ dae_doc(AkDoc     ** __restrict dest,
   
   stepStart = dae_profile_now_ms();
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_lib_cameras)) {
+    if (DAE_XML_TAG_EQ(xml, lib_cameras)) {
       DAE_PROFILE_CALL(profile,
                        "library_cameras",
                        dae_lib(dst, xml, _s_dae_camera, dae_cam, &libs->cameras));
-    } else if (xml_tag_eq(xml, _s_dae_lib_lights)) {
+    } else if (DAE_XML_TAG_EQ(xml, lib_lights)) {
       DAE_PROFILE_CALL(profile,
                        "library_lights",
                        dae_lib(dst, xml, _s_dae_light, dae_light, &libs->lights));
-    } else if (xml_tag_eq(xml, _s_dae_lib_geometries)) {
+    } else if (DAE_XML_TAG_EQ(xml, lib_geometries)) {
       DAE_PROFILE_CALL(profile,
                        "library_geometries",
                        dae_lib(dst, xml, _s_dae_geometry, dae_geom, &libs->geometries));
-    } else if (xml_tag_eq(xml, _s_dae_lib_effects)) {
+      dae_profile_log_geometry(dst);
+    } else if (DAE_XML_TAG_EQ(xml, lib_effects)) {
       DAE_PROFILE_CALL(profile,
                        "library_effects",
                        dae_lib(dst, xml, _s_dae_effect, dae_effect, &libs->effects));
-    } else if (xml_tag_eq(xml, _s_dae_lib_images)) {
+    } else if (DAE_XML_TAG_EQ(xml, lib_images)) {
       DAE_PROFILE_CALL(profile,
                        "library_images",
                        dae_lib(dst, xml, _s_dae_image, dae_image, &libs->libimages));
-    } else if (xml_tag_eq(xml, _s_dae_lib_materials)) {
+    } else if (DAE_XML_TAG_EQ(xml, lib_materials)) {
       DAE_PROFILE_CALL(profile,
                        "library_materials",
                        dae_lib(dst, xml, _s_dae_material, dae_material, &libs->materials));
-    } else if (xml_tag_eq(xml, _s_dae_lib_controllers)) {
+    } else if (DAE_XML_TAG_EQ(xml, lib_controllers)) {
       DAE_PROFILE_CALL(profile,
                        "library_controllers",
                        dae_lib(dst, xml, _s_dae_controller, dae_ctlr, &libs->controllers));
-    } else if (xml_tag_eq(xml, _s_dae_lib_visual_scenes)) {
+    } else if (DAE_XML_TAG_EQ(xml, lib_visual_scenes)) {
       DAE_PROFILE_CALL(profile,
                        "library_visual_scenes",
                        dae_lib(dst, xml, _s_dae_visual_scene, dae_vscene, &libs->visualScenes));
-    } else if (xml_tag_eq(xml, _s_dae_lib_nodes)) {
+    } else if (DAE_XML_TAG_EQ(xml, lib_nodes)) {
       DAE_PROFILE_CALL(profile,
                        "library_nodes",
                        dae_lib(dst, xml, _s_dae_node, dae_node2, &libs->nodes));
-    } else if (xml_tag_eq(xml, _s_dae_lib_animations)) {
+    } else if (DAE_XML_TAG_EQ(xml, lib_animations)) {
       DAE_PROFILE_CALL(profile,
                        "library_animations",
                        dae_lib(dst, xml, _s_dae_animation, dae_anim, &libs->animations));
-    } else if (xml_tag_eq(xml, _s_dae_scene)) {
+    } else if (DAE_XML_TAG_EQ8(xml, scene)) {
       DAE_PROFILE_CALL(profile, "scene", dae_scene(dst, xml));
     }
     xml = xml->next;
@@ -319,22 +356,24 @@ dae_lib(DAEState   * __restrict dst,
   AkDoc            *doc;
   AkLibrary        *lib;
   AkOneWayIterBase *it;
+  size_t            namesize;
   
   heap      = dst->heap;
   doc       = dst->doc;
+  namesize  = strlen(name);
 
   lib       = ak_heap_calloc(heap, doc, sizeof(*lib));
-  lib->name = xmla_strdup_by(xml, heap, _s_dae_name, lib);
+  lib->name = DAE_XMLA_STRDUP8(xml, heap, name, lib);
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, name)) {
+    if (xml_tag_eqsz(xml, name, namesize)) {
       if ((it = loadfn(dst, xml, lib))) {
         it->next  = lib->chld;
         lib->chld = it;
         lib->count++;
       }
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       lib->extra = tree_fromxml(heap, lib, xml);
     }
     xml = xml->next;

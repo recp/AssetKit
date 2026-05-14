@@ -20,6 +20,7 @@
 #include "1.4/dae14.h"
 
 #include "fixup/geom.h"
+#include "fixup/mesh.h"
 #include "fixup/angle.h"
 #include "fixup/tex.h"
 #include "fixup/ctlr.h"
@@ -121,8 +122,7 @@ dae_spread_vert(DAEState * __restrict dst) {
     while (inpv) {
       inp  = ak_heap_calloc(heap, prim, sizeof(*inp));
       inp->semantic = inpv->semantic;
-      if (inpv->semanticRaw)
-        inp->semanticRaw = ak_heap_strdup(heap, inp, inpv->semanticRaw);
+      inp->semanticRaw = inpv->semanticRaw;
 
       inp->offset = prim->reserved1;
       inp->set    = prim->reserved2;
@@ -194,8 +194,14 @@ dae_postscript(DAEState * __restrict dst) {
      also we can run fixups as parallels here
   */
   if (!ak_opt_get(AK_OPT_INDICES_DEFAULT))
+  {
+    if (profile)
+      dae_mesh_profile_reset();
     DAE_POST_PROFILE_CALL(profile, "geom_fixup_all",
                           dae_geom_fixup_all(dst->doc));
+    if (profile)
+      dae_mesh_profile_report();
+  }
 
   /* fixup morph and skin because order of vertices may be changed */
   if (dst->doc->lib.controllers) {

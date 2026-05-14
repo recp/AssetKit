@@ -37,6 +37,9 @@ static
 void
 ak_wobjFreeDupl(RBTree *tree, RBNode *node);
 
+#define WOBJ_KW_MTLL AK_STR_PACK4_CHARS('m', 't', 'l', 'l')
+#define WOBJ_KW_USEM AK_STR_PACK4_CHARS('u', 's', 'e', 'm')
+
 AK_HIDE
 AkResult
 wobj_obj(AkDoc     ** __restrict dest,
@@ -217,10 +220,7 @@ wobj_obj(AkDoc     ** __restrict dest,
         ak_strtof_line(p, 0, 2, v);
         ak_data_append(wst->dc_tex, v);
       }
-    } else if (p[0] == 'm'
-               && p[1] == 't'
-               && p[2] == 'l'
-               && p[3] == 'l'
+    } else if (ak_str_pack4_fast(p, 4) == WOBJ_KW_MTLL
                && p[4] == 'i'
                && p[5] == 'b'
                && (p[6] == ' ' || p[6] == '\t')) {
@@ -234,10 +234,7 @@ wobj_obj(AkDoc     ** __restrict dest,
       if (end > begin
           && (m = ak_heap_strndup(heap, wst->doc, begin, end - begin)))
         wst->mtlib = wobj_mtl(wst, m);
-    } else if (p[0] == 'u'
-               && p[1] == 's'
-               && p[2] == 'e'
-               && p[3] == 'm'
+    } else if (ak_str_pack4_fast(p, 4) == WOBJ_KW_USEM
                && p[4] == 't'
                && p[5] == 'l'
                && (p[6] == ' ' || p[6] == '\t')) {

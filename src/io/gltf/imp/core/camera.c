@@ -60,12 +60,12 @@ gltf_cameras(json_t * __restrict jcam,
 
     gltf_extra(gst,
                cam,
-               json_get(jcam, _s_gltf_extras),
-               json_get(jcam, _s_gltf_extensions));
+               GLTF_JSON_GET8(jcam, extras),
+               GLTF_JSON_GET(jcam, extensions));
 
     json_objmap_t camMap[] = {
-      JSON_OBJMAP_OBJ(_s_gltf_name,         I2P k_name),
-      JSON_OBJMAP_OBJ(_s_gltf_type,         I2P k_type),
+      GLTF_JSON_OBJMAP_OBJ8(name,           I2P k_name),
+      GLTF_JSON_OBJMAP_OBJ8(type,           I2P k_type),
       JSON_OBJMAP_OBJ(_s_gltf_perspective,  I2P k_perspective),
       JSON_OBJMAP_OBJ(_s_gltf_orthographic, I2P k_orthographic)
     };
@@ -89,15 +89,15 @@ gltf_cameras(json_t * __restrict jcam,
 
       if ((it = camMap[k_perspective].object) && (jtechn = json_json(it))) {
         while (jtechn) {
-          if (json_key_eq(jtechn, _s_gltf_xfov)) {
+          if (GLTF_JSON_KEY_EQ8(jtechn, xfov)) {
             persp->xfov = json_float(jtechn, 0.0f);
-          } else if (json_key_eq(jtechn, _s_gltf_yfov)) {
+          } else if (GLTF_JSON_KEY_EQ8(jtechn, yfov)) {
             persp->yfov = json_float(jtechn, 0.0f);
-          } else if (json_key_eq(jtechn, _s_gltf_znear)) {
+          } else if (GLTF_JSON_KEY_EQ8(jtechn, znear)) {
             persp->znear = json_float(jtechn, 0.0f);
-          } else if (json_key_eq(jtechn, _s_gltf_zfar)) {
+          } else if (GLTF_JSON_KEY_EQ8(jtechn, zfar)) {
             persp->zfar = json_float(jtechn, 0.0f);
-          } else if (json_key_eq(jtechn, _s_gltf_aspectRatio)) {
+          } else if (GLTF_JSON_KEY_EQ(jtechn, aspectRatio)) {
             persp->aspectRatio = json_float(jtechn, 0.0f);
           }
           jtechn = jtechn->next;
@@ -121,13 +121,13 @@ gltf_cameras(json_t * __restrict jcam,
 
       if ((it = camMap[k_orthographic].object) && (jtechn = json_json(it))) {
         while (jtechn) {
-          if (json_key_eq(jtechn, _s_gltf_xmag)) {
+          if (GLTF_JSON_KEY_EQ8(jtechn, xmag)) {
             ortho->xmag = json_float(jtechn, 0.0f);
-          } else if (json_key_eq(jtechn, _s_gltf_ymag)) {
+          } else if (GLTF_JSON_KEY_EQ8(jtechn, ymag)) {
             ortho->ymag = json_float(jtechn, 0.0f);
-          } else if (json_key_eq(jtechn, _s_gltf_znear)) {
+          } else if (GLTF_JSON_KEY_EQ8(jtechn, znear)) {
             ortho->znear = json_float(jtechn, 0.0f);
-          } else if (json_key_eq(jtechn, _s_gltf_zfar)) {
+          } else if (GLTF_JSON_KEY_EQ8(jtechn, zfar)) {
             ortho->zfar = json_float(jtechn, 0.0f);
           }
 

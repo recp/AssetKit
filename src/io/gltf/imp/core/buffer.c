@@ -45,11 +45,11 @@ gltf_bufferViewProps(const json_t           * __restrict jbuffView,
     first = it->key[0];
     switch (it->keysize) {
       case 4:
-        if (first == 'n' && gltf_jsonKeyEqLen(it, _s_gltf_name, 4))
+        if (first == 'n' && GLTF_JSON_KEY_EQ8(it, name))
           props->name = it;
         break;
       case 6:
-        if (first == 'b' && gltf_jsonKeyEqLen(it, _s_gltf_buffer, 6))
+        if (first == 'b' && GLTF_JSON_KEY_EQ8(it, buffer))
           props->buffer = it;
         break;
       case 10:
@@ -168,10 +168,12 @@ gltf_buffers(json_t * __restrict jbuff,
     foundUri = false;
 
     while (jbuffVal) {
-      if (gltf_jsonKeyEqLen(jbuffVal, _s_gltf_uri, 3)) {
+      if (GLTF_JSON_KEY_EQ8(jbuffVal, uri)) {
         uri = json_string_dup(jbuffVal);
 
-        if (strncmp(uri, _s_gltf_b64d, strlen(_s_gltf_b64d)) == 0) {
+        if (jbuffVal->valsize > _s_gltf_b64d_len
+            && ak_str_pack8_fast(uri, _s_gltf_b64d_len)
+               == _s_gltf_b64d_u64_exact) {
           base64_buff(uri, jbuffVal->valsize, buff);
         } else {
           localurl = ak_getFileFrom(gst->doc, uri);
@@ -185,7 +187,7 @@ gltf_buffers(json_t * __restrict jbuff,
         foundUri = true;
 
         /* TODO: log if logging enabled (or by log level) */
-      } else if (gltf_jsonKeyEqLen(jbuffVal, _s_gltf_name, 4)) {
+      } else if (GLTF_JSON_KEY_EQ8(jbuffVal, name)) {
         buff->name = json_strdup(jbuffVal, heap, buff);
       }
 

@@ -27,10 +27,12 @@ dae_geom(DAEState * __restrict dst,
          void     * __restrict memp) {
   AkGeometry *geom;
   AkHeap     *heap;
+  double      profStart;
 
+  profStart         = DAE_PROF_START(dst);
   heap              = dst->heap;
   geom              = ak_heap_calloc(heap, memp, sizeof(*geom));
-  geom->name        = xmla_strdup_by(xml, heap, _s_dae_name, geom);
+  geom->name        = DAE_XMLA_STRDUP8(xml, heap, name, geom);
   geom->materialMap = ak_map_new(ak_cmp_str);
   
   xmla_setid(xml, heap, geom);
@@ -42,21 +44,23 @@ dae_geom(DAEState * __restrict dst,
   xml = xml->val;
 
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_asset)) {
+    if (DAE_XML_TAG_EQ8(xml, asset)) {
       (void)dae_asset(dst, xml, geom, NULL);
-    } else if (xml_tag_eq(xml, _s_dae_mesh)
-               || xml_tag_eq(xml, _s_dae_convex_mesh)) {
+    } else if (DAE_XML_TAG_EQ8(xml, mesh)
+               || DAE_XML_TAG_EQ(xml, convex_mesh)) {
       geom->gdata = dae_mesh(dst, xml, geom);
-    } else if (xml_tag_eq(xml, _s_dae_spline)) {
+    } else if (DAE_XML_TAG_EQ8(xml, spline)) {
       geom->gdata = dae_spline(dst, xml, geom);
-    } else if (xml_tag_eq(xml, _s_dae_brep)) {
+    } else if (DAE_XML_TAG_EQ8(xml, brep)) {
       geom->gdata = dae_brep(dst, xml, geom);
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       geom->extra = tree_fromxml(heap, geom, xml);
     }
     
     xml = xml->next;
   }
   
+  DAE_PROF_ACC(dst, profGeom, profGeomCount, profStart);
+
   return geom;
 }

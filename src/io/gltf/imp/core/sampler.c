@@ -50,21 +50,21 @@ gltf_samplers(json_t * __restrict jsampler,
     ak_setypeid(sampler, AKT_SAMPLER2D);
     gltf_extra(gst,
                sampler,
-               json_get(jsampler, _s_gltf_extras),
-               json_get(jsampler, _s_gltf_extensions));
+               GLTF_JSON_GET8(jsampler, extras),
+               GLTF_JSON_GET(jsampler, extensions));
     
     while (jsamplerVal) {
-      if (json_key_eq(jsamplerVal, _s_gltf_wrapS)) {
+      if (GLTF_JSON_KEY_EQ8(jsamplerVal, wrapS)) {
         sampler->wrapS = gltf_wrapMode(json_int32(jsamplerVal,
                                                   AK_WRAP_MODE_WRAP));
-      } else if (json_key_eq(jsamplerVal, _s_gltf_wrapT)) {
+      } else if (GLTF_JSON_KEY_EQ8(jsamplerVal, wrapT)) {
         sampler->wrapT = gltf_wrapMode(json_int32(jsamplerVal,
                                                   AK_WRAP_MODE_WRAP));
-      } else if (json_key_eq(jsamplerVal, _s_gltf_minFilter)) {
+      } else if (GLTF_JSON_KEY_EQ(jsamplerVal, minFilter)) {
         sampler->minfilter = gltf_minFilter(json_int32(jsamplerVal, 0));
-      } else if (json_key_eq(jsamplerVal, _s_gltf_magFilter)) {
+      } else if (GLTF_JSON_KEY_EQ(jsamplerVal, magFilter)) {
         sampler->magfilter = gltf_magFilter(json_int32(jsamplerVal, 0));
-      } else if (json_key_eq(jsamplerVal, _s_gltf_name)) {
+      } else if (GLTF_JSON_KEY_EQ8(jsamplerVal, name)) {
         sampler->name = json_strdup(jsamplerVal, gst->heap, sampler);
       }
 

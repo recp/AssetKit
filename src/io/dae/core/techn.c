@@ -24,8 +24,8 @@ dae_techn(xml_t  * __restrict xml,
   AkTechnique *techn;
 
   techn          = ak_heap_calloc(heap, memp, sizeof(*techn));
-  techn->profile = xmla_strdup_by(xml, heap, _s_dae_profile, techn);
-  techn->xmlns   = xmla_strdup_by(xml, heap, _s_dae_xmlns, techn);
+  techn->profile = DAE_XMLA_STRDUP8(xml, heap, profile, techn);
+  techn->xmlns   = DAE_XMLA_STRDUP8(xml, heap, xmlns, techn);
   techn->chld    = tree_fromxml(heap, techn, xml);
 
   return techn;

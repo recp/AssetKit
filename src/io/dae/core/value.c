@@ -17,6 +17,7 @@
 #include "value.h"
 #include "../fx/samp.h"
 #include "../1.4/surface.h"
+#include "../../../string_fast.h"
 
 #define AK_CUSTOM_TYPE_SURFACE 1
 
@@ -100,6 +101,122 @@ dae_dtype(const char *typeName, AkTypeDesc *type) {
   type->typeId   = found->val;
   type->typeName = found->key;
 }
+
+#define DAE_DTYPE_SET(TYPE_NAME, TYPE_ID, SIZE)                              \
+  do {                                                                       \
+    type->typeName = _s_dae_##TYPE_NAME;                                     \
+    type->typeId   = TYPE_ID;                                                \
+    type->size     = SIZE;                                                   \
+    type->userData = 0;                                                      \
+    return;                                                                  \
+  } while (0)
+
+#define DAE_DTYPE_MATCH(TYPE_NAME)                                           \
+  ak_str_eq_packed_fast(name, len,                                           \
+                        _s_dae_##TYPE_NAME##_u64_exact,                     \
+                        _s_dae_##TYPE_NAME##_len)
+
+#define DAE_DTYPE_MATCH_LONG(TYPE_NAME)                                      \
+  ak_str_eq_fast(name, len, _s_dae_##TYPE_NAME, _s_dae_##TYPE_NAME##_len)
+
+AK_HIDE
+void
+dae_dtype_attr(const xml_attr_t * __restrict xatt,
+               AkTypeDesc      * __restrict type) {
+  const char *name;
+  char       *typeName;
+  size_t      len;
+
+  if (!xatt || !(name = xatt->val)) {
+    type->typeId   = AKT_UNKNOWN;
+    type->typeName = NULL;
+    type->size     = 0;
+    type->userData = 0;
+    return;
+  }
+
+  len = xatt->valsize;
+
+  switch (len) {
+    case 3:
+      if (DAE_DTYPE_MATCH(int))
+        DAE_DTYPE_SET(int, AKT_INT, sizeof(int));
+      break;
+    case 4:
+      if (DAE_DTYPE_MATCH(bool))
+        DAE_DTYPE_SET(bool, AKT_BOOL, sizeof(bool));
+      if (DAE_DTYPE_MATCH(int2))
+        DAE_DTYPE_SET(int2, AKT_INT2, sizeof(int[2]));
+      if (DAE_DTYPE_MATCH(int3))
+        DAE_DTYPE_SET(int3, AKT_INT3, sizeof(int[3]));
+      if (DAE_DTYPE_MATCH(int4))
+        DAE_DTYPE_SET(int4, AKT_INT4, sizeof(int[4]));
+      break;
+    case 5:
+      if (DAE_DTYPE_MATCH(float))
+        DAE_DTYPE_SET(float, AKT_FLOAT, sizeof(float));
+      if (DAE_DTYPE_MATCH(bool2))
+        DAE_DTYPE_SET(bool2, AKT_BOOL2, sizeof(bool[2]));
+      if (DAE_DTYPE_MATCH(bool3))
+        DAE_DTYPE_SET(bool3, AKT_BOOL3, sizeof(bool[3]));
+      if (DAE_DTYPE_MATCH(bool4))
+        DAE_DTYPE_SET(bool4, AKT_BOOL4, sizeof(bool[4]));
+      break;
+    case 6:
+      if (DAE_DTYPE_MATCH(float2))
+        DAE_DTYPE_SET(float2, AKT_FLOAT2, sizeof(float[2]));
+      if (DAE_DTYPE_MATCH(float3))
+        DAE_DTYPE_SET(float3, AKT_FLOAT3, sizeof(float[3]));
+      if (DAE_DTYPE_MATCH(float4))
+        DAE_DTYPE_SET(float4, AKT_FLOAT4, sizeof(float[4]));
+      if (DAE_DTYPE_MATCH(string))
+        DAE_DTYPE_SET(string, AKT_STRING, sizeof(char *));
+      break;
+    case 7:
+      if (DAE_DTYPE_MATCH(surface))
+        DAE_DTYPE_SET(surface,
+                      AKT_CUSTOM,
+                      sizeof(AkDae14Surface));
+      break;
+    case 8:
+      if (DAE_DTYPE_MATCH(float2x2))
+        DAE_DTYPE_SET(float2x2, AKT_FLOAT2x2, sizeof(float[2][2]));
+      if (DAE_DTYPE_MATCH(float3x3))
+        DAE_DTYPE_SET(float3x3, AKT_FLOAT3x3, sizeof(float[3][3]));
+      if (DAE_DTYPE_MATCH(float4x4))
+        DAE_DTYPE_SET(float4x4, AKT_FLOAT4x4, sizeof(float[4][4]));
+      break;
+    case 9:
+      if (DAE_DTYPE_MATCH_LONG(sampler1d))
+        DAE_DTYPE_SET(sampler1d, AKT_SAMPLER1D, sizeof(AkSampler));
+      if (DAE_DTYPE_MATCH_LONG(sampler2d))
+        DAE_DTYPE_SET(sampler2d, AKT_SAMPLER2D, sizeof(AkSampler));
+      if (DAE_DTYPE_MATCH_LONG(sampler3d))
+        DAE_DTYPE_SET(sampler3d, AKT_SAMPLER3D, sizeof(AkSampler));
+      break;
+    case 11:
+      if (DAE_DTYPE_MATCH_LONG(sampler_cube))
+        DAE_DTYPE_SET(sampler_cube, AKT_SAMPLER_CUBE, sizeof(AkSampler));
+      if (DAE_DTYPE_MATCH_LONG(sampler_rect))
+        DAE_DTYPE_SET(sampler_rect, AKT_SAMPLER_RECT, sizeof(AkSampler));
+      break;
+    case 12:
+      if (DAE_DTYPE_MATCH_LONG(sampler_depth))
+        DAE_DTYPE_SET(sampler_depth, AKT_SAMPLER_DEPTH, sizeof(AkSampler));
+      break;
+    default:
+      break;
+  }
+
+  typeName = dae_alloca(len + 1);
+  memcpy(typeName, name, len);
+  typeName[len] = '\0';
+  dae_dtype(typeName, type);
+}
+
+#undef DAE_DTYPE_MATCH
+#undef DAE_DTYPE_MATCH_LONG
+#undef DAE_DTYPE_SET
 
 AK_HIDE
 AkValue*

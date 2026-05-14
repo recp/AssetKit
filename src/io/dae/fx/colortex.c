@@ -31,17 +31,17 @@ dae_colorOrTexSet(DAEState    * __restrict dst,
   xml  = xml->val;
 
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_color)) {
+    if (DAE_XML_TAG_EQ8(xml, color)) {
       clr->color = ak_heap_calloc(heap, memp, sizeof(*clr->color));
       dae_color(xml, clr->color, true, false, clr->color);
-    } else if (xml_tag_eq(xml, _s_dae_texture)) {
+    } else if (DAE_XML_TAG_EQ8(xml, texture)) {
       AkDAETextureRef *tex;
 
       tex = ak_heap_calloc(heap, memp, sizeof(*tex));
       ak_setypeid(tex, AKT_TEXTURE);
 
-      tex->texture  = xmla_strdup(xmla(xml, _s_dae_texture),  heap, tex);
-      tex->texcoord = xmla_strdup(xmla(xml, _s_dae_texcoord), heap, tex);
+      tex->texture  = xmla_strdup(DAE_XMLA8(xml, texture),  heap, tex);
+      tex->texcoord = xmla_strdup(DAE_XMLA8(xml, texcoord), heap, tex);
 
       if (tex->texture)
         ak_setypeid((void *)tex->texture, AKT_TEXTURE_NAME);
@@ -50,7 +50,7 @@ dae_colorOrTexSet(DAEState    * __restrict dst,
         ak_setypeid((void *)tex->texcoord, AKT_TEXCOORD);
 
       rb_insert(dst->texmap, clr, tex);
-    } else if (xml_tag_eq(xml, _s_dae_param)) {
+    } else if (DAE_XML_TAG_EQ8(xml, param)) {
       AkParam *param;
 
       if ((param = dae_param(dst, xml, clr))) {

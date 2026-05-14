@@ -52,12 +52,12 @@ dae_node(DAEState      * __restrict dst,
   xmla_setid(xml, heap, node);
   sid_set(xml, heap, node);
   
-  node->name     = xmla_strdup_by(xml, heap, _s_dae_name, node);
-  node->nodeType = dae_nodeType(xmla(xml, _s_dae_type));
+  node->name     = DAE_XMLA_STRDUP8(xml, heap, name, node);
+  node->nodeType = dae_nodeType(DAE_XMLA4(xml, type));
   if (node->nodeType < 1)
     node->nodeType = AK_NODE_TYPE_NODE;
 
-  if ((att = xmla(xml, _s_dae_layer))) {
+  if ((att = DAE_XMLA8(xml, layer))) {
     AkStringArray *strArray;
     AkResult       ret;
     char          *layer;
@@ -74,9 +74,9 @@ dae_node(DAEState      * __restrict dst,
   xml        = xml->val;
 
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_asset)) {
+    if (DAE_XML_TAG_EQ8(xml, asset)) {
       (void)dae_asset(dst, xml, node, NULL);
-    } else if (xml_tag_eq(xml, _s_dae_lookat) && (sval = xmls(xml))) {
+    } else if (DAE_XML_TAG_EQ8(xml, lookat) && (sval = xmls(xml))) {
       AkObject *obj;
       AkLookAt *looakAt;
       
@@ -90,7 +90,7 @@ dae_node(DAEState      * __restrict dst,
         node->transform = ak_heap_calloc(heap, node, sizeof(*node->transform));
       
       AK_APPEND_FLINK(node->transform->item, last_trans, obj);
-    } else if (xml_tag_eq(xml, _s_dae_matrix) && (sval = xmls(xml))) {
+    } else if (DAE_XML_TAG_EQ8(xml, matrix) && (sval = xmls(xml))) {
       mat4      transform;
       AkObject *obj;
       AkMatrix *matrix;
@@ -106,7 +106,7 @@ dae_node(DAEState      * __restrict dst,
         node->transform = ak_heap_calloc(heap, node, sizeof(*node->transform));
 
       AK_APPEND_FLINK(node->transform->item, last_trans, obj);
-    } else if (xml_tag_eq(xml, _s_dae_rotate) && (sval = xmls(xml))) {
+    } else if (DAE_XML_TAG_EQ8(xml, rotate) && (sval = xmls(xml))) {
       AkObject *obj;
       AkRotate *rotate;
       
@@ -121,7 +121,7 @@ dae_node(DAEState      * __restrict dst,
         node->transform = ak_heap_calloc(heap, node, sizeof(*node->transform));
       
       AK_APPEND_FLINK(node->transform->item, last_trans, obj);
-    } else if (xml_tag_eq(xml, _s_dae_scale) && (sval = xmls(xml))) {
+    } else if (DAE_XML_TAG_EQ8(xml, scale) && (sval = xmls(xml))) {
       AkObject *obj;
       AkScale  *scale;
       
@@ -135,7 +135,7 @@ dae_node(DAEState      * __restrict dst,
         node->transform = ak_heap_calloc(heap, node, sizeof(*node->transform));
       
       AK_APPEND_FLINK(node->transform->item, last_trans, obj);
-    } else if (xml_tag_eq(xml, _s_dae_skew) && (sval = xmls(xml))) {
+    } else if (DAE_XML_TAG_EQ8(xml, skew) && (sval = xmls(xml))) {
       AkObject *obj;
       AkSkew   *skew;
       AkFloat   tmp[7];
@@ -155,7 +155,7 @@ dae_node(DAEState      * __restrict dst,
         node->transform = ak_heap_calloc(heap, node, sizeof(*node->transform));
       
       AK_APPEND_FLINK(node->transform->item, last_trans, obj);
-    } else if (xml_tag_eq(xml, _s_dae_translate) && (sval = xmls(xml))) {
+    } else if (DAE_XML_TAG_EQ(xml, translate) && (sval = xmls(xml))) {
       AkObject    *obj;
       AkTranslate *transl;
       
@@ -169,13 +169,13 @@ dae_node(DAEState      * __restrict dst,
         node->transform = ak_heap_calloc(heap, node, sizeof(*node->transform));
       
       AK_APPEND_FLINK(node->transform->item, last_trans, obj);
-    } else if (xml_tag_eq(xml, _s_dae_instance_camera)) {
+    } else if (DAE_XML_TAG_EQ(xml, instance_camera)) {
       AkInstanceBase *instcam;
 
       instcam       = ak_heap_calloc(heap, node, sizeof(*instcam));
       instcam->type = AK_INSTANCE_CAMERA;
-      instcam->name = xmla_strdup_by(xml, heap, _s_dae_name, instcam);
-      url_set(dst, xml, _s_dae_url, instcam, &instcam->url);
+      instcam->name = DAE_XMLA_STRDUP8(xml, heap, name, instcam);
+      DAE_URL_SET(dst, xml, url, instcam, &instcam->url);
       
       instcam->node = node;
       
@@ -193,24 +193,24 @@ dae_node(DAEState      * __restrict dst,
         if (instcam)
           ak_instanceListAdd(scene->cameras, instcam);
       }
-    } else if (xml_tag_eq(xml, _s_dae_instance_controller)) {
+    } else if (DAE_XML_TAG_EQ(xml, instance_controller)) {
       AkInstanceController *instctl;
       xml_t                *xinstctl;
 
       instctl            = ak_heap_calloc(heap, node, sizeof(*instctl));
       instctl->base.type = AK_INSTANCE_CONTROLLER;
-      instctl->base.name = xmla_strdup_by(xml, heap, _s_dae_name, instctl);
-      url_set(dst, xml, _s_dae_url, instctl, &instctl->base.url);
+      instctl->base.name = DAE_XMLA_STRDUP8(xml, heap, name, instctl);
+      DAE_URL_SET(dst, xml, url, instctl, &instctl->base.url);
       
       xinstctl           = xml->val;
       while (xinstctl) {
-        if (xml_tag_eq(xinstctl, _s_dae_skeleton)) {
+        if (DAE_XML_TAG_EQ8(xinstctl, skeleton)) {
           char *skel;
           if ((skel = xml_strdup(xinstctl, heap, instctl)))
             flist_sp_insert(&instctl->reserved, skel);
-        } else if (xml_tag_eq(xinstctl, _s_dae_bind_material)) {
+        } else if (DAE_XML_TAG_EQ(xinstctl, bind_material)) {
           instctl->bindMaterial = dae_bindMaterial(dst, xinstctl, instctl);
-        } else if (xml_tag_eq(xinstctl, _s_dae_extra)) {
+        } else if (DAE_XML_TAG_EQ8(xinstctl, extra)) {
           instctl->base.extra = tree_fromxml(heap, instctl, xinstctl);
         }
         xinstctl = xinstctl->next;
@@ -218,20 +218,20 @@ dae_node(DAEState      * __restrict dst,
 
       instctl->base.node = node;
       flist_sp_insert(&dst->instCtlrs, instctl);;
-    } else if (xml_tag_eq(xml, _s_dae_instance_geometry)) {
+    } else if (DAE_XML_TAG_EQ(xml, instance_geometry)) {
       AkInstanceGeometry *instgeo;
       xml_t              *xinstgeo;
 
       instgeo            = ak_heap_calloc(heap, node, sizeof(*instgeo));
       instgeo->base.type = AK_INSTANCE_GEOMETRY;
-      instgeo->base.name = xmla_strdup_by(xml, heap, _s_dae_name, instgeo);
-      url_set(dst, xml, _s_dae_url, instgeo, &instgeo->base.url);
+      instgeo->base.name = DAE_XMLA_STRDUP8(xml, heap, name, instgeo);
+      DAE_URL_SET(dst, xml, url, instgeo, &instgeo->base.url);
 
       xinstgeo           = xml->val;
       while (xinstgeo) {
-        if (xml_tag_eq(xinstgeo, _s_dae_bind_material)) {
+        if (DAE_XML_TAG_EQ(xinstgeo, bind_material)) {
           instgeo->bindMaterial = dae_bindMaterial(dst, xinstgeo, instgeo);
-        } else if (xml_tag_eq(xinstgeo, _s_dae_extra)) {
+        } else if (DAE_XML_TAG_EQ8(xinstgeo, extra)) {
           instgeo->base.extra = tree_fromxml(heap, instgeo, xinstgeo);
         }
         xinstgeo = xinstgeo->next;
@@ -241,13 +241,13 @@ dae_node(DAEState      * __restrict dst,
 
       instgeo->base.next = (void *)node->geometry;
       node->geometry     = instgeo;
-    } else if (xml_tag_eq(xml, _s_dae_instance_light)) {
+    } else if (DAE_XML_TAG_EQ(xml, instance_light)) {
       AkInstanceBase *instlight;
       
       instlight       = ak_heap_calloc(heap, node, sizeof(*instlight));
       instlight->type = AK_INSTANCE_LIGHT;
-      instlight->name = xmla_strdup_by(xml, heap, _s_dae_name, instlight);
-      url_set(dst, xml, _s_dae_url, instlight, &instlight->url);
+      instlight->name = DAE_XMLA_STRDUP8(xml, heap, name, instlight);
+      DAE_URL_SET(dst, xml, url, instlight, &instlight->url);
       
       instlight->node = node;
       
@@ -264,14 +264,14 @@ dae_node(DAEState      * __restrict dst,
         if (lightObject)
           ak_instanceListAdd(scene->lights, instlight);
       }
-    } else if (xml_tag_eq(xml, _s_dae_instance_node)) {
+    } else if (DAE_XML_TAG_EQ(xml, instance_node)) {
       AkInstanceNode *instnode;
       
       instnode            = ak_heap_calloc(heap, node, sizeof(*instnode));
       instnode->base.type = AK_INSTANCE_NODE;
-      instnode->base.name = xmla_strdup_by(xml, heap, _s_dae_name,  instnode);
-      instnode->proxy     = xmla_strdup_by(xml, heap, _s_dae_proxy, instnode);
-      url_set(dst, xml, _s_dae_url, instnode, &instnode->base.url);
+      instnode->base.name = DAE_XMLA_STRDUP8(xml, heap, name, instnode);
+      instnode->proxy     = DAE_XMLA_STRDUP8(xml, heap, proxy, instnode);
+      DAE_URL_SET(dst, xml, url, instnode, &instnode->base.url);
       
       if (node->node)
         instnode->base.next = &node->node->base;
@@ -283,7 +283,7 @@ dae_node(DAEState      * __restrict dst,
         instnode->base.prev   = &node->node->base;
         node->node->base.prev = &instnode->base;
       }
-    } else if (xml_tag_eq(xml, _s_dae_node)) {
+    } else if (DAE_XML_TAG_EQ4(xml, node)) {
       AkNode *subNode;
       
       if ((subNode = dae_node(dst, xml, node, scene))) {
@@ -295,7 +295,7 @@ dae_node(DAEState      * __restrict dst,
         node->chld    = subNode;
       }
 
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       node->extra = tree_fromxml(heap, node, xml);
     }
     xml = xml->next;

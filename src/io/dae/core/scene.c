@@ -42,15 +42,15 @@ dae_vscene(DAEState * __restrict dst,
   ak_setypeid(vscn, AKT_SCENE);
   xmla_setid(xml, heap, vscn);
 
-  vscn->name    = xmla_strdup_by(xml, heap, _s_dae_name, vscn);
+  vscn->name    = DAE_XMLA_STRDUP8(xml, heap, name, vscn);
   vscn->cameras = ak_heap_calloc(heap, vscn, sizeof(*vscn->cameras));
   vscn->lights  = ak_heap_calloc(heap, vscn, sizeof(*vscn->lights));
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_asset)) {
+    if (DAE_XML_TAG_EQ8(xml, asset)) {
       (void)dae_asset(dst, xml, vscn, NULL);
-    } else if (xml_tag_eq(xml, _s_dae_node)) {
+    } else if (DAE_XML_TAG_EQ4(xml, node)) {
       AkNode *node;
 
       if ((node = dae_node(dst, xml, vscn, vscn))) {
@@ -61,14 +61,14 @@ dae_vscene(DAEState * __restrict dst,
           vscn->node->prev = node;
         }
       }
-    } else if (xml_tag_eq(xml, _s_dae_evaluate_scene)) {
+    } else if (DAE_XML_TAG_EQ(xml, evaluate_scene)) {
       AkEvaluateScene *evalScene;
 
       if ((evalScene = dae_evalScene(dst, xml, vscn))) {
         vscn->evaluateScene = evalScene;
         evalScene->next     = vscn->evaluateScene;
       }
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       vscn->extra = tree_fromxml(heap, vscn, xml);
     }
     xml = xml->next;
@@ -114,9 +114,9 @@ dae_instVisualScene(DAEState * __restrict dst,
   visualScene = ak_heap_calloc(heap, memp, sizeof(*visualScene));
 
   sid_set(xml, heap, visualScene);
-  visualScene->name = xmla_strdup_by(xml, heap, _s_dae_name, visualScene);
+  visualScene->name = DAE_XMLA_STRDUP8(xml, heap, name, visualScene);
 
-  url_set(dst, xml, _s_dae_url, visualScene, &visualScene->url);
+  DAE_URL_SET(dst, xml, url, visualScene, &visualScene->url);
 
   return visualScene;
 }
@@ -136,25 +136,25 @@ dae_evalScene(DAEState * __restrict dst,
   xmla_setid(xml, heap, evalScene);
   sid_set(xml, heap, evalScene);
   
-  evalScene->name   = xmla_strdup_by(xml, heap, _s_dae_name, evalScene);
-  evalScene->enable = xmla_bool(xmla(xml, _s_dae_enable), 0);
+  evalScene->name   = DAE_XMLA_STRDUP8(xml, heap, name, evalScene);
+  evalScene->enable = xmla_bool(DAE_XMLA8(xml, enable), 0);
   
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_asset)) {
+    if (DAE_XML_TAG_EQ8(xml, asset)) {
        (void)dae_asset(dst, xml, evalScene, NULL);
-    } else if (xml_tag_eq(xml, _s_dae_render)) {
+    } else if (DAE_XML_TAG_EQ(xml, render)) {
       AkRender *ren;
       xml_t    *xren;
       
       ren = ak_heap_calloc(heap, evalScene, sizeof(*ren));
       sid_set(xml, heap, ren);
       
-      ren->name       = xmla_strdup_by(xml, heap, _s_dae_name, ren);
-      ren->cameraNode = xmla_strdup_by(xml, heap, _s_dae_camera_node, ren);
+      ren->name       = DAE_XMLA_STRDUP8(xml, heap, name, ren);
+      ren->cameraNode = DAE_XMLA_STRDUP(xml, heap, camera_node, ren);
       
       xren = xml->val;
       while (xren) {
-        if (xml_tag_eq(xren, _s_dae_layer) && xren->val) {
+        if (DAE_XML_TAG_EQ8(xren, layer) && xren->val) {
           AkStringArrayL *layer;
           char           *contents;
           AkResult        ret;
@@ -168,7 +168,7 @@ dae_evalScene(DAEState * __restrict dst,
             layer->next = ren->layer;
             ren->layer  = layer;
           }
-        } else if (xml_tag_eq(xren, _s_dae_instance_material)) {
+        } else if (DAE_XML_TAG_EQ(xren, instance_material)) {
           AkInstanceMaterial *instmat;
         
           if ((instmat = dae_instMaterial(dst, xml, ren))) {
@@ -179,13 +179,13 @@ dae_evalScene(DAEState * __restrict dst,
             
             ren->instanceMaterial = instmat;
           }
-        } else if (xml_tag_eq(xren, _s_dae_extra)) {
+        } else if (DAE_XML_TAG_EQ8(xren, extra)) {
            ren->extra = tree_fromxml(heap, ren, xml);
         }
 
         xren = xren->next;
       }
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       evalScene->extra = tree_fromxml(heap, evalScene, xml);
     }
     xml = xml->next;
@@ -206,9 +206,9 @@ dae_scene(DAEState * __restrict dst,
   xml  = xml->val;
 
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_instance_visual_scene)) {
+    if (DAE_XML_TAG_EQ(xml, instance_visual_scene)) {
       doc->scene.visualScene = dae_instVisualScene(dst, xml, doc);
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       doc->scene.extra = tree_fromxml(heap, doc, xml);
     }
     xml = xml->next;

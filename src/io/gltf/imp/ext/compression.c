@@ -27,11 +27,11 @@ gltf_ext_meshoptMode(const json_t * __restrict jmode) {
   if (!jmode)
     return AK_GLTF_MESHOPT_MODE_UNKNOWN;
 
-  if (json_val_eq(jmode, _s_gltf_ATTRIBUTES))
+  if (GLTF_JSON_VAL_EQ(jmode, ATTRIBUTES))
     return AK_GLTF_MESHOPT_MODE_ATTRIBUTES;
-  if (json_val_eq(jmode, _s_gltf_TRIANGLES))
+  if (GLTF_JSON_VAL_EQ(jmode, TRIANGLES))
     return AK_GLTF_MESHOPT_MODE_TRIANGLES;
-  if (json_val_eq(jmode, _s_gltf_INDICES))
+  if (GLTF_JSON_VAL_EQ8(jmode, INDICES))
     return AK_GLTF_MESHOPT_MODE_INDICES;
 
   return AK_GLTF_MESHOPT_MODE_UNKNOWN;
@@ -40,14 +40,14 @@ gltf_ext_meshoptMode(const json_t * __restrict jmode) {
 static
 AkGLTFMeshoptFilter
 gltf_ext_meshoptFilter(const json_t * __restrict jfilter) {
-  if (!jfilter || json_val_eq(jfilter, _s_gltf_NONE))
+  if (!jfilter || GLTF_JSON_VAL_EQ8(jfilter, NONE))
     return AK_GLTF_MESHOPT_FILTER_NONE;
 
-  if (json_val_eq(jfilter, _s_gltf_OCTAHEDRAL))
+  if (GLTF_JSON_VAL_EQ(jfilter, OCTAHEDRAL))
     return AK_GLTF_MESHOPT_FILTER_OCTAHEDRAL;
-  if (json_val_eq(jfilter, _s_gltf_QUATERNION))
+  if (GLTF_JSON_VAL_EQ(jfilter, QUATERNION))
     return AK_GLTF_MESHOPT_FILTER_QUATERNION;
-  if (json_val_eq(jfilter, _s_gltf_EXPONENTIAL))
+  if (GLTF_JSON_VAL_EQ(jfilter, EXPONENTIAL))
     return AK_GLTF_MESHOPT_FILTER_EXPONENTIAL;
 
   return AK_GLTF_MESHOPT_FILTER_NONE;
@@ -75,9 +75,9 @@ gltf_ext_bufferView(AkGLTFState  * __restrict gst,
   if (!gst || !buffView || !jext)
     return true;
 
-  jmo = json_get(jext, _s_gltf_EXT_meshopt_compression);
+  jmo = GLTF_JSON_GET(jext, EXT_meshopt_compression);
   if (!jmo)
-    jmo = json_get(jext, _s_gltf_KHR_meshopt_compression);
+    jmo = GLTF_JSON_GET(jext, KHR_meshopt_compression);
   if (!jmo)
     return true;
 
@@ -87,23 +87,23 @@ gltf_ext_bufferView(AkGLTFState  * __restrict gst,
     return false;
   }
 
-  it      = json_get(jmo, _s_gltf_buffer);
+  it      = GLTF_JSON_GET8(jmo, buffer);
   buffIdx = it ? json_int32(it, -1) : -1;
   if (buffIdx < 0
       || !(srcBuff = gltf_buffer_at(gst, buffIdx))
       || !srcBuff->data)
     return false;
 
-  srcOff = (it = json_get(jmo, _s_gltf_byteOffset))
+  srcOff = (it = GLTF_JSON_GET(jmo, byteOffset))
              ? (size_t)json_uint64(it, 0) : 0;
-  srcLen = (it = json_get(jmo, _s_gltf_byteLength))
+  srcLen = (it = GLTF_JSON_GET(jmo, byteLength))
              ? (size_t)json_uint64(it, 0) : 0;
-  stride = (it = json_get(jmo, _s_gltf_byteStride))
+  stride = (it = GLTF_JSON_GET(jmo, byteStride))
              ? (size_t)json_uint64(it, 0) : 0;
-  count  = (it = json_get(jmo, _s_gltf_count))
+  count  = (it = GLTF_JSON_GET8(jmo, count))
              ? (size_t)json_uint64(it, 0) : 0;
-  mode   = gltf_ext_meshoptMode(json_get(jmo, _s_gltf_mode));
-  filter = gltf_ext_meshoptFilter(json_get(jmo, _s_gltf_filter));
+  mode   = gltf_ext_meshoptMode(GLTF_JSON_GET8(jmo, mode));
+  filter = gltf_ext_meshoptFilter(GLTF_JSON_GET8(jmo, filter));
 
   if (srcOff > srcBuff->length
       || srcLen == 0

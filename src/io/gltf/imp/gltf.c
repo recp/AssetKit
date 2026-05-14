@@ -204,7 +204,7 @@ gltf_parse(AkDoc     ** __restrict dest,
   gstVal.heap      = heap;
   gstVal.bindata   = bindata;
   gstVal.bindataLen = bindataLen;
-  gstVal.borrowBufferViews = ak_opt_get(AK_OPT_USE_MMAP)
+  gstVal.borrowBufferViews = (bindata ? ak_opt_get(AK_OPT_USE_MMAP) : true)
                               && (AkCoordCvtType)ak_opt_get(AK_OPT_COORD_CONVERT_TYPE)
                                  != AK_COORD_CVT_ALL;
   gstVal.tmpParent = ak_heap_alloc(heap, doc, sizeof(void*));
@@ -232,38 +232,38 @@ gltf_parse(AkDoc     ** __restrict dest,
   profSection = prof ? gltf_profile_now_ms() : 0.0;
   gltf_extra(gst,
              doc,
-             json_get(json, _s_gltf_extras),
-             json_get(json, _s_gltf_extensions));
+             GLTF_JSON_GET8(json, extras),
+             GLTF_JSON_GET(json, extensions));
   gltf_extra_node(gst,
                   doc,
                   _s_gltf_extensionsUsed,
-                  json_get(json, _s_gltf_extensionsUsed));
+                  GLTF_JSON_GET(json, extensionsUsed));
   gltf_extra_node(gst,
                   doc,
                   _s_gltf_extensionsRequired,
-                  json_get(json, _s_gltf_extensionsRequired));
-  gltf_ext_root(json_get(json, _s_gltf_extensions), gst);
+                  GLTF_JSON_GET(json, extensionsRequired));
+  gltf_ext_root(GLTF_JSON_GET(json, extensions), gst);
   if (prof)
     gltf_profile_log("root_extra", gltf_profile_now_ms() - profSection);
 
   /* json_print_human(stderr, gltfRawDoc->root); */
 
   json_objmap_t gltfMap[] = {
-    JSON_OBJMAP_FN(_s_gltf_asset,       gltf_asset,       gst),
-    JSON_OBJMAP_FN(_s_gltf_buffers,     gltf_buffers,     gst),
+    GLTF_JSON_OBJMAP_FN8(asset,         gltf_asset,       gst),
+    GLTF_JSON_OBJMAP_FN8(buffers,       gltf_buffers,     gst),
     JSON_OBJMAP_FN(_s_gltf_bufferViews, gltf_bufferViews, gst),
     JSON_OBJMAP_FN(_s_gltf_accessors,   gltf_accessors,   gst),
-    JSON_OBJMAP_FN(_s_gltf_images,      gltf_images,      gst),
-    JSON_OBJMAP_FN(_s_gltf_samplers,    gltf_samplers,    gst),
-    JSON_OBJMAP_FN(_s_gltf_textures,    gltf_textures,    gst),
+    GLTF_JSON_OBJMAP_FN8(images,        gltf_images,      gst),
+    GLTF_JSON_OBJMAP_FN8(samplers,      gltf_samplers,    gst),
+    GLTF_JSON_OBJMAP_FN8(textures,      gltf_textures,    gst),
     JSON_OBJMAP_FN(_s_gltf_extensionsRequired, gltf_exts,  gst),
     JSON_OBJMAP_FN(_s_gltf_materials,   gltf_materials,   gst),
-    JSON_OBJMAP_FN(_s_gltf_meshes,      gltf_meshes,      gst),
-    JSON_OBJMAP_FN(_s_gltf_cameras,     gltf_cameras,     gst),
-    JSON_OBJMAP_FN(_s_gltf_nodes,       gltf_nodes,       gst),
-    JSON_OBJMAP_FN(_s_gltf_skins,       gltf_skin,        gst),
-    JSON_OBJMAP_FN(_s_gltf_scenes,      gltf_scenes,      gst),
-    JSON_OBJMAP_FN(_s_gltf_scene,       gltf_scene,       gst),
+    GLTF_JSON_OBJMAP_FN8(meshes,        gltf_meshes,      gst),
+    GLTF_JSON_OBJMAP_FN8(cameras,       gltf_cameras,     gst),
+    GLTF_JSON_OBJMAP_FN8(nodes,         gltf_nodes,       gst),
+    GLTF_JSON_OBJMAP_FN8(skins,         gltf_skin,        gst),
+    GLTF_JSON_OBJMAP_FN8(scenes,        gltf_scenes,      gst),
+    GLTF_JSON_OBJMAP_FN8(scene,         gltf_scene,       gst),
     JSON_OBJMAP_FN(_s_gltf_animations,  gltf_animations,  gst)
   };
 

@@ -55,35 +55,35 @@ gltf_nodeProps(json_t          * __restrict jnode,
 
     switch (it->keysize) {
       case 4:
-        if (first == 'n' && gltf_jsonKeyEqLen(it, _s_gltf_name, 4)) {
+        if (first == 'n' && GLTF_JSON_KEY_EQ8(it, name)) {
           props->name = it;
-        } else if (first == 'm' && gltf_jsonKeyEqLen(it, _s_gltf_mesh, 4)) {
+        } else if (first == 'm' && GLTF_JSON_KEY_EQ8(it, mesh)) {
           props->mesh = it;
-        } else if (first == 's' && gltf_jsonKeyEqLen(it, _s_gltf_skin, 4)) {
+        } else if (first == 's' && GLTF_JSON_KEY_EQ8(it, skin)) {
           props->skin = it;
         }
         break;
       case 5:
-        if (first == 's' && gltf_jsonKeyEqLen(it, _s_gltf_scale, 5))
+        if (first == 's' && GLTF_JSON_KEY_EQ8(it, scale))
           props->scale = it;
         break;
       case 6:
-        if (first == 'c' && gltf_jsonKeyEqLen(it, _s_gltf_camera, 6)) {
+        if (first == 'c' && GLTF_JSON_KEY_EQ8(it, camera)) {
           props->camera = it;
-        } else if (first == 'm' && gltf_jsonKeyEqLen(it, _s_gltf_matrix, 6)) {
+        } else if (first == 'm' && GLTF_JSON_KEY_EQ8(it, matrix)) {
           props->matrix = it;
-        } else if (first == 'e' && gltf_jsonKeyEqLen(it, _s_gltf_extras, 6)) {
+        } else if (first == 'e' && GLTF_JSON_KEY_EQ8(it, extras)) {
           props->extras = it;
         }
         break;
       case 7:
-        if (first == 'w' && gltf_jsonKeyEqLen(it, _s_gltf_weights, 7))
+        if (first == 'w' && GLTF_JSON_KEY_EQ8(it, weights))
           props->weights = it;
         break;
       case 8:
-        if (first == 'c' && gltf_jsonKeyEqLen(it, _s_gltf_children, 8)) {
+        if (first == 'c' && GLTF_JSON_KEY_EQ8(it, children)) {
           props->children = it;
-        } else if (first == 'r' && gltf_jsonKeyEqLen(it, _s_gltf_rotation, 8)) {
+        } else if (first == 'r' && GLTF_JSON_KEY_EQ8(it, rotation)) {
           props->rotation = it;
         }
         break;
@@ -162,9 +162,12 @@ gltf_nodes(json_t * __restrict jnode,
     nodechld[i * 2] = node = gltf_node(gst, lib, jnode, nodechld);
     gst->nodesByIndex[i] = node;
   
-    /* JSON parse is reverse */
-    gltf_nodeId(nodeid, (unsigned int)i);
-    ak_heap_setId(heap, ak__alignof(node), ak_heap_strdup(heap, node, nodeid));
+    /* JSON parse is reverse. glTF nodes do not have authored ids; keep a
+       synthetic id only when there is no node name to use as fallback. */
+    if (!node->name) {
+      gltf_nodeId(nodeid, (unsigned int)i);
+      ak_heap_setId(heap, ak__alignof(node), ak_heap_strdup(heap, node, nodeid));
+    }
 
     i--;
     jnode = jnode->next;

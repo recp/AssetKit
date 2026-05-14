@@ -31,7 +31,7 @@ dae_profile(DAEState * __restrict dst,
 
   heap = dst->heap;
 
-  if (!xml_tag_eq(xml, _s_dae_prfl_common))
+  if (!DAE_XML_TAG_EQ(xml, prfl_common))
     return NULL;
  
   profile       = ak_heap_calloc(heap, memp, sizeof(AkProfileCommon));
@@ -42,9 +42,9 @@ dae_profile(DAEState * __restrict dst,
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_asset)) {
+    if (DAE_XML_TAG_EQ8(xml, asset)) {
       (void)dae_asset(dst, xml, profile, NULL);
-    } else if (xml_tag_eq(xml, _s_dae_newparam)) {
+    } else if (DAE_XML_TAG_EQ(xml, newparam)) {
       AkNewParam *newparam;
       
       if ((newparam = dae_newparam(dst, xml, profile))) {
@@ -54,7 +54,7 @@ dae_profile(DAEState * __restrict dst,
         newparam->next    = profile->newparam;
         profile->newparam = newparam;
       }
-    } else if (xml_tag_eq(xml, _s_dae_technique)) {
+    } else if (DAE_XML_TAG_EQ(xml, technique)) {
       AkTechniqueFx *techn;
       
       if ((techn = dae_techniqueFx(dst, xml, profile))) {
@@ -62,10 +62,10 @@ dae_profile(DAEState * __restrict dst,
         profile->technique = techn;
       }
     } else if (dst->version < AK_COLLADA_VERSION_150
-               && xml_tag_eq(xml, _s_dae_image)) {
+               && DAE_XML_TAG_EQ8(xml, image)) {
       /* migration from 1.4 */
       dae14_fxMigrateImg(dst, xml, NULL);
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       profile->extra = tree_fromxml(heap, profile, xml);
     }
     xml = xml->next;

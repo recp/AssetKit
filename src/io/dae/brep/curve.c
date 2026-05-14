@@ -33,7 +33,7 @@ dae_curve(DAEState * __restrict dst,
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_line)) {
+    if (DAE_XML_TAG_EQ(xml, line)) {
       AkLine *line;
       xml_t  *xline;
       
@@ -42,11 +42,11 @@ dae_curve(DAEState * __restrict dst,
       line  = ak_objGet(obj);
       
       while (xline) {
-        if (xml_tag_eq(xline, _s_dae_origin) && (sval = xmls(xline))) {
+        if (DAE_XML_TAG_EQ(xline, origin) && (sval = xmls(xline))) {
           xml_strtof_fast(sval, line->origin, 3);
-        } else if (xml_tag_eq(xline, _s_dae_direction) && (sval = xmls(xline))) {
+        } else if (DAE_XML_TAG_EQ(xline, direction) && (sval = xmls(xline))) {
           xml_strtof_fast(sval, line->direction, 3);
-        } else if (xml_tag_eq(xline, _s_dae_extra)) {
+        } else if (DAE_XML_TAG_EQ(xline, extra)) {
           line->extra = tree_fromxml(heap, obj, xml);
         }
         
@@ -54,7 +54,7 @@ dae_curve(DAEState * __restrict dst,
       }
 
       curve->curve = obj;
-    } else if (xml_tag_eq(xml, _s_dae_circle)) {
+    } else if (DAE_XML_TAG_EQ(xml, circle)) {
       AkCircle *circ;
       xml_t    *xcirc;
       
@@ -63,16 +63,16 @@ dae_curve(DAEState * __restrict dst,
       circ  = ak_objGet(obj);
       
       while (xcirc) {
-        if (xml_tag_eq(xcirc, _s_dae_radius) && xcirc->val) {
+        if (DAE_XML_TAG_EQ(xcirc, radius) && xcirc->val) {
           circ->radius = xml_float(xcirc->val, 0.0f);
-        } else if (xml_tag_eq(xcirc, _s_dae_extra)) {
+        } else if (DAE_XML_TAG_EQ(xcirc, extra)) {
           circ->extra = tree_fromxml(heap, obj, xml);
         }
         xcirc = xcirc->next;
       }
 
       curve->curve = obj;
-    } else if (xml_tag_eq(xml, _s_dae_ellipse)) {
+    } else if (DAE_XML_TAG_EQ(xml, ellipse)) {
       AkEllipse *ell;
       xml_t     *xell;
 
@@ -81,16 +81,16 @@ dae_curve(DAEState * __restrict dst,
       ell  = ak_objGet(obj);
       
       while (xell) {
-        if (xml_tag_eq(xell, _s_dae_radius) && (sval = xmls(xell))) {
+        if (DAE_XML_TAG_EQ(xell, radius) && (sval = xmls(xell))) {
           xml_strtof_fast(sval, (AkFloat *)&ell->radius, 2);
-        } else if (xml_tag_eq(xell, _s_dae_extra)) {
+        } else if (DAE_XML_TAG_EQ(xell, extra)) {
           ell->extra = tree_fromxml(heap, obj, xml);
         }
         xell = xell->next;
       }
 
       curve->curve = obj;
-    } else if (xml_tag_eq(xml, _s_dae_parabola)) {
+    } else if (DAE_XML_TAG_EQ(xml, parabola)) {
       AkParabola *par;
       xml_t      *xpar;
 
@@ -99,16 +99,16 @@ dae_curve(DAEState * __restrict dst,
       par  = ak_objGet(obj);
 
       while (xpar) {
-        if (xml_tag_eq(xpar, _s_dae_focal) && xpar->val) {
+        if (DAE_XML_TAG_EQ(xpar, focal) && xpar->val) {
           par->focal = xml_float(xpar->val, 0.0f);
-        } else if (xml_tag_eq(xpar, _s_dae_extra)) {
+        } else if (DAE_XML_TAG_EQ(xpar, extra)) {
           par->extra = tree_fromxml(heap, obj, xml);
         }
         xpar = xpar->next;
       }
 
       curve->curve = obj;
-    } else if (xml_tag_eq(xml, _s_dae_hyperbola)) {
+    } else if (DAE_XML_TAG_EQ(xml, hyperbola)) {
       AkHyperbola *hpar;
       xml_t       *xhpar;
       
@@ -121,18 +121,18 @@ dae_curve(DAEState * __restrict dst,
       hpar  = ak_objGet(obj);
       
       while (xhpar) {
-        if (xml_tag_eq(xhpar, _s_dae_radius) && (sval = xmls(xhpar))) {
+        if (DAE_XML_TAG_EQ(xhpar, radius) && (sval = xmls(xhpar))) {
           xml_strtof_fast(sval, (AkFloat *)&hpar->radius, 2);
-        } else if (xml_tag_eq(xhpar, _s_dae_extra)) {
+        } else if (DAE_XML_TAG_EQ(xhpar, extra)) {
           hpar->extra = tree_fromxml(heap, obj, xml);
         }
         xhpar = xhpar->next;
       }
       
       curve->curve = obj;
-    } else if (xml_tag_eq(xml, _s_dae_nurbs)) {
+    } else if (DAE_XML_TAG_EQ(xml, nurbs)) {
       curve->curve = dae_nurbs(dst, xml, curve);
-    } else if (xml_tag_eq(xml, _s_dae_orient) && (sval = xmls(xml))) {
+    } else if (DAE_XML_TAG_EQ(xml, orient) && (sval = xmls(xml))) {
       AkFloatArrayL *orient;
       AkResult       ret;
       
@@ -141,7 +141,7 @@ dae_curve(DAEState * __restrict dst,
         orient->next  = curve->orient;
         curve->orient = orient;
       }
-    } else if (xml_tag_eq(xml, _s_dae_origin) && (sval = xmls(xml))) {
+    } else if (DAE_XML_TAG_EQ(xml, origin) && (sval = xmls(xml))) {
       xml_strtof_fast(sval, curve->origin, 3);
     }
     xml = xml->next;
@@ -164,12 +164,12 @@ dae_curves(DAEState * __restrict dst,
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_curve)) {
+    if (DAE_XML_TAG_EQ(xml, curve)) {
       if ((curve = dae_curve(dst, xml, curves))) {
         curve->next   = curves->curve;
         curves->curve = curve;
       }
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ(xml, extra)) {
       curves->extra = tree_fromxml(heap, curves, xml);
     }
     xml = xml->next;

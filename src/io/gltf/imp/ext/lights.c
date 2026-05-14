@@ -13,11 +13,11 @@ gltf_ext_lightType(const json_t * __restrict jtype) {
   if (!jtype)
     return AK_LIGHT_TYPE_POINT;
 
-  if (json_val_eq(jtype, _s_gltf_directional))
+  if (GLTF_JSON_VAL_EQ(jtype, directional))
     return AK_LIGHT_TYPE_DIRECTIONAL;
-  if (json_val_eq(jtype, _s_gltf_spot))
+  if (GLTF_JSON_VAL_EQ8(jtype, spot))
     return AK_LIGHT_TYPE_SPOT;
-  if (json_val_eq(jtype, _s_gltf_point))
+  if (GLTF_JSON_VAL_EQ8(jtype, point))
     return AK_LIGHT_TYPE_POINT;
 
   return AK_LIGHT_TYPE_POINT;
@@ -39,34 +39,34 @@ gltf_ext_lights(AkGLTFState * __restrict gst,
 
   jlight = jarr->base.value;
   while (jlight) {
-    it    = json_get(jlight, _s_gltf_type);
+    it    = GLTF_JSON_GET8(jlight, type);
     light = ak_lightMake(gst->doc, gst->doc, gltf_ext_lightType(it));
     if (!light)
       goto nxt;
 
     gltf_extra(gst,
                light,
-               json_get(jlight, _s_gltf_extras),
-               json_get(jlight, _s_gltf_extensions));
+               GLTF_JSON_GET8(jlight, extras),
+               GLTF_JSON_GET(jlight, extensions));
 
     base = light->tcommon;
-    if ((it = json_get(jlight, _s_gltf_name)))
+    if ((it = GLTF_JSON_GET8(jlight, name)))
       light->name = json_strdup(it, gst->heap, light);
 
-    if ((it = json_get(jlight, _s_gltf_color))) {
+    if ((it = GLTF_JSON_GET8(jlight, color))) {
       json_array_float(base->color.vec, it, 1.0f, 3, true);
       base->color.vec[3] = 1.0f;
     }
 
-    base->intensity = json_float(json_get(jlight, _s_gltf_intensity), 1.0f);
-    base->range     = json_float(json_get(jlight, _s_gltf_range),     0.0f);
+    base->intensity = json_float(GLTF_JSON_GET(jlight, intensity), 1.0f);
+    base->range     = json_float(GLTF_JSON_GET8(jlight, range),     0.0f);
 
     if (base->type == AK_LIGHT_TYPE_SPOT
-        && (it = json_get(jlight, _s_gltf_spot))) {
+        && (it = GLTF_JSON_GET8(jlight, spot))) {
       spot = (AkSpotLight *)base;
-      spot->innerConeAngle = json_float(json_get(it, _s_gltf_innerConeAngle),
+      spot->innerConeAngle = json_float(GLTF_JSON_GET(it, innerConeAngle),
                                         0.0f);
-      spot->outerConeAngle = json_float(json_get(it, _s_gltf_outerConeAngle),
+      spot->outerConeAngle = json_float(GLTF_JSON_GET(it, outerConeAngle),
                                         GLM_PI_4f);
     }
 
@@ -85,8 +85,8 @@ gltf_ext_nodeLight(AkGLTFState * __restrict gst,
   AkLight *light;
   int32_t  lightIndex;
 
-  jpunctual = json_get(jext, _s_gltf_KHR_lights_punctual);
-  jlight    = jpunctual ? json_get(jpunctual, _s_gltf_light) : NULL;
+  jpunctual = GLTF_JSON_GET(jext, KHR_lights_punctual);
+  jlight    = jpunctual ? GLTF_JSON_GET8(jpunctual, light) : NULL;
   if (!jlight)
     return true;
 

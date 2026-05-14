@@ -30,16 +30,18 @@ dae_poly(DAEState * __restrict dst,
   AkHeap    *heap;
   uint32_t   indexoff, polygonsCount, st;
   size_t     indicesCount;
+  double     profStart, profStep;
   
+  profStart = DAE_PROF_START(dst);
   heap = dst->heap;
   poly = ak_heap_calloc(heap, memp, sizeof(*poly));
   
   poly->haveHoles         = false;
   poly->base.type         = AK_PRIMITIVE_POLYGONS;
 
-  poly->base.name         = xmla_strdup_by(xml, heap, _s_dae_name, poly);
-  poly->base.bindmaterial = xmla_strdup_by(xml, heap, _s_dae_material, poly);
-  poly->base.nPolygons    = xmla_u32(xmla(xml, _s_dae_count), 0);
+  poly->base.name         = DAE_XMLA_STRDUP8(xml, heap, name, poly);
+  poly->base.bindmaterial = DAE_XMLA_STRDUP8(xml, heap, material, poly);
+  poly->base.nPolygons    = xmla_u32(DAE_XMLA8(xml, count), 0);
 
   polyi         = NULL;
   indexoff      = 0;
@@ -48,28 +50,25 @@ dae_poly(DAEState * __restrict dst,
   
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_input)) {
+    if (DAE_XML_TAG_EQ8(xml, input)) {
       AkInput *inp;
+      profStep = DAE_PROF_START(dst);
 
       inp              = ak_heap_calloc(heap, poly, sizeof(*inp));
-      inp->semanticRaw = xmla_strdup_by(xml, heap, _s_dae_semantic, inp);
+      inp->semanticRaw = dae_semanticRaw(DAE_XMLA8(xml, semantic),
+                                         heap,
+                                         inp,
+                                         &inp->semantic);
 
       if (!inp->semanticRaw) {
         ak_free(inp);
       } else {
         AkURL *url;
-        AkEnum inputSemantic;
 
-        inputSemantic = dae_semantic(inp->semanticRaw);
+        inp->offset   = xmla_u32(DAE_XMLA8(xml, offset), 0);
+        inp->set      = xmla_u32(DAE_XMLA4(xml, set),    0);
 
-        if (inputSemantic < 0)
-          inputSemantic = AK_INPUT_OTHER;
-
-        inp->semantic = inputSemantic;
-        inp->offset   = xmla_u32(xmla(xml, _s_dae_offset), 0);
-        inp->set      = xmla_u32(xmla(xml, _s_dae_set),    0);
-
-        url = url_from(xml, _s_dae_source, memp);
+        url = DAE_URL_FROM(xml, source, memp);
         rb_insert(dst->inputmap, inp, url);
 
         if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
@@ -87,8 +86,10 @@ dae_poly(DAEState * __restrict dst,
           // ak_free(inp);
         }
       }
-    } else if (xml_tag_eq(xml, _s_dae_p) && xml->val) {
+      DAE_PROF_ACC(dst, profGeomInput, profGeomInputCount, profStep);
+    } else if (DAE_XML_TAG_EQ8(xml, p) && xml->val) {
       AkUIntArray *intArray;
+      profStep = DAE_PROF_START(dst);
       
       if ((xml_strtoui_array(heap, poly, xml->val, &intArray) == AK_OK)) {
         if (mode == AK_POLY_POLYLIST) {
@@ -100,12 +101,15 @@ dae_poly(DAEState * __restrict dst,
           indicesCount += intArray->count;
         }
       }
-    } else if (xml_tag_eq(xml, _s_dae_vcount) && xml->val) {
+      DAE_PROF_ACC(dst, profGeomIndexArray, profGeomIndexArrayCount, profStep);
+    } else if (DAE_XML_TAG_EQ8(xml, vcount) && xml->val) {
       AkUIntArray *intArray;
+      profStep = DAE_PROF_START(dst);
       if ((xml_strtoui_array(heap, poly, xml->val, &intArray) == AK_OK)) {
         poly->vcount = intArray;
       }
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+      DAE_PROF_ACC(dst, profGeomIndexArray, profGeomIndexArrayCount, profStep);
+    } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       poly->base.extra = tree_fromxml(heap, poly, xml);
     }
     xml = xml->next;
@@ -154,6 +158,8 @@ dae_poly(DAEState * __restrict dst,
 
     flist_sp_destroy(&polyi);
   }
+
+  DAE_PROF_ACC(dst, profGeomPolygons, profGeomPolygonsCount, profStart);
 
   return poly;
 }

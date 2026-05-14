@@ -32,13 +32,13 @@ dae_anim(DAEState * __restrict dst,
 
   xmla_setid(xml, heap, anim);
   
-  anim->name = xmla_strdup_by(xml, heap, _s_dae_name, anim);
+  anim->name = DAE_XMLA_STRDUP8(xml, heap, name, anim);
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_asset)) {
+    if (DAE_XML_TAG_EQ8(xml, asset)) {
       (void)dae_asset(dst, xml, anim, NULL);
-    } else if (xml_tag_eq(xml, _s_dae_source)) {
+    } else if (DAE_XML_TAG_EQ8(xml, source)) {
       AkSource *source;
       
       /* store interpolation in char */
@@ -46,25 +46,25 @@ dae_anim(DAEState * __restrict dst,
         source->next = anim->source;
         anim->source = source;
       }
-    } else if (xml_tag_eq(xml, _s_dae_sampler)) {
+    } else if (DAE_XML_TAG_EQ8(xml, sampler)) {
       AkAnimSampler *samp;
       if ((samp = dae_animSampler(dst, xml, anim))) {
         samp->base.next = (void *)anim->sampler;
         anim->sampler   = samp;
       }
-    } else if (xml_tag_eq(xml, _s_dae_channel)) {
+    } else if (DAE_XML_TAG_EQ8(xml, channel)) {
       AkChannel *ch;
       if ((ch = dae_channel(dst, xml, anim))) {
         ch->next      = anim->channel;
         anim->channel = ch;
       }
-    } else if (xml_tag_eq(xml, _s_dae_animation)) {
+    } else if (DAE_XML_TAG_EQ(xml, animation)) {
       AkAnimation *subAnim;
       if ((subAnim = dae_anim(dst, xml, anim))) {
         subAnim->base.next = (AkOneWayIterBase *)anim->animation;
         anim->animation    = subAnim;
       }
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       anim->extra = tree_fromxml(heap, anim, xml);
     }
     xml = xml->next;
@@ -88,35 +88,28 @@ dae_animSampler(DAEState * __restrict dst,
 
   xmla_setid(xml, heap, samp);
 
-  if ((att = xmla(xml, _s_dae_pre_behavior)))
+  if ((att = DAE_XMLA(xml, pre_behavior)))
     samp->pre = dae_animBehavior(att);
 
-  if ((att = xmla(xml, _s_dae_post_behavior)))
+  if ((att = DAE_XMLA(xml, post_behavior)))
     samp->post = dae_animBehavior(att);
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_input)) {
+    if (DAE_XML_TAG_EQ8(xml, input)) {
       inp              = ak_heap_calloc(heap, samp, sizeof(*inp));
-      inp->semanticRaw = xmla_strdup_by(xml, heap, _s_dae_semantic, inp);
+      inp->semanticRaw = dae_semanticRaw(DAE_XMLA8(xml, semantic),
+                                         heap,
+                                         inp,
+                                         &inp->semantic);
       
       if (!inp->semanticRaw) {
         ak_free(inp);
       } else {
         AkURL *url;
-        AkEnum  inputSemantic;
+        inp->offset   = xmla_u32(DAE_XMLA8(xml, offset), 0);
         
-        inputSemantic = dae_semantic(inp->semanticRaw);
-        
-        if (inputSemantic < 0)
-          inputSemantic = AK_INPUT_OTHER;
-        
-        inp->semantic = inputSemantic;
-        inp->offset   = xmla_u32(xmla(xml, _s_dae_offset), 0);
-        
-        inp->semantic = dae_semantic(inp->semanticRaw);
-        
-        url           = url_from(xml, _s_dae_source, memp);
+        url           = DAE_URL_FROM(xml, source, memp);
         rb_insert(dst->inputmap, inp, url);
         
         /* check if there are angles, because they are in degress,
@@ -165,8 +158,8 @@ dae_channel(DAEState * __restrict dst,
 
   ch = ak_heap_calloc(dst->heap, memp, sizeof(*ch));
 
-  url_set(dst, xml, _s_dae_source, ch,  &ch->source);
-  ch->target = xmla_strdup_by(xml, dst->heap, _s_dae_target, ch);
+  DAE_URL_SET(dst, xml, source, ch,  &ch->source);
+  ch->target = DAE_XMLA_STRDUP8(xml, dst->heap, target, ch);
 
   return ch;
 }

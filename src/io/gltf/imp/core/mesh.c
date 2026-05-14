@@ -110,22 +110,22 @@ gltf_primProps(json_t          * __restrict jprim,
 
     switch (it->keysize) {
       case 4:
-        if (first == 'm' && gltf_jsonKeyEqLen(it, _s_gltf_mode, 4))
+        if (first == 'm' && GLTF_JSON_KEY_EQ8(it, mode))
           props->mode = it;
         break;
       case 6:
-        if (first == 'e' && gltf_jsonKeyEqLen(it, _s_gltf_extras, 6))
+        if (first == 'e' && GLTF_JSON_KEY_EQ8(it, extras))
           props->extras = it;
         break;
       case 7:
-        if (first == 'i' && gltf_jsonKeyEqLen(it, _s_gltf_indices, 7)) {
+        if (first == 'i' && GLTF_JSON_KEY_EQ8(it, indices)) {
           props->indices = it;
-        } else if (first == 't' && gltf_jsonKeyEqLen(it, _s_gltf_targets, 7)) {
+        } else if (first == 't' && GLTF_JSON_KEY_EQ8(it, targets)) {
           props->targets = it;
         }
         break;
       case 8:
-        if (first == 'm' && gltf_jsonKeyEqLen(it, _s_gltf_material, 8))
+        if (first == 'm' && GLTF_JSON_KEY_EQ8(it, material))
           props->material = it;
         break;
       case 10:
@@ -155,6 +155,60 @@ gltf_childCount(const json_t * __restrict json) {
     count++;
 
   return count;
+}
+
+static
+bool
+gltf_attrKnownIndexedZero(const char       * __restrict key,
+                          size_t                         keysize,
+                          const char       ** __restrict raw,
+                          AkInputSemantic   * __restrict semantic) {
+  switch (keysize) {
+    case _s_gltf_COLOR_0_len:
+      if (ak_str_eq_packed_fast(key,
+                                keysize,
+                                _s_gltf_COLOR_0_u64_exact,
+                                _s_gltf_COLOR_0_len)) {
+        *raw      = _s_gltf_COLOR;
+        *semantic = AK_INPUT_COLOR;
+        return true;
+      }
+      break;
+    case _s_gltf_JOINTS_0_len:
+      if (ak_str_eq_packed_fast(key,
+                                keysize,
+                                _s_gltf_JOINTS_0_u64_exact,
+                                _s_gltf_JOINTS_0_len)) {
+        *raw      = _s_gltf_JOINTS;
+        *semantic = AK_INPUT_JOINT;
+        return true;
+      }
+      break;
+    case _s_gltf_WEIGHTS_0_len:
+      if (ak_str_eq_fast(key,
+                         keysize,
+                         _s_gltf_WEIGHTS_0,
+                         _s_gltf_WEIGHTS_0_len)) {
+        *raw      = _s_gltf_WEIGHTS;
+        *semantic = AK_INPUT_WEIGHT;
+        return true;
+      }
+      break;
+    case _s_gltf_TEXCOORD_0_len:
+      if (ak_str_eq_fast(key,
+                         keysize,
+                         _s_gltf_TEXCOORD_0,
+                         _s_gltf_TEXCOORD_0_len)) {
+        *raw      = _s_gltf_TEXCOORD;
+        *semantic = AK_INPUT_TEXCOORD;
+        return true;
+      }
+      break;
+    default:
+      break;
+  }
+
+  return false;
 }
 
 static
@@ -202,44 +256,65 @@ gltf_attrKnownSemantic(const char       * __restrict key,
                        const char       ** __restrict raw,
                        AkInputSemantic   * __restrict semantic) {
   switch (keysize) {
-    case 5:
-      if (memcmp(key, _s_gltf_COLOR, 5) == 0) {
+    case _s_gltf_COLOR_len:
+      if (ak_str_eq_packed_fast(key,
+                                keysize,
+                                _s_gltf_COLOR_u64_exact,
+                                _s_gltf_COLOR_len)) {
         *raw      = _s_gltf_COLOR;
         *semantic = AK_INPUT_COLOR;
         return true;
       }
       break;
-    case 6:
-      if (memcmp(key, _s_gltf_NORMAL, 6) == 0) {
+    case _s_gltf_NORMAL_len:
+      if (ak_str_eq_packed_fast(key,
+                                keysize,
+                                _s_gltf_NORMAL_u64_exact,
+                                _s_gltf_NORMAL_len)) {
         *raw      = _s_gltf_NORMAL;
         *semantic = AK_INPUT_NORMAL;
         return true;
       }
-      if (memcmp(key, _s_gltf_JOINTS, 6) == 0) {
+      if (ak_str_eq_packed_fast(key,
+                                keysize,
+                                _s_gltf_JOINTS_u64_exact,
+                                _s_gltf_JOINTS_len)) {
         *raw      = _s_gltf_JOINTS;
         *semantic = AK_INPUT_JOINT;
         return true;
       }
       break;
-    case 7:
-      if (memcmp(key, _s_gltf_TANGENT, 7) == 0) {
+    case _s_gltf_TANGENT_len:
+      if (ak_str_eq_packed_fast(key,
+                                keysize,
+                                _s_gltf_TANGENT_u64_exact,
+                                _s_gltf_TANGENT_len)) {
         *raw      = _s_gltf_TANGENT;
         *semantic = AK_INPUT_TANGENT;
         return true;
       }
-      if (memcmp(key, _s_gltf_WEIGHTS, 7) == 0) {
+      if (ak_str_eq_packed_fast(key,
+                                keysize,
+                                _s_gltf_WEIGHTS_u64_exact,
+                                _s_gltf_WEIGHTS_len)) {
         *raw      = _s_gltf_WEIGHTS;
         *semantic = AK_INPUT_WEIGHT;
         return true;
       }
       break;
-    case 8:
-      if (memcmp(key, _s_gltf_POSITION, 8) == 0) {
+    case _s_gltf_POSITION_len:
+      if (ak_str_eq_packed_fast(key,
+                                keysize,
+                                _s_gltf_POSITION_u64_exact,
+                                _s_gltf_POSITION_len)) {
         *raw      = _s_gltf_POSITION;
         *semantic = AK_INPUT_POSITION;
         return true;
       }
-      if (memcmp(key, _s_gltf_TEXCOORD, 8) == 0) {
+      if (ak_str_eq_packed_fast(key,
+                                keysize,
+                                _s_gltf_TEXCOORD_u64_exact,
+                                _s_gltf_TEXCOORD_len)) {
         *raw      = _s_gltf_TEXCOORD;
         *semantic = AK_INPUT_TEXCOORD;
         return true;
@@ -261,6 +336,16 @@ gltf_inputSemantic(AkHeap * __restrict heap,
   const char      *raw;
   AkInputSemantic  sem;
   size_t           rawLen;
+
+  if (gltf_attrKnownIndexedZero(jattrib->key,
+                                jattrib->keysize,
+                                &raw,
+                                &sem)) {
+    inp->semanticRaw = raw;
+    inp->semantic    = sem;
+    inp->set         = 0;
+    return;
+  }
 
   if (gltf_attrIndexedSemantic(jattrib->key, jattrib->keysize, &semanticSep)) {
     rawLen = (size_t)(semanticSep - jattrib->key);
@@ -322,10 +407,10 @@ gltf_meshMorphPresets(AkGLTFState * __restrict gst,
   while (jpreset && i < n) {
     preset = &presets[n - 1 - i];
 
-    if ((jname = json_get(jpreset, _s_gltf_name)))
+    if ((jname = GLTF_JSON_GET8(jpreset, name)))
       preset->name = json_strdup(jname, heap, parent);
 
-    if ((jweights = json_get(jpreset, _s_gltf_weights))
+    if ((jweights = GLTF_JSON_GET8(jpreset, weights))
         && (jwarr = json_array(jweights))
         && jwarr->count > 0) {
       weights = ak_heap_alloc(heap,
@@ -403,7 +488,7 @@ gltf_meshes(json_t * __restrict jmesh,
 
     gltf_extra(gst,
                meshObj,
-               gltf_jsonGetLen(jmesh, _s_gltf_extras, 6),
+               GLTF_JSON_GET8(jmesh, extras),
                gltf_jsonGetLen(jmesh, _s_gltf_extensions, 10));
     mesh->extra = ak_extra(meshObj);
 
@@ -653,7 +738,7 @@ gltf_meshes(json_t * __restrict jmesh,
         prim_next:
           jprim = jprim->next;
         }
-      } else if (gltf_jsonKeyEqLen(jmeshVal, _s_gltf_weights, 7)) {
+      } else if (GLTF_JSON_KEY_EQ8(jmeshVal, weights)) {
         AkFloatArray *weights;
         json_array_t *jarr;
 
@@ -673,9 +758,9 @@ gltf_meshes(json_t * __restrict jmesh,
           weights->count = jarr->count;
           mesh->weights  = weights;
         }
-      } else if (gltf_jsonKeyEqLen(jmeshVal, _s_gltf_name, 4)) {
+      } else if (GLTF_JSON_KEY_EQ8(jmeshVal, name)) {
         mesh->name = json_strdup(jmeshVal, heap, meshObj);
-      } else if (gltf_jsonKeyEqLen(jmeshVal, _s_gltf_extras, 6)) {
+      } else if (GLTF_JSON_KEY_EQ8(jmeshVal, extras)) {
         json_t       *jnames;
         json_t       *jpresets;
         json_array_t *jarr;

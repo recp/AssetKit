@@ -49,8 +49,8 @@ gltf_scenes(json_t * __restrict jscene,
     ak_setypeid(scene, AKT_SCENE);
     gltf_extra(gst,
                scene,
-               json_get(jscene, _s_gltf_extras),
-               json_get(jscene, _s_gltf_extensions));
+               GLTF_JSON_GET8(jscene, extras),
+               GLTF_JSON_GET(jscene, extensions));
     
     scene->cameras = ak_heap_calloc(heap, scene, sizeof(*scene->cameras));
     
@@ -59,9 +59,9 @@ gltf_scenes(json_t * __restrict jscene,
     scene->node->visible = true;
     
     while (jsceneVal) {
-      if (json_key_eq(jsceneVal, _s_gltf_name)) {
+      if (GLTF_JSON_KEY_EQ8(jsceneVal, name)) {
         scene->name = json_strdup(jsceneVal, heap, scene);
-      } else if (json_key_eq(jsceneVal, _s_gltf_nodes)) {
+      } else if (GLTF_JSON_KEY_EQ8(jsceneVal, nodes)) {
         json_array_t *jnodes;
         json_t       *jnode;
         int32_t       nodeIndex;

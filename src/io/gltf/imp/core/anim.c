@@ -17,6 +17,7 @@
 #include "anim.h"
 #include "accessor.h"
 #include "enum.h"
+#include "../../../../string_fast.h"
 
 #define k_path 0
 #define k_node 1
@@ -31,7 +32,7 @@ bool
 gltf_animSegEq(const char * __restrict seg,
                size_t                   segLen,
                const char * __restrict name) {
-  return strlen(name) == segLen && strncasecmp(seg, name, segLen) == 0;
+  return ak_str_eq_ci_len_fast(seg, segLen, name, strlen(name));
 }
 
 static
@@ -1185,8 +1186,8 @@ gltf_animResolvePointer(AkGLTFState * __restrict gst,
   const json_t *jptr;
   const char   *ptr;
 
-  if (!(jptrExt = json_get(jext, _s_gltf_KHR_animation_pointer))
-      || !(jptr = json_get(jptrExt, _s_gltf_pointer))
+  if (!(jptrExt = GLTF_JSON_GET(jext, KHR_animation_pointer))
+      || !(jptr = GLTF_JSON_GET8(jptrExt, pointer))
       || !(ptr = json_string(jptr)))
     return false;
 
@@ -1226,9 +1227,9 @@ gltf_animations(json_t * __restrict janim,
     json_t *anim_it;
     
     json_objmap_t animMap[] = {
-      JSON_OBJMAP_OBJ(_s_gltf_samplers, I2P k_anim_samplers),
-      JSON_OBJMAP_OBJ(_s_gltf_channels, I2P k_anim_channels),
-      JSON_OBJMAP_OBJ(_s_gltf_name,     I2P k_anim_name),
+      GLTF_JSON_OBJMAP_OBJ8(samplers, I2P k_anim_samplers),
+      GLTF_JSON_OBJMAP_OBJ8(channels, I2P k_anim_channels),
+      GLTF_JSON_OBJMAP_OBJ8(name,     I2P k_anim_name),
     };
     
     json_objmap(janim, animMap, JSON_ARR_LEN(animMap));
@@ -1257,7 +1258,7 @@ gltf_animations(json_t * __restrict janim,
         sampler     = ak_heap_calloc(heap, anim, sizeof(*sampler));
         
         while (jsampVal) {
-          if (json_key_eq(jsampVal, _s_gltf_input)) {
+          if (GLTF_JSON_KEY_EQ8(jsampVal, input)) {
             AkInput *inp;
             
             inp              = ak_heap_calloc(heap, sampler, sizeof(*inp));
@@ -1269,9 +1270,9 @@ gltf_animations(json_t * __restrict janim,
 
             inp->next      = sampler->input;
             sampler->input = inp;
-          } else if (json_key_eq(jsampVal, _s_gltf_interpolation)) {
+          } else if (GLTF_JSON_KEY_EQ(jsampVal, interpolation)) {
             sampler->uniInterpolation = gltf_interp(jsampVal);
-          } else if (json_key_eq(jsampVal, _s_gltf_output)) {
+          } else if (GLTF_JSON_KEY_EQ8(jsampVal, output)) {
             AkInput *inp;
             
             inp              = ak_heap_calloc(heap, sampler, sizeof(*inp));
@@ -1317,22 +1318,22 @@ gltf_animations(json_t * __restrict janim,
         jchVal = jchannel->value;
         
         while (jchVal) {
-          if (json_key_eq(jchVal, _s_gltf_sampler)) {
+          if (GLTF_JSON_KEY_EQ8(jchVal, sampler)) {
             AkAnimSampler *sampler;
             int32_t        samplerIndex;
             
             samplerIndex = json_int32(jchVal, -1);
             GETCHILD(anim->sampler, sampler, samplerIndex);
             ch->source.ptr = sampler;
-          } else if (json_key_eq(jchVal, _s_gltf_target)) {
+          } else if (GLTF_JSON_KEY_EQ8(jchVal, target)) {
             const char *path;
             AkNode     *node;
             json_t     *it;
             uint32_t    pathLen;
             
             json_objmap_t targetMap[] = {
-              JSON_OBJMAP_OBJ(_s_gltf_path,       I2P k_path),
-              JSON_OBJMAP_OBJ(_s_gltf_node,       I2P k_node),
+              GLTF_JSON_OBJMAP_OBJ8(path,         I2P k_path),
+              GLTF_JSON_OBJMAP_OBJ8(node,         I2P k_node),
               JSON_OBJMAP_OBJ(_s_gltf_extensions, I2P k_ext)
             };
 
@@ -1347,7 +1348,7 @@ gltf_animations(json_t * __restrict janim,
             }
 
             if ((it = targetMap[k_ext].object)
-                && json_get(it, _s_gltf_KHR_animation_pointer)) {
+                && GLTF_JSON_GET(it, KHR_animation_pointer)) {
               if (!gltf_animResolvePointer(gst, ch, it))
                 gst->stop = gst->animPointerRequired;
             } else if (path && (it = targetMap[k_node].object)) {
@@ -1359,16 +1360,28 @@ gltf_animations(json_t * __restrict janim,
 
                   /* glTF always animates whole vec/quat (no partial component),
                      so isPartial = false and off = 0 for all paths below. */
-                  if (strncasecmp(path, _s_gltf_rotation, pathLen) == 0) {
+                  if (ak_str_eq_packed_fast(path,
+                                            pathLen,
+                                            _s_gltf_rotation_u64_exact,
+                                            _s_gltf_rotation_len)) {
                     ch->targetType = AK_TARGET_QUAT;
                     xform          = ak_getTransformTRS(node, AKT_QUATERNION);
-                  } else if (strncasecmp(path, _s_gltf_translation, pathLen) == 0) {
+                  } else if (ak_str_eq_fast(path,
+                                            pathLen,
+                                            _s_gltf_translation,
+                                            _s_gltf_translation_len)) {
                     ch->targetType = AK_TARGET_POSITION;
                     xform          = ak_getTransformTRS(node, AKT_TRANSLATE);
-                  } else if (strncasecmp(path, _s_gltf_scale, pathLen) == 0) {
+                  } else if (ak_str_eq_packed_fast(path,
+                                                   pathLen,
+                                                   _s_gltf_scale_u64_exact,
+                                                   _s_gltf_scale_len)) {
                     ch->targetType = AK_TARGET_SCALE;
                     xform          = ak_getTransformTRS(node, AKT_SCALE);
-                  } else if (strncasecmp(path, _s_gltf_weights, pathLen) == 0) {
+                  } else if (ak_str_eq_packed_fast(path,
+                                                   pathLen,
+                                                   _s_gltf_weights_u64_exact,
+                                                   _s_gltf_weights_len)) {
                     AkInstanceGeometry *instGeom;
                     AkInstanceMorph    *morpher;
 

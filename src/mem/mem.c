@@ -88,8 +88,7 @@ ak__heap_strdup_def(const char * str) {
   memptr  = ak__heap.allocator->malloc(memsize + 1);
   memcpy(memptr, str, memsize);
 
-  /* NULL */
-  memset((char *)memptr + memsize, '\0', 1);
+  ((char *)memptr)[memsize] = '\0';
 
   return memptr;
 }
@@ -110,8 +109,7 @@ ak_heap_strdup(AkHeap * __restrict heap,
 
   memcpy(memptr, str, memsize);
 
-  /* NULL */
-  memset((char *)memptr + memsize, '\0', 1);
+  ((char *)memptr)[memsize] = '\0';
 
   return memptr;
 }
@@ -127,8 +125,7 @@ ak_heap_strndup(AkHeap     * __restrict heap,
   memptr  = ak_heap_alloc(heap, parent, size + 1);
   memcpy(memptr, str, size);
 
-  /* NULL */
-  memset((char *)memptr + size, '\0', 1);
+  ((char *)memptr)[size] = '\0';
 
   return memptr;
 }

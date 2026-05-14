@@ -34,11 +34,11 @@ dae_surface(DAEState * __restrict dst,
 
   sid_set(xml, heap, surf);
 
-  surf->name = xmla_strdup_by(xml, heap, _s_dae_name, surf);
+  surf->name = DAE_XMLA_STRDUP8(xml, heap, name, surf);
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_cone)) {
+    if (DAE_XML_TAG_EQ(xml, cone)) {
       AkCone *cone;
       xml_t  *xcone;
       
@@ -47,18 +47,18 @@ dae_surface(DAEState * __restrict dst,
       
       xcone = xml->val;
       while (xcone) {
-        if (xml_tag_eq(xcone, _s_dae_radius) && xcone->val) {
+        if (DAE_XML_TAG_EQ(xcone, radius) && xcone->val) {
           cone->radius = xml_float(xcone->val, 0.0f);
-        } else if (xml_tag_eq(xcone, _s_dae_angle) && xcone->val) {
+        } else if (DAE_XML_TAG_EQ(xcone, angle) && xcone->val) {
           cone->angle = xml_float(xcone->val, 0.0f);
-        } else if (xml_tag_eq(xcone, _s_dae_extra)) {
+        } else if (DAE_XML_TAG_EQ(xcone, extra)) {
           cone->extra = tree_fromxml(heap, obj, xcone);
         }
         xcone = xcone->next;
       }
 
       surf->surface = obj;
-    } else if (xml_tag_eq(xml, _s_dae_plane)) {
+    } else if (DAE_XML_TAG_EQ(xml, plane)) {
       AkPlane *plane;
       xml_t   *xplane;
       
@@ -67,16 +67,16 @@ dae_surface(DAEState * __restrict dst,
       
       xplane = xml->val;
       while (xplane) {
-        if (xml_tag_eq(xplane, _s_dae_equation) && (sval = xmls(xplane))) {
+        if (DAE_XML_TAG_EQ(xplane, equation) && (sval = xmls(xplane))) {
           xml_strtof_fast(sval, (AkFloat *)&plane->equation, 4);
-        } else if (xml_tag_eq(xplane, _s_dae_extra)) {
+        } else if (DAE_XML_TAG_EQ(xplane, extra)) {
           plane->extra = tree_fromxml(heap, obj, xplane);
         }
         xplane = xplane->next;
       }
       
       surf->surface = obj;
-    } else if (xml_tag_eq(xml, _s_dae_cylinder)) {
+    } else if (DAE_XML_TAG_EQ(xml, cylinder)) {
       AkCylinder *clyn;
       xml_t      *xclyn;
       
@@ -85,18 +85,18 @@ dae_surface(DAEState * __restrict dst,
       
       xclyn = xml->val;
       while (xclyn) {
-        if (xml_tag_eq(xclyn, _s_dae_radius) && (sval = xmls(xclyn))) {
+        if (DAE_XML_TAG_EQ(xclyn, radius) && (sval = xmls(xclyn))) {
           xml_strtof_fast(sval, (AkFloat *)&clyn->radius, 2);
-        } else if (xml_tag_eq(xclyn, _s_dae_extra)) {
+        } else if (DAE_XML_TAG_EQ(xclyn, extra)) {
           clyn->extra = tree_fromxml(heap, obj, xclyn);
         }
         xclyn = xclyn->next;
       }
       
       surf->surface = obj;
-    } else if (xml_tag_eq(xml, _s_dae_nurbs_surface)) {
+    } else if (DAE_XML_TAG_EQ(xml, nurbs_surface)) {
       surf->surface = dae_nurbs_surface(dst, xml, surf);
-    } else if (xml_tag_eq(xml, _s_dae_sphere)) {
+    } else if (DAE_XML_TAG_EQ(xml, sphere)) {
       AkSphere *sphere;
       xml_t    *xsphere;
       
@@ -105,16 +105,16 @@ dae_surface(DAEState * __restrict dst,
       
       xsphere = xml->val;
       while (xsphere) {
-        if (xml_tag_eq(xsphere, _s_dae_radius) && xsphere->val) {
+        if (DAE_XML_TAG_EQ(xsphere, radius) && xsphere->val) {
           sphere->radius = xml_float(xsphere->val, 0.0f);
-        } else if (xml_tag_eq(xsphere, _s_dae_extra)) {
+        } else if (DAE_XML_TAG_EQ(xsphere, extra)) {
           sphere->extra = tree_fromxml(heap, obj, xsphere);
         }
         xsphere = xsphere->next;
       }
 
       surf->surface = obj;
-    } else if (xml_tag_eq(xml, _s_dae_torus)) {
+    } else if (DAE_XML_TAG_EQ(xml, torus)) {
       AkTorus *torus;
       xml_t   *xtorus;
 
@@ -123,16 +123,16 @@ dae_surface(DAEState * __restrict dst,
 
       xtorus = xml->val;
       while (xtorus) {
-        if (xml_tag_eq(xtorus, _s_dae_radius) && (sval = xmls(xtorus))) {
+        if (DAE_XML_TAG_EQ(xtorus, radius) && (sval = xmls(xtorus))) {
           xml_strtof_fast(sval, (AkFloat *)&torus->radius, 2);
-        } else if (xml_tag_eq(xtorus, _s_dae_extra)) {
+        } else if (DAE_XML_TAG_EQ(xtorus, extra)) {
           torus->extra = tree_fromxml(heap, obj, xtorus);
         }
         xtorus = xtorus->next;
       }
 
       surf->surface = obj;
-    } else if (xml_tag_eq(xml, _s_dae_swept_surface)) {
+    } else if (DAE_XML_TAG_EQ(xml, swept_surface)) {
       AkObject       *obj;
       AkSweptSurface *sweptSurface;
       xml_t          *xswept;
@@ -147,20 +147,20 @@ dae_surface(DAEState * __restrict dst,
       
       xswept = xml->val;
       while (xswept) {
-        if (xml_tag_eq(xswept, _s_dae_curve)) {
+        if (DAE_XML_TAG_EQ(xswept, curve)) {
           sweptSurface->curve = dae_curve(dst, xswept, obj);
-        } else if (xml_tag_eq(xswept, _s_dae_direction) && (sval = xmls(xml))) {
+        } else if (DAE_XML_TAG_EQ(xswept, direction) && (sval = xmls(xml))) {
           xml_strtof_fast(sval, (AkFloat *)&sweptSurface->direction, 3);
-        } else if (xml_tag_eq(xswept, _s_dae_origin) && (sval = xmls(xml))) {
+        } else if (DAE_XML_TAG_EQ(xswept, origin) && (sval = xmls(xml))) {
           xml_strtof_fast(sval, (AkFloat *)&sweptSurface->origin, 3);
-        } else if (xml_tag_eq(xswept, _s_dae_axis) && (sval = xmls(xml))) {
+        } else if (DAE_XML_TAG_EQ(xswept, axis) && (sval = xmls(xml))) {
           xml_strtof_fast(sval, (AkFloat *)&sweptSurface->axis, 3);
-        } else if (xml_tag_eq(xswept, _s_dae_extra)) {
+        } else if (DAE_XML_TAG_EQ(xswept, extra)) {
            sweptSurface->extra = tree_fromxml(heap, obj, xswept);
         }
         xswept = xswept->next;
       }
-    } else if (xml_tag_eq(xml, _s_dae_orient) && (sval =xmls(xml))) {
+    } else if (DAE_XML_TAG_EQ(xml, orient) && (sval =xmls(xml))) {
       AkFloatArrayL *orient;
       AkResult       ret;
       
@@ -169,7 +169,7 @@ dae_surface(DAEState * __restrict dst,
         orient->next = surf->orient;
         surf->orient = orient;
       }
-    } else if (xml_tag_eq(xml, _s_dae_origin) && (sval = xmls(xml))) {
+    } else if (DAE_XML_TAG_EQ(xml, origin) && (sval = xmls(xml))) {
       xml_strtof_fast(sval, surf->origin, 3);
     }
     xml = xml->next;
@@ -192,12 +192,12 @@ dae_surfaces(DAEState * __restrict dst,
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_surface)) {
+    if (DAE_XML_TAG_EQ(xml, surface)) {
       if ((surface = dae_surface(dst, xml, memp))) {
         surface->next     = surfaces->surface;
         surfaces->surface = surface;
       }
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ(xml, extra)) {
       surfaces->extra = tree_fromxml(heap, surfaces, xml);
     }
     xml = xml->next;

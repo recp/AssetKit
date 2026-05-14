@@ -29,22 +29,22 @@ dae_ctlr(DAEState * __restrict dst,
 
   heap       = dst->heap;
   ctlr       = ak_heap_calloc(heap, memp, sizeof(*ctlr));
-  ctlr->name = xmla_strdup_by(xml, heap, _s_dae_name, ctlr);
+  ctlr->name = DAE_XMLA_STRDUP8(xml, heap, name, ctlr);
   
   xmla_setid(xml, heap, ctlr);
   ak_setypeid(ctlr, AKT_CONTROLLER);
   
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_asset)) {
+    if (DAE_XML_TAG_EQ8(xml, asset)) {
       (void)dae_asset(dst, xml, ctlr, NULL);
-    } else if (xml_tag_eq(xml, _s_dae_skin)) {
+    } else if (DAE_XML_TAG_EQ4(xml, skin)) {
       ctlr->data = dae_skin(dst, xml, ctlr);
       ctlr->type = AK_CONTROLLER_SKIN;
-    } else if (xml_tag_eq(xml, _s_dae_morph)) {
+    } else if (DAE_XML_TAG_EQ8(xml, morph)) {
       ctlr->data = dae_morph(dst, xml, ctlr);
       ctlr->type = AK_CONTROLLER_MORPH;
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       ctlr->extra = tree_fromxml(heap, ctlr, xml);
     }
     xml = xml->next;

@@ -52,7 +52,7 @@ gltf_skin(json_t * __restrict jskin,
     glm_mat4_identity(skin->bindShapeMatrix);
 
     while (jskinVal) {
-      if (json_key_eq(jskinVal, _s_gltf_inverseBindMatrices)) {
+      if (GLTF_JSON_KEY_EQ(jskinVal, inverseBindMatrices)) {
         AkAccessor *acc;
         AkBuffer   *buff;
         float      *pbuff;
@@ -67,7 +67,7 @@ gltf_skin(json_t * __restrict jskin,
             *((float *)skin->invBindPoses + k) = *(pbuff + k);
           }
         }
-      } else if (json_key_eq(jskinVal, _s_gltf_joints)) {
+      } else if (GLTF_JSON_KEY_EQ8(jskinVal, joints)) {
         json_array_t *jjoints;
         json_t       *jjoint;
         uint32_t      j;
@@ -98,7 +98,7 @@ gltf_skin(json_t * __restrict jskin,
             jjoint = jjoint->next;
           } /* while (jjoint) */
         }
-      } else if (json_key_eq(jskinVal, _s_gltf_skeleton)) {
+      } else if (GLTF_JSON_KEY_EQ8(jskinVal, skeleton)) {
         /* glTF spec: optional hint to the closest common ancestor of the
            joints. Engines (Apple SCNSkinner.skeleton, Three.js Skeleton)
            use it as the coordinate-space reference. We resolve the node

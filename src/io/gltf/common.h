@@ -22,6 +22,7 @@
 #include "../../utils.h"
 #include "../../tree.h"
 #include "../../json.h"
+#include "../../string_fast.h"
 #include "strpool.h"
 
 #include <string.h>
@@ -29,6 +30,50 @@
 
 /* JSON parser */
 #include <json/json.h>
+
+#define GLTF_JSON_OBJMAP_FN8(NAME, FUN, PARAM)                               \
+  JSON_OBJMAP_FNP(_s_gltf_##NAME,                                            \
+                  _s_gltf_##NAME##_len,                                      \
+                  _s_gltf_##NAME##_u64_exact,                                \
+                  FUN,                                                       \
+                  PARAM)
+
+#define GLTF_JSON_OBJMAP_OBJ8(NAME, USERDATA)                                \
+  JSON_OBJMAP_OBJP(_s_gltf_##NAME,                                           \
+                   _s_gltf_##NAME##_len,                                     \
+                   _s_gltf_##NAME##_u64_exact,                               \
+                   USERDATA)
+
+#define GLTF_JSON_KEY_EQ4(OBJ, NAME)                                         \
+  json_key_eq_packed4(OBJ, _s_gltf_##NAME##_u32_exact, _s_gltf_##NAME##_len)
+
+#define GLTF_JSON_VAL_EQ4(OBJ, NAME)                                         \
+  json_val_eq_packed4(OBJ, _s_gltf_##NAME##_u32_exact, _s_gltf_##NAME##_len)
+
+#define GLTF_JSON_KEY_EQ8(OBJ, NAME)                                         \
+  json_key_eq_packed(OBJ, _s_gltf_##NAME##_u64_exact, _s_gltf_##NAME##_len)
+
+#define GLTF_JSON_VAL_EQ8(OBJ, NAME)                                         \
+  json_val_eq_packed(OBJ, _s_gltf_##NAME##_u64_exact, _s_gltf_##NAME##_len)
+
+#define GLTF_JSON_KEY_EQ(OBJ, NAME)                                          \
+  json_key_eqsz(OBJ, _s_gltf_##NAME, _s_gltf_##NAME##_len)
+
+#define GLTF_JSON_VAL_EQ(OBJ, NAME)                                          \
+  json_val_eqsz(OBJ, _s_gltf_##NAME, _s_gltf_##NAME##_len)
+
+#define GLTF_JSON_GET8(OBJECT, NAME)                                         \
+  gltf_jsonGetPacked(OBJECT,                                                \
+                     _s_gltf_##NAME##_u64_exact,                            \
+                     _s_gltf_##NAME##_len)
+
+#define GLTF_JSON_GET4(OBJECT, NAME)                                         \
+  gltf_jsonGetPacked4(OBJECT,                                                \
+                      _s_gltf_##NAME##_u32_exact,                            \
+                      _s_gltf_##NAME##_len)
+
+#define GLTF_JSON_GET(OBJECT, NAME)                                          \
+  gltf_jsonGetLen(OBJECT, _s_gltf_##NAME, _s_gltf_##NAME##_len)
 
 typedef struct AkBufferView {
   AkBuffer   *buffer;
@@ -97,9 +142,7 @@ gltf_jsonKeyEqLen(const json_t * __restrict obj,
                   size_t                    len) {
   return obj
       && obj->key
-      && (size_t)obj->keysize == len
-      && obj->key[0] == key[0]
-      && memcmp(obj->key, key, len) == 0;
+      && ak_str_eq_fast(obj->key, (size_t)obj->keysize, key, len);
 }
 
 static inline
@@ -113,6 +156,38 @@ gltf_jsonGetLen(const json_t * __restrict object,
     return NULL;
 
   while (iter && !gltf_jsonKeyEqLen(iter, key, len))
+    iter = iter->next;
+
+  return iter;
+}
+
+static inline
+json_t*
+gltf_jsonGetPacked4(const json_t * __restrict object,
+                    uint32_t                 packed,
+                    size_t                   len) {
+  json_t *iter;
+
+  if (!object || object->type != JSON_OBJECT || !(iter = object->value))
+    return NULL;
+
+  while (iter && !json_key_eq_packed4(iter, packed, len))
+    iter = iter->next;
+
+  return iter;
+}
+
+static inline
+json_t*
+gltf_jsonGetPacked(const json_t * __restrict object,
+                   uint64_t                  packed,
+                   size_t                    len) {
+  json_t *iter;
+
+  if (!object || object->type != JSON_OBJECT || !(iter = object->value))
+    return NULL;
+
+  while (iter && !json_key_eq_packed(iter, packed, len))
     iter = iter->next;
 
   return iter;

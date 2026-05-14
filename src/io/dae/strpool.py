@@ -25,6 +25,30 @@ destdir        = dirname(realpath(__file__))
 spidx          = 0
 pos            = 0
 
+def u32_ascii_ci(val):
+  out = 0
+  for i, ch in enumerate(val[:4].lower().encode("ascii")):
+    out |= ch << (i * 8)
+  return out
+
+def u32_ascii(val):
+  out = 0
+  for i, ch in enumerate(val[:4].encode("ascii")):
+    out |= ch << (i * 8)
+  return out
+
+def u64_ascii_ci(val):
+  out = 0
+  for i, ch in enumerate(val[:8].lower().encode("ascii")):
+    out |= ch << (i * 8)
+  return out
+
+def u64_ascii(val):
+  out = 0
+  for i, ch in enumerate(val[:8].encode("ascii")):
+    out |= ch << (i * 8)
+  return out
+
 fspoolJson = open(destdir + "/strpool.json")
 spool      = json.loads(fspoolJson.read(),
                         object_pairs_hook=OrderedDict)
@@ -95,7 +119,21 @@ for name, val in spool.items():
   fspool_c.write("\"{0}\\0\"\n".format(val).encode())
 
   headerContents.append("#define _s_dae_{0} _s_dae_{1}({2})\n"
-                          .format(name, str(spidx), str(pos)))
+                        "#define _s_dae_{0}_len {3}\n"
+                          .format(name,
+                                  str(spidx),
+                                  str(pos),
+                                  str(len(val))))
+  if len(val) <= 4 and val.isascii():
+    headerContents.append("#define _s_dae_{0}_u32 0x{1:08x}u\n"
+                            .format(name, u32_ascii_ci(val)))
+    headerContents.append("#define _s_dae_{0}_u32_exact 0x{1:08x}u\n"
+                            .format(name, u32_ascii(val)))
+  if len(val) <= 8 and val.isascii():
+    headerContents.append("#define _s_dae_{0}_u64 0x{1:016x}ull\n"
+                            .format(name, u64_ascii_ci(val)))
+    headerContents.append("#define _s_dae_{0}_u64_exact 0x{1:016x}ull\n"
+                            .format(name, u64_ascii(val)))
 
   pos += valLen
 

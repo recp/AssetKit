@@ -35,14 +35,14 @@ gltf_asset(json_t * __restrict json,
 
   json = json->value;
   while (json) {
-    if (json_key_eq(json, _s_gltf_version)) {
+    if (GLTF_JSON_KEY_EQ8(json, version)) {
       if (json_float(json, 0.0f) < 2.0f) {
         gst->stop = true;
         return; /* unsupported version */
       }
-    } else if (json_key_eq(json, _s_gltf_copyright)) {
+    } else if (GLTF_JSON_KEY_EQ(json, copyright)) {
       contrib->copyright = json_strdup(json, heap, contrib);
-    } else if (json_key_eq(json, _s_gltf_generator)) {
+    } else if (GLTF_JSON_KEY_EQ(json, generator)) {
       contrib->authoringTool = json_strdup(json, heap, contrib);
     }
 

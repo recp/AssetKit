@@ -26,44 +26,43 @@ dae_triangles(DAEState * __restrict dst,
               AkTriangleMode        mode) {
   AkTriangles *tri;
   AkHeap      *heap;
+  double       profStart, profStep;
   uint32_t     indexoff;
 
+  profStart = DAE_PROF_START(dst);
   heap = dst->heap;
   tri  = ak_heap_calloc(heap, memp, sizeof(*tri));
   
   tri->mode      = mode;
   tri->base.type = AK_PRIMITIVE_TRIANGLES;
 
-  tri->base.name         = xmla_strdup_by(xml, heap, _s_dae_name, tri);
-  tri->base.bindmaterial = xmla_strdup_by(xml, heap, _s_dae_material, tri);
-  tri->base.nPolygons    = xmla_u32(xmla(xml, _s_dae_count), 0);
+  tri->base.name         = DAE_XMLA_STRDUP8(xml, heap, name, tri);
+  tri->base.bindmaterial = DAE_XMLA_STRDUP8(xml, heap, material, tri);
+  tri->base.nPolygons    = xmla_u32(DAE_XMLA8(xml, count), 0);
 
   indexoff = 0;
   xml      = xml->val;
 
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_input)) {
+    if (DAE_XML_TAG_EQ8(xml, input)) {
       AkInput *inp;
+      profStep = DAE_PROF_START(dst);
 
       inp              = ak_heap_calloc(heap, tri, sizeof(*inp));
-      inp->semanticRaw = xmla_strdup_by(xml, heap, _s_dae_semantic, inp);
+      inp->semanticRaw = dae_semanticRaw(DAE_XMLA8(xml, semantic),
+                                         heap,
+                                         inp,
+                                         &inp->semantic);
 
       if (!inp->semanticRaw) {
         ak_free(inp);
       } else {
         AkURL *url;
-        AkEnum inputSemantic;
 
-        inputSemantic = dae_semantic(inp->semanticRaw);
+        inp->offset   = xmla_u32(DAE_XMLA8(xml, offset), 0);
+        inp->set      = xmla_u32(DAE_XMLA4(xml, set),    0);
 
-        if (inputSemantic < 0)
-          inputSemantic = AK_INPUT_OTHER;
-
-        inp->semantic = inputSemantic;
-        inp->offset   = xmla_u32(xmla(xml, _s_dae_offset), 0);
-        inp->set      = xmla_u32(xmla(xml, _s_dae_set),    0);
-
-        url = url_from(xml, _s_dae_source, memp);
+        url = DAE_URL_FROM(xml, source, memp);
         rb_insert(dst->inputmap, inp, url);
 
         if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
@@ -82,11 +81,13 @@ dae_triangles(DAEState * __restrict dst,
           // ak_free(inp);
         }
       }
-    } else if (xml_tag_eq(xml, _s_dae_p) && xml->val) {
+      DAE_PROF_ACC(dst, profGeomInput, profGeomInputCount, profStep);
+    } else if (DAE_XML_TAG_EQ8(xml, p) && xml->val) {
       AkUIntArray *uintArray;
       AkResult     ret;
       uint32_t     indexStride;
       unsigned long expectedCount;
+      profStep = DAE_PROF_START(dst);
       
       indexStride   = indexoff + 1;
       expectedCount = mode == AK_TRIANGLES
@@ -97,7 +98,8 @@ dae_triangles(DAEState * __restrict dst,
             : xml_strtoui_array(heap, tri, xml->val, &uintArray);
       if (ret == AK_OK)
         tri->base.indices = uintArray;
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+      DAE_PROF_ACC(dst, profGeomIndexArray, profGeomIndexArrayCount, profStep);
+    } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       tri->base.extra = tree_fromxml(heap, tri, xml);
     }
     xml = xml->next;
@@ -105,5 +107,7 @@ dae_triangles(DAEState * __restrict dst,
 
   tri->base.indexStride = indexoff + 1;
   
+  DAE_PROF_ACC(dst, profGeomTriangles, profGeomTrianglesCount, profStart);
+
   return tri;
 }

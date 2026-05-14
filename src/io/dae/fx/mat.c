@@ -33,13 +33,13 @@ dae_material(DAEState * __restrict dst,
   
   xmla_setid(xml, heap, mat);
   
-  mat->name = xmla_strdup_by(xml, heap, _s_dae_name, mat);
+  mat->name = DAE_XMLA_STRDUP8(xml, heap, name, mat);
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_asset)) {
+    if (DAE_XML_TAG_EQ8(xml, asset)) {
       (void)dae_asset(dst, xml, mat, NULL);
-    } else if (xml_tag_eq(xml, _s_dae_inst_effect)) {
+    } else if (DAE_XML_TAG_EQ(xml, inst_effect)) {
       AkInstanceEffect *instEffect;
 
       if ((instEffect = dae_instEffect(dst, xml, mat))) {
@@ -50,7 +50,7 @@ dae_material(DAEState * __restrict dst,
       
         mat->effect = instEffect;
       }
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       mat->extra = tree_fromxml(heap, mat, xml);
     }
     xml = xml->next;
@@ -72,7 +72,7 @@ dae_bindMaterial(DAEState * __restrict dst,
   
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_param)) {
+    if (DAE_XML_TAG_EQ8(xml, param)) {
       AkParam *param;
       if ((param = dae_param(dst, xml, bindmat))) {
         if (bindmat->param) {
@@ -81,13 +81,13 @@ dae_bindMaterial(DAEState * __restrict dst,
         }
         bindmat->param = param;
       }
-    } else if (xml_tag_eq(xml, _s_dae_techniquec)) {
+    } else if (DAE_XML_TAG_EQ(xml, techniquec)) {
       AkInstanceMaterial *imat;
       xml_t              *ximat;
       
       ximat = xml->val;
       while (ximat) {
-        if (xml_tag_eq(ximat, _s_dae_instance_material)) {
+        if (DAE_XML_TAG_EQ(ximat, instance_material)) {
           if ((imat = dae_instMaterial(dst, ximat, bindmat))) {
             if (bindmat->tcommon) {
               bindmat->tcommon->base.prev = &imat->base;
@@ -99,13 +99,13 @@ dae_bindMaterial(DAEState * __restrict dst,
         }
         ximat = ximat->next;
       }
-    } else if (xml_tag_eq(xml, _s_dae_technique)) {
+    } else if (DAE_XML_TAG_EQ(xml, technique)) {
       AkTechnique *tq;
       if ((tq = dae_techn(xml, heap, bindmat))) {
         tq->next           = bindmat->technique;
         bindmat->technique = tq;
       }
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       bindmat->extra = tree_fromxml(heap, bindmat, xml);
     }
     xml = xml->next;
@@ -128,44 +128,43 @@ dae_instMaterial(DAEState * __restrict dst,
 
   sid_set(xml, heap, mat);
 
-  mat->base.name = xmla_strdup_by(xml, heap, _s_dae_name,   mat);
-  mat->symbol    = xmla_strdup_by(xml, heap, _s_dae_symbol, mat);
+  mat->base.name = DAE_XMLA_STRDUP8(xml, heap, name, mat);
+  mat->symbol    = DAE_XMLA_STRDUP8(xml, heap, symbol, mat);
 
-  url_set(dst, xml, _s_dae_target, mat, &mat->base.url);
+  DAE_URL_SET(dst, xml, target, mat, &mat->base.url);
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_bind)) {
+    if (DAE_XML_TAG_EQ8(xml, bind)) {
       AkBind *bind;
       bind = ak_heap_calloc(heap, mat, sizeof(*bind));
       
-      bind->semantic = xmla_strdup_by(xml, heap, _s_dae_semantic, mat);
-      bind->target   = xmla_strdup_by(xml, heap, _s_dae_target,   mat);
+      bind->semantic = DAE_XMLA_STRDUP8(xml, heap, semantic, mat);
+      bind->target   = DAE_XMLA_STRDUP8(xml, heap, target, mat);
       
       bind->next = mat->bind;
       mat->bind  = bind;
-    } else if (xml_tag_eq(xml, _s_dae_bind_vertex_input)) {
+    } else if (DAE_XML_TAG_EQ(xml, bind_vertex_input)) {
       AkBindVertexInput *bvi;
       bvi = ak_heap_calloc(heap, mat, sizeof(*bvi));
       
-      bvi->semantic      = xmla_strdup_by(xml, heap, _s_dae_semantic, mat);
-      bvi->inputSemantic = xmla_strdup_by(xml, heap, _s_dae_input_semantic,
-                                          mat);
+      bvi->semantic      = DAE_XMLA_STRDUP8(xml, heap, semantic, mat);
+      bvi->inputSemantic = DAE_XMLA_STRDUP(xml, heap, input_semantic, mat);
 
-      if ((att = xmla(xml, _s_dae_input_set)))
+      if ((att = DAE_XMLA(xml, input_set)))
         bvi->inputSet = xmla_u32(att, 0);
       
       bvi->next            = mat->bindVertexInput;
       mat->bindVertexInput = bvi;
-    } else if (xml_tag_eq(xml, _s_dae_technique_override)) {
+    } else if (DAE_XML_TAG_EQ(xml, technique_override)) {
       AkTechniqueOverride *technOv;
 
       technOv       = ak_heap_calloc(heap, mat, sizeof(*technOv));
-      technOv->pass = xmla_strdup_by(xml, heap, _s_dae_pass, technOv);
-      technOv->ref  = xmla_strdup_by(xml, heap, _s_dae_ref,  technOv);
+      technOv->pass = DAE_XMLA_STRDUP8(xml, heap, pass, technOv);
+      technOv->ref  = DAE_XMLA_STRDUP8(xml, heap, ref, technOv);
       
       mat->techniqueOverride = technOv;
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       mat->base.extra = tree_fromxml(heap, mat, xml);
     }
     xml = xml->next;

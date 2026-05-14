@@ -24,39 +24,47 @@ dae_vert(DAEState * __restrict dst,
          void     * __restrict memp) {
   AkHeap     *heap;
   AkVertices *vert;
+  double      profStart, profStep;
   
+  profStart = DAE_PROF_START(dst);
   heap = dst->heap;
   vert = ak_heap_calloc(heap, memp, sizeof(*vert));
   xmla_setid(xml, heap, vert);
   
-  vert->name = xmla_strdup_by(xml, heap, _s_dae_name, vert);
+  vert->name = DAE_XMLA_STRDUP8(xml, heap, name, vert);
   
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_input)) {
+    if (DAE_XML_TAG_EQ8(xml, input)) {
       AkInput *inp;
+      profStep = DAE_PROF_START(dst);
       
       inp              = ak_heap_calloc(heap, vert, sizeof(*inp));
-      inp->semanticRaw = xmla_strdup_by(xml, heap, _s_dae_semantic, inp);
+      inp->semanticRaw = dae_semanticRaw(DAE_XMLA8(xml, semantic),
+                                         heap,
+                                         inp,
+                                         &inp->semantic);
       
       if (!inp->semanticRaw) {
         ak_free(inp);
       } else {
         AkURL *url;
-        inp->semantic = dae_semantic(inp->semanticRaw);
         
-        url = url_from(xml, _s_dae_source, memp);
+        url = DAE_URL_FROM(xml, source, memp);
         rb_insert(dst->inputmap, inp, url);
         
         inp->next   = vert->input;
         vert->input = inp;
         vert->inputCount++;
       }
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+      DAE_PROF_ACC(dst, profGeomInput, profGeomInputCount, profStep);
+    } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       vert->extra = tree_fromxml(heap, vert, xml);
     }
     xml = xml->next;
   }
   
+  DAE_PROF_ACC(dst, profGeomVertices, profGeomVerticesCount, profStart);
+
   return vert;
 }

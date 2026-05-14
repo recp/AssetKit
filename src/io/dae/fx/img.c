@@ -69,31 +69,31 @@ dae_image(DAEState * __restrict dst,
   xmla_setid(xml, heap, img);
   sid_set(xml, heap, img);
   
-  img->name = xmla_strdup_by(xml, heap, _s_dae_name, img);
+  img->name = DAE_XMLA_STRDUP8(xml, heap, name, img);
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_asset)) {
+    if (DAE_XML_TAG_EQ8(xml, asset)) {
       (void)dae_asset(dst, xml, img, NULL);
-    } else if (xml_tag_eq(xml, _s_dae_renderable)) {
-      img->renderable = (att = xmla(xml, _s_dae_share))
+    } else if (DAE_XML_TAG_EQ(xml, renderable)) {
+      img->renderable = (att = DAE_XMLA8(xml, share))
                           && att->val
                           && strcasecmp(att->val, _s_dae_true) == 0;
-    } else if (xml_tag_eq(xml, _s_dae_init_from)) {
+    } else if (DAE_XML_TAG_EQ(xml, init_from)) {
       img->initFrom = dae_initFrom(dst, xml, img);
-    } else if (xml_tag_eq(xml, _s_dae_create_2d)) {
+    } else if (DAE_XML_TAG_EQ(xml, create_2d)) {
       AkImage2d *image2d;
       if ((image2d = dae_create2d(dst, xml, img)))
           img->image = &image2d->base;
-    } else if (xml_tag_eq(xml, _s_dae_create_3d)) {
+    } else if (DAE_XML_TAG_EQ(xml, create_3d)) {
       AkImage3d *image3d;
       if ((image3d = dae_create3d(dst, xml, img)))
           img->image = &image3d->base;
-    } else if (xml_tag_eq(xml, _s_dae_create_cube)) {
+    } else if (DAE_XML_TAG_EQ(xml, create_cube)) {
       AkImageCube *imageCube;
       if ((imageCube = dae_createCube(dst, xml, img)))
           img->image = &imageCube->base;
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       img->extra = tree_fromxml(heap, img, xml);
     }
     xml = xml->next;
@@ -112,10 +112,10 @@ dae_instImage(DAEState * __restrict dst,
 
   heap          = dst->heap;
   instImg       = ak_heap_calloc(heap, memp, sizeof(*instImg));
-  instImg->name = xmla_strdup_by(xml, heap, _s_dae_name, instImg);
+  instImg->name = DAE_XMLA_STRDUP8(xml, heap, name, instImg);
   
   sid_set(xml, heap, instImg);
-  url_set(dst, xml, _s_dae_url, instImg, &instImg->url);
+  DAE_URL_SET(dst, xml, url, instImg, &instImg->url);
 
   return instImg;
 }
@@ -133,21 +133,21 @@ dae_initFrom(DAEState * __restrict dst,
   heap     = dst->heap;
   initFrom = ak_heap_calloc(heap, memp, sizeof(*initFrom));
   
-  initFrom->mipsGenerate = xmla_u32(xmla(xml, _s_dae_mips_generate), 0);
-  initFrom->arrayIndex   = xmla_u32(xmla(xml, _s_dae_array_index), 0);
-  initFrom->mipIndex     = xmla_u32(xmla(xml, _s_dae_mip_index), 0);
-  initFrom->depth        = xmla_u32(xmla(xml, _s_dae_depth), 0);
+  initFrom->mipsGenerate = xmla_u32(DAE_XMLA(xml, mips_generate), 0);
+  initFrom->arrayIndex   = xmla_u32(DAE_XMLA(xml, array_index), 0);
+  initFrom->mipIndex     = xmla_u32(DAE_XMLA(xml, mip_index), 0);
+  initFrom->depth        = xmla_u32(DAE_XMLA8(xml, depth), 0);
 
-  if ((att = xmla(xml, _s_dae_face)) && att->val)
+  if ((att = DAE_XMLA4(xml, face)) && att->val)
     initFrom->face = dae_face(att);
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_ref)) {
+    if (DAE_XML_TAG_EQ4(xml, ref)) {
       initFrom->ref = xml_strdup(xml, heap, initFrom);
-    } else if (xml_tag_eq(xml, _s_dae_hex)) {
+    } else if (DAE_XML_TAG_EQ4(xml, hex)) {
       hex         = ak_heap_calloc(heap, initFrom, sizeof(*hex));
-      hex->format = xmla_strdup(xmla(xml, _s_dae_format), heap, hex);
+      hex->format = xmla_strdup(DAE_XMLA8(xml, format), heap, hex);
 
       if (hex->format) {
         hex->hexval = xml_strdup(xml, heap, initFrom);
@@ -176,19 +176,19 @@ dae_imageFormat(DAEState * __restrict dst,
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_hint)) {
-      if ((att = xmla(xml, _s_dae_channels)) && att->val)
+    if (DAE_XML_TAG_EQ4(xml, hint)) {
+      if ((att = DAE_XMLA8(xml, channels)) && att->val)
         format->channel = dae_enumChannel(att->val, att->valsize);
       
-      if ((att = xmla(xml, _s_dae_range)) && att->val)
+      if ((att = DAE_XMLA8(xml, range)) && att->val)
         format->range = dae_range(att->val, att->valsize);
       
-      if ((att = xmla(xml, _s_dae_precision)) && att->val)
+      if ((att = DAE_XMLA(xml, precision)) && att->val)
         format->precision = dae_precision(att->val, att->valsize);
       
-      if ((att = xmla(xml, _s_dae_space)) && att->val)
+      if ((att = DAE_XMLA8(xml, space)) && att->val)
         format->space = xmla_strdup(att, heap, format);
-    } else if (xml_tag_eq(xml, _s_dae_exact)) {
+    } else if (DAE_XML_TAG_EQ8(xml, exact)) {
       format->exact = xml_strdup(xml, heap, format);
     }
     xml = xml->next;
@@ -212,37 +212,37 @@ dae_create2d(DAEState * __restrict dst,
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_size_exact)) {
+    if (DAE_XML_TAG_EQ(xml, size_exact)) {
       AkSizeExact *sizeExact;
       
       sizeExact = ak_heap_calloc(heap, img, sizeof(*sizeExact));
       
-      sizeExact->width  = xmla_u32(xmla(xml, _s_dae_width), 0);
-      sizeExact->height = xmla_u32(xmla(xml, _s_dae_height), 0);
+      sizeExact->width  = xmla_u32(DAE_XMLA8(xml, width), 0);
+      sizeExact->height = xmla_u32(DAE_XMLA8(xml, height), 0);
       img->sizeExact    = sizeExact;
-    } else if (xml_tag_eq(xml, _s_dae_size_ratio)) {
+    } else if (DAE_XML_TAG_EQ(xml, size_ratio)) {
       AkSizeRatio *sizeRatio;
       
       sizeRatio = ak_heap_calloc(heap, img, sizeof(*sizeRatio));
       
-      sizeRatio->width  = xmla_float(xmla(xml, _s_dae_width), 0);
-      sizeRatio->height = xmla_float(xmla(xml, _s_dae_height), 0);
+      sizeRatio->width  = xmla_float(DAE_XMLA8(xml, width), 0);
+      sizeRatio->height = xmla_float(DAE_XMLA8(xml, height), 0);
       img->sizeRatio    = sizeRatio;
-    } else if (xml_tag_eq(xml, _s_dae_mips)) {
+    } else if (DAE_XML_TAG_EQ4(xml, mips)) {
       AkMips *mips;
       
       mips = ak_heap_calloc(heap, img, sizeof(*mips));
       
-      mips->levels       = xmla_u32(xmla(xml, _s_dae_levels), 0);
-      mips->autoGenerate = xmla_u32(xmla(xml, _s_dae_auto_generate), 0);
+      mips->levels       = xmla_u32(DAE_XMLA8(xml, levels), 0);
+      mips->autoGenerate = xmla_u32(DAE_XMLA(xml, auto_generate), 0);
       img->mips          = mips;
-    } else if (xml_tag_eq(xml, _s_dae_unnormalized)) {
+    } else if (DAE_XML_TAG_EQ(xml, unnormalized)) {
       img->unnormalized = xml_strdup(xml, heap, img);
-    } else if (xml_tag_eq(xml, _s_dae_array)) {
-      img->base.arrayLen = xmla_u32(xmla(xml, _s_dae_length), 0);
-    } else if (xml_tag_eq(xml, _s_dae_format)) {
+    } else if (DAE_XML_TAG_EQ8(xml, array)) {
+      img->base.arrayLen = xmla_u32(DAE_XMLA8(xml, length), 0);
+    } else if (DAE_XML_TAG_EQ8(xml, format)) {
       img->base.format = dae_imageFormat(dst, xml, img);
-    } else if (xml_tag_eq(xml, _s_dae_size_exact)) {
+    } else if (DAE_XML_TAG_EQ(xml, size_exact)) {
       img->base.initFrom = dae_initFrom(dst, xml, img);
     }
     xml = xml->next;
@@ -266,18 +266,18 @@ dae_create3d(DAEState * __restrict dst,
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_size)) {
-      img->size.width  = xmla_u32(xmla(xml, _s_dae_width),  0);
-      img->size.height = xmla_u32(xmla(xml, _s_dae_height), 0);
-      img->size.depth  = xmla_u32(xmla(xml, _s_dae_depth),  0);
-    } else if (xml_tag_eq(xml, _s_dae_mips)) {
-      img->mips.levels       = xmla_u32(xmla(xml, _s_dae_levels), 0);
-      img->mips.autoGenerate = xmla_u32(xmla(xml, _s_dae_auto_generate), 0);
-    } else if (xml_tag_eq(xml, _s_dae_array)) {
-      img->base.arrayLen = xmla_u32(xmla(xml, _s_dae_length), 0);
-    } else if (xml_tag_eq(xml, _s_dae_format)) {
+    if (DAE_XML_TAG_EQ4(xml, size)) {
+      img->size.width  = xmla_u32(DAE_XMLA8(xml, width),  0);
+      img->size.height = xmla_u32(DAE_XMLA8(xml, height), 0);
+      img->size.depth  = xmla_u32(DAE_XMLA8(xml, depth),  0);
+    } else if (DAE_XML_TAG_EQ4(xml, mips)) {
+      img->mips.levels       = xmla_u32(DAE_XMLA8(xml, levels), 0);
+      img->mips.autoGenerate = xmla_u32(DAE_XMLA(xml, auto_generate), 0);
+    } else if (DAE_XML_TAG_EQ8(xml, array)) {
+      img->base.arrayLen = xmla_u32(DAE_XMLA8(xml, length), 0);
+    } else if (DAE_XML_TAG_EQ8(xml, format)) {
       img->base.format = dae_imageFormat(dst, xml, img);
-    } else if (xml_tag_eq(xml, _s_dae_size_exact)) {
+    } else if (DAE_XML_TAG_EQ(xml, size_exact)) {
       img->base.initFrom = dae_initFrom(dst, xml, img);
     }
     xml = xml->next;
@@ -301,16 +301,16 @@ dae_createCube(DAEState * __restrict dst,
   
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_size)) {
-      img->width = xmla_u32(xmla(xml, _s_dae_width),  0);
-    } else if (xml_tag_eq(xml, _s_dae_mips)) {
-      img->mips.levels       = xmla_u32(xmla(xml, _s_dae_levels), 0);
-      img->mips.autoGenerate = xmla_u32(xmla(xml, _s_dae_auto_generate), 0);
-    } else if (xml_tag_eq(xml, _s_dae_array)) {
-      img->base.arrayLen = xmla_u32(xmla(xml, _s_dae_length), 0);
-    } else if (xml_tag_eq(xml, _s_dae_format)) {
+    if (DAE_XML_TAG_EQ4(xml, size)) {
+      img->width = xmla_u32(DAE_XMLA8(xml, width),  0);
+    } else if (DAE_XML_TAG_EQ4(xml, mips)) {
+      img->mips.levels       = xmla_u32(DAE_XMLA8(xml, levels), 0);
+      img->mips.autoGenerate = xmla_u32(DAE_XMLA(xml, auto_generate), 0);
+    } else if (DAE_XML_TAG_EQ8(xml, array)) {
+      img->base.arrayLen = xmla_u32(DAE_XMLA8(xml, length), 0);
+    } else if (DAE_XML_TAG_EQ8(xml, format)) {
       img->base.format = dae_imageFormat(dst, xml, img);
-    } else if (xml_tag_eq(xml, _s_dae_size_exact)) {
+    } else if (DAE_XML_TAG_EQ(xml, size_exact)) {
       img->base.initFrom = dae_initFrom(dst, xml, img);
     }
     xml = xml->next;

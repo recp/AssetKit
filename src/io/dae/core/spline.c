@@ -36,17 +36,17 @@ dae_spline(DAEState   * __restrict dst,
   spline = ak_objGet(obj);
 
   spline->geom   = geom;
-  spline->closed = xmla_u32(xmla(xml, _s_dae_closed), 0);
+  spline->closed = xmla_u32(DAE_XMLA8(xml, closed), 0);
   
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_source)) {
+    if (DAE_XML_TAG_EQ8(xml, source)) {
       if ((source = dae_source(dst, xml, NULL, 0))) {
         source->next   = spline->source;
         spline->source = source;
       }
-    } else if (xml_tag_eq(xml, _s_dae_control_vertices)) {
+    } else if (DAE_XML_TAG_EQ(xml, control_vertices)) {
       spline->cverts = dae_vert(dst, xml, obj);
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       spline->extra = tree_fromxml(heap, obj, xml);
     }
 

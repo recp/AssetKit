@@ -19,6 +19,8 @@
 #include "edit_common.h"
 #include <limits.h>
 
+#define AK_INDEX_LOCAL_HASH_CAP 4096
+
 static
 uint32_t
 ak_indexTupleHash(const AkUInt * __restrict tuple,
@@ -97,10 +99,11 @@ ak_indexHashCap(size_t count) {
   return cap;
 }
 
-AK_EXPORT
+AK_HIDE
 AkDuplicator*
-ak_meshDuplicatorForIndices(AkMesh          * __restrict mesh,
-                            AkMeshPrimitive * __restrict prim) {
+ak_meshDuplicatorForIndicesRetained(AkMesh          * __restrict mesh,
+                                    AkMeshPrimitive * __restrict prim,
+                                    bool                         retain) {
   AkHeap             *heap;
   AkDoc              *doc;
   AkObject           *meshobj;
@@ -108,6 +111,7 @@ ak_meshDuplicatorForIndices(AkMesh          * __restrict mesh,
   AkDuplicatorRange  *dupr;
   AkUIntArray        *dupc, *ind, *newind, *dupcsum;
   uint32_t           *it, *it2, *hashes;
+  uint32_t            localHashes[AK_INDEX_LOCAL_HASH_CAP];
   AkAccessor         *posAcc;
   size_t              count, hcap, hmask, hpos, hslot, icount,
                       vertc, i, j;
@@ -121,9 +125,11 @@ ak_meshDuplicatorForIndices(AkMesh          * __restrict mesh,
   heap    = ak_heap_getheap(meshobj);
   doc     = ak_heap_data(heap);
 
-  if ((dupl = rb_find(doc->reserved, prim))) {
-    rb_remove(doc->reserved, prim);
-    ak_free(dupl); /* or cache maybe if mesh is not edited ? */
+  if (retain) {
+    if ((dupl = rb_find(doc->reserved, prim))) {
+      rb_remove(doc->reserved, prim);
+      ak_free(dupl); /* or cache maybe if mesh is not edited ? */
+    }
   }
 
   dupl = ak_heap_calloc(heap, NULL, sizeof(*dupl));
@@ -144,7 +150,12 @@ ak_meshDuplicatorForIndices(AkMesh          * __restrict mesh,
 
   hcap   = ak_indexHashCap(icount);
   hmask  = hcap - 1;
-  hashes = ak_heap_calloc(heap, dupl, sizeof(uint32_t) * hcap);
+  if (hcap <= AK_INDEX_LOCAL_HASH_CAP) {
+    hashes = localHashes;
+    memset(hashes, 0, sizeof(uint32_t) * hcap);
+  } else {
+    hashes = ak_heap_calloc(heap, dupl, sizeof(uint32_t) * hcap);
+  }
 
   count = posno = 0;
   for (j = i = 0; j < icount; j++, i += st) {
@@ -211,15 +222,24 @@ ak_meshDuplicatorForIndices(AkMesh          * __restrict mesh,
   dupl->dupCount   = count;
   dupl->bufCount   = posno;
 
-  ak_free(hashes);
+  if (hashes != localHashes)
+    ak_free(hashes);
 
-  rb_insert(doc->reserved, prim, dupl);
+  if (retain)
+    rb_insert(doc->reserved, prim, dupl);
 
   return dupl;
 
 fail:
   ak_free(dupl);
   return NULL;
+}
+
+AK_EXPORT
+AkDuplicator*
+ak_meshDuplicatorForIndices(AkMesh          * __restrict mesh,
+                            AkMeshPrimitive * __restrict prim) {
+  return ak_meshDuplicatorForIndicesRetained(mesh, prim, true);
 }
 
 AK_EXPORT

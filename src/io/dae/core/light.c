@@ -32,28 +32,28 @@ dae_light(DAEState * __restrict dst,
 
   heap        = dst->heap;
   light       = ak_heap_calloc(heap, memp, sizeof(*light));
-  light->name = xmla_strdup_by(xml, heap, _s_dae_name, light);
+  light->name = DAE_XMLA_STRDUP8(xml, heap, name, light);
   
   xmla_setid(xml, heap, light);
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_asset)) {
+    if (DAE_XML_TAG_EQ8(xml, asset)) {
       (void)dae_asset(dst, xml, light, NULL);
-    } else if (xml_tag_eq(xml, _s_dae_techniquec)) {
+    } else if (DAE_XML_TAG_EQ(xml, techniquec)) {
       xml_t          *xtech, *xtechv, *xcolor;
       AkAmbientLight *lightb;
       AkCoordSys     *optCoordSys;
       
       xtech = xml->val;
   
-      if (xml_tag_eq(xtech, _s_dae_ambient)) {
+      if (DAE_XML_TAG_EQ8(xtech, ambient)) {
         lightb       = ak_heap_calloc(heap, light, sizeof(AkAmbientLight));
         lightb->type = AK_LIGHT_TYPE_AMBIENT;
-      } else if (xml_tag_eq(xtech, _s_dae_directional)) {
+      } else if (DAE_XML_TAG_EQ(xtech, directional)) {
         lightb       = ak_heap_calloc(heap, light, sizeof(AkDirectionalLight));
         lightb->type = AK_LIGHT_TYPE_DIRECTIONAL;
-      } else if (xml_tag_eq(xtech, _s_dae_point)) {
+      } else if (DAE_XML_TAG_EQ8(xtech, point)) {
         AkPointLight *point;
         
         point            = ak_heap_calloc(heap, light, sizeof(*point));
@@ -65,21 +65,21 @@ dae_light(DAEState * __restrict dst,
         
         xtechv = xtech->val;
         while (xtechv) {
-          if (xml_tag_eq(xtechv, _s_dae_color)) {
+          if (DAE_XML_TAG_EQ8(xtechv, color)) {
             sid_seta(xtechv, heap, point, &point->base.color);
-          } else if (xml_tag_eq(xtechv, _s_dae_const_attn)) {
+          } else if (DAE_XML_TAG_EQ(xtechv, const_attn)) {
             sid_seta(xtechv, heap, point, &point->constAttn);
             point->constAttn = xml_float(xtechv, 1.0f);
-          } else if (xml_tag_eq(xtechv, _s_dae_linear_attn)) {
+          } else if (DAE_XML_TAG_EQ(xtechv, linear_attn)) {
             sid_seta(xtechv, heap, point, &point->linearAttn);
             point->linearAttn = xml_float(xtechv, 0.0f);
-          } else if (xml_tag_eq(xtechv, _s_dae_quad_attn)) {
+          } else if (DAE_XML_TAG_EQ(xtechv, quad_attn)) {
             sid_seta(xtechv, heap, point, &point->quadAttn);
             point->quadAttn = xml_float(xtechv, 0.0f);
           }
           xtechv = xtechv->next;
         }
-      } else if (xml_tag_eq(xtech, _s_dae_spot)) {
+      } else if (DAE_XML_TAG_EQ8(xtech, spot)) {
         AkSpotLight *spot;
 
         spot            = ak_heap_calloc(heap, light, sizeof(*spot));
@@ -92,22 +92,22 @@ dae_light(DAEState * __restrict dst,
         
         xtechv = xtech->val;
         while (xtechv) {
-          if (xml_tag_eq(xtechv, _s_dae_color)) {
+          if (DAE_XML_TAG_EQ8(xtechv, color)) {
             sid_seta(xtechv, heap, spot, &spot->base.color);
-          } else if (xml_tag_eq(xtechv, _s_dae_const_attn)) {
+          } else if (DAE_XML_TAG_EQ(xtechv, const_attn)) {
             sid_seta(xtechv, heap, spot, &spot->constAttn);
             spot->constAttn = xml_float(xtechv, 0.0f);
-          } else if (xml_tag_eq(xtechv, _s_dae_linear_attn)) {
+          } else if (DAE_XML_TAG_EQ(xtechv, linear_attn)) {
             sid_seta(xtechv, heap, spot, &spot->linearAttn);
             spot->linearAttn = xml_float(xtechv, 0.0f);
-          } else if (xml_tag_eq(xtechv, _s_dae_quad_attn)) {
+          } else if (DAE_XML_TAG_EQ(xtechv, quad_attn)) {
             sid_seta(xtechv, heap, spot, &spot->quadAttn);
             spot->quadAttn = xml_float(xtechv, 0.0f);
-          } else if (xml_tag_eq(xtechv, _s_dae_falloff_angle)) {
+          } else if (DAE_XML_TAG_EQ(xtechv, falloff_angle)) {
             sid_seta(xtechv, heap, spot, &spot->falloffAngle);
             spot->falloffAngle = xml_float(xtechv, 0.0f);
             glm_make_rad(&spot->falloffAngle);
-          } else if (xml_tag_eq(xtechv, _s_dae_falloff_exp)) {
+          } else if (DAE_XML_TAG_EQ(xtechv, falloff_exp)) {
             sid_seta(xtechv, heap, spot, &spot->falloffExp);
             spot->falloffExp = xml_float(xtechv, 0.0f);
           }
@@ -117,7 +117,7 @@ dae_light(DAEState * __restrict dst,
         goto nxt;
       }
 
-      if ((xcolor = xml_elem(xtech, _s_dae_color))) {
+      if ((xcolor = DAE_XML_ELEM8(xtech, color))) {
         dae_color(xcolor, lightb, true, true, &lightb->color);
       } else {
         glm_vec4_one(lightb->color.vec);
@@ -138,11 +138,11 @@ dae_light(DAEState * __restrict dst,
                         lightb->direction);
         }
       }
-    } else if (xml_tag_eq(xml, _s_dae_technique)) {
+    } else if (DAE_XML_TAG_EQ(xml, technique)) {
       tq               = dae_techn(xml, heap, light);
       tq->next         = light->technique;
       light->technique = tq;
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       light->extra = tree_fromxml(heap, light, xml);
     }
 

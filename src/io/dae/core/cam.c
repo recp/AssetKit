@@ -29,15 +29,15 @@ dae_cam(DAEState * __restrict dst,
 
   heap      = dst->heap;
   cam       = ak_heap_calloc(heap, memp, sizeof(*cam));
-  cam->name = xmla_strdup_by(xml, heap, _s_dae_name, cam);
+  cam->name = DAE_XMLA_STRDUP8(xml, heap, name, cam);
 
   xmla_setid(xml, heap, cam);
   
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_asset)) {
+    if (DAE_XML_TAG_EQ8(xml, asset)) {
       (void)dae_asset(dst, xml, cam, NULL);
-    } else if (xml_tag_eq(xml, _s_dae_optics)) {
+    } else if (DAE_XML_TAG_EQ8(xml, optics)) {
       AkOptics *optics;
       xml_t    *xoptics;
 
@@ -45,32 +45,32 @@ dae_cam(DAEState * __restrict dst,
       xoptics = xml->val;
 
       while (xoptics) {
-        if (xml_tag_eq(xoptics, _s_dae_techniquec)) {
+        if (DAE_XML_TAG_EQ(xoptics, techniquec)) {
           xml_t *xtech, *xtechv;
 
           xtech = xoptics->val;
 
           while (xtech) {
-            if (xml_tag_eq(xtech, _s_dae_perspective)) {
+            if (DAE_XML_TAG_EQ(xtech, perspective)) {
               AkPerspective *persp;
 
               persp  = ak_heap_calloc(heap, optics, sizeof(*persp));
               xtechv = xtech->val;
 
               while (xtechv) {
-                if (xml_tag_eq(xtechv, _s_dae_xfov)) {
+                if (DAE_XML_TAG_EQ8(xtechv, xfov)) {
                   sid_seta(xtechv, heap, persp, &persp->xfov);
                   persp->xfov = glm_rad(xml_float(xtechv, 0.0f));
-                } else if (xml_tag_eq(xtechv, _s_dae_yfov)) {
+                } else if (DAE_XML_TAG_EQ8(xtechv, yfov)) {
                   sid_seta(xtechv, heap, persp, &persp->yfov);
                   persp->yfov = glm_rad(xml_float(xtechv, 0.0f));
-                } else if (xml_tag_eq(xtechv, _s_dae_aspect_ratio)) {
+                } else if (DAE_XML_TAG_EQ(xtechv, aspect_ratio)) {
                   sid_seta(xtechv, heap, persp, &persp->aspectRatio);
                   persp->aspectRatio = xml_float(xtechv, 0.0f);
-                } else if (xml_tag_eq(xtechv, _s_dae_znear)) {
+                } else if (DAE_XML_TAG_EQ8(xtechv, znear)) {
                   sid_seta(xtechv, heap, persp, &persp->znear);
                   persp->znear = xml_float(xtechv, 0.0f);
-                } else if (xml_tag_eq(xtechv, _s_dae_zfar)) {
+                } else if (DAE_XML_TAG_EQ8(xtechv, zfar)) {
                   sid_seta(xtechv, heap, persp, &persp->zfar);
                   persp->zfar = xml_float(xtechv, 0.0f);
                 }
@@ -87,26 +87,26 @@ dae_cam(DAEState * __restrict dst,
               }
 
               optics->tcommon = &persp->base;
-            } else if (xml_tag_eq(xtech, _s_dae_orthographic)) {
+            } else if (DAE_XML_TAG_EQ(xtech, orthographic)) {
               AkOrthographic *ortho;
 
               ortho = ak_heap_calloc(heap, optics, sizeof(*ortho));
               xtechv = xtech->val;
 
               while (xtechv) {
-                if (xml_tag_eq(xtechv, _s_dae_xmag)) {
+                if (DAE_XML_TAG_EQ8(xtechv, xmag)) {
                   sid_seta(xtechv, heap, ortho, &ortho->xmag);
                   ortho->xmag = xml_float(xtechv, 0.0f);
-                } else if (xml_tag_eq(xtechv, _s_dae_ymag)) {
+                } else if (DAE_XML_TAG_EQ8(xtechv, ymag)) {
                   sid_seta(xtechv, heap, ortho, &ortho->ymag);
                   ortho->ymag = xml_float(xtechv, 0.0f);
-                } else if (xml_tag_eq(xtechv, _s_dae_aspect_ratio)) {
+                } else if (DAE_XML_TAG_EQ(xtechv, aspect_ratio)) {
                   sid_seta(xtechv, heap, ortho, &ortho->aspectRatio);
                   ortho->aspectRatio = xml_float(xtechv, 0.0f);
-                } else if (xml_tag_eq(xtechv, _s_dae_znear)) {
+                } else if (DAE_XML_TAG_EQ8(xtechv, znear)) {
                   sid_seta(xtechv, heap, ortho, &ortho->znear);
                   ortho->znear = xml_float(xtechv, 0.0f);
-                } else if (xml_tag_eq(xtechv, _s_dae_zfar)) {
+                } else if (DAE_XML_TAG_EQ8(xtechv, zfar)) {
                   sid_seta(xtechv, heap, ortho, &ortho->zfar);
                   ortho->zfar = xml_float(xtechv, 0.0f);
                 }
@@ -126,7 +126,7 @@ dae_cam(DAEState * __restrict dst,
             }
             xtech = xtech->next;
           }
-        } else if (xml_tag_eq(xoptics, _s_dae_technique)) {
+        } else if (DAE_XML_TAG_EQ(xoptics, technique)) {
           tq                = dae_techn(xoptics, heap, optics);
           tq->next          = optics->technique;
           optics->technique = tq;
@@ -135,7 +135,7 @@ dae_cam(DAEState * __restrict dst,
       }
 
       cam->optics = optics;
-    } else if (xml_tag_eq(xml, _s_dae_imager)) {
+    } else if (DAE_XML_TAG_EQ8(xml, imager)) {
       AkImager *imager;
       xml_t    *ximager;
 
@@ -143,18 +143,18 @@ dae_cam(DAEState * __restrict dst,
       ximager = xml->val;
 
       while (ximager) {
-        if (xml_tag_eq(ximager, _s_dae_technique)) {
+        if (DAE_XML_TAG_EQ(ximager, technique)) {
           tq                = dae_techn(ximager, heap, imager);
           tq->next          = imager->technique;
           imager->technique = tq;
-        } else if (xml_tag_eq(ximager, _s_dae_extra)) {
+        } else if (DAE_XML_TAG_EQ8(ximager, extra)) {
           imager->extra = tree_fromxml(heap, imager, xml);
         }
         ximager = ximager->next;
       }
 
       cam->imager = imager;
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       cam->extra = tree_fromxml(heap, cam, xml);
     }
 

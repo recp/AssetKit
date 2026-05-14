@@ -33,7 +33,7 @@ gltf_ext_materialVariants(AkGLTFState * __restrict gst,
   while (jvariant) {
     variant = ak_heap_calloc(gst->heap, doc, sizeof(*variant));
 
-    if ((jname = json_get(jvariant, _s_gltf_name)))
+    if ((jname = GLTF_JSON_GET8(jvariant, name)))
       variant->name = json_strdup(jname, gst->heap, variant);
 
     /* json_parse(..., true) gives array children in reverse. Prepend
@@ -72,9 +72,9 @@ gltf_ext_primitiveVariants(AkGLTFState     * __restrict gst,
   if (!gst || !prim || !jprim)
     return true;
 
-  jext         = json_get(jprim, _s_gltf_extensions);
-  jvariantsExt = jext ? json_get(jext, _s_gltf_KHR_materials_variants) : NULL;
-  jmappings    = jvariantsExt ? json_get(jvariantsExt, _s_gltf_mappings) : NULL;
+  jext         = GLTF_JSON_GET(jprim, extensions);
+  jvariantsExt = jext ? GLTF_JSON_GET(jext, KHR_materials_variants) : NULL;
+  jmappings    = jvariantsExt ? GLTF_JSON_GET8(jvariantsExt, mappings) : NULL;
   if (!jmappings || !(jmapArr = json_array(jmappings)) || jmapArr->count == 0)
     return true;
 
@@ -86,8 +86,8 @@ gltf_ext_primitiveVariants(AkGLTFState     * __restrict gst,
      list into a flat per-(variant, material) chain so runtime swap is
      O(numVariants) — typical N is small (<10) so the unroll is cheap. */
   for (jmap = jmapArr->base.value; jmap; jmap = jmap->next) {
-    jmaterial = json_get(jmap, _s_gltf_material);
-    jvariants = json_get(jmap, _s_gltf_variants);
+    jmaterial = GLTF_JSON_GET8(jmap, material);
+    jvariants = GLTF_JSON_GET8(jmap, variants);
     if (!jmaterial || !jvariants)
       continue;
 

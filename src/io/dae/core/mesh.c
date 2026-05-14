@@ -45,8 +45,10 @@ dae_mesh(DAEState   * __restrict dst,
   AkMesh          *mesh;
   AkMeshPrimitive *lastPrim;
   AkHeap          *heap;
+  double           profStart;
   uint32_t         m;
 
+  profStart = DAE_PROF_START(dst);
   heap     = dst->heap;
   xml      = xml->val;
   lastPrim = NULL;
@@ -55,16 +57,16 @@ dae_mesh(DAEState   * __restrict dst,
   mesh = ak_objGet(obj);
 
   mesh->geom         = geom;
-  mesh->convexHullOf = xmla_strdup_by(xml, heap, _s_dae_convex_hull_of, obj);
+  mesh->convexHullOf = DAE_XMLA_STRDUP(xml, heap, convex_hull_of, obj);
 
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_source)) {
+    if (DAE_XML_TAG_EQ8(xml, source)) {
       (void)dae_source(dst, xml, NULL, 0);
-    } else if (xml_tag_eq(xml, _s_dae_vertices)) {
+    } else if (DAE_XML_TAG_EQ8(xml, vertices)) {
       (void)dae_vert(dst, xml, dst->tempmem);
-    } else if ((xml_tag_eq(xml, _s_dae_triangles) & (m = AK_TRIANGLES))
-            || (xml_tag_eq(xml, _s_dae_trifans)   & (m = AK_TRIANGLE_FAN))
-            || (xml_tag_eq(xml, _s_dae_tristrips) & (m = AK_TRIANGLE_STRIP))) {
+    } else if ((DAE_XML_TAG_EQ(xml, triangles) & (m = AK_TRIANGLES))
+            || (DAE_XML_TAG_EQ(xml, trifans)   & (m = AK_TRIANGLE_FAN))
+            || (DAE_XML_TAG_EQ(xml, tristrips) & (m = AK_TRIANGLE_STRIP))) {
       AkTriangles *tri;
       
       if ((tri = dae_triangles(dst, xml, obj, m))) {
@@ -73,8 +75,8 @@ dae_mesh(DAEState   * __restrict dst,
         if (tri->base.bindmaterial)
           ak_meshSetMaterial(&tri->base, tri->base.bindmaterial);
       }
-    } else if ((xml_tag_eq(xml, _s_dae_polygons) & (m = AK_POLY_POLYGONS))
-            || (xml_tag_eq(xml, _s_dae_polylist) & (m = AK_POLY_POLYLIST))) {
+    } else if ((DAE_XML_TAG_EQ(xml, polygons) & (m = AK_POLY_POLYGONS))
+            || (DAE_XML_TAG_EQ8(xml, polylist) & (m = AK_POLY_POLYLIST))) {
       AkPolygon *poly;
 
       if ((poly = dae_poly(dst, xml, obj, m))) {
@@ -84,8 +86,8 @@ dae_mesh(DAEState   * __restrict dst,
           ak_meshSetMaterial(&poly->base, poly->base.bindmaterial);
       }
       
-    } else if (xml_tag_eq(xml, _s_dae_lines)      & (m = AK_LINES)
-           || (xml_tag_eq(xml, _s_dae_linestrips) & (m = AK_LINE_STRIP))) {
+    } else if (DAE_XML_TAG_EQ8(xml, lines)         & (m = AK_LINES)
+           || (DAE_XML_TAG_EQ(xml, linestrips) & (m = AK_LINE_STRIP))) {
       AkLines *lines;
       
       if ((lines = dae_lines(dst, xml, obj, m))) {
@@ -94,12 +96,14 @@ dae_mesh(DAEState   * __restrict dst,
         if (lines->base.bindmaterial)
           ak_meshSetMaterial(&lines->base, lines->base.bindmaterial);
       }
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       mesh->extra = tree_fromxml(heap, obj, xml);
     }
 
     xml = xml->next;
   }
+
+  DAE_PROF_ACC(dst, profGeomMesh, profGeomMeshCount, profStart);
 
   return obj;
 }

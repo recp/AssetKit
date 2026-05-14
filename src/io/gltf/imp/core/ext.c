@@ -140,12 +140,12 @@ gltf_ext_supported(AkGLTFState      * __restrict gst,
   if (gltf_extNameSearch(ext, names, AK_ARRAY_LEN(names)))
     return true;
 
-  if (json_val_eq(ext, _s_gltf_EXT_meshopt_compression)
-      || json_val_eq(ext, _s_gltf_KHR_meshopt_compression))
+  if (GLTF_JSON_VAL_EQ(ext, EXT_meshopt_compression)
+      || GLTF_JSON_VAL_EQ(ext, KHR_meshopt_compression))
     return gltf_ext_meshopt(gst);
-  if (json_val_eq(ext, _s_gltf_KHR_draco_mesh_compression))
+  if (GLTF_JSON_VAL_EQ(ext, KHR_draco_mesh_compression))
     return gltf_ext_draco(gst);
-  if (json_val_eq(ext, _s_gltf_KHR_texture_basisu))
+  if (GLTF_JSON_VAL_EQ(ext, KHR_texture_basisu))
     return gltf_ext_ktx2(gst);
   if (gltf_ext_preserved_supported(ext))
     return true;
@@ -167,7 +167,7 @@ gltf_exts(json_t * __restrict jext,
     return;
 
   for (it = (void *)jexts->base.value; it; it = it->next) {
-    if (json_val_eq(it, _s_gltf_KHR_animation_pointer))
+    if (GLTF_JSON_VAL_EQ(it, KHR_animation_pointer))
       gst->animPointerRequired = true;
 
     if (!gltf_ext_supported(gst, it)) {
@@ -191,13 +191,13 @@ gltf_ext_root(json_t * __restrict jext,
   if (!jext)
     return;
 
-  if ((jpunctual = json_get(jext, _s_gltf_KHR_lights_punctual))
-      && (jlights = json_get(jpunctual, _s_gltf_lights))) {
+  if ((jpunctual = GLTF_JSON_GET(jext, KHR_lights_punctual))
+      && (jlights = GLTF_JSON_GET8(jpunctual, lights))) {
     gltf_ext_lights(gst, jlights);
   }
 
-  if ((jvariantsExt = json_get(jext, _s_gltf_KHR_materials_variants))
-      && (jvariants = json_get(jvariantsExt, _s_gltf_variants))) {
+  if ((jvariantsExt = GLTF_JSON_GET(jext, KHR_materials_variants))
+      && (jvariants = GLTF_JSON_GET8(jvariantsExt, variants))) {
     gltf_ext_materialVariants(gst, jvariants);
   }
 }
@@ -214,13 +214,13 @@ gltf_ext_node(AkGLTFState * __restrict gst,
   if (!gst || !node || !jext)
     return true;
 
-  jvis     = json_get(jext, _s_gltf_KHR_node_visibility);
-  jvisible = jvis ? json_get(jvis, _s_gltf_visible) : NULL;
+  jvis     = GLTF_JSON_GET(jext, KHR_node_visibility);
+  jvisible = jvis ? GLTF_JSON_GET8(jvis, visible) : NULL;
 
   if (jvisible)
     node->visible = json_bool(jvisible, true);
 
-  if ((jinstancing = json_get(jext, _s_gltf_EXT_mesh_gpu_instancing))) {
+  if ((jinstancing = GLTF_JSON_GET(jext, EXT_mesh_gpu_instancing))) {
     node->instancing = gltf_ext_meshGPUInstancing(gst, node, jinstancing);
     if (gst->stop)
       return false;

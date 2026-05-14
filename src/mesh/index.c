@@ -19,8 +19,60 @@
 
 #include <limits.h>
 #include <assert.h>
+#include <stdio.h>
+#include <string.h>
+#include <time.h>
 
 extern const char* ak_mesh_edit_assert1;
+
+typedef struct AkIndexProfile {
+  double   collapse;
+  double   duplicator;
+  double   fixBuffer;
+  double   reserveBuffers;
+  double   movePositions;
+  uint32_t callCount;
+  uint32_t skipCount;
+  uint32_t collapseCount;
+} AkIndexProfile;
+
+static AkIndexProfile ak_index_prof;
+static bool           ak_index_prof_active;
+
+static
+double
+ak_index_profile_now_ms(void) {
+  struct timespec ts;
+
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+
+  return (double)ts.tv_sec * 1000.0 + (double)ts.tv_nsec / 1000000.0;
+}
+
+AK_HIDE
+void
+ak_index_profile_reset(void) {
+  memset(&ak_index_prof, 0, sizeof(ak_index_prof));
+  ak_index_prof_active = true;
+}
+
+AK_HIDE
+void
+ak_index_profile_report(void) {
+  fprintf(stderr,
+          "[AssetKit index total] calls=%u skip=%u collapse=%u "
+          "collapse_time=%.3fms duplicator=%.3fms fixbuf=%.3fms "
+          "reserve=%.3fms move=%.3fms\n",
+          ak_index_prof.callCount,
+          ak_index_prof.skipCount,
+          ak_index_prof.collapseCount,
+          ak_index_prof.collapse,
+          ak_index_prof.duplicator,
+          ak_index_prof.fixBuffer,
+          ak_index_prof.reserveBuffers,
+          ak_index_prof.movePositions);
+  ak_index_prof_active = false;
+}
 
 AK_HIDE
 bool
@@ -124,22 +176,79 @@ ak_movePositions(AkMesh          *mesh,
 
 AK_HIDE
 AkResult
+ak_primFixIndicesRetainDuplicator(AkMesh          *mesh,
+                                  AkMeshPrimitive *prim,
+                                  bool             retainDuplicator) {
+  AkDuplicator *dupl;
+  double        t;
+
+  if (ak_index_prof_active)
+    ak_index_prof.callCount++;
+
+  if (prim->indexStride == 1 || !prim->indices) {
+    if (ak_index_prof_active)
+      ak_index_prof.skipCount++;
+    return AK_OK;
+  }
+
+  t = ak_index_prof_active ? ak_index_profile_now_ms() : 0.0;
+  if (ak_primCollapseIdentityIndices(prim)) {
+    if (ak_index_prof_active) {
+      ak_index_prof.collapse += ak_index_profile_now_ms() - t;
+      ak_index_prof.collapseCount++;
+    }
+    return AK_OK;
+  }
+  if (ak_index_prof_active)
+    ak_index_prof.collapse += ak_index_profile_now_ms() - t;
+
+  t = ak_index_prof_active ? ak_index_profile_now_ms() : 0.0;
+  if (!(dupl = ak_meshDuplicatorForIndicesRetained(mesh,
+                                                   prim,
+                                                   retainDuplicator)))
+    return AK_ERR;
+  if (ak_index_prof_active)
+    ak_index_prof.duplicator += ak_index_profile_now_ms() - t;
+
+  t = ak_index_prof_active ? ak_index_profile_now_ms() : 0.0;
+  ak_meshFixIndexBuffer(mesh, prim, dupl);
+  if (ak_index_prof_active)
+    ak_index_prof.fixBuffer += ak_index_profile_now_ms() - t;
+
+  t = ak_index_prof_active ? ak_index_profile_now_ms() : 0.0;
+  ak_meshReserveBuffers(mesh, prim, dupl->dupCount + dupl->bufCount);
+  if (ak_index_prof_active)
+    ak_index_prof.reserveBuffers += ak_index_profile_now_ms() - t;
+
+  t = ak_index_prof_active ? ak_index_profile_now_ms() : 0.0;
+  ak_movePositions(mesh, prim, dupl);
+  if (ak_index_prof_active)
+    ak_index_prof.movePositions += ak_index_profile_now_ms() - t;
+
+  if (!retainDuplicator)
+    ak_free(dupl);
+
+  return AK_OK;
+}
+
+AK_HIDE
+AkResult
 ak_primFixIndices(AkMesh          *mesh,
                   AkMeshPrimitive *prim) {
-  AkDuplicator *dupl;
+  return ak_primFixIndicesRetainDuplicator(mesh, prim, true);
+}
 
-  if (prim->indexStride == 1 || !prim->indices)
-    return AK_OK;
+AK_HIDE
+AkResult
+ak_meshFixIndicesDefaultRetainDuplicators(AkMesh *mesh,
+                                          bool    retainDuplicators) {
+  AkMeshPrimitive *prim;
 
-  if (ak_primCollapseIdentityIndices(prim))
-    return AK_OK;
-
-  if (!(dupl = ak_meshDuplicatorForIndices(mesh, prim)))
-    return AK_ERR;
-
-  ak_meshFixIndexBuffer(mesh, prim, dupl);
-  ak_meshReserveBuffers(mesh, prim, dupl->dupCount + dupl->bufCount);
-  ak_movePositions(mesh, prim, dupl);
+  prim = mesh->primitive;
+  while (prim) {
+    ak_primFixIndicesRetainDuplicator(mesh, prim, retainDuplicators);
+    prim = prim->next;
+  }
 
   return AK_OK;
 }
@@ -147,15 +256,7 @@ ak_primFixIndices(AkMesh          *mesh,
 AK_HIDE
 AkResult
 ak_meshFixIndicesDefault(AkMesh *mesh) {
-  AkMeshPrimitive *prim;
-
-  prim = mesh->primitive;
-  while (prim) {
-    ak_primFixIndices(mesh, prim);
-    prim = prim->next;
-  }
-
-  return AK_OK;
+  return ak_meshFixIndicesDefaultRetainDuplicators(mesh, true);
 }
 
 AK_HIDE

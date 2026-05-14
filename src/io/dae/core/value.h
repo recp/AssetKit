@@ -29,4 +29,9 @@ AK_HIDE
 void
 dae_dtype(const char *typeName, AkTypeDesc *type);
 
+AK_HIDE
+void
+dae_dtype_attr(const xml_attr_t * __restrict xatt,
+               AkTypeDesc      * __restrict type);
+
 #endif /* dae_value_h */

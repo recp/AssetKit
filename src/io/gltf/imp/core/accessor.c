@@ -50,25 +50,25 @@ gltf_accessorProps(const json_t       * __restrict jacc,
 
     switch (it->keysize) {
       case 3:
-        if (first == 'm' && gltf_jsonKeyEqLen(it, _s_gltf_max, 3)) {
+        if (first == 'm' && GLTF_JSON_KEY_EQ8(it, max)) {
           props->max = it;
-        } else if (first == 'm' && gltf_jsonKeyEqLen(it, _s_gltf_min, 3)) {
+        } else if (first == 'm' && GLTF_JSON_KEY_EQ8(it, min)) {
           props->min = it;
         }
         break;
       case 4:
-        if (first == 'n' && gltf_jsonKeyEqLen(it, _s_gltf_name, 4)) {
+        if (first == 'n' && GLTF_JSON_KEY_EQ8(it, name)) {
           props->name = it;
-        } else if (first == 't' && gltf_jsonKeyEqLen(it, _s_gltf_type, 4)) {
+        } else if (first == 't' && GLTF_JSON_KEY_EQ8(it, type)) {
           props->type = it;
         }
         break;
       case 5:
-        if (first == 'c' && gltf_jsonKeyEqLen(it, _s_gltf_count, 5))
+        if (first == 'c' && GLTF_JSON_KEY_EQ8(it, count))
           props->count = it;
         break;
       case 6:
-        if (first == 's' && gltf_jsonKeyEqLen(it, _s_gltf_sparse, 6))
+        if (first == 's' && GLTF_JSON_KEY_EQ8(it, sparse))
           props->sparse = it;
         break;
       case 10:
@@ -274,9 +274,9 @@ gltf_accessors(json_t * __restrict json,
       int32_t       idxBVIdx, valBVIdx;
       AkTypeId      idxComponentType;
 
-      jsCount   = json_get(it, _s_gltf_count);
-      jsIndices = json_get(it, _s_gltf_indices);
-      jsValues  = json_get(it, _s_gltf_values);
+      jsCount   = GLTF_JSON_GET8(it, count);
+      jsIndices = GLTF_JSON_GET8(it, indices);
+      jsValues  = GLTF_JSON_GET8(it, values);
 
       if (jsCount && jsIndices && jsValues
           && (sparseCount = json_uint32(jsCount, 0)) > 0
@@ -284,18 +284,18 @@ gltf_accessors(json_t * __restrict json,
           && acc->count > 0) {
 
         /* indices descriptor */
-        idxBVIdx         = (node = json_get(jsIndices, _s_gltf_bufferView))
+        idxBVIdx         = (node = GLTF_JSON_GET(jsIndices, bufferView))
                               ? json_int32(node, -1) : -1;
-        idxByteOffset    = (node = json_get(jsIndices, _s_gltf_byteOffset))
+        idxByteOffset    = (node = GLTF_JSON_GET(jsIndices, byteOffset))
                               ? json_uint64(node, 0) : 0;
-        idxComponentType = (node = json_get(jsIndices, _s_gltf_componentType))
+        idxComponentType = (node = GLTF_JSON_GET(jsIndices, componentType))
                               ? gltf_componentType(json_int32(node, -1))
                               : AKT_USHORT;
 
         /* values descriptor */
-        valBVIdx      = (node = json_get(jsValues, _s_gltf_bufferView))
+        valBVIdx      = (node = GLTF_JSON_GET(jsValues, bufferView))
                           ? json_int32(node, -1) : -1;
-        valByteOffset = (node = json_get(jsValues, _s_gltf_byteOffset))
+        valByteOffset = (node = GLTF_JSON_GET(jsValues, byteOffset))
                           ? json_uint64(node, 0) : 0;
 
         idxBV = gltf_bufferView_at(gst, idxBVIdx);

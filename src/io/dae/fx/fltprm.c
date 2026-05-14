@@ -32,13 +32,13 @@ dae_float(DAEState * __restrict dst,
   heap = dst->heap;
   xml  = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_float) && (sval = xmls(xml))) {
+    if (DAE_XML_TAG_EQ8(xml, float) && (sval = xmls(xml))) {
       sid_seta(xml, heap, memp, memp + off);
       flt = xml_float(xml, defaultVal);
     }
 
     /*
-    else if (xml_tag_eq(xml, _s_dae_param)) {
+    else if (DAE_XML_TAG_EQ(xml, param)) {
       AkParam *param;
       
       if ((param = dae_param(dst, xml, flt))) {
@@ -68,7 +68,7 @@ dae_float(DAEState * __restrict dst,
 //
 //  xml = xml->val;
 //  while (xml) {
-//    if (xml_tag_eq(xml, _s_dae_float) && (sval = xmls(xml))) {
+//    if (DAE_XML_TAG_EQ(xml, float) && (sval = xmls(xml))) {
 //      float *valuef;
 //      
 //      valuef  = ak_heap_calloc(heap, flt, sizeof(*valuef));
@@ -77,7 +77,7 @@ dae_float(DAEState * __restrict dst,
 //      sid_set(xml, heap, valuef);
 //      
 //      flt->val = valuef;
-//    } else if (xml_tag_eq(xml, _s_dae_param)) {
+//    } else if (DAE_XML_TAG_EQ(xml, param)) {
 //      AkParam *param;
 //      
 //      if ((param = dae_param(dst, xml, flt))) {

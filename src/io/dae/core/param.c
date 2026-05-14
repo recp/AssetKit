@@ -31,7 +31,7 @@ dae_newparam(DAEState * __restrict dst,
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_semantic)) {
+    if (DAE_XML_TAG_EQ8(xml, semantic)) {
       
     } else {
       /* load once */
@@ -55,7 +55,7 @@ dae_param(DAEState * __restrict dst,
   param = ak_heap_calloc(dst->heap, memp, sizeof(*param));
   ak_setypeid(param, AKT_PARAM);
 
-  param->ref = xmla_strdup_by(xml, dst->heap, _s_dae_ref, param);
+  param->ref = DAE_XMLA_STRDUP8(xml, dst->heap, ref, param);
 
   return param;
 }

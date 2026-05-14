@@ -31,9 +31,9 @@ gltf_ext_meshGPUInstancing(AkGLTFState * __restrict gst,
   int32_t            accIdx;
   uint32_t           count;
   uint32_t           compCount;
-  bool               known;
+  uint32_t           attrKind;
 
-  if (!(jattrs = json_get(jinstancing, _s_gltf_attributes)))
+  if (!(jattrs = GLTF_JSON_GET(jinstancing, attributes)))
     return NULL;
 
   attribs = ak_heap_calloc(gst->heap, node, sizeof(*attribs));
@@ -41,24 +41,30 @@ gltf_ext_meshGPUInstancing(AkGLTFState * __restrict gst,
 
   for (jattr = jattrs->value; jattr; jattr = jattr->next) {
     accIdx    = json_int32(jattr, -1);
-    known     = false;
+    attrKind  = 0;
     compCount = 0;
 
-    if (jattr->keysize == 11
-        && memcmp(jattr->key, "TRANSLATION", 11) == 0) {
-      known     = true;
+    if (ak_str_eq_fast(jattr->key,
+                       (size_t)jattr->keysize,
+                       _s_gltf_TRANSLATION,
+                       _s_gltf_TRANSLATION_len)) {
+      attrKind  = 1;
       compCount = 3;
-    } else if (jattr->keysize == 8
-               && memcmp(jattr->key, "ROTATION", 8) == 0) {
-      known     = true;
+    } else if (ak_str_eq_packed_fast(jattr->key,
+                                     (size_t)jattr->keysize,
+                                     _s_gltf_ROTATION_u64_exact,
+                                     _s_gltf_ROTATION_len)) {
+      attrKind  = 2;
       compCount = 4;
-    } else if (jattr->keysize == 5
-               && memcmp(jattr->key, "SCALE", 5) == 0) {
-      known     = true;
+    } else if (ak_str_eq_packed_fast(jattr->key,
+                                     (size_t)jattr->keysize,
+                                     _s_gltf_SCALE_u64_exact,
+                                     _s_gltf_SCALE_len)) {
+      attrKind  = 3;
       compCount = 3;
     }
 
-    if (!known)
+    if (!attrKind)
       continue;
 
     if (accIdx < 0) {
@@ -78,15 +84,11 @@ gltf_ext_meshGPUInstancing(AkGLTFState * __restrict gst,
 
     ak_retain(acc);
 
-    if (jattr->keysize == 11
-        && memcmp(jattr->key, "TRANSLATION", 11) == 0) {
-      attribs->translation = acc;
-    } else if (jattr->keysize == 8
-               && memcmp(jattr->key, "ROTATION", 8) == 0) {
-      attribs->rotation = acc;
-    } else if (jattr->keysize == 5
-               && memcmp(jattr->key, "SCALE", 5) == 0) {
-      attribs->scale = acc;
+    switch (attrKind) {
+      case 1: attribs->translation = acc; break;
+      case 2: attribs->rotation    = acc; break;
+      case 3: attribs->scale       = acc; break;
+      default: break;
     }
   }
 

@@ -235,11 +235,11 @@ gltf_ext_dracoPrimitive(AkGLTFState     * __restrict gst,
   if (!gst || !prim || !jprim)
     return true;
 
-  jext = json_get(jprim, _s_gltf_extensions);
+  jext = GLTF_JSON_GET(jprim, extensions);
   if (!jext)
     return true;
 
-  jdraco = json_get(jext, _s_gltf_KHR_draco_mesh_compression);
+  jdraco = GLTF_JSON_GET(jext, KHR_draco_mesh_compression);
   if (!jdraco)
     return true;
 

@@ -15,6 +15,7 @@
  */
 
 #include "asset.h"
+#include "../../../string_fast.h"
 
 AK_HIDE
 AkAssetInf*
@@ -46,67 +47,72 @@ dae_asset(DAEState   * __restrict dst,
   if (xml) {
     xml = xml->val;
     while (xml) {
-      if (xml_tag_eq(xml, _s_dae_contributor)) {
+      if (DAE_XML_TAG_EQ(xml, contributor)) {
         cont  = ak_heap_calloc(heap, inf, sizeof(*cont));
         xcont = xml->val;
         while (xcont) {
-          if (xml_tag_eq(xcont, _s_dae_author))
+          if (DAE_XML_TAG_EQ8(xcont, author))
             cont->author = xml_strdup(xcont, heap, inf);
-          else if (xml_tag_eq(xcont, _s_dae_author_email))
+          else if (DAE_XML_TAG_EQ(xcont, author_email))
             cont->authorEmail = xml_strdup(xcont, heap, inf);
-          else if (xml_tag_eq(xcont, _s_dae_author_website))
+          else if (DAE_XML_TAG_EQ(xcont, author_website))
             cont->authorWebsite = xml_strdup(xcont, heap, inf);
-          else if (xml_tag_eq(xcont, _s_dae_authoring_tool))
+          else if (DAE_XML_TAG_EQ(xcont, authoring_tool))
             cont->authoringTool = xml_strdup(xcont, heap, inf);
-          else if (xml_tag_eq(xcont, _s_dae_comments))
+          else if (DAE_XML_TAG_EQ8(xcont, comments))
             cont->comments = xml_strdup(xcont, heap, inf);
-          else if (xml_tag_eq(xcont, _s_dae_copyright))
+          else if (DAE_XML_TAG_EQ(xcont, copyright))
             cont->copyright = xml_strdup(xcont, heap, inf);
-          else if (xml_tag_eq(xcont, _s_dae_source_data))
+          else if (DAE_XML_TAG_EQ(xcont, source_data))
             cont->sourceData = xml_strdup(xcont, heap, inf);
           xcont = xcont->next;
         }
         
         inf->contributor = cont;
-      } else if (xml_tag_eq(xml, _s_dae_created)) {
+      } else if (DAE_XML_TAG_EQ8(xml, created)) {
         if ((val = xml_strdup(xml, heap, inf))) {
           memset(&xml[xml->valsize], '\0', xml->valsize);
           inf->created = ak_parse_date(val, NULL);
           ak_free(val);
         }
-      } else if (xml_tag_eq(xml, _s_dae_modified)) {
+      } else if (DAE_XML_TAG_EQ8(xml, modified)) {
         if ((val = xml_strdup(xml, heap, inf))) {
           memset(&xml[xml->valsize], '\0', xml->valsize);
           inf->modified = ak_parse_date(val, NULL);
           ak_free(val);
         }
-      } else if (xml_tag_eq(xml, _s_dae_keywords)) {
+      } else if (DAE_XML_TAG_EQ8(xml, keywords)) {
         inf->keywords = xml_strdup(xml, heap, inf);
-      } else if (xml_tag_eq(xml, _s_dae_revision)) {
+      } else if (DAE_XML_TAG_EQ8(xml, revision)) {
         inf->revision = xml_strdup(xml, heap, inf);
-      } else if (xml_tag_eq(xml, _s_dae_subject)) {
+      } else if (DAE_XML_TAG_EQ8(xml, subject)) {
         inf->subject = xml_strdup(xml, heap, inf);
-      } else if (xml_tag_eq(xml, _s_dae_title)) {
+      } else if (DAE_XML_TAG_EQ8(xml, title)) {
         inf->title = xml_strdup(xml, heap, inf);
-      } else if (xml_tag_eq(xml, _s_dae_unit)) {
-        if ((attr = xmla(xml, _s_dae_name)))
+      } else if (DAE_XML_TAG_EQ8(xml, unit)) {
+        if ((attr = DAE_XMLA8(xml, name)))
           inf->unit->name = xmla_strdup(attr, heap, inf->unit);
         
-        if ((attr = xmla(xml, _s_dae_meter))) {
+        if ((attr = DAE_XMLA8(xml, meter))) {
           /* memset((char *)attr->val +attr->valsize, '\0', 1); */
           inf->unit->dist = xmla_double(attr, 0.0);
         }
-      } else if (xml_tag_eq(xml, _s_dae_up_axis)) {
-        if ((val = xml_strdup(xml, heap, inf))) {
-          if (strcasecmp(val, _s_dae_z_up) == 0)
+      } else if (DAE_XML_TAG_EQ8(xml, up_axis)) {
+        if (xml->val) {
+          if (ak_str_eq_packed_ci_fast(xml->val,
+                                       xml->valsize,
+                                       _s_dae_z_up_u32,
+                                       _s_dae_z_up_len))
             inf->coordSys = AK_ZUP;
-          else if (strcasecmp(val, _s_dae_x_up) == 0)
+          else if (ak_str_eq_packed_ci_fast(xml->val,
+                                            xml->valsize,
+                                            _s_dae_x_up_u32,
+                                            _s_dae_x_up_len))
             inf->coordSys = AK_XUP;
           else
             inf->coordSys = AK_YUP;
-          ak_free(val);
         }
-      } else if (xml_tag_eq(xml, _s_dae_extra)) {
+      } else if (DAE_XML_TAG_EQ8(xml, extra)) {
         inf->extra = tree_fromxml(heap, inf, xml);
       }
       

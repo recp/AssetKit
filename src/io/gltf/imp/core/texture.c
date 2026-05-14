@@ -31,7 +31,7 @@ coordInputName(AkHeap * __restrict heap,
   if (set == 0)
     return (char *)_s_gltf_texcoordPrefix;
 
-  len                 = strlen(_s_gltf_texcoordPrefix) + ak_digitsize(set);
+  len                 = _s_gltf_texcoordPrefix_len + ak_digitsize(set);
   coordInputName      = ak_heap_alloc(heap, parent, len + 1);
   coordInputName[len] = '\0';
   /* sprintf(coordInputName, "%s%d", _s_gltf_texcoordPrefix, set); */
@@ -68,15 +68,15 @@ gltf_texref(AkGLTFState * __restrict gst,
   int32_t       texindex, set;
 
   heap     = gst->heap;
-  texindex = json_int32(gltf_jsonGetLen(jtexinfo, _s_gltf_index, 5), 0);
-  set      = json_int32(gltf_jsonGetLen(jtexinfo, _s_gltf_texCoord, 8), 0);
+  texindex = json_int32(GLTF_JSON_GET8(jtexinfo, index), 0);
+  set      = json_int32(GLTF_JSON_GET8(jtexinfo, texCoord), 0);
   tex      = gltf_texture_at(gst, texindex);
   
   texref = ak_heap_calloc(heap, parent, sizeof(*texref));
   ak_setypeid(texref, AKT_TEXTURE_REF);
   gltf_extra(gst,
              texref,
-             gltf_jsonGetLen(jtexinfo, _s_gltf_extras, 6),
+             GLTF_JSON_GET8(jtexinfo, extras),
              gltf_jsonGetLen(jtexinfo, _s_gltf_extensions, 10));
 
   texref->coordInputName = coordInputName(heap, texref, set);
@@ -94,13 +94,13 @@ gltf_texref(AkGLTFState * __restrict gst,
 
       jval = jval->value;
       while (jval) {
-        if (gltf_jsonKeyEqLen(jval, _s_gltf_offset, 6)) {
+        if (GLTF_JSON_KEY_EQ8(jval, offset)) {
           json_array_float(texTransf->offset, jval, 0.0f, 2, true);
-        } else if (gltf_jsonKeyEqLen(jval, _s_gltf_rotation, 8)) {
+        } else if (GLTF_JSON_KEY_EQ8(jval, rotation)) {
           texTransf->rotation = json_float(jval, 0.0f);
-        } else if (gltf_jsonKeyEqLen(jval, _s_gltf_scale, 5)) {
+        } else if (GLTF_JSON_KEY_EQ8(jval, scale)) {
           json_array_float(texTransf->scale, jval, 0.0f, 2, true);
-        } else if (gltf_jsonKeyEqLen(jval, _s_gltf_texCoord, 8)) {
+        } else if (GLTF_JSON_KEY_EQ8(jval, texCoord)) {
           texTransf->slot           = json_int32(jval, -1);
           texTransf->coordInputName = coordInputName(heap, texTransf, texTransf->slot);
         }
@@ -146,15 +146,15 @@ gltf_textures(json_t * __restrict jtex,
     sampler   = NULL;
     gltf_extra(gst,
                tex,
-               gltf_jsonGetLen(jtex, _s_gltf_extras, 6),
+               GLTF_JSON_GET8(jtex, extras),
                gltf_jsonGetLen(jtex, _s_gltf_extensions, 10));
 
     while (jtexVal) {
-      if (gltf_jsonKeyEqLen(jtexVal, _s_gltf_sampler, 7)) {
+      if (GLTF_JSON_KEY_EQ8(jtexVal, sampler)) {
         sampler = gltf_sampler_at(gst, json_int32(jtexVal, -1));
-      } else if (gltf_jsonKeyEqLen(jtexVal, _s_gltf_source, 6)) {
+      } else if (GLTF_JSON_KEY_EQ8(jtexVal, source)) {
         tex->image = gltf_image_at(gst, json_int32(jtexVal, -1));
-      } else if (gltf_jsonKeyEqLen(jtexVal, _s_gltf_name, 4)) {
+      } else if (GLTF_JSON_KEY_EQ8(jtexVal, name)) {
         tex->name = json_strdup(jtexVal, gst->heap, tex);
       } else if (gltf_jsonKeyEqLen(jtexVal, _s_gltf_extensions, 10)) {
         /* Texture-source extensions. WebP can go through the normal image
@@ -169,12 +169,12 @@ gltf_textures(json_t * __restrict jtex,
 
         if (jktx2
             && gltf_ext_textureBasisu(gst)
-            && (jaltSrc = gltf_jsonGetLen(jktx2, _s_gltf_source, 6))) {
+            && (jaltSrc = GLTF_JSON_GET8(jktx2, source))) {
           AkImage *altImage = gltf_image_at(gst, json_int32(jaltSrc, -1));
           if (altImage)
             tex->image = altImage;
         }
-        if (jwebp && (jaltSrc = gltf_jsonGetLen(jwebp, _s_gltf_source, 6))) {
+        if (jwebp && (jaltSrc = GLTF_JSON_GET8(jwebp, source))) {
           AkImage *altImage = gltf_image_at(gst, json_int32(jaltSrc, -1));
           if (altImage)
             tex->image = altImage;

@@ -18,6 +18,41 @@
 #include "../core/enum.h"
 #include "../../../array.h"
 
+static
+AkInput*
+dae_brep_input(DAEState * __restrict dst,
+               xml_t    * __restrict xml,
+               void     * __restrict parent) {
+  AkHeap  *heap;
+  AkInput *inp;
+  AkURL   *url;
+
+  heap             = dst->heap;
+  inp              = ak_heap_calloc(heap, parent, sizeof(*inp));
+  inp->semanticRaw = dae_semanticRaw(DAE_XMLA8(xml, semantic),
+                                     heap,
+                                     inp,
+                                     &inp->semantic);
+
+  if (!inp->semanticRaw) {
+    ak_free(inp);
+    return NULL;
+  }
+
+  inp->offset = xmla_u32(DAE_XMLA8(xml, offset), 0);
+  inp->set    = xmla_u32(DAE_XMLA4(xml, set),    0);
+
+  if ((uint32_t)inp->semantic == AK_INPUT_SEMANTIC_VERTEX) {
+    ak_free(inp);
+    return NULL;
+  }
+
+  url = DAE_URL_FROM(xml, source, parent);
+  rb_insert(dst->inputmap, inp, url);
+
+  return inp;
+}
+
 AK_HIDE AkEdges*
 dae_edges(DAEState * __restrict dst,
           xml_t    * __restrict xml,
@@ -31,54 +66,27 @@ dae_edges(DAEState * __restrict dst,
 
   xmla_setid(xml, heap, edges);
 
-  edges->name  = xmla_strdup_by(xml, heap, _s_dae_name, edges);
-  edges->count = xmla_u32(xmla(xml, _s_dae_count), 0);
+  edges->name  = DAE_XMLA_STRDUP8(xml, heap, name, edges);
+  edges->count = xmla_u32(DAE_XMLA8(xml, count), 0);
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_input)) {
+    if (DAE_XML_TAG_EQ(xml, input)) {
       AkInput *inp;
-      
-      inp              = ak_heap_calloc(heap, edges, sizeof(*inp));
-      inp->semanticRaw = xmla_strdup_by(xml, heap, _s_dae_semantic, inp);
-      
-      if (!inp->semanticRaw) {
-        ak_free(inp);
-      } else {
-        AkEnum inputSemantic;
-        
-        inputSemantic = dae_semantic(inp->semanticRaw);
-        
-        if (inputSemantic < 0)
-          inputSemantic = AK_INPUT_OTHER;
-        
-        inp->semantic = inputSemantic;
-        inp->offset   = xmla_u32(xmla(xml, _s_dae_offset), 0);
-        inp->set      = xmla_u32(xmla(xml, _s_dae_set),    0);
-        
-        if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
-          AkURL *url;
-          
-          inp->semantic = dae_semantic(inp->semanticRaw);
-          
-          inp->next     = edges->input;
-          edges->input  = inp;
-          edges->inputCount++;
-    
-          url = url_from(xml, _s_dae_source, edges);
-          rb_insert(dst->inputmap, inp, url);
-        } else {
-          ak_free(inp);
-        }
+
+      if ((inp = dae_brep_input(dst, xml, edges))) {
+        inp->next     = edges->input;
+        edges->input  = inp;
+        edges->inputCount++;
       }
-    } else if (xml_tag_eq(xml, _s_dae_p) && (sval = xmls(xml))) {
+    } else if (DAE_XML_TAG_EQ(xml, p) && (sval = xmls(xml))) {
       AkUIntArray *prims;
       AkResult     ret;
       
       ret = xml_strtoui_array(heap, edges, sval, &prims);
       if (ret == AK_OK)
         edges->primitives = prims;
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ(xml, extra)) {
       edges->extra = tree_fromxml(heap, edges, xml);
     }
     xml = xml->next;
@@ -100,61 +108,34 @@ dae_wires(DAEState * __restrict dst,
 
   xmla_setid(xml, heap, wires);
 
-  wires->name  = xmla_strdup_by(xml, heap, _s_dae_name, wires);
-  wires->count = xmla_u32(xmla(xml, _s_dae_count), 0);
+  wires->name  = DAE_XMLA_STRDUP8(xml, heap, name, wires);
+  wires->count = xmla_u32(DAE_XMLA8(xml, count), 0);
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_input)) {
+    if (DAE_XML_TAG_EQ(xml, input)) {
       AkInput *inp;
-      
-      inp              = ak_heap_calloc(heap, wires, sizeof(*inp));
-      inp->semanticRaw = xmla_strdup_by(xml, heap, _s_dae_semantic, inp);
-      
-      if (!inp->semanticRaw) {
-        ak_free(inp);
-      } else {
-        AkEnum inputSemantic;
-        
-        inputSemantic = dae_semantic(inp->semanticRaw);
-        
-        if (inputSemantic < 0)
-          inputSemantic = AK_INPUT_OTHER;
-        
-        inp->semantic = inputSemantic;
-        inp->offset   = xmla_u32(xmla(xml, _s_dae_offset), 0);
-        inp->set      = xmla_u32(xmla(xml, _s_dae_set),    0);
-        
-        if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
-          AkURL *url;
-          
-          inp->semantic = dae_semantic(inp->semanticRaw);
-          
-          inp->next     = wires->input;
-          wires->input  = inp;
-          wires->inputCount++;
-    
-          url = url_from(xml, _s_dae_source, wires);
-          rb_insert(dst->inputmap, inp, url);
-        } else {
-          ak_free(inp);
-        }
+
+      if ((inp = dae_brep_input(dst, xml, wires))) {
+        inp->next     = wires->input;
+        wires->input  = inp;
+        wires->inputCount++;
       }
-    } else if (xml_tag_eq(xml, _s_dae_vcount) && (sval = xmls(xml))) {
+    } else if (DAE_XML_TAG_EQ(xml, vcount) && (sval = xmls(xml))) {
       AkUIntArray *vcount;
       AkResult     ret;
       
       ret = xml_strtoui_array(heap, wires, sval, &vcount);
       if (ret == AK_OK)
         wires->vcount = vcount;
-    } else if (xml_tag_eq(xml, _s_dae_p) && (sval = xmls(xml))) {
+    } else if (DAE_XML_TAG_EQ(xml, p) && (sval = xmls(xml))) {
       AkUIntArray *prims;
       AkResult     ret;
       
       ret = xml_strtoui_array(heap, wires, sval, &prims);
       if (ret == AK_OK)
         wires->primitives = prims;
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ(xml, extra)) {
       wires->extra = tree_fromxml(heap, wires, xml);
     }
     xml = xml->next;
@@ -176,61 +157,34 @@ dae_faces(DAEState * __restrict dst,
 
   xmla_setid(xml, heap, faces);
 
-  faces->name  = xmla_strdup_by(xml, heap, _s_dae_name, faces);
-  faces->count = xmla_u32(xmla(xml, _s_dae_count), 0);
+  faces->name  = DAE_XMLA_STRDUP8(xml, heap, name, faces);
+  faces->count = xmla_u32(DAE_XMLA8(xml, count), 0);
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_input)) {
+    if (DAE_XML_TAG_EQ(xml, input)) {
       AkInput *inp;
-      
-      inp              = ak_heap_calloc(heap, faces, sizeof(*inp));
-      inp->semanticRaw = xmla_strdup_by(xml, heap, _s_dae_semantic, inp);
-      
-      if (!inp->semanticRaw) {
-        ak_free(inp);
-      } else {
-        AkEnum inputSemantic;
-        
-        inputSemantic = dae_semantic(inp->semanticRaw);
-        
-        if (inputSemantic < 0)
-          inputSemantic = AK_INPUT_OTHER;
-        
-        inp->semantic = inputSemantic;
-        inp->offset   = xmla_u32(xmla(xml, _s_dae_offset), 0);
-        inp->set      = xmla_u32(xmla(xml, _s_dae_set),    0);
-        
-        if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
-          AkURL *url;
-          
-          inp->semantic = dae_semantic(inp->semanticRaw);
-          
-          inp->next     = faces->input;
-          faces->input  = inp;
-          faces->inputCount++;
-    
-          url = url_from(xml, _s_dae_source, faces);
-          rb_insert(dst->inputmap, inp, url);
-        } else {
-          ak_free(inp);
-        }
+
+      if ((inp = dae_brep_input(dst, xml, faces))) {
+        inp->next     = faces->input;
+        faces->input  = inp;
+        faces->inputCount++;
       }
-    } else if (xml_tag_eq(xml, _s_dae_vcount) && (sval = xmls(xml))) {
+    } else if (DAE_XML_TAG_EQ(xml, vcount) && (sval = xmls(xml))) {
       AkUIntArray *vcount;
       AkResult     ret;
       
       ret = xml_strtoui_array(heap, faces, sval, &vcount);
       if (ret == AK_OK)
         faces->vcount = vcount;
-    } else if (xml_tag_eq(xml, _s_dae_p) && (sval = xmls(xml))) {
+    } else if (DAE_XML_TAG_EQ(xml, p) && (sval = xmls(xml))) {
       AkUIntArray *prims;
       AkResult     ret;
       
       ret = xml_strtoui_array(heap, faces, sval, &prims);
       if (ret == AK_OK)
         faces->primitives = prims;
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ(xml, extra)) {
       faces->extra = tree_fromxml(heap, faces, xml);
     }
     xml = xml->next;
@@ -252,61 +206,34 @@ dae_pcurves(DAEState * __restrict dst,
 
   xmla_setid(xml, heap, pcurves);
 
-  pcurves->name  = xmla_strdup_by(xml, heap, _s_dae_name, pcurves);
-  pcurves->count = xmla_u32(xmla(xml, _s_dae_count), 0);
+  pcurves->name  = DAE_XMLA_STRDUP8(xml, heap, name, pcurves);
+  pcurves->count = xmla_u32(DAE_XMLA8(xml, count), 0);
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_input)) {
+    if (DAE_XML_TAG_EQ(xml, input)) {
       AkInput *inp;
-      
-      inp              = ak_heap_calloc(heap, pcurves, sizeof(*inp));
-      inp->semanticRaw = xmla_strdup_by(xml, heap, _s_dae_semantic, inp);
-      
-      if (!inp->semanticRaw) {
-        ak_free(inp);
-      } else {
-        AkEnum inputSemantic;
-        
-        inputSemantic = dae_semantic(inp->semanticRaw);
-        
-        if (inputSemantic < 0)
-          inputSemantic = AK_INPUT_OTHER;
-        
-        inp->semantic = inputSemantic;
-        inp->offset   = xmla_u32(xmla(xml, _s_dae_offset), 0);
-        inp->set      = xmla_u32(xmla(xml, _s_dae_set),    0);
-        
-        if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
-          AkURL *url;
-          
-          inp->semantic = dae_semantic(inp->semanticRaw);
-          
-          inp->next     = pcurves->input;
-          pcurves->input  = inp;
-          pcurves->inputCount++;
-    
-          url = url_from(xml, _s_dae_source, pcurves);
-          rb_insert(dst->inputmap, inp, url);
-        } else {
-          ak_free(inp);
-        }
+
+      if ((inp = dae_brep_input(dst, xml, pcurves))) {
+        inp->next       = pcurves->input;
+        pcurves->input  = inp;
+        pcurves->inputCount++;
       }
-    } else if (xml_tag_eq(xml, _s_dae_vcount) && (sval = xmls(xml))) {
+    } else if (DAE_XML_TAG_EQ(xml, vcount) && (sval = xmls(xml))) {
       AkUIntArray *vcount;
       AkResult     ret;
       
       ret = xml_strtoui_array(heap, pcurves, sval, &vcount);
       if (ret == AK_OK)
         pcurves->vcount = vcount;
-    } else if (xml_tag_eq(xml, _s_dae_p) && (sval = xmls(xml))) {
+    } else if (DAE_XML_TAG_EQ(xml, p) && (sval = xmls(xml))) {
       AkUIntArray *prims;
       AkResult     ret;
       
       ret = xml_strtoui_array(heap, pcurves, sval, &prims);
       if (ret == AK_OK)
         pcurves->primitives = prims;
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ(xml, extra)) {
       pcurves->extra = tree_fromxml(heap, pcurves, xml);
     }
     xml = xml->next;
@@ -328,61 +255,34 @@ dae_shells(DAEState * __restrict dst,
 
   xmla_setid(xml, heap, shells);
 
-  shells->name  = xmla_strdup_by(xml, heap, _s_dae_name, shells);
-  shells->count = xmla_u32(xmla(xml, _s_dae_count), 0);
+  shells->name  = DAE_XMLA_STRDUP8(xml, heap, name, shells);
+  shells->count = xmla_u32(DAE_XMLA8(xml, count), 0);
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_input)) {
+    if (DAE_XML_TAG_EQ(xml, input)) {
       AkInput *inp;
-      
-      inp              = ak_heap_calloc(heap, shells, sizeof(*inp));
-      inp->semanticRaw = xmla_strdup_by(xml, heap, _s_dae_semantic, inp);
-      
-      if (!inp->semanticRaw) {
-        ak_free(inp);
-      } else {
-        AkEnum inputSemantic;
-        
-        inputSemantic = dae_semantic(inp->semanticRaw);
-        
-        if (inputSemantic < 0)
-          inputSemantic = AK_INPUT_OTHER;
-        
-        inp->semantic = inputSemantic;
-        inp->offset   = xmla_u32(xmla(xml, _s_dae_offset), 0);
-        inp->set      = xmla_u32(xmla(xml, _s_dae_set),    0);
-        
-        if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
-          AkURL *url;
-          
-          inp->semantic = dae_semantic(inp->semanticRaw);
-          
-          inp->next     = shells->input;
-          shells->input  = inp;
-          shells->inputCount++;
-    
-          url = url_from(xml, _s_dae_source, shells);
-          rb_insert(dst->inputmap, inp, url);
-        } else {
-          ak_free(inp);
-        }
+
+      if ((inp = dae_brep_input(dst, xml, shells))) {
+        inp->next      = shells->input;
+        shells->input  = inp;
+        shells->inputCount++;
       }
-    } else if (xml_tag_eq(xml, _s_dae_vcount) && (sval = xmls(xml))) {
+    } else if (DAE_XML_TAG_EQ(xml, vcount) && (sval = xmls(xml))) {
       AkUIntArray *vcount;
       AkResult     ret;
       
       ret = xml_strtoui_array(heap, shells, sval, &vcount);
       if (ret == AK_OK)
         shells->vcount = vcount;
-    } else if (xml_tag_eq(xml, _s_dae_p) && (sval = xmls(xml))) {
+    } else if (DAE_XML_TAG_EQ(xml, p) && (sval = xmls(xml))) {
       AkUIntArray *prims;
       AkResult     ret;
       
       ret = xml_strtoui_array(heap, shells, sval, &prims);
       if (ret == AK_OK)
         shells->primitives = prims;
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ(xml, extra)) {
       shells->extra = tree_fromxml(heap, shells, xml);
     }
     xml = xml->next;
@@ -404,61 +304,34 @@ dae_solids(DAEState * __restrict dst,
 
   xmla_setid(xml, heap, solids);
 
-  solids->name  = xmla_strdup_by(xml, heap, _s_dae_name, solids);
-  solids->count = xmla_u32(xmla(xml, _s_dae_count), 0);
+  solids->name  = DAE_XMLA_STRDUP8(xml, heap, name, solids);
+  solids->count = xmla_u32(DAE_XMLA8(xml, count), 0);
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_input)) {
+    if (DAE_XML_TAG_EQ(xml, input)) {
       AkInput *inp;
-      
-      inp              = ak_heap_calloc(heap, solids, sizeof(*inp));
-      inp->semanticRaw = xmla_strdup_by(xml, heap, _s_dae_semantic, inp);
-      
-      if (!inp->semanticRaw) {
-        ak_free(inp);
-      } else {
-        AkEnum inputSemantic;
-        
-        inputSemantic = dae_semantic(inp->semanticRaw);
-        
-        if (inputSemantic < 0)
-          inputSemantic = AK_INPUT_OTHER;
-        
-        inp->semantic = inputSemantic;
-        inp->offset   = xmla_u32(xmla(xml, _s_dae_offset), 0);
-        inp->set      = xmla_u32(xmla(xml, _s_dae_set),    0);
-        
-        if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
-          AkURL *url;
-          
-          inp->semantic = dae_semantic(inp->semanticRaw);
-          
-          inp->next     = solids->input;
-          solids->input  = inp;
-          solids->inputCount++;
-    
-          url = url_from(xml, _s_dae_source, solids);
-          rb_insert(dst->inputmap, inp, url);
-        } else {
-          ak_free(inp);
-        }
+
+      if ((inp = dae_brep_input(dst, xml, solids))) {
+        inp->next      = solids->input;
+        solids->input  = inp;
+        solids->inputCount++;
       }
-    } else if (xml_tag_eq(xml, _s_dae_vcount) && (sval = xmls(xml))) {
+    } else if (DAE_XML_TAG_EQ(xml, vcount) && (sval = xmls(xml))) {
       AkUIntArray *vcount;
       AkResult     ret;
       
       ret = xml_strtoui_array(heap, solids, sval, &vcount);
       if (ret == AK_OK)
         solids->vcount = vcount;
-    } else if (xml_tag_eq(xml, _s_dae_p) && (sval = xmls(xml))) {
+    } else if (DAE_XML_TAG_EQ(xml, p) && (sval = xmls(xml))) {
       AkUIntArray *prims;
       AkResult     ret;
       
       ret = xml_strtoui_array(heap, solids, sval, &prims);
       if (ret == AK_OK)
         solids->primitives = prims;
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ(xml, extra)) {
       solids->extra = tree_fromxml(heap, solids, xml);
     }
     xml = xml->next;

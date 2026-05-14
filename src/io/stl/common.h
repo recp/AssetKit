@@ -23,6 +23,7 @@
 #include "../../tree.h"
 #include "../../json.h"
 #include "../../data.h"
+#include "../../string_fast.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -71,44 +72,29 @@ typedef struct STLState {
   } while(0);
 
 #define EQ4(c1,c2,c3,c4) \
-    (p[0] == c1 \
-  && p[1] == c2 \
-  && p[2] == c3 \
-  && p[3] == c4 \
+    (ak_str_pack4_fast(p, 4) == AK_STR_PACK4_CHARS(c1, c2, c3, c4) \
   && (p[4] == ' ' || p[4] == '\t'))
 
 #define EQ5(c1,c2,c3,c4,c5) \
-    (p[0] == c1 \
-  && p[1] == c2 \
-  && p[2] == c3 \
-  && p[3] == c4 \
+    (ak_str_pack4_fast(p, 4) == AK_STR_PACK4_CHARS(c1, c2, c3, c4) \
   && p[4] == c5 \
   && (p[5] == ' ' || p[5] == '\t'))
 
 #define EQ6(c1,c2,c3,c4,c5,c6) \
-    (p[0] == c1 \
-  && p[1] == c2 \
-  && p[2] == c3 \
-  && p[3] == c4 \
+    (ak_str_pack4_fast(p, 4) == AK_STR_PACK4_CHARS(c1, c2, c3, c4) \
   && p[4] == c5 \
   && p[5] == c6 \
   && (p[6] == ' ' || p[6] == '\t'))
 
 #define EQ7(c1,c2,c3,c4,c5,c6,c7) \
-    (p[0] == c1 \
-  && p[1] == c2 \
-  && p[2] == c3 \
-  && p[3] == c4 \
+    (ak_str_pack4_fast(p, 4) == AK_STR_PACK4_CHARS(c1, c2, c3, c4) \
   && p[4] == c5 \
   && p[5] == c6 \
   && p[6] == c7 \
   && (p[7] == ' ' || p[7] == '\t'))
 
 #define EQT7(c1,c2,c3,c4,c5,c6,c7) \
-    (p[0] == c1 \
-  && p[1] == c2 \
-  && p[2] == c3 \
-  && p[3] == c4 \
+    (ak_str_pack4_fast(p, 4) == AK_STR_PACK4_CHARS(c1, c2, c3, c4) \
   && p[4] == c5 \
   && p[5] == c6 \
   && p[6] == c7)

@@ -49,18 +49,18 @@ dae_techniqueFx(DAEState * __restrict dst,
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_asset)) {
+    if (DAE_XML_TAG_EQ8(xml, asset)) {
       (void)dae_asset(dst, xml, techn, NULL);
-    } else if ((xml_tag_eq(xml, _s_dae_phong)   && (m = AK_MATERIAL_PHONG))
-           || (xml_tag_eq(xml, _s_dae_blinn)    && (m = AK_MATERIAL_BLINN))
-           || (xml_tag_eq(xml, _s_dae_lambert)  && (m = AK_MATERIAL_LAMBERT))
-           || (xml_tag_eq(xml, _s_dae_constant) && (m = AK_MATERIAL_CONSTANT))) {
+    } else if ((DAE_XML_TAG_EQ8(xml, phong)    && (m = AK_MATERIAL_PHONG))
+           || (DAE_XML_TAG_EQ8(xml, blinn)     && (m = AK_MATERIAL_BLINN))
+           || (DAE_XML_TAG_EQ8(xml, lambert)   && (m = AK_MATERIAL_LAMBERT))
+           || (DAE_XML_TAG_EQ8(xml, constant)  && (m = AK_MATERIAL_CONSTANT))) {
       techn->common = dae_techniqueFxCmn(dst, xml, techn, m);
     } else if (dst->version < AK_COLLADA_VERSION_150
-               && xml_tag_eq(xml, _s_dae_image)) {
+               && DAE_XML_TAG_EQ8(xml, image)) {
       /* migration from 1.4 */
       dae14_fxMigrateImg(dst, xml, NULL);
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       techn->extra = tree_fromxml(heap, techn, xml);
     }
     xml = xml->next;
@@ -120,7 +120,7 @@ dae_techniqueFxCmn(DAEState * __restrict dst,
   xml         = xml->val;
 
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_emission)) {
+    if (DAE_XML_TAG_EQ8(xml, emission)) {
       AkMaterialEmissionProp *emission;
 
       if (!(emission = techn->emission)) {
@@ -133,17 +133,17 @@ dae_techniqueFxCmn(DAEState * __restrict dst,
       dae_colorDescTextureUsage(dst, &techn->emission->color,
                                 AK_TEXTURE_COLORSPACE_SRGB,
                                 AK_TEXTURE_CHANNEL_RGB);
-    } else if (xml_tag_eq(xml, _s_dae_ambient)) {
+    } else if (DAE_XML_TAG_EQ8(xml, ambient)) {
       techn->ambient = dae_colorOrTex(dst, xml, techn);
       dae_colorDescTextureUsage(dst, techn->ambient,
                                 AK_TEXTURE_COLORSPACE_SRGB,
                                 AK_TEXTURE_CHANNEL_RGB);
-    } else if (xml_tag_eq(xml, _s_dae_diffuse)) {
+    } else if (DAE_XML_TAG_EQ8(xml, diffuse)) {
       techn->diffuse = dae_colorOrTex(dst, xml, techn);
       dae_colorDescTextureUsage(dst, techn->diffuse,
                                 AK_TEXTURE_COLORSPACE_SRGB,
                                 AK_TEXTURE_CHANNEL_RGBA);
-    } else if (xml_tag_eq(xml, _s_dae_specular)) {
+    } else if (DAE_XML_TAG_EQ8(xml, specular)) {
       AkMaterialSpecularProp *specularProp;
 
       if (!(specularProp = techn->specular)) {
@@ -155,21 +155,21 @@ dae_techniqueFxCmn(DAEState * __restrict dst,
       dae_colorDescTextureUsage(dst, specularProp->color,
                                 AK_TEXTURE_COLORSPACE_SRGB,
                                 AK_TEXTURE_CHANNEL_RGB);
-    } else if (xml_tag_eq(xml, _s_dae_reflective)) {
+    } else if (DAE_XML_TAG_EQ(xml, reflective)) {
       if (!techn->reflective)
         techn->reflective = ak_heap_calloc(heap, techn, sizeof(*techn->reflective));
       techn->reflective->color = dae_colorOrTex(dst, xml, techn);
       dae_colorDescTextureUsage(dst, techn->reflective->color,
                                 AK_TEXTURE_COLORSPACE_SRGB,
                                 AK_TEXTURE_CHANNEL_RGB);
-    } else if (xml_tag_eq(xml, _s_dae_transparent)) {
+    } else if (DAE_XML_TAG_EQ(xml, transparent)) {
       if (!techn->transparent) {
         transp             = ak_heap_calloc(heap, techn, sizeof(*transp));
         transp->amount     = 1.0f;
         techn->transparent = transp;
       }
       
-      if ((att = xmla(xml, _s_dae_opaque)))
+      if ((att = DAE_XMLA8(xml, opaque)))
         opaque = dae_opaque(att);
       else
         opaque = AK_OPAQUE_A_ONE;
@@ -179,7 +179,7 @@ dae_techniqueFxCmn(DAEState * __restrict dst,
       dae_colorDescTextureUsage(dst, techn->transparent->color,
                                 AK_TEXTURE_COLORSPACE_SRGB,
                                 dae_transparentTextureChannels(opaque));
-    } else if (xml_tag_eq(xml, _s_dae_shininess)) {
+    } else if (DAE_XML_TAG_EQ(xml, shininess)) {
       AkMaterialSpecularProp *specularProp;
 
       if (!(specularProp = techn->specular)) {
@@ -189,12 +189,12 @@ dae_techniqueFxCmn(DAEState * __restrict dst,
 
       specularProp->strength = dae_float(dst, xml, specularProp, 
                                          offsetof(AkMaterialSpecularProp, shininess), 1.0f);
-    } else if (xml_tag_eq(xml, _s_dae_reflectivity)) {
+    } else if (DAE_XML_TAG_EQ(xml, reflectivity)) {
       if (!techn->reflective)
         techn->reflective = ak_heap_calloc(heap, techn, sizeof(*techn->reflective));
       techn->reflective->amount = dae_float(dst, xml, techn->reflective, 
                                             offsetof(AkReflective, amount), 0.0f);
-    } else if (xml_tag_eq(xml, _s_dae_transparency)) {
+    } else if (DAE_XML_TAG_EQ(xml, transparency)) {
       if (!techn->transparent) {
         transp             = ak_heap_calloc(heap, techn, sizeof(*transp));
         transp->amount     = 1.0f;
@@ -206,7 +206,7 @@ dae_techniqueFxCmn(DAEState * __restrict dst,
       /* some old version of tools e.g. SketchUp exports incorrect */
       if (ak_opt_get(AK_OPT_BUGFIXES))
         dae_bugfix_transp(techn->transparent);
-    } else if (xml_tag_eq(xml, _s_dae_index_of_refraction)) {
+    } else if (DAE_XML_TAG_EQ(xml, index_of_refraction)) {
       /* TODO: assumed 0.0 for COLLADA */
       techn->ior = dae_float(dst, xml, techn,
                              offsetof(AkTechniqueFxCommon, ior), 0.0f);

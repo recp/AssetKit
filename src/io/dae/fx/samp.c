@@ -36,7 +36,7 @@ dae_sampler(DAEState * __restrict dst,
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_source)) {
+    if (DAE_XML_TAG_EQ8(xml, source)) {
       /* COLLADA 1.4 uses source -> <surface> for texturing */
       if (dst->version < AK_COLLADA_VERSION_150) {
         dae14_loadjobs_add(dst,
@@ -44,38 +44,38 @@ dae_sampler(DAEState * __restrict dst,
                            xml_strdup(xml, heap, samp),
                            AK_DAE14_LOADJOB_SURFACE);
       }
-    } else if (xml_tag_eq(xml, _s_dae_instance_image)) {
+    } else if (DAE_XML_TAG_EQ(xml, instance_image)) {
       AkInstanceBase *instImage;
       if ((instImage = dae_instImage(dst, xml, samp)))
         rb_insert(dst->instanceMap, samp, instImage);
-    } else if (xml_tag_eq(xml, _s_dae_wrap_s)) {
+    } else if (DAE_XML_TAG_EQ8(xml, wrap_s)) {
       samp->wrapS = dae_wrap(xml);
-    } else if (xml_tag_eq(xml, _s_dae_wrap_t)) {
+    } else if (DAE_XML_TAG_EQ8(xml, wrap_t)) {
       samp->wrapT = dae_wrap(xml);
-    } else if (xml_tag_eq(xml, _s_dae_wrap_p)) {
+    } else if (DAE_XML_TAG_EQ8(xml, wrap_p)) {
       samp->wrapP = dae_wrap(xml);
-    } else if (xml_tag_eq(xml, _s_dae_minfilter)) {
+    } else if (DAE_XML_TAG_EQ(xml, minfilter)) {
       samp->minfilter = dae_minfilter(xml);
-    } else if (xml_tag_eq(xml, _s_dae_magfilter)) {
+    } else if (DAE_XML_TAG_EQ(xml, magfilter)) {
       samp->magfilter = dae_magfilter(xml);
-    } else if (xml_tag_eq(xml, _s_dae_mipfilter)) {
+    } else if (DAE_XML_TAG_EQ(xml, mipfilter)) {
       samp->mipfilter = dae_mipfilter(xml);
-    } else if (xml_tag_eq(xml, _s_dae_border_color)) {
+    } else if (DAE_XML_TAG_EQ(xml, border_color)) {
       AkColor *color;
 
       color = ak_heap_calloc(heap, samp, sizeof(*color));
       dae_color(xml, samp, true, false, color);
       
       samp->borderColor = color;
-    } else if (xml_tag_eq(xml, _s_dae_mip_max_level)) {
+    } else if (DAE_XML_TAG_EQ(xml, mip_max_level)) {
       samp->mipMaxLevel = xml_u32(xml, 0);
-    } else if (xml_tag_eq(xml, _s_dae_mip_min_level)) {
+    } else if (DAE_XML_TAG_EQ(xml, mip_min_level)) {
       samp->mipMinLevel = xml_u32(xml, 0);
-    } else if (xml_tag_eq(xml, _s_dae_mip_bias)) {
+    } else if (DAE_XML_TAG_EQ(xml, mip_bias)) {
       samp->mipBias = xml_float(xml, 0);
-    } else if (xml_tag_eq(xml, _s_dae_max_anisotropy)) {
+    } else if (DAE_XML_TAG_EQ(xml, max_anisotropy)) {
       samp->maxAnisotropy = xml_u32(xml, 1l);
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       samp->extra = tree_fromxml(heap, samp, xml);
     }
     xml = xml->next;

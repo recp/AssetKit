@@ -29,6 +29,12 @@ ak_primFixIndices(AkMesh          *mesh,
                   AkMeshPrimitive *prim);
 
 AK_HIDE
+AkResult
+ak_primFixIndicesRetainDuplicator(AkMesh          *mesh,
+                                  AkMeshPrimitive *prim,
+                                  bool             retainDuplicator);
+
+AK_HIDE
 bool
 ak_primCollapseIdentityIndices(AkMeshPrimitive *prim);
 
@@ -38,8 +44,27 @@ ak_meshFixIndicesDefault(AkMesh *mesh);
 
 AK_HIDE
 AkResult
+ak_meshFixIndicesDefaultRetainDuplicators(AkMesh *mesh,
+                                          bool    retainDuplicators);
+
+AK_HIDE
+AkDuplicator*
+ak_meshDuplicatorForIndicesRetained(AkMesh          * __restrict mesh,
+                                    AkMeshPrimitive * __restrict prim,
+                                    bool                         retain);
+
+AK_HIDE
+AkResult
 ak_movePositions(AkMesh          *mesh,
                  AkMeshPrimitive *prim,
                  AkDuplicator    *duplicator);
+
+AK_HIDE
+void
+ak_index_profile_reset(void);
+
+AK_HIDE
+void
+ak_index_profile_report(void);
 
 #endif /* ak_mesh_index_h */

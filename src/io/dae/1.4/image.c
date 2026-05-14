@@ -44,17 +44,17 @@ dae14_fxMigrateImg(DAEState * __restrict dst,
 
   xmla_setid(xml, heap, img);
   
-  img->name = xmla_strdup_by(xml, heap, _s_dae_name, img);
+  img->name = DAE_XMLA_STRDUP8(xml, heap, name, img);
 
-  format = xmla_strdup_by(xml, heap, _s_dae_format, img->initFrom);
+  format = DAE_XMLA_STRDUP8(xml, heap, format, img->initFrom);
   initFrom->mipsGenerate = false; /* 1.4's default, 1.5's is true */
-  initFrom->depth        = xmla_u32(xmla(xml, _s_dae_depth), 0);
+  initFrom->depth        = xmla_u32(DAE_XMLA8(xml, depth), 0);
   
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_asset)) {
+    if (DAE_XML_TAG_EQ8(xml, asset)) {
       (void)dae_asset(dst, xml, img, NULL);
-    } else if (xml_tag_eq(xml, _s_dae_data)) {
+    } else if (DAE_XML_TAG_EQ4(xml, data)) {
       AkHexData *hex;
       hex = ak_heap_calloc(heap, initFrom, sizeof(*hex));
       
@@ -65,9 +65,9 @@ dae14_fxMigrateImg(DAEState * __restrict dst,
         hex->hexval        = xml_strdup(xml, heap, hex);
         img->initFrom->hex = hex;
       }
-    } else if (xml_tag_eq(xml, _s_dae_init_from)) {
+    } else if (DAE_XML_TAG_EQ(xml, init_from)) {
       img->initFrom->ref = xml_strdup(xml, heap, initFrom);
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       img->extra = tree_fromxml(heap, img, xml);
     }
     xml = xml->next;

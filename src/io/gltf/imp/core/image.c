@@ -23,6 +23,15 @@
 #define k_uri           2
 #define k_mimeType      3
 
+static inline
+bool
+gltf_imageDataUriHasPrefix(const char * __restrict uri,
+                           int                     len) {
+  return uri
+      && len > _s_gltf_b64d_len
+      && ak_str_pack8_fast(uri, _s_gltf_b64d_len) == _s_gltf_b64d_u64_exact;
+}
+
 static
 char*
 gltf_imageDataUriMime(AkHeap      * __restrict heap,
@@ -31,17 +40,12 @@ gltf_imageDataUriMime(AkHeap      * __restrict heap,
                       int                      len) {
   const char *start;
   const char *end;
-  int         prefixLen;
 
-  if (!uri || len <= 0)
+  if (!gltf_imageDataUriHasPrefix(uri, len))
     return NULL;
 
-  prefixLen = (int)strlen(_s_gltf_b64d);
-  if (len <= prefixLen || strncmp(uri, _s_gltf_b64d, (size_t)prefixLen) != 0)
-    return NULL;
-
-  start = uri + prefixLen;
-  end   = memchr(start, ';', (size_t)(len - prefixLen));
+  start = uri + _s_gltf_b64d_len;
+  end   = memchr(start, ';', (size_t)len - _s_gltf_b64d_len);
   if (!end || end <= start)
     return NULL;
 
@@ -79,14 +83,14 @@ gltf_images(json_t * __restrict jimage,
     initFrom = NULL;
     gltf_extra(gst,
                image,
-               json_get(jimage, _s_gltf_extras),
-               json_get(jimage, _s_gltf_extensions));
+               GLTF_JSON_GET8(jimage, extras),
+               GLTF_JSON_GET(jimage, extensions));
     
     json_objmap_t imgMap[] = {
-      JSON_OBJMAP_OBJ(_s_gltf_name,       I2P k_name),
+      GLTF_JSON_OBJMAP_OBJ8(name,         I2P k_name),
       JSON_OBJMAP_OBJ(_s_gltf_bufferView, I2P k_bufferView),
-      JSON_OBJMAP_OBJ(_s_gltf_uri,        I2P k_uri),
-      JSON_OBJMAP_OBJ("mimeType",         I2P k_mimeType)
+      GLTF_JSON_OBJMAP_OBJ8(uri,          I2P k_uri),
+      GLTF_JSON_OBJMAP_OBJ8(mimeType,     I2P k_mimeType)
     };
 
     json_objmap(jimage, imgMap, JSON_ARR_LEN(imgMap));
@@ -129,7 +133,7 @@ gltf_images(json_t * __restrict jimage,
     if (!initFrom && (it = imgMap[k_uri].object)) {
       initFrom = ak_heap_calloc(heap, image, sizeof(*initFrom));
       
-      if (!strncmp(it->value, _s_gltf_b64d, strlen(_s_gltf_b64d))) {
+      if (gltf_imageDataUriHasPrefix(it->value, it->valsize)) {
         char *uri;
         uri = it->value;
 

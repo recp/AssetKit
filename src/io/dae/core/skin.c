@@ -38,52 +38,45 @@ dae_skin(DAEState * __restrict dst,
   ak_heap_setUserData(heap, skin, skindae);
   flist_sp_insert(&dst->linkedUserData, skin);
 
-  url_set(dst, xml, _s_dae_source, memp, &skindae->baseGeom);
+  DAE_URL_SET(dst, xml, source, memp, &skindae->baseGeom);
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_bind_shape_matrix) && (sval = xmls(xml))) {
+    if (DAE_XML_TAG_EQ(xml, bind_shape_matrix) && (sval = xmls(xml))) {
       xml_strtof_fast(sval, skin->bindShapeMatrix[0], 16);
       glm_mat4_transpose(skin->bindShapeMatrix);
       foundBindShape = true;
-    } else if (xml_tag_eq(xml, _s_dae_source)) {
+    } else if (DAE_XML_TAG_EQ8(xml, source)) {
       AkSource *source;
       if ((source = dae_source(dst, xml, NULL, 0))) {
         source->next    = skindae->source;
         skindae->source = source;
       }
-    } else if (xml_tag_eq(xml, _s_dae_joints)) {
+    } else if (DAE_XML_TAG_EQ8(xml, joints)) {
       AkInput *inp;
       xml_t   *xjoints;
       
       xjoints = xml->val;
       while (xjoints) {
-        if (xml_tag_eq(xjoints, _s_dae_input)) {
+        if (DAE_XML_TAG_EQ8(xjoints, input)) {
           inp              = ak_heap_calloc(heap, skin, sizeof(*inp));
-          inp->semanticRaw = xmla_strdup_by(xjoints, heap, _s_dae_semantic, inp);
+          inp->semanticRaw = dae_semanticRaw(DAE_XMLA8(xjoints, semantic),
+                                             heap,
+                                             inp,
+                                             &inp->semantic);
           
           if (!inp->semanticRaw) {
             ak_free(inp);
           } else {
             AkURL *url;
-            AkEnum  inputSemantic;
+            inp->offset   = xmla_u32(DAE_XMLA8(xjoints, offset), 0);
             
-            inputSemantic = dae_semantic(inp->semanticRaw);
+            url           = DAE_URL_FROM(xjoints, source, memp);
             
-            if (inputSemantic < 0)
-              inputSemantic = AK_INPUT_OTHER;
-            
-            inp->semantic = inputSemantic;
-            inp->offset   = xmla_u32(xmla(xjoints, _s_dae_offset), 0);
-            
-            inp->semantic = dae_semantic(inp->semanticRaw);
-            
-            url           = url_from(xjoints, _s_dae_source, memp);
-            
-            if (inputSemantic == AK_INPUT_JOINT) {
+            if (inp->semantic == AK_INPUT_JOINT) {
               skindae->joints.joints = inp;
               rb_insert(dst->inputmap, inp, url);
-            } else if (inputSemantic == AK_INPUT_INV_BIND_MATRIX) {
+            } else if (inp->semantic == AK_INPUT_INV_BIND_MATRIX) {
               skindae->joints.invBindMatrix = inp;
               rb_insert(dst->inputmap, inp, url);
             } else {
@@ -95,7 +88,7 @@ dae_skin(DAEState * __restrict dst,
         }
         xjoints = xjoints->next;
       }
-    } else if (xml_tag_eq(xml, _s_dae_vertex_weights)) {
+    } else if (DAE_XML_TAG_EQ(xml, vertex_weights)) {
       AkBoneWeights *wei;
       AkInput       *inp;
       xml_t         *xwei;
@@ -104,32 +97,25 @@ dae_skin(DAEState * __restrict dst,
       xwei = xml->val;
 
       while (xwei) {
-        if (xml_tag_eq(xwei, _s_dae_input)) {
+        if (DAE_XML_TAG_EQ8(xwei, input)) {
           inp              = ak_heap_calloc(heap, skin, sizeof(*inp));
-          inp->semanticRaw = xmla_strdup_by(xwei, heap, _s_dae_semantic, inp);
+          inp->semanticRaw = dae_semanticRaw(DAE_XMLA8(xwei, semantic),
+                                             heap,
+                                             inp,
+                                             &inp->semantic);
           
           if (!inp->semanticRaw) {
             ak_free(inp);
           } else {
             AkURL *url;
-            AkEnum  inputSemantic;
+            inp->offset   = xmla_u32(DAE_XMLA8(xwei, offset), 0);
             
-            inputSemantic = dae_semantic(inp->semanticRaw);
+            url           = DAE_URL_FROM(xwei, source, memp);
             
-            if (inputSemantic < 0)
-              inputSemantic = AK_INPUT_OTHER;
-            
-            inp->semantic = inputSemantic;
-            inp->offset   = xmla_u32(xmla(xwei, _s_dae_offset), 0);
-            
-            inp->semantic = dae_semantic(inp->semanticRaw);
-            
-            url           = url_from(xwei, _s_dae_source, memp);
-            
-            if (inputSemantic == AK_INPUT_JOINT) {
+            if (inp->semantic == AK_INPUT_JOINT) {
               skindae->weights.joints = inp;
               rb_insert(dst->inputmap, inp, url);
-            } else if (inputSemantic == AK_INPUT_WEIGHT) {
+            } else if (inp->semantic == AK_INPUT_WEIGHT) {
               skindae->weights.weights = inp;
               rb_insert(dst->inputmap, inp, url);
             } else {
@@ -140,7 +126,7 @@ dae_skin(DAEState * __restrict dst,
             
             skindae->inputCount++;
           }
-        } else if (xml_tag_eq(xwei, _s_dae_vcount) && (sval = xmls(xwei))) {
+        } else if (DAE_XML_TAG_EQ8(xwei, vcount) && (sval = xmls(xwei))) {
           size_t    count, sz, i;
           uint32_t *pSum, *pCount, next;
           
@@ -170,7 +156,7 @@ dae_skin(DAEState * __restrict dst,
               next    = pCount[i] + next;
             }
           }
-        } else if (xml_tag_eq(xwei, _s_dae_v) && (sval = xmls(xwei))) {
+        } else if (DAE_XML_TAG_EQ8(xwei, v) && (sval = xmls(xwei))) {
           AkUIntArray *intArray;
           AkResult     ret;
           
@@ -180,7 +166,7 @@ dae_skin(DAEState * __restrict dst,
         }
         
         /*
-        else if (xml_tag_eq(xwei, _s_dae_extra)) {
+        else if (DAE_XML_TAG_EQ8(xwei, extra)) {
           wei->extra = tree_fromxml(heap, wei, xwei);
         }
         */
@@ -188,7 +174,7 @@ dae_skin(DAEState * __restrict dst,
       }
       
        skin->weights = (void *)wei;
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       skindae->extra = tree_fromxml(heap, skindae, xml);
     }
     xml = xml->next;

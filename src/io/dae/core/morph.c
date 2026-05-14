@@ -36,49 +36,42 @@ dae_morph(DAEState * __restrict dst,
   ak_heap_setUserData(heap, morph, morphdae);
   flist_sp_insert(&dst->linkedUserData, morph);
 
-  url_set(dst, xml, _s_dae_source, memp, &morphdae->baseGeom);
+  DAE_URL_SET(dst, xml, source, memp, &morphdae->baseGeom);
 
-  if ((att = xmla(xml, _s_dae_method)))
+  if ((att = DAE_XMLA8(xml, method)))
     morph->method = dae_morphMethod(att);
   else
     morph->method = AK_MORPH_METHOD_NORMALIZED;
   
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_source)) {
+    if (DAE_XML_TAG_EQ8(xml, source)) {
       AkSource *source;
       if ((source = dae_source(dst, xml, NULL, 0))) {
         source->next     = morphdae->source;
         morphdae->source = source;
       }
-    } else if (xml_tag_eq(xml, _s_dae_targets)) {
+    } else if (DAE_XML_TAG_EQ8(xml, targets)) {
       AkInput   *inp;
       xml_t     *xtarg;
       
       xtarg = xml->val;
       
       while (xtarg) {
-        if (xml_tag_eq(xtarg, _s_dae_input)) {
+        if (DAE_XML_TAG_EQ8(xtarg, input)) {
           inp              = ak_heap_calloc(heap, morphdae, sizeof(*inp));
-          inp->semanticRaw = xmla_strdup_by(xtarg, heap, _s_dae_semantic, inp);
+          inp->semanticRaw = dae_semanticRaw(DAE_XMLA8(xtarg, semantic),
+                                             heap,
+                                             inp,
+                                             &inp->semantic);
           
           if (!inp->semanticRaw) {
             ak_free(inp);
           } else {
             AkURL *url;
-            AkEnum inputSemantic;
+            inp->offset   = xmla_u32(DAE_XMLA8(xtarg, offset), 0);
             
-            inputSemantic = dae_semantic(inp->semanticRaw);
-            
-            if (inputSemantic < 0)
-              inputSemantic = AK_INPUT_OTHER;
-            
-            inp->semantic = inputSemantic;
-            inp->offset   = xmla_u32(xmla(xtarg, _s_dae_offset), 0);
-            
-            inp->semantic = dae_semantic(inp->semanticRaw);
-            
-            url           = url_from(xtarg, _s_dae_source, memp);
+            url           = DAE_URL_FROM(xtarg, source, memp);
             rb_insert(dst->inputmap, inp, url);
 
             inp->next       = morphdae->input;
@@ -87,7 +80,7 @@ dae_morph(DAEState * __restrict dst,
         }
         xtarg = xtarg->next;
       }
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       morphdae->extra = tree_fromxml(heap, morphdae, xml);
     }
     xml = xml->next;

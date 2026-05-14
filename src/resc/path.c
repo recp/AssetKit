@@ -15,6 +15,7 @@
  */
 
 #include "../common.h"
+#include "../string_fast.h"
 #include "../../include/ak/path.h"
 #include "../../include/ak/string.h"
 
@@ -30,6 +31,10 @@
 #define CHR_BACK_SLASH  '\\'
 #define CHR_COLON       ':'
 #define STR_SLASH       "/"
+#define AK_PATH_FILE_SCHEME_U32 AK_STR_PACK4_CHARS('f', 'i', 'l', 'e')
+#define AK_PATH_FILE_PREFIX_LEN 7
+#define AK_PATH_FILE_PREFIX_U64 AK_STR_PACK8_CHARS('f', 'i', 'l', 'e',      \
+                                                    ':', '/', '/', '\0')
 #define APPEND_SLASH                                                          \
   do {                                                                        \
     *buf++ = CHR_SLASH;                                                       \
@@ -54,7 +59,7 @@ ak_path_fragment(const char *path) {
 AK_EXPORT
 int
 ak_path_isfile(const char *path) {
-  const char *it;
+  const char *it, *schemeEnd;
 
   it = path;
   while (*it == ' ')
@@ -63,8 +68,9 @@ ak_path_isfile(const char *path) {
   if (*it == '/' || *it == '\\')
     return 1;
 
-  if (strstr(it, "://"))
-    if (strncasecmp("file", it, strstr(it, "://") - it) != 0)
+  if ((schemeEnd = strstr(it, "://")))
+    if ((size_t)(schemeEnd - it) != 4
+        || ak_str_pack4_ci_fast(it, 4) != AK_PATH_FILE_SCHEME_U32)
       return 0;
 
   return 1;
@@ -225,7 +231,6 @@ ak_fullpath(AkDoc       * __restrict doc,
             char        * __restrict buf) {
   size_t      pathlen;
   const char *ptr;
-  char       *fileprefix  = "file:///";
   char       *fragments[] = {
     (char *)doc->inf->dir,
     "/",
@@ -233,8 +238,9 @@ ak_fullpath(AkDoc       * __restrict doc,
     NULL
   };
 
-  if (strncmp(ref, fileprefix, strlen(fileprefix)) == 0) {
-    return ref + strlen(fileprefix)
+  if (ak_str_pack8_fast(ref, AK_PATH_FILE_PREFIX_LEN)
+      == AK_PATH_FILE_PREFIX_U64) {
+    return ref + AK_PATH_FILE_PREFIX_LEN
 #ifndef _WIN32
     - 1
 #endif

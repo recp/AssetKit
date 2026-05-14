@@ -64,6 +64,7 @@ ak_readfile(const char * __restrict file,
     *size = fsize;
     if (parent)
       ak_mmap_attach(parent, *dest, fsize);
+    fclose(infile);
     return AK_OK;
   }
 
@@ -76,7 +77,14 @@ ak_readfile(const char * __restrict file,
   fcontents_size = sizeof(char) * fsize;
   *size          = fcontents_size;
 
-  *dest = malloc(fcontents_size + 1);
+  if (parent) {
+    AkHeap *heap;
+
+    heap  = ak_heap_getheap(parent);
+    *dest = ak_heap_alloc(heap, parent, fcontents_size + 1);
+  } else {
+    *dest = malloc(fcontents_size + 1);
+  }
   assert(*dest && "malloc failed");
 
   memset(*(char **)dest + fcontents_size, '\0', 1);
@@ -99,6 +107,8 @@ ak_readfile(const char * __restrict file,
 
   return AK_OK;
 err:
+  if (infile)
+    fclose(infile);
   *dest = NULL;
   *size = 0;
   return AK_ERR;

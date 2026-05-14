@@ -6,6 +6,7 @@
 
 #include "decoder.h"
 #include "../core/ext.h"
+#include "../../../../string_fast.h"
 #include "../../../../../include/ak/gsplat.h"
 
 static
@@ -19,9 +20,15 @@ gltf_gsplatColorSpace(const json_t * __restrict v) {
 
   s  = json_string(v);
   sz = v->valsize;
-  if (sz == 19 && memcmp(s, "srgb_rec709_display", 19) == 0)
+  if (ak_str_eq_fast(s,
+                     sz,
+                     _s_gltf_srgb_rec709_display,
+                     _s_gltf_srgb_rec709_display_len))
     return AK_GSPLAT_COLOR_SRGB_REC709_DISPLAY;
-  if (sz == 18 && memcmp(s, "lin_rec709_display", 18) == 0)
+  if (ak_str_eq_fast(s,
+                     sz,
+                     _s_gltf_lin_rec709_display,
+                     _s_gltf_lin_rec709_display_len))
     return AK_GSPLAT_COLOR_LIN_REC709_DISPLAY;
 
   return AK_GSPLAT_COLOR_UNKNOWN;
@@ -38,7 +45,7 @@ gltf_gsplatProjection(const json_t * __restrict v) {
 
   s  = json_string(v);
   sz = v->valsize;
-  if (sz == 12 && memcmp(s, "orthographic", 12) == 0)
+  if (ak_str_eq_fast(s, sz, _s_gltf_orthographic, _s_gltf_orthographic_len))
     return AK_GSPLAT_PROJECTION_ORTHOGRAPHIC;
 
   return AK_GSPLAT_PROJECTION_PERSPECTIVE;
@@ -55,7 +62,7 @@ gltf_gsplatSorting(const json_t * __restrict v) {
 
   s  = json_string(v);
   sz = v->valsize;
-  if (sz == 4 && memcmp(s, "none", 4) == 0)
+  if (ak_str_eq_packed_fast(s, sz, _s_gltf_none_u64_exact, _s_gltf_none_len))
     return AK_GSPLAT_SORTING_NONE;
 
   return AK_GSPLAT_SORTING_CAMERA_DISTANCE;
@@ -77,17 +84,17 @@ gltf_ext_primitiveGaussianSplat(AkGLTFState     * __restrict gst,
   if (!gst || !prim || !jprim)
     return true;
 
-  jext    = json_get(jprim, _s_gltf_extensions);
-  jgsplat = jext ? json_get(jext, _s_gltf_KHR_gaussian_splatting) : NULL;
+  jext    = GLTF_JSON_GET(jprim, extensions);
+  jgsplat = jext ? GLTF_JSON_GET(jext, KHR_gaussian_splatting) : NULL;
   if (!jgsplat)
     return true;
 
   gs = ak_heap_calloc(gst->heap, prim, sizeof(*gs));
 
-  jkernel = json_get(jgsplat, _s_gltf_kernel);
-  jcolor  = json_get(jgsplat, _s_gltf_colorSpace);
-  jproj   = json_get(jgsplat, _s_gltf_projection);
-  jsort   = json_get(jgsplat, _s_gltf_sortingMethod);
+  jkernel = GLTF_JSON_GET8(jgsplat, kernel);
+  jcolor  = GLTF_JSON_GET(jgsplat, colorSpace);
+  jproj   = GLTF_JSON_GET(jgsplat, projection);
+  jsort   = GLTF_JSON_GET(jgsplat, sortingMethod);
 
   (void)jkernel;
   gs->kernel        = AK_GSPLAT_KERNEL_ELLIPSE;
@@ -104,11 +111,11 @@ gltf_ext_primitiveGaussianSplat(AkGLTFState     * __restrict gst,
     int32_t       bvIdx;
     AkBufferView *bv;
 
-    if ((jcomp = json_get(jgsplat, _s_gltf_compression))) {
-      jformat = json_get(jcomp, _s_gltf_format);
-      jbv     = json_get(jcomp, _s_gltf_bufferView);
+    if ((jcomp = GLTF_JSON_GET(jgsplat, compression))) {
+      jformat = GLTF_JSON_GET8(jcomp, format);
+      jbv     = GLTF_JSON_GET(jcomp, bufferView);
 
-      if (jformat && !json_val_eq(jformat, _s_gltf_spz))
+      if (jformat && !GLTF_JSON_VAL_EQ8(jformat, spz))
         return false;
       if (!jbv)
         return false;

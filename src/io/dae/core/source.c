@@ -37,7 +37,9 @@ dae_source(DAEState * __restrict dst,
   uint32_t       count;
   AkTypeId       t;
   bool           isName;
+  double         profStart, profStep;
 
+  profStart = DAE_PROF_START(dst);
   heap     = dst->heap;
   rootmemp = ak_heap_data(heap->data);
   tempmem  = dst->tempmem;
@@ -47,28 +49,29 @@ dae_source(DAEState * __restrict dst,
   ak_setypeid(source, AKT_SOURCE);
 
   xmla_setid(xml, heap, source);
-  source->name = xmla_strdup_by(xml, heap, _s_dae_name, source);
+  source->name = DAE_XMLA_STRDUP8(xml, heap, name, source);
 
   xml = xml->val;
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_asset)) {
+    if (DAE_XML_TAG_EQ8(xml, asset)) {
       (void)dae_asset(dst, xml, source, NULL);
-    } else if (xml_tag_eq(xml, _s_dae_techniquec)) {
+    } else if (DAE_XML_TAG_EQ(xml, techniquec)) {
       xml_t       *xacc;
       AkDataParam *dp_last;
+      profStep = DAE_PROF_START(dst);
 
-      if ((xacc = xml_elem(xml, _s_dae_accessor))) {
+      if ((xacc = DAE_XML_ELEM8(xml, accessor))) {
         acc         = ak_heap_calloc(heap, rootmemp, sizeof(*acc));
         accdae      = ak_heap_calloc(heap, tempmem,  sizeof(*accdae));
         
         ak_heap_setUserData(heap, acc, accdae);
         
-        acc->count     = xmla_u32(xmla(xacc, _s_dae_count),  0);
-        accdae->offset = xmla_u32(xmla(xacc, _s_dae_offset), 0);
-        accdae->stride = xmla_u32(xmla(xacc, _s_dae_stride), 1);
+        acc->count     = xmla_u32(DAE_XMLA8(xacc, count),  0);
+        accdae->offset = xmla_u32(DAE_XMLA8(xacc, offset), 0);
+        accdae->stride = xmla_u32(DAE_XMLA8(xacc, stride), 1);
 
         ak_setypeid(acc, AKT_ACCESSOR);
-        url_set(dst, xacc, _s_dae_source, accdae, &accdae->source);
+        DAE_URL_SET(dst, xacc, source, accdae, &accdae->source);
 
         xacc    = xacc->val;
         dp_last = NULL;
@@ -79,8 +82,8 @@ dae_source(DAEState * __restrict dst,
           dp = ak_heap_calloc(heap, accdae, sizeof(*dp));
           sid_set(xacc, heap, dp);
 
-          dp->name = xmla_strdup_by(xacc, heap, _s_dae_name, dp);
-          dae_dtype(xmla_strdup_by(xacc, heap, _s_dae_type, dp),  &dp->type);
+          dp->name = DAE_XMLA_STRDUP8(xacc, heap, name, dp);
+          dae_dtype_attr(DAE_XMLA8(xacc, type),  &dp->type);
           
           AK_APPEND_FLINK(accdae->param, dp_last, dp);
           xacc = xacc->next;
@@ -92,40 +95,42 @@ dae_source(DAEState * __restrict dst,
         /* this will be prepared in postprocess */
         flist_sp_insert(&dst->accessors, acc);
       }
-    } else if (xml_tag_eq(xml, _s_dae_technique)) {
+      DAE_PROF_ACC(dst, profGeomAccessor, profGeomAccessorCount, profStep);
+    } else if (DAE_XML_TAG_EQ(xml, technique)) {
       tq                = dae_techn(xml, heap, source);
       tq->next          = source->technique;
       source->technique = tq;
     } else if (xml_valtype(xml) == XML_STRING && (sval = xmls(xml))) {
-      count            = xmla_u32(xmla(xml, _s_dae_count), 0);
+      profStep         = DAE_PROF_START(dst);
+      count            = xmla_u32(DAE_XMLA8(xml, count), 0);
       buffer           = ak_heap_alloc(heap, rootmemp, sizeof(*buffer));
-      buffer->name     = xmla_strdup_by(xml, heap, _s_dae_name, buffer);
+      buffer->name     = DAE_XMLA_STRDUP8(xml, heap, name, buffer);
       source->buffer   = buffer;
       
       xmla_setid(xml, heap, buffer);
       
-      if (xml_tag_eq(xml, _s_dae_float_array)) {
+      if (DAE_XML_TAG_EQ(xml, float_array)) {
         buffer->length = sizeof(float) * count;
         buffer->data   = ak_heap_alloc(heap, buffer, buffer->length);
         xml_strtof_fast(sval, buffer->data, count);
         
         ak_setUserData(buffer, (void *)(uintptr_t)AKT_FLOAT);
-      } else if (xml_tag_eq(xml, _s_dae_int_array)) {
+      } else if (DAE_XML_TAG_EQ(xml, int_array)) {
         buffer->length = sizeof(uint32_t) * count;
         buffer->data   = ak_heap_alloc(heap, buffer, buffer->length);
         xml_strtoi_fast(sval, buffer->data, count);
         
         ak_setUserData(buffer, (void *)(uintptr_t)AKT_INT);
-      } else if (xml_tag_eq(xml, _s_dae_bool_array)) {
+      } else if (DAE_XML_TAG_EQ(xml, bool_array)) {
         buffer->length = sizeof(bool) * count;
         buffer->data   = ak_heap_alloc(heap, buffer, buffer->length);
         xml_strtob_fast(sval, buffer->data, count);
         
         ak_setUserData(buffer, (void *)(uintptr_t)AKT_BOOL);
-      } else if ((xml_tag_eq(xml, _s_dae_Name_array)   & (1|(t = AKT_NAME)))
-              || (xml_tag_eq(xml, _s_dae_IDREF_array)  & (1|(t = AKT_IDREF)))
-              || (xml_tag_eq(xml, _s_dae_SIDREF_array) & (1|(t = AKT_SIDREF)))
-              || (xml_tag_eq(xml, _s_dae_token_array)  & (1|(t = AKT_TOKEN)))) {
+      } else if ((DAE_XML_TAG_EQ(xml, Name_array)   & (1|(t = AKT_NAME)))
+              || (DAE_XML_TAG_EQ(xml, IDREF_array)  & (1|(t = AKT_IDREF)))
+              || (DAE_XML_TAG_EQ(xml, SIDREF_array) & (1|(t = AKT_SIDREF)))
+              || (DAE_XML_TAG_EQ(xml, token_array)  & (1|(t = AKT_TOKEN)))) {
         char        *pData, **iter, *tok, *tok_begin, *end, c;
         const xml_t *v;
         size_t       srclen, toklen, enumLen;
@@ -212,6 +217,7 @@ dae_source(DAEState * __restrict dst,
           }
         } /* if asEnum */
       }
+      DAE_PROF_ACC(dst, profGeomArray, profGeomArrayCount, profStep);
     }
     
     xml = xml->next;
@@ -225,6 +231,8 @@ dae_source(DAEState * __restrict dst,
     accdae->bound  = 1;
     accdae->stride = 1;
   }
+
+  DAE_PROF_ACC(dst, profGeomSource, profGeomSourceCount, profStart);
 
   return source;
 }

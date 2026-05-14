@@ -22,6 +22,18 @@
 #include "common.h"
 #include "string_fast.h"
 
+static inline
+char*
+ak_str_skip_array_sep(char * __restrict tok,
+                      char * __restrict end) {
+  char c;
+
+  while (tok < end && ((void)(c = *tok), AK_ARRAY_SEP_CHECK))
+    tok++;
+
+  return tok;
+}
+
 AK_EXPORT
 const char*
 ak_strltrim_fast(const char * __restrict str) {
@@ -152,7 +164,6 @@ ak_strtof(char    * __restrict src,
           size_t               srclen,
           unsigned long        n,
           AkFloat * __restrict dest) {
-  AkDouble value;
   AkFloat *out;
   char    *tok, *end;
   unsigned long rem;
@@ -168,11 +179,10 @@ ak_strtof(char    * __restrict src,
     end = src + srclen;
     
     do {
-      tok = ak_str_skip_sep_fast(tok, end, false);
+      tok = ak_str_skip_array_sep(tok, end);
       if (tok >= end)
         break;
-      tok = ak_str_parse_double_fast(tok, end, &value);
-      *out++ = (AkFloat)value;
+      tok = ak_str_parse_float_fast(tok, end, out++);
       rem--;
     } while (rem > 0ul && tok < end);
   } else {
@@ -180,8 +190,7 @@ ak_strtof(char    * __restrict src,
       tok = ak_str_skip_sep_fast(tok, NULL, false);
       if (*tok == '\0')
         break;
-      tok = ak_str_parse_double_fast(tok, NULL, &value);
-      *out++ = (AkFloat)value;
+      tok = ak_str_parse_float_fast(tok, NULL, out++);
       rem--;
     } while (rem > 0ul && *tok != '\0');
   }
@@ -195,7 +204,6 @@ ak_strtof_line(char    * __restrict src,
                size_t               srclen,
                unsigned long        n,
                AkFloat * __restrict dest) {
-  AkDouble value;
   AkFloat *out;
   char    *tok, *end;
   unsigned long rem;
@@ -214,8 +222,7 @@ ak_strtof_line(char    * __restrict src,
       tok = ak_str_skip_sep_fast(tok, end, true);
       if (tok >= end)
         break;
-      tok = ak_str_parse_double_fast(tok, end, &value);
-      *out++ = (AkFloat)value;
+      tok = ak_str_parse_float_fast(tok, end, out++);
       rem--;
     } while (rem > 0ul && tok < end);
   } else {
@@ -223,8 +230,7 @@ ak_strtof_line(char    * __restrict src,
       tok = ak_str_skip_sep_fast(tok, NULL, true);
       if (*tok == '\0' || *tok == '\n' || *tok == '\r')
         break;
-      tok = ak_str_parse_double_fast(tok, NULL, &value);
-      *out++ = (AkFloat)value;
+      tok = ak_str_parse_float_fast(tok, NULL, out++);
       rem--;
     } while (rem > 0ul && *tok != '\0' && *tok != '\n' && *tok != '\r');
   }
@@ -278,9 +284,8 @@ ak_strtoui(char    * __restrict src,
            size_t               srclen,
            unsigned long        n,
            AkUInt  * __restrict dest) {
-  char    *tok, *end;
-  AkUInt  *out;
-  AkUInt64 val;
+  char   *tok, *end;
+  AkUInt *out;
   unsigned long rem;
 
   if (n == 0)
@@ -294,17 +299,10 @@ ak_strtoui(char    * __restrict src,
     end = src + srclen;
     
     do {
-      tok = ak_str_skip_sep_fast(tok, end, false);
+      tok = ak_str_skip_array_sep(tok, end);
       if (tok >= end)
         break;
-      tok = ak_str_parse_u64_fast(tok, end, &val);
-
-      /* BUGFIX: some indices may come as -1 as BUG, fix this. */
-      if (val < UINT32_MAX) {
-        *out++ = (AkUInt)val;
-      } else {
-        *out++ = 0;
-      }
+      tok = ak_str_parse_uint_fast(tok, end, out++);
       rem--;
     } while (rem > 0ul && tok < end);
   } else {
@@ -312,14 +310,7 @@ ak_strtoui(char    * __restrict src,
       tok = ak_str_skip_sep_fast(tok, NULL, false);
       if (*tok == '\0')
         break;
-      tok = ak_str_parse_u64_fast(tok, NULL, &val);
-
-      /* BUGFIX: some indices may come as -1 as BUG, fix this. */
-      if (val < UINT32_MAX) {
-        *out++ = (AkUInt)val;
-      } else {
-        *out++ = 0;
-      }
+      tok = ak_str_parse_uint_fast(tok, NULL, out++);
       rem--;
     } while (rem > 0ul && *tok != '\0');
   }
@@ -333,7 +324,6 @@ ak_strtoi(char    * __restrict src,
           size_t               srclen,
           unsigned long        n,
           AkInt   * __restrict dest) {
-  AkInt64 value;
   AkInt  *out;
   char   *tok, *end;
   unsigned long rem;
@@ -349,11 +339,10 @@ ak_strtoi(char    * __restrict src,
     end = src + srclen;
     
     do {
-      tok = ak_str_skip_sep_fast(tok, end, false);
+      tok = ak_str_skip_array_sep(tok, end);
       if (tok >= end)
         break;
-      tok = ak_str_parse_i64_fast(tok, end, &value);
-      *out++ = (AkInt)value;
+      tok = ak_str_parse_int_fast(tok, end, out++);
       rem--;
     } while (rem > 0ul && tok < end);
   } else {
@@ -361,8 +350,7 @@ ak_strtoi(char    * __restrict src,
       tok = ak_str_skip_sep_fast(tok, NULL, false);
       if (*tok == '\0')
         break;
-      tok = ak_str_parse_i64_fast(tok, NULL, &value);
-      *out++ = (AkInt)value;
+      tok = ak_str_parse_int_fast(tok, NULL, out++);
       rem--;
     } while (rem > 0ul && *tok != '\0');
   }
@@ -376,7 +364,6 @@ ak_strtoi_line(char    * __restrict src,
                size_t               srclen,
                unsigned long        n,
                AkInt   * __restrict dest) {
-  AkInt64 value;
   AkInt  *out;
   char   *tok, *end;
   unsigned long rem;
@@ -395,8 +382,7 @@ ak_strtoi_line(char    * __restrict src,
       tok = ak_str_skip_sep_fast(tok, end, true);
       if (tok >= end)
         break;
-      tok = ak_str_parse_i64_fast(tok, end, &value);
-      *out++ = (AkInt)value;
+      tok = ak_str_parse_int_fast(tok, end, out++);
       rem--;
     } while (rem > 0ul && tok < end);
   } else {
@@ -404,8 +390,7 @@ ak_strtoi_line(char    * __restrict src,
       tok = ak_str_skip_sep_fast(tok, NULL, true);
       if (*tok == '\0' || *tok == '\n' || *tok == '\r')
         break;
-      tok = ak_str_parse_i64_fast(tok, NULL, &value);
-      *out++ = (AkInt)value;
+      tok = ak_str_parse_int_fast(tok, NULL, out++);
       rem--;
     } while (rem > 0ul && *tok != '\0' && *tok != '\n' && *tok != '\r');
   }

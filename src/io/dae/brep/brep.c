@@ -40,32 +40,32 @@ dae_brep(DAEState   * __restrict dst,
   brep->geom = geom;
 
   while (xml) {
-    if (xml_tag_eq(xml, _s_dae_curves)) {
+    if (DAE_XML_TAG_EQ(xml, curves)) {
       brep->curves = dae_curves(dst, xml, obj);
-    } else if (xml_tag_eq(xml, _s_dae_surface_curves)) {
+    } else if (DAE_XML_TAG_EQ(xml, surface_curves)) {
       brep->surfaceCurves = dae_curves(dst, xml, obj);
-    } else if (xml_tag_eq(xml, _s_dae_surfaces)) {
+    } else if (DAE_XML_TAG_EQ(xml, surfaces)) {
       brep->surfaces = dae_surfaces(dst, xml, obj);
-    } else if (xml_tag_eq(xml, _s_dae_source)) {
+    } else if (DAE_XML_TAG_EQ(xml, source)) {
       if ((source = dae_source(dst, xml, NULL, 0))) {
         source->next  = brep->source;
         brep->source = source;
       }
-    } else if (xml_tag_eq(xml, _s_dae_vertices)) {
+    } else if (DAE_XML_TAG_EQ(xml, vertices)) {
       brep->vertices = dae_vert(dst, xml, obj);
-    } else if (xml_tag_eq(xml, _s_dae_edges)) {
+    } else if (DAE_XML_TAG_EQ(xml, edges)) {
       brep->edges = dae_edges(dst, xml, obj);
-    } else if (xml_tag_eq(xml, _s_dae_wires)) {
+    } else if (DAE_XML_TAG_EQ(xml, wires)) {
       brep->wires = dae_wires(dst, xml, obj);
-    } else if (xml_tag_eq(xml, _s_dae_faces)) {
+    } else if (DAE_XML_TAG_EQ(xml, faces)) {
       brep->faces = dae_faces(dst, xml, obj);
-    } else if (xml_tag_eq(xml, _s_dae_pcurves)) {
+    } else if (DAE_XML_TAG_EQ(xml, pcurves)) {
       brep->pcurves = dae_pcurves(dst, xml, obj);
-    } else if (xml_tag_eq(xml, _s_dae_shells)) {
+    } else if (DAE_XML_TAG_EQ(xml, shells)) {
       brep->shells = dae_shells(dst, xml, obj);
-    } else if (xml_tag_eq(xml, _s_dae_solids)) {
+    } else if (DAE_XML_TAG_EQ(xml, solids)) {
       brep->solids = dae_solids(dst, xml, obj);
-    } else if (xml_tag_eq(xml, _s_dae_extra)) {
+    } else if (DAE_XML_TAG_EQ(xml, extra)) {
       brep->extra = tree_fromxml(heap, brep, xml);
     }
     xml = xml->next;

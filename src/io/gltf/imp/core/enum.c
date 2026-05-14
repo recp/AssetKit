@@ -15,43 +15,77 @@
  */
 
 #include "enum.h"
+#include "../../../../string_fast.h"
 
 AK_HIDE AkEnum
 gltf_enumInputSemantic(const char * name) {
+  size_t len;
+
   if (!name)
     return AK_INPUT_OTHER;
 
-  switch (name[0]) {
-    case 'C':
-      if (strcmp(name, _s_gltf_COLOR) == 0) return AK_INPUT_COLOR;
+  len = strlen(name);
+  switch (len) {
+    case _s_gltf_COLOR_len:
+      if (ak_str_eq_packed_fast(name,
+                                len,
+                                _s_gltf_COLOR_u64_exact,
+                                _s_gltf_COLOR_len))
+        return AK_INPUT_COLOR;
       break;
-    case 'J':
-      if (strcmp(name, _s_gltf_JOINTS) == 0) return AK_INPUT_JOINT;
+    case _s_gltf_JOINTS_len:
+      if (ak_str_eq_packed_fast(name,
+                                len,
+                                _s_gltf_JOINTS_u64_exact,
+                                _s_gltf_JOINTS_len))
+        return AK_INPUT_JOINT;
+      if (ak_str_eq_packed_fast(name,
+                                len,
+                                _s_gltf_NORMAL_u64_exact,
+                                _s_gltf_NORMAL_len))
+        return AK_INPUT_NORMAL;
       break;
-    case 'N':
-      if (strcmp(name, _s_gltf_NORMAL) == 0) return AK_INPUT_NORMAL;
+    case _s_gltf_TANGENT_len:
+      if (ak_str_eq_packed_fast(name,
+                                len,
+                                _s_gltf_TANGENT_u64_exact,
+                                _s_gltf_TANGENT_len))
+        return AK_INPUT_TANGENT;
+      if (ak_str_eq_packed_fast(name,
+                                len,
+                                _s_gltf_WEIGHTS_u64_exact,
+                                _s_gltf_WEIGHTS_len))
+        return AK_INPUT_WEIGHT;
       break;
-    case 'P':
-      if (strcmp(name, _s_gltf_POSITION) == 0) return AK_INPUT_POSITION;
+    case _s_gltf_POSITION_len:
+      if (ak_str_eq_packed_fast(name,
+                                len,
+                                _s_gltf_POSITION_u64_exact,
+                                _s_gltf_POSITION_len))
+        return AK_INPUT_POSITION;
+      if (ak_str_eq_packed_fast(name,
+                                len,
+                                _s_gltf_TEXCOORD_u64_exact,
+                                _s_gltf_TEXCOORD_len))
+        return AK_INPUT_TEXCOORD;
       break;
-    case 'T':
-      if (strcmp(name, _s_gltf_TANGENT) == 0) return AK_INPUT_TANGENT;
-      if (strcmp(name, _s_gltf_TEXCOORD) == 0) return AK_INPUT_TEXCOORD;
-      break;
-    case 'W':
-      if (strcmp(name, _s_gltf_WEIGHTS) == 0) return AK_INPUT_WEIGHT;
-      break;
-    default:
-      break;
+    default: break;
   }
 
-  if (strcasecmp(name, _s_gltf_COLOR) == 0)    return AK_INPUT_COLOR;
-  if (strcasecmp(name, _s_gltf_JOINTS) == 0)   return AK_INPUT_JOINT;
-  if (strcasecmp(name, _s_gltf_NORMAL) == 0)   return AK_INPUT_NORMAL;
-  if (strcasecmp(name, _s_gltf_POSITION) == 0) return AK_INPUT_POSITION;
-  if (strcasecmp(name, _s_gltf_TANGENT) == 0)  return AK_INPUT_TANGENT;
-  if (strcasecmp(name, _s_gltf_TEXCOORD) == 0) return AK_INPUT_TEXCOORD;
-  if (strcasecmp(name, _s_gltf_WEIGHTS) == 0)  return AK_INPUT_WEIGHT;
+  if (ak_str_eq_ci_len_fast(name, len, _s_gltf_COLOR, _s_gltf_COLOR_len))
+    return AK_INPUT_COLOR;
+  if (ak_str_eq_ci_len_fast(name, len, _s_gltf_JOINTS, _s_gltf_JOINTS_len))
+    return AK_INPUT_JOINT;
+  if (ak_str_eq_ci_len_fast(name, len, _s_gltf_NORMAL, _s_gltf_NORMAL_len))
+    return AK_INPUT_NORMAL;
+  if (ak_str_eq_ci_len_fast(name, len, _s_gltf_POSITION, _s_gltf_POSITION_len))
+    return AK_INPUT_POSITION;
+  if (ak_str_eq_ci_len_fast(name, len, _s_gltf_TANGENT, _s_gltf_TANGENT_len))
+    return AK_INPUT_TANGENT;
+  if (ak_str_eq_ci_len_fast(name, len, _s_gltf_TEXCOORD, _s_gltf_TEXCOORD_len))
+    return AK_INPUT_TEXCOORD;
+  if (ak_str_eq_ci_len_fast(name, len, _s_gltf_WEIGHTS, _s_gltf_WEIGHTS_len))
+    return AK_INPUT_WEIGHT;
 
   return AK_INPUT_OTHER;
 }
@@ -92,22 +126,22 @@ gltf_type(const json_t * __restrict json) {
 
   value = json->value;
   switch (json->valsize) {
-    case 4:
-      if (memcmp(value, _s_gltf_VEC2, 4) == 0)
-        return AK_COMPONENT_SIZE_VEC2;
-      if (memcmp(value, _s_gltf_VEC3, 4) == 0)
-        return AK_COMPONENT_SIZE_VEC3;
-      if (memcmp(value, _s_gltf_VEC4, 4) == 0)
-        return AK_COMPONENT_SIZE_VEC4;
-      if (memcmp(value, _s_gltf_MAT2, 4) == 0)
-        return AK_COMPONENT_SIZE_MAT2;
-      if (memcmp(value, _s_gltf_MAT3, 4) == 0)
-        return AK_COMPONENT_SIZE_MAT3;
-      if (memcmp(value, _s_gltf_MAT4, 4) == 0)
-        return AK_COMPONENT_SIZE_MAT4;
+    case _s_gltf_VEC2_len:
+      switch (ak_str_pack4_fast(value, _s_gltf_VEC2_len)) {
+        case _s_gltf_VEC2_u32_exact: return AK_COMPONENT_SIZE_VEC2;
+        case _s_gltf_VEC3_u32_exact: return AK_COMPONENT_SIZE_VEC3;
+        case _s_gltf_VEC4_u32_exact: return AK_COMPONENT_SIZE_VEC4;
+        case _s_gltf_MAT2_u32_exact: return AK_COMPONENT_SIZE_MAT2;
+        case _s_gltf_MAT3_u32_exact: return AK_COMPONENT_SIZE_MAT3;
+        case _s_gltf_MAT4_u32_exact: return AK_COMPONENT_SIZE_MAT4;
+        default: break;
+      }
       break;
-    case 6:
-      if (memcmp(value, _s_gltf_SCALAR, 6) == 0)
+    case _s_gltf_SCALAR_len:
+      if (ak_str_eq_packed_fast(value,
+                                (size_t)json->valsize,
+                                _s_gltf_SCALAR_u64_exact,
+                                _s_gltf_SCALAR_len))
         return AK_COMPONENT_SIZE_SCALAR;
       break;
     default:
@@ -162,16 +196,22 @@ gltf_alphaMode(const json_t * __restrict json) {
 
   value = json->value;
   switch (json->valsize) {
-    case 4:
-      if (memcmp(value, _s_gltf_MASK, 4) == 0)
+    case _s_gltf_MASK_len:
+      if (ak_str_pack4_fast(value, _s_gltf_MASK_len) == _s_gltf_MASK_u32_exact)
         return AK_OPAQUE_MASK;
       break;
-    case 5:
-      if (memcmp(value, _s_gltf_BLEND, 5) == 0)
+    case _s_gltf_BLEND_len:
+      if (ak_str_eq_packed_fast(value,
+                                (size_t)json->valsize,
+                                _s_gltf_BLEND_u64_exact,
+                                _s_gltf_BLEND_len))
         return AK_OPAQUE_BLEND;
       break;
-    case 6:
-      if (memcmp(value, _s_gltf_OPAQUE, 6) == 0)
+    case _s_gltf_OPAQUE_len:
+      if (ak_str_eq_packed_fast(value,
+                                (size_t)json->valsize,
+                                _s_gltf_OPAQUE_u64_exact,
+                                _s_gltf_OPAQUE_len))
         return AK_OPAQUE_OPAQUE;
       break;
     default:
@@ -187,7 +227,7 @@ gltf_interp(const json_t * __restrict json) {
   long   glenums_len;
   long   i;
 
-  dae_enum glenums[] = {
+  static const dae_enum glenums[] = {
     {_s_gltf_LINEAR,       AK_INTERPOLATION_LINEAR},
     {_s_gltf_STEP,         AK_INTERPOLATION_STEP},
     {_s_gltf_CUBICSPLINE,  AK_INTERPOLATION_HERMITE}
