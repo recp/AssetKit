@@ -130,12 +130,6 @@ dae_xmla_strdup_by8(const xml_t * __restrict xobject,
 #  define AK_INPUT_SEMANTIC_VERTEX 100001
 #endif
 
-AK_INLINE
-AkInput*
-dae_input_new(AkHeap * __restrict heap, void * __restrict parent) {
-  return ak_heap_calloc(heap, parent, sizeof(AkInput));
-}
-
 typedef enum AkCOLLADAVersion {
   AK_COLLADA_VERSION_150 = 150,
   AK_COLLADA_VERSION_141 = 141,

@@ -48,7 +48,7 @@ dae_triangles(DAEState * __restrict dst,
       AkInput *inp;
       profStep = DAE_PROF_START(dst);
 
-      inp              = dae_input_new(heap, tri);
+      inp              = ak_heap_calloc(heap, tri, sizeof(*inp));
       inp->semanticRaw = dae_semanticRaw(DAE_XMLA8(xml, semantic),
                                          heap,
                                          inp,

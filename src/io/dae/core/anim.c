@@ -97,7 +97,7 @@ dae_animSampler(DAEState * __restrict dst,
   xml = xml->val;
   while (xml) {
     if (DAE_XML_TAG_EQ8(xml, input)) {
-      inp              = dae_input_new(heap, samp);
+      inp              = ak_heap_calloc(heap, samp, sizeof(*inp));
       inp->semanticRaw = dae_semanticRaw(DAE_XMLA8(xml, semantic),
                                          heap,
                                          inp,

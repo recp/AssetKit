@@ -129,7 +129,8 @@ typedef struct AkTriangles {
 typedef struct AkMeshEditHelper {
   AkGeometryEditFlags flags;
   struct RBTree      *buffers;         /* new buffers               */
-  struct AkSourceBuffState *bufferList;
+  struct RBTree      *indices;         /* new indices               */
+  AkMap              *inputBufferMap;  /* input-accessor-buffer map */
   void               *mutex;
   void               *duplicator;
   bool                skipFixIndices;

@@ -28,7 +28,7 @@ dae_brep_input(DAEState * __restrict dst,
   AkURL   *url;
 
   heap             = dst->heap;
-  inp              = dae_input_new(heap, parent);
+  inp              = ak_heap_calloc(heap, parent, sizeof(*inp));
   inp->semanticRaw = dae_semanticRaw(DAE_XMLA8(xml, semantic),
                                      heap,
                                      inp,

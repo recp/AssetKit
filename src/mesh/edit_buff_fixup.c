@@ -23,6 +23,7 @@ extern const char* ak_mesh_edit_assert1;
 AK_EXPORT
 AkResult
 ak_meshFillBuffers(AkMesh * __restrict mesh) {
+  AkMeshEditHelper   *edith;
   AkInput            *input;
   AkMeshPrimitive    *primi;
   AkAccessor         *acc, *newacc;
@@ -36,7 +37,7 @@ ak_meshFillBuffers(AkMesh * __restrict mesh) {
   AkUInt              oldidx, newidx, oldByteSt, newByteSt, fillSize, indxSt,
                       inpOff;
 
-  assert(mesh->edith && ak_mesh_edit_assert1);
+  edith = mesh->edith;
   primi = mesh->primitive;
  
   /* per-primitive inputs */
@@ -61,10 +62,8 @@ ak_meshFillBuffers(AkMesh * __restrict mesh) {
         goto cont;
 
       /* copy buff to mesh */
-      if ((buffstate = input->reserved)) {
-        srch      = buffstate->sourceEdit;
-        if (!srch)
-          goto cont;
+      if ((buffstate = rb_find(edith->buffers, input))) {
+        srch      = ak_meshSourceEditHelper(mesh, input);
         newbuff   = buffstate->buff;
         newacc    = srch->source;
         oldByteSt = (AkUInt)acc->byteStride;

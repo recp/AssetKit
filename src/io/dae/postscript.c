@@ -120,7 +120,7 @@ dae_spread_vert(DAEState * __restrict dst) {
     inpv = vert->input;
 
     while (inpv) {
-      inp  = dae_input_new(heap, prim);
+      inp  = ak_heap_calloc(heap, prim, sizeof(*inp));
       inp->semantic = inpv->semantic;
       inp->semanticRaw = inpv->semanticRaw;
 
@@ -422,7 +422,7 @@ dae_fixup_accessors(DAEState * __restrict dst) {
         newByteStride   = accdae->bound * bytesPerComponent;
         newbuff         = ak_heap_calloc(heap, doc, sizeof(*newbuff));
         newbuff->length = count * newByteStride;
-        newbuff->data   = ak_heap_alloc(heap, newbuff, newbuff->length);
+        newbuff->data   = ak_heap_calloc(heap, newbuff, newbuff->length);
 
         newitms         = (char *)newbuff->data;
         olditms         = (char *)buff->data + acc->byteOffset;

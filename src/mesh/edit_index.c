@@ -27,12 +27,24 @@ ak_meshIndicesArrayFor(AkMesh          * __restrict mesh,
                        bool                         creat) {
   AkHeap           *heap;
   AkObject         *meshobj;
+  AkMeshEditHelper *edith;
   AkUIntArray      *indices;
   size_t            count;
 
-  assert(mesh->edith && ak_mesh_edit_assert1);
+  edith = mesh->edith;
+  assert(edith && ak_mesh_edit_assert1);
 
-  indices = prim->reserved3;
+  meshobj = ak_objFrom(mesh);
+  heap    = ak_heap_getheap(meshobj);
+
+  if (!(edith->flags & AK_GEOM_EDIT_FLAG_INDICES)
+      || !edith->indices) {
+    edith->indices = rb_newtree_ptr();
+    edith->flags  |= AK_GEOM_EDIT_FLAG_INDICES;
+    ak_dsSetAllocator(heap->allocator, edith->indices->alc);
+  }
+
+  indices = rb_find(edith->indices, prim);
   if (!indices) {
     if (!creat)
       return prim->indices;
@@ -50,14 +62,13 @@ ak_meshIndicesArrayFor(AkMesh          * __restrict mesh,
       count = posacc->componentCount * posacc->count;
     }
 
-    meshobj = ak_objFrom(mesh);
-    heap    = ak_heap_getheap(meshobj);
-    indices = ak_heap_alloc(heap,
-                            prim,
-                            sizeof(*indices)
-                            + sizeof(AkUInt) * count);
+    indices = ak_heap_calloc(heap,
+                             prim,
+                             sizeof(*indices)
+                             + sizeof(AkUInt) * count);
     indices->count = count;
-    prim->reserved3 = indices;
+
+    rb_insert(edith->indices, prim, indices);
     return indices;
   }
 
@@ -85,7 +96,6 @@ ak_moveIndices(AkMesh * __restrict mesh) {
     ak_free(prim->indices);
 
     prim->indices = indices;
-    prim->reserved3 = NULL;
 
     /* mark primitive as single index */
     prim->indexStride = 1;

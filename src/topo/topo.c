@@ -90,7 +90,7 @@ topofix_noind(AkHeap          * __restrict heap,
         }
 
         ntrigs         = nVertices - 2;
-        indices        = ak_heap_alloc(heap, prim, sizeof(*indices) + sizeof(AkUInt) * ntrigs * 3);
+        indices        = ak_heap_calloc(heap, prim, sizeof(*indices) + sizeof(AkUInt) * ntrigs * 3);
         indices->count = ntrigs * 3;
         it             = indices->items;
 
@@ -139,7 +139,7 @@ topofix_noind(AkHeap          * __restrict heap,
           case AK_LINE_LOOP:
             if (line_loop) {
               nlines         = nVertices;
-              indices        = ak_heap_alloc(heap, prim, sizeof(*indices) + sizeof(AkUInt) * nlines * 2);
+              indices        = ak_heap_calloc(heap, prim, sizeof(*indices) + sizeof(AkUInt) * nlines * 2);
               indices->count = nlines * 2;
               it             = indices->items;
 
@@ -160,7 +160,7 @@ topofix_noind(AkHeap          * __restrict heap,
           case AK_LINE_STRIP:
             if (line_strip) {
               nlines         = nVertices - 1;
-              indices        = ak_heap_alloc(heap, prim, sizeof(*indices) + sizeof(AkUInt) * nlines * 2);
+              indices        = ak_heap_calloc(heap, prim, sizeof(*indices) + sizeof(AkUInt) * nlines * 2);
               indices->count = nlines * 2;
               it             = indices->items;
 

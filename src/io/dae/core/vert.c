@@ -39,7 +39,7 @@ dae_vert(DAEState * __restrict dst,
       AkInput *inp;
       profStep = DAE_PROF_START(dst);
       
-      inp              = dae_input_new(heap, vert);
+      inp              = ak_heap_calloc(heap, vert, sizeof(*inp));
       inp->semanticRaw = dae_semanticRaw(DAE_XMLA8(xml, semantic),
                                          heap,
                                          inp,
