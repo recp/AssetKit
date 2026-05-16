@@ -256,9 +256,9 @@ dae_value(DAEState * __restrict dst,
     case AKT_BOOL4:{
       AkBool *boolVal;
 
-      boolVal = ak_heap_calloc(heap,
-                               val,
-                               sizeof(*boolVal) * found->m * found->n);
+      boolVal = ak_heap_alloc(heap,
+                              val,
+                              sizeof(*boolVal) * found->m * found->n);
       xml_strtob_fast(sval, boolVal, found->m * found->n);
 
       val->value = boolVal;
@@ -270,9 +270,9 @@ dae_value(DAEState * __restrict dst,
     case AKT_INT4:{
       AkInt *intVal;
   
-      intVal = ak_heap_calloc(heap,
-                              memp,
-                              sizeof(*intVal) * found->m * found->n);
+      intVal = ak_heap_alloc(heap,
+                             memp,
+                             sizeof(*intVal) * found->m * found->n);
       xml_strtoi_fast(sval, intVal, found->m * found->n);
 
       val->value = intVal;
@@ -287,9 +287,9 @@ dae_value(DAEState * __restrict dst,
     case AKT_FLOAT4x4:{
       AkFloat *floatVal;
 
-      floatVal = ak_heap_calloc(heap,
-                                memp,
-                                sizeof(*floatVal) * found->m * found->n);
+      floatVal = ak_heap_alloc(heap,
+                               memp,
+                               sizeof(*floatVal) * found->m * found->n);
       xml_strtof_fast(sval, floatVal, found->m * found->n);
 
       val->value = floatVal;

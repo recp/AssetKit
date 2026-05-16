@@ -58,23 +58,30 @@ ak_meshReserveBuffer(AkMesh * __restrict mesh,
 
   if (!(edith->flags & AK_GEOM_EDIT_FLAG_ARRAYS)
       || !edith->buffers) {
-    edith->buffers = rb_newtree_str();
+    edith->buffers = rb_newtree_ptr();
     edith->flags |= AK_GEOM_EDIT_FLAG_ARRAYS;
     ak_dsSetAllocator(heap->allocator, edith->buffers->alc);
+    edith->buffers->onFreeNode = ak_meshFreeRsvBuff;
   }
 
   buffstate = rb_find(edith->buffers, buffid);
   newsize   = itemSize * count;
 
   if (!buffstate) {
-    buffstate    = ak_heap_calloc(heap, meshobj, sizeof(*buffstate));
-    buff         = ak_heap_calloc(heap, meshobj, sizeof(*buff));
+    buffstate    = ak_heap_alloc(heap, meshobj, sizeof(*buffstate));
+    buff         = ak_heap_alloc(heap, meshobj, sizeof(*buff));
     buff->length = newsize;
-    buff->data   = ak_heap_calloc(heap, buff, newsize);
+    buff->data   = ak_heap_alloc(heap, buff, newsize);
+    buff->name   = NULL;
 
-    buffstate->buff   = buff;
-    buffstate->count  = count;
-    buffstate->stride = stride;
+    buffstate->duplicator = NULL;
+    buffstate->buff       = buff;
+    buffstate->url        = NULL;
+    buffstate->count      = count;
+    buffstate->stride     = stride;
+    buffstate->next       = NULL;
+    buffstate->sourceEdit = NULL;
+    buffstate->input      = NULL;
 
     rb_insert(edith->buffers, buffid, buffstate);
     return buffstate;
@@ -101,7 +108,7 @@ ak_meshReserveBufferForInput(AkMesh   * __restrict mesh,
   AkSourceBuffState  *buffstate;
   AkAccessor         *acci, *newacc;
   AkBuffer           *buffi;
-  void               *buffid;
+  size_t              newsize, itemCount;
 
   meshobj = ak_objFrom(mesh);
   heap    = ak_heap_getheap(meshobj);
@@ -113,17 +120,43 @@ ak_meshReserveBufferForInput(AkMesh   * __restrict mesh,
       || !acci->buffer)
     return;
 
-  /* generate new accesor for input */
-  newacc        = ak_accessor_dup(acci);
-  newacc->count = (uint32_t)count;
+  itemCount = count * acci->componentCount;
+  newsize   = itemCount * acci->bytesPerComponent;
+  buffstate = input->reserved;
 
-  buffid    = input;
-  buffstate = ak_meshReserveBuffer(mesh,
-                                   buffid,
-                                   acci->bytesPerComponent,
-                                   acci->componentCount,
-                                   count);
-  buffi = buffstate->buff;
+  if (!buffstate) {
+    buffstate     = ak_heap_alloc(heap, meshobj, sizeof(*buffstate));
+    buffi         = ak_heap_alloc(heap, meshobj, sizeof(*buffi));
+    buffi->length = newsize;
+    buffi->data   = ak_heap_alloc(heap, buffi, newsize);
+    buffi->name   = NULL;
+
+    buffstate->duplicator = NULL;
+    buffstate->buff       = buffi;
+    buffstate->url        = NULL;
+    buffstate->count      = itemCount;
+    buffstate->stride     = acci->componentCount;
+    buffstate->next       = edith->bufferList;
+    buffstate->sourceEdit = NULL;
+    buffstate->input      = input;
+    edith->bufferList     = buffstate;
+    input->reserved       = buffstate;
+  } else {
+    buffi = buffstate->buff;
+    if (buffi->length < newsize) {
+      buffi->data   = ak_heap_realloc(heap, meshobj, buffi->data, newsize);
+      buffi->length = newsize;
+    }
+
+    if (buffstate->sourceEdit)
+      return;
+  }
+
+  /* generate new accesor for input */
+  newacc        = ak_heap_alloc(heap, input, sizeof(*newacc));
+  memcpy(newacc, acci, sizeof(*newacc));
+  ak_setypeid(newacc, AKT_ACCESSOR);
+  newacc->count = (uint32_t)count;
 
   newacc->byteOffset    = 0;
   /* New buffer is tightly-packed for this input alone (one accessor →
@@ -133,15 +166,13 @@ ak_meshReserveBufferForInput(AkMesh   * __restrict mesh,
      buffer end. Reset to fillByteSize so writes match the layout we
      allocated for. */
   newacc->byteStride    = newacc->fillByteSize;
-  srch                  = ak_heap_calloc(heap, meshobj, sizeof(*srch));
+  srch                  = ak_heap_alloc(heap, meshobj, sizeof(*srch));
+  srch->next            = NULL;
   srch->oldsource       = acci;
   srch->source          = newacc;
   newacc->buffer        = buffi;
   newacc->byteLength    = newacc->count * newacc->fillByteSize;
-
-  ak_heap_setpm(newacc, srch->source);
-
-  ak_map_add(edith->inputBufferMap, srch, input);
+  buffstate->sourceEdit = srch;
 }
 
 AK_EXPORT
@@ -162,13 +193,15 @@ AK_EXPORT
 AkSourceEditHelper*
 ak_meshSourceEditHelper(AkMesh  * __restrict mesh,
                         AkInput * __restrict input) {
-  AkMeshEditHelper   *edith;
+  AkSourceBuffState  *buffstate;
   AkSourceEditHelper *srch;
 
-  edith = mesh->edith;
-  assert(edith && ak_mesh_edit_assert1);
+  (void)mesh;
+  assert(mesh->edith && ak_mesh_edit_assert1);
 
-  srch = (AkSourceEditHelper *)ak_map_find(edith->inputBufferMap, input);
+  srch = NULL;
+  if ((buffstate = input->reserved))
+    srch = buffstate->sourceEdit;
 
   /* use old source as new */
   if (!srch) {
@@ -181,20 +214,27 @@ ak_meshSourceEditHelper(AkMesh  * __restrict mesh,
 AK_EXPORT
 void
 ak_meshMoveBuffers(AkMesh * __restrict mesh) {
-  AkHeap             *mapHeap;
   AkMeshEditHelper   *edith;
   AkSourceEditHelper *srch;
-  AkMapItem          *mi;
+  AkSourceBuffState  *buffstate, *next;
   AkInput            *input;
   AkMeshPrimitive    *prim;
 
   edith   = mesh->edith;
-  mapHeap = edith->inputBufferMap->heap;
-  mi      = edith->inputBufferMap->root;
+  buffstate = edith->bufferList;
 
-  while (mi) {
-    input = ak_heap_getId(mapHeap, ak__alignof(mi));
-    srch  = (AkSourceEditHelper *)mi->data;
+  while (buffstate) {
+    next  = buffstate->next;
+    input = buffstate->input;
+    srch  = buffstate->sourceEdit;
+    if (!input || !srch) {
+      if (input)
+        input->reserved = NULL;
+      ak_free(buffstate);
+      buffstate = next;
+      continue;
+    }
+
     prim  = ak_mem_parent(input);
 
     /* TODO */
@@ -204,10 +244,15 @@ ak_meshMoveBuffers(AkMesh * __restrict mesh) {
     ak_retain(srch->source);
 
     input->accessor = srch->source;
+    input->reserved = NULL;
 
     if (input->semantic == AK_INPUT_POSITION)
       prim->pos = input;
 
-    mi = mi->next;
+    ak_free(srch);
+    ak_free(buffstate);
+    buffstate = next;
   }
+
+  edith->bufferList = NULL;
 }

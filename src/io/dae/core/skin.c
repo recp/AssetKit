@@ -59,7 +59,7 @@ dae_skin(DAEState * __restrict dst,
       xjoints = xml->val;
       while (xjoints) {
         if (DAE_XML_TAG_EQ8(xjoints, input)) {
-          inp              = ak_heap_calloc(heap, skin, sizeof(*inp));
+          inp              = dae_input_new(heap, skin);
           inp->semanticRaw = dae_semanticRaw(DAE_XMLA8(xjoints, semantic),
                                              heap,
                                              inp,
@@ -98,7 +98,7 @@ dae_skin(DAEState * __restrict dst,
 
       while (xwei) {
         if (DAE_XML_TAG_EQ8(xwei, input)) {
-          inp              = ak_heap_calloc(heap, skin, sizeof(*inp));
+          inp              = dae_input_new(heap, skin);
           inp->semanticRaw = dae_semanticRaw(DAE_XMLA8(xwei, semantic),
                                              heap,
                                              inp,
