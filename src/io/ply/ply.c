@@ -34,6 +34,25 @@
 #include "../../string_fast.h"
 #include "../../strpool.h"
 
+#define PLY_COPY_INDICES(TYPE)                                                \
+  do {                                                                        \
+    AkDataChunk  *chunk_;                                                     \
+    const AkUInt *src_;                                                       \
+    TYPE         *dst_;                                                       \
+    size_t        i_, count_;                                                 \
+                                                                              \
+    chunk_ = pst->dc_ind->data;                                               \
+    dst_   = (TYPE *)(void *)prim->indices->items;                            \
+    while (chunk_) {                                                          \
+      src_   = (const AkUInt *)(const void *)chunk_->data;                    \
+      count_ = chunk_->usedsize / sizeof(AkUInt);                             \
+      for (i_ = 0; i_ < count_; i_++)                                         \
+        dst_[i_] = (TYPE)src_[i_];                                            \
+      dst_ += count_;                                                         \
+      chunk_ = chunk_->next;                                                  \
+    }                                                                         \
+  } while (0)
+
 AK_HIDE
 AkResult
 ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
@@ -519,10 +538,35 @@ ply_finish(PLYState * __restrict pst) {
     io_input(heap, prim, pst->ac_rgb, AK_INPUT_COLOR, _s_COLOR, 0);
   
   /* indices */
-  prim->indices = ak_indexArrayAlloc(heap,
-                                     tri,
-                                     pst->dc_ind->itemcount,
-                                     AKT_UINT);
-  prim->indices->count = pst->dc_ind->itemcount;
-  ak_data_join(pst->dc_ind, prim->indices->items, 0, 0);
+  {
+    AkTypeId componentType;
+    AkUInt   maxIndex;
+
+    maxIndex      = pst->vertcount > 0 ? pst->vertcount - 1 : 0;
+    componentType = ak_indexComponentTypeForMax(maxIndex);
+
+    prim->indices = ak_indexArrayAlloc(heap,
+                                       tri,
+                                       pst->dc_ind->itemcount,
+                                       componentType);
+    if (!prim->indices)
+      return;
+
+    prim->indices->count = pst->dc_ind->itemcount;
+    prim->indices->max   = maxIndex;
+
+    switch (componentType) {
+      case AKT_UBYTE:
+        PLY_COPY_INDICES(uint8_t);
+        break;
+      case AKT_USHORT:
+        PLY_COPY_INDICES(uint16_t);
+        break;
+      case AKT_UINT:
+        ak_data_join(pst->dc_ind, prim->indices->items, 0, 0);
+        break;
+      default:
+        break;
+    }
+  }
 }

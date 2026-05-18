@@ -110,15 +110,16 @@ uint32_t
 ak_meshTriangulatePoly(AkPolygon * __restrict poly) {
   AkHeap      *heap;
   AkIndexArray *newind;
-  AkUInt      *vc_it, *ind_it, *newind_it;
+  AkUInt      *vc_it;
+  uint8_t     *ind_it, *newind_it;
   AkUInt       nGenTrigs, nTrigs, i, st;
-  AkUInt       isz;
+  size_t       isz;
   AkBool       isTriList;
 
   if (!poly->vcount)
     return 0;
 
-  if (!ak_meshPrimitiveEnsureUIntIndices(&poly->base))
+  if (!ak_meshPrimitiveMaterializeIndices(&poly->base))
     return ak_meshTriangulatePoly_noindices(poly);
 
   /* we have only primitives for direct draw, no indexes :( */
@@ -148,15 +149,22 @@ ak_meshTriangulatePoly(AkPolygon * __restrict poly) {
     return 0;
   }
 
-  isz    = sizeof(AkUInt);
+  isz    = ak_indexComponentSize(poly->base.indices->componentType);
+  if (isz == 0)
+    return 0;
+
   heap   = ak_heap_getheap(poly->vcount);
-  ind_it = (AkUInt *)(void *)poly->base.indices->items;
+  ind_it = poly->base.indices->items;
   st     = poly->base.indexStride;
   newind = ak_indexArrayAlloc(heap,
                               poly,
                               ((nTrigs + nGenTrigs) * 3) * st,
-                              AKT_UINT);
-  newind_it = (AkUInt *)(void *)newind->items;
+                              poly->base.indices->componentType);
+  if (!newind)
+    return 0;
+
+  newind->max = poly->base.indices->max;
+  newind_it   = newind->items;
 
   for (i = 0; i < poly->vcount->count; i++) {
     uint32_t vc, j;
@@ -165,17 +173,17 @@ ak_meshTriangulatePoly(AkPolygon * __restrict poly) {
     if (vc > 2) {
       for (j = 1; j < vc - 1; j++) {
         memcpy(newind_it, ind_it, st * isz);
-        newind_it += st;
+        newind_it += st * isz;
 
-        memcpy(newind_it, ind_it + j * st, 2 * st * isz);
-        newind_it += 2 * st;
+        memcpy(newind_it, ind_it + j * st * isz, 2 * st * isz);
+        newind_it += 2 * st * isz;
       }
     } else {
       memcpy(newind_it, ind_it, vc * st * isz);
-      newind_it += vc * st;
+      newind_it += vc * st * isz;
     }
 
-    ind_it += vc * st;
+    ind_it += vc * st * isz;
   }
 
   ak_free(poly->base.indices);

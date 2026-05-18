@@ -16,7 +16,85 @@
 
 #include "util.h"
 
-#define wobj_real_index(count, val) val > 0 ? val - 1 : count - val
+#define wobj_real_index(count, val)                                           \
+  ((AkUInt)((val) > 0 ? (val) - 1 : (AkInt)(count) + (val)))
+
+#define WOBJ_JOIN_INDICES(TYPE)                                               \
+  do {                                                                        \
+    TYPE *dst_;                                                               \
+                                                                              \
+    dst_ = (TYPE *)(void *)prim->indices->items;                              \
+                                                                              \
+    if (wp->hasNormal && wp->hasTexture) {                                    \
+      while (chunk) {                                                         \
+        csz = chunk->usedsize;                                                \
+        it2 = (void *)chunk->data;                                            \
+                                                                              \
+        for (i = 0; i < csz; i += isz) {                                      \
+          val = it2[0];                                                       \
+          dst_[0] = (TYPE)wobj_real_index(count_pos, val);                    \
+                                                                              \
+          val = it2[1];                                                       \
+          dst_[1] = (TYPE)wobj_real_index(count_tex, val);                    \
+                                                                              \
+          val = it2[2];                                                       \
+          dst_[2] = (TYPE)wobj_real_index(count_nor, val);                    \
+                                                                              \
+          dst_ += 3;                                                          \
+          it2  += 3;                                                          \
+        }                                                                     \
+        chunk = chunk->next;                                                  \
+      }                                                                       \
+    } else if (wp->hasNormal) {                                               \
+      while (chunk) {                                                         \
+        csz = chunk->usedsize;                                                \
+        it2 = (void *)chunk->data;                                            \
+                                                                              \
+        for (i = 0; i < csz; i += isz) {                                      \
+          val = it2[0];                                                       \
+          dst_[0] = (TYPE)wobj_real_index(count_pos, val);                    \
+                                                                              \
+          val = it2[2];                                                       \
+          dst_[1] = (TYPE)wobj_real_index(count_nor, val);                    \
+                                                                              \
+          dst_ += 2;                                                          \
+          it2  += 3;                                                          \
+        }                                                                     \
+        chunk = chunk->next;                                                  \
+      }                                                                       \
+    } else if (wp->hasTexture) {                                              \
+      while (chunk) {                                                         \
+        csz = chunk->usedsize;                                                \
+        it2 = (void *)chunk->data;                                            \
+                                                                              \
+        for (i = 0; i < csz; i += isz) {                                      \
+          val = it2[0];                                                       \
+          dst_[0] = (TYPE)wobj_real_index(count_pos, val);                    \
+                                                                              \
+          val = it2[1];                                                       \
+          dst_[1] = (TYPE)wobj_real_index(count_tex, val);                    \
+                                                                              \
+          dst_ += 2;                                                          \
+          it2  += 3;                                                          \
+        }                                                                     \
+        chunk = chunk->next;                                                  \
+      }                                                                       \
+    } else {                                                                  \
+      while (chunk) {                                                         \
+        csz = chunk->usedsize;                                                \
+        it2 = (void *)chunk->data;                                            \
+                                                                              \
+        for (i = 0; i < csz; i += isz) {                                      \
+          val = it2[0];                                                       \
+          dst_[0] = (TYPE)wobj_real_index(count_pos, val);                    \
+                                                                              \
+          dst_ += 1;                                                          \
+          it2  += 3;                                                          \
+        }                                                                     \
+        chunk = chunk->next;                                                  \
+      }                                                                       \
+    }                                                                         \
+  } while (0)
 
 AK_HIDE
 AkAccessor*
@@ -86,7 +164,9 @@ wobj_joinIndices(WOState         * __restrict wst,
                  WOPrim          * __restrict wp,
                  AkMeshPrimitive * __restrict prim) {
   AkDataChunk *chunk;
-  AkUInt      *it, *it2, val;
+  AkInt       *it2, val;
+  AkUInt       maxIndex;
+  AkTypeId     componentType;
   size_t       count;
   size_t       isz, csz, i;
   uint32_t     istride, count_pos, count_tex, count_nor;
@@ -97,100 +177,38 @@ wobj_joinIndices(WOState         * __restrict wst,
   count   = wp->dc_face->itemcount;
   istride = 1;
 
-  count_pos = wst->ac_pos->count;
-  count_tex = wst->ac_tex->count;
-  count_nor = wst->ac_nor->count;
+  count_pos = wst->ac_pos ? wst->ac_pos->count : 0;
+  count_tex = wst->ac_tex ? wst->ac_tex->count : 0;
+  count_nor = wst->ac_nor ? wst->ac_nor->count : 0;
+  maxIndex  = count_pos > 0 ? count_pos - 1 : 0;
 
   if (wp->hasTexture || wp->hasNormal) {
     istride += (int)wp->hasNormal + (int)wp->hasTexture;
     count   *= istride;
   }
 
-  prim->indices = ak_indexArrayAlloc(wst->heap, prim, count, AKT_UINT);
-  prim->indexStride    = istride;
+  if (wp->hasTexture && count_tex > 0 && count_tex - 1 > maxIndex)
+    maxIndex = count_tex - 1;
+  if (wp->hasNormal && count_nor > 0 && count_nor - 1 > maxIndex)
+    maxIndex = count_nor - 1;
 
-  it = (AkUInt *)(void *)prim->indices->items;
+  componentType     = ak_indexComponentTypeForMax(maxIndex);
+  prim->indices     = ak_indexArrayAlloc(wst->heap, prim, count, componentType);
+  prim->indexStride = istride;
+  if (!prim->indices)
+    return;
+
+  prim->indices->max = maxIndex;
 
   /* join index buffer chunks */
   isz   = wp->dc_face->itemsize;
   chunk = wp->dc_face->data;
 
   /* to make it faster split cases */
-  if (wp->hasNormal && wp->hasTexture) {
-    while (chunk) {
-      csz = chunk->usedsize;
-      it2 = (void *)chunk->data;
-
-      for (i = 0; i < csz; i += isz) {
-        /* position */
-        val = *it2;
-        *it = wobj_real_index(count_pos, val);
-
-        /* texture */
-        val = *(it2 + 1);
-        *(it + 1) = wobj_real_index(count_tex, val);
-
-        /* normal */
-        val = *(it2 + 2);
-        *(it + 2) = wobj_real_index(count_nor, val);
-
-        it  += 3;
-        it2 += 3;
-      }
-      chunk = chunk->next;
-    }
-  } else if (wp->hasNormal) {
-    while (chunk) {
-      csz = chunk->usedsize;
-      it2 = (void *)chunk->data;
-
-      for (i = 0; i < csz; i += isz) {
-        /* position */
-        val = *it2;
-        *it = wobj_real_index(count_pos, val);
-        
-        /* normal */
-        val = *(it2 + 2);
-        *(it + 1) = wobj_real_index(count_nor, val);
-
-        it  += 2;
-        it2 += 3;
-      }
-      chunk = chunk->next;
-    }
-  } else if (wp->hasTexture) {
-    while (chunk) {
-      csz = chunk->usedsize;
-      it2 = (void *)chunk->data;
-
-      for (i = 0; i < csz; i += isz) {
-        /* position */
-        val = *it2;
-        *it = wobj_real_index(count_pos, val);
-        
-        /* texture */
-        val = *(it2 + 1);
-        *(it + 1) = wobj_real_index(count_tex, val);
-
-        it  += 2;
-        it2 += 3;
-      }
-      chunk = chunk->next;
-    }
-  } else {
-    while (chunk) {
-      csz = chunk->usedsize;
-      it2 = (void *)chunk->data;
-
-      for (i = 0; i < csz; i += isz) {
-        /* position */
-        val = *it2;
-        *it = wobj_real_index(count_pos, val);
-
-        it  += 1;
-        it2 += 3;
-      }
-      chunk = chunk->next;
-    }
+  switch (componentType) {
+    case AKT_UBYTE:  WOBJ_JOIN_INDICES(uint8_t);  break;
+    case AKT_USHORT: WOBJ_JOIN_INDICES(uint16_t); break;
+    case AKT_UINT:   WOBJ_JOIN_INDICES(uint32_t); break;
+    default:         break;
   }
 }

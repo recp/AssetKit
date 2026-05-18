@@ -16,6 +16,124 @@
 
 #include "topo.h"
 
+#define AK_TOPO_WRITE_NOIND_TRIFAN(TYPE)                                     \
+  do {                                                                        \
+    TYPE *dst_;                                                               \
+                                                                              \
+    dst_ = (TYPE *)(void *)indices->items;                                    \
+    for (i = 0, j = 0; i < ntrigs; ++i) {                                     \
+      dst_[j++] = 0;                                                          \
+      dst_[j++] = (TYPE)(i + 1);                                              \
+      dst_[j++] = (TYPE)(i + 2);                                              \
+    }                                                                         \
+  } while (0)
+
+#define AK_TOPO_WRITE_NOIND_TRISTRIP(TYPE)                                   \
+  do {                                                                        \
+    TYPE *dst_;                                                               \
+                                                                              \
+    dst_ = (TYPE *)(void *)indices->items;                                    \
+    for (i = 0, j = 0; i < ntrigs; ++i) {                                     \
+      if (i % 2 == 0) {                                                       \
+        dst_[j++] = (TYPE)i;                                                  \
+        dst_[j++] = (TYPE)(i + 1);                                            \
+        dst_[j++] = (TYPE)(i + 2);                                            \
+      } else {                                                                \
+        dst_[j++] = (TYPE)(i + 2);                                            \
+        dst_[j++] = (TYPE)(i + 1);                                            \
+        dst_[j++] = (TYPE)i;                                                  \
+      }                                                                       \
+    }                                                                         \
+  } while (0)
+
+#define AK_TOPO_WRITE_NOIND_LINE_LOOP(TYPE)                                  \
+  do {                                                                        \
+    TYPE *dst_;                                                               \
+                                                                              \
+    dst_ = (TYPE *)(void *)indices->items;                                    \
+    for (i = 0; i < nVertices - 1; ++i) {                                     \
+      dst_[i * 2]     = (TYPE)i;                                              \
+      dst_[i * 2 + 1] = (TYPE)(i + 1);                                        \
+    }                                                                         \
+                                                                              \
+    dst_[(nVertices - 1) * 2]     = (TYPE)(nVertices - 1);                    \
+    dst_[(nVertices - 1) * 2 + 1] = 0;                                        \
+  } while (0)
+
+#define AK_TOPO_WRITE_NOIND_LINE_STRIP(TYPE)                                 \
+  do {                                                                        \
+    TYPE *dst_;                                                               \
+                                                                              \
+    dst_ = (TYPE *)(void *)indices->items;                                    \
+    for (i = 0; i < nlines; ++i) {                                            \
+      dst_[i * 2]     = (TYPE)i;                                              \
+      dst_[i * 2 + 1] = (TYPE)(i + 1);                                        \
+    }                                                                         \
+  } while (0)
+
+#define AK_TOPO_WRITE_IND_TRIFAN(TYPE)                                       \
+  do {                                                                        \
+    const TYPE *src_;                                                         \
+    TYPE       *dst_;                                                         \
+                                                                              \
+    src_ = (const TYPE *)(const void *)prim->indices->items;                  \
+    dst_ = (TYPE *)(void *)newIndices->items;                                 \
+    for (i = 0, j = 0; i < nTriangles; ++i) {                                 \
+      dst_[j++] = src_[0];                                                    \
+      dst_[j++] = src_[i + 1];                                                \
+      dst_[j++] = src_[i + 2];                                                \
+    }                                                                         \
+  } while (0)
+
+#define AK_TOPO_WRITE_IND_TRISTRIP(TYPE)                                     \
+  do {                                                                        \
+    const TYPE *src_;                                                         \
+    TYPE       *dst_;                                                         \
+                                                                              \
+    src_ = (const TYPE *)(const void *)prim->indices->items;                  \
+    dst_ = (TYPE *)(void *)newIndices->items;                                 \
+    for (i = 0, j = 0; i < nTriangles; ++i) {                                 \
+      dst_[j++] = src_[i];                                                    \
+                                                                              \
+      if (i % 2 == 0) {                                                       \
+        dst_[j++] = src_[i + 1];                                              \
+        dst_[j++] = src_[i + 2];                                              \
+      } else {                                                                \
+        dst_[j++] = src_[i + 2];                                              \
+        dst_[j++] = src_[i + 1];                                              \
+      }                                                                       \
+    }                                                                         \
+  } while (0)
+
+#define AK_TOPO_WRITE_IND_LINE_LOOP(TYPE)                                    \
+  do {                                                                        \
+    const TYPE *src_;                                                         \
+    TYPE       *dst_;                                                         \
+                                                                              \
+    src_ = (const TYPE *)(const void *)prim->indices->items;                  \
+    dst_ = (TYPE *)(void *)newIndices->items;                                 \
+    for (i = 0; i < nIndices - 1; ++i) {                                      \
+      dst_[i * 2]     = src_[i];                                              \
+      dst_[i * 2 + 1] = src_[i + 1];                                          \
+    }                                                                         \
+                                                                              \
+    dst_[(nIndices - 1) * 2]     = src_[nIndices - 1];                        \
+    dst_[(nIndices - 1) * 2 + 1] = src_[0];                                   \
+  } while (0)
+
+#define AK_TOPO_WRITE_IND_LINE_STRIP(TYPE)                                   \
+  do {                                                                        \
+    const TYPE *src_;                                                         \
+    TYPE       *dst_;                                                         \
+                                                                              \
+    src_ = (const TYPE *)(const void *)prim->indices->items;                  \
+    dst_ = (TYPE *)(void *)newIndices->items;                                 \
+    for (i = 0; i < nLines; ++i) {                                            \
+      dst_[i * 2]     = src_[i];                                              \
+      dst_[i * 2 + 1] = src_[i + 1];                                          \
+    }                                                                         \
+  } while (0)
+
 static
 bool
 topofix_prim_needs(AkMeshPrimitive * __restrict prim,
@@ -65,7 +183,8 @@ topofix_noind(AkHeap          * __restrict heap,
   AkAccessor  *acc;
   AkBuffer    *buff;
   AkIndexArray *indices;
-  AkUInt      *it, nVertices, i, j;
+  AkTypeId      componentType;
+  AkUInt        nVertices, i, j;
 
   if (!(input = prim->pos)
       || !(acc  = input->accessor)
@@ -74,6 +193,10 @@ topofix_noind(AkHeap          * __restrict heap,
   }
 
   nVertices = acc->count;
+  if (nVertices == 0)
+    return;
+
+  componentType = ak_indexComponentTypeForMax(nVertices - 1);
 
   switch (prim->type) {
     case AK_PRIMITIVE_TRIANGLES: {
@@ -89,32 +212,33 @@ topofix_noind(AkHeap          * __restrict heap,
           default:                return;
         }
 
+        if (nVertices < 3)
+          return;
+
         ntrigs         = nVertices - 2;
-        indices = ak_indexArrayAlloc(heap, prim, ntrigs * 3, AKT_UINT);
-        it      = (AkUInt *)(void *)indices->items;
+        indices = ak_indexArrayAlloc(heap, prim, ntrigs * 3, componentType);
+        if (!indices)
+          return;
+        indices->max = nVertices - 1;
 
         switch (trig->mode) {
           case AK_TRIANGLE_FAN:
             if (trig_fan) {
-              for (i = 0, j = 0; i < ntrigs; ++i) {
-                it[j++] = 0; /* center vertex */
-                it[j++] = i + 1;
-                it[j++] = i + 2;
+              switch (componentType) {
+                case AKT_UBYTE:  AK_TOPO_WRITE_NOIND_TRIFAN(uint8_t);  break;
+                case AKT_USHORT: AK_TOPO_WRITE_NOIND_TRIFAN(uint16_t); break;
+                case AKT_UINT:   AK_TOPO_WRITE_NOIND_TRIFAN(uint32_t); break;
+                default:         ak_free(indices); return;
               }
             }
             break;
           case AK_TRIANGLE_STRIP:
             if (trig_strip) {
-              for (i = 0, j = 0; i < ntrigs; ++i) {
-                if (i % 2 == 0) {
-                  it[j++] = i;
-                  it[j++] = i + 1;
-                  it[j++] = i + 2;
-                } else {
-                  it[j++] = i + 2;
-                  it[j++] = i + 1;
-                  it[j++] = i;
-                }
+              switch (componentType) {
+                case AKT_UBYTE:  AK_TOPO_WRITE_NOIND_TRISTRIP(uint8_t);  break;
+                case AKT_USHORT: AK_TOPO_WRITE_NOIND_TRISTRIP(uint16_t); break;
+                case AKT_UINT:   AK_TOPO_WRITE_NOIND_TRISTRIP(uint32_t); break;
+                default:         ak_free(indices); return;
               }
             }
             break;
@@ -138,18 +262,24 @@ topofix_noind(AkHeap          * __restrict heap,
         switch (lines->mode) {
           case AK_LINE_LOOP:
             if (line_loop) {
+              if (nVertices < 2)
+                return;
+
               nlines         = nVertices;
-              indices = ak_indexArrayAlloc(heap, prim, nlines * 2, AKT_UINT);
-              it      = (AkUInt *)(void *)indices->items;
+              indices = ak_indexArrayAlloc(heap,
+                                           prim,
+                                           nlines * 2,
+                                           componentType);
+              if (!indices)
+                return;
+              indices->max = nVertices - 1;
 
-              for (i = 0; i < nVertices - 1; ++i) {
-                it[i * 2]     = i;
-                it[i * 2 + 1] = i + 1;
+              switch (componentType) {
+                case AKT_UBYTE:  AK_TOPO_WRITE_NOIND_LINE_LOOP(uint8_t);  break;
+                case AKT_USHORT: AK_TOPO_WRITE_NOIND_LINE_LOOP(uint16_t); break;
+                case AKT_UINT:   AK_TOPO_WRITE_NOIND_LINE_LOOP(uint32_t); break;
+                default:         ak_free(indices); return;
               }
-
-              /* close the loop */
-              it[(nVertices - 1) * 2] = nVertices - 1;
-              it[(nVertices - 1) * 2 + 1] = 0;
 
               lines->mode       = AK_LINES;
               prim->indices     = indices;
@@ -159,13 +289,23 @@ topofix_noind(AkHeap          * __restrict heap,
             break;
           case AK_LINE_STRIP:
             if (line_strip) {
-              nlines         = nVertices - 1;
-              indices = ak_indexArrayAlloc(heap, prim, nlines * 2, AKT_UINT);
-              it      = (AkUInt *)(void *)indices->items;
+              if (nVertices < 2)
+                return;
 
-              for (i = 0; i < nlines; ++i) {
-                it[i * 2]     = i;
-                it[i * 2 + 1] = i + 1;
+              nlines         = nVertices - 1;
+              indices = ak_indexArrayAlloc(heap,
+                                           prim,
+                                           nlines * 2,
+                                           componentType);
+              if (!indices)
+                return;
+              indices->max = nVertices - 1;
+
+              switch (componentType) {
+                case AKT_UBYTE:  AK_TOPO_WRITE_NOIND_LINE_STRIP(uint8_t);  break;
+                case AKT_USHORT: AK_TOPO_WRITE_NOIND_LINE_STRIP(uint16_t); break;
+                case AKT_UINT:   AK_TOPO_WRITE_NOIND_LINE_STRIP(uint32_t); break;
+                default:         ak_free(indices); return;
               }
 
               lines->mode       = AK_LINES;
@@ -190,11 +330,12 @@ topofix_ind(AkHeap          * __restrict heap,
             uint8_t                      trig_strip,
             uint8_t                      line_loop,
             uint8_t                      line_strip) {
-  AkUInt      *it, *newIt, nIndices, i, j;
+  AkUInt        nIndices, i, j;
+  AkTypeId      componentType;
   AkIndexArray *newIndices;
 
-  it       = (AkUInt *)(void *)prim->indices->items;
-  nIndices = (AkUInt)prim->indices->count;
+  nIndices      = (AkUInt)prim->indices->count;
+  componentType = prim->indices->componentType;
 
   switch (prim->type) {
     case AK_PRIMITIVE_TRIANGLES: {
@@ -210,20 +351,26 @@ topofix_ind(AkHeap          * __restrict heap,
           default:                return;
         }
 
+        if (nIndices < 3)
+          return;
+
         nTriangles        = nIndices - 2;
         newIndices = ak_indexArrayAlloc(heap,
                                         prim,
                                         nTriangles * 3,
-                                        AKT_UINT);
-        newIt      = (AkUInt *)(void *)newIndices->items;
+                                        componentType);
+        if (!newIndices)
+          return;
+        newIndices->max = prim->indices->max;
 
         switch (trig->mode) {
           case AK_TRIANGLE_FAN:
             if (trig_fan) {
-              for (i = 0, j = 0; i < nTriangles; ++i) {
-                newIt[j++] = it[0];
-                newIt[j++] = it[i + 1];
-                newIt[j++] = it[i + 2];
+              switch (componentType) {
+                case AKT_UBYTE:  AK_TOPO_WRITE_IND_TRIFAN(uint8_t);  break;
+                case AKT_USHORT: AK_TOPO_WRITE_IND_TRIFAN(uint16_t); break;
+                case AKT_UINT:   AK_TOPO_WRITE_IND_TRIFAN(uint32_t); break;
+                default:         ak_free(newIndices); return;
               }
 
               trig->mode = AK_TRIANGLES;
@@ -231,16 +378,11 @@ topofix_ind(AkHeap          * __restrict heap,
             break;
           case AK_TRIANGLE_STRIP:
             if (trig_strip) {
-              for (i = 0, j = 0; i < nTriangles; ++i) {
-                newIt[j++] = it[i];
-
-                if (i % 2 == 0) {
-                  newIt[j++] = it[i + 1];
-                  newIt[j++] = it[i + 2];
-                } else {
-                  newIt[j++] = it[i + 2];
-                  newIt[j++] = it[i + 1];
-                }
+              switch (componentType) {
+                case AKT_UBYTE:  AK_TOPO_WRITE_IND_TRISTRIP(uint8_t);  break;
+                case AKT_USHORT: AK_TOPO_WRITE_IND_TRISTRIP(uint16_t); break;
+                case AKT_UINT:   AK_TOPO_WRITE_IND_TRISTRIP(uint32_t); break;
+                default:         ak_free(newIndices); return;
               }
 
               trig->mode = AK_TRIANGLES;
@@ -265,21 +407,24 @@ topofix_ind(AkHeap          * __restrict heap,
         switch (lines->mode) {
           case AK_LINE_LOOP:
             if (line_loop) {
+              if (nIndices < 2)
+                return;
+
               nLines            = nIndices;
               newIndices = ak_indexArrayAlloc(heap,
                                               prim,
                                               nLines * 2,
-                                              AKT_UINT);
-              newIt      = (AkUInt *)(void *)newIndices->items;
+                                              componentType);
+              if (!newIndices)
+                return;
+              newIndices->max = prim->indices->max;
 
-              for (i = 0; i < nIndices - 1; ++i) {
-                newIt[i * 2]     = it[i];
-                newIt[i * 2 + 1] = it[i + 1];
+              switch (componentType) {
+                case AKT_UBYTE:  AK_TOPO_WRITE_IND_LINE_LOOP(uint8_t);  break;
+                case AKT_USHORT: AK_TOPO_WRITE_IND_LINE_LOOP(uint16_t); break;
+                case AKT_UINT:   AK_TOPO_WRITE_IND_LINE_LOOP(uint32_t); break;
+                default:         ak_free(newIndices); return;
               }
-
-              /* close the loop */
-              newIt[(nIndices - 1) * 2]     = it[nIndices - 1];
-              newIt[(nIndices - 1) * 2 + 1] = it[0];
 
               ak_free(prim->indices);
               prim->indices = newIndices;
@@ -290,16 +435,23 @@ topofix_ind(AkHeap          * __restrict heap,
             break;
           case AK_LINE_STRIP:
             if (line_strip) {
+              if (nIndices < 2)
+                return;
+
               nLines            = nIndices - 1;
               newIndices = ak_indexArrayAlloc(heap,
                                               prim,
                                               nLines * 2,
-                                              AKT_UINT);
-              newIt      = (AkUInt *)(void *)newIndices->items;
+                                              componentType);
+              if (!newIndices)
+                return;
+              newIndices->max = prim->indices->max;
 
-              for (i = 0; i < nLines; ++i) {
-                newIt[i * 2]     = it[i];
-                newIt[i * 2 + 1] = it[i + 1];
+              switch (componentType) {
+                case AKT_UBYTE:  AK_TOPO_WRITE_IND_LINE_STRIP(uint8_t);  break;
+                case AKT_USHORT: AK_TOPO_WRITE_IND_LINE_STRIP(uint16_t); break;
+                case AKT_UINT:   AK_TOPO_WRITE_IND_LINE_STRIP(uint32_t); break;
+                default:         ak_free(newIndices); return;
               }
 
               ak_free(prim->indices);
@@ -340,7 +492,7 @@ topofix(AkMesh * mesh) {
       goto next;
 
     if (prim->indices || prim->indexAccessor) {
-      ak_meshPrimitiveEnsureUIntIndices(prim);
+      ak_meshPrimitiveMaterializeIndices(prim);
 
       if (prim->indices)
         topofix_ind(heap, prim, trig_fan, trig_strip, line_loop, line_strip);
