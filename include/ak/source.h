@@ -35,6 +35,8 @@ extern "C" {
 
 struct AkTechnique;
 struct AkBuffer;
+struct AkIndexArray;
+typedef struct AkIndexArray AkIndexArray;
 
 /* for vectors: item count,
    for matrics: item count | matrix size
@@ -107,8 +109,8 @@ typedef struct AkSource {
 
 typedef struct AkDuplicatorRange {
   struct AkDuplicatorRange *next;
-  AkUIntArray              *dupc;
-  AkUIntArray              *dupcsum;
+  AkIndexArray             *dupc;
+  AkIndexArray             *dupcsum;
   size_t                    startIndex;
   size_t                    endIndex;
 } AkDuplicatorRange;

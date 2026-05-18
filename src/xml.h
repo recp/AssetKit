@@ -31,6 +31,13 @@ xml_strtoui_fast(const xml_t * __restrict xobj,
 
 AK_EXPORT
 unsigned long
+xml_strtoui_fast_max(const xml_t * __restrict xobj,
+                     AkUInt      * __restrict dest,
+                     unsigned long            n,
+                     AkUInt      * __restrict maxValue);
+
+AK_EXPORT
+unsigned long
 xml_strtoi_fast(const xml_t * __restrict xobj,
                 AkInt       * __restrict dest,
                 unsigned long            n);
@@ -62,11 +69,60 @@ xml_strtoui_array(AkHeap       * __restrict heap,
 
 AK_EXPORT
 AkResult
+xml_strtoui_array_max(AkHeap       * __restrict heap,
+                      void         * __restrict memp,
+                      const xml_t  * __restrict xobj,
+                      AkUIntArray ** __restrict array,
+                      AkUInt      * __restrict maxValue);
+
+AK_EXPORT
+AkResult
 xml_strtoui_arrayN(AkHeap       * __restrict heap,
                    void         * __restrict memp,
                    const xml_t  * __restrict xobj,
                    unsigned long             count,
                    AkUIntArray ** __restrict array);
+
+AK_EXPORT
+AkResult
+xml_strtoui_arrayN_max(AkHeap       * __restrict heap,
+                       void         * __restrict memp,
+                       const xml_t  * __restrict xobj,
+                       unsigned long             count,
+                       AkUIntArray ** __restrict array,
+                       AkUInt      * __restrict maxValue);
+
+AK_EXPORT
+AkResult
+xml_strtoindex_array(AkHeap        * __restrict heap,
+                     void          * __restrict memp,
+                     const xml_t   * __restrict xobj,
+                     AkIndexArray ** __restrict array);
+
+AK_EXPORT
+AkResult
+xml_strtoindex_array_max(AkHeap        * __restrict heap,
+                         void          * __restrict memp,
+                         const xml_t   * __restrict xobj,
+                         AkIndexArray ** __restrict array,
+                         AkUInt       * __restrict maxValue);
+
+AK_EXPORT
+AkResult
+xml_strtoindex_arrayN(AkHeap        * __restrict heap,
+                      void          * __restrict memp,
+                      const xml_t   * __restrict xobj,
+                      unsigned long              count,
+                      AkIndexArray ** __restrict array);
+
+AK_EXPORT
+AkResult
+xml_strtoindex_arrayN_max(AkHeap        * __restrict heap,
+                          void          * __restrict memp,
+                          const xml_t   * __restrict xobj,
+                          unsigned long              count,
+                          AkIndexArray ** __restrict array,
+                          AkUInt       * __restrict maxValue);
 
 AK_EXPORT
 char *

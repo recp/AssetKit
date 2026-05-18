@@ -109,7 +109,7 @@ AK_EXPORT
 uint32_t
 ak_meshTriangulatePoly(AkPolygon * __restrict poly) {
   AkHeap      *heap;
-  AkUIntArray *newind;
+  AkIndexArray *newind;
   AkUInt      *vc_it, *ind_it, *newind_it;
   AkUInt       nGenTrigs, nTrigs, i, st;
   AkUInt       isz;
@@ -117,6 +117,9 @@ ak_meshTriangulatePoly(AkPolygon * __restrict poly) {
 
   if (!poly->vcount)
     return 0;
+
+  if (!ak_meshPrimitiveEnsureUIntIndices(&poly->base))
+    return ak_meshTriangulatePoly_noindices(poly);
 
   /* we have only primitives for direct draw, no indexes :( */
   if (!poly->base.indices)
@@ -147,14 +150,13 @@ ak_meshTriangulatePoly(AkPolygon * __restrict poly) {
 
   isz    = sizeof(AkUInt);
   heap   = ak_heap_getheap(poly->vcount);
-  ind_it = poly->base.indices->items;
+  ind_it = (AkUInt *)(void *)poly->base.indices->items;
   st     = poly->base.indexStride;
-  newind = ak_heap_alloc(heap,
-                         poly,
-                         sizeof(*newind)
-                         + isz * ((nTrigs + nGenTrigs) * 3) * st);
-  newind->count = ((nTrigs + nGenTrigs) * 3) * st;
-  newind_it     = newind->items;
+  newind = ak_indexArrayAlloc(heap,
+                              poly,
+                              ((nTrigs + nGenTrigs) * 3) * st,
+                              AKT_UINT);
+  newind_it = (AkUInt *)(void *)newind->items;
 
   for (i = 0; i < poly->vcount->count; i++) {
     uint32_t vc, j;
@@ -178,6 +180,7 @@ ak_meshTriangulatePoly(AkPolygon * __restrict poly) {
 
   ak_free(poly->base.indices);
   poly->base.indices   = newind;
+  poly->base.indexAccessor = NULL;
   ak_meshPolyMarkTriangles(poly, nGenTrigs + nTrigs);
 
   return nGenTrigs;

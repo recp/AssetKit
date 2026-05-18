@@ -57,7 +57,7 @@ ak_skinFixWeights(AkMesh * __restrict mesh) {
   AkBoneWeights   *wl;
   AkBoneWeight    *w, *iw, *old, *oiw;
   AkDuplicator    *dupl;
-  AkUIntArray     *dupc, *dupcsum;
+  AkIndexArray    *dupc, *dupcsum;
   AkAccessor      *acci;
   size_t          *pOldIndex, *wi;
   size_t           vc, d, s, pno, poo, nwsum, newidx, next, tmp, count;
@@ -98,8 +98,8 @@ ak_skinFixWeights(AkMesh * __restrict mesh) {
       if (!dupc || !dupcsum)
         goto nxt_prim;
 
-      if (dupc->count < vc)
-        vc = dupc->count;
+      if ((dupc->count / 3) < vc)
+        vc = dupc->count / 3;
 
       nwsum       = 0;
 
@@ -107,30 +107,111 @@ ak_skinFixWeights(AkMesh * __restrict mesh) {
       nj          = ak_heap_alloc(heap, wl, count * sizeof(uint32_t));
       wi          = ak_heap_alloc(heap, wl, count * sizeof(size_t));
 
+#define AK_SKIN_FIX_DISPATCH(OP)                                            \
+      do {                                                                  \
+        switch (dupc->componentType) {                                       \
+          case AKT_UBYTE:                                                    \
+            switch (dupcsum->componentType) {                                \
+              case AKT_UBYTE:  OP(uint8_t, uint8_t);   break;               \
+              case AKT_USHORT: OP(uint8_t, uint16_t);  break;               \
+              case AKT_UINT:   OP(uint8_t, AkUInt);    break;               \
+              default: break;                                                \
+            }                                                               \
+            break;                                                          \
+          case AKT_USHORT:                                                   \
+            switch (dupcsum->componentType) {                                \
+              case AKT_UBYTE:  OP(uint16_t, uint8_t);  break;               \
+              case AKT_USHORT: OP(uint16_t, uint16_t); break;               \
+              case AKT_UINT:   OP(uint16_t, AkUInt);   break;               \
+              default: break;                                                \
+            }                                                               \
+            break;                                                          \
+          case AKT_UINT:                                                     \
+            switch (dupcsum->componentType) {                                \
+              case AKT_UBYTE:  OP(AkUInt, uint8_t);    break;               \
+              case AKT_USHORT: OP(AkUInt, uint16_t);   break;               \
+              case AKT_UINT:   OP(AkUInt, AkUInt);     break;               \
+              default: break;                                                \
+            }                                                               \
+            break;                                                          \
+          default: break;                                                    \
+        }                                                                   \
+      } while (0)
+
+#define AK_SKIN_FIX_COUNT_PASS(DUPTYPE, SUMTYPE)                            \
+      do {                                                                  \
+        const DUPTYPE *dupcItems_;                                           \
+        const SUMTYPE *sumItems_;                                            \
+                                                                            \
+        dupcItems_ = (const DUPTYPE *)(const void *)dupc->items;             \
+        sumItems_  = (const SUMTYPE *)(const void *)dupcsum->items;          \
+        for (i = 0; i < vc; i++) {                                           \
+          if ((poo = dupcItems_[3 * i + 2]) == 0)                            \
+            continue;                                                        \
+          if (poo > oldVertex)                                               \
+            continue;                                                        \
+                                                                            \
+          pno = dupcItems_[3 * i];                                           \
+          d   = dupcItems_[3 * i + 1];                                       \
+          if (pno >= dupcsum->count)                                         \
+            continue;                                                        \
+                                                                            \
+          s      = sumItems_[pno];                                           \
+          vcount = wl->counts[poo - 1];                                      \
+                                                                            \
+          for (j = 0; j <= d; j++) {                                         \
+            newidx = pno + j + s;                                            \
+            if (newidx >= count)                                             \
+              continue;                                                      \
+            wi[newidx] = vcount;                                             \
+            nj[newidx] = vcount;                                             \
+            nwsum     += vcount;                                             \
+          }                                                                 \
+        }                                                                   \
+      } while (0)
+
+#define AK_SKIN_FIX_COPY_PASS(DUPTYPE, SUMTYPE)                             \
+      do {                                                                  \
+        const DUPTYPE *dupcItems_;                                           \
+        const SUMTYPE *sumItems_;                                            \
+                                                                            \
+        dupcItems_ = (const DUPTYPE *)(const void *)dupc->items;             \
+        sumItems_  = (const SUMTYPE *)(const void *)dupcsum->items;          \
+        for (i = 0; i < vc; i++) {                                           \
+          if ((poo = dupcItems_[3 * i + 2]) == 0)                            \
+            continue;                                                        \
+          if (poo > oldVertex)                                               \
+            continue;                                                        \
+                                                                            \
+          pno = dupcItems_[3 * i];                                           \
+          d   = dupcItems_[3 * i + 1];                                       \
+          if (pno >= dupcsum->count)                                         \
+            continue;                                                        \
+                                                                            \
+          s      = sumItems_[pno];                                           \
+          vcount = wl->counts[poo - 1];                                      \
+                                                                            \
+          for (j = 0; j <= d; j++) {                                         \
+            tmp = pno + j + s;                                               \
+            if (tmp >= count)                                                \
+              continue;                                                      \
+                                                                            \
+            newidx = wi[tmp];                                                \
+                                                                            \
+            for (k = 0; k < vcount; k++) {                                   \
+              iw         = &w[newidx + k];                                   \
+              oiw        = &old[pOldIndex[poo - 1] + k];                    \
+              iw->joint  = oiw->joint;                                      \
+              iw->weight = oiw->weight;                                     \
+            }                                                               \
+                                                                            \
+            nwsum += vcount;                                                 \
+          }                                                                 \
+        }                                                                   \
+      } while (0)
+
       /* copy to new location and duplicate if needed */
-      for (i = 0; i < vc; i++) {
-        if ((poo = dupc->items[3 * i + 2]) == 0)
-          continue;
-        if (poo > oldVertex)
-          continue;
-
-        pno    = dupc->items[3 * i];
-        d      = dupc->items[3 * i + 1];
-        if (pno >= dupcsum->count)
-          continue;
-
-        s      = dupcsum->items[pno];
-        vcount = wl->counts[poo - 1];
-
-        for (j = 0; j <= d; j++) {
-          newidx     = pno + j + s;
-          if (newidx >= count)
-            continue;
-          wi[newidx] = vcount; /* weight index     */
-          nj[newidx] = vcount; /* number of joints */
-          nwsum     += vcount;
-        }
-      }
+      AK_SKIN_FIX_DISPATCH(AK_SKIN_FIX_COUNT_PASS);
 
       /* prepare weight index */
       for (next = j = 0; j < wl->nVertex; j++) {
@@ -143,37 +224,11 @@ ak_skinFixWeights(AkMesh * __restrict mesh) {
       w     = ak_heap_alloc(heap, wl, sizeof(*w) * nwsum);
       nwsum = 0;
 
-      for (i = 0; i < vc; i++) {
-        if ((poo = dupc->items[3 * i + 2]) == 0)
-          continue;
-        if (poo > oldVertex)
-          continue;
+      AK_SKIN_FIX_DISPATCH(AK_SKIN_FIX_COPY_PASS);
 
-        pno    = dupc->items[3 * i];
-        d      = dupc->items[3 * i + 1];
-        if (pno >= dupcsum->count)
-          continue;
-
-        s      = dupcsum->items[pno];
-        vcount = wl->counts[poo - 1];
-
-        for (j = 0; j <= d; j++) {
-          tmp = pno + j + s;
-          if (tmp >= count)
-            continue;
-
-          newidx = wi[tmp];
-
-          for (k = 0; k < vcount; k++) {
-            iw         = &w[newidx + k];
-            oiw        = &old[pOldIndex[poo - 1] + k];
-            iw->joint  = oiw->joint;
-            iw->weight = oiw->weight;
-          }
-
-          nwsum += vcount;
-        }
-      }
+#undef AK_SKIN_FIX_COPY_PASS
+#undef AK_SKIN_FIX_COUNT_PASS
+#undef AK_SKIN_FIX_DISPATCH
 
       if (pOldIndex)
         ak_free(pOldIndex);

@@ -20,6 +20,7 @@
 typedef const char           *AkString;
 typedef char                 *AkMutString;
 typedef bool                  AkBool;
+typedef uint8_t               AkUInt8;
 typedef int16_t               AkInt16;
 typedef uint16_t              AkUInt16;
 typedef int32_t               AkInt;
@@ -57,6 +58,8 @@ typedef AK_ALIGN(32) AkFloat4 AkFloat4x4[4];
   } TYPE##ArrayL
 
 AK__DEF_ARRAY(AkBool);
+AK__DEF_ARRAY(AkUInt8);
+AK__DEF_ARRAY(AkUInt16);
 AK__DEF_ARRAY(AkInt);
 AK__DEF_ARRAY(AkUInt);
 AK__DEF_ARRAY(AkFloat);

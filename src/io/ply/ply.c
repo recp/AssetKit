@@ -519,10 +519,10 @@ ply_finish(PLYState * __restrict pst) {
     io_input(heap, prim, pst->ac_rgb, AK_INPUT_COLOR, _s_COLOR, 0);
   
   /* indices */
-  prim->indices = ak_heap_calloc(heap,
-                                 tri,
-                                 sizeof(*prim->indices)
-                                 + pst->dc_ind->usedsize);
+  prim->indices = ak_indexArrayAlloc(heap,
+                                     tri,
+                                     pst->dc_ind->itemcount,
+                                     AKT_UINT);
   prim->indices->count = pst->dc_ind->itemcount;
   ak_data_join(pst->dc_ind, prim->indices->items, 0, 0);
 }

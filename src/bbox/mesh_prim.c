@@ -56,29 +56,54 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
   /* we must walk through indices if exists because source may contain
      unrelated data and this will cause get wrong box
    */
+  if (!prim->indices && prim->indexAccessor)
+    ak_meshPrimitiveMaterializeIndices(prim);
+
   if (prim->indices) {
-    AkUInt  *ind;
-    size_t   icount;
-    uint32_t st, vo;
+    AkIndexArray *ind;
+    size_t        icount;
+    uint32_t      st, vo;
 
     icount     = prim->indices->count;
     vo         = prim->pos->offset;
     st         = prim->indexStride;
-    ind        = prim->indices->items;
+    ind        = prim->indices;
     count      = icount;
+
+#define AK_BBOX_PICK_FOR_INDEX_TYPE(TYPE, SRC)                              \
+    do {                                                                    \
+      const TYPE *src_;                                                     \
+                                                                            \
+      src_ = (const TYPE *)(const void *)(SRC);                             \
+      if (!exactCenter) {                                                   \
+        for (i = 0; i < icount; i += st) {                                  \
+          vec = (float *)(data + (AkUInt)src_[i + vo] * byteStride);        \
+          glm_vec3_add(vec, center, center);                                \
+          ak_bbox_pick(min, max, vec);                                      \
+        }                                                                   \
+      } else {                                                              \
+        for (i = 0; i < icount; i += st) {                                  \
+          vec = (float *)(data + (AkUInt)src_[i + vo] * byteStride);        \
+          ak_bbox_pick(min, max, vec);                                      \
+        }                                                                   \
+      }                                                                     \
+    } while (0)
     
-    if (!exactCenter) {
-      for (i = 0; i < icount; i += st) {
-        vec = (float *)(data + ind[i + vo] * byteStride);
-        glm_vec3_add(vec, center, center);
-        ak_bbox_pick(min, max, vec);
-      }
-    } else {
-      for (i = 0; i < icount; i += st) {
-        vec = (float *)(data + ind[i + vo] * byteStride);
-        ak_bbox_pick(min, max, vec);
-      }
+    switch (ind->componentType) {
+      case AKT_UBYTE:
+        AK_BBOX_PICK_FOR_INDEX_TYPE(uint8_t, ind->items);
+        break;
+      case AKT_USHORT:
+        AK_BBOX_PICK_FOR_INDEX_TYPE(uint16_t, ind->items);
+        break;
+      case AKT_UINT:
+        AK_BBOX_PICK_FOR_INDEX_TYPE(AkUInt, ind->items);
+        break;
+      default:
+        break;
     }
+
+#undef AK_BBOX_PICK_FOR_INDEX_TYPE
   } else {
     count = acc->count;
     if (!exactCenter) {

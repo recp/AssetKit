@@ -24,10 +24,13 @@ extern "C" {
 #include "map.h"
 #include "bbox.h"
 #include "map.h"
+#include "type.h"
 
 struct RBTree;
+typedef struct AkHeap AkHeap;
 struct AkGeometry;
 struct AkMesh;
+struct AkAccessor;
 struct FListItem;
 struct AkMaterial;
 
@@ -62,6 +65,14 @@ typedef enum AkLineMode {
   AK_LINE_STRIP = 5
 } AkLineMode;
 
+typedef struct AkIndexArray {
+  size_t   count;
+  AkUInt   max;
+  AkTypeId componentType;
+  uint32_t reserved;
+  uint8_t  items[];
+} AkIndexArray;
+
 typedef struct AkVertices {
   /* const char   * id; */
   const char   *name;
@@ -86,7 +97,10 @@ typedef struct AkMeshPrimitive {
   struct AkMaterial      *material;
   AkInput                *input;
   AkInput                *pos;
-  AkUIntArray            *indices;
+  /* `indices` is owned mutable u8/u16/u32 data; `indexAccessor` is a
+     borrowed/lazy source, e.g. glTF accessor data. */
+  AkIndexArray           *indices;
+  struct AkAccessor      *indexAccessor;
   AkTree                 *extra;
   void                   *udata;
   AkMeshPrimitiveType     type;
@@ -468,10 +482,83 @@ void
 ak_meshEndEdit(AkMesh * __restrict mesh);
 
 AK_EXPORT
-AkUIntArray*
+AkIndexArray*
 ak_meshIndicesArrayFor(AkMesh          * __restrict mesh,
                        AkMeshPrimitive * __restrict prim,
                        bool                         readonly);
+
+AK_EXPORT
+AkTypeId
+ak_indexComponentTypeForMax(AkUInt maxIndex);
+
+AK_EXPORT
+size_t
+ak_indexComponentSize(AkTypeId componentType);
+
+AK_EXPORT
+AkIndexArray*
+ak_indexArrayAlloc(AkHeap  * __restrict heap,
+                   void    * __restrict parent,
+                   size_t               count,
+                   AkTypeId             componentType);
+
+AK_EXPORT
+AkIndexArray*
+ak_indexArrayPromote(AkHeap        * __restrict heap,
+                     void          * __restrict parent,
+                     AkIndexArray  * __restrict indices,
+                     AkTypeId                   componentType);
+
+AK_EXPORT
+AkUIntArray*
+ak_indexArrayMaterializeUInt(AkHeap             * __restrict heap,
+                             void               * __restrict parent,
+                             const AkIndexArray * __restrict indices);
+
+AK_EXPORT
+AkUInt
+ak_indexArrayGet(const AkIndexArray * __restrict indices,
+                 size_t                          index);
+
+AK_EXPORT
+bool
+ak_indexArraySet(AkHeap       * __restrict heap,
+                 void         * __restrict parent,
+                 AkIndexArray ** __restrict indices,
+                 size_t                    index,
+                 AkUInt                    value);
+
+AK_EXPORT
+AkIndexArray*
+ak_meshPrimitiveMaterializeIndices(AkMeshPrimitive * __restrict prim);
+
+AK_EXPORT
+AkIndexArray*
+ak_meshPrimitiveEnsureUIntIndices(AkMeshPrimitive * __restrict prim);
+
+AK_EXPORT
+struct AkAccessor*
+ak_meshPrimitiveIndexAccessor(AkMeshPrimitive * __restrict prim);
+
+AK_EXPORT
+AkUInt
+ak_indicesMax(const AkIndexArray * __restrict indices);
+
+AK_EXPORT
+AkTypeId
+ak_indicesComponentType(const AkIndexArray * __restrict indices);
+
+AK_EXPORT
+size_t
+ak_meshPrimitiveIndexCount(const AkMeshPrimitive * __restrict prim);
+
+AK_EXPORT
+AkUInt
+ak_meshPrimitiveIndexMax(const AkMeshPrimitive * __restrict prim);
+
+AK_EXPORT
+AkTypeId
+ak_meshPrimitiveIndexComponentType(const AkMeshPrimitive * __restrict prim);
 
 AK_EXPORT
 AkSourceBuffState*

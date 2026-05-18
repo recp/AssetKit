@@ -30,6 +30,7 @@ dae_poly(DAEState * __restrict dst,
   AkHeap    *heap;
   uint32_t   indexoff, polygonsCount, st;
   size_t     indicesCount;
+  AkUInt     maxIndex;
   double     profStart, profStep;
   
   profStart = DAE_PROF_START(dst);
@@ -47,6 +48,7 @@ dae_poly(DAEState * __restrict dst,
   indexoff      = 0;
   polygonsCount = 0;
   indicesCount  = 0;
+  maxIndex      = 0;
   
   xml = xml->val;
   while (xml) {
@@ -88,17 +90,25 @@ dae_poly(DAEState * __restrict dst,
       }
       DAE_PROF_ACC(dst, profGeomInput, profGeomInputCount, profStep);
     } else if (DAE_XML_TAG_EQ8(xml, p) && xml->val) {
-      AkUIntArray *intArray;
+      AkIndexArray *indexArray;
+      AkUInt        arrayMax;
       profStep = DAE_PROF_START(dst);
       
-      if ((xml_strtoui_array(heap, poly, xml->val, &intArray) == AK_OK)) {
+      arrayMax = 0;
+      if ((xml_strtoindex_array_max(heap,
+                                     poly,
+                                     xml->val,
+                                     &indexArray,
+                                     &arrayMax) == AK_OK)) {
+        if (arrayMax > maxIndex)
+          maxIndex = arrayMax;
         if (mode == AK_POLY_POLYLIST) {
-          poly->base.indices = intArray;
+          poly->base.indices = indexArray;
         } else if (mode == AK_POLY_POLYGONS) {
           /* TODO: do this for POLYLIST if vcount not exists */
-          flist_sp_insert(&polyi, intArray);
+          flist_sp_insert(&polyi, indexArray);
           polygonsCount++;
-          indicesCount += intArray->count;
+          indicesCount += indexArray->count;
         }
       }
       DAE_PROF_ACC(dst, profGeomIndexArray, profGeomIndexArrayCount, profStep);
@@ -118,15 +128,21 @@ dae_poly(DAEState * __restrict dst,
   poly->base.indexStride = st = indexoff + 1;
   
   if (mode == AK_POLY_POLYGONS) {
-    FListItem   *p;
-    AkUIntArray *indices, *vcount;
-    AkUInt      *pIndices, *pVcount;
+    FListItem    *p;
+    AkIndexArray *indices;
+    AkUIntArray  *vcount;
+    AkUInt       *pVcount;
+    AkTypeId      componentType;
+    uint8_t      *pIndices;
+    size_t        itemSize;
 
     /* alloc indices array */
-    indices = ak_heap_alloc(heap,
-                            poly,
-                            sizeof(*indices) + sizeof(AkUInt) * indicesCount);
-    indices->count = indicesCount;
+    componentType = ak_indexComponentTypeForMax(maxIndex);
+    indices       = ak_indexArrayAlloc(heap, poly, indicesCount, componentType);
+    if (!indices)
+      goto finish;
+    indices->max = maxIndex;
+    itemSize     = ak_indexComponentSize(componentType);
 
     /* alloc vcount */
     vcount = ak_heap_alloc(heap,
@@ -134,31 +150,65 @@ dae_poly(DAEState * __restrict dst,
                            sizeof(*vcount) + sizeof(AkUInt) * polygonsCount);
     vcount->count = polygonsCount;
 
-    pIndices = indices->items;
+    pIndices = (uint8_t *)indices->items;
     pVcount  = vcount->items;
 
     p = polyi;
     while (p) {
-      AkUIntArray *intArray;
+      AkIndexArray *indexArray;
 
-      intArray = p->data;
+      indexArray = p->data;
 
-      memcpy(pIndices, intArray->items, sizeof(AkUInt) * intArray->count);
+      if (indexArray->componentType == componentType) {
+        memcpy(pIndices, indexArray->items, itemSize * indexArray->count);
+      } else {
+        size_t i;
 
-      *pVcount++ = (AkUInt)intArray->count / st;
-      pIndices  += intArray->count;
+        switch (componentType) {
+          case AKT_UBYTE: {
+            uint8_t *dst;
 
-      ak_free(intArray);
+            dst = (uint8_t *)pIndices;
+            for (i = 0; i < indexArray->count; i++)
+              dst[i] = (uint8_t)ak_indexArrayGet(indexArray, i);
+            break;
+          }
+          case AKT_USHORT: {
+            uint16_t *dst;
+
+            dst = (uint16_t *)(void *)pIndices;
+            for (i = 0; i < indexArray->count; i++)
+              dst[i] = (uint16_t)ak_indexArrayGet(indexArray, i);
+            break;
+          }
+          case AKT_UINT: {
+            uint32_t *dst;
+
+            dst = (uint32_t *)(void *)pIndices;
+            for (i = 0; i < indexArray->count; i++)
+              dst[i] = ak_indexArrayGet(indexArray, i);
+            break;
+          }
+          default:
+            break;
+        }
+      }
+
+      *pVcount++ = (AkUInt)indexArray->count / st;
+      pIndices  += itemSize * indexArray->count;
+
+      ak_free(indexArray);
 
       p = p->next;
     }
 
     poly->base.indices = indices;
-    poly->vcount       = vcount;
+    poly->vcount         = vcount;
 
     flist_sp_destroy(&polyi);
   }
 
+finish:
   DAE_PROF_ACC(dst, profGeomPolygons, profGeomPolygonsCount, profStart);
 
   return poly;

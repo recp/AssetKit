@@ -28,9 +28,19 @@ extern const char* ak_mesh_edit_assert1;
 typedef struct AkIndexProfile {
   double   collapse;
   double   duplicator;
+  double   dupSideAlloc;
+  double   dupHashAlloc;
+  double   dupHashLoop;
+  double   dupSumAlloc;
+  double   dupSumBuild;
   double   fixBuffer;
   double   reserveBuffers;
   double   movePositions;
+  size_t   dupIcount;
+  size_t   dupVertc;
+  size_t   dupPosno;
+  size_t   dupCount;
+  size_t   dupHashCap;
   uint32_t callCount;
   uint32_t skipCount;
   uint32_t collapseCount;
@@ -57,6 +67,39 @@ ak_index_profile_reset(void) {
 }
 
 AK_HIDE
+bool
+ak_index_profile_active(void) {
+  return ak_index_prof_active;
+}
+
+AK_HIDE
+void
+ak_index_profile_add_duplicator(double sideAlloc,
+                                double hashAlloc,
+                                double hashLoop,
+                                double sumAlloc,
+                                double sumBuild,
+                                size_t icount,
+                                size_t vertc,
+                                size_t posno,
+                                size_t dupCount,
+                                size_t hashCap) {
+  if (!ak_index_prof_active)
+    return;
+
+  ak_index_prof.dupSideAlloc += sideAlloc;
+  ak_index_prof.dupHashAlloc += hashAlloc;
+  ak_index_prof.dupHashLoop  += hashLoop;
+  ak_index_prof.dupSumAlloc  += sumAlloc;
+  ak_index_prof.dupSumBuild  += sumBuild;
+  ak_index_prof.dupIcount    += icount;
+  ak_index_prof.dupVertc     += vertc;
+  ak_index_prof.dupPosno     += posno;
+  ak_index_prof.dupCount     += dupCount;
+  ak_index_prof.dupHashCap   += hashCap;
+}
+
+AK_HIDE
 void
 ak_index_profile_report(void) {
   fprintf(stderr,
@@ -71,23 +114,35 @@ ak_index_profile_report(void) {
           ak_index_prof.fixBuffer,
           ak_index_prof.reserveBuffers,
           ak_index_prof.movePositions);
+  fprintf(stderr,
+          "[AssetKit index dup] icount=%zu vertc=%zu posno=%zu dup=%zu "
+          "hashcap=%zu side_alloc=%.3fms hash_alloc=%.3fms "
+          "hash_loop=%.3fms sum_alloc=%.3fms sum_build=%.3fms\n",
+          ak_index_prof.dupIcount,
+          ak_index_prof.dupVertc,
+          ak_index_prof.dupPosno,
+          ak_index_prof.dupCount,
+          ak_index_prof.dupHashCap,
+          ak_index_prof.dupSideAlloc,
+          ak_index_prof.dupHashAlloc,
+          ak_index_prof.dupHashLoop,
+          ak_index_prof.dupSumAlloc,
+          ak_index_prof.dupSumBuild);
   ak_index_prof_active = false;
 }
 
 AK_HIDE
 bool
 ak_primCollapseIdentityIndices(AkMeshPrimitive *prim) {
-  AkUIntArray *indices;
-  AkInput     *input;
-  AkUInt      *items;
-  uint32_t     st, vo;
-  size_t       count, i, j, base;
-  AkUInt       posidx;
+  AkIndexArray *indices;
+  AkInput      *input;
+  uint32_t      st, vo;
+  size_t        count, i, j, base;
+  AkUInt        posidx, maxIndex;
 
   if (!prim
       || prim->indexStride <= 1
       || !(indices = prim->indices)
-      || !(items = indices->items)
       || !prim->pos)
     return false;
 
@@ -99,22 +154,64 @@ ak_primCollapseIdentityIndices(AkMeshPrimitive *prim) {
   count = indices->count / st;
   for (i = 0; i < count; i++) {
     base   = i * st;
-    posidx = items[base + vo];
+    posidx = ak_indexArrayGet(indices, base + vo);
     for (j = 0; j < st; j++) {
-      if (items[base + j] != posidx)
+      if (ak_indexArrayGet(indices, base + j) != posidx)
         return false;
     }
   }
 
-  for (i = 0; i < count; i++)
-    items[i] = items[i * st + vo];
+  maxIndex = 0;
+  switch (indices->componentType) {
+    case AKT_UBYTE: {
+      uint8_t *items;
+
+      items = (uint8_t *)indices->items;
+      for (i = 0; i < count; i++) {
+        posidx   = items[i * st + vo];
+        items[i] = (uint8_t)posidx;
+        if (posidx > maxIndex)
+          maxIndex = posidx;
+      }
+      break;
+    }
+    case AKT_USHORT: {
+      uint16_t *items;
+
+      items = (uint16_t *)(void *)indices->items;
+      for (i = 0; i < count; i++) {
+        posidx   = items[i * st + vo];
+        items[i] = (uint16_t)posidx;
+        if (posidx > maxIndex)
+          maxIndex = posidx;
+      }
+      break;
+    }
+    case AKT_UINT: {
+      uint32_t *items;
+
+      items = (uint32_t *)(void *)indices->items;
+      for (i = 0; i < count; i++) {
+        posidx   = items[i * st + vo];
+        items[i] = posidx;
+        if (posidx > maxIndex)
+          maxIndex = posidx;
+      }
+      break;
+    }
+    default:
+      return false;
+  }
 
   indices->count    = count;
+  indices->max      = maxIndex;
   prim->indexStride = 1;
   prim->pos->offset = 0;
 
   for (input = prim->input; input; input = input->next)
     input->offset = 0;
+
+  prim->indexAccessor = NULL;
 
   return true;
 }
@@ -127,7 +224,7 @@ ak_movePositions(AkMesh          *mesh,
   AkSourceEditHelper *srch;
   AkSourceBuffState  *buffstate;
   AkAccessor         *acc, *newacc;
-  AkUIntArray        *dupc, *dupcsum;
+  AkIndexArray       *dupc, *dupcsum;
   AkBuffer           *oldbuff, *newbuff;
   char               *olditms, *newitms;
   size_t              vc, d, s, pno, poo, byteStride;
@@ -151,26 +248,68 @@ ak_movePositions(AkMesh          *mesh,
 
   dupc       = duplicator->range->dupc;
   dupcsum    = duplicator->range->dupcsum;
-  vc         = dupc->count;
+  vc         = dupc->count / 3;
   newitms    = newbuff->data;
   olditms    = oldbuff->data;
   byteStride = acc->byteStride;
 
   /* copy vert positions to new location */
-  for (i = 0; i < vc; i++) {
-    if ((poo = dupc->items[3 * i + 2]) == 0)
-      continue;
+#define AK_MOVE_POSITIONS_FOR_TYPE(DUPTYPE, SUMTYPE)                       \
+  do {                                                                      \
+    const DUPTYPE *dupcItems_;                                               \
+    const SUMTYPE *sumItems_;                                                \
+                                                                            \
+    dupcItems_ = (const DUPTYPE *)(const void *)dupc->items;                 \
+    sumItems_  = (const SUMTYPE *)(const void *)dupcsum->items;              \
+    for (i = 0; i < vc; i++) {                                               \
+      if ((poo = dupcItems_[3 * i + 2]) == 0)                                \
+        continue;                                                            \
+                                                                            \
+      pno = dupcItems_[3 * i];                                               \
+      d   = dupcItems_[3 * i + 1];                                           \
+      s   = sumItems_[pno];                                                  \
+                                                                            \
+      for (j = 0; j <= d; j++) {                                             \
+        memcpy(newitms + byteStride * (pno + j + s),                         \
+               olditms + byteStride * (poo - 1),                             \
+               byteStride);                                                  \
+      }                                                                      \
+    }                                                                        \
+  } while (0)
 
-    pno = dupc->items[3 * i];
-    d   = dupc->items[3 * i + 1];
-    s   = dupcsum->items[pno];
+#define AK_MOVE_POSITIONS_FOR_SUM_TYPE(DUPTYPE)                             \
+  do {                                                                      \
+    switch (dupcsum->componentType) {                                        \
+      case AKT_UBYTE:                                                        \
+        AK_MOVE_POSITIONS_FOR_TYPE(DUPTYPE, uint8_t);                        \
+        break;                                                               \
+      case AKT_USHORT:                                                       \
+        AK_MOVE_POSITIONS_FOR_TYPE(DUPTYPE, uint16_t);                       \
+        break;                                                               \
+      case AKT_UINT:                                                         \
+        AK_MOVE_POSITIONS_FOR_TYPE(DUPTYPE, AkUInt);                         \
+        break;                                                               \
+      default:                                                               \
+        break;                                                               \
+    }                                                                        \
+  } while (0)
 
-    for (j = 0; j <= d; j++) {
-      memcpy(newitms + byteStride * (pno + j + s),
-             olditms + byteStride * (poo - 1),
-             byteStride);
-    }
+  switch (dupc->componentType) {
+    case AKT_UBYTE:
+      AK_MOVE_POSITIONS_FOR_SUM_TYPE(uint8_t);
+      break;
+    case AKT_USHORT:
+      AK_MOVE_POSITIONS_FOR_SUM_TYPE(uint16_t);
+      break;
+    case AKT_UINT:
+      AK_MOVE_POSITIONS_FOR_SUM_TYPE(AkUInt);
+      break;
+    default:
+      break;
   }
+
+#undef AK_MOVE_POSITIONS_FOR_SUM_TYPE
+#undef AK_MOVE_POSITIONS_FOR_TYPE
 
   return AK_OK;
 }
@@ -186,7 +325,8 @@ ak_primFixIndicesRetainDuplicator(AkMesh          *mesh,
   if (ak_index_prof_active)
     ak_index_prof.callCount++;
 
-  if (prim->indexStride == 1 || !prim->indices) {
+  if (prim->indexStride == 1
+      || (!prim->indices && !prim->indexAccessor)) {
     if (ak_index_prof_active)
       ak_index_prof.skipCount++;
     return AK_OK;
@@ -202,6 +342,12 @@ ak_primFixIndicesRetainDuplicator(AkMesh          *mesh,
   }
   if (ak_index_prof_active)
     ak_index_prof.collapse += ak_index_profile_now_ms() - t;
+
+  if (!prim->indices) {
+    ak_meshPrimitiveMaterializeIndices(prim);
+    if (!prim->indices)
+      return AK_ERR;
+  }
 
   t = ak_index_prof_active ? ak_index_profile_now_ms() : 0.0;
   if (!(dupl = ak_meshDuplicatorForIndicesRetained(mesh,

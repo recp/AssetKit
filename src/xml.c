@@ -16,6 +16,282 @@
 
 #include "common.h"
 #include "xml.h"
+#include "string_fast.h"
+
+AK_INLINE
+char*
+xml_str_skip_array_sep(char * __restrict tok,
+                       char * __restrict end) {
+  char c;
+
+  while (tok < end && ((void)(c = *tok), AK_ARRAY_SEP_CHECK))
+    tok++;
+
+  return tok;
+}
+
+AK_INLINE
+unsigned long
+xml_strtoui_node_max(char          * __restrict src,
+                     size_t                     srclen,
+                     unsigned long              n,
+                     AkUInt        * __restrict dest,
+                     AkUInt        * __restrict maxValue) {
+  char          *tok, *end;
+  AkUInt        *out;
+  AkUInt         value, maxv;
+  unsigned long rem;
+
+  if (n == 0)
+    return 0;
+
+  out  = dest;
+  tok  = src;
+  rem  = n;
+  maxv = maxValue ? *maxValue : 0;
+
+  if (srclen != 0) {
+    end = src + srclen;
+
+    do {
+      tok = xml_str_skip_array_sep(tok, end);
+      if (tok >= end)
+        break;
+
+      tok = ak_str_parse_uint_end_fast(tok, end, &value);
+      *out++ = value;
+      if (value > maxv)
+        maxv = value;
+      rem--;
+    } while (rem > 0ul && tok < end);
+  } else {
+    do {
+      tok = ak_str_skip_sep_fast(tok, NULL, false);
+      if (*tok == '\0')
+        break;
+
+      tok = ak_str_parse_uint_fast(tok, NULL, &value);
+      *out++ = value;
+      if (value > maxv)
+        maxv = value;
+      rem--;
+    } while (rem > 0ul && *tok != '\0');
+  }
+
+  if (maxValue)
+    *maxValue = maxv;
+
+  return rem;
+}
+
+static
+AkIndexArray*
+xml_index_promote(AkHeap       * __restrict heap,
+                  void         * __restrict parent,
+                  AkIndexArray * __restrict indices,
+                  AkTypeId                  componentType,
+                  size_t                    written) {
+  AkIndexArray *promoted;
+  size_t        i;
+
+  promoted = ak_indexArrayAlloc(heap, parent, indices->count, componentType);
+  if (!promoted)
+    return indices;
+
+  switch (indices->componentType) {
+    case AKT_UBYTE: {
+      uint8_t *src;
+
+      src = (uint8_t *)indices->items;
+      if (componentType == AKT_USHORT) {
+        uint16_t *dst;
+
+        dst = (uint16_t *)promoted->items;
+        for (i = 0; i < written; i++)
+          dst[i] = src[i];
+      } else {
+        uint32_t *dst;
+
+        dst = (uint32_t *)promoted->items;
+        for (i = 0; i < written; i++)
+          dst[i] = src[i];
+      }
+      break;
+    }
+    case AKT_USHORT: {
+      uint16_t *src;
+      uint32_t *dst;
+
+      src = (uint16_t *)indices->items;
+      dst = (uint32_t *)promoted->items;
+      for (i = 0; i < written; i++)
+        dst[i] = src[i];
+      break;
+    }
+    default:
+      break;
+  }
+
+  promoted->max = indices->max;
+  ak_free(indices);
+
+  return promoted;
+}
+
+static
+AkTypeId
+xml_index_initial_component_type(unsigned long count) {
+  /* Large DAE multi-index primitives are usually fixed into narrower final
+     buffers later; parsing them as uint32 is measurably faster than promoting
+     from u16 on mixed/index-heavy files. */
+  return count <= UINT8_MAX ? AKT_UBYTE : AKT_UINT;
+}
+
+static
+void
+xml_index_set_fast(AkIndexArray * __restrict indices,
+                   size_t                    index,
+                   AkUInt                    value) {
+  switch (indices->componentType) {
+    case AKT_UBYTE:
+      ((uint8_t *)indices->items)[index] = (uint8_t)value;
+      break;
+    case AKT_USHORT:
+      ((uint16_t *)indices->items)[index] = (uint16_t)value;
+      break;
+    case AKT_UINT:
+      ((uint32_t *)indices->items)[index] = value;
+      break;
+    default:
+      break;
+  }
+}
+
+static
+unsigned long
+xml_strtoindex_node(AkHeap        * __restrict heap,
+                    void          * __restrict parent,
+                    char          * __restrict src,
+                    size_t                     srclen,
+                    unsigned long              n,
+                    AkIndexArray ** __restrict array,
+                    AkUInt       * __restrict maxValue,
+                    size_t        * __restrict writtenCount) {
+  AkIndexArray *indices;
+  char         *tok, *end;
+  AkUInt        value, maxv;
+  unsigned long rem;
+  size_t        written;
+
+  indices = *array;
+  if (n == 0 || !indices)
+    return 0;
+
+  tok     = src;
+  rem     = n;
+  written = writtenCount ? *writtenCount : 0;
+  maxv    = maxValue ? *maxValue : indices->max;
+
+  if (indices->componentType == AKT_UINT) {
+    uint32_t *out;
+
+    out = (uint32_t *)(void *)indices->items + written;
+
+    if (srclen != 0) {
+      end = src + srclen;
+
+      do {
+        tok = xml_str_skip_array_sep(tok, end);
+        if (tok >= end)
+          break;
+
+        tok = ak_str_parse_uint_index_end_fast(tok, end, &value);
+        *out++ = value;
+        if (value > maxv)
+          maxv = value;
+        written++;
+        rem--;
+      } while (rem > 0ul && tok < end);
+    } else {
+      do {
+        tok = ak_str_skip_sep_fast(tok, NULL, false);
+        if (*tok == '\0')
+          break;
+
+        tok = ak_str_parse_uint_index_fast(tok, NULL, &value);
+        *out++ = value;
+        if (value > maxv)
+          maxv = value;
+        written++;
+        rem--;
+      } while (rem > 0ul && *tok != '\0');
+    }
+
+    indices->max = maxv;
+    if (maxValue)
+      *maxValue = maxv;
+    if (writtenCount)
+      *writtenCount = written;
+
+    return rem;
+  }
+
+  if (srclen != 0) {
+    end = src + srclen;
+
+    do {
+      tok = xml_str_skip_array_sep(tok, end);
+      if (tok >= end)
+        break;
+
+      tok = ak_str_parse_uint_index_end_fast(tok, end, &value);
+      if (value > UINT16_MAX
+          && indices->componentType != AKT_UINT) {
+        indices = xml_index_promote(heap, parent, indices, AKT_UINT, written);
+        *array = indices;
+      } else if (value > UINT8_MAX
+                 && indices->componentType == AKT_UBYTE) {
+        indices = xml_index_promote(heap, parent, indices, AKT_USHORT, written);
+        *array = indices;
+      }
+
+      xml_index_set_fast(indices, written++, value);
+      if (value > maxv)
+        maxv = value;
+      rem--;
+    } while (rem > 0ul && tok < end);
+  } else {
+    do {
+      tok = ak_str_skip_sep_fast(tok, NULL, false);
+      if (*tok == '\0')
+        break;
+
+      tok = ak_str_parse_uint_index_fast(tok, NULL, &value);
+      if (value > UINT16_MAX
+          && indices->componentType != AKT_UINT) {
+        indices = xml_index_promote(heap, parent, indices, AKT_UINT, written);
+        *array = indices;
+      } else if (value > UINT8_MAX
+                 && indices->componentType == AKT_UBYTE) {
+        indices = xml_index_promote(heap, parent, indices, AKT_USHORT, written);
+        *array = indices;
+      }
+
+      xml_index_set_fast(indices, written++, value);
+      if (value > maxv)
+        maxv = value;
+      rem--;
+    } while (rem > 0ul && *tok != '\0');
+  }
+
+  indices->max = maxv;
+  if (maxValue)
+    *maxValue = maxv;
+  if (writtenCount)
+    *writtenCount = written;
+
+  return rem;
+}
 
 AK_EXPORT
 char *
@@ -100,6 +376,33 @@ xml_strtoui_fast(const xml_t  * __restrict xobj,
          && (v = xmls_next(v)));
   
 
+
+  return rem;
+}
+
+AK_EXPORT
+unsigned long
+xml_strtoui_fast_max(const xml_t  * __restrict xobj,
+                     AkUInt       * __restrict dest,
+                     unsigned long              n,
+                     AkUInt       * __restrict maxValue) {
+  const xml_t  *v;
+  unsigned long rem;
+
+  if (maxValue)
+    *maxValue = 0;
+
+  if (!(v = xobj)
+      || !v->val
+      || (rem = n) < 1)
+    return 0;
+
+  while ((rem = xml_strtoui_node_max(v->val,
+                                     v->valsize,
+                                     rem,
+                                     dest + n - rem,
+                                     maxValue))
+         && (v = xmls_next(v)));
 
   return rem;
 }
@@ -217,14 +520,27 @@ xml_strtoui_array(AkHeap       * __restrict heap,
                   void         * __restrict memp,
                   const xml_t  * __restrict xobj,
                   AkUIntArray ** __restrict array) {
+  return xml_strtoui_array_max(heap, memp, xobj, array, NULL);
+}
+
+AK_EXPORT
+AkResult
+xml_strtoui_array_max(AkHeap       * __restrict heap,
+                      void         * __restrict memp,
+                      const xml_t  * __restrict xobj,
+                      AkUIntArray ** __restrict array,
+                      AkUInt      * __restrict maxValue) {
   AkUIntArray  *arr;
   unsigned long count;
+
+  if (maxValue)
+    *maxValue = 0;
 
   if ((count = (unsigned long)xml_strtok_count_fast(xobj, NULL)) == 0)
     return AK_ERR;
 
   arr = ak_heap_alloc(heap, memp, sizeof(*arr) + sizeof(AkUInt) * count);
-  xml_strtoui_fast(xobj, arr->items, count);
+  xml_strtoui_fast_max(xobj, arr->items, count, maxValue);
 
   arr->count = count;
 
@@ -240,21 +556,125 @@ xml_strtoui_arrayN(AkHeap       * __restrict heap,
                    const xml_t  * __restrict xobj,
                    unsigned long             count,
                    AkUIntArray ** __restrict array) {
+  return xml_strtoui_arrayN_max(heap, memp, xobj, count, array, NULL);
+}
+
+AK_EXPORT
+AkResult
+xml_strtoui_arrayN_max(AkHeap       * __restrict heap,
+                       void         * __restrict memp,
+                       const xml_t  * __restrict xobj,
+                       unsigned long             count,
+                       AkUIntArray ** __restrict array,
+                       AkUInt      * __restrict maxValue) {
   AkUIntArray *arr;
   unsigned long rem;
+
+  if (maxValue)
+    *maxValue = 0;
 
   if (count == 0)
     return AK_ERR;
 
   arr = ak_heap_alloc(heap, memp, sizeof(*arr) + sizeof(AkUInt) * count);
-  rem = xml_strtoui_fast(xobj, arr->items, count);
+  rem = xml_strtoui_fast_max(xobj, arr->items, count, maxValue);
   if (rem != 0) {
     ak_free(arr);
-    return xml_strtoui_array(heap, memp, xobj, array);
+    return xml_strtoui_array_max(heap, memp, xobj, array, maxValue);
   }
 
   arr->count = count;
 
+  *array = arr;
+
+  return AK_OK;
+}
+
+AK_EXPORT
+AkResult
+xml_strtoindex_array(AkHeap        * __restrict heap,
+                     void          * __restrict memp,
+                     const xml_t   * __restrict xobj,
+                     AkIndexArray ** __restrict array) {
+  return xml_strtoindex_array_max(heap, memp, xobj, array, NULL);
+}
+
+AK_EXPORT
+AkResult
+xml_strtoindex_array_max(AkHeap        * __restrict heap,
+                         void          * __restrict memp,
+                         const xml_t   * __restrict xobj,
+                         AkIndexArray ** __restrict array,
+                         AkUInt       * __restrict maxValue) {
+  return xml_strtoindex_arrayN_max(heap,
+                                   memp,
+                                   xobj,
+                                   (unsigned long)xml_strtok_count_fast(xobj, NULL),
+                                   array,
+                                   maxValue);
+}
+
+AK_EXPORT
+AkResult
+xml_strtoindex_arrayN(AkHeap        * __restrict heap,
+                      void          * __restrict memp,
+                      const xml_t   * __restrict xobj,
+                      unsigned long              count,
+                      AkIndexArray ** __restrict array) {
+  return xml_strtoindex_arrayN_max(heap, memp, xobj, count, array, NULL);
+}
+
+AK_EXPORT
+AkResult
+xml_strtoindex_arrayN_max(AkHeap        * __restrict heap,
+                          void          * __restrict memp,
+                          const xml_t   * __restrict xobj,
+                          unsigned long              count,
+                          AkIndexArray ** __restrict array,
+                          AkUInt       * __restrict maxValue) {
+  AkIndexArray *arr;
+  const xml_t  *v;
+  unsigned long rem;
+  size_t        written;
+
+  if (array)
+    *array = NULL;
+  if (maxValue)
+    *maxValue = 0;
+
+  if (!array || count == 0)
+    return AK_ERR;
+
+  arr = ak_indexArrayAlloc(heap,
+                           memp,
+                           count,
+                           xml_index_initial_component_type(count));
+  if (!arr)
+    return AK_ERR;
+
+  rem = count;
+  written = 0;
+  v = xobj;
+  while (v && rem) {
+    rem = xml_strtoindex_node(heap,
+                              memp,
+                              v->val,
+                              v->valsize,
+                              rem,
+                              &arr,
+                              maxValue,
+                              &written);
+    v = xmls_next(v);
+  }
+
+  if (rem != 0) {
+    ak_free(arr);
+    if (count == (unsigned long)xml_strtok_count_fast(xobj, NULL))
+      return AK_ERR;
+    return xml_strtoindex_array_max(heap, memp, xobj, array, maxValue);
+  }
+
+  arr->count = count;
   *array = arr;
 
   return AK_OK;

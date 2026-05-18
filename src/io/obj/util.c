@@ -106,13 +106,10 @@ wobj_joinIndices(WOState         * __restrict wst,
     count   *= istride;
   }
 
-  prim->indices = ak_heap_calloc(wst->heap,
-                                prim,
-                                sizeof(*prim->indices) + count * sizeof(AkUInt));
-  prim->indices->count = count;
+  prim->indices = ak_indexArrayAlloc(wst->heap, prim, count, AKT_UINT);
   prim->indexStride    = istride;
 
-  it = prim->indices->items;
+  it = (AkUInt *)(void *)prim->indices->items;
 
   /* join index buffer chunks */
   isz   = wp->dc_face->itemsize;

@@ -26,8 +26,7 @@ ak_meshFillBuffers(AkMesh * __restrict mesh) {
   AkInput            *input;
   AkMeshPrimitive    *primi;
   AkAccessor         *acc, *newacc;
-  AkUIntArray        *ind1, *ind2;
-  AkUInt             *ind1_it, *ind2_it;
+  AkIndexArray       *ind1, *ind2;
   AkBuffer           *oldbuff, *newbuff;
   AkSourceBuffState  *buffstate;
   AkSourceEditHelper *srch;
@@ -45,14 +44,12 @@ ak_meshFillBuffers(AkMesh * __restrict mesh) {
     ind2 = ak_meshIndicesArrayFor(mesh, primi, false);
 
     /* same index buff */
-    if (!ind1 || ind1 == ind2) {
+    if (!ind1 || ind1 == ind2 || !ind2) {
       primi = primi->next;
       continue;
     }
 
-    ind1_it = ind1->items;
-    ind2_it = ind2->items;
-    input   = primi->input;
+    input = primi->input;
 
     while (input) {
       if (input->semantic == AK_INPUT_POSITION
@@ -75,18 +72,82 @@ ak_meshFillBuffers(AkMesh * __restrict mesh) {
 
         inpOff  = input->offset;
         indxSt  = primi->indexStride;
-        icount  = primi->indices->count / indxSt;
+        icount  = ind1->count / indxSt;
         newitms = (char *)newbuff->data + newacc->byteOffset;
         olditms = (char *)oldbuff->data + acc->byteOffset;
-        
-        for (i = 0; i < icount; i++) {
-          oldidx = ind1_it[i * indxSt + inpOff];
-          newidx = ind2_it[i];
 
-          memcpy(newitms + newByteSt * newidx,
-                 olditms + oldByteSt * oldidx,
-                 fillSize);
+#define AK_FILL_BUFFER_COPY_LOOP(DSTTYPE, TYPE, SRC, SIZE)                  \
+        do {                                                                 \
+          const DSTTYPE *dst_;                                               \
+          const TYPE *src_;                                                  \
+                                                                             \
+          dst_ = (const DSTTYPE *)(const void *)ind2->items;                 \
+          src_ = (const TYPE *)(const void *)(SRC);                          \
+          for (i = 0; i < icount; i++) {                                     \
+            oldidx = (AkUInt)src_[i * indxSt + inpOff];                      \
+            newidx = (AkUInt)dst_[i];                                        \
+                                                                             \
+            memcpy(newitms + newByteSt * newidx,                             \
+                   olditms + oldByteSt * oldidx,                             \
+                   SIZE);                                                    \
+          }                                                                  \
+        } while (0)
+
+#define AK_FILL_BUFFER_FOR_INDEX_TYPE(DSTTYPE, TYPE, SRC)                    \
+        do {                                                                 \
+          switch (fillSize) {                                                \
+            case 4:                                                          \
+              AK_FILL_BUFFER_COPY_LOOP(DSTTYPE, TYPE, SRC, 4);              \
+              break;                                                         \
+            case 8:                                                          \
+              AK_FILL_BUFFER_COPY_LOOP(DSTTYPE, TYPE, SRC, 8);              \
+              break;                                                         \
+            case 12:                                                         \
+              AK_FILL_BUFFER_COPY_LOOP(DSTTYPE, TYPE, SRC, 12);             \
+              break;                                                         \
+            case 16:                                                         \
+              AK_FILL_BUFFER_COPY_LOOP(DSTTYPE, TYPE, SRC, 16);             \
+              break;                                                         \
+            default:                                                         \
+              AK_FILL_BUFFER_COPY_LOOP(DSTTYPE, TYPE, SRC, fillSize);        \
+              break;                                                         \
+          }                                                                  \
+        } while (0)
+
+#define AK_FILL_BUFFER_FOR_OUTPUT_TYPE(DSTTYPE)                              \
+        do {                                                                 \
+          switch (ind1->componentType) {                                      \
+            case AKT_UBYTE:                                                  \
+              AK_FILL_BUFFER_FOR_INDEX_TYPE(DSTTYPE, uint8_t, ind1->items);  \
+              break;                                                         \
+            case AKT_USHORT:                                                 \
+              AK_FILL_BUFFER_FOR_INDEX_TYPE(DSTTYPE, uint16_t, ind1->items); \
+              break;                                                         \
+            case AKT_UINT:                                                   \
+              AK_FILL_BUFFER_FOR_INDEX_TYPE(DSTTYPE, AkUInt, ind1->items);   \
+              break;                                                         \
+            default:                                                         \
+              break;                                                         \
+          }                                                                  \
+        } while (0)
+
+        switch (ind2->componentType) {
+          case AKT_UBYTE:
+            AK_FILL_BUFFER_FOR_OUTPUT_TYPE(uint8_t);
+            break;
+          case AKT_USHORT:
+            AK_FILL_BUFFER_FOR_OUTPUT_TYPE(uint16_t);
+            break;
+          case AKT_UINT:
+            AK_FILL_BUFFER_FOR_OUTPUT_TYPE(AkUInt);
+            break;
+          default:
+            break;
         }
+
+#undef AK_FILL_BUFFER_FOR_OUTPUT_TYPE
+#undef AK_FILL_BUFFER_FOR_INDEX_TYPE
+#undef AK_FILL_BUFFER_COPY_LOOP
 
         /* to prevent duplication operation for next time */
         input->offset = 0;

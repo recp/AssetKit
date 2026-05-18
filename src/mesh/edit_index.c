@@ -21,14 +21,17 @@
 extern const char* ak_mesh_edit_assert1;
 
 AK_EXPORT
-AkUIntArray*
+AkIndexArray*
 ak_meshIndicesArrayFor(AkMesh          * __restrict mesh,
                        AkMeshPrimitive * __restrict prim,
                        bool                         creat) {
   AkHeap           *heap;
   AkObject         *meshobj;
-  AkUIntArray      *indices;
+  AkIndexArray     *indices;
   size_t            count;
+  AkUInt            maxIndex;
+  AkTypeId          componentType;
+  uint32_t          stride;
 
   assert(mesh->edith && ak_mesh_edit_assert1);
 
@@ -37,8 +40,11 @@ ak_meshIndicesArrayFor(AkMesh          * __restrict mesh,
     if (!creat)
       return prim->indices;
 
+    stride = prim->indexStride ? prim->indexStride : 1;
     if (prim->indices) {
-      count = prim->indices->count / prim->indexStride;
+      count = prim->indices->count / stride;
+    } else if (prim->indexAccessor) {
+      count = prim->indexAccessor->count / stride;
     } else {
       AkAccessor *posacc;
 
@@ -52,11 +58,11 @@ ak_meshIndicesArrayFor(AkMesh          * __restrict mesh,
 
     meshobj = ak_objFrom(mesh);
     heap    = ak_heap_getheap(meshobj);
-    indices = ak_heap_alloc(heap,
-                            prim,
-                            sizeof(*indices)
-                            + sizeof(AkUInt) * count);
-    indices->count = count;
+    maxIndex      = count > 0 && count <= (size_t)UINT32_MAX
+                    ? (AkUInt)(count - 1)
+                    : UINT32_MAX;
+    componentType = ak_indexComponentTypeForMax(maxIndex);
+    indices       = ak_indexArrayAlloc(heap, prim, count, componentType);
     prim->reserved3 = indices;
     return indices;
   }
@@ -73,7 +79,7 @@ ak_moveIndices(AkMesh * __restrict mesh) {
   /* fix indices */
   prim = mesh->primitive;
   while (prim) {
-    AkUIntArray *indices;
+    AkIndexArray *indices;
 
     indices = ak_meshIndicesArrayFor(mesh, prim, false);
     /* same index buff */
@@ -86,6 +92,7 @@ ak_moveIndices(AkMesh * __restrict mesh) {
 
     prim->indices = indices;
     prim->reserved3 = NULL;
+    prim->indexAccessor = NULL;
 
     /* mark primitive as single index */
     prim->indexStride = 1;

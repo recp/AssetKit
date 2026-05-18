@@ -41,57 +41,6 @@ typedef struct AkGLTFPrimProps {
   json_t *extras;
 } AkGLTFPrimProps;
 
-AK_INLINE
-void
-gltf_promoteIndices(AkUInt * __restrict dst,
-                    char   * __restrict src,
-                    size_t              count,
-                    size_t              itemSize) {
-  size_t k;
-
-  switch (itemSize) {
-    case 1: {
-      uint8_t *s;
-
-      s = (uint8_t *)src;
-      for (k = 0; k < count; k++)
-        dst[k] = s[k];
-      break;
-    }
-    case 2: {
-      if (((uintptr_t)src & (sizeof(uint16_t) - 1)) == 0) {
-        uint16_t *s;
-
-        s = (uint16_t *)src;
-        for (k = 0; k < count; k++)
-          dst[k] = s[k];
-      } else {
-        for (k = 0; k < count; k++) {
-          uint16_t v;
-
-          memcpy(&v, src + sizeof(v) * k, sizeof(v));
-          dst[k] = v;
-        }
-      }
-      break;
-    }
-    case 4:
-      memcpy(dst, src, sizeof(*dst) * count);
-      break;
-    default:
-      for (k = 0; k < count; k++) {
-        AkUInt v;
-
-        v = 0;
-        memcpy(&v,
-               src + itemSize * k,
-               itemSize < sizeof(v) ? itemSize : sizeof(v));
-        dst[k] = v;
-      }
-      break;
-  }
-}
-
 static inline
 void
 gltf_primProps(json_t          * __restrict jprim,
@@ -561,31 +510,14 @@ gltf_meshes(json_t * __restrict jmesh,
           }
 
           if ((jprimVal = primProps.indices)) {
-            AkAccessor   *acc;
-            AkBuffer     *indicesBuff;
-            AkUIntArray  *indices;
-            AkUInt       *it1;
-            char         *it2;
-            size_t        count, itemSize;
+            AkAccessor *acc;
 
             if (!(acc = gltf_accessor_at(gst, json_int32(jprimVal, -1)))
-                || !(indicesBuff = acc->buffer))
+                || !acc->buffer)
               goto prim_next;
 
-            itemSize = acc->bytesPerComponent;
-            count    = acc->count;
-            indices  = ak_heap_alloc(heap,
-                                     prim,
-                                     sizeof(*indices)
-                                      + sizeof(*it1) * count);
-            indices->count = count;
-            it1            = indices->items;
-            it2            = ((char *)indicesBuff->data) + acc->byteOffset;
-
-            gltf_promoteIndices(it1, it2, count, itemSize);
-
-            prim->indices     = indices;
-            prim->indexStride = 1;
+            prim->indexStride        = 1;
+            prim->indexAccessor      = acc;
           }
 
           if ((jprimVal = primProps.material)) {
@@ -905,10 +837,12 @@ uint32_t
 gltf_polyCount(AkMeshPrimitive *prim, uint32_t mode) {
   AkInput    *pos;
   AkAccessor *acc;
+  size_t      indexCount;
   uint32_t    n;
 
-  if (prim->indices) {
-    n = (uint32_t)prim->indices->count;
+  indexCount = ak_meshPrimitiveIndexCount(prim);
+  if (indexCount > 0) {
+    n = (uint32_t)indexCount;
   } else if ((pos = prim->pos) && (acc = pos->accessor)) {
     n = (uint32_t)acc->count;
   } else {

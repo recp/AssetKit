@@ -490,6 +490,73 @@ ak_str_parse_float_fast(char    * __restrict p,
 
 AK_INLINE
 char*
+ak_str_parse_float_end_fast(char    * __restrict p,
+                            char    * __restrict end,
+                            AkFloat * __restrict dest) {
+  char  *begin;
+  float  value, fracMul;
+  int    exp;
+  bool   neg, found;
+
+  begin = p;
+  neg   = false;
+  if (p < end && (*p == '-' || *p == '+'))
+    neg = *p++ == '-';
+
+  value = 0.0f;
+  found = false;
+  while (p < end && ak_str_isdigit_fast(*p)) {
+    value = value * 10.0f + (float)(*p++ - '0');
+    found = true;
+  }
+
+  if (p < end && *p == '.') {
+    p++;
+    fracMul = 0.1f;
+    while (p < end && ak_str_isdigit_fast(*p)) {
+      value += (float)(*p++ - '0') * fracMul;
+      fracMul *= 0.1f;
+      found = true;
+    }
+  }
+
+  if (!found) {
+    *dest = 0.0f;
+    return begin >= end ? begin : begin + 1;
+  }
+
+  if (p < end && (*p == 'e' || *p == 'E')) {
+    char *expBegin;
+    bool  expNeg, expFound;
+
+    p++;
+    expBegin = p;
+    expNeg   = false;
+    if (p < end && (*p == '-' || *p == '+'))
+      expNeg = *p++ == '-';
+
+    exp = 0;
+    expFound = false;
+    while (p < end && ak_str_isdigit_fast(*p)) {
+      if (exp < 10000)
+        exp = exp * 10 + (*p - '0');
+      p++;
+      expFound = true;
+    }
+
+    if (expFound)
+      value *= ak_str_pow10if_fast(expNeg ? -exp : exp);
+    else
+      p = expBegin;
+  }
+
+  *dest = neg ? -value : value;
+
+  return p;
+}
+
+AK_INLINE
+char*
 ak_str_parse_double_fast(char     * __restrict p,
                          char     * __restrict end,
                          AkDouble * __restrict dest) {
@@ -595,6 +662,104 @@ ak_str_parse_uint_fast(char   * __restrict p,
   }
 
   *dest = (!neg && !overflow) ? value : 0;
+
+  return p;
+}
+
+AK_INLINE
+char*
+ak_str_parse_uint_end_fast(char   * __restrict p,
+                           char   * __restrict end,
+                           AkUInt * __restrict dest) {
+  char   *begin;
+  AkUInt  value, digit;
+  bool    neg, found, overflow;
+
+  begin = p;
+  neg   = false;
+  if (p < end && (*p == '-' || *p == '+'))
+    neg = *p++ == '-';
+
+  value    = 0;
+  found    = false;
+  overflow = false;
+  while (p < end && ak_str_isdigit_fast(*p)) {
+    digit = (AkUInt)(*p++ - '0');
+    if (!overflow) {
+      if (value > UINT32_MAX / 10u
+          || (value == UINT32_MAX / 10u && digit > UINT32_MAX % 10u)) {
+        overflow = true;
+      } else {
+        value = value * 10u + digit;
+      }
+    }
+    found = true;
+  }
+
+  if (!found) {
+    *dest = 0;
+    return begin >= end ? begin : begin + 1;
+  }
+
+  *dest = (!neg && !overflow) ? value : 0;
+
+  return p;
+}
+
+AK_INLINE
+char*
+ak_str_parse_uint_index_fast(char   * __restrict p,
+                             char   * __restrict end,
+                             AkUInt * __restrict dest) {
+  char  *begin;
+  AkUInt value;
+  bool   found;
+
+  begin = p;
+  value = 0;
+  found = false;
+
+  while ((!end || p < end) && ak_str_isdigit_fast(*p)) {
+    value = value * 10u + (AkUInt)(*p++ - '0');
+    found = true;
+  }
+
+  if (!found) {
+    *dest = 0;
+    return (!end && *begin == '\0') || (end && begin >= end)
+           ? begin
+           : begin + 1;
+  }
+
+  *dest = value;
+
+  return p;
+}
+
+AK_INLINE
+char*
+ak_str_parse_uint_index_end_fast(char   * __restrict p,
+                                 char   * __restrict end,
+                                 AkUInt * __restrict dest) {
+  char  *begin;
+  AkUInt value;
+  bool   found;
+
+  begin = p;
+  value = 0;
+  found = false;
+
+  while (p < end && ak_str_isdigit_fast(*p)) {
+    value = value * 10u + (AkUInt)(*p++ - '0');
+    found = true;
+  }
+
+  if (!found) {
+    *dest = 0;
+    return begin >= end ? begin : begin + 1;
+  }
+
+  *dest = value;
 
   return p;
 }

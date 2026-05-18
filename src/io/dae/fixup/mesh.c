@@ -64,7 +64,9 @@ dae_mesh_needs_edit(AkMesh * __restrict mesh,
         && prim->type == AK_PRIMITIVE_POLYGONS)
       *needsTriangulate = true;
 
-    if (!*needsFixIndices && prim->indices && prim->indexStride > 1)
+    if (!*needsFixIndices
+        && (prim->indices || prim->indexAccessor)
+        && prim->indexStride > 1)
       *needsFixIndices = true;
 
     if (checkNormals

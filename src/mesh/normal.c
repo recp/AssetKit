@@ -77,7 +77,7 @@ void
 ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
   AkDataContext *dctx;
   AkDoc         *doc;
-  AkUIntArray   *inpIndices;
+  AkIndexArray  *inpIndices;
   AkFloat       *pos;
   AkUInt        *it, *it2;
   AkHeap        *heap;
@@ -102,22 +102,20 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
   pos    = posBuff->data;
   pos_st = posAcc->componentCount;
 
-  if (!prim->indices || prim->indices->count == 0)
+  if (!ak_meshPrimitiveEnsureUIntIndices(prim)
+      || !prim->indices
+      || prim->indices->count == 0)
     return;
 
-  it    = prim->indices->items + vo;
+  it    = (AkUInt *)(void *)prim->indices->items + vo;
   st    = prim->indexStride;
   count = (uint32_t)prim->indices->count / st;
   newst = st + 1;
 
   /* TODO: for now join this into existing indices,
            but in the future use separate to fix indices  */
-  inpIndices = ak_heap_calloc(heap,
-                              prim,
-                              sizeof(*inpIndices)
-                              + count * newst * sizeof(*it));
-  inpIndices->count = count * newst;
-  it2 = inpIndices->items;
+  inpIndices = ak_indexArrayAlloc(heap, prim, count * newst, AKT_UINT);
+  it2        = (AkUInt *)(void *)inpIndices->items;
 
   switch (prim->type) {
     case AK_PRIMITIVE_POLYGONS: {
@@ -296,6 +294,7 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
 
   ak_free(prim->indices);
   prim->indices = inpIndices;
+  prim->indexAccessor = NULL;
 
   (void)ak_data_join(dctx, buff->data, 0, 0);
   ak_free(dctx);

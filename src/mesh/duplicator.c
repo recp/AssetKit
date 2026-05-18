@@ -18,6 +18,7 @@
 #include "index.h"
 #include "edit_common.h"
 #include <limits.h>
+#include <time.h>
 
 #define AK_INDEX_LOCAL_HASH_CAP 4096
 
@@ -66,6 +67,60 @@ ak_indexTupleHash(const AkUInt * __restrict tuple,
   return hash ? hash : 1u;
 }
 
+#define AK_INDEX_TUPLE_HASH_TYPED(NAME, TYPE)                                \
+static                                                                       \
+uint32_t                                                                     \
+NAME(const TYPE * __restrict tuple,                                          \
+     uint32_t                  stride) {                                     \
+  uint32_t hash, i;                                                          \
+                                                                             \
+  hash = 2166136261u;                                                        \
+                                                                             \
+  switch (stride) {                                                          \
+    case 1:                                                                  \
+      hash ^= tuple[0];                                                      \
+      hash *= 16777619u;                                                     \
+      break;                                                                 \
+    case 2:                                                                  \
+      hash ^= tuple[0];                                                      \
+      hash *= 16777619u;                                                     \
+      hash ^= tuple[1];                                                      \
+      hash *= 16777619u;                                                     \
+      break;                                                                 \
+    case 3:                                                                  \
+      hash ^= tuple[0];                                                      \
+      hash *= 16777619u;                                                     \
+      hash ^= tuple[1];                                                      \
+      hash *= 16777619u;                                                     \
+      hash ^= tuple[2];                                                      \
+      hash *= 16777619u;                                                     \
+      break;                                                                 \
+    case 4:                                                                  \
+      hash ^= tuple[0];                                                      \
+      hash *= 16777619u;                                                     \
+      hash ^= tuple[1];                                                      \
+      hash *= 16777619u;                                                     \
+      hash ^= tuple[2];                                                      \
+      hash *= 16777619u;                                                     \
+      hash ^= tuple[3];                                                      \
+      hash *= 16777619u;                                                     \
+      break;                                                                 \
+    default:                                                                 \
+      for (i = 0; i < stride; i++) {                                         \
+        hash ^= tuple[i];                                                    \
+        hash *= 16777619u;                                                   \
+      }                                                                      \
+      break;                                                                 \
+  }                                                                          \
+                                                                             \
+  return hash ? hash : 1u;                                                   \
+}
+
+AK_INDEX_TUPLE_HASH_TYPED(ak_indexTupleHash8, uint8_t)
+AK_INDEX_TUPLE_HASH_TYPED(ak_indexTupleHash16, uint16_t)
+
+#undef AK_INDEX_TUPLE_HASH_TYPED
+
 static
 bool
 ak_indexTupleEq(const AkUInt * __restrict a,
@@ -85,6 +140,31 @@ ak_indexTupleEq(const AkUInt * __restrict a,
   }
 }
 
+#define AK_INDEX_TUPLE_EQ_TYPED(NAME, TYPE)                                  \
+static                                                                       \
+bool                                                                         \
+NAME(const TYPE * __restrict a,                                              \
+     const TYPE * __restrict b,                                              \
+     uint32_t                  stride) {                                     \
+  switch (stride) {                                                          \
+    case 1:                                                                  \
+      return a[0] == b[0];                                                   \
+    case 2:                                                                  \
+      return a[0] == b[0] && a[1] == b[1];                                  \
+    case 3:                                                                  \
+      return a[0] == b[0] && a[1] == b[1] && a[2] == b[2];                  \
+    case 4:                                                                  \
+      return a[0] == b[0] && a[1] == b[1] && a[2] == b[2] && a[3] == b[3];  \
+    default:                                                                 \
+      return memcmp(a, b, sizeof(*a) * stride) == 0;                         \
+  }                                                                          \
+}
+
+AK_INDEX_TUPLE_EQ_TYPED(ak_indexTupleEq8, uint8_t)
+AK_INDEX_TUPLE_EQ_TYPED(ak_indexTupleEq16, uint16_t)
+
+#undef AK_INDEX_TUPLE_EQ_TYPED
+
 static
 size_t
 ak_indexHashCap(size_t count) {
@@ -99,6 +179,35 @@ ak_indexHashCap(size_t count) {
   return cap;
 }
 
+static
+AkIndexArray*
+ak_indexSideArrayAllocZero(AkHeap   * __restrict heap,
+                           void     * __restrict parent,
+                           size_t                count,
+                           AkTypeId              componentType) {
+  AkIndexArray *indices;
+  size_t        itemSize;
+
+  indices = ak_indexArrayAlloc(heap, parent, count, componentType);
+  if (!indices)
+    return NULL;
+
+  itemSize = ak_indexComponentSize(componentType);
+  memset(indices->items, 0, itemSize * count);
+
+  return indices;
+}
+
+static
+double
+ak_index_profile_now_ms(void) {
+  struct timespec ts;
+
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+
+  return (double)ts.tv_sec * 1000.0 + (double)ts.tv_nsec / 1000000.0;
+}
+
 AK_HIDE
 AkDuplicator*
 ak_meshDuplicatorForIndicesRetained(AkMesh          * __restrict mesh,
@@ -109,13 +218,19 @@ ak_meshDuplicatorForIndicesRetained(AkMesh          * __restrict mesh,
   AkObject           *meshobj;
   AkDuplicator       *dupl;
   AkDuplicatorRange  *dupr;
-  AkUIntArray        *dupc, *ind, *newind, *dupcsum;
-  uint32_t           *it, *it2, *hashes;
+  AkIndexArray       *ind, *newind;
+  AkIndexArray       *dupc, *dupcsum;
+  uint32_t           *hashes;
   uint32_t            localHashes[AK_INDEX_LOCAL_HASH_CAP];
   AkAccessor         *posAcc;
   size_t              count, hcap, hmask, hpos, hslot, icount,
-                      vertc, i, j;
+                      vertc, i, j, dupcItemCount, dupcsumCount;
   uint32_t            st, vo, posno, idxp, ord;
+  AkUInt              dupcMax;
+  AkTypeId            dupcType, dupcsumType;
+  double              t, tSideAlloc, tHashAlloc, tHashLoop, tSumAlloc,
+                      tSumBuild;
+  bool                profile;
 
   if (!prim->pos || !(posAcc = prim->pos->accessor))
     return NULL;
@@ -124,6 +239,8 @@ ak_meshDuplicatorForIndicesRetained(AkMesh          * __restrict mesh,
   meshobj = ak_objFrom(mesh);
   heap    = ak_heap_getheap(meshobj);
   doc     = ak_heap_data(heap);
+  profile = ak_index_profile_active();
+  tSideAlloc = tHashAlloc = tHashLoop = tSumAlloc = tSumBuild = 0.0;
 
   if (retain) {
     if ((dupl = rb_find(doc->reserved, prim))) {
@@ -134,20 +251,30 @@ ak_meshDuplicatorForIndicesRetained(AkMesh          * __restrict mesh,
 
   dupl = ak_heap_calloc(heap, NULL, sizeof(*dupl));
 
-  /* TODO: cache this for multiple primitives */
-  dupc = ak_heap_calloc(heap,
-                        dupl,
-                        sizeof(AkUIntArray) + sizeof(AkUInt) * vertc * 3);
-  dupc->count = posAcc->count;
-
-  st      = prim->indexStride;
-  vo      = prim->pos->offset;
-  ind     = prim->indices;
-  icount  = (uint32_t)ind->count / st;
+  st        = prim->indexStride ? prim->indexStride : 1;
+  vo        = prim->pos->offset;
+  ind       = prim->indices;
+  if (!ind)
+    goto fail;
+  icount  = (uint32_t)(ind->count / st);
   newind  = ak_meshIndicesArrayFor(mesh, prim, true);
-  it      = ind->items;
-  it2     = newind->items;
+  if (!newind)
+    goto fail;
 
+  dupcMax       = (AkUInt)(vertc > icount ? vertc : icount);
+  dupcType      = ak_indexComponentTypeForMax(dupcMax);
+  dupcItemCount = vertc * 3;
+
+  /* TODO: cache this for multiple primitives */
+  t = profile ? ak_index_profile_now_ms() : 0.0;
+  dupc = ak_indexSideArrayAllocZero(heap, dupl, dupcItemCount, dupcType);
+  if (profile)
+    tSideAlloc += ak_index_profile_now_ms() - t;
+  if (!dupc)
+    goto fail;
+  dupc->max = dupcMax;
+
+  t = profile ? ak_index_profile_now_ms() : 0.0;
   hcap   = ak_indexHashCap(icount);
   hmask  = hcap - 1;
   if (hcap <= AK_INDEX_LOCAL_HASH_CAP) {
@@ -156,60 +283,195 @@ ak_meshDuplicatorForIndicesRetained(AkMesh          * __restrict mesh,
   } else {
     hashes = ak_heap_calloc(heap, dupl, sizeof(uint32_t) * hcap);
   }
+  if (profile)
+    tHashAlloc += ak_index_profile_now_ms() - t;
 
   count = posno = 0;
-  for (j = i = 0; j < icount; j++, i += st) {
-    idxp = it[i + vo];
-    if (idxp >= vertc)
+
+#define AK_DUPLICATOR_FOR_INDEX_TYPE(DSTTYPE, TYPE, SRC, HASHFN, EQFN, SIDETYPE) \
+  do {                                                                       \
+    DSTTYPE    *dst_;                                                        \
+    const TYPE *src_;                                                        \
+    SIDETYPE   *dupcItems_;                                                  \
+                                                                             \
+    dst_ = (DSTTYPE *)(void *)newind->items;                                 \
+    src_ = (const TYPE *)(const void *)(SRC);                                \
+    dupcItems_ = (SIDETYPE *)(void *)dupc->items;                            \
+    for (j = i = 0; j < icount; j++, i += st) {                              \
+      idxp = (uint32_t)src_[i + vo];                                         \
+      if (idxp >= vertc)                                                     \
+        goto fail;                                                           \
+                                                                             \
+      hpos = HASHFN(&src_[i], st) & hmask;                                   \
+      for (;;) {                                                             \
+        hslot = hashes[hpos];                                                \
+        if (!hslot) {                                                        \
+          if (dupcItems_[3 * idxp + 2] == 0) {                               \
+            dupcItems_[3 * idxp]     = (SIDETYPE)posno++;                    \
+            dupcItems_[3 * idxp + 2] = (SIDETYPE)(idxp + 1);                 \
+            ord = 0;                                                         \
+          } else {                                                           \
+            ord = ++dupcItems_[3 * idxp + 1];                                \
+            count++;                                                         \
+          }                                                                  \
+                                                                             \
+          hashes[hpos] = (uint32_t)j + 1;                                    \
+          dst_[j]      = (DSTTYPE)ord;                                       \
+          break;                                                             \
+        }                                                                    \
+                                                                             \
+        hslot--;                                                             \
+        if (EQFN(&src_[i], &src_[hslot * st], st)) {                         \
+          dst_[j] = dst_[hslot];                                             \
+          break;                                                             \
+        }                                                                    \
+                                                                             \
+        hpos = (hpos + 1) & hmask;                                           \
+      }                                                                      \
+    }                                                                        \
+  } while (0)
+
+#define AK_DUPLICATOR_FOR_OUTPUT_TYPE(DSTTYPE, SIDETYPE)                     \
+  do {                                                                       \
+    switch (ind->componentType) {                                            \
+      case AKT_UBYTE:                                                        \
+        AK_DUPLICATOR_FOR_INDEX_TYPE(DSTTYPE,                                \
+                                     uint8_t,                                \
+                                     ind->items,                             \
+                                     ak_indexTupleHash8,                     \
+                                     ak_indexTupleEq8,                       \
+                                     SIDETYPE);                              \
+        break;                                                               \
+      case AKT_USHORT:                                                       \
+        AK_DUPLICATOR_FOR_INDEX_TYPE(DSTTYPE,                                \
+                                     uint16_t,                               \
+                                     ind->items,                             \
+                                     ak_indexTupleHash16,                    \
+                                     ak_indexTupleEq16,                      \
+                                     SIDETYPE);                              \
+        break;                                                               \
+      case AKT_UINT:                                                         \
+        AK_DUPLICATOR_FOR_INDEX_TYPE(DSTTYPE,                                \
+                                     AkUInt,                                 \
+                                     ind->items,                             \
+                                     ak_indexTupleHash,                      \
+                                     ak_indexTupleEq,                        \
+                                     SIDETYPE);                              \
+        break;                                                               \
+      default:                                                               \
+        goto fail;                                                           \
+    }                                                                        \
+  } while (0)
+
+#define AK_DUPLICATOR_FOR_SIDE_TYPE(SIDETYPE)                                \
+  do {                                                                       \
+    switch (newind->componentType) {                                         \
+      case AKT_UBYTE:                                                        \
+        AK_DUPLICATOR_FOR_OUTPUT_TYPE(uint8_t, SIDETYPE);                    \
+        break;                                                               \
+      case AKT_USHORT:                                                       \
+        AK_DUPLICATOR_FOR_OUTPUT_TYPE(uint16_t, SIDETYPE);                   \
+        break;                                                               \
+      case AKT_UINT:                                                         \
+        AK_DUPLICATOR_FOR_OUTPUT_TYPE(AkUInt, SIDETYPE);                     \
+        break;                                                               \
+      default:                                                               \
+        goto fail;                                                           \
+    }                                                                        \
+  } while (0)
+
+  t = profile ? ak_index_profile_now_ms() : 0.0;
+  switch (dupc->componentType) {
+    case AKT_UBYTE:
+      AK_DUPLICATOR_FOR_SIDE_TYPE(uint8_t);
+      break;
+    case AKT_USHORT:
+      AK_DUPLICATOR_FOR_SIDE_TYPE(uint16_t);
+      break;
+    case AKT_UINT:
+      AK_DUPLICATOR_FOR_SIDE_TYPE(AkUInt);
+      break;
+    default:
       goto fail;
-
-    hpos = ak_indexTupleHash(&it[i], st) & hmask;
-    for (;;) {
-      hslot = hashes[hpos];
-      if (!hslot) {
-        if (dupc->items[3 * idxp + 2] == 0) {
-          dupc->items[3 * idxp]     = posno++;
-          dupc->items[3 * idxp + 2] = idxp + 1;
-          ord = 0;
-        } else {
-          ord = ++dupc->items[3 * idxp + 1];
-          count++;
-        }
-
-        hashes[hpos] = (uint32_t)j + 1;
-        it2[j]       = ord;
-        break;
-      }
-
-      hslot--;
-      if (ak_indexTupleEq(&it[i], &it[hslot * st], st)) {
-        it2[j] = it2[hslot];
-        break;
-      }
-
-      hpos = (hpos + 1) & hmask;
-    }
   }
+  if (profile)
+    tHashLoop += ak_index_profile_now_ms() - t;
 
-  dupcsum = ak_heap_calloc(heap,
-                           dupc,
-                           sizeof(AkUIntArray) + sizeof(AkUInt) * (posno + 1));
-  dupcsum->count = posno;
+#undef AK_DUPLICATOR_FOR_SIDE_TYPE
+#undef AK_DUPLICATOR_FOR_OUTPUT_TYPE
+#undef AK_DUPLICATOR_FOR_INDEX_TYPE
 
-  for (i = 0; i < dupc->count; i++) {
-    uint32_t pno, d;
+  dupcsumType  = ak_indexComponentTypeForMax((AkUInt)count);
+  dupcsumCount = (size_t)posno + 1;
+  t = profile ? ak_index_profile_now_ms() : 0.0;
+  dupcsum      = ak_indexSideArrayAllocZero(heap, dupc, dupcsumCount, dupcsumType);
+  if (profile)
+    tSumAlloc += ak_index_profile_now_ms() - t;
+  if (!dupcsum)
+    goto fail;
+  dupcsum->max = (AkUInt)count;
 
-    if (dupc->items[3 * i + 2] == 0)
-      continue;
+#define AK_BUILD_DUPCSUM(DUPTYPE, SUMTYPE)                                  \
+  do {                                                                      \
+    const DUPTYPE *dupcItems_;                                               \
+    SUMTYPE       *sumItems_;                                                \
+    AkUInt         pno_, d_, sum_;                                           \
+                                                                            \
+    dupcItems_ = (const DUPTYPE *)(const void *)dupc->items;                 \
+    sumItems_  = (SUMTYPE *)(void *)dupcsum->items;                          \
+                                                                            \
+    for (i = 0; i < vertc; i++) {                                            \
+      if (dupcItems_[3 * i + 2] == 0)                                        \
+        continue;                                                            \
+                                                                            \
+      pno_ = (AkUInt)dupcItems_[i * 3];                                      \
+      d_   = (AkUInt)dupcItems_[i * 3 + 1];                                  \
+                                                                            \
+      sumItems_[pno_ + 1] = (SUMTYPE)d_;                                     \
+    }                                                                        \
+                                                                            \
+    for (i = 1; i < dupcsum->count; i++) {                                   \
+      sum_        = (AkUInt)sumItems_[i] + (AkUInt)sumItems_[i - 1];          \
+      sumItems_[i] = (SUMTYPE)sum_;                                          \
+    }                                                                        \
+  } while (0)
 
-    pno = dupc->items[i * 3];
-    d   = dupc->items[i * 3 + 1];
+#define AK_BUILD_DUPCSUM_FOR_DUP_TYPE(DUPTYPE)                              \
+  do {                                                                      \
+    switch (dupcsum->componentType) {                                        \
+      case AKT_UBYTE:                                                        \
+        AK_BUILD_DUPCSUM(DUPTYPE, uint8_t);                                  \
+        break;                                                               \
+      case AKT_USHORT:                                                       \
+        AK_BUILD_DUPCSUM(DUPTYPE, uint16_t);                                 \
+        break;                                                               \
+      case AKT_UINT:                                                         \
+        AK_BUILD_DUPCSUM(DUPTYPE, AkUInt);                                   \
+        break;                                                               \
+      default:                                                               \
+        goto fail;                                                           \
+    }                                                                        \
+  } while (0)
 
-    dupcsum->items[pno + 1] = d;
+  t = profile ? ak_index_profile_now_ms() : 0.0;
+  switch (dupc->componentType) {
+    case AKT_UBYTE:
+      AK_BUILD_DUPCSUM_FOR_DUP_TYPE(uint8_t);
+      break;
+    case AKT_USHORT:
+      AK_BUILD_DUPCSUM_FOR_DUP_TYPE(uint16_t);
+      break;
+    case AKT_UINT:
+      AK_BUILD_DUPCSUM_FOR_DUP_TYPE(AkUInt);
+      break;
+    default:
+      goto fail;
   }
+  if (profile)
+    tSumBuild += ak_index_profile_now_ms() - t;
 
-  for (i = 1; i < dupcsum->count; i++)
-    dupcsum->items[i] += dupcsum->items[i - 1];
+#undef AK_BUILD_DUPCSUM_FOR_DUP_TYPE
+#undef AK_BUILD_DUPCSUM
 
   dupr             = ak_heap_alloc(heap, dupl, sizeof(*dupr));
   dupr->dupc       = dupc;
@@ -224,6 +486,18 @@ ak_meshDuplicatorForIndicesRetained(AkMesh          * __restrict mesh,
 
   if (hashes != localHashes)
     ak_free(hashes);
+
+  if (profile)
+    ak_index_profile_add_duplicator(tSideAlloc,
+                                    tHashAlloc,
+                                    tHashLoop,
+                                    tSumAlloc,
+                                    tSumBuild,
+                                    icount,
+                                    vertc,
+                                    posno,
+                                    count,
+                                    hcap);
 
   if (retain)
     rb_insert(doc->reserved, prim, dupl);
@@ -248,8 +522,8 @@ ak_meshFixIndexBuffer(AkMesh          * __restrict mesh,
                       AkMeshPrimitive * __restrict prim,
                       AkDuplicator    * __restrict duplicator) {
   AkDuplicatorRange *dupr;
-  AkUIntArray       *dupc, *dupcsum, *newind;
-  AkUInt            *it, *it2;
+  AkIndexArray      *ind, *newind;
+  AkIndexArray      *dupc, *dupcsum;
   uint32_t           i, j, c, st, vo, idxp, nidxp;
 
   dupr    = duplicator->range;
@@ -257,23 +531,107 @@ ak_meshFixIndexBuffer(AkMesh          * __restrict mesh,
   dupcsum = dupr->dupcsum;
 
   newind = ak_meshIndicesArrayFor(mesh, prim, true);
-  it     = prim->indices->items;
-  it2    = newind->items;
-  st     = prim->indexStride;
-  vo     = prim->pos->offset;
-  c      = (uint32_t)prim->indices->count;
+  ind    = prim->indices;
+  if (!newind || !ind)
+    return;
 
-  if (duplicator->dupCount > 0) {
-    for (i = j = 0; i < c; i += st, j++) {
-      idxp   = it[i + vo];
-      nidxp  = dupc->items[idxp * 3];
-      it2[j] = it2[j] + nidxp + dupcsum->items[nidxp];
-    }
-  } else {
-    for (i = j = 0; i < c; i += st, j++) {
-      idxp   = it[i + vo];
-      nidxp  = dupc->items[idxp * 3];
-      it2[j] = nidxp;
-    }
+  st     = prim->indexStride ? prim->indexStride : 1;
+  vo     = prim->pos->offset;
+  c      = (uint32_t)ind->count;
+
+#define AK_FIX_INDEX_BUFFER_FOR_TYPE(DSTTYPE, TYPE, SRC, DUPTYPE, SUMTYPE)   \
+  do {                                                                       \
+    DSTTYPE    *dst_;                                                        \
+    const TYPE *src_;                                                        \
+    const DUPTYPE *dupcItems_;                                               \
+    const SUMTYPE *sumItems_;                                                \
+                                                                             \
+    dst_ = (DSTTYPE *)(void *)newind->items;                                 \
+    src_ = (const TYPE *)(const void *)(SRC);                                \
+    dupcItems_ = (const DUPTYPE *)(const void *)dupc->items;                 \
+    sumItems_  = (const SUMTYPE *)(const void *)dupcsum->items;              \
+    if (duplicator->dupCount > 0) {                                          \
+      for (i = j = 0; i < c; i += st, j++) {                                 \
+        idxp   = (uint32_t)src_[i + vo];                                     \
+        nidxp  = (uint32_t)dupcItems_[idxp * 3];                             \
+        dst_[j] = (DSTTYPE)(dst_[j] + nidxp + sumItems_[nidxp]);             \
+      }                                                                      \
+    } else {                                                                 \
+      for (i = j = 0; i < c; i += st, j++) {                                 \
+        idxp   = (uint32_t)src_[i + vo];                                     \
+        nidxp  = (uint32_t)dupcItems_[idxp * 3];                             \
+        dst_[j] = (DSTTYPE)nidxp;                                            \
+      }                                                                      \
+    }                                                                        \
+  } while (0)
+
+#define AK_FIX_INDEX_BUFFER_FOR_OUTPUT_TYPE(DSTTYPE, DUPTYPE, SUMTYPE)       \
+  do {                                                                       \
+    switch (ind->componentType) {                                            \
+      case AKT_UBYTE:                                                        \
+        AK_FIX_INDEX_BUFFER_FOR_TYPE(DSTTYPE, uint8_t, ind->items, DUPTYPE, SUMTYPE); \
+        break;                                                               \
+      case AKT_USHORT:                                                       \
+        AK_FIX_INDEX_BUFFER_FOR_TYPE(DSTTYPE, uint16_t, ind->items, DUPTYPE, SUMTYPE); \
+        break;                                                               \
+      case AKT_UINT:                                                         \
+        AK_FIX_INDEX_BUFFER_FOR_TYPE(DSTTYPE, AkUInt, ind->items, DUPTYPE, SUMTYPE); \
+        break;                                                               \
+      default:                                                               \
+        break;                                                               \
+    }                                                                        \
+  } while (0)
+
+#define AK_FIX_INDEX_BUFFER_FOR_SUM_TYPE(DUPTYPE, SUMTYPE)                  \
+  do {                                                                      \
+    switch (newind->componentType) {                                        \
+      case AKT_UBYTE:                                                       \
+        AK_FIX_INDEX_BUFFER_FOR_OUTPUT_TYPE(uint8_t, DUPTYPE, SUMTYPE);     \
+        break;                                                              \
+      case AKT_USHORT:                                                      \
+        AK_FIX_INDEX_BUFFER_FOR_OUTPUT_TYPE(uint16_t, DUPTYPE, SUMTYPE);    \
+        break;                                                              \
+      case AKT_UINT:                                                        \
+        AK_FIX_INDEX_BUFFER_FOR_OUTPUT_TYPE(AkUInt, DUPTYPE, SUMTYPE);      \
+        break;                                                              \
+      default:                                                              \
+        break;                                                              \
+    }                                                                       \
+  } while (0)
+
+#define AK_FIX_INDEX_BUFFER_FOR_DUP_TYPE(DUPTYPE)                           \
+  do {                                                                      \
+    switch (dupcsum->componentType) {                                       \
+      case AKT_UBYTE:                                                       \
+        AK_FIX_INDEX_BUFFER_FOR_SUM_TYPE(DUPTYPE, uint8_t);                 \
+        break;                                                              \
+      case AKT_USHORT:                                                      \
+        AK_FIX_INDEX_BUFFER_FOR_SUM_TYPE(DUPTYPE, uint16_t);                \
+        break;                                                              \
+      case AKT_UINT:                                                        \
+        AK_FIX_INDEX_BUFFER_FOR_SUM_TYPE(DUPTYPE, AkUInt);                  \
+        break;                                                              \
+      default:                                                              \
+        break;                                                              \
+    }                                                                       \
+  } while (0)
+
+  switch (dupc->componentType) {
+    case AKT_UBYTE:
+      AK_FIX_INDEX_BUFFER_FOR_DUP_TYPE(uint8_t);
+      break;
+    case AKT_USHORT:
+      AK_FIX_INDEX_BUFFER_FOR_DUP_TYPE(uint16_t);
+      break;
+    case AKT_UINT:
+      AK_FIX_INDEX_BUFFER_FOR_DUP_TYPE(AkUInt);
+      break;
+    default:
+      break;
   }
+
+#undef AK_FIX_INDEX_BUFFER_FOR_DUP_TYPE
+#undef AK_FIX_INDEX_BUFFER_FOR_SUM_TYPE
+#undef AK_FIX_INDEX_BUFFER_FOR_OUTPUT_TYPE
+#undef AK_FIX_INDEX_BUFFER_FOR_TYPE
 }

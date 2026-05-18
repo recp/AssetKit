@@ -64,7 +64,7 @@ topofix_noind(AkHeap          * __restrict heap,
   AkInput     *input;
   AkAccessor  *acc;
   AkBuffer    *buff;
-  AkUIntArray *indices;
+  AkIndexArray *indices;
   AkUInt      *it, nVertices, i, j;
 
   if (!(input = prim->pos)
@@ -90,9 +90,8 @@ topofix_noind(AkHeap          * __restrict heap,
         }
 
         ntrigs         = nVertices - 2;
-        indices        = ak_heap_alloc(heap, prim, sizeof(*indices) + sizeof(AkUInt) * ntrigs * 3);
-        indices->count = ntrigs * 3;
-        it             = indices->items;
+        indices = ak_indexArrayAlloc(heap, prim, ntrigs * 3, AKT_UINT);
+        it      = (AkUInt *)(void *)indices->items;
 
         switch (trig->mode) {
           case AK_TRIANGLE_FAN:
@@ -125,6 +124,7 @@ topofix_noind(AkHeap          * __restrict heap,
         trig->mode        = AK_TRIANGLES;
         prim->indices     = indices;
         prim->indexStride = 1;
+        prim->indexAccessor = NULL;
       }
       break;
     }
@@ -139,9 +139,8 @@ topofix_noind(AkHeap          * __restrict heap,
           case AK_LINE_LOOP:
             if (line_loop) {
               nlines         = nVertices;
-              indices        = ak_heap_alloc(heap, prim, sizeof(*indices) + sizeof(AkUInt) * nlines * 2);
-              indices->count = nlines * 2;
-              it             = indices->items;
+              indices = ak_indexArrayAlloc(heap, prim, nlines * 2, AKT_UINT);
+              it      = (AkUInt *)(void *)indices->items;
 
               for (i = 0; i < nVertices - 1; ++i) {
                 it[i * 2]     = i;
@@ -155,14 +154,14 @@ topofix_noind(AkHeap          * __restrict heap,
               lines->mode       = AK_LINES;
               prim->indices     = indices;
               prim->indexStride = 1;
+              prim->indexAccessor = NULL;
             }
             break;
           case AK_LINE_STRIP:
             if (line_strip) {
               nlines         = nVertices - 1;
-              indices        = ak_heap_alloc(heap, prim, sizeof(*indices) + sizeof(AkUInt) * nlines * 2);
-              indices->count = nlines * 2;
-              it             = indices->items;
+              indices = ak_indexArrayAlloc(heap, prim, nlines * 2, AKT_UINT);
+              it      = (AkUInt *)(void *)indices->items;
 
               for (i = 0; i < nlines; ++i) {
                 it[i * 2]     = i;
@@ -172,6 +171,7 @@ topofix_noind(AkHeap          * __restrict heap,
               lines->mode       = AK_LINES;
               prim->indices     = indices;
               prim->indexStride = 1;
+              prim->indexAccessor = NULL;
             }
             break;
           default: break;
@@ -191,9 +191,9 @@ topofix_ind(AkHeap          * __restrict heap,
             uint8_t                      line_loop,
             uint8_t                      line_strip) {
   AkUInt      *it, *newIt, nIndices, i, j;
-  AkUIntArray *newIndices;
+  AkIndexArray *newIndices;
 
-  it       = prim->indices->items;
+  it       = (AkUInt *)(void *)prim->indices->items;
   nIndices = (AkUInt)prim->indices->count;
 
   switch (prim->type) {
@@ -211,12 +211,11 @@ topofix_ind(AkHeap          * __restrict heap,
         }
 
         nTriangles        = nIndices - 2;
-        newIndices        = ak_heap_calloc(heap,
-                                           prim,
-                                           sizeof(*newIndices)
-                                           + sizeof(AkUInt) * nTriangles * 3);
-        newIndices->count = nTriangles * 3;
-        newIt             = newIndices->items;
+        newIndices = ak_indexArrayAlloc(heap,
+                                        prim,
+                                        nTriangles * 3,
+                                        AKT_UINT);
+        newIt      = (AkUInt *)(void *)newIndices->items;
 
         switch (trig->mode) {
           case AK_TRIANGLE_FAN:
@@ -252,6 +251,7 @@ topofix_ind(AkHeap          * __restrict heap,
 
         ak_free(prim->indices);
         prim->indices = newIndices;
+        prim->indexAccessor = NULL;
       }
       break;
     }
@@ -266,12 +266,11 @@ topofix_ind(AkHeap          * __restrict heap,
           case AK_LINE_LOOP:
             if (line_loop) {
               nLines            = nIndices;
-              newIndices        = ak_heap_calloc(heap,
-                                                 prim,
-                                                 sizeof(*newIndices)
-                                                 + sizeof(AkUInt) * nLines * 2);
-              newIndices->count = nLines * 2;
-              newIt             = newIndices->items;
+              newIndices = ak_indexArrayAlloc(heap,
+                                              prim,
+                                              nLines * 2,
+                                              AKT_UINT);
+              newIt      = (AkUInt *)(void *)newIndices->items;
 
               for (i = 0; i < nIndices - 1; ++i) {
                 newIt[i * 2]     = it[i];
@@ -284,6 +283,7 @@ topofix_ind(AkHeap          * __restrict heap,
 
               ak_free(prim->indices);
               prim->indices = newIndices;
+              prim->indexAccessor = NULL;
 
               lines->mode = AK_LINES;
             }
@@ -291,12 +291,11 @@ topofix_ind(AkHeap          * __restrict heap,
           case AK_LINE_STRIP:
             if (line_strip) {
               nLines            = nIndices - 1;
-              newIndices        = ak_heap_calloc(heap,
-                                                 prim,
-                                                 sizeof(*newIndices)
-                                                 + sizeof(AkUInt) * nLines * 2);
-              newIndices->count = nLines * 2;
-              newIt             = newIndices->items;
+              newIndices = ak_indexArrayAlloc(heap,
+                                              prim,
+                                              nLines * 2,
+                                              AKT_UINT);
+              newIt      = (AkUInt *)(void *)newIndices->items;
 
               for (i = 0; i < nLines; ++i) {
                 newIt[i * 2]     = it[i];
@@ -305,6 +304,7 @@ topofix_ind(AkHeap          * __restrict heap,
 
               ak_free(prim->indices);
               prim->indices = newIndices;
+              prim->indexAccessor = NULL;
 
               lines->mode = AK_LINES;
             }
@@ -339,8 +339,11 @@ topofix(AkMesh * mesh) {
     if (!topofix_prim_needs(prim, trig_fan, trig_strip, line_loop, line_strip))
       goto next;
 
-    if (prim->indices) {
-      topofix_ind(heap, prim, trig_fan, trig_strip, line_loop, line_strip);
+    if (prim->indices || prim->indexAccessor) {
+      ak_meshPrimitiveEnsureUIntIndices(prim);
+
+      if (prim->indices)
+        topofix_ind(heap, prim, trig_fan, trig_strip, line_loop, line_strip);
     } else {
       topofix_noind(heap, prim, trig_fan, trig_strip, line_loop, line_strip);
     }

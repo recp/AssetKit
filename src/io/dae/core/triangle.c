@@ -83,8 +83,9 @@ dae_triangles(DAEState * __restrict dst,
       }
       DAE_PROF_ACC(dst, profGeomInput, profGeomInputCount, profStep);
     } else if (DAE_XML_TAG_EQ8(xml, p) && xml->val) {
-      AkUIntArray *uintArray;
+      AkIndexArray *indexArray;
       AkResult     ret;
+      AkUInt       maxIndex;
       uint32_t     indexStride;
       unsigned long expectedCount;
       profStep = DAE_PROF_START(dst);
@@ -93,11 +94,22 @@ dae_triangles(DAEState * __restrict dst,
       expectedCount = mode == AK_TRIANGLES
                       ? (unsigned long)tri->base.nPolygons * 3ul * indexStride
                       : 0ul;
+      maxIndex      = 0;
       ret = expectedCount > 0
-            ? xml_strtoui_arrayN(heap, tri, xml->val, expectedCount, &uintArray)
-            : xml_strtoui_array(heap, tri, xml->val, &uintArray);
-      if (ret == AK_OK)
-        tri->base.indices = uintArray;
+            ? xml_strtoindex_arrayN_max(heap,
+                                         tri,
+                                         xml->val,
+                                         expectedCount,
+                                         &indexArray,
+                                         &maxIndex)
+            : xml_strtoindex_array_max(heap,
+                                        tri,
+                                        xml->val,
+                                        &indexArray,
+                                        &maxIndex);
+      if (ret == AK_OK) {
+        tri->base.indices = indexArray;
+      }
       DAE_PROF_ACC(dst, profGeomIndexArray, profGeomIndexArrayCount, profStep);
     } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       tri->base.extra = tree_fromxml(heap, tri, xml);

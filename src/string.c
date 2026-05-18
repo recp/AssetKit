@@ -182,7 +182,7 @@ ak_strtof(char    * __restrict src,
       tok = ak_str_skip_array_sep(tok, end);
       if (tok >= end)
         break;
-      tok = ak_str_parse_float_fast(tok, end, out++);
+      tok = ak_str_parse_float_end_fast(tok, end, out++);
       rem--;
     } while (rem > 0ul && tok < end);
   } else {
@@ -222,7 +222,7 @@ ak_strtof_line(char    * __restrict src,
       tok = ak_str_skip_sep_fast(tok, end, true);
       if (tok >= end)
         break;
-      tok = ak_str_parse_float_fast(tok, end, out++);
+      tok = ak_str_parse_float_end_fast(tok, end, out++);
       rem--;
     } while (rem > 0ul && tok < end);
   } else {
@@ -302,7 +302,7 @@ ak_strtoui(char    * __restrict src,
       tok = ak_str_skip_array_sep(tok, end);
       if (tok >= end)
         break;
-      tok = ak_str_parse_uint_fast(tok, end, out++);
+      tok = ak_str_parse_uint_end_fast(tok, end, out++);
       rem--;
     } while (rem > 0ul && tok < end);
   } else {

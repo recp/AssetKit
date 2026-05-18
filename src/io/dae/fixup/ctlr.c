@@ -561,7 +561,8 @@ ak_fixBoneWeights(AkHeap        *heap,
   AkSkinDAE    *skindae;
   AkBoneWeight *w, *iw;
   AkBuffer     *weightsBuff;
-  AkUIntArray  *dupc, *dupcsum, *v;
+  AkIndexArray *dupc, *dupcsum;
+  AkUIntArray  *v;
   uint32_t     *pv, *pOldCountSum, *old;
   size_t       *wi, vc, d, s, pno, poo, nwsum, newidx, next, tmp;
   uint32_t     *nj, i, j, k, vcount, viStride, widx;
@@ -602,34 +603,113 @@ ak_fixBoneWeights(AkHeap        *heap,
   vc = nMeshVertex;
   if (intrWeights->nVertex < vc)
     vc = intrWeights->nVertex;
-  if (useDupl && dupc->count < vc)
-    vc = dupc->count;
+  if (useDupl && (dupc->count / 3) < vc)
+    vc = dupc->count / 3;
   if (!useDupl && weights->nVertex < vc)
     vc = weights->nVertex;
 
+#define AK_CTLR_FIX_DISPATCH(OP)                                            \
+  do {                                                                      \
+    switch (dupc->componentType) {                                           \
+      case AKT_UBYTE:                                                        \
+        switch (dupcsum->componentType) {                                    \
+          case AKT_UBYTE:  OP(uint8_t, uint8_t);   break;                   \
+          case AKT_USHORT: OP(uint8_t, uint16_t);  break;                   \
+          case AKT_UINT:   OP(uint8_t, AkUInt);    break;                   \
+          default: break;                                                    \
+        }                                                                   \
+        break;                                                              \
+      case AKT_USHORT:                                                       \
+        switch (dupcsum->componentType) {                                    \
+          case AKT_UBYTE:  OP(uint16_t, uint8_t);  break;                   \
+          case AKT_USHORT: OP(uint16_t, uint16_t); break;                   \
+          case AKT_UINT:   OP(uint16_t, AkUInt);   break;                   \
+          default: break;                                                    \
+        }                                                                   \
+        break;                                                              \
+      case AKT_UINT:                                                         \
+        switch (dupcsum->componentType) {                                    \
+          case AKT_UBYTE:  OP(AkUInt, uint8_t);    break;                   \
+          case AKT_USHORT: OP(AkUInt, uint16_t);   break;                   \
+          case AKT_UINT:   OP(AkUInt, AkUInt);     break;                   \
+          default: break;                                                    \
+        }                                                                   \
+        break;                                                              \
+      default: break;                                                        \
+    }                                                                       \
+  } while (0)
+
+#define AK_CTLR_FIX_COUNT_PASS(DUPTYPE, SUMTYPE)                            \
+  do {                                                                      \
+    const DUPTYPE *dupcItems_;                                               \
+    const SUMTYPE *sumItems_;                                                \
+                                                                            \
+    dupcItems_ = (const DUPTYPE *)(const void *)dupc->items;                 \
+    sumItems_  = (const SUMTYPE *)(const void *)dupcsum->items;              \
+    for (i = 0; i < vc; i++) {                                               \
+      if ((poo = dupcItems_[3 * i + 2]) == 0)                                \
+        continue;                                                            \
+                                                                            \
+      pno = dupcItems_[3 * i];                                               \
+      d   = dupcItems_[3 * i + 1];                                           \
+      if (pno >= dupcsum->count)                                             \
+        continue;                                                            \
+                                                                            \
+      s      = sumItems_[pno];                                               \
+      vcount = ak_daeSafeWeightCount(intrWeights, v, viStride, poo - 1);     \
+                                                                            \
+      for (j = 0; j <= d; j++) {                                             \
+        newidx = pno + j + s;                                                \
+        if (newidx >= weights->nVertex)                                      \
+          continue;                                                          \
+        wi[newidx] = vcount;                                                 \
+        nj[newidx] = vcount;                                                 \
+        nwsum     += vcount;                                                 \
+      }                                                                     \
+    }                                                                       \
+  } while (0)
+
+#define AK_CTLR_FIX_COPY_PASS(DUPTYPE, SUMTYPE)                             \
+  do {                                                                      \
+    const DUPTYPE *dupcItems_;                                               \
+    const SUMTYPE *sumItems_;                                                \
+                                                                            \
+    dupcItems_ = (const DUPTYPE *)(const void *)dupc->items;                 \
+    sumItems_  = (const SUMTYPE *)(const void *)dupcsum->items;              \
+    for (i = 0; i < vc; i++) {                                               \
+      if ((poo = dupcItems_[3 * i + 2]) == 0)                                \
+        continue;                                                            \
+      pno = dupcItems_[3 * i];                                               \
+      d   = dupcItems_[3 * i + 1];                                           \
+      if (pno >= dupcsum->count)                                             \
+        continue;                                                            \
+                                                                            \
+      s      = sumItems_[pno];                                               \
+      vcount = ak_daeSafeWeightCount(intrWeights, v, viStride, poo - 1);     \
+      old    = &pv[pOldCountSum[poo - 1] * viStride];                       \
+                                                                            \
+      for (j = 0; j <= d; j++) {                                             \
+        tmp = pno + j + s;                                                   \
+        if (tmp >= weights->nVertex)                                         \
+          continue;                                                          \
+                                                                            \
+        newidx = wi[tmp];                                                    \
+                                                                            \
+        for (k = 0; k < vcount; k++) {                                       \
+          widx       = old[k * viStride + weightsOffset];                    \
+          iw         = &w[newidx + k];                                       \
+          iw->joint  = old[k * viStride + jointOffset];                      \
+          iw->weight = ak_daeReadSkinWeight(weightsAcc, widx);               \
+        }                                                                   \
+                                                                            \
+        nwsum += vcount;                                                     \
+      }                                                                     \
+    }                                                                       \
+  } while (0)
+
   /* copy to new location and duplicate if needed */
   if (useDupl) {
-    for (i = 0; i < vc; i++) {
-      if ((poo = dupc->items[3 * i + 2]) == 0)
-        continue;
-
-      pno    = dupc->items[3 * i];
-      d      = dupc->items[3 * i + 1];
-      if (pno >= dupcsum->count)
-        continue;
-
-      s      = dupcsum->items[pno];
-      vcount = ak_daeSafeWeightCount(intrWeights, v, viStride, poo - 1);
-
-      for (j = 0; j <= d; j++) {
-        newidx = pno + j + s;
-        if (newidx >= weights->nVertex)
-          continue;
-        wi[newidx] = vcount;
-        nj[newidx] = vcount;
-        nwsum     += vcount;
-      }
-    }
+    AK_CTLR_FIX_DISPATCH(AK_CTLR_FIX_COUNT_PASS);
   } else {
     for (i = 0; i < vc; i++) {
       vcount = ak_daeSafeWeightCount(intrWeights, v, viStride, i);
@@ -651,35 +731,7 @@ ak_fixBoneWeights(AkHeap        *heap,
   nwsum = 0;
 
   if (useDupl) {
-    for (i = 0; i < vc; i++) {
-      if ((poo = dupc->items[3 * i + 2]) == 0)
-        continue;
-      pno    = dupc->items[3 * i];
-      d      = dupc->items[3 * i + 1];
-      if (pno >= dupcsum->count)
-        continue;
-
-      s      = dupcsum->items[pno];
-      vcount = ak_daeSafeWeightCount(intrWeights, v, viStride, poo - 1);
-      old    = &pv[pOldCountSum[poo - 1] * viStride];
-
-      for (j = 0; j <= d; j++) {
-        tmp = pno + j + s;
-        if (tmp >= weights->nVertex)
-          continue;
-
-        newidx = wi[tmp];
-
-        for (k = 0; k < vcount; k++) {
-          widx       = old[k * viStride + weightsOffset];
-          iw         = &w[newidx + k];
-          iw->joint  = old[k * viStride + jointOffset];
-          iw->weight = ak_daeReadSkinWeight(weightsAcc, widx);
-        }
-
-        nwsum += vcount;
-      }
-    }
+    AK_CTLR_FIX_DISPATCH(AK_CTLR_FIX_COPY_PASS);
   } else {
     for (i = 0; i < vc; i++) {
       vcount = ak_daeSafeWeightCount(intrWeights, v, viStride, i);
@@ -696,6 +748,10 @@ ak_fixBoneWeights(AkHeap        *heap,
       nwsum += vcount;
     }
   }
+
+#undef AK_CTLR_FIX_COPY_PASS
+#undef AK_CTLR_FIX_COUNT_PASS
+#undef AK_CTLR_FIX_DISPATCH
 
   weights->weights  = w;
   weights->nWeights = nwsum;

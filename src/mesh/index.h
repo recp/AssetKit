@@ -67,4 +67,21 @@ AK_HIDE
 void
 ak_index_profile_report(void);
 
+AK_HIDE
+bool
+ak_index_profile_active(void);
+
+AK_HIDE
+void
+ak_index_profile_add_duplicator(double sideAlloc,
+                                double hashAlloc,
+                                double hashLoop,
+                                double sumAlloc,
+                                double sumBuild,
+                                size_t icount,
+                                size_t vertc,
+                                size_t posno,
+                                size_t dupCount,
+                                size_t hashCap);
+
 #endif /* ak_mesh_index_h */

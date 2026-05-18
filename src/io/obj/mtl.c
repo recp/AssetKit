@@ -371,6 +371,8 @@ wobj_handleMaterial(WOState  * __restrict wst,
       cmnTechn->type = AK_MATERIAL_LAMBERT;
       break;
     case 2: /* TODO: Currently all others are Blinn */
+//    case 3:
+//    case 4:
       cmnTechn->type = AK_MATERIAL_BLINN;
     default:
       break;
