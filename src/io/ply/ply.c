@@ -63,6 +63,12 @@
     }                                                                         \
   } while (0)
 
+#define PLY_FMT_BINARY_LITTLE_0 AK_STR_PACK8_CHARS('b', 'i', 'n', 'a', 'r', 'y', '_', 'l')
+#define PLY_FMT_BINARY_LITTLE_8 AK_STR_PACK8_CHARS('i', 't', 't', 'l', 'e', '_', 'e', 'n')
+#define PLY_FMT_BINARY_LITTLE_16 AK_STR_PACK4_CHARS('d', 'i', 'a', 'n')
+#define PLY_FMT_BINARY_BIG_0 AK_STR_PACK8_CHARS('b', 'i', 'n', 'a', 'r', 'y', '_', 'b')
+#define PLY_FMT_BINARY_BIG_8 AK_STR_PACK8_CHARS('i', 'g', '_', 'e', 'n', 'd', 'i', 'a')
+
 static
 PLYProperty*
 ply_prop_find(PLYElement      * __restrict elem,
@@ -112,6 +118,169 @@ ply_accessor_source_type(AkAccessor  * __restrict acc,
 
   acc->originalComponentType = type;
   acc->originallyNormalized  = false;
+}
+
+static
+AkTypeDesc*
+ply_type_desc_by_token(const char * __restrict tok, size_t len) {
+  switch (len) {
+    case 3:
+      if (ak_str_pack4_fast(tok, 3) == AK_STR_PACK4_CHARS('i', 'n', 't', 0))
+        return ak_typeDesc(AKT_INT);
+      break;
+    case 4: {
+      uint32_t key;
+
+      key = ak_str_pack4_fast(tok, 4);
+      switch (key) {
+        case AK_STR_PACK4_CHARS('u', 'i', 'n', 't'):
+          return ak_typeDesc(AKT_UINT);
+        case AK_STR_PACK4_CHARS('c', 'h', 'a', 'r'):
+        case AK_STR_PACK4_CHARS('b', 'y', 't', 'e'):
+        case AK_STR_PACK4_CHARS('i', 'n', 't', '8'):
+          return ak_typeDesc(AKT_BYTE);
+        default:
+          break;
+      }
+      break;
+    }
+    case 5: {
+      uint64_t key;
+
+      key = ak_str_pack8_fast(tok, 5);
+      switch (key) {
+        case AK_STR_PACK8_CHARS('f', 'l', 'o', 'a', 't', 0, 0, 0):
+          return ak_typeDesc(AKT_FLOAT);
+        case AK_STR_PACK8_CHARS('u', 'c', 'h', 'a', 'r', 0, 0, 0):
+        case AK_STR_PACK8_CHARS('u', 'b', 'y', 't', 'e', 0, 0, 0):
+        case AK_STR_PACK8_CHARS('u', 'i', 'n', 't', '8', 0, 0, 0):
+          return ak_typeDesc(AKT_UBYTE);
+        case AK_STR_PACK8_CHARS('s', 'h', 'o', 'r', 't', 0, 0, 0):
+        case AK_STR_PACK8_CHARS('i', 'n', 't', '1', '6', 0, 0, 0):
+          return ak_typeDesc(AKT_SHORT);
+        case AK_STR_PACK8_CHARS('i', 'n', 't', '3', '2', 0, 0, 0):
+          return ak_typeDesc(AKT_INT);
+        default:
+          break;
+      }
+      break;
+    }
+    case 6: {
+      uint64_t key;
+
+      key = ak_str_pack8_fast(tok, 6);
+      switch (key) {
+        case AK_STR_PACK8_CHARS('d', 'o', 'u', 'b', 'l', 'e', 0, 0):
+          return ak_typeDesc(AKT_DOUBLE);
+        case AK_STR_PACK8_CHARS('u', 's', 'h', 'o', 'r', 't', 0, 0):
+        case AK_STR_PACK8_CHARS('u', 'i', 'n', 't', '1', '6', 0, 0):
+          return ak_typeDesc(AKT_USHORT);
+        case AK_STR_PACK8_CHARS('u', 'i', 'n', 't', '3', '2', 0, 0):
+          return ak_typeDesc(AKT_UINT);
+        default:
+          break;
+      }
+      break;
+    }
+    case 7: {
+      uint64_t key;
+
+      key = ak_str_pack8_fast(tok, 7);
+      switch (key) {
+        case AK_STR_PACK8_CHARS('f', 'l', 'o', 'a', 't', '3', '2', 0):
+          return ak_typeDesc(AKT_FLOAT);
+        case AK_STR_PACK8_CHARS('f', 'l', 'o', 'a', 't', '6', '4', 0):
+          return ak_typeDesc(AKT_DOUBLE);
+        default:
+          break;
+      }
+      break;
+    }
+    default:
+      break;
+  }
+
+  if (len < 32) {
+    char name[32];
+
+    memcpy(name, tok, len);
+    name[len] = '\0';
+    return ak_typeDescByName(name);
+  }
+
+  return NULL;
+}
+
+static
+PLYPropertyType
+ply_prop_semantic_by_token(const char * __restrict tok, size_t len) {
+  switch (len) {
+    case 1:
+      switch (tok[0]) {
+        case 'x': return PLY_PROP_X;
+        case 'y': return PLY_PROP_Y;
+        case 'z': return PLY_PROP_Z;
+        case 's':
+        case 'u': return PLY_PROP_S;
+        case 't':
+        case 'v': return PLY_PROP_T;
+        case 'r': return PLY_PROP_R;
+        case 'g': return PLY_PROP_G;
+        case 'b': return PLY_PROP_B;
+        case 'a': return PLY_PROP_A;
+        default:  return PLY_PROP_UNSUPPORTED;
+      }
+    case 2:
+      if (tok[0] == 'n') {
+        switch (tok[1]) {
+          case 'x': return PLY_PROP_NX;
+          case 'y': return PLY_PROP_NY;
+          case 'z': return PLY_PROP_NZ;
+          default:  break;
+        }
+      }
+      break;
+    case 3:
+      if (ak_str_pack4_fast(tok, 3) == AK_STR_PACK4_CHARS('r', 'e', 'd', 0))
+        return PLY_PROP_R;
+      break;
+    case 4:
+      if (ak_str_pack4_fast(tok, 4) == AK_STR_PACK4_CHARS('b', 'l', 'u', 'e'))
+        return PLY_PROP_B;
+      break;
+    case 5: {
+      uint64_t key;
+
+      key = ak_str_pack8_fast(tok, 5);
+      if (key == AK_STR_PACK8_CHARS('g', 'r', 'e', 'e', 'n', 0, 0, 0))
+        return PLY_PROP_G;
+      if (key == AK_STR_PACK8_CHARS('a', 'l', 'p', 'h', 'a', 0, 0, 0))
+        return PLY_PROP_A;
+      break;
+    }
+    default:
+      break;
+  }
+
+  return PLY_PROP_UNSUPPORTED;
+}
+
+AK_INLINE
+bool
+ply_format_is_binary_little(const char * __restrict p) {
+  return ak_str_pack8_fast(p, 8) == PLY_FMT_BINARY_LITTLE_0
+      && ak_str_pack8_fast(p + 8, 8) == PLY_FMT_BINARY_LITTLE_8
+      && ak_str_pack4_fast(p + 16, 4) == PLY_FMT_BINARY_LITTLE_16
+      && (p[20] == ' ' || p[20] == '\t');
+}
+
+AK_INLINE
+bool
+ply_format_is_binary_big(const char * __restrict p) {
+  return ak_str_pack8_fast(p, 8) == PLY_FMT_BINARY_BIG_0
+      && ak_str_pack8_fast(p + 8, 8) == PLY_FMT_BINARY_BIG_8
+      && p[16] == 'n'
+      && (p[17] == ' ' || p[17] == '\t');
 }
 
 AK_HIDE
@@ -205,13 +374,9 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
 
       if (EQ5('a', 's', 'c', 'i', 'i')) {
         isAscii = true;
-      } else if (p[0] == 'b' && p[1] == 'i' && p[2] == 'n'
-                 && p[7] == 'l' && p[8] == 'i' && p[9] == 't') {
-        /* strncmp(p, "binary_little_endian", 20) == 0 */
+      } else if (ply_format_is_binary_little(p)) {
         isLittleEndian = true;
-      } else if (p[0] == 'b' && p[1] == 'i' && p[2] == 'n'
-                 && p[7] == 'b' && p[8] == 'i' && p[9] == 'g') {
-        /* strncmp(p, "binary_big_endian", 17) == 0 */
+      } else if (ply_format_is_binary_big(p)) {
         isLittleEndian = false;
       } else {
         goto err; /* unknown format */
@@ -258,13 +423,11 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
       while ((c = *++p) != '\0' && !AK_ARRAY_SPACE_CHECK);
       e = p;
       
-      prop->islist = b[0] == 'l'
-                  && b[1] == 'i'
-                  && b[2] == 's'
-                  && b[3] == 't';
+      prop->islist = (size_t)(e - b) == 4
+                  && ak_str_pack4_fast(b, 4) == AK_STR_PACK4_CHARS('l', 'i', 's', 't');
       
       if (!prop->islist) {
-        prop->typestr = ak_heap_strndup(heap, doc, b, e - b);
+        prop->typeDesc = ply_type_desc_by_token(b, (size_t)(e - b));
       } else {
         /* 1.1 count type */
         SKIP_SPACES
@@ -273,8 +436,7 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
         while ((c = *++p) != '\0' && !AK_ARRAY_SEP_CHECK);
         e = p;
         
-        prop->listCountType     = ak_heap_strndup(heap, doc, b, e - b);
-        prop->listCountTypeDesc = ak_typeDescByName(prop->listCountType);
+        prop->listCountTypeDesc = ply_type_desc_by_token(b, (size_t)(e - b));
 
         /* 1.2 type */
         SKIP_SPACES
@@ -283,10 +445,8 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
         while ((c = *++p) != '\0' && !AK_ARRAY_SEP_CHECK);
         e = p;
         
-        prop->typestr = ak_heap_strndup(heap, doc, b, e - b);
+        prop->typeDesc = ply_type_desc_by_token(b, (size_t)(e - b));
       }
-      
-      prop->typeDesc = ak_typeDescByName(prop->typestr);
       
       /* 2. name */
       
@@ -305,68 +465,9 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
         goto err;
       }
 
-      if (e - b == 1) {
-        switch (b[0]) {
-          case 'x': prop->semantic = PLY_PROP_X; break;
-          case 'y': prop->semantic = PLY_PROP_Y; break;
-          case 'z': prop->semantic = PLY_PROP_Z; break;
-          case 's':
-          case 'u': prop->semantic = PLY_PROP_S; break;
-          case 't':
-          case 'v': prop->semantic = PLY_PROP_T; break;
-          case 'r': prop->semantic = PLY_PROP_R; break;
-          case 'g': prop->semantic = PLY_PROP_G; break;
-          case 'b': prop->semantic = PLY_PROP_B; break;
-          case 'a': prop->semantic = PLY_PROP_A; break;
-          default:
-            prop->semantic   = PLY_PROP_UNSUPPORTED;
-            prop->ignore = true;
-            break;
-        }
-      } else if (e - b == 2) {
-        switch (b[0]) {
-          case 'n':
-            switch (b[1]) {
-              case 'x': prop->semantic = PLY_PROP_NX; break;
-              case 'y': prop->semantic = PLY_PROP_NY; break;
-              case 'z': prop->semantic = PLY_PROP_NZ; break;
-              default:
-                prop->semantic   = PLY_PROP_UNSUPPORTED;
-                prop->ignore = true;
-                break;
-            }
-            break;
-          default:
-            prop->semantic   = PLY_PROP_UNSUPPORTED;
-            prop->ignore = true;
-            break;
-        }
-      } else if (e - b == 3
-                 && b[0] == 'r'
-                 && b[1] == 'e'
-                 && b[2] == 'd') {
-        prop->semantic = PLY_PROP_R;
-      } else if (e - b == 4
-                 && b[0] == 'b'
-                 && b[1] == 'l'
-                 && b[2] == 'u'
-                 && b[3] == 'e') {
-        prop->semantic = PLY_PROP_B;
-      } else if (e - b == 5
-                 && b[0] == 'g'
-                 && b[1] == 'r'
-                 && b[2] == 'e'
-                 && b[3] == 'e'
-                 && b[4] == 'n') {
-        prop->semantic = PLY_PROP_G;
-      } else if (e - b == 5
-                 && b[0] == 'a'
-                 && b[1] == 'l'
-                 && b[2] == 'p'
-                 && b[3] == 'h'
-                 && b[4] == 'a') {
-        prop->semantic = PLY_PROP_A;
-      }
+      prop->semantic = ply_prop_semantic_by_token(b, (size_t)(e - b));
+      if (prop->semantic == PLY_PROP_UNSUPPORTED)
+        prop->ignore = true;
       
       if (!elem->property) {
         elem->property = prop;

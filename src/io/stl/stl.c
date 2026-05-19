@@ -31,6 +31,8 @@
 #include "../../endian.h"
 #include "../../strpool.h"
 
+#define STL_POSITION_CACHE_SIZE 4096u
+
 AK_INLINE
 uint16_t
 stl_read_u16le(const char * __restrict p) {
@@ -221,12 +223,30 @@ typedef struct STLDedup {
   bool      hasColor;
 } STLDedup;
 
+typedef struct STLPositionDedup {
+  uint32_t *posBits;
+  uint32_t *table;
+  uint32_t *indices;
+  size_t    tableCap;
+  uint32_t  count;
+  uint32_t  indexCount;
+} STLPositionDedup;
+
 static
 void
 stl_dedup_free(STLDedup * __restrict dedup) {
   free(dedup->pos);
   free(dedup->nor);
   free(dedup->col);
+  free(dedup->table);
+  free(dedup->indices);
+  memset(dedup, 0, sizeof(*dedup));
+}
+
+static
+void
+stl_position_dedup_free(STLPositionDedup * __restrict dedup) {
+  free(dedup->posBits);
   free(dedup->table);
   free(dedup->indices);
   memset(dedup, 0, sizeof(*dedup));
@@ -249,6 +269,46 @@ stl_next_hash_cap(size_t count, size_t * __restrict capOut) {
   }
 
   *capOut = cap;
+  return true;
+}
+
+static
+bool
+stl_position_dedup_init(STLPositionDedup * __restrict dedup,
+                        size_t                         indexCount,
+                        size_t                         triangleCount,
+                        size_t                         tableCountHint) {
+  size_t tableCap, tableCount;
+
+  memset(dedup, 0, sizeof(*dedup));
+  if (indexCount == 0 || indexCount >= UINT32_MAX)
+    return false;
+
+  tableCount = tableCountHint;
+  if (tableCount == 0 || tableCount > indexCount) {
+    tableCount = indexCount;
+  }
+  if (tableCountHint == 0 && triangleCount > 0 && indexCount / 3u > 1024u)
+    tableCount = indexCount / 3u;
+
+  if (!stl_next_hash_cap(tableCount, &tableCap))
+    return false;
+
+  if (indexCount > SIZE_MAX / (sizeof(float) * 3))
+    return false;
+
+  dedup->posBits   = malloc(indexCount * sizeof(*dedup->posBits) * 3);
+  dedup->indices   = malloc(indexCount * sizeof(*dedup->indices));
+  dedup->table     = calloc(tableCap, sizeof(*dedup->table));
+  dedup->tableCap  = tableCap;
+
+  if (!dedup->posBits
+      || !dedup->indices
+      || !dedup->table) {
+    stl_position_dedup_free(dedup);
+    return false;
+  }
+
   return true;
 }
 
@@ -290,6 +350,22 @@ stl_dedup_init(STLDedup * __restrict dedup,
   return true;
 }
 
+AK_INLINE
+uint32_t
+stl_rotl32(uint32_t value, unsigned shift) {
+  return (value << shift) | (value >> (32u - shift));
+}
+
+AK_INLINE
+uint32_t
+stl_hash3_u32(uint32_t a, uint32_t b, uint32_t c) {
+  uint32_t h;
+
+  h = a ^ stl_rotl32(b, 11u) ^ stl_rotl32(c, 22u);
+  h ^= h >> 16;
+  return h;
+}
+
 static
 uint64_t
 stl_hash_bytes(uint64_t h, const void * __restrict data, size_t len) {
@@ -303,6 +379,12 @@ stl_hash_bytes(uint64_t h, const void * __restrict data, size_t len) {
   }
 
   return h;
+}
+
+AK_INLINE
+uint32_t
+stl_position_hash_bits(const uint32_t bits[3]) {
+  return stl_hash3_u32(bits[0], bits[1], bits[2]);
 }
 
 static
@@ -339,6 +421,80 @@ stl_vertex_equal(const STLDedup * __restrict dedup,
              || memcmp(dedup->col + (size_t)index * 4,
                        col,
                        sizeof(float) * 4) == 0);
+}
+
+static
+bool
+stl_position_dedup_intern_bits_h(STLPositionDedup * __restrict dedup,
+                                 const uint32_t                 bits[3],
+                                 uint32_t                       hash,
+                                 uint32_t * __restrict          indexOut) {
+  size_t   slot, mask;
+
+  mask = dedup->tableCap - 1;
+  slot = (size_t)hash & mask;
+
+  for (;;) {
+    uint32_t packed, index;
+
+    packed = dedup->table[slot];
+    if (packed == 0) {
+      if (dedup->count + 1u >= dedup->tableCap)
+        return false;
+      index = dedup->count++;
+      dedup->posBits[(size_t)index * 3 + 0] = bits[0];
+      dedup->posBits[(size_t)index * 3 + 1] = bits[1];
+      dedup->posBits[(size_t)index * 3 + 2] = bits[2];
+      dedup->table[slot] = index + 1;
+      *indexOut          = index;
+      return true;
+    }
+
+    index = packed - 1;
+    if (dedup->posBits[(size_t)index * 3 + 0] == bits[0]
+        && dedup->posBits[(size_t)index * 3 + 1] == bits[1]
+        && dedup->posBits[(size_t)index * 3 + 2] == bits[2]) {
+      *indexOut = index;
+      return true;
+    }
+
+    slot = (slot + 1) & mask;
+  }
+}
+
+static
+bool
+stl_position_dedup_intern_raw_cached(STLPositionDedup * __restrict dedup,
+                                     const char * __restrict       pos,
+                                     uint32_t * __restrict         cacheBits,
+                                     uint32_t * __restrict         cachePacked,
+                                     uint32_t * __restrict         indexOut) {
+  uint32_t bits[3];
+  uint32_t hash, cacheSlot, packed;
+
+  bits[0] = stl_read_u32le(pos + 0);
+  bits[1] = stl_read_u32le(pos + 4);
+  bits[2] = stl_read_u32le(pos + 8);
+
+  hash = stl_position_hash_bits(bits);
+  cacheSlot = hash & (STL_POSITION_CACHE_SIZE - 1u);
+  packed = cachePacked[cacheSlot];
+  if (packed) {
+    const uint32_t *cached = cacheBits + (size_t)cacheSlot * 3;
+    if (cached[0] == bits[0] && cached[1] == bits[1] && cached[2] == bits[2]) {
+      *indexOut = packed - 1u;
+      return true;
+    }
+  }
+
+  if (!stl_position_dedup_intern_bits_h(dedup, bits, hash, indexOut))
+    return false;
+
+  cacheBits[(size_t)cacheSlot * 3 + 0] = bits[0];
+  cacheBits[(size_t)cacheSlot * 3 + 1] = bits[1];
+  cacheBits[(size_t)cacheSlot * 3 + 2] = bits[2];
+  cachePacked[cacheSlot] = *indexOut + 1u;
+  return true;
 }
 
 static
@@ -393,6 +549,36 @@ stl_buffer_alloc(AkHeap * __restrict heap,
   flist_sp_insert(&doc->lib.buffers, buff);
 
   return buff;
+}
+
+static
+bool
+stl_position_dedup_emit(STLState * __restrict sst,
+                        STLPositionDedup * __restrict dedup) {
+  AkBuffer *posBuff;
+  size_t    count;
+
+  count = dedup->count;
+  if (count == 0 || count > UINT32_MAX || dedup->indexCount == 0)
+    return false;
+
+  posBuff = stl_buffer_alloc(sst->heap,
+                             sst->doc,
+                             sizeof(float) * 3 * count);
+  if (!posBuff || !posBuff->data)
+    return false;
+
+  memcpy(posBuff->data, dedup->posBits, posBuff->length);
+
+  sst->buff_pos  = posBuff;
+  sst->count     = (uint32_t)count;
+  sst->maxVC     = 3;
+  sst->raw_indices = dedup->indices;
+  sst->indexCount  = dedup->indexCount;
+  sst->indexMax    = dedup->count - 1;
+  dedup->indices   = NULL;
+
+  return true;
 }
 
 static
@@ -661,6 +847,115 @@ stl_binary_fill_dedup(STLDedup * __restrict dedup,
 
 static
 bool
+stl_binary_fill_position_dedup(STLPositionDedup * __restrict dedup,
+                               char * __restrict             p,
+                               uint32_t                      nTriangles) {
+  uint32_t cacheBits[STL_POSITION_CACHE_SIZE * 3u];
+  uint32_t cachePacked[STL_POSITION_CACHE_SIZE];
+  uint32_t i;
+  uint32_t colorMask;
+
+  memset(cachePacked, 0, sizeof(cachePacked));
+  colorMask = 0;
+  for (i = 0; i < nTriangles; i++) {
+    uint32_t newIndices[3];
+    uint32_t v;
+
+    p += 12; /* facet normal */
+
+    for (v = 0; v < 3; v++) {
+      if (!stl_position_dedup_intern_raw_cached(dedup,
+                                                p,
+                                                cacheBits,
+                                                cachePacked,
+                                                &newIndices[v]))
+        return false;
+      p += 12;
+    }
+    colorMask |= (uint32_t)stl_read_u16le(p) & 0x8000u;
+    p += 2; /* attribute byte count */
+
+    if (newIndices[0] == newIndices[1]
+        || newIndices[0] == newIndices[2]
+        || newIndices[1] == newIndices[2])
+      continue;
+
+    dedup->indices[dedup->indexCount++] = newIndices[0];
+    dedup->indices[dedup->indexCount++] = newIndices[1];
+    dedup->indices[dedup->indexCount++] = newIndices[2];
+  }
+
+  return colorMask == 0;
+}
+
+static
+bool
+stl_binary_position_dedup(STLState * __restrict sst, char * __restrict p) {
+  STLPositionDedup dedup;
+  char     *header, *body;
+  uint32_t  nTriangles, sampleTriangles;
+  size_t    indexCount, tableCountHint;
+  bool      ok;
+  vec4      defaultColor;
+
+  if (!ak_opt_get(AK_OPT_MESH_POSITION_DEDUP_INDEX))
+    return false;
+
+  header = p;
+  p += 80;
+  le_32(nTriangles, p);
+  body = p;
+
+  if (nTriangles == 0 || nTriangles > UINT32_MAX / 3u)
+    return false;
+  if (stl_header_color(header, defaultColor))
+    return false;
+
+  indexCount = (size_t)nTriangles * 3u;
+  tableCountHint = 0;
+  sampleTriangles = nTriangles > 4096u ? 4096u : nTriangles;
+  if (sampleTriangles < nTriangles && sampleTriangles > 0) {
+    STLPositionDedup sample;
+    size_t sampleIndexCount;
+
+    sampleIndexCount = (size_t)sampleTriangles * 3u;
+    if (!stl_position_dedup_init(&sample,
+                                 sampleIndexCount,
+                                 sampleTriangles,
+                                 0))
+      return false;
+    ok = stl_binary_fill_position_dedup(&sample, body, sampleTriangles);
+    if (!ok || sample.indexCount == 0
+        || (uint64_t)sample.count * 100ull
+             > (uint64_t)sample.indexCount * 95ull) {
+      stl_position_dedup_free(&sample);
+      return false;
+    }
+    tableCountHint = (size_t)(((uint64_t)sample.count
+                               * (uint64_t)indexCount
+                               + (uint64_t)sample.indexCount - 1ull)
+                              / (uint64_t)sample.indexCount);
+    tableCountHint += tableCountHint / 4u + 1024u;
+    if (tableCountHint > indexCount)
+      tableCountHint = indexCount;
+    stl_position_dedup_free(&sample);
+  }
+
+  if (!stl_position_dedup_init(&dedup, indexCount, nTriangles, tableCountHint))
+    return false;
+
+  ok = stl_binary_fill_position_dedup(&dedup, body, nTriangles);
+  if (ok)
+    ok = dedup.indexCount > 0
+         && dedup.count < dedup.indexCount
+         && stl_position_dedup_emit(sst, &dedup);
+
+  stl_position_dedup_free(&dedup);
+  return ok;
+}
+
+static
+bool
 stl_binary_dedup(STLState * __restrict sst, char * __restrict p) {
   STLDedup dedup;
   char     *header, *body, *scan;
@@ -743,6 +1038,9 @@ stl_binary(STLState * __restrict sst, char * __restrict p) {
   vec4      defaultColor;
   uint32_t count,  nTriangles, i;
   bool     hasHeaderColor, hasFacetColor, hasColors;
+
+  if (stl_binary_position_dedup(sst, p))
+    return;
 
   if (stl_binary_dedup(sst, p))
     return;

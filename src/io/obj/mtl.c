@@ -15,6 +15,7 @@
  */
 
 #include "mtl.h"
+#include "../../string_fast.h"
 #include "../../strpool.h"
 
 /*
@@ -42,6 +43,11 @@ wobj_texref(WOState            * __restrict wst,
             char               *            name,
             AkTextureColorSpace             colorSpace,
             AkTextureChannels               channels);
+
+#define WOBJ_MTL_KW_NEWM AK_STR_PACK4_CHARS('n', 'e', 'w', 'm')
+#define WOBJ_MTL_KW_MAP_ AK_STR_PACK4_CHARS('m', 'a', 'p', '_')
+#define WOBJ_MTL_KW_BUMP AK_STR_PACK4_CHARS('b', 'u', 'm', 'p')
+#define WOBJ_MTL_KW_ILLU AK_STR_PACK4_CHARS('i', 'l', 'l', 'u')
 
 AK_HIDE
 WOMtlLib*
@@ -72,10 +78,7 @@ wobj_mtl(WOState    * __restrict wst,
     /* skip spaces */
     SKIP_SPACES
     
-    if (p[0] == 'n'
-        && p[1] == 'e'
-        && p[2] == 'w'
-        && p[3] == 'm'
+    if (ak_str_pack4_fast(p, 4) == WOBJ_MTL_KW_NEWM
         && p[4] == 't'
         && p[5] == 'l'
         && (p[6] == ' ' || p[6] == '\t')) {
@@ -160,10 +163,7 @@ wobj_mtl(WOState    * __restrict wst,
             p += 2;
             break;
         }
-      } else if (p[0] == 'm'
-                 && p[1] == 'a'
-                 && p[2] == 'p'
-                 && p[3] == '_') {
+      } else if (ak_str_pack4_fast(p, 4) == WOBJ_MTL_KW_MAP_) {
         p += 4;
         switch (p[0]) {
           case 'K':
@@ -216,10 +216,7 @@ wobj_mtl(WOState    * __restrict wst,
             break;
           default: break;
         }
-      } else if (p[0] == 'b'
-                 && p[1] == 'u'
-                 && p[2] == 'm'
-                 && p[3] == 'p') {
+      } else if (ak_str_pack4_fast(p, 4) == WOBJ_MTL_KW_BUMP) {
         p += 4;
 
         SKIP_SPACES
@@ -229,10 +226,7 @@ wobj_mtl(WOState    * __restrict wst,
         end = p;
 
         mtl->bump = ak_heap_strndup(heap, mtl, begin, end - begin);
-      } else if (p[0] == 'i'
-                 && p[1] == 'l'
-                 && p[2] == 'l'
-                 && p[3] == 'u'
+      } else if (ak_str_pack4_fast(p, 4) == WOBJ_MTL_KW_ILLU
                  && p[4] == 'm'
                  && (p[5] == ' ' || p[5] == '\t')) {
         p += 5;

@@ -73,6 +73,11 @@ typedef enum AkOption {
   AK_OPT_GLTF_DRACO_DECODER_PATH     = 31, /* NULL     */
   AK_OPT_GLTF_GSPLAT_DECODER_PATH    = 32, /* NULL     */
   AK_OPT_GLTF_KTX2_DECODER_PATH      = 33, /* NULL     */
+
+  /* Deduplicate position-only triangle soup into indexed mesh storage when
+     the importer can preserve the remaining semantics. Currently applied to
+     colorless STL triangle soup. */
+  AK_OPT_MESH_POSITION_DEDUP_INDEX    = 34, /* true     */
 } AkOption;
 
 AK_EXPORT

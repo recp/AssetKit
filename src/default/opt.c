@@ -63,7 +63,8 @@ uintptr_t AK_OPTIONS[] =
   (uintptr_t)NULL,                 /* 30: _GLTF_MESHOPT_DECODER_PATH   */
   (uintptr_t)NULL,                 /* 31: _GLTF_DRACO_DECODER_PATH     */
   (uintptr_t)NULL,                 /* 32: _GLTF_GSPLAT_DECODER_PATH    */
-  (uintptr_t)NULL                  /* 33: _GLTF_KTX2_DECODER_PATH      */
+  (uintptr_t)NULL,                 /* 33: _GLTF_KTX2_DECODER_PATH      */
+  true                             /* 34: _MESH_POSITION_DEDUP_INDEX   */
 };
 
 AK_EXPORT
