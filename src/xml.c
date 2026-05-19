@@ -96,7 +96,7 @@ xml_index_promote(AkHeap       * __restrict heap,
 
   promoted = ak_indexArrayAlloc(heap, parent, indices->count, componentType);
   if (!promoted)
-    return indices;
+    return NULL;
 
   switch (indices->componentType) {
     case AKT_UBYTE: {
@@ -141,30 +141,7 @@ xml_index_promote(AkHeap       * __restrict heap,
 static
 AkTypeId
 xml_index_initial_component_type(unsigned long count) {
-  /* Large DAE multi-index primitives are usually fixed into narrower final
-     buffers later; parsing them as uint32 is measurably faster than promoting
-     from u16 on mixed/index-heavy files. */
-  return count <= UINT8_MAX ? AKT_UBYTE : AKT_UINT;
-}
-
-static
-void
-xml_index_set_fast(AkIndexArray * __restrict indices,
-                   size_t                    index,
-                   AkUInt                    value) {
-  switch (indices->componentType) {
-    case AKT_UBYTE:
-      ((uint8_t *)indices->items)[index] = (uint8_t)value;
-      break;
-    case AKT_USHORT:
-      ((uint16_t *)indices->items)[index] = (uint16_t)value;
-      break;
-    case AKT_UINT:
-      ((uint32_t *)indices->items)[index] = value;
-      break;
-    default:
-      break;
-  }
+  return count <= UINT8_MAX ? AKT_UBYTE : AKT_USHORT;
 }
 
 static
@@ -193,51 +170,31 @@ xml_strtoindex_node(AkHeap        * __restrict heap,
   maxv    = maxValue ? *maxValue : indices->max;
 
   if (indices->componentType == AKT_UINT) {
-    uint32_t *out;
-
-    out = (uint32_t *)(void *)indices->items + written;
-
     if (srclen != 0) {
       end = src + srclen;
-
-      do {
-        tok = xml_str_skip_array_sep(tok, end);
-        if (tok >= end)
-          break;
-
-        tok = ak_str_parse_uint_index_end_fast(tok, end, &value);
-        *out++ = value;
-        if (value > maxv)
-          maxv = value;
-        written++;
-        rem--;
-      } while (rem > 0ul && tok < end);
-    } else {
-      do {
-        tok = ak_str_skip_sep_fast(tok, NULL, false);
-        if (*tok == '\0')
-          break;
-
-        tok = ak_str_parse_uint_index_fast(tok, NULL, &value);
-        *out++ = value;
-        if (value > maxv)
-          maxv = value;
-        written++;
-        rem--;
-      } while (rem > 0ul && *tok != '\0');
+      goto parse_uint_end;
     }
 
-    indices->max = maxv;
-    if (maxValue)
-      *maxValue = maxv;
-    if (writtenCount)
-      *writtenCount = written;
-
-    return rem;
+    goto parse_uint;
   }
 
+  if (indices->componentType == AKT_USHORT) {
+    if (srclen != 0) {
+      end = src + srclen;
+      goto parse_ushort_end;
+    }
+
+    goto parse_ushort;
+  }
+
+  if (indices->componentType != AKT_UBYTE)
+    goto done;
+
   if (srclen != 0) {
+    uint8_t *out;
+
     end = src + srclen;
+    out = (uint8_t *)(void *)indices->items + written;
 
     do {
       tok = xml_str_skip_array_sep(tok, end);
@@ -245,45 +202,185 @@ xml_strtoindex_node(AkHeap        * __restrict heap,
         break;
 
       tok = ak_str_parse_uint_index_end_fast(tok, end, &value);
-      if (value > UINT16_MAX
-          && indices->componentType != AKT_UINT) {
-        indices = xml_index_promote(heap, parent, indices, AKT_UINT, written);
-        *array = indices;
-      } else if (value > UINT8_MAX
-                 && indices->componentType == AKT_UBYTE) {
+      if (value > UINT8_MAX) {
+        if (value > UINT16_MAX) {
+          indices = xml_index_promote(heap, parent, indices, AKT_UINT, written);
+          if (!indices)
+            return rem;
+          *array = indices;
+          ((uint32_t *)(void *)indices->items)[written++] = value;
+          if (value > maxv)
+            maxv = value;
+          rem--;
+          goto parse_uint_end;
+        }
+
         indices = xml_index_promote(heap, parent, indices, AKT_USHORT, written);
+        if (!indices)
+          return rem;
         *array = indices;
+        ((uint16_t *)(void *)indices->items)[written++] = (uint16_t)value;
+        if (value > maxv)
+          maxv = value;
+        rem--;
+        goto parse_ushort_end;
       }
 
-      xml_index_set_fast(indices, written++, value);
+      *out++ = (uint8_t)value;
       if (value > maxv)
         maxv = value;
+      written++;
       rem--;
     } while (rem > 0ul && tok < end);
   } else {
+    uint8_t *out;
+
+    out = (uint8_t *)(void *)indices->items + written;
+
     do {
       tok = ak_str_skip_sep_fast(tok, NULL, false);
       if (*tok == '\0')
         break;
 
       tok = ak_str_parse_uint_index_fast(tok, NULL, &value);
-      if (value > UINT16_MAX
-          && indices->componentType != AKT_UINT) {
-        indices = xml_index_promote(heap, parent, indices, AKT_UINT, written);
-        *array = indices;
-      } else if (value > UINT8_MAX
-                 && indices->componentType == AKT_UBYTE) {
+      if (value > UINT8_MAX) {
+        if (value > UINT16_MAX) {
+          indices = xml_index_promote(heap, parent, indices, AKT_UINT, written);
+          if (!indices)
+            return rem;
+          *array = indices;
+          ((uint32_t *)(void *)indices->items)[written++] = value;
+          if (value > maxv)
+            maxv = value;
+          rem--;
+          goto parse_uint;
+        }
+
         indices = xml_index_promote(heap, parent, indices, AKT_USHORT, written);
+        if (!indices)
+          return rem;
         *array = indices;
+        ((uint16_t *)(void *)indices->items)[written++] = (uint16_t)value;
+        if (value > maxv)
+          maxv = value;
+        rem--;
+        goto parse_ushort;
       }
 
-      xml_index_set_fast(indices, written++, value);
+      *out++ = (uint8_t)value;
       if (value > maxv)
         maxv = value;
+      written++;
       rem--;
     } while (rem > 0ul && *tok != '\0');
   }
 
+  goto done;
+
+parse_ushort_end:
+  do {
+    uint16_t *out;
+
+    out = (uint16_t *)(void *)indices->items + written;
+    do {
+      tok = xml_str_skip_array_sep(tok, end);
+      if (tok >= end)
+        break;
+
+      tok = ak_str_parse_uint_index_end_fast(tok, end, &value);
+      if (value > UINT16_MAX) {
+        indices = xml_index_promote(heap, parent, indices, AKT_UINT, written);
+        if (!indices)
+          return rem;
+        *array = indices;
+        ((uint32_t *)(void *)indices->items)[written++] = value;
+        if (value > maxv)
+          maxv = value;
+        rem--;
+        goto parse_uint_end;
+      }
+
+      *out++ = (uint16_t)value;
+      if (value > maxv)
+        maxv = value;
+      written++;
+      rem--;
+    } while (rem > 0ul && tok < end);
+  } while (0);
+  goto done;
+
+parse_ushort:
+  do {
+    uint16_t *out;
+
+    out = (uint16_t *)(void *)indices->items + written;
+    do {
+      tok = ak_str_skip_sep_fast(tok, NULL, false);
+      if (*tok == '\0')
+        break;
+
+      tok = ak_str_parse_uint_index_fast(tok, NULL, &value);
+      if (value > UINT16_MAX) {
+        indices = xml_index_promote(heap, parent, indices, AKT_UINT, written);
+        if (!indices)
+          return rem;
+        *array = indices;
+        ((uint32_t *)(void *)indices->items)[written++] = value;
+        if (value > maxv)
+          maxv = value;
+        rem--;
+        goto parse_uint;
+      }
+
+      *out++ = (uint16_t)value;
+      if (value > maxv)
+        maxv = value;
+      written++;
+      rem--;
+    } while (rem > 0ul && *tok != '\0');
+  } while (0);
+  goto done;
+
+parse_uint_end:
+  do {
+    uint32_t *out;
+
+    out = (uint32_t *)(void *)indices->items + written;
+    do {
+      tok = xml_str_skip_array_sep(tok, end);
+      if (tok >= end)
+        break;
+
+      tok = ak_str_parse_uint_index_end_fast(tok, end, &value);
+      *out++ = value;
+      if (value > maxv)
+        maxv = value;
+      written++;
+      rem--;
+    } while (rem > 0ul && tok < end);
+  } while (0);
+  goto done;
+
+parse_uint:
+  do {
+    uint32_t *out;
+
+    out = (uint32_t *)(void *)indices->items + written;
+    do {
+      tok = ak_str_skip_sep_fast(tok, NULL, false);
+      if (*tok == '\0')
+        break;
+
+      tok = ak_str_parse_uint_index_fast(tok, NULL, &value);
+      *out++ = value;
+      if (value > maxv)
+        maxv = value;
+      written++;
+      rem--;
+    } while (rem > 0ul && *tok != '\0');
+  } while (0);
+
+done:
   indices->max = maxv;
   if (maxValue)
     *maxValue = maxv;

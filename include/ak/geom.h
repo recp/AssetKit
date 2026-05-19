@@ -97,8 +97,15 @@ typedef struct AkMeshPrimitive {
   struct AkMaterial      *material;
   AkInput                *input;
   AkInput                *pos;
-  /* `indices` is owned mutable u8/u16/u32 data; `indexAccessor` is a
-     borrowed/lazy source, e.g. glTF accessor data. */
+  /*
+   glTF normal fast path:
+     prim->indices       == NULL;
+     prim->indexAccessor != NULL;
+
+   DAE / OBJ / PLY or after-fixup mutable path:
+     prim->indices       != NULL;
+     prim->indexAccessor == NULL;
+   */
   AkIndexArray           *indices;
   struct AkAccessor      *indexAccessor;
   AkTree                 *extra;
