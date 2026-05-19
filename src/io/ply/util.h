@@ -175,4 +175,66 @@ ply_index_append(PLYState * __restrict pst, AkUInt value) {
     }                                                                         \
   } while (0)
 
+#define PLY_INDEX_APPEND_TRI(PST, A, B, C, OUT_COUNT)                         \
+  do {                                                                        \
+    switch ((PST)->indexComponentType) {                                      \
+      case AKT_UBYTE:                                                         \
+        PLY_INDEX_APPEND_TRI_TYPED((PST), uint8_t, (A), (B), (C));            \
+        break;                                                                \
+      case AKT_USHORT:                                                        \
+        PLY_INDEX_APPEND_TRI_TYPED((PST), uint16_t, (A), (B), (C));           \
+        break;                                                                \
+      case AKT_UINT:                                                          \
+        PLY_INDEX_APPEND_TRI_TYPED((PST), uint32_t, (A), (B), (C));           \
+        break;                                                                \
+      default:                                                                \
+        break;                                                                \
+    }                                                                         \
+    (OUT_COUNT) += 3;                                                         \
+  } while (0)
+
+#define PLY_INDEX_APPEND_TRI_TYPED(PST, TYPE, A, B, C)                        \
+  do {                                                                        \
+    AkDataContext *dctx_;                                                     \
+    AkDataChunk   *chunk_;                                                    \
+    AkUInt a_, b_, c_, max_;                                                  \
+    TYPE  *dst_;                                                              \
+    size_t size_;                                                             \
+                                                                              \
+    dctx_ = (PST)->dc_ind;                                                    \
+    a_    = (A);                                                              \
+    b_    = (B);                                                              \
+    c_    = (C);                                                              \
+    max_  = (PST)->indexMax;                                                  \
+    if (a_ > max_) max_ = a_;                                                 \
+    if (b_ > max_) max_ = b_;                                                 \
+    if (c_ > max_) max_ = c_;                                                 \
+    (PST)->indexMax = max_;                                                   \
+                                                                              \
+    size_ = sizeof(TYPE) * 3u;                                                \
+    if (dctx_->usedsize + size_ > dctx_->size) {                              \
+      chunk_ = ak_heap_alloc(dctx_->heap,                                     \
+                             dctx_,                                           \
+                             sizeof(*chunk_) + dctx_->nodesize);              \
+      chunk_->usedsize = 0;                                                   \
+      chunk_->next     = NULL;                                                \
+      if (dctx_->last)                                                        \
+        dctx_->last->next = chunk_;                                           \
+      dctx_->last  = chunk_;                                                  \
+      dctx_->size += dctx_->nodesize;                                         \
+      if (!dctx_->data)                                                       \
+        dctx_->data = chunk_;                                                 \
+    } else {                                                                  \
+      chunk_ = dctx_->last;                                                   \
+    }                                                                         \
+                                                                              \
+    dst_    = (TYPE *)(void *)(chunk_->data + chunk_->usedsize);              \
+    dst_[0] = (TYPE)a_;                                                       \
+    dst_[1] = (TYPE)b_;                                                       \
+    dst_[2] = (TYPE)c_;                                                       \
+    chunk_->usedsize += size_;                                                \
+    dctx_->usedsize  += size_;                                                \
+    dctx_->itemcount += 3;                                                    \
+  } while (0)
+
 #endif /* ply_util_h */

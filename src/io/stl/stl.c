@@ -31,6 +31,49 @@
 #include "../../endian.h"
 #include "../../strpool.h"
 
+AK_INLINE
+void*
+stl_data_append_slot(AkDataContext * __restrict dctx) {
+  AkDataChunk *chunk;
+  size_t       size;
+
+  size = dctx->itemsize;
+  if (dctx->usedsize + size > dctx->size) {
+    chunk = ak_heap_alloc(dctx->heap,
+                          dctx,
+                          sizeof(*chunk) + dctx->nodesize);
+    chunk->usedsize = 0;
+    chunk->next     = NULL;
+
+    if (dctx->last)
+      dctx->last->next = chunk;
+
+    dctx->last  = chunk;
+    dctx->size += dctx->nodesize;
+
+    if (!dctx->data)
+      dctx->data = chunk;
+  } else {
+    chunk = dctx->last;
+  }
+
+  dctx->usedsize += size;
+  dctx->itemcount++;
+  chunk->usedsize += size;
+
+  return chunk->data + chunk->usedsize - size;
+}
+
+#define STL_DATA_APPEND(DCTX, SRC, SIZE)                                      \
+  memcpy(stl_data_append_slot((DCTX)), (SRC), (SIZE))
+
+#define STL_PARSE_FLOAT3(PTR, DEST)                                           \
+  do {                                                                        \
+    (PTR) = ak_strtof_one_fast((PTR), &(DEST)[0]);                            \
+    (PTR) = ak_strtof_one_fast((PTR), &(DEST)[1]);                            \
+    (PTR) = ak_strtof_one_fast((PTR), &(DEST)[2]);                            \
+  } while (0)
+
 AK_HIDE
 AkResult
 stl_stl(AkDoc     ** __restrict dest,
@@ -96,10 +139,22 @@ stl_stl(AkDoc     ** __restrict dest,
   sstVal.node      = scene->node;
   sstVal.lib_geom  = doc->lib.geometries;
   
-  sst->dc_ind    = ak_data_new(sst->tmp, 128, sizeof(int32_t), NULL);
-  sst->dc_pos    = ak_data_new(sst->tmp, 128, sizeof(vec3),    NULL);
-  sst->dc_nor    = ak_data_new(sst->tmp, 128, sizeof(vec3),    NULL);
-  sst->dc_vcount = ak_data_new(sst->tmp, 128, sizeof(int32_t), NULL);
+  sst->dc_ind    = ak_data_new(sst->tmp,
+                               STL_DATA_NODE_ITEMS,
+                               sizeof(int32_t),
+                               NULL);
+  sst->dc_pos    = ak_data_new(sst->tmp,
+                               STL_DATA_NODE_ITEMS,
+                               sizeof(vec3),
+                               NULL);
+  sst->dc_nor    = ak_data_new(sst->tmp,
+                               STL_DATA_NODE_ITEMS,
+                               sizeof(vec3),
+                               NULL);
+  sst->dc_vcount = ak_data_new(sst->tmp,
+                               STL_DATA_NODE_ITEMS,
+                               sizeof(int32_t),
+                               NULL);
 
   if (!isAscii) {
     stl_binary(sst, p);
@@ -140,25 +195,25 @@ stl_binary(STLState * __restrict sst, char * __restrict p) {
     le_32(n[1], p);
     le_32(n[2], p);
     
-    ak_data_append(sst->dc_nor, n);
-    ak_data_append(sst->dc_nor, n);
-    ak_data_append(sst->dc_nor, n);
+    STL_DATA_APPEND(sst->dc_nor, n, sizeof(vec3));
+    STL_DATA_APPEND(sst->dc_nor, n, sizeof(vec3));
+    STL_DATA_APPEND(sst->dc_nor, n, sizeof(vec3));
     
     /* vertex */
     le_32(v[0], p);
     le_32(v[1], p);
     le_32(v[2], p);
-    ak_data_append(sst->dc_pos, v);
+    STL_DATA_APPEND(sst->dc_pos, v, sizeof(vec3));
     
     le_32(v[0], p);
     le_32(v[1], p);
     le_32(v[2], p);
-    ak_data_append(sst->dc_pos, v);
+    STL_DATA_APPEND(sst->dc_pos, v, sizeof(vec3));
     
     le_32(v[0], p);
     le_32(v[1], p);
     le_32(v[2], p);
-    ak_data_append(sst->dc_pos, v);
+    STL_DATA_APPEND(sst->dc_pos, v, sizeof(vec3));
     p += 2;
   }
   
@@ -190,7 +245,7 @@ stl_ascii(STLState * __restrict sst, char * __restrict p) {
       if (EQ6('n', 'o', 'r', 'm', 'a', 'l')) {
         p += 7;
         memset(v, 0, sizeof(vec4));
-        ak_strtof_line(p, 0, 3, n);
+        STL_PARSE_FLOAT3(p, n);
         /* ak_data_append(sst->dc_nor, n); */
         
         NEXT_LINE
@@ -208,9 +263,9 @@ stl_ascii(STLState * __restrict sst, char * __restrict p) {
             if (EQ6('v', 'e', 'r', 't', 'e', 'x')) {
               p += 7;
               memset(v, 0, sizeof(vec4));
-              ak_strtof_line(p, 0, 3, v);
-              ak_data_append(sst->dc_nor, n); /* duplicate normal */
-              ak_data_append(sst->dc_pos, v);
+              STL_PARSE_FLOAT3(p, v);
+              STL_DATA_APPEND(sst->dc_nor, n, sizeof(vec3)); /* duplicate normal */
+              STL_DATA_APPEND(sst->dc_pos, v, sizeof(vec3));
 
               vc++;
             } else if (EQT7('e', 'n', 'd', 'l', 'o', 'o', 'p')) {
@@ -222,7 +277,7 @@ stl_ascii(STLState * __restrict sst, char * __restrict p) {
 
           count += vc;
           sst->maxVC = GLM_MAX(sst->maxVC, vc);
-          ak_data_append(sst->dc_vcount, &vc);
+          STL_DATA_APPEND(sst->dc_vcount, &vc, sizeof(vc));
         } /* outer loop */
       } /* normal */
     } /* facet */
@@ -310,3 +365,6 @@ sst_finish(STLState * __restrict sst) {
   sst->dc_nor    = NULL;
   sst->dc_vcount = NULL;
 }
+
+#undef STL_DATA_APPEND
+#undef STL_PARSE_FLOAT3

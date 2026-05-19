@@ -431,7 +431,7 @@ gltf_meshes(json_t * __restrict jmesh,
     uint32_t         morphPresetIdx;
     uint32_t         morphPresetWrite;
 
-    mesh                 = ak_allocMesh(heap, lib, &geom);
+    mesh                 = ak_allocMeshEx(heap, lib, &geom, false);
     meshObj              = ak_objFrom(mesh);
     mesh->primitiveCount = 0;
 

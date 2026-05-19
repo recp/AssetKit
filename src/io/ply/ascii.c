@@ -21,6 +21,29 @@
 #include "../../data.h"
 #include "../../string_fast.h"
 
+static
+bool
+ply_ascii_vertex_direct(PLYElement * __restrict elem) {
+  PLYProperty *prop;
+  uint32_t     slot;
+
+  prop = elem->property;
+  slot = 0;
+
+  while (prop) {
+    if (prop->ignore
+        || !prop->typeDesc
+        || prop->typeDesc->typeId != AKT_FLOAT
+        || prop->slot != slot)
+      return false;
+
+    slot++;
+    prop = prop->next;
+  }
+
+  return slot == elem->knownCount && slot > 0;
+}
+
 AK_HIDE
 void
 ply_ascii(char * __restrict src, PLYState * __restrict pst) {
@@ -47,26 +70,44 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
       if (!elem->buff || elem->buff->length == 0)
         return;
 
-      do {
-        SKIP_SPACES
+      if (ply_ascii_vertex_direct(elem)) {
+        uint32_t j;
 
-        prop = elem->property;
-        while (prop) {
-          AkFloat value;
+        do {
+          SKIP_SPACES
 
-          p = ak_strtof_one_fast(p, &value);
-          if (!prop->ignore)
-            b[prop->slot] = value;
-          prop = prop->next;
-        }
+          for (j = 0; j < stride; j++)
+            p = ak_strtof_one_fast(p, &b[j]);
 
-        b += stride;
+          b += stride;
 
-        NEXT_LINE
+          NEXT_LINE
 
-        if (++i >= elem->count)
-          break;
-      } while (p && p[0] != '\0');
+          if (++i >= elem->count)
+            break;
+        } while (p && p[0] != '\0');
+      } else {
+        do {
+          SKIP_SPACES
+
+          prop = elem->property;
+          while (prop) {
+            AkFloat value;
+
+            p = ak_strtof_one_fast(p, &value);
+            if (!prop->ignore)
+              b[prop->slot] = value;
+            prop = prop->next;
+          }
+
+          b += stride;
+
+          NEXT_LINE
+
+          if (++i >= elem->count)
+            break;
+        } while (p && p[0] != '\0');
+      }
     } else if (elem->type == PLY_ELEM_FACE) {
       AkUInt *f, fc, j, count, last_fc;
       
@@ -81,7 +122,14 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
         SKIP_SPACES
         
         p = ak_strtoui_one_fast(p, &fc);
-        if (fc >= 3) {
+        if (fc == 3) {
+          AkUInt f0, f1, f2;
+
+          p = ak_strtoui_one_fast(p, &f0);
+          p = ak_strtoui_one_fast(p, &f1);
+          p = ak_strtoui_one_fast(p, &f2);
+          PLY_INDEX_APPEND_TRI(pst, f0, f1, f2, count);
+        } else if (fc > 3) {
           if (!f || last_fc < fc)
             f = alloca(sizeof(AkUInt) * fc);
           

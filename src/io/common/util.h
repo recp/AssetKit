@@ -34,6 +34,13 @@ ak_allocMesh(AkHeap      * __restrict heap,
              AkGeometry ** __restrict geomLink);
 
 AK_HIDE
+AkMesh*
+ak_allocMeshEx(AkHeap      * __restrict heap,
+               AkLibrary   * __restrict memp,
+               AkGeometry ** __restrict geomLink,
+               bool                      materialMap);
+
+AK_HIDE
 AkInput*
 io_addInput(AkHeap          * __restrict heap,
             AkDataContext   * __restrict dctx,

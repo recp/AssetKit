@@ -28,10 +28,13 @@ ak_meshSetMaterial(AkMeshPrimitive *prim,
 
 #ifdef DEBUG
   assert(geom && "set geometry for this primitive!");
-  assert(geom->materialMap && "set materialMap for this geom!");
 #endif
 
   map = geom->materialMap;
+  if (!map) {
+    map = geom->materialMap = ak_map_new(ak_cmp_str);
+    ak_setAttachedHeap(geom, map->heap);
+  }
 
   /* TODO: remove first */
   ak_multimap_add(map, prim, (void *)material);

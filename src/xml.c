@@ -32,6 +32,48 @@ xml_str_skip_array_sep(char * __restrict tok,
 
 AK_INLINE
 unsigned long
+xml_strtof_node(char          * __restrict src,
+                size_t                     srclen,
+                unsigned long              n,
+                AkFloat       * __restrict dest) {
+  AkFloat      *out;
+  char         *tok, *end;
+  unsigned long rem;
+
+  if (n == 0)
+    return 0;
+
+  out = dest;
+  tok = src;
+  rem = n;
+
+  if (srclen != 0) {
+    end = src + srclen;
+
+    do {
+      tok = xml_str_skip_array_sep(tok, end);
+      if (tok >= end)
+        break;
+
+      tok = ak_str_parse_float_end_fast(tok, end, out++);
+      rem--;
+    } while (rem > 0ul && tok < end);
+  } else {
+    do {
+      tok = ak_str_skip_sep_fast(tok, NULL, false);
+      if (*tok == '\0')
+        break;
+
+      tok = ak_str_parse_float_fast(tok, NULL, out++);
+      rem--;
+    } while (rem > 0ul && *tok != '\0');
+  }
+
+  return rem;
+}
+
+AK_INLINE
+unsigned long
 xml_strtoui_node_max(char          * __restrict src,
                      size_t                     srclen,
                      unsigned long              n,
@@ -438,10 +480,10 @@ xml_strtof_fast(const xml_t * __restrict xobj,
       || (rem = n) < 1)
     return 0;
   
-  while ((rem = ak_strtof(v->val,
-                          v->valsize,
-                          rem,
-                          dest + n - rem))
+  while ((rem = xml_strtof_node(v->val,
+                                v->valsize,
+                                rem,
+                                dest + n - rem))
          && (v = xmls_next(v)));
   
   return rem;

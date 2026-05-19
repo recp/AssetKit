@@ -57,6 +57,9 @@ ak_effectForBindMaterial(AkBindMaterial      * __restrict bindMat,
   while (materialInst) {
     /* there is symbol, bind only to specified primitive */
     if (materialInst->symbol) {
+      if (!materialMap)
+        return NULL;
+
       mi = ak_map_find(materialMap, (void *)materialInst->symbol);
       while (mi) {
         if ((AkMeshPrimitive *)mi->data == meshPrim) {

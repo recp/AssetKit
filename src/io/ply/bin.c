@@ -93,7 +93,24 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
             
 #pragma GCC diagnostic pop
 
-            if (fc >= 3) {
+            if (fc == 3) {
+              AkUInt f0, f1, f2;
+
+              if ((p + prop->typeDesc->size * 3) > e)
+                goto fns;
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+
+              ply_val(p, prop->typeDesc, le, uint32_t, f0, 0);
+              ply_val(p, prop->typeDesc, le, uint32_t, f1, 0);
+              ply_val(p, prop->typeDesc, le, uint32_t, f2, 0);
+
+#pragma GCC diagnostic pop
+
+              if (f0 < vertcount && f1 < vertcount && f2 < vertcount)
+                PLY_INDEX_APPEND_TRI(pst, f0, f1, f2, count);
+            } else if (fc > 3) {
               if (!f || fc > last_fc)
                 f = alloca(sizeof(*f) * fc);
 

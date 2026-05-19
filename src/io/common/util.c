@@ -18,19 +18,22 @@
 
 AK_HIDE
 AkMesh*
-ak_allocMesh(AkHeap      * __restrict heap,
-             AkLibrary   * __restrict memp,
-             AkGeometry ** __restrict geomLink) {
+ak_allocMeshEx(AkHeap      * __restrict heap,
+               AkLibrary   * __restrict memp,
+               AkGeometry ** __restrict geomLink,
+               bool                      materialMap) {
   AkGeometry *geom;
   AkObject   *meshObj;
   AkMesh     *mesh;
 
   /* create geometries */
-  geom              = ak_heap_calloc(heap, memp, sizeof(*geom));
-  geom->materialMap = ak_map_new(ak_cmp_str);
+  geom = ak_heap_calloc(heap, memp, sizeof(*geom));
+  if (materialMap) {
+    geom->materialMap = ak_map_new(ak_cmp_str);
 
-  /* destroy heap with this object */
-  ak_setAttachedHeap(geom, geom->materialMap->heap);
+    /* destroy heap with this object */
+    ak_setAttachedHeap(geom, geom->materialMap->heap);
+  }
 
   meshObj     = ak_objAlloc(heap, geom, sizeof(AkMesh), AK_GEOMETRY_MESH, true);
   geom->gdata = meshObj;
@@ -41,6 +44,14 @@ ak_allocMesh(AkHeap      * __restrict heap,
     *geomLink = geom;
 
   return mesh;
+}
+
+AK_HIDE
+AkMesh*
+ak_allocMesh(AkHeap      * __restrict heap,
+             AkLibrary   * __restrict memp,
+             AkGeometry ** __restrict geomLink) {
+  return ak_allocMeshEx(heap, memp, geomLink, true);
 }
 
 AK_HIDE
@@ -148,4 +159,3 @@ io_input(AkHeap          * __restrict heap,
   
   return inp;
 }
-
