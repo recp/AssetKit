@@ -68,9 +68,9 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
           break;
       } while (p && p[0] != '\0');
     } else if (elem->type == PLY_ELEM_FACE) {
-      AkUInt *f, center, fc, j, count, last_fc;
+      AkUInt *f, fc, j, count, last_fc;
       
-      pst->dc_ind = ak_data_new(pst->tmp, 128, sizeof(AkUInt), NULL);
+      pst->dc_ind = ply_index_data_new(pst);
       c           = *p;
       f           = NULL;
       i           = 0;
@@ -88,13 +88,7 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
           for (j = 0; j < fc; j++)
             p = ak_strtoui_one_fast(p, &f[j]);
           
-          center = f[0];
-          for (j = 0; j < fc - 2; j++) {
-            ak_data_append(pst->dc_ind, &center);
-            ak_data_append(pst->dc_ind, &f[j + 1]);
-            ak_data_append(pst->dc_ind, &f[j + 2]);
-            count += 3;
-          }
+          PLY_INDEX_APPEND_FACE(pst, f, fc, count);
         }
 
         last_fc = fc;

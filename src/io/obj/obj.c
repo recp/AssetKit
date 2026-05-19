@@ -40,6 +40,55 @@ ak_wobjFreeDupl(RBTree *tree, RBNode *node);
 #define WOBJ_KW_MTLL AK_STR_PACK4_CHARS('m', 't', 'l', 'l')
 #define WOBJ_KW_USEM AK_STR_PACK4_CHARS('u', 's', 'e', 'm')
 
+AK_INLINE
+void*
+wobj_data_append_slot(AkDataContext * __restrict dctx) {
+  AkDataChunk *chunk;
+  size_t       size;
+
+  size = dctx->itemsize;
+  if (dctx->usedsize + size > dctx->size) {
+    chunk = ak_heap_alloc(dctx->heap,
+                          dctx,
+                          sizeof(*chunk) + dctx->nodesize);
+    chunk->usedsize = 0;
+    chunk->next     = NULL;
+
+    if (dctx->last)
+      dctx->last->next = chunk;
+
+    dctx->last  = chunk;
+    dctx->size += dctx->nodesize;
+
+    if (!dctx->data)
+      dctx->data = chunk;
+  } else {
+    chunk = dctx->last;
+  }
+
+  dctx->usedsize += size;
+  dctx->itemcount++;
+  chunk->usedsize += size;
+
+  return chunk->data + chunk->usedsize - size;
+}
+
+#define WOBJ_DATA_APPEND(DCTX, SRC, SIZE)                                     \
+  memcpy(wobj_data_append_slot((DCTX)), (SRC), (SIZE))
+
+#define WOBJ_PARSE_FLOAT2(PTR, DEST)                                          \
+  do {                                                                        \
+    (PTR) = ak_strtof_one_fast((PTR), &(DEST)[0]);                            \
+    (PTR) = ak_strtof_one_fast((PTR), &(DEST)[1]);                            \
+  } while (0)
+
+#define WOBJ_PARSE_FLOAT3(PTR, DEST)                                          \
+  do {                                                                        \
+    (PTR) = ak_strtof_one_fast((PTR), &(DEST)[0]);                            \
+    (PTR) = ak_strtof_one_fast((PTR), &(DEST)[1]);                            \
+    (PTR) = ak_strtof_one_fast((PTR), &(DEST)[2]);                            \
+  } while (0)
+
 AK_HIDE
 AkResult
 wobj_obj(AkDoc     ** __restrict dest,
@@ -107,9 +156,18 @@ wobj_obj(AkDoc     ** __restrict dest,
   wstVal.lib_geom  = doc->lib.geometries;
 
   /* vertex data (shared across file) */
-  wst->dc_pos      = ak_data_new(wst->tmp, 128, sizeof(vec3), NULL);
-  wst->dc_tex      = ak_data_new(wst->tmp, 128, sizeof(vec2), NULL);
-  wst->dc_nor      = ak_data_new(wst->tmp, 128, sizeof(vec3), NULL);
+  wst->dc_pos      = ak_data_new(wst->tmp,
+                                 WOBJ_DATA_NODE_ITEMS,
+                                 sizeof(vec3),
+                                 NULL);
+  wst->dc_tex      = ak_data_new(wst->tmp,
+                                 WOBJ_DATA_NODE_ITEMS,
+                                 sizeof(vec2),
+                                 NULL);
+  wst->dc_nor      = ak_data_new(wst->tmp,
+                                 WOBJ_DATA_NODE_ITEMS,
+                                 sizeof(vec3),
+                                 NULL);
 
   /* default group */
   wobj_switchObject(wst);
@@ -134,8 +192,8 @@ wobj_obj(AkDoc     ** __restrict dest,
             goto err;
 
           /* TODO: handle 4 components */
-          ak_strtof_line(p, 0, 3, v);
-          ak_data_append(wst->dc_pos, v);
+          WOBJ_PARSE_FLOAT3(p, v);
+          WOBJ_DATA_APPEND(wst->dc_pos, v, sizeof(vec3));
           break;
         }
         case 'f': {
@@ -183,7 +241,7 @@ wobj_obj(AkDoc     ** __restrict dest,
                 prim->hasNormal = true;
             }
 
-            ak_data_append(prim->dc_face, face);
+            WOBJ_DATA_APPEND(prim->dc_face, face, sizeof(face));
             vc += 1;
 
             c = *p;
@@ -194,7 +252,7 @@ wobj_obj(AkDoc     ** __restrict dest,
                    && !AK_ARRAY_NLINE_CHECK);
 
           prim->maxVC = GLM_MAX(prim->maxVC, vc);
-          ak_data_append(prim->dc_vcount, &vc);
+          WOBJ_DATA_APPEND(prim->dc_vcount, &vc, sizeof(vc));
           break;
         }
         case 'o':
@@ -211,14 +269,14 @@ wobj_obj(AkDoc     ** __restrict dest,
         if (*(p += 2) == '\0')
           goto err;
 
-        ak_strtof_line(p, 0, 3, v);
-        ak_data_append(wst->dc_nor, v);
+        WOBJ_PARSE_FLOAT3(p, v);
+        WOBJ_DATA_APPEND(wst->dc_nor, v, sizeof(vec3));
       } else if (p[0] == 'v' && p[1] == 't') {
         if (*(p += 2) == '\0')
           goto err;
 
-        ak_strtof_line(p, 0, 2, v);
-        ak_data_append(wst->dc_tex, v);
+        WOBJ_PARSE_FLOAT2(p, v);
+        WOBJ_DATA_APPEND(wst->dc_tex, v, sizeof(vec2));
       }
     } else if (ak_str_pack4_fast(p, 4) == WOBJ_KW_MTLL
                && p[4] == 'i'
@@ -279,6 +337,10 @@ err:
 
   return AK_ERR;
 }
+
+#undef WOBJ_DATA_APPEND
+#undef WOBJ_PARSE_FLOAT2
+#undef WOBJ_PARSE_FLOAT3
 
 static
 void

@@ -22,8 +22,13 @@ TEST_IMPL(dae_load_folder) {
   DIR           *dir;
   struct dirent *ent;
   AkDoc         *doc;
+  char           cwd[4096];
 
-  chdir(dae_dir);
+  if (!getcwd(cwd, sizeof(cwd)))
+    cwd[0] = '\0';
+
+  if (chdir(dae_dir) != 0)
+    TEST_SUCCESS
 
   if ((dir = opendir ("./")) != NULL) {
     while ((ent = readdir (dir)) != NULL) {
@@ -44,6 +49,9 @@ TEST_IMPL(dae_load_folder) {
     
     closedir(dir);
   }
+
+  if (cwd[0] != '\0')
+    chdir(cwd);
 
   TEST_SUCCESS
 }

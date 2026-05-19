@@ -59,4 +59,120 @@
 
 #pragma GCC diagnostic pop
 
+static inline
+AkDataContext*
+ply_index_data_new(PLYState * __restrict pst) {
+  AkUInt maxIndex;
+  size_t itemSize, nodeItems;
+
+  maxIndex = pst->vertcount > 0 ? pst->vertcount - 1 : 0;
+  pst->indexComponentType = ak_indexComponentTypeForMax(maxIndex);
+  pst->indexMax = 0;
+  itemSize = ak_indexComponentSize(pst->indexComponentType);
+  nodeItems = 1024 / itemSize;
+  if (nodeItems < 128)
+    nodeItems = 128;
+
+  return ak_data_new(pst->tmp, nodeItems, itemSize, NULL);
+}
+
+static inline
+void
+ply_index_append(PLYState * __restrict pst, AkUInt value) {
+  if (value > pst->indexMax)
+    pst->indexMax = value;
+
+  switch (pst->indexComponentType) {
+    case AKT_UBYTE: {
+      uint8_t v;
+
+      v = (uint8_t)value;
+      ak_data_append(pst->dc_ind, &v);
+      break;
+    }
+    case AKT_USHORT: {
+      uint16_t v;
+
+      v = (uint16_t)value;
+      ak_data_append(pst->dc_ind, &v);
+      break;
+    }
+    case AKT_UINT: {
+      uint32_t v;
+
+      v = (uint32_t)value;
+      ak_data_append(pst->dc_ind, &v);
+      break;
+    }
+    default:
+      break;
+  }
+}
+
+#define PLY_INDEX_APPEND_TYPED(PST, TYPE, VALUE)                              \
+  do {                                                                        \
+    AkDataContext *dctx_;                                                     \
+    AkDataChunk   *chunk_;                                                    \
+    AkUInt value_;                                                            \
+    TYPE   typed_;                                                            \
+                                                                              \
+    dctx_  = (PST)->dc_ind;                                                   \
+    value_ = (VALUE);                                                         \
+    if (value_ > (PST)->indexMax)                                             \
+      (PST)->indexMax = value_;                                               \
+    typed_ = (TYPE)value_;                                                    \
+    if (dctx_->usedsize + sizeof(TYPE) > dctx_->size) {                       \
+      chunk_ = ak_heap_alloc(dctx_->heap,                                     \
+                             dctx_,                                           \
+                             sizeof(*chunk_) + dctx_->nodesize);              \
+      chunk_->usedsize = 0;                                                   \
+      chunk_->next     = NULL;                                                \
+      if (dctx_->last)                                                        \
+        dctx_->last->next = chunk_;                                           \
+      dctx_->last  = chunk_;                                                  \
+      dctx_->size += dctx_->nodesize;                                         \
+      if (!dctx_->data)                                                       \
+        dctx_->data = chunk_;                                                 \
+    } else {                                                                  \
+      chunk_ = dctx_->last;                                                   \
+    }                                                                         \
+    *(TYPE *)(void *)(chunk_->data + chunk_->usedsize) = typed_;              \
+    chunk_->usedsize += sizeof(TYPE);                                         \
+    dctx_->usedsize  += sizeof(TYPE);                                         \
+    dctx_->itemcount++;                                                       \
+  } while (0)
+
+#define PLY_INDEX_APPEND_FACE_TYPED(PST, TYPE, FACE, FACE_COUNT, OUT_COUNT)   \
+  do {                                                                        \
+    AkUInt center_, j_;                                                       \
+                                                                              \
+    center_ = (FACE)[0];                                                      \
+    for (j_ = 0; j_ < (FACE_COUNT) - 2; j_++) {                               \
+      PLY_INDEX_APPEND_TYPED((PST), TYPE, center_);                           \
+      PLY_INDEX_APPEND_TYPED((PST), TYPE, (FACE)[j_ + 1]);                    \
+      PLY_INDEX_APPEND_TYPED((PST), TYPE, (FACE)[j_ + 2]);                    \
+      (OUT_COUNT) += 3;                                                       \
+    }                                                                         \
+  } while (0)
+
+#define PLY_INDEX_APPEND_FACE(PST, FACE, FACE_COUNT, OUT_COUNT)               \
+  do {                                                                        \
+    switch ((PST)->indexComponentType) {                                      \
+      case AKT_UBYTE:                                                         \
+        PLY_INDEX_APPEND_FACE_TYPED((PST), uint8_t,                           \
+                                    (FACE), (FACE_COUNT), (OUT_COUNT));       \
+        break;                                                                \
+      case AKT_USHORT:                                                        \
+        PLY_INDEX_APPEND_FACE_TYPED((PST), uint16_t,                          \
+                                    (FACE), (FACE_COUNT), (OUT_COUNT));       \
+        break;                                                                \
+      case AKT_UINT:                                                          \
+        PLY_INDEX_APPEND_FACE_TYPED((PST), uint32_t,                          \
+                                    (FACE), (FACE_COUNT), (OUT_COUNT));       \
+        break;                                                                \
+      default:                                                                \
+        break;                                                                \
+    }                                                                         \
+  } while (0)
+
 #endif /* ply_util_h */

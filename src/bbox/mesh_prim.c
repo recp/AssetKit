@@ -53,56 +53,89 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
   if (byteStride == 0)
     byteStride = acc->fillByteSize;
 
-  /* we must walk through indices if exists because source may contain
-     unrelated data and this will cause get wrong box
-   */
-  if (!prim->indices && prim->indexAccessor)
-    ak_meshPrimitiveMaterializeIndices(prim);
-
-  if (prim->indices) {
+  /* Walk indices/accessors directly because source may contain unrelated
+     vertices; materializing glTF index accessors here would break zero-copy. */
+  if (prim->indices || prim->indexAccessor) {
     AkIndexArray *ind;
+    AkAccessor   *iacc;
+    char         *idata;
     size_t        icount;
+    size_t        istride;
     uint32_t      st, vo;
 
-    icount     = prim->indices->count;
     vo         = prim->pos->offset;
-    st         = prim->indexStride;
+    st         = prim->indexStride ? prim->indexStride : 1;
     ind        = prim->indices;
-    count      = icount;
+    iacc       = prim->indexAccessor;
+    count      = 0;
 
 #define AK_BBOX_PICK_FOR_INDEX_TYPE(TYPE, SRC)                              \
     do {                                                                    \
       const TYPE *src_;                                                     \
                                                                             \
       src_ = (const TYPE *)(const void *)(SRC);                             \
-      if (!exactCenter) {                                                   \
-        for (i = 0; i < icount; i += st) {                                  \
-          vec = (float *)(data + (AkUInt)src_[i + vo] * byteStride);        \
+      for (i = 0; i + vo < icount; i += st) {                               \
+        vec = (float *)(data + (AkUInt)src_[i + vo] * byteStride);          \
+        if (exactCenter)                                                    \
           glm_vec3_add(vec, center, center);                                \
-          ak_bbox_pick(min, max, vec);                                      \
-        }                                                                   \
-      } else {                                                              \
-        for (i = 0; i < icount; i += st) {                                  \
-          vec = (float *)(data + (AkUInt)src_[i + vo] * byteStride);        \
-          ak_bbox_pick(min, max, vec);                                      \
-        }                                                                   \
+        ak_bbox_pick(min, max, vec);                                        \
+        count++;                                                            \
+      }                                                                     \
+    } while (0)
+
+#define AK_BBOX_PICK_FOR_ACCESSOR_TYPE(TYPE, READ_VALUE)                    \
+    do {                                                                    \
+      TYPE idx_;                                                            \
+                                                                            \
+      for (i = 0; i + vo < icount; i += st) {                               \
+        READ_VALUE;                                                         \
+        vec = (float *)(data + (AkUInt)idx_ * byteStride);                  \
+        if (exactCenter)                                                    \
+          glm_vec3_add(vec, center, center);                                \
+        ak_bbox_pick(min, max, vec);                                        \
+        count++;                                                            \
       }                                                                     \
     } while (0)
     
-    switch (ind->componentType) {
-      case AKT_UBYTE:
-        AK_BBOX_PICK_FOR_INDEX_TYPE(uint8_t, ind->items);
-        break;
-      case AKT_USHORT:
-        AK_BBOX_PICK_FOR_INDEX_TYPE(uint16_t, ind->items);
-        break;
-      case AKT_UINT:
-        AK_BBOX_PICK_FOR_INDEX_TYPE(AkUInt, ind->items);
-        break;
-      default:
-        break;
+    if (ind) {
+      icount = ind->count;
+      switch (ind->componentType) {
+        case AKT_UBYTE:
+          AK_BBOX_PICK_FOR_INDEX_TYPE(uint8_t, ind->items);
+          break;
+        case AKT_USHORT:
+          AK_BBOX_PICK_FOR_INDEX_TYPE(uint16_t, ind->items);
+          break;
+        case AKT_UINT:
+          AK_BBOX_PICK_FOR_INDEX_TYPE(AkUInt, ind->items);
+          break;
+        default:
+          break;
+      }
+    } else if (iacc && iacc->buffer && iacc->buffer->data) {
+      icount  = iacc->count;
+      istride = iacc->byteStride ? iacc->byteStride : iacc->bytesPerComponent;
+      idata   = ((char *)iacc->buffer->data) + iacc->byteOffset;
+
+      switch (iacc->componentType) {
+        case AKT_UBYTE:
+          AK_BBOX_PICK_FOR_ACCESSOR_TYPE(uint8_t,
+            idx_ = *(uint8_t *)(void *)(idata + (i + vo) * istride));
+          break;
+        case AKT_USHORT:
+          AK_BBOX_PICK_FOR_ACCESSOR_TYPE(uint16_t,
+            memcpy(&idx_, idata + (i + vo) * istride, sizeof(idx_)));
+          break;
+        case AKT_UINT:
+          AK_BBOX_PICK_FOR_ACCESSOR_TYPE(uint32_t,
+            memcpy(&idx_, idata + (i + vo) * istride, sizeof(idx_)));
+          break;
+        default:
+          break;
+      }
     }
 
+#undef AK_BBOX_PICK_FOR_ACCESSOR_TYPE
 #undef AK_BBOX_PICK_FOR_INDEX_TYPE
   } else {
     count = acc->count;

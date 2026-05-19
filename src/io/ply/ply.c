@@ -34,22 +34,32 @@
 #include "../../string_fast.h"
 #include "../../strpool.h"
 
-#define PLY_COPY_INDICES(TYPE)                                                \
+#define PLY_COPY_INDICES(DSTTYPE, SRCTYPE)                                    \
   do {                                                                        \
     AkDataChunk  *chunk_;                                                     \
-    const AkUInt *src_;                                                       \
-    TYPE         *dst_;                                                       \
+    const SRCTYPE *src_;                                                      \
+    DSTTYPE      *dst_;                                                       \
     size_t        i_, count_;                                                 \
                                                                               \
     chunk_ = pst->dc_ind->data;                                               \
-    dst_   = (TYPE *)(void *)prim->indices->items;                            \
+    dst_   = (DSTTYPE *)(void *)prim->indices->items;                         \
     while (chunk_) {                                                          \
-      src_   = (const AkUInt *)(const void *)chunk_->data;                    \
-      count_ = chunk_->usedsize / sizeof(AkUInt);                             \
+      src_   = (const SRCTYPE *)(const void *)chunk_->data;                   \
+      count_ = chunk_->usedsize / sizeof(SRCTYPE);                            \
       for (i_ = 0; i_ < count_; i_++)                                         \
-        dst_[i_] = (TYPE)src_[i_];                                            \
+        dst_[i_] = (DSTTYPE)src_[i_];                                         \
       dst_ += count_;                                                         \
       chunk_ = chunk_->next;                                                  \
+    }                                                                         \
+  } while (0)
+
+#define PLY_COPY_INDICES_FROM_TEMP(DSTTYPE)                                   \
+  do {                                                                        \
+    switch (pst->indexComponentType) {                                        \
+      case AKT_UBYTE:  PLY_COPY_INDICES(DSTTYPE, uint8_t);  break;            \
+      case AKT_USHORT: PLY_COPY_INDICES(DSTTYPE, uint16_t); break;            \
+      case AKT_UINT:   PLY_COPY_INDICES(DSTTYPE, uint32_t); break;            \
+      default:                                                        break;  \
     }                                                                         \
   } while (0)
 
@@ -542,7 +552,7 @@ ply_finish(PLYState * __restrict pst) {
     AkTypeId componentType;
     AkUInt   maxIndex;
 
-    maxIndex      = pst->vertcount > 0 ? pst->vertcount - 1 : 0;
+    maxIndex      = pst->indexMax;
     componentType = ak_indexComponentTypeForMax(maxIndex);
 
     prim->indices = ak_indexArrayAlloc(heap,
@@ -555,18 +565,22 @@ ply_finish(PLYState * __restrict pst) {
     prim->indices->count = pst->dc_ind->itemcount;
     prim->indices->max   = maxIndex;
 
-    switch (componentType) {
-      case AKT_UBYTE:
-        PLY_COPY_INDICES(uint8_t);
-        break;
-      case AKT_USHORT:
-        PLY_COPY_INDICES(uint16_t);
-        break;
-      case AKT_UINT:
-        ak_data_join(pst->dc_ind, prim->indices->items, 0, 0);
-        break;
-      default:
-        break;
+    if (pst->dc_ind->itemsize == ak_indexComponentSize(componentType)) {
+      ak_data_join(pst->dc_ind, prim->indices->items, 0, 0);
+    } else {
+      switch (componentType) {
+        case AKT_UBYTE:
+          PLY_COPY_INDICES_FROM_TEMP(uint8_t);
+          break;
+        case AKT_USHORT:
+          PLY_COPY_INDICES_FROM_TEMP(uint16_t);
+          break;
+        case AKT_UINT:
+          PLY_COPY_INDICES_FROM_TEMP(uint32_t);
+          break;
+        default:
+          break;
+      }
     }
   }
 }

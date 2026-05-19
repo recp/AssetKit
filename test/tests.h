@@ -28,6 +28,7 @@
 TEST_DECLARE(heap)
 TEST_DECLARE(heap_multiple)
 TEST_DECLARE(dae_load_folder)
+TEST_DECLARE(index_stats_corpus)
 
 /*****************************************************************************/
 
@@ -35,6 +36,7 @@ TEST_LIST {
   TEST_ENTRY(heap)
   TEST_ENTRY(heap_multiple)
   TEST_ENTRY(dae_load_folder)
+  TEST_ENTRY(index_stats_corpus)
 };
 
 #endif /* tests_h */

@@ -91,6 +91,8 @@ typedef struct PLYState {
   uint32_t       byteStride;
   uint32_t       count;
   uint32_t       vertcount;
+  AkUInt         indexMax;
+  AkTypeId       indexComponentType;
 } PLYState;
 
 #define SKIP_SPACES                                                           \

@@ -110,8 +110,14 @@ wobj_switchPrim(WOState * __restrict wst, const char * __restrict mtlname) {
   }
 
   wp             = ak_heap_calloc(wst->heap, wst->tmp, sizeof(*wp));
-  wp->dc_face    = ak_data_new(wst->tmp, 128, sizeof(ivec3), ak_cmp_ivec3);
-  wp->dc_vcount  = ak_data_new(wst->tmp, 128, sizeof(int32_t), NULL);
+  wp->dc_face    = ak_data_new(wst->tmp,
+                               WOBJ_DATA_NODE_ITEMS,
+                               sizeof(ivec3),
+                               ak_cmp_ivec3);
+  wp->dc_vcount  = ak_data_new(wst->tmp,
+                               WOBJ_DATA_NODE_ITEMS,
+                               sizeof(int32_t),
+                               NULL);
   wp->mtlname    = mtlname;
   wp->next       = wst->obj->prim;
   wst->obj->prim = wp;

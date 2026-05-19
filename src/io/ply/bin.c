@@ -67,9 +67,9 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
       }
     } else if (elem->type == PLY_ELEM_FACE) {
       char   *e;
-      AkUInt *f, center, fc, j, count, last_fc, valid, elemc;
+      AkUInt *f, fc, j, count, last_fc, valid, elemc;
 
-      pst->dc_ind = ak_data_new(pst->tmp, 128, sizeof(AkUInt), NULL);
+      pst->dc_ind = ply_index_data_new(pst);
       elemc       = elem->count;
       e           = pst->end;
       f           = NULL;
@@ -116,13 +116,7 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
               
               /* check valid loop */
               if (valid == fc) {
-                center = f[0];
-                for (j = 0; j < fc - 2; j++) {
-                  ak_data_append(pst->dc_ind, &center);
-                  ak_data_append(pst->dc_ind, &f[j + 1]);
-                  ak_data_append(pst->dc_ind, &f[j + 2]);
-                  count += 3;
-                }
+                PLY_INDEX_APPEND_FACE(pst, f, fc, count);
               }
             } else if (fc > 0) {
               for (j = 0; j < fc; j++)

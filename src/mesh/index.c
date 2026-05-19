@@ -36,6 +36,10 @@ typedef struct AkIndexProfile {
   double   fixBuffer;
   double   reserveBuffers;
   double   movePositions;
+  size_t   dupSideBytes;
+  size_t   dupSideFinalBytes;
+  size_t   dupHashBytes;
+  size_t   dupSumBytes;
   size_t   dupIcount;
   size_t   dupVertc;
   size_t   dupPosno;
@@ -79,6 +83,10 @@ ak_index_profile_add_duplicator(double sideAlloc,
                                 double hashLoop,
                                 double sumAlloc,
                                 double sumBuild,
+                                size_t sideBytes,
+                                size_t sideFinalBytes,
+                                size_t hashBytes,
+                                size_t sumBytes,
                                 size_t icount,
                                 size_t vertc,
                                 size_t posno,
@@ -92,6 +100,10 @@ ak_index_profile_add_duplicator(double sideAlloc,
   ak_index_prof.dupHashLoop  += hashLoop;
   ak_index_prof.dupSumAlloc  += sumAlloc;
   ak_index_prof.dupSumBuild  += sumBuild;
+  ak_index_prof.dupSideBytes += sideBytes;
+  ak_index_prof.dupSideFinalBytes += sideFinalBytes;
+  ak_index_prof.dupHashBytes += hashBytes;
+  ak_index_prof.dupSumBytes  += sumBytes;
   ak_index_prof.dupIcount    += icount;
   ak_index_prof.dupVertc     += vertc;
   ak_index_prof.dupPosno     += posno;
@@ -117,7 +129,8 @@ ak_index_profile_report(void) {
   fprintf(stderr,
           "[AssetKit index dup] icount=%zu vertc=%zu posno=%zu dup=%zu "
           "hashcap=%zu side_alloc=%.3fms hash_alloc=%.3fms "
-          "hash_loop=%.3fms sum_alloc=%.3fms sum_build=%.3fms\n",
+          "hash_loop=%.3fms sum_alloc=%.3fms sum_build=%.3fms "
+          "side_bytes=%zu side_final_bytes=%zu hash_bytes=%zu sum_bytes=%zu\n",
           ak_index_prof.dupIcount,
           ak_index_prof.dupVertc,
           ak_index_prof.dupPosno,
@@ -127,7 +140,11 @@ ak_index_profile_report(void) {
           ak_index_prof.dupHashAlloc,
           ak_index_prof.dupHashLoop,
           ak_index_prof.dupSumAlloc,
-          ak_index_prof.dupSumBuild);
+          ak_index_prof.dupSumBuild,
+          ak_index_prof.dupSideBytes,
+          ak_index_prof.dupSideFinalBytes,
+          ak_index_prof.dupHashBytes,
+          ak_index_prof.dupSumBytes);
   ak_index_prof_active = false;
 }
 

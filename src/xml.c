@@ -140,8 +140,8 @@ xml_index_promote(AkHeap       * __restrict heap,
 
 static
 AkTypeId
-xml_index_initial_component_type(unsigned long count) {
-  return count <= UINT8_MAX ? AKT_UBYTE : AKT_USHORT;
+xml_index_initial_component_type(void) {
+  return AKT_UBYTE;
 }
 
 static
@@ -745,7 +745,7 @@ xml_strtoindex_arrayN_max(AkHeap        * __restrict heap,
   arr = ak_indexArrayAlloc(heap,
                            memp,
                            count,
-                           xml_index_initial_component_type(count));
+                           xml_index_initial_component_type());
   if (!arr)
     return AK_ERR;
 

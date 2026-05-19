@@ -225,9 +225,10 @@ ak_meshDuplicatorForIndicesRetained(AkMesh          * __restrict mesh,
   AkAccessor         *posAcc;
   size_t              count, hcap, hmask, hpos, hslot, icount,
                       vertc, i, j, dupcItemCount, dupcsumCount;
+  size_t              dupcBytes, dupcFinalBytes, hashBytes, dupcsumBytes;
   uint32_t            st, vo, posno, idxp, ord;
-  AkUInt              dupcMax;
-  AkTypeId            dupcType, dupcsumType;
+  AkUInt              dupcMax, dupcActualMax;
+  AkTypeId            dupcType, dupcCompactType, dupcsumType;
   double              t, tSideAlloc, tHashAlloc, tHashLoop, tSumAlloc,
                       tSumBuild;
   bool                profile;
@@ -262,8 +263,10 @@ ak_meshDuplicatorForIndicesRetained(AkMesh          * __restrict mesh,
     goto fail;
 
   dupcMax       = (AkUInt)(vertc > icount ? vertc : icount);
+  dupcActualMax = (AkUInt)vertc;
   dupcType      = ak_indexComponentTypeForMax(dupcMax);
   dupcItemCount = vertc * 3;
+  dupcBytes     = sizeof(*dupc) + ak_indexComponentSize(dupcType) * dupcItemCount;
 
   /* TODO: cache this for multiple primitives */
   t = profile ? ak_index_profile_now_ms() : 0.0;
@@ -277,14 +280,17 @@ ak_meshDuplicatorForIndicesRetained(AkMesh          * __restrict mesh,
   t = profile ? ak_index_profile_now_ms() : 0.0;
   hcap   = ak_indexHashCap(icount);
   hmask  = hcap - 1;
+  hashBytes = sizeof(uint32_t) * hcap;
   if (hcap <= AK_INDEX_LOCAL_HASH_CAP) {
     hashes = localHashes;
-    memset(hashes, 0, sizeof(uint32_t) * hcap);
+    memset(hashes, 0, hashBytes);
   } else {
-    hashes = ak_heap_calloc(heap, dupl, sizeof(uint32_t) * hcap);
+    hashes = ak_heap_calloc(heap, dupl, hashBytes);
   }
   if (profile)
     tHashAlloc += ak_index_profile_now_ms() - t;
+  if (!hashes)
+    goto fail;
 
   count = posno = 0;
 
@@ -312,6 +318,8 @@ ak_meshDuplicatorForIndicesRetained(AkMesh          * __restrict mesh,
             ord = 0;                                                         \
           } else {                                                           \
             ord = ++dupcItems_[3 * idxp + 1];                                \
+            if ((AkUInt)ord > dupcActualMax)                                 \
+              dupcActualMax = (AkUInt)ord;                                   \
             count++;                                                         \
           }                                                                  \
                                                                              \
@@ -401,8 +409,18 @@ ak_meshDuplicatorForIndicesRetained(AkMesh          * __restrict mesh,
 #undef AK_DUPLICATOR_FOR_OUTPUT_TYPE
 #undef AK_DUPLICATOR_FOR_INDEX_TYPE
 
+  dupc->max       = dupcActualMax;
+  dupcCompactType = ak_indexComponentTypeForMax(dupcActualMax);
+  if (ak_indexComponentSize(dupcCompactType)
+      < ak_indexComponentSize(dupc->componentType))
+    dupc = ak_indexArrayPromote(heap, dupl, dupc, dupcCompactType);
+  dupcFinalBytes = sizeof(*dupc)
+                   + ak_indexComponentSize(dupc->componentType) * dupcItemCount;
+
   dupcsumType  = ak_indexComponentTypeForMax((AkUInt)count);
   dupcsumCount = (size_t)posno + 1;
+  dupcsumBytes = sizeof(*dupcsum)
+                 + ak_indexComponentSize(dupcsumType) * dupcsumCount;
   t = profile ? ak_index_profile_now_ms() : 0.0;
   dupcsum      = ak_indexSideArrayAllocZero(heap, dupc, dupcsumCount, dupcsumType);
   if (profile)
@@ -493,6 +511,10 @@ ak_meshDuplicatorForIndicesRetained(AkMesh          * __restrict mesh,
                                     tHashLoop,
                                     tSumAlloc,
                                     tSumBuild,
+                                    dupcBytes,
+                                    dupcFinalBytes,
+                                    hashBytes,
+                                    dupcsumBytes,
                                     icount,
                                     vertc,
                                     posno,

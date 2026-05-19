@@ -96,6 +96,80 @@
     }                                                                         \
   } while (0)
 
+/* Keep exact actual-max narrowing for small/sparse OBJ primitives without
+   adding a second full pass to large OBJ imports. */
+#define WOBJ_SCAN_SHRINK_THRESHOLD 4096
+
+#define WOBJ_SCAN_INDEX(VALUE_COUNT)                                          \
+  do {                                                                        \
+    AkUInt real_;                                                             \
+                                                                              \
+    real_ = wobj_real_index((VALUE_COUNT), val);                              \
+    if (real_ > maxIndex)                                                     \
+      maxIndex = real_;                                                       \
+  } while (0)
+
+#define WOBJ_SCAN_INDICES                                                     \
+  do {                                                                        \
+    if (wp->hasNormal && wp->hasTexture) {                                    \
+      while (chunk) {                                                         \
+        csz = chunk->usedsize;                                                \
+        it2 = (void *)chunk->data;                                            \
+                                                                              \
+        for (i = 0; i < csz; i += isz) {                                      \
+          val = it2[0];                                                       \
+          WOBJ_SCAN_INDEX(count_pos);                                         \
+          val = it2[1];                                                       \
+          WOBJ_SCAN_INDEX(count_tex);                                         \
+          val = it2[2];                                                       \
+          WOBJ_SCAN_INDEX(count_nor);                                         \
+          it2 += 3;                                                           \
+        }                                                                     \
+        chunk = chunk->next;                                                  \
+      }                                                                       \
+    } else if (wp->hasNormal) {                                               \
+      while (chunk) {                                                         \
+        csz = chunk->usedsize;                                                \
+        it2 = (void *)chunk->data;                                            \
+                                                                              \
+        for (i = 0; i < csz; i += isz) {                                      \
+          val = it2[0];                                                       \
+          WOBJ_SCAN_INDEX(count_pos);                                         \
+          val = it2[2];                                                       \
+          WOBJ_SCAN_INDEX(count_nor);                                         \
+          it2 += 3;                                                           \
+        }                                                                     \
+        chunk = chunk->next;                                                  \
+      }                                                                       \
+    } else if (wp->hasTexture) {                                              \
+      while (chunk) {                                                         \
+        csz = chunk->usedsize;                                                \
+        it2 = (void *)chunk->data;                                            \
+                                                                              \
+        for (i = 0; i < csz; i += isz) {                                      \
+          val = it2[0];                                                       \
+          WOBJ_SCAN_INDEX(count_pos);                                         \
+          val = it2[1];                                                       \
+          WOBJ_SCAN_INDEX(count_tex);                                         \
+          it2 += 3;                                                           \
+        }                                                                     \
+        chunk = chunk->next;                                                  \
+      }                                                                       \
+    } else {                                                                  \
+      while (chunk) {                                                         \
+        csz = chunk->usedsize;                                                \
+        it2 = (void *)chunk->data;                                            \
+                                                                              \
+        for (i = 0; i < csz; i += isz) {                                      \
+          val = it2[0];                                                       \
+          WOBJ_SCAN_INDEX(count_pos);                                         \
+          it2 += 3;                                                           \
+        }                                                                     \
+        chunk = chunk->next;                                                  \
+      }                                                                       \
+    }                                                                         \
+  } while (0)
+
 AK_HIDE
 AkAccessor*
 wobj_acc(WOState         * __restrict wst,
@@ -181,16 +255,22 @@ wobj_joinIndices(WOState         * __restrict wst,
   count_tex = wst->ac_tex ? wst->ac_tex->count : 0;
   count_nor = wst->ac_nor ? wst->ac_nor->count : 0;
   maxIndex  = count_pos > 0 ? count_pos - 1 : 0;
+  if (wp->hasTexture && count_tex > 0 && count_tex - 1 > maxIndex)
+    maxIndex = count_tex - 1;
+  if (wp->hasNormal && count_nor > 0 && count_nor - 1 > maxIndex)
+    maxIndex = count_nor - 1;
 
   if (wp->hasTexture || wp->hasNormal) {
     istride += (int)wp->hasNormal + (int)wp->hasTexture;
     count   *= istride;
   }
 
-  if (wp->hasTexture && count_tex > 0 && count_tex - 1 > maxIndex)
-    maxIndex = count_tex - 1;
-  if (wp->hasNormal && count_nor > 0 && count_nor - 1 > maxIndex)
-    maxIndex = count_nor - 1;
+  isz = wp->dc_face->itemsize;
+  if (count <= WOBJ_SCAN_SHRINK_THRESHOLD) {
+    chunk    = wp->dc_face->data;
+    maxIndex = 0;
+    WOBJ_SCAN_INDICES;
+  }
 
   componentType     = ak_indexComponentTypeForMax(maxIndex);
   prim->indices     = ak_indexArrayAlloc(wst->heap, prim, count, componentType);
@@ -201,7 +281,6 @@ wobj_joinIndices(WOState         * __restrict wst,
   prim->indices->max = maxIndex;
 
   /* join index buffer chunks */
-  isz   = wp->dc_face->itemsize;
   chunk = wp->dc_face->data;
 
   /* to make it faster split cases */
@@ -212,3 +291,7 @@ wobj_joinIndices(WOState         * __restrict wst,
     default:         break;
   }
 }
+
+#undef WOBJ_SCAN_INDICES
+#undef WOBJ_SCAN_INDEX
+#undef WOBJ_SCAN_SHRINK_THRESHOLD

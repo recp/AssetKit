@@ -27,6 +27,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define WOBJ_DATA_NODE_ITEMS 4096
+
 typedef struct WOMtl {
   char *name;
   char *map_Ka;
