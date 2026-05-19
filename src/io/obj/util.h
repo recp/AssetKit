@@ -42,4 +42,10 @@ wobj_joinIndices(WOState         * __restrict wst,
                  WOPrim          * __restrict wp,
                  AkMeshPrimitive * __restrict prim);
 
+AK_HIDE
+bool
+wobj_flattenPrimDirect(WOState         * __restrict wst,
+                       WOPrim          * __restrict wp,
+                       AkMeshPrimitive * __restrict prim);
+
 #endif /* wobj_util_h */

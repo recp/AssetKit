@@ -15,9 +15,12 @@
  */
 
 #include "util.h"
+#include "../../strpool.h"
 
 #define wobj_real_index(count, val)                                           \
   ((AkUInt)((val) > 0 ? (val) - 1 : (AkInt)(count) + (val)))
+
+#define WOBJ_DIRECT_FLATTEN_MIN 4096
 
 #define WOBJ_JOIN_INDICES(TYPE)                                               \
   do {                                                                        \
@@ -232,6 +235,188 @@ wobj_input(WOState         * __restrict wst,
   return inp;
 }
 
+static
+bool
+wobj_index_valid(AkInt     value,
+                 uint32_t  count,
+                 AkUInt   *out) {
+  AkInt idx;
+
+  if (value == 0 || count == 0)
+    return false;
+
+  idx = value > 0 ? value - 1 : (AkInt)count + value;
+  if (idx < 0 || (uint32_t)idx >= count)
+    return false;
+
+  *out = (AkUInt)idx;
+  return true;
+}
+
+static
+AkInput*
+wobj_flatInput(WOState         * __restrict wst,
+               AkMeshPrimitive * __restrict prim,
+               AkInputSemantic              sem,
+               const char      * __restrict semRaw,
+               AkComponentSize              compSize,
+               AkTypeId                     type,
+               uint32_t                     count) {
+  AkHeap     *heap;
+  AkDoc      *doc;
+  AkBuffer   *buff;
+  AkAccessor *acc;
+  AkTypeDesc *typeDesc;
+  int         nComponents;
+
+  heap        = wst->heap;
+  doc         = wst->doc;
+  typeDesc    = ak_typeDesc(type);
+  nComponents = (int)compSize;
+
+  buff         = ak_heap_calloc(heap, doc, sizeof(*buff));
+  buff->length = typeDesc->size * nComponents * count;
+  buff->data   = ak_heap_alloc(heap, buff, buff->length);
+
+  flist_sp_insert(&doc->lib.buffers, buff);
+
+  acc                    = ak_heap_calloc(heap, doc, sizeof(*acc));
+  acc->buffer            = buff;
+  acc->byteLength        = buff->length;
+  acc->byteStride        = typeDesc->size * nComponents;
+  acc->componentSize     = compSize;
+  acc->componentType     = type;
+  acc->bytesPerComponent = typeDesc->size;
+  acc->componentCount    = nComponents;
+  acc->fillByteSize      = typeDesc->size * nComponents;
+  acc->count             = count;
+
+  return wobj_input(wst, prim, acc, sem, semRaw, 0);
+}
+
+AK_HIDE
+bool
+wobj_flattenPrimDirect(WOState         * __restrict wst,
+                       WOPrim          * __restrict wp,
+                       AkMeshPrimitive * __restrict prim) {
+  AkAccessor    *posAcc, *texAcc, *norAcc;
+  AkInput       *posInp, *texInp, *norInp;
+  AkDataChunk   *chunk;
+  const AkInt   *face;
+  char          *posSrc, *texSrc, *norSrc;
+  char          *posDst, *texDst, *norDst;
+  size_t         nfaces, i, count;
+  uint32_t       posCount, texCount, norCount;
+  AkUInt         posIdx, texIdx, norIdx;
+
+  if (!wp->dc_face
+      || !wp->dc_face->data
+      || wp->dc_face->itemcount < WOBJ_DIRECT_FLATTEN_MIN
+      || (!wp->hasTexture && !wp->hasNormal)
+      || !(posAcc = wst->ac_pos)
+      || !posAcc->buffer)
+    return false;
+
+  texAcc = wst->ac_tex;
+  norAcc = wst->ac_nor;
+  if (wp->hasTexture && (!texAcc || !texAcc->buffer))
+    return false;
+  if (wp->hasNormal && (!norAcc || !norAcc->buffer))
+    return false;
+
+  posCount = posAcc->count;
+  texCount = texAcc ? texAcc->count : 0;
+  norCount = norAcc ? norAcc->count : 0;
+
+  chunk = wp->dc_face->data;
+  while (chunk) {
+    face   = (const AkInt *)(const void *)chunk->data;
+    nfaces = chunk->usedsize / sizeof(ivec3);
+    for (i = 0; i < nfaces; i++, face += 3) {
+      if (!wobj_index_valid(face[0], posCount, &posIdx))
+        return false;
+      if (wp->hasTexture && !wobj_index_valid(face[1], texCount, &texIdx))
+        return false;
+      if (wp->hasNormal && !wobj_index_valid(face[2], norCount, &norIdx))
+        return false;
+    }
+    chunk = chunk->next;
+  }
+
+  count  = wp->dc_face->itemcount;
+  posInp = wobj_flatInput(wst,
+                          prim,
+                          AK_INPUT_POSITION,
+                          _s_POSITION,
+                          AK_COMPONENT_SIZE_VEC3,
+                          AKT_FLOAT,
+                          (uint32_t)count);
+  prim->pos = posInp;
+
+  texInp = NULL;
+  if (wp->hasTexture) {
+    texInp = wobj_flatInput(wst,
+                            prim,
+                            AK_INPUT_TEXCOORD,
+                            _s_TEXCOORD,
+                            AK_COMPONENT_SIZE_VEC2,
+                            AKT_FLOAT,
+                            (uint32_t)count);
+  }
+
+  norInp = NULL;
+  if (wp->hasNormal) {
+    norInp = wobj_flatInput(wst,
+                            prim,
+                            AK_INPUT_NORMAL,
+                            _s_NORMAL,
+                            AK_COMPONENT_SIZE_VEC3,
+                            AKT_FLOAT,
+                            (uint32_t)count);
+  }
+
+  posSrc = (char *)posAcc->buffer->data + posAcc->byteOffset;
+  texSrc = texAcc && texAcc->buffer
+           ? (char *)texAcc->buffer->data + texAcc->byteOffset
+           : NULL;
+  norSrc = norAcc && norAcc->buffer
+           ? (char *)norAcc->buffer->data + norAcc->byteOffset
+           : NULL;
+  posDst = (char *)posInp->accessor->buffer->data;
+  texDst = texInp ? (char *)texInp->accessor->buffer->data : NULL;
+  norDst = norInp ? (char *)norInp->accessor->buffer->data : NULL;
+
+  chunk = wp->dc_face->data;
+  while (chunk) {
+    face   = (const AkInt *)(const void *)chunk->data;
+    nfaces = chunk->usedsize / sizeof(ivec3);
+    for (i = 0; i < nfaces; i++, face += 3) {
+      posIdx = wobj_real_index(posCount, face[0]);
+      memcpy(posDst, posSrc + posAcc->byteStride * posIdx, sizeof(vec3));
+      posDst += sizeof(vec3);
+
+      if (texDst) {
+        texIdx = wobj_real_index(texCount, face[1]);
+        memcpy(texDst, texSrc + texAcc->byteStride * texIdx, sizeof(vec2));
+        texDst += sizeof(vec2);
+      }
+
+      if (norDst) {
+        norIdx = wobj_real_index(norCount, face[2]);
+        memcpy(norDst, norSrc + norAcc->byteStride * norIdx, sizeof(vec3));
+        norDst += sizeof(vec3);
+      }
+    }
+    chunk = chunk->next;
+  }
+
+  prim->indices       = NULL;
+  prim->indexAccessor = NULL;
+  prim->indexStride   = 1;
+
+  return true;
+}
+
 AK_HIDE
 void
 wobj_joinIndices(WOState         * __restrict wst,
@@ -295,3 +480,4 @@ wobj_joinIndices(WOState         * __restrict wst,
 #undef WOBJ_SCAN_INDICES
 #undef WOBJ_SCAN_INDEX
 #undef WOBJ_SCAN_SHRINK_THRESHOLD
+#undef WOBJ_DIRECT_FLATTEN_MIN

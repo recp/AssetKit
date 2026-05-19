@@ -139,26 +139,21 @@ stl_stl(AkDoc     ** __restrict dest,
   sstVal.node      = scene->node;
   sstVal.lib_geom  = doc->lib.geometries;
   
-  sst->dc_ind    = ak_data_new(sst->tmp,
-                               STL_DATA_NODE_ITEMS,
-                               sizeof(int32_t),
-                               NULL);
-  sst->dc_pos    = ak_data_new(sst->tmp,
-                               STL_DATA_NODE_ITEMS,
-                               sizeof(vec3),
-                               NULL);
-  sst->dc_nor    = ak_data_new(sst->tmp,
-                               STL_DATA_NODE_ITEMS,
-                               sizeof(vec3),
-                               NULL);
-  sst->dc_vcount = ak_data_new(sst->tmp,
-                               STL_DATA_NODE_ITEMS,
-                               sizeof(int32_t),
-                               NULL);
-
   if (!isAscii) {
     stl_binary(sst, p);
   } else {
+    sst->dc_pos    = ak_data_new(sst->tmp,
+                                 STL_DATA_NODE_ITEMS,
+                                 sizeof(vec3),
+                                 NULL);
+    sst->dc_nor    = ak_data_new(sst->tmp,
+                                 STL_DATA_NODE_ITEMS,
+                                 sizeof(vec3),
+                                 NULL);
+    sst->dc_vcount = ak_data_new(sst->tmp,
+                                 STL_DATA_NODE_ITEMS,
+                                 sizeof(int32_t),
+                                 NULL);
     stl_ascii(sst, p);
   }
   
@@ -177,7 +172,8 @@ stl_stl(AkDoc     ** __restrict dest,
 AK_HIDE
 void
 stl_binary(STLState * __restrict sst, char * __restrict p) {
-  vec4     v, n;
+  AkBuffer *posBuff, *norBuff;
+  float    *pos, *nor;
   uint32_t count,  nTriangles, i;
   
   /* skip 80-char header */
@@ -188,36 +184,47 @@ stl_binary(STLState * __restrict sst, char * __restrict p) {
 
   count      = nTriangles * 3;
   sst->maxVC = 3;
+  sst->count = count;
+
+  posBuff         = ak_heap_calloc(sst->heap, sst->doc, sizeof(*posBuff));
+  posBuff->length = sizeof(vec3) * count;
+  posBuff->data   = ak_heap_alloc(sst->heap, posBuff, posBuff->length);
+  flist_sp_insert(&sst->doc->lib.buffers, posBuff);
+
+  norBuff         = ak_heap_calloc(sst->heap, sst->doc, sizeof(*norBuff));
+  norBuff->length = sizeof(vec3) * count;
+  norBuff->data   = ak_heap_alloc(sst->heap, norBuff, norBuff->length);
+  flist_sp_insert(&sst->doc->lib.buffers, norBuff);
+
+  sst->buff_pos = posBuff;
+  sst->buff_nor = norBuff;
+  pos = posBuff->data;
+  nor = norBuff->data;
 
   for (i = 0; i < nTriangles; i++) {
     /* normal */
-    le_32(n[0], p);
-    le_32(n[1], p);
-    le_32(n[2], p);
-    
-    STL_DATA_APPEND(sst->dc_nor, n, sizeof(vec3));
-    STL_DATA_APPEND(sst->dc_nor, n, sizeof(vec3));
-    STL_DATA_APPEND(sst->dc_nor, n, sizeof(vec3));
+    le_32(nor[0], p);
+    le_32(nor[1], p);
+    le_32(nor[2], p);
+    memcpy(nor + 3, nor, sizeof(vec3));
+    memcpy(nor + 6, nor, sizeof(vec3));
+    nor += 9;
     
     /* vertex */
-    le_32(v[0], p);
-    le_32(v[1], p);
-    le_32(v[2], p);
-    STL_DATA_APPEND(sst->dc_pos, v, sizeof(vec3));
+    le_32(pos[0], p);
+    le_32(pos[1], p);
+    le_32(pos[2], p);
     
-    le_32(v[0], p);
-    le_32(v[1], p);
-    le_32(v[2], p);
-    STL_DATA_APPEND(sst->dc_pos, v, sizeof(vec3));
+    le_32(pos[3], p);
+    le_32(pos[4], p);
+    le_32(pos[5], p);
     
-    le_32(v[0], p);
-    le_32(v[1], p);
-    le_32(v[2], p);
-    STL_DATA_APPEND(sst->dc_pos, v, sizeof(vec3));
+    le_32(pos[6], p);
+    le_32(pos[7], p);
+    le_32(pos[8], p);
+    pos += 9;
     p += 2;
   }
-  
-  sst->count = count;
 }
 
 AK_HIDE
@@ -344,17 +351,38 @@ sst_finish(STLState * __restrict sst) {
 
   sst->node->geometry = instGeom;
   
-  prim->pos = io_addInput(heap, sst->dc_pos, prim, AK_INPUT_POSITION,
-                          _s_POSITION, AK_COMPONENT_SIZE_VEC3, AKT_FLOAT, 0);
+  if (sst->buff_pos) {
+    AkAccessor *acc;
 
-  if (sst->dc_nor->itemcount > 0) {
-    io_addInput(heap, sst->dc_nor, prim, AK_INPUT_NORMAL,
-                _s_NORMAL, AK_COMPONENT_SIZE_VEC3, AKT_FLOAT, 1);
+    acc = io_acc(heap,
+                 sst->doc,
+                 AK_COMPONENT_SIZE_VEC3,
+                 AKT_FLOAT,
+                 sst->count,
+                 sst->buff_pos);
+    prim->pos = io_input(heap, prim, acc, AK_INPUT_POSITION, _s_POSITION, 0);
+
+    if (sst->buff_nor) {
+      acc = io_acc(heap,
+                   sst->doc,
+                   AK_COMPONENT_SIZE_VEC3,
+                   AKT_FLOAT,
+                   sst->count,
+                   sst->buff_nor);
+      io_input(heap, prim, acc, AK_INPUT_NORMAL, _s_NORMAL, 0);
+    }
+  } else {
+    prim->pos = io_addInput(heap, sst->dc_pos, prim, AK_INPUT_POSITION,
+                            _s_POSITION, AK_COMPONENT_SIZE_VEC3, AKT_FLOAT, 0);
+
+    if (sst->dc_nor->itemcount > 0) {
+      io_addInput(heap, sst->dc_nor, prim, AK_INPUT_NORMAL,
+                  _s_NORMAL, AK_COMPONENT_SIZE_VEC3, AKT_FLOAT, 1);
+    }
   }
 
   /* cleanup */
-  if (sst->dc_ind) {
-    ak_free(sst->dc_ind);
+  if (sst->dc_pos) {
     ak_free(sst->dc_pos);
     ak_free(sst->dc_nor);
     ak_free(sst->dc_vcount);

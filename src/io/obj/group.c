@@ -77,11 +77,16 @@ wobj_finishPrim(WOState  * __restrict wst,
   mesh->primitive = prim;
   mesh->primitiveCount++;
   
-  prim->pos = wobj_input(wst, prim, wst->ac_pos,
-                         AK_INPUT_POSITION, _s_POSITION, inputOffset++);
-  
   if (wst->mtlib && wp->mtlname)
     prim->material = rb_find(wst->mtlib->materials, (void *)wp->mtlname);
+
+  if (wp->maxVC == 3 && wobj_flattenPrimDirect(wst, wp, prim)) {
+    prim->nPolygons = (uint32_t)wp->dc_face->itemcount / 3;
+    return;
+  }
+
+  prim->pos = wobj_input(wst, prim, wst->ac_pos,
+                         AK_INPUT_POSITION, _s_POSITION, inputOffset++);
   
    if (wp->hasTexture && wst->dc_tex->itemcount > 0)
      wobj_input(wst, prim, wst->ac_tex,
