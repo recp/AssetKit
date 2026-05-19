@@ -363,6 +363,45 @@ ak_test_write_stl_binary_solid(const char *path) {
 
 static
 bool
+ak_test_write_stl_binary_square(const char *path) {
+  FILE    *file;
+  uint8_t  header[80];
+  uint8_t  attr[2] = {0, 0};
+  float    tris[24] = {
+    0.0f, 0.0f, 1.0f,
+    0.0f, 0.0f, 0.0f,
+    1.0f, 0.0f, 0.0f,
+    1.0f, 1.0f, 0.0f,
+
+    0.0f, 0.0f, 1.0f,
+    0.0f, 0.0f, 0.0f,
+    1.0f, 1.0f, 0.0f,
+    0.0f, 1.0f, 0.0f
+  };
+  bool     ok;
+  uint32_t i;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  memset(header, 0, sizeof(header));
+  memcpy(header, "binary square", 13);
+
+  ok = fwrite(header, 1, sizeof(header), file) == sizeof(header);
+  ok = ok && ak_test_write_u32le(file, 2);
+  for (i = 0; i < 12; i++)
+    ok = ok && ak_test_write_f32le(file, tris[i]);
+  ok = ok && fwrite(attr, 1, sizeof(attr), file) == sizeof(attr);
+  for (; i < 24; i++)
+    ok = ok && ak_test_write_f32le(file, tris[i]);
+  ok = ok && fwrite(attr, 1, sizeof(attr), file) == sizeof(attr);
+
+  return fclose(file) == 0 && ok;
+}
+
+static
+bool
 ak_test_write_stl_binary_color_trailing(const char *path) {
   FILE    *file;
   uint8_t  header[80];
@@ -772,6 +811,7 @@ TEST_IMPL(format_edge_cases) {
   char            *tmpdir;
   char             stlZeroPath[PATH_MAX];
   char             stlBinaryPath[PATH_MAX];
+  char             stlDedupPath[PATH_MAX];
   char             stlColorPath[PATH_MAX];
   char             stlAsciiPath[PATH_MAX];
   char             stlBadPath[PATH_MAX];
@@ -802,6 +842,10 @@ TEST_IMPL(format_edge_cases) {
            sizeof(stlZeroPath),
            "%s/zero_header.stl",
            tmpdir);
+  snprintf(stlDedupPath,
+           sizeof(stlDedupPath),
+           "%s/dedup_square.stl",
+           tmpdir);
   snprintf(stlColorPath,
            sizeof(stlColorPath),
            "%s/color_trailing.stl",
@@ -825,6 +869,7 @@ TEST_IMPL(format_edge_cases) {
 
   ASSERT(ak_test_write_stl_binary_zero_header(stlZeroPath));
   ASSERT(ak_test_write_stl_binary_solid(stlBinaryPath));
+  ASSERT(ak_test_write_stl_binary_square(stlDedupPath));
   ASSERT(ak_test_write_stl_binary_color_trailing(stlColorPath));
   ASSERT(ak_test_write_stl_ascii_one(stlAsciiPath));
   ASSERT(ak_test_write_stl_binary_truncated(stlBadPath));
@@ -853,6 +898,20 @@ TEST_IMPL(format_edge_cases) {
   ASSERT(prim->nPolygons == 1);
   ASSERT(prim->pos && prim->pos->accessor);
   ASSERT(prim->pos->accessor->count == 3);
+  ak_free(doc);
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, stlDedupPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+  prim = ak_test_first_primitive(doc);
+  ASSERT(prim != NULL);
+  ASSERT(prim->type == AK_PRIMITIVE_TRIANGLES);
+  ASSERT(prim->nPolygons == 2);
+  ASSERT(prim->indexStride == 1);
+  ASSERT(prim->indices && prim->indices->count == 6);
+  ASSERT(ak_meshPrimitiveIndexComponentType(prim) == AKT_UBYTE);
+  ASSERT(ak_meshPrimitiveIndexMax(prim) == 3);
+  ASSERT(prim->pos && prim->pos->accessor);
+  ASSERT(prim->pos->accessor->count == 4);
   ak_free(doc);
 
   doc = NULL;
@@ -957,6 +1016,7 @@ TEST_IMPL(format_edge_cases) {
 
   unlink(stlZeroPath);
   unlink(stlBinaryPath);
+  unlink(stlDedupPath);
   unlink(stlColorPath);
   unlink(stlAsciiPath);
   unlink(stlBadPath);

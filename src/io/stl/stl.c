@@ -209,6 +209,276 @@ stl_data_append_slot(AkDataContext * __restrict dctx) {
   return chunk->data + chunk->usedsize - size;
 }
 
+typedef struct STLDedup {
+  float    *pos;
+  float    *nor;
+  float    *col;
+  uint32_t *table;
+  uint32_t *indices;
+  size_t    tableCap;
+  uint32_t  count;
+  uint32_t  indexCount;
+  bool      hasColor;
+} STLDedup;
+
+static
+void
+stl_dedup_free(STLDedup * __restrict dedup) {
+  free(dedup->pos);
+  free(dedup->nor);
+  free(dedup->col);
+  free(dedup->table);
+  free(dedup->indices);
+  memset(dedup, 0, sizeof(*dedup));
+}
+
+static
+bool
+stl_next_hash_cap(size_t count, size_t * __restrict capOut) {
+  size_t cap, target;
+
+  if (count > (SIZE_MAX / 2))
+    return false;
+
+  target = count < 8 ? 16 : count * 2;
+  cap    = 16;
+  while (cap < target) {
+    if (cap > (SIZE_MAX / 2))
+      return false;
+    cap *= 2;
+  }
+
+  *capOut = cap;
+  return true;
+}
+
+static
+bool
+stl_dedup_init(STLDedup * __restrict dedup,
+               size_t                 indexCount,
+               bool                   hasColor) {
+  size_t tableCap;
+
+  memset(dedup, 0, sizeof(*dedup));
+  if (indexCount == 0 || indexCount >= UINT32_MAX)
+    return false;
+  if (!stl_next_hash_cap(indexCount, &tableCap))
+    return false;
+  if (indexCount > SIZE_MAX / (sizeof(float) * 3))
+    return false;
+  if (hasColor && indexCount > SIZE_MAX / (sizeof(float) * 4))
+    return false;
+
+  dedup->pos       = malloc(indexCount * sizeof(float) * 3);
+  dedup->nor       = malloc(indexCount * sizeof(float) * 3);
+  dedup->col       = hasColor ? malloc(indexCount * sizeof(float) * 4) : NULL;
+  dedup->indices   = malloc(indexCount * sizeof(*dedup->indices));
+  dedup->table     = calloc(tableCap, sizeof(*dedup->table));
+  dedup->tableCap  = tableCap;
+  dedup->hasColor  = hasColor;
+  dedup->indexCount = (uint32_t)indexCount;
+
+  if (!dedup->pos
+      || !dedup->nor
+      || (hasColor && !dedup->col)
+      || !dedup->indices
+      || !dedup->table) {
+    stl_dedup_free(dedup);
+    return false;
+  }
+
+  return true;
+}
+
+static
+uint64_t
+stl_hash_bytes(uint64_t h, const void * __restrict data, size_t len) {
+  const uint8_t *p, *end;
+
+  p   = data;
+  end = p + len;
+  while (p < end) {
+    h ^= *p++;
+    h *= 1099511628211ull;
+  }
+
+  return h;
+}
+
+static
+uint64_t
+stl_vertex_hash(const float * __restrict pos,
+                const float * __restrict nor,
+                const float * __restrict col,
+                bool                     hasColor) {
+  uint64_t h;
+
+  h = 1469598103934665603ull;
+  h = stl_hash_bytes(h, pos, sizeof(float) * 3);
+  h = stl_hash_bytes(h, nor, sizeof(float) * 3);
+  if (hasColor)
+    h = stl_hash_bytes(h, col, sizeof(float) * 4);
+
+  return h;
+}
+
+static
+bool
+stl_vertex_equal(const STLDedup * __restrict dedup,
+                 uint32_t                    index,
+                 const float * __restrict    pos,
+                 const float * __restrict    nor,
+                 const float * __restrict    col) {
+  return memcmp(dedup->pos + (size_t)index * 3,
+                pos,
+                sizeof(float) * 3) == 0
+         && memcmp(dedup->nor + (size_t)index * 3,
+                   nor,
+                   sizeof(float) * 3) == 0
+         && (!dedup->hasColor
+             || memcmp(dedup->col + (size_t)index * 4,
+                       col,
+                       sizeof(float) * 4) == 0);
+}
+
+static
+bool
+stl_dedup_intern(STLDedup * __restrict dedup,
+                 const float * __restrict pos,
+                 const float * __restrict nor,
+                 const float * __restrict col,
+                 uint32_t * __restrict    indexOut) {
+  uint64_t hash;
+  size_t   slot, mask;
+
+  hash = stl_vertex_hash(pos, nor, col, dedup->hasColor);
+  mask = dedup->tableCap - 1;
+  slot = (size_t)hash & mask;
+
+  for (;;) {
+    uint32_t packed, index;
+
+    packed = dedup->table[slot];
+    if (packed == 0) {
+      index = dedup->count++;
+      memcpy(dedup->pos + (size_t)index * 3, pos, sizeof(float) * 3);
+      memcpy(dedup->nor + (size_t)index * 3, nor, sizeof(float) * 3);
+      if (dedup->hasColor)
+        memcpy(dedup->col + (size_t)index * 4, col, sizeof(float) * 4);
+      dedup->table[slot] = index + 1;
+      *indexOut          = index;
+      return true;
+    }
+
+    index = packed - 1;
+    if (stl_vertex_equal(dedup, index, pos, nor, col)) {
+      *indexOut = index;
+      return true;
+    }
+
+    slot = (slot + 1) & mask;
+  }
+}
+
+static
+AkBuffer*
+stl_buffer_alloc(AkHeap * __restrict heap,
+                 AkDoc  * __restrict doc,
+                 size_t              length) {
+  AkBuffer *buff;
+
+  buff         = ak_heap_calloc(heap, doc, sizeof(*buff));
+  buff->length = length;
+  buff->data   = length ? ak_heap_alloc(heap, buff, length) : NULL;
+  flist_sp_insert(&doc->lib.buffers, buff);
+
+  return buff;
+}
+
+static
+bool
+stl_dedup_emit(STLState * __restrict sst,
+               STLDedup * __restrict dedup) {
+  AkBuffer *posBuff, *norBuff, *colBuff;
+  size_t    count;
+
+  count = dedup->count;
+  if (count == 0 || count > UINT32_MAX)
+    return false;
+
+  posBuff = stl_buffer_alloc(sst->heap,
+                             sst->doc,
+                             sizeof(float) * 3 * count);
+  norBuff = stl_buffer_alloc(sst->heap,
+                             sst->doc,
+                             sizeof(float) * 3 * count);
+  if (!posBuff || !norBuff || !posBuff->data || !norBuff->data)
+    return false;
+
+  memcpy(posBuff->data, dedup->pos, posBuff->length);
+  memcpy(norBuff->data, dedup->nor, norBuff->length);
+
+  sst->buff_pos = posBuff;
+  sst->buff_nor = norBuff;
+  sst->count    = (uint32_t)count;
+
+  if (dedup->hasColor) {
+    colBuff = stl_buffer_alloc(sst->heap,
+                               sst->doc,
+                               sizeof(float) * 4 * count);
+    if (!colBuff || !colBuff->data)
+      return false;
+    memcpy(colBuff->data, dedup->col, colBuff->length);
+    sst->buff_col = colBuff;
+  }
+
+  if (dedup->count < dedup->indexCount) {
+    sst->raw_indices = dedup->indices;
+    sst->indexCount  = dedup->indexCount;
+    sst->indexMax    = dedup->count - 1;
+    dedup->indices   = NULL;
+  }
+
+  return true;
+}
+
+static
+bool
+stl_dedup_from_arrays(STLState * __restrict sst,
+                      const float * __restrict pos,
+                      const float * __restrict nor,
+                      const float * __restrict col,
+                      size_t                    indexCount,
+                      bool                      hasColor) {
+  STLDedup dedup;
+  size_t   i;
+  bool     ok;
+
+  if (!stl_dedup_init(&dedup, indexCount, hasColor))
+    return false;
+
+  ok = true;
+  for (i = 0; i < indexCount; i++) {
+    uint32_t index;
+
+    if (!stl_dedup_intern(&dedup,
+                          pos + i * 3,
+                          nor + i * 3,
+                          hasColor ? col + i * 4 : NULL,
+                          &index)) {
+      ok = false;
+      break;
+    }
+    dedup.indices[i] = index;
+  }
+
+  if (ok)
+    ok = stl_dedup_emit(sst, &dedup);
+
+  stl_dedup_free(&dedup);
+  return ok;
+}
+
 #define STL_PARSE_FLOAT3(PTR, DEST)                                           \
   do {                                                                        \
     (PTR) = ak_strtof_one_fast((PTR), &(DEST)[0]);                            \
@@ -314,6 +584,156 @@ stl_stl(AkDoc     ** __restrict dest,
   return AK_OK;
 }
 
+static
+bool
+stl_binary_fill_dedup(STLDedup * __restrict dedup,
+                      char * __restrict     p,
+                      uint32_t              nTriangles,
+                      bool                  hasHeaderColor,
+                      bool                  hasColors,
+                      vec4                  defaultColor) {
+  size_t   outIndex;
+  uint32_t i;
+  bool     ok;
+
+  outIndex = 0;
+  ok       = true;
+  for (i = 0; i < nTriangles; i++) {
+    vec3     normal, vertices[3];
+    vec4     color;
+    uint16_t attr;
+    uint32_t v;
+
+    le_32(normal[0], p);
+    le_32(normal[1], p);
+    le_32(normal[2], p);
+
+    le_32(vertices[0][0], p);
+    le_32(vertices[0][1], p);
+    le_32(vertices[0][2], p);
+
+    le_32(vertices[1][0], p);
+    le_32(vertices[1][1], p);
+    le_32(vertices[1][2], p);
+
+    le_32(vertices[2][0], p);
+    le_32(vertices[2][1], p);
+    le_32(vertices[2][2], p);
+
+    attr = stl_read_u16le(p);
+    if (hasColors) {
+      if (hasHeaderColor) {
+        if ((attr & 0x8000u) == 0 && (attr & 0x7fffu) != 0)
+          stl_decode_magics_color(attr, color);
+        else
+          memcpy(color, defaultColor, sizeof(color));
+      } else if ((attr & 0x8000u) != 0) {
+        stl_decode_viscam_color(attr, color);
+      } else {
+        color[0] = 1.0f;
+        color[1] = 1.0f;
+        color[2] = 1.0f;
+        color[3] = 1.0f;
+      }
+    }
+
+    for (v = 0; v < 3; v++) {
+      uint32_t index;
+
+      if (!stl_dedup_intern(dedup,
+                            vertices[v],
+                            normal,
+                            hasColors ? color : NULL,
+                            &index)) {
+        ok = false;
+        break;
+      }
+      dedup->indices[outIndex++] = index;
+    }
+    if (!ok)
+      break;
+
+    p += 2;
+  }
+
+  return ok;
+}
+
+static
+bool
+stl_binary_dedup(STLState * __restrict sst, char * __restrict p) {
+  STLDedup dedup;
+  char     *header, *body, *scan;
+  vec4      defaultColor;
+  uint32_t  nTriangles, sampleTriangles, i;
+  size_t    indexCount;
+  bool      hasHeaderColor, hasFacetColor, hasColors, ok;
+
+  header = p;
+  p += 80;
+  le_32(nTriangles, p);
+  body = p;
+
+  if (nTriangles > UINT32_MAX / 3u)
+    return false;
+
+  hasHeaderColor = stl_header_color(header, defaultColor);
+  sampleTriangles = nTriangles > 4096u ? 4096u : nTriangles;
+  if (sampleTriangles < nTriangles && sampleTriangles > 0) {
+    STLDedup sample;
+
+    if (!stl_dedup_init(&sample, (size_t)sampleTriangles * 3u, false))
+      return false;
+    ok = stl_binary_fill_dedup(&sample,
+                               body,
+                               sampleTriangles,
+                               false,
+                               false,
+                               defaultColor);
+    if (!ok || (uint64_t)sample.count * 100ull
+               > (uint64_t)sample.indexCount * 95ull) {
+      stl_dedup_free(&sample);
+      return false;
+    }
+    stl_dedup_free(&sample);
+  }
+
+  hasFacetColor = false;
+  scan          = body;
+  for (i = 0; i < nTriangles; i++) {
+    uint16_t attr;
+
+    attr = stl_read_u16le(scan + 48);
+    if ((hasHeaderColor && (attr & 0x8000u) == 0 && (attr & 0x7fffu) != 0)
+        || (!hasHeaderColor && (attr & 0x8000u) != 0)) {
+      hasFacetColor = true;
+      break;
+    }
+
+    scan += 50;
+  }
+
+  hasColors = hasHeaderColor || hasFacetColor;
+
+  indexCount = (size_t)nTriangles * 3u;
+  if (!stl_dedup_init(&dedup, indexCount, hasColors))
+    return false;
+
+  ok = stl_binary_fill_dedup(&dedup,
+                             body,
+                             nTriangles,
+                             hasHeaderColor,
+                             hasColors,
+                             defaultColor);
+
+  sst->maxVC = 3;
+  if (ok)
+    ok = stl_dedup_emit(sst, &dedup);
+
+  stl_dedup_free(&dedup);
+  return ok;
+}
+
 AK_HIDE
 void
 stl_binary(STLState * __restrict sst, char * __restrict p) {
@@ -323,6 +743,9 @@ stl_binary(STLState * __restrict sst, char * __restrict p) {
   vec4      defaultColor;
   uint32_t count,  nTriangles, i;
   bool     hasHeaderColor, hasFacetColor, hasColors;
+
+  if (stl_binary_dedup(sst, p))
+    return;
   
   header = p;
 
@@ -507,6 +930,42 @@ stl_ascii(STLState * __restrict sst, char * __restrict p) {
   sst->count = count;
 }
 
+static
+bool
+stl_ascii_dedup_triangles(STLState * __restrict sst) {
+  float *pos, *nor;
+  size_t count, posCount, norCount;
+  bool   ok;
+
+  if (!sst->dc_pos || !sst->dc_nor || sst->maxVC != 3)
+    return false;
+
+  count = sst->dc_pos->itemcount;
+  if (count == 0
+      || count > UINT32_MAX
+      || sst->dc_nor->itemcount != count
+      || count > SIZE_MAX / (sizeof(float) * 3))
+    return false;
+
+  pos = malloc(count * sizeof(float) * 3);
+  nor = malloc(count * sizeof(float) * 3);
+  if (!pos || !nor) {
+    free(pos);
+    free(nor);
+    return false;
+  }
+
+  posCount = ak_data_join(sst->dc_pos, pos, 0, 0);
+  norCount = ak_data_join(sst->dc_nor, nor, 0, 0);
+  ok       = posCount == count
+             && norCount == count
+             && stl_dedup_from_arrays(sst, pos, nor, NULL, count, false);
+
+  free(pos);
+  free(nor);
+  return ok;
+}
+
 AK_HIDE
 void
 sst_finish(STLState * __restrict sst) {
@@ -562,6 +1021,55 @@ sst_finish(STLState * __restrict sst) {
   }
 
   sst->node->geometry = instGeom;
+
+  if (!sst->buff_pos && sst->maxVC == 3)
+    stl_ascii_dedup_triangles(sst);
+
+  if (sst->raw_indices && sst->indexCount > 0) {
+    AkIndexArray *indices;
+    AkTypeId      componentType;
+    uint32_t      i;
+
+    componentType = ak_indexComponentTypeForMax(sst->indexMax);
+    indices       = ak_indexArrayAlloc(heap,
+                                       prim,
+                                       sst->indexCount,
+                                       componentType);
+    if (indices) {
+      switch (componentType) {
+        case AKT_UBYTE: {
+          uint8_t *dst;
+
+          dst = (uint8_t *)indices->items;
+          for (i = 0; i < sst->indexCount; i++)
+            dst[i] = (uint8_t)sst->raw_indices[i];
+          break;
+        }
+        case AKT_USHORT: {
+          uint16_t *dst;
+
+          dst = (uint16_t *)(void *)indices->items;
+          for (i = 0; i < sst->indexCount; i++)
+            dst[i] = (uint16_t)sst->raw_indices[i];
+          break;
+        }
+        case AKT_UINT: {
+          memcpy(indices->items,
+                 sst->raw_indices,
+                 sizeof(*sst->raw_indices) * (size_t)sst->indexCount);
+          break;
+        }
+        default:
+          break;
+      }
+
+      indices->max     = sst->indexMax;
+      prim->indices    = indices;
+      prim->indexStride = 1;
+      if (sst->maxVC == 3)
+        prim->nPolygons = sst->indexCount / 3;
+    }
+  }
   
   if (sst->buff_pos) {
     AkAccessor *acc;
@@ -614,6 +1122,8 @@ sst_finish(STLState * __restrict sst) {
   sst->dc_pos    = NULL;
   sst->dc_nor    = NULL;
   sst->dc_vcount = NULL;
+  free(sst->raw_indices);
+  sst->raw_indices = NULL;
 }
 
 #undef STL_PARSE_FLOAT3
