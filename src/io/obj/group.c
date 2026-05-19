@@ -46,7 +46,17 @@ wobj_finishPrim(WOState  * __restrict wst,
   inputOffset = 0;
 
   /* finish prim */
-  if (wp->maxVC == 3) {
+  if (wp->kind == AK_PRIMITIVE_LINES) {
+    AkLines *lines;
+
+    lines            = ak_heap_calloc(heap, ak_objFrom(mesh), sizeof(*lines));
+    lines->base.type = AK_PRIMITIVE_LINES;
+    lines->mode      = AK_LINES;
+    prim = (AkMeshPrimitive *)lines;
+  } else if (wp->kind == AK_PRIMITIVE_POINTS) {
+    prim       = ak_heap_calloc(heap, ak_objFrom(mesh), sizeof(*prim));
+    prim->type = AK_PRIMITIVE_POINTS;
+  } else if (wp->maxVC == 3) {
     AkTriangles *tri;
     
     tri = ak_heap_calloc(heap, ak_objFrom(mesh), sizeof(*tri));
@@ -80,13 +90,19 @@ wobj_finishPrim(WOState  * __restrict wst,
   if (wst->mtlib && wp->mtlname)
     prim->material = rb_find(wst->mtlib->materials, (void *)wp->mtlname);
 
-  if (wp->maxVC == 3 && wobj_flattenPrimDirect(wst, wp, prim)) {
+  if (wp->kind != AK_PRIMITIVE_LINES
+      && wp->kind != AK_PRIMITIVE_POINTS
+      && wp->maxVC == 3
+      && wobj_flattenPrimDirect(wst, wp, prim)) {
     prim->nPolygons = (uint32_t)wp->dc_face->itemcount / 3;
     return;
   }
 
   prim->pos = wobj_input(wst, prim, wst->ac_pos,
                          AK_INPUT_POSITION, _s_POSITION, inputOffset++);
+
+  if (wst->ac_col)
+    wobj_input(wst, prim, wst->ac_col, AK_INPUT_COLOR, _s_COLOR, 0);
   
    if (wp->hasTexture && wst->dc_tex->itemcount > 0)
      wobj_input(wst, prim, wst->ac_tex,
@@ -99,7 +115,11 @@ wobj_finishPrim(WOState  * __restrict wst,
   /* fix indices */
   wobj_joinIndices(wst, wp, prim);
 
-  if (wp->maxVC == 3) {
+  if (wp->kind == AK_PRIMITIVE_LINES) {
+    prim->nPolygons = (uint32_t)prim->indices->count / 2;
+  } else if (wp->kind == AK_PRIMITIVE_POINTS) {
+    prim->nPolygons = (uint32_t)prim->indices->count;
+  } else if (wp->maxVC == 3) {
     prim->nPolygons = (uint32_t)prim->indices->count
                       / (3u * prim->indexStride);
   }

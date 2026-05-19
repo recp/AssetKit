@@ -18,7 +18,9 @@
 #include "../../strpool.h"
 
 #define wobj_real_index(count, val)                                           \
-  ((AkUInt)((val) > 0 ? (val) - 1 : (AkInt)(count) + (val)))
+  ((AkUInt)((val) > 0                                                       \
+            ? ((AkUInt)(val) <= (AkUInt)(count) ? (val) - 1 : 0)             \
+            : ((AkInt)(count) + (val) >= 0 ? (AkInt)(count) + (val) : 0)))
 
 #define wobj_optional_index(count, val, fallback, useFallback)                \
   ((AkUInt)((val) == 0 && (useFallback)                                      \
@@ -229,11 +231,12 @@ wobj_acc(WOState         * __restrict wst,
   acc->byteLength        = buff->length;
   acc->byteStride        = typeDesc->size * nComponents;
   acc->componentSize     = compSize;
-  acc->componentType     = type;
-  acc->bytesPerComponent = typeDesc->size;
-  acc->componentCount    = nComponents;
-  acc->fillByteSize      = typeDesc->size * nComponents;
-  acc->count             = (uint32_t)dctx->itemcount;
+  acc->componentType          = type;
+  acc->originalComponentType  = type;
+  acc->bytesPerComponent      = typeDesc->size;
+  acc->componentCount         = nComponents;
+  acc->fillByteSize           = typeDesc->size * nComponents;
+  acc->count                  = (uint32_t)dctx->itemcount;
 
   return acc;
 }
@@ -295,11 +298,12 @@ wobj_flatInput(WOState         * __restrict wst,
   acc->byteLength        = buff->length;
   acc->byteStride        = typeDesc->size * nComponents;
   acc->componentSize     = compSize;
-  acc->componentType     = type;
-  acc->bytesPerComponent = typeDesc->size;
-  acc->componentCount    = nComponents;
-  acc->fillByteSize      = typeDesc->size * nComponents;
-  acc->count             = count;
+  acc->componentType          = type;
+  acc->originalComponentType  = type;
+  acc->bytesPerComponent      = typeDesc->size;
+  acc->componentCount         = nComponents;
+  acc->fillByteSize           = typeDesc->size * nComponents;
+  acc->count                  = count;
 
   return wobj_input(wst, prim, acc, sem, semRaw, 0);
 }
@@ -309,14 +313,14 @@ bool
 wobj_flattenPrimDirect(WOState         * __restrict wst,
                        WOPrim          * __restrict wp,
                        AkMeshPrimitive * __restrict prim) {
-  AkAccessor    *posAcc, *texAcc, *norAcc;
-  AkInput       *posInp, *texInp, *norInp;
+  AkAccessor    *posAcc, *texAcc, *norAcc, *colAcc;
+  AkInput       *posInp, *texInp, *norInp, *colInp;
   AkDataChunk   *chunk;
   const AkInt   *face;
-  char          *posSrc, *texSrc, *norSrc;
-  char          *posDst, *texDst, *norDst;
-  size_t         nfaces, i, count;
-  uint32_t       posCount, texCount, norCount;
+  char          *posSrc, *texSrc, *norSrc, *colSrc;
+  char          *posDst, *texDst, *norDst, *colDst;
+  size_t         nfaces, i, count, posBytes, texBytes, norBytes, colBytes;
+  uint32_t       posCount, texCount, norCount, colCount;
   AkUInt         posIdx, texIdx, norIdx;
 
   if (!wp->dc_face
@@ -329,6 +333,7 @@ wobj_flattenPrimDirect(WOState         * __restrict wst,
 
   texAcc = wst->ac_tex;
   norAcc = wst->ac_nor;
+  colAcc = wst->ac_col;
   if (wp->hasTexture && (!texAcc || !texAcc->buffer))
     return false;
   if (wp->hasNormal && (!norAcc || !norAcc->buffer))
@@ -337,20 +342,38 @@ wobj_flattenPrimDirect(WOState         * __restrict wst,
   posCount = posAcc->count;
   texCount = texAcc ? texAcc->count : 0;
   norCount = norAcc ? norAcc->count : 0;
+  colCount = colAcc ? colAcc->count : 0;
   if (posCount == 0
       || (wp->hasTexture && texCount == 0)
-      || (wp->hasNormal && norCount == 0))
+      || (wp->hasNormal && norCount == 0)
+      || (colAcc && colCount < posCount))
     return false;
+
+  posBytes = posAcc->fillByteSize;
+  texBytes = texAcc ? texAcc->fillByteSize : 0;
+  norBytes = norAcc ? norAcc->fillByteSize : 0;
+  colBytes = colAcc ? colAcc->fillByteSize : 0;
 
   count  = wp->dc_face->itemcount;
   posInp = wobj_flatInput(wst,
                           prim,
                           AK_INPUT_POSITION,
                           _s_POSITION,
-                          AK_COMPONENT_SIZE_VEC3,
+                          posAcc->componentSize,
                           AKT_FLOAT,
                           (uint32_t)count);
   prim->pos = posInp;
+
+  colInp = NULL;
+  if (colAcc) {
+    colInp = wobj_flatInput(wst,
+                            prim,
+                            AK_INPUT_COLOR,
+                            _s_COLOR,
+                            colAcc->componentSize,
+                            AKT_FLOAT,
+                            (uint32_t)count);
+  }
 
   texInp = NULL;
   if (wp->hasTexture) {
@@ -358,7 +381,7 @@ wobj_flattenPrimDirect(WOState         * __restrict wst,
                             prim,
                             AK_INPUT_TEXCOORD,
                             _s_TEXCOORD,
-                            AK_COMPONENT_SIZE_VEC2,
+                            texAcc->componentSize,
                             AKT_FLOAT,
                             (uint32_t)count);
   }
@@ -381,9 +404,13 @@ wobj_flattenPrimDirect(WOState         * __restrict wst,
   norSrc = norAcc && norAcc->buffer
            ? (char *)norAcc->buffer->data + norAcc->byteOffset
            : NULL;
+  colSrc = colAcc && colAcc->buffer
+           ? (char *)colAcc->buffer->data + colAcc->byteOffset
+           : NULL;
   posDst = (char *)posInp->accessor->buffer->data;
   texDst = texInp ? (char *)texInp->accessor->buffer->data : NULL;
   norDst = norInp ? (char *)norInp->accessor->buffer->data : NULL;
+  colDst = colInp ? (char *)colInp->accessor->buffer->data : NULL;
 
 #define WOBJ_FLATTEN_COPY(COPY_TEX, COPY_NOR)                                \
   do {                                                                        \
@@ -393,16 +420,21 @@ wobj_flattenPrimDirect(WOState         * __restrict wst,
       nfaces = chunk->usedsize / sizeof(ivec3);                               \
       for (i = 0; i < nfaces; i++, face += 3) {                               \
         posIdx = wobj_real_index(posCount, face[0]);                          \
-        memcpy(posDst, posSrc + posAcc->byteStride * posIdx, sizeof(vec3));   \
-        posDst += sizeof(vec3);                                               \
+        memcpy(posDst, posSrc + posAcc->byteStride * posIdx, posBytes);       \
+        posDst += posBytes;                                                   \
+                                                                              \
+        if (colDst) {                                                         \
+          memcpy(colDst, colSrc + colAcc->byteStride * posIdx, colBytes);     \
+          colDst += colBytes;                                                 \
+        }                                                                     \
                                                                               \
         if (COPY_TEX) {                                                       \
           texIdx = wobj_optional_index(texCount,                               \
                                        face[1],                               \
                                        wp->defaultTexIndex,                   \
                                        wp->useDefaultTexture);                \
-          memcpy(texDst, texSrc + texAcc->byteStride * texIdx, sizeof(vec2)); \
-          texDst += sizeof(vec2);                                             \
+          memcpy(texDst, texSrc + texAcc->byteStride * texIdx, texBytes);     \
+          texDst += texBytes;                                                 \
         }                                                                     \
                                                                               \
         if (COPY_NOR) {                                                       \
@@ -410,8 +442,8 @@ wobj_flattenPrimDirect(WOState         * __restrict wst,
                                        face[2],                               \
                                        wp->defaultNorIndex,                   \
                                        wp->useDefaultNormal);                 \
-          memcpy(norDst, norSrc + norAcc->byteStride * norIdx, sizeof(vec3)); \
-          norDst += sizeof(vec3);                                             \
+          memcpy(norDst, norSrc + norAcc->byteStride * norIdx, norBytes);     \
+          norDst += norBytes;                                                 \
         }                                                                     \
       }                                                                       \
       chunk = chunk->next;                                                    \

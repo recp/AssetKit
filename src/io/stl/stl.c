@@ -32,6 +32,19 @@
 #include "../../strpool.h"
 
 AK_INLINE
+uint16_t
+stl_read_u16le(const char * __restrict p) {
+  uint16_t v;
+
+  memcpy(&v, p, sizeof(v));
+#if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
+  v = bswapu16(v);
+#endif
+
+  return v;
+}
+
+AK_INLINE
 uint32_t
 stl_read_u32le(const char * __restrict p) {
   uint32_t v;
@@ -57,13 +70,110 @@ stl_binary_size_valid(const char * __restrict p,
 
   count    = stl_read_u32le(p + 80);
   expected = 84ull + (uint64_t)count * 50ull;
-  if (expected != (uint64_t)size)
+  if (expected > (uint64_t)size)
     return false;
 
   if (nTriangles)
     *nTriangles = count;
 
   return true;
+}
+
+AK_INLINE
+bool
+stl_starts_solid(const char * __restrict p,
+                 size_t                   size) {
+  return size >= 5
+         && ak_str_pack4_ci_fast(p, 4) == AK_STR_PACK4_CHARS('s','o','l','i')
+         && ak_str_ascii_lower_fast(p[4]) == 'd';
+}
+
+static
+bool
+stl_ascii_likely(const char * __restrict p,
+                 size_t                   size) {
+  size_t i, scan;
+
+  if (!stl_starts_solid(p, size))
+    return false;
+
+  scan = size < 512 ? size : 512;
+  for (i = 5; i < scan; i++) {
+    if (p[i] == '\0')
+      return false;
+
+    if (p[i] != '\n' && p[i] != '\r')
+      continue;
+
+    i++;
+    while (i < scan
+           && (p[i] == ' ' || p[i] == '\t'
+               || p[i] == '\f' || p[i] == '\v'
+               || p[i] == '\n' || p[i] == '\r'))
+      i++;
+
+    if (i + 5 <= scan
+        && ak_str_pack4_ci_fast(p + i, 4) == AK_STR_PACK4_CHARS('f','a','c','e')
+        && ak_str_ascii_lower_fast(p[i + 4]) == 't')
+      return true;
+
+    if (i + 8 <= scan
+        && ak_str_pack8_ci_fast(p + i, 8)
+           == AK_STR_PACK8_CHARS('e','n','d','s','o','l','i','d'))
+      return true;
+  }
+
+  return false;
+}
+
+static
+float
+stl_color_5bit(uint16_t v) {
+  return (float)v / 31.0f;
+}
+
+static
+void
+stl_decode_viscam_color(uint16_t attr, vec4 color) {
+  color[0] = stl_color_5bit((uint16_t)((attr >> 10) & 31u));
+  color[1] = stl_color_5bit((uint16_t)((attr >> 5)  & 31u));
+  color[2] = stl_color_5bit((uint16_t)( attr        & 31u));
+  color[3] = 1.0f;
+}
+
+static
+void
+stl_decode_magics_color(uint16_t attr, vec4 color) {
+  color[0] = stl_color_5bit((uint16_t)( attr        & 31u));
+  color[1] = stl_color_5bit((uint16_t)((attr >> 5)  & 31u));
+  color[2] = stl_color_5bit((uint16_t)((attr >> 10) & 31u));
+  color[3] = 1.0f;
+}
+
+static
+bool
+stl_header_color(const char * __restrict header, vec4 color) {
+  uint32_t i;
+
+  for (i = 0; i + 10 <= 80; i++) {
+    if (header[i] == 'C'
+        && header[i + 1] == 'O'
+        && header[i + 2] == 'L'
+        && header[i + 3] == 'O'
+        && header[i + 4] == 'R'
+        && header[i + 5] == '=') {
+      const unsigned char *rgba;
+
+      rgba     = (const unsigned char *)(const void *)(header + i + 6);
+      color[0] = (float)rgba[0] / 255.0f;
+      color[1] = (float)rgba[1] / 255.0f;
+      color[2] = (float)rgba[2] / 255.0f;
+      color[3] = (float)rgba[3] / 255.0f;
+      return true;
+    }
+  }
+
+  return false;
 }
 
 AK_INLINE
@@ -124,13 +234,11 @@ stl_stl(AkDoc     ** __restrict dest,
       || !((p = stlstr) && *p != '\0'))
     return AK_ERR;
 
-  if (stl_binary_size_valid(p, stlstrSize, NULL)) {
+  if (stl_ascii_likely(p, stlstrSize)) {
+    isAscii = true;
+  } else if (stl_binary_size_valid(p, stlstrSize, NULL)) {
     isAscii = false;
-  } else if (p[0] == 's'
-             && p[1] == 'o'
-             && p[2] == 'l'
-             && p[3] == 'i'
-             && p[4] == 'd') {
+  } else if (stl_starts_solid(p, stlstrSize)) {
     isAscii = true;
   } else {
     ak_releasefile(stlstr, stlstrSize);
@@ -205,10 +313,15 @@ stl_stl(AkDoc     ** __restrict dest,
 AK_HIDE
 void
 stl_binary(STLState * __restrict sst, char * __restrict p) {
-  AkBuffer *posBuff, *norBuff;
-  float    *pos, *nor;
+  AkBuffer *posBuff, *norBuff, *colBuff;
+  float    *pos, *nor, *col;
+  char     *header, *scan;
+  vec4      defaultColor;
   uint32_t count,  nTriangles, i;
+  bool     hasHeaderColor, hasFacetColor, hasColors;
   
+  header = p;
+
   /* skip 80-char header */
   p += 80;
 
@@ -218,6 +331,25 @@ stl_binary(STLState * __restrict sst, char * __restrict p) {
   count      = nTriangles * 3;
   sst->maxVC = 3;
   sst->count = count;
+
+  hasHeaderColor = stl_header_color(header, defaultColor);
+  hasFacetColor  = false;
+  scan           = p;
+
+  for (i = 0; i < nTriangles; i++) {
+    uint16_t attr;
+
+    attr = stl_read_u16le(scan + 48);
+    if ((hasHeaderColor && (attr & 0x8000u) == 0 && (attr & 0x7fffu) != 0)
+        || (!hasHeaderColor && (attr & 0x8000u) != 0)) {
+      hasFacetColor = true;
+      break;
+    }
+
+    scan += 50;
+  }
+
+  hasColors = hasHeaderColor || hasFacetColor;
 
   posBuff         = ak_heap_calloc(sst->heap, sst->doc, sizeof(*posBuff));
   posBuff->length = sizeof(vec3) * count;
@@ -234,7 +366,21 @@ stl_binary(STLState * __restrict sst, char * __restrict p) {
   pos = posBuff->data;
   nor = norBuff->data;
 
+  colBuff = NULL;
+  col     = NULL;
+  if (hasColors) {
+    colBuff         = ak_heap_calloc(sst->heap, sst->doc, sizeof(*colBuff));
+    colBuff->length = sizeof(vec4) * count;
+    colBuff->data   = ak_heap_alloc(sst->heap, colBuff, colBuff->length);
+    flist_sp_insert(&sst->doc->lib.buffers, colBuff);
+
+    sst->buff_col = colBuff;
+    col           = colBuff->data;
+  }
+
   for (i = 0; i < nTriangles; i++) {
+    uint16_t attr;
+
     /* normal */
     le_32(nor[0], p);
     le_32(nor[1], p);
@@ -256,6 +402,31 @@ stl_binary(STLState * __restrict sst, char * __restrict p) {
     le_32(pos[7], p);
     le_32(pos[8], p);
     pos += 9;
+
+    attr = stl_read_u16le(p);
+    if (col) {
+      vec4 color;
+
+      if (hasHeaderColor) {
+        if ((attr & 0x8000u) == 0 && (attr & 0x7fffu) != 0)
+          stl_decode_magics_color(attr, color);
+        else
+          memcpy(color, defaultColor, sizeof(color));
+      } else if ((attr & 0x8000u) != 0) {
+        stl_decode_viscam_color(attr, color);
+      } else {
+        color[0] = 1.0f;
+        color[1] = 1.0f;
+        color[2] = 1.0f;
+        color[3] = 1.0f;
+      }
+
+      memcpy(col, color, sizeof(color));
+      memcpy(col + 4, color, sizeof(color));
+      memcpy(col + 8, color, sizeof(color));
+      col += 12;
+    }
+
     p += 2;
   }
 }
@@ -266,9 +437,14 @@ stl_ascii(STLState * __restrict sst, char * __restrict p) {
   vec3     n;
   uint32_t vc, count;
   char     c;
+  bool     inFacet;
 
-  /* c     = '\0'; */
-  count = 0;
+  n[0]    = 0.0f;
+  n[1]    = 0.0f;
+  n[2]    = 0.0f;
+  vc      = 0;
+  count   = 0;
+  inFacet = false;
 
   NEXT_LINE
 
@@ -277,56 +453,52 @@ stl_ascii(STLState * __restrict sst, char * __restrict p) {
     /* skip spaces */
     SKIP_SPACES
 
-    if (EQ5('f', 'a', 'c', 'e', 't')) {
+    if (STL_EQ5('f', 'a', 'c', 'e', 't')) {
       p += 6;
-      
+
       SKIP_SPACES
-      
-      if (EQ6('n', 'o', 'r', 'm', 'a', 'l')) {
+
+      n[0] = 0.0f;
+      n[1] = 0.0f;
+      n[2] = 0.0f;
+      if (STL_EQ6('n', 'o', 'r', 'm', 'a', 'l')) {
         p += 7;
         STL_PARSE_FLOAT3(p, n);
-        
-        NEXT_LINE
-        SKIP_SPACES
-        
-        /* parse each vertex */
-        if (EQ5('o', 'u', 't', 'e', 'r')) {
-          NEXT_LINE
-          
-          vc = 0;
-          
-          /* parse vertices */
-          while (c != '\0') {
-            SKIP_SPACES
-            if (EQ6('v', 'e', 'r', 't', 'e', 'x')) {
-              float *nor, *pos;
+      }
 
-              p += 7;
-              pos = stl_data_append_slot(sst->dc_pos);
-              STL_PARSE_FLOAT3(p, pos);
+      vc      = 0;
+      inFacet = true;
+    } else if (inFacet && STL_EQ6('v', 'e', 'r', 't', 'e', 'x')) {
+      float *nor, *pos;
 
-              nor    = stl_data_append_slot(sst->dc_nor);
-              nor[0] = n[0];
-              nor[1] = n[1];
-              nor[2] = n[2];
+      p += 7;
+      pos = stl_data_append_slot(sst->dc_pos);
+      STL_PARSE_FLOAT3(p, pos);
 
-              vc++;
-            } else if (EQT7('e', 'n', 'd', 'l', 'o', 'o', 'p')) {
-              break;
-            }
+      nor    = stl_data_append_slot(sst->dc_nor);
+      nor[0] = n[0];
+      nor[1] = n[1];
+      nor[2] = n[2];
 
-            NEXT_LINE
-          } /* vertex */
-
-          count += vc;
-          sst->maxVC = GLM_MAX(sst->maxVC, vc);
-          *(int32_t *)stl_data_append_slot(sst->dc_vcount) = (int32_t)vc;
-        } /* outer loop */
-      } /* normal */
-    } /* facet */
+      vc++;
+    } else if (inFacet && STL_EQT8('e', 'n', 'd', 'f', 'a', 'c', 'e', 't')) {
+      if (vc > 0) {
+        count += vc;
+        sst->maxVC = GLM_MAX(sst->maxVC, vc);
+        *(int32_t *)stl_data_append_slot(sst->dc_vcount) = (int32_t)vc;
+      }
+      vc      = 0;
+      inFacet = false;
+    }
 
     NEXT_LINE
   } while (p && p[0] != '\0'/* && (c = *++p) != '\0'*/);
+
+  if (inFacet && vc > 0) {
+    count += vc;
+    sst->maxVC = GLM_MAX(sst->maxVC, vc);
+    *(int32_t *)stl_data_append_slot(sst->dc_vcount) = (int32_t)vc;
+  }
   
   sst->count = count;
 }
@@ -406,6 +578,16 @@ sst_finish(STLState * __restrict sst) {
                    sst->count,
                    sst->buff_nor);
       io_input(heap, prim, acc, AK_INPUT_NORMAL, _s_NORMAL, 0);
+    }
+
+    if (sst->buff_col) {
+      acc = io_acc(heap,
+                   sst->doc,
+                   AK_COMPONENT_SIZE_VEC4,
+                   AKT_FLOAT,
+                   sst->count,
+                   sst->buff_col);
+      io_input(heap, prim, acc, AK_INPUT_COLOR, _s_COLOR, 0);
     }
   } else {
     prim->pos = io_addInput(heap, sst->dc_pos, prim, AK_INPUT_POSITION,

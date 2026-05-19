@@ -69,6 +69,7 @@ typedef struct WOPrim {
   uint32_t       defaultTexIndex;
   uint32_t       defaultNorIndex;
   uint32_t       maxVC;
+  AkMeshPrimitiveType kind;
   bool           hasTexture;
   bool           hasNormal;
   bool           missingTexture;
@@ -90,9 +91,11 @@ typedef struct WOState {
   AkLibrary     *lib_geom;
   AkNode        *node;
   WOMtlLib      *mtlib;
-  AkDataContext *dc_pos, *dc_tex, *dc_nor;
-  AkAccessor    *ac_pos, *ac_tex, *ac_nor;
+  AkDataContext *dc_pos, *dc_tex, *dc_nor, *dc_col;
+  AkAccessor    *ac_pos, *ac_tex, *ac_nor, *ac_col;
   WOObject      *obj;
+  AkComponentSize posCompSize;
+  AkComponentSize texCompSize;
 } WOState;
 
 #ifdef SKIP_SPACES

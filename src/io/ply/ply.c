@@ -92,6 +92,28 @@ ply_prop_enable(PLYProperty * __restrict prop, uint32_t slot) {
   return true;
 }
 
+static
+void
+ply_accessor_source_type(AkAccessor  * __restrict acc,
+                         PLYProperty * __restrict p0,
+                         PLYProperty * __restrict p1,
+                         PLYProperty * __restrict p2,
+                         PLYProperty * __restrict p3) {
+  AkTypeId type;
+
+  if (!acc || !p0 || !p0->typeDesc)
+    return;
+
+  type = p0->typeDesc->typeId;
+  if ((p1 && (!p1->typeDesc || p1->typeDesc->typeId != type))
+      || (p2 && (!p2->typeDesc || p2->typeDesc->typeId != type))
+      || (p3 && (!p3->typeDesc || p3->typeDesc->typeId != type)))
+    return;
+
+  acc->originalComponentType = type;
+  acc->originallyNormalized  = false;
+}
+
 AK_HIDE
 AkResult
 ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
@@ -294,6 +316,7 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
           case 'r': prop->semantic = PLY_PROP_R; break;
           case 'g': prop->semantic = PLY_PROP_G; break;
           case 'b': prop->semantic = PLY_PROP_B; break;
+          case 'a': prop->semantic = PLY_PROP_A; break;
           default:
             prop->semantic   = PLY_PROP_UNSUPPORTED;
             prop->ignore = true;
@@ -335,6 +358,13 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
                  && b[3] == 'e'
                  && b[4] == 'n') {
         prop->semantic = PLY_PROP_G;
+      } else if (e - b == 5
+                 && b[0] == 'a'
+                 && b[1] == 'l'
+                 && b[2] == 'p'
+                 && b[3] == 'h'
+                 && b[4] == 'a') {
+        prop->semantic = PLY_PROP_A;
       }
       
       if (!elem->property) {
@@ -365,7 +395,7 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
       PLYProperty *px, *py, *pz;
       PLYProperty *pnx, *pny, *pnz;
       PLYProperty *ps, *pt;
-      PLYProperty *pr, *pg, *pb;
+      PLYProperty *pr, *pg, *pb, *pa;
       size_t byteSffset;
       uint32_t slot;
       
@@ -388,6 +418,7 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
 
       pst->ac_pos = io_acc(heap, doc, AK_COMPONENT_SIZE_VEC3,
                            AKT_FLOAT, elem->count, elem->buff);
+      ply_accessor_source_type(pst->ac_pos, px, py, pz, NULL);
 
       pnx = ply_prop_find(elem, PLY_PROP_NX);
       pny = ply_prop_find(elem, PLY_PROP_NY);
@@ -398,6 +429,7 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
         ply_prop_enable(pnz, slot++);
         pst->ac_nor = io_acc(heap, doc, AK_COMPONENT_SIZE_VEC3,
                              AKT_FLOAT, elem->count, elem->buff);
+        ply_accessor_source_type(pst->ac_nor, pnx, pny, pnz, NULL);
       }
 
       ps = ply_prop_find(elem, PLY_PROP_S);
@@ -407,17 +439,27 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
         ply_prop_enable(pt, slot++);
         pst->ac_tex = io_acc(heap, doc, AK_COMPONENT_SIZE_VEC2,
                              AKT_FLOAT, elem->count, elem->buff);
+        ply_accessor_source_type(pst->ac_tex, ps, pt, NULL, NULL);
       }
 
       pr = ply_prop_find(elem, PLY_PROP_R);
       pg = ply_prop_find(elem, PLY_PROP_G);
       pb = ply_prop_find(elem, PLY_PROP_B);
+      pa = ply_prop_find(elem, PLY_PROP_A);
       if (pr && pg && pb) {
         ply_prop_enable(pr, slot++);
         ply_prop_enable(pg, slot++);
         ply_prop_enable(pb, slot++);
-        pst->ac_rgb = io_acc(heap, doc, AK_COMPONENT_SIZE_VEC3,
+        if (pa) {
+          ply_prop_enable(pa, slot++);
+          pst->ac_rgb = io_acc(heap, doc, AK_COMPONENT_SIZE_VEC4,
+                               AKT_FLOAT, elem->count, elem->buff);
+          ply_accessor_source_type(pst->ac_rgb, pr, pg, pb, pa);
+        } else {
+          pst->ac_rgb = io_acc(heap, doc, AK_COMPONENT_SIZE_VEC3,
                              AKT_FLOAT, elem->count, elem->buff);
+          ply_accessor_source_type(pst->ac_rgb, pr, pg, pb, NULL);
+        }
       }
 
       elem->knownCount = slot;
@@ -459,7 +501,7 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
         pst->ac_rgb->byteStride = pst->byteStride;
         pst->ac_rgb->byteLength = pst->vertBuffsize;
         pst->ac_rgb->byteOffset = byteSffset;
-        /* byteSffset += sizeof(float) * 3; */
+        /* byteSffset += sizeof(float) * pst->ac_rgb->componentCount; */
       }
     }
 

@@ -48,6 +48,10 @@ wobj_data_append_slot(AkDataContext * __restrict dctx);
 #define WOBJ_KW_MTLL AK_STR_PACK4_CHARS('m', 't', 'l', 'l')
 #define WOBJ_KW_USEM AK_STR_PACK4_CHARS('u', 's', 'e', 'm')
 
+#define WOBJ_TOKEN_SEP(CH)                                                    \
+  ((CH) == ' ' || (CH) == '\t' || (CH) == '\f' || (CH) == '\v'                \
+   || (CH) == '\n' || (CH) == '\r')
+
 AK_INLINE
 char*
 wobj_parse_face_index(char  * __restrict p,
@@ -73,19 +77,22 @@ wobj_prepareMissingDefaults(WOState * __restrict wst) {
   WOObject *obj;
   WOPrim   *prim;
   uint32_t  texDefault, norDefault;
+  size_t    texCount, norCount;
   bool      needTexDefault, needNorDefault;
 
   needTexDefault = false;
   needNorDefault = false;
+  texCount        = wst->dc_tex->itemcount;
+  norCount        = wst->dc_nor->itemcount;
 
   for (obj = wst->obj; obj; obj = obj->next) {
     for (prim = obj->prim; prim; prim = prim->next) {
       needTexDefault |= prim->hasTexture
                         && (prim->missingTexture
-                            || wst->dc_tex->itemcount == 0);
+                            || texCount == 0);
       needNorDefault |= prim->hasNormal
                         && (prim->missingNormal
-                            || wst->dc_nor->itemcount == 0);
+                            || norCount == 0);
     }
   }
 
@@ -93,10 +100,14 @@ wobj_prepareMissingDefaults(WOState * __restrict wst) {
   norDefault = 0;
 
   if (needTexDefault) {
-    vec2 zero = {0.0f, 0.0f};
-
     texDefault = (uint32_t)wst->dc_tex->itemcount;
-    memcpy(wobj_data_append_slot(wst->dc_tex), zero, sizeof(zero));
+    if (wst->texCompSize == AK_COMPONENT_SIZE_VEC3) {
+      vec3 zero = {0.0f, 0.0f, 0.0f};
+      memcpy(wobj_data_append_slot(wst->dc_tex), zero, sizeof(zero));
+    } else {
+      vec2 zero = {0.0f, 0.0f};
+      memcpy(wobj_data_append_slot(wst->dc_tex), zero, sizeof(zero));
+    }
   }
 
   if (needNorDefault) {
@@ -109,13 +120,13 @@ wobj_prepareMissingDefaults(WOState * __restrict wst) {
   for (obj = wst->obj; obj; obj = obj->next) {
     for (prim = obj->prim; prim; prim = prim->next) {
       if (prim->hasTexture
-          && (prim->missingTexture || wst->dc_tex->itemcount == 1)) {
+          && (prim->missingTexture || texCount == 0)) {
         prim->defaultTexIndex   = texDefault;
         prim->useDefaultTexture = true;
       }
 
       if (prim->hasNormal
-          && (prim->missingNormal || wst->dc_nor->itemcount == 1)) {
+          && (prim->missingNormal || norCount == 0)) {
         prim->defaultNorIndex  = norDefault;
         prim->useDefaultNormal = true;
       }
@@ -156,6 +167,234 @@ wobj_data_append_slot(AkDataContext * __restrict dctx) {
   return chunk->data + chunk->usedsize - size;
 }
 
+static
+uint32_t
+wobj_parse_float_line(char     * __restrict p,
+                      float    * __restrict values,
+                      uint32_t               cap) {
+  float    ignored;
+  uint32_t count;
+
+  count = 0;
+  while (p && p[0] != '\0' && p[0] != '\n' && p[0] != '\r') {
+    while (p[0] != '\0'
+           && (p[0] == ' ' || p[0] == '\t' || p[0] == '\f' || p[0] == '\v')) {
+      p++;
+    }
+
+    if (p[0] == '\0' || p[0] == '\n' || p[0] == '\r' || p[0] == '#')
+      break;
+
+    if (count < cap) {
+      p = ak_strtof_one_fast(p, &values[count]);
+    } else {
+      p = ak_strtof_one_fast(p, &ignored);
+    }
+    count++;
+
+    while (p[0] != '\0' && !WOBJ_TOKEN_SEP(p[0]) && p[0] != '#')
+      p++;
+  }
+
+  return count;
+}
+
+static
+void
+wobj_promote_vec3_to_vec4(WOState         * __restrict wst,
+                          AkDataContext  ** __restrict dctxp,
+                          float                         w) {
+  AkDataContext *old, *newctx;
+  AkDataChunk   *chunk;
+  size_t         i, n;
+
+  old    = *dctxp;
+  newctx = ak_data_new(wst->tmp, WOBJ_DATA_NODE_ITEMS, sizeof(vec4), NULL);
+
+  for (chunk = old->data; chunk; chunk = chunk->next) {
+    vec3 *src;
+
+    src = (vec3 *)(void *)chunk->data;
+    n   = chunk->usedsize / sizeof(vec3);
+    for (i = 0; i < n; i++) {
+      vec4 v;
+
+      v[0] = src[i][0];
+      v[1] = src[i][1];
+      v[2] = src[i][2];
+      v[3] = w;
+      memcpy(wobj_data_append_slot(newctx), v, sizeof(v));
+    }
+  }
+
+  *dctxp = newctx;
+}
+
+static
+void
+wobj_promote_vec2_to_vec3(WOState         * __restrict wst,
+                          AkDataContext  ** __restrict dctxp,
+                          float                         z) {
+  AkDataContext *old, *newctx;
+  AkDataChunk   *chunk;
+  size_t         i, n;
+
+  old    = *dctxp;
+  newctx = ak_data_new(wst->tmp, WOBJ_DATA_NODE_ITEMS, sizeof(vec3), NULL);
+
+  for (chunk = old->data; chunk; chunk = chunk->next) {
+    vec2 *src;
+
+    src = (vec2 *)(void *)chunk->data;
+    n   = chunk->usedsize / sizeof(vec2);
+    for (i = 0; i < n; i++) {
+      vec3 v;
+
+      v[0] = src[i][0];
+      v[1] = src[i][1];
+      v[2] = z;
+      memcpy(wobj_data_append_slot(newctx), v, sizeof(v));
+    }
+  }
+
+  *dctxp = newctx;
+}
+
+static
+void
+wobj_ensure_color_context(WOState * __restrict wst, size_t existingCount) {
+  size_t i, count;
+
+  if (wst->dc_col)
+    return;
+
+  wst->dc_col = ak_data_new(wst->tmp, WOBJ_DATA_NODE_ITEMS, sizeof(vec4), NULL);
+  count       = existingCount;
+
+  for (i = 0; i < count; i++) {
+    vec4 white = {1.0f, 1.0f, 1.0f, 1.0f};
+    memcpy(wobj_data_append_slot(wst->dc_col), white, sizeof(white));
+  }
+}
+
+static
+void
+wobj_append_position(WOState  * __restrict wst,
+                     float    * __restrict values,
+                     bool                  hasW) {
+  if (hasW && wst->posCompSize != AK_COMPONENT_SIZE_VEC4) {
+    wobj_promote_vec3_to_vec4(wst, &wst->dc_pos, 1.0f);
+    wst->posCompSize = AK_COMPONENT_SIZE_VEC4;
+  }
+
+  if (wst->posCompSize == AK_COMPONENT_SIZE_VEC4) {
+    vec4 pos;
+
+    pos[0] = values[0];
+    pos[1] = values[1];
+    pos[2] = values[2];
+    pos[3] = hasW ? values[3] : 1.0f;
+    memcpy(wobj_data_append_slot(wst->dc_pos), pos, sizeof(pos));
+  } else {
+    vec3 pos;
+
+    pos[0] = values[0];
+    pos[1] = values[1];
+    pos[2] = values[2];
+    memcpy(wobj_data_append_slot(wst->dc_pos), pos, sizeof(pos));
+  }
+}
+
+static
+void
+wobj_append_color(WOState  * __restrict wst,
+                  float    * __restrict values,
+                  uint32_t              start,
+                  bool                  hasColor,
+                  bool                  hasAlpha) {
+  vec4 color;
+
+  if (!hasColor) {
+    if (!wst->dc_col)
+      return;
+
+    color[0] = 1.0f;
+    color[1] = 1.0f;
+    color[2] = 1.0f;
+    color[3] = 1.0f;
+  } else {
+    wobj_ensure_color_context(wst,
+                              wst->dc_pos->itemcount > 0
+                              ? wst->dc_pos->itemcount - 1
+                              : 0);
+    color[0] = values[start];
+    color[1] = values[start + 1];
+    color[2] = values[start + 2];
+    color[3] = hasAlpha ? values[start + 3] : 1.0f;
+  }
+
+  memcpy(wobj_data_append_slot(wst->dc_col), color, sizeof(color));
+}
+
+static
+void
+wobj_append_texcoord(WOState  * __restrict wst,
+                     float    * __restrict values,
+                     uint32_t              count) {
+  bool hasW;
+
+  hasW = count >= 3;
+  if (hasW && wst->texCompSize != AK_COMPONENT_SIZE_VEC3) {
+    wobj_promote_vec2_to_vec3(wst, &wst->dc_tex, 0.0f);
+    wst->texCompSize = AK_COMPONENT_SIZE_VEC3;
+  }
+
+  if (wst->texCompSize == AK_COMPONENT_SIZE_VEC3) {
+    vec3 tex;
+
+    tex[0] = count > 0 ? values[0] : 0.0f;
+    tex[1] = count > 1 ? values[1] : 0.0f;
+    tex[2] = hasW ? values[2] : 0.0f;
+    memcpy(wobj_data_append_slot(wst->dc_tex), tex, sizeof(tex));
+  } else {
+    vec2 tex;
+
+    tex[0] = count > 0 ? values[0] : 0.0f;
+    tex[1] = count > 1 ? values[1] : 0.0f;
+    memcpy(wobj_data_append_slot(wst->dc_tex), tex, sizeof(tex));
+  }
+}
+
+static
+WOPrim*
+wobj_prepare_prim_kind(WOState             * __restrict wst,
+                       WOPrim              * __restrict prim,
+                       AkMeshPrimitiveType              kind) {
+  if (prim->kind == 0) {
+    prim->kind = kind;
+    return prim;
+  }
+
+  if (prim->kind == kind)
+    return prim;
+
+  prim       = wobj_switchPrim(wst, prim->mtlname);
+  prim->kind = kind;
+
+  return prim;
+}
+
+static
+char*
+wobj_parse_position_index_token(char  * __restrict p,
+                                AkInt * __restrict idx) {
+  p = wobj_parse_face_index(p, idx);
+  while (p && p[0] != '\0' && !WOBJ_TOKEN_SEP(p[0]))
+    p++;
+
+  return p;
+}
+
 #define WOBJ_PARSE_FLOAT2(PTR, DEST)                                          \
   do {                                                                        \
     (PTR) = ak_strtof_one_fast((PTR), &(DEST)[0]);                            \
@@ -168,10 +407,6 @@ wobj_data_append_slot(AkDataContext * __restrict dctx) {
     (PTR) = ak_strtof_one_fast((PTR), &(DEST)[1]);                            \
     (PTR) = ak_strtof_one_fast((PTR), &(DEST)[2]);                            \
   } while (0)
-
-#define WOBJ_TOKEN_SEP(CH)                                                    \
-  ((CH) == ' ' || (CH) == '\t' || (CH) == '\f' || (CH) == '\v'                \
-   || (CH) == '\n' || (CH) == '\r')
 
 AK_HIDE
 AkResult
@@ -237,6 +472,8 @@ wobj_obj(AkDoc     ** __restrict dest,
   wstVal.tmp       = ak_heap_alloc(heap, doc, sizeof(void*));
   wstVal.node      = scene->node;
   wstVal.lib_geom  = doc->lib.geometries;
+  wstVal.posCompSize = AK_COMPONENT_SIZE_VEC3;
+  wstVal.texCompSize = AK_COMPONENT_SIZE_VEC2;
 
   /* vertex data (shared across file) */
   wst->dc_pos      = ak_data_new(wst->tmp,
@@ -271,20 +508,32 @@ wobj_obj(AkDoc     ** __restrict dest,
           break;
         }
         case 'v': {
-          float *pos;
+          float    values[8];
+          uint32_t nValues;
+          bool     hasW, hasColor, hasAlpha;
+          uint32_t colorStart;
 
           if (*++p == '\0')
             goto err;
 
-          /* TODO: handle 4 components */
-          pos = wobj_data_append_slot(wst->dc_pos);
-          WOBJ_PARSE_FLOAT3(p, pos);
+          nValues = wobj_parse_float_line(p, values, 8);
+          if (nValues < 3)
+            goto err;
+
+          hasW       = nValues == 4 || nValues >= 8;
+          hasColor   = nValues == 6 || nValues == 7 || nValues >= 8;
+          hasAlpha   = nValues == 7 || nValues >= 8;
+          colorStart = nValues >= 8 ? 4u : 3u;
+
+          wobj_append_position(wst, values, hasW);
+          wobj_append_color(wst, values, colorStart, hasColor, hasAlpha);
           break;
         }
         case 'f': {
           if ((c = *(p += 2)) == '\0')
             goto err;
 
+          prim = wobj_prepare_prim_kind(wst, prim, AK_PRIMITIVE_TRIANGLES);
           vc = 0;
 
           while (p
@@ -355,6 +604,91 @@ wobj_obj(AkDoc     ** __restrict dest,
           *(int32_t *)wobj_data_append_slot(prim->dc_vcount) = (int32_t)vc;
           break;
         }
+        case 'l': {
+          AkInt prev;
+          bool  hasPrev;
+
+          if ((c = *(p += 2)) == '\0')
+            goto err;
+
+          prim    = wobj_prepare_prim_kind(wst, prim, AK_PRIMITIVE_LINES);
+          hasPrev = false;
+          vc      = 0;
+
+          while (p
+                 && p[0] != '\0'
+                 && p[0] != '\n'
+                 && p[0] != '\r') {
+            AkInt idx;
+
+            while (p[0] != '\0'
+                   && (p[0] == ' ' || p[0] == '\t'
+                       || p[0] == '\f' || p[0] == '\v'))
+              p++;
+            if (p[0] == '\0' || p[0] == '\n' || p[0] == '\r' || p[0] == '#')
+              break;
+
+            p = wobj_parse_position_index_token(p, &idx);
+            if (hasPrev) {
+              AkInt *a, *b;
+
+              a    = wobj_data_append_slot(prim->dc_face);
+              a[0] = prev;
+              a[1] = 0;
+              a[2] = 0;
+
+              b    = wobj_data_append_slot(prim->dc_face);
+              b[0] = idx;
+              b[1] = 0;
+              b[2] = 0;
+            }
+
+            prev    = idx;
+            hasPrev = true;
+            vc++;
+          }
+
+          if (vc > 1) {
+            prim->maxVC = 2;
+            *(int32_t *)wobj_data_append_slot(prim->dc_vcount) = (int32_t)vc;
+          }
+          break;
+        }
+        case 'p': {
+          if ((c = *(p += 2)) == '\0')
+            goto err;
+
+          prim = wobj_prepare_prim_kind(wst, prim, AK_PRIMITIVE_POINTS);
+          vc   = 0;
+
+          while (p
+                 && p[0] != '\0'
+                 && p[0] != '\n'
+                 && p[0] != '\r') {
+            AkInt idx;
+            AkInt *point;
+
+            while (p[0] != '\0'
+                   && (p[0] == ' ' || p[0] == '\t'
+                       || p[0] == '\f' || p[0] == '\v'))
+              p++;
+            if (p[0] == '\0' || p[0] == '\n' || p[0] == '\r' || p[0] == '#')
+              break;
+
+            p        = wobj_parse_position_index_token(p, &idx);
+            point    = wobj_data_append_slot(prim->dc_face);
+            point[0] = idx;
+            point[1] = 0;
+            point[2] = 0;
+            vc++;
+          }
+
+          if (vc > 0) {
+            prim->maxVC = 1;
+            *(int32_t *)wobj_data_append_slot(prim->dc_vcount) = (int32_t)vc;
+          }
+          break;
+        }
         case 'o':
         case 'g': {
           wobj_switchObject(wst);
@@ -374,13 +708,17 @@ wobj_obj(AkDoc     ** __restrict dest,
         nor = wobj_data_append_slot(wst->dc_nor);
         WOBJ_PARSE_FLOAT3(p, nor);
       } else if (p[0] == 'v' && p[1] == 't') {
-        float *tex;
+        float    values[3];
+        uint32_t nValues;
 
         if (*(p += 2) == '\0')
           goto err;
 
-        tex = wobj_data_append_slot(wst->dc_tex);
-        WOBJ_PARSE_FLOAT2(p, tex);
+        nValues = wobj_parse_float_line(p, values, 3);
+        if (nValues < 1)
+          goto err;
+
+        wobj_append_texcoord(wst, values, nValues);
       }
     } else if (ak_str_pack4_fast(p, 4) == WOBJ_KW_MTLL
                && p[4] == 'i'
@@ -419,11 +757,13 @@ wobj_obj(AkDoc     ** __restrict dest,
 
   wobj_prepareMissingDefaults(wst);
 
-  wst->ac_pos = wobj_acc(wst, wst->dc_pos, AK_COMPONENT_SIZE_VEC3, AKT_FLOAT);
+  wst->ac_pos = wobj_acc(wst, wst->dc_pos, wst->posCompSize, AKT_FLOAT);
   if (wst->dc_nor->itemcount > 0)
     wst->ac_nor = wobj_acc(wst, wst->dc_nor, AK_COMPONENT_SIZE_VEC3, AKT_FLOAT);
   if (wst->dc_tex->itemcount > 0)
-    wst->ac_tex = wobj_acc(wst, wst->dc_tex, AK_COMPONENT_SIZE_VEC2, AKT_FLOAT);
+    wst->ac_tex = wobj_acc(wst, wst->dc_tex, wst->texCompSize, AKT_FLOAT);
+  if (wst->dc_col && wst->dc_col->itemcount > 0)
+    wst->ac_col = wobj_acc(wst, wst->dc_col, AK_COMPONENT_SIZE_VEC4, AKT_FLOAT);
 
   wobj_finishObjects(wst);
 

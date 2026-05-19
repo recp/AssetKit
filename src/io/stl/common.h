@@ -37,7 +37,7 @@ typedef struct STLState {
   AkLibrary     *lib_geom;
   AkGeometry    *geom;
   AkDataContext *dc_ind, *dc_pos, *dc_nor, *dc_vcount;
-  AkBuffer      *buff_pos, *buff_nor;
+  AkBuffer      *buff_pos, *buff_nor, *buff_col;
   AkNode        *node;
   uint32_t       maxVC;
   uint32_t       count;
@@ -74,32 +74,36 @@ typedef struct STLState {
            && AK_ARRAY_NLINE_CHECK);                                          \
   } while(0);
 
-#define EQ4(c1,c2,c3,c4) \
-    (ak_str_pack4_fast(p, 4) == AK_STR_PACK4_CHARS(c1, c2, c3, c4) \
+#define STL_EQ4(c1,c2,c3,c4) \
+    (ak_str_pack4_ci_fast(p, 4) == AK_STR_PACK4_CHARS(c1, c2, c3, c4) \
   && (p[4] == ' ' || p[4] == '\t'))
 
-#define EQ5(c1,c2,c3,c4,c5) \
-    (ak_str_pack4_fast(p, 4) == AK_STR_PACK4_CHARS(c1, c2, c3, c4) \
-  && p[4] == c5 \
+#define STL_EQ5(c1,c2,c3,c4,c5) \
+    (ak_str_pack4_ci_fast(p, 4) == AK_STR_PACK4_CHARS(c1, c2, c3, c4) \
+  && ak_str_ascii_lower_fast(p[4]) == c5 \
   && (p[5] == ' ' || p[5] == '\t'))
 
-#define EQ6(c1,c2,c3,c4,c5,c6) \
-    (ak_str_pack4_fast(p, 4) == AK_STR_PACK4_CHARS(c1, c2, c3, c4) \
-  && p[4] == c5 \
-  && p[5] == c6 \
+#define STL_EQ6(c1,c2,c3,c4,c5,c6) \
+    (ak_str_pack4_ci_fast(p, 4) == AK_STR_PACK4_CHARS(c1, c2, c3, c4) \
+  && ak_str_ascii_lower_fast(p[4]) == c5 \
+  && ak_str_ascii_lower_fast(p[5]) == c6 \
   && (p[6] == ' ' || p[6] == '\t'))
 
-#define EQ7(c1,c2,c3,c4,c5,c6,c7) \
-    (ak_str_pack4_fast(p, 4) == AK_STR_PACK4_CHARS(c1, c2, c3, c4) \
-  && p[4] == c5 \
-  && p[5] == c6 \
-  && p[6] == c7 \
+#define STL_EQ7(c1,c2,c3,c4,c5,c6,c7) \
+    (ak_str_pack4_ci_fast(p, 4) == AK_STR_PACK4_CHARS(c1, c2, c3, c4) \
+  && ak_str_ascii_lower_fast(p[4]) == c5 \
+  && ak_str_ascii_lower_fast(p[5]) == c6 \
+  && ak_str_ascii_lower_fast(p[6]) == c7 \
   && (p[7] == ' ' || p[7] == '\t'))
 
-#define EQT7(c1,c2,c3,c4,c5,c6,c7) \
-    (ak_str_pack4_fast(p, 4) == AK_STR_PACK4_CHARS(c1, c2, c3, c4) \
-  && p[4] == c5 \
-  && p[5] == c6 \
-  && p[6] == c7)
+#define STL_EQT7(c1,c2,c3,c4,c5,c6,c7) \
+    (ak_str_pack4_ci_fast(p, 4) == AK_STR_PACK4_CHARS(c1, c2, c3, c4) \
+  && ak_str_ascii_lower_fast(p[4]) == c5 \
+  && ak_str_ascii_lower_fast(p[5]) == c6 \
+  && ak_str_ascii_lower_fast(p[6]) == c7)
+
+#define STL_EQT8(c1,c2,c3,c4,c5,c6,c7,c8) \
+    (ak_str_pack8_ci_fast(p, 8) == AK_STR_PACK8_CHARS(c1, c2, c3, c4, \
+                                                      c5, c6, c7, c8))
 
 #endif /* stl_commoh_h */

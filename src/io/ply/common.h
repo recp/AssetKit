@@ -40,7 +40,8 @@ typedef enum PLYPropertyType {
   PLY_PROP_NZ,
   PLY_PROP_R,
   PLY_PROP_G,
-  PLY_PROP_B
+  PLY_PROP_B,
+  PLY_PROP_A
 } PLYPropertyType;
 
 typedef struct PLYProperty {

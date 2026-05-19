@@ -268,6 +268,17 @@ ak_test_write_gltf(const char *path, const char *binPath) {
 
 static
 bool
+ak_test_write_u16le(FILE *file, uint16_t value) {
+  uint8_t bytes[2];
+
+  bytes[0] = (uint8_t)(value & 0xffu);
+  bytes[1] = (uint8_t)((value >> 8) & 0xffu);
+
+  return fwrite(bytes, 1, sizeof(bytes), file) == sizeof(bytes);
+}
+
+static
+bool
 ak_test_write_u32le(FILE *file, uint32_t value) {
   uint8_t bytes[4];
 
@@ -322,6 +333,42 @@ ak_test_write_stl_binary_solid(const char *path) {
 
 static
 bool
+ak_test_write_stl_binary_color_trailing(const char *path) {
+  FILE    *file;
+  uint8_t  header[80];
+  uint8_t  trailing[4] = {1, 2, 3, 4};
+  float    tri[12] = {
+    0.0f, 0.0f, 1.0f,
+    0.0f, 0.0f, 0.0f,
+    1.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f
+  };
+  bool     ok;
+  uint32_t i;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  memset(header, 0, sizeof(header));
+  memcpy(header, "COLOR=", 6);
+  header[6] = 128;
+  header[7] = 64;
+  header[8] = 32;
+  header[9] = 255;
+
+  ok = fwrite(header, 1, sizeof(header), file) == sizeof(header);
+  ok = ok && ak_test_write_u32le(file, 1);
+  for (i = 0; i < 12; i++)
+    ok = ok && ak_test_write_f32le(file, tri[i]);
+  ok = ok && ak_test_write_u16le(file, 0x001fu);
+  ok = ok && fwrite(trailing, 1, sizeof(trailing), file) == sizeof(trailing);
+
+  return fclose(file) == 0 && ok;
+}
+
+static
+bool
 ak_test_write_stl_binary_truncated(const char *path) {
   FILE    *file;
   uint8_t  header[80];
@@ -349,15 +396,56 @@ ak_test_write_stl_ascii_one(const char *path) {
   if (!file)
     return false;
 
-  fputs("solid one\n"
-        "  facet normal 0 0 1\n"
+  fputs("solid one\r\n"
+        "  FACET normal 0 0 1\n"
+        "    # exporter comment inside facet\n"
         "    outer loop\n"
         "      vertex 0 0 0\n"
         "      vertex 1 0 0\n"
         "      vertex 0 1 0\n"
         "    endloop\n"
-        "  endfacet\n"
+        "  ENDFACET\n"
         "endsolid one\n",
+        file);
+
+  return fclose(file) == 0;
+}
+
+static
+bool
+ak_test_write_obj_extra_attrs(const char *path) {
+  FILE *file;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  fputs("v 0 0 0 1\n"
+        "v 1 0 0 0.25 0.50 0.75\n"
+        "v 0 1 0 0.10 0.20 0.30 0.40\n"
+        "vt 0.1 0.2 0.3\n"
+        "f 1/1 2/1 3/1\n",
+        file);
+
+  return fclose(file) == 0;
+}
+
+static
+bool
+ak_test_write_obj_lines_points(const char *path) {
+  FILE *file;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  fputs("v 0 0 0\n"
+        "v 1 0 0\n"
+        "v 1 1 0\n"
+        "v 0 1 0\n"
+        "l 1 2 3\n"
+        "g pts\n"
+        "p 1 4\n",
         file);
 
   return fclose(file) == 0;
@@ -430,9 +518,10 @@ ak_test_write_ply_points(const char *path) {
         "property uchar red\n"
         "property uchar green\n"
         "property uchar blue\n"
+        "property uchar alpha\n"
         "end_header\n"
-        "0 0 0 255 0 0\n"
-        "1 0 0 0 255 0\n",
+        "0 0 0 255 0 0 128\n"
+        "1 0 0 0 255 0 255\n",
         file);
 
   return fclose(file) == 0;
@@ -455,6 +544,46 @@ ak_test_first_primitive(AkDoc *doc) {
   }
 
   return NULL;
+}
+
+static
+AkInput*
+ak_test_input(AkMeshPrimitive *prim, AkInputSemantic semantic) {
+  AkInput *input;
+
+  for (input = prim->input; input; input = input->next) {
+    if (input->semantic == semantic)
+      return input;
+  }
+
+  return NULL;
+}
+
+static
+uint32_t
+ak_test_primitive_type_count(AkDoc *doc, AkMeshPrimitiveType type) {
+  AkGeometry *geom;
+  uint32_t    count;
+
+  count = 0;
+  for (geom = ak_libFirstGeom(doc); geom; geom = (AkGeometry *)geom->base.next) {
+    AkMesh          *mesh;
+    AkMeshPrimitive *prim;
+
+    if (!geom->gdata)
+      continue;
+
+    mesh = ak_objGet(geom->gdata);
+    if (!mesh)
+      continue;
+
+    for (prim = mesh->primitive; prim; prim = prim->next) {
+      if (prim->type == type)
+        count++;
+    }
+  }
+
+  return count;
 }
 
 static
@@ -600,9 +729,12 @@ TEST_IMPL(format_edge_cases) {
   char             dirTemplate[PATH_MAX];
   char            *tmpdir;
   char             stlBinaryPath[PATH_MAX];
+  char             stlColorPath[PATH_MAX];
   char             stlAsciiPath[PATH_MAX];
   char             stlBadPath[PATH_MAX];
   char             objPath[PATH_MAX];
+  char             objAttrsPath[PATH_MAX];
+  char             objLinesPath[PATH_MAX];
   char             plyPath[PATH_MAX];
   char             plyPointsPath[PATH_MAX];
   const char      *tmpBase;
@@ -623,6 +755,10 @@ TEST_IMPL(format_edge_cases) {
            sizeof(stlBinaryPath),
            "%s/solid_binary.stl",
            tmpdir);
+  snprintf(stlColorPath,
+           sizeof(stlColorPath),
+           "%s/color_trailing.stl",
+           tmpdir);
   snprintf(stlAsciiPath,
            sizeof(stlAsciiPath),
            "%s/ascii.stl",
@@ -632,6 +768,8 @@ TEST_IMPL(format_edge_cases) {
            "%s/truncated.stl",
            tmpdir);
   snprintf(objPath, sizeof(objPath), "%s/mixed.obj", tmpdir);
+  snprintf(objAttrsPath, sizeof(objAttrsPath), "%s/attrs.obj", tmpdir);
+  snprintf(objLinesPath, sizeof(objLinesPath), "%s/lines_points.obj", tmpdir);
   snprintf(plyPath, sizeof(plyPath), "%s/shuffled.ply", tmpdir);
   snprintf(plyPointsPath,
            sizeof(plyPointsPath),
@@ -639,9 +777,12 @@ TEST_IMPL(format_edge_cases) {
            tmpdir);
 
   ASSERT(ak_test_write_stl_binary_solid(stlBinaryPath));
+  ASSERT(ak_test_write_stl_binary_color_trailing(stlColorPath));
   ASSERT(ak_test_write_stl_ascii_one(stlAsciiPath));
   ASSERT(ak_test_write_stl_binary_truncated(stlBadPath));
   ASSERT(ak_test_write_obj_mixed_face(objPath));
+  ASSERT(ak_test_write_obj_extra_attrs(objAttrsPath));
+  ASSERT(ak_test_write_obj_lines_points(objLinesPath));
   ASSERT(ak_test_write_ply_shuffled(plyPath));
   ASSERT(ak_test_write_ply_points(plyPointsPath));
 
@@ -653,6 +794,19 @@ TEST_IMPL(format_edge_cases) {
   ASSERT(prim->nPolygons == 1);
   ASSERT(prim->pos && prim->pos->accessor);
   ASSERT(prim->pos->accessor->count == 3);
+  ak_free(doc);
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, stlColorPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+  prim = ak_test_first_primitive(doc);
+  ASSERT(prim != NULL);
+  ASSERT(prim->type == AK_PRIMITIVE_TRIANGLES);
+  ASSERT(prim->nPolygons == 1);
+  ASSERT(ak_test_input(prim, AK_INPUT_COLOR) != NULL);
+  acc = ak_test_input(prim, AK_INPUT_COLOR)->accessor;
+  ASSERT(acc->componentSize == AK_COMPONENT_SIZE_VEC4);
+  ASSERT(acc->count == 3);
+  ASSERT(ak_test_accessor_f32(acc, 0, 0) == 1.0f);
   ak_free(doc);
 
   doc = NULL;
@@ -684,6 +838,32 @@ TEST_IMPL(format_edge_cases) {
   ak_free(doc);
 
   doc = NULL;
+  ASSERT(ak_load(&doc, objAttrsPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+  prim = ak_test_first_primitive(doc);
+  ASSERT(prim != NULL);
+  ASSERT(prim->pos && prim->pos->accessor);
+  ASSERT(prim->pos->accessor->componentSize == AK_COMPONENT_SIZE_VEC4);
+  ASSERT(prim->pos->accessor->count == 3);
+  ASSERT(ak_test_accessor_f32(prim->pos->accessor, 0, 3) == 1.0f);
+  ASSERT(ak_test_input(prim, AK_INPUT_TEXCOORD) != NULL);
+  acc = ak_test_input(prim, AK_INPUT_TEXCOORD)->accessor;
+  ASSERT(acc->componentSize == AK_COMPONENT_SIZE_VEC3);
+  ASSERT(ak_test_accessor_f32(acc, 0, 2) == 0.3f);
+  ASSERT(ak_test_input(prim, AK_INPUT_COLOR) != NULL);
+  acc = ak_test_input(prim, AK_INPUT_COLOR)->accessor;
+  ASSERT(acc->componentSize == AK_COMPONENT_SIZE_VEC4);
+  ASSERT(ak_test_accessor_f32(acc, 0, 0) == 1.0f);
+  ASSERT(ak_test_accessor_f32(acc, 1, 0) == 0.25f);
+  ASSERT(ak_test_accessor_f32(acc, 2, 3) == 0.40f);
+  ak_free(doc);
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, objLinesPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+  ASSERT(ak_test_primitive_type_count(doc, AK_PRIMITIVE_LINES) == 1);
+  ASSERT(ak_test_primitive_type_count(doc, AK_PRIMITIVE_POINTS) == 1);
+  ak_free(doc);
+
+  doc = NULL;
   ASSERT(ak_load(&doc, plyPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
   prim = ak_test_first_primitive(doc);
   ASSERT(prim != NULL);
@@ -708,12 +888,19 @@ TEST_IMPL(format_edge_cases) {
   ASSERT(prim->pos && prim->pos->accessor);
   ASSERT(prim->pos->accessor->count == 2);
   ASSERT(prim->inputCount == 2);
+  acc = ak_test_input(prim, AK_INPUT_COLOR)->accessor;
+  ASSERT(acc->componentSize == AK_COMPONENT_SIZE_VEC4);
+  ASSERT(acc->originalComponentType == AKT_UBYTE);
+  ASSERT(ak_test_accessor_f32(acc, 0, 3) == 128.0f);
   ak_free(doc);
 
   unlink(stlBinaryPath);
+  unlink(stlColorPath);
   unlink(stlAsciiPath);
   unlink(stlBadPath);
   unlink(objPath);
+  unlink(objAttrsPath);
+  unlink(objLinesPath);
   unlink(plyPath);
   unlink(plyPointsPath);
   rmdir(tmpdir);

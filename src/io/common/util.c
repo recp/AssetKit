@@ -87,11 +87,12 @@ io_addInput(AkHeap          * __restrict heap,
   acc->byteLength        = buff->length;
   acc->byteStride        = typeDesc->size * nComponents;
   acc->componentSize     = compSize;
-  acc->componentType     = type;
-  acc->bytesPerComponent = typeDesc->size;
-  acc->componentCount    = nComponents;
-  acc->fillByteSize      = typeDesc->size * nComponents;
-  acc->count             = (uint32_t)dctx->itemcount;
+  acc->componentType          = type;
+  acc->originalComponentType  = type;
+  acc->bytesPerComponent      = typeDesc->size;
+  acc->componentCount         = nComponents;
+  acc->fillByteSize           = typeDesc->size * nComponents;
+  acc->count                  = (uint32_t)dctx->itemcount;
 
   inp                    = ak_heap_calloc(heap, prim, sizeof(*inp));
   inp->accessor          = acc;
@@ -128,11 +129,12 @@ io_acc(AkHeap          * __restrict heap,
   acc->byteLength        = buff->length;
   acc->byteStride        = typeDesc->size * nComponents;
   acc->componentSize     = compSize;
-  acc->componentType     = type;
-  acc->bytesPerComponent = typeDesc->size;
-  acc->componentCount    = nComponents;
-  acc->fillByteSize      = typeDesc->size * nComponents;
-  acc->count             = count;
+  acc->componentType          = type;
+  acc->originalComponentType  = type;
+  acc->bytesPerComponent      = typeDesc->size;
+  acc->componentCount         = nComponents;
+  acc->fillByteSize           = typeDesc->size * nComponents;
+  acc->count                  = count;
 
   return acc;
 }
