@@ -45,7 +45,13 @@ io_postscript(AkDoc * __restrict doc) {
           if (ak_opt_get(AK_OPT_TRIANGULATE))
             ak_meshTriangulate(mesh);
 
-          if (ak_opt_get(AK_OPT_GEN_NORMALS_IF_NEEDED))
+          /* STL facet normals are importer-local semantics. The
+             position-dedup STL path intentionally leaves normals out so
+             consumers can keep compact indexed topology and derive flat face
+             normals as needed, matching Blender's STL importer behavior. */
+          if (doc->inf
+              && doc->inf->ftype != AK_FILE_TYPE_STL
+              && ak_opt_get(AK_OPT_GEN_NORMALS_IF_NEEDED))
             if (ak_meshNeedsNormals(mesh))
               ak_meshGenNormals(mesh);
 

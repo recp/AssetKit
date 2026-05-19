@@ -208,6 +208,14 @@ ak_index_profile_now_ms(void) {
   return (double)ts.tv_sec * 1000.0 + (double)ts.tv_nsec / 1000000.0;
 }
 
+static
+void
+ak_meshFreeDuplicatorNode(RBTree *tree, RBNode *node) {
+  if (node == tree->nullNode)
+    return;
+  ak_free(node->val);
+}
+
 AK_HIDE
 AkDuplicator*
 ak_meshDuplicatorForIndicesRetained(AkMesh          * __restrict mesh,
@@ -244,9 +252,16 @@ ak_meshDuplicatorForIndicesRetained(AkMesh          * __restrict mesh,
   tSideAlloc = tHashAlloc = tHashLoop = tSumAlloc = tSumBuild = 0.0;
 
   if (retain) {
-    if ((dupl = rb_find(doc->reserved, prim))) {
-      rb_remove(doc->reserved, prim);
-      ak_free(dupl); /* or cache maybe if mesh is not edited ? */
+    if (!doc->reserved) {
+      doc->reserved = rb_newtree_ptr();
+      ((RBTree *)doc->reserved)->onFreeNode = ak_meshFreeDuplicatorNode;
+    }
+
+    if (doc->reserved) {
+      if ((dupl = rb_find(doc->reserved, prim))) {
+        rb_remove(doc->reserved, prim);
+        ak_free(dupl); /* or cache maybe if mesh is not edited ? */
+      }
     }
   }
 
@@ -521,7 +536,7 @@ ak_meshDuplicatorForIndicesRetained(AkMesh          * __restrict mesh,
                                     count,
                                     hcap);
 
-  if (retain)
+  if (retain && doc->reserved)
     rb_insert(doc->reserved, prim, dupl);
 
   return dupl;
