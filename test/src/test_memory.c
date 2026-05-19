@@ -577,6 +577,18 @@ ak_test_first_primitive(AkDoc *doc) {
 }
 
 static
+AkNode*
+ak_test_first_scene_node(AkDoc *doc) {
+  AkVisualScene *scene;
+
+  if (!doc || !doc->lib.visualScenes || !doc->lib.visualScenes->chld)
+    return NULL;
+
+  scene = (AkVisualScene *)doc->lib.visualScenes->chld;
+  return scene->node;
+}
+
+static
 AkInput*
 ak_test_input(AkMeshPrimitive *prim, AkInputSemantic semantic) {
   AkInput *input;
@@ -824,6 +836,7 @@ TEST_IMPL(format_edge_cases) {
 
   doc = NULL;
   ASSERT(ak_load(&doc, stlZeroPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+  ASSERT(ak_test_first_scene_node(doc) && ak_test_first_scene_node(doc)->visible);
   prim = ak_test_first_primitive(doc);
   ASSERT(prim != NULL);
   ASSERT(prim->type == AK_PRIMITIVE_TRIANGLES);
@@ -873,6 +886,7 @@ TEST_IMPL(format_edge_cases) {
 
   doc = NULL;
   ASSERT(ak_load(&doc, objPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+  ASSERT(ak_test_first_scene_node(doc) && ak_test_first_scene_node(doc)->visible);
   prim = ak_test_first_primitive(doc);
   ASSERT(prim != NULL);
   ASSERT(prim->type == AK_PRIMITIVE_TRIANGLES);
@@ -911,6 +925,7 @@ TEST_IMPL(format_edge_cases) {
 
   doc = NULL;
   ASSERT(ak_load(&doc, plyPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+  ASSERT(ak_test_first_scene_node(doc) && ak_test_first_scene_node(doc)->visible);
   prim = ak_test_first_primitive(doc);
   ASSERT(prim != NULL);
   ASSERT(prim->type == AK_PRIMITIVE_TRIANGLES);

@@ -459,6 +459,7 @@ wobj_obj(AkDoc     ** __restrict dest,
   /* default scene */
   scene                  = ak_heap_calloc(heap, doc, sizeof(*scene));
   scene->node            = ak_heap_calloc(heap, doc, sizeof(*scene->node));
+  scene->node->visible   = true;
   lib_vscene->chld       = &scene->base;
   lib_vscene->count      = 1;
   doc->lib.visualScenes  = lib_vscene;
