@@ -41,6 +41,25 @@ ak_wobjFreeDupl(RBTree *tree, RBNode *node);
 #define WOBJ_KW_USEM AK_STR_PACK4_CHARS('u', 's', 'e', 'm')
 
 AK_INLINE
+char*
+wobj_parse_face_index(char  * __restrict p,
+                      AkInt * __restrict dest) {
+  AkUInt value;
+
+  if (!ak_str_isdigit_fast(*p))
+    return ak_strtoi_one_fast(p, dest);
+
+  value = 0;
+  do {
+    value = value * 10u + (AkUInt)(*p++ - '0');
+  } while (ak_str_isdigit_fast(*p));
+
+  *dest = (AkInt)value;
+
+  return p;
+}
+
+AK_INLINE
 void*
 wobj_data_append_slot(AkDataContext * __restrict dctx) {
   AkDataChunk *chunk;
@@ -212,7 +231,7 @@ wobj_obj(AkDoc     ** __restrict dest,
             if (AK_ARRAY_NLINE_CHECK)
               break;
             
-            p = ak_strtoi_one_fast(p, &idx);
+            p = wobj_parse_face_index(p, &idx);
             face[0] = idx;
             face[1] = 0;
             face[2] = 0;
@@ -221,7 +240,7 @@ wobj_obj(AkDoc     ** __restrict dest,
             SKIP_SPACES
             if (p && p[0] == '/') {
               if (p[1] != '/') {
-                p = ak_strtoi_one_fast(++p, &idx);
+                p = wobj_parse_face_index(++p, &idx);
                 face[1] = idx;
                 
                 if (!prim->hasTexture)
@@ -234,7 +253,7 @@ wobj_obj(AkDoc     ** __restrict dest,
             /* normal index */
             SKIP_SPACES
             if (p && p[0] == '/') {
-              p = ak_strtoi_one_fast(++p, &idx);
+              p = wobj_parse_face_index(++p, &idx);
               face[2] = idx;
 
               if (!prim->hasNormal)
@@ -314,8 +333,10 @@ wobj_obj(AkDoc     ** __restrict dest,
   } while (p && p[0] != '\0'/* && (c = *++p) != '\0'*/);
 
   wst->ac_pos = wobj_acc(wst, wst->dc_pos, AK_COMPONENT_SIZE_VEC3, AKT_FLOAT);
-  wst->ac_nor = wobj_acc(wst, wst->dc_nor, AK_COMPONENT_SIZE_VEC3, AKT_FLOAT);
-  wst->ac_tex = wobj_acc(wst, wst->dc_tex, AK_COMPONENT_SIZE_VEC2, AKT_FLOAT);
+  if (wst->dc_nor->itemcount > 0)
+    wst->ac_nor = wobj_acc(wst, wst->dc_nor, AK_COMPONENT_SIZE_VEC3, AKT_FLOAT);
+  if (wst->dc_tex->itemcount > 0)
+    wst->ac_tex = wobj_acc(wst, wst->dc_tex, AK_COMPONENT_SIZE_VEC2, AKT_FLOAT);
 
   wobj_finishObjects(wst);
 

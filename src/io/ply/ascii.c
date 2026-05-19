@@ -21,6 +21,28 @@
 #include "../../data.h"
 #include "../../string_fast.h"
 
+AK_INLINE
+char*
+ply_ascii_parse_index(char   * __restrict p,
+                      AkUInt * __restrict dest) {
+  AkUInt value;
+
+  while (*p && ak_str_sep_fast(*p))
+    p++;
+
+  if (!ak_str_isdigit_fast(*p))
+    return ak_str_parse_uint_fast(p, NULL, dest);
+
+  value = 0;
+  do {
+    value = value * 10u + (AkUInt)(*p++ - '0');
+  } while (ak_str_isdigit_fast(*p));
+
+  *dest = value;
+
+  return p;
+}
+
 static
 bool
 ply_ascii_vertex_direct(PLYElement * __restrict elem) {
@@ -121,20 +143,20 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
       do {
         SKIP_SPACES
         
-        p = ak_strtoui_one_fast(p, &fc);
+        p = ply_ascii_parse_index(p, &fc);
         if (fc == 3) {
           AkUInt f0, f1, f2;
 
-          p = ak_strtoui_one_fast(p, &f0);
-          p = ak_strtoui_one_fast(p, &f1);
-          p = ak_strtoui_one_fast(p, &f2);
+          p = ply_ascii_parse_index(p, &f0);
+          p = ply_ascii_parse_index(p, &f1);
+          p = ply_ascii_parse_index(p, &f2);
           PLY_INDEX_APPEND_TRI(pst, f0, f1, f2, count);
         } else if (fc > 3) {
           if (!f || last_fc < fc)
             f = alloca(sizeof(AkUInt) * fc);
           
           for (j = 0; j < fc; j++)
-            p = ak_strtoui_one_fast(p, &f[j]);
+            p = ply_ascii_parse_index(p, &f[j]);
           
           PLY_INDEX_APPEND_FACE(pst, f, fc, count);
         }

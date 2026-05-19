@@ -236,24 +236,6 @@ wobj_input(WOState         * __restrict wst,
 }
 
 static
-bool
-wobj_index_valid(AkInt     value,
-                 uint32_t  count,
-                 AkUInt   *out) {
-  AkInt idx;
-
-  if (value == 0 || count == 0)
-    return false;
-
-  idx = value > 0 ? value - 1 : (AkInt)count + value;
-  if (idx < 0 || (uint32_t)idx >= count)
-    return false;
-
-  *out = (AkUInt)idx;
-  return true;
-}
-
-static
 AkInput*
 wobj_flatInput(WOState         * __restrict wst,
                AkMeshPrimitive * __restrict prim,
@@ -327,21 +309,10 @@ wobj_flattenPrimDirect(WOState         * __restrict wst,
   posCount = posAcc->count;
   texCount = texAcc ? texAcc->count : 0;
   norCount = norAcc ? norAcc->count : 0;
-
-  chunk = wp->dc_face->data;
-  while (chunk) {
-    face   = (const AkInt *)(const void *)chunk->data;
-    nfaces = chunk->usedsize / sizeof(ivec3);
-    for (i = 0; i < nfaces; i++, face += 3) {
-      if (!wobj_index_valid(face[0], posCount, &posIdx))
-        return false;
-      if (wp->hasTexture && !wobj_index_valid(face[1], texCount, &texIdx))
-        return false;
-      if (wp->hasNormal && !wobj_index_valid(face[2], norCount, &norIdx))
-        return false;
-    }
-    chunk = chunk->next;
-  }
+  if (posCount == 0
+      || (wp->hasTexture && texCount == 0)
+      || (wp->hasNormal && norCount == 0))
+    return false;
 
   count  = wp->dc_face->itemcount;
   posInp = wobj_flatInput(wst,
@@ -386,29 +357,42 @@ wobj_flattenPrimDirect(WOState         * __restrict wst,
   texDst = texInp ? (char *)texInp->accessor->buffer->data : NULL;
   norDst = norInp ? (char *)norInp->accessor->buffer->data : NULL;
 
-  chunk = wp->dc_face->data;
-  while (chunk) {
-    face   = (const AkInt *)(const void *)chunk->data;
-    nfaces = chunk->usedsize / sizeof(ivec3);
-    for (i = 0; i < nfaces; i++, face += 3) {
-      posIdx = wobj_real_index(posCount, face[0]);
-      memcpy(posDst, posSrc + posAcc->byteStride * posIdx, sizeof(vec3));
-      posDst += sizeof(vec3);
+#define WOBJ_FLATTEN_COPY(COPY_TEX, COPY_NOR)                                \
+  do {                                                                        \
+    chunk = wp->dc_face->data;                                                \
+    while (chunk) {                                                           \
+      face   = (const AkInt *)(const void *)chunk->data;                      \
+      nfaces = chunk->usedsize / sizeof(ivec3);                               \
+      for (i = 0; i < nfaces; i++, face += 3) {                               \
+        posIdx = wobj_real_index(posCount, face[0]);                          \
+        memcpy(posDst, posSrc + posAcc->byteStride * posIdx, sizeof(vec3));   \
+        posDst += sizeof(vec3);                                               \
+                                                                              \
+        if (COPY_TEX) {                                                       \
+          texIdx = wobj_real_index(texCount, face[1]);                        \
+          memcpy(texDst, texSrc + texAcc->byteStride * texIdx, sizeof(vec2)); \
+          texDst += sizeof(vec2);                                             \
+        }                                                                     \
+                                                                              \
+        if (COPY_NOR) {                                                       \
+          norIdx = wobj_real_index(norCount, face[2]);                        \
+          memcpy(norDst, norSrc + norAcc->byteStride * norIdx, sizeof(vec3)); \
+          norDst += sizeof(vec3);                                             \
+        }                                                                     \
+      }                                                                       \
+      chunk = chunk->next;                                                    \
+    }                                                                         \
+  } while (0)
 
-      if (texDst) {
-        texIdx = wobj_real_index(texCount, face[1]);
-        memcpy(texDst, texSrc + texAcc->byteStride * texIdx, sizeof(vec2));
-        texDst += sizeof(vec2);
-      }
-
-      if (norDst) {
-        norIdx = wobj_real_index(norCount, face[2]);
-        memcpy(norDst, norSrc + norAcc->byteStride * norIdx, sizeof(vec3));
-        norDst += sizeof(vec3);
-      }
-    }
-    chunk = chunk->next;
+  if (texDst && norDst) {
+    WOBJ_FLATTEN_COPY(true, true);
+  } else if (texDst) {
+    WOBJ_FLATTEN_COPY(true, false);
+  } else {
+    WOBJ_FLATTEN_COPY(false, true);
   }
+
+#undef WOBJ_FLATTEN_COPY
 
   prim->indices       = NULL;
   prim->indexAccessor = NULL;
