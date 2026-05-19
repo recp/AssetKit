@@ -44,6 +44,23 @@ ply_ascii_parse_index(char   * __restrict p,
 }
 
 static
+char*
+ply_ascii_skip_property(char        * __restrict p,
+                        PLYProperty * __restrict prop) {
+  AkFloat value;
+  AkUInt  count, i;
+
+  if (!prop->islist)
+    return ak_strtof_one_fast(p, &value);
+
+  p = ply_ascii_parse_index(p, &count);
+  for (i = 0; i < count; i++)
+    p = ak_strtof_one_fast(p, &value);
+
+  return p;
+}
+
+static
 bool
 ply_ascii_vertex_direct(PLYElement * __restrict elem) {
   PLYProperty *prop;
@@ -116,8 +133,13 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
           while (prop) {
             AkFloat value;
 
-            p = ak_strtof_one_fast(p, &value);
-            if (!prop->ignore)
+            if (prop->islist) {
+              p = ply_ascii_skip_property(p, prop);
+            } else {
+              p = ak_strtof_one_fast(p, &value);
+            }
+
+            if (!prop->ignore && !prop->islist)
               b[prop->slot] = value;
             prop = prop->next;
           }
@@ -131,7 +153,7 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
         } while (p && p[0] != '\0');
       }
     } else if (elem->type == PLY_ELEM_FACE) {
-      AkUInt *f, fc, j, count, last_fc;
+      AkUInt *f, fc, j, count, last_fc, valid, vertcount;
       
       pst->dc_ind = ply_index_data_new(pst);
       c           = *p;
@@ -139,6 +161,7 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
       i           = 0;
       count       = 0;
       last_fc     = 0;
+      vertcount   = pst->vertcount;
 
       do {
         SKIP_SPACES
@@ -150,15 +173,20 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
           p = ply_ascii_parse_index(p, &f0);
           p = ply_ascii_parse_index(p, &f1);
           p = ply_ascii_parse_index(p, &f2);
-          PLY_INDEX_APPEND_TRI(pst, f0, f1, f2, count);
+          if (f0 < vertcount && f1 < vertcount && f2 < vertcount)
+            PLY_INDEX_APPEND_TRI(pst, f0, f1, f2, count);
         } else if (fc > 3) {
           if (!f || last_fc < fc)
             f = alloca(sizeof(AkUInt) * fc);
           
+          valid = 0;
           for (j = 0; j < fc; j++)
             p = ply_ascii_parse_index(p, &f[j]);
+          for (j = 0; j < fc; j++)
+            valid += f[j] < vertcount;
           
-          PLY_INDEX_APPEND_FACE(pst, f, fc, count);
+          if (valid == fc)
+            PLY_INDEX_APPEND_FACE(pst, f, fc, count);
         }
 
         last_fc = fc;

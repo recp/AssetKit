@@ -66,9 +66,15 @@ typedef struct WOPrim {
   const char    *mtlname;
   AkDataContext *dc_face;
   AkDataContext *dc_vcount;
+  uint32_t       defaultTexIndex;
+  uint32_t       defaultNorIndex;
   uint32_t       maxVC;
   bool           hasTexture;
   bool           hasNormal;
+  bool           missingTexture;
+  bool           missingNormal;
+  bool           useDefaultTexture;
+  bool           useDefaultNormal;
 } WOPrim;
 
 typedef struct WOObject {

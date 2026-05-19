@@ -37,6 +37,14 @@ static
 void
 ak_wobjFreeDupl(RBTree *tree, RBNode *node);
 
+static
+void
+wobj_prepareMissingDefaults(WOState * __restrict wst);
+
+AK_INLINE
+void*
+wobj_data_append_slot(AkDataContext * __restrict dctx);
+
 #define WOBJ_KW_MTLL AK_STR_PACK4_CHARS('m', 't', 'l', 'l')
 #define WOBJ_KW_USEM AK_STR_PACK4_CHARS('u', 's', 'e', 'm')
 
@@ -57,6 +65,62 @@ wobj_parse_face_index(char  * __restrict p,
   *dest = (AkInt)value;
 
   return p;
+}
+
+static
+void
+wobj_prepareMissingDefaults(WOState * __restrict wst) {
+  WOObject *obj;
+  WOPrim   *prim;
+  uint32_t  texDefault, norDefault;
+  bool      needTexDefault, needNorDefault;
+
+  needTexDefault = false;
+  needNorDefault = false;
+
+  for (obj = wst->obj; obj; obj = obj->next) {
+    for (prim = obj->prim; prim; prim = prim->next) {
+      needTexDefault |= prim->hasTexture
+                        && (prim->missingTexture
+                            || wst->dc_tex->itemcount == 0);
+      needNorDefault |= prim->hasNormal
+                        && (prim->missingNormal
+                            || wst->dc_nor->itemcount == 0);
+    }
+  }
+
+  texDefault = 0;
+  norDefault = 0;
+
+  if (needTexDefault) {
+    vec2 zero = {0.0f, 0.0f};
+
+    texDefault = (uint32_t)wst->dc_tex->itemcount;
+    memcpy(wobj_data_append_slot(wst->dc_tex), zero, sizeof(zero));
+  }
+
+  if (needNorDefault) {
+    vec3 zero = {0.0f, 0.0f, 0.0f};
+
+    norDefault = (uint32_t)wst->dc_nor->itemcount;
+    memcpy(wobj_data_append_slot(wst->dc_nor), zero, sizeof(zero));
+  }
+
+  for (obj = wst->obj; obj; obj = obj->next) {
+    for (prim = obj->prim; prim; prim = prim->next) {
+      if (prim->hasTexture
+          && (prim->missingTexture || wst->dc_tex->itemcount == 1)) {
+        prim->defaultTexIndex   = texDefault;
+        prim->useDefaultTexture = true;
+      }
+
+      if (prim->hasNormal
+          && (prim->missingNormal || wst->dc_nor->itemcount == 1)) {
+        prim->defaultNorIndex  = norDefault;
+        prim->useDefaultNormal = true;
+      }
+    }
+  }
 }
 
 AK_INLINE
@@ -104,6 +168,10 @@ wobj_data_append_slot(AkDataContext * __restrict dctx) {
     (PTR) = ak_strtof_one_fast((PTR), &(DEST)[1]);                            \
     (PTR) = ak_strtof_one_fast((PTR), &(DEST)[2]);                            \
   } while (0)
+
+#define WOBJ_TOKEN_SEP(CH)                                                    \
+  ((CH) == ' ' || (CH) == '\t' || (CH) == '\f' || (CH) == '\v'                \
+   || (CH) == '\n' || (CH) == '\r')
 
 AK_HIDE
 AkResult
@@ -219,9 +287,13 @@ wobj_obj(AkDoc     ** __restrict dest,
 
           vc = 0;
 
-          do {
+          while (p
+                 && p[0] != '\0'
+                 && p[0] != '\n'
+                 && p[0] != '\r') {
             AkInt *face;
             AkInt idx;
+            bool   hasTexIndex, hasNorIndex;
 
             /* vertex index */
             SKIP_SPACES
@@ -234,39 +306,50 @@ wobj_obj(AkDoc     ** __restrict dest,
             face[0] = idx;
             face[1] = 0;
             face[2] = 0;
+            hasTexIndex = false;
+            hasNorIndex = false;
 
             /* texture index */
-            SKIP_SPACES
             if (p && p[0] == '/') {
-              if (p[1] != '/') {
-                p = wobj_parse_face_index(++p, &idx);
+              p++;
+              if (p[0] != '/'
+                  && p[0] != '\0'
+                  && !WOBJ_TOKEN_SEP(p[0])) {
+                p = wobj_parse_face_index(p, &idx);
                 face[1] = idx;
+                hasTexIndex = idx != 0;
                 
                 if (!prim->hasTexture)
                   prim->hasTexture = true;
-              } else {
-                p++;
               }
             }
             
             /* normal index */
-            SKIP_SPACES
             if (p && p[0] == '/') {
-              p = wobj_parse_face_index(++p, &idx);
-              face[2] = idx;
+              p++;
+              if (p[0] != '\0'
+                  && !WOBJ_TOKEN_SEP(p[0])) {
+                p = wobj_parse_face_index(p, &idx);
+                face[2] = idx;
+                hasNorIndex = idx != 0;
 
-              if (!prim->hasNormal)
-                prim->hasNormal = true;
+                if (!prim->hasNormal)
+                  prim->hasNormal = true;
+              }
             }
+
+            if (!hasTexIndex)
+              prim->missingTexture = true;
+            if (!hasNorIndex)
+              prim->missingNormal = true;
 
             vc += 1;
 
-            c = *p;
-          } while (p
-                   && (c = p[0]) != '\0'
-                   && !AK_ARRAY_NLINE_CHECK
-                   && (c = *++p) != '\0'
-                   && !AK_ARRAY_NLINE_CHECK);
+            while (p
+                   && p[0] != '\0'
+                   && !WOBJ_TOKEN_SEP(p[0]))
+              p++;
+          }
 
           prim->maxVC = GLM_MAX(prim->maxVC, vc);
           *(int32_t *)wobj_data_append_slot(prim->dc_vcount) = (int32_t)vc;
@@ -334,6 +417,8 @@ wobj_obj(AkDoc     ** __restrict dest,
     NEXT_LINE
   } while (p && p[0] != '\0'/* && (c = *++p) != '\0'*/);
 
+  wobj_prepareMissingDefaults(wst);
+
   wst->ac_pos = wobj_acc(wst, wst->dc_pos, AK_COMPONENT_SIZE_VEC3, AKT_FLOAT);
   if (wst->dc_nor->itemcount > 0)
     wst->ac_nor = wobj_acc(wst, wst->dc_nor, AK_COMPONENT_SIZE_VEC3, AKT_FLOAT);
@@ -363,6 +448,7 @@ err:
 
 #undef WOBJ_PARSE_FLOAT2
 #undef WOBJ_PARSE_FLOAT3
+#undef WOBJ_TOKEN_SEP
 
 static
 void

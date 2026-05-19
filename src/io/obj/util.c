@@ -20,6 +20,11 @@
 #define wobj_real_index(count, val)                                           \
   ((AkUInt)((val) > 0 ? (val) - 1 : (AkInt)(count) + (val)))
 
+#define wobj_optional_index(count, val, fallback, useFallback)                \
+  ((AkUInt)((val) == 0 && (useFallback)                                      \
+            ? (fallback)                                                      \
+            : wobj_real_index((count), (val))))
+
 #define WOBJ_DIRECT_FLATTEN_MIN 4096
 
 #define WOBJ_JOIN_INDICES(TYPE)                                               \
@@ -38,10 +43,16 @@
           dst_[0] = (TYPE)wobj_real_index(count_pos, val);                    \
                                                                               \
           val = it2[1];                                                       \
-          dst_[1] = (TYPE)wobj_real_index(count_tex, val);                    \
+          dst_[1] = (TYPE)wobj_optional_index(count_tex,                       \
+                                              val,                            \
+                                              wp->defaultTexIndex,            \
+                                              wp->useDefaultTexture);         \
                                                                               \
           val = it2[2];                                                       \
-          dst_[2] = (TYPE)wobj_real_index(count_nor, val);                    \
+          dst_[2] = (TYPE)wobj_optional_index(count_nor,                       \
+                                              val,                            \
+                                              wp->defaultNorIndex,            \
+                                              wp->useDefaultNormal);          \
                                                                               \
           dst_ += 3;                                                          \
           it2  += 3;                                                          \
@@ -58,7 +69,10 @@
           dst_[0] = (TYPE)wobj_real_index(count_pos, val);                    \
                                                                               \
           val = it2[2];                                                       \
-          dst_[1] = (TYPE)wobj_real_index(count_nor, val);                    \
+          dst_[1] = (TYPE)wobj_optional_index(count_nor,                       \
+                                              val,                            \
+                                              wp->defaultNorIndex,            \
+                                              wp->useDefaultNormal);          \
                                                                               \
           dst_ += 2;                                                          \
           it2  += 3;                                                          \
@@ -75,7 +89,10 @@
           dst_[0] = (TYPE)wobj_real_index(count_pos, val);                    \
                                                                               \
           val = it2[1];                                                       \
-          dst_[1] = (TYPE)wobj_real_index(count_tex, val);                    \
+          dst_[1] = (TYPE)wobj_optional_index(count_tex,                       \
+                                              val,                            \
+                                              wp->defaultTexIndex,            \
+                                              wp->useDefaultTexture);         \
                                                                               \
           dst_ += 2;                                                          \
           it2  += 3;                                                          \
@@ -103,11 +120,14 @@
    adding a second full pass to large OBJ imports. */
 #define WOBJ_SCAN_SHRINK_THRESHOLD 4096
 
-#define WOBJ_SCAN_INDEX(VALUE_COUNT)                                          \
+#define WOBJ_SCAN_INDEX(VALUE_COUNT, FALLBACK, USE_FALLBACK)                  \
   do {                                                                        \
     AkUInt real_;                                                             \
                                                                               \
-    real_ = wobj_real_index((VALUE_COUNT), val);                              \
+    real_ = wobj_optional_index((VALUE_COUNT),                                \
+                                val,                                          \
+                                (FALLBACK),                                   \
+                                (USE_FALLBACK));                              \
     if (real_ > maxIndex)                                                     \
       maxIndex = real_;                                                       \
   } while (0)
@@ -121,11 +141,15 @@
                                                                               \
         for (i = 0; i < csz; i += isz) {                                      \
           val = it2[0];                                                       \
-          WOBJ_SCAN_INDEX(count_pos);                                         \
+          WOBJ_SCAN_INDEX(count_pos, 0, false);                               \
           val = it2[1];                                                       \
-          WOBJ_SCAN_INDEX(count_tex);                                         \
+          WOBJ_SCAN_INDEX(count_tex,                                          \
+                          wp->defaultTexIndex,                                \
+                          wp->useDefaultTexture);                             \
           val = it2[2];                                                       \
-          WOBJ_SCAN_INDEX(count_nor);                                         \
+          WOBJ_SCAN_INDEX(count_nor,                                          \
+                          wp->defaultNorIndex,                                \
+                          wp->useDefaultNormal);                              \
           it2 += 3;                                                           \
         }                                                                     \
         chunk = chunk->next;                                                  \
@@ -137,9 +161,11 @@
                                                                               \
         for (i = 0; i < csz; i += isz) {                                      \
           val = it2[0];                                                       \
-          WOBJ_SCAN_INDEX(count_pos);                                         \
+          WOBJ_SCAN_INDEX(count_pos, 0, false);                               \
           val = it2[2];                                                       \
-          WOBJ_SCAN_INDEX(count_nor);                                         \
+          WOBJ_SCAN_INDEX(count_nor,                                          \
+                          wp->defaultNorIndex,                                \
+                          wp->useDefaultNormal);                              \
           it2 += 3;                                                           \
         }                                                                     \
         chunk = chunk->next;                                                  \
@@ -151,9 +177,11 @@
                                                                               \
         for (i = 0; i < csz; i += isz) {                                      \
           val = it2[0];                                                       \
-          WOBJ_SCAN_INDEX(count_pos);                                         \
+          WOBJ_SCAN_INDEX(count_pos, 0, false);                               \
           val = it2[1];                                                       \
-          WOBJ_SCAN_INDEX(count_tex);                                         \
+          WOBJ_SCAN_INDEX(count_tex,                                          \
+                          wp->defaultTexIndex,                                \
+                          wp->useDefaultTexture);                             \
           it2 += 3;                                                           \
         }                                                                     \
         chunk = chunk->next;                                                  \
@@ -165,7 +193,7 @@
                                                                               \
         for (i = 0; i < csz; i += isz) {                                      \
           val = it2[0];                                                       \
-          WOBJ_SCAN_INDEX(count_pos);                                         \
+          WOBJ_SCAN_INDEX(count_pos, 0, false);                               \
           it2 += 3;                                                           \
         }                                                                     \
         chunk = chunk->next;                                                  \
@@ -369,13 +397,19 @@ wobj_flattenPrimDirect(WOState         * __restrict wst,
         posDst += sizeof(vec3);                                               \
                                                                               \
         if (COPY_TEX) {                                                       \
-          texIdx = wobj_real_index(texCount, face[1]);                        \
+          texIdx = wobj_optional_index(texCount,                               \
+                                       face[1],                               \
+                                       wp->defaultTexIndex,                   \
+                                       wp->useDefaultTexture);                \
           memcpy(texDst, texSrc + texAcc->byteStride * texIdx, sizeof(vec2)); \
           texDst += sizeof(vec2);                                             \
         }                                                                     \
                                                                               \
         if (COPY_NOR) {                                                       \
-          norIdx = wobj_real_index(norCount, face[2]);                        \
+          norIdx = wobj_optional_index(norCount,                               \
+                                       face[2],                               \
+                                       wp->defaultNorIndex,                   \
+                                       wp->useDefaultNormal);                 \
           memcpy(norDst, norSrc + norAcc->byteStride * norIdx, sizeof(vec3)); \
           norDst += sizeof(vec3);                                             \
         }                                                                     \
@@ -465,3 +499,4 @@ wobj_joinIndices(WOState         * __restrict wst,
 #undef WOBJ_SCAN_INDEX
 #undef WOBJ_SCAN_SHRINK_THRESHOLD
 #undef WOBJ_DIRECT_FLATTEN_MIN
+#undef wobj_optional_index

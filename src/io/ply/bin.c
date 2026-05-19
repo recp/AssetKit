@@ -21,6 +21,48 @@
 #include "../../data.h"
 #include "../../endian.h"
 
+static
+bool
+ply_bin_skip_property(char        ** __restrict src,
+                      char         * __restrict end,
+                      PLYProperty  * __restrict prop,
+                      bool                       le) {
+  char   *p;
+  AkUInt  count;
+  size_t  itemSize;
+
+  p = *src;
+
+  if (!prop->islist) {
+    if (!prop->typeDesc || p + prop->typeDesc->size > end)
+      return false;
+
+    *src = p + prop->typeDesc->size;
+    return true;
+  }
+
+  if (!prop->listCountTypeDesc || !prop->typeDesc)
+    return false;
+
+  if (p + prop->listCountTypeDesc->size > end)
+    return false;
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+
+  ply_val(p, prop->listCountTypeDesc, le, AkUInt, count, 0);
+
+#pragma GCC diagnostic pop
+
+  itemSize = prop->typeDesc->size;
+  if ((uint64_t)count * itemSize > (uint64_t)(end - p))
+    return false;
+
+  *src = p + (size_t)count * itemSize;
+
+  return true;
+}
+
 AK_HIDE
 void
 ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
@@ -29,11 +71,13 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
   PLYElement  *elem;
   PLYProperty *prop;
   AkBuffer    *buff;
+  char        *e;
   uint32_t     i, stride, vertcount;
   
   p         = src;
   elem      = pst->element;
   vertcount = pst->vertcount;
+  e         = pst->end;
 
   while (elem) {
     if (elem->type == PLY_ELEM_VERTEX) {
@@ -53,12 +97,17 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
         prop = elem->property;
         while (prop) {
           if (!prop->ignore) {
+            if (!prop->typeDesc || p + prop->typeDesc->size > e)
+              goto fns;
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 
             ply_val(p, prop->typeDesc, le, float, b[prop->slot], 0.0f);
             
 #pragma GCC diagnostic pop
+          } else if (!ply_bin_skip_property(&p, e, prop, le)) {
+            goto fns;
           }
           prop = prop->next;
         }
@@ -66,12 +115,10 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
         b += stride;
       }
     } else if (elem->type == PLY_ELEM_FACE) {
-      char   *e;
       AkUInt *f, fc, j, count, last_fc, valid, elemc;
 
       pst->dc_ind = ply_index_data_new(pst);
       elemc       = elem->count;
-      e           = pst->end;
       f           = NULL;
       i           = 0;
       count       = 0;
@@ -83,7 +130,10 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
         /* iterate thorough list and other properties */
         while (prop) {
           if (!prop->ignore && prop->islist) { /* TODO: */
-            if ((p + prop->typeDesc->size) > e)
+            if (!prop->listCountTypeDesc || !prop->typeDesc)
+              goto fns;
+
+            if ((p + prop->listCountTypeDesc->size) > e)
               goto fns;
 
 #pragma GCC diagnostic push
@@ -142,8 +192,8 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
             
             last_fc = fc;
           } else {
-            /* do ignore */
-            /* TODO: */
+            if (!ply_bin_skip_property(&p, e, prop, le))
+              goto fns;
           }
 
           prop = prop->next;
@@ -153,7 +203,18 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
       pst->count = count;
     } else {
       /* skip unsupported elements */
-      /* TODO: */
+      AkUInt elemc;
+
+      elemc = elem->count;
+      i     = 0;
+      while (i++ < elemc) {
+        prop = elem->property;
+        while (prop) {
+          if (!ply_bin_skip_property(&p, e, prop, le))
+            goto fns;
+          prop = prop->next;
+        }
+      }
     }
     elem = elem->next;
   }

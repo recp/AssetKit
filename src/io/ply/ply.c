@@ -63,6 +63,35 @@
     }                                                                         \
   } while (0)
 
+static
+PLYProperty*
+ply_prop_find(PLYElement      * __restrict elem,
+              PLYPropertyType              semantic) {
+  PLYProperty *prop;
+
+  for (prop = elem->property; prop; prop = prop->next) {
+    if (prop->semantic == semantic
+        && !prop->islist
+        && prop->typeDesc)
+      return prop;
+  }
+
+  return NULL;
+}
+
+static
+bool
+ply_prop_enable(PLYProperty * __restrict prop, uint32_t slot) {
+  if (!prop)
+    return false;
+
+  prop->ignore = false;
+  prop->slot   = slot;
+  prop->off    = (size_t)slot * sizeof(float);
+
+  return true;
+}
+
 AK_HIDE
 AkResult
 ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
@@ -76,7 +105,6 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
   PLYProperty   *prop, *pit;
   PLYState       pstVal = {0}, *pst;
   size_t         plystrSize, off;
-  uint32_t       i;
   bool           isAscii, isLittleEndian;
   char           c;
 
@@ -289,40 +317,35 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
             prop->ignore = true;
             break;
         }
+      } else if (e - b == 3
+                 && b[0] == 'r'
+                 && b[1] == 'e'
+                 && b[2] == 'd') {
+        prop->semantic = PLY_PROP_R;
+      } else if (e - b == 4
+                 && b[0] == 'b'
+                 && b[1] == 'l'
+                 && b[2] == 'u'
+                 && b[3] == 'e') {
+        prop->semantic = PLY_PROP_B;
+      } else if (e - b == 5
+                 && b[0] == 'g'
+                 && b[1] == 'r'
+                 && b[2] == 'e'
+                 && b[3] == 'e'
+                 && b[4] == 'n') {
+        prop->semantic = PLY_PROP_G;
       }
       
       if (!elem->property) {
         elem->property = prop;
       } else {
-        PLYProperty *last_prop;
-        
-        /* insert propety by ORDER */
-        last_prop = pit = elem->property;
-        while (pit) {
-          if ((int)prop->semantic < (int)pit->semantic) {
-            if (pit->prev) {
-              pit->prev->next = prop;
-              prop->prev      = pit->prev;
-            }
+        pit = elem->property;
+        while (pit->next)
+          pit = pit->next;
 
-            prop->next = pit;
-            pit->prev  = prop;
-            
-            if (pit == elem->property)
-              elem->property = prop;
-            
-            break;
-          }
-
-          last_prop = pit;
-          pit       = pit->next;
-        }
-        
-        /* couldn't add, so add to last */
-        if (!pit && last_prop) {
-          last_prop->next = prop;
-          prop->prev      = last_prop;
-        }
+        pit->next  = prop;
+        prop->prev = pit;
       }
     } else if (EQT7('e', 'n', 'd', '_', 'h', 'e', 'a')) {
       NEXT_LINE
@@ -333,96 +356,73 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
   } while (p && p[0] != '\0'/* && (c = *++p) != '\0'*/);
 
   /* prepare property offsets/slots */
-  i    = 0;
   off  = 0;
   elem = pst->element;
 
   while (elem) {
     pit = elem->property;
     if (elem->type == PLY_ELEM_VERTEX) {
+      PLYProperty *px, *py, *pz;
+      PLYProperty *pnx, *pny, *pnz;
+      PLYProperty *ps, *pt;
+      PLYProperty *pr, *pg, *pb;
       size_t byteSffset;
+      uint32_t slot;
       
       byteSffset = 0;
+      slot        = 0;
       elem->buff = ak_heap_calloc(heap, pst->doc, sizeof(*elem->buff));
 
       while (pit) {
-        if (pit->ignore)
-          goto ign;
-
-        /* validate, check missing properties in the group */
-        if (pit->semantic == PLY_PROP_X) {
-          if ((!pit->next || pit->next->semantic != PLY_PROP_Y)
-              ||(!pit->next->next || pit->next->next->semantic != PLY_PROP_Z))
-            goto err; /* we cannot load this PLY, TODO: */
-          
-          /* alloc input and accessor for positions */
-          pst->ac_pos = io_acc(heap, doc, AK_COMPONENT_SIZE_VEC3,
-                               AKT_FLOAT, elem->count, elem->buff);
-        }
-        
-        if (pit->semantic == PLY_PROP_NX) {
-          if ((!pit->next || pit->next->semantic != PLY_PROP_NY)
-              ||(!pit->next->next || pit->next->next->semantic != PLY_PROP_NZ)) {
-            pit->ignore = true;
-            
-            if (pit->next) {
-              pit->next->ignore = true;
-              if (pit->next->next)
-                pit->next->next->ignore = true;
-            }
-
-            goto ign; /* we cannot load this PLY, TODO: */
-          }
-          
-          /* alloc input and accessor for normals */
-          pst->ac_nor = io_acc(heap, doc, AK_COMPONENT_SIZE_VEC3,
-                               AKT_FLOAT, elem->count, elem->buff);
-        }
-        
-        if (pit->semantic == PLY_PROP_S) {
-          if (!pit->next || pit->next->semantic != PLY_PROP_T) {
-            pit->ignore = true;
-            if (pit->next && pit->next->next)
-              pit->next->ignore = true;
-            goto ign; /* ignore, TODO: */
-          }
-          
-          /* alloc input and accessor for tex coords */
-          pst->ac_tex = io_acc(heap, doc, AK_COMPONENT_SIZE_VEC2,
-                               AKT_FLOAT, elem->count, elem->buff);
-        }
-        
-        if (pit->semantic == PLY_PROP_R) {
-          if ((!pit->next || pit->next->semantic != PLY_PROP_G)
-              || (!pit->next->next || pit->next->next->semantic != PLY_PROP_B)) {
-            pit->ignore = true;
-            
-            if (pit->next) {
-              pit->next->ignore = true;
-              if (pit->next->next)
-                pit->next->next->ignore = true;
-            }
-
-            goto ign; /* ignore, TODO: */
-          }
-          
-          /* alloc input and accessor for vertex colors */
-          pst->ac_rgb = io_acc(heap, doc, AK_COMPONENT_SIZE_VEC3,
-                               AKT_FLOAT, elem->count, elem->buff);
-        }
-        
-        pit->slot = i++;
-        pit->off  = off;
-        /* TODO: currently all are floats */
-        off      += sizeof(float); /* pit->typeDesc->size; */
-        
-        if (pit->typeDesc)
-          pst->byteStride += pit->typeDesc->size;
-        elem->knownCount++;
-        
-      ign:
+        pit->ignore = true;
         pit = pit->next;
       }
+
+      px = ply_prop_find(elem, PLY_PROP_X);
+      py = ply_prop_find(elem, PLY_PROP_Y);
+      pz = ply_prop_find(elem, PLY_PROP_Z);
+      if (!ply_prop_enable(px, slot++)
+          || !ply_prop_enable(py, slot++)
+          || !ply_prop_enable(pz, slot++))
+        goto err;
+
+      pst->ac_pos = io_acc(heap, doc, AK_COMPONENT_SIZE_VEC3,
+                           AKT_FLOAT, elem->count, elem->buff);
+
+      pnx = ply_prop_find(elem, PLY_PROP_NX);
+      pny = ply_prop_find(elem, PLY_PROP_NY);
+      pnz = ply_prop_find(elem, PLY_PROP_NZ);
+      if (pnx && pny && pnz) {
+        ply_prop_enable(pnx, slot++);
+        ply_prop_enable(pny, slot++);
+        ply_prop_enable(pnz, slot++);
+        pst->ac_nor = io_acc(heap, doc, AK_COMPONENT_SIZE_VEC3,
+                             AKT_FLOAT, elem->count, elem->buff);
+      }
+
+      ps = ply_prop_find(elem, PLY_PROP_S);
+      pt = ply_prop_find(elem, PLY_PROP_T);
+      if (ps && pt) {
+        ply_prop_enable(ps, slot++);
+        ply_prop_enable(pt, slot++);
+        pst->ac_tex = io_acc(heap, doc, AK_COMPONENT_SIZE_VEC2,
+                             AKT_FLOAT, elem->count, elem->buff);
+      }
+
+      pr = ply_prop_find(elem, PLY_PROP_R);
+      pg = ply_prop_find(elem, PLY_PROP_G);
+      pb = ply_prop_find(elem, PLY_PROP_B);
+      if (pr && pg && pb) {
+        ply_prop_enable(pr, slot++);
+        ply_prop_enable(pg, slot++);
+        ply_prop_enable(pb, slot++);
+        pst->ac_rgb = io_acc(heap, doc, AK_COMPONENT_SIZE_VEC3,
+                             AKT_FLOAT, elem->count, elem->buff);
+      }
+
+      elem->knownCount = slot;
+      pst->byteStride  = slot * (uint32_t)sizeof(float);
+      off              = pst->byteStride;
 
       /* empty buffer */
       if (off < 1)
@@ -505,13 +505,20 @@ ply_finish(PLYState * __restrict pst) {
   heap = pst->heap;
   mesh = ak_allocMesh(pst->heap, pst->lib_geom, &geom);
 
-  tri            = ak_heap_calloc(pst->heap, ak_objFrom(mesh), sizeof(*tri));
-  tri->mode      = AK_TRIANGLES;
-  tri->base.type = AK_PRIMITIVE_TRIANGLES;
-  prim           = (AkMeshPrimitive *)tri;
+  if (pst->dc_ind && pst->dc_ind->itemcount > 0) {
+    tri            = ak_heap_calloc(pst->heap, ak_objFrom(mesh), sizeof(*tri));
+    tri->mode      = AK_TRIANGLES;
+    tri->base.type = AK_PRIMITIVE_TRIANGLES;
+    prim           = (AkMeshPrimitive *)tri;
+  } else {
+    prim       = ak_heap_calloc(pst->heap, ak_objFrom(mesh), sizeof(*prim));
+    prim->type = AK_PRIMITIVE_POINTS;
+  }
 
   prim->indexStride    = 1;
-  prim->nPolygons      = pst->count;
+  prim->nPolygons      = pst->dc_ind && pst->dc_ind->itemcount > 0
+                         ? pst->count / 3
+                         : pst->vertcount;
   prim->mesh           = mesh;
   mesh->primitive      = prim;
   mesh->primitiveCount = 1;
@@ -551,6 +558,9 @@ ply_finish(PLYState * __restrict pst) {
   {
     AkTypeId componentType;
     AkUInt   maxIndex;
+
+    if (!pst->dc_ind || pst->dc_ind->itemcount == 0)
+      return;
 
     maxIndex      = pst->indexMax;
     componentType = ak_indexComponentTypeForMax(maxIndex);

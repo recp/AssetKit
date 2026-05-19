@@ -267,6 +267,212 @@ ak_test_write_gltf(const char *path, const char *binPath) {
 }
 
 static
+bool
+ak_test_write_u32le(FILE *file, uint32_t value) {
+  uint8_t bytes[4];
+
+  bytes[0] = (uint8_t)(value & 0xffu);
+  bytes[1] = (uint8_t)((value >> 8) & 0xffu);
+  bytes[2] = (uint8_t)((value >> 16) & 0xffu);
+  bytes[3] = (uint8_t)((value >> 24) & 0xffu);
+
+  return fwrite(bytes, 1, sizeof(bytes), file) == sizeof(bytes);
+}
+
+static
+bool
+ak_test_write_f32le(FILE *file, float value) {
+  uint32_t bits;
+
+  memcpy(&bits, &value, sizeof(bits));
+
+  return ak_test_write_u32le(file, bits);
+}
+
+static
+bool
+ak_test_write_stl_binary_solid(const char *path) {
+  FILE    *file;
+  uint8_t  header[80];
+  uint8_t  attr[2] = {0, 0};
+  float    tri[12] = {
+    0.0f, 0.0f, 1.0f,
+    0.0f, 0.0f, 0.0f,
+    1.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f
+  };
+  bool     ok;
+  uint32_t i;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  memset(header, 0, sizeof(header));
+  memcpy(header, "solid binary", 12);
+
+  ok = fwrite(header, 1, sizeof(header), file) == sizeof(header);
+  ok = ok && ak_test_write_u32le(file, 1);
+  for (i = 0; i < 12; i++)
+    ok = ok && ak_test_write_f32le(file, tri[i]);
+  ok = ok && fwrite(attr, 1, sizeof(attr), file) == sizeof(attr);
+
+  return fclose(file) == 0 && ok;
+}
+
+static
+bool
+ak_test_write_stl_binary_truncated(const char *path) {
+  FILE    *file;
+  uint8_t  header[80];
+  bool     ok;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  memset(header, 0, sizeof(header));
+  memcpy(header, "binary bad", 10);
+
+  ok = fwrite(header, 1, sizeof(header), file) == sizeof(header);
+  ok = ok && ak_test_write_u32le(file, 1);
+
+  return fclose(file) == 0 && ok;
+}
+
+static
+bool
+ak_test_write_stl_ascii_one(const char *path) {
+  FILE *file;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  fputs("solid one\n"
+        "  facet normal 0 0 1\n"
+        "    outer loop\n"
+        "      vertex 0 0 0\n"
+        "      vertex 1 0 0\n"
+        "      vertex 0 1 0\n"
+        "    endloop\n"
+        "  endfacet\n"
+        "endsolid one\n",
+        file);
+
+  return fclose(file) == 0;
+}
+
+static
+bool
+ak_test_write_obj_mixed_face(const char *path) {
+  FILE *file;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  fputs("v 0 0 0\n"
+        "v 1 0 0\n"
+        "v 0 1 0\n"
+        "v 0 0 1\n"
+        "vt 0 0\n"
+        "vn 0 0 1\n"
+        "f 1/1/1 2//1 3/1/1\n"
+        "f 1 3/1/1 4//1\n",
+        file);
+
+  return fclose(file) == 0;
+}
+
+static
+bool
+ak_test_write_ply_shuffled(const char *path) {
+  FILE *file;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  fputs("ply\n"
+        "format ascii 1.0\n"
+        "element vertex 3\n"
+        "property float z\n"
+        "property float x\n"
+        "property float y\n"
+        "element face 1\n"
+        "property list uchar int vertex_indices\n"
+        "end_header\n"
+        "0 0 0\n"
+        "0 1 0\n"
+        "0 0 1\n"
+        "3 0 1 2\n",
+        file);
+
+  return fclose(file) == 0;
+}
+
+static
+bool
+ak_test_write_ply_points(const char *path) {
+  FILE *file;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  fputs("ply\n"
+        "format ascii 1.0\n"
+        "element vertex 2\n"
+        "property float x\n"
+        "property float y\n"
+        "property float z\n"
+        "property uchar red\n"
+        "property uchar green\n"
+        "property uchar blue\n"
+        "end_header\n"
+        "0 0 0 255 0 0\n"
+        "1 0 0 0 255 0\n",
+        file);
+
+  return fclose(file) == 0;
+}
+
+static
+AkMeshPrimitive*
+ak_test_first_primitive(AkDoc *doc) {
+  AkGeometry *geom;
+
+  for (geom = ak_libFirstGeom(doc); geom; geom = (AkGeometry *)geom->base.next) {
+    AkMesh *mesh;
+
+    if (!geom->gdata)
+      continue;
+
+    mesh = ak_objGet(geom->gdata);
+    if (mesh && mesh->primitive)
+      return mesh->primitive;
+  }
+
+  return NULL;
+}
+
+static
+float
+ak_test_accessor_f32(AkAccessor *acc, uint32_t index, uint32_t component) {
+  const char *data;
+  float       value;
+
+  data = (const char *)acc->buffer->data
+       + acc->byteOffset
+       + (size_t)index * acc->byteStride
+       + (size_t)component * acc->bytesPerComponent;
+  memcpy(&value, data, sizeof(value));
+
+  return value;
+}
+
+static
 void
 ak_test_collect_index_stats(AkDoc *doc, AkTestIndexStats *stats) {
   AkGeometry *geom;
@@ -382,6 +588,134 @@ TEST_IMPL(index_stats_corpus) {
   unlink(plyPath);
   unlink(gltfPath);
   unlink(binPath);
+  rmdir(tmpdir);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(format_edge_cases) {
+  AkDoc           *doc;
+  AkMeshPrimitive *prim;
+  AkAccessor      *acc;
+  char             dirTemplate[PATH_MAX];
+  char            *tmpdir;
+  char             stlBinaryPath[PATH_MAX];
+  char             stlAsciiPath[PATH_MAX];
+  char             stlBadPath[PATH_MAX];
+  char             objPath[PATH_MAX];
+  char             plyPath[PATH_MAX];
+  char             plyPointsPath[PATH_MAX];
+  const char      *tmpBase;
+  AkResult         loadResult;
+
+  tmpBase = getenv("TMPDIR");
+  if (!tmpBase || !tmpBase[0])
+    tmpBase = "/tmp";
+
+  snprintf(dirTemplate,
+           sizeof(dirTemplate),
+           "%s/assetkit-format-edges-XXXXXX",
+           tmpBase);
+  tmpdir = mkdtemp(dirTemplate);
+  ASSERT(tmpdir != NULL);
+
+  snprintf(stlBinaryPath,
+           sizeof(stlBinaryPath),
+           "%s/solid_binary.stl",
+           tmpdir);
+  snprintf(stlAsciiPath,
+           sizeof(stlAsciiPath),
+           "%s/ascii.stl",
+           tmpdir);
+  snprintf(stlBadPath,
+           sizeof(stlBadPath),
+           "%s/truncated.stl",
+           tmpdir);
+  snprintf(objPath, sizeof(objPath), "%s/mixed.obj", tmpdir);
+  snprintf(plyPath, sizeof(plyPath), "%s/shuffled.ply", tmpdir);
+  snprintf(plyPointsPath,
+           sizeof(plyPointsPath),
+           "%s/points.ply",
+           tmpdir);
+
+  ASSERT(ak_test_write_stl_binary_solid(stlBinaryPath));
+  ASSERT(ak_test_write_stl_ascii_one(stlAsciiPath));
+  ASSERT(ak_test_write_stl_binary_truncated(stlBadPath));
+  ASSERT(ak_test_write_obj_mixed_face(objPath));
+  ASSERT(ak_test_write_ply_shuffled(plyPath));
+  ASSERT(ak_test_write_ply_points(plyPointsPath));
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, stlBinaryPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+  prim = ak_test_first_primitive(doc);
+  ASSERT(prim != NULL);
+  ASSERT(prim->type == AK_PRIMITIVE_TRIANGLES);
+  ASSERT(prim->nPolygons == 1);
+  ASSERT(prim->pos && prim->pos->accessor);
+  ASSERT(prim->pos->accessor->count == 3);
+  ak_free(doc);
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, stlAsciiPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+  prim = ak_test_first_primitive(doc);
+  ASSERT(prim != NULL);
+  ASSERT(prim->type == AK_PRIMITIVE_TRIANGLES);
+  ASSERT(prim->nPolygons == 1);
+  ASSERT(prim->pos && prim->pos->accessor);
+  ASSERT(prim->pos->accessor->count == 3);
+  ak_free(doc);
+
+  doc        = NULL;
+  loadResult = ak_load(&doc, stlBadPath, AK_FILE_TYPE_AUTO);
+  ASSERT(loadResult != AK_OK || !doc);
+  if (doc)
+    ak_free(doc);
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, objPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+  prim = ak_test_first_primitive(doc);
+  ASSERT(prim != NULL);
+  ASSERT(prim->type == AK_PRIMITIVE_TRIANGLES);
+  ASSERT(prim->nPolygons == 2);
+  ASSERT(prim->indexStride == 1);
+  ASSERT(prim->indices && prim->indices->count == 6);
+  ASSERT(ak_meshPrimitiveIndexComponentType(prim) == AKT_UBYTE);
+  ASSERT(ak_meshPrimitiveIndexMax(prim) == 4);
+  ak_free(doc);
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, plyPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+  prim = ak_test_first_primitive(doc);
+  ASSERT(prim != NULL);
+  ASSERT(prim->type == AK_PRIMITIVE_TRIANGLES);
+  ASSERT(prim->nPolygons == 1);
+  ASSERT(prim->pos && prim->pos->accessor);
+  acc = prim->pos->accessor;
+  ASSERT(acc->count == 3);
+  ASSERT(ak_test_accessor_f32(acc, 1, 0) == 1.0f);
+  ASSERT(ak_test_accessor_f32(acc, 1, 1) == 0.0f);
+  ASSERT(ak_test_accessor_f32(acc, 2, 0) == 0.0f);
+  ASSERT(ak_test_accessor_f32(acc, 2, 1) == 1.0f);
+  ak_free(doc);
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, plyPointsPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+  prim = ak_test_first_primitive(doc);
+  ASSERT(prim != NULL);
+  ASSERT(prim->type == AK_PRIMITIVE_POINTS);
+  ASSERT(prim->nPolygons == 2);
+  ASSERT(prim->indices == NULL);
+  ASSERT(prim->pos && prim->pos->accessor);
+  ASSERT(prim->pos->accessor->count == 2);
+  ASSERT(prim->inputCount == 2);
+  ak_free(doc);
+
+  unlink(stlBinaryPath);
+  unlink(stlAsciiPath);
+  unlink(stlBadPath);
+  unlink(objPath);
+  unlink(plyPath);
+  unlink(plyPointsPath);
   rmdir(tmpdir);
 
   TEST_SUCCESS

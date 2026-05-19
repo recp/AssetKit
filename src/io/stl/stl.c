@@ -32,6 +32,41 @@
 #include "../../strpool.h"
 
 AK_INLINE
+uint32_t
+stl_read_u32le(const char * __restrict p) {
+  uint32_t v;
+
+  memcpy(&v, p, sizeof(v));
+#if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
+  v = bswapu32(v);
+#endif
+
+  return v;
+}
+
+AK_INLINE
+bool
+stl_binary_size_valid(const char * __restrict p,
+                      size_t                   size,
+                      uint32_t * __restrict    nTriangles) {
+  uint32_t count;
+  uint64_t expected;
+
+  if (size < 84)
+    return false;
+
+  count    = stl_read_u32le(p + 80);
+  expected = 84ull + (uint64_t)count * 50ull;
+  if (expected != (uint64_t)size)
+    return false;
+
+  if (nTriangles)
+    *nTriangles = count;
+
+  return true;
+}
+
+AK_INLINE
 void*
 stl_data_append_slot(AkDataContext * __restrict dctx) {
   AkDataChunk *chunk;
@@ -89,15 +124,16 @@ stl_stl(AkDoc     ** __restrict dest,
       || !((p = stlstr) && *p != '\0'))
     return AK_ERR;
 
-  if (p[0] == 's'
-   && p[1] == 'o'
-   && p[2] == 'l'
-   && p[3] == 'i'
-   && p[4] == 'd') {
-    isAscii = true;
-  } else if (p[0] != '\0' && stlstrSize > 80) {
+  if (stl_binary_size_valid(p, stlstrSize, NULL)) {
     isAscii = false;
+  } else if (p[0] == 's'
+             && p[1] == 'o'
+             && p[2] == 'l'
+             && p[3] == 'i'
+             && p[4] == 'd') {
+    isAscii = true;
   } else {
+    ak_releasefile(stlstr, stlstrSize);
     return AK_ERR;
   }
   
@@ -332,7 +368,7 @@ sst_finish(STLState * __restrict sst) {
     prim = (AkMeshPrimitive *)poly;
   }
   
-  prim->nPolygons      = sst->count;
+  prim->nPolygons      = sst->maxVC == 3 ? sst->count / 3 : sst->count;
   prim->mesh           = mesh;
   mesh->primitive      = prim;
   mesh->primitiveCount = 1;

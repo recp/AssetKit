@@ -100,7 +100,8 @@ wobj_finishPrim(WOState  * __restrict wst,
   wobj_joinIndices(wst, wp, prim);
 
   if (wp->maxVC == 3) {
-    prim->nPolygons = (uint32_t)prim->indices->count / 3;
+    prim->nPolygons = (uint32_t)prim->indices->count
+                      / (3u * prim->indexStride);
   }
 }
 
