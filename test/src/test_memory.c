@@ -302,6 +302,36 @@ ak_test_write_f32le(FILE *file, float value) {
 
 static
 bool
+ak_test_write_stl_binary_zero_header(const char *path) {
+  FILE    *file;
+  uint8_t  header[80];
+  uint8_t  attr[2] = {0, 0};
+  float    tri[12] = {
+    0.0f, 0.0f, 1.0f,
+    0.0f, 0.0f, 0.0f,
+    1.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f
+  };
+  bool     ok;
+  uint32_t i;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  memset(header, 0, sizeof(header));
+
+  ok = fwrite(header, 1, sizeof(header), file) == sizeof(header);
+  ok = ok && ak_test_write_u32le(file, 1);
+  for (i = 0; i < 12; i++)
+    ok = ok && ak_test_write_f32le(file, tri[i]);
+  ok = ok && fwrite(attr, 1, sizeof(attr), file) == sizeof(attr);
+
+  return fclose(file) == 0 && ok;
+}
+
+static
+bool
 ak_test_write_stl_binary_solid(const char *path) {
   FILE    *file;
   uint8_t  header[80];
@@ -728,6 +758,7 @@ TEST_IMPL(format_edge_cases) {
   AkAccessor      *acc;
   char             dirTemplate[PATH_MAX];
   char            *tmpdir;
+  char             stlZeroPath[PATH_MAX];
   char             stlBinaryPath[PATH_MAX];
   char             stlColorPath[PATH_MAX];
   char             stlAsciiPath[PATH_MAX];
@@ -755,6 +786,10 @@ TEST_IMPL(format_edge_cases) {
            sizeof(stlBinaryPath),
            "%s/solid_binary.stl",
            tmpdir);
+  snprintf(stlZeroPath,
+           sizeof(stlZeroPath),
+           "%s/zero_header.stl",
+           tmpdir);
   snprintf(stlColorPath,
            sizeof(stlColorPath),
            "%s/color_trailing.stl",
@@ -776,6 +811,7 @@ TEST_IMPL(format_edge_cases) {
            "%s/points.ply",
            tmpdir);
 
+  ASSERT(ak_test_write_stl_binary_zero_header(stlZeroPath));
   ASSERT(ak_test_write_stl_binary_solid(stlBinaryPath));
   ASSERT(ak_test_write_stl_binary_color_trailing(stlColorPath));
   ASSERT(ak_test_write_stl_ascii_one(stlAsciiPath));
@@ -785,6 +821,16 @@ TEST_IMPL(format_edge_cases) {
   ASSERT(ak_test_write_obj_lines_points(objLinesPath));
   ASSERT(ak_test_write_ply_shuffled(plyPath));
   ASSERT(ak_test_write_ply_points(plyPointsPath));
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, stlZeroPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+  prim = ak_test_first_primitive(doc);
+  ASSERT(prim != NULL);
+  ASSERT(prim->type == AK_PRIMITIVE_TRIANGLES);
+  ASSERT(prim->nPolygons == 1);
+  ASSERT(prim->pos && prim->pos->accessor);
+  ASSERT(prim->pos->accessor->count == 3);
+  ak_free(doc);
 
   doc = NULL;
   ASSERT(ak_load(&doc, stlBinaryPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
@@ -894,6 +940,7 @@ TEST_IMPL(format_edge_cases) {
   ASSERT(ak_test_accessor_f32(acc, 0, 3) == 128.0f);
   ak_free(doc);
 
+  unlink(stlZeroPath);
   unlink(stlBinaryPath);
   unlink(stlColorPath);
   unlink(stlAsciiPath);

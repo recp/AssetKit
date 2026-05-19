@@ -231,8 +231,11 @@ stl_stl(AkDoc     ** __restrict dest,
   bool           isAscii;
 
   if (ak_readfile(filepath, NULL, &stlstr, &stlstrSize) != AK_OK
-      || !((p = stlstr) && *p != '\0'))
+      || !((p = stlstr) && stlstrSize > 0)) {
+    if (stlstr)
+      ak_releasefile(stlstr, stlstrSize);
     return AK_ERR;
+  }
 
   if (stl_ascii_likely(p, stlstrSize)) {
     isAscii = true;
