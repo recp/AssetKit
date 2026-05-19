@@ -64,9 +64,6 @@ stl_data_append_slot(AkDataContext * __restrict dctx) {
   return chunk->data + chunk->usedsize - size;
 }
 
-#define STL_DATA_APPEND(DCTX, SRC, SIZE)                                      \
-  memcpy(stl_data_append_slot((DCTX)), (SRC), (SIZE))
-
 #define STL_PARSE_FLOAT3(PTR, DEST)                                           \
   do {                                                                        \
     (PTR) = ak_strtof_one_fast((PTR), &(DEST)[0]);                            \
@@ -230,7 +227,7 @@ stl_binary(STLState * __restrict sst, char * __restrict p) {
 AK_HIDE
 void
 stl_ascii(STLState * __restrict sst, char * __restrict p) {
-  vec4     v, n;
+  vec3     n;
   uint32_t vc, count;
   char     c;
 
@@ -251,9 +248,7 @@ stl_ascii(STLState * __restrict sst, char * __restrict p) {
       
       if (EQ6('n', 'o', 'r', 'm', 'a', 'l')) {
         p += 7;
-        memset(v, 0, sizeof(vec4));
         STL_PARSE_FLOAT3(p, n);
-        /* ak_data_append(sst->dc_nor, n); */
         
         NEXT_LINE
         SKIP_SPACES
@@ -268,11 +263,16 @@ stl_ascii(STLState * __restrict sst, char * __restrict p) {
           while (c != '\0') {
             SKIP_SPACES
             if (EQ6('v', 'e', 'r', 't', 'e', 'x')) {
+              float *nor, *pos;
+
               p += 7;
-              memset(v, 0, sizeof(vec4));
-              STL_PARSE_FLOAT3(p, v);
-              STL_DATA_APPEND(sst->dc_nor, n, sizeof(vec3)); /* duplicate normal */
-              STL_DATA_APPEND(sst->dc_pos, v, sizeof(vec3));
+              pos = stl_data_append_slot(sst->dc_pos);
+              STL_PARSE_FLOAT3(p, pos);
+
+              nor    = stl_data_append_slot(sst->dc_nor);
+              nor[0] = n[0];
+              nor[1] = n[1];
+              nor[2] = n[2];
 
               vc++;
             } else if (EQT7('e', 'n', 'd', 'l', 'o', 'o', 'p')) {
@@ -284,7 +284,7 @@ stl_ascii(STLState * __restrict sst, char * __restrict p) {
 
           count += vc;
           sst->maxVC = GLM_MAX(sst->maxVC, vc);
-          STL_DATA_APPEND(sst->dc_vcount, &vc, sizeof(vc));
+          *(int32_t *)stl_data_append_slot(sst->dc_vcount) = (int32_t)vc;
         } /* outer loop */
       } /* normal */
     } /* facet */
@@ -394,5 +394,4 @@ sst_finish(STLState * __restrict sst) {
   sst->dc_vcount = NULL;
 }
 
-#undef STL_DATA_APPEND
 #undef STL_PARSE_FLOAT3

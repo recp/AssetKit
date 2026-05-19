@@ -92,9 +92,6 @@ wobj_data_append_slot(AkDataContext * __restrict dctx) {
   return chunk->data + chunk->usedsize - size;
 }
 
-#define WOBJ_DATA_APPEND(DCTX, SRC, SIZE)                                     \
-  memcpy(wobj_data_append_slot((DCTX)), (SRC), (SIZE))
-
 #define WOBJ_PARSE_FLOAT2(PTR, DEST)                                          \
   do {                                                                        \
     (PTR) = ak_strtof_one_fast((PTR), &(DEST)[0]);                            \
@@ -120,7 +117,6 @@ wobj_obj(AkDoc     ** __restrict dest,
   AkVisualScene      *scene;
   WOPrim             *prim;
   WOState             wstVal = {0}, *wst;
-  float               v[4];
   size_t              objstrSize;
   AkResult            ret;
   uint32_t            vc;
@@ -207,12 +203,14 @@ wobj_obj(AkDoc     ** __restrict dest,
           break;
         }
         case 'v': {
+          float *pos;
+
           if (*++p == '\0')
             goto err;
 
           /* TODO: handle 4 components */
-          WOBJ_PARSE_FLOAT3(p, v);
-          WOBJ_DATA_APPEND(wst->dc_pos, v, sizeof(vec3));
+          pos = wobj_data_append_slot(wst->dc_pos);
+          WOBJ_PARSE_FLOAT3(p, pos);
           break;
         }
         case 'f': {
@@ -222,7 +220,7 @@ wobj_obj(AkDoc     ** __restrict dest,
           vc = 0;
 
           do {
-            ivec3 face;
+            AkInt *face;
             AkInt idx;
 
             /* vertex index */
@@ -230,7 +228,8 @@ wobj_obj(AkDoc     ** __restrict dest,
 
             if (AK_ARRAY_NLINE_CHECK)
               break;
-            
+
+            face = wobj_data_append_slot(prim->dc_face);
             p = wobj_parse_face_index(p, &idx);
             face[0] = idx;
             face[1] = 0;
@@ -260,7 +259,6 @@ wobj_obj(AkDoc     ** __restrict dest,
                 prim->hasNormal = true;
             }
 
-            WOBJ_DATA_APPEND(prim->dc_face, face, sizeof(face));
             vc += 1;
 
             c = *p;
@@ -271,7 +269,7 @@ wobj_obj(AkDoc     ** __restrict dest,
                    && !AK_ARRAY_NLINE_CHECK);
 
           prim->maxVC = GLM_MAX(prim->maxVC, vc);
-          WOBJ_DATA_APPEND(prim->dc_vcount, &vc, sizeof(vc));
+          *(int32_t *)wobj_data_append_slot(prim->dc_vcount) = (int32_t)vc;
           break;
         }
         case 'o':
@@ -285,17 +283,21 @@ wobj_obj(AkDoc     ** __restrict dest,
       }
     } else if (p[2] == ' ' || p[2] == '\t') {
       if (p[0] == 'v' && p[1] == 'n') {
+        float *nor;
+
         if (*(p += 2) == '\0')
           goto err;
 
-        WOBJ_PARSE_FLOAT3(p, v);
-        WOBJ_DATA_APPEND(wst->dc_nor, v, sizeof(vec3));
+        nor = wobj_data_append_slot(wst->dc_nor);
+        WOBJ_PARSE_FLOAT3(p, nor);
       } else if (p[0] == 'v' && p[1] == 't') {
+        float *tex;
+
         if (*(p += 2) == '\0')
           goto err;
 
-        WOBJ_PARSE_FLOAT2(p, v);
-        WOBJ_DATA_APPEND(wst->dc_tex, v, sizeof(vec2));
+        tex = wobj_data_append_slot(wst->dc_tex);
+        WOBJ_PARSE_FLOAT2(p, tex);
       }
     } else if (ak_str_pack4_fast(p, 4) == WOBJ_KW_MTLL
                && p[4] == 'i'
@@ -359,7 +361,6 @@ err:
   return AK_ERR;
 }
 
-#undef WOBJ_DATA_APPEND
 #undef WOBJ_PARSE_FLOAT2
 #undef WOBJ_PARSE_FLOAT3
 
