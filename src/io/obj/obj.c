@@ -370,7 +370,21 @@ WOPrim*
 wobj_prepare_prim_kind(WOState             * __restrict wst,
                        WOPrim              * __restrict prim,
                        AkMeshPrimitiveType              kind) {
+  WOPrim *it;
+
   if (prim->kind == 0) {
+    for (it = wst->obj ? wst->obj->prim : NULL; it; it = it->next) {
+      if (it == prim
+          || it->kind != kind
+          || it->maxVC == 0
+          || it->smooth != prim->smooth)
+        continue;
+      if (it->mtlname == prim->mtlname
+          || (it->mtlname && prim->mtlname
+              && strcmp(it->mtlname, prim->mtlname) == 0))
+        return it;
+    }
+
     prim->kind = kind;
     return prim;
   }
@@ -378,10 +392,42 @@ wobj_prepare_prim_kind(WOState             * __restrict wst,
   if (prim->kind == kind)
     return prim;
 
+  for (it = wst->obj ? wst->obj->prim : NULL; it; it = it->next) {
+    if (it->kind != kind || it->maxVC == 0 || it->smooth != prim->smooth)
+      continue;
+    if (it->mtlname == prim->mtlname
+        || (it->mtlname && prim->mtlname
+            && strcmp(it->mtlname, prim->mtlname) == 0))
+      return it;
+  }
+
   prim       = wobj_switchPrim(wst, prim->mtlname);
   prim->kind = kind;
 
   return prim;
+}
+
+static
+bool
+wobj_parse_smooth(char * __restrict p) {
+  AkInt smooth;
+
+  while (p[0] != '\0'
+         && (p[0] == ' ' || p[0] == '\t' || p[0] == '\f' || p[0] == '\v'))
+    p++;
+
+  if (p[0] == '0'
+      || (p[0] == 'o' && p[1] == 'f' && p[2] == 'f')
+      || (p[0] == 'n' && p[1] == 'u' && p[2] == 'l' && p[3] == 'l'))
+    return false;
+
+  if (p[0] == 'o' && p[1] == 'n')
+    return true;
+
+  smooth = 0;
+  ak_strtoi_one_fast(p, &smooth);
+
+  return smooth != 0;
 }
 
 static
@@ -690,12 +736,31 @@ wobj_obj(AkDoc     ** __restrict dest,
           }
           break;
         }
-        case 'o':
-        case 'g': {
+        case 'o': {
           wobj_switchObject(wst);
           prim = wst->obj->prim;
           break;
         }
+        case 's': {
+          bool smooth;
+
+          if ((c = *(p += 2)) == '\0')
+            goto err;
+
+          smooth = wobj_parse_smooth(p);
+          if (wst->smooth != smooth) {
+            wst->smooth = smooth;
+            if (prim) {
+              if (prim->dc_face->itemcount > 0)
+                prim = wobj_switchPrim(wst, prim->mtlname);
+              else
+                prim->smooth = smooth;
+            }
+          }
+          break;
+        }
+        case 'g':
+          break;
         default:
           break;
       }
@@ -750,6 +815,7 @@ wobj_obj(AkDoc     ** __restrict dest,
       if (end > begin)
         m = ak_heap_strndup(heap, wst->doc, begin, end - begin);
       
+      wst->mtlname = m;
       prim = wobj_switchPrim(wst, m);
     }
     

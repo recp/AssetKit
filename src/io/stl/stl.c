@@ -31,7 +31,34 @@
 #include "../../endian.h"
 #include "../../strpool.h"
 
-#define STL_POSITION_CACHE_SIZE 4096u
+#include <stdio.h>
+#include <time.h>
+
+/* Direct-mapped cache for repeated STL position tuples. 32k keeps the
+   common edge-sharing reuse hot without the 1MB stack footprint of 64k. */
+#define STL_POSITION_CACHE_SIZE 32768u
+
+static
+bool
+stl_profile_enabled(void) {
+  const char *value;
+
+  value = getenv("ASSETKIT_STL_PROFILE");
+  if (!value)
+    value = getenv("ASSETKIT_BLENDER_PROFILE");
+
+  return value && value[0] && value[0] != '0';
+}
+
+static
+double
+stl_profile_now_ms(void) {
+  struct timespec ts;
+
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+
+  return (double)ts.tv_sec * 1000.0 + (double)ts.tv_nsec / 1000000.0;
+}
 
 AK_INLINE
 uint16_t
@@ -227,7 +254,9 @@ typedef struct STLPositionDedup {
   uint32_t *posBits;
   uint32_t *table;
   uint32_t *indices;
+  AkIndexArray *indexArray;
   size_t    tableCap;
+  size_t    posCap;
   uint32_t  count;
   uint32_t  indexCount;
 } STLPositionDedup;
@@ -248,7 +277,10 @@ void
 stl_position_dedup_free(STLPositionDedup * __restrict dedup) {
   free(dedup->posBits);
   free(dedup->table);
-  free(dedup->indices);
+  if (dedup->indexArray)
+    ak_free(dedup->indexArray);
+  else
+    free(dedup->indices);
   memset(dedup, 0, sizeof(*dedup));
 }
 
@@ -277,8 +309,13 @@ bool
 stl_position_dedup_init(STLPositionDedup * __restrict dedup,
                         size_t                         indexCount,
                         size_t                         triangleCount,
-                        size_t                         tableCountHint) {
+                        size_t                         tableCountHint,
+                        AkHeap * __restrict            heap,
+                        void * __restrict              indexParent,
+                        bool                           directUintIndices) {
   size_t tableCap, tableCount;
+  size_t posBytes;
+  size_t posCap;
 
   memset(dedup, 0, sizeof(*dedup));
   if (indexCount == 0 || indexCount >= UINT32_MAX)
@@ -294,13 +331,25 @@ stl_position_dedup_init(STLPositionDedup * __restrict dedup,
   if (!stl_next_hash_cap(tableCount, &tableCap))
     return false;
 
-  if (indexCount > SIZE_MAX / (sizeof(float) * 3))
+  posCap = tableCount < indexCount ? tableCount : indexCount;
+  if (posCap == 0 || posCap > SIZE_MAX / (sizeof(*dedup->posBits) * 3))
     return false;
+  posBytes = posCap * sizeof(*dedup->posBits) * 3;
 
-  dedup->posBits   = malloc(indexCount * sizeof(*dedup->posBits) * 3);
-  dedup->indices   = malloc(indexCount * sizeof(*dedup->indices));
-  dedup->table     = calloc(tableCap, sizeof(*dedup->table));
-  dedup->tableCap  = tableCap;
+  dedup->table    = calloc(tableCap, sizeof(*dedup->table));
+  dedup->tableCap = tableCap;
+  dedup->posCap   = posCap;
+  dedup->posBits  = malloc(posBytes);
+  if (directUintIndices && heap && indexParent) {
+    dedup->indexArray = ak_indexArrayAlloc(heap,
+                                           indexParent,
+                                           indexCount,
+                                           AKT_UINT);
+    if (dedup->indexArray)
+      dedup->indices = (uint32_t *)(void *)dedup->indexArray->items;
+  } else {
+    dedup->indices = malloc(indexCount * sizeof(*dedup->indices));
+  }
 
   if (!dedup->posBits
       || !dedup->indices
@@ -387,6 +436,12 @@ stl_position_hash_bits(const uint32_t bits[3]) {
   return stl_hash3_u32(bits[0], bits[1], bits[2]);
 }
 
+AK_INLINE
+uint32_t
+stl_position_cache_slot_bits(const uint32_t bits[3]) {
+  return (bits[0] ^ bits[1] ^ bits[2]) & (STL_POSITION_CACHE_SIZE - 1u);
+}
+
 static
 uint64_t
 stl_vertex_hash(const float * __restrict pos,
@@ -439,7 +494,8 @@ stl_position_dedup_intern_bits_h(STLPositionDedup * __restrict dedup,
 
     packed = dedup->table[slot];
     if (packed == 0) {
-      if (dedup->count + 1u >= dedup->tableCap)
+      if (dedup->count >= dedup->posCap
+          || dedup->count + 1u >= dedup->tableCap)
         return false;
       index = dedup->count++;
       dedup->posBits[(size_t)index * 3 + 0] = bits[0];
@@ -476,8 +532,7 @@ stl_position_dedup_intern_raw_cached(STLPositionDedup * __restrict dedup,
   bits[1] = stl_read_u32le(pos + 4);
   bits[2] = stl_read_u32le(pos + 8);
 
-  hash = stl_position_hash_bits(bits);
-  cacheSlot = hash & (STL_POSITION_CACHE_SIZE - 1u);
+  cacheSlot = stl_position_cache_slot_bits(bits);
   packed = cachePacked[cacheSlot];
   if (packed) {
     const uint32_t *cached = cacheBits + (size_t)cacheSlot * 3;
@@ -487,6 +542,7 @@ stl_position_dedup_intern_raw_cached(STLPositionDedup * __restrict dedup,
     }
   }
 
+  hash = stl_position_hash_bits(bits);
   if (!stl_position_dedup_intern_bits_h(dedup, bits, hash, indexOut))
     return false;
 
@@ -573,10 +629,16 @@ stl_position_dedup_emit(STLState * __restrict sst,
   sst->buff_pos  = posBuff;
   sst->count     = (uint32_t)count;
   sst->maxVC     = 3;
-  sst->raw_indices = dedup->indices;
-  sst->indexCount  = dedup->indexCount;
-  sst->indexMax    = dedup->count - 1;
-  dedup->indices   = NULL;
+  sst->raw_indices     = dedup->indices;
+  sst->raw_index_array = dedup->indexArray;
+  sst->indexCount      = dedup->indexCount;
+  sst->indexMax        = dedup->count - 1;
+  if (dedup->indexArray) {
+    dedup->indexArray->count = dedup->indexCount;
+    dedup->indexArray->max   = sst->indexMax;
+  }
+  dedup->indices    = NULL;
+  dedup->indexArray = NULL;
 
   return true;
 }
@@ -896,6 +958,9 @@ stl_binary_position_dedup(STLState * __restrict sst, char * __restrict p) {
   uint32_t  nTriangles, sampleTriangles;
   size_t    indexCount, tableCountHint;
   bool      ok;
+  bool      directUintIndices;
+  bool      profile;
+  double    t0, tSample, tInit, tFill, tEmit;
   vec4      defaultColor;
 
   if (!ak_opt_get(AK_OPT_MESH_POSITION_DEDUP_INDEX))
@@ -913,18 +978,28 @@ stl_binary_position_dedup(STLState * __restrict sst, char * __restrict p) {
 
   indexCount = (size_t)nTriangles * 3u;
   tableCountHint = 0;
+  profile = stl_profile_enabled();
+  t0 = profile ? stl_profile_now_ms() : 0.0;
+  tSample = tInit = tFill = tEmit = 0.0;
   sampleTriangles = nTriangles > 4096u ? 4096u : nTriangles;
   if (sampleTriangles < nTriangles && sampleTriangles > 0) {
     STLPositionDedup sample;
     size_t sampleIndexCount;
+    double tPhase;
 
+    tPhase = profile ? stl_profile_now_ms() : 0.0;
     sampleIndexCount = (size_t)sampleTriangles * 3u;
     if (!stl_position_dedup_init(&sample,
                                  sampleIndexCount,
                                  sampleTriangles,
-                                 0))
+                                 0,
+                                 NULL,
+                                 NULL,
+                                 false))
       return false;
     ok = stl_binary_fill_position_dedup(&sample, body, sampleTriangles);
+    if (profile)
+      tSample = stl_profile_now_ms() - tPhase;
     if (!ok || sample.indexCount == 0
         || (uint64_t)sample.count * 100ull
              > (uint64_t)sample.indexCount * 95ull) {
@@ -941,14 +1016,49 @@ stl_binary_position_dedup(STLState * __restrict sst, char * __restrict p) {
     stl_position_dedup_free(&sample);
   }
 
-  if (!stl_position_dedup_init(&dedup, indexCount, nTriangles, tableCountHint))
+  directUintIndices = tableCountHint > UINT16_MAX;
+  tInit = profile ? stl_profile_now_ms() : 0.0;
+  if (!stl_position_dedup_init(&dedup,
+                               indexCount,
+                               nTriangles,
+                               tableCountHint,
+                               sst->heap,
+                               sst->doc,
+                               directUintIndices))
     return false;
+  if (profile)
+    tInit = stl_profile_now_ms() - tInit;
 
+  tFill = profile ? stl_profile_now_ms() : 0.0;
   ok = stl_binary_fill_position_dedup(&dedup, body, nTriangles);
+  if (profile)
+    tFill = stl_profile_now_ms() - tFill;
+  if (ok)
+    tEmit = profile ? stl_profile_now_ms() : 0.0;
   if (ok)
     ok = dedup.indexCount > 0
          && dedup.count < dedup.indexCount
          && stl_position_dedup_emit(sst, &dedup);
+  if (profile && tEmit > 0.0)
+    tEmit = stl_profile_now_ms() - tEmit;
+
+  if (profile) {
+    fprintf(stderr,
+            "[AssetKit STL] position_dedup triangles=%u index_count=%u "
+            "unique=%u table_hint=%zu direct_uint=%d sample=%.3fms "
+            "init=%.3fms fill=%.3fms emit=%.3fms total=%.3fms ok=%d\n",
+            nTriangles,
+            dedup.indexCount,
+            dedup.count,
+            tableCountHint,
+            directUintIndices ? 1 : 0,
+            tSample,
+            tInit,
+            tFill,
+            tEmit,
+            stl_profile_now_ms() - t0,
+            ok ? 1 : 0);
+  }
 
   stl_position_dedup_free(&dedup);
   return ok;
@@ -1329,36 +1439,48 @@ sst_finish(STLState * __restrict sst) {
     uint32_t      i;
 
     componentType = ak_indexComponentTypeForMax(sst->indexMax);
-    indices       = ak_indexArrayAlloc(heap,
-                                       prim,
-                                       sst->indexCount,
-                                       componentType);
+    if (componentType == AKT_UINT && sst->raw_index_array) {
+      indices                = sst->raw_index_array;
+      indices->count         = sst->indexCount;
+      indices->max           = sst->indexMax;
+      indices->componentType = AKT_UINT;
+      ak_heap_setpm(indices, prim);
+      sst->raw_index_array   = NULL;
+      sst->raw_indices       = NULL;
+    } else {
+      indices = ak_indexArrayAlloc(heap,
+                                   prim,
+                                   sst->indexCount,
+                                   componentType);
+    }
     if (indices) {
-      switch (componentType) {
-        case AKT_UBYTE: {
-          uint8_t *dst;
+      if (sst->raw_indices) {
+        switch (componentType) {
+          case AKT_UBYTE: {
+            uint8_t *dst;
 
-          dst = (uint8_t *)indices->items;
-          for (i = 0; i < sst->indexCount; i++)
-            dst[i] = (uint8_t)sst->raw_indices[i];
-          break;
-        }
-        case AKT_USHORT: {
-          uint16_t *dst;
+            dst = (uint8_t *)indices->items;
+            for (i = 0; i < sst->indexCount; i++)
+              dst[i] = (uint8_t)sst->raw_indices[i];
+            break;
+          }
+          case AKT_USHORT: {
+            uint16_t *dst;
 
-          dst = (uint16_t *)(void *)indices->items;
-          for (i = 0; i < sst->indexCount; i++)
-            dst[i] = (uint16_t)sst->raw_indices[i];
-          break;
+            dst = (uint16_t *)(void *)indices->items;
+            for (i = 0; i < sst->indexCount; i++)
+              dst[i] = (uint16_t)sst->raw_indices[i];
+            break;
+          }
+          case AKT_UINT: {
+            memcpy(indices->items,
+                   sst->raw_indices,
+                   sizeof(*sst->raw_indices) * (size_t)sst->indexCount);
+            break;
+          }
+          default:
+            break;
         }
-        case AKT_UINT: {
-          memcpy(indices->items,
-                 sst->raw_indices,
-                 sizeof(*sst->raw_indices) * (size_t)sst->indexCount);
-          break;
-        }
-        default:
-          break;
       }
 
       indices->max     = sst->indexMax;
@@ -1420,7 +1542,11 @@ sst_finish(STLState * __restrict sst) {
   sst->dc_pos    = NULL;
   sst->dc_nor    = NULL;
   sst->dc_vcount = NULL;
-  free(sst->raw_indices);
+  if (sst->raw_index_array)
+    ak_free(sst->raw_index_array);
+  else
+    free(sst->raw_indices);
+  sst->raw_index_array = NULL;
   sst->raw_indices = NULL;
 }
 

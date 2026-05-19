@@ -201,6 +201,137 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
       }
 
       pst->count = count;
+    } else if (elem->type == PLY_ELEM_TRISTRIPS) {
+      AkUInt elemc, fc, j, count, vertcount;
+
+      pst->dc_ind = ply_index_data_new(pst);
+      elemc       = elem->count;
+      i           = 0;
+      count       = 0;
+      vertcount   = pst->vertcount;
+
+      while (i++ < elemc) {
+        prop = elem->property;
+
+        while (prop) {
+          if (prop->semantic == PLY_PROP_VERTEX_INDICES && prop->islist) {
+            AkUInt prev0, prev1, stripLen;
+            size_t itemSize;
+
+            if (!prop->listCountTypeDesc || !prop->typeDesc)
+              goto fns;
+
+            if ((p + prop->listCountTypeDesc->size) > e)
+              goto fns;
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+
+            ply_val(p, prop->listCountTypeDesc, le, AkUInt, fc, 0);
+
+#pragma GCC diagnostic pop
+
+            itemSize = prop->typeDesc->size;
+            if ((uint64_t)fc * itemSize > (uint64_t)(e - p))
+              goto fns;
+
+            prev0 = prev1 = 0;
+            stripLen = 0;
+            for (j = 0; j < fc; j++) {
+              AkInt value;
+              AkUInt index;
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+
+              ply_val(p, prop->typeDesc, le, AkInt, value, -1);
+
+#pragma GCC diagnostic pop
+
+              if (value < 0 || (AkUInt)value >= vertcount) {
+                stripLen = 0;
+                continue;
+              }
+
+              index = (AkUInt)value;
+              if (stripLen == 0) {
+                prev0 = index;
+                stripLen = 1;
+              } else if (stripLen == 1) {
+                prev1 = index;
+                stripLen = 2;
+              } else {
+                PLY_INDEX_APPEND_STRIP_TRI(pst,
+                                           prev0,
+                                           prev1,
+                                           index,
+                                           stripLen,
+                                           count);
+                prev0 = prev1;
+                prev1 = index;
+                stripLen++;
+              }
+            }
+          } else {
+            if (!ply_bin_skip_property(&p, e, prop, le))
+              goto fns;
+          }
+
+          prop = prop->next;
+        }
+      }
+
+      pst->count = count;
+    } else if (elem->type == PLY_ELEM_EDGE) {
+      AkUInt elemc, vertcount;
+
+      elemc     = elem->count;
+      i         = 0;
+      vertcount = pst->vertcount;
+
+      while (i++ < elemc) {
+        AkUInt v0, v1;
+        bool   hasV0, hasV1;
+
+        v0 = v1 = 0;
+        hasV0 = hasV1 = false;
+        prop = elem->property;
+
+        while (prop) {
+          if (!prop->islist
+              && (prop->semantic == PLY_PROP_VERTEX1
+                  || prop->semantic == PLY_PROP_VERTEX2)) {
+            AkUInt value;
+
+            if (!prop->typeDesc || p + prop->typeDesc->size > e)
+              goto fns;
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+
+            ply_val(p, prop->typeDesc, le, AkUInt, value, UINT32_MAX);
+
+#pragma GCC diagnostic pop
+
+            if (prop->semantic == PLY_PROP_VERTEX1) {
+              v0 = value;
+              hasV0 = true;
+            } else {
+              v1 = value;
+              hasV1 = true;
+            }
+          } else {
+            if (!ply_bin_skip_property(&p, e, prop, le))
+              goto fns;
+          }
+
+          prop = prop->next;
+        }
+
+        if (hasV0 && hasV1 && v0 < vertcount && v1 < vertcount) {
+          ply_edge_append(pst, v0, v1);
+        }
+      }
     } else {
       /* skip unsupported elements */
       AkUInt elemc;

@@ -86,6 +86,8 @@ wobj_finishPrim(WOState  * __restrict wst,
   prim->next      = mesh->primitive;
   mesh->primitive = prim;
   mesh->primitiveCount++;
+  if (wp->smooth)
+    prim->reserved1 |= WOBJ_PRIM_FLAG_SMOOTH;
   
   if (wst->mtlib && wp->mtlname)
     prim->material = rb_find(wst->mtlib->materials, (void *)wp->mtlname);
@@ -132,6 +134,7 @@ wobj_switchPrim(WOState * __restrict wst, const char * __restrict mtlname) {
 
   if ((wp = wst->obj->prim) && wp->dc_face->itemcount == 0) {
     wp->mtlname = mtlname;
+    wp->smooth  = wst->smooth;
     return wst->obj->prim;
   }
 
@@ -145,6 +148,7 @@ wobj_switchPrim(WOState * __restrict wst, const char * __restrict mtlname) {
                                sizeof(int32_t),
                                NULL);
   wp->mtlname    = mtlname;
+  wp->smooth     = wst->smooth;
   wp->next       = wst->obj->prim;
   wst->obj->prim = wp;
 
@@ -207,9 +211,14 @@ void
 wobj_switchObject(WOState * __restrict wst) {
   WOObject   *obj;
   AkGeometry *geom;
+
+  wst->smooth = false;
   
-  if (wst->obj && wst->obj->prim && wst->obj->prim->dc_face->itemcount == 0)
+  if (wst->obj && wst->obj->prim && wst->obj->prim->dc_face->itemcount == 0) {
+    wst->obj->prim->mtlname = wst->mtlname;
+    wst->obj->prim->smooth = false;
     return;
+  }
 
   obj       = ak_heap_calloc(wst->heap, wst->tmp, sizeof(*obj));
   obj->next = wst->obj;
@@ -220,5 +229,5 @@ wobj_switchObject(WOState * __restrict wst) {
   /* set current geometry */
   obj->geom = geom;
 
-  wobj_switchPrim(wst, NULL);
+  wobj_switchPrim(wst, wst->mtlname);
 }

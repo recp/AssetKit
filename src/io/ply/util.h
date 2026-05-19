@@ -61,14 +61,16 @@
 
 static inline
 AkDataContext*
-ply_index_data_new(PLYState * __restrict pst) {
+ply_index_data_new_for(PLYState * __restrict pst,
+                       AkTypeId * __restrict componentType,
+                       AkUInt   * __restrict indexMax) {
   AkUInt maxIndex;
   size_t itemSize, nodeItems;
 
   maxIndex = pst->vertcount > 0 ? pst->vertcount - 1 : 0;
-  pst->indexComponentType = ak_indexComponentTypeForMax(maxIndex);
-  pst->indexMax = 0;
-  itemSize = ak_indexComponentSize(pst->indexComponentType);
+  *componentType = ak_indexComponentTypeForMax(maxIndex);
+  *indexMax = 0;
+  itemSize = ak_indexComponentSize(*componentType);
   nodeItems = 1024 / itemSize;
   if (nodeItems < 128)
     nodeItems = 128;
@@ -78,35 +80,72 @@ ply_index_data_new(PLYState * __restrict pst) {
 
 static inline
 void
-ply_index_append(PLYState * __restrict pst, AkUInt value) {
-  if (value > pst->indexMax)
-    pst->indexMax = value;
+ply_index_append_to(AkDataContext * __restrict dctx,
+                    AkTypeId                    componentType,
+                    AkUInt       * __restrict   indexMax,
+                    AkUInt                      value) {
+  if (value > *indexMax)
+    *indexMax = value;
 
-  switch (pst->indexComponentType) {
+  switch (componentType) {
     case AKT_UBYTE: {
       uint8_t v;
 
       v = (uint8_t)value;
-      ak_data_append(pst->dc_ind, &v);
+      ak_data_append(dctx, &v);
       break;
     }
     case AKT_USHORT: {
       uint16_t v;
 
       v = (uint16_t)value;
-      ak_data_append(pst->dc_ind, &v);
+      ak_data_append(dctx, &v);
       break;
     }
     case AKT_UINT: {
       uint32_t v;
 
       v = (uint32_t)value;
-      ak_data_append(pst->dc_ind, &v);
+      ak_data_append(dctx, &v);
       break;
     }
     default:
       break;
   }
+}
+
+static inline
+AkDataContext*
+ply_index_data_new(PLYState * __restrict pst) {
+  return ply_index_data_new_for(pst, &pst->indexComponentType, &pst->indexMax);
+}
+
+static inline
+void
+ply_index_append(PLYState * __restrict pst, AkUInt value) {
+  ply_index_append_to(pst->dc_ind,
+                      pst->indexComponentType,
+                      &pst->indexMax,
+                      value);
+}
+
+static inline
+void
+ply_edge_append(PLYState * __restrict pst, AkUInt a, AkUInt b) {
+  if (!pst->dc_edge_ind)
+    pst->dc_edge_ind = ply_index_data_new_for(pst,
+                                              &pst->edgeIndexComponentType,
+                                              &pst->edgeIndexMax);
+
+  ply_index_append_to(pst->dc_edge_ind,
+                      pst->edgeIndexComponentType,
+                      &pst->edgeIndexMax,
+                      a);
+  ply_index_append_to(pst->dc_edge_ind,
+                      pst->edgeIndexComponentType,
+                      &pst->edgeIndexMax,
+                      b);
+  pst->edgeIndexCount += 2;
 }
 
 #define PLY_INDEX_APPEND_TYPED(PST, TYPE, VALUE)                              \
@@ -191,6 +230,31 @@ ply_index_append(PLYState * __restrict pst, AkUInt value) {
         break;                                                                \
     }                                                                         \
     (OUT_COUNT) += 3;                                                         \
+  } while (0)
+
+#define PLY_INDEX_APPEND_STRIP_TRI(PST, A, B, C, STRIP_LEN, OUT_COUNT)        \
+  do {                                                                        \
+    AkUInt strip_a_, strip_b_, strip_c_;                                      \
+                                                                              \
+    strip_a_ = (A);                                                           \
+    strip_b_ = (B);                                                           \
+    strip_c_ = (C);                                                           \
+    if (strip_a_ != strip_b_                                                   \
+        && strip_a_ != strip_c_                                                \
+        && strip_b_ != strip_c_) {                                             \
+      if (((STRIP_LEN) & 1u) == 0u)                                           \
+        PLY_INDEX_APPEND_TRI((PST),                                           \
+                             strip_a_,                                        \
+                             strip_b_,                                        \
+                             strip_c_,                                        \
+                             (OUT_COUNT));                                    \
+      else                                                                    \
+        PLY_INDEX_APPEND_TRI((PST),                                           \
+                             strip_b_,                                        \
+                             strip_a_,                                        \
+                             strip_c_,                                        \
+                             (OUT_COUNT));                                    \
+    }                                                                         \
   } while (0)
 
 #define PLY_INDEX_APPEND_TRI_TYPED(PST, TYPE, A, B, C)                        \

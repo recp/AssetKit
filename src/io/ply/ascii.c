@@ -198,6 +198,110 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
       } while (p && p[0] != '\0');
       
       pst->count = count;
+    } else if (elem->type == PLY_ELEM_TRISTRIPS) {
+      AkUInt fc, j, count, vertcount;
+
+      pst->dc_ind = ply_index_data_new(pst);
+      c           = *p;
+      i           = 0;
+      count       = 0;
+      vertcount   = pst->vertcount;
+
+      do {
+        SKIP_SPACES
+
+        prop = elem->property;
+        while (prop) {
+          if (prop->semantic == PLY_PROP_VERTEX_INDICES && prop->islist) {
+            AkUInt prev0, prev1, stripLen;
+
+            p = ply_ascii_parse_index(p, &fc);
+            prev0 = prev1 = 0;
+            stripLen = 0;
+            for (j = 0; j < fc; j++) {
+              AkInt value;
+              AkUInt index;
+
+              p = ak_strtoi_one_fast(p, &value);
+              if (value < 0 || (AkUInt)value >= vertcount) {
+                stripLen = 0;
+                continue;
+              }
+
+              index = (AkUInt)value;
+              if (stripLen == 0) {
+                prev0 = index;
+                stripLen = 1;
+              } else if (stripLen == 1) {
+                prev1 = index;
+                stripLen = 2;
+              } else {
+                PLY_INDEX_APPEND_STRIP_TRI(pst,
+                                           prev0,
+                                           prev1,
+                                           index,
+                                           stripLen,
+                                           count);
+                prev0 = prev1;
+                prev1 = index;
+                stripLen++;
+              }
+            }
+          } else {
+            p = ply_ascii_skip_property(p, prop);
+          }
+
+          prop = prop->next;
+        }
+
+        NEXT_LINE
+
+        if (++i >= elem->count)
+          break;
+      } while (p && p[0] != '\0');
+
+      pst->count = count;
+    } else if (elem->type == PLY_ELEM_EDGE) {
+      AkUInt vertcount;
+
+      c         = *p;
+      i         = 0;
+      vertcount = pst->vertcount;
+
+      do {
+        AkUInt v0, v1;
+        bool   hasV0, hasV1;
+
+        SKIP_SPACES
+
+        v0 = v1 = 0;
+        hasV0 = hasV1 = false;
+        prop = elem->property;
+        while (prop) {
+          if (!prop->islist
+              && prop->semantic == PLY_PROP_VERTEX1) {
+            p = ply_ascii_parse_index(p, &v0);
+            hasV0 = true;
+          } else if (!prop->islist
+                     && prop->semantic == PLY_PROP_VERTEX2) {
+            p = ply_ascii_parse_index(p, &v1);
+            hasV1 = true;
+          } else {
+            p = ply_ascii_skip_property(p, prop);
+          }
+
+          prop = prop->next;
+        }
+
+        if (hasV0 && hasV1 && v0 < vertcount && v1 < vertcount) {
+          ply_edge_append(pst, v0, v1);
+        }
+
+        NEXT_LINE
+
+        if (++i >= elem->count)
+          break;
+      } while (p && p[0] != '\0');
     } else {
       /* skip unsupported elements */
       for (i = 0; i < elem->count; i++) {

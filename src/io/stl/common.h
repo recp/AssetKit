@@ -38,6 +38,7 @@ typedef struct STLState {
   AkGeometry    *geom;
   AkDataContext *dc_ind, *dc_pos, *dc_nor, *dc_vcount;
   AkBuffer      *buff_pos, *buff_nor, *buff_col;
+  AkIndexArray  *raw_index_array;
   uint32_t      *raw_indices;
   AkNode        *node;
   uint32_t       indexCount;

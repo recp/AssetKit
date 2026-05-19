@@ -41,7 +41,10 @@ typedef enum PLYPropertyType {
   PLY_PROP_R,
   PLY_PROP_G,
   PLY_PROP_B,
-  PLY_PROP_A
+  PLY_PROP_A,
+  PLY_PROP_VERTEX1,
+  PLY_PROP_VERTEX2,
+  PLY_PROP_VERTEX_INDICES
 } PLYPropertyType;
 
 typedef struct PLYProperty {
@@ -62,7 +65,9 @@ typedef struct PLYProperty {
 typedef enum PLYElementType {
   PLY_ELEM_UNKNOWN = 0,
   PLY_ELEM_VERTEX  = 1,
-  PLY_ELEM_FACE    = 2
+  PLY_ELEM_FACE    = 2,
+  PLY_ELEM_TRISTRIPS = 3,
+  PLY_ELEM_EDGE    = 4
 } PLYElementType;
 
 typedef struct PLYElement {
@@ -84,6 +89,7 @@ typedef struct PLYState {
   AkLibrary     *lib_geom;
   AkGeometry    *geom;
   AkDataContext *dc_ind;
+  AkDataContext *dc_edge_ind;
   AkAccessor    *ac_pos, *ac_nor, *ac_tex, *ac_rgb;
   AkNode        *node;
   PLYElement    *element;
@@ -92,8 +98,11 @@ typedef struct PLYState {
   uint32_t       byteStride;
   uint32_t       count;
   uint32_t       vertcount;
+  uint32_t       edgeIndexCount;
   AkUInt         indexMax;
+  AkUInt         edgeIndexMax;
   AkTypeId       indexComponentType;
+  AkTypeId       edgeIndexComponentType;
 } PLYState;
 
 #define SKIP_SPACES                                                           \

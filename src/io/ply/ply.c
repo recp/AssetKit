@@ -34,14 +34,14 @@
 #include "../../string_fast.h"
 #include "../../strpool.h"
 
-#define PLY_COPY_INDICES(DSTTYPE, SRCTYPE)                                    \
+#define PLY_COPY_INDICES(DCTX, DSTTYPE, SRCTYPE)                              \
   do {                                                                        \
     AkDataChunk  *chunk_;                                                     \
     const SRCTYPE *src_;                                                      \
     DSTTYPE      *dst_;                                                       \
     size_t        i_, count_;                                                 \
                                                                               \
-    chunk_ = pst->dc_ind->data;                                               \
+    chunk_ = (DCTX)->data;                                                    \
     dst_   = (DSTTYPE *)(void *)prim->indices->items;                         \
     while (chunk_) {                                                          \
       src_   = (const SRCTYPE *)(const void *)chunk_->data;                   \
@@ -53,12 +53,12 @@
     }                                                                         \
   } while (0)
 
-#define PLY_COPY_INDICES_FROM_TEMP(DSTTYPE)                                   \
+#define PLY_COPY_INDICES_FROM_TEMP(DCTX, SRCTYPE, DSTTYPE)                    \
   do {                                                                        \
-    switch (pst->indexComponentType) {                                        \
-      case AKT_UBYTE:  PLY_COPY_INDICES(DSTTYPE, uint8_t);  break;            \
-      case AKT_USHORT: PLY_COPY_INDICES(DSTTYPE, uint16_t); break;            \
-      case AKT_UINT:   PLY_COPY_INDICES(DSTTYPE, uint32_t); break;            \
+    switch (SRCTYPE) {                                                        \
+      case AKT_UBYTE:  PLY_COPY_INDICES((DCTX), DSTTYPE, uint8_t);  break;    \
+      case AKT_USHORT: PLY_COPY_INDICES((DCTX), DSTTYPE, uint16_t); break;    \
+      case AKT_UINT:   PLY_COPY_INDICES((DCTX), DSTTYPE, uint32_t); break;    \
       default:                                                        break;  \
     }                                                                         \
   } while (0)
@@ -214,6 +214,9 @@ ply_type_desc_by_token(const char * __restrict tok, size_t len) {
 static
 PLYPropertyType
 ply_prop_semantic_by_token(const char * __restrict tok, size_t len) {
+#define PLY_PROP_DIFFUSE_HEAD AK_STR_PACK8_CHARS('d', 'i', 'f', 'f', 'u', 's', 'e', '_')
+#define PLY_PROP_VERTEX_I_HEAD AK_STR_PACK8_CHARS('v', 'e', 'r', 't', 'e', 'x', '_', 'i')
+
   switch (len) {
     case 1:
       switch (tok[0]) {
@@ -238,6 +241,12 @@ ply_prop_semantic_by_token(const char * __restrict tok, size_t len) {
           case 'z': return PLY_PROP_NZ;
           default:  break;
         }
+      } else if (tok[0] == 'v') {
+        switch (tok[1]) {
+          case '1': return PLY_PROP_VERTEX1;
+          case '2': return PLY_PROP_VERTEX2;
+          default:  break;
+        }
       }
       break;
     case 3:
@@ -258,10 +267,49 @@ ply_prop_semantic_by_token(const char * __restrict tok, size_t len) {
         return PLY_PROP_A;
       break;
     }
+    case 7:
+      if (ak_str_pack8_fast(tok, 7)
+          == AK_STR_PACK8_CHARS('v', 'e', 'r', 't', 'e', 'x', '1', 0))
+        return PLY_PROP_VERTEX1;
+      if (ak_str_pack8_fast(tok, 7)
+          == AK_STR_PACK8_CHARS('v', 'e', 'r', 't', 'e', 'x', '2', 0))
+        return PLY_PROP_VERTEX2;
+      break;
+    case 11:
+      if (ak_str_pack8_fast(tok, 8) == PLY_PROP_DIFFUSE_HEAD
+          && ak_str_pack4_fast(tok + 8, 3) == AK_STR_PACK4_CHARS('r', 'e', 'd', 0))
+        return PLY_PROP_R;
+      break;
+    case 12:
+      if (ak_str_pack8_fast(tok, 8) == PLY_PROP_VERTEX_I_HEAD
+          && ak_str_pack4_fast(tok + 8, 4) == AK_STR_PACK4_CHARS('n', 'd', 'e', 'x'))
+        return PLY_PROP_VERTEX_INDICES;
+      if (ak_str_pack8_fast(tok, 8) == PLY_PROP_DIFFUSE_HEAD
+          && ak_str_pack4_fast(tok + 8, 4) == AK_STR_PACK4_CHARS('b', 'l', 'u', 'e'))
+        return PLY_PROP_B;
+      break;
+    case 13:
+      if (ak_str_pack8_fast(tok, 8) == PLY_PROP_DIFFUSE_HEAD
+          && ak_str_pack8_fast(tok + 8, 5)
+               == AK_STR_PACK8_CHARS('g', 'r', 'e', 'e', 'n', 0, 0, 0))
+        return PLY_PROP_G;
+      if (ak_str_pack8_fast(tok, 8) == PLY_PROP_DIFFUSE_HEAD
+          && ak_str_pack8_fast(tok + 8, 5)
+               == AK_STR_PACK8_CHARS('a', 'l', 'p', 'h', 'a', 0, 0, 0))
+        return PLY_PROP_A;
+      break;
+    case 14:
+      if (ak_str_pack8_fast(tok, 8) == PLY_PROP_VERTEX_I_HEAD
+          && ak_str_pack8_fast(tok + 8, 6)
+               == AK_STR_PACK8_CHARS('n', 'd', 'i', 'c', 'e', 's', 0, 0))
+        return PLY_PROP_VERTEX_INDICES;
+      break;
     default:
       break;
   }
 
+#undef PLY_PROP_VERTEX_I_HEAD
+#undef PLY_PROP_DIFFUSE_HEAD
   return PLY_PROP_UNSUPPORTED;
 }
 
@@ -410,6 +458,24 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
         p = ak_strtoui_one_fast(p, &parsedCount);
         elem->count = (uint32_t)parsedCount;
         elem->type  = PLY_ELEM_FACE;
+      } else if (EQ4('e', 'd', 'g', 'e')) {
+        AkUInt parsedCount;
+
+        p += 5;
+        SKIP_SPACES
+        p = ak_strtoui_one_fast(p, &parsedCount);
+        elem->count = (uint32_t)parsedCount;
+        elem->type  = PLY_ELEM_EDGE;
+      } else if (ak_str_pack8_fast(p, 8)
+                 == AK_STR_PACK8_CHARS('t', 'r', 'i', 's', 't', 'r', 'i', 'p')
+                 && (p[8] == 's' || p[8] == ' ' || p[8] == '\t')) {
+        AkUInt parsedCount;
+
+        p += p[8] == 's' ? 10 : 9;
+        SKIP_SPACES
+        p = ak_strtoui_one_fast(p, &parsedCount);
+        elem->count = (uint32_t)parsedCount;
+        elem->type  = PLY_ELEM_TRISTRIPS;
       }
     } else if (elem && EQ8('p', 'r', 'o', 'p', 'e', 'r', 't', 'y')) {
       p += 9;
@@ -634,6 +700,99 @@ err:
   return AK_ERR;
 }
 
+static
+void
+ply_finish_indices(PLYState       * __restrict pst,
+                   AkMeshPrimitive * __restrict prim,
+                   AkDataContext   * __restrict indices,
+                   AkUInt                       maxIndex,
+                   AkTypeId                     sourceComponentType) {
+  AkTypeId componentType;
+
+  if (!indices || indices->itemcount == 0)
+    return;
+
+  componentType = ak_indexComponentTypeForMax(maxIndex);
+
+  prim->indices = ak_indexArrayAlloc(pst->heap,
+                                     prim,
+                                     indices->itemcount,
+                                     componentType);
+  if (!prim->indices)
+    return;
+
+  prim->indices->count = indices->itemcount;
+  prim->indices->max   = maxIndex;
+
+  if (indices->itemsize == ak_indexComponentSize(componentType)) {
+    ak_data_join(indices, prim->indices->items, 0, 0);
+  } else {
+    switch (componentType) {
+      case AKT_UBYTE:
+        PLY_COPY_INDICES_FROM_TEMP(indices,
+                                   sourceComponentType,
+                                   uint8_t);
+        break;
+      case AKT_USHORT:
+        PLY_COPY_INDICES_FROM_TEMP(indices,
+                                   sourceComponentType,
+                                   uint16_t);
+        break;
+      case AKT_UINT:
+        PLY_COPY_INDICES_FROM_TEMP(indices,
+                                   sourceComponentType,
+                                   uint32_t);
+        break;
+      default:
+        break;
+    }
+  }
+}
+
+static
+void
+ply_primitive_attach_inputs(PLYState        * __restrict pst,
+                            AkMeshPrimitive * __restrict prim) {
+  AkHeap *heap;
+
+  heap = pst->heap;
+
+  /* positions */
+  if (pst->ac_pos)
+    prim->pos = io_input(heap, prim, pst->ac_pos,
+                         AK_INPUT_POSITION, _s_POSITION, 0);
+
+  /* normals */
+  if (pst->ac_nor)
+    io_input(heap, prim, pst->ac_nor, AK_INPUT_NORMAL, _s_NORMAL, 0);
+
+  /* tex coords */
+  if (pst->ac_tex)
+    io_input(heap, prim, pst->ac_tex, AK_INPUT_TEXCOORD, _s_TEXCOORD, 0);
+
+  /* vertex colors */
+  if (pst->ac_rgb)
+    io_input(heap, prim, pst->ac_rgb, AK_INPUT_COLOR, _s_COLOR, 0);
+}
+
+static
+void
+ply_mesh_add_primitive(AkMesh          * __restrict mesh,
+                       AkMeshPrimitive * __restrict prim) {
+  AkMeshPrimitive *it;
+
+  prim->mesh = mesh;
+
+  if (!mesh->primitive) {
+    mesh->primitive = prim;
+  } else {
+    for (it = mesh->primitive; it->next; it = it->next);
+    it->next = prim;
+  }
+
+  mesh->primitiveCount++;
+}
+
 AK_HIDE
 void
 ply_finish(PLYState * __restrict pst) {
@@ -642,30 +801,11 @@ ply_finish(PLYState * __restrict pst) {
   AkMesh             *mesh;
   AkMeshPrimitive    *prim;
   AkInstanceGeometry *instGeom;
-  AkTriangles        *tri;
 
   /* Buffer > Accessor > Input > Prim > Mesh > Geom > InstanceGeom > Node */
   
   heap = pst->heap;
   mesh = ak_allocMesh(pst->heap, pst->lib_geom, &geom);
-
-  if (pst->dc_ind && pst->dc_ind->itemcount > 0) {
-    tri            = ak_heap_calloc(pst->heap, ak_objFrom(mesh), sizeof(*tri));
-    tri->mode      = AK_TRIANGLES;
-    tri->base.type = AK_PRIMITIVE_TRIANGLES;
-    prim           = (AkMeshPrimitive *)tri;
-  } else {
-    prim       = ak_heap_calloc(pst->heap, ak_objFrom(mesh), sizeof(*prim));
-    prim->type = AK_PRIMITIVE_POINTS;
-  }
-
-  prim->indexStride    = 1;
-  prim->nPolygons      = pst->dc_ind && pst->dc_ind->itemcount > 0
-                         ? pst->count / 3
-                         : pst->vertcount;
-  prim->mesh           = mesh;
-  mesh->primitive      = prim;
-  mesh->primitiveCount = 1;
 
   /* add to library */
   geom->base.next      = pst->lib_geom->chld;
@@ -680,61 +820,49 @@ ply_finish(PLYState * __restrict pst) {
   }
 
   pst->node->geometry = instGeom;
-  
-  /* positions */
-  if (pst->ac_pos)
-    prim->pos = io_input(heap, prim, pst->ac_pos,
-                         AK_INPUT_POSITION, _s_POSITION, 0);
 
-  /* normals */
-  if (pst->ac_nor)
-    io_input(heap, prim, pst->ac_nor, AK_INPUT_NORMAL, _s_NORMAL, 0);
+  if (pst->dc_ind && pst->dc_ind->itemcount > 0) {
+    AkTriangles *tri;
 
-  /* tex coords */
-  if (pst->ac_tex)
-    io_input(heap, prim, pst->ac_tex, AK_INPUT_TEXCOORD, _s_TEXCOORD, 0);
-  
-  /* vertex colors */
-  if (pst->ac_rgb)
-    io_input(heap, prim, pst->ac_rgb, AK_INPUT_COLOR, _s_COLOR, 0);
-  
-  /* indices */
-  {
-    AkTypeId componentType;
-    AkUInt   maxIndex;
+    tri            = ak_heap_calloc(pst->heap, ak_objFrom(mesh), sizeof(*tri));
+    tri->mode      = AK_TRIANGLES;
+    tri->base.type = AK_PRIMITIVE_TRIANGLES;
+    prim           = (AkMeshPrimitive *)tri;
+    prim->indexStride = 1;
+    prim->nPolygons   = pst->count / 3;
+    ply_primitive_attach_inputs(pst, prim);
+    ply_finish_indices(pst,
+                       prim,
+                       pst->dc_ind,
+                       pst->indexMax,
+                       pst->indexComponentType);
+    ply_mesh_add_primitive(mesh, prim);
+  }
 
-    if (!pst->dc_ind || pst->dc_ind->itemcount == 0)
-      return;
+  if (pst->dc_edge_ind && pst->edgeIndexCount > 0) {
+    AkLines *lines;
 
-    maxIndex      = pst->indexMax;
-    componentType = ak_indexComponentTypeForMax(maxIndex);
+    lines            = ak_heap_calloc(pst->heap, ak_objFrom(mesh), sizeof(*lines));
+    lines->mode      = AK_LINES;
+    lines->base.type = AK_PRIMITIVE_LINES;
+    prim             = (AkMeshPrimitive *)lines;
+    prim->indexStride = 1;
+    prim->nPolygons   = pst->edgeIndexCount / 2;
+    ply_primitive_attach_inputs(pst, prim);
+    ply_finish_indices(pst,
+                       prim,
+                       pst->dc_edge_ind,
+                       pst->edgeIndexMax,
+                       pst->edgeIndexComponentType);
+    ply_mesh_add_primitive(mesh, prim);
+  }
 
-    prim->indices = ak_indexArrayAlloc(heap,
-                                       tri,
-                                       pst->dc_ind->itemcount,
-                                       componentType);
-    if (!prim->indices)
-      return;
-
-    prim->indices->count = pst->dc_ind->itemcount;
-    prim->indices->max   = maxIndex;
-
-    if (pst->dc_ind->itemsize == ak_indexComponentSize(componentType)) {
-      ak_data_join(pst->dc_ind, prim->indices->items, 0, 0);
-    } else {
-      switch (componentType) {
-        case AKT_UBYTE:
-          PLY_COPY_INDICES_FROM_TEMP(uint8_t);
-          break;
-        case AKT_USHORT:
-          PLY_COPY_INDICES_FROM_TEMP(uint16_t);
-          break;
-        case AKT_UINT:
-          PLY_COPY_INDICES_FROM_TEMP(uint32_t);
-          break;
-        default:
-          break;
-      }
-    }
+  if (!mesh->primitive) {
+    prim       = ak_heap_calloc(pst->heap, ak_objFrom(mesh), sizeof(*prim));
+    prim->type = AK_PRIMITIVE_POINTS;
+    prim->indexStride = 1;
+    prim->nPolygons   = pst->vertcount;
+    ply_primitive_attach_inputs(pst, prim);
+    ply_mesh_add_primitive(mesh, prim);
   }
 }

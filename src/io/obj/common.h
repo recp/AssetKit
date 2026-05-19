@@ -76,6 +76,7 @@ typedef struct WOPrim {
   bool           missingNormal;
   bool           useDefaultTexture;
   bool           useDefaultNormal;
+  bool           smooth;
 } WOPrim;
 
 typedef struct WOObject {
@@ -94,9 +95,13 @@ typedef struct WOState {
   AkDataContext *dc_pos, *dc_tex, *dc_nor, *dc_col;
   AkAccessor    *ac_pos, *ac_tex, *ac_nor, *ac_col;
   WOObject      *obj;
+  const char    *mtlname;
   AkComponentSize posCompSize;
   AkComponentSize texCompSize;
+  bool            smooth;
 } WOState;
+
+#define WOBJ_PRIM_FLAG_SMOOTH 1u
 
 #ifdef SKIP_SPACES
 # undef SKIP_SPACES
