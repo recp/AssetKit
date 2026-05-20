@@ -478,7 +478,7 @@ stl_vertex_equal(const STLDedup * __restrict dedup,
                        sizeof(float) * 4) == 0);
 }
 
-static
+AK_INLINE
 bool
 stl_position_dedup_intern_bits_h(STLPositionDedup * __restrict dedup,
                                  const uint32_t                 bits[3],
@@ -518,7 +518,7 @@ stl_position_dedup_intern_bits_h(STLPositionDedup * __restrict dedup,
   }
 }
 
-static
+AK_INLINE
 bool
 stl_position_dedup_intern_raw_cached(STLPositionDedup * __restrict dedup,
                                      const char * __restrict       pos,

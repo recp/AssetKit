@@ -21,6 +21,10 @@
 
 typedef struct ImportStats {
   uint64_t primitives;
+  uint64_t points;
+  uint64_t lines;
+  uint64_t triangles;
+  uint64_t polygons;
   uint64_t owned;
   uint64_t accessor;
   uint64_t u8;
@@ -74,6 +78,14 @@ stats_collect(AkDoc *doc, ImportStats *stats) {
 
       stats->primitives++;
       stats->indexCount += count;
+
+      switch (prim->type) {
+        case AK_PRIMITIVE_POINTS:    stats->points++;    break;
+        case AK_PRIMITIVE_LINES:     stats->lines++;     break;
+        case AK_PRIMITIVE_TRIANGLES: stats->triangles++; break;
+        case AK_PRIMITIVE_POLYGONS:  stats->polygons++;  break;
+        default:                                      break;
+      }
 
       if (prim->indices) {
         stats->owned++;
@@ -170,6 +182,7 @@ stats_bench_path(const char *path, int iterations, int warmup) {
 
   printf("%s\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%" PRIu64 "\t%" PRIu64
          "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64
+         "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64
          "\t%" PRIu64 "\t%" PRIu64 "\t%s\n",
          stats_base_name(path),
          iterations,
@@ -178,6 +191,10 @@ stats_bench_path(const char *path, int iterations, int warmup) {
          times[iterations / 2],
          maxv,
          stats.primitives,
+         stats.points,
+         stats.lines,
+         stats.triangles,
+         stats.polygons,
          stats.owned,
          stats.accessor,
          stats.u8,
@@ -221,8 +238,9 @@ main(int argc, char **argv) {
     return 2;
   }
 
-  printf("file\titers\tmin_ms\tavg_ms\tmedian_ms\tmax_ms\tprims\towned"
-         "\taccessor\tu8\tu16\tu32\tindices\towned_bytes\tpath\n");
+  printf("file\titers\tmin_ms\tavg_ms\tmedian_ms\tmax_ms\tprims\tpoints"
+         "\tlines\ttriangles\tpolygons\towned\taccessor\tu8\tu16\tu32"
+         "\tindices\towned_bytes\tpath\n");
 
   for (i = firstPath; i < argc; i++)
     ok &= stats_bench_path(argv[i], iterations, warmup);

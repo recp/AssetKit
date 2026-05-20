@@ -29,7 +29,7 @@ typedef enum AkOption {
   AK_OPT_INDICES_SINGLE_SEPARATE    = 2,  /* false    */
   AK_OPT_INDICES_SINGLE             = 3,  /* false    */
   AK_OPT_NOINDEX_INTERLEAVED        = 4,  /* true     */
-  AK_OPT_NOINDEX_SEPARATE           = 5,  /* true     */
+  AK_OPT_NOINDEX_SEPARATE           = 5,  /* false    */
   AK_OPT_COORD                      = 6,  /* Y_UP     */
   AK_OPT_DEFAULT_ID_PREFIX          = 7,  /* id-      */
   AK_OPT_COMPUTE_BBOX               = 8,  /* false    */

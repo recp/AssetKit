@@ -317,11 +317,16 @@ static
 uint32_t
 wobj_parse_float_line(char     * __restrict p,
                       float    * __restrict values,
-                      uint32_t               cap) {
+                      uint32_t               cap,
+                      uint32_t               min_count,
+                      bool     * __restrict ok) {
   float    ignored;
   uint32_t count;
 
   count = 0;
+  if (ok)
+    *ok = false;
+
   while (p && p[0] != '\0' && p[0] != '\n' && p[0] != '\r') {
     while (p[0] != '\0'
            && (p[0] == ' ' || p[0] == '\t' || p[0] == '\f' || p[0] == '\v')) {
@@ -330,6 +335,16 @@ wobj_parse_float_line(char     * __restrict p,
 
     if (p[0] == '\0' || p[0] == '\n' || p[0] == '\r' || p[0] == '#')
       break;
+
+    if (count < min_count) {
+      char *tok;
+
+      tok = p;
+      if (tok[0] == '+' || tok[0] == '-')
+        tok++;
+      if (!(ak_str_isdigit_fast(tok[0]) || tok[0] == '.'))
+        return count;
+    }
 
     if (count < cap) {
       p = ak_strtof_one_fast(p, &values[count]);
@@ -342,38 +357,10 @@ wobj_parse_float_line(char     * __restrict p,
       p++;
   }
 
+  if (ok)
+    *ok = count >= min_count;
+
   return count;
-}
-
-static
-bool
-wobj_line_has_float_count(char * __restrict p, uint32_t min_count) {
-  uint32_t count;
-
-  count = 0;
-  while (p && p[0] != '\0' && p[0] != '\n' && p[0] != '\r') {
-    while (p[0] != '\0'
-           && (p[0] == ' ' || p[0] == '\t' || p[0] == '\f' || p[0] == '\v')) {
-      p++;
-    }
-
-    if (p[0] == '\0' || p[0] == '\n' || p[0] == '\r' || p[0] == '#')
-      break;
-
-    if (p[0] == '+' || p[0] == '-')
-      p++;
-    if (!(ak_str_isdigit_fast(p[0]) || p[0] == '.'))
-      return false;
-
-    count++;
-    if (count >= min_count)
-      return true;
-
-    while (p[0] != '\0' && !WOBJ_TOKEN_SEP(p[0]) && p[0] != '#')
-      p++;
-  }
-
-  return false;
 }
 
 static
@@ -618,19 +605,6 @@ wobj_parse_position_index_token(char  * __restrict p,
   return p;
 }
 
-#define WOBJ_PARSE_FLOAT2(PTR, DEST)                                          \
-  do {                                                                        \
-    (PTR) = ak_strtof_one_fast((PTR), &(DEST)[0]);                            \
-    (PTR) = ak_strtof_one_fast((PTR), &(DEST)[1]);                            \
-  } while (0)
-
-#define WOBJ_PARSE_FLOAT3(PTR, DEST)                                          \
-  do {                                                                        \
-    (PTR) = ak_strtof_one_fast((PTR), &(DEST)[0]);                            \
-    (PTR) = ak_strtof_one_fast((PTR), &(DEST)[1]);                            \
-    (PTR) = ak_strtof_one_fast((PTR), &(DEST)[2]);                            \
-  } while (0)
-
 AK_HIDE
 AkResult
 wobj_obj(AkDoc     ** __restrict dest,
@@ -735,16 +709,14 @@ wobj_obj(AkDoc     ** __restrict dest,
           float    values[8];
           uint32_t nValues;
           bool     hasW, hasColor, hasAlpha;
+          bool     validValues;
           uint32_t colorStart;
 
           if (*++p == '\0')
             goto err;
 
-          if (!wobj_line_has_float_count(p, 3))
-            break;
-
-          nValues = wobj_parse_float_line(p, values, 8);
-          if (nValues < 3)
+          nValues = wobj_parse_float_line(p, values, 8, 3, &validValues);
+          if (!validValues)
             break;
 
           hasW       = nValues == 4 || nValues >= 8;
@@ -1010,29 +982,29 @@ wobj_obj(AkDoc     ** __restrict dest,
     } else if (p[2] == ' ' || p[2] == '\t') {
       if (p[0] == 'v' && p[1] == 'n') {
         float values[3];
+        uint32_t nValues;
+        bool validValues;
         float *nor;
 
         if (*(p += 2) == '\0')
           goto err;
 
-        if (!wobj_line_has_float_count(p, 3))
+        nValues = wobj_parse_float_line(p, values, 3, 3, &validValues);
+        if (!validValues || nValues < 3)
           goto skip_line;
 
-        WOBJ_PARSE_FLOAT3(p, values);
         nor = wobj_data_append_slot(wst->dc_nor);
         memcpy(nor, values, sizeof(values));
       } else if (p[0] == 'v' && p[1] == 't') {
         float    values[3];
         uint32_t nValues;
+        bool     validValues;
 
         if (*(p += 2) == '\0')
           goto err;
 
-        if (!wobj_line_has_float_count(p, 1))
-          goto skip_line;
-
-        nValues = wobj_parse_float_line(p, values, 3);
-        if (nValues < 1)
+        nValues = wobj_parse_float_line(p, values, 3, 1, &validValues);
+        if (!validValues)
           goto skip_line;
 
         wobj_append_texcoord(wst, values, nValues);
@@ -1109,8 +1081,6 @@ err:
   return AK_ERR;
 }
 
-#undef WOBJ_PARSE_FLOAT2
-#undef WOBJ_PARSE_FLOAT3
 #undef WOBJ_TOKEN_SEP
 
 static
