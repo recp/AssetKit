@@ -167,6 +167,152 @@ wobj_data_append_slot(AkDataContext * __restrict dctx) {
   return chunk->data + chunk->usedsize - size;
 }
 
+typedef struct WODataMark {
+  AkDataChunk *last;
+  size_t       size;
+  size_t       usedsize;
+  size_t       itemcount;
+  size_t       lastUsedsize;
+} WODataMark;
+
+AK_INLINE
+WODataMark
+wobj_data_mark(AkDataContext * __restrict dctx) {
+  WODataMark mark;
+
+  mark.last         = dctx->last;
+  mark.size         = dctx->size;
+  mark.usedsize     = dctx->usedsize;
+  mark.itemcount    = dctx->itemcount;
+  mark.lastUsedsize = dctx->last ? dctx->last->usedsize : 0;
+
+  return mark;
+}
+
+AK_INLINE
+void
+wobj_data_rollback(AkDataContext * __restrict dctx,
+                   WODataMark    * __restrict mark) {
+  dctx->last      = mark->last;
+  dctx->size      = mark->size;
+  dctx->usedsize  = mark->usedsize;
+  dctx->itemcount = mark->itemcount;
+
+  if (mark->last) {
+    mark->last->usedsize = mark->lastUsedsize;
+    mark->last->next     = NULL;
+  } else {
+    dctx->data = NULL;
+  }
+}
+
+AK_INLINE
+bool
+wobj_index_valid(AkInt idx, size_t count) {
+  if (idx > 0)
+    return (AkUInt)idx <= (AkUInt)count;
+  if (idx < 0)
+    return (AkInt)count + idx >= 0;
+  return false;
+}
+
+AK_INLINE
+AkUInt
+wobj_index_real_unchecked(AkInt idx, size_t count) {
+  return idx > 0 ? (AkUInt)idx - 1u : (AkUInt)((AkInt)count + idx);
+}
+
+AK_INLINE
+bool
+wobj_seen_index(AkUInt * __restrict seen, uint32_t count, AkUInt value) {
+  uint32_t i;
+
+  for (i = 0; i < count; i++) {
+    if (seen[i] == value)
+      return true;
+  }
+
+  return false;
+}
+
+#define WOBJ_FACE_STACK_LIMIT 128
+
+static
+bool
+wobj_compact_duplicate_face(AkDataContext * __restrict dctx,
+                            WODataMark    * __restrict mark,
+                            size_t                      posCount,
+                            uint32_t      * __restrict  vc) {
+  AkDataChunk *chunk;
+  AkInt       *face;
+  AkUInt       seen[WOBJ_FACE_STACK_LIMIT];
+  uint32_t     keep[WOBJ_FACE_STACK_LIMIT];
+  uint32_t     seenCount, keepCount, i;
+
+  if (*vc > WOBJ_FACE_STACK_LIMIT)
+    return false;
+
+  chunk = mark->last ? mark->last : dctx->data;
+  if (!chunk || dctx->last != chunk)
+    return false;
+
+  face = (AkInt *)(void *)(chunk->data
+                           + (mark->last ? mark->lastUsedsize : 0));
+  seenCount = 0;
+  keepCount = 0;
+  for (i = 0; i < *vc; i++) {
+    AkUInt realIndex;
+
+    if (!wobj_index_valid(face[i * 3], posCount))
+      return false;
+
+    realIndex = wobj_index_real_unchecked(face[i * 3], posCount);
+    if (wobj_seen_index(seen, seenCount, realIndex))
+      continue;
+
+    seen[seenCount++] = realIndex;
+    keep[keepCount++] = i;
+  }
+
+  if (keepCount < 3)
+    return false;
+
+  wobj_data_rollback(dctx, mark);
+  for (i = 0; i < keepCount; i++) {
+    AkInt *slot;
+
+    slot = wobj_data_append_slot(dctx);
+    memcpy(slot, &face[keep[i] * 3], sizeof(ivec3));
+  }
+
+  *vc = keepCount;
+
+  return true;
+}
+
+AK_INLINE
+bool
+wobj_is_freeform_keyword(const char * __restrict p) {
+  uint32_t key;
+
+  key = ak_str_pack4_fast(p, 4);
+  switch (key) {
+    case AK_STR_PACK4_CHARS('c', 'u', 'r', 'v'):
+    case AK_STR_PACK4_CHARS('s', 'u', 'r', 'f'):
+    case AK_STR_PACK4_CHARS('p', 'a', 'r', 'm'):
+    case AK_STR_PACK4_CHARS('t', 'r', 'i', 'm'):
+    case AK_STR_PACK4_CHARS('h', 'o', 'l', 'e'):
+    case AK_STR_PACK4_CHARS('s', 'p', 'e', 'c'):
+    case AK_STR_PACK4_CHARS('d', 'e', 'g', ' '):
+      return true;
+    default:
+      break;
+  }
+
+  return ak_str_pack8_fast(p, 6)
+         == AK_STR_PACK8_CHARS('c', 's', 't', 'y', 'p', 'e', 0, 0);
+}
+
 static
 uint32_t
 wobj_parse_float_line(char     * __restrict p,
@@ -577,10 +723,30 @@ wobj_obj(AkDoc     ** __restrict dest,
           break;
         }
         case 'f': {
+          WODataMark faceMark;
+          AkUInt     seen[WOBJ_FACE_STACK_LIMIT];
+          uint32_t   seenCount;
+          size_t     posCount, texCount, norCount;
+          bool       validFace;
+          bool       duplicateFace;
+          bool       oldHasTexture, oldHasNormal;
+          bool       oldMissingTexture, oldMissingNormal;
+
           if ((c = *(p += 2)) == '\0')
             goto err;
 
           prim = wobj_prepare_prim_kind(wst, prim, AK_PRIMITIVE_TRIANGLES);
+          faceMark = wobj_data_mark(prim->dc_face);
+          posCount = wst->dc_pos->itemcount;
+          texCount = wst->dc_tex->itemcount;
+          norCount = wst->dc_nor->itemcount;
+          seenCount = 0;
+          validFace = true;
+          duplicateFace = false;
+          oldHasTexture = prim->hasTexture;
+          oldHasNormal = prim->hasNormal;
+          oldMissingTexture = prim->missingTexture;
+          oldMissingNormal = prim->missingNormal;
           vc = 0;
 
           while (p
@@ -604,6 +770,18 @@ wobj_obj(AkDoc     ** __restrict dest,
             face[2] = 0;
             hasTexIndex = false;
             hasNorIndex = false;
+            if (!wobj_index_valid(idx, posCount)) {
+              validFace = false;
+            } else if (seenCount < AK_ARRAY_LEN(seen)) {
+              AkUInt realIndex;
+
+              realIndex = wobj_index_real_unchecked(idx, posCount);
+              if (wobj_seen_index(seen, seenCount, realIndex)) {
+                duplicateFace = true;
+              } else {
+                seen[seenCount++] = realIndex;
+              }
+            }
 
             /* texture index */
             if (p && p[0] == '/') {
@@ -614,6 +792,8 @@ wobj_obj(AkDoc     ** __restrict dest,
                 p = wobj_parse_face_index(p, &idx);
                 face[1] = idx;
                 hasTexIndex = idx != 0;
+                if (hasTexIndex && !wobj_index_valid(idx, texCount))
+                  validFace = false;
                 
                 if (!prim->hasTexture)
                   prim->hasTexture = true;
@@ -628,6 +808,8 @@ wobj_obj(AkDoc     ** __restrict dest,
                 p = wobj_parse_face_index(p, &idx);
                 face[2] = idx;
                 hasNorIndex = idx != 0;
+                if (hasNorIndex && !wobj_index_valid(idx, norCount))
+                  validFace = false;
 
                 if (!prim->hasNormal)
                   prim->hasNormal = true;
@@ -647,18 +829,36 @@ wobj_obj(AkDoc     ** __restrict dest,
               p++;
           }
 
-          prim->maxVC = GLM_MAX(prim->maxVC, vc);
-          *(int32_t *)wobj_data_append_slot(prim->dc_vcount) = (int32_t)vc;
+          if (vc < 3)
+            validFace = false;
+          else if (validFace && duplicateFace)
+            validFace = wobj_compact_duplicate_face(prim->dc_face,
+                                                    &faceMark,
+                                                    posCount,
+                                                    &vc);
+
+          if (validFace) {
+            prim->maxVC = GLM_MAX(prim->maxVC, vc);
+            *(int32_t *)wobj_data_append_slot(prim->dc_vcount) = (int32_t)vc;
+          } else {
+            wobj_data_rollback(prim->dc_face, &faceMark);
+            prim->hasTexture = oldHasTexture;
+            prim->hasNormal = oldHasNormal;
+            prim->missingTexture = oldMissingTexture;
+            prim->missingNormal = oldMissingNormal;
+          }
           break;
         }
         case 'l': {
           AkInt prev;
+          size_t posCount;
           bool  hasPrev;
 
           if ((c = *(p += 2)) == '\0')
             goto err;
 
           prim    = wobj_prepare_prim_kind(wst, prim, AK_PRIMITIVE_LINES);
+          posCount = wst->dc_pos->itemcount;
           hasPrev = false;
           vc      = 0;
 
@@ -676,6 +876,10 @@ wobj_obj(AkDoc     ** __restrict dest,
               break;
 
             p = wobj_parse_position_index_token(p, &idx);
+            if (!wobj_index_valid(idx, posCount)) {
+              break;
+            }
+
             if (hasPrev) {
               AkInt *a, *b;
 
@@ -722,12 +926,14 @@ wobj_obj(AkDoc     ** __restrict dest,
             if (p[0] == '\0' || p[0] == '\n' || p[0] == '\r' || p[0] == '#')
               break;
 
-            p        = wobj_parse_position_index_token(p, &idx);
-            point    = wobj_data_append_slot(prim->dc_face);
-            point[0] = idx;
-            point[1] = 0;
-            point[2] = 0;
-            vc++;
+            p = wobj_parse_position_index_token(p, &idx);
+            if (wobj_index_valid(idx, wst->dc_pos->itemcount)) {
+              point    = wobj_data_append_slot(prim->dc_face);
+              point[0] = idx;
+              point[1] = 0;
+              point[2] = 0;
+              vc++;
+            }
           }
 
           if (vc > 0) {
@@ -794,7 +1000,8 @@ wobj_obj(AkDoc     ** __restrict dest,
       SKIP_SPACES
 
       begin = p;
-      while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
+      while ((c = *p) != '\0' && !AK_ARRAY_NLINE_CHECK)
+        p++;
       end = p;
 
       if (end > begin
@@ -808,7 +1015,8 @@ wobj_obj(AkDoc     ** __restrict dest,
       SKIP_SPACES
 
       begin = p;
-      while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
+      while ((c = *p) != '\0' && !AK_ARRAY_NLINE_CHECK)
+        p++;
       end = p;
 
       m = NULL;
@@ -817,6 +1025,8 @@ wobj_obj(AkDoc     ** __restrict dest,
       
       wst->mtlname = m;
       prim = wobj_switchPrim(wst, m);
+    } else if (wobj_is_freeform_keyword(p)) {
+      wst->hasFreeform = true;
     }
     
     NEXT_LINE

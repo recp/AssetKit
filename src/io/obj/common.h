@@ -99,6 +99,7 @@ typedef struct WOState {
   AkComponentSize posCompSize;
   AkComponentSize texCompSize;
   bool            smooth;
+  bool            hasFreeform;
 } WOState;
 
 #define WOBJ_PRIM_FLAG_SMOOTH 1u

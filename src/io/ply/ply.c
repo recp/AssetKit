@@ -546,7 +546,15 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
         prop->prev = pit;
       }
     } else if (EQT7('e', 'n', 'd', '_', 'h', 'e', 'a')) {
-      NEXT_LINE
+      if (isAscii) {
+        NEXT_LINE
+      } else {
+        while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
+        if (c == '\r' && p[1] == '\n')
+          p += 2;
+        else if (c != '\0')
+          p++;
+      }
       break;
     }
 

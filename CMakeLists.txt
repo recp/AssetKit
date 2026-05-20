@@ -34,6 +34,7 @@ option(AK_BUILD_GLTF_SPZ_DECODER "Build optional glTF Gaussian splatting (SPZ) d
 option(AK_BUILD_GLTF_KTX2_DECODER "Build optional glTF KHR_texture_basisu (KTX2/BasisU) decoder shim" ON)
 option(AK_FETCH_DEPS "Fetch optional decoder dependencies into AK_DEPS_ROOT when missing" ON)
 option(AK_ENABLE_LTO "Enable link-time optimization for release builds" OFF)
+option(AK_BUILD_TOOLS "Build manual AssetKit importer benchmark tools" OFF)
 set(AK_DRACO_ROOT "" CACHE PATH "Optional Draco install/source root")
 set(AK_MESHOPT_ROOT "" CACHE PATH "Optional meshoptimizer source root")
 set(AK_SPZ_ROOT "" CACHE PATH "Optional SPZ install/source root")
@@ -608,6 +609,12 @@ if(AK_USE_TEST)
   include(CTest)
   enable_testing()
   add_subdirectory(test)
+endif()
+
+if(AK_BUILD_TOOLS)
+  add_executable(assetkit_import_stats tools/import_stats.c)
+  ak_target_c_options(assetkit_import_stats)
+  target_link_libraries(assetkit_import_stats PRIVATE ${PROJECT_NAME})
 endif()
 
 # Install 

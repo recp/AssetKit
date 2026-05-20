@@ -658,6 +658,90 @@ ak_test_write_obj_material_carry(const char *path, const char *mtlPath) {
 
 static
 bool
+ak_test_write_obj_empty_usemtl(const char *path) {
+  FILE *file;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  fputs("v 0 0 0\n"
+        "v 1 0 0\n"
+        "v 0 1 0\n"
+        "v 1 1 0\n"
+        "usemtl \n"
+        "f 1 2 3\n"
+        "f 1 3 4\n",
+        file);
+
+  return fclose(file) == 0;
+}
+
+static
+bool
+ak_test_write_obj_invalid_faces(const char *path) {
+  FILE *file;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  fputs("v 0 0 0\n"
+        "v 1 0 0\n"
+        "v 0 1 0\n"
+        "v 1 1 0\n"
+        "vt 0 0\n"
+        "vn 0 0 1\n"
+        "f 1/1/1 2/1/1 3/1/1\n"
+        "f 1 4\n"
+        "f 1 2 1\n"
+        "f 999/1/1 2/1/1 3/1/1\n"
+        "f 1/999/1 2/1/1 3/1/1\n"
+        "f 1/1/999 2/1/1 3/1/1\n",
+        file);
+
+  return fclose(file) == 0;
+}
+
+static
+bool
+ak_test_write_obj_duplicate_faces(const char *path) {
+  FILE *file;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  fputs("v 0 0 0\n"
+        "v 1 0 0\n"
+        "v 1 1 0\n"
+        "v 0 1 0\n"
+        "f 1 2 3 1\n"
+        "f 1 2 3 4 1 2\n",
+        file);
+
+  return fclose(file) == 0;
+}
+
+static
+bool
+ak_test_write_obj_vertices_only(const char *path) {
+  FILE *file;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  fputs("v 0 0 0\n"
+        "v 1 0 0\n"
+        "v 0 1 0\n",
+        file);
+
+  return fclose(file) == 0;
+}
+
+static
+bool
 ak_test_write_ply_shuffled(const char *path) {
   FILE *file;
 
@@ -672,12 +756,14 @@ ak_test_write_ply_shuffled(const char *path) {
         "property float x\n"
         "property float y\n"
         "element face 1\n"
+        "property ushort confidence\n"
+        "property list int int other_stuff\n"
         "property list uchar int vertex_indices\n"
         "end_header\n"
         "0 0 0\n"
         "0 1 0\n"
         "0 0 1\n"
-        "3 0 1 2\n",
+        "60000 2 100 200 3 0 1 2\n",
         file);
 
   return fclose(file) == 0;
@@ -753,6 +839,8 @@ ak_test_write_ply_edges(const char *path) {
         "property float x\n"
         "property float y\n"
         "property float z\n"
+        "element face 0\n"
+        "property list uchar int vertex_indices\n"
         "element edge 2\n"
         "property int vertex1\n"
         "property int vertex2\n"
@@ -827,7 +915,7 @@ ak_test_write_ply_binary_edges(const char *path) {
   ok = ok && ak_test_write_f32le(file, 0.0f);
   ok = ok && ak_test_write_f32le(file, 0.0f);
   ok = ok && ak_test_write_f32le(file, 0.0f);
-  ok = ok && ak_test_write_f32le(file, 1.0f);
+  ok = ok && ak_test_write_u32le(file, 0xbf80000au);
   ok = ok && ak_test_write_f32le(file, 0.0f);
   ok = ok && ak_test_write_f32le(file, 0.0f);
   ok = ok && ak_test_write_f32le(file, 0.0f);
@@ -842,6 +930,62 @@ ak_test_write_ply_binary_edges(const char *path) {
   ok = ok && ak_test_write_u32le(file, 1);
   ok = ok && ak_test_write_u32le(file, 2);
   ok = ok && fwrite(&red1, 1, 1, file) == 1;
+
+  return fclose(file) == 0 && ok;
+}
+
+static
+bool
+ak_test_write_ply_binary_face_props(const char *path) {
+  FILE    *file;
+  uint8_t  fc;
+  bool     ok;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  ok = fputs("ply\n"
+             "format binary_little_endian 1.0\n"
+             "element vertex 4\n"
+             "property float x\n"
+             "property float y\n"
+             "property float z\n"
+             "element face 2\n"
+             "property list int int other_stuff\n"
+             "property list uchar ushort vertex_indices\n"
+             "end_header\n",
+             file) >= 0;
+
+  ok = ok && ak_test_write_f32le(file, 1.0f);
+  ok = ok && ak_test_write_f32le(file, 0.0f);
+  ok = ok && ak_test_write_f32le(file, 1.0f);
+  ok = ok && ak_test_write_f32le(file, 1.0f);
+  ok = ok && ak_test_write_f32le(file, 0.0f);
+  ok = ok && ak_test_write_f32le(file, -1.0f);
+  ok = ok && ak_test_write_f32le(file, -1.0f);
+  ok = ok && ak_test_write_f32le(file, 0.0f);
+  ok = ok && ak_test_write_f32le(file, -1.0f);
+  ok = ok && ak_test_write_f32le(file, -1.0f);
+  ok = ok && ak_test_write_f32le(file, 0.0f);
+  ok = ok && ak_test_write_f32le(file, 1.0f);
+
+  fc = 3;
+  ok = ok && ak_test_write_u32le(file, 2);
+  ok = ok && ak_test_write_u32le(file, 100);
+  ok = ok && ak_test_write_u32le(file, 200);
+  ok = ok && fwrite(&fc, 1, 1, file) == 1;
+  ok = ok && ak_test_write_u16le(file, 0);
+  ok = ok && ak_test_write_u16le(file, 1);
+  ok = ok && ak_test_write_u16le(file, 2);
+
+  ok = ok && ak_test_write_u32le(file, 2);
+  ok = ok && ak_test_write_u32le(file, 0xffff3cb0u);
+  ok = ok && ak_test_write_u32le(file, 60000);
+  ok = ok && fwrite(&fc, 1, 1, file) == 1;
+  ok = ok && ak_test_write_u16le(file, 0);
+  ok = ok && ak_test_write_u16le(file, 2);
+  ok = ok && ak_test_write_u16le(file, 3);
 
   return fclose(file) == 0 && ok;
 }
@@ -1098,12 +1242,17 @@ TEST_IMPL(format_edge_cases) {
   char             objSmoothPath[PATH_MAX];
   char             objCarryPath[PATH_MAX];
   char             objCarryMtlPath[PATH_MAX];
+  char             objEmptyUsemtlPath[PATH_MAX];
+  char             objInvalidFacesPath[PATH_MAX];
+  char             objDuplicateFacesPath[PATH_MAX];
+  char             objVerticesOnlyPath[PATH_MAX];
   char             plyPath[PATH_MAX];
   char             plyPointsPath[PATH_MAX];
   char             plyTristripsPath[PATH_MAX];
   char             plyEdgesPath[PATH_MAX];
   char             plyFaceEdgesPath[PATH_MAX];
   char             plyBinaryEdgesPath[PATH_MAX];
+  char             plyBinaryFacePropsPath[PATH_MAX];
   const char      *tmpBase;
   AkResult         loadResult;
 
@@ -1165,6 +1314,22 @@ TEST_IMPL(format_edge_cases) {
            sizeof(objCarryMtlPath),
            "%s/material_carry.mtl",
            tmpdir);
+  snprintf(objEmptyUsemtlPath,
+           sizeof(objEmptyUsemtlPath),
+           "%s/empty_usemtl.obj",
+           tmpdir);
+  snprintf(objInvalidFacesPath,
+           sizeof(objInvalidFacesPath),
+           "%s/invalid_faces.obj",
+           tmpdir);
+  snprintf(objDuplicateFacesPath,
+           sizeof(objDuplicateFacesPath),
+           "%s/duplicate_faces.obj",
+           tmpdir);
+  snprintf(objVerticesOnlyPath,
+           sizeof(objVerticesOnlyPath),
+           "%s/vertices_only.obj",
+           tmpdir);
   snprintf(plyPath, sizeof(plyPath), "%s/shuffled.ply", tmpdir);
   snprintf(plyPointsPath,
            sizeof(plyPointsPath),
@@ -1186,6 +1351,10 @@ TEST_IMPL(format_edge_cases) {
            sizeof(plyBinaryEdgesPath),
            "%s/binary_edges.ply",
            tmpdir);
+  snprintf(plyBinaryFacePropsPath,
+           sizeof(plyBinaryFacePropsPath),
+           "%s/binary_face_props.ply",
+           tmpdir);
 
   ASSERT(ak_test_write_stl_binary_zero_header(stlZeroPath));
   ASSERT(ak_test_write_stl_binary_solid(stlBinaryPath));
@@ -1200,12 +1369,17 @@ TEST_IMPL(format_edge_cases) {
   ASSERT(ak_test_write_obj_repeated_materials(objMaterialPath));
   ASSERT(ak_test_write_obj_smoothing_groups(objSmoothPath));
   ASSERT(ak_test_write_obj_material_carry(objCarryPath, objCarryMtlPath));
+  ASSERT(ak_test_write_obj_empty_usemtl(objEmptyUsemtlPath));
+  ASSERT(ak_test_write_obj_invalid_faces(objInvalidFacesPath));
+  ASSERT(ak_test_write_obj_duplicate_faces(objDuplicateFacesPath));
+  ASSERT(ak_test_write_obj_vertices_only(objVerticesOnlyPath));
   ASSERT(ak_test_write_ply_shuffled(plyPath));
   ASSERT(ak_test_write_ply_points(plyPointsPath));
   ASSERT(ak_test_write_ply_tristrips(plyTristripsPath));
   ASSERT(ak_test_write_ply_edges(plyEdgesPath));
   ASSERT(ak_test_write_ply_face_edges(plyFaceEdgesPath));
   ASSERT(ak_test_write_ply_binary_edges(plyBinaryEdgesPath));
+  ASSERT(ak_test_write_ply_binary_face_props(plyBinaryFacePropsPath));
 
   doc = NULL;
   ASSERT(ak_load(&doc, stlZeroPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
@@ -1396,6 +1570,42 @@ TEST_IMPL(format_edge_cases) {
   ak_free(doc);
 
   doc = NULL;
+  ASSERT(ak_load(&doc, objEmptyUsemtlPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+  prim = ak_test_first_primitive(doc);
+  ASSERT(prim != NULL);
+  ASSERT(prim->type == AK_PRIMITIVE_TRIANGLES);
+  ASSERT(prim->nPolygons == 2);
+  ASSERT(prim->indices && prim->indices->count == 6);
+  ak_free(doc);
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, objInvalidFacesPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+  prim = ak_test_first_primitive(doc);
+  ASSERT(prim != NULL);
+  ASSERT(prim->type == AK_PRIMITIVE_TRIANGLES);
+  ASSERT(prim->nPolygons == 1);
+  ASSERT(prim->indices && prim->indices->count == 3);
+  ak_free(doc);
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, objDuplicateFacesPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+  prim = ak_test_first_primitive(doc);
+  ASSERT(prim != NULL);
+  ASSERT(prim->type == AK_PRIMITIVE_TRIANGLES);
+  ASSERT(prim->nPolygons == 3);
+  ASSERT(prim->indices && prim->indices->count == 9);
+  ak_free(doc);
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, objVerticesOnlyPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+  prim = ak_test_first_primitive(doc);
+  ASSERT(prim != NULL);
+  ASSERT(prim->type == AK_PRIMITIVE_POINTS);
+  ASSERT(prim->nPolygons == 3);
+  ASSERT(prim->indices == NULL);
+  ak_free(doc);
+
+  doc = NULL;
   ASSERT(ak_load(&doc, plyPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
   ASSERT(ak_test_first_scene_node(doc) && ak_test_first_scene_node(doc)->visible);
   prim = ak_test_first_primitive(doc);
@@ -1477,6 +1687,16 @@ TEST_IMPL(format_edge_cases) {
   ASSERT(prim->pos && prim->pos->accessor);
   ak_free(doc);
 
+  doc = NULL;
+  ASSERT(ak_load(&doc, plyBinaryFacePropsPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+  prim = ak_test_first_primitive(doc);
+  ASSERT(prim != NULL);
+  ASSERT(prim->type == AK_PRIMITIVE_TRIANGLES);
+  ASSERT(prim->nPolygons == 2);
+  ASSERT(prim->indices && prim->indices->count == 6);
+  ASSERT(ak_meshPrimitiveIndexComponentType(prim) == AKT_UBYTE);
+  ak_free(doc);
+
   unlink(stlZeroPath);
   unlink(stlBinaryPath);
   unlink(stlDedupPath);
@@ -1491,12 +1711,17 @@ TEST_IMPL(format_edge_cases) {
   unlink(objSmoothPath);
   unlink(objCarryPath);
   unlink(objCarryMtlPath);
+  unlink(objEmptyUsemtlPath);
+  unlink(objInvalidFacesPath);
+  unlink(objDuplicateFacesPath);
+  unlink(objVerticesOnlyPath);
   unlink(plyPath);
   unlink(plyPointsPath);
   unlink(plyTristripsPath);
   unlink(plyEdgesPath);
   unlink(plyFaceEdgesPath);
   unlink(plyBinaryEdgesPath);
+  unlink(plyBinaryFacePropsPath);
   rmdir(tmpdir);
 
   TEST_SUCCESS

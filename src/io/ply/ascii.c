@@ -163,39 +163,50 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
       last_fc     = 0;
       vertcount   = pst->vertcount;
 
-      do {
+      while (i++ < elem->count) {
         SKIP_SPACES
-        
-        p = ply_ascii_parse_index(p, &fc);
-        if (fc == 3) {
-          AkUInt f0, f1, f2;
 
-          p = ply_ascii_parse_index(p, &f0);
-          p = ply_ascii_parse_index(p, &f1);
-          p = ply_ascii_parse_index(p, &f2);
-          if (f0 < vertcount && f1 < vertcount && f2 < vertcount)
-            PLY_INDEX_APPEND_TRI(pst, f0, f1, f2, count);
-        } else if (fc > 3) {
-          if (!f || last_fc < fc)
-            f = alloca(sizeof(AkUInt) * fc);
-          
-          valid = 0;
-          for (j = 0; j < fc; j++)
-            p = ply_ascii_parse_index(p, &f[j]);
-          for (j = 0; j < fc; j++)
-            valid += f[j] < vertcount;
-          
-          if (valid == fc)
-            PLY_INDEX_APPEND_FACE(pst, f, fc, count);
+        prop = elem->property;
+        while (prop) {
+          if (prop->semantic == PLY_PROP_VERTEX_INDICES && prop->islist) {
+            p = ply_ascii_parse_index(p, &fc);
+            if (fc == 3) {
+              AkUInt f0, f1, f2;
+
+              p = ply_ascii_parse_index(p, &f0);
+              p = ply_ascii_parse_index(p, &f1);
+              p = ply_ascii_parse_index(p, &f2);
+              if (f0 < vertcount && f1 < vertcount && f2 < vertcount)
+                PLY_INDEX_APPEND_TRI(pst, f0, f1, f2, count);
+            } else if (fc > 3) {
+              if (!f || last_fc < fc)
+                f = alloca(sizeof(AkUInt) * fc);
+
+              valid = 0;
+              for (j = 0; j < fc; j++)
+                p = ply_ascii_parse_index(p, &f[j]);
+              for (j = 0; j < fc; j++)
+                valid += f[j] < vertcount;
+
+              if (valid == fc)
+                PLY_INDEX_APPEND_FACE(pst, f, fc, count);
+            } else {
+              AkUInt unused;
+
+              for (j = 0; j < fc; j++)
+                p = ply_ascii_parse_index(p, &unused);
+            }
+
+            last_fc = fc;
+          } else {
+            p = ply_ascii_skip_property(p, prop);
+          }
+
+          prop = prop->next;
         }
 
-        last_fc = fc;
-
         NEXT_LINE
-
-        if (++i >= elem->count)
-          break;
-      } while (p && p[0] != '\0');
+      }
       
       pst->count = count;
     } else if (elem->type == PLY_ELEM_TRISTRIPS) {
@@ -207,7 +218,7 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
       count       = 0;
       vertcount   = pst->vertcount;
 
-      do {
+      while (i++ < elem->count) {
         SKIP_SPACES
 
         prop = elem->property;
@@ -255,10 +266,7 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
         }
 
         NEXT_LINE
-
-        if (++i >= elem->count)
-          break;
-      } while (p && p[0] != '\0');
+      }
 
       pst->count = count;
     } else if (elem->type == PLY_ELEM_EDGE) {
@@ -268,7 +276,7 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
       i         = 0;
       vertcount = pst->vertcount;
 
-      do {
+      while (i++ < elem->count) {
         AkUInt v0, v1;
         bool   hasV0, hasV1;
 
@@ -298,10 +306,7 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
         }
 
         NEXT_LINE
-
-        if (++i >= elem->count)
-          break;
-      } while (p && p[0] != '\0');
+      }
     } else {
       /* skip unsupported elements */
       for (i = 0; i < elem->count; i++) {

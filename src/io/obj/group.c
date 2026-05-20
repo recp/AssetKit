@@ -28,6 +28,10 @@ wobj_finishPrim(WOState  * __restrict wst,
 
 static
 void
+wobj_addPointFallback(WOState * __restrict wst, WOObject * __restrict obj);
+
+static
+void
 wobj_finishPrim(WOState  * __restrict wst,
                 WOObject * __restrict wo,
                 WOPrim   * __restrict wp) {
@@ -194,16 +198,61 @@ wobj_finishObject(WOState * __restrict wst, WOObject * __restrict obj) {
   } while ((wp = next));
 }
 
+static
+void
+wobj_addPointFallback(WOState * __restrict wst, WOObject * __restrict obj) {
+  AkMesh          *mesh;
+  AkMeshPrimitive *prim;
+
+  if (!obj || !obj->geom || !wst->ac_pos || wst->ac_pos->count == 0)
+    return;
+
+  mesh = ak_objGet(obj->geom->gdata);
+  if (!mesh || mesh->primitive)
+    return;
+
+  prim              = ak_heap_calloc(wst->heap, ak_objFrom(mesh), sizeof(*prim));
+  prim->type        = AK_PRIMITIVE_POINTS;
+  prim->mesh        = mesh;
+  prim->indexStride = 1;
+  prim->nPolygons   = wst->ac_pos->count;
+  prim->pos         = wobj_input(wst,
+                                 prim,
+                                 wst->ac_pos,
+                                 AK_INPUT_POSITION,
+                                 _s_POSITION,
+                                 0);
+  mesh->primitive   = prim;
+  mesh->primitiveCount++;
+}
+
 AK_HIDE
 void
 wobj_finishObjects(WOState * __restrict wst) {
   WOObject *obj;
+  WOObject *fallbackObj;
+  bool      hasPrimitive;
 
   obj = wst->obj;
+  fallbackObj = NULL;
+  hasPrimitive = false;
   while (obj) {
+    AkMesh *mesh;
+
+    if (!fallbackObj && obj->geom)
+      fallbackObj = obj;
+
     wobj_finishObject(wst, obj);
+    if (obj->geom
+        && (mesh = ak_objGet(obj->geom->gdata))
+        && mesh->primitive)
+      hasPrimitive = true;
+
     obj = obj->next;
   }
+
+  if (!hasPrimitive && !wst->hasFreeform)
+    wobj_addPointFallback(wst, fallbackObj);
 }
 
 AK_HIDE

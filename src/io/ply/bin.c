@@ -129,7 +129,7 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
         
         /* iterate thorough list and other properties */
         while (prop) {
-          if (!prop->ignore && prop->islist) { /* TODO: */
+          if (prop->semantic == PLY_PROP_VERTEX_INDICES && prop->islist) {
             if (!prop->listCountTypeDesc || !prop->typeDesc)
               goto fns;
 
