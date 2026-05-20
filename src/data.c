@@ -169,6 +169,19 @@ ak_data_join(AkDataContext *dctx,
   if (stride == 0)
     stride = isz;
 
+  if (stride == isz) {
+    while (chunk) {
+      csz = chunk->usedsize;
+      if (csz > 0) {
+        memcpy(pmem, chunk->data, csz);
+        pmem  += csz;
+        count += csz / isz;
+      }
+      chunk = chunk->next;
+    }
+    return count;
+  }
+
   while (chunk) {
     csz  = chunk->usedsize;
     data = chunk->data;
