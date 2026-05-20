@@ -71,6 +71,7 @@ typedef struct WOPrim {
   uint32_t       maxVC;
   AkMeshPrimitiveType kind;
   uint8_t        faceFastPath;
+  uint8_t        faceFastMisses;
   bool           hasTexture;
   bool           hasNormal;
   bool           missingTexture;

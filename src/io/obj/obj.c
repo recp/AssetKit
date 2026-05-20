@@ -51,6 +51,8 @@ wobj_data_append_slot(AkDataContext * __restrict dctx);
 #define WOBJ_FACE_FAST_UNKNOWN 0u
 #define WOBJ_FACE_FAST_TRI     1u
 #define WOBJ_FACE_FAST_TRI_VN  2u
+#define WOBJ_FACE_FAST_DISABLED 255u
+#define WOBJ_FACE_FAST_MISS_LIMIT 8u
 
 #define WOBJ_TOKEN_SEP(CH)                                                    \
   ((CH) == ' ' || (CH) == '\t' || (CH) == '\f' || (CH) == '\v'                \
@@ -963,6 +965,8 @@ wobj_obj(AkDoc     ** __restrict dest,
 
           parsedFast = false;
           switch (prim->faceFastPath) {
+            case WOBJ_FACE_FAST_DISABLED:
+              break;
             case WOBJ_FACE_FAST_TRI_VN:
               parsedFast = wobj_try_parse_tri_vn_fast(prim,
                                                        &p,
@@ -1005,6 +1009,12 @@ wobj_obj(AkDoc     ** __restrict dest,
             }
           if (parsedFast)
             break;
+          if (prim->faceFastPath != WOBJ_FACE_FAST_DISABLED) {
+            if (prim->faceFastMisses < UINT8_MAX)
+              prim->faceFastMisses++;
+            if (prim->faceFastMisses >= WOBJ_FACE_FAST_MISS_LIMIT)
+              prim->faceFastPath = WOBJ_FACE_FAST_DISABLED;
+          }
 
           faceMark = wobj_data_mark(prim->dc_face);
           seenCount = 0;
@@ -1110,6 +1120,10 @@ wobj_obj(AkDoc     ** __restrict dest,
           if (validFace) {
             prim->maxVC = GLM_MAX(prim->maxVC, vc);
             *(int32_t *)wobj_data_append_slot(prim->dc_vcount) = (int32_t)vc;
+            if (vc == 3) {
+              prim->faceFastPath   = WOBJ_FACE_FAST_UNKNOWN;
+              prim->faceFastMisses = 0;
+            }
           } else {
             wobj_data_rollback(prim->dc_face, &faceMark);
             prim->hasTexture = oldHasTexture;
