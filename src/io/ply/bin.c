@@ -29,13 +29,31 @@ typedef enum PLYBinFastKind {
   PLY_BIN_FAST_UBYTE
 } PLYBinFastKind;
 
+AK_INLINE
+float
+ply_bin_read_f32(const char * __restrict p, bool le) {
+  uint32_t bits;
+  float    value;
+
+  memcpy(&bits, p, sizeof(bits));
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+  if (!le)
+    bits = bswapu32(bits);
+#else
+  if (le)
+    bits = bswapu32(bits);
+#endif
+  memcpy(&value, &bits, sizeof(value));
+
+  return value;
+}
+
 static
 bool
 ply_bin_vertex_fast_layout(PLYElement    * __restrict elem,
                            size_t                      offsets[PLY_BIN_FAST_MAX_SLOTS],
                            PLYBinFastKind              kinds[PLY_BIN_FAST_MAX_SLOTS],
                            size_t        * __restrict  inputStride) {
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
   PLYProperty *prop;
   uint32_t     i;
   size_t       off;
@@ -90,13 +108,6 @@ ply_bin_vertex_fast_layout(PLYElement    * __restrict elem,
 
   *inputStride = off;
   return off > 0;
-#else
-  (void)elem;
-  (void)offsets;
-  (void)kinds;
-  (void)inputStride;
-  return false;
-#endif
 }
 
 static
@@ -108,13 +119,12 @@ ply_bin_vertex_fast(char        ** __restrict src,
                     uint32_t                   count,
                     uint32_t                   stride,
                     bool                       le) {
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
   PLYBinFastKind kinds[PLY_BIN_FAST_MAX_SLOTS];
   size_t         offsets[PLY_BIN_FAST_MAX_SLOTS];
   size_t         inputStride, i, j;
   char          *p;
 
-  if (!le || stride != elem->knownCount)
+  if (stride != elem->knownCount)
     return false;
   if (!ply_bin_vertex_fast_layout(elem, offsets, kinds, &inputStride))
     return false;
@@ -123,7 +133,11 @@ ply_bin_vertex_fast(char        ** __restrict src,
 
   p = *src;
 
-  if (inputStride == (size_t)stride * sizeof(float)) {
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+  if (le && inputStride == (size_t)stride * sizeof(float)) {
+#else
+  if (!le && inputStride == (size_t)stride * sizeof(float)) {
+#endif
     bool allFloatContiguous;
 
     allFloatContiguous = true;
@@ -161,7 +175,17 @@ ply_bin_vertex_fast(char        ** __restrict src,
 
     if (packedColor) {
       for (i = 0; i < count; i++) {
-        memcpy(dst, p, sizeof(float) * 3u);
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+        if (le) {
+#else
+        if (!le) {
+#endif
+          memcpy(dst, p, sizeof(float) * 3u);
+        } else {
+          dst[0] = ply_bin_read_f32(p + 0, le);
+          dst[1] = ply_bin_read_f32(p + 4, le);
+          dst[2] = ply_bin_read_f32(p + 8, le);
+        }
         for (j = 3; j < stride; j++)
           dst[j] = (float)*(const uint8_t *)(const void *)(p + offsets[j]);
         p   += inputStride;
@@ -176,7 +200,7 @@ ply_bin_vertex_fast(char        ** __restrict src,
     for (j = 0; j < stride; j++) {
       switch (kinds[j]) {
         case PLY_BIN_FAST_FLOAT:
-          memcpy(&dst[j], p + offsets[j], sizeof(float));
+          dst[j] = ply_bin_read_f32(p + offsets[j], le);
           break;
         case PLY_BIN_FAST_UBYTE:
           dst[j] = (float)*(const uint8_t *)(const void *)(p + offsets[j]);
@@ -191,16 +215,6 @@ ply_bin_vertex_fast(char        ** __restrict src,
 
   *src = p;
   return true;
-#else
-  (void)src;
-  (void)end;
-  (void)elem;
-  (void)dst;
-  (void)count;
-  (void)stride;
-  (void)le;
-  return false;
-#endif
 }
 
 static

@@ -18,6 +18,7 @@
 #include "default/semantic.h"
 #include <assert.h>
 #include <stdint.h>
+#include <string.h>
 
 AkAccessor*
 ak_accessor_dup(AkAccessor *oldacc) {
@@ -113,6 +114,27 @@ ak_accessorAsFloat(AkAccessor * __restrict acc,
                        : (size_t)comps * perComponentBytes;
   src               = (char *)acc->buffer->data + acc->byteOffset;
 
+  if (srcType == AKT_FLOAT
+      && !srcNorm
+      && perComponentBytes == sizeof(float)) {
+    size_t rowBytes = (size_t)comps * sizeof(float);
+    if (perItemBytes < rowBytes
+        || acc->byteOffset + (size_t)(acc->count - 1) * perItemBytes + rowBytes
+           > acc->buffer->length)
+      goto generic_convert;
+
+    if (perItemBytes == rowBytes) {
+      memcpy(out, src, rowBytes * acc->count);
+      return needed;
+    }
+
+    for (v = 0; v < acc->count; v++)
+      memcpy(out + (size_t)v * comps, src + (size_t)v * perItemBytes, rowBytes);
+
+    return needed;
+  }
+
+generic_convert:
   for (v = 0; v < acc->count; v++) {
     char *vsrc = src + (size_t)v * perItemBytes;
     for (c = 0; c < comps; c++) {

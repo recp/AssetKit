@@ -22,12 +22,7 @@ AK_INLINE
 char*
 xml_str_skip_array_sep(char * __restrict tok,
                        char * __restrict end) {
-  char c;
-
-  while (tok < end && ((void)(c = *tok), AK_ARRAY_SEP_CHECK))
-    tok++;
-
-  return tok;
+  return ak_str_skip_sep_fast(tok, end, false);
 }
 
 AK_INLINE

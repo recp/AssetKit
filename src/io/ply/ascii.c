@@ -43,6 +43,22 @@ ply_ascii_parse_index(char   * __restrict p,
   return p;
 }
 
+AK_INLINE
+char*
+ply_ascii_skip_inline_space(char * __restrict p) {
+  while (p[0] == ' ' || p[0] == '\t' || p[0] == '\f' || p[0] == '\v')
+    p++;
+  return p;
+}
+
+AK_INLINE
+char*
+ply_ascii_parse_float_token(char * __restrict p,
+                            float * __restrict dest) {
+  p = ply_ascii_skip_inline_space(p);
+  return ak_str_parse_float_fast(p, NULL, dest);
+}
+
 static
 char*
 ply_ascii_skip_property(char        * __restrict p,
@@ -116,7 +132,7 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
           SKIP_SPACES
 
           for (j = 0; j < stride; j++)
-            p = ak_strtof_one_fast(p, &b[j]);
+            p = ply_ascii_parse_float_token(p, &b[j]);
 
           b += stride;
 

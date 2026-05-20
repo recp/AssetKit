@@ -45,6 +45,10 @@ AK_INLINE
 void*
 wobj_data_append_slot(AkDataContext * __restrict dctx);
 
+AK_INLINE
+char*
+wobj_skip_inline_space(char * __restrict p);
+
 #define WOBJ_KW_MTLL AK_STR_PACK4_CHARS('m', 't', 'l', 'l')
 #define WOBJ_KW_USEM AK_STR_PACK4_CHARS('u', 's', 'e', 'm')
 
@@ -171,6 +175,41 @@ wobj_data_append_slot(AkDataContext * __restrict dctx) {
   chunk->usedsize += size;
 
   return chunk->data + chunk->usedsize - size;
+}
+
+AK_INLINE
+void*
+wobj_data_append_slots(AkDataContext * __restrict dctx, uint32_t count) {
+  AkDataChunk *chunk;
+  size_t       size, totalSize;
+
+  size      = dctx->itemsize;
+  totalSize = size * (size_t)count;
+
+  if (dctx->usedsize + totalSize > dctx->size) {
+    chunk = ak_heap_alloc(dctx->heap,
+                          dctx,
+                          sizeof(*chunk) + dctx->nodesize);
+    chunk->usedsize = 0;
+    chunk->next     = NULL;
+
+    if (dctx->last)
+      dctx->last->next = chunk;
+
+    dctx->last  = chunk;
+    dctx->size += dctx->nodesize;
+
+    if (!dctx->data)
+      dctx->data = chunk;
+  } else {
+    chunk = dctx->last;
+  }
+
+  dctx->usedsize += totalSize;
+  dctx->itemcount += count;
+  chunk->usedsize += totalSize;
+
+  return chunk->data + chunk->usedsize - totalSize;
 }
 
 typedef struct WODataMark {
@@ -325,7 +364,8 @@ wobj_parse_float_line(char     * __restrict p,
                       float    * __restrict values,
                       uint32_t               cap,
                       uint32_t               min_count,
-                      bool     * __restrict ok) {
+                      bool     * __restrict ok,
+                      char    ** __restrict endp) {
   float    ignored;
   uint32_t count;
 
@@ -348,15 +388,17 @@ wobj_parse_float_line(char     * __restrict p,
       tok = p;
       if (tok[0] == '+' || tok[0] == '-')
         tok++;
-      if (!(ak_str_isdigit_fast(tok[0]) || tok[0] == '.'))
+      if (!(ak_str_isdigit_fast(tok[0]) || tok[0] == '.')) {
+        if (endp)
+          *endp = p;
         return count;
+      }
     }
 
-    if (count < cap) {
-      p = ak_strtof_one_fast(p, &values[count]);
-    } else {
-      p = ak_strtof_one_fast(p, &ignored);
-    }
+    if (count < cap)
+      p = ak_str_parse_float_fast(p, NULL, &values[count]);
+    else
+      p = ak_str_parse_float_fast(p, NULL, &ignored);
     count++;
 
     while (p[0] != '\0' && !WOBJ_TOKEN_SEP(p[0]) && p[0] != '#')
@@ -365,8 +407,40 @@ wobj_parse_float_line(char     * __restrict p,
 
   if (ok)
     *ok = count >= min_count;
+  if (endp)
+    *endp = p;
 
   return count;
+}
+
+AK_INLINE
+bool
+wobj_float_token_start(char c) {
+  return ak_str_isdigit_fast(c) || c == '-' || c == '+' || c == '.';
+}
+
+static
+bool
+wobj_parse_float3_exact_line(char * __restrict p,
+                             float             values[3],
+                             char           ** __restrict endp) {
+  uint32_t i;
+
+  for (i = 0; i < 3; i++) {
+    p = wobj_skip_inline_space(p);
+    if (!wobj_float_token_start(p[0]))
+      return false;
+
+    p = ak_str_parse_float_fast(p, NULL, &values[i]);
+    if (!WOBJ_TOKEN_SEP(p[0]) && p[0] != '#')
+      return false;
+  }
+
+  p = wobj_skip_inline_space(p);
+  if (endp)
+    *endp = p;
+
+  return p[0] == '\0' || p[0] == '\n' || p[0] == '\r' || p[0] == '#';
 }
 
 static
@@ -666,6 +740,7 @@ wobj_try_parse_tri_vn_fast(WOPrim  * __restrict prim,
                            size_t                posCount,
                            size_t                norCount) {
   char  *p;
+  AkInt *faces;
   AkInt  vals[9];
   AkUInt p0, p1, p2;
   uint32_t i;
@@ -703,10 +778,11 @@ wobj_try_parse_tri_vn_fast(WOPrim  * __restrict prim,
   if (p0 == p1 || p0 == p2 || p1 == p2)
     return false;
 
+  faces = wobj_data_append_slots(prim->dc_face, 3);
   for (i = 0; i < 3; i++) {
     AkInt *face;
 
-    face    = wobj_data_append_slot(prim->dc_face);
+    face    = &faces[i * 3];
     face[0] = vals[i * 3 + 0];
     face[1] = vals[i * 3 + 1];
     face[2] = vals[i * 3 + 2];
@@ -728,6 +804,7 @@ wobj_try_parse_tri_fast(WOPrim  * __restrict prim,
                         size_t                texCount,
                         size_t                norCount) {
   char  *p;
+  AkInt *faces;
   AkInt  vals[9];
   AkUInt p0, p1, p2;
   int    mode;
@@ -796,10 +873,11 @@ wobj_try_parse_tri_fast(WOPrim  * __restrict prim,
   if (p0 == p1 || p0 == p2 || p1 == p2)
     return false;
 
+  faces = wobj_data_append_slots(prim->dc_face, 3);
   for (i = 0; i < 3; i++) {
     AkInt *face;
 
-    face    = wobj_data_append_slot(prim->dc_face);
+    face    = &faces[i * 3];
     face[0] = vals[i * 3 + 0];
     face[1] = vals[i * 3 + 1];
     face[2] = vals[i * 3 + 2];
@@ -923,6 +1001,7 @@ wobj_obj(AkDoc     ** __restrict dest,
         }
         case 'v': {
           float    values[8];
+          char    *lineEnd;
           uint32_t nValues;
           bool     hasW, hasColor, hasAlpha;
           bool     validValues;
@@ -931,7 +1010,20 @@ wobj_obj(AkDoc     ** __restrict dest,
           if (*++p == '\0')
             goto err;
 
-          nValues = wobj_parse_float_line(p, values, 8, 3, &validValues);
+          lineEnd = p;
+          if (wobj_parse_float3_exact_line(p, values, &lineEnd)) {
+            nValues     = 3;
+            validValues = true;
+            p           = lineEnd;
+          } else {
+            nValues = wobj_parse_float_line(p,
+                                            values,
+                                            8,
+                                            3,
+                                            &validValues,
+                                            &lineEnd);
+            p = lineEnd;
+          }
           if (!validValues)
             break;
 
@@ -1257,6 +1349,7 @@ wobj_obj(AkDoc     ** __restrict dest,
     } else if (p[2] == ' ' || p[2] == '\t') {
       if (p[0] == 'v' && p[1] == 'n') {
         float values[3];
+        char *lineEnd;
         uint32_t nValues;
         bool validValues;
         float *nor;
@@ -1264,7 +1357,20 @@ wobj_obj(AkDoc     ** __restrict dest,
         if (*(p += 2) == '\0')
           goto err;
 
-        nValues = wobj_parse_float_line(p, values, 3, 3, &validValues);
+        lineEnd = p;
+        if (wobj_parse_float3_exact_line(p, values, &lineEnd)) {
+          nValues     = 3;
+          validValues = true;
+          p           = lineEnd;
+        } else {
+          nValues = wobj_parse_float_line(p,
+                                          values,
+                                          3,
+                                          3,
+                                          &validValues,
+                                          &lineEnd);
+          p = lineEnd;
+        }
         if (!validValues || nValues < 3)
           goto skip_line;
 
@@ -1272,13 +1378,21 @@ wobj_obj(AkDoc     ** __restrict dest,
         memcpy(nor, values, sizeof(values));
       } else if (p[0] == 'v' && p[1] == 't') {
         float    values[3];
+        char    *lineEnd;
         uint32_t nValues;
         bool     validValues;
 
         if (*(p += 2) == '\0')
           goto err;
 
-        nValues = wobj_parse_float_line(p, values, 3, 1, &validValues);
+        lineEnd = p;
+        nValues = wobj_parse_float_line(p,
+                                        values,
+                                        3,
+                                        1,
+                                        &validValues,
+                                        &lineEnd);
+        p = lineEnd;
         if (!validValues)
           goto skip_line;
 

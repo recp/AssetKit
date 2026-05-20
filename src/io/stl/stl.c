@@ -402,16 +402,12 @@ stl_dedup_init(STLDedup * __restrict dedup,
 
 AK_INLINE
 uint32_t
-stl_rotl32(uint32_t value, unsigned shift) {
-  return (value << shift) | (value >> (32u - shift));
-}
-
-AK_INLINE
-uint32_t
 stl_hash3_u32(uint32_t a, uint32_t b, uint32_t c) {
   uint32_t h;
 
-  h = a ^ stl_rotl32(b, 11u) ^ stl_rotl32(c, 22u);
+  h = a * 73856093u;
+  h ^= b * 19349663u;
+  h ^= c * 83492791u;
   h ^= h >> 16;
   return h;
 }
@@ -723,11 +719,27 @@ stl_dedup_from_arrays(STLState * __restrict sst,
   return ok;
 }
 
+AK_INLINE
+char*
+stl_skip_inline_space(char * __restrict p) {
+  while (p[0] == ' ' || p[0] == '\t' || p[0] == '\f' || p[0] == '\v')
+    p++;
+  return p;
+}
+
+AK_INLINE
+char*
+stl_parse_float_token(char * __restrict p,
+                      float * __restrict dest) {
+  p = stl_skip_inline_space(p);
+  return ak_str_parse_float_fast(p, NULL, dest);
+}
+
 #define STL_PARSE_FLOAT3(PTR, DEST)                                           \
   do {                                                                        \
-    (PTR) = ak_strtof_one_fast((PTR), &(DEST)[0]);                            \
-    (PTR) = ak_strtof_one_fast((PTR), &(DEST)[1]);                            \
-    (PTR) = ak_strtof_one_fast((PTR), &(DEST)[2]);                            \
+    (PTR) = stl_parse_float_token((PTR), &(DEST)[0]);                         \
+    (PTR) = stl_parse_float_token((PTR), &(DEST)[1]);                         \
+    (PTR) = stl_parse_float_token((PTR), &(DEST)[2]);                         \
   } while (0)
 
 AK_HIDE

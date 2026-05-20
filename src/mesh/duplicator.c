@@ -22,7 +22,7 @@
 
 #define AK_INDEX_LOCAL_HASH_CAP 4096
 
-static
+AK_INLINE
 uint32_t
 ak_indexTupleHash(const AkUInt * __restrict tuple,
                   uint32_t                  stride) {
@@ -68,7 +68,7 @@ ak_indexTupleHash(const AkUInt * __restrict tuple,
 }
 
 #define AK_INDEX_TUPLE_HASH_TYPED(NAME, TYPE)                                \
-static                                                                       \
+AK_INLINE                                                                    \
 uint32_t                                                                     \
 NAME(const TYPE * __restrict tuple,                                          \
      uint32_t                  stride) {                                     \
@@ -121,7 +121,7 @@ AK_INDEX_TUPLE_HASH_TYPED(ak_indexTupleHash16, uint16_t)
 
 #undef AK_INDEX_TUPLE_HASH_TYPED
 
-static
+AK_INLINE
 bool
 ak_indexTupleEq(const AkUInt * __restrict a,
                 const AkUInt * __restrict b,
@@ -141,7 +141,7 @@ ak_indexTupleEq(const AkUInt * __restrict a,
 }
 
 #define AK_INDEX_TUPLE_EQ_TYPED(NAME, TYPE)                                  \
-static                                                                       \
+AK_INLINE                                                                    \
 bool                                                                         \
 NAME(const TYPE * __restrict a,                                              \
      const TYPE * __restrict b,                                              \
