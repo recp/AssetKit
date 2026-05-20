@@ -48,6 +48,10 @@ wobj_data_append_slot(AkDataContext * __restrict dctx);
 #define WOBJ_KW_MTLL AK_STR_PACK4_CHARS('m', 't', 'l', 'l')
 #define WOBJ_KW_USEM AK_STR_PACK4_CHARS('u', 's', 'e', 'm')
 
+#define WOBJ_FACE_FAST_UNKNOWN 0u
+#define WOBJ_FACE_FAST_TRI     1u
+#define WOBJ_FACE_FAST_TRI_VN  2u
+
 #define WOBJ_TOKEN_SEP(CH)                                                    \
   ((CH) == ' ' || (CH) == '\t' || (CH) == '\f' || (CH) == '\v'                \
    || (CH) == '\n' || (CH) == '\r')
@@ -605,6 +609,216 @@ wobj_parse_position_index_token(char  * __restrict p,
   return p;
 }
 
+AK_INLINE
+char*
+wobj_skip_inline_space(char * __restrict p) {
+  while (p[0] == ' ' || p[0] == '\t' || p[0] == '\f' || p[0] == '\v')
+    p++;
+  return p;
+}
+
+AK_INLINE
+bool
+wobj_parse_positive_index_fast(char  ** __restrict pp,
+                               AkInt  * __restrict out) {
+  char   *p;
+  AkUInt  value;
+
+  p = *pp;
+  if (!ak_str_isdigit_fast(*p))
+    return false;
+
+  value = 0;
+  do {
+    value = value * 10u + (AkUInt)(*p++ - '0');
+    if (value > (AkUInt)INT32_MAX)
+      return false;
+  } while (ak_str_isdigit_fast(*p));
+
+  if (value == 0)
+    return false;
+
+  *out = (AkInt)value;
+  *pp  = p;
+  return true;
+}
+
+AK_INLINE
+bool
+wobj_face_first_token_vn_fast(char * __restrict p) {
+  p = wobj_skip_inline_space(p);
+  if (!ak_str_isdigit_fast(*p))
+    return false;
+
+  do {
+    p++;
+  } while (ak_str_isdigit_fast(*p));
+
+  return p[0] == '/' && p[1] == '/';
+}
+
+static
+bool
+wobj_try_parse_tri_vn_fast(WOPrim  * __restrict prim,
+                           char   ** __restrict pp,
+                           size_t                posCount,
+                           size_t                norCount) {
+  char  *p;
+  AkInt  vals[9];
+  AkUInt p0, p1, p2;
+  uint32_t i;
+
+  p = *pp;
+  for (i = 0; i < 3; i++) {
+    AkInt posIdx, norIdx;
+
+    p = wobj_skip_inline_space(p);
+    if (!wobj_parse_positive_index_fast(&p, &posIdx))
+      return false;
+    if (p[0] != '/' || p[1] != '/')
+      return false;
+    p += 2;
+    if (!wobj_parse_positive_index_fast(&p, &norIdx))
+      return false;
+    if (!WOBJ_TOKEN_SEP(p[0]) && p[0] != '#')
+      return false;
+    if ((AkUInt)posIdx > (AkUInt)posCount
+        || (AkUInt)norIdx > (AkUInt)norCount)
+      return false;
+
+    vals[i * 3 + 0] = posIdx;
+    vals[i * 3 + 1] = 0;
+    vals[i * 3 + 2] = norIdx;
+  }
+
+  p = wobj_skip_inline_space(p);
+  if (p[0] != '\0' && p[0] != '\n' && p[0] != '\r' && p[0] != '#')
+    return false;
+
+  p0 = (AkUInt)vals[0] - 1u;
+  p1 = (AkUInt)vals[3] - 1u;
+  p2 = (AkUInt)vals[6] - 1u;
+  if (p0 == p1 || p0 == p2 || p1 == p2)
+    return false;
+
+  for (i = 0; i < 3; i++) {
+    AkInt *face;
+
+    face    = wobj_data_append_slot(prim->dc_face);
+    face[0] = vals[i * 3 + 0];
+    face[1] = vals[i * 3 + 1];
+    face[2] = vals[i * 3 + 2];
+  }
+
+  prim->hasNormal      = true;
+  prim->missingTexture = true;
+  prim->maxVC          = GLM_MAX(prim->maxVC, 3u);
+  *(int32_t *)wobj_data_append_slot(prim->dc_vcount) = 3;
+  *pp = p;
+  return true;
+}
+
+static
+bool
+wobj_try_parse_tri_fast(WOPrim  * __restrict prim,
+                        char   ** __restrict pp,
+                        size_t                posCount,
+                        size_t                texCount,
+                        size_t                norCount) {
+  char  *p;
+  AkInt  vals[9];
+  AkUInt p0, p1, p2;
+  int    mode;
+  uint32_t i;
+
+  p = *pp;
+  mode = -1;
+  for (i = 0; i < 3; i++) {
+    AkInt posIdx, texIdx, norIdx;
+    int   tokenMode;
+
+    p = wobj_skip_inline_space(p);
+    if (!wobj_parse_positive_index_fast(&p, &posIdx))
+      return false;
+    texIdx = 0;
+    norIdx = 0;
+    tokenMode = 0;
+    if (p[0] == '/') {
+      p++;
+      if (p[0] == '/') {
+        p++;
+        if (!wobj_parse_positive_index_fast(&p, &norIdx))
+          return false;
+        tokenMode = 2;
+      } else {
+        if (!wobj_parse_positive_index_fast(&p, &texIdx))
+          return false;
+        tokenMode = 1;
+        if (p[0] == '/') {
+          p++;
+          if (!WOBJ_TOKEN_SEP(p[0]) && p[0] != '#') {
+            if (!wobj_parse_positive_index_fast(&p, &norIdx))
+              return false;
+            tokenMode = 3;
+          }
+        }
+      }
+    }
+
+    if (mode < 0)
+      mode = tokenMode;
+    else if (mode != tokenMode)
+      return false;
+
+    if (!WOBJ_TOKEN_SEP(p[0]) && p[0] != '#')
+      return false;
+    if ((AkUInt)posIdx > (AkUInt)posCount)
+      return false;
+    if (texIdx && (AkUInt)texIdx > (AkUInt)texCount)
+      return false;
+    if (norIdx && (AkUInt)norIdx > (AkUInt)norCount)
+      return false;
+
+    vals[i * 3 + 0] = posIdx;
+    vals[i * 3 + 1] = texIdx;
+    vals[i * 3 + 2] = norIdx;
+  }
+
+  p = wobj_skip_inline_space(p);
+  if (p[0] != '\0' && p[0] != '\n' && p[0] != '\r' && p[0] != '#')
+    return false;
+
+  p0 = (AkUInt)vals[0] - 1u;
+  p1 = (AkUInt)vals[3] - 1u;
+  p2 = (AkUInt)vals[6] - 1u;
+  if (p0 == p1 || p0 == p2 || p1 == p2)
+    return false;
+
+  for (i = 0; i < 3; i++) {
+    AkInt *face;
+
+    face    = wobj_data_append_slot(prim->dc_face);
+    face[0] = vals[i * 3 + 0];
+    face[1] = vals[i * 3 + 1];
+    face[2] = vals[i * 3 + 2];
+  }
+
+  if (mode == 1 || mode == 3)
+    prim->hasTexture = true;
+  else
+    prim->missingTexture = true;
+
+  if (mode == 2 || mode == 3)
+    prim->hasNormal = true;
+  else
+    prim->missingNormal = true;
+
+  prim->maxVC = GLM_MAX(prim->maxVC, 3u);
+  *(int32_t *)wobj_data_append_slot(prim->dc_vcount) = 3;
+  *pp = p;
+  return true;
+}
+
 AK_HIDE
 AkResult
 wobj_obj(AkDoc     ** __restrict dest,
@@ -737,15 +951,62 @@ wobj_obj(AkDoc     ** __restrict dest,
           bool       duplicateFace;
           bool       oldHasTexture, oldHasNormal;
           bool       oldMissingTexture, oldMissingNormal;
+          bool       parsedFast;
 
           if ((c = *(p += 2)) == '\0')
             goto err;
 
           prim = wobj_prepare_prim_kind(wst, prim, AK_PRIMITIVE_TRIANGLES);
-          faceMark = wobj_data_mark(prim->dc_face);
           posCount = wst->dc_pos->itemcount;
           texCount = wst->dc_tex->itemcount;
           norCount = wst->dc_nor->itemcount;
+
+          parsedFast = false;
+          switch (prim->faceFastPath) {
+            case WOBJ_FACE_FAST_TRI_VN:
+              parsedFast = wobj_try_parse_tri_vn_fast(prim,
+                                                       &p,
+                                                       posCount,
+                                                       norCount);
+              if (!parsedFast && !wobj_face_first_token_vn_fast(p)) {
+                parsedFast = wobj_try_parse_tri_fast(prim,
+                                                     &p,
+                                                     posCount,
+                                                     texCount,
+                                                     norCount);
+                if (parsedFast)
+                  prim->faceFastPath = WOBJ_FACE_FAST_TRI;
+              }
+              break;
+            case WOBJ_FACE_FAST_TRI:
+              parsedFast = wobj_try_parse_tri_fast(prim,
+                                                   &p,
+                                                   posCount,
+                                                   texCount,
+                                                   norCount);
+              break;
+            default:
+              if (wobj_face_first_token_vn_fast(p)) {
+                parsedFast = wobj_try_parse_tri_vn_fast(prim,
+                                                        &p,
+                                                        posCount,
+                                                        norCount);
+                if (parsedFast)
+                  prim->faceFastPath = WOBJ_FACE_FAST_TRI_VN;
+              } else {
+                parsedFast = wobj_try_parse_tri_fast(prim,
+                                                     &p,
+                                                     posCount,
+                                                     texCount,
+                                                     norCount);
+                if (parsedFast)
+                  prim->faceFastPath = WOBJ_FACE_FAST_TRI;
+              }
+            }
+          if (parsedFast)
+            break;
+
+          faceMark = wobj_data_mark(prim->dc_face);
           seenCount = 0;
           validFace = true;
           duplicateFace = false;

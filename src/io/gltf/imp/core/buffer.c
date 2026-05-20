@@ -126,7 +126,6 @@ gltf_bufferViews(json_t * __restrict jbuffView,
       return;
     }
 
-    flist_sp_insert(&gst->bufferViews, buffView);
     if (buffViewIndex > 0)
       gst->bufferViewsByIndex[--buffViewIndex] = buffView;
     jbuffView = jbuffView->next;

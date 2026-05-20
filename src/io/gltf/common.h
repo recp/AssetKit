@@ -96,7 +96,6 @@ typedef struct AkGLTFState {
   FListItem    *buffers;
   AkBuffer    **buffersByIndex;
   RBTree       *bufferMap;
-  FListItem    *bufferViews;
   AkBufferView **bufferViewsByIndex;
   AkAccessor  **accessorsByIndex;
   AkImage     **imagesByIndex;
@@ -207,12 +206,7 @@ gltf_buffer_at(AkGLTFState * __restrict gst, int32_t index) {
 static inline
 AkBufferView*
 gltf_bufferView_at(AkGLTFState * __restrict gst, int32_t index) {
-  AkBufferView *item;
-
-  if ((item = GLTF_INDEXED_AT(gst->bufferViewsByIndex, gst->bufferViewsCount, index)))
-    return item;
-
-  return flist_sp_at(&gst->bufferViews, index);
+  return GLTF_INDEXED_AT(gst->bufferViewsByIndex, gst->bufferViewsCount, index);
 }
 
 static inline

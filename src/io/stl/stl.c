@@ -433,14 +433,8 @@ stl_hash_bytes(uint64_t h, const void * __restrict data, size_t len) {
 
 AK_INLINE
 uint32_t
-stl_position_hash_bits(const uint32_t bits[3]) {
-  return stl_hash3_u32(bits[0], bits[1], bits[2]);
-}
-
-AK_INLINE
-uint32_t
-stl_position_cache_slot_bits(const uint32_t bits[3]) {
-  return (bits[0] ^ bits[1] ^ bits[2]) & (STL_POSITION_CACHE_SIZE - 1u);
+stl_position_cache_slot_u32(uint32_t b0, uint32_t b1, uint32_t b2) {
+  return (b0 ^ b1 ^ b2) & (STL_POSITION_CACHE_SIZE - 1u);
 }
 
 static
@@ -481,10 +475,12 @@ stl_vertex_equal(const STLDedup * __restrict dedup,
 
 AK_INLINE
 bool
-stl_position_dedup_intern_bits_h(STLPositionDedup * __restrict dedup,
-                                 const uint32_t                 bits[3],
-                                 uint32_t                       hash,
-                                 uint32_t * __restrict          indexOut) {
+stl_position_dedup_intern_u32_h(STLPositionDedup * __restrict dedup,
+                                uint32_t                       b0,
+                                uint32_t                       b1,
+                                uint32_t                       b2,
+                                uint32_t                       hash,
+                                uint32_t * __restrict          indexOut) {
   size_t   slot, mask;
 
   mask = dedup->tableCap - 1;
@@ -499,18 +495,18 @@ stl_position_dedup_intern_bits_h(STLPositionDedup * __restrict dedup,
           || dedup->count + 1u >= dedup->tableCap)
         return false;
       index = dedup->count++;
-      dedup->posBits[(size_t)index * 3 + 0] = bits[0];
-      dedup->posBits[(size_t)index * 3 + 1] = bits[1];
-      dedup->posBits[(size_t)index * 3 + 2] = bits[2];
+      dedup->posBits[(size_t)index * 3 + 0] = b0;
+      dedup->posBits[(size_t)index * 3 + 1] = b1;
+      dedup->posBits[(size_t)index * 3 + 2] = b2;
       dedup->table[slot] = index + 1;
       *indexOut          = index;
       return true;
     }
 
     index = packed - 1;
-    if (dedup->posBits[(size_t)index * 3 + 0] == bits[0]
-        && dedup->posBits[(size_t)index * 3 + 1] == bits[1]
-        && dedup->posBits[(size_t)index * 3 + 2] == bits[2]) {
+    if (dedup->posBits[(size_t)index * 3 + 0] == b0
+        && dedup->posBits[(size_t)index * 3 + 1] == b1
+        && dedup->posBits[(size_t)index * 3 + 2] == b2) {
       *indexOut = index;
       return true;
     }
@@ -526,30 +522,29 @@ stl_position_dedup_intern_raw_cached(STLPositionDedup * __restrict dedup,
                                      uint32_t * __restrict         cacheBits,
                                      uint32_t * __restrict         cachePacked,
                                      uint32_t * __restrict         indexOut) {
-  uint32_t bits[3];
-  uint32_t hash, cacheSlot, packed;
+  uint32_t b0, b1, b2, hash, cacheSlot, packed;
 
-  bits[0] = stl_read_u32le(pos + 0);
-  bits[1] = stl_read_u32le(pos + 4);
-  bits[2] = stl_read_u32le(pos + 8);
+  b0 = stl_read_u32le(pos + 0);
+  b1 = stl_read_u32le(pos + 4);
+  b2 = stl_read_u32le(pos + 8);
 
-  cacheSlot = stl_position_cache_slot_bits(bits);
+  cacheSlot = stl_position_cache_slot_u32(b0, b1, b2);
   packed = cachePacked[cacheSlot];
   if (packed) {
     const uint32_t *cached = cacheBits + (size_t)cacheSlot * 3;
-    if (cached[0] == bits[0] && cached[1] == bits[1] && cached[2] == bits[2]) {
+    if (cached[0] == b0 && cached[1] == b1 && cached[2] == b2) {
       *indexOut = packed - 1u;
       return true;
     }
   }
 
-  hash = stl_position_hash_bits(bits);
-  if (!stl_position_dedup_intern_bits_h(dedup, bits, hash, indexOut))
+  hash = stl_hash3_u32(b0, b1, b2);
+  if (!stl_position_dedup_intern_u32_h(dedup, b0, b1, b2, hash, indexOut))
     return false;
 
-  cacheBits[(size_t)cacheSlot * 3 + 0] = bits[0];
-  cacheBits[(size_t)cacheSlot * 3 + 1] = bits[1];
-  cacheBits[(size_t)cacheSlot * 3 + 2] = bits[2];
+  cacheBits[(size_t)cacheSlot * 3 + 0] = b0;
+  cacheBits[(size_t)cacheSlot * 3 + 1] = b1;
+  cacheBits[(size_t)cacheSlot * 3 + 2] = b2;
   cachePacked[cacheSlot] = *indexOut + 1u;
   return true;
 }
@@ -921,31 +916,41 @@ stl_binary_fill_position_dedup(STLPositionDedup * __restrict dedup,
   memset(cachePacked, 0, STL_POSITION_CACHE_SIZE * sizeof(*cachePacked));
   colorMask = 0;
   for (i = 0; i < nTriangles; i++) {
-    uint32_t newIndices[3];
-    uint32_t v;
+    uint32_t i0, i1, i2;
 
     p += 12; /* facet normal */
 
-    for (v = 0; v < 3; v++) {
-      if (!stl_position_dedup_intern_raw_cached(dedup,
-                                                p,
-                                                cacheBits,
-                                                cachePacked,
-                                                &newIndices[v]))
-        return false;
-      p += 12;
-    }
+    if (!stl_position_dedup_intern_raw_cached(dedup,
+                                              p,
+                                              cacheBits,
+                                              cachePacked,
+                                              &i0))
+      return false;
+    p += 12;
+    if (!stl_position_dedup_intern_raw_cached(dedup,
+                                              p,
+                                              cacheBits,
+                                              cachePacked,
+                                              &i1))
+      return false;
+    p += 12;
+    if (!stl_position_dedup_intern_raw_cached(dedup,
+                                              p,
+                                              cacheBits,
+                                              cachePacked,
+                                              &i2))
+      return false;
+    p += 12;
+
     colorMask |= (uint32_t)stl_read_u16le(p) & 0x8000u;
     p += 2; /* attribute byte count */
 
-    if (newIndices[0] == newIndices[1]
-        || newIndices[0] == newIndices[2]
-        || newIndices[1] == newIndices[2])
+    if (i0 == i1 || i0 == i2 || i1 == i2)
       continue;
 
-    dedup->indices[dedup->indexCount++] = newIndices[0];
-    dedup->indices[dedup->indexCount++] = newIndices[1];
-    dedup->indices[dedup->indexCount++] = newIndices[2];
+    dedup->indices[dedup->indexCount++] = i0;
+    dedup->indices[dedup->indexCount++] = i1;
+    dedup->indices[dedup->indexCount++] = i2;
   }
 
   return colorMask == 0;
