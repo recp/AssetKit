@@ -27,6 +27,12 @@ typedef struct PLYTriSeenSlot {
   uint32_t used;
 } PLYTriSeenSlot;
 
+typedef struct PLYTriSeen {
+  uint64_t       *keys;
+  PLYTriSeenSlot *slots;
+  size_t          cap;
+} PLYTriSeen;
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 
@@ -68,17 +74,31 @@ typedef struct PLYTriSeenSlot {
 
 static inline
 AkDataContext*
-ply_index_data_new_for(PLYState * __restrict pst,
-                       AkTypeId * __restrict componentType,
-                       AkUInt   * __restrict indexMax) {
+ply_index_data_new_for_estimated(PLYState * __restrict pst,
+                                 AkTypeId * __restrict componentType,
+                                 AkUInt   * __restrict indexMax,
+                                 size_t                  estimatedItems) {
   AkUInt maxIndex;
-  size_t itemSize, nodeItems;
+  size_t itemSize, nodeBytes, nodeItems;
 
   maxIndex = pst->vertcount > 0 ? pst->vertcount - 1 : 0;
   *componentType = ak_indexComponentTypeForMax(maxIndex);
   *indexMax = 0;
-  itemSize = ak_indexComponentSize(*componentType);
-  nodeItems = 1024 / itemSize;
+  itemSize  = ak_indexComponentSize(*componentType);
+  nodeBytes = 1024;
+
+  if (estimatedItems > 0) {
+    if (estimatedItems > (64 * 1024) / itemSize)
+      nodeBytes = 64 * 1024;
+    else if (estimatedItems > (16 * 1024) / itemSize)
+      nodeBytes = 16 * 1024;
+  } else if (pst->vertcount > 65536) {
+    nodeBytes = 64 * 1024;
+  } else if (pst->vertcount > 4096) {
+    nodeBytes = 16 * 1024;
+  }
+
+  nodeItems = nodeBytes / itemSize;
   if (nodeItems < 128)
     nodeItems = 128;
 
@@ -86,14 +106,23 @@ ply_index_data_new_for(PLYState * __restrict pst,
 }
 
 static inline
+AkDataContext*
+ply_index_data_new_for(PLYState * __restrict pst,
+                       AkTypeId * __restrict componentType,
+                       AkUInt   * __restrict indexMax) {
+  return ply_index_data_new_for_estimated(pst, componentType, indexMax, 0);
+}
+
+static inline
 size_t
 ply_tristrip_seen_capacity(size_t count) {
-  size_t cap, wanted;
+  size_t cap, faces, wanted;
 
   if (count < 3 || count > SIZE_MAX / 2)
     return 0;
 
-  wanted = (count - 2) * 2;
+  faces  = count - 2;
+  wanted = faces + faces / 2;
   cap    = 64;
   while (cap < wanted) {
     if (cap > SIZE_MAX / 2)
@@ -102,6 +131,15 @@ ply_tristrip_seen_capacity(size_t count) {
   }
 
   return cap;
+}
+
+static inline
+uint64_t
+ply_hash64(uint64_t value) {
+  value ^= value >> 33;
+  value *= 0xff51afd7ed558ccdull;
+  value ^= value >> 33;
+  return value;
 }
 
 static inline
@@ -142,17 +180,40 @@ ply_tri_sort3(uint32_t * __restrict a,
 }
 
 static inline
-bool
-ply_tri_seen_insert(PLYTriSeenSlot * __restrict seen,
-                    size_t                       seenCap,
-                    AkUInt                       a,
-                    AkUInt                       b,
-                    AkUInt                       c) {
-  PLYTriSeenSlot *slot;
-  uint32_t        sa, sb, sc;
-  size_t          mask, pos;
+void
+ply_tri_seen_init(PLYTriSeen * __restrict seen,
+                  PLYState   * __restrict pst,
+                  size_t                   count) {
+  size_t cap;
 
-  if (!seen || seenCap == 0)
+  seen->keys  = NULL;
+  seen->slots = NULL;
+  seen->cap   = 0;
+
+  cap = ply_tristrip_seen_capacity(count);
+  if (cap == 0)
+    return;
+
+  seen->cap = cap;
+  if (pst->vertcount <= 0x1fffffu) {
+    seen->keys = ak_heap_calloc(pst->heap, pst->tmp, sizeof(*seen->keys) * cap);
+  } else {
+    seen->slots = ak_heap_calloc(pst->heap,
+                                 pst->tmp,
+                                 sizeof(*seen->slots) * cap);
+  }
+}
+
+static inline
+bool
+ply_tri_seen_insert(PLYTriSeen * __restrict seen,
+                    AkUInt                   a,
+                    AkUInt                   b,
+                    AkUInt                   c) {
+  uint32_t sa, sb, sc;
+  size_t   mask, pos;
+
+  if (!seen || seen->cap == 0)
     return true;
   if (a > UINT32_MAX || b > UINT32_MAX || c > UINT32_MAX)
     return true;
@@ -162,20 +223,40 @@ ply_tri_seen_insert(PLYTriSeenSlot * __restrict seen,
   sc = (uint32_t)c;
   ply_tri_sort3(&sa, &sb, &sc);
 
-  mask = seenCap - 1;
-  pos  = (size_t)ply_tri_hash(sa, sb, sc) & mask;
-  for (;;) {
-    slot = &seen[pos];
-    if (!slot->used) {
-      slot->a    = sa;
-      slot->b    = sb;
-      slot->c    = sc;
-      slot->used = 1;
-      return true;
+  mask = seen->cap - 1;
+
+  if (seen->keys) {
+    uint64_t key;
+
+    key = (((uint64_t)sa) << 42) | (((uint64_t)sb) << 21) | (uint64_t)sc;
+    key++;
+    pos = (size_t)ply_hash64(key) & mask;
+    for (;;) {
+      if (seen->keys[pos] == 0) {
+        seen->keys[pos] = key;
+        return true;
+      }
+      if (seen->keys[pos] == key)
+        return false;
+      pos = (pos + 1) & mask;
     }
-    if (slot->a == sa && slot->b == sb && slot->c == sc)
-      return false;
-    pos = (pos + 1) & mask;
+  } else {
+    PLYTriSeenSlot *slot;
+
+    pos = (size_t)ply_tri_hash(sa, sb, sc) & mask;
+    for (;;) {
+      slot = &seen->slots[pos];
+      if (!slot->used) {
+        slot->a    = sa;
+        slot->b    = sb;
+        slot->c    = sc;
+        slot->used = 1;
+        return true;
+      }
+      if (slot->a == sa && slot->b == sb && slot->c == sc)
+        return false;
+      pos = (pos + 1) & mask;
+    }
   }
 }
 
@@ -219,6 +300,16 @@ static inline
 AkDataContext*
 ply_index_data_new(PLYState * __restrict pst) {
   return ply_index_data_new_for(pst, &pst->indexComponentType, &pst->indexMax);
+}
+
+static inline
+AkDataContext*
+ply_index_data_new_estimated(PLYState * __restrict pst,
+                             size_t                  estimatedItems) {
+  return ply_index_data_new_for_estimated(pst,
+                                          &pst->indexComponentType,
+                                          &pst->indexMax,
+                                          estimatedItems);
 }
 
 static inline
@@ -335,7 +426,7 @@ ply_edge_append(PLYState * __restrict pst, AkUInt a, AkUInt b) {
   } while (0)
 
 #define PLY_INDEX_APPEND_STRIP_TRI_SEEN(PST, A, B, C, STRIP_LEN, OUT_COUNT,   \
-                                        SEEN, SEEN_CAP)                       \
+                                        SEEN)                                  \
   do {                                                                        \
     AkUInt strip_a_, strip_b_, strip_c_;                                      \
                                                                               \
@@ -346,7 +437,6 @@ ply_edge_append(PLYState * __restrict pst, AkUInt a, AkUInt b) {
         && strip_a_ != strip_c_                                                \
         && strip_b_ != strip_c_                                                \
         && ply_tri_seen_insert((SEEN),                                         \
-                               (SEEN_CAP),                                     \
                                strip_a_,                                       \
                                strip_b_,                                       \
                                strip_c_)) {                                    \
@@ -372,8 +462,7 @@ ply_edge_append(PLYState * __restrict pst, AkUInt a, AkUInt b) {
                                   (C),                                         \
                                   (STRIP_LEN),                                 \
                                   (OUT_COUNT),                                 \
-                                  NULL,                                        \
-                                  0)
+                                  NULL)
 
 #define PLY_INDEX_APPEND_TRI_TYPED(PST, TYPE, A, B, C)                        \
   do {                                                                        \

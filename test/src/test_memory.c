@@ -28,15 +28,38 @@ extern AkHeapAllocator ak__allocator;
 
 TEST_IMPL(heap) {
   AkHeap  *heap, *other, staticHeap;
+  AkHeapStats stats;
   uint32_t heapid, data;
 
   heap = ak_heap_new(NULL, NULL, NULL);
   ASSERT(heap->allocator == &ak__allocator);
   ASSERT(ak_heap_allocator(heap) == &ak__allocator);
+  ak_heap_getStats(heap, &stats);
+  ASSERT(stats.allocCalls == 0);
+  ASSERT(stats.peakNodes == 0);
 
   heapid = heap->heapid;
   ASSERT(heapid > 0);
   ASSERT(ak_heap_lt_find(heap->heapid) == heap);
+
+  data = 0;
+  {
+    void *mem;
+
+    mem = ak_heap_calloc(heap, NULL, 16);
+    ak_heap_getStats(heap, &stats);
+    ASSERT(stats.allocCalls == 1);
+    ASSERT(stats.callocCalls == 1);
+    ASSERT(stats.allocBytes == 16);
+    ASSERT(stats.callocBytes == 16);
+    ASSERT(stats.liveNodes == 1);
+    ASSERT(stats.peakNodes == 1);
+
+    ak_free(mem);
+    ak_heap_getStats(heap, &stats);
+    ASSERT(stats.freeCalls == 1);
+    ASSERT(stats.liveNodes == 0);
+  }
 
   other = ak_heap_new(NULL, NULL, NULL);
 

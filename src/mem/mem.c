@@ -36,6 +36,15 @@ static
 char*
 ak__heap_strdup_def(const char * str);
 
+static
+void
+ak__heap_stats_alloc(AkHeap * __restrict heap,
+                     size_t              size);
+
+static
+void
+ak__heap_stats_free(AkHeap * __restrict heap);
+
 AK_HIDE
 void
 ak_heap_moveh_chld(AkHeap     * __restrict heap,
@@ -93,6 +102,27 @@ ak__heap_strdup_def(const char * str) {
   return memptr;
 }
 
+static
+void
+ak__heap_stats_alloc(AkHeap * __restrict heap,
+                     size_t              size) {
+  heap->stats.allocCalls++;
+  heap->stats.allocBytes += (uint64_t)size;
+  heap->stats.liveNodes++;
+
+  if (heap->stats.liveNodes > heap->stats.peakNodes)
+    heap->stats.peakNodes = heap->stats.liveNodes;
+}
+
+static
+void
+ak__heap_stats_free(AkHeap * __restrict heap) {
+  heap->stats.freeCalls++;
+
+  if (heap->stats.liveNodes > 0)
+    heap->stats.liveNodes--;
+}
+
 AK_EXPORT
 char*
 ak_heap_strdup(AkHeap * __restrict heap,
@@ -140,6 +170,21 @@ AK_EXPORT
 AkHeap *
 ak_heap_default(void) {
   return &ak__heap;
+}
+
+AK_EXPORT
+void
+ak_heap_getStats(AkHeap      * __restrict heap,
+                 AkHeapStats * __restrict stats) {
+  if (!stats)
+    return;
+
+  if (!heap) {
+    memset(stats, 0, sizeof(*stats));
+    return;
+  }
+
+  *stats = heap->stats;
 }
 
 AK_EXPORT
@@ -274,6 +319,7 @@ ak_heap_init(AkHeap          * __restrict heap,
   heap->trash     = NULL;
   heap->data      = NULL;
   heap->idheap    = NULL;
+  memset(&heap->stats, 0, sizeof(heap->stats));
   heap->heapid    = 0;
   heap->allocator = alc;
   heap->srchctx   = srchctx;
@@ -345,6 +391,7 @@ ak_heap_alloc(AkHeap * __restrict heap,
   currNode->typeid = 0;
   currNode->chld   = NULL;
   currNode->heapid = heap->heapid;
+  ak__heap_stats_alloc(heap, size);
 
   if (parent) {
     AkHeapNode *chldNode;
@@ -376,6 +423,9 @@ ak_heap_calloc(AkHeap * __restrict heap,
                size_t              size) {
   void *memptr;
 
+  heap->stats.callocCalls++;
+  heap->stats.callocBytes += (uint64_t)size;
+
   memptr = ak_heap_alloc(heap,
                          parent,
                          size);
@@ -393,6 +443,11 @@ ak_heap_realloc(AkHeap * __restrict heap,
   AkHeapNode *oldNode;
   AkHeapNode *newNode;
   AkHeapNode *chld;
+  size_t      userNewSize;
+
+  userNewSize = newsize;
+  heap->stats.reallocCalls++;
+  heap->stats.reallocBytes += (uint64_t)userNewSize;
 
   if (!memptr)
     return ak_heap_alloc(heap,
@@ -644,6 +699,7 @@ ak_heap_free(AkHeap     * __restrict heap,
         heap->trash = toFree->chld;
       }
 
+      ak__heap_stats_free(heap);
       alc->free(toFree);
       toFree = nextFree;
 
@@ -672,6 +728,7 @@ ak_heap_free(AkHeap     * __restrict heap,
   if (heapNode->next)
     heapNode->next->prev = heapNode->prev;
 
+  ak__heap_stats_free(heap);
   alc->free(heapNode);
 }
 

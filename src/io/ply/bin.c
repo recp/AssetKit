@@ -21,6 +21,188 @@
 #include "../../data.h"
 #include "../../endian.h"
 
+#define PLY_BIN_FAST_MAX_SLOTS 16
+
+typedef enum PLYBinFastKind {
+  PLY_BIN_FAST_NONE = 0,
+  PLY_BIN_FAST_FLOAT,
+  PLY_BIN_FAST_UBYTE
+} PLYBinFastKind;
+
+static
+bool
+ply_bin_vertex_fast_layout(PLYElement    * __restrict elem,
+                           size_t                      offsets[PLY_BIN_FAST_MAX_SLOTS],
+                           PLYBinFastKind              kinds[PLY_BIN_FAST_MAX_SLOTS],
+                           size_t        * __restrict  inputStride) {
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+  PLYProperty *prop;
+  uint32_t     i;
+  size_t       off;
+
+  if (!elem || elem->knownCount == 0 || elem->knownCount > PLY_BIN_FAST_MAX_SLOTS)
+    return false;
+
+  for (i = 0; i < elem->knownCount; i++) {
+    offsets[i] = 0;
+    kinds[i]   = PLY_BIN_FAST_NONE;
+  }
+
+  off  = 0;
+  prop = elem->property;
+  while (prop) {
+    AkTypeDesc *typeDesc;
+    size_t      size;
+
+    if (prop->islist)
+      return false;
+
+    typeDesc = prop->typeDesc;
+    if (!typeDesc)
+      return false;
+
+    size = typeDesc->size;
+    if (!prop->ignore) {
+      if (prop->slot >= elem->knownCount)
+        return false;
+
+      switch (typeDesc->typeId) {
+        case AKT_FLOAT:
+          kinds[prop->slot] = PLY_BIN_FAST_FLOAT;
+          break;
+        case AKT_UBYTE:
+          kinds[prop->slot] = PLY_BIN_FAST_UBYTE;
+          break;
+        default:
+          return false;
+      }
+      offsets[prop->slot] = off;
+    }
+
+    off += size;
+    prop = prop->next;
+  }
+
+  for (i = 0; i < elem->knownCount; i++) {
+    if (kinds[i] == PLY_BIN_FAST_NONE)
+      return false;
+  }
+
+  *inputStride = off;
+  return off > 0;
+#else
+  (void)elem;
+  (void)offsets;
+  (void)kinds;
+  (void)inputStride;
+  return false;
+#endif
+}
+
+static
+bool
+ply_bin_vertex_fast(char        ** __restrict src,
+                    char         * __restrict end,
+                    PLYElement   * __restrict elem,
+                    float        * __restrict dst,
+                    uint32_t                   count,
+                    uint32_t                   stride,
+                    bool                       le) {
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+  PLYBinFastKind kinds[PLY_BIN_FAST_MAX_SLOTS];
+  size_t         offsets[PLY_BIN_FAST_MAX_SLOTS];
+  size_t         inputStride, i, j;
+  char          *p;
+
+  if (!le || stride != elem->knownCount)
+    return false;
+  if (!ply_bin_vertex_fast_layout(elem, offsets, kinds, &inputStride))
+    return false;
+  if ((uint64_t)count * inputStride > (uint64_t)(end - *src))
+    return false;
+
+  p = *src;
+
+  if (inputStride == (size_t)stride * sizeof(float)) {
+    bool allFloatContiguous;
+
+    allFloatContiguous = true;
+    for (j = 0; j < stride; j++) {
+      if (kinds[j] != PLY_BIN_FAST_FLOAT || offsets[j] != j * sizeof(float)) {
+        allFloatContiguous = false;
+        break;
+      }
+    }
+
+    if (allFloatContiguous) {
+      memcpy(dst, p, (size_t)count * inputStride);
+      *src = p + (size_t)count * inputStride;
+      return true;
+    }
+  }
+
+  if ((stride == 6 || stride == 7)
+      && inputStride == 12u + (size_t)(stride - 3u)
+      && kinds[0] == PLY_BIN_FAST_FLOAT
+      && kinds[1] == PLY_BIN_FAST_FLOAT
+      && kinds[2] == PLY_BIN_FAST_FLOAT
+      && offsets[0] == 0
+      && offsets[1] == 4
+      && offsets[2] == 8) {
+    bool packedColor;
+
+    packedColor = true;
+    for (j = 3; j < stride; j++) {
+      if (kinds[j] != PLY_BIN_FAST_UBYTE || offsets[j] != 12u + (j - 3u)) {
+        packedColor = false;
+        break;
+      }
+    }
+
+    if (packedColor) {
+      for (i = 0; i < count; i++) {
+        memcpy(dst, p, sizeof(float) * 3u);
+        for (j = 3; j < stride; j++)
+          dst[j] = (float)*(const uint8_t *)(const void *)(p + offsets[j]);
+        p   += inputStride;
+        dst += stride;
+      }
+      *src = p;
+      return true;
+    }
+  }
+
+  for (i = 0; i < count; i++) {
+    for (j = 0; j < stride; j++) {
+      switch (kinds[j]) {
+        case PLY_BIN_FAST_FLOAT:
+          memcpy(&dst[j], p + offsets[j], sizeof(float));
+          break;
+        case PLY_BIN_FAST_UBYTE:
+          dst[j] = (float)*(const uint8_t *)(const void *)(p + offsets[j]);
+          break;
+        default:
+          break;
+      }
+    }
+    p   += inputStride;
+    dst += stride;
+  }
+
+  *src = p;
+  return true;
+#else
+  (void)src;
+  (void)end;
+  (void)elem;
+  (void)dst;
+  (void)count;
+  (void)stride;
+  (void)le;
+  return false;
+#endif
+}
+
 static
 bool
 ply_bin_skip_property(char        ** __restrict src,
@@ -93,31 +275,34 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
       if (!elem->buff || elem->buff->length == 0)
         return;
 
-      while (i++ < elemc) {
-        prop = elem->property;
-        while (prop) {
-          if (!prop->ignore) {
-            if (!prop->typeDesc || p + prop->typeDesc->size > e)
-              goto fns;
+      if (!ply_bin_vertex_fast(&p, e, elem, b, elemc, stride, le)) {
+        while (i++ < elemc) {
+          prop = elem->property;
+          while (prop) {
+            if (!prop->ignore) {
+              if (!prop->typeDesc || p + prop->typeDesc->size > e)
+                goto fns;
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 
-            ply_val(p, prop->typeDesc, le, float, b[prop->slot], 0.0f);
+              ply_val(p, prop->typeDesc, le, float, b[prop->slot], 0.0f);
             
 #pragma GCC diagnostic pop
-          } else if (!ply_bin_skip_property(&p, e, prop, le)) {
-            goto fns;
-          }
-          prop = prop->next;
-        }
 
-        b += stride;
+            } else if (!ply_bin_skip_property(&p, e, prop, le)) {
+              goto fns;
+            }
+            prop = prop->next;
+          }
+
+          b += stride;
+        }
       }
     } else if (elem->type == PLY_ELEM_FACE) {
       AkUInt *f, fc, j, count, last_fc, valid, elemc;
 
-      pst->dc_ind = ply_index_data_new(pst);
+      pst->dc_ind = ply_index_data_new_estimated(pst, (size_t)elem->count * 3u);
       elemc       = elem->count;
       f           = NULL;
       i           = 0;
@@ -204,7 +389,6 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
     } else if (elem->type == PLY_ELEM_TRISTRIPS) {
       AkUInt elemc, fc, j, count, vertcount;
 
-      pst->dc_ind = ply_index_data_new(pst);
       elemc       = elem->count;
       i           = 0;
       count       = 0;
@@ -215,9 +399,9 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
 
         while (prop) {
           if (prop->semantic == PLY_PROP_VERTEX_INDICES && prop->islist) {
-            PLYTriSeenSlot *seen;
+            PLYTriSeen seen;
             AkUInt prev0, prev1, stripLen;
-            size_t itemSize, seenCap;
+            size_t itemSize;
 
             if (!prop->listCountTypeDesc || !prop->typeDesc)
               goto fns;
@@ -236,12 +420,11 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
             if ((uint64_t)fc * itemSize > (uint64_t)(e - p))
               goto fns;
 
-            seenCap = ply_tristrip_seen_capacity(fc);
-            seen    = seenCap > 0
-                      ? ak_heap_calloc(pst->heap,
-                                       pst->tmp,
-                                       sizeof(*seen) * seenCap)
-                      : NULL;
+            if (!pst->dc_ind)
+              pst->dc_ind = ply_index_data_new_estimated(
+                pst,
+                fc > 2 ? ((size_t)fc - 2u) * 3u : 0);
+            ply_tri_seen_init(&seen, pst, fc);
             prev0 = prev1 = 0;
             stripLen = 0;
             for (j = 0; j < fc; j++) {
@@ -274,8 +457,7 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
                                                 index,
                                                 stripLen,
                                                 count,
-                                                seen,
-                                                seenCap);
+                                                &seen);
                 prev0 = prev1;
                 prev1 = index;
                 stripLen++;

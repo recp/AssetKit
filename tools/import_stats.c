@@ -32,6 +32,7 @@ typedef struct ImportStats {
   uint64_t u32;
   uint64_t ownedBytes;
   uint64_t indexCount;
+  AkHeapStats heap;
 } ImportStats;
 
 static double
@@ -120,8 +121,10 @@ stats_load_once(const char *path, ImportStats *stats, double *elapsedMs) {
   if (result != AK_OK || !doc)
     return false;
 
-  if (stats)
+  if (stats) {
     stats_collect(doc, stats);
+    ak_heap_getStats(ak_heap_getheap(doc), &stats->heap);
+  }
 
   ak_free(doc);
   return true;
@@ -183,6 +186,8 @@ stats_bench_path(const char *path, int iterations, int warmup) {
   printf("%s\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%" PRIu64 "\t%" PRIu64
          "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64
          "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64
+         "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64
+         "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64
          "\t%" PRIu64 "\t%" PRIu64 "\t%s\n",
          stats_base_name(path),
          iterations,
@@ -202,6 +207,14 @@ stats_bench_path(const char *path, int iterations, int warmup) {
          stats.u32,
          stats.indexCount,
          stats.ownedBytes,
+         stats.heap.allocCalls,
+         stats.heap.callocCalls,
+         stats.heap.reallocCalls,
+         stats.heap.freeCalls,
+         stats.heap.allocBytes,
+         stats.heap.callocBytes,
+         stats.heap.reallocBytes,
+         stats.heap.peakNodes,
          path);
 
   free(times);
@@ -240,7 +253,9 @@ main(int argc, char **argv) {
 
   printf("file\titers\tmin_ms\tavg_ms\tmedian_ms\tmax_ms\tprims\tpoints"
          "\tlines\ttriangles\tpolygons\towned\taccessor\tu8\tu16\tu32"
-         "\tindices\towned_bytes\tpath\n");
+         "\tindices\towned_bytes\theap_allocs\theap_callocs\theap_reallocs"
+         "\theap_frees\theap_alloc_bytes\theap_calloc_bytes"
+         "\theap_realloc_bytes\theap_peak_nodes\tpath\n");
 
   for (i = firstPath; i < argc; i++)
     ok &= stats_bench_path(argv[i], iterations, warmup);

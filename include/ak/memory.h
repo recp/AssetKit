@@ -63,6 +63,18 @@ typedef struct AkHeapNode    AkHeapNode;
 typedef struct AkHeap        AkHeap;
 struct AkURL;
 
+typedef struct AkHeapStats {
+  uint64_t allocCalls;
+  uint64_t callocCalls;
+  uint64_t reallocCalls;
+  uint64_t freeCalls;
+  uint64_t allocBytes;
+  uint64_t callocBytes;
+  uint64_t reallocBytes;
+  uint64_t liveNodes;
+  uint64_t peakNodes;
+} AkHeapStats;
+
 typedef int (*AkHeapSrchCmpFn)(void * __restrict key1,
                                void * __restrict key2);
 
@@ -114,6 +126,11 @@ ak_heap_getheap(void * __restrict memptr);
 AK_EXPORT
 AkHeap *
 ak_heap_default(void);
+
+AK_EXPORT
+void
+ak_heap_getStats(AkHeap      * __restrict heap,
+                 AkHeapStats * __restrict stats);
 
 AK_EXPORT
 AkHeap *

@@ -120,6 +120,7 @@ struct AkHeap {
   AkHeap          *next;
   void            *data;
   AkHeap          *idheap;
+  AkHeapStats      stats;
   uint32_t         heapid;
   AkEnum           flags;
 };

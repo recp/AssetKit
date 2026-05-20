@@ -34,9 +34,10 @@
 #include <stdio.h>
 #include <time.h>
 
-/* Direct-mapped cache for repeated STL position tuples. 32k keeps the
-   common edge-sharing reuse hot without the 1MB stack footprint of 64k. */
-#define STL_POSITION_CACHE_SIZE 32768u
+/* Direct-mapped cache for repeated STL position tuples. 64k is measurably
+   better on dense shared-edge triangle soups; allocate it as one scratch block
+   in the caller so small-stack platforms do not pay a 1MB frame. */
+#define STL_POSITION_CACHE_SIZE 65536u
 
 static
 bool
@@ -911,13 +912,13 @@ static
 bool
 stl_binary_fill_position_dedup(STLPositionDedup * __restrict dedup,
                                char * __restrict             p,
-                               uint32_t                      nTriangles) {
-  uint32_t cacheBits[STL_POSITION_CACHE_SIZE * 3u];
-  uint32_t cachePacked[STL_POSITION_CACHE_SIZE];
+                               uint32_t                      nTriangles,
+                               uint32_t * __restrict         cacheBits,
+                               uint32_t * __restrict         cachePacked) {
   uint32_t i;
   uint32_t colorMask;
 
-  memset(cachePacked, 0, sizeof(cachePacked));
+  memset(cachePacked, 0, STL_POSITION_CACHE_SIZE * sizeof(*cachePacked));
   colorMask = 0;
   for (i = 0; i < nTriangles; i++) {
     uint32_t newIndices[3];
@@ -962,6 +963,8 @@ stl_binary_position_dedup(STLState * __restrict sst, char * __restrict p) {
   bool      profile;
   double    t0, tSample, tInit, tFill, tEmit;
   vec4      defaultColor;
+  uint32_t *cacheBits;
+  uint32_t *cachePacked;
 
   if (!ak_opt_get(AK_OPT_MESH_POSITION_DEDUP_INDEX))
     return false;
@@ -975,6 +978,11 @@ stl_binary_position_dedup(STLState * __restrict sst, char * __restrict p) {
     return false;
   if (stl_header_color(header, defaultColor))
     return false;
+
+  cacheBits = malloc(STL_POSITION_CACHE_SIZE * 4u * sizeof(*cacheBits));
+  if (!cacheBits)
+    return false;
+  cachePacked = cacheBits + STL_POSITION_CACHE_SIZE * 3u;
 
   indexCount = (size_t)nTriangles * 3u;
   tableCountHint = 0;
@@ -995,15 +1003,22 @@ stl_binary_position_dedup(STLState * __restrict sst, char * __restrict p) {
                                  0,
                                  NULL,
                                  NULL,
-                                 false))
+                                 false)) {
+      free(cacheBits);
       return false;
-    ok = stl_binary_fill_position_dedup(&sample, body, sampleTriangles);
+    }
+    ok = stl_binary_fill_position_dedup(&sample,
+                                        body,
+                                        sampleTriangles,
+                                        cacheBits,
+                                        cachePacked);
     if (profile)
       tSample = stl_profile_now_ms() - tPhase;
     if (!ok || sample.indexCount == 0
         || (uint64_t)sample.count * 100ull
              > (uint64_t)sample.indexCount * 95ull) {
       stl_position_dedup_free(&sample);
+      free(cacheBits);
       return false;
     }
     tableCountHint = (size_t)(((uint64_t)sample.count
@@ -1024,13 +1039,19 @@ stl_binary_position_dedup(STLState * __restrict sst, char * __restrict p) {
                                tableCountHint,
                                sst->heap,
                                sst->doc,
-                               directUintIndices))
+                               directUintIndices)) {
+    free(cacheBits);
     return false;
+  }
   if (profile)
     tInit = stl_profile_now_ms() - tInit;
 
   tFill = profile ? stl_profile_now_ms() : 0.0;
-  ok = stl_binary_fill_position_dedup(&dedup, body, nTriangles);
+  ok = stl_binary_fill_position_dedup(&dedup,
+                                      body,
+                                      nTriangles,
+                                      cacheBits,
+                                      cachePacked);
   if (profile)
     tFill = stl_profile_now_ms() - tFill;
   if (ok)
@@ -1061,6 +1082,7 @@ stl_binary_position_dedup(STLState * __restrict sst, char * __restrict p) {
   }
 
   stl_position_dedup_free(&dedup);
+  free(cacheBits);
   return ok;
 }
 

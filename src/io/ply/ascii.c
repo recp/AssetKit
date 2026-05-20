@@ -155,7 +155,7 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
     } else if (elem->type == PLY_ELEM_FACE) {
       AkUInt *f, fc, j, count, last_fc, valid, vertcount;
       
-      pst->dc_ind = ply_index_data_new(pst);
+      pst->dc_ind = ply_index_data_new_estimated(pst, (size_t)elem->count * 3u);
       c           = *p;
       f           = NULL;
       i           = 0;
@@ -212,7 +212,6 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
     } else if (elem->type == PLY_ELEM_TRISTRIPS) {
       AkUInt fc, j, count, vertcount;
 
-      pst->dc_ind = ply_index_data_new(pst);
       c           = *p;
       i           = 0;
       count       = 0;
@@ -224,17 +223,15 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
         prop = elem->property;
         while (prop) {
           if (prop->semantic == PLY_PROP_VERTEX_INDICES && prop->islist) {
-            PLYTriSeenSlot *seen;
+            PLYTriSeen seen;
             AkUInt prev0, prev1, stripLen;
-            size_t seenCap;
 
             p = ply_ascii_parse_index(p, &fc);
-            seenCap = ply_tristrip_seen_capacity(fc);
-            seen    = seenCap > 0
-                      ? ak_heap_calloc(pst->heap,
-                                       pst->tmp,
-                                       sizeof(*seen) * seenCap)
-                      : NULL;
+            if (!pst->dc_ind)
+              pst->dc_ind = ply_index_data_new_estimated(
+                pst,
+                fc > 2 ? ((size_t)fc - 2u) * 3u : 0);
+            ply_tri_seen_init(&seen, pst, fc);
             prev0 = prev1 = 0;
             stripLen = 0;
             for (j = 0; j < fc; j++) {
@@ -261,8 +258,7 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
                                                 index,
                                                 stripLen,
                                                 count,
-                                                seen,
-                                                seenCap);
+                                                &seen);
                 prev0 = prev1;
                 prev1 = index;
                 stripLen++;
