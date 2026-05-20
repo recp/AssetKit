@@ -244,7 +244,7 @@ ak_movePositions(AkMesh          *mesh,
   AkIndexArray       *dupc, *dupcsum;
   AkBuffer           *oldbuff, *newbuff;
   char               *olditms, *newitms;
-  size_t              vc, d, s, pno, poo, byteStride;
+  size_t              vc, d, s, pno, poo, copySize, srcStride, dstStride;
   uint32_t            i, j;
 
   if (!prim->pos
@@ -268,7 +268,9 @@ ak_movePositions(AkMesh          *mesh,
   vc         = dupc->count / 3;
   newitms    = newbuff->data;
   olditms    = oldbuff->data;
-  byteStride = acc->byteStride;
+  copySize  = acc->fillByteSize;
+  srcStride = acc->byteStride ? acc->byteStride : copySize;
+  dstStride = newacc->byteStride ? newacc->byteStride : copySize;
 
   /* copy vert positions to new location */
 #define AK_MOVE_POSITIONS_FOR_TYPE(DUPTYPE, SUMTYPE)                       \
@@ -287,9 +289,9 @@ ak_movePositions(AkMesh          *mesh,
       s   = sumItems_[pno];                                                  \
                                                                             \
       for (j = 0; j <= d; j++) {                                             \
-        memcpy(newitms + byteStride * (pno + j + s),                         \
-               olditms + byteStride * (poo - 1),                             \
-               byteStride);                                                  \
+        memcpy(newitms + dstStride * (pno + j + s),                          \
+               olditms + srcStride * (poo - 1),                              \
+               copySize);                                                    \
       }                                                                      \
     }                                                                        \
   } while (0)

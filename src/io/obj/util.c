@@ -29,6 +29,11 @@
 
 #define WOBJ_DIRECT_FLATTEN_MIN 4096
 
+typedef struct WObjIndexSlot {
+  uint32_t key;
+  uint32_t compact;
+} WObjIndexSlot;
+
 #define WOBJ_JOIN_INDICES(TYPE)                                               \
   do {                                                                        \
     TYPE *dst_;                                                               \
@@ -461,6 +466,208 @@ wobj_flattenPrimDirect(WOState         * __restrict wst,
 #undef WOBJ_FLATTEN_COPY
 
   prim->indices       = NULL;
+  prim->indexAccessor = NULL;
+  prim->indexStride   = 1;
+
+  return true;
+}
+
+static
+uint32_t
+wobj_index_hash_u32(uint32_t value) {
+  return value * 2654435761u;
+}
+
+static
+size_t
+wobj_index_table_capacity(size_t count) {
+  size_t cap, wanted;
+
+  wanted = count + (count >> 1) + 1;
+  cap    = 16;
+
+  while (cap < wanted) {
+    if (cap > SIZE_MAX / 2)
+      return 0;
+    cap <<= 1;
+  }
+
+  return cap;
+}
+
+static
+void
+wobj_copy_compact_indices(AkIndexArray       * __restrict indices,
+                          const uint32_t     * __restrict src,
+                          size_t                          count) {
+  size_t i;
+
+  switch (indices->componentType) {
+    case AKT_UBYTE: {
+      uint8_t *dst;
+
+      dst = (uint8_t *)indices->items;
+      for (i = 0; i < count; i++)
+        dst[i] = (uint8_t)src[i];
+      break;
+    }
+    case AKT_USHORT: {
+      uint16_t *dst;
+
+      dst = (uint16_t *)indices->items;
+      for (i = 0; i < count; i++)
+        dst[i] = (uint16_t)src[i];
+      break;
+    }
+    case AKT_UINT: {
+      uint32_t *dst;
+
+      dst = (uint32_t *)indices->items;
+      memcpy(dst, src, sizeof(*dst) * count);
+      break;
+    }
+    default:
+      break;
+  }
+}
+
+static
+void
+wobj_copy_compact_accessor(AkAccessor    * __restrict dstAcc,
+                           AkAccessor    * __restrict srcAcc,
+                           const uint32_t * __restrict compactSources,
+                           uint32_t                    uniqueCount) {
+  char    *dst, *src;
+  size_t   bytes, srcStride, i;
+
+  dst       = (char *)dstAcc->buffer->data;
+  src       = (char *)srcAcc->buffer->data + srcAcc->byteOffset;
+  bytes     = srcAcc->fillByteSize;
+  srcStride = srcAcc->byteStride;
+
+  for (i = 0; i < uniqueCount; i++) {
+    memcpy(dst, src + srcStride * compactSources[i], bytes);
+    dst += bytes;
+  }
+}
+
+AK_HIDE
+bool
+wobj_compactIndexedPointPrim(WOState         * __restrict wst,
+                             WOPrim          * __restrict wp,
+                             AkMeshPrimitive * __restrict prim) {
+  AkAccessor    *posAcc, *colAcc;
+  AkInput       *posInp, *colInp;
+  AkIndexArray  *indices;
+  AkDataChunk   *chunk;
+  WObjIndexSlot *table, *slot;
+  uint32_t      *tmpIndices, *compactSources;
+  const AkInt   *face;
+  size_t         count, uniqueCapacity, tableCap, tableMask, nitems, i, outIndex;
+  uint32_t       posCount, uniqueCount;
+  AkTypeId       componentType;
+
+  if (wp->kind != AK_PRIMITIVE_LINES && wp->kind != AK_PRIMITIVE_POINTS)
+    return false;
+  if (!wp->dc_face || !wp->dc_face->data || wp->dc_face->itemcount == 0)
+    return false;
+  if (!(posAcc = wst->ac_pos) || !posAcc->buffer || !posAcc->buffer->data)
+    return false;
+
+  count    = wp->dc_face->itemcount;
+  posCount = posAcc->count;
+  if (posCount == 0 || count > UINT32_MAX)
+    return false;
+
+  colAcc = wst->ac_col;
+  if (colAcc && (!colAcc->buffer || !colAcc->buffer->data || colAcc->count < posCount))
+    return false;
+
+  uniqueCapacity = count < posCount ? count : posCount;
+  tableCap = wobj_index_table_capacity(uniqueCapacity);
+  if (tableCap == 0)
+    return false;
+  tableMask = tableCap - 1;
+
+  table = ak_heap_calloc(wst->heap, wst->tmp, sizeof(*table) * tableCap);
+  tmpIndices = ak_heap_alloc(wst->heap, wst->tmp, sizeof(*tmpIndices) * count);
+  compactSources = ak_heap_alloc(wst->heap,
+                                 wst->tmp,
+                                 sizeof(*compactSources) * uniqueCapacity);
+  if (!table || !tmpIndices || !compactSources)
+    return false;
+
+  uniqueCount = 0;
+  outIndex    = 0;
+  chunk       = wp->dc_face->data;
+  while (chunk) {
+    face   = (const AkInt *)(const void *)chunk->data;
+    nitems = chunk->usedsize / sizeof(ivec3);
+    for (i = 0; i < nitems; i++, face += 3) {
+      uint32_t source, key, compact;
+      size_t   hash;
+
+      source = (uint32_t)wobj_real_index(posCount, face[0]);
+      key    = source + 1u;
+      hash   = (size_t)wobj_index_hash_u32(key) & tableMask;
+
+      for (;;) {
+        slot = &table[hash];
+        if (slot->key == key) {
+          compact = slot->compact;
+          break;
+        }
+        if (slot->key == 0) {
+          compact                = uniqueCount;
+          slot->key              = key;
+          slot->compact          = compact;
+          compactSources[compact] = source;
+          uniqueCount++;
+          if (uniqueCount >= posCount)
+            return false;
+          break;
+        }
+        hash = (hash + 1) & tableMask;
+      }
+
+      tmpIndices[outIndex++] = compact;
+    }
+    chunk = chunk->next;
+  }
+
+  if (uniqueCount >= posCount)
+    return false;
+
+  componentType     = ak_indexComponentTypeForMax(uniqueCount > 0 ? uniqueCount - 1 : 0);
+  indices           = ak_indexArrayAlloc(wst->heap, prim, count, componentType);
+  if (!indices)
+    return false;
+  indices->max = uniqueCount > 0 ? uniqueCount - 1 : 0;
+  wobj_copy_compact_indices(indices, tmpIndices, count);
+
+  posInp = wobj_flatInput(wst,
+                          prim,
+                          AK_INPUT_POSITION,
+                          _s_POSITION,
+                          posAcc->componentSize,
+                          posAcc->componentType,
+                          uniqueCount);
+  prim->pos = posInp;
+
+  if (colAcc) {
+    colInp = wobj_flatInput(wst,
+                            prim,
+                            AK_INPUT_COLOR,
+                            _s_COLOR,
+                            colAcc->componentSize,
+                            colAcc->componentType,
+                            uniqueCount);
+    wobj_copy_compact_accessor(colInp->accessor, colAcc, compactSources, uniqueCount);
+  }
+
+  wobj_copy_compact_accessor(posInp->accessor, posAcc, compactSources, uniqueCount);
+
+  prim->indices       = indices;
   prim->indexAccessor = NULL;
   prim->indexStride   = 1;
 

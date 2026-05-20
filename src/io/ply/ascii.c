@@ -224,9 +224,17 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
         prop = elem->property;
         while (prop) {
           if (prop->semantic == PLY_PROP_VERTEX_INDICES && prop->islist) {
+            PLYTriSeenSlot *seen;
             AkUInt prev0, prev1, stripLen;
+            size_t seenCap;
 
             p = ply_ascii_parse_index(p, &fc);
+            seenCap = ply_tristrip_seen_capacity(fc);
+            seen    = seenCap > 0
+                      ? ak_heap_calloc(pst->heap,
+                                       pst->tmp,
+                                       sizeof(*seen) * seenCap)
+                      : NULL;
             prev0 = prev1 = 0;
             stripLen = 0;
             for (j = 0; j < fc; j++) {
@@ -247,12 +255,14 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
                 prev1 = index;
                 stripLen = 2;
               } else {
-                PLY_INDEX_APPEND_STRIP_TRI(pst,
-                                           prev0,
-                                           prev1,
-                                           index,
-                                           stripLen,
-                                           count);
+                PLY_INDEX_APPEND_STRIP_TRI_SEEN(pst,
+                                                prev0,
+                                                prev1,
+                                                index,
+                                                stripLen,
+                                                count,
+                                                seen,
+                                                seenCap);
                 prev0 = prev1;
                 prev1 = index;
                 stripLen++;

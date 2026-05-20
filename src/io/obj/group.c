@@ -104,6 +104,15 @@ wobj_finishPrim(WOState  * __restrict wst,
     return;
   }
 
+  if ((wp->kind == AK_PRIMITIVE_LINES || wp->kind == AK_PRIMITIVE_POINTS)
+      && wobj_compactIndexedPointPrim(wst, wp, prim)) {
+    if (wp->kind == AK_PRIMITIVE_LINES)
+      prim->nPolygons = (uint32_t)prim->indices->count / 2;
+    else
+      prim->nPolygons = (uint32_t)prim->indices->count;
+    return;
+  }
+
   prim->pos = wobj_input(wst, prim, wst->ac_pos,
                          AK_INPUT_POSITION, _s_POSITION, inputOffset++);
 

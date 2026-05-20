@@ -346,6 +346,37 @@ wobj_parse_float_line(char     * __restrict p,
 }
 
 static
+bool
+wobj_line_has_float_count(char * __restrict p, uint32_t min_count) {
+  uint32_t count;
+
+  count = 0;
+  while (p && p[0] != '\0' && p[0] != '\n' && p[0] != '\r') {
+    while (p[0] != '\0'
+           && (p[0] == ' ' || p[0] == '\t' || p[0] == '\f' || p[0] == '\v')) {
+      p++;
+    }
+
+    if (p[0] == '\0' || p[0] == '\n' || p[0] == '\r' || p[0] == '#')
+      break;
+
+    if (p[0] == '+' || p[0] == '-')
+      p++;
+    if (!(ak_str_isdigit_fast(p[0]) || p[0] == '.'))
+      return false;
+
+    count++;
+    if (count >= min_count)
+      return true;
+
+    while (p[0] != '\0' && !WOBJ_TOKEN_SEP(p[0]) && p[0] != '#')
+      p++;
+  }
+
+  return false;
+}
+
+static
 void
 wobj_promote_vec3_to_vec4(WOState         * __restrict wst,
                           AkDataContext  ** __restrict dctxp,
@@ -709,9 +740,12 @@ wobj_obj(AkDoc     ** __restrict dest,
           if (*++p == '\0')
             goto err;
 
+          if (!wobj_line_has_float_count(p, 3))
+            break;
+
           nValues = wobj_parse_float_line(p, values, 8);
           if (nValues < 3)
-            goto err;
+            break;
 
           hasW       = nValues == 4 || nValues >= 8;
           hasColor   = nValues == 6 || nValues == 7 || nValues >= 8;
@@ -815,6 +849,9 @@ wobj_obj(AkDoc     ** __restrict dest,
                   prim->hasNormal = true;
               }
             }
+
+            if (p && p[0] == '/')
+              validFace = false;
 
             if (!hasTexIndex)
               prim->missingTexture = true;
@@ -972,13 +1009,18 @@ wobj_obj(AkDoc     ** __restrict dest,
       }
     } else if (p[2] == ' ' || p[2] == '\t') {
       if (p[0] == 'v' && p[1] == 'n') {
+        float values[3];
         float *nor;
 
         if (*(p += 2) == '\0')
           goto err;
 
+        if (!wobj_line_has_float_count(p, 3))
+          goto skip_line;
+
+        WOBJ_PARSE_FLOAT3(p, values);
         nor = wobj_data_append_slot(wst->dc_nor);
-        WOBJ_PARSE_FLOAT3(p, nor);
+        memcpy(nor, values, sizeof(values));
       } else if (p[0] == 'v' && p[1] == 't') {
         float    values[3];
         uint32_t nValues;
@@ -986,9 +1028,12 @@ wobj_obj(AkDoc     ** __restrict dest,
         if (*(p += 2) == '\0')
           goto err;
 
+        if (!wobj_line_has_float_count(p, 1))
+          goto skip_line;
+
         nValues = wobj_parse_float_line(p, values, 3);
         if (nValues < 1)
-          goto err;
+          goto skip_line;
 
         wobj_append_texcoord(wst, values, nValues);
       }
@@ -1029,6 +1074,7 @@ wobj_obj(AkDoc     ** __restrict dest,
       wst->hasFreeform = true;
     }
     
+skip_line:
     NEXT_LINE
   } while (p && p[0] != '\0'/* && (c = *++p) != '\0'*/);
 

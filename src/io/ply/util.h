@@ -20,6 +20,13 @@
 #include "common.h"
 #include "../../endian.h"
 
+typedef struct PLYTriSeenSlot {
+  uint32_t a;
+  uint32_t b;
+  uint32_t c;
+  uint32_t used;
+} PLYTriSeenSlot;
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 
@@ -76,6 +83,100 @@ ply_index_data_new_for(PLYState * __restrict pst,
     nodeItems = 128;
 
   return ak_data_new(pst->tmp, nodeItems, itemSize, NULL);
+}
+
+static inline
+size_t
+ply_tristrip_seen_capacity(size_t count) {
+  size_t cap, wanted;
+
+  if (count < 3 || count > SIZE_MAX / 2)
+    return 0;
+
+  wanted = (count - 2) * 2;
+  cap    = 64;
+  while (cap < wanted) {
+    if (cap > SIZE_MAX / 2)
+      return 0;
+    cap <<= 1;
+  }
+
+  return cap;
+}
+
+static inline
+uint32_t
+ply_tri_hash(uint32_t a, uint32_t b, uint32_t c) {
+  uint32_t value;
+
+  value = a * 73856093u;
+  value ^= b * 19349663u;
+  value ^= c * 83492791u;
+  value ^= value >> 16;
+
+  return value;
+}
+
+static inline
+void
+ply_tri_sort3(uint32_t * __restrict a,
+              uint32_t * __restrict b,
+              uint32_t * __restrict c) {
+  uint32_t t;
+
+  if (*a > *b) {
+    t = *a;
+    *a = *b;
+    *b = t;
+  }
+  if (*b > *c) {
+    t = *b;
+    *b = *c;
+    *c = t;
+  }
+  if (*a > *b) {
+    t = *a;
+    *a = *b;
+    *b = t;
+  }
+}
+
+static inline
+bool
+ply_tri_seen_insert(PLYTriSeenSlot * __restrict seen,
+                    size_t                       seenCap,
+                    AkUInt                       a,
+                    AkUInt                       b,
+                    AkUInt                       c) {
+  PLYTriSeenSlot *slot;
+  uint32_t        sa, sb, sc;
+  size_t          mask, pos;
+
+  if (!seen || seenCap == 0)
+    return true;
+  if (a > UINT32_MAX || b > UINT32_MAX || c > UINT32_MAX)
+    return true;
+
+  sa = (uint32_t)a;
+  sb = (uint32_t)b;
+  sc = (uint32_t)c;
+  ply_tri_sort3(&sa, &sb, &sc);
+
+  mask = seenCap - 1;
+  pos  = (size_t)ply_tri_hash(sa, sb, sc) & mask;
+  for (;;) {
+    slot = &seen[pos];
+    if (!slot->used) {
+      slot->a    = sa;
+      slot->b    = sb;
+      slot->c    = sc;
+      slot->used = 1;
+      return true;
+    }
+    if (slot->a == sa && slot->b == sb && slot->c == sc)
+      return false;
+    pos = (pos + 1) & mask;
+  }
 }
 
 static inline
@@ -160,7 +261,8 @@ ply_edge_append(PLYState * __restrict pst, AkUInt a, AkUInt b) {
     if (value_ > (PST)->indexMax)                                             \
       (PST)->indexMax = value_;                                               \
     typed_ = (TYPE)value_;                                                    \
-    if (dctx_->usedsize + sizeof(TYPE) > dctx_->size) {                       \
+    if (!dctx_->last                                                           \
+        || dctx_->last->usedsize + sizeof(TYPE) > dctx_->nodesize) {           \
       chunk_ = ak_heap_alloc(dctx_->heap,                                     \
                              dctx_,                                           \
                              sizeof(*chunk_) + dctx_->nodesize);              \
@@ -232,7 +334,8 @@ ply_edge_append(PLYState * __restrict pst, AkUInt a, AkUInt b) {
     (OUT_COUNT) += 3;                                                         \
   } while (0)
 
-#define PLY_INDEX_APPEND_STRIP_TRI(PST, A, B, C, STRIP_LEN, OUT_COUNT)        \
+#define PLY_INDEX_APPEND_STRIP_TRI_SEEN(PST, A, B, C, STRIP_LEN, OUT_COUNT,   \
+                                        SEEN, SEEN_CAP)                       \
   do {                                                                        \
     AkUInt strip_a_, strip_b_, strip_c_;                                      \
                                                                               \
@@ -241,7 +344,12 @@ ply_edge_append(PLYState * __restrict pst, AkUInt a, AkUInt b) {
     strip_c_ = (C);                                                           \
     if (strip_a_ != strip_b_                                                   \
         && strip_a_ != strip_c_                                                \
-        && strip_b_ != strip_c_) {                                             \
+        && strip_b_ != strip_c_                                                \
+        && ply_tri_seen_insert((SEEN),                                         \
+                               (SEEN_CAP),                                     \
+                               strip_a_,                                       \
+                               strip_b_,                                       \
+                               strip_c_)) {                                    \
       if (((STRIP_LEN) & 1u) == 0u)                                           \
         PLY_INDEX_APPEND_TRI((PST),                                           \
                              strip_a_,                                        \
@@ -256,6 +364,16 @@ ply_edge_append(PLYState * __restrict pst, AkUInt a, AkUInt b) {
                              (OUT_COUNT));                                    \
     }                                                                         \
   } while (0)
+
+#define PLY_INDEX_APPEND_STRIP_TRI(PST, A, B, C, STRIP_LEN, OUT_COUNT)        \
+  PLY_INDEX_APPEND_STRIP_TRI_SEEN((PST),                                       \
+                                  (A),                                         \
+                                  (B),                                         \
+                                  (C),                                         \
+                                  (STRIP_LEN),                                 \
+                                  (OUT_COUNT),                                 \
+                                  NULL,                                        \
+                                  0)
 
 #define PLY_INDEX_APPEND_TRI_TYPED(PST, TYPE, A, B, C)                        \
   do {                                                                        \
@@ -276,7 +394,7 @@ ply_edge_append(PLYState * __restrict pst, AkUInt a, AkUInt b) {
     (PST)->indexMax = max_;                                                   \
                                                                               \
     size_ = sizeof(TYPE) * 3u;                                                \
-    if (dctx_->usedsize + size_ > dctx_->size) {                              \
+    if (!dctx_->last || dctx_->last->usedsize + size_ > dctx_->nodesize) {     \
       chunk_ = ak_heap_alloc(dctx_->heap,                                     \
                              dctx_,                                           \
                              sizeof(*chunk_) + dctx_->nodesize);              \

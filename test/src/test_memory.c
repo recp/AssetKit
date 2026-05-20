@@ -552,6 +552,29 @@ ak_test_write_obj_lines_points(const char *path) {
 
 static
 bool
+ak_test_write_obj_sparse_lines_points(const char *path) {
+  FILE *file;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  fputs("v 0 0 0 1 0 0\n"
+        "v 1 0 0 0.25 0.50 0.75\n"
+        "v 2 0 0 1 1 0\n"
+        "v 3 0 0 0 1 0\n"
+        "v 4 0 0 0 0 1\n"
+        "v 5 0 0 0.50 0.25 1\n"
+        "l 2 4 2\n"
+        "g sparse_points\n"
+        "p 6 2 6 2 6 2 6\n",
+        file);
+
+  return fclose(file) == 0;
+}
+
+static
+bool
 ak_test_write_obj_mixed_face(const char *path) {
   FILE *file;
 
@@ -705,6 +728,36 @@ ak_test_write_obj_invalid_faces(const char *path) {
 
 static
 bool
+ak_test_write_obj_invalid_syntax(const char *path) {
+  FILE *file;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  fputs("v 0 0 0\n"
+        "v 1 0 0\n"
+        "v 0 1 0\n"
+        "vt 0 0\n"
+        "vn 0 0 1\n"
+        "f 1/1/1 2/1/1 3/1/1\n"
+        "v\n"
+        "v 1 2\n"
+        "v a b c\n"
+        "vt\n"
+        "vt vt\n"
+        "vn 1 2\n"
+        "vn vn\n"
+        "f f\n"
+        "f a b c\n"
+        "f 1/1/1/1 2/1/1/1 3/1/1/1\n",
+        file);
+
+  return fclose(file) == 0;
+}
+
+static
+bool
 ak_test_write_obj_duplicate_faces(const char *path) {
   FILE *file;
 
@@ -822,6 +875,47 @@ ak_test_write_ply_tristrips(const char *path) {
         file);
 
   return fclose(file) == 0;
+}
+
+static
+bool
+ak_test_write_ply_binary_tristrips_large(const char *path) {
+  FILE     *file;
+  uint32_t  i;
+  bool      ok;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  ok = fputs("ply\n"
+             "format binary_little_endian 1.0\n"
+             "element vertex 400\n"
+             "property float x\n"
+             "property float y\n"
+             "property float z\n"
+             "property uchar red\n"
+             "property uchar green\n"
+             "property uchar blue\n"
+             "element tristrips 1\n"
+             "property list int int vertex_indices\n"
+             "end_header\n",
+             file) >= 0;
+
+  for (i = 0; ok && i < 400; i++) {
+    ok = ok && ak_test_write_f32le(file, (float)i);
+    ok = ok && ak_test_write_f32le(file, 0.0f);
+    ok = ok && ak_test_write_f32le(file, 0.0f);
+    ok = ok && fputc((int)(i & 0xffu), file) != EOF;
+    ok = ok && fputc(128, file) != EOF;
+    ok = ok && fputc(255, file) != EOF;
+  }
+
+  ok = ok && ak_test_write_u32le(file, 400);
+  for (i = 0; ok && i < 400; i++)
+    ok = ok && ak_test_write_u32le(file, i);
+
+  return fclose(file) == 0 && ok;
 }
 
 static
@@ -1238,17 +1332,20 @@ TEST_IMPL(format_edge_cases) {
   char             objPath[PATH_MAX];
   char             objAttrsPath[PATH_MAX];
   char             objLinesPath[PATH_MAX];
+  char             objSparseLinesPath[PATH_MAX];
   char             objMaterialPath[PATH_MAX];
   char             objSmoothPath[PATH_MAX];
   char             objCarryPath[PATH_MAX];
   char             objCarryMtlPath[PATH_MAX];
   char             objEmptyUsemtlPath[PATH_MAX];
   char             objInvalidFacesPath[PATH_MAX];
+  char             objInvalidSyntaxPath[PATH_MAX];
   char             objDuplicateFacesPath[PATH_MAX];
   char             objVerticesOnlyPath[PATH_MAX];
   char             plyPath[PATH_MAX];
   char             plyPointsPath[PATH_MAX];
   char             plyTristripsPath[PATH_MAX];
+  char             plyBinaryTristripsPath[PATH_MAX];
   char             plyEdgesPath[PATH_MAX];
   char             plyFaceEdgesPath[PATH_MAX];
   char             plyBinaryEdgesPath[PATH_MAX];
@@ -1298,6 +1395,10 @@ TEST_IMPL(format_edge_cases) {
   snprintf(objPath, sizeof(objPath), "%s/mixed.obj", tmpdir);
   snprintf(objAttrsPath, sizeof(objAttrsPath), "%s/attrs.obj", tmpdir);
   snprintf(objLinesPath, sizeof(objLinesPath), "%s/lines_points.obj", tmpdir);
+  snprintf(objSparseLinesPath,
+           sizeof(objSparseLinesPath),
+           "%s/sparse_lines_points.obj",
+           tmpdir);
   snprintf(objMaterialPath,
            sizeof(objMaterialPath),
            "%s/repeated_materials.obj",
@@ -1322,6 +1423,10 @@ TEST_IMPL(format_edge_cases) {
            sizeof(objInvalidFacesPath),
            "%s/invalid_faces.obj",
            tmpdir);
+  snprintf(objInvalidSyntaxPath,
+           sizeof(objInvalidSyntaxPath),
+           "%s/invalid_syntax.obj",
+           tmpdir);
   snprintf(objDuplicateFacesPath,
            sizeof(objDuplicateFacesPath),
            "%s/duplicate_faces.obj",
@@ -1338,6 +1443,10 @@ TEST_IMPL(format_edge_cases) {
   snprintf(plyTristripsPath,
            sizeof(plyTristripsPath),
            "%s/tristrips.ply",
+           tmpdir);
+  snprintf(plyBinaryTristripsPath,
+           sizeof(plyBinaryTristripsPath),
+           "%s/binary_tristrips_large.ply",
            tmpdir);
   snprintf(plyEdgesPath,
            sizeof(plyEdgesPath),
@@ -1366,16 +1475,19 @@ TEST_IMPL(format_edge_cases) {
   ASSERT(ak_test_write_obj_mixed_face(objPath));
   ASSERT(ak_test_write_obj_extra_attrs(objAttrsPath));
   ASSERT(ak_test_write_obj_lines_points(objLinesPath));
+  ASSERT(ak_test_write_obj_sparse_lines_points(objSparseLinesPath));
   ASSERT(ak_test_write_obj_repeated_materials(objMaterialPath));
   ASSERT(ak_test_write_obj_smoothing_groups(objSmoothPath));
   ASSERT(ak_test_write_obj_material_carry(objCarryPath, objCarryMtlPath));
   ASSERT(ak_test_write_obj_empty_usemtl(objEmptyUsemtlPath));
   ASSERT(ak_test_write_obj_invalid_faces(objInvalidFacesPath));
+  ASSERT(ak_test_write_obj_invalid_syntax(objInvalidSyntaxPath));
   ASSERT(ak_test_write_obj_duplicate_faces(objDuplicateFacesPath));
   ASSERT(ak_test_write_obj_vertices_only(objVerticesOnlyPath));
   ASSERT(ak_test_write_ply_shuffled(plyPath));
   ASSERT(ak_test_write_ply_points(plyPointsPath));
   ASSERT(ak_test_write_ply_tristrips(plyTristripsPath));
+  ASSERT(ak_test_write_ply_binary_tristrips_large(plyBinaryTristripsPath));
   ASSERT(ak_test_write_ply_edges(plyEdgesPath));
   ASSERT(ak_test_write_ply_face_edges(plyFaceEdgesPath));
   ASSERT(ak_test_write_ply_binary_edges(plyBinaryEdgesPath));
@@ -1498,6 +1610,45 @@ TEST_IMPL(format_edge_cases) {
   ak_free(doc);
 
   doc = NULL;
+  ASSERT(ak_load(&doc, objSparseLinesPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+  prim = ak_test_primitive_of_type(doc, AK_PRIMITIVE_LINES);
+  ASSERT(prim != NULL);
+  ASSERT(prim->nPolygons == 2);
+  ASSERT(prim->indexStride == 1);
+  ASSERT(prim->indices && prim->indices->count == 4);
+  ASSERT(ak_meshPrimitiveIndexComponentType(prim) == AKT_UBYTE);
+  ASSERT(ak_meshPrimitiveIndexMax(prim) == 1);
+  ASSERT(ak_indexArrayGet(prim->indices, 0) == 0);
+  ASSERT(ak_indexArrayGet(prim->indices, 1) == 1);
+  ASSERT(ak_indexArrayGet(prim->indices, 2) == 1);
+  ASSERT(ak_indexArrayGet(prim->indices, 3) == 0);
+  ASSERT(prim->pos && prim->pos->accessor);
+  ASSERT(prim->pos->accessor->count == 2);
+  ASSERT(ak_test_accessor_f32(prim->pos->accessor, 0, 0) == 1.0f);
+  ASSERT(ak_test_accessor_f32(prim->pos->accessor, 1, 0) == 3.0f);
+  ASSERT(ak_test_input(prim, AK_INPUT_COLOR) != NULL);
+  acc = ak_test_input(prim, AK_INPUT_COLOR)->accessor;
+  ASSERT(acc && acc->count == 2);
+  ASSERT(ak_test_accessor_f32(acc, 0, 0) == 0.25f);
+  ASSERT(ak_test_accessor_f32(acc, 1, 1) == 1.0f);
+
+  prim = ak_test_primitive_of_type(doc, AK_PRIMITIVE_POINTS);
+  ASSERT(prim != NULL);
+  ASSERT(prim->nPolygons == 7);
+  ASSERT(prim->indexStride == 1);
+  ASSERT(prim->indices && prim->indices->count == 7);
+  ASSERT(ak_meshPrimitiveIndexComponentType(prim) == AKT_UBYTE);
+  ASSERT(ak_meshPrimitiveIndexMax(prim) == 1);
+  ASSERT(ak_indexArrayGet(prim->indices, 0) == 0);
+  ASSERT(ak_indexArrayGet(prim->indices, 1) == 1);
+  ASSERT(ak_indexArrayGet(prim->indices, 6) == 0);
+  ASSERT(prim->pos && prim->pos->accessor);
+  ASSERT(prim->pos->accessor->count == 2);
+  ASSERT(ak_test_accessor_f32(prim->pos->accessor, 0, 0) == 5.0f);
+  ASSERT(ak_test_accessor_f32(prim->pos->accessor, 1, 0) == 1.0f);
+  ak_free(doc);
+
+  doc = NULL;
   ASSERT(ak_load(&doc, objMaterialPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
   ASSERT(ak_test_primitive_type_count(doc, AK_PRIMITIVE_TRIANGLES) == 2);
   ak_free(doc);
@@ -1588,6 +1739,15 @@ TEST_IMPL(format_edge_cases) {
   ak_free(doc);
 
   doc = NULL;
+  ASSERT(ak_load(&doc, objInvalidSyntaxPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+  prim = ak_test_first_primitive(doc);
+  ASSERT(prim != NULL);
+  ASSERT(prim->type == AK_PRIMITIVE_TRIANGLES);
+  ASSERT(prim->nPolygons == 1);
+  ASSERT(prim->indices && prim->indices->count == 3);
+  ak_free(doc);
+
+  doc = NULL;
   ASSERT(ak_load(&doc, objDuplicateFacesPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
   prim = ak_test_first_primitive(doc);
   ASSERT(prim != NULL);
@@ -1650,6 +1810,18 @@ TEST_IMPL(format_edge_cases) {
   ak_free(doc);
 
   doc = NULL;
+  ASSERT(ak_load(&doc, plyBinaryTristripsPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+  prim = ak_test_first_primitive(doc);
+  ASSERT(prim != NULL);
+  ASSERT(prim->type == AK_PRIMITIVE_TRIANGLES);
+  ASSERT(prim->nPolygons == 398);
+  ASSERT(prim->indexStride == 1);
+  ASSERT(prim->indices && prim->indices->count == 1194);
+  ASSERT(ak_meshPrimitiveIndexComponentType(prim) == AKT_USHORT);
+  ASSERT(prim->pos && prim->pos->accessor);
+  ak_free(doc);
+
+  doc = NULL;
   ASSERT(ak_load(&doc, plyEdgesPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
   prim = ak_test_first_primitive(doc);
   ASSERT(prim != NULL);
@@ -1707,17 +1879,20 @@ TEST_IMPL(format_edge_cases) {
   unlink(objPath);
   unlink(objAttrsPath);
   unlink(objLinesPath);
+  unlink(objSparseLinesPath);
   unlink(objMaterialPath);
   unlink(objSmoothPath);
   unlink(objCarryPath);
   unlink(objCarryMtlPath);
   unlink(objEmptyUsemtlPath);
   unlink(objInvalidFacesPath);
+  unlink(objInvalidSyntaxPath);
   unlink(objDuplicateFacesPath);
   unlink(objVerticesOnlyPath);
   unlink(plyPath);
   unlink(plyPointsPath);
   unlink(plyTristripsPath);
+  unlink(plyBinaryTristripsPath);
   unlink(plyEdgesPath);
   unlink(plyFaceEdgesPath);
   unlink(plyBinaryEdgesPath);

@@ -215,8 +215,9 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
 
         while (prop) {
           if (prop->semantic == PLY_PROP_VERTEX_INDICES && prop->islist) {
+            PLYTriSeenSlot *seen;
             AkUInt prev0, prev1, stripLen;
-            size_t itemSize;
+            size_t itemSize, seenCap;
 
             if (!prop->listCountTypeDesc || !prop->typeDesc)
               goto fns;
@@ -235,6 +236,12 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
             if ((uint64_t)fc * itemSize > (uint64_t)(e - p))
               goto fns;
 
+            seenCap = ply_tristrip_seen_capacity(fc);
+            seen    = seenCap > 0
+                      ? ak_heap_calloc(pst->heap,
+                                       pst->tmp,
+                                       sizeof(*seen) * seenCap)
+                      : NULL;
             prev0 = prev1 = 0;
             stripLen = 0;
             for (j = 0; j < fc; j++) {
@@ -261,12 +268,14 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
                 prev1 = index;
                 stripLen = 2;
               } else {
-                PLY_INDEX_APPEND_STRIP_TRI(pst,
-                                           prev0,
-                                           prev1,
-                                           index,
-                                           stripLen,
-                                           count);
+                PLY_INDEX_APPEND_STRIP_TRI_SEEN(pst,
+                                                prev0,
+                                                prev1,
+                                                index,
+                                                stripLen,
+                                                count,
+                                                seen,
+                                                seenCap);
                 prev0 = prev1;
                 prev1 = index;
                 stripLen++;
