@@ -18,7 +18,7 @@
 #define assetkit_version_h
 
 #define AK_VERSION_MAJOR 0
-#define AK_VERSION_MINOR 3
-#define AK_VERSION_PATCH 2
+#define AK_VERSION_MINOR 4
+#define AK_VERSION_PATCH 1
 
 #endif /* assetkit_version_h */
