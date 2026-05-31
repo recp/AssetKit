@@ -151,7 +151,7 @@ AkResolvedTarget
 ak_channelTarget(AkContext * __restrict ctx,
                  AkChannel * __restrict ch) {
   const char      *sidAttrib;
-  AkResolvedTarget resolved = {0};
+  AkResolvedTarget resolved = {NULL, 0, false};
   uint32_t         attrOff;
 
   /** glTF (and DAE post-fixup) provide a pre-resolved target. Honor it

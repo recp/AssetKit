@@ -24,8 +24,6 @@ extern "C" {
 #include "map.h"
 #include "util.h"
 
-#include <string.h>
-
 typedef struct AkContext {
   AkDoc              *doc;
   void               *reserved0;
@@ -33,7 +31,7 @@ typedef struct AkContext {
   //  AkMap              *bindVertexInput;
 } AkContext;
 
-AK_INLINE AkContext AkContextZeroed(void) { return (AkContext){0}; }
+AK_INLINE AkContext AkContextZeroed(void) { return (AkContext){NULL, NULL, NULL}; }
 
 #ifdef __cplusplus
 }

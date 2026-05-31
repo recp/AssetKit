@@ -20,6 +20,8 @@
 AK_HIDE
 AkResult
 imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
+  (void)dest;
+  (void)filepath;
 //  AkHeap          *heap;
 //  AkDoc           *doc;
 //  const xml_doc_t *xdoc;
@@ -151,8 +153,6 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
 //      dae_lib(dst, xml, _s_dae_light, dae_light, &libs->lights);
 //    } else if (xml_tag_eq(xml, _s_dae_lib_geometries)) {
 //      dae_lib(dst, xml, _s_dae_geometry, dae_geom, &libs->geometries);
-//    } else if (xml_tag_eq(xml, _s_dae_lib_effects)) {
-//      dae_lib(dst, xml, _s_dae_effect, dae_effect, &libs->effects);
 //    } else if (xml_tag_eq(xml, _s_dae_lib_images)) {
 //      dae_lib(dst, xml, _s_dae_image, dae_image, &libs->libimages);
 //    } else if (xml_tag_eq(xml, _s_dae_lib_materials)) {
