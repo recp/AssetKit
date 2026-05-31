@@ -21,6 +21,7 @@ extern "C" {
 #endif
 
 #include "common.h"
+#include "memory.h"
 
 typedef struct AkURL {
   const char   *url;      /* only fragment */

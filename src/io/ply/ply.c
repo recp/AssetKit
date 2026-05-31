@@ -28,6 +28,7 @@
 #include "util.h"
 #include "../../id.h"
 #include "../../data.h"
+#include "../../mat/internal.h"
 #include "../../../include/ak/path.h"
 #include "../common/util.h"
 #include "../common/postscript.h"
@@ -779,8 +780,10 @@ ply_primitive_attach_inputs(PLYState        * __restrict pst,
     io_input(heap, prim, pst->ac_tex, AK_INPUT_TEXCOORD, _s_TEXCOORD, 0);
 
   /* vertex colors */
-  if (pst->ac_rgb)
+  if (pst->ac_rgb) {
     io_input(heap, prim, pst->ac_rgb, AK_INPUT_COLOR, _s_COLOR, 0);
+    prim->material = ak_materialDefaultVertexColorAlpha(pst->doc, pst->ac_rgb->componentSize == AK_COMPONENT_SIZE_VEC4);
+  }
 }
 
 static

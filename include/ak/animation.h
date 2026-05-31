@@ -280,9 +280,9 @@ ak_animationsCompatibleSetFromDoc(AkContext     * __restrict ctx,
  *
  *        Renderers that animate via decomposed properties MUST bake
  *        these nodes — partial rotates clobber each other in the
- *        Euler slot. Renderers that compose joint world matrices on
- *        the CPU per frame (assetkit-opengl/gk pattern) don't need
- *        this and can keep their per-channel walk.
+ *        Euler slot. Matrix-driven runtimes that compose joint world matrices
+ *        on the CPU per frame don't need this and can keep their per-channel
+ *        walk.
  */
 AK_EXPORT
 bool

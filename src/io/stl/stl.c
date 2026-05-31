@@ -25,6 +25,7 @@
 #include "common.h"
 #include "../../id.h"
 #include "../../data.h"
+#include "../../mat/internal.h"
 #include "../../../include/ak/path.h"
 #include "../common/util.h"
 #include "../common/postscript.h"
@@ -1114,15 +1115,19 @@ stl_binary_dedup(STLState * __restrict sst, char * __restrict p) {
   bool      hasHeaderColor, hasFacetColor, hasColors, ok;
 
   header = p;
-  p += 80;
+  p     += 80;
   le_32(nTriangles, p);
-  body = p;
+  body   = p;
 
   if (nTriangles > UINT32_MAX / 3u)
     return false;
 
   hasHeaderColor = stl_header_color(header, defaultColor);
   sampleTriangles = nTriangles > 4096u ? 4096u : nTriangles;
+
+  if (hasHeaderColor && defaultColor[3] < 0.999f)
+    sst->hasColorAlpha = true;
+
   if (sampleTriangles < nTriangles && sampleTriangles > 0) {
     STLDedup sample;
 
@@ -1209,6 +1214,9 @@ stl_binary(STLState * __restrict sst, char * __restrict p) {
   hasHeaderColor = stl_header_color(header, defaultColor);
   hasFacetColor  = false;
   scan           = p;
+
+  if (hasHeaderColor && defaultColor[3] < 0.999f)
+    sst->hasColorAlpha = true;
 
   for (i = 0; i < nTriangles; i++) {
     uint16_t attr;
@@ -1559,6 +1567,7 @@ sst_finish(STLState * __restrict sst) {
                    sst->count,
                    sst->buff_col);
       io_input(heap, prim, acc, AK_INPUT_COLOR, _s_COLOR, 0);
+      prim->material = ak_materialDefaultVertexColorAlpha(sst->doc, sst->hasColorAlpha);
     }
   } else {
     prim->pos = io_addInput(heap, sst->dc_pos, prim, AK_INPUT_POSITION,

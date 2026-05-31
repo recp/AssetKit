@@ -27,10 +27,6 @@
 */
 
 static
-AkProfileCommon*
-wobj_cmnEffect(WOState * __restrict wst);
-
-static
 void
 wobj_handleMaterial(WOState  * __restrict wst,
                     WOMtlLib * __restrict mtllib,
@@ -48,6 +44,76 @@ wobj_texref(WOState            * __restrict wst,
 #define WOBJ_MTL_KW_MAP_ AK_STR_PACK4_CHARS('m', 'a', 'p', '_')
 #define WOBJ_MTL_KW_BUMP AK_STR_PACK4_CHARS('b', 'u', 'm', 'p')
 #define WOBJ_MTL_KW_ILLU AK_STR_PACK4_CHARS('i', 'l', 'l', 'u')
+
+static
+void
+wobj_featurePush(AkMaterialSurface * __restrict surface,
+                 AkMaterialFeature * __restrict feature) {
+  if (!surface || !feature)
+    return;
+
+  feature->next     = surface->features;
+  surface->features = feature;
+  if ((uint32_t)feature->type < 32)
+    surface->featureMask |= 1u << (uint32_t)feature->type;
+}
+
+static
+AkMaterialInput*
+wobj_colorInput(WOState             * __restrict wst,
+                void                * __restrict parent,
+                const char          * __restrict semantic,
+                float               *            rgb,
+                char                * __restrict map,
+                AkTextureColorSpace              colorSpace,
+                AkTextureChannels                channels) {
+  AkMaterialInput *input;
+
+  input             = ak_heap_calloc(wst->heap, parent, sizeof(*input));
+  input->semantic   = semantic;
+  input->source     = AK_MATERIAL_INPUT_CONSTANT;
+  input->valueType  = AK_MATERIAL_VALUE_COLOR;
+  input->colorSpace = colorSpace;
+  input->channels   = channels;
+  input->color.rgba.A = 1.0f;
+
+  if (rgb)
+    glm_vec3_copy(rgb, input->color.vec);
+
+  if (map) {
+    input->texture = wobj_texref(wst, parent, map, colorSpace, channels);
+    input->source  = AK_MATERIAL_INPUT_TEXTURE;
+  }
+
+  return input;
+}
+
+static
+AkMaterialInput*
+wobj_scalarInput(WOState             * __restrict wst,
+                 void                * __restrict parent,
+                 const char          * __restrict semantic,
+                 float                            value,
+                 char                * __restrict map,
+                 AkTextureColorSpace              colorSpace,
+                 AkTextureChannels                channels) {
+  AkMaterialInput *input;
+
+  input             = ak_heap_calloc(wst->heap, parent, sizeof(*input));
+  input->semantic   = semantic;
+  input->source     = AK_MATERIAL_INPUT_CONSTANT;
+  input->valueType  = AK_MATERIAL_VALUE_FLOAT;
+  input->value[0]   = value;
+  input->colorSpace = colorSpace;
+  input->channels   = channels;
+
+  if (map) {
+    input->texture = wobj_texref(wst, parent, map, colorSpace, channels);
+    input->source  = AK_MATERIAL_INPUT_TEXTURE;
+  }
+
+  return input;
+}
 
 AK_HIDE
 WOMtlLib*
@@ -150,6 +216,11 @@ wobj_mtl(WOState    * __restrict wst,
             break;
           case 'T':
             switch (p[1]) {
+              case 'f':
+                p += 2;
+                ak_strtof_line(p, 0, 3, mtl->Tf);
+                mtl->has_Tf = true;
+                break;
               case 'r':
                 p += 2;
                 ak_strtof_line(p, 0, 1, &mtl->Tr);
@@ -166,6 +237,18 @@ wobj_mtl(WOState    * __restrict wst,
       } else if (ak_str_pack4_fast(p, 4) == WOBJ_MTL_KW_MAP_) {
         p += 4;
         switch (p[0]) {
+          case 'd':
+            if (p[1] == ' ' || p[1] == '\t') {
+              p++;
+              SKIP_SPACES
+
+              begin = p;
+              while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
+              end = p;
+
+              mtl->map_d = ak_heap_strndup(heap, mtl, begin, end - begin);
+            }
+            break;
           case 'K':
             switch (p[1]) {
               case 'a':
@@ -248,98 +331,16 @@ ret:
 }
 
 static
-AkProfileCommon*
-wobj_cmnEffect(WOState * __restrict wst) {
-  AkLibrary       *lib;
-  AkEffect        *effect;
-  AkProfileCommon *profile;
-
-  if (!(lib = wst->doc->lib.effects)) {
-    lib = ak_heap_calloc(wst->heap, wst->doc, sizeof(*lib));
-    wst->doc->lib.effects = lib;
-  }
-
-  effect        = ak_heap_calloc(wst->heap, lib,    sizeof(*effect));
-  profile       = ak_heap_calloc(wst->heap, effect, sizeof(*profile));
-  profile->type = AK_PROFILE_TYPE_COMMON;
-
-  lib->count++;
-
-  effect->profile = profile;
-  effect->next    = (void *)lib->chld;
-  lib->chld       = (void *)effect;
-
-  ak_setypeid(profile, AKT_PROFILE);
-  ak_setypeid(effect,  AKT_EFFECT);
-
-  return effect->profile;
-}
-
-AK_INLINE
-void
-wobj_clrtexset(WOState     * __restrict wst,
-               void        * __restrict memp,
-               float       *            rgb,
-               char        * __restrict map,
-               AkColorDesc * __restrict clr,
-               AkTextureColorSpace      colorSpace,
-               AkTextureChannels        channels) {
-
-  if (rgb) {
-    clr->color = ak_heap_calloc(wst->heap, clr,  sizeof(*clr->color));
-    glm_vec3_copy(rgb, clr->color->vec);
-    clr->color->vec[3] = 1.0f;
-  }
-
-  if (map) {
-    clr->texture = wobj_texref(wst, memp, map, colorSpace, channels);
-  }
-}
-
-AK_INLINE
-AkColorDesc*
-wobj_clrtex(WOState    * __restrict wst,
-            void       * __restrict memp,
-            float      *            rgb,
-            char       * __restrict map,
-            AkTextureColorSpace     colorSpace,
-            AkTextureChannels       channels) {
-  AkColorDesc *clr;
-  clr = ak_heap_calloc(wst->heap, memp, sizeof(*clr));
-  wobj_clrtexset(wst, memp, rgb, map, clr, colorSpace, channels);
-  return clr;
-}
-
-//AK_INLINE
-//AkFloatOrParam*
-//wobj_flt(AkHeap * __restrict heap,
-//         void   * __restrict memp,
-//         float               val) {
-//  AkFloatOrParam *flt;
-//
-//  flt       = ak_heap_calloc(heap, memp, sizeof(*flt));
-//  flt->val  = ak_heap_calloc(heap, flt, sizeof(*flt->val));
-//  *flt->val = val;
-//
-//  return flt;
-//}
-
-static
 void
 wobj_handleMaterial(WOState  * __restrict wst,
                     WOMtlLib * __restrict mtllib,
                     WOMtl    * __restrict mtl) {
-  AkHeap                 *heap;
-  AkDoc                  *doc;
-  AkLibrary              *libmat;
-  AkProfileCommon        *pcommon;
-  AkTechniqueFx          *technfx;
-  AkTechniqueFxCommon    *cmnTechn;
-  AkEffect               *effect;
-  AkInstanceEffect       *ieff;
-  AkMaterial             *mat;
-  AkMaterialSpecularProp *specularProp;
-  AkMaterialEmissionProp *emissionProp;
+  AkHeap                   *heap;
+  AkDoc                    *doc;
+  AkLibrary                *libmat;
+  AkMaterial               *mat;
+  AkMaterialSurface        *surface;
+  AkMaterialClassicFeature *classic;
 
   heap = wst->heap;
   doc  = wst->doc;
@@ -349,85 +350,109 @@ wobj_handleMaterial(WOState  * __restrict wst,
     doc->lib.materials = libmat;
   }
 
-  pcommon = wobj_cmnEffect(wst);
-  effect  = ak_mem_parent(pcommon);
-  technfx = ak_heap_calloc(heap, pcommon, sizeof(*technfx));
-  mat     = ak_heap_calloc(heap, libmat,  sizeof(*mat));
+  mat     = ak_heap_calloc(heap, libmat, sizeof(*mat));
+  surface = ak_heap_calloc(heap, mat,    sizeof(*surface));
+  classic = ak_heap_calloc(heap, surface, sizeof(*classic));
 
-  ak_setypeid(technfx, AKT_TECHNIQUE_FX);
-
-  cmnTechn = ak_heap_calloc(heap, technfx, sizeof(*cmnTechn));
   switch (mtl->illum) {
     case 0: /* Constant */
-      cmnTechn->type = AK_MATERIAL_CONSTANT;
+      surface->type = AK_MATERIAL_TYPE_CONSTANT;
       break;
     case 1: /* Lambert */
-      cmnTechn->type = AK_MATERIAL_LAMBERT;
+      surface->type = AK_MATERIAL_TYPE_LAMBERT;
       break;
     case 2: /* TODO: Currently all others are Blinn */
 //    case 3:
 //    case 4:
-      cmnTechn->type = AK_MATERIAL_BLINN;
+      surface->type = AK_MATERIAL_TYPE_BLINN;
     default:
       break;
   }
 
-  cmnTechn->ambient       = wobj_clrtex(wst, cmnTechn, mtl->Ka, mtl->map_Ka,
-                                        AK_TEXTURE_COLORSPACE_SRGB,
-                                        AK_TEXTURE_CHANNEL_RGB);
-  cmnTechn->diffuse       = wobj_clrtex(wst, cmnTechn, mtl->Kd, mtl->map_Kd,
-                                        AK_TEXTURE_COLORSPACE_SRGB,
-                                        AK_TEXTURE_CHANNEL_RGBA);
+  if (surface->type == AK_MATERIAL_TYPE_NONE)
+    surface->type = AK_MATERIAL_TYPE_BLINN;
 
-  specularProp            = ak_heap_calloc(heap, cmnTechn, sizeof(*specularProp));
-  cmnTechn->specular      = specularProp;
-  specularProp->shininess = mtl->Ns;
-  specularProp->color     = wobj_clrtex(wst, cmnTechn, mtl->Ks, mtl->map_Ks,
-                                        AK_TEXTURE_COLORSPACE_SRGB,
-                                        AK_TEXTURE_CHANNEL_RGB);
-
-  emissionProp            = ak_heap_calloc(heap, cmnTechn, sizeof(*emissionProp));
-  cmnTechn->emission      = emissionProp;
-  emissionProp->strength  = 1.0f;
-
-  wobj_clrtexset(wst, cmnTechn, mtl->Ke, mtl->map_Ke, &emissionProp->color,
-                 AK_TEXTURE_COLORSPACE_SRGB,
-                 AK_TEXTURE_CHANNEL_RGB);
-
-  cmnTechn->ior = mtl->Ni;
+  surface->baseColor = wobj_colorInput(wst,
+                                       surface,
+                                       ak_materialSemanticName(AK_MATERIAL_SEMANTIC_BASE_COLOR),
+                                       mtl->Kd,
+                                       mtl->map_Kd,
+                                       AK_TEXTURE_COLORSPACE_SRGB,
+                                       AK_TEXTURE_CHANNEL_RGBA);
+  surface->emissive = wobj_colorInput(wst,
+                                      surface,
+                                      ak_materialSemanticName(AK_MATERIAL_SEMANTIC_EMISSIVE),
+                                      mtl->Ke,
+                                      mtl->map_Ke,
+                                      AK_TEXTURE_COLORSPACE_SRGB,
+                                      AK_TEXTURE_CHANNEL_RGB);
+  surface->alphaCutoff = 0.5f;
+  surface->ior = mtl->Ni;
+  surface->emissiveStrength = 1.0f;
 
   if (mtl->bump) {
-    cmnTechn->normal        = ak_heap_calloc(heap, cmnTechn, sizeof(*cmnTechn->normal));
-    cmnTechn->normal->scale = 1.0f;
-    cmnTechn->normal->tex   = wobj_texref(wst, cmnTechn, mtl->bump,
-                                          AK_TEXTURE_COLORSPACE_LINEAR,
-                                          AK_TEXTURE_CHANNEL_RGB);
+    surface->normal = wobj_scalarInput(wst,
+                                       surface,
+                                       ak_materialSemanticName(AK_MATERIAL_SEMANTIC_NORMAL),
+                                       1.0f,
+                                       mtl->bump,
+                                       AK_TEXTURE_COLORSPACE_LINEAR,
+                                       AK_TEXTURE_CHANNEL_RGB);
   }
   
-  if (mtl->Tr > 0.0f || mtl->d < 1.0f) {
-    AkTransparent *transp;
-    float          t;
+  if (mtl->Tr > 0.0f || mtl->d < 1.0f || mtl->map_d) {
+    float t;
 
     if (mtl->d < 1.0f)
       t = mtl->d;
     else
       t = 1.0f - mtl->Tr;
 
-    transp         = ak_heap_calloc(heap, cmnTechn, sizeof(*transp));
-    transp->amount = t;
-    transp->opaque = AK_OPAQUE_BLEND;
-
-    cmnTechn->transparent = transp;
+    surface->opacity = wobj_scalarInput(wst,
+                                        surface,
+                                        ak_materialSemanticName(AK_MATERIAL_SEMANTIC_OPACITY),
+                                        t,
+                                        mtl->map_d,
+                                        AK_TEXTURE_COLORSPACE_LINEAR,
+                                        AK_TEXTURE_CHANNEL_R);
+    surface->flags |= AK_MATERIAL_FLAG_ALPHA_BLEND;
   }
 
-  technfx->common    = cmnTechn;
-  technfx->next      = pcommon->technique;
-  pcommon->technique = technfx;
-  
-  ieff               = ak_heap_calloc(heap, mat, sizeof(*ieff));
-  ieff->base.type    = AK_INSTANCE_EFFECT;
-  ieff->base.url.ptr = effect;
-  mat->effect        = ieff;
+  classic->base.type = AK_MATERIAL_FEATURE_CLASSIC;
+  classic->ambient = wobj_colorInput(wst,
+                                     classic,
+                                     _s_ak_ambient,
+                                     mtl->Ka,
+                                     mtl->map_Ka,
+                                     AK_TEXTURE_COLORSPACE_SRGB,
+                                     AK_TEXTURE_CHANNEL_RGB);
+  classic->diffuse = surface->baseColor;
+  classic->specular = wobj_colorInput(wst,
+                                      classic,
+                                      _s_ak_specular,
+                                      mtl->Ks,
+                                      mtl->map_Ks,
+                                      AK_TEXTURE_COLORSPACE_SRGB,
+                                      AK_TEXTURE_CHANNEL_RGB);
+  classic->emission = surface->emissive;
+  if (mtl->has_Tf) {
+    classic->transparency = wobj_colorInput(wst,
+                                            classic,
+                                            _s_ak_transparency,
+                                            mtl->Tf,
+                                            NULL,
+                                            AK_TEXTURE_COLORSPACE_SRGB,
+                                            AK_TEXTURE_CHANNEL_RGB);
+  }
+  classic->shininess = mtl->Ns;
+  classic->ior = mtl->Ni;
+  classic->illum = mtl->illum;
+  wobj_featurePush(surface, &classic->base);
+
+  mat->name = mtl->name;
+  if (mat->name)
+    ak_mem_setp((void *)mat->name, mat);
+  mat->surface = surface;
   
   mat->base.next     = libmat->chld;
   libmat->chld       = (void *)mat;

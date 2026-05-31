@@ -54,6 +54,7 @@ typedef struct WOMtl {
   int   illum;
   bool  map_aat;
   bool  has_Ns;
+  bool  has_Tf;
 } WOMtl;
 
 typedef struct WOMtlLib {
@@ -102,6 +103,7 @@ typedef struct WOState {
   AkComponentSize texCompSize;
   bool            smooth;
   bool            hasFreeform;
+  bool            hasColorAlpha;
 } WOState;
 
 #define WOBJ_PRIM_FLAG_SMOOTH 1u

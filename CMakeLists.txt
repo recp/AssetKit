@@ -127,6 +127,7 @@ endif()
 add_library(${PROJECT_NAME} ${AK_BUILD} "")
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 ak_target_c_options(${PROJECT_NAME})
+target_compile_definitions(${PROJECT_NAME} PRIVATE AK_INTERNAL_BUILD)
 
 if(APPLE)
   set(AK_INSTALL_RPATH "@loader_path")

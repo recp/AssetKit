@@ -65,8 +65,8 @@ dae_vscene(DAEState * __restrict dst,
       AkEvaluateScene *evalScene;
 
       if ((evalScene = dae_evalScene(dst, xml, vscn))) {
-        vscn->evaluateScene = evalScene;
-        evalScene->next     = vscn->evaluateScene;
+        evalScene->next = (AkEvaluateScene *)vscn->reserved;
+        vscn->reserved = evalScene;
       }
     } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       vscn->extra = tree_fromxml(heap, vscn, xml);

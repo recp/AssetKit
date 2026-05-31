@@ -868,5 +868,13 @@ _AK_EXTERN const char _s_gltf_pool_1[];
 #define _s_gltf_diffuseTransmissionColorFactor_len 30
 #define _s_gltf_diffuseTransmissionColorTexture _s_gltf_1(1562)
 #define _s_gltf_diffuseTransmissionColorTexture_len 31
+#define _s_gltf_KHR_materials_volume_scatter _s_gltf_1(1594)
+#define _s_gltf_KHR_materials_volume_scatter_len 28
+#define _s_gltf_multiscatterColor _s_gltf_1(1623)
+#define _s_gltf_multiscatterColor_len 17
+#define _s_gltf_multiscatterColorFactor _s_gltf_1(1641)
+#define _s_gltf_multiscatterColorFactor_len 23
+#define _s_gltf_scatterAnisotropy _s_gltf_1(1665)
+#define _s_gltf_scatterAnisotropy_len 17
 
 #endif /* gltf_strpool_h */

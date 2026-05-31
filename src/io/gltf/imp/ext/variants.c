@@ -64,6 +64,8 @@ gltf_ext_primitiveVariants(AkGLTFState     * __restrict gst,
   json_t                   *jvarIdx;
   AkMaterialVariantMapping *mapping;
   AkMaterialVariantMapping *tail;
+  AkMaterialBinding        *binding;
+  AkMaterialBinding        *bindingTail;
   AkMaterial               *material;
   int32_t                   matIdx;
   uint32_t                  variantIdx;
@@ -80,6 +82,7 @@ gltf_ext_primitiveVariants(AkGLTFState     * __restrict gst,
 
   count = 0;
   tail  = NULL;
+  bindingTail = NULL;
 
   /* Each `mapping` entry references a single material and the list of
      variant indices that should resolve to it. We unroll the variants
@@ -119,10 +122,24 @@ gltf_ext_primitiveVariants(AkGLTFState     * __restrict gst,
       }
       tail = mapping;
 
+      binding = ak_heap_calloc(gst->heap, prim, sizeof(*binding));
+      binding->material     = material;
+      binding->variantIndex = variantIdx;
+      binding->scope        = AK_MATERIAL_BIND_PRIMITIVE;
+      binding->propertyIndex = UINT32_MAX;
+
+      if (bindingTail) {
+        bindingTail->next = binding;
+      } else {
+        prim->materialBindings = binding;
+      }
+      bindingTail = binding;
+
       count++;
     }
   }
 
   prim->variantMappingCount = count;
+  prim->materialBindingCount += count;
   return true;
 }

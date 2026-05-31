@@ -63,6 +63,14 @@
 
 #define AK_ARRAY_LEN(ARR) sizeof(ARR) / sizeof(ARR[0])
 
+struct AkTreeNode;
+
+typedef struct AkTreeNode   AkTree;
+typedef struct AkBuffer     AkBuffer;
+typedef struct AkHeap       AkHeap;
+typedef struct AkHeapNode   AkHeapNode;
+typedef struct AkIndexArray AkIndexArray;
+
 #define AK_APPEND_FLINK(SRC,LAST,ITEM)                                        \
   do {                                                                        \
     if (LAST)                                                                 \

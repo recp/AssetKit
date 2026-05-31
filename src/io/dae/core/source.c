@@ -97,9 +97,9 @@ dae_source(DAEState * __restrict dst,
       }
       DAE_PROF_ACC(dst, profGeomAccessor, profGeomAccessorCount, profStep);
     } else if (DAE_XML_TAG_EQ(xml, technique)) {
-      tq                = dae_techn(xml, heap, source);
-      tq->next          = source->technique;
-      source->technique = tq;
+      tq       = dae_techn(xml, heap, source);
+      tq->next = (AkTechnique *)source->reserved;
+      source->reserved = tq;
     } else if (xml_valtype(xml) == XML_STRING && (sval = xmls(xml))) {
       profStep         = DAE_PROF_START(dst);
       count            = xmla_u32(DAE_XMLA8(xml, count), 0);

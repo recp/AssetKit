@@ -269,5 +269,9 @@
   "diffuseTransmissionFactor": "diffuseTransmissionFactor",
   "diffuseTransmissionTexture": "diffuseTransmissionTexture",
   "diffuseTransmissionColorFactor": "diffuseTransmissionColorFactor",
-  "diffuseTransmissionColorTexture": "diffuseTransmissionColorTexture"
+  "diffuseTransmissionColorTexture": "diffuseTransmissionColorTexture",
+  "KHR_materials_volume_scatter": "KHR_materials_volume_scatter",
+  "multiscatterColor": "multiscatterColor",
+  "multiscatterColorFactor": "multiscatterColorFactor",
+  "scatterAnisotropy": "scatterAnisotropy"
 }

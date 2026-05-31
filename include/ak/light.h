@@ -64,7 +64,7 @@ typedef struct AkLight {
   /* const char * id; */
   const char     *name;
   AkLightBase    *tcommon;
-  AkTechnique    *technique;
+  void           *reserved;
   AkTree         *extra;
   struct AkLight *next;
 } AkLight;

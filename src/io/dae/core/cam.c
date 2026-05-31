@@ -127,9 +127,9 @@ dae_cam(DAEState * __restrict dst,
             xtech = xtech->next;
           }
         } else if (DAE_XML_TAG_EQ(xoptics, technique)) {
-          tq                = dae_techn(xoptics, heap, optics);
-          tq->next          = optics->technique;
-          optics->technique = tq;
+          tq       = dae_techn(xoptics, heap, optics);
+          tq->next = (AkTechnique *)optics->reserved;
+          optics->reserved = tq;
         }
         xoptics = xoptics->next;
       }
@@ -144,9 +144,9 @@ dae_cam(DAEState * __restrict dst,
 
       while (ximager) {
         if (DAE_XML_TAG_EQ(ximager, technique)) {
-          tq                = dae_techn(ximager, heap, imager);
-          tq->next          = imager->technique;
-          imager->technique = tq;
+          tq       = dae_techn(ximager, heap, imager);
+          tq->next = (AkTechnique *)imager->reserved;
+          imager->reserved = tq;
         } else if (DAE_XML_TAG_EQ8(ximager, extra)) {
           imager->extra = tree_fromxml(heap, imager, xml);
         }

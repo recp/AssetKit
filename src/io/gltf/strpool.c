@@ -296,6 +296,10 @@ const char _s_gltf_pool_1[] =
 "diffuseTransmissionTexture\0"
 "diffuseTransmissionColorFactor\0"
 "diffuseTransmissionColorTexture\0"
+"KHR_materials_volume_scatter\0"
+"multiscatterColor\0"
+"multiscatterColorFactor\0"
+"scatterAnisotropy\0"
 ;
 
 #undef _GLTF_STRPOOL_

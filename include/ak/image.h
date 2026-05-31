@@ -18,8 +18,36 @@
 #define assetkit_image_h
 
 #include "common.h"
+#include "core-types.h"
 
 struct AkInitFrom;
+
+typedef enum AkChannelFormat {
+  AK_CHANNEL_FORMAT_RGB  = 1,
+  AK_CHANNEL_FORMAT_RGBA = 2,
+  AK_CHANNEL_FORMAT_RGBE = 3,
+  AK_CHANNEL_FORMAT_L    = 4,
+  AK_CHANNEL_FORMAT_LA   = 5,
+  AK_CHANNEL_FORMAT_D    = 6,
+  AK_CHANNEL_FORMAT_XYZ  = 7,
+  AK_CHANNEL_FORMAT_XYZW = 8
+} AkChannelFormat;
+
+typedef enum AkRangeFormat {
+  AK_RANGE_FORMAT_SNORM = 1,
+  AK_RANGE_FORMAT_UNORM = 2,
+  AK_RANGE_FORMAT_SINT  = 3,
+  AK_RANGE_FORMAT_UINT  = 4,
+  AK_RANGE_FORMAT_FLOAT = 5
+} AkRangeFormat;
+
+typedef enum AkPrecisionFormat {
+  AK_PRECISION_FORMAT_DEFAULT = 1,
+  AK_PRECISION_FORMAT_LOW     = 2,
+  AK_PRECISION_FORMAT_MID     = 3,
+  AK_PRECISION_FORMAT_HIGHT   = 4,
+  AK_PRECISION_FORMAT_MAX     = 5
+} AkPrecisionFormat;
 
 typedef enum AkImageType {
   AK_IMAGE_TYPE_1D   = 0,

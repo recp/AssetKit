@@ -24,12 +24,28 @@
 #include "../bugfix/transp.h"
 #include "../../../default/material.h"
 
+#include <string.h>
+
 static
 AkTechniqueFxCommon*
 dae_techniqueFxCmn(DAEState * __restrict dst,
                    xml_t    * __restrict xml,
                    void     * __restrict memp,
                    AkMaterialType        mattype);
+
+static
+void
+dae_techniqueFxSceneKitExtra(DAEState            * __restrict dst,
+                             xml_t               * __restrict xml,
+                             AkTechniqueFxCommon * __restrict techn);
+
+static
+bool
+dae_xmlAttrEq(const xml_attr_t * __restrict attr,
+              const char       * __restrict value,
+              size_t                        len) {
+  return attr && attr->val && attr->valsize == len && memcmp(attr->val, value, len) == 0;
+}
 
 AK_HIDE
 AkTechniqueFx*
@@ -51,16 +67,17 @@ dae_techniqueFx(DAEState * __restrict dst,
   while (xml) {
     if (DAE_XML_TAG_EQ8(xml, asset)) {
       (void)dae_asset(dst, xml, techn, NULL);
-    } else if ((DAE_XML_TAG_EQ8(xml, phong)    && (m = AK_MATERIAL_PHONG))
-           || (DAE_XML_TAG_EQ8(xml, blinn)     && (m = AK_MATERIAL_BLINN))
-           || (DAE_XML_TAG_EQ8(xml, lambert)   && (m = AK_MATERIAL_LAMBERT))
-           || (DAE_XML_TAG_EQ8(xml, constant)  && (m = AK_MATERIAL_CONSTANT))) {
+    } else if ((DAE_XML_TAG_EQ8(xml, phong)    && (m = AK_MATERIAL_TYPE_PHONG))
+           || (DAE_XML_TAG_EQ8(xml, blinn)     && (m = AK_MATERIAL_TYPE_BLINN))
+           || (DAE_XML_TAG_EQ8(xml, lambert)   && (m = AK_MATERIAL_TYPE_LAMBERT))
+           || (DAE_XML_TAG_EQ8(xml, constant)  && (m = AK_MATERIAL_TYPE_CONSTANT))) {
       techn->common = dae_techniqueFxCmn(dst, xml, techn, m);
     } else if (dst->version < AK_COLLADA_VERSION_150
                && DAE_XML_TAG_EQ8(xml, image)) {
       /* migration from 1.4 */
       dae14_fxMigrateImg(dst, xml, NULL);
     } else if (DAE_XML_TAG_EQ8(xml, extra)) {
+      dae_techniqueFxSceneKitExtra(dst, xml, techn->common);
       techn->extra = tree_fromxml(heap, techn, xml);
     }
     xml = xml->next;
@@ -99,6 +116,35 @@ dae_transparentTextureChannels(AkOpaque opaque) {
       return AK_TEXTURE_CHANNEL_RGB;
     default:
       return AK_TEXTURE_CHANNEL_RGBA;
+  }
+}
+
+static
+void
+dae_techniqueFxSceneKitExtra(DAEState            * __restrict dst,
+                             xml_t               * __restrict xml,
+                             AkTechniqueFxCommon * __restrict techn) {
+  xml_t *technique, *item;
+
+  if (!xml || !techn)
+    return;
+
+  for (technique = xml->val; technique; technique = technique->next) {
+    if (!DAE_XML_TAG_EQ(technique, technique)
+        || !dae_xmlAttrEq(DAE_XMLA8(technique, profile), "SceneKit", 8))
+      continue;
+
+    for (item = technique->val; item; item = item->next) {
+      if (!xml_tag_eqsz(item, "constant_diffuse", sizeof("constant_diffuse") - 1))
+        continue;
+
+      if (!techn->constantDiffuse) {
+        techn->constantDiffuse = dae_colorOrTex(dst, item, techn);
+        dae_colorDescTextureUsage(dst, techn->constantDiffuse, AK_TEXTURE_COLORSPACE_SRGB,
+                                  AK_TEXTURE_CHANNEL_RGBA);
+      }
+      return;
+    }
   }
 }
 
@@ -210,6 +256,8 @@ dae_techniqueFxCmn(DAEState * __restrict dst,
       /* TODO: assumed 0.0 for COLLADA */
       techn->ior = dae_float(dst, xml, techn,
                              offsetof(AkTechniqueFxCommon, ior), 0.0f);
+    } else if (DAE_XML_TAG_EQ8(xml, extra)) {
+      dae_techniqueFxSceneKitExtra(dst, xml, techn);
     }
     xml = xml->next;
   }

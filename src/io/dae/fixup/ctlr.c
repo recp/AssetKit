@@ -492,7 +492,7 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
 
           /* create instance geometry for skin */
           instGeom->skinner        = instSkin;
-          instGeom->bindMaterial   = instCtlr->bindMaterial;
+          ak__instanceGeometrySetBindMaterial(instGeom, instCtlr->bindMaterial);
           ak_heap_setpm(instCtlr->bindMaterial, instGeom);
 
           instGeom->base.next = (AkInstanceBase *)node->geometry;
@@ -515,7 +515,7 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
                                               animation drives morph.targets   */
 
         instGeom->morpher          = instMorph;
-        instGeom->bindMaterial     = instCtlr->bindMaterial;
+        ak__instanceGeometrySetBindMaterial(instGeom, instCtlr->bindMaterial);
 
         /* Symmetric to SKIN case: morph→skin→geom is rare but spec-allowed.
            Single-level lookahead; deeper chains collapse via ak_baseGeometry. */

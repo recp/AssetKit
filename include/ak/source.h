@@ -29,14 +29,10 @@ extern "C" {
 #include "core-types.h"
 
 /*
-  Input -> Source -> TechniqueCommon (Accessor) -> Buffer
-  Input -> Accessor -> Buffer
+  Modern path: Input -> Accessor -> Buffer.
+  AkSource remains as authored/source-level metadata around an accessor; any
+  DAE technique payload is internal compatibility data.
 */
-
-struct AkTechnique;
-struct AkBuffer;
-struct AkIndexArray;
-typedef struct AkIndexArray AkIndexArray;
 
 /* for vectors: item count,
    for matrics: item count | matrix size
@@ -61,11 +57,11 @@ typedef struct AkDataParam {
   AkTypeDesc          type;
 } AkDataParam;
 
-typedef struct AkBuffer {
+struct AkBuffer {
   const char *name;
   void       *data;
   size_t      length;
-} AkBuffer;
+};
 
 typedef struct AkAccessor {
   struct AkBuffer *buffer;
@@ -101,8 +97,7 @@ typedef struct AkSource {
   const char         *name;
   AkBuffer           *buffer;
   AkAccessor         *tcommon;
-  
-  struct AkTechnique *technique;
+  void               *reserved;
   struct AkSource    *next;
   int32_t             target;
 } AkSource;

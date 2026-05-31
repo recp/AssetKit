@@ -45,6 +45,7 @@ typedef struct STLState {
   uint32_t       indexMax;
   uint32_t       maxVC;
   uint32_t       count;
+  bool           hasColorAlpha;
 } STLState;
 
 #ifdef SKIP_SPACES

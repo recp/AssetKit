@@ -187,40 +187,6 @@ gltf_wrapMode(int type) {
   return AK_WRAP_MODE_WRAP;
 }
 
-AK_HIDE AkOpaque
-gltf_alphaMode(const json_t * __restrict json) {
-  const char *value;
-
-  if (!json || !json->value)
-    return AK_OPAQUE_OPAQUE;
-
-  value = json->value;
-  switch (json->valsize) {
-    case _s_gltf_MASK_len:
-      if (ak_str_pack4_fast(value, _s_gltf_MASK_len) == _s_gltf_MASK_u32_exact)
-        return AK_OPAQUE_MASK;
-      break;
-    case _s_gltf_BLEND_len:
-      if (ak_str_eq_packed_fast(value,
-                                (size_t)json->valsize,
-                                _s_gltf_BLEND_u64_exact,
-                                _s_gltf_BLEND_len))
-        return AK_OPAQUE_BLEND;
-      break;
-    case _s_gltf_OPAQUE_len:
-      if (ak_str_eq_packed_fast(value,
-                                (size_t)json->valsize,
-                                _s_gltf_OPAQUE_u64_exact,
-                                _s_gltf_OPAQUE_len))
-        return AK_OPAQUE_OPAQUE;
-      break;
-    default:
-      break;
-  }
-
-  return AK_OPAQUE_OPAQUE;
-}
-
 AK_HIDE AkInterpolationType
 gltf_interp(const json_t * __restrict json) {
   AkEnum val;

@@ -111,10 +111,10 @@ dae_scenekit_primitive_common(DAEState            * __restrict dst,
 
   *instMat = NULL;
 
-  if (!instGeom->bindMaterial)
+  if (!ak__instanceGeometryBindMaterial(instGeom))
     return NULL;
 
-  effect = ak_effectForBindMaterial(instGeom->bindMaterial, prim, instMat);
+  effect = ak_effectForBindMaterial(ak__instanceGeometryBindMaterial(instGeom), prim, instMat);
   if (!effect)
     return NULL;
 
@@ -260,6 +260,28 @@ dae_scenekit_fix_node(DAEState * __restrict dst, AkNode * __restrict node) {
 
     if (node->chld)
       dae_scenekit_fix_node(dst, node->chld);
+  }
+}
+
+AK_HIDE
+void
+dae_bugfix_scenekit_material_surfaces(DAEState * __restrict dst) {
+  AkLibrary  *libmat;
+  AkMaterial *material;
+
+  if (!dst
+      || !dst->doc
+      || !ak_opt_get(AK_OPT_BUGFIXES)
+      || !dae_scenekit_authored(dst->doc)
+      || !(libmat = dst->doc->lib.materials))
+    return;
+
+  material = (void *)libmat->chld;
+  while (material) {
+    if (material->surface)
+      material->surface->flags |= AK_MATERIAL_FLAG_DOUBLE_SIDED;
+
+    material = (void *)material->base.next;
   }
 }
 

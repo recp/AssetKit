@@ -230,7 +230,7 @@ dae_node(DAEState      * __restrict dst,
       xinstgeo           = xml->val;
       while (xinstgeo) {
         if (DAE_XML_TAG_EQ(xinstgeo, bind_material)) {
-          instgeo->bindMaterial = dae_bindMaterial(dst, xinstgeo, instgeo);
+          ak__instanceGeometrySetBindMaterial(instgeo, dae_bindMaterial(dst, xinstgeo, instgeo));
         } else if (DAE_XML_TAG_EQ8(xinstgeo, extra)) {
           instgeo->base.extra = tree_fromxml(heap, instgeo, xinstgeo);
         }

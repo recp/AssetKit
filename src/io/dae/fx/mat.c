@@ -19,6 +19,7 @@
 #include "../core/asset.h"
 #include "../core/param.h"
 #include "../core/techn.h"
+#include "../../../mat/internal.h"
 
 AK_HIDE
 void*
@@ -43,12 +44,7 @@ dae_material(DAEState * __restrict dst,
       AkInstanceEffect *instEffect;
 
       if ((instEffect = dae_instEffect(dst, xml, mat))) {
-        if (mat->effect) {
-          mat->effect->base.prev = &instEffect->base;
-          instEffect->base.next  = &mat->effect->base;
-        }
-      
-        mat->effect = instEffect;
+        ak_materialSetInstanceEffect(heap, mat, mat, instEffect);
       }
     } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       mat->extra = tree_fromxml(heap, mat, xml);

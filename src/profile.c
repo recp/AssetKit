@@ -156,7 +156,7 @@ ak_profile_deinit(void) {
   ak_free(ak__profileTypes);
 }
 
-AK_EXPORT
+AK_HIDE
 AkProfileCommon*
 ak_getProfileCommon(struct AkEffect * __restrict effect) {
   AkProfile *profile;
@@ -171,12 +171,11 @@ ak_getProfileCommon(struct AkEffect * __restrict effect) {
   return (AkProfileCommon *)profile;
 }
 
-AK_EXPORT
+AK_HIDE
 AkTechniqueFxCommon*
 ak_getProfileTechniqueCommon(struct AkEffect * __restrict effect) {
   AkProfileCommon     *profileCommon;
   AkTechniqueFx       *techn;
-  AkTechniqueFxCommon *technCommon;
 
   if ((profileCommon = ak_getProfileCommon(effect))
       && (techn = profileCommon->technique)) {

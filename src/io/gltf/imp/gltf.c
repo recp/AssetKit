@@ -26,7 +26,6 @@
 #include "core/scene.h"
 #include "core/camera.h"
 #include "core/image.h"
-#include "core/profile.h"
 #include "core/sampler.h"
 #include "core/texture.h"
 #include "core/material.h"

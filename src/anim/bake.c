@@ -31,10 +31,9 @@
  * ak_transformCombine per sample, emit a stream of 4×4 local matrices.
  * Bridges then attach a single transform-keyed animation per node.
  *
- * Renderers that compose bone matrices CPU-side every frame
- * (assetkit-opengl/gk pattern) can skip the bake — they already iterate
- * channels per frame. The helper is opt-in; ak_nodeNeedsBaking() is the
- * heuristic.
+ * Matrix-driven runtimes that compose bone matrices CPU-side every frame can
+ * skip the bake; they already iterate channels per frame. The helper is
+ * opt-in; ak_nodeNeedsBaking() is the heuristic.
  */
 
 #include "../common.h"

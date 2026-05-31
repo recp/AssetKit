@@ -308,12 +308,12 @@ ak_sid_profile(AkContext  * __restrict ctx,
                        after ? ak__alignas(after) : NULL);
 
   /* check hint for profile */
-  if ((!ctx->techniqueHint
-       || !ctx->techniqueHint->profile)
+  hint = ctx ? (AkTechniqueHint *)ctx->reserved0 : NULL;
+
+  if ((!hint || !hint->profile)
       && profile)
     return ak__alignof(profile);
 
-  hint     = ctx->techniqueHint;
   platform = ak_platform();
   while (profile) {
     if (profile->type == hint->profileType)
@@ -341,15 +341,16 @@ AK_HIDE
 AkHeapNode*
 ak_sid_technique(AkContext  * __restrict ctx,
                  AkHeapNode * __restrict chld) {
-  AkHeapNode *orig;
+  AkHeapNode      *orig;
+  AkTechniqueHint *hint;
+
   orig = chld;
+  hint = ctx ? (AkTechniqueHint *)ctx->reserved0 : NULL;
 
   /* first check hint for technique */
-  if (ctx->techniqueHint && ctx->techniqueHint->ref) {
-    AkTechniqueHint *hint;
+  if (hint && hint->ref) {
     const char      *platform;
 
-    hint     = ctx->techniqueHint;
     platform = ak_platform();
 
     /* get desired technique */

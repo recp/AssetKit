@@ -40,9 +40,6 @@ gltf_magFilter(int type);
 AK_HIDE AkEnum
 gltf_wrapMode(int type);
 
-AK_HIDE AkOpaque
-gltf_alphaMode(const json_t * __restrict json);
-
 AK_HIDE AkInterpolationType
 gltf_interp(const json_t * __restrict json);
 

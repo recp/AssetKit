@@ -575,6 +575,8 @@ wobj_append_color(WOState  * __restrict wst,
     color[1] = values[start + 1];
     color[2] = values[start + 2];
     color[3] = hasAlpha ? values[start + 3] : 1.0f;
+    if (hasAlpha)
+      wst->hasColorAlpha = true;
   }
 
   memcpy(wobj_data_append_slot(wst->dc_col), color, sizeof(color));

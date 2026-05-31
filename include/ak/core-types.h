@@ -17,6 +17,8 @@
 #ifndef assetkit_core_types_h
 #define assetkit_core_types_h
 
+#include "common.h"
+
 typedef const char           *AkString;
 typedef char                 *AkMutString;
 typedef bool                  AkBool;
@@ -42,6 +44,64 @@ typedef AK_ALIGN(16) AkFloat  AkFloat4[4];
 typedef AK_ALIGN(16) AkDouble AkDouble4[4];
 typedef AK_ALIGN(32) AkDouble AkDouble4x4[4];
 typedef AK_ALIGN(32) AkFloat4 AkFloat4x4[4];
+
+typedef struct AkColorRGBA {
+  AkFloat R;
+  AkFloat G;
+  AkFloat B;
+  AkFloat A;
+} AkColorRGBA;
+
+typedef union AkColor {
+  AK_ALIGN(16) AkColorRGBA rgba;
+  AK_ALIGN(16) AkFloat4    vec;
+} AkColor;
+
+AK_INLINE
+bool
+ak_colorLessThanOne(AkColor color) {
+  return color.rgba.R < 0.999
+      || color.rgba.G < 0.999
+      || color.rgba.B < 0.999
+      || color.rgba.A < 0.999
+  ;
+}
+
+AK_INLINE
+float
+ak_sRGB_linearf(float channel) {
+  if (channel <= 0.04045) {
+    return channel / 12.92;
+  } else {
+    return powf((channel + 0.055) / 1.055, 2.4);
+  }
+}
+
+AK_INLINE
+float
+ak_linear_sRGBf(float channel) {
+  if (channel <= 0.0031308f) {
+    return channel * 12.92f;
+  } else {
+    return 1.055f * powf(channel, 1.0f / 2.4f) - 0.055f;
+  }
+}
+
+AK_INLINE
+void
+ak_sRGB_linear(AkColor * __restrict color) {
+  color->rgba.R = ak_sRGB_linearf(color->rgba.R);
+  color->rgba.G = ak_sRGB_linearf(color->rgba.G);
+  color->rgba.B = ak_sRGB_linearf(color->rgba.B);
+}
+
+AK_INLINE
+void
+ak_linear_sRGB(AkColor * __restrict color) {
+  color->rgba.R = ak_linear_sRGBf(color->rgba.R);
+  color->rgba.G = ak_linear_sRGBf(color->rgba.G);
+  color->rgba.B = ak_linear_sRGBf(color->rgba.B);
+}
 
 #undef AK__DEF_ARRAY
 

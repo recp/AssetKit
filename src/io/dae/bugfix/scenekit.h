@@ -23,4 +23,8 @@ AK_HIDE
 void
 dae_bugfix_scenekit_backfaces(DAEState * __restrict dst);
 
+AK_HIDE
+void
+dae_bugfix_scenekit_material_surfaces(DAEState * __restrict dst);
+
 #endif /* dae_bugfix_scenekit_h */

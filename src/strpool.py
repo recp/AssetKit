@@ -25,6 +25,30 @@ destdir        = dirname(realpath(__file__))
 spidx          = 0
 pos            = 0
 
+def u32_ascii_ci(val):
+  out = 0
+  for i, ch in enumerate(val[:4].lower().encode("ascii")):
+    out |= ch << (i * 8)
+  return out
+
+def u32_ascii(val):
+  out = 0
+  for i, ch in enumerate(val[:4].encode("ascii")):
+    out |= ch << (i * 8)
+  return out
+
+def u64_ascii_ci(val):
+  out = 0
+  for i, ch in enumerate(val[:8].lower().encode("ascii")):
+    out |= ch << (i * 8)
+  return out
+
+def u64_ascii(val):
+  out = 0
+  for i, ch in enumerate(val[:8].encode("ascii")):
+    out |= ch << (i * 8)
+  return out
+
 fspoolJson = open(destdir + "/strpool.json")
 spool      = json.loads(fspoolJson.read(),
                         object_pairs_hook=OrderedDict)
@@ -58,7 +82,7 @@ fspool_h.write("""
 #ifndef ak_strpool_h
 #  define ak_strpool_h
 
-#ifndef AK_STRPOOL_
+#ifndef _AK_STRPOOL_
 #  define _AK_EXTERN extern
 #else
 #  define _AK_EXTERN
@@ -94,8 +118,41 @@ for name, val in spool.items():
 
   fspool_c.write("\"{0}\\0\"\n".format(val).encode())
 
-  headerContents.append("#define _s_{0} _s_ak_{1}({2})\n"
-                          .format(name, str(spidx), str(pos)))
+  headerContents.append("#define _s_ak_{0} _s_ak_{1}({2})\n"
+                        "#define _s_ak_{0}_len {3}\n"
+                          .format(name,
+                                  str(spidx),
+                                  str(pos),
+                                  str(len(val))))
+  if len(val) <= 4 and val.isascii():
+    headerContents.append("#define _s_ak_{0}_u32 0x{1:08x}u\n"
+                            .format(name, u32_ascii_ci(val)))
+    headerContents.append("#define _s_ak_{0}_u32_exact 0x{1:08x}u\n"
+                            .format(name, u32_ascii(val)))
+  if len(val) <= 8 and val.isascii():
+    headerContents.append("#define _s_ak_{0}_u64 0x{1:016x}ull\n"
+                            .format(name, u64_ascii_ci(val)))
+    headerContents.append("#define _s_ak_{0}_u64_exact 0x{1:016x}ull\n"
+                            .format(name, u64_ascii(val)))
+  elif val.isascii():
+    headerContents.append("#define _s_ak_{0}_u64_prefix 0x{1:016x}ull\n"
+                          "#define _s_ak_{0}_last '{2}'\n"
+                            .format(name, u64_ascii(val), val[-1]))
+  headerContents.append("#define _s_{0} _s_ak_{0}\n"
+                        "#define _s_{0}_len _s_ak_{0}_len\n"
+                          .format(name))
+  if len(val) <= 4 and val.isascii():
+    headerContents.append("#define _s_{0}_u32 _s_ak_{0}_u32\n"
+                          "#define _s_{0}_u32_exact _s_ak_{0}_u32_exact\n"
+                            .format(name))
+  if len(val) <= 8 and val.isascii():
+    headerContents.append("#define _s_{0}_u64 _s_ak_{0}_u64\n"
+                          "#define _s_{0}_u64_exact _s_ak_{0}_u64_exact\n"
+                            .format(name))
+  elif val.isascii():
+    headerContents.append("#define _s_{0}_u64_prefix _s_ak_{0}_u64_prefix\n"
+                          "#define _s_{0}_last _s_ak_{0}_last\n"
+                            .format(name))
 
   pos += valLen
 
@@ -121,4 +178,3 @@ fspool_h.close()
 
 # try free array
 del headerContents[:]
-

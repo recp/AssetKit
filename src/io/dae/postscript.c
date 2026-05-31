@@ -26,6 +26,7 @@
 #include "fixup/ctlr.h"
 #include "fixup/channel.h"
 #include "bugfix/scenekit.h"
+#include "../../mat/internal.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,6 +49,9 @@ dae_input_walk(RBTree *tree, RBNode *rbnode);
 
 AK_HIDE void
 dae_attach_orphan_morphs(DAEState * __restrict dst);
+
+static void
+dae_build_material_surfaces(DAEState * __restrict dst);
 
 static
 bool
@@ -230,6 +234,10 @@ dae_postscript(DAEState * __restrict dst) {
     dst->doc->coordSys = targetCoordSys;
 
   DAE_POST_PROFILE_CALL(profile, "fix_textures", dae_fix_textures(dst));
+  DAE_POST_PROFILE_CALL(profile, "material_surfaces",
+                        dae_build_material_surfaces(dst));
+  DAE_POST_PROFILE_CALL(profile, "scenekit_materials",
+                        dae_bugfix_scenekit_material_surfaces(dst));
   
   if (dst->doc && dst->doc->lib.visualScenes) {
     double coordStart = 0.0;
@@ -242,6 +250,28 @@ dae_postscript(DAEState * __restrict dst) {
         ak_fixSceneCoordSys(vscn);
     }
     dae_post_profile_log(profile, "fix_scene_coord", coordStart);
+  }
+}
+
+static void
+dae_build_material_surfaces(DAEState * __restrict dst) {
+  AkLibrary            *libmat;
+  AkMaterial           *material;
+  AkEffect             *effect;
+  AkTechniqueFxCommon  *common;
+
+  if (!dst || !dst->doc || !(libmat = dst->doc->lib.materials))
+    return;
+
+  material = (void *)libmat->chld;
+  while (material) {
+    if (!material->surface
+        && (effect = ak_materialEffect(material))
+        && (common = ak_getProfileTechniqueCommon(effect))) {
+      material->surface = ak_materialSurfaceFromTechniqueCommon(dst->heap, material, common);
+    }
+
+    material = (void *)material->base.next;
   }
 }
 

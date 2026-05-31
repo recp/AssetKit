@@ -27,6 +27,7 @@
 #include "../include/ak/transform.h"
 
 #include "mem/common.h"
+#include "material_legacy.h"
 
 /* AssetKit often runs cglm directly on imported/accessor-backed memory.
    Those buffers are byte-aligned by file layout, not by cglm's 16/32-byte

@@ -46,7 +46,13 @@ typedef enum AkFileType {
   AK_FILE_TYPE_WAVEFRONT = 3,
   AK_FILE_TYPE_STL       = 4,
   AK_FILE_TYPE_PLY       = 5,
-  AK_FILE_TYPE_3MF       = 6
+  AK_FILE_TYPE_3MF       = 6,
+  AK_FILE_TYPE_X3D       = 7,
+  AK_FILE_TYPE_USD       = 8,
+  AK_FILE_TYPE_ALEMBIC   = 9,
+
+  AK_FILE_TYPE_DAE       = AK_FILE_TYPE_COLLADA,
+  AK_FILE_TYPE_OBJ       = AK_FILE_TYPE_WAVEFRONT
 } AkFileType;
 
 typedef enum AkAltitudeMode {
@@ -62,33 +68,6 @@ typedef enum AkFace {
   AK_FACE_POSITIVE_Z = 5,
   AK_FACE_NEGATIVE_Z = 6
 } AkFace;
-
-typedef enum AkChannelFormat {
-  AK_CHANNEL_FORMAT_RGB  = 1,
-  AK_CHANNEL_FORMAT_RGBA = 2,
-  AK_CHANNEL_FORMAT_RGBE = 3,
-  AK_CHANNEL_FORMAT_L    = 4,
-  AK_CHANNEL_FORMAT_LA   = 5,
-  AK_CHANNEL_FORMAT_D    = 6,
-  AK_CHANNEL_FORMAT_XYZ  = 7,
-  AK_CHANNEL_FORMAT_XYZW = 8
-} AkChannelFormat;
-
-typedef enum AkRangeFormat {
-  AK_RANGE_FORMAT_SNORM = 1,
-  AK_RANGE_FORMAT_UNORM = 2,
-  AK_RANGE_FORMAT_SINT  = 3,
-  AK_RANGE_FORMAT_UINT  = 4,
-  AK_RANGE_FORMAT_FLOAT = 5
-} AkRangeFormat;
-
-typedef enum AkPrecisionFormat {
-  AK_PRECISION_FORMAT_DEFAULT = 1,
-  AK_PRECISION_FORMAT_LOW     = 2,
-  AK_PRECISION_FORMAT_MID     = 3,
-  AK_PRECISION_FORMAT_HIGHT   = 4,
-  AK_PRECISION_FORMAT_MAX     = 5
-} AkPrecisionFormat;
 
 typedef enum AkInputSemantic {
   /* read semanticRaw */
@@ -142,8 +121,7 @@ typedef enum AkInstanceType {
   AK_INSTANCE_LIGHT      = 3,
   AK_INSTANCE_GEOMETRY   = 4,
   AK_INSTANCE_IMAGE      = 5,
-  AK_INSTANCE_CONTROLLER = 6,
-  AK_INSTANCE_EFFECT     = 7
+  AK_INSTANCE_CONTROLLER = 6
 } AkInstanceType;
 
 typedef struct AkValue {
@@ -173,8 +151,6 @@ typedef struct AkTreeNode {
   unsigned long      chldc;
 } AkTreeNode;
 
-typedef struct AkTreeNode AkTree;
-
 /*!
  * @brief Return optional metadata attached to an AssetKit object.
  *
@@ -198,64 +174,6 @@ typedef struct AkUnit {
   const char * name;
   double       dist;
 } AkUnit;
-
-typedef struct AkColorRGBA {
-  AkFloat R;
-  AkFloat G;
-  AkFloat B;
-  AkFloat A;
-} AkColorRGBA;
-
-typedef union AkColor {
-  AK_ALIGN(16) AkColorRGBA rgba;
-  AK_ALIGN(16) AkFloat4    vec;
-} AkColor;
-
-AK_INLINE
-bool
-ak_colorLessThanOne(AkColor color) {
-  return color.rgba.R < 0.999
-      || color.rgba.G < 0.999
-      || color.rgba.B < 0.999
-      || color.rgba.A < 0.999
-  ;
-}
-
-AK_INLINE 
-float
-ak_sRGB_linearf(float channel) {
-  if (channel <= 0.04045) {
-    return channel / 12.92;
-  } else {
-    return powf((channel + 0.055) / 1.055, 2.4);
-  }
-}
-
-AK_INLINE
-float
-ak_linear_sRGBf(float channel) {
-  if (channel <= 0.0031308f) {
-    return channel * 12.92f;
-  } else {
-    return 1.055f * powf(channel, 1.0f / 2.4f) - 0.055f;
-  }
-}
-
-AK_INLINE
-void
-ak_sRGB_linear(AkColor * __restrict color) {
-  color->rgba.R = ak_sRGB_linearf(color->rgba.R);
-  color->rgba.G = ak_sRGB_linearf(color->rgba.G);
-  color->rgba.B = ak_sRGB_linearf(color->rgba.B);
-}
-
-AK_INLINE 
-void
-ak_linear_sRGB(AkColor * __restrict color) {
-  color->rgba.R = ak_linear_sRGBf(color->rgba.R);
-  color->rgba.G = ak_linear_sRGBf(color->rgba.G);
-  color->rgba.B = ak_linear_sRGBf(color->rgba.B);
-}
 
 typedef struct AkContributor {
   const char * author;
@@ -307,32 +225,6 @@ typedef struct AkDocInf {
   bool         flipImage;
 } AkDocInf;
 
-typedef struct AkTechnique {
-  const char * profile;
-
-  /**
-   * @brief
-   * COLLADA Specs 1.5:
-   * This XML Schema namespace attribute identifies an additional schema
-   * to use for validating the content of this instance document. Optional.
-   */
-  const char * xmlns;
-  AkTree     * chld;
-
-  struct AkTechnique * next;
-} AkTechnique;
-
-/* FX */
-/* Effects */
-/*
- * base type of param
- */
-typedef struct AkParam {
-  const char     *ref;
-  struct AkParam *prev;
-  struct AkParam *next;
-} AkParam;
-
 typedef struct AkHexData {
   const char *format;
   const char *hexval; /* hex value    */
@@ -366,42 +258,7 @@ typedef struct AkInstanceBase {
   struct AkInstanceBase *next;
 } AkInstanceBase;
 
-typedef struct AkEvaluateTarget {
-  AkParam        *param;
-  AkInstanceBase *instanceImage;
-  unsigned long   index;
-  unsigned long   slice;
-  unsigned long   mip;
-  AkFace          face;
-} AkEvaluateTarget;
-
 #include "profile.h"
-
-struct AkNewParam;
-typedef struct AkEffect {
-  /* const char * id; */
-  const char      *name;
-  struct AkNewParam  *newparam;
-  AkProfile       *profile;
-  AkTree          *extra;
-  struct AkEffect *next;
-
-  /* effect specific options, override global options */
-  AkProfileType    bestProfile;
-} AkEffect;
-
-typedef struct AkInstanceEffect {
-  AkInstanceBase   base;
-  AkTechniqueHint *techniqueHint;
-} AkInstanceEffect;
-
-typedef struct AkMaterial {
-  /* const char * id; */
-  AkOneWayIterBase   base;
-  const char        *name;
-  AkInstanceEffect  *effect;
-  AkTree            *extra;
-} AkMaterial;
 
 struct AkAccessor;
 
@@ -421,18 +278,9 @@ typedef struct AkInput {
 //  AkURL              source;
 } AkInput;
 
-struct AkInstanceMaterial;
-typedef struct AkBindMaterial {
-  AkParam                   *param;
-  struct AkInstanceMaterial *tcommon;
-  AkTechnique               *technique;
-  AkTree                    *extra;
-} AkBindMaterial;
-
 typedef struct AkInstanceGeometry {
   AkInstanceBase          base;
-
-  AkBindMaterial         *bindMaterial;
+  void                   *reserved;
   struct AkInstanceMorph *morpher;
   struct AkInstanceSkin  *skinner;
 } AkInstanceGeometry;
@@ -449,51 +297,6 @@ struct AkMatrix;
 struct AkBoundingBox;
 struct AkTransform;
 
-typedef struct AkBind {
-  const char    * semantic;
-  const char    * target;
-  struct AkBind * next;
-} AkBind;
-
-typedef struct AkBindVertexInput {
-  struct AkBindVertexInput *next;
-  const char               *semantic;
-  const char               *inputSemantic;
-  AkUInt                    inputSet;
-} AkBindVertexInput;
-
-typedef struct AkInstanceMaterial {
-  AkInstanceBase       base;
-  const char          *symbol;
-  AkTechniqueOverride *techniqueOverride;
-  AkBind              *bind;
-  AkBindVertexInput   *bindVertexInput;
-} AkInstanceMaterial;
-
-typedef struct AkRender {
-  /* const char * sid; */
-
-  const char     * name;
-  const char     * cameraNode;
-  AkStringArrayL * layer;
-  AkInstanceMaterial * instanceMaterial;
-  AkTree         * extra;
-
-  struct AkRender * next;
-} AkRender;
-
-typedef struct AkEvaluateScene {
-  /* const char * id; */
-  /* const char * sid; */
-
-  const char * name;
-  AkRender   * render;
-  AkTree     * extra;
-  AkBool       enable;
-
-  struct AkEvaluateScene * next;
-} AkEvaluateScene;
-
 struct AkInstanceList;
 
 typedef struct AkVisualScene {
@@ -504,7 +307,7 @@ typedef struct AkVisualScene {
   struct AkNode         *firstCamNode; /* first found camera       */
   struct AkInstanceList *cameras;      /* all cameras inside scene */
   struct AkInstanceList *lights;       /* all lights inside scene  */
-  AkEvaluateScene       *evaluateScene;
+  void                  *reserved;
   struct AkBoundingBox  *bbox;
   AkTree                *extra;
 } AkVisualScene;
@@ -559,6 +362,9 @@ typedef struct AkDoc {
   /* KHR_materials_variants: document-level variant names. */
   struct AkMaterialVariant *materialVariants;
   uint32_t                  materialVariantCount;
+
+  /* 3MF/X3D/USD-style document-level material/property groups. */
+  AkMaterialPropertyRegistry materialProperties;
 } AkDoc;
 
 #include "context.h"

@@ -24,10 +24,12 @@ extern "C" {
 #include "map.h"
 #include "util.h"
 
+#include <string.h>
+
 typedef struct AkContext {
   AkDoc              *doc;
-  AkTechniqueHint    *techniqueHint;
-  AkInstanceMaterial *instanceMaterial;
+  void               *reserved0;
+  void               *reserved1;
   //  AkMap              *bindVertexInput;
 } AkContext;
 

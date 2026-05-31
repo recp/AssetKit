@@ -17,6 +17,7 @@
 #include "group.h"
 #include "util.h"
 #include "../../strpool.h"
+#include "../../mat/internal.h"
 
 /* Buffer > Accessor > Input > Prim > Mesh > Geom > InstanceGeom > Node */
 
@@ -95,6 +96,9 @@ wobj_finishPrim(WOState  * __restrict wst,
   
   if (wst->mtlib && wp->mtlname)
     prim->material = rb_find(wst->mtlib->materials, (void *)wp->mtlname);
+
+  if (!prim->material && wst->ac_col)
+    prim->material = ak_materialDefaultVertexColorAlpha(wst->doc, wst->hasColorAlpha);
 
   if (wp->kind != AK_PRIMITIVE_LINES
       && wp->kind != AK_PRIMITIVE_POINTS

@@ -31,7 +31,7 @@ AkPerspective ak_def_cam_tcommon = {
 
 AkOptics ak_def_cam_optics = {
   .tcommon   = &ak_def_cam_tcommon.base,
-  .technique = NULL
+  .reserved  = NULL
 };
 
 const AkCamera ak_def_cam = {

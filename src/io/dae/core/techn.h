@@ -25,4 +25,10 @@ dae_techn(xml_t  * __restrict xml,
           AkHeap * __restrict heap,
           void   * __restrict memp);
 
+AK_HIDE
+void
+dae_techn_append_extra(xml_t  * __restrict xml,
+                       AkHeap * __restrict heap,
+                       void   * __restrict owner);
+
 #endif /* dae_technique_h */

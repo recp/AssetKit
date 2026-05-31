@@ -59,8 +59,6 @@ typedef struct AkHeapAllocator {
 } AkHeapAllocator;
 
 typedef struct AkHeapSrchCtx AkHeapSrchCtx;
-typedef struct AkHeapNode    AkHeapNode;
-typedef struct AkHeap        AkHeap;
 struct AkURL;
 
 typedef struct AkHeapStats {

@@ -27,12 +27,12 @@ extern "C" {
 #include "type.h"
 
 struct RBTree;
-typedef struct AkHeap AkHeap;
 struct AkGeometry;
 struct AkMesh;
 struct AkAccessor;
 struct FListItem;
 struct AkMaterial;
+struct AkMaterialBinding;
 
 typedef enum AkGeometryType {
   AK_GEOMETRY_MESH   = 1,
@@ -65,13 +65,13 @@ typedef enum AkLineMode {
   AK_LINE_STRIP = 5
 } AkLineMode;
 
-typedef struct AkIndexArray {
+struct AkIndexArray {
   size_t   count;
   AkUInt   max;
   AkTypeId componentType;
   uint32_t reserved;
   uint8_t  items[];
-} AkIndexArray;
+};
 
 typedef struct AkVertices {
   /* const char   * id; */
@@ -95,6 +95,7 @@ typedef struct AkMeshPrimitive {
   const char             *name;
   const char             *bindmaterial;
   struct AkMaterial      *material;
+  struct AkMaterialBinding *materialBindings;
   AkInput                *input;
   AkInput                *pos;
   /*
@@ -124,6 +125,7 @@ typedef struct AkMeshPrimitive {
   /* KHR_materials_variants: optional material overrides. */
   struct AkMaterialVariantMapping *variantMappings;
   uint32_t                         variantMappingCount;
+  uint32_t                         materialBindingCount;
 
   /* KHR_gaussian_splatting: optional splat metadata. Splat inputs stay
      in the normal primitive input chain. */

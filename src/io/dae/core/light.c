@@ -139,9 +139,9 @@ dae_light(DAEState * __restrict dst,
         }
       }
     } else if (DAE_XML_TAG_EQ(xml, technique)) {
-      tq               = dae_techn(xml, heap, light);
-      tq->next         = light->technique;
-      light->technique = tq;
+      tq       = dae_techn(xml, heap, light);
+      tq->next = (AkTechnique *)light->reserved;
+      light->reserved = tq;
     } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       light->extra = tree_fromxml(heap, light, xml);
     }

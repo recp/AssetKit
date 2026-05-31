@@ -18,7 +18,9 @@
 #define assetkit_texture_h
 
 #include "common.h"
+#include "core-types.h"
 #include "image.h"
+#include "type.h"
 
 typedef enum AkWrapMode {
   AK_WRAP_MODE_WRAP        = 1,
