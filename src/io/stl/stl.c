@@ -790,7 +790,7 @@ stl_stl(AkDoc     ** __restrict dest,
   ak_id_newheap(heap);
 
   /* libraries */
-  doc->lib.geometries = ak_heap_calloc(heap, doc, sizeof(AkGeometry));
+  doc->lib.geometries = ak_heap_calloc(heap, doc, sizeof(*doc->lib.geometries));
   lib_vscene = ak_heap_calloc(heap, doc, sizeof(*lib_vscene));
   
   /* default scene */
