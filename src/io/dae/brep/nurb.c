@@ -27,7 +27,6 @@ dae_nurbs(DAEState * __restrict dst,
   AkHeap   *heap;
   AkObject *obj;
   AkNurbs  *nurbs;
-  AkSource *source;
 
   heap  = dst->heap;
   obj   = ak_objAlloc(heap, memp, sizeof(*nurbs), 0, true);
@@ -39,10 +38,7 @@ dae_nurbs(DAEState * __restrict dst,
   xml = xml->val;
   while (xml) {
     if (DAE_XML_TAG_EQ(xml, source)) {
-      if ((source = dae_source(dst, xml, NULL, 0))) {
-        source->next  = nurbs->source;
-        nurbs->source = source;
-      }
+      (void)dae_source(dst, xml, NULL, 0);
     } else if (DAE_XML_TAG_EQ(xml, control_vertices)) {
       nurbs->cverts = dae_vert(dst, xml, obj);
     } else if (DAE_XML_TAG_EQ(xml, extra)) {
@@ -62,7 +58,6 @@ dae_nurbs_surface(DAEState * __restrict dst,
   AkHeap         *heap;
   AkObject       *obj;
   AkNurbsSurface *nurbsSurface;
-  AkSource       *source;
 
   heap  = dst->heap;
   obj   = ak_objAlloc(heap, memp, sizeof(*nurbsSurface), 0, true);
@@ -76,10 +71,7 @@ dae_nurbs_surface(DAEState * __restrict dst,
   xml = xml->val;
   while (xml) {
     if (DAE_XML_TAG_EQ(xml, source)) {
-      if ((source = dae_source(dst, xml, NULL, 0))) {
-        source->next         = nurbsSurface->source;
-        nurbsSurface->source = source;
-      }
+      (void)dae_source(dst, xml, NULL, 0);
     } else if (DAE_XML_TAG_EQ(xml, control_vertices)) {
       nurbsSurface->cverts = dae_vert(dst, xml, obj);
     } else if (DAE_XML_TAG_EQ(xml, extra)) {

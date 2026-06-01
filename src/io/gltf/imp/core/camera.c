@@ -112,7 +112,7 @@ gltf_cameras(json_t * __restrict jcam,
         persp->xfov = persp->yfov * persp->aspectRatio;
       }
 
-      optics->tcommon = &persp->base;
+      optics->proj = &persp->base;
     } else if (json_val_eqsz(it, _s_gltf_orthographic, it->valsize)) {
       AkOrthographic *ortho;
 
@@ -138,7 +138,7 @@ gltf_cameras(json_t * __restrict jcam,
       if (ortho->ymag && ortho->xmag)
         ortho->aspectRatio = ortho->xmag / ortho->ymag;
 
-      optics->tcommon = &ortho->base;
+      optics->proj = &ortho->base;
     }
     
     cam->base.next = lib->chld;

@@ -63,11 +63,11 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
     size_t        istride;
     uint32_t      st, vo;
 
-    vo         = prim->pos->offset;
-    st         = prim->indexStride ? prim->indexStride : 1;
-    ind        = prim->indices;
-    iacc       = prim->indexAccessor;
-    count      = 0;
+    vo    = prim->pos->indexOffset;
+    st    = prim->indexStride ? prim->indexStride : 1;
+    ind   = prim->indices;
+    iacc  = prim->indexAccessor;
+    count = 0;
 
 #define AK_BBOX_PICK_FOR_INDEX_TYPE(TYPE, SRC)                              \
     do {                                                                    \

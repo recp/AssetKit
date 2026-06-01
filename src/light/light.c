@@ -27,7 +27,7 @@
 AK_EXPORT
 AkLight *
 ak_lightMake(AkDoc * __restrict doc,
-             void  * __restrict memparent,
+             void  * __restrict memp,
              AkLightType type) {
   AkHeap      *heap;
   AkLight     *light;
@@ -47,10 +47,9 @@ ak_lightMake(AkDoc * __restrict doc,
     default:                  baseSize = sizeof(AkLightBase);  break;
   }
 
-  light          = ak_heap_calloc(heap, memparent ? memparent : (void *)doc,
-                                        sizeof(*light));
-  light->tcommon = ak_heap_calloc(heap, light, baseSize);
-  base           = light->tcommon;
+  light          = ak_heap_calloc(heap, memp ? memp : (void *)doc, sizeof(*light));
+  light->data    = ak_heap_calloc(heap, light, baseSize);
+  base           = light->data;
   base->type     = type;
 
   /* White color, full alpha — sensible default for any light kind. */
@@ -114,13 +113,8 @@ ak_defaultLight(void * __restrict memparent) {
                          sizeof(*light));
   memcpy(light, deflight, sizeof(*deflight));
 
-  light->tcommon = ak_heap_calloc(heap,
-                                  light,
-                                  sizeof(AkDirectionalLight));
-
-  memcpy(light->tcommon,
-         deflight->tcommon,
-         sizeof(AkDirectionalLight));
+  light->data = ak_heap_calloc(heap, light, sizeof(AkDirectionalLight));
+  memcpy(light->data, deflight->data, sizeof(AkDirectionalLight));
 
   /* convert light direction */
   if (ak_opt_get(AK_OPT_COORD_CONVERT_TYPE) != AK_COORD_CVT_DISABLED)
@@ -129,7 +123,7 @@ ak_defaultLight(void * __restrict memparent) {
     coordsys = doc->coordSys;
 
   ak_coordCvtVector(AK_YUP,
-                    light->tcommon->direction,
+                    light->data->direction,
                     coordsys);
   return light;
 }

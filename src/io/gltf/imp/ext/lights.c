@@ -49,7 +49,7 @@ gltf_ext_lights(AkGLTFState * __restrict gst,
                GLTF_JSON_GET8(jlight, extras),
                GLTF_JSON_GET(jlight, extensions));
 
-    base = light->tcommon;
+    base = light->data;
     if ((it = GLTF_JSON_GET8(jlight, name)))
       light->name = json_strdup(it, gst->heap, light);
 

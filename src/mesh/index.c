@@ -164,7 +164,7 @@ ak_primCollapseIdentityIndices(AkMeshPrimitive *prim) {
     return false;
 
   st = prim->indexStride;
-  vo = prim->pos->offset;
+  vo = prim->pos->indexOffset;
   if (st == 0 || vo >= st || indices->count == 0 || indices->count % st != 0)
     return false;
 
@@ -220,13 +220,13 @@ ak_primCollapseIdentityIndices(AkMeshPrimitive *prim) {
       return false;
   }
 
-  indices->count    = count;
-  indices->max      = maxIndex;
-  prim->indexStride = 1;
-  prim->pos->offset = 0;
+  indices->count         = count;
+  indices->max           = maxIndex;
+  prim->indexStride      = 1;
+  prim->pos->indexOffset = 0;
 
   for (input = prim->input; input; input = input->next)
-    input->offset = 0;
+    input->indexOffset = 0;
 
   prim->indexAccessor = NULL;
 
@@ -238,8 +238,7 @@ AkResult
 ak_movePositions(AkMesh          *mesh,
                  AkMeshPrimitive *prim,
                  AkDuplicator    *duplicator) {
-  AkSourceEditHelper *srch;
-  AkSourceBuffState  *buffstate;
+  AkBufferEditState  *buffstate;
   AkAccessor         *acc, *newacc;
   AkIndexArray       *dupc, *dupcsum;
   AkBuffer           *oldbuff, *newbuff;
@@ -255,12 +254,7 @@ ak_movePositions(AkMesh          *mesh,
     return AK_ERR;
 
   newbuff = buffstate->buff;
-  srch    = buffstate->sourceEdit;
-  if (!srch)
-    return AK_ERR;
-  newacc  = srch->source;
-
-  if (!newacc)
+  if (!(newacc = buffstate->accessor))
     return AK_ERR;
 
   dupc       = duplicator->range->dupc;

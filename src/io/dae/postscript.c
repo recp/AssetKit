@@ -124,14 +124,14 @@ dae_spread_vert(DAEState * __restrict dst) {
     inpv = vert->input;
 
     while (inpv) {
-      inp  = dae_input_new(heap, prim);
-      inp->semantic = inpv->semantic;
+      inp              = dae_input_new(heap, prim);
+      inp->semantic    = inpv->semantic;
       inp->semanticRaw = inpv->semanticRaw;
 
-      inp->offset = prim->reserved1;
-      inp->set    = prim->reserved2;
-      inp->next   = prim->input;
-      prim->input = inp;
+      inp->indexOffset = prim->reserved1;
+      inp->set         = prim->reserved2;
+      inp->next        = prim->input;
+      prim->input      = inp;
 
       if (inp->semantic == AK_INPUT_POSITION) {
         prim->pos = inp;
@@ -364,7 +364,7 @@ dae_attach_orphan_morphs(DAEState * __restrict dst) {
 AK_HIDE void
 dae_input_walk(RBTree *tree, RBNode *rbnode) {
   AkAccessor *acc;
-  AkSource   *src;
+  DaeSource  *src;
   AkInput    *inp;
   AkURL      *url;
 
@@ -379,7 +379,7 @@ dae_input_walk(RBTree *tree, RBNode *rbnode) {
   if (!(src = ak_getObjectByUrl(url)))
     return;
 
-  acc           = src->tcommon;
+  acc           = src->accessor;
   inp->accessor = acc;
 
   /* TODO: handle error if null?? */

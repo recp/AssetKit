@@ -29,7 +29,6 @@ dae_brep(DAEState   * __restrict dst,
   AkObject     *obj;
   AkBoundryRep *brep;
   AkHeap       *heap;
-  AkSource     *source;
 
   heap   = dst->heap;
   xml    = xml->val;
@@ -47,10 +46,7 @@ dae_brep(DAEState   * __restrict dst,
     } else if (DAE_XML_TAG_EQ(xml, surfaces)) {
       brep->surfaces = dae_surfaces(dst, xml, obj);
     } else if (DAE_XML_TAG_EQ(xml, source)) {
-      if ((source = dae_source(dst, xml, NULL, 0))) {
-        source->next  = brep->source;
-        brep->source = source;
-      }
+      (void)dae_source(dst, xml, NULL, 0);
     } else if (DAE_XML_TAG_EQ(xml, vertices)) {
       brep->vertices = dae_vert(dst, xml, obj);
     } else if (DAE_XML_TAG_EQ(xml, edges)) {

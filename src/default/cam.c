@@ -17,7 +17,7 @@
 #include "cam.h"
 #include <cglm/cglm.h>
 
-AkPerspective ak_def_cam_tcommon = {
+AkPerspective ak_def_cam_persp = {
   .base = {
 	.type = AK_PROJECTION_PERSPECTIVE,
 	.tag = 0
@@ -30,8 +30,8 @@ AkPerspective ak_def_cam_tcommon = {
 };
 
 AkOptics ak_def_cam_optics = {
-  .tcommon   = &ak_def_cam_tcommon.base,
-  .reserved  = NULL
+  .proj     = &ak_def_cam_persp.base,
+  .reserved = NULL
 };
 
 const AkCamera ak_def_cam = {

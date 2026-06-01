@@ -146,11 +146,11 @@ dae_findInstanceMorph(AkDoc * __restrict doc, AkMorph *morph) {
    source→controller map up front. */
 static
 AkController *
-dae_findControllerForSource(AkDoc * __restrict doc, AkSource *src) {
+dae_findControllerForSource(AkDoc * __restrict doc, DaeSource *src) {
   AkController *ctlr;
   AkMorph      *morph;
   AkMorphDAE   *morphdae;
-  AkSource     *s;
+  DaeSource    *s;
 
   if (!src || !doc->lib.controllers) return NULL;
 
@@ -189,9 +189,9 @@ dae_resolveMorpher(AkDoc      * __restrict doc,
      real-world exporters set the source's id to the same string as the
      SID, so the doc id table catches the common case. */
   if (!(element = ak_getObjectById(doc, idbuf))) return NULL;
-  if (ak_typeid(element) != AKT_SOURCE)          return NULL;
+  if (ak_typeid(element) != DAE_TYPE_SOURCE)     return NULL;
 
-  if (!(ctlr = dae_findControllerForSource(doc, (AkSource *)element)))
+  if (!(ctlr = dae_findControllerForSource(doc, (DaeSource *)element)))
     return NULL;
 
   return dae_findInstanceMorph(doc, (AkMorph *)ctlr->data);

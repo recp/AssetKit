@@ -21,13 +21,13 @@
 #include "../core/value.h"
 
 AK_HIDE
-AkSource*
+DaeSource*
 dae_source(DAEState * __restrict dst,
            xml_t    * __restrict xml,
            AkEnum              (*asEnum)(const char *name, size_t nameLen),
            AkTypeId              enumType) {
   AkHeap        *heap;
-  AkSource      *source;
+  DaeSource     *source;
   AkBuffer      *buffer;
   AkTechnique   *tq;
   AkAccessor    *acc;
@@ -46,7 +46,7 @@ dae_source(DAEState * __restrict dst,
   isName   = false;
   buffer   = NULL;
   source   = ak_heap_calloc(heap, tempmem, sizeof(*source));
-  ak_setypeid(source, AKT_SOURCE);
+  ak_setypeid(source, DAE_TYPE_SOURCE);
 
   xmla_setid(xml, heap, source);
   source->name = DAE_XMLA_STRDUP8(xml, heap, name, source);
@@ -89,7 +89,7 @@ dae_source(DAEState * __restrict dst,
           xacc = xacc->next;
         }
 
-        source->tcommon = acc;
+        source->accessor = acc;
 
         /* append accessor to global list */
         /* this will be prepared in postprocess */
@@ -223,10 +223,10 @@ dae_source(DAEState * __restrict dst,
     xml = xml->next;
   }
 
-  if (source->tcommon
+  if (source->accessor
       && isName
       && asEnum
-      && (accdae = ak_userData(source->tcommon))) {
+      && (accdae = ak_userData(source->accessor))) {
 
     accdae->bound  = 1;
     accdae->stride = 1;

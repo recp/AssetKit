@@ -171,8 +171,8 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
                                 intrWeights,
                                 weights,
                                 weightsAcc,
-                                jointswInp->offset,
-                                weightsInp->offset);
+                                jointswInp->indexOffset,
+                                weightsInp->indexOffset);
 
               skin->weights[primIndex] = weights;
               primIndex++;

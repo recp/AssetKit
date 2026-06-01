@@ -86,7 +86,7 @@ dae_cam(DAEState * __restrict dst,
                 persp->xfov = persp->yfov * persp->aspectRatio;
               }
 
-              optics->tcommon = &persp->base;
+              optics->proj = &persp->base;
             } else if (DAE_XML_TAG_EQ(xtech, orthographic)) {
               AkOrthographic *ortho;
 
@@ -122,7 +122,7 @@ dae_cam(DAEState * __restrict dst,
                 ortho->xmag = ortho->ymag * ortho->aspectRatio;
               }
               
-              optics->tcommon = &ortho->base;
+              optics->proj = &ortho->base;
             }
             xtech = xtech->next;
           }

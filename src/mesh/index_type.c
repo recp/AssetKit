@@ -15,6 +15,7 @@
  */
 
 #include "../common.h"
+#include "index.h"
 
 typedef struct AkIndexAccessorView {
   AkAccessor accessor;
@@ -445,6 +446,48 @@ ak_meshPrimitiveEnsureUIntIndices(AkMeshPrimitive * __restrict prim) {
   }
 
   return indices;
+}
+
+AK_EXPORT
+bool
+ak_meshPrimitiveIsTupleIndexed(const AkMeshPrimitive * __restrict prim) {
+  return prim && prim->indexStride > 1;
+}
+
+AK_EXPORT
+bool
+ak_meshPrimitiveIsSingleIndexed(const AkMeshPrimitive * __restrict prim) {
+  return prim && (prim->indexStride <= 1);
+}
+
+AK_EXPORT
+AkResult
+ak_meshPrimitiveEnsureSingleIndex(AkMeshPrimitive * __restrict prim) {
+  AkResult ret;
+
+  if (!prim)
+    return AK_EINVAL;
+
+  if (ak_meshPrimitiveIsSingleIndexed(prim))
+    return AK_OK;
+
+  if (!prim->mesh)
+    return AK_ERR;
+
+  ak_meshBeginEdit(prim->mesh);
+  ret = ak_primFixIndices(prim->mesh, prim);
+  ak_meshEndEdit(prim->mesh);
+
+  return ret;
+}
+
+AK_EXPORT
+AkAccessor*
+ak_meshPrimitiveSingleIndexAccessor(AkMeshPrimitive * __restrict prim) {
+  if (ak_meshPrimitiveEnsureSingleIndex(prim) != AK_OK)
+    return NULL;
+
+  return ak_meshPrimitiveIndexAccessor(prim);
 }
 
 AK_EXPORT

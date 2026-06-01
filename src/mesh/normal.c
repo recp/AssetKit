@@ -186,7 +186,7 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
       || !prim->pos
       || !(posAcc     = prim->pos->accessor)
       || !(posBuff    = posAcc->buffer)
-      || (vo          = prim->pos->offset) == -1)
+      || (vo          = prim->pos->indexOffset) == -1)
     return;
 
   heap   = ak_heap_getheap(prim);
@@ -404,7 +404,7 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
   
   /* add input */
   input              = ak_heap_calloc(heap, prim, sizeof(*input));
-  input->offset      = st;
+  input->indexOffset = st;
   input->semantic    = AK_INPUT_NORMAL;
   input->semanticRaw = _s_NORMAL;
 

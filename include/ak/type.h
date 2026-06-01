@@ -79,7 +79,6 @@ typedef enum AkTypeId {
   AKT_TEXCOORD,
   AKT_NODE,
   AKT_SCENE,
-  AKT_SOURCE,
   AKT_ACCESSOR,
   AKT_BUFFER,
   AKT_GEOMETRY,

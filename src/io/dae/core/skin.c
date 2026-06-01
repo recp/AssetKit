@@ -47,7 +47,7 @@ dae_skin(DAEState * __restrict dst,
       glm_mat4_transpose(skin->bindShapeMatrix);
       foundBindShape = true;
     } else if (DAE_XML_TAG_EQ8(xml, source)) {
-      AkSource *source;
+      DaeSource *source;
       if ((source = dae_source(dst, xml, NULL, 0))) {
         source->next    = skindae->source;
         skindae->source = source;
@@ -69,10 +69,9 @@ dae_skin(DAEState * __restrict dst,
             ak_free(inp);
           } else {
             AkURL *url;
-            inp->offset   = xmla_u32(DAE_XMLA8(xjoints, offset), 0);
-            
-            url           = DAE_URL_FROM(xjoints, source, memp);
-            
+            inp->indexOffset = xmla_u32(DAE_XMLA8(xjoints, offset), 0);
+            url              = DAE_URL_FROM(xjoints, source, memp);
+
             if (inp->semantic == AK_INPUT_JOINT) {
               skindae->joints.joints = inp;
               rb_insert(dst->inputmap, inp, url);
@@ -108,10 +107,9 @@ dae_skin(DAEState * __restrict dst,
             ak_free(inp);
           } else {
             AkURL *url;
-            inp->offset   = xmla_u32(DAE_XMLA8(xwei, offset), 0);
-            
-            url           = DAE_URL_FROM(xwei, source, memp);
-            
+            inp->indexOffset = xmla_u32(DAE_XMLA8(xwei, offset), 0);
+            url              = DAE_URL_FROM(xwei, source, memp);
+
             if (inp->semantic == AK_INPUT_JOINT) {
               skindae->weights.joints = inp;
               rb_insert(dst->inputmap, inp, url);

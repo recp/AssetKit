@@ -68,10 +68,10 @@ ak_firstCamera(AkDoc     * __restrict doc,
       *camera = cam;
 
     if (projMatrix) {
-      switch ((int)cam->optics->tcommon->type) {
+      switch ((int)cam->optics->proj->type) {
         case AK_PROJECTION_PERSPECTIVE: {
           AkPerspective *perspective;
-          perspective = (AkPerspective *)cam->optics->tcommon;
+          perspective = (AkPerspective *)cam->optics->proj;
 
           glm_perspective(perspective->yfov,
                           perspective->aspectRatio,
@@ -83,7 +83,7 @@ ak_firstCamera(AkDoc     * __restrict doc,
 
         case AK_PROJECTION_ORTHOGRAPHIC: {
           AkOrthographic *ortho;
-          ortho = (AkOrthographic *)cam->optics->tcommon;
+          ortho = (AkOrthographic *)cam->optics->proj;
 
           glm_ortho(-ortho->xmag,
                      ortho->xmag,
@@ -111,8 +111,8 @@ efound:
 AK_EXPORT
 const AkCamera*
 ak_defaultCamera(void * __restrict memparent) {
-  AkHeap   *heap;
-  AkCamera *cam;
+  AkHeap         *heap;
+  AkCamera       *cam;
   const AkCamera *defcam;
 
   defcam = ak_def_camera();
@@ -122,20 +122,13 @@ ak_defaultCamera(void * __restrict memparent) {
   else
     heap = ak_heap_default();
 
-  cam = ak_heap_calloc(heap,
-                         memparent,
-                         sizeof(*cam));
+  cam = ak_heap_calloc(heap, memparent, sizeof(*cam));
   memcpy(cam, defcam, sizeof(*defcam));
-  cam->optics = ak_heap_calloc(heap,
-                               cam,
-                               sizeof(*cam->optics));
-  cam->optics->tcommon = ak_heap_calloc(heap,
-                                        cam,
-                                        sizeof(AkPerspective));
 
-  memcpy(cam->optics->tcommon,
-         defcam->optics->tcommon,
-         sizeof(AkPerspective));
+  cam->optics       = ak_heap_calloc(heap, cam, sizeof(*cam->optics));
+  cam->optics->proj = ak_heap_calloc(heap, cam, sizeof(AkPerspective));
+
+  memcpy(cam->optics->proj, defcam->optics->proj, sizeof(AkPerspective));
 
   return cam;
 }
@@ -161,13 +154,13 @@ ak_camMakePerspective(AkDoc * __restrict doc,
 
   /* Concrete projection lives in the camera's heap region so it's
      freed with the camera. */
-  persp                = ak_heap_calloc(heap, cam, sizeof(*persp));
-  persp->base.type     = AK_PROJECTION_PERSPECTIVE;
-  persp->yfov          = yfov;
-  persp->aspectRatio   = aspect;
-  persp->znear         = znear;
-  persp->zfar          = zfar;
-  cam->optics->tcommon = (AkProjection *)persp;
+  persp              = ak_heap_calloc(heap, cam, sizeof(*persp));
+  persp->base.type   = AK_PROJECTION_PERSPECTIVE;
+  persp->yfov        = yfov;
+  persp->aspectRatio = aspect;
+  persp->znear       = znear;
+  persp->zfar        = zfar;
+  cam->optics->proj  = (AkProjection *)persp;
 
   ak_libAddCamera(doc, cam);
   return cam;
@@ -193,14 +186,14 @@ ak_camMakeOrthographic(AkDoc * __restrict doc,
                                      sizeof(*cam));
   cam->optics = ak_heap_calloc(heap, cam, sizeof(*cam->optics));
 
-  ortho                = ak_heap_calloc(heap, cam, sizeof(*ortho));
-  ortho->base.type     = AK_PROJECTION_ORTHOGRAPHIC;
-  ortho->xmag          = xmag;
-  ortho->ymag          = ymag;
-  ortho->aspectRatio   = aspect;
-  ortho->znear         = znear;
-  ortho->zfar          = zfar;
-  cam->optics->tcommon = (AkProjection *)ortho;
+  ortho              = ak_heap_calloc(heap, cam, sizeof(*ortho));
+  ortho->base.type   = AK_PROJECTION_ORTHOGRAPHIC;
+  ortho->xmag        = xmag;
+  ortho->ymag        = ymag;
+  ortho->aspectRatio = aspect;
+  ortho->znear       = znear;
+  ortho->zfar        = zfar;
+  cam->optics->proj  = (AkProjection *)ortho;
 
   ak_libAddCamera(doc, cam);
   return cam;

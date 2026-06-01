@@ -63,7 +63,7 @@ typedef struct AkSpotLight {
 typedef struct AkLight {
   /* const char * id; */
   const char     *name;
-  AkLightBase    *tcommon;
+  AkLightBase    *data;
   void           *reserved;
   AkTree         *extra;
   struct AkLight *next;
@@ -79,7 +79,7 @@ ak_defaultLight(void * __restrict memparent);
  *        constant attenuation for point/spot, 30° spot falloff)
  *        and register it in the document's lights library.
  *
- * Wires up AkLight + the matching tcommon variant (AkLightBase for
+ * Wires up AkLight + the matching data variant (AkLightBase for
  * ambient/directional, AkPointLight, or AkSpotLight) in one call.
  * Pair with ak_nodeAttachLight() to expose the light in the scene
  * tree.

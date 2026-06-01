@@ -59,8 +59,8 @@ dae_lines(DAEState * __restrict dst,
       } else {
         AkURL *url;
 
-        inp->offset   = xmla_u32(DAE_XMLA8(xml, offset), 0);
-        inp->set      = xmla_u32(DAE_XMLA4(xml, set),    0);
+        inp->indexOffset = xmla_u32(DAE_XMLA8(xml, offset), 0);
+        inp->set         = xmla_u32(DAE_XMLA4(xml, set),    0);
 
         url = DAE_URL_FROM(xml, source, memp);
         rb_insert(dst->inputmap, inp, url);
@@ -70,13 +70,13 @@ dae_lines(DAEState * __restrict dst,
           lines->base.input = inp;
           lines->base.inputCount++;
 
-          if (inp->offset > indexoff)
-            indexoff = inp->offset;
+          if (inp->indexOffset > indexoff)
+            indexoff = inp->indexOffset;
         } else {
           dae_vertmap_add(dst, inp, &lines->base);
 
           /* don't store VERTEX because it will be duplicated to all prims */
-          // lines->base.reserved1 = inp->offset;
+          // lines->base.reserved1 = inp->indexOffset;
           // lines->base.reserved2 = inp->set;
           // ak_free(inp);
         }

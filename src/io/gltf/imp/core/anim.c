@@ -1502,7 +1502,7 @@ gltf_animResolveCameraPointer(AkGLTFState     * __restrict gst,
     return false;
 
   cam = gltf_camera_at(gst, camIndex);
-  if (!cam || !cam->optics || !(proj = cam->optics->tcommon))
+  if (!cam || !cam->optics || !(proj = cam->optics->proj))
     return false;
 
   if (!gltf_animPtrReadSeg(&p, end, &seg, &segLen)
@@ -1577,7 +1577,7 @@ gltf_animResolveLightPointer(AkGLTFState     * __restrict gst,
     lightIndex--;
   }
 
-  if (!light || !(base = light->tcommon))
+  if (!light || !(base = light->data))
     return false;
 
   if (!gltf_animPtrReadSeg(&p, end, &seg, &segLen))

@@ -130,6 +130,8 @@ dae_xmla_strdup_by8(const xml_t * __restrict xobject,
 #  define AK_INPUT_SEMANTIC_VERTEX 100001
 #endif
 
+#define DAE_TYPE_SOURCE ((AkTypeId)0xfffeu)
+
 AK_INLINE
 AkInput*
 dae_input_new(AkHeap * __restrict heap, void * __restrict parent) {
@@ -157,6 +159,15 @@ typedef struct AkDAEVerticesMapItem {
   AkMeshPrimitive *prim;
 } AkDAEVerticesMapItem;
 
+typedef struct DaeSource {
+  const char       *name;
+  AkBuffer         *buffer;
+  AkAccessor       *accessor;
+  void             *reserved;
+  struct DaeSource *next;
+  int32_t           target;
+} DaeSource;
+
 typedef AK_ALIGN(16) struct DAEState {
   AkHeap          *heap;
   void            *tempmem;
@@ -180,7 +191,7 @@ typedef AK_ALIGN(16) struct DAEState {
      controller without ever wrapping the geometry in
      <instance_controller>, leaving the morph dangling otherwise). */
   RBTree          *meshTargets;
-  AkSource        *sources;
+  DaeSource       *sources;
   AkCOLLADAVersion version;
   double           profGeom;
   double           profGeomMesh;
@@ -266,7 +277,7 @@ typedef struct AkSkinWeightsDAE {
 
 typedef struct AkSkinDAE {
   AkURL            baseGeom;
-  AkSource        *source;
+  DaeSource       *source;
   AkTree          *extra;
 
   AkSkinJointsDAE  joints;
@@ -276,7 +287,7 @@ typedef struct AkSkinDAE {
 
 typedef struct AkMorphDAE {
   AkURL     baseGeom;
-  AkSource *source;
+  DaeSource *source;
   AkTree   *extra;
   AkInput  *input;
 } AkMorphDAE;

@@ -107,9 +107,6 @@ typedef struct AkAnimation {
   AkChannel          *channel;
   const char         *name;
   AkTree             *extra;
-  
-  /* TODO: WILL BE DELETED */
-  AkSource           *source;
 } AkAnimation;
 
 /*!

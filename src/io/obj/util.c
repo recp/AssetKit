@@ -256,11 +256,11 @@ wobj_input(WOState         * __restrict wst,
            uint32_t                     offset) {
   AkInput *inp;
 
-  inp                 = ak_heap_calloc(wst->heap, prim, sizeof(*inp));
-  inp->accessor       = acc;
-  inp->semantic       = sem;
-  inp->semanticRaw    = ak_heap_strdup(wst->heap, inp, semRaw);
-  inp->offset         = offset;
+  inp              = ak_heap_calloc(wst->heap, prim, sizeof(*inp));
+  inp->accessor    = acc;
+  inp->semantic    = sem;
+  inp->semanticRaw = ak_heap_strdup(wst->heap, inp, semRaw);
+  inp->indexOffset = offset;
 
   inp->next   = prim->input;
   prim->input = inp;

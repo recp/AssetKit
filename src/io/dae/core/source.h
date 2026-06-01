@@ -20,7 +20,7 @@
 #include "../common.h"
 
 AK_HIDE
-AkSource*
+DaeSource*
 dae_source(DAEState * __restrict dst,
            xml_t    * __restrict xml,
            AkEnum              (*asEnum)(const char *name, size_t nameLen),

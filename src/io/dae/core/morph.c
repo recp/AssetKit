@@ -46,7 +46,7 @@ dae_morph(DAEState * __restrict dst,
   xml = xml->val;
   while (xml) {
     if (DAE_XML_TAG_EQ8(xml, source)) {
-      AkSource *source;
+      DaeSource *source;
       if ((source = dae_source(dst, xml, NULL, 0))) {
         source->next     = morphdae->source;
         morphdae->source = source;
@@ -69,9 +69,8 @@ dae_morph(DAEState * __restrict dst,
             ak_free(inp);
           } else {
             AkURL *url;
-            inp->offset   = xmla_u32(DAE_XMLA8(xtarg, offset), 0);
-            
-            url           = DAE_URL_FROM(xtarg, source, memp);
+            inp->indexOffset = xmla_u32(DAE_XMLA8(xtarg, offset), 0);
+            url              = DAE_URL_FROM(xtarg, source, memp);
             rb_insert(dst->inputmap, inp, url);
 
             inp->next       = morphdae->input;

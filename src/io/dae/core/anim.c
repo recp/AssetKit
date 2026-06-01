@@ -39,13 +39,8 @@ dae_anim(DAEState * __restrict dst,
     if (DAE_XML_TAG_EQ8(xml, asset)) {
       (void)dae_asset(dst, xml, anim, NULL);
     } else if (DAE_XML_TAG_EQ8(xml, source)) {
-      AkSource *source;
-      
       /* store interpolation in char */
-      if ((source = dae_source(dst, xml, dae_animInterp, AKT_UBYTE))) {
-        source->next = anim->source;
-        anim->source = source;
-      }
+      (void)dae_source(dst, xml, dae_animInterp, AKT_UBYTE);
     } else if (DAE_XML_TAG_EQ8(xml, sampler)) {
       AkAnimSampler *samp;
       if ((samp = dae_animSampler(dst, xml, anim))) {
@@ -107,9 +102,8 @@ dae_animSampler(DAEState * __restrict dst,
         ak_free(inp);
       } else {
         AkURL *url;
-        inp->offset   = xmla_u32(DAE_XMLA8(xml, offset), 0);
-        
-        url           = DAE_URL_FROM(xml, source, memp);
+        inp->indexOffset = xmla_u32(DAE_XMLA8(xml, offset), 0);
+        url              = DAE_URL_FROM(xml, source, memp);
         rb_insert(dst->inputmap, inp, url);
         
         /* check if there are angles, because they are in degress,

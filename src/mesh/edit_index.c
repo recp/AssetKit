@@ -100,7 +100,7 @@ ak_moveIndices(AkMesh * __restrict mesh) {
     /* make all offsets 0 */
     input = prim->input;
     while (input) {
-      input->offset = 0;
+      input->indexOffset = 0;
       input = input->next;
     }
 

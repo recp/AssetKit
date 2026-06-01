@@ -267,13 +267,16 @@ ak_meshDuplicatorForIndicesRetained(AkMesh          * __restrict mesh,
 
   dupl = ak_heap_calloc(heap, NULL, sizeof(*dupl));
 
-  st        = prim->indexStride ? prim->indexStride : 1;
-  vo        = prim->pos->offset;
-  ind       = prim->indices;
+  st   = prim->indexStride ? prim->indexStride : 1;
+  vo   = prim->pos->indexOffset;
+  ind  = prim->indices;
+
   if (!ind)
     goto fail;
+
   icount  = (uint32_t)(ind->count / st);
   newind  = ak_meshIndicesArrayFor(mesh, prim, true);
+
   if (!newind)
     goto fail;
 
@@ -573,7 +576,7 @@ ak_meshFixIndexBuffer(AkMesh          * __restrict mesh,
     return;
 
   st     = prim->indexStride ? prim->indexStride : 1;
-  vo     = prim->pos->offset;
+  vo     = prim->pos->indexOffset;
   c      = (uint32_t)ind->count;
 
 #define AK_FIX_INDEX_BUFFER_FOR_TYPE(DSTTYPE, TYPE, SRC, DUPTYPE, SUMTYPE)   \

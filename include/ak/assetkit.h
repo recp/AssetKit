@@ -271,7 +271,7 @@ typedef struct AkInput {
   uint32_t           index; /* TEXCOORD0, TEXCOORD1... */
   bool               isIndexed;
   AkInputSemantic    semantic;
-  uint32_t           offset;
+  uint32_t           indexOffset;
   uint32_t           set;
   
   /* TODO: WILL BE DELETED */

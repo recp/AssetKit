@@ -28,8 +28,7 @@ ak_meshFillBuffers(AkMesh * __restrict mesh) {
   AkAccessor         *acc, *newacc;
   AkIndexArray       *ind1, *ind2;
   AkBuffer           *oldbuff, *newbuff;
-  AkSourceBuffState  *buffstate;
-  AkSourceEditHelper *srch;
+  AkBufferEditState  *buffstate;
   char               *olditms, *newitms;
   size_t              icount, i;
   AkUInt              oldidx, newidx, oldByteSt, newByteSt, fillSize, indxSt,
@@ -59,18 +58,16 @@ ak_meshFillBuffers(AkMesh * __restrict mesh) {
 
       /* copy buff to mesh */
       if ((buffstate = input->reserved)) {
-        srch      = buffstate->sourceEdit;
-        if (!srch)
+        if (!(newacc = buffstate->accessor))
           goto cont;
         newbuff   = buffstate->buff;
-        newacc    = srch->source;
         oldByteSt = (AkUInt)acc->byteStride;
         newByteSt = (AkUInt)newacc->byteStride;
         fillSize  = (AkUInt)acc->fillByteSize;
 
         assert(newacc && "accessor is needed!");
 
-        inpOff  = input->offset;
+        inpOff  = input->indexOffset;
         indxSt  = primi->indexStride;
         icount  = ind1->count / indxSt;
         newitms = (char *)newbuff->data + newacc->byteOffset;
@@ -150,7 +147,7 @@ ak_meshFillBuffers(AkMesh * __restrict mesh) {
 #undef AK_FILL_BUFFER_COPY_LOOP
 
         /* to prevent duplication operation for next time */
-        input->offset = 0;
+        input->indexOffset = 0;
       }
 
     cont:

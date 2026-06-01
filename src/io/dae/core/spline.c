@@ -27,7 +27,6 @@ dae_spline(DAEState   * __restrict dst,
   AkHeap   *heap;
   AkObject *obj;
   AkSpline *spline;
-  AkSource *source;
 
   heap   = dst->heap;
   xml    = xml->val;
@@ -40,10 +39,7 @@ dae_spline(DAEState   * __restrict dst,
   
   while (xml) {
     if (DAE_XML_TAG_EQ8(xml, source)) {
-      if ((source = dae_source(dst, xml, NULL, 0))) {
-        source->next   = spline->source;
-        spline->source = source;
-      }
+      (void)dae_source(dst, xml, NULL, 0);
     } else if (DAE_XML_TAG_EQ(xml, control_vertices)) {
       spline->cverts = dae_vert(dst, xml, obj);
     } else if (DAE_XML_TAG_EQ8(xml, extra)) {

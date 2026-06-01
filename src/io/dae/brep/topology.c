@@ -39,8 +39,8 @@ dae_brep_input(DAEState * __restrict dst,
     return NULL;
   }
 
-  inp->offset = xmla_u32(DAE_XMLA8(xml, offset), 0);
-  inp->set    = xmla_u32(DAE_XMLA4(xml, set),    0);
+  inp->indexOffset = xmla_u32(DAE_XMLA8(xml, offset), 0);
+  inp->set         = xmla_u32(DAE_XMLA4(xml, set),    0);
 
   if ((uint32_t)inp->semantic == AK_INPUT_SEMANTIC_VERTEX) {
     ak_free(inp);

@@ -28,11 +28,7 @@ extern "C" {
 #include "url.h"
 #include "core-types.h"
 
-/*
-  Modern path: Input -> Accessor -> Buffer.
-  AkSource remains as authored/source-level metadata around an accessor; any
-  DAE technique payload is internal compatibility data.
-*/
+/* Modern path: Input -> Accessor -> Buffer. */
 
 /* for vectors: item count,
    for matrics: item count | matrix size
@@ -92,16 +88,6 @@ typedef struct AkAccessor {
   bool             originallyNormalized;
 } AkAccessor;
 
-typedef struct AkSource {
-  /* const char * id; */
-  const char         *name;
-  AkBuffer           *buffer;
-  AkAccessor         *tcommon;
-  void               *reserved;
-  struct AkSource    *next;
-  int32_t             target;
-} AkSource;
-
 typedef struct AkDuplicatorRange {
   struct AkDuplicatorRange *next;
   AkIndexArray             *dupc;
@@ -118,29 +104,18 @@ typedef struct AkDuplicator {
   size_t             bufCount;
 } AkDuplicator;
 
-struct AkSourceEditHelper;
+typedef struct AkBufferEditState {
+  AkDuplicator             *duplicator;
+  AkAccessor               *oldAccessor;
+  AkAccessor               *accessor;
+  void                     *buff;
+  char                     *url;
+  struct AkBufferEditState *next;
+  void                     *input;
 
-typedef struct AkSourceBuffState {
-  AkDuplicator              *duplicator;
-  void                      *buff;
-  char                      *url;
-  struct AkSourceBuffState  *next;
-  struct AkSourceEditHelper *sourceEdit;
-  void                      *input;
-
-  size_t                     count;
-  uint32_t                   stride;
-} AkSourceBuffState;
-
-typedef struct AkSourceEditHelper {
-  struct AkSourceEditHelper *next;
-  AkAccessor                *oldsource;
-  AkAccessor                *source;
-} AkSourceEditHelper;
-
-AK_EXPORT
-AkBuffer*
-ak_sourceDetachArray(AkAccessor * __restrict acc);
+  size_t                    count;
+  uint32_t                  stride;
+} AkBufferEditState;
 
 /* Dequantize an accessor's source data into a caller-supplied float buffer.
    Always writes (count * componentCount) floats; outCapacity must be at

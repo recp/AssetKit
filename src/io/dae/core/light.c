@@ -123,7 +123,7 @@ dae_light(DAEState * __restrict dst,
         glm_vec4_one(lightb->color.vec);
       }
       
-      if ((light->tcommon = lightb)) {
+      if ((light->data = lightb)) {
         /* fix coord sys  */
         optCoordSys = (void *)ak_opt_get(AK_OPT_COORD);
         if (ak_opt_get(AK_OPT_COORD_CONVERT_TYPE) == AK_COORD_CVT_ALL

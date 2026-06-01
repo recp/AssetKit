@@ -16,7 +16,7 @@
 
 #include "light.h"
 
-AkDirectionalLight akdef_light_tcommon = {
+AkDirectionalLight akdef_light_directional = {
   .direction = {0.0f, 0.0f, -1.0f},
   .type      = AK_LIGHT_TYPE_DIRECTIONAL,
   .color     = { {1.0, 1.0, 1.0, 1.0} },
@@ -25,7 +25,7 @@ AkDirectionalLight akdef_light_tcommon = {
 
 AkLight akdef_light = {
   .name      = "default",
-  .tcommon   = &akdef_light_tcommon,
+  .data      = &akdef_light_directional,
   .reserved  = NULL,
   .extra     = NULL,
   .next      = NULL

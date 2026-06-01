@@ -152,7 +152,7 @@ typedef struct AkTriangles {
 typedef struct AkMeshEditHelper {
   AkGeometryEditFlags flags;
   struct RBTree      *buffers;         /* new buffers               */
-  struct AkSourceBuffState *bufferList;
+  struct AkBufferEditState *bufferList;
   void               *mutex;
   void               *duplicator;
   bool                skipFixIndices;
@@ -174,7 +174,6 @@ typedef struct AkMesh {
 
 typedef struct AkSpline {
   struct AkGeometry *geom;
-  AkSource          *source;
   AkVertices        *cverts;
   AkTree            *extra;
   AkBool             closed;
@@ -207,7 +206,6 @@ typedef struct AkHyperbola {
 } AkHyperbola;
 
 typedef struct AkNurbs {
-  AkSource   *source;
   AkVertices *cverts;
   AkTree     *extra;
   AkUInt      degree;
@@ -243,7 +241,6 @@ typedef struct AkCylinder {
 } AkCylinder;
 
 typedef struct AkNurbsSurface {
-  AkSource   *source;
   AkVertices *cverts;
   AkTree     *extra;
   AkUInt      degree_u;
@@ -356,7 +353,6 @@ typedef struct AkBoundryRep {
   AkCurves          *curves;
   AkCurves          *surfaceCurves;
   AkSurfaces        *surfaces;
-  AkSource          *source;
   AkVertices        *vertices;
   AkEdges           *edges;
   AkWires           *wires;
@@ -546,6 +542,22 @@ AkIndexArray*
 ak_meshPrimitiveEnsureUIntIndices(AkMeshPrimitive * __restrict prim);
 
 AK_EXPORT
+bool
+ak_meshPrimitiveIsTupleIndexed(const AkMeshPrimitive * __restrict prim);
+
+AK_EXPORT
+bool
+ak_meshPrimitiveIsSingleIndexed(const AkMeshPrimitive * __restrict prim);
+
+AK_EXPORT
+AkResult
+ak_meshPrimitiveEnsureSingleIndex(AkMeshPrimitive * __restrict prim);
+
+AK_EXPORT
+struct AkAccessor*
+ak_meshPrimitiveSingleIndexAccessor(AkMeshPrimitive * __restrict prim);
+
+AK_EXPORT
 struct AkAccessor*
 ak_meshPrimitiveIndexAccessor(AkMeshPrimitive * __restrict prim);
 
@@ -570,7 +582,7 @@ AkTypeId
 ak_meshPrimitiveIndexComponentType(const AkMeshPrimitive * __restrict prim);
 
 AK_EXPORT
-AkSourceBuffState*
+AkBufferEditState*
 ak_meshReserveBuffer(AkMesh * __restrict mesh,
                      void   * __restrict buffid,
                      size_t              itemSize,
@@ -600,11 +612,6 @@ ak_moveIndices(AkMesh * __restrict mesh);
 AK_EXPORT
 void
 ak_meshMoveBuffers(AkMesh * __restrict mesh);
-
-AK_EXPORT
-AkSourceEditHelper*
-ak_meshSourceEditHelper(AkMesh  * __restrict mesh,
-                        AkInput * __restrict input);
 
 AK_EXPORT
 AkDuplicator*
