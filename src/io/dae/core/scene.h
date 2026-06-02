@@ -26,12 +26,6 @@ dae_vscene(DAEState * __restrict dst,
            void     * __restrict memp);
 
 AK_HIDE
-AkInstanceBase*
-dae_instVisualScene(DAEState * __restrict dst,
-                    xml_t    * __restrict xml,
-                    void     * __restrict memp);
-
-AK_HIDE
 void
 dae_scene(DAEState * __restrict dst,
           xml_t    * __restrict xml);

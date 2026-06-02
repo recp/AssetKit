@@ -36,10 +36,10 @@ typedef struct AkBoundingBox {
  * @brief calc bbox for whole scene, this calc scene bbox with transformations
  *        of geom nodes
  *
- * @param scene visual scene
+ * @param scene scene
  */
 void
-ak_bbox_scene(struct AkVisualScene * __restrict scene);
+ak_bbox_scene(struct AkScene * __restrict scene);
 
 /*!
  * @brief calc bbox for whole geometry

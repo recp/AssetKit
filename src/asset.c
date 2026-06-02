@@ -36,7 +36,7 @@ ak_extraField(void * __restrict obj) {
     case AKT_NODE:
       return &((AkNode *)obj)->extra;
     case AKT_SCENE:
-      return &((AkVisualScene *)obj)->extra;
+      return &((AkScene *)obj)->extra;
     case AKT_GEOMETRY:
       return &((AkGeometry *)obj)->extra;
     case AKT_MESH:

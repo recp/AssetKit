@@ -19,7 +19,7 @@
 
 static
 void
-gltf_setFirstCamera(AkVisualScene *scene, AkNode *node);
+gltf_setFirstCamera(AkScene *scene, AkNode *node);
 
 AK_HIDE
 void
@@ -39,7 +39,7 @@ gltf_scenes(json_t * __restrict jscene,
   jscene = jscenes->base.value;
   
   while (jscene) {
-    AkVisualScene *scene;
+    AkScene *scene;
     json_t        *jsceneVal;
     
     jsceneVal = jscene->value;
@@ -51,6 +51,7 @@ gltf_scenes(json_t * __restrict jscene,
                GLTF_JSON_GET(jscene, extensions));
     
     scene->cameras = ak_heap_calloc(heap, scene, sizeof(*scene->cameras));
+    scene->lights  = ak_heap_calloc(heap, scene, sizeof(*scene->lights));
     
     /* root node: to store node instances */
     scene->node = ak_heap_calloc(heap, scene, sizeof(*scene->node));
@@ -103,7 +104,7 @@ gltf_scenes(json_t * __restrict jscene,
 
   scn_nxt:
 
-    AK_LIB_PREPEND(doc->lib.visualScenes, scene, next);
+    AK_LIB_PREPEND(doc->lib.scenes, scene, next);
     
     jscene = jscene->next;
   }
@@ -113,38 +114,31 @@ AK_HIDE
 void
 gltf_scene(json_t * __restrict jscene,
            void   * __restrict userdata) {
-  AkGLTFState   *gst;
-  AkHeap        *heap;
-  AkDoc         *doc;
-  AkVisualScene *scene;
-  int32_t        sceneIndex;
+  AkGLTFState *gst;
+  AkDoc       *doc;
+  AkScene     *scene;
+  int32_t      sceneIndex;
 
   gst  = userdata;
-  heap = gst->heap;
   doc  = gst->doc;
   
   /* set default scene */
   sceneIndex = json_int32(jscene, -1);
   scene = NULL;
   if (sceneIndex >= 0) {
-    scene = doc->lib.visualScenes.first;
+    scene = doc->lib.scenes.first;
     while (scene && sceneIndex-- > 0)
       scene = scene->next;
   }
 
   /* set first scene as default scene if not specified  */
-  if (scene) {
-    AkInstanceBase *instScene;
-    instScene = ak_heap_calloc(heap, doc, sizeof(*instScene));
-    
-    instScene->url.ptr     = scene;
-    doc->scene.visualScene = instScene;
-  }
+  if (scene)
+    doc->scene = scene;
 }
 
 static
 void
-gltf_setFirstCamera(AkVisualScene *scene, AkNode *node) {
+gltf_setFirstCamera(AkScene *scene, AkNode *node) {
   if (node->camera) {
     if (!scene->firstCamNode)
       scene->firstCamNode = node;

@@ -61,7 +61,7 @@ AK_EXPORT
 AkNode *
 ak_nodeMake(AkDoc      * __restrict doc,
             AkNode     * __restrict parent,
-            const char * name) {
+            const char * __restrict name) {
   AkHeap *heap;
   AkNode *node;
   void   *memparent;
@@ -89,7 +89,7 @@ ak_nodeMake(AkDoc      * __restrict doc,
 AK_EXPORT
 AkNode *
 ak_nodeFindChildByName(AkNode     * __restrict parent,
-                       const char * name) {
+                       const char * __restrict name) {
   AkNode *child;
 
   if (!parent || !name) return NULL;
@@ -106,7 +106,7 @@ AK_EXPORT
 AkNode *
 ak_nodeFindOrMakeChild(AkDoc      * __restrict doc,
                        AkNode     * __restrict parent,
-                       const char * name) {
+                       const char * __restrict name) {
   AkNode *existing;
 
   existing = ak_nodeFindChildByName(parent, name);
@@ -174,7 +174,7 @@ ak_nodeAttachLight(AkNode  * __restrict node,
 AK_EXPORT
 void
 ak_nodeSetTransformMatrix(AkNode * __restrict node,
-                          const float matrix[16]) {
+                          const float         matrix[16]) {
   AkHeap   *heap;
   AkObject *obj;
   AkMatrix *mat;
@@ -204,8 +204,8 @@ ak_nodeSetTransformMatrix(AkNode * __restrict node,
 
 AK_EXPORT
 AkNode *
-ak_sceneFindRoot(AkVisualScene * __restrict scene,
-                 const char * name) {
+ak_sceneFindRoot(AkScene    * __restrict scene,
+                 const char * __restrict name) {
   AkNode *node;
 
   if (!scene || !name) return NULL;
@@ -220,9 +220,9 @@ ak_sceneFindRoot(AkVisualScene * __restrict scene,
 
 AK_EXPORT
 AkNode *
-ak_sceneFindOrMakeRoot(AkDoc         * __restrict doc,
-                       AkVisualScene * __restrict scene,
-                       const char * name) {
+ak_sceneFindOrMakeRoot(AkDoc      * __restrict doc,
+                       AkScene    * __restrict scene,
+                       const char * __restrict name) {
   AkHeap *heap;
   AkNode *node;
   AkNode *last;

@@ -20,17 +20,17 @@
 
 static
 void
-ak_bbox_node(AkHeap        * __restrict heap,
-             AkVisualScene * __restrict scene,
-             AkNode        * __restrict node,
-             mat4                       parentTrans);
+ak_bbox_node(AkHeap  * __restrict heap,
+             AkScene * __restrict scene,
+             AkNode  * __restrict node,
+             mat4                 parentTrans);
 
 static
 void
-ak_bbox_node(AkHeap        * __restrict heap,
-             AkVisualScene * __restrict scene,
-             AkNode        * __restrict node,
-             mat4                       parentTrans) {
+ak_bbox_node(AkHeap  * __restrict heap,
+             AkScene * __restrict scene,
+             AkNode  * __restrict node,
+             mat4                 parentTrans) {
   AkFloat  (*matrixWorld)[4];
 
   if (!node->matrix)
@@ -104,7 +104,7 @@ ak_bbox_node(AkHeap        * __restrict heap,
 }
 
 void
-ak_bbox_scene(struct AkVisualScene * __restrict scene) {
+ak_bbox_scene(struct AkScene * __restrict scene) {
   mat4    trans = GLM_MAT4_IDENTITY_INIT;
   AkHeap *heap;
   AkNode *node;

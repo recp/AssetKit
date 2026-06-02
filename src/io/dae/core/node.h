@@ -27,9 +27,9 @@ dae_node2(DAEState * __restrict dst,
 
 AK_HIDE
 AkNode*
-dae_node(DAEState      * __restrict dst,
-         xml_t         * __restrict xml,
-         void          *            memp,
-         AkVisualScene *            scene);
+dae_node(DAEState * __restrict dst,
+         xml_t    * __restrict xml,
+         void     * __restrict memp,
+         AkScene  * __restrict scene);
 
 #endif /* dae_node_h */

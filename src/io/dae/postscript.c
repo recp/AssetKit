@@ -35,6 +35,9 @@
 AK_HIDE void
 dae_retain_refs(DAEState * __restrict dst);
 
+static void
+dae_bind_active_scene(DAEState * __restrict dst);
+
 AK_HIDE void
 dae_fixup_accessors(DAEState * __restrict dst);
 
@@ -185,6 +188,7 @@ dae_postscript(DAEState * __restrict dst) {
                           dae14_loadjobs_finish(dst));
 
   DAE_POST_PROFILE_CALL(profile, "retain_refs", dae_retain_refs(dst));
+  DAE_POST_PROFILE_CALL(profile, "bind_scene", dae_bind_active_scene(dst));
   DAE_POST_PROFILE_CALL(profile, "input_walk",
                         rb_walk(dst->inputmap, dae_input_walk));
   DAE_POST_PROFILE_CALL(profile, "fix_angles", dae_fixAngles(dst));
@@ -240,11 +244,11 @@ dae_postscript(DAEState * __restrict dst) {
   DAE_POST_PROFILE_CALL(profile, "scenekit_materials",
                         dae_bugfix_scenekit_material_surfaces(dst));
   
-  if (dst->doc && dst->doc->lib.visualScenes.first) {
+  if (dst->doc && dst->doc->lib.scenes.first) {
     double coordStart = 0.0;
     if (profile)
       coordStart = dae_post_profile_now_ms();
-    for (AkVisualScene *vscn = dst->doc->lib.visualScenes.first;
+    for (AkScene *vscn = dst->doc->lib.scenes.first;
          vscn;
          vscn = vscn->next) {
       if (fixTransform)
@@ -252,6 +256,24 @@ dae_postscript(DAEState * __restrict dst) {
     }
     dae_post_profile_log(profile, "fix_scene_coord", coordStart);
   }
+}
+
+static void
+dae_bind_active_scene(DAEState * __restrict dst) {
+  AkScene *scene;
+  void    *resolved;
+
+  if (!dst || !dst->doc)
+    return;
+
+  if (dst->activeScene.url) {
+    resolved = ak_getObjectByUrl(&dst->activeScene);
+    if (resolved && ak_typeid(resolved) == AKT_SCENE)
+      dst->doc->scene = resolved;
+  }
+
+  if (!dst->doc->scene && (scene = dst->doc->lib.scenes.first))
+    dst->doc->scene = scene;
 }
 
 static void
@@ -347,11 +369,11 @@ dae_attach_orphan_morphs_node(DAEState * __restrict dst, AkNode *node) {
 
 AK_HIDE void
 dae_attach_orphan_morphs(DAEState * __restrict dst) {
-  AkVisualScene *vscn;
+  AkScene *vscn;
 
-  if (!dst->meshTargets || !dst->doc->lib.visualScenes.first) return;
+  if (!dst->meshTargets || !dst->doc->lib.scenes.first) return;
 
-  for (vscn = dst->doc->lib.visualScenes.first;
+  for (vscn = dst->doc->lib.scenes.first;
        vscn;
        vscn = vscn->next) {
     dae_attach_orphan_morphs_node(dst, vscn->node);

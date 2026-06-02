@@ -33,8 +33,8 @@ void*
 dae_vscene(DAEState * __restrict dst,
            xml_t    * __restrict xml,
            void     * __restrict memp) {
-  AkHeap        *heap;
-  AkVisualScene *vscn;
+  AkHeap  *heap;
+  AkScene *vscn;
 
   heap = dst->heap;
   vscn = ak_heap_calloc(heap, memp, sizeof(*vscn));
@@ -55,19 +55,12 @@ dae_vscene(DAEState * __restrict dst,
 
       if ((node = dae_node(dst, xml, vscn, vscn))) {
         node->next = vscn->node;
+        if (node->next)
+          node->next->prev = node;
         vscn->node = node;
-        
-        if (vscn->node) {
-          vscn->node->prev = node;
-        }
       }
     } else if (DAE_XML_TAG_EQ(xml, evaluate_scene)) {
-      AkEvaluateScene *evalScene;
-
-      if ((evalScene = dae_evalScene(dst, xml, vscn))) {
-        evalScene->next = (AkEvaluateScene *)vscn->reserved;
-        vscn->reserved = evalScene;
-      }
+      (void)dae_evalScene(dst, xml, vscn);
     } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       vscn->extra = tree_fromxml(heap, vscn, xml);
     }
@@ -100,25 +93,6 @@ dae_vscene(DAEState * __restrict dst,
   }
 
   return vscn;
-}
-
-AK_HIDE
-AkInstanceBase*
-dae_instVisualScene(DAEState * __restrict dst,
-                    xml_t    * __restrict xml,
-                    void     * __restrict memp) {
-  AkHeap         *heap;
-  AkInstanceBase *visualScene;
-  
-  heap        = dst->heap;
-  visualScene = ak_heap_calloc(heap, memp, sizeof(*visualScene));
-
-  sid_set(xml, heap, visualScene);
-  visualScene->name = DAE_XMLA_STRDUP8(xml, heap, name, visualScene);
-
-  DAE_URL_SET(dst, xml, url, visualScene, &visualScene->url);
-
-  return visualScene;
 }
 
 static
@@ -198,8 +172,8 @@ AK_HIDE
 void
 dae_scene(DAEState * __restrict dst,
           xml_t    * __restrict xml) {
-  AkDoc    *doc;
-  AkHeap   *heap;
+  AkDoc     *doc;
+  AkHeap    *heap;
 
   heap = dst->heap;
   doc  = dst->doc;
@@ -207,9 +181,9 @@ dae_scene(DAEState * __restrict dst,
 
   while (xml) {
     if (DAE_XML_TAG_EQ(xml, instance_visual_scene)) {
-      doc->scene.visualScene = dae_instVisualScene(dst, xml, doc);
+      DAE_URL_SET(dst, xml, url, doc, &dst->activeScene);
     } else if (DAE_XML_TAG_EQ8(xml, extra)) {
-      doc->scene.extra = tree_fromxml(heap, doc, xml);
+      doc->extra = tree_fromxml(heap, doc, xml);
     }
     xml = xml->next;
   }

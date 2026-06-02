@@ -123,7 +123,7 @@ AK_EXPORT
 AkNode *
 ak_nodeMake(AkDoc      * __restrict doc,
             AkNode     * __restrict parent,
-            const char * name);
+            const char * __restrict name);
 
 /*!
  * @brief Find a direct child of @p parent whose name matches @p name.
@@ -136,7 +136,7 @@ ak_nodeMake(AkDoc      * __restrict doc,
 AK_EXPORT
 AkNode *
 ak_nodeFindChildByName(AkNode     * __restrict parent,
-                       const char * name);
+                       const char * __restrict name);
 
 /*!
  * @brief Find a child by name, creating it under @p parent if missing.
@@ -149,7 +149,7 @@ AK_EXPORT
 AkNode *
 ak_nodeFindOrMakeChild(AkDoc      * __restrict doc,
                        AkNode     * __restrict parent,
-                       const char * name);
+                       const char * __restrict name);
 
 /*!
  * @brief Attach a camera to a node by creating a camera instance.
@@ -200,19 +200,18 @@ ak_nodeAttachLight(AkNode  * __restrict node,
 AK_EXPORT
 void
 ak_nodeSetTransformMatrix(AkNode * __restrict node,
-                          const float matrix[16]);
+                          const float         matrix[16]);
 
 /*!
- * @brief Find a root-level node in a visual scene by name.
+ * @brief Find a root-level node in a scene by name.
  *
- * Visual scenes hold their roots as a sibling chain reachable via
- * `scene->node->next`. This walks that chain looking for a name
- * match. NULL inputs return NULL.
+ * Scenes hold their roots as a sibling chain reachable via `scene->node->next`.
+ * This walks that chain looking for a name match. NULL inputs return NULL.
  */
 AK_EXPORT
 AkNode *
-ak_sceneFindRoot(struct AkVisualScene * __restrict scene,
-                 const char * name);
+ak_sceneFindRoot(struct AkScene * __restrict scene,
+                 const char     * __restrict name);
 
 /*!
  * @brief Find a root-level node by name, or create one in @p scene.
@@ -224,9 +223,9 @@ ak_sceneFindRoot(struct AkVisualScene * __restrict scene,
  */
 AK_EXPORT
 AkNode *
-ak_sceneFindOrMakeRoot(AkDoc                * __restrict doc,
-                       struct AkVisualScene * __restrict scene,
-                       const char * name);
+ak_sceneFindOrMakeRoot(AkDoc          * __restrict doc,
+                       struct AkScene * __restrict scene,
+                       const char     * __restrict name);
 
 #ifdef __cplusplus
 }

@@ -298,27 +298,15 @@ struct AkTransform;
 
 struct AkInstanceList;
 
-typedef struct AkVisualScene {
-  /* const char * id; */
-  struct AkVisualScene  *next;
+typedef struct AkScene {
+  struct AkScene        *next;
   const char            *name;
   struct AkNode         *node;
   struct AkNode         *firstCamNode; /* first found camera       */
   struct AkInstanceList *cameras;      /* all cameras inside scene */
   struct AkInstanceList *lights;       /* all lights inside scene  */
-  void                  *reserved;
   struct AkBoundingBox  *bbox;
   AkTree                *extra;
-} AkVisualScene;
-
-typedef struct AkScene {
-  /*
-   TODO:
-      instance_physics_scene
-      instance_kinematics_scene
-   */
-  AkInstanceBase *visualScene;
-  AkTree * extra;
 } AkScene;
 
 typedef struct AkMorph      AkMorph;
@@ -345,7 +333,7 @@ AK_DEFINE_LIB(AkCamera,      AkCameraLib);
 AK_DEFINE_LIB(AkLight,       AkLightLib);
 AK_DEFINE_LIB(AkMaterial,    AkMaterialLib);
 AK_DEFINE_LIB(AkGeometry,    AkGeometryLib);
-AK_DEFINE_LIB(AkVisualScene, AkVisualSceneLib);
+AK_DEFINE_LIB(AkScene,       AkSceneLib);
 AK_DEFINE_LIB(struct AkNode, AkNodeLib);
 AK_DEFINE_LIB(AkAnimation,   AkAnimationLib);
 AK_DEFINE_LIB(AkBuffer,      AkBufferLib);
@@ -363,7 +351,7 @@ typedef struct AkLibrary {
   AkLightLib       lights;
   AkMaterialLib    materials;
   AkGeometryLib    geometries;
-  AkVisualSceneLib visualScenes;
+  AkSceneLib       scenes;
   AkNodeLib        nodes;
   AkAnimationLib   animations;
 
@@ -387,7 +375,7 @@ typedef struct AkDoc {
   void       *userData;
   float       loadMillis;
   AkLibrary   lib;
-  AkScene     scene;
+  AkScene    *scene;
 
   /* KHR_materials_variants: document-level variant names. */
   struct AkMaterialVariant *materialVariants;

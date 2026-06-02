@@ -905,17 +905,17 @@ AK_HIDE
 AkResult
 wobj_obj(AkDoc     ** __restrict dest,
          const char * __restrict filepath) {
-  AkHeap             *heap;
-  AkDoc              *doc;
-  void               *objstr;
-  char               *p, *begin, *end, *m;
-  AkVisualScene      *scene;
-  WOPrim             *prim;
-  WOState             wstVal = {0}, *wst;
-  size_t              objstrSize;
-  AkResult            ret;
-  uint32_t            vc;
-  char                c;
+  AkHeap   *heap;
+  AkDoc    *doc;
+  void     *objstr;
+  char     *p, *begin, *end, *m;
+  AkScene  *scene;
+  WOPrim   *prim;
+  WOState   wstVal = {0}, *wst;
+  size_t    objstrSize;
+  AkResult  ret;
+  uint32_t  vc;
+  char      c;
 
   if ((ret = ak_readfile(filepath, NULL, &objstr, &objstrSize)) != AK_OK)
     return ret;
@@ -946,10 +946,12 @@ wobj_obj(AkDoc     ** __restrict dest,
 
   /* default scene */
   scene                  = ak_heap_calloc(heap, doc, sizeof(*scene));
+  scene->cameras         = ak_heap_calloc(heap, scene, sizeof(*scene->cameras));
+  scene->lights          = ak_heap_calloc(heap, scene, sizeof(*scene->lights));
   scene->node            = ak_heap_calloc(heap, doc, sizeof(*scene->node));
   scene->node->visible   = true;
-  AK_LIB_PREPEND(doc->lib.visualScenes, scene, next);
-  doc->scene.visualScene = ak_instanceMake(heap, doc, scene);
+  AK_LIB_PREPEND(doc->lib.scenes, scene, next);
+  doc->scene             = scene;
 
   /* parse state */
   memset(&wstVal, 0, sizeof(wstVal));

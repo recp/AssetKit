@@ -747,14 +747,14 @@ AK_HIDE
 AkResult
 stl_stl(AkDoc     ** __restrict dest,
         const char * __restrict filepath) {
-  AkHeap        *heap;
-  AkDoc         *doc;
-  void          *stlstr;
-  char          *p;
-  AkVisualScene *scene;
-  STLState       sstVal = {0}, *sst;
-  size_t         stlstrSize;
-  bool           isAscii;
+  AkHeap   *heap;
+  AkDoc    *doc;
+  void     *stlstr;
+  char     *p;
+  AkScene  *scene;
+  STLState  sstVal = {0}, *sst;
+  size_t    stlstrSize;
+  bool      isAscii;
 
   if (ak_readfile(filepath, NULL, &stlstr, &stlstrSize) != AK_OK
       || !((p = stlstr) && stlstrSize > 0)) {
@@ -790,10 +790,12 @@ stl_stl(AkDoc     ** __restrict dest,
 
   /* default scene */
   scene                  = ak_heap_calloc(heap, doc, sizeof(*scene));
+  scene->cameras         = ak_heap_calloc(heap, scene, sizeof(*scene->cameras));
+  scene->lights          = ak_heap_calloc(heap, scene, sizeof(*scene->lights));
   scene->node            = ak_heap_calloc(heap, doc, sizeof(*scene->node));
   scene->node->visible   = true;
-  AK_LIB_PREPEND(doc->lib.visualScenes, scene, next);
-  doc->scene.visualScene = ak_instanceMake(heap, doc, scene);
+  AK_LIB_PREPEND(doc->lib.scenes, scene, next);
+  doc->scene             = scene;
 
   /* parse state */
   memset(&sstVal, 0, sizeof(sstVal));
@@ -1183,8 +1185,8 @@ stl_binary(STLState * __restrict sst, char * __restrict p) {
   float    *pos, *nor, *col;
   char     *header, *scan;
   vec4      defaultColor;
-  uint32_t count,  nTriangles, i;
-  bool     hasHeaderColor, hasFacetColor, hasColors;
+  uint32_t  count,  nTriangles, i;
+  bool      hasHeaderColor, hasFacetColor, hasColors;
 
   if (stl_binary_position_dedup(sst, p))
     return;

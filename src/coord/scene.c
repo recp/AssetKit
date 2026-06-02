@@ -21,7 +21,7 @@
 
 AK_EXPORT
 void
-ak_fixSceneCoordSys(struct AkVisualScene * __restrict scene) {
+ak_fixSceneCoordSys(struct AkScene * __restrict scene) {
   AkHeap         *heap;
   AkCoordSys     *newCoordSys;
   AkNode         *node;

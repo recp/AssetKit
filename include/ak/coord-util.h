@@ -23,7 +23,7 @@ extern "C" {
 #include "common.h"
 
 struct AkNode;
-struct AkVisualScene;
+struct AkScene;
 
 AK_EXPORT
 void
@@ -46,7 +46,7 @@ ak_fixNodeCoordSys(struct AkNode * __restrict node);
 
 AK_EXPORT
 void
-ak_fixSceneCoordSys(struct AkVisualScene * __restrict scene);
+ak_fixSceneCoordSys(struct AkScene * __restrict scene);
 
 #ifdef __cplusplus
 }

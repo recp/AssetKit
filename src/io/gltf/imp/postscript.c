@@ -27,7 +27,7 @@ void
 gltf_postscript(AkGLTFState * __restrict gst) {
   AkCoordCvtType coordCvtType;
   AkCoordSys    *sourceCoordSys, *targetCoordSys;
-  AkVisualScene *vscn;
+  AkScene       *vscn;
   bool           fixTransform;
 
   coordCvtType   = (AkCoordCvtType)ak_opt_get(AK_OPT_COORD_CONVERT_TYPE);
@@ -44,8 +44,8 @@ gltf_postscript(AkGLTFState * __restrict gst) {
   if (coordCvtType != AK_COORD_CVT_DISABLED)
     gst->doc->coordSys = targetCoordSys;
 
-  if (gst->doc && gst->doc->lib.visualScenes.first) {
-    for (vscn = gst->doc->lib.visualScenes.first;
+  if (gst->doc && gst->doc->lib.scenes.first) {
+    for (vscn = gst->doc->lib.scenes.first;
          vscn;
          vscn = vscn->next) {
       if (fixTransform)

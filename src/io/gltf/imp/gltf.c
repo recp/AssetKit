@@ -322,13 +322,9 @@ err:
   /* TODO: release resources in GLTFState */
   
   /* set first scene as default scene if not specified  */
-  if (!doc->scene.visualScene) {
-    if (doc->lib.visualScenes.first) {
-      AkInstanceBase *instScene;
-      instScene = ak_heap_calloc(heap, doc, sizeof(*instScene));
-      
-      instScene->url.ptr     = doc->lib.visualScenes.first;
-      doc->scene.visualScene = instScene;
+  if (!doc->scene) {
+    if (doc->lib.scenes.first) {
+      doc->scene = doc->lib.scenes.first;
     }
   }
 

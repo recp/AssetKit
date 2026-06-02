@@ -37,9 +37,9 @@
 
 #define PLY_COPY_INDICES(DCTX, DSTTYPE, SRCTYPE)                              \
   do {                                                                        \
-    AkDataChunk  *chunk_;                                                     \
+    AkDataChunk   *chunk_;                                                    \
     const SRCTYPE *src_;                                                      \
-    DSTTYPE      *dst_;                                                       \
+    DSTTYPE       *dst_;                                                      \
     size_t        i_, count_;                                                 \
                                                                               \
     chunk_ = (DCTX)->data;                                                    \
@@ -339,7 +339,7 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
   AkDoc         *doc;
   void          *plystr;
   char          *p, *b, *e;
-  AkVisualScene *scene;
+  AkScene *scene;
   PLYElement    *elem;
   PLYProperty   *prop, *pit;
   PLYState       pstVal = {0}, *pst;
@@ -385,10 +385,12 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
 
   /* default scene */
   scene                  = ak_heap_calloc(heap, doc, sizeof(*scene));
+  scene->cameras         = ak_heap_calloc(heap, scene, sizeof(*scene->cameras));
+  scene->lights          = ak_heap_calloc(heap, scene, sizeof(*scene->lights));
   scene->node            = ak_heap_calloc(heap, doc, sizeof(*scene->node));
   scene->node->visible   = true;
-  AK_LIB_PREPEND(doc->lib.visualScenes, scene, next);
-  doc->scene.visualScene = ak_instanceMake(heap, doc, scene);
+  AK_LIB_PREPEND(doc->lib.scenes, scene, next);
+  doc->scene             = scene;
 
   /* parse state */
   memset(&pstVal, 0, sizeof(pstVal));

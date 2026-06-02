@@ -25,14 +25,14 @@ ak_firstCamera(AkDoc     * __restrict doc,
                float     * matrix,
                float     * projMatrix) {
   AkHeap        *heap;
-  AkVisualScene *scene;
+  AkScene       *scene;
   AkNode        *camNode;
   AkCamera      *cam;
 
-  if (!doc->scene.visualScene)
+  if (!doc->scene)
     goto efound;
 
-  scene = ak_instanceObject(doc->scene.visualScene);
+  scene = doc->scene;
   if (!scene->firstCamNode)
     goto efound;
 
@@ -52,6 +52,8 @@ ak_firstCamera(AkDoc     * __restrict doc,
         cam = (AkCamera *)ak_defaultCamera(camNode);
 
         cameraInst = ak_instanceMake(heap, camNode, cam);
+        if (!scene->cameras)
+          scene->cameras = ak_heap_calloc(heap, scene, sizeof(*scene->cameras));
         ak_instanceListEmpty(scene->cameras);
         ak_instanceListAdd(scene->cameras, cameraInst);
 

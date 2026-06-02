@@ -19,7 +19,7 @@
 
 typedef struct DAEMatrixAnimFix {
   struct DAEMatrixAnimFix *next;
-  AkAccessor             *acc;
+  AkAccessor              *acc;
 } DAEMatrixAnimFix;
 
 static
@@ -126,12 +126,12 @@ dae_findInstanceMorph_node(AkNode * __restrict node, AkMorph *morph) {
 static
 AkInstanceMorph *
 dae_findInstanceMorph(AkDoc * __restrict doc, AkMorph *morph) {
-  AkVisualScene   *vscn;
+  AkScene         *vscn;
   AkInstanceMorph *found;
 
-  if (!morph || !doc->lib.visualScenes.first) return NULL;
+  if (!morph || !doc->lib.scenes.first) return NULL;
 
-  for (vscn = doc->lib.visualScenes.first;
+  for (vscn = doc->lib.scenes.first;
        vscn;
        vscn = vscn->next) {
     if ((found = dae_findInstanceMorph_node(vscn->node, morph)))

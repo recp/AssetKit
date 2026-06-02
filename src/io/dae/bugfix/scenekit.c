@@ -283,16 +283,16 @@ dae_bugfix_scenekit_material_surfaces(DAEState * __restrict dst) {
 AK_HIDE
 void
 dae_bugfix_scenekit_backfaces(DAEState * __restrict dst) {
-  AkVisualScene *vscn;
+  AkScene *vscn;
 
   if (!dst
       || !dst->doc
       || !ak_opt_get(AK_OPT_BUGFIXES)
       || !dae_scenekit_authored(dst->doc)
-      || !dst->doc->lib.visualScenes.first)
+      || !dst->doc->lib.scenes.first)
     return;
 
-  for (vscn = dst->doc->lib.visualScenes.first;
+  for (vscn = dst->doc->lib.scenes.first;
        vscn;
        vscn = vscn->next) {
     dae_scenekit_fix_node(dst, vscn->node);

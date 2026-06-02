@@ -160,7 +160,7 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
 //    } else if (xml_tag_eq(xml, _s_dae_lib_controllers)) {
 //      dae_lib(dst, xml, _s_dae_controller, dae_ctlr, &libs->controllers);
 //    } else if (xml_tag_eq(xml, _s_dae_lib_visual_scenes)) {
-//      dae_lib(dst, xml, _s_dae_visual_scene, dae_vscene, &libs->visualScenes);
+//      dae_lib(dst, xml, _s_dae_visual_scene, dae_vscene, &libs->scenes);
 //    } else if (xml_tag_eq(xml, _s_dae_lib_nodes)) {
 //      dae_lib(dst, xml, _s_dae_node, dae_node2, &libs->nodes);
 //    } else if (xml_tag_eq(xml, _s_dae_lib_animations)) {

@@ -1129,12 +1129,12 @@ ak_test_first_primitive(AkDoc *doc) {
 static
 AkNode*
 ak_test_first_scene_node(AkDoc *doc) {
-  AkVisualScene *scene;
+  AkScene *scene;
 
-  if (!doc || !doc->lib.visualScenes.first)
+  if (!doc || !doc->lib.scenes.first)
     return NULL;
 
-  scene = doc->lib.visualScenes.first;
+  scene = doc->lib.scenes.first;
   return scene->node;
 }
 
