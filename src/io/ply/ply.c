@@ -339,7 +339,8 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
   AkDoc         *doc;
   void          *plystr;
   char          *p, *b, *e;
-  AkScene *scene;
+  AkScene       *scene;
+  AkNode        *rootNode;
   PLYElement    *elem;
   PLYProperty   *prop, *pit;
   PLYState       pstVal = {0}, *pst;
@@ -387,8 +388,14 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
   scene                  = ak_heap_calloc(heap, doc, sizeof(*scene));
   scene->cameras         = ak_heap_calloc(heap, scene, sizeof(*scene->cameras));
   scene->lights          = ak_heap_calloc(heap, scene, sizeof(*scene->lights));
-  scene->node            = ak_heap_calloc(heap, doc, sizeof(*scene->node));
+  scene->node            = ak_heap_calloc(heap, scene, sizeof(*scene->node));
+  ak_setypeid(scene->node, AKT_NODE);
   scene->node->visible   = true;
+  rootNode               = ak_heap_calloc(heap, doc, sizeof(*rootNode));
+  ak_setypeid(rootNode, AKT_NODE);
+  rootNode->visible      = true;
+  AK_LIB_PREPEND(doc->lib.nodes, rootNode, docNext);
+  ak_nodeAttachNodeRef(scene->node, rootNode);
   AK_LIB_PREPEND(doc->lib.scenes, scene, next);
   doc->scene             = scene;
 
@@ -398,7 +405,7 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
   pstVal.doc       = doc;
   pstVal.heap      = heap;
   pstVal.tmp = ak_heap_alloc(heap, doc, sizeof(void*));
-  pstVal.node      = scene->node;
+  pstVal.node      = rootNode;
   pstVal.lib_geom  = &doc->lib.geometries;
 
   isAscii        = false;
@@ -802,28 +809,19 @@ ply_mesh_add_primitive(AkMesh          * __restrict mesh,
 AK_HIDE
 void
 ply_finish(PLYState * __restrict pst) {
-  AkHeap             *heap;
   AkGeometry         *geom;
   AkMesh             *mesh;
   AkMeshPrimitive    *prim;
-  AkInstanceGeometry *instGeom;
 
   /* Buffer > Accessor > Input > Prim > Mesh > Geom > InstanceGeom > Node */
   
-  heap = pst->heap;
   mesh = ak_allocMesh(pst->heap, pst->doc, &geom);
 
   /* add to library */
   AK_LIB_PREPEND(*pst->lib_geom, geom, next);
   
   /* make instance geeometry and attach to the root node  */
-  instGeom = ak_instanceMakeGeom(heap, pst->node, geom);
-  if (pst->node->geometry) {
-    pst->node->geometry->base.prev = (void *)instGeom;
-    instGeom->base.next            = (void *)pst->node->geometry;
-  }
-
-  pst->node->geometry = instGeom;
+  (void)ak_nodeAttachGeometry(pst->node, geom);
 
   if (pst->dc_ind && pst->dc_ind->itemcount > 0) {
     AkTriangles *tri;

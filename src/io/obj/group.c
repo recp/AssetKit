@@ -176,7 +176,6 @@ AK_HIDE
 void
 wobj_finishObject(WOState * __restrict wst, WOObject * __restrict obj) {
   WOPrim             *wp, *next;
-  AkInstanceGeometry *instGeom;
   AkGeometry         *geom;
   
   if (!obj->geom)
@@ -192,14 +191,7 @@ wobj_finishObject(WOState * __restrict wst, WOObject * __restrict obj) {
   AK_LIB_PREPEND(*wst->lib_geom, geom, next);
   
   /* make instance geeometry and attach to the root node  */
-  instGeom = ak_instanceMakeGeom(wst->heap, wst->node, geom);
-  
-  if (wst->node->geometry) {
-    wst->node->geometry->base.prev = (void *)instGeom;
-    instGeom->base.next            = (void *)wst->node->geometry;
-  }
-
-  wst->node->geometry = instGeom;
+  (void)ak_nodeAttachGeometry(wst->node, geom);
 
   /* mesh primitives */
   wp = obj->prim;

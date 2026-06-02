@@ -1,6 +1,7 @@
 add_executable(assetkit_tests
   runner.c
   src/test_memory.c
+  src/test_instance.c
   src/test_material.c
   src/collada/test_dae_load.c
 )

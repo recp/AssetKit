@@ -249,11 +249,11 @@ gltf_node(AkGLTFState * __restrict gst,
     if (camIter) {
       AkInstanceBase *instCamera;
       instCamera          = ak_heap_calloc(heap, node, sizeof(*instCamera));
-      instCamera->node    = node;
       instCamera->type    = AK_INSTANCE_CAMERA;
+      instCamera->object  = camIter;
       instCamera->url.ptr = camIter;
 
-      node->camera = instCamera;
+      ak_nodeAttachInstance(node, instCamera);
     }
   }
 
@@ -264,11 +264,11 @@ gltf_node(AkGLTFState * __restrict gst,
     /* instance geometry */
     if (geomIter) {
       instGeom               = ak_heap_calloc(heap, node, sizeof(*instGeom));
-      instGeom->base.node    = node;
       instGeom->base.type    = AK_INSTANCE_GEOMETRY;
+      instGeom->base.object  = geomIter;
       instGeom->base.url.ptr = geomIter;
 
-      node->geometry         = instGeom;
+      ak_nodeAttachInstance(node, &instGeom->base);
     } /* if (geomIter) */
   }
 

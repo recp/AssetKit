@@ -28,6 +28,12 @@ dae_evalScene(DAEState * __restrict dst,
               xml_t    * __restrict xml,
               void     * __restrict memp);
 
+static
+void
+dae_vsceneRootRefs(DAEState * __restrict dst,
+                   AkScene  * __restrict vscn,
+                   AkNode   * __restrict root);
+
 AK_HIDE
 void*
 dae_vscene(DAEState * __restrict dst,
@@ -35,6 +41,7 @@ dae_vscene(DAEState * __restrict dst,
            void     * __restrict memp) {
   AkHeap  *heap;
   AkScene *vscn;
+  AkNode  *rootNodes;
 
   heap = dst->heap;
   vscn = ak_heap_calloc(heap, memp, sizeof(*vscn));
@@ -67,7 +74,15 @@ dae_vscene(DAEState * __restrict dst,
     xml = xml->next;
   }
 
+  rootNodes = vscn->node;
+  vscn->node = ak_heap_calloc(heap, vscn, sizeof(*vscn->node));
+  ak_setypeid(vscn->node, AKT_NODE);
+  vscn->node->visible = true;
+
+  dae_vsceneRootRefs(dst, vscn, rootNodes);
+
   if (vscn->lights->count < 1
+      && rootNodes
       && ak_opt_get(AK_OPT_ADD_DEFAULT_LIGHT)) {
     AkLight *light;
     AkNode  *rootNode;
@@ -81,18 +96,41 @@ dae_vscene(DAEState * __restrict dst,
       doc   = ak_heap_data(heap);
       light = ak_defaultLight(rootNode);
 
-      lightInst = ak_instanceMake(heap, rootNode, light);
+      lightInst = ak_nodeAttachLight(rootNode, light);
       ak_instanceListEmpty(vscn->lights);
       ak_instanceListAdd(vscn->lights, lightInst);
-
-      lightInst->next = rootNode->light;
-      rootNode->light = lightInst;
 
       ak_libAddLight(doc, light);
     }
   }
 
   return vscn;
+}
+
+static
+void
+dae_vsceneRootRefs(DAEState * __restrict dst,
+                   AkScene  * __restrict vscn,
+                   AkNode   * __restrict root) {
+  AkNode *prev, *tail;
+
+  if (!root)
+    return;
+
+  for (tail = root; tail->next; tail = tail->next) { }
+
+  while (tail) {
+    prev = tail->prev;
+
+    tail->next = NULL;
+    tail->prev = NULL;
+
+    ak_heap_setpm(tail, dst->doc);
+    AK_LIB_PREPEND(dst->doc->lib.nodes, tail, docNext);
+    ak_nodeAttachNodeRef(vscn->node, tail);
+
+    tail = prev;
+  }
 }
 
 static

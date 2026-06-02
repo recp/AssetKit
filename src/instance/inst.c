@@ -78,19 +78,6 @@ ak_instanceObject(AkInstanceBase *instanceBase) {
 }
 
 AK_EXPORT
-AkNode *
-ak_instanceObjectNode(AkNode * node) {
-  AkInstanceBase *instanceBase;
-
-  instanceBase = &node->node->base;
-
-  if (!instanceBase->object)
-    instanceBase->object = ak_getObjectByUrl(&instanceBase->url);
-
-  return instanceBase->object;
-}
-
-AK_EXPORT
 AkGeometry *
 ak_instanceObjectGeom(AkNode * node) {
   AkInstanceBase *instanceBase;
@@ -144,9 +131,6 @@ ak_instanceMoveToSubNode(AkNode * __restrict node,
     case AK_INSTANCE_CAMERA:
       off = offsetof(AkNode, camera);
       break;
-    case AK_INSTANCE_NODE:
-      off = offsetof(AkNode, node);
-      break;
     default:
       ak_free(subNode);
       return NULL;
@@ -160,10 +144,12 @@ ak_instanceMoveToSubNode(AkNode * __restrict node,
     inst->next->prev = inst->prev;
 
   if (*(void **)((char *)node + off) == inst)
-    *(void **)((char *)node + off) = NULL;
+    *(void **)((char *)node + off) = inst->next;
 
   *(void **)((char *)subNode + off) = inst;
 
+  inst->prev = NULL;
+  inst->next = NULL;
   inst->node = subNode;
   ak_heap_setpm(inst, subNode);
 
@@ -180,7 +166,6 @@ ak_instanceMoveToSubNodeIfNeeded(AkNode * __restrict node,
   AkCoordSys     *coordSys, *instCoordSys;
   AkInstanceBase *insti;
   AkInstanceBase *instArray[] = {(AkInstanceBase *)node->geometry,
-                                 (AkInstanceBase *)node->node,
                                  node->camera,
                                  node->light};
   int             i, instArrayLen;

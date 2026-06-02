@@ -29,7 +29,7 @@ ak_fixSceneCoordSys(struct AkScene * __restrict scene) {
   heap        = ak_heap_getheap(scene);
   newCoordSys = (void *)ak_opt_get(AK_OPT_COORD);
   node        = scene->node;
-  while (node) {
+  if (node) {
     if (!node->transform)
       node->transform = ak_heap_calloc(heap,
                                        node,
@@ -39,7 +39,5 @@ ak_fixSceneCoordSys(struct AkScene * __restrict scene) {
     ak_coordFindTransform(node->transform,
                           ak_getCoordSys(node),
                           newCoordSys);
-
-    node = node->next;
   }
 }

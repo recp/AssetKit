@@ -752,6 +752,7 @@ stl_stl(AkDoc     ** __restrict dest,
   void     *stlstr;
   char     *p;
   AkScene  *scene;
+  AkNode   *rootNode;
   STLState  sstVal = {0}, *sst;
   size_t    stlstrSize;
   bool      isAscii;
@@ -792,8 +793,14 @@ stl_stl(AkDoc     ** __restrict dest,
   scene                  = ak_heap_calloc(heap, doc, sizeof(*scene));
   scene->cameras         = ak_heap_calloc(heap, scene, sizeof(*scene->cameras));
   scene->lights          = ak_heap_calloc(heap, scene, sizeof(*scene->lights));
-  scene->node            = ak_heap_calloc(heap, doc, sizeof(*scene->node));
+  scene->node            = ak_heap_calloc(heap, scene, sizeof(*scene->node));
+  ak_setypeid(scene->node, AKT_NODE);
   scene->node->visible   = true;
+  rootNode               = ak_heap_calloc(heap, doc, sizeof(*rootNode));
+  ak_setypeid(rootNode, AKT_NODE);
+  rootNode->visible      = true;
+  AK_LIB_PREPEND(doc->lib.nodes, rootNode, docNext);
+  ak_nodeAttachNodeRef(scene->node, rootNode);
   AK_LIB_PREPEND(doc->lib.scenes, scene, next);
   doc->scene             = scene;
 
@@ -803,7 +810,7 @@ stl_stl(AkDoc     ** __restrict dest,
   sstVal.doc       = doc;
   sstVal.heap      = heap;
   sstVal.tmp       = ak_heap_alloc(heap, doc, sizeof(void*));
-  sstVal.node      = scene->node;
+  sstVal.node      = rootNode;
   sstVal.lib_geom  = &doc->lib.geometries;
   
   if (!isAscii) {
@@ -1423,7 +1430,6 @@ sst_finish(STLState * __restrict sst) {
   AkGeometry         *geom;
   AkMesh             *mesh;
   AkMeshPrimitive    *prim;
-  AkInstanceGeometry *instGeom;
 
   /* Buffer > Accessor > Input > Prim > Mesh > Geom > InstanceGeom > Node */
   
@@ -1462,13 +1468,7 @@ sst_finish(STLState * __restrict sst) {
   AK_LIB_PREPEND(*sst->lib_geom, geom, next);
   
   /* make instance geeometry and attach to the root node  */
-  instGeom = ak_instanceMakeGeom(heap, sst->node, geom);
-  if (sst->node->geometry) {
-    sst->node->geometry->base.prev = (void *)instGeom;
-    instGeom->base.next            = (void *)sst->node->geometry;
-  }
-
-  sst->node->geometry = instGeom;
+  (void)ak_nodeAttachGeometry(sst->node, geom);
 
   if (!sst->buff_pos && sst->maxVC == 3)
     stl_ascii_dedup_triangles(sst);

@@ -62,7 +62,6 @@ ak_fixNodeCoordSys(AkNode * __restrict node) {
   AkCoordSys     *coordSys, *parentCoordSys, *instCoordSys, *coordSysToFix;
   AkInstanceBase *inst;
   AkInstanceBase *instArray[] = {(AkInstanceBase *)node->geometry,
-                                 (AkInstanceBase *)node->node,
                                  node->camera,
                                  node->light};
   int             i, instArrayLen, instTransCount;

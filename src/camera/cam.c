@@ -18,6 +18,68 @@
 #include "../default/cam.h"
 #include <cglm/cglm.h>
 
+static
+bool
+ak__cameraWorldFromNode(AkNode * __restrict node,
+                        AkNode * __restrict target,
+                        mat4                 parentWorld,
+                        mat4                 world) {
+  AkNodeRef *ref;
+  AkNode    *chld;
+  mat4       local;
+  mat4       nodeWorld;
+
+  if (!node || !target)
+    return false;
+
+  ak_transformCombine(node->transform, local[0]);
+  glm_mat4_mul(parentWorld, local, nodeWorld);
+
+  if (node == target) {
+    glm_mat4_copy(nodeWorld, world);
+    return true;
+  }
+
+  if (node->nodeRefs) {
+    for (ref = node->nodeRefs; ref; ref = ref->next) {
+      AkNode *refNode;
+
+      refNode = ak_nodeRefTarget(ref);
+      if (refNode && ak__cameraWorldFromNode(refNode,
+                                             target,
+                                             nodeWorld,
+                                             world))
+        return true;
+    }
+  }
+
+  for (chld = node->chld; chld; chld = chld->next) {
+    if (ak__cameraWorldFromNode(chld, target, nodeWorld, world))
+      return true;
+  }
+
+  return false;
+}
+
+static
+bool
+ak__cameraWorldFromScene(AkScene * __restrict scene,
+                         AkNode  * __restrict target,
+                         float   * __restrict matrix) {
+  mat4    identity = GLM_MAT4_IDENTITY_INIT;
+  mat4    world;
+
+  if (!scene || !target || !matrix)
+    return false;
+
+  if (ak__cameraWorldFromNode(scene->node, target, identity, world)) {
+    glm_mat4_copy(world, (vec4 *)matrix);
+    return true;
+  }
+
+  return false;
+}
+
 AK_EXPORT
 AkResult
 ak_firstCamera(AkDoc     * __restrict doc,
@@ -40,7 +102,8 @@ ak_firstCamera(AkDoc     * __restrict doc,
   camNode = scene->firstCamNode;
 
   /* view matrix */
-  if (matrix)
+  if (matrix
+      && !ak__cameraWorldFromScene(scene, camNode, matrix))
     ak_transformCombineWorld(camNode, matrix);
 
   if (camera || projMatrix) {
@@ -51,14 +114,11 @@ ak_firstCamera(AkDoc     * __restrict doc,
         AkInstanceBase *cameraInst;
         cam = (AkCamera *)ak_defaultCamera(camNode);
 
-        cameraInst = ak_instanceMake(heap, camNode, cam);
+        cameraInst = ak_nodeAttachCamera(camNode, cam);
         if (!scene->cameras)
           scene->cameras = ak_heap_calloc(heap, scene, sizeof(*scene->cameras));
         ak_instanceListEmpty(scene->cameras);
         ak_instanceListAdd(scene->cameras, cameraInst);
-
-        cameraInst->next = camNode->camera;
-        camNode->camera  = cameraInst;
 
         ak_libAddCamera(doc, cam);
       } else {

@@ -50,6 +50,25 @@ ak_instanceMakeGeom(AkHeap     * __restrict heap,
                     AkGeometry * __restrict object);
 
 AK_EXPORT
+AkInstanceBase *
+ak_nodeAttachInstance(AkNode         * __restrict node,
+                      AkInstanceBase * __restrict inst);
+
+AK_EXPORT
+AkInstanceGeometry *
+ak_nodeAttachGeometry(AkNode     * __restrict node,
+                      AkGeometry * __restrict geometry);
+
+AK_EXPORT
+AkNode *
+ak_nodeRefTarget(AkNodeRef * __restrict ref);
+
+AK_EXPORT
+AkNodeRef *
+ak_nodeAttachNodeRef(AkNode * __restrict owner,
+                     AkNode * __restrict target);
+
+AK_EXPORT
 void
 ak_instanceListAdd(AkInstanceList *list,
                    AkInstanceBase *inst);
@@ -69,10 +88,6 @@ ak_instanceName(AkInstanceListItem *item);
 AK_EXPORT
 void *
 ak_instanceObject(AkInstanceBase *instance);
-
-AK_EXPORT
-AkNode *
-ak_instanceObjectNode(AkNode * node);
 
 AK_EXPORT
 AkGeometry *

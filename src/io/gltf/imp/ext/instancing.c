@@ -20,24 +20,24 @@ gltf_ext_instanceAccOK(AkAccessor * __restrict acc,
    the extension's `attributes` object. Each attribute is optional; present
    attributes must all have the same accessor count per the spec. */
 AK_HIDE
-AkInstanceAttribs*
+AkGpuInstancing*
 gltf_ext_meshGPUInstancing(AkGLTFState * __restrict gst,
                            AkNode      * __restrict node,
                            const json_t * __restrict jinstancing) {
-  AkInstanceAttribs *attribs;
-  json_t            *jattrs;
-  json_t            *jattr;
-  AkAccessor        *acc;
-  int32_t            accIdx;
-  uint32_t           count;
-  uint32_t           compCount;
-  uint32_t           attrKind;
+  AkGpuInstancing *instancing;
+  json_t          *jattrs;
+  json_t          *jattr;
+  AkAccessor      *acc;
+  int32_t          accIdx;
+  uint32_t         count;
+  uint32_t         compCount;
+  uint32_t         attrKind;
 
   if (!(jattrs = GLTF_JSON_GET(jinstancing, attributes)))
     return NULL;
 
-  attribs = ak_heap_calloc(gst->heap, node, sizeof(*attribs));
-  count   = 0;
+  instancing = ak_heap_calloc(gst->heap, node, sizeof(*instancing));
+  count      = 0;
 
   for (jattr = jattrs->value; jattr; jattr = jattr->next) {
     accIdx    = json_int32(jattr, -1);
@@ -85,9 +85,9 @@ gltf_ext_meshGPUInstancing(AkGLTFState * __restrict gst,
     ak_retain(acc);
 
     switch (attrKind) {
-      case 1: attribs->translation = acc; break;
-      case 2: attribs->rotation    = acc; break;
-      case 3: attribs->scale       = acc; break;
+      case 1: instancing->translation = acc; break;
+      case 2: instancing->rotation    = acc; break;
+      case 3: instancing->scale       = acc; break;
       default: break;
     }
   }
@@ -95,8 +95,8 @@ gltf_ext_meshGPUInstancing(AkGLTFState * __restrict gst,
   if (count == 0)
     return NULL;
 
-  attribs->count = count;
-  return attribs;
+  instancing->count = count;
+  return instancing;
 
 malformed:
   gst->stop = true;

@@ -260,6 +260,18 @@ dae_scenekit_fix_node(DAEState * __restrict dst, AkNode * __restrict node) {
 
     if (node->chld)
       dae_scenekit_fix_node(dst, node->chld);
+
+    if (node->nodeRefs) {
+      AkNodeRef *nodeRef;
+
+      for (nodeRef = node->nodeRefs; nodeRef; nodeRef = nodeRef->next) {
+        AkNode *target;
+
+        target = ak_nodeRefTarget(nodeRef);
+        if (target)
+          dae_scenekit_fix_node(dst, target);
+      }
+    }
   }
 }
 

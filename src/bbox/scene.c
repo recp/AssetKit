@@ -23,14 +23,17 @@ void
 ak_bbox_node(AkHeap  * __restrict heap,
              AkScene * __restrict scene,
              AkNode  * __restrict node,
-             mat4                 parentTrans);
+             mat4                 parentTrans,
+             bool                 cacheWorld);
 
 static
 void
 ak_bbox_node(AkHeap  * __restrict heap,
              AkScene * __restrict scene,
              AkNode  * __restrict node,
-             mat4                 parentTrans) {
+             mat4                 parentTrans,
+             bool                 cacheWorld) {
+  mat4      matrixWorldStack;
   AkFloat  (*matrixWorld)[4];
 
   if (!node->matrix)
@@ -38,12 +41,15 @@ ak_bbox_node(AkHeap  * __restrict heap,
                                  node,
                                  sizeof(*node->matrix));
 
-  if (!node->matrixWorld)
-    node->matrixWorld = ak_heap_alloc(heap,
-                                      node,
-                                      sizeof(*node->matrixWorld));
-
-  matrixWorld = node->matrixWorld->val;
+  if (cacheWorld) {
+    if (!node->matrixWorld)
+      node->matrixWorld = ak_heap_alloc(heap,
+                                        node,
+                                        sizeof(*node->matrixWorld));
+    matrixWorld = node->matrixWorld->val;
+  } else {
+    matrixWorld = matrixWorldStack;
+  }
 
   ak_transformCombine(node->transform, node->matrix->val[0]);
   glm_mat4_mul(parentTrans, node->matrix->val, matrixWorld);
@@ -83,13 +89,13 @@ ak_bbox_node(AkHeap  * __restrict heap,
     }
   }
 
-  if (node->node) {
-    AkNode *nodei;
-    if ((nodei = ak_instanceObjectNode(node))) {
-      do {
-        ak_bbox_node(heap, scene, nodei, matrixWorld);
-        nodei = nodei->next;
-      } while (nodei);
+  if (node->nodeRefs) {
+    AkNodeRef *nodeRef;
+
+    for (nodeRef = node->nodeRefs; nodeRef; nodeRef = nodeRef->next) {
+      AkNode *nodei;
+      if ((nodei = ak_nodeRefTarget(nodeRef)))
+        ak_bbox_node(heap, scene, nodei, matrixWorld, false);
     }
   }
 
@@ -97,7 +103,7 @@ ak_bbox_node(AkHeap  * __restrict heap,
     AkNode *nodei;
     nodei = node->chld;
     do {
-      ak_bbox_node(heap, scene, nodei, matrixWorld);
+      ak_bbox_node(heap, scene, nodei, matrixWorld, cacheWorld);
       nodei = nodei->next;
     } while (nodei);
   }
@@ -107,9 +113,7 @@ void
 ak_bbox_scene(struct AkScene * __restrict scene) {
   mat4    trans = GLM_MAT4_IDENTITY_INIT;
   AkHeap *heap;
-  AkNode *node;
 
-  node = scene->node;
   heap = ak_heap_getheap(scene);
 
   if (!scene->bbox) {
@@ -117,8 +121,6 @@ ak_bbox_scene(struct AkScene * __restrict scene) {
     ak_bbox_invalidate(scene->bbox);
   }
 
-  while (node) {
-    ak_bbox_node(heap, scene, node, trans);
-    node = node->next;
-  }
+  if (scene->node)
+    ak_bbox_node(heap, scene, scene->node, trans, true);
 }

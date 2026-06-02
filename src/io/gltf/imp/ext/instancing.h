@@ -10,7 +10,7 @@
 #include "../common.h"
 
 AK_HIDE
-AkInstanceAttribs*
+AkGpuInstancing*
 gltf_ext_meshGPUInstancing(AkGLTFState * __restrict gst,
                            AkNode      * __restrict node,
                            const json_t * __restrict jinstancing);

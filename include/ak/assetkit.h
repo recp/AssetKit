@@ -106,7 +106,6 @@ typedef enum AkSurfaceElementType {
 } AkSurfaceElementType;
 
 typedef enum AkInstanceType {
-  AK_INSTANCE_NODE       = 1,
   AK_INSTANCE_CAMERA     = 2,
   AK_INSTANCE_LIGHT      = 3,
   AK_INSTANCE_GEOMETRY   = 4,
@@ -250,15 +249,22 @@ typedef struct AkInput {
 
 typedef struct AkInstanceGeometry {
   AkInstanceBase          base;
-  void                   *reserved;
+  AkMaterialBinding      *objectBindings; /* AK_MATERIAL_BIND_OBJECT only */
   struct AkInstanceMorph *morpher;
   struct AkInstanceSkin  *skinner;
+  void                   *reserved;       /* legacy internal bridge */
 } AkInstanceGeometry;
 
-typedef struct AkInstanceNode {
-  AkInstanceBase base;
-  const char    *proxy;
-} AkInstanceNode;
+typedef struct AkNodeRef {
+  struct AkNodeRef *next;
+  struct AkNodeRef *prev;
+  struct AkNode    *owner;
+  struct AkNode    *target;
+  const char       *name;
+  const char       *proxy;
+  AkTree           *extra;
+  void             *reserved; /* private importer sidecar */
+} AkNodeRef;
 
 /*
  * TODO: separate all instances to individual nodes?

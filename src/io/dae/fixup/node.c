@@ -34,7 +34,7 @@ dae_nodeFixupFixedCoord(AkHeap * __restrict heap,
 
   if (!node->geometry
       && !node->chld
-      && !node->node) {
+      && !node->nodeRefs) {
     node->flags |= AK_NODEF_FIXED_COORD;
     return;
   }
@@ -52,6 +52,7 @@ dae_nodeFixupFixedCoord(AkHeap * __restrict heap,
     inst = node->camera;
     while (inst) {
       ak_heap_setpm(inst, newNode);
+      inst->node = newNode;
       inst = inst->next;
     }
 
@@ -64,6 +65,7 @@ dae_nodeFixupFixedCoord(AkHeap * __restrict heap,
     inst = node->light;
     while (inst) {
       ak_heap_setpm(inst, newNode);
+      inst->node = newNode;
       inst = inst->next;
     }
 

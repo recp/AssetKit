@@ -176,15 +176,8 @@ dae_node(DAEState * __restrict dst,
       instcam->type = AK_INSTANCE_CAMERA;
       instcam->name = DAE_XMLA_STRDUP8(xml, heap, name, instcam);
       DAE_URL_SET(dst, xml, url, instcam, &instcam->url);
-      
-      instcam->node = node;
-      
-      instcam->next = node->camera;
-      node->camera  = instcam;
 
-      instcam->prev = node->camera;
-      if (node->camera)
-        node->camera->prev = instcam;
+      ak_nodeAttachInstance(node, instcam);
       
       if (scene) {
         if (!scene->firstCamNode)
@@ -237,10 +230,7 @@ dae_node(DAEState * __restrict dst,
         xinstgeo = xinstgeo->next;
       }
 
-      instgeo->base.node = node;
-
-      instgeo->base.next = (void *)node->geometry;
-      node->geometry     = instgeo;
+      ak_nodeAttachInstance(node, &instgeo->base);
     } else if (DAE_XML_TAG_EQ(xml, instance_light)) {
       AkInstanceBase *instlight;
       
@@ -248,15 +238,8 @@ dae_node(DAEState * __restrict dst,
       instlight->type = AK_INSTANCE_LIGHT;
       instlight->name = DAE_XMLA_STRDUP8(xml, heap, name, instlight);
       DAE_URL_SET(dst, xml, url, instlight, &instlight->url);
-      
-      instlight->node = node;
-      
-      instlight->next = node->light;
-      node->light     = instlight;
-      
-      instlight->prev = node->light;
-      if (node->light)
-        node->light->prev = instlight;
+
+      ak_nodeAttachInstance(node, instlight);
       
       if (scene && instlight) {
         AkLight *lightObject;
@@ -265,24 +248,16 @@ dae_node(DAEState * __restrict dst,
           ak_instanceListAdd(scene->lights, instlight);
       }
     } else if (DAE_XML_TAG_EQ(xml, instance_node)) {
-      AkInstanceNode *instnode;
+      AkNodeRef *nodeRef;
+      AkURL     *url;
       
-      instnode            = ak_heap_calloc(heap, node, sizeof(*instnode));
-      instnode->base.type = AK_INSTANCE_NODE;
-      instnode->base.name = DAE_XMLA_STRDUP8(xml, heap, name, instnode);
-      instnode->proxy     = DAE_XMLA_STRDUP8(xml, heap, proxy, instnode);
-      DAE_URL_SET(dst, xml, url, instnode, &instnode->base.url);
-      
-      if (node->node)
-        instnode->base.next = &node->node->base;
+      nodeRef        = ak_nodeAttachNodeRef(node, NULL);
+      nodeRef->name  = DAE_XMLA_STRDUP8(xml, heap, name, nodeRef);
+      nodeRef->proxy = DAE_XMLA_STRDUP8(xml, heap, proxy, nodeRef);
 
-      instnode->base.node = node;
-      node->node          = instnode;
-      
-      if (node->node) {
-        instnode->base.prev   = &node->node->base;
-        node->node->base.prev = &instnode->base;
-      }
+      url = ak_heap_calloc(heap, nodeRef, sizeof(*url));
+      DAE_URL_SET(dst, xml, url, nodeRef, url);
+      nodeRef->reserved = url;
     } else if (DAE_XML_TAG_EQ4(xml, node)) {
       AkNode *subNode;
       

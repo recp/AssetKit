@@ -32,12 +32,12 @@ typedef enum AkNodeFlags {
 /*!
  * @brief Per-instance TRS accessors for EXT_mesh_gpu_instancing.
  */
-typedef struct AkInstanceAttribs {
+typedef struct AkGpuInstancing {
   struct AkAccessor *translation;  /* optional, vec3 x count */
   struct AkAccessor *rotation;     /* optional, vec4 x count (quaternion) */
   struct AkAccessor *scale;        /* optional, vec3 x count */
   uint32_t           count;        /* number of instances */
-} AkInstanceAttribs;
+} AkGpuInstancing;
 
 typedef enum AkNodeType {
   AK_NODE_TYPE_NODE        = 1,
@@ -84,10 +84,10 @@ typedef struct AkNode {
   AkInstanceGeometry   *geometry;
   AkInstanceBase       *camera;
   AkInstanceBase       *light;
-  AkInstanceNode       *node;
+  AkNodeRef           *nodeRefs;
 
   /* EXT_mesh_gpu_instancing, NULL if not authored. */
-  AkInstanceAttribs    *instancing;
+  AkGpuInstancing      *gpuInstancing;
 
   AkTree               *extra;
 
@@ -205,8 +205,10 @@ ak_nodeSetTransformMatrix(AkNode * __restrict node,
 /*!
  * @brief Find a root-level node in a scene by name.
  *
- * Scenes hold their roots as a sibling chain reachable via `scene->node->next`.
- * This walks that chain looking for a name match. NULL inputs return NULL.
+ * Scenes use `scene->node` as a synthetic entrypoint. Its `nodeRefs` list
+ * references authored root nodes and may be NULL for an empty scene. NULL
+ * inputs return NULL.
+ * NULL inputs return NULL.
  */
 AK_EXPORT
 AkNode *
@@ -218,8 +220,8 @@ ak_sceneFindRoot(struct AkScene * __restrict scene,
  *
  * Convenience for "ensure a top-level container exists" — e.g. a
  * "User Cameras" group placed alongside the asset's authored roots.
- * Created nodes are appended to the end of the existing root chain
- * (memparent = scene), preserving the original asset ordering.
+ * Created roots are document-library nodes attached to the scene through the
+ * synthetic root's `nodeRefs` list.
  */
 AK_EXPORT
 AkNode *

@@ -910,6 +910,7 @@ wobj_obj(AkDoc     ** __restrict dest,
   void     *objstr;
   char     *p, *begin, *end, *m;
   AkScene  *scene;
+  AkNode   *rootNode;
   WOPrim   *prim;
   WOState   wstVal = {0}, *wst;
   size_t    objstrSize;
@@ -948,8 +949,14 @@ wobj_obj(AkDoc     ** __restrict dest,
   scene                  = ak_heap_calloc(heap, doc, sizeof(*scene));
   scene->cameras         = ak_heap_calloc(heap, scene, sizeof(*scene->cameras));
   scene->lights          = ak_heap_calloc(heap, scene, sizeof(*scene->lights));
-  scene->node            = ak_heap_calloc(heap, doc, sizeof(*scene->node));
+  scene->node            = ak_heap_calloc(heap, scene, sizeof(*scene->node));
+  ak_setypeid(scene->node, AKT_NODE);
   scene->node->visible   = true;
+  rootNode               = ak_heap_calloc(heap, doc, sizeof(*rootNode));
+  ak_setypeid(rootNode, AKT_NODE);
+  rootNode->visible      = true;
+  AK_LIB_PREPEND(doc->lib.nodes, rootNode, docNext);
+  ak_nodeAttachNodeRef(scene->node, rootNode);
   AK_LIB_PREPEND(doc->lib.scenes, scene, next);
   doc->scene             = scene;
 
@@ -959,7 +966,7 @@ wobj_obj(AkDoc     ** __restrict dest,
   wstVal.doc       = doc;
   wstVal.heap      = heap;
   wstVal.tmp       = ak_heap_alloc(heap, doc, sizeof(void*));
-  wstVal.node      = scene->node;
+  wstVal.node      = rootNode;
   wstVal.lib_geom  = &doc->lib.geometries;
   wstVal.posCompSize = AK_COMPONENT_SIZE_VEC3;
   wstVal.texCompSize = AK_COMPONENT_SIZE_VEC2;

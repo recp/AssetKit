@@ -115,35 +115,135 @@ ak_nodeFindOrMakeChild(AkDoc      * __restrict doc,
   return ak_nodeMake(doc, parent, name);
 }
 
+static
+AkInstanceBase *
+ak__nodePrependInstance(AkInstanceBase *head,
+                        AkInstanceBase *inst) {
+  inst->prev = NULL;
+  inst->next = head;
+
+  if (head)
+    head->prev = inst;
+
+  return inst;
+}
+
+static
+AkNodeRef *
+ak__nodePrependRef(AkNodeRef *head,
+                   AkNodeRef *ref) {
+  ref->prev = NULL;
+  ref->next = head;
+
+  if (head)
+    head->prev = ref;
+
+  return ref;
+}
+
+AK_EXPORT
+AkInstanceBase *
+ak_nodeAttachInstance(AkNode         * __restrict node,
+                      AkInstanceBase * __restrict inst) {
+  if (!node || !inst)
+    return NULL;
+
+  switch (inst->type) {
+    case AK_INSTANCE_GEOMETRY:
+      inst->node = node;
+      ak_heap_setpm(inst, node);
+      node->geometry = (AkInstanceGeometry *)
+        ak__nodePrependInstance((AkInstanceBase *)node->geometry, inst);
+      break;
+    case AK_INSTANCE_CAMERA:
+      inst->node = node;
+      ak_heap_setpm(inst, node);
+      node->camera = ak__nodePrependInstance(node->camera, inst);
+      break;
+    case AK_INSTANCE_LIGHT:
+      inst->node = node;
+      ak_heap_setpm(inst, node);
+      node->light = ak__nodePrependInstance(node->light, inst);
+      break;
+    default:
+      return NULL;
+  }
+
+  return inst;
+}
+
+AK_EXPORT
+AkInstanceGeometry *
+ak_nodeAttachGeometry(AkNode     * __restrict node,
+                      AkGeometry * __restrict geometry) {
+  AkHeap             *heap;
+  AkInstanceGeometry *inst;
+
+  if (!node || !geometry)
+    return NULL;
+
+  heap = ak_heap_getheap(node);
+  inst = ak_instanceMakeGeom(heap, node, geometry);
+
+  return (AkInstanceGeometry *)ak_nodeAttachInstance(node, &inst->base);
+}
+
+AK_EXPORT
+AkNode *
+ak_nodeRefTarget(AkNodeRef * __restrict ref) {
+  void *target;
+
+  if (!ref)
+    return NULL;
+
+  if (ref->target)
+    return ref->target;
+
+  if (!ref->reserved)
+    return NULL;
+
+  target = ak_getObjectByUrl((AkURL *)ref->reserved);
+  if (target && ak_typeid(target) == AKT_NODE)
+    ref->target = target;
+
+  return ref->target;
+}
+
+AK_EXPORT
+AkNodeRef *
+ak_nodeAttachNodeRef(AkNode * __restrict owner,
+                     AkNode * __restrict target) {
+  AkHeap    *heap;
+  AkNodeRef *ref;
+
+  if (!owner)
+    return NULL;
+
+  heap = ak_heap_getheap(owner);
+  ref  = ak_heap_calloc(heap, owner, sizeof(*ref));
+
+  ref->owner  = owner;
+  ref->target = target;
+
+  owner->nodeRefs = ak__nodePrependRef(owner->nodeRefs, ref);
+
+  return ref;
+}
+
 AK_EXPORT
 AkInstanceBase *
 ak_nodeAttachCamera(AkNode   * __restrict node,
                     AkCamera * __restrict cam) {
   AkHeap         *heap;
-  AkInstanceBase *inst, *head;
+  AkInstanceBase *inst;
 
   if (!node || !cam) return NULL;
 
   heap       = ak_heap_getheap(node);
   inst       = ak_instanceMake(heap, node, cam);
   inst->type = AK_INSTANCE_CAMERA;
-  /* `ak_instanceMake` doesn't backfill `node`; do it here so
-     downstream APIs (`ak_instanceName`, list-unlink, move-to-subnode)
-     don't see a NULL parent. */
-  inst->node = node;
 
-  /* Chain in front of any existing camera instance(s) on the node.
-     Maintain `prev` on the existing head so the chain stays
-     doubly-linked. */
-  head         = node->camera;
-  inst->next   = head;
-  inst->prev   = NULL;
-  if (head) {
-    head->prev = inst;
-  }
-  node->camera = inst;
-
-  return inst;
+  return ak_nodeAttachInstance(node, inst);
 }
 
 AK_EXPORT
@@ -151,24 +251,15 @@ AkInstanceBase *
 ak_nodeAttachLight(AkNode  * __restrict node,
                    AkLight * __restrict light) {
   AkHeap         *heap;
-  AkInstanceBase *inst, *head;
+  AkInstanceBase *inst;
 
   if (!node || !light) return NULL;
 
   heap       = ak_heap_getheap(node);
   inst       = ak_instanceMake(heap, node, light);
   inst->type = AK_INSTANCE_LIGHT;
-  inst->node = node;
 
-  head        = node->light;
-  inst->next  = head;
-  inst->prev  = NULL;
-  if (head) {
-    head->prev = inst;
-  }
-  node->light = inst;
-
-  return inst;
+  return ak_nodeAttachInstance(node, inst);
 }
 
 AK_EXPORT
@@ -210,9 +301,14 @@ ak_sceneFindRoot(AkScene    * __restrict scene,
 
   if (!scene || !name) return NULL;
 
-  for (node = scene->node; node; node = node->next) {
-    if (node->name && strcmp(node->name, name) == 0)
-      return node;
+  if (scene->node) {
+    AkNodeRef *ref;
+
+    for (ref = scene->node->nodeRefs; ref; ref = ref->next) {
+      node = ak_nodeRefTarget(ref);
+      if (node && node->name && strcmp(node->name, name) == 0)
+        return node;
+    }
   }
 
   return NULL;
@@ -225,32 +321,28 @@ ak_sceneFindOrMakeRoot(AkDoc      * __restrict doc,
                        const char * __restrict name) {
   AkHeap *heap;
   AkNode *node;
-  AkNode *last;
 
   if (!doc || !scene) return NULL;
 
   if ((node = ak_sceneFindRoot(scene, name)))
     return node;
 
-  /* Allocate the new root node parented on the visual scene so its
-     lifetime tracks the scene's. ak_nodeMake parents under another
-     AkNode, which is the wrong shape here — we want a root, not a
-     child — so we allocate directly. */
   heap = ak_heap_getheap(doc);
-  node = ak_heap_calloc(heap, scene, sizeof(*node));
+
+  if (!scene->node) {
+    scene->node = ak_heap_calloc(heap, scene, sizeof(*scene->node));
+    ak_setypeid(scene->node, AKT_NODE);
+    scene->node->visible = true;
+  }
+
+  node = ak_heap_calloc(heap, doc, sizeof(*node));
+  ak_setypeid(node, AKT_NODE);
   node->visible = true;
   if (name)
     node->name = ak_heap_strdup(heap, node, name);
 
-  /* Append to the visual scene's root chain. Empty scene → become
-     the head; otherwise walk to the tail and link in. */
-  if (!scene->node) {
-    scene->node = node;
-  } else {
-    for (last = scene->node; last->next; last = last->next) { }
-    last->next = node;
-    node->prev = last;
-  }
+  AK_LIB_PREPEND(doc->lib.nodes, node, docNext);
+  ak_nodeAttachNodeRef(scene->node, node);
 
   return node;
 }

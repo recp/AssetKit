@@ -440,6 +440,8 @@ ak_materialResolve(AkMeshPrimitive    * __restrict prim,
                    AkInstanceGeometry * __restrict instance,
                    uint32_t                         variantIndex,
                    AkResolvedMaterial * __restrict resolved) {
+  AkMaterialBinding *binding;
+  AkMaterialBinding *fallbackBinding;
   uint32_t noVariant;
 
   if (!resolved)
@@ -449,6 +451,37 @@ ak_materialResolve(AkMeshPrimitive    * __restrict prim,
   if (ak_materialResolveForPrimitive(prim, variantIndex, resolved)) {
     if (resolved->surface || variantIndex != noVariant)
       return true;
+  }
+
+  fallbackBinding = NULL;
+  binding         = instance ? instance->objectBindings : NULL;
+  while (binding) {
+    if (binding->scope == AK_MATERIAL_BIND_OBJECT) {
+      if (variantIndex != noVariant && binding->variantIndex == variantIndex) {
+        ak__materialResolvedSet(resolved,
+                                binding->material,
+                                binding,
+                                binding->propertyIndex,
+                                variantIndex);
+        return resolved->material || resolved->surface || binding->propertySet;
+      }
+
+      if (binding->variantIndex == noVariant && !fallbackBinding)
+        fallbackBinding = binding;
+    }
+
+    binding = binding->next;
+  }
+
+  if (fallbackBinding) {
+    ak__materialResolvedSet(resolved,
+                            fallbackBinding->material,
+                            fallbackBinding,
+                            fallbackBinding->propertyIndex,
+                            noVariant);
+    return resolved->material
+           || resolved->surface
+           || fallbackBinding->propertySet;
   }
 
 #if defined(AK_INTERNAL_BUILD)

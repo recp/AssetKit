@@ -376,6 +376,7 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
     ctlr     = ak_instanceObject(&instCtlr->base);
     node     = instCtlr->base.node;
     instGeom = ak_heap_calloc(dst->heap, node, sizeof(*instGeom));
+    instGeom->base.type = AK_INSTANCE_GEOMETRY;
 
     switch (ctlr->type) {
       case AK_CONTROLLER_SKIN: {
@@ -497,10 +498,7 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
           ak__instanceGeometrySetBindMaterial(instGeom, instCtlr->bindMaterial);
           ak_heap_setpm(instCtlr->bindMaterial, instGeom);
 
-          instGeom->base.next = (AkInstanceBase *)node->geometry;
-          if (node->geometry)
-            node->geometry->base.prev = (AkInstanceBase *)instGeom;
-          node->geometry = instGeom;
+          ak_nodeAttachInstance(node, &instGeom->base);
         }
         break;
       }
@@ -537,10 +535,7 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
         instGeom->base.object = ak_baseGeometry(&morphdae->baseGeom);
         ak_heap_setpm(instCtlr->bindMaterial, instGeom);
 
-        instGeom->base.next = (AkInstanceBase *)node->geometry;
-        if (node->geometry)
-          node->geometry->base.prev = (AkInstanceBase *)instGeom;
-        node->geometry = instGeom;
+        ak_nodeAttachInstance(node, &instGeom->base);
         break;
       }
       default: break;

@@ -257,11 +257,13 @@ TEST_IMPL(material_api) {
   AkMaterialBinding          fallbackBinding;
   AkMaterialBinding          variantBinding;
   AkMaterialBinding          propertyBinding;
+  AkMaterialBinding          objectBinding;
   AkMaterialVariantMapping   legacyMapping;
   AkMaterialPropertySet      propertySet;
   AkMaterialProperty         properties[2];
   AkDoc                      doc;
   AkMeshPrimitive            prim;
+  AkInstanceGeometry         instGeom;
   AkResolvedMaterial         resolved;
 
   memset(&baseSurface, 0, sizeof(baseSurface));
@@ -275,11 +277,13 @@ TEST_IMPL(material_api) {
   memset(&fallbackBinding, 0, sizeof(fallbackBinding));
   memset(&variantBinding, 0, sizeof(variantBinding));
   memset(&propertyBinding, 0, sizeof(propertyBinding));
+  memset(&objectBinding, 0, sizeof(objectBinding));
   memset(&legacyMapping, 0, sizeof(legacyMapping));
   memset(&propertySet, 0, sizeof(propertySet));
   memset(properties, 0, sizeof(properties));
   memset(&doc, 0, sizeof(doc));
   memset(&prim, 0, sizeof(prim));
+  memset(&instGeom, 0, sizeof(instGeom));
 
   ASSERT(ak_materialTypeIsPBR(AK_MATERIAL_TYPE_PBR));
   ASSERT(ak_materialTypeIsPBR(AK_MATERIAL_TYPE_PBR_METALLIC_ROUGHNESS));
@@ -452,6 +456,19 @@ TEST_IMPL(material_api) {
   ASSERT(resolved.binding == &propertyBinding);
   ASSERT(resolved.propertyIndex == 1);
   ASSERT(ak_resolvedMaterialProperty(&resolved) == &properties[1]);
+
+  objectBinding.material = &variantMaterial;
+  objectBinding.scope = AK_MATERIAL_BIND_OBJECT;
+  objectBinding.propertyIndex = UINT32_MAX;
+  objectBinding.variantIndex = UINT32_MAX;
+  instGeom.objectBindings = &objectBinding;
+
+  memset(&prim, 0, sizeof(prim));
+  ASSERT(ak_materialResolve(&prim, &instGeom, UINT32_MAX, &resolved));
+  ASSERT(resolved.material == &variantMaterial);
+  ASSERT(resolved.surface == &variantSurface);
+  ASSERT(resolved.binding == &objectBinding);
+  ASSERT(resolved.variantIndex == UINT32_MAX);
 
   TEST_SUCCESS
 }
