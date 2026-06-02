@@ -460,24 +460,25 @@ wobj_texref(WOState            * __restrict wst,
             char               *            name,
             AkTextureColorSpace             colorSpace,
             AkTextureChannels               channels) {
-  AkHeap       *heap;
-  AkDoc        *doc;
-  AkImage      *image;
-  AkInitFrom   *initFrom;
-  AkTexture    *tex;
-  AkSampler    *sampler;
-  AkTextureRef *texref;
+  AkHeap        *heap;
+  AkDoc         *doc;
+  AkImage       *image;
+  AkImageSource *source;
+  AkTexture     *tex;
+  AkSampler     *sampler;
+  AkTextureRef  *texref;
  
   heap = wst->heap;
   doc  = wst->doc;
   
   /* create image */
-  image           = ak_heap_calloc(heap, doc, sizeof(*image));
-  initFrom        = ak_heap_calloc(heap, image, sizeof(*initFrom));
-  initFrom->ref   = name;
-  image->initFrom = initFrom;
+  image         = ak_heap_calloc(heap, doc, sizeof(*image));
+  source        = ak_heap_calloc(heap, image, sizeof(*source));
+  source->type  = AK_IMAGE_SOURCE_URI;
+  source->uri   = name;
+  image->source = source;
 
-  ak_mem_setp(name, initFrom);
+  ak_mem_setp(name, source);
   AK_LIB_PREPEND(doc->lib.images, image, next);
 
   /* create sampler */

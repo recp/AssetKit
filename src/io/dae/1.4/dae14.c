@@ -97,10 +97,10 @@ dae14_loadjobs_finish(DAEState * __restrict dst) {
             /* convert other params to update/new image */
             image = ak_instanceObject(instanceImage);
             if (image) {
-              if (surface->initFrom) {
-                image->initFrom->face       = surface->initFrom->face;
-                image->initFrom->mipIndex   = surface->initFrom->mip;
-                image->initFrom->arrayIndex = surface->initFrom->slice;
+              if (surface->initFrom && image->source) {
+                image->source->face       = surface->initFrom->face;
+                image->source->mipIndex   = surface->initFrom->mip;
+                image->source->arrayIndex = surface->initFrom->slice;
               }
 
               image->renderable = surface->initAsTarget;

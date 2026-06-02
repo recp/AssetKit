@@ -20,8 +20,6 @@
 #include "common.h"
 #include "core-types.h"
 
-struct AkInitFrom;
-
 typedef enum AkChannelFormat {
   AK_CHANNEL_FORMAT_RGB  = 1,
   AK_CHANNEL_FORMAT_RGBA = 2,
@@ -56,12 +54,55 @@ typedef enum AkImageType {
   AK_IMAGE_TYPE_CUBE = 3
 } AkImageType;
 
+typedef enum AkFace {
+  AK_FACE_UNSPECIFIED = 0,
+  AK_FACE_POSITIVE_X  = 1,
+  AK_FACE_NEGATIVE_X  = 2,
+  AK_FACE_POSITIVE_Y  = 3,
+  AK_FACE_NEGATIVE_Y  = 4,
+  AK_FACE_POSITIVE_Z  = 5,
+  AK_FACE_NEGATIVE_Z  = 6
+} AkFace;
+
 typedef struct AkImageData {
   void    *data;
   uint32_t width;
   uint32_t height;
   AkEnum   comp;
 } AkImageData;
+
+typedef struct AkHexData {
+  const char *format;
+  const char *hexval; /* hex value    */
+  void       *data;   /* binary value */
+} AkHexData;
+
+typedef enum AkImageSourceType {
+  AK_IMAGE_SOURCE_NONE   = 0,
+  AK_IMAGE_SOURCE_URI    = 1,
+  AK_IMAGE_SOURCE_BUFFER = 2,
+  AK_IMAGE_SOURCE_HEX    = 3
+} AkImageSourceType;
+
+typedef struct AkImageSource {
+  struct AkImageSource *next;
+  const char           *uri;
+  const char           *resolvedPath; /* derived/cache, not source selector */
+  AkHexData            *hex;
+  AkBuffer             *buffer;
+  const char           *mimeType;
+
+  /* Selects the authoritative source field:
+     URI -> uri, BUFFER -> buffer, HEX -> hex. The remaining subresource
+     fields annotate the source; they do not select where image data comes
+     from. */
+  AkImageSourceType     type;
+  AkFace                face;
+  AkUInt                mipIndex;
+  AkUInt                depth;
+  AkInt                 arrayIndex;
+  AkBool                generateMips;
+} AkImageSource;
 
 typedef struct AkSizeExact {
   uint32_t width;
@@ -93,10 +134,10 @@ typedef struct AkImageSize {
 } AkImageSize;
 
 typedef struct AkImageBase {
-  AkImageFormat     *format;
-  struct AkInitFrom *initFrom;
-  long               arrayLen;
-  AkImageType        type;
+  AkImageFormat *format;
+  AkImageSource *source;
+  long           arrayLen;
+  AkImageType    type;
 } AkImageBase;
 
 typedef struct AkImage2d {
@@ -122,17 +163,17 @@ typedef struct AkImageCube {
 typedef struct AkImage {
   /* const char * id;  */
   /* const char * sid; */
-  const char        *name;
-  struct AkInitFrom *initFrom;
-  AkImageBase       *image;
-  AkImageData       *data;
-  AkTree            *extra;
-  struct AkImage    *next;
+  const char     *name;
+  AkImageSource  *source;
+  AkImageBase    *image;
+  AkImageData    *data;
+  AkTree         *extra;
+  struct AkImage *next;
 
-  AkBool             renderable;
-  AkBool             renderableShare;
+  AkBool          renderable;
+  AkBool          renderableShare;
 
-  bool               flipOnLoad;
+  bool            flipOnLoad;
 } AkImage;
 
 AK_EXPORT

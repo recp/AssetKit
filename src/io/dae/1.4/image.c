@@ -23,28 +23,28 @@ void
 dae14_fxMigrateImg(DAEState * __restrict dst,
                    xml_t    * __restrict xml,
                    void     * __restrict memp) {
-  AkHeap     *heap;
-  AkDoc      *doc;
-  AkImage    *img;
-  AkInitFrom *initFrom;
-  const char *format;
-  void       *parent;
+  AkHeap        *heap;
+  AkDoc         *doc;
+  AkImage       *img;
+  AkImageSource *source;
+  const char    *format;
+  void          *parent;
 
-  heap = dst->heap;
-  doc  = dst->doc;
+  heap   = dst->heap;
+  doc    = dst->doc;
   parent = memp ? memp : doc;
 
-  img           = ak_heap_calloc(heap, parent, sizeof(*img));
-  initFrom      = ak_heap_calloc(heap, img, sizeof(*img->initFrom));
-  img->initFrom = initFrom;
+  img         = ak_heap_calloc(heap, parent, sizeof(*img));
+  source      = ak_heap_calloc(heap, img, sizeof(*source));
+  img->source = source;
 
   xmla_setid(xml, heap, img);
   
   img->name = DAE_XMLA_STRDUP8(xml, heap, name, img);
 
-  format = DAE_XMLA_STRDUP8(xml, heap, format, img->initFrom);
-  initFrom->mipsGenerate = false; /* 1.4's default, 1.5's is true */
-  initFrom->depth        = xmla_u32(DAE_XMLA8(xml, depth), 0);
+  format = DAE_XMLA_STRDUP8(xml, heap, format, img->source);
+  source->generateMips = false; /* 1.4's default, 1.5's is true */
+  source->depth        = xmla_u32(DAE_XMLA8(xml, depth), 0);
   
   xml = xml->val;
   while (xml) {
@@ -52,17 +52,19 @@ dae14_fxMigrateImg(DAEState * __restrict dst,
       (void)dae_asset(dst, xml, img, NULL);
     } else if (DAE_XML_TAG_EQ4(xml, data)) {
       AkHexData *hex;
-      hex = ak_heap_calloc(heap, initFrom, sizeof(*hex));
+      hex = ak_heap_calloc(heap, source, sizeof(*hex));
       
       hex->format = format;
       ak_heap_setpm((void *)format, hex);
       
       if (hex->format) {
-        hex->hexval        = xml_strdup(xml, heap, hex);
-        img->initFrom->hex = hex;
+        hex->hexval  = xml_strdup(xml, heap, hex);
+        source->hex  = hex;
+        source->type = AK_IMAGE_SOURCE_HEX;
       }
     } else if (DAE_XML_TAG_EQ(xml, init_from)) {
-      img->initFrom->ref = xml_strdup(xml, heap, initFrom);
+      source->uri  = xml_strdup(xml, heap, source);
+      source->type = AK_IMAGE_SOURCE_URI;
     } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       img->extra = tree_fromxml(heap, img, xml);
     }

@@ -77,10 +77,10 @@ gltf_images(json_t * __restrict jimage,
   imageIndex = gst->imagesCount;
 
   while (jimage) {
-    AkInitFrom *initFrom;
+    AkImageSource *source;
 
     image    = ak_heap_calloc(gst->heap, gst->doc, sizeof(*image));
-    initFrom = NULL;
+    source   = NULL;
     gltf_extra(gst,
                image,
                GLTF_JSON_GET8(jimage, extras),
@@ -107,46 +107,49 @@ gltf_images(json_t * __restrict jimage,
       if ((buffViewIndex = json_int32(it, -1)) > -1
           && (buffView = gltf_bufferView_at(gst, buffViewIndex))
           && (tmpbuff = buffView->buffer)) {
-        initFrom             = ak_heap_calloc(heap, image, sizeof(*initFrom));
-        initFrom->buff       = ak_heap_calloc(heap,
+        source               = ak_heap_calloc(heap, image, sizeof(*source));
+        source->type         = AK_IMAGE_SOURCE_BUFFER;
+        source->buffer       = ak_heap_calloc(heap,
                                               gst->doc,
-                                              sizeof(*initFrom->buff));
-        initFrom->buff->length = buffView->byteLength;
+                                              sizeof(*source->buffer));
+        source->buffer->length = buffView->byteLength;
 
         if (gst->borrowBufferViews) {
-          initFrom->buff->data = (char *)tmpbuff->data + buffView->byteOffset;
-          initFrom->buff->name = "assetkit:gltf-buffer-view-slice";
+          source->buffer->data = (char *)tmpbuff->data + buffView->byteOffset;
+          source->buffer->name = "assetkit:gltf-buffer-view-slice";
         } else {
-          initFrom->buff->data = ak_heap_alloc(heap,
-                                               initFrom->buff,
+          source->buffer->data = ak_heap_alloc(heap,
+                                               source->buffer,
                                                buffView->byteLength);
-          memcpy(initFrom->buff->data,
+          memcpy(source->buffer->data,
                  (char *)tmpbuff->data + buffView->byteOffset,
                  buffView->byteLength);
         }
         if ((it = imgMap[k_mimeType].object))
-          initFrom->buffMime = json_strdup(it, heap, initFrom);
-        image->initFrom = initFrom;
+          source->mimeType = json_strdup(it, heap, source);
+        image->source = source;
       }
     }
     
-    if (!initFrom && (it = imgMap[k_uri].object)) {
-      initFrom = ak_heap_calloc(heap, image, sizeof(*initFrom));
+    if (!source && (it = imgMap[k_uri].object)) {
+      source = ak_heap_calloc(heap, image, sizeof(*source));
       
       if (gltf_imageDataUriHasPrefix(it->value, it->valsize)) {
         char *uri;
         uri = it->value;
 
-        initFrom->buff = ak_heap_calloc(heap, gst->doc, sizeof(*initFrom->buff));
-        base64_buff(uri, it->valsize, initFrom->buff);
+        source->type   = AK_IMAGE_SOURCE_BUFFER;
+        source->buffer = ak_heap_calloc(heap, gst->doc, sizeof(*source->buffer));
+        base64_buff(uri, it->valsize, source->buffer);
         if (imgMap[k_mimeType].object)
-          initFrom->buffMime = json_strdup(imgMap[k_mimeType].object, heap, initFrom);
+          source->mimeType = json_strdup(imgMap[k_mimeType].object, heap, source);
         else
-          initFrom->buffMime = gltf_imageDataUriMime(heap, initFrom, uri, it->valsize);
+          source->mimeType = gltf_imageDataUriMime(heap, source, uri, it->valsize);
       } else {
-        initFrom->ref = json_strdup(it, gst->heap, initFrom);
+        source->type = AK_IMAGE_SOURCE_URI;
+        source->uri  = json_strdup(it, gst->heap, source);
       }
-      image->initFrom = initFrom;
+      image->source = source;
     }
 
     AK_LIB_PREPEND(gst->doc->lib.images, image, next);

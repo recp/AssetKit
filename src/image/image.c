@@ -45,15 +45,12 @@ void
 ak_imageLoad(AkImage * __restrict image) {
   AkHeap        *heap;
   AkDoc         *doc;
-  AkImageData   *idata;
-  unsigned char *data;
+  AkImageSource *source;
   bool           flipImage;
 
   if (image->data)
     return;
 
-  idata     = NULL;
-  data      = NULL;
   heap      = ak_heap_getheap(image);
   doc       = ak_heap_data(heap);
   flipImage = false;
@@ -63,28 +60,32 @@ ak_imageLoad(AkImage * __restrict image) {
     flipImage = ak_opt_get(AK_OPT_IMAGE_LOAD_FLIP_VERTICALLY);
   }
 
-  if (image->initFrom) {
-    AkInitFrom *initFrom;
-    int         x, y, ch;
-
-    initFrom = image->initFrom;
-    if (initFrom->ref) {
+  source = image->source;
+  if (source) {
+    switch (source->type) {
+    case AK_IMAGE_SOURCE_URI: {
       char        pathbuf[PATH_MAX];
       const char *path;
 
-      if (!ak__img_conf.loadFromFile)
+      if (!source->uri || !ak__img_conf.loadFromFile)
         return;
 
-      path                       = ak_fullpath(doc, initFrom->ref, pathbuf);
-      initFrom->resolvedFullPath = ak_strdup(initFrom, pathbuf);
-      image->data                = ak__img_conf.loadFromFile(heap, image, path, flipImage);
-    } else if (initFrom->buff && initFrom->buff->data) {
-      if (!ak__img_conf.loadFromMemory)
+      path                 = ak_fullpath(doc, source->uri, pathbuf);
+      source->resolvedPath = ak_strdup(source, pathbuf);
+      image->data          = ak__img_conf.loadFromFile(heap, image, path, flipImage);
+      break;
+    }
+    case AK_IMAGE_SOURCE_BUFFER:
+      if (!source->buffer || !source->buffer->data || !ak__img_conf.loadFromMemory)
         return;
 
-      image->data = ak__img_conf.loadFromMemory(heap, image, initFrom->buff, flipImage);
-    } else if (initFrom->hex) {
+      image->data = ak__img_conf.loadFromMemory(heap, image, source->buffer, flipImage);
+      break;
+    case AK_IMAGE_SOURCE_HEX:
       /* TODO: */
+      break;
+    case AK_IMAGE_SOURCE_NONE:
+      break;
     }
   }
 }

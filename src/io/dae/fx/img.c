@@ -20,10 +20,10 @@
 #include "../core/enum.h"
 
 static
-AkInitFrom*
-dae_initFrom(DAEState * __restrict dst,
-             xml_t    * __restrict xml,
-             void     * __restrict memp);
+AkImageSource*
+dae_imageSource(DAEState * __restrict dst,
+                xml_t    * __restrict xml,
+                void     * __restrict memp);
 
 static
 AkImageFormat*
@@ -80,7 +80,7 @@ dae_image(DAEState * __restrict dst,
                           && att->val
                           && strcasecmp(att->val, _s_dae_true) == 0;
     } else if (DAE_XML_TAG_EQ(xml, init_from)) {
-      img->initFrom = dae_initFrom(dst, xml, img);
+      img->source = dae_imageSource(dst, xml, img);
     } else if (DAE_XML_TAG_EQ(xml, create_2d)) {
       AkImage2d *image2d;
       if ((image2d = dae_create2d(dst, xml, img)))
@@ -121,37 +121,39 @@ dae_instImage(DAEState * __restrict dst,
 }
 
 static
-AkInitFrom*
-dae_initFrom(DAEState * __restrict dst,
-             xml_t    * __restrict xml,
-             void     * __restrict memp) {
-  AkHeap     *heap;
-  AkInitFrom *initFrom;
-  AkHexData  *hex;
-  xml_attr_t *att;
+AkImageSource*
+dae_imageSource(DAEState * __restrict dst,
+                xml_t    * __restrict xml,
+                void     * __restrict memp) {
+  AkHeap        *heap;
+  AkImageSource *source;
+  AkHexData     *hex;
+  xml_attr_t    *att;
   
-  heap     = dst->heap;
-  initFrom = ak_heap_calloc(heap, memp, sizeof(*initFrom));
+  heap   = dst->heap;
+  source = ak_heap_calloc(heap, memp, sizeof(*source));
   
-  initFrom->mipsGenerate = xmla_u32(DAE_XMLA(xml, mips_generate), 0);
-  initFrom->arrayIndex   = xmla_u32(DAE_XMLA(xml, array_index), 0);
-  initFrom->mipIndex     = xmla_u32(DAE_XMLA(xml, mip_index), 0);
-  initFrom->depth        = xmla_u32(DAE_XMLA8(xml, depth), 0);
+  source->generateMips = xmla_u32(DAE_XMLA(xml, mips_generate), 0);
+  source->arrayIndex   = xmla_u32(DAE_XMLA(xml, array_index), 0);
+  source->mipIndex     = xmla_u32(DAE_XMLA(xml, mip_index), 0);
+  source->depth        = xmla_u32(DAE_XMLA8(xml, depth), 0);
 
   if ((att = DAE_XMLA4(xml, face)) && att->val)
-    initFrom->face = dae_face(att);
+    source->face = dae_face(att);
 
   xml = xml->val;
   while (xml) {
     if (DAE_XML_TAG_EQ4(xml, ref)) {
-      initFrom->ref = xml_strdup(xml, heap, initFrom);
+      source->uri  = xml_strdup(xml, heap, source);
+      source->type = AK_IMAGE_SOURCE_URI;
     } else if (DAE_XML_TAG_EQ4(xml, hex)) {
-      hex         = ak_heap_calloc(heap, initFrom, sizeof(*hex));
+      hex         = ak_heap_calloc(heap, source, sizeof(*hex));
       hex->format = xmla_strdup(DAE_XMLA8(xml, format), heap, hex);
 
       if (hex->format) {
-        hex->hexval = xml_strdup(xml, heap, initFrom);
-        initFrom->hex = hex;
+        hex->hexval = xml_strdup(xml, heap, source);
+        source->hex  = hex;
+        source->type = AK_IMAGE_SOURCE_HEX;
       } else {
         ak_free(hex);
       }
@@ -159,7 +161,7 @@ dae_initFrom(DAEState * __restrict dst,
     xml = xml->next;
   }
   
-  return initFrom;
+  return source;
 }
 
 static
@@ -242,8 +244,8 @@ dae_create2d(DAEState * __restrict dst,
       img->base.arrayLen = xmla_u32(DAE_XMLA8(xml, length), 0);
     } else if (DAE_XML_TAG_EQ8(xml, format)) {
       img->base.format = dae_imageFormat(dst, xml, img);
-    } else if (DAE_XML_TAG_EQ(xml, size_exact)) {
-      img->base.initFrom = dae_initFrom(dst, xml, img);
+    } else if (DAE_XML_TAG_EQ(xml, init_from)) {
+      img->base.source = dae_imageSource(dst, xml, img);
     }
     xml = xml->next;
   }
@@ -277,8 +279,8 @@ dae_create3d(DAEState * __restrict dst,
       img->base.arrayLen = xmla_u32(DAE_XMLA8(xml, length), 0);
     } else if (DAE_XML_TAG_EQ8(xml, format)) {
       img->base.format = dae_imageFormat(dst, xml, img);
-    } else if (DAE_XML_TAG_EQ(xml, size_exact)) {
-      img->base.initFrom = dae_initFrom(dst, xml, img);
+    } else if (DAE_XML_TAG_EQ(xml, init_from)) {
+      img->base.source = dae_imageSource(dst, xml, img);
     }
     xml = xml->next;
   }
@@ -310,8 +312,8 @@ dae_createCube(DAEState * __restrict dst,
       img->base.arrayLen = xmla_u32(DAE_XMLA8(xml, length), 0);
     } else if (DAE_XML_TAG_EQ8(xml, format)) {
       img->base.format = dae_imageFormat(dst, xml, img);
-    } else if (DAE_XML_TAG_EQ(xml, size_exact)) {
-      img->base.initFrom = dae_initFrom(dst, xml, img);
+    } else if (DAE_XML_TAG_EQ(xml, init_from)) {
+      img->base.source = dae_imageSource(dst, xml, img);
     }
     xml = xml->next;
   }

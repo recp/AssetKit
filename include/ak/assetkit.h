@@ -59,15 +59,6 @@ typedef enum AkAltitudeMode {
   AK_ALTITUDE_ABSOLUTE         = 1
 } AkAltitudeMode;
 
-typedef enum AkFace {
-  AK_FACE_POSITIVE_X = 1,
-  AK_FACE_NEGATIVE_X = 2,
-  AK_FACE_POSITIVE_Y = 3,
-  AK_FACE_NEGATIVE_Y = 4,
-  AK_FACE_POSITIVE_Z = 5,
-  AK_FACE_NEGATIVE_Z = 6
-} AkFace;
-
 typedef enum AkInputSemantic {
   /* read semanticRaw */
   AK_INPUT_OTHER           = 0,
@@ -223,26 +214,6 @@ typedef struct AkDocInf {
   AkFileType   ftype;
   bool         flipImage;
 } AkDocInf;
-
-typedef struct AkHexData {
-  const char *format;
-  const char *hexval; /* hex value    */
-  void       *data;   /* binary value */
-} AkHexData;
-
-typedef struct AkInitFrom {
-  struct AkInitFrom *next;
-  const char        *ref;
-  const char        *resolvedFullPath;
-  AkHexData         *hex;
-  struct AkBuffer   *buff;
-  const char        *buffMime;
-  AkFace             face;
-  AkUInt             mipIndex;
-  AkUInt             depth;
-  AkInt              arrayIndex;
-  AkBool             mipsGenerate;
-} AkInitFrom;
 
 struct AkNode;
 typedef struct AkInstanceBase {
