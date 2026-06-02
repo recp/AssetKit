@@ -88,6 +88,59 @@ ak_test_write_obj_triangle(const char *path) {
   return fclose(file) == 0;
 }
 
+static
+AkGeometry *
+ak_test_make_triangle_geom(AkHeap *heap, void *parent, const float positions[9]) {
+  AkGeometry  *geom;
+  AkObject    *meshObj;
+  AkMesh      *mesh;
+  AkTriangles *tri;
+  AkInput     *pos;
+  AkAccessor  *acc;
+  AkBuffer    *buff;
+
+  geom    = ak_heap_calloc(heap, parent, sizeof(*geom));
+  meshObj = ak_objAlloc(heap, geom, sizeof(*mesh), AK_GEOMETRY_MESH, true);
+  mesh    = ak_objGet(meshObj);
+  tri     = ak_heap_calloc(heap, meshObj, sizeof(*tri));
+  pos     = ak_heap_calloc(heap, tri, sizeof(*pos));
+  acc     = ak_heap_calloc(heap, pos, sizeof(*acc));
+  buff    = ak_heap_calloc(heap, acc, sizeof(*buff));
+
+  buff->length = sizeof(float) * 9;
+  buff->data   = ak_heap_alloc(heap, buff, buff->length);
+  memcpy(buff->data, positions, buff->length);
+
+  acc->buffer                 = buff;
+  acc->byteLength             = buff->length;
+  acc->byteStride             = sizeof(float) * 3;
+  acc->fillByteSize           = sizeof(float) * 3;
+  acc->bytesPerComponent      = sizeof(float);
+  acc->componentSize          = AK_COMPONENT_SIZE_VEC3;
+  acc->componentType          = AKT_FLOAT;
+  acc->originalComponentType  = AKT_FLOAT;
+  acc->componentCount         = 3;
+  acc->count                  = 3;
+
+  pos->accessor = acc;
+  pos->semantic = AK_INPUT_POSITION;
+
+  tri->base.mesh      = mesh;
+  tri->base.pos       = pos;
+  tri->base.input     = pos;
+  tri->base.type      = AK_PRIMITIVE_TRIANGLES;
+  tri->base.nPolygons = 1;
+  tri->mode           = AK_TRIANGLES;
+
+  mesh->geom           = geom;
+  mesh->primitive      = (AkMeshPrimitive *)tri;
+  mesh->primitiveCount = 1;
+
+  geom->gdata = meshObj;
+
+  return geom;
+}
+
 TEST_IMPL(instance_attach_helpers) {
   AkHeap             *heap;
   AkNode             *node, *subNode;
@@ -194,6 +247,56 @@ TEST_IMPL(node_instance_bbox_traversal) {
   ASSERT(scene->bbox->min[0] == 0.0f);
   ASSERT(scene->bbox->max[0] == 11.0f);
 
+  bboxB->min[0] = 5.0f;
+  bboxB->max[0] = 6.0f;
+  ak_bbox_scene(scene);
+
+  ASSERT(scene->bbox->min[0] == 0.0f);
+  ASSERT(scene->bbox->max[0] == 6.0f);
+
+  ak_heap_destroy(heap);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(node_instance_bbox_lazy_geometry) {
+  AkHeap     *heap;
+  AkScene    *scene;
+  AkNode     *root, *target;
+  AkGeometry *geom;
+  const float positions[9] = {
+    0.0f, 0.0f, 0.0f,
+    1.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f
+  };
+
+  heap   = ak_heap_new(NULL, NULL, NULL);
+  scene  = ak_heap_calloc(heap, NULL, sizeof(*scene));
+  root   = ak_heap_calloc(heap, scene, sizeof(*root));
+  target = ak_heap_calloc(heap, NULL, sizeof(*target));
+  geom   = ak_test_make_triangle_geom(heap, NULL, positions);
+
+  scene->node = root;
+
+  ASSERT(geom->bbox == NULL);
+  ASSERT(ak_nodeAttachGeometry(target, geom) != NULL);
+  ASSERT(ak_nodeAttachNodeRef(root, target) != NULL);
+
+  ak_bbox_scene(scene);
+
+  ASSERT(geom->bbox != NULL);
+  ASSERT(geom->bbox->isvalid);
+  ASSERT(scene->bbox != NULL);
+  ASSERT(scene->bbox->isvalid);
+  ASSERT(isfinite(scene->bbox->min[0]));
+  ASSERT(isfinite(scene->bbox->max[0]));
+  ASSERT(scene->bbox->min[0] == 0.0f);
+  ASSERT(scene->bbox->max[0] == 1.0f);
+  ASSERT(scene->bbox->min[1] == 0.0f);
+  ASSERT(scene->bbox->max[1] == 1.0f);
+  ASSERT(scene->bbox->min[2] == 0.0f);
+  ASSERT(scene->bbox->max[2] == 0.0f);
+
   ak_heap_destroy(heap);
 
   TEST_SUCCESS
@@ -253,6 +356,57 @@ TEST_IMPL(node_instance_bbox_path_state) {
   ASSERT(scene->bbox->isvalid);
   ASSERT(scene->bbox->min[0] == 0.0f);
   ASSERT(scene->bbox->max[0] == 11.0f);
+  ASSERT(target->matrixWorld == NULL);
+
+  ak_heap_destroy(heap);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(node_instance_bbox_rotated_ref) {
+  AkHeap        *heap;
+  AkScene       *scene;
+  AkNode        *root, *target;
+  AkGeometry    *geom;
+  AkBoundingBox *bbox;
+  float          rotZ45[16] = {
+    0.70710678f, 0.70710678f, 0.0f, 0.0f,
+   -0.70710678f, 0.70710678f, 0.0f, 0.0f,
+    0.0f,        0.0f,        1.0f, 0.0f,
+    0.0f,        0.0f,        0.0f, 1.0f
+  };
+
+  heap   = ak_heap_new(NULL, NULL, NULL);
+  scene  = ak_heap_calloc(heap, NULL, sizeof(*scene));
+  root   = ak_heap_calloc(heap, scene, sizeof(*root));
+  target = ak_heap_calloc(heap, NULL, sizeof(*target));
+  geom   = ak_heap_calloc(heap, NULL, sizeof(*geom));
+  bbox   = ak_heap_calloc(heap, geom, sizeof(*bbox));
+
+  scene->node = root;
+
+  bbox->min[0] = 0.0f;
+  bbox->min[1] = 0.0f;
+  bbox->min[2] = 0.0f;
+  bbox->max[0] = 1.0f;
+  bbox->max[1] = 1.0f;
+  bbox->max[2] = 0.0f;
+  bbox->isvalid = true;
+  geom->bbox = bbox;
+
+  ak_nodeSetTransformMatrix(root, rotZ45);
+
+  ASSERT(ak_nodeAttachGeometry(target, geom) != NULL);
+  ASSERT(ak_nodeAttachNodeRef(root, target) != NULL);
+
+  ak_bbox_scene(scene);
+
+  ASSERT(scene->bbox != NULL);
+  ASSERT(scene->bbox->isvalid);
+  ASSERT(fabsf(scene->bbox->min[0] + 0.70710678f) < 0.001f);
+  ASSERT(fabsf(scene->bbox->max[0] - 0.70710678f) < 0.001f);
+  ASSERT(fabsf(scene->bbox->min[1]) < 0.001f);
+  ASSERT(fabsf(scene->bbox->max[1] - 1.41421356f) < 0.001f);
   ASSERT(target->matrixWorld == NULL);
 
   ak_heap_destroy(heap);

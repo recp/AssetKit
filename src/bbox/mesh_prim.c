@@ -31,8 +31,9 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
   size_t      i, count, byteStride;
   bool        exactCenter;
 
-  mesh    = prim->mesh;
-  geom    = mesh->geom;
+  if (!prim || !(mesh = prim->mesh) || !(geom = mesh->geom))
+    return;
+
   posbuff = NULL;
   acc     = NULL;
 
@@ -170,8 +171,14 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
     ak_bbox_invalidate(geom->bbox);
   }
 
+  if (count == 0) {
+    ak_bbox_invalidate(prim->bbox);
+    return;
+  }
+
   glm_vec3_copy(min, prim->bbox->min);
   glm_vec3_copy(max, prim->bbox->max);
+  prim->bbox->isvalid = true;
 
   ak_bbox_pick_pbox(mesh->bbox, prim->bbox);
   ak_bbox_pick_pbox(geom->bbox, mesh->bbox);
@@ -181,7 +188,7 @@ ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim) {
     glm_vec3_center(prim->bbox->min, prim->bbox->max, prim->center);
   } else if (count > 0) {
     /* calculate exact center of primitive */
-    glm_vec3_divs(center, (float)count, center);
+    glm_vec3_divs(center, (float)count, prim->center);
   } else {
     glm_vec3_zero(prim->center);
   }

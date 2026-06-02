@@ -18,19 +18,26 @@
 
 void
 ak_bbox_mesh(struct AkMesh * __restrict mesh) {
+  AkHeap          *heap;
   AkMeshPrimitive *prim;
   vec3             center;
-  int32_t          primcount;
+  int32_t          primcount, validPrimCount;
+
+  if (!mesh)
+    return;
 
   primcount = 0;
   prim      = mesh->primitive;
+  heap      = ak_heap_getheap(ak_objFrom(mesh));
 
   if (!mesh->bbox)
-    mesh->bbox = ak_heap_calloc(ak_heap_getheap(prim),
+    mesh->bbox = ak_heap_calloc(heap,
                                 ak_objFrom(mesh),
                                 sizeof(*mesh->bbox));
 
   ak_bbox_invalidate(mesh->bbox);
+  if (mesh->geom && mesh->geom->bbox)
+    ak_bbox_invalidate(mesh->geom->bbox);
   
   while (prim) {
     ak_bbox_mesh_prim(prim);
@@ -41,20 +48,26 @@ ak_bbox_mesh(struct AkMesh * __restrict mesh) {
   /* compute centroid */
 
   if (!ak_opt_get(AK_OPT_COMPUTE_EXACT_CENTER)) {
-    ak_bbox_center(mesh->bbox, mesh->center);
+    if (mesh->bbox->isvalid)
+      ak_bbox_center(mesh->bbox, mesh->center);
+    else
+      glm_vec3_zero(mesh->center);
   } else {
     glm_vec3_zero(center);
 
     /* calculate exact center of primitive */
     if (primcount > 0) {
+      validPrimCount = 0;
+      prim = mesh->primitive;
       while (prim) {
-        ak_bbox_mesh_prim(prim);
-
-        glm_vec3_add(prim->center, center, center);
-        primcount++;
+        if (prim->bbox && prim->bbox->isvalid) {
+          glm_vec3_add(prim->center, center, center);
+          validPrimCount++;
+        }
         prim = prim->next;
       }
-      glm_vec3_divs(center, (float)primcount, mesh->center);
+      if (validPrimCount > 0)
+        glm_vec3_divs(center, (float)validPrimCount, mesh->center);
     }
   }
 }

@@ -25,6 +25,7 @@ void
 ak_bbox_invalidate(AkBoundingBox * __restrict bbox) {
   glm_vec3_broadcast(FLT_MAX,  bbox->min);
   glm_vec3_broadcast(-FLT_MAX, bbox->max);
+  bbox->isvalid = false;
 }
 
 void

@@ -26,8 +26,12 @@ ak_bbox_pick(vec3 min, vec3 max, vec3 vec) {
 void
 ak_bbox_pick_pbox(AkBoundingBox *parent,
                   AkBoundingBox *chld) {
+  if (!chld || !chld->isvalid)
+    return;
+
   glm_vec3_minv(parent->min, chld->min, parent->min);
   glm_vec3_maxv(parent->max, chld->max, parent->max);
+  parent->isvalid = true;
 }
 
 void
@@ -39,6 +43,7 @@ ak_bbox_pick_pbox2(AkBoundingBox *parent,
 
   glm_vec3_maxv(parent->max, vec1, parent->max);
   glm_vec3_maxv(parent->max, vec2, parent->max);
+  parent->isvalid = true;
 }
 
 void

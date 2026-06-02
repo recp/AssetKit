@@ -20,7 +20,9 @@ void
 ak_bbox_geom(struct AkGeometry * __restrict geom) {
   AkObject *primitive;
 
-  primitive = geom->gdata;
+  if (!geom || !(primitive = geom->gdata))
+    return;
+
   switch ((AkGeometryType)primitive->type) {
     case AK_GEOMETRY_MESH:
       ak_bbox_mesh(ak_objGet(primitive));

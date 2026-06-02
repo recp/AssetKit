@@ -28,6 +28,22 @@ ak_bbox_node(AkHeap  * __restrict heap,
 
 static
 void
+ak_bbox_pick_transformed(AkBoundingBox * __restrict sceneBox,
+                         AkBoundingBox * __restrict localBox,
+                         mat4                       matrixWorld) {
+  vec3 box[2], transformed[2];
+
+  if (!sceneBox || !localBox || !localBox->isvalid)
+    return;
+
+  glm_vec3_copy(localBox->min, box[0]);
+  glm_vec3_copy(localBox->max, box[1]);
+  glm_aabb_transform(box, matrixWorld, transformed);
+  ak_bbox_pick_pbox2(sceneBox, transformed[0], transformed[1]);
+}
+
+static
+void
 ak_bbox_node(AkHeap  * __restrict heap,
              AkScene * __restrict scene,
              AkNode  * __restrict node,
@@ -35,6 +51,9 @@ ak_bbox_node(AkHeap  * __restrict heap,
              bool                 cacheWorld) {
   mat4      matrixWorldStack;
   AkFloat  (*matrixWorld)[4];
+
+  if (!node)
+    return;
 
   if (!node->matrix)
     node->matrix = ak_heap_alloc(heap,
@@ -58,35 +77,22 @@ ak_bbox_node(AkHeap  * __restrict heap,
     AkInstanceBase *geomInst;
     AkGeometry     *geom;
     AkBoundingBox   bbox;
-    vec4            min, max;
 
-    glm_vec3_broadcast(FLT_MAX, bbox.min);
-    glm_vec3_broadcast(-FLT_MAX, bbox.max);
-    min[3] = max[3] = 1.0f;
+    ak_bbox_invalidate(&bbox);
 
     /* find bbox for node to avoid extra calc */
     geomInst = &node->geometry->base;
     while (geomInst) {
       geom = ak_instanceObject(geomInst);
-      if (geom && geom->bbox)
+      if (geom && geom->gdata && (!geom->bbox || !geom->bbox->isvalid))
+        ak_bbox_geom(geom);
+      if (geom && geom->bbox && geom->bbox->isvalid)
         ak_bbox_pick_pbox(&bbox, geom->bbox);
 
       geomInst = geomInst->next;
     }
 
-    glm_vec3_copy(bbox.min, min);
-    glm_vec3_copy(bbox.max, max);
-
-    glm_mat4_mulv(matrixWorld, min, min);
-    glm_mat4_mulv(matrixWorld, max, max);
-
-    if (scene->bbox->isvalid) {
-      ak_bbox_pick_pbox2(scene->bbox, min, max);
-    } else {
-      glm_vec3_copy(min, scene->bbox->min);
-      glm_vec3_copy(max, scene->bbox->max);
-      scene->bbox->isvalid = true;
-    }
+    ak_bbox_pick_transformed(scene->bbox, &bbox, matrixWorld);
   }
 
   if (node->nodeRefs) {
@@ -114,12 +120,15 @@ ak_bbox_scene(struct AkScene * __restrict scene) {
   mat4    trans = GLM_MAT4_IDENTITY_INIT;
   AkHeap *heap;
 
+  if (!scene)
+    return;
+
   heap = ak_heap_getheap(scene);
 
-  if (!scene->bbox) {
+  if (!scene->bbox)
     scene->bbox = ak_heap_calloc(heap, scene, sizeof(*scene->bbox));
-    ak_bbox_invalidate(scene->bbox);
-  }
+
+  ak_bbox_invalidate(scene->bbox);
 
   if (scene->node)
     ak_bbox_node(heap, scene, scene->node, trans, true);
