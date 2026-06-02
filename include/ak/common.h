@@ -23,6 +23,7 @@
 #include <float.h>
 #include <stdbool.h>
 #include <errno.h>
+#include <limits.h>
 #include <math.h>
 
 #ifdef DEBUG
@@ -107,9 +108,10 @@ typedef struct AkTwoWayIterBase {
     size_t dirLength, newPathLength;                                          \
                                                                               \
     dirLength     = strlen(DOC->inf->dir);                                    \
-    newPathLength = dirLength + strlen(FILE_NAME) + 1;                        \
+    newPathLength = dirLength + strlen(FILE_NAME) + 2;                        \
                                                                               \
-    DEST = alloca(newPathLength + 1);                                         \
+    if (newPathLength > PATH_MAX) { DEST = NULL; break; }                     \
+    DEST = alloca(newPathLength);                                         \
     strcpy(DEST, DOC->inf->dir);                                              \
     if (DOC->inf->dir[dirLength - 1] != '/' && FILE_NAME[0] != '/') {         \
       strcat(DEST, "/");                                                      \
