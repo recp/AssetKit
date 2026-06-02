@@ -275,7 +275,8 @@ if(AK_BUILD_GLTF_DRACO_DECODER)
   endif()
 
   add_library(assetkit_draco SHARED
-              src/decoders/gltf/draco/assetkit_draco.cc)
+              src/decoders/gltf/draco/assetkit_draco.cc
+              src/decoders/gltf/draco/assetkit_draco_bridge.c)
   ak_target_cxx_options(assetkit_draco)
   if(TARGET assetkit_draco_dep)
     add_dependencies(assetkit_draco assetkit_draco_dep)
@@ -367,7 +368,8 @@ if(AK_BUILD_GLTF_MESHOPT_DECODER)
   ak_target_cxx_options(assetkit_meshoptimizer)
   target_include_directories(assetkit_meshoptimizer
       PRIVATE
-          ${AK_MESHOPT_INCLUDE_DIR})
+          ${AK_MESHOPT_INCLUDE_DIR}
+          ${CMAKE_CURRENT_SOURCE_DIR}/include)
   set_target_properties(assetkit_meshoptimizer PROPERTIES
                         CXX_STANDARD 11
                         CXX_STANDARD_REQUIRED YES

@@ -56,8 +56,6 @@
 #  define AK_GSPLAT_EXPORT __attribute__((visibility("default")))
 #endif
 
-typedef struct json_t          json_t;
-
 /*--------------------------------------------------------------------*/
 /* AssetKit accessor + buffer helpers, scoped to this shim. We mirror */
 /* the Draco shim's storage strategy: each decoded attribute lives in */
@@ -165,8 +163,8 @@ extern "C" AK_GSPLAT_EXPORT
 int
 ak_spz_decodePrimitive(struct AkGLTFState    *gst_opaque,
                        AkMeshPrimitive       *prim,
-                       const json_t          * /*jprim*/,
-                       const json_t          *jcompression) {
+                       const struct json_t   * /*jprim*/,
+                       const struct json_t   *jcompression) {
   if (!gst_opaque || !prim || !jcompression)
     return -1;
 

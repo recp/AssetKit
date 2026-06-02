@@ -42,29 +42,6 @@ struct AkGLTFSPZLib {
   bool                             tried;
 };
 
-typedef struct AkKTX2MipLevel {
-  uint32_t width;
-  uint32_t height;
-  uint32_t byteOffset;
-  uint32_t byteLength;
-} AkKTX2MipLevel;
-
-typedef struct AkKTX2DecodedImage {
-  uint8_t        *data;
-  size_t          dataLength;
-  uint32_t        width;
-  uint32_t        height;
-  uint32_t        channels;
-  uint32_t        mipCount;
-  AkKTX2MipLevel *mips;
-  uint32_t        reserved[2];
-} AkKTX2DecodedImage;
-
-typedef int
-(*AkKTX2DecodeFn)(const uint8_t     *data,
-                  size_t             size,
-                  AkKTX2DecodedImage *out);
-
 struct AkGLTFKTX2Lib {
   void          *lib;
   AkKTX2DecodeFn decode;

@@ -130,6 +130,40 @@ typedef struct AkTextureRef {
   AkTextureTransform *transform;
 } AkTextureRef;
 
+/* KTX2/BasisU side-decoder ABI. Optional decoder shims and the glTF host
+   include this public layout instead of duplicating it across libraries. */
+typedef struct AkKTX2MipLevel {
+  uint32_t width;
+  uint32_t height;
+  uint32_t byteOffset;
+  uint32_t byteLength;
+} AkKTX2MipLevel;
+
+typedef struct AkKTX2DecodedImage {
+  uint8_t        *data;
+  size_t          dataLength;
+  uint32_t        width;
+  uint32_t        height;
+  uint32_t        channels;
+  uint32_t        mipCount;
+  AkKTX2MipLevel *mips;
+  uint32_t        reserved[2];
+} AkKTX2DecodedImage;
+
+typedef int
+(*AkKTX2DecodeFn)(const uint8_t      *data,
+                  size_t              size,
+                  AkKTX2DecodedImage *out);
+
+typedef struct AkKTX2Decoder {
+  void          *userdata;
+  AkKTX2DecodeFn decode;
+  void         (*close)(void *ud);
+} AkKTX2Decoder;
+
+typedef int
+(*AkKTX2DecoderCreateFn)(AkKTX2Decoder *out);
+
 AK_INLINE
 AkTextureRef*
 ak_texref_usage(AkTextureRef        *texref,

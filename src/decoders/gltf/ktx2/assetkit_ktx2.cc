@@ -39,6 +39,8 @@
 
 #include <ktx.h>
 
+#include <ak/assetkit.h>
+
 #include <algorithm>
 #include <cstdint>
 #include <cstdlib>
@@ -49,51 +51,6 @@
 #else
 #  define AK_KTX2_EXPORT __attribute__((visibility("default")))
 #endif
-
-/*--------------------------------------------------------------------*/
-/* Decoded image descriptor returned to AssetKit. The shim allocates  */
-/* `data` with malloc; the caller must `free` it after copying into   */
-/* an AkBuffer (or hand ownership over). Mirrors the simple pattern   */
-/* of WebP/HEIF decoder shims commonly found in 3D asset toolchains.  */
-/*--------------------------------------------------------------------*/
-
-extern "C" {
-
-/* Per-mip descriptor inside the decoded image's flat buffer. */
-typedef struct AkKTX2MipLevel {
-  uint32_t width;
-  uint32_t height;
-  uint32_t byteOffset;   /* offset into AkKTX2DecodedImage.data */
-  uint32_t byteLength;   /* width × height × channels */
-} AkKTX2MipLevel;
-
-typedef struct AkKTX2DecodedImage {
-  uint8_t        *data;       /* RGBA8 pixel storage, all mips concatenated */
-  size_t          dataLength; /* total bytes across all mips */
-  uint32_t        width;      /* base mip width  */
-  uint32_t        height;     /* base mip height */
-  uint32_t        channels;   /* 4 for RGBA8 */
-  uint32_t        mipCount;   /* number of mip levels stored */
-  AkKTX2MipLevel *mips;       /* array of length `mipCount`; allocated with malloc;
-                                 caller frees with `free(mips)` after consuming */
-  /* Reserved: KTX2 carries cubemap face count, layer count, srgb flag.
-     For the assetlook bridge we only care about 2D mip pyramids. */
-  uint32_t        reserved[2];
-} AkKTX2DecodedImage;
-
-typedef struct AkKTX2Decoder {
-  void *userdata;
-  /* Decode a KTX2 byte buffer to RGBA8. Returns 0 on success. The
-     caller frees `out->data` via `free()` once consumed. */
-  int  (*decode)(const uint8_t      *data,
-                 size_t              size,
-                 AkKTX2DecodedImage *out);
-  void (*close)(void *ud);
-} AkKTX2Decoder;
-
-typedef int (*AkKTX2DecoderCreateFn)(AkKTX2Decoder *out);
-
-}  /* extern "C" */
 
 /*--------------------------------------------------------------------*/
 /* libktx integration.                                                 */

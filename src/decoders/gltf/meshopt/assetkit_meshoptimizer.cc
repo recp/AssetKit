@@ -16,6 +16,8 @@
 
 #include <stddef.h>
 
+#include <ak/assetkit.h>
+
 #include "meshoptimizer.h"
 
 #if defined(_WIN32)
