@@ -253,11 +253,11 @@ gltf_materialInitSurface(AkGLTFState       * __restrict gst,
 
 AK_HIDE
 AkMaterial*
-gltf_default_mat(AkGLTFState *gst, AkLibrary *libmat) {
+gltf_default_mat(AkGLTFState *gst) {
   AkMaterial        *mat;
   AkMaterialSurface *surface;
 
-  mat     = ak_heap_calloc(gst->heap, libmat, sizeof(*mat));
+  mat     = ak_heap_calloc(gst->heap, gst->doc, sizeof(*mat));
   surface = ak_heap_calloc(gst->heap, mat,    sizeof(*surface));
   gltf_materialInitSurface(gst, surface);
   mat->surface = surface;
@@ -922,16 +922,13 @@ gltf_materials(json_t * __restrict jmaterial,
   AkHeap             *heap;
   AkDoc              *doc;
   const json_array_t *jmaterials;
-  AkLibrary          *libmat;
   size_t              materialIndex;
 
   gst          = userdata;
   heap         = gst->heap;
   doc          = gst->doc;
-  libmat       = ak_heap_calloc(heap, doc, sizeof(*libmat));
-  doc->lib.materials = libmat;
 
-  gst->defaultMaterial = gltf_default_mat(gst, libmat);
+  gst->defaultMaterial = gltf_default_mat(gst);
 
   if (!(jmaterials = json_array(jmaterial)))
     return;
@@ -948,7 +945,7 @@ gltf_materials(json_t * __restrict jmaterial,
     AkMaterial        *mat;
     AkMaterialSurface *surface;
 
-    mat     = ak_heap_calloc(heap, libmat, sizeof(*mat));
+    mat     = ak_heap_calloc(heap, doc, sizeof(*mat));
     surface = ak_heap_calloc(heap, mat,    sizeof(*surface));
     gltf_materialInitSurface(gst, surface);
     mat->surface = surface;
@@ -1117,9 +1114,7 @@ gltf_materials(json_t * __restrict jmaterial,
       jmatVal = jmatVal->next;
     }
 
-    mat->base.next = libmat->chld;
-    libmat->chld   = (void *)mat;
-    libmat->count++;
+    AK_LIB_PREPEND(doc->lib.materials, mat, next);
     if (materialIndex > 0)
       gst->materialsByIndex[--materialIndex] = mat;
 

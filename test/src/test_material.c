@@ -195,10 +195,10 @@ AkMaterial*
 test_material_by_name(AkDoc *doc, const char *name) {
   AkMaterial *mat;
 
-  if (!doc || !doc->lib.materials)
+  if (!doc || !doc->lib.materials.first)
     return NULL;
 
-  for (mat = (void *)doc->lib.materials->chld; mat; mat = (void *)mat->base.next) {
+  for (mat = doc->lib.materials.first; mat; mat = mat->next) {
     if (mat->name && strcmp(mat->name, name) == 0)
       return mat;
   }
@@ -211,7 +211,7 @@ AkMaterial*
 test_first_primitive_material(AkDoc *doc) {
   AkGeometry *geom;
 
-  for (geom = ak_libFirstGeom(doc); geom; geom = (AkGeometry *)geom->base.next) {
+  for (geom = doc ? doc->lib.geometries.first : NULL; geom; geom = geom->next) {
     AkMesh *mesh;
 
     if (!geom->gdata)

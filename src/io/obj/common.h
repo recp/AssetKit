@@ -92,7 +92,7 @@ typedef struct WOState {
   AkHeap        *heap;
   AkDoc         *doc;
   void          *tmp;
-  AkLibrary     *lib_geom;
+  AkGeometryLib *lib_geom;
   AkNode        *node;
   WOMtlLib      *mtlib;
   AkDataContext *dc_pos, *dc_tex, *dc_nor, *dc_col;

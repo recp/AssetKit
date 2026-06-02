@@ -339,7 +339,6 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
   AkDoc         *doc;
   void          *plystr;
   char          *p, *b, *e;
-  AkLibrary     *lib_vscene;
   AkVisualScene *scene;
   PLYElement    *elem;
   PLYProperty   *prop, *pit;
@@ -384,17 +383,11 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
   ak_heap_setdata(heap, doc);
   ak_id_newheap(heap);
 
-  /* libraries */
-  doc->lib.geometries = ak_heap_calloc(heap, doc, sizeof(AkLibrary));
-  lib_vscene          = ak_heap_calloc(heap, doc, sizeof(*lib_vscene));
-
   /* default scene */
   scene                  = ak_heap_calloc(heap, doc, sizeof(*scene));
   scene->node            = ak_heap_calloc(heap, doc, sizeof(*scene->node));
   scene->node->visible   = true;
-  lib_vscene->chld       = &scene->base;
-  lib_vscene->count      = 1;
-  doc->lib.visualScenes  = lib_vscene;
+  AK_LIB_PREPEND(doc->lib.visualScenes, scene, next);
   doc->scene.visualScene = ak_instanceMake(heap, doc, scene);
 
   /* parse state */
@@ -404,7 +397,7 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
   pstVal.heap      = heap;
   pstVal.tmp = ak_heap_alloc(heap, doc, sizeof(void*));
   pstVal.node      = scene->node;
-  pstVal.lib_geom  = doc->lib.geometries;
+  pstVal.lib_geom  = &doc->lib.geometries;
 
   isAscii        = false;
   isLittleEndian = false;
@@ -651,7 +644,7 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
       pst->vertBuffsize  = off * elem->count;
       elem->buff->length = pst->vertBuffsize;
       elem->buff->data   = ak_heap_alloc(heap, elem->buff, elem->buff->length);
-      flist_sp_insert(&pst->doc->lib.buffers, elem->buff);
+      AK_LIB_PREPEND(pst->doc->lib.buffers, elem->buff, next);
 
       /* prepare accessors' misssing params */
       if (pst->ac_pos) {
@@ -816,12 +809,10 @@ ply_finish(PLYState * __restrict pst) {
   /* Buffer > Accessor > Input > Prim > Mesh > Geom > InstanceGeom > Node */
   
   heap = pst->heap;
-  mesh = ak_allocMesh(pst->heap, pst->lib_geom, &geom);
+  mesh = ak_allocMesh(pst->heap, pst->doc, &geom);
 
   /* add to library */
-  geom->base.next      = pst->lib_geom->chld;
-  pst->lib_geom->chld  = &geom->base;
-  pst->lib_geom->count = 1;
+  AK_LIB_PREPEND(*pst->lib_geom, geom, next);
   
   /* make instance geeometry and attach to the root node  */
   instGeom = ak_instanceMakeGeom(heap, pst->node, geom);

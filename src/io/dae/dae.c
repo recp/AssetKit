@@ -136,7 +136,11 @@ dae_lib(DAEState   * __restrict dst,
         xml_t      * __restrict xml,
         const char * __restrict name,
         AkLoadLibraryItemFn     loadfn,
-        AkLibrary ** __restrict dest);
+        void      ** __restrict dest,
+        void      ** __restrict lastDest,
+        uint32_t   * __restrict countDest,
+        size_t                  nextOffset,
+        DAELibrary ** __restrict librecDest);
 
 AK_HIDE
 AkResult
@@ -149,7 +153,6 @@ dae_doc(AkDoc     ** __restrict dest,
   AkAssetInf        *inf;
   xml_attr_t        *versionAttr;
   void              *xmlString;
-  AkLibraries       *libs;
   FListItem         *freeUsrData;
   DAEState           dstVal, *dst;
   size_t             xmlSize;
@@ -227,7 +230,6 @@ dae_doc(AkDoc     ** __restrict dest,
     }
   }
   
-  libs    = &doc->lib;
   assetEl = NULL;
   xml     = xml->val;
 
@@ -245,44 +247,94 @@ dae_doc(AkDoc     ** __restrict dest,
     if (DAE_XML_TAG_EQ(xml, lib_cameras)) {
       DAE_PROFILE_CALL(profile,
                        "library_cameras",
-                       dae_lib(dst, xml, _s_dae_camera, dae_cam, &libs->cameras));
+                       dae_lib(dst, xml, _s_dae_camera, dae_cam,
+                               (void **)&doc->lib.cameras.first,
+                               (void **)&doc->lib.cameras.last,
+                               &doc->lib.cameras.count,
+                               offsetof(AkCamera, next),
+                               NULL));
     } else if (DAE_XML_TAG_EQ(xml, lib_lights)) {
       DAE_PROFILE_CALL(profile,
                        "library_lights",
-                       dae_lib(dst, xml, _s_dae_light, dae_light, &libs->lights));
+                       dae_lib(dst, xml, _s_dae_light, dae_light,
+                               (void **)&doc->lib.lights.first,
+                               (void **)&doc->lib.lights.last,
+                               &doc->lib.lights.count,
+                               offsetof(AkLight, next),
+                               NULL));
     } else if (DAE_XML_TAG_EQ(xml, lib_geometries)) {
       DAE_PROFILE_CALL(profile,
                        "library_geometries",
-                       dae_lib(dst, xml, _s_dae_geometry, dae_geom, &libs->geometries));
+                       dae_lib(dst, xml, _s_dae_geometry, dae_geom,
+                               (void **)&doc->lib.geometries.first,
+                               (void **)&doc->lib.geometries.last,
+                               &doc->lib.geometries.count,
+                               offsetof(AkGeometry, next),
+                               NULL));
       dae_profile_log_geometry(dst);
     } else if (DAE_XML_TAG_EQ(xml, lib_effects)) {
       DAE_PROFILE_CALL(profile,
                        "library_effects",
-                       dae_lib(dst, xml, _s_dae_effect, dae_effect, &libs->effects));
+                       dae_lib(dst, xml, _s_dae_effect, dae_effect,
+                               (void **)&dst->effects,
+                               NULL,
+                               NULL,
+                               offsetof(AkEffect, next),
+                               &dst->effectLibraries));
     } else if (DAE_XML_TAG_EQ(xml, lib_images)) {
       DAE_PROFILE_CALL(profile,
                        "library_images",
-                       dae_lib(dst, xml, _s_dae_image, dae_image, &libs->libimages));
+                       dae_lib(dst, xml, _s_dae_image, dae_image,
+                               (void **)&doc->lib.images.first,
+                               (void **)&doc->lib.images.last,
+                               &doc->lib.images.count,
+                               offsetof(AkImage, next),
+                               NULL));
     } else if (DAE_XML_TAG_EQ(xml, lib_materials)) {
       DAE_PROFILE_CALL(profile,
                        "library_materials",
-                       dae_lib(dst, xml, _s_dae_material, dae_material, &libs->materials));
+                       dae_lib(dst, xml, _s_dae_material, dae_material,
+                               (void **)&doc->lib.materials.first,
+                               (void **)&doc->lib.materials.last,
+                               &doc->lib.materials.count,
+                               offsetof(AkMaterial, next),
+                               NULL));
     } else if (DAE_XML_TAG_EQ(xml, lib_controllers)) {
       DAE_PROFILE_CALL(profile,
                        "library_controllers",
-                       dae_lib(dst, xml, _s_dae_controller, dae_ctlr, &libs->controllers));
+                       dae_lib(dst, xml, _s_dae_controller, dae_ctlr,
+                               (void **)&dst->controllers,
+                               NULL,
+                               NULL,
+                               offsetof(AkController, next),
+                               &dst->controllerLibraries));
     } else if (DAE_XML_TAG_EQ(xml, lib_visual_scenes)) {
       DAE_PROFILE_CALL(profile,
                        "library_visual_scenes",
-                       dae_lib(dst, xml, _s_dae_visual_scene, dae_vscene, &libs->visualScenes));
+                       dae_lib(dst, xml, _s_dae_visual_scene, dae_vscene,
+                               (void **)&doc->lib.visualScenes.first,
+                               (void **)&doc->lib.visualScenes.last,
+                               &doc->lib.visualScenes.count,
+                               offsetof(AkVisualScene, next),
+                               NULL));
     } else if (DAE_XML_TAG_EQ(xml, lib_nodes)) {
       DAE_PROFILE_CALL(profile,
                        "library_nodes",
-                       dae_lib(dst, xml, _s_dae_node, dae_node2, &libs->nodes));
+                       dae_lib(dst, xml, _s_dae_node, dae_node2,
+                               (void **)&doc->lib.nodes.first,
+                               (void **)&doc->lib.nodes.last,
+                               &doc->lib.nodes.count,
+                               offsetof(AkNode, docNext),
+                               &dst->nodeLibraries));
     } else if (DAE_XML_TAG_EQ(xml, lib_animations)) {
       DAE_PROFILE_CALL(profile,
                        "library_animations",
-                       dae_lib(dst, xml, _s_dae_animation, dae_anim, &libs->animations));
+                       dae_lib(dst, xml, _s_dae_animation, dae_anim,
+                               (void **)&doc->lib.animations.first,
+                               (void **)&doc->lib.animations.last,
+                               &doc->lib.animations.count,
+                               offsetof(AkAnimation, next),
+                               NULL));
     } else if (DAE_XML_TAG_EQ8(xml, scene)) {
       DAE_PROFILE_CALL(profile, "scene", dae_scene(dst, xml));
     }
@@ -351,26 +403,28 @@ dae_lib(DAEState   * __restrict dst,
         xml_t      * __restrict xml,
         const char * __restrict name,
         AkLoadLibraryItemFn     loadfn,
-        AkLibrary ** __restrict dest) {
-  AkHeap           *heap;
-  AkDoc            *doc;
-  AkLibrary        *lib;
-  AkOneWayIterBase *it;
-  size_t            namesize;
+        void      ** __restrict dest,
+        void      ** __restrict lastDest,
+        uint32_t   * __restrict countDest,
+        size_t                  nextOffset,
+        DAELibrary ** __restrict librecDest) {
+  AkHeap     *heap;
+  DAELibrary *lib;
+  char       *item, *tail;
+  size_t      namesize;
   
   heap      = dst->heap;
-  doc       = dst->doc;
   namesize  = strlen(name);
 
-  lib       = ak_heap_calloc(heap, doc, sizeof(*lib));
+  lib       = ak_heap_calloc(heap, dst->doc, sizeof(*lib));
   lib->name = DAE_XMLA_STRDUP8(xml, heap, name, lib);
 
   xml = xml->val;
   while (xml) {
     if (xml_tag_eqsz(xml, name, namesize)) {
-      if ((it = loadfn(dst, xml, lib))) {
-        it->next  = lib->chld;
-        lib->chld = it;
+      if ((item = loadfn(dst, xml, lib))) {
+        *(void **)(item + nextOffset) = lib->first;
+        lib->first = item;
         lib->count++;
       }
     } else if (DAE_XML_TAG_EQ8(xml, extra)) {
@@ -379,6 +433,20 @@ dae_lib(DAEState   * __restrict dst,
     xml = xml->next;
   }
 
-  lib->next = *dest;
-  *dest     = lib;
+  if (lib->first) {
+    tail = lib->first;
+    while (*(void **)(tail + nextOffset))
+      tail = *(void **)(tail + nextOffset);
+    *(void **)(tail + nextOffset) = *dest;
+    *dest = lib->first;
+    if (lastDest && !*lastDest)
+      *lastDest = tail;
+    if (countDest)
+      *countDest += (uint32_t)lib->count;
+  }
+
+  if (librecDest) {
+    lib->next   = *librecDest;
+    *librecDest = lib;
+  }
 }

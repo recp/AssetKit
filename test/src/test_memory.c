@@ -1112,7 +1112,7 @@ AkMeshPrimitive*
 ak_test_first_primitive(AkDoc *doc) {
   AkGeometry *geom;
 
-  for (geom = ak_libFirstGeom(doc); geom; geom = (AkGeometry *)geom->base.next) {
+  for (geom = doc ? doc->lib.geometries.first : NULL; geom; geom = geom->next) {
     AkMesh *mesh;
 
     if (!geom->gdata)
@@ -1131,10 +1131,10 @@ AkNode*
 ak_test_first_scene_node(AkDoc *doc) {
   AkVisualScene *scene;
 
-  if (!doc || !doc->lib.visualScenes || !doc->lib.visualScenes->chld)
+  if (!doc || !doc->lib.visualScenes.first)
     return NULL;
 
-  scene = (AkVisualScene *)doc->lib.visualScenes->chld;
+  scene = doc->lib.visualScenes.first;
   return scene->node;
 }
 
@@ -1158,7 +1158,7 @@ ak_test_primitive_type_count(AkDoc *doc, AkMeshPrimitiveType type) {
   uint32_t    count;
 
   count = 0;
-  for (geom = ak_libFirstGeom(doc); geom; geom = (AkGeometry *)geom->base.next) {
+  for (geom = doc ? doc->lib.geometries.first : NULL; geom; geom = geom->next) {
     AkMesh          *mesh;
     AkMeshPrimitive *prim;
 
@@ -1183,7 +1183,7 @@ AkMeshPrimitive*
 ak_test_primitive_of_type(AkDoc *doc, AkMeshPrimitiveType type) {
   AkGeometry *geom;
 
-  for (geom = ak_libFirstGeom(doc); geom; geom = (AkGeometry *)geom->base.next) {
+  for (geom = doc ? doc->lib.geometries.first : NULL; geom; geom = geom->next) {
     AkMesh          *mesh;
     AkMeshPrimitive *prim;
 
@@ -1225,7 +1225,7 @@ ak_test_collect_index_stats(AkDoc *doc, AkTestIndexStats *stats) {
 
   memset(stats, 0, sizeof(*stats));
 
-  for (geom = ak_libFirstGeom(doc); geom; geom = (AkGeometry *)geom->base.next) {
+  for (geom = doc ? doc->lib.geometries.first : NULL; geom; geom = geom->next) {
     AkMesh          *mesh;
     AkMeshPrimitive *prim;
 
@@ -1685,7 +1685,7 @@ TEST_IMPL(format_edge_cases) {
 
     smoothCount = 0;
     flatCount   = 0;
-    for (geom = ak_libFirstGeom(doc); geom; geom = (AkGeometry *)geom->base.next) {
+    for (geom = doc ? doc->lib.geometries.first : NULL; geom; geom = geom->next) {
       AkMesh          *mesh;
       AkMeshPrimitive *it;
 
@@ -1719,7 +1719,7 @@ TEST_IMPL(format_edge_cases) {
 
     triangleCount = 0;
     materialCount = 0;
-    for (geom = ak_libFirstGeom(doc); geom; geom = (AkGeometry *)geom->base.next) {
+    for (geom = doc ? doc->lib.geometries.first : NULL; geom; geom = geom->next) {
       AkMesh          *mesh;
       AkMeshPrimitive *it;
 

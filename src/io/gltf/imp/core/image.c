@@ -149,7 +149,7 @@ gltf_images(json_t * __restrict jimage,
       image->initFrom = initFrom;
     }
 
-    flist_sp_insert(&gst->doc->lib.images, image);
+    AK_LIB_PREPEND(gst->doc->lib.images, image, next);
     if (imageIndex > 0)
       gst->imagesByIndex[--imageIndex] = image;
     jimage = jimage->next;

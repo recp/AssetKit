@@ -155,7 +155,7 @@ dae_mesh_profile_report(void) {
 
 AK_HIDE
 AkResult
-dae_mesh_fixup(AkMesh * mesh) {
+dae_mesh_fixup(AkMesh * mesh, bool retainDuplicators) {
   AkMeshEditHelper *edith;
   AkHeap           *heap;
   AkDoc            *doc;
@@ -234,7 +234,7 @@ dae_mesh_fixup(AkMesh * mesh) {
   tFixIndices = profile ? dae_mesh_profile_now_ms() : 0.0;
   if (needsFixIndices)
     ak_meshFixIndicesDefaultRetainDuplicators(mesh,
-                                              doc->lib.controllers != NULL
+                                              retainDuplicators
                                               || mesh->skins != NULL);
   tFixIndices = profile ? dae_mesh_profile_now_ms() - tFixIndices : 0.0;
 

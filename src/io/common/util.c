@@ -19,7 +19,7 @@
 AK_HIDE
 AkMesh*
 ak_allocMeshEx(AkHeap      * __restrict heap,
-               AkLibrary   * __restrict memp,
+               void        * __restrict memp,
                AkGeometry ** __restrict geomLink,
                bool                      materialMap) {
   AkGeometry *geom;
@@ -49,7 +49,7 @@ ak_allocMeshEx(AkHeap      * __restrict heap,
 AK_HIDE
 AkMesh*
 ak_allocMesh(AkHeap      * __restrict heap,
-             AkLibrary   * __restrict memp,
+             void        * __restrict memp,
              AkGeometry ** __restrict geomLink) {
   return ak_allocMeshEx(heap, memp, geomLink, true);
 }
@@ -80,7 +80,7 @@ io_addInput(AkHeap          * __restrict heap,
   buff->length = dctx->usedsize;
   ak_data_join(dctx, buff->data, 0, 0);
   
-  flist_sp_insert(&doc->lib.buffers, buff);
+  AK_LIB_PREPEND(doc->lib.buffers, buff, next);
   
   acc                         = ak_heap_calloc(heap, doc, sizeof(*acc));
   acc->buffer                 = buff;
@@ -93,6 +93,7 @@ io_addInput(AkHeap          * __restrict heap,
   acc->componentCount         = nComponents;
   acc->fillByteSize           = typeDesc->size * nComponents;
   acc->count                  = (uint32_t)dctx->itemcount;
+  AK_LIB_PREPEND(doc->lib.accessors, acc, next);
 
   inp              = ak_heap_calloc(heap, prim, sizeof(*inp));
   inp->accessor    = acc;

@@ -22,15 +22,11 @@ AK_HIDE
 void
 gltf_mesh_fixup(AkGLTFState * __restrict gst) {
   AkDoc      *doc;
-  AkLibrary  *geomLib;
   AkGeometry *geom;
 
   doc = gst->doc;
 
-  geomLib = doc->lib.geometries;
-  while (geomLib) {
-    geom = (void *)geomLib->chld;
-    while (geom) {
+  for (geom = doc->lib.geometries.first; geom; geom = geom->next) {
       AkObject *primitive;
 
       primitive = geom->gdata;
@@ -57,9 +53,5 @@ gltf_mesh_fixup(AkGLTFState * __restrict gst) {
         default:
           break;
       }
-      geom = (void *)geom->base.next;
-    }
-
-    geomLib = geomLib->next;
   }
- }
+}

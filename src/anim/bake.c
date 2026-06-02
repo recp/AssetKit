@@ -199,12 +199,12 @@ bake_collectChannels(AkAnimation  * __restrict anim,
     }
 
     if (anim->animation) {
-      next = (AkAnimation *)anim->base.next;
+      next = anim->next;
       if (next && top < BAKE_MAX_ANIM_STACK)
         stack[top++] = next;
       anim = anim->animation;
-    } else if (anim->base.next) {
-      anim = (AkAnimation *)anim->base.next;
+    } else if (anim->next) {
+      anim = anim->next;
     } else if (top > 0) {
       anim = stack[--top];
     } else {
@@ -238,8 +238,7 @@ AK_EXPORT
 AkBakedAnimation *
 ak_nodeBakeAnimation(AkDoc  * __restrict doc,
                      AkNode * __restrict node) {
-  AkLibrary        *animLib;
-  AkOneWayIterBase *animIt;
+  AkAnimation      *animIt;
   AkObject         *xformObjects[BAKE_MAX_XFORM_OBJECTS];
   AkObject         *it;
   AkBakedAnimation *out;
@@ -279,12 +278,10 @@ ak_nodeBakeAnimation(AkDoc  * __restrict doc,
   actx.doc = doc;
   nBinds   = 0;
 
-  for (animLib = doc->lib.animations; animLib; animLib = animLib->next) {
-    for (animIt = animLib->chld; animIt; animIt = animIt->next) {
-      bake_collectChannels((AkAnimation *)animIt, &actx,
-                           xformObjects, nXform, binds, &nBinds);
-      if (nBinds >= BAKE_MAX_CHANNELS) break;
-    }
+  for (animIt = doc->lib.animations.first; animIt; animIt = animIt->next) {
+    bake_collectChannels(animIt, &actx,
+                         xformObjects, nXform, binds, &nBinds);
+    if (nBinds >= BAKE_MAX_CHANNELS) break;
   }
 
   if (nBinds == 0) return NULL;

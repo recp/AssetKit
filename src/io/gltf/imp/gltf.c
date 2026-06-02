@@ -323,11 +323,11 @@ err:
   
   /* set first scene as default scene if not specified  */
   if (!doc->scene.visualScene) {
-    if (doc->lib.visualScenes->chld) {
+    if (doc->lib.visualScenes.first) {
       AkInstanceBase *instScene;
       instScene = ak_heap_calloc(heap, doc, sizeof(*instScene));
       
-      instScene->url.ptr     = doc->lib.visualScenes->chld;
+      instScene->url.ptr     = doc->lib.visualScenes.first;
       doc->scene.visualScene = instScene;
     }
   }

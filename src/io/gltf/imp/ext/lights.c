@@ -91,10 +91,10 @@ gltf_ext_nodeLight(AkGLTFState * __restrict gst,
     return true;
 
   lightIndex = json_int32(jlight, -1);
-  if (lightIndex < 0 || !gst->doc->lib.lights)
+  if (lightIndex < 0 || !gst->doc->lib.lights.first)
     return false;
 
-  light = (void *)gst->doc->lib.lights->chld;
+  light = gst->doc->lib.lights.first;
   while (light && lightIndex > 0) {
     light = light->next;
     lightIndex--;

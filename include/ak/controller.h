@@ -79,7 +79,7 @@ typedef struct AkBoneWeights {
  * instance.
  */
 typedef struct AkSkin {
-  AkOneWayIterBase base;
+  struct AkSkin   *next;
   AkFloat4x4      *invBindPoses;
   struct AkNode  **joints;   /* default joints (glTF; NULL for DAE)        */
   AkBoneWeights  **weights;  /* per primitive (DAE only; NULL for glTF)    */
@@ -206,7 +206,7 @@ typedef struct AkMorphInspectView {
 } AkMorphInspectView;
 
 typedef struct AkMorph {
-  AkOneWayIterBase    base;
+  struct AkMorph     *next;
   AkMorphTarget      *target;
   AkMorphInspectView *inspectResult;
   AkFloatArray       *defaultWeights; /* this overrides mesh.weights        */

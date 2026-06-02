@@ -266,22 +266,17 @@ dae_scenekit_fix_node(DAEState * __restrict dst, AkNode * __restrict node) {
 AK_HIDE
 void
 dae_bugfix_scenekit_material_surfaces(DAEState * __restrict dst) {
-  AkLibrary  *libmat;
   AkMaterial *material;
 
   if (!dst
       || !dst->doc
       || !ak_opt_get(AK_OPT_BUGFIXES)
-      || !dae_scenekit_authored(dst->doc)
-      || !(libmat = dst->doc->lib.materials))
+      || !dae_scenekit_authored(dst->doc))
     return;
 
-  material = (void *)libmat->chld;
-  while (material) {
+  for (material = dst->doc->lib.materials.first; material; material = material->next) {
     if (material->surface)
       material->surface->flags |= AK_MATERIAL_FLAG_DOUBLE_SIDED;
-
-    material = (void *)material->base.next;
   }
 }
 
@@ -294,12 +289,12 @@ dae_bugfix_scenekit_backfaces(DAEState * __restrict dst) {
       || !dst->doc
       || !ak_opt_get(AK_OPT_BUGFIXES)
       || !dae_scenekit_authored(dst->doc)
-      || !dst->doc->lib.visualScenes)
+      || !dst->doc->lib.visualScenes.first)
     return;
 
-  for (vscn = (void *)dst->doc->lib.visualScenes->chld;
+  for (vscn = dst->doc->lib.visualScenes.first;
        vscn;
-       vscn = (void *)vscn->base.next) {
+       vscn = vscn->next) {
     dae_scenekit_fix_node(dst, vscn->node);
   }
 }

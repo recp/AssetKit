@@ -74,25 +74,26 @@ typedef enum AkTextureChannels {
 } AkTextureChannels;
 
 typedef struct AkSampler {
-  const char     *uniformName;
-  const char     *coordInputName;
-  AkColor        *borderColor;
+  struct AkSampler *next;
+  const char       *uniformName;
+  const char       *coordInputName;
+  AkColor          *borderColor;
 //  AkInstanceBase *instanceImage;
-  AkTree         *extra;
-  const char     *name;
+  AkTree           *extra;
+  const char       *name;
 
-  AkWrapMode      wrapS;
-  AkWrapMode      wrapT;
-  AkWrapMode      wrapP;
+  AkWrapMode        wrapS;
+  AkWrapMode        wrapT;
+  AkWrapMode        wrapP;
 
-  AkMinFilter     minfilter;
-  AkMagFilter     magfilter;
-  AkMipFilter     mipfilter;
+  AkMinFilter       minfilter;
+  AkMagFilter       magfilter;
+  AkMipFilter       mipfilter;
 
-  uint32_t        maxAnisotropy;
-  uint32_t        mipMaxLevel;
-  uint32_t        mipMinLevel;
-  float           mipBias;
+  uint32_t          maxAnisotropy;
+  uint32_t          mipMaxLevel;
+  uint32_t          mipMinLevel;
+  float             mipBias;
 } AkSampler;
 
 typedef struct AkTexture {

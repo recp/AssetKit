@@ -199,8 +199,9 @@ gltf_buffers(json_t * __restrict jbuff,
     }
 
     flist_sp_insert(&gst->buffers, buff);
-    if (gst->borrowBufferViews)
-      flist_sp_insert(&gst->doc->lib.buffers, buff);
+    if (gst->borrowBufferViews) {
+      AK_LIB_PREPEND(gst->doc->lib.buffers, buff, next);
+    }
     if (buffIndex > 0)
       gst->buffersByIndex[--buffIndex] = buff;
     jbuff = jbuff->next;

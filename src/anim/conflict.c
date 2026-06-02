@@ -117,18 +117,15 @@ ak_animationsCompatibleSet(AkContext         * __restrict ctx,
 AK_EXPORT
 size_t
 ak_animationsCount(AkDoc * __restrict doc) {
-  AkLibrary        *lib;
-  AkOneWayIterBase *iter;
-  size_t            count;
+  AkAnimation *anim;
+  size_t       count;
 
   if (!doc) return 0;
 
   count = 0;
-  for (lib = doc->lib.animations; lib; lib = lib->next) {
-    for (iter = lib->chld; iter; iter = iter->next) {
-      count++;
-    }
-  }
+  for (anim = doc->lib.animations.first; anim; anim = anim->next)
+    count++;
+
   return count;
 }
 
@@ -138,10 +135,9 @@ ak_animationsCompatibleSetFromDoc(AkContext     * __restrict ctx,
                                   AkDoc         * __restrict doc,
                                   AkAnimation   * __restrict primary,
                                   AkAnimation  ** __restrict outCompatible) {
-  AkLibrary         *lib;
-  AkOneWayIterBase  *iter;
-  AkAnimation      **candidates;
-  size_t             count, i;
+  AkAnimation  *anim;
+  AkAnimation **candidates;
+  size_t        count, i;
 
   if (!doc || !outCompatible) {
     /* still honor primary even with no candidates */
@@ -160,11 +156,8 @@ ak_animationsCompatibleSetFromDoc(AkContext     * __restrict ctx,
 
   candidates = alloca(sizeof(*candidates) * count);
   i = 0;
-  for (lib = doc->lib.animations; lib; lib = lib->next) {
-    for (iter = lib->chld; iter; iter = iter->next) {
-      candidates[i++] = (AkAnimation *)iter;
-    }
-  }
+  for (anim = doc->lib.animations.first; anim; anim = anim->next)
+    candidates[i++] = anim;
 
   return ak_animationsCompatibleSet(ctx, primary,
                                     candidates, count, outCompatible);

@@ -229,7 +229,7 @@ wobj_acc(WOState         * __restrict wst,
   buff->length = dctx->usedsize;
   ak_data_join(dctx, buff->data, 0, 0);
   
-  flist_sp_insert(&wst->doc->lib.buffers, buff);
+  AK_LIB_PREPEND(wst->doc->lib.buffers, buff, next);
   
   acc                    = ak_heap_calloc(heap, wst->doc, sizeof(*acc));
   acc->buffer            = buff;
@@ -296,7 +296,7 @@ wobj_flatInput(WOState         * __restrict wst,
   buff->length = typeDesc->size * nComponents * count;
   buff->data   = ak_heap_alloc(heap, buff, buff->length);
 
-  flist_sp_insert(&doc->lib.buffers, buff);
+  AK_LIB_PREPEND(doc->lib.buffers, buff, next);
 
   acc                    = ak_heap_calloc(heap, doc, sizeof(*acc));
   acc->buffer            = buff;
@@ -309,6 +309,7 @@ wobj_flatInput(WOState         * __restrict wst,
   acc->componentCount         = nComponents;
   acc->fillByteSize           = typeDesc->size * nComponents;
   acc->count                  = count;
+  AK_LIB_PREPEND(doc->lib.accessors, acc, next);
 
   return wobj_input(wst, prim, acc, sem, semRaw, 0);
 }

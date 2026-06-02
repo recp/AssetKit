@@ -34,7 +34,7 @@ typedef struct STLState {
   AkHeap        *heap;
   AkDoc         *doc;
   void          *tmp;
-  AkLibrary     *lib_geom;
+  AkGeometryLib *lib_geom;
   AkGeometry    *geom;
   AkDataContext *dc_ind, *dc_pos, *dc_nor, *dc_vcount;
   AkBuffer      *buff_pos, *buff_nor, *buff_col;

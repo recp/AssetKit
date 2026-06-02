@@ -93,6 +93,7 @@ typedef struct AkNode {
 
   struct AkNode        *prev;
   struct AkNode        *next;
+  struct AkNode        *docNext;
   struct AkNode        *chld;
   struct AkNode        *parent;
 } AkNode;

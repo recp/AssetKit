@@ -29,7 +29,6 @@ extern "C" {
 struct FList;
 struct FListItem;
 struct AkBuffer;
-struct AkLibrary;
 
 /* End Core Value Types */
 
@@ -301,7 +300,7 @@ struct AkInstanceList;
 
 typedef struct AkVisualScene {
   /* const char * id; */
-  AkOneWayIterBase       base;
+  struct AkVisualScene  *next;
   const char            *name;
   struct AkNode         *node;
   struct AkNode         *firstCamNode; /* first found camera       */
@@ -322,29 +321,60 @@ typedef struct AkScene {
   AkTree * extra;
 } AkScene;
 
-struct AkMorph;
-struct AkSkin;
+typedef struct AkMorph      AkMorph;
+typedef struct AkSkin       AkSkin;
+typedef struct AkGeometry   AkGeometry;
+typedef struct AkMaterial   AkMaterial;
+typedef struct AkCamera     AkCamera;
+typedef struct AkLight      AkLight;
+typedef struct AkAnimation  AkAnimation;
+typedef struct AkBuffer     AkBuffer;
+typedef struct AkAccessor   AkAccessor;
+typedef struct AkTexture    AkTexture;
+typedef struct AkSampler    AkSampler;
+typedef struct AkImage      AkImage;
 
-typedef struct AkLibraries {
-  struct AkLibrary *cameras;
-  struct AkLibrary   *lights;
-  struct AkLibrary   *effects;
-  struct AkLibrary   *libimages;
-  struct AkLibrary   *materials;
-  struct AkLibrary   *geometries;
-  struct AkLibrary   *controllers;
-  struct AkLibrary   *visualScenes;
-  struct AkLibrary   *nodes;
-  struct AkLibrary   *animations;
-    
-  struct FListItem   *buffers;
-  struct FListItem   *accessors;
-  struct FListItem   *textures;
-  struct FListItem   *samplers;
-  struct FListItem   *images;
-  struct AkMorph     *morphs;
-  struct AkSkin      *skins;
-} AkLibraries;
+#define AK_DEFINE_LIB(T, Name)                                                \
+  typedef struct Name {                                                       \
+    T       *first;                                                           \
+    T       *last;                                                            \
+    uint32_t count;                                                           \
+  } Name
+
+AK_DEFINE_LIB(AkCamera,      AkCameraLib);
+AK_DEFINE_LIB(AkLight,       AkLightLib);
+AK_DEFINE_LIB(AkMaterial,    AkMaterialLib);
+AK_DEFINE_LIB(AkGeometry,    AkGeometryLib);
+AK_DEFINE_LIB(AkVisualScene, AkVisualSceneLib);
+AK_DEFINE_LIB(struct AkNode, AkNodeLib);
+AK_DEFINE_LIB(AkAnimation,   AkAnimationLib);
+AK_DEFINE_LIB(AkBuffer,      AkBufferLib);
+AK_DEFINE_LIB(AkAccessor,    AkAccessorLib);
+AK_DEFINE_LIB(AkTexture,     AkTextureLib);
+AK_DEFINE_LIB(AkSampler,     AkSamplerLib);
+AK_DEFINE_LIB(AkImage,       AkImageLib);
+AK_DEFINE_LIB(AkMorph,       AkMorphLib);
+AK_DEFINE_LIB(AkSkin,        AkSkinLib);
+
+#undef AK_DEFINE_LIB
+
+typedef struct AkLibrary {
+  AkCameraLib      cameras;
+  AkLightLib       lights;
+  AkMaterialLib    materials;
+  AkGeometryLib    geometries;
+  AkVisualSceneLib visualScenes;
+  AkNodeLib        nodes;
+  AkAnimationLib   animations;
+
+  AkBufferLib      buffers;
+  AkAccessorLib    accessors;
+  AkTextureLib     textures;
+  AkSamplerLib     samplers;
+  AkImageLib       images;
+  AkMorphLib       morphs;
+  AkSkinLib        skins;
+} AkLibrary;
 
 typedef const char* (*AkFetchFromURLHandler)(const char * __restrict url);
 
@@ -356,7 +386,7 @@ typedef struct AkDoc {
   void       *reserved;
   void       *userData;
   float       loadMillis;
-  AkLibraries lib;
+  AkLibrary   lib;
   AkScene     scene;
 
   /* KHR_materials_variants: document-level variant names. */

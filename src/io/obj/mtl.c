@@ -337,7 +337,6 @@ wobj_handleMaterial(WOState  * __restrict wst,
                     WOMtl    * __restrict mtl) {
   AkHeap                   *heap;
   AkDoc                    *doc;
-  AkLibrary                *libmat;
   AkMaterial               *mat;
   AkMaterialSurface        *surface;
   AkMaterialClassicFeature *classic;
@@ -345,12 +344,7 @@ wobj_handleMaterial(WOState  * __restrict wst,
   heap = wst->heap;
   doc  = wst->doc;
   
-  if (!(libmat = doc->lib.materials)) {
-    libmat             = ak_heap_calloc(heap, wst->doc, sizeof(*libmat));
-    doc->lib.materials = libmat;
-  }
-
-  mat     = ak_heap_calloc(heap, libmat, sizeof(*mat));
+  mat     = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface = ak_heap_calloc(heap, mat,    sizeof(*surface));
   classic = ak_heap_calloc(heap, surface, sizeof(*classic));
 
@@ -454,9 +448,7 @@ wobj_handleMaterial(WOState  * __restrict wst,
     ak_mem_setp((void *)mat->name, mat);
   mat->surface = surface;
   
-  mat->base.next     = libmat->chld;
-  libmat->chld       = (void *)mat;
-  libmat->count++;
+  AK_LIB_PREPEND(doc->lib.materials, mat, next);
 
   rb_insert(mtllib->materials, mtl->name, mat);
 }
@@ -486,13 +478,14 @@ wobj_texref(WOState            * __restrict wst,
   image->initFrom = initFrom;
 
   ak_mem_setp(name, initFrom);
-  flist_sp_insert(&doc->lib.images, image);
+  AK_LIB_PREPEND(doc->lib.images, image, next);
 
   /* create sampler */
   sampler        = ak_heap_calloc(heap, doc, sizeof(*sampler));
   sampler->wrapS = AK_WRAP_MODE_WRAP;
   sampler->wrapT = AK_WRAP_MODE_WRAP;
   ak_setypeid(sampler, AKT_SAMPLER2D);
+  AK_LIB_PREPEND(doc->lib.samplers, sampler, next);
   
   /* create texture */
   tex          = ak_heap_calloc(heap, doc, sizeof(*tex));
@@ -500,7 +493,7 @@ wobj_texref(WOState            * __restrict wst,
   tex->image   = image;
   tex->sampler = sampler;
 
-  flist_sp_insert(&doc->lib.textures, tex);
+  AK_LIB_PREPEND(doc->lib.textures, tex, next);
 
   /* create texture ref */
   texref = ak_heap_calloc(heap, memp, sizeof(*texref));

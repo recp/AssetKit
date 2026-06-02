@@ -264,7 +264,7 @@ typedef struct AkMaterialSourceRecord {
 } AkMaterialSourceRecord;
 
 typedef struct AkMaterial {
-  AkOneWayIterBase        base;
+  struct AkMaterial      *next;
   const char             *name;
   AkMaterialSurface      *surface;
   AkMaterialSourceRecord *sourceRecords;

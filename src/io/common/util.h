@@ -30,13 +30,13 @@
 AK_HIDE
 AkMesh*
 ak_allocMesh(AkHeap      * __restrict heap,
-             AkLibrary   * __restrict memp,
+             void        * __restrict memp,
              AkGeometry ** __restrict geomLink);
 
 AK_HIDE
 AkMesh*
 ak_allocMeshEx(AkHeap      * __restrict heap,
-               AkLibrary   * __restrict memp,
+               void        * __restrict memp,
                AkGeometry ** __restrict geomLink,
                bool                      materialMap);
 

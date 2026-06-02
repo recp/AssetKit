@@ -114,10 +114,7 @@ gltf_skin(json_t * __restrict jskin,
       jskinVal = jskinVal->next;
     }
     
-    if (doc->lib.skins)
-      skin->base.next = &doc->lib.skins->base;
-    
-    doc->lib.skins = skin;
+    AK_LIB_PREPEND(doc->lib.skins, skin, next);
 
     skinIndex--;
     jskin = jskin->next;

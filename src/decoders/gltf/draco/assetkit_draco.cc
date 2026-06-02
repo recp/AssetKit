@@ -16,6 +16,8 @@
 
 #include <draco/compression/decode.h>
 
+#include "ak/assetkit.h"
+
 #include <memory>
 #include <stdint.h>
 #include <stdlib.h>
@@ -27,21 +29,8 @@
 #  define AK_DRACO_EXPORT __attribute__((visibility("default")))
 #endif
 
-typedef struct AkHeap AkHeap;
-typedef struct AkMeshPrimitive AkMeshPrimitive;
 typedef struct FListItem FListItem;
 typedef struct RBTree RBTree;
-
-typedef enum AkTypeId {
-  AKT_NONE   = 0,
-  AKT_INT    = 6,
-  AKT_FLOAT  = 10,
-  AKT_BYTE   = 29,
-  AKT_UBYTE  = 30,
-  AKT_SHORT  = 31,
-  AKT_USHORT = 32,
-  AKT_UINT   = 28
-} AkTypeId;
 
 typedef enum json_type {
   JSON_OBJECT = 1,
@@ -59,70 +48,14 @@ typedef struct json_t {
   json_type_t    type;
 } json_t;
 
-typedef struct AkBuffer {
-  const char *name;
-  void       *data;
-  size_t      length;
-} AkBuffer;
-
-typedef struct AkAccessor {
-  AkBuffer *buffer;
-  const char *name;
-  void       *min;
-  void       *max;
-  size_t      byteOffset;
-  size_t      byteStride;
-  size_t      byteLength;
-  uint32_t    count;
-  uint32_t    bytesPerComponent;
-  int32_t     componentSize;
-  AkTypeId    componentType;
-  uint32_t    componentCount;
-  size_t      fillByteSize;
-  int32_t     gpuTarget;
-  bool        normalized;
-  AkTypeId    originalComponentType;
-  bool        originallyNormalized;
-} AkAccessor;
-
-typedef struct AkLibrary {
-  struct AkLibrary *next;
-  const char       *name;
-  void             *extra;
-  void             *chld;
-  uint64_t          count;
-} AkLibrary;
-
-typedef struct AkLibraries {
-  AkLibrary *cameras;
-  AkLibrary *lights;
-  AkLibrary *effects;
-  AkLibrary *libimages;
-  AkLibrary *materials;
-  AkLibrary *geometries;
-  AkLibrary *controllers;
-  AkLibrary *visualScenes;
-  AkLibrary *nodes;
-  AkLibrary *animations;
-  FListItem *buffers;
-  FListItem *accessors;
-  FListItem *textures;
-  FListItem *samplers;
-  FListItem *images;
-  void      *morphs;
-  void      *skins;
-} AkLibraries;
-
-typedef struct AkDoc {
-  void        *inf;
-  void        *coordSys;
-  void        *unit;
-  void        *extra;
-  void        *reserved;
-  void        *userData;
-  float        loadMillis;
-  AkLibraries  lib;
-} AkDoc;
+#define AK_DRACO_LIB_PREPEND(LIB, ITEM, NEXT)                                \
+  do {                                                                        \
+    (ITEM)->NEXT = (LIB).first;                                               \
+    if (!(LIB).last)                                                          \
+      (LIB).last = (ITEM);                                                    \
+    (LIB).first = (ITEM);                                                     \
+    (LIB).count++;                                                            \
+  } while (0)
 
 typedef struct AkBufferView {
   AkBuffer   *buffer;
@@ -179,7 +112,6 @@ typedef struct AkGLTFState {
 extern "C" {
 void *ak_heap_alloc(AkHeap *heap, void *parent, size_t size);
 void *ak_heap_calloc(AkHeap *heap, void *parent, size_t size);
-void  flist_sp_insert(FListItem **first, void *value);
 void *flist_sp_at(FListItem **first, int32_t index);
 }
 
@@ -246,7 +178,14 @@ ak_draco_accessor_at(AkGLTFState * __restrict gst, int32_t index) {
       && gst->accessorsByIndex)
     return gst->accessorsByIndex[(size_t)index];
 
-  return (AkAccessor *)flist_sp_at(&gst->doc->lib.accessors, index);
+  AkAccessor *item;
+  int32_t     i;
+
+  item = gst->doc->lib.accessors.first;
+  for (i = 0; item && i < index; i++)
+    item = item->next;
+
+  return item;
 }
 
 static
@@ -383,7 +322,7 @@ ak_draco_fill_attribute(AkGLTFState              * __restrict gst,
   acc->byteStride        = stride;
   acc->byteLength        = len;
 
-  flist_sp_insert(&gst->doc->lib.buffers, buff);
+  AK_DRACO_LIB_PREPEND(gst->doc->lib.buffers, buff, next);
 
   return true;
 }
@@ -468,7 +407,7 @@ ak_draco_fill_indices(AkGLTFState       * __restrict gst,
   acc->byteStride        = compSize;
   acc->byteLength        = len;
 
-  flist_sp_insert(&gst->doc->lib.buffers, buff);
+  AK_DRACO_LIB_PREPEND(gst->doc->lib.buffers, buff, next);
 
   return true;
 }

@@ -87,7 +87,7 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
   AkController *ctlr;
 
   doc  = dst->doc;
-  ctlr = (void *)dst->doc->lib.controllers->chld;
+  ctlr = dst->controllers;
   while (ctlr) {
     switch (ctlr->type) {
       case AK_CONTROLLER_SKIN: {
@@ -182,6 +182,7 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
             skin->nPrims = primIndex;
 
             ak_free(intrWeights);
+            AK_LIB_PREPEND(doc->lib.skins, skin, next);
 
             break;
           }
@@ -342,6 +343,7 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
         /* Register geom→morph for instance hookup later (DAE node walker
            reads meshTargets to attach AkInstanceMorph when it sees an
            <instance_controller> referring to a morph controller). */
+        AK_LIB_PREPEND(doc->lib.morphs, morph, next);
         rb_insert(dst->meshTargets, baseGeom, morph);
 
         break;
@@ -351,7 +353,7 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
     }
 
   nxt_ctlr:
-    ctlr = (AkController *)ctlr->base.next;
+    ctlr = ctlr->next;
   }
 }
 

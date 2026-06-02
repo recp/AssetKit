@@ -29,7 +29,6 @@ gltf_scenes(json_t * __restrict jscene,
   AkHeap             *heap;
   AkDoc              *doc;
   const json_array_t *jscenes;
-  AkLibrary          *lib;
 
   if (!(jscenes = json_array(jscene)))
     return;
@@ -38,14 +37,13 @@ gltf_scenes(json_t * __restrict jscene,
   heap   = gst->heap;
   doc    = gst->doc;
   jscene = jscenes->base.value;
-  lib    = ak_heap_calloc(heap, doc, sizeof(*lib));
   
   while (jscene) {
     AkVisualScene *scene;
     json_t        *jsceneVal;
     
     jsceneVal = jscene->value;
-    scene     = ak_heap_calloc(heap, lib, sizeof(*scene));
+    scene     = ak_heap_calloc(heap, doc, sizeof(*scene));
     ak_setypeid(scene, AKT_SCENE);
     gltf_extra(gst,
                scene,
@@ -105,14 +103,10 @@ gltf_scenes(json_t * __restrict jscene,
 
   scn_nxt:
 
-    scene->base.next = lib->chld;
-    lib->chld        = (void *)scene;
-    lib->count++;
+    AK_LIB_PREPEND(doc->lib.visualScenes, scene, next);
     
     jscene = jscene->next;
   }
-  
-   doc->lib.visualScenes = lib;
 }
 
 AK_HIDE
@@ -131,7 +125,12 @@ gltf_scene(json_t * __restrict jscene,
   
   /* set default scene */
   sceneIndex = json_int32(jscene, -1);
-  GETCHILD(doc->lib.visualScenes->chld, scene, sceneIndex);
+  scene = NULL;
+  if (sceneIndex >= 0) {
+    scene = doc->lib.visualScenes.first;
+    while (scene && sceneIndex-- > 0)
+      scene = scene->next;
+  }
 
   /* set first scene as default scene if not specified  */
   if (scene) {

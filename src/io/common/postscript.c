@@ -20,13 +20,9 @@
 AK_HIDE
 void
 io_postscript(AkDoc * __restrict doc) {
-  AkLibrary  *geomLib;
   AkGeometry *geom;
 
-  geomLib = doc->lib.geometries;
-  while (geomLib) {
-    geom = (void *)geomLib->chld;
-    while (geom) {
+  for (geom = doc->lib.geometries.first; geom; geom = geom->next) {
       AkObject *primitive;
 
       primitive = geom->gdata;
@@ -67,9 +63,5 @@ io_postscript(AkDoc * __restrict doc) {
         default:
           break;
       }
-      geom = (void *)geom->base.next;
-    }
-
-    geomLib = geomLib->next;
   }
 }

@@ -909,7 +909,6 @@ wobj_obj(AkDoc     ** __restrict dest,
   AkDoc              *doc;
   void               *objstr;
   char               *p, *begin, *end, *m;
-  AkLibrary          *lib_vscene;
   AkVisualScene      *scene;
   WOPrim             *prim;
   WOState             wstVal = {0}, *wst;
@@ -945,17 +944,11 @@ wobj_obj(AkDoc     ** __restrict dest,
   ak_heap_setdata(heap, doc);
   ak_id_newheap(heap);
 
-  /* libraries */
-  doc->lib.geometries = ak_heap_calloc(heap, doc, sizeof(AkLibrary));
-  lib_vscene = ak_heap_calloc(heap, doc, sizeof(*lib_vscene));
-  
   /* default scene */
   scene                  = ak_heap_calloc(heap, doc, sizeof(*scene));
   scene->node            = ak_heap_calloc(heap, doc, sizeof(*scene->node));
   scene->node->visible   = true;
-  lib_vscene->chld       = &scene->base;
-  lib_vscene->count      = 1;
-  doc->lib.visualScenes  = lib_vscene;
+  AK_LIB_PREPEND(doc->lib.visualScenes, scene, next);
   doc->scene.visualScene = ak_instanceMake(heap, doc, scene);
 
   /* parse state */
@@ -965,7 +958,7 @@ wobj_obj(AkDoc     ** __restrict dest,
   wstVal.heap      = heap;
   wstVal.tmp       = ak_heap_alloc(heap, doc, sizeof(void*));
   wstVal.node      = scene->node;
-  wstVal.lib_geom  = doc->lib.geometries;
+  wstVal.lib_geom  = &doc->lib.geometries;
   wstVal.posCompSize = AK_COMPONENT_SIZE_VEC3;
   wstVal.texCompSize = AK_COMPONENT_SIZE_VEC2;
 

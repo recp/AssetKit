@@ -59,7 +59,7 @@ stats_collect(AkDoc *doc, ImportStats *stats) {
 
   memset(stats, 0, sizeof(*stats));
 
-  for (geom = ak_libFirstGeom(doc); geom; geom = (AkGeometry *)geom->base.next) {
+  for (geom = doc ? doc->lib.geometries.first : NULL; geom; geom = geom->next) {
     AkMesh *mesh;
     AkMeshPrimitive *prim;
 

@@ -213,44 +213,64 @@ static inline
 AkAccessor*
 gltf_accessor_at(AkGLTFState * __restrict gst, int32_t index) {
   AkAccessor *item;
+  int32_t     i;
 
   if ((item = GLTF_INDEXED_AT(gst->accessorsByIndex, gst->accessorsCount, index)))
     return item;
 
-  return flist_sp_at(&gst->doc->lib.accessors, index);
+  item = gst->doc->lib.accessors.first;
+  for (i = 0; item && i < index; i++)
+    item = item->next;
+
+  return item;
 }
 
 static inline
 AkImage*
 gltf_image_at(AkGLTFState * __restrict gst, int32_t index) {
   AkImage *item;
+  int32_t  i;
 
   if ((item = GLTF_INDEXED_AT(gst->imagesByIndex, gst->imagesCount, index)))
     return item;
 
-  return flist_sp_at(&gst->doc->lib.images, index);
+  item = gst->doc->lib.images.first;
+  for (i = 0; item && i < index; i++)
+    item = item->next;
+
+  return item;
 }
 
 static inline
 AkSampler*
 gltf_sampler_at(AkGLTFState * __restrict gst, int32_t index) {
   AkSampler *item;
+  int32_t    i;
 
   if ((item = GLTF_INDEXED_AT(gst->samplersByIndex, gst->samplersCount, index)))
     return item;
 
-  return flist_sp_at(&gst->doc->lib.samplers, index);
+  item = gst->doc->lib.samplers.first;
+  for (i = 0; item && i < index; i++)
+    item = item->next;
+
+  return item;
 }
 
 static inline
 AkTexture*
 gltf_texture_at(AkGLTFState * __restrict gst, int32_t index) {
   AkTexture *item;
+  int32_t    i;
 
   if ((item = GLTF_INDEXED_AT(gst->texturesByIndex, gst->texturesCount, index)))
     return item;
 
-  return flist_sp_at(&gst->doc->lib.textures, index);
+  item = gst->doc->lib.textures.first;
+  for (i = 0; item && i < index; i++)
+    item = item->next;
+
+  return item;
 }
 
 static inline
@@ -262,9 +282,9 @@ gltf_material_at(AkGLTFState * __restrict gst, int32_t index) {
   if ((item = GLTF_INDEXED_AT(gst->materialsByIndex, gst->materialsCount, index)))
     return item;
 
-  item = gst->doc->lib.materials ? (void *)gst->doc->lib.materials->chld : NULL;
+  item = gst->doc->lib.materials.first;
   for (i = 0; item && i < index; i++)
-    item = (void *)item->base.next;
+    item = item->next;
 
   return item;
 }
@@ -278,9 +298,9 @@ gltf_geometry_at(AkGLTFState * __restrict gst, int32_t index) {
   if ((item = GLTF_INDEXED_AT(gst->geometriesByIndex, gst->geometriesCount, index)))
     return item;
 
-  item = gst->doc->lib.geometries ? (void *)gst->doc->lib.geometries->chld : NULL;
+  item = gst->doc->lib.geometries.first;
   for (i = 0; item && i < index; i++)
-    item = (void *)item->base.next;
+    item = item->next;
 
   return item;
 }
@@ -294,9 +314,9 @@ gltf_camera_at(AkGLTFState * __restrict gst, int32_t index) {
   if ((item = GLTF_INDEXED_AT(gst->camerasByIndex, gst->camerasCount, index)))
     return item;
 
-  item = gst->doc->lib.cameras ? (void *)gst->doc->lib.cameras->chld : NULL;
+  item = gst->doc->lib.cameras.first;
   for (i = 0; item && i < index; i++)
-    item = (void *)item->base.next;
+    item = item->next;
 
   return item;
 }

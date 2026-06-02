@@ -131,7 +131,6 @@ gltf_nodes(json_t * __restrict jnode,
   AkGLTFState        *gst;
   AkHeap             *heap;
   AkDoc              *doc;
-  AkLibrary          *lib;
   AkNode             *node;
   const json_array_t *jnodes;
   FListItem          *nodes;
@@ -145,7 +144,6 @@ gltf_nodes(json_t * __restrict jnode,
   gst       = userdata;
   heap      = gst->heap;
   doc       = gst->doc;
-  lib       = ak_heap_calloc(heap, doc, sizeof(*lib));
   gst->nodesCount   = jnodes->count;
   gst->nodesByIndex = ak_heap_calloc(heap,
                                      gst->tmpParent,
@@ -159,7 +157,7 @@ gltf_nodes(json_t * __restrict jnode,
   jnodeCount2 = jnodes->count * 2;
   
   while (jnode) {
-    nodechld[i * 2] = node = gltf_node(gst, lib, jnode, nodechld);
+    nodechld[i * 2] = node = gltf_node(gst, doc, jnode, nodechld);
     gst->nodesByIndex[i] = node;
   
     /* JSON parse is reverse. glTF nodes do not have authored ids; keep a
@@ -193,17 +191,12 @@ gltf_nodes(json_t * __restrict jnode,
     
     /* it is root node, add to library_nodes */
     else {
-      node->next = (void *)lib->chld;
-      lib->chld  = (void *)node;
-
-      lib->count++;
+      AK_LIB_PREPEND(doc->lib.nodes, node, docNext);
     }
   }
 
   flist_sp_destroy(&nodes);
   ak_free(nodechld);
-
-  doc->lib.nodes = lib;
 }
 
 AK_HIDE
@@ -247,7 +240,7 @@ gltf_node(AkGLTFState * __restrict gst,
     return node;
   }
 
-  if (gst->doc->lib.cameras
+  if (gst->doc->lib.cameras.first
       && (i32val = json_int32(props.camera, -1)) > -1) {
     AkCamera *camIter;
 

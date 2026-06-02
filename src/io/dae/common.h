@@ -168,6 +168,14 @@ typedef struct DaeSource {
   int32_t           target;
 } DaeSource;
 
+typedef struct DAELibrary {
+  struct DAELibrary *next;
+  const char        *name;
+  AkTree            *extra;
+  void              *first;
+  uint64_t           count;
+} DAELibrary;
+
 typedef AK_ALIGN(16) struct DAEState {
   AkHeap          *heap;
   void            *tempmem;
@@ -184,6 +192,11 @@ typedef AK_ALIGN(16) struct DAEState {
   RBTree          *texmap;
   RBTree          *instanceMap;
   FListItem       *vertMap;
+  DAELibrary      *effectLibraries;
+  DAELibrary      *controllerLibraries;
+  DAELibrary      *nodeLibraries;
+  AkEffect        *effects;
+  struct AkController *controllers;
   /* maps base AkGeometry* → AkMorph*. Populated by dae_fixup_ctlr's
      MORPH case so that the postscript orphan-attach pass can wrap
      <instance_geometry> uses of the base mesh in an AkInstanceMorph
@@ -241,7 +254,7 @@ typedef struct AkNewParam {
 
 typedef struct AkController {
   /* const char * id; */
-  AkOneWayIterBase     base;
+  struct AkController *next;
   const char          *name;
   void                *data;
   AkTree              *extra;

@@ -191,7 +191,7 @@ gltf_textures(json_t * __restrict jtex,
 
     tex->sampler = sampler;
 
-    flist_sp_insert(&gst->doc->lib.textures, tex);
+    AK_LIB_PREPEND(gst->doc->lib.textures, tex, next);
     if (textureIndex > 0)
       gst->texturesByIndex[--textureIndex] = tex;
     jtex = jtex->next;

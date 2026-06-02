@@ -44,10 +44,10 @@ gltf_postscript(AkGLTFState * __restrict gst) {
   if (coordCvtType != AK_COORD_CVT_DISABLED)
     gst->doc->coordSys = targetCoordSys;
 
-  if (gst->doc && gst->doc->lib.visualScenes) {
-    for (vscn = (void *)gst->doc->lib.visualScenes->chld;
+  if (gst->doc && gst->doc->lib.visualScenes.first) {
+    for (vscn = gst->doc->lib.visualScenes.first;
          vscn;
-         vscn = (void *)vscn->base.next) {
+         vscn = vscn->next) {
       if (fixTransform)
         ak_fixSceneCoordSys(vscn);
     }

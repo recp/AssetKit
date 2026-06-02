@@ -202,13 +202,14 @@ dae_postscript(DAEState * __restrict dst) {
     if (profile)
       dae_mesh_profile_reset();
     DAE_POST_PROFILE_CALL(profile, "geom_fixup_all",
-                          dae_geom_fixup_all(dst->doc));
+                          dae_geom_fixup_all(dst->doc,
+                                             dst->controllers != NULL));
     if (profile)
       dae_mesh_profile_report();
   }
 
   /* fixup morph and skin because order of vertices may be changed */
-  if (dst->doc->lib.controllers) {
+  if (dst->controllers) {
     DAE_POST_PROFILE_CALL(profile, "fixup_ctlr", dae_fixup_ctlr(dst));
     DAE_POST_PROFILE_CALL(profile, "fixup_instctlr", dae_fixup_instctlr(dst));
 
@@ -226,7 +227,7 @@ dae_postscript(DAEState * __restrict dst) {
      topology — currently the indexed-array form used for morph weights,
      e.g. <channel target="morph-weights(0)"/>. Must run after morph
      instances exist (including the orphan-attach pass above). */
-  if (dst->doc->lib.animations)
+  if (dst->doc->lib.animations.first)
     DAE_POST_PROFILE_CALL(profile, "fixup_channel", dae_fixup_channel(dst));
 
   /* now set used coordSys */
@@ -239,13 +240,13 @@ dae_postscript(DAEState * __restrict dst) {
   DAE_POST_PROFILE_CALL(profile, "scenekit_materials",
                         dae_bugfix_scenekit_material_surfaces(dst));
   
-  if (dst->doc && dst->doc->lib.visualScenes) {
+  if (dst->doc && dst->doc->lib.visualScenes.first) {
     double coordStart = 0.0;
     if (profile)
       coordStart = dae_post_profile_now_ms();
-    for (AkVisualScene *vscn = (void *)dst->doc->lib.visualScenes->chld;
+    for (AkVisualScene *vscn = dst->doc->lib.visualScenes.first;
          vscn;
-         vscn = (void *)vscn->base.next) {
+         vscn = vscn->next) {
       if (fixTransform)
         ak_fixSceneCoordSys(vscn);
     }
@@ -255,23 +256,19 @@ dae_postscript(DAEState * __restrict dst) {
 
 static void
 dae_build_material_surfaces(DAEState * __restrict dst) {
-  AkLibrary            *libmat;
   AkMaterial           *material;
   AkEffect             *effect;
   AkTechniqueFxCommon  *common;
 
-  if (!dst || !dst->doc || !(libmat = dst->doc->lib.materials))
+  if (!dst || !dst->doc)
     return;
 
-  material = (void *)libmat->chld;
-  while (material) {
+  for (material = dst->doc->lib.materials.first; material; material = material->next) {
     if (!material->surface
         && (effect = ak_materialEffect(material))
         && (common = ak_getProfileTechniqueCommon(effect))) {
       material->surface = ak_materialSurfaceFromTechniqueCommon(dst->heap, material, common);
     }
-
-    material = (void *)material->base.next;
   }
 }
 
@@ -352,11 +349,11 @@ AK_HIDE void
 dae_attach_orphan_morphs(DAEState * __restrict dst) {
   AkVisualScene *vscn;
 
-  if (!dst->meshTargets || !dst->doc->lib.visualScenes) return;
+  if (!dst->meshTargets || !dst->doc->lib.visualScenes.first) return;
 
-  for (vscn = (void *)dst->doc->lib.visualScenes->chld;
+  for (vscn = dst->doc->lib.visualScenes.first;
        vscn;
-       vscn = (void *)vscn->base.next) {
+       vscn = vscn->next) {
     dae_attach_orphan_morphs_node(dst, vscn->node);
   }
 }

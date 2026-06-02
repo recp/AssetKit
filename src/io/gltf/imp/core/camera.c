@@ -30,7 +30,6 @@ gltf_cameras(json_t * __restrict jcam,
   AkHeap             *heap;
   AkDoc              *doc;
   const json_array_t *jcams;
-  AkLibrary          *lib;
   json_t             *it;
   size_t              cameraIndex;
 
@@ -41,7 +40,6 @@ gltf_cameras(json_t * __restrict jcam,
   heap      = gst->heap;
   doc       = gst->doc;
   jcam      = jcams->base.value;
-  lib       = ak_heap_calloc(heap, doc, sizeof(*lib));
   gst->camerasCount   = jcams->count;
   gst->camerasByIndex = ak_heap_calloc(heap,
                                        gst->tmpParent,
@@ -54,7 +52,7 @@ gltf_cameras(json_t * __restrict jcam,
     AkOptics   *optics;
     json_t     *jtechn;
 
-    cam         = ak_heap_calloc(heap, lib, sizeof(*cam));
+    cam         = ak_heap_calloc(heap, doc, sizeof(*cam));
     optics      = ak_heap_calloc(heap, cam, sizeof(*optics));
     cam->optics = optics;
 
@@ -141,15 +139,11 @@ gltf_cameras(json_t * __restrict jcam,
       optics->proj = &ortho->base;
     }
     
-    cam->base.next = lib->chld;
-    lib->chld      = (void *)cam;
-    
-    lib->count++;
+    AK_LIB_PREPEND(doc->lib.cameras, cam, next);
     if (cameraIndex > 0)
       gst->camerasByIndex[--cameraIndex] = cam;
 
     jcam = jcam->next;
   }
 
-  gst->doc->lib.cameras = lib;
 }

@@ -65,7 +65,7 @@ typedef struct AkImager {
 
 typedef struct AkCamera {
   /* const char * id; */
-  AkOneWayIterBase base;
+  struct AkCamera *next;
   const char      *name;
   AkOptics        *optics;
   AkImager        *imager;

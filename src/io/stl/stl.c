@@ -595,7 +595,7 @@ stl_buffer_alloc(AkHeap * __restrict heap,
   buff         = ak_heap_calloc(heap, doc, sizeof(*buff));
   buff->length = length;
   buff->data   = length ? ak_heap_alloc(heap, buff, length) : NULL;
-  flist_sp_insert(&doc->lib.buffers, buff);
+  AK_LIB_PREPEND(doc->lib.buffers, buff, next);
 
   return buff;
 }
@@ -751,7 +751,6 @@ stl_stl(AkDoc     ** __restrict dest,
   AkDoc         *doc;
   void          *stlstr;
   char          *p;
-  AkLibrary     *lib_vscene;
   AkVisualScene *scene;
   STLState       sstVal = {0}, *sst;
   size_t         stlstrSize;
@@ -789,17 +788,11 @@ stl_stl(AkDoc     ** __restrict dest,
   ak_heap_setdata(heap, doc);
   ak_id_newheap(heap);
 
-  /* libraries */
-  doc->lib.geometries = ak_heap_calloc(heap, doc, sizeof(*doc->lib.geometries));
-  lib_vscene = ak_heap_calloc(heap, doc, sizeof(*lib_vscene));
-  
   /* default scene */
   scene                  = ak_heap_calloc(heap, doc, sizeof(*scene));
   scene->node            = ak_heap_calloc(heap, doc, sizeof(*scene->node));
   scene->node->visible   = true;
-  lib_vscene->chld       = &scene->base;
-  lib_vscene->count      = 1;
-  doc->lib.visualScenes  = lib_vscene;
+  AK_LIB_PREPEND(doc->lib.visualScenes, scene, next);
   doc->scene.visualScene = ak_instanceMake(heap, doc, scene);
 
   /* parse state */
@@ -809,7 +802,7 @@ stl_stl(AkDoc     ** __restrict dest,
   sstVal.heap      = heap;
   sstVal.tmp       = ak_heap_alloc(heap, doc, sizeof(void*));
   sstVal.node      = scene->node;
-  sstVal.lib_geom  = doc->lib.geometries;
+  sstVal.lib_geom  = &doc->lib.geometries;
   
   if (!isAscii) {
     stl_binary(sst, p);
@@ -1236,12 +1229,12 @@ stl_binary(STLState * __restrict sst, char * __restrict p) {
   posBuff         = ak_heap_calloc(sst->heap, sst->doc, sizeof(*posBuff));
   posBuff->length = sizeof(vec3) * count;
   posBuff->data   = ak_heap_alloc(sst->heap, posBuff, posBuff->length);
-  flist_sp_insert(&sst->doc->lib.buffers, posBuff);
+  AK_LIB_PREPEND(sst->doc->lib.buffers, posBuff, next);
 
   norBuff         = ak_heap_calloc(sst->heap, sst->doc, sizeof(*norBuff));
   norBuff->length = sizeof(vec3) * count;
   norBuff->data   = ak_heap_alloc(sst->heap, norBuff, norBuff->length);
-  flist_sp_insert(&sst->doc->lib.buffers, norBuff);
+  AK_LIB_PREPEND(sst->doc->lib.buffers, norBuff, next);
 
   sst->buff_pos = posBuff;
   sst->buff_nor = norBuff;
@@ -1254,7 +1247,7 @@ stl_binary(STLState * __restrict sst, char * __restrict p) {
     colBuff         = ak_heap_calloc(sst->heap, sst->doc, sizeof(*colBuff));
     colBuff->length = sizeof(vec4) * count;
     colBuff->data   = ak_heap_alloc(sst->heap, colBuff, colBuff->length);
-    flist_sp_insert(&sst->doc->lib.buffers, colBuff);
+    AK_LIB_PREPEND(sst->doc->lib.buffers, colBuff, next);
 
     sst->buff_col = colBuff;
     col           = colBuff->data;
@@ -1433,7 +1426,7 @@ sst_finish(STLState * __restrict sst) {
   /* Buffer > Accessor > Input > Prim > Mesh > Geom > InstanceGeom > Node */
   
   heap = sst->heap;
-  mesh = ak_allocMesh(sst->heap, sst->lib_geom, &geom);
+  mesh = ak_allocMesh(sst->heap, sst->doc, &geom);
 
   if (sst->maxVC == 3) {
     AkTriangles *tri;
@@ -1464,9 +1457,7 @@ sst_finish(STLState * __restrict sst) {
   mesh->primitiveCount = 1;
 
   /* add to library */
-  geom->base.next      = sst->lib_geom->chld;
-  sst->lib_geom->chld  = &geom->base;
-  sst->lib_geom->count = 1;
+  AK_LIB_PREPEND(*sst->lib_geom, geom, next);
   
   /* make instance geeometry and attach to the root node  */
   instGeom = ak_instanceMakeGeom(heap, sst->node, geom);

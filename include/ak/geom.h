@@ -365,7 +365,7 @@ typedef struct AkBoundryRep {
 
 typedef struct AkGeometry {
   /* const char * id; */
-  AkOneWayIterBase   base;
+  struct AkGeometry *next;
   const char        *name;
   AkObject          *gdata;
   AkTree            *extra;

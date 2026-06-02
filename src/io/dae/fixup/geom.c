@@ -19,33 +19,24 @@
 
 AK_HIDE
 AkResult
-dae_geom_fixup_all(AkDoc * doc) {
-  AkLibrary  *geomLib;
+dae_geom_fixup_all(AkDoc * doc, bool retainDuplicators) {
   AkGeometry *geom;
 
-  geomLib = doc->lib.geometries;
-  while (geomLib) {
-    geom = (void *)geomLib->chld;
-    while (geom) {
-      dae_geom_fixup(geom);
-      geom = (AkGeometry *)geom->base.next;
-    }
-
-    geomLib = geomLib->next;
-  }
+  for (geom = doc->lib.geometries.first; geom; geom = geom->next)
+    dae_geom_fixup(geom, retainDuplicators);
 
   return AK_OK;
 }
 
 AK_HIDE
 AkResult
-dae_geom_fixup(AkGeometry * geom) {
+dae_geom_fixup(AkGeometry * geom, bool retainDuplicators) {
   AkObject *primitive;
 
   primitive = geom->gdata;
   switch ((AkGeometryType)primitive->type) {
     case AK_GEOMETRY_MESH:
-      dae_mesh_fixup(ak_objGet(primitive));
+      dae_mesh_fixup(ak_objGet(primitive), retainDuplicators);
     default:
       break;
   }

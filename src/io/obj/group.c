@@ -189,9 +189,7 @@ wobj_finishObject(WOState * __restrict wst, WOObject * __restrict obj) {
   geom = obj->geom;
 
   /* add to library */
-  geom->base.next     = wst->lib_geom->chld;
-  wst->lib_geom->chld = &geom->base;
-  wst->lib_geom->count++;
+  AK_LIB_PREPEND(*wst->lib_geom, geom, next);
   
   /* make instance geeometry and attach to the root node  */
   instGeom = ak_instanceMakeGeom(wst->heap, wst->node, geom);
@@ -286,7 +284,7 @@ wobj_switchObject(WOState * __restrict wst) {
   obj->next = wst->obj;
   wst->obj  = obj;
   
-  ak_allocMesh(wst->heap, wst->lib_geom, &geom);
+  ak_allocMesh(wst->heap, wst->doc, &geom);
 
   /* set current geometry */
   obj->geom = geom;

@@ -129,11 +129,11 @@ dae_findInstanceMorph(AkDoc * __restrict doc, AkMorph *morph) {
   AkVisualScene   *vscn;
   AkInstanceMorph *found;
 
-  if (!morph || !doc->lib.visualScenes) return NULL;
+  if (!morph || !doc->lib.visualScenes.first) return NULL;
 
-  for (vscn = (void *)doc->lib.visualScenes->chld;
+  for (vscn = doc->lib.visualScenes.first;
        vscn;
-       vscn = (void *)vscn->base.next) {
+       vscn = vscn->next) {
     if ((found = dae_findInstanceMorph_node(vscn->node, morph)))
       return found;
   }
@@ -141,22 +141,22 @@ dae_findInstanceMorph(AkDoc * __restrict doc, AkMorph *morph) {
 }
 
 /* Find the morph controller whose morphdae->source chain contains src.
-   Linear scan over doc->lib.controllers — fine for typical asset sizes;
+   Linear scan over DAE-private controllers — fine for typical asset sizes;
    if multi-controller perf becomes a real workload we'd build a
    source→controller map up front. */
 static
 AkController *
-dae_findControllerForSource(AkDoc * __restrict doc, DaeSource *src) {
+dae_findControllerForSource(DAEState * __restrict dst, DaeSource *src) {
   AkController *ctlr;
   AkMorph      *morph;
   AkMorphDAE   *morphdae;
   DaeSource    *s;
 
-  if (!src || !doc->lib.controllers) return NULL;
+  if (!src) return NULL;
 
-  for (ctlr = (AkController *)doc->lib.controllers->chld;
+  for (ctlr = dst->controllers;
        ctlr;
-       ctlr = (AkController *)ctlr->base.next) {
+       ctlr = ctlr->next) {
     if (ctlr->type != AK_CONTROLLER_MORPH)              continue;
     if (!(morph = ctlr->data))                          continue;
     if (!(morphdae = ak_userData(morph)))               continue;
@@ -170,9 +170,10 @@ dae_findControllerForSource(AkDoc * __restrict doc, DaeSource *src) {
 
 static
 AkInstanceMorph *
-dae_resolveMorpher(AkDoc      * __restrict doc,
+dae_resolveMorpher(DAEState   * __restrict dst,
                    const char *idStart,
                    size_t      idLen) {
+  AkDoc          *doc;
   void           *element;
   AkController   *ctlr;
   char            idbuf[256];
@@ -180,6 +181,7 @@ dae_resolveMorpher(AkDoc      * __restrict doc,
   /* Bounded inline copy to NUL-terminate the id slice. Source ids in DAE
      are typically short (<64 chars); the buffer is generous. Rather than
      allocate, we just bail if it's longer than expected. */
+  doc = dst->doc;
   if (idLen == 0 || idLen >= sizeof(idbuf)) return NULL;
   memcpy(idbuf, idStart, idLen);
   idbuf[idLen] = '\0';
@@ -191,7 +193,7 @@ dae_resolveMorpher(AkDoc      * __restrict doc,
   if (!(element = ak_getObjectById(doc, idbuf))) return NULL;
   if (ak_typeid(element) != DAE_TYPE_SOURCE)     return NULL;
 
-  if (!(ctlr = dae_findControllerForSource(doc, (DaeSource *)element)))
+  if (!(ctlr = dae_findControllerForSource(dst, (DaeSource *)element)))
     return NULL;
 
   return dae_findInstanceMorph(doc, (AkMorph *)ctlr->data);
@@ -414,7 +416,7 @@ dae_fixup_channel_walk(DAEState          * __restrict dst,
   size_t            idLen;
   uint32_t          idx;
 
-  for (; anim; anim = (AkAnimation *)anim->base.next) {
+  for (; anim; anim = anim->next) {
     for (ch = anim->channel; ch; ch = ch->next) {
       if (!ch->resolvedTarget) {
         memset(&mrt, 0, sizeof(mrt));
@@ -427,7 +429,7 @@ dae_fixup_channel_walk(DAEState          * __restrict dst,
                                                  &idStart,
                                                  &idLen,
                                                  &idx)
-                   && (morpher = dae_resolveMorpher(dst->doc,
+                   && (morpher = dae_resolveMorpher(dst,
                                                     idStart,
                                                     idLen))) {
           rt                 = ak_heap_calloc(dst->heap, ch, sizeof(*rt));
@@ -454,9 +456,9 @@ dae_fixup_channel(DAEState * __restrict dst) {
   DAEMatrixAnimFix *done;
   AkContext         ctx;
 
-  if (!dst->doc->lib.animations) return;
+  if (!dst->doc->lib.animations.first) return;
 
-  anim    = (AkAnimation *)dst->doc->lib.animations->chld;
+  anim    = dst->doc->lib.animations.first;
   done    = NULL;
   memset(&ctx, 0, sizeof(ctx));
   ctx.doc = dst->doc;

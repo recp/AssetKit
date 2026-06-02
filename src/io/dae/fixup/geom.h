@@ -21,10 +21,10 @@
 
 AK_HIDE
 AkResult
-dae_geom_fixup(AkGeometry * geom);
+dae_geom_fixup(AkGeometry * geom, bool retainDuplicators);
 
 AK_HIDE
 AkResult
-dae_geom_fixup_all(AkDoc * doc);
+dae_geom_fixup_all(AkDoc * doc, bool retainDuplicators);
 
 #endif /* dae_geom_fixup */

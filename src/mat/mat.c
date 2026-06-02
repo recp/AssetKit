@@ -774,7 +774,6 @@ AK_HIDE
 AkMaterial*
 ak_materialDefaultVertexColorAlpha(AkDoc * __restrict doc, bool alphaBlend) {
   AkHeap            *heap;
-  AkLibrary         *lib;
   AkMaterial        *material;
   AkMaterialSurface *surface;
   AkMaterialInput   *input;
@@ -782,25 +781,18 @@ ak_materialDefaultVertexColorAlpha(AkDoc * __restrict doc, bool alphaBlend) {
   if (!doc)
     return NULL;
 
-  lib = doc->lib.materials;
-  material = lib ? (void *)lib->chld : NULL;
-  while (material) {
+  for (material = doc->lib.materials.first; material; material = material->next) {
     surface = material->surface;
     if (surface
         && surface->baseColor
         && surface->baseColor->source == AK_MATERIAL_INPUT_VERTEX_COLOR
         && ((surface->flags & AK_MATERIAL_FLAG_ALPHA_BLEND) != 0) == alphaBlend)
       return material;
-    material = (void *)material->base.next;
   }
 
   heap = ak_heap_getheap(doc);
-  if (!lib) {
-    lib = ak_heap_calloc(heap, doc, sizeof(*lib));
-    doc->lib.materials = lib;
-  }
 
-  material = ak_heap_calloc(heap, lib, sizeof(*material));
+  material = ak_heap_calloc(heap, doc, sizeof(*material));
   surface  = ak_heap_calloc(heap, material, sizeof(*surface));
   input    = ak__materialInputAlloc(heap, surface, _s_ak_baseColor);
 
@@ -839,9 +831,7 @@ ak_materialDefaultVertexColorAlpha(AkDoc * __restrict doc, bool alphaBlend) {
 
   material->name      = alphaBlend ? _s_ak_materialVertexColorAlpha : _s_ak_materialVertexColor;
   material->surface   = surface;
-  material->base.next = lib->chld;
-  lib->chld = (void *)material;
-  lib->count++;
+  AK_LIB_PREPEND(doc->lib.materials, material, next);
 
   return material;
 }

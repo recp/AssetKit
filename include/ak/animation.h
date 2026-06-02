@@ -101,7 +101,7 @@ typedef struct AkChannel {
 } AkChannel;
 
 typedef struct AkAnimation {
-  AkOneWayIterBase    base;
+  struct AkAnimation *next;
   struct AkAnimation *animation; /* subanimation */
   AkAnimSampler      *sampler;
   AkChannel          *channel;

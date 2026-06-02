@@ -389,7 +389,6 @@ gltf_meshes(json_t * __restrict jmesh,
   AkGLTFState        *gst;
   AkHeap             *heap;
   AkDoc              *doc;
-  AkLibrary          *lib;
   const json_array_t *jmeshes;
   const json_t       *jmeshVal;
   size_t              meshIndex;
@@ -400,7 +399,6 @@ gltf_meshes(json_t * __restrict jmesh,
   gst        = userdata;
   heap       = gst->heap;
   doc        = gst->doc;
-  lib        = ak_heap_calloc(heap, doc, sizeof(*lib));
   gst->geometriesCount   = jmeshes->count;
   gst->geometriesByIndex = ak_heap_calloc(heap,
                                           gst->tmpParent,
@@ -431,7 +429,7 @@ gltf_meshes(json_t * __restrict jmesh,
     uint32_t         morphPresetIdx;
     uint32_t         morphPresetWrite;
 
-    mesh                 = ak_allocMeshEx(heap, lib, &geom, false);
+    mesh                 = ak_allocMeshEx(heap, doc, &geom, false);
     meshObj              = ak_objFrom(mesh);
     mesh->primitiveCount = 0;
 
@@ -753,24 +751,17 @@ gltf_meshes(json_t * __restrict jmesh,
           meshMorph->presetCount = morphPresetWrite;
         }
       }
-      if (doc->lib.morphs)
-        meshMorph->base.next = &doc->lib.morphs->base;
-      doc->lib.morphs = meshMorph;
+      AK_LIB_PREPEND(doc->lib.morphs, meshMorph, next);
       rb_insert(gst->meshTargets, geom, meshMorph);
     }
 
     /* Reversed */
-    geom->base.next = lib->chld;
-    lib->chld       = (void *)geom;
-
-    lib->count++;
+    AK_LIB_PREPEND(doc->lib.geometries, geom, next);
     if (meshIndex > 0)
       gst->geometriesByIndex[--meshIndex] = geom;
 
     jmesh = jmesh->next;
   }
-
-  doc->lib.geometries = lib;
 }
 
 AK_HIDE

@@ -71,7 +71,7 @@ gltf_samplers(json_t * __restrict jsampler,
       jsamplerVal = jsamplerVal->next;
     }
 
-    flist_sp_insert(&gst->doc->lib.samplers, sampler);
+    AK_LIB_PREPEND(gst->doc->lib.samplers, sampler, next);
     if (samplerIndex > 0)
       gst->samplersByIndex[--samplerIndex] = sampler;
     jsampler = jsampler->next;

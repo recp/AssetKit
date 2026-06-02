@@ -165,7 +165,7 @@ gltf_accessors(json_t * __restrict json,
             rb_insert(gst->bufferMap, buffView, buff);
           }
 
-          flist_sp_insert(&doc->lib.buffers, buff);
+          AK_LIB_PREPEND(doc->lib.buffers, buff, next);
         }
 
         acc->byteStride = buffView->byteStride;
@@ -355,7 +355,7 @@ gltf_accessors(json_t * __restrict json,
           acc->byteOffset = 0;
           acc->byteStride = acc->fillByteSize;
 
-          flist_sp_insert(&doc->lib.buffers, denseBuff);
+          AK_LIB_PREPEND(doc->lib.buffers, denseBuff, next);
         }
       }
     }
@@ -425,7 +425,7 @@ gltf_accessors(json_t * __restrict json,
       acc->componentType     = AKT_FLOAT;
       acc->normalized        = false;
 
-      flist_sp_insert(&doc->lib.buffers, fbuf);
+      AK_LIB_PREPEND(doc->lib.buffers, fbuf, next);
     }
 
     /* KHR_mesh_quantization: non-normalized integer POSITION (vec3) or
@@ -491,12 +491,12 @@ gltf_accessors(json_t * __restrict json,
       acc->byteStride        = acc->fillByteSize;
       acc->componentType     = AKT_FLOAT;
 
-      flist_sp_insert(&doc->lib.buffers, fbuf);
+      AK_LIB_PREPEND(doc->lib.buffers, fbuf, next);
     }
 
     /* (byteStride normalization done up front, before sparse + dequantize) */
 
-    flist_sp_insert(&gst->doc->lib.accessors, acc);
+    AK_LIB_PREPEND(gst->doc->lib.accessors, acc, next);
     if (accIndex > 0)
       gst->accessorsByIndex[--accIndex] = acc;
 

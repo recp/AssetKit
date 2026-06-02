@@ -21,7 +21,7 @@
 
 AK_HIDE
 AkResult
-dae_mesh_fixup(AkMesh * mesh);
+dae_mesh_fixup(AkMesh * mesh, bool retainDuplicators);
 
 AK_HIDE
 void

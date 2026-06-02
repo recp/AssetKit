@@ -399,8 +399,8 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
 
   acc->buffer            = buff;
 
-  flist_sp_insert(&doc->lib.accessors, acc);
-  flist_sp_insert(&doc->lib.buffers, buff);
+  AK_LIB_PREPEND(doc->lib.accessors, acc, next);
+  AK_LIB_PREPEND(doc->lib.buffers, buff, next);
   
   /* add input */
   input              = ak_heap_calloc(heap, prim, sizeof(*input));

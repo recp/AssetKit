@@ -56,7 +56,7 @@ dae_anim(DAEState * __restrict dst,
     } else if (DAE_XML_TAG_EQ(xml, animation)) {
       AkAnimation *subAnim;
       if ((subAnim = dae_anim(dst, xml, anim))) {
-        subAnim->base.next = (AkOneWayIterBase *)anim->animation;
+        subAnim->next      = anim->animation;
         anim->animation    = subAnim;
       }
     } else if (DAE_XML_TAG_EQ8(xml, extra)) {

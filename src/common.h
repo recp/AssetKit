@@ -71,6 +71,26 @@
 
 #define AK__UNUSED(X) (void)X
 
+#define AK_LIB_PREPEND(LIB, ITEM, NEXT)                                       \
+  do {                                                                        \
+    (ITEM)->NEXT = (LIB).first;                                               \
+    if (!(LIB).last)                                                          \
+      (LIB).last = (ITEM);                                                    \
+    (LIB).first = (ITEM);                                                     \
+    (LIB).count++;                                                            \
+  } while (0)
+
+#define AK_LIB_APPEND(LIB, ITEM, NEXT)                                        \
+  do {                                                                        \
+    (ITEM)->NEXT = NULL;                                                      \
+    if ((LIB).last)                                                           \
+      (LIB).last->NEXT = (ITEM);                                              \
+    else                                                                      \
+      (LIB).first = (ITEM);                                                   \
+    (LIB).last = (ITEM);                                                      \
+    (LIB).count++;                                                            \
+  } while (0)
+
 #define I2P (void *)(intptr_t)
 
 /*!

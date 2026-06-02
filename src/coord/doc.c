@@ -20,21 +20,10 @@ AK_EXPORT
 void
 ak_changeCoordSys(AkDoc * __restrict doc,
                   AkCoordSys * newCoordSys) {
-  AkLibrary  *libGeom;
   AkGeometry *geom;
 
-  libGeom = doc->lib.geometries;
-
-  while (libGeom) {
-    geom = (void *)libGeom->chld;
-
-    while (geom) {
-      ak_changeCoordSysGeom(geom, newCoordSys);
-      geom = (void *)geom->base.next;
-    }
-
-    libGeom = libGeom->next;
-  }
+  for (geom = doc->lib.geometries.first; geom; geom = geom->next)
+    ak_changeCoordSysGeom(geom, newCoordSys);
 
   doc->coordSys = newCoordSys;
 }

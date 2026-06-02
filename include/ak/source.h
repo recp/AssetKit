@@ -54,27 +54,29 @@ typedef struct AkDataParam {
 } AkDataParam;
 
 struct AkBuffer {
-  const char *name;
-  void       *data;
-  size_t      length;
+  struct AkBuffer *next;
+  const char      *name;
+  void            *data;
+  size_t           length;
 };
 
 typedef struct AkAccessor {
-  struct AkBuffer *buffer;
-  const char      *name;
-  void            *min;
-  void            *max;
-  size_t           byteOffset;           /* byte offset on the buffer        */
-  size_t           byteStride;           /* stride in bytes                  */
-  size_t           byteLength;           /* total bytes for this accessor    */
-  uint32_t         count;                /* count to access buffer           */
-  uint32_t         bytesPerComponent;    /* component stride in bytes        */
-  AkComponentSize  componentSize;        /* vec1 | vec2 | vec3 | vec4 ...    */
-  AkTypeId         componentType;        /* single component type            */
-  uint32_t         componentCount;
-  size_t           fillByteSize;         /* filled size for single access    */
-  int32_t          gpuTarget;            /* GPU buffer target to bound       */
-  bool             normalized;
+  struct AkAccessor *next;
+  struct AkBuffer   *buffer;
+  const char        *name;
+  void              *min;
+  void              *max;
+  size_t             byteOffset;           /* byte offset on the buffer        */
+  size_t             byteStride;           /* stride in bytes                  */
+  size_t             byteLength;           /* total bytes for this accessor    */
+  uint32_t           count;                /* count to access buffer           */
+  uint32_t           bytesPerComponent;    /* component stride in bytes        */
+  AkComponentSize    componentSize;        /* vec1 | vec2 | vec3 | vec4 ...    */
+  AkTypeId           componentType;        /* single component type            */
+  uint32_t           componentCount;
+  size_t             fillByteSize;         /* filled size for single access    */
+  int32_t            gpuTarget;            /* GPU buffer target to bound       */
+  bool               normalized;
 
   /* Source-side metadata preserved across dequantize. When AssetKit
      widens a normalized integer / KHR_mesh_quantization integer

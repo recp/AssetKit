@@ -28,17 +28,13 @@ dae14_fxMigrateImg(DAEState * __restrict dst,
   AkImage    *img;
   AkInitFrom *initFrom;
   const char *format;
-  AkLibrary  *lib;
+  void       *parent;
 
   heap = dst->heap;
   doc  = dst->doc;
+  parent = memp ? memp : doc;
 
-  if (memp)
-    lib = memp;
-  else
-    lib = ak_libImageFirstOrCreat(doc);
-
-  img           = ak_heap_calloc(heap, lib, sizeof(*img));
+  img           = ak_heap_calloc(heap, parent, sizeof(*img));
   initFrom      = ak_heap_calloc(heap, img, sizeof(*img->initFrom));
   img->initFrom = initFrom;
 
@@ -73,6 +69,5 @@ dae14_fxMigrateImg(DAEState * __restrict dst,
     xml = xml->next;
   }
 
-  if (!memp)
-    ak_libInsertInto(lib, img, -1, offsetof(AkImage, next));
+  AK_LIB_PREPEND(doc->lib.images, img, next);
 }

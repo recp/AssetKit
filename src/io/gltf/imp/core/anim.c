@@ -1571,7 +1571,7 @@ gltf_animResolveLightPointer(AkGLTFState     * __restrict gst,
   if (!gltf_animPtrIndex(&p, end, &lightIndex))
     return false;
 
-  light = (void *)gst->doc->lib.lights->chld;
+  light = gst->doc->lib.lights.first;
   while (light && lightIndex > 0) {
     light = light->next;
     lightIndex--;
@@ -1646,7 +1646,6 @@ gltf_animations(json_t * __restrict janim,
   AkHeap             *heap;
   AkDoc              *doc;
   const json_array_t *janims;
-  AkLibrary          *lib;
   AkAnimation        *anim;
 
   if (!(janims = json_array(janim)))
@@ -1656,7 +1655,6 @@ gltf_animations(json_t * __restrict janim,
   heap  = gst->heap;
   doc   = gst->doc;
   janim = janims->base.value;
-  lib   = ak_heap_calloc(heap, doc, sizeof(*lib));
   
   while (janim) {
     json_t *anim_it;
@@ -1669,7 +1667,7 @@ gltf_animations(json_t * __restrict janim,
     
     json_objmap(janim, animMap, JSON_ARR_LEN(animMap));
     
-    anim = ak_heap_calloc(heap, lib,  sizeof(*anim));
+    anim = ak_heap_calloc(heap, doc,  sizeof(*anim));
 
     if ((anim_it = animMap[k_anim_name].object)) {
       anim->name = json_strdup(anim_it, heap, anim);
@@ -1865,12 +1863,8 @@ gltf_animations(json_t * __restrict janim,
     
   anm_nxt:
 
-    anim->base.next = (void *)lib->chld;
-    lib->chld       = (void *)anim;
-    lib->count++;
+    AK_LIB_PREPEND(doc->lib.animations, anim, next);
 
     janim = janim->next;
   }
-
-  doc->lib.animations = lib;
 }
