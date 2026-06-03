@@ -84,7 +84,7 @@ typedef struct AkNode {
   AkInstanceGeometry   *geometry;
   AkInstanceBase       *camera;
   AkInstanceBase       *light;
-  AkNodeRef           *nodeRefs;
+  AkInstanceNode       *node;
 
   /* EXT_mesh_gpu_instancing, NULL if not authored. */
   AkGpuInstancing      *gpuInstancing;
@@ -205,7 +205,7 @@ ak_nodeSetTransformMatrix(AkNode * __restrict node,
 /*!
  * @brief Find a root-level node in a scene by name.
  *
- * Scenes use `scene->node` as a synthetic entrypoint. Its `nodeRefs` list
+ * Scenes use `scene->node` as a synthetic entrypoint. Its `node` list
  * references authored root nodes and may be NULL for an empty scene. NULL
  * inputs return NULL.
  * NULL inputs return NULL.
@@ -221,7 +221,7 @@ ak_sceneFindRoot(struct AkScene * __restrict scene,
  * Convenience for "ensure a top-level container exists" — e.g. a
  * "User Cameras" group placed alongside the asset's authored roots.
  * Created roots are document-library nodes attached to the scene through the
- * synthetic root's `nodeRefs` list.
+ * synthetic root's `node` list.
  */
 AK_EXPORT
 AkNode *

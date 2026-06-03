@@ -248,16 +248,16 @@ dae_node(DAEState * __restrict dst,
           ak_instanceListAdd(scene->lights, instlight);
       }
     } else if (DAE_XML_TAG_EQ(xml, instance_node)) {
-      AkNodeRef *nodeRef;
-      AkURL     *url;
+      AkInstanceNode *instNode;
+      AkURL          *url;
       
-      nodeRef        = ak_nodeAttachNodeRef(node, NULL);
-      nodeRef->name  = DAE_XMLA_STRDUP8(xml, heap, name, nodeRef);
-      nodeRef->proxy = DAE_XMLA_STRDUP8(xml, heap, proxy, nodeRef);
+      instNode        = ak_nodeAttachNodeInstance(node, NULL);
+      instNode->name  = DAE_XMLA_STRDUP8(xml, heap, name, instNode);
+      instNode->proxy = DAE_XMLA_STRDUP8(xml, heap, proxy, instNode);
 
-      url = ak_heap_calloc(heap, nodeRef, sizeof(*url));
-      DAE_URL_SET(dst, xml, url, nodeRef, url);
-      nodeRef->reserved = url;
+      url = ak_heap_calloc(heap, instNode, sizeof(*url));
+      DAE_URL_SET(dst, xml, url, instNode, url);
+      instNode->reserved = url;
     } else if (DAE_XML_TAG_EQ4(xml, node)) {
       AkNode *subNode;
       

@@ -95,12 +95,12 @@ ak_bbox_node(AkHeap  * __restrict heap,
     ak_bbox_pick_transformed(scene->bbox, &bbox, matrixWorld);
   }
 
-  if (node->nodeRefs) {
-    AkNodeRef *nodeRef;
+  if (node->node) {
+    AkInstanceNode *instNode;
 
-    for (nodeRef = node->nodeRefs; nodeRef; nodeRef = nodeRef->next) {
+    for (instNode = node->node; instNode; instNode = instNode->next) {
       AkNode *nodei;
-      if ((nodei = ak_nodeRefTarget(nodeRef)))
+      if ((nodei = ak_instanceNodeTarget(instNode)))
         ak_bbox_node(heap, scene, nodei, matrixWorld, false);
     }
   }

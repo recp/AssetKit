@@ -365,13 +365,13 @@ dae_attach_orphan_morphs_node(DAEState * __restrict dst, AkNode *node) {
     if (node->chld)
       dae_attach_orphan_morphs_node(dst, node->chld);
 
-    if (node->nodeRefs) {
-      AkNodeRef *nodeRef;
+    if (node->node) {
+      AkInstanceNode *instNode;
 
-      for (nodeRef = node->nodeRefs; nodeRef; nodeRef = nodeRef->next) {
+      for (instNode = node->node; instNode; instNode = instNode->next) {
         AkNode *target;
 
-        target = ak_nodeRefTarget(nodeRef);
+        target = ak_instanceNodeTarget(instNode);
         if (target)
           dae_attach_orphan_morphs_node(dst, target);
       }

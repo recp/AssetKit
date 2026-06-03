@@ -81,7 +81,7 @@ gltf_scenes(json_t * __restrict jscene,
           if (!(node = gltf_node_at(gst, nodeIndex)))
             goto jnode_nxt;
           
-          ak_nodeAttachNodeRef(scene->node, node);
+          ak_nodeAttachNodeInstance(scene->node, node);
           
           if (!scene->firstCamNode)
             gltf_setFirstCamera(scene, node);

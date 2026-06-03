@@ -255,16 +255,15 @@ typedef struct AkInstanceGeometry {
   void                   *reserved;       /* legacy internal bridge */
 } AkInstanceGeometry;
 
-typedef struct AkNodeRef {
-  struct AkNodeRef *next;
-  struct AkNodeRef *prev;
-  struct AkNode    *owner;
-  struct AkNode    *target;
-  const char       *name;
-  const char       *proxy;
-  AkTree           *extra;
-  void             *reserved; /* private importer sidecar */
-} AkNodeRef;
+typedef struct AkInstanceNode {
+  struct AkInstanceNode *next;
+  struct AkInstanceNode *prev;
+  struct AkNode         *owner;
+  struct AkNode         *target;
+  AkURL                 *reserved; /* unresolved/source-side URL */
+  const char            *name;
+  const char            *proxy;
+} AkInstanceNode;
 
 /*
  * TODO: separate all instances to individual nodes?

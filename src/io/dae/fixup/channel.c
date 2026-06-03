@@ -109,7 +109,7 @@ dae_findInstanceMorph_node(AkNode * __restrict node, AkMorph *morph) {
   AkInstanceGeometry *instGeom;
   AkInstanceMorph    *found;
   AkNode             *child;
-  AkNodeRef          *nodeRef;
+  AkInstanceNode          *instNode;
 
   for (; node; node = (AkNode *)node->next) {
     for (instGeom = node->geometry; instGeom;
@@ -121,8 +121,8 @@ dae_findInstanceMorph_node(AkNode * __restrict node, AkMorph *morph) {
         && (found = dae_findInstanceMorph_node(child, morph)))
       return found;
 
-    for (nodeRef = node->nodeRefs; nodeRef; nodeRef = nodeRef->next) {
-      child = ak_nodeRefTarget(nodeRef);
+    for (instNode = node->node; instNode; instNode = instNode->next) {
+      child = ak_instanceNodeTarget(instNode);
       if (child && (found = dae_findInstanceMorph_node(child, morph)))
         return found;
     }

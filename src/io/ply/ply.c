@@ -395,7 +395,7 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
   ak_setypeid(rootNode, AKT_NODE);
   rootNode->visible      = true;
   AK_LIB_PREPEND(doc->lib.nodes, rootNode, docNext);
-  ak_nodeAttachNodeRef(scene->node, rootNode);
+  ak_nodeAttachNodeInstance(scene->node, rootNode);
   AK_LIB_PREPEND(doc->lib.scenes, scene, next);
   doc->scene             = scene;
 

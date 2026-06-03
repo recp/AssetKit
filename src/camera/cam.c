@@ -24,7 +24,7 @@ ak__cameraWorldFromNode(AkNode * __restrict node,
                         AkNode * __restrict target,
                         mat4                 parentWorld,
                         mat4                 world) {
-  AkNodeRef *ref;
+  AkInstanceNode *inst;
   AkNode    *chld;
   mat4       local;
   mat4       nodeWorld;
@@ -40,12 +40,12 @@ ak__cameraWorldFromNode(AkNode * __restrict node,
     return true;
   }
 
-  if (node->nodeRefs) {
-    for (ref = node->nodeRefs; ref; ref = ref->next) {
-      AkNode *refNode;
+  if (node->node) {
+    for (inst = node->node; inst; inst = inst->next) {
+      AkNode *instNode;
 
-      refNode = ak_nodeRefTarget(ref);
-      if (refNode && ak__cameraWorldFromNode(refNode,
+      instNode = ak_instanceNodeTarget(inst);
+      if (instNode && ak__cameraWorldFromNode(instNode,
                                              target,
                                              nodeWorld,
                                              world))

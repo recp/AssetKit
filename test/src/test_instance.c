@@ -59,7 +59,7 @@ ak_test_write_dae_instance_node(const char *path) {
         "<COLLADA xmlns=\"http://www.collada.org/2005/11/COLLADASchema\" version=\"1.4.1\">\n"
         "<asset><unit name=\"meter\" meter=\"1\"/><up_axis>Y_UP</up_axis></asset>\n"
         "<library_visual_scenes><visual_scene id=\"Scene\">"
-        "<node id=\"root\" name=\"Root\"><instance_node url=\"#shared\"/></node>"
+        "<node id=\"root\" name=\"Root\"><instance_node name=\"SharedUse\" url=\"#shared\"/></node>"
         "</visual_scene></library_visual_scenes>\n"
         "<library_nodes><node id=\"shared\" name=\"Shared\"/></library_nodes>\n"
         "<scene><instance_visual_scene url=\"#Scene\"/></scene>\n"
@@ -147,7 +147,7 @@ TEST_IMPL(instance_attach_helpers) {
   AkNode             *targetNode;
   AkGeometry         *geomA, *geomB;
   AkInstanceGeometry *instA, *instB;
-  AkNodeRef          *nodeRef;
+  AkInstanceNode          *instNode;
 
   heap  = ak_heap_new(NULL, NULL, NULL);
   node  = ak_heap_calloc(heap, NULL, sizeof(*node));
@@ -183,14 +183,14 @@ TEST_IMPL(instance_attach_helpers) {
   ASSERT(instA->base.prev == NULL);
   ASSERT(instA->base.next == NULL);
 
-  nodeRef = ak_nodeAttachNodeRef(node, targetNode);
-  ASSERT(nodeRef != NULL);
-  ASSERT(node->nodeRefs == nodeRef);
-  ASSERT(nodeRef->owner == node);
-  ASSERT(nodeRef->target == targetNode);
-  ASSERT(ak_nodeRefTarget(nodeRef) == targetNode);
-  ASSERT(nodeRef->prev == NULL);
-  ASSERT(nodeRef->next == NULL);
+  instNode = ak_nodeAttachNodeInstance(node, targetNode);
+  ASSERT(instNode != NULL);
+  ASSERT(node->node == instNode);
+  ASSERT(instNode->owner == node);
+  ASSERT(instNode->target == targetNode);
+  ASSERT(ak_instanceNodeTarget(instNode) == targetNode);
+  ASSERT(instNode->prev == NULL);
+  ASSERT(instNode->next == NULL);
 
   ak_heap_destroy(heap);
 
@@ -237,8 +237,8 @@ TEST_IMPL(node_instance_bbox_traversal) {
 
   ASSERT(ak_nodeAttachGeometry(nodeA, geomA) != NULL);
   ASSERT(ak_nodeAttachGeometry(nodeB, geomB) != NULL);
-  ASSERT(ak_nodeAttachNodeRef(root, nodeA) != NULL);
-  ASSERT(ak_nodeAttachNodeRef(root, nodeB) != NULL);
+  ASSERT(ak_nodeAttachNodeInstance(root, nodeA) != NULL);
+  ASSERT(ak_nodeAttachNodeInstance(root, nodeB) != NULL);
 
   ak_bbox_scene(scene);
 
@@ -280,7 +280,7 @@ TEST_IMPL(node_instance_bbox_lazy_geometry) {
 
   ASSERT(geom->bbox == NULL);
   ASSERT(ak_nodeAttachGeometry(target, geom) != NULL);
-  ASSERT(ak_nodeAttachNodeRef(root, target) != NULL);
+  ASSERT(ak_nodeAttachNodeInstance(root, target) != NULL);
 
   ak_bbox_scene(scene);
 
@@ -345,10 +345,10 @@ TEST_IMPL(node_instance_bbox_path_state) {
   ak_nodeSetTransformMatrix(ownerB, translateX);
 
   ASSERT(ak_nodeAttachGeometry(target, geom) != NULL);
-  ASSERT(ak_nodeAttachNodeRef(root, ownerA) != NULL);
-  ASSERT(ak_nodeAttachNodeRef(root, ownerB) != NULL);
-  ASSERT(ak_nodeAttachNodeRef(ownerA, target) != NULL);
-  ASSERT(ak_nodeAttachNodeRef(ownerB, target) != NULL);
+  ASSERT(ak_nodeAttachNodeInstance(root, ownerA) != NULL);
+  ASSERT(ak_nodeAttachNodeInstance(root, ownerB) != NULL);
+  ASSERT(ak_nodeAttachNodeInstance(ownerA, target) != NULL);
+  ASSERT(ak_nodeAttachNodeInstance(ownerB, target) != NULL);
 
   ak_bbox_scene(scene);
 
@@ -397,7 +397,7 @@ TEST_IMPL(node_instance_bbox_rotated_ref) {
   ak_nodeSetTransformMatrix(root, rotZ45);
 
   ASSERT(ak_nodeAttachGeometry(target, geom) != NULL);
-  ASSERT(ak_nodeAttachNodeRef(root, target) != NULL);
+  ASSERT(ak_nodeAttachNodeInstance(root, target) != NULL);
 
   ak_bbox_scene(scene);
 
@@ -451,7 +451,7 @@ TEST_IMPL(node_instance_camera_world_path) {
   camera = ak_camMakePerspective(doc, doc, 1.0f, 1.0f, 0.1f, 100.0f);
   ASSERT(camera != NULL);
   ASSERT(ak_nodeAttachCamera(camNode, camera) != NULL);
-  ASSERT(ak_nodeAttachNodeRef(root, camNode) != NULL);
+  ASSERT(ak_nodeAttachNodeInstance(root, camNode) != NULL);
 
   ASSERT(ak_firstCamera(doc, &found, matrix, NULL) == AK_OK);
   ASSERT(found == camera);
@@ -464,7 +464,7 @@ TEST_IMPL(node_instance_camera_world_path) {
   TEST_SUCCESS
 }
 
-TEST_IMPL(scene_find_or_make_root_uses_node_refs) {
+TEST_IMPL(scene_find_or_make_root_uses_instance_nodes) {
   AkHeap  *heap;
   AkDoc   *doc;
   AkScene *scene;
@@ -480,9 +480,9 @@ TEST_IMPL(scene_find_or_make_root_uses_node_refs) {
   madeRoot = ak_sceneFindOrMakeRoot(doc, scene, "User Cameras");
   ASSERT(madeRoot != NULL);
   ASSERT(scene->node != NULL);
-  ASSERT(scene->node->nodeRefs != NULL);
-  ASSERT(scene->node->nodeRefs->target == madeRoot);
-  ASSERT(scene->node->nodeRefs->next == NULL);
+  ASSERT(scene->node->node != NULL);
+  ASSERT(scene->node->node->target == madeRoot);
+  ASSERT(scene->node->node->next == NULL);
   ASSERT(scene->node->geometry == NULL);
   ASSERT(scene->node->chld == NULL);
   ASSERT(madeRoot->prev == NULL);
@@ -492,14 +492,14 @@ TEST_IMPL(scene_find_or_make_root_uses_node_refs) {
   sameRoot = ak_sceneFindOrMakeRoot(doc, scene, "User Cameras");
   ASSERT(sameRoot == madeRoot);
   ASSERT(doc->lib.nodes.count == 1);
-  ASSERT(scene->node->nodeRefs->next == NULL);
+  ASSERT(scene->node->node->next == NULL);
 
   otherRoot = ak_sceneFindOrMakeRoot(doc, scene, "Other Root");
   ASSERT(otherRoot != NULL);
   ASSERT(otherRoot != madeRoot);
-  ASSERT(scene->node->nodeRefs->target == otherRoot);
-  ASSERT(scene->node->nodeRefs->next != NULL);
-  ASSERT(scene->node->nodeRefs->next->target == madeRoot);
+  ASSERT(scene->node->node->target == otherRoot);
+  ASSERT(scene->node->node->next != NULL);
+  ASSERT(scene->node->node->next->target == madeRoot);
   ASSERT(doc->lib.nodes.count == 2);
 
   ak_heap_destroy(heap);
@@ -507,7 +507,7 @@ TEST_IMPL(scene_find_or_make_root_uses_node_refs) {
   TEST_SUCCESS
 }
 
-TEST_IMPL(dae_scene_roots_are_refs) {
+TEST_IMPL(dae_scene_roots_are_instance_nodes) {
   AkDoc       *doc;
   AkScene     *scene;
   AkNode      *rootA, *rootB;
@@ -515,8 +515,8 @@ TEST_IMPL(dae_scene_roots_are_refs) {
   char        *tmpdir;
   char         daePath[PATH_MAX];
   const char  *tmpBase;
-  uint32_t     rootRefCount;
-  AkNodeRef   *ref;
+  uint32_t     rootInstCount;
+  AkInstanceNode *inst;
 
   doc = NULL;
   tmpBase = getenv("TMPDIR");
@@ -537,7 +537,7 @@ TEST_IMPL(dae_scene_roots_are_refs) {
   scene = doc->scene;
   ASSERT(scene != NULL);
   ASSERT(scene->node != NULL);
-  ASSERT(scene->node->nodeRefs != NULL);
+  ASSERT(scene->node->node != NULL);
   ASSERT(scene->node->geometry == NULL);
   ASSERT(scene->node->next == NULL);
   ASSERT(doc->lib.nodes.count == 2);
@@ -554,10 +554,10 @@ TEST_IMPL(dae_scene_roots_are_refs) {
   ASSERT(rootA->prev == NULL);
   ASSERT(rootB->prev == NULL);
 
-  rootRefCount = 0;
-  for (ref = scene->node->nodeRefs; ref; ref = ref->next)
-    rootRefCount++;
-  ASSERT(rootRefCount == 2);
+  rootInstCount = 0;
+  for (inst = scene->node->node; inst; inst = inst->next)
+    rootInstCount++;
+  ASSERT(rootInstCount == 2);
 
   ak_free(doc);
   unlink(daePath);
@@ -566,12 +566,12 @@ TEST_IMPL(dae_scene_roots_are_refs) {
   TEST_SUCCESS
 }
 
-TEST_IMPL(dae_instance_node_is_node_ref) {
+TEST_IMPL(dae_instance_node_is_instance_node) {
   AkDoc      *doc;
   AkScene    *scene;
   AkNode     *root;
   AkNode     *shared;
-  AkNodeRef  *ref;
+  AkInstanceNode *inst;
   char        dirTemplate[PATH_MAX];
   char       *tmpdir;
   char        daePath[PATH_MAX];
@@ -584,34 +584,35 @@ TEST_IMPL(dae_instance_node_is_node_ref) {
 
   snprintf(dirTemplate,
            sizeof(dirTemplate),
-           "%s/assetkit-dae-node-ref-XXXXXX",
+           "%s/assetkit-dae-instance-node-XXXXXX",
            tmpBase);
   tmpdir = mkdtemp(dirTemplate);
   ASSERT(tmpdir != NULL);
 
-  snprintf(daePath, sizeof(daePath), "%s/node_ref.dae", tmpdir);
+  snprintf(daePath, sizeof(daePath), "%s/instance_node.dae", tmpdir);
   ASSERT(ak_test_write_dae_instance_node(daePath));
   ASSERT(ak_load(&doc, daePath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
 
   scene = doc->scene;
   ASSERT(scene != NULL);
   ASSERT(scene->node != NULL);
-  ASSERT(scene->node->nodeRefs != NULL);
+  ASSERT(scene->node->node != NULL);
   ASSERT(doc->lib.nodes.count == 2);
 
   root = ak_sceneFindRoot(scene, "Root");
   ASSERT(root != NULL);
-  ASSERT(root->nodeRefs != NULL);
+  ASSERT(root->node != NULL);
 
-  ref = root->nodeRefs;
-  ASSERT(ref->owner == root);
-  ASSERT(ref->target == NULL);
-  ASSERT(ref->reserved != NULL);
-  ASSERT(ref->proxy == NULL);
+  inst = root->node;
+  ASSERT(inst->owner == root);
+  ASSERT(inst->target == NULL);
+  ASSERT(inst->reserved != NULL);
+  ASSERT(inst->name && strcmp(inst->name, "SharedUse") == 0);
+  ASSERT(inst->proxy == NULL);
 
-  shared = ak_nodeRefTarget(ref);
+  shared = ak_instanceNodeTarget(inst);
   ASSERT(shared != NULL);
-  ASSERT(shared == ref->target);
+  ASSERT(shared == inst->target);
   ASSERT(shared->name && strcmp(shared->name, "Shared") == 0);
 
   ak_free(doc);
@@ -621,7 +622,7 @@ TEST_IMPL(dae_instance_node_is_node_ref) {
   TEST_SUCCESS
 }
 
-TEST_IMPL(obj_scene_root_is_ref) {
+TEST_IMPL(obj_scene_root_is_instance_node) {
   AkDoc      *doc;
   AkScene    *scene;
   AkNode     *root;
@@ -649,10 +650,10 @@ TEST_IMPL(obj_scene_root_is_ref) {
   scene = doc->scene;
   ASSERT(scene != NULL);
   ASSERT(scene->node != NULL);
-  ASSERT(scene->node->nodeRefs != NULL);
+  ASSERT(scene->node->node != NULL);
   ASSERT(scene->node->geometry == NULL);
 
-  root = ak_nodeRefTarget(scene->node->nodeRefs);
+  root = ak_instanceNodeTarget(scene->node->node);
   ASSERT(root != NULL);
   ASSERT(root != scene->node);
   ASSERT(root->geometry != NULL);

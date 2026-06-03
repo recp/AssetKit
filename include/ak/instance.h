@@ -61,12 +61,12 @@ ak_nodeAttachGeometry(AkNode     * __restrict node,
 
 AK_EXPORT
 AkNode *
-ak_nodeRefTarget(AkNodeRef * __restrict ref);
+ak_instanceNodeTarget(AkInstanceNode * __restrict inst);
 
 AK_EXPORT
-AkNodeRef *
-ak_nodeAttachNodeRef(AkNode * __restrict owner,
-                     AkNode * __restrict target);
+AkInstanceNode *
+ak_nodeAttachNodeInstance(AkNode * __restrict owner,
+                          AkNode * __restrict target);
 
 AK_EXPORT
 void

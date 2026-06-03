@@ -34,7 +34,7 @@ dae_nodeFixupFixedCoord(AkHeap * __restrict heap,
 
   if (!node->geometry
       && !node->chld
-      && !node->nodeRefs) {
+      && !node->node) {
     node->flags |= AK_NODEF_FIXED_COORD;
     return;
   }

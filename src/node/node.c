@@ -129,16 +129,16 @@ ak__nodePrependInstance(AkInstanceBase *head,
 }
 
 static
-AkNodeRef *
-ak__nodePrependRef(AkNodeRef *head,
-                   AkNodeRef *ref) {
-  ref->prev = NULL;
-  ref->next = head;
+AkInstanceNode *
+ak__nodePrependInstanceNode(AkInstanceNode *head,
+                            AkInstanceNode *inst) {
+  inst->prev = NULL;
+  inst->next = head;
 
   if (head)
-    head->prev = ref;
+    head->prev = inst;
 
-  return ref;
+  return inst;
 }
 
 AK_EXPORT
@@ -190,44 +190,44 @@ ak_nodeAttachGeometry(AkNode     * __restrict node,
 
 AK_EXPORT
 AkNode *
-ak_nodeRefTarget(AkNodeRef * __restrict ref) {
+ak_instanceNodeTarget(AkInstanceNode * __restrict inst) {
   void *target;
 
-  if (!ref)
+  if (!inst)
     return NULL;
 
-  if (ref->target)
-    return ref->target;
+  if (inst->target)
+    return inst->target;
 
-  if (!ref->reserved)
+  if (!inst->reserved)
     return NULL;
 
-  target = ak_getObjectByUrl((AkURL *)ref->reserved);
+  target = ak_getObjectByUrl(inst->reserved);
   if (target && ak_typeid(target) == AKT_NODE)
-    ref->target = target;
+    inst->target = target;
 
-  return ref->target;
+  return inst->target;
 }
 
 AK_EXPORT
-AkNodeRef *
-ak_nodeAttachNodeRef(AkNode * __restrict owner,
-                     AkNode * __restrict target) {
-  AkHeap    *heap;
-  AkNodeRef *ref;
+AkInstanceNode *
+ak_nodeAttachNodeInstance(AkNode * __restrict owner,
+                          AkNode * __restrict target) {
+  AkHeap         *heap;
+  AkInstanceNode *inst;
 
   if (!owner)
     return NULL;
 
   heap = ak_heap_getheap(owner);
-  ref  = ak_heap_calloc(heap, owner, sizeof(*ref));
+  inst = ak_heap_calloc(heap, owner, sizeof(*inst));
 
-  ref->owner  = owner;
-  ref->target = target;
+  inst->owner  = owner;
+  inst->target = target;
 
-  owner->nodeRefs = ak__nodePrependRef(owner->nodeRefs, ref);
+  owner->node = ak__nodePrependInstanceNode(owner->node, inst);
 
-  return ref;
+  return inst;
 }
 
 AK_EXPORT
@@ -302,10 +302,10 @@ ak_sceneFindRoot(AkScene    * __restrict scene,
   if (!scene || !name) return NULL;
 
   if (scene->node) {
-    AkNodeRef *ref;
+    AkInstanceNode *inst;
 
-    for (ref = scene->node->nodeRefs; ref; ref = ref->next) {
-      node = ak_nodeRefTarget(ref);
+    for (inst = scene->node->node; inst; inst = inst->next) {
+      node = ak_instanceNodeTarget(inst);
       if (node && node->name && strcmp(node->name, name) == 0)
         return node;
     }
@@ -342,7 +342,7 @@ ak_sceneFindOrMakeRoot(AkDoc      * __restrict doc,
     node->name = ak_heap_strdup(heap, node, name);
 
   AK_LIB_PREPEND(doc->lib.nodes, node, docNext);
-  ak_nodeAttachNodeRef(scene->node, node);
+  ak_nodeAttachNodeInstance(scene->node, node);
 
   return node;
 }
