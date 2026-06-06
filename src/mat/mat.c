@@ -367,6 +367,13 @@ ak__materialResolvedSet(AkResolvedMaterial * __restrict resolved,
   resolved->variantIndex  = variantIndex;
 }
 
+static
+bool
+ak__materialBindingMatchesPrimitive(AkMaterialBinding * __restrict binding,
+                                    AkMeshPrimitive   * __restrict prim) {
+  return binding && (!binding->primitive || binding->primitive == prim);
+}
+
 AK_EXPORT
 bool
 ak_materialResolveForPrimitive(AkMeshPrimitive   * __restrict prim,
@@ -456,7 +463,8 @@ ak_materialResolve(AkMeshPrimitive    * __restrict prim,
   fallbackBinding = NULL;
   binding         = instance ? instance->objectBindings : NULL;
   while (binding) {
-    if (binding->scope == AK_MATERIAL_BIND_OBJECT) {
+    if (binding->scope == AK_MATERIAL_BIND_OBJECT
+        && ak__materialBindingMatchesPrimitive(binding, prim)) {
       if (variantIndex != noVariant && binding->variantIndex == variantIndex) {
         ak__materialResolvedSet(resolved,
                                 binding->material,
@@ -484,24 +492,6 @@ ak_materialResolve(AkMeshPrimitive    * __restrict prim,
            || fallbackBinding->propertySet;
   }
 
-#if defined(AK_INTERNAL_BUILD)
-  if (prim && instance && ak__instanceGeometryBindMaterial(instance) && variantIndex == noVariant) {
-    AkInstanceMaterial *instMat;
-    AkMaterial         *material;
-
-    instMat = NULL;
-    if (ak_effectForBindMaterial(ak__instanceGeometryBindMaterial(instance), prim, &instMat)
-        && instMat
-        && (material = ak_instanceObject(&instMat->base))
-        && material->surface) {
-      ak__materialResolvedSet(resolved, material, NULL, 0, noVariant);
-      return true;
-    }
-  }
-#else
-  (void)instance;
-#endif
-
   return resolved->material != NULL;
 }
 
@@ -525,30 +515,30 @@ int32_t
 ak_materialTextureSlot(AkMeshPrimitive    * __restrict prim,
                        AkInstanceGeometry * __restrict instance,
                        AkTextureRef       * __restrict texref) {
+  AkMaterialBinding      *binding;
+  AkMaterialInputBinding *inputBinding;
   int32_t slot;
 
   slot = ak__materialTextureSlot(texref);
 
-#if defined(AK_INTERNAL_BUILD)
-  if (prim && instance && ak__instanceGeometryBindMaterial(instance) && texref && texref->texcoord) {
-    AkInstanceMaterial *instMat;
-    AkBindVertexInput  *bvi;
+  if (!prim || !instance || !texref || !texref->texcoord)
+    return slot >= 0 ? slot : 0;
 
-    instMat = NULL;
-    (void)ak_effectForBindMaterial(ak__instanceGeometryBindMaterial(instance), prim, &instMat);
-    if (instMat) {
-      for (bvi = instMat->bindVertexInput; bvi; bvi = bvi->next) {
-        if (bvi->semantic && strcmp(bvi->semantic, texref->texcoord) == 0) {
-          slot = (int32_t)bvi->inputSet;
-          break;
-        }
+  for (binding = instance->objectBindings; binding; binding = binding->next) {
+    if (binding->scope != AK_MATERIAL_BIND_OBJECT
+        || !ak__materialBindingMatchesPrimitive(binding, prim))
+      continue;
+
+    for (inputBinding = binding->inputBindings;
+         inputBinding;
+         inputBinding = inputBinding->next) {
+      if (inputBinding->semantic
+          && strcmp(inputBinding->semantic, texref->texcoord) == 0) {
+        slot = (int32_t)inputBinding->inputSet;
+        return slot >= 0 ? slot : 0;
       }
     }
   }
-#else
-  (void)prim;
-  (void)instance;
-#endif
 
   return slot >= 0 ? slot : 0;
 }
@@ -1083,4 +1073,112 @@ ak_effectForBindMaterial(AkBindMaterial      * __restrict bindMat,
   }
 
   return NULL;
+}
+
+static
+void
+ak__materialAppendInstanceBinding(AkInstanceGeometry * __restrict instance,
+                                  AkMaterialBinding  * __restrict binding) {
+  AkMaterialBinding **tail;
+
+  if (!instance || !binding)
+    return;
+
+  tail = &instance->objectBindings;
+  while (*tail)
+    tail = &(*tail)->next;
+
+  *tail = binding;
+}
+
+static
+AkMaterialInputBinding*
+ak__materialCopyInputBindings(AkHeap             * __restrict heap,
+                              AkMaterialBinding  * __restrict parent,
+                              AkInstanceMaterial * __restrict materialInst) {
+  AkMaterialInputBinding **tail;
+  AkMaterialInputBinding  *binding;
+  AkBindVertexInput       *bvi;
+
+  if (!heap || !parent || !materialInst)
+    return NULL;
+
+  tail = &parent->inputBindings;
+  for (bvi = materialInst->bindVertexInput; bvi; bvi = bvi->next) {
+    binding = ak_heap_calloc(heap, parent, sizeof(*binding));
+    binding->semantic      = bvi->semantic;
+    binding->inputSemantic = bvi->inputSemantic;
+    binding->inputSet      = bvi->inputSet;
+
+    *tail = binding;
+    tail  = &binding->next;
+  }
+
+  return parent->inputBindings;
+}
+
+static
+AkMaterialBinding*
+ak__materialMakeInstanceBinding(AkHeap             * __restrict heap,
+                                AkInstanceGeometry * __restrict instance,
+                                AkInstanceMaterial * __restrict materialInst,
+                                AkMeshPrimitive    * __restrict prim) {
+  AkMaterialBinding *binding;
+  AkMaterial        *material;
+
+  if (!heap || !instance || !materialInst)
+    return NULL;
+
+  material = ak_instanceObject(&materialInst->base);
+  if (!material)
+    return NULL;
+
+  binding                = ak_heap_calloc(heap, instance, sizeof(*binding));
+  binding->material      = material;
+  binding->primitive     = prim;
+  binding->propertyIndex = UINT32_MAX;
+  binding->variantIndex  = UINT32_MAX;
+  binding->scope         = AK_MATERIAL_BIND_OBJECT;
+
+  ak__materialCopyInputBindings(heap, binding, materialInst);
+  return binding;
+}
+
+AK_HIDE
+void
+ak__instanceGeometryApplyBindMaterial(AkInstanceGeometry * __restrict instance,
+                                      AkBindMaterial     * __restrict bindMat) {
+  AkInstanceMaterial *materialInst;
+  AkMaterialBinding  *binding;
+  AkGeometry         *geom;
+  AkMapItem          *mi;
+  AkHeap             *heap;
+
+  if (!instance || !bindMat)
+    return;
+
+  heap = ak_heap_getheap(instance);
+  geom = ak_instanceObject(&instance->base);
+
+  for (materialInst = bindMat->tcommon;
+       materialInst;
+       materialInst = (AkInstanceMaterial *)materialInst->base.next) {
+    if (materialInst->symbol) {
+      if (!geom || !geom->materialMap)
+        continue;
+
+      for (mi = ak_map_find(geom->materialMap, (void *)materialInst->symbol);
+           mi;
+           mi = mi->next) {
+        binding = ak__materialMakeInstanceBinding(heap,
+                                                  instance,
+                                                  materialInst,
+                                                  mi->data);
+        ak__materialAppendInstanceBinding(instance, binding);
+      }
+    } else {
+      binding = ak__materialMakeInstanceBinding(heap, instance, materialInst, NULL);
+      ak__materialAppendInstanceBinding(instance, binding);
+    }
+  }
 }

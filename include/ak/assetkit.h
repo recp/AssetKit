@@ -252,10 +252,9 @@ typedef struct AkInput {
 
 typedef struct AkInstanceGeometry {
   AkInstanceBase          base;
-  AkMaterialBinding      *objectBindings; /* AK_MATERIAL_BIND_OBJECT only */
+  AkMaterialBinding      *objectBindings;
   struct AkInstanceMorph *morpher;
   struct AkInstanceSkin  *skinner;
-  void                   *reserved;       /* legacy internal bridge */
 } AkInstanceGeometry;
 
 typedef struct AkInstanceNode {

@@ -258,11 +258,13 @@ TEST_IMPL(material_api) {
   AkMaterialBinding          variantBinding;
   AkMaterialBinding          propertyBinding;
   AkMaterialBinding          objectBinding;
+  AkMaterialInputBinding     inputBinding;
   AkMaterialVariantMapping   legacyMapping;
   AkMaterialPropertySet      propertySet;
   AkMaterialProperty         properties[2];
   AkDoc                      doc;
   AkMeshPrimitive            prim;
+  AkMeshPrimitive            otherPrim;
   AkInstanceGeometry         instGeom;
   AkResolvedMaterial         resolved;
 
@@ -278,11 +280,13 @@ TEST_IMPL(material_api) {
   memset(&variantBinding, 0, sizeof(variantBinding));
   memset(&propertyBinding, 0, sizeof(propertyBinding));
   memset(&objectBinding, 0, sizeof(objectBinding));
+  memset(&inputBinding, 0, sizeof(inputBinding));
   memset(&legacyMapping, 0, sizeof(legacyMapping));
   memset(&propertySet, 0, sizeof(propertySet));
   memset(properties, 0, sizeof(properties));
   memset(&doc, 0, sizeof(doc));
   memset(&prim, 0, sizeof(prim));
+  memset(&otherPrim, 0, sizeof(otherPrim));
   memset(&instGeom, 0, sizeof(instGeom));
 
   ASSERT(ak_materialTypeIsPBR(AK_MATERIAL_TYPE_PBR));
@@ -458,9 +462,14 @@ TEST_IMPL(material_api) {
   ASSERT(ak_resolvedMaterialProperty(&resolved) == &properties[1]);
 
   objectBinding.material = &variantMaterial;
+  objectBinding.primitive = &prim;
   objectBinding.scope = AK_MATERIAL_BIND_OBJECT;
   objectBinding.propertyIndex = UINT32_MAX;
   objectBinding.variantIndex = UINT32_MAX;
+  inputBinding.semantic = "UVSET0";
+  inputBinding.inputSemantic = "TEXCOORD";
+  inputBinding.inputSet = 2;
+  objectBinding.inputBindings = &inputBinding;
   instGeom.objectBindings = &objectBinding;
 
   memset(&prim, 0, sizeof(prim));
@@ -469,6 +478,12 @@ TEST_IMPL(material_api) {
   ASSERT(resolved.surface == &variantSurface);
   ASSERT(resolved.binding == &objectBinding);
   ASSERT(resolved.variantIndex == UINT32_MAX);
+  ASSERT(!ak_materialResolve(&otherPrim, &instGeom, UINT32_MAX, &resolved));
+
+  textureRef.texcoord = "UVSET0";
+  textureRef.slot = 0;
+  ASSERT(ak_materialTextureSlot(&prim, &instGeom, &textureRef) == 2);
+  ASSERT(ak_materialTextureSlot(&otherPrim, &instGeom, &textureRef) == 0);
 
   TEST_SUCCESS
 }

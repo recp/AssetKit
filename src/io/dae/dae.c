@@ -365,6 +365,7 @@ dae_doc(AkDoc     ** __restrict dest,
   ak_free(dstVal.tempmem);
 
   flist_sp_destroy(&dst->linkedUserData);
+  flist_sp_destroy(&dst->bindMaterials);
 
   rb_destroy(dstVal.meshInfo);
   rb_destroy(dstVal.inputmap);

@@ -162,6 +162,11 @@ typedef struct AkDAEVerticesMapItem {
   AkMeshPrimitive *prim;
 } AkDAEVerticesMapItem;
 
+typedef struct AkDAEBindMaterialUse {
+  AkInstanceGeometry *instance;
+  AkBindMaterial     *bindMaterial;
+} AkDAEBindMaterialUse;
+
 typedef struct DaeSource {
   const char       *name;
   AkBuffer         *buffer;
@@ -187,6 +192,7 @@ typedef AK_ALIGN(16) struct DAEState {
   AkURLQueue      *urlQueue;
   FListItem       *accessors;
   FListItem       *instCtlrs;
+  FListItem       *bindMaterials;
   FListItem       *inputs;
   FListItem       *toRadiansSampelers;
   FListItem       *linkedUserData;
@@ -260,6 +266,22 @@ dae_url_mark_scene_instance(DAEState       * __restrict dst,
 
   dst->urlQueue->scene    = scene;
   dst->urlQueue->instance = instance;
+}
+
+AK_INLINE
+void
+dae_bind_material_add(DAEState          * __restrict dst,
+                      AkInstanceGeometry * __restrict instance,
+                      AkBindMaterial     * __restrict bindMaterial) {
+  AkDAEBindMaterialUse *item;
+
+  if (!dst || !instance || !bindMaterial)
+    return;
+
+  item               = ak_heap_calloc(dst->heap, dst->tempmem, sizeof(*item));
+  item->instance     = instance;
+  item->bindMaterial = bindMaterial;
+  flist_sp_insert(&dst->bindMaterials, item);
 }
 
 typedef struct AkDaeMeshInfo {

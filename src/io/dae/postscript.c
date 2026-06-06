@@ -39,6 +39,9 @@ dae_retain_refs(DAEState * __restrict dst);
 static void
 dae_bind_active_scene(DAEState * __restrict dst);
 
+static void
+dae_apply_bind_materials(DAEState * __restrict dst);
+
 AK_HIDE void
 dae_fixup_accessors(DAEState * __restrict dst);
 
@@ -189,6 +192,8 @@ dae_postscript(DAEState * __restrict dst) {
                           dae14_loadjobs_finish(dst));
 
   DAE_POST_PROFILE_CALL(profile, "retain_refs", dae_retain_refs(dst));
+  DAE_POST_PROFILE_CALL(profile, "bind_materials",
+                        dae_apply_bind_materials(dst));
   DAE_POST_PROFILE_CALL(profile, "bind_scene", dae_bind_active_scene(dst));
   DAE_POST_PROFILE_CALL(profile, "input_walk",
                         rb_walk(dst->inputmap, dae_input_walk));
@@ -256,6 +261,21 @@ dae_postscript(DAEState * __restrict dst) {
         ak_fixSceneCoordSys(vscn);
     }
     dae_post_profile_log(profile, "fix_scene_coord", coordStart);
+  }
+}
+
+static void
+dae_apply_bind_materials(DAEState * __restrict dst) {
+  AkDAEBindMaterialUse *use;
+  FListItem            *item;
+
+  if (!dst)
+    return;
+
+  for (item = dst->bindMaterials; item; item = item->next) {
+    use = item->data;
+    if (use)
+      ak__instanceGeometryApplyBindMaterial(use->instance, use->bindMaterial);
   }
 }
 

@@ -255,6 +255,15 @@ typedef enum AkMaterialSourceRecordType {
 } AkMaterialSourceRecordType;
 
 struct AkMaterial;
+struct AkMeshPrimitive;
+
+typedef struct AkMaterialInputBinding {
+  struct AkMaterialInputBinding *next;
+  const char                    *semantic;
+  const char                    *inputSemantic;
+  uint32_t                       inputSet;
+} AkMaterialInputBinding;
+
 typedef struct AkMaterialSourceRecord {
   struct AkMaterialSourceRecord *next;
   struct AkMaterial             *material;
@@ -284,6 +293,8 @@ typedef struct AkMaterialBinding {
   struct AkMaterialBinding     *next;
   AkMaterial                   *material;
   struct AkMaterialPropertySet *propertySet;
+  struct AkMeshPrimitive       *primitive;
+  AkMaterialInputBinding       *inputBindings;
   uint32_t                      propertyIndex;
   uint32_t                      variantIndex;
   uint32_t                      first;

@@ -209,18 +209,6 @@ typedef struct AkEvaluateScene {
   AkBool                  enable;
 } AkEvaluateScene;
 
-AK_INLINE AkBindMaterial*
-ak__instanceGeometryBindMaterial(AkInstanceGeometry * __restrict instance) {
-  return instance ? (AkBindMaterial *)instance->reserved : NULL;
-}
-
-AK_INLINE void
-ak__instanceGeometrySetBindMaterial(AkInstanceGeometry * __restrict instance,
-                                    AkBindMaterial     * __restrict bindMaterial) {
-  if (instance)
-    instance->reserved = bindMaterial;
-}
-
 AK_HIDE
 AkProfile*
 ak_profile(AkEffect * __restrict effect,
@@ -260,5 +248,10 @@ AkEffect*
 ak_effectForBindMaterial(AkBindMaterial      * __restrict bindMat,
                          AkMeshPrimitive     * __restrict meshPrim,
                          AkInstanceMaterial ** __restrict foundInstMat);
+
+AK_HIDE
+void
+ak__instanceGeometryApplyBindMaterial(AkInstanceGeometry * __restrict instance,
+                                      AkBindMaterial     * __restrict bindMat);
 
 #endif /* ak_src_material_legacy_h */

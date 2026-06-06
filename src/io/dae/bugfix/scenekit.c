@@ -15,6 +15,7 @@
  */
 
 #include "scenekit.h"
+#include "../../../mat/internal.h"
 
 #include <ctype.h>
 #include <string.h>
@@ -104,20 +105,23 @@ AkTechniqueFxCommon*
 dae_scenekit_primitive_common(DAEState            * __restrict dst,
                               AkInstanceGeometry  * __restrict instGeom,
                               AkMeshPrimitive     * __restrict prim,
-                              AkInstanceMaterial ** __restrict instMat) {
-  AkEffect *effect;
+                              AkMaterial         ** __restrict materialOut) {
+  AkResolvedMaterial resolved;
+  AkEffect          *effect;
 
   AK__UNUSED(dst);
 
-  *instMat = NULL;
+  *materialOut = NULL;
 
-  if (!ak__instanceGeometryBindMaterial(instGeom))
+  if (!ak_materialResolve(prim, instGeom, UINT32_MAX, &resolved)
+      || !resolved.material)
     return NULL;
 
-  effect = ak_effectForBindMaterial(ak__instanceGeometryBindMaterial(instGeom), prim, instMat);
+  effect = ak_materialEffect(resolved.material);
   if (!effect)
     return NULL;
 
+  *materialOut = resolved.material;
   return ak_getProfileTechniqueCommon(effect);
 }
 
@@ -127,9 +131,9 @@ dae_scenekit_primitive_has_texture(DAEState           * __restrict dst,
                                    AkInstanceGeometry * __restrict instGeom,
                                    AkMeshPrimitive    * __restrict prim) {
   AkTechniqueFxCommon *common;
-  AkInstanceMaterial  *instMat;
+  AkMaterial          *material;
 
-  common = dae_scenekit_primitive_common(dst, instGeom, prim, &instMat);
+  common = dae_scenekit_primitive_common(dst, instGeom, prim, &material);
 
   return common && dae_colordesc_has_texture(dst, common->diffuse);
 }
@@ -155,17 +159,14 @@ dae_scenekit_should_drop_primitive(DAEState           * __restrict dst,
                                    AkMeshPrimitive    * __restrict prev,
                                    AkMeshPrimitive    * __restrict next) {
   AkTechniqueFxCommon *common;
-  AkInstanceMaterial  *instMat;
   AkMaterial          *material;
 
   if (prim->type != AK_PRIMITIVE_TRIANGLES || prim->nPolygons == 0)
     return false;
 
-  common = dae_scenekit_primitive_common(dst, instGeom, prim, &instMat);
+  common = dae_scenekit_primitive_common(dst, instGeom, prim, &material);
   if (!common || dae_colordesc_has_texture(dst, common->diffuse))
     return false;
-
-  material = instMat ? ak_instanceObject(&instMat->base) : NULL;
 
   return dae_scenekit_is_red_fill(material, common)
          && (dae_scenekit_is_textured_twin(dst, instGeom, prim, prev)
