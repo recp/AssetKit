@@ -53,6 +53,7 @@ gltf_cameras(json_t * __restrict jcam,
     json_t     *jtechn;
 
     cam         = ak_heap_calloc(heap, doc, sizeof(*cam));
+    ak_setypeid(cam, AKT_CAMERA);
     optics      = ak_heap_calloc(heap, cam, sizeof(*optics));
     cam->optics = optics;
 

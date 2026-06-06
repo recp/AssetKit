@@ -46,6 +46,8 @@ AkTypeDesc ak_def_type_descs[] = {
   {"ushort",    AKT_USHORT,    sizeof(unsigned short),     0},
 
   {"sampler2D", AKT_SAMPLER2D, sizeof(AkSampler),          0},
+  {"camera",    AKT_CAMERA,    sizeof(AkCamera),           0},
+  {"light",     AKT_LIGHT,     sizeof(AkLight),            0},
 
   /* for PLY  */
   {"char",      AKT_BYTE,      sizeof(char),               0},

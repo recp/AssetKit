@@ -97,7 +97,9 @@ typedef enum AkTypeId {
   AKT_MATRIX,
   AKT_QUATERNION,
 
-  AKT_MATERIAL
+  AKT_MATERIAL,
+  AKT_CAMERA,
+  AKT_LIGHT
 } AkTypeId;
 
 typedef struct AkTypeDesc {

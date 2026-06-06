@@ -61,6 +61,7 @@ dae_light(DAEState * __restrict dst,
 
   heap        = dst->heap;
   light       = ak_heap_calloc(heap, memp, sizeof(*light));
+  ak_setypeid(light, AKT_LIGHT);
   light->name = DAE_XMLA_STRDUP8(xml, heap, name, light);
   
   xmla_setid(xml, heap, light);

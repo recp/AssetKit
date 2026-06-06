@@ -22,6 +22,7 @@ ak_libAddCamera(AkDoc * __restrict doc, AkCamera * __restrict cam) {
   if (!doc || !cam)
     return AK_EINVAL;
 
+  ak_setypeid(cam, AKT_CAMERA);
   AK_LIB_PREPEND(doc->lib.cameras, cam, next);
 
   return AK_OK;
@@ -34,6 +35,7 @@ ak_libAddLight(AkDoc   * __restrict doc,
   if (!doc || !light)
     return AK_EINVAL;
 
+  ak_setypeid(light, AKT_LIGHT);
   AK_LIB_PREPEND(doc->lib.lights, light, next);
 
   return AK_OK;

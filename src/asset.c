@@ -43,6 +43,10 @@ ak_extraField(void * __restrict obj) {
       return &((AkMesh *)obj)->extra;
     case AKT_MATERIAL:
       return &((AkMaterial *)obj)->extra;
+    case AKT_CAMERA:
+      return &((AkCamera *)obj)->extra;
+    case AKT_LIGHT:
+      return &((AkLight *)obj)->extra;
     case AKT_EFFECT:
       return &((AkEffect *)obj)->extra;
     case AKT_PROFILE:

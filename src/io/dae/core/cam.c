@@ -29,6 +29,7 @@ dae_cam(DAEState * __restrict dst,
 
   heap      = dst->heap;
   cam       = ak_heap_calloc(heap, memp, sizeof(*cam));
+  ak_setypeid(cam, AKT_CAMERA);
   cam->name = DAE_XMLA_STRDUP8(xml, heap, name, cam);
 
   xmla_setid(xml, heap, cam);

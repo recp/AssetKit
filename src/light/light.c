@@ -51,6 +51,7 @@ ak_lightMake(AkDoc * __restrict doc,
   }
 
   light          = ak_heap_calloc(heap, memp ? memp : (void *)doc, sizeof(*light));
+  ak_setypeid(light, AKT_LIGHT);
   light->data    = ak_heap_calloc(heap, light, baseSize);
   base           = light->data;
   base->type     = type;
@@ -110,6 +111,7 @@ ak_defaultLight(void * __restrict memparent) {
                          memparent,
                          sizeof(*light));
   memcpy(light, deflight, sizeof(*deflight));
+  ak_setypeid(light, AKT_LIGHT);
 
   light->data = ak_heap_calloc(heap, light, sizeof(AkDirectionalLight));
   memcpy(light->data, deflight->data, sizeof(AkDirectionalLight));

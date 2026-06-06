@@ -194,6 +194,7 @@ ak_defaultCamera(void * __restrict memparent) {
 
   cam = ak_heap_calloc(heap, memparent, sizeof(*cam));
   memcpy(cam, defcam, sizeof(*defcam));
+  ak_setypeid(cam, AKT_CAMERA);
 
   cam->optics       = ak_heap_calloc(heap, cam, sizeof(*cam->optics));
   cam->optics->proj = ak_heap_calloc(heap, cam, sizeof(AkPerspective));
@@ -220,6 +221,7 @@ ak_camMakePerspective(AkDoc * __restrict doc,
   heap        = ak_heap_getheap(doc);
   cam         = ak_heap_calloc(heap, memparent ? memparent : (void *)doc,
                                      sizeof(*cam));
+  ak_setypeid(cam, AKT_CAMERA);
   cam->optics = ak_heap_calloc(heap, cam, sizeof(*cam->optics));
 
   /* Concrete projection lives in the camera's heap region so it's
@@ -254,6 +256,7 @@ ak_camMakeOrthographic(AkDoc * __restrict doc,
   heap        = ak_heap_getheap(doc);
   cam         = ak_heap_calloc(heap, memparent ? memparent : (void *)doc,
                                      sizeof(*cam));
+  ak_setypeid(cam, AKT_CAMERA);
   cam->optics = ak_heap_calloc(heap, cam, sizeof(*cam->optics));
 
   ortho              = ak_heap_calloc(heap, cam, sizeof(*ortho));

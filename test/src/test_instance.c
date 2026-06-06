@@ -16,12 +16,33 @@
 
 #include "test_common.h"
 
+#include <ak/options.h>
+
 #include <limits.h>
 #include <math.h>
 
 #ifndef PATH_MAX
 #  define PATH_MAX 4096
 #endif
+
+static
+bool
+ak_test_tree_has_name(AkTree *tree, const char *name) {
+  AkTree *child;
+
+  if (!tree || !name)
+    return false;
+
+  if (tree->name && strcmp(tree->name, name) == 0)
+    return true;
+
+  for (child = tree->chld; child; child = child->next) {
+    if (ak_test_tree_has_name(child, name))
+      return true;
+  }
+
+  return false;
+}
 
 static
 bool
@@ -38,6 +59,39 @@ ak_test_write_dae_two_roots(const char *path) {
         "<library_visual_scenes><visual_scene id=\"Scene\">"
         "<node id=\"rootA\" name=\"RootA\"/>"
         "<node id=\"rootB\" name=\"RootB\"/>"
+        "</visual_scene></library_visual_scenes>\n"
+        "<scene><instance_visual_scene url=\"#Scene\"/></scene>\n"
+        "</COLLADA>\n",
+        file);
+
+  return fclose(file) == 0;
+}
+
+static
+bool
+ak_test_write_dae_camera_light_extra(const char *path) {
+  FILE *file;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  fputs("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+        "<COLLADA xmlns=\"http://www.collada.org/2005/11/COLLADASchema\" version=\"1.4.1\">\n"
+        "<asset><unit name=\"meter\" meter=\"1\"/><up_axis>Y_UP</up_axis></asset>\n"
+        "<library_cameras><camera id=\"cam\" name=\"Camera\">"
+        "<optics><technique_common><perspective>"
+        "<yfov>45</yfov><znear>0.1</znear><zfar>100</zfar>"
+        "</perspective></technique_common></optics>"
+        "<extra><technique profile=\"Test\"><cameraTag>yes</cameraTag></technique></extra>"
+        "</camera></library_cameras>\n"
+        "<library_lights><light id=\"lamp\" name=\"Lamp\">"
+        "<technique_common><point><color>1 1 1</color></point></technique_common>"
+        "<extra><technique profile=\"Test\"><lightTag>yes</lightTag></technique></extra>"
+        "</light></library_lights>\n"
+        "<library_visual_scenes><visual_scene id=\"Scene\">"
+        "<node id=\"camNode\"><instance_camera url=\"#cam\"/></node>"
+        "<node id=\"lightNode\"><instance_light url=\"#lamp\"/></node>"
         "</visual_scene></library_visual_scenes>\n"
         "<scene><instance_visual_scene url=\"#Scene\"/></scene>\n"
         "</COLLADA>\n",
@@ -674,6 +728,63 @@ TEST_IMPL(dae_instance_node_is_instance_node) {
   ASSERT(ak_instanceObject(camInst) == scene->cameras.first->camera);
 
   ak_free(doc);
+  unlink(daePath);
+  rmdir(tmpdir);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(dae_camera_light_extra_preserve_opt) {
+  AkDoc      *doc;
+  AkDoc      *docWithExtras;
+  AkCamera   *camera;
+  AkLight    *light;
+  char        dirTemplate[PATH_MAX];
+  char       *tmpdir;
+  char        daePath[PATH_MAX];
+  const char *tmpBase;
+  uintptr_t   preserveExtras;
+  AkResult    loadResult;
+
+  doc = NULL;
+  docWithExtras = NULL;
+  tmpBase = getenv("TMPDIR");
+  if (!tmpBase || !tmpBase[0])
+    tmpBase = "/tmp";
+
+  snprintf(dirTemplate,
+           sizeof(dirTemplate),
+           "%s/assetkit-dae-camera-light-extra-XXXXXX",
+           tmpBase);
+  tmpdir = mkdtemp(dirTemplate);
+  ASSERT(tmpdir != NULL);
+
+  snprintf(daePath, sizeof(daePath), "%s/camera_light_extra.dae", tmpdir);
+  ASSERT(ak_test_write_dae_camera_light_extra(daePath));
+
+  ASSERT(ak_load(&doc, daePath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+  ASSERT(doc->lib.cameras.first != NULL);
+  ASSERT(doc->lib.lights.first != NULL);
+  ASSERT(!ak_extra(doc->lib.cameras.first));
+  ASSERT(!ak_extra(doc->lib.lights.first));
+  ak_free(doc);
+
+  preserveExtras = ak_opt_get(AK_OPT_PRESERVE_EXTRAS);
+  ak_opt_set(AK_OPT_PRESERVE_EXTRAS, true);
+  loadResult = ak_load(&docWithExtras, daePath, AK_FILE_TYPE_AUTO);
+  ak_opt_set(AK_OPT_PRESERVE_EXTRAS, preserveExtras);
+  ASSERT(loadResult == AK_OK && docWithExtras);
+
+  camera = docWithExtras->lib.cameras.first;
+  light  = docWithExtras->lib.lights.first;
+  ASSERT(camera != NULL);
+  ASSERT(light != NULL);
+  ASSERT(ak_extra(camera) != NULL);
+  ASSERT(ak_extra(light) != NULL);
+  ASSERT(ak_test_tree_has_name(ak_extra(camera), "cameraTag"));
+  ASSERT(ak_test_tree_has_name(ak_extra(light), "lightTag"));
+
+  ak_free(docWithExtras);
   unlink(daePath);
   rmdir(tmpdir);
 
