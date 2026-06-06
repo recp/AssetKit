@@ -37,14 +37,17 @@ ak_lightMake(AkDoc * __restrict doc,
   if (!doc) return NULL;
   heap = ak_heap_getheap(doc);
 
-  /* Pick the right concrete sub-struct for the type. Ambient and
-     directional don't have extra fields beyond AkLightBase, so they
-     share its allocation. Point and Spot extend the base with
-     attenuation (and Spot adds falloff). */
+  /* Pick the right concrete sub-struct for the type. */
   switch (type) {
-    case AK_LIGHT_TYPE_POINT: baseSize = sizeof(AkPointLight); break;
-    case AK_LIGHT_TYPE_SPOT:  baseSize = sizeof(AkSpotLight);  break;
-    default:                  baseSize = sizeof(AkLightBase);  break;
+    case AK_LIGHT_TYPE_POINT:
+      baseSize = sizeof(AkPointLight);
+      break;
+    case AK_LIGHT_TYPE_SPOT:
+      baseSize = sizeof(AkSpotLight);
+      break;
+    default:
+      baseSize = sizeof(AkLightBase);
+      break;
   }
 
   light          = ak_heap_calloc(heap, memp ? memp : (void *)doc, sizeof(*light));
@@ -66,24 +69,19 @@ ak_lightMake(AkDoc * __restrict doc,
   base->direction[1] = -1.0f;
   base->direction[2] =  0.0f;
 
-  /* Per-type attenuation defaults. constAttn=1 means "no attenuation
-     at the source"; linear/quad stay 0 so the light reaches forever
-     until the consumer caps the range. Spot adds a 30° cone with
-     linear falloff. */
   if (type == AK_LIGHT_TYPE_POINT) {
     AkPointLight *p = (AkPointLight *)base;
-    p->constAttn  = 1.0f;
-    p->linearAttn = 0.0f;
-    p->quadAttn   = 0.0f;
+    p->attenuation.constant  = 1.0f;
+    p->attenuation.linear    = 0.0f;
+    p->attenuation.quadratic = 0.0f;
   } else if (type == AK_LIGHT_TYPE_SPOT) {
     AkSpotLight *s = (AkSpotLight *)base;
-    s->constAttn    = 1.0f;
-    s->linearAttn   = 0.0f;
-    s->quadAttn     = 0.0f;
+    s->attenuation.constant  = 1.0f;
+    s->attenuation.linear    = 0.0f;
+    s->attenuation.quadratic = 0.0f;
     s->innerConeAngle = 0.0f;
     s->outerConeAngle = GLM_PI_4f;
-    s->falloffAngle = glm_rad(30.0f);
-    s->falloffExp   = 1.0f;
+    s->coneFalloffExponent = 1.0f;
   }
 
   ak_libAddLight(doc, light);

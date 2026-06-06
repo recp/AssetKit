@@ -20,13 +20,14 @@ AkDirectionalLight akdef_light_directional = {
   .direction = {0.0f, 0.0f, -1.0f},
   .type      = AK_LIGHT_TYPE_DIRECTIONAL,
   .color     = { {1.0, 1.0, 1.0, 1.0} },
-  .ctype     = 0
+  .ctype     = 0,
+  .intensity = 1.0f,
+  .range     = 0.0f
 };
 
 AkLight akdef_light = {
   .name      = "default",
   .data      = &akdef_light_directional,
-  .reserved  = NULL,
   .extra     = NULL,
   .next      = NULL
 };

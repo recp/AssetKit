@@ -22,6 +22,9 @@ extern "C" {
 
 #include "common.h"
 
+#define AK_LIGHT_HAS_ATTENUATION_STRUCT 1
+#define AK_LIGHT_HAS_CONE_FALLOFF_EXPONENT 1
+
 typedef enum AkLightType {
   AK_LIGHT_TYPE_AMBIENT     = 1,
   AK_LIGHT_TYPE_DIRECTIONAL = 2,
@@ -39,32 +42,32 @@ typedef struct AkLightBase {
   float       range;
 } AkLightBase;
 
+typedef struct AkLightAttenuation {
+  float constant;
+  float linear;
+  float quadratic;
+} AkLightAttenuation;
+
 typedef AkLightBase AkAmbientLight;
 typedef AkLightBase AkDirectionalLight;
 
 typedef struct AkPointLight {
-  AkLightBase base;
-  float       constAttn;
-  float       linearAttn;
-  float       quadAttn;
+  AkLightBase        base;
+  AkLightAttenuation attenuation;
 } AkPointLight;
 
 typedef struct AkSpotLight {
-  AkLightBase base;
-  float       constAttn;
-  float       linearAttn;
-  float       quadAttn;
-  float       innerConeAngle;
-  float       outerConeAngle;
-  float       falloffAngle;
-  float       falloffExp;
+  AkLightBase        base;
+  AkLightAttenuation attenuation;
+  float              innerConeAngle;
+  float              outerConeAngle;
+  float              coneFalloffExponent;
 } AkSpotLight;
 
 typedef struct AkLight {
   /* const char * id; */
   const char     *name;
   AkLightBase    *data;
-  void           *reserved;
   AkTree         *extra;
   struct AkLight *next;
 } AkLight;
@@ -76,11 +79,11 @@ ak_defaultLight(void * __restrict memparent);
 /*!
  * @brief Allocate a light of the given type with sensible defaults
  *        (white color, downward direction for directional/spot,
- *        constant attenuation for point/spot, 30° spot falloff)
+ *        unit intensity, infinite range, 45° spot outer cone)
  *        and register it in the document's lights library.
  *
  * Wires up AkLight + the matching data variant (AkLightBase for
- * ambient/directional, AkPointLight, or AkSpotLight) in one call.
+ * ambient/directional/point, or AkSpotLight) in one call.
  * Pair with ak_nodeAttachLight() to expose the light in the scene
  * tree.
  *

@@ -16,10 +16,40 @@
 
 #include "light.h"
 #include "asset.h"
-#include "techn.h"
 #include "color.h"
 
 #define AK_DEFAULT_LIGHT_DIR {0.0f, 0.0f, -1.0f}
+/* DAE attenuation has no finite cutoff; use 1% intensity as a range hint. */
+#define AK_DAE_ATTENUATION_RANGE_EPSILON 0.01f
+
+static
+float
+dae_lightRangeFromAttenuation(AkLightAttenuation * __restrict attenuation) {
+  float constant, linear, quadratic, target, disc, range;
+
+  if (!attenuation)
+    return 0.0f;
+
+  constant  = attenuation->constant;
+  linear    = attenuation->linear;
+  quadratic = attenuation->quadratic;
+  target    = 1.0f / AK_DAE_ATTENUATION_RANGE_EPSILON;
+
+  if (quadratic > 1e-6f) {
+    disc = linear * linear + 4.0f * quadratic * (target - constant);
+    if (disc > 0.0f) {
+      range = (-linear + sqrtf(disc)) / (2.0f * quadratic);
+      return isfinite(range) && range > 0.0f ? range : 0.0f;
+    }
+  }
+
+  if (linear > 1e-6f && target > constant) {
+    range = (target - constant) / linear;
+    return isfinite(range) && range > 0.0f ? range : 0.0f;
+  }
+
+  return 0.0f;
+}
 
 AK_HIDE
 void*
@@ -28,7 +58,6 @@ dae_light(DAEState * __restrict dst,
           void     * __restrict memp) {
   AkLight     *light;
   AkHeap      *heap;
-  AkTechnique *tq;
 
   heap        = dst->heap;
   light       = ak_heap_calloc(heap, memp, sizeof(*light));
@@ -55,30 +84,27 @@ dae_light(DAEState * __restrict dst,
         lightb->type = AK_LIGHT_TYPE_DIRECTIONAL;
       } else if (DAE_XML_TAG_EQ8(xtech, point)) {
         AkPointLight *point;
-        
-        point            = ak_heap_calloc(heap, light, sizeof(*point));
-        point->base.type = AK_LIGHT_TYPE_POINT;
-        lightb           = &point->base;
-        
-        /* default values */
-        point->constAttn = 1.0f;
-        
+
+        point                  = ak_heap_calloc(heap, light, sizeof(*point));
+        point->base.type       = AK_LIGHT_TYPE_POINT;
+        point->attenuation.constant = 1.0f;
+        lightb                 = &point->base;
+
         xtechv = xtech->val;
         while (xtechv) {
-          if (DAE_XML_TAG_EQ8(xtechv, color)) {
-            sid_seta(xtechv, heap, point, &point->base.color);
-          } else if (DAE_XML_TAG_EQ(xtechv, const_attn)) {
-            sid_seta(xtechv, heap, point, &point->constAttn);
-            point->constAttn = xml_float(xtechv, 1.0f);
+          if (DAE_XML_TAG_EQ(xtechv, const_attn)) {
+            sid_seta(xtechv, heap, point, &point->attenuation.constant);
+            point->attenuation.constant = xml_float(xtechv, 1.0f);
           } else if (DAE_XML_TAG_EQ(xtechv, linear_attn)) {
-            sid_seta(xtechv, heap, point, &point->linearAttn);
-            point->linearAttn = xml_float(xtechv, 0.0f);
+            sid_seta(xtechv, heap, point, &point->attenuation.linear);
+            point->attenuation.linear = xml_float(xtechv, 0.0f);
           } else if (DAE_XML_TAG_EQ(xtechv, quad_attn)) {
-            sid_seta(xtechv, heap, point, &point->quadAttn);
-            point->quadAttn = xml_float(xtechv, 0.0f);
+            sid_seta(xtechv, heap, point, &point->attenuation.quadratic);
+            point->attenuation.quadratic = xml_float(xtechv, 0.0f);
           }
           xtechv = xtechv->next;
         }
+        point->base.range = dae_lightRangeFromAttenuation(&point->attenuation);
       } else if (DAE_XML_TAG_EQ8(xtech, spot)) {
         AkSpotLight *spot;
 
@@ -86,36 +112,40 @@ dae_light(DAEState * __restrict dst,
         spot->base.type = AK_LIGHT_TYPE_SPOT;
         lightb          = &spot->base;
 
-        /* default values */
-        spot->constAttn    = 1.0f;
-        spot->falloffAngle = glm_rad(180.0f);
+        spot->attenuation.constant = 1.0f;
+        spot->innerConeAngle = 0.0f;
+        spot->outerConeAngle = GLM_PI_2f;
+        spot->coneFalloffExponent = 1.0f;
         
         xtechv = xtech->val;
         while (xtechv) {
-          if (DAE_XML_TAG_EQ8(xtechv, color)) {
-            sid_seta(xtechv, heap, spot, &spot->base.color);
-          } else if (DAE_XML_TAG_EQ(xtechv, const_attn)) {
-            sid_seta(xtechv, heap, spot, &spot->constAttn);
-            spot->constAttn = xml_float(xtechv, 0.0f);
+          if (DAE_XML_TAG_EQ(xtechv, const_attn)) {
+            sid_seta(xtechv, heap, spot, &spot->attenuation.constant);
+            spot->attenuation.constant = xml_float(xtechv, 1.0f);
           } else if (DAE_XML_TAG_EQ(xtechv, linear_attn)) {
-            sid_seta(xtechv, heap, spot, &spot->linearAttn);
-            spot->linearAttn = xml_float(xtechv, 0.0f);
+            sid_seta(xtechv, heap, spot, &spot->attenuation.linear);
+            spot->attenuation.linear = xml_float(xtechv, 0.0f);
           } else if (DAE_XML_TAG_EQ(xtechv, quad_attn)) {
-            sid_seta(xtechv, heap, spot, &spot->quadAttn);
-            spot->quadAttn = xml_float(xtechv, 0.0f);
+            sid_seta(xtechv, heap, spot, &spot->attenuation.quadratic);
+            spot->attenuation.quadratic = xml_float(xtechv, 0.0f);
           } else if (DAE_XML_TAG_EQ(xtechv, falloff_angle)) {
-            sid_seta(xtechv, heap, spot, &spot->falloffAngle);
-            spot->falloffAngle = xml_float(xtechv, 0.0f);
-            glm_make_rad(&spot->falloffAngle);
+            sid_seta(xtechv, heap, spot, &spot->outerConeAngle);
+            spot->outerConeAngle = xml_float(xtechv, 180.0f);
+            glm_make_rad(&spot->outerConeAngle);
+            if (spot->outerConeAngle > GLM_PI_2f)
+              spot->outerConeAngle = GLM_PI_2f;
           } else if (DAE_XML_TAG_EQ(xtechv, falloff_exp)) {
-            sid_seta(xtechv, heap, spot, &spot->falloffExp);
-            spot->falloffExp = xml_float(xtechv, 0.0f);
+            sid_seta(xtechv, heap, spot, &spot->coneFalloffExponent);
+            spot->coneFalloffExponent = xml_float(xtechv, 1.0f);
           }
           xtechv = xtechv->next;
         }
+        spot->base.range = dae_lightRangeFromAttenuation(&spot->attenuation);
       } else {
         goto nxt;
       }
+
+      lightb->intensity = 1.0f;
 
       if ((xcolor = DAE_XML_ELEM8(xtech, color))) {
         dae_color(xcolor, lightb, true, true, &lightb->color);
@@ -138,10 +168,6 @@ dae_light(DAEState * __restrict dst,
                         lightb->direction);
         }
       }
-    } else if (DAE_XML_TAG_EQ(xml, technique)) {
-      tq       = dae_techn(xml, heap, light);
-      tq->next = (AkTechnique *)light->reserved;
-      light->reserved = tq;
     } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       light->extra = tree_fromxml(heap, light, xml);
     }
