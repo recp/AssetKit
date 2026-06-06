@@ -244,12 +244,6 @@ AkTechniqueFxCommon*
 ak_getProfileTechniqueCommon(AkEffect * __restrict effect);
 
 AK_HIDE
-AkEffect*
-ak_effectForBindMaterial(AkBindMaterial      * __restrict bindMat,
-                         AkMeshPrimitive     * __restrict meshPrim,
-                         AkInstanceMaterial ** __restrict foundInstMat);
-
-AK_HIDE
 void
 ak__instanceGeometryApplyBindMaterial(AkInstanceGeometry * __restrict instance,
                                       AkBindMaterial     * __restrict bindMat);

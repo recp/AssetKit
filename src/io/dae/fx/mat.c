@@ -44,7 +44,7 @@ dae_material(DAEState * __restrict dst,
       AkInstanceEffect *instEffect;
 
       if ((instEffect = dae_instEffect(dst, xml, mat))) {
-        ak_materialSetInstanceEffect(heap, mat, mat, instEffect);
+        dae_material_effect_add(dst, mat, instEffect);
       }
     } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       mat->extra = tree_fromxml(heap, mat, xml);

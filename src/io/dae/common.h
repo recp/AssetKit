@@ -167,6 +167,11 @@ typedef struct AkDAEBindMaterialUse {
   AkBindMaterial     *bindMaterial;
 } AkDAEBindMaterialUse;
 
+typedef struct AkDAEMaterialEffectRecord {
+  AkMaterial       *material;
+  AkInstanceEffect *effects;
+} AkDAEMaterialEffectRecord;
+
 typedef struct DaeSource {
   const char       *name;
   AkBuffer         *buffer;
@@ -201,6 +206,7 @@ typedef AK_ALIGN(16) struct DAEState {
   RBTree          *inputmap;
   RBTree          *texmap;
   RBTree          *instanceMap;
+  RBTree          *materialEffectMap;
   FListItem       *vertMap;
   DAELibrary      *effectLibraries;
   DAELibrary      *controllerLibraries;
@@ -282,6 +288,66 @@ dae_bind_material_add(DAEState          * __restrict dst,
   item->instance     = instance;
   item->bindMaterial = bindMaterial;
   flist_sp_insert(&dst->bindMaterials, item);
+}
+
+AK_INLINE
+AkDAEMaterialEffectRecord*
+dae_material_effect_record(DAEState  * __restrict dst,
+                           AkMaterial * __restrict material) {
+  if (!dst || !material)
+    return NULL;
+
+  return dst->materialEffectMap ? rb_find(dst->materialEffectMap, material) : NULL;
+}
+
+AK_INLINE
+AkInstanceEffect*
+dae_material_instance_effect(DAEState  * __restrict dst,
+                             AkMaterial * __restrict material) {
+  AkDAEMaterialEffectRecord *record;
+
+  record = dae_material_effect_record(dst, material);
+  return record ? record->effects : NULL;
+}
+
+AK_INLINE
+AkEffect*
+dae_material_effect(DAEState  * __restrict dst,
+                    AkMaterial * __restrict material) {
+  AkInstanceEffect *instEffect;
+
+  instEffect = dae_material_instance_effect(dst, material);
+  if (!instEffect)
+    return NULL;
+
+  return ak_instanceObject(&instEffect->base);
+}
+
+AK_INLINE
+void
+dae_material_effect_add(DAEState         * __restrict dst,
+                        AkMaterial       * __restrict material,
+                        AkInstanceEffect * __restrict instEffect) {
+  AkDAEMaterialEffectRecord *record;
+  AkInstanceEffect          *head;
+
+  if (!dst || !dst->materialEffectMap || !material || !instEffect)
+    return;
+
+  record = dae_material_effect_record(dst, material);
+  if (!record) {
+    record           = ak_heap_calloc(dst->heap, dst->tempmem, sizeof(*record));
+    record->material = material;
+    rb_insert(dst->materialEffectMap, material, record);
+  }
+
+  head = record->effects;
+  if (head) {
+    head->base.prev       = &instEffect->base;
+    instEffect->base.next = &head->base;
+  }
+
+  record->effects = instEffect;
 }
 
 typedef struct AkDaeMeshInfo {

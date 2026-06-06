@@ -20,25 +20,6 @@
 #include "../common.h"
 
 AK_HIDE
-AkMaterialSourceRecord*
-ak_materialLegacyEffectRecord(AkMaterial * __restrict material);
-
-AK_HIDE
-AkInstanceEffect*
-ak_materialInstanceEffect(AkMaterial * __restrict material);
-
-AK_HIDE
-AkEffect*
-ak_materialEffect(AkMaterial * __restrict material);
-
-AK_HIDE
-void
-ak_materialSetInstanceEffect(AkHeap          * __restrict heap,
-                             void            * __restrict parent,
-                             AkMaterial      * __restrict material,
-                             AkInstanceEffect * __restrict instEffect);
-
-AK_HIDE
 AkMaterialSurface*
 ak_materialSurfaceFromTechniqueCommon(AkHeap              * __restrict heap,
                                       void                * __restrict parent,

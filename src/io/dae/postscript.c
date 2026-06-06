@@ -308,7 +308,7 @@ dae_build_material_surfaces(DAEState * __restrict dst) {
 
   for (material = dst->doc->lib.materials.first; material; material = material->next) {
     if (!material->surface
-        && (effect = ak_materialEffect(material))
+        && (effect = dae_material_effect(dst, material))
         && (common = ak_getProfileTechniqueCommon(effect))) {
       material->surface = ak_materialSurfaceFromTechniqueCommon(dst->heap, material, common);
     }

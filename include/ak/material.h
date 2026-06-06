@@ -152,8 +152,7 @@ typedef enum AkMaterialFeatureType {
   AK_MATERIAL_FEATURE_DIFFUSE_TRANSMISSION,
   AK_MATERIAL_FEATURE_SUBSURFACE,
   AK_MATERIAL_FEATURE_CLASSIC,
-  AK_MATERIAL_FEATURE_SHADER_NETWORK,
-  AK_MATERIAL_FEATURE_FORMAT_NATIVE
+  AK_MATERIAL_FEATURE_SHADER_NETWORK
 } AkMaterialFeatureType;
 
 typedef struct AkMaterialFeature {
@@ -249,11 +248,6 @@ typedef struct AkMaterialClassicFeature {
   uint32_t          illum;
 } AkMaterialClassicFeature;
 
-typedef enum AkMaterialSourceRecordType {
-  AK_MATERIAL_SOURCE_RECORD_NATIVE        = 0,
-  AK_MATERIAL_SOURCE_RECORD_LEGACY_EFFECT = 1
-} AkMaterialSourceRecordType;
-
 struct AkMaterial;
 struct AkMeshPrimitive;
 
@@ -264,21 +258,12 @@ typedef struct AkMaterialInputBinding {
   uint32_t                       inputSet;
 } AkMaterialInputBinding;
 
-typedef struct AkMaterialSourceRecord {
-  struct AkMaterialSourceRecord *next;
-  struct AkMaterial             *material;
-  AkTree                        *extra;
-  void                          *payload;
-  AkMaterialSourceRecordType     type;
-} AkMaterialSourceRecord;
-
 typedef struct AkMaterial {
-  struct AkMaterial      *next;
-  const char             *name;
-  AkMaterialSurface      *surface;
-  AkMaterialSourceRecord *sourceRecords;
-  AkTree                 *extra;
-  uint32_t                flags;
+  struct AkMaterial *next;
+  const char        *name;
+  AkMaterialSurface *surface;
+  AkTree            *extra;
+  uint32_t           flags;
 } AkMaterial;
 
 typedef enum AkMaterialBindingScope {

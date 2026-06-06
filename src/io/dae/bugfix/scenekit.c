@@ -109,15 +109,13 @@ dae_scenekit_primitive_common(DAEState            * __restrict dst,
   AkResolvedMaterial resolved;
   AkEffect          *effect;
 
-  AK__UNUSED(dst);
-
   *materialOut = NULL;
 
   if (!ak_materialResolve(prim, instGeom, UINT32_MAX, &resolved)
       || !resolved.material)
     return NULL;
 
-  effect = ak_materialEffect(resolved.material);
+  effect = dae_material_effect(dst, resolved.material);
   if (!effect)
     return NULL;
 

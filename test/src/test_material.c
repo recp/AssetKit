@@ -548,6 +548,9 @@ TEST_IMPL(material_dae_adapter) {
   texRgbZero = test_material_by_name(doc, "tex_rgb_zero");
   ASSERT(test_material_opacity(texRgbZero, AK_TEXTURE_CHANNEL_RGB, 0.499f, 0.501f, true, true));
 
+  for (AkMaterial *mat = doc->lib.materials.first; mat; mat = mat->next)
+    ASSERT(ak_userData(mat) == NULL);
+
   ak_free(doc);
   unlink(daePath);
   rmdir(tmpdir);

@@ -208,6 +208,7 @@ dae_doc(AkDoc     ** __restrict dest,
   dstVal.inputmap     = rb_newtree_ptr();
   dstVal.texmap       = rb_newtree_ptr();
   dstVal.instanceMap  = rb_newtree_ptr();
+  dstVal.materialEffectMap = rb_newtree_ptr();
 
   dstVal.meshTargets  = rb_newtree_ptr();
 
@@ -371,6 +372,7 @@ dae_doc(AkDoc     ** __restrict dest,
   rb_destroy(dstVal.inputmap);
   rb_destroy(dstVal.texmap);
   rb_destroy(dstVal.instanceMap);
+  rb_destroy(dstVal.materialEffectMap);
 
   flist_sp_destroy(&dstVal.vertMap);
 
