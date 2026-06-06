@@ -113,6 +113,8 @@ dae_lines(DAEState * __restrict dst,
       DAE_PROF_ACC(dst, profGeomIndexArray, profGeomIndexArrayCount, profStep);
     } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       lines->base.extra = tree_fromxml(heap, lines, xml);
+      if (lines->base.extra)
+        ak_extra_set(&lines->base, lines->base.extra);
     }
     xml = xml->next;
   }

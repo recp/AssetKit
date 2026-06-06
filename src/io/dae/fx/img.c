@@ -95,6 +95,8 @@ dae_image(DAEState * __restrict dst,
           img->image = &imageCube->base;
     } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       img->extra = tree_fromxml(heap, img, xml);
+      if (img->extra)
+        ak_extra_set(img, img->extra);
     }
     xml = xml->next;
   }

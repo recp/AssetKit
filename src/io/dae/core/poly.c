@@ -121,6 +121,8 @@ dae_poly(DAEState * __restrict dst,
       DAE_PROF_ACC(dst, profGeomIndexArray, profGeomIndexArrayCount, profStep);
     } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       poly->base.extra = tree_fromxml(heap, poly, xml);
+      if (poly->base.extra)
+        ak_extra_set(&poly->base, poly->base.extra);
     }
     xml = xml->next;
   }

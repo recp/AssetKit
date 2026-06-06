@@ -67,6 +67,8 @@ dae14_fxMigrateImg(DAEState * __restrict dst,
       source->type = AK_IMAGE_SOURCE_URI;
     } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       img->extra = tree_fromxml(heap, img, xml);
+      if (img->extra)
+        ak_extra_set(img, img->extra);
     }
     xml = xml->next;
   }

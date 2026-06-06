@@ -98,6 +98,8 @@ dae_mesh(DAEState   * __restrict dst,
       }
     } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       mesh->extra = tree_fromxml(heap, obj, xml);
+      if (mesh->extra)
+        ak_extra_set(mesh, mesh->extra);
     }
 
     xml = xml->next;

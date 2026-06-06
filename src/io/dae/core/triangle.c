@@ -113,6 +113,8 @@ dae_triangles(DAEState * __restrict dst,
       DAE_PROF_ACC(dst, profGeomIndexArray, profGeomIndexArrayCount, profStep);
     } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       tri->base.extra = tree_fromxml(heap, tri, xml);
+      if (tri->base.extra)
+        ak_extra_set(&tri->base, tri->base.extra);
     }
     xml = xml->next;
   }

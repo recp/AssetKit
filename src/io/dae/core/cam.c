@@ -149,7 +149,9 @@ dae_cam(DAEState * __restrict dst,
           tq->next = (AkTechnique *)imager->reserved;
           imager->reserved = tq;
         } else if (DAE_XML_TAG_EQ8(ximager, extra)) {
-          imager->extra = tree_fromxml(heap, imager, xml);
+          imager->extra = tree_fromxml(heap, imager, ximager);
+          if (imager->extra)
+            ak_extra_set(imager, imager->extra);
         }
         ximager = ximager->next;
       }
