@@ -791,8 +791,6 @@ stl_stl(AkDoc     ** __restrict dest,
 
   /* default scene */
   scene                  = ak_heap_calloc(heap, doc, sizeof(*scene));
-  scene->cameras         = ak_heap_calloc(heap, scene, sizeof(*scene->cameras));
-  scene->lights          = ak_heap_calloc(heap, scene, sizeof(*scene->lights));
   scene->node            = ak_heap_calloc(heap, scene, sizeof(*scene->node));
   ak_setypeid(scene->node, AKT_NODE);
   scene->node->visible   = true;

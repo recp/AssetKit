@@ -58,10 +58,13 @@ ak_test_write_dae_instance_node(const char *path) {
   fputs("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
         "<COLLADA xmlns=\"http://www.collada.org/2005/11/COLLADASchema\" version=\"1.4.1\">\n"
         "<asset><unit name=\"meter\" meter=\"1\"/><up_axis>Y_UP</up_axis></asset>\n"
+        "<library_cameras><camera id=\"cam\"><optics><technique_common>"
+        "<perspective><yfov>45</yfov><znear>0.1</znear><zfar>100</zfar></perspective>"
+        "</technique_common></optics></camera></library_cameras>\n"
         "<library_visual_scenes><visual_scene id=\"Scene\">"
         "<node id=\"root\" name=\"Root\"><instance_node name=\"SharedUse\" url=\"#shared\"/></node>"
         "</visual_scene></library_visual_scenes>\n"
-        "<library_nodes><node id=\"shared\" name=\"Shared\"/></library_nodes>\n"
+        "<library_nodes><node id=\"shared\" name=\"Shared\"><instance_camera url=\"#cam\"/></node></library_nodes>\n"
         "<scene><instance_visual_scene url=\"#Scene\"/></scene>\n"
         "</COLLADA>\n",
         file);
@@ -81,6 +84,32 @@ ak_test_write_gltf_root(const char *path) {
   fputs("{"
         "\"asset\":{\"version\":\"2.0\"},"
         "\"nodes\":[{\"name\":\"Root\"}],"
+        "\"scenes\":[{\"nodes\":[0]}],"
+        "\"scene\":0"
+        "}\n",
+        file);
+
+  return fclose(file) == 0;
+}
+
+static
+bool
+ak_test_write_gltf_light(const char *path) {
+  FILE *file;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  fputs("{"
+        "\"asset\":{\"version\":\"2.0\"},"
+        "\"extensionsUsed\":[\"KHR_lights_punctual\"],"
+        "\"extensions\":{\"KHR_lights_punctual\":{\"lights\":["
+        "{\"type\":\"point\",\"name\":\"Key\",\"intensity\":2.0,\"range\":10.0}"
+        "]}},"
+        "\"nodes\":[{\"name\":\"LightNode\",\"extensions\":{"
+        "\"KHR_lights_punctual\":{\"light\":0}"
+        "}}],"
         "\"scenes\":[{\"nodes\":[0]}],"
         "\"scene\":0"
         "}\n",
@@ -591,6 +620,7 @@ TEST_IMPL(dae_instance_node_is_instance_node) {
   AkNode     *root;
   AkNode     *shared;
   AkInstanceNode *inst;
+  AkInstanceBase *camInst;
   char        dirTemplate[PATH_MAX];
   char       *tmpdir;
   char        daePath[PATH_MAX];
@@ -624,7 +654,7 @@ TEST_IMPL(dae_instance_node_is_instance_node) {
 
   inst = root->node;
   ASSERT(inst->owner == root);
-  ASSERT(inst->target == NULL);
+  ASSERT(inst->target != NULL);
   ASSERT(inst->reserved != NULL);
   ASSERT(inst->name && strcmp(inst->name, "SharedUse") == 0);
   ASSERT(inst->proxy == NULL);
@@ -633,6 +663,15 @@ TEST_IMPL(dae_instance_node_is_instance_node) {
   ASSERT(shared != NULL);
   ASSERT(shared == inst->target);
   ASSERT(shared->name && strcmp(shared->name, "Shared") == 0);
+  ASSERT(scene->firstCamNode == shared);
+  ASSERT(scene->cameras.count == 1);
+  ASSERT(scene->cameras.useCount == 1);
+  ASSERT(scene->cameras.first != NULL);
+  ASSERT(scene->cameras.first->camera != NULL);
+  camInst = scene->cameras.first->firstInstance;
+  ASSERT(camInst != NULL);
+  ASSERT(camInst->node == shared);
+  ASSERT(ak_instanceObject(camInst) == scene->cameras.first->camera);
 
   ak_free(doc);
   unlink(daePath);
@@ -679,6 +718,55 @@ TEST_IMPL(gltf_scene_root_is_child_node) {
   ASSERT(root->name && strcmp(root->name, "Root") == 0);
   ASSERT(root->next == NULL);
   ASSERT(doc->lib.nodes.count == 1);
+
+  ak_free(doc);
+  unlink(gltfPath);
+  rmdir(tmpdir);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(gltf_scene_light_cache) {
+  AkDoc      *doc;
+  AkScene    *scene;
+  AkLight    *light;
+  char        dirTemplate[PATH_MAX];
+  char       *tmpdir;
+  char        gltfPath[PATH_MAX];
+  const char *tmpBase;
+
+  doc = NULL;
+  tmpBase = getenv("TMPDIR");
+  if (!tmpBase || !tmpBase[0])
+    tmpBase = "/tmp";
+
+  snprintf(dirTemplate,
+           sizeof(dirTemplate),
+           "%s/assetkit-gltf-light-XXXXXX",
+           tmpBase);
+  tmpdir = mkdtemp(dirTemplate);
+  ASSERT(tmpdir != NULL);
+
+  snprintf(gltfPath, sizeof(gltfPath), "%s/light.gltf", tmpdir);
+  ASSERT(ak_test_write_gltf_light(gltfPath));
+  ASSERT(ak_load(&doc, gltfPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+
+  scene = doc->scene;
+  ASSERT(scene != NULL);
+  ASSERT(scene->lights.count == 1);
+  ASSERT(scene->lights.useCount == 1);
+  ASSERT(scene->lights.first != NULL);
+  ASSERT(scene->lights.first->firstInstance != NULL);
+  ASSERT(scene->lights.first->firstInstance->node == scene->node->chld);
+
+  light = scene->lights.first->light;
+  ASSERT(light != NULL);
+  ASSERT(ak_instanceObject(scene->lights.first->firstInstance) == light);
+  ASSERT(light->name && strcmp(light->name, "Key") == 0);
+  ASSERT(light->data != NULL);
+  ASSERT(light->data->type == AK_LIGHT_TYPE_POINT);
+  ASSERT(fabsf(light->data->intensity - 2.0f) < 0.001f);
+  ASSERT(fabsf(light->data->range - 10.0f) < 0.001f);
 
   ak_free(doc);
   unlink(gltfPath);

@@ -151,6 +151,9 @@ typedef enum AkControllerType {
 
 typedef struct AkURLQueue {
   AkURL *url;
+  AkScene *scene;
+  AkInstanceBase *instance;
+  AkInstanceNode *nodeRef;
   struct AkURLQueue *next;
 } AkURLQueue;
 
@@ -232,6 +235,32 @@ typedef AK_ALIGN(16) struct DAEState {
   bool             profile;
   bool             stop;
 } DAEState;
+
+AK_INLINE
+void
+dae_url_mark_scene_node_ref(DAEState       * __restrict dst,
+                            AkURL          * __restrict url,
+                            AkScene        * __restrict scene,
+                            AkInstanceNode * __restrict nodeRef) {
+  if (!dst || !dst->urlQueue || dst->urlQueue->url != url)
+    return;
+
+  dst->urlQueue->scene   = scene;
+  dst->urlQueue->nodeRef = nodeRef;
+}
+
+AK_INLINE
+void
+dae_url_mark_scene_instance(DAEState       * __restrict dst,
+                            AkURL          * __restrict url,
+                            AkScene        * __restrict scene,
+                            AkInstanceBase * __restrict instance) {
+  if (!dst || !dst->urlQueue || dst->urlQueue->url != url)
+    return;
+
+  dst->urlQueue->scene    = scene;
+  dst->urlQueue->instance = instance;
+}
 
 typedef struct AkDaeMeshInfo {
   AkInput *pos;
@@ -430,9 +459,12 @@ url_set_sz(DAEState   * __restrict dst,
   dae_url_init_from_attr(dst->heap, memp, att, url);
 
   urlQueue       = dst->heap->allocator->malloc(sizeof(*urlQueue));
-  urlQueue->next = dst->urlQueue;
-  urlQueue->url  = url;
-  dst->urlQueue  = urlQueue;
+  urlQueue->next     = dst->urlQueue;
+  urlQueue->url      = url;
+  urlQueue->scene    = NULL;
+  urlQueue->instance = NULL;
+  urlQueue->nodeRef  = NULL;
+  dst->urlQueue      = urlQueue;
 }
 
 AK_INLINE

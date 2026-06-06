@@ -176,16 +176,10 @@ dae_node(DAEState * __restrict dst,
       instcam->type = AK_INSTANCE_CAMERA;
       instcam->name = DAE_XMLA_STRDUP8(xml, heap, name, instcam);
       DAE_URL_SET(dst, xml, url, instcam, &instcam->url);
+      if (scene)
+        dae_url_mark_scene_instance(dst, &instcam->url, scene, instcam);
 
       ak_nodeAttachInstance(node, instcam);
-      
-      if (scene) {
-        if (!scene->firstCamNode)
-          scene->firstCamNode = node;
-        
-        if (instcam)
-          ak_instanceListAdd(scene->cameras, instcam);
-      }
     } else if (DAE_XML_TAG_EQ(xml, instance_controller)) {
       AkInstanceController *instctl;
       xml_t                *xinstctl;
@@ -238,18 +232,13 @@ dae_node(DAEState * __restrict dst,
       instlight->type = AK_INSTANCE_LIGHT;
       instlight->name = DAE_XMLA_STRDUP8(xml, heap, name, instlight);
       DAE_URL_SET(dst, xml, url, instlight, &instlight->url);
+      if (scene)
+        dae_url_mark_scene_instance(dst, &instlight->url, scene, instlight);
 
       ak_nodeAttachInstance(node, instlight);
-      
-      if (scene && instlight) {
-        AkLight *lightObject;
-        lightObject = ak_instanceObject(instlight);
-        if (lightObject)
-          ak_instanceListAdd(scene->lights, instlight);
-      }
     } else if (DAE_XML_TAG_EQ(xml, instance_node)) {
-      AkInstanceNode *instNode;
-      AkURL          *url;
+      AkInstanceNode  *instNode;
+      AkURL           *url;
       
       instNode        = ak_nodeAttachNodeInstance(node, NULL);
       instNode->name  = DAE_XMLA_STRDUP8(xml, heap, name, instNode);
@@ -258,6 +247,9 @@ dae_node(DAEState * __restrict dst,
       url = ak_heap_calloc(heap, instNode, sizeof(*url));
       DAE_URL_SET(dst, xml, url, instNode, url);
       instNode->reserved = url;
+
+      if (scene)
+        dae_url_mark_scene_node_ref(dst, url, scene, instNode);
     } else if (DAE_XML_TAG_EQ4(xml, node)) {
       AkNode *subNode;
       

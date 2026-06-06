@@ -16,6 +16,7 @@
 
 #include "../common.h"
 #include "../default/cam.h"
+#include "../instance/list.h"
 #include <cglm/cglm.h>
 
 static
@@ -86,20 +87,28 @@ ak_firstCamera(AkDoc     * __restrict doc,
                AkCamera ** camera,
                float     * matrix,
                float     * projMatrix) {
-  AkHeap        *heap;
-  AkScene       *scene;
-  AkNode        *camNode;
-  AkCamera      *cam;
+  AkScene        *scene;
+  AkNode         *camNode;
+  AkCamera       *cam;
+  AkInstanceBase *camInst;
 
   if (!doc->scene)
     goto efound;
 
   scene = doc->scene;
+  camInst = NULL;
+  if (scene->cameras.first && scene->cameras.first->firstInstance) {
+    camInst = scene->cameras.first->firstInstance;
+    if (!scene->firstCamNode)
+      scene->firstCamNode = camInst->node;
+  }
+
   if (!scene->firstCamNode)
     goto efound;
 
-  heap    = ak_heap_getheap(doc);
   camNode = scene->firstCamNode;
+  if (!camInst)
+    camInst = camNode->camera;
 
   /* view matrix */
   if (matrix
@@ -107,7 +116,9 @@ ak_firstCamera(AkDoc     * __restrict doc,
     ak_transformCombineWorld(camNode, matrix);
 
   if (camera || projMatrix) {
-    cam = ak_instanceObject(camNode->camera);
+    cam = scene->cameras.first ? scene->cameras.first->camera : NULL;
+    if (!cam)
+      cam = ak_instanceObject(camInst);
 
     if (!cam) {
       if (ak_opt_get(AK_OPT_ADD_DEFAULT_CAMERA)) {
@@ -115,10 +126,7 @@ ak_firstCamera(AkDoc     * __restrict doc,
         cam = (AkCamera *)ak_defaultCamera(camNode);
 
         cameraInst = ak_nodeAttachCamera(camNode, cam);
-        if (!scene->cameras)
-          scene->cameras = ak_heap_calloc(heap, scene, sizeof(*scene->cameras));
-        ak_instanceListEmpty(scene->cameras);
-        ak_instanceListAdd(scene->cameras, cameraInst);
+        ak_sceneAddCamera(scene, cameraInst);
 
         ak_libAddCamera(doc, cam);
       } else {

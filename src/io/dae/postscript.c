@@ -27,6 +27,7 @@
 #include "fixup/channel.h"
 #include "bugfix/scenekit.h"
 #include "../../mat/internal.h"
+#include "../../instance/list.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -299,6 +300,7 @@ dae_retain_refs(DAEState * __restrict dst) {
   AkHeapAllocator *alc;
   AkURLQueue      *it, *tofree;
   AkURL           *url;
+  AkNode          *targetNode;
   AkHeapNode      *hnode;
   int             *refc;
   AkResult         ret;
@@ -320,6 +322,25 @@ dae_retain_refs(DAEState * __restrict dst) {
         it->url->ptr = ak__alignas(hnode);
 
         (*refc)++;
+
+        if (it->scene && it->instance) {
+          switch (it->instance->type) {
+            case AK_INSTANCE_CAMERA:
+              ak_sceneAddCamera(it->scene, it->instance);
+              break;
+            case AK_INSTANCE_LIGHT:
+              ak_sceneAddLight(it->scene, it->instance);
+              break;
+            default:
+              break;
+          }
+        }
+
+        if (it->scene && it->nodeRef) {
+          targetNode = ak_instanceNodeTarget(it->nodeRef);
+          if (targetNode)
+            ak_sceneAddItems(it->scene, targetNode);
+        }
       }
     }
 

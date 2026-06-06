@@ -215,6 +215,9 @@ typedef struct AkDocInf {
 } AkDocInf;
 
 struct AkNode;
+typedef struct AkCamera AkCamera;
+typedef struct AkLight  AkLight;
+
 typedef struct AkInstanceBase {
   /* const char * sid; */
   AkURL                  url;
@@ -272,15 +275,41 @@ struct AkMatrix;
 struct AkBoundingBox;
 struct AkTransform;
 
-struct AkInstanceList;
+typedef struct AkSceneCamera {
+  struct AkSceneCamera *next;
+  AkCamera             *camera;
+  AkInstanceBase       *firstInstance;
+  uint32_t              useCount;
+} AkSceneCamera;
+
+typedef struct AkSceneLight {
+  struct AkSceneLight *next;
+  AkLight             *light;
+  AkInstanceBase      *firstInstance;
+  uint32_t             useCount;
+} AkSceneLight;
+
+typedef struct AkSceneCameraList {
+  AkSceneCamera *first;
+  AkSceneCamera *last;
+  uint32_t       count;
+  uint32_t       useCount;
+} AkSceneCameraList;
+
+typedef struct AkSceneLightList {
+  AkSceneLight *first;
+  AkSceneLight *last;
+  uint32_t      count;
+  uint32_t      useCount;
+} AkSceneLightList;
 
 typedef struct AkScene {
   struct AkScene        *next;
   const char            *name;
   struct AkNode         *node;
-  struct AkNode         *firstCamNode; /* first found camera       */
-  struct AkInstanceList *cameras;      /* all cameras inside scene */
-  struct AkInstanceList *lights;       /* all lights inside scene  */
+  struct AkNode         *firstCamNode; /* first found camera use */
+  AkSceneCameraList      cameras;      /* unique cameras used by scene */
+  AkSceneLightList       lights;       /* unique lights used by scene */
   struct AkBoundingBox  *bbox;
   AkTree                *extra;
 } AkScene;
@@ -289,8 +318,6 @@ typedef struct AkMorph      AkMorph;
 typedef struct AkSkin       AkSkin;
 typedef struct AkGeometry   AkGeometry;
 typedef struct AkMaterial   AkMaterial;
-typedef struct AkCamera     AkCamera;
-typedef struct AkLight      AkLight;
 typedef struct AkAnimation  AkAnimation;
 typedef struct AkBuffer     AkBuffer;
 typedef struct AkAccessor   AkAccessor;

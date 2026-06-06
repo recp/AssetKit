@@ -19,6 +19,7 @@
 #include "../core/asset.h"
 #include "../core/asset.h"
 #include "../fx/mat.h"
+#include "../../../instance/list.h"
 #include "../../../array.h"
 #include "../../../../include/ak/light.h"
 
@@ -50,8 +51,6 @@ dae_vscene(DAEState * __restrict dst,
   xmla_setid(xml, heap, vscn);
 
   vscn->name    = DAE_XMLA_STRDUP8(xml, heap, name, vscn);
-  vscn->cameras = ak_heap_calloc(heap, vscn, sizeof(*vscn->cameras));
-  vscn->lights  = ak_heap_calloc(heap, vscn, sizeof(*vscn->lights));
 
   xml = xml->val;
   while (xml) {
@@ -81,7 +80,7 @@ dae_vscene(DAEState * __restrict dst,
 
   dae_vsceneAttachRoots(dst, vscn, rootNodes);
 
-  if (vscn->lights->count < 1
+  if (vscn->lights.count < 1
       && rootNodes
       && ak_opt_get(AK_OPT_ADD_DEFAULT_LIGHT)) {
     AkLight *light;
@@ -97,8 +96,7 @@ dae_vscene(DAEState * __restrict dst,
       light = ak_defaultLight(rootNode);
 
       lightInst = ak_nodeAttachLight(rootNode, light);
-      ak_instanceListEmpty(vscn->lights);
-      ak_instanceListAdd(vscn->lights, lightInst);
+      ak_sceneAddLight(vscn, lightInst);
 
       ak_libAddLight(doc, light);
     }

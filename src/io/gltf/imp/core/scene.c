@@ -16,10 +16,7 @@
 
 #include "scene.h"
 #include "../extra.h"
-
-static
-void
-gltf_setFirstCamera(AkScene *scene, AkNode *node);
+#include "../../../../instance/list.h"
 
 AK_HIDE
 void
@@ -49,9 +46,6 @@ gltf_scenes(json_t * __restrict jscene,
                scene,
                GLTF_JSON_GET8(jscene, extras),
                GLTF_JSON_GET(jscene, extensions));
-    
-    scene->cameras = ak_heap_calloc(heap, scene, sizeof(*scene->cameras));
-    scene->lights  = ak_heap_calloc(heap, scene, sizeof(*scene->lights));
     
     /* Synthetic scene entrypoint. Authored roots are attached as children;
        true node references remain on AkNode.node. */
@@ -83,9 +77,7 @@ gltf_scenes(json_t * __restrict jscene,
             goto jnode_nxt;
           
           ak_addSubNode(scene->node, node, false);
-          
-          if (!scene->firstCamNode)
-            gltf_setFirstCamera(scene, node);
+          ak_sceneAddItems(scene, node);
           
         jnode_nxt:
           jnode = jnode->next;
@@ -126,25 +118,4 @@ gltf_scene(json_t * __restrict jscene,
   /* set first scene as default scene if not specified  */
   if (scene)
     doc->scene = scene;
-}
-
-static
-void
-gltf_setFirstCamera(AkScene *scene, AkNode *node) {
-  if (node->camera) {
-    if (!scene->firstCamNode)
-      scene->firstCamNode = node;
-
-    ak_instanceListAdd(scene->cameras, node->camera);
-    return;
-  }
-
-  if (node->chld) {
-    AkNode *nodei;
-    nodei = node->chld;
-    while (nodei) {
-      gltf_setFirstCamera(scene, nodei);
-      nodei = nodei->next;
-    }
-  }
 }
