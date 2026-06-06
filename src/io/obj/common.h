@@ -106,8 +106,6 @@ typedef struct WOState {
   bool            hasColorAlpha;
 } WOState;
 
-#define WOBJ_PRIM_FLAG_SMOOTH 1u
-
 #ifdef SKIP_SPACES
 # undef SKIP_SPACES
 #endif

@@ -1699,7 +1699,7 @@ TEST_IMPL(format_edge_cases) {
       for (it = mesh->primitive; it; it = it->next) {
         if (it->type != AK_PRIMITIVE_TRIANGLES)
           continue;
-        if (it->reserved1 & 1u)
+        if (ak_meshPrimitiveSmoothShading(it))
           smoothCount++;
         else
           flatCount++;

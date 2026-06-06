@@ -92,7 +92,7 @@ wobj_finishPrim(WOState  * __restrict wst,
   mesh->primitive = prim;
   mesh->primitiveCount++;
   if (wp->smooth)
-    prim->reserved1 |= WOBJ_PRIM_FLAG_SMOOTH;
+    prim->flags |= AK_MESH_PRIMITIVE_FLAG_SMOOTH_SHADING;
   
   if (wst->mtlib && wp->mtlname)
     prim->material = rb_find(wst->mtlib->materials, (void *)wp->mtlname);

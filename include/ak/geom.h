@@ -53,6 +53,11 @@ typedef enum AkMeshPrimitiveType {
   AK_PRIMITIVE_POINTS     = 4
 } AkMeshPrimitiveType;
 
+typedef enum AkMeshPrimitiveFlags {
+  AK_MESH_PRIMITIVE_FLAG_NONE           = 0,
+  AK_MESH_PRIMITIVE_FLAG_SMOOTH_SHADING = 1u << 0
+} AkMeshPrimitiveFlags;
+
 typedef enum AkTriangleMode {
   AK_TRIANGLES      = 1,
   AK_TRIANGLE_STRIP = 3,
@@ -115,6 +120,7 @@ typedef struct AkMeshPrimitive {
   uint32_t                nPolygons;
   uint32_t                inputCount;
   AkFloat3                center;
+  uint32_t                flags;
 
   /* TODO: remove */
   uint32_t                indexStride;
@@ -131,6 +137,12 @@ typedef struct AkMeshPrimitive {
      in the normal primitive input chain. */
   struct AkGaussianSplat          *gsplat;
 } AkMeshPrimitive;
+
+AK_INLINE
+bool
+ak_meshPrimitiveSmoothShading(const AkMeshPrimitive * __restrict prim) {
+  return prim && (prim->flags & AK_MESH_PRIMITIVE_FLAG_SMOOTH_SHADING);
+}
 
 typedef struct AkLines {
   AkMeshPrimitive base;
