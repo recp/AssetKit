@@ -29,10 +29,7 @@
 #include "../../mat/internal.h"
 #include "../../instance/list.h"
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <time.h>
 
 AK_HIDE void
 dae_retain_refs(DAEState * __restrict dst);
@@ -65,48 +62,6 @@ static void
 dae_material_attach_effect_extras(DAEState   * __restrict dst,
                                   AkMaterial * __restrict material,
                                   AkEffect   * __restrict effect);
-
-static
-bool
-dae_post_profile_enabled(void) {
-  const char *value;
-
-  value = getenv("ASSETKIT_DAE_PROFILE");
-  if (!value)
-    value = getenv("ASSETKIT_BLENDER_PROFILE");
-
-  return value && value[0] && value[0] != '0';
-}
-
-static
-double
-dae_post_profile_now_ms(void) {
-  struct timespec ts;
-
-  clock_gettime(CLOCK_MONOTONIC, &ts);
-
-  return (double)ts.tv_sec * 1000.0 + (double)ts.tv_nsec / 1000000.0;
-}
-
-static
-void
-dae_post_profile_log(bool enabled, const char *name, double start) {
-  if (!enabled)
-    return;
-
-  fprintf(stderr,
-          "[AssetKit DAE post] %s=%.3fms\n",
-          name,
-          dae_post_profile_now_ms() - start);
-}
-
-#define DAE_POST_PROFILE_CALL(PROFILE, NAME, CALL) do {                     \
-    double _dae_post_profile_start = 0.0;                                   \
-    if (PROFILE)                                                            \
-      _dae_post_profile_start = dae_post_profile_now_ms();                  \
-    CALL;                                                                   \
-    dae_post_profile_log(PROFILE, NAME, _dae_post_profile_start);           \
-  } while (0)
 
 AK_HIDE
 void
@@ -178,9 +133,7 @@ dae_postscript(DAEState * __restrict dst) {
   AkCoordCvtType coordCvtType;
   AkCoordSys    *sourceCoordSys, *targetCoordSys;
   bool           fixTransform;
-  bool           profile;
 
-  profile         = dae_post_profile_enabled();
   coordCvtType    = (AkCoordCvtType)ak_opt_get(AK_OPT_COORD_CONVERT_TYPE);
   sourceCoordSys  = dst->doc ? dst->doc->coordSys : NULL;
   targetCoordSys  = (void *)ak_opt_get(AK_OPT_COORD);
@@ -190,24 +143,20 @@ dae_postscript(DAEState * __restrict dst) {
                     && sourceCoordSys != targetCoordSys
                     && !ak_coordOrientationIsEq(sourceCoordSys, targetCoordSys);
 
-  DAE_POST_PROFILE_CALL(profile, "spread_vert", dae_spread_vert(dst));
+  dae_spread_vert(dst);
 
   /* first migrate 1.4 to 1.5 */
   if (dst->version < AK_COLLADA_VERSION_150)
-    DAE_POST_PROFILE_CALL(profile, "dae14_loadjobs_finish",
-                          dae14_loadjobs_finish(dst));
+    dae14_loadjobs_finish(dst);
 
-  DAE_POST_PROFILE_CALL(profile, "retain_refs", dae_retain_refs(dst));
-  DAE_POST_PROFILE_CALL(profile, "bind_materials",
-                        dae_apply_bind_materials(dst));
-  DAE_POST_PROFILE_CALL(profile, "bind_scene", dae_bind_active_scene(dst));
-  DAE_POST_PROFILE_CALL(profile, "input_walk",
-                        rb_walk(dst->inputmap, dae_input_walk));
-  DAE_POST_PROFILE_CALL(profile, "fix_angles", dae_fixAngles(dst));
-  DAE_POST_PROFILE_CALL(profile, "fixup_accessors", dae_fixup_accessors(dst));
-  DAE_POST_PROFILE_CALL(profile, "pre_mesh", dae_pre_mesh(dst));
-  DAE_POST_PROFILE_CALL(profile, "scenekit_backfaces",
-                        dae_bugfix_scenekit_backfaces(dst));
+  dae_retain_refs(dst);
+  dae_apply_bind_materials(dst);
+  dae_bind_active_scene(dst);
+  rb_walk(dst->inputmap, dae_input_walk);
+  dae_fixAngles(dst);
+  dae_fixup_accessors(dst);
+  dae_pre_mesh(dst);
+  dae_bugfix_scenekit_backfaces(dst);
 
   /* fixup when finished,
      because we need to collect about source/array usages
@@ -215,19 +164,13 @@ dae_postscript(DAEState * __restrict dst) {
   */
   if (!ak_opt_get(AK_OPT_INDICES_DEFAULT))
   {
-    if (profile)
-      dae_mesh_profile_reset();
-    DAE_POST_PROFILE_CALL(profile, "geom_fixup_all",
-                          dae_geom_fixup_all(dst->doc,
-                                             dst->controllers != NULL));
-    if (profile)
-      dae_mesh_profile_report();
+    dae_geom_fixup_all(dst->doc, dst->controllers != NULL);
   }
 
   /* fixup morph and skin because order of vertices may be changed */
   if (dst->controllers) {
-    DAE_POST_PROFILE_CALL(profile, "fixup_ctlr", dae_fixup_ctlr(dst));
-    DAE_POST_PROFILE_CALL(profile, "fixup_instctlr", dae_fixup_instctlr(dst));
+    dae_fixup_ctlr(dst);
+    dae_fixup_instctlr(dst);
 
     /* Soft attach: many DAE assets — particularly glTF→DAE converted ones —
        reference the morph base mesh via <instance_geometry url="#mesh"/>
@@ -235,8 +178,7 @@ dae_postscript(DAEState * __restrict dst) {
        is in the library but never instanced, so dae_fixup_instctlr never
        sees it. Walk the scene graph and attach any morph controller that
        targets this geometry. */
-    DAE_POST_PROFILE_CALL(profile, "attach_orphan_morphs",
-                          dae_attach_orphan_morphs(dst));
+    dae_attach_orphan_morphs(dst);
   }
 
   /* Resolve animation channel targets that need controller/instance
@@ -244,29 +186,23 @@ dae_postscript(DAEState * __restrict dst) {
      e.g. <channel target="morph-weights(0)"/>. Must run after morph
      instances exist (including the orphan-attach pass above). */
   if (dst->doc->lib.animations.first)
-    DAE_POST_PROFILE_CALL(profile, "fixup_channel", dae_fixup_channel(dst));
+    dae_fixup_channel(dst);
 
   /* now set used coordSys */
   if (coordCvtType != AK_COORD_CVT_DISABLED)
     dst->doc->coordSys = targetCoordSys;
 
-  DAE_POST_PROFILE_CALL(profile, "fix_textures", dae_fix_textures(dst));
-  DAE_POST_PROFILE_CALL(profile, "material_surfaces",
-                        dae_build_material_surfaces(dst));
-  DAE_POST_PROFILE_CALL(profile, "scenekit_materials",
-                        dae_bugfix_scenekit_material_surfaces(dst));
+  dae_fix_textures(dst);
+  dae_build_material_surfaces(dst);
+  dae_bugfix_scenekit_material_surfaces(dst);
   
   if (dst->doc && dst->doc->lib.scenes.first) {
-    double coordStart = 0.0;
-    if (profile)
-      coordStart = dae_post_profile_now_ms();
     for (AkScene *vscn = dst->doc->lib.scenes.first;
          vscn;
          vscn = vscn->next) {
       if (fixTransform)
         ak_fixSceneCoordSys(vscn);
     }
-    dae_post_profile_log(profile, "fix_scene_coord", coordStart);
   }
 }
 

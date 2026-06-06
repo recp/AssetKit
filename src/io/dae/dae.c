@@ -35,9 +35,7 @@
 
 #include "../../../include/ak/path.h"
 
-#include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 
 static ak_enumpair daeVersions[] = {
   {"1.5.0",             AK_COLLADA_VERSION_150},
@@ -52,83 +50,6 @@ typedef void*(*AkLoadLibraryItemFn)(DAEState * __restrict dst,
                                     xml_t    * __restrict xml,
                                     void     * __restrict memp);
 static void ak_daeFreeDupl(RBTree *, RBNode *);
-
-static
-bool
-dae_profile_enabled(void) {
-  const char *value;
-
-  value = getenv("ASSETKIT_DAE_PROFILE");
-  if (!value)
-    value = getenv("ASSETKIT_BLENDER_PROFILE");
-
-  return value && value[0] && value[0] != '0';
-}
-
-static
-double
-dae_profile_now_ms(void) {
-  struct timespec ts;
-
-  clock_gettime(CLOCK_MONOTONIC, &ts);
-
-  return (double)ts.tv_sec * 1000.0 + (double)ts.tv_nsec / 1000000.0;
-}
-
-static
-void
-dae_profile_log(bool enabled, const char *name, double start) {
-  if (!enabled)
-    return;
-
-  fprintf(stderr,
-          "[AssetKit DAE] %s=%.3fms\n",
-          name,
-          dae_profile_now_ms() - start);
-}
-
-static
-void
-dae_profile_log_geometry(DAEState * __restrict dst) {
-  if (!dst || !dst->profile)
-    return;
-
-  fprintf(stderr,
-          "[AssetKit DAE geom] geometry=%.3fms/%u mesh=%.3fms/%u "
-          "source=%.3fms/%u accessor=%.3fms/%u array=%.3fms/%u "
-          "input=%.3fms/%u index_array=%.3fms/%u vertices=%.3fms/%u "
-          "tri=%.3fms/%u poly=%.3fms/%u line=%.3fms/%u\n",
-          dst->profGeom,
-          dst->profGeomCount,
-          dst->profGeomMesh,
-          dst->profGeomMeshCount,
-          dst->profGeomSource,
-          dst->profGeomSourceCount,
-          dst->profGeomAccessor,
-          dst->profGeomAccessorCount,
-          dst->profGeomArray,
-          dst->profGeomArrayCount,
-          dst->profGeomInput,
-          dst->profGeomInputCount,
-          dst->profGeomIndexArray,
-          dst->profGeomIndexArrayCount,
-          dst->profGeomVertices,
-          dst->profGeomVerticesCount,
-          dst->profGeomTriangles,
-          dst->profGeomTrianglesCount,
-          dst->profGeomPolygons,
-          dst->profGeomPolygonsCount,
-          dst->profGeomLines,
-          dst->profGeomLinesCount);
-}
-
-#define DAE_PROFILE_CALL(PROFILE, NAME, CALL) do {                         \
-    double _dae_profile_call_start = 0.0;                                   \
-    if (PROFILE)                                                            \
-      _dae_profile_call_start = dae_profile_now_ms();                       \
-    CALL;                                                                   \
-    dae_profile_log(PROFILE, NAME, _dae_profile_call_start);                \
-  } while (0)
 
 static
 void
@@ -157,19 +78,11 @@ dae_doc(AkDoc     ** __restrict dest,
   DAEState           dstVal, *dst;
   size_t             xmlSize;
   AkResult           ret;
-  double             totalStart, stepStart;
-  bool               profile;
 
-  profile    = dae_profile_enabled();
-  totalStart = dae_profile_now_ms();
-  stepStart  = totalStart;
   if ((ret = ak_readfile(filepath, NULL, &xmlString, &xmlSize)) != AK_OK)
     return ret;
-  dae_profile_log(profile, "readfile", stepStart);
 
-  stepStart = dae_profile_now_ms();
   xdoc = xml_parse(xmlString, XML_PREFIXES | XML_READONLY);
-  dae_profile_log(profile, "xml_parse", stepStart);
   if (!xdoc || !(xml = xdoc->root)) {
     if (xdoc)
       free((void *)xdoc);
@@ -177,7 +90,6 @@ dae_doc(AkDoc     ** __restrict dest,
     return AK_ERR;
   }
 
-  stepStart = dae_profile_now_ms();
   heap = ak_heap_new(NULL, NULL, NULL);
   doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
 
@@ -202,7 +114,6 @@ dae_doc(AkDoc     ** __restrict dest,
 
   dstVal.doc          = doc;
   dstVal.heap         = heap;
-  dstVal.profile      = profile;
   dstVal.tempmem      = ak_heap_alloc(heap, doc, sizeof(void*));
   dstVal.meshInfo     = rb_newtree_ptr();
   dstVal.inputmap     = rb_newtree_ptr();
@@ -215,7 +126,6 @@ dae_doc(AkDoc     ** __restrict dest,
   dst                 = &dstVal;
 
   dstVal.texmap->userData = dst;
-  dae_profile_log(profile, "setup", stepStart);
 
   /* get version info */
   /* because it is current and most used version */
@@ -235,123 +145,95 @@ dae_doc(AkDoc     ** __restrict dest,
   xml     = xml->val;
 
   /* with default Asset Parameters */
-  stepStart = dae_profile_now_ms();
   assetEl = DAE_XML_ELEM8(xml->parent, asset);
   if ((inf = dae_asset(dst, assetEl, doc, &doc->inf->base))) {
     doc->coordSys = inf->coordSys;
     doc->unit     = inf->unit;
   }
-  dae_profile_log(profile, "asset", stepStart);
   
-  stepStart = dae_profile_now_ms();
   while (xml) {
     if (DAE_XML_TAG_EQ(xml, lib_cameras)) {
-      DAE_PROFILE_CALL(profile,
-                       "library_cameras",
-                       dae_lib(dst, xml, _s_dae_camera, dae_cam,
-                               (void **)&doc->lib.cameras.first,
-                               (void **)&doc->lib.cameras.last,
-                               &doc->lib.cameras.count,
-                               offsetof(AkCamera, next),
-                               NULL));
+      dae_lib(dst, xml, _s_dae_camera, dae_cam,
+              (void **)&doc->lib.cameras.first,
+              (void **)&doc->lib.cameras.last,
+              &doc->lib.cameras.count,
+              offsetof(AkCamera, next),
+              NULL);
     } else if (DAE_XML_TAG_EQ(xml, lib_lights)) {
-      DAE_PROFILE_CALL(profile,
-                       "library_lights",
-                       dae_lib(dst, xml, _s_dae_light, dae_light,
-                               (void **)&doc->lib.lights.first,
-                               (void **)&doc->lib.lights.last,
-                               &doc->lib.lights.count,
-                               offsetof(AkLight, next),
-                               NULL));
+      dae_lib(dst, xml, _s_dae_light, dae_light,
+              (void **)&doc->lib.lights.first,
+              (void **)&doc->lib.lights.last,
+              &doc->lib.lights.count,
+              offsetof(AkLight, next),
+              NULL);
     } else if (DAE_XML_TAG_EQ(xml, lib_geometries)) {
-      DAE_PROFILE_CALL(profile,
-                       "library_geometries",
-                       dae_lib(dst, xml, _s_dae_geometry, dae_geom,
-                               (void **)&doc->lib.geometries.first,
-                               (void **)&doc->lib.geometries.last,
-                               &doc->lib.geometries.count,
-                               offsetof(AkGeometry, next),
-                               NULL));
-      dae_profile_log_geometry(dst);
+      dae_lib(dst, xml, _s_dae_geometry, dae_geom,
+              (void **)&doc->lib.geometries.first,
+              (void **)&doc->lib.geometries.last,
+              &doc->lib.geometries.count,
+              offsetof(AkGeometry, next),
+              NULL);
     } else if (DAE_XML_TAG_EQ(xml, lib_effects)) {
-      DAE_PROFILE_CALL(profile,
-                       "library_effects",
-                       dae_lib(dst, xml, _s_dae_effect, dae_effect,
-                               (void **)&dst->effects,
-                               NULL,
-                               NULL,
-                               offsetof(AkEffect, next),
-                               &dst->effectLibraries));
+      dae_lib(dst, xml, _s_dae_effect, dae_effect,
+              (void **)&dst->effects,
+              NULL,
+              NULL,
+              offsetof(AkEffect, next),
+              &dst->effectLibraries);
     } else if (DAE_XML_TAG_EQ(xml, lib_images)) {
-      DAE_PROFILE_CALL(profile,
-                       "library_images",
-                       dae_lib(dst, xml, _s_dae_image, dae_image,
-                               (void **)&doc->lib.images.first,
-                               (void **)&doc->lib.images.last,
-                               &doc->lib.images.count,
-                               offsetof(AkImage, next),
-                               NULL));
+      dae_lib(dst, xml, _s_dae_image, dae_image,
+              (void **)&doc->lib.images.first,
+              (void **)&doc->lib.images.last,
+              &doc->lib.images.count,
+              offsetof(AkImage, next),
+              NULL);
     } else if (DAE_XML_TAG_EQ(xml, lib_materials)) {
-      DAE_PROFILE_CALL(profile,
-                       "library_materials",
-                       dae_lib(dst, xml, _s_dae_material, dae_material,
-                               (void **)&doc->lib.materials.first,
-                               (void **)&doc->lib.materials.last,
-                               &doc->lib.materials.count,
-                               offsetof(AkMaterial, next),
-                               NULL));
+      dae_lib(dst, xml, _s_dae_material, dae_material,
+              (void **)&doc->lib.materials.first,
+              (void **)&doc->lib.materials.last,
+              &doc->lib.materials.count,
+              offsetof(AkMaterial, next),
+              NULL);
     } else if (DAE_XML_TAG_EQ(xml, lib_controllers)) {
-      DAE_PROFILE_CALL(profile,
-                       "library_controllers",
-                       dae_lib(dst, xml, _s_dae_controller, dae_ctlr,
-                               (void **)&dst->controllers,
-                               NULL,
-                               NULL,
-                               offsetof(AkController, next),
-                               &dst->controllerLibraries));
+      dae_lib(dst, xml, _s_dae_controller, dae_ctlr,
+              (void **)&dst->controllers,
+              NULL,
+              NULL,
+              offsetof(AkController, next),
+              &dst->controllerLibraries);
     } else if (DAE_XML_TAG_EQ(xml, lib_visual_scenes)) {
-      DAE_PROFILE_CALL(profile,
-                       "library_visual_scenes",
-                       dae_lib(dst, xml, _s_dae_visual_scene, dae_vscene,
-                               (void **)&doc->lib.scenes.first,
-                               (void **)&doc->lib.scenes.last,
-                               &doc->lib.scenes.count,
-                               offsetof(AkScene, next),
-                               NULL));
+      dae_lib(dst, xml, _s_dae_visual_scene, dae_vscene,
+              (void **)&doc->lib.scenes.first,
+              (void **)&doc->lib.scenes.last,
+              &doc->lib.scenes.count,
+              offsetof(AkScene, next),
+              NULL);
     } else if (DAE_XML_TAG_EQ(xml, lib_nodes)) {
-      DAE_PROFILE_CALL(profile,
-                       "library_nodes",
-                       dae_lib(dst, xml, _s_dae_node, dae_node2,
-                               (void **)&doc->lib.nodes.first,
-                               (void **)&doc->lib.nodes.last,
-                               &doc->lib.nodes.count,
-                               offsetof(AkNode, docNext),
-                               &dst->nodeLibraries));
+      dae_lib(dst, xml, _s_dae_node, dae_node2,
+              (void **)&doc->lib.nodes.first,
+              (void **)&doc->lib.nodes.last,
+              &doc->lib.nodes.count,
+              offsetof(AkNode, docNext),
+              &dst->nodeLibraries);
     } else if (DAE_XML_TAG_EQ(xml, lib_animations)) {
-      DAE_PROFILE_CALL(profile,
-                       "library_animations",
-                       dae_lib(dst, xml, _s_dae_animation, dae_anim,
-                               (void **)&doc->lib.animations.first,
-                               (void **)&doc->lib.animations.last,
-                               &doc->lib.animations.count,
-                               offsetof(AkAnimation, next),
-                               NULL));
+      dae_lib(dst, xml, _s_dae_animation, dae_anim,
+              (void **)&doc->lib.animations.first,
+              (void **)&doc->lib.animations.last,
+              &doc->lib.animations.count,
+              offsetof(AkAnimation, next),
+              NULL);
     } else if (DAE_XML_TAG_EQ8(xml, scene)) {
-      DAE_PROFILE_CALL(profile, "scene", dae_scene(dst, xml));
+      dae_scene(dst, xml);
     }
     xml = xml->next;
   }
-  dae_profile_log(profile, "libraries", stepStart);
 
   *dest = doc;
 
   /* post-parse operations */
-  stepStart = dae_profile_now_ms();
   dae_postscript(dst);
-  dae_profile_log(profile, "postscript", stepStart);
 
   /* cleanup up details */
-  stepStart = dae_profile_now_ms();
   freeUsrData = dst->linkedUserData;
   while (freeUsrData) {
     void *tofree;
@@ -386,8 +268,6 @@ dae_doc(AkDoc     ** __restrict dest,
 
   /* TODO: memory leak, free this RBTree*/
   /* rb_destroy(doc->reserved); */
-  dae_profile_log(profile, "cleanup", stepStart);
-  dae_profile_log(profile, "total", totalStart);
 
   return AK_OK;
 }

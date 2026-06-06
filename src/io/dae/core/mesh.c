@@ -45,10 +45,8 @@ dae_mesh(DAEState   * __restrict dst,
   AkMesh          *mesh;
   AkMeshPrimitive *lastPrim;
   AkHeap          *heap;
-  double           profStart;
   uint32_t         m;
 
-  profStart = DAE_PROF_START(dst);
   heap     = dst->heap;
   xml      = xml->val;
   lastPrim = NULL;
@@ -104,8 +102,6 @@ dae_mesh(DAEState   * __restrict dst,
 
     xml = xml->next;
   }
-
-  DAE_PROF_ACC(dst, profGeomMesh, profGeomMeshCount, profStart);
 
   return obj;
 }

@@ -19,134 +19,9 @@
 
 #include <limits.h>
 #include <assert.h>
-#include <stdio.h>
 #include <string.h>
-#include <time.h>
 
 extern const char* ak_mesh_edit_assert1;
-
-typedef struct AkIndexProfile {
-  double   collapse;
-  double   duplicator;
-  double   dupSideAlloc;
-  double   dupHashAlloc;
-  double   dupHashLoop;
-  double   dupSumAlloc;
-  double   dupSumBuild;
-  double   fixBuffer;
-  double   reserveBuffers;
-  double   movePositions;
-  size_t   dupSideBytes;
-  size_t   dupSideFinalBytes;
-  size_t   dupHashBytes;
-  size_t   dupSumBytes;
-  size_t   dupIcount;
-  size_t   dupVertc;
-  size_t   dupPosno;
-  size_t   dupCount;
-  size_t   dupHashCap;
-  uint32_t callCount;
-  uint32_t skipCount;
-  uint32_t collapseCount;
-} AkIndexProfile;
-
-static AkIndexProfile ak_index_prof;
-static bool           ak_index_prof_active;
-
-static
-double
-ak_index_profile_now_ms(void) {
-  struct timespec ts;
-
-  clock_gettime(CLOCK_MONOTONIC, &ts);
-
-  return (double)ts.tv_sec * 1000.0 + (double)ts.tv_nsec / 1000000.0;
-}
-
-AK_HIDE
-void
-ak_index_profile_reset(void) {
-  memset(&ak_index_prof, 0, sizeof(ak_index_prof));
-  ak_index_prof_active = true;
-}
-
-AK_HIDE
-bool
-ak_index_profile_active(void) {
-  return ak_index_prof_active;
-}
-
-AK_HIDE
-void
-ak_index_profile_add_duplicator(double sideAlloc,
-                                double hashAlloc,
-                                double hashLoop,
-                                double sumAlloc,
-                                double sumBuild,
-                                size_t sideBytes,
-                                size_t sideFinalBytes,
-                                size_t hashBytes,
-                                size_t sumBytes,
-                                size_t icount,
-                                size_t vertc,
-                                size_t posno,
-                                size_t dupCount,
-                                size_t hashCap) {
-  if (!ak_index_prof_active)
-    return;
-
-  ak_index_prof.dupSideAlloc += sideAlloc;
-  ak_index_prof.dupHashAlloc += hashAlloc;
-  ak_index_prof.dupHashLoop  += hashLoop;
-  ak_index_prof.dupSumAlloc  += sumAlloc;
-  ak_index_prof.dupSumBuild  += sumBuild;
-  ak_index_prof.dupSideBytes += sideBytes;
-  ak_index_prof.dupSideFinalBytes += sideFinalBytes;
-  ak_index_prof.dupHashBytes += hashBytes;
-  ak_index_prof.dupSumBytes  += sumBytes;
-  ak_index_prof.dupIcount    += icount;
-  ak_index_prof.dupVertc     += vertc;
-  ak_index_prof.dupPosno     += posno;
-  ak_index_prof.dupCount     += dupCount;
-  ak_index_prof.dupHashCap   += hashCap;
-}
-
-AK_HIDE
-void
-ak_index_profile_report(void) {
-  fprintf(stderr,
-          "[AssetKit index total] calls=%u skip=%u collapse=%u "
-          "collapse_time=%.3fms duplicator=%.3fms fixbuf=%.3fms "
-          "reserve=%.3fms move=%.3fms\n",
-          ak_index_prof.callCount,
-          ak_index_prof.skipCount,
-          ak_index_prof.collapseCount,
-          ak_index_prof.collapse,
-          ak_index_prof.duplicator,
-          ak_index_prof.fixBuffer,
-          ak_index_prof.reserveBuffers,
-          ak_index_prof.movePositions);
-  fprintf(stderr,
-          "[AssetKit index dup] icount=%zu vertc=%zu posno=%zu dup=%zu "
-          "hashcap=%zu side_alloc=%.3fms hash_alloc=%.3fms "
-          "hash_loop=%.3fms sum_alloc=%.3fms sum_build=%.3fms "
-          "side_bytes=%zu side_final_bytes=%zu hash_bytes=%zu sum_bytes=%zu\n",
-          ak_index_prof.dupIcount,
-          ak_index_prof.dupVertc,
-          ak_index_prof.dupPosno,
-          ak_index_prof.dupCount,
-          ak_index_prof.dupHashCap,
-          ak_index_prof.dupSideAlloc,
-          ak_index_prof.dupHashAlloc,
-          ak_index_prof.dupHashLoop,
-          ak_index_prof.dupSumAlloc,
-          ak_index_prof.dupSumBuild,
-          ak_index_prof.dupSideBytes,
-          ak_index_prof.dupSideFinalBytes,
-          ak_index_prof.dupHashBytes,
-          ak_index_prof.dupSumBytes);
-  ak_index_prof_active = false;
-}
 
 AK_HIDE
 bool
@@ -333,28 +208,13 @@ ak_primFixIndicesRetainDuplicator(AkMesh          *mesh,
                                   AkMeshPrimitive *prim,
                                   bool             retainDuplicator) {
   AkDuplicator *dupl;
-  double        t;
-
-  if (ak_index_prof_active)
-    ak_index_prof.callCount++;
 
   if (prim->indexStride == 1
-      || (!prim->indices && !prim->indexAccessor)) {
-    if (ak_index_prof_active)
-      ak_index_prof.skipCount++;
+      || (!prim->indices && !prim->indexAccessor))
     return AK_OK;
-  }
 
-  t = ak_index_prof_active ? ak_index_profile_now_ms() : 0.0;
-  if (ak_primCollapseIdentityIndices(prim)) {
-    if (ak_index_prof_active) {
-      ak_index_prof.collapse += ak_index_profile_now_ms() - t;
-      ak_index_prof.collapseCount++;
-    }
+  if (ak_primCollapseIdentityIndices(prim))
     return AK_OK;
-  }
-  if (ak_index_prof_active)
-    ak_index_prof.collapse += ak_index_profile_now_ms() - t;
 
   if (!prim->indices) {
     ak_meshPrimitiveMaterializeIndices(prim);
@@ -362,28 +222,16 @@ ak_primFixIndicesRetainDuplicator(AkMesh          *mesh,
       return AK_ERR;
   }
 
-  t = ak_index_prof_active ? ak_index_profile_now_ms() : 0.0;
   if (!(dupl = ak_meshDuplicatorForIndicesRetained(mesh,
                                                    prim,
                                                    retainDuplicator)))
     return AK_ERR;
-  if (ak_index_prof_active)
-    ak_index_prof.duplicator += ak_index_profile_now_ms() - t;
 
-  t = ak_index_prof_active ? ak_index_profile_now_ms() : 0.0;
   ak_meshFixIndexBuffer(mesh, prim, dupl);
-  if (ak_index_prof_active)
-    ak_index_prof.fixBuffer += ak_index_profile_now_ms() - t;
 
-  t = ak_index_prof_active ? ak_index_profile_now_ms() : 0.0;
   ak_meshReserveBuffers(mesh, prim, dupl->dupCount + dupl->bufCount);
-  if (ak_index_prof_active)
-    ak_index_prof.reserveBuffers += ak_index_profile_now_ms() - t;
 
-  t = ak_index_prof_active ? ak_index_profile_now_ms() : 0.0;
   ak_movePositions(mesh, prim, dupl);
-  if (ak_index_prof_active)
-    ak_index_prof.movePositions += ak_index_profile_now_ms() - t;
 
   if (!retainDuplicator)
     ak_free(dupl);

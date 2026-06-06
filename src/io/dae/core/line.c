@@ -26,10 +26,8 @@ dae_lines(DAEState * __restrict dst,
           AkLineMode            mode) {
   AkLines *lines;
   AkHeap  *heap;
-  double   profStart, profStep;
   uint32_t indexoff;
   
-  profStart = DAE_PROF_START(dst);
   heap  = dst->heap;
   lines = ak_heap_calloc(heap, memp, sizeof(*lines));
   
@@ -46,7 +44,6 @@ dae_lines(DAEState * __restrict dst,
   while (xml) {
     if (DAE_XML_TAG_EQ8(xml, input)) {
       AkInput *inp;
-      profStep = DAE_PROF_START(dst);
       
       inp              = dae_input_new(heap, lines);
       inp->semanticRaw = dae_semanticRaw(DAE_XMLA8(xml, semantic),
@@ -81,14 +78,12 @@ dae_lines(DAEState * __restrict dst,
           // ak_free(inp);
         }
       }
-      DAE_PROF_ACC(dst, profGeomInput, profGeomInputCount, profStep);
     } else if (DAE_XML_TAG_EQ8(xml, p) && xml->val) {
       AkIndexArray *indexArray;
       AkResult     ret;
       AkUInt       maxIndex;
       uint32_t     indexStride;
       unsigned long expectedCount;
-      profStep = DAE_PROF_START(dst);
 
       indexStride   = indexoff + 1;
       expectedCount = mode == AK_LINES
@@ -110,7 +105,6 @@ dae_lines(DAEState * __restrict dst,
       if (ret == AK_OK) {
         lines->base.indices = indexArray;
       }
-      DAE_PROF_ACC(dst, profGeomIndexArray, profGeomIndexArrayCount, profStep);
     } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       lines->base.extra = tree_fromxml(heap, lines, xml);
       if (lines->base.extra)
@@ -121,7 +115,5 @@ dae_lines(DAEState * __restrict dst,
   
   lines->base.indexStride = indexoff + 1;
   
-  DAE_PROF_ACC(dst, profGeomLines, profGeomLinesCount, profStart);
-
   return lines;
 }

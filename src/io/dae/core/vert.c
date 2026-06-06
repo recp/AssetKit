@@ -24,9 +24,7 @@ dae_vert(DAEState * __restrict dst,
          void     * __restrict memp) {
   AkHeap     *heap;
   AkVertices *vert;
-  double      profStart, profStep;
   
-  profStart = DAE_PROF_START(dst);
   heap = dst->heap;
   vert = ak_heap_calloc(heap, memp, sizeof(*vert));
   xmla_setid(xml, heap, vert);
@@ -37,7 +35,6 @@ dae_vert(DAEState * __restrict dst,
   while (xml) {
     if (DAE_XML_TAG_EQ8(xml, input)) {
       AkInput *inp;
-      profStep = DAE_PROF_START(dst);
       
       inp              = dae_input_new(heap, vert);
       inp->semanticRaw = dae_semanticRaw(DAE_XMLA8(xml, semantic),
@@ -57,14 +54,11 @@ dae_vert(DAEState * __restrict dst,
         vert->input = inp;
         vert->inputCount++;
       }
-      DAE_PROF_ACC(dst, profGeomInput, profGeomInputCount, profStep);
     } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       vert->extra = tree_fromxml(heap, vert, xml);
     }
     xml = xml->next;
   }
   
-  DAE_PROF_ACC(dst, profGeomVertices, profGeomVerticesCount, profStart);
-
   return vert;
 }

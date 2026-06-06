@@ -26,10 +26,8 @@ dae_triangles(DAEState * __restrict dst,
               AkTriangleMode        mode) {
   AkTriangles *tri;
   AkHeap      *heap;
-  double       profStart, profStep;
   uint32_t     indexoff;
 
-  profStart = DAE_PROF_START(dst);
   heap = dst->heap;
   tri  = ak_heap_calloc(heap, memp, sizeof(*tri));
   
@@ -46,7 +44,6 @@ dae_triangles(DAEState * __restrict dst,
   while (xml) {
     if (DAE_XML_TAG_EQ8(xml, input)) {
       AkInput *inp;
-      profStep = DAE_PROF_START(dst);
 
       inp              = dae_input_new(heap, tri);
       inp->semanticRaw = dae_semanticRaw(DAE_XMLA8(xml, semantic),
@@ -81,14 +78,12 @@ dae_triangles(DAEState * __restrict dst,
           // ak_free(inp);
         }
       }
-      DAE_PROF_ACC(dst, profGeomInput, profGeomInputCount, profStep);
     } else if (DAE_XML_TAG_EQ8(xml, p) && xml->val) {
       AkIndexArray *indexArray;
       AkResult     ret;
       AkUInt       maxIndex;
       uint32_t     indexStride;
       unsigned long expectedCount;
-      profStep = DAE_PROF_START(dst);
       
       indexStride   = indexoff + 1;
       expectedCount = mode == AK_TRIANGLES
@@ -110,7 +105,6 @@ dae_triangles(DAEState * __restrict dst,
       if (ret == AK_OK) {
         tri->base.indices = indexArray;
       }
-      DAE_PROF_ACC(dst, profGeomIndexArray, profGeomIndexArrayCount, profStep);
     } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       tri->base.extra = tree_fromxml(heap, tri, xml);
       if (tri->base.extra)
@@ -121,7 +115,5 @@ dae_triangles(DAEState * __restrict dst,
 
   tri->base.indexStride = indexoff + 1;
   
-  DAE_PROF_ACC(dst, profGeomTriangles, profGeomTrianglesCount, profStart);
-
   return tri;
 }

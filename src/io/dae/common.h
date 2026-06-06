@@ -32,8 +32,6 @@
 
 #include "bugfix/url.h"
 
-#include <time.h>
-
 #define DAE_XML_TAG_EQ8(XML, NAME)                                           \
   xml_tag_eq_packed(XML, _s_dae_##NAME##_u64_exact, _s_dae_##NAME##_len)
 
@@ -222,29 +220,6 @@ typedef AK_ALIGN(16) struct DAEState {
   RBTree          *meshTargets;
   DaeSource       *sources;
   AkCOLLADAVersion version;
-  double           profGeom;
-  double           profGeomMesh;
-  double           profGeomSource;
-  double           profGeomAccessor;
-  double           profGeomArray;
-  double           profGeomInput;
-  double           profGeomIndexArray;
-  double           profGeomVertices;
-  double           profGeomTriangles;
-  double           profGeomPolygons;
-  double           profGeomLines;
-  uint32_t         profGeomCount;
-  uint32_t         profGeomMeshCount;
-  uint32_t         profGeomSourceCount;
-  uint32_t         profGeomAccessorCount;
-  uint32_t         profGeomArrayCount;
-  uint32_t         profGeomInputCount;
-  uint32_t         profGeomIndexArrayCount;
-  uint32_t         profGeomVerticesCount;
-  uint32_t         profGeomTrianglesCount;
-  uint32_t         profGeomPolygonsCount;
-  uint32_t         profGeomLinesCount;
-  bool             profile;
   bool             stop;
 } DAEState;
 
@@ -422,27 +397,6 @@ typedef struct AkMorphDAE {
   AkTree   *extra;
   AkInput  *input;
 } AkMorphDAE;
-
-AK_INLINE
-double
-dae_profile_ms(void) {
-  struct timespec ts;
-
-  clock_gettime(CLOCK_MONOTONIC, &ts);
-
-  return (double)ts.tv_sec * 1000.0 + (double)ts.tv_nsec / 1000000.0;
-}
-
-#define DAE_PROF_START(DST)                                                  \
-  ((DST) && (DST)->profile ? dae_profile_ms() : 0.0)
-
-#define DAE_PROF_ACC(DST, FIELD, COUNT, START)                               \
-  do {                                                                       \
-    if ((DST) && (DST)->profile) {                                           \
-      (DST)->FIELD += dae_profile_ms() - (START);                            \
-      (DST)->COUNT++;                                                        \
-    }                                                                        \
-  } while (0)
 
 AK_INLINE
 void

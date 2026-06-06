@@ -31,9 +31,7 @@ dae_poly(DAEState * __restrict dst,
   uint32_t   indexoff, polygonsCount, st;
   size_t     indicesCount;
   AkUInt     maxIndex;
-  double     profStart, profStep;
   
-  profStart = DAE_PROF_START(dst);
   heap = dst->heap;
   poly = ak_heap_calloc(heap, memp, sizeof(*poly));
   
@@ -54,7 +52,6 @@ dae_poly(DAEState * __restrict dst,
   while (xml) {
     if (DAE_XML_TAG_EQ8(xml, input)) {
       AkInput *inp;
-      profStep = DAE_PROF_START(dst);
 
       inp              = dae_input_new(heap, poly);
       inp->semanticRaw = dae_semanticRaw(DAE_XMLA8(xml, semantic),
@@ -88,11 +85,9 @@ dae_poly(DAEState * __restrict dst,
           // ak_free(inp);
         }
       }
-      DAE_PROF_ACC(dst, profGeomInput, profGeomInputCount, profStep);
     } else if (DAE_XML_TAG_EQ8(xml, p) && xml->val) {
       AkIndexArray *indexArray;
       AkUInt        arrayMax;
-      profStep = DAE_PROF_START(dst);
       
       arrayMax = 0;
       if ((xml_strtoindex_array_max(heap,
@@ -111,14 +106,11 @@ dae_poly(DAEState * __restrict dst,
           indicesCount += indexArray->count;
         }
       }
-      DAE_PROF_ACC(dst, profGeomIndexArray, profGeomIndexArrayCount, profStep);
     } else if (DAE_XML_TAG_EQ8(xml, vcount) && xml->val) {
       AkUIntArray *intArray;
-      profStep = DAE_PROF_START(dst);
       if ((xml_strtoui_array(heap, poly, xml->val, &intArray) == AK_OK)) {
         poly->vcount = intArray;
       }
-      DAE_PROF_ACC(dst, profGeomIndexArray, profGeomIndexArrayCount, profStep);
     } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       poly->base.extra = tree_fromxml(heap, poly, xml);
       if (poly->base.extra)
@@ -211,7 +203,5 @@ dae_poly(DAEState * __restrict dst,
   }
 
 finish:
-  DAE_PROF_ACC(dst, profGeomPolygons, profGeomPolygonsCount, profStart);
-
   return poly;
 }

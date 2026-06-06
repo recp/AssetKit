@@ -37,9 +37,7 @@ dae_source(DAEState * __restrict dst,
   uint32_t       count;
   AkTypeId       t;
   bool           isName;
-  double         profStart, profStep;
 
-  profStart = DAE_PROF_START(dst);
   heap     = dst->heap;
   rootmemp = ak_heap_data(heap->data);
   tempmem  = dst->tempmem;
@@ -58,7 +56,6 @@ dae_source(DAEState * __restrict dst,
     } else if (DAE_XML_TAG_EQ(xml, techniquec)) {
       xml_t       *xacc;
       AkDataParam *dp_last;
-      profStep = DAE_PROF_START(dst);
 
       if ((xacc = DAE_XML_ELEM8(xml, accessor))) {
         acc         = ak_heap_calloc(heap, rootmemp, sizeof(*acc));
@@ -95,13 +92,11 @@ dae_source(DAEState * __restrict dst,
         /* this will be prepared in postprocess */
         flist_sp_insert(&dst->accessors, acc);
       }
-      DAE_PROF_ACC(dst, profGeomAccessor, profGeomAccessorCount, profStep);
     } else if (DAE_XML_TAG_EQ(xml, technique)) {
       tq       = dae_techn(xml, heap, source);
       tq->next = (AkTechnique *)source->reserved;
       source->reserved = tq;
     } else if (xml_valtype(xml) == XML_STRING && (sval = xmls(xml))) {
-      profStep         = DAE_PROF_START(dst);
       count            = xmla_u32(DAE_XMLA8(xml, count), 0);
       buffer           = ak_heap_alloc(heap, rootmemp, sizeof(*buffer));
       buffer->name     = DAE_XMLA_STRDUP8(xml, heap, name, buffer);
@@ -217,7 +212,6 @@ dae_source(DAEState * __restrict dst,
           }
         } /* if asEnum */
       }
-      DAE_PROF_ACC(dst, profGeomArray, profGeomArrayCount, profStep);
     }
     
     xml = xml->next;
@@ -231,8 +225,6 @@ dae_source(DAEState * __restrict dst,
     accdae->bound  = 1;
     accdae->stride = 1;
   }
-
-  DAE_PROF_ACC(dst, profGeomSource, profGeomSourceCount, profStart);
 
   return source;
 }

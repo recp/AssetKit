@@ -32,35 +32,10 @@
 #include "../../endian.h"
 #include "../../strpool.h"
 
-#include <stdio.h>
-#include <time.h>
-
 /* Direct-mapped cache for repeated STL position tuples. 64k is measurably
    better on dense shared-edge triangle soups; allocate it as one scratch block
    in the caller so small-stack platforms do not pay a 1MB frame. */
 #define STL_POSITION_CACHE_SIZE 65536u
-
-static
-bool
-stl_profile_enabled(void) {
-  const char *value;
-
-  value = getenv("ASSETKIT_STL_PROFILE");
-  if (!value)
-    value = getenv("ASSETKIT_BLENDER_PROFILE");
-
-  return value && value[0] && value[0] != '0';
-}
-
-static
-double
-stl_profile_now_ms(void) {
-  struct timespec ts;
-
-  clock_gettime(CLOCK_MONOTONIC, &ts);
-
-  return (double)ts.tv_sec * 1000.0 + (double)ts.tv_nsec / 1000000.0;
-}
 
 AK_INLINE
 uint16_t
@@ -978,8 +953,6 @@ stl_binary_position_dedup(STLState * __restrict sst, char * __restrict p) {
   size_t    indexCount, tableCountHint;
   bool      ok;
   bool      directUintIndices;
-  bool      profile;
-  double    t0, tSample, tInit, tFill, tEmit;
   vec4      defaultColor;
   uint32_t *cacheBits;
   uint32_t *cachePacked;
@@ -1004,16 +977,11 @@ stl_binary_position_dedup(STLState * __restrict sst, char * __restrict p) {
 
   indexCount = (size_t)nTriangles * 3u;
   tableCountHint = 0;
-  profile = stl_profile_enabled();
-  t0 = profile ? stl_profile_now_ms() : 0.0;
-  tSample = tInit = tFill = tEmit = 0.0;
   sampleTriangles = nTriangles > 4096u ? 4096u : nTriangles;
   if (sampleTriangles < nTriangles && sampleTriangles > 0) {
     STLPositionDedup sample;
     size_t sampleIndexCount;
-    double tPhase;
 
-    tPhase = profile ? stl_profile_now_ms() : 0.0;
     sampleIndexCount = (size_t)sampleTriangles * 3u;
     if (!stl_position_dedup_init(&sample,
                                  sampleIndexCount,
@@ -1030,8 +998,6 @@ stl_binary_position_dedup(STLState * __restrict sst, char * __restrict p) {
                                         sampleTriangles,
                                         cacheBits,
                                         cachePacked);
-    if (profile)
-      tSample = stl_profile_now_ms() - tPhase;
     if (!ok || sample.indexCount == 0
         || (uint64_t)sample.count * 100ull
              > (uint64_t)sample.indexCount * 95ull) {
@@ -1050,7 +1016,6 @@ stl_binary_position_dedup(STLState * __restrict sst, char * __restrict p) {
   }
 
   directUintIndices = tableCountHint > UINT16_MAX;
-  tInit = profile ? stl_profile_now_ms() : 0.0;
   if (!stl_position_dedup_init(&dedup,
                                indexCount,
                                nTriangles,
@@ -1061,43 +1026,16 @@ stl_binary_position_dedup(STLState * __restrict sst, char * __restrict p) {
     free(cacheBits);
     return false;
   }
-  if (profile)
-    tInit = stl_profile_now_ms() - tInit;
 
-  tFill = profile ? stl_profile_now_ms() : 0.0;
   ok = stl_binary_fill_position_dedup(&dedup,
                                       body,
                                       nTriangles,
                                       cacheBits,
                                       cachePacked);
-  if (profile)
-    tFill = stl_profile_now_ms() - tFill;
-  if (ok)
-    tEmit = profile ? stl_profile_now_ms() : 0.0;
   if (ok)
     ok = dedup.indexCount > 0
          && dedup.count < dedup.indexCount
          && stl_position_dedup_emit(sst, &dedup);
-  if (profile && tEmit > 0.0)
-    tEmit = stl_profile_now_ms() - tEmit;
-
-  if (profile) {
-    fprintf(stderr,
-            "[AssetKit STL] position_dedup triangles=%u index_count=%u "
-            "unique=%u table_hint=%zu direct_uint=%d sample=%.3fms "
-            "init=%.3fms fill=%.3fms emit=%.3fms total=%.3fms ok=%d\n",
-            nTriangles,
-            dedup.indexCount,
-            dedup.count,
-            tableCountHint,
-            directUintIndices ? 1 : 0,
-            tSample,
-            tInit,
-            tFill,
-            tEmit,
-            stl_profile_now_ms() - t0,
-            ok ? 1 : 0);
-  }
 
   stl_position_dedup_free(&dedup);
   free(cacheBits);

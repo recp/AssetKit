@@ -27,9 +27,7 @@ dae_geom(DAEState * __restrict dst,
          void     * __restrict memp) {
   AkGeometry *geom;
   AkHeap     *heap;
-  double      profStart;
 
-  profStart         = DAE_PROF_START(dst);
   heap              = dst->heap;
   geom              = ak_heap_calloc(heap, memp, sizeof(*geom));
   geom->name        = DAE_XMLA_STRDUP8(xml, heap, name, geom);
@@ -60,7 +58,5 @@ dae_geom(DAEState * __restrict dst,
     xml = xml->next;
   }
   
-  DAE_PROF_ACC(dst, profGeom, profGeomCount, profStart);
-
   return geom;
 }
