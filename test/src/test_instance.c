@@ -71,6 +71,26 @@ ak_test_write_dae_instance_node(const char *path) {
 
 static
 bool
+ak_test_write_gltf_root(const char *path) {
+  FILE *file;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  fputs("{"
+        "\"asset\":{\"version\":\"2.0\"},"
+        "\"nodes\":[{\"name\":\"Root\"}],"
+        "\"scenes\":[{\"nodes\":[0]}],"
+        "\"scene\":0"
+        "}\n",
+        file);
+
+  return fclose(file) == 0;
+}
+
+static
+bool
 ak_test_write_obj_triangle(const char *path) {
   FILE *file;
 
@@ -464,7 +484,7 @@ TEST_IMPL(node_instance_camera_world_path) {
   TEST_SUCCESS
 }
 
-TEST_IMPL(scene_find_or_make_root_uses_instance_nodes) {
+TEST_IMPL(scene_find_or_make_root_uses_child_roots) {
   AkHeap  *heap;
   AkDoc   *doc;
   AkScene *scene;
@@ -480,11 +500,10 @@ TEST_IMPL(scene_find_or_make_root_uses_instance_nodes) {
   madeRoot = ak_sceneFindOrMakeRoot(doc, scene, "User Cameras");
   ASSERT(madeRoot != NULL);
   ASSERT(scene->node != NULL);
-  ASSERT(scene->node->node != NULL);
-  ASSERT(scene->node->node->target == madeRoot);
-  ASSERT(scene->node->node->next == NULL);
+  ASSERT(scene->node->chld == madeRoot);
+  ASSERT(scene->node->node == NULL);
   ASSERT(scene->node->geometry == NULL);
-  ASSERT(scene->node->chld == NULL);
+  ASSERT(madeRoot->parent == scene->node);
   ASSERT(madeRoot->prev == NULL);
   ASSERT(madeRoot->next == NULL);
   ASSERT(doc->lib.nodes.count == 1);
@@ -492,14 +511,15 @@ TEST_IMPL(scene_find_or_make_root_uses_instance_nodes) {
   sameRoot = ak_sceneFindOrMakeRoot(doc, scene, "User Cameras");
   ASSERT(sameRoot == madeRoot);
   ASSERT(doc->lib.nodes.count == 1);
-  ASSERT(scene->node->node->next == NULL);
+  ASSERT(scene->node->chld->next == NULL);
 
   otherRoot = ak_sceneFindOrMakeRoot(doc, scene, "Other Root");
   ASSERT(otherRoot != NULL);
   ASSERT(otherRoot != madeRoot);
-  ASSERT(scene->node->node->target == otherRoot);
-  ASSERT(scene->node->node->next != NULL);
-  ASSERT(scene->node->node->next->target == madeRoot);
+  ASSERT(scene->node->chld == otherRoot);
+  ASSERT(scene->node->chld->next == madeRoot);
+  ASSERT(otherRoot->parent == scene->node);
+  ASSERT(madeRoot->parent == scene->node);
   ASSERT(doc->lib.nodes.count == 2);
 
   ak_heap_destroy(heap);
@@ -507,7 +527,7 @@ TEST_IMPL(scene_find_or_make_root_uses_instance_nodes) {
   TEST_SUCCESS
 }
 
-TEST_IMPL(dae_scene_roots_are_instance_nodes) {
+TEST_IMPL(dae_scene_roots_are_child_nodes) {
   AkDoc       *doc;
   AkScene     *scene;
   AkNode      *rootA, *rootB;
@@ -515,8 +535,8 @@ TEST_IMPL(dae_scene_roots_are_instance_nodes) {
   char        *tmpdir;
   char         daePath[PATH_MAX];
   const char  *tmpBase;
-  uint32_t     rootInstCount;
-  AkInstanceNode *inst;
+  uint32_t     rootCount;
+  AkNode      *root;
 
   doc = NULL;
   tmpBase = getenv("TMPDIR");
@@ -537,7 +557,8 @@ TEST_IMPL(dae_scene_roots_are_instance_nodes) {
   scene = doc->scene;
   ASSERT(scene != NULL);
   ASSERT(scene->node != NULL);
-  ASSERT(scene->node->node != NULL);
+  ASSERT(scene->node->chld != NULL);
+  ASSERT(scene->node->node == NULL);
   ASSERT(scene->node->geometry == NULL);
   ASSERT(scene->node->next == NULL);
   ASSERT(doc->lib.nodes.count == 2);
@@ -549,15 +570,13 @@ TEST_IMPL(dae_scene_roots_are_instance_nodes) {
   ASSERT(rootA != rootB);
   ASSERT(rootA->name && strcmp(rootA->name, "RootA") == 0);
   ASSERT(rootB->name && strcmp(rootB->name, "RootB") == 0);
-  ASSERT(rootA->next == NULL);
-  ASSERT(rootB->next == NULL);
-  ASSERT(rootA->prev == NULL);
-  ASSERT(rootB->prev == NULL);
+  ASSERT(rootA->parent == scene->node);
+  ASSERT(rootB->parent == scene->node);
 
-  rootInstCount = 0;
-  for (inst = scene->node->node; inst; inst = inst->next)
-    rootInstCount++;
-  ASSERT(rootInstCount == 2);
+  rootCount = 0;
+  for (root = scene->node->chld; root; root = root->next)
+    rootCount++;
+  ASSERT(rootCount == 2);
 
   ak_free(doc);
   unlink(daePath);
@@ -596,7 +615,7 @@ TEST_IMPL(dae_instance_node_is_instance_node) {
   scene = doc->scene;
   ASSERT(scene != NULL);
   ASSERT(scene->node != NULL);
-  ASSERT(scene->node->node != NULL);
+  ASSERT(scene->node->chld != NULL);
   ASSERT(doc->lib.nodes.count == 2);
 
   root = ak_sceneFindRoot(scene, "Root");
@@ -622,7 +641,53 @@ TEST_IMPL(dae_instance_node_is_instance_node) {
   TEST_SUCCESS
 }
 
-TEST_IMPL(obj_scene_root_is_instance_node) {
+TEST_IMPL(gltf_scene_root_is_child_node) {
+  AkDoc      *doc;
+  AkScene    *scene;
+  AkNode     *root;
+  char        dirTemplate[PATH_MAX];
+  char       *tmpdir;
+  char        gltfPath[PATH_MAX];
+  const char *tmpBase;
+
+  doc = NULL;
+  tmpBase = getenv("TMPDIR");
+  if (!tmpBase || !tmpBase[0])
+    tmpBase = "/tmp";
+
+  snprintf(dirTemplate,
+           sizeof(dirTemplate),
+           "%s/assetkit-gltf-root-XXXXXX",
+           tmpBase);
+  tmpdir = mkdtemp(dirTemplate);
+  ASSERT(tmpdir != NULL);
+
+  snprintf(gltfPath, sizeof(gltfPath), "%s/root.gltf", tmpdir);
+  ASSERT(ak_test_write_gltf_root(gltfPath));
+  ASSERT(ak_load(&doc, gltfPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+
+  scene = doc->scene;
+  ASSERT(scene != NULL);
+  ASSERT(scene->node != NULL);
+  ASSERT(scene->node->chld != NULL);
+  ASSERT(scene->node->node == NULL);
+
+  root = scene->node->chld;
+  ASSERT(root != NULL);
+  ASSERT(root != scene->node);
+  ASSERT(root->parent == scene->node);
+  ASSERT(root->name && strcmp(root->name, "Root") == 0);
+  ASSERT(root->next == NULL);
+  ASSERT(doc->lib.nodes.count == 1);
+
+  ak_free(doc);
+  unlink(gltfPath);
+  rmdir(tmpdir);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(obj_scene_root_is_child_node) {
   AkDoc      *doc;
   AkScene    *scene;
   AkNode     *root;
@@ -650,12 +715,14 @@ TEST_IMPL(obj_scene_root_is_instance_node) {
   scene = doc->scene;
   ASSERT(scene != NULL);
   ASSERT(scene->node != NULL);
-  ASSERT(scene->node->node != NULL);
+  ASSERT(scene->node->chld != NULL);
+  ASSERT(scene->node->node == NULL);
   ASSERT(scene->node->geometry == NULL);
 
-  root = ak_instanceNodeTarget(scene->node->node);
+  root = scene->node->chld;
   ASSERT(root != NULL);
   ASSERT(root != scene->node);
+  ASSERT(root->parent == scene->node);
   ASSERT(root->geometry != NULL);
   ASSERT(doc->lib.nodes.count == 1);
 

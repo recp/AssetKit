@@ -30,9 +30,9 @@ dae_evalScene(DAEState * __restrict dst,
 
 static
 void
-dae_vsceneRootInstances(DAEState * __restrict dst,
-                        AkScene  * __restrict vscn,
-                        AkNode   * __restrict root);
+dae_vsceneAttachRoots(DAEState * __restrict dst,
+                      AkScene  * __restrict vscn,
+                      AkNode   * __restrict root);
 
 AK_HIDE
 void*
@@ -79,7 +79,7 @@ dae_vscene(DAEState * __restrict dst,
   ak_setypeid(vscn->node, AKT_NODE);
   vscn->node->visible = true;
 
-  dae_vsceneRootInstances(dst, vscn, rootNodes);
+  dae_vsceneAttachRoots(dst, vscn, rootNodes);
 
   if (vscn->lights->count < 1
       && rootNodes
@@ -109,9 +109,9 @@ dae_vscene(DAEState * __restrict dst,
 
 static
 void
-dae_vsceneRootInstances(DAEState * __restrict dst,
-                        AkScene  * __restrict vscn,
-                        AkNode   * __restrict root) {
+dae_vsceneAttachRoots(DAEState * __restrict dst,
+                      AkScene  * __restrict vscn,
+                      AkNode   * __restrict root) {
   AkNode *prev, *tail;
 
   if (!root)
@@ -127,7 +127,7 @@ dae_vsceneRootInstances(DAEState * __restrict dst,
 
     ak_heap_setpm(tail, dst->doc);
     AK_LIB_PREPEND(dst->doc->lib.nodes, tail, docNext);
-    ak_nodeAttachNodeInstance(vscn->node, tail);
+    ak_addSubNode(vscn->node, tail, false);
 
     tail = prev;
   }

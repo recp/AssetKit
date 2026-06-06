@@ -301,14 +301,12 @@ ak_sceneFindRoot(AkScene    * __restrict scene,
 
   if (!scene || !name) return NULL;
 
-  if (scene->node) {
-    AkInstanceNode *inst;
+  if (!scene->node)
+    return NULL;
 
-    for (inst = scene->node->node; inst; inst = inst->next) {
-      node = ak_instanceNodeTarget(inst);
-      if (node && node->name && strcmp(node->name, name) == 0)
-        return node;
-    }
+  for (node = scene->node->chld; node; node = node->next) {
+    if (node->name && strcmp(node->name, name) == 0)
+      return node;
   }
 
   return NULL;
@@ -342,7 +340,7 @@ ak_sceneFindOrMakeRoot(AkDoc      * __restrict doc,
     node->name = ak_heap_strdup(heap, node, name);
 
   AK_LIB_PREPEND(doc->lib.nodes, node, docNext);
-  ak_nodeAttachNodeInstance(scene->node, node);
+  ak_addSubNode(scene->node, node, false);
 
   return node;
 }

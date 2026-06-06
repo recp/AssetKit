@@ -205,9 +205,8 @@ ak_nodeSetTransformMatrix(AkNode * __restrict node,
 /*!
  * @brief Find a root-level node in a scene by name.
  *
- * Scenes use `scene->node` as a synthetic entrypoint. Its `node` list
- * references authored root nodes and may be NULL for an empty scene. NULL
- * inputs return NULL.
+ * Scenes use `scene->node` as a synthetic entrypoint. Its `chld` list owns
+ * authored root nodes and may be NULL for an empty scene.
  * NULL inputs return NULL.
  */
 AK_EXPORT
@@ -221,7 +220,7 @@ ak_sceneFindRoot(struct AkScene * __restrict scene,
  * Convenience for "ensure a top-level container exists" — e.g. a
  * "User Cameras" group placed alongside the asset's authored roots.
  * Created roots are document-library nodes attached to the scene through the
- * synthetic root's `node` list.
+ * synthetic root's `chld` list.
  */
 AK_EXPORT
 AkNode *

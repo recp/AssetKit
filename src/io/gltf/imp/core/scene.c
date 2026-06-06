@@ -53,7 +53,8 @@ gltf_scenes(json_t * __restrict jscene,
     scene->cameras = ak_heap_calloc(heap, scene, sizeof(*scene->cameras));
     scene->lights  = ak_heap_calloc(heap, scene, sizeof(*scene->lights));
     
-    /* root node: to store node instances */
+    /* Synthetic scene entrypoint. Authored roots are attached as children;
+       true node references remain on AkNode.node. */
     scene->node = ak_heap_calloc(heap, scene, sizeof(*scene->node));
     ak_setypeid(scene->node, AKT_NODE);
     scene->node->visible = true;
@@ -69,7 +70,7 @@ gltf_scenes(json_t * __restrict jscene,
         if (!(jnodes = json_array(jsceneVal)))
           goto scn_nxt;
         
-        /* create instanceNode for each node */
+        /* attach each authored root node */
         jnode = jnodes->base.value;
         
         while (jnode) {
@@ -81,7 +82,7 @@ gltf_scenes(json_t * __restrict jscene,
           if (!(node = gltf_node_at(gst, nodeIndex)))
             goto jnode_nxt;
           
-          ak_nodeAttachNodeInstance(scene->node, node);
+          ak_addSubNode(scene->node, node, false);
           
           if (!scene->firstCamNode)
             gltf_setFirstCamera(scene, node);

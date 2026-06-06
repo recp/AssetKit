@@ -956,7 +956,7 @@ wobj_obj(AkDoc     ** __restrict dest,
   ak_setypeid(rootNode, AKT_NODE);
   rootNode->visible      = true;
   AK_LIB_PREPEND(doc->lib.nodes, rootNode, docNext);
-  ak_nodeAttachNodeInstance(scene->node, rootNode);
+  ak_addSubNode(scene->node, rootNode, false);
   AK_LIB_PREPEND(doc->lib.scenes, scene, next);
   doc->scene             = scene;
 
