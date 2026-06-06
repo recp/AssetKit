@@ -15,7 +15,6 @@
  */
 
 #include "common.h"
-#include "../include/ak/profile.h"
 #include "sid.h"
 
 #include <stdlib.h>

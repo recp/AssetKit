@@ -16,7 +16,6 @@
 
 #include "texture.h"
 #include "ext.h"
-#include "profile.h"
 #include "sampler.h"
 #include "../extra.h"
 

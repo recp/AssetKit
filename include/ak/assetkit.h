@@ -227,7 +227,7 @@ typedef struct AkInstanceBase {
   struct AkInstanceBase *next;
 } AkInstanceBase;
 
-#include "profile.h"
+#include "material.h"
 
 struct AkAccessor;
 

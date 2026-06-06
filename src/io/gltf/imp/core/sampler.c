@@ -15,7 +15,6 @@
  */
 
 #include "sampler.h"
-#include "profile.h"
 #include "enum.h"
 #include "../extra.h"
 
