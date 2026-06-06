@@ -64,20 +64,24 @@ typedef enum AkOption {
   AK_OPT_CVT_LINELOOP               = 26, /* false    */
   AK_OPT_CVT_LINESTRIP              = 27, /* false    */
 
-  /* Keep KHR_mesh_quantization accessors in their authored integer form. */
+  /* keep KHR_mesh_quantization accessors in their authored integer form. */
   AK_OPT_PRESERVE_QUANTIZED_ATTRS   = 28, /* false    */
 
-  /* Optional glTF extension decoder settings. */
+  /* optional glTF extension decoder settings. */
   AK_OPT_GLTF_EXT_DECODER_AUTOLOAD   = 29, /* true     */
   AK_OPT_GLTF_MESHOPT_DECODER_PATH   = 30, /* NULL     */
   AK_OPT_GLTF_DRACO_DECODER_PATH     = 31, /* NULL     */
   AK_OPT_GLTF_GSPLAT_DECODER_PATH    = 32, /* NULL     */
   AK_OPT_GLTF_KTX2_DECODER_PATH      = 33, /* NULL     */
 
-  /* Deduplicate position-only triangle soup into indexed mesh storage when
+  /* deduplicate position-only triangle soup into indexed mesh storage when
      the importer can preserve the remaining semantics. Currently applied to
      colorless STL triangle soup. */
   AK_OPT_MESH_POSITION_DEDUP_INDEX    = 34, /* true     */
+
+  /* preserve format-authored custom metadata such as glTF extras and
+     COLLADA <extra>. glTF extensions are preserved independently. */
+  AK_OPT_PRESERVE_EXTRAS              = 35, /* false    */
 } AkOption;
 
 AK_EXPORT

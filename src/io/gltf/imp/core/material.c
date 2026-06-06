@@ -258,6 +258,7 @@ gltf_default_mat(AkGLTFState *gst) {
   AkMaterialSurface *surface;
 
   mat     = ak_heap_calloc(gst->heap, gst->doc, sizeof(*mat));
+  ak_setypeid(mat, AKT_MATERIAL);
   surface = ak_heap_calloc(gst->heap, mat,    sizeof(*surface));
   gltf_materialInitSurface(gst, surface);
   mat->surface = surface;
@@ -946,6 +947,7 @@ gltf_materials(json_t * __restrict jmaterial,
     AkMaterialSurface *surface;
 
     mat     = ak_heap_calloc(heap, doc, sizeof(*mat));
+    ak_setypeid(mat, AKT_MATERIAL);
     surface = ak_heap_calloc(heap, mat,    sizeof(*surface));
     gltf_materialInitSurface(gst, surface);
     mat->surface = surface;

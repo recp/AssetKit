@@ -159,5 +159,6 @@ gltf_extra(AkGLTFState * __restrict gst,
     return;
 
   gltf_extra_node(gst, owner, _s_gltf_extensions, jextensions);
-  gltf_extra_node(gst, owner, _s_gltf_extras, jextras);
+  if (ak_opt_get(AK_OPT_PRESERVE_EXTRAS))
+    gltf_extra_node(gst, owner, _s_gltf_extras, jextras);
 }

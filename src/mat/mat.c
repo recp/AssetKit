@@ -742,6 +742,7 @@ ak_materialDefaultVertexColorAlpha(AkDoc * __restrict doc, bool alphaBlend) {
   heap = ak_heap_getheap(doc);
 
   material = ak_heap_calloc(heap, doc, sizeof(*material));
+  ak_setypeid(material, AKT_MATERIAL);
   surface  = ak_heap_calloc(heap, material, sizeof(*surface));
   input    = ak__materialInputAlloc(heap, surface, _s_ak_baseColor);
 

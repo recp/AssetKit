@@ -41,6 +41,8 @@ ak_extraField(void * __restrict obj) {
       return &((AkGeometry *)obj)->extra;
     case AKT_MESH:
       return &((AkMesh *)obj)->extra;
+    case AKT_MATERIAL:
+      return &((AkMaterial *)obj)->extra;
     case AKT_EFFECT:
       return &((AkEffect *)obj)->extra;
     case AKT_PROFILE:

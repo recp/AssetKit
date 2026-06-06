@@ -345,6 +345,7 @@ wobj_handleMaterial(WOState  * __restrict wst,
   doc  = wst->doc;
   
   mat     = ak_heap_calloc(heap, doc, sizeof(*mat));
+  ak_setypeid(mat, AKT_MATERIAL);
   surface = ak_heap_calloc(heap, mat,    sizeof(*surface));
   classic = ak_heap_calloc(heap, surface, sizeof(*classic));
 

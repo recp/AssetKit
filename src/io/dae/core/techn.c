@@ -50,16 +50,15 @@ dae_techn_append_extra(xml_t  * __restrict xml,
   AkTreeNode *subtree;
   size_t      namelen;
 
-  if (!xml || !heap || !owner)
+  if (!xml || !heap || !owner || !ak_opt_get(AK_OPT_PRESERVE_EXTRAS))
     return;
 
-  root = ak_extra(owner);
-  if (!root) {
+  if (!(root = ak_extra(owner))) {
     root = ak_heap_calloc(heap, owner, sizeof(*root));
     ak_extra_set(owner, root);
   }
 
-  node = ak_heap_calloc(heap, root, sizeof(*node));
+  node    = ak_heap_calloc(heap, root, sizeof(*node));
   namelen = xml->tagsize;
   if (xml->prefix)
     namelen += xml->prefixsize;

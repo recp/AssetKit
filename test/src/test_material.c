@@ -9,6 +9,7 @@
 #include <ak/assetkit.h>
 #include <ak/material.h>
 #include <ak/geom.h>
+#include <ak/options.h>
 
 #include <limits.h>
 #include <unistd.h>
@@ -179,6 +180,7 @@ test_write_gltf_alpha_modes(const char *path) {
         "{\"name\":\"mask_alpha\",\"alphaMode\":\"MASK\",\"alphaCutoff\":0.33,"
         "\"pbrMetallicRoughness\":{\"baseColorFactor\":[1,1,1,0.5]}},"
         "{\"name\":\"volume_scatter\","
+        "\"extras\":{\"authorNote\":\"preserve only when requested\"},"
         "\"extensions\":{\"KHR_materials_volume_scatter\":{"
         "\"multiscatterColor\":[0.1,0.2,0.3],\"scatterAnisotropy\":0.4}}}"
         "],"
@@ -223,6 +225,25 @@ test_first_primitive_material(AkDoc *doc) {
   }
 
   return NULL;
+}
+
+static
+bool
+test_tree_has_name(AkTree *tree, const char *name) {
+  AkTree *child;
+
+  if (!tree || !name)
+    return false;
+
+  if (tree->name && strcmp(tree->name, name) == 0)
+    return true;
+
+  for (child = tree->chld; child; child = child->next) {
+    if (test_tree_has_name(child, name))
+      return true;
+  }
+
+  return false;
 }
 
 static
@@ -499,10 +520,14 @@ TEST_IMPL(material_dae_adapter) {
   AkMaterial  *texAZero;
   AkMaterial  *texRgbOne;
   AkMaterial  *texRgbZero;
+  AkDoc       *noExtraDoc;
+  AkMaterial  *noExtraEdge;
   char          dirTemplate[PATH_MAX];
   char         *tmpdir;
   char          daePath[PATH_MAX];
   const char   *tmpBase;
+  uintptr_t     preserveExtras;
+  AkResult      loadResult;
 
   tmpBase = getenv("TMPDIR");
   if (!tmpBase || !tmpBase[0])
@@ -515,8 +540,18 @@ TEST_IMPL(material_dae_adapter) {
   snprintf(daePath, sizeof(daePath), "%s/material_adapter.dae", tmpdir);
   ASSERT(test_write_material_dae(daePath));
 
+  noExtraDoc = NULL;
+  ASSERT(ak_load(&noExtraDoc, daePath, AK_FILE_TYPE_AUTO) == AK_OK && noExtraDoc);
+  noExtraEdge = test_material_by_name(noExtraDoc, "edge");
+  ASSERT(noExtraEdge && !ak_extra(noExtraEdge));
+  ak_free(noExtraDoc);
+
+  preserveExtras = ak_opt_get(AK_OPT_PRESERVE_EXTRAS);
+  ak_opt_set(AK_OPT_PRESERVE_EXTRAS, true);
   doc = NULL;
-  ASSERT(ak_load(&doc, daePath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+  loadResult = ak_load(&doc, daePath, AK_FILE_TYPE_AUTO);
+  ak_opt_set(AK_OPT_PRESERVE_EXTRAS, preserveExtras);
+  ASSERT(loadResult == AK_OK && doc);
 
   edge = test_material_by_name(doc, "edge");
   ASSERT(edge && edge->surface && edge->surface->baseColor);
@@ -547,6 +582,9 @@ TEST_IMPL(material_dae_adapter) {
 
   texRgbZero = test_material_by_name(doc, "tex_rgb_zero");
   ASSERT(test_material_opacity(texRgbZero, AK_TEXTURE_CHANNEL_RGB, 0.499f, 0.501f, true, true));
+  ASSERT(ak_extra(edge));
+  ASSERT(test_tree_has_name(ak_extra(edge), "profile_COMMON"));
+  ASSERT(test_tree_has_name(ak_extra(edge), "technique"));
 
   for (AkMaterial *mat = doc->lib.materials.first; mat; mat = mat->next)
     ASSERT(ak_userData(mat) == NULL);
@@ -565,11 +603,15 @@ TEST_IMPL(material_gltf_alpha_modes) {
   AkMaterial  *blend;
   AkMaterial  *mask;
   AkMaterial  *scatter;
+  AkDoc       *docWithExtras;
+  AkMaterial  *scatterWithExtras;
   AkMaterialSubsurfaceFeature *subsurface;
   char          dirTemplate[PATH_MAX];
   char         *tmpdir;
   char          gltfPath[PATH_MAX];
   const char   *tmpBase;
+  uintptr_t     preserveExtras;
+  AkResult      loadResult;
 
   tmpBase = getenv("TMPDIR");
   if (!tmpBase || !tmpBase[0])
@@ -619,8 +661,24 @@ TEST_IMPL(material_gltf_alpha_modes) {
   ASSERT(subsurface->color->color.rgba.G > 0.199f);
   ASSERT(subsurface->color->color.rgba.B > 0.299f);
   ASSERT(subsurface->anisotropy > 0.399f && subsurface->anisotropy < 0.401f);
+  ASSERT(ak_extra(scatter));
+  ASSERT(test_tree_has_name(ak_extra(scatter), "extensions"));
+  ASSERT(!test_tree_has_name(ak_extra(scatter), "extras"));
 
   ak_free(doc);
+
+  preserveExtras = ak_opt_get(AK_OPT_PRESERVE_EXTRAS);
+  ak_opt_set(AK_OPT_PRESERVE_EXTRAS, true);
+  docWithExtras = NULL;
+  loadResult = ak_load(&docWithExtras, gltfPath, AK_FILE_TYPE_GLTF);
+  ak_opt_set(AK_OPT_PRESERVE_EXTRAS, preserveExtras);
+  ASSERT(loadResult == AK_OK && docWithExtras);
+  scatterWithExtras = test_material_by_name(docWithExtras, "volume_scatter");
+  ASSERT(scatterWithExtras && ak_extra(scatterWithExtras));
+  ASSERT(test_tree_has_name(ak_extra(scatterWithExtras), "extensions"));
+  ASSERT(test_tree_has_name(ak_extra(scatterWithExtras), "extras"));
+
+  ak_free(docWithExtras);
   unlink(gltfPath);
   rmdir(tmpdir);
 

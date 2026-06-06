@@ -31,6 +31,9 @@ tree_fromxml(AkHeap * __restrict heap,
   xml_attr_t     *xatt;
   size_t          namelen;
 
+  if (!ak_opt_get(AK_OPT_PRESERVE_EXTRAS))
+    return NULL;
+
   tree = ak_heap_calloc(heap, memParent, sizeof(*tree));
 
   root = xml;

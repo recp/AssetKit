@@ -31,6 +31,7 @@ dae_material(DAEState * __restrict dst,
 
   heap = dst->heap;
   mat  = ak_heap_calloc(heap, memp, sizeof(*mat));
+  ak_setypeid(mat, AKT_MATERIAL);
   
   xmla_setid(xml, heap, mat);
   

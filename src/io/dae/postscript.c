@@ -31,6 +31,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 AK_HIDE void
@@ -59,6 +60,11 @@ dae_attach_orphan_morphs(DAEState * __restrict dst);
 
 static void
 dae_build_material_surfaces(DAEState * __restrict dst);
+
+static void
+dae_material_attach_effect_extras(DAEState   * __restrict dst,
+                                  AkMaterial * __restrict material,
+                                  AkEffect   * __restrict effect);
 
 static
 bool
@@ -298,6 +304,178 @@ dae_bind_active_scene(DAEState * __restrict dst) {
 }
 
 static void
+dae_extra_append_child(AkTreeNode * __restrict parent,
+                       AkTreeNode * __restrict child) {
+  AkTreeNode *tail;
+
+  if (!parent || !child)
+    return;
+
+  child->parent = parent;
+  child->next   = NULL;
+  child->prev   = NULL;
+
+  if (!parent->chld) {
+    parent->chld = child;
+    parent->chldc++;
+    return;
+  }
+
+  tail = parent->chld;
+  while (tail->next)
+    tail = tail->next;
+
+  tail->next = child;
+  child->prev = tail;
+  parent->chldc++;
+}
+
+static AkTreeNode*
+dae_extra_clone_node(AkHeap           * __restrict heap,
+                     AkTreeNode       * __restrict parent,
+                     const AkTreeNode * __restrict src) {
+  const AkTreeNodeAttr *sattr;
+  const AkTreeNode     *schild;
+  AkTreeNodeAttr      **attrTail;
+  AkTreeNodeAttr       *prevAttr;
+  AkTreeNode           *dst;
+
+  if (!heap || !parent || !src)
+    return NULL;
+
+  dst = ak_heap_calloc(heap, parent, sizeof(*dst));
+  if (src->name)
+    dst->name = ak_heap_strdup(heap, dst, src->name);
+  if (src->val)
+    dst->val = ak_heap_strdup(heap, dst, src->val);
+
+  attrTail = &dst->attribs;
+  prevAttr = NULL;
+  for (sattr = src->attribs; sattr; sattr = sattr->next) {
+    AkTreeNodeAttr *attr;
+
+    attr = ak_heap_calloc(heap, dst, sizeof(*attr));
+    if (sattr->name)
+      attr->name = ak_heap_strdup(heap, attr, sattr->name);
+    if (sattr->val)
+      attr->val = ak_heap_strdup(heap, attr, sattr->val);
+
+    attr->prev = prevAttr;
+    *attrTail  = attr;
+    prevAttr   = attr;
+    attrTail   = &attr->next;
+    dst->attrc++;
+  }
+
+  for (schild = src->chld; schild; schild = schild->next)
+    dae_extra_append_child(dst, dae_extra_clone_node(heap, dst, schild));
+
+  return dst;
+}
+
+static void
+dae_extra_clone_children(AkHeap           * __restrict heap,
+                         AkTreeNode       * __restrict parent,
+                         const AkTreeNode * __restrict srcRoot) {
+  const AkTreeNode *child;
+
+  if (!heap || !parent || !srcRoot)
+    return;
+
+  for (child = srcRoot->chld; child; child = child->next)
+    dae_extra_append_child(parent, dae_extra_clone_node(heap, parent, child));
+}
+
+static AkTreeNode*
+dae_material_extra_root(DAEState   * __restrict dst,
+                        AkMaterial * __restrict material) {
+  AkTreeNode *root;
+
+  if (!dst || !material)
+    return NULL;
+
+  root = ak_extra(material);
+  if (!root) {
+    root       = ak_heap_calloc(dst->heap, material, sizeof(*root));
+    root->name = ak_heap_strdup(dst->heap, root, "extra");
+    ak_extra_set(material, root);
+  }
+
+  return root;
+}
+
+static AkTreeNode*
+dae_extra_append_wrapper(DAEState   * __restrict dst,
+                         AkMaterial * __restrict material,
+                         AkTreeNode * __restrict parent,
+                         const char * __restrict name) {
+  AkTreeNode *node;
+
+  if (!dst || !material || !parent || !name)
+    return NULL;
+
+  node       = ak_heap_calloc(dst->heap, parent, sizeof(*node));
+  node->name = ak_heap_strdup(dst->heap, node, name);
+  dae_extra_append_child(parent, node);
+
+  return node;
+}
+
+static void
+dae_material_attach_effect_extras(DAEState   * __restrict dst,
+                                  AkMaterial * __restrict material,
+                                  AkEffect   * __restrict effect) {
+  AkProfile     *profile;
+  AkTreeNode    *root;
+
+  if (!dst || !material || !effect)
+    return;
+  if (!ak_opt_get(AK_OPT_PRESERVE_EXTRAS))
+    return;
+
+  root = NULL;
+  if (effect->extra && effect->extra->chld) {
+    AkTreeNode *wrapper;
+
+    root = dae_material_extra_root(dst, material);
+    wrapper = dae_extra_append_wrapper(dst, material, root, "effect");
+    dae_extra_clone_children(dst->heap, wrapper, effect->extra);
+  }
+
+  for (profile = effect->profile; profile; profile = profile->next) {
+    AkTechniqueFx *techn;
+    AkTreeNode    *profileNode;
+    const char    *profileName;
+    bool           hasExtra;
+
+    hasExtra = profile->extra && profile->extra->chld;
+    for (techn = profile->technique; !hasExtra && techn; techn = techn->next)
+      hasExtra = techn->extra && techn->extra->chld;
+
+    if (!hasExtra)
+      continue;
+
+    if (!root)
+      root = dae_material_extra_root(dst, material);
+
+    profileName = profile->type == AK_PROFILE_TYPE_COMMON ? "profile_COMMON" : "profile";
+    profileNode = dae_extra_append_wrapper(dst, material, root, profileName);
+    if (profile->extra && profile->extra->chld)
+      dae_extra_clone_children(dst->heap, profileNode, profile->extra);
+
+    for (techn = profile->technique; techn; techn = techn->next) {
+      AkTreeNode *techniqueNode;
+
+      if (!techn->extra || !techn->extra->chld)
+        continue;
+
+      techniqueNode = dae_extra_append_wrapper(dst, material, profileNode, "technique");
+      dae_extra_clone_children(dst->heap, techniqueNode, techn->extra);
+    }
+  }
+}
+
+static void
 dae_build_material_surfaces(DAEState * __restrict dst) {
   AkMaterial           *material;
   AkEffect             *effect;
@@ -307,8 +485,13 @@ dae_build_material_surfaces(DAEState * __restrict dst) {
     return;
 
   for (material = dst->doc->lib.materials.first; material; material = material->next) {
+    effect = dae_material_effect(dst, material);
+    if (!effect)
+      continue;
+
+    dae_material_attach_effect_extras(dst, material, effect);
+
     if (!material->surface
-        && (effect = dae_material_effect(dst, material))
         && (common = ak_getProfileTechniqueCommon(effect))) {
       material->surface = ak_materialSurfaceFromTechniqueCommon(dst->heap, material, common);
     }

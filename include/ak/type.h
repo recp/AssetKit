@@ -95,7 +95,9 @@ typedef enum AkTypeId {
   AKT_SCALE,
   AKT_SKEW,
   AKT_MATRIX,
-  AKT_QUATERNION
+  AKT_QUATERNION,
+
+  AKT_MATERIAL
 } AkTypeId;
 
 typedef struct AkTypeDesc {
