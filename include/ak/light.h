@@ -22,9 +22,6 @@ extern "C" {
 
 #include "common.h"
 
-#define AK_LIGHT_HAS_ATTENUATION_STRUCT 1
-#define AK_LIGHT_HAS_CONE_FALLOFF_EXPONENT 1
-
 typedef enum AkLightType {
   AK_LIGHT_TYPE_AMBIENT     = 1,
   AK_LIGHT_TYPE_DIRECTIONAL = 2,
