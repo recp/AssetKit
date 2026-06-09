@@ -125,7 +125,7 @@ dae_mesh_fixup(AkMesh * mesh, bool retainDuplicators) {
     ak_meshGenNormals(mesh);
 
   edith->skipFixIndices = false;
-  if (needsFixIndices)
+  if (needsFixIndices || needsNormals)
     ak_meshFixIndicesDefaultRetainDuplicators(mesh,
                                               retainDuplicators
                                               || mesh->skins != NULL);

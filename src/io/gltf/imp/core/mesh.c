@@ -90,22 +90,6 @@ gltf_primProps(json_t          * __restrict jprim,
   }
 }
 
-static inline
-uint32_t
-gltf_childCount(const json_t * __restrict json) {
-  const json_t *it;
-  uint32_t      count;
-
-  count = 0;
-  if (!json)
-    return 0;
-
-  for (it = json->value; it; it = it->next)
-    count++;
-
-  return count;
-}
-
 static
 bool
 gltf_attrKnownIndexedZero(const char       * __restrict key,
@@ -474,20 +458,13 @@ gltf_meshes(json_t * __restrict jmesh,
 
           if ((jprimVal = primProps.attributes)) {
             json_t *jattrib;
-            AkInput *inputs;
-            uint32_t attrIndex;
 
             /* attributes */
-            inputs = ak_heap_calloc(heap,
-                                    prim,
-                                    sizeof(*inputs)
-                                    * gltf_childCount(jprimVal));
-            attrIndex = 0;
             jattrib = jprimVal->value;
             while (jattrib) {
               AkInput *inp;
 
-              inp = &inputs[attrIndex++];
+              inp = ak_heap_calloc(heap, prim, sizeof(*inp));
               gltf_inputSemantic(heap, inp, jattrib);
 
               inp->accessor = gltf_accessor_at(gst, json_int32(jattrib, -1));
@@ -590,9 +567,6 @@ gltf_meshes(json_t * __restrict jmesh,
               targetIdx = 0;
 
               while (jtarget && targetIdx < meshTargetCnt) {
-                AkInput *inputs;
-                uint32_t attrIndex;
-
                 target = meshTargetArr[meshTargetCnt - 1 - targetIdx];
 
                 if (!target->target) {
@@ -617,16 +591,11 @@ gltf_meshes(json_t * __restrict jmesh,
                 /* fill morphable->input from the target's attribute deltas.
                    IMPORTANT: do NOT touch prim->pos here — that's the base
                    primitive's POSITION binding; target POSITION is a delta. */
-                inputs = ak_heap_calloc(heap,
-                                        prim,
-                                        sizeof(*inputs)
-                                        * gltf_childCount(jtarget));
-                attrIndex = 0;
                 jattrib = jtarget->value;
                 while (jattrib) {
                   AkInput *inp;
 
-                  inp = &inputs[attrIndex++];
+                  inp = ak_heap_calloc(heap, target, sizeof(*inp));
                   gltf_inputSemantic(heap, inp, jattrib);
 
                   inp->accessor = gltf_accessor_at(gst, json_int32(jattrib, -1));

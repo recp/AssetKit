@@ -44,12 +44,16 @@ dae_mesh(DAEState   * __restrict dst,
   AkObject        *obj;
   AkMesh          *mesh;
   AkMeshPrimitive *lastPrim;
+  AkVertices      *fallbackVertices;
   AkHeap          *heap;
   uint32_t         m;
+  uint32_t         verticesCount;
 
-  heap     = dst->heap;
-  xml      = xml->val;
-  lastPrim = NULL;
+  heap             = dst->heap;
+  xml              = xml->val;
+  lastPrim         = NULL;
+  fallbackVertices = NULL;
+  verticesCount    = 0;
 
   obj  = ak_objAlloc(heap, geom, sizeof(*mesh), AK_GEOMETRY_MESH, true);
   mesh = ak_objGet(obj);
@@ -61,13 +65,17 @@ dae_mesh(DAEState   * __restrict dst,
     if (DAE_XML_TAG_EQ8(xml, source)) {
       (void)dae_source(dst, xml, NULL, 0);
     } else if (DAE_XML_TAG_EQ8(xml, vertices)) {
-      (void)dae_vert(dst, xml, dst->tempmem);
+      AkVertices *vertices;
+
+      vertices = dae_vert(dst, xml, dst->tempmem);
+      verticesCount++;
+      fallbackVertices = verticesCount == 1 ? vertices : NULL;
     } else if ((DAE_XML_TAG_EQ(xml, triangles) & (m = AK_TRIANGLES))
             || (DAE_XML_TAG_EQ(xml, trifans)   & (m = AK_TRIANGLE_FAN))
             || (DAE_XML_TAG_EQ(xml, tristrips) & (m = AK_TRIANGLE_STRIP))) {
       AkTriangles *tri;
       
-      if ((tri = dae_triangles(dst, xml, obj, m))) {
+      if ((tri = dae_triangles(dst, xml, obj, m, fallbackVertices))) {
         dae_mesh_appendPrim(mesh, &lastPrim, &tri->base);
 
         if (tri->base.bindmaterial)
@@ -77,7 +85,7 @@ dae_mesh(DAEState   * __restrict dst,
             || (DAE_XML_TAG_EQ8(xml, polylist) & (m = AK_POLY_POLYLIST))) {
       AkPolygon *poly;
 
-      if ((poly = dae_poly(dst, xml, obj, m))) {
+      if ((poly = dae_poly(dst, xml, obj, m, fallbackVertices))) {
         dae_mesh_appendPrim(mesh, &lastPrim, &poly->base);
 
         if (poly->base.bindmaterial)
@@ -88,7 +96,7 @@ dae_mesh(DAEState   * __restrict dst,
            || (DAE_XML_TAG_EQ(xml, linestrips) & (m = AK_LINE_STRIP))) {
       AkLines *lines;
       
-      if ((lines = dae_lines(dst, xml, obj, m))) {
+      if ((lines = dae_lines(dst, xml, obj, m, fallbackVertices))) {
         dae_mesh_appendPrim(mesh, &lastPrim, &lines->base);
 
         if (lines->base.bindmaterial)

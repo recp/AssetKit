@@ -29,6 +29,7 @@ AkPolygon*
 dae_poly(DAEState * __restrict dst,
          xml_t    * __restrict xml,
          void     * __restrict memp,
-         AkPolygonMode         mode);
+         AkPolygonMode         mode,
+         AkVertices * __restrict fallbackVertices);
 
 #endif /* dae_polygons_h */

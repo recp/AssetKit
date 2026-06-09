@@ -237,8 +237,14 @@ ak_fullpath(AkDoc       * __restrict doc,
     (char *)ref,
     NULL
   };
+  size_t      prefixLen;
 
-  if (ak_str_pack8_fast(ref, AK_PATH_FILE_PREFIX_LEN)
+  prefixLen = 0;
+  while (prefixLen < AK_PATH_FILE_PREFIX_LEN && ref[prefixLen] != '\0')
+    prefixLen++;
+
+  if (prefixLen == AK_PATH_FILE_PREFIX_LEN
+      && ak_str_pack8_fast(ref, AK_PATH_FILE_PREFIX_LEN)
       == AK_PATH_FILE_PREFIX_U64) {
     return ref + AK_PATH_FILE_PREFIX_LEN
 #ifndef _WIN32

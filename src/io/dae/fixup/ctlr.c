@@ -16,6 +16,22 @@
 
 #include "ctlr.h"
 
+#include <string.h>
+
+static
+AkNode*
+dae_find_node_in_tree(AkNode     * __restrict node,
+                      const char * __restrict name,
+                      bool                    sidFirst,
+                      uint32_t                depth);
+
+static
+AkNode*
+dae_resolve_skin_joint(DAEState   * __restrict dst,
+                       FListItem  * __restrict skeletons,
+                       const char * __restrict name,
+                       AkTypeId                type);
+
 static
 AkResult
 ak_fixBoneWeights(AkHeap        *heap,
@@ -78,6 +94,143 @@ ak_daeReadSkinWeight(AkAccessor * __restrict acc,
   memcpy(&val, base + (size_t)idx * stride, sizeof(val));
 
   return val;
+}
+
+static
+AkNode*
+dae_find_node_in_tree(AkNode     * __restrict node,
+                      const char * __restrict name,
+                      bool                    sidFirst,
+                      uint32_t                depth) {
+  AkNode *found;
+
+  if (!name || depth > 512)
+    return NULL;
+
+  for (; node; node = node->next) {
+    const char     *sid;
+    const char     *id;
+    AkInstanceNode *inst;
+
+    sid = ak_sid_get(node);
+    id  = ak_getId(node);
+
+    if (sidFirst) {
+      if (sid && strcmp(sid, name) == 0)
+        return node;
+    } else if (id && strcmp(id, name) == 0) {
+      return node;
+    }
+
+    if ((found = dae_find_node_in_tree(node->chld, name, sidFirst, depth + 1)))
+      return found;
+
+    for (inst = node->node; inst; inst = inst->next) {
+      AkNode *target;
+
+      target = ak_instanceNodeTarget(inst);
+      if ((found = dae_find_node_in_tree(target, name, sidFirst, depth + 1)))
+        return found;
+    }
+  }
+
+  return NULL;
+}
+
+static
+AkNode*
+dae_find_skin_joint_in_scope(AkDoc      * __restrict doc,
+                             void       * __restrict scope,
+                             const char * __restrict name,
+                             AkTypeId                type) {
+  AkNode *root;
+  AkNode *found;
+
+  if (!scope || !name)
+    return NULL;
+
+  switch (ak_typeid(scope)) {
+    case AKT_SCENE:
+      root = ((AkScene *)scope)->node;
+      break;
+    case AKT_NODE:
+      root = scope;
+      break;
+    default:
+      return NULL;
+  }
+
+  switch (type) {
+    case AKT_NAME:
+      if ((found = dae_find_node_in_tree(root, name, true, 0)))
+        return found;
+      if ((found = dae_find_node_in_tree(root, name, false, 0)))
+        return found;
+      break;
+    case AKT_SIDREF:
+      if ((found = dae_find_node_in_tree(root, name, true, 0)))
+        return found;
+      break;
+    case AKT_IDREF:
+      found = ak_getObjectById(doc, name);
+      if (found && ak_typeid(found) == AKT_NODE)
+        return found;
+      break;
+    default:
+      break;
+  }
+
+  return NULL;
+}
+
+static
+void*
+dae_skeleton_scope(AkDoc * __restrict doc, const char * __restrict url) {
+  const char *id;
+
+  if (!doc || !url || !url[0])
+    return NULL;
+
+  id = url[0] == '#' ? url + 1 : url;
+  return ak_getObjectById(doc, id);
+}
+
+static
+AkNode*
+dae_resolve_skin_joint(DAEState   * __restrict dst,
+                       FListItem  * __restrict skeletons,
+                       const char * __restrict name,
+                       AkTypeId                type) {
+  FListItem *skel;
+  AkNode    *joint;
+
+  if (!dst || !name)
+    return NULL;
+
+  if (type == AKT_IDREF) {
+    void *resolved;
+
+    resolved = ak_getObjectById(dst->doc, name);
+    return resolved && ak_typeid(resolved) == AKT_NODE ? resolved : NULL;
+  }
+
+  for (skel = skeletons; skel; skel = skel->next) {
+    void *scope;
+
+    scope = dae_skeleton_scope(dst->doc, skel->data);
+    if ((joint = dae_find_skin_joint_in_scope(dst->doc, scope, name, type)))
+      return joint;
+  }
+
+  if (type == AKT_NAME) {
+    void *resolved;
+
+    resolved = ak_getObjectById(dst->doc, name);
+    if (resolved && ak_typeid(resolved) == AKT_NODE)
+      return resolved;
+  }
+
+  return NULL;
 }
 
 AK_HIDE
@@ -366,7 +519,6 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
   AkController         *ctlr;
   AkNode               *node;
   AkInstanceGeometry   *instGeom;
-  AkContext             ctx = { .doc = dst->doc };
 
   item = dst->instCtlrs;
   while (item) {
@@ -386,7 +538,6 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
         AkInput        *jointsInp,  *matrixInp;
         AkAccessor     *jointsAcc,  *matrixAcc;
         AkBuffer       *jointsBuff, *matrixBuff;
-        FListItem      *skel;
         const char     *sid, **it;
         AkFloat        *mit;
         AkFloat4x4     *invm;
@@ -417,22 +568,10 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
             if (!(sid = it[i]))
               continue;
 
-            switch (jointsAcc->componentType) {
-              case AKT_IDREF:
-                joints[i] = ak_getObjectById(dst->doc, sid);
-                break;
-              case AKT_SIDREF:
-              case AKT_NAME:
-                if ((skel = instCtlr->reserved)) {
-                  do {
-                    if ((joints[i] = ak_sid_resolve_from(&ctx, skel->data, sid, NULL)))
-                      break;
-                  } while ((skel = skel->next));
-                }
-                break;
-              default:
-                break;
-            }
+            joints[i] = dae_resolve_skin_joint(dst,
+                                               instCtlr->reserved,
+                                               sid,
+                                               jointsAcc->componentType);
 
             /* move invBindMatrix to new location */
             memcpy(invm[i], mit + 16 * i, sizeof(AkFloat) * 16);
@@ -451,8 +590,7 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
           if (!skin->skeleton && instCtlr->reserved) {
             const char *skelUrl = instCtlr->reserved->data;
             void       *resolved;
-            if (skelUrl
-                && (resolved = ak_getObjectById(dst->doc, skelUrl + 1))
+            if ((resolved = dae_skeleton_scope(dst->doc, skelUrl))
                 && ak_typeid(resolved) == AKT_NODE) {
               skin->skeleton = resolved;
             }

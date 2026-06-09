@@ -49,6 +49,7 @@ typedef enum AkFileType {
   AK_FILE_TYPE_X3D       = 7,
   AK_FILE_TYPE_USD       = 8,
   AK_FILE_TYPE_ALEMBIC   = 9,
+  AK_FILE_TYPE_GLB       = 10,
 
   AK_FILE_TYPE_DAE       = AK_FILE_TYPE_COLLADA,
   AK_FILE_TYPE_OBJ       = AK_FILE_TYPE_WAVEFRONT
@@ -127,7 +128,7 @@ typedef struct AkTreeNodeAttr {
 
 typedef struct AkTreeNode {
   AkTreeNodeAttr    *attribs;
-  
+
   const char        *name;
   char              *val;
 
@@ -135,7 +136,7 @@ typedef struct AkTreeNode {
   struct AkTreeNode *parent;
   struct AkTreeNode *next;
   struct AkTreeNode *prev;
-  
+
   unsigned long      attrc;
   unsigned long      chldc;
 } AkTreeNode;
@@ -245,9 +246,6 @@ typedef struct AkInput {
   AkInputSemantic    semantic;
   uint32_t           indexOffset;
   uint32_t           set;
-  
-  /* TODO: WILL BE DELETED */
-//  AkURL              source;
 } AkInput;
 
 typedef struct AkInstanceGeometry {
@@ -267,9 +265,6 @@ typedef struct AkInstanceNode {
   const char            *proxy;
 } AkInstanceNode;
 
-/*
- * TODO: separate all instances to individual nodes?
- */
 struct AkMatrix;
 struct AkBoundingBox;
 struct AkTransform;
@@ -409,6 +404,14 @@ AkResult
 ak_load(AkDoc     ** __restrict dest,
         const char * __restrict url,
         .../* options */);
+
+/* multi-file formats may create companion resource files next to the main asset
+   file */
+AK_EXPORT
+AkResult
+ak_export(AkDoc      * __restrict doc,
+          const char * __restrict outDir,
+          AkFileType              fileType);
 
 AK_EXPORT
 void *

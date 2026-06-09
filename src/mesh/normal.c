@@ -171,14 +171,15 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
   AkDoc         *doc;
   AkIndexArray  *srcIndices;
   AkIndexArray  *inpIndices;
-  AkFloat       *pos;
+  unsigned char *pos;
   AkHeap        *heap;
   AkInput       *input, *nextInput;
   AkBuffer      *posBuff, *buff;
   AkAccessor    *posAcc, *acc;
   AkTypeId       componentType;
   AkUInt         st, newst, generatedNormals, indexMax;
-  AkInt          vo, pos_st;
+  AkInt          vo;
+  size_t         pos_st;
   uint32_t       count, tuple;
 
   if ((prim->type    != AK_PRIMITIVE_TRIANGLES
@@ -186,13 +187,15 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
       || !prim->pos
       || !(posAcc     = prim->pos->accessor)
       || !(posBuff    = posAcc->buffer)
+      || posAcc->componentType != AKT_FLOAT
+      || posAcc->componentCount < 3
       || (vo          = prim->pos->indexOffset) == -1)
     return;
 
   heap   = ak_heap_getheap(prim);
   doc    = ak_heap_data(heap);
-  pos    = posBuff->data;
-  pos_st = posAcc->componentCount;
+  pos    = (unsigned char *)posBuff->data + posAcc->byteOffset;
+  pos_st = posAcc->byteStride ? posAcc->byteStride : posAcc->fillByteSize;
   st     = prim->indexStride;
 
   if (st == 0
@@ -204,6 +207,11 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
   generatedNormals = ak_normalGeneratedCount(prim, count);
   if (generatedNormals == 0)
     return;
+
+#define AK_NORMAL_POS(INDEX)                                                 \
+  ((float *)(void *)(pos                                                     \
+                    + (size_t)ak_normalIndexGet(srcIndices, (INDEX))         \
+                      * pos_st))
 
   newst = st + 1;
   indexMax = ak_indicesMax(srcIndices);
@@ -247,9 +255,9 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
         for (i = 0; i < count; i += 3) {
           ist = i * st + vo;
 
-          a = pos + ak_normalIndexGet(srcIndices, ist)           * pos_st;
-          b = pos + ak_normalIndexGet(srcIndices, ist + st)      * pos_st;
-          c = pos + ak_normalIndexGet(srcIndices, ist + st + st) * pos_st;
+          a = AK_NORMAL_POS(ist);
+          b = AK_NORMAL_POS(ist + st);
+          c = AK_NORMAL_POS(ist + st + st);
 
           glm_vec3_sub(a, b, v1);
           glm_vec3_sub(b, c, v2);
@@ -278,9 +286,9 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
 
         ist = i * st + vo;
 
-        a = pos + ak_normalIndexGet(srcIndices, ist)           * pos_st;
-        b = pos + ak_normalIndexGet(srcIndices, ist + st)      * pos_st;
-        c = pos + ak_normalIndexGet(srcIndices, ist + st + st) * pos_st;
+        a = AK_NORMAL_POS(ist);
+        b = AK_NORMAL_POS(ist + st);
+        c = AK_NORMAL_POS(ist + st + st);
 
         glm_vec3_sub(a, b, v1);
         glm_vec3_sub(b, c, v2);
@@ -310,9 +318,9 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
           for (i = 0; i < count; i += 3 /* 3: triangle */) {
             ist = i * st + vo;
 
-            a = pos + ak_normalIndexGet(srcIndices, ist)           * pos_st;
-            b = pos + ak_normalIndexGet(srcIndices, ist + st)      * pos_st;
-            c = pos + ak_normalIndexGet(srcIndices, ist + st + st) * pos_st;
+            a = AK_NORMAL_POS(ist);
+            b = AK_NORMAL_POS(ist + st);
+            c = AK_NORMAL_POS(ist + st + st);
 
             glm_vec3_sub(a, b, v1);
             glm_vec3_sub(b, c, v2);
@@ -328,11 +336,11 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
           }
           break;
         case AK_TRIANGLE_FAN: {
-          float *central = pos + ak_normalIndexGet(srcIndices, vo) * pos_st;
+          float *central = AK_NORMAL_POS(vo);
           for (i = 1; i < count - 1; i++) {
             a = central;
-            b = pos + ak_normalIndexGet(srcIndices, vo + i * st) * pos_st;
-            c = pos + ak_normalIndexGet(srcIndices, vo + (i + 1) * st) * pos_st;
+            b = AK_NORMAL_POS(vo + i * st);
+            c = AK_NORMAL_POS(vo + (i + 1) * st);
 
             // Calculate normal
             glm_vec3_sub(b, a, v1);
@@ -351,9 +359,9 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
         }
         case AK_TRIANGLE_STRIP: {
           for (i = 0; i < count - 2; i++) {
-            a = pos + ak_normalIndexGet(srcIndices, vo + i * st) * pos_st;
-            b = pos + ak_normalIndexGet(srcIndices, vo + (i + 1) * st) * pos_st;
-            c = pos + ak_normalIndexGet(srcIndices, vo + (i + 2) * st) * pos_st;
+            a = AK_NORMAL_POS(vo + i * st);
+            b = AK_NORMAL_POS(vo + (i + 1) * st);
+            c = AK_NORMAL_POS(vo + (i + 2) * st);
 
             // Calculate normal
             glm_vec3_sub(b, a, v1);
@@ -428,6 +436,8 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
 
   (void)ak_data_join(dctx, buff->data, 0, 0);
   ak_free(dctx);
+
+#undef AK_NORMAL_POS
 }
 
 AK_EXPORT

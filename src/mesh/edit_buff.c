@@ -214,7 +214,8 @@ ak_meshMoveBuffers(AkMesh * __restrict mesh) {
     /* TODO */
     // ak_release(input->accessor);
 
-    ak_release(buffstate->oldAccessor);
+    if (buffstate->oldAccessor && ak_mem_parent(buffstate->oldAccessor) == input)
+      ak_release(buffstate->oldAccessor);
     ak_retain(buffstate->accessor);
 
     input->accessor = buffstate->accessor;

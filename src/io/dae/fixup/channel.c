@@ -427,24 +427,24 @@ dae_fixup_channel_walk(DAEState          * __restrict dst,
     for (ch = anim->channel; ch; ch = ch->next) {
       if (!ch->resolvedTarget) {
         memset(&mrt, 0, sizeof(mrt));
-        if (dae_resolveMatrixElement(ctx, ch->target, &mrt)) {
-          rt                 = ak_heap_calloc(dst->heap, ch, sizeof(*rt));
-          *rt                = mrt;
-          ch->resolvedTarget = rt;
-          ch->targetType     = AK_TARGET_FLOAT;
-        } else if (dae_parseChannelTargetIndexed(ch->target,
-                                                 &idStart,
-                                                 &idLen,
-                                                 &idx)
-                   && (morpher = dae_resolveMorpher(dst,
-                                                    idStart,
-                                                    idLen))) {
+        if (dae_parseChannelTargetIndexed(ch->target,
+                                          &idStart,
+                                          &idLen,
+                                          &idx)
+            && (morpher = dae_resolveMorpher(dst,
+                                             idStart,
+                                             idLen))) {
           rt                 = ak_heap_calloc(dst->heap, ch, sizeof(*rt));
           rt->target         = morpher;
           rt->off            = idx;
           rt->isPartial      = true;
           ch->resolvedTarget = rt;
           ch->targetType     = AK_TARGET_WEIGHTS;
+        } else if (dae_resolveMatrixElement(ctx, ch->target, &mrt)) {
+          rt                 = ak_heap_calloc(dst->heap, ch, sizeof(*rt));
+          *rt                = mrt;
+          ch->resolvedTarget = rt;
+          ch->targetType     = AK_TARGET_FLOAT;
         }
       }
 

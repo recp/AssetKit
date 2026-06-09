@@ -143,12 +143,72 @@ ak_getFile(const char *url) {
   return NULL;
 }
 
+static
+int
+ak__url_hex(unsigned char c) {
+  if (c >= '0' && c <= '9')
+    return (int)(c - '0');
+  if (c >= 'A' && c <= 'F')
+    return (int)(c - 'A') + 10;
+  if (c >= 'a' && c <= 'f')
+    return (int)(c - 'a') + 10;
+  return -1;
+}
+
+static
+const char*
+ak__url_decode_path(const char * __restrict url,
+                    char       * __restrict dst,
+                    size_t                  dstCap) {
+  size_t i;
+  size_t j;
+
+  if (!url || !strchr(url, '%'))
+    return url;
+  if (!dst || dstCap == 0)
+    return NULL;
+
+  i = 0;
+  j = 0;
+  while (url[i]) {
+    unsigned char c;
+
+    if (j + 1u >= dstCap)
+      return NULL;
+
+    c = (unsigned char)url[i];
+    if (c == '%' && url[i + 1] && url[i + 2]) {
+      int hi;
+      int lo;
+
+      hi = ak__url_hex((unsigned char)url[i + 1]);
+      lo = ak__url_hex((unsigned char)url[i + 2]);
+      if (hi >= 0 && lo >= 0) {
+        dst[j++] = (char)((hi << 4) | lo);
+        i += 3u;
+        continue;
+      }
+    }
+
+    dst[j++] = (char)c;
+    i++;
+  }
+
+  dst[j] = '\0';
+  return dst;
+}
+
 char*
 ak_getFileFrom(AkDoc *doc, const char *url) {
   char        pathbuf[PATH_MAX];
+  char        urlbuf[PATH_MAX];
   const char *path;
+  const char *decodedUrl;
 
-  path = ak_fullpath(doc, url, pathbuf);
+  if (!(decodedUrl = ak__url_decode_path(url, urlbuf, sizeof(urlbuf))))
+    return NULL;
+
+  path = ak_fullpath(doc, decodedUrl, pathbuf);
   return ak_strdup(NULL, path);
 }
 

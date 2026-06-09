@@ -18,6 +18,8 @@
 #include "../../src/mem/common.h"
 #include "../../src/mem/lt.h"
 
+#include <ak/path.h>
+
 #include <limits.h>
 
 #ifndef PATH_MAX
@@ -135,6 +137,52 @@ TEST_IMPL(heap_multiple) {
     ak_heap_attach(root, heap);
     ak_heap_dettach(root, heap);
   }
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(mesh_triangulate_polygon_sets_triangle_mode) {
+  AkHeap       *heap;
+  AkPolygon    *poly;
+  AkUIntArray  *vcount;
+  uint8_t      *items;
+
+  heap  = ak_heap_new(NULL, NULL, NULL);
+  poly  = ak_heap_calloc(heap, NULL, sizeof(*poly));
+
+  vcount        = ak_heap_alloc(heap, poly, sizeof(*vcount) + sizeof(AkUInt));
+  vcount->count = 1;
+  vcount->items[0] = 4;
+
+  poly->base.type        = AK_PRIMITIVE_POLYGONS;
+  poly->base.indexStride = 1;
+  poly->vcount           = vcount;
+  poly->base.indices     = ak_indexArrayAlloc(heap, poly, 4, AKT_UBYTE);
+  ASSERT(poly->base.indices != NULL);
+
+  poly->base.indices->max = 3;
+  items = poly->base.indices->items;
+  items[0] = 0;
+  items[1] = 1;
+  items[2] = 2;
+  items[3] = 3;
+
+  ASSERT(ak_meshTriangulatePoly(poly) == 2);
+  ASSERT(poly->base.type == AK_PRIMITIVE_TRIANGLES);
+  ASSERT(poly->base.nPolygons == 2);
+  ASSERT(poly->base.indexAccessor == NULL);
+  ASSERT(poly->base.indices != NULL);
+  ASSERT(poly->base.indices->count == 6);
+  ASSERT(ak_meshPrimitiveIndexComponentType(&poly->base) == AKT_UBYTE);
+  ASSERT(((AkTriangles *)poly)->mode == AK_TRIANGLES);
+  ASSERT(ak_indexArrayGet(poly->base.indices, 0) == 0);
+  ASSERT(ak_indexArrayGet(poly->base.indices, 1) == 1);
+  ASSERT(ak_indexArrayGet(poly->base.indices, 2) == 2);
+  ASSERT(ak_indexArrayGet(poly->base.indices, 3) == 0);
+  ASSERT(ak_indexArrayGet(poly->base.indices, 4) == 2);
+  ASSERT(ak_indexArrayGet(poly->base.indices, 5) == 3);
+
+  ak_heap_destroy(heap);
 
   TEST_SUCCESS
 }
@@ -280,6 +328,44 @@ ak_test_write_gltf(const char *path, const char *binPath) {
         "{\"bufferView\":1,\"componentType\":5121,\"count\":3,\"type\":\"SCALAR\"},"
         "{\"bufferView\":2,\"componentType\":5126,\"count\":3,\"type\":\"VEC3\"}],"
         "\"meshes\":[{\"primitives\":[{\"attributes\":{\"POSITION\":0,\"NORMAL\":2},\"indices\":1}]}],"
+        "\"nodes\":[{\"mesh\":0}],"
+        "\"scenes\":[{\"nodes\":[0]}],"
+        "\"scene\":0"
+        "}\n",
+        file);
+
+  return fclose(file) == 0;
+}
+
+static
+bool
+ak_test_write_gltf_short_buffer_uri(const char *path, const char *binPath) {
+  FILE    *file;
+  uint8_t  buffer[12];
+  float    positions[3] = {0.0f, 0.0f, 0.0f};
+
+  memcpy(buffer, positions, sizeof(positions));
+
+  file = fopen(binPath, "wb");
+  if (!file)
+    return false;
+  if (fwrite(buffer, 1, sizeof(buffer), file) != sizeof(buffer)) {
+    fclose(file);
+    return false;
+  }
+  if (fclose(file) != 0)
+    return false;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  fputs("{"
+        "\"asset\":{\"version\":\"2.0\"},"
+        "\"buffers\":[{\"uri\":\"a.bin\",\"byteLength\":12}],"
+        "\"bufferViews\":[{\"buffer\":0,\"byteOffset\":0,\"byteLength\":12}],"
+        "\"accessors\":[{\"bufferView\":0,\"componentType\":5126,\"count\":1,\"type\":\"VEC3\"}],"
+        "\"meshes\":[{\"primitives\":[{\"attributes\":{\"POSITION\":0}}]}],"
         "\"nodes\":[{\"mesh\":0}],"
         "\"scenes\":[{\"nodes\":[0]}],"
         "\"scene\":0"
@@ -1272,6 +1358,57 @@ ak_test_load_index_stats(const char       *path,
   return true;
 }
 
+TEST_IMPL(path_short_ref_does_not_overread) {
+  AkDoc       doc = {0};
+  AkDocInf    inf = {0};
+  char        pathbuf[PATH_MAX];
+  const char *path;
+
+  inf.dir    = "/tmp";
+  inf.dirlen = strlen(inf.dir);
+  doc.inf    = &inf;
+
+  path = ak_fullpath(&doc, "a.bin", pathbuf);
+  ASSERT(path != NULL);
+  ASSERT(strstr(path, "a.bin") != NULL);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(gltf_load_short_buffer_uri) {
+  AkDoc      *doc;
+  char        dirTemplate[PATH_MAX];
+  char       *tmpdir;
+  char        gltfPath[PATH_MAX];
+  char        binPath[PATH_MAX];
+  const char *tmpBase;
+
+  tmpBase = getenv("TMPDIR");
+  if (!tmpBase || !tmpBase[0])
+    tmpBase = "/tmp";
+
+  snprintf(dirTemplate,
+           sizeof(dirTemplate),
+           "%s/assetkit-short-gltf-uri-XXXXXX",
+           tmpBase);
+  tmpdir = mkdtemp(dirTemplate);
+  ASSERT(tmpdir != NULL);
+
+  snprintf(gltfPath, sizeof(gltfPath), "%s/s.gltf", tmpdir);
+  snprintf(binPath,  sizeof(binPath),  "%s/a.bin",  tmpdir);
+
+  ASSERT(ak_test_write_gltf_short_buffer_uri(gltfPath, binPath));
+  ASSERT(ak_load(&doc, gltfPath, AK_FILE_TYPE_GLTF) == AK_OK);
+  ASSERT(doc != NULL);
+
+  ak_free(doc);
+  unlink(gltfPath);
+  unlink(binPath);
+  rmdir(tmpdir);
+
+  TEST_SUCCESS
+}
+
 TEST_IMPL(index_stats_corpus) {
   AkTestIndexStats stats;
   char             dirTemplate[PATH_MAX];
@@ -1309,7 +1446,7 @@ TEST_IMPL(index_stats_corpus) {
   ASSERT(stats.primitiveCount == 1);
   ASSERT(stats.ownedCount == 1);
   ASSERT(stats.accessorCount == 0);
-  ASSERT(stats.u8Count == 1);
+  ASSERT(stats.u16Count == 1);
 
   ASSERT(ak_test_load_index_stats(objPath, &stats));
   ASSERT(stats.primitiveCount == 1);

@@ -158,6 +158,7 @@ typedef struct AkURLQueue {
 typedef struct AkDAEVerticesMapItem {
   AkInput         *inp;
   AkMeshPrimitive *prim;
+  AkVertices      *fallbackVertices;
 } AkDAEVerticesMapItem;
 
 typedef struct AkDAEBindMaterialUse {
@@ -533,14 +534,18 @@ AK_INLINE
 void
 dae_vertmap_add(DAEState     * __restrict dst,
                 AkInput         * __restrict inp,
-                AkMeshPrimitive * __restrict prim) {
+                AkMeshPrimitive * __restrict prim,
+                AkVertices      * __restrict fallbackVertices) {
   AkDAEVerticesMapItem *item;
 
   if (!inp || !prim) { return; }
 
-  item       = ak_heap_calloc(dst->heap, dst->tempmem, sizeof(*item));
-  item->inp  = inp;
-  item->prim = prim;
+  item                   = ak_heap_calloc(dst->heap,
+                                          dst->tempmem,
+                                          sizeof(*item));
+  item->inp              = inp;
+  item->prim             = prim;
+  item->fallbackVertices = fallbackVertices;
 
   flist_sp_insert(&dst->vertMap, item);
 }

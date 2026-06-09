@@ -24,6 +24,7 @@ AkLines*
 dae_lines(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp,
-          AkLineMode            mode);
+          AkLineMode            mode,
+          AkVertices * __restrict fallbackVertices);
 
 #endif /* dae_lines_h */

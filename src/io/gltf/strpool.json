@@ -159,6 +159,7 @@
   "skeleton": "skeleton",
   "sparse": "sparse",
   "b64d": "data:",
+  "file_uri": "file://",
   "offset": "offset",
   "fallback": "fallback",
   "filter": "filter",
@@ -210,6 +211,15 @@
   "KHR_lights_punctual": "KHR_lights_punctual",
   "KHR_materials_variants": "KHR_materials_variants",
   "KHR_texture_basisu": "KHR_texture_basisu",
+  "mime_image_ktx2": "image/ktx2",
+  "mime_image_webp": "image/webp",
+  "mime_image_png": "image/png",
+  "mime_image_jpeg": "image/jpeg",
+  "ext_ktx2": ".ktx2",
+  "ext_webp": ".webp",
+  "ext_png": ".png",
+  "ext_jpg": ".jpg",
+  "ext_jpeg": ".jpeg",
   "KHR_techniques_webgl": "KHR_techniques_webgl",
   "KHR_xmp": "KHR_xmp",
   "KHR_xmp_json_ld": "KHR_xmp_json_ld",
@@ -273,5 +283,7 @@
   "KHR_materials_volume_scatter": "KHR_materials_volume_scatter",
   "multiscatterColor": "multiscatterColor",
   "multiscatterColorFactor": "multiscatterColorFactor",
-  "scatterAnisotropy": "scatterAnisotropy"
+  "scatterAnisotropy": "scatterAnisotropy",
+  "version2": "2.0",
+  "generatorAssetKit": "AssetKit"
 }

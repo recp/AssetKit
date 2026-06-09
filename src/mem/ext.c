@@ -288,7 +288,7 @@ ak_heap_ext_free(AkHeap     * __restrict heap,
     ak_heap_ext_freeurl(hnode);
 
   if (hnode->flags & AK_HEAP_NODE_FLAGS_USR) {
-    ofst = ak_heap_ext_off(hnode->flags, AK_HEAP_NODE_FLAGS_INF);
+    ofst = ak_heap_ext_off(hnode->flags, AK_HEAP_NODE_FLAGS_USR);
     if (hnode->flags & AK_HEAP_NODE_FLAGS_USRF)
       alc->free(&exnode->data[ofst]);
   }

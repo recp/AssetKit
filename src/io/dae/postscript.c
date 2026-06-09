@@ -63,6 +63,59 @@ dae_material_attach_effect_extras(DAEState   * __restrict dst,
                                   AkMaterial * __restrict material,
                                   AkEffect   * __restrict effect);
 
+static AkComponentSize
+dae_component_size_for_accessor(uint32_t componentCount,
+                                AkDataParam * __restrict singleNamedParam) {
+  if (singleNamedParam) {
+    switch (singleNamedParam->type.typeId) {
+      case AKT_FLOAT2:   return AK_COMPONENT_SIZE_VEC2;
+      case AKT_FLOAT3:   return AK_COMPONENT_SIZE_VEC3;
+      case AKT_FLOAT4:   return AK_COMPONENT_SIZE_VEC4;
+      case AKT_FLOAT2x2: return AK_COMPONENT_SIZE_MAT2;
+      case AKT_FLOAT3x3: return AK_COMPONENT_SIZE_MAT3;
+      case AKT_FLOAT4x4: return AK_COMPONENT_SIZE_MAT4;
+      default:
+        break;
+    }
+  }
+
+  switch (componentCount) {
+    case 1:  return AK_COMPONENT_SIZE_SCALAR;
+    case 2:  return AK_COMPONENT_SIZE_VEC2;
+    case 3:  return AK_COMPONENT_SIZE_VEC3;
+    case 4:  return AK_COMPONENT_SIZE_VEC4;
+    case 9:  return AK_COMPONENT_SIZE_MAT3;
+    case 16: return AK_COMPONENT_SIZE_MAT4;
+    default:
+      break;
+  }
+
+  return AK_COMPONENT_SIZE_UNKNOWN;
+}
+
+static void
+dae_mark_accessor_type_buffer(RBTree    * __restrict typeBuffers,
+                              AkBuffer  * __restrict buff) {
+  if (typeBuffers && buff
+      && ak_heap_ext_get(ak__alignof(buff), AK_HEAP_NODE_FLAGS_USR)
+      && !rb_find(typeBuffers, buff))
+    rb_insert(typeBuffers, buff, (void *)1);
+}
+
+static void
+dae_clear_accessor_type_buffer(RBTree *tree, RBNode *rbnode) {
+  AkBuffer *buff;
+  AkHeap   *heap;
+
+  AK__UNUSED(tree);
+
+  buff = rbnode->key;
+  if (!buff || !(heap = ak_heap_getheap(buff)))
+    return;
+
+  ak_heap_ext_rm(heap, ak__alignof(buff), AK_HEAP_NODE_FLAGS_USR);
+}
+
 AK_HIDE
 void
 dae_spread_vert(DAEState * __restrict dst) {
@@ -86,7 +139,10 @@ dae_spread_vert(DAEState * __restrict dst) {
     inp  = item->inp;
     url  = rb_find(dst->inputmap, inp);
 
-    if (!(vert = ak_getObjectByUrl(url)))
+    vert = ak_getObjectByUrl(url);
+    if (!vert)
+      vert = item->fallbackVertices;
+    if (!vert)
       continue;
 
     inpv = vert->input;
@@ -594,10 +650,12 @@ dae_fixup_accessors(DAEState * __restrict dst) {
   AkAccessorDAE *accdae;
   AkBuffer      *buff;
   AkTypeDesc    *type;
+  RBTree        *typeBuffers;
 
-  item = dst->accessors;
-  heap = dst->heap;
-  doc  = dst->doc;
+  item        = dst->accessors;
+  heap        = dst->heap;
+  doc         = dst->doc;
+  typeBuffers = rb_newtree_ptr();
   
   while (item) {
     acc         = item->data;
@@ -605,80 +663,156 @@ dae_fixup_accessors(DAEState * __restrict dst) {
     buff        = ak_getObjectByUrl(&accdae->source);
     acc->buffer = buff;
 
-    if ((buff = ak_getObjectByUrl(&accdae->source))) {
-      AkBuffer    *newbuff;
-      AkDataParam *dp;
-      char        *olditms, *newitms;
-      uint32_t     i, j, count, dpoff, bytesPerComponent;
-      size_t       oldByteStride, newByteStride;
+    if (buff) {
+      AkBuffer        *newbuff;
+      AkDataParam     *dp;
+      AkDataParam     *singleNamedParam;
+      char            *olditms, *newitms;
+      uint32_t         i, count, bytesPerComponent, visibleComponents;
+      uint32_t         namedParamCount;
+      size_t           oldByteStride, newByteStride;
+      size_t           paramOffset, firstVisibleOffset, nextVisibleOffset;
+      size_t           visibleByteSize, paramSize;
+      bool             hasParams, compactNeeded, contiguousVisible;
 
+      dae_mark_accessor_type_buffer(typeBuffers, buff);
       acc->componentType = (AkTypeId)(uintptr_t)ak_userData(buff);
 
       if ((type = ak_typeDesc(acc->componentType)))
         bytesPerComponent = type->size;
       else
-        goto cont;
+        goto cleanup_accessor;
 
-      count                  = acc->count;
-      acc->byteStride        = accdae->stride * bytesPerComponent;
-      acc->byteLength        = count * accdae->stride * bytesPerComponent;
-      acc->byteOffset        = accdae->offset * bytesPerComponent;
-      accdae->bound          = accdae->stride;
+      count             = acc->count;
+      oldByteStride     = accdae->stride * bytesPerComponent;
+      hasParams         = accdae->param != NULL;
+      compactNeeded     = false;
+      contiguousVisible = true;
+      firstVisibleOffset = 0;
+      nextVisibleOffset  = 0;
+      visibleByteSize    = 0;
+      namedParamCount    = 0;
+      singleNamedParam   = NULL;
+      paramOffset        = 0;
 
-      acc->fillByteSize      = accdae->bound * bytesPerComponent;
-      acc->componentCount    = accdae->bound;
+      if (hasParams) {
+        for (dp = accdae->param; dp; dp = dp->next) {
+          paramSize = dp->type.size > 0
+                      ? (size_t)dp->type.size
+                      : (size_t)bytesPerComponent;
+
+          if (dp->name && *dp->name) {
+            if (namedParamCount == 0) {
+              firstVisibleOffset = paramOffset;
+              nextVisibleOffset  = paramOffset;
+              singleNamedParam   = dp;
+            } else if (paramOffset != nextVisibleOffset) {
+              contiguousVisible = false;
+              singleNamedParam = NULL;
+            } else {
+              singleNamedParam = NULL;
+            }
+
+            nextVisibleOffset = paramOffset + paramSize;
+            visibleByteSize  += paramSize;
+            namedParamCount++;
+          }
+
+          paramOffset += paramSize;
+        }
+
+        if (visibleByteSize == 0) {
+          firstVisibleOffset = 0;
+          visibleByteSize    = 0;
+        }
+      } else {
+        visibleByteSize = oldByteStride;
+      }
+
+      if (visibleByteSize > UINT32_MAX
+          || (bytesPerComponent == 0)
+          || (visibleByteSize % bytesPerComponent) != 0)
+        goto cleanup_accessor;
+
+      visibleComponents      = (uint32_t)(visibleByteSize / bytesPerComponent);
+      accdae->bound          = visibleComponents;
       acc->bytesPerComponent = bytesPerComponent;
+      acc->componentCount    = visibleComponents;
+      acc->componentSize     = dae_component_size_for_accessor(visibleComponents,
+                                                               singleNamedParam);
+      acc->byteOffset        = accdae->offset * bytesPerComponent;
+      acc->fillByteSize      = visibleByteSize;
 
-      /*--------------------------------------------------------------------*
+      if (hasParams && visibleByteSize > 0) {
+        compactNeeded = !contiguousVisible;
+        if (!compactNeeded)
+          acc->byteOffset += firstVisibleOffset;
+      }
 
-         eliminate / remove Data Params e.g. X, Y, Z
-         to make Accessor more small and cleaner
-       
-       *--------------------------------------------------------------------*/
-      
-      /* the buffer is used more than one place, so duplicate data */
-      /* TODO: check param that has empty name */
-      if (acc->buffer && ak_refc(buff) > 1) {
-        oldByteStride   = acc->byteStride;
-        newByteStride   = accdae->bound * bytesPerComponent;
+      if (!compactNeeded) {
+        acc->byteStride = oldByteStride;
+        acc->byteLength = count > 0
+                          ? (size_t)(count - 1u) * acc->byteStride
+                            + acc->fillByteSize
+                          : 0;
+      } else {
+        newByteStride   = visibleByteSize;
         newbuff         = ak_heap_calloc(heap, doc, sizeof(*newbuff));
+        newbuff->name   = buff->name;
         newbuff->length = count * newByteStride;
         newbuff->data   = ak_heap_alloc(heap, newbuff, newbuff->length);
 
-        newitms         = (char *)newbuff->data;
-        olditms         = (char *)buff->data + acc->byteOffset;
-        
-        for (i = 0; i < count; i++) {
-          j     = 0;
-          dpoff = 0;
-          dp    = accdae->param;
+        newitms = (char *)newbuff->data;
+        olditms = (char *)buff->data + accdae->offset * bytesPerComponent;
 
-          while (dp) {
-            if (dp->name) {
-              memcpy(newitms + newByteStride * i + bytesPerComponent * j++,
-                     olditms + oldByteStride * i + dpoff,
-                     dp->type.size);
+        for (i = 0; i < count; i++) {
+          size_t dstOffset;
+          size_t srcOffset;
+
+          dstOffset = 0;
+          srcOffset = 0;
+          for (dp = accdae->param; dp; dp = dp->next) {
+            paramSize = dp->type.size > 0
+                        ? (size_t)dp->type.size
+                        : (size_t)bytesPerComponent;
+
+            if (dp->name && *dp->name) {
+              memcpy(newitms + newByteStride * i + dstOffset,
+                     olditms + oldByteStride * i + srcOffset,
+                     paramSize);
+              dstOffset += paramSize;
             }
 
-            dpoff += dp->type.size;
-            dp     = dp->next;
+            srcOffset += paramSize;
           }
         }
-        
+
         ak_release(acc->buffer);
         ak_retain(newbuff);
+        ak_setUserData(newbuff, (void *)(uintptr_t)acc->componentType);
+        dae_mark_accessor_type_buffer(typeBuffers, newbuff);
+        AK_LIB_PREPEND(doc->lib.buffers, newbuff, next);
 
-        acc->buffer = newbuff;
+        acc->buffer     = newbuff;
+        acc->byteOffset = 0;
+        acc->byteStride = newByteStride;
+        acc->byteLength = count * newByteStride;
       }
 
-      ak_heap_ext_rm(heap, ak__alignof(buff), AK_HEAP_NODE_FLAGS_USR);
+      /* Keep source-array type metadata until all accessors are fixed up.
+         Shared-array sources may be referenced by multiple accessors. */
     }
 
+  cleanup_accessor:
     ak_heap_ext_rm(heap, ak__alignof(accdae), AK_HEAP_NODE_FLAGS_USR);
     ak_free(accdae);
 
-  cont:
     item = item->next;
+  }
+
+  if (typeBuffers) {
+    rb_walk(typeBuffers, dae_clear_accessor_type_buffer);
+    rb_destroy(typeBuffers);
   }
 
   flist_sp_destroy(&dst->accessors);

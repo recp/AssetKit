@@ -978,8 +978,10 @@ gltf_materials(json_t * __restrict jmaterial,
                                                              emissiveStrength),
                                                1.0f);
 
-      if ((jspec = GLTF_JSON_GET(jext, KHR_materials_ior)))
+      if ((jspec = GLTF_JSON_GET(jext, KHR_materials_ior))) {
         surface->ior = json_float(GLTF_JSON_GET8(jspec, ior), 1.5f);
+        surface->flags |= AK_MATERIAL_FLAG_HAS_IOR;
+      }
 
       if ((jspec = GLTF_JSON_GET(jext, KHR_materials_transmission)))
         gltf_materialParseTransmission(gst, surface, jspec);

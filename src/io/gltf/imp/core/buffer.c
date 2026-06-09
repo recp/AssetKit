@@ -168,7 +168,17 @@ gltf_buffers(json_t * __restrict jbuff,
 
     while (jbuffVal) {
       if (GLTF_JSON_KEY_EQ8(jbuffVal, uri)) {
-        uri = json_string_dup(jbuffVal);
+        size_t uriLen;
+
+        uriLen = jbuffVal->valsize;
+        uri    = malloc(uriLen + 1u);
+        if (!uri) {
+          jbuffVal = jbuffVal->next;
+          continue;
+        }
+
+        memcpy(uri, json_string(jbuffVal), uriLen);
+        uri[uriLen] = '\0';
 
         if (jbuffVal->valsize > _s_gltf_b64d_len
             && ak_str_pack8_fast(uri, _s_gltf_b64d_len)

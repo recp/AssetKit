@@ -182,6 +182,7 @@ const char _s_gltf_pool_0[] =
 "skeleton\0"
 "sparse\0"
 "data:\0"
+"file://\0"
 "offset\0"
 "fallback\0"
 "filter\0"
@@ -209,10 +210,10 @@ const char _s_gltf_pool_0[] =
 "EXT_gsplat_compression_spz\0"
 "ADOBE_materials_clearcoat_specular\0"
 "ADOBE_materials_clearcoat_tint\0"
-"ADOBE_materials_thin_transparency\0"
 ;
 
 const char _s_gltf_pool_1[] =
+"ADOBE_materials_thin_transparency\0"
 "AGI_articulations\0"
 "AGI_stk_metadata\0"
 "CESIUM_primitive_outline\0"
@@ -236,6 +237,15 @@ const char _s_gltf_pool_1[] =
 "KHR_lights_punctual\0"
 "KHR_materials_variants\0"
 "KHR_texture_basisu\0"
+"image/ktx2\0"
+"image/webp\0"
+"image/png\0"
+"image/jpeg\0"
+".ktx2\0"
+".webp\0"
+".png\0"
+".jpg\0"
+".jpeg\0"
 "KHR_techniques_webgl\0"
 "KHR_xmp\0"
 "KHR_xmp_json_ld\0"
@@ -300,6 +310,8 @@ const char _s_gltf_pool_1[] =
 "multiscatterColor\0"
 "multiscatterColorFactor\0"
 "scatterAnisotropy\0"
+"2.0\0"
+"AssetKit\0"
 ;
 
 #undef _GLTF_STRPOOL_

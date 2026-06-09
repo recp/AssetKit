@@ -63,9 +63,7 @@ gltf_ext_primitiveVariants(AkGLTFState     * __restrict gst,
   json_array_t             *jvarsArr;
   json_t                   *jvarIdx;
   AkMaterialVariantMapping *mapping;
-  AkMaterialVariantMapping *tail;
   AkMaterialBinding        *binding;
-  AkMaterialBinding        *bindingTail;
   AkMaterial               *material;
   int32_t                   matIdx;
   uint32_t                  variantIdx;
@@ -81,13 +79,13 @@ gltf_ext_primitiveVariants(AkGLTFState     * __restrict gst,
     return true;
 
   count = 0;
-  tail  = NULL;
-  bindingTail = NULL;
 
   /* Each `mapping` entry references a single material and the list of
      variant indices that should resolve to it. We unroll the variants
      list into a flat per-(variant, material) chain so runtime swap is
-     O(numVariants) — typical N is small (<10) so the unroll is cheap. */
+     O(numVariants) — typical N is small (<10) so the unroll is cheap.
+     json_parse(..., true) stores array children in reverse order; prepending
+     each unrolled item restores the source/index order without a temp array. */
   for (jmap = jmapArr->base.value; jmap; jmap = jmap->next) {
     jmaterial = GLTF_JSON_GET8(jmap, material);
     jvariants = GLTF_JSON_GET8(jmap, variants);
@@ -114,26 +112,16 @@ gltf_ext_primitiveVariants(AkGLTFState     * __restrict gst,
       mapping = ak_heap_calloc(gst->heap, prim, sizeof(*mapping));
       mapping->material     = material;
       mapping->variantIndex = variantIdx;
-
-      if (tail) {
-        tail->next = mapping;
-      } else {
-        prim->variantMappings = mapping;
-      }
-      tail = mapping;
+      mapping->next         = prim->variantMappings;
+      prim->variantMappings = mapping;
 
       binding = ak_heap_calloc(gst->heap, prim, sizeof(*binding));
-      binding->material     = material;
-      binding->variantIndex = variantIdx;
-      binding->scope        = AK_MATERIAL_BIND_PRIMITIVE;
+      binding->material      = material;
+      binding->variantIndex  = variantIdx;
+      binding->scope         = AK_MATERIAL_BIND_PRIMITIVE;
       binding->propertyIndex = UINT32_MAX;
-
-      if (bindingTail) {
-        bindingTail->next = binding;
-      } else {
-        prim->materialBindings = binding;
-      }
-      bindingTail = binding;
+      binding->next          = prim->materialBindings;
+      prim->materialBindings = binding;
 
       count++;
     }

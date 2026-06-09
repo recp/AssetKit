@@ -23,7 +23,8 @@ AkLines*
 dae_lines(DAEState * __restrict dst,
           xml_t    * __restrict xml,
           void     * __restrict memp,
-          AkLineMode            mode) {
+          AkLineMode            mode,
+          AkVertices * __restrict fallbackVertices) {
   AkLines *lines;
   AkHeap  *heap;
   uint32_t indexoff;
@@ -70,7 +71,7 @@ dae_lines(DAEState * __restrict dst,
           if (inp->indexOffset > indexoff)
             indexoff = inp->indexOffset;
         } else {
-          dae_vertmap_add(dst, inp, &lines->base);
+          dae_vertmap_add(dst, inp, &lines->base, fallbackVertices);
 
           /* don't store VERTEX because it will be duplicated to all prims */
           // lines->base.reserved1 = inp->indexOffset;

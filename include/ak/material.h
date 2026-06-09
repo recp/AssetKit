@@ -118,7 +118,8 @@ typedef enum AkMaterialFlags {
   AK_MATERIAL_FLAG_DOUBLE_SIDED = 1u << 0,
   AK_MATERIAL_FLAG_UNLIT        = 1u << 1,
   AK_MATERIAL_FLAG_ALPHA_BLEND  = 1u << 2,
-  AK_MATERIAL_FLAG_ALPHA_MASK   = 1u << 3
+  AK_MATERIAL_FLAG_ALPHA_MASK   = 1u << 3,
+  AK_MATERIAL_FLAG_HAS_IOR      = 1u << 4
 } AkMaterialFlags;
 
 typedef struct AkMaterialSurface {

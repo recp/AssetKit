@@ -144,7 +144,7 @@ dae_node(DAEState * __restrict dst,
       skew = ak_objGet(obj);
       
       sid_set(xml, heap, obj);
-      xml_strtof_fast(sval, (AkFloat *)tmp, 4);
+      xml_strtof_fast(sval, (AkFloat *)tmp, 7);
       
       /* COLLADA uses degree here, convert it to radians */
       skew->angle = glm_rad(tmp[0]);

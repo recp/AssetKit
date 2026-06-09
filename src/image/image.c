@@ -15,9 +15,11 @@
  */
 
 #include "../common.h"
+#include "export.h"
 #include "../../include/ak/bbox.h"
 #include "../../include/ak/path.h"
 #include <limits.h>
+#include <string.h>
 
 #ifdef _MSC_VER
 #  ifndef PATH_MAX
@@ -32,12 +34,107 @@ typedef struct AkImageConf {
 
 static AkImageConf ak__img_conf = {0};
 
+static
+AkImageSource*
+ak__image_source(AkImage * __restrict image) {
+  if (!image)
+    return NULL;
+
+  if (image->source)
+    return image->source;
+
+  return image->image ? image->image->source : NULL;
+}
+
+static
+int
+ak__image_uri_hex(unsigned char c) {
+  if (c >= '0' && c <= '9')
+    return (int)(c - '0');
+  if (c >= 'A' && c <= 'F')
+    return (int)(c - 'A') + 10;
+  if (c >= 'a' && c <= 'f')
+    return (int)(c - 'a') + 10;
+  return -1;
+}
+
+static
+const char*
+ak__image_uri_decode_path(const char * __restrict uri,
+                          char       * __restrict dst,
+                          size_t                  dstCap) {
+  size_t i;
+  size_t j;
+
+  if (!uri || !strchr(uri, '%'))
+    return uri;
+  if (!dst || dstCap == 0)
+    return NULL;
+
+  i = 0;
+  j = 0;
+  while (uri[i]) {
+    unsigned char c;
+
+    if (j + 1u >= dstCap)
+      return NULL;
+
+    c = (unsigned char)uri[i];
+    if (c == '%' && uri[i + 1] && uri[i + 2]) {
+      int hi;
+      int lo;
+
+      hi = ak__image_uri_hex((unsigned char)uri[i + 1]);
+      lo = ak__image_uri_hex((unsigned char)uri[i + 2]);
+      if (hi >= 0 && lo >= 0) {
+        dst[j++] = (char)((hi << 4) | lo);
+        i += 3u;
+        continue;
+      }
+    }
+
+    dst[j++] = (char)c;
+    i++;
+  }
+
+  dst[j] = '\0';
+  return dst;
+}
+
 AK_EXPORT
 void
 ak_imageInitLoader(AkImageLoadFromFileFn   fromFile,
                    AkImageLoadFromMemoryFn fromMemory) {
   ak__img_conf.loadFromFile         = fromFile;
   ak__img_conf.loadFromMemory       = fromMemory;
+}
+
+AK_HIDE
+bool
+ak_imageCanLoad(AkImage * __restrict image) {
+  AkImageSource *source;
+
+  if (!image)
+    return false;
+  if (image->data)
+    return true;
+
+  source = ak__image_source(image);
+  if (!source)
+    return false;
+
+  switch (source->type) {
+    case AK_IMAGE_SOURCE_URI:
+      return source->uri && ak__img_conf.loadFromFile;
+    case AK_IMAGE_SOURCE_BUFFER:
+      return source->buffer
+             && source->buffer->data
+             && ak__img_conf.loadFromMemory;
+    default:
+      break;
+  }
+
+  return false;
 }
 
 AK_EXPORT
@@ -56,22 +153,31 @@ ak_imageLoad(AkImage * __restrict image) {
   flipImage = false;
 
   /* glTF uses top-left as origin */
-  if (doc->inf->flipImage) {
+  if (doc && doc->inf && doc->inf->flipImage) {
     flipImage = ak_opt_get(AK_OPT_IMAGE_LOAD_FLIP_VERTICALLY);
   }
 
-  source = image->source;
+  source = ak__image_source(image);
   if (source) {
     switch (source->type) {
     case AK_IMAGE_SOURCE_URI: {
       char        pathbuf[PATH_MAX];
+      char        uribuf[PATH_MAX];
+      const char *uriPath;
       const char *path;
 
       if (!source->uri || !ak__img_conf.loadFromFile)
         return;
 
-      path                 = ak_fullpath(doc, source->uri, pathbuf);
-      source->resolvedPath = ak_strdup(source, pathbuf);
+      if (!(uriPath = ak__image_uri_decode_path(source->uri,
+                                                uribuf,
+                                                sizeof(uribuf))))
+        return;
+
+      path = doc && doc->inf && doc->inf->dir
+             ? ak_fullpath(doc, uriPath, pathbuf)
+             : uriPath;
+      source->resolvedPath = ak_strdup(source, path);
       image->data          = ak__img_conf.loadFromFile(heap, image, path, flipImage);
       break;
     }

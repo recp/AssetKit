@@ -51,6 +51,19 @@ typedef void*(*AkLoadLibraryItemFn)(DAEState * __restrict dst,
                                     void     * __restrict memp);
 static void ak_daeFreeDupl(RBTree *, RBNode *);
 
+static bool
+dae_xml_utf16(const void * __restrict data,
+              size_t                  size,
+              bool      * __restrict bigEndian,
+              size_t    * __restrict byteOffset);
+
+static char*
+dae_xml_utf16_to_utf8(const void * __restrict data,
+                      size_t                  size,
+                      bool                    bigEndian,
+                      size_t                  byteOffset,
+                      size_t    * __restrict utf8Size);
+
 static
 void
 dae_lib(DAEState   * __restrict dst,
@@ -74,18 +87,39 @@ dae_doc(AkDoc     ** __restrict dest,
   AkAssetInf        *inf;
   xml_attr_t        *versionAttr;
   void              *xmlString;
+  char              *xmlUtf8;
+  const char        *xmlInput;
   FListItem         *freeUsrData;
   DAEState           dstVal, *dst;
   size_t             xmlSize;
   AkResult           ret;
+  bool               xmlBigEndian;
+  size_t             xmlByteOffset;
 
   if ((ret = ak_readfile(filepath, NULL, &xmlString, &xmlSize)) != AK_OK)
     return ret;
 
-  xdoc = xml_parse(xmlString, XML_PREFIXES | XML_READONLY);
+  xmlUtf8  = NULL;
+  xmlInput = xmlString;
+  if (dae_xml_utf16(xmlString, xmlSize, &xmlBigEndian, &xmlByteOffset)) {
+    xmlUtf8 = dae_xml_utf16_to_utf8(xmlString,
+                                    xmlSize,
+                                    xmlBigEndian,
+                                    xmlByteOffset,
+                                    NULL);
+    if (!xmlUtf8) {
+      ak_releasefile(xmlString, xmlSize);
+      return AK_ERR;
+    }
+    xmlInput = xmlUtf8;
+  }
+
+  xdoc = xml_parse(xmlInput, XML_PREFIXES | XML_READONLY);
   if (!xdoc || !(xml = xdoc->root)) {
     if (xdoc)
       free((void *)xdoc);
+    if (xmlUtf8)
+      free(xmlUtf8);
     ak_releasefile(xmlString, xmlSize);
     return AK_ERR;
   }
@@ -265,11 +299,136 @@ dae_doc(AkDoc     ** __restrict dest,
   
   if (xmlString)
     ak_releasefile(xmlString, xmlSize);
+  if (xmlUtf8)
+    free(xmlUtf8);
 
   /* TODO: memory leak, free this RBTree*/
   /* rb_destroy(doc->reserved); */
 
   return AK_OK;
+}
+
+static bool
+dae_xml_utf16(const void * __restrict data,
+              size_t                  size,
+              bool      * __restrict bigEndian,
+              size_t    * __restrict byteOffset) {
+  const unsigned char *bytes;
+
+  if (!data || size < 4 || !bigEndian || !byteOffset)
+    return false;
+
+  bytes = data;
+  if (bytes[0] == 0xff && bytes[1] == 0xfe) {
+    *bigEndian  = false;
+    *byteOffset = 2;
+    return true;
+  }
+
+  if (bytes[0] == 0xfe && bytes[1] == 0xff) {
+    *bigEndian  = true;
+    *byteOffset = 2;
+    return true;
+  }
+
+  if (bytes[0] == '<' && bytes[1] == 0
+      && bytes[2] == '?' && bytes[3] == 0) {
+    *bigEndian  = false;
+    *byteOffset = 0;
+    return true;
+  }
+
+  if (bytes[0] == 0 && bytes[1] == '<'
+      && bytes[2] == 0 && bytes[3] == '?') {
+    *bigEndian  = true;
+    *byteOffset = 0;
+    return true;
+  }
+
+  return false;
+}
+
+static uint16_t
+dae_xml_read_u16(const unsigned char * __restrict it, bool bigEndian) {
+  if (bigEndian)
+    return ((uint16_t)it[0] << 8) | (uint16_t)it[1];
+  return ((uint16_t)it[1] << 8) | (uint16_t)it[0];
+}
+
+static char*
+dae_xml_utf16_to_utf8(const void * __restrict data,
+                      size_t                  size,
+                      bool                    bigEndian,
+                      size_t                  byteOffset,
+                      size_t    * __restrict utf8Size) {
+  const unsigned char *bytes;
+  char                *utf8;
+  size_t               i, units, cap, out;
+
+  if (!data || byteOffset > size || ((size - byteOffset) & 1u))
+    return NULL;
+
+  units = (size - byteOffset) / 2u;
+  if (units > ((size_t)-1 - 1u) / 4u)
+    return NULL;
+
+  cap  = units * 4u + 1u;
+  utf8 = malloc(cap);
+  if (!utf8)
+    return NULL;
+
+  bytes = (const unsigned char *)data + byteOffset;
+  out   = 0;
+  for (i = 0; i < units; i++) {
+    uint32_t codepoint;
+    uint16_t u;
+
+    u = dae_xml_read_u16(bytes + i * 2u, bigEndian);
+
+    if (u >= 0xd800u && u <= 0xdbffu) {
+      uint16_t lo;
+
+      if (++i >= units)
+        goto err;
+
+      lo = dae_xml_read_u16(bytes + i * 2u, bigEndian);
+      if (lo < 0xdc00u || lo > 0xdfffu)
+        goto err;
+
+      codepoint = 0x10000u
+                  + (((uint32_t)u - 0xd800u) << 10)
+                  + ((uint32_t)lo - 0xdc00u);
+    } else if (u >= 0xdc00u && u <= 0xdfffu) {
+      goto err;
+    } else {
+      codepoint = u;
+    }
+
+    if (codepoint <= 0x7fu) {
+      utf8[out++] = (char)codepoint;
+    } else if (codepoint <= 0x7ffu) {
+      utf8[out++] = (char)(0xc0u | (codepoint >> 6));
+      utf8[out++] = (char)(0x80u | (codepoint & 0x3fu));
+    } else if (codepoint <= 0xffffu) {
+      utf8[out++] = (char)(0xe0u | (codepoint >> 12));
+      utf8[out++] = (char)(0x80u | ((codepoint >> 6) & 0x3fu));
+      utf8[out++] = (char)(0x80u | (codepoint & 0x3fu));
+    } else {
+      utf8[out++] = (char)(0xf0u | (codepoint >> 18));
+      utf8[out++] = (char)(0x80u | ((codepoint >> 12) & 0x3fu));
+      utf8[out++] = (char)(0x80u | ((codepoint >> 6) & 0x3fu));
+      utf8[out++] = (char)(0x80u | (codepoint & 0x3fu));
+    }
+  }
+
+  utf8[out] = '\0';
+  if (utf8Size)
+    *utf8Size = out;
+  return utf8;
+
+err:
+  free(utf8);
+  return NULL;
 }
 
 static

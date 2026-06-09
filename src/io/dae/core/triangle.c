@@ -23,7 +23,8 @@ AkTriangles*
 dae_triangles(DAEState * __restrict dst,
               xml_t    * __restrict xml,
               void     * __restrict memp,
-              AkTriangleMode        mode) {
+              AkTriangleMode        mode,
+              AkVertices * __restrict fallbackVertices) {
   AkTriangles *tri;
   AkHeap      *heap;
   uint32_t     indexoff;
@@ -70,7 +71,7 @@ dae_triangles(DAEState * __restrict dst,
           if (inp->indexOffset > indexoff)
             indexoff = inp->indexOffset;
         } else {
-          dae_vertmap_add(dst, inp, &tri->base);
+          dae_vertmap_add(dst, inp, &tri->base, fallbackVertices);
 
           /* don't store VERTEX because it will be duplicated to all prims */
           // tri->base.reserved1 = inp->indexOffset;

@@ -759,6 +759,7 @@ void
 ak_heap_setId(AkHeap     * __restrict heap,
               AkHeapNode * __restrict heapNode,
               void       * __restrict memId) {
+  AkHeapSrchNode *existing;
   AkHeapSrchNode *snode;
 
   if (!memId) {
@@ -767,6 +768,12 @@ ak_heap_setId(AkHeap     * __restrict heap,
                    AK_HEAP_NODE_FLAGS_SRCH);
     return;
   }
+
+  existing = ak_heap_rb_find(heap->srchctx, memId);
+  if (existing
+      && existing != heap->srchctx->nullNode
+      && AK__HEAPNODE(existing) != heapNode)
+    return;
 
   snode = ak_heap_ext_add(heap,
                           heapNode,

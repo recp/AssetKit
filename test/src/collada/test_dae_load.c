@@ -55,3 +55,30 @@ TEST_IMPL(dae_load_folder) {
 
   TEST_SUCCESS
 }
+
+TEST_IMPL(load_auto_uppercase_extension) {
+  const char *path = "/tmp/assetkit_uppercase_auto.DAE";
+  const char *xml =
+    "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+    "<COLLADA xmlns=\"http://www.collada.org/2005/11/COLLADASchema\" "
+    "version=\"1.4.1\">"
+    "<asset><up_axis>Y_UP</up_axis></asset>"
+    "<library_visual_scenes><visual_scene id=\"Scene\"/></library_visual_scenes>"
+    "<scene><instance_visual_scene url=\"#Scene\"/></scene>"
+    "</COLLADA>";
+  AkDoc *doc;
+  FILE  *file;
+
+  file = fopen(path, "wb");
+  ASSERT(file != NULL);
+  ASSERT(fwrite(xml, 1, strlen(xml), file) == strlen(xml));
+  fclose(file);
+
+  ASSERT(ak_load(&doc, path, AK_FILE_TYPE_AUTO) == AK_OK);
+  ASSERT(doc != NULL);
+
+  ak_free(doc);
+  unlink(path);
+
+  TEST_SUCCESS
+}

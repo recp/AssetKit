@@ -18,6 +18,56 @@
 #include "../common.h"
 #include "dae14.h"
 
+static
+AkNewParam*
+dae14_find_newparam_by_sid(AkNewParam *param, const char *sid) {
+  while (param) {
+    const char *paramSid;
+
+    paramSid = ak_sid_get(param);
+    if (paramSid && strcmp(paramSid, sid) == 0)
+      return param;
+
+    param = param->next;
+  }
+
+  return NULL;
+}
+
+static
+AkNewParam*
+dae14_find_newparam(void *parent, const char *sid) {
+  if (!sid)
+    return NULL;
+
+  while (parent) {
+    switch (ak_typeid(parent)) {
+      case AKT_PROFILE: {
+        AkNewParam *param;
+
+        param = dae14_find_newparam_by_sid(((AkProfile *)parent)->newparam, sid);
+        if (param)
+          return param;
+        break;
+      }
+      case AKT_EFFECT: {
+        AkNewParam *param;
+
+        param = dae14_find_newparam_by_sid(((AkEffect *)parent)->newparam, sid);
+        if (param)
+          return param;
+        break;
+      }
+      default:
+        break;
+    }
+
+    parent = ak_mem_parent(parent);
+  }
+
+  return NULL;
+}
+
 AK_HIDE
 void
 dae14_loadjobs_add(DAEState   * __restrict  dst,
@@ -55,17 +105,15 @@ dae14_loadjobs_finish(DAEState * __restrict dst) {
       case AK_DAE14_LOADJOB_SURFACE: {
         AkNewParam     *surfaceParam;
         AkDae14Surface *surface;
-        AkContext       ctx;
 
-        memset(&ctx, 0, sizeof(ctx));
-        ctx.doc = dst->doc;
-
-        surfaceParam = ak_sid_resolve(&ctx, job->value, NULL);
-        if (surfaceParam) {
+        surfaceParam = dae14_find_newparam(job->parent, job->value);
+        if (surfaceParam && surfaceParam->val) {
           AkSampler      *sampler;
           AkInstanceBase *instanceImage;
 
           surface = surfaceParam->val->value;
+          if (!surface)
+            break;
 
           /* surface may already migrated to 1.5+ */
           if (!surface->instanceImage) {
@@ -85,10 +133,12 @@ dae14_loadjobs_finish(DAEState * __restrict dst) {
             }
 
             rb_insert(dst->instanceMap, sampler, instanceImage);
-            ak_url_init_with_id(dst->heap->allocator,
-                                instanceImage,
-                                (char *)surface->initFrom->image,
-                                &instanceImage->url);
+            if (surface->initFrom && surface->initFrom->image) {
+              ak_url_init_with_id(dst->heap->allocator,
+                                  instanceImage,
+                                  (char *)surface->initFrom->image,
+                                  &instanceImage->url);
+            }
 
             /* TODO: */
 //            sampler->instanceImage = instanceImage;
@@ -125,18 +175,16 @@ dae14_loadjobs_finish(DAEState * __restrict dst) {
       case AK_DAE14_LOADJOB_SURFACE: {
         AkNewParam     *surfaceParam;
         AkDae14Surface *surface;
-        AkContext       ctx;
 
-        memset(&ctx, 0, sizeof(ctx));
-        ctx.doc = dst->doc;
-
-        surfaceParam = ak_sid_resolve(&ctx, job->value, NULL);
-        if (surfaceParam) {
+        surfaceParam = dae14_find_newparam(job->parent, job->value);
+        if (surfaceParam && surfaceParam->val) {
           void *parentOfParam;
 
           parentOfParam = ak_mem_parent(surfaceParam);
 
           surface = surfaceParam->val->value;
+          if (!surface)
+            break;
           ak_free(surface);
 
           if (surfaceParam->prev)

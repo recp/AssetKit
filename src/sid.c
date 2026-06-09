@@ -64,8 +64,12 @@ ak_sid_geta(void *memnode,
   ptr      = (char *)sidnode->sid + sizeof(size_t);
 
   for (i = 0; i < sidCount; i++) {
-    if (*(uint16_t *)ptr == off)
-      return ptr + sizeof(uint16_t);
+    if (*(uint16_t *)ptr == off) {
+      uintptr_t sidptrval;
+
+      memcpy(&sidptrval, ptr + sizeof(uint16_t), sizeof(sidptrval));
+      return (const char *)sidptrval;
+    }
 
     ptr += sizeof(uint16_t) + sizeof(const char **);
   }
@@ -459,6 +463,12 @@ ak_sid_resolve(AkContext   * __restrict ctx,
   ptrdiff_t    sidoff;
   bool         isdot;
 
+  if (attribString)
+    *attribString = NULL;
+
+  if (!ctx || !target || !target[0])
+    return NULL;
+
   elm    = NULL;
   sidoff = ak_sidElement(ctx, target, &elm, &isdot);
   if (sidoff == -1 || !elm)
@@ -470,16 +480,18 @@ ak_sid_resolve(AkContext   * __restrict ctx,
   buf[0]  = malloc(sizeof(*buf[0]) * bufl[0]);
   buf[1]  = malloc(sizeof(*buf[0]) * bufl[0]);
 
-  if (attribString)
-    *attribString = NULL;
-
 again:
   idnode  = ak__alignof(elm);
   sidnode = NULL;
   found   = NULL;
   siddup  = strdup(target + sidoff);
+  if (!siddup)
+    goto err;
   attrLoc = strchr(siddup, '.');
   sid_it  = strtok_r(siddup, "/ \t", &saveptr);
+
+  if (!sid_it)
+    goto err;
 
   if (attrLoc)
     attrLoc[0] = '\0';
@@ -546,10 +558,15 @@ again:
         end = p + c * (sizeof(char **) + sizeof(uint16_t));
         
         while (p != end) {
+          const char *attrSid;
+          uintptr_t   attrSidVal;
+
           p  += sizeof(uint16_t);
+          memcpy(&attrSidVal, p, sizeof(attrSidVal));
+          attrSid = (const char *)attrSidVal;
           
           /* found sid in attr */
-          if (strcmp(*(char **)p, sid_it) == 0) {
+          if (attrSid && strcmp(attrSid, sid_it) == 0) {
             char *tok;
             
             sidnode = it;
@@ -562,7 +579,7 @@ again:
             goto ret;
           }
           
-          p += sizeof(char **) + sizeof(uint16_t);
+          p += sizeof(uintptr_t);
         }
       }
     }

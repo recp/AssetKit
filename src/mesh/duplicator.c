@@ -618,6 +618,8 @@ ak_meshFixIndexBuffer(AkMesh          * __restrict mesh,
       break;
   }
 
+  newind->max = ak_indicesMax(newind);
+
 #undef AK_FIX_INDEX_BUFFER_FOR_DUP_TYPE
 #undef AK_FIX_INDEX_BUFFER_FOR_SUM_TYPE
 #undef AK_FIX_INDEX_BUFFER_FOR_OUTPUT_TYPE

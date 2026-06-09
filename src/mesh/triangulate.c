@@ -23,11 +23,16 @@ ak_meshTriangulatePoly_noindices(AkPolygon * __restrict poly);
 AK_INLINE
 void
 ak_meshPolyMarkTriangles(AkPolygon * __restrict poly, AkUInt nTrigs) {
+  AkTriangles *trig;
+
   poly->base.nPolygons = nTrigs;
   poly->base.type      = AK_PRIMITIVE_TRIANGLES;
 
   ak_free(poly->vcount);
   poly->vcount = NULL;
+
+  trig       = (AkTriangles *)poly;
+  trig->mode = AK_TRIANGLES;
 }
 
 /* not tested yet! */

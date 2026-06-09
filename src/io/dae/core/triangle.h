@@ -24,6 +24,7 @@ AkTriangles*
 dae_triangles(DAEState * __restrict dst,
               xml_t    * __restrict xml,
               void     * __restrict memp,
-              AkTriangleMode        mode);
+              AkTriangleMode        mode,
+              AkVertices * __restrict fallbackVertices);
 
 #endif /* dae_triangles_h */

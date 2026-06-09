@@ -24,7 +24,8 @@ AkPolygon*
 dae_poly(DAEState * __restrict dst,
          xml_t    * __restrict xml,
          void     * __restrict memp,
-         AkPolygonMode         mode) {
+         AkPolygonMode         mode,
+         AkVertices * __restrict fallbackVertices) {
   AkPolygon *poly;
   FListItem *polyi;
   AkHeap    *heap;
@@ -78,7 +79,7 @@ dae_poly(DAEState * __restrict dst,
           if (inp->indexOffset > indexoff)
             indexoff = inp->indexOffset;
         } else {
-          dae_vertmap_add(dst, inp, &poly->base);
+          dae_vertmap_add(dst, inp, &poly->base, fallbackVertices);
           /* don't store VERTEX because it will be duplicated to all prims */
           // poly->base.reserved1 = inp->indexOffset;
           // poly->base.reserved2 = inp->set;

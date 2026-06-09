@@ -135,8 +135,8 @@ ak_movePositions(AkMesh          *mesh,
   dupc       = duplicator->range->dupc;
   dupcsum    = duplicator->range->dupcsum;
   vc         = dupc->count / 3;
-  newitms    = newbuff->data;
-  olditms    = oldbuff->data;
+  newitms    = (char *)newbuff->data + newacc->byteOffset;
+  olditms    = (char *)oldbuff->data + acc->byteOffset;
   copySize  = acc->fillByteSize;
   srcStride = acc->byteStride ? acc->byteStride : copySize;
   dstStride = newacc->byteStride ? newacc->byteStride : copySize;
