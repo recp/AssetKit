@@ -76,3 +76,5 @@ build/
 .vscode/
 proj/
 docs_bak/
+docs/new/
+build-debug/
