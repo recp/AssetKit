@@ -17,6 +17,7 @@
 #ifndef ak_json_h
 #define ak_json_h
 
+#include <float.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -39,12 +40,15 @@ ak_json_pow10l(int exp) {
     return 1.0L;
 
   neg   = exp < 0;
-  e     = neg ? (unsigned int)-exp : (unsigned int)exp;
+  e     = neg ? (unsigned int)(-(exp + 1)) + 1u : (unsigned int)exp;
   scale = 1.0L;
   for (i = 0; e && i < AK_ARRAY_LEN(pow10); i++, e >>= 1) {
     if (e & 1u)
       scale *= pow10[i];
   }
+
+  if (e)
+    return neg ? 0.0L : LDBL_MAX;
 
   return neg ? 1.0L / scale : scale;
 }
