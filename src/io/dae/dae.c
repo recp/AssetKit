@@ -111,7 +111,10 @@ dae_doc(AkDoc     ** __restrict dest,
       ak_releasefile(xmlString, xmlSize);
       return AK_ERR;
     }
-    xmlInput = xmlUtf8;
+    ak_releasefile(xmlString, xmlSize);
+    xmlString = NULL;
+    xmlSize   = 0;
+    xmlInput  = xmlUtf8;
   }
 
   xdoc = xml_parse(xmlInput, XML_PREFIXES | XML_READONLY);
