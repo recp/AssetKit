@@ -48,6 +48,100 @@ wobj_texref(WOState            * __restrict wst,
 #define WOBJ_MTL_KW_ILLU AK_STR_PACK4_CHARS('i', 'l', 'l', 'u')
 
 static
+AkTextureChannels
+wobj_mtl_imfchan(char ch) {
+  switch (ch) {
+    case 'r':
+    case 'R': return AK_TEXTURE_CHANNEL_R;
+    case 'g':
+    case 'G': return AK_TEXTURE_CHANNEL_G;
+    case 'b':
+    case 'B': return AK_TEXTURE_CHANNEL_B;
+    case 'a':
+    case 'A': return AK_TEXTURE_CHANNEL_A;
+    default:  return AK_TEXTURE_CHANNEL_NONE;
+  }
+}
+
+static
+AkTextureChannels
+wobj_mtl_map_channels(AkTextureChannels parsed,
+                      AkTextureChannels fallback) {
+  return parsed != AK_TEXTURE_CHANNEL_NONE ? parsed : fallback;
+}
+
+static
+char*
+wobj_mtl_map_value(AkHeap             * __restrict heap,
+                   WOMtl              * __restrict mtl,
+                   const char         * __restrict begin,
+                   const char         * __restrict end,
+                   AkTextureChannels  * __restrict channels) {
+  const char *p;
+  const char *tokBegin;
+  const char *tokEnd;
+  const char *pathBegin;
+  const char *pathEnd;
+  size_t      tokLen;
+  bool        sawOption;
+
+  if (channels)
+    *channels = AK_TEXTURE_CHANNEL_NONE;
+  if (!begin || !end || end <= begin)
+    return NULL;
+
+  p         = begin;
+  pathBegin = NULL;
+  pathEnd   = NULL;
+  sawOption = false;
+  while (p < end) {
+    while (p < end && (*p == ' ' || *p == '\t'))
+      p++;
+    if (p >= end)
+      break;
+
+    tokBegin = p;
+    while (p < end && *p != ' ' && *p != '\t')
+      p++;
+    tokEnd = p;
+    tokLen = (size_t)(tokEnd - tokBegin);
+
+    if (tokLen == 8 && memcmp(tokBegin, "-imfchan", 8) == 0) {
+      sawOption = true;
+      while (p < end && (*p == ' ' || *p == '\t'))
+        p++;
+      if (p < end && channels) {
+        *channels = wobj_mtl_imfchan(*p);
+        while (p < end && *p != ' ' && *p != '\t')
+          p++;
+      }
+      continue;
+    }
+
+    if (tokLen > 0 && tokBegin[0] == '-') {
+      sawOption = true;
+      continue;
+    }
+
+    pathBegin = tokBegin;
+    pathEnd   = tokEnd;
+  }
+
+  if (!sawOption) {
+    while (begin < end && (*begin == ' ' || *begin == '\t'))
+      begin++;
+    while (end > begin && (end[-1] == ' ' || end[-1] == '\t'))
+      end--;
+    pathBegin = begin;
+    pathEnd   = end;
+  }
+
+  if (!pathBegin || pathEnd <= pathBegin)
+    return NULL;
+  return ak_heap_strndup(heap, mtl, pathBegin, (size_t)(pathEnd - pathBegin));
+}
+
+static
 void
 wobj_featurePush(AkMaterialSurface * __restrict surface,
                  AkMaterialFeature * __restrict feature) {
@@ -294,7 +388,11 @@ wobj_mtl(WOState    * __restrict wst,
               while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
               end = p;
 
-              mtl->map_d = ak_heap_strndup(heap, mtl, begin, end - begin);
+              mtl->map_d = wobj_mtl_map_value(heap,
+                                               mtl,
+                                               begin,
+                                               end,
+                                               &mtl->map_d_channels);
             }
             break;
           case 'K':
@@ -307,7 +405,11 @@ wobj_mtl(WOState    * __restrict wst,
                 while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
                 end = p;
                 
-                mtl->map_Ka = ak_heap_strndup(heap, mtl, begin, end - begin);
+                mtl->map_Ka = wobj_mtl_map_value(heap,
+                                                  mtl,
+                                                  begin,
+                                                  end,
+                                                  &mtl->map_Ka_channels);
                 break;
               case 'd':
                 p += 2;
@@ -317,7 +419,11 @@ wobj_mtl(WOState    * __restrict wst,
                 while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
                 end = p;
                 
-                mtl->map_Kd = ak_heap_strndup(heap, mtl, begin, end - begin);
+                mtl->map_Kd = wobj_mtl_map_value(heap,
+                                                  mtl,
+                                                  begin,
+                                                  end,
+                                                  &mtl->map_Kd_channels);
                 
                 break;
               case 's':
@@ -328,7 +434,11 @@ wobj_mtl(WOState    * __restrict wst,
                 while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
                 end = p;
                 
-                mtl->map_Ks = ak_heap_strndup(heap, mtl, begin, end - begin);
+                mtl->map_Ks = wobj_mtl_map_value(heap,
+                                                  mtl,
+                                                  begin,
+                                                  end,
+                                                  &mtl->map_Ks_channels);
                 
                 break;
               case 'e':
@@ -339,7 +449,11 @@ wobj_mtl(WOState    * __restrict wst,
                 while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
                 end = p;
                 
-                mtl->map_Ke = ak_heap_strndup(heap, mtl, begin, end - begin);
+                mtl->map_Ke = wobj_mtl_map_value(heap,
+                                                  mtl,
+                                                  begin,
+                                                  end,
+                                                  &mtl->map_Ke_channels);
                 
                 break;
               default: break;
@@ -355,7 +469,11 @@ wobj_mtl(WOState    * __restrict wst,
                 while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
                 end = p;
 
-                mtl->map_Pr = ak_heap_strndup(heap, mtl, begin, end - begin);
+                mtl->map_Pr = wobj_mtl_map_value(heap,
+                                                  mtl,
+                                                  begin,
+                                                  end,
+                                                  &mtl->map_Pr_channels);
                 break;
               case 'm':
                 p += 2;
@@ -365,7 +483,11 @@ wobj_mtl(WOState    * __restrict wst,
                 while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
                 end = p;
 
-                mtl->map_Pm = ak_heap_strndup(heap, mtl, begin, end - begin);
+                mtl->map_Pm = wobj_mtl_map_value(heap,
+                                                  mtl,
+                                                  begin,
+                                                  end,
+                                                  &mtl->map_Pm_channels);
                 break;
               case 's':
                 p += 2;
@@ -375,7 +497,11 @@ wobj_mtl(WOState    * __restrict wst,
                 while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
                 end = p;
 
-                mtl->map_Ps = ak_heap_strndup(heap, mtl, begin, end - begin);
+                mtl->map_Ps = wobj_mtl_map_value(heap,
+                                                  mtl,
+                                                  begin,
+                                                  end,
+                                                  &mtl->map_Ps_channels);
                 break;
               default: break;
             }
@@ -412,7 +538,11 @@ wobj_mtl(WOState    * __restrict wst,
         while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
         end = p;
 
-        mtl->bump = ak_heap_strndup(heap, mtl, begin, end - begin);
+        mtl->bump = wobj_mtl_map_value(heap,
+                                       mtl,
+                                       begin,
+                                       end,
+                                       &mtl->bump_channels);
       } else if (ak_str_pack4_fast(p, 4) == WOBJ_MTL_KW_ILLU
                  && p[4] == 'm'
                  && (p[5] == ' ' || p[5] == '\t')) {
@@ -477,14 +607,16 @@ wobj_handleMaterial(WOState  * __restrict wst,
                                        mtl->Kd,
                                        mtl->map_Kd,
                                        AK_TEXTURE_COLORSPACE_SRGB,
-                                       AK_TEXTURE_CHANNEL_RGBA);
+                                       wobj_mtl_map_channels(mtl->map_Kd_channels,
+                                                             AK_TEXTURE_CHANNEL_RGBA));
   surface->emissive = wobj_colorInput(wst,
                                       surface,
                                       ak_materialSemanticName(AK_MATERIAL_SEMANTIC_EMISSIVE),
                                       mtl->Ke,
                                       mtl->map_Ke,
                                       AK_TEXTURE_COLORSPACE_SRGB,
-                                      AK_TEXTURE_CHANNEL_RGB);
+                                      wobj_mtl_map_channels(mtl->map_Ke_channels,
+                                                            AK_TEXTURE_CHANNEL_RGB));
   surface->alphaCutoff = 0.5f;
   surface->ior = mtl->Ni;
   surface->emissiveStrength = 1.0f;
@@ -499,7 +631,8 @@ wobj_handleMaterial(WOState  * __restrict wst,
                                           value,
                                           mtl->map_Pr,
                                           AK_TEXTURE_COLORSPACE_LINEAR,
-                                          AK_TEXTURE_CHANNEL_R);
+                                          wobj_mtl_map_channels(mtl->map_Pr_channels,
+                                                                AK_TEXTURE_CHANNEL_R));
   }
 
   if ((mtl->has_Pm && isfinite(mtl->Pm)) || mtl->map_Pm) {
@@ -512,7 +645,8 @@ wobj_handleMaterial(WOState  * __restrict wst,
                                          value,
                                          mtl->map_Pm,
                                          AK_TEXTURE_COLORSPACE_LINEAR,
-                                         AK_TEXTURE_CHANNEL_R);
+                                         wobj_mtl_map_channels(mtl->map_Pm_channels,
+                                                               AK_TEXTURE_CHANNEL_R));
   }
 
   if ((mtl->has_Ps && isfinite(mtl->Ps)) || mtl->map_Ps) {
@@ -530,7 +664,8 @@ wobj_handleMaterial(WOState  * __restrict wst,
                                     value,
                                     mtl->map_Ps,
                                     AK_TEXTURE_COLORSPACE_LINEAR,
-                                    AK_TEXTURE_CHANNEL_R);
+                                    wobj_mtl_map_channels(mtl->map_Ps_channels,
+                                                          AK_TEXTURE_CHANNEL_R));
   }
 
   if ((mtl->has_Pc && isfinite(mtl->Pc))
@@ -596,7 +731,8 @@ wobj_handleMaterial(WOState  * __restrict wst,
                                        1.0f,
                                        mtl->bump,
                                        AK_TEXTURE_COLORSPACE_LINEAR,
-                                       AK_TEXTURE_CHANNEL_RGB);
+                                       wobj_mtl_map_channels(mtl->bump_channels,
+                                                             AK_TEXTURE_CHANNEL_RGB));
   }
   
   if (mtl->Tr > 0.0f || mtl->d < 1.0f || mtl->map_d) {
@@ -613,7 +749,8 @@ wobj_handleMaterial(WOState  * __restrict wst,
                                         t,
                                         mtl->map_d,
                                         AK_TEXTURE_COLORSPACE_LINEAR,
-                                        AK_TEXTURE_CHANNEL_R);
+                                        wobj_mtl_map_channels(mtl->map_d_channels,
+                                                              AK_TEXTURE_CHANNEL_R));
     surface->flags |= AK_MATERIAL_FLAG_ALPHA_BLEND;
   }
 
@@ -624,7 +761,8 @@ wobj_handleMaterial(WOState  * __restrict wst,
                                      mtl->Ka,
                                      mtl->map_Ka,
                                      AK_TEXTURE_COLORSPACE_SRGB,
-                                     AK_TEXTURE_CHANNEL_RGB);
+                                     wobj_mtl_map_channels(mtl->map_Ka_channels,
+                                                           AK_TEXTURE_CHANNEL_RGB));
   classic->diffuse = surface->baseColor;
   classic->specular = wobj_colorInput(wst,
                                       classic,
@@ -632,7 +770,8 @@ wobj_handleMaterial(WOState  * __restrict wst,
                                       mtl->Ks,
                                       mtl->map_Ks,
                                       AK_TEXTURE_COLORSPACE_SRGB,
-                                      AK_TEXTURE_CHANNEL_RGB);
+                                      wobj_mtl_map_channels(mtl->map_Ks_channels,
+                                                            AK_TEXTURE_CHANNEL_RGB));
   classic->emission = surface->emissive;
   if (mtl->has_Tf) {
     classic->transparency = wobj_colorInput(wst,

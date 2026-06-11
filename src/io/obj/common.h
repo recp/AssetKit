@@ -43,6 +43,15 @@ typedef struct WOMtl {
   char *decal;
   char *disp;
   char *bump;
+  AkTextureChannels map_Ka_channels;
+  AkTextureChannels map_Kd_channels;
+  AkTextureChannels map_Ks_channels;
+  AkTextureChannels map_Ke_channels;
+  AkTextureChannels map_Pr_channels;
+  AkTextureChannels map_Pm_channels;
+  AkTextureChannels map_Ps_channels;
+  AkTextureChannels map_d_channels;
+  AkTextureChannels bump_channels;
   vec3  Ka;
   vec3  Kd;
   vec3  Ks;

@@ -565,6 +565,7 @@ TEST_IMPL(obj_export_missing_texture_map_is_best_effort) {
 TEST_IMPL(obj_export_material_texture_copy) {
   AkHeap            *heap;
   AkDoc             *doc;
+  AkDoc             *roundTrip;
   AkScene           *scene;
   AkNode            *root, *node;
   AkGeometry        *geom;
@@ -583,8 +584,10 @@ TEST_IMPL(obj_export_material_texture_copy) {
   AkSampler         *sampler;
   AkImage           *image;
   AkImageSource     *source;
+  AkMaterialSurface *roundSurface;
   struct stat        stTex;
   const char        *outDir  = "./assetkit_export_obj_texture_copy";
+  const char        *objPath = "./assetkit_export_obj_texture_copy/model.obj";
   const char        *mtlPath = "./assetkit_export_obj_texture_copy/model.mtl";
   const char        *copiedPath = "./assetkit_export_obj_texture_copy/image_0_Extra.PNG";
   const char        *sourceDir = "./assetkit_export_obj_texture_copy_src";
@@ -676,10 +679,12 @@ TEST_IMPL(obj_export_material_texture_copy) {
   metallic->source    = AK_MATERIAL_INPUT_TEXTURE;
   metallic->valueType = AK_MATERIAL_VALUE_FLOAT;
   metallic->value[0]  = 0.5f;
+  metallic->channels  = AK_TEXTURE_CHANNEL_B;
   metallic->texture   = metalRef;
   roughness->source    = AK_MATERIAL_INPUT_TEXTURE;
   roughness->valueType = AK_MATERIAL_VALUE_FLOAT;
   roughness->value[0]  = 0.25f;
+  roughness->channels  = AK_TEXTURE_CHANNEL_G;
   roughness->texture   = roughRef;
 
   mat->name          = "tex_mat";
@@ -717,8 +722,20 @@ TEST_IMPL(obj_export_material_texture_copy) {
   ASSERT(stTex.st_size == 7);
   ASSERT(ak_test_file_contains(mtlPath, "map_Kd image_0_Extra.PNG"));
   ASSERT(ak_test_file_contains(mtlPath, "map_Ks image_0_Extra.PNG"));
-  ASSERT(ak_test_file_contains(mtlPath, "map_Pr image_0_Extra.PNG"));
-  ASSERT(ak_test_file_contains(mtlPath, "map_Pm image_0_Extra.PNG"));
+  ASSERT(ak_test_file_contains(mtlPath, "map_Pr -imfchan g image_0_Extra.PNG"));
+  ASSERT(ak_test_file_contains(mtlPath, "map_Pm -imfchan b image_0_Extra.PNG"));
+
+  roundTrip = NULL;
+  ASSERT(ak_load(&roundTrip, objPath, AK_FILE_TYPE_WAVEFRONT) == AK_OK);
+  ASSERT(roundTrip != NULL);
+  ASSERT(roundTrip->lib.materials.first != NULL);
+  roundSurface = roundTrip->lib.materials.first->surface;
+  ASSERT(roundSurface != NULL);
+  ASSERT(roundSurface->roughness != NULL);
+  ASSERT(roundSurface->metallic != NULL);
+  ASSERT(ak_materialInputChannels(roundSurface->roughness) == AK_TEXTURE_CHANNEL_G);
+  ASSERT(ak_materialInputChannels(roundSurface->metallic) == AK_TEXTURE_CHANNEL_B);
+  ak_free(roundTrip);
 
   ak_heap_destroy(heap);
   ak_test_export_cleanup(outDir);

@@ -602,6 +602,28 @@ wobj_w_float3(WOBJExpWriter * __restrict w,
 
 static
 void
+wobj_w_map_channel(WOBJExpWriter * __restrict w,
+                   AkTextureChannels          channels) {
+  char ch;
+
+  switch (channels) {
+    case AK_TEXTURE_CHANNEL_R: ch = 'r'; break;
+    case AK_TEXTURE_CHANNEL_G: ch = 'g'; break;
+    case AK_TEXTURE_CHANNEL_B: ch = 'b'; break;
+    case AK_TEXTURE_CHANNEL_A: ch = 'a'; break;
+    default:                   ch = '\0'; break;
+  }
+
+  if (!ch)
+    return;
+
+  wobj_w_lit(w, "-imfchan ");
+  wobj_w_ch(w, ch);
+  wobj_w_ch(w, ' ');
+}
+
+static
+void
 wobj_w_map(WOBJExpState         * __restrict st,
            WOBJExpWriter        * __restrict w,
            const char           * __restrict key,
@@ -617,6 +639,7 @@ wobj_w_map(WOBJExpState         * __restrict st,
 
   wobj_w_lit(w, key);
   wobj_w_ch(w, ' ');
+  wobj_w_map_channel(w, input ? input->channels : AK_TEXTURE_CHANNEL_NONE);
   wobj_w_name(w, uri);
   wobj_w_ch(w, '\n');
   free(uri);
