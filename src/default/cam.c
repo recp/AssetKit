@@ -30,8 +30,7 @@ AkPerspective ak_def_cam_persp = {
 };
 
 AkOptics ak_def_cam_optics = {
-  .proj     = &ak_def_cam_persp.base,
-  .reserved = NULL
+  .proj = &ak_def_cam_persp.base
 };
 
 const AkCamera ak_def_cam = {

@@ -68,7 +68,7 @@ dae_poly(DAEState * __restrict dst,
         inp->indexOffset = xmla_u32(DAE_XMLA8(xml, offset), 0);
         inp->set         = xmla_u32(DAE_XMLA4(xml, set),    0);
 
-        url = DAE_URL_FROM(xml, source, memp);
+        url = DAE_URL_FROM(dst, xml, source, memp);
         rb_insert(dst->inputmap, inp, url);
 
         if ((uint32_t)inp->semantic != AK_INPUT_SEMANTIC_VERTEX) {
@@ -80,10 +80,10 @@ dae_poly(DAEState * __restrict dst,
             indexoff = inp->indexOffset;
         } else {
           dae_vertmap_add(dst, inp, &poly->base, fallbackVertices);
+          if (inp->indexOffset > indexoff)
+            indexoff = inp->indexOffset;
+
           /* don't store VERTEX because it will be duplicated to all prims */
-          // poly->base.reserved1 = inp->indexOffset;
-          // poly->base.reserved2 = inp->set;
-          // ak_free(inp);
         }
       }
     } else if (DAE_XML_TAG_EQ8(xml, p) && xml->val) {

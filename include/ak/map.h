@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-/* TODO: use separate rbtree instead of heap's rbtree (optional)
- *       this map impl have many TODOs
- */
-
 #ifndef assetkit_map_h
 #define assetkit_map_h
 #ifdef __cplusplus

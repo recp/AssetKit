@@ -45,7 +45,8 @@ typedef struct dae_fast_enum {
 
 #define DAE_SEMANTIC_LONG(NAME, VAL)                                         \
   do {                                                                       \
-    if (ak_str_eq_ci_fast(name, _s_dae_##NAME, _s_dae_##NAME##_len)) {       \
+    if (ak_str_eq_ci_len_fast(name, len,                                     \
+                              _s_dae_##NAME, _s_dae_##NAME##_len)) {        \
       if (semantic)                                                          \
         *semantic = VAL;                                                     \
       return _s_dae_##NAME;                                                  \
@@ -182,31 +183,43 @@ dae_semantic(const char * name) {
         return AK_INPUT_TEXCOORD;
       break;
     case 10:
-      if (ak_str_eq_ci_fast(name, _s_dae_CONTINUITY, _s_dae_CONTINUITY_len))
+      if (ak_str_eq_ci_len_fast(name, len, _s_dae_CONTINUITY,
+                                _s_dae_CONTINUITY_len))
         return AK_INPUT_CONTINUITY;
-      if (ak_str_eq_ci_fast(name, _s_dae_IN_TANGENT, _s_dae_IN_TANGENT_len))
+      if (ak_str_eq_ci_len_fast(name, len, _s_dae_IN_TANGENT,
+                                _s_dae_IN_TANGENT_len))
         return AK_INPUT_IN_TANGENT;
-      if (ak_str_eq_ci_fast(name, _s_dae_TEXTANGENT, _s_dae_TEXTANGENT_len))
+      if (ak_str_eq_ci_len_fast(name, len, _s_dae_TEXTANGENT,
+                                _s_dae_TEXTANGENT_len))
         return AK_INPUT_TEXTANGENT;
       break;
     case 11:
-      if (ak_str_eq_ci_fast(name, _s_dae_MORPH_TARGET, _s_dae_MORPH_TARGET_len))
-        return AK_INPUT_MORPH_TARGET;
-      if (ak_str_eq_ci_fast(name, _s_dae_MORPH_WEIGHT, _s_dae_MORPH_WEIGHT_len))
-        return AK_INPUT_MORPH_WEIGHT;
-      if (ak_str_eq_ci_fast(name, _s_dae_OUT_TANGENT, _s_dae_OUT_TANGENT_len))
+      if (ak_str_eq_ci_len_fast(name, len, _s_dae_OUT_TANGENT,
+                                _s_dae_OUT_TANGENT_len))
         return AK_INPUT_OUT_TANGENT;
-      break;
-    case 12:
-      if (ak_str_eq_ci_fast(name, _s_dae_INTERPOLATION, _s_dae_INTERPOLATION_len))
-        return AK_INPUT_INTERPOLATION;
-      if (ak_str_eq_ci_fast(name, _s_dae_LINEAR_STEPS, _s_dae_LINEAR_STEPS_len))
-        return AK_INPUT_LINEAR_STEPS;
-      if (ak_str_eq_ci_fast(name, _s_dae_TEXBINORMAL, _s_dae_TEXBINORMAL_len))
+      if (ak_str_eq_ci_len_fast(name, len, _s_dae_TEXBINORMAL,
+                                _s_dae_TEXBINORMAL_len))
         return AK_INPUT_TEXBINORMAL;
       break;
+    case 12:
+      if (ak_str_eq_ci_len_fast(name, len, _s_dae_MORPH_TARGET,
+                                _s_dae_MORPH_TARGET_len))
+        return AK_INPUT_MORPH_TARGET;
+      if (ak_str_eq_ci_len_fast(name, len, _s_dae_MORPH_WEIGHT,
+                                _s_dae_MORPH_WEIGHT_len))
+        return AK_INPUT_MORPH_WEIGHT;
+      if (ak_str_eq_ci_len_fast(name, len, _s_dae_LINEAR_STEPS,
+                                _s_dae_LINEAR_STEPS_len))
+        return AK_INPUT_LINEAR_STEPS;
+      break;
+    case 13:
+      if (ak_str_eq_ci_len_fast(name, len, _s_dae_INTERPOLATION,
+                                _s_dae_INTERPOLATION_len))
+        return AK_INPUT_INTERPOLATION;
+      break;
     case 15:
-      if (ak_str_eq_ci_fast(name, _s_dae_INV_BIND_MATRIX, _s_dae_INV_BIND_MATRIX_len))
+      if (ak_str_eq_ci_len_fast(name, len, _s_dae_INV_BIND_MATRIX,
+                                _s_dae_INV_BIND_MATRIX_len))
         return AK_INPUT_INV_BIND_MATRIX;
       break;
     default:
@@ -262,14 +275,16 @@ dae_semanticRaw(const xml_attr_t * __restrict xatt,
       DAE_SEMANTIC_LONG(TEXTANGENT, AK_INPUT_TEXTANGENT);
       break;
     case 11:
-      DAE_SEMANTIC_LONG(MORPH_TARGET, AK_INPUT_MORPH_TARGET);
-      DAE_SEMANTIC_LONG(MORPH_WEIGHT, AK_INPUT_MORPH_WEIGHT);
       DAE_SEMANTIC_LONG(OUT_TANGENT, AK_INPUT_OUT_TANGENT);
+      DAE_SEMANTIC_LONG(TEXBINORMAL, AK_INPUT_TEXBINORMAL);
       break;
     case 12:
-      DAE_SEMANTIC_LONG(INTERPOLATION, AK_INPUT_INTERPOLATION);
+      DAE_SEMANTIC_LONG(MORPH_TARGET, AK_INPUT_MORPH_TARGET);
+      DAE_SEMANTIC_LONG(MORPH_WEIGHT, AK_INPUT_MORPH_WEIGHT);
       DAE_SEMANTIC_LONG(LINEAR_STEPS, AK_INPUT_LINEAR_STEPS);
-      DAE_SEMANTIC_LONG(TEXBINORMAL, AK_INPUT_TEXBINORMAL);
+      break;
+    case 13:
+      DAE_SEMANTIC_LONG(INTERPOLATION, AK_INPUT_INTERPOLATION);
       break;
     case 15:
       DAE_SEMANTIC_LONG(INV_BIND_MATRIX, AK_INPUT_INV_BIND_MATRIX);

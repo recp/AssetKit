@@ -22,7 +22,33 @@ extern "C" {
 
 #include "common.h"
 
-/* TODO: */
+typedef enum AkDaeExportIndexMode {
+  /* Native COLLADA-style multi-index output. Lowest export overhead and
+     preserves the current AssetKit accessor/input layout. */
+  AK_DAE_EXPORT_INDEX_MULTI  = 0,
+
+  /* Unified vertex-index output. This explicitly normalizes exported mesh
+     primitives to AssetKit's single-index layout before writing, so callers
+     that need a readonly export should keep the default MULTI mode. */
+  AK_DAE_EXPORT_INDEX_SINGLE = 1,
+
+  /* Let the exporter choose. Currently resolves to MULTI. */
+  AK_DAE_EXPORT_INDEX_AUTO   = 2
+} AkDaeExportIndexMode;
+
+typedef enum AkDaeExportVersion {
+  /* Choose the lowest compatible COLLADA version. Currently 1.4.1 unless
+     the document contains B-rep data, which requires 1.5.0. */
+  AK_DAE_EXPORT_VERSION_AUTO = 0,
+
+  /* Force COLLADA 1.4.1. Export fails for data that requires 1.5.0. */
+  AK_DAE_EXPORT_VERSION_1_4  = 1,
+
+  /* Force COLLADA 1.5.0. */
+  AK_DAE_EXPORT_VERSION_1_5  = 2
+} AkDaeExportVersion;
+
+/* Global import/export options. */
 typedef enum AkOption {
   AK_OPT_INDICES_DEFAULT            = 0,  /* false    */
   AK_OPT_INDICES_SINGLE_INTERLEAVED = 1,  /* false    */
@@ -48,19 +74,16 @@ typedef enum AkOption {
   AK_OPT_COMPUTE_EXACT_CENTER       = 21, /* FALSE    */
   AK_OPT_USE_MMAP                   = 22, /* TRUE     */
 
-  /* TODO: not implemented yet,
-     https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#mikktspace
-     https://github.com/mmikk/MikkTSpace 
-   */
+  /* Generate MikkTSpace-compatible tangents when needed. */
   AK_OPT_GEN_TANGENTS_IF_NEEDED     = 23, /* true     */
 
-  /* if your engine doesnt support triangle strip, triangle fan,
-     let AssetKit convert them to TRIANGLES */
+  /* Convert triangle strips/fans to triangle lists when the consumer does
+     not support native strip/fan primitives. */
   AK_OPT_CVT_TRIANGLESTRIP          = 24, /* false    */
   AK_OPT_CVT_TRIANGLEFAN            = 25, /* false    */
 
-  /* if your engine doesnt support line loop, line strip,
-     let AssetKit convert them to LINES */
+  /* Convert line loops/strips to line lists when the consumer does not
+     support native loop/strip primitives. */
   AK_OPT_CVT_LINELOOP               = 26, /* false    */
   AK_OPT_CVT_LINESTRIP              = 27, /* false    */
 
@@ -79,9 +102,20 @@ typedef enum AkOption {
      colorless STL triangle soup. */
   AK_OPT_MESH_POSITION_DEDUP_INDEX    = 34, /* true     */
 
-  /* preserve format-authored custom metadata such as glTF extras and
-     COLLADA <extra>. glTF extensions are preserved independently. */
+  /* Preserve format-authored custom metadata. glTF extensions are preserved
+     independently because they carry typed extension semantics. */
   AK_OPT_PRESERVE_EXTRAS              = 35, /* false    */
+
+  /* AkDaeExportIndexMode. Default MULTI keeps DAE export low-latency and
+     avoids vertex remap work unless SINGLE is explicitly requested. */
+  AK_OPT_DAE_EXPORT_INDEX_MODE        = 36, /* MULTI    */
+
+  /* AkDaeExportVersion. Default AUTO writes COLLADA 1.4.1 unless the
+     content requires 1.5.0. */
+  AK_OPT_DAE_EXPORT_VERSION           = 37, /* AUTO     */
+
+  /* const char*. Exporter generator/authoring-tool string. */
+  AK_OPT_EXPORT_AUTHORING_TOOL        = 38, /* AssetKit vX.Y.Z */
 } AkOption;
 
 AK_EXPORT

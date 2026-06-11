@@ -46,10 +46,6 @@ gltf_parse(AkDoc     ** __restrict dest,
            void       * __restrict bindata,
            size_t                  bindataLen);
 
-static
-void
-ak_gltfFreeDupl(RBTree *tree, RBNode *node);
-
 AK_HIDE
 AkResult
 gltf_glb(AkDoc     ** __restrict dest,
@@ -167,10 +163,6 @@ gltf_parse(AkDoc     ** __restrict dest,
   doc->inf->name      = filepath;
   doc->inf->flipImage = false;
   doc->inf->ftype     = AK_FILE_TYPE_GLTF;
-  
-  /* for fixing skin and morph vertices */
-  doc->reserved = rb_newtree_ptr();
-  ((RBTree *)doc->reserved)->onFreeNode = ak_gltfFreeDupl;
   
   if (doc->inf->dir)
     doc->inf->dirlen = strlen(doc->inf->dir);
@@ -307,12 +299,4 @@ err:
   rb_destroy(gst->skinBound);
 
   return ret;
-}
-
-static
-void
-ak_gltfFreeDupl(RBTree *tree, RBNode *node) {
-  if (node == tree->nullNode)
-    return;
-  ak_free(node->val);
 }

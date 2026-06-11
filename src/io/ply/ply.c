@@ -370,9 +370,6 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
   heap = ak_heap_new(NULL, NULL, NULL);
   doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
 
-  /* for fixing skin and morph vertices */
-  doc->reserved = rb_newtree_ptr();
-  
   doc->inf                = ak_heap_calloc(heap, doc, sizeof(*doc->inf));
   doc->inf->name          = filepath;
   doc->inf->dir           = ak_path_dir(heap, doc, filepath);

@@ -199,10 +199,10 @@ ak_instanceNodeTarget(AkInstanceNode * __restrict inst) {
   if (inst->target)
     return inst->target;
 
-  if (!inst->reserved)
+  if (!inst->sourceUrl)
     return NULL;
 
-  target = ak_getObjectByUrl(inst->reserved);
+  target = ak_getObjectByUrl(inst->sourceUrl);
   if (target && ak_typeid(target) == AKT_NODE)
     inst->target = target;
 

@@ -197,14 +197,6 @@ ak_indexSideArrayAllocZero(AkHeap   * __restrict heap,
   return indices;
 }
 
-static
-void
-ak_meshFreeDuplicatorNode(RBTree *tree, RBNode *node) {
-  if (node == tree->nullNode)
-    return;
-  ak_free(node->val);
-}
-
 AK_HIDE
 AkDuplicator*
 ak_meshDuplicatorForIndicesRetained(AkMesh          * __restrict mesh,
@@ -236,16 +228,9 @@ ak_meshDuplicatorForIndicesRetained(AkMesh          * __restrict mesh,
   doc     = ak_heap_data(heap);
 
   if (retain) {
-    if (!doc->reserved) {
-      doc->reserved = rb_newtree_ptr();
-      ((RBTree *)doc->reserved)->onFreeNode = ak_meshFreeDuplicatorNode;
-    }
-
-    if (doc->reserved) {
-      if ((dupl = rb_find(doc->reserved, prim))) {
-        rb_remove(doc->reserved, prim);
-        ak_free(dupl); /* or cache maybe if mesh is not edited ? */
-      }
+    if ((dupl = ak__docDuplicatorFind(doc, prim))) {
+      ak_free(dupl); /* or cache maybe if mesh is not edited ? */
+      (void)ak__docDuplicatorSet(doc, prim, NULL);
     }
   }
 
@@ -487,8 +472,8 @@ ak_meshDuplicatorForIndicesRetained(AkMesh          * __restrict mesh,
   if (hashes != localHashes)
     ak_free(hashes);
 
-  if (retain && doc->reserved)
-    rb_insert(doc->reserved, prim, dupl);
+  if (retain && !ak__docDuplicatorSet(doc, prim, dupl))
+    goto fail;
 
   return dupl;
 

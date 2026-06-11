@@ -70,7 +70,7 @@ dae_skin(DAEState * __restrict dst,
           } else {
             AkURL *url;
             inp->indexOffset = xmla_u32(DAE_XMLA8(xjoints, offset), 0);
-            url              = DAE_URL_FROM(xjoints, source, memp);
+            url              = DAE_URL_FROM(dst, xjoints, source, memp);
 
             if (inp->semantic == AK_INPUT_JOINT) {
               skindae->joints.joints = inp;
@@ -108,7 +108,7 @@ dae_skin(DAEState * __restrict dst,
           } else {
             AkURL *url;
             inp->indexOffset = xmla_u32(DAE_XMLA8(xwei, offset), 0);
-            url              = DAE_URL_FROM(xwei, source, memp);
+            url              = DAE_URL_FROM(dst, xwei, source, memp);
 
             if (inp->semantic == AK_INPUT_JOINT) {
               skindae->weights.joints = inp;

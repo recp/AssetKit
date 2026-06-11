@@ -49,8 +49,6 @@ static ak_enumpair daeVersions[] = {
 typedef void*(*AkLoadLibraryItemFn)(DAEState * __restrict dst,
                                     xml_t    * __restrict xml,
                                     void     * __restrict memp);
-static void ak_daeFreeDupl(RBTree *, RBNode *);
-
 static bool
 dae_xml_utf16(const void * __restrict data,
               size_t                  size,
@@ -136,10 +134,6 @@ dae_doc(AkDoc     ** __restrict dest,
   doc->inf->flipImage = true;
   doc->inf->ftype     = AK_FILE_TYPE_COLLADA;
   doc->coordSys       = AK_YUP; /* Default */
-
-  /* for fixing skin and morph vertices */
-  doc->reserved = rb_newtree_ptr();
-  ((RBTree *)doc->reserved)->onFreeNode = ak_daeFreeDupl;
 
   if (doc->inf->dir)
     doc->inf->dirlen = strlen(doc->inf->dir);
@@ -305,9 +299,6 @@ dae_doc(AkDoc     ** __restrict dest,
   if (xmlUtf8)
     free(xmlUtf8);
 
-  /* TODO: memory leak, free this RBTree*/
-  /* rb_destroy(doc->reserved); */
-
   return AK_OK;
 }
 
@@ -432,14 +423,6 @@ dae_xml_utf16_to_utf8(const void * __restrict data,
 err:
   free(utf8);
   return NULL;
-}
-
-static
-void
-ak_daeFreeDupl(RBTree *tree, RBNode *node) {
-  if (node == tree->nullNode)
-    return;
-  ak_free(node->val);
 }
 
 static

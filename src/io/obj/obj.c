@@ -35,10 +35,6 @@
 
 static
 void
-ak_wobjFreeDupl(RBTree *tree, RBNode *node);
-
-static
-void
 wobj_prepareMissingDefaults(WOState * __restrict wst);
 
 AK_INLINE
@@ -938,10 +934,6 @@ wobj_obj(AkDoc     ** __restrict dest,
     return AK_ERR;
   }
   
-  /* for fixing skin and morph vertices */
-  doc->reserved = rb_newtree_ptr();
-  ((RBTree *)doc->reserved)->onFreeNode = ak_wobjFreeDupl;
-  
   ak_heap_setdata(heap, doc);
   ak_id_newheap(heap);
 
@@ -1473,11 +1465,3 @@ err:
 }
 
 #undef WOBJ_TOKEN_SEP
-
-static
-void
-ak_wobjFreeDupl(RBTree *tree, RBNode *node) {
-  if (node == tree->nullNode)
-    return;
-  ak_free(node->val);
-}

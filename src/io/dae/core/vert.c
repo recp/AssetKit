@@ -46,8 +46,9 @@ dae_vert(DAEState * __restrict dst,
         ak_free(inp);
       } else {
         AkURL *url;
-        
-        url = DAE_URL_FROM(xml, source, memp);
+
+        inp->set = xmla_u32(DAE_XMLA4(xml, set), 0);
+        url = DAE_URL_FROM(dst, xml, source, memp);
         rb_insert(dst->inputmap, inp, url);
         
         inp->next   = vert->input;

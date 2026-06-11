@@ -23,20 +23,6 @@ extern "C" {
 #include "common.h"
 #include "node.h"
 
-typedef struct AkInstanceListItem {
-  struct AkInstanceListItem *prev;
-  struct AkInstanceListItem *next;
-  AkInstanceBase *instance;
-  size_t          index;
-} AkInstanceListItem;
-
-typedef struct AkInstanceList {
-  AkInstanceListItem *first;
-  AkInstanceListItem *last;
-  size_t              count;
-  size_t              lastindex;
-} AkInstanceList;
-
 AK_EXPORT
 AkInstanceBase*
 ak_instanceMake(AkHeap * __restrict heap,
@@ -67,23 +53,6 @@ AK_EXPORT
 AkInstanceNode *
 ak_nodeAttachNodeInstance(AkNode * __restrict owner,
                           AkNode * __restrict target);
-
-AK_EXPORT
-void
-ak_instanceListAdd(AkInstanceList *list,
-                   AkInstanceBase *inst);
-
-AK_EXPORT
-void
-ak_instanceListDel(AkInstanceList *list,
-                   AkInstanceListItem *item);
-
-AK_EXPORT
-void
-ak_instanceListEmpty(AkInstanceList *list);
-
-char*
-ak_instanceName(AkInstanceListItem *item);
 
 AK_EXPORT
 void *

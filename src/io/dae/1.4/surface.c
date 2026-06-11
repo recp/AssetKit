@@ -15,6 +15,7 @@
  */
 
 #include "surface.h"
+#include "image.h"
 #include "../core/asset.h"
 #include "../core/enum.h"
 
@@ -45,7 +46,7 @@ dae14_surface(DAEState * __restrict dst,
         initFrom->face = AK_FACE_POSITIVE_Y;
       }
 
-      initFrom->image = xml_strdup(xml, heap, initFrom);
+      initFrom->image = dae14_init_from_uri(heap, initFrom, xml);
       surf->initFrom  = initFrom;
     } else if (DAE_XML_TAG_EQ(xml, init_as_target)) {
       surf->initAsTarget = true; /* becuse the element exists */

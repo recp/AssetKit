@@ -94,10 +94,6 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
 //  doc->inf->ftype     = AK_FILE_TYPE_COLLADA;
 //  doc->coordSys       = AK_YUP; /* Default */
 //
-//  /* for fixing skin and morph vertices */
-//  doc->reserved = rb_newtree_ptr();
-//  ((RBTree *)doc->reserved)->onFreeNode = ak_daeFreeDupl;
-//
 //  if (doc->inf->dir)
 //    doc->inf->dirlen = strlen(doc->inf->dir);
 //
@@ -207,9 +203,6 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
 //
 //  if (xmlString)
 //    ak_releasefile(xmlString, xmlSize);
-//
-//  /* TODO: memory leak, free this RBTree*/
-//  /* rb_destroy(doc->reserved); */
 //
 //  return AK_OK;
 //

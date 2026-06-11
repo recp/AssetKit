@@ -18,6 +18,7 @@
 
 #include "utils.h"
 #include "io/dae/dae.h"
+#include "io/dae/exp/dae.h"
 #include "io/gltf/imp/gltf.h"
 #include "io/gltf/exp/gltf.h"
 #include "io/obj/obj.h"
@@ -428,6 +429,7 @@ ak_export(AkDoc * __restrict doc, const char * __restrict outDir,
     return AK_EBADF;
 
   fexporter_t fexporters[] = {
+    {dae_export,      "dae"},
     {gltf_export,     "gltf"},
     {gltf_export_glb, "glb"},
   };
@@ -435,14 +437,17 @@ ak_export(AkDoc * __restrict doc, const char * __restrict outDir,
   fexporter = NULL;
 
   if (fileType == AK_FILE_TYPE_AUTO) {
-    fexporter = &fexporters[0];
+    fexporter = &fexporters[1];
   } else {
     switch (fileType) {
-      case AK_FILE_TYPE_GLTF:
+      case AK_FILE_TYPE_COLLADA:
         fexporter = &fexporters[0];
         break;
-      case AK_FILE_TYPE_GLB:
+      case AK_FILE_TYPE_GLTF:
         fexporter = &fexporters[1];
+        break;
+      case AK_FILE_TYPE_GLB:
+        fexporter = &fexporters[2];
         break;
       default:
         break;

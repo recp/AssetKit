@@ -15,6 +15,7 @@
  */
 
 #include "../common.h"
+#include "edit_common.h"
 
 #include <assert.h>
 
@@ -27,6 +28,7 @@ ak_meshIndicesArrayFor(AkMesh          * __restrict mesh,
                        bool                         creat) {
   AkHeap           *heap;
   AkObject         *meshobj;
+  AkMeshPrimitiveEditState *edit;
   AkIndexArray     *indices;
   size_t            count;
   AkUInt            maxIndex;
@@ -35,7 +37,8 @@ ak_meshIndicesArrayFor(AkMesh          * __restrict mesh,
 
   assert(mesh->edith && ak_mesh_edit_assert1);
 
-  indices = prim->reserved3;
+  edit    = prim->reserved;
+  indices = edit ? edit->indices : NULL;
   if (!indices) {
     if (!creat)
       return prim->indices;
@@ -58,12 +61,18 @@ ak_meshIndicesArrayFor(AkMesh          * __restrict mesh,
 
     meshobj = ak_objFrom(mesh);
     heap    = ak_heap_getheap(meshobj);
+
+    if (!edit) {
+      edit       = ak_heap_calloc(heap, prim, sizeof(*edit));
+      prim->reserved = edit;
+    }
+
     maxIndex      = count > 0 && count <= (size_t)UINT32_MAX
                     ? (AkUInt)(count - 1)
                     : UINT32_MAX;
     componentType = ak_indexComponentTypeForMax(maxIndex);
     indices       = ak_indexArrayAlloc(heap, prim, count, componentType);
-    prim->reserved3 = indices;
+    edit->indices = indices;
     return indices;
   }
 
@@ -79,6 +88,7 @@ ak_moveIndices(AkMesh * __restrict mesh) {
   /* fix indices */
   prim = mesh->primitive;
   while (prim) {
+    AkMeshPrimitiveEditState *edit;
     AkIndexArray *indices;
 
     indices = ak_meshIndicesArrayFor(mesh, prim, false);
@@ -91,7 +101,12 @@ ak_moveIndices(AkMesh * __restrict mesh) {
     ak_free(prim->indices);
 
     prim->indices = indices;
-    prim->reserved3 = NULL;
+    if (prim->reserved) {
+      edit = prim->reserved;
+      edit->indices = NULL;
+      ak_free(edit);
+      prim->reserved = NULL;
+    }
     prim->indexAccessor = NULL;
 
     /* mark primitive as single index */

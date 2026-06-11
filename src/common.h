@@ -51,6 +51,175 @@
 #include <string.h>
 #include <stdarg.h>
 
+typedef struct AkDocPtrMapSlot {
+  void *key;
+  void *val;
+} AkDocPtrMapSlot;
+
+typedef struct AkDocPtrMap {
+  AkDocPtrMapSlot *slots;
+  uint32_t         capacity;
+  uint32_t         count;
+} AkDocPtrMap;
+
+typedef struct AkDocPrivate {
+  AkDocPtrMap duplicators;
+} AkDocPrivate;
+
+AK_INLINE
+uintptr_t
+ak__docPtrHash(const void *key) {
+  uintptr_t h;
+
+  h  = (uintptr_t)key >> 4;
+  h ^= h >> 16;
+  h *= (uintptr_t)0x45d9f3bu;
+  h ^= h >> 16;
+  return h ? h : 1u;
+}
+
+AK_INLINE
+AkDocPtrMapSlot*
+ak__docPtrMapSlot(AkDocPtrMapSlot * __restrict slots,
+                  uint32_t                     capacity,
+                  const void      * __restrict key) {
+  uintptr_t h, mask;
+
+  h    = ak__docPtrHash(key);
+  mask = capacity - 1u;
+
+  for (;;) {
+    AkDocPtrMapSlot *slot;
+
+    slot = &slots[h & mask];
+    if (!slot->key || slot->key == key)
+      return slot;
+
+    h++;
+  }
+}
+
+AK_INLINE
+bool
+ak__docPtrMapGrow(AkDocPrivate * __restrict priv,
+                  AkDocPtrMap  * __restrict map,
+                  uint32_t                  minCapacity) {
+  AkHeap           *heap;
+  AkDocPtrMapSlot *slots, *oldSlots;
+  uint32_t          oldCap, newCap, i;
+
+  heap = ak_heap_getheap(priv);
+  if (!heap)
+    return false;
+
+  oldCap = map->capacity;
+  newCap = oldCap ? oldCap << 1 : 16u;
+  while (newCap < minCapacity)
+    newCap <<= 1;
+
+  slots = ak_heap_calloc(heap, priv, sizeof(*slots) * newCap);
+  if (!slots)
+    return false;
+
+  oldSlots = map->slots;
+  for (i = 0; i < oldCap; i++) {
+    AkDocPtrMapSlot *oldSlot;
+
+    oldSlot = &oldSlots[i];
+    if (oldSlot->key)
+      *ak__docPtrMapSlot(slots, newCap, oldSlot->key) = *oldSlot;
+  }
+
+  map->slots    = slots;
+  map->capacity = newCap;
+
+  if (oldSlots)
+    ak_free(oldSlots);
+
+  return true;
+}
+
+AK_INLINE
+AkDocPrivate*
+ak__docPrivate(AkDoc * __restrict doc, bool create) {
+  AkDocPrivate *priv;
+  AkHeap       *heap;
+
+  if (!doc)
+    return NULL;
+
+  priv = doc->reserved;
+  if (!priv && create) {
+    heap = ak_heap_getheap(doc);
+    if (!heap)
+      return NULL;
+
+    priv          = ak_heap_calloc(heap, doc, sizeof(*priv));
+    doc->reserved = priv;
+  }
+
+  return priv;
+}
+
+AK_INLINE
+void*
+ak__docDuplicatorFind(AkDoc      * __restrict doc,
+                      const void * __restrict key) {
+  AkDocPrivate *priv;
+  AkDocPtrMap  *map;
+  AkDocPtrMapSlot *slot;
+
+  priv = ak__docPrivate(doc, false);
+  if (!priv || !key)
+    return NULL;
+
+  map = &priv->duplicators;
+  if (!map->slots)
+    return NULL;
+
+  slot = ak__docPtrMapSlot(map->slots, map->capacity, key);
+  return slot->key ? slot->val : NULL;
+}
+
+AK_INLINE
+bool
+ak__docDuplicatorSet(AkDoc      * __restrict doc,
+                     const void * __restrict key,
+                     void       * __restrict val) {
+  AkDocPrivate    *priv;
+  AkDocPtrMap     *map;
+  AkDocPtrMapSlot *slot;
+
+  if (!key)
+    return false;
+
+  priv = ak__docPrivate(doc, true);
+  if (!priv)
+    return false;
+
+  map = &priv->duplicators;
+  if (map->slots) {
+    slot = ak__docPtrMapSlot(map->slots, map->capacity, key);
+    if (slot->key) {
+      slot->val = val;
+      return true;
+    }
+  }
+
+  if (!map->slots
+      || (uint64_t)(map->count + 1u) * 4u >= (uint64_t)map->capacity * 3u) {
+    if (!ak__docPtrMapGrow(priv, map, map->count + 1u))
+      return false;
+  }
+
+  slot      = ak__docPtrMapSlot(map->slots, map->capacity, key);
+  slot->key = (void *)key;
+  slot->val = val;
+  map->count++;
+
+  return true;
+}
+
 #ifdef _MSC_VER
 #  define strncasecmp _strnicmp
 #  define strcasecmp  _stricmp

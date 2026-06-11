@@ -19,6 +19,31 @@
 #include "../core/enum.h"
 
 AK_HIDE
+char*
+dae14_init_from_uri(AkHeap * __restrict heap,
+                    void   * __restrict parent,
+                    xml_t  * __restrict xml) {
+  char  *uri;
+  xml_t *child;
+
+  if (!xml)
+    return NULL;
+
+  if ((uri = xml_strdup(xml, heap, parent)))
+    return uri;
+
+  child = xml->val;
+  while (child) {
+    if (DAE_XML_TAG_EQ4(child, ref))
+      return xml_strdup(child, heap, parent);
+
+    child = child->next;
+  }
+
+  return NULL;
+}
+
+AK_HIDE
 void
 dae14_fxMigrateImg(DAEState * __restrict dst,
                    xml_t    * __restrict xml,
@@ -63,8 +88,9 @@ dae14_fxMigrateImg(DAEState * __restrict dst,
         source->type = AK_IMAGE_SOURCE_HEX;
       }
     } else if (DAE_XML_TAG_EQ(xml, init_from)) {
-      source->uri  = xml_strdup(xml, heap, source);
-      source->type = AK_IMAGE_SOURCE_URI;
+      source->uri = dae14_init_from_uri(heap, source, xml);
+      if (source->uri)
+        source->type = AK_IMAGE_SOURCE_URI;
     } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       img->extra = tree_fromxml(heap, img, xml);
       if (img->extra)

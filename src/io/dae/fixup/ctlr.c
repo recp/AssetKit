@@ -233,6 +233,103 @@ dae_resolve_skin_joint(DAEState   * __restrict dst,
   return NULL;
 }
 
+static
+AkInstanceSkin*
+dae_instance_skin_from_controller(DAEState             * __restrict dst,
+                                  AkInstanceController * __restrict instCtlr,
+                                  AkController         * __restrict ctlr,
+                                  AkNode               * __restrict node) {
+  AkSkin         *skin;
+  AkSkinDAE      *skindae;
+  AkInstanceSkin *instSkin;
+  AkNode        **joints;
+  AkInput        *jointsInp;
+  AkInput        *matrixInp;
+  AkAccessor     *jointsAcc;
+  AkAccessor     *matrixAcc;
+  AkBuffer       *jointsBuff;
+  AkBuffer       *matrixBuff;
+  AkFloat4x4     *invm;
+  const char     *sid;
+  char           *jointBase;
+  char           *matrixBase;
+  size_t          jointStride;
+  size_t          matrixStride;
+  size_t          count;
+  size_t          i;
+
+  if (!dst || !instCtlr || !ctlr || ctlr->type != AK_CONTROLLER_SKIN)
+    return NULL;
+
+  skin    = ctlr->data;
+  skindae = skin ? ak_userData(skin) : NULL;
+  if (!skin || !skindae)
+    return NULL;
+
+  jointsInp = skindae->joints.joints;
+  matrixInp = skindae->joints.invBindMatrix;
+  if (!jointsInp
+      || !matrixInp
+      || !(jointsAcc = jointsInp->accessor)
+      || !(matrixAcc = matrixInp->accessor)
+      || !(jointsBuff = jointsAcc->buffer)
+      || !(matrixBuff = matrixAcc->buffer)
+      || !jointsBuff->data
+      || !matrixBuff->data
+      || jointsAcc->count == 0
+      || matrixAcc->count < jointsAcc->count)
+    return NULL;
+
+  count        = jointsAcc->count;
+  jointStride  = jointsAcc->byteStride ? jointsAcc->byteStride
+                                       : sizeof(const char *);
+  matrixStride = matrixAcc->byteStride ? matrixAcc->byteStride
+                                       : sizeof(AkFloat) * 16u;
+  jointBase    = (char *)jointsBuff->data + jointsAcc->byteOffset;
+  matrixBase   = (char *)matrixBuff->data + matrixAcc->byteOffset;
+
+  joints = ak_heap_alloc(dst->heap, instCtlr, sizeof(*joints) * count);
+  invm   = ak_heap_alloc(dst->heap, ctlr->data, sizeof(*invm) * count);
+  if (!joints || !invm)
+    return NULL;
+
+  for (i = 0; i < count; i++) {
+    sid = *(const char **)(jointBase + i * jointStride);
+    joints[i] = sid
+                  ? dae_resolve_skin_joint(dst,
+                                           instCtlr->reserved,
+                                           sid,
+                                           jointsAcc->componentType)
+                  : NULL;
+
+    memcpy(invm[i], matrixBase + i * matrixStride, sizeof(AkFloat) * 16u);
+    glm_mat4_transpose(invm[i]);
+  }
+
+  skin->nJoints      = count;
+  skin->invBindPoses = invm;
+
+  /* DAE persists skeleton root as <skeleton> URL on each
+     <instance_controller>; the same skin can be re-used with different
+     skeletons per instance, but for a single-instance setup the first URL
+     is a faithful AkSkin.skeleton hint. Fall back silently when missing —
+     callers default to joints[0]. */
+  if (!skin->skeleton && instCtlr->reserved) {
+    const char *skelUrl = instCtlr->reserved->data;
+    void       *resolved;
+    if ((resolved = dae_skeleton_scope(dst->doc, skelUrl))
+        && ak_typeid(resolved) == AKT_NODE) {
+      skin->skeleton = resolved;
+    }
+  }
+
+  instSkin                 = ak_heap_calloc(dst->heap, node, sizeof(*instSkin));
+  instSkin->skin           = skin;
+  instSkin->overrideJoints = joints;
+
+  return instSkin;
+}
+
 AK_HIDE
 void
 dae_fixup_ctlr(DAEState * __restrict dst) {
@@ -299,7 +396,7 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
                 continue;
               }
 
-              dupl    = rb_find(doc->reserved, prim);
+              dupl  = ak__docDuplicatorFind(doc, prim);
               count = 0;
               if (dupl && dupl->range)
                 count = dupl->bufCount + dupl->dupCount;
@@ -513,7 +610,6 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
 AK_HIDE
 void
 dae_fixup_instctlr(DAEState * __restrict dst) {
-  AkSkinDAE            *skindae;
   FListItem            *item;
   AkInstanceController *instCtlr;
   AkController         *ctlr;
@@ -534,71 +630,19 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
       case AK_CONTROLLER_SKIN: {
         AkInstanceSkin *instSkin;
         AkSkin         *skin;
-        AkNode        **joints;
-        AkInput        *jointsInp,  *matrixInp;
-        AkAccessor     *jointsAcc,  *matrixAcc;
-        AkBuffer       *jointsBuff, *matrixBuff;
-        const char     *sid, **it;
-        AkFloat        *mit;
-        AkFloat4x4     *invm;
-        size_t          count, i;
+        AkSkinDAE      *skindae;
 
         skin      = ctlr->data;
-        skindae   = ak_userData(skin);
-        instSkin  = ak_heap_calloc(dst->heap, node, sizeof(*instSkin));
+        skindae   = skin ? ak_userData(skin) : NULL;
+        if (!skindae)
+          break;
 
-        skin      = ctlr->data;
-        jointsInp = skindae->joints.joints;
-        matrixInp = skindae->joints.invBindMatrix;
-        invm      = NULL;
-        joints    = NULL;
+        instSkin  = dae_instance_skin_from_controller(dst,
+                                                      instCtlr,
+                                                      ctlr,
+                                                      node);
 
-        if ((jointsAcc = jointsInp->accessor)) {
-          matrixAcc  = matrixInp->accessor;
-          jointsBuff = jointsAcc->buffer;
-          matrixBuff = matrixAcc->buffer;
-
-          it         = jointsBuff->data;
-          mit        = matrixBuff->data;
-          count      = jointsAcc->count;
-          joints     = ak_heap_alloc(dst->heap, instCtlr, sizeof(void **) * count);
-          invm       = ak_heap_alloc(dst->heap, ctlr->data, sizeof(mat4) * count);
-
-          for (i = 0; i < count; i++) {
-            if (!(sid = it[i]))
-              continue;
-
-            joints[i] = dae_resolve_skin_joint(dst,
-                                               instCtlr->reserved,
-                                               sid,
-                                               jointsAcc->componentType);
-
-            /* move invBindMatrix to new location */
-            memcpy(invm[i], mit + 16 * i, sizeof(AkFloat) * 16);
-            glm_mat4_transpose(invm[i]);
-          }
-
-          skin->nJoints            = count;
-          skin->invBindPoses       = invm;
-
-          /* DAE persists skeleton root as <skeleton> URL on each
-             <instance_controller>; the same skin can be re-used with
-             different skeletons per instance, but for a single-instance
-             setup the first URL is a faithful AkSkin.skeleton hint.
-             Fall back silently when missing — callers default to
-             joints[0]. */
-          if (!skin->skeleton && instCtlr->reserved) {
-            const char *skelUrl = instCtlr->reserved->data;
-            void       *resolved;
-            if ((resolved = dae_skeleton_scope(dst->doc, skelUrl))
-                && ak_typeid(resolved) == AKT_NODE) {
-              skin->skeleton = resolved;
-            }
-          }
-
-          instSkin->skin           = skin;
-          instSkin->overrideJoints = joints;
-
+        if (instSkin) {
           /* COLLADA permits chained controllers — skin's source can be
              another controller (typically a morph from Maya):
                  <skin source="#someMorph"/>
@@ -617,12 +661,17 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
               if (intermediate->type == AK_CONTROLLER_MORPH) {
                 AkMorphDAE      *morphdae2;
                 AkInstanceMorph *instMorph;
-                morphdae2 = ak_userData(intermediate->data);
-                instMorph = ak_heap_calloc(dst->heap, node,
-                                           sizeof(*instMorph));
-                instMorph->morph           = intermediate->data;
-                instMorph->overrideWeights = NULL;
-                instGeom->morpher          = instMorph;
+                AkMorph         *morph2;
+
+                morph2    = intermediate->data;
+                morphdae2 = morph2 ? ak_userData(morph2) : NULL;
+                if (morph2 && morph2->targetCount > 0) {
+                  instMorph = ak_heap_calloc(dst->heap, node,
+                                             sizeof(*instMorph));
+                  instMorph->morph           = morph2;
+                  instMorph->overrideWeights = NULL;
+                  instGeom->morpher          = instMorph;
+                }
                 (void)morphdae2;
               }
               /* skin→skin nesting is exotic and the data model can't
@@ -645,13 +694,17 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
 
         morph     = ctlr->data;
         morphdae  = ak_userData(morph);
-        instMorph = ak_heap_calloc(dst->heap, node, sizeof(*instMorph));
+        if (!morphdae)
+          break;
 
-        instMorph->morph           = morph;
-        instMorph->overrideWeights = NULL; /* DAE has no per-instance weights;
-                                              animation drives morph.targets   */
+        if (morph && morph->targetCount > 0) {
+          instMorph = ak_heap_calloc(dst->heap, node, sizeof(*instMorph));
+          instMorph->morph           = morph;
+          instMorph->overrideWeights = NULL; /* DAE has no per-instance weights;
+                                                animation drives morph.targets   */
 
-        instGeom->morpher          = instMorph;
+          instGeom->morpher          = instMorph;
+        }
 
         /* Symmetric to SKIN case: morph→skin→geom is rare but spec-allowed.
            Single-level lookahead; deeper chains collapse via ak_baseGeometry. */
@@ -660,11 +713,14 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
           if (src && ak_typeid(src) == AKT_CONTROLLER) {
             AkController *intermediate = src;
             if (intermediate->type == AK_CONTROLLER_SKIN) {
-              AkInstanceSkin *instSkin = ak_heap_calloc(dst->heap, node,
-                                                        sizeof(*instSkin));
-              instSkin->skin           = intermediate->data;
-              instSkin->overrideJoints = NULL; /* picked up from default joints */
-              instGeom->skinner        = instSkin;
+              AkInstanceSkin *instSkin;
+
+              instSkin = dae_instance_skin_from_controller(dst,
+                                                           instCtlr,
+                                                           intermediate,
+                                                           node);
+              if (instSkin)
+                instGeom->skinner = instSkin;
             }
           }
         }
@@ -741,56 +797,56 @@ ak_fixBoneWeights(AkHeap        *heap,
   if (!useDupl && weights->nVertex < vc)
     vc = weights->nVertex;
 
-#define AK_CTLR_FIX_DISPATCH(OP)                                            \
-  do {                                                                      \
+#define AK_CTLR_FIX_DISPATCH(OP)                                             \
+  do {                                                                       \
     switch (dupc->componentType) {                                           \
       case AKT_UBYTE:                                                        \
         switch (dupcsum->componentType) {                                    \
-          case AKT_UBYTE:  OP(uint8_t, uint8_t);   break;                   \
-          case AKT_USHORT: OP(uint8_t, uint16_t);  break;                   \
-          case AKT_UINT:   OP(uint8_t, AkUInt);    break;                   \
+          case AKT_UBYTE:  OP(uint8_t, uint8_t);   break;                    \
+          case AKT_USHORT: OP(uint8_t, uint16_t);  break;                    \
+          case AKT_UINT:   OP(uint8_t, AkUInt);    break;                    \
           default: break;                                                    \
-        }                                                                   \
-        break;                                                              \
+        }                                                                    \
+        break;                                                               \
       case AKT_USHORT:                                                       \
         switch (dupcsum->componentType) {                                    \
-          case AKT_UBYTE:  OP(uint16_t, uint8_t);  break;                   \
-          case AKT_USHORT: OP(uint16_t, uint16_t); break;                   \
-          case AKT_UINT:   OP(uint16_t, AkUInt);   break;                   \
+          case AKT_UBYTE:  OP(uint16_t, uint8_t);  break;                    \
+          case AKT_USHORT: OP(uint16_t, uint16_t); break;                    \
+          case AKT_UINT:   OP(uint16_t, AkUInt);   break;                    \
           default: break;                                                    \
-        }                                                                   \
-        break;                                                              \
+        }                                                                    \
+        break;                                                               \
       case AKT_UINT:                                                         \
         switch (dupcsum->componentType) {                                    \
-          case AKT_UBYTE:  OP(AkUInt, uint8_t);    break;                   \
-          case AKT_USHORT: OP(AkUInt, uint16_t);   break;                   \
-          case AKT_UINT:   OP(AkUInt, AkUInt);     break;                   \
+          case AKT_UBYTE:  OP(AkUInt, uint8_t);    break;                    \
+          case AKT_USHORT: OP(AkUInt, uint16_t);   break;                    \
+          case AKT_UINT:   OP(AkUInt, AkUInt);     break;                    \
           default: break;                                                    \
-        }                                                                   \
-        break;                                                              \
+        }                                                                    \
+        break;                                                               \
       default: break;                                                        \
-    }                                                                       \
+    }                                                                        \
   } while (0)
 
-#define AK_CTLR_FIX_COUNT_PASS(DUPTYPE, SUMTYPE)                            \
-  do {                                                                      \
+#define AK_CTLR_FIX_COUNT_PASS(DUPTYPE, SUMTYPE)                             \
+  do {                                                                       \
     const DUPTYPE *dupcItems_;                                               \
     const SUMTYPE *sumItems_;                                                \
-                                                                            \
+                                                                             \
     dupcItems_ = (const DUPTYPE *)(const void *)dupc->items;                 \
     sumItems_  = (const SUMTYPE *)(const void *)dupcsum->items;              \
     for (i = 0; i < vc; i++) {                                               \
       if ((poo = dupcItems_[3 * i + 2]) == 0)                                \
         continue;                                                            \
-                                                                            \
+                                                                             \
       pno = dupcItems_[3 * i];                                               \
       d   = dupcItems_[3 * i + 1];                                           \
       if (pno >= dupcsum->count)                                             \
         continue;                                                            \
-                                                                            \
+                                                                             \
       s      = sumItems_[pno];                                               \
       vcount = ak_daeSafeWeightCount(intrWeights, v, viStride, poo - 1);     \
-                                                                            \
+                                                                             \
       for (j = 0; j <= d; j++) {                                             \
         newidx = pno + j + s;                                                \
         if (newidx >= weights->nVertex)                                      \
@@ -798,15 +854,15 @@ ak_fixBoneWeights(AkHeap        *heap,
         wi[newidx] = vcount;                                                 \
         nj[newidx] = vcount;                                                 \
         nwsum     += vcount;                                                 \
-      }                                                                     \
-    }                                                                       \
+      }                                                                      \
+    }                                                                        \
   } while (0)
 
-#define AK_CTLR_FIX_COPY_PASS(DUPTYPE, SUMTYPE)                             \
-  do {                                                                      \
+#define AK_CTLR_FIX_COPY_PASS(DUPTYPE, SUMTYPE)                              \
+  do {                                                                       \
     const DUPTYPE *dupcItems_;                                               \
     const SUMTYPE *sumItems_;                                                \
-                                                                            \
+                                                                             \
     dupcItems_ = (const DUPTYPE *)(const void *)dupc->items;                 \
     sumItems_  = (const SUMTYPE *)(const void *)dupcsum->items;              \
     for (i = 0; i < vc; i++) {                                               \
@@ -816,28 +872,28 @@ ak_fixBoneWeights(AkHeap        *heap,
       d   = dupcItems_[3 * i + 1];                                           \
       if (pno >= dupcsum->count)                                             \
         continue;                                                            \
-                                                                            \
+                                                                             \
       s      = sumItems_[pno];                                               \
       vcount = ak_daeSafeWeightCount(intrWeights, v, viStride, poo - 1);     \
-      old    = &pv[pOldCountSum[poo - 1] * viStride];                       \
-                                                                            \
+      old    = &pv[pOldCountSum[poo - 1] * viStride];                        \
+                                                                             \
       for (j = 0; j <= d; j++) {                                             \
         tmp = pno + j + s;                                                   \
         if (tmp >= weights->nVertex)                                         \
           continue;                                                          \
-                                                                            \
+                                                                             \
         newidx = wi[tmp];                                                    \
-                                                                            \
+                                                                             \
         for (k = 0; k < vcount; k++) {                                       \
           widx       = old[k * viStride + weightsOffset];                    \
           iw         = &w[newidx + k];                                       \
           iw->joint  = old[k * viStride + jointOffset];                      \
           iw->weight = ak_daeReadSkinWeight(weightsAcc, widx);               \
-        }                                                                   \
-                                                                            \
+        }                                                                    \
+                                                                             \
         nwsum += vcount;                                                     \
-      }                                                                     \
-    }                                                                       \
+      }                                                                      \
+    }                                                                        \
   } while (0)
 
   /* copy to new location and duplicate if needed */

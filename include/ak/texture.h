@@ -115,11 +115,11 @@ typedef struct AkTextureTransform {
 typedef struct AkTextureRef {
   struct AkTexture   *texture;
 
-  /* to bind texture to input coord dynamically, e.g. used by bindMaterial in 
-     node like COLLADA  */
+  /* Source-side texcoord binding override, usually resolved from an object-
+     or instance-level material binding. */
   const char         *texcoord;
 
-  /* glTF like texture bind */
+  /* Canonical texture-coordinate binding. */
   const char         *coordInputName;
   int                 slot;
 
@@ -147,7 +147,7 @@ typedef struct AkKTX2DecodedImage {
   uint32_t        channels;
   uint32_t        mipCount;
   AkKTX2MipLevel *mips;
-  uint32_t        reserved[2];
+  uint32_t        padding[2];
 } AkKTX2DecodedImage;
 
 typedef int

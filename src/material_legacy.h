@@ -166,7 +166,7 @@ typedef struct AkInstanceEffect {
 
 typedef struct AkBindMaterial {
   AkParam            *param;
-  AkInstanceMaterial *tcommon;
+  AkInstanceMaterial *instanceMaterials;
   AkTechnique        *technique;
   AkTree             *extra;
 } AkBindMaterial;

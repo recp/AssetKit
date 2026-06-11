@@ -26,12 +26,11 @@ extern "C" {
 
 typedef struct AkContext {
   AkDoc              *doc;
-  void               *reserved0;
-  void               *reserved1;
+  void               *reserved;
   //  AkMap              *bindVertexInput;
 } AkContext;
 
-AK_INLINE AkContext AkContextZeroed(void) { return (AkContext){NULL, NULL, NULL}; }
+AK_INLINE AkContext AkContextZeroed(void) { return (AkContext){NULL, NULL}; }
 
 #ifdef __cplusplus
 }

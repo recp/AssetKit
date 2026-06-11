@@ -311,7 +311,7 @@ ak_sid_profile(AkContext  * __restrict ctx,
                        after ? ak__alignas(after) : NULL);
 
   /* check hint for profile */
-  hint = ctx ? (AkTechniqueHint *)ctx->reserved0 : NULL;
+  hint = ctx ? (AkTechniqueHint *)ctx->reserved : NULL;
 
   if ((!hint || !hint->profile)
       && profile)
@@ -348,7 +348,7 @@ ak_sid_technique(AkContext  * __restrict ctx,
   AkTechniqueHint *hint;
 
   orig = chld;
-  hint = ctx ? (AkTechniqueHint *)ctx->reserved0 : NULL;
+  hint = ctx ? (AkTechniqueHint *)ctx->reserved : NULL;
 
   /* first check hint for technique */
   if (hint && hint->ref) {

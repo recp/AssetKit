@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-/*
- * TODO: maybe there is better way to implement sid addressing?
- */
-
 #ifndef assetkit_sid_h
 #define assetkit_sid_h
 #ifdef __cplusplus

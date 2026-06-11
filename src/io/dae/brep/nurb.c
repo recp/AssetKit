@@ -29,7 +29,7 @@ dae_nurbs(DAEState * __restrict dst,
   AkNurbs  *nurbs;
 
   heap  = dst->heap;
-  obj   = ak_objAlloc(heap, memp, sizeof(*nurbs), 0, true);
+  obj   = ak_objAlloc(heap, memp, sizeof(*nurbs), AK_CURVE_NURBS, true);
   nurbs = ak_objGet(obj);
 
   nurbs->degree = xmla_u32(DAE_XMLA8(xml, degree), 0);
@@ -60,7 +60,11 @@ dae_nurbs_surface(DAEState * __restrict dst,
   AkNurbsSurface *nurbsSurface;
 
   heap  = dst->heap;
-  obj   = ak_objAlloc(heap, memp, sizeof(*nurbsSurface), 0, true);
+  obj   = ak_objAlloc(heap,
+                      memp,
+                      sizeof(*nurbsSurface),
+                      AK_SURFACE_NURBS_SURFACE,
+                      true);
   nurbsSurface = ak_objGet(obj);
 
   nurbsSurface->degree_u = xmla_u32(DAE_XMLA8(xml, degree_u), 0);

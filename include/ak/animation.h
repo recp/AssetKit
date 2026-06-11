@@ -151,22 +151,22 @@ ak_channelTarget(AkContext * __restrict ctx,
   AkResolvedTarget resolved = {NULL, 0, false};
   uint32_t         attrOff;
 
-  /** glTF (and DAE post-fixup) provide a pre-resolved target. Honor it
-      first — the SID string in ch->target is then optional and used only
-      as a debug/lookup hint.
+  /** Importers may provide a pre-resolved target. Honor it first — the
+      SID/string path in ch->target is then optional and used only as a
+      debug/lookup hint.
 
-      glTF example: target => "translation"
+      Whole-target example: target => "translation"
         ch->resolvedTarget = AkResolvedTarget* with target = AkTranslate*
-        and off = 0 (glTF animates the whole transform element).
+        and off = 0.
 
-      DAE example for morph weights: target => "morph-weights(0)"
-        dae_fixup_channel resolves the source-and-(idx) pattern at fixup
-        time and writes ch->resolvedTarget = AkResolvedTarget* with target
-        = AkInstanceMorph*, off = idx, isPartial = true. */
+      Indexed-target example for morph weights: target => "morph-weights(0)"
+        fixup resolves the source-and-(idx) pattern and writes
+        ch->resolvedTarget = AkResolvedTarget* with target = AkInstanceMorph*,
+        off = idx, isPartial = true. */
   if (ch->resolvedTarget)
     return *ch->resolvedTarget;
 
-  /** DAE SID path: "node1/translate.Y"
+  /** SID path: "node1/translate.Y"
       resolved.target = AkTranslate*, sidAttrib = "Y" */
   if (ch->target) {
     if ((resolved.target = ak_sid_resolve(ctx, ch->target, &sidAttrib))

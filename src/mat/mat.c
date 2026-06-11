@@ -1030,7 +1030,7 @@ ak__instanceGeometryApplyBindMaterial(AkInstanceGeometry * __restrict instance,
   heap = ak_heap_getheap(instance);
   geom = ak_instanceObject(&instance->base);
 
-  for (materialInst = bindMat->tcommon;
+  for (materialInst = bindMat->instanceMaterials;
        materialInst;
        materialInst = (AkInstanceMaterial *)materialInst->base.next) {
     if (materialInst->symbol) {

@@ -1,0 +1,656 @@
+/*
+ * Copyright (C) 2020 Recep Aslantas
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "image.h"
+#include "io.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+AK_HIDE
+bool
+dae_prepare_extra_image(DAEExpState * __restrict st,
+                        AkImage     * __restrict image) {
+  if (!image)
+    return true;
+
+  return dae_prepare_extra_object(st->images,
+                                  &st->imageCount,
+                                  &st->extraImages,
+                                  &st->lastExtraImage,
+                                  image);
+}
+
+AK_HIDE
+bool
+dae_prepare_texture_image(DAEExpState  * __restrict st,
+                          AkTextureRef * __restrict texref) {
+  AkTexture *tex;
+
+  tex = texref ? texref->texture : NULL;
+  return !tex || !tex->image || dae_prepare_extra_image(st, tex->image);
+}
+
+static
+bool
+dae_cstr_eq(const char * __restrict val,
+            const char * __restrict token) {
+  return val && token && strcmp(val, token) == 0;
+}
+
+static
+const char*
+dae_image_mime_ext(AkImageSource * __restrict source) {
+  const char *mime;
+
+  mime = source ? source->mimeType : NULL;
+  if (dae_cstr_eq(mime, "image/png"))
+    return ".png";
+  if (dae_cstr_eq(mime, "image/jpeg"))
+    return ".jpg";
+  if (dae_cstr_eq(mime, "image/webp"))
+    return ".webp";
+  if (dae_cstr_eq(mime, "image/ktx2"))
+    return ".ktx2";
+
+  return ".bin";
+}
+
+static
+char*
+dae_image_buffer_uri(AkImageSource * __restrict source,
+                     uint32_t                   imageIdx,
+                     size_t                     collisionIdx) {
+  const char *ext;
+  char       *uri;
+  char        stack[64];
+  int         written;
+  size_t      size;
+
+  ext = dae_image_mime_ext(source);
+  written = collisionIdx == 0
+            ? snprintf(stack, sizeof(stack), "image_%u%s", imageIdx, ext)
+            : snprintf(stack,
+                       sizeof(stack),
+                       "image_%u_%zu%s",
+                       imageIdx,
+                       collisionIdx,
+                       ext);
+  if (written <= 0)
+    return NULL;
+
+  if ((size_t)written < sizeof(stack))
+    return dae_strdup(stack);
+
+  size = (size_t)written + 1u;
+  uri  = malloc(size);
+  if (!uri)
+    return NULL;
+
+  if (collisionIdx == 0)
+    snprintf(uri, size, "image_%u%s", imageIdx, ext);
+  else
+    snprintf(uri, size, "image_%u_%zu%s", imageIdx, collisionIdx, ext);
+
+  return uri;
+}
+
+static
+char*
+dae_image_unique_buffer_uri(RBTree        * __restrict uriMap,
+                            AkImageSource * __restrict source,
+                            uint32_t                   imageIdx) {
+  char  *generated;
+  size_t collisionIdx;
+
+  for (collisionIdx = 0; collisionIdx < 1000000u; collisionIdx++) {
+    generated = dae_image_buffer_uri(source, imageIdx, collisionIdx);
+    if (!generated)
+      return NULL;
+
+    if (!rb_find(uriMap, generated)) {
+      rb_insert(uriMap, generated, (void *)(uintptr_t)1);
+      return generated;
+    }
+
+    free(generated);
+  }
+
+  return NULL;
+}
+
+static
+AkImageSource*
+dae_image_source(AkImage * __restrict image) {
+  if (!image)
+    return NULL;
+
+  if (image->source)
+    return image->source;
+
+  return image->image ? image->image->source : NULL;
+}
+
+static
+const char*
+dae_image_uri(AkImage * __restrict image) {
+  AkImageSource *source;
+
+  for (source = dae_image_source(image); source; source = source->next) {
+    if (source->type == AK_IMAGE_SOURCE_URI && source->uri)
+      return source->uri;
+  }
+
+  source = dae_image_source(image);
+  if (source) {
+    if (source->uri)
+      return source->uri;
+    if (source->resolvedPath)
+      return source->resolvedPath;
+  }
+
+  return NULL;
+}
+
+static
+const char*
+dae_image_source_path(DAEExpState  * __restrict st,
+                      AkImageSource * __restrict source,
+                      char          * __restrict pathbuf,
+                      size_t                     pathbufCap) {
+  const char *filePath;
+
+  if (!source || !source->uri || dae_uri_is_data(source->uri))
+    return NULL;
+
+  if (source->resolvedPath)
+    return source->resolvedPath;
+
+  filePath = dae_uri_file_path(source->uri);
+  if (filePath) {
+    if (strchr(filePath, '%')) {
+      if (!dae_uri_decode_path(filePath, pathbuf, pathbufCap))
+        return NULL;
+      return pathbuf;
+    }
+    return filePath;
+  }
+
+  if (dae_uri_has_scheme(source->uri))
+    return NULL;
+
+  if (st->doc
+      && st->doc->inf
+      && st->doc->inf->dir
+      && st->doc->inf->dir[0]) {
+    if (dae_join_path_buf(st->doc->inf->dir,
+                          source->uri,
+                          pathbuf,
+                          pathbufCap))
+      return pathbuf;
+  }
+
+  return source->uri;
+}
+
+static
+bool
+dae_image_uri_is_copy_source(AkImageSource * __restrict source) {
+  return source
+         && source->type == AK_IMAGE_SOURCE_URI
+         && source->uri
+         && !dae_uri_is_data(source->uri)
+         && (dae_path_is_abs(source->uri)
+             || !dae_uri_has_scheme(source->uri)
+             || dae_uri_is_file_scheme(source->uri));
+}
+
+static
+bool
+dae_image_copy_uri(DAEExpState  * __restrict st,
+                   AkImageSource * __restrict source,
+                   const char    * __restrict uri) {
+  char        srcbuf[4096];
+  char        dstbuf[4096];
+  char       *dstPath;
+  const char *srcPath;
+  bool        ok;
+  bool        heapPath;
+
+  if (!st->outDir
+      || !source
+      || !dae_image_uri_is_copy_source(source)
+      || !uri
+      || dae_uri_is_data(uri)
+      || dae_uri_has_scheme(uri)
+      || dae_path_is_abs(uri)
+      || !dae_uri_rel_safe(uri))
+    return true;
+
+  srcPath = dae_image_source_path(st, source, srcbuf, sizeof(srcbuf));
+  if (!srcPath)
+    return true;
+
+  heapPath = false;
+  if (dae_join_path_buf(st->outDir, uri, dstbuf, sizeof(dstbuf))) {
+    dstPath = dstbuf;
+  } else {
+    dstPath  = dae_join_path(st->outDir, uri);
+    heapPath = true;
+  }
+  if (!dstPath)
+    return false;
+
+  ok = dae_mkdir_parent_dirs(dstPath)
+       && dae_copy_file(srcPath, dstPath);
+  if (heapPath)
+    free(dstPath);
+
+  return ok;
+}
+
+static
+bool
+dae_image_write_buffer(DAEExpState  * __restrict st,
+                       AkImageSource * __restrict source,
+                       const char    * __restrict uri) {
+  char  dstbuf[4096];
+  char *dstPath;
+  bool  ok;
+  bool  heapPath;
+
+  if (!source || source->type != AK_IMAGE_SOURCE_BUFFER)
+    return true;
+
+  if (!st->outDir
+      || !source->buffer
+      || !source->buffer->data
+      || source->buffer->length == 0
+      || !uri
+      || dae_uri_is_data(uri)
+      || dae_uri_has_scheme(uri)
+      || dae_path_is_abs(uri)
+      || !dae_uri_rel_safe(uri))
+    return false;
+
+  heapPath = false;
+  if (dae_join_path_buf(st->outDir, uri, dstbuf, sizeof(dstbuf))) {
+    dstPath = dstbuf;
+  } else {
+    dstPath  = dae_join_path(st->outDir, uri);
+    heapPath = true;
+  }
+  if (!dstPath)
+    return false;
+
+  ok = dae_mkdir_parent_dirs(dstPath)
+       && dae_write_file_bytes(dstPath,
+                               source->buffer->data,
+                               source->buffer->length);
+  if (heapPath)
+    free(dstPath);
+
+  return ok;
+}
+
+static
+const char*
+dae_uri_basename(const char * __restrict uri) {
+  const char *base;
+  const char *it;
+
+  if (!uri || !*uri)
+    return NULL;
+
+  base = uri;
+  for (it = uri; *it; it++) {
+    if (*it == '/' || *it == '\\')
+      base = it + 1;
+  }
+
+  if (!*base
+      || strcmp(base, ".") == 0
+      || strcmp(base, "..") == 0)
+    return NULL;
+
+  return base;
+}
+
+static
+bool
+dae_image_needs_uri_rewrite(const char * __restrict uri) {
+  return uri
+         && !dae_uri_is_data(uri)
+         && !dae_uri_has_scheme(uri)
+         && !dae_path_is_abs(uri)
+         && !dae_uri_rel_safe(uri);
+}
+
+static
+bool
+dae_image_rewrite_uri(uint32_t                 imageIdx,
+                      const char * __restrict  uri,
+                      char       * __restrict  out,
+                      size_t                   outCap) {
+  const char *base;
+  int         written;
+
+  if (!out || outCap == 0)
+    return false;
+
+  base = dae_uri_basename(uri);
+  if (!base)
+    base = "image";
+
+  written = snprintf(out, outCap, "image_%u_%s", imageIdx, base);
+  return written > 0 && (size_t)written < outCap;
+}
+
+static
+char*
+dae_image_indexed_basename(const char * __restrict base,
+                           uint32_t                imageIdx,
+                           size_t                  collisionIdx) {
+  char  *uri;
+  char   stack[512];
+  int    written;
+  size_t size;
+
+  if (!base || !*base)
+    base = "image";
+
+  written = collisionIdx == 0
+            ? snprintf(stack, sizeof(stack), "image_%u_%s", imageIdx, base)
+            : snprintf(stack,
+                       sizeof(stack),
+                       "image_%u_%zu_%s",
+                       imageIdx,
+                       collisionIdx,
+                       base);
+  if (written <= 0)
+    return NULL;
+
+  if ((size_t)written < sizeof(stack))
+    return dae_strdup(stack);
+
+  size = (size_t)written + 1u;
+  uri  = malloc(size);
+  if (!uri)
+    return NULL;
+
+  if (collisionIdx == 0)
+    snprintf(uri, size, "image_%u_%s", imageIdx, base);
+  else
+    snprintf(uri, size, "image_%u_%zu_%s", imageIdx, collisionIdx, base);
+
+  return uri;
+}
+
+static
+bool
+dae_image_uri_map_reserve(RBTree * __restrict uriMap,
+                          char   * __restrict uri) {
+  if (!uri)
+    return false;
+
+  if (!rb_find(uriMap, uri))
+    rb_insert(uriMap, uri, (void *)(uintptr_t)1);
+
+  return true;
+}
+
+static
+char*
+dae_image_unique_generated_uri(RBTree      * __restrict uriMap,
+                               const char  * __restrict uri,
+                               uint32_t                 imageIdx) {
+  const char *base;
+  char       *generated;
+  size_t      collisionIdx;
+
+  base = dae_uri_basename(uri);
+  for (collisionIdx = 0; collisionIdx < 1000000u; collisionIdx++) {
+    generated = dae_image_indexed_basename(base, imageIdx, collisionIdx);
+    if (!generated)
+      return NULL;
+
+    if (!rb_find(uriMap, generated)) {
+      rb_insert(uriMap, generated, (void *)(uintptr_t)1);
+      return generated;
+    }
+
+    free(generated);
+  }
+
+  return NULL;
+}
+
+static
+bool
+dae_image_export_uri_fail(DAEExpState * __restrict st,
+                          RBTree      * __restrict uriMap) {
+  uint32_t i;
+
+  if (uriMap)
+    rb_destroy(uriMap);
+
+  if (st && st->imageExportUris) {
+    for (i = 0; i < st->imageCount; i++)
+      free(st->imageExportUris[i]);
+
+    free(st->imageExportUris);
+    st->imageExportUris = NULL;
+  }
+
+  return false;
+}
+
+AK_HIDE
+bool
+dae_prepare_image_export_uris(DAEExpState * __restrict st) {
+  RBTree          *uriMap;
+  DAEExpObjectRef *objRef;
+  AkImage         *image;
+  uint32_t         idx;
+
+  if (!st || st->imageCount == 0)
+    return true;
+
+  st->imageExportUris = calloc(st->imageCount, sizeof(*st->imageExportUris));
+  if (!st->imageExportUris)
+    return false;
+
+  uriMap = rb_newtree_str();
+  if (!uriMap)
+    return dae_image_export_uri_fail(st, NULL);
+
+  idx = 0;
+  if (st->imageRefsOnly) {
+    for (objRef = st->extraImages; objRef; objRef = objRef->next, idx++) {
+      AkImageSource *source;
+
+      image  = objRef->object;
+      source = dae_image_source(image);
+      if (!dae_image_uri_is_copy_source(source)
+          || !dae_uri_rel_safe(source->uri)
+          || dae_uri_is_data(source->uri)
+          || dae_uri_has_scheme(source->uri)
+          || dae_path_is_abs(source->uri))
+        continue;
+
+      st->imageExportUris[idx] = dae_strdup(source->uri);
+      if (!st->imageExportUris[idx]
+          || !dae_image_uri_map_reserve(uriMap, st->imageExportUris[idx]))
+        return dae_image_export_uri_fail(st, uriMap);
+    }
+  } else {
+    for (image = st->doc->lib.images.first; image; image = image->next, idx++) {
+      AkImageSource *source;
+
+      source = dae_image_source(image);
+      if (!dae_image_uri_is_copy_source(source)
+          || !dae_uri_rel_safe(source->uri)
+          || dae_uri_is_data(source->uri)
+          || dae_uri_has_scheme(source->uri)
+          || dae_path_is_abs(source->uri))
+        continue;
+
+      st->imageExportUris[idx] = dae_strdup(source->uri);
+      if (!st->imageExportUris[idx]
+          || !dae_image_uri_map_reserve(uriMap, st->imageExportUris[idx]))
+        return dae_image_export_uri_fail(st, uriMap);
+    }
+  }
+
+  idx = 0;
+  if (st->imageRefsOnly) {
+    for (objRef = st->extraImages; objRef; objRef = objRef->next, idx++) {
+      AkImageSource *source;
+
+      if (st->imageExportUris[idx])
+        continue;
+
+      image  = objRef->object;
+      source = dae_image_source(image);
+      if (!source)
+        continue;
+
+      if (source->type == AK_IMAGE_SOURCE_BUFFER) {
+        st->imageExportUris[idx] =
+          dae_image_unique_buffer_uri(uriMap, source, idx);
+      } else if (source->type != AK_IMAGE_SOURCE_URI || !source->uri) {
+        continue;
+      } else if (!st->outDir || !dae_image_uri_is_copy_source(source)) {
+        st->imageExportUris[idx] = dae_strdup(source->uri);
+      } else if (dae_uri_rel_safe(source->uri)
+                 && !dae_uri_is_data(source->uri)
+                 && !dae_uri_has_scheme(source->uri)
+                 && !dae_path_is_abs(source->uri)) {
+        st->imageExportUris[idx] = dae_strdup(source->uri);
+        if (st->imageExportUris[idx])
+          dae_image_uri_map_reserve(uriMap, st->imageExportUris[idx]);
+      } else {
+        st->imageExportUris[idx] =
+          dae_image_unique_generated_uri(uriMap, source->uri, idx);
+      }
+
+      if (!st->imageExportUris[idx])
+        return dae_image_export_uri_fail(st, uriMap);
+    }
+
+    rb_destroy(uriMap);
+    return true;
+  }
+
+  for (image = st->doc->lib.images.first; image; image = image->next, idx++) {
+    AkImageSource *source;
+
+    if (st->imageExportUris[idx])
+      continue;
+
+    source = dae_image_source(image);
+    if (!source)
+      continue;
+
+    if (source->type == AK_IMAGE_SOURCE_BUFFER) {
+      st->imageExportUris[idx] =
+        dae_image_unique_buffer_uri(uriMap, source, idx);
+    } else if (source->type != AK_IMAGE_SOURCE_URI || !source->uri) {
+      continue;
+    } else if (!st->outDir || !dae_image_uri_is_copy_source(source)) {
+      st->imageExportUris[idx] = dae_strdup(source->uri);
+    } else if (dae_uri_rel_safe(source->uri)
+               && !dae_uri_is_data(source->uri)
+               && !dae_uri_has_scheme(source->uri)
+               && !dae_path_is_abs(source->uri)) {
+      st->imageExportUris[idx] = dae_strdup(source->uri);
+      if (st->imageExportUris[idx])
+        dae_image_uri_map_reserve(uriMap, st->imageExportUris[idx]);
+    } else {
+      st->imageExportUris[idx] =
+        dae_image_unique_generated_uri(uriMap, source->uri, idx);
+    }
+
+    if (!st->imageExportUris[idx])
+      return dae_image_export_uri_fail(st, uriMap);
+  }
+  rb_destroy(uriMap);
+  return true;
+}
+
+AK_HIDE
+void
+dae_write_image(DAEExpState * __restrict st,
+                AkImage     * __restrict image,
+                uint32_t                 imageIdx) {
+  DAEExpWriter  *w;
+  AkImageSource *source;
+  const char    *uri;
+  const char    *exportUri;
+  char           rewrittenUri[512];
+  bool           preparedUri;
+
+  w      = &st->w;
+  source = dae_image_source(image);
+  uri    = dae_image_uri(image);
+  preparedUri = st->imageExportUris
+                && imageIdx < st->imageCount
+                && st->imageExportUris[imageIdx] != NULL;
+  exportUri   = preparedUri ? st->imageExportUris[imageIdx] : NULL;
+  if (!exportUri)
+    exportUri = uri;
+  if (!exportUri || exportUri[0] == '\0') {
+    w->result = AK_EINVAL;
+    return;
+  }
+
+  if (!preparedUri && dae_image_needs_uri_rewrite(uri)) {
+    if (!dae_image_rewrite_uri(imageIdx,
+                               uri,
+                               rewrittenUri,
+                               sizeof(rewrittenUri))) {
+      w->result = AK_ERR;
+      return;
+    }
+    exportUri = rewrittenUri;
+  }
+
+  if (source && !dae_image_copy_uri(st, source, exportUri)) {
+    w->result = AK_ERR;
+    return;
+  }
+  if (source && !dae_image_write_buffer(st, source, exportUri)) {
+    w->result = AK_ERR;
+    return;
+  }
+
+  dae_w_lit(w, "<image id=\"");
+  dae_w_id(w, DAE_EXP_NAME(image), imageIdx);
+  if (image && image->name) {
+    dae_w_lit(w, "\" name=\"");
+    dae_w_xml(w, image->name, true);
+  }
+  dae_w_lit(w, "\"><init_from>");
+  if (st->useCollada150)
+    dae_w_lit(w, "<ref>");
+  dae_w_xml(w, exportUri ? exportUri : "", false);
+  if (st->useCollada150)
+    dae_w_lit(w, "</ref>");
+  dae_w_lit(w, "</init_from>");
+  dae_write_extra(w, image ? image->extra : NULL);
+  dae_w_lit(w, "</image>");
+}

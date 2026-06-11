@@ -20,6 +20,12 @@
 #include "../common.h"
 
 AK_HIDE
+char*
+dae14_init_from_uri(AkHeap * __restrict heap,
+                    void   * __restrict parent,
+                    xml_t  * __restrict xml);
+
+AK_HIDE
 void
 dae14_fxMigrateImg(DAEState * __restrict dst,
                    xml_t    * __restrict xml,

@@ -46,6 +46,10 @@ typedef struct AkInputDesc {
   int32_t             index;
 } AkInputDesc;
 
+typedef struct AkMeshPrimitiveEditState {
+  AkIndexArray *indices;
+} AkMeshPrimitiveEditState;
+
 void
 ak_meshFreeRsvBuff(RBTree *tree, RBNode *node);
 

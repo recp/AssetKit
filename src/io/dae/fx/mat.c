@@ -86,12 +86,12 @@ dae_bindMaterial(DAEState * __restrict dst,
       while (ximat) {
         if (DAE_XML_TAG_EQ(ximat, instance_material)) {
           if ((imat = dae_instMaterial(dst, ximat, bindmat))) {
-            if (bindmat->tcommon) {
-              bindmat->tcommon->base.prev = &imat->base;
-              imat->base.next             = &bindmat->tcommon->base;
+            if (bindmat->instanceMaterials) {
+              bindmat->instanceMaterials->base.prev = &imat->base;
+              imat->base.next                       = &bindmat->instanceMaterials->base;
             }
 
-            bindmat->tcommon = imat;
+            bindmat->instanceMaterials = imat;
           }
         }
         ximat = ximat->next;

@@ -78,7 +78,7 @@ ak_skinFixWeights(AkMesh * __restrict mesh) {
     primIndex = 0;
 
     while (prim) {
-      if (!(dupl = rb_find(doc->reserved, prim))
+      if (!(dupl = ak__docDuplicatorFind(doc, prim))
           || dupl->dupCount < 1
           || !dupl->range
           || !prim->pos

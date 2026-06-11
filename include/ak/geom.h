@@ -74,7 +74,7 @@ struct AkIndexArray {
   size_t   count;
   AkUInt   max;
   AkTypeId componentType;
-  uint32_t reserved;
+  uint32_t padding;
   uint8_t  items[];
 };
 
@@ -86,7 +86,7 @@ typedef struct AkVertices {
   uint32_t      inputCount;
 } AkVertices;
 
-/* TODO: */
+/* CSR-style joint counts and offsets. */
 typedef struct AkJointDesc {
   uint32_t *counts;
   size_t   *indexes;
@@ -108,7 +108,7 @@ typedef struct AkMeshPrimitive {
      prim->indices       == NULL;
      prim->indexAccessor != NULL;
 
-   DAE / OBJ / PLY or after-fixup mutable path:
+   Tuple-indexed or mutable edit path:
      prim->indices       != NULL;
      prim->indexAccessor == NULL;
    */
@@ -122,11 +122,9 @@ typedef struct AkMeshPrimitive {
   AkFloat3                center;
   uint32_t                flags;
 
-  /* TODO: remove */
+  /* Number of index slots per vertex tuple; 1 for unified indices. */
   uint32_t                indexStride;
-  uint32_t                reserved1; /* private member */
-  uint32_t                reserved2; /* private member */
-  void                   *reserved3; /* private member */
+  void                   *reserved;
 
   /* KHR_materials_variants: optional material overrides. */
   struct AkMaterialVariantMapping *variantMappings;
@@ -359,7 +357,7 @@ typedef struct AkSolids {
   uint32_t     inputCount;
 } AkSolids;
 
-/* TODO: */
+/* Boundary-representation geometry payload. */
 typedef struct AkBoundryRep {
   struct AkGeometry *geom;
   AkCurves          *curves;

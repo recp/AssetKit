@@ -30,6 +30,8 @@
 #include "writer.h"
 #include "../strpool.h"
 #include "../../../image/export.h"
+#include "../../../../include/ak/options.h"
+#include "../../../../include/ak/version.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -728,6 +730,7 @@ gltf_write_json_payload(GLTFExpState  * __restrict st,
                         GLTFExpWriter * __restrict w) {
   uint32_t materialExtensions;
   uint32_t textureExtensions;
+  const char *generator;
   bool     comma;
 
   materialExtensions = gltf_material_extensions_mask(st);
@@ -740,9 +743,10 @@ gltf_write_json_payload(GLTFExpState  * __restrict st,
   gltf_w_qstr_len(w, _s_gltf_version2, _s_gltf_version2_len);
   gltf_w_ch(w, ',');
   gltf_w_key(w, _s_gltf_generator, _s_gltf_generator_len);
-  gltf_w_qstr_len(w,
-                  _s_gltf_generatorAssetKit,
-                  _s_gltf_generatorAssetKit_len);
+  generator = (const char *)ak_opt_get(AK_OPT_EXPORT_AUTHORING_TOOL);
+  if (!generator || !generator[0])
+    generator = AK_AUTHORING_TOOL;
+  gltf_w_qstr(w, generator);
   gltf_w_ch(w, '}');
   comma = true;
 

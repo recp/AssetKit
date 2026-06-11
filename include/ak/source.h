@@ -44,15 +44,6 @@ typedef enum AkComponentSize {
   AK_COMPONENT_SIZE_MAT4    = (16 << 3) | 4
 } AkComponentSize;
 
-typedef struct AkDataParam {
-  /* const char * sid; */
-
-  struct AkDataParam *next;
-  const char         *name;
-  const char         *semantic;
-  AkTypeDesc          type;
-} AkDataParam;
-
 struct AkBuffer {
   struct AkBuffer *next;
   const char      *name;

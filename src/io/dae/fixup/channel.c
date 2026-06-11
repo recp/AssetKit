@@ -253,6 +253,9 @@ dae_resolveMatrixElement(AkContext        * __restrict ctx,
   if (n == 0 || n >= sizeof(base))
     return false;
 
+  if (!memchr(target, '/', n))
+    return false;
+
   memcpy(base, target, n);
   base[n] = '\0';
 
@@ -425,22 +428,31 @@ dae_fixup_channel_walk(DAEState          * __restrict dst,
 
   for (; anim; anim = anim->next) {
     for (ch = anim->channel; ch; ch = ch->next) {
+      bool skipMatrixFixup;
+
+      skipMatrixFixup = false;
       if (!ch->resolvedTarget) {
         memset(&mrt, 0, sizeof(mrt));
         if (dae_parseChannelTargetIndexed(ch->target,
                                           &idStart,
                                           &idLen,
-                                          &idx)
-            && (morpher = dae_resolveMorpher(dst,
-                                             idStart,
-                                             idLen))) {
-          rt                 = ak_heap_calloc(dst->heap, ch, sizeof(*rt));
-          rt->target         = morpher;
-          rt->off            = idx;
-          rt->isPartial      = true;
-          ch->resolvedTarget = rt;
-          ch->targetType     = AK_TARGET_WEIGHTS;
-        } else if (dae_resolveMatrixElement(ctx, ch->target, &mrt)) {
+                                          &idx)) {
+          morpher = dae_resolveMorpher(dst, idStart, idLen);
+          if (morpher) {
+            rt                 = ak_heap_calloc(dst->heap, ch, sizeof(*rt));
+            rt->target         = morpher;
+            rt->off            = idx;
+            rt->isPartial      = true;
+            ch->resolvedTarget = rt;
+            ch->targetType     = AK_TARGET_WEIGHTS;
+          } else if (!memchr(ch->target, '/', (size_t)(idStart - ch->target))) {
+            skipMatrixFixup = true;
+          }
+        }
+
+        if (!ch->resolvedTarget
+            && !skipMatrixFixup
+            && dae_resolveMatrixElement(ctx, ch->target, &mrt)) {
           rt                 = ak_heap_calloc(dst->heap, ch, sizeof(*rt));
           *rt                = mrt;
           ch->resolvedTarget = rt;
@@ -448,7 +460,8 @@ dae_fixup_channel_walk(DAEState          * __restrict dst,
         }
       }
 
-      dae_fixupMatrixChannel(dst, ctx, ch, done);
+      if (!skipMatrixFixup)
+        dae_fixupMatrixChannel(dst, ctx, ch, done);
     }
 
     if ((sub = anim->animation))

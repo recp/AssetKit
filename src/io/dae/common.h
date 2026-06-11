@@ -18,6 +18,7 @@
 #define dae_common_h
 
 #include "../../../include/ak/assetkit.h"
+#include "../../../include/ak/path.h"
 #include "../../../include/ak/url.h"
 #include "../../common.h"
 #include "../../utils.h"
@@ -26,11 +27,19 @@
 #include "strpool.h"
 
 #include <ds/forward-list-sep.h>
+#include <limits.h>
+#include <stdlib.h>
 #include <string.h>
 #include <xml/xml.h>
 #include <xml/attrib.h>
 
 #include "bugfix/url.h"
+
+#ifdef _MSC_VER
+#  ifndef PATH_MAX
+#    define PATH_MAX 260
+#  endif
+#endif
 
 #define DAE_XML_TAG_EQ8(XML, NAME)                                           \
   xml_tag_eq_packed(XML, _s_dae_##NAME##_u64_exact, _s_dae_##NAME##_len)
@@ -159,6 +168,7 @@ typedef struct AkDAEVerticesMapItem {
   AkInput         *inp;
   AkMeshPrimitive *prim;
   AkVertices      *fallbackVertices;
+  uint32_t         indexOffset;
 } AkDAEVerticesMapItem;
 
 typedef struct AkDAEBindMaterialUse {
@@ -346,6 +356,14 @@ typedef struct AkNewParam {
   AkValue           *val;
 } AkNewParam;
 
+typedef struct AkDataParam {
+  /* const char * sid; */
+  struct AkDataParam *next;
+  const char         *name;
+  const char         *semantic;
+  AkTypeDesc          type;
+} AkDataParam;
+
 typedef struct AkController {
   /* const char * id; */
   struct AkController *next;
@@ -428,13 +446,16 @@ sid_set(xml_t  * __restrict xml,
 
 AK_INLINE
 void
-dae_url_init_from_attr(AkHeap           * __restrict heap,
+dae_url_init_from_attr(DAEState         * __restrict dst,
                        void             * __restrict memp,
                        const xml_attr_t * __restrict att,
                        AkURL            * __restrict url) {
+  AkHeap     *heap;
   const char *val;
   char       *urlstr;
   size_t      len;
+
+  heap = dst->heap;
 
   if (!att || !(val = att->val)) {
     url->reserved = NULL;
@@ -455,7 +476,9 @@ dae_url_init_from_attr(AkHeap           * __restrict heap,
     return;
   }
 
-  if (!memchr(val, '/', len) && !memchr(val, '\\', len)) {
+  if (!memchr(val, '/', len)
+      && !memchr(val, '\\', len)
+      && !memchr(val, '#', len)) {
     const char *it, *end;
 
     if (len >= 3) {
@@ -478,7 +501,100 @@ dae_url_init_from_attr(AkHeap           * __restrict heap,
   }
 
 external_url:
-  urlstr = ak_heap_strndup(heap, memp, val, len);
+  urlstr = NULL;
+  if (dst->doc
+      && dst->doc->inf
+      && dst->doc->inf->dir
+      && dst->doc->inf->dir[0]
+      && len > 0
+      && val[0] != '/'
+      && val[0] != '\\'
+      && !(len >= 3
+           && ((val[0] >= 'A' && val[0] <= 'Z')
+               || (val[0] >= 'a' && val[0] <= 'z'))
+           && val[1] == ':')) {
+    const char *it, *end;
+    bool        hasScheme;
+
+    hasScheme = false;
+    if (len >= 3) {
+      it  = val;
+      end = val + len - 2;
+      while (it < end) {
+        if (it[0] == ':' && it[1] == '/' && it[2] == '/') {
+          hasScheme = true;
+          break;
+        }
+        it++;
+      }
+    }
+
+    if (!hasScheme) {
+      char       pathbuf[PATH_MAX];
+      char       realbuf[PATH_MAX];
+      char      *rel;
+      char      *dststr;
+      const char *frag;
+      const char *path;
+      const char *resolved;
+      size_t      pathLen;
+      size_t      fragLen;
+      size_t      resolvedLen;
+
+      frag    = memchr(val, '#', len);
+      pathLen = frag ? (size_t)(frag - val) : len;
+      fragLen = len - pathLen;
+
+      rel = dae_alloca(pathLen + 1u);
+      memcpy(rel, val, pathLen);
+      rel[pathLen] = '\0';
+
+      path     = ak_fullpath(dst->doc, rel, pathbuf);
+      resolved = path;
+#ifndef _WIN32
+      if (realpath(path, realbuf))
+        resolved = realbuf;
+      if (fragLen > 0 && dst->doc->inf->name) {
+        char        docRealbuf[PATH_MAX];
+        const char *docPath;
+        char       *localRef;
+
+        docPath = dst->doc->inf->name;
+        if (realpath(docPath, docRealbuf))
+          docPath = docRealbuf;
+
+        if (strcmp(resolved, docPath) == 0) {
+          localRef = dae_alloca(fragLen + 1u);
+          memcpy(localRef, frag, fragLen);
+          localRef[fragLen] = '\0';
+          ak_url_init(memp, localRef, url);
+          return;
+        }
+      }
+#endif
+
+      resolvedLen = strlen(resolved);
+      dststr      = ak_heap_alloc(heap, memp, resolvedLen + fragLen + 1u);
+      if (dststr) {
+        memcpy(dststr, resolved, resolvedLen);
+        if (fragLen > 0)
+          memcpy(dststr + resolvedLen, frag, fragLen);
+        dststr[resolvedLen + fragLen] = '\0';
+        urlstr = dststr;
+      }
+    }
+  }
+
+  if (!urlstr)
+    urlstr = ak_heap_strndup(heap, memp, val, len);
+  if (!urlstr) {
+    url->reserved = NULL;
+    url->url      = NULL;
+    url->doc      = NULL;
+    url->ptr      = NULL;
+    return;
+  }
+
   ak_url_init(memp, urlstr, url);
 }
 
@@ -499,7 +615,7 @@ url_set_sz(DAEState   * __restrict dst,
     return;
   }
 
-  dae_url_init_from_attr(dst->heap, memp, att, url);
+  dae_url_init_from_attr(dst, memp, att, url);
 
   urlQueue       = dst->heap->allocator->malloc(sizeof(*urlQueue));
   urlQueue->next     = dst->urlQueue;
@@ -546,13 +662,15 @@ dae_vertmap_add(DAEState     * __restrict dst,
   item->inp              = inp;
   item->prim             = prim;
   item->fallbackVertices = fallbackVertices;
+  item->indexOffset      = inp->indexOffset;
 
   flist_sp_insert(&dst->vertMap, item);
 }
 
 AK_INLINE
 AkURL*
-url_from_sz(xml_t      * __restrict xml,
+url_from_sz(DAEState   * __restrict dst,
+            xml_t      * __restrict xml,
             const char * __restrict name,
             size_t                  namesize,
             void       * __restrict memp) {
@@ -566,24 +684,25 @@ url_from_sz(xml_t      * __restrict xml,
   heap = ak_heap_getheap(memp);
   url  = ak_heap_calloc(heap, memp, sizeof(*url));
 
-  dae_url_init_from_attr(heap, memp, att, url);
+  dae_url_init_from_attr(dst, memp, att, url);
 
   return url;
 }
 
 AK_INLINE
 AkURL*
-url_from(xml_t      * __restrict xml,
+url_from(DAEState   * __restrict dst,
+         xml_t      * __restrict xml,
          const char * __restrict name,
          void       * __restrict memp) {
   if (!name)
     return NULL;
 
-  return url_from_sz(xml, name, strlen(name), memp);
+  return url_from_sz(dst, xml, name, strlen(name), memp);
 }
 
-#define DAE_URL_FROM(XML, NAME, MEMP)                                        \
-  url_from_sz(XML, _s_dae_##NAME, _s_dae_##NAME##_len, MEMP)
+#define DAE_URL_FROM(DST, XML, NAME, MEMP)                                   \
+  url_from_sz(DST, XML, _s_dae_##NAME, _s_dae_##NAME##_len, MEMP)
 
 AK_EXPORT
 AkGeometry*

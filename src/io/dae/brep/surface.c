@@ -149,17 +149,19 @@ dae_surface(DAEState * __restrict dst,
       while (xswept) {
         if (DAE_XML_TAG_EQ(xswept, curve)) {
           sweptSurface->curve = dae_curve(dst, xswept, obj);
-        } else if (DAE_XML_TAG_EQ(xswept, direction) && (sval = xmls(xml))) {
+        } else if (DAE_XML_TAG_EQ(xswept, direction) && (sval = xmls(xswept))) {
           xml_strtof_fast(sval, (AkFloat *)&sweptSurface->direction, 3);
-        } else if (DAE_XML_TAG_EQ(xswept, origin) && (sval = xmls(xml))) {
+        } else if (DAE_XML_TAG_EQ(xswept, origin) && (sval = xmls(xswept))) {
           xml_strtof_fast(sval, (AkFloat *)&sweptSurface->origin, 3);
-        } else if (DAE_XML_TAG_EQ(xswept, axis) && (sval = xmls(xml))) {
+        } else if (DAE_XML_TAG_EQ(xswept, axis) && (sval = xmls(xswept))) {
           xml_strtof_fast(sval, (AkFloat *)&sweptSurface->axis, 3);
         } else if (DAE_XML_TAG_EQ(xswept, extra)) {
            sweptSurface->extra = tree_fromxml(heap, obj, xswept);
         }
         xswept = xswept->next;
       }
+
+      surf->surface = obj;
     } else if (DAE_XML_TAG_EQ(xml, orient) && (sval =xmls(xml))) {
       AkFloatArrayL *orient;
       AkResult       ret;

@@ -1,9 +1,22 @@
 add_executable(assetkit_tests
   runner.c
-  src/test_memory.c
-  src/test_instance.c
-  src/test_material.c
-  src/collada/test_dae_load.c
+  src/core/memory.c
+  src/core/format_edge.c
+  src/io/dae/exp/core.c
+  src/io/dae/exp/material.c
+  src/io/dae/exp/scene.c
+  src/io/dae/exp/animation.c
+  src/io/dae/exp/geometry.c
+  src/io/dae/imp/scene.c
+  src/io/dae/imp/folder.c
+  src/io/gltf/exp/core.c
+  src/io/gltf/exp/material.c
+  src/io/gltf/exp/textures.c
+  src/io/gltf/exp/extensions.c
+  src/io/gltf/exp/scene.c
+  src/io/gltf/exp/animation.c
+  src/instance/test_instance_core.c
+  src/material/material.c
 )
 
 target_include_directories(assetkit_tests PRIVATE

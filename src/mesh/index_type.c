@@ -64,7 +64,7 @@ ak_indexArrayAlloc(AkHeap  * __restrict heap,
   indices->count         = count;
   indices->max           = 0;
   indices->componentType = componentType;
-  indices->reserved      = 0;
+  indices->padding       = 0;
 
   return indices;
 }

@@ -55,11 +55,9 @@ typedef struct AkOrthographic {
 
 typedef struct AkOptics {
   AkProjection *proj;
-  void         *reserved;
 } AkOptics;
 
 typedef struct AkImager {
-  void        *reserved;
   AkTree      *extra;
 } AkImager;
 

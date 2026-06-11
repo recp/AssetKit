@@ -103,7 +103,7 @@ dae_animSampler(DAEState * __restrict dst,
       } else {
         AkURL *url;
         inp->indexOffset = xmla_u32(DAE_XMLA8(xml, offset), 0);
-        url              = DAE_URL_FROM(xml, source, memp);
+        url              = DAE_URL_FROM(dst, xml, source, memp);
         rb_insert(dst->inputmap, inp, url);
         
         /* check if there are angles, because they are in degress,

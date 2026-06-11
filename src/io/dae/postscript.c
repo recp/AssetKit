@@ -93,6 +93,30 @@ dae_component_size_for_accessor(uint32_t componentCount,
   return AK_COMPONENT_SIZE_UNKNOWN;
 }
 
+static bool
+dae_accessor_component_byte_size(AkTypeId typeId,
+                                 uint32_t * __restrict size) {
+  AkTypeDesc *type;
+
+  if ((type = ak_typeDesc(typeId))) {
+    *size = (uint32_t)type->size;
+    return *size > 0;
+  }
+
+  switch (typeId) {
+    case AKT_IDREF:
+    case AKT_NAME:
+    case AKT_SIDREF:
+    case AKT_TOKEN:
+      *size = sizeof(char *);
+      return true;
+    default:
+      break;
+  }
+
+  return false;
+}
+
 static void
 dae_mark_accessor_type_buffer(RBTree    * __restrict typeBuffers,
                               AkBuffer  * __restrict buff) {
@@ -152,8 +176,8 @@ dae_spread_vert(DAEState * __restrict dst) {
       inp->semantic    = inpv->semantic;
       inp->semanticRaw = inpv->semanticRaw;
 
-      inp->indexOffset = prim->reserved1;
-      inp->set         = prim->reserved2;
+      inp->indexOffset = item->indexOffset;
+      inp->set         = inpv->set;
       inp->next        = prim->input;
       prim->input      = inp;
 
@@ -507,38 +531,44 @@ dae_retain_refs(DAEState * __restrict dst) {
     url    = it->url;
     tofree = it;
 
-    /* currently only retain objects in this doc */
-    if (it->url->doc == dst->doc) {
+    if (!url)
+      goto next;
+
+    /* Same-document refs can be retained by this document heap. External
+       refs remain owned by their source document; resolve only cached
+       instance targets / scene item lists here. */
+    if (url->doc == dst->doc) {
       hnode = NULL;
       ret   = ak_heap_getNodeByURL(dst->heap, url, &hnode);
       if (ret == AK_OK && hnode) {
         /* retain <source> and source arrays ... */
-        refc         = ak_heap_ext_add(dst->heap, hnode, AK_HEAP_NODE_FLAGS_REFC);
-        it->url->ptr = ak__alignas(hnode);
+        refc     = ak_heap_ext_add(dst->heap, hnode, AK_HEAP_NODE_FLAGS_REFC);
+        url->ptr = ak__alignas(hnode);
 
         (*refc)++;
-
-        if (it->scene && it->instance) {
-          switch (it->instance->type) {
-            case AK_INSTANCE_CAMERA:
-              ak_sceneAddCamera(it->scene, it->instance);
-              break;
-            case AK_INSTANCE_LIGHT:
-              ak_sceneAddLight(it->scene, it->instance);
-              break;
-            default:
-              break;
-          }
-        }
-
-        if (it->scene && it->nodeRef) {
-          targetNode = ak_instanceNodeTarget(it->nodeRef);
-          if (targetNode)
-            ak_sceneAddItems(it->scene, targetNode);
-        }
       }
     }
 
+    if (it->scene && it->instance) {
+      switch (it->instance->type) {
+        case AK_INSTANCE_CAMERA:
+          ak_sceneAddCamera(it->scene, it->instance);
+          break;
+        case AK_INSTANCE_LIGHT:
+          ak_sceneAddLight(it->scene, it->instance);
+          break;
+        default:
+          break;
+      }
+    }
+
+    if (it->scene && it->nodeRef) {
+      targetNode = ak_instanceNodeTarget(it->nodeRef);
+      if (targetNode)
+        ak_sceneAddItems(it->scene, targetNode);
+    }
+
+next:
     it = it->next;
     alc->free(tofree);
   }
@@ -649,7 +679,6 @@ dae_fixup_accessors(DAEState * __restrict dst) {
   AkAccessor    *acc;
   AkAccessorDAE *accdae;
   AkBuffer      *buff;
-  AkTypeDesc    *type;
   RBTree        *typeBuffers;
 
   item        = dst->accessors;
@@ -678,9 +707,8 @@ dae_fixup_accessors(DAEState * __restrict dst) {
       dae_mark_accessor_type_buffer(typeBuffers, buff);
       acc->componentType = (AkTypeId)(uintptr_t)ak_userData(buff);
 
-      if ((type = ak_typeDesc(acc->componentType)))
-        bytesPerComponent = type->size;
-      else
+      if (!dae_accessor_component_byte_size(acc->componentType,
+                                            &bytesPerComponent))
         goto cleanup_accessor;
 
       count             = acc->count;
@@ -721,9 +749,9 @@ dae_fixup_accessors(DAEState * __restrict dst) {
           paramOffset += paramSize;
         }
 
-        if (visibleByteSize == 0) {
+        if (visibleByteSize == 0 && namedParamCount == 0) {
           firstVisibleOffset = 0;
-          visibleByteSize    = 0;
+          visibleByteSize    = oldByteStride;
         }
       } else {
         visibleByteSize = oldByteStride;

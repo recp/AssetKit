@@ -47,7 +47,9 @@ ak_resc_ins(const char *url) {
   size_t      trimmedURLSize;
   AkResult    ret;
 
-  tmp = malloc(sizeof(*tmp) * strlen(url));
+  tmp = malloc(sizeof(*tmp) * (strlen(url) + 1u));
+  if (!tmp)
+    return NULL;
 
   ak_path_trim(url, tmp);
 
@@ -146,19 +148,20 @@ ak_resc_unref_url(const char *url) {
   char    *trimmed;
   AkResult ret;
 
-  trimmed = NULL;
+  trimmed = malloc(sizeof(*trimmed) * (strlen(url) + 1u));
+  if (!trimmed)
+    return -1;
+
   ak_path_trim(url, trimmed);
 
-  if (trimmed) {
-    ret = ak_heap_getMemById(resc_heap,
-                             trimmed,
-                             &resc);
+  ret = ak_heap_getMemById(resc_heap,
+                           trimmed,
+                           &resc);
 
-    free(trimmed);
+  free(trimmed);
 
-    if (ret != AK_EFOUND)
-      return ak_resc_unref(resc);
-  }
+  if (ret != AK_EFOUND)
+    return ak_resc_unref(resc);
 
   return -1;
 }

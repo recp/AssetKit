@@ -51,6 +51,11 @@ ak_url_init(void  *parent,
   /* TODO: */
   dest->reserved = ak_resc_ins(urlstring);
   dest->url      = ak_path_fragment(urlstring);
+  if (!dest->reserved) {
+    dest->doc = NULL;
+    dest->ptr = NULL;
+    return;
+  }
   dest->doc      = ((AkResource *)dest->reserved)->doc;
 }
 

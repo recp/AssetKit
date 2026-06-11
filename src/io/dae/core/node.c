@@ -248,7 +248,7 @@ dae_node(DAEState * __restrict dst,
 
       url = ak_heap_calloc(heap, instNode, sizeof(*url));
       DAE_URL_SET(dst, xml, url, instNode, url);
-      instNode->reserved = url;
+      instNode->sourceUrl = url;
 
       if (scene)
         dae_url_mark_scene_node_ref(dst, url, scene, instNode);

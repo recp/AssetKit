@@ -1,0 +1,117 @@
+/*
+ * Copyright (C) 2020 Recep Aslantas
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef assetkit_dae_exp_writer_h
+#define assetkit_dae_exp_writer_h
+
+#include "dae.h"
+#include "../strpool.h"
+
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <string.h>
+
+#define DAE_EXP_WRITER_CAP (64u * 1024u)
+#define DAE_EXP_MAX_NODE_DEPTH 512u
+
+typedef struct DAEExpWriter {
+  FILE         *file;
+  size_t        len;
+  AkResult      result;
+  unsigned char buffer[DAE_EXP_WRITER_CAP];
+} DAEExpWriter;
+
+typedef struct DAEExpName {
+  const char *ptr;
+  size_t      len;
+} DAEExpName;
+
+#define DAE_EXP_NAME(NAME) ((DAEExpName){_s_dae_##NAME, _s_dae_##NAME##_len})
+#define DAE_EXP_NAME_LIT(LIT) ((DAEExpName){LIT, sizeof(LIT) - 1u})
+
+static inline
+DAEExpName
+dae_exp_name_cstr(const char * __restrict str) {
+  return (DAEExpName){str, str ? strlen(str) : 0u};
+}
+
+#define DAE_EXP_NAME_CSTR(STR) dae_exp_name_cstr((STR))
+
+AK_HIDE
+void
+dae_w_flush(DAEExpWriter * __restrict w);
+
+static inline
+void
+dae_w_ch(DAEExpWriter * __restrict w, char ch) {
+  if (w->len == DAE_EXP_WRITER_CAP)
+    dae_w_flush(w);
+
+  w->buffer[w->len++] = (unsigned char)ch;
+}
+
+AK_HIDE
+void
+dae_w_raw(DAEExpWriter * __restrict w,
+          const void   * __restrict data,
+          size_t                    len);
+
+AK_HIDE
+void
+dae_w_name(DAEExpWriter * __restrict w, DAEExpName name);
+
+AK_HIDE
+void
+dae_w_cstr(DAEExpWriter * __restrict w, const char * __restrict str);
+
+#define dae_w_lit(W, LIT) dae_w_raw((W), "" LIT, sizeof("" LIT) - 1u)
+
+AK_HIDE
+void
+dae_w_uint(DAEExpWriter * __restrict w, size_t val);
+
+AK_HIDE
+void
+dae_w_float(DAEExpWriter * __restrict w, float val);
+
+AK_HIDE
+void
+dae_w_double(DAEExpWriter * __restrict w, double val);
+
+AK_HIDE
+void
+dae_w_xml(DAEExpWriter * __restrict w,
+          const char   * __restrict str,
+          bool                      attr);
+
+AK_HIDE
+void
+dae_write_extra(DAEExpWriter * __restrict w, AkTreeNode * __restrict extra);
+
+AK_HIDE
+void
+dae_w_attr_uint(DAEExpWriter * __restrict w,
+                DAEExpName                name,
+                size_t                    value);
+
+AK_HIDE
+void
+dae_w_id(DAEExpWriter * __restrict w,
+         DAEExpName                prefix,
+         uint32_t                  idx);
+
+#endif /* assetkit_dae_exp_writer_h */

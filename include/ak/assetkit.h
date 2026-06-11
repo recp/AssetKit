@@ -144,8 +144,9 @@ typedef struct AkTreeNode {
 /*!
  * @brief Return optional metadata attached to an AssetKit object.
  *
- * COLLADA <extra>, glTF extensions and preserved glTF extras are exposed
- * as AkTree. The returned tree is owned by the document heap.
+ * Format-authored custom metadata, preserved glTF extras and preserved glTF
+ * extensions are exposed as AkTree. The returned tree is owned by the
+ * document heap.
  */
 AK_EXPORT
 AkTree*
@@ -260,7 +261,7 @@ typedef struct AkInstanceNode {
   struct AkInstanceNode *prev;
   struct AkNode         *owner;
   struct AkNode         *target;
-  AkURL                 *reserved; /* unresolved/source-side URL */
+  AkURL                 *sourceUrl; /* unresolved/source-side URL */
   const char            *name;
   const char            *proxy;
 } AkInstanceNode;

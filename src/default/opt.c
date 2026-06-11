@@ -15,6 +15,7 @@
  */
 
 #include "opt.h"
+#include "../../include/ak/version.h"
 #include <string.h>
 #include <assert.h>
 
@@ -65,7 +66,10 @@ uintptr_t AK_OPTIONS[] =
   (uintptr_t)NULL,                 /* 32: _GLTF_GSPLAT_DECODER_PATH    */
   (uintptr_t)NULL,                 /* 33: _GLTF_KTX2_DECODER_PATH      */
   true,                            /* 34: _MESH_POSITION_DEDUP_INDEX   */
-  false                            /* 35: _PRESERVE_EXTRAS             */
+  false,                           /* 35: _PRESERVE_EXTRAS             */
+  AK_DAE_EXPORT_INDEX_MULTI,       /* 36: _DAE_EXPORT_INDEX_MODE       */
+  AK_DAE_EXPORT_VERSION_AUTO,      /* 37: _DAE_EXPORT_VERSION          */
+  (uintptr_t)AK_AUTHORING_TOOL     /* 38: _EXPORT_AUTHORING_TOOL       */
 };
 
 AK_EXPORT

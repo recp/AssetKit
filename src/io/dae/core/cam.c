@@ -16,7 +16,6 @@
 
 #include "cam.h"
 #include "asset.h"
-#include "techn.h"
 
 AK_HIDE
 void*
@@ -25,7 +24,6 @@ dae_cam(DAEState * __restrict dst,
         void     * __restrict memp) {
   AkHeap      *heap;
   AkCamera    *cam;
-  AkTechnique *tq;
 
   heap      = dst->heap;
   cam       = ak_heap_calloc(heap, memp, sizeof(*cam));
@@ -128,9 +126,7 @@ dae_cam(DAEState * __restrict dst,
             xtech = xtech->next;
           }
         } else if (DAE_XML_TAG_EQ(xoptics, technique)) {
-          tq       = dae_techn(xoptics, heap, optics);
-          tq->next = (AkTechnique *)optics->reserved;
-          optics->reserved = tq;
+          /* Non-common DAE camera techniques are source-side extensions. */
         }
         xoptics = xoptics->next;
       }
@@ -145,9 +141,7 @@ dae_cam(DAEState * __restrict dst,
 
       while (ximager) {
         if (DAE_XML_TAG_EQ(ximager, technique)) {
-          tq       = dae_techn(ximager, heap, imager);
-          tq->next = (AkTechnique *)imager->reserved;
-          imager->reserved = tq;
+          /* Non-common DAE camera imager techniques are source-side extensions. */
         } else if (DAE_XML_TAG_EQ8(ximager, extra)) {
           imager->extra = tree_fromxml(heap, imager, ximager);
           if (imager->extra)

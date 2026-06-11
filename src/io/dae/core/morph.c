@@ -70,7 +70,7 @@ dae_morph(DAEState * __restrict dst,
           } else {
             AkURL *url;
             inp->indexOffset = xmla_u32(DAE_XMLA8(xtarg, offset), 0);
-            url              = DAE_URL_FROM(xtarg, source, memp);
+            url              = DAE_URL_FROM(dst, xtarg, source, memp);
             rb_insert(dst->inputmap, inp, url);
 
             inp->next       = morphdae->input;

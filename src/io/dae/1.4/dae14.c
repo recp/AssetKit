@@ -68,6 +68,79 @@ dae14_find_newparam(void *parent, const char *sid) {
   return NULL;
 }
 
+static
+AkImage*
+dae14_find_image_by_id_n(AkDoc * __restrict doc,
+                         const char * __restrict id,
+                         size_t                  idLen) {
+  AkImage *image;
+
+  if (!doc || !id || idLen == 0)
+    return NULL;
+
+  for (image = doc->lib.images.first; image; image = image->next) {
+    const char *imageId;
+
+    imageId = ak_getId(image);
+    if (imageId
+        && strlen(imageId) == idLen
+        && memcmp(imageId, id, idLen) == 0)
+      return image;
+  }
+
+  return NULL;
+}
+
+static
+const char*
+dae14_find_image_id_for_surface_source(DAEState * __restrict dst,
+                                       const char * __restrict sid) {
+  static const char suffix[] = "-surface";
+  AkDoc            *doc;
+  AkImage          *image;
+  size_t            sidLen;
+  size_t            suffixLen;
+
+  if (!dst || !sid || !*sid)
+    return NULL;
+
+  doc    = dst->doc;
+  sidLen = strlen(sid);
+  if ((image = dae14_find_image_by_id_n(doc, sid, sidLen)))
+    return ak_getId(image);
+
+  suffixLen = sizeof(suffix) - 1;
+  if (sidLen > suffixLen
+      && memcmp(sid + sidLen - suffixLen, suffix, suffixLen) == 0) {
+    if ((image = dae14_find_image_by_id_n(doc, sid, sidLen - suffixLen)))
+      return ak_getId(image);
+  }
+
+  return NULL;
+}
+
+static
+AkInstanceBase*
+dae14_make_image_instance(DAEState * __restrict dst,
+                          void     * __restrict parent,
+                          const char * __restrict imageId) {
+  AkInstanceBase *instanceImage;
+
+  if (!imageId)
+    return NULL;
+
+  instanceImage = ak_heap_calloc(dst->heap, parent, sizeof(*instanceImage));
+  if (!instanceImage)
+    return NULL;
+
+  ak_url_init_with_id(dst->heap->allocator,
+                      instanceImage,
+                      (char *)imageId,
+                      &instanceImage->url);
+
+  return instanceImage;
+}
+
 AK_HIDE
 void
 dae14_loadjobs_add(DAEState   * __restrict  dst,
@@ -156,6 +229,19 @@ dae14_loadjobs_finish(DAEState * __restrict dst) {
               image->renderable = surface->initAsTarget;
             }
           }
+        } else {
+          AkSampler       *sampler;
+          AkInstanceBase  *instanceImage;
+          const char      *imageId;
+
+          imageId = dae14_find_image_id_for_surface_source(dst, job->value);
+          if (!imageId)
+            break;
+
+          sampler       = job->parent;
+          instanceImage = dae14_make_image_instance(dst, sampler, imageId);
+          if (instanceImage)
+            rb_insert(dst->instanceMap, sampler, instanceImage);
         }
 
         break;

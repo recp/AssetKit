@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "../test_common.h"
+#include "../../../test_common.h"
 
 const char *dae_dir = "./test/sample-models/collada/files";
 

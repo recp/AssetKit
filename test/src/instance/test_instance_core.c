@@ -1,0 +1,429 @@
+/*
+ * Copyright (C) 2020 Recep Aslantas
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "../test_export_common.h"
+
+TEST_IMPL(instance_attach_helpers) {
+  AkHeap             *heap;
+  AkNode             *node, *subNode;
+  AkNode             *targetNode;
+  AkGeometry         *geomA, *geomB;
+  AkInstanceGeometry *instA, *instB;
+  AkInstanceNode          *instNode;
+
+  heap  = ak_heap_new(NULL, NULL, NULL);
+  node  = ak_heap_calloc(heap, NULL, sizeof(*node));
+  targetNode = ak_heap_calloc(heap, NULL, sizeof(*targetNode));
+  geomA = ak_heap_calloc(heap, NULL, sizeof(*geomA));
+  geomB = ak_heap_calloc(heap, NULL, sizeof(*geomB));
+
+  instA = ak_nodeAttachGeometry(node, geomA);
+  ASSERT(instA != NULL);
+  ASSERT(node->geometry == instA);
+  ASSERT(instA->base.node == node);
+  ASSERT(instA->base.object == geomA);
+  ASSERT(instA->base.prev == NULL);
+  ASSERT(instA->base.next == NULL);
+
+  instB = ak_nodeAttachGeometry(node, geomB);
+  ASSERT(instB != NULL);
+  ASSERT(node->geometry == instB);
+  ASSERT(instB->base.node == node);
+  ASSERT(instB->base.object == geomB);
+  ASSERT(instB->base.prev == NULL);
+  ASSERT(instB->base.next == &instA->base);
+  ASSERT(instA->base.prev == &instB->base);
+  ASSERT(instA->base.next == NULL);
+
+  subNode = ak_instanceMoveToSubNode(node, &instB->base);
+  ASSERT(subNode != NULL);
+  ASSERT(subNode->geometry == instB);
+  ASSERT(instB->base.node == subNode);
+  ASSERT(instB->base.prev == NULL);
+  ASSERT(instB->base.next == NULL);
+  ASSERT(node->geometry == instA);
+  ASSERT(instA->base.prev == NULL);
+  ASSERT(instA->base.next == NULL);
+
+  instNode = ak_nodeAttachNodeInstance(node, targetNode);
+  ASSERT(instNode != NULL);
+  ASSERT(node->node == instNode);
+  ASSERT(instNode->owner == node);
+  ASSERT(instNode->target == targetNode);
+  ASSERT(ak_instanceNodeTarget(instNode) == targetNode);
+  ASSERT(instNode->prev == NULL);
+  ASSERT(instNode->next == NULL);
+
+  ak_heap_destroy(heap);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(node_instance_bbox_traversal) {
+  AkHeap        *heap;
+  AkScene       *scene;
+  AkNode        *root, *nodeA, *nodeB;
+  AkGeometry    *geomA, *geomB;
+  AkBoundingBox *bboxA, *bboxB;
+
+  heap  = ak_heap_new(NULL, NULL, NULL);
+  scene = ak_heap_calloc(heap, NULL, sizeof(*scene));
+  root  = ak_heap_calloc(heap, scene, sizeof(*root));
+  nodeA = ak_heap_calloc(heap, NULL, sizeof(*nodeA));
+  nodeB = ak_heap_calloc(heap, NULL, sizeof(*nodeB));
+  geomA = ak_heap_calloc(heap, NULL, sizeof(*geomA));
+  geomB = ak_heap_calloc(heap, NULL, sizeof(*geomB));
+  bboxA = ak_heap_calloc(heap, geomA, sizeof(*bboxA));
+  bboxB = ak_heap_calloc(heap, geomB, sizeof(*bboxB));
+
+  scene->node = root;
+
+  bboxA->min[0] = 0.0f;
+  bboxA->min[1] = 0.0f;
+  bboxA->min[2] = 0.0f;
+  bboxA->max[0] = 1.0f;
+  bboxA->max[1] = 1.0f;
+  bboxA->max[2] = 1.0f;
+  bboxA->isvalid = true;
+
+  bboxB->min[0] = 10.0f;
+  bboxB->min[1] = 0.0f;
+  bboxB->min[2] = 0.0f;
+  bboxB->max[0] = 11.0f;
+  bboxB->max[1] = 1.0f;
+  bboxB->max[2] = 1.0f;
+  bboxB->isvalid = true;
+
+  geomA->bbox = bboxA;
+  geomB->bbox = bboxB;
+
+  ASSERT(ak_nodeAttachGeometry(nodeA, geomA) != NULL);
+  ASSERT(ak_nodeAttachGeometry(nodeB, geomB) != NULL);
+  ASSERT(ak_nodeAttachNodeInstance(root, nodeA) != NULL);
+  ASSERT(ak_nodeAttachNodeInstance(root, nodeB) != NULL);
+
+  ak_bbox_scene(scene);
+
+  ASSERT(scene->bbox != NULL);
+  ASSERT(scene->bbox->isvalid);
+  ASSERT(scene->bbox->min[0] == 0.0f);
+  ASSERT(scene->bbox->max[0] == 11.0f);
+
+  bboxB->min[0] = 5.0f;
+  bboxB->max[0] = 6.0f;
+  ak_bbox_scene(scene);
+
+  ASSERT(scene->bbox->min[0] == 0.0f);
+  ASSERT(scene->bbox->max[0] == 6.0f);
+
+  ak_heap_destroy(heap);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(node_instance_bbox_lazy_geometry) {
+  AkHeap     *heap;
+  AkScene    *scene;
+  AkNode     *root, *target;
+  AkGeometry *geom;
+  const float positions[9] = {
+    0.0f, 0.0f, 0.0f,
+    1.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f
+  };
+
+  heap   = ak_heap_new(NULL, NULL, NULL);
+  scene  = ak_heap_calloc(heap, NULL, sizeof(*scene));
+  root   = ak_heap_calloc(heap, scene, sizeof(*root));
+  target = ak_heap_calloc(heap, NULL, sizeof(*target));
+  geom   = ak_test_make_triangle_geom(heap, NULL, positions);
+
+  scene->node = root;
+
+  ASSERT(geom->bbox == NULL);
+  ASSERT(ak_nodeAttachGeometry(target, geom) != NULL);
+  ASSERT(ak_nodeAttachNodeInstance(root, target) != NULL);
+
+  ak_bbox_scene(scene);
+
+  ASSERT(geom->bbox != NULL);
+  ASSERT(geom->bbox->isvalid);
+  ASSERT(scene->bbox != NULL);
+  ASSERT(scene->bbox->isvalid);
+  ASSERT(isfinite(scene->bbox->min[0]));
+  ASSERT(isfinite(scene->bbox->max[0]));
+  ASSERT(scene->bbox->min[0] == 0.0f);
+  ASSERT(scene->bbox->max[0] == 1.0f);
+  ASSERT(scene->bbox->min[1] == 0.0f);
+  ASSERT(scene->bbox->max[1] == 1.0f);
+  ASSERT(scene->bbox->min[2] == 0.0f);
+  ASSERT(scene->bbox->max[2] == 0.0f);
+
+  ak_heap_destroy(heap);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(node_instance_bbox_path_state) {
+  AkHeap        *heap;
+  AkScene       *scene;
+  AkNode        *root, *ownerA, *ownerB, *target;
+  AkGeometry    *geom;
+  AkBoundingBox *bbox;
+  float          identity[16] = {
+    1.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 1.0f, 0.0f,
+    0.0f, 0.0f, 0.0f, 1.0f
+  };
+  float          translateX[16] = {
+    1.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 1.0f, 0.0f,
+    10.0f, 0.0f, 0.0f, 1.0f
+  };
+
+  heap   = ak_heap_new(NULL, NULL, NULL);
+  scene  = ak_heap_calloc(heap, NULL, sizeof(*scene));
+  root   = ak_heap_calloc(heap, scene, sizeof(*root));
+  ownerA = ak_heap_calloc(heap, NULL, sizeof(*ownerA));
+  ownerB = ak_heap_calloc(heap, NULL, sizeof(*ownerB));
+  target = ak_heap_calloc(heap, NULL, sizeof(*target));
+  geom   = ak_heap_calloc(heap, NULL, sizeof(*geom));
+  bbox   = ak_heap_calloc(heap, geom, sizeof(*bbox));
+
+  scene->node = root;
+
+  bbox->min[0] = 0.0f;
+  bbox->min[1] = 0.0f;
+  bbox->min[2] = 0.0f;
+  bbox->max[0] = 1.0f;
+  bbox->max[1] = 1.0f;
+  bbox->max[2] = 1.0f;
+  bbox->isvalid = true;
+  geom->bbox = bbox;
+
+  ak_nodeSetTransformMatrix(ownerA, identity);
+  ak_nodeSetTransformMatrix(ownerB, translateX);
+
+  ASSERT(ak_nodeAttachGeometry(target, geom) != NULL);
+  ASSERT(ak_nodeAttachNodeInstance(root, ownerA) != NULL);
+  ASSERT(ak_nodeAttachNodeInstance(root, ownerB) != NULL);
+  ASSERT(ak_nodeAttachNodeInstance(ownerA, target) != NULL);
+  ASSERT(ak_nodeAttachNodeInstance(ownerB, target) != NULL);
+
+  ak_bbox_scene(scene);
+
+  ASSERT(scene->bbox != NULL);
+  ASSERT(scene->bbox->isvalid);
+  ASSERT(scene->bbox->min[0] == 0.0f);
+  ASSERT(scene->bbox->max[0] == 11.0f);
+  ASSERT(target->matrixWorld == NULL);
+
+  ak_heap_destroy(heap);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(node_instance_bbox_rotated_ref) {
+  AkHeap        *heap;
+  AkScene       *scene;
+  AkNode        *root, *target;
+  AkGeometry    *geom;
+  AkBoundingBox *bbox;
+  float          rotZ45[16] = {
+    0.70710678f, 0.70710678f, 0.0f, 0.0f,
+   -0.70710678f, 0.70710678f, 0.0f, 0.0f,
+    0.0f,        0.0f,        1.0f, 0.0f,
+    0.0f,        0.0f,        0.0f, 1.0f
+  };
+
+  heap   = ak_heap_new(NULL, NULL, NULL);
+  scene  = ak_heap_calloc(heap, NULL, sizeof(*scene));
+  root   = ak_heap_calloc(heap, scene, sizeof(*root));
+  target = ak_heap_calloc(heap, NULL, sizeof(*target));
+  geom   = ak_heap_calloc(heap, NULL, sizeof(*geom));
+  bbox   = ak_heap_calloc(heap, geom, sizeof(*bbox));
+
+  scene->node = root;
+
+  bbox->min[0] = 0.0f;
+  bbox->min[1] = 0.0f;
+  bbox->min[2] = 0.0f;
+  bbox->max[0] = 1.0f;
+  bbox->max[1] = 1.0f;
+  bbox->max[2] = 0.0f;
+  bbox->isvalid = true;
+  geom->bbox = bbox;
+
+  ak_nodeSetTransformMatrix(root, rotZ45);
+
+  ASSERT(ak_nodeAttachGeometry(target, geom) != NULL);
+  ASSERT(ak_nodeAttachNodeInstance(root, target) != NULL);
+
+  ak_bbox_scene(scene);
+
+  ASSERT(scene->bbox != NULL);
+  ASSERT(scene->bbox->isvalid);
+  ASSERT(fabsf(scene->bbox->min[0] + 0.70710678f) < 0.001f);
+  ASSERT(fabsf(scene->bbox->max[0] - 0.70710678f) < 0.001f);
+  ASSERT(fabsf(scene->bbox->min[1]) < 0.001f);
+  ASSERT(fabsf(scene->bbox->max[1] - 1.41421356f) < 0.001f);
+  ASSERT(target->matrixWorld == NULL);
+
+  ak_heap_destroy(heap);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(node_instance_camera_world_path) {
+  AkHeap   *heap;
+  AkDoc    *doc;
+  AkScene  *scene;
+  AkNode   *root, *camNode;
+  AkCamera *camera;
+  AkCamera *found;
+  float     rootTrans[16] = {
+    1.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 1.0f, 0.0f,
+    5.0f, 0.0f, 0.0f, 1.0f
+  };
+  float     camTrans[16] = {
+    1.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 1.0f, 0.0f,
+    10.0f, 0.0f, 0.0f, 1.0f
+  };
+  float     matrix[16];
+
+  heap    = ak_heap_new(NULL, NULL, NULL);
+  doc     = ak_heap_calloc(heap, NULL, sizeof(*doc));
+  scene   = ak_heap_calloc(heap, doc, sizeof(*scene));
+  root    = ak_heap_calloc(heap, scene, sizeof(*root));
+  camNode = ak_heap_calloc(heap, doc, sizeof(*camNode));
+
+  doc->scene           = scene;
+  scene->node          = root;
+  scene->firstCamNode  = camNode;
+
+  ak_nodeSetTransformMatrix(root, rootTrans);
+  ak_nodeSetTransformMatrix(camNode, camTrans);
+
+  camera = ak_camMakePerspective(doc, doc, 1.0f, 1.0f, 0.1f, 100.0f);
+  ASSERT(camera != NULL);
+  ASSERT(ak_nodeAttachCamera(camNode, camera) != NULL);
+  ASSERT(ak_nodeAttachNodeInstance(root, camNode) != NULL);
+
+  ASSERT(ak_firstCamera(doc, &found, matrix, NULL) == AK_OK);
+  ASSERT(found == camera);
+  ASSERT(fabsf(matrix[12] - 15.0f) < 0.001f);
+  ASSERT(fabsf(matrix[13]) < 0.001f);
+  ASSERT(fabsf(matrix[14]) < 0.001f);
+
+  ak_heap_destroy(heap);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(scene_find_or_make_root_uses_child_roots) {
+  AkHeap  *heap;
+  AkDoc   *doc;
+  AkScene *scene;
+  AkNode  *madeRoot;
+  AkNode  *sameRoot;
+  AkNode  *otherRoot;
+
+  heap = ak_heap_new(NULL, NULL, NULL);
+  doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
+
+  scene = ak_heap_calloc(heap, doc, sizeof(*scene));
+
+  madeRoot = ak_sceneFindOrMakeRoot(doc, scene, "User Cameras");
+  ASSERT(madeRoot != NULL);
+  ASSERT(scene->node != NULL);
+  ASSERT(scene->node->chld == madeRoot);
+  ASSERT(scene->node->node == NULL);
+  ASSERT(scene->node->geometry == NULL);
+  ASSERT(madeRoot->parent == scene->node);
+  ASSERT(madeRoot->prev == NULL);
+  ASSERT(madeRoot->next == NULL);
+  ASSERT(doc->lib.nodes.count == 1);
+
+  sameRoot = ak_sceneFindOrMakeRoot(doc, scene, "User Cameras");
+  ASSERT(sameRoot == madeRoot);
+  ASSERT(doc->lib.nodes.count == 1);
+  ASSERT(scene->node->chld->next == NULL);
+
+  otherRoot = ak_sceneFindOrMakeRoot(doc, scene, "Other Root");
+  ASSERT(otherRoot != NULL);
+  ASSERT(otherRoot != madeRoot);
+  ASSERT(scene->node->chld == otherRoot);
+  ASSERT(scene->node->chld->next == madeRoot);
+  ASSERT(otherRoot->parent == scene->node);
+  ASSERT(madeRoot->parent == scene->node);
+  ASSERT(doc->lib.nodes.count == 2);
+
+  ak_heap_destroy(heap);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(obj_scene_root_is_child_node) {
+  AkDoc      *doc;
+  AkScene    *scene;
+  AkNode     *root;
+  char        dirTemplate[PATH_MAX];
+  char       *tmpdir;
+  char        objPath[PATH_MAX];
+  const char *tmpBase;
+
+  doc = NULL;
+  tmpBase = getenv("TMPDIR");
+  if (!tmpBase || !tmpBase[0])
+    tmpBase = "/tmp";
+
+  snprintf(dirTemplate,
+           sizeof(dirTemplate),
+           "%s/assetkit-obj-root-XXXXXX",
+           tmpBase);
+  tmpdir = mkdtemp(dirTemplate);
+  ASSERT(tmpdir != NULL);
+
+  snprintf(objPath, sizeof(objPath), "%s/triangle.obj", tmpdir);
+  ASSERT(ak_test_write_obj_triangle(objPath));
+  ASSERT(ak_load(&doc, objPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+
+  scene = doc->scene;
+  ASSERT(scene != NULL);
+  ASSERT(scene->node != NULL);
+  ASSERT(scene->node->chld != NULL);
+  ASSERT(scene->node->node == NULL);
+  ASSERT(scene->node->geometry == NULL);
+
+  root = scene->node->chld;
+  ASSERT(root != NULL);
+  ASSERT(root != scene->node);
+  ASSERT(root->parent == scene->node);
+  ASSERT(root->geometry != NULL);
+  ASSERT(doc->lib.nodes.count == 1);
+
+  ak_free(doc);
+  unlink(objPath);
+  rmdir(tmpdir);
+
+  TEST_SUCCESS
+}

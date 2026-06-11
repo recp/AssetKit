@@ -61,7 +61,7 @@ typedef struct AkGaussianSplat {
   /* Filled by an optional decoder when a compression extension is present. */
   void                        *decodedData;     /* opaque, decoder-owned */
   uint32_t                     decodedCount;     /* decoded splat count */
-  uint32_t                     reserved;
+  uint32_t                     padding;
 } AkGaussianSplat;
 
 /*---------------------------------------------------------------------*/

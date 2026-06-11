@@ -19,6 +19,39 @@
 #include "../../../array.h"
 
 static
+bool
+dae_brep_input_source_is_object(AkInput * __restrict inp) {
+  const char *sem;
+
+  if (!inp)
+    return false;
+
+  if ((uint32_t)inp->semantic == AK_INPUT_SEMANTIC_VERTEX)
+    return true;
+
+  sem = inp->semanticRaw;
+  if (!sem)
+    return false;
+
+  switch (sem[0]) {
+    case 'C':
+      return strcmp(sem, "CURVE") == 0 || strcmp(sem, "CURVE2D") == 0;
+    case 'E':
+      return strcmp(sem, "EDGE") == 0 || strcmp(sem, "EGDE") == 0;
+    case 'F':
+      return strcmp(sem, "FACE") == 0;
+    case 'S':
+      return strcmp(sem, "SURFACE") == 0 || strcmp(sem, "SHELL") == 0;
+    case 'W':
+      return strcmp(sem, "WIRE") == 0;
+    default:
+      break;
+  }
+
+  return false;
+}
+
+static
 AkInput*
 dae_brep_input(DAEState * __restrict dst,
                xml_t    * __restrict xml,
@@ -42,12 +75,10 @@ dae_brep_input(DAEState * __restrict dst,
   inp->indexOffset = xmla_u32(DAE_XMLA8(xml, offset), 0);
   inp->set         = xmla_u32(DAE_XMLA4(xml, set),    0);
 
-  if ((uint32_t)inp->semantic == AK_INPUT_SEMANTIC_VERTEX) {
-    ak_free(inp);
-    return NULL;
-  }
+  if (dae_brep_input_source_is_object(inp))
+    return inp;
 
-  url = DAE_URL_FROM(xml, source, parent);
+  url = DAE_URL_FROM(dst, xml, source, parent);
   rb_insert(dst->inputmap, inp, url);
 
   return inp;
