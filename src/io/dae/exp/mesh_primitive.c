@@ -16,32 +16,14 @@
 
 #include "mesh.h"
 #include "brep.h"
+#include "../../common/primitive.h"
 
 #include <string.h>
 
 AK_HIDE
 uint32_t
 dae_primitive_vertex_count(AkMeshPrimitive * __restrict prim) {
-  AkAccessor *idxAcc;
-
-  if (!prim)
-    return 0;
-
-  if (prim->indices) {
-    uint32_t stride;
-
-    stride = prim->indexStride ? prim->indexStride : 1u;
-    return (uint32_t)(prim->indices->count / stride);
-  }
-
-  idxAcc = prim->indexAccessor;
-  if (idxAcc)
-    return idxAcc->count;
-
-  if (prim->pos && prim->pos->accessor)
-    return prim->pos->accessor->count;
-
-  return 0;
+  return io_primitive_vertex_count(prim);
 }
 
 static
@@ -73,58 +55,12 @@ dae_polygon_vcount_valid(AkPolygon * __restrict poly) {
   return sum == vertexCount;
 }
 
-static
-AkUInt
-dae_index_accessor_get(AkAccessor * __restrict acc, uint32_t index) {
-  const unsigned char *src;
-  size_t              stride;
-
-  if (!acc || !acc->buffer || !acc->buffer->data || index >= acc->count)
-    return index;
-
-  stride = acc->byteStride ? acc->byteStride : acc->bytesPerComponent;
-  src    = (const unsigned char *)acc->buffer->data
-           + acc->byteOffset
-           + (size_t)index * stride;
-
-  switch (acc->componentType) {
-    case AKT_UBYTE:
-      return src[0];
-    case AKT_USHORT: {
-      uint16_t v;
-      memcpy(&v, src, sizeof(v));
-      return v;
-    }
-    case AKT_UINT: {
-      uint32_t v;
-      memcpy(&v, src, sizeof(v));
-      return v;
-    }
-    default:
-      return index;
-  }
-}
-
 AK_HIDE
 AkUInt
 dae_primitive_input_index(AkMeshPrimitive * __restrict prim,
                           AkInput         * __restrict input,
                           uint32_t                     vertexIndex) {
-  if (prim->indices) {
-    uint32_t stride;
-    uint32_t offset;
-
-    stride = prim->indexStride ? prim->indexStride : 1u;
-    offset = input && input->isIndexed ? input->indexOffset : 0u;
-    if (offset >= stride)
-      offset = 0;
-    return ak_indexArrayGet(prim->indices, (size_t)vertexIndex * stride + offset);
-  }
-
-  if (prim->indexAccessor)
-    return dae_index_accessor_get(prim->indexAccessor, vertexIndex);
-
-  return vertexIndex;
+  return io_primitive_input_index(prim, input, vertexIndex);
 }
 
 AK_HIDE

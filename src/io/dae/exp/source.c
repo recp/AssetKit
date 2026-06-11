@@ -16,6 +16,7 @@
 
 #include "source.h"
 #include "../strpool.h"
+#include "../../common/primitive.h"
 
 AK_HIDE
 const char*
@@ -68,47 +69,13 @@ dae_input_param_exp_name(AkInput * __restrict input, uint32_t idx) {
 AK_HIDE
 bool
 dae_accessor_float_direct(AkAccessor * __restrict acc) {
-  size_t fillSize;
-  size_t stride;
-
-  if (!acc
-      || !acc->buffer
-      || !acc->buffer->data
-      || acc->componentType != AKT_FLOAT
-      || acc->bytesPerComponent != sizeof(float)
-      || acc->componentCount == 0
-      || acc->count == 0)
-    return false;
-
-  fillSize = acc->fillByteSize
-             ? acc->fillByteSize
-             : (size_t)acc->bytesPerComponent * acc->componentCount;
-  stride   = acc->byteStride ? acc->byteStride : fillSize;
-
-  if (fillSize < sizeof(float) * acc->componentCount
-      || stride < fillSize
-      || acc->byteOffset > acc->buffer->length
-      || (size_t)(acc->count - 1u) > ((size_t)-1 - acc->byteOffset) / stride)
-    return false;
-
-  return acc->byteOffset + (size_t)(acc->count - 1u) * stride + fillSize
-         <= acc->buffer->length;
+  return io_accessor_float_direct(acc);
 }
 
 AK_HIDE
 const float*
 dae_accessor_float_row(AkAccessor * __restrict acc, uint32_t index) {
-  size_t fillSize;
-  size_t stride;
-
-  fillSize = acc->fillByteSize
-             ? acc->fillByteSize
-             : (size_t)acc->bytesPerComponent * acc->componentCount;
-  stride   = acc->byteStride ? acc->byteStride : fillSize;
-
-  return (const float *)((const char *)acc->buffer->data
-                         + acc->byteOffset
-                         + (size_t)index * stride);
+  return io_accessor_float_row(acc, index);
 }
 
 AK_HIDE

@@ -36,6 +36,9 @@ typedef struct WOMtl {
   char *map_Ks;
   char *map_Ke;
   char *map_Ns;
+  char *map_Pr;
+  char *map_Pm;
+  char *map_Ps;
   char *map_d;
   char *decal;
   char *disp;
@@ -47,6 +50,13 @@ typedef struct WOMtl {
   vec3  Tf;
   float Ni;
   float Ns;     /* exponent */
+  float Pr;     /* roughness */
+  float Pm;     /* metallic */
+  float Ps;     /* sheen */
+  float Pc;     /* clearcoat */
+  float Pcr;    /* clearcoat roughness */
+  float aniso;
+  float anisor;
   float d;      /* dissolve */
   float dHalo;  /* dissolve halo */
   float Tr;     /* Transparent (1 - d) */
@@ -54,6 +64,13 @@ typedef struct WOMtl {
   int   illum;
   bool  map_aat;
   bool  has_Ns;
+  bool  has_Pr;
+  bool  has_Pm;
+  bool  has_Ps;
+  bool  has_Pc;
+  bool  has_Pcr;
+  bool  has_aniso;
+  bool  has_anisor;
   bool  has_Tf;
 } WOMtl;
 

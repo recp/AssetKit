@@ -114,6 +114,16 @@ test_write_obj_material_files(const char *objPath,
 
   fputs("newmtl obj_opacity\n"
         "Kd 1 1 1\n"
+        "Pr 0.35\n"
+        "Pm 0.65\n"
+        "map_Pr roughness.png\n"
+        "map_Pm metallic.png\n"
+        "Ps 0.25\n"
+        "Pc 2\n"
+        "Pcr 0.15\n"
+        "aniso 0.45\n"
+        "anisor 0.55\n"
+        "map_Ps sheen.png\n"
         "Tf 0.2 0.3 0.4\n"
         "d 0.5\n"
         "map_d alpha.png\n",
@@ -689,6 +699,9 @@ TEST_IMPL(material_obj_adapter) {
   AkDoc       *doc;
   AkMaterial  *mat;
   AkMaterialClassicFeature *classic;
+  AkMaterialClearcoatFeature *clearcoat;
+  AkMaterialSheenFeature *sheen;
+  AkMaterialAnisotropyFeature *anisotropy;
   char          dirTemplate[PATH_MAX];
   char         *tmpdir;
   char          objPath[PATH_MAX];
@@ -718,6 +731,39 @@ TEST_IMPL(material_obj_adapter) {
   ASSERT(mat->name && strcmp(mat->name, "obj_opacity") == 0);
   ASSERT(mat->surface != NULL);
   ASSERT(mat->surface->opacity != NULL);
+  ASSERT(mat->surface->roughness != NULL);
+  ASSERT(mat->surface->metallic != NULL);
+  ASSERT(mat->surface->roughness->source == AK_MATERIAL_INPUT_TEXTURE);
+  ASSERT(mat->surface->metallic->source == AK_MATERIAL_INPUT_TEXTURE);
+  ASSERT(ak_materialRoughnessFactor(mat->surface) > 0.349f);
+  ASSERT(ak_materialRoughnessFactor(mat->surface) < 0.351f);
+  ASSERT(ak_materialMetallicFactor(mat->surface) > 0.649f);
+  ASSERT(ak_materialMetallicFactor(mat->surface) < 0.651f);
+  clearcoat = (AkMaterialClearcoatFeature *)ak_materialFeature(
+    mat->surface, AK_MATERIAL_FEATURE_CLEARCOAT);
+  sheen = (AkMaterialSheenFeature *)ak_materialFeature(
+    mat->surface, AK_MATERIAL_FEATURE_SHEEN);
+  anisotropy = (AkMaterialAnisotropyFeature *)ak_materialFeature(
+    mat->surface, AK_MATERIAL_FEATURE_ANISOTROPY);
+  ASSERT(clearcoat != NULL);
+  ASSERT(sheen != NULL);
+  ASSERT(anisotropy != NULL);
+  ASSERT(clearcoat->factor != NULL);
+  ASSERT(clearcoat->roughness != NULL);
+  ASSERT(sheen->color != NULL);
+  ASSERT(sheen->color->source == AK_MATERIAL_INPUT_TEXTURE);
+  ASSERT(anisotropy->strength != NULL);
+  ASSERT(anisotropy->rotation != NULL);
+  ASSERT(ak_materialInputScalar(clearcoat->factor, 0.0f) > 0.499f);
+  ASSERT(ak_materialInputScalar(clearcoat->factor, 0.0f) < 0.501f);
+  ASSERT(ak_materialInputScalar(clearcoat->roughness, 0.0f) > 0.149f);
+  ASSERT(ak_materialInputScalar(clearcoat->roughness, 0.0f) < 0.151f);
+  ASSERT(ak_materialInputScalar(sheen->color, 0.0f) > 0.249f);
+  ASSERT(ak_materialInputScalar(sheen->color, 0.0f) < 0.251f);
+  ASSERT(ak_materialInputScalar(anisotropy->strength, 0.0f) > 0.449f);
+  ASSERT(ak_materialInputScalar(anisotropy->strength, 0.0f) < 0.451f);
+  ASSERT(ak_materialInputScalar(anisotropy->rotation, 0.0f) > 0.549f);
+  ASSERT(ak_materialInputScalar(anisotropy->rotation, 0.0f) < 0.551f);
   ASSERT(test_material_opacity(mat, AK_TEXTURE_CHANNEL_R, 0.499f, 0.501f, true, false));
   ASSERT(mat->surface->flags & AK_MATERIAL_FLAG_ALPHA_BLEND);
   classic = (void*)ak_materialFeature(mat->surface, AK_MATERIAL_FEATURE_CLASSIC);

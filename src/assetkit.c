@@ -22,6 +22,7 @@
 #include "io/gltf/imp/gltf.h"
 #include "io/gltf/exp/gltf.h"
 #include "io/obj/obj.h"
+#include "io/obj/exp/obj.h"
 #include "io/stl/stl.h"
 #include "io/ply/ply.h"
 #include "io/3mf/imp/3mf.h"
@@ -432,6 +433,7 @@ ak_export(AkDoc * __restrict doc, const char * __restrict outDir,
     {dae_export,      "dae"},
     {gltf_export,     "gltf"},
     {gltf_export_glb, "glb"},
+    {wobj_export,     "obj"},
   };
 
   fexporter = NULL;
@@ -448,6 +450,9 @@ ak_export(AkDoc * __restrict doc, const char * __restrict outDir,
         break;
       case AK_FILE_TYPE_GLB:
         fexporter = &fexporters[2];
+        break;
+      case AK_FILE_TYPE_WAVEFRONT:
+        fexporter = &fexporters[3];
         break;
       default:
         break;

@@ -18,6 +18,8 @@
 #include "../../string_fast.h"
 #include "../../strpool.h"
 
+#include <math.h>
+
 /*
  Resources:
    https://all3dp.com/1/obj-file-format-3d-printing-cad/
@@ -56,6 +58,25 @@ wobj_featurePush(AkMaterialSurface * __restrict surface,
   surface->features = feature;
   if ((uint32_t)feature->type < 32)
     surface->featureMask |= 1u << (uint32_t)feature->type;
+}
+
+static
+AkMaterialFeature*
+wobj_feature(WOState              * __restrict wst,
+             AkMaterialSurface    * __restrict surface,
+             AkMaterialFeatureType             type,
+             size_t                            size) {
+  AkMaterialFeature *feature;
+
+  feature = ak_materialFeature(surface, type);
+  if (feature)
+    return feature;
+
+  feature       = ak_heap_calloc(wst->heap, surface, size);
+  feature->type = type;
+  wobj_featurePush(surface, feature);
+
+  return feature;
 }
 
 static
@@ -214,6 +235,33 @@ wobj_mtl(WOState    * __restrict wst,
                 break;
             }
             break;
+          case 'P':
+            switch (p[1]) {
+              case 'r':
+                p += 2;
+                ak_strtof_line(p, 0, 1, &mtl->Pr);
+                mtl->has_Pr = true;
+                break;
+              case 'm':
+                p += 2;
+                ak_strtof_line(p, 0, 1, &mtl->Pm);
+                mtl->has_Pm = true;
+                break;
+              case 's':
+                p += 2;
+                ak_strtof_line(p, 0, 1, &mtl->Ps);
+                mtl->has_Ps = true;
+                break;
+              case 'c':
+                p += 2;
+                ak_strtof_line(p, 0, 1, &mtl->Pc);
+                mtl->has_Pc = true;
+                break;
+              default:
+                p += 2;
+                break;
+            }
+            break;
           case 'T':
             switch (p[1]) {
               case 'f':
@@ -297,7 +345,63 @@ wobj_mtl(WOState    * __restrict wst,
               default: break;
             }
             break;
+          case 'P':
+            switch (p[1]) {
+              case 'r':
+                p += 2;
+                SKIP_SPACES
+
+                begin = p;
+                while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
+                end = p;
+
+                mtl->map_Pr = ak_heap_strndup(heap, mtl, begin, end - begin);
+                break;
+              case 'm':
+                p += 2;
+                SKIP_SPACES
+
+                begin = p;
+                while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
+                end = p;
+
+                mtl->map_Pm = ak_heap_strndup(heap, mtl, begin, end - begin);
+                break;
+              case 's':
+                p += 2;
+                SKIP_SPACES
+
+                begin = p;
+                while ((c = *++p) != '\0' && !AK_ARRAY_NLINE_CHECK);
+                end = p;
+
+                mtl->map_Ps = ak_heap_strndup(heap, mtl, begin, end - begin);
+                break;
+              default: break;
+            }
+            break;
           default: break;
+        }
+      } else if (p[0] == 'P'
+                 && p[1] == 'c'
+                 && p[2] == 'r'
+                 && (p[3] == ' ' || p[3] == '\t')) {
+        p += 3;
+        ak_strtof_line(p, 0, 1, &mtl->Pcr);
+        mtl->has_Pcr = true;
+      } else if (p[0] == 'a'
+                 && p[1] == 'n'
+                 && p[2] == 'i'
+                 && p[3] == 's'
+                 && p[4] == 'o') {
+        if (p[5] == 'r' && (p[6] == ' ' || p[6] == '\t')) {
+          p += 6;
+          ak_strtof_line(p, 0, 1, &mtl->anisor);
+          mtl->has_anisor = true;
+        } else if (p[5] == ' ' || p[5] == '\t') {
+          p += 5;
+          ak_strtof_line(p, 0, 1, &mtl->aniso);
+          mtl->has_aniso = true;
         }
       } else if (ak_str_pack4_fast(p, 4) == WOBJ_MTL_KW_BUMP) {
         p += 4;
@@ -384,6 +488,106 @@ wobj_handleMaterial(WOState  * __restrict wst,
   surface->alphaCutoff = 0.5f;
   surface->ior = mtl->Ni;
   surface->emissiveStrength = 1.0f;
+
+  if ((mtl->has_Pr && isfinite(mtl->Pr)) || mtl->map_Pr) {
+    float value;
+
+    value = mtl->has_Pr && isfinite(mtl->Pr) ? glm_clamp_zo(mtl->Pr) : 1.0f;
+    surface->roughness = wobj_scalarInput(wst,
+                                          surface,
+                                          ak_materialSemanticName(AK_MATERIAL_SEMANTIC_ROUGHNESS),
+                                          value,
+                                          mtl->map_Pr,
+                                          AK_TEXTURE_COLORSPACE_LINEAR,
+                                          AK_TEXTURE_CHANNEL_R);
+  }
+
+  if ((mtl->has_Pm && isfinite(mtl->Pm)) || mtl->map_Pm) {
+    float value;
+
+    value = mtl->has_Pm && isfinite(mtl->Pm) ? glm_clamp_zo(mtl->Pm) : 1.0f;
+    surface->metallic = wobj_scalarInput(wst,
+                                         surface,
+                                         ak_materialSemanticName(AK_MATERIAL_SEMANTIC_METALLIC),
+                                         value,
+                                         mtl->map_Pm,
+                                         AK_TEXTURE_COLORSPACE_LINEAR,
+                                         AK_TEXTURE_CHANNEL_R);
+  }
+
+  if ((mtl->has_Ps && isfinite(mtl->Ps)) || mtl->map_Ps) {
+    AkMaterialSheenFeature *sheen;
+    float                   value;
+
+    sheen = (AkMaterialSheenFeature *)wobj_feature(wst,
+                                                   surface,
+                                                   AK_MATERIAL_FEATURE_SHEEN,
+                                                   sizeof(*sheen));
+    value = mtl->has_Ps && isfinite(mtl->Ps) ? glm_clamp_zo(mtl->Ps) : 1.0f;
+    sheen->color = wobj_scalarInput(wst,
+                                    sheen,
+                                    _s_ak_sheenColor,
+                                    value,
+                                    mtl->map_Ps,
+                                    AK_TEXTURE_COLORSPACE_LINEAR,
+                                    AK_TEXTURE_CHANNEL_R);
+  }
+
+  if ((mtl->has_Pc && isfinite(mtl->Pc))
+      || (mtl->has_Pcr && isfinite(mtl->Pcr))) {
+    AkMaterialClearcoatFeature *clearcoat;
+
+    clearcoat = (AkMaterialClearcoatFeature *)wobj_feature(
+      wst, surface, AK_MATERIAL_FEATURE_CLEARCOAT, sizeof(*clearcoat));
+
+    if (mtl->has_Pc && isfinite(mtl->Pc)) {
+      clearcoat->factor = wobj_scalarInput(wst,
+                                           clearcoat,
+                                           _s_ak_clearcoat,
+                                           glm_clamp_zo(mtl->Pc * 0.25f),
+                                           NULL,
+                                           AK_TEXTURE_COLORSPACE_LINEAR,
+                                           AK_TEXTURE_CHANNEL_R);
+    }
+
+    if (mtl->has_Pcr && isfinite(mtl->Pcr)) {
+      clearcoat->roughness = wobj_scalarInput(wst,
+                                              clearcoat,
+                                              _s_ak_clearcoatRoughness,
+                                              glm_clamp_zo(mtl->Pcr),
+                                              NULL,
+                                              AK_TEXTURE_COLORSPACE_LINEAR,
+                                              AK_TEXTURE_CHANNEL_R);
+    }
+  }
+
+  if ((mtl->has_aniso && isfinite(mtl->aniso))
+      || (mtl->has_anisor && isfinite(mtl->anisor))) {
+    AkMaterialAnisotropyFeature *anisotropy;
+
+    anisotropy = (AkMaterialAnisotropyFeature *)wobj_feature(
+      wst, surface, AK_MATERIAL_FEATURE_ANISOTROPY, sizeof(*anisotropy));
+
+    if (mtl->has_aniso && isfinite(mtl->aniso)) {
+      anisotropy->strength = wobj_scalarInput(wst,
+                                              anisotropy,
+                                              _s_ak_anisotropyStrength,
+                                              glm_clamp_zo(mtl->aniso),
+                                              NULL,
+                                              AK_TEXTURE_COLORSPACE_LINEAR,
+                                              AK_TEXTURE_CHANNEL_R);
+    }
+
+    if (mtl->has_anisor && isfinite(mtl->anisor)) {
+      anisotropy->rotation = wobj_scalarInput(wst,
+                                              anisotropy,
+                                              _s_ak_anisotropyRotation,
+                                              glm_clamp_zo(mtl->anisor),
+                                              NULL,
+                                              AK_TEXTURE_COLORSPACE_LINEAR,
+                                              AK_TEXTURE_CHANNEL_R);
+    }
+  }
 
   if (mtl->bump) {
     surface->normal = wobj_scalarInput(wst,

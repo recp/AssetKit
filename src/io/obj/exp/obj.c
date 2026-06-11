@@ -1,0 +1,343 @@
+/*
+ * Copyright (C) 2020 Recep Aslantas
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "obj.h"
+#include "material.h"
+#include "mesh.h"
+#include "writer.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define WOBJ_EXP_FILE_BUFFER_SIZE (1024u * 1024u)
+#define WOBJ_EXP_MAX_NODE_DEPTH   512u
+
+static
+char*
+wobj_output_dir(const char * __restrict filepath) {
+  const char *slash;
+  const char *backslash;
+  const char *lastSlash;
+  char       *dir;
+  size_t      len;
+
+  slash      = strrchr(filepath, '/');
+  backslash  = strrchr(filepath, '\\');
+  if (slash && backslash)
+    lastSlash = slash > backslash ? slash : backslash;
+  else
+    lastSlash = slash ? slash : backslash;
+
+  if (!lastSlash) {
+    dir = malloc(2u);
+    if (!dir)
+      return NULL;
+    dir[0] = '.';
+    dir[1] = '\0';
+    return dir;
+  }
+
+  len = (size_t)(lastSlash - filepath);
+  if (len == 0)
+    len = 1u;
+
+  dir = malloc(len + 1u);
+  if (!dir)
+    return NULL;
+
+  memcpy(dir, filepath, len);
+  dir[len] = '\0';
+  return dir;
+}
+
+static
+char*
+wobj_mtl_path(const char * __restrict filepath) {
+  const char *slash;
+  const char *backslash;
+  const char *base;
+  const char *dot;
+  char       *path;
+  size_t      stemLen;
+
+  slash     = strrchr(filepath, '/');
+  backslash = strrchr(filepath, '\\');
+
+  if (slash && backslash)
+    base = slash > backslash ? slash + 1 : backslash + 1;
+  else if (slash)
+    base = slash + 1;
+  else if (backslash)
+    base = backslash + 1;
+  else
+    base = filepath;
+
+  dot     = strrchr(base, '.');
+  stemLen = dot && dot != base ? (size_t)(dot - filepath) : strlen(filepath);
+
+  if ((stemLen > (size_t)-1 - 5u) || !(path = malloc(stemLen + 5u)))
+    return NULL;
+
+  memcpy(path, filepath, stemLen);
+  memcpy(path + stemLen, ".mtl", 5u);
+
+  return path;
+}
+
+static
+char*
+wobj_basename_dup(const char * __restrict path) {
+  const char *slash;
+  const char *backslash;
+  const char *base;
+  char       *dst;
+  size_t      len;
+
+  slash     = strrchr(path, '/');
+  backslash = strrchr(path, '\\');
+
+  if (slash && backslash)
+    base = slash > backslash ? slash + 1 : backslash + 1;
+  else if (slash)
+    base = slash + 1;
+  else if (backslash)
+    base = backslash + 1;
+  else
+    base = path;
+
+  len = strlen(base);
+  if (!(dst = malloc(len + 1u)))
+    return NULL;
+
+  memcpy(dst, base, len + 1u);
+  return dst;
+}
+
+static
+void
+wobj_state_destroy(WOBJExpState * __restrict st) {
+  uint32_t i;
+
+  if (st->imageUris) {
+    for (i = 0; i < st->imageUriCount; i++)
+      free(st->imageUris[i]);
+  }
+
+  wobj_destroy_materials(st);
+
+  free(st->imageUris);
+  free(st->imageUriFailed);
+  free(st->outDir);
+  free(st->mtlPath);
+  free(st->mtlBaseName);
+
+  st->imageUris      = NULL;
+  st->imageUriFailed = NULL;
+  st->outDir         = NULL;
+  st->mtlPath        = NULL;
+  st->mtlBaseName    = NULL;
+  st->imageUriCount  = 0;
+}
+
+static
+bool
+wobj_state_prepare(WOBJExpState * __restrict st,
+                   AkDoc        * __restrict doc,
+                   const char   * __restrict filepath) {
+  memset(st, 0, sizeof(*st));
+
+  st->doc    = doc;
+  st->outDir = wobj_output_dir(filepath);
+
+  if (!st->outDir || !wobj_prepare_materials(st))
+    return false;
+
+  if (st->materialCount > 0) {
+    st->imageUriCount = doc ? doc->lib.images.count : 0u;
+    if (st->imageUriCount > 0) {
+      st->imageUris = calloc(st->imageUriCount, sizeof(*st->imageUris));
+      if (!st->imageUris)
+        return false;
+
+      st->imageUriFailed = calloc(st->imageUriCount, sizeof(*st->imageUriFailed));
+      if (!st->imageUriFailed)
+        return false;
+    }
+
+    st->mtlPath = wobj_mtl_path(filepath);
+    if (!st->mtlPath)
+      return false;
+
+    st->mtlBaseName = wobj_basename_dup(st->mtlPath);
+    if (!st->mtlBaseName)
+      return false;
+  }
+
+  return true;
+}
+
+static
+AkGeometry*
+wobj_instance_geometry(AkInstanceGeometry * __restrict inst) {
+  void *obj;
+
+  if (!inst)
+    return NULL;
+
+  obj = ak_instanceObject(&inst->base);
+  return obj;
+}
+
+static
+bool
+wobj_write_node(WOBJExpState * __restrict st,
+                AkNode       * __restrict node,
+                mat4                       parentWorld,
+                uint32_t                   depth) {
+  AkInstanceBase *base;
+  AkNode         *child;
+  AkInstanceNode *nodeRef;
+  AkMatrix        localMatrix;
+  mat4            world;
+
+  if (!node)                           return true;
+  if (depth > WOBJ_EXP_MAX_NODE_DEPTH) return false;
+
+  ak_transformCombine(node->transform, localMatrix.val[0]);
+  glm_mat4_mul(parentWorld, localMatrix.val, world);
+
+  for (base = node->geometry ? &node->geometry->base : NULL;
+       base;
+       base = base->next) {
+    AkInstanceGeometry *inst;
+    AkGeometry         *geom;
+
+    if (base->type != AK_INSTANCE_GEOMETRY)
+      continue;
+
+    inst = (AkInstanceGeometry *)base;
+    geom = wobj_instance_geometry(inst);
+
+    if (!wobj_write_mesh_instance(st, node, inst, geom, world))
+      return false;
+  }
+
+  for (child = node->chld; child; child = child->next) {
+    if (!wobj_write_node(st, child, world, depth + 1u))
+      return false;
+  }
+
+  for (nodeRef = node->node; nodeRef; nodeRef = nodeRef->next) {
+    AkNode *target;
+
+    target = ak_instanceNodeTarget(nodeRef);
+    if (target && !wobj_write_node(st, target, world, depth + 1u))
+      return false;
+  }
+
+  return true;
+}
+
+static
+bool
+wobj_write_scene(WOBJExpState * __restrict st) {
+  mat4 identity;
+
+  glm_mat4_identity(identity);
+  if (st->doc->scene && st->doc->scene->node)
+    return wobj_write_node(st, st->doc->scene->node, identity, 0u);
+
+  return true;
+}
+
+static
+bool
+wobj_write_library_fallback(WOBJExpState * __restrict st) {
+  AkGeometry *geom;
+  mat4        identity;
+
+  if (st->objectCount > 0)
+    return true;
+
+  glm_mat4_identity(identity);
+  for (geom = st->doc->lib.geometries.first; geom; geom = geom->next) {
+    if (!wobj_write_mesh_instance(st, NULL, NULL, geom, identity))
+      return false;
+  }
+
+  return true;
+}
+
+static
+bool
+wobj_write_obj(WOBJExpState * __restrict st,
+               FILE         * __restrict file) {
+  st->w.file   = file;
+  st->w.result = AK_OK;
+
+  wobj_w_lit(&st->w, "# Generated by AssetKit\n");
+  if (st->materialCount > 0 && st->mtlBaseName) {
+    wobj_w_lit(&st->w, "mtllib ");
+    wobj_w_name(&st->w, st->mtlBaseName);
+    wobj_w_ch(&st->w, '\n');
+  }
+
+  if (!wobj_write_scene(st) || !wobj_write_library_fallback(st))
+    return false;
+
+  wobj_w_flush(&st->w);
+  return st->w.result == AK_OK;
+}
+
+AK_HIDE
+AkResult
+wobj_export(AkDoc * __restrict doc, const char * __restrict filepath) {
+  WOBJExpState st;
+  FILE        *file;
+  AkResult     result;
+
+  if (!doc || !filepath)
+    return AK_ERR;
+
+  if (!wobj_state_prepare(&st, doc, filepath)) {
+    wobj_state_destroy(&st);
+    return AK_ERR;
+  }
+
+  file = fopen(filepath, "wb");
+  if (!file) {
+    wobj_state_destroy(&st);
+    return AK_EBADF;
+  }
+  (void)setvbuf(file, NULL, _IOFBF, WOBJ_EXP_FILE_BUFFER_SIZE);
+
+  result = wobj_write_obj(&st, file) ? AK_OK : AK_ERR;
+  if (fclose(file) != 0 && result == AK_OK)
+    result = AK_ERR;
+
+  if (result == AK_OK && !wobj_write_mtl(&st))
+    result = AK_ERR;
+
+  if (result != AK_OK) {
+    remove(filepath);
+    if (st.mtlPath)
+      remove(st.mtlPath);
+  }
+
+  wobj_state_destroy(&st);
+  return result;
+}
