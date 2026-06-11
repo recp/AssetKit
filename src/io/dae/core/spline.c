@@ -29,13 +29,14 @@ dae_spline(DAEState   * __restrict dst,
   AkSpline *spline;
 
   heap   = dst->heap;
-  xml    = xml->val;
 
   obj    = ak_objAlloc(heap, geom, sizeof(*spline), AK_GEOMETRY_SPLINE, true);
   spline = ak_objGet(obj);
 
   spline->geom   = geom;
   spline->closed = xmla_u32(DAE_XMLA8(xml, closed), 0);
+
+  xml = xml->val;
   
   while (xml) {
     if (DAE_XML_TAG_EQ8(xml, source)) {
