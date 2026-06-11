@@ -729,6 +729,149 @@ TEST_IMPL(obj_export_material_texture_copy) {
   TEST_SUCCESS
 }
 
+TEST_IMPL(obj_export_material_absolute_texture_copy) {
+  AkHeap            *heap;
+  AkDoc             *doc;
+  AkScene           *scene;
+  AkNode            *root, *node;
+  AkGeometry        *geom;
+  AkMesh            *mesh;
+  AkMeshPrimitive   *prim;
+  AkMaterial        *mat;
+  AkMaterialSurface *surface;
+  AkMaterialInput   *baseColor;
+  AkTextureRef      *texref;
+  AkTexture         *texture;
+  AkSampler         *sampler;
+  AkImage           *image;
+  AkImageSource     *source;
+  struct stat        stTex;
+  char               cwd[PATH_MAX];
+  char               absSourceTexPath[PATH_MAX];
+  const char        *outDir  = "./assetkit_export_obj_abs_texture";
+  const char        *mtlPath = "./assetkit_export_obj_abs_texture/model.mtl";
+  const char        *copiedPath =
+    "./assetkit_export_obj_abs_texture/image_0_WoodFile.PNG";
+  const char        *sourceDir = "./assetkit_export_obj_abs_texture_src";
+  const char        *sourceTexDir =
+    "./assetkit_export_obj_abs_texture_src/textures";
+  const char        *sourceTexPath =
+    "./assetkit_export_obj_abs_texture_src/textures/WoodFile.PNG";
+  const float positions[9] = {
+    0.0f, 0.0f, 0.0f,
+    1.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f
+  };
+
+  ak_test_export_cleanup(outDir);
+  unlink(sourceTexPath);
+  rmdir(sourceTexDir);
+  rmdir(sourceDir);
+  ASSERT(mkdir(sourceDir, 0777) == 0);
+  ASSERT(mkdir(sourceTexDir, 0777) == 0);
+  {
+    FILE *file;
+
+    file = fopen(sourceTexPath, "wb");
+    ASSERT(file != NULL);
+    ASSERT(fwrite("ABSIMG", 1, 6, file) == 6);
+    ASSERT(fclose(file) == 0);
+  }
+  ASSERT(getcwd(cwd, sizeof(cwd)) != NULL);
+  snprintf(absSourceTexPath,
+           sizeof(absSourceTexPath),
+           "%s/%s",
+           cwd,
+           sourceTexPath + 2);
+
+  heap = ak_heap_new(NULL, NULL, NULL);
+  doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
+  ak_heap_setdata(heap, doc);
+  doc->inf      = ak_heap_calloc(heap, doc, sizeof(*doc->inf));
+  doc->inf->dir = ".";
+
+  scene       = ak_heap_calloc(heap, doc, sizeof(*scene));
+  root        = ak_heap_calloc(heap, scene, sizeof(*root));
+  node        = ak_heap_calloc(heap, doc, sizeof(*node));
+  scene->node = root;
+  doc->scene  = scene;
+
+  geom = ak_test_make_triangle_geom(heap, doc, positions);
+  mesh = ak_objGet(geom->gdata);
+  prim = mesh->primitive;
+
+  mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
+  surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
+  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
+  texref    = ak_heap_calloc(heap, baseColor, sizeof(*texref));
+  texture   = ak_heap_calloc(heap, doc, sizeof(*texture));
+  sampler   = ak_heap_calloc(heap, doc, sizeof(*sampler));
+  image     = ak_heap_calloc(heap, doc, sizeof(*image));
+  source    = ak_heap_calloc(heap, image, sizeof(*source));
+  ASSERT(mat != NULL);
+  ASSERT(surface != NULL);
+  ASSERT(baseColor != NULL);
+  ASSERT(texref != NULL);
+  ASSERT(texture != NULL);
+  ASSERT(sampler != NULL);
+  ASSERT(image != NULL);
+  ASSERT(source != NULL);
+
+  source->type     = AK_IMAGE_SOURCE_URI;
+  source->uri      = absSourceTexPath;
+  image->source    = source;
+  texture->image   = image;
+  texture->sampler = sampler;
+  texref->texture  = texture;
+  texref->slot     = 0;
+
+  baseColor->source       = AK_MATERIAL_INPUT_TEXTURE;
+  baseColor->valueType    = AK_MATERIAL_VALUE_COLOR;
+  baseColor->texture      = texref;
+  baseColor->color.rgba.R = 1.0f;
+  baseColor->color.rgba.G = 1.0f;
+  baseColor->color.rgba.B = 1.0f;
+  baseColor->color.rgba.A = 1.0f;
+
+  mat->name          = "abs_tex";
+  mat->surface       = surface;
+  surface->type      = AK_MATERIAL_TYPE_PBR_METALLIC_ROUGHNESS;
+  surface->baseColor = baseColor;
+  prim->material     = mat;
+
+  doc->lib.materials.first = mat;
+  doc->lib.materials.last  = mat;
+  doc->lib.materials.count = 1;
+  doc->lib.images.first    = image;
+  doc->lib.images.last     = image;
+  doc->lib.images.count    = 1;
+  doc->lib.textures.first  = texture;
+  doc->lib.textures.last   = texture;
+  doc->lib.textures.count  = 1;
+  doc->lib.samplers.first  = sampler;
+  doc->lib.samplers.last   = sampler;
+  doc->lib.samplers.count  = 1;
+  doc->lib.geometries.first = geom;
+  doc->lib.geometries.last  = geom;
+  doc->lib.geometries.count = 1;
+
+  ak_addSubNode(root, node, false);
+  ASSERT(ak_nodeAttachGeometry(node, geom) != NULL);
+
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_WAVEFRONT) == AK_OK);
+  ASSERT(stat(copiedPath, &stTex) == 0);
+  ASSERT(stTex.st_size == 6);
+  ASSERT(ak_test_file_contains(mtlPath, "map_Kd image_0_WoodFile.PNG"));
+
+  ak_heap_destroy(heap);
+  ak_test_export_cleanup(outDir);
+  unlink(sourceTexPath);
+  rmdir(sourceTexDir);
+  rmdir(sourceDir);
+
+  TEST_SUCCESS
+}
+
 TEST_IMPL(obj_export_skips_unused_material_textures) {
   AkHeap            *heap;
   AkDoc             *doc;

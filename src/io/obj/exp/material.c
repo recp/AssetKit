@@ -296,6 +296,23 @@ wobj_uri_is_data(const char * __restrict uri) {
 
 static
 bool
+wobj_path_is_absolute(const char * __restrict path) {
+  unsigned char drive;
+
+  if (!path || !path[0])
+    return false;
+
+  if (path[0] == '/' || path[0] == '\\')
+    return true;
+
+  drive = (unsigned char)path[0];
+  return ((drive >= 'A' && drive <= 'Z') || (drive >= 'a' && drive <= 'z'))
+         && path[1] == ':'
+         && (path[2] == '/' || path[2] == '\\');
+}
+
+static
+bool
 wobj_join_path_parts(const char * __restrict dir,
                      const char * __restrict rel,
                      size_t     * __restrict dirLen,
@@ -527,6 +544,8 @@ wobj_export_texture_uri(WOBJExpState         * __restrict st,
   srcPath  = source->resolvedPath && *source->resolvedPath
              ? source->resolvedPath
              : NULL;
+  if (!srcPath && wobj_path_is_absolute(source->uri))
+    srcPath = source->uri;
   if (!srcPath && source->uri) {
     srcOwned = ak_getFileFrom(st->doc, source->uri);
     srcPath  = srcOwned;
