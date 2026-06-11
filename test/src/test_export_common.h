@@ -383,6 +383,7 @@ ak_test_export_cleanup(const char *outDir) {
     "assetkit_export_cwd_relative_texture.png",
     "image_0.png",
     "image_0_Extra.PNG",
+    "image_0_Missing.PNG",
     "image_0_WoodFile.PNG",
     "image_0_leak.png",
     "image_1_WoodFile.PNG",

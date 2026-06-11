@@ -32,6 +32,11 @@ bool
 wobj_write_mtl(WOBJExpState * __restrict st);
 
 AK_HIDE
+bool
+wobj_use_material(WOBJExpState * __restrict st,
+                  uint32_t                  matIdx);
+
+AK_HIDE
 uint32_t
 wobj_material_index(WOBJExpState * __restrict st,
                     AkMaterial   * __restrict material);

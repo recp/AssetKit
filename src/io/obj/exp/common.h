@@ -34,6 +34,7 @@ typedef struct WOBJExpWriter {
 typedef struct WOBJExpMaterial {
   AkMaterial *material;
   char       *name;
+  bool        used;
 } WOBJExpMaterial;
 
 typedef struct WOBJExpMaterialSlot {
@@ -52,6 +53,7 @@ typedef struct WOBJExpState {
   char            *mtlBaseName;
   WOBJExpWriter    w;
   uint32_t         materialCount;
+  uint32_t         materialUsedCount;
   uint32_t         materialLookupCapacity;
   uint32_t         imageUriCount;
   uint32_t         objectCount;
@@ -60,6 +62,7 @@ typedef struct WOBJExpState {
   uint32_t         vnCount;
   bool             hasSmoothState;
   bool             smoothState;
+  bool             wroteMtllib;
 } WOBJExpState;
 
 #endif /* assetkit_obj_exp_common_h */

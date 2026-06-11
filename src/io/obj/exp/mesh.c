@@ -633,7 +633,7 @@ wobj_write_polygons(WOBJExpState    * __restrict st,
 }
 
 static
-void
+bool
 wobj_write_primitive_material(WOBJExpState      * __restrict st,
                               AkMeshPrimitive   * __restrict prim,
                               AkInstanceGeometry * __restrict inst) {
@@ -641,19 +641,17 @@ wobj_write_primitive_material(WOBJExpState      * __restrict st,
   uint32_t           matIdx;
 
   if (st->materialCount == 0)
-    return;
+    return true;
 
   memset(&resolved, 0, sizeof(resolved));
   if (!ak_materialResolve(prim, inst, UINT32_MAX, &resolved))
-    return;
+    return true;
 
   matIdx = wobj_material_index(st, resolved.material);
   if (matIdx == UINT32_MAX)
-    return;
+    return true;
 
-  wobj_w_lit(&st->w, "usemtl ");
-  wobj_w_name(&st->w, st->materials[matIdx].name);
-  wobj_w_ch(&st->w, '\n');
+  return wobj_use_material(st, matIdx);
 }
 
 static
@@ -712,8 +710,9 @@ wobj_write_primitive(WOBJExpState      * __restrict st,
   if (ok && hasNormal)
     ok = wobj_write_normals(st, &normRows, world);
   if (ok) {
-    wobj_write_primitive_material(st, prim, inst);
-
+    ok = wobj_write_primitive_material(st, prim, inst);
+  }
+  if (ok) {
     switch (prim->type) {
       case AK_PRIMITIVE_TRIANGLES:
         wobj_write_triangles(st, prim, posInput,
