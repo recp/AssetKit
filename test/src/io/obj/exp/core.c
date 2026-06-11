@@ -203,12 +203,12 @@ TEST_IMPL(obj_export_triangle_smoke) {
   ASSERT(ak_test_file_contains(objPath, "f 1/1 2/2 3/3"));
   ASSERT(ak_test_file_contains(mtlPath, "newmtl mat_0_obj_mat"));
   ASSERT(ak_test_file_contains(mtlPath, "Kd 0.25 0.5 0.75"));
-  ASSERT(ak_test_file_contains(mtlPath, "Pr 0.400000006"));
-  ASSERT(ak_test_file_contains(mtlPath, "Pm 0.600000024"));
-  ASSERT(ak_test_file_contains(mtlPath, "Ps 0.300000012"));
+  ASSERT(ak_test_file_contains(mtlPath, "Pr 0.4"));
+  ASSERT(ak_test_file_contains(mtlPath, "Pm 0.6"));
+  ASSERT(ak_test_file_contains(mtlPath, "Ps 0.3"));
   ASSERT(ak_test_file_contains(mtlPath, "Pc 3"));
-  ASSERT(ak_test_file_contains(mtlPath, "Pcr 0.200000003"));
-  ASSERT(ak_test_file_contains(mtlPath, "aniso 0.400000006"));
+  ASSERT(ak_test_file_contains(mtlPath, "Pcr 0.2"));
+  ASSERT(ak_test_file_contains(mtlPath, "aniso 0.4"));
   ASSERT(ak_test_file_contains(mtlPath, "anisor 0.5"));
   ASSERT(ak_test_file_contains(mtlPath, "d 0.8"));
 
@@ -306,7 +306,7 @@ TEST_IMPL(obj_export_ubyte_vertex_colors_are_normalized) {
 
   ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_WAVEFRONT) == AK_OK);
   ASSERT(ak_test_file_contains(objPath,
-                               "v 0 0 0 1 0.501960814 0"));
+                               "v 0 0 0 1 0.501961 0"));
   ASSERT(!ak_test_file_contains(objPath, "v 0 0 0 255 128 0"));
 
   ak_heap_destroy(heap);

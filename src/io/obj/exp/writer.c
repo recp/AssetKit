@@ -174,7 +174,7 @@ wobj_w_float(WOBJExpWriter * __restrict w, float val) {
     return;
   }
 
-  len = snprintf(buf, sizeof(buf), "%.9g", (double)val);
+  len = snprintf(buf, sizeof(buf), "%.6g", (double)val);
   if (len <= 0 || (size_t)len >= sizeof(buf)) {
     w->result = AK_ERR;
     return;
