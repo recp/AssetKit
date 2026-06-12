@@ -852,18 +852,23 @@ TEST_IMPL(three_mf_export_package_parts_roundtrip) {
 
 TEST_IMPL(three_mf_import_production_child_model_path) {
   AkDoc                 *doc;
+  AkDoc                 *roundTrip;
   AkGeometry            *geom;
   AkMesh                *mesh;
   AkMeshPrimitive       *prim;
   AkPrintDocument       *print;
+  AkPrintDocument       *roundTripPrint;
   AkPrintProductionItem *prod;
   AkPrintProductionItem *buildProd;
   AkPrintProductionItem *itemProd;
   AkPrintProductionItem *objectProd;
   const char            *outDir = "./assetkit_import_3mf_production_child_model";
   const char            *mfPath = "./assetkit_import_3mf_production_child_model/model.3mf";
+  const char            *roundTripDir = "./assetkit_export_3mf_production_child_model";
+  const char            *roundTripPath = "./assetkit_export_3mf_production_child_model/model.3mf";
 
   ak_test_export_cleanup(outDir);
+  ak_test_export_cleanup(roundTripDir);
   ASSERT(mkdir(outDir, 0777) == 0);
   ASSERT(ak_test_write_3mf_production_child_model(mfPath));
 
@@ -926,7 +931,45 @@ TEST_IMPL(three_mf_import_production_child_model_path) {
   ASSERT(strcmp(objectProd->path, "3D/child.model") == 0);
   ASSERT(objectProd->objectId == 7);
 
+  ASSERT(ak_export(doc, roundTripDir, AK_FILE_TYPE_3MF) == AK_OK);
+
+  roundTrip = NULL;
+  ASSERT(ak_load(&roundTrip, roundTripPath, AK_FILE_TYPE_3MF) == AK_OK);
+  ASSERT(roundTrip != NULL);
+  roundTripPrint = ak_printDocument(roundTrip);
+  ASSERT(roundTripPrint != NULL);
+  ASSERT(ak_printHasFeature(roundTripPrint, AK_PRINT_FEATURE_PRODUCTION));
+  ASSERT((roundTripPrint->requiredFeatures & AK_PRINT_FEATURE_PRODUCTION) != 0u);
+  ASSERT((roundTripPrint->unsupportedFeatures & AK_PRINT_FEATURE_PRODUCTION) == 0u);
+
+  buildProd  = NULL;
+  itemProd   = NULL;
+  objectProd = NULL;
+  for (prod = roundTripPrint->productionItems; prod; prod = prod->next) {
+    if (prod->type == AK_PRINT_PRODUCTION_BUILD
+        && prod->uuid
+        && strcmp(prod->uuid, "build-uuid") == 0)
+      buildProd = prod;
+    else if (prod->type == AK_PRINT_PRODUCTION_ITEM
+             && prod->uuid
+             && strcmp(prod->uuid, "item-uuid") == 0)
+      itemProd = prod;
+    else if (prod->type == AK_PRINT_PRODUCTION_OBJECT
+             && prod->uuid
+             && strcmp(prod->uuid, "object-uuid") == 0)
+      objectProd = prod;
+  }
+
+  ASSERT(buildProd != NULL);
+  ASSERT(itemProd != NULL);
+  ASSERT(itemProd->path != NULL);
+  ASSERT(strcmp(itemProd->path, "3D/child.model") == 0);
+  ASSERT(itemProd->objectId == 7);
+  ASSERT(objectProd != NULL);
+  ASSERT(objectProd->objectId == 7);
+
   ak_test_export_cleanup(outDir);
+  ak_test_export_cleanup(roundTripDir);
   TEST_SUCCESS
 }
 
