@@ -79,10 +79,12 @@ typedef struct PLYExpPrim {
   PLYExpRows  colorRows;
   mat4        world;
   mat4        normalMatrix;
+  uint32_t    reusableVertexCount;
   bool        hasNormalRows;
   bool        hasTexRows;
   bool        hasColorRows;
   bool        mirrored;
+  bool        reuseVertices;
 } PLYExpPrim;
 
 static
@@ -402,6 +404,73 @@ ply_input_valid(AkInput * __restrict input, uint32_t minComponents) {
 }
 
 static
+bool
+ply_input_uses_position_index(AkMeshPrimitive * __restrict prim,
+                              AkInput         * __restrict posInput,
+                              AkInput         * __restrict input,
+                              uint32_t                     vertexCount) {
+  uint32_t stride;
+
+  if (!input)
+    return true;
+  if (!input->accessor || input->accessor->count < vertexCount)
+    return false;
+
+  if (!prim || !prim->indices)
+    return true;
+
+  stride = prim->indexStride ? prim->indexStride : 1u;
+  if (stride <= 1u)
+    return true;
+
+  return input->indexOffset == posInput->indexOffset;
+}
+
+static
+bool
+ply_primitive_reusable_vertex_count(PLYExpState     * __restrict st,
+                                    AkMeshPrimitive * __restrict prim,
+                                    uint32_t        * __restrict countOut) {
+  AkInput *posInput;
+  AkInput *normalInput;
+  AkInput *texInput;
+  AkInput *colorInput;
+  uint32_t vertexCount;
+
+  posInput = ply_find_input(prim, AK_INPUT_POSITION);
+  if (!ply_input_valid(posInput, 3u))
+    return false;
+
+  vertexCount = posInput->accessor->count;
+  if (vertexCount == 0)
+    return false;
+
+  if (st->hasNormals) {
+    normalInput = ply_find_input(prim, AK_INPUT_NORMAL);
+    if (!ply_input_valid(normalInput, 3u)
+        || !ply_input_uses_position_index(prim, posInput, normalInput, vertexCount))
+      return false;
+  }
+
+  if (st->hasUV) {
+    texInput = ply_find_texcoord_input(prim);
+    if (texInput
+        && !ply_input_uses_position_index(prim, posInput, texInput, vertexCount))
+      return false;
+  }
+
+  if (st->hasColors) {
+    colorInput = ply_find_color_input(prim);
+    if (colorInput
+        && !ply_input_uses_position_index(prim, posInput, colorInput, vertexCount))
+      return false;
+  }
+
+  *countOut = vertexCount;
+  return true;
+}
+
+static
 void
 ply_note_optional_inputs(PLYExpState    * __restrict st,
                          AkMeshPrimitive * __restrict prim) {
@@ -458,12 +527,15 @@ static
 void
 ply_vertex_position(PLYExpPrim * __restrict pc,
                     uint32_t                vertexIndex,
+                    bool                    direct,
                     vec3                    out) {
   const float *row;
   uint32_t     posIndex;
   vec3         in;
 
-  posIndex = io_primitive_input_index(pc->prim, pc->posInput, vertexIndex);
+  posIndex = direct
+             ? vertexIndex
+             : io_primitive_input_index(pc->prim, pc->posInput, vertexIndex);
   row      = ply_rows_get(&pc->posRows, posIndex);
 
   in[0] = ply_row_component(row, pc->posRows.componentCount, 0u, 0.0f);
@@ -476,6 +548,7 @@ static
 void
 ply_vertex_normal(PLYExpPrim * __restrict pc,
                   uint32_t                vertexIndex,
+                  bool                    direct,
                   vec3                    fallback,
                   vec3                    out) {
   const float *row;
@@ -487,7 +560,9 @@ ply_vertex_normal(PLYExpPrim * __restrict pc,
     return;
   }
 
-  normIndex = io_primitive_input_index(pc->prim, pc->normalInput, vertexIndex);
+  normIndex = direct
+              ? vertexIndex
+              : io_primitive_input_index(pc->prim, pc->normalInput, vertexIndex);
   row       = ply_rows_get(&pc->normalRows, normIndex);
 
   in[0] = ply_row_component(row, pc->normalRows.componentCount, 0u, 0.0f);
@@ -501,6 +576,7 @@ static
 void
 ply_vertex_texcoord(PLYExpPrim * __restrict pc,
                     uint32_t                vertexIndex,
+                    bool                    direct,
                     float                   out[2]) {
   const float *row;
   uint32_t     texIndex;
@@ -510,7 +586,9 @@ ply_vertex_texcoord(PLYExpPrim * __restrict pc,
   if (!pc->hasTexRows)
     return;
 
-  texIndex = io_primitive_input_index(pc->prim, pc->texInput, vertexIndex);
+  texIndex = direct
+             ? vertexIndex
+             : io_primitive_input_index(pc->prim, pc->texInput, vertexIndex);
   row      = ply_rows_get(&pc->texRows, texIndex);
   out[0]   = ply_row_component(row, pc->texRows.componentCount, 0u, 0.0f);
   out[1]   = ply_row_component(row, pc->texRows.componentCount, 1u, 0.0f);
@@ -575,6 +653,7 @@ void
 ply_vertex_color(PLYExpState * __restrict st,
                  PLYExpPrim  * __restrict pc,
                  uint32_t                  vertexIndex,
+                 bool                      direct,
                  uint8_t                   out[4]) {
   const float *row;
   uint32_t     colorIndex;
@@ -586,7 +665,9 @@ ply_vertex_color(PLYExpState * __restrict st,
   if (!pc->hasColorRows)
     return;
 
-  colorIndex = io_primitive_input_index(pc->prim, pc->colorInput, vertexIndex);
+  colorIndex = direct
+               ? vertexIndex
+               : io_primitive_input_index(pc->prim, pc->colorInput, vertexIndex);
   row = ply_rows_get(&pc->colorRows, colorIndex);
 
   out[0] = ply_color_u8(ply_color_component(&pc->colorRows, row, 0u, 1.0f),
@@ -606,13 +687,14 @@ void
 ply_write_vertex_record(PLYExpState * __restrict st,
                         PLYExpPrim  * __restrict pc,
                         uint32_t                  vertexIndex,
+                        bool                      direct,
                         vec3                      fallbackNormal) {
   vec3    pos;
   vec3    normal;
   float   uv[2];
   uint8_t color[4];
 
-  ply_vertex_position(pc, vertexIndex, pos);
+  ply_vertex_position(pc, vertexIndex, direct, pos);
 
   if (st->w.ascii) {
     ply_w_float_ascii(&st->w, pos[0]);
@@ -622,7 +704,7 @@ ply_write_vertex_record(PLYExpState * __restrict st,
     ply_w_float_ascii(&st->w, pos[2]);
 
     if (st->hasNormals) {
-      ply_vertex_normal(pc, vertexIndex, fallbackNormal, normal);
+      ply_vertex_normal(pc, vertexIndex, direct, fallbackNormal, normal);
       ply_w_ch(&st->w, ' ');
       ply_w_float_ascii(&st->w, normal[0]);
       ply_w_ch(&st->w, ' ');
@@ -632,7 +714,7 @@ ply_write_vertex_record(PLYExpState * __restrict st,
     }
 
     if (st->hasUV) {
-      ply_vertex_texcoord(pc, vertexIndex, uv);
+      ply_vertex_texcoord(pc, vertexIndex, direct, uv);
       ply_w_ch(&st->w, ' ');
       ply_w_float_ascii(&st->w, uv[0]);
       ply_w_ch(&st->w, ' ');
@@ -640,7 +722,7 @@ ply_write_vertex_record(PLYExpState * __restrict st,
     }
 
     if (st->hasColors) {
-      ply_vertex_color(st, pc, vertexIndex, color);
+      ply_vertex_color(st, pc, vertexIndex, direct, color);
       ply_w_ch(&st->w, ' ');
       ply_w_u8_ascii(&st->w, color[0]);
       ply_w_ch(&st->w, ' ');
@@ -662,20 +744,20 @@ ply_write_vertex_record(PLYExpState * __restrict st,
   ply_write_f32le(&st->w, pos[2]);
 
   if (st->hasNormals) {
-    ply_vertex_normal(pc, vertexIndex, fallbackNormal, normal);
+    ply_vertex_normal(pc, vertexIndex, direct, fallbackNormal, normal);
     ply_write_f32le(&st->w, normal[0]);
     ply_write_f32le(&st->w, normal[1]);
     ply_write_f32le(&st->w, normal[2]);
   }
 
   if (st->hasUV) {
-    ply_vertex_texcoord(pc, vertexIndex, uv);
+    ply_vertex_texcoord(pc, vertexIndex, direct, uv);
     ply_write_f32le(&st->w, uv[0]);
     ply_write_f32le(&st->w, uv[1]);
   }
 
   if (st->hasColors) {
-    ply_vertex_color(st, pc, vertexIndex, color);
+    ply_vertex_color(st, pc, vertexIndex, direct, color);
     ply_write_u8(&st->w, color[0]);
     ply_write_u8(&st->w, color[1]);
     ply_write_u8(&st->w, color[2]);
@@ -718,9 +800,9 @@ ply_face_fallback_normal(PLYExpPrim       * __restrict pc,
   ply_ordered_index(indices, count, 0u, mirrored, &i0);
   ply_ordered_index(indices, count, 1u, mirrored, &i1);
   ply_ordered_index(indices, count, 2u, mirrored, &i2);
-  ply_vertex_position(pc, i0, a);
-  ply_vertex_position(pc, i1, b);
-  ply_vertex_position(pc, i2, c);
+  ply_vertex_position(pc, i0, false, a);
+  ply_vertex_position(pc, i1, false, b);
+  ply_vertex_position(pc, i2, false, c);
   ply_triangle_normal(a, b, c, out);
 }
 
@@ -739,7 +821,7 @@ ply_write_face_vertices(PLYExpState    * __restrict st,
     uint32_t vertexIndex;
 
     ply_ordered_index(indices, count, i, mirrored, &vertexIndex);
-    ply_write_vertex_record(st, pc, vertexIndex, fallbackNormal);
+    ply_write_vertex_record(st, pc, vertexIndex, false, fallbackNormal);
   }
 }
 
@@ -765,6 +847,50 @@ ply_write_face_ref(PLYExpState * __restrict st, uint32_t count) {
 }
 
 static
+uint32_t
+ply_reused_ref_index(PLYExpPrim * __restrict pc, uint32_t tupleIndex) {
+  AkUInt index;
+
+  index = io_primitive_input_index(pc->prim, pc->posInput, tupleIndex);
+  if (index >= pc->reusableVertexCount)
+    index = 0;
+  return (uint32_t)index;
+}
+
+static
+void
+ply_write_reused_face_ref(PLYExpState    * __restrict st,
+                          PLYExpPrim     * __restrict pc,
+                          const uint32_t * __restrict indices,
+                          uint32_t                    count) {
+  uint32_t i;
+
+  if (st->w.ascii) {
+    ply_w_u8_ascii(&st->w, (uint8_t)count);
+    for (i = 0; i < count; i++) {
+      uint32_t tupleIndex;
+      uint32_t refIndex;
+
+      ply_ordered_index(indices, count, i, pc->mirrored, &tupleIndex);
+      refIndex = ply_reused_ref_index(pc, tupleIndex);
+      ply_w_ch(&st->w, ' ');
+      ply_w_u32_ascii(&st->w, st->vertexCursor + refIndex);
+    }
+    ply_w_ch(&st->w, '\n');
+  } else {
+    ply_write_u8(&st->w, (uint8_t)count);
+    for (i = 0; i < count; i++) {
+      uint32_t tupleIndex;
+      uint32_t refIndex;
+
+      ply_ordered_index(indices, count, i, pc->mirrored, &tupleIndex);
+      refIndex = ply_reused_ref_index(pc, tupleIndex);
+      ply_write_u32le(&st->w, st->vertexCursor + refIndex);
+    }
+  }
+}
+
+static
 void
 ply_write_edge_ref(PLYExpState * __restrict st) {
   if (st->w.ascii) {
@@ -782,14 +908,48 @@ ply_write_edge_ref(PLYExpState * __restrict st) {
 
 static
 void
+ply_write_reused_edge_ref(PLYExpState * __restrict st,
+                          PLYExpPrim  * __restrict pc,
+                          uint32_t                  i0,
+                          uint32_t                  i1) {
+  uint32_t ref0;
+  uint32_t ref1;
+
+  ref0 = st->vertexCursor + ply_reused_ref_index(pc, i0);
+  ref1 = st->vertexCursor + ply_reused_ref_index(pc, i1);
+
+  if (st->w.ascii) {
+    ply_w_u32_ascii(&st->w, ref0);
+    ply_w_ch(&st->w, ' ');
+    ply_w_u32_ascii(&st->w, ref1);
+    ply_w_ch(&st->w, '\n');
+  } else {
+    ply_write_u32le(&st->w, ref0);
+    ply_write_u32le(&st->w, ref1);
+  }
+}
+
+static
+void
+ply_write_reused_vertices(PLYExpState * __restrict st,
+                          PLYExpPrim  * __restrict pc) {
+  vec3     fallbackNormal = {0.0f, 0.0f, 1.0f};
+  uint32_t i;
+
+  for (i = 0; i < pc->reusableVertexCount; i++)
+    ply_write_vertex_record(st, pc, i, true, fallbackNormal);
+}
+
+static
+void
 ply_write_edge_vertices(PLYExpState * __restrict st,
                         PLYExpPrim  * __restrict pc,
                         uint32_t                  i0,
                         uint32_t                  i1) {
   vec3 fallbackNormal = {0.0f, 0.0f, 1.0f};
 
-  ply_write_vertex_record(st, pc, i0, fallbackNormal);
-  ply_write_vertex_record(st, pc, i1, fallbackNormal);
+  ply_write_vertex_record(st, pc, i0, false, fallbackNormal);
+  ply_write_vertex_record(st, pc, i1, false, fallbackNormal);
 }
 
 static
@@ -799,7 +959,7 @@ ply_write_point_vertex(PLYExpState * __restrict st,
                        uint32_t                  i) {
   vec3 fallbackNormal = {0.0f, 0.0f, 1.0f};
 
-  ply_write_vertex_record(st, pc, i, fallbackNormal);
+  ply_write_vertex_record(st, pc, i, false, fallbackNormal);
 }
 
 static
@@ -818,6 +978,9 @@ ply_prim_begin(PLYExpState    * __restrict st,
   pc->prim = prim;
   if (!ply_rows_init(&pc->posRows, pc->posInput->accessor))
     return false;
+  pc->reuseVertices = ply_primitive_reusable_vertex_count(st,
+                                                          prim,
+                                                          &pc->reusableVertexCount);
 
   glm_mat4_copy(world, pc->world);
   glm_mat4_inv((vec4 *)world, pc->normalMatrix);
@@ -885,11 +1048,19 @@ ply_process_face(PLYExpState    * __restrict st,
 
   switch (st->pass) {
     case PLY_EXP_PASS_COUNT:
+      if (pc && pc->reuseVertices)
+        return ply_count_add(&st->faceCount, 1u);
       return ply_count_face(st, count);
     case PLY_EXP_PASS_VERTICES:
+      if (pc && pc->reuseVertices)
+        return true;
       ply_write_face_vertices(st, pc, indices, count, pc->mirrored);
       return st->w.result == AK_OK;
     case PLY_EXP_PASS_FACES:
+      if (pc && pc->reuseVertices) {
+        ply_write_reused_face_ref(st, pc, indices, count);
+        return st->w.result == AK_OK;
+      }
       ply_write_face_ref(st, count);
       return st->w.result == AK_OK;
     default:
@@ -905,11 +1076,19 @@ ply_process_edge(PLYExpState * __restrict st,
                  uint32_t                  i1) {
   switch (st->pass) {
     case PLY_EXP_PASS_COUNT:
+      if (pc && pc->reuseVertices)
+        return ply_count_add(&st->edgeCount, 1u);
       return ply_count_edge(st);
     case PLY_EXP_PASS_VERTICES:
+      if (pc && pc->reuseVertices)
+        return true;
       ply_write_edge_vertices(st, pc, i0, i1);
       return st->w.result == AK_OK;
     case PLY_EXP_PASS_FACES:
+      if (pc && pc->reuseVertices) {
+        ply_write_reused_edge_ref(st, pc, i0, i1);
+        return st->w.result == AK_OK;
+      }
       ply_write_edge_ref(st);
       return st->w.result == AK_OK;
     default:
@@ -924,12 +1103,17 @@ ply_process_point(PLYExpState * __restrict st,
                   uint32_t                  i) {
   switch (st->pass) {
     case PLY_EXP_PASS_COUNT:
+      if (pc && pc->reuseVertices)
+        return true;
       return ply_count_point(st);
     case PLY_EXP_PASS_VERTICES:
+      if (pc && pc->reuseVertices)
+        return true;
       ply_write_point_vertex(st, pc, i);
       return st->w.result == AK_OK;
     case PLY_EXP_PASS_FACES:
-      st->vertexCursor++;
+      if (!pc || !pc->reuseVertices)
+        st->vertexCursor++;
       return true;
     default:
       return false;
@@ -1143,8 +1327,23 @@ ply_write_primitive(PLYExpState    * __restrict st,
 
     ply_note_optional_inputs(st, prim);
     memset(&pc, 0, sizeof(pc));
+    pc.prim = prim;
+    pc.posInput = posInput;
+    pc.reuseVertices = ply_primitive_reusable_vertex_count(st,
+                                                           prim,
+                                                           &pc.reusableVertexCount);
+    if (pc.reuseVertices
+        && !ply_count_add(&st->vertexCount, pc.reusableVertexCount))
+      return false;
   } else if (!ply_prim_begin(st, &pc, prim, world, mirrored)) {
     return false;
+  }
+
+  if (st->pass == PLY_EXP_PASS_VERTICES && pc.reuseVertices) {
+    ply_write_reused_vertices(st, &pc);
+    ok = st->w.result == AK_OK;
+    ply_prim_end(&pc);
+    return ok;
   }
 
   switch (prim->type) {
@@ -1167,6 +1366,9 @@ ply_write_primitive(PLYExpState    * __restrict st,
 
   if (st->pass != PLY_EXP_PASS_COUNT)
     ply_prim_end(&pc);
+
+  if (ok && st->pass == PLY_EXP_PASS_FACES && pc.reuseVertices)
+    st->vertexCursor += pc.reusableVertexCount;
 
   return ok && st->w.result == AK_OK;
 }
