@@ -22,6 +22,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(__APPLE__)
+#  include <sys/clonefile.h>
+#endif
+
 static
 bool
 wobj_name_char_ok(unsigned char ch) {
@@ -382,6 +386,11 @@ wobj_copy_file(const char * __restrict src,
 
   if (strcmp(src, dst) == 0)
     return true;
+
+#if defined(__APPLE__)
+  if (clonefile(src, dst, 0) == 0)
+    return true;
+#endif
 
   infile = fopen(src, "rb");
   if (!infile)
