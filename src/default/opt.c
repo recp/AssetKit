@@ -69,7 +69,8 @@ uintptr_t AK_OPTIONS[] =
   false,                           /* 35: _PRESERVE_EXTRAS             */
   AK_DAE_EXPORT_INDEX_MULTI,       /* 36: _DAE_EXPORT_INDEX_MODE       */
   AK_DAE_EXPORT_VERSION_AUTO,      /* 37: _DAE_EXPORT_VERSION          */
-  (uintptr_t)AK_AUTHORING_TOOL     /* 38: _EXPORT_AUTHORING_TOOL       */
+  (uintptr_t)AK_AUTHORING_TOOL,    /* 38: _EXPORT_AUTHORING_TOOL       */
+  AK_STL_EXPORT_BINARY             /* 39: _STL_EXPORT_FORMAT           */
 };
 
 AK_EXPORT

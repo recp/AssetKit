@@ -36,4 +36,8 @@ AK_HIDE
 void
 stl_binary(STLState * __restrict sst, char * __restrict p);
 
+AK_HIDE
+AkResult
+stl_export(AkDoc * __restrict doc, const char * __restrict filepath);
+
 #endif /* stl_h */

@@ -48,6 +48,11 @@ typedef enum AkDaeExportVersion {
   AK_DAE_EXPORT_VERSION_1_5  = 2
 } AkDaeExportVersion;
 
+typedef enum AkStlExportFormat {
+  AK_STL_EXPORT_BINARY = 0,
+  AK_STL_EXPORT_ASCII  = 1
+} AkStlExportFormat;
+
 /* Global import/export options. */
 typedef enum AkOption {
   AK_OPT_INDICES_DEFAULT            = 0,  /* false    */
@@ -116,6 +121,8 @@ typedef enum AkOption {
 
   /* const char*. Exporter generator/authoring-tool string. */
   AK_OPT_EXPORT_AUTHORING_TOOL        = 38, /* AssetKit vX.Y.Z */
+
+  AK_OPT_STL_EXPORT_FORMAT            = 39, /* BINARY   */
 } AkOption;
 
 AK_EXPORT

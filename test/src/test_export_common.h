@@ -368,6 +368,7 @@ ak_test_export_cleanup(const char *outDir) {
     "model.dae",
     "model.obj",
     "model.mtl",
+    "model.stl",
     "model.bin",
     "Empty.gltf",
     "Empty.glb",
