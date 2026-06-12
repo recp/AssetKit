@@ -111,6 +111,32 @@ typedef enum AkPrintBooleanOperandFlag {
   AK_PRINT_BOOLEAN_OPERAND_HAS_TRANSFORM = 1u << 0
 } AkPrintBooleanOperandFlag;
 
+typedef enum AkPrintDisplacement2DFlag {
+  AK_PRINT_DISPLACEMENT_2D_HAS_CHANNEL     = 1u << 0,
+  AK_PRINT_DISPLACEMENT_2D_HAS_TILESTYLE_U = 1u << 1,
+  AK_PRINT_DISPLACEMENT_2D_HAS_TILESTYLE_V = 1u << 2,
+  AK_PRINT_DISPLACEMENT_2D_HAS_FILTER      = 1u << 3
+} AkPrintDisplacement2DFlag;
+
+typedef enum AkPrintDisp2DGroupFlag {
+  AK_PRINT_DISP2D_GROUP_HAS_OFFSET = 1u << 0
+} AkPrintDisp2DGroupFlag;
+
+typedef enum AkPrintDisp2DCoordFlag {
+  AK_PRINT_DISP2D_COORD_HAS_FACTOR = 1u << 0
+} AkPrintDisp2DCoordFlag;
+
+typedef enum AkPrintDisplacementMeshFlag {
+  AK_PRINT_DISPLACEMENT_MESH_HAS_DEFAULT_GROUP = 1u << 0
+} AkPrintDisplacementMeshFlag;
+
+typedef enum AkPrintDisplacementTriangleFlag {
+  AK_PRINT_DISPLACEMENT_TRIANGLE_HAS_GROUP = 1u << 0,
+  AK_PRINT_DISPLACEMENT_TRIANGLE_HAS_D1    = 1u << 1,
+  AK_PRINT_DISPLACEMENT_TRIANGLE_HAS_D2    = 1u << 2,
+  AK_PRINT_DISPLACEMENT_TRIANGLE_HAS_D3    = 1u << 3
+} AkPrintDisplacementTriangleFlag;
+
 typedef struct AkPrintPackagePart {
   struct AkPrintPackagePart *next;
   const char                *name;
@@ -245,6 +271,73 @@ typedef struct AkPrintBooleanOperand {
   uint32_t                      flags;
 } AkPrintBooleanOperand;
 
+typedef struct AkPrintDisplacement2D {
+  struct AkPrintDisplacement2D *next;
+  const char                   *path;
+  const char                   *imagePath;
+  const char                   *channel;
+  const char                   *tileStyleU;
+  const char                   *tileStyleV;
+  const char                   *filter;
+  uint32_t                      id;
+  uint32_t                      flags;
+} AkPrintDisplacement2D;
+
+typedef struct AkPrintNormVectorGroup {
+  struct AkPrintNormVectorGroup *next;
+  const char                    *path;
+  uint32_t                       id;
+  uint32_t                       vectorCount;
+  uint32_t                       flags;
+} AkPrintNormVectorGroup;
+
+typedef struct AkPrintNormVector {
+  struct AkPrintNormVector *next;
+  float                     x;
+  float                     y;
+  float                     z;
+  uint32_t                  flags;
+} AkPrintNormVector;
+
+typedef struct AkPrintDisp2DGroup {
+  struct AkPrintDisp2DGroup *next;
+  const char                *path;
+  float                      height;
+  float                      offset;
+  uint32_t                   id;
+  uint32_t                   displacementId;
+  uint32_t                   normVectorGroupId;
+  uint32_t                   coordCount;
+  uint32_t                   flags;
+} AkPrintDisp2DGroup;
+
+typedef struct AkPrintDisp2DCoord {
+  struct AkPrintDisp2DCoord *next;
+  float                      u;
+  float                      v;
+  float                      factor;
+  uint32_t                   normVectorIndex;
+  uint32_t                   flags;
+} AkPrintDisp2DCoord;
+
+typedef struct AkPrintDisplacementMesh {
+  struct AkPrintDisplacementMesh *next;
+  const char                     *path;
+  uint32_t                        objectId;
+  uint32_t                        defaultGroupId;
+  uint32_t                        triangleCount;
+  uint32_t                        flags;
+} AkPrintDisplacementMesh;
+
+typedef struct AkPrintDisplacementTriangle {
+  struct AkPrintDisplacementTriangle *next;
+  uint32_t                            groupId;
+  uint32_t                            d1;
+  uint32_t                            d2;
+  uint32_t                            d3;
+  uint32_t                            flags;
+} AkPrintDisplacementTriangle;
+
 typedef struct AkPrintDocument {
   AkPrintPackagePart    *parts;
   AkPrintPackagePart    *lastPart;
@@ -270,6 +363,20 @@ typedef struct AkPrintDocument {
   AkPrintBooleanShape   *lastBooleanShape;
   AkPrintBooleanOperand *booleanOperands;
   AkPrintBooleanOperand *lastBooleanOperand;
+  AkPrintDisplacement2D *displacement2Ds;
+  AkPrintDisplacement2D *lastDisplacement2D;
+  AkPrintNormVectorGroup *normVectorGroups;
+  AkPrintNormVectorGroup *lastNormVectorGroup;
+  AkPrintNormVector     *normVectors;
+  AkPrintNormVector     *lastNormVector;
+  AkPrintDisp2DGroup    *disp2DGroups;
+  AkPrintDisp2DGroup    *lastDisp2DGroup;
+  AkPrintDisp2DCoord    *disp2DCoords;
+  AkPrintDisp2DCoord    *lastDisp2DCoord;
+  AkPrintDisplacementMesh *displacementMeshes;
+  AkPrintDisplacementMesh *lastDisplacementMesh;
+  AkPrintDisplacementTriangle *displacementTriangles;
+  AkPrintDisplacementTriangle *lastDisplacementTriangle;
   AkTree                *extra;
   const char            *profileName;
   const char            *printerModel;
@@ -297,6 +404,13 @@ typedef struct AkPrintDocument {
   uint32_t               beamSetCount;
   uint32_t               booleanShapeCount;
   uint32_t               booleanOperandCount;
+  uint32_t               displacement2DCount;
+  uint32_t               normVectorGroupCount;
+  uint32_t               normVectorCount;
+  uint32_t               disp2DGroupCount;
+  uint32_t               disp2DCoordCount;
+  uint32_t               displacementMeshCount;
+  uint32_t               displacementTriangleCount;
 } AkPrintDocument;
 
 AK_EXPORT
@@ -461,6 +575,71 @@ ak_printAddBooleanOperand(struct AkDoc              * __restrict doc,
                           uint32_t                               objectId,
                           const float               * __restrict matrix,
                           uint32_t                               flags);
+
+AK_EXPORT
+AkPrintDisplacement2D*
+ak_printAddDisplacement2D(struct AkDoc  * __restrict doc,
+                          const char    * __restrict path,
+                          uint32_t                   id,
+                          const char    * __restrict imagePath,
+                          const char    * __restrict channel,
+                          const char    * __restrict tileStyleU,
+                          const char    * __restrict tileStyleV,
+                          const char    * __restrict filter,
+                          uint32_t                   flags);
+
+AK_EXPORT
+AkPrintNormVectorGroup*
+ak_printAddNormVectorGroup(struct AkDoc * __restrict doc,
+                           const char   * __restrict path,
+                           uint32_t                  id);
+
+AK_EXPORT
+AkPrintNormVector*
+ak_printAddNormVector(struct AkDoc            * __restrict doc,
+                      AkPrintNormVectorGroup  * __restrict group,
+                      float                                x,
+                      float                                y,
+                      float                                z);
+
+AK_EXPORT
+AkPrintDisp2DGroup*
+ak_printAddDisp2DGroup(struct AkDoc  * __restrict doc,
+                       const char    * __restrict path,
+                       uint32_t                   id,
+                       uint32_t                   displacementId,
+                       uint32_t                   normVectorGroupId,
+                       float                      height,
+                       float                      offset,
+                       uint32_t                   flags);
+
+AK_EXPORT
+AkPrintDisp2DCoord*
+ak_printAddDisp2DCoord(struct AkDoc          * __restrict doc,
+                       AkPrintDisp2DGroup    * __restrict group,
+                       float                              u,
+                       float                              v,
+                       uint32_t                           normVectorIndex,
+                       float                              factor,
+                       uint32_t                           flags);
+
+AK_EXPORT
+AkPrintDisplacementMesh*
+ak_printAddDisplacementMesh(struct AkDoc * __restrict doc,
+                            const char   * __restrict path,
+                            uint32_t                  objectId,
+                            uint32_t                  defaultGroupId,
+                            uint32_t                  flags);
+
+AK_EXPORT
+AkPrintDisplacementTriangle*
+ak_printAddDisplacementTriangle(struct AkDoc              * __restrict doc,
+                                AkPrintDisplacementMesh   * __restrict mesh,
+                                uint32_t                               groupId,
+                                uint32_t                               d1,
+                                uint32_t                               d2,
+                                uint32_t                               d3,
+                                uint32_t                               flags);
 
 #ifdef __cplusplus
 }

@@ -705,3 +705,304 @@ ak_printAddBooleanOperand(AkDoc                  * __restrict doc,
 
   return operand;
 }
+
+AK_EXPORT
+AkPrintDisplacement2D*
+ak_printAddDisplacement2D(AkDoc      * __restrict doc,
+                          const char * __restrict path,
+                          uint32_t                id,
+                          const char * __restrict imagePath,
+                          const char * __restrict channel,
+                          const char * __restrict tileStyleU,
+                          const char * __restrict tileStyleV,
+                          const char * __restrict filter,
+                          uint32_t                flags) {
+  AkPrintDocument       *print;
+  AkPrintDisplacement2D *displacement;
+  AkHeap                *heap;
+
+  print = ak_printDocumentEnsure(doc);
+  if (!print)
+    return NULL;
+
+  heap = ak_heap_getheap(print);
+  if (!heap)
+    return NULL;
+
+  displacement = ak_heap_calloc(heap, print, sizeof(*displacement));
+  if (!displacement)
+    return NULL;
+
+  displacement->path       = ak_print_strdup(heap, displacement, path);
+  displacement->imagePath  = ak_print_strdup(heap, displacement, imagePath);
+  displacement->channel    = ak_print_strdup(heap, displacement, channel);
+  displacement->tileStyleU = ak_print_strdup(heap, displacement, tileStyleU);
+  displacement->tileStyleV = ak_print_strdup(heap, displacement, tileStyleV);
+  displacement->filter     = ak_print_strdup(heap, displacement, filter);
+  displacement->id         = id;
+  displacement->flags      = flags;
+
+  if (print->lastDisplacement2D)
+    print->lastDisplacement2D->next = displacement;
+  else
+    print->displacement2Ds = displacement;
+
+  print->lastDisplacement2D = displacement;
+  print->displacement2DCount++;
+  print->features |= AK_PRINT_FEATURE_DISPLACEMENT;
+
+  return displacement;
+}
+
+AK_EXPORT
+AkPrintNormVectorGroup*
+ak_printAddNormVectorGroup(AkDoc      * __restrict doc,
+                           const char * __restrict path,
+                           uint32_t                id) {
+  AkPrintDocument        *print;
+  AkPrintNormVectorGroup *group;
+  AkHeap                 *heap;
+
+  print = ak_printDocumentEnsure(doc);
+  if (!print)
+    return NULL;
+
+  heap = ak_heap_getheap(print);
+  if (!heap)
+    return NULL;
+
+  group = ak_heap_calloc(heap, print, sizeof(*group));
+  if (!group)
+    return NULL;
+
+  group->path = ak_print_strdup(heap, group, path);
+  group->id   = id;
+
+  if (print->lastNormVectorGroup)
+    print->lastNormVectorGroup->next = group;
+  else
+    print->normVectorGroups = group;
+
+  print->lastNormVectorGroup = group;
+  print->normVectorGroupCount++;
+  print->features |= AK_PRINT_FEATURE_DISPLACEMENT;
+
+  return group;
+}
+
+AK_EXPORT
+AkPrintNormVector*
+ak_printAddNormVector(AkDoc                 * __restrict doc,
+                      AkPrintNormVectorGroup * __restrict group,
+                      float                              x,
+                      float                              y,
+                      float                              z) {
+  AkPrintDocument *print;
+  AkPrintNormVector *vector;
+  AkHeap          *heap;
+
+  print = ak_printDocumentEnsure(doc);
+  if (!print)
+    return NULL;
+
+  heap = ak_heap_getheap(print);
+  if (!heap)
+    return NULL;
+
+  vector = ak_heap_calloc(heap, print, sizeof(*vector));
+  if (!vector)
+    return NULL;
+
+  vector->x = x;
+  vector->y = y;
+  vector->z = z;
+
+  if (print->lastNormVector)
+    print->lastNormVector->next = vector;
+  else
+    print->normVectors = vector;
+
+  print->lastNormVector = vector;
+  print->normVectorCount++;
+  if (group)
+    group->vectorCount++;
+  print->features |= AK_PRINT_FEATURE_DISPLACEMENT;
+
+  return vector;
+}
+
+AK_EXPORT
+AkPrintDisp2DGroup*
+ak_printAddDisp2DGroup(AkDoc      * __restrict doc,
+                       const char * __restrict path,
+                       uint32_t                id,
+                       uint32_t                displacementId,
+                       uint32_t                normVectorGroupId,
+                       float                   height,
+                       float                   offset,
+                       uint32_t                flags) {
+  AkPrintDocument    *print;
+  AkPrintDisp2DGroup *group;
+  AkHeap             *heap;
+
+  print = ak_printDocumentEnsure(doc);
+  if (!print)
+    return NULL;
+
+  heap = ak_heap_getheap(print);
+  if (!heap)
+    return NULL;
+
+  group = ak_heap_calloc(heap, print, sizeof(*group));
+  if (!group)
+    return NULL;
+
+  group->path              = ak_print_strdup(heap, group, path);
+  group->id                = id;
+  group->displacementId    = displacementId;
+  group->normVectorGroupId = normVectorGroupId;
+  group->height            = height;
+  group->offset            = offset;
+  group->flags             = flags;
+
+  if (print->lastDisp2DGroup)
+    print->lastDisp2DGroup->next = group;
+  else
+    print->disp2DGroups = group;
+
+  print->lastDisp2DGroup = group;
+  print->disp2DGroupCount++;
+  print->features |= AK_PRINT_FEATURE_DISPLACEMENT;
+
+  return group;
+}
+
+AK_EXPORT
+AkPrintDisp2DCoord*
+ak_printAddDisp2DCoord(AkDoc             * __restrict doc,
+                       AkPrintDisp2DGroup * __restrict group,
+                       float                         u,
+                       float                         v,
+                       uint32_t                      normVectorIndex,
+                       float                         factor,
+                       uint32_t                      flags) {
+  AkPrintDocument    *print;
+  AkPrintDisp2DCoord *coord;
+  AkHeap             *heap;
+
+  print = ak_printDocumentEnsure(doc);
+  if (!print)
+    return NULL;
+
+  heap = ak_heap_getheap(print);
+  if (!heap)
+    return NULL;
+
+  coord = ak_heap_calloc(heap, print, sizeof(*coord));
+  if (!coord)
+    return NULL;
+
+  coord->u               = u;
+  coord->v               = v;
+  coord->factor          = factor;
+  coord->normVectorIndex = normVectorIndex;
+  coord->flags           = flags;
+
+  if (print->lastDisp2DCoord)
+    print->lastDisp2DCoord->next = coord;
+  else
+    print->disp2DCoords = coord;
+
+  print->lastDisp2DCoord = coord;
+  print->disp2DCoordCount++;
+  if (group)
+    group->coordCount++;
+  print->features |= AK_PRINT_FEATURE_DISPLACEMENT;
+
+  return coord;
+}
+
+AK_EXPORT
+AkPrintDisplacementMesh*
+ak_printAddDisplacementMesh(AkDoc      * __restrict doc,
+                            const char * __restrict path,
+                            uint32_t                objectId,
+                            uint32_t                defaultGroupId,
+                            uint32_t                flags) {
+  AkPrintDocument         *print;
+  AkPrintDisplacementMesh *mesh;
+  AkHeap                  *heap;
+
+  print = ak_printDocumentEnsure(doc);
+  if (!print)
+    return NULL;
+
+  heap = ak_heap_getheap(print);
+  if (!heap)
+    return NULL;
+
+  mesh = ak_heap_calloc(heap, print, sizeof(*mesh));
+  if (!mesh)
+    return NULL;
+
+  mesh->path           = ak_print_strdup(heap, mesh, path);
+  mesh->objectId       = objectId;
+  mesh->defaultGroupId = defaultGroupId;
+  mesh->flags          = flags;
+
+  if (print->lastDisplacementMesh)
+    print->lastDisplacementMesh->next = mesh;
+  else
+    print->displacementMeshes = mesh;
+
+  print->lastDisplacementMesh = mesh;
+  print->displacementMeshCount++;
+  print->features |= AK_PRINT_FEATURE_DISPLACEMENT;
+
+  return mesh;
+}
+
+AK_EXPORT
+AkPrintDisplacementTriangle*
+ak_printAddDisplacementTriangle(AkDoc                    * __restrict doc,
+                                AkPrintDisplacementMesh  * __restrict mesh,
+                                uint32_t                               groupId,
+                                uint32_t                               d1,
+                                uint32_t                               d2,
+                                uint32_t                               d3,
+                                uint32_t                               flags) {
+  AkPrintDocument             *print;
+  AkPrintDisplacementTriangle *triangle;
+  AkHeap                      *heap;
+
+  print = ak_printDocumentEnsure(doc);
+  if (!print)
+    return NULL;
+
+  heap = ak_heap_getheap(print);
+  if (!heap)
+    return NULL;
+
+  triangle = ak_heap_calloc(heap, print, sizeof(*triangle));
+  if (!triangle)
+    return NULL;
+
+  triangle->groupId = groupId;
+  triangle->d1      = d1;
+  triangle->d2      = d2;
+  triangle->d3      = d3;
+  triangle->flags   = flags;
+
+  if (print->lastDisplacementTriangle)
+    print->lastDisplacementTriangle->next = triangle;
+  else
+    print->displacementTriangles = triangle;
+
+  print->lastDisplacementTriangle = triangle;
+  print->displacementTriangleCount++;
+  if (mesh)
+    mesh->triangleCount++;
+  print->features |= AK_PRINT_FEATURE_DISPLACEMENT;
+
+  return triangle;
+}

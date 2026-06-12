@@ -37,7 +37,8 @@ typedef enum AK3MFObjectKind {
   AK_3MF_OBJECT_EMPTY      = 0,
   AK_3MF_OBJECT_MESH       = 1,
   AK_3MF_OBJECT_COMPONENTS = 2,
-  AK_3MF_OBJECT_BOOLEAN    = 3
+  AK_3MF_OBJECT_BOOLEAN    = 3,
+  AK_3MF_OBJECT_DISPLACEMENT = 4
 } AK3MFObjectKind;
 
 typedef struct AK3MFComponent {
@@ -552,7 +553,8 @@ ak_3mf_mark_required_feature(AkPrintDocument    * __restrict print,
     | AK_PRINT_FEATURE_PRODUCTION
     | AK_PRINT_FEATURE_SLICE
     | AK_PRINT_FEATURE_BEAM_LATTICE
-    | AK_PRINT_FEATURE_BOOLEAN;
+    | AK_PRINT_FEATURE_BOOLEAN
+    | AK_PRINT_FEATURE_DISPLACEMENT;
 
   if (!print)
     return;
@@ -1739,6 +1741,12 @@ ak_3mf_parse_beam_lattice(AK3MFImportState * __restrict st,
 }
 
 static
+void
+ak_3mf_parse_displacement_mesh(AK3MFImportState * __restrict st,
+                               xml_t            * __restrict meshXml,
+                               uint32_t                      objectId);
+
+static
 AkGeometry*
 ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
                   xml_t            * __restrict objXml,
@@ -1774,8 +1782,8 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
     return NULL;
 
   doc          = st->doc;
-  verticesXml  = xml_elem(meshXml, "vertices");
-  trianglesXml = xml_elem(meshXml, "triangles");
+  verticesXml  = ak_3mf_child(meshXml, "vertices");
+  trianglesXml = ak_3mf_child(meshXml, "triangles");
   beamLatticeXml = ak_3mf_child(meshXml, "beamlattice");
   vertexCount  = ak_3mf_count_children(verticesXml, "vertex");
   triangleCount = ak_3mf_count_children(trianglesXml, "triangle");
@@ -1795,9 +1803,9 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
     if (!ak_3mf_tag(vertexXml, "vertex"))
       continue;
 
-    srcPositions[i * 3u + 0u] = xmla_float(AK_3MF_XMLA(vertexXml, x), 0.0f);
-    srcPositions[i * 3u + 1u] = xmla_float(AK_3MF_XMLA(vertexXml, y), 0.0f);
-    srcPositions[i * 3u + 2u] = xmla_float(AK_3MF_XMLA(vertexXml, z), 0.0f);
+    srcPositions[i * 3u + 0u] = xmla_float(ak_3mf_xmla_local_lit(vertexXml, "x"), 0.0f);
+    srcPositions[i * 3u + 1u] = xmla_float(ak_3mf_xmla_local_lit(vertexXml, "y"), 0.0f);
+    srcPositions[i * 3u + 2u] = xmla_float(ak_3mf_xmla_local_lit(vertexXml, "z"), 0.0f);
     i++;
   }
 
@@ -1916,9 +1924,9 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
     if (!ak_3mf_tag(triangleXml, "triangle"))
       continue;
 
-    v[0] = xmla_u32(AK_3MF_XMLA(triangleXml, v1), 0u);
-    v[1] = xmla_u32(AK_3MF_XMLA(triangleXml, v2), 0u);
-    v[2] = xmla_u32(AK_3MF_XMLA(triangleXml, v3), 0u);
+    v[0] = xmla_u32(ak_3mf_xmla_local_lit(triangleXml, "v1"), 0u);
+    v[1] = xmla_u32(ak_3mf_xmla_local_lit(triangleXml, "v2"), 0u);
+    v[2] = xmla_u32(ak_3mf_xmla_local_lit(triangleXml, "v3"), 0u);
     if (v[0] >= vertexCount || v[1] >= vertexCount || v[2] >= vertexCount) {
       free(srcPositions);
       return NULL;
@@ -1989,6 +1997,10 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
   ak_3mf_parse_beam_lattice(st,
                             meshXml,
                             xmla_u32(AK_3MF_XMLA(objXml, id), 0u));
+  if (ak_3mf_tag(meshXml, "displacementmesh"))
+    ak_3mf_parse_displacement_mesh(st,
+                                   meshXml,
+                                   xmla_u32(AK_3MF_XMLA(objXml, id), 0u));
 
   AK_LIB_PREPEND(doc->lib.geometries, geom, next);
   return geom;
@@ -2008,6 +2020,7 @@ ak_3mf_count_resource_objects(xml_t * __restrict resourcesXml) {
     if (ak_3mf_tag(objXml, "object")
         && (xml_elem(objXml, "mesh")
             || xml_elem(objXml, "components")
+            || ak_3mf_child(objXml, "displacementmesh")
             || ak_3mf_child(objXml, "booleanshape")))
       count++;
   }
@@ -2040,6 +2053,12 @@ static
 bool
 ak_3mf_parse_transform_attr(const xml_attr_t * __restrict attr,
                             float                         matrix[16]);
+
+static
+void
+ak_3mf_parse_displacement_mesh(AK3MFImportState * __restrict st,
+                               xml_t            * __restrict meshXml,
+                               uint32_t                      objectId);
 
 static
 uint32_t
@@ -2160,6 +2179,210 @@ ak_3mf_parse_boolean_shape(AK3MFImportState * __restrict st,
 
   ak_3mf_parse_boolean_operands(st, shape, shapeXml);
   return true;
+}
+
+static
+void
+ak_3mf_parse_displacement2d(AK3MFImportState * __restrict st,
+                            xml_t            * __restrict xml) {
+  xml_attr_t *channelAttr;
+  xml_attr_t *tileUAttr;
+  xml_attr_t *tileVAttr;
+  xml_attr_t *filterAttr;
+  char       *imagePath;
+  char       *channel;
+  char       *tileStyleU;
+  char       *tileStyleV;
+  char       *filter;
+  uint32_t    flags;
+
+  if (!st || !xml)
+    return;
+
+  channelAttr = ak_3mf_xmla_local_lit(xml, "channel");
+  tileUAttr   = ak_3mf_xmla_local_lit(xml, "tilestyleu");
+  tileVAttr   = ak_3mf_xmla_local_lit(xml, "tilestylev");
+  filterAttr  = ak_3mf_xmla_local_lit(xml, "filter");
+  imagePath   = ak_3mf_attr_dup_path_cstr(ak_3mf_xmla_local_lit(xml, "path"));
+  channel     = ak_3mf_attr_dup_cstr(channelAttr);
+  tileStyleU  = ak_3mf_attr_dup_cstr(tileUAttr);
+  tileStyleV  = ak_3mf_attr_dup_cstr(tileVAttr);
+  filter      = ak_3mf_attr_dup_cstr(filterAttr);
+  flags       = ak_3mf_optional_attr_flag(channelAttr,
+                                          AK_PRINT_DISPLACEMENT_2D_HAS_CHANNEL)
+                | ak_3mf_optional_attr_flag(tileUAttr,
+                                            AK_PRINT_DISPLACEMENT_2D_HAS_TILESTYLE_U)
+                | ak_3mf_optional_attr_flag(tileVAttr,
+                                            AK_PRINT_DISPLACEMENT_2D_HAS_TILESTYLE_V)
+                | ak_3mf_optional_attr_flag(filterAttr,
+                                            AK_PRINT_DISPLACEMENT_2D_HAS_FILTER);
+
+  (void)ak_printAddDisplacement2D(st->doc,
+                                  st->currentModelPath,
+                                  xmla_u32(ak_3mf_xmla_local_lit(xml, "id"), 0u),
+                                  imagePath,
+                                  channel,
+                                  tileStyleU,
+                                  tileStyleV,
+                                  filter,
+                                  flags);
+  free(imagePath);
+  free(channel);
+  free(tileStyleU);
+  free(tileStyleV);
+  free(filter);
+}
+
+static
+void
+ak_3mf_parse_norm_vector_group(AK3MFImportState * __restrict st,
+                               xml_t            * __restrict xml) {
+  AkPrintNormVectorGroup *group;
+  xml_t                  *vectorXml;
+
+  if (!st || !xml)
+    return;
+
+  group = ak_printAddNormVectorGroup(st->doc,
+                                     st->currentModelPath,
+                                     xmla_u32(ak_3mf_xmla_local_lit(xml, "id"), 0u));
+  if (!group)
+    return;
+
+  for (vectorXml = xml->val; vectorXml; vectorXml = vectorXml->next) {
+    if (!ak_3mf_tag(vectorXml, "normvector"))
+      continue;
+
+    (void)ak_printAddNormVector(st->doc,
+                                group,
+                                xmla_float(ak_3mf_xmla_local_lit(vectorXml, "x"), 0.0f),
+                                xmla_float(ak_3mf_xmla_local_lit(vectorXml, "y"), 0.0f),
+                                xmla_float(ak_3mf_xmla_local_lit(vectorXml, "z"), 1.0f));
+  }
+}
+
+static
+void
+ak_3mf_parse_disp2d_group(AK3MFImportState * __restrict st,
+                          xml_t            * __restrict xml) {
+  AkPrintDisp2DGroup *group;
+  xml_t              *coordXml;
+  xml_attr_t         *offsetAttr;
+
+  if (!st || !xml)
+    return;
+
+  offsetAttr = ak_3mf_xmla_local_lit(xml, "offset");
+  group = ak_printAddDisp2DGroup(st->doc,
+                                 st->currentModelPath,
+                                 xmla_u32(ak_3mf_xmla_local_lit(xml, "id"), 0u),
+                                 xmla_u32(ak_3mf_xmla_local_lit(xml, "dispid"), 0u),
+                                 xmla_u32(ak_3mf_xmla_local_lit(xml, "nid"), 0u),
+                                 xmla_float(ak_3mf_xmla_local_lit(xml, "height"), 0.0f),
+                                 xmla_float(offsetAttr, 0.0f),
+                                 ak_3mf_optional_attr_flag(offsetAttr,
+                                                           AK_PRINT_DISP2D_GROUP_HAS_OFFSET));
+  if (!group)
+    return;
+
+  for (coordXml = xml->val; coordXml; coordXml = coordXml->next) {
+    xml_attr_t *factorAttr;
+
+    if (!ak_3mf_tag(coordXml, "disp2dcoord"))
+      continue;
+
+    factorAttr = ak_3mf_xmla_local_lit(coordXml, "f");
+    (void)ak_printAddDisp2DCoord(st->doc,
+                                 group,
+                                 xmla_float(ak_3mf_xmla_local_lit(coordXml, "u"), 0.0f),
+                                 xmla_float(ak_3mf_xmla_local_lit(coordXml, "v"), 0.0f),
+                                 xmla_u32(ak_3mf_xmla_local_lit(coordXml, "n"), 0u),
+                                 xmla_float(factorAttr, 1.0f),
+                                 ak_3mf_optional_attr_flag(factorAttr,
+                                                           AK_PRINT_DISP2D_COORD_HAS_FACTOR));
+  }
+}
+
+static
+void
+ak_3mf_parse_displacement_resources(AK3MFImportState * __restrict st,
+                                    xml_t            * __restrict resourcesXml) {
+  xml_t *xml;
+
+  if (!st || !resourcesXml)
+    return;
+
+  for (xml = resourcesXml->val; xml; xml = xml->next) {
+    if (ak_3mf_tag(xml, "displacement2d"))
+      ak_3mf_parse_displacement2d(st, xml);
+    else if (ak_3mf_tag(xml, "normvectorgroup"))
+      ak_3mf_parse_norm_vector_group(st, xml);
+    else if (ak_3mf_tag(xml, "disp2dgroup"))
+      ak_3mf_parse_disp2d_group(st, xml);
+  }
+}
+
+static
+void
+ak_3mf_parse_displacement_mesh(AK3MFImportState * __restrict st,
+                               xml_t            * __restrict meshXml,
+                               uint32_t                      objectId) {
+  AkPrintDisplacementMesh *mesh;
+  xml_t                   *trianglesXml;
+  xml_t                   *triangleXml;
+  xml_attr_t              *defaultGroupAttr;
+  uint32_t                 flags;
+
+  if (!st || !meshXml)
+    return;
+
+  trianglesXml     = ak_3mf_child(meshXml, "triangles");
+  defaultGroupAttr = ak_3mf_xmla_local_lit(trianglesXml, "did");
+  flags            = ak_3mf_optional_attr_flag(defaultGroupAttr,
+                                               AK_PRINT_DISPLACEMENT_MESH_HAS_DEFAULT_GROUP);
+  mesh = ak_printAddDisplacementMesh(st->doc,
+                                     st->currentModelPath,
+                                     objectId,
+                                     xmla_u32(defaultGroupAttr, 0u),
+                                     flags);
+  if (!mesh)
+    return;
+
+  for (triangleXml = trianglesXml ? trianglesXml->val : NULL;
+       triangleXml;
+       triangleXml = triangleXml->next) {
+    xml_attr_t *groupAttr;
+    xml_attr_t *d1Attr;
+    xml_attr_t *d2Attr;
+    xml_attr_t *d3Attr;
+    uint32_t    triangleFlags;
+    uint32_t    d1;
+
+    if (!ak_3mf_tag(triangleXml, "triangle"))
+      continue;
+
+    groupAttr = ak_3mf_xmla_local_lit(triangleXml, "did");
+    d1Attr    = ak_3mf_xmla_local_lit(triangleXml, "d1");
+    d2Attr    = ak_3mf_xmla_local_lit(triangleXml, "d2");
+    d3Attr    = ak_3mf_xmla_local_lit(triangleXml, "d3");
+    d1        = xmla_u32(d1Attr, UINT32_MAX);
+    triangleFlags = ak_3mf_optional_attr_flag(groupAttr,
+                                              AK_PRINT_DISPLACEMENT_TRIANGLE_HAS_GROUP)
+                    | ak_3mf_optional_attr_flag(d1Attr,
+                                                AK_PRINT_DISPLACEMENT_TRIANGLE_HAS_D1)
+                    | ak_3mf_optional_attr_flag(d2Attr,
+                                                AK_PRINT_DISPLACEMENT_TRIANGLE_HAS_D2)
+                    | ak_3mf_optional_attr_flag(d3Attr,
+                                                AK_PRINT_DISPLACEMENT_TRIANGLE_HAS_D3);
+
+    (void)ak_printAddDisplacementTriangle(st->doc,
+                                          mesh,
+                                          xmla_u32(groupAttr, 0u),
+                                          d1,
+                                          xmla_u32(d2Attr, d1),
+                                          xmla_u32(d3Attr, d1),
+                                          triangleFlags);
+  }
 }
 
 static
@@ -2390,14 +2613,16 @@ ak_3mf_parse_resources(AK3MFImportState * __restrict st,
     AK3MFObject *object;
     xml_t      *meshXml;
     xml_t      *componentsXml;
+    xml_t      *displacementMeshXml;
     xml_t      *booleanShapeXml;
 
     if (!ak_3mf_tag(objXml, "object"))
       continue;
-    meshXml = xml_elem(objXml, "mesh");
+    meshXml = ak_3mf_child(objXml, "mesh");
     componentsXml = xml_elem(objXml, "components");
+    displacementMeshXml = ak_3mf_child(objXml, "displacementmesh");
     booleanShapeXml = ak_3mf_child(objXml, "booleanshape");
-    if (!meshXml && !componentsXml && !booleanShapeXml)
+    if (!meshXml && !componentsXml && !displacementMeshXml && !booleanShapeXml)
       continue;
 
     if (st->objectCount >= st->objectCapacity)
@@ -2417,11 +2642,15 @@ ak_3mf_parse_resources(AK3MFImportState * __restrict st,
                                object->id,
                                0u);
 
-    if (meshXml) {
-      object->geom = ak_3mf_parse_mesh(st, objXml, meshXml);
+    if (meshXml || displacementMeshXml) {
+      object->geom = ak_3mf_parse_mesh(st,
+                                       objXml,
+                                       displacementMeshXml ? displacementMeshXml : meshXml);
       if (!object->geom)
         continue;
-      object->kind = AK_3MF_OBJECT_MESH;
+      object->kind = displacementMeshXml
+                     ? AK_3MF_OBJECT_DISPLACEMENT
+                     : AK_3MF_OBJECT_MESH;
       if (st->print)
         st->print->meshObjectCount++;
       st->objectCount++;
@@ -2556,6 +2785,7 @@ ak_3mf_load_model_part(AK3MFImportState * __restrict st,
     ak_3mf_mark_model_extensions(st->print, root);
 
   (void)ak_3mf_parse_property_groups(st, resourcesXml);
+  (void)ak_3mf_parse_displacement_resources(st, resourcesXml);
   (void)ak_3mf_parse_slice_stacks(st, resourcesXml);
   added = ak_3mf_parse_resources(st, resourcesXml);
   if (st->print)
@@ -2659,7 +2889,8 @@ ak_3mf_attach_object_node(AK3MFImportState * __restrict st,
     return false;
   ak_nodeSetTransformMatrix(node, matrix);
 
-  if (object->kind == AK_3MF_OBJECT_MESH) {
+  if (object->kind == AK_3MF_OBJECT_MESH
+      || object->kind == AK_3MF_OBJECT_DISPLACEMENT) {
     return object->geom && ak_nodeAttachGeometry(node, object->geom);
   }
 
@@ -2896,6 +3127,7 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
   resourcesXml   = xml_elem(root, "resources");
   buildXml       = xml_elem(root, "build");
   (void)ak_3mf_parse_property_groups(&st, resourcesXml);
+  (void)ak_3mf_parse_displacement_resources(&st, resourcesXml);
   (void)ak_3mf_parse_slice_stacks(&st, resourcesXml);
   (void)ak_3mf_parse_resources(&st, resourcesXml);
   if (st.print)

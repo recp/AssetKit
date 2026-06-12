@@ -53,8 +53,14 @@ typedef struct AK3MFExportState {
   bool             usesBeamLatticeExtension;
   bool             usesBeamBallExtension;
   bool             usesBooleanExtension;
+  bool             usesDisplacementExtension;
   bool             suppressBuildItems;
 } AK3MFExportState;
+
+typedef struct AK3MFDisplacementWrite {
+  const AkPrintDisplacementTriangle *triangle;
+  uint32_t                           remaining;
+} AK3MFDisplacementWrite;
 
 static
 bool
@@ -302,6 +308,48 @@ ak_3mf_beam_lattice_for_export(AK3MFExportState * __restrict st,
 }
 
 static
+const AkPrintDisplacementMesh*
+ak_3mf_first_displacement_mesh(const AkPrintDocument * __restrict print) {
+  return print ? print->displacementMeshes : NULL;
+}
+
+static
+const AkPrintDisplacementMesh*
+ak_3mf_find_displacement_mesh(const AkPrintDocument * __restrict print,
+                              uint32_t                            objectId) {
+  const AkPrintDisplacementMesh *mesh;
+
+  for (mesh = print ? print->displacementMeshes : NULL; mesh; mesh = mesh->next) {
+    if (mesh->objectId == objectId)
+      return mesh;
+  }
+
+  return NULL;
+}
+
+static
+const AkPrintDisplacementMesh*
+ak_3mf_displacement_mesh_for_export(AK3MFExportState * __restrict st,
+                                    uint32_t                      objectId) {
+  const AkPrintDisplacementMesh *mesh;
+
+  mesh = ak_3mf_find_displacement_mesh(st ? st->print : NULL, objectId);
+  if (mesh && ak_3mf_path_is_root_model(mesh->path))
+    return mesh;
+
+  if (st
+      && st->print
+      && st->print->displacementMeshCount == 1u
+      && st->objectCount == 0u) {
+    mesh = ak_3mf_first_displacement_mesh(st->print);
+    if (mesh && ak_3mf_path_is_root_model(mesh->path))
+      return mesh;
+  }
+
+  return NULL;
+}
+
+static
 void
 ak_3mf_buf_free(AK3MFBuffer * __restrict buf) {
   free(buf->data);
@@ -494,8 +542,11 @@ ak_3mf_vertex_color(AK3MFRows       * __restrict rows,
 
 static
 void
-ak_3mf_append_vertex(AK3MFBuffer * __restrict vertices, vec3 pos) {
-  ak_3mf_buf_lit(vertices, "          <vertex x=\"");
+ak_3mf_append_vertex(AK3MFBuffer * __restrict vertices,
+                     vec3                     pos,
+                     bool                     displacement) {
+  ak_3mf_buf_lit(vertices, displacement ? "          <d:vertex x=\""
+                                        : "          <vertex x=\"");
   ak_3mf_buf_float(vertices, pos[0]);
   ak_3mf_buf_lit(vertices, "\" y=\"");
   ak_3mf_buf_float(vertices, pos[1]);
@@ -520,12 +571,55 @@ ak_3mf_append_color(AK3MFBuffer * __restrict colors, uint8_t rgba[4]) {
 
 static
 void
+ak_3mf_append_displacement_triangle_attrs(
+                       AK3MFBuffer                       * __restrict triangles,
+                       const AkPrintDisplacementTriangle * __restrict displacement) {
+  if (!displacement)
+    return;
+
+  if ((displacement->flags & AK_PRINT_DISPLACEMENT_TRIANGLE_HAS_GROUP) != 0u) {
+    ak_3mf_buf_lit(triangles, "\" did=\"");
+    ak_3mf_buf_u32(triangles, displacement->groupId);
+  }
+  if ((displacement->flags & AK_PRINT_DISPLACEMENT_TRIANGLE_HAS_D1) != 0u) {
+    ak_3mf_buf_lit(triangles, "\" d1=\"");
+    ak_3mf_buf_u32(triangles, displacement->d1);
+  }
+  if ((displacement->flags & AK_PRINT_DISPLACEMENT_TRIANGLE_HAS_D2) != 0u) {
+    ak_3mf_buf_lit(triangles, "\" d2=\"");
+    ak_3mf_buf_u32(triangles, displacement->d2);
+  }
+  if ((displacement->flags & AK_PRINT_DISPLACEMENT_TRIANGLE_HAS_D3) != 0u) {
+    ak_3mf_buf_lit(triangles, "\" d3=\"");
+    ak_3mf_buf_u32(triangles, displacement->d3);
+  }
+}
+
+static
+const AkPrintDisplacementTriangle*
+ak_3mf_displacement_write_next(AK3MFDisplacementWrite * __restrict writer) {
+  const AkPrintDisplacementTriangle *triangle;
+
+  if (!writer || !writer->triangle || writer->remaining == 0u)
+    return NULL;
+
+  triangle = writer->triangle;
+  writer->triangle = writer->triangle->next;
+  writer->remaining--;
+  return triangle;
+}
+
+static
+void
 ak_3mf_append_triangle(AK3MFBuffer * __restrict triangles,
                        uint32_t                 i0,
                        uint32_t                 i1,
                        uint32_t                 i2,
-                       uint32_t                 propertyId) {
-  ak_3mf_buf_lit(triangles, "          <triangle v1=\"");
+                       uint32_t                 propertyId,
+                       bool                     displacementMesh,
+                       const AkPrintDisplacementTriangle * __restrict displacement) {
+  ak_3mf_buf_lit(triangles, displacementMesh ? "          <d:triangle v1=\""
+                                             : "          <triangle v1=\"");
   ak_3mf_buf_u32(triangles, i0);
   ak_3mf_buf_lit(triangles, "\" v2=\"");
   ak_3mf_buf_u32(triangles, i1);
@@ -541,6 +635,7 @@ ak_3mf_append_triangle(AK3MFBuffer * __restrict triangles,
     ak_3mf_buf_lit(triangles, "\" p3=\"");
     ak_3mf_buf_u32(triangles, i2);
   }
+  ak_3mf_append_displacement_triangle_attrs(triangles, displacement);
   ak_3mf_buf_lit(triangles, "\"/>\n");
 }
 
@@ -597,6 +692,24 @@ ak_3mf_first_ball_for_lattice(const AkPrintDocument     * __restrict print,
   }
 
   return it == lattice ? ball : NULL;
+}
+
+static
+const AkPrintDisplacementTriangle*
+ak_3mf_first_displacement_triangle_for_mesh(
+                               const AkPrintDocument         * __restrict print,
+                               const AkPrintDisplacementMesh * __restrict mesh) {
+  const AkPrintDisplacementMesh     *it;
+  const AkPrintDisplacementTriangle *triangle;
+  uint32_t                           i;
+
+  triangle = print ? print->displacementTriangles : NULL;
+  for (it = print ? print->displacementMeshes : NULL; it && it != mesh; it = it->next) {
+    for (i = 0u; i < it->triangleCount && triangle; i++)
+      triangle = triangle->next;
+  }
+
+  return it == mesh ? triangle : NULL;
 }
 
 static
@@ -746,6 +859,8 @@ ak_3mf_emit_triangle(AK3MFRows       * __restrict rows,
                      AK3MFBuffer     * __restrict colors,
                      AK3MFBuffer     * __restrict triangles,
                      uint32_t                     propertyId,
+                     bool                         displacementMesh,
+                     AK3MFDisplacementWrite * __restrict displacement,
                      uint32_t        * __restrict vertexCount,
                      uint32_t        * __restrict triangleCount) {
   vec3 a;
@@ -760,9 +875,9 @@ ak_3mf_emit_triangle(AK3MFRows       * __restrict rows,
   ak_3mf_vertex_position(rows, prim, posInput, i1, b);
   ak_3mf_vertex_position(rows, prim, posInput, i2, c);
 
-  ak_3mf_append_vertex(vertices, a);
-  ak_3mf_append_vertex(vertices, b);
-  ak_3mf_append_vertex(vertices, c);
+  ak_3mf_append_vertex(vertices, a, displacementMesh);
+  ak_3mf_append_vertex(vertices, b, displacementMesh);
+  ak_3mf_append_vertex(vertices, c, displacementMesh);
   if (propertyId != 0u) {
     ak_3mf_vertex_color(colorRows, prim, colorInput, i0, rgba);
     ak_3mf_append_color(colors, rgba);
@@ -775,7 +890,9 @@ ak_3mf_emit_triangle(AK3MFRows       * __restrict rows,
                          *vertexCount,
                          *vertexCount + 1u,
                          *vertexCount + 2u,
-                         propertyId);
+                         propertyId,
+                         displacementMesh,
+                         ak_3mf_displacement_write_next(displacement));
 
   *vertexCount += 3u;
   (*triangleCount)++;
@@ -793,6 +910,8 @@ ak_3mf_emit_triangles_primitive(AK3MFRows       * __restrict rows,
                                 AK3MFBuffer     * __restrict colors,
                                 AK3MFBuffer     * __restrict triangles,
                                 uint32_t                     propertyId,
+                                bool                         displacementMesh,
+                                AK3MFDisplacementWrite * __restrict displacement,
                                 uint32_t        * __restrict vertexCount,
                                 uint32_t        * __restrict triangleCount) {
   AkTriangleMode mode;
@@ -810,12 +929,14 @@ ak_3mf_emit_triangles_primitive(AK3MFRows       * __restrict rows,
         if (!ak_3mf_emit_triangle(rows, colorRows, prim, posInput, colorInput,
                                   i + 1u, i, i + 2u,
                                   vertices, colors, triangles, propertyId,
+                                  displacementMesh, displacement,
                                   vertexCount, triangleCount))
           return false;
       } else {
         if (!ak_3mf_emit_triangle(rows, colorRows, prim, posInput, colorInput,
                                   i, i + 1u, i + 2u,
                                   vertices, colors, triangles, propertyId,
+                                  displacementMesh, displacement,
                                   vertexCount, triangleCount))
           return false;
       }
@@ -828,6 +949,7 @@ ak_3mf_emit_triangles_primitive(AK3MFRows       * __restrict rows,
       if (!ak_3mf_emit_triangle(rows, colorRows, prim, posInput, colorInput,
                                 0u, i, i + 1u,
                                 vertices, colors, triangles, propertyId,
+                                displacementMesh, displacement,
                                 vertexCount, triangleCount))
         return false;
     }
@@ -838,6 +960,7 @@ ak_3mf_emit_triangles_primitive(AK3MFRows       * __restrict rows,
     if (!ak_3mf_emit_triangle(rows, colorRows, prim, posInput, colorInput,
                               i, i + 1u, i + 2u,
                               vertices, colors, triangles, propertyId,
+                              displacementMesh, displacement,
                               vertexCount, triangleCount))
       return false;
   }
@@ -856,6 +979,8 @@ ak_3mf_emit_polygon_primitive(AK3MFRows       * __restrict rows,
                               AK3MFBuffer     * __restrict colors,
                               AK3MFBuffer     * __restrict triangles,
                               uint32_t                     propertyId,
+                              bool                         displacementMesh,
+                              AK3MFDisplacementWrite * __restrict displacement,
                               uint32_t        * __restrict vertexCount,
                               uint32_t        * __restrict triangleCount) {
   AkPolygon *poly;
@@ -883,6 +1008,7 @@ ak_3mf_emit_polygon_primitive(AK3MFRows       * __restrict rows,
                                 (uint32_t)(cursor + j),
                                 (uint32_t)(cursor + j + 1u),
                                 vertices, colors, triangles, propertyId,
+                                displacementMesh, displacement,
                                 vertexCount, triangleCount))
         return false;
     }
@@ -928,6 +1054,8 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
   uint32_t    propertyId;
   const AkPrintSliceObject *sliceObject;
   const AkPrintBeamLattice *beamLattice;
+  const AkPrintDisplacementMesh *displacementMesh;
+  AK3MFDisplacementWrite displacementWrite;
   bool        ok;
   bool        hasColorRows;
 
@@ -958,8 +1086,18 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
   vertexCount      = 0;
   triangleCount    = 0;
   beamLattice      = ak_3mf_beam_lattice_for_export(st, st->nextObjectId);
+  displacementMesh = ak_3mf_displacement_mesh_for_export(st, st->nextObjectId);
+  memset(&displacementWrite, 0, sizeof(displacementWrite));
+  if (displacementMesh) {
+    displacementWrite.triangle  = ak_3mf_first_displacement_triangle_for_mesh(st->print,
+                                                                              displacementMesh);
+    displacementWrite.remaining = displacementMesh->triangleCount;
+  }
 
-  if (beamLattice && !hasColorRows && prim->type == AK_PRIMITIVE_TRIANGLES) {
+  if (beamLattice
+      && !displacementMesh
+      && !hasColorRows
+      && prim->type == AK_PRIMITIVE_TRIANGLES) {
     AkTriangleMode mode;
     uint32_t       vi;
     uint32_t       count;
@@ -976,7 +1114,7 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
       pos[0] = ak_3mf_row_component(row, rows.componentCount, 0u, 0.0f);
       pos[1] = ak_3mf_row_component(row, rows.componentCount, 1u, 0.0f);
       pos[2] = ak_3mf_row_component(row, rows.componentCount, 2u, 0.0f);
-      ak_3mf_append_vertex(&vertices, pos);
+      ak_3mf_append_vertex(&vertices, pos, false);
       vertexCount++;
     }
 
@@ -997,7 +1135,7 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
           ok = false;
           break;
         }
-        ak_3mf_append_triangle(&triangles, i0, i1, i2, 0u);
+        ak_3mf_append_triangle(&triangles, i0, i1, i2, 0u, false, NULL);
         triangleCount++;
       }
     }
@@ -1011,6 +1149,8 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
                                          &colors,
                                          &triangles,
                                          propertyId,
+                                         displacementMesh != NULL,
+                                         displacementMesh ? &displacementWrite : NULL,
                                          &vertexCount,
                                          &triangleCount);
   } else {
@@ -1023,6 +1163,8 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
                                        &colors,
                                        &triangles,
                                        propertyId,
+                                       displacementMesh != NULL,
+                                       displacementMesh ? &displacementWrite : NULL,
                                        &vertexCount,
                                        &triangleCount);
   }
@@ -1048,6 +1190,8 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
   sliceObject = ak_3mf_slice_object_for_export(st, objectId);
   if (!beamLattice)
     beamLattice = ak_3mf_beam_lattice_for_export(st, objectId);
+  if (!displacementMesh)
+    displacementMesh = ak_3mf_displacement_mesh_for_export(st, objectId);
   if (sliceObject
       && st->print
       && st->print->sliceObjectCount == 1u
@@ -1068,6 +1212,16 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
     if (st->nextObjectId <= objectId)
       st->nextObjectId = objectId + 1u;
   }
+  if (displacementMesh
+      && st->print
+      && st->print->displacementMeshCount == 1u
+      && st->objectCount == 0u
+      && displacementMesh->objectId != 0u
+      && displacementMesh->objectId != propertyId) {
+    objectId = displacementMesh->objectId;
+    if (st->nextObjectId <= objectId)
+      st->nextObjectId = objectId + 1u;
+  }
 
   if (propertyId != 0u) {
     ak_3mf_buf_lit(&st->resources, "      <m:colorgroup id=\"");
@@ -1081,19 +1235,40 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
   ak_3mf_buf_lit(&st->resources, "      <object id=\"");
   ak_3mf_buf_u32(&st->resources, objectId);
   ak_3mf_append_slice_object_attrs(&st->resources, sliceObject);
-  ak_3mf_buf_lit(&st->resources, "\" type=\"model\">\n"
-                                "        <mesh>\n"
-                                "          <vertices>\n");
+  ak_3mf_buf_lit(&st->resources, "\" type=\"model\">\n");
+  ak_3mf_buf_lit(&st->resources, displacementMesh
+                                ? "        <d:displacementmesh>\n"
+                                  "          <d:vertices>\n"
+                                : "        <mesh>\n"
+                                  "          <vertices>\n");
   ak_3mf_buf_raw(&st->resources, vertices.data, vertices.len);
-  ak_3mf_buf_lit(&st->resources, "          </vertices>\n");
+  ak_3mf_buf_lit(&st->resources, displacementMesh
+                                ? "          </d:vertices>\n"
+                                : "          </vertices>\n");
   if (triangleCount > 0u) {
-    ak_3mf_buf_lit(&st->resources, "          <triangles>\n");
+    if (displacementMesh) {
+      ak_3mf_buf_lit(&st->resources, "          <d:triangles");
+      if ((displacementMesh->flags
+           & AK_PRINT_DISPLACEMENT_MESH_HAS_DEFAULT_GROUP) != 0u) {
+        ak_3mf_buf_lit(&st->resources, " did=\"");
+        ak_3mf_buf_u32(&st->resources, displacementMesh->defaultGroupId);
+        ak_3mf_buf_ch(&st->resources, '"');
+      }
+      ak_3mf_buf_lit(&st->resources, ">\n");
+    } else {
+      ak_3mf_buf_lit(&st->resources, "          <triangles>\n");
+    }
     ak_3mf_buf_raw(&st->resources, triangles.data, triangles.len);
-    ak_3mf_buf_lit(&st->resources, "          </triangles>\n");
+    ak_3mf_buf_lit(&st->resources, displacementMesh
+                                  ? "          </d:triangles>\n"
+                                  : "          </triangles>\n");
   }
   ak_3mf_write_beam_lattice(st, &st->resources, beamLattice);
-  ak_3mf_buf_lit(&st->resources, "        </mesh>\n"
-                                "      </object>\n");
+  ak_3mf_buf_lit(&st->resources, displacementMesh
+                                ? "        </d:displacementmesh>\n"
+                                  "      </object>\n"
+                                : "        </mesh>\n"
+                                  "      </object>\n");
 
   if (!st->suppressBuildItems) {
     ak_3mf_buf_lit(&st->build, "      <item objectid=\"");
@@ -1233,6 +1408,173 @@ ak_3mf_write_library_fallback(AK3MFExportState * __restrict st) {
   st->suppressBuildItems = savedSuppressBuildItems;
 
   return true;
+}
+
+static
+const AkPrintNormVector*
+ak_3mf_first_norm_vector_for_group(
+                               const AkPrintDocument        * __restrict print,
+                               const AkPrintNormVectorGroup * __restrict group) {
+  const AkPrintNormVectorGroup *it;
+  const AkPrintNormVector      *vector;
+  uint32_t                      i;
+
+  vector = print ? print->normVectors : NULL;
+  for (it = print ? print->normVectorGroups : NULL; it && it != group; it = it->next) {
+    for (i = 0u; i < it->vectorCount && vector; i++)
+      vector = vector->next;
+  }
+
+  return it == group ? vector : NULL;
+}
+
+static
+const AkPrintDisp2DCoord*
+ak_3mf_first_disp2d_coord_for_group(const AkPrintDocument    * __restrict print,
+                                    const AkPrintDisp2DGroup * __restrict group) {
+  const AkPrintDisp2DGroup *it;
+  const AkPrintDisp2DCoord *coord;
+  uint32_t                  i;
+
+  coord = print ? print->disp2DCoords : NULL;
+  for (it = print ? print->disp2DGroups : NULL; it && it != group; it = it->next) {
+    for (i = 0u; i < it->coordCount && coord; i++)
+      coord = coord->next;
+  }
+
+  return it == group ? coord : NULL;
+}
+
+static
+void
+ak_3mf_write_displacement2d(AK3MFBuffer                 * __restrict buf,
+                            const AkPrintDisplacement2D * __restrict displacement) {
+  if (!buf || !displacement || !displacement->imagePath)
+    return;
+
+  ak_3mf_buf_lit(buf, "      <d:displacement2d id=\"");
+  ak_3mf_buf_u32(buf, displacement->id);
+  ak_3mf_buf_lit(buf, "\" path=\"/");
+  ak_3mf_buf_attr(buf, displacement->imagePath);
+  if ((displacement->flags & AK_PRINT_DISPLACEMENT_2D_HAS_CHANNEL) != 0u
+      && displacement->channel) {
+    ak_3mf_buf_lit(buf, "\" channel=\"");
+    ak_3mf_buf_attr(buf, displacement->channel);
+  }
+  if ((displacement->flags & AK_PRINT_DISPLACEMENT_2D_HAS_TILESTYLE_U) != 0u
+      && displacement->tileStyleU) {
+    ak_3mf_buf_lit(buf, "\" tilestyleu=\"");
+    ak_3mf_buf_attr(buf, displacement->tileStyleU);
+  }
+  if ((displacement->flags & AK_PRINT_DISPLACEMENT_2D_HAS_TILESTYLE_V) != 0u
+      && displacement->tileStyleV) {
+    ak_3mf_buf_lit(buf, "\" tilestylev=\"");
+    ak_3mf_buf_attr(buf, displacement->tileStyleV);
+  }
+  if ((displacement->flags & AK_PRINT_DISPLACEMENT_2D_HAS_FILTER) != 0u
+      && displacement->filter) {
+    ak_3mf_buf_lit(buf, "\" filter=\"");
+    ak_3mf_buf_attr(buf, displacement->filter);
+  }
+  ak_3mf_buf_lit(buf, "\"/>\n");
+}
+
+static
+void
+ak_3mf_write_norm_vector_group(AK3MFExportState              * __restrict st,
+                               const AkPrintNormVectorGroup  * __restrict group) {
+  const AkPrintNormVector *vector;
+  uint32_t                 i;
+
+  if (!st || !group)
+    return;
+  if (group->path && !ak_3mf_path_is_root_model(group->path))
+    return;
+
+  vector = ak_3mf_first_norm_vector_for_group(st->print, group);
+  ak_3mf_buf_lit(&st->resources, "      <d:normvectorgroup id=\"");
+  ak_3mf_buf_u32(&st->resources, group->id);
+  ak_3mf_buf_lit(&st->resources, "\">\n");
+  for (i = 0u; i < group->vectorCount && vector; i++, vector = vector->next) {
+    ak_3mf_buf_lit(&st->resources, "        <d:normvector x=\"");
+    ak_3mf_buf_float(&st->resources, vector->x);
+    ak_3mf_buf_lit(&st->resources, "\" y=\"");
+    ak_3mf_buf_float(&st->resources, vector->y);
+    ak_3mf_buf_lit(&st->resources, "\" z=\"");
+    ak_3mf_buf_float(&st->resources, vector->z);
+    ak_3mf_buf_lit(&st->resources, "\"/>\n");
+  }
+  ak_3mf_buf_lit(&st->resources, "      </d:normvectorgroup>\n");
+}
+
+static
+void
+ak_3mf_write_disp2d_group(AK3MFExportState         * __restrict st,
+                          const AkPrintDisp2DGroup * __restrict group) {
+  const AkPrintDisp2DCoord *coord;
+  uint32_t                  i;
+
+  if (!st || !group)
+    return;
+  if (group->path && !ak_3mf_path_is_root_model(group->path))
+    return;
+
+  coord = ak_3mf_first_disp2d_coord_for_group(st->print, group);
+  ak_3mf_buf_lit(&st->resources, "      <d:disp2dgroup id=\"");
+  ak_3mf_buf_u32(&st->resources, group->id);
+  ak_3mf_buf_lit(&st->resources, "\" dispid=\"");
+  ak_3mf_buf_u32(&st->resources, group->displacementId);
+  ak_3mf_buf_lit(&st->resources, "\" nid=\"");
+  ak_3mf_buf_u32(&st->resources, group->normVectorGroupId);
+  ak_3mf_buf_lit(&st->resources, "\" height=\"");
+  ak_3mf_buf_float(&st->resources, group->height);
+  if ((group->flags & AK_PRINT_DISP2D_GROUP_HAS_OFFSET) != 0u) {
+    ak_3mf_buf_lit(&st->resources, "\" offset=\"");
+    ak_3mf_buf_float(&st->resources, group->offset);
+  }
+  ak_3mf_buf_lit(&st->resources, "\">\n");
+  for (i = 0u; i < group->coordCount && coord; i++, coord = coord->next) {
+    ak_3mf_buf_lit(&st->resources, "        <d:disp2dcoord u=\"");
+    ak_3mf_buf_float(&st->resources, coord->u);
+    ak_3mf_buf_lit(&st->resources, "\" v=\"");
+    ak_3mf_buf_float(&st->resources, coord->v);
+    ak_3mf_buf_lit(&st->resources, "\" n=\"");
+    ak_3mf_buf_u32(&st->resources, coord->normVectorIndex);
+    if ((coord->flags & AK_PRINT_DISP2D_COORD_HAS_FACTOR) != 0u) {
+      ak_3mf_buf_lit(&st->resources, "\" f=\"");
+      ak_3mf_buf_float(&st->resources, coord->factor);
+    }
+    ak_3mf_buf_lit(&st->resources, "\"/>\n");
+  }
+  ak_3mf_buf_lit(&st->resources, "      </d:disp2dgroup>\n");
+}
+
+static
+bool
+ak_3mf_write_displacement_resources(AK3MFExportState * __restrict st) {
+  const AkPrintDisplacement2D *displacement;
+  const AkPrintNormVectorGroup *normGroup;
+  const AkPrintDisp2DGroup     *dispGroup;
+
+  if (!st || !st->print || !st->usesDisplacementExtension)
+    return true;
+
+  for (displacement = st->print->displacement2Ds;
+       displacement;
+       displacement = displacement->next) {
+    if (!displacement->path || ak_3mf_path_is_root_model(displacement->path))
+      ak_3mf_write_displacement2d(&st->resources, displacement);
+  }
+  for (normGroup = st->print->normVectorGroups;
+       normGroup;
+       normGroup = normGroup->next)
+    ak_3mf_write_norm_vector_group(st, normGroup);
+  for (dispGroup = st->print->disp2DGroups;
+       dispGroup;
+       dispGroup = dispGroup->next)
+    ak_3mf_write_disp2d_group(st, dispGroup);
+
+  return st->resources.result == AK_OK;
 }
 
 static
@@ -1499,11 +1841,16 @@ ak_3mf_build_model_xml(AK3MFExportState * __restrict st,
     ak_3mf_buf_lit(model,
                    " xmlns:bo=\"http://schemas.3mf.io/3dmanufacturing/booleanoperations/2023/07\"");
   }
+  if (st->usesDisplacementExtension) {
+    ak_3mf_buf_lit(model,
+                   " xmlns:d=\"http://schemas.3mf.io/3dmanufacturing/displacement/2023/10\"");
+  }
   if (st->usesMaterialExtension
       || st->usesSliceExtension
       || st->usesBeamLatticeExtension
       || st->usesBeamBallExtension
-      || st->usesBooleanExtension) {
+      || st->usesBooleanExtension
+      || st->usesDisplacementExtension) {
     bool any;
 
     any = false;
@@ -1534,6 +1881,12 @@ ak_3mf_build_model_xml(AK3MFExportState * __restrict st,
       if (any)
         ak_3mf_buf_ch(model, ' ');
       ak_3mf_buf_lit(model, "bo");
+      any = true;
+    }
+    if (st->usesDisplacementExtension) {
+      if (any)
+        ak_3mf_buf_ch(model, ' ');
+      ak_3mf_buf_lit(model, "d");
     }
     ak_3mf_buf_ch(model, '"');
   }
@@ -1693,8 +2046,14 @@ ak_3mf_export(AkDoc * __restrict doc, const char * __restrict filepath) {
   st.usesBeamLatticeExtension = st.print && st.print->beamLatticeCount > 0u;
   st.usesBeamBallExtension    = ak_3mf_uses_beam_ball_extension(st.print);
   st.usesBooleanExtension     = st.print && st.print->booleanShapeCount > 0u;
+  st.usesDisplacementExtension = st.print
+                                 && (st.print->displacement2DCount > 0u
+                                     || st.print->normVectorGroupCount > 0u
+                                     || st.print->disp2DGroupCount > 0u
+                                     || st.print->displacementMeshCount > 0u);
 
   if (!ak_3mf_write_slice_stacks(&st)
+      || !ak_3mf_write_displacement_resources(&st)
       || !ak_3mf_write_scene(&st)
       || !ak_3mf_write_library_fallback(&st)
       || !ak_3mf_write_boolean_shapes(&st)

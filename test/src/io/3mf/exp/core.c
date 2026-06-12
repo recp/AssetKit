@@ -482,6 +482,82 @@ ak_test_write_3mf_boolean_model(const char *path) {
   return ak_test_3mf_zip_write_stored(path, entries, AK_ARRAY_LEN(entries));
 }
 
+static bool
+ak_test_write_3mf_displacement_model(const char *path) {
+  static const char contentTypes[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">"
+    "<Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>"
+    "<Default Extension=\"png\" ContentType=\"image/png\"/>"
+    "<Override PartName=\"/3D/3dmodel.model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\"/>"
+    "</Types>";
+  static const char rels[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">"
+    "<Relationship Id=\"rel0\" "
+    "Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\" "
+    "Target=\"/3D/3dmodel.model\"/>"
+    "</Relationships>";
+  static const char rootModel[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<model unit=\"millimeter\" requiredextensions=\"d\" "
+    "xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" "
+    "xmlns:d=\"http://schemas.3mf.io/3dmanufacturing/displacement/2023/10\">"
+    "<resources>"
+    "<d:displacement2d id=\"5\" path=\"/3D/Textures/height.png\" channel=\"R\" "
+    "tilestyleu=\"clamp\" tilestylev=\"mirror\" filter=\"nearest\"/>"
+    "<d:normvectorgroup id=\"6\">"
+    "<d:normvector x=\"0\" y=\"0\" z=\"1\"/>"
+    "<d:normvector x=\"0\" y=\"1\" z=\"0\"/>"
+    "<d:normvector x=\"1\" y=\"0\" z=\"0\"/>"
+    "<d:normvector x=\"0\" y=\"0\" z=\"-1\"/>"
+    "</d:normvectorgroup>"
+    "<d:disp2dgroup id=\"7\" dispid=\"5\" nid=\"6\" height=\"0.25\" offset=\"-0.05\">"
+    "<d:disp2dcoord u=\"0\" v=\"0\" n=\"0\" f=\"0.5\"/>"
+    "<d:disp2dcoord u=\"1\" v=\"0\" n=\"1\"/>"
+    "<d:disp2dcoord u=\"0\" v=\"1\" n=\"2\" f=\"0.75\"/>"
+    "<d:disp2dcoord u=\"1\" v=\"1\" n=\"3\"/>"
+    "</d:disp2dgroup>"
+    "<object id=\"1\" type=\"model\" name=\"displaced-tetra\">"
+    "<d:displacementmesh>"
+    "<d:vertices>"
+    "<d:vertex x=\"0\" y=\"0\" z=\"0\"/>"
+    "<d:vertex x=\"1\" y=\"0\" z=\"0\"/>"
+    "<d:vertex x=\"0\" y=\"1\" z=\"0\"/>"
+    "<d:vertex x=\"0\" y=\"0\" z=\"1\"/>"
+    "</d:vertices>"
+    "<d:triangles did=\"7\">"
+    "<d:triangle v1=\"0\" v2=\"1\" v3=\"2\" d1=\"0\" d2=\"1\" d3=\"2\"/>"
+    "<d:triangle v1=\"0\" v2=\"3\" v3=\"1\" d1=\"0\" d2=\"3\" d3=\"1\"/>"
+    "<d:triangle v1=\"1\" v2=\"3\" v3=\"2\" d1=\"1\" d2=\"3\" d3=\"2\"/>"
+    "<d:triangle v1=\"2\" v2=\"3\" v3=\"0\" did=\"7\" d1=\"2\" d2=\"3\" d3=\"0\"/>"
+    "</d:triangles>"
+    "</d:displacementmesh>"
+    "</object>"
+    "</resources>"
+    "<build><item objectid=\"1\"/></build>"
+    "</model>";
+  static const unsigned char pngData[] = {
+    0x89u, 0x50u, 0x4eu, 0x47u, 0x0du, 0x0au, 0x1au, 0x0au
+  };
+  AkTest3MFZipEntry entries[4];
+
+  entries[0].name = "[Content_Types].xml";
+  entries[0].data = contentTypes;
+  entries[0].size = sizeof(contentTypes) - 1u;
+  entries[1].name = "_rels/.rels";
+  entries[1].data = rels;
+  entries[1].size = sizeof(rels) - 1u;
+  entries[2].name = "3D/3dmodel.model";
+  entries[2].data = rootModel;
+  entries[2].size = sizeof(rootModel) - 1u;
+  entries[3].name = "3D/Textures/height.png";
+  entries[3].data = pngData;
+  entries[3].size = sizeof(pngData);
+
+  return ak_test_3mf_zip_write_stored(path, entries, AK_ARRAY_LEN(entries));
+}
+
 static AkDoc *
 ak_test_make_3mf_triangle_doc(void) {
   AkHeap     *heap;
@@ -1138,6 +1214,134 @@ TEST_IMPL(three_mf_import_boolean_roundtrip) {
   ASSERT(roundTripPrint->booleanOperands->objectId == 2);
   ASSERT((roundTripPrint->booleanOperands->flags & AK_PRINT_BOOLEAN_OPERAND_HAS_TRANSFORM) != 0u);
   ASSERT(fabs(roundTripPrint->booleanOperands->matrix[12] - 0.25f) < 0.000001f);
+
+  ak_test_export_cleanup(outDir);
+  ak_test_export_cleanup(roundTripDir);
+  TEST_SUCCESS
+}
+
+TEST_IMPL(three_mf_import_displacement_roundtrip) {
+  AkDoc                         *doc;
+  AkDoc                         *roundTrip;
+  AkGeometry                    *geom;
+  AkMesh                        *mesh;
+  AkMeshPrimitive               *prim;
+  AkPrintDocument               *print;
+  AkPrintDocument               *roundTripPrint;
+  AkPrintDisplacement2D         *displacement;
+  AkPrintNormVectorGroup        *normGroup;
+  AkPrintDisp2DGroup            *dispGroup;
+  AkPrintDisplacementMesh       *dispMesh;
+  AkPrintDisplacementTriangle   *dispTriangle;
+  const char                    *outDir = "./assetkit_import_3mf_displacement";
+  const char                    *mfPath = "./assetkit_import_3mf_displacement/model.3mf";
+  const char                    *roundTripDir = "./assetkit_export_3mf_displacement";
+  const char                    *roundTripPath = "./assetkit_export_3mf_displacement/model.3mf";
+
+  ak_test_export_cleanup(outDir);
+  ak_test_export_cleanup(roundTripDir);
+  ASSERT(mkdir(outDir, 0777) == 0);
+  ASSERT(ak_test_write_3mf_displacement_model(mfPath));
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, mfPath, AK_FILE_TYPE_3MF) == AK_OK);
+  ASSERT(doc != NULL);
+  ASSERT(doc->lib.geometries.count == 1);
+
+  geom = doc->lib.geometries.first;
+  ASSERT(geom != NULL);
+  mesh = geom->gdata ? ak_objGet(geom->gdata) : NULL;
+  ASSERT(mesh != NULL);
+  prim = mesh->primitive;
+  ASSERT(prim != NULL);
+  ASSERT(prim->pos != NULL);
+  ASSERT(prim->pos->accessor != NULL);
+  ASSERT(prim->pos->accessor->count == 4);
+  ASSERT(prim->nPolygons == 4);
+
+  print = ak_printDocument(doc);
+  ASSERT(print != NULL);
+  ASSERT(ak_printHasFeature(print, AK_PRINT_FEATURE_DISPLACEMENT));
+  ASSERT((print->requiredFeatures & AK_PRINT_FEATURE_DISPLACEMENT) != 0u);
+  ASSERT((print->unsupportedFeatures & AK_PRINT_FEATURE_DISPLACEMENT) == 0u);
+  ASSERT(print->displacement2DCount == 1);
+  ASSERT(print->normVectorGroupCount == 1);
+  ASSERT(print->normVectorCount == 4);
+  ASSERT(print->disp2DGroupCount == 1);
+  ASSERT(print->disp2DCoordCount == 4);
+  ASSERT(print->displacementMeshCount == 1);
+  ASSERT(print->displacementTriangleCount == 4);
+
+  displacement = print->displacement2Ds;
+  ASSERT(displacement != NULL);
+  ASSERT(displacement->id == 5);
+  ASSERT(displacement->imagePath != NULL);
+  ASSERT(strcmp(displacement->imagePath, "3D/Textures/height.png") == 0);
+  ASSERT(displacement->channel != NULL);
+  ASSERT(strcmp(displacement->channel, "R") == 0);
+  ASSERT(displacement->tileStyleU != NULL);
+  ASSERT(strcmp(displacement->tileStyleU, "clamp") == 0);
+  ASSERT(displacement->tileStyleV != NULL);
+  ASSERT(strcmp(displacement->tileStyleV, "mirror") == 0);
+  ASSERT(displacement->filter != NULL);
+  ASSERT(strcmp(displacement->filter, "nearest") == 0);
+
+  normGroup = print->normVectorGroups;
+  ASSERT(normGroup != NULL);
+  ASSERT(normGroup->id == 6);
+  ASSERT(normGroup->vectorCount == 4);
+
+  dispGroup = print->disp2DGroups;
+  ASSERT(dispGroup != NULL);
+  ASSERT(dispGroup->id == 7);
+  ASSERT(dispGroup->displacementId == 5);
+  ASSERT(dispGroup->normVectorGroupId == 6);
+  ASSERT(fabs(dispGroup->height - 0.25f) < 0.000001f);
+  ASSERT((dispGroup->flags & AK_PRINT_DISP2D_GROUP_HAS_OFFSET) != 0u);
+  ASSERT(fabs(dispGroup->offset - -0.05f) < 0.000001f);
+  ASSERT(dispGroup->coordCount == 4);
+
+  dispMesh = print->displacementMeshes;
+  ASSERT(dispMesh != NULL);
+  ASSERT(dispMesh->objectId == 1);
+  ASSERT((dispMesh->flags & AK_PRINT_DISPLACEMENT_MESH_HAS_DEFAULT_GROUP) != 0u);
+  ASSERT(dispMesh->defaultGroupId == 7);
+  ASSERT(dispMesh->triangleCount == 4);
+
+  dispTriangle = print->displacementTriangles;
+  ASSERT(dispTriangle != NULL);
+  ASSERT((dispTriangle->flags & AK_PRINT_DISPLACEMENT_TRIANGLE_HAS_D1) != 0u);
+  ASSERT((dispTriangle->flags & AK_PRINT_DISPLACEMENT_TRIANGLE_HAS_D2) != 0u);
+  ASSERT((dispTriangle->flags & AK_PRINT_DISPLACEMENT_TRIANGLE_HAS_D3) != 0u);
+  ASSERT(dispTriangle->d1 == 0);
+  ASSERT(dispTriangle->d2 == 1);
+  ASSERT(dispTriangle->d3 == 2);
+
+  ASSERT(ak_export(doc, roundTripDir, AK_FILE_TYPE_3MF) == AK_OK);
+  roundTrip = NULL;
+  ASSERT(ak_load(&roundTrip, roundTripPath, AK_FILE_TYPE_3MF) == AK_OK);
+  ASSERT(roundTrip != NULL);
+  ASSERT(roundTrip->lib.geometries.count == 1);
+
+  roundTripPrint = ak_printDocument(roundTrip);
+  ASSERT(roundTripPrint != NULL);
+  ASSERT(ak_printHasFeature(roundTripPrint, AK_PRINT_FEATURE_DISPLACEMENT));
+  ASSERT((roundTripPrint->requiredFeatures & AK_PRINT_FEATURE_DISPLACEMENT) != 0u);
+  ASSERT((roundTripPrint->unsupportedFeatures & AK_PRINT_FEATURE_DISPLACEMENT) == 0u);
+  ASSERT(roundTripPrint->displacement2DCount == 1);
+  ASSERT(roundTripPrint->normVectorGroupCount == 1);
+  ASSERT(roundTripPrint->normVectorCount == 4);
+  ASSERT(roundTripPrint->disp2DGroupCount == 1);
+  ASSERT(roundTripPrint->disp2DCoordCount == 4);
+  ASSERT(roundTripPrint->displacementMeshCount == 1);
+  ASSERT(roundTripPrint->displacementTriangleCount == 4);
+  ASSERT(roundTripPrint->displacementMeshes != NULL);
+  ASSERT(roundTripPrint->displacementMeshes->objectId == 1);
+  ASSERT(roundTripPrint->displacementMeshes->defaultGroupId == 7);
+  ASSERT(roundTripPrint->displacementTriangles != NULL);
+  ASSERT(roundTripPrint->displacementTriangles->d1 == 0);
+  ASSERT(roundTripPrint->displacementTriangles->d2 == 1);
+  ASSERT(roundTripPrint->displacementTriangles->d3 == 2);
 
   ak_test_export_cleanup(outDir);
   ak_test_export_cleanup(roundTripDir);
