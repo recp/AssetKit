@@ -24,6 +24,10 @@ AkResult
 ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath);
 
 AK_HIDE
+AkResult
+ply_export(AkDoc * __restrict doc, const char * __restrict filepath);
+
+AK_HIDE
 void
 ply_ascii(char * __restrict src, PLYState * __restrict pst);
 

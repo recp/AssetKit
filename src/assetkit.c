@@ -435,6 +435,7 @@ ak_export(AkDoc * __restrict doc, const char * __restrict outDir,
     {gltf_export_glb, "glb"},
     {wobj_export,     "obj"},
     {stl_export,      "stl"},
+    {ply_export,      "ply"},
   };
 
   fexporter = NULL;
@@ -457,6 +458,9 @@ ak_export(AkDoc * __restrict doc, const char * __restrict outDir,
         break;
       case AK_FILE_TYPE_STL:
         fexporter = &fexporters[4];
+        break;
+      case AK_FILE_TYPE_PLY:
+        fexporter = &fexporters[5];
         break;
       default:
         break;

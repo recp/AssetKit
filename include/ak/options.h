@@ -53,6 +53,17 @@ typedef enum AkStlExportFormat {
   AK_STL_EXPORT_ASCII  = 1
 } AkStlExportFormat;
 
+typedef enum AkPlyExportFormat {
+  AK_PLY_EXPORT_BINARY_LITTLE = 0,
+  AK_PLY_EXPORT_ASCII         = 1
+} AkPlyExportFormat;
+
+typedef enum AkPlyExportColorMode {
+  AK_PLY_EXPORT_COLOR_NONE   = 0,
+  AK_PLY_EXPORT_COLOR_SRGB   = 1,
+  AK_PLY_EXPORT_COLOR_LINEAR = 2
+} AkPlyExportColorMode;
+
 /* Global import/export options. */
 typedef enum AkOption {
   AK_OPT_INDICES_DEFAULT            = 0,  /* false    */
@@ -123,6 +134,11 @@ typedef enum AkOption {
   AK_OPT_EXPORT_AUTHORING_TOOL        = 38, /* AssetKit vX.Y.Z */
 
   AK_OPT_STL_EXPORT_FORMAT            = 39, /* BINARY   */
+  AK_OPT_PLY_EXPORT_FORMAT            = 40, /* BINARY_LITTLE */
+  AK_OPT_PLY_EXPORT_NORMALS           = 41, /* false    */
+  AK_OPT_PLY_EXPORT_UV                = 42, /* true     */
+  AK_OPT_PLY_EXPORT_COLOR_MODE        = 43, /* SRGB     */
+  AK_OPT_PLY_EXPORT_TRIANGULATED      = 44, /* false    */
 } AkOption;
 
 AK_EXPORT

@@ -70,7 +70,12 @@ uintptr_t AK_OPTIONS[] =
   AK_DAE_EXPORT_INDEX_MULTI,       /* 36: _DAE_EXPORT_INDEX_MODE       */
   AK_DAE_EXPORT_VERSION_AUTO,      /* 37: _DAE_EXPORT_VERSION          */
   (uintptr_t)AK_AUTHORING_TOOL,    /* 38: _EXPORT_AUTHORING_TOOL       */
-  AK_STL_EXPORT_BINARY             /* 39: _STL_EXPORT_FORMAT           */
+  AK_STL_EXPORT_BINARY,            /* 39: _STL_EXPORT_FORMAT           */
+  AK_PLY_EXPORT_BINARY_LITTLE,     /* 40: _PLY_EXPORT_FORMAT           */
+  false,                           /* 41: _PLY_EXPORT_NORMALS          */
+  true,                            /* 42: _PLY_EXPORT_UV               */
+  AK_PLY_EXPORT_COLOR_SRGB,        /* 43: _PLY_EXPORT_COLOR_MODE       */
+  false                            /* 44: _PLY_EXPORT_TRIANGULATED     */
 };
 
 AK_EXPORT

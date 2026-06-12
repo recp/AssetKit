@@ -17,6 +17,7 @@ add_executable(assetkit_tests
   src/io/gltf/exp/animation.c
   src/io/obj/exp/core.c
   src/io/stl/exp/core.c
+  src/io/ply/exp/core.c
   src/instance/test_instance_core.c
   src/material/material.c
 )
