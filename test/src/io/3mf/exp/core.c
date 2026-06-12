@@ -417,6 +417,71 @@ ak_test_write_3mf_beam_lattice_model(const char *path) {
   return ak_test_3mf_zip_write_stored(path, entries, AK_ARRAY_LEN(entries));
 }
 
+static bool
+ak_test_write_3mf_boolean_model(const char *path) {
+  static const char contentTypes[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">"
+    "<Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>"
+    "<Override PartName=\"/3D/3dmodel.model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\"/>"
+    "</Types>";
+  static const char rels[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">"
+    "<Relationship Id=\"rel0\" "
+    "Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\" "
+    "Target=\"/3D/3dmodel.model\"/>"
+    "</Relationships>";
+  static const char rootModel[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<model unit=\"millimeter\" requiredextensions=\"bo\" "
+    "xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" "
+    "xmlns:bo=\"http://schemas.3mf.io/3dmanufacturing/booleanoperations/2023/07\">"
+    "<resources>"
+    "<object id=\"2\" type=\"model\" name=\"cutter\">"
+    "<mesh>"
+    "<vertices>"
+    "<vertex x=\"0\" y=\"0\" z=\"0\"/>"
+    "<vertex x=\"1\" y=\"0\" z=\"0\"/>"
+    "<vertex x=\"0\" y=\"1\" z=\"0\"/>"
+    "</vertices>"
+    "<triangles><triangle v1=\"0\" v2=\"1\" v3=\"2\"/></triangles>"
+    "</mesh>"
+    "</object>"
+    "<object id=\"1\" type=\"model\" name=\"base\">"
+    "<mesh>"
+    "<vertices>"
+    "<vertex x=\"0\" y=\"0\" z=\"0\"/>"
+    "<vertex x=\"2\" y=\"0\" z=\"0\"/>"
+    "<vertex x=\"0\" y=\"2\" z=\"0\"/>"
+    "</vertices>"
+    "<triangles><triangle v1=\"0\" v2=\"1\" v3=\"2\"/></triangles>"
+    "</mesh>"
+    "</object>"
+    "<object id=\"3\" type=\"model\" name=\"cut-base\">"
+    "<bo:booleanshape objectid=\"1\" operation=\"difference\" "
+    "transform=\"1 0 0 0 1 0 0 0 1 0 0 0\">"
+    "<bo:boolean objectid=\"2\" transform=\"1 0 0 0 1 0 0 0 1 0.25 0 0\"/>"
+    "</bo:booleanshape>"
+    "</object>"
+    "</resources>"
+    "<build><item objectid=\"3\"/></build>"
+    "</model>";
+  AkTest3MFZipEntry entries[3];
+
+  entries[0].name = "[Content_Types].xml";
+  entries[0].data = contentTypes;
+  entries[0].size = sizeof(contentTypes) - 1u;
+  entries[1].name = "_rels/.rels";
+  entries[1].data = rels;
+  entries[1].size = sizeof(rels) - 1u;
+  entries[2].name = "3D/3dmodel.model";
+  entries[2].data = rootModel;
+  entries[2].size = sizeof(rootModel) - 1u;
+
+  return ak_test_3mf_zip_write_stored(path, entries, AK_ARRAY_LEN(entries));
+}
+
 static AkDoc *
 ak_test_make_3mf_triangle_doc(void) {
   AkHeap     *heap;
@@ -1002,6 +1067,77 @@ TEST_IMPL(three_mf_import_beam_lattice_roundtrip) {
   ASSERT(roundTripPrint->beamLatticeCount == 1);
   ASSERT(roundTripPrint->beamCount == 2);
   ASSERT(roundTripPrint->beamBallCount == 1);
+
+  ak_test_export_cleanup(outDir);
+  ak_test_export_cleanup(roundTripDir);
+  TEST_SUCCESS
+}
+
+TEST_IMPL(three_mf_import_boolean_roundtrip) {
+  AkDoc                  *doc;
+  AkDoc                  *roundTrip;
+  AkPrintDocument        *print;
+  AkPrintDocument        *roundTripPrint;
+  AkPrintBooleanShape    *shape;
+  AkPrintBooleanOperand  *operand;
+  const char             *outDir = "./assetkit_import_3mf_boolean";
+  const char             *mfPath = "./assetkit_import_3mf_boolean/model.3mf";
+  const char             *roundTripDir = "./assetkit_export_3mf_boolean";
+  const char             *roundTripPath = "./assetkit_export_3mf_boolean/model.3mf";
+
+  ak_test_export_cleanup(outDir);
+  ak_test_export_cleanup(roundTripDir);
+  ASSERT(mkdir(outDir, 0777) == 0);
+  ASSERT(ak_test_write_3mf_boolean_model(mfPath));
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, mfPath, AK_FILE_TYPE_3MF) == AK_OK);
+  ASSERT(doc != NULL);
+  ASSERT(doc->lib.geometries.count == 2);
+
+  print = ak_printDocument(doc);
+  ASSERT(print != NULL);
+  ASSERT(ak_printHasFeature(print, AK_PRINT_FEATURE_BOOLEAN));
+  ASSERT((print->requiredFeatures & AK_PRINT_FEATURE_BOOLEAN) != 0u);
+  ASSERT((print->unsupportedFeatures & AK_PRINT_FEATURE_BOOLEAN) == 0u);
+  ASSERT(print->booleanShapeCount == 1);
+  ASSERT(print->booleanOperandCount == 1);
+
+  shape = print->booleanShapes;
+  ASSERT(shape != NULL);
+  ASSERT(shape->objectId == 3);
+  ASSERT(shape->baseObjectId == 1);
+  ASSERT(shape->operation == AK_PRINT_BOOLEAN_OPERATION_DIFFERENCE);
+  ASSERT((shape->flags & AK_PRINT_BOOLEAN_SHAPE_HAS_TRANSFORM) != 0u);
+  ASSERT(fabs(shape->matrix[0] - 1.0f) < 0.000001f);
+
+  operand = print->booleanOperands;
+  ASSERT(operand != NULL);
+  ASSERT(operand->objectId == 2);
+  ASSERT((operand->flags & AK_PRINT_BOOLEAN_OPERAND_HAS_TRANSFORM) != 0u);
+  ASSERT(fabs(operand->matrix[12] - 0.25f) < 0.000001f);
+
+  ASSERT(ak_export(doc, roundTripDir, AK_FILE_TYPE_3MF) == AK_OK);
+  roundTrip = NULL;
+  ASSERT(ak_load(&roundTrip, roundTripPath, AK_FILE_TYPE_3MF) == AK_OK);
+  ASSERT(roundTrip != NULL);
+  ASSERT(roundTrip->lib.geometries.count == 2);
+
+  roundTripPrint = ak_printDocument(roundTrip);
+  ASSERT(roundTripPrint != NULL);
+  ASSERT(ak_printHasFeature(roundTripPrint, AK_PRINT_FEATURE_BOOLEAN));
+  ASSERT((roundTripPrint->requiredFeatures & AK_PRINT_FEATURE_BOOLEAN) != 0u);
+  ASSERT((roundTripPrint->unsupportedFeatures & AK_PRINT_FEATURE_BOOLEAN) == 0u);
+  ASSERT(roundTripPrint->booleanShapeCount == 1);
+  ASSERT(roundTripPrint->booleanOperandCount == 1);
+  ASSERT(roundTripPrint->booleanShapes != NULL);
+  ASSERT(roundTripPrint->booleanShapes->objectId == 3);
+  ASSERT(roundTripPrint->booleanShapes->baseObjectId == 1);
+  ASSERT(roundTripPrint->booleanShapes->operation == AK_PRINT_BOOLEAN_OPERATION_DIFFERENCE);
+  ASSERT(roundTripPrint->booleanOperands != NULL);
+  ASSERT(roundTripPrint->booleanOperands->objectId == 2);
+  ASSERT((roundTripPrint->booleanOperands->flags & AK_PRINT_BOOLEAN_OPERAND_HAS_TRANSFORM) != 0u);
+  ASSERT(fabs(roundTripPrint->booleanOperands->matrix[12] - 0.25f) < 0.000001f);
 
   ak_test_export_cleanup(outDir);
   ak_test_export_cleanup(roundTripDir);

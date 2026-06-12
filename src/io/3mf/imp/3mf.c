@@ -36,7 +36,8 @@ static const char AK_3MF_CT_MODEL[]           = "application/vnd.ms-package.3dma
 typedef enum AK3MFObjectKind {
   AK_3MF_OBJECT_EMPTY      = 0,
   AK_3MF_OBJECT_MESH       = 1,
-  AK_3MF_OBJECT_COMPONENTS = 2
+  AK_3MF_OBJECT_COMPONENTS = 2,
+  AK_3MF_OBJECT_BOOLEAN    = 3
 } AK3MFObjectKind;
 
 typedef struct AK3MFComponent {
@@ -550,7 +551,8 @@ ak_3mf_mark_required_feature(AkPrintDocument    * __restrict print,
     | AK_PRINT_FEATURE_PACKAGE
     | AK_PRINT_FEATURE_PRODUCTION
     | AK_PRINT_FEATURE_SLICE
-    | AK_PRINT_FEATURE_BEAM_LATTICE;
+    | AK_PRINT_FEATURE_BEAM_LATTICE
+    | AK_PRINT_FEATURE_BOOLEAN;
 
   if (!print)
     return;
@@ -2004,7 +2006,9 @@ ak_3mf_count_resource_objects(xml_t * __restrict resourcesXml) {
 
   for (objXml = resourcesXml->val; objXml; objXml = objXml->next) {
     if (ak_3mf_tag(objXml, "object")
-        && (xml_elem(objXml, "mesh") || xml_elem(objXml, "components")))
+        && (xml_elem(objXml, "mesh")
+            || xml_elem(objXml, "components")
+            || ak_3mf_child(objXml, "booleanshape")))
       count++;
   }
 
@@ -2041,6 +2045,121 @@ static
 uint32_t
 ak_3mf_clamp_count_u32(size_t count) {
   return count > UINT32_MAX ? UINT32_MAX : (uint32_t)count;
+}
+
+static
+AkPrintBooleanOperation
+ak_3mf_boolean_operation_from_attr(const xml_attr_t * __restrict attr) {
+  if (!attr || !attr->val || attr->valsize == 0u)
+    return AK_PRINT_BOOLEAN_OPERATION_UNION;
+
+  if (ak_3mf_slice_eq_cstr(attr->val, attr->valsize, "union"))
+    return AK_PRINT_BOOLEAN_OPERATION_UNION;
+  if (ak_3mf_slice_eq_cstr(attr->val, attr->valsize, "difference"))
+    return AK_PRINT_BOOLEAN_OPERATION_DIFFERENCE;
+  if (ak_3mf_slice_eq_cstr(attr->val, attr->valsize, "intersection"))
+    return AK_PRINT_BOOLEAN_OPERATION_INTERSECTION;
+
+  return AK_PRINT_BOOLEAN_OPERATION_UNKNOWN;
+}
+
+static
+void
+ak_3mf_parse_boolean_operands(AK3MFImportState      * __restrict st,
+                              AkPrintBooleanShape   * __restrict shape,
+                              xml_t                 * __restrict shapeXml) {
+  xml_t *operandXml;
+
+  if (!st || !shape || !shapeXml)
+    return;
+
+  for (operandXml = shapeXml->val; operandXml; operandXml = operandXml->next) {
+    xml_attr_t *objectIdAttr;
+    xml_attr_t *pathAttr;
+    xml_attr_t *transformAttr;
+    float       matrix[16];
+    char       *path;
+    uint32_t    flags;
+    uint32_t    objectId;
+
+    if (!ak_3mf_tag(operandXml, "boolean"))
+      continue;
+
+    objectIdAttr  = ak_3mf_xmla_local_lit(operandXml, "objectid");
+    pathAttr      = ak_3mf_xmla_local_lit(operandXml, "path");
+    transformAttr = ak_3mf_xmla_local_lit(operandXml, "transform");
+    objectId      = xmla_u32(objectIdAttr, 0u);
+    if (objectId == 0u)
+      continue;
+    if (!ak_3mf_parse_transform_attr(transformAttr, matrix))
+      continue;
+
+    path  = ak_3mf_attr_dup_path_cstr(pathAttr);
+    flags = ak_3mf_optional_attr_flag(transformAttr,
+                                      AK_PRINT_BOOLEAN_OPERAND_HAS_TRANSFORM);
+
+    (void)ak_printAddBooleanOperand(st->doc,
+                                    shape,
+                                    path,
+                                    objectId,
+                                    matrix,
+                                    flags);
+    if (path && !ak_3mf_model_path_eq(path, st->currentModelPath))
+      (void)ak_3mf_load_model_part(st, path);
+    free(path);
+  }
+}
+
+static
+bool
+ak_3mf_parse_boolean_shape(AK3MFImportState * __restrict st,
+                           AK3MFObject      * __restrict object,
+                           xml_t            * __restrict shapeXml) {
+  AkPrintBooleanShape   *shape;
+  xml_attr_t            *baseIdAttr;
+  xml_attr_t            *basePathAttr;
+  xml_attr_t            *operationAttr;
+  xml_attr_t            *transformAttr;
+  AkPrintBooleanOperation operation;
+  float                  matrix[16];
+  char                  *basePath;
+  uint32_t               flags;
+  uint32_t               baseObjectId;
+
+  if (!st || !st->doc || !object || !shapeXml)
+    return false;
+
+  baseIdAttr    = ak_3mf_xmla_local_lit(shapeXml, "objectid");
+  basePathAttr  = ak_3mf_xmla_local_lit(shapeXml, "path");
+  operationAttr = ak_3mf_xmla_local_lit(shapeXml, "operation");
+  transformAttr = ak_3mf_xmla_local_lit(shapeXml, "transform");
+  baseObjectId  = xmla_u32(baseIdAttr, 0u);
+  if (baseObjectId == 0u)
+    return false;
+  if (!ak_3mf_parse_transform_attr(transformAttr, matrix))
+    return false;
+
+  operation = ak_3mf_boolean_operation_from_attr(operationAttr);
+  basePath  = ak_3mf_attr_dup_path_cstr(basePathAttr);
+  flags     = ak_3mf_optional_attr_flag(transformAttr,
+                                        AK_PRINT_BOOLEAN_SHAPE_HAS_TRANSFORM);
+
+  shape = ak_printAddBooleanShape(st->doc,
+                                  st->currentModelPath,
+                                  basePath,
+                                  object->id,
+                                  baseObjectId,
+                                  operation,
+                                  matrix,
+                                  flags);
+  if (basePath && !ak_3mf_model_path_eq(basePath, st->currentModelPath))
+    (void)ak_3mf_load_model_part(st, basePath);
+  free(basePath);
+  if (!shape)
+    return false;
+
+  ak_3mf_parse_boolean_operands(st, shape, shapeXml);
+  return true;
 }
 
 static
@@ -2271,12 +2390,14 @@ ak_3mf_parse_resources(AK3MFImportState * __restrict st,
     AK3MFObject *object;
     xml_t      *meshXml;
     xml_t      *componentsXml;
+    xml_t      *booleanShapeXml;
 
     if (!ak_3mf_tag(objXml, "object"))
       continue;
     meshXml = xml_elem(objXml, "mesh");
     componentsXml = xml_elem(objXml, "components");
-    if (!meshXml && !componentsXml)
+    booleanShapeXml = ak_3mf_child(objXml, "booleanshape");
+    if (!meshXml && !componentsXml && !booleanShapeXml)
       continue;
 
     if (st->objectCount >= st->objectCapacity)
@@ -2310,6 +2431,11 @@ ak_3mf_parse_resources(AK3MFImportState * __restrict st,
         st->print->componentObjectCount++;
       st->objectCount++;
       ak_3mf_parse_slice_object(st, objXml, object->id);
+    } else if (booleanShapeXml && ak_3mf_parse_boolean_shape(st,
+                                                              object,
+                                                              booleanShapeXml)) {
+      object->kind = AK_3MF_OBJECT_BOOLEAN;
+      st->objectCount++;
     }
   }
 

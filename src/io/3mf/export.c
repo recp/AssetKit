@@ -52,6 +52,8 @@ typedef struct AK3MFExportState {
   bool             usesSliceExtension;
   bool             usesBeamLatticeExtension;
   bool             usesBeamBallExtension;
+  bool             usesBooleanExtension;
+  bool             suppressBuildItems;
 } AK3MFExportState;
 
 static
@@ -1093,11 +1095,13 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
   ak_3mf_buf_lit(&st->resources, "        </mesh>\n"
                                 "      </object>\n");
 
-  ak_3mf_buf_lit(&st->build, "      <item objectid=\"");
-  ak_3mf_buf_u32(&st->build, objectId);
-  ak_3mf_buf_lit(&st->build, "\" transform=\"");
-  ak_3mf_append_transform(&st->build, world);
-  ak_3mf_buf_lit(&st->build, "\"/>\n");
+  if (!st->suppressBuildItems) {
+    ak_3mf_buf_lit(&st->build, "      <item objectid=\"");
+    ak_3mf_buf_u32(&st->build, objectId);
+    ak_3mf_buf_lit(&st->build, "\" transform=\"");
+    ak_3mf_append_transform(&st->build, world);
+    ak_3mf_buf_lit(&st->build, "\"/>\n");
+  }
 
   st->objectCount++;
 
@@ -1211,17 +1215,156 @@ bool
 ak_3mf_write_library_fallback(AK3MFExportState * __restrict st) {
   AkGeometry *geom;
   mat4        identity;
+  bool        savedSuppressBuildItems;
 
   if (st->objectCount > 0)
     return true;
 
   glm_mat4_identity(identity);
+  savedSuppressBuildItems = st->suppressBuildItems;
+  if (st->usesBooleanExtension)
+    st->suppressBuildItems = true;
   for (geom = st->doc->lib.geometries.first; geom; geom = geom->next) {
-    if (!ak_3mf_write_mesh_instance(st, geom, identity))
+    if (!ak_3mf_write_mesh_instance(st, geom, identity)) {
+      st->suppressBuildItems = savedSuppressBuildItems;
       return false;
+    }
   }
+  st->suppressBuildItems = savedSuppressBuildItems;
 
   return true;
+}
+
+static
+const AkPrintBooleanOperand*
+ak_3mf_first_boolean_operand_for_shape(const AkPrintDocument     * __restrict print,
+                                       const AkPrintBooleanShape * __restrict shape) {
+  const AkPrintBooleanShape   *it;
+  const AkPrintBooleanOperand *operand;
+  uint32_t                     i;
+
+  operand = print ? print->booleanOperands : NULL;
+  for (it = print ? print->booleanShapes : NULL; it && it != shape; it = it->next) {
+    for (i = 0u; i < it->operandCount && operand; i++)
+      operand = operand->next;
+  }
+
+  return it == shape ? operand : NULL;
+}
+
+static
+const char*
+ak_3mf_boolean_operation_name(AkPrintBooleanOperation operation) {
+  switch (operation) {
+    case AK_PRINT_BOOLEAN_OPERATION_DIFFERENCE:
+      return "difference";
+    case AK_PRINT_BOOLEAN_OPERATION_INTERSECTION:
+      return "intersection";
+    case AK_PRINT_BOOLEAN_OPERATION_UNION:
+    case AK_PRINT_BOOLEAN_OPERATION_UNKNOWN:
+    default:
+      return "union";
+  }
+}
+
+static
+void
+ak_3mf_append_flat_transform(AK3MFBuffer         * __restrict buf,
+                             const float          matrix[16]) {
+  const float values[12] = {
+    matrix[0], matrix[4], matrix[8],
+    matrix[1], matrix[5], matrix[9],
+    matrix[2], matrix[6], matrix[10],
+    matrix[12], matrix[13], matrix[14]
+  };
+  uint32_t i;
+
+  for (i = 0; i < 12u; i++) {
+    if (i > 0)
+      ak_3mf_buf_ch(buf, ' ');
+    ak_3mf_buf_float(buf, values[i]);
+  }
+}
+
+static
+void
+ak_3mf_append_optional_3mf_path(AK3MFBuffer * __restrict buf,
+                                const char  * __restrict path) {
+  if (!path)
+    return;
+
+  ak_3mf_buf_lit(buf, "\" path=\"/");
+  ak_3mf_buf_attr(buf, path);
+}
+
+static
+void
+ak_3mf_write_boolean_operand(AK3MFBuffer                 * __restrict buf,
+                             const AkPrintBooleanOperand * __restrict operand) {
+  if (!operand)
+    return;
+
+  ak_3mf_buf_lit(buf, "          <bo:boolean objectid=\"");
+  ak_3mf_buf_u32(buf, operand->objectId);
+  if ((operand->flags & AK_PRINT_BOOLEAN_OPERAND_HAS_TRANSFORM) != 0u) {
+    ak_3mf_buf_lit(buf, "\" transform=\"");
+    ak_3mf_append_flat_transform(buf, operand->matrix);
+  }
+  ak_3mf_append_optional_3mf_path(buf, operand->path);
+  ak_3mf_buf_lit(buf, "\"/>\n");
+}
+
+static
+bool
+ak_3mf_write_boolean_shapes(AK3MFExportState * __restrict st) {
+  const AkPrintBooleanShape *shape;
+
+  if (!st || !st->print || !st->usesBooleanExtension)
+    return true;
+
+  for (shape = st->print->booleanShapes; shape; shape = shape->next) {
+    const AkPrintBooleanOperand *operand;
+    uint32_t                     i;
+    uint32_t                     objectId;
+
+    if (shape->path && !ak_3mf_path_is_root_model(shape->path))
+      continue;
+
+    objectId = shape->objectId;
+    if (objectId == 0u || objectId < st->nextObjectId)
+      objectId = st->nextObjectId;
+    if (st->nextObjectId <= objectId)
+      st->nextObjectId = objectId + 1u;
+
+    operand = ak_3mf_first_boolean_operand_for_shape(st->print, shape);
+
+    ak_3mf_buf_lit(&st->resources, "      <object id=\"");
+    ak_3mf_buf_u32(&st->resources, objectId);
+    ak_3mf_buf_lit(&st->resources, "\" type=\"model\">\n"
+                                  "        <bo:booleanshape objectid=\"");
+    ak_3mf_buf_u32(&st->resources, shape->baseObjectId);
+    ak_3mf_buf_lit(&st->resources, "\" operation=\"");
+    ak_3mf_buf_lit(&st->resources, ak_3mf_boolean_operation_name(shape->operation));
+    if ((shape->flags & AK_PRINT_BOOLEAN_SHAPE_HAS_TRANSFORM) != 0u) {
+      ak_3mf_buf_lit(&st->resources, "\" transform=\"");
+      ak_3mf_append_flat_transform(&st->resources, shape->matrix);
+    }
+    ak_3mf_append_optional_3mf_path(&st->resources, shape->basePath);
+    ak_3mf_buf_lit(&st->resources, "\">\n");
+
+    for (i = 0u; i < shape->operandCount && operand; i++, operand = operand->next)
+      ak_3mf_write_boolean_operand(&st->resources, operand);
+
+    ak_3mf_buf_lit(&st->resources, "        </bo:booleanshape>\n"
+                                  "      </object>\n");
+
+    ak_3mf_buf_lit(&st->build, "      <item objectid=\"");
+    ak_3mf_buf_u32(&st->build, objectId);
+    ak_3mf_buf_lit(&st->build, "\"/>\n");
+    st->objectCount++;
+  }
+
+  return st->resources.result == AK_OK && st->build.result == AK_OK;
 }
 
 static
@@ -1352,10 +1495,15 @@ ak_3mf_build_model_xml(AK3MFExportState * __restrict st,
     ak_3mf_buf_lit(model,
                    " xmlns:b2=\"http://schemas.microsoft.com/3dmanufacturing/beamlattice/balls/2020/07\"");
   }
+  if (st->usesBooleanExtension) {
+    ak_3mf_buf_lit(model,
+                   " xmlns:bo=\"http://schemas.3mf.io/3dmanufacturing/booleanoperations/2023/07\"");
+  }
   if (st->usesMaterialExtension
       || st->usesSliceExtension
       || st->usesBeamLatticeExtension
-      || st->usesBeamBallExtension) {
+      || st->usesBeamBallExtension
+      || st->usesBooleanExtension) {
     bool any;
 
     any = false;
@@ -1380,6 +1528,12 @@ ak_3mf_build_model_xml(AK3MFExportState * __restrict st,
       if (any)
         ak_3mf_buf_ch(model, ' ');
       ak_3mf_buf_lit(model, "b2");
+      any = true;
+    }
+    if (st->usesBooleanExtension) {
+      if (any)
+        ak_3mf_buf_ch(model, ' ');
+      ak_3mf_buf_lit(model, "bo");
     }
     ak_3mf_buf_ch(model, '"');
   }
@@ -1538,10 +1692,12 @@ ak_3mf_export(AkDoc * __restrict doc, const char * __restrict filepath) {
                               || st.print->sliceObjectCount > 0u);
   st.usesBeamLatticeExtension = st.print && st.print->beamLatticeCount > 0u;
   st.usesBeamBallExtension    = ak_3mf_uses_beam_ball_extension(st.print);
+  st.usesBooleanExtension     = st.print && st.print->booleanShapeCount > 0u;
 
   if (!ak_3mf_write_slice_stacks(&st)
       || !ak_3mf_write_scene(&st)
       || !ak_3mf_write_library_fallback(&st)
+      || !ak_3mf_write_boolean_shapes(&st)
       || st.resources.result != AK_OK
       || st.build.result != AK_OK
       || !ak_3mf_build_model_xml(&st, &model)) {

@@ -96,6 +96,21 @@ typedef enum AkPrintBeamBallFlag {
   AK_PRINT_BEAM_BALL_HAS_PID    = 1u << 2
 } AkPrintBeamBallFlag;
 
+typedef enum AkPrintBooleanOperation {
+  AK_PRINT_BOOLEAN_OPERATION_UNKNOWN      = 0,
+  AK_PRINT_BOOLEAN_OPERATION_UNION        = 1,
+  AK_PRINT_BOOLEAN_OPERATION_DIFFERENCE   = 2,
+  AK_PRINT_BOOLEAN_OPERATION_INTERSECTION = 3
+} AkPrintBooleanOperation;
+
+typedef enum AkPrintBooleanShapeFlag {
+  AK_PRINT_BOOLEAN_SHAPE_HAS_TRANSFORM = 1u << 0
+} AkPrintBooleanShapeFlag;
+
+typedef enum AkPrintBooleanOperandFlag {
+  AK_PRINT_BOOLEAN_OPERAND_HAS_TRANSFORM = 1u << 0
+} AkPrintBooleanOperandFlag;
+
 typedef struct AkPrintPackagePart {
   struct AkPrintPackagePart *next;
   const char                *name;
@@ -210,6 +225,26 @@ typedef struct AkPrintBeamSet {
   uint32_t               flags;
 } AkPrintBeamSet;
 
+typedef struct AkPrintBooleanShape {
+  struct AkPrintBooleanShape *next;
+  const char                 *path;
+  const char                 *basePath;
+  float                       matrix[16];
+  uint32_t                    objectId;
+  uint32_t                    baseObjectId;
+  uint32_t                    operandCount;
+  AkPrintBooleanOperation     operation;
+  uint32_t                    flags;
+} AkPrintBooleanShape;
+
+typedef struct AkPrintBooleanOperand {
+  struct AkPrintBooleanOperand *next;
+  const char                   *path;
+  float                         matrix[16];
+  uint32_t                      objectId;
+  uint32_t                      flags;
+} AkPrintBooleanOperand;
+
 typedef struct AkPrintDocument {
   AkPrintPackagePart    *parts;
   AkPrintPackagePart    *lastPart;
@@ -231,6 +266,10 @@ typedef struct AkPrintDocument {
   AkPrintBeamBall       *lastBeamBall;
   AkPrintBeamSet        *beamSets;
   AkPrintBeamSet        *lastBeamSet;
+  AkPrintBooleanShape   *booleanShapes;
+  AkPrintBooleanShape   *lastBooleanShape;
+  AkPrintBooleanOperand *booleanOperands;
+  AkPrintBooleanOperand *lastBooleanOperand;
   AkTree                *extra;
   const char            *profileName;
   const char            *printerModel;
@@ -256,6 +295,8 @@ typedef struct AkPrintDocument {
   uint32_t               beamCount;
   uint32_t               beamBallCount;
   uint32_t               beamSetCount;
+  uint32_t               booleanShapeCount;
+  uint32_t               booleanOperandCount;
 } AkPrintDocument;
 
 AK_EXPORT
@@ -400,6 +441,26 @@ ak_printAddBeamSet(struct AkDoc            * __restrict doc,
                    const char              * __restrict identifier,
                    uint32_t                             refCount,
                    uint32_t                             ballRefCount);
+
+AK_EXPORT
+AkPrintBooleanShape*
+ak_printAddBooleanShape(struct AkDoc              * __restrict doc,
+                        const char                * __restrict path,
+                        const char                * __restrict basePath,
+                        uint32_t                               objectId,
+                        uint32_t                               baseObjectId,
+                        AkPrintBooleanOperation                operation,
+                        const float               * __restrict matrix,
+                        uint32_t                               flags);
+
+AK_EXPORT
+AkPrintBooleanOperand*
+ak_printAddBooleanOperand(struct AkDoc              * __restrict doc,
+                          AkPrintBooleanShape       * __restrict shape,
+                          const char                * __restrict path,
+                          uint32_t                               objectId,
+                          const float               * __restrict matrix,
+                          uint32_t                               flags);
 
 #ifdef __cplusplus
 }

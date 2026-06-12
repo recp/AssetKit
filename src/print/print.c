@@ -26,6 +26,25 @@ ak_print_strdup(AkHeap * __restrict heap,
   return str && heap ? ak_heap_strdup(heap, parent, str) : NULL;
 }
 
+static
+void
+ak_print_identity_matrix(float matrix[16]) {
+  matrix[0] = 1.0f; matrix[1] = 0.0f; matrix[2] = 0.0f; matrix[3] = 0.0f;
+  matrix[4] = 0.0f; matrix[5] = 1.0f; matrix[6] = 0.0f; matrix[7] = 0.0f;
+  matrix[8] = 0.0f; matrix[9] = 0.0f; matrix[10] = 1.0f; matrix[11] = 0.0f;
+  matrix[12] = 0.0f; matrix[13] = 0.0f; matrix[14] = 0.0f; matrix[15] = 1.0f;
+}
+
+static
+void
+ak_print_copy_matrix(float                       dst[16],
+                     const float * __restrict   src) {
+  if (src)
+    memcpy(dst, src, sizeof(float) * 16u);
+  else
+    ak_print_identity_matrix(dst);
+}
+
 AK_EXPORT
 AkPrintDocument*
 ak_printDocument(AkDoc * __restrict doc) {
@@ -594,4 +613,95 @@ ak_printAddBeamSet(AkDoc               * __restrict doc,
   print->features |= AK_PRINT_FEATURE_BEAM_LATTICE;
 
   return set;
+}
+
+AK_EXPORT
+AkPrintBooleanShape*
+ak_printAddBooleanShape(AkDoc                   * __restrict doc,
+                        const char              * __restrict path,
+                        const char              * __restrict basePath,
+                        uint32_t                             objectId,
+                        uint32_t                             baseObjectId,
+                        AkPrintBooleanOperation              operation,
+                        const float             * __restrict matrix,
+                        uint32_t                             flags) {
+  AkPrintDocument     *print;
+  AkPrintBooleanShape *shape;
+  AkHeap              *heap;
+
+  print = ak_printDocumentEnsure(doc);
+  if (!print)
+    return NULL;
+
+  heap = ak_heap_getheap(print);
+  if (!heap)
+    return NULL;
+
+  shape = ak_heap_calloc(heap, print, sizeof(*shape));
+  if (!shape)
+    return NULL;
+
+  shape->path         = ak_print_strdup(heap, shape, path);
+  shape->basePath     = ak_print_strdup(heap, shape, basePath);
+  shape->objectId     = objectId;
+  shape->baseObjectId = baseObjectId;
+  shape->operation    = operation == AK_PRINT_BOOLEAN_OPERATION_UNKNOWN
+                        ? AK_PRINT_BOOLEAN_OPERATION_UNION
+                        : operation;
+  shape->flags        = flags;
+  ak_print_copy_matrix(shape->matrix, matrix);
+
+  if (print->lastBooleanShape)
+    print->lastBooleanShape->next = shape;
+  else
+    print->booleanShapes = shape;
+
+  print->lastBooleanShape = shape;
+  print->booleanShapeCount++;
+  print->features |= AK_PRINT_FEATURE_BOOLEAN;
+
+  return shape;
+}
+
+AK_EXPORT
+AkPrintBooleanOperand*
+ak_printAddBooleanOperand(AkDoc                  * __restrict doc,
+                          AkPrintBooleanShape    * __restrict shape,
+                          const char             * __restrict path,
+                          uint32_t                            objectId,
+                          const float            * __restrict matrix,
+                          uint32_t                            flags) {
+  AkPrintDocument       *print;
+  AkPrintBooleanOperand *operand;
+  AkHeap                *heap;
+
+  print = ak_printDocumentEnsure(doc);
+  if (!print)
+    return NULL;
+
+  heap = ak_heap_getheap(print);
+  if (!heap)
+    return NULL;
+
+  operand = ak_heap_calloc(heap, print, sizeof(*operand));
+  if (!operand)
+    return NULL;
+
+  operand->path     = ak_print_strdup(heap, operand, path);
+  operand->objectId = objectId;
+  operand->flags    = flags;
+  ak_print_copy_matrix(operand->matrix, matrix);
+
+  if (print->lastBooleanOperand)
+    print->lastBooleanOperand->next = operand;
+  else
+    print->booleanOperands = operand;
+
+  print->lastBooleanOperand = operand;
+  print->booleanOperandCount++;
+  if (shape)
+    shape->operandCount++;
+  print->features |= AK_PRINT_FEATURE_BOOLEAN;
+
+  return operand;
 }
