@@ -268,6 +268,96 @@ ak_test_write_3mf_production_child_model(const char *path) {
   return ak_test_3mf_zip_write_stored(path, entries, AK_ARRAY_LEN(entries));
 }
 
+static bool
+ak_test_write_3mf_slice_child_model(const char *path) {
+  static const char contentTypes[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">"
+    "<Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>"
+    "<Override PartName=\"/3D/3dmodel.model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\"/>"
+    "<Override PartName=\"/2D/slices.model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\"/>"
+    "</Types>";
+  static const char rels[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">"
+    "<Relationship Id=\"rel0\" "
+    "Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\" "
+    "Target=\"/3D/3dmodel.model\"/>"
+    "</Relationships>";
+  static const char modelRels[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">"
+    "<Relationship Id=\"rel1\" "
+    "Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\" "
+    "Target=\"/2D/slices.model\"/>"
+    "</Relationships>";
+  static const char rootModel[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<model unit=\"millimeter\" requiredextensions=\"s\" "
+    "xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" "
+    "xmlns:s=\"http://schemas.microsoft.com/3dmanufacturing/slice/2015/07\">"
+    "<resources>"
+    "<s:slicestack id=\"10\" zbottom=\"0\">"
+    "<s:sliceref slicestackid=\"20\" slicepath=\"/2D/slices.model\" ztop=\"1\"/>"
+    "</s:slicestack>"
+    "<object id=\"7\" type=\"model\" name=\"slice-root\" "
+    "s:meshresolution=\"lowres\" s:slicestackid=\"10\" s:slicepath=\"/2D/slices.model\">"
+    "<mesh>"
+    "<vertices>"
+    "<vertex x=\"0\" y=\"0\" z=\"0\"/>"
+    "<vertex x=\"1\" y=\"0\" z=\"0\"/>"
+    "<vertex x=\"0\" y=\"1\" z=\"0\"/>"
+    "</vertices>"
+    "<triangles><triangle v1=\"0\" v2=\"1\" v3=\"2\"/></triangles>"
+    "</mesh>"
+    "</object>"
+    "</resources>"
+    "<build><item objectid=\"7\"/></build>"
+    "</model>";
+  static const char sliceModel[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<model unit=\"millimeter\" "
+    "xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" "
+    "xmlns:s=\"http://schemas.microsoft.com/3dmanufacturing/slice/2015/07\">"
+    "<resources>"
+    "<s:slicestack id=\"20\" zbottom=\"0\">"
+    "<s:slice ztop=\"0.5\">"
+    "<s:vertices>"
+    "<s:vertex x=\"0\" y=\"0\"/>"
+    "<s:vertex x=\"1\" y=\"0\"/>"
+    "<s:vertex x=\"0\" y=\"1\"/>"
+    "</s:vertices>"
+    "<s:polygon startv=\"0\">"
+    "<s:segment v2=\"1\" p1=\"0\" p2=\"0\" pid=\"1\"/>"
+    "<s:segment v2=\"2\" p1=\"0\" p2=\"0\" pid=\"1\"/>"
+    "<s:segment v2=\"0\" p1=\"0\" p2=\"0\" pid=\"1\"/>"
+    "</s:polygon>"
+    "</s:slice>"
+    "</s:slicestack>"
+    "</resources>"
+    "<build/>"
+    "</model>";
+  AkTest3MFZipEntry entries[5];
+
+  entries[0].name = "[Content_Types].xml";
+  entries[0].data = contentTypes;
+  entries[0].size = sizeof(contentTypes) - 1u;
+  entries[1].name = "_rels/.rels";
+  entries[1].data = rels;
+  entries[1].size = sizeof(rels) - 1u;
+  entries[2].name = "3D/_rels/3dmodel.model.rels";
+  entries[2].data = modelRels;
+  entries[2].size = sizeof(modelRels) - 1u;
+  entries[3].name = "3D/3dmodel.model";
+  entries[3].data = rootModel;
+  entries[3].size = sizeof(rootModel) - 1u;
+  entries[4].name = "2D/slices.model";
+  entries[4].data = sliceModel;
+  entries[4].size = sizeof(sliceModel) - 1u;
+
+  return ak_test_3mf_zip_write_stored(path, entries, AK_ARRAY_LEN(entries));
+}
+
 static AkDoc *
 ak_test_make_3mf_triangle_doc(void) {
   AkHeap     *heap;
@@ -635,6 +725,108 @@ TEST_IMPL(three_mf_import_production_child_model_path) {
   ASSERT(objectProd->path != NULL);
   ASSERT(strcmp(objectProd->path, "3D/child.model") == 0);
   ASSERT(objectProd->objectId == 7);
+
+  ak_test_export_cleanup(outDir);
+  TEST_SUCCESS
+}
+
+TEST_IMPL(three_mf_import_slice_child_model_path) {
+  AkDoc                *doc;
+  AkPrintDocument      *print;
+  AkPrintPackagePart   *part;
+  AkPrintSliceStack    *stack;
+  AkPrintSlice         *slice;
+  AkPrintSliceObject   *sliceObject;
+  AkPrintPackagePart   *slicePart;
+  AkPrintSliceStack    *rootStack;
+  AkPrintSliceStack    *childStack;
+  AkPrintSlice         *childSlice;
+  AkPrintSliceObject   *rootSliceObject;
+  const char           *outDir = "./assetkit_import_3mf_slice_child_model";
+  const char           *mfPath = "./assetkit_import_3mf_slice_child_model/model.3mf";
+
+  ak_test_export_cleanup(outDir);
+  ASSERT(mkdir(outDir, 0777) == 0);
+  ASSERT(ak_test_write_3mf_slice_child_model(mfPath));
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, mfPath, AK_FILE_TYPE_3MF) == AK_OK);
+  ASSERT(doc != NULL);
+  ASSERT(doc->lib.geometries.count == 1);
+
+  print = ak_printDocument(doc);
+  ASSERT(print != NULL);
+  ASSERT(ak_printHasFeature(print, AK_PRINT_FEATURE_SLICE));
+  ASSERT((print->requiredFeatures & AK_PRINT_FEATURE_SLICE) != 0u);
+  ASSERT((print->unsupportedFeatures & AK_PRINT_FEATURE_SLICE) == 0u);
+  ASSERT(print->sliceStackCount == 2);
+  ASSERT(print->sliceRefCount == 1);
+  ASSERT(print->sliceCount == 1);
+  ASSERT(print->sliceObjectCount == 1);
+
+  slicePart       = NULL;
+  rootStack       = NULL;
+  childStack      = NULL;
+  childSlice      = NULL;
+  rootSliceObject = NULL;
+
+  for (part = print->parts; part; part = part->next) {
+    if (part->type == AK_PRINT_PACKAGE_PART_SLICE
+        && part->name
+        && strcmp(part->name, "2D/slices.model") == 0) {
+      slicePart = part;
+      break;
+    }
+  }
+  ASSERT(slicePart != NULL);
+  ASSERT(slicePart->data != NULL);
+  ASSERT(slicePart->size > 0);
+
+  for (stack = print->sliceStacks; stack; stack = stack->next) {
+    if (stack->id == 10u)
+      rootStack = stack;
+    else if (stack->id == 20u)
+      childStack = stack;
+  }
+  ASSERT(rootStack != NULL);
+  ASSERT(rootStack->path != NULL);
+  ASSERT(strcmp(rootStack->path, "3D/3dmodel.model") == 0);
+  ASSERT(rootStack->sliceRefCount == 1);
+  ASSERT(childStack != NULL);
+  ASSERT(childStack->path != NULL);
+  ASSERT(strcmp(childStack->path, "2D/slices.model") == 0);
+  ASSERT(childStack->sliceCount == 1);
+
+  for (slice = print->slices; slice; slice = slice->next) {
+    if (slice->stackId == 20u) {
+      childSlice = slice;
+      break;
+    }
+  }
+  ASSERT(childSlice != NULL);
+  ASSERT(childSlice->path != NULL);
+  ASSERT(strcmp(childSlice->path, "2D/slices.model") == 0);
+  ASSERT(fabs(childSlice->zTop - 0.5f) < 0.000001f);
+  ASSERT(childSlice->vertexCount == 3);
+  ASSERT(childSlice->polygonCount == 1);
+  ASSERT(childSlice->segmentCount == 3);
+
+  for (sliceObject = print->sliceObjects;
+       sliceObject;
+       sliceObject = sliceObject->next) {
+    if (sliceObject->objectId == 7u) {
+      rootSliceObject = sliceObject;
+      break;
+    }
+  }
+  ASSERT(rootSliceObject != NULL);
+  ASSERT(rootSliceObject->path != NULL);
+  ASSERT(strcmp(rootSliceObject->path, "3D/3dmodel.model") == 0);
+  ASSERT(rootSliceObject->slicePath != NULL);
+  ASSERT(strcmp(rootSliceObject->slicePath, "2D/slices.model") == 0);
+  ASSERT(rootSliceObject->meshResolution != NULL);
+  ASSERT(strcmp(rootSliceObject->meshResolution, "lowres") == 0);
+  ASSERT(rootSliceObject->sliceStackId == 10u);
 
   ak_test_export_cleanup(outDir);
   TEST_SUCCESS

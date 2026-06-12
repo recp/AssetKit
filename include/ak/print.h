@@ -95,28 +95,79 @@ typedef struct AkPrintProductionItem {
   uint32_t                      flags;
 } AkPrintProductionItem;
 
+typedef struct AkPrintSliceStack {
+  struct AkPrintSliceStack *next;
+  const char               *path;
+  float                     zBottom;
+  uint32_t                  id;
+  uint32_t                  sliceCount;
+  uint32_t                  sliceRefCount;
+  uint32_t                  flags;
+} AkPrintSliceStack;
+
+typedef struct AkPrintSliceRef {
+  struct AkPrintSliceRef *next;
+  const char             *path;
+  float                   zTop;
+  uint32_t                stackId;
+  uint32_t                flags;
+} AkPrintSliceRef;
+
+typedef struct AkPrintSlice {
+  struct AkPrintSlice *next;
+  const char          *path;
+  float                zTop;
+  uint32_t             stackId;
+  uint32_t             vertexCount;
+  uint32_t             polygonCount;
+  uint32_t             segmentCount;
+  uint32_t             flags;
+} AkPrintSlice;
+
+typedef struct AkPrintSliceObject {
+  struct AkPrintSliceObject *next;
+  const char                *path;
+  const char                *slicePath;
+  const char                *meshResolution;
+  uint32_t                   objectId;
+  uint32_t                   sliceStackId;
+  uint32_t                   flags;
+} AkPrintSliceObject;
+
 typedef struct AkPrintDocument {
-  AkPrintPackagePart  *parts;
-  AkPrintPackagePart  *lastPart;
+  AkPrintPackagePart    *parts;
+  AkPrintPackagePart    *lastPart;
   AkPrintProductionItem *productionItems;
   AkPrintProductionItem *lastProductionItem;
-  AkTree              *extra;
-  const char          *profileName;
-  const char          *printerModel;
-  void                *reserved;
-  AkPrintFeatureFlags  features;
-  AkPrintFeatureFlags  requiredFeatures;
-  AkPrintFeatureFlags  unsupportedFeatures;
+  AkPrintSliceStack     *sliceStacks;
+  AkPrintSliceStack     *lastSliceStack;
+  AkPrintSliceRef       *sliceRefs;
+  AkPrintSliceRef       *lastSliceRef;
+  AkPrintSlice          *slices;
+  AkPrintSlice          *lastSlice;
+  AkPrintSliceObject    *sliceObjects;
+  AkPrintSliceObject    *lastSliceObject;
+  AkTree                *extra;
+  const char            *profileName;
+  const char            *printerModel;
+  void                  *reserved;
+  AkPrintFeatureFlags    features;
+  AkPrintFeatureFlags    requiredFeatures;
+  AkPrintFeatureFlags    unsupportedFeatures;
   AkPrintValidationFlags validationFlags;
-  uint32_t             packagePartCount;
-  uint32_t             buildItemCount;
-  uint32_t             objectCount;
-  uint32_t             meshObjectCount;
-  uint32_t             componentObjectCount;
-  uint32_t             materialGroupCount;
-  uint32_t             materialPropertyCount;
-  uint32_t             unknownExtensionCount;
-  uint32_t             productionItemCount;
+  uint32_t               packagePartCount;
+  uint32_t               buildItemCount;
+  uint32_t               objectCount;
+  uint32_t               meshObjectCount;
+  uint32_t               componentObjectCount;
+  uint32_t               materialGroupCount;
+  uint32_t               materialPropertyCount;
+  uint32_t               unknownExtensionCount;
+  uint32_t               productionItemCount;
+  uint32_t               sliceStackCount;
+  uint32_t               sliceRefCount;
+  uint32_t               sliceCount;
+  uint32_t               sliceObjectCount;
 } AkPrintDocument;
 
 AK_EXPORT
@@ -177,6 +228,39 @@ ak_printAddProductionItem(struct AkDoc             * __restrict doc,
                           const char              * __restrict modelResolution,
                           uint32_t                             objectId,
                           uint32_t                             parentObjectId);
+
+AK_EXPORT
+AkPrintSliceStack*
+ak_printAddSliceStack(struct AkDoc  * __restrict doc,
+                      const char    * __restrict path,
+                      uint32_t                   id,
+                      float                      zBottom);
+
+AK_EXPORT
+AkPrintSliceRef*
+ak_printAddSliceRef(struct AkDoc  * __restrict doc,
+                    const char    * __restrict path,
+                    uint32_t                   stackId,
+                    float                      zTop);
+
+AK_EXPORT
+AkPrintSlice*
+ak_printAddSlice(struct AkDoc  * __restrict doc,
+                 const char    * __restrict path,
+                 uint32_t                   stackId,
+                 float                      zTop,
+                 uint32_t                   vertexCount,
+                 uint32_t                   polygonCount,
+                 uint32_t                   segmentCount);
+
+AK_EXPORT
+AkPrintSliceObject*
+ak_printAddSliceObject(struct AkDoc  * __restrict doc,
+                       const char    * __restrict path,
+                       const char    * __restrict slicePath,
+                       const char    * __restrict meshResolution,
+                       uint32_t                   objectId,
+                       uint32_t                   sliceStackId);
 
 #ifdef __cplusplus
 }

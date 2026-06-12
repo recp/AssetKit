@@ -74,10 +74,13 @@ typedef struct AK3MFImportState {
   const char          *packagePath;
   const char          *rootModelPath;
   const char          *currentModelPath;
+  const char         **loadedModelPaths;
   size_t               objectCount;
   size_t               objectCapacity;
   size_t               propertyCount;
   size_t               propertyCapacity;
+  size_t               loadedModelCount;
+  size_t               loadedModelCapacity;
 } AK3MFImportState;
 
 typedef struct AK3MFPackageImportState {
@@ -422,6 +425,44 @@ ak_3mf_reserve_objects(AK3MFImportState * __restrict st,
 
 static
 bool
+ak_3mf_reserve_loaded_models(AK3MFImportState * __restrict st,
+                             size_t                         extra) {
+  const char **paths;
+  size_t       needed;
+  size_t       newCapacity;
+
+  if (!st)
+    return false;
+  if (extra == 0u)
+    return true;
+  if (st->loadedModelCount > SIZE_MAX - extra)
+    return false;
+
+  needed = st->loadedModelCount + extra;
+  if (needed <= st->loadedModelCapacity)
+    return true;
+
+  newCapacity = st->loadedModelCapacity ? st->loadedModelCapacity * 2u : 8u;
+  while (newCapacity < needed) {
+    if (newCapacity > SIZE_MAX / 2u)
+      return false;
+    newCapacity *= 2u;
+  }
+
+  paths = realloc(st->loadedModelPaths, sizeof(*paths) * newCapacity);
+  if (!paths)
+    return false;
+
+  memset(paths + st->loadedModelCapacity,
+         0,
+         sizeof(*paths) * (newCapacity - st->loadedModelCapacity));
+  st->loadedModelPaths    = paths;
+  st->loadedModelCapacity = newCapacity;
+  return true;
+}
+
+static
+bool
 ak_3mf_tag(const xml_t * __restrict xml, const char * __restrict tag) {
   const char *xmlTag;
   size_t     xmlTagSize;
@@ -494,7 +535,8 @@ ak_3mf_mark_required_feature(AkPrintDocument    * __restrict print,
     AK_PRINT_FEATURE_CORE
     | AK_PRINT_FEATURE_MATERIALS
     | AK_PRINT_FEATURE_PACKAGE
-    | AK_PRINT_FEATURE_PRODUCTION;
+    | AK_PRINT_FEATURE_PRODUCTION
+    | AK_PRINT_FEATURE_SLICE;
 
   if (!print)
     return;
@@ -800,6 +842,22 @@ ak_3mf_entry_extension(const char * __restrict entryName) {
 }
 
 static
+bool
+ak_3mf_entry_is_2d_part(const char * __restrict entryName) {
+  size_t len;
+
+  if (!entryName)
+    return false;
+
+  len       = strlen(entryName);
+  entryName = ak_3mf_skip_root_slash(entryName, &len);
+  return len > 3u
+         && entryName[0] == '2'
+         && entryName[1] == 'D'
+         && (entryName[2] == '/' || entryName[2] == '\\');
+}
+
+static
 const char*
 ak_3mf_content_type_dup(AkDoc       * __restrict doc,
                         xml_t       * __restrict contentTypesRoot,
@@ -915,13 +973,14 @@ ak_3mf_package_part_type(const char * __restrict entryName,
       || ak_3mf_str_contains(entryName, "thumbnail")
       || ak_3mf_str_contains(entryName, "Thumbnail"))
     return AK_PRINT_PACKAGE_PART_THUMBNAIL;
-  if (ak_3mf_str_contains(contentType, "3dmodel"))
-    return AK_PRINT_PACKAGE_PART_MODEL;
+  if (ak_3mf_entry_is_2d_part(entryName))
+    return AK_PRINT_PACKAGE_PART_SLICE;
   if (ak_3mf_str_contains(contentType, "printticket")
       || ak_3mf_str_contains(entryName, "Metadata/"))
     return AK_PRINT_PACKAGE_PART_METADATA;
-  if (ak_3mf_str_contains(entryName, "/2D/")
-      || ak_3mf_str_contains(entryName, "slic"))
+  if (ak_3mf_str_contains(contentType, "3dmodel"))
+    return AK_PRINT_PACKAGE_PART_MODEL;
+  if (ak_3mf_str_contains(entryName, "slic"))
     return AK_PRINT_PACKAGE_PART_SLICE;
   if (ak_3mf_str_contains(contentType, "image/")
       || ak_3mf_str_contains(entryName, "Textures/"))
@@ -1731,8 +1790,176 @@ ak_3mf_find_object(AK3MFObject * __restrict objects,
 
 static
 bool
+ak_3mf_load_model_part(AK3MFImportState * __restrict st,
+                       const char       * __restrict modelPath);
+
+static
+bool
 ak_3mf_parse_transform_attr(const xml_attr_t * __restrict attr,
                             float                         matrix[16]);
+
+static
+uint32_t
+ak_3mf_clamp_count_u32(size_t count) {
+  return count > UINT32_MAX ? UINT32_MAX : (uint32_t)count;
+}
+
+static
+void
+ak_3mf_count_slice_geometry(xml_t    * __restrict sliceXml,
+                            uint32_t * __restrict vertexCount,
+                            uint32_t * __restrict polygonCount,
+                            uint32_t * __restrict segmentCount) {
+  xml_t  *verticesXml;
+  xml_t  *polygonXml;
+  size_t  vertices;
+  size_t  polygons;
+  size_t  segments;
+
+  vertices = 0u;
+  polygons = 0u;
+  segments = 0u;
+
+  if (sliceXml) {
+    verticesXml = xml_elem(sliceXml, "vertices");
+    vertices    = ak_3mf_count_children(verticesXml, "vertex");
+
+    for (polygonXml = sliceXml->val; polygonXml; polygonXml = polygonXml->next) {
+      if (!ak_3mf_tag(polygonXml, "polygon"))
+        continue;
+
+      polygons++;
+      segments += ak_3mf_count_children(polygonXml, "segment");
+    }
+  }
+
+  if (vertexCount)
+    *vertexCount = ak_3mf_clamp_count_u32(vertices);
+  if (polygonCount)
+    *polygonCount = ak_3mf_clamp_count_u32(polygons);
+  if (segmentCount)
+    *segmentCount = ak_3mf_clamp_count_u32(segments);
+}
+
+static
+size_t
+ak_3mf_parse_slice_stacks(AK3MFImportState * __restrict st,
+                          xml_t            * __restrict resourcesXml) {
+  xml_t  *stackXml;
+  size_t  added;
+
+  if (!st || !st->doc || !st->print || !resourcesXml)
+    return 0u;
+
+  added = 0u;
+  for (stackXml = resourcesXml->val; stackXml; stackXml = stackXml->next) {
+    AkPrintSliceStack *stack;
+    xml_t             *childXml;
+    uint32_t           stackId;
+    float              zBottom;
+
+    if (!ak_3mf_tag(stackXml, "slicestack"))
+      continue;
+
+    stackId = xmla_u32(ak_3mf_xmla_local_lit(stackXml, "id"), 0u);
+    zBottom = xmla_float(ak_3mf_xmla_local_lit(stackXml, "zbottom"), 0.0f);
+    stack   = ak_printAddSliceStack(st->doc,
+                                    st->currentModelPath,
+                                    stackId,
+                                    zBottom);
+    if (!stack)
+      continue;
+
+    added++;
+    for (childXml = stackXml->val; childXml; childXml = childXml->next) {
+      if (ak_3mf_tag(childXml, "sliceref")) {
+        xml_attr_t *pathAttr;
+        char       *path;
+        uint32_t    refStackId;
+        float       zTop;
+
+        pathAttr   = ak_3mf_xmla_local_lit(childXml, "slicepath");
+        path       = ak_3mf_attr_dup_path_cstr(pathAttr);
+        refStackId = xmla_u32(ak_3mf_xmla_local_lit(childXml, "slicestackid"), 0u);
+        zTop       = xmla_float(ak_3mf_xmla_local_lit(childXml, "ztop"), 0.0f);
+        if (ak_printAddSliceRef(st->doc,
+                                path ? path : st->currentModelPath,
+                                refStackId,
+                                zTop)) {
+          stack->sliceRefCount++;
+          added++;
+        }
+        if (path && !ak_3mf_model_path_eq(path, st->currentModelPath))
+          (void)ak_3mf_load_model_part(st, path);
+        free(path);
+      } else if (ak_3mf_tag(childXml, "slice")) {
+        uint32_t vertexCount;
+        uint32_t polygonCount;
+        uint32_t segmentCount;
+        float    zTop;
+
+        ak_3mf_count_slice_geometry(childXml,
+                                    &vertexCount,
+                                    &polygonCount,
+                                    &segmentCount);
+        zTop = xmla_float(ak_3mf_xmla_local_lit(childXml, "ztop"), 0.0f);
+        if (ak_printAddSlice(st->doc,
+                             st->currentModelPath,
+                             stackId,
+                             zTop,
+                             vertexCount,
+                             polygonCount,
+                             segmentCount)) {
+          stack->sliceCount++;
+          added++;
+        }
+      }
+    }
+  }
+
+  return added;
+}
+
+static
+void
+ak_3mf_parse_slice_object(AK3MFImportState * __restrict st,
+                          xml_t            * __restrict objXml,
+                          uint32_t                      objectId) {
+  xml_attr_t *stackAttr;
+  xml_attr_t *pathAttr;
+  xml_attr_t *meshResolutionAttr;
+  char       *slicePath;
+  char       *meshResolution;
+  uint32_t    sliceStackId;
+
+  if (!st || !st->doc || !st->print || !objXml)
+    return;
+
+  stackAttr          = ak_3mf_xmla_local_lit(objXml, "slicestackid");
+  pathAttr           = ak_3mf_xmla_local_lit(objXml, "slicepath");
+  meshResolutionAttr = ak_3mf_xmla_local_lit(objXml, "meshresolution");
+
+  if ((!stackAttr || !stackAttr->val)
+      && (!pathAttr || !pathAttr->val)
+      && (!meshResolutionAttr || !meshResolutionAttr->val))
+    return;
+
+  slicePath      = ak_3mf_attr_dup_path_cstr(pathAttr);
+  meshResolution = ak_3mf_attr_dup_cstr(meshResolutionAttr);
+  sliceStackId   = xmla_u32(stackAttr, 0u);
+
+  (void)ak_printAddSliceObject(st->doc,
+                               st->currentModelPath,
+                               slicePath,
+                               meshResolution,
+                               objectId,
+                               sliceStackId);
+  if (slicePath && !ak_3mf_model_path_eq(slicePath, st->currentModelPath))
+    (void)ak_3mf_load_model_part(st, slicePath);
+
+  free(slicePath);
+  free(meshResolution);
+}
 
 static
 bool
@@ -1838,10 +2065,12 @@ ak_3mf_parse_resources(AK3MFImportState * __restrict st,
       if (st->print)
         st->print->meshObjectCount++;
       st->objectCount++;
+      ak_3mf_parse_slice_object(st, objXml, object->id);
     } else if (componentsXml && ak_3mf_parse_components(st, object, componentsXml)) {
       if (st->print)
         st->print->componentObjectCount++;
       st->objectCount++;
+      ak_3mf_parse_slice_object(st, objXml, object->id);
     }
   }
 
@@ -1857,6 +2086,11 @@ ak_3mf_model_part_loaded(AK3MFImportState * __restrict st,
   if (!st || !modelPath)
     return false;
 
+  for (i = 0; i < st->loadedModelCount; i++) {
+    if (ak_3mf_model_path_eq(st->loadedModelPaths[i], modelPath))
+      return true;
+  }
+
   for (i = 0; i < st->objectCount; i++) {
     if (ak_3mf_model_path_eq(st->objects[i].path, modelPath))
       return true;
@@ -1867,6 +2101,21 @@ ak_3mf_model_part_loaded(AK3MFImportState * __restrict st,
   }
 
   return false;
+}
+
+static
+bool
+ak_3mf_mark_model_part_loaded(AK3MFImportState * __restrict st,
+                              const char       * __restrict modelPath) {
+  if (!st || !modelPath)
+    return false;
+  if (ak_3mf_model_part_loaded(st, modelPath))
+    return true;
+  if (!ak_3mf_reserve_loaded_models(st, 1u))
+    return false;
+
+  st->loadedModelPaths[st->loadedModelCount++] = modelPath;
+  return true;
 }
 
 static
@@ -1934,6 +2183,7 @@ ak_3mf_load_model_part(AK3MFImportState * __restrict st,
 
   savedModelPath       = st->currentModelPath;
   st->currentModelPath = storedModelPath;
+  (void)ak_3mf_mark_model_part_loaded(st, storedModelPath);
   root                 = xdoc->root;
   resourcesXml         = xml_elem(root, "resources");
 
@@ -1941,6 +2191,7 @@ ak_3mf_load_model_part(AK3MFImportState * __restrict st,
     ak_3mf_mark_model_extensions(st->print, root);
 
   (void)ak_3mf_parse_property_groups(st, resourcesXml);
+  (void)ak_3mf_parse_slice_stacks(st, resourcesXml);
   added = ak_3mf_parse_resources(st, resourcesXml);
   if (st->print)
     st->print->objectCount = (uint32_t)st->objectCount;
@@ -1948,7 +2199,7 @@ ak_3mf_load_model_part(AK3MFImportState * __restrict st,
   st->currentModelPath = savedModelPath;
   xml_free(xdoc);
   free(modelData);
-  return added > 0u;
+  return added > 0u || ak_3mf_model_part_loaded(st, storedModelPath);
 }
 
 static
@@ -2250,6 +2501,7 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
   st.packagePath      = filepath;
   st.rootModelPath    = modelPath;
   st.currentModelPath = modelPath;
+  (void)ak_3mf_mark_model_part_loaded(&st, modelPath);
   st.print = ak_printDocumentEnsure(doc);
   if (st.print) {
     st.print->features |= AK_PRINT_FEATURE_CORE;
@@ -2279,6 +2531,7 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
   resourcesXml   = xml_elem(root, "resources");
   buildXml       = xml_elem(root, "build");
   (void)ak_3mf_parse_property_groups(&st, resourcesXml);
+  (void)ak_3mf_parse_slice_stacks(&st, resourcesXml);
   (void)ak_3mf_parse_resources(&st, resourcesXml);
   if (st.print)
     st.print->objectCount = (uint32_t)st.objectCount;
@@ -2302,6 +2555,7 @@ cleanup:
   }
   free(st.properties);
   free(st.objects);
+  free(st.loadedModelPaths);
   if (xdoc)
     xml_free(xdoc);
   if (contentTypesDoc)

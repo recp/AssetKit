@@ -18,6 +18,14 @@
 
 #include <string.h>
 
+static
+const char*
+ak_print_strdup(AkHeap * __restrict heap,
+                void   * __restrict parent,
+                const char * __restrict str) {
+  return str && heap ? ak_heap_strdup(heap, parent, str) : NULL;
+}
+
 AK_EXPORT
 AkPrintDocument*
 ak_printDocument(AkDoc * __restrict doc) {
@@ -223,4 +231,166 @@ ak_printAddProductionItem(AkDoc                  * __restrict doc,
   print->features |= AK_PRINT_FEATURE_PRODUCTION;
 
   return item;
+}
+
+AK_EXPORT
+AkPrintSliceStack*
+ak_printAddSliceStack(AkDoc      * __restrict doc,
+                      const char * __restrict path,
+                      uint32_t                id,
+                      float                   zBottom) {
+  AkPrintDocument  *print;
+  AkPrintSliceStack *stack;
+  AkHeap           *heap;
+
+  print = ak_printDocumentEnsure(doc);
+  if (!print)
+    return NULL;
+
+  heap = ak_heap_getheap(print);
+  if (!heap)
+    return NULL;
+
+  stack = ak_heap_calloc(heap, print, sizeof(*stack));
+  if (!stack)
+    return NULL;
+
+  stack->id      = id;
+  stack->zBottom = zBottom;
+  stack->path    = ak_print_strdup(heap, stack, path);
+
+  if (print->lastSliceStack)
+    print->lastSliceStack->next = stack;
+  else
+    print->sliceStacks = stack;
+
+  print->lastSliceStack = stack;
+  print->sliceStackCount++;
+  print->features |= AK_PRINT_FEATURE_SLICE;
+
+  return stack;
+}
+
+AK_EXPORT
+AkPrintSliceRef*
+ak_printAddSliceRef(AkDoc      * __restrict doc,
+                    const char * __restrict path,
+                    uint32_t                stackId,
+                    float                   zTop) {
+  AkPrintDocument *print;
+  AkPrintSliceRef *ref;
+  AkHeap          *heap;
+
+  print = ak_printDocumentEnsure(doc);
+  if (!print)
+    return NULL;
+
+  heap = ak_heap_getheap(print);
+  if (!heap)
+    return NULL;
+
+  ref = ak_heap_calloc(heap, print, sizeof(*ref));
+  if (!ref)
+    return NULL;
+
+  ref->stackId = stackId;
+  ref->zTop    = zTop;
+  ref->path    = ak_print_strdup(heap, ref, path);
+
+  if (print->lastSliceRef)
+    print->lastSliceRef->next = ref;
+  else
+    print->sliceRefs = ref;
+
+  print->lastSliceRef = ref;
+  print->sliceRefCount++;
+  print->features |= AK_PRINT_FEATURE_SLICE;
+
+  return ref;
+}
+
+AK_EXPORT
+AkPrintSlice*
+ak_printAddSlice(AkDoc      * __restrict doc,
+                 const char * __restrict path,
+                 uint32_t                stackId,
+                 float                   zTop,
+                 uint32_t                vertexCount,
+                 uint32_t                polygonCount,
+                 uint32_t                segmentCount) {
+  AkPrintDocument *print;
+  AkPrintSlice    *slice;
+  AkHeap          *heap;
+
+  print = ak_printDocumentEnsure(doc);
+  if (!print)
+    return NULL;
+
+  heap = ak_heap_getheap(print);
+  if (!heap)
+    return NULL;
+
+  slice = ak_heap_calloc(heap, print, sizeof(*slice));
+  if (!slice)
+    return NULL;
+
+  slice->path         = ak_print_strdup(heap, slice, path);
+  slice->stackId      = stackId;
+  slice->zTop         = zTop;
+  slice->vertexCount  = vertexCount;
+  slice->polygonCount = polygonCount;
+  slice->segmentCount = segmentCount;
+
+  if (print->lastSlice)
+    print->lastSlice->next = slice;
+  else
+    print->slices = slice;
+
+  print->lastSlice = slice;
+  print->sliceCount++;
+  print->features |= AK_PRINT_FEATURE_SLICE;
+
+  return slice;
+}
+
+AK_EXPORT
+AkPrintSliceObject*
+ak_printAddSliceObject(AkDoc      * __restrict doc,
+                       const char * __restrict path,
+                       const char * __restrict slicePath,
+                       const char * __restrict meshResolution,
+                       uint32_t                objectId,
+                       uint32_t                sliceStackId) {
+  AkPrintDocument  *print;
+  AkPrintSliceObject *object;
+  AkHeap           *heap;
+
+  print = ak_printDocumentEnsure(doc);
+  if (!print)
+    return NULL;
+
+  heap = ak_heap_getheap(print);
+  if (!heap)
+    return NULL;
+
+  object = ak_heap_calloc(heap, print, sizeof(*object));
+  if (!object)
+    return NULL;
+
+  object->path           = ak_print_strdup(heap, object, path);
+  object->slicePath      = ak_print_strdup(heap, object, slicePath);
+  object->meshResolution = ak_print_strdup(heap, object, meshResolution);
+  object->objectId       = objectId;
+  object->sliceStackId   = sliceStackId;
+
+  if (print->lastSliceObject)
+    print->lastSliceObject->next = object;
+  else
+    print->sliceObjects = object;
+
+  print->lastSliceObject = object;
+  print->sliceObjectCount++;
+  print->features |= AK_PRINT_FEATURE_SLICE;
+
+  return object;
 }
