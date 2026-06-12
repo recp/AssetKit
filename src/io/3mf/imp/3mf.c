@@ -3132,6 +3132,37 @@ ak_3mf_parse_components(AK3MFImportState * __restrict st,
 }
 
 static
+void
+ak_3mf_parse_production_alternatives(AK3MFImportState * __restrict st,
+                                     xml_t            * __restrict objectXml,
+                                     uint32_t                       parentObjectId) {
+  xml_t *alternativesXml;
+  xml_t *alternativeXml;
+
+  if (!st || !objectXml)
+    return;
+
+  alternativesXml = ak_3mf_child(objectXml, "alternatives");
+  if (!alternativesXml)
+    return;
+
+  for (alternativeXml = alternativesXml->val;
+       alternativeXml;
+       alternativeXml = alternativeXml->next) {
+    if (!ak_3mf_tag(alternativeXml, "alternative"))
+      continue;
+
+    ak_3mf_add_production_item(st,
+                               AK_PRINT_PRODUCTION_ALTERNATIVE,
+                               alternativeXml,
+                               xmla_u32(ak_3mf_xmla_local_lit(alternativeXml,
+                                                               "objectid"),
+                                        0u),
+                               parentObjectId);
+  }
+}
+
+static
 size_t
 ak_3mf_parse_resources(AK3MFImportState * __restrict st,
                        xml_t            * __restrict resourcesXml) {
@@ -3183,6 +3214,7 @@ ak_3mf_parse_resources(AK3MFImportState * __restrict st,
                                objXml,
                                object->id,
                                0u);
+    ak_3mf_parse_production_alternatives(st, objXml, object->id);
 
     if (meshXml || displacementMeshXml) {
       object->geom = ak_3mf_parse_mesh(st,

@@ -50,6 +50,7 @@ typedef struct AK3MFExportState {
   AkResult         result;
   bool             usesMaterialExtension;
   bool             usesProductionExtension;
+  bool             usesProductionAlternativeExtension;
   bool             usesSliceExtension;
   bool             usesBeamLatticeExtension;
   bool             usesBeamBallExtension;
@@ -187,6 +188,18 @@ ak_3mf_append_production_open_attrs(
 
 static
 void
+ak_3mf_append_production_object_open_attrs(
+                                    AK3MFBuffer                 * __restrict buf,
+                                    const AkPrintProductionItem * __restrict item) {
+  ak_3mf_append_production_open_attrs(buf, item, false);
+  if (item && item->modelResolution) {
+    ak_3mf_buf_lit(buf, "\" pa:modelresolution=\"");
+    ak_3mf_buf_attr(buf, item->modelResolution);
+  }
+}
+
+static
+void
 ak_3mf_append_production_attrs(AK3MFBuffer                 * __restrict buf,
                                const AkPrintProductionItem * __restrict item,
                                bool                                     allowPath) {
@@ -270,6 +283,22 @@ ak_3mf_first_production_item(const AkPrintDocument      * __restrict print,
   }
 
   return NULL;
+}
+
+static
+bool
+ak_3mf_uses_production_alternative_extension(
+                                      const AkPrintDocument * __restrict print) {
+  const AkPrintProductionItem *item;
+
+  for (item = print ? print->productionItems : NULL; item; item = item->next) {
+    if (item->type == AK_PRINT_PRODUCTION_ALTERNATIVE)
+      return true;
+    if (item->type == AK_PRINT_PRODUCTION_OBJECT && item->modelResolution)
+      return true;
+  }
+
+  return false;
 }
 
 static
@@ -846,6 +875,49 @@ ak_3mf_append_slice_object_attrs(AK3MFBuffer               * __restrict buf,
     ak_3mf_buf_lit(buf, "\" s:slicepath=\"/");
     ak_3mf_buf_attr(buf, object->slicePath);
   }
+}
+
+static
+void
+ak_3mf_write_production_alternatives(AK3MFExportState * __restrict st,
+                                     AK3MFBuffer      * __restrict buf,
+                                     uint32_t                       parentObjectId) {
+  const AkPrintProductionItem *item;
+  bool                         opened;
+
+  if (!st || !st->print || !st->usesProductionAlternativeExtension)
+    return;
+
+  opened = false;
+  for (item = st->print->productionItems; item; item = item->next) {
+    if (item->type != AK_PRINT_PRODUCTION_ALTERNATIVE
+        || item->parentObjectId != parentObjectId)
+      continue;
+
+    if (!opened) {
+      ak_3mf_buf_lit(buf, "        <pa:alternatives>\n");
+      opened = true;
+    }
+
+    ak_3mf_buf_lit(buf, "          <pa:alternative objectid=\"");
+    ak_3mf_buf_u32(buf, item->objectId);
+    if (item->uuid) {
+      ak_3mf_buf_lit(buf, "\" UUID=\"");
+      ak_3mf_buf_attr(buf, item->uuid);
+    }
+    if (item->path) {
+      ak_3mf_buf_lit(buf, "\" path=\"");
+      ak_3mf_buf_3mf_path_attr(buf, item->path);
+    }
+    if (item->modelResolution) {
+      ak_3mf_buf_lit(buf, "\" modelresolution=\"");
+      ak_3mf_buf_attr(buf, item->modelResolution);
+    }
+    ak_3mf_buf_lit(buf, "\"/>\n");
+  }
+
+  if (opened)
+    ak_3mf_buf_lit(buf, "        </pa:alternatives>\n");
 }
 
 static
@@ -1446,7 +1518,7 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
 
   ak_3mf_buf_lit(&st->resources, "      <object id=\"");
   ak_3mf_buf_u32(&st->resources, objectId);
-  ak_3mf_append_production_open_attrs(&st->resources, productionObject, false);
+  ak_3mf_append_production_object_open_attrs(&st->resources, productionObject);
   ak_3mf_append_slice_object_attrs(&st->resources, sliceObject);
   ak_3mf_buf_lit(&st->resources, "\" type=\"model\">\n");
   if (displacementMesh) {
@@ -1488,9 +1560,9 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
   ak_3mf_write_beam_lattice(st, &st->resources, beamLattice);
   ak_3mf_buf_lit(&st->resources, displacementMesh
                                 ? "        </d:displacementmesh>\n"
-                                  "      </object>\n"
-                                : "        </mesh>\n"
-                                  "      </object>\n");
+                                : "        </mesh>\n");
+  ak_3mf_write_production_alternatives(st, &st->resources, objectId);
+  ak_3mf_buf_lit(&st->resources, "      </object>\n");
 
   if (!st->suppressBuildItems) {
     productionItem = ak_3mf_production_item_for_export(st, objectId);
@@ -2189,7 +2261,7 @@ ak_3mf_write_level_sets(AK3MFExportState * __restrict st) {
     ak_3mf_buf_lit(&st->resources, "      <object id=\"");
     ak_3mf_buf_u32(&st->resources, objectId);
     productionObject = ak_3mf_production_object_for_export(st, objectId);
-    ak_3mf_append_production_open_attrs(&st->resources, productionObject, false);
+    ak_3mf_append_production_object_open_attrs(&st->resources, productionObject);
     ak_3mf_buf_lit(&st->resources, "\" type=\"model\">\n"
                                   "        <v:levelset functionid=\"");
     ak_3mf_buf_u32(&st->resources, levelSet->functionId);
@@ -2227,8 +2299,9 @@ ak_3mf_write_level_sets(AK3MFExportState * __restrict st) {
       ak_3mf_buf_float(&st->resources, levelSet->fallbackValue);
       ak_3mf_buf_ch(&st->resources, '"');
     }
-    ak_3mf_buf_lit(&st->resources, "/>\n"
-                                  "      </object>\n");
+    ak_3mf_buf_lit(&st->resources, "/>\n");
+    ak_3mf_write_production_alternatives(st, &st->resources, objectId);
+    ak_3mf_buf_lit(&st->resources, "      </object>\n");
 
     productionItem = ak_3mf_production_item_for_export(st, objectId);
     ak_3mf_buf_lit(&st->build, "      <item objectid=\"");
@@ -2287,7 +2360,7 @@ ak_3mf_write_boolean_shapes(AK3MFExportState * __restrict st) {
     ak_3mf_buf_lit(&st->resources, "      <object id=\"");
     ak_3mf_buf_u32(&st->resources, objectId);
     productionObject = ak_3mf_production_object_for_export(st, objectId);
-    ak_3mf_append_production_open_attrs(&st->resources, productionObject, false);
+    ak_3mf_append_production_object_open_attrs(&st->resources, productionObject);
     ak_3mf_buf_lit(&st->resources, "\" type=\"model\">\n"
                                   "        <bo:booleanshape objectid=\"");
     ak_3mf_buf_u32(&st->resources, shape->baseObjectId);
@@ -2303,8 +2376,9 @@ ak_3mf_write_boolean_shapes(AK3MFExportState * __restrict st) {
     for (i = 0u; i < shape->operandCount && operand; i++, operand = operand->next)
       ak_3mf_write_boolean_operand(&st->resources, operand);
 
-    ak_3mf_buf_lit(&st->resources, "        </bo:booleanshape>\n"
-                                  "      </object>\n");
+    ak_3mf_buf_lit(&st->resources, "        </bo:booleanshape>\n");
+    ak_3mf_write_production_alternatives(st, &st->resources, objectId);
+    ak_3mf_buf_lit(&st->resources, "      </object>\n");
 
     productionItem = ak_3mf_production_item_for_export(st, objectId);
     ak_3mf_buf_lit(&st->build, "      <item objectid=\"");
@@ -2437,6 +2511,10 @@ ak_3mf_build_model_xml(AK3MFExportState * __restrict st,
     ak_3mf_buf_lit(model,
                    " xmlns:p=\"http://schemas.microsoft.com/3dmanufacturing/production/2015/06\"");
   }
+  if (st->usesProductionAlternativeExtension) {
+    ak_3mf_buf_lit(model,
+                   " xmlns:pa=\"http://schemas.microsoft.com/3dmanufacturing/production/alternatives/2021/04\"");
+  }
   if (st->usesSliceExtension) {
     ak_3mf_buf_lit(model,
                    " xmlns:s=\"http://schemas.microsoft.com/3dmanufacturing/slice/2015/07\"");
@@ -2467,6 +2545,7 @@ ak_3mf_build_model_xml(AK3MFExportState * __restrict st,
   }
   if (st->usesMaterialExtension
       || st->usesProductionExtension
+      || st->usesProductionAlternativeExtension
       || st->usesSliceExtension
       || st->usesBeamLatticeExtension
       || st->usesBeamBallExtension
@@ -2486,6 +2565,12 @@ ak_3mf_build_model_xml(AK3MFExportState * __restrict st,
       if (any)
         ak_3mf_buf_ch(model, ' ');
       ak_3mf_buf_lit(model, "p");
+      any = true;
+    }
+    if (st->usesProductionAlternativeExtension) {
+      if (any)
+        ak_3mf_buf_ch(model, ' ');
+      ak_3mf_buf_lit(model, "pa");
       any = true;
     }
     if (st->usesSliceExtension) {
@@ -2689,6 +2774,8 @@ ak_3mf_export(AkDoc * __restrict doc, const char * __restrict filepath) {
   st.build.result     = AK_OK;
   st.nextObjectId     = 1u;
   st.usesProductionExtension = st.print && st.print->productionItemCount > 0u;
+  st.usesProductionAlternativeExtension =
+    ak_3mf_uses_production_alternative_extension(st.print);
   st.usesSliceExtension = st.print
                           && (st.print->sliceStackCount > 0u
                               || st.print->sliceObjectCount > 0u);

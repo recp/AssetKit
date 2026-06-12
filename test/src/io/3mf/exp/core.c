@@ -269,6 +269,62 @@ ak_test_write_3mf_production_child_model(const char *path) {
 }
 
 static bool
+ak_test_write_3mf_production_alternatives_model(const char *path) {
+  static const char contentTypes[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">"
+    "<Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>"
+    "<Override PartName=\"/3D/3dmodel.model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\"/>"
+    "</Types>";
+  static const char rels[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">"
+    "<Relationship Id=\"rel0\" "
+    "Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\" "
+    "Target=\"/3D/3dmodel.model\"/>"
+    "</Relationships>";
+  static const char rootModel[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<model unit=\"millimeter\" requiredextensions=\"p pa\" "
+    "xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" "
+    "xmlns:p=\"http://schemas.microsoft.com/3dmanufacturing/production/2015/06\" "
+    "xmlns:pa=\"http://schemas.microsoft.com/3dmanufacturing/production/alternatives/2021/04\">"
+    "<resources>"
+    "<object id=\"1\" type=\"model\" p:UUID=\"object-uuid\" pa:modelresolution=\"lowres\">"
+    "<mesh>"
+    "<vertices>"
+    "<vertex x=\"0\" y=\"0\" z=\"0\"/>"
+    "<vertex x=\"1\" y=\"0\" z=\"0\"/>"
+    "<vertex x=\"0\" y=\"1\" z=\"0\"/>"
+    "</vertices>"
+    "<triangles><triangle v1=\"0\" v2=\"1\" v3=\"2\"/></triangles>"
+    "</mesh>"
+    "<pa:alternatives>"
+    "<pa:alternative objectid=\"2\" UUID=\"alternative-uuid\" "
+    "path=\"/3D/full.model\" modelresolution=\"fullres\"/>"
+    "</pa:alternatives>"
+    "</object>"
+    "</resources>"
+    "<build p:UUID=\"build-uuid\">"
+    "<item objectid=\"1\" p:UUID=\"item-uuid\"/>"
+    "</build>"
+    "</model>";
+  AkTest3MFZipEntry entries[3];
+
+  entries[0].name = "[Content_Types].xml";
+  entries[0].data = contentTypes;
+  entries[0].size = sizeof(contentTypes) - 1u;
+  entries[1].name = "_rels/.rels";
+  entries[1].data = rels;
+  entries[1].size = sizeof(rels) - 1u;
+  entries[2].name = "3D/3dmodel.model";
+  entries[2].data = rootModel;
+  entries[2].size = sizeof(rootModel) - 1u;
+
+  return ak_test_3mf_zip_write_stored(path, entries, AK_ARRAY_LEN(entries));
+}
+
+static bool
 ak_test_write_3mf_slice_child_model(const char *path) {
   static const char contentTypes[] =
     "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
@@ -967,6 +1023,99 @@ TEST_IMPL(three_mf_import_production_child_model_path) {
   ASSERT(itemProd->objectId == 7);
   ASSERT(objectProd != NULL);
   ASSERT(objectProd->objectId == 7);
+
+  ak_test_export_cleanup(outDir);
+  ak_test_export_cleanup(roundTripDir);
+  TEST_SUCCESS
+}
+
+TEST_IMPL(three_mf_import_production_alternatives_roundtrip) {
+  AkDoc                 *doc;
+  AkDoc                 *roundTrip;
+  AkPrintDocument       *print;
+  AkPrintDocument       *roundTripPrint;
+  AkPrintProductionItem *prod;
+  AkPrintProductionItem *objectProd;
+  AkPrintProductionItem *alternativeProd;
+  const char            *outDir = "./assetkit_import_3mf_production_alternatives";
+  const char            *mfPath = "./assetkit_import_3mf_production_alternatives/model.3mf";
+  const char            *roundTripDir = "./assetkit_export_3mf_production_alternatives";
+  const char            *roundTripPath = "./assetkit_export_3mf_production_alternatives/model.3mf";
+
+  ak_test_export_cleanup(outDir);
+  ak_test_export_cleanup(roundTripDir);
+  ASSERT(mkdir(outDir, 0777) == 0);
+  ASSERT(ak_test_write_3mf_production_alternatives_model(mfPath));
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, mfPath, AK_FILE_TYPE_3MF) == AK_OK);
+  ASSERT(doc != NULL);
+  ASSERT(doc->lib.geometries.count == 1);
+
+  print = ak_printDocument(doc);
+  ASSERT(print != NULL);
+  ASSERT(ak_printHasFeature(print, AK_PRINT_FEATURE_PRODUCTION));
+  ASSERT((print->requiredFeatures & AK_PRINT_FEATURE_PRODUCTION) != 0u);
+  ASSERT((print->unsupportedFeatures & AK_PRINT_FEATURE_PRODUCTION) == 0u);
+
+  objectProd      = NULL;
+  alternativeProd = NULL;
+  for (prod = print->productionItems; prod; prod = prod->next) {
+    if (prod->type == AK_PRINT_PRODUCTION_OBJECT)
+      objectProd = prod;
+    else if (prod->type == AK_PRINT_PRODUCTION_ALTERNATIVE)
+      alternativeProd = prod;
+  }
+
+  ASSERT(objectProd != NULL);
+  ASSERT(objectProd->uuid != NULL);
+  ASSERT(strcmp(objectProd->uuid, "object-uuid") == 0);
+  ASSERT(objectProd->modelResolution != NULL);
+  ASSERT(strcmp(objectProd->modelResolution, "lowres") == 0);
+  ASSERT(alternativeProd != NULL);
+  ASSERT(alternativeProd->uuid != NULL);
+  ASSERT(strcmp(alternativeProd->uuid, "alternative-uuid") == 0);
+  ASSERT(alternativeProd->path != NULL);
+  ASSERT(strcmp(alternativeProd->path, "3D/full.model") == 0);
+  ASSERT(alternativeProd->objectId == 2);
+  ASSERT(alternativeProd->parentObjectId == 1);
+  ASSERT(alternativeProd->modelResolution != NULL);
+  ASSERT(strcmp(alternativeProd->modelResolution, "fullres") == 0);
+
+  ASSERT(ak_export(doc, roundTripDir, AK_FILE_TYPE_3MF) == AK_OK);
+  roundTrip = NULL;
+  ASSERT(ak_load(&roundTrip, roundTripPath, AK_FILE_TYPE_3MF) == AK_OK);
+  ASSERT(roundTrip != NULL);
+
+  roundTripPrint = ak_printDocument(roundTrip);
+  ASSERT(roundTripPrint != NULL);
+  ASSERT(ak_printHasFeature(roundTripPrint, AK_PRINT_FEATURE_PRODUCTION));
+  ASSERT((roundTripPrint->requiredFeatures & AK_PRINT_FEATURE_PRODUCTION) != 0u);
+  ASSERT((roundTripPrint->unsupportedFeatures & AK_PRINT_FEATURE_PRODUCTION) == 0u);
+
+  objectProd      = NULL;
+  alternativeProd = NULL;
+  for (prod = roundTripPrint->productionItems; prod; prod = prod->next) {
+    if (prod->type == AK_PRINT_PRODUCTION_OBJECT)
+      objectProd = prod;
+    else if (prod->type == AK_PRINT_PRODUCTION_ALTERNATIVE)
+      alternativeProd = prod;
+  }
+
+  ASSERT(objectProd != NULL);
+  ASSERT(objectProd->uuid != NULL);
+  ASSERT(strcmp(objectProd->uuid, "object-uuid") == 0);
+  ASSERT(objectProd->modelResolution != NULL);
+  ASSERT(strcmp(objectProd->modelResolution, "lowres") == 0);
+  ASSERT(alternativeProd != NULL);
+  ASSERT(alternativeProd->uuid != NULL);
+  ASSERT(strcmp(alternativeProd->uuid, "alternative-uuid") == 0);
+  ASSERT(alternativeProd->path != NULL);
+  ASSERT(strcmp(alternativeProd->path, "3D/full.model") == 0);
+  ASSERT(alternativeProd->objectId == 2);
+  ASSERT(alternativeProd->parentObjectId == 1);
+  ASSERT(alternativeProd->modelResolution != NULL);
+  ASSERT(strcmp(alternativeProd->modelResolution, "fullres") == 0);
 
   ak_test_export_cleanup(outDir);
   ak_test_export_cleanup(roundTripDir);
