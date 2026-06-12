@@ -487,6 +487,19 @@ ak_3mf_tag(const xml_t * __restrict xml, const char * __restrict tag) {
 }
 
 static
+xml_t*
+ak_3mf_child(xml_t * __restrict parent, const char * __restrict tag) {
+  xml_t *child;
+
+  for (child = parent ? parent->val : NULL; child; child = child->next) {
+    if (ak_3mf_tag(child, tag))
+      return child;
+  }
+
+  return NULL;
+}
+
+static
 AkPrintFeatureFlags
 ak_3mf_feature_from_text(const char * __restrict text, size_t len) {
   if (!text || len == 0u)
@@ -536,7 +549,8 @@ ak_3mf_mark_required_feature(AkPrintDocument    * __restrict print,
     | AK_PRINT_FEATURE_MATERIALS
     | AK_PRINT_FEATURE_PACKAGE
     | AK_PRINT_FEATURE_PRODUCTION
-    | AK_PRINT_FEATURE_SLICE;
+    | AK_PRINT_FEATURE_SLICE
+    | AK_PRINT_FEATURE_BEAM_LATTICE;
 
   if (!print)
     return;
@@ -1504,6 +1518,225 @@ ak_3mf_parse_property_groups(AK3MFImportState * __restrict st,
 }
 
 static
+uint32_t
+ak_3mf_clamp_count_u32(size_t count);
+
+static
+uint32_t
+ak_3mf_optional_attr_flag(const xml_attr_t * __restrict attr,
+                          uint32_t                      flag) {
+  return attr && attr->val ? flag : 0u;
+}
+
+static
+void
+ak_3mf_parse_beam_lattice_beams(AK3MFImportState     * __restrict st,
+                                AkPrintBeamLattice   * __restrict lattice,
+                                xml_t                * __restrict beamsXml) {
+  xml_t *beamXml;
+
+  if (!st || !lattice || !beamsXml)
+    return;
+
+  for (beamXml = beamsXml->val; beamXml; beamXml = beamXml->next) {
+    xml_attr_t *r1Attr;
+    xml_attr_t *r2Attr;
+    xml_attr_t *p1Attr;
+    xml_attr_t *p2Attr;
+    xml_attr_t *pidAttr;
+    xml_attr_t *cap1Attr;
+    xml_attr_t *cap2Attr;
+    char       *cap1;
+    char       *cap2;
+    uint32_t    flags;
+    float       r1;
+    float       r2;
+
+    if (!ak_3mf_tag(beamXml, "beam"))
+      continue;
+
+    r1Attr   = ak_3mf_xmla_local_lit(beamXml, "r1");
+    r2Attr   = ak_3mf_xmla_local_lit(beamXml, "r2");
+    p1Attr   = ak_3mf_xmla_local_lit(beamXml, "p1");
+    p2Attr   = ak_3mf_xmla_local_lit(beamXml, "p2");
+    pidAttr  = ak_3mf_xmla_local_lit(beamXml, "pid");
+    cap1Attr = ak_3mf_xmla_local_lit(beamXml, "cap1");
+    cap2Attr = ak_3mf_xmla_local_lit(beamXml, "cap2");
+    flags    = ak_3mf_optional_attr_flag(r1Attr, AK_PRINT_BEAM_HAS_R1)
+               | ak_3mf_optional_attr_flag(r2Attr, AK_PRINT_BEAM_HAS_R2)
+               | ak_3mf_optional_attr_flag(p1Attr, AK_PRINT_BEAM_HAS_P1)
+               | ak_3mf_optional_attr_flag(p2Attr, AK_PRINT_BEAM_HAS_P2)
+               | ak_3mf_optional_attr_flag(pidAttr, AK_PRINT_BEAM_HAS_PID)
+               | ak_3mf_optional_attr_flag(cap1Attr, AK_PRINT_BEAM_HAS_CAP1)
+               | ak_3mf_optional_attr_flag(cap2Attr, AK_PRINT_BEAM_HAS_CAP2);
+    r1       = xmla_float(r1Attr, lattice->radius);
+    r2       = xmla_float(r2Attr, r1);
+    cap1     = ak_3mf_attr_dup_cstr(cap1Attr);
+    cap2     = ak_3mf_attr_dup_cstr(cap2Attr);
+
+    (void)ak_printAddBeam(st->doc,
+                          lattice,
+                          xmla_u32(ak_3mf_xmla_local_lit(beamXml, "v1"), 0u),
+                          xmla_u32(ak_3mf_xmla_local_lit(beamXml, "v2"), 0u),
+                          r1,
+                          r2,
+                          xmla_u32(p1Attr, UINT32_MAX),
+                          xmla_u32(p2Attr, UINT32_MAX),
+                          xmla_u32(pidAttr, 0u),
+                          cap1,
+                          cap2,
+                          flags);
+    free(cap1);
+    free(cap2);
+  }
+}
+
+static
+void
+ak_3mf_parse_beam_lattice_balls(AK3MFImportState     * __restrict st,
+                                AkPrintBeamLattice   * __restrict lattice,
+                                xml_t                * __restrict ballsXml) {
+  xml_t *ballXml;
+
+  if (!st || !lattice || !ballsXml)
+    return;
+
+  for (ballXml = ballsXml->val; ballXml; ballXml = ballXml->next) {
+    xml_attr_t *rAttr;
+    xml_attr_t *pAttr;
+    xml_attr_t *pidAttr;
+    uint32_t    flags;
+
+    if (!ak_3mf_tag(ballXml, "ball"))
+      continue;
+
+    rAttr  = ak_3mf_xmla_local_lit(ballXml, "r");
+    pAttr  = ak_3mf_xmla_local_lit(ballXml, "p");
+    pidAttr = ak_3mf_xmla_local_lit(ballXml, "pid");
+    flags  = ak_3mf_optional_attr_flag(rAttr, AK_PRINT_BEAM_BALL_HAS_RADIUS)
+             | ak_3mf_optional_attr_flag(pAttr, AK_PRINT_BEAM_BALL_HAS_P)
+             | ak_3mf_optional_attr_flag(pidAttr, AK_PRINT_BEAM_BALL_HAS_PID);
+
+    (void)ak_printAddBeamBall(st->doc,
+                              lattice,
+                              xmla_u32(ak_3mf_xmla_local_lit(ballXml, "vindex"), 0u),
+                              xmla_float(rAttr, lattice->ballRadius),
+                              xmla_u32(pAttr, UINT32_MAX),
+                              xmla_u32(pidAttr, 0u),
+                              flags);
+  }
+}
+
+static
+void
+ak_3mf_parse_beam_lattice_sets(AK3MFImportState     * __restrict st,
+                               AkPrintBeamLattice   * __restrict lattice,
+                               xml_t                * __restrict beamSetsXml) {
+  xml_t *setXml;
+
+  if (!st || !lattice || !beamSetsXml)
+    return;
+
+  for (setXml = beamSetsXml->val; setXml; setXml = setXml->next) {
+    char    *name;
+    char    *identifier;
+    size_t   refCount;
+    size_t   ballRefCount;
+
+    if (!ak_3mf_tag(setXml, "beamset"))
+      continue;
+
+    name         = ak_3mf_attr_dup_cstr(ak_3mf_xmla_local_lit(setXml, "name"));
+    identifier   = ak_3mf_attr_dup_cstr(ak_3mf_xmla_local_lit(setXml, "identifier"));
+    refCount     = ak_3mf_count_children(setXml, "ref");
+    ballRefCount = ak_3mf_count_children(setXml, "ballref");
+    (void)ak_printAddBeamSet(st->doc,
+                             lattice,
+                             name,
+                             identifier,
+                             ak_3mf_clamp_count_u32(refCount),
+                             ak_3mf_clamp_count_u32(ballRefCount));
+    free(name);
+    free(identifier);
+  }
+}
+
+static
+void
+ak_3mf_parse_beam_lattice(AK3MFImportState * __restrict st,
+                          xml_t            * __restrict meshXml,
+                          uint32_t                      objectId) {
+  AkPrintBeamLattice *lattice;
+  xml_t              *beamLatticeXml;
+  xml_attr_t         *ballRadiusAttr;
+  xml_attr_t         *clippingMeshAttr;
+  xml_attr_t         *representationMeshAttr;
+  xml_attr_t         *pidAttr;
+  xml_attr_t         *pindexAttr;
+  char               *clippingMode;
+  char               *cap;
+  char               *ballMode;
+  uint32_t            flags;
+
+  if (!st || !st->doc || !st->print || !meshXml)
+    return;
+
+  beamLatticeXml = ak_3mf_child(meshXml, "beamlattice");
+  if (!beamLatticeXml)
+    return;
+
+  ballRadiusAttr         = ak_3mf_xmla_local_lit(beamLatticeXml, "ballradius");
+  clippingMeshAttr       = ak_3mf_xmla_local_lit(beamLatticeXml, "clippingmesh");
+  representationMeshAttr = ak_3mf_xmla_local_lit(beamLatticeXml, "representationmesh");
+  pidAttr                = ak_3mf_xmla_local_lit(beamLatticeXml, "pid");
+  pindexAttr             = ak_3mf_xmla_local_lit(beamLatticeXml, "pindex");
+  clippingMode           = ak_3mf_attr_dup_cstr(ak_3mf_xmla_local_lit(beamLatticeXml, "clippingmode"));
+  cap                    = ak_3mf_attr_dup_cstr(ak_3mf_xmla_local_lit(beamLatticeXml, "cap"));
+  ballMode               = ak_3mf_attr_dup_cstr(ak_3mf_xmla_local_lit(beamLatticeXml, "ballmode"));
+  flags                  = ak_3mf_optional_attr_flag(ballRadiusAttr,
+                                                     AK_PRINT_BEAM_LATTICE_HAS_BALL_RADIUS)
+                           | ak_3mf_optional_attr_flag(clippingMeshAttr,
+                                                       AK_PRINT_BEAM_LATTICE_HAS_CLIPPING_MESH)
+                           | ak_3mf_optional_attr_flag(representationMeshAttr,
+                                                       AK_PRINT_BEAM_LATTICE_HAS_REPRESENTATION_MESH)
+                           | ak_3mf_optional_attr_flag(pidAttr,
+                                                       AK_PRINT_BEAM_LATTICE_HAS_PID)
+                           | ak_3mf_optional_attr_flag(pindexAttr,
+                                                       AK_PRINT_BEAM_LATTICE_HAS_PINDEX);
+
+  lattice = ak_printAddBeamLattice(
+    st->doc,
+    st->currentModelPath,
+    objectId,
+    xmla_float(ak_3mf_xmla_local_lit(beamLatticeXml, "minlength"), 0.0f),
+    xmla_float(ak_3mf_xmla_local_lit(beamLatticeXml, "radius"), 0.0f),
+    clippingMode,
+    cap,
+    ballMode,
+    xmla_float(ballRadiusAttr, 0.0f),
+    xmla_u32(clippingMeshAttr, 0u),
+    xmla_u32(representationMeshAttr, 0u),
+    xmla_u32(pidAttr, 0u),
+    xmla_u32(pindexAttr, UINT32_MAX),
+    flags);
+  free(clippingMode);
+  free(cap);
+  free(ballMode);
+  if (!lattice)
+    return;
+
+  ak_3mf_parse_beam_lattice_beams(st,
+                                  lattice,
+                                  ak_3mf_child(beamLatticeXml, "beams"));
+  ak_3mf_parse_beam_lattice_balls(st,
+                                  lattice,
+                                  ak_3mf_child(beamLatticeXml, "balls"));
+  ak_3mf_parse_beam_lattice_sets(st,
+                                 lattice,
+                                 ak_3mf_child(beamLatticeXml, "beamsets"));
+}
+
+static
 AkGeometry*
 ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
                   xml_t            * __restrict objXml,
@@ -1512,6 +1745,7 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
   AkHeap          *heap;
   xml_t           *verticesXml;
   xml_t           *trianglesXml;
+  xml_t           *beamLatticeXml;
   xml_t           *vertexXml;
   xml_t           *triangleXml;
   AkGeometry      *geom;
@@ -1540,10 +1774,11 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
   doc          = st->doc;
   verticesXml  = xml_elem(meshXml, "vertices");
   trianglesXml = xml_elem(meshXml, "triangles");
+  beamLatticeXml = ak_3mf_child(meshXml, "beamlattice");
   vertexCount  = ak_3mf_count_children(verticesXml, "vertex");
   triangleCount = ak_3mf_count_children(trianglesXml, "triangle");
   if (vertexCount == 0
-      || triangleCount == 0
+      || (triangleCount == 0 && !beamLatticeXml)
       || vertexCount > UINT32_MAX
       || triangleCount > SIZE_MAX / 3u
       || triangleCount * 3u > UINT32_MAX)
@@ -1568,7 +1803,7 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
   defaultPIndex = xmla_u32(AK_3MF_XMLA(objXml, pindex), UINT32_MAX);
   hasColor      = false;
   hasAlpha      = false;
-  for (triangleXml = trianglesXml->val;
+  for (triangleXml = trianglesXml ? trianglesXml->val : NULL;
        triangleXml;
        triangleXml = triangleXml->next) {
     uint32_t pid;
@@ -1671,7 +1906,7 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
   }
 
   i = 0;
-  for (triangleXml = trianglesXml->val;
+  for (triangleXml = trianglesXml ? trianglesXml->val : NULL;
        triangleXml;
        triangleXml = triangleXml->next) {
     AkUInt v[3];
@@ -1748,6 +1983,10 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
   } else {
     prim->indices = indices;
   }
+
+  ak_3mf_parse_beam_lattice(st,
+                            meshXml,
+                            xmla_u32(AK_3MF_XMLA(objXml, id), 0u));
 
   AK_LIB_PREPEND(doc->lib.geometries, geom, next);
   return geom;

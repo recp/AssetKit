@@ -394,3 +394,204 @@ ak_printAddSliceObject(AkDoc      * __restrict doc,
 
   return object;
 }
+
+AK_EXPORT
+AkPrintBeamLattice*
+ak_printAddBeamLattice(AkDoc      * __restrict doc,
+                       const char * __restrict path,
+                       uint32_t                objectId,
+                       float                   minLength,
+                       float                   radius,
+                       const char * __restrict clippingMode,
+                       const char * __restrict cap,
+                       const char * __restrict ballMode,
+                       float                   ballRadius,
+                       uint32_t                clippingMesh,
+                       uint32_t                representationMesh,
+                       uint32_t                pid,
+                       uint32_t                pindex,
+                       uint32_t                flags) {
+  AkPrintDocument    *print;
+  AkPrintBeamLattice *lattice;
+  AkHeap             *heap;
+
+  print = ak_printDocumentEnsure(doc);
+  if (!print)
+    return NULL;
+
+  heap = ak_heap_getheap(print);
+  if (!heap)
+    return NULL;
+
+  lattice = ak_heap_calloc(heap, print, sizeof(*lattice));
+  if (!lattice)
+    return NULL;
+
+  lattice->path               = ak_print_strdup(heap, lattice, path);
+  lattice->clippingMode       = ak_print_strdup(heap, lattice, clippingMode);
+  lattice->cap                = ak_print_strdup(heap, lattice, cap);
+  lattice->ballMode           = ak_print_strdup(heap, lattice, ballMode);
+  lattice->objectId           = objectId;
+  lattice->minLength          = minLength;
+  lattice->radius             = radius;
+  lattice->ballRadius         = ballRadius;
+  lattice->clippingMesh       = clippingMesh;
+  lattice->representationMesh = representationMesh;
+  lattice->pid                = pid;
+  lattice->pindex             = pindex;
+  lattice->flags              = flags;
+
+  if (print->lastBeamLattice)
+    print->lastBeamLattice->next = lattice;
+  else
+    print->beamLattices = lattice;
+
+  print->lastBeamLattice = lattice;
+  print->beamLatticeCount++;
+  print->features |= AK_PRINT_FEATURE_BEAM_LATTICE;
+
+  return lattice;
+}
+
+AK_EXPORT
+AkPrintBeam*
+ak_printAddBeam(AkDoc               * __restrict doc,
+                AkPrintBeamLattice  * __restrict lattice,
+                uint32_t                         v1,
+                uint32_t                         v2,
+                float                            r1,
+                float                            r2,
+                uint32_t                         p1,
+                uint32_t                         p2,
+                uint32_t                         pid,
+                const char          * __restrict cap1,
+                const char          * __restrict cap2,
+                uint32_t                         flags) {
+  AkPrintDocument *print;
+  AkPrintBeam     *beam;
+  AkHeap          *heap;
+
+  print = ak_printDocumentEnsure(doc);
+  if (!print)
+    return NULL;
+
+  heap = ak_heap_getheap(print);
+  if (!heap)
+    return NULL;
+
+  beam = ak_heap_calloc(heap, print, sizeof(*beam));
+  if (!beam)
+    return NULL;
+
+  beam->cap1  = ak_print_strdup(heap, beam, cap1);
+  beam->cap2  = ak_print_strdup(heap, beam, cap2);
+  beam->v1    = v1;
+  beam->v2    = v2;
+  beam->r1    = r1;
+  beam->r2    = r2;
+  beam->p1    = p1;
+  beam->p2    = p2;
+  beam->pid   = pid;
+  beam->flags = flags;
+
+  if (print->lastBeam)
+    print->lastBeam->next = beam;
+  else
+    print->beams = beam;
+
+  print->lastBeam = beam;
+  print->beamCount++;
+  if (lattice)
+    lattice->beamCount++;
+  print->features |= AK_PRINT_FEATURE_BEAM_LATTICE;
+
+  return beam;
+}
+
+AK_EXPORT
+AkPrintBeamBall*
+ak_printAddBeamBall(AkDoc               * __restrict doc,
+                    AkPrintBeamLattice  * __restrict lattice,
+                    uint32_t                         vindex,
+                    float                            radius,
+                    uint32_t                         p,
+                    uint32_t                         pid,
+                    uint32_t                         flags) {
+  AkPrintDocument *print;
+  AkPrintBeamBall *ball;
+  AkHeap          *heap;
+
+  print = ak_printDocumentEnsure(doc);
+  if (!print)
+    return NULL;
+
+  heap = ak_heap_getheap(print);
+  if (!heap)
+    return NULL;
+
+  ball = ak_heap_calloc(heap, print, sizeof(*ball));
+  if (!ball)
+    return NULL;
+
+  ball->vindex = vindex;
+  ball->radius = radius;
+  ball->p      = p;
+  ball->pid    = pid;
+  ball->flags  = flags;
+
+  if (print->lastBeamBall)
+    print->lastBeamBall->next = ball;
+  else
+    print->beamBalls = ball;
+
+  print->lastBeamBall = ball;
+  print->beamBallCount++;
+  if (lattice)
+    lattice->ballCount++;
+  print->features |= AK_PRINT_FEATURE_BEAM_LATTICE;
+
+  return ball;
+}
+
+AK_EXPORT
+AkPrintBeamSet*
+ak_printAddBeamSet(AkDoc               * __restrict doc,
+                   AkPrintBeamLattice  * __restrict lattice,
+                   const char          * __restrict name,
+                   const char          * __restrict identifier,
+                   uint32_t                         refCount,
+                   uint32_t                         ballRefCount) {
+  AkPrintDocument *print;
+  AkPrintBeamSet  *set;
+  AkHeap          *heap;
+
+  print = ak_printDocumentEnsure(doc);
+  if (!print)
+    return NULL;
+
+  heap = ak_heap_getheap(print);
+  if (!heap)
+    return NULL;
+
+  set = ak_heap_calloc(heap, print, sizeof(*set));
+  if (!set)
+    return NULL;
+
+  set->name         = ak_print_strdup(heap, set, name);
+  set->identifier   = ak_print_strdup(heap, set, identifier);
+  set->refCount     = refCount;
+  set->ballRefCount = ballRefCount;
+
+  if (print->lastBeamSet)
+    print->lastBeamSet->next = set;
+  else
+    print->beamSets = set;
+
+  print->lastBeamSet = set;
+  print->beamSetCount++;
+  if (lattice)
+    lattice->beamSetCount++;
+  print->features |= AK_PRINT_FEATURE_BEAM_LATTICE;
+
+  return set;
+}

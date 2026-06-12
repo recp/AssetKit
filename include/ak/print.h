@@ -72,6 +72,30 @@ typedef enum AkPrintProductionItemType {
   AK_PRINT_PRODUCTION_ALTERNATIVE
 } AkPrintProductionItemType;
 
+typedef enum AkPrintBeamLatticeFlag {
+  AK_PRINT_BEAM_LATTICE_HAS_BALL_RADIUS         = 1u << 0,
+  AK_PRINT_BEAM_LATTICE_HAS_CLIPPING_MESH       = 1u << 1,
+  AK_PRINT_BEAM_LATTICE_HAS_REPRESENTATION_MESH = 1u << 2,
+  AK_PRINT_BEAM_LATTICE_HAS_PID                 = 1u << 3,
+  AK_PRINT_BEAM_LATTICE_HAS_PINDEX              = 1u << 4
+} AkPrintBeamLatticeFlag;
+
+typedef enum AkPrintBeamFlag {
+  AK_PRINT_BEAM_HAS_R1   = 1u << 0,
+  AK_PRINT_BEAM_HAS_R2   = 1u << 1,
+  AK_PRINT_BEAM_HAS_P1   = 1u << 2,
+  AK_PRINT_BEAM_HAS_P2   = 1u << 3,
+  AK_PRINT_BEAM_HAS_PID  = 1u << 4,
+  AK_PRINT_BEAM_HAS_CAP1 = 1u << 5,
+  AK_PRINT_BEAM_HAS_CAP2 = 1u << 6
+} AkPrintBeamFlag;
+
+typedef enum AkPrintBeamBallFlag {
+  AK_PRINT_BEAM_BALL_HAS_RADIUS = 1u << 0,
+  AK_PRINT_BEAM_BALL_HAS_P      = 1u << 1,
+  AK_PRINT_BEAM_BALL_HAS_PID    = 1u << 2
+} AkPrintBeamBallFlag;
+
 typedef struct AkPrintPackagePart {
   struct AkPrintPackagePart *next;
   const char                *name;
@@ -134,6 +158,58 @@ typedef struct AkPrintSliceObject {
   uint32_t                   flags;
 } AkPrintSliceObject;
 
+typedef struct AkPrintBeamLattice {
+  struct AkPrintBeamLattice *next;
+  const char                *path;
+  const char                *clippingMode;
+  const char                *cap;
+  const char                *ballMode;
+  float                      minLength;
+  float                      radius;
+  float                      ballRadius;
+  uint32_t                   objectId;
+  uint32_t                   clippingMesh;
+  uint32_t                   representationMesh;
+  uint32_t                   pid;
+  uint32_t                   pindex;
+  uint32_t                   beamCount;
+  uint32_t                   ballCount;
+  uint32_t                   beamSetCount;
+  uint32_t                   flags;
+} AkPrintBeamLattice;
+
+typedef struct AkPrintBeam {
+  struct AkPrintBeam *next;
+  const char         *cap1;
+  const char         *cap2;
+  float               r1;
+  float               r2;
+  uint32_t            v1;
+  uint32_t            v2;
+  uint32_t            p1;
+  uint32_t            p2;
+  uint32_t            pid;
+  uint32_t            flags;
+} AkPrintBeam;
+
+typedef struct AkPrintBeamBall {
+  struct AkPrintBeamBall *next;
+  float                   radius;
+  uint32_t                vindex;
+  uint32_t                p;
+  uint32_t                pid;
+  uint32_t                flags;
+} AkPrintBeamBall;
+
+typedef struct AkPrintBeamSet {
+  struct AkPrintBeamSet *next;
+  const char            *name;
+  const char            *identifier;
+  uint32_t               refCount;
+  uint32_t               ballRefCount;
+  uint32_t               flags;
+} AkPrintBeamSet;
+
 typedef struct AkPrintDocument {
   AkPrintPackagePart    *parts;
   AkPrintPackagePart    *lastPart;
@@ -147,6 +223,14 @@ typedef struct AkPrintDocument {
   AkPrintSlice          *lastSlice;
   AkPrintSliceObject    *sliceObjects;
   AkPrintSliceObject    *lastSliceObject;
+  AkPrintBeamLattice    *beamLattices;
+  AkPrintBeamLattice    *lastBeamLattice;
+  AkPrintBeam           *beams;
+  AkPrintBeam           *lastBeam;
+  AkPrintBeamBall       *beamBalls;
+  AkPrintBeamBall       *lastBeamBall;
+  AkPrintBeamSet        *beamSets;
+  AkPrintBeamSet        *lastBeamSet;
   AkTree                *extra;
   const char            *profileName;
   const char            *printerModel;
@@ -168,6 +252,10 @@ typedef struct AkPrintDocument {
   uint32_t               sliceRefCount;
   uint32_t               sliceCount;
   uint32_t               sliceObjectCount;
+  uint32_t               beamLatticeCount;
+  uint32_t               beamCount;
+  uint32_t               beamBallCount;
+  uint32_t               beamSetCount;
 } AkPrintDocument;
 
 AK_EXPORT
@@ -261,6 +349,57 @@ ak_printAddSliceObject(struct AkDoc  * __restrict doc,
                        const char    * __restrict meshResolution,
                        uint32_t                   objectId,
                        uint32_t                   sliceStackId);
+
+AK_EXPORT
+AkPrintBeamLattice*
+ak_printAddBeamLattice(struct AkDoc  * __restrict doc,
+                       const char    * __restrict path,
+                       uint32_t                   objectId,
+                       float                      minLength,
+                       float                      radius,
+                       const char    * __restrict clippingMode,
+                       const char    * __restrict cap,
+                       const char    * __restrict ballMode,
+                       float                      ballRadius,
+                       uint32_t                   clippingMesh,
+                       uint32_t                   representationMesh,
+                       uint32_t                   pid,
+                       uint32_t                   pindex,
+                       uint32_t                   flags);
+
+AK_EXPORT
+AkPrintBeam*
+ak_printAddBeam(struct AkDoc            * __restrict doc,
+                AkPrintBeamLattice      * __restrict lattice,
+                uint32_t                             v1,
+                uint32_t                             v2,
+                float                                r1,
+                float                                r2,
+                uint32_t                             p1,
+                uint32_t                             p2,
+                uint32_t                             pid,
+                const char              * __restrict cap1,
+                const char              * __restrict cap2,
+                uint32_t                             flags);
+
+AK_EXPORT
+AkPrintBeamBall*
+ak_printAddBeamBall(struct AkDoc            * __restrict doc,
+                    AkPrintBeamLattice      * __restrict lattice,
+                    uint32_t                             vindex,
+                    float                                radius,
+                    uint32_t                             p,
+                    uint32_t                             pid,
+                    uint32_t                             flags);
+
+AK_EXPORT
+AkPrintBeamSet*
+ak_printAddBeamSet(struct AkDoc            * __restrict doc,
+                   AkPrintBeamLattice      * __restrict lattice,
+                   const char              * __restrict name,
+                   const char              * __restrict identifier,
+                   uint32_t                             refCount,
+                   uint32_t                             ballRefCount);
 
 #ifdef __cplusplus
 }

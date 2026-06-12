@@ -358,6 +358,65 @@ ak_test_write_3mf_slice_child_model(const char *path) {
   return ak_test_3mf_zip_write_stored(path, entries, AK_ARRAY_LEN(entries));
 }
 
+static bool
+ak_test_write_3mf_beam_lattice_model(const char *path) {
+  static const char contentTypes[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">"
+    "<Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>"
+    "<Override PartName=\"/3D/3dmodel.model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\"/>"
+    "</Types>";
+  static const char rels[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">"
+    "<Relationship Id=\"rel0\" "
+    "Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\" "
+    "Target=\"/3D/3dmodel.model\"/>"
+    "</Relationships>";
+  static const char rootModel[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<model unit=\"millimeter\" requiredextensions=\"b b2\" "
+    "xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" "
+    "xmlns:b=\"http://schemas.microsoft.com/3dmanufacturing/beamlattice/2017/02\" "
+    "xmlns:b2=\"http://schemas.microsoft.com/3dmanufacturing/beamlattice/balls/2020/07\">"
+    "<resources>"
+    "<object id=\"1\" type=\"model\" name=\"beam-root\">"
+    "<mesh>"
+    "<vertices>"
+    "<vertex x=\"0\" y=\"0\" z=\"0\"/>"
+    "<vertex x=\"1\" y=\"0\" z=\"0\"/>"
+    "<vertex x=\"0\" y=\"1\" z=\"0\"/>"
+    "</vertices>"
+    "<b:beamlattice radius=\"0.1\" minlength=\"0.001\" cap=\"sphere\" "
+    "b2:ballmode=\"mixed\" b2:ballradius=\"0.2\">"
+    "<b:beams>"
+    "<b:beam v1=\"0\" v2=\"1\" r1=\"0.15\" r2=\"0.16\" cap1=\"sphere\"/>"
+    "<b:beam v1=\"1\" v2=\"2\"/>"
+    "</b:beams>"
+    "<b2:balls>"
+    "<b2:ball vindex=\"0\" r=\"0.25\"/>"
+    "</b2:balls>"
+    "</b:beamlattice>"
+    "</mesh>"
+    "</object>"
+    "</resources>"
+    "<build><item objectid=\"1\"/></build>"
+    "</model>";
+  AkTest3MFZipEntry entries[3];
+
+  entries[0].name = "[Content_Types].xml";
+  entries[0].data = contentTypes;
+  entries[0].size = sizeof(contentTypes) - 1u;
+  entries[1].name = "_rels/.rels";
+  entries[1].data = rels;
+  entries[1].size = sizeof(rels) - 1u;
+  entries[2].name = "3D/3dmodel.model";
+  entries[2].data = rootModel;
+  entries[2].size = sizeof(rootModel) - 1u;
+
+  return ak_test_3mf_zip_write_stored(path, entries, AK_ARRAY_LEN(entries));
+}
+
 static AkDoc *
 ak_test_make_3mf_triangle_doc(void) {
   AkHeap     *heap;
@@ -848,6 +907,101 @@ TEST_IMPL(three_mf_import_slice_child_model_path) {
   ASSERT(roundTripPrint->sliceRefCount == 1);
   ASSERT(roundTripPrint->sliceCount == 1);
   ASSERT(roundTripPrint->sliceObjectCount == 1);
+
+  ak_test_export_cleanup(outDir);
+  ak_test_export_cleanup(roundTripDir);
+  TEST_SUCCESS
+}
+
+TEST_IMPL(three_mf_import_beam_lattice_roundtrip) {
+  AkDoc                *doc;
+  AkDoc                *roundTrip;
+  AkGeometry           *geom;
+  AkMesh               *mesh;
+  AkMeshPrimitive      *prim;
+  AkPrintDocument      *print;
+  AkPrintDocument      *roundTripPrint;
+  AkPrintBeamLattice   *lattice;
+  AkPrintBeam          *beam;
+  AkPrintBeamBall      *ball;
+  const char           *outDir = "./assetkit_import_3mf_beam_lattice";
+  const char           *mfPath = "./assetkit_import_3mf_beam_lattice/model.3mf";
+  const char           *roundTripDir = "./assetkit_export_3mf_beam_lattice";
+  const char           *roundTripPath = "./assetkit_export_3mf_beam_lattice/model.3mf";
+
+  ak_test_export_cleanup(outDir);
+  ak_test_export_cleanup(roundTripDir);
+  ASSERT(mkdir(outDir, 0777) == 0);
+  ASSERT(ak_test_write_3mf_beam_lattice_model(mfPath));
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, mfPath, AK_FILE_TYPE_3MF) == AK_OK);
+  ASSERT(doc != NULL);
+  ASSERT(doc->lib.geometries.count == 1);
+
+  geom = doc->lib.geometries.first;
+  ASSERT(geom != NULL);
+  mesh = geom->gdata ? ak_objGet(geom->gdata) : NULL;
+  ASSERT(mesh != NULL);
+  prim = mesh->primitive;
+  ASSERT(prim != NULL);
+  ASSERT(prim->pos != NULL);
+  ASSERT(prim->pos->accessor != NULL);
+  ASSERT(prim->pos->accessor->count == 3);
+  ASSERT(prim->indices != NULL);
+  ASSERT(prim->indices->count == 0);
+
+  print = ak_printDocument(doc);
+  ASSERT(print != NULL);
+  ASSERT(ak_printHasFeature(print, AK_PRINT_FEATURE_BEAM_LATTICE));
+  ASSERT((print->requiredFeatures & AK_PRINT_FEATURE_BEAM_LATTICE) != 0u);
+  ASSERT((print->unsupportedFeatures & AK_PRINT_FEATURE_BEAM_LATTICE) == 0u);
+  ASSERT(print->beamLatticeCount == 1);
+  ASSERT(print->beamCount == 2);
+  ASSERT(print->beamBallCount == 1);
+
+  lattice = print->beamLattices;
+  ASSERT(lattice != NULL);
+  ASSERT(lattice->objectId == 1);
+  ASSERT(fabs(lattice->radius - 0.1f) < 0.000001f);
+  ASSERT(fabs(lattice->minLength - 0.001f) < 0.000001f);
+  ASSERT(lattice->cap != NULL);
+  ASSERT(strcmp(lattice->cap, "sphere") == 0);
+  ASSERT(lattice->ballMode != NULL);
+  ASSERT(strcmp(lattice->ballMode, "mixed") == 0);
+  ASSERT((lattice->flags & AK_PRINT_BEAM_LATTICE_HAS_BALL_RADIUS) != 0u);
+  ASSERT(fabs(lattice->ballRadius - 0.2f) < 0.000001f);
+
+  beam = print->beams;
+  ASSERT(beam != NULL);
+  ASSERT(beam->v1 == 0);
+  ASSERT(beam->v2 == 1);
+  ASSERT((beam->flags & AK_PRINT_BEAM_HAS_R1) != 0u);
+  ASSERT((beam->flags & AK_PRINT_BEAM_HAS_R2) != 0u);
+  ASSERT(fabs(beam->r1 - 0.15f) < 0.000001f);
+  ASSERT(fabs(beam->r2 - 0.16f) < 0.000001f);
+  ASSERT(beam->cap1 != NULL);
+  ASSERT(strcmp(beam->cap1, "sphere") == 0);
+
+  ball = print->beamBalls;
+  ASSERT(ball != NULL);
+  ASSERT(ball->vindex == 0);
+  ASSERT((ball->flags & AK_PRINT_BEAM_BALL_HAS_RADIUS) != 0u);
+  ASSERT(fabs(ball->radius - 0.25f) < 0.000001f);
+
+  ASSERT(ak_export(doc, roundTripDir, AK_FILE_TYPE_3MF) == AK_OK);
+  roundTrip = NULL;
+  ASSERT(ak_load(&roundTrip, roundTripPath, AK_FILE_TYPE_3MF) == AK_OK);
+  ASSERT(roundTrip != NULL);
+
+  roundTripPrint = ak_printDocument(roundTrip);
+  ASSERT(roundTripPrint != NULL);
+  ASSERT(ak_printHasFeature(roundTripPrint, AK_PRINT_FEATURE_BEAM_LATTICE));
+  ASSERT((roundTripPrint->requiredFeatures & AK_PRINT_FEATURE_BEAM_LATTICE) != 0u);
+  ASSERT((roundTripPrint->unsupportedFeatures & AK_PRINT_FEATURE_BEAM_LATTICE) == 0u);
+  ASSERT(roundTripPrint->beamLatticeCount == 1);
+  ASSERT(roundTripPrint->beamCount == 2);
+  ASSERT(roundTripPrint->beamBallCount == 1);
 
   ak_test_export_cleanup(outDir);
   ak_test_export_cleanup(roundTripDir);

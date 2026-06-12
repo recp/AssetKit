@@ -50,6 +50,8 @@ typedef struct AK3MFExportState {
   AkResult         result;
   bool             usesMaterialExtension;
   bool             usesSliceExtension;
+  bool             usesBeamLatticeExtension;
+  bool             usesBeamBallExtension;
 } AK3MFExportState;
 
 static
@@ -231,6 +233,67 @@ ak_3mf_slice_object_for_export(AK3MFExportState * __restrict st,
     object = ak_3mf_first_slice_object(st->print);
     if (object && ak_3mf_path_is_root_model(object->path))
       return object;
+  }
+
+  return NULL;
+}
+
+static
+const AkPrintBeamLattice*
+ak_3mf_first_beam_lattice(const AkPrintDocument * __restrict print) {
+  return print ? print->beamLattices : NULL;
+}
+
+static
+bool
+ak_3mf_uses_beam_ball_extension(const AkPrintDocument * __restrict print) {
+  const AkPrintBeamLattice *lattice;
+
+  if (!print)
+    return false;
+  if (print->beamBallCount > 0u)
+    return true;
+
+  for (lattice = print->beamLattices; lattice; lattice = lattice->next) {
+    if (lattice->ballMode
+        || (lattice->flags & AK_PRINT_BEAM_LATTICE_HAS_BALL_RADIUS) != 0u)
+      return true;
+  }
+
+  return false;
+}
+
+static
+const AkPrintBeamLattice*
+ak_3mf_find_beam_lattice(const AkPrintDocument * __restrict print,
+                         uint32_t                            objectId) {
+  const AkPrintBeamLattice *lattice;
+
+  for (lattice = print ? print->beamLattices : NULL; lattice; lattice = lattice->next) {
+    if (lattice->objectId == objectId)
+      return lattice;
+  }
+
+  return NULL;
+}
+
+static
+const AkPrintBeamLattice*
+ak_3mf_beam_lattice_for_export(AK3MFExportState * __restrict st,
+                               uint32_t                      objectId) {
+  const AkPrintBeamLattice *lattice;
+
+  lattice = ak_3mf_find_beam_lattice(st ? st->print : NULL, objectId);
+  if (lattice && ak_3mf_path_is_root_model(lattice->path))
+    return lattice;
+
+  if (st
+      && st->print
+      && st->print->beamLatticeCount == 1u
+      && st->objectCount == 0u) {
+    lattice = ak_3mf_first_beam_lattice(st->print);
+    if (lattice && ak_3mf_path_is_root_model(lattice->path))
+      return lattice;
   }
 
   return NULL;
@@ -501,6 +564,173 @@ ak_3mf_append_slice_object_attrs(AK3MFBuffer               * __restrict buf,
 }
 
 static
+const AkPrintBeam*
+ak_3mf_first_beam_for_lattice(const AkPrintDocument     * __restrict print,
+                              const AkPrintBeamLattice * __restrict lattice) {
+  const AkPrintBeamLattice *it;
+  const AkPrintBeam        *beam;
+  uint32_t                  i;
+
+  beam = print ? print->beams : NULL;
+  for (it = print ? print->beamLattices : NULL; it && it != lattice; it = it->next) {
+    for (i = 0u; i < it->beamCount && beam; i++)
+      beam = beam->next;
+  }
+
+  return it == lattice ? beam : NULL;
+}
+
+static
+const AkPrintBeamBall*
+ak_3mf_first_ball_for_lattice(const AkPrintDocument     * __restrict print,
+                              const AkPrintBeamLattice * __restrict lattice) {
+  const AkPrintBeamLattice *it;
+  const AkPrintBeamBall    *ball;
+  uint32_t                  i;
+
+  ball = print ? print->beamBalls : NULL;
+  for (it = print ? print->beamLattices : NULL; it && it != lattice; it = it->next) {
+    for (i = 0u; i < it->ballCount && ball; i++)
+      ball = ball->next;
+  }
+
+  return it == lattice ? ball : NULL;
+}
+
+static
+void
+ak_3mf_write_beam(AK3MFBuffer       * __restrict buf,
+                  const AkPrintBeam * __restrict beam) {
+  if (!beam)
+    return;
+
+  ak_3mf_buf_lit(buf, "            <b:beam v1=\"");
+  ak_3mf_buf_u32(buf, beam->v1);
+  ak_3mf_buf_lit(buf, "\" v2=\"");
+  ak_3mf_buf_u32(buf, beam->v2);
+  if ((beam->flags & AK_PRINT_BEAM_HAS_R1) != 0u) {
+    ak_3mf_buf_lit(buf, "\" r1=\"");
+    ak_3mf_buf_float(buf, beam->r1);
+  }
+  if ((beam->flags & AK_PRINT_BEAM_HAS_R2) != 0u) {
+    ak_3mf_buf_lit(buf, "\" r2=\"");
+    ak_3mf_buf_float(buf, beam->r2);
+  }
+  if ((beam->flags & AK_PRINT_BEAM_HAS_P1) != 0u) {
+    ak_3mf_buf_lit(buf, "\" p1=\"");
+    ak_3mf_buf_u32(buf, beam->p1);
+  }
+  if ((beam->flags & AK_PRINT_BEAM_HAS_P2) != 0u) {
+    ak_3mf_buf_lit(buf, "\" p2=\"");
+    ak_3mf_buf_u32(buf, beam->p2);
+  }
+  if ((beam->flags & AK_PRINT_BEAM_HAS_PID) != 0u) {
+    ak_3mf_buf_lit(buf, "\" pid=\"");
+    ak_3mf_buf_u32(buf, beam->pid);
+  }
+  if ((beam->flags & AK_PRINT_BEAM_HAS_CAP1) != 0u && beam->cap1) {
+    ak_3mf_buf_lit(buf, "\" cap1=\"");
+    ak_3mf_buf_attr(buf, beam->cap1);
+  }
+  if ((beam->flags & AK_PRINT_BEAM_HAS_CAP2) != 0u && beam->cap2) {
+    ak_3mf_buf_lit(buf, "\" cap2=\"");
+    ak_3mf_buf_attr(buf, beam->cap2);
+  }
+  ak_3mf_buf_lit(buf, "\"/>\n");
+}
+
+static
+void
+ak_3mf_write_beam_ball(AK3MFBuffer           * __restrict buf,
+                       const AkPrintBeamBall * __restrict ball) {
+  if (!ball)
+    return;
+
+  ak_3mf_buf_lit(buf, "            <b2:ball vindex=\"");
+  ak_3mf_buf_u32(buf, ball->vindex);
+  if ((ball->flags & AK_PRINT_BEAM_BALL_HAS_RADIUS) != 0u) {
+    ak_3mf_buf_lit(buf, "\" r=\"");
+    ak_3mf_buf_float(buf, ball->radius);
+  }
+  if ((ball->flags & AK_PRINT_BEAM_BALL_HAS_P) != 0u) {
+    ak_3mf_buf_lit(buf, "\" p=\"");
+    ak_3mf_buf_u32(buf, ball->p);
+  }
+  if ((ball->flags & AK_PRINT_BEAM_BALL_HAS_PID) != 0u) {
+    ak_3mf_buf_lit(buf, "\" pid=\"");
+    ak_3mf_buf_u32(buf, ball->pid);
+  }
+  ak_3mf_buf_lit(buf, "\"/>\n");
+}
+
+static
+void
+ak_3mf_write_beam_lattice(AK3MFExportState         * __restrict st,
+                          AK3MFBuffer              * __restrict buf,
+                          const AkPrintBeamLattice * __restrict lattice) {
+  const AkPrintBeam     *beam;
+  const AkPrintBeamBall *ball;
+  uint32_t               i;
+
+  if (!st || !buf || !lattice)
+    return;
+
+  beam = ak_3mf_first_beam_for_lattice(st->print, lattice);
+  ball = ak_3mf_first_ball_for_lattice(st->print, lattice);
+
+  ak_3mf_buf_lit(buf, "          <b:beamlattice radius=\"");
+  ak_3mf_buf_float(buf, lattice->radius);
+  ak_3mf_buf_lit(buf, "\" minlength=\"");
+  ak_3mf_buf_float(buf, lattice->minLength);
+  if (lattice->clippingMode) {
+    ak_3mf_buf_lit(buf, "\" clippingmode=\"");
+    ak_3mf_buf_attr(buf, lattice->clippingMode);
+  }
+  if ((lattice->flags & AK_PRINT_BEAM_LATTICE_HAS_CLIPPING_MESH) != 0u) {
+    ak_3mf_buf_lit(buf, "\" clippingmesh=\"");
+    ak_3mf_buf_u32(buf, lattice->clippingMesh);
+  }
+  if ((lattice->flags & AK_PRINT_BEAM_LATTICE_HAS_REPRESENTATION_MESH) != 0u) {
+    ak_3mf_buf_lit(buf, "\" representationmesh=\"");
+    ak_3mf_buf_u32(buf, lattice->representationMesh);
+  }
+  if ((lattice->flags & AK_PRINT_BEAM_LATTICE_HAS_PID) != 0u) {
+    ak_3mf_buf_lit(buf, "\" pid=\"");
+    ak_3mf_buf_u32(buf, lattice->pid);
+  }
+  if ((lattice->flags & AK_PRINT_BEAM_LATTICE_HAS_PINDEX) != 0u) {
+    ak_3mf_buf_lit(buf, "\" pindex=\"");
+    ak_3mf_buf_u32(buf, lattice->pindex);
+  }
+  if (lattice->cap) {
+    ak_3mf_buf_lit(buf, "\" cap=\"");
+    ak_3mf_buf_attr(buf, lattice->cap);
+  }
+  if (lattice->ballMode) {
+    ak_3mf_buf_lit(buf, "\" b2:ballmode=\"");
+    ak_3mf_buf_attr(buf, lattice->ballMode);
+  }
+  if ((lattice->flags & AK_PRINT_BEAM_LATTICE_HAS_BALL_RADIUS) != 0u) {
+    ak_3mf_buf_lit(buf, "\" b2:ballradius=\"");
+    ak_3mf_buf_float(buf, lattice->ballRadius);
+  }
+  ak_3mf_buf_lit(buf, "\">\n"
+                      "            <b:beams>\n");
+
+  for (i = 0u; i < lattice->beamCount && beam; i++, beam = beam->next)
+    ak_3mf_write_beam(buf, beam);
+
+  ak_3mf_buf_lit(buf, "            </b:beams>\n");
+  if (lattice->ballCount > 0u) {
+    ak_3mf_buf_lit(buf, "            <b2:balls>\n");
+    for (i = 0u; i < lattice->ballCount && ball; i++, ball = ball->next)
+      ak_3mf_write_beam_ball(buf, ball);
+    ak_3mf_buf_lit(buf, "            </b2:balls>\n");
+  }
+  ak_3mf_buf_lit(buf, "          </b:beamlattice>\n");
+}
+
+static
 bool
 ak_3mf_emit_triangle(AK3MFRows       * __restrict rows,
                      AK3MFRows       * __restrict colorRows,
@@ -695,6 +925,7 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
   uint32_t    objectId;
   uint32_t    propertyId;
   const AkPrintSliceObject *sliceObject;
+  const AkPrintBeamLattice *beamLattice;
   bool        ok;
   bool        hasColorRows;
 
@@ -724,8 +955,51 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
   triangles.result = AK_OK;
   vertexCount      = 0;
   triangleCount    = 0;
+  beamLattice      = ak_3mf_beam_lattice_for_export(st, st->nextObjectId);
 
-  if (prim->type == AK_PRIMITIVE_TRIANGLES) {
+  if (beamLattice && !hasColorRows && prim->type == AK_PRIMITIVE_TRIANGLES) {
+    AkTriangleMode mode;
+    uint32_t       vi;
+    uint32_t       count;
+    uint32_t       i;
+
+    ok = true;
+    if (posInput->accessor->count > UINT32_MAX)
+      ok = false;
+    for (vi = 0u; ok && vi < posInput->accessor->count; vi++) {
+      const float *row;
+      vec3         pos;
+
+      row    = ak_3mf_rows_get(&rows, vi);
+      pos[0] = ak_3mf_row_component(row, rows.componentCount, 0u, 0.0f);
+      pos[1] = ak_3mf_row_component(row, rows.componentCount, 1u, 0.0f);
+      pos[2] = ak_3mf_row_component(row, rows.componentCount, 2u, 0.0f);
+      ak_3mf_append_vertex(&vertices, pos);
+      vertexCount++;
+    }
+
+    mode = ((AkTriangles *)prim)->mode;
+    if (mode == 0)
+      mode = AK_TRIANGLES;
+    count = io_primitive_vertex_count(prim);
+    if (ok && mode == AK_TRIANGLES) {
+      for (i = 0u; i + 2u < count; i += 3u) {
+        uint32_t i0;
+        uint32_t i1;
+        uint32_t i2;
+
+        i0 = io_primitive_input_index(prim, posInput, i + 0u);
+        i1 = io_primitive_input_index(prim, posInput, i + 1u);
+        i2 = io_primitive_input_index(prim, posInput, i + 2u);
+        if (i0 >= vertexCount || i1 >= vertexCount || i2 >= vertexCount) {
+          ok = false;
+          break;
+        }
+        ak_3mf_append_triangle(&triangles, i0, i1, i2, 0u);
+        triangleCount++;
+      }
+    }
+  } else if (prim->type == AK_PRIMITIVE_TRIANGLES) {
     ok = ak_3mf_emit_triangles_primitive(&rows,
                                          hasColorRows ? &colorRows : NULL,
                                          prim,
@@ -761,7 +1035,7 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
     return false;
   }
 
-  if (triangleCount == 0) {
+  if (triangleCount == 0 && !beamLattice) {
     ak_3mf_buf_free(&vertices);
     ak_3mf_buf_free(&colors);
     ak_3mf_buf_free(&triangles);
@@ -770,6 +1044,8 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
 
   objectId = st->nextObjectId++;
   sliceObject = ak_3mf_slice_object_for_export(st, objectId);
+  if (!beamLattice)
+    beamLattice = ak_3mf_beam_lattice_for_export(st, objectId);
   if (sliceObject
       && st->print
       && st->print->sliceObjectCount == 1u
@@ -777,6 +1053,16 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
       && sliceObject->objectId != 0u
       && sliceObject->objectId != propertyId) {
     objectId = sliceObject->objectId;
+    if (st->nextObjectId <= objectId)
+      st->nextObjectId = objectId + 1u;
+  }
+  if (beamLattice
+      && st->print
+      && st->print->beamLatticeCount == 1u
+      && st->objectCount == 0u
+      && beamLattice->objectId != 0u
+      && beamLattice->objectId != propertyId) {
+    objectId = beamLattice->objectId;
     if (st->nextObjectId <= objectId)
       st->nextObjectId = objectId + 1u;
   }
@@ -797,11 +1083,14 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
                                 "        <mesh>\n"
                                 "          <vertices>\n");
   ak_3mf_buf_raw(&st->resources, vertices.data, vertices.len);
-  ak_3mf_buf_lit(&st->resources, "          </vertices>\n"
-                                "          <triangles>\n");
-  ak_3mf_buf_raw(&st->resources, triangles.data, triangles.len);
-  ak_3mf_buf_lit(&st->resources, "          </triangles>\n"
-                                "        </mesh>\n"
+  ak_3mf_buf_lit(&st->resources, "          </vertices>\n");
+  if (triangleCount > 0u) {
+    ak_3mf_buf_lit(&st->resources, "          <triangles>\n");
+    ak_3mf_buf_raw(&st->resources, triangles.data, triangles.len);
+    ak_3mf_buf_lit(&st->resources, "          </triangles>\n");
+  }
+  ak_3mf_write_beam_lattice(st, &st->resources, beamLattice);
+  ak_3mf_buf_lit(&st->resources, "        </mesh>\n"
                                 "      </object>\n");
 
   ak_3mf_buf_lit(&st->build, "      <item objectid=\"");
@@ -1055,14 +1344,42 @@ ak_3mf_build_model_xml(AK3MFExportState * __restrict st,
     ak_3mf_buf_lit(model,
                    " xmlns:s=\"http://schemas.microsoft.com/3dmanufacturing/slice/2015/07\"");
   }
-  if (st->usesMaterialExtension || st->usesSliceExtension) {
+  if (st->usesBeamLatticeExtension) {
+    ak_3mf_buf_lit(model,
+                   " xmlns:b=\"http://schemas.microsoft.com/3dmanufacturing/beamlattice/2017/02\"");
+  }
+  if (st->usesBeamBallExtension) {
+    ak_3mf_buf_lit(model,
+                   " xmlns:b2=\"http://schemas.microsoft.com/3dmanufacturing/beamlattice/balls/2020/07\"");
+  }
+  if (st->usesMaterialExtension
+      || st->usesSliceExtension
+      || st->usesBeamLatticeExtension
+      || st->usesBeamBallExtension) {
+    bool any;
+
+    any = false;
     ak_3mf_buf_lit(model, " requiredextensions=\"");
-    if (st->usesMaterialExtension)
+    if (st->usesMaterialExtension) {
       ak_3mf_buf_lit(model, "m");
+      any = true;
+    }
     if (st->usesSliceExtension) {
-      if (st->usesMaterialExtension)
+      if (any)
         ak_3mf_buf_ch(model, ' ');
       ak_3mf_buf_lit(model, "s");
+      any = true;
+    }
+    if (st->usesBeamLatticeExtension) {
+      if (any)
+        ak_3mf_buf_ch(model, ' ');
+      ak_3mf_buf_lit(model, "b");
+      any = true;
+    }
+    if (st->usesBeamBallExtension) {
+      if (any)
+        ak_3mf_buf_ch(model, ' ');
+      ak_3mf_buf_lit(model, "b2");
     }
     ak_3mf_buf_ch(model, '"');
   }
@@ -1219,6 +1536,8 @@ ak_3mf_export(AkDoc * __restrict doc, const char * __restrict filepath) {
   st.usesSliceExtension = st.print
                           && (st.print->sliceStackCount > 0u
                               || st.print->sliceObjectCount > 0u);
+  st.usesBeamLatticeExtension = st.print && st.print->beamLatticeCount > 0u;
+  st.usesBeamBallExtension    = ak_3mf_uses_beam_ball_extension(st.print);
 
   if (!ak_3mf_write_slice_stacks(&st)
       || !ak_3mf_write_scene(&st)
