@@ -15,8 +15,8 @@
  */
 
 #include "writer.h"
+#include "../../common/text_number.h"
 
-#include <locale.h>
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -274,57 +274,6 @@ gltf_w_key_bool(GLTFExpWriter * __restrict w,
   gltf_w_raw(w, val ? "true" : "false", val ? 4 : 5);
 }
 
-static
-bool
-gltf_w_normalize_number(char * __restrict buf, size_t * __restrict len) {
-  size_t i;
-
-  for (i = 0; i < *len; i++) {
-    char c;
-
-    c = buf[i];
-    if ((c >= '0' && c <= '9')
-        || c == '.'
-        || c == '-'
-        || c == '+'
-        || c == 'e'
-        || c == 'E') {
-      continue;
-    }
-
-    if (c == ',') {
-      buf[i] = '.';
-      continue;
-    }
-
-    {
-      struct lconv *lc;
-      const char   *decimalPoint;
-      size_t        decimalLen;
-
-      lc           = localeconv();
-      decimalPoint = lc ? lc->decimal_point : NULL;
-      decimalLen   = decimalPoint ? strlen(decimalPoint) : 0;
-      if (decimalLen == 0
-          || decimalPoint[0] == '.'
-          || decimalLen > *len - i
-          || memcmp(buf + i, decimalPoint, decimalLen) != 0)
-        return false;
-
-      buf[i] = '.';
-      if (decimalLen > 1u) {
-        memmove(buf + i + 1u,
-                buf + i + decimalLen,
-                *len - i - decimalLen);
-        *len -= decimalLen - 1u;
-        buf[*len] = '\0';
-      }
-    }
-  }
-
-  return true;
-}
-
 void
 gltf_w_float(GLTFExpWriter * __restrict w, float val) {
   char   buf[48];
@@ -335,6 +284,10 @@ gltf_w_float(GLTFExpWriter * __restrict w, float val) {
     w->result = AK_ERR;
     return;
   }
+  if (ak_io_text_format_fixed_float(buf, sizeof(buf), val, 9u, &outLen)) {
+    gltf_w_raw(w, buf, outLen);
+    return;
+  }
 
   len = snprintf(buf, sizeof(buf), "%.9g", (double)val);
   if (len <= 0 || (size_t)len >= sizeof(buf)) {
@@ -343,7 +296,7 @@ gltf_w_float(GLTFExpWriter * __restrict w, float val) {
   }
 
   outLen = (size_t)len;
-  if (!gltf_w_normalize_number(buf, &outLen)) {
+  if (!ak_io_text_normalize_number(buf, &outLen)) {
     w->result = AK_ERR;
     return;
   }
@@ -369,7 +322,7 @@ gltf_w_number(GLTFExpWriter * __restrict w, double val) {
   }
 
   outLen = (size_t)len;
-  if (!gltf_w_normalize_number(buf, &outLen)) {
+  if (!ak_io_text_normalize_number(buf, &outLen)) {
     w->result = AK_ERR;
     return;
   }

@@ -329,6 +329,54 @@ wobj_input_obj_index(AkMeshPrimitive * __restrict prim,
 }
 
 static
+uint32_t
+wobj_index_array_get_unchecked(const AkIndexArray * __restrict indices,
+                               size_t                          index) {
+  switch (indices->componentType) {
+    case AKT_UBYTE:
+      return ((const uint8_t *)indices->items)[index];
+    case AKT_USHORT:
+      return ((const uint16_t *)indices->items)[index];
+    case AKT_UINT:
+      return ((const uint32_t *)indices->items)[index];
+    default:
+      return 0;
+  }
+}
+
+static
+uint32_t
+wobj_tuple_obj_index_fast(AkMeshPrimitive       * __restrict prim,
+                          AkInput               * __restrict input,
+                          uint32_t                           tupleIndex,
+                          uint32_t                           base,
+                          uint32_t                           count,
+                          const AkIndexArray    * __restrict indices,
+                          uint32_t                           stride) {
+  uint32_t index;
+  uint32_t offset;
+
+  if (count == 0)
+    return 0;
+
+  if (indices) {
+    offset = input ? input->indexOffset : 0u;
+    if (offset >= stride)
+      offset = 0u;
+    index = wobj_index_array_get_unchecked(indices,
+                                           (size_t)tupleIndex * stride + offset);
+  } else {
+    (void)prim;
+    index = tupleIndex;
+  }
+
+  if (index >= count)
+    index = 0;
+
+  return base + index + 1u;
+}
+
+static
 void
 wobj_write_ref(WOBJExpState * __restrict st,
                uint32_t                  v,
@@ -345,6 +393,61 @@ wobj_write_ref(WOBJExpState * __restrict st,
     if (hasNormal) {
       wobj_w_ch(&st->w, '/');
       wobj_w_uint(&st->w, vn);
+    }
+  }
+}
+
+static
+void
+wobj_write_tuple_ref_fast(WOBJExpState         * __restrict st,
+                          AkMeshPrimitive      * __restrict prim,
+                          AkInput              * __restrict posInput,
+                          AkInput              * __restrict texInput,
+                          AkInput              * __restrict normInput,
+                          uint32_t                          tupleIndex,
+                          uint32_t                          vBase,
+                          uint32_t                          vtBase,
+                          uint32_t                          vnBase,
+                          uint32_t                          vCount,
+                          uint32_t                          vtCount,
+                          uint32_t                          vnCount,
+                          const AkIndexArray   * __restrict indices,
+                          uint32_t                          stride,
+                          bool                              hasTexcoord,
+                          bool                              hasNormal) {
+  uint32_t v;
+
+  v = wobj_tuple_obj_index_fast(prim,
+                                posInput,
+                                tupleIndex,
+                                vBase,
+                                vCount,
+                                indices,
+                                stride);
+  wobj_w_uint(&st->w, v);
+  if (hasTexcoord || hasNormal) {
+    wobj_w_ch(&st->w, '/');
+    if (hasTexcoord) {
+      wobj_w_uint(&st->w,
+                  wobj_tuple_obj_index_fast(prim,
+                                            texInput,
+                                            tupleIndex,
+                                            vtBase,
+                                            vtCount,
+                                            indices,
+                                            stride));
+    }
+
+    if (hasNormal) {
+      wobj_w_ch(&st->w, '/');
+      wobj_w_uint(&st->w,
+                  wobj_tuple_obj_index_fast(prim,
+                                            normInput,
+                                            tupleIndex,
+                                            vnBase,
+                                            vnCount,
+                                            indices,
+                                            stride));
     }
   }
 }
@@ -381,6 +484,87 @@ wobj_write_tuple(WOBJExpState    * __restrict st,
        : 0u;
 
   wobj_write_ref(st, v, vt, vn, hasTexcoord, hasNormal);
+}
+
+static
+void
+wobj_write_triangle_list_fast(WOBJExpState    * __restrict st,
+                              AkMeshPrimitive * __restrict prim,
+                              AkInput         * __restrict posInput,
+                              AkInput         * __restrict texInput,
+                              AkInput         * __restrict normInput,
+                              uint32_t                     vBase,
+                              uint32_t                     vtBase,
+                              uint32_t                     vnBase,
+                              uint32_t                     vCount,
+                              uint32_t                     vtCount,
+                              uint32_t                     vnCount,
+                              uint32_t                     vertexCount) {
+  const AkIndexArray *indices;
+  uint32_t            stride;
+  bool                hasTexcoord;
+  bool                hasNormal;
+
+  indices     = prim->indices;
+  stride      = prim->indexStride ? prim->indexStride : 1u;
+  hasTexcoord = texInput && vtCount > 0;
+  hasNormal   = normInput && vnCount > 0;
+
+  for (uint32_t i = 0; i + 2u < vertexCount; i += 3u) {
+    wobj_w_ch(&st->w, 'f');
+    wobj_w_ch(&st->w, ' ');
+    wobj_write_tuple_ref_fast(st,
+                              prim,
+                              posInput,
+                              texInput,
+                              normInput,
+                              i,
+                              vBase,
+                              vtBase,
+                              vnBase,
+                              vCount,
+                              vtCount,
+                              vnCount,
+                              indices,
+                              stride,
+                              hasTexcoord,
+                              hasNormal);
+    wobj_w_ch(&st->w, ' ');
+    wobj_write_tuple_ref_fast(st,
+                              prim,
+                              posInput,
+                              texInput,
+                              normInput,
+                              i + 1u,
+                              vBase,
+                              vtBase,
+                              vnBase,
+                              vCount,
+                              vtCount,
+                              vnCount,
+                              indices,
+                              stride,
+                              hasTexcoord,
+                              hasNormal);
+    wobj_w_ch(&st->w, ' ');
+    wobj_write_tuple_ref_fast(st,
+                              prim,
+                              posInput,
+                              texInput,
+                              normInput,
+                              i + 2u,
+                              vBase,
+                              vtBase,
+                              vnBase,
+                              vCount,
+                              vtCount,
+                              vnCount,
+                              indices,
+                              stride,
+                              hasTexcoord,
+                              hasNormal);
+    wobj_w_ch(&st->w, '\n');
+  }
 }
 
 static
@@ -490,6 +674,22 @@ wobj_write_triangles(WOBJExpState    * __restrict st,
                                tri, 3u, vBase, vtBase, vnBase,
                                vCount, vtCount, vnCount);
     }
+    return;
+  }
+
+  if (!prim->indexAccessor) {
+    wobj_write_triangle_list_fast(st,
+                                  prim,
+                                  posInput,
+                                  texInput,
+                                  normInput,
+                                  vBase,
+                                  vtBase,
+                                  vnBase,
+                                  vCount,
+                                  vtCount,
+                                  vnCount,
+                                  vertexCount);
     return;
   }
 
