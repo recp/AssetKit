@@ -16,6 +16,8 @@
 
 #include "../common.h"
 
+#include <string.h>
+
 AK_EXPORT
 AkPrintDocument*
 ak_printDocument(AkDoc * __restrict doc) {
@@ -116,6 +118,59 @@ ak_printAddPackagePart(AkDoc                  * __restrict doc,
   print->lastPart = part;
   print->packagePartCount++;
   print->features |= AK_PRINT_FEATURE_PACKAGE;
+
+  return part;
+}
+
+AK_EXPORT
+bool
+ak_printSetPackagePartData(AkDoc              * __restrict doc,
+                           AkPrintPackagePart * __restrict part,
+                           const void         * __restrict data,
+                           size_t                          size) {
+  AkHeap *heap;
+  void   *copy;
+
+  if (!doc || !part)
+    return false;
+  if (!data && size > 0u)
+    return false;
+
+  part->data = NULL;
+  part->size = 0u;
+  if (size == 0u)
+    return true;
+
+  heap = ak_heap_getheap(doc);
+  if (!heap)
+    return false;
+
+  copy = ak_heap_alloc(heap, part, size);
+  if (!copy)
+    return false;
+
+  memcpy(copy, data, size);
+  part->data = copy;
+  part->size = size;
+  return true;
+}
+
+AK_EXPORT
+AkPrintPackagePart*
+ak_printAddPackagePartData(AkDoc                  * __restrict doc,
+                           AkPrintPackagePartType              type,
+                           const char            * __restrict name,
+                           const char            * __restrict contentType,
+                           const char            * __restrict relationshipType,
+                           const void            * __restrict data,
+                           size_t                             size) {
+  AkPrintPackagePart *part;
+
+  part = ak_printAddPackagePart(doc, type, name, contentType, relationshipType);
+  if (!part)
+    return NULL;
+  if (!ak_printSetPackagePartData(doc, part, data, size))
+    return NULL;
 
   return part;
 }

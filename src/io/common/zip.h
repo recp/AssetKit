@@ -28,6 +28,24 @@ typedef struct AkZipWriteEntry {
   size_t         size;
 } AkZipWriteEntry;
 
+typedef struct AkZipEntryInfo {
+  const char    *name;
+  size_t         nameLen;
+  uint32_t       compressedSize;
+  uint32_t       uncompressedSize;
+  uint16_t       method;
+  uint16_t       flags;
+} AkZipEntryInfo;
+
+typedef bool (*AkZipEntryVisitor)(const AkZipEntryInfo * __restrict info,
+                                  void                 * __restrict userdata);
+
+AK_HIDE
+AkResult
+ak_zip_visit_entries(const char        * __restrict zipPath,
+                     AkZipEntryVisitor              visitor,
+                     void             * __restrict userdata);
+
 AK_HIDE
 AkResult
 ak_zip_extract_file(const char * __restrict zipPath,

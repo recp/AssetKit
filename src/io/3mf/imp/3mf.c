@@ -28,6 +28,11 @@
 
 #define AK_3MF_XMLA(XML, NAME) xmla_sz((XML), _s_ak_##NAME, _s_ak_##NAME##_len)
 
+static const char AK_3MF_CONTENT_TYPES_PART[] = "[Content_Types].xml";
+static const char AK_3MF_ROOT_RELS_PART[]     = "_rels/.rels";
+static const char AK_3MF_CT_RELS[]            = "application/vnd.openxmlformats-package.relationships+xml";
+static const char AK_3MF_CT_MODEL[]           = "application/vnd.ms-package.3dmanufacturing-3dmodel+xml";
+
 typedef enum AK3MFObjectKind {
   AK_3MF_OBJECT_EMPTY      = 0,
   AK_3MF_OBJECT_MESH       = 1,
@@ -67,6 +72,91 @@ typedef struct AK3MFImportState {
   size_t               propertyCount;
 } AK3MFImportState;
 
+typedef struct AK3MFPackageImportState {
+  AkDoc           *doc;
+  AkPrintDocument *print;
+  const char      *filepath;
+  const char      *modelPath;
+  xml_t           *contentTypesRoot;
+  xml_t           *rootRelsRoot;
+  AkResult         result;
+} AK3MFPackageImportState;
+
+static
+bool
+ak_3mf_slice_contains(const char * __restrict haystack,
+                      size_t                  haystackLen,
+                      const char * __restrict needle) {
+  size_t needleLen;
+  size_t i;
+
+  if (!haystack || !needle)
+    return false;
+
+  needleLen = strlen(needle);
+  if (needleLen == 0u || haystackLen < needleLen)
+    return false;
+
+  for (i = 0; i <= haystackLen - needleLen; i++) {
+    if (memcmp(haystack + i, needle, needleLen) == 0)
+      return true;
+  }
+
+  return false;
+}
+
+static
+bool
+ak_3mf_str_contains(const char * __restrict haystack,
+                    const char * __restrict needle) {
+  return haystack && needle && strstr(haystack, needle) != NULL;
+}
+
+static
+bool
+ak_3mf_slice_eq_cstr(const char * __restrict slice,
+                     size_t                  sliceLen,
+                     const char * __restrict str) {
+  size_t len;
+
+  if (!slice || !str)
+    return false;
+
+  len = strlen(str);
+  return len == sliceLen && memcmp(slice, str, len) == 0;
+}
+
+static
+const char*
+ak_3mf_skip_root_slash(const char * __restrict path,
+                       size_t     * __restrict len) {
+  if (!path || !len)
+    return path;
+
+  while (*len > 0u && (*path == '/' || *path == '\\')) {
+    path++;
+    (*len)--;
+  }
+
+  return path;
+}
+
+static
+bool
+ak_3mf_entry_name_eq(const char * __restrict name,
+                     size_t                  nameLen,
+                     const char * __restrict path) {
+  size_t pathLen;
+
+  if (!name || !path)
+    return false;
+
+  pathLen = strlen(path);
+  name = ak_3mf_skip_root_slash(name, &nameLen);
+  path = ak_3mf_skip_root_slash(path, &pathLen);
+  return nameLen == pathLen && memcmp(name, path, nameLen) == 0;
+}
+
 static
 bool
 ak_3mf_attr_contains(const xml_attr_t * __restrict attr,
@@ -87,6 +177,28 @@ ak_3mf_attr_contains(const xml_attr_t * __restrict attr,
   }
 
   return false;
+}
+
+static
+xml_attr_t*
+ak_3mf_xmla_lit(const xml_t * __restrict xml,
+                const char  * __restrict name) {
+  return xmla_sz(xml, name, strlen(name));
+}
+
+static
+bool
+ak_3mf_attr_value_eq_entry(const xml_attr_t * __restrict attr,
+                           const char       * __restrict entryName) {
+  const char *value;
+  size_t      valueLen;
+
+  if (!attr || !attr->val || !entryName)
+    return false;
+
+  value    = attr->val;
+  valueLen = attr->valsize;
+  return ak_3mf_entry_name_eq(value, valueLen, entryName);
 }
 
 static
@@ -112,6 +224,152 @@ ak_3mf_tag(const xml_t * __restrict xml, const char * __restrict tag) {
 
   tagSize = strlen(tag);
   return tagSize == xmlTagSize && memcmp(xmlTag, tag, tagSize) == 0;
+}
+
+static
+AkPrintFeatureFlags
+ak_3mf_feature_from_text(const char * __restrict text, size_t len) {
+  if (!text || len == 0u)
+    return 0u;
+
+  if (ak_3mf_slice_contains(text, len, "material"))
+    return AK_PRINT_FEATURE_MATERIALS;
+  if (ak_3mf_slice_contains(text, len, "production"))
+    return AK_PRINT_FEATURE_PRODUCTION;
+  if (ak_3mf_slice_contains(text, len, "slice"))
+    return AK_PRINT_FEATURE_SLICE;
+  if (ak_3mf_slice_contains(text, len, "beamlattice")
+      || ak_3mf_slice_contains(text, len, "beam lattice"))
+    return AK_PRINT_FEATURE_BEAM_LATTICE;
+  if (ak_3mf_slice_contains(text, len, "boolean"))
+    return AK_PRINT_FEATURE_BOOLEAN;
+  if (ak_3mf_slice_contains(text, len, "displacement"))
+    return AK_PRINT_FEATURE_DISPLACEMENT;
+  if (ak_3mf_slice_contains(text, len, "volumetric")
+      || ak_3mf_slice_contains(text, len, "implicit"))
+    return AK_PRINT_FEATURE_VOLUMETRIC;
+  if (ak_3mf_slice_contains(text, len, "secure")
+      || ak_3mf_slice_contains(text, len, "protected")
+      || ak_3mf_slice_contains(text, len, "signature")
+      || ak_3mf_slice_contains(text, len, "encryption"))
+    return AK_PRINT_FEATURE_SECURE_CONTENT;
+  if (ak_3mf_slice_contains(text, len, "texture"))
+    return AK_PRINT_FEATURE_TEXTURES;
+  if (ak_3mf_slice_contains(text, len, "thumbnail"))
+    return AK_PRINT_FEATURE_THUMBNAIL;
+
+  return 0u;
+}
+
+static
+AkPrintFeatureFlags
+ak_3mf_feature_from_cstr(const char * __restrict text) {
+  return text ? ak_3mf_feature_from_text(text, strlen(text)) : 0u;
+}
+
+static
+void
+ak_3mf_mark_required_feature(AkPrintDocument    * __restrict print,
+                             AkPrintFeatureFlags             feature) {
+  static const AkPrintFeatureFlags semanticFeatures =
+    AK_PRINT_FEATURE_CORE | AK_PRINT_FEATURE_MATERIALS | AK_PRINT_FEATURE_PACKAGE;
+
+  if (!print)
+    return;
+
+  if (feature == 0u) {
+    print->features |= AK_PRINT_FEATURE_UNKNOWN;
+    print->requiredFeatures |= AK_PRINT_FEATURE_UNKNOWN;
+    print->unknownExtensionCount++;
+    ak_printSetUnsupportedFeature(print, AK_PRINT_FEATURE_UNKNOWN);
+    print->validationFlags |= AK_PRINT_VALIDATION_LOSSY_IMPORT;
+    return;
+  }
+
+  print->features |= feature;
+  print->requiredFeatures |= feature;
+  if ((feature & ~semanticFeatures) != 0u) {
+    ak_printSetUnsupportedFeature(print, feature & ~semanticFeatures);
+    print->validationFlags |= AK_PRINT_VALIDATION_LOSSY_IMPORT;
+  }
+}
+
+static
+const xml_attr_t*
+ak_3mf_xmlns_for_prefix(const xml_t * __restrict xml,
+                        const char  * __restrict prefix,
+                        size_t                   prefixLen) {
+  const xml_attr_t *attr;
+
+  if (!xml || !prefix)
+    return NULL;
+
+  for (attr = xml->attr; attr; attr = attr->next) {
+    if (!attr->name || attr->namesize != prefixLen + 6u)
+      continue;
+    if (memcmp(attr->name, "xmlns:", 6u) == 0
+        && memcmp(attr->name + 6u, prefix, prefixLen) == 0)
+      return attr;
+  }
+
+  return NULL;
+}
+
+static
+void
+ak_3mf_mark_model_extensions(AkPrintDocument * __restrict print,
+                             const xml_t     * __restrict root) {
+  const xml_attr_t *attr;
+  const xml_attr_t *required;
+  const char       *it;
+  const char       *end;
+
+  if (!print || !root)
+    return;
+
+  for (attr = root->attr; attr; attr = attr->next) {
+    AkPrintFeatureFlags feature;
+
+    if (!attr->name || !attr->val || attr->namesize < 5u)
+      continue;
+    if (attr->namesize == 5u && memcmp(attr->name, "xmlns", 5u) == 0)
+      continue;
+    if (attr->namesize <= 6u || memcmp(attr->name, "xmlns:", 6u) != 0)
+      continue;
+
+    feature = ak_3mf_feature_from_text(attr->val, attr->valsize);
+    if (feature)
+      print->features |= feature;
+  }
+
+  required = ak_3mf_xmla_lit(root, "requiredextensions");
+  if (!required || !required->val || required->valsize == 0u)
+    return;
+
+  it  = required->val;
+  end = required->val + required->valsize;
+  while (it < end) {
+    const char       *token;
+    size_t            tokenLen;
+    const xml_attr_t *xmlnsAttr;
+
+    while (it < end && (*it == ' ' || *it == '\t' || *it == '\n' || *it == '\r'))
+      it++;
+    token = it;
+    while (it < end && *it != ' ' && *it != '\t' && *it != '\n' && *it != '\r')
+      it++;
+    tokenLen = (size_t)(it - token);
+    if (tokenLen == 0u)
+      continue;
+
+    xmlnsAttr = ak_3mf_xmlns_for_prefix(root, token, tokenLen);
+    if (xmlnsAttr && xmlnsAttr->val)
+      ak_3mf_mark_required_feature(print,
+                                   ak_3mf_feature_from_text(xmlnsAttr->val,
+                                                            xmlnsAttr->valsize));
+    else
+      ak_3mf_mark_required_feature(print, 0u);
+  }
 }
 
 static
@@ -229,6 +487,287 @@ fallback:
   if (target)
     memcpy(target, defaultPath, sizeof(defaultPath));
   return target;
+}
+
+static
+const char*
+ak_3mf_entry_extension(const char * __restrict entryName) {
+  const char *dot;
+  const char *slash;
+  const char *it;
+
+  if (!entryName)
+    return NULL;
+
+  dot   = NULL;
+  slash = entryName;
+  for (it = entryName; *it; it++) {
+    if (*it == '/' || *it == '\\') {
+      slash = it + 1;
+      dot   = NULL;
+    } else if (*it == '.') {
+      dot = it + 1;
+    }
+  }
+
+  return dot && dot > slash ? dot : NULL;
+}
+
+static
+const char*
+ak_3mf_content_type_dup(AkDoc       * __restrict doc,
+                        xml_t       * __restrict contentTypesRoot,
+                        const char  * __restrict entryName) {
+  AkHeap  *heap;
+  xml_t   *child;
+  const char *ext;
+
+  if (!doc || !entryName)
+    return NULL;
+
+  heap = ak_heap_getheap(doc);
+  if (!heap)
+    return NULL;
+
+  if (contentTypesRoot) {
+    for (child = contentTypesRoot->val; child; child = child->next) {
+      xml_attr_t *partName;
+      xml_attr_t *contentType;
+
+      if (!ak_3mf_tag(child, "Override"))
+        continue;
+
+      partName = ak_3mf_xmla_lit(child, "PartName");
+      if (!ak_3mf_attr_value_eq_entry(partName, entryName))
+        continue;
+
+      contentType = ak_3mf_xmla_lit(child, "ContentType");
+      if (contentType && contentType->val)
+        return ak_heap_strndup(heap, doc, contentType->val, contentType->valsize);
+    }
+
+    ext = ak_3mf_entry_extension(entryName);
+    if (ext) {
+      for (child = contentTypesRoot->val; child; child = child->next) {
+        xml_attr_t *extension;
+        xml_attr_t *contentType;
+
+        if (!ak_3mf_tag(child, "Default"))
+          continue;
+
+        extension = ak_3mf_xmla_lit(child, "Extension");
+        if (!extension
+            || !extension->val
+            || !ak_3mf_slice_eq_cstr(extension->val, extension->valsize, ext))
+          continue;
+
+        contentType = ak_3mf_xmla_lit(child, "ContentType");
+        if (contentType && contentType->val)
+          return ak_heap_strndup(heap, doc, contentType->val, contentType->valsize);
+      }
+    }
+  }
+
+  ext = ak_3mf_entry_extension(entryName);
+  if (ext) {
+    if (strcmp(ext, "rels") == 0)
+      return AK_3MF_CT_RELS;
+    if (strcmp(ext, "model") == 0)
+      return AK_3MF_CT_MODEL;
+    if (strcmp(ext, "png") == 0)
+      return "image/png";
+    if (strcmp(ext, "jpg") == 0 || strcmp(ext, "jpeg") == 0)
+      return "image/jpeg";
+  }
+
+  return "application/octet-stream";
+}
+
+static
+const char*
+ak_3mf_root_relationship_type_dup(AkDoc       * __restrict doc,
+                                  xml_t       * __restrict relsRoot,
+                                  const char  * __restrict entryName) {
+  AkHeap *heap;
+  xml_t  *rel;
+
+  if (!doc || !relsRoot || !entryName)
+    return NULL;
+
+  heap = ak_heap_getheap(doc);
+  if (!heap)
+    return NULL;
+
+  for (rel = relsRoot->val; rel; rel = rel->next) {
+    xml_attr_t *target;
+    xml_attr_t *type;
+
+    if (!ak_3mf_tag(rel, "Relationship"))
+      continue;
+
+    target = AK_3MF_XMLA(rel, Target);
+    if (!ak_3mf_attr_value_eq_entry(target, entryName))
+      continue;
+
+    type = AK_3MF_XMLA(rel, Type);
+    if (type && type->val)
+      return ak_heap_strndup(heap, doc, type->val, type->valsize);
+  }
+
+  return NULL;
+}
+
+static
+AkPrintPackagePartType
+ak_3mf_package_part_type(const char * __restrict entryName,
+                         const char * __restrict contentType,
+                         const char * __restrict relationshipType) {
+  if (ak_3mf_str_contains(entryName, ".rels")
+      || ak_3mf_str_contains(contentType, "relationships+xml"))
+    return AK_PRINT_PACKAGE_PART_RELATIONSHIPS;
+  if (ak_3mf_str_contains(relationshipType, "thumbnail")
+      || ak_3mf_str_contains(entryName, "thumbnail")
+      || ak_3mf_str_contains(entryName, "Thumbnail"))
+    return AK_PRINT_PACKAGE_PART_THUMBNAIL;
+  if (ak_3mf_str_contains(contentType, "3dmodel"))
+    return AK_PRINT_PACKAGE_PART_MODEL;
+  if (ak_3mf_str_contains(contentType, "printticket")
+      || ak_3mf_str_contains(entryName, "Metadata/"))
+    return AK_PRINT_PACKAGE_PART_METADATA;
+  if (ak_3mf_str_contains(entryName, "/2D/")
+      || ak_3mf_str_contains(entryName, "slic"))
+    return AK_PRINT_PACKAGE_PART_SLICE;
+  if (ak_3mf_str_contains(contentType, "image/")
+      || ak_3mf_str_contains(entryName, "Textures/"))
+    return AK_PRINT_PACKAGE_PART_TEXTURE;
+
+  return AK_PRINT_PACKAGE_PART_OTHER;
+}
+
+static
+void
+ak_3mf_mark_package_part_features(AkPrintDocument       * __restrict print,
+                                  AkPrintPackagePartType             type,
+                                  const char           * __restrict name,
+                                  const char           * __restrict contentType,
+                                  const char           * __restrict relationshipType) {
+  AkPrintFeatureFlags features;
+
+  if (!print)
+    return;
+
+  features = ak_3mf_feature_from_cstr(name)
+             | ak_3mf_feature_from_cstr(contentType)
+             | ak_3mf_feature_from_cstr(relationshipType);
+
+  switch (type) {
+    case AK_PRINT_PACKAGE_PART_MODEL:
+      features |= AK_PRINT_FEATURE_CORE;
+      break;
+    case AK_PRINT_PACKAGE_PART_THUMBNAIL:
+      features |= AK_PRINT_FEATURE_THUMBNAIL;
+      break;
+    case AK_PRINT_PACKAGE_PART_TEXTURE:
+      features |= AK_PRINT_FEATURE_TEXTURES;
+      break;
+    case AK_PRINT_PACKAGE_PART_SLICE:
+      features |= AK_PRINT_FEATURE_SLICE;
+      break;
+    default:
+      break;
+  }
+
+  print->features |= features;
+}
+
+static
+bool
+ak_3mf_import_package_part_visitor(const AkZipEntryInfo * __restrict info,
+                                   void                 * __restrict userdata) {
+  AK3MFPackageImportState *st;
+  AkPrintPackagePartType   type;
+  const char              *contentType;
+  const char              *relationshipType;
+  char                    *entryName;
+  void                    *entryData;
+  size_t                   entrySize;
+  AkResult                 result;
+
+  st = userdata;
+  if (!st || !info || !info->name)
+    return false;
+
+  if (info->nameLen == 0u || info->name[info->nameLen - 1u] == '/')
+    return true;
+  if (ak_3mf_entry_name_eq(info->name, info->nameLen, AK_3MF_CONTENT_TYPES_PART)
+      || ak_3mf_entry_name_eq(info->name, info->nameLen, AK_3MF_ROOT_RELS_PART)
+      || ak_3mf_entry_name_eq(info->name, info->nameLen, st->modelPath))
+    return true;
+
+  entryName = malloc(info->nameLen + 1u);
+  if (!entryName) {
+    st->result = AK_ERR;
+    return false;
+  }
+  memcpy(entryName, info->name, info->nameLen);
+  entryName[info->nameLen] = '\0';
+
+  contentType      = ak_3mf_content_type_dup(st->doc, st->contentTypesRoot, entryName);
+  relationshipType = ak_3mf_root_relationship_type_dup(st->doc, st->rootRelsRoot, entryName);
+  type             = ak_3mf_package_part_type(entryName, contentType, relationshipType);
+
+  entryData = NULL;
+  entrySize = 0u;
+  result = ak_zip_extract_file(st->filepath, entryName, &entryData, &entrySize);
+  if (result != AK_OK) {
+    free(entryName);
+    st->result = result;
+    return false;
+  }
+
+  if (!ak_printAddPackagePartData(st->doc,
+                                  type,
+                                  entryName,
+                                  contentType,
+                                  relationshipType,
+                                  entryData,
+                                  entrySize)) {
+    free(entryData);
+    free(entryName);
+    st->result = AK_ERR;
+    return false;
+  }
+  ak_3mf_mark_package_part_features(st->print, type, entryName, contentType, relationshipType);
+
+  free(entryData);
+  free(entryName);
+  return true;
+}
+
+static
+AkResult
+ak_3mf_import_package_parts(AkDoc            * __restrict doc,
+                            AkPrintDocument  * __restrict print,
+                            const char       * __restrict filepath,
+                            const char       * __restrict modelPath,
+                            xml_t            * __restrict contentTypesRoot,
+                            xml_t            * __restrict rootRelsRoot) {
+  AK3MFPackageImportState st;
+  AkResult                result;
+
+  memset(&st, 0, sizeof(st));
+  st.doc              = doc;
+  st.print            = print;
+  st.filepath         = filepath;
+  st.modelPath        = modelPath;
+  st.contentTypesRoot = contentTypesRoot;
+  st.rootRelsRoot     = rootRelsRoot;
+  st.result           = AK_OK;
+
+  result = ak_zip_visit_entries(filepath, ak_3mf_import_package_part_visitor, &st);
+  if (result != AK_OK)
+    return result;
+  return st.result;
 }
 
 static
@@ -1187,8 +1726,14 @@ AkResult
 imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
   char        *modelPath;
   void        *modelData;
+  void        *contentTypesData;
+  void        *rootRelsData;
   size_t       modelSize;
+  size_t       contentTypesSize;
+  size_t       rootRelsSize;
   xml_doc_t   *xdoc;
+  xml_doc_t   *contentTypesDoc;
+  xml_doc_t   *rootRelsDoc;
   xml_t       *root;
   xml_t       *resourcesXml;
   xml_t       *buildXml;
@@ -1204,8 +1749,14 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
 
   *dest     = NULL;
   modelData = NULL;
+  contentTypesData = NULL;
+  rootRelsData = NULL;
   modelSize = 0;
+  contentTypesSize = 0;
+  rootRelsSize = 0;
   xdoc      = NULL;
+  contentTypesDoc = NULL;
+  rootRelsDoc = NULL;
   doc       = NULL;
   memset(&st, 0, sizeof(st));
 
@@ -1216,6 +1767,19 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
   result = ak_zip_extract_file(filepath, modelPath, &modelData, &modelSize);
   if (result != AK_OK)
     goto cleanup;
+
+  if (ak_zip_extract_file(filepath,
+                          AK_3MF_CONTENT_TYPES_PART,
+                          &contentTypesData,
+                          &contentTypesSize) == AK_OK) {
+    contentTypesDoc = xml_parse(contentTypesData, XML_PREFIXES | XML_READONLY);
+  }
+  if (ak_zip_extract_file(filepath,
+                          AK_3MF_ROOT_RELS_PART,
+                          &rootRelsData,
+                          &rootRelsSize) == AK_OK) {
+    rootRelsDoc = xml_parse(rootRelsData, XML_PREFIXES | XML_READONLY);
+  }
 
   xdoc = xml_parse(modelData, XML_PREFIXES | XML_READONLY);
   if (!xdoc || !xdoc->root) {
@@ -1238,12 +1802,21 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
   st.print = ak_printDocumentEnsure(doc);
   if (st.print) {
     st.print->features |= AK_PRINT_FEATURE_CORE;
+    ak_3mf_mark_model_extensions(st.print, root);
     (void)ak_printAddPackagePart(
       doc,
       AK_PRINT_PACKAGE_PART_MODEL,
       modelPath,
       "application/vnd.ms-package.3dmanufacturing-3dmodel+xml",
       "http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel");
+    result = ak_3mf_import_package_parts(doc,
+                                         st.print,
+                                         filepath,
+                                         modelPath,
+                                         contentTypesDoc ? contentTypesDoc->root : NULL,
+                                         rootRelsDoc ? rootRelsDoc->root : NULL);
+    if (result != AK_OK)
+      goto cleanup;
   }
 
   scene = ak_3mf_scene_new(doc);
@@ -1296,7 +1869,13 @@ cleanup:
   free(st.objects);
   if (xdoc)
     xml_free(xdoc);
+  if (contentTypesDoc)
+    xml_free(contentTypesDoc);
+  if (rootRelsDoc)
+    xml_free(rootRelsDoc);
   free(modelData);
+  free(contentTypesData);
+  free(rootRelsData);
   free(modelPath);
   return result;
 }

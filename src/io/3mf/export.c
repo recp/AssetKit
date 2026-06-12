@@ -111,6 +111,36 @@ ak_3mf_buf_ch(AK3MFBuffer * __restrict buf, char ch) {
 
 static
 void
+ak_3mf_buf_attr(AK3MFBuffer * __restrict buf,
+                const char  * __restrict value) {
+  const unsigned char *it;
+
+  if (!value)
+    return;
+
+  for (it = (const unsigned char *)value; *it; it++) {
+    switch (*it) {
+      case '&':
+        ak_3mf_buf_lit(buf, "&amp;");
+        break;
+      case '<':
+        ak_3mf_buf_lit(buf, "&lt;");
+        break;
+      case '"':
+        ak_3mf_buf_lit(buf, "&quot;");
+        break;
+      case '\'':
+        ak_3mf_buf_lit(buf, "&apos;");
+        break;
+      default:
+        ak_3mf_buf_ch(buf, (char)*it);
+        break;
+    }
+  }
+}
+
+static
+void
 ak_3mf_buf_u32(AK3MFBuffer * __restrict buf, uint32_t value) {
   char  tmp[24];
   char *end;
@@ -869,23 +899,132 @@ ak_3mf_build_model_xml(AK3MFExportState * __restrict st,
   return model->result == AK_OK;
 }
 
+static
+const char*
+ak_3mf_zip_part_name(const char * __restrict name) {
+  if (!name)
+    return NULL;
+  while (*name == '/' || *name == '\\')
+    name++;
+  return *name ? name : NULL;
+}
+
+static
+bool
+ak_3mf_extra_part_exportable(const AkPrintPackagePart * __restrict part) {
+  const char *name;
+
+  if (!part || !part->name || (!part->data && part->size > 0u))
+    return false;
+
+  name = ak_3mf_zip_part_name(part->name);
+  if (!name)
+    return false;
+  if (strcmp(name, "[Content_Types].xml") == 0
+      || strcmp(name, "_rels/.rels") == 0
+      || strcmp(name, "3D/3dmodel.model") == 0)
+    return false;
+
+  return true;
+}
+
+static
+size_t
+ak_3mf_count_extra_parts(const AkPrintDocument * __restrict print) {
+  const AkPrintPackagePart *part;
+  size_t                    count;
+
+  count = 0u;
+  for (part = print ? print->parts : NULL; part; part = part->next) {
+    if (ak_3mf_extra_part_exportable(part))
+      count++;
+  }
+
+  return count;
+}
+
+static
+bool
+ak_3mf_build_content_types_xml(const AkPrintDocument * __restrict print,
+                               AK3MFBuffer           * __restrict contentTypes) {
+  const AkPrintPackagePart *part;
+
+  memset(contentTypes, 0, sizeof(*contentTypes));
+  contentTypes->result = AK_OK;
+
+  ak_3mf_buf_lit(contentTypes,
+                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                 "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">\n"
+                 "  <Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>\n"
+                 "  <Default Extension=\"model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\"/>\n");
+
+  for (part = print ? print->parts : NULL; part; part = part->next) {
+    const char *name;
+
+    if (!ak_3mf_extra_part_exportable(part) || !part->contentType)
+      continue;
+
+    name = ak_3mf_zip_part_name(part->name);
+    ak_3mf_buf_lit(contentTypes, "  <Override PartName=\"/");
+    ak_3mf_buf_attr(contentTypes, name);
+    ak_3mf_buf_lit(contentTypes, "\" ContentType=\"");
+    ak_3mf_buf_attr(contentTypes, part->contentType);
+    ak_3mf_buf_lit(contentTypes, "\"/>\n");
+  }
+
+  ak_3mf_buf_lit(contentTypes, "</Types>\n");
+  return contentTypes->result == AK_OK;
+}
+
+static
+bool
+ak_3mf_build_rels_xml(const AkPrintDocument * __restrict print,
+                      AK3MFBuffer           * __restrict rels) {
+  const AkPrintPackagePart *part;
+  uint32_t                  relId;
+
+  memset(rels, 0, sizeof(*rels));
+  rels->result = AK_OK;
+  relId        = 1u;
+
+  ak_3mf_buf_lit(rels,
+                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                 "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">\n"
+                 "  <Relationship Target=\"/3D/3dmodel.model\" Id=\"rel0\" Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\"/>\n");
+
+  for (part = print ? print->parts : NULL; part; part = part->next) {
+    const char *name;
+
+    if (!ak_3mf_extra_part_exportable(part) || !part->relationshipType)
+      continue;
+
+    name = ak_3mf_zip_part_name(part->name);
+    ak_3mf_buf_lit(rels, "  <Relationship Target=\"/");
+    ak_3mf_buf_attr(rels, name);
+    ak_3mf_buf_lit(rels, "\" Id=\"rel");
+    ak_3mf_buf_u32(rels, relId++);
+    ak_3mf_buf_lit(rels, "\" Type=\"");
+    ak_3mf_buf_attr(rels, part->relationshipType);
+    ak_3mf_buf_lit(rels, "\"/>\n");
+  }
+
+  ak_3mf_buf_lit(rels, "</Relationships>\n");
+  return rels->result == AK_OK;
+}
+
 AK_HIDE
 AkResult
 ak_3mf_export(AkDoc * __restrict doc, const char * __restrict filepath) {
-  static const char contentTypes[] =
-    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-    "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">\n"
-    "  <Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>\n"
-    "  <Default Extension=\"model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\"/>\n"
-    "</Types>\n";
-  static const char rels[] =
-    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-    "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">\n"
-    "  <Relationship Target=\"/3D/3dmodel.model\" Id=\"rel0\" Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\"/>\n"
-    "</Relationships>\n";
   AK3MFExportState st;
   AK3MFBuffer      model;
-  AkZipWriteEntry  entries[3];
+  AK3MFBuffer      contentTypes;
+  AK3MFBuffer      rels;
+  AkZipWriteEntry *entries;
+  AkPrintDocument *print;
+  AkPrintPackagePart *part;
+  size_t           extraPartCount;
+  size_t           entryCount;
+  size_t           entryIndex;
   AkResult         result;
 
   if (!doc || !filepath)
@@ -908,18 +1047,53 @@ ak_3mf_export(AkDoc * __restrict doc, const char * __restrict filepath) {
     return AK_ERR;
   }
 
+  print          = ak_printDocument(doc);
+  extraPartCount = ak_3mf_count_extra_parts(print);
+  entryCount     = 3u + extraPartCount;
+  entries        = calloc(entryCount, sizeof(*entries));
+  if (!entries) {
+    ak_3mf_buf_free(&model);
+    ak_3mf_buf_free(&st.resources);
+    ak_3mf_buf_free(&st.build);
+    return AK_ERR;
+  }
+
+  if (!ak_3mf_build_content_types_xml(print, &contentTypes)
+      || !ak_3mf_build_rels_xml(print, &rels)) {
+    free(entries);
+    ak_3mf_buf_free(&contentTypes);
+    ak_3mf_buf_free(&rels);
+    ak_3mf_buf_free(&model);
+    ak_3mf_buf_free(&st.resources);
+    ak_3mf_buf_free(&st.build);
+    return AK_ERR;
+  }
+
   entries[0].name = "[Content_Types].xml";
-  entries[0].data = contentTypes;
-  entries[0].size = sizeof(contentTypes) - 1u;
+  entries[0].data = contentTypes.data;
+  entries[0].size = contentTypes.len;
   entries[1].name = "_rels/.rels";
-  entries[1].data = rels;
-  entries[1].size = sizeof(rels) - 1u;
+  entries[1].data = rels.data;
+  entries[1].size = rels.len;
   entries[2].name = "3D/3dmodel.model";
   entries[2].data = model.data;
   entries[2].size = model.len;
 
-  result = ak_zip_write_stored(filepath, entries, 3u);
+  entryIndex = 3u;
+  for (part = print ? print->parts : NULL; part; part = part->next) {
+    if (!ak_3mf_extra_part_exportable(part))
+      continue;
+    entries[entryIndex].name = ak_3mf_zip_part_name(part->name);
+    entries[entryIndex].data = part->data;
+    entries[entryIndex].size = part->size;
+    entryIndex++;
+  }
 
+  result = ak_zip_write_stored(filepath, entries, entryCount);
+
+  free(entries);
+  ak_3mf_buf_free(&contentTypes);
+  ak_3mf_buf_free(&rels);
   ak_3mf_buf_free(&model);
   ak_3mf_buf_free(&st.resources);
   ak_3mf_buf_free(&st.build);

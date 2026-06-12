@@ -69,6 +69,8 @@ typedef struct AkPrintPackagePart {
   const char                *name;
   const char                *contentType;
   const char                *relationshipType;
+  const void                *data;
+  size_t                     size;
   AkPrintPackagePartType     type;
   uint32_t                   flags;
 } AkPrintPackagePart;
@@ -124,6 +126,23 @@ ak_printAddPackagePart(struct AkDoc           * __restrict doc,
                        const char            * __restrict name,
                        const char            * __restrict contentType,
                        const char            * __restrict relationshipType);
+
+AK_EXPORT
+bool
+ak_printSetPackagePartData(struct AkDoc           * __restrict doc,
+                           AkPrintPackagePart     * __restrict part,
+                           const void             * __restrict data,
+                           size_t                              size);
+
+AK_EXPORT
+AkPrintPackagePart*
+ak_printAddPackagePartData(struct AkDoc           * __restrict doc,
+                           AkPrintPackagePartType              type,
+                           const char            * __restrict name,
+                           const char            * __restrict contentType,
+                           const char            * __restrict relationshipType,
+                           const void            * __restrict data,
+                           size_t                             size);
 
 #ifdef __cplusplus
 }

@@ -242,6 +242,71 @@ ak_zip_extract_entry(const unsigned char       * __restrict zipData,
 
 AK_HIDE
 AkResult
+ak_zip_visit_entries(const char        * __restrict zipPath,
+                     AkZipEntryVisitor              visitor,
+                     void             * __restrict userdata) {
+  void                *fileData;
+  size_t               fileSize;
+  const unsigned char *data;
+  const unsigned char *eocd;
+  uint16_t             entryCount;
+  uint32_t             centralOffset;
+  uint32_t             centralSize;
+  size_t               cursor;
+  size_t               i;
+  AkResult             result;
+
+  if (!zipPath || !visitor)
+    return AK_ERR;
+
+  result = ak_readfile(zipPath, NULL, &fileData, &fileSize);
+  if (result != AK_OK)
+    return result;
+
+  data = fileData;
+  eocd = ak_zip_find_eocd(data, fileSize);
+  if (!eocd) {
+    ak_releasefile(fileData, fileSize);
+    return AK_EBADF;
+  }
+
+  entryCount    = ak_zip_read_u16le(eocd + 10);
+  centralSize   = ak_zip_read_u32le(eocd + 12);
+  centralOffset = ak_zip_read_u32le(eocd + 16);
+
+  if ((size_t)centralOffset > fileSize
+      || (size_t)centralSize > fileSize - (size_t)centralOffset) {
+    ak_releasefile(fileData, fileSize);
+    return AK_EBADF;
+  }
+
+  cursor = centralOffset;
+  result = AK_OK;
+  for (i = 0; i < entryCount; i++) {
+    AkZipCentralEntry entry;
+    AkZipEntryInfo    info;
+
+    if (!ak_zip_read_central_entry(data, fileSize, &cursor, &entry)) {
+      result = AK_EBADF;
+      break;
+    }
+
+    info.name             = (const char *)entry.name;
+    info.nameLen          = entry.nameLen;
+    info.compressedSize   = entry.compressedSize;
+    info.uncompressedSize = entry.uncompressedSize;
+    info.method           = entry.method;
+    info.flags            = entry.flags;
+    if (!visitor(&info, userdata))
+      break;
+  }
+
+  ak_releasefile(fileData, fileSize);
+  return result;
+}
+
+AK_HIDE
+AkResult
 ak_zip_extract_file(const char * __restrict zipPath,
                     const char * __restrict entryName,
                     void      ** __restrict outData,

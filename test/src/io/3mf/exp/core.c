@@ -113,6 +113,32 @@ ak_test_make_3mf_color_triangle_doc(void) {
   return doc;
 }
 
+static AkDoc *
+ak_test_make_3mf_package_triangle_doc(void) {
+  static const unsigned char thumbnail[] = {
+    0x89u, 'P', 'N', 'G', '\r', '\n', 0x1au, '\n'
+  };
+  AkDoc           *doc;
+  AkPrintPackagePart *part;
+
+  doc = ak_test_make_3mf_triangle_doc();
+  if (!doc)
+    return NULL;
+
+  part = ak_printAddPackagePartData(
+    doc,
+    AK_PRINT_PACKAGE_PART_THUMBNAIL,
+    "Metadata/thumbnail.png",
+    "image/png",
+    "http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail",
+    thumbnail,
+    sizeof(thumbnail));
+  if (!part)
+    return NULL;
+
+  return doc;
+}
+
 TEST_IMPL(three_mf_export_triangle_roundtrip) {
   AkDoc          *doc;
   AkDoc          *roundTrip;
@@ -202,6 +228,7 @@ TEST_IMPL(three_mf_export_color_triangle_roundtrip) {
   ASSERT(print != NULL);
   ASSERT(ak_printHasFeature(print, AK_PRINT_FEATURE_CORE));
   ASSERT(ak_printHasFeature(print, AK_PRINT_FEATURE_MATERIALS));
+  ASSERT(ak_printHasFeature(print, AK_PRINT_FEATURE_PACKAGE));
   ASSERT(print->materialGroupCount == 1);
   ASSERT(print->materialPropertyCount == 3);
 
@@ -226,6 +253,56 @@ TEST_IMPL(three_mf_export_color_triangle_roundtrip) {
   ASSERT(colorAcc->componentSize == AK_COMPONENT_SIZE_VEC4);
   ASSERT(colorAcc->count == 3);
   ASSERT(prim->material != NULL);
+
+  ak_test_export_cleanup(outDir);
+  TEST_SUCCESS
+}
+
+TEST_IMPL(three_mf_export_package_parts_roundtrip) {
+  static const unsigned char thumbnail[] = {
+    0x89u, 'P', 'N', 'G', '\r', '\n', 0x1au, '\n'
+  };
+  AkDoc               *doc;
+  AkDoc               *roundTrip;
+  AkPrintDocument     *print;
+  AkPrintPackagePart  *part;
+  AkPrintPackagePart  *thumbnailPart;
+  const char          *outDir = "./assetkit_export_3mf_package_parts_roundtrip";
+  const char          *mfPath = "./assetkit_export_3mf_package_parts_roundtrip/model.3mf";
+
+  ak_test_export_cleanup(outDir);
+  doc = ak_test_make_3mf_package_triangle_doc();
+  ASSERT(doc != NULL);
+
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_3MF) == AK_OK);
+
+  roundTrip = NULL;
+  ASSERT(ak_load(&roundTrip, mfPath, AK_FILE_TYPE_3MF) == AK_OK);
+  ASSERT(roundTrip != NULL);
+
+  print = ak_printDocument(roundTrip);
+  ASSERT(print != NULL);
+  ASSERT(ak_printHasFeature(print, AK_PRINT_FEATURE_PACKAGE));
+  ASSERT(ak_printHasFeature(print, AK_PRINT_FEATURE_THUMBNAIL));
+  ASSERT(print->packagePartCount == 2);
+
+  thumbnailPart = NULL;
+  for (part = print->parts; part; part = part->next) {
+    if (part->type == AK_PRINT_PACKAGE_PART_THUMBNAIL) {
+      thumbnailPart = part;
+      break;
+    }
+  }
+  ASSERT(thumbnailPart != NULL);
+  ASSERT(thumbnailPart->name != NULL);
+  ASSERT(strcmp(thumbnailPart->name, "Metadata/thumbnail.png") == 0);
+  ASSERT(thumbnailPart->contentType != NULL);
+  ASSERT(strcmp(thumbnailPart->contentType, "image/png") == 0);
+  ASSERT(thumbnailPart->relationshipType != NULL);
+  ASSERT(strstr(thumbnailPart->relationshipType, "thumbnail") != NULL);
+  ASSERT(thumbnailPart->size == sizeof(thumbnail));
+  ASSERT(thumbnailPart->data != NULL);
+  ASSERT(memcmp(thumbnailPart->data, thumbnail, sizeof(thumbnail)) == 0);
 
   ak_test_export_cleanup(outDir);
   TEST_SUCCESS
