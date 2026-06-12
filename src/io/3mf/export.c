@@ -55,6 +55,7 @@ typedef struct AK3MFExportState {
   bool             usesBooleanExtension;
   bool             usesDisplacementExtension;
   bool             usesVolumetricExtension;
+  bool             usesImplicitExtension;
   bool             suppressBuildItems;
 } AK3MFExportState;
 
@@ -1845,6 +1846,22 @@ ak_3mf_write_function_from_image3d(
 
 static
 void
+ak_3mf_write_implicit_function(AK3MFExportState                 * __restrict st,
+                               const AkPrintImplicitFunction    * __restrict function) {
+  if (!st || !function)
+    return;
+  if (function->path && !ak_3mf_path_is_root_model(function->path))
+    return;
+  if (!function->xml)
+    return;
+
+  ak_3mf_buf_lit(&st->resources, "      ");
+  ak_3mf_buf_lit(&st->resources, function->xml);
+  ak_3mf_buf_ch(&st->resources, '\n');
+}
+
+static
+void
 ak_3mf_write_volumetric_element(AK3MFBuffer                    * __restrict buf,
                                 const AkPrintVolumetricElement * __restrict element) {
   const char *tag;
@@ -1970,6 +1987,7 @@ bool
 ak_3mf_write_volumetric_resources(AK3MFExportState * __restrict st) {
   const AkPrintImage3D             *image;
   const AkPrintFunctionFromImage3D *function;
+  const AkPrintImplicitFunction    *implicitFunction;
   const AkPrintVolumeData          *volume;
 
   if (!st || !st->print || !st->usesVolumetricExtension)
@@ -1979,6 +1997,10 @@ ak_3mf_write_volumetric_resources(AK3MFExportState * __restrict st) {
     ak_3mf_write_image3d(st, image);
   for (function = st->print->functionFromImage3Ds; function; function = function->next)
     ak_3mf_write_function_from_image3d(st, function);
+  for (implicitFunction = st->print->implicitFunctions;
+       implicitFunction;
+       implicitFunction = implicitFunction->next)
+    ak_3mf_write_implicit_function(st, implicitFunction);
   for (volume = st->print->volumeData; volume; volume = volume->next)
     ak_3mf_write_volume_data(st, volume);
 
@@ -2266,13 +2288,18 @@ ak_3mf_build_model_xml(AK3MFExportState * __restrict st,
     ak_3mf_buf_lit(model,
                    " xmlns:v=\"http://schemas.3mf.io/3dmanufacturing/volumetric/2022/01\"");
   }
+  if (st->usesImplicitExtension) {
+    ak_3mf_buf_lit(model,
+                   " xmlns:i=\"http://schemas.3mf.io/3dmanufacturing/implicit/2023/12\"");
+  }
   if (st->usesMaterialExtension
       || st->usesSliceExtension
       || st->usesBeamLatticeExtension
       || st->usesBeamBallExtension
       || st->usesBooleanExtension
       || st->usesDisplacementExtension
-      || st->usesVolumetricExtension) {
+      || st->usesVolumetricExtension
+      || st->usesImplicitExtension) {
     bool any;
 
     any = false;
@@ -2315,6 +2342,12 @@ ak_3mf_build_model_xml(AK3MFExportState * __restrict st,
       if (any)
         ak_3mf_buf_ch(model, ' ');
       ak_3mf_buf_lit(model, "v");
+      any = true;
+    }
+    if (st->usesImplicitExtension) {
+      if (any)
+        ak_3mf_buf_ch(model, ' ');
+      ak_3mf_buf_lit(model, "i");
     }
     ak_3mf_buf_ch(model, '"');
   }
@@ -2479,10 +2512,12 @@ ak_3mf_export(AkDoc * __restrict doc, const char * __restrict filepath) {
                                      || st.print->normVectorGroupCount > 0u
                                      || st.print->disp2DGroupCount > 0u
                                      || st.print->displacementMeshCount > 0u);
+  st.usesImplicitExtension = st.print && st.print->implicitFunctionCount > 0u;
   st.usesVolumetricExtension = st.print
                                && (st.print->image3DCount > 0u
                                    || st.print->imageSheetCount > 0u
                                    || st.print->functionFromImage3DCount > 0u
+                                   || st.print->implicitFunctionCount > 0u
                                    || st.print->volumeDataCount > 0u
                                    || st.print->volumetricElementCount > 0u
                                    || st.print->volumetricMeshCount > 0u

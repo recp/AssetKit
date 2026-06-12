@@ -1143,6 +1143,48 @@ ak_printAddFunctionFromImage3D(AkDoc      * __restrict doc,
 }
 
 AK_EXPORT
+AkPrintImplicitFunction*
+ak_printAddImplicitFunction(AkDoc      * __restrict doc,
+                            const char * __restrict path,
+                            uint32_t                id,
+                            const char * __restrict displayName,
+                            const char * __restrict xml,
+                            uint32_t                flags) {
+  AkPrintDocument         *print;
+  AkPrintImplicitFunction *function;
+  AkHeap                  *heap;
+
+  print = ak_printDocumentEnsure(doc);
+  if (!print)
+    return NULL;
+
+  heap = ak_heap_getheap(print);
+  if (!heap)
+    return NULL;
+
+  function = ak_heap_calloc(heap, print, sizeof(*function));
+  if (!function)
+    return NULL;
+
+  function->path        = ak_print_strdup(heap, function, path);
+  function->xml         = ak_print_strdup(heap, function, xml);
+  function->displayName = ak_print_strdup(heap, function, displayName);
+  function->id          = id;
+  function->flags       = flags;
+
+  if (print->lastImplicitFunction)
+    print->lastImplicitFunction->next = function;
+  else
+    print->implicitFunctions = function;
+
+  print->lastImplicitFunction = function;
+  print->implicitFunctionCount++;
+  print->features |= AK_PRINT_FEATURE_VOLUMETRIC;
+
+  return function;
+}
+
+AK_EXPORT
 AkPrintVolumeData*
 ak_printAddVolumeData(AkDoc      * __restrict doc,
                       const char * __restrict path,

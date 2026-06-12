@@ -96,6 +96,13 @@ typedef struct AK3MFPackageImportState {
   AkResult         result;
 } AK3MFPackageImportState;
 
+typedef struct AK3MFXMLBuffer {
+  char  *data;
+  size_t len;
+  size_t cap;
+  bool   ok;
+} AK3MFXMLBuffer;
+
 static
 bool
 ak_3mf_slice_contains(const char * __restrict haystack,
@@ -348,6 +355,157 @@ ak_3mf_attr_dup_path_cstr(const xml_attr_t * __restrict attr) {
     return NULL;
 
   return ak_3mf_path_slice_dup_cstr(attr->val, attr->valsize);
+}
+
+static
+bool
+ak_3mf_xml_buf_reserve(AK3MFXMLBuffer * __restrict buf, size_t extra) {
+  char  *data;
+  size_t newCap;
+
+  if (!buf || !buf->ok)
+    return false;
+  if (extra <= buf->cap - buf->len)
+    return true;
+
+  newCap = buf->cap ? buf->cap * 2u : 1024u;
+  while (extra > newCap - buf->len) {
+    if (newCap > SIZE_MAX / 2u) {
+      buf->ok = false;
+      return false;
+    }
+    newCap *= 2u;
+  }
+
+  data = realloc(buf->data, newCap);
+  if (!data) {
+    buf->ok = false;
+    return false;
+  }
+
+  buf->data = data;
+  buf->cap  = newCap;
+  return true;
+}
+
+static
+void
+ak_3mf_xml_buf_raw(AK3MFXMLBuffer * __restrict buf,
+                   const void      * __restrict data,
+                   size_t                       len) {
+  if (!ak_3mf_xml_buf_reserve(buf, len))
+    return;
+
+  memcpy(buf->data + buf->len, data, len);
+  buf->len += len;
+}
+
+static
+void
+ak_3mf_xml_buf_lit(AK3MFXMLBuffer * __restrict buf,
+                   const char      * __restrict lit) {
+  ak_3mf_xml_buf_raw(buf, lit, strlen(lit));
+}
+
+static
+void
+ak_3mf_xml_buf_ch(AK3MFXMLBuffer * __restrict buf, char ch) {
+  if (!ak_3mf_xml_buf_reserve(buf, 1u))
+    return;
+
+  buf->data[buf->len++] = ch;
+}
+
+static
+void
+ak_3mf_xml_buf_terminate(AK3MFXMLBuffer * __restrict buf) {
+  if (!ak_3mf_xml_buf_reserve(buf, 1u))
+    return;
+
+  buf->data[buf->len] = '\0';
+}
+
+static
+void
+ak_3mf_serialize_xml_node(AK3MFXMLBuffer * __restrict buf,
+                          xml_t          * __restrict xml,
+                          bool                        forceImplicitPrefix) {
+  const xml_attr_t *attr;
+  const char       *prefix;
+  uint16_t          prefixSize;
+
+  if (!buf || !buf->ok || !xml)
+    return;
+
+  if (xml->type == XML_STRING) {
+    ak_3mf_xml_buf_raw(buf, xml->val, xml->valsize);
+    return;
+  }
+  if (xml->type != XML_ELEMENT || !xml->tag)
+    return;
+
+  prefix     = xml->prefix;
+  prefixSize = xml->prefixsize;
+  if (!prefix && forceImplicitPrefix) {
+    prefix     = "i";
+    prefixSize = 1u;
+  }
+
+  ak_3mf_xml_buf_ch(buf, '<');
+  if (prefix && prefixSize > 0u) {
+    ak_3mf_xml_buf_raw(buf, prefix, prefixSize);
+    ak_3mf_xml_buf_ch(buf, ':');
+  }
+  ak_3mf_xml_buf_raw(buf, xml->tag, xml->tagsize);
+
+  for (attr = xml->attr; attr; attr = attr->next) {
+    char quote;
+
+    if (!attr->name || !attr->val)
+      continue;
+
+    quote = attr->valquote ? (char)attr->valquote : '"';
+    ak_3mf_xml_buf_ch(buf, ' ');
+    ak_3mf_xml_buf_raw(buf, attr->name, attr->namesize);
+    ak_3mf_xml_buf_ch(buf, '=');
+    ak_3mf_xml_buf_ch(buf, quote);
+    ak_3mf_xml_buf_raw(buf, attr->val, attr->valsize);
+    ak_3mf_xml_buf_ch(buf, quote);
+  }
+
+  if (xml->val) {
+    xml_t *child;
+
+    ak_3mf_xml_buf_ch(buf, '>');
+    for (child = xml->val; child; child = child->next)
+      ak_3mf_serialize_xml_node(buf, child, forceImplicitPrefix);
+    ak_3mf_xml_buf_lit(buf, "</");
+    if (prefix && prefixSize > 0u) {
+      ak_3mf_xml_buf_raw(buf, prefix, prefixSize);
+      ak_3mf_xml_buf_ch(buf, ':');
+    }
+    ak_3mf_xml_buf_raw(buf, xml->tag, xml->tagsize);
+    ak_3mf_xml_buf_ch(buf, '>');
+  } else {
+    ak_3mf_xml_buf_lit(buf, "/>");
+  }
+}
+
+static
+char*
+ak_3mf_xml_fragment_dup(xml_t * __restrict xml, bool forceImplicitPrefix) {
+  AK3MFXMLBuffer buf;
+
+  memset(&buf, 0, sizeof(buf));
+  buf.ok = true;
+  ak_3mf_serialize_xml_node(&buf, xml, forceImplicitPrefix);
+  ak_3mf_xml_buf_terminate(&buf);
+  if (!buf.ok) {
+    free(buf.data);
+    return NULL;
+  }
+
+  return buf.data;
 }
 
 static
@@ -1691,6 +1849,31 @@ ak_3mf_parse_function_from_image3d(AK3MFImportState * __restrict st,
 
 static
 void
+ak_3mf_parse_implicit_function(AK3MFImportState * __restrict st,
+                               xml_t            * __restrict xml) {
+  char     *displayName;
+  char     *fragment;
+  uint32_t  flags;
+
+  if (!st || !xml)
+    return;
+
+  displayName = ak_3mf_attr_dup_cstr(ak_3mf_xmla_local_lit(xml, "displayname"));
+  fragment    = ak_3mf_xml_fragment_dup(xml, true);
+  flags       = fragment ? AK_PRINT_IMPLICIT_FUNCTION_HAS_XML : 0u;
+
+  (void)ak_printAddImplicitFunction(st->doc,
+                                    st->currentModelPath,
+                                    xmla_u32(ak_3mf_xmla_local_lit(xml, "id"), 0u),
+                                    displayName,
+                                    fragment,
+                                    flags);
+  free(displayName);
+  free(fragment);
+}
+
+static
+void
 ak_3mf_parse_volumetric_element(AK3MFImportState           * __restrict st,
                                 AkPrintVolumeData          * __restrict volume,
                                 xml_t                      * __restrict xml,
@@ -1802,6 +1985,8 @@ ak_3mf_parse_volumetric_resources(AK3MFImportState * __restrict st,
       ak_3mf_parse_image3d(st, xml);
     else if (ak_3mf_tag(xml, "functionfromimage3d"))
       ak_3mf_parse_function_from_image3d(st, xml);
+    else if (ak_3mf_tag(xml, "implicitfunction"))
+      ak_3mf_parse_implicit_function(st, xml);
     else if (ak_3mf_tag(xml, "volumedata"))
       ak_3mf_parse_volume_data(st, xml);
   }

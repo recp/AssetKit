@@ -175,6 +175,10 @@ typedef enum AkPrintLevelSetFlag {
   AK_PRINT_LEVEL_SET_HAS_VOLUME_ID        = 1u << 4
 } AkPrintLevelSetFlag;
 
+typedef enum AkPrintImplicitFunctionFlag {
+  AK_PRINT_IMPLICIT_FUNCTION_HAS_XML = 1u << 0
+} AkPrintImplicitFunctionFlag;
+
 typedef struct AkPrintPackagePart {
   struct AkPrintPackagePart *next;
   const char                *name;
@@ -409,6 +413,15 @@ typedef struct AkPrintFunctionFromImage3D {
   uint32_t                          flags;
 } AkPrintFunctionFromImage3D;
 
+typedef struct AkPrintImplicitFunction {
+  struct AkPrintImplicitFunction *next;
+  const char                     *path;
+  const char                     *xml;
+  const char                     *displayName;
+  uint32_t                        id;
+  uint32_t                        flags;
+} AkPrintImplicitFunction;
+
 typedef struct AkPrintVolumeData {
   struct AkPrintVolumeData *next;
   const char               *path;
@@ -499,6 +512,8 @@ typedef struct AkPrintDocument {
   AkPrintImageSheet    *lastImageSheet;
   AkPrintFunctionFromImage3D *functionFromImage3Ds;
   AkPrintFunctionFromImage3D *lastFunctionFromImage3D;
+  AkPrintImplicitFunction *implicitFunctions;
+  AkPrintImplicitFunction *lastImplicitFunction;
   AkPrintVolumeData    *volumeData;
   AkPrintVolumeData    *lastVolumeData;
   AkPrintVolumetricElement *volumetricElements;
@@ -544,6 +559,7 @@ typedef struct AkPrintDocument {
   uint32_t               image3DCount;
   uint32_t               imageSheetCount;
   uint32_t               functionFromImage3DCount;
+  uint32_t               implicitFunctionCount;
   uint32_t               volumeDataCount;
   uint32_t               volumetricElementCount;
   uint32_t               volumetricMeshCount;
@@ -808,6 +824,15 @@ ak_printAddFunctionFromImage3D(struct AkDoc  * __restrict doc,
                                const char    * __restrict tileStyleV,
                                const char    * __restrict tileStyleW,
                                uint32_t                   flags);
+
+AK_EXPORT
+AkPrintImplicitFunction*
+ak_printAddImplicitFunction(struct AkDoc  * __restrict doc,
+                            const char    * __restrict path,
+                            uint32_t                   id,
+                            const char    * __restrict displayName,
+                            const char    * __restrict xml,
+                            uint32_t                   flags);
 
 AK_EXPORT
 AkPrintVolumeData*

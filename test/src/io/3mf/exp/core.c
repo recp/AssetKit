@@ -1587,3 +1587,164 @@ TEST_IMPL(three_mf_import_volumetric_roundtrip) {
   ak_test_export_cleanup(roundTripDir);
   TEST_SUCCESS
 }
+
+static bool
+ak_test_write_3mf_implicit_model(const char *path) {
+  static const char contentTypes[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">"
+    "<Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>"
+    "<Override PartName=\"/3D/3dmodel.model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\"/>"
+    "</Types>";
+  static const char rels[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">"
+    "<Relationship Id=\"rel0\" "
+    "Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\" "
+    "Target=\"/3D/3dmodel.model\"/>"
+    "</Relationships>";
+  static const char rootModel[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<model unit=\"millimeter\" requiredextensions=\"v i\" "
+    "xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" "
+    "xmlns:v=\"http://schemas.3mf.io/3dmanufacturing/volumetric/2022/01\" "
+    "xmlns:i=\"http://schemas.3mf.io/3dmanufacturing/implicit/2023/12\">"
+    "<resources>"
+    "<i:implicitfunction id=\"6\" displayname=\"sphere\">"
+    "<i:in>"
+    "<i:vector identifier=\"pos\" displayname=\"pos\"/>"
+    "<i:scalar identifier=\"radius\" displayname=\"radius\"/>"
+    "</i:in>"
+    "<i:length identifier=\"Length_3\" displayname=\"Length_3\">"
+    "<i:in>"
+    "<i:vectorref identifier=\"A\" ref=\"inputs.pos\"/>"
+    "</i:in>"
+    "<i:out>"
+    "<i:scalar identifier=\"result\" displayname=\"result\"/>"
+    "</i:out>"
+    "</i:length>"
+    "<i:subtraction identifier=\"Subtraction_4\" displayname=\"Subtraction_4\">"
+    "<i:in>"
+    "<i:scalarref identifier=\"A\" ref=\"Length_3.result\"/>"
+    "<i:scalarref identifier=\"B\" ref=\"inputs.radius\"/>"
+    "</i:in>"
+    "<i:out>"
+    "<i:scalar identifier=\"result\" displayname=\"result\"/>"
+    "</i:out>"
+    "</i:subtraction>"
+    "<i:out>"
+    "<i:scalarref identifier=\"shape\" displayname=\"shape\" ref=\"Subtraction_4.result\"/>"
+    "</i:out>"
+    "</i:implicitfunction>"
+    "<object id=\"1\" type=\"model\" name=\"sphere-domain\">"
+    "<mesh>"
+    "<vertices>"
+    "<vertex x=\"-1\" y=\"-1\" z=\"-1\"/>"
+    "<vertex x=\"1\" y=\"-1\" z=\"-1\"/>"
+    "<vertex x=\"-1\" y=\"1\" z=\"-1\"/>"
+    "<vertex x=\"-1\" y=\"-1\" z=\"1\"/>"
+    "</vertices>"
+    "<triangles>"
+    "<triangle v1=\"0\" v2=\"1\" v3=\"2\"/>"
+    "<triangle v1=\"0\" v2=\"3\" v3=\"1\"/>"
+    "<triangle v1=\"1\" v2=\"3\" v3=\"2\"/>"
+    "<triangle v1=\"2\" v2=\"3\" v3=\"0\"/>"
+    "</triangles>"
+    "</mesh>"
+    "</object>"
+    "<object id=\"7\" type=\"model\" name=\"sphere-levelset\">"
+    "<v:levelset functionid=\"6\" channel=\"shape\" meshid=\"1\" meshbboxonly=\"true\"/>"
+    "</object>"
+    "</resources>"
+    "<build><item objectid=\"7\"/></build>"
+    "</model>";
+  AkTest3MFZipEntry entries[3];
+
+  entries[0].name = "[Content_Types].xml";
+  entries[0].data = contentTypes;
+  entries[0].size = sizeof(contentTypes) - 1u;
+  entries[1].name = "_rels/.rels";
+  entries[1].data = rels;
+  entries[1].size = sizeof(rels) - 1u;
+  entries[2].name = "3D/3dmodel.model";
+  entries[2].data = rootModel;
+  entries[2].size = sizeof(rootModel) - 1u;
+
+  return ak_test_3mf_zip_write_stored(path, entries, AK_ARRAY_LEN(entries));
+}
+
+TEST_IMPL(three_mf_import_implicit_roundtrip) {
+  AkDoc                  *doc;
+  AkDoc                  *roundTrip;
+  AkPrintDocument        *print;
+  AkPrintDocument        *roundTripPrint;
+  AkPrintImplicitFunction *function;
+  AkPrintLevelSet        *levelSet;
+  const char             *outDir = "./assetkit_import_3mf_implicit";
+  const char             *mfPath = "./assetkit_import_3mf_implicit/model.3mf";
+  const char             *roundTripDir = "./assetkit_export_3mf_implicit";
+  const char             *roundTripPath = "./assetkit_export_3mf_implicit/model.3mf";
+
+  ak_test_export_cleanup(outDir);
+  ak_test_export_cleanup(roundTripDir);
+  ASSERT(mkdir(outDir, 0777) == 0);
+  ASSERT(ak_test_write_3mf_implicit_model(mfPath));
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, mfPath, AK_FILE_TYPE_3MF) == AK_OK);
+  ASSERT(doc != NULL);
+  ASSERT(doc->lib.geometries.count == 1);
+
+  print = ak_printDocument(doc);
+  ASSERT(print != NULL);
+  ASSERT(ak_printHasFeature(print, AK_PRINT_FEATURE_VOLUMETRIC));
+  ASSERT((print->requiredFeatures & AK_PRINT_FEATURE_VOLUMETRIC) != 0u);
+  ASSERT((print->unsupportedFeatures & AK_PRINT_FEATURE_VOLUMETRIC) == 0u);
+  ASSERT(print->implicitFunctionCount == 1);
+  ASSERT(print->levelSetCount == 1);
+
+  function = print->implicitFunctions;
+  ASSERT(function != NULL);
+  ASSERT(function->id == 6);
+  ASSERT(strcmp(function->displayName, "sphere") == 0);
+  ASSERT((function->flags & AK_PRINT_IMPLICIT_FUNCTION_HAS_XML) != 0u);
+  ASSERT(function->xml != NULL);
+  ASSERT(strstr(function->xml, "<i:length") != NULL);
+  ASSERT(strstr(function->xml, "<i:subtraction") != NULL);
+
+  levelSet = print->levelSets;
+  ASSERT(levelSet != NULL);
+  ASSERT(levelSet->objectId == 7);
+  ASSERT(levelSet->functionId == 6);
+  ASSERT(strcmp(levelSet->channel, "shape") == 0);
+  ASSERT(levelSet->meshId == 1);
+  ASSERT((levelSet->flags & AK_PRINT_LEVEL_SET_HAS_MESH_BBOX_ONLY) != 0u);
+
+  ASSERT(ak_export(doc, roundTripDir, AK_FILE_TYPE_3MF) == AK_OK);
+  roundTrip = NULL;
+  ASSERT(ak_load(&roundTrip, roundTripPath, AK_FILE_TYPE_3MF) == AK_OK);
+  ASSERT(roundTrip != NULL);
+  ASSERT(roundTrip->lib.geometries.count == 1);
+
+  roundTripPrint = ak_printDocument(roundTrip);
+  ASSERT(roundTripPrint != NULL);
+  ASSERT(ak_printHasFeature(roundTripPrint, AK_PRINT_FEATURE_VOLUMETRIC));
+  ASSERT((roundTripPrint->requiredFeatures & AK_PRINT_FEATURE_VOLUMETRIC) != 0u);
+  ASSERT((roundTripPrint->unsupportedFeatures & AK_PRINT_FEATURE_VOLUMETRIC) == 0u);
+  ASSERT(roundTripPrint->implicitFunctionCount == 1);
+  ASSERT(roundTripPrint->levelSetCount == 1);
+  ASSERT(roundTripPrint->implicitFunctions != NULL);
+  ASSERT(roundTripPrint->implicitFunctions->id == 6);
+  ASSERT(roundTripPrint->implicitFunctions->xml != NULL);
+  ASSERT(strstr(roundTripPrint->implicitFunctions->xml, "<i:length") != NULL);
+  ASSERT(strstr(roundTripPrint->implicitFunctions->xml, "<i:subtraction") != NULL);
+  ASSERT(roundTripPrint->levelSets != NULL);
+  ASSERT(roundTripPrint->levelSets->objectId == 7);
+  ASSERT(roundTripPrint->levelSets->functionId == 6);
+  ASSERT(roundTripPrint->levelSets->meshId == 1);
+  ASSERT((roundTripPrint->levelSets->flags & AK_PRINT_LEVEL_SET_HAS_MESH_BBOX_ONLY) != 0u);
+
+  ak_test_export_cleanup(outDir);
+  ak_test_export_cleanup(roundTripDir);
+  TEST_SUCCESS
+}
