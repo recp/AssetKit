@@ -25,7 +25,7 @@
 #include "io/obj/exp/obj.h"
 #include "io/stl/stl.h"
 #include "io/ply/ply.h"
-#include "io/3mf/imp/3mf.h"
+#include "io/3mf/3mf.h"
 
 #include <errno.h>
 #include <stdlib.h>
@@ -436,6 +436,7 @@ ak_export(AkDoc * __restrict doc, const char * __restrict outDir,
     {wobj_export,     "obj"},
     {stl_export,      "stl"},
     {ply_export,      "ply"},
+    {ak_3mf_export,   "3mf"},
   };
 
   fexporter = NULL;
@@ -461,6 +462,9 @@ ak_export(AkDoc * __restrict doc, const char * __restrict outDir,
         break;
       case AK_FILE_TYPE_PLY:
         fexporter = &fexporters[5];
+        break;
+      case AK_FILE_TYPE_3MF:
+        fexporter = &fexporters[6];
         break;
       default:
         break;
