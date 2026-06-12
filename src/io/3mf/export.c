@@ -54,6 +54,7 @@ typedef struct AK3MFExportState {
   bool             usesBeamBallExtension;
   bool             usesBooleanExtension;
   bool             usesDisplacementExtension;
+  bool             usesVolumetricExtension;
   bool             suppressBuildItems;
 } AK3MFExportState;
 
@@ -342,6 +343,48 @@ ak_3mf_displacement_mesh_for_export(AK3MFExportState * __restrict st,
       && st->print->displacementMeshCount == 1u
       && st->objectCount == 0u) {
     mesh = ak_3mf_first_displacement_mesh(st->print);
+    if (mesh && ak_3mf_path_is_root_model(mesh->path))
+      return mesh;
+  }
+
+  return NULL;
+}
+
+static
+const AkPrintVolumetricMesh*
+ak_3mf_first_volumetric_mesh(const AkPrintDocument * __restrict print) {
+  return print ? print->volumetricMeshes : NULL;
+}
+
+static
+const AkPrintVolumetricMesh*
+ak_3mf_find_volumetric_mesh(const AkPrintDocument * __restrict print,
+                            uint32_t                            objectId) {
+  const AkPrintVolumetricMesh *mesh;
+
+  for (mesh = print ? print->volumetricMeshes : NULL; mesh; mesh = mesh->next) {
+    if (mesh->objectId == objectId)
+      return mesh;
+  }
+
+  return NULL;
+}
+
+static
+const AkPrintVolumetricMesh*
+ak_3mf_volumetric_mesh_for_export(AK3MFExportState * __restrict st,
+                                  uint32_t                      objectId) {
+  const AkPrintVolumetricMesh *mesh;
+
+  mesh = ak_3mf_find_volumetric_mesh(st ? st->print : NULL, objectId);
+  if (mesh && ak_3mf_path_is_root_model(mesh->path))
+    return mesh;
+
+  if (st
+      && st->print
+      && st->print->volumetricMeshCount == 1u
+      && st->objectCount == 0u) {
+    mesh = ak_3mf_first_volumetric_mesh(st->print);
     if (mesh && ak_3mf_path_is_root_model(mesh->path))
       return mesh;
   }
@@ -1055,6 +1098,7 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
   const AkPrintSliceObject *sliceObject;
   const AkPrintBeamLattice *beamLattice;
   const AkPrintDisplacementMesh *displacementMesh;
+  const AkPrintVolumetricMesh *volumetricMesh;
   AK3MFDisplacementWrite displacementWrite;
   bool        ok;
   bool        hasColorRows;
@@ -1087,6 +1131,7 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
   triangleCount    = 0;
   beamLattice      = ak_3mf_beam_lattice_for_export(st, st->nextObjectId);
   displacementMesh = ak_3mf_displacement_mesh_for_export(st, st->nextObjectId);
+  volumetricMesh   = ak_3mf_volumetric_mesh_for_export(st, st->nextObjectId);
   memset(&displacementWrite, 0, sizeof(displacementWrite));
   if (displacementMesh) {
     displacementWrite.triangle  = ak_3mf_first_displacement_triangle_for_mesh(st->print,
@@ -1192,6 +1237,8 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
     beamLattice = ak_3mf_beam_lattice_for_export(st, objectId);
   if (!displacementMesh)
     displacementMesh = ak_3mf_displacement_mesh_for_export(st, objectId);
+  if (!volumetricMesh)
+    volumetricMesh = ak_3mf_volumetric_mesh_for_export(st, objectId);
   if (sliceObject
       && st->print
       && st->print->sliceObjectCount == 1u
@@ -1222,6 +1269,16 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
     if (st->nextObjectId <= objectId)
       st->nextObjectId = objectId + 1u;
   }
+  if (volumetricMesh
+      && st->print
+      && st->print->volumetricMeshCount == 1u
+      && st->objectCount == 0u
+      && volumetricMesh->objectId != 0u
+      && volumetricMesh->objectId != propertyId) {
+    objectId = volumetricMesh->objectId;
+    if (st->nextObjectId <= objectId)
+      st->nextObjectId = objectId + 1u;
+  }
 
   if (propertyId != 0u) {
     ak_3mf_buf_lit(&st->resources, "      <m:colorgroup id=\"");
@@ -1236,11 +1293,20 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
   ak_3mf_buf_u32(&st->resources, objectId);
   ak_3mf_append_slice_object_attrs(&st->resources, sliceObject);
   ak_3mf_buf_lit(&st->resources, "\" type=\"model\">\n");
-  ak_3mf_buf_lit(&st->resources, displacementMesh
-                                ? "        <d:displacementmesh>\n"
-                                  "          <d:vertices>\n"
-                                : "        <mesh>\n"
+  if (displacementMesh) {
+    ak_3mf_buf_lit(&st->resources, "        <d:displacementmesh>\n"
+                                  "          <d:vertices>\n");
+  } else {
+    ak_3mf_buf_lit(&st->resources, "        <mesh");
+    if (volumetricMesh
+        && (volumetricMesh->flags & AK_PRINT_VOLUMETRIC_MESH_HAS_VOLUME_ID) != 0u) {
+      ak_3mf_buf_lit(&st->resources, " volumeid=\"");
+      ak_3mf_buf_u32(&st->resources, volumetricMesh->volumeId);
+      ak_3mf_buf_ch(&st->resources, '"');
+    }
+    ak_3mf_buf_lit(&st->resources, ">\n"
                                   "          <vertices>\n");
+  }
   ak_3mf_buf_raw(&st->resources, vertices.data, vertices.len);
   ak_3mf_buf_lit(&st->resources, displacementMesh
                                 ? "          </d:vertices>\n"
@@ -1397,7 +1463,10 @@ ak_3mf_write_library_fallback(AK3MFExportState * __restrict st) {
 
   glm_mat4_identity(identity);
   savedSuppressBuildItems = st->suppressBuildItems;
-  if (st->usesBooleanExtension)
+  if (st->usesBooleanExtension
+      || (st->usesVolumetricExtension
+          && st->print
+          && st->print->levelSetCount > 0u))
     st->suppressBuildItems = true;
   for (geom = st->doc->lib.geometries.first; geom; geom = geom->next) {
     if (!ak_3mf_write_mesh_instance(st, geom, identity)) {
@@ -1640,6 +1709,354 @@ ak_3mf_append_optional_3mf_path(AK3MFBuffer * __restrict buf,
 }
 
 static
+const AkPrintImageSheet*
+ak_3mf_first_image_sheet_for_image(const AkPrintDocument * __restrict print,
+                                   const AkPrintImage3D  * __restrict image) {
+  const AkPrintImage3D    *it;
+  const AkPrintImageSheet *sheet;
+  uint32_t                 i;
+
+  sheet = print ? print->imageSheets : NULL;
+  for (it = print ? print->image3Ds : NULL; it && it != image; it = it->next) {
+    for (i = 0u; i < it->imageSheetCount && sheet; i++)
+      sheet = sheet->next;
+  }
+
+  return it == image ? sheet : NULL;
+}
+
+static
+const AkPrintVolumetricElement*
+ak_3mf_first_volumetric_element_for_volume(
+                                  const AkPrintDocument   * __restrict print,
+                                  const AkPrintVolumeData * __restrict volume) {
+  const AkPrintVolumeData        *it;
+  const AkPrintVolumetricElement *element;
+  uint32_t                        i;
+
+  element = print ? print->volumetricElements : NULL;
+  for (it = print ? print->volumeData : NULL; it && it != volume; it = it->next) {
+    uint32_t count;
+
+    count = it->materialMappingCount + it->colorCount + it->propertyCount;
+    for (i = 0u; i < count && element; i++)
+      element = element->next;
+  }
+
+  return it == volume ? element : NULL;
+}
+
+static
+void
+ak_3mf_write_image3d(AK3MFExportState      * __restrict st,
+                     const AkPrintImage3D  * __restrict image) {
+  const AkPrintImageSheet *sheet;
+  uint32_t                 i;
+
+  if (!st || !image)
+    return;
+  if (image->path && !ak_3mf_path_is_root_model(image->path))
+    return;
+
+  sheet = ak_3mf_first_image_sheet_for_image(st->print, image);
+  ak_3mf_buf_lit(&st->resources, "      <v:image3d id=\"");
+  ak_3mf_buf_u32(&st->resources, image->id);
+  ak_3mf_buf_ch(&st->resources, '"');
+  if (image->name) {
+    ak_3mf_buf_lit(&st->resources, " name=\"");
+    ak_3mf_buf_attr(&st->resources, image->name);
+    ak_3mf_buf_ch(&st->resources, '"');
+  }
+  ak_3mf_buf_lit(&st->resources, ">\n"
+                                "        <v:imagestack rowcount=\"");
+  ak_3mf_buf_u32(&st->resources, image->rowCount);
+  ak_3mf_buf_lit(&st->resources, "\" columncount=\"");
+  ak_3mf_buf_u32(&st->resources, image->columnCount);
+  ak_3mf_buf_lit(&st->resources, "\" sheetcount=\"");
+  ak_3mf_buf_u32(&st->resources, image->sheetCount);
+  ak_3mf_buf_lit(&st->resources, "\">\n");
+
+  for (i = 0u; i < image->imageSheetCount && sheet; i++, sheet = sheet->next) {
+    ak_3mf_buf_lit(&st->resources, "          <v:imagesheet path=\"/");
+    ak_3mf_buf_attr(&st->resources, sheet->path);
+    ak_3mf_buf_lit(&st->resources, "\"/>\n");
+  }
+
+  ak_3mf_buf_lit(&st->resources, "        </v:imagestack>\n"
+                                "      </v:image3d>\n");
+}
+
+static
+void
+ak_3mf_write_function_from_image3d(
+                         AK3MFExportState                    * __restrict st,
+                         const AkPrintFunctionFromImage3D    * __restrict function) {
+  if (!st || !function)
+    return;
+  if (function->path && !ak_3mf_path_is_root_model(function->path))
+    return;
+
+  ak_3mf_buf_lit(&st->resources, "      <v:functionfromimage3d id=\"");
+  ak_3mf_buf_u32(&st->resources, function->id);
+  ak_3mf_buf_lit(&st->resources, "\" image3did=\"");
+  ak_3mf_buf_u32(&st->resources, function->image3DId);
+  ak_3mf_buf_ch(&st->resources, '"');
+  if (function->displayName) {
+    ak_3mf_buf_lit(&st->resources, " displayname=\"");
+    ak_3mf_buf_attr(&st->resources, function->displayName);
+    ak_3mf_buf_ch(&st->resources, '"');
+  }
+  if ((function->flags & AK_PRINT_FUNCTION_FROM_IMAGE3D_HAS_VALUE_OFFSET) != 0u) {
+    ak_3mf_buf_lit(&st->resources, " valueoffset=\"");
+    ak_3mf_buf_float(&st->resources, function->valueOffset);
+    ak_3mf_buf_ch(&st->resources, '"');
+  }
+  if ((function->flags & AK_PRINT_FUNCTION_FROM_IMAGE3D_HAS_VALUE_SCALE) != 0u) {
+    ak_3mf_buf_lit(&st->resources, " valuescale=\"");
+    ak_3mf_buf_float(&st->resources, function->valueScale);
+    ak_3mf_buf_ch(&st->resources, '"');
+  }
+  if ((function->flags & AK_PRINT_FUNCTION_FROM_IMAGE3D_HAS_FILTER) != 0u
+      && function->filter) {
+    ak_3mf_buf_lit(&st->resources, " filter=\"");
+    ak_3mf_buf_attr(&st->resources, function->filter);
+    ak_3mf_buf_ch(&st->resources, '"');
+  }
+  if ((function->flags & AK_PRINT_FUNCTION_FROM_IMAGE3D_HAS_TILESTYLE_U) != 0u
+      && function->tileStyleU) {
+    ak_3mf_buf_lit(&st->resources, " tilestyleu=\"");
+    ak_3mf_buf_attr(&st->resources, function->tileStyleU);
+    ak_3mf_buf_ch(&st->resources, '"');
+  }
+  if ((function->flags & AK_PRINT_FUNCTION_FROM_IMAGE3D_HAS_TILESTYLE_V) != 0u
+      && function->tileStyleV) {
+    ak_3mf_buf_lit(&st->resources, " tilestylev=\"");
+    ak_3mf_buf_attr(&st->resources, function->tileStyleV);
+    ak_3mf_buf_ch(&st->resources, '"');
+  }
+  if ((function->flags & AK_PRINT_FUNCTION_FROM_IMAGE3D_HAS_TILESTYLE_W) != 0u
+      && function->tileStyleW) {
+    ak_3mf_buf_lit(&st->resources, " tilestylew=\"");
+    ak_3mf_buf_attr(&st->resources, function->tileStyleW);
+    ak_3mf_buf_ch(&st->resources, '"');
+  }
+  ak_3mf_buf_lit(&st->resources, "/>\n");
+}
+
+static
+void
+ak_3mf_write_volumetric_element(AK3MFBuffer                    * __restrict buf,
+                                const AkPrintVolumetricElement * __restrict element) {
+  const char *tag;
+
+  if (!buf || !element)
+    return;
+
+  switch (element->type) {
+    case AK_PRINT_VOLUMETRIC_ELEMENT_MATERIAL_MAPPING:
+      tag = "materialmapping";
+      break;
+    case AK_PRINT_VOLUMETRIC_ELEMENT_PROPERTY:
+      tag = "property";
+      break;
+    case AK_PRINT_VOLUMETRIC_ELEMENT_COLOR:
+    default:
+      tag = "color";
+      break;
+  }
+
+  ak_3mf_buf_lit(buf, "        <v:");
+  ak_3mf_buf_lit(buf, tag);
+  ak_3mf_buf_lit(buf, " functionid=\"");
+  ak_3mf_buf_u32(buf, element->functionId);
+  ak_3mf_buf_ch(buf, '"');
+  if (element->channel) {
+    ak_3mf_buf_lit(buf, " channel=\"");
+    ak_3mf_buf_attr(buf, element->channel);
+    ak_3mf_buf_ch(buf, '"');
+  }
+  if (element->type == AK_PRINT_VOLUMETRIC_ELEMENT_PROPERTY) {
+    if (element->name) {
+      ak_3mf_buf_lit(buf, " name=\"");
+      ak_3mf_buf_attr(buf, element->name);
+      ak_3mf_buf_ch(buf, '"');
+    }
+    ak_3mf_buf_lit(buf, " required=\"");
+    ak_3mf_buf_lit(buf,
+                   (element->flags & AK_PRINT_VOLUMETRIC_ELEMENT_REQUIRED) != 0u
+                   ? "true"
+                   : "false");
+    ak_3mf_buf_ch(buf, '"');
+  }
+  if ((element->flags & AK_PRINT_VOLUMETRIC_ELEMENT_HAS_TRANSFORM) != 0u) {
+    ak_3mf_buf_lit(buf, " transform=\"");
+    ak_3mf_append_flat_transform(buf, element->matrix);
+    ak_3mf_buf_ch(buf, '"');
+  }
+  if ((element->flags & AK_PRINT_VOLUMETRIC_ELEMENT_HAS_MIN_FEATURE_SIZE) != 0u) {
+    ak_3mf_buf_lit(buf, " minfeaturesize=\"");
+    ak_3mf_buf_float(buf, element->minFeatureSize);
+    ak_3mf_buf_ch(buf, '"');
+  }
+  if ((element->flags & AK_PRINT_VOLUMETRIC_ELEMENT_HAS_FALLBACK_VALUE) != 0u) {
+    ak_3mf_buf_lit(buf, " fallbackvalue=\"");
+    ak_3mf_buf_float(buf, element->fallbackValue);
+    ak_3mf_buf_ch(buf, '"');
+  }
+  ak_3mf_buf_lit(buf, "/>\n");
+}
+
+static
+void
+ak_3mf_write_volume_elements_of_type(
+                                AK3MFBuffer                    * __restrict buf,
+                                const AkPrintVolumetricElement * __restrict element,
+                                uint32_t                                     total,
+                                AkPrintVolumetricElementType                 type) {
+  uint32_t i;
+
+  for (i = 0u; i < total && element; i++, element = element->next) {
+    if (element->type == type)
+      ak_3mf_write_volumetric_element(buf, element);
+  }
+}
+
+static
+void
+ak_3mf_write_volume_data(AK3MFExportState        * __restrict st,
+                         const AkPrintVolumeData * __restrict volume) {
+  const AkPrintVolumetricElement *element;
+  uint32_t                        total;
+  bool                            hasComposite;
+
+  if (!st || !volume)
+    return;
+  if (volume->path && !ak_3mf_path_is_root_model(volume->path))
+    return;
+
+  element      = ak_3mf_first_volumetric_element_for_volume(st->print, volume);
+  total        = volume->materialMappingCount + volume->colorCount + volume->propertyCount;
+  hasComposite = volume->materialMappingCount > 0u
+                 || (volume->flags & AK_PRINT_VOLUME_DATA_HAS_BASE_MATERIAL_ID) != 0u;
+
+  ak_3mf_buf_lit(&st->resources, "      <v:volumedata id=\"");
+  ak_3mf_buf_u32(&st->resources, volume->id);
+  ak_3mf_buf_lit(&st->resources, "\">\n");
+
+  if (hasComposite) {
+    ak_3mf_buf_lit(&st->resources, "        <v:composite basematerialid=\"");
+    ak_3mf_buf_u32(&st->resources, volume->baseMaterialId);
+    ak_3mf_buf_lit(&st->resources, "\">\n");
+    ak_3mf_write_volume_elements_of_type(&st->resources,
+                                         element,
+                                         total,
+                                         AK_PRINT_VOLUMETRIC_ELEMENT_MATERIAL_MAPPING);
+    ak_3mf_buf_lit(&st->resources, "        </v:composite>\n");
+  }
+
+  ak_3mf_write_volume_elements_of_type(&st->resources,
+                                       element,
+                                       total,
+                                       AK_PRINT_VOLUMETRIC_ELEMENT_COLOR);
+  ak_3mf_write_volume_elements_of_type(&st->resources,
+                                       element,
+                                       total,
+                                       AK_PRINT_VOLUMETRIC_ELEMENT_PROPERTY);
+  ak_3mf_buf_lit(&st->resources, "      </v:volumedata>\n");
+}
+
+static
+bool
+ak_3mf_write_volumetric_resources(AK3MFExportState * __restrict st) {
+  const AkPrintImage3D             *image;
+  const AkPrintFunctionFromImage3D *function;
+  const AkPrintVolumeData          *volume;
+
+  if (!st || !st->print || !st->usesVolumetricExtension)
+    return true;
+
+  for (image = st->print->image3Ds; image; image = image->next)
+    ak_3mf_write_image3d(st, image);
+  for (function = st->print->functionFromImage3Ds; function; function = function->next)
+    ak_3mf_write_function_from_image3d(st, function);
+  for (volume = st->print->volumeData; volume; volume = volume->next)
+    ak_3mf_write_volume_data(st, volume);
+
+  return st->resources.result == AK_OK;
+}
+
+static
+bool
+ak_3mf_write_level_sets(AK3MFExportState * __restrict st) {
+  const AkPrintLevelSet *levelSet;
+
+  if (!st || !st->print || !st->usesVolumetricExtension)
+    return true;
+
+  for (levelSet = st->print->levelSets; levelSet; levelSet = levelSet->next) {
+    uint32_t objectId;
+
+    if (levelSet->path && !ak_3mf_path_is_root_model(levelSet->path))
+      continue;
+
+    objectId = levelSet->objectId;
+    if (objectId == 0u || objectId < st->nextObjectId)
+      objectId = st->nextObjectId;
+    if (st->nextObjectId <= objectId)
+      st->nextObjectId = objectId + 1u;
+
+    ak_3mf_buf_lit(&st->resources, "      <object id=\"");
+    ak_3mf_buf_u32(&st->resources, objectId);
+    ak_3mf_buf_lit(&st->resources, "\" type=\"model\">\n"
+                                  "        <v:levelset functionid=\"");
+    ak_3mf_buf_u32(&st->resources, levelSet->functionId);
+    ak_3mf_buf_ch(&st->resources, '"');
+    if (levelSet->channel) {
+      ak_3mf_buf_lit(&st->resources, " channel=\"");
+      ak_3mf_buf_attr(&st->resources, levelSet->channel);
+      ak_3mf_buf_ch(&st->resources, '"');
+    }
+    if (levelSet->meshId != 0u) {
+      ak_3mf_buf_lit(&st->resources, " meshid=\"");
+      ak_3mf_buf_u32(&st->resources, levelSet->meshId);
+      ak_3mf_buf_ch(&st->resources, '"');
+    }
+    if ((levelSet->flags & AK_PRINT_LEVEL_SET_HAS_VOLUME_ID) != 0u) {
+      ak_3mf_buf_lit(&st->resources, " volumeid=\"");
+      ak_3mf_buf_u32(&st->resources, levelSet->volumeId);
+      ak_3mf_buf_ch(&st->resources, '"');
+    }
+    if ((levelSet->flags & AK_PRINT_LEVEL_SET_HAS_TRANSFORM) != 0u) {
+      ak_3mf_buf_lit(&st->resources, " transform=\"");
+      ak_3mf_append_flat_transform(&st->resources, levelSet->matrix);
+      ak_3mf_buf_ch(&st->resources, '"');
+    }
+    if ((levelSet->flags & AK_PRINT_LEVEL_SET_HAS_MIN_FEATURE_SIZE) != 0u) {
+      ak_3mf_buf_lit(&st->resources, " minfeaturesize=\"");
+      ak_3mf_buf_float(&st->resources, levelSet->minFeatureSize);
+      ak_3mf_buf_ch(&st->resources, '"');
+    }
+    if ((levelSet->flags & AK_PRINT_LEVEL_SET_HAS_MESH_BBOX_ONLY) != 0u) {
+      ak_3mf_buf_lit(&st->resources, " meshbboxonly=\"true\"");
+    }
+    if ((levelSet->flags & AK_PRINT_LEVEL_SET_HAS_FALLBACK_VALUE) != 0u) {
+      ak_3mf_buf_lit(&st->resources, " fallbackvalue=\"");
+      ak_3mf_buf_float(&st->resources, levelSet->fallbackValue);
+      ak_3mf_buf_ch(&st->resources, '"');
+    }
+    ak_3mf_buf_lit(&st->resources, "/>\n"
+                                  "      </object>\n");
+
+    ak_3mf_buf_lit(&st->build, "      <item objectid=\"");
+    ak_3mf_buf_u32(&st->build, objectId);
+    ak_3mf_buf_lit(&st->build, "\"/>\n");
+    st->objectCount++;
+  }
+
+  return st->resources.result == AK_OK && st->build.result == AK_OK;
+}
+
+static
 void
 ak_3mf_write_boolean_operand(AK3MFBuffer                 * __restrict buf,
                              const AkPrintBooleanOperand * __restrict operand) {
@@ -1845,12 +2262,17 @@ ak_3mf_build_model_xml(AK3MFExportState * __restrict st,
     ak_3mf_buf_lit(model,
                    " xmlns:d=\"http://schemas.3mf.io/3dmanufacturing/displacement/2023/10\"");
   }
+  if (st->usesVolumetricExtension) {
+    ak_3mf_buf_lit(model,
+                   " xmlns:v=\"http://schemas.3mf.io/3dmanufacturing/volumetric/2022/01\"");
+  }
   if (st->usesMaterialExtension
       || st->usesSliceExtension
       || st->usesBeamLatticeExtension
       || st->usesBeamBallExtension
       || st->usesBooleanExtension
-      || st->usesDisplacementExtension) {
+      || st->usesDisplacementExtension
+      || st->usesVolumetricExtension) {
     bool any;
 
     any = false;
@@ -1887,6 +2309,12 @@ ak_3mf_build_model_xml(AK3MFExportState * __restrict st,
       if (any)
         ak_3mf_buf_ch(model, ' ');
       ak_3mf_buf_lit(model, "d");
+      any = true;
+    }
+    if (st->usesVolumetricExtension) {
+      if (any)
+        ak_3mf_buf_ch(model, ' ');
+      ak_3mf_buf_lit(model, "v");
     }
     ak_3mf_buf_ch(model, '"');
   }
@@ -2051,11 +2479,21 @@ ak_3mf_export(AkDoc * __restrict doc, const char * __restrict filepath) {
                                      || st.print->normVectorGroupCount > 0u
                                      || st.print->disp2DGroupCount > 0u
                                      || st.print->displacementMeshCount > 0u);
+  st.usesVolumetricExtension = st.print
+                               && (st.print->image3DCount > 0u
+                                   || st.print->imageSheetCount > 0u
+                                   || st.print->functionFromImage3DCount > 0u
+                                   || st.print->volumeDataCount > 0u
+                                   || st.print->volumetricElementCount > 0u
+                                   || st.print->volumetricMeshCount > 0u
+                                   || st.print->levelSetCount > 0u);
 
   if (!ak_3mf_write_slice_stacks(&st)
       || !ak_3mf_write_displacement_resources(&st)
+      || !ak_3mf_write_volumetric_resources(&st)
       || !ak_3mf_write_scene(&st)
       || !ak_3mf_write_library_fallback(&st)
+      || !ak_3mf_write_level_sets(&st)
       || !ak_3mf_write_boolean_shapes(&st)
       || st.resources.result != AK_OK
       || st.build.result != AK_OK

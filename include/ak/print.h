@@ -137,6 +137,44 @@ typedef enum AkPrintDisplacementTriangleFlag {
   AK_PRINT_DISPLACEMENT_TRIANGLE_HAS_D3    = 1u << 3
 } AkPrintDisplacementTriangleFlag;
 
+typedef enum AkPrintFunctionFromImage3DFlag {
+  AK_PRINT_FUNCTION_FROM_IMAGE3D_HAS_VALUE_OFFSET = 1u << 0,
+  AK_PRINT_FUNCTION_FROM_IMAGE3D_HAS_VALUE_SCALE  = 1u << 1,
+  AK_PRINT_FUNCTION_FROM_IMAGE3D_HAS_FILTER       = 1u << 2,
+  AK_PRINT_FUNCTION_FROM_IMAGE3D_HAS_TILESTYLE_U  = 1u << 3,
+  AK_PRINT_FUNCTION_FROM_IMAGE3D_HAS_TILESTYLE_V  = 1u << 4,
+  AK_PRINT_FUNCTION_FROM_IMAGE3D_HAS_TILESTYLE_W  = 1u << 5
+} AkPrintFunctionFromImage3DFlag;
+
+typedef enum AkPrintVolumeDataFlag {
+  AK_PRINT_VOLUME_DATA_HAS_BASE_MATERIAL_ID = 1u << 0
+} AkPrintVolumeDataFlag;
+
+typedef enum AkPrintVolumetricElementType {
+  AK_PRINT_VOLUMETRIC_ELEMENT_MATERIAL_MAPPING = 1,
+  AK_PRINT_VOLUMETRIC_ELEMENT_COLOR            = 2,
+  AK_PRINT_VOLUMETRIC_ELEMENT_PROPERTY         = 3
+} AkPrintVolumetricElementType;
+
+typedef enum AkPrintVolumetricElementFlag {
+  AK_PRINT_VOLUMETRIC_ELEMENT_HAS_TRANSFORM        = 1u << 0,
+  AK_PRINT_VOLUMETRIC_ELEMENT_HAS_MIN_FEATURE_SIZE = 1u << 1,
+  AK_PRINT_VOLUMETRIC_ELEMENT_HAS_FALLBACK_VALUE   = 1u << 2,
+  AK_PRINT_VOLUMETRIC_ELEMENT_REQUIRED             = 1u << 3
+} AkPrintVolumetricElementFlag;
+
+typedef enum AkPrintVolumetricMeshFlag {
+  AK_PRINT_VOLUMETRIC_MESH_HAS_VOLUME_ID = 1u << 0
+} AkPrintVolumetricMeshFlag;
+
+typedef enum AkPrintLevelSetFlag {
+  AK_PRINT_LEVEL_SET_HAS_TRANSFORM        = 1u << 0,
+  AK_PRINT_LEVEL_SET_HAS_MIN_FEATURE_SIZE = 1u << 1,
+  AK_PRINT_LEVEL_SET_HAS_MESH_BBOX_ONLY   = 1u << 2,
+  AK_PRINT_LEVEL_SET_HAS_FALLBACK_VALUE   = 1u << 3,
+  AK_PRINT_LEVEL_SET_HAS_VOLUME_ID        = 1u << 4
+} AkPrintLevelSetFlag;
+
 typedef struct AkPrintPackagePart {
   struct AkPrintPackagePart *next;
   const char                *name;
@@ -338,6 +376,84 @@ typedef struct AkPrintDisplacementTriangle {
   uint32_t                            flags;
 } AkPrintDisplacementTriangle;
 
+typedef struct AkPrintImage3D {
+  struct AkPrintImage3D *next;
+  const char            *path;
+  const char            *name;
+  uint32_t               id;
+  uint32_t               rowCount;
+  uint32_t               columnCount;
+  uint32_t               sheetCount;
+  uint32_t               imageSheetCount;
+  uint32_t               flags;
+} AkPrintImage3D;
+
+typedef struct AkPrintImageSheet {
+  struct AkPrintImageSheet *next;
+  const char               *path;
+  uint32_t                  flags;
+} AkPrintImageSheet;
+
+typedef struct AkPrintFunctionFromImage3D {
+  struct AkPrintFunctionFromImage3D *next;
+  const char                       *path;
+  const char                       *displayName;
+  const char                       *filter;
+  const char                       *tileStyleU;
+  const char                       *tileStyleV;
+  const char                       *tileStyleW;
+  float                             valueOffset;
+  float                             valueScale;
+  uint32_t                          id;
+  uint32_t                          image3DId;
+  uint32_t                          flags;
+} AkPrintFunctionFromImage3D;
+
+typedef struct AkPrintVolumeData {
+  struct AkPrintVolumeData *next;
+  const char               *path;
+  uint32_t                  id;
+  uint32_t                  baseMaterialId;
+  uint32_t                  materialMappingCount;
+  uint32_t                  colorCount;
+  uint32_t                  propertyCount;
+  uint32_t                  flags;
+} AkPrintVolumeData;
+
+typedef struct AkPrintVolumetricElement {
+  struct AkPrintVolumetricElement *next;
+  const char                      *channel;
+  const char                      *name;
+  float                            matrix[16];
+  float                            minFeatureSize;
+  float                            fallbackValue;
+  uint32_t                         functionId;
+  AkPrintVolumetricElementType     type;
+  uint32_t                         flags;
+} AkPrintVolumetricElement;
+
+typedef struct AkPrintVolumetricMesh {
+  struct AkPrintVolumetricMesh *next;
+  const char                   *path;
+  uint32_t                      objectId;
+  uint32_t                      volumeId;
+  uint32_t                      flags;
+} AkPrintVolumetricMesh;
+
+typedef struct AkPrintLevelSet {
+  struct AkPrintLevelSet *next;
+  const char             *path;
+  const char             *channel;
+  float                   matrix[16];
+  float                   minFeatureSize;
+  float                   fallbackValue;
+  uint32_t                objectId;
+  uint32_t                functionId;
+  uint32_t                meshId;
+  uint32_t                volumeId;
+  uint32_t                flags;
+} AkPrintLevelSet;
+
 typedef struct AkPrintDocument {
   AkPrintPackagePart    *parts;
   AkPrintPackagePart    *lastPart;
@@ -377,6 +493,20 @@ typedef struct AkPrintDocument {
   AkPrintDisplacementMesh *lastDisplacementMesh;
   AkPrintDisplacementTriangle *displacementTriangles;
   AkPrintDisplacementTriangle *lastDisplacementTriangle;
+  AkPrintImage3D       *image3Ds;
+  AkPrintImage3D       *lastImage3D;
+  AkPrintImageSheet    *imageSheets;
+  AkPrintImageSheet    *lastImageSheet;
+  AkPrintFunctionFromImage3D *functionFromImage3Ds;
+  AkPrintFunctionFromImage3D *lastFunctionFromImage3D;
+  AkPrintVolumeData    *volumeData;
+  AkPrintVolumeData    *lastVolumeData;
+  AkPrintVolumetricElement *volumetricElements;
+  AkPrintVolumetricElement *lastVolumetricElement;
+  AkPrintVolumetricMesh *volumetricMeshes;
+  AkPrintVolumetricMesh *lastVolumetricMesh;
+  AkPrintLevelSet      *levelSets;
+  AkPrintLevelSet      *lastLevelSet;
   AkTree                *extra;
   const char            *profileName;
   const char            *printerModel;
@@ -411,6 +541,13 @@ typedef struct AkPrintDocument {
   uint32_t               disp2DCoordCount;
   uint32_t               displacementMeshCount;
   uint32_t               displacementTriangleCount;
+  uint32_t               image3DCount;
+  uint32_t               imageSheetCount;
+  uint32_t               functionFromImage3DCount;
+  uint32_t               volumeDataCount;
+  uint32_t               volumetricElementCount;
+  uint32_t               volumetricMeshCount;
+  uint32_t               levelSetCount;
 } AkPrintDocument;
 
 AK_EXPORT
@@ -640,6 +777,80 @@ ak_printAddDisplacementTriangle(struct AkDoc              * __restrict doc,
                                 uint32_t                               d2,
                                 uint32_t                               d3,
                                 uint32_t                               flags);
+
+AK_EXPORT
+AkPrintImage3D*
+ak_printAddImage3D(struct AkDoc  * __restrict doc,
+                   const char    * __restrict path,
+                   uint32_t                   id,
+                   const char    * __restrict name,
+                   uint32_t                   rowCount,
+                   uint32_t                   columnCount,
+                   uint32_t                   sheetCount);
+
+AK_EXPORT
+AkPrintImageSheet*
+ak_printAddImageSheet(struct AkDoc       * __restrict doc,
+                      AkPrintImage3D     * __restrict image,
+                      const char         * __restrict path);
+
+AK_EXPORT
+AkPrintFunctionFromImage3D*
+ak_printAddFunctionFromImage3D(struct AkDoc  * __restrict doc,
+                               const char    * __restrict path,
+                               uint32_t                   id,
+                               const char    * __restrict displayName,
+                               uint32_t                   image3DId,
+                               float                      valueOffset,
+                               float                      valueScale,
+                               const char    * __restrict filter,
+                               const char    * __restrict tileStyleU,
+                               const char    * __restrict tileStyleV,
+                               const char    * __restrict tileStyleW,
+                               uint32_t                   flags);
+
+AK_EXPORT
+AkPrintVolumeData*
+ak_printAddVolumeData(struct AkDoc  * __restrict doc,
+                      const char    * __restrict path,
+                      uint32_t                   id,
+                      uint32_t                   baseMaterialId,
+                      uint32_t                   flags);
+
+AK_EXPORT
+AkPrintVolumetricElement*
+ak_printAddVolumetricElement(struct AkDoc              * __restrict doc,
+                             AkPrintVolumeData         * __restrict volume,
+                             AkPrintVolumetricElementType          type,
+                             uint32_t                               functionId,
+                             const char                * __restrict channel,
+                             const char                * __restrict name,
+                             const float               * __restrict matrix,
+                             float                                  minFeatureSize,
+                             float                                  fallbackValue,
+                             uint32_t                               flags);
+
+AK_EXPORT
+AkPrintVolumetricMesh*
+ak_printAddVolumetricMesh(struct AkDoc  * __restrict doc,
+                          const char    * __restrict path,
+                          uint32_t                   objectId,
+                          uint32_t                   volumeId,
+                          uint32_t                   flags);
+
+AK_EXPORT
+AkPrintLevelSet*
+ak_printAddLevelSet(struct AkDoc  * __restrict doc,
+                    const char    * __restrict path,
+                    uint32_t                   objectId,
+                    uint32_t                   functionId,
+                    const char    * __restrict channel,
+                    uint32_t                   meshId,
+                    uint32_t                   volumeId,
+                    const float   * __restrict matrix,
+                    float                      minFeatureSize,
+                    float                      fallbackValue,
+                    uint32_t                   flags);
 
 #ifdef __cplusplus
 }

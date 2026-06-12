@@ -38,7 +38,8 @@ typedef enum AK3MFObjectKind {
   AK_3MF_OBJECT_MESH       = 1,
   AK_3MF_OBJECT_COMPONENTS = 2,
   AK_3MF_OBJECT_BOOLEAN    = 3,
-  AK_3MF_OBJECT_DISPLACEMENT = 4
+  AK_3MF_OBJECT_DISPLACEMENT = 4,
+  AK_3MF_OBJECT_LEVELSET   = 5
 } AK3MFObjectKind;
 
 typedef struct AK3MFComponent {
@@ -554,7 +555,8 @@ ak_3mf_mark_required_feature(AkPrintDocument    * __restrict print,
     | AK_PRINT_FEATURE_SLICE
     | AK_PRINT_FEATURE_BEAM_LATTICE
     | AK_PRINT_FEATURE_BOOLEAN
-    | AK_PRINT_FEATURE_DISPLACEMENT;
+    | AK_PRINT_FEATURE_DISPLACEMENT
+    | AK_PRINT_FEATURE_VOLUMETRIC;
 
   if (!print)
     return;
@@ -1526,10 +1528,360 @@ uint32_t
 ak_3mf_clamp_count_u32(size_t count);
 
 static
+bool
+ak_3mf_parse_transform_attr(const xml_attr_t * __restrict attr,
+                            float                         matrix[16]);
+
+static
 uint32_t
 ak_3mf_optional_attr_flag(const xml_attr_t * __restrict attr,
                           uint32_t                      flag) {
   return attr && attr->val ? flag : 0u;
+}
+
+static
+bool
+ak_3mf_attr_bool(const xml_attr_t * __restrict attr, bool fallback) {
+  if (!attr || !attr->val || attr->valsize == 0u)
+    return fallback;
+
+  if ((attr->valsize == 4u && memcmp(attr->val, "true", 4u) == 0)
+      || (attr->valsize == 1u && attr->val[0] == '1'))
+    return true;
+  if ((attr->valsize == 5u && memcmp(attr->val, "false", 5u) == 0)
+      || (attr->valsize == 1u && attr->val[0] == '0'))
+    return false;
+
+  return fallback;
+}
+
+static
+uint32_t
+ak_3mf_volumetric_element_flags(xml_t * __restrict xml,
+                                const xml_attr_t ** __restrict transformAttr,
+                                const xml_attr_t ** __restrict minFeatureAttr,
+                                const xml_attr_t ** __restrict fallbackAttr) {
+  const xml_attr_t *transform;
+  const xml_attr_t *minFeature;
+  const xml_attr_t *fallback;
+
+  transform  = ak_3mf_xmla_local_lit(xml, "transform");
+  minFeature = ak_3mf_xmla_local_lit(xml, "minfeaturesize");
+  fallback   = ak_3mf_xmla_local_lit(xml, "fallbackvalue");
+
+  if (transformAttr)
+    *transformAttr = transform;
+  if (minFeatureAttr)
+    *minFeatureAttr = minFeature;
+  if (fallbackAttr)
+    *fallbackAttr = fallback;
+
+  return ak_3mf_optional_attr_flag(transform,
+                                   AK_PRINT_VOLUMETRIC_ELEMENT_HAS_TRANSFORM)
+         | ak_3mf_optional_attr_flag(minFeature,
+                                     AK_PRINT_VOLUMETRIC_ELEMENT_HAS_MIN_FEATURE_SIZE)
+         | ak_3mf_optional_attr_flag(fallback,
+                                     AK_PRINT_VOLUMETRIC_ELEMENT_HAS_FALLBACK_VALUE);
+}
+
+static
+void
+ak_3mf_parse_image3d(AK3MFImportState * __restrict st,
+                     xml_t            * __restrict xml) {
+  AkPrintImage3D *image;
+  xml_t          *stackXml;
+  xml_t          *sheetXml;
+  char           *name;
+
+  if (!st || !xml)
+    return;
+
+  stackXml = ak_3mf_child(xml, "imagestack");
+  if (!stackXml)
+    return;
+
+  name = ak_3mf_attr_dup_cstr(ak_3mf_xmla_local_lit(xml, "name"));
+  image = ak_printAddImage3D(st->doc,
+                             st->currentModelPath,
+                             xmla_u32(ak_3mf_xmla_local_lit(xml, "id"), 0u),
+                             name,
+                             xmla_u32(ak_3mf_xmla_local_lit(stackXml, "rowcount"), 0u),
+                             xmla_u32(ak_3mf_xmla_local_lit(stackXml, "columncount"), 0u),
+                             xmla_u32(ak_3mf_xmla_local_lit(stackXml, "sheetcount"), 0u));
+  free(name);
+  if (!image)
+    return;
+
+  for (sheetXml = stackXml->val; sheetXml; sheetXml = sheetXml->next) {
+    char *path;
+
+    if (!ak_3mf_tag(sheetXml, "imagesheet"))
+      continue;
+
+    path = ak_3mf_attr_dup_path_cstr(ak_3mf_xmla_local_lit(sheetXml, "path"));
+    (void)ak_printAddImageSheet(st->doc, image, path);
+    free(path);
+  }
+}
+
+static
+void
+ak_3mf_parse_function_from_image3d(AK3MFImportState * __restrict st,
+                                   xml_t            * __restrict xml) {
+  xml_attr_t *valueOffsetAttr;
+  xml_attr_t *valueScaleAttr;
+  xml_attr_t *filterAttr;
+  xml_attr_t *tileUAttr;
+  xml_attr_t *tileVAttr;
+  xml_attr_t *tileWAttr;
+  char       *displayName;
+  char       *filter;
+  char       *tileStyleU;
+  char       *tileStyleV;
+  char       *tileStyleW;
+  uint32_t    flags;
+
+  if (!st || !xml)
+    return;
+
+  valueOffsetAttr = ak_3mf_xmla_local_lit(xml, "valueoffset");
+  valueScaleAttr  = ak_3mf_xmla_local_lit(xml, "valuescale");
+  filterAttr      = ak_3mf_xmla_local_lit(xml, "filter");
+  tileUAttr       = ak_3mf_xmla_local_lit(xml, "tilestyleu");
+  tileVAttr       = ak_3mf_xmla_local_lit(xml, "tilestylev");
+  tileWAttr       = ak_3mf_xmla_local_lit(xml, "tilestylew");
+  displayName     = ak_3mf_attr_dup_cstr(ak_3mf_xmla_local_lit(xml, "displayname"));
+  filter          = ak_3mf_attr_dup_cstr(filterAttr);
+  tileStyleU      = ak_3mf_attr_dup_cstr(tileUAttr);
+  tileStyleV      = ak_3mf_attr_dup_cstr(tileVAttr);
+  tileStyleW      = ak_3mf_attr_dup_cstr(tileWAttr);
+  flags           = ak_3mf_optional_attr_flag(valueOffsetAttr,
+                                             AK_PRINT_FUNCTION_FROM_IMAGE3D_HAS_VALUE_OFFSET)
+                    | ak_3mf_optional_attr_flag(valueScaleAttr,
+                                                AK_PRINT_FUNCTION_FROM_IMAGE3D_HAS_VALUE_SCALE)
+                    | ak_3mf_optional_attr_flag(filterAttr,
+                                                AK_PRINT_FUNCTION_FROM_IMAGE3D_HAS_FILTER)
+                    | ak_3mf_optional_attr_flag(tileUAttr,
+                                                AK_PRINT_FUNCTION_FROM_IMAGE3D_HAS_TILESTYLE_U)
+                    | ak_3mf_optional_attr_flag(tileVAttr,
+                                                AK_PRINT_FUNCTION_FROM_IMAGE3D_HAS_TILESTYLE_V)
+                    | ak_3mf_optional_attr_flag(tileWAttr,
+                                                AK_PRINT_FUNCTION_FROM_IMAGE3D_HAS_TILESTYLE_W);
+
+  (void)ak_printAddFunctionFromImage3D(
+    st->doc,
+    st->currentModelPath,
+    xmla_u32(ak_3mf_xmla_local_lit(xml, "id"), 0u),
+    displayName,
+    xmla_u32(ak_3mf_xmla_local_lit(xml, "image3did"), 0u),
+    xmla_float(valueOffsetAttr, 0.0f),
+    xmla_float(valueScaleAttr, 1.0f),
+    filter,
+    tileStyleU,
+    tileStyleV,
+    tileStyleW,
+    flags);
+
+  free(displayName);
+  free(filter);
+  free(tileStyleU);
+  free(tileStyleV);
+  free(tileStyleW);
+}
+
+static
+void
+ak_3mf_parse_volumetric_element(AK3MFImportState           * __restrict st,
+                                AkPrintVolumeData          * __restrict volume,
+                                xml_t                      * __restrict xml,
+                                AkPrintVolumetricElementType            type) {
+  const xml_attr_t *transformAttr;
+  const xml_attr_t *minFeatureAttr;
+  const xml_attr_t *fallbackAttr;
+  xml_attr_t       *requiredAttr;
+  char             *channel;
+  char             *name;
+  float             matrix[16];
+  uint32_t          flags;
+
+  if (!st || !volume || !xml)
+    return;
+
+  flags = ak_3mf_volumetric_element_flags(xml,
+                                          &transformAttr,
+                                          &minFeatureAttr,
+                                          &fallbackAttr);
+  if (!ak_3mf_parse_transform_attr(transformAttr, matrix))
+    return;
+
+  requiredAttr = ak_3mf_xmla_local_lit(xml, "required");
+  if (type == AK_PRINT_VOLUMETRIC_ELEMENT_PROPERTY
+      && ak_3mf_attr_bool(requiredAttr, false)) {
+    flags |= AK_PRINT_VOLUMETRIC_ELEMENT_REQUIRED;
+  }
+
+  channel = ak_3mf_attr_dup_cstr(ak_3mf_xmla_local_lit(xml, "channel"));
+  name    = ak_3mf_attr_dup_cstr(ak_3mf_xmla_local_lit(xml, "name"));
+  (void)ak_printAddVolumetricElement(
+    st->doc,
+    volume,
+    type,
+    xmla_u32(ak_3mf_xmla_local_lit(xml, "functionid"), 0u),
+    channel,
+    name,
+    matrix,
+    xmla_float(minFeatureAttr, 0.0f),
+    xmla_float(fallbackAttr, 0.0f),
+    flags);
+  free(channel);
+  free(name);
+}
+
+static
+void
+ak_3mf_parse_volume_data(AK3MFImportState * __restrict st,
+                         xml_t            * __restrict xml) {
+  AkPrintVolumeData *volume;
+  xml_t             *compositeXml;
+  xml_t             *childXml;
+  xml_attr_t        *baseMaterialAttr;
+  uint32_t           flags;
+
+  if (!st || !xml)
+    return;
+
+  compositeXml     = ak_3mf_child(xml, "composite");
+  baseMaterialAttr = ak_3mf_xmla_local_lit(compositeXml, "basematerialid");
+  flags            = ak_3mf_optional_attr_flag(baseMaterialAttr,
+                                               AK_PRINT_VOLUME_DATA_HAS_BASE_MATERIAL_ID);
+  volume = ak_printAddVolumeData(st->doc,
+                                 st->currentModelPath,
+                                 xmla_u32(ak_3mf_xmla_local_lit(xml, "id"), 0u),
+                                 xmla_u32(baseMaterialAttr, 0u),
+                                 flags);
+  if (!volume)
+    return;
+
+  for (childXml = compositeXml ? compositeXml->val : NULL;
+       childXml;
+       childXml = childXml->next) {
+    if (ak_3mf_tag(childXml, "materialmapping")) {
+      ak_3mf_parse_volumetric_element(st,
+                                      volume,
+                                      childXml,
+                                      AK_PRINT_VOLUMETRIC_ELEMENT_MATERIAL_MAPPING);
+    }
+  }
+
+  for (childXml = xml->val; childXml; childXml = childXml->next) {
+    if (ak_3mf_tag(childXml, "color")) {
+      ak_3mf_parse_volumetric_element(st,
+                                      volume,
+                                      childXml,
+                                      AK_PRINT_VOLUMETRIC_ELEMENT_COLOR);
+    } else if (ak_3mf_tag(childXml, "property")) {
+      ak_3mf_parse_volumetric_element(st,
+                                      volume,
+                                      childXml,
+                                      AK_PRINT_VOLUMETRIC_ELEMENT_PROPERTY);
+    }
+  }
+}
+
+static
+void
+ak_3mf_parse_volumetric_resources(AK3MFImportState * __restrict st,
+                                  xml_t            * __restrict resourcesXml) {
+  xml_t *xml;
+
+  if (!st || !resourcesXml)
+    return;
+
+  for (xml = resourcesXml->val; xml; xml = xml->next) {
+    if (ak_3mf_tag(xml, "image3d"))
+      ak_3mf_parse_image3d(st, xml);
+    else if (ak_3mf_tag(xml, "functionfromimage3d"))
+      ak_3mf_parse_function_from_image3d(st, xml);
+    else if (ak_3mf_tag(xml, "volumedata"))
+      ak_3mf_parse_volume_data(st, xml);
+  }
+}
+
+static
+void
+ak_3mf_parse_volumetric_mesh(AK3MFImportState * __restrict st,
+                             xml_t            * __restrict meshXml,
+                             uint32_t                      objectId) {
+  xml_attr_t *volumeAttr;
+
+  if (!st || !meshXml || !ak_3mf_tag(meshXml, "mesh"))
+    return;
+
+  volumeAttr = ak_3mf_xmla_local_lit(meshXml, "volumeid");
+  if (!volumeAttr || !volumeAttr->val)
+    return;
+
+  (void)ak_printAddVolumetricMesh(st->doc,
+                                  st->currentModelPath,
+                                  objectId,
+                                  xmla_u32(volumeAttr, 0u),
+                                  AK_PRINT_VOLUMETRIC_MESH_HAS_VOLUME_ID);
+}
+
+static
+bool
+ak_3mf_parse_level_set(AK3MFImportState * __restrict st,
+                       AK3MFObject      * __restrict object,
+                       xml_t            * __restrict levelSetXml) {
+  xml_attr_t *transformAttr;
+  xml_attr_t *minFeatureAttr;
+  xml_attr_t *fallbackAttr;
+  xml_attr_t *meshBoxAttr;
+  xml_attr_t *volumeAttr;
+  char       *channel;
+  float       matrix[16];
+  uint32_t    flags;
+
+  if (!st || !object || !levelSetXml)
+    return false;
+
+  transformAttr  = ak_3mf_xmla_local_lit(levelSetXml, "transform");
+  minFeatureAttr = ak_3mf_xmla_local_lit(levelSetXml, "minfeaturesize");
+  fallbackAttr   = ak_3mf_xmla_local_lit(levelSetXml, "fallbackvalue");
+  meshBoxAttr    = ak_3mf_xmla_local_lit(levelSetXml, "meshbboxonly");
+  volumeAttr     = ak_3mf_xmla_local_lit(levelSetXml, "volumeid");
+  if (!ak_3mf_parse_transform_attr(transformAttr, matrix))
+    return false;
+
+  flags = ak_3mf_optional_attr_flag(transformAttr,
+                                    AK_PRINT_LEVEL_SET_HAS_TRANSFORM)
+          | ak_3mf_optional_attr_flag(minFeatureAttr,
+                                      AK_PRINT_LEVEL_SET_HAS_MIN_FEATURE_SIZE)
+          | ak_3mf_optional_attr_flag(fallbackAttr,
+                                      AK_PRINT_LEVEL_SET_HAS_FALLBACK_VALUE)
+          | ak_3mf_optional_attr_flag(volumeAttr,
+                                      AK_PRINT_LEVEL_SET_HAS_VOLUME_ID);
+  if (ak_3mf_attr_bool(meshBoxAttr, false))
+    flags |= AK_PRINT_LEVEL_SET_HAS_MESH_BBOX_ONLY;
+
+  channel = ak_3mf_attr_dup_cstr(ak_3mf_xmla_local_lit(levelSetXml, "channel"));
+  if (!ak_printAddLevelSet(st->doc,
+                           st->currentModelPath,
+                           object->id,
+                           xmla_u32(ak_3mf_xmla_local_lit(levelSetXml, "functionid"), 0u),
+                           channel,
+                           xmla_u32(ak_3mf_xmla_local_lit(levelSetXml, "meshid"), 0u),
+                           xmla_u32(volumeAttr, 0u),
+                           matrix,
+                           xmla_float(minFeatureAttr, 0.0f),
+                           xmla_float(fallbackAttr, 0.0f),
+                           flags)) {
+    free(channel);
+    return false;
+  }
+
+  free(channel);
+  return true;
 }
 
 static
@@ -1997,6 +2349,9 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
   ak_3mf_parse_beam_lattice(st,
                             meshXml,
                             xmla_u32(AK_3MF_XMLA(objXml, id), 0u));
+  ak_3mf_parse_volumetric_mesh(st,
+                               meshXml,
+                               xmla_u32(AK_3MF_XMLA(objXml, id), 0u));
   if (ak_3mf_tag(meshXml, "displacementmesh"))
     ak_3mf_parse_displacement_mesh(st,
                                    meshXml,
@@ -2018,10 +2373,11 @@ ak_3mf_count_resource_objects(xml_t * __restrict resourcesXml) {
 
   for (objXml = resourcesXml->val; objXml; objXml = objXml->next) {
     if (ak_3mf_tag(objXml, "object")
-        && (xml_elem(objXml, "mesh")
-            || xml_elem(objXml, "components")
+        && (ak_3mf_child(objXml, "mesh")
+            || ak_3mf_child(objXml, "components")
             || ak_3mf_child(objXml, "displacementmesh")
-            || ak_3mf_child(objXml, "booleanshape")))
+            || ak_3mf_child(objXml, "booleanshape")
+            || ak_3mf_child(objXml, "levelset")))
       count++;
   }
 
@@ -2048,11 +2404,6 @@ static
 bool
 ak_3mf_load_model_part(AK3MFImportState * __restrict st,
                        const char       * __restrict modelPath);
-
-static
-bool
-ak_3mf_parse_transform_attr(const xml_attr_t * __restrict attr,
-                            float                         matrix[16]);
 
 static
 void
@@ -2615,14 +2966,20 @@ ak_3mf_parse_resources(AK3MFImportState * __restrict st,
     xml_t      *componentsXml;
     xml_t      *displacementMeshXml;
     xml_t      *booleanShapeXml;
+    xml_t      *levelSetXml;
 
     if (!ak_3mf_tag(objXml, "object"))
       continue;
     meshXml = ak_3mf_child(objXml, "mesh");
-    componentsXml = xml_elem(objXml, "components");
+    componentsXml = ak_3mf_child(objXml, "components");
     displacementMeshXml = ak_3mf_child(objXml, "displacementmesh");
     booleanShapeXml = ak_3mf_child(objXml, "booleanshape");
-    if (!meshXml && !componentsXml && !displacementMeshXml && !booleanShapeXml)
+    levelSetXml = ak_3mf_child(objXml, "levelset");
+    if (!meshXml
+        && !componentsXml
+        && !displacementMeshXml
+        && !booleanShapeXml
+        && !levelSetXml)
       continue;
 
     if (st->objectCount >= st->objectCapacity)
@@ -2664,6 +3021,9 @@ ak_3mf_parse_resources(AK3MFImportState * __restrict st,
                                                               object,
                                                               booleanShapeXml)) {
       object->kind = AK_3MF_OBJECT_BOOLEAN;
+      st->objectCount++;
+    } else if (levelSetXml && ak_3mf_parse_level_set(st, object, levelSetXml)) {
+      object->kind = AK_3MF_OBJECT_LEVELSET;
       st->objectCount++;
     }
   }
@@ -2786,6 +3146,7 @@ ak_3mf_load_model_part(AK3MFImportState * __restrict st,
 
   (void)ak_3mf_parse_property_groups(st, resourcesXml);
   (void)ak_3mf_parse_displacement_resources(st, resourcesXml);
+  (void)ak_3mf_parse_volumetric_resources(st, resourcesXml);
   (void)ak_3mf_parse_slice_stacks(st, resourcesXml);
   added = ak_3mf_parse_resources(st, resourcesXml);
   if (st->print)
@@ -3128,6 +3489,7 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
   buildXml       = xml_elem(root, "build");
   (void)ak_3mf_parse_property_groups(&st, resourcesXml);
   (void)ak_3mf_parse_displacement_resources(&st, resourcesXml);
+  (void)ak_3mf_parse_volumetric_resources(&st, resourcesXml);
   (void)ak_3mf_parse_slice_stacks(&st, resourcesXml);
   (void)ak_3mf_parse_resources(&st, resourcesXml);
   if (st.print)

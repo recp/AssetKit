@@ -1006,3 +1006,334 @@ ak_printAddDisplacementTriangle(AkDoc                    * __restrict doc,
 
   return triangle;
 }
+
+AK_EXPORT
+AkPrintImage3D*
+ak_printAddImage3D(AkDoc      * __restrict doc,
+                   const char * __restrict path,
+                   uint32_t                id,
+                   const char * __restrict name,
+                   uint32_t                rowCount,
+                   uint32_t                columnCount,
+                   uint32_t                sheetCount) {
+  AkPrintDocument *print;
+  AkPrintImage3D  *image;
+  AkHeap          *heap;
+
+  print = ak_printDocumentEnsure(doc);
+  if (!print)
+    return NULL;
+
+  heap = ak_heap_getheap(print);
+  if (!heap)
+    return NULL;
+
+  image = ak_heap_calloc(heap, print, sizeof(*image));
+  if (!image)
+    return NULL;
+
+  image->path        = ak_print_strdup(heap, image, path);
+  image->name        = ak_print_strdup(heap, image, name);
+  image->id          = id;
+  image->rowCount    = rowCount;
+  image->columnCount = columnCount;
+  image->sheetCount  = sheetCount;
+
+  if (print->lastImage3D)
+    print->lastImage3D->next = image;
+  else
+    print->image3Ds = image;
+
+  print->lastImage3D = image;
+  print->image3DCount++;
+  print->features |= AK_PRINT_FEATURE_VOLUMETRIC;
+
+  return image;
+}
+
+AK_EXPORT
+AkPrintImageSheet*
+ak_printAddImageSheet(AkDoc          * __restrict doc,
+                      AkPrintImage3D * __restrict image,
+                      const char     * __restrict path) {
+  AkPrintDocument  *print;
+  AkPrintImageSheet *sheet;
+  AkHeap           *heap;
+
+  print = ak_printDocumentEnsure(doc);
+  if (!print)
+    return NULL;
+
+  heap = ak_heap_getheap(print);
+  if (!heap)
+    return NULL;
+
+  sheet = ak_heap_calloc(heap, print, sizeof(*sheet));
+  if (!sheet)
+    return NULL;
+
+  sheet->path = ak_print_strdup(heap, sheet, path);
+
+  if (print->lastImageSheet)
+    print->lastImageSheet->next = sheet;
+  else
+    print->imageSheets = sheet;
+
+  print->lastImageSheet = sheet;
+  print->imageSheetCount++;
+  if (image)
+    image->imageSheetCount++;
+  print->features |= AK_PRINT_FEATURE_VOLUMETRIC;
+
+  return sheet;
+}
+
+AK_EXPORT
+AkPrintFunctionFromImage3D*
+ak_printAddFunctionFromImage3D(AkDoc      * __restrict doc,
+                               const char * __restrict path,
+                               uint32_t                id,
+                               const char * __restrict displayName,
+                               uint32_t                image3DId,
+                               float                   valueOffset,
+                               float                   valueScale,
+                               const char * __restrict filter,
+                               const char * __restrict tileStyleU,
+                               const char * __restrict tileStyleV,
+                               const char * __restrict tileStyleW,
+                               uint32_t                flags) {
+  AkPrintDocument            *print;
+  AkPrintFunctionFromImage3D *function;
+  AkHeap                     *heap;
+
+  print = ak_printDocumentEnsure(doc);
+  if (!print)
+    return NULL;
+
+  heap = ak_heap_getheap(print);
+  if (!heap)
+    return NULL;
+
+  function = ak_heap_calloc(heap, print, sizeof(*function));
+  if (!function)
+    return NULL;
+
+  function->path        = ak_print_strdup(heap, function, path);
+  function->displayName = ak_print_strdup(heap, function, displayName);
+  function->filter      = ak_print_strdup(heap, function, filter);
+  function->tileStyleU  = ak_print_strdup(heap, function, tileStyleU);
+  function->tileStyleV  = ak_print_strdup(heap, function, tileStyleV);
+  function->tileStyleW  = ak_print_strdup(heap, function, tileStyleW);
+  function->valueOffset = valueOffset;
+  function->valueScale  = valueScale;
+  function->id          = id;
+  function->image3DId   = image3DId;
+  function->flags       = flags;
+
+  if (print->lastFunctionFromImage3D)
+    print->lastFunctionFromImage3D->next = function;
+  else
+    print->functionFromImage3Ds = function;
+
+  print->lastFunctionFromImage3D = function;
+  print->functionFromImage3DCount++;
+  print->features |= AK_PRINT_FEATURE_VOLUMETRIC;
+
+  return function;
+}
+
+AK_EXPORT
+AkPrintVolumeData*
+ak_printAddVolumeData(AkDoc      * __restrict doc,
+                      const char * __restrict path,
+                      uint32_t                id,
+                      uint32_t                baseMaterialId,
+                      uint32_t                flags) {
+  AkPrintDocument  *print;
+  AkPrintVolumeData *volume;
+  AkHeap           *heap;
+
+  print = ak_printDocumentEnsure(doc);
+  if (!print)
+    return NULL;
+
+  heap = ak_heap_getheap(print);
+  if (!heap)
+    return NULL;
+
+  volume = ak_heap_calloc(heap, print, sizeof(*volume));
+  if (!volume)
+    return NULL;
+
+  volume->path           = ak_print_strdup(heap, volume, path);
+  volume->id             = id;
+  volume->baseMaterialId = baseMaterialId;
+  volume->flags          = flags;
+
+  if (print->lastVolumeData)
+    print->lastVolumeData->next = volume;
+  else
+    print->volumeData = volume;
+
+  print->lastVolumeData = volume;
+  print->volumeDataCount++;
+  print->features |= AK_PRINT_FEATURE_VOLUMETRIC;
+
+  return volume;
+}
+
+AK_EXPORT
+AkPrintVolumetricElement*
+ak_printAddVolumetricElement(AkDoc                       * __restrict doc,
+                             AkPrintVolumeData           * __restrict volume,
+                             AkPrintVolumetricElementType             type,
+                             uint32_t                                  functionId,
+                             const char                   * __restrict channel,
+                             const char                   * __restrict name,
+                             const float                  * __restrict matrix,
+                             float                                     minFeatureSize,
+                             float                                     fallbackValue,
+                             uint32_t                                  flags) {
+  AkPrintDocument          *print;
+  AkPrintVolumetricElement *element;
+  AkHeap                   *heap;
+
+  print = ak_printDocumentEnsure(doc);
+  if (!print)
+    return NULL;
+
+  heap = ak_heap_getheap(print);
+  if (!heap)
+    return NULL;
+
+  element = ak_heap_calloc(heap, print, sizeof(*element));
+  if (!element)
+    return NULL;
+
+  element->channel        = ak_print_strdup(heap, element, channel);
+  element->name           = ak_print_strdup(heap, element, name);
+  element->minFeatureSize = minFeatureSize;
+  element->fallbackValue  = fallbackValue;
+  element->functionId     = functionId;
+  element->type           = type;
+  element->flags          = flags;
+  ak_print_copy_matrix(element->matrix, matrix);
+
+  if (print->lastVolumetricElement)
+    print->lastVolumetricElement->next = element;
+  else
+    print->volumetricElements = element;
+
+  print->lastVolumetricElement = element;
+  print->volumetricElementCount++;
+  if (volume) {
+    switch (type) {
+      case AK_PRINT_VOLUMETRIC_ELEMENT_MATERIAL_MAPPING:
+        volume->materialMappingCount++;
+        break;
+      case AK_PRINT_VOLUMETRIC_ELEMENT_COLOR:
+        volume->colorCount++;
+        break;
+      case AK_PRINT_VOLUMETRIC_ELEMENT_PROPERTY:
+        volume->propertyCount++;
+        break;
+      default:
+        break;
+    }
+  }
+  print->features |= AK_PRINT_FEATURE_VOLUMETRIC;
+
+  return element;
+}
+
+AK_EXPORT
+AkPrintVolumetricMesh*
+ak_printAddVolumetricMesh(AkDoc      * __restrict doc,
+                          const char * __restrict path,
+                          uint32_t                objectId,
+                          uint32_t                volumeId,
+                          uint32_t                flags) {
+  AkPrintDocument       *print;
+  AkPrintVolumetricMesh *mesh;
+  AkHeap                *heap;
+
+  print = ak_printDocumentEnsure(doc);
+  if (!print)
+    return NULL;
+
+  heap = ak_heap_getheap(print);
+  if (!heap)
+    return NULL;
+
+  mesh = ak_heap_calloc(heap, print, sizeof(*mesh));
+  if (!mesh)
+    return NULL;
+
+  mesh->path     = ak_print_strdup(heap, mesh, path);
+  mesh->objectId = objectId;
+  mesh->volumeId = volumeId;
+  mesh->flags    = flags;
+
+  if (print->lastVolumetricMesh)
+    print->lastVolumetricMesh->next = mesh;
+  else
+    print->volumetricMeshes = mesh;
+
+  print->lastVolumetricMesh = mesh;
+  print->volumetricMeshCount++;
+  print->features |= AK_PRINT_FEATURE_VOLUMETRIC;
+
+  return mesh;
+}
+
+AK_EXPORT
+AkPrintLevelSet*
+ak_printAddLevelSet(AkDoc        * __restrict doc,
+                    const char   * __restrict path,
+                    uint32_t                  objectId,
+                    uint32_t                  functionId,
+                    const char   * __restrict channel,
+                    uint32_t                  meshId,
+                    uint32_t                  volumeId,
+                    const float  * __restrict matrix,
+                    float                     minFeatureSize,
+                    float                     fallbackValue,
+                    uint32_t                  flags) {
+  AkPrintDocument *print;
+  AkPrintLevelSet *levelSet;
+  AkHeap          *heap;
+
+  print = ak_printDocumentEnsure(doc);
+  if (!print)
+    return NULL;
+
+  heap = ak_heap_getheap(print);
+  if (!heap)
+    return NULL;
+
+  levelSet = ak_heap_calloc(heap, print, sizeof(*levelSet));
+  if (!levelSet)
+    return NULL;
+
+  levelSet->path           = ak_print_strdup(heap, levelSet, path);
+  levelSet->channel        = ak_print_strdup(heap, levelSet, channel);
+  levelSet->minFeatureSize = minFeatureSize;
+  levelSet->fallbackValue  = fallbackValue;
+  levelSet->objectId       = objectId;
+  levelSet->functionId     = functionId;
+  levelSet->meshId         = meshId;
+  levelSet->volumeId       = volumeId;
+  levelSet->flags          = flags;
+  ak_print_copy_matrix(levelSet->matrix, matrix);
+
+  if (print->lastLevelSet)
+    print->lastLevelSet->next = levelSet;
+  else
+    print->levelSets = levelSet;
+
+  print->lastLevelSet = levelSet;
+  print->levelSetCount++;
+  print->features |= AK_PRINT_FEATURE_VOLUMETRIC;
+
+  return levelSet;
+}

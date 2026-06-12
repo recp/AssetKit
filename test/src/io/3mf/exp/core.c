@@ -1347,3 +1347,243 @@ TEST_IMPL(three_mf_import_displacement_roundtrip) {
   ak_test_export_cleanup(roundTripDir);
   TEST_SUCCESS
 }
+
+static bool
+ak_test_write_3mf_volumetric_model(const char *path) {
+  static const char contentTypes[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">"
+    "<Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>"
+    "<Default Extension=\"png\" ContentType=\"image/png\"/>"
+    "<Override PartName=\"/3D/3dmodel.model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\"/>"
+    "</Types>";
+  static const char rels[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">"
+    "<Relationship Id=\"rel0\" "
+    "Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\" "
+    "Target=\"/3D/3dmodel.model\"/>"
+    "</Relationships>";
+  static const char rootModel[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<model unit=\"millimeter\" requiredextensions=\"v\" "
+    "xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" "
+    "xmlns:v=\"http://schemas.3mf.io/3dmanufacturing/volumetric/2022/01\">"
+    "<resources>"
+    "<v:image3d id=\"2\" name=\"density\">"
+    "<v:imagestack rowcount=\"2\" columncount=\"2\" sheetcount=\"2\">"
+    "<v:imagesheet path=\"/3D/Volumetric/density_0000.png\"/>"
+    "<v:imagesheet path=\"/3D/Volumetric/density_0001.png\"/>"
+    "</v:imagestack>"
+    "</v:image3d>"
+    "<v:functionfromimage3d id=\"3\" displayname=\"density-fn\" image3did=\"2\" "
+    "filter=\"nearest\" tilestyleu=\"wrap\" tilestylev=\"clamp\" tilestylew=\"mirror\" "
+    "valueoffset=\"-0.5\" valuescale=\"2\"/>"
+    "<v:volumedata id=\"4\">"
+    "<v:composite basematerialid=\"10\">"
+    "<v:materialmapping functionid=\"3\" channel=\"green\" fallbackvalue=\"0.25\"/>"
+    "</v:composite>"
+    "<v:color functionid=\"3\" channel=\"red\" "
+    "transform=\"1 0 0 0 1 0 0 0 1 0.1 0.2 0.3\" "
+    "minfeaturesize=\"0.01\" fallbackvalue=\"0.5\"/>"
+    "<v:property functionid=\"3\" channel=\"blue\" name=\"ex:opacity\" "
+    "required=\"true\" fallbackvalue=\"0.75\"/>"
+    "</v:volumedata>"
+    "<object id=\"1\" type=\"model\" name=\"volume-bounds\">"
+    "<mesh volumeid=\"4\">"
+    "<vertices>"
+    "<vertex x=\"0\" y=\"0\" z=\"0\"/>"
+    "<vertex x=\"1\" y=\"0\" z=\"0\"/>"
+    "<vertex x=\"0\" y=\"1\" z=\"0\"/>"
+    "<vertex x=\"0\" y=\"0\" z=\"1\"/>"
+    "</vertices>"
+    "<triangles>"
+    "<triangle v1=\"0\" v2=\"1\" v3=\"2\"/>"
+    "<triangle v1=\"0\" v2=\"3\" v3=\"1\"/>"
+    "<triangle v1=\"1\" v2=\"3\" v3=\"2\"/>"
+    "<triangle v1=\"2\" v2=\"3\" v3=\"0\"/>"
+    "</triangles>"
+    "</mesh>"
+    "</object>"
+    "<object id=\"5\" type=\"model\" name=\"density-levelset\">"
+    "<v:levelset functionid=\"3\" channel=\"red\" meshid=\"1\" volumeid=\"4\" "
+    "transform=\"1 0 0 0 1 0 0 0 1 0 0 0\" "
+    "minfeaturesize=\"0.02\" meshbboxonly=\"true\" fallbackvalue=\"0.1\"/>"
+    "</object>"
+    "</resources>"
+    "<build><item objectid=\"5\"/></build>"
+    "</model>";
+  static const unsigned char pngData[] = {
+    0x89u, 0x50u, 0x4eu, 0x47u, 0x0du, 0x0au, 0x1au, 0x0au
+  };
+  AkTest3MFZipEntry entries[5];
+
+  entries[0].name = "[Content_Types].xml";
+  entries[0].data = contentTypes;
+  entries[0].size = sizeof(contentTypes) - 1u;
+  entries[1].name = "_rels/.rels";
+  entries[1].data = rels;
+  entries[1].size = sizeof(rels) - 1u;
+  entries[2].name = "3D/3dmodel.model";
+  entries[2].data = rootModel;
+  entries[2].size = sizeof(rootModel) - 1u;
+  entries[3].name = "3D/Volumetric/density_0000.png";
+  entries[3].data = pngData;
+  entries[3].size = sizeof(pngData);
+  entries[4].name = "3D/Volumetric/density_0001.png";
+  entries[4].data = pngData;
+  entries[4].size = sizeof(pngData);
+
+  return ak_test_3mf_zip_write_stored(path, entries, AK_ARRAY_LEN(entries));
+}
+
+TEST_IMPL(three_mf_import_volumetric_roundtrip) {
+  AkDoc                         *doc;
+  AkDoc                         *roundTrip;
+  AkPrintDocument               *print;
+  AkPrintDocument               *roundTripPrint;
+  AkPrintImage3D                *image;
+  AkPrintImageSheet             *sheet;
+  AkPrintFunctionFromImage3D    *function;
+  AkPrintVolumeData             *volume;
+  AkPrintVolumetricElement      *element;
+  AkPrintVolumetricMesh         *volumeMesh;
+  AkPrintLevelSet               *levelSet;
+  const char                    *outDir = "./assetkit_import_3mf_volumetric";
+  const char                    *mfPath = "./assetkit_import_3mf_volumetric/model.3mf";
+  const char                    *roundTripDir = "./assetkit_export_3mf_volumetric";
+  const char                    *roundTripPath = "./assetkit_export_3mf_volumetric/model.3mf";
+
+  ak_test_export_cleanup(outDir);
+  ak_test_export_cleanup(roundTripDir);
+  ASSERT(mkdir(outDir, 0777) == 0);
+  ASSERT(ak_test_write_3mf_volumetric_model(mfPath));
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, mfPath, AK_FILE_TYPE_3MF) == AK_OK);
+  ASSERT(doc != NULL);
+  ASSERT(doc->lib.geometries.count == 1);
+
+  print = ak_printDocument(doc);
+  ASSERT(print != NULL);
+  ASSERT(ak_printHasFeature(print, AK_PRINT_FEATURE_VOLUMETRIC));
+  ASSERT((print->requiredFeatures & AK_PRINT_FEATURE_VOLUMETRIC) != 0u);
+  ASSERT((print->unsupportedFeatures & AK_PRINT_FEATURE_VOLUMETRIC) == 0u);
+  ASSERT(print->image3DCount == 1);
+  ASSERT(print->imageSheetCount == 2);
+  ASSERT(print->functionFromImage3DCount == 1);
+  ASSERT(print->volumeDataCount == 1);
+  ASSERT(print->volumetricElementCount == 3);
+  ASSERT(print->volumetricMeshCount == 1);
+  ASSERT(print->levelSetCount == 1);
+
+  image = print->image3Ds;
+  ASSERT(image != NULL);
+  ASSERT(image->id == 2);
+  ASSERT(strcmp(image->name, "density") == 0);
+  ASSERT(image->rowCount == 2);
+  ASSERT(image->columnCount == 2);
+  ASSERT(image->sheetCount == 2);
+  ASSERT(image->imageSheetCount == 2);
+
+  sheet = print->imageSheets;
+  ASSERT(sheet != NULL);
+  ASSERT(strcmp(sheet->path, "3D/Volumetric/density_0000.png") == 0);
+  ASSERT(sheet->next != NULL);
+  ASSERT(strcmp(sheet->next->path, "3D/Volumetric/density_0001.png") == 0);
+
+  function = print->functionFromImage3Ds;
+  ASSERT(function != NULL);
+  ASSERT(function->id == 3);
+  ASSERT(function->image3DId == 2);
+  ASSERT(strcmp(function->displayName, "density-fn") == 0);
+  ASSERT((function->flags & AK_PRINT_FUNCTION_FROM_IMAGE3D_HAS_VALUE_OFFSET) != 0u);
+  ASSERT((function->flags & AK_PRINT_FUNCTION_FROM_IMAGE3D_HAS_VALUE_SCALE) != 0u);
+  ASSERT(fabs(function->valueOffset - -0.5f) < 0.000001f);
+  ASSERT(fabs(function->valueScale - 2.0f) < 0.000001f);
+  ASSERT(strcmp(function->filter, "nearest") == 0);
+  ASSERT(strcmp(function->tileStyleU, "wrap") == 0);
+  ASSERT(strcmp(function->tileStyleV, "clamp") == 0);
+  ASSERT(strcmp(function->tileStyleW, "mirror") == 0);
+
+  volume = print->volumeData;
+  ASSERT(volume != NULL);
+  ASSERT(volume->id == 4);
+  ASSERT((volume->flags & AK_PRINT_VOLUME_DATA_HAS_BASE_MATERIAL_ID) != 0u);
+  ASSERT(volume->baseMaterialId == 10);
+  ASSERT(volume->materialMappingCount == 1);
+  ASSERT(volume->colorCount == 1);
+  ASSERT(volume->propertyCount == 1);
+
+  element = print->volumetricElements;
+  ASSERT(element != NULL);
+  ASSERT(element->type == AK_PRINT_VOLUMETRIC_ELEMENT_MATERIAL_MAPPING);
+  ASSERT(strcmp(element->channel, "green") == 0);
+  ASSERT((element->flags & AK_PRINT_VOLUMETRIC_ELEMENT_HAS_FALLBACK_VALUE) != 0u);
+  ASSERT(fabs(element->fallbackValue - 0.25f) < 0.000001f);
+  ASSERT(element->next != NULL);
+  element = element->next;
+  ASSERT(element->type == AK_PRINT_VOLUMETRIC_ELEMENT_COLOR);
+  ASSERT(strcmp(element->channel, "red") == 0);
+  ASSERT((element->flags & AK_PRINT_VOLUMETRIC_ELEMENT_HAS_TRANSFORM) != 0u);
+  ASSERT((element->flags & AK_PRINT_VOLUMETRIC_ELEMENT_HAS_MIN_FEATURE_SIZE) != 0u);
+  ASSERT(fabs(element->matrix[12] - 0.1f) < 0.000001f);
+  ASSERT(fabs(element->minFeatureSize - 0.01f) < 0.000001f);
+  ASSERT(element->next != NULL);
+  element = element->next;
+  ASSERT(element->type == AK_PRINT_VOLUMETRIC_ELEMENT_PROPERTY);
+  ASSERT(strcmp(element->channel, "blue") == 0);
+  ASSERT(strcmp(element->name, "ex:opacity") == 0);
+  ASSERT((element->flags & AK_PRINT_VOLUMETRIC_ELEMENT_REQUIRED) != 0u);
+  ASSERT(fabs(element->fallbackValue - 0.75f) < 0.000001f);
+
+  volumeMesh = print->volumetricMeshes;
+  ASSERT(volumeMesh != NULL);
+  ASSERT(volumeMesh->objectId == 1);
+  ASSERT(volumeMesh->volumeId == 4);
+  ASSERT((volumeMesh->flags & AK_PRINT_VOLUMETRIC_MESH_HAS_VOLUME_ID) != 0u);
+
+  levelSet = print->levelSets;
+  ASSERT(levelSet != NULL);
+  ASSERT(levelSet->objectId == 5);
+  ASSERT(levelSet->functionId == 3);
+  ASSERT(strcmp(levelSet->channel, "red") == 0);
+  ASSERT(levelSet->meshId == 1);
+  ASSERT(levelSet->volumeId == 4);
+  ASSERT((levelSet->flags & AK_PRINT_LEVEL_SET_HAS_VOLUME_ID) != 0u);
+  ASSERT((levelSet->flags & AK_PRINT_LEVEL_SET_HAS_MESH_BBOX_ONLY) != 0u);
+  ASSERT((levelSet->flags & AK_PRINT_LEVEL_SET_HAS_MIN_FEATURE_SIZE) != 0u);
+  ASSERT(fabs(levelSet->minFeatureSize - 0.02f) < 0.000001f);
+  ASSERT(fabs(levelSet->fallbackValue - 0.1f) < 0.000001f);
+
+  ASSERT(ak_export(doc, roundTripDir, AK_FILE_TYPE_3MF) == AK_OK);
+  roundTrip = NULL;
+  ASSERT(ak_load(&roundTrip, roundTripPath, AK_FILE_TYPE_3MF) == AK_OK);
+  ASSERT(roundTrip != NULL);
+  ASSERT(roundTrip->lib.geometries.count == 1);
+
+  roundTripPrint = ak_printDocument(roundTrip);
+  ASSERT(roundTripPrint != NULL);
+  ASSERT(ak_printHasFeature(roundTripPrint, AK_PRINT_FEATURE_VOLUMETRIC));
+  ASSERT((roundTripPrint->requiredFeatures & AK_PRINT_FEATURE_VOLUMETRIC) != 0u);
+  ASSERT((roundTripPrint->unsupportedFeatures & AK_PRINT_FEATURE_VOLUMETRIC) == 0u);
+  ASSERT(roundTripPrint->image3DCount == 1);
+  ASSERT(roundTripPrint->imageSheetCount == 2);
+  ASSERT(roundTripPrint->functionFromImage3DCount == 1);
+  ASSERT(roundTripPrint->volumeDataCount == 1);
+  ASSERT(roundTripPrint->volumetricElementCount == 3);
+  ASSERT(roundTripPrint->volumetricMeshCount == 1);
+  ASSERT(roundTripPrint->levelSetCount == 1);
+  ASSERT(roundTripPrint->volumetricMeshes != NULL);
+  ASSERT(roundTripPrint->volumetricMeshes->objectId == 1);
+  ASSERT(roundTripPrint->volumetricMeshes->volumeId == 4);
+  ASSERT(roundTripPrint->levelSets != NULL);
+  ASSERT(roundTripPrint->levelSets->objectId == 5);
+  ASSERT(roundTripPrint->levelSets->meshId == 1);
+  ASSERT(roundTripPrint->levelSets->volumeId == 4);
+  ASSERT((roundTripPrint->levelSets->flags & AK_PRINT_LEVEL_SET_HAS_MESH_BBOX_ONLY) != 0u);
+
+  ak_test_export_cleanup(outDir);
+  ak_test_export_cleanup(roundTripDir);
+  TEST_SUCCESS
+}
