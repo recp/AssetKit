@@ -66,6 +66,53 @@ ak_test_make_3mf_triangle_doc(void) {
   return doc;
 }
 
+static AkDoc *
+ak_test_make_3mf_color_triangle_doc(void) {
+  AkDoc          *doc;
+  AkHeap         *heap;
+  AkMesh         *mesh;
+  AkMeshPrimitive *prim;
+  AkInput        *colorInput;
+  AkGeometry     *geom;
+  const uint8_t colors[12] = {
+    255u, 0u,   0u,   255u,
+    0u,   255u, 0u,   255u,
+    0u,   0u,   255u, 128u
+  };
+
+  doc = ak_test_make_3mf_triangle_doc();
+  if (!doc)
+    return NULL;
+
+  heap = ak_heap_getheap(doc);
+  geom = doc->lib.geometries.first;
+  mesh = geom && geom->gdata ? ak_objGet(geom->gdata) : NULL;
+  prim = mesh ? mesh->primitive : NULL;
+  if (!prim)
+    return NULL;
+
+  colorInput = ak_heap_calloc(heap, prim, sizeof(*colorInput));
+  if (!colorInput)
+    return NULL;
+
+  colorInput->semantic = AK_INPUT_COLOR;
+  colorInput->set      = 0;
+  colorInput->index    = 0;
+  colorInput->accessor = ak_test_make_ubyte_accessor(heap,
+                                                     colorInput,
+                                                     colors,
+                                                     4,
+                                                     3);
+  if (!colorInput->accessor)
+    return NULL;
+  colorInput->accessor->normalized = false;
+  colorInput->next = prim->input;
+  prim->input      = colorInput;
+  prim->inputCount++;
+
+  return doc;
+}
+
 TEST_IMPL(three_mf_export_triangle_roundtrip) {
   AkDoc          *doc;
   AkDoc          *roundTrip;
@@ -107,6 +154,61 @@ TEST_IMPL(three_mf_export_triangle_roundtrip) {
   ASSERT(ak_indexArrayGet(prim->indices, 0) == 0);
   ASSERT(ak_indexArrayGet(prim->indices, 1) == 1);
   ASSERT(ak_indexArrayGet(prim->indices, 2) == 2);
+
+  ak_test_export_cleanup(outDir);
+  TEST_SUCCESS
+}
+
+TEST_IMPL(three_mf_export_color_triangle_roundtrip) {
+  AkDoc          *doc;
+  AkDoc          *roundTrip;
+  AkGeometry     *geom;
+  AkMesh         *mesh;
+  AkMeshPrimitive *prim;
+  AkInput        *input;
+  AkInput        *colorInput;
+  AkAccessor     *colorAcc;
+  const char     *outDir  = "./assetkit_export_3mf_color_triangle_roundtrip";
+  const char     *mfPath  = "./assetkit_export_3mf_color_triangle_roundtrip/model.3mf";
+
+  ak_test_export_cleanup(outDir);
+  doc = ak_test_make_3mf_color_triangle_doc();
+  ASSERT(doc != NULL);
+
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_3MF) == AK_OK);
+
+  roundTrip = NULL;
+  ASSERT(ak_load(&roundTrip, mfPath, AK_FILE_TYPE_3MF) == AK_OK);
+  ASSERT(roundTrip != NULL);
+  ASSERT(roundTrip->materialProperties.count == 1);
+  ASSERT(roundTrip->materialProperties.sets != NULL);
+  ASSERT(roundTrip->materialProperties.sets->type == AK_MATERIAL_PROPERTY_COLOR);
+  ASSERT(roundTrip->materialProperties.sets->count == 3);
+  ASSERT(roundTrip->materialProperties.sets->properties[0].baseColor != NULL);
+  ASSERT(roundTrip->materialProperties.sets->properties[0].metallic != NULL);
+  ASSERT(roundTrip->materialProperties.sets->properties[0].roughness != NULL);
+
+  geom = roundTrip->lib.geometries.first;
+  ASSERT(geom != NULL);
+  mesh = geom->gdata ? ak_objGet(geom->gdata) : NULL;
+  ASSERT(mesh != NULL);
+  prim = mesh->primitive;
+  ASSERT(prim != NULL);
+
+  colorInput = NULL;
+  for (input = prim->input; input; input = input->next) {
+    if (input->semantic == AK_INPUT_COLOR) {
+      colorInput = input;
+      break;
+    }
+  }
+  ASSERT(colorInput != NULL);
+  colorAcc = colorInput->accessor;
+  ASSERT(colorAcc != NULL);
+  ASSERT(colorAcc->componentType == AKT_UBYTE);
+  ASSERT(colorAcc->componentSize == AK_COMPONENT_SIZE_VEC4);
+  ASSERT(colorAcc->count == 3);
+  ASSERT(prim->material != NULL);
 
   ak_test_export_cleanup(outDir);
   TEST_SUCCESS

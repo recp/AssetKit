@@ -47,6 +47,7 @@ typedef struct AK3MFExportState {
   uint32_t     objectCount;
   uint32_t     nextObjectId;
   AkResult     result;
+  bool         usesMaterialExtension;
 } AK3MFExportState;
 
 static
@@ -236,6 +237,27 @@ ak_3mf_find_position_input(AkMeshPrimitive * __restrict prim) {
 }
 
 static
+AkInput*
+ak_3mf_find_color_input(AkMeshPrimitive * __restrict prim) {
+  AkInput *input;
+  AkInput *fallback;
+
+  fallback = NULL;
+  for (input = prim ? prim->input : NULL; input; input = input->next) {
+    if (input->semantic != AK_INPUT_COLOR
+        || !input->accessor
+        || input->accessor->componentCount < 3u)
+      continue;
+    if (input->set == 0)
+      return input;
+    if (!fallback)
+      fallback = input;
+  }
+
+  return fallback;
+}
+
+static
 void
 ak_3mf_vertex_position(AK3MFRows       * __restrict rows,
                        AkMeshPrimitive * __restrict prim,
@@ -254,6 +276,73 @@ ak_3mf_vertex_position(AK3MFRows       * __restrict rows,
 }
 
 static
+float
+ak_3mf_color_component(AK3MFRows   * __restrict rows,
+                       const float * __restrict row,
+                       uint32_t                 component,
+                       float                    fallback) {
+  float value;
+
+  value = ak_3mf_row_component(row, rows->componentCount, component, fallback);
+  if (!rows->accessor->normalized) {
+    switch (rows->accessor->componentType) {
+      case AKT_UBYTE:
+        value *= 1.0f / 255.0f;
+        break;
+      case AKT_USHORT:
+        value *= 1.0f / 65535.0f;
+        break;
+      default:
+        break;
+    }
+  }
+
+  if (value < 0.0f)
+    value = 0.0f;
+  else if (value > 1.0f)
+    value = 1.0f;
+
+  return value;
+}
+
+static
+uint8_t
+ak_3mf_color_u8(float value) {
+  if (value < 0.0f)
+    value = 0.0f;
+  else if (value > 1.0f)
+    value = 1.0f;
+
+  return (uint8_t)(value * 255.0f + 0.5f);
+}
+
+static
+void
+ak_3mf_vertex_color(AK3MFRows       * __restrict rows,
+                    AkMeshPrimitive * __restrict prim,
+                    AkInput         * __restrict colorInput,
+                    uint32_t                     vertexIndex,
+                    uint8_t                      rgba[4]) {
+  const float *row;
+  uint32_t     colorIndex;
+
+  rgba[0] = 255u;
+  rgba[1] = 255u;
+  rgba[2] = 255u;
+  rgba[3] = 255u;
+  if (!rows || !colorInput)
+    return;
+
+  colorIndex = io_primitive_input_index(prim, colorInput, vertexIndex);
+  row        = ak_3mf_rows_get(rows, colorIndex);
+
+  rgba[0] = ak_3mf_color_u8(ak_3mf_color_component(rows, row, 0u, 1.0f));
+  rgba[1] = ak_3mf_color_u8(ak_3mf_color_component(rows, row, 1u, 1.0f));
+  rgba[2] = ak_3mf_color_u8(ak_3mf_color_component(rows, row, 2u, 1.0f));
+  rgba[3] = ak_3mf_color_u8(ak_3mf_color_component(rows, row, 3u, 1.0f));
+}
+
+static
 void
 ak_3mf_append_vertex(AK3MFBuffer * __restrict vertices, vec3 pos) {
   ak_3mf_buf_lit(vertices, "          <vertex x=\"");
@@ -267,34 +356,64 @@ ak_3mf_append_vertex(AK3MFBuffer * __restrict vertices, vec3 pos) {
 
 static
 void
+ak_3mf_append_color(AK3MFBuffer * __restrict colors, uint8_t rgba[4]) {
+  static const char hex[] = "0123456789ABCDEF";
+  uint32_t          i;
+
+  ak_3mf_buf_lit(colors, "        <m:color color=\"#");
+  for (i = 0; i < 4u; i++) {
+    ak_3mf_buf_ch(colors, hex[rgba[i] >> 4u]);
+    ak_3mf_buf_ch(colors, hex[rgba[i] & 0x0fu]);
+  }
+  ak_3mf_buf_lit(colors, "\"/>\n");
+}
+
+static
+void
 ak_3mf_append_triangle(AK3MFBuffer * __restrict triangles,
                        uint32_t                 i0,
                        uint32_t                 i1,
-                       uint32_t                 i2) {
+                       uint32_t                 i2,
+                       uint32_t                 propertyId) {
   ak_3mf_buf_lit(triangles, "          <triangle v1=\"");
   ak_3mf_buf_u32(triangles, i0);
   ak_3mf_buf_lit(triangles, "\" v2=\"");
   ak_3mf_buf_u32(triangles, i1);
   ak_3mf_buf_lit(triangles, "\" v3=\"");
   ak_3mf_buf_u32(triangles, i2);
+  if (propertyId != 0u) {
+    ak_3mf_buf_lit(triangles, "\" pid=\"");
+    ak_3mf_buf_u32(triangles, propertyId);
+    ak_3mf_buf_lit(triangles, "\" p1=\"");
+    ak_3mf_buf_u32(triangles, i0);
+    ak_3mf_buf_lit(triangles, "\" p2=\"");
+    ak_3mf_buf_u32(triangles, i1);
+    ak_3mf_buf_lit(triangles, "\" p3=\"");
+    ak_3mf_buf_u32(triangles, i2);
+  }
   ak_3mf_buf_lit(triangles, "\"/>\n");
 }
 
 static
 bool
 ak_3mf_emit_triangle(AK3MFRows       * __restrict rows,
+                     AK3MFRows       * __restrict colorRows,
                      AkMeshPrimitive * __restrict prim,
                      AkInput         * __restrict posInput,
+                     AkInput         * __restrict colorInput,
                      uint32_t                     i0,
                      uint32_t                     i1,
                      uint32_t                     i2,
                      AK3MFBuffer     * __restrict vertices,
+                     AK3MFBuffer     * __restrict colors,
                      AK3MFBuffer     * __restrict triangles,
+                     uint32_t                     propertyId,
                      uint32_t        * __restrict vertexCount,
                      uint32_t        * __restrict triangleCount) {
   vec3 a;
   vec3 b;
   vec3 c;
+  uint8_t rgba[4];
 
   if (*vertexCount > UINT32_MAX - 3u)
     return false;
@@ -306,10 +425,19 @@ ak_3mf_emit_triangle(AK3MFRows       * __restrict rows,
   ak_3mf_append_vertex(vertices, a);
   ak_3mf_append_vertex(vertices, b);
   ak_3mf_append_vertex(vertices, c);
+  if (propertyId != 0u) {
+    ak_3mf_vertex_color(colorRows, prim, colorInput, i0, rgba);
+    ak_3mf_append_color(colors, rgba);
+    ak_3mf_vertex_color(colorRows, prim, colorInput, i1, rgba);
+    ak_3mf_append_color(colors, rgba);
+    ak_3mf_vertex_color(colorRows, prim, colorInput, i2, rgba);
+    ak_3mf_append_color(colors, rgba);
+  }
   ak_3mf_append_triangle(triangles,
                          *vertexCount,
                          *vertexCount + 1u,
-                         *vertexCount + 2u);
+                         *vertexCount + 2u,
+                         propertyId);
 
   *vertexCount += 3u;
   (*triangleCount)++;
@@ -319,10 +447,14 @@ ak_3mf_emit_triangle(AK3MFRows       * __restrict rows,
 static
 bool
 ak_3mf_emit_triangles_primitive(AK3MFRows       * __restrict rows,
+                                AK3MFRows       * __restrict colorRows,
                                 AkMeshPrimitive * __restrict prim,
                                 AkInput         * __restrict posInput,
+                                AkInput         * __restrict colorInput,
                                 AK3MFBuffer     * __restrict vertices,
+                                AK3MFBuffer     * __restrict colors,
                                 AK3MFBuffer     * __restrict triangles,
+                                uint32_t                     propertyId,
                                 uint32_t        * __restrict vertexCount,
                                 uint32_t        * __restrict triangleCount) {
   AkTriangleMode mode;
@@ -337,15 +469,15 @@ ak_3mf_emit_triangles_primitive(AK3MFRows       * __restrict rows,
   if (mode == AK_TRIANGLE_STRIP) {
     for (i = 0; i + 2u < count; i++) {
       if (i & 1u) {
-        if (!ak_3mf_emit_triangle(rows, prim, posInput,
+        if (!ak_3mf_emit_triangle(rows, colorRows, prim, posInput, colorInput,
                                   i + 1u, i, i + 2u,
-                                  vertices, triangles,
+                                  vertices, colors, triangles, propertyId,
                                   vertexCount, triangleCount))
           return false;
       } else {
-        if (!ak_3mf_emit_triangle(rows, prim, posInput,
+        if (!ak_3mf_emit_triangle(rows, colorRows, prim, posInput, colorInput,
                                   i, i + 1u, i + 2u,
-                                  vertices, triangles,
+                                  vertices, colors, triangles, propertyId,
                                   vertexCount, triangleCount))
           return false;
       }
@@ -355,9 +487,9 @@ ak_3mf_emit_triangles_primitive(AK3MFRows       * __restrict rows,
 
   if (mode == AK_TRIANGLE_FAN) {
     for (i = 1u; i + 1u < count; i++) {
-      if (!ak_3mf_emit_triangle(rows, prim, posInput,
+      if (!ak_3mf_emit_triangle(rows, colorRows, prim, posInput, colorInput,
                                 0u, i, i + 1u,
-                                vertices, triangles,
+                                vertices, colors, triangles, propertyId,
                                 vertexCount, triangleCount))
         return false;
     }
@@ -365,9 +497,9 @@ ak_3mf_emit_triangles_primitive(AK3MFRows       * __restrict rows,
   }
 
   for (i = 0; i + 2u < count; i += 3u) {
-    if (!ak_3mf_emit_triangle(rows, prim, posInput,
+    if (!ak_3mf_emit_triangle(rows, colorRows, prim, posInput, colorInput,
                               i, i + 1u, i + 2u,
-                              vertices, triangles,
+                              vertices, colors, triangles, propertyId,
                               vertexCount, triangleCount))
       return false;
   }
@@ -378,10 +510,14 @@ ak_3mf_emit_triangles_primitive(AK3MFRows       * __restrict rows,
 static
 bool
 ak_3mf_emit_polygon_primitive(AK3MFRows       * __restrict rows,
+                              AK3MFRows       * __restrict colorRows,
                               AkMeshPrimitive * __restrict prim,
                               AkInput         * __restrict posInput,
+                              AkInput         * __restrict colorInput,
                               AK3MFBuffer     * __restrict vertices,
+                              AK3MFBuffer     * __restrict colors,
                               AK3MFBuffer     * __restrict triangles,
+                              uint32_t                     propertyId,
                               uint32_t        * __restrict vertexCount,
                               uint32_t        * __restrict triangleCount) {
   AkPolygon *poly;
@@ -404,11 +540,11 @@ ak_3mf_emit_polygon_primitive(AK3MFRows       * __restrict rows,
     }
 
     for (j = 1u; j + 1u < vc; j++) {
-      if (!ak_3mf_emit_triangle(rows, prim, posInput,
+      if (!ak_3mf_emit_triangle(rows, colorRows, prim, posInput, colorInput,
                                 (uint32_t)cursor,
                                 (uint32_t)(cursor + j),
                                 (uint32_t)(cursor + j + 1u),
-                                vertices, triangles,
+                                vertices, colors, triangles, propertyId,
                                 vertexCount, triangleCount))
         return false;
     }
@@ -442,13 +578,18 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
                        AkMeshPrimitive  * __restrict prim,
                        mat4                           world) {
   AK3MFBuffer vertices;
+  AK3MFBuffer colors;
   AK3MFBuffer triangles;
   AK3MFRows   rows;
+  AK3MFRows   colorRows;
   AkInput    *posInput;
+  AkInput    *colorInput;
   uint32_t    vertexCount;
   uint32_t    triangleCount;
   uint32_t    objectId;
+  uint32_t    propertyId;
   bool        ok;
+  bool        hasColorRows;
 
   if (!prim)
     return true;
@@ -463,45 +604,72 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
   if (!ak_3mf_rows_init(&rows, posInput->accessor))
     return false;
 
+  memset(&colorRows, 0, sizeof(colorRows));
+  colorInput   = ak_3mf_find_color_input(prim);
+  hasColorRows = colorInput && ak_3mf_rows_init(&colorRows, colorInput->accessor);
+  propertyId   = hasColorRows ? st->nextObjectId++ : 0u;
+
   memset(&vertices, 0, sizeof(vertices));
+  memset(&colors, 0, sizeof(colors));
   memset(&triangles, 0, sizeof(triangles));
   vertices.result  = AK_OK;
+  colors.result    = AK_OK;
   triangles.result = AK_OK;
   vertexCount      = 0;
   triangleCount    = 0;
 
   if (prim->type == AK_PRIMITIVE_TRIANGLES) {
     ok = ak_3mf_emit_triangles_primitive(&rows,
+                                         hasColorRows ? &colorRows : NULL,
                                          prim,
                                          posInput,
+                                         hasColorRows ? colorInput : NULL,
                                          &vertices,
+                                         &colors,
                                          &triangles,
+                                         propertyId,
                                          &vertexCount,
                                          &triangleCount);
   } else {
     ok = ak_3mf_emit_polygon_primitive(&rows,
+                                       hasColorRows ? &colorRows : NULL,
                                        prim,
                                        posInput,
+                                       hasColorRows ? colorInput : NULL,
                                        &vertices,
+                                       &colors,
                                        &triangles,
+                                       propertyId,
                                        &vertexCount,
                                        &triangleCount);
   }
 
   ak_3mf_rows_destroy(&rows);
-  if (!ok || vertices.result != AK_OK || triangles.result != AK_OK) {
+  if (hasColorRows)
+    ak_3mf_rows_destroy(&colorRows);
+  if (!ok || vertices.result != AK_OK || colors.result != AK_OK || triangles.result != AK_OK) {
     ak_3mf_buf_free(&vertices);
+    ak_3mf_buf_free(&colors);
     ak_3mf_buf_free(&triangles);
     return false;
   }
 
   if (triangleCount == 0) {
     ak_3mf_buf_free(&vertices);
+    ak_3mf_buf_free(&colors);
     ak_3mf_buf_free(&triangles);
     return true;
   }
 
   objectId = st->nextObjectId++;
+  if (propertyId != 0u) {
+    ak_3mf_buf_lit(&st->resources, "      <m:colorgroup id=\"");
+    ak_3mf_buf_u32(&st->resources, propertyId);
+    ak_3mf_buf_lit(&st->resources, "\">\n");
+    ak_3mf_buf_raw(&st->resources, colors.data, colors.len);
+    ak_3mf_buf_lit(&st->resources, "      </m:colorgroup>\n");
+    st->usesMaterialExtension = true;
+  }
 
   ak_3mf_buf_lit(&st->resources, "      <object id=\"");
   ak_3mf_buf_u32(&st->resources, objectId);
@@ -525,6 +693,7 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
   st->objectCount++;
 
   ak_3mf_buf_free(&vertices);
+  ak_3mf_buf_free(&colors);
   ak_3mf_buf_free(&triangles);
 
   return st->resources.result == AK_OK && st->build.result == AK_OK;
@@ -647,15 +816,48 @@ ak_3mf_write_library_fallback(AK3MFExportState * __restrict st) {
 }
 
 static
+const char*
+ak_3mf_export_unit_name(AkDoc * __restrict doc) {
+  double dist;
+
+  dist = doc && doc->unit ? doc->unit->dist : 0.001;
+  if (fabs(dist - 0.000001) < 0.000000001)
+    return "micron";
+  if (fabs(dist - 0.001) < 0.0000001)
+    return "millimeter";
+  if (fabs(dist - 0.01) < 0.0000001)
+    return "centimeter";
+  if (fabs(dist - 0.0254) < 0.0000001)
+    return "inch";
+  if (fabs(dist - 0.3048) < 0.0000001)
+    return "foot";
+  if (fabs(dist - 1.0) < 0.0000001)
+    return "meter";
+
+  return "millimeter";
+}
+
+static
 bool
 ak_3mf_build_model_xml(AK3MFExportState * __restrict st,
                        AK3MFBuffer      * __restrict model) {
+  const char *unitName;
+
   memset(model, 0, sizeof(*model));
   model->result = AK_OK;
+  unitName      = ak_3mf_export_unit_name(st->doc);
 
   ak_3mf_buf_lit(model, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-                        "<model unit=\"millimeter\" xml:lang=\"en-US\" "
-                        "xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\">\n"
+                        "<model unit=\"");
+  ak_3mf_buf_lit(model, unitName);
+  ak_3mf_buf_lit(model, "\" xml:lang=\"en-US\" "
+                        "xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\"");
+  if (st->usesMaterialExtension) {
+    ak_3mf_buf_lit(model,
+                   " xmlns:m=\"http://schemas.microsoft.com/3dmanufacturing/material/2015/02\""
+                   " requiredextensions=\"m\"");
+  }
+  ak_3mf_buf_lit(model, ">\n"
                         "  <resources>\n");
   ak_3mf_buf_raw(model, st->resources.data, st->resources.len);
   ak_3mf_buf_lit(model, "  </resources>\n"
