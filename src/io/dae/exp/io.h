@@ -73,10 +73,6 @@ dae_mkdir_parent_dirs(char * __restrict path);
 
 AK_HIDE
 bool
-dae_copy_file(const char * __restrict src, const char * __restrict dst);
-
-AK_HIDE
-bool
 dae_write_file_bytes(const char * __restrict dst,
                      const void * __restrict data,
                      size_t                  len);

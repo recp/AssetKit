@@ -20,6 +20,9 @@
 #include "../../include/ak/string.h"
 
 #include <limits.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/stat.h>
 
 #if defined(__APPLE__)
 #  include <sys/clonefile.h>
@@ -53,6 +56,25 @@
     it2++;                                                                    \
     skp = X;                                                                  \
   } while (0)
+
+static
+bool
+ak_path_same_file(const char * __restrict a,
+                  const char * __restrict b) {
+  struct stat sta;
+  struct stat stb;
+
+  if (!a || !b)
+    return false;
+
+  if (strcmp(a, b) == 0)
+    return true;
+
+  if (stat(a, &sta) != 0 || stat(b, &stb) != 0)
+    return false;
+
+  return sta.st_dev == stb.st_dev && sta.st_ino == stb.st_ino;
+}
 
 AK_EXPORT
 const char *
@@ -94,6 +116,55 @@ ak_clonefile(const char * __restrict src,
   (void)dst;
   return false;
 #endif
+}
+
+AK_EXPORT
+bool
+ak_copyfile(const char * __restrict src,
+            const char * __restrict dst) {
+  FILE          *infile;
+  FILE          *outfile;
+  unsigned char  buf[64u * 1024u];
+  size_t         nread;
+  bool           ok;
+
+  if (!src || !dst)
+    return false;
+
+  if (ak_path_same_file(src, dst))
+    return true;
+
+  if (ak_clonefile(src, dst))
+    return true;
+
+  infile = fopen(src, "rb");
+  if (!infile)
+    return false;
+
+  outfile = fopen(dst, "wb");
+  if (!outfile) {
+    fclose(infile);
+    return false;
+  }
+
+  ok = true;
+  while ((nread = fread(buf, 1, sizeof(buf), infile)) > 0) {
+    if (fwrite(buf, 1, nread, outfile) != nread) {
+      ok = false;
+      break;
+    }
+  }
+
+  if (ferror(infile))
+    ok = false;
+  if (fclose(outfile) != 0)
+    ok = false;
+  fclose(infile);
+
+  if (!ok)
+    remove(dst);
+
+  return ok;
 }
 
 AK_EXPORT

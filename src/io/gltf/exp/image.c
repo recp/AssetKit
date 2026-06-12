@@ -772,73 +772,6 @@ gltf_image_join_path(const char * __restrict dir,
   return path;
 }
 
-static
-bool
-gltf_image_same_file(const char * __restrict a,
-                     const char * __restrict b) {
-  struct stat sta;
-  struct stat stb;
-
-  if (!a || !b)
-    return false;
-
-  if (strcmp(a, b) == 0)
-    return true;
-
-  if (stat(a, &sta) != 0 || stat(b, &stb) != 0)
-    return false;
-
-  return sta.st_dev == stb.st_dev && sta.st_ino == stb.st_ino;
-}
-
-static
-bool
-gltf_image_copy_file(const char * __restrict src,
-                     const char * __restrict dst) {
-  unsigned char buf[64 * 1024];
-  FILE         *in;
-  FILE         *out;
-  size_t        nread;
-  bool          ok;
-
-  if (!src || !dst)
-    return false;
-
-  if (gltf_image_same_file(src, dst))
-    return true;
-
-  in = fopen(src, "rb");
-  if (!in)
-    return false;
-
-  out = fopen(dst, "wb");
-  if (!out) {
-    fclose(in);
-    return false;
-  }
-
-  ok = true;
-  while ((nread = fread(buf, 1, sizeof(buf), in)) > 0) {
-    if (fwrite(buf, 1, nread, out) != nread) {
-      ok = false;
-      break;
-    }
-  }
-
-  if (ferror(in))
-    ok = false;
-
-  if (fclose(out) != 0)
-    ok = false;
-  fclose(in);
-
-  if (!ok)
-    remove(dst);
-
-  return ok;
-}
-
-static
 AkImageSource*
 gltf_image_external_uri_source(GLTFExpState * __restrict st,
                                GLTFExpIndex              imageIndex) {
@@ -1039,7 +972,7 @@ gltf_image_copy_export_uri(GLTFExpState  * __restrict st,
     return false;
 
   ok = gltf_image_mkdir_parent_dirs(dstPath)
-       && gltf_image_copy_file(srcPath, dstPath);
+       && ak_copyfile(srcPath, dstPath);
   free(dstPath);
 
   return ok;

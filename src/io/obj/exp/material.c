@@ -368,56 +368,6 @@ wobj_join_path(const char * __restrict dir,
   return path;
 }
 
-static
-bool
-wobj_copy_file(const char * __restrict src,
-               const char * __restrict dst) {
-  FILE          *infile;
-  FILE          *outfile;
-  unsigned char  buf[64u * 1024u];
-  size_t         nread;
-  bool           ok;
-
-  if (!src || !dst)
-    return false;
-
-  if (strcmp(src, dst) == 0)
-    return true;
-
-  if (ak_clonefile(src, dst))
-    return true;
-
-  infile = fopen(src, "rb");
-  if (!infile)
-    return false;
-
-  outfile = fopen(dst, "wb");
-  if (!outfile) {
-    fclose(infile);
-    return false;
-  }
-
-  ok = true;
-  while ((nread = fread(buf, 1, sizeof(buf), infile)) > 0) {
-    if (fwrite(buf, 1, nread, outfile) != nread) {
-      ok = false;
-      break;
-    }
-  }
-
-  if (ferror(infile))
-    ok = false;
-  if (fclose(outfile) != 0)
-    ok = false;
-  fclose(infile);
-
-  if (!ok)
-    remove(dst);
-
-  return ok;
-}
-
-static
 bool
 wobj_texture_cacheable(WOBJExpState * __restrict st, uint32_t imageIdx) {
   return st && imageIdx != UINT32_MAX && imageIdx < st->imageUriCount;
@@ -574,7 +524,7 @@ wobj_export_texture_uri(WOBJExpState         * __restrict st,
     return NULL;
   }
 
-  if (!wobj_copy_file(srcPath, dstPath)) {
+  if (!ak_copyfile(srcPath, dstPath)) {
     free(dstPath);
     if (srcOwned)
       ak_free(srcOwned);

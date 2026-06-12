@@ -17,6 +17,8 @@
 #include "image.h"
 #include "io.h"
 
+#include <ak/path.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -256,7 +258,7 @@ dae_image_copy_uri(DAEExpState  * __restrict st,
     return false;
 
   ok = dae_mkdir_parent_dirs(dstPath)
-       && dae_copy_file(srcPath, dstPath);
+       && ak_copyfile(srcPath, dstPath);
   if (heapPath)
     free(dstPath);
 

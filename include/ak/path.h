@@ -51,6 +51,11 @@ ak_clonefile(const char * __restrict src,
              const char * __restrict dst);
 
 AK_EXPORT
+bool
+ak_copyfile(const char * __restrict src,
+            const char * __restrict dst);
+
+AK_EXPORT
 char*
 ak_path_dir(struct AkHeap * __restrict heap,
             void          * __restrict memparent,
