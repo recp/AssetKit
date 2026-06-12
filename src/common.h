@@ -64,6 +64,7 @@ typedef struct AkDocPtrMap {
 
 typedef struct AkDocPrivate {
   AkDocPtrMap duplicators;
+  AkPrintDocument *print;
 } AkDocPrivate;
 
 AK_INLINE

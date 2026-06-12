@@ -399,6 +399,7 @@ typedef struct AkDoc {
 #include "animation.h"
 #include "controller.h"
 #include "gsplat.h"
+#include "print.h"
 
 AK_EXPORT
 AkResult

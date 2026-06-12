@@ -60,6 +60,7 @@ typedef struct AK3MFObject {
 
 typedef struct AK3MFImportState {
   AkDoc               *doc;
+  AkPrintDocument     *print;
   AK3MFObject         *objects;
   AK3MFPropertyGroup  *properties;
   size_t               objectCount;
@@ -533,16 +534,31 @@ ak_3mf_parse_property_groups(AK3MFImportState * __restrict st,
 
     heap            = ak_heap_getheap(st->doc);
     set             = ak_heap_calloc(heap, st->doc, sizeof(*set));
+    if (!set) {
+      free(group->colors);
+      group->colors = NULL;
+      continue;
+    }
     set->id         = group->id;
     set->count      = group->count;
     set->type       = baseMaterials ? AK_MATERIAL_PROPERTY_BASE : AK_MATERIAL_PROPERTY_COLOR;
     set->properties = ak_heap_calloc(heap,
                                      set,
                                      sizeof(*set->properties) * colorCount);
+    if (!set->properties) {
+      free(group->colors);
+      group->colors = NULL;
+      continue;
+    }
     set->next       = st->doc->materialProperties.sets;
     st->doc->materialProperties.sets = set;
     st->doc->materialProperties.count++;
     group->set      = set;
+    if (st->print) {
+      st->print->features |= AK_PRINT_FEATURE_MATERIALS;
+      st->print->materialGroupCount++;
+      st->print->materialPropertyCount += (uint32_t)colorCount;
+    }
 
     i = 0;
     for (child = xml->val; child; child = child->next) {
@@ -966,8 +982,12 @@ ak_3mf_parse_resources(AK3MFImportState * __restrict st,
       if (!object->geom)
         continue;
       object->kind = AK_3MF_OBJECT_MESH;
+      if (st->print)
+        st->print->meshObjectCount++;
       count++;
     } else if (componentsXml && ak_3mf_parse_components(st, object, componentsXml)) {
+      if (st->print)
+        st->print->componentObjectCount++;
       count++;
     }
   }
@@ -1132,6 +1152,9 @@ ak_3mf_attach_build_items(AK3MFImportState * __restrict st,
     attached++;
   }
 
+  if (st->print)
+    st->print->buildItemCount += (uint32_t)attached;
+
   return attached > 0;
 }
 
@@ -1183,6 +1206,7 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
   modelData = NULL;
   modelSize = 0;
   xdoc      = NULL;
+  doc       = NULL;
   memset(&st, 0, sizeof(st));
 
   modelPath = ak_3mf_model_path_from_rels(filepath);
@@ -1190,9 +1214,8 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
     return AK_ERR;
 
   result = ak_zip_extract_file(filepath, modelPath, &modelData, &modelSize);
-  free(modelPath);
   if (result != AK_OK)
-    return result;
+    goto cleanup;
 
   xdoc = xml_parse(modelData, XML_PREFIXES | XML_READONLY);
   if (!xdoc || !xdoc->root) {
@@ -1212,6 +1235,16 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
     goto cleanup;
   }
   st.doc = doc;
+  st.print = ak_printDocumentEnsure(doc);
+  if (st.print) {
+    st.print->features |= AK_PRINT_FEATURE_CORE;
+    (void)ak_printAddPackagePart(
+      doc,
+      AK_PRINT_PACKAGE_PART_MODEL,
+      modelPath,
+      "application/vnd.ms-package.3dmanufacturing-3dmodel+xml",
+      "http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel");
+  }
 
   scene = ak_3mf_scene_new(doc);
   if (!scene) {
@@ -1241,6 +1274,8 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
   }
 
   st.objectCount = ak_3mf_parse_resources(&st, resourcesXml);
+  if (st.print)
+    st.print->objectCount = (uint32_t)st.objectCount;
   if (st.objectCount > 0
       && !ak_3mf_attach_build_items(&st, scene, buildXml)) {
     if (!ak_3mf_attach_resource_fallback(&st, scene)) {
@@ -1262,5 +1297,6 @@ cleanup:
   if (xdoc)
     xml_free(xdoc);
   free(modelData);
+  free(modelPath);
   return result;
 }

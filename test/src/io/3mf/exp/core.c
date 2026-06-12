@@ -119,6 +119,7 @@ TEST_IMPL(three_mf_export_triangle_roundtrip) {
   AkGeometry     *geom;
   AkMesh         *mesh;
   AkMeshPrimitive *prim;
+  AkPrintDocument *print;
   struct stat      st;
   const char      *outDir  = "./assetkit_export_3mf_triangle_roundtrip";
   const char      *mfPath  = "./assetkit_export_3mf_triangle_roundtrip/model.3mf";
@@ -138,6 +139,15 @@ TEST_IMPL(three_mf_export_triangle_roundtrip) {
   ASSERT(roundTrip->unit != NULL);
   ASSERT(fabs(roundTrip->unit->dist - 0.001) < 0.000001);
   ASSERT(roundTrip->lib.geometries.count == 1);
+  print = ak_printDocument(roundTrip);
+  ASSERT(print != NULL);
+  ASSERT(ak_printHasFeature(print, AK_PRINT_FEATURE_CORE));
+  ASSERT(ak_printHasFeature(print, AK_PRINT_FEATURE_PACKAGE));
+  ASSERT(print->packagePartCount == 1);
+  ASSERT(print->objectCount == 1);
+  ASSERT(print->meshObjectCount == 1);
+  ASSERT(print->componentObjectCount == 0);
+  ASSERT(print->buildItemCount == 1);
 
   geom = roundTrip->lib.geometries.first;
   ASSERT(geom != NULL);
@@ -168,6 +178,7 @@ TEST_IMPL(three_mf_export_color_triangle_roundtrip) {
   AkInput        *input;
   AkInput        *colorInput;
   AkAccessor     *colorAcc;
+  AkPrintDocument *print;
   const char     *outDir  = "./assetkit_export_3mf_color_triangle_roundtrip";
   const char     *mfPath  = "./assetkit_export_3mf_color_triangle_roundtrip/model.3mf";
 
@@ -187,6 +198,12 @@ TEST_IMPL(three_mf_export_color_triangle_roundtrip) {
   ASSERT(roundTrip->materialProperties.sets->properties[0].baseColor != NULL);
   ASSERT(roundTrip->materialProperties.sets->properties[0].metallic != NULL);
   ASSERT(roundTrip->materialProperties.sets->properties[0].roughness != NULL);
+  print = ak_printDocument(roundTrip);
+  ASSERT(print != NULL);
+  ASSERT(ak_printHasFeature(print, AK_PRINT_FEATURE_CORE));
+  ASSERT(ak_printHasFeature(print, AK_PRINT_FEATURE_MATERIALS));
+  ASSERT(print->materialGroupCount == 1);
+  ASSERT(print->materialPropertyCount == 3);
 
   geom = roundTrip->lib.geometries.first;
   ASSERT(geom != NULL);
