@@ -41,13 +41,15 @@ typedef struct AK3MFBuffer {
 } AK3MFBuffer;
 
 typedef struct AK3MFExportState {
-  AkDoc       *doc;
-  AK3MFBuffer  resources;
-  AK3MFBuffer  build;
-  uint32_t     objectCount;
-  uint32_t     nextObjectId;
-  AkResult     result;
-  bool         usesMaterialExtension;
+  AkDoc           *doc;
+  AkPrintDocument *print;
+  AK3MFBuffer      resources;
+  AK3MFBuffer      build;
+  uint32_t         objectCount;
+  uint32_t         nextObjectId;
+  AkResult         result;
+  bool             usesMaterialExtension;
+  bool             usesSliceExtension;
 } AK3MFExportState;
 
 static
@@ -179,6 +181,59 @@ ak_3mf_buf_float(AK3MFBuffer * __restrict buf, float value) {
   }
 
   ak_3mf_buf_raw(buf, tmp, outLen);
+}
+
+static
+bool
+ak_3mf_path_is_root_model(const char * __restrict path) {
+  if (!path)
+    return true;
+
+  while (*path == '/' || *path == '\\')
+    path++;
+  return strcmp(path, "3D/3dmodel.model") == 0;
+}
+
+static
+const AkPrintSliceObject*
+ak_3mf_first_slice_object(const AkPrintDocument * __restrict print) {
+  return print ? print->sliceObjects : NULL;
+}
+
+static
+const AkPrintSliceObject*
+ak_3mf_find_slice_object(const AkPrintDocument * __restrict print,
+                         uint32_t                            objectId) {
+  const AkPrintSliceObject *object;
+
+  for (object = print ? print->sliceObjects : NULL; object; object = object->next) {
+    if (object->objectId == objectId)
+      return object;
+  }
+
+  return NULL;
+}
+
+static
+const AkPrintSliceObject*
+ak_3mf_slice_object_for_export(AK3MFExportState * __restrict st,
+                               uint32_t                      objectId) {
+  const AkPrintSliceObject *object;
+
+  object = ak_3mf_find_slice_object(st ? st->print : NULL, objectId);
+  if (object && ak_3mf_path_is_root_model(object->path))
+    return object;
+
+  if (st
+      && st->print
+      && st->print->sliceObjectCount == 1u
+      && st->objectCount == 0u) {
+    object = ak_3mf_first_slice_object(st->print);
+    if (object && ak_3mf_path_is_root_model(object->path))
+      return object;
+  }
+
+  return NULL;
 }
 
 static
@@ -425,6 +480,27 @@ ak_3mf_append_triangle(AK3MFBuffer * __restrict triangles,
 }
 
 static
+void
+ak_3mf_append_slice_object_attrs(AK3MFBuffer               * __restrict buf,
+                                 const AkPrintSliceObject  * __restrict object) {
+  if (!object)
+    return;
+
+  if (object->meshResolution) {
+    ak_3mf_buf_lit(buf, "\" s:meshresolution=\"");
+    ak_3mf_buf_attr(buf, object->meshResolution);
+  }
+  if (object->sliceStackId != 0u) {
+    ak_3mf_buf_lit(buf, "\" s:slicestackid=\"");
+    ak_3mf_buf_u32(buf, object->sliceStackId);
+  }
+  if (object->slicePath) {
+    ak_3mf_buf_lit(buf, "\" s:slicepath=\"/");
+    ak_3mf_buf_attr(buf, object->slicePath);
+  }
+}
+
+static
 bool
 ak_3mf_emit_triangle(AK3MFRows       * __restrict rows,
                      AK3MFRows       * __restrict colorRows,
@@ -618,6 +694,7 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
   uint32_t    triangleCount;
   uint32_t    objectId;
   uint32_t    propertyId;
+  const AkPrintSliceObject *sliceObject;
   bool        ok;
   bool        hasColorRows;
 
@@ -692,6 +769,18 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
   }
 
   objectId = st->nextObjectId++;
+  sliceObject = ak_3mf_slice_object_for_export(st, objectId);
+  if (sliceObject
+      && st->print
+      && st->print->sliceObjectCount == 1u
+      && st->objectCount == 0u
+      && sliceObject->objectId != 0u
+      && sliceObject->objectId != propertyId) {
+    objectId = sliceObject->objectId;
+    if (st->nextObjectId <= objectId)
+      st->nextObjectId = objectId + 1u;
+  }
+
   if (propertyId != 0u) {
     ak_3mf_buf_lit(&st->resources, "      <m:colorgroup id=\"");
     ak_3mf_buf_u32(&st->resources, propertyId);
@@ -703,6 +792,7 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
 
   ak_3mf_buf_lit(&st->resources, "      <object id=\"");
   ak_3mf_buf_u32(&st->resources, objectId);
+  ak_3mf_append_slice_object_attrs(&st->resources, sliceObject);
   ak_3mf_buf_lit(&st->resources, "\" type=\"model\">\n"
                                 "        <mesh>\n"
                                 "          <vertices>\n");
@@ -846,6 +936,81 @@ ak_3mf_write_library_fallback(AK3MFExportState * __restrict st) {
 }
 
 static
+void
+ak_3mf_write_slice_ref(AK3MFBuffer            * __restrict buf,
+                       const AkPrintSliceRef  * __restrict ref) {
+  if (!ref)
+    return;
+
+  ak_3mf_buf_lit(buf, "        <s:sliceref slicestackid=\"");
+  ak_3mf_buf_u32(buf, ref->stackId);
+  if (ref->path) {
+    ak_3mf_buf_lit(buf, "\" slicepath=\"/");
+    ak_3mf_buf_attr(buf, ref->path);
+  }
+  ak_3mf_buf_lit(buf, "\" ztop=\"");
+  ak_3mf_buf_float(buf, ref->zTop);
+  ak_3mf_buf_lit(buf, "\"/>\n");
+}
+
+static
+void
+ak_3mf_write_empty_slice(AK3MFBuffer         * __restrict buf,
+                         const AkPrintSlice  * __restrict slice) {
+  if (!slice)
+    return;
+
+  ak_3mf_buf_lit(buf, "        <s:slice ztop=\"");
+  ak_3mf_buf_float(buf, slice->zTop);
+  ak_3mf_buf_lit(buf, "\"/>\n");
+}
+
+static
+bool
+ak_3mf_write_slice_stacks(AK3MFExportState * __restrict st) {
+  const AkPrintSliceStack *stack;
+  const AkPrintSliceRef   *ref;
+  const AkPrintSlice      *slice;
+
+  if (!st || !st->print || !st->usesSliceExtension)
+    return true;
+
+  ref   = st->print->sliceRefs;
+  slice = st->print->slices;
+  for (stack = st->print->sliceStacks; stack; stack = stack->next) {
+    uint32_t i;
+    bool     rootStack;
+
+    rootStack = ak_3mf_path_is_root_model(stack->path);
+    if (rootStack) {
+      ak_3mf_buf_lit(&st->resources, "      <s:slicestack id=\"");
+      ak_3mf_buf_u32(&st->resources, stack->id);
+      ak_3mf_buf_lit(&st->resources, "\" zbottom=\"");
+      ak_3mf_buf_float(&st->resources, stack->zBottom);
+      ak_3mf_buf_lit(&st->resources, "\">\n");
+    }
+
+    for (i = 0u; i < stack->sliceRefCount && ref; i++, ref = ref->next) {
+      if (rootStack)
+        ak_3mf_write_slice_ref(&st->resources, ref);
+    }
+
+    for (i = 0u; i < stack->sliceCount && slice; i++, slice = slice->next) {
+      if (rootStack
+          && slice->vertexCount == 0u
+          && slice->polygonCount == 0u
+          && slice->segmentCount == 0u)
+        ak_3mf_write_empty_slice(&st->resources, slice);
+    }
+
+    if (rootStack)
+      ak_3mf_buf_lit(&st->resources, "      </s:slicestack>\n");
+  }
+
+  return st->resources.result == AK_OK;
+}
+
+static
 const char*
 ak_3mf_export_unit_name(AkDoc * __restrict doc) {
   double dist;
@@ -884,8 +1049,22 @@ ak_3mf_build_model_xml(AK3MFExportState * __restrict st,
                         "xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\"");
   if (st->usesMaterialExtension) {
     ak_3mf_buf_lit(model,
-                   " xmlns:m=\"http://schemas.microsoft.com/3dmanufacturing/material/2015/02\""
-                   " requiredextensions=\"m\"");
+                   " xmlns:m=\"http://schemas.microsoft.com/3dmanufacturing/material/2015/02\"");
+  }
+  if (st->usesSliceExtension) {
+    ak_3mf_buf_lit(model,
+                   " xmlns:s=\"http://schemas.microsoft.com/3dmanufacturing/slice/2015/07\"");
+  }
+  if (st->usesMaterialExtension || st->usesSliceExtension) {
+    ak_3mf_buf_lit(model, " requiredextensions=\"");
+    if (st->usesMaterialExtension)
+      ak_3mf_buf_lit(model, "m");
+    if (st->usesSliceExtension) {
+      if (st->usesMaterialExtension)
+        ak_3mf_buf_ch(model, ' ');
+      ak_3mf_buf_lit(model, "s");
+    }
+    ak_3mf_buf_ch(model, '"');
   }
   ak_3mf_buf_lit(model, ">\n"
                         "  <resources>\n");
@@ -1032,12 +1211,17 @@ ak_3mf_export(AkDoc * __restrict doc, const char * __restrict filepath) {
 
   memset(&st, 0, sizeof(st));
   st.doc              = doc;
+  st.print            = ak_printDocument(doc);
   st.result           = AK_OK;
   st.resources.result = AK_OK;
   st.build.result     = AK_OK;
   st.nextObjectId     = 1u;
+  st.usesSliceExtension = st.print
+                          && (st.print->sliceStackCount > 0u
+                              || st.print->sliceObjectCount > 0u);
 
-  if (!ak_3mf_write_scene(&st)
+  if (!ak_3mf_write_slice_stacks(&st)
+      || !ak_3mf_write_scene(&st)
       || !ak_3mf_write_library_fallback(&st)
       || st.resources.result != AK_OK
       || st.build.result != AK_OK
@@ -1047,7 +1231,7 @@ ak_3mf_export(AkDoc * __restrict doc, const char * __restrict filepath) {
     return AK_ERR;
   }
 
-  print          = ak_printDocument(doc);
+  print          = st.print;
   extraPartCount = ak_3mf_count_extra_parts(print);
   entryCount     = 3u + extraPartCount;
   entries        = calloc(entryCount, sizeof(*entries));

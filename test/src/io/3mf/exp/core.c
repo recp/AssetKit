@@ -732,7 +732,9 @@ TEST_IMPL(three_mf_import_production_child_model_path) {
 
 TEST_IMPL(three_mf_import_slice_child_model_path) {
   AkDoc                *doc;
+  AkDoc                *roundTrip;
   AkPrintDocument      *print;
+  AkPrintDocument      *roundTripPrint;
   AkPrintPackagePart   *part;
   AkPrintSliceStack    *stack;
   AkPrintSlice         *slice;
@@ -744,8 +746,11 @@ TEST_IMPL(three_mf_import_slice_child_model_path) {
   AkPrintSliceObject   *rootSliceObject;
   const char           *outDir = "./assetkit_import_3mf_slice_child_model";
   const char           *mfPath = "./assetkit_import_3mf_slice_child_model/model.3mf";
+  const char           *roundTripDir = "./assetkit_export_3mf_slice_child_model";
+  const char           *roundTripPath = "./assetkit_export_3mf_slice_child_model/model.3mf";
 
   ak_test_export_cleanup(outDir);
+  ak_test_export_cleanup(roundTripDir);
   ASSERT(mkdir(outDir, 0777) == 0);
   ASSERT(ak_test_write_3mf_slice_child_model(mfPath));
 
@@ -828,6 +833,23 @@ TEST_IMPL(three_mf_import_slice_child_model_path) {
   ASSERT(strcmp(rootSliceObject->meshResolution, "lowres") == 0);
   ASSERT(rootSliceObject->sliceStackId == 10u);
 
+  ASSERT(ak_export(doc, roundTripDir, AK_FILE_TYPE_3MF) == AK_OK);
+  roundTrip = NULL;
+  ASSERT(ak_load(&roundTrip, roundTripPath, AK_FILE_TYPE_3MF) == AK_OK);
+  ASSERT(roundTrip != NULL);
+  ASSERT(roundTrip->lib.geometries.count == 1);
+
+  roundTripPrint = ak_printDocument(roundTrip);
+  ASSERT(roundTripPrint != NULL);
+  ASSERT(ak_printHasFeature(roundTripPrint, AK_PRINT_FEATURE_SLICE));
+  ASSERT((roundTripPrint->requiredFeatures & AK_PRINT_FEATURE_SLICE) != 0u);
+  ASSERT((roundTripPrint->unsupportedFeatures & AK_PRINT_FEATURE_SLICE) == 0u);
+  ASSERT(roundTripPrint->sliceStackCount == 2);
+  ASSERT(roundTripPrint->sliceRefCount == 1);
+  ASSERT(roundTripPrint->sliceCount == 1);
+  ASSERT(roundTripPrint->sliceObjectCount == 1);
+
   ak_test_export_cleanup(outDir);
+  ak_test_export_cleanup(roundTripDir);
   TEST_SUCCESS
 }
