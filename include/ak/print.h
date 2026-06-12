@@ -64,6 +64,14 @@ typedef enum AkPrintPackagePartType {
   AK_PRINT_PACKAGE_PART_OTHER
 } AkPrintPackagePartType;
 
+typedef enum AkPrintProductionItemType {
+  AK_PRINT_PRODUCTION_BUILD = 1,
+  AK_PRINT_PRODUCTION_ITEM,
+  AK_PRINT_PRODUCTION_OBJECT,
+  AK_PRINT_PRODUCTION_COMPONENT,
+  AK_PRINT_PRODUCTION_ALTERNATIVE
+} AkPrintProductionItemType;
+
 typedef struct AkPrintPackagePart {
   struct AkPrintPackagePart *next;
   const char                *name;
@@ -75,9 +83,23 @@ typedef struct AkPrintPackagePart {
   uint32_t                   flags;
 } AkPrintPackagePart;
 
+typedef struct AkPrintProductionItem {
+  struct AkPrintProductionItem *next;
+  const char                   *uuid;
+  const char                   *path;
+  const char                   *partNumber;
+  const char                   *modelResolution;
+  uint32_t                      objectId;
+  uint32_t                      parentObjectId;
+  AkPrintProductionItemType     type;
+  uint32_t                      flags;
+} AkPrintProductionItem;
+
 typedef struct AkPrintDocument {
   AkPrintPackagePart  *parts;
   AkPrintPackagePart  *lastPart;
+  AkPrintProductionItem *productionItems;
+  AkPrintProductionItem *lastProductionItem;
   AkTree              *extra;
   const char          *profileName;
   const char          *printerModel;
@@ -94,6 +116,7 @@ typedef struct AkPrintDocument {
   uint32_t             materialGroupCount;
   uint32_t             materialPropertyCount;
   uint32_t             unknownExtensionCount;
+  uint32_t             productionItemCount;
 } AkPrintDocument;
 
 AK_EXPORT
@@ -143,6 +166,17 @@ ak_printAddPackagePartData(struct AkDoc           * __restrict doc,
                            const char            * __restrict relationshipType,
                            const void            * __restrict data,
                            size_t                             size);
+
+AK_EXPORT
+AkPrintProductionItem*
+ak_printAddProductionItem(struct AkDoc             * __restrict doc,
+                          AkPrintProductionItemType             type,
+                          const char              * __restrict uuid,
+                          const char              * __restrict path,
+                          const char              * __restrict partNumber,
+                          const char              * __restrict modelResolution,
+                          uint32_t                             objectId,
+                          uint32_t                             parentObjectId);
 
 #ifdef __cplusplus
 }

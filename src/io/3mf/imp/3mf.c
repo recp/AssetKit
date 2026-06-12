@@ -40,12 +40,14 @@ typedef enum AK3MFObjectKind {
 } AK3MFObjectKind;
 
 typedef struct AK3MFComponent {
+  const char *path;
   uint32_t objectId;
   float    matrix[16];
 } AK3MFComponent;
 
 typedef struct AK3MFPropertyGroup {
   AkMaterialPropertySet *set;
+  const char *path;
   uint8_t *colors;
   uint32_t id;
   uint32_t count;
@@ -54,6 +56,7 @@ typedef struct AK3MFPropertyGroup {
 
 typedef struct AK3MFObject {
   AK3MFComponent *components;
+  const char *path;
   uint32_t    id;
   AkGeometry *geom;
   const char *name;
@@ -68,8 +71,13 @@ typedef struct AK3MFImportState {
   AkPrintDocument     *print;
   AK3MFObject         *objects;
   AK3MFPropertyGroup  *properties;
+  const char          *packagePath;
+  const char          *rootModelPath;
+  const char          *currentModelPath;
   size_t               objectCount;
+  size_t               objectCapacity;
   size_t               propertyCount;
+  size_t               propertyCapacity;
 } AK3MFImportState;
 
 typedef struct AK3MFPackageImportState {
@@ -187,6 +195,70 @@ ak_3mf_xmla_lit(const xml_t * __restrict xml,
 }
 
 static
+xml_attr_t*
+ak_3mf_xmla_local_lit(const xml_t * __restrict xml,
+                      const char  * __restrict name) {
+  xml_attr_t *attr;
+  size_t      nameLen;
+
+  if (!xml || !name)
+    return NULL;
+
+  nameLen = strlen(name);
+  if ((attr = xmla_sz(xml, name, nameLen)))
+    return attr;
+
+  for (attr = xml->attr; attr; attr = attr->next) {
+    const char *attrName;
+    size_t      attrNameLen;
+    size_t      i;
+
+    if (!attr->name || attr->namesize < nameLen)
+      continue;
+
+    attrName    = attr->name;
+    attrNameLen = attr->namesize;
+    for (i = 0; i < attrNameLen; i++) {
+      if (attrName[i] == ':') {
+        attrNameLen -= i + 1u;
+        attrName += i + 1u;
+        break;
+      }
+    }
+
+    if (attrNameLen == nameLen && memcmp(attrName, name, nameLen) == 0)
+      return attr;
+  }
+
+  return NULL;
+}
+
+static
+const char*
+ak_3mf_strdup_path_attr_local_lit(AkDoc       * __restrict doc,
+                                  xml_t       * __restrict xml,
+                                  const char  * __restrict name,
+                                  void        * __restrict parent) {
+  xml_attr_t *attr;
+  AkHeap     *heap;
+  const char *src;
+  size_t      len;
+
+  if (!doc)
+    return NULL;
+
+  attr = ak_3mf_xmla_local_lit(xml, name);
+  if (!attr || !attr->val || attr->valsize == 0u)
+    return NULL;
+
+  src = attr->val;
+  len = attr->valsize;
+  src = ak_3mf_skip_root_slash(src, &len);
+  heap = ak_heap_getheap(doc);
+  return heap ? ak_heap_strndup(heap, parent, src, len) : NULL;
+}
+
+static
 bool
 ak_3mf_attr_value_eq_entry(const xml_attr_t * __restrict attr,
                            const char       * __restrict entryName) {
@@ -199,6 +271,153 @@ ak_3mf_attr_value_eq_entry(const xml_attr_t * __restrict attr,
   value    = attr->val;
   valueLen = attr->valsize;
   return ak_3mf_entry_name_eq(value, valueLen, entryName);
+}
+
+static
+bool
+ak_3mf_model_path_eq(const char * __restrict a,
+                     const char * __restrict b) {
+  size_t aLen;
+  size_t bLen;
+
+  if (a == b)
+    return true;
+  if (!a || !b)
+    return false;
+
+  aLen = strlen(a);
+  bLen = strlen(b);
+  a = ak_3mf_skip_root_slash(a, &aLen);
+  b = ak_3mf_skip_root_slash(b, &bLen);
+  return aLen == bLen && memcmp(a, b, aLen) == 0;
+}
+
+static
+char*
+ak_3mf_attr_dup_cstr(const xml_attr_t * __restrict attr) {
+  char  *out;
+  size_t len;
+
+  if (!attr || !attr->val)
+    return NULL;
+
+  len = attr->valsize;
+  out = malloc(len + 1u);
+  if (!out)
+    return NULL;
+
+  memcpy(out, attr->val, len);
+  out[len] = '\0';
+  return out;
+}
+
+static
+char*
+ak_3mf_path_slice_dup_cstr(const char * __restrict src, size_t len) {
+  char       *out;
+
+  if (!src)
+    return NULL;
+
+  src = ak_3mf_skip_root_slash(src, &len);
+  out = malloc(len + 1u);
+  if (!out)
+    return NULL;
+
+  memcpy(out, src, len);
+  out[len] = '\0';
+  return out;
+}
+
+static
+char*
+ak_3mf_path_dup_cstr(const char * __restrict path) {
+  return path ? ak_3mf_path_slice_dup_cstr(path, strlen(path)) : NULL;
+}
+
+static
+char*
+ak_3mf_attr_dup_path_cstr(const xml_attr_t * __restrict attr) {
+  if (!attr || !attr->val || attr->valsize == 0u)
+    return NULL;
+
+  return ak_3mf_path_slice_dup_cstr(attr->val, attr->valsize);
+}
+
+static
+bool
+ak_3mf_reserve_properties(AK3MFImportState * __restrict st,
+                          size_t                         extra) {
+  AK3MFPropertyGroup *properties;
+  size_t              needed;
+  size_t              newCapacity;
+
+  if (!st)
+    return false;
+  if (extra == 0u)
+    return true;
+  if (st->propertyCount > SIZE_MAX - extra)
+    return false;
+
+  needed = st->propertyCount + extra;
+  if (needed <= st->propertyCapacity)
+    return true;
+
+  newCapacity = st->propertyCapacity ? st->propertyCapacity * 2u : 8u;
+  while (newCapacity < needed) {
+    if (newCapacity > SIZE_MAX / 2u)
+      return false;
+    newCapacity *= 2u;
+  }
+
+  properties = realloc(st->properties, sizeof(*properties) * newCapacity);
+  if (!properties)
+    return false;
+
+  memset(properties + st->propertyCapacity,
+         0,
+         sizeof(*properties) * (newCapacity - st->propertyCapacity));
+  st->properties        = properties;
+  st->propertyCapacity = newCapacity;
+  return true;
+}
+
+static
+bool
+ak_3mf_reserve_objects(AK3MFImportState * __restrict st,
+                       size_t                         extra) {
+  AK3MFObject *objects;
+  size_t       needed;
+  size_t       newCapacity;
+
+  if (!st)
+    return false;
+  if (extra == 0u)
+    return true;
+  if (st->objectCount > SIZE_MAX - extra)
+    return false;
+
+  needed = st->objectCount + extra;
+  if (needed <= st->objectCapacity)
+    return true;
+
+  newCapacity = st->objectCapacity ? st->objectCapacity * 2u : 8u;
+  while (newCapacity < needed) {
+    if (newCapacity > SIZE_MAX / 2u)
+      return false;
+    newCapacity *= 2u;
+  }
+
+  objects = realloc(st->objects, sizeof(*objects) * newCapacity);
+  if (!objects)
+    return false;
+
+  memset(objects + st->objectCapacity,
+         0,
+         sizeof(*objects) * (newCapacity - st->objectCapacity));
+  st->objects        = objects;
+  st->objectCapacity = newCapacity;
+  return true;
 }
 
 static
@@ -272,7 +491,10 @@ void
 ak_3mf_mark_required_feature(AkPrintDocument    * __restrict print,
                              AkPrintFeatureFlags             feature) {
   static const AkPrintFeatureFlags semanticFeatures =
-    AK_PRINT_FEATURE_CORE | AK_PRINT_FEATURE_MATERIALS | AK_PRINT_FEATURE_PACKAGE;
+    AK_PRINT_FEATURE_CORE
+    | AK_PRINT_FEATURE_MATERIALS
+    | AK_PRINT_FEATURE_PACKAGE
+    | AK_PRINT_FEATURE_PRODUCTION;
 
   if (!print)
     return;
@@ -292,6 +514,70 @@ ak_3mf_mark_required_feature(AkPrintDocument    * __restrict print,
     ak_printSetUnsupportedFeature(print, feature & ~semanticFeatures);
     print->validationFlags |= AK_PRINT_VALIDATION_LOSSY_IMPORT;
   }
+}
+
+static
+void
+ak_3mf_add_production_item(AK3MFImportState        * __restrict st,
+                           AkPrintProductionItemType            type,
+                           xml_t                  * __restrict xml,
+                           uint32_t                            objectId,
+                           uint32_t                            parentObjectId) {
+  xml_attr_t *uuidAttr;
+  xml_attr_t *pathAttr;
+  xml_attr_t *partNumberAttr;
+  xml_attr_t *modelResolutionAttr;
+  char       *path;
+  char       *uuid;
+  char       *partNumber;
+  char       *modelResolution;
+
+  if (!st || !st->doc || !st->print || !xml)
+    return;
+
+  uuidAttr            = ak_3mf_xmla_local_lit(xml, "UUID");
+  pathAttr            = ak_3mf_xmla_local_lit(xml, "path");
+  partNumberAttr      = ak_3mf_xmla_local_lit(xml, "partnumber");
+  modelResolutionAttr = ak_3mf_xmla_local_lit(xml, "modelresolution");
+
+  if ((!uuidAttr || !uuidAttr->val)
+      && (!pathAttr || !pathAttr->val)
+      && (!partNumberAttr || !partNumberAttr->val)
+      && (!modelResolutionAttr || !modelResolutionAttr->val))
+    return;
+
+  uuid            = ak_3mf_attr_dup_cstr(uuidAttr);
+  path            = ak_3mf_attr_dup_path_cstr(pathAttr);
+  if (!path) {
+    switch (type) {
+      case AK_PRINT_PRODUCTION_ITEM:
+        path = ak_3mf_path_dup_cstr(st->rootModelPath);
+        break;
+      case AK_PRINT_PRODUCTION_OBJECT:
+      case AK_PRINT_PRODUCTION_COMPONENT:
+        path = ak_3mf_path_dup_cstr(st->currentModelPath);
+        break;
+      default:
+        break;
+    }
+  }
+  partNumber      = ak_3mf_attr_dup_cstr(partNumberAttr);
+  modelResolution = ak_3mf_attr_dup_cstr(modelResolutionAttr);
+  if (!uuid && !path && !partNumber && !modelResolution)
+    return;
+
+  (void)ak_printAddProductionItem(st->doc,
+                                  type,
+                                  uuid,
+                                  path,
+                                  partNumber,
+                                  modelResolution,
+                                  objectId,
+                                  parentObjectId);
+  free(uuid);
+  free(path);
+  free(partNumber);
+  free(modelResolution);
 }
 
 static
@@ -997,14 +1283,17 @@ ak_3mf_count_property_groups(xml_t * __restrict resourcesXml) {
 
 static
 AK3MFPropertyGroup*
-ak_3mf_find_property_group(AK3MFImportState * __restrict st, uint32_t id) {
+ak_3mf_find_property_group(AK3MFImportState * __restrict st,
+                           const char       * __restrict path,
+                           uint32_t                      id) {
   size_t i;
 
   if (!st)
     return NULL;
 
   for (i = 0; i < st->propertyCount; i++) {
-    if (st->properties[i].id == id)
+    if (st->properties[i].id == id
+        && ak_3mf_model_path_eq(st->properties[i].path, path))
       return &st->properties[i];
   }
 
@@ -1014,13 +1303,14 @@ ak_3mf_find_property_group(AK3MFImportState * __restrict st, uint32_t id) {
 static
 bool
 ak_3mf_property_color(AK3MFImportState * __restrict st,
+                      const char       * __restrict path,
                       uint32_t                      id,
                       uint32_t                      index,
                       uint8_t                       rgba[4],
                       bool               * __restrict hasAlpha) {
   AK3MFPropertyGroup *group;
 
-  group = ak_3mf_find_property_group(st, id);
+  group = ak_3mf_find_property_group(st, path, id);
   if (!group || index >= group->count)
     return false;
 
@@ -1035,12 +1325,15 @@ size_t
 ak_3mf_parse_property_groups(AK3MFImportState * __restrict st,
                              xml_t            * __restrict resourcesXml) {
   xml_t  *xml;
-  size_t  cursor;
+  size_t  added;
 
-  if (!st || !resourcesXml || !st->properties)
+  if (!st || !resourcesXml)
     return 0;
 
-  cursor = 0;
+  if (!ak_3mf_reserve_properties(st, ak_3mf_count_property_groups(resourcesXml)))
+    return 0;
+
+  added = 0;
   for (xml = resourcesXml->val; xml; xml = xml->next) {
     AK3MFPropertyGroup *group;
     AkMaterialPropertySet *set;
@@ -1064,8 +1357,9 @@ ak_3mf_parse_property_groups(AK3MFImportState * __restrict st,
     if (colorCount == 0 || colorCount > UINT32_MAX)
       continue;
 
-    group         = &st->properties[cursor];
-    group->id     = xmla_u32(AK_3MF_XMLA(xml, id), (uint32_t)(cursor + 1u));
+    group         = &st->properties[st->propertyCount];
+    group->path   = st->currentModelPath;
+    group->id     = xmla_u32(AK_3MF_XMLA(xml, id), (uint32_t)(st->propertyCount + 1u));
     group->count  = (uint32_t)colorCount;
     group->colors = calloc(colorCount, 4u);
     if (!group->colors)
@@ -1143,10 +1437,11 @@ ak_3mf_parse_property_groups(AK3MFImportState * __restrict st,
       }
       i++;
     }
-    cursor++;
+    st->propertyCount++;
+    added++;
   }
 
-  return cursor;
+  return added;
 }
 
 static
@@ -1227,7 +1522,7 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
     p1  = xmla_u32(AK_3MF_XMLA(triangleXml, p1), defaultPIndex);
     if (pid != 0u
         && p1 != UINT32_MAX
-        && ak_3mf_find_property_group(st, pid)) {
+        && ak_3mf_find_property_group(st, st->currentModelPath, pid)) {
       hasColor = true;
       break;
     }
@@ -1235,7 +1530,7 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
   if (!hasColor
       && defaultPid != 0u
       && defaultPIndex != UINT32_MAX
-      && ak_3mf_find_property_group(st, defaultPid))
+      && ak_3mf_find_property_group(st, st->currentModelPath, defaultPid))
     hasColor = true;
 
   heap = ak_heap_getheap(doc);
@@ -1351,7 +1646,7 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
                sizeof(float) * 3u);
 
         if (pid != 0u && p[j] != UINT32_MAX)
-          (void)ak_3mf_property_color(st, pid, p[j], rgba, &hasAlpha);
+          (void)ak_3mf_property_color(st, st->currentModelPath, pid, p[j], rgba, &hasAlpha);
         memcpy(colors + i * 4u, rgba, 4u);
         i++;
       }
@@ -1422,11 +1717,12 @@ static
 AK3MFObject*
 ak_3mf_find_object(AK3MFObject * __restrict objects,
                    size_t                   objectCount,
+                   const char              *path,
                    uint32_t                 id) {
   size_t i;
 
   for (i = 0; i < objectCount; i++) {
-    if (objects[i].id == id)
+    if (objects[i].id == id && ak_3mf_model_path_eq(objects[i].path, path))
       return &objects[i];
   }
 
@@ -1474,6 +1770,15 @@ ak_3mf_parse_components(AK3MFImportState * __restrict st,
 
     component           = &object->components[i++];
     component->objectId = xmla_u32(AK_3MF_XMLA(componentXml, objectid), 0u);
+    component->path     = ak_3mf_strdup_path_attr_local_lit(st->doc,
+                                                            componentXml,
+                                                            "path",
+                                                            object->components);
+    ak_3mf_add_production_item(st,
+                               AK_PRINT_PRODUCTION_COMPONENT,
+                               componentXml,
+                               component->objectId,
+                               object->id);
     if (!ak_3mf_parse_transform_attr(AK_3MF_XMLA(componentXml, transform),
                                      component->matrix))
       return false;
@@ -1487,12 +1792,15 @@ size_t
 ak_3mf_parse_resources(AK3MFImportState * __restrict st,
                        xml_t            * __restrict resourcesXml) {
   xml_t  *objXml;
-  size_t  count;
+  size_t  startCount;
 
-  count = 0;
   if (!st || !resourcesXml)
     return 0;
 
+  if (!ak_3mf_reserve_objects(st, ak_3mf_count_resource_objects(resourcesXml)))
+    return 0;
+
+  startCount = st->objectCount;
   for (objXml = resourcesXml->val; objXml; objXml = objXml->next) {
     AK3MFObject *object;
     xml_t      *meshXml;
@@ -1505,16 +1813,22 @@ ak_3mf_parse_resources(AK3MFImportState * __restrict st,
     if (!meshXml && !componentsXml)
       continue;
 
-    if (count >= st->objectCount)
+    if (st->objectCount >= st->objectCapacity)
       break;
 
-    object         = &st->objects[count];
-    object->id     = xmla_u32(AK_3MF_XMLA(objXml, id), (uint32_t)(count + 1u));
+    object         = &st->objects[st->objectCount];
+    object->path   = st->currentModelPath;
+    object->id     = xmla_u32(AK_3MF_XMLA(objXml, id), (uint32_t)(st->objectCount + 1u));
     object->pid    = xmla_u32(AK_3MF_XMLA(objXml, pid), 0u);
     object->pindex = xmla_u32(AK_3MF_XMLA(objXml, pindex), UINT32_MAX);
     object->name   = xmla_strdup(AK_3MF_XMLA(objXml, name),
                                   ak_heap_getheap(st->doc),
                                   st->doc);
+    ak_3mf_add_production_item(st,
+                               AK_PRINT_PRODUCTION_OBJECT,
+                               objXml,
+                               object->id,
+                               0u);
 
     if (meshXml) {
       object->geom = ak_3mf_parse_mesh(st, objXml, meshXml);
@@ -1523,15 +1837,118 @@ ak_3mf_parse_resources(AK3MFImportState * __restrict st,
       object->kind = AK_3MF_OBJECT_MESH;
       if (st->print)
         st->print->meshObjectCount++;
-      count++;
+      st->objectCount++;
     } else if (componentsXml && ak_3mf_parse_components(st, object, componentsXml)) {
       if (st->print)
         st->print->componentObjectCount++;
-      count++;
+      st->objectCount++;
     }
   }
 
-  return count;
+  return st->objectCount - startCount;
+}
+
+static
+bool
+ak_3mf_model_part_loaded(AK3MFImportState * __restrict st,
+                         const char       * __restrict modelPath) {
+  size_t i;
+
+  if (!st || !modelPath)
+    return false;
+
+  for (i = 0; i < st->objectCount; i++) {
+    if (ak_3mf_model_path_eq(st->objects[i].path, modelPath))
+      return true;
+  }
+  for (i = 0; i < st->propertyCount; i++) {
+    if (ak_3mf_model_path_eq(st->properties[i].path, modelPath))
+      return true;
+  }
+
+  return false;
+}
+
+static
+const char*
+ak_3mf_heap_strdup_model_path(AkDoc       * __restrict doc,
+                              const char  * __restrict modelPath) {
+  AkHeap     *heap;
+  const char *src;
+  size_t      len;
+
+  if (!doc || !modelPath)
+    return NULL;
+
+  heap = ak_heap_getheap(doc);
+  if (!heap)
+    return NULL;
+
+  src = modelPath;
+  len = strlen(modelPath);
+  src = ak_3mf_skip_root_slash(src, &len);
+  return ak_heap_strndup(heap, doc, src, len);
+}
+
+static
+bool
+ak_3mf_load_model_part(AK3MFImportState * __restrict st,
+                       const char       * __restrict modelPath) {
+  void        *modelData;
+  size_t       modelSize;
+  xml_doc_t   *xdoc;
+  xml_t       *root;
+  xml_t       *resourcesXml;
+  const char  *savedModelPath;
+  const char  *storedModelPath;
+  size_t       added;
+  AkResult     result;
+
+  if (!st || !st->packagePath || !modelPath)
+    return false;
+  if (ak_3mf_model_path_eq(modelPath, st->currentModelPath)
+      || ak_3mf_model_part_loaded(st, modelPath))
+    return true;
+
+  modelData = NULL;
+  modelSize = 0u;
+  xdoc      = NULL;
+  result    = ak_zip_extract_file(st->packagePath, modelPath, &modelData, &modelSize);
+  if (result != AK_OK)
+    return false;
+
+  xdoc = xml_parse(modelData, XML_PREFIXES | XML_READONLY);
+  if (!xdoc || !xdoc->root || !ak_3mf_tag(xdoc->root, "model")) {
+    if (xdoc)
+      xml_free(xdoc);
+    free(modelData);
+    return false;
+  }
+
+  storedModelPath = ak_3mf_heap_strdup_model_path(st->doc, modelPath);
+  if (!storedModelPath) {
+    xml_free(xdoc);
+    free(modelData);
+    return false;
+  }
+
+  savedModelPath       = st->currentModelPath;
+  st->currentModelPath = storedModelPath;
+  root                 = xdoc->root;
+  resourcesXml         = xml_elem(root, "resources");
+
+  if (st->print)
+    ak_3mf_mark_model_extensions(st->print, root);
+
+  (void)ak_3mf_parse_property_groups(st, resourcesXml);
+  added = ak_3mf_parse_resources(st, resourcesXml);
+  if (st->print)
+    st->print->objectCount = (uint32_t)st->objectCount;
+
+  st->currentModelPath = savedModelPath;
+  xml_free(xdoc);
+  free(modelData);
+  return added > 0u;
 }
 
 static
@@ -1636,11 +2053,21 @@ ak_3mf_attach_object_node(AK3MFImportState * __restrict st,
   for (i = 0; i < object->componentCount; i++) {
     AK3MFComponent *component;
     AK3MFObject    *child;
+    const char     *childPath;
 
     component = &object->components[i];
+    childPath = component->path ? component->path : object->path;
     child     = ak_3mf_find_object(st->objects,
                                    st->objectCount,
+                                   childPath,
                                    component->objectId);
+    if (!child && component->path) {
+      (void)ak_3mf_load_model_part(st, component->path);
+      child = ak_3mf_find_object(st->objects,
+                                 st->objectCount,
+                                 childPath,
+                                 component->objectId);
+    }
     if (!child)
       continue;
 
@@ -1668,8 +2095,15 @@ ak_3mf_attach_build_items(AK3MFImportState * __restrict st,
   if (!st || !buildXml)
     return false;
 
+  ak_3mf_add_production_item(st,
+                             AK_PRINT_PRODUCTION_BUILD,
+                             buildXml,
+                             0u,
+                             0u);
+
   for (itemXml = buildXml->val; itemXml; itemXml = itemXml->next) {
     AK3MFObject *object;
+    const char  *path;
     uint32_t     objectId;
     float        matrix[16];
     char         name[48];
@@ -1677,10 +2111,25 @@ ak_3mf_attach_build_items(AK3MFImportState * __restrict st,
     if (!ak_3mf_tag(itemXml, "item"))
       continue;
 
+    path = ak_3mf_strdup_path_attr_local_lit(st->doc,
+                                             itemXml,
+                                             "path",
+                                             st->doc);
     objectId = xmla_u32(AK_3MF_XMLA(itemXml, objectid), 0u);
-    object   = ak_3mf_find_object(st->objects, st->objectCount, objectId);
+    if (path && !ak_3mf_load_model_part(st, path))
+      continue;
+
+    object = ak_3mf_find_object(st->objects,
+                                st->objectCount,
+                                path ? path : st->rootModelPath,
+                                objectId);
     if (!object)
       continue;
+    ak_3mf_add_production_item(st,
+                               AK_PRINT_PRODUCTION_ITEM,
+                               itemXml,
+                               objectId,
+                               0u);
 
     snprintf(name, sizeof(name), "3MF Object %u", objectId);
     if (!ak_3mf_parse_transform_attr(AK_3MF_XMLA(itemXml, transform), matrix))
@@ -1740,7 +2189,6 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
   AkDoc       *doc;
   AkScene     *scene;
   AK3MFImportState st;
-  size_t       propertyCapacity;
   AkResult     result;
   size_t       i;
 
@@ -1799,6 +2247,9 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
     goto cleanup;
   }
   st.doc = doc;
+  st.packagePath      = filepath;
+  st.rootModelPath    = modelPath;
+  st.currentModelPath = modelPath;
   st.print = ak_printDocumentEnsure(doc);
   if (st.print) {
     st.print->features |= AK_PRINT_FEATURE_CORE;
@@ -1827,30 +2278,14 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
 
   resourcesXml   = xml_elem(root, "resources");
   buildXml       = xml_elem(root, "build");
-  propertyCapacity = ak_3mf_count_property_groups(resourcesXml);
-  if (propertyCapacity > 0) {
-    st.properties = calloc(propertyCapacity, sizeof(*st.properties));
-    if (!st.properties) {
-      result = AK_ERR;
-      goto cleanup;
-    }
-    st.propertyCount = ak_3mf_parse_property_groups(&st, resourcesXml);
-  }
-
-  st.objectCount = ak_3mf_count_resource_objects(resourcesXml);
-  if (st.objectCount > 0) {
-    st.objects = calloc(st.objectCount, sizeof(*st.objects));
-    if (!st.objects) {
-      result = AK_ERR;
-      goto cleanup;
-    }
-  }
-
-  st.objectCount = ak_3mf_parse_resources(&st, resourcesXml);
+  (void)ak_3mf_parse_property_groups(&st, resourcesXml);
+  (void)ak_3mf_parse_resources(&st, resourcesXml);
   if (st.print)
     st.print->objectCount = (uint32_t)st.objectCount;
-  if (st.objectCount > 0
-      && !ak_3mf_attach_build_items(&st, scene, buildXml)) {
+  if (buildXml && ak_3mf_attach_build_items(&st, scene, buildXml)) {
+    if (st.print)
+      st.print->objectCount = (uint32_t)st.objectCount;
+  } else if (st.objectCount > 0) {
     if (!ak_3mf_attach_resource_fallback(&st, scene)) {
       result = AK_ERR;
       goto cleanup;

@@ -174,3 +174,53 @@ ak_printAddPackagePartData(AkDoc                  * __restrict doc,
 
   return part;
 }
+
+AK_EXPORT
+AkPrintProductionItem*
+ak_printAddProductionItem(AkDoc                  * __restrict doc,
+                          AkPrintProductionItemType           type,
+                          const char            * __restrict uuid,
+                          const char            * __restrict path,
+                          const char            * __restrict partNumber,
+                          const char            * __restrict modelResolution,
+                          uint32_t                           objectId,
+                          uint32_t                           parentObjectId) {
+  AkPrintDocument       *print;
+  AkPrintProductionItem *item;
+  AkHeap                *heap;
+
+  print = ak_printDocumentEnsure(doc);
+  if (!print)
+    return NULL;
+
+  heap = ak_heap_getheap(print);
+  if (!heap)
+    return NULL;
+
+  item = ak_heap_calloc(heap, print, sizeof(*item));
+  if (!item)
+    return NULL;
+
+  item->type           = type;
+  item->objectId       = objectId;
+  item->parentObjectId = parentObjectId;
+  if (uuid)
+    item->uuid = ak_heap_strdup(heap, item, uuid);
+  if (path)
+    item->path = ak_heap_strdup(heap, item, path);
+  if (partNumber)
+    item->partNumber = ak_heap_strdup(heap, item, partNumber);
+  if (modelResolution)
+    item->modelResolution = ak_heap_strdup(heap, item, modelResolution);
+
+  if (print->lastProductionItem)
+    print->lastProductionItem->next = item;
+  else
+    print->productionItems = item;
+
+  print->lastProductionItem = item;
+  print->productionItemCount++;
+  print->features |= AK_PRINT_FEATURE_PRODUCTION;
+
+  return item;
+}
