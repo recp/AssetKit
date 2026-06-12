@@ -21,6 +21,10 @@
 
 #include <limits.h>
 
+#if defined(__APPLE__)
+#  include <sys/clonefile.h>
+#endif
+
 #ifdef _MSC_VER
 #  ifndef PATH_MAX
 #    define PATH_MAX 260
@@ -74,6 +78,22 @@ ak_path_isfile(const char *path) {
       return 0;
 
   return 1;
+}
+
+AK_EXPORT
+bool
+ak_clonefile(const char * __restrict src,
+             const char * __restrict dst) {
+  if (!src || !dst)
+    return false;
+
+#if defined(__APPLE__)
+  return clonefile(src, dst, 0) == 0;
+#else
+  (void)src;
+  (void)dst;
+  return false;
+#endif
 }
 
 AK_EXPORT
