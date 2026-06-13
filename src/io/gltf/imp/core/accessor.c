@@ -174,10 +174,8 @@ gltf_accessors(json_t * __restrict json,
     }
     
     if ((it = accProps.componentType)) {
-      int componentType;
-      componentType      = json_int32(it, -1);
-      acc->componentType = gltf_componentType(componentType);
-      componentLen       = gltf_componentLen(componentType);
+      acc->componentType = gltf_componentTypeInfo(json_int32(it, -1),
+                                                  &componentLen);
     }
     
     if ((it = accProps.normalized)) {

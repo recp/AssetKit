@@ -19,9 +19,6 @@
 
 #include "../../../xml.h"
 
-AK_HIDE AkEnum
-dae_semantic(const char * name);
-
 AK_HIDE const char*
 dae_semanticRaw(const xml_attr_t * __restrict xatt,
                 AkHeap          * __restrict heap,

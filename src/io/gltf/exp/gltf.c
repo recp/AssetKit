@@ -42,6 +42,13 @@
 
 #define GLTF_EXP_FILE_BUFFER_SIZE (1024u * 1024u)
 
+enum {
+  GLTF_GLB_MAGIC = 0x46546c67u,
+  GLTF_GLB_JSON  = 0x4e4f534au,
+  GLTF_GLB_BIN   = 0x004e4942u,
+  GLTF_GLB_VER   = 2u
+};
+
 static
 void
 gltf_configure_file_buffer(FILE * __restrict file) {
@@ -867,17 +874,6 @@ gltf_align4_checked(size_t len, size_t * __restrict aligned) {
   return true;
 }
 
-static
-bool
-gltf_write_u32le(FILE * __restrict file, uint32_t val) {
-  unsigned char bytes[4];
-
-  io_store_u32le(bytes, val);
-
-  return fwrite(bytes, 1, sizeof(bytes), file) == sizeof(bytes);
-}
-
-static
 bool
 gltf_write_padding(FILE * __restrict file, unsigned char pad, size_t count) {
   unsigned char bytes[4] = {0, 0, 0, 0};
@@ -897,14 +893,9 @@ static
 AkResult
 gltf_write_glb(GLTFExpState * __restrict st,
                const char   * __restrict filepath) {
-  enum {
-    GLTF_GLB_MAGIC = 0x46546c67u,
-    GLTF_GLB_JSON  = 0x4e4f534au,
-    GLTF_GLB_BIN   = 0x004e4942u,
-    GLTF_GLB_VER   = 2u
-  };
   GLTFExpWriter w;
   FILE         *file;
+  unsigned char header[20];
   size_t        jsonLen;
   size_t        jsonAligned;
   size_t        jsonPadLen;
@@ -963,17 +954,22 @@ gltf_write_glb(GLTFExpState * __restrict st,
   }
   gltf_configure_file_buffer(file);
 
-  ok = gltf_write_u32le(file, GLTF_GLB_MAGIC)
-       && gltf_write_u32le(file, GLTF_GLB_VER)
-       && gltf_write_u32le(file, (uint32_t)totalLen)
-       && gltf_write_u32le(file, (uint32_t)jsonAligned)
-       && gltf_write_u32le(file, GLTF_GLB_JSON)
+  io_store_u32le(header + 0, GLTF_GLB_MAGIC);
+  io_store_u32le(header + 4, GLTF_GLB_VER);
+  io_store_u32le(header + 8, (uint32_t)totalLen);
+  io_store_u32le(header + 12, (uint32_t)jsonAligned);
+  io_store_u32le(header + 16, GLTF_GLB_JSON);
+
+  ok = fwrite(header, 1, sizeof(header), file) == sizeof(header)
        && fwrite(w.mem, 1, jsonLen, file) == jsonLen
        && gltf_write_padding(file, 0x20u, jsonPadLen);
 
   if (ok && binLen > 0) {
-    ok = gltf_write_u32le(file, (uint32_t)binAligned)
-         && gltf_write_u32le(file, GLTF_GLB_BIN)
+    unsigned char binHeader[8];
+
+    io_store_u32le(binHeader + 0, (uint32_t)binAligned);
+    io_store_u32le(binHeader + 4, GLTF_GLB_BIN);
+    ok = fwrite(binHeader, 1, sizeof(binHeader), file) == sizeof(binHeader)
          && gltf_write_bin_payload(st, file)
          && gltf_write_padding(file, 0u, binPadLen);
   }

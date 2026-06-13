@@ -18,13 +18,10 @@
 #include "../../../../string_fast.h"
 
 AK_HIDE AkEnum
-gltf_enumInputSemantic(const char * name) {
-  size_t len;
-
+gltf_enumInputSemantic(const char * name, size_t len) {
   if (!name)
     return AK_INPUT_OTHER;
 
-  len = strlen(name);
   switch (len) {
     case _s_gltf_COLOR_len:
       if (ak_str_eq_packed_fast(name,
@@ -92,29 +89,47 @@ gltf_enumInputSemantic(const char * name) {
 
 AK_HIDE AkEnum
 gltf_componentType(int type) {
-  switch (type) {
-    case 5120:  return AKT_BYTE;   break;
-    case 5121:  return AKT_UBYTE;  break;
-    case 5122:  return AKT_SHORT;  break;
-    case 5123:  return AKT_USHORT; break;
-    case 5125:  return AKT_UINT;   break;
-    case 5126:  return AKT_FLOAT;  break;
-    default: break;
-  }
-  return AKT_NONE;
+  return gltf_componentTypeInfo(type, NULL);
 }
 
-AK_HIDE int
-gltf_componentLen(int type) {
+AK_HIDE AkEnum
+gltf_componentTypeInfo(int type, int * __restrict componentLen) {
+  AkEnum outType;
+  int    len;
+
+  outType = AKT_NONE;
+  len     = 1;
+
   switch (type) {
-    case 5120:            /* AKT_BYTE   */
-    case 5121:  return 1; /* AKT_UBYTE  */
-    case 5122:            /* AKT_SHORT  */
-    case 5123:  return 2; /* AKT_USHORT */
-    case 5125:            /* AKT_UINT   */
-    case 5126:  return 4; /* AKT_FLOAT  */
-    default: return 1;
+    case 5120:
+      outType = AKT_BYTE;
+      break;
+    case 5121:
+      outType = AKT_UBYTE;
+      break;
+    case 5122:
+      outType = AKT_SHORT;
+      len     = 2;
+      break;
+    case 5123:
+      outType = AKT_USHORT;
+      len     = 2;
+      break;
+    case 5125:
+      outType = AKT_UINT;
+      len     = 4;
+      break;
+    case 5126:
+      outType = AKT_FLOAT;
+      len     = 4;
+      break;
+    default:   break;
   }
+
+  if (componentLen)
+    *componentLen = len;
+
+  return outType;
 }
 
 AK_HIDE AkComponentSize

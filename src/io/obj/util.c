@@ -216,13 +216,8 @@ wobj_acc(WOState         * __restrict wst,
          AkTypeId                     type) {
   AkHeap     *heap;
   AkBuffer   *buff;
-  AkAccessor *acc;
-  AkTypeDesc *typeDesc;
-  int         nComponents;
 
-  heap        = wst->heap;
-  typeDesc    = ak_typeDesc(type);
-  nComponents = (int)compSize;
+  heap         = wst->heap;
 
   buff         = ak_heap_calloc(heap, wst->doc, sizeof(*buff));
   buff->data   = ak_heap_alloc(heap, buff, dctx->usedsize);
@@ -230,20 +225,8 @@ wobj_acc(WOState         * __restrict wst,
   ak_data_join(dctx, buff->data, 0, 0);
   
   AK_LIB_PREPEND(wst->doc->lib.buffers, buff, next);
-  
-  acc                    = ak_heap_calloc(heap, wst->doc, sizeof(*acc));
-  acc->buffer            = buff;
-  acc->byteLength        = buff->length;
-  acc->byteStride        = typeDesc->size * nComponents;
-  acc->componentSize     = compSize;
-  acc->componentType          = type;
-  acc->originalComponentType  = type;
-  acc->bytesPerComponent      = typeDesc->size;
-  acc->componentCount         = nComponents;
-  acc->fillByteSize           = typeDesc->size * nComponents;
-  acc->count                  = (uint32_t)dctx->itemcount;
 
-  return acc;
+  return io_acc(heap, wst->doc, compSize, type, (uint32_t)dctx->itemcount, buff);
 }
 
 AK_HIDE
@@ -256,16 +239,7 @@ wobj_input(WOState         * __restrict wst,
            uint32_t                     offset) {
   AkInput *inp;
 
-  inp              = ak_heap_calloc(wst->heap, prim, sizeof(*inp));
-  inp->accessor    = acc;
-  inp->semantic    = sem;
-  inp->semanticRaw = ak_heap_strdup(wst->heap, inp, semRaw);
-  inp->indexOffset = offset;
-
-  inp->next   = prim->input;
-  prim->input = inp;
-  prim->inputCount++;
-  
+  inp = io_input(wst->heap, prim, acc, sem, semRaw, offset);
   ak_retain(acc);
 
   return inp;
@@ -298,17 +272,7 @@ wobj_flatInput(WOState         * __restrict wst,
 
   AK_LIB_PREPEND(doc->lib.buffers, buff, next);
 
-  acc                    = ak_heap_calloc(heap, doc, sizeof(*acc));
-  acc->buffer            = buff;
-  acc->byteLength        = buff->length;
-  acc->byteStride        = typeDesc->size * nComponents;
-  acc->componentSize     = compSize;
-  acc->componentType          = type;
-  acc->originalComponentType  = type;
-  acc->bytesPerComponent      = typeDesc->size;
-  acc->componentCount         = nComponents;
-  acc->fillByteSize           = typeDesc->size * nComponents;
-  acc->count                  = count;
+  acc = io_acc(heap, doc, compSize, type, count, buff);
   AK_LIB_PREPEND(doc->lib.accessors, acc, next);
 
   return wobj_input(wst, prim, acc, sem, semRaw, 0);

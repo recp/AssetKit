@@ -287,7 +287,7 @@ gltf_inputSemantic(AkHeap * __restrict heap,
       inp->semantic    = sem;
     } else {
       inp->semanticRaw = ak_heap_strndup(heap, inp, jattrib->key, rawLen);
-      inp->semantic    = gltf_enumInputSemantic(inp->semanticRaw);
+      inp->semantic    = gltf_enumInputSemantic(inp->semanticRaw, rawLen);
     }
 
     inp->set = gltf_attrSemanticSet(semanticSep + 1,
@@ -304,7 +304,8 @@ gltf_inputSemantic(AkHeap * __restrict heap,
                                          inp,
                                          jattrib->key,
                                          jattrib->keysize);
-      inp->semantic    = gltf_enumInputSemantic(inp->semanticRaw);
+      inp->semantic    = gltf_enumInputSemantic(inp->semanticRaw,
+                                                jattrib->keysize);
     }
   }
 }

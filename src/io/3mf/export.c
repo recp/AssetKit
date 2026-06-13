@@ -595,9 +595,14 @@ ak_3mf_vertex_color(AK3MFRows       * __restrict rows,
 static
 void
 ak_3mf_append_vertex(AK3MFBuffer * __restrict vertices,
-                     vec3                     pos,
+                     float                    x,
+                     float                    y,
+                     float                    z,
                      bool                     displacement) {
   const char *prefix;
+  char        tmp[192];
+  char       *p;
+  size_t      outLen;
   size_t      prefixLen;
 
   if (displacement) {
@@ -608,13 +613,41 @@ ak_3mf_append_vertex(AK3MFBuffer * __restrict vertices,
     prefixLen = sizeof("          <vertex x=\"") - 1u;
   }
 
-  ak_3mf_buf_raw(vertices, prefix, prefixLen);
-  ak_3mf_buf_float(vertices, pos[0]);
-  AK_3MF_BUF_LIT(vertices, "\" y=\"");
-  ak_3mf_buf_float(vertices, pos[1]);
-  AK_3MF_BUF_LIT(vertices, "\" z=\"");
-  ak_3mf_buf_float(vertices, pos[2]);
-  AK_3MF_BUF_LIT(vertices, "\"/>\n");
+  p = tmp;
+  memcpy(p, prefix, prefixLen);
+  p += prefixLen;
+  if (!ak_io_text_format_float6(p,
+                                 sizeof(tmp) - (size_t)(p - tmp),
+                                 x,
+                                 &outLen)) {
+    vertices->result = AK_ERR;
+    return;
+  }
+  p += outLen;
+  memcpy(p, "\" y=\"", sizeof("\" y=\"") - 1u);
+  p += sizeof("\" y=\"") - 1u;
+  if (!ak_io_text_format_float6(p,
+                                 sizeof(tmp) - (size_t)(p - tmp),
+                                 y,
+                                 &outLen)) {
+    vertices->result = AK_ERR;
+    return;
+  }
+  p += outLen;
+  memcpy(p, "\" z=\"", sizeof("\" z=\"") - 1u);
+  p += sizeof("\" z=\"") - 1u;
+  if (!ak_io_text_format_float6(p,
+                                 sizeof(tmp) - (size_t)(p - tmp),
+                                 z,
+                                 &outLen)) {
+    vertices->result = AK_ERR;
+    return;
+  }
+  p += outLen;
+  memcpy(p, "\"/>\n", sizeof("\"/>\n") - 1u);
+  p += sizeof("\"/>\n") - 1u;
+
+  ak_3mf_buf_raw(vertices, tmp, (size_t)(p - tmp));
 }
 
 static
@@ -681,6 +714,8 @@ ak_3mf_append_triangle(AK3MFBuffer * __restrict triangles,
                        bool                     displacementMesh,
                        const AkPrintDisplacementTriangle * __restrict displacement) {
   const char *prefix;
+  char        tmp[128];
+  char       *p;
   size_t      prefixLen;
 
   if (displacementMesh) {
@@ -689,6 +724,23 @@ ak_3mf_append_triangle(AK3MFBuffer * __restrict triangles,
   } else {
     prefix    = "          <triangle v1=\"";
     prefixLen = sizeof("          <triangle v1=\"") - 1u;
+  }
+
+  if (propertyId == 0u && !displacement) {
+    p = tmp;
+    memcpy(p, prefix, prefixLen);
+    p += prefixLen;
+    p = ak_io_text_format_uint64(p, i0);
+    memcpy(p, "\" v2=\"", sizeof("\" v2=\"") - 1u);
+    p += sizeof("\" v2=\"") - 1u;
+    p = ak_io_text_format_uint64(p, i1);
+    memcpy(p, "\" v3=\"", sizeof("\" v3=\"") - 1u);
+    p += sizeof("\" v3=\"") - 1u;
+    p = ak_io_text_format_uint64(p, i2);
+    memcpy(p, "\"/>\n", sizeof("\"/>\n") - 1u);
+    p += sizeof("\"/>\n") - 1u;
+    ak_3mf_buf_raw(triangles, tmp, (size_t)(p - tmp));
+    return;
   }
 
   ak_3mf_buf_raw(triangles, prefix, prefixLen);
@@ -990,9 +1042,9 @@ ak_3mf_emit_triangle(AK3MFRows       * __restrict rows,
   ak_3mf_vertex_position(rows, prim, posInput, i1, b);
   ak_3mf_vertex_position(rows, prim, posInput, i2, c);
 
-  ak_3mf_append_vertex(vertices, a, displacementMesh);
-  ak_3mf_append_vertex(vertices, b, displacementMesh);
-  ak_3mf_append_vertex(vertices, c, displacementMesh);
+  ak_3mf_append_vertex(vertices, a[0], a[1], a[2], displacementMesh);
+  ak_3mf_append_vertex(vertices, b[0], b[1], b[2], displacementMesh);
+  ak_3mf_append_vertex(vertices, c[0], c[1], c[2], displacementMesh);
   if (propertyId != 0u) {
     ak_3mf_vertex_color(colorRows, prim, colorInput, i0, rgba);
     ak_3mf_append_color(colors, rgba);
@@ -1011,6 +1063,64 @@ ak_3mf_emit_triangle(AK3MFRows       * __restrict rows,
 
   *vertexCount += 3u;
   (*triangleCount)++;
+  return vertices->result == AK_OK && triangles->result == AK_OK;
+}
+
+static
+bool
+ak_3mf_emit_indexed_position_primitive(AK3MFRows       * __restrict rows,
+                                       AkMeshPrimitive * __restrict prim,
+                                       AkInput         * __restrict posInput,
+                                       AK3MFBuffer     * __restrict vertices,
+                                       AK3MFBuffer     * __restrict triangles,
+                                       uint32_t        * __restrict vertexCount,
+                                       uint32_t        * __restrict triangleCount) {
+  IOTriangleIter iter;
+  uint32_t       vi;
+  uint32_t       tri[3];
+
+  if (posInput->accessor->count > UINT32_MAX)
+    return false;
+
+  for (vi = 0u; vi < posInput->accessor->count; vi++) {
+    const float *row;
+
+    row = ak_3mf_rows_get(rows, vi);
+    ak_3mf_append_vertex(vertices,
+                         ak_3mf_row_component(row, rows->componentCount, 0u, 0.0f),
+                         ak_3mf_row_component(row, rows->componentCount, 1u, 0.0f),
+                         ak_3mf_row_component(row, rows->componentCount, 2u, 0.0f),
+                         false);
+  }
+
+  *vertexCount = posInput->accessor->count;
+  if (!io_triangle_iter_init(&iter, prim))
+    return true;
+
+  while (io_triangle_iter_next(&iter, tri)) {
+    AkUInt i0;
+    AkUInt i1;
+    AkUInt i2;
+
+    i0 = io_primitive_input_index(prim, posInput, tri[0]);
+    i1 = io_primitive_input_index(prim, posInput, tri[1]);
+    i2 = io_primitive_input_index(prim, posInput, tri[2]);
+    if (i0 >= *vertexCount)
+      i0 = 0u;
+    if (i1 >= *vertexCount)
+      i1 = 0u;
+    if (i2 >= *vertexCount)
+      i2 = 0u;
+    ak_3mf_append_triangle(triangles,
+                           (uint32_t)i0,
+                           (uint32_t)i1,
+                           (uint32_t)i2,
+                           0u,
+                           false,
+                           NULL);
+    (*triangleCount)++;
+  }
+
   return vertices->result == AK_OK && triangles->result == AK_OK;
 }
 
@@ -1174,51 +1284,16 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
     displacementWrite.remaining = displacementMesh->triangleCount;
   }
 
-  if (beamLattice
-      && !displacementMesh
+  if (!displacementMesh
       && !hasColorRows
       && prim->type == AK_PRIMITIVE_TRIANGLES) {
-    AkTriangleMode mode;
-    uint32_t       vi;
-    uint32_t       count;
-    uint32_t       i;
-
-    ok = true;
-    if (posInput->accessor->count > UINT32_MAX)
-      ok = false;
-    for (vi = 0u; ok && vi < posInput->accessor->count; vi++) {
-      const float *row;
-      vec3         pos;
-
-      row    = ak_3mf_rows_get(&rows, vi);
-      pos[0] = ak_3mf_row_component(row, rows.componentCount, 0u, 0.0f);
-      pos[1] = ak_3mf_row_component(row, rows.componentCount, 1u, 0.0f);
-      pos[2] = ak_3mf_row_component(row, rows.componentCount, 2u, 0.0f);
-      ak_3mf_append_vertex(&vertices, pos, false);
-      vertexCount++;
-    }
-
-    mode = ((AkTriangles *)prim)->mode;
-    if (mode == 0)
-      mode = AK_TRIANGLES;
-    count = io_primitive_vertex_count(prim);
-    if (ok && mode == AK_TRIANGLES) {
-      for (i = 0u; i + 2u < count; i += 3u) {
-        uint32_t i0;
-        uint32_t i1;
-        uint32_t i2;
-
-        i0 = io_primitive_input_index(prim, posInput, i + 0u);
-        i1 = io_primitive_input_index(prim, posInput, i + 1u);
-        i2 = io_primitive_input_index(prim, posInput, i + 2u);
-        if (i0 >= vertexCount || i1 >= vertexCount || i2 >= vertexCount) {
-          ok = false;
-          break;
-        }
-        ak_3mf_append_triangle(&triangles, i0, i1, i2, 0u, false, NULL);
-        triangleCount++;
-      }
-    }
+    ok = ak_3mf_emit_indexed_position_primitive(&rows,
+                                                prim,
+                                                posInput,
+                                                &vertices,
+                                                &triangles,
+                                                &vertexCount,
+                                                &triangleCount);
   } else if (prim->type == AK_PRIMITIVE_TRIANGLES) {
     ok = ak_3mf_emit_triangles_primitive(&rows,
                                          hasColorRows ? &colorRows : NULL,

@@ -95,12 +95,8 @@ io_addInput(AkHeap          * __restrict heap,
   AkBuffer   *buff;
   AkAccessor *acc;
   AkInput    *inp;
-  AkTypeDesc *typeDesc;
-  int         nComponents;
 
-  doc         = ak_heap_data(heap);
-  typeDesc    = ak_typeDesc(type);
-  nComponents = (int)compSize;
+  doc          = ak_heap_data(heap);
 
   buff         = ak_heap_calloc(heap, doc, sizeof(*buff));
   buff->data   = ak_heap_alloc(heap, buff, dctx->usedsize);
@@ -109,31 +105,12 @@ io_addInput(AkHeap          * __restrict heap,
   
   AK_LIB_PREPEND(doc->lib.buffers, buff, next);
   
-  acc                         = ak_heap_calloc(heap, doc, sizeof(*acc));
-  acc->buffer                 = buff;
-  acc->byteLength             = buff->length;
-  acc->byteStride             = typeDesc->size * nComponents;
-  acc->componentSize          = compSize;
-  acc->componentType          = type;
-  acc->originalComponentType  = type;
-  acc->bytesPerComponent      = typeDesc->size;
-  acc->componentCount         = nComponents;
-  acc->fillByteSize           = typeDesc->size * nComponents;
-  acc->count                  = (uint32_t)dctx->itemcount;
+  acc = io_acc(heap, doc, compSize, type, (uint32_t)dctx->itemcount, buff);
   AK_LIB_PREPEND(doc->lib.accessors, acc, next);
 
-  inp              = ak_heap_calloc(heap, prim, sizeof(*inp));
-  inp->accessor    = acc;
-  inp->semantic    = sem;
-  inp->semanticRaw = ak_heap_strdup(heap, inp, semRaw);
-  inp->indexOffset = offset;
-
+  inp = io_input(heap, prim, acc, sem, semRaw, offset);
   ak_retain(acc);
 
-  inp->next   = prim->input;
-  prim->input = inp;
-  prim->inputCount++;
-  
   return inp;
 }
 

@@ -20,13 +20,13 @@
 #include "../common.h"
 
 AK_HIDE AkEnum
-gltf_enumInputSemantic(const char *name);
+gltf_enumInputSemantic(const char *name, size_t len);
 
 AK_HIDE AkEnum
 gltf_componentType(int type);
 
-AK_HIDE int
-gltf_componentLen(int type) ;
+AK_HIDE AkEnum
+gltf_componentTypeInfo(int type, int * __restrict componentLen);
 
 AK_HIDE AkComponentSize
 gltf_type(const json_t * __restrict json);

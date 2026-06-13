@@ -47,25 +47,8 @@ typedef struct AkZipCentralEntry {
 typedef struct AkZipStoredEntry {
   uint32_t crc32;
   uint32_t localOffset;
+  uint16_t nameLen;
 } AkZipStoredEntry;
-
-static
-void
-ak_zip_write_u16le(FILE * __restrict file, uint16_t value) {
-  unsigned char out[2];
-
-  io_store_u16le(out, value);
-  (void)fwrite(out, 1, sizeof(out), file);
-}
-
-static
-void
-ak_zip_write_u32le(FILE * __restrict file, uint32_t value) {
-  unsigned char out[4];
-
-  io_store_u32le(out, value);
-  (void)fwrite(out, 1, sizeof(out), file);
-}
 
 static
 bool
@@ -354,6 +337,79 @@ ak_zip_extract_file(const char * __restrict zipPath,
 
 static
 bool
+ak_zip_write_local_header(FILE     * __restrict file,
+                          uint16_t              nameLen,
+                          uint32_t              crc32,
+                          uint32_t              size) {
+  unsigned char out[30];
+
+  io_store_u32le(out + 0, AK_ZIP_LOCAL_FILE_HEADER);
+  io_store_u16le(out + 4, 20u);
+  io_store_u16le(out + 6, 0u);
+  io_store_u16le(out + 8, AK_ZIP_METHOD_STORED);
+  io_store_u16le(out + 10, 0u);
+  io_store_u16le(out + 12, 0u);
+  io_store_u32le(out + 14, crc32);
+  io_store_u32le(out + 18, size);
+  io_store_u32le(out + 22, size);
+  io_store_u16le(out + 26, nameLen);
+  io_store_u16le(out + 28, 0u);
+
+  return fwrite(out, 1, sizeof(out), file) == sizeof(out);
+}
+
+static
+bool
+ak_zip_write_central_header(FILE     * __restrict file,
+                            uint16_t              nameLen,
+                            uint32_t              crc32,
+                            uint32_t              size,
+                            uint32_t              localOffset) {
+  unsigned char out[46];
+
+  io_store_u32le(out + 0, AK_ZIP_CENTRAL_FILE_HEADER);
+  io_store_u16le(out + 4, 20u);
+  io_store_u16le(out + 6, 20u);
+  io_store_u16le(out + 8, 0u);
+  io_store_u16le(out + 10, AK_ZIP_METHOD_STORED);
+  io_store_u16le(out + 12, 0u);
+  io_store_u16le(out + 14, 0u);
+  io_store_u32le(out + 16, crc32);
+  io_store_u32le(out + 20, size);
+  io_store_u32le(out + 24, size);
+  io_store_u16le(out + 28, nameLen);
+  io_store_u16le(out + 30, 0u);
+  io_store_u16le(out + 32, 0u);
+  io_store_u16le(out + 34, 0u);
+  io_store_u16le(out + 36, 0u);
+  io_store_u32le(out + 38, 0u);
+  io_store_u32le(out + 42, localOffset);
+
+  return fwrite(out, 1, sizeof(out), file) == sizeof(out);
+}
+
+static
+bool
+ak_zip_write_eocd(FILE     * __restrict file,
+                  uint16_t              entryCount,
+                  uint32_t              centralSize,
+                  uint32_t              centralOffset) {
+  unsigned char out[22];
+
+  io_store_u32le(out + 0, AK_ZIP_END_CENTRAL_DIRECTORY);
+  io_store_u16le(out + 4, 0u);
+  io_store_u16le(out + 6, 0u);
+  io_store_u16le(out + 8, entryCount);
+  io_store_u16le(out + 10, entryCount);
+  io_store_u32le(out + 12, centralSize);
+  io_store_u32le(out + 16, centralOffset);
+  io_store_u16le(out + 20, 0u);
+
+  return fwrite(out, 1, sizeof(out), file) == sizeof(out);
+}
+
+static
+bool
 ak_zip_write_local_file(FILE                   * __restrict file,
                         const AkZipWriteEntry * __restrict entry,
                         AkZipStoredEntry      * __restrict stored) {
@@ -375,20 +431,13 @@ ak_zip_write_local_file(FILE                   * __restrict file,
 
   stored->crc32       = mz_crc32(MZ_CRC32_INIT, entry->data, entry->size);
   stored->localOffset = (uint32_t)offset;
+  stored->nameLen     = (uint16_t)nameLen;
 
-  ak_zip_write_u32le(file, AK_ZIP_LOCAL_FILE_HEADER);
-  ak_zip_write_u16le(file, 20u);
-  ak_zip_write_u16le(file, 0u);
-  ak_zip_write_u16le(file, AK_ZIP_METHOD_STORED);
-  ak_zip_write_u16le(file, 0u);
-  ak_zip_write_u16le(file, 0u);
-  ak_zip_write_u32le(file, stored->crc32);
-  ak_zip_write_u32le(file, (uint32_t)entry->size);
-  ak_zip_write_u32le(file, (uint32_t)entry->size);
-  ak_zip_write_u16le(file, (uint16_t)nameLen);
-  ak_zip_write_u16le(file, 0u);
-
-  return fwrite(entry->name, 1, (size_t)nameLen, file) == (size_t)nameLen
+  return ak_zip_write_local_header(file,
+                                   stored->nameLen,
+                                   stored->crc32,
+                                   (uint32_t)entry->size)
+         && fwrite(entry->name, 1, (size_t)nameLen, file) == (size_t)nameLen
          && fwrite(entry->data, 1, entry->size, file) == entry->size;
 }
 
@@ -397,31 +446,15 @@ bool
 ak_zip_write_central_file(FILE                   * __restrict file,
                           const AkZipWriteEntry * __restrict entry,
                           const AkZipStoredEntry * __restrict stored) {
-  size_t nameLen;
-
-  nameLen = strlen(entry->name);
-  if (nameLen == 0 || nameLen > UINT16_MAX || entry->size > UINT32_MAX)
+  if (stored->nameLen == 0u || entry->size > UINT32_MAX)
     return false;
 
-  ak_zip_write_u32le(file, AK_ZIP_CENTRAL_FILE_HEADER);
-  ak_zip_write_u16le(file, 20u);
-  ak_zip_write_u16le(file, 20u);
-  ak_zip_write_u16le(file, 0u);
-  ak_zip_write_u16le(file, AK_ZIP_METHOD_STORED);
-  ak_zip_write_u16le(file, 0u);
-  ak_zip_write_u16le(file, 0u);
-  ak_zip_write_u32le(file, stored->crc32);
-  ak_zip_write_u32le(file, (uint32_t)entry->size);
-  ak_zip_write_u32le(file, (uint32_t)entry->size);
-  ak_zip_write_u16le(file, (uint16_t)nameLen);
-  ak_zip_write_u16le(file, 0u);
-  ak_zip_write_u16le(file, 0u);
-  ak_zip_write_u16le(file, 0u);
-  ak_zip_write_u16le(file, 0u);
-  ak_zip_write_u32le(file, 0u);
-  ak_zip_write_u32le(file, stored->localOffset);
-
-  return fwrite(entry->name, 1, nameLen, file) == nameLen;
+  return ak_zip_write_central_header(file,
+                                     stored->nameLen,
+                                     stored->crc32,
+                                     (uint32_t)entry->size,
+                                     stored->localOffset)
+         && fwrite(entry->name, 1, stored->nameLen, file) == stored->nameLen;
 }
 
 AK_HIDE
@@ -477,14 +510,11 @@ ak_zip_write_stored(const char            * __restrict zipPath,
     result = AK_ERR;
 
   if (result == AK_OK) {
-    ak_zip_write_u32le(file, AK_ZIP_END_CENTRAL_DIRECTORY);
-    ak_zip_write_u16le(file, 0u);
-    ak_zip_write_u16le(file, 0u);
-    ak_zip_write_u16le(file, (uint16_t)entryCount);
-    ak_zip_write_u16le(file, (uint16_t)entryCount);
-    ak_zip_write_u32le(file, (uint32_t)(centralEnd - centralOffset));
-    ak_zip_write_u32le(file, (uint32_t)centralOffset);
-    ak_zip_write_u16le(file, 0u);
+    if (!ak_zip_write_eocd(file,
+                           (uint16_t)entryCount,
+                           (uint32_t)(centralEnd - centralOffset),
+                           (uint32_t)centralOffset))
+      result = AK_ERR;
   }
 
   if (fclose(file) != 0 && result == AK_OK)
