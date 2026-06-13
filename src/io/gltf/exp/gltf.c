@@ -15,6 +15,7 @@
  */
 
 #include "gltf.h"
+#include "../../common/binary.h"
 #include "accessor.h"
 #include "anim.h"
 #include "bin.h"
@@ -912,10 +913,7 @@ bool
 gltf_write_u32le(FILE * __restrict file, uint32_t val) {
   unsigned char bytes[4];
 
-  bytes[0] = (unsigned char)(val & 0xffu);
-  bytes[1] = (unsigned char)((val >> 8) & 0xffu);
-  bytes[2] = (unsigned char)((val >> 16) & 0xffu);
-  bytes[3] = (unsigned char)((val >> 24) & 0xffu);
+  io_store_u32le(bytes, val);
 
   return fwrite(bytes, 1, sizeof(bytes), file) == sizeof(bytes);
 }

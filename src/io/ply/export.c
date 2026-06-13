@@ -15,6 +15,7 @@
  */
 
 #include "ply.h"
+#include "../common/binary.h"
 #include "../common/primitive.h"
 #include "../common/text_number.h"
 
@@ -32,12 +33,12 @@ typedef enum PLYExpPass {
   PLY_EXP_PASS_FACES    = 2
 } PLYExpPass;
 
-typedef struct PLYExpRows {
-  AkAccessor *accessor;
-  float      *scratch;
-  uint32_t    componentCount;
-  bool        direct;
-} PLYExpRows;
+typedef IOFloatRows PLYExpRows;
+
+#define ply_rows_init    io_float_rows_init
+#define ply_rows_destroy io_float_rows_destroy
+#define ply_rows_get     io_float_rows_get
+#define ply_row_component io_float_row_component
 
 typedef struct PLYExpWriter {
   FILE         *file;
@@ -151,27 +152,9 @@ static
 void
 ply_w_float_ascii(PLYExpWriter * __restrict w, float value) {
   char   buf[48];
-  int    len;
   size_t outLen;
 
-  if (!isfinite(value)) {
-    w->result = AK_ERR;
-    return;
-  }
-
-  if (ak_io_text_format_fixed_float(buf, sizeof(buf), value, 6u, &outLen)) {
-    ply_w_raw(w, buf, outLen);
-    return;
-  }
-
-  len = snprintf(buf, sizeof(buf), "%.6g", (double)value);
-  if (len <= 0 || (size_t)len >= sizeof(buf)) {
-    w->result = AK_ERR;
-    return;
-  }
-
-  outLen = (size_t)len;
-  if (!ak_io_text_normalize_number(buf, &outLen)) {
+  if (!ak_io_text_format_float6(buf, sizeof(buf), value, &outLen)) {
     w->result = AK_ERR;
     return;
   }
@@ -182,31 +165,21 @@ ply_w_float_ascii(PLYExpWriter * __restrict w, float value) {
 static
 void
 ply_w_u32_ascii(PLYExpWriter * __restrict w, uint32_t value) {
-  char buf[16];
-  int  len;
+  char *end;
+  char  buf[16];
 
-  len = snprintf(buf, sizeof(buf), "%u", value);
-  if (len <= 0 || (size_t)len >= sizeof(buf)) {
-    w->result = AK_ERR;
-    return;
-  }
-
-  ply_w_raw(w, buf, (size_t)len);
+  end = ak_io_text_format_uint64(buf, value);
+  ply_w_raw(w, buf, (size_t)(end - buf));
 }
 
 static
 void
 ply_w_u8_ascii(PLYExpWriter * __restrict w, uint8_t value) {
-  char buf[4];
-  int  len;
+  char *end;
+  char  buf[4];
 
-  len = snprintf(buf, sizeof(buf), "%u", (unsigned)value);
-  if (len <= 0 || (size_t)len >= sizeof(buf)) {
-    w->result = AK_ERR;
-    return;
-  }
-
-  ply_w_raw(w, buf, (size_t)len);
+  end = ak_io_text_format_uint64(buf, value);
+  ply_w_raw(w, buf, (size_t)(end - buf));
 }
 
 static
@@ -220,25 +193,22 @@ void
 ply_write_u32le(PLYExpWriter * __restrict w, uint32_t value) {
   unsigned char out[4];
 
-  out[0] = (unsigned char)(value & 0xffu);
-  out[1] = (unsigned char)((value >> 8u) & 0xffu);
-  out[2] = (unsigned char)((value >> 16u) & 0xffu);
-  out[3] = (unsigned char)((value >> 24u) & 0xffu);
+  io_store_u32le(out, value);
   ply_w_raw(w, out, sizeof(out));
 }
 
 static
 void
 ply_write_f32le(PLYExpWriter * __restrict w, float value) {
-  uint32_t bits;
+  unsigned char out[4];
 
   if (!isfinite(value)) {
     w->result = AK_ERR;
     return;
   }
 
-  memcpy(&bits, &value, sizeof(bits));
-  ply_write_u32le(w, bits);
+  io_store_f32le(out, value);
+  ply_w_raw(w, out, sizeof(out));
 }
 
 static
@@ -273,125 +243,21 @@ ply_count_point(PLYExpState * __restrict st) {
 }
 
 static
-bool
-ply_rows_init(PLYExpRows * __restrict rows,
-              AkAccessor * __restrict acc) {
-  size_t floatCount;
-
-  memset(rows, 0, sizeof(*rows));
-  if (!acc || acc->count == 0 || acc->componentCount == 0)
-    return false;
-
-  rows->accessor       = acc;
-  rows->componentCount = acc->componentCount;
-  rows->direct         = io_accessor_float_direct(acc);
-  if (rows->direct)
-    return true;
-
-  if ((size_t)acc->count > (size_t)-1 / acc->componentCount)
-    return false;
-
-  floatCount    = (size_t)acc->count * acc->componentCount;
-  rows->scratch = malloc(sizeof(float) * floatCount);
-  if (!rows->scratch)
-    return false;
-
-  if (ak_accessorAsFloat(acc, rows->scratch, floatCount) != floatCount) {
-    free(rows->scratch);
-    rows->scratch = NULL;
-    return false;
-  }
-
-  return true;
-}
-
-static
-void
-ply_rows_destroy(PLYExpRows * __restrict rows) {
-  free(rows->scratch);
-  rows->scratch = NULL;
-}
-
-static
-const float*
-ply_rows_get(PLYExpRows * __restrict rows, uint32_t index) {
-  if (index >= rows->accessor->count)
-    index = 0;
-
-  return rows->direct
-         ? io_accessor_float_row(rows->accessor, index)
-         : rows->scratch + (size_t)index * rows->componentCount;
-}
-
-static
-float
-ply_row_component(const float * __restrict row,
-                  uint32_t                 componentCount,
-                  uint32_t                 component,
-                  float                    fallback) {
-  return component < componentCount ? row[component] : fallback;
-}
-
-static
-AkInput*
-ply_find_input(AkMeshPrimitive * __restrict prim,
-               AkInputSemantic              semantic) {
-  AkInput *input;
-
-  if (!prim)
-    return NULL;
-
-  if (semantic == AK_INPUT_POSITION && prim->pos)
-    return prim->pos;
-
-  for (input = prim->input; input; input = input->next) {
-    if (input->semantic == semantic)
-      return input;
-  }
-
-  return NULL;
-}
-
-static
 AkInput*
 ply_find_texcoord_input(AkMeshPrimitive * __restrict prim) {
-  AkInput *input;
-  AkInput *fallback;
-
-  fallback = NULL;
-  for (input = prim ? prim->input : NULL; input; input = input->next) {
-    if (input->semantic != AK_INPUT_TEXCOORD && input->semantic != AK_INPUT_UV)
-      continue;
-    if (!input->accessor || input->accessor->componentCount < 2u)
-      continue;
-    if (input->set == 0)
-      return input;
-    if (!fallback)
-      fallback = input;
-  }
-
-  return fallback;
+  return io_primitive_find_set_input(prim,
+                                     AK_INPUT_TEXCOORD,
+                                     AK_INPUT_UV,
+                                     2u);
 }
 
 static
 AkInput*
 ply_find_color_input(AkMeshPrimitive * __restrict prim) {
-  AkInput *input;
-  AkInput *fallback;
-
-  fallback = NULL;
-  for (input = prim ? prim->input : NULL; input; input = input->next) {
-    if (input->semantic != AK_INPUT_COLOR
-        || !input->accessor
-        || input->accessor->componentCount < 3u)
-      continue;
-    if (input->set == 0)
-      return input;
-    if (!fallback)
-      fallback = input;
-  }
-
-  return fallback;
+  return io_primitive_find_set_input(prim,
+                                     AK_INPUT_COLOR,
+                                     AK_INPUT_COLOR,
+                                     3u);
 }
 
 static
@@ -437,7 +303,7 @@ ply_primitive_reusable_vertex_count(PLYExpState     * __restrict st,
   AkInput *colorInput;
   uint32_t vertexCount;
 
-  posInput = ply_find_input(prim, AK_INPUT_POSITION);
+  posInput = io_primitive_find_input(prim, AK_INPUT_POSITION);
   if (!ply_input_valid(posInput, 3u))
     return false;
 
@@ -446,7 +312,7 @@ ply_primitive_reusable_vertex_count(PLYExpState     * __restrict st,
     return false;
 
   if (st->hasNormals) {
-    normalInput = ply_find_input(prim, AK_INPUT_NORMAL);
+    normalInput = io_primitive_find_input(prim, AK_INPUT_NORMAL);
     if (!ply_input_valid(normalInput, 3u)
         || !ply_input_uses_position_index(prim, posInput, normalInput, vertexCount))
       return false;
@@ -477,7 +343,7 @@ ply_note_optional_inputs(PLYExpState    * __restrict st,
   AkInput *input;
 
   if (st->wantNormals) {
-    input = ply_find_input(prim, AK_INPUT_NORMAL);
+    input = io_primitive_find_input(prim, AK_INPUT_NORMAL);
     if (ply_input_valid(input, 3u))
       st->hasNormals = true;
   }
@@ -496,31 +362,6 @@ ply_note_optional_inputs(PLYExpState    * __restrict st,
         st->hasAlpha = true;
     }
   }
-}
-
-static
-void
-ply_vec3_normalize_or_zero(vec3 value) {
-  float len;
-
-  len = glm_vec3_norm(value);
-  if (len > 0.0f && isfinite(len)) {
-    glm_vec3_scale(value, 1.0f / len, value);
-  } else {
-    glm_vec3_zero(value);
-  }
-}
-
-static
-void
-ply_triangle_normal(vec3 a, vec3 b, vec3 c, vec3 normal) {
-  vec3 ab;
-  vec3 ac;
-
-  glm_vec3_sub(b, a, ab);
-  glm_vec3_sub(c, a, ac);
-  glm_vec3_cross(ab, ac, normal);
-  ply_vec3_normalize_or_zero(normal);
 }
 
 static
@@ -569,7 +410,7 @@ ply_vertex_normal(PLYExpPrim * __restrict pc,
   in[1] = ply_row_component(row, pc->normalRows.componentCount, 1u, 0.0f);
   in[2] = ply_row_component(row, pc->normalRows.componentCount, 2u, 1.0f);
   glm_mat4_mulv3(pc->normalMatrix, in, 0.0f, out);
-  ply_vec3_normalize_or_zero(out);
+  io_vec3_normalize_or_zero(out);
 }
 
 static
@@ -803,7 +644,7 @@ ply_face_fallback_normal(PLYExpPrim       * __restrict pc,
   ply_vertex_position(pc, i0, false, a);
   ply_vertex_position(pc, i1, false, b);
   ply_vertex_position(pc, i2, false, c);
-  ply_triangle_normal(a, b, c, out);
+  io_triangle_normal(a, b, c, out);
 }
 
 static
@@ -971,7 +812,7 @@ ply_prim_begin(PLYExpState    * __restrict st,
                bool                         mirrored) {
   memset(pc, 0, sizeof(*pc));
 
-  pc->posInput = ply_find_input(prim, AK_INPUT_POSITION);
+  pc->posInput = io_primitive_find_input(prim, AK_INPUT_POSITION);
   if (!ply_input_valid(pc->posInput, 3u))
     return false;
 
@@ -988,7 +829,7 @@ ply_prim_begin(PLYExpState    * __restrict st,
   pc->mirrored = mirrored;
 
   if (st->hasNormals) {
-    pc->normalInput = ply_find_input(prim, AK_INPUT_NORMAL);
+    pc->normalInput = io_primitive_find_input(prim, AK_INPUT_NORMAL);
     if (ply_input_valid(pc->normalInput, 3u)) {
       pc->hasNormalRows = ply_rows_init(&pc->normalRows,
                                         pc->normalInput->accessor);
@@ -1125,55 +966,13 @@ bool
 ply_write_triangles_primitive(PLYExpState    * __restrict st,
                               PLYExpPrim     * __restrict pc,
                               AkMeshPrimitive * __restrict prim) {
-  AkTriangleMode mode;
-  uint32_t       vertexCount;
-  uint32_t       i;
+  IOTriangleIter iter;
+  uint32_t       tri[3];
 
-  vertexCount = io_primitive_vertex_count(prim);
-  mode        = ((AkTriangles *)prim)->mode;
-  if (mode == 0)
-    mode = AK_TRIANGLES;
-
-  if (mode == AK_TRIANGLE_STRIP) {
-    for (i = 0; i + 2u < vertexCount; i++) {
-      uint32_t tri[3];
-
-      if (i & 1u) {
-        tri[0] = i + 1u;
-        tri[1] = i;
-        tri[2] = i + 2u;
-      } else {
-        tri[0] = i;
-        tri[1] = i + 1u;
-        tri[2] = i + 2u;
-      }
-
-      if (!ply_process_face(st, pc, tri, 3u))
-        return false;
-    }
+  if (!io_triangle_iter_init(&iter, prim))
     return true;
-  }
 
-  if (mode == AK_TRIANGLE_FAN) {
-    for (i = 1u; i + 1u < vertexCount; i++) {
-      uint32_t tri[3];
-
-      tri[0] = 0u;
-      tri[1] = i;
-      tri[2] = i + 1u;
-
-      if (!ply_process_face(st, pc, tri, 3u))
-        return false;
-    }
-    return true;
-  }
-
-  for (i = 0; i + 2u < vertexCount; i += 3u) {
-    uint32_t tri[3];
-
-    tri[0] = i;
-    tri[1] = i + 1u;
-    tri[2] = i + 2u;
+  while (io_triangle_iter_next(&iter, tri)) {
     if (!ply_process_face(st, pc, tri, 3u))
       return false;
   }
@@ -1321,7 +1120,7 @@ ply_write_primitive(PLYExpState    * __restrict st,
   if (st->pass == PLY_EXP_PASS_COUNT) {
     AkInput *posInput;
 
-    posInput = ply_find_input(prim, AK_INPUT_POSITION);
+    posInput = io_primitive_find_input(prim, AK_INPUT_POSITION);
     if (!ply_input_valid(posInput, 3u))
       return true;
 

@@ -22,6 +22,7 @@
 #include "../image.h"
 #include "../material.h"
 #include "../mesh.h"
+#include "../../../common/primitive.h"
 #include "../../strpool.h"
 #include "../../../../image/export.h"
 

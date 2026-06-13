@@ -115,26 +115,9 @@ AK_HIDE
 void
 wobj_w_float(WOBJExpWriter * __restrict w, float val) {
   char   buf[48];
-  int    len;
   size_t outLen;
 
-  if (!isfinite(val)) {
-    w->result = AK_ERR;
-    return;
-  }
-  if (ak_io_text_format_fixed_float(buf, sizeof(buf), val, 6u, &outLen)) {
-    wobj_w_raw(w, buf, outLen);
-    return;
-  }
-
-  len = snprintf(buf, sizeof(buf), "%.6g", (double)val);
-  if (len <= 0 || (size_t)len >= sizeof(buf)) {
-    w->result = AK_ERR;
-    return;
-  }
-
-  outLen = (size_t)len;
-  if (!ak_io_text_normalize_number(buf, &outLen)) {
+  if (!ak_io_text_format_float6(buf, sizeof(buf), val, &outLen)) {
     w->result = AK_ERR;
     return;
   }

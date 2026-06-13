@@ -26,12 +26,12 @@
 
 #define AK_3MF_MAX_NODE_DEPTH 512u
 
-typedef struct AK3MFRows {
-  AkAccessor *accessor;
-  float      *scratch;
-  uint32_t    componentCount;
-  bool        direct;
-} AK3MFRows;
+typedef IOFloatRows AK3MFRows;
+
+#define ak_3mf_rows_init    io_float_rows_init
+#define ak_3mf_rows_destroy io_float_rows_destroy
+#define ak_3mf_rows_get     io_float_rows_get
+#define ak_3mf_row_component io_float_row_component
 
 typedef struct AK3MFBuffer {
   char    *data;
@@ -232,27 +232,9 @@ static
 void
 ak_3mf_buf_float(AK3MFBuffer * __restrict buf, float value) {
   char   tmp[48];
-  int    len;
   size_t outLen;
 
-  if (!isfinite(value)) {
-    buf->result = AK_ERR;
-    return;
-  }
-
-  if (ak_io_text_format_fixed_float(tmp, sizeof(tmp), value, 6u, &outLen)) {
-    ak_3mf_buf_raw(buf, tmp, outLen);
-    return;
-  }
-
-  len = snprintf(tmp, sizeof(tmp), "%.6g", (double)value);
-  if (len <= 0 || (size_t)len >= sizeof(tmp)) {
-    buf->result = AK_ERR;
-    return;
-  }
-
-  outLen = (size_t)len;
-  if (!ak_io_text_normalize_number(tmp, &outLen)) {
+  if (!ak_io_text_format_float6(tmp, sizeof(tmp), value, &outLen)) {
     buf->result = AK_ERR;
     return;
   }
@@ -574,102 +556,12 @@ ak_3mf_buf_free(AK3MFBuffer * __restrict buf) {
 }
 
 static
-bool
-ak_3mf_rows_init(AK3MFRows * __restrict rows,
-                 AkAccessor * __restrict acc) {
-  size_t floatCount;
-
-  memset(rows, 0, sizeof(*rows));
-  if (!acc || acc->count == 0 || acc->componentCount == 0)
-    return false;
-
-  rows->accessor       = acc;
-  rows->componentCount = acc->componentCount;
-  rows->direct         = io_accessor_float_direct(acc);
-  if (rows->direct)
-    return true;
-
-  if ((size_t)acc->count > (size_t)-1 / acc->componentCount)
-    return false;
-
-  floatCount    = (size_t)acc->count * acc->componentCount;
-  rows->scratch = malloc(sizeof(float) * floatCount);
-  if (!rows->scratch)
-    return false;
-
-  if (ak_accessorAsFloat(acc, rows->scratch, floatCount) != floatCount) {
-    free(rows->scratch);
-    rows->scratch = NULL;
-    return false;
-  }
-
-  return true;
-}
-
-static
-void
-ak_3mf_rows_destroy(AK3MFRows * __restrict rows) {
-  free(rows->scratch);
-  rows->scratch = NULL;
-}
-
-static
-const float*
-ak_3mf_rows_get(AK3MFRows * __restrict rows, uint32_t index) {
-  if (index >= rows->accessor->count)
-    index = 0;
-
-  return rows->direct
-         ? io_accessor_float_row(rows->accessor, index)
-         : rows->scratch + (size_t)index * rows->componentCount;
-}
-
-static
-float
-ak_3mf_row_component(const float * __restrict row,
-                     uint32_t                 componentCount,
-                     uint32_t                 component,
-                     float                    fallback) {
-  return component < componentCount ? row[component] : fallback;
-}
-
-static
-AkInput*
-ak_3mf_find_position_input(AkMeshPrimitive * __restrict prim) {
-  AkInput *input;
-
-  if (!prim)
-    return NULL;
-  if (prim->pos)
-    return prim->pos;
-
-  for (input = prim->input; input; input = input->next) {
-    if (input->semantic == AK_INPUT_POSITION)
-      return input;
-  }
-
-  return NULL;
-}
-
-static
 AkInput*
 ak_3mf_find_color_input(AkMeshPrimitive * __restrict prim) {
-  AkInput *input;
-  AkInput *fallback;
-
-  fallback = NULL;
-  for (input = prim ? prim->input : NULL; input; input = input->next) {
-    if (input->semantic != AK_INPUT_COLOR
-        || !input->accessor
-        || input->accessor->componentCount < 3u)
-      continue;
-    if (input->set == 0)
-      return input;
-    if (!fallback)
-      fallback = input;
-  }
-
-  return fallback;
+  return io_primitive_find_set_input(prim,
+                                     AK_INPUT_COLOR,
+                                     AK_INPUT_COLOR,
+                                     3u);
 }
 
 static
@@ -1174,51 +1066,15 @@ ak_3mf_emit_triangles_primitive(AK3MFRows       * __restrict rows,
                                 AK3MFDisplacementWrite * __restrict displacement,
                                 uint32_t        * __restrict vertexCount,
                                 uint32_t        * __restrict triangleCount) {
-  AkTriangleMode mode;
-  uint32_t       count;
-  uint32_t       i;
+  IOTriangleIter iter;
+  uint32_t       tri[3];
 
-  count = io_primitive_vertex_count(prim);
-  mode  = ((AkTriangles *)prim)->mode;
-  if (mode == 0)
-    mode = AK_TRIANGLES;
-
-  if (mode == AK_TRIANGLE_STRIP) {
-    for (i = 0; i + 2u < count; i++) {
-      if (i & 1u) {
-        if (!ak_3mf_emit_triangle(rows, colorRows, prim, posInput, colorInput,
-                                  i + 1u, i, i + 2u,
-                                  vertices, colors, triangles, propertyId,
-                                  displacementMesh, displacement,
-                                  vertexCount, triangleCount))
-          return false;
-      } else {
-        if (!ak_3mf_emit_triangle(rows, colorRows, prim, posInput, colorInput,
-                                  i, i + 1u, i + 2u,
-                                  vertices, colors, triangles, propertyId,
-                                  displacementMesh, displacement,
-                                  vertexCount, triangleCount))
-          return false;
-      }
-    }
+  if (!io_triangle_iter_init(&iter, prim))
     return true;
-  }
 
-  if (mode == AK_TRIANGLE_FAN) {
-    for (i = 1u; i + 1u < count; i++) {
-      if (!ak_3mf_emit_triangle(rows, colorRows, prim, posInput, colorInput,
-                                0u, i, i + 1u,
-                                vertices, colors, triangles, propertyId,
-                                displacementMesh, displacement,
-                                vertexCount, triangleCount))
-        return false;
-    }
-    return true;
-  }
-
-  for (i = 0; i + 2u < count; i += 3u) {
+  while (io_triangle_iter_next(&iter, tri)) {
     if (!ak_3mf_emit_triangle(rows, colorRows, prim, posInput, colorInput,
-                              i, i + 1u, i + 2u,
+                              tri[0], tri[1], tri[2],
                               vertices, colors, triangles, propertyId,
                               displacementMesh, displacement,
                               vertexCount, triangleCount))
@@ -1328,7 +1184,7 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
       && prim->type != AK_PRIMITIVE_POLYGONS)
     return true;
 
-  posInput = ak_3mf_find_position_input(prim);
+  posInput = io_primitive_find_input(prim, AK_INPUT_POSITION);
   if (!posInput || !posInput->accessor)
     return true;
 

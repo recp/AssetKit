@@ -15,6 +15,7 @@
  */
 
 #include "stl.h"
+#include "../common/binary.h"
 #include "../common/primitive.h"
 #include "../common/text_number.h"
 
@@ -28,12 +29,12 @@
 #define STL_EXP_TRIANGLE_SIZE      50u
 #define STL_EXP_MAX_NODE_DEPTH     512u
 
-typedef struct STLExpRows {
-  AkAccessor *accessor;
-  float      *scratch;
-  uint32_t    componentCount;
-  bool        direct;
-} STLExpRows;
+typedef IOFloatRows STLExpRows;
+
+#define stl_rows_init    io_float_rows_init
+#define stl_rows_destroy io_float_rows_destroy
+#define stl_rows_get     io_float_rows_get
+#define stl_row_component io_float_row_component
 
 typedef struct STLExpWriter {
   FILE          *file;
@@ -114,26 +115,9 @@ static
 void
 stl_w_float(STLExpWriter * __restrict w, float val) {
   char   buf[48];
-  int    len;
   size_t outLen;
 
-  if (!isfinite(val)) {
-    w->result = AK_ERR;
-    return;
-  }
-  if (ak_io_text_format_fixed_float(buf, sizeof(buf), val, 6u, &outLen)) {
-    stl_w_raw(w, buf, outLen);
-    return;
-  }
-
-  len = snprintf(buf, sizeof(buf), "%.6g", (double)val);
-  if (len <= 0 || (size_t)len >= sizeof(buf)) {
-    w->result = AK_ERR;
-    return;
-  }
-
-  outLen = (size_t)len;
-  if (!ak_io_text_normalize_number(buf, &outLen)) {
+  if (!ak_io_text_format_float6(buf, sizeof(buf), val, &outLen)) {
     w->result = AK_ERR;
     return;
   }
@@ -146,8 +130,7 @@ void
 stl_write_u16le(STLExpWriter * __restrict w, uint16_t value) {
   unsigned char out[2];
 
-  out[0] = (unsigned char)(value & 0xffu);
-  out[1] = (unsigned char)((value >> 8u) & 0xffu);
+  io_store_u16le(out, value);
   stl_w_raw(w, out, sizeof(out));
 }
 
@@ -156,121 +139,22 @@ void
 stl_write_u32le(STLExpWriter * __restrict w, uint32_t value) {
   unsigned char out[4];
 
-  out[0] = (unsigned char)(value & 0xffu);
-  out[1] = (unsigned char)((value >> 8u) & 0xffu);
-  out[2] = (unsigned char)((value >> 16u) & 0xffu);
-  out[3] = (unsigned char)((value >> 24u) & 0xffu);
+  io_store_u32le(out, value);
   stl_w_raw(w, out, sizeof(out));
 }
 
 static
 void
 stl_write_f32le(STLExpWriter * __restrict w, float value) {
-  uint32_t bits;
+  unsigned char out[4];
 
   if (!isfinite(value)) {
     w->result = AK_ERR;
     return;
   }
 
-  memcpy(&bits, &value, sizeof(bits));
-  stl_write_u32le(w, bits);
-}
-
-static
-bool
-stl_rows_init(STLExpRows * __restrict rows,
-              AkAccessor * __restrict acc) {
-  size_t floatCount;
-
-  memset(rows, 0, sizeof(*rows));
-  if (!acc || acc->count == 0 || acc->componentCount == 0)
-    return false;
-
-  rows->accessor       = acc;
-  rows->componentCount = acc->componentCount;
-  rows->direct         = io_accessor_float_direct(acc);
-  if (rows->direct)
-    return true;
-
-  if ((size_t)acc->count > (size_t)-1 / acc->componentCount)
-    return false;
-
-  floatCount    = (size_t)acc->count * acc->componentCount;
-  rows->scratch = malloc(sizeof(float) * floatCount);
-  if (!rows->scratch)
-    return false;
-
-  if (ak_accessorAsFloat(acc, rows->scratch, floatCount) != floatCount) {
-    free(rows->scratch);
-    rows->scratch = NULL;
-    return false;
-  }
-
-  return true;
-}
-
-static
-void
-stl_rows_destroy(STLExpRows * __restrict rows) {
-  free(rows->scratch);
-  rows->scratch = NULL;
-}
-
-static
-const float*
-stl_rows_get(STLExpRows * __restrict rows, uint32_t index) {
-  if (index >= rows->accessor->count)
-    index = 0;
-
-  return rows->direct
-         ? io_accessor_float_row(rows->accessor, index)
-         : rows->scratch + (size_t)index * rows->componentCount;
-}
-
-static
-float
-stl_row_component(const float * __restrict row,
-                  uint32_t                 componentCount,
-                  uint32_t                 component,
-                  float                    fallback) {
-  return component < componentCount ? row[component] : fallback;
-}
-
-static
-AkInput*
-stl_find_position_input(AkMeshPrimitive * __restrict prim) {
-  AkInput *input;
-
-  if (!prim)
-    return NULL;
-  if (prim->pos)
-    return prim->pos;
-
-  for (input = prim->input; input; input = input->next) {
-    if (input->semantic == AK_INPUT_POSITION)
-      return input;
-  }
-
-  return NULL;
-}
-
-static
-void
-stl_triangle_normal(vec3 a, vec3 b, vec3 c, vec3 normal) {
-  vec3 ab;
-  vec3 ac;
-  float len;
-
-  glm_vec3_sub(b, a, ab);
-  glm_vec3_sub(c, a, ac);
-  glm_vec3_cross(ab, ac, normal);
-  len = glm_vec3_norm(normal);
-  if (len > 0.0f && isfinite(len)) {
-    glm_vec3_scale(normal, 1.0f / len, normal);
-  } else {
-    glm_vec3_zero(normal);
-  }
+  io_store_f32le(out, value);
+  stl_w_raw(w, out, sizeof(out));
 }
 
 static
@@ -349,7 +233,7 @@ stl_write_triangle(STLExpWriter * __restrict w,
   if (!stl_writer_count_triangle(w))
     return;
 
-  stl_triangle_normal(a, b, c, normal);
+  io_triangle_normal(a, b, c, normal);
   if (w->ascii)
     stl_write_ascii_triangle(w, normal, a, b, c);
   else
@@ -414,39 +298,15 @@ stl_write_triangles_primitive(STLExpState    * __restrict st,
                               AkInput         * __restrict posInput,
                               mat4                         world,
                               bool                         mirrored) {
-  AkTriangleMode mode;
-  uint32_t       vertexCount;
-  uint32_t       i;
+  IOTriangleIter iter;
+  uint32_t       tri[3];
 
-  vertexCount = io_primitive_vertex_count(prim);
-  mode        = ((AkTriangles *)prim)->mode;
-  if (mode == 0)
-    mode = AK_TRIANGLES;
-
-  if (mode == AK_TRIANGLE_STRIP) {
-    for (i = 0; i + 2u < vertexCount; i++) {
-      if (i & 1u) {
-        stl_write_triangle_indices(st, rows, prim, posInput,
-                                   i + 1u, i, i + 2u, world, mirrored);
-      } else {
-        stl_write_triangle_indices(st, rows, prim, posInput,
-                                   i, i + 1u, i + 2u, world, mirrored);
-      }
-    }
+  if (!io_triangle_iter_init(&iter, prim))
     return;
-  }
 
-  if (mode == AK_TRIANGLE_FAN) {
-    for (i = 1; i + 1u < vertexCount; i++) {
-      stl_write_triangle_indices(st, rows, prim, posInput,
-                                 0u, i, i + 1u, world, mirrored);
-    }
-    return;
-  }
-
-  for (i = 0; i + 2u < vertexCount; i += 3u) {
+  while (io_triangle_iter_next(&iter, tri)) {
     stl_write_triangle_indices(st, rows, prim, posInput,
-                               i, i + 1u, i + 2u, world, mirrored);
+                               tri[0], tri[1], tri[2], world, mirrored);
   }
 }
 
@@ -505,7 +365,7 @@ stl_write_primitive(STLExpState    * __restrict st,
       && prim->type != AK_PRIMITIVE_POLYGONS)
     return true;
 
-  posInput = stl_find_position_input(prim);
+  posInput = io_primitive_find_input(prim, AK_INPUT_POSITION);
   if (!posInput || !posInput->accessor)
     return true;
 

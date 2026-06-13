@@ -785,20 +785,7 @@ gltf_normal_input_valid(AkInput * __restrict input) {
 
 AkInput*
 gltf_primitive_position_input(AkMeshPrimitive * __restrict prim) {
-  AkInput *input;
-
-  if (!prim)
-    return NULL;
-
-  if (prim->pos && prim->pos->accessor)
-    return prim->pos;
-
-  for (input = prim->input; input; input = input->next) {
-    if (input->accessor && input->semantic == AK_INPUT_POSITION)
-      return input;
-  }
-
-  return NULL;
+  return io_primitive_find_accessor_input(prim, AK_INPUT_POSITION, 0u);
 }
 
 bool

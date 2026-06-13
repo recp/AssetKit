@@ -24,6 +24,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 static inline
@@ -169,6 +170,86 @@ ak_io_text_format_fixed_float(char     * __restrict buf,
 
   *outLen = (size_t)(p - buf);
   return true;
+}
+
+static inline
+bool
+ak_io_text_format_float6(char     * __restrict buf,
+                         size_t                cap,
+                         float                 val,
+                         size_t   * __restrict outLen) {
+  int len;
+
+  if (!isfinite(val))
+    return false;
+  if (ak_io_text_format_fixed_float(buf, cap, val, 6u, outLen))
+    return true;
+
+  len = snprintf(buf, cap, "%.6g", (double)val);
+  if (len <= 0 || (size_t)len >= cap)
+    return false;
+
+  *outLen = (size_t)len;
+  return ak_io_text_normalize_number(buf, outLen);
+}
+
+static inline
+bool
+ak_io_text_format_float9(char     * __restrict buf,
+                         size_t                cap,
+                         float                 val,
+                         size_t   * __restrict outLen) {
+  int len;
+
+  if (!isfinite(val))
+    return false;
+  if (ak_io_text_format_fixed_float(buf, cap, val, 9u, outLen))
+    return true;
+
+  len = snprintf(buf, cap, "%.9g", (double)val);
+  if (len <= 0 || (size_t)len >= cap)
+    return false;
+
+  *outLen = (size_t)len;
+  return ak_io_text_normalize_number(buf, outLen);
+}
+
+static inline
+bool
+ak_io_text_format_double15(char     * __restrict buf,
+                           size_t                cap,
+                           double                val,
+                           size_t   * __restrict outLen) {
+  int len;
+
+  if (!isfinite(val))
+    return false;
+
+  len = snprintf(buf, cap, "%.15g", val);
+  if (len <= 0 || (size_t)len >= cap)
+    return false;
+
+  *outLen = (size_t)len;
+  return ak_io_text_normalize_number(buf, outLen);
+}
+
+static inline
+bool
+ak_io_text_format_double17(char     * __restrict buf,
+                           size_t                cap,
+                           double                val,
+                           size_t   * __restrict outLen) {
+  int len;
+
+  if (!isfinite(val))
+    return false;
+
+  len = snprintf(buf, cap, "%.17g", val);
+  if (len <= 0 || (size_t)len >= cap)
+    return false;
+
+  *outLen = (size_t)len;
+  return ak_io_text_normalize_number(buf, outLen);
 }
 
 #endif /* assetkit_io_common_text_number_h */

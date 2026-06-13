@@ -16,6 +16,7 @@
 
 #include "material.h"
 #include "writer.h"
+#include "../../common/uri.h"
 #include "../../../../include/ak/path.h"
 
 #include <math.h>
@@ -269,47 +270,19 @@ wobj_path_basename(const char * __restrict path) {
 static
 bool
 wobj_uri_has_scheme(const char * __restrict uri) {
-  const char *it;
-
-  if (!uri)
-    return false;
-
-  for (it = uri; *it; it++) {
-    if (*it == ':' && it != uri)
-      return true;
-    if (*it == '/' || *it == '\\' || *it == '?' || *it == '#')
-      return false;
-  }
-
-  return false;
+  return io_uri_has_scheme(uri);
 }
 
 static
 bool
 wobj_uri_is_data(const char * __restrict uri) {
-  return uri
-         && uri[0] == 'd'
-         && uri[1] == 'a'
-         && uri[2] == 't'
-         && uri[3] == 'a'
-         && uri[4] == ':';
+  return io_uri_has_prefix(uri, "data:", 5u);
 }
 
 static
 bool
 wobj_path_is_absolute(const char * __restrict path) {
-  unsigned char drive;
-
-  if (!path || !path[0])
-    return false;
-
-  if (path[0] == '/' || path[0] == '\\')
-    return true;
-
-  drive = (unsigned char)path[0];
-  return ((drive >= 'A' && drive <= 'Z') || (drive >= 'a' && drive <= 'z'))
-         && path[1] == ':'
-         && (path[2] == '/' || path[2] == '\\');
+  return io_path_is_abs_drive_slash(path);
 }
 
 static

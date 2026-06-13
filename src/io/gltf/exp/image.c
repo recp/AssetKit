@@ -16,6 +16,7 @@
 
 #include "image.h"
 #include "../strpool.h"
+#include "../../common/uri.h"
 #include "../../../image/export.h"
 
 #include <ak/path.h>
@@ -66,61 +67,24 @@ gltf_image_source_supported(AkImageSource * __restrict source) {
   return false;
 }
 
-static
-bool
-gltf_image_uri_has_prefix(const char * __restrict uri,
-                          const char * __restrict prefix,
-                          size_t                  prefixLen) {
-  size_t i;
-
-  if (!uri)
-    return false;
-
-  for (i = 0; i < prefixLen; i++) {
-    if (uri[i] == '\0' || uri[i] != prefix[i])
-      return false;
-  }
-
-  return true;
-}
-
 bool
 gltf_image_uri_is_data(const char * __restrict uri) {
-  return gltf_image_uri_has_prefix(uri, _s_gltf_b64d, _s_gltf_b64d_len);
+  return io_uri_has_prefix(uri, _s_gltf_b64d, _s_gltf_b64d_len);
 }
 
 bool
 gltf_image_uri_has_scheme(const char * __restrict uri) {
-  const char *it;
-
-  if (!uri)
-    return false;
-
-  for (it = uri; *it; it++) {
-    if (*it == ':' && it != uri)
-      return true;
-    if (*it == '/' || *it == '\\' || *it == '?' || *it == '#')
-      return false;
-  }
-
-  return false;
+  return io_uri_has_scheme(uri);
 }
 
 bool
 gltf_image_uri_is_file_scheme(const char * __restrict uri) {
-  return gltf_image_uri_has_prefix(uri,
-                                   _s_gltf_file_uri,
-                                   _s_gltf_file_uri_len);
+  return io_uri_has_prefix(uri, _s_gltf_file_uri, _s_gltf_file_uri_len);
 }
 
 bool
 gltf_image_path_is_abs(const char * __restrict path) {
-  return path
-         && (path[0] == '/'
-             || path[0] == '\\'
-             || (((path[0] >= 'A' && path[0] <= 'Z')
-                  || (path[0] >= 'a' && path[0] <= 'z'))
-                 && path[1] == ':'));
+  return io_path_is_abs_drive_colon(path);
 }
 
 static

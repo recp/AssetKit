@@ -277,26 +277,9 @@ gltf_w_key_bool(GLTFExpWriter * __restrict w,
 void
 gltf_w_float(GLTFExpWriter * __restrict w, float val) {
   char   buf[48];
-  int    len;
   size_t outLen;
 
-  if (!isfinite(val)) {
-    w->result = AK_ERR;
-    return;
-  }
-  if (ak_io_text_format_fixed_float(buf, sizeof(buf), val, 9u, &outLen)) {
-    gltf_w_raw(w, buf, outLen);
-    return;
-  }
-
-  len = snprintf(buf, sizeof(buf), "%.9g", (double)val);
-  if (len <= 0 || (size_t)len >= sizeof(buf)) {
-    w->result = AK_ERR;
-    return;
-  }
-
-  outLen = (size_t)len;
-  if (!ak_io_text_normalize_number(buf, &outLen)) {
+  if (!ak_io_text_format_float9(buf, sizeof(buf), val, &outLen)) {
     w->result = AK_ERR;
     return;
   }
@@ -307,22 +290,9 @@ gltf_w_float(GLTFExpWriter * __restrict w, float val) {
 void
 gltf_w_number(GLTFExpWriter * __restrict w, double val) {
   char   buf[48];
-  int    len;
   size_t outLen;
 
-  if (!isfinite(val)) {
-    w->result = AK_ERR;
-    return;
-  }
-
-  len = snprintf(buf, sizeof(buf), "%.17g", val);
-  if (len <= 0 || (size_t)len >= sizeof(buf)) {
-    w->result = AK_ERR;
-    return;
-  }
-
-  outLen = (size_t)len;
-  if (!ak_io_text_normalize_number(buf, &outLen)) {
+  if (!ak_io_text_format_double17(buf, sizeof(buf), val, &outLen)) {
     w->result = AK_ERR;
     return;
   }

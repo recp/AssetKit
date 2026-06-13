@@ -23,12 +23,7 @@
 
 #define AK_PRINT_VALIDATE_MAX_NODE_DEPTH 128u
 
-typedef struct AkPrintPositionRows {
-  AkAccessor *accessor;
-  float      *scratch;
-  uint32_t    componentCount;
-  bool        direct;
-} AkPrintPositionRows;
+typedef IOFloatRows AkPrintPositionRows;
 
 typedef struct AkPrintEdge {
   uint32_t a;
@@ -135,9 +130,6 @@ static
 bool
 ak_print_validate_rows_init(AkPrintPositionRows * __restrict rows,
                             AkAccessor          * __restrict acc) {
-  size_t floatCount;
-
-  memset(rows, 0, sizeof(*rows));
   if (!acc
       || !acc->buffer
       || !acc->buffer->data
@@ -145,33 +137,13 @@ ak_print_validate_rows_init(AkPrintPositionRows * __restrict rows,
       || acc->componentCount < 3u)
     return false;
 
-  rows->accessor       = acc;
-  rows->componentCount = acc->componentCount;
-  rows->direct         = io_accessor_float_direct(acc);
-  if (rows->direct)
-    return true;
-
-  if ((size_t)acc->count > (size_t)-1 / acc->componentCount)
-    return false;
-
-  floatCount    = (size_t)acc->count * acc->componentCount;
-  rows->scratch = malloc(sizeof(float) * floatCount);
-  if (!rows->scratch)
-    return false;
-
-  if (ak_accessorAsFloat(acc, rows->scratch, floatCount) != floatCount) {
-    free(rows->scratch);
-    rows->scratch = NULL;
-    return false;
-  }
-
-  return true;
+  return io_float_rows_init(rows, acc);
 }
 
 static
 void
 ak_print_validate_rows_destroy(AkPrintPositionRows * __restrict rows) {
-  free(rows->scratch);
+  io_float_rows_destroy(rows);
   memset(rows, 0, sizeof(*rows));
 }
 
@@ -185,33 +157,13 @@ ak_print_validate_position(AkPrintPositionRows * __restrict rows,
   if (!rows || !rows->accessor || index >= rows->accessor->count)
     return false;
 
-  row = rows->direct
-        ? io_accessor_float_row(rows->accessor, index)
-        : rows->scratch + (size_t)index * rows->componentCount;
+  row = io_float_rows_get(rows, index);
 
   out[0] = row[0];
   out[1] = row[1];
   out[2] = row[2];
 
   return isfinite(out[0]) && isfinite(out[1]) && isfinite(out[2]);
-}
-
-static
-AkInput*
-ak_print_validate_position_input(AkMeshPrimitive * __restrict prim) {
-  AkInput *input;
-
-  if (!prim)
-    return NULL;
-  if (prim->pos)
-    return prim->pos;
-
-  for (input = prim->input; input; input = input->next) {
-    if (input->semantic == AK_INPUT_POSITION)
-      return input;
-  }
-
-  return NULL;
 }
 
 static
@@ -388,33 +340,14 @@ ak_print_validate_triangle_primitive(AkPrintMeshValidation * __restrict v,
                                      AkPrintPositionRows   * __restrict rows,
                                      AkMeshPrimitive       * __restrict prim,
                                      AkInput               * __restrict posInput) {
-  AkTriangleMode mode;
-  uint32_t       count;
-  uint32_t       i;
+  IOTriangleIter iter;
+  uint32_t       tri[3];
 
-  count = io_primitive_vertex_count(prim);
-  mode  = ((AkTriangles *)prim)->mode;
-  if (mode == 0)
-    mode = AK_TRIANGLES;
-
-  if (mode == AK_TRIANGLE_STRIP) {
-    for (i = 0u; i + 2u < count; i++) {
-      if (i & 1u)
-        ak_print_validate_triangle(v, rows, prim, posInput, i + 1u, i, i + 2u);
-      else
-        ak_print_validate_triangle(v, rows, prim, posInput, i, i + 1u, i + 2u);
-    }
+  if (!io_triangle_iter_init(&iter, prim))
     return;
-  }
 
-  if (mode == AK_TRIANGLE_FAN) {
-    for (i = 1u; i + 1u < count; i++)
-      ak_print_validate_triangle(v, rows, prim, posInput, 0u, i, i + 1u);
-    return;
-  }
-
-  for (i = 0u; i + 2u < count; i += 3u)
-    ak_print_validate_triangle(v, rows, prim, posInput, i, i + 1u, i + 2u);
+  while (io_triangle_iter_next(&iter, tri))
+    ak_print_validate_triangle(v, rows, prim, posInput, tri[0], tri[1], tri[2]);
 }
 
 static
@@ -498,7 +431,7 @@ ak_print_validate_primitive(AkMeshPrimitive      * __restrict prim,
           && prim->type != AK_PRIMITIVE_POLYGONS))
     return AK_PRINT_VALIDATION_NONE;
 
-  posInput = ak_print_validate_position_input(prim);
+  posInput = io_primitive_find_input(prim, AK_INPUT_POSITION);
   if (!posInput || !posInput->accessor)
     return AK_PRINT_VALIDATION_NONE;
   if (!ak_print_validate_rows_init(&rows, posInput->accessor))

@@ -22,32 +22,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct WOBJExpRows {
-  AkAccessor *accessor;
-  float      *scratch;
-  uint32_t    componentCount;
-  bool        direct;
-} WOBJExpRows;
+typedef IOFloatRows WOBJExpRows;
 
-static
-AkInput*
-wobj_find_input(AkMeshPrimitive * __restrict prim,
-                AkInputSemantic              semantic) {
-  AkInput *input;
-
-  if (!prim)
-    return NULL;
-
-  if (semantic == AK_INPUT_POSITION && prim->pos)
-    return prim->pos;
-
-  for (input = prim->input; input; input = input->next) {
-    if (input->semantic == semantic)
-      return input;
-  }
-
-  return NULL;
-}
+#define wobj_rows_init    io_float_rows_init
+#define wobj_rows_destroy io_float_rows_destroy
+#define wobj_rows_get     io_float_rows_get
+#define wobj_row_component io_float_row_component
 
 static
 AkInput*
@@ -74,80 +54,10 @@ wobj_find_vertex_color_input(AkMeshPrimitive * __restrict prim,
 static
 AkInput*
 wobj_find_texcoord_input(AkMeshPrimitive * __restrict prim) {
-  AkInput *input;
-  AkInput *fallback;
-
-  fallback = NULL;
-  for (input = prim ? prim->input : NULL; input; input = input->next) {
-    if (input->semantic != AK_INPUT_TEXCOORD && input->semantic != AK_INPUT_UV)
-      continue;
-    if (input->set == 0)
-      return input;
-    if (!fallback)
-      fallback = input;
-  }
-
-  return fallback;
-}
-
-static
-bool
-wobj_rows_init(WOBJExpRows * __restrict rows,
-               AkAccessor  * __restrict acc) {
-  size_t floatCount;
-
-  memset(rows, 0, sizeof(*rows));
-  if (!acc || acc->count == 0 || acc->componentCount == 0)
-    return false;
-
-  rows->accessor       = acc;
-  rows->componentCount = acc->componentCount;
-  rows->direct         = io_accessor_float_direct(acc);
-  if (rows->direct)
-    return true;
-
-  if ((size_t)acc->count > (size_t)-1 / acc->componentCount)
-    return false;
-
-  floatCount    = (size_t)acc->count * acc->componentCount;
-  rows->scratch = malloc(sizeof(float) * floatCount);
-  if (!rows->scratch)
-    return false;
-
-  if (ak_accessorAsFloat(acc, rows->scratch, floatCount) != floatCount) {
-    free(rows->scratch);
-    rows->scratch = NULL;
-    return false;
-  }
-
-  return true;
-}
-
-static
-void
-wobj_rows_destroy(WOBJExpRows * __restrict rows) {
-  free(rows->scratch);
-  rows->scratch = NULL;
-}
-
-static
-const float*
-wobj_rows_get(WOBJExpRows * __restrict rows, uint32_t index) {
-  if (index >= rows->accessor->count)
-    index = 0;
-
-  return rows->direct
-         ? io_accessor_float_row(rows->accessor, index)
-         : rows->scratch + (size_t)index * rows->componentCount;
-}
-
-static
-float
-wobj_row_component(const float * __restrict row,
-                   uint32_t                 componentCount,
-                   uint32_t                 component,
-                   float                    fallback) {
-  return component < componentCount ? row[component] : fallback;
+  return io_primitive_find_set_input(prim,
+                                     AK_INPUT_TEXCOORD,
+                                     AK_INPUT_UV,
+                                     0u);
 }
 
 static
@@ -633,7 +543,8 @@ wobj_write_triangles(WOBJExpState    * __restrict st,
                      uint32_t                     vnCount) {
   AkTriangleMode mode;
   uint32_t       vertexCount;
-  uint32_t       i;
+  IOTriangleIter iter;
+  uint32_t       tri[3];
 
   vertexCount = io_primitive_vertex_count(prim);
   mode        = ((AkTriangles *)prim)->mode;
@@ -643,41 +554,9 @@ wobj_write_triangles(WOBJExpState    * __restrict st,
 
   wobj_write_smooth_state(st, prim);
 
-  if (mode == AK_TRIANGLE_STRIP) {
-    for (i = 0; i + 2u < vertexCount; i++) {
-      uint32_t tri[3];
-
-      if (i & 1u) {
-        tri[0] = i + 1u;
-        tri[1] = i;
-        tri[2] = i + 2u;
-      } else {
-        tri[0] = i;
-        tri[1] = i + 1u;
-        tri[2] = i + 2u;
-      }
-      wobj_write_face_vertices(st, prim, posInput, texInput, normInput,
-                               tri, 3u, vBase, vtBase, vnBase,
-                               vCount, vtCount, vnCount);
-    }
-    return;
-  }
-
-  if (mode == AK_TRIANGLE_FAN) {
-    for (i = 1; i + 1u < vertexCount; i++) {
-      uint32_t tri[3];
-
-      tri[0] = 0u;
-      tri[1] = i;
-      tri[2] = i + 1u;
-      wobj_write_face_vertices(st, prim, posInput, texInput, normInput,
-                               tri, 3u, vBase, vtBase, vnBase,
-                               vCount, vtCount, vnCount);
-    }
-    return;
-  }
-
-  if (!prim->indexAccessor) {
+  if (mode != AK_TRIANGLE_STRIP
+      && mode != AK_TRIANGLE_FAN
+      && !prim->indexAccessor) {
     wobj_write_triangle_list_fast(st,
                                   prim,
                                   posInput,
@@ -693,12 +572,10 @@ wobj_write_triangles(WOBJExpState    * __restrict st,
     return;
   }
 
-  for (i = 0; i + 2u < vertexCount; i += 3u) {
-    uint32_t tri[3];
+  if (!io_triangle_iter_init(&iter, prim))
+    return;
 
-    tri[0] = i;
-    tri[1] = i + 1u;
-    tri[2] = i + 2u;
+  while (io_triangle_iter_next(&iter, tri)) {
     wobj_write_face_vertices(st, prim, posInput, texInput, normInput,
                              tri, 3u, vBase, vtBase, vnBase,
                              vCount, vtCount, vnCount);
@@ -875,13 +752,13 @@ wobj_write_primitive(WOBJExpState      * __restrict st,
   bool          hasNormal;
   bool          ok;
 
-  posInput = wobj_find_input(prim, AK_INPUT_POSITION);
+  posInput = io_primitive_find_input(prim, AK_INPUT_POSITION);
   if (!posInput || !posInput->accessor)
     return true;
 
   colorInput = wobj_find_vertex_color_input(prim, posInput);
   texInput   = wobj_find_texcoord_input(prim);
-  normInput  = wobj_find_input(prim, AK_INPUT_NORMAL);
+  normInput  = io_primitive_find_input(prim, AK_INPUT_NORMAL);
 
   memset(&colorRows, 0, sizeof(colorRows));
   memset(&texRows, 0, sizeof(texRows));

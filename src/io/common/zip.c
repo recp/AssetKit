@@ -15,6 +15,7 @@
  */
 
 #include "zip.h"
+#include "binary.h"
 #include "../../miniz/miniz.h"
 #include "../../utils.h"
 
@@ -49,27 +50,11 @@ typedef struct AkZipStoredEntry {
 } AkZipStoredEntry;
 
 static
-uint16_t
-ak_zip_read_u16le(const unsigned char * __restrict p) {
-  return (uint16_t)((uint16_t)p[0] | ((uint16_t)p[1] << 8u));
-}
-
-static
-uint32_t
-ak_zip_read_u32le(const unsigned char * __restrict p) {
-  return (uint32_t)p[0]
-         | ((uint32_t)p[1] << 8u)
-         | ((uint32_t)p[2] << 16u)
-         | ((uint32_t)p[3] << 24u);
-}
-
-static
 void
 ak_zip_write_u16le(FILE * __restrict file, uint16_t value) {
   unsigned char out[2];
 
-  out[0] = (unsigned char)(value & 0xffu);
-  out[1] = (unsigned char)((value >> 8u) & 0xffu);
+  io_store_u16le(out, value);
   (void)fwrite(out, 1, sizeof(out), file);
 }
 
@@ -78,10 +63,7 @@ void
 ak_zip_write_u32le(FILE * __restrict file, uint32_t value) {
   unsigned char out[4];
 
-  out[0] = (unsigned char)(value & 0xffu);
-  out[1] = (unsigned char)((value >> 8u) & 0xffu);
-  out[2] = (unsigned char)((value >> 16u) & 0xffu);
-  out[3] = (unsigned char)((value >> 24u) & 0xffu);
+  io_store_u32le(out, value);
   (void)fwrite(out, 1, sizeof(out), file);
 }
 
@@ -115,7 +97,7 @@ ak_zip_find_eocd(const unsigned char * __restrict data, size_t size) {
   i     = size - AK_ZIP_EOCD_MIN_SIZE;
 
   for (;;) {
-    if (ak_zip_read_u32le(data + i) == AK_ZIP_END_CENTRAL_DIRECTORY)
+    if (io_load_u32le(data + i) == AK_ZIP_END_CENTRAL_DIRECTORY)
       return data + i;
     if (i == start)
       break;
@@ -139,18 +121,18 @@ ak_zip_read_central_entry(const unsigned char * __restrict data,
     return false;
 
   p = data + pos;
-  if (ak_zip_read_u32le(p) != AK_ZIP_CENTRAL_FILE_HEADER)
+  if (io_load_u32le(p) != AK_ZIP_CENTRAL_FILE_HEADER)
     return false;
 
-  entry->flags            = ak_zip_read_u16le(p + 8);
-  entry->method           = ak_zip_read_u16le(p + 10);
-  entry->crc32            = ak_zip_read_u32le(p + 16);
-  entry->compressedSize   = ak_zip_read_u32le(p + 20);
-  entry->uncompressedSize = ak_zip_read_u32le(p + 24);
-  entry->nameLen          = ak_zip_read_u16le(p + 28);
-  entry->extraLen         = ak_zip_read_u16le(p + 30);
-  entry->commentLen       = ak_zip_read_u16le(p + 32);
-  entry->localOffset      = ak_zip_read_u32le(p + 42);
+  entry->flags            = io_load_u16le(p + 8);
+  entry->method           = io_load_u16le(p + 10);
+  entry->crc32            = io_load_u32le(p + 16);
+  entry->compressedSize   = io_load_u32le(p + 20);
+  entry->uncompressedSize = io_load_u32le(p + 24);
+  entry->nameLen          = io_load_u16le(p + 28);
+  entry->extraLen         = io_load_u16le(p + 30);
+  entry->commentLen       = io_load_u16le(p + 32);
+  entry->localOffset      = io_load_u32le(p + 42);
   entry->name             = p + 46;
 
   pos += 46u;
@@ -193,11 +175,11 @@ ak_zip_extract_entry(const unsigned char       * __restrict zipData,
     return AK_EBADF;
 
   local = zipData + localOffset;
-  if (ak_zip_read_u32le(local) != AK_ZIP_LOCAL_FILE_HEADER)
+  if (io_load_u32le(local) != AK_ZIP_LOCAL_FILE_HEADER)
     return AK_EBADF;
 
-  localNameLen  = ak_zip_read_u16le(local + 26);
-  localExtraLen = ak_zip_read_u16le(local + 28);
+  localNameLen  = io_load_u16le(local + 26);
+  localExtraLen = io_load_u16le(local + 28);
   srcOffset     = localOffset + 30u + localNameLen + localExtraLen;
   srcSize       = entry->compressedSize;
   dstSize       = entry->uncompressedSize;
@@ -270,9 +252,9 @@ ak_zip_visit_entries(const char        * __restrict zipPath,
     return AK_EBADF;
   }
 
-  entryCount    = ak_zip_read_u16le(eocd + 10);
-  centralSize   = ak_zip_read_u32le(eocd + 12);
-  centralOffset = ak_zip_read_u32le(eocd + 16);
+  entryCount    = io_load_u16le(eocd + 10);
+  centralSize   = io_load_u32le(eocd + 12);
+  centralOffset = io_load_u32le(eocd + 16);
 
   if ((size_t)centralOffset > fileSize
       || (size_t)centralSize > fileSize - (size_t)centralOffset) {
@@ -339,9 +321,9 @@ ak_zip_extract_file(const char * __restrict zipPath,
     return AK_EBADF;
   }
 
-  entryCount   = ak_zip_read_u16le(eocd + 10);
-  centralSize  = ak_zip_read_u32le(eocd + 12);
-  centralOffset = ak_zip_read_u32le(eocd + 16);
+  entryCount   = io_load_u16le(eocd + 10);
+  centralSize  = io_load_u32le(eocd + 12);
+  centralOffset = io_load_u32le(eocd + 16);
 
   if ((size_t)centralOffset > fileSize
       || (size_t)centralSize > fileSize - (size_t)centralOffset) {

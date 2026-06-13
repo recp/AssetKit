@@ -15,6 +15,7 @@
  */
 
 #include "io.h"
+#include "../../common/uri.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -75,60 +76,25 @@ dae_output_dir(const char * __restrict filepath) {
 AK_HIDE
 bool
 dae_path_is_abs(const char * __restrict path) {
-  return path
-         && (path[0] == '/'
-             || path[0] == '\\'
-             || (((path[0] >= 'A' && path[0] <= 'Z')
-                  || (path[0] >= 'a' && path[0] <= 'z'))
-                 && path[1] == ':'));
-}
-
-static
-bool
-dae_uri_has_prefix(const char * __restrict uri,
-                   const char * __restrict prefix,
-                   size_t                  prefixLen) {
-  size_t i;
-
-  if (!uri)
-    return false;
-
-  for (i = 0; i < prefixLen; i++) {
-    if (uri[i] == '\0' || uri[i] != prefix[i])
-      return false;
-  }
-
-  return true;
+  return io_path_is_abs_drive_colon(path);
 }
 
 AK_HIDE
 bool
 dae_uri_has_scheme(const char * __restrict uri) {
-  const char *it;
-
-  if (!uri)
-    return false;
-
-  for (it = uri; *it; it++) {
-    if (*it == ':' && it != uri)
-      return true;
-    if (*it == '/' || *it == '\\' || *it == '?' || *it == '#')
-      return false;
-  }
-
-  return false;
+  return io_uri_has_scheme(uri);
 }
 
 AK_HIDE
 bool
 dae_uri_is_data(const char * __restrict uri) {
-  return dae_uri_has_prefix(uri, "data:", 5u);
+  return io_uri_has_prefix(uri, "data:", 5u);
 }
 
 AK_HIDE
 bool
 dae_uri_is_file_scheme(const char * __restrict uri) {
-  return dae_uri_has_prefix(uri, "file://", 7u);
+  return io_uri_has_prefix(uri, "file://", 7u);
 }
 
 static
