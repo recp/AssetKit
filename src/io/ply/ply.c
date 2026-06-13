@@ -810,7 +810,7 @@ ply_finish(PLYState * __restrict pst) {
 
   /* Buffer > Accessor > Input > Prim > Mesh > Geom > InstanceGeom > Node */
   
-  mesh = ak_allocMesh(pst->heap, pst->doc, &geom);
+  mesh = ak_allocMeshEx(pst->heap, pst->doc, &geom, true);
 
   /* add to library */
   AK_LIB_PREPEND(*pst->lib_geom, geom, next);

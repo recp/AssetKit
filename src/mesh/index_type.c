@@ -475,7 +475,7 @@ ak_meshPrimitiveEnsureSingleIndex(AkMeshPrimitive * __restrict prim) {
     return AK_ERR;
 
   ak_meshBeginEdit(prim->mesh);
-  ret = ak_primFixIndices(prim->mesh, prim);
+  ret = ak_primFixIndicesRetainDuplicator(prim->mesh, prim, true);
   ak_meshEndEdit(prim->mesh);
 
   return ret;

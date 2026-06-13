@@ -306,14 +306,15 @@ gltf_skins_add(GLTFExpState    * __restrict st,
     if (skin->nJoints > SIZE_MAX / sizeof(AkFloat4x4))
       return false;
 
-    if (!gltf_accessors_add_raw(&st->accessors,
-                                skin->invBindPoses,
-                                skin->invBindPoses,
-                                skin->nJoints * sizeof(AkFloat4x4),
-                                (uint32_t)skin->nJoints,
-                                AKT_FLOAT,
-                                AK_COMPONENT_SIZE_MAT4,
-                                16))
+    if (!gltf_accessors_add_raw_target(&st->accessors,
+                                       skin->invBindPoses,
+                                       skin->invBindPoses,
+                                       skin->nJoints * sizeof(AkFloat4x4),
+                                       (uint32_t)skin->nJoints,
+                                       AKT_FLOAT,
+                                       AK_COMPONENT_SIZE_MAT4,
+                                       16,
+                                       0))
       return false;
 
     out->inverseBindAccessorIndex = gltf_raw_accessor_index(&st->accessors,

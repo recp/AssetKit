@@ -27,10 +27,6 @@ gltf_ext_ktx2(AkGLTFState * __restrict gst);
 
 AK_HIDE
 bool
-gltf_ext_textureBasisu(AkGLTFState * __restrict gst);
-
-AK_HIDE
-bool
 gltf_ext_spzDecodeBytes(AkGLTFState     * __restrict gst,
                         AkMeshPrimitive * __restrict prim,
                         const uint8_t   * __restrict data,

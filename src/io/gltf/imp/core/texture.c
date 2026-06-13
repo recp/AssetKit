@@ -18,6 +18,7 @@
 #include "ext.h"
 #include "sampler.h"
 #include "../extra.h"
+#include "../ext/decoder.h"
 
 AK_INLINE
 char*
@@ -167,7 +168,7 @@ gltf_textures(json_t * __restrict jtex,
         jktx2 = gltf_jsonGetLen(jtexVal, _s_gltf_KHR_texture_basisu, 18);
 
         if (jktx2
-            && gltf_ext_textureBasisu(gst)
+            && gltf_ext_ktx2(gst)
             && (jaltSrc = GLTF_JSON_GET8(jktx2, source))) {
           AkImage *altImage = gltf_image_at(gst, json_int32(jaltSrc, -1));
           if (altImage)

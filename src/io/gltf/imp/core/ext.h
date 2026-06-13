@@ -47,10 +47,6 @@ gltf_ext_bufferView(AkGLTFState  * __restrict gst,
 
 AK_HIDE
 bool
-gltf_ext_textureBasisu(AkGLTFState * __restrict gst);
-
-AK_HIDE
-bool
 gltf_ext_dracoPrimitive(AkGLTFState     * __restrict gst,
                         AkMeshPrimitive * __restrict prim,
                         const json_t    * __restrict jprim);

@@ -25,11 +25,6 @@ ak_meshFixIndices(AkMesh *mesh);
 
 AK_HIDE
 AkResult
-ak_primFixIndices(AkMesh          *mesh,
-                  AkMeshPrimitive *prim);
-
-AK_HIDE
-AkResult
 ak_primFixIndicesRetainDuplicator(AkMesh          *mesh,
                                   AkMeshPrimitive *prim,
                                   bool             retainDuplicator);
@@ -37,10 +32,6 @@ ak_primFixIndicesRetainDuplicator(AkMesh          *mesh,
 AK_HIDE
 bool
 ak_primCollapseIdentityIndices(AkMeshPrimitive *prim);
-
-AK_HIDE
-AkResult
-ak_meshFixIndicesDefault(AkMesh *mesh);
 
 AK_HIDE
 AkResult

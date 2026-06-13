@@ -45,15 +45,6 @@ io_path_replace_extension_dup(const char * __restrict filepath,
                               size_t                  extLen);
 
 AK_HIDE
-bool
-io_path_join_parts(const char * __restrict dir,
-                   const char * __restrict rel,
-                   size_t     * __restrict dirLen,
-                   size_t     * __restrict relLen,
-                   bool       * __restrict sep,
-                   size_t     * __restrict need);
-
-AK_HIDE
 void
 io_path_join_write(char       * __restrict path,
                    const char * __restrict dir,

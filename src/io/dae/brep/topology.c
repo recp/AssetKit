@@ -15,13 +15,17 @@
  */
 
 #include "topology.h"
+#include "semantic.h"
 #include "../core/enum.h"
 #include "../../../array.h"
+
+#include <string.h>
 
 static
 bool
 dae_brep_input_source_is_object(AkInput * __restrict inp) {
   const char *sem;
+  size_t      len;
 
   if (!inp)
     return false;
@@ -33,17 +37,21 @@ dae_brep_input_source_is_object(AkInput * __restrict inp) {
   if (!sem)
     return false;
 
+  len = strlen(sem);
   switch (sem[0]) {
     case 'C':
-      return strcmp(sem, "CURVE") == 0 || strcmp(sem, "CURVE2D") == 0;
+      return ak_str_eq_packed_fast(sem, len, DAE_BREP_SEM_CURVE, 5u)
+             || ak_str_eq_packed_fast(sem, len, DAE_BREP_SEM_CURVE2D, 7u);
     case 'E':
-      return strcmp(sem, "EDGE") == 0 || strcmp(sem, "EGDE") == 0;
+      return ak_str_eq_packed_fast(sem, len, DAE_BREP_SEM_EDGE, 4u)
+             || ak_str_eq_packed_fast(sem, len, DAE_BREP_SEM_EGDE, 4u);
     case 'F':
-      return strcmp(sem, "FACE") == 0;
+      return ak_str_eq_packed_fast(sem, len, DAE_BREP_SEM_FACE, 4u);
     case 'S':
-      return strcmp(sem, "SURFACE") == 0 || strcmp(sem, "SHELL") == 0;
+      return ak_str_eq_packed_fast(sem, len, DAE_BREP_SEM_SURFACE, 7u)
+             || ak_str_eq_packed_fast(sem, len, DAE_BREP_SEM_SHELL, 5u);
     case 'W':
-      return strcmp(sem, "WIRE") == 0;
+      return ak_str_eq_packed_fast(sem, len, DAE_BREP_SEM_WIRE, 4u);
     default:
       break;
   }

@@ -485,25 +485,9 @@ gltf_accessors_add_accessor_target_flags(GLTFExpAccessorTable * __restrict table
 
 AK_HIDE
 bool
-gltf_accessors_add_accessor_target(GLTFExpAccessorTable * __restrict table,
-                                   AkAccessor           * __restrict accessor,
-                                   uint32_t                          target) ;
-
-AK_HIDE
-bool
-gltf_accessors_add_accessor(GLTFExpAccessorTable * __restrict table,
-                            AkAccessor           * __restrict accessor) ;
-
-AK_HIDE
-bool
 gltf_accessors_require_minmax_target(GLTFExpAccessorTable * __restrict table,
                                      AkAccessor           * __restrict accessor,
                                      uint32_t                          target) ;
-
-AK_HIDE
-bool
-gltf_accessors_require_minmax(GLTFExpAccessorTable * __restrict table,
-                              AkAccessor           * __restrict accessor) ;
 
 AK_HIDE
 AkTypeId
@@ -529,17 +513,6 @@ gltf_accessors_add_raw_target(GLTFExpAccessorTable * __restrict table,
                               AkComponentSize                   componentSize,
                               uint32_t                          componentCount,
                               uint32_t                          target) ;
-
-AK_HIDE
-bool
-gltf_accessors_add_raw(GLTFExpAccessorTable * __restrict table,
-                       const void           * __restrict key,
-                       const void           * __restrict data,
-                       size_t                            byteLength,
-                       uint32_t                          count,
-                       AkTypeId                          componentType,
-                       AkComponentSize                   componentSize,
-                       uint32_t                          componentCount) ;
 
 AK_HIDE
 bool
@@ -896,13 +869,6 @@ gltf_anim_node_matches(GLTFExpNodeOut  * __restrict out,
                        GLTFExpAnimPath               path) ;
 
 AK_HIDE
-bool
-gltf_anim_add_channel(GLTFExpState   * __restrict st,
-                      GLTFExpIndex                samplerIndex,
-                      GLTFExpIndex                nodeIndex,
-                      GLTFExpAnimPath             path) ;
-
-AK_HIDE
 GLTFExpIndex
 gltf_anim_find_sampler(GLTFExpState * __restrict st,
                        GLTFExpAnimOut * __restrict anim,
@@ -932,10 +898,6 @@ AK_HIDE
 bool
 gltf_plan_animation_tree(GLTFExpState * __restrict st,
                          AkAnimation  * __restrict animation) ;
-
-AK_HIDE
-bool
-gltf_plan_animations(GLTFExpState * __restrict st) ;
 
 AK_HIDE
 bool

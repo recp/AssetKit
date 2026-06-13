@@ -29,12 +29,6 @@
 
 AK_HIDE
 AkMesh*
-ak_allocMesh(AkHeap      * __restrict heap,
-             void        * __restrict memp,
-             AkGeometry ** __restrict geomLink);
-
-AK_HIDE
-AkMesh*
 ak_allocMeshEx(AkHeap      * __restrict heap,
                void        * __restrict memp,
                AkGeometry ** __restrict geomLink,

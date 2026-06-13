@@ -50,7 +50,7 @@ gltf_plan(GLTFExpState * __restrict st) {
       st->defaultSceneIndex = 0;
     if (!gltf_plan_deferred_skin_joint_roots(st)) {
       st->failed = true;
-    } else if (!gltf_plan_animations(st)) {
+    } else if (!gltf_plan_animation_tree(st, st->doc->lib.animations.first)) {
       st->failed = true;
     } else if (!gltf_plan_image_buffer_views(st)) {
       st->failed = true;
@@ -64,7 +64,7 @@ gltf_plan(GLTFExpState * __restrict st) {
     st->failed = true;
   } else if (!gltf_plan_deferred_skin_joint_roots(st)) {
     st->failed = true;
-  } else if (!gltf_plan_animations(st)) {
+  } else if (!gltf_plan_animation_tree(st, st->doc->lib.animations.first)) {
     st->failed = true;
   } else if (!gltf_plan_image_buffer_views(st)) {
     st->failed = true;

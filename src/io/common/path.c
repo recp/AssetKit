@@ -196,17 +196,6 @@ io_path_join_parts_ex(const char * __restrict dir,
 }
 
 AK_HIDE
-bool
-io_path_join_parts(const char * __restrict dir,
-                   const char * __restrict rel,
-                   size_t     * __restrict dirLen,
-                   size_t     * __restrict relLen,
-                   bool       * __restrict sep,
-                   size_t     * __restrict need) {
-  return io_path_join_parts_ex(dir, rel, false, dirLen, relLen, sep, need);
-}
-
-AK_HIDE
 void
 io_path_join_write(char       * __restrict path,
                    const char * __restrict dir,
@@ -231,7 +220,7 @@ io_path_join_dup(const char * __restrict dir,
   bool   sep;
   char  *path;
 
-  if (!io_path_join_parts(dir, rel, &dirLen, &relLen, &sep, &need))
+  if (!io_path_join_parts_ex(dir, rel, false, &dirLen, &relLen, &sep, &need))
     return NULL;
 
   path = malloc(need);
@@ -279,7 +268,7 @@ io_path_join_buf(const char * __restrict dir,
   if (!path || pathCap == 0)
     return false;
 
-  if (!io_path_join_parts(dir, rel, &dirLen, &relLen, &sep, &need))
+  if (!io_path_join_parts_ex(dir, rel, false, &dirLen, &relLen, &sep, &need))
     return false;
   if (need > pathCap)
     return false;

@@ -593,9 +593,11 @@ gltf_plan_morph_target_accessors(GLTFExpState * __restrict st,
                                                     input->accessor,
                                                     GLTF_EXP_BUFFER_VIEW_TARGET_ARRAY))
             return false;
-        } else if (!gltf_accessors_add_accessor_target(&st->accessors,
+        } else if (!gltf_accessors_add_accessor_target_flags(
+                                                       &st->accessors,
                                                        input->accessor,
-                                                       GLTF_EXP_BUFFER_VIEW_TARGET_ARRAY)) {
+                                                       GLTF_EXP_BUFFER_VIEW_TARGET_ARRAY,
+                                                       false)) {
           return false;
         }
       }
@@ -622,9 +624,11 @@ gltf_plan_morph_target_accessors(GLTFExpState * __restrict st,
                                                   input->accessor,
                                                   GLTF_EXP_BUFFER_VIEW_TARGET_ARRAY))
           return false;
-      } else if (!gltf_accessors_add_accessor_target(&st->accessors,
+      } else if (!gltf_accessors_add_accessor_target_flags(
+                                                     &st->accessors,
                                                      input->accessor,
-                                                     GLTF_EXP_BUFFER_VIEW_TARGET_ARRAY)) {
+                                                     GLTF_EXP_BUFFER_VIEW_TARGET_ARRAY,
+                                                     false)) {
         return false;
       }
     }
@@ -754,9 +758,11 @@ gltf_plan_mesh_accessors(GLTFExpState       * __restrict st,
     if (!gltf_index_accessor_supported(prim->indexAccessor))
       return false;
 
-    if (!gltf_accessors_add_accessor_target(&st->accessors,
+    if (!gltf_accessors_add_accessor_target_flags(
+                                            &st->accessors,
                                             prim->indexAccessor,
-                                            GLTF_EXP_BUFFER_VIEW_TARGET_ELEMENT_ARRAY))
+                                            GLTF_EXP_BUFFER_VIEW_TARGET_ELEMENT_ARRAY,
+                                            false))
       return false;
 
     if (!prim->indexAccessor

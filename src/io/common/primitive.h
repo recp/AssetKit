@@ -279,10 +279,48 @@ bool
 io_triangle_iter_init(IOTriangleIter  * __restrict it,
                       AkMeshPrimitive * __restrict prim);
 
-AK_HIDE
+static inline
 bool
 io_triangle_iter_next(IOTriangleIter * __restrict it,
-                      uint32_t                    tri[3]);
+                      uint32_t                    tri[3]) {
+  uint32_t i;
+
+  i = it->cursor;
+  switch (it->mode) {
+    case AK_TRIANGLE_STRIP:
+      if (i + 2u >= it->count)
+        return false;
+      if (i & 1u) {
+        tri[0] = i + 1u;
+        tri[1] = i;
+      } else {
+        tri[0] = i;
+        tri[1] = i + 1u;
+      }
+      tri[2] = i + 2u;
+      it->cursor = i + 1u;
+      return true;
+
+    case AK_TRIANGLE_FAN:
+      if (i + 1u >= it->count)
+        return false;
+      tri[0] = 0u;
+      tri[1] = i;
+      tri[2] = i + 1u;
+      it->cursor = i + 1u;
+      return true;
+
+    case AK_TRIANGLES:
+    default:
+      if (i + 2u >= it->count)
+        return false;
+      tri[0] = i;
+      tri[1] = i + 1u;
+      tri[2] = i + 2u;
+      it->cursor = i + 3u;
+      return true;
+  }
+}
 
 static inline
 void

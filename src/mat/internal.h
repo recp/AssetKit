@@ -27,10 +27,6 @@ ak_materialSurfaceFromTechniqueCommon(AkHeap              * __restrict heap,
 
 AK_HIDE
 AkMaterial*
-ak_materialDefaultVertexColor(AkDoc * __restrict doc);
-
-AK_HIDE
-AkMaterial*
 ak_materialDefaultVertexColorAlpha(AkDoc * __restrict doc, bool alphaBlend);
 
 #endif /* ak_mat_internal_h */

@@ -921,15 +921,6 @@ gltf_anim_add_channel_ex(GLTFExpState   * __restrict st,
 }
 
 AK_HIDE
-bool
-gltf_anim_add_channel(GLTFExpState   * __restrict st,
-                      GLTFExpIndex                samplerIndex,
-                      GLTFExpIndex                nodeIndex,
-                      GLTFExpAnimPath             path) {
-  return gltf_anim_add_channel_ex(st, samplerIndex, nodeIndex, path, 0, 0);
-}
-
-AK_HIDE
 GLTFExpIndex
 gltf_anim_find_sampler(GLTFExpState * __restrict st,
                        GLTFExpAnimOut * __restrict anim,
@@ -976,8 +967,11 @@ gltf_anim_add_sampler(GLTFExpState     * __restrict st,
       && interpolation != AK_INTERPOLATION_HERMITE)
     return false;
 
-  if (!gltf_accessors_require_minmax(&st->accessors, inputAccessor)
-      || !gltf_accessors_add_accessor(&st->accessors, outputAccessor))
+  if (!gltf_accessors_require_minmax_target(&st->accessors, inputAccessor, 0)
+      || !gltf_accessors_add_accessor_target_flags(&st->accessors,
+                                                   outputAccessor,
+                                                   0,
+                                                   false))
     return false;
 
   if (st->animSamplers.count >= GLTF_EXP_INDEX_NONE)
@@ -1145,7 +1139,12 @@ gltf_plan_anim_channel(GLTFExpState   * __restrict st,
       return GLTF_EXP_ANIM_PLAN_ERROR;
 
     if (i >= GLTF_EXP_INDEX_NONE
-        || !gltf_anim_add_channel(st, samplerIndex, (GLTFExpIndex)i, path))
+        || !gltf_anim_add_channel_ex(st,
+                                     samplerIndex,
+                                     (GLTFExpIndex)i,
+                                     path,
+                                     0,
+                                     0))
       return GLTF_EXP_ANIM_PLAN_ERROR;
 
     if (path != GLTF_EXP_ANIM_WEIGHTS
@@ -1223,10 +1222,4 @@ gltf_plan_animation_tree(GLTFExpState * __restrict st,
   }
 
   return true;
-}
-
-AK_HIDE
-bool
-gltf_plan_animations(GLTFExpState * __restrict st) {
-  return gltf_plan_animation_tree(st, st->doc->lib.animations.first);
 }

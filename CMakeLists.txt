@@ -159,6 +159,12 @@ if(AK_INSTALL_RPATH)
                         INSTALL_RPATH "${AK_INSTALL_RPATH}")
 endif()
 
+if(APPLE AND AK_SHARED)
+  target_link_options(${PROJECT_NAME}
+      PRIVATE
+          $<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>>:LINKER:-dead_strip>)
+endif()
+
 add_subdirectory(src)
 
 # Dependencies && Submodules

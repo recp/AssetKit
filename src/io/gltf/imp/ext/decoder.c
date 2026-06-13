@@ -156,12 +156,6 @@ gltf_ext_ktx2(AkGLTFState * __restrict gst) {
 
 AK_HIDE
 bool
-gltf_ext_textureBasisu(AkGLTFState * __restrict gst) {
-  return gltf_ext_ktx2(gst);
-}
-
-AK_HIDE
-bool
 gltf_ext_draco(AkGLTFState * __restrict gst) {
   AkGLTFDracoLib *dr;
   void           *lib;

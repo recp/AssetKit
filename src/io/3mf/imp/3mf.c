@@ -2387,7 +2387,7 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
     hasColor = true;
 
   heap = ak_heap_getheap(doc);
-  mesh = ak_allocMesh(heap, doc, &geom);
+  mesh = ak_allocMeshEx(heap, doc, &geom, true);
   if (!mesh || !geom) {
     free(srcPositions);
     return NULL;

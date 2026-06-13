@@ -1227,6 +1227,80 @@ ak_3mf_append_transform(AK3MFBuffer * __restrict buf, mat4 world) {
 
 static
 bool
+ak_3mf_write_plain_indexed_primitive(AK3MFExportState * __restrict st,
+                                     AkMeshPrimitive  * __restrict prim,
+                                     AkInput          * __restrict posInput,
+                                     AK3MFRows        * __restrict rows,
+                                     mat4                           world) {
+  IOTriangleIter iter;
+  uint32_t       vertexCount;
+  uint32_t       objectId;
+  uint32_t       vi;
+  uint32_t       tri[3];
+
+  vertexCount = posInput->accessor->count;
+  if (!io_triangle_iter_init(&iter, prim))
+    return true;
+
+  objectId = st->nextObjectId++;
+  AK_3MF_BUF_LIT(&st->resources, "      <object id=\"");
+  ak_3mf_buf_u32(&st->resources, objectId);
+  AK_3MF_BUF_LIT(&st->resources, "\" type=\"model\">\n"
+                                "        <mesh>\n"
+                                "          <vertices>\n");
+
+  for (vi = 0u; vi < vertexCount; vi++) {
+    const float *row;
+
+    row = ak_3mf_rows_get(rows, vi);
+    ak_3mf_append_vertex(&st->resources,
+                         ak_3mf_row_component(row, rows->componentCount, 0u, 0.0f),
+                         ak_3mf_row_component(row, rows->componentCount, 1u, 0.0f),
+                         ak_3mf_row_component(row, rows->componentCount, 2u, 0.0f),
+                         false);
+  }
+
+  AK_3MF_BUF_LIT(&st->resources, "          </vertices>\n"
+                                "          <triangles>\n");
+
+  while (io_triangle_iter_next(&iter, tri)) {
+    AkUInt i0;
+    AkUInt i1;
+    AkUInt i2;
+
+    i0 = io_primitive_input_index(prim, posInput, tri[0]);
+    i1 = io_primitive_input_index(prim, posInput, tri[1]);
+    i2 = io_primitive_input_index(prim, posInput, tri[2]);
+    if (i0 >= vertexCount)
+      i0 = 0u;
+    if (i1 >= vertexCount)
+      i1 = 0u;
+    if (i2 >= vertexCount)
+      i2 = 0u;
+    ak_3mf_append_triangle(&st->resources,
+                           (uint32_t)i0,
+                           (uint32_t)i1,
+                           (uint32_t)i2,
+                           0u,
+                           false,
+                           NULL);
+  }
+
+  AK_3MF_BUF_LIT(&st->resources, "          </triangles>\n"
+                                "        </mesh>\n"
+                                "      </object>\n");
+  AK_3MF_BUF_LIT(&st->build, "      <item objectid=\"");
+  ak_3mf_buf_u32(&st->build, objectId);
+  AK_3MF_BUF_LIT(&st->build, "\" transform=\"");
+  ak_3mf_append_transform(&st->build, world);
+  AK_3MF_BUF_LIT(&st->build, "\"/>\n");
+
+  st->objectCount++;
+  return st->resources.result == AK_OK && st->build.result == AK_OK;
+}
+
+static
+bool
 ak_3mf_write_primitive(AK3MFExportState * __restrict st,
                        AkMeshPrimitive  * __restrict prim,
                        mat4                           world) {
@@ -1261,11 +1335,20 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
   if (!posInput || !posInput->accessor)
     return true;
 
+  colorInput = ak_3mf_find_color_input(prim);
   if (!ak_3mf_rows_init(&rows, posInput->accessor))
     return false;
 
+  if (!st->print
+      && !st->suppressBuildItems
+      && prim->type == AK_PRIMITIVE_TRIANGLES
+      && !colorInput) {
+    ok = ak_3mf_write_plain_indexed_primitive(st, prim, posInput, &rows, world);
+    ak_3mf_rows_destroy(&rows);
+    return ok;
+  }
+
   memset(&colorRows, 0, sizeof(colorRows));
-  colorInput   = ak_3mf_find_color_input(prim);
   hasColorRows = colorInput && ak_3mf_rows_init(&colorRows, colorInput->accessor);
   propertyId   = hasColorRows ? st->nextObjectId++ : 0u;
 

@@ -276,7 +276,7 @@ wobj_switchObject(WOState * __restrict wst) {
   obj->next = wst->obj;
   wst->obj  = obj;
   
-  ak_allocMesh(wst->heap, wst->doc, &geom);
+  ak_allocMeshEx(wst->heap, wst->doc, &geom, true);
 
   /* set current geometry */
   obj->geom = geom;

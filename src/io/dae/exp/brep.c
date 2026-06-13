@@ -16,25 +16,10 @@
 
 #include "brep.h"
 #include "source.h"
+#include "../brep/semantic.h"
 #include "../strpool.h"
-#include "../../../string_fast.h"
 
 #include <string.h>
-
-#define DAE_BREP_SEM_CURVE                                                  \
-  AK_STR_PACK8_CHARS('C', 'U', 'R', 'V', 'E', 0, 0, 0)
-#define DAE_BREP_SEM_CURVE2D                                                \
-  AK_STR_PACK8_CHARS('C', 'U', 'R', 'V', 'E', '2', 'D', 0)
-#define DAE_BREP_SEM_SURFACE                                                \
-  AK_STR_PACK8_CHARS('S', 'U', 'R', 'F', 'A', 'C', 'E', 0)
-#define DAE_BREP_SEM_SHELL                                                  \
-  AK_STR_PACK8_CHARS('S', 'H', 'E', 'L', 'L', 0, 0, 0)
-#define DAE_BREP_SEM_EDGE  AK_STR_PACK4_CHARS('E', 'D', 'G', 'E')
-#define DAE_BREP_SEM_EGDE  AK_STR_PACK4_CHARS('E', 'G', 'D', 'E')
-#define DAE_BREP_SEM_WIRE  AK_STR_PACK4_CHARS('W', 'I', 'R', 'E')
-#define DAE_BREP_SEM_FACE  AK_STR_PACK4_CHARS('F', 'A', 'C', 'E')
-#define DAE_BREP_SEM_PARAM                                                  \
-  AK_STR_PACK8_CHARS('P', 'A', 'R', 'A', 'M', 0, 0, 0)
 
 typedef enum DAEExpBRepObjectSemantic {
   DAE_EXP_BREP_OBJECT_NONE = 0,

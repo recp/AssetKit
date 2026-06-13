@@ -455,7 +455,7 @@ ak_meshGenNormals(AkMesh * __restrict mesh) {
     ak_meshPrimGenNormals(prim);
 
     if (!edith->skipFixIndices)
-      ak_primFixIndices(mesh, prim);
+      ak_primFixIndicesRetainDuplicator(mesh, prim, true);
 
     prim = prim->next;
   }

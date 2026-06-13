@@ -214,9 +214,11 @@ gltf_plan_gpu_instancing_accessor(GLTFExpState * __restrict st,
     return true;
 
   return gltf_gpu_instancing_accessor_ok(acc, componentCount, count)
-         && gltf_accessors_add_accessor_target(&st->accessors,
+         && gltf_accessors_add_accessor_target_flags(
+                                               &st->accessors,
                                                acc,
-                                               GLTF_EXP_BUFFER_VIEW_TARGET_ARRAY);
+                                               GLTF_EXP_BUFFER_VIEW_TARGET_ARRAY,
+                                               false);
 }
 
 AK_HIDE

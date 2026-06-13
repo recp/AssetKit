@@ -241,13 +241,6 @@ ak_primFixIndicesRetainDuplicator(AkMesh          *mesh,
 
 AK_HIDE
 AkResult
-ak_primFixIndices(AkMesh          *mesh,
-                  AkMeshPrimitive *prim) {
-  return ak_primFixIndicesRetainDuplicator(mesh, prim, true);
-}
-
-AK_HIDE
-AkResult
 ak_meshFixIndicesDefaultRetainDuplicators(AkMesh *mesh,
                                           bool    retainDuplicators) {
   AkMeshPrimitive *prim;
@@ -263,19 +256,13 @@ ak_meshFixIndicesDefaultRetainDuplicators(AkMesh *mesh,
 
 AK_HIDE
 AkResult
-ak_meshFixIndicesDefault(AkMesh *mesh) {
-  return ak_meshFixIndicesDefaultRetainDuplicators(mesh, true);
-}
-
-AK_HIDE
-AkResult
 ak_meshFixIndices(AkMesh *mesh) {
   AkResult ret;
 
   ak_meshBeginEdit(mesh);
 
   /* currently only default option */
-  ret = ak_meshFixIndicesDefault(mesh);
+  ret = ak_meshFixIndicesDefaultRetainDuplicators(mesh, true);
 
   ak_meshEndEdit(mesh);
 

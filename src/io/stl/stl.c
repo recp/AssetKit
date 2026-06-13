@@ -1338,7 +1338,7 @@ sst_finish(STLState * __restrict sst) {
   /* Buffer > Accessor > Input > Prim > Mesh > Geom > InstanceGeom > Node */
   
   heap = sst->heap;
-  mesh = ak_allocMesh(sst->heap, sst->doc, &geom);
+  mesh = ak_allocMeshEx(sst->heap, sst->doc, &geom, true);
 
   if (sst->maxVC == 3) {
     AkTriangles *tri;

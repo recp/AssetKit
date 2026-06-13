@@ -181,21 +181,6 @@ gltf_accessors_add_accessor_target_flags(GLTFExpAccessorTable * __restrict table
 
 AK_HIDE
 bool
-gltf_accessors_add_accessor_target(GLTFExpAccessorTable * __restrict table,
-                                   AkAccessor           * __restrict accessor,
-                                   uint32_t                          target) {
-  return gltf_accessors_add_accessor_target_flags(table, accessor, target, false);
-}
-
-AK_HIDE
-bool
-gltf_accessors_add_accessor(GLTFExpAccessorTable * __restrict table,
-                            AkAccessor           * __restrict accessor) {
-  return gltf_accessors_add_accessor_target(table, accessor, 0);
-}
-
-AK_HIDE
-bool
 gltf_accessors_require_minmax_target(GLTFExpAccessorTable * __restrict table,
                                      AkAccessor           * __restrict accessor,
                                      uint32_t                          target) {
@@ -218,7 +203,7 @@ gltf_accessors_require_minmax_target(GLTFExpAccessorTable * __restrict table,
     return true;
   }
 
-  if (!gltf_accessors_add_accessor_target(table, accessor, target))
+  if (!gltf_accessors_add_accessor_target_flags(table, accessor, target, false))
     return false;
 
   idx = (uintptr_t)rb_find(table->accessorMap, accessor);
@@ -226,13 +211,6 @@ gltf_accessors_require_minmax_target(GLTFExpAccessorTable * __restrict table,
     table->items[(size_t)idx - 1u].minMaxRequired = true;
 
   return idx > 0;
-}
-
-AK_HIDE
-bool
-gltf_accessors_require_minmax(GLTFExpAccessorTable * __restrict table,
-                              AkAccessor           * __restrict accessor) {
-  return gltf_accessors_require_minmax_target(table, accessor, 0);
 }
 
 AK_HIDE
@@ -352,27 +330,6 @@ gltf_accessors_add_raw_target(GLTFExpAccessorTable * __restrict table,
   out.bufferViewTarget  = target;
 
   return gltf_accessors_add_out(table, &out, (void *)key, table->rawMap);
-}
-
-AK_HIDE
-bool
-gltf_accessors_add_raw(GLTFExpAccessorTable * __restrict table,
-                       const void           * __restrict key,
-                       const void           * __restrict data,
-                       size_t                            byteLength,
-                       uint32_t                          count,
-                       AkTypeId                          componentType,
-                       AkComponentSize                   componentSize,
-                       uint32_t                          componentCount) {
-  return gltf_accessors_add_raw_target(table,
-                                       key,
-                                       data,
-                                       byteLength,
-                                       count,
-                                       componentType,
-                                       componentSize,
-                                       componentCount,
-                                       0);
 }
 
 AK_HIDE

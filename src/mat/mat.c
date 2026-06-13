@@ -787,12 +787,6 @@ ak_materialDefaultVertexColorAlpha(AkDoc * __restrict doc, bool alphaBlend) {
 }
 
 AK_HIDE
-AkMaterial*
-ak_materialDefaultVertexColor(AkDoc * __restrict doc) {
-  return ak_materialDefaultVertexColorAlpha(doc, false);
-}
-
-AK_HIDE
 AkMaterialSurface*
 ak_materialSurfaceFromTechniqueCommon(AkHeap              * __restrict heap,
                                       void                * __restrict parent,

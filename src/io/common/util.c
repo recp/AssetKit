@@ -74,14 +74,6 @@ ak_allocMeshEx(AkHeap      * __restrict heap,
 }
 
 AK_HIDE
-AkMesh*
-ak_allocMesh(AkHeap      * __restrict heap,
-             void        * __restrict memp,
-             AkGeometry ** __restrict geomLink) {
-  return ak_allocMeshEx(heap, memp, geomLink, true);
-}
-
-AK_HIDE
 AkInput*
 io_addInput(AkHeap          * __restrict heap,
             AkDataContext   * __restrict dctx,
