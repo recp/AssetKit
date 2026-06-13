@@ -109,6 +109,8 @@ ak_3mf_buf_raw(AK3MFBuffer * __restrict buf,
   buf->len += len;
 }
 
+#define AK_3MF_BUF_LIT(BUF, LIT) ak_3mf_buf_raw((BUF), (LIT), sizeof(LIT) - 1u)
+
 static
 void
 ak_3mf_buf_lit(AK3MFBuffer * __restrict buf,
@@ -137,16 +139,16 @@ ak_3mf_buf_attr(AK3MFBuffer * __restrict buf,
   for (it = (const unsigned char *)value; *it; it++) {
     switch (*it) {
       case '&':
-        ak_3mf_buf_lit(buf, "&amp;");
+        AK_3MF_BUF_LIT(buf, "&amp;");
         break;
       case '<':
-        ak_3mf_buf_lit(buf, "&lt;");
+        AK_3MF_BUF_LIT(buf, "&lt;");
         break;
       case '"':
-        ak_3mf_buf_lit(buf, "&quot;");
+        AK_3MF_BUF_LIT(buf, "&quot;");
         break;
       case '\'':
-        ak_3mf_buf_lit(buf, "&apos;");
+        AK_3MF_BUF_LIT(buf, "&apos;");
         break;
       default:
         ak_3mf_buf_ch(buf, (char)*it);
@@ -177,11 +179,11 @@ ak_3mf_append_production_open_attrs(
     return;
 
   if (item->uuid) {
-    ak_3mf_buf_lit(buf, "\" p:UUID=\"");
+    AK_3MF_BUF_LIT(buf, "\" p:UUID=\"");
     ak_3mf_buf_attr(buf, item->uuid);
   }
   if (allowPath && item->path) {
-    ak_3mf_buf_lit(buf, "\" p:path=\"");
+    AK_3MF_BUF_LIT(buf, "\" p:path=\"");
     ak_3mf_buf_3mf_path_attr(buf, item->path);
   }
 }
@@ -193,7 +195,7 @@ ak_3mf_append_production_object_open_attrs(
                                     const AkPrintProductionItem * __restrict item) {
   ak_3mf_append_production_open_attrs(buf, item, false);
   if (item && item->modelResolution) {
-    ak_3mf_buf_lit(buf, "\" pa:modelresolution=\"");
+    AK_3MF_BUF_LIT(buf, "\" pa:modelresolution=\"");
     ak_3mf_buf_attr(buf, item->modelResolution);
   }
 }
@@ -207,12 +209,12 @@ ak_3mf_append_production_attrs(AK3MFBuffer                 * __restrict buf,
     return;
 
   if (item->uuid) {
-    ak_3mf_buf_lit(buf, " p:UUID=\"");
+    AK_3MF_BUF_LIT(buf, " p:UUID=\"");
     ak_3mf_buf_attr(buf, item->uuid);
     ak_3mf_buf_ch(buf, '"');
   }
   if (allowPath && item->path) {
-    ak_3mf_buf_lit(buf, " p:path=\"");
+    AK_3MF_BUF_LIT(buf, " p:path=\"");
     ak_3mf_buf_3mf_path_attr(buf, item->path);
     ak_3mf_buf_ch(buf, '"');
   }
@@ -654,14 +656,24 @@ void
 ak_3mf_append_vertex(AK3MFBuffer * __restrict vertices,
                      vec3                     pos,
                      bool                     displacement) {
-  ak_3mf_buf_lit(vertices, displacement ? "          <d:vertex x=\""
-                                        : "          <vertex x=\"");
+  const char *prefix;
+  size_t      prefixLen;
+
+  if (displacement) {
+    prefix    = "          <d:vertex x=\"";
+    prefixLen = sizeof("          <d:vertex x=\"") - 1u;
+  } else {
+    prefix    = "          <vertex x=\"";
+    prefixLen = sizeof("          <vertex x=\"") - 1u;
+  }
+
+  ak_3mf_buf_raw(vertices, prefix, prefixLen);
   ak_3mf_buf_float(vertices, pos[0]);
-  ak_3mf_buf_lit(vertices, "\" y=\"");
+  AK_3MF_BUF_LIT(vertices, "\" y=\"");
   ak_3mf_buf_float(vertices, pos[1]);
-  ak_3mf_buf_lit(vertices, "\" z=\"");
+  AK_3MF_BUF_LIT(vertices, "\" z=\"");
   ak_3mf_buf_float(vertices, pos[2]);
-  ak_3mf_buf_lit(vertices, "\"/>\n");
+  AK_3MF_BUF_LIT(vertices, "\"/>\n");
 }
 
 static
@@ -670,12 +682,12 @@ ak_3mf_append_color(AK3MFBuffer * __restrict colors, uint8_t rgba[4]) {
   static const char hex[] = "0123456789ABCDEF";
   uint32_t          i;
 
-  ak_3mf_buf_lit(colors, "        <m:color color=\"#");
+  AK_3MF_BUF_LIT(colors, "        <m:color color=\"#");
   for (i = 0; i < 4u; i++) {
     ak_3mf_buf_ch(colors, hex[rgba[i] >> 4u]);
     ak_3mf_buf_ch(colors, hex[rgba[i] & 0x0fu]);
   }
-  ak_3mf_buf_lit(colors, "\"/>\n");
+  AK_3MF_BUF_LIT(colors, "\"/>\n");
 }
 
 static
@@ -687,19 +699,19 @@ ak_3mf_append_displacement_triangle_attrs(
     return;
 
   if ((displacement->flags & AK_PRINT_DISPLACEMENT_TRIANGLE_HAS_GROUP) != 0u) {
-    ak_3mf_buf_lit(triangles, "\" did=\"");
+    AK_3MF_BUF_LIT(triangles, "\" did=\"");
     ak_3mf_buf_u32(triangles, displacement->groupId);
   }
   if ((displacement->flags & AK_PRINT_DISPLACEMENT_TRIANGLE_HAS_D1) != 0u) {
-    ak_3mf_buf_lit(triangles, "\" d1=\"");
+    AK_3MF_BUF_LIT(triangles, "\" d1=\"");
     ak_3mf_buf_u32(triangles, displacement->d1);
   }
   if ((displacement->flags & AK_PRINT_DISPLACEMENT_TRIANGLE_HAS_D2) != 0u) {
-    ak_3mf_buf_lit(triangles, "\" d2=\"");
+    AK_3MF_BUF_LIT(triangles, "\" d2=\"");
     ak_3mf_buf_u32(triangles, displacement->d2);
   }
   if ((displacement->flags & AK_PRINT_DISPLACEMENT_TRIANGLE_HAS_D3) != 0u) {
-    ak_3mf_buf_lit(triangles, "\" d3=\"");
+    AK_3MF_BUF_LIT(triangles, "\" d3=\"");
     ak_3mf_buf_u32(triangles, displacement->d3);
   }
 }
@@ -727,25 +739,35 @@ ak_3mf_append_triangle(AK3MFBuffer * __restrict triangles,
                        uint32_t                 propertyId,
                        bool                     displacementMesh,
                        const AkPrintDisplacementTriangle * __restrict displacement) {
-  ak_3mf_buf_lit(triangles, displacementMesh ? "          <d:triangle v1=\""
-                                             : "          <triangle v1=\"");
+  const char *prefix;
+  size_t      prefixLen;
+
+  if (displacementMesh) {
+    prefix    = "          <d:triangle v1=\"";
+    prefixLen = sizeof("          <d:triangle v1=\"") - 1u;
+  } else {
+    prefix    = "          <triangle v1=\"";
+    prefixLen = sizeof("          <triangle v1=\"") - 1u;
+  }
+
+  ak_3mf_buf_raw(triangles, prefix, prefixLen);
   ak_3mf_buf_u32(triangles, i0);
-  ak_3mf_buf_lit(triangles, "\" v2=\"");
+  AK_3MF_BUF_LIT(triangles, "\" v2=\"");
   ak_3mf_buf_u32(triangles, i1);
-  ak_3mf_buf_lit(triangles, "\" v3=\"");
+  AK_3MF_BUF_LIT(triangles, "\" v3=\"");
   ak_3mf_buf_u32(triangles, i2);
   if (propertyId != 0u) {
-    ak_3mf_buf_lit(triangles, "\" pid=\"");
+    AK_3MF_BUF_LIT(triangles, "\" pid=\"");
     ak_3mf_buf_u32(triangles, propertyId);
-    ak_3mf_buf_lit(triangles, "\" p1=\"");
+    AK_3MF_BUF_LIT(triangles, "\" p1=\"");
     ak_3mf_buf_u32(triangles, i0);
-    ak_3mf_buf_lit(triangles, "\" p2=\"");
+    AK_3MF_BUF_LIT(triangles, "\" p2=\"");
     ak_3mf_buf_u32(triangles, i1);
-    ak_3mf_buf_lit(triangles, "\" p3=\"");
+    AK_3MF_BUF_LIT(triangles, "\" p3=\"");
     ak_3mf_buf_u32(triangles, i2);
   }
   ak_3mf_append_displacement_triangle_attrs(triangles, displacement);
-  ak_3mf_buf_lit(triangles, "\"/>\n");
+  AK_3MF_BUF_LIT(triangles, "\"/>\n");
 }
 
 static
@@ -756,15 +778,15 @@ ak_3mf_append_slice_object_attrs(AK3MFBuffer               * __restrict buf,
     return;
 
   if (object->meshResolution) {
-    ak_3mf_buf_lit(buf, "\" s:meshresolution=\"");
+    AK_3MF_BUF_LIT(buf, "\" s:meshresolution=\"");
     ak_3mf_buf_attr(buf, object->meshResolution);
   }
   if (object->sliceStackId != 0u) {
-    ak_3mf_buf_lit(buf, "\" s:slicestackid=\"");
+    AK_3MF_BUF_LIT(buf, "\" s:slicestackid=\"");
     ak_3mf_buf_u32(buf, object->sliceStackId);
   }
   if (object->slicePath) {
-    ak_3mf_buf_lit(buf, "\" s:slicepath=\"/");
+    AK_3MF_BUF_LIT(buf, "\" s:slicepath=\"/");
     ak_3mf_buf_attr(buf, object->slicePath);
   }
 }
@@ -787,29 +809,29 @@ ak_3mf_write_production_alternatives(AK3MFExportState * __restrict st,
       continue;
 
     if (!opened) {
-      ak_3mf_buf_lit(buf, "        <pa:alternatives>\n");
+      AK_3MF_BUF_LIT(buf, "        <pa:alternatives>\n");
       opened = true;
     }
 
-    ak_3mf_buf_lit(buf, "          <pa:alternative objectid=\"");
+    AK_3MF_BUF_LIT(buf, "          <pa:alternative objectid=\"");
     ak_3mf_buf_u32(buf, item->objectId);
     if (item->uuid) {
-      ak_3mf_buf_lit(buf, "\" UUID=\"");
+      AK_3MF_BUF_LIT(buf, "\" UUID=\"");
       ak_3mf_buf_attr(buf, item->uuid);
     }
     if (item->path) {
-      ak_3mf_buf_lit(buf, "\" path=\"");
+      AK_3MF_BUF_LIT(buf, "\" path=\"");
       ak_3mf_buf_3mf_path_attr(buf, item->path);
     }
     if (item->modelResolution) {
-      ak_3mf_buf_lit(buf, "\" modelresolution=\"");
+      AK_3MF_BUF_LIT(buf, "\" modelresolution=\"");
       ak_3mf_buf_attr(buf, item->modelResolution);
     }
-    ak_3mf_buf_lit(buf, "\"/>\n");
+    AK_3MF_BUF_LIT(buf, "\"/>\n");
   }
 
   if (opened)
-    ak_3mf_buf_lit(buf, "        </pa:alternatives>\n");
+    AK_3MF_BUF_LIT(buf, "        </pa:alternatives>\n");
 }
 
 static
@@ -871,39 +893,39 @@ ak_3mf_write_beam(AK3MFBuffer       * __restrict buf,
   if (!beam)
     return;
 
-  ak_3mf_buf_lit(buf, "            <b:beam v1=\"");
+  AK_3MF_BUF_LIT(buf, "            <b:beam v1=\"");
   ak_3mf_buf_u32(buf, beam->v1);
-  ak_3mf_buf_lit(buf, "\" v2=\"");
+  AK_3MF_BUF_LIT(buf, "\" v2=\"");
   ak_3mf_buf_u32(buf, beam->v2);
   if ((beam->flags & AK_PRINT_BEAM_HAS_R1) != 0u) {
-    ak_3mf_buf_lit(buf, "\" r1=\"");
+    AK_3MF_BUF_LIT(buf, "\" r1=\"");
     ak_3mf_buf_float(buf, beam->r1);
   }
   if ((beam->flags & AK_PRINT_BEAM_HAS_R2) != 0u) {
-    ak_3mf_buf_lit(buf, "\" r2=\"");
+    AK_3MF_BUF_LIT(buf, "\" r2=\"");
     ak_3mf_buf_float(buf, beam->r2);
   }
   if ((beam->flags & AK_PRINT_BEAM_HAS_P1) != 0u) {
-    ak_3mf_buf_lit(buf, "\" p1=\"");
+    AK_3MF_BUF_LIT(buf, "\" p1=\"");
     ak_3mf_buf_u32(buf, beam->p1);
   }
   if ((beam->flags & AK_PRINT_BEAM_HAS_P2) != 0u) {
-    ak_3mf_buf_lit(buf, "\" p2=\"");
+    AK_3MF_BUF_LIT(buf, "\" p2=\"");
     ak_3mf_buf_u32(buf, beam->p2);
   }
   if ((beam->flags & AK_PRINT_BEAM_HAS_PID) != 0u) {
-    ak_3mf_buf_lit(buf, "\" pid=\"");
+    AK_3MF_BUF_LIT(buf, "\" pid=\"");
     ak_3mf_buf_u32(buf, beam->pid);
   }
   if ((beam->flags & AK_PRINT_BEAM_HAS_CAP1) != 0u && beam->cap1) {
-    ak_3mf_buf_lit(buf, "\" cap1=\"");
+    AK_3MF_BUF_LIT(buf, "\" cap1=\"");
     ak_3mf_buf_attr(buf, beam->cap1);
   }
   if ((beam->flags & AK_PRINT_BEAM_HAS_CAP2) != 0u && beam->cap2) {
-    ak_3mf_buf_lit(buf, "\" cap2=\"");
+    AK_3MF_BUF_LIT(buf, "\" cap2=\"");
     ak_3mf_buf_attr(buf, beam->cap2);
   }
-  ak_3mf_buf_lit(buf, "\"/>\n");
+  AK_3MF_BUF_LIT(buf, "\"/>\n");
 }
 
 static
@@ -913,21 +935,21 @@ ak_3mf_write_beam_ball(AK3MFBuffer           * __restrict buf,
   if (!ball)
     return;
 
-  ak_3mf_buf_lit(buf, "            <b2:ball vindex=\"");
+  AK_3MF_BUF_LIT(buf, "            <b2:ball vindex=\"");
   ak_3mf_buf_u32(buf, ball->vindex);
   if ((ball->flags & AK_PRINT_BEAM_BALL_HAS_RADIUS) != 0u) {
-    ak_3mf_buf_lit(buf, "\" r=\"");
+    AK_3MF_BUF_LIT(buf, "\" r=\"");
     ak_3mf_buf_float(buf, ball->radius);
   }
   if ((ball->flags & AK_PRINT_BEAM_BALL_HAS_P) != 0u) {
-    ak_3mf_buf_lit(buf, "\" p=\"");
+    AK_3MF_BUF_LIT(buf, "\" p=\"");
     ak_3mf_buf_u32(buf, ball->p);
   }
   if ((ball->flags & AK_PRINT_BEAM_BALL_HAS_PID) != 0u) {
-    ak_3mf_buf_lit(buf, "\" pid=\"");
+    AK_3MF_BUF_LIT(buf, "\" pid=\"");
     ak_3mf_buf_u32(buf, ball->pid);
   }
-  ak_3mf_buf_lit(buf, "\"/>\n");
+  AK_3MF_BUF_LIT(buf, "\"/>\n");
 }
 
 static
@@ -945,40 +967,40 @@ ak_3mf_write_beam_lattice(AK3MFExportState         * __restrict st,
   beam = ak_3mf_first_beam_for_lattice(st->print, lattice);
   ball = ak_3mf_first_ball_for_lattice(st->print, lattice);
 
-  ak_3mf_buf_lit(buf, "          <b:beamlattice radius=\"");
+  AK_3MF_BUF_LIT(buf, "          <b:beamlattice radius=\"");
   ak_3mf_buf_float(buf, lattice->radius);
-  ak_3mf_buf_lit(buf, "\" minlength=\"");
+  AK_3MF_BUF_LIT(buf, "\" minlength=\"");
   ak_3mf_buf_float(buf, lattice->minLength);
   if (lattice->clippingMode) {
-    ak_3mf_buf_lit(buf, "\" clippingmode=\"");
+    AK_3MF_BUF_LIT(buf, "\" clippingmode=\"");
     ak_3mf_buf_attr(buf, lattice->clippingMode);
   }
   if ((lattice->flags & AK_PRINT_BEAM_LATTICE_HAS_CLIPPING_MESH) != 0u) {
-    ak_3mf_buf_lit(buf, "\" clippingmesh=\"");
+    AK_3MF_BUF_LIT(buf, "\" clippingmesh=\"");
     ak_3mf_buf_u32(buf, lattice->clippingMesh);
   }
   if ((lattice->flags & AK_PRINT_BEAM_LATTICE_HAS_REPRESENTATION_MESH) != 0u) {
-    ak_3mf_buf_lit(buf, "\" representationmesh=\"");
+    AK_3MF_BUF_LIT(buf, "\" representationmesh=\"");
     ak_3mf_buf_u32(buf, lattice->representationMesh);
   }
   if ((lattice->flags & AK_PRINT_BEAM_LATTICE_HAS_PID) != 0u) {
-    ak_3mf_buf_lit(buf, "\" pid=\"");
+    AK_3MF_BUF_LIT(buf, "\" pid=\"");
     ak_3mf_buf_u32(buf, lattice->pid);
   }
   if ((lattice->flags & AK_PRINT_BEAM_LATTICE_HAS_PINDEX) != 0u) {
-    ak_3mf_buf_lit(buf, "\" pindex=\"");
+    AK_3MF_BUF_LIT(buf, "\" pindex=\"");
     ak_3mf_buf_u32(buf, lattice->pindex);
   }
   if (lattice->cap) {
-    ak_3mf_buf_lit(buf, "\" cap=\"");
+    AK_3MF_BUF_LIT(buf, "\" cap=\"");
     ak_3mf_buf_attr(buf, lattice->cap);
   }
   if (lattice->ballMode) {
-    ak_3mf_buf_lit(buf, "\" b2:ballmode=\"");
+    AK_3MF_BUF_LIT(buf, "\" b2:ballmode=\"");
     ak_3mf_buf_attr(buf, lattice->ballMode);
   }
   if ((lattice->flags & AK_PRINT_BEAM_LATTICE_HAS_BALL_RADIUS) != 0u) {
-    ak_3mf_buf_lit(buf, "\" b2:ballradius=\"");
+    AK_3MF_BUF_LIT(buf, "\" b2:ballradius=\"");
     ak_3mf_buf_float(buf, lattice->ballRadius);
   }
   ak_3mf_buf_lit(buf, "\">\n"
@@ -987,14 +1009,14 @@ ak_3mf_write_beam_lattice(AK3MFExportState         * __restrict st,
   for (i = 0u; i < lattice->beamCount && beam; i++, beam = beam->next)
     ak_3mf_write_beam(buf, beam);
 
-  ak_3mf_buf_lit(buf, "            </b:beams>\n");
+  AK_3MF_BUF_LIT(buf, "            </b:beams>\n");
   if (lattice->ballCount > 0u) {
-    ak_3mf_buf_lit(buf, "            <b2:balls>\n");
+    AK_3MF_BUF_LIT(buf, "            <b2:balls>\n");
     for (i = 0u; i < lattice->ballCount && ball; i++, ball = ball->next)
       ak_3mf_write_beam_ball(buf, ball);
-    ak_3mf_buf_lit(buf, "            </b2:balls>\n");
+    AK_3MF_BUF_LIT(buf, "            </b2:balls>\n");
   }
-  ak_3mf_buf_lit(buf, "          </b:beamlattice>\n");
+  AK_3MF_BUF_LIT(buf, "          </b:beamlattice>\n");
 }
 
 static
@@ -1364,27 +1386,27 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
   }
 
   if (propertyId != 0u) {
-    ak_3mf_buf_lit(&st->resources, "      <m:colorgroup id=\"");
+    AK_3MF_BUF_LIT(&st->resources, "      <m:colorgroup id=\"");
     ak_3mf_buf_u32(&st->resources, propertyId);
-    ak_3mf_buf_lit(&st->resources, "\">\n");
+    AK_3MF_BUF_LIT(&st->resources, "\">\n");
     ak_3mf_buf_raw(&st->resources, colors.data, colors.len);
-    ak_3mf_buf_lit(&st->resources, "      </m:colorgroup>\n");
+    AK_3MF_BUF_LIT(&st->resources, "      </m:colorgroup>\n");
     st->usesMaterialExtension = true;
   }
 
-  ak_3mf_buf_lit(&st->resources, "      <object id=\"");
+  AK_3MF_BUF_LIT(&st->resources, "      <object id=\"");
   ak_3mf_buf_u32(&st->resources, objectId);
   ak_3mf_append_production_object_open_attrs(&st->resources, productionObject);
   ak_3mf_append_slice_object_attrs(&st->resources, sliceObject);
-  ak_3mf_buf_lit(&st->resources, "\" type=\"model\">\n");
+  AK_3MF_BUF_LIT(&st->resources, "\" type=\"model\">\n");
   if (displacementMesh) {
     ak_3mf_buf_lit(&st->resources, "        <d:displacementmesh>\n"
                                   "          <d:vertices>\n");
   } else {
-    ak_3mf_buf_lit(&st->resources, "        <mesh");
+    AK_3MF_BUF_LIT(&st->resources, "        <mesh");
     if (volumetricMesh
         && (volumetricMesh->flags & AK_PRINT_VOLUMETRIC_MESH_HAS_VOLUME_ID) != 0u) {
-      ak_3mf_buf_lit(&st->resources, " volumeid=\"");
+      AK_3MF_BUF_LIT(&st->resources, " volumeid=\"");
       ak_3mf_buf_u32(&st->resources, volumetricMesh->volumeId);
       ak_3mf_buf_ch(&st->resources, '"');
     }
@@ -1397,16 +1419,16 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
                                 : "          </vertices>\n");
   if (triangleCount > 0u) {
     if (displacementMesh) {
-      ak_3mf_buf_lit(&st->resources, "          <d:triangles");
+      AK_3MF_BUF_LIT(&st->resources, "          <d:triangles");
       if ((displacementMesh->flags
            & AK_PRINT_DISPLACEMENT_MESH_HAS_DEFAULT_GROUP) != 0u) {
-        ak_3mf_buf_lit(&st->resources, " did=\"");
+        AK_3MF_BUF_LIT(&st->resources, " did=\"");
         ak_3mf_buf_u32(&st->resources, displacementMesh->defaultGroupId);
         ak_3mf_buf_ch(&st->resources, '"');
       }
-      ak_3mf_buf_lit(&st->resources, ">\n");
+      AK_3MF_BUF_LIT(&st->resources, ">\n");
     } else {
-      ak_3mf_buf_lit(&st->resources, "          <triangles>\n");
+      AK_3MF_BUF_LIT(&st->resources, "          <triangles>\n");
     }
     ak_3mf_buf_raw(&st->resources, triangles.data, triangles.len);
     ak_3mf_buf_lit(&st->resources, displacementMesh
@@ -1418,16 +1440,16 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
                                 ? "        </d:displacementmesh>\n"
                                 : "        </mesh>\n");
   ak_3mf_write_production_alternatives(st, &st->resources, objectId);
-  ak_3mf_buf_lit(&st->resources, "      </object>\n");
+  AK_3MF_BUF_LIT(&st->resources, "      </object>\n");
 
   if (!st->suppressBuildItems) {
     productionItem = ak_3mf_production_item_for_export(st, objectId);
-    ak_3mf_buf_lit(&st->build, "      <item objectid=\"");
+    AK_3MF_BUF_LIT(&st->build, "      <item objectid=\"");
     ak_3mf_buf_u32(&st->build, objectId);
     ak_3mf_append_production_open_attrs(&st->build, productionItem, true);
-    ak_3mf_buf_lit(&st->build, "\" transform=\"");
+    AK_3MF_BUF_LIT(&st->build, "\" transform=\"");
     ak_3mf_append_transform(&st->build, world);
-    ak_3mf_buf_lit(&st->build, "\"/>\n");
+    AK_3MF_BUF_LIT(&st->build, "\"/>\n");
   }
 
   st->objectCount++;
@@ -1607,31 +1629,31 @@ ak_3mf_write_displacement2d(AK3MFBuffer                 * __restrict buf,
   if (!buf || !displacement || !displacement->imagePath)
     return;
 
-  ak_3mf_buf_lit(buf, "      <d:displacement2d id=\"");
+  AK_3MF_BUF_LIT(buf, "      <d:displacement2d id=\"");
   ak_3mf_buf_u32(buf, displacement->id);
-  ak_3mf_buf_lit(buf, "\" path=\"/");
+  AK_3MF_BUF_LIT(buf, "\" path=\"/");
   ak_3mf_buf_attr(buf, displacement->imagePath);
   if ((displacement->flags & AK_PRINT_DISPLACEMENT_2D_HAS_CHANNEL) != 0u
       && displacement->channel) {
-    ak_3mf_buf_lit(buf, "\" channel=\"");
+    AK_3MF_BUF_LIT(buf, "\" channel=\"");
     ak_3mf_buf_attr(buf, displacement->channel);
   }
   if ((displacement->flags & AK_PRINT_DISPLACEMENT_2D_HAS_TILESTYLE_U) != 0u
       && displacement->tileStyleU) {
-    ak_3mf_buf_lit(buf, "\" tilestyleu=\"");
+    AK_3MF_BUF_LIT(buf, "\" tilestyleu=\"");
     ak_3mf_buf_attr(buf, displacement->tileStyleU);
   }
   if ((displacement->flags & AK_PRINT_DISPLACEMENT_2D_HAS_TILESTYLE_V) != 0u
       && displacement->tileStyleV) {
-    ak_3mf_buf_lit(buf, "\" tilestylev=\"");
+    AK_3MF_BUF_LIT(buf, "\" tilestylev=\"");
     ak_3mf_buf_attr(buf, displacement->tileStyleV);
   }
   if ((displacement->flags & AK_PRINT_DISPLACEMENT_2D_HAS_FILTER) != 0u
       && displacement->filter) {
-    ak_3mf_buf_lit(buf, "\" filter=\"");
+    AK_3MF_BUF_LIT(buf, "\" filter=\"");
     ak_3mf_buf_attr(buf, displacement->filter);
   }
-  ak_3mf_buf_lit(buf, "\"/>\n");
+  AK_3MF_BUF_LIT(buf, "\"/>\n");
 }
 
 static
@@ -1647,19 +1669,19 @@ ak_3mf_write_norm_vector_group(AK3MFExportState              * __restrict st,
     return;
 
   vector = ak_3mf_first_norm_vector_for_group(st->print, group);
-  ak_3mf_buf_lit(&st->resources, "      <d:normvectorgroup id=\"");
+  AK_3MF_BUF_LIT(&st->resources, "      <d:normvectorgroup id=\"");
   ak_3mf_buf_u32(&st->resources, group->id);
-  ak_3mf_buf_lit(&st->resources, "\">\n");
+  AK_3MF_BUF_LIT(&st->resources, "\">\n");
   for (i = 0u; i < group->vectorCount && vector; i++, vector = vector->next) {
-    ak_3mf_buf_lit(&st->resources, "        <d:normvector x=\"");
+    AK_3MF_BUF_LIT(&st->resources, "        <d:normvector x=\"");
     ak_3mf_buf_float(&st->resources, vector->x);
-    ak_3mf_buf_lit(&st->resources, "\" y=\"");
+    AK_3MF_BUF_LIT(&st->resources, "\" y=\"");
     ak_3mf_buf_float(&st->resources, vector->y);
-    ak_3mf_buf_lit(&st->resources, "\" z=\"");
+    AK_3MF_BUF_LIT(&st->resources, "\" z=\"");
     ak_3mf_buf_float(&st->resources, vector->z);
-    ak_3mf_buf_lit(&st->resources, "\"/>\n");
+    AK_3MF_BUF_LIT(&st->resources, "\"/>\n");
   }
-  ak_3mf_buf_lit(&st->resources, "      </d:normvectorgroup>\n");
+  AK_3MF_BUF_LIT(&st->resources, "      </d:normvectorgroup>\n");
 }
 
 static
@@ -1675,33 +1697,33 @@ ak_3mf_write_disp2d_group(AK3MFExportState         * __restrict st,
     return;
 
   coord = ak_3mf_first_disp2d_coord_for_group(st->print, group);
-  ak_3mf_buf_lit(&st->resources, "      <d:disp2dgroup id=\"");
+  AK_3MF_BUF_LIT(&st->resources, "      <d:disp2dgroup id=\"");
   ak_3mf_buf_u32(&st->resources, group->id);
-  ak_3mf_buf_lit(&st->resources, "\" dispid=\"");
+  AK_3MF_BUF_LIT(&st->resources, "\" dispid=\"");
   ak_3mf_buf_u32(&st->resources, group->displacementId);
-  ak_3mf_buf_lit(&st->resources, "\" nid=\"");
+  AK_3MF_BUF_LIT(&st->resources, "\" nid=\"");
   ak_3mf_buf_u32(&st->resources, group->normVectorGroupId);
-  ak_3mf_buf_lit(&st->resources, "\" height=\"");
+  AK_3MF_BUF_LIT(&st->resources, "\" height=\"");
   ak_3mf_buf_float(&st->resources, group->height);
   if ((group->flags & AK_PRINT_DISP2D_GROUP_HAS_OFFSET) != 0u) {
-    ak_3mf_buf_lit(&st->resources, "\" offset=\"");
+    AK_3MF_BUF_LIT(&st->resources, "\" offset=\"");
     ak_3mf_buf_float(&st->resources, group->offset);
   }
-  ak_3mf_buf_lit(&st->resources, "\">\n");
+  AK_3MF_BUF_LIT(&st->resources, "\">\n");
   for (i = 0u; i < group->coordCount && coord; i++, coord = coord->next) {
-    ak_3mf_buf_lit(&st->resources, "        <d:disp2dcoord u=\"");
+    AK_3MF_BUF_LIT(&st->resources, "        <d:disp2dcoord u=\"");
     ak_3mf_buf_float(&st->resources, coord->u);
-    ak_3mf_buf_lit(&st->resources, "\" v=\"");
+    AK_3MF_BUF_LIT(&st->resources, "\" v=\"");
     ak_3mf_buf_float(&st->resources, coord->v);
-    ak_3mf_buf_lit(&st->resources, "\" n=\"");
+    AK_3MF_BUF_LIT(&st->resources, "\" n=\"");
     ak_3mf_buf_u32(&st->resources, coord->normVectorIndex);
     if ((coord->flags & AK_PRINT_DISP2D_COORD_HAS_FACTOR) != 0u) {
-      ak_3mf_buf_lit(&st->resources, "\" f=\"");
+      AK_3MF_BUF_LIT(&st->resources, "\" f=\"");
       ak_3mf_buf_float(&st->resources, coord->factor);
     }
-    ak_3mf_buf_lit(&st->resources, "\"/>\n");
+    AK_3MF_BUF_LIT(&st->resources, "\"/>\n");
   }
-  ak_3mf_buf_lit(&st->resources, "      </d:disp2dgroup>\n");
+  AK_3MF_BUF_LIT(&st->resources, "      </d:disp2dgroup>\n");
 }
 
 static
@@ -1790,7 +1812,7 @@ ak_3mf_append_optional_3mf_path(AK3MFBuffer * __restrict buf,
   if (!path)
     return;
 
-  ak_3mf_buf_lit(buf, "\" path=\"/");
+  AK_3MF_BUF_LIT(buf, "\" path=\"/");
   ak_3mf_buf_attr(buf, path);
 }
 
@@ -1845,27 +1867,27 @@ ak_3mf_write_image3d(AK3MFExportState      * __restrict st,
     return;
 
   sheet = ak_3mf_first_image_sheet_for_image(st->print, image);
-  ak_3mf_buf_lit(&st->resources, "      <v:image3d id=\"");
+  AK_3MF_BUF_LIT(&st->resources, "      <v:image3d id=\"");
   ak_3mf_buf_u32(&st->resources, image->id);
   ak_3mf_buf_ch(&st->resources, '"');
   if (image->name) {
-    ak_3mf_buf_lit(&st->resources, " name=\"");
+    AK_3MF_BUF_LIT(&st->resources, " name=\"");
     ak_3mf_buf_attr(&st->resources, image->name);
     ak_3mf_buf_ch(&st->resources, '"');
   }
   ak_3mf_buf_lit(&st->resources, ">\n"
                                 "        <v:imagestack rowcount=\"");
   ak_3mf_buf_u32(&st->resources, image->rowCount);
-  ak_3mf_buf_lit(&st->resources, "\" columncount=\"");
+  AK_3MF_BUF_LIT(&st->resources, "\" columncount=\"");
   ak_3mf_buf_u32(&st->resources, image->columnCount);
-  ak_3mf_buf_lit(&st->resources, "\" sheetcount=\"");
+  AK_3MF_BUF_LIT(&st->resources, "\" sheetcount=\"");
   ak_3mf_buf_u32(&st->resources, image->sheetCount);
-  ak_3mf_buf_lit(&st->resources, "\">\n");
+  AK_3MF_BUF_LIT(&st->resources, "\">\n");
 
   for (i = 0u; i < image->imageSheetCount && sheet; i++, sheet = sheet->next) {
-    ak_3mf_buf_lit(&st->resources, "          <v:imagesheet path=\"/");
+    AK_3MF_BUF_LIT(&st->resources, "          <v:imagesheet path=\"/");
     ak_3mf_buf_attr(&st->resources, sheet->path);
-    ak_3mf_buf_lit(&st->resources, "\"/>\n");
+    AK_3MF_BUF_LIT(&st->resources, "\"/>\n");
   }
 
   ak_3mf_buf_lit(&st->resources, "        </v:imagestack>\n"
@@ -1882,51 +1904,51 @@ ak_3mf_write_function_from_image3d(
   if (function->path && !ak_3mf_path_is_root_model(function->path))
     return;
 
-  ak_3mf_buf_lit(&st->resources, "      <v:functionfromimage3d id=\"");
+  AK_3MF_BUF_LIT(&st->resources, "      <v:functionfromimage3d id=\"");
   ak_3mf_buf_u32(&st->resources, function->id);
-  ak_3mf_buf_lit(&st->resources, "\" image3did=\"");
+  AK_3MF_BUF_LIT(&st->resources, "\" image3did=\"");
   ak_3mf_buf_u32(&st->resources, function->image3DId);
   ak_3mf_buf_ch(&st->resources, '"');
   if (function->displayName) {
-    ak_3mf_buf_lit(&st->resources, " displayname=\"");
+    AK_3MF_BUF_LIT(&st->resources, " displayname=\"");
     ak_3mf_buf_attr(&st->resources, function->displayName);
     ak_3mf_buf_ch(&st->resources, '"');
   }
   if ((function->flags & AK_PRINT_FUNCTION_FROM_IMAGE3D_HAS_VALUE_OFFSET) != 0u) {
-    ak_3mf_buf_lit(&st->resources, " valueoffset=\"");
+    AK_3MF_BUF_LIT(&st->resources, " valueoffset=\"");
     ak_3mf_buf_float(&st->resources, function->valueOffset);
     ak_3mf_buf_ch(&st->resources, '"');
   }
   if ((function->flags & AK_PRINT_FUNCTION_FROM_IMAGE3D_HAS_VALUE_SCALE) != 0u) {
-    ak_3mf_buf_lit(&st->resources, " valuescale=\"");
+    AK_3MF_BUF_LIT(&st->resources, " valuescale=\"");
     ak_3mf_buf_float(&st->resources, function->valueScale);
     ak_3mf_buf_ch(&st->resources, '"');
   }
   if ((function->flags & AK_PRINT_FUNCTION_FROM_IMAGE3D_HAS_FILTER) != 0u
       && function->filter) {
-    ak_3mf_buf_lit(&st->resources, " filter=\"");
+    AK_3MF_BUF_LIT(&st->resources, " filter=\"");
     ak_3mf_buf_attr(&st->resources, function->filter);
     ak_3mf_buf_ch(&st->resources, '"');
   }
   if ((function->flags & AK_PRINT_FUNCTION_FROM_IMAGE3D_HAS_TILESTYLE_U) != 0u
       && function->tileStyleU) {
-    ak_3mf_buf_lit(&st->resources, " tilestyleu=\"");
+    AK_3MF_BUF_LIT(&st->resources, " tilestyleu=\"");
     ak_3mf_buf_attr(&st->resources, function->tileStyleU);
     ak_3mf_buf_ch(&st->resources, '"');
   }
   if ((function->flags & AK_PRINT_FUNCTION_FROM_IMAGE3D_HAS_TILESTYLE_V) != 0u
       && function->tileStyleV) {
-    ak_3mf_buf_lit(&st->resources, " tilestylev=\"");
+    AK_3MF_BUF_LIT(&st->resources, " tilestylev=\"");
     ak_3mf_buf_attr(&st->resources, function->tileStyleV);
     ak_3mf_buf_ch(&st->resources, '"');
   }
   if ((function->flags & AK_PRINT_FUNCTION_FROM_IMAGE3D_HAS_TILESTYLE_W) != 0u
       && function->tileStyleW) {
-    ak_3mf_buf_lit(&st->resources, " tilestylew=\"");
+    AK_3MF_BUF_LIT(&st->resources, " tilestylew=\"");
     ak_3mf_buf_attr(&st->resources, function->tileStyleW);
     ak_3mf_buf_ch(&st->resources, '"');
   }
-  ak_3mf_buf_lit(&st->resources, "/>\n");
+  AK_3MF_BUF_LIT(&st->resources, "/>\n");
 }
 
 static
@@ -1940,7 +1962,7 @@ ak_3mf_write_implicit_function(AK3MFExportState                 * __restrict st,
   if (!function->xml)
     return;
 
-  ak_3mf_buf_lit(&st->resources, "      ");
+  AK_3MF_BUF_LIT(&st->resources, "      ");
   ak_3mf_buf_lit(&st->resources, function->xml);
   ak_3mf_buf_ch(&st->resources, '\n');
 }
@@ -1967,23 +1989,23 @@ ak_3mf_write_volumetric_element(AK3MFBuffer                    * __restrict buf,
       break;
   }
 
-  ak_3mf_buf_lit(buf, "        <v:");
+  AK_3MF_BUF_LIT(buf, "        <v:");
   ak_3mf_buf_lit(buf, tag);
-  ak_3mf_buf_lit(buf, " functionid=\"");
+  AK_3MF_BUF_LIT(buf, " functionid=\"");
   ak_3mf_buf_u32(buf, element->functionId);
   ak_3mf_buf_ch(buf, '"');
   if (element->channel) {
-    ak_3mf_buf_lit(buf, " channel=\"");
+    AK_3MF_BUF_LIT(buf, " channel=\"");
     ak_3mf_buf_attr(buf, element->channel);
     ak_3mf_buf_ch(buf, '"');
   }
   if (element->type == AK_PRINT_VOLUMETRIC_ELEMENT_PROPERTY) {
     if (element->name) {
-      ak_3mf_buf_lit(buf, " name=\"");
+      AK_3MF_BUF_LIT(buf, " name=\"");
       ak_3mf_buf_attr(buf, element->name);
       ak_3mf_buf_ch(buf, '"');
     }
-    ak_3mf_buf_lit(buf, " required=\"");
+    AK_3MF_BUF_LIT(buf, " required=\"");
     ak_3mf_buf_lit(buf,
                    (element->flags & AK_PRINT_VOLUMETRIC_ELEMENT_REQUIRED) != 0u
                    ? "true"
@@ -1991,21 +2013,21 @@ ak_3mf_write_volumetric_element(AK3MFBuffer                    * __restrict buf,
     ak_3mf_buf_ch(buf, '"');
   }
   if ((element->flags & AK_PRINT_VOLUMETRIC_ELEMENT_HAS_TRANSFORM) != 0u) {
-    ak_3mf_buf_lit(buf, " transform=\"");
+    AK_3MF_BUF_LIT(buf, " transform=\"");
     ak_3mf_append_flat_transform(buf, element->matrix);
     ak_3mf_buf_ch(buf, '"');
   }
   if ((element->flags & AK_PRINT_VOLUMETRIC_ELEMENT_HAS_MIN_FEATURE_SIZE) != 0u) {
-    ak_3mf_buf_lit(buf, " minfeaturesize=\"");
+    AK_3MF_BUF_LIT(buf, " minfeaturesize=\"");
     ak_3mf_buf_float(buf, element->minFeatureSize);
     ak_3mf_buf_ch(buf, '"');
   }
   if ((element->flags & AK_PRINT_VOLUMETRIC_ELEMENT_HAS_FALLBACK_VALUE) != 0u) {
-    ak_3mf_buf_lit(buf, " fallbackvalue=\"");
+    AK_3MF_BUF_LIT(buf, " fallbackvalue=\"");
     ak_3mf_buf_float(buf, element->fallbackValue);
     ak_3mf_buf_ch(buf, '"');
   }
-  ak_3mf_buf_lit(buf, "/>\n");
+  AK_3MF_BUF_LIT(buf, "/>\n");
 }
 
 static
@@ -2041,19 +2063,19 @@ ak_3mf_write_volume_data(AK3MFExportState        * __restrict st,
   hasComposite = volume->materialMappingCount > 0u
                  || (volume->flags & AK_PRINT_VOLUME_DATA_HAS_BASE_MATERIAL_ID) != 0u;
 
-  ak_3mf_buf_lit(&st->resources, "      <v:volumedata id=\"");
+  AK_3MF_BUF_LIT(&st->resources, "      <v:volumedata id=\"");
   ak_3mf_buf_u32(&st->resources, volume->id);
-  ak_3mf_buf_lit(&st->resources, "\">\n");
+  AK_3MF_BUF_LIT(&st->resources, "\">\n");
 
   if (hasComposite) {
-    ak_3mf_buf_lit(&st->resources, "        <v:composite basematerialid=\"");
+    AK_3MF_BUF_LIT(&st->resources, "        <v:composite basematerialid=\"");
     ak_3mf_buf_u32(&st->resources, volume->baseMaterialId);
-    ak_3mf_buf_lit(&st->resources, "\">\n");
+    AK_3MF_BUF_LIT(&st->resources, "\">\n");
     ak_3mf_write_volume_elements_of_type(&st->resources,
                                          element,
                                          total,
                                          AK_PRINT_VOLUMETRIC_ELEMENT_MATERIAL_MAPPING);
-    ak_3mf_buf_lit(&st->resources, "        </v:composite>\n");
+    AK_3MF_BUF_LIT(&st->resources, "        </v:composite>\n");
   }
 
   ak_3mf_write_volume_elements_of_type(&st->resources,
@@ -2064,7 +2086,7 @@ ak_3mf_write_volume_data(AK3MFExportState        * __restrict st,
                                        element,
                                        total,
                                        AK_PRINT_VOLUMETRIC_ELEMENT_PROPERTY);
-  ak_3mf_buf_lit(&st->resources, "      </v:volumedata>\n");
+  AK_3MF_BUF_LIT(&st->resources, "      </v:volumedata>\n");
 }
 
 static
@@ -2114,7 +2136,7 @@ ak_3mf_write_level_sets(AK3MFExportState * __restrict st) {
     if (st->nextObjectId <= objectId)
       st->nextObjectId = objectId + 1u;
 
-    ak_3mf_buf_lit(&st->resources, "      <object id=\"");
+    AK_3MF_BUF_LIT(&st->resources, "      <object id=\"");
     ak_3mf_buf_u32(&st->resources, objectId);
     productionObject = ak_3mf_production_object_for_export(st, objectId);
     ak_3mf_append_production_object_open_attrs(&st->resources, productionObject);
@@ -2123,47 +2145,47 @@ ak_3mf_write_level_sets(AK3MFExportState * __restrict st) {
     ak_3mf_buf_u32(&st->resources, levelSet->functionId);
     ak_3mf_buf_ch(&st->resources, '"');
     if (levelSet->channel) {
-      ak_3mf_buf_lit(&st->resources, " channel=\"");
+      AK_3MF_BUF_LIT(&st->resources, " channel=\"");
       ak_3mf_buf_attr(&st->resources, levelSet->channel);
       ak_3mf_buf_ch(&st->resources, '"');
     }
     if (levelSet->meshId != 0u) {
-      ak_3mf_buf_lit(&st->resources, " meshid=\"");
+      AK_3MF_BUF_LIT(&st->resources, " meshid=\"");
       ak_3mf_buf_u32(&st->resources, levelSet->meshId);
       ak_3mf_buf_ch(&st->resources, '"');
     }
     if ((levelSet->flags & AK_PRINT_LEVEL_SET_HAS_VOLUME_ID) != 0u) {
-      ak_3mf_buf_lit(&st->resources, " volumeid=\"");
+      AK_3MF_BUF_LIT(&st->resources, " volumeid=\"");
       ak_3mf_buf_u32(&st->resources, levelSet->volumeId);
       ak_3mf_buf_ch(&st->resources, '"');
     }
     if ((levelSet->flags & AK_PRINT_LEVEL_SET_HAS_TRANSFORM) != 0u) {
-      ak_3mf_buf_lit(&st->resources, " transform=\"");
+      AK_3MF_BUF_LIT(&st->resources, " transform=\"");
       ak_3mf_append_flat_transform(&st->resources, levelSet->matrix);
       ak_3mf_buf_ch(&st->resources, '"');
     }
     if ((levelSet->flags & AK_PRINT_LEVEL_SET_HAS_MIN_FEATURE_SIZE) != 0u) {
-      ak_3mf_buf_lit(&st->resources, " minfeaturesize=\"");
+      AK_3MF_BUF_LIT(&st->resources, " minfeaturesize=\"");
       ak_3mf_buf_float(&st->resources, levelSet->minFeatureSize);
       ak_3mf_buf_ch(&st->resources, '"');
     }
     if ((levelSet->flags & AK_PRINT_LEVEL_SET_HAS_MESH_BBOX_ONLY) != 0u) {
-      ak_3mf_buf_lit(&st->resources, " meshbboxonly=\"true\"");
+      AK_3MF_BUF_LIT(&st->resources, " meshbboxonly=\"true\"");
     }
     if ((levelSet->flags & AK_PRINT_LEVEL_SET_HAS_FALLBACK_VALUE) != 0u) {
-      ak_3mf_buf_lit(&st->resources, " fallbackvalue=\"");
+      AK_3MF_BUF_LIT(&st->resources, " fallbackvalue=\"");
       ak_3mf_buf_float(&st->resources, levelSet->fallbackValue);
       ak_3mf_buf_ch(&st->resources, '"');
     }
-    ak_3mf_buf_lit(&st->resources, "/>\n");
+    AK_3MF_BUF_LIT(&st->resources, "/>\n");
     ak_3mf_write_production_alternatives(st, &st->resources, objectId);
-    ak_3mf_buf_lit(&st->resources, "      </object>\n");
+    AK_3MF_BUF_LIT(&st->resources, "      </object>\n");
 
     productionItem = ak_3mf_production_item_for_export(st, objectId);
-    ak_3mf_buf_lit(&st->build, "      <item objectid=\"");
+    AK_3MF_BUF_LIT(&st->build, "      <item objectid=\"");
     ak_3mf_buf_u32(&st->build, objectId);
     ak_3mf_append_production_open_attrs(&st->build, productionItem, true);
-    ak_3mf_buf_lit(&st->build, "\"/>\n");
+    AK_3MF_BUF_LIT(&st->build, "\"/>\n");
     st->objectCount++;
   }
 
@@ -2177,14 +2199,14 @@ ak_3mf_write_boolean_operand(AK3MFBuffer                 * __restrict buf,
   if (!operand)
     return;
 
-  ak_3mf_buf_lit(buf, "          <bo:boolean objectid=\"");
+  AK_3MF_BUF_LIT(buf, "          <bo:boolean objectid=\"");
   ak_3mf_buf_u32(buf, operand->objectId);
   if ((operand->flags & AK_PRINT_BOOLEAN_OPERAND_HAS_TRANSFORM) != 0u) {
-    ak_3mf_buf_lit(buf, "\" transform=\"");
+    AK_3MF_BUF_LIT(buf, "\" transform=\"");
     ak_3mf_append_flat_transform(buf, operand->matrix);
   }
   ak_3mf_append_optional_3mf_path(buf, operand->path);
-  ak_3mf_buf_lit(buf, "\"/>\n");
+  AK_3MF_BUF_LIT(buf, "\"/>\n");
 }
 
 static
@@ -2213,34 +2235,34 @@ ak_3mf_write_boolean_shapes(AK3MFExportState * __restrict st) {
 
     operand = ak_3mf_first_boolean_operand_for_shape(st->print, shape);
 
-    ak_3mf_buf_lit(&st->resources, "      <object id=\"");
+    AK_3MF_BUF_LIT(&st->resources, "      <object id=\"");
     ak_3mf_buf_u32(&st->resources, objectId);
     productionObject = ak_3mf_production_object_for_export(st, objectId);
     ak_3mf_append_production_object_open_attrs(&st->resources, productionObject);
     ak_3mf_buf_lit(&st->resources, "\" type=\"model\">\n"
                                   "        <bo:booleanshape objectid=\"");
     ak_3mf_buf_u32(&st->resources, shape->baseObjectId);
-    ak_3mf_buf_lit(&st->resources, "\" operation=\"");
+    AK_3MF_BUF_LIT(&st->resources, "\" operation=\"");
     ak_3mf_buf_lit(&st->resources, ak_3mf_boolean_operation_name(shape->operation));
     if ((shape->flags & AK_PRINT_BOOLEAN_SHAPE_HAS_TRANSFORM) != 0u) {
-      ak_3mf_buf_lit(&st->resources, "\" transform=\"");
+      AK_3MF_BUF_LIT(&st->resources, "\" transform=\"");
       ak_3mf_append_flat_transform(&st->resources, shape->matrix);
     }
     ak_3mf_append_optional_3mf_path(&st->resources, shape->basePath);
-    ak_3mf_buf_lit(&st->resources, "\">\n");
+    AK_3MF_BUF_LIT(&st->resources, "\">\n");
 
     for (i = 0u; i < shape->operandCount && operand; i++, operand = operand->next)
       ak_3mf_write_boolean_operand(&st->resources, operand);
 
-    ak_3mf_buf_lit(&st->resources, "        </bo:booleanshape>\n");
+    AK_3MF_BUF_LIT(&st->resources, "        </bo:booleanshape>\n");
     ak_3mf_write_production_alternatives(st, &st->resources, objectId);
-    ak_3mf_buf_lit(&st->resources, "      </object>\n");
+    AK_3MF_BUF_LIT(&st->resources, "      </object>\n");
 
     productionItem = ak_3mf_production_item_for_export(st, objectId);
-    ak_3mf_buf_lit(&st->build, "      <item objectid=\"");
+    AK_3MF_BUF_LIT(&st->build, "      <item objectid=\"");
     ak_3mf_buf_u32(&st->build, objectId);
     ak_3mf_append_production_open_attrs(&st->build, productionItem, true);
-    ak_3mf_buf_lit(&st->build, "\"/>\n");
+    AK_3MF_BUF_LIT(&st->build, "\"/>\n");
     st->objectCount++;
   }
 
@@ -2254,15 +2276,15 @@ ak_3mf_write_slice_ref(AK3MFBuffer            * __restrict buf,
   if (!ref)
     return;
 
-  ak_3mf_buf_lit(buf, "        <s:sliceref slicestackid=\"");
+  AK_3MF_BUF_LIT(buf, "        <s:sliceref slicestackid=\"");
   ak_3mf_buf_u32(buf, ref->stackId);
   if (ref->path) {
-    ak_3mf_buf_lit(buf, "\" slicepath=\"/");
+    AK_3MF_BUF_LIT(buf, "\" slicepath=\"/");
     ak_3mf_buf_attr(buf, ref->path);
   }
-  ak_3mf_buf_lit(buf, "\" ztop=\"");
+  AK_3MF_BUF_LIT(buf, "\" ztop=\"");
   ak_3mf_buf_float(buf, ref->zTop);
-  ak_3mf_buf_lit(buf, "\"/>\n");
+  AK_3MF_BUF_LIT(buf, "\"/>\n");
 }
 
 static
@@ -2272,9 +2294,9 @@ ak_3mf_write_empty_slice(AK3MFBuffer         * __restrict buf,
   if (!slice)
     return;
 
-  ak_3mf_buf_lit(buf, "        <s:slice ztop=\"");
+  AK_3MF_BUF_LIT(buf, "        <s:slice ztop=\"");
   ak_3mf_buf_float(buf, slice->zTop);
-  ak_3mf_buf_lit(buf, "\"/>\n");
+  AK_3MF_BUF_LIT(buf, "\"/>\n");
 }
 
 static
@@ -2295,11 +2317,11 @@ ak_3mf_write_slice_stacks(AK3MFExportState * __restrict st) {
 
     rootStack = ak_3mf_path_is_root_model(stack->path);
     if (rootStack) {
-      ak_3mf_buf_lit(&st->resources, "      <s:slicestack id=\"");
+      AK_3MF_BUF_LIT(&st->resources, "      <s:slicestack id=\"");
       ak_3mf_buf_u32(&st->resources, stack->id);
-      ak_3mf_buf_lit(&st->resources, "\" zbottom=\"");
+      AK_3MF_BUF_LIT(&st->resources, "\" zbottom=\"");
       ak_3mf_buf_float(&st->resources, stack->zBottom);
-      ak_3mf_buf_lit(&st->resources, "\">\n");
+      AK_3MF_BUF_LIT(&st->resources, "\">\n");
     }
 
     for (i = 0u; i < stack->sliceRefCount && ref; i++, ref = ref->next) {
@@ -2316,7 +2338,7 @@ ak_3mf_write_slice_stacks(AK3MFExportState * __restrict st) {
     }
 
     if (rootStack)
-      ak_3mf_buf_lit(&st->resources, "      </s:slicestack>\n");
+      AK_3MF_BUF_LIT(&st->resources, "      </s:slicestack>\n");
   }
 
   return st->resources.result == AK_OK;
@@ -2412,63 +2434,63 @@ ak_3mf_build_model_xml(AK3MFExportState * __restrict st,
     bool any;
 
     any = false;
-    ak_3mf_buf_lit(model, " requiredextensions=\"");
+    AK_3MF_BUF_LIT(model, " requiredextensions=\"");
     if (st->usesMaterialExtension) {
-      ak_3mf_buf_lit(model, "m");
+      AK_3MF_BUF_LIT(model, "m");
       any = true;
     }
     if (st->usesProductionExtension) {
       if (any)
         ak_3mf_buf_ch(model, ' ');
-      ak_3mf_buf_lit(model, "p");
+      AK_3MF_BUF_LIT(model, "p");
       any = true;
     }
     if (st->usesProductionAlternativeExtension) {
       if (any)
         ak_3mf_buf_ch(model, ' ');
-      ak_3mf_buf_lit(model, "pa");
+      AK_3MF_BUF_LIT(model, "pa");
       any = true;
     }
     if (st->usesSliceExtension) {
       if (any)
         ak_3mf_buf_ch(model, ' ');
-      ak_3mf_buf_lit(model, "s");
+      AK_3MF_BUF_LIT(model, "s");
       any = true;
     }
     if (st->usesBeamLatticeExtension) {
       if (any)
         ak_3mf_buf_ch(model, ' ');
-      ak_3mf_buf_lit(model, "b");
+      AK_3MF_BUF_LIT(model, "b");
       any = true;
     }
     if (st->usesBeamBallExtension) {
       if (any)
         ak_3mf_buf_ch(model, ' ');
-      ak_3mf_buf_lit(model, "b2");
+      AK_3MF_BUF_LIT(model, "b2");
       any = true;
     }
     if (st->usesBooleanExtension) {
       if (any)
         ak_3mf_buf_ch(model, ' ');
-      ak_3mf_buf_lit(model, "bo");
+      AK_3MF_BUF_LIT(model, "bo");
       any = true;
     }
     if (st->usesDisplacementExtension) {
       if (any)
         ak_3mf_buf_ch(model, ' ');
-      ak_3mf_buf_lit(model, "d");
+      AK_3MF_BUF_LIT(model, "d");
       any = true;
     }
     if (st->usesVolumetricExtension) {
       if (any)
         ak_3mf_buf_ch(model, ' ');
-      ak_3mf_buf_lit(model, "v");
+      AK_3MF_BUF_LIT(model, "v");
       any = true;
     }
     if (st->usesImplicitExtension) {
       if (any)
         ak_3mf_buf_ch(model, ' ');
-      ak_3mf_buf_lit(model, "i");
+      AK_3MF_BUF_LIT(model, "i");
     }
     ak_3mf_buf_ch(model, '"');
   }
@@ -2483,7 +2505,7 @@ ak_3mf_build_model_xml(AK3MFExportState * __restrict st,
                                                                 AK_PRINT_PRODUCTION_BUILD),
                                    false);
   }
-  ak_3mf_buf_lit(model, ">\n");
+  AK_3MF_BUF_LIT(model, ">\n");
   ak_3mf_buf_raw(model, st->build.data, st->build.len);
   ak_3mf_buf_lit(model, "  </build>\n"
                         "</model>\n");
@@ -2557,14 +2579,14 @@ ak_3mf_build_content_types_xml(const AkPrintDocument * __restrict print,
       continue;
 
     name = ak_3mf_zip_part_name(part->name);
-    ak_3mf_buf_lit(contentTypes, "  <Override PartName=\"/");
+    AK_3MF_BUF_LIT(contentTypes, "  <Override PartName=\"/");
     ak_3mf_buf_attr(contentTypes, name);
-    ak_3mf_buf_lit(contentTypes, "\" ContentType=\"");
+    AK_3MF_BUF_LIT(contentTypes, "\" ContentType=\"");
     ak_3mf_buf_attr(contentTypes, part->contentType);
-    ak_3mf_buf_lit(contentTypes, "\"/>\n");
+    AK_3MF_BUF_LIT(contentTypes, "\"/>\n");
   }
 
-  ak_3mf_buf_lit(contentTypes, "</Types>\n");
+  AK_3MF_BUF_LIT(contentTypes, "</Types>\n");
   return contentTypes->result == AK_OK;
 }
 
@@ -2591,26 +2613,26 @@ ak_3mf_build_rels_xml(const AkPrintDocument * __restrict print,
       continue;
 
     name = ak_3mf_zip_part_name(part->name);
-    ak_3mf_buf_lit(rels, "  <Relationship Target=\"/");
+    AK_3MF_BUF_LIT(rels, "  <Relationship Target=\"/");
     ak_3mf_buf_attr(rels, name);
     if (part->relationshipId) {
-      ak_3mf_buf_lit(rels, "\" Id=\"");
+      AK_3MF_BUF_LIT(rels, "\" Id=\"");
       ak_3mf_buf_attr(rels, part->relationshipId);
       relId++;
     } else {
-      ak_3mf_buf_lit(rels, "\" Id=\"rel");
+      AK_3MF_BUF_LIT(rels, "\" Id=\"rel");
       ak_3mf_buf_u32(rels, relId++);
     }
-    ak_3mf_buf_lit(rels, "\" Type=\"");
+    AK_3MF_BUF_LIT(rels, "\" Type=\"");
     ak_3mf_buf_attr(rels, part->relationshipType);
     if (part->relationshipTargetMode) {
-      ak_3mf_buf_lit(rels, "\" TargetMode=\"");
+      AK_3MF_BUF_LIT(rels, "\" TargetMode=\"");
       ak_3mf_buf_attr(rels, part->relationshipTargetMode);
     }
-    ak_3mf_buf_lit(rels, "\"/>\n");
+    AK_3MF_BUF_LIT(rels, "\"/>\n");
   }
 
-  ak_3mf_buf_lit(rels, "</Relationships>\n");
+  AK_3MF_BUF_LIT(rels, "</Relationships>\n");
   return rels->result == AK_OK;
 }
 

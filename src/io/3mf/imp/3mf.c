@@ -41,6 +41,8 @@
   ak_3mf_child_sz((XML), (TAG), sizeof(TAG) - 1u)
 #define AK_3MF_COUNT_CHILDREN(XML, TAG)                                       \
   ak_3mf_count_children_sz((XML), (TAG), sizeof(TAG) - 1u)
+#define AK_3MF_ENTRY_NAME_EQ(NAME, NAME_LEN, PATH)                            \
+  ak_3mf_entry_name_eq_sz((NAME), (NAME_LEN), (PATH), sizeof(PATH) - 1u)
 
 static const char AK_3MF_CONTENT_TYPES_PART[] = "[Content_Types].xml";
 static const char AK_3MF_ROOT_RELS_PART[]     = "_rels/.rels";
@@ -178,18 +180,26 @@ ak_3mf_skip_root_slash(const char * __restrict path,
 
 static
 bool
-ak_3mf_entry_name_eq(const char * __restrict name,
-                     size_t                  nameLen,
-                     const char * __restrict path) {
-  size_t pathLen;
-
+ak_3mf_entry_name_eq_sz(const char * __restrict name,
+                        size_t                  nameLen,
+                        const char * __restrict path,
+                        size_t                  pathLen) {
   if (!name || !path)
     return false;
 
-  pathLen = strlen(path);
   name = ak_3mf_skip_root_slash(name, &nameLen);
   path = ak_3mf_skip_root_slash(path, &pathLen);
   return nameLen == pathLen && memcmp(name, path, nameLen) == 0;
+}
+
+static
+bool
+ak_3mf_entry_name_eq(const char * __restrict name,
+                     size_t                  nameLen,
+                     const char * __restrict path) {
+  return path
+         ? ak_3mf_entry_name_eq_sz(name, nameLen, path, strlen(path))
+         : false;
 }
 
 static
@@ -229,20 +239,18 @@ ak_3mf_xmla_local_sz(const xml_t * __restrict xml,
 
   for (attr = xml->attr; attr; attr = attr->next) {
     const char *attrName;
+    const char *colon;
     size_t      attrNameLen;
-    size_t      i;
 
     if (!attr->name || attr->namesize < nameLen)
       continue;
 
     attrName    = attr->name;
     attrNameLen = attr->namesize;
-    for (i = 0; i < attrNameLen; i++) {
-      if (attrName[i] == ':') {
-        attrNameLen -= i + 1u;
-        attrName += i + 1u;
-        break;
-      }
+    colon       = memchr(attrName, ':', attrNameLen);
+    if (colon) {
+      attrNameLen -= (size_t)(colon - attrName) + 1u;
+      attrName     = colon + 1u;
     }
 
     if (attrNameLen == nameLen && memcmp(attrName, name, nameLen) == 0)
@@ -641,21 +649,19 @@ bool
 ak_3mf_tag_sz(const xml_t * __restrict xml,
               const char  * __restrict tag,
               size_t                   tagSize) {
+  const char *colon;
   const char *xmlTag;
   size_t     xmlTagSize;
-  size_t     i;
 
   if (!xml || !xml->tag || !tag)
     return false;
 
   xmlTag     = xml->tag;
   xmlTagSize = xml->tagsize;
-  for (i = 0; i < xmlTagSize; i++) {
-    if (xmlTag[i] == ':') {
-      xmlTagSize -= i + 1u;
-      xmlTag     += i + 1u;
-      break;
-    }
+  colon      = memchr(xmlTag, ':', xmlTagSize);
+  if (colon) {
+    xmlTagSize -= (size_t)(colon - xmlTag) + 1u;
+    xmlTag      = colon + 1u;
   }
 
   return tagSize == xmlTagSize && memcmp(xmlTag, tag, tagSize) == 0;
@@ -1271,8 +1277,8 @@ ak_3mf_import_package_part_visitor(const AkZipEntryInfo * __restrict info,
 
   if (info->nameLen == 0u || info->name[info->nameLen - 1u] == '/')
     return true;
-  if (ak_3mf_entry_name_eq(info->name, info->nameLen, AK_3MF_CONTENT_TYPES_PART)
-      || ak_3mf_entry_name_eq(info->name, info->nameLen, AK_3MF_ROOT_RELS_PART)
+  if (AK_3MF_ENTRY_NAME_EQ(info->name, info->nameLen, AK_3MF_CONTENT_TYPES_PART)
+      || AK_3MF_ENTRY_NAME_EQ(info->name, info->nameLen, AK_3MF_ROOT_RELS_PART)
       || ak_3mf_entry_name_eq(info->name, info->nameLen, st->modelPath))
     return true;
 

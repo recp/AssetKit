@@ -24,6 +24,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 
 typedef struct IOFloatRows {
   AkAccessor *accessor;
@@ -33,6 +34,14 @@ typedef struct IOFloatRows {
   uint32_t    componentCount;
   bool        direct;
 } IOFloatRows;
+
+typedef struct IOIndexRows {
+  const unsigned char *data;
+  size_t              byteStride;
+  uint32_t            count;
+  AkTypeId            componentType;
+  bool                valid;
+} IOIndexRows;
 
 typedef struct IOTriangleIter {
   AkTriangleMode mode;
@@ -49,6 +58,110 @@ AkUInt
 io_primitive_input_index(AkMeshPrimitive * __restrict prim,
                          AkInput         * __restrict input,
                          uint32_t                     vertexIndex);
+
+static inline
+bool
+io_index_rows_init(IOIndexRows * __restrict rows,
+                   AkAccessor  * __restrict acc) {
+  size_t stride;
+
+  memset(rows, 0, sizeof(*rows));
+  if (!acc || !acc->buffer || !acc->buffer->data || acc->count == 0)
+    return false;
+
+  switch (acc->componentType) {
+    case AKT_UBYTE:
+    case AKT_USHORT:
+    case AKT_UINT:
+      break;
+    default:
+      return false;
+  }
+
+  stride = acc->byteStride ? acc->byteStride : acc->bytesPerComponent;
+  if (stride < acc->bytesPerComponent
+      || acc->byteOffset > acc->buffer->length
+      || (size_t)(acc->count - 1u)
+           > ((size_t)-1 - acc->byteOffset) / stride
+      || acc->byteOffset
+           + (size_t)(acc->count - 1u) * stride
+           + acc->bytesPerComponent > acc->buffer->length)
+    return false;
+
+  rows->data          = (const unsigned char *)acc->buffer->data + acc->byteOffset;
+  rows->byteStride    = stride;
+  rows->count         = acc->count;
+  rows->componentType = acc->componentType;
+  rows->valid         = true;
+  return true;
+}
+
+static inline
+AkUInt
+io_index_rows_get_unchecked(const IOIndexRows * __restrict rows,
+                            uint32_t                       index) {
+  const unsigned char *src;
+
+  src = rows->data + (size_t)index * rows->byteStride;
+  switch (rows->componentType) {
+    case AKT_UBYTE:
+      return src[0];
+    case AKT_USHORT: {
+      uint16_t v;
+      memcpy(&v, src, sizeof(v));
+      return v;
+    }
+    case AKT_UINT: {
+      uint32_t v;
+      memcpy(&v, src, sizeof(v));
+      return v;
+    }
+    default:
+      return index;
+  }
+}
+
+static inline
+AkUInt
+io_index_rows_get(const IOIndexRows * __restrict rows,
+                  uint32_t                       index) {
+  if (!rows->valid || index >= rows->count)
+    return index;
+
+  return io_index_rows_get_unchecked(rows, index);
+}
+
+static inline
+AkUInt
+io_index_accessor_get(AkAccessor * __restrict acc, uint32_t index) {
+  const unsigned char *src;
+  size_t              stride;
+
+  if (!acc || !acc->buffer || !acc->buffer->data || index >= acc->count)
+    return index;
+
+  stride = acc->byteStride ? acc->byteStride : acc->bytesPerComponent;
+  src    = (const unsigned char *)acc->buffer->data
+           + acc->byteOffset
+           + (size_t)index * stride;
+
+  switch (acc->componentType) {
+    case AKT_UBYTE:
+      return src[0];
+    case AKT_USHORT: {
+      uint16_t v;
+      memcpy(&v, src, sizeof(v));
+      return v;
+    }
+    case AKT_UINT: {
+      uint32_t v;
+      memcpy(&v, src, sizeof(v));
+      return v;
+    }
+    default:
+      return index;
+  }
+}
 
 static inline
 AkInput*

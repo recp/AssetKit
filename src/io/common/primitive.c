@@ -44,38 +44,6 @@ io_primitive_vertex_count(AkMeshPrimitive * __restrict prim) {
   return 0;
 }
 
-static
-AkUInt
-io_index_accessor_get(AkAccessor * __restrict acc, uint32_t index) {
-  const unsigned char *src;
-  size_t              stride;
-
-  if (!acc || !acc->buffer || !acc->buffer->data || index >= acc->count)
-    return index;
-
-  stride = acc->byteStride ? acc->byteStride : acc->bytesPerComponent;
-  src    = (const unsigned char *)acc->buffer->data
-           + acc->byteOffset
-           + (size_t)index * stride;
-
-  switch (acc->componentType) {
-    case AKT_UBYTE:
-      return src[0];
-    case AKT_USHORT: {
-      uint16_t v;
-      memcpy(&v, src, sizeof(v));
-      return v;
-    }
-    case AKT_UINT: {
-      uint32_t v;
-      memcpy(&v, src, sizeof(v));
-      return v;
-    }
-    default:
-      return index;
-  }
-}
-
 AK_HIDE
 AkUInt
 io_primitive_input_index(AkMeshPrimitive * __restrict prim,

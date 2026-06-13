@@ -141,8 +141,8 @@ ak_io_text_format_fixed_float(char     * __restrict buf,
   if (absVal >= 9007199254740991.0 / scale)
     return false;
 
-  scaledDouble = floor(absVal * scale + 0.5);
-  if (scaledDouble <= 0.0 || scaledDouble > 9007199254740991.0)
+  scaledDouble = absVal * scale + 0.5;
+  if (scaledDouble > 9007199254740991.0)
     return false;
 
   scaleInt = (uint64_t)scale;

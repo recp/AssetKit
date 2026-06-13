@@ -34,6 +34,7 @@ option(AK_BUILD_GLTF_SPZ_DECODER "Build optional glTF Gaussian splatting (SPZ) d
 option(AK_BUILD_GLTF_KTX2_DECODER "Build optional glTF KHR_texture_basisu (KTX2/BasisU) decoder shim" ON)
 option(AK_FETCH_DEPS "Fetch optional decoder dependencies into AK_DEPS_ROOT when missing" ON)
 option(AK_ENABLE_LTO "Enable link-time optimization for release builds" OFF)
+option(AK_ENABLE_FAST_MATH "Enable unsafe fast-math optimizations for release builds" OFF)
 option(AK_BUILD_TOOLS "Build manual AssetKit importer benchmark tools" OFF)
 set(AK_DRACO_ROOT "" CACHE PATH "Optional Draco install/source root")
 set(AK_MESHOPT_ROOT "" CACHE PATH "Optional meshoptimizer source root")
@@ -91,7 +92,8 @@ function(ak_target_common_options target)
             $<$<CONFIG:Release>:/Gy>
             $<$<CONFIG:Release>:/Oi>
             $<$<CONFIG:RelWithDebInfo>:/Gy>
-            $<$<CONFIG:RelWithDebInfo>:/Oi>)
+            $<$<CONFIG:RelWithDebInfo>:/Oi>
+            $<$<AND:$<BOOL:${AK_ENABLE_FAST_MATH}>,$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>>:/fp:fast>)
   else()
     target_compile_options(${target}
         PRIVATE
@@ -99,7 +101,8 @@ function(ak_target_common_options target)
             -Wextra
             -Wstrict-aliasing=2
             -Wno-overlength-strings
-            $<$<COMPILE_LANGUAGE:C>:-Wmissing-declarations>)
+            $<$<COMPILE_LANGUAGE:C>:-Wmissing-declarations>
+            $<$<AND:$<BOOL:${AK_ENABLE_FAST_MATH}>,$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>>:-ffast-math>)
   endif()
 endfunction()
 

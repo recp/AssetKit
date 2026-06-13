@@ -34,6 +34,7 @@ typedef IOFloatRows STLExpRows;
 #define stl_rows_init    io_float_rows_init
 #define stl_rows_destroy io_float_rows_destroy
 #define stl_rows_get     io_float_rows_get
+#define stl_w_lit(W, LIT) stl_w_raw((W), (LIT), sizeof(LIT) - 1u)
 #define stl_row_component io_float_row_component
 
 typedef struct STLExpWriter {
@@ -98,17 +99,23 @@ stl_w_raw(STLExpWriter * __restrict w,
 
 static
 void
+stl_w_raw_small(STLExpWriter * __restrict w,
+                const void   * __restrict data,
+                size_t                    len) {
+  if (sizeof(w->buffer) - w->len < len)
+    stl_w_flush(w);
+
+  memcpy(w->buffer + w->len, data, len);
+  w->len += len;
+}
+
+static
+void
 stl_w_ch(STLExpWriter * __restrict w, char ch) {
   if (w->len == sizeof(w->buffer))
     stl_w_flush(w);
 
   w->buffer[w->len++] = (unsigned char)ch;
-}
-
-static
-void
-stl_w_lit(STLExpWriter * __restrict w, const char * __restrict lit) {
-  stl_w_raw(w, lit, strlen(lit));
 }
 
 static
@@ -127,15 +134,6 @@ stl_w_float(STLExpWriter * __restrict w, float val) {
 
 static
 void
-stl_write_u16le(STLExpWriter * __restrict w, uint16_t value) {
-  unsigned char out[2];
-
-  io_store_u16le(out, value);
-  stl_w_raw(w, out, sizeof(out));
-}
-
-static
-void
 stl_write_u32le(STLExpWriter * __restrict w, uint32_t value) {
   unsigned char out[4];
 
@@ -144,17 +142,9 @@ stl_write_u32le(STLExpWriter * __restrict w, uint32_t value) {
 }
 
 static
-void
-stl_write_f32le(STLExpWriter * __restrict w, float value) {
-  unsigned char out[4];
-
-  if (!isfinite(value)) {
-    w->result = AK_ERR;
-    return;
-  }
-
-  io_store_f32le(out, value);
-  stl_w_raw(w, out, sizeof(out));
+bool
+stl_vec3_finite(vec3 v) {
+  return isfinite(v[0]) && isfinite(v[1]) && isfinite(v[2]);
 }
 
 static
@@ -209,17 +199,31 @@ stl_write_binary_triangle(STLExpWriter * __restrict w,
                           vec3                      a,
                           vec3                      b,
                           vec3                      c) {
-  uint32_t i;
+  unsigned char out[STL_EXP_TRIANGLE_SIZE];
 
-  for (i = 0; i < 3u; i++)
-    stl_write_f32le(w, normal[i]);
-  for (i = 0; i < 3u; i++)
-    stl_write_f32le(w, a[i]);
-  for (i = 0; i < 3u; i++)
-    stl_write_f32le(w, b[i]);
-  for (i = 0; i < 3u; i++)
-    stl_write_f32le(w, c[i]);
-  stl_write_u16le(w, 0u);
+  if (!stl_vec3_finite(normal)
+      || !stl_vec3_finite(a)
+      || !stl_vec3_finite(b)
+      || !stl_vec3_finite(c)) {
+    w->result = AK_ERR;
+    return;
+  }
+
+  io_store_f32le(out + 0,  normal[0]);
+  io_store_f32le(out + 4,  normal[1]);
+  io_store_f32le(out + 8,  normal[2]);
+  io_store_f32le(out + 12, a[0]);
+  io_store_f32le(out + 16, a[1]);
+  io_store_f32le(out + 20, a[2]);
+  io_store_f32le(out + 24, b[0]);
+  io_store_f32le(out + 28, b[1]);
+  io_store_f32le(out + 32, b[2]);
+  io_store_f32le(out + 36, c[0]);
+  io_store_f32le(out + 40, c[1]);
+  io_store_f32le(out + 44, c[2]);
+  out[48] = 0;
+  out[49] = 0;
+  stl_w_raw_small(w, out, sizeof(out));
 }
 
 static

@@ -28,6 +28,7 @@ typedef IOFloatRows WOBJExpRows;
 #define wobj_rows_destroy io_float_rows_destroy
 #define wobj_rows_get     io_float_rows_get
 #define wobj_row_component io_float_row_component
+#define WOBJ_INDEX_ACCESSOR_FAST_MIN_VERTICES 65536u
 
 static
 AkInput*
@@ -93,20 +94,6 @@ wobj_count_add(uint32_t * __restrict value, uint32_t add) {
     return false;
   *value += add;
   return true;
-}
-
-static
-void
-wobj_write_v3(WOBJExpWriter * __restrict w,
-              const char    * __restrict prefix,
-              vec3                       value) {
-  wobj_w_lit(w, prefix);
-  wobj_w_float(w, value[0]);
-  wobj_w_ch(w, ' ');
-  wobj_w_float(w, value[1]);
-  wobj_w_ch(w, ' ');
-  wobj_w_float(w, value[2]);
-  wobj_w_ch(w, '\n');
 }
 
 static
@@ -213,7 +200,13 @@ wobj_write_normals(WOBJExpState * __restrict st,
     in[2] = wobj_row_component(row, rows->componentCount, 2, 1.0f);
     glm_mat4_mulv3(normalMatrix, in, 0.0f, out);
     glm_vec3_normalize(out);
-    wobj_write_v3(&st->w, "vn ", out);
+    wobj_w_lit(&st->w, "vn ");
+    wobj_w_float(&st->w, out[0]);
+    wobj_w_ch(&st->w, ' ');
+    wobj_w_float(&st->w, out[1]);
+    wobj_w_ch(&st->w, ' ');
+    wobj_w_float(&st->w, out[2]);
+    wobj_w_ch(&st->w, '\n');
   }
 
   return true;
@@ -396,6 +389,114 @@ wobj_write_tuple(WOBJExpState    * __restrict st,
   wobj_write_ref(st, v, vt, vn, hasTexcoord, hasNormal);
 }
 
+static inline
+bool
+wobj_shared_accessor_counts(uint32_t vCount,
+                            uint32_t vtCount,
+                            uint32_t vnCount,
+                            bool     hasTexcoord,
+                            bool     hasNormal) {
+  if (vCount == 0)
+    return false;
+  if (hasTexcoord && vtCount != vCount)
+    return false;
+  if (hasNormal && vnCount != vCount)
+    return false;
+
+  return true;
+}
+
+static inline
+void
+wobj_write_shared_accessor_ref(WOBJExpState * __restrict st,
+                               uint32_t                  index,
+                               uint32_t                  vBase,
+                               uint32_t                  vtBase,
+                               uint32_t                  vnBase,
+                               uint32_t                  vCount,
+                               bool                      hasTexcoord,
+                               bool                      hasNormal) {
+  if (index >= vCount)
+    index = 0u;
+
+  wobj_w_uint(&st->w, vBase + index + 1u);
+  if (hasTexcoord || hasNormal) {
+    wobj_w_ch(&st->w, '/');
+    if (hasTexcoord)
+      wobj_w_uint(&st->w, vtBase + index + 1u);
+
+    if (hasNormal) {
+      wobj_w_ch(&st->w, '/');
+      wobj_w_uint(&st->w, vnBase + index + 1u);
+    }
+  }
+}
+
+static
+bool
+wobj_write_index_accessor_triangles_fast(WOBJExpState    * __restrict st,
+                                         AkMeshPrimitive * __restrict prim,
+                                         uint32_t                     vBase,
+                                         uint32_t                     vtBase,
+                                         uint32_t                     vnBase,
+                                         uint32_t                     vCount,
+                                         uint32_t                     vtCount,
+                                         uint32_t                     vnCount,
+                                         uint32_t                     vertexCount,
+                                         bool                         hasTexcoord,
+                                         bool                         hasNormal) {
+  IOIndexRows indexRows;
+
+  if (!prim->indexAccessor
+      || vertexCount < WOBJ_INDEX_ACCESSOR_FAST_MIN_VERTICES
+      || !wobj_shared_accessor_counts(vCount,
+                                      vtCount,
+                                      vnCount,
+                                      hasTexcoord,
+                                      hasNormal)
+      || !io_index_rows_init(&indexRows, prim->indexAccessor))
+    return false;
+
+  for (uint32_t i = 0; i + 2u < vertexCount; i += 3u) {
+    uint32_t index;
+
+    wobj_w_ch(&st->w, 'f');
+    wobj_w_ch(&st->w, ' ');
+    index = io_index_rows_get_unchecked(&indexRows, i);
+    wobj_write_shared_accessor_ref(st,
+                                   index,
+                                   vBase,
+                                   vtBase,
+                                   vnBase,
+                                   vCount,
+                                   hasTexcoord,
+                                   hasNormal);
+    wobj_w_ch(&st->w, ' ');
+    index = io_index_rows_get_unchecked(&indexRows, i + 1u);
+    wobj_write_shared_accessor_ref(st,
+                                   index,
+                                   vBase,
+                                   vtBase,
+                                   vnBase,
+                                   vCount,
+                                   hasTexcoord,
+                                   hasNormal);
+    wobj_w_ch(&st->w, ' ');
+    index = io_index_rows_get_unchecked(&indexRows, i + 2u);
+    wobj_write_shared_accessor_ref(st,
+                                   index,
+                                   vBase,
+                                   vtBase,
+                                   vnBase,
+                                   vCount,
+                                   hasTexcoord,
+                                   hasNormal);
+    wobj_w_ch(&st->w, '\n');
+  }
+
+  return true;
+}
+
 static
 void
 wobj_write_triangle_list_fast(WOBJExpState    * __restrict st,
@@ -553,6 +654,26 @@ wobj_write_triangles(WOBJExpState    * __restrict st,
     mode = AK_TRIANGLES;
 
   wobj_write_smooth_state(st, prim);
+
+  if (mode == AK_TRIANGLES) {
+    bool hasTexcoord;
+    bool hasNormal;
+
+    hasTexcoord = texInput && vtCount > 0;
+    hasNormal   = normInput && vnCount > 0;
+    if (wobj_write_index_accessor_triangles_fast(st,
+                                                 prim,
+                                                 vBase,
+                                                 vtBase,
+                                                 vnBase,
+                                                 vCount,
+                                                 vtCount,
+                                                 vnCount,
+                                                 vertexCount,
+                                                 hasTexcoord,
+                                                 hasNormal))
+      return;
+  }
 
   if (mode != AK_TRIANGLE_STRIP
       && mode != AK_TRIANGLE_FAN
