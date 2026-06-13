@@ -840,12 +840,20 @@ TEST_IMPL(three_mf_print_validate_mesh_flags) {
     1u, 0u, 3u,
     0u, 1u, 4u
   };
+  const float negativeMatrix[16] = {
+    -1.0f, 0.0f, 0.0f, 0.0f,
+     0.0f, 1.0f, 0.0f, 0.0f,
+     0.0f, 0.0f, 1.0f, 0.0f,
+     0.0f, 0.0f, 0.0f, 1.0f
+  };
   AkDoc                 *openDoc;
   AkDoc                 *degenerateDoc;
   AkDoc                 *nonManifoldDoc;
+  AkDoc                 *negativeDoc;
   AkGeometry            *geom;
   AkMesh                *mesh;
   AkMeshPrimitive       *prim;
+  AkNode                *negativeNode;
   AkPrintDocument       *print;
   AkPrintValidationFlags flags;
   AkHeap                *heap;
@@ -889,6 +897,24 @@ TEST_IMPL(three_mf_print_validate_mesh_flags) {
     ASSERT(ak_indexArraySet(heap, prim, &prim->indices, i, nonManifoldIndices[i]));
   flags = ak_printValidate(nonManifoldDoc, AK_PRINT_VALIDATION_NONE);
   ASSERT((flags & AK_PRINT_VALIDATION_NON_MANIFOLD) != 0u);
+  ASSERT((flags & AK_PRINT_VALIDATION_OPEN_BOUNDARY) != 0u);
+  ASSERT((flags & AK_PRINT_VALIDATION_DEGENERATE_TRIANGLES) == 0u);
+
+  negativeDoc = ak_test_make_3mf_triangle_doc();
+  ASSERT(negativeDoc != NULL);
+  ASSERT(negativeDoc->scene != NULL);
+  ASSERT(negativeDoc->scene->node != NULL);
+  negativeNode = negativeDoc->scene->node->chld;
+  ASSERT(negativeNode != NULL);
+  ak_nodeSetTransformMatrix(negativeNode, negativeMatrix);
+  flags = ak_printValidate(negativeDoc, AK_PRINT_VALIDATION_NEGATIVE_SCALE);
+  ASSERT(flags == AK_PRINT_VALIDATION_NEGATIVE_SCALE);
+  print = ak_printDocument(negativeDoc);
+  ASSERT(print != NULL);
+  ASSERT((print->validationFlags & AK_PRINT_VALIDATION_NEGATIVE_SCALE) != 0u);
+
+  flags = ak_printValidate(negativeDoc, AK_PRINT_VALIDATION_NONE);
+  ASSERT((flags & AK_PRINT_VALIDATION_NEGATIVE_SCALE) != 0u);
   ASSERT((flags & AK_PRINT_VALIDATION_OPEN_BOUNDARY) != 0u);
   ASSERT((flags & AK_PRINT_VALIDATION_DEGENERATE_TRIANGLES) == 0u);
 

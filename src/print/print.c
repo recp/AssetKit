@@ -21,6 +21,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define AK_PRINT_VALIDATE_MAX_NODE_DEPTH 128u
+
 typedef struct AkPrintPositionRows {
   AkAccessor *accessor;
   float      *scratch;
@@ -518,6 +520,83 @@ ak_print_validate_primitive(AkMeshPrimitive      * __restrict prim,
   return v.found & checks;
 }
 
+static
+bool
+ak_print_validate_mesh_instance_negative_scale(AkInstanceGeometry * __restrict inst,
+                                               mat4                             world) {
+  AkGeometry *geom;
+  void       *obj;
+
+  if (!inst)
+    return false;
+
+  obj  = ak_instanceObject(&inst->base);
+  geom = obj;
+  return geom
+         && geom->gdata
+         && geom->gdata->type == AK_GEOMETRY_MESH
+         && glm_mat4_det(world) < 0.0f;
+}
+
+static
+bool
+ak_print_validate_node_negative_scale(AkNode   * __restrict node,
+                                      mat4                   parentWorld,
+                                      uint32_t               depth) {
+  AkInstanceBase *base;
+  AkInstanceNode *nodeRef;
+  AkNode         *child;
+  AkMatrix        localMatrix;
+  mat4            world;
+
+  if (!node)
+    return false;
+  if (depth > AK_PRINT_VALIDATE_MAX_NODE_DEPTH)
+    return false;
+
+  ak_transformCombine(node->transform, localMatrix.val[0]);
+  glm_mat4_mul(parentWorld, localMatrix.val, world);
+
+  for (base = node->geometry ? &node->geometry->base : NULL;
+       base;
+       base = base->next) {
+    if (base->type == AK_INSTANCE_GEOMETRY
+        && ak_print_validate_mesh_instance_negative_scale(
+             (AkInstanceGeometry *)base, world))
+      return true;
+  }
+
+  for (child = node->chld; child; child = child->next) {
+    if (ak_print_validate_node_negative_scale(child, world, depth + 1u))
+      return true;
+  }
+
+  for (nodeRef = node->node; nodeRef; nodeRef = nodeRef->next) {
+    AkNode *target;
+
+    target = ak_instanceNodeTarget(nodeRef);
+    if (target
+        && ak_print_validate_node_negative_scale(target, world, depth + 1u))
+      return true;
+  }
+
+  return false;
+}
+
+static
+AkPrintValidationFlags
+ak_print_validate_scene_transforms(AkDoc * __restrict doc) {
+  mat4 identity;
+
+  if (!doc || !doc->scene || !doc->scene->node)
+    return AK_PRINT_VALIDATION_NONE;
+
+  glm_mat4_identity(identity);
+  return ak_print_validate_node_negative_scale(doc->scene->node, identity, 0u)
+         ? AK_PRINT_VALIDATION_NEGATIVE_SCALE
+         : AK_PRINT_VALIDATION_NONE;
+}
+
 AK_EXPORT
 AkPrintValidationFlags
 ak_printValidate(AkDoc                 * __restrict doc,
@@ -525,9 +604,15 @@ ak_printValidate(AkDoc                 * __restrict doc,
   static const AkPrintValidationFlags implemented =
     AK_PRINT_VALIDATION_NON_MANIFOLD
     | AK_PRINT_VALIDATION_DEGENERATE_TRIANGLES
+    | AK_PRINT_VALIDATION_OPEN_BOUNDARY
+    | AK_PRINT_VALIDATION_NEGATIVE_SCALE;
+  static const AkPrintValidationFlags meshChecks =
+    AK_PRINT_VALIDATION_NON_MANIFOLD
+    | AK_PRINT_VALIDATION_DEGENERATE_TRIANGLES
     | AK_PRINT_VALIDATION_OPEN_BOUNDARY;
   AkPrintDocument      *print;
   AkPrintValidationFlags found;
+  AkPrintValidationFlags activeMeshChecks;
   AkGeometry           *geom;
 
   if (!doc)
@@ -542,17 +627,23 @@ ak_printValidate(AkDoc                 * __restrict doc,
     return AK_PRINT_VALIDATION_NONE;
 
   found = AK_PRINT_VALIDATION_NONE;
-  for (geom = doc->lib.geometries.first; geom; geom = geom->next) {
-    AkMesh          *mesh;
-    AkMeshPrimitive *prim;
+  activeMeshChecks = checks & meshChecks;
+  if (activeMeshChecks != 0u) {
+    for (geom = doc->lib.geometries.first; geom; geom = geom->next) {
+      AkMesh          *mesh;
+      AkMeshPrimitive *prim;
 
-    if (!geom->gdata || geom->gdata->type != AK_GEOMETRY_MESH)
-      continue;
+      if (!geom->gdata || geom->gdata->type != AK_GEOMETRY_MESH)
+        continue;
 
-    mesh = ak_objGet(geom->gdata);
-    for (prim = mesh ? mesh->primitive : NULL; prim; prim = prim->next)
-      found |= ak_print_validate_primitive(prim, checks);
+      mesh = ak_objGet(geom->gdata);
+      for (prim = mesh ? mesh->primitive : NULL; prim; prim = prim->next)
+        found |= ak_print_validate_primitive(prim, activeMeshChecks);
+    }
   }
+
+  if ((checks & AK_PRINT_VALIDATION_NEGATIVE_SCALE) != 0u)
+    found |= ak_print_validate_scene_transforms(doc);
 
   print->validationFlags &= ~checks;
   print->validationFlags |= found;
