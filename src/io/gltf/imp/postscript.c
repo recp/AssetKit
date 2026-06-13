@@ -71,7 +71,7 @@ gltf_setskinners(RBTree *tree, RBNode *rbnode) {
   instGeom          = node->geometry;
   i32val            = (int32_t)(intptr_t)rbnode->val;
   
-  sprintf(skinid, "%s%d", _s_gltf_skin, i32val);
+  gltf_imp_skin_id(skinid, i32val);
   
   skinner           = ak_heap_calloc(gst->heap, node, sizeof(*skinner));
   skinner->skin     = ak_getObjectById(gst->doc, skinid);

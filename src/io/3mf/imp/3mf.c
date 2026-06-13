@@ -16,6 +16,7 @@
 
 #include "3mf.h"
 #include "../../common/buffer.h"
+#include "../../common/text_number.h"
 #include "../../common/util.h"
 #include "../../common/zip.h"
 #include "../../../mat/internal.h"
@@ -3450,6 +3451,17 @@ ak_3mf_identity_matrix(float matrix[16]) {
   matrix[12] = 0.0f; matrix[13] = 0.0f; matrix[14] = 0.0f; matrix[15] = 1.0f;
 }
 
+static AK_NOINLINE
+void
+ak_3mf_object_name(char * __restrict dst, uint32_t objectId) {
+  char *p;
+
+  memcpy(dst, "3MF Object ", sizeof("3MF Object ") - 1u);
+  p  = dst + sizeof("3MF Object ") - 1u;
+  p  = ak_io_text_format_uint64(p, objectId);
+  *p = '\0';
+}
+
 static
 bool
 ak_3mf_attach_object_node(AK3MFImportState * __restrict st,
@@ -3470,7 +3482,7 @@ ak_3mf_attach_object_node(AK3MFImportState * __restrict st,
   if (object->name) {
     fallbackName = object->name;
   } else if (!fallbackName) {
-    snprintf(name, sizeof(name), "3MF Object %u", object->id);
+    ak_3mf_object_name(name, object->id);
     fallbackName = name;
   }
 
@@ -3565,7 +3577,7 @@ ak_3mf_attach_build_items(AK3MFImportState * __restrict st,
                                objectId,
                                0u);
 
-    snprintf(name, sizeof(name), "3MF Object %u", objectId);
+    ak_3mf_object_name(name, objectId);
     if (!ak_3mf_parse_transform_attr(AK_3MF_XMLA(itemXml, transform), matrix))
       return false;
     if (!ak_3mf_attach_object_node(st, scene->node, object, matrix, name, 0u))
@@ -3591,7 +3603,7 @@ ak_3mf_attach_resource_fallback(AK3MFImportState * __restrict st,
   for (i = 0; i < st->objectCount; i++) {
     char    name[48];
 
-    snprintf(name, sizeof(name), "3MF Object %u", st->objects[i].id);
+    ak_3mf_object_name(name, st->objects[i].id);
     if (!ak_3mf_attach_object_node(st,
                                    scene->node,
                                    &st->objects[i],

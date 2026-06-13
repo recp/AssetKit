@@ -19,4 +19,12 @@
 
 #include "../common.h"
 
+AK_HIDE
+void
+gltf_imp_skin_id(char * __restrict dst, int64_t index);
+
+AK_HIDE
+void
+gltf_imp_texcoord_id(char * __restrict dst, int64_t index);
+
 #endif /* gltf_imp_commoh_h */

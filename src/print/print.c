@@ -65,6 +65,12 @@ ak_print_copy_matrix(float                       dst[16],
     ak_print_identity_matrix(dst);
 }
 
+#define AK_PRINT_APPEND(PRINT, FIRST, LAST, ITEM, COUNT)                      \
+  do {                                                                        \
+    AK_APPEND_FLINK((PRINT)->FIRST, (PRINT)->LAST, (ITEM));                   \
+    (PRINT)->COUNT++;                                                         \
+  } while (0)
+
 AK_EXPORT
 AkPrintDocument*
 ak_printDocument(AkDoc * __restrict doc) {
@@ -615,13 +621,7 @@ ak_printAddPackagePart(AkDoc                  * __restrict doc,
   if (relationshipType)
     part->relationshipType = ak_heap_strdup(heap, part, relationshipType);
 
-  if (print->lastPart)
-    print->lastPart->next = part;
-  else
-    print->parts = part;
-
-  print->lastPart = part;
-  print->packagePartCount++;
+  AK_PRINT_APPEND(print, parts, lastPart, part, packagePartCount);
   print->features |= AK_PRINT_FEATURE_PACKAGE;
 
   return part;
@@ -744,13 +744,11 @@ ak_printAddProductionItem(AkDoc                  * __restrict doc,
   if (modelResolution)
     item->modelResolution = ak_heap_strdup(heap, item, modelResolution);
 
-  if (print->lastProductionItem)
-    print->lastProductionItem->next = item;
-  else
-    print->productionItems = item;
-
-  print->lastProductionItem = item;
-  print->productionItemCount++;
+  AK_PRINT_APPEND(print,
+                  productionItems,
+                  lastProductionItem,
+                  item,
+                  productionItemCount);
   print->features |= AK_PRINT_FEATURE_PRODUCTION;
 
   return item;
@@ -782,13 +780,7 @@ ak_printAddSliceStack(AkDoc      * __restrict doc,
   stack->zBottom = zBottom;
   stack->path    = ak_print_strdup(heap, stack, path);
 
-  if (print->lastSliceStack)
-    print->lastSliceStack->next = stack;
-  else
-    print->sliceStacks = stack;
-
-  print->lastSliceStack = stack;
-  print->sliceStackCount++;
+  AK_PRINT_APPEND(print, sliceStacks, lastSliceStack, stack, sliceStackCount);
   print->features |= AK_PRINT_FEATURE_SLICE;
 
   return stack;
@@ -820,13 +812,7 @@ ak_printAddSliceRef(AkDoc      * __restrict doc,
   ref->zTop    = zTop;
   ref->path    = ak_print_strdup(heap, ref, path);
 
-  if (print->lastSliceRef)
-    print->lastSliceRef->next = ref;
-  else
-    print->sliceRefs = ref;
-
-  print->lastSliceRef = ref;
-  print->sliceRefCount++;
+  AK_PRINT_APPEND(print, sliceRefs, lastSliceRef, ref, sliceRefCount);
   print->features |= AK_PRINT_FEATURE_SLICE;
 
   return ref;
@@ -864,13 +850,7 @@ ak_printAddSlice(AkDoc      * __restrict doc,
   slice->polygonCount = polygonCount;
   slice->segmentCount = segmentCount;
 
-  if (print->lastSlice)
-    print->lastSlice->next = slice;
-  else
-    print->slices = slice;
-
-  print->lastSlice = slice;
-  print->sliceCount++;
+  AK_PRINT_APPEND(print, slices, lastSlice, slice, sliceCount);
   print->features |= AK_PRINT_FEATURE_SLICE;
 
   return slice;
@@ -906,13 +886,11 @@ ak_printAddSliceObject(AkDoc      * __restrict doc,
   object->objectId       = objectId;
   object->sliceStackId   = sliceStackId;
 
-  if (print->lastSliceObject)
-    print->lastSliceObject->next = object;
-  else
-    print->sliceObjects = object;
-
-  print->lastSliceObject = object;
-  print->sliceObjectCount++;
+  AK_PRINT_APPEND(print,
+                  sliceObjects,
+                  lastSliceObject,
+                  object,
+                  sliceObjectCount);
   print->features |= AK_PRINT_FEATURE_SLICE;
 
   return object;
@@ -964,13 +942,11 @@ ak_printAddBeamLattice(AkDoc      * __restrict doc,
   lattice->pindex             = pindex;
   lattice->flags              = flags;
 
-  if (print->lastBeamLattice)
-    print->lastBeamLattice->next = lattice;
-  else
-    print->beamLattices = lattice;
-
-  print->lastBeamLattice = lattice;
-  print->beamLatticeCount++;
+  AK_PRINT_APPEND(print,
+                  beamLattices,
+                  lastBeamLattice,
+                  lattice,
+                  beamLatticeCount);
   print->features |= AK_PRINT_FEATURE_BEAM_LATTICE;
 
   return lattice;
@@ -1017,13 +993,7 @@ ak_printAddBeam(AkDoc               * __restrict doc,
   beam->pid   = pid;
   beam->flags = flags;
 
-  if (print->lastBeam)
-    print->lastBeam->next = beam;
-  else
-    print->beams = beam;
-
-  print->lastBeam = beam;
-  print->beamCount++;
+  AK_PRINT_APPEND(print, beams, lastBeam, beam, beamCount);
   if (lattice)
     lattice->beamCount++;
   print->features |= AK_PRINT_FEATURE_BEAM_LATTICE;
@@ -1062,13 +1032,7 @@ ak_printAddBeamBall(AkDoc               * __restrict doc,
   ball->pid    = pid;
   ball->flags  = flags;
 
-  if (print->lastBeamBall)
-    print->lastBeamBall->next = ball;
-  else
-    print->beamBalls = ball;
-
-  print->lastBeamBall = ball;
-  print->beamBallCount++;
+  AK_PRINT_APPEND(print, beamBalls, lastBeamBall, ball, beamBallCount);
   if (lattice)
     lattice->ballCount++;
   print->features |= AK_PRINT_FEATURE_BEAM_LATTICE;
@@ -1105,13 +1069,7 @@ ak_printAddBeamSet(AkDoc               * __restrict doc,
   set->refCount     = refCount;
   set->ballRefCount = ballRefCount;
 
-  if (print->lastBeamSet)
-    print->lastBeamSet->next = set;
-  else
-    print->beamSets = set;
-
-  print->lastBeamSet = set;
-  print->beamSetCount++;
+  AK_PRINT_APPEND(print, beamSets, lastBeamSet, set, beamSetCount);
   if (lattice)
     lattice->beamSetCount++;
   print->features |= AK_PRINT_FEATURE_BEAM_LATTICE;
@@ -1155,13 +1113,11 @@ ak_printAddBooleanShape(AkDoc                   * __restrict doc,
   shape->flags        = flags;
   ak_print_copy_matrix(shape->matrix, matrix);
 
-  if (print->lastBooleanShape)
-    print->lastBooleanShape->next = shape;
-  else
-    print->booleanShapes = shape;
-
-  print->lastBooleanShape = shape;
-  print->booleanShapeCount++;
+  AK_PRINT_APPEND(print,
+                  booleanShapes,
+                  lastBooleanShape,
+                  shape,
+                  booleanShapeCount);
   print->features |= AK_PRINT_FEATURE_BOOLEAN;
 
   return shape;
@@ -1196,13 +1152,11 @@ ak_printAddBooleanOperand(AkDoc                  * __restrict doc,
   operand->flags    = flags;
   ak_print_copy_matrix(operand->matrix, matrix);
 
-  if (print->lastBooleanOperand)
-    print->lastBooleanOperand->next = operand;
-  else
-    print->booleanOperands = operand;
-
-  print->lastBooleanOperand = operand;
-  print->booleanOperandCount++;
+  AK_PRINT_APPEND(print,
+                  booleanOperands,
+                  lastBooleanOperand,
+                  operand,
+                  booleanOperandCount);
   if (shape)
     shape->operandCount++;
   print->features |= AK_PRINT_FEATURE_BOOLEAN;
@@ -1246,13 +1200,11 @@ ak_printAddDisplacement2D(AkDoc      * __restrict doc,
   displacement->id         = id;
   displacement->flags      = flags;
 
-  if (print->lastDisplacement2D)
-    print->lastDisplacement2D->next = displacement;
-  else
-    print->displacement2Ds = displacement;
-
-  print->lastDisplacement2D = displacement;
-  print->displacement2DCount++;
+  AK_PRINT_APPEND(print,
+                  displacement2Ds,
+                  lastDisplacement2D,
+                  displacement,
+                  displacement2DCount);
   print->features |= AK_PRINT_FEATURE_DISPLACEMENT;
 
   return displacement;
@@ -1282,13 +1234,11 @@ ak_printAddNormVectorGroup(AkDoc      * __restrict doc,
   group->path = ak_print_strdup(heap, group, path);
   group->id   = id;
 
-  if (print->lastNormVectorGroup)
-    print->lastNormVectorGroup->next = group;
-  else
-    print->normVectorGroups = group;
-
-  print->lastNormVectorGroup = group;
-  print->normVectorGroupCount++;
+  AK_PRINT_APPEND(print,
+                  normVectorGroups,
+                  lastNormVectorGroup,
+                  group,
+                  normVectorGroupCount);
   print->features |= AK_PRINT_FEATURE_DISPLACEMENT;
 
   return group;
@@ -1321,13 +1271,7 @@ ak_printAddNormVector(AkDoc                 * __restrict doc,
   vector->y = y;
   vector->z = z;
 
-  if (print->lastNormVector)
-    print->lastNormVector->next = vector;
-  else
-    print->normVectors = vector;
-
-  print->lastNormVector = vector;
-  print->normVectorCount++;
+  AK_PRINT_APPEND(print, normVectors, lastNormVector, vector, normVectorCount);
   if (group)
     group->vectorCount++;
   print->features |= AK_PRINT_FEATURE_DISPLACEMENT;
@@ -1369,13 +1313,7 @@ ak_printAddDisp2DGroup(AkDoc      * __restrict doc,
   group->offset            = offset;
   group->flags             = flags;
 
-  if (print->lastDisp2DGroup)
-    print->lastDisp2DGroup->next = group;
-  else
-    print->disp2DGroups = group;
-
-  print->lastDisp2DGroup = group;
-  print->disp2DGroupCount++;
+  AK_PRINT_APPEND(print, disp2DGroups, lastDisp2DGroup, group, disp2DGroupCount);
   print->features |= AK_PRINT_FEATURE_DISPLACEMENT;
 
   return group;
@@ -1412,13 +1350,7 @@ ak_printAddDisp2DCoord(AkDoc             * __restrict doc,
   coord->normVectorIndex = normVectorIndex;
   coord->flags           = flags;
 
-  if (print->lastDisp2DCoord)
-    print->lastDisp2DCoord->next = coord;
-  else
-    print->disp2DCoords = coord;
-
-  print->lastDisp2DCoord = coord;
-  print->disp2DCoordCount++;
+  AK_PRINT_APPEND(print, disp2DCoords, lastDisp2DCoord, coord, disp2DCoordCount);
   if (group)
     group->coordCount++;
   print->features |= AK_PRINT_FEATURE_DISPLACEMENT;
@@ -1454,13 +1386,11 @@ ak_printAddDisplacementMesh(AkDoc      * __restrict doc,
   mesh->defaultGroupId = defaultGroupId;
   mesh->flags          = flags;
 
-  if (print->lastDisplacementMesh)
-    print->lastDisplacementMesh->next = mesh;
-  else
-    print->displacementMeshes = mesh;
-
-  print->lastDisplacementMesh = mesh;
-  print->displacementMeshCount++;
+  AK_PRINT_APPEND(print,
+                  displacementMeshes,
+                  lastDisplacementMesh,
+                  mesh,
+                  displacementMeshCount);
   print->features |= AK_PRINT_FEATURE_DISPLACEMENT;
 
   return mesh;
@@ -1497,13 +1427,11 @@ ak_printAddDisplacementTriangle(AkDoc                    * __restrict doc,
   triangle->d3      = d3;
   triangle->flags   = flags;
 
-  if (print->lastDisplacementTriangle)
-    print->lastDisplacementTriangle->next = triangle;
-  else
-    print->displacementTriangles = triangle;
-
-  print->lastDisplacementTriangle = triangle;
-  print->displacementTriangleCount++;
+  AK_PRINT_APPEND(print,
+                  displacementTriangles,
+                  lastDisplacementTriangle,
+                  triangle,
+                  displacementTriangleCount);
   if (mesh)
     mesh->triangleCount++;
   print->features |= AK_PRINT_FEATURE_DISPLACEMENT;
@@ -1543,13 +1471,7 @@ ak_printAddImage3D(AkDoc      * __restrict doc,
   image->columnCount = columnCount;
   image->sheetCount  = sheetCount;
 
-  if (print->lastImage3D)
-    print->lastImage3D->next = image;
-  else
-    print->image3Ds = image;
-
-  print->lastImage3D = image;
-  print->image3DCount++;
+  AK_PRINT_APPEND(print, image3Ds, lastImage3D, image, image3DCount);
   print->features |= AK_PRINT_FEATURE_VOLUMETRIC;
 
   return image;
@@ -1578,13 +1500,7 @@ ak_printAddImageSheet(AkDoc          * __restrict doc,
 
   sheet->path = ak_print_strdup(heap, sheet, path);
 
-  if (print->lastImageSheet)
-    print->lastImageSheet->next = sheet;
-  else
-    print->imageSheets = sheet;
-
-  print->lastImageSheet = sheet;
-  print->imageSheetCount++;
+  AK_PRINT_APPEND(print, imageSheets, lastImageSheet, sheet, imageSheetCount);
   if (image)
     image->imageSheetCount++;
   print->features |= AK_PRINT_FEATURE_VOLUMETRIC;
@@ -1634,13 +1550,11 @@ ak_printAddFunctionFromImage3D(AkDoc      * __restrict doc,
   function->image3DId   = image3DId;
   function->flags       = flags;
 
-  if (print->lastFunctionFromImage3D)
-    print->lastFunctionFromImage3D->next = function;
-  else
-    print->functionFromImage3Ds = function;
-
-  print->lastFunctionFromImage3D = function;
-  print->functionFromImage3DCount++;
+  AK_PRINT_APPEND(print,
+                  functionFromImage3Ds,
+                  lastFunctionFromImage3D,
+                  function,
+                  functionFromImage3DCount);
   print->features |= AK_PRINT_FEATURE_VOLUMETRIC;
 
   return function;
@@ -1676,13 +1590,11 @@ ak_printAddImplicitFunction(AkDoc      * __restrict doc,
   function->id          = id;
   function->flags       = flags;
 
-  if (print->lastImplicitFunction)
-    print->lastImplicitFunction->next = function;
-  else
-    print->implicitFunctions = function;
-
-  print->lastImplicitFunction = function;
-  print->implicitFunctionCount++;
+  AK_PRINT_APPEND(print,
+                  implicitFunctions,
+                  lastImplicitFunction,
+                  function,
+                  implicitFunctionCount);
   print->features |= AK_PRINT_FEATURE_VOLUMETRIC;
 
   return function;
@@ -1716,13 +1628,7 @@ ak_printAddVolumeData(AkDoc      * __restrict doc,
   volume->baseMaterialId = baseMaterialId;
   volume->flags          = flags;
 
-  if (print->lastVolumeData)
-    print->lastVolumeData->next = volume;
-  else
-    print->volumeData = volume;
-
-  print->lastVolumeData = volume;
-  print->volumeDataCount++;
+  AK_PRINT_APPEND(print, volumeData, lastVolumeData, volume, volumeDataCount);
   print->features |= AK_PRINT_FEATURE_VOLUMETRIC;
 
   return volume;
@@ -1765,13 +1671,11 @@ ak_printAddVolumetricElement(AkDoc                       * __restrict doc,
   element->flags          = flags;
   ak_print_copy_matrix(element->matrix, matrix);
 
-  if (print->lastVolumetricElement)
-    print->lastVolumetricElement->next = element;
-  else
-    print->volumetricElements = element;
-
-  print->lastVolumetricElement = element;
-  print->volumetricElementCount++;
+  AK_PRINT_APPEND(print,
+                  volumetricElements,
+                  lastVolumetricElement,
+                  element,
+                  volumetricElementCount);
   if (volume) {
     switch (type) {
       case AK_PRINT_VOLUMETRIC_ELEMENT_MATERIAL_MAPPING:
@@ -1820,13 +1724,11 @@ ak_printAddVolumetricMesh(AkDoc      * __restrict doc,
   mesh->volumeId = volumeId;
   mesh->flags    = flags;
 
-  if (print->lastVolumetricMesh)
-    print->lastVolumetricMesh->next = mesh;
-  else
-    print->volumetricMeshes = mesh;
-
-  print->lastVolumetricMesh = mesh;
-  print->volumetricMeshCount++;
+  AK_PRINT_APPEND(print,
+                  volumetricMeshes,
+                  lastVolumetricMesh,
+                  mesh,
+                  volumetricMeshCount);
   print->features |= AK_PRINT_FEATURE_VOLUMETRIC;
 
   return mesh;
@@ -1872,13 +1774,7 @@ ak_printAddLevelSet(AkDoc        * __restrict doc,
   levelSet->flags          = flags;
   ak_print_copy_matrix(levelSet->matrix, matrix);
 
-  if (print->lastLevelSet)
-    print->lastLevelSet->next = levelSet;
-  else
-    print->levelSets = levelSet;
-
-  print->lastLevelSet = levelSet;
-  print->levelSetCount++;
+  AK_PRINT_APPEND(print, levelSets, lastLevelSet, levelSet, levelSetCount);
   print->features |= AK_PRINT_FEATURE_VOLUMETRIC;
 
   return levelSet;

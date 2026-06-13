@@ -50,10 +50,12 @@
 
 #if defined(_MSC_VER)
 #  define AK_INLINE   __forceinline
+#  define AK_NOINLINE __declspec(noinline)
 #  define AK_ALIGN(X) __declspec(align(X))
 #else
 #  define AK_ALIGN(X) __attribute((aligned(X)))
 #  define AK_INLINE   static inline __attribute((always_inline))
+#  define AK_NOINLINE __attribute__((noinline))
 #endif
 
 

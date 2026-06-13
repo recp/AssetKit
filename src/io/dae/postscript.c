@@ -15,6 +15,7 @@
  */
 
 #include "postscript.h"
+#include "strpool.h"
 #include "../../xml.h"
 
 #include "1.4/dae14.h"
@@ -413,7 +414,7 @@ dae_material_extra_root(DAEState   * __restrict dst,
   root = ak_extra(material);
   if (!root) {
     root       = ak_heap_calloc(dst->heap, material, sizeof(*root));
-    root->name = ak_heap_strdup(dst->heap, root, "extra");
+    root->name = ak_heap_strdup(dst->heap, root, _s_dae_extra);
     ak_extra_set(material, root);
   }
 

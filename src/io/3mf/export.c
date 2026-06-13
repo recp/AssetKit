@@ -1225,6 +1225,38 @@ ak_3mf_append_transform(AK3MFBuffer * __restrict buf, mat4 world) {
   }
 }
 
+static AK_NOINLINE
+void
+ak_3mf_write_build_item_open(AK3MFBuffer                 * __restrict buf,
+                             uint32_t                                 objectId,
+                             const AkPrintProductionItem * __restrict item) {
+  AK_3MF_BUF_LIT(buf, "      <item objectid=\"");
+  ak_3mf_buf_u32(buf, objectId);
+  ak_3mf_append_production_open_attrs(buf, item, true);
+}
+
+static AK_NOINLINE
+void
+ak_3mf_write_build_item(AK3MFBuffer                 * __restrict buf,
+                        uint32_t                                 objectId,
+                        const AkPrintProductionItem * __restrict item) {
+  ak_3mf_write_build_item_open(buf, objectId, item);
+  AK_3MF_BUF_LIT(buf, "\"/>\n");
+}
+
+static AK_NOINLINE
+void
+ak_3mf_write_build_item_transform(
+                             AK3MFBuffer                 * __restrict buf,
+                             uint32_t                                 objectId,
+                             const AkPrintProductionItem * __restrict item,
+                             mat4                                     world) {
+  ak_3mf_write_build_item_open(buf, objectId, item);
+  AK_3MF_BUF_LIT(buf, "\" transform=\"");
+  ak_3mf_append_transform(buf, world);
+  AK_3MF_BUF_LIT(buf, "\"/>\n");
+}
+
 static
 bool
 ak_3mf_write_plain_indexed_primitive(AK3MFExportState * __restrict st,
@@ -1289,11 +1321,7 @@ ak_3mf_write_plain_indexed_primitive(AK3MFExportState * __restrict st,
   AK_3MF_BUF_LIT(&st->resources, "          </triangles>\n"
                                 "        </mesh>\n"
                                 "      </object>\n");
-  AK_3MF_BUF_LIT(&st->build, "      <item objectid=\"");
-  ak_3mf_buf_u32(&st->build, objectId);
-  AK_3MF_BUF_LIT(&st->build, "\" transform=\"");
-  ak_3mf_append_transform(&st->build, world);
-  AK_3MF_BUF_LIT(&st->build, "\"/>\n");
+  ak_3mf_write_build_item_transform(&st->build, objectId, NULL, world);
 
   st->objectCount++;
   return st->resources.result == AK_OK && st->build.result == AK_OK;
@@ -1540,12 +1568,10 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
 
   if (!st->suppressBuildItems) {
     productionItem = ak_3mf_production_item_for_export(st, objectId);
-    AK_3MF_BUF_LIT(&st->build, "      <item objectid=\"");
-    ak_3mf_buf_u32(&st->build, objectId);
-    ak_3mf_append_production_open_attrs(&st->build, productionItem, true);
-    AK_3MF_BUF_LIT(&st->build, "\" transform=\"");
-    ak_3mf_append_transform(&st->build, world);
-    AK_3MF_BUF_LIT(&st->build, "\"/>\n");
+    ak_3mf_write_build_item_transform(&st->build,
+                                      objectId,
+                                      productionItem,
+                                      world);
   }
 
   st->objectCount++;
@@ -2278,10 +2304,7 @@ ak_3mf_write_level_sets(AK3MFExportState * __restrict st) {
     AK_3MF_BUF_LIT(&st->resources, "      </object>\n");
 
     productionItem = ak_3mf_production_item_for_export(st, objectId);
-    AK_3MF_BUF_LIT(&st->build, "      <item objectid=\"");
-    ak_3mf_buf_u32(&st->build, objectId);
-    ak_3mf_append_production_open_attrs(&st->build, productionItem, true);
-    AK_3MF_BUF_LIT(&st->build, "\"/>\n");
+    ak_3mf_write_build_item(&st->build, objectId, productionItem);
     st->objectCount++;
   }
 
@@ -2355,10 +2378,7 @@ ak_3mf_write_boolean_shapes(AK3MFExportState * __restrict st) {
     AK_3MF_BUF_LIT(&st->resources, "      </object>\n");
 
     productionItem = ak_3mf_production_item_for_export(st, objectId);
-    AK_3MF_BUF_LIT(&st->build, "      <item objectid=\"");
-    ak_3mf_buf_u32(&st->build, objectId);
-    ak_3mf_append_production_open_attrs(&st->build, productionItem, true);
-    AK_3MF_BUF_LIT(&st->build, "\"/>\n");
+    ak_3mf_write_build_item(&st->build, objectId, productionItem);
     st->objectCount++;
   }
 

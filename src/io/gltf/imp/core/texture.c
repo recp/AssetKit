@@ -33,9 +33,7 @@ coordInputName(AkHeap * __restrict heap,
 
   len                 = _s_gltf_texcoordPrefix_len + ak_digitsize(set);
   coordInputName      = ak_heap_alloc(heap, parent, len + 1);
-  coordInputName[len] = '\0';
-  /* sprintf(coordInputName, "%s%d", _s_gltf_texcoordPrefix, set); */
-  snprintf(coordInputName, len + 1, "%s%d", _s_gltf_texcoordPrefix, set);
+  gltf_imp_texcoord_id(coordInputName, set);
 
   return coordInputName;
 }

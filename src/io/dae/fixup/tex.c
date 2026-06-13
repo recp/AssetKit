@@ -15,6 +15,7 @@
  */
 
 #include "tex.h"
+#include "../strpool.h"
 
 #include <string.h>
 
@@ -173,7 +174,7 @@ bind_texture:
   
   /* this is the default */
   /* use bind_material to set texcoord */
-  texref->coordInputName = ak_heap_strdup(heap, texref, "TEXCOORD");
+  texref->coordInputName = ak_heap_strdup(heap, texref, _s_dae_TEXCOORD);
   tex->image             = image;
   cd->texture            = texref;
   

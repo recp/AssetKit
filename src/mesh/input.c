@@ -17,7 +17,8 @@
 #include "../common.h"
 #include "index.h"
 #include "edit_common.h"
-#include <stdio.h>
+#include "../io/common/text_number.h"
+
 #include <string.h>
 
 void
@@ -83,27 +84,35 @@ ak_meshReIndexInputs(AkMesh * __restrict mesh) {
 void
 ak_inputNameIndexed(AkInput * __restrict input,
                     char    * __restrict buf) {
+  char    *p;
+  size_t   len;
+  uint32_t value;
+
   if (!input->semanticRaw)
     return;
 
-  if (input->isIndexed)
-    sprintf(buf, "%s%d", input->semanticRaw, input->index);
-  else
+  if (!input->isIndexed) {
     strcpy(buf, input->semanticRaw);
+    return;
+  }
+
+  len = strlen(input->semanticRaw);
+  memcpy(buf, input->semanticRaw, len);
+  p = buf + len;
+  if (input->index < 0) {
+    *p++ = '-';
+    value = (uint32_t)(-(input->index + 1)) + 1u;
+  } else {
+    value = (uint32_t)input->index;
+  }
+  p = ak_io_text_format_uint64(p, value);
+  *p = '\0';
 }
 
 AK_EXPORT
 void
 ak_inputNameBySet(AkInput * __restrict input,
                   char    * __restrict buf) {
-//  if (!input->semanticRaw)
-//    return;
-//
-//  if (input->set > 0)
-//    sprintf(buf, "%s%u", input->semanticRaw, input->set);
-//  else
-//    strcpy(buf, input->semanticRaw);
-
   ak_inputNameIndexed(input, buf);
 }
 

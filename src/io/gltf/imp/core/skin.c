@@ -44,7 +44,7 @@ gltf_skin(json_t * __restrict jskin,
     jskinVal = jskin->value;
     skin     = ak_heap_calloc(heap, doc, sizeof(*skin));
 
-    sprintf(skinid, "%s%d", _s_gltf_skin, skinIndex);
+    gltf_imp_skin_id(skinid, skinIndex);
     ak_heap_setId(heap,
                   ak__alignof(skin),
                   ak_heap_strdup(heap, skin, (void *)skinid));

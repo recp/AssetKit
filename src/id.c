@@ -16,8 +16,7 @@
 
 #include "common.h"
 #include "id.h"
-#include <math.h>
-#include <stdio.h>
+#include "io/common/text_number.h"
 #include <string.h>
 
 AK_HIDE
@@ -90,15 +89,18 @@ ak_id_gen(AkHeap     * __restrict heap,
   do {
     AkHeapNode *node;
     AkResult    ret;
+    char        token[24];
+    char       *tokenEnd;
 
     /* we ensure that token > 0 when in ctor */
-    tknsize = (size_t)log10((double)*idp) + 1;
+    tokenEnd = ak_io_text_format_uint64(token, *idp);
+    tknsize  = (size_t)(tokenEnd - token);
 
     id = ak_heap_alloc(heap, parentmem, size + tknsize + 1);
     id[size + tknsize] = '\0';
 
-    strcpy(id, idpstr);
-    sprintf(id + size, "%zu", *idp);
+    memcpy(id, idpstr, size);
+    memcpy(id + size, token, tknsize);
 
     ret = ak_heap_getNodeById(heap, (void *)id, &node);
 

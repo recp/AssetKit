@@ -19,11 +19,11 @@
 #include "../../../image/export.h"
 #include "../../common/path.h"
 #include "../../common/string.h"
+#include "../../common/text_number.h"
 #include "../../common/uri.h"
 #include "../../../../include/ak/path.h"
 
 #include <math.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -46,24 +46,24 @@ wobj_material_name_dup(AkMaterial * __restrict mat, uint32_t index) {
   size_t      prefixLen;
   size_t      len;
   size_t      i;
-  int         n;
+  char       *prefixEnd;
   char        prefix[32];
 
-  n = snprintf(prefix, sizeof(prefix), "mat_%u", index);
-  if (n <= 0 || (size_t)n >= sizeof(prefix))
-    return NULL;
+  memcpy(prefix, "mat_", sizeof("mat_") - 1u);
+  prefixEnd  = ak_io_text_format_uint64(prefix + sizeof("mat_") - 1u, index);
+  *prefixEnd = '\0';
+  prefixLen  = (size_t)(prefixEnd - prefix);
 
   src = mat && mat->name ? mat->name : NULL;
   if (!src || !*src) {
-    dst = malloc((size_t)n + 1u);
+    dst = malloc(prefixLen + 1u);
     if (!dst)
       return NULL;
-    memcpy(dst, prefix, (size_t)n + 1u);
+    memcpy(dst, prefix, prefixLen + 1u);
     return dst;
   }
 
   srcLen    = strlen(src);
-  prefixLen = (size_t)n;
   if (srcLen > (size_t)-1 - prefixLen - 2u)
     return NULL;
 
@@ -300,10 +300,11 @@ wobj_export_texture_uri(WOBJExpState         * __restrict st,
   char          *srcOwned;
   char          *dstPath;
   char          *exportUri;
+  char          *prefixEnd;
   size_t         baseLen;
+  size_t         prefixLen;
   uint32_t       imageIdx;
   uint32_t       exportImageIdx;
-  int            n;
   char           prefix[32];
 
   if (failed)
@@ -348,20 +349,23 @@ wobj_export_texture_uri(WOBJExpState         * __restrict st,
     base = "texture";
 
   exportImageIdx = imageIdx == UINT32_MAX ? 0u : imageIdx;
-  n = snprintf(prefix, sizeof(prefix), "image_%u_", exportImageIdx);
-  if (n <= 0 || (size_t)n >= sizeof(prefix))
-    return NULL;
+  memcpy(prefix, "image_", sizeof("image_") - 1u);
+  prefixEnd   = ak_io_text_format_uint64(prefix + sizeof("image_") - 1u,
+                                         exportImageIdx);
+  *prefixEnd++ = '_';
+  *prefixEnd   = '\0';
+  prefixLen    = (size_t)(prefixEnd - prefix);
 
   baseLen = strlen(base);
-  if (baseLen > (size_t)-1 - (size_t)n - 1u)
+  if (baseLen > (size_t)-1 - prefixLen - 1u)
     return NULL;
 
-  exportUri = malloc((size_t)n + baseLen + 1u);
+  exportUri = malloc(prefixLen + baseLen + 1u);
   if (!exportUri)
     return NULL;
 
-  memcpy(exportUri, prefix, (size_t)n);
-  memcpy(exportUri + (size_t)n, base, baseLen + 1u);
+  memcpy(exportUri, prefix, prefixLen);
+  memcpy(exportUri + prefixLen, base, baseLen + 1u);
 
   srcOwned = NULL;
   srcPath  = source->resolvedPath && *source->resolvedPath
