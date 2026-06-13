@@ -31,7 +31,7 @@ dae_instancing_accessor_supported(AkAccessor * __restrict acc,
          || (acc->componentType == AKT_FLOAT
              && acc->componentCount == componentCount
              && acc->count == count
-             && dae_accessor_float_direct(acc));
+             && io_accessor_float_direct(acc));
 }
 
 static

@@ -14,26 +14,25 @@
  * limitations under the License.
  */
 
-#ifndef assetkit_dae_exp_io_h
-#define assetkit_dae_exp_io_h
+#include "string.h"
 
-#include "dae.h"
-
-#include <stdbool.h>
-#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
 
 AK_HIDE
-const char*
-dae_uri_file_path(const char * __restrict uri);
+char*
+io_strdup(const char * __restrict src) {
+  char  *dst;
+  size_t len;
 
-AK_HIDE
-bool
-dae_uri_rel_safe(const char * __restrict uri);
+  if (!src)
+    return NULL;
 
-AK_HIDE
-bool
-dae_write_file_bytes(const char * __restrict dst,
-                     const void * __restrict data,
-                     size_t                  len);
+  len = strlen(src);
+  dst = malloc(len + 1u);
+  if (!dst)
+    return NULL;
 
-#endif /* assetkit_dae_exp_io_h */
+  memcpy(dst, src, len + 1u);
+  return dst;
+}

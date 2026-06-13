@@ -429,7 +429,7 @@ dae_instancing_read_vec3(AkAccessor * __restrict acc,
     return;
   }
 
-  row    = dae_accessor_float_row(acc, index);
+  row    = io_accessor_float_row(acc, index);
   out[0] = row[0];
   out[1] = row[1];
   out[2] = row[2];
@@ -447,7 +447,7 @@ dae_instancing_read_quat(AkAccessor * __restrict acc,
     return;
   }
 
-  row    = dae_accessor_float_row(acc, index);
+  row    = io_accessor_float_row(acc, index);
   out[0] = row[0];
   out[1] = row[1];
   out[2] = row[2];

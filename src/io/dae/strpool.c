@@ -391,6 +391,7 @@ const char _s_dae_pool_1[] =
 "samplerCUBE\0"
 "samplerDEPTH\0"
 "data\0"
+"file://\0"
 "version\0"
 "format_hint\0"
 "viewport_ratio\0"

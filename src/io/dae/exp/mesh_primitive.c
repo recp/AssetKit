@@ -16,15 +16,8 @@
 
 #include "mesh.h"
 #include "brep.h"
-#include "../../common/primitive.h"
 
 #include <string.h>
-
-AK_HIDE
-uint32_t
-dae_primitive_vertex_count(AkMeshPrimitive * __restrict prim) {
-  return io_primitive_vertex_count(prim);
-}
 
 static
 bool
@@ -39,7 +32,7 @@ dae_polygon_vcount_valid(AkPolygon * __restrict poly) {
   if (poly->base.nPolygons != 0 && poly->base.nPolygons != poly->vcount->count)
     return false;
 
-  vertexCount = dae_primitive_vertex_count(&poly->base);
+  vertexCount = io_primitive_vertex_count(&poly->base);
   sum         = 0;
   for (i = 0; i < poly->vcount->count; i++) {
     AkUInt vc;
@@ -56,14 +49,6 @@ dae_polygon_vcount_valid(AkPolygon * __restrict poly) {
 }
 
 AK_HIDE
-AkUInt
-dae_primitive_input_index(AkMeshPrimitive * __restrict prim,
-                          AkInput         * __restrict input,
-                          uint32_t                     vertexIndex) {
-  return io_primitive_input_index(prim, input, vertexIndex);
-}
-
-AK_HIDE
 bool
 dae_primitive_supported(AkMeshPrimitive * __restrict prim) {
   uint32_t vertexCount;
@@ -71,7 +56,7 @@ dae_primitive_supported(AkMeshPrimitive * __restrict prim) {
   if (!prim || !prim->pos || !prim->pos->accessor)
     return false;
 
-  vertexCount = dae_primitive_vertex_count(prim);
+  vertexCount = io_primitive_vertex_count(prim);
   switch (prim->type) {
     case AK_PRIMITIVE_TRIANGLES: {
       AkTriangleMode mode;
@@ -185,7 +170,7 @@ uint32_t
 dae_primitive_count(AkMeshPrimitive * __restrict prim) {
   uint32_t vertexCount;
 
-  vertexCount = dae_primitive_vertex_count(prim);
+  vertexCount = io_primitive_vertex_count(prim);
   switch (prim->type) {
     case AK_PRIMITIVE_TRIANGLES:
       if (((AkTriangles *)prim)->mode == AK_TRIANGLE_STRIP

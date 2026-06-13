@@ -17,71 +17,62 @@
 #ifndef io_common_uri_h
 #define io_common_uri_h
 
+#include "../../common.h"
+
 #include <stdbool.h>
 #include <stddef.h>
 
-static inline
+#define IO_URI_DATA_PREFIX     "data:"
+#define IO_URI_DATA_PREFIX_LEN 5u
+
+AK_HIDE
 bool
 io_uri_has_prefix(const char * __restrict uri,
                   const char * __restrict prefix,
-                  size_t                  prefixLen) {
-  size_t i;
+                  size_t                  prefixLen);
 
-  if (!uri)
-    return false;
-
-  for (i = 0; i < prefixLen; i++) {
-    if (uri[i] == '\0' || uri[i] != prefix[i])
-      return false;
-  }
-
-  return true;
-}
-
-static inline
+AK_HIDE
 bool
-io_uri_has_scheme(const char * __restrict uri) {
-  const char *it;
+io_uri_has_scheme(const char * __restrict uri);
 
-  if (!uri)
-    return false;
-
-  for (it = uri; *it; it++) {
-    if (*it == ':' && it != uri)
-      return true;
-    if (*it == '/' || *it == '\\' || *it == '?' || *it == '#')
-      return false;
-  }
-
-  return false;
-}
-
-static inline
+AK_HIDE
 bool
-io_path_is_abs_drive_colon(const char * __restrict path) {
-  return path
-         && (path[0] == '/'
-             || path[0] == '\\'
-             || (((path[0] >= 'A' && path[0] <= 'Z')
-                  || (path[0] >= 'a' && path[0] <= 'z'))
-                 && path[1] == ':'));
-}
+io_path_is_abs_drive_colon(const char * __restrict path);
 
-static inline
+AK_HIDE
 bool
-io_path_is_abs_drive_slash(const char * __restrict path) {
-  unsigned char drive;
+io_path_is_abs_drive_slash(const char * __restrict path);
 
-  if (!path || !path[0])
-    return false;
+AK_HIDE
+int
+io_uri_hex_digit(unsigned char c);
 
-  if (path[0] == '/' || path[0] == '\\')
-    return true;
+AK_HIDE
+bool
+io_uri_pct_encoded(const char * __restrict uri, size_t i);
 
-  drive = (unsigned char)path[0];
-  return ((drive >= 'A' && drive <= 'Z') || (drive >= 'a' && drive <= 'z'))
-         && path[1] == ':'
-         && (path[2] == '/' || path[2] == '\\');
+AK_INLINE
+bool
+io_uri_unreserved(unsigned char c) {
+  return (c >= 'A' && c <= 'Z')
+         || (c >= 'a' && c <= 'z')
+         || (c >= '0' && c <= '9')
+         || c == '-'
+         || c == '_'
+         || c == '.'
+         || c == '~';
 }
+
+AK_HIDE
+char*
+io_uri_escape_dup(const char * __restrict uri,
+                  bool                    allowSlash,
+                  bool                    preservePctEncoded);
+
+AK_HIDE
+bool
+io_uri_decode_path(const char * __restrict uri,
+                   char       * __restrict dst,
+                   size_t                  dstCap);
 
 #endif /* io_common_uri_h */

@@ -69,4 +69,14 @@ io_input(AkHeap          * __restrict heap,
          const char      * __restrict semRaw,
          uint32_t                     offset);
 
+AK_HIDE
+bool
+io_rb_reserve_key(RBTree * __restrict map,
+                  void   * __restrict key);
+
+AK_HIDE
+bool
+io_rb_insert_absent_key(RBTree * __restrict map,
+                        void   * __restrict key);
+
 #endif /* io_common_util_h */

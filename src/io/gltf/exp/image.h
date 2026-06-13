@@ -31,18 +31,6 @@ bool
 gltf_image_exportable(GLTFExpState * __restrict st,
                       AkImage      * __restrict image);
 
-bool
-gltf_image_uri_is_data(const char * __restrict uri);
-
-bool
-gltf_image_uri_has_scheme(const char * __restrict uri);
-
-bool
-gltf_image_uri_is_file_scheme(const char * __restrict uri);
-
-bool
-gltf_image_path_is_abs(const char * __restrict path);
-
 const char*
 gltf_image_source_path(GLTFExpState  * __restrict st,
                        AkImageSource * __restrict source,

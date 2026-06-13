@@ -16,12 +16,24 @@
 
 #include "image.h"
 #include "io.h"
+#include "../strpool.h"
+#include "../../common/path.h"
+#include "../../common/string.h"
+#include "../../common/util.h"
+#include "../../common/uri.h"
 
 #include <ak/path.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+static
+bool
+dae_uri_is_data_scheme(const char * __restrict uri) {
+  return io_uri_has_prefix(uri, _s_dae_data, _s_dae_data_len)
+         && uri[_s_dae_data_len] == ':';
+}
 
 AK_HIDE
 bool
@@ -96,7 +108,7 @@ dae_image_buffer_uri(AkImageSource * __restrict source,
     return NULL;
 
   if ((size_t)written < sizeof(stack))
-    return dae_strdup(stack);
+    return io_strdup(stack);
 
   size = (size_t)written + 1u;
   uri  = malloc(size);
@@ -124,10 +136,8 @@ dae_image_unique_buffer_uri(RBTree        * __restrict uriMap,
     if (!generated)
       return NULL;
 
-    if (!rb_find(uriMap, generated)) {
-      rb_insert(uriMap, generated, (void *)(uintptr_t)1);
+    if (io_rb_insert_absent_key(uriMap, generated))
       return generated;
-    }
 
     free(generated);
   }
@@ -176,7 +186,7 @@ dae_image_source_path(DAEExpState  * __restrict st,
                       size_t                     pathbufCap) {
   const char *filePath;
 
-  if (!source || !source->uri || dae_uri_is_data(source->uri))
+  if (!source || !source->uri || dae_uri_is_data_scheme(source->uri))
     return NULL;
 
   if (source->resolvedPath)
@@ -185,24 +195,24 @@ dae_image_source_path(DAEExpState  * __restrict st,
   filePath = dae_uri_file_path(source->uri);
   if (filePath) {
     if (strchr(filePath, '%')) {
-      if (!dae_uri_decode_path(filePath, pathbuf, pathbufCap))
+      if (!io_uri_decode_path(filePath, pathbuf, pathbufCap))
         return NULL;
       return pathbuf;
     }
     return filePath;
   }
 
-  if (dae_uri_has_scheme(source->uri))
+  if (io_uri_has_scheme(source->uri))
     return NULL;
 
   if (st->doc
       && st->doc->inf
       && st->doc->inf->dir
       && st->doc->inf->dir[0]) {
-    if (dae_join_path_buf(st->doc->inf->dir,
-                          source->uri,
-                          pathbuf,
-                          pathbufCap))
+    if (io_path_join_buf(st->doc->inf->dir,
+                         source->uri,
+                         pathbuf,
+                         pathbufCap))
       return pathbuf;
   }
 
@@ -215,10 +225,12 @@ dae_image_uri_is_copy_source(AkImageSource * __restrict source) {
   return source
          && source->type == AK_IMAGE_SOURCE_URI
          && source->uri
-         && !dae_uri_is_data(source->uri)
-         && (dae_path_is_abs(source->uri)
-             || !dae_uri_has_scheme(source->uri)
-             || dae_uri_is_file_scheme(source->uri));
+         && !dae_uri_is_data_scheme(source->uri)
+         && (io_path_is_abs_drive_colon(source->uri)
+             || !io_uri_has_scheme(source->uri)
+             || io_uri_has_prefix(source->uri,
+                                  _s_dae_file_uri,
+                                  _s_dae_file_uri_len));
 }
 
 static
@@ -237,9 +249,9 @@ dae_image_copy_uri(DAEExpState  * __restrict st,
       || !source
       || !dae_image_uri_is_copy_source(source)
       || !uri
-      || dae_uri_is_data(uri)
-      || dae_uri_has_scheme(uri)
-      || dae_path_is_abs(uri)
+      || dae_uri_is_data_scheme(uri)
+      || io_uri_has_scheme(uri)
+      || io_path_is_abs_drive_colon(uri)
       || !dae_uri_rel_safe(uri))
     return true;
 
@@ -248,16 +260,16 @@ dae_image_copy_uri(DAEExpState  * __restrict st,
     return true;
 
   heapPath = false;
-  if (dae_join_path_buf(st->outDir, uri, dstbuf, sizeof(dstbuf))) {
+  if (io_path_join_buf(st->outDir, uri, dstbuf, sizeof(dstbuf))) {
     dstPath = dstbuf;
   } else {
-    dstPath  = dae_join_path(st->outDir, uri);
+    dstPath  = io_path_join_dup(st->outDir, uri);
     heapPath = true;
   }
   if (!dstPath)
     return false;
 
-  ok = dae_mkdir_parent_dirs(dstPath)
+  ok = io_path_mkdir_parent_dirs(dstPath, false)
        && ak_copyfile(srcPath, dstPath);
   if (heapPath)
     free(dstPath);
@@ -283,23 +295,23 @@ dae_image_write_buffer(DAEExpState  * __restrict st,
       || !source->buffer->data
       || source->buffer->length == 0
       || !uri
-      || dae_uri_is_data(uri)
-      || dae_uri_has_scheme(uri)
-      || dae_path_is_abs(uri)
+      || dae_uri_is_data_scheme(uri)
+      || io_uri_has_scheme(uri)
+      || io_path_is_abs_drive_colon(uri)
       || !dae_uri_rel_safe(uri))
     return false;
 
   heapPath = false;
-  if (dae_join_path_buf(st->outDir, uri, dstbuf, sizeof(dstbuf))) {
+  if (io_path_join_buf(st->outDir, uri, dstbuf, sizeof(dstbuf))) {
     dstPath = dstbuf;
   } else {
-    dstPath  = dae_join_path(st->outDir, uri);
+    dstPath  = io_path_join_dup(st->outDir, uri);
     heapPath = true;
   }
   if (!dstPath)
     return false;
 
-  ok = dae_mkdir_parent_dirs(dstPath)
+  ok = io_path_mkdir_parent_dirs(dstPath, false)
        && dae_write_file_bytes(dstPath,
                                source->buffer->data,
                                source->buffer->length);
@@ -313,16 +325,11 @@ static
 const char*
 dae_uri_basename(const char * __restrict uri) {
   const char *base;
-  const char *it;
 
   if (!uri || !*uri)
     return NULL;
 
-  base = uri;
-  for (it = uri; *it; it++) {
-    if (*it == '/' || *it == '\\')
-      base = it + 1;
-  }
+  base = io_path_basename(uri);
 
   if (!*base
       || strcmp(base, ".") == 0
@@ -336,9 +343,9 @@ static
 bool
 dae_image_needs_uri_rewrite(const char * __restrict uri) {
   return uri
-         && !dae_uri_is_data(uri)
-         && !dae_uri_has_scheme(uri)
-         && !dae_path_is_abs(uri)
+         && !dae_uri_is_data_scheme(uri)
+         && !io_uri_has_scheme(uri)
+         && !io_path_is_abs_drive_colon(uri)
          && !dae_uri_rel_safe(uri);
 }
 
@@ -387,7 +394,7 @@ dae_image_indexed_basename(const char * __restrict base,
     return NULL;
 
   if ((size_t)written < sizeof(stack))
-    return dae_strdup(stack);
+    return io_strdup(stack);
 
   size = (size_t)written + 1u;
   uri  = malloc(size);
@@ -400,19 +407,6 @@ dae_image_indexed_basename(const char * __restrict base,
     snprintf(uri, size, "image_%u_%zu_%s", imageIdx, collisionIdx, base);
 
   return uri;
-}
-
-static
-bool
-dae_image_uri_map_reserve(RBTree * __restrict uriMap,
-                          char   * __restrict uri) {
-  if (!uri)
-    return false;
-
-  if (!rb_find(uriMap, uri))
-    rb_insert(uriMap, uri, (void *)(uintptr_t)1);
-
-  return true;
 }
 
 static
@@ -430,10 +424,8 @@ dae_image_unique_generated_uri(RBTree      * __restrict uriMap,
     if (!generated)
       return NULL;
 
-    if (!rb_find(uriMap, generated)) {
-      rb_insert(uriMap, generated, (void *)(uintptr_t)1);
+    if (io_rb_insert_absent_key(uriMap, generated))
       return generated;
-    }
 
     free(generated);
   }
@@ -489,14 +481,14 @@ dae_prepare_image_export_uris(DAEExpState * __restrict st) {
       source = dae_image_source(image);
       if (!dae_image_uri_is_copy_source(source)
           || !dae_uri_rel_safe(source->uri)
-          || dae_uri_is_data(source->uri)
-          || dae_uri_has_scheme(source->uri)
-          || dae_path_is_abs(source->uri))
+          || dae_uri_is_data_scheme(source->uri)
+          || io_uri_has_scheme(source->uri)
+          || io_path_is_abs_drive_colon(source->uri))
         continue;
 
-      st->imageExportUris[idx] = dae_strdup(source->uri);
+      st->imageExportUris[idx] = io_strdup(source->uri);
       if (!st->imageExportUris[idx]
-          || !dae_image_uri_map_reserve(uriMap, st->imageExportUris[idx]))
+          || !io_rb_reserve_key(uriMap, st->imageExportUris[idx]))
         return dae_image_export_uri_fail(st, uriMap);
     }
   } else {
@@ -506,14 +498,14 @@ dae_prepare_image_export_uris(DAEExpState * __restrict st) {
       source = dae_image_source(image);
       if (!dae_image_uri_is_copy_source(source)
           || !dae_uri_rel_safe(source->uri)
-          || dae_uri_is_data(source->uri)
-          || dae_uri_has_scheme(source->uri)
-          || dae_path_is_abs(source->uri))
+          || dae_uri_is_data_scheme(source->uri)
+          || io_uri_has_scheme(source->uri)
+          || io_path_is_abs_drive_colon(source->uri))
         continue;
 
-      st->imageExportUris[idx] = dae_strdup(source->uri);
+      st->imageExportUris[idx] = io_strdup(source->uri);
       if (!st->imageExportUris[idx]
-          || !dae_image_uri_map_reserve(uriMap, st->imageExportUris[idx]))
+          || !io_rb_reserve_key(uriMap, st->imageExportUris[idx]))
         return dae_image_export_uri_fail(st, uriMap);
     }
   }
@@ -537,14 +529,14 @@ dae_prepare_image_export_uris(DAEExpState * __restrict st) {
       } else if (source->type != AK_IMAGE_SOURCE_URI || !source->uri) {
         continue;
       } else if (!st->outDir || !dae_image_uri_is_copy_source(source)) {
-        st->imageExportUris[idx] = dae_strdup(source->uri);
+        st->imageExportUris[idx] = io_strdup(source->uri);
       } else if (dae_uri_rel_safe(source->uri)
-                 && !dae_uri_is_data(source->uri)
-                 && !dae_uri_has_scheme(source->uri)
-                 && !dae_path_is_abs(source->uri)) {
-        st->imageExportUris[idx] = dae_strdup(source->uri);
+                 && !dae_uri_is_data_scheme(source->uri)
+                 && !io_uri_has_scheme(source->uri)
+                 && !io_path_is_abs_drive_colon(source->uri)) {
+        st->imageExportUris[idx] = io_strdup(source->uri);
         if (st->imageExportUris[idx])
-          dae_image_uri_map_reserve(uriMap, st->imageExportUris[idx]);
+          io_rb_reserve_key(uriMap, st->imageExportUris[idx]);
       } else {
         st->imageExportUris[idx] =
           dae_image_unique_generated_uri(uriMap, source->uri, idx);
@@ -574,14 +566,14 @@ dae_prepare_image_export_uris(DAEExpState * __restrict st) {
     } else if (source->type != AK_IMAGE_SOURCE_URI || !source->uri) {
       continue;
     } else if (!st->outDir || !dae_image_uri_is_copy_source(source)) {
-      st->imageExportUris[idx] = dae_strdup(source->uri);
+      st->imageExportUris[idx] = io_strdup(source->uri);
     } else if (dae_uri_rel_safe(source->uri)
-               && !dae_uri_is_data(source->uri)
-               && !dae_uri_has_scheme(source->uri)
-               && !dae_path_is_abs(source->uri)) {
-      st->imageExportUris[idx] = dae_strdup(source->uri);
+               && !dae_uri_is_data_scheme(source->uri)
+               && !io_uri_has_scheme(source->uri)
+               && !io_path_is_abs_drive_colon(source->uri)) {
+      st->imageExportUris[idx] = io_strdup(source->uri);
       if (st->imageExportUris[idx])
-        dae_image_uri_map_reserve(uriMap, st->imageExportUris[idx]);
+        io_rb_reserve_key(uriMap, st->imageExportUris[idx]);
     } else {
       st->imageExportUris[idx] =
         dae_image_unique_generated_uri(uriMap, source->uri, idx);

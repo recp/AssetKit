@@ -18,6 +18,7 @@
 #include "material.h"
 #include "mesh.h"
 #include "writer.h"
+#include "../../common/path.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,107 +26,6 @@
 
 #define WOBJ_EXP_FILE_BUFFER_SIZE (1024u * 1024u)
 #define WOBJ_EXP_MAX_NODE_DEPTH   512u
-
-static
-char*
-wobj_output_dir(const char * __restrict filepath) {
-  const char *slash;
-  const char *backslash;
-  const char *lastSlash;
-  char       *dir;
-  size_t      len;
-
-  slash      = strrchr(filepath, '/');
-  backslash  = strrchr(filepath, '\\');
-  if (slash && backslash)
-    lastSlash = slash > backslash ? slash : backslash;
-  else
-    lastSlash = slash ? slash : backslash;
-
-  if (!lastSlash) {
-    dir = malloc(2u);
-    if (!dir)
-      return NULL;
-    dir[0] = '.';
-    dir[1] = '\0';
-    return dir;
-  }
-
-  len = (size_t)(lastSlash - filepath);
-  if (len == 0)
-    len = 1u;
-
-  dir = malloc(len + 1u);
-  if (!dir)
-    return NULL;
-
-  memcpy(dir, filepath, len);
-  dir[len] = '\0';
-  return dir;
-}
-
-static
-char*
-wobj_mtl_path(const char * __restrict filepath) {
-  const char *slash;
-  const char *backslash;
-  const char *base;
-  const char *dot;
-  char       *path;
-  size_t      stemLen;
-
-  slash     = strrchr(filepath, '/');
-  backslash = strrchr(filepath, '\\');
-
-  if (slash && backslash)
-    base = slash > backslash ? slash + 1 : backslash + 1;
-  else if (slash)
-    base = slash + 1;
-  else if (backslash)
-    base = backslash + 1;
-  else
-    base = filepath;
-
-  dot     = strrchr(base, '.');
-  stemLen = dot && dot != base ? (size_t)(dot - filepath) : strlen(filepath);
-
-  if ((stemLen > (size_t)-1 - 5u) || !(path = malloc(stemLen + 5u)))
-    return NULL;
-
-  memcpy(path, filepath, stemLen);
-  memcpy(path + stemLen, ".mtl", 5u);
-
-  return path;
-}
-
-static
-char*
-wobj_basename_dup(const char * __restrict path) {
-  const char *slash;
-  const char *backslash;
-  const char *base;
-  char       *dst;
-  size_t      len;
-
-  slash     = strrchr(path, '/');
-  backslash = strrchr(path, '\\');
-
-  if (slash && backslash)
-    base = slash > backslash ? slash + 1 : backslash + 1;
-  else if (slash)
-    base = slash + 1;
-  else if (backslash)
-    base = backslash + 1;
-  else
-    base = path;
-
-  len = strlen(base);
-  if (!(dst = malloc(len + 1u)))
-    return NULL;
-
-  memcpy(dst, base, len + 1u);
-  return dst;
-}
 
 static
 void
@@ -161,7 +61,7 @@ wobj_state_prepare(WOBJExpState * __restrict st,
   memset(st, 0, sizeof(*st));
 
   st->doc    = doc;
-  st->outDir = wobj_output_dir(filepath);
+  st->outDir = io_path_output_dir_dup(filepath);
 
   if (!st->outDir || !wobj_prepare_materials(st))
     return false;
@@ -178,11 +78,11 @@ wobj_state_prepare(WOBJExpState * __restrict st,
         return false;
     }
 
-    st->mtlPath = wobj_mtl_path(filepath);
+    st->mtlPath = io_path_replace_extension_dup(filepath, ".mtl", 5u);
     if (!st->mtlPath)
       return false;
 
-    st->mtlBaseName = wobj_basename_dup(st->mtlPath);
+    st->mtlBaseName = io_path_basename_dup(st->mtlPath);
     if (!st->mtlBaseName)
       return false;
   }

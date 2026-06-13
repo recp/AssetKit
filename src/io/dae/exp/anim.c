@@ -651,7 +651,7 @@ dae_write_anim_float_source_variant(DAEExpState    * __restrict st,
   w              = &st->w;
   semName        = dae_anim_input_semantic_name(semantic);
   componentCount = acc->componentCount;
-  direct         = dae_accessor_float_direct(acc);
+  direct         = io_accessor_float_direct(acc);
   scratch        = NULL;
 
   if (!direct) {
@@ -681,7 +681,7 @@ dae_write_anim_float_source_variant(DAEExpState    * __restrict st,
     float quatConverted[4];
 
     row = direct
-          ? dae_accessor_float_row(acc, i)
+          ? io_accessor_float_row(acc, i)
           : scratch + (size_t)i * componentCount;
 
     if (semantic == AK_INPUT_OUTPUT
@@ -763,7 +763,7 @@ dae_write_anim_morph_output_source(DAEExpState * __restrict st,
 
   w                  = &st->w;
   componentCount     = acc->componentCount;
-  direct             = dae_accessor_float_direct(acc);
+  direct             = io_accessor_float_direct(acc);
   scratch            = NULL;
   interleavedWeights = acc->componentCount == targetCount
                        && acc->count == keyCount;
@@ -806,7 +806,7 @@ dae_write_anim_morph_output_source(DAEExpState * __restrict st,
 
     if (interleavedWeights) {
       row = direct
-            ? dae_accessor_float_row(acc, i)
+            ? io_accessor_float_row(acc, i)
             : scratch + (size_t)i * componentCount;
       val = row[weightIdx];
     } else {
@@ -814,7 +814,7 @@ dae_write_anim_morph_output_source(DAEExpState * __restrict st,
 
       flatIdx = i * targetCount + weightIdx;
       row     = direct
-                ? dae_accessor_float_row(acc, flatIdx)
+                ? io_accessor_float_row(acc, flatIdx)
                 : scratch + (size_t)flatIdx * componentCount;
       val     = row[0];
     }

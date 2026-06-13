@@ -27,6 +27,20 @@
 #include <string.h>
 
 #define AK_3MF_XMLA(XML, NAME) xmla_sz((XML), _s_ak_##NAME, _s_ak_##NAME##_len)
+#define AK_3MF_XMLA_LOCAL(XML, NAME)                                          \
+  ak_3mf_xmla_local_sz((XML), _s_ak_##NAME, _s_ak_##NAME##_len)
+#define AK_3MF_STRDUP_PATH_ATTR_LOCAL(DOC, XML, NAME, PARENT)                 \
+  ak_3mf_strdup_path_attr_local_sz((DOC),                                     \
+                                   (XML),                                     \
+                                   _s_ak_##NAME,                              \
+                                   _s_ak_##NAME##_len,                        \
+                                   (PARENT))
+#define AK_3MF_TAG(XML, TAG)                                                  \
+  ak_3mf_tag_sz((XML), (TAG), sizeof(TAG) - 1u)
+#define AK_3MF_CHILD(XML, TAG)                                                \
+  ak_3mf_child_sz((XML), (TAG), sizeof(TAG) - 1u)
+#define AK_3MF_COUNT_CHILDREN(XML, TAG)                                       \
+  ak_3mf_count_children_sz((XML), (TAG), sizeof(TAG) - 1u)
 
 static const char AK_3MF_CONTENT_TYPES_PART[] = "[Content_Types].xml";
 static const char AK_3MF_ROOT_RELS_PART[]     = "_rels/.rels";
@@ -202,22 +216,14 @@ ak_3mf_attr_contains(const xml_attr_t * __restrict attr,
 
 static
 xml_attr_t*
-ak_3mf_xmla_lit(const xml_t * __restrict xml,
-                const char  * __restrict name) {
-  return xmla_sz(xml, name, strlen(name));
-}
-
-static
-xml_attr_t*
-ak_3mf_xmla_local_lit(const xml_t * __restrict xml,
-                      const char  * __restrict name) {
+ak_3mf_xmla_local_sz(const xml_t * __restrict xml,
+                     const char  * __restrict name,
+                     size_t                   nameLen) {
   xml_attr_t *attr;
-  size_t      nameLen;
 
   if (!xml || !name)
     return NULL;
 
-  nameLen = strlen(name);
   if ((attr = xmla_sz(xml, name, nameLen)))
     return attr;
 
@@ -247,11 +253,19 @@ ak_3mf_xmla_local_lit(const xml_t * __restrict xml,
 }
 
 static
+xml_attr_t*
+ak_3mf_xmla_local_lit(const xml_t * __restrict xml,
+                      const char  * __restrict name) {
+  return name ? ak_3mf_xmla_local_sz(xml, name, strlen(name)) : NULL;
+}
+
+static
 const char*
-ak_3mf_strdup_path_attr_local_lit(AkDoc       * __restrict doc,
-                                  xml_t       * __restrict xml,
-                                  const char  * __restrict name,
-                                  void        * __restrict parent) {
+ak_3mf_strdup_path_attr_local_sz(AkDoc       * __restrict doc,
+                                 xml_t       * __restrict xml,
+                                 const char  * __restrict name,
+                                 size_t                   nameLen,
+                                 void        * __restrict parent) {
   xml_attr_t *attr;
   AkHeap     *heap;
   const char *src;
@@ -260,7 +274,7 @@ ak_3mf_strdup_path_attr_local_lit(AkDoc       * __restrict doc,
   if (!doc)
     return NULL;
 
-  attr = ak_3mf_xmla_local_lit(xml, name);
+  attr = ak_3mf_xmla_local_sz(xml, name, nameLen);
   if (!attr || !attr->val || attr->valsize == 0u)
     return NULL;
 
@@ -624,10 +638,11 @@ ak_3mf_reserve_loaded_models(AK3MFImportState * __restrict st,
 
 static
 bool
-ak_3mf_tag(const xml_t * __restrict xml, const char * __restrict tag) {
+ak_3mf_tag_sz(const xml_t * __restrict xml,
+              const char  * __restrict tag,
+              size_t                   tagSize) {
   const char *xmlTag;
   size_t     xmlTagSize;
-  size_t     tagSize;
   size_t     i;
 
   if (!xml || !xml->tag || !tag)
@@ -643,17 +658,24 @@ ak_3mf_tag(const xml_t * __restrict xml, const char * __restrict tag) {
     }
   }
 
-  tagSize = strlen(tag);
   return tagSize == xmlTagSize && memcmp(xmlTag, tag, tagSize) == 0;
 }
 
 static
+bool
+ak_3mf_tag(const xml_t * __restrict xml, const char * __restrict tag) {
+  return tag ? ak_3mf_tag_sz(xml, tag, strlen(tag)) : false;
+}
+
+static
 xml_t*
-ak_3mf_child(xml_t * __restrict parent, const char * __restrict tag) {
+ak_3mf_child_sz(xml_t      * __restrict parent,
+                const char * __restrict tag,
+                size_t                  tagSize) {
   xml_t *child;
 
   for (child = parent ? parent->val : NULL; child; child = child->next) {
-    if (ak_3mf_tag(child, tag))
+    if (ak_3mf_tag_sz(child, tag, tagSize))
       return child;
   }
 
@@ -755,10 +777,10 @@ ak_3mf_add_production_item(AK3MFImportState        * __restrict st,
   if (!st || !st->doc || !st->print || !xml)
     return;
 
-  uuidAttr            = ak_3mf_xmla_local_lit(xml, "UUID");
-  pathAttr            = ak_3mf_xmla_local_lit(xml, "path");
-  partNumberAttr      = ak_3mf_xmla_local_lit(xml, "partnumber");
-  modelResolutionAttr = ak_3mf_xmla_local_lit(xml, "modelresolution");
+  uuidAttr            = AK_3MF_XMLA_LOCAL(xml, UUID);
+  pathAttr            = AK_3MF_XMLA_LOCAL(xml, path);
+  partNumberAttr      = AK_3MF_XMLA_LOCAL(xml, partnumber);
+  modelResolutionAttr = AK_3MF_XMLA_LOCAL(xml, modelresolution);
 
   if ((!uuidAttr || !uuidAttr->val)
       && (!pathAttr || !pathAttr->val)
@@ -848,7 +870,7 @@ ak_3mf_mark_model_extensions(AkPrintDocument * __restrict print,
       print->features |= feature;
   }
 
-  required = ak_3mf_xmla_lit(root, "requiredextensions");
+  required = AK_3MF_XMLA(root, requiredextensions);
   if (!required || !required->val || required->valsize == 0u)
     return;
 
@@ -971,7 +993,7 @@ ak_3mf_model_path_from_rels(const char * __restrict filepath) {
   for (rel = root->val; rel; rel = rel->next) {
     xml_attr_t *type;
 
-    if (!ak_3mf_tag(rel, "Relationship"))
+    if (!AK_3MF_TAG(rel, "Relationship"))
       continue;
 
     type = AK_3MF_XMLA(rel, Type);
@@ -1056,14 +1078,14 @@ ak_3mf_content_type_dup(AkDoc       * __restrict doc,
       xml_attr_t *partName;
       xml_attr_t *contentType;
 
-      if (!ak_3mf_tag(child, "Override"))
+      if (!AK_3MF_TAG(child, "Override"))
         continue;
 
-      partName = ak_3mf_xmla_lit(child, "PartName");
+      partName = AK_3MF_XMLA(child, PartName);
       if (!ak_3mf_attr_value_eq_entry(partName, entryName))
         continue;
 
-      contentType = ak_3mf_xmla_lit(child, "ContentType");
+      contentType = AK_3MF_XMLA(child, ContentType);
       if (contentType && contentType->val)
         return ak_heap_strndup(heap, doc, contentType->val, contentType->valsize);
     }
@@ -1074,16 +1096,16 @@ ak_3mf_content_type_dup(AkDoc       * __restrict doc,
         xml_attr_t *extension;
         xml_attr_t *contentType;
 
-        if (!ak_3mf_tag(child, "Default"))
+        if (!AK_3MF_TAG(child, "Default"))
           continue;
 
-        extension = ak_3mf_xmla_lit(child, "Extension");
+        extension = AK_3MF_XMLA(child, Extension);
         if (!extension
             || !extension->val
             || !ak_3mf_slice_eq_cstr(extension->val, extension->valsize, ext))
           continue;
 
-        contentType = ak_3mf_xmla_lit(child, "ContentType");
+        contentType = AK_3MF_XMLA(child, ContentType);
         if (contentType && contentType->val)
           return ak_heap_strndup(heap, doc, contentType->val, contentType->valsize);
       }
@@ -1124,7 +1146,7 @@ ak_3mf_root_relationship_type_dup(AkDoc       * __restrict doc,
     xml_attr_t *target;
     xml_attr_t *type;
 
-    if (!ak_3mf_tag(rel, "Relationship"))
+    if (!AK_3MF_TAG(rel, "Relationship"))
       continue;
 
     target = AK_3MF_XMLA(rel, Target);
@@ -1151,7 +1173,7 @@ ak_3mf_root_relationship_for_entry(xml_t       * __restrict relsRoot,
   for (rel = relsRoot->val; rel; rel = rel->next) {
     xml_attr_t *target;
 
-    if (!ak_3mf_tag(rel, "Relationship"))
+    if (!AK_3MF_TAG(rel, "Relationship"))
       continue;
 
     target = AK_3MF_XMLA(rel, Target);
@@ -1290,11 +1312,11 @@ ak_3mf_import_package_part_visitor(const AkZipEntryInfo * __restrict info,
     return false;
   }
   relationshipId = relationship
-                   ? ak_3mf_attr_dup_cstr(ak_3mf_xmla_lit(relationship, "Id"))
+                   ? ak_3mf_attr_dup_cstr(AK_3MF_XMLA(relationship, Id))
                    : NULL;
   relationshipTargetMode = relationship
-                           ? ak_3mf_attr_dup_cstr(ak_3mf_xmla_lit(relationship,
-                                                                  "TargetMode"))
+                           ? ak_3mf_attr_dup_cstr(
+                               AK_3MF_XMLA(relationship, TargetMode))
                            : NULL;
   if (relationshipId || relationshipTargetMode) {
     if (!ak_printSetPackagePartRelationship(st->doc,
@@ -1435,8 +1457,9 @@ ak_3mf_node_new(AkDoc       * __restrict doc,
 
 static
 size_t
-ak_3mf_count_children(const xml_t * __restrict parent,
-                      const char  * __restrict tag) {
+ak_3mf_count_children_sz(const xml_t * __restrict parent,
+                         const char  * __restrict tag,
+                         size_t                   tagSize) {
   const xml_t *child;
   size_t       count;
 
@@ -1445,11 +1468,18 @@ ak_3mf_count_children(const xml_t * __restrict parent,
     return 0;
 
   for (child = parent->val; child; child = child->next) {
-    if (ak_3mf_tag(child, tag))
+    if (ak_3mf_tag_sz(child, tag, tagSize))
       count++;
   }
 
   return count;
+}
+
+static
+size_t
+ak_3mf_count_children(const xml_t * __restrict parent,
+                      const char  * __restrict tag) {
+  return tag ? ak_3mf_count_children_sz(parent, tag, strlen(tag)) : 0u;
 }
 
 static
@@ -1561,8 +1591,8 @@ ak_3mf_count_property_groups(xml_t * __restrict resourcesXml) {
     return 0;
 
   for (xml = resourcesXml->val; xml; xml = xml->next) {
-    if (ak_3mf_tag(xml, "basematerials")
-        || ak_3mf_tag(xml, "colorgroup"))
+    if (AK_3MF_TAG(xml, "basematerials")
+        || AK_3MF_TAG(xml, "colorgroup"))
       count++;
   }
 
@@ -1632,10 +1662,10 @@ ak_3mf_parse_property_groups(AK3MFImportState * __restrict st,
     size_t              i;
     bool                baseMaterials;
 
-    baseMaterials = ak_3mf_tag(xml, "basematerials");
+    baseMaterials = AK_3MF_TAG(xml, "basematerials");
     if (baseMaterials) {
       childTag = "base";
-    } else if (ak_3mf_tag(xml, "colorgroup")) {
+    } else if (AK_3MF_TAG(xml, "colorgroup")) {
       childTag = "color";
     } else {
       continue;
@@ -1774,7 +1804,7 @@ ak_3mf_volumetric_element_flags(xml_t * __restrict xml,
   const xml_attr_t *minFeature;
   const xml_attr_t *fallback;
 
-  transform  = ak_3mf_xmla_local_lit(xml, "transform");
+  transform  = AK_3MF_XMLA_LOCAL(xml, transform);
   minFeature = ak_3mf_xmla_local_lit(xml, "minfeaturesize");
   fallback   = ak_3mf_xmla_local_lit(xml, "fallbackvalue");
 
@@ -1805,14 +1835,14 @@ ak_3mf_parse_image3d(AK3MFImportState * __restrict st,
   if (!st || !xml)
     return;
 
-  stackXml = ak_3mf_child(xml, "imagestack");
+  stackXml = AK_3MF_CHILD(xml, "imagestack");
   if (!stackXml)
     return;
 
-  name = ak_3mf_attr_dup_cstr(ak_3mf_xmla_local_lit(xml, "name"));
+  name = ak_3mf_attr_dup_cstr(AK_3MF_XMLA_LOCAL(xml, name));
   image = ak_printAddImage3D(st->doc,
                              st->currentModelPath,
-                             xmla_u32(ak_3mf_xmla_local_lit(xml, "id"), 0u),
+                             xmla_u32(AK_3MF_XMLA_LOCAL(xml, id), 0u),
                              name,
                              xmla_u32(ak_3mf_xmla_local_lit(stackXml, "rowcount"), 0u),
                              xmla_u32(ak_3mf_xmla_local_lit(stackXml, "columncount"), 0u),
@@ -1824,10 +1854,10 @@ ak_3mf_parse_image3d(AK3MFImportState * __restrict st,
   for (sheetXml = stackXml->val; sheetXml; sheetXml = sheetXml->next) {
     char *path;
 
-    if (!ak_3mf_tag(sheetXml, "imagesheet"))
+    if (!AK_3MF_TAG(sheetXml, "imagesheet"))
       continue;
 
-    path = ak_3mf_attr_dup_path_cstr(ak_3mf_xmla_local_lit(sheetXml, "path"));
+    path = ak_3mf_attr_dup_path_cstr(AK_3MF_XMLA_LOCAL(sheetXml, path));
     (void)ak_printAddImageSheet(st->doc, image, path);
     free(path);
   }
@@ -1859,7 +1889,7 @@ ak_3mf_parse_function_from_image3d(AK3MFImportState * __restrict st,
   tileUAttr       = ak_3mf_xmla_local_lit(xml, "tilestyleu");
   tileVAttr       = ak_3mf_xmla_local_lit(xml, "tilestylev");
   tileWAttr       = ak_3mf_xmla_local_lit(xml, "tilestylew");
-  displayName     = ak_3mf_attr_dup_cstr(ak_3mf_xmla_local_lit(xml, "displayname"));
+  displayName     = ak_3mf_attr_dup_cstr(AK_3MF_XMLA_LOCAL(xml, displayname));
   filter          = ak_3mf_attr_dup_cstr(filterAttr);
   tileStyleU      = ak_3mf_attr_dup_cstr(tileUAttr);
   tileStyleV      = ak_3mf_attr_dup_cstr(tileVAttr);
@@ -1880,7 +1910,7 @@ ak_3mf_parse_function_from_image3d(AK3MFImportState * __restrict st,
   (void)ak_printAddFunctionFromImage3D(
     st->doc,
     st->currentModelPath,
-    xmla_u32(ak_3mf_xmla_local_lit(xml, "id"), 0u),
+    xmla_u32(AK_3MF_XMLA_LOCAL(xml, id), 0u),
     displayName,
     xmla_u32(ak_3mf_xmla_local_lit(xml, "image3did"), 0u),
     xmla_float(valueOffsetAttr, 0.0f),
@@ -1909,13 +1939,13 @@ ak_3mf_parse_implicit_function(AK3MFImportState * __restrict st,
   if (!st || !xml)
     return;
 
-  displayName = ak_3mf_attr_dup_cstr(ak_3mf_xmla_local_lit(xml, "displayname"));
+  displayName = ak_3mf_attr_dup_cstr(AK_3MF_XMLA_LOCAL(xml, displayname));
   fragment    = ak_3mf_xml_fragment_dup(xml, true);
   flags       = fragment ? AK_PRINT_IMPLICIT_FUNCTION_HAS_XML : 0u;
 
   (void)ak_printAddImplicitFunction(st->doc,
                                     st->currentModelPath,
-                                    xmla_u32(ak_3mf_xmla_local_lit(xml, "id"), 0u),
+                                    xmla_u32(AK_3MF_XMLA_LOCAL(xml, id), 0u),
                                     displayName,
                                     fragment,
                                     flags);
@@ -1955,7 +1985,7 @@ ak_3mf_parse_volumetric_element(AK3MFImportState           * __restrict st,
   }
 
   channel = ak_3mf_attr_dup_cstr(ak_3mf_xmla_local_lit(xml, "channel"));
-  name    = ak_3mf_attr_dup_cstr(ak_3mf_xmla_local_lit(xml, "name"));
+  name    = ak_3mf_attr_dup_cstr(AK_3MF_XMLA_LOCAL(xml, name));
   (void)ak_printAddVolumetricElement(
     st->doc,
     volume,
@@ -1984,13 +2014,13 @@ ak_3mf_parse_volume_data(AK3MFImportState * __restrict st,
   if (!st || !xml)
     return;
 
-  compositeXml     = ak_3mf_child(xml, "composite");
+  compositeXml     = AK_3MF_CHILD(xml, "composite");
   baseMaterialAttr = ak_3mf_xmla_local_lit(compositeXml, "basematerialid");
   flags            = ak_3mf_optional_attr_flag(baseMaterialAttr,
                                                AK_PRINT_VOLUME_DATA_HAS_BASE_MATERIAL_ID);
   volume = ak_printAddVolumeData(st->doc,
                                  st->currentModelPath,
-                                 xmla_u32(ak_3mf_xmla_local_lit(xml, "id"), 0u),
+                                 xmla_u32(AK_3MF_XMLA_LOCAL(xml, id), 0u),
                                  xmla_u32(baseMaterialAttr, 0u),
                                  flags);
   if (!volume)
@@ -1999,7 +2029,7 @@ ak_3mf_parse_volume_data(AK3MFImportState * __restrict st,
   for (childXml = compositeXml ? compositeXml->val : NULL;
        childXml;
        childXml = childXml->next) {
-    if (ak_3mf_tag(childXml, "materialmapping")) {
+    if (AK_3MF_TAG(childXml, "materialmapping")) {
       ak_3mf_parse_volumetric_element(st,
                                       volume,
                                       childXml,
@@ -2008,12 +2038,12 @@ ak_3mf_parse_volume_data(AK3MFImportState * __restrict st,
   }
 
   for (childXml = xml->val; childXml; childXml = childXml->next) {
-    if (ak_3mf_tag(childXml, "color")) {
+    if (AK_3MF_TAG(childXml, "color")) {
       ak_3mf_parse_volumetric_element(st,
                                       volume,
                                       childXml,
                                       AK_PRINT_VOLUMETRIC_ELEMENT_COLOR);
-    } else if (ak_3mf_tag(childXml, "property")) {
+    } else if (AK_3MF_TAG(childXml, "property")) {
       ak_3mf_parse_volumetric_element(st,
                                       volume,
                                       childXml,
@@ -2032,13 +2062,13 @@ ak_3mf_parse_volumetric_resources(AK3MFImportState * __restrict st,
     return;
 
   for (xml = resourcesXml->val; xml; xml = xml->next) {
-    if (ak_3mf_tag(xml, "image3d"))
+    if (AK_3MF_TAG(xml, "image3d"))
       ak_3mf_parse_image3d(st, xml);
-    else if (ak_3mf_tag(xml, "functionfromimage3d"))
+    else if (AK_3MF_TAG(xml, "functionfromimage3d"))
       ak_3mf_parse_function_from_image3d(st, xml);
-    else if (ak_3mf_tag(xml, "implicitfunction"))
+    else if (AK_3MF_TAG(xml, "implicitfunction"))
       ak_3mf_parse_implicit_function(st, xml);
-    else if (ak_3mf_tag(xml, "volumedata"))
+    else if (AK_3MF_TAG(xml, "volumedata"))
       ak_3mf_parse_volume_data(st, xml);
   }
 }
@@ -2050,7 +2080,7 @@ ak_3mf_parse_volumetric_mesh(AK3MFImportState * __restrict st,
                              uint32_t                      objectId) {
   xml_attr_t *volumeAttr;
 
-  if (!st || !meshXml || !ak_3mf_tag(meshXml, "mesh"))
+  if (!st || !meshXml || !AK_3MF_TAG(meshXml, "mesh"))
     return;
 
   volumeAttr = ak_3mf_xmla_local_lit(meshXml, "volumeid");
@@ -2081,7 +2111,7 @@ ak_3mf_parse_level_set(AK3MFImportState * __restrict st,
   if (!st || !object || !levelSetXml)
     return false;
 
-  transformAttr  = ak_3mf_xmla_local_lit(levelSetXml, "transform");
+  transformAttr  = AK_3MF_XMLA_LOCAL(levelSetXml, transform);
   minFeatureAttr = ak_3mf_xmla_local_lit(levelSetXml, "minfeaturesize");
   fallbackAttr   = ak_3mf_xmla_local_lit(levelSetXml, "fallbackvalue");
   meshBoxAttr    = ak_3mf_xmla_local_lit(levelSetXml, "meshbboxonly");
@@ -2144,14 +2174,14 @@ ak_3mf_parse_beam_lattice_beams(AK3MFImportState     * __restrict st,
     float       r1;
     float       r2;
 
-    if (!ak_3mf_tag(beamXml, "beam"))
+    if (!AK_3MF_TAG(beamXml, "beam"))
       continue;
 
     r1Attr   = ak_3mf_xmla_local_lit(beamXml, "r1");
     r2Attr   = ak_3mf_xmla_local_lit(beamXml, "r2");
-    p1Attr   = ak_3mf_xmla_local_lit(beamXml, "p1");
-    p2Attr   = ak_3mf_xmla_local_lit(beamXml, "p2");
-    pidAttr  = ak_3mf_xmla_local_lit(beamXml, "pid");
+    p1Attr   = AK_3MF_XMLA_LOCAL(beamXml, p1);
+    p2Attr   = AK_3MF_XMLA_LOCAL(beamXml, p2);
+    pidAttr  = AK_3MF_XMLA_LOCAL(beamXml, pid);
     cap1Attr = ak_3mf_xmla_local_lit(beamXml, "cap1");
     cap2Attr = ak_3mf_xmla_local_lit(beamXml, "cap2");
     flags    = ak_3mf_optional_attr_flag(r1Attr, AK_PRINT_BEAM_HAS_R1)
@@ -2168,8 +2198,8 @@ ak_3mf_parse_beam_lattice_beams(AK3MFImportState     * __restrict st,
 
     (void)ak_printAddBeam(st->doc,
                           lattice,
-                          xmla_u32(ak_3mf_xmla_local_lit(beamXml, "v1"), 0u),
-                          xmla_u32(ak_3mf_xmla_local_lit(beamXml, "v2"), 0u),
+                          xmla_u32(AK_3MF_XMLA_LOCAL(beamXml, v1), 0u),
+                          xmla_u32(AK_3MF_XMLA_LOCAL(beamXml, v2), 0u),
                           r1,
                           r2,
                           xmla_u32(p1Attr, UINT32_MAX),
@@ -2199,12 +2229,12 @@ ak_3mf_parse_beam_lattice_balls(AK3MFImportState     * __restrict st,
     xml_attr_t *pidAttr;
     uint32_t    flags;
 
-    if (!ak_3mf_tag(ballXml, "ball"))
+    if (!AK_3MF_TAG(ballXml, "ball"))
       continue;
 
     rAttr  = ak_3mf_xmla_local_lit(ballXml, "r");
     pAttr  = ak_3mf_xmla_local_lit(ballXml, "p");
-    pidAttr = ak_3mf_xmla_local_lit(ballXml, "pid");
+    pidAttr = AK_3MF_XMLA_LOCAL(ballXml, pid);
     flags  = ak_3mf_optional_attr_flag(rAttr, AK_PRINT_BEAM_BALL_HAS_RADIUS)
              | ak_3mf_optional_attr_flag(pAttr, AK_PRINT_BEAM_BALL_HAS_P)
              | ak_3mf_optional_attr_flag(pidAttr, AK_PRINT_BEAM_BALL_HAS_PID);
@@ -2235,13 +2265,13 @@ ak_3mf_parse_beam_lattice_sets(AK3MFImportState     * __restrict st,
     size_t   refCount;
     size_t   ballRefCount;
 
-    if (!ak_3mf_tag(setXml, "beamset"))
+    if (!AK_3MF_TAG(setXml, "beamset"))
       continue;
 
-    name         = ak_3mf_attr_dup_cstr(ak_3mf_xmla_local_lit(setXml, "name"));
+    name         = ak_3mf_attr_dup_cstr(AK_3MF_XMLA_LOCAL(setXml, name));
     identifier   = ak_3mf_attr_dup_cstr(ak_3mf_xmla_local_lit(setXml, "identifier"));
-    refCount     = ak_3mf_count_children(setXml, "ref");
-    ballRefCount = ak_3mf_count_children(setXml, "ballref");
+    refCount     = AK_3MF_COUNT_CHILDREN(setXml, "ref");
+    ballRefCount = AK_3MF_COUNT_CHILDREN(setXml, "ballref");
     (void)ak_printAddBeamSet(st->doc,
                              lattice,
                              name,
@@ -2273,15 +2303,15 @@ ak_3mf_parse_beam_lattice(AK3MFImportState * __restrict st,
   if (!st || !st->doc || !st->print || !meshXml)
     return;
 
-  beamLatticeXml = ak_3mf_child(meshXml, "beamlattice");
+  beamLatticeXml = AK_3MF_CHILD(meshXml, "beamlattice");
   if (!beamLatticeXml)
     return;
 
   ballRadiusAttr         = ak_3mf_xmla_local_lit(beamLatticeXml, "ballradius");
   clippingMeshAttr       = ak_3mf_xmla_local_lit(beamLatticeXml, "clippingmesh");
   representationMeshAttr = ak_3mf_xmla_local_lit(beamLatticeXml, "representationmesh");
-  pidAttr                = ak_3mf_xmla_local_lit(beamLatticeXml, "pid");
-  pindexAttr             = ak_3mf_xmla_local_lit(beamLatticeXml, "pindex");
+  pidAttr                = AK_3MF_XMLA_LOCAL(beamLatticeXml, pid);
+  pindexAttr             = AK_3MF_XMLA_LOCAL(beamLatticeXml, pindex);
   clippingMode           = ak_3mf_attr_dup_cstr(ak_3mf_xmla_local_lit(beamLatticeXml, "clippingmode"));
   cap                    = ak_3mf_attr_dup_cstr(ak_3mf_xmla_local_lit(beamLatticeXml, "cap"));
   ballMode               = ak_3mf_attr_dup_cstr(ak_3mf_xmla_local_lit(beamLatticeXml, "ballmode"));
@@ -2319,13 +2349,13 @@ ak_3mf_parse_beam_lattice(AK3MFImportState * __restrict st,
 
   ak_3mf_parse_beam_lattice_beams(st,
                                   lattice,
-                                  ak_3mf_child(beamLatticeXml, "beams"));
+                                  AK_3MF_CHILD(beamLatticeXml, "beams"));
   ak_3mf_parse_beam_lattice_balls(st,
                                   lattice,
-                                  ak_3mf_child(beamLatticeXml, "balls"));
+                                  AK_3MF_CHILD(beamLatticeXml, "balls"));
   ak_3mf_parse_beam_lattice_sets(st,
                                  lattice,
-                                 ak_3mf_child(beamLatticeXml, "beamsets"));
+                                 AK_3MF_CHILD(beamLatticeXml, "beamsets"));
 }
 
 static
@@ -2370,11 +2400,11 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
     return NULL;
 
   doc          = st->doc;
-  verticesXml  = ak_3mf_child(meshXml, "vertices");
-  trianglesXml = ak_3mf_child(meshXml, "triangles");
-  beamLatticeXml = ak_3mf_child(meshXml, "beamlattice");
-  vertexCount  = ak_3mf_count_children(verticesXml, "vertex");
-  triangleCount = ak_3mf_count_children(trianglesXml, "triangle");
+  verticesXml  = AK_3MF_CHILD(meshXml, "vertices");
+  trianglesXml = AK_3MF_CHILD(meshXml, "triangles");
+  beamLatticeXml = AK_3MF_CHILD(meshXml, "beamlattice");
+  vertexCount  = AK_3MF_COUNT_CHILDREN(verticesXml, "vertex");
+  triangleCount = AK_3MF_COUNT_CHILDREN(trianglesXml, "triangle");
   if (vertexCount == 0
       || (triangleCount == 0 && !beamLatticeXml)
       || vertexCount > UINT32_MAX
@@ -2388,12 +2418,12 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
 
   i = 0;
   for (vertexXml = verticesXml->val; vertexXml; vertexXml = vertexXml->next) {
-    if (!ak_3mf_tag(vertexXml, "vertex"))
+    if (!AK_3MF_TAG(vertexXml, "vertex"))
       continue;
 
-    srcPositions[i * 3u + 0u] = xmla_float(ak_3mf_xmla_local_lit(vertexXml, "x"), 0.0f);
-    srcPositions[i * 3u + 1u] = xmla_float(ak_3mf_xmla_local_lit(vertexXml, "y"), 0.0f);
-    srcPositions[i * 3u + 2u] = xmla_float(ak_3mf_xmla_local_lit(vertexXml, "z"), 0.0f);
+    srcPositions[i * 3u + 0u] = xmla_float(AK_3MF_XMLA_LOCAL(vertexXml, x), 0.0f);
+    srcPositions[i * 3u + 1u] = xmla_float(AK_3MF_XMLA_LOCAL(vertexXml, y), 0.0f);
+    srcPositions[i * 3u + 2u] = xmla_float(AK_3MF_XMLA_LOCAL(vertexXml, z), 0.0f);
     i++;
   }
 
@@ -2407,7 +2437,7 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
     uint32_t pid;
     uint32_t p1;
 
-    if (!ak_3mf_tag(triangleXml, "triangle"))
+    if (!AK_3MF_TAG(triangleXml, "triangle"))
       continue;
 
     pid = xmla_u32(AK_3MF_XMLA(triangleXml, pid), defaultPid);
@@ -2509,12 +2539,12 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
        triangleXml = triangleXml->next) {
     AkUInt v[3];
 
-    if (!ak_3mf_tag(triangleXml, "triangle"))
+    if (!AK_3MF_TAG(triangleXml, "triangle"))
       continue;
 
-    v[0] = xmla_u32(ak_3mf_xmla_local_lit(triangleXml, "v1"), 0u);
-    v[1] = xmla_u32(ak_3mf_xmla_local_lit(triangleXml, "v2"), 0u);
-    v[2] = xmla_u32(ak_3mf_xmla_local_lit(triangleXml, "v3"), 0u);
+    v[0] = xmla_u32(AK_3MF_XMLA_LOCAL(triangleXml, v1), 0u);
+    v[1] = xmla_u32(AK_3MF_XMLA_LOCAL(triangleXml, v2), 0u);
+    v[2] = xmla_u32(AK_3MF_XMLA_LOCAL(triangleXml, v3), 0u);
     if (v[0] >= vertexCount || v[1] >= vertexCount || v[2] >= vertexCount) {
       free(srcPositions);
       return NULL;
@@ -2588,7 +2618,7 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
   ak_3mf_parse_volumetric_mesh(st,
                                meshXml,
                                xmla_u32(AK_3MF_XMLA(objXml, id), 0u));
-  if (ak_3mf_tag(meshXml, "displacementmesh"))
+  if (AK_3MF_TAG(meshXml, "displacementmesh"))
     ak_3mf_parse_displacement_mesh(st,
                                    meshXml,
                                    xmla_u32(AK_3MF_XMLA(objXml, id), 0u));
@@ -2608,12 +2638,12 @@ ak_3mf_count_resource_objects(xml_t * __restrict resourcesXml) {
     return 0;
 
   for (objXml = resourcesXml->val; objXml; objXml = objXml->next) {
-    if (ak_3mf_tag(objXml, "object")
-        && (ak_3mf_child(objXml, "mesh")
-            || ak_3mf_child(objXml, "components")
-            || ak_3mf_child(objXml, "displacementmesh")
-            || ak_3mf_child(objXml, "booleanshape")
-            || ak_3mf_child(objXml, "levelset")))
+    if (AK_3MF_TAG(objXml, "object")
+        && (AK_3MF_CHILD(objXml, "mesh")
+            || AK_3MF_CHILD(objXml, "components")
+            || AK_3MF_CHILD(objXml, "displacementmesh")
+            || AK_3MF_CHILD(objXml, "booleanshape")
+            || AK_3MF_CHILD(objXml, "levelset")))
       count++;
   }
 
@@ -2688,12 +2718,12 @@ ak_3mf_parse_boolean_operands(AK3MFImportState      * __restrict st,
     uint32_t    flags;
     uint32_t    objectId;
 
-    if (!ak_3mf_tag(operandXml, "boolean"))
+    if (!AK_3MF_TAG(operandXml, "boolean"))
       continue;
 
-    objectIdAttr  = ak_3mf_xmla_local_lit(operandXml, "objectid");
-    pathAttr      = ak_3mf_xmla_local_lit(operandXml, "path");
-    transformAttr = ak_3mf_xmla_local_lit(operandXml, "transform");
+    objectIdAttr  = AK_3MF_XMLA_LOCAL(operandXml, objectid);
+    pathAttr      = AK_3MF_XMLA_LOCAL(operandXml, path);
+    transformAttr = AK_3MF_XMLA_LOCAL(operandXml, transform);
     objectId      = xmla_u32(objectIdAttr, 0u);
     if (objectId == 0u)
       continue;
@@ -2735,10 +2765,10 @@ ak_3mf_parse_boolean_shape(AK3MFImportState * __restrict st,
   if (!st || !st->doc || !object || !shapeXml)
     return false;
 
-  baseIdAttr    = ak_3mf_xmla_local_lit(shapeXml, "objectid");
-  basePathAttr  = ak_3mf_xmla_local_lit(shapeXml, "path");
+  baseIdAttr    = AK_3MF_XMLA_LOCAL(shapeXml, objectid);
+  basePathAttr  = AK_3MF_XMLA_LOCAL(shapeXml, path);
   operationAttr = ak_3mf_xmla_local_lit(shapeXml, "operation");
-  transformAttr = ak_3mf_xmla_local_lit(shapeXml, "transform");
+  transformAttr = AK_3MF_XMLA_LOCAL(shapeXml, transform);
   baseObjectId  = xmla_u32(baseIdAttr, 0u);
   if (baseObjectId == 0u)
     return false;
@@ -2790,7 +2820,7 @@ ak_3mf_parse_displacement2d(AK3MFImportState * __restrict st,
   tileUAttr   = ak_3mf_xmla_local_lit(xml, "tilestyleu");
   tileVAttr   = ak_3mf_xmla_local_lit(xml, "tilestylev");
   filterAttr  = ak_3mf_xmla_local_lit(xml, "filter");
-  imagePath   = ak_3mf_attr_dup_path_cstr(ak_3mf_xmla_local_lit(xml, "path"));
+  imagePath   = ak_3mf_attr_dup_path_cstr(AK_3MF_XMLA_LOCAL(xml, path));
   channel     = ak_3mf_attr_dup_cstr(channelAttr);
   tileStyleU  = ak_3mf_attr_dup_cstr(tileUAttr);
   tileStyleV  = ak_3mf_attr_dup_cstr(tileVAttr);
@@ -2806,7 +2836,7 @@ ak_3mf_parse_displacement2d(AK3MFImportState * __restrict st,
 
   (void)ak_printAddDisplacement2D(st->doc,
                                   st->currentModelPath,
-                                  xmla_u32(ak_3mf_xmla_local_lit(xml, "id"), 0u),
+                                  xmla_u32(AK_3MF_XMLA_LOCAL(xml, id), 0u),
                                   imagePath,
                                   channel,
                                   tileStyleU,
@@ -2832,19 +2862,19 @@ ak_3mf_parse_norm_vector_group(AK3MFImportState * __restrict st,
 
   group = ak_printAddNormVectorGroup(st->doc,
                                      st->currentModelPath,
-                                     xmla_u32(ak_3mf_xmla_local_lit(xml, "id"), 0u));
+                                     xmla_u32(AK_3MF_XMLA_LOCAL(xml, id), 0u));
   if (!group)
     return;
 
   for (vectorXml = xml->val; vectorXml; vectorXml = vectorXml->next) {
-    if (!ak_3mf_tag(vectorXml, "normvector"))
+    if (!AK_3MF_TAG(vectorXml, "normvector"))
       continue;
 
     (void)ak_printAddNormVector(st->doc,
                                 group,
-                                xmla_float(ak_3mf_xmla_local_lit(vectorXml, "x"), 0.0f),
-                                xmla_float(ak_3mf_xmla_local_lit(vectorXml, "y"), 0.0f),
-                                xmla_float(ak_3mf_xmla_local_lit(vectorXml, "z"), 1.0f));
+                                xmla_float(AK_3MF_XMLA_LOCAL(vectorXml, x), 0.0f),
+                                xmla_float(AK_3MF_XMLA_LOCAL(vectorXml, y), 0.0f),
+                                xmla_float(AK_3MF_XMLA_LOCAL(vectorXml, z), 1.0f));
   }
 }
 
@@ -2862,7 +2892,7 @@ ak_3mf_parse_disp2d_group(AK3MFImportState * __restrict st,
   offsetAttr = ak_3mf_xmla_local_lit(xml, "offset");
   group = ak_printAddDisp2DGroup(st->doc,
                                  st->currentModelPath,
-                                 xmla_u32(ak_3mf_xmla_local_lit(xml, "id"), 0u),
+                                 xmla_u32(AK_3MF_XMLA_LOCAL(xml, id), 0u),
                                  xmla_u32(ak_3mf_xmla_local_lit(xml, "dispid"), 0u),
                                  xmla_u32(ak_3mf_xmla_local_lit(xml, "nid"), 0u),
                                  xmla_float(ak_3mf_xmla_local_lit(xml, "height"), 0.0f),
@@ -2875,7 +2905,7 @@ ak_3mf_parse_disp2d_group(AK3MFImportState * __restrict st,
   for (coordXml = xml->val; coordXml; coordXml = coordXml->next) {
     xml_attr_t *factorAttr;
 
-    if (!ak_3mf_tag(coordXml, "disp2dcoord"))
+    if (!AK_3MF_TAG(coordXml, "disp2dcoord"))
       continue;
 
     factorAttr = ak_3mf_xmla_local_lit(coordXml, "f");
@@ -2900,11 +2930,11 @@ ak_3mf_parse_displacement_resources(AK3MFImportState * __restrict st,
     return;
 
   for (xml = resourcesXml->val; xml; xml = xml->next) {
-    if (ak_3mf_tag(xml, "displacement2d"))
+    if (AK_3MF_TAG(xml, "displacement2d"))
       ak_3mf_parse_displacement2d(st, xml);
-    else if (ak_3mf_tag(xml, "normvectorgroup"))
+    else if (AK_3MF_TAG(xml, "normvectorgroup"))
       ak_3mf_parse_norm_vector_group(st, xml);
-    else if (ak_3mf_tag(xml, "disp2dgroup"))
+    else if (AK_3MF_TAG(xml, "disp2dgroup"))
       ak_3mf_parse_disp2d_group(st, xml);
   }
 }
@@ -2923,7 +2953,7 @@ ak_3mf_parse_displacement_mesh(AK3MFImportState * __restrict st,
   if (!st || !meshXml)
     return;
 
-  trianglesXml     = ak_3mf_child(meshXml, "triangles");
+  trianglesXml     = AK_3MF_CHILD(meshXml, "triangles");
   defaultGroupAttr = ak_3mf_xmla_local_lit(trianglesXml, "did");
   flags            = ak_3mf_optional_attr_flag(defaultGroupAttr,
                                                AK_PRINT_DISPLACEMENT_MESH_HAS_DEFAULT_GROUP);
@@ -2945,7 +2975,7 @@ ak_3mf_parse_displacement_mesh(AK3MFImportState * __restrict st,
     uint32_t    triangleFlags;
     uint32_t    d1;
 
-    if (!ak_3mf_tag(triangleXml, "triangle"))
+    if (!AK_3MF_TAG(triangleXml, "triangle"))
       continue;
 
     groupAttr = ak_3mf_xmla_local_lit(triangleXml, "did");
@@ -2990,14 +3020,14 @@ ak_3mf_count_slice_geometry(xml_t    * __restrict sliceXml,
 
   if (sliceXml) {
     verticesXml = xml_elem(sliceXml, "vertices");
-    vertices    = ak_3mf_count_children(verticesXml, "vertex");
+    vertices    = AK_3MF_COUNT_CHILDREN(verticesXml, "vertex");
 
     for (polygonXml = sliceXml->val; polygonXml; polygonXml = polygonXml->next) {
-      if (!ak_3mf_tag(polygonXml, "polygon"))
+      if (!AK_3MF_TAG(polygonXml, "polygon"))
         continue;
 
       polygons++;
-      segments += ak_3mf_count_children(polygonXml, "segment");
+      segments += AK_3MF_COUNT_CHILDREN(polygonXml, "segment");
     }
   }
 
@@ -3026,10 +3056,10 @@ ak_3mf_parse_slice_stacks(AK3MFImportState * __restrict st,
     uint32_t           stackId;
     float              zBottom;
 
-    if (!ak_3mf_tag(stackXml, "slicestack"))
+    if (!AK_3MF_TAG(stackXml, "slicestack"))
       continue;
 
-    stackId = xmla_u32(ak_3mf_xmla_local_lit(stackXml, "id"), 0u);
+    stackId = xmla_u32(AK_3MF_XMLA_LOCAL(stackXml, id), 0u);
     zBottom = xmla_float(ak_3mf_xmla_local_lit(stackXml, "zbottom"), 0.0f);
     stack   = ak_printAddSliceStack(st->doc,
                                     st->currentModelPath,
@@ -3040,7 +3070,7 @@ ak_3mf_parse_slice_stacks(AK3MFImportState * __restrict st,
 
     added++;
     for (childXml = stackXml->val; childXml; childXml = childXml->next) {
-      if (ak_3mf_tag(childXml, "sliceref")) {
+      if (AK_3MF_TAG(childXml, "sliceref")) {
         xml_attr_t *pathAttr;
         char       *path;
         uint32_t    refStackId;
@@ -3060,7 +3090,7 @@ ak_3mf_parse_slice_stacks(AK3MFImportState * __restrict st,
         if (path && !ak_3mf_model_path_eq(path, st->currentModelPath))
           (void)ak_3mf_load_model_part(st, path);
         free(path);
-      } else if (ak_3mf_tag(childXml, "slice")) {
+      } else if (AK_3MF_TAG(childXml, "slice")) {
         uint32_t vertexCount;
         uint32_t polygonCount;
         uint32_t segmentCount;
@@ -3141,7 +3171,7 @@ ak_3mf_parse_components(AK3MFImportState * __restrict st,
   if (!st || !object || !componentsXml)
     return false;
 
-  componentCount = ak_3mf_count_children(componentsXml, "component");
+  componentCount = AK_3MF_COUNT_CHILDREN(componentsXml, "component");
   if (componentCount == 0 || componentCount > UINT32_MAX)
     return false;
 
@@ -3160,15 +3190,15 @@ ak_3mf_parse_components(AK3MFImportState * __restrict st,
        componentXml = componentXml->next) {
     AK3MFComponent *component;
 
-    if (!ak_3mf_tag(componentXml, "component"))
+    if (!AK_3MF_TAG(componentXml, "component"))
       continue;
 
     component           = &object->components[i++];
     component->objectId = xmla_u32(AK_3MF_XMLA(componentXml, objectid), 0u);
-    component->path     = ak_3mf_strdup_path_attr_local_lit(st->doc,
-                                                            componentXml,
-                                                            "path",
-                                                            object->components);
+    component->path     = AK_3MF_STRDUP_PATH_ATTR_LOCAL(st->doc,
+                                                        componentXml,
+                                                        path,
+                                                        object->components);
     ak_3mf_add_production_item(st,
                                AK_PRINT_PRODUCTION_COMPONENT,
                                componentXml,
@@ -3193,21 +3223,21 @@ ak_3mf_parse_production_alternatives(AK3MFImportState * __restrict st,
   if (!st || !objectXml)
     return;
 
-  alternativesXml = ak_3mf_child(objectXml, "alternatives");
+  alternativesXml = AK_3MF_CHILD(objectXml, "alternatives");
   if (!alternativesXml)
     return;
 
   for (alternativeXml = alternativesXml->val;
        alternativeXml;
        alternativeXml = alternativeXml->next) {
-    if (!ak_3mf_tag(alternativeXml, "alternative"))
+    if (!AK_3MF_TAG(alternativeXml, "alternative"))
       continue;
 
     ak_3mf_add_production_item(st,
                                AK_PRINT_PRODUCTION_ALTERNATIVE,
                                alternativeXml,
-                               xmla_u32(ak_3mf_xmla_local_lit(alternativeXml,
-                                                               "objectid"),
+                               xmla_u32(AK_3MF_XMLA_LOCAL(alternativeXml,
+                                                           objectid),
                                         0u),
                                parentObjectId);
   }
@@ -3235,13 +3265,13 @@ ak_3mf_parse_resources(AK3MFImportState * __restrict st,
     xml_t      *booleanShapeXml;
     xml_t      *levelSetXml;
 
-    if (!ak_3mf_tag(objXml, "object"))
+    if (!AK_3MF_TAG(objXml, "object"))
       continue;
-    meshXml = ak_3mf_child(objXml, "mesh");
-    componentsXml = ak_3mf_child(objXml, "components");
-    displacementMeshXml = ak_3mf_child(objXml, "displacementmesh");
-    booleanShapeXml = ak_3mf_child(objXml, "booleanshape");
-    levelSetXml = ak_3mf_child(objXml, "levelset");
+    meshXml = AK_3MF_CHILD(objXml, "mesh");
+    componentsXml = AK_3MF_CHILD(objXml, "components");
+    displacementMeshXml = AK_3MF_CHILD(objXml, "displacementmesh");
+    booleanShapeXml = AK_3MF_CHILD(objXml, "booleanshape");
+    levelSetXml = AK_3MF_CHILD(objXml, "levelset");
     if (!meshXml
         && !componentsXml
         && !displacementMeshXml
@@ -3389,7 +3419,7 @@ ak_3mf_load_model_part(AK3MFImportState * __restrict st,
     return false;
 
   xdoc = xml_parse(modelData, XML_PREFIXES | XML_READONLY);
-  if (!xdoc || !xdoc->root || !ak_3mf_tag(xdoc->root, "model")) {
+  if (!xdoc || !xdoc->root || !AK_3MF_TAG(xdoc->root, "model")) {
     if (xdoc)
       xml_free(xdoc);
     free(modelData);
@@ -3584,13 +3614,10 @@ ak_3mf_attach_build_items(AK3MFImportState * __restrict st,
     float        matrix[16];
     char         name[48];
 
-    if (!ak_3mf_tag(itemXml, "item"))
+    if (!AK_3MF_TAG(itemXml, "item"))
       continue;
 
-    path = ak_3mf_strdup_path_attr_local_lit(st->doc,
-                                             itemXml,
-                                             "path",
-                                             st->doc);
+    path = AK_3MF_STRDUP_PATH_ATTR_LOCAL(st->doc, itemXml, path, st->doc);
     objectId = xmla_u32(AK_3MF_XMLA(itemXml, objectid), 0u);
     if (path && !ak_3mf_load_model_part(st, path))
       continue;
@@ -3712,7 +3739,7 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
   }
 
   root = xdoc->root;
-  if (!ak_3mf_tag(root, "model")) {
+  if (!AK_3MF_TAG(root, "model")) {
     result = AK_EBADF;
     goto cleanup;
   }

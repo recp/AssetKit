@@ -16,7 +16,6 @@
 
 #include "source.h"
 #include "../strpool.h"
-#include "../../common/primitive.h"
 
 AK_HIDE
 const char*
@@ -68,18 +67,6 @@ dae_input_param_exp_name(AkInput * __restrict input, uint32_t idx) {
 
 AK_HIDE
 bool
-dae_accessor_float_direct(AkAccessor * __restrict acc) {
-  return io_accessor_float_direct(acc);
-}
-
-AK_HIDE
-const float*
-dae_accessor_float_row(AkAccessor * __restrict acc, uint32_t index) {
-  return io_accessor_float_row(acc, index);
-}
-
-AK_HIDE
-bool
 dae_write_source(DAEExpState  * __restrict st,
                  AkInput      * __restrict input,
                  uint32_t                  geomIdx,
@@ -106,7 +93,7 @@ dae_write_source(DAEExpState  * __restrict st,
 
   semanticName   = DAE_EXP_NAME_CSTR(semantic);
   componentCount = acc->componentCount;
-  direct         = dae_accessor_float_direct(acc);
+  direct         = io_accessor_float_direct(acc);
   scratch        = NULL;
 
   if (!direct) {
@@ -138,7 +125,7 @@ dae_write_source(DAEExpState  * __restrict st,
     const float *row;
 
     row = direct
-          ? dae_accessor_float_row(acc, i)
+          ? io_accessor_float_row(acc, i)
           : scratch + (size_t)i * componentCount;
 
     for (c = 0; c < componentCount; c++) {

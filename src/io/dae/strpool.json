@@ -365,6 +365,7 @@
   "sampler_cube": "samplerCUBE",
   "sampler_depth": "samplerDEPTH",
   "data": "data",
+  "file_uri": "file://",
   "version": "version",
   "format_hint": "format_hint",
   "viewport_ratio": "viewport_ratio",

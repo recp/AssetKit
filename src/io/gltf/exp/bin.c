@@ -15,11 +15,12 @@
  */
 
 #include "bin.h"
+#include "../../common/path.h"
+#include "../../common/uri.h"
 
 #include <math.h>
 #include <stdio.h>
 #include <stdint.h>
-#include <stdlib.h>
 #include <string.h>
 
 #define GLTF_EXP_FILE_BUFFER_SIZE (1024u * 1024u)
@@ -70,76 +71,15 @@ gltf_write_file_payload(FILE       * __restrict dst,
 }
 
 static
-char*
-gltf_bin_path(const char * __restrict filepath) {
-  const char *slash;
-  const char *dot;
-  char       *path;
-  size_t      len;
-  size_t      stemLen;
-
-  len   = strlen(filepath);
-  slash = strrchr(filepath, '/');
-  dot   = strrchr(filepath, '.');
-
-  if (dot && slash && dot < slash)
-    dot = NULL;
-
-  stemLen = dot ? (size_t)(dot - filepath) : len;
-  if (stemLen > (size_t)-1 - 5u)
-    return NULL;
-
-  path    = malloc(stemLen + 5);
-  if (!path)
-    return NULL;
-
-  memcpy(path, filepath, stemLen);
-  memcpy(path + stemLen, ".bin", 5);
-
-  return path;
-}
-
-static
 bool
 gltf_bin_uri(GLTFExpState * __restrict st) {
-  static const char hex[] = "0123456789ABCDEF";
   const char       *base;
-  const char       *slash;
-  char             *uri;
-  size_t            len;
-  size_t            i;
-  size_t            j;
 
-  slash = strrchr(st->binPath, '/');
-  base  = slash ? slash + 1 : st->binPath;
-  len   = strlen(base);
-
-  if (len > ((size_t)-1 - 1u) / 3u)
+  base = io_path_basename(st->binPath);
+  if (!base)
     return false;
 
-  uri   = malloc(len * 3 + 1);
-  if (!uri)
-    return false;
-
-  for (i = 0, j = 0; i < len; i++) {
-    unsigned char c;
-
-    c = (unsigned char)base[i];
-    if ((c >= 'A' && c <= 'Z')
-        || (c >= 'a' && c <= 'z')
-        || (c >= '0' && c <= '9')
-        || c == '-' || c == '_' || c == '.' || c == '~') {
-      uri[j++] = (char)c;
-    } else {
-      uri[j++] = '%';
-      uri[j++] = hex[c >> 4];
-      uri[j++] = hex[c & 0x0f];
-    }
-  }
-
-  uri[j]     = '\0';
-  st->binUri = uri;
-
+  st->binUri = io_uri_escape_dup(base, false, false);
   return st->binUri != NULL;
 }
 
@@ -537,7 +477,7 @@ gltf_write_bin(GLTFExpState * __restrict st,
   if (st->accessors.count == 0)
     return AK_OK;
 
-  st->binPath = gltf_bin_path(filepath);
+  st->binPath = io_path_replace_extension_dup(filepath, ".bin", 5u);
   if (!st->binPath || !gltf_bin_uri(st))
     return AK_ERR;
 

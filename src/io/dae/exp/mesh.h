@@ -18,6 +18,7 @@
 #define assetkit_dae_exp_mesh_h
 
 #include "common.h"
+#include "../../common/primitive.h"
 
 AK_HIDE
 bool
@@ -32,16 +33,6 @@ dae_prepare_extra_geometry(DAEExpState * __restrict st,
 AK_HIDE
 bool
 dae_geometry_supported(AkGeometry * __restrict geom);
-
-AK_HIDE
-uint32_t
-dae_primitive_vertex_count(AkMeshPrimitive * __restrict prim);
-
-AK_HIDE
-AkUInt
-dae_primitive_input_index(AkMeshPrimitive * __restrict prim,
-                          AkInput         * __restrict input,
-                          uint32_t                     vertexIndex);
 
 AK_HIDE
 bool

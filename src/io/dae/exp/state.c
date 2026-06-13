@@ -15,7 +15,7 @@
  */
 
 #include "state.h"
-#include "io.h"
+#include "../../common/path.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -30,7 +30,7 @@ dae_state_init(DAEExpState          * __restrict st,
                AkDaeExportVersion                versionMode) {
   memset(st, 0, sizeof(*st));
   st->doc          = doc;
-  st->outDir       = dae_output_dir(filepath);
+  st->outDir       = io_path_output_dir_dup(filepath);
   st->w.file       = file;
   st->w.result     = AK_OK;
   st->indexMode    = indexMode == AK_DAE_EXPORT_INDEX_AUTO

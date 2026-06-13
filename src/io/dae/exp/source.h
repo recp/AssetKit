@@ -18,6 +18,7 @@
 #define assetkit_dae_exp_source_h
 
 #include "common.h"
+#include "../../common/primitive.h"
 
 AK_HIDE
 const char*
@@ -30,14 +31,6 @@ dae_param_exp_name(uint32_t idx);
 AK_HIDE
 DAEExpName
 dae_input_param_exp_name(AkInput * __restrict input, uint32_t idx);
-
-AK_HIDE
-bool
-dae_accessor_float_direct(AkAccessor * __restrict acc);
-
-AK_HIDE
-const float*
-dae_accessor_float_row(AkAccessor * __restrict acc, uint32_t index);
 
 AK_HIDE
 bool

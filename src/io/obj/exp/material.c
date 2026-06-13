@@ -16,6 +16,8 @@
 
 #include "material.h"
 #include "writer.h"
+#include "../../common/path.h"
+#include "../../common/string.h"
 #include "../../common/uri.h"
 #include "../../../../include/ak/path.h"
 
@@ -246,101 +248,6 @@ wobj_image_index(WOBJExpState * __restrict st,
   return UINT32_MAX;
 }
 
-static
-const char*
-wobj_path_basename(const char * __restrict path) {
-  const char *slash;
-  const char *backslash;
-
-  if (!path || !*path)
-    return "texture";
-
-  slash     = strrchr(path, '/');
-  backslash = strrchr(path, '\\');
-
-  if (slash && backslash)
-    return slash > backslash ? slash + 1 : backslash + 1;
-  if (slash)
-    return slash + 1;
-  if (backslash)
-    return backslash + 1;
-  return path;
-}
-
-static
-bool
-wobj_uri_has_scheme(const char * __restrict uri) {
-  return io_uri_has_scheme(uri);
-}
-
-static
-bool
-wobj_uri_is_data(const char * __restrict uri) {
-  return io_uri_has_prefix(uri, "data:", 5u);
-}
-
-static
-bool
-wobj_path_is_absolute(const char * __restrict path) {
-  return io_path_is_abs_drive_slash(path);
-}
-
-static
-bool
-wobj_join_path_parts(const char * __restrict dir,
-                     const char * __restrict rel,
-                     size_t     * __restrict dirLen,
-                     size_t     * __restrict relLen,
-                     bool       * __restrict sep,
-                     size_t     * __restrict need) {
-  size_t dlen;
-  size_t rlen;
-  size_t slen;
-
-  if (!dir || !rel)
-    return false;
-
-  dlen = strlen(dir);
-  rlen = strlen(rel);
-  slen = dlen > 0 && dir[dlen - 1u] != '/' && dir[dlen - 1u] != '\\';
-  if (dlen > (size_t)-1 - rlen
-      || dlen + rlen > (size_t)-1 - slen
-      || dlen + rlen + slen > (size_t)-1 - 1u)
-    return false;
-
-  *dirLen = dlen;
-  *relLen = rlen;
-  *sep    = slen != 0;
-  *need   = dlen + rlen + slen + 1u;
-  return true;
-}
-
-static
-char*
-wobj_join_path(const char * __restrict dir,
-               const char * __restrict rel) {
-  char  *path;
-  size_t dirLen;
-  size_t relLen;
-  size_t need;
-  bool   sep;
-
-  if (!wobj_join_path_parts(dir, rel, &dirLen, &relLen, &sep, &need))
-    return NULL;
-
-  path = malloc(need);
-  if (!path)
-    return NULL;
-
-  memcpy(path, dir, dirLen);
-  if (sep)
-    path[dirLen++] = '/';
-  memcpy(path + dirLen, rel, relLen);
-  path[dirLen + relLen] = '\0';
-
-  return path;
-}
-
 bool
 wobj_texture_cacheable(WOBJExpState * __restrict st, uint32_t imageIdx) {
   return st && imageIdx != UINT32_MAX && imageIdx < st->imageUriCount;
@@ -366,7 +273,7 @@ wobj_texture_cache_get(WOBJExpState * __restrict st,
   if (!uri)
     return NULL;
 
-  uri = strdup(uri);
+  uri = io_strdup(uri);
   if (!uri && failed)
     *failed = true;
 
@@ -381,7 +288,7 @@ wobj_texture_cache_set(WOBJExpState * __restrict st,
   if (!wobj_texture_cacheable(st, imageIdx) || !uri || st->imageUris[imageIdx])
     return;
 
-  st->imageUris[imageIdx] = strdup(uri);
+  st->imageUris[imageIdx] = io_strdup(uri);
 }
 
 static
@@ -432,11 +339,11 @@ wobj_export_texture_uri(WOBJExpState         * __restrict st,
       return NULL;
   }
 
-  if (wobj_uri_is_data(uri))
+  if (io_uri_has_prefix(uri, IO_URI_DATA_PREFIX, IO_URI_DATA_PREFIX_LEN))
     return NULL;
 
-  if (!st->outDir || wobj_uri_has_scheme(uri)) {
-    exportUri = strdup(uri);
+  if (!st->outDir || io_uri_has_scheme(uri)) {
+    exportUri = io_strdup(uri);
     if (!exportUri) {
       wobj_texture_cache_fail(st, imageIdx);
       if (failed)
@@ -447,7 +354,7 @@ wobj_export_texture_uri(WOBJExpState         * __restrict st,
     return exportUri;
   }
 
-  base = wobj_path_basename(uri);
+  base = io_path_basename(uri);
   if (!base || !*base)
     base = "texture";
 
@@ -471,7 +378,7 @@ wobj_export_texture_uri(WOBJExpState         * __restrict st,
   srcPath  = source->resolvedPath && *source->resolvedPath
              ? source->resolvedPath
              : NULL;
-  if (!srcPath && wobj_path_is_absolute(source->uri))
+  if (!srcPath && io_path_is_abs_drive_slash(source->uri))
     srcPath = source->uri;
   if (!srcPath && source->uri) {
     srcOwned = ak_getFileFrom(st->doc, source->uri);
@@ -486,7 +393,7 @@ wobj_export_texture_uri(WOBJExpState         * __restrict st,
     return NULL;
   }
 
-  dstPath = wobj_join_path(st->outDir, exportUri);
+  dstPath = io_path_join_dup(st->outDir, exportUri);
   if (!dstPath) {
     if (srcOwned)
       ak_free(srcOwned);

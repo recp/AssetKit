@@ -247,7 +247,7 @@ dae_write_primitive(DAEExpState      * __restrict st,
     dae_w_lit(w, "</vcount>");
   }
 
-  vertexCount = dae_primitive_vertex_count(prim);
+  vertexCount = io_primitive_vertex_count(prim);
   dae_w_lit(w, "<p>");
   if (prim->type == AK_PRIMITIVE_LINES
       && ((AkLines *)prim)->mode == AK_LINE_LOOP) {
@@ -269,7 +269,7 @@ dae_write_primitive(DAEExpState      * __restrict st,
             dae_w_ch(w, ' ');
           firstIndex = false;
           dae_w_uint(w,
-                     dae_primitive_input_index(prim,
+                     io_primitive_input_index(prim,
                                                pInputs[k],
                                                edgeVerts[edgeVertIdx]));
         }
@@ -283,7 +283,7 @@ dae_write_primitive(DAEExpState      * __restrict st,
         if (i > 0 || k > 0)
           dae_w_ch(w, ' ');
         dae_w_uint(w,
-                   dae_primitive_input_index(prim,
+                   io_primitive_input_index(prim,
                                              pInputs[k],
                                              i));
       }

@@ -312,7 +312,7 @@ dae_write_morphable_source(DAEExpState * __restrict st,
   semanticName = DAE_EXP_NAME_CSTR(semantic);
 
   componentCount = acc->componentCount;
-  direct         = dae_accessor_float_direct(acc);
+  direct         = io_accessor_float_direct(acc);
   scratch        = NULL;
 
   if (!direct) {
@@ -350,7 +350,7 @@ dae_write_morphable_source(DAEExpState * __restrict st,
     const float *row;
 
     row = direct
-          ? dae_accessor_float_row(acc, i)
+          ? io_accessor_float_row(acc, i)
           : scratch + (size_t)i * componentCount;
 
     for (c = 0; c < componentCount; c++) {
@@ -526,7 +526,7 @@ dae_write_morphable_primitive(DAEExpState     * __restrict st,
     dae_w_lit(w, "</vcount>");
   }
 
-  vertexCount = dae_primitive_vertex_count(prim);
+  vertexCount = io_primitive_vertex_count(prim);
   dae_w_lit(w, "<p>");
   if (prim->type == AK_PRIMITIVE_LINES
       && ((AkLines *)prim)->mode == AK_LINE_LOOP) {
@@ -545,7 +545,7 @@ dae_write_morphable_primitive(DAEExpState     * __restrict st,
           dae_w_ch(w, ' ');
         firstIndex = false;
         dae_w_uint(w,
-                   dae_primitive_input_index(prim,
+                   io_primitive_input_index(prim,
                                              prim->pos,
                                              edgeVerts[edgeVertIdx]));
       }
@@ -554,7 +554,7 @@ dae_write_morphable_primitive(DAEExpState     * __restrict st,
     for (i = 0; i < vertexCount; i++) {
       if (i > 0)
         dae_w_ch(w, ' ');
-      dae_w_uint(w, dae_primitive_input_index(prim, prim->pos, i));
+      dae_w_uint(w, io_primitive_input_index(prim, prim->pos, i));
     }
   }
   dae_w_lit(w, "</p>");

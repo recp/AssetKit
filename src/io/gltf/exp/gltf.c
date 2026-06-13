@@ -16,6 +16,7 @@
 
 #include "gltf.h"
 #include "../../common/binary.h"
+#include "../../common/path.h"
 #include "accessor.h"
 #include "anim.h"
 #include "bin.h"
@@ -46,48 +47,6 @@ void
 gltf_configure_file_buffer(FILE * __restrict file) {
   if (file)
     (void)setvbuf(file, NULL, _IOFBF, GLTF_EXP_FILE_BUFFER_SIZE);
-}
-
-static
-char*
-gltf_output_dir(const char * __restrict filepath) {
-  const char *slash;
-  const char *backslash;
-  const char *lastSlash;
-  char       *dir;
-  size_t      len;
-
-  if (!filepath)
-    return NULL;
-
-  slash      = strrchr(filepath, '/');
-  backslash  = strrchr(filepath, '\\');
-  if (slash && backslash)
-    lastSlash = slash > backslash ? slash : backslash;
-  else
-    lastSlash = slash ? slash : backslash;
-
-  if (!lastSlash) {
-    dir = malloc(2u);
-    if (!dir)
-      return NULL;
-    dir[0] = '.';
-    dir[1] = '\0';
-    return dir;
-  }
-
-  len = (size_t)(lastSlash - filepath);
-  if (len == 0)
-    len = 1;
-
-  dir = malloc(len + 1u);
-  if (!dir)
-    return NULL;
-
-  memcpy(dir, filepath, len);
-  dir[len] = '\0';
-
-  return dir;
 }
 
 static
@@ -1047,7 +1006,7 @@ gltf_export(AkDoc * __restrict doc, const char * __restrict filepath) {
   if (!gltf_state_init(&st, doc))
     return AK_ERR;
 
-  st.outDir = gltf_output_dir(filepath);
+  st.outDir = io_path_output_dir_dup(filepath);
   if (!st.outDir) {
     gltf_state_destroy(&st);
     return AK_ERR;
@@ -1077,7 +1036,7 @@ gltf_export_glb(AkDoc * __restrict doc, const char * __restrict filepath) {
   if (!gltf_state_init(&st, doc))
     return AK_ERR;
 
-  st.outDir = gltf_output_dir(filepath);
+  st.outDir = io_path_output_dir_dup(filepath);
   if (!st.outDir) {
     gltf_state_destroy(&st);
     return AK_ERR;

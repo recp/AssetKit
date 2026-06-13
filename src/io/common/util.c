@@ -17,6 +17,33 @@
 #include "util.h"
 
 AK_HIDE
+bool
+io_rb_reserve_key(RBTree * __restrict map,
+                  void   * __restrict key) {
+  if (!key)
+    return false;
+
+  if (rb_find(map, key))
+    return true;
+
+  rb_insert(map, key, (void *)(uintptr_t)1);
+
+  return true;
+}
+
+AK_HIDE
+bool
+io_rb_insert_absent_key(RBTree * __restrict map,
+                        void   * __restrict key) {
+  if (!key || rb_find(map, key))
+    return false;
+
+  rb_insert(map, key, (void *)(uintptr_t)1);
+
+  return true;
+}
+
+AK_HIDE
 AkMesh*
 ak_allocMeshEx(AkHeap      * __restrict heap,
                void        * __restrict memp,
