@@ -1140,6 +1140,29 @@ ak_3mf_root_relationship_type_dup(AkDoc       * __restrict doc,
 }
 
 static
+xml_t*
+ak_3mf_root_relationship_for_entry(xml_t       * __restrict relsRoot,
+                                   const char  * __restrict entryName) {
+  xml_t *rel;
+
+  if (!relsRoot || !entryName)
+    return NULL;
+
+  for (rel = relsRoot->val; rel; rel = rel->next) {
+    xml_attr_t *target;
+
+    if (!ak_3mf_tag(rel, "Relationship"))
+      continue;
+
+    target = AK_3MF_XMLA(rel, Target);
+    if (ak_3mf_attr_value_eq_entry(target, entryName))
+      return rel;
+  }
+
+  return NULL;
+}
+
+static
 AkPrintPackagePartType
 ak_3mf_package_part_type(const char * __restrict entryName,
                          const char * __restrict contentType,
@@ -1209,8 +1232,12 @@ ak_3mf_import_package_part_visitor(const AkZipEntryInfo * __restrict info,
                                    void                 * __restrict userdata) {
   AK3MFPackageImportState *st;
   AkPrintPackagePartType   type;
+  AkPrintPackagePart      *part;
+  xml_t                   *relationship;
   const char              *contentType;
   const char              *relationshipType;
+  char                    *relationshipId;
+  char                    *relationshipTargetMode;
   char                    *entryName;
   void                    *entryData;
   size_t                   entrySize;
@@ -1237,6 +1264,7 @@ ak_3mf_import_package_part_visitor(const AkZipEntryInfo * __restrict info,
 
   contentType      = ak_3mf_content_type_dup(st->doc, st->contentTypesRoot, entryName);
   relationshipType = ak_3mf_root_relationship_type_dup(st->doc, st->rootRelsRoot, entryName);
+  relationship     = ak_3mf_root_relationship_for_entry(st->rootRelsRoot, entryName);
   type             = ak_3mf_package_part_type(entryName, contentType, relationshipType);
 
   entryData = NULL;
@@ -1248,18 +1276,41 @@ ak_3mf_import_package_part_visitor(const AkZipEntryInfo * __restrict info,
     return false;
   }
 
-  if (!ak_printAddPackagePartData(st->doc,
-                                  type,
-                                  entryName,
-                                  contentType,
-                                  relationshipType,
-                                  entryData,
-                                  entrySize)) {
+  part = ak_printAddPackagePartData(st->doc,
+                                    type,
+                                    entryName,
+                                    contentType,
+                                    relationshipType,
+                                    entryData,
+                                    entrySize);
+  if (!part) {
     free(entryData);
     free(entryName);
     st->result = AK_ERR;
     return false;
   }
+  relationshipId = relationship
+                   ? ak_3mf_attr_dup_cstr(ak_3mf_xmla_lit(relationship, "Id"))
+                   : NULL;
+  relationshipTargetMode = relationship
+                           ? ak_3mf_attr_dup_cstr(ak_3mf_xmla_lit(relationship,
+                                                                  "TargetMode"))
+                           : NULL;
+  if (relationshipId || relationshipTargetMode) {
+    if (!ak_printSetPackagePartRelationship(st->doc,
+                                            part,
+                                            relationshipId,
+                                            relationshipTargetMode)) {
+      free(relationshipTargetMode);
+      free(relationshipId);
+      free(entryData);
+      free(entryName);
+      st->result = AK_ERR;
+      return false;
+    }
+  }
+  free(relationshipTargetMode);
+  free(relationshipId);
   ak_3mf_mark_package_part_features(st->print, type, entryName, contentType, relationshipType);
 
   free(entryData);

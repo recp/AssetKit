@@ -2737,10 +2737,20 @@ ak_3mf_build_rels_xml(const AkPrintDocument * __restrict print,
     name = ak_3mf_zip_part_name(part->name);
     ak_3mf_buf_lit(rels, "  <Relationship Target=\"/");
     ak_3mf_buf_attr(rels, name);
-    ak_3mf_buf_lit(rels, "\" Id=\"rel");
-    ak_3mf_buf_u32(rels, relId++);
+    if (part->relationshipId) {
+      ak_3mf_buf_lit(rels, "\" Id=\"");
+      ak_3mf_buf_attr(rels, part->relationshipId);
+      relId++;
+    } else {
+      ak_3mf_buf_lit(rels, "\" Id=\"rel");
+      ak_3mf_buf_u32(rels, relId++);
+    }
     ak_3mf_buf_lit(rels, "\" Type=\"");
     ak_3mf_buf_attr(rels, part->relationshipType);
+    if (part->relationshipTargetMode) {
+      ak_3mf_buf_lit(rels, "\" TargetMode=\"");
+      ak_3mf_buf_attr(rels, part->relationshipTargetMode);
+    }
     ak_3mf_buf_lit(rels, "\"/>\n");
   }
 

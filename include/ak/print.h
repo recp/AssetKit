@@ -184,6 +184,8 @@ typedef struct AkPrintPackagePart {
   const char                *name;
   const char                *contentType;
   const char                *relationshipType;
+  const char                *relationshipId;
+  const char                *relationshipTargetMode;
   const void                *data;
   size_t                     size;
   AkPrintPackagePartType     type;
@@ -613,6 +615,13 @@ ak_printAddPackagePartData(struct AkDoc           * __restrict doc,
                            const char            * __restrict relationshipType,
                            const void            * __restrict data,
                            size_t                             size);
+
+AK_EXPORT
+bool
+ak_printSetPackagePartRelationship(struct AkDoc           * __restrict doc,
+                                   AkPrintPackagePart     * __restrict part,
+                                   const char             * __restrict relationshipId,
+                                   const char             * __restrict targetMode);
 
 AK_EXPORT
 AkPrintProductionItem*

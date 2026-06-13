@@ -203,6 +203,32 @@ ak_printAddPackagePartData(AkDoc                  * __restrict doc,
 }
 
 AK_EXPORT
+bool
+ak_printSetPackagePartRelationship(AkDoc              * __restrict doc,
+                                   AkPrintPackagePart * __restrict part,
+                                   const char         * __restrict relationshipId,
+                                   const char         * __restrict targetMode) {
+  AkHeap *heap;
+
+  if (!doc || !part)
+    return false;
+
+  heap = ak_heap_getheap(doc);
+  if (!heap)
+    return false;
+
+  part->relationshipId         = NULL;
+  part->relationshipTargetMode = NULL;
+  if (relationshipId)
+    part->relationshipId = ak_heap_strdup(heap, part, relationshipId);
+  if (targetMode)
+    part->relationshipTargetMode = ak_heap_strdup(heap, part, targetMode);
+
+  return (!relationshipId || part->relationshipId)
+         && (!targetMode || part->relationshipTargetMode);
+}
+
+AK_EXPORT
 AkPrintProductionItem*
 ak_printAddProductionItem(AkDoc                  * __restrict doc,
                           AkPrintProductionItemType           type,

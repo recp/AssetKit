@@ -733,6 +733,8 @@ ak_test_make_3mf_package_triangle_doc(void) {
     sizeof(thumbnail));
   if (!part)
     return NULL;
+  if (!ak_printSetPackagePartRelationship(doc, part, "thumb-rel", "Internal"))
+    return NULL;
 
   return doc;
 }
@@ -898,6 +900,10 @@ TEST_IMPL(three_mf_export_package_parts_roundtrip) {
   ASSERT(strcmp(thumbnailPart->contentType, "image/png") == 0);
   ASSERT(thumbnailPart->relationshipType != NULL);
   ASSERT(strstr(thumbnailPart->relationshipType, "thumbnail") != NULL);
+  ASSERT(thumbnailPart->relationshipId != NULL);
+  ASSERT(strcmp(thumbnailPart->relationshipId, "thumb-rel") == 0);
+  ASSERT(thumbnailPart->relationshipTargetMode != NULL);
+  ASSERT(strcmp(thumbnailPart->relationshipTargetMode, "Internal") == 0);
   ASSERT(thumbnailPart->size == sizeof(thumbnail));
   ASSERT(thumbnailPart->data != NULL);
   ASSERT(memcmp(thumbnailPart->data, thumbnail, sizeof(thumbnail)) == 0);
