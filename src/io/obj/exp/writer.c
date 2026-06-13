@@ -108,7 +108,11 @@ wobj_w_uint(WOBJExpWriter * __restrict w, uint32_t val) {
   } while (val);
 
   n = (uint32_t)(sizeof(buf) - i);
-  wobj_w_raw(w, buf + i, n);
+  if (sizeof(w->buffer) - w->len < n)
+    wobj_w_flush(w);
+
+  memcpy(w->buffer + w->len, buf + i, n);
+  w->len += n;
 }
 
 AK_HIDE
@@ -122,5 +126,9 @@ wobj_w_float(WOBJExpWriter * __restrict w, float val) {
     return;
   }
 
-  wobj_w_raw(w, buf, outLen);
+  if (sizeof(w->buffer) - w->len < outLen)
+    wobj_w_flush(w);
+
+  memcpy(w->buffer + w->len, buf, outLen);
+  w->len += outLen;
 }

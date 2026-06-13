@@ -135,6 +135,18 @@ ply_w_raw(PLYExpWriter * __restrict w,
 
 static
 void
+ply_w_raw_small(PLYExpWriter * __restrict w,
+                const void   * __restrict data,
+                size_t                    len) {
+  if (sizeof(w->buffer) - w->len < len)
+    ply_w_flush(w);
+
+  memcpy(w->buffer + w->len, data, len);
+  w->len += len;
+}
+
+static
+void
 ply_w_ch(PLYExpWriter * __restrict w, char ch) {
   if (w->len == sizeof(w->buffer))
     ply_w_flush(w);
@@ -194,17 +206,14 @@ ply_write_u32le(PLYExpWriter * __restrict w, uint32_t value) {
 }
 
 static
-void
-ply_write_f32le(PLYExpWriter * __restrict w, float value) {
-  unsigned char out[4];
+bool
+ply_store_f32le(unsigned char ** __restrict cursor, float value) {
+  if (!isfinite(value))
+    return false;
 
-  if (!isfinite(value)) {
-    w->result = AK_ERR;
-    return;
-  }
-
-  io_store_f32le(out, value);
-  ply_w_raw(w, out, sizeof(out));
+  io_store_f32le(*cursor, value);
+  *cursor += sizeof(float);
+  return true;
 }
 
 static
@@ -576,30 +585,46 @@ ply_write_vertex_record(PLYExpState * __restrict st,
     return;
   }
 
-  ply_write_f32le(&st->w, pos[0]);
-  ply_write_f32le(&st->w, pos[1]);
-  ply_write_f32le(&st->w, pos[2]);
+  {
+    unsigned char  out[40];
+    unsigned char *p = out;
 
-  if (st->hasNormals) {
-    ply_vertex_normal(pc, vertexIndex, direct, fallbackNormal, normal);
-    ply_write_f32le(&st->w, normal[0]);
-    ply_write_f32le(&st->w, normal[1]);
-    ply_write_f32le(&st->w, normal[2]);
-  }
+    if (!ply_store_f32le(&p, pos[0])
+        || !ply_store_f32le(&p, pos[1])
+        || !ply_store_f32le(&p, pos[2])) {
+      st->w.result = AK_ERR;
+      return;
+    }
 
-  if (st->hasUV) {
-    ply_vertex_texcoord(pc, vertexIndex, direct, uv);
-    ply_write_f32le(&st->w, uv[0]);
-    ply_write_f32le(&st->w, uv[1]);
-  }
+    if (st->hasNormals) {
+      ply_vertex_normal(pc, vertexIndex, direct, fallbackNormal, normal);
+      if (!ply_store_f32le(&p, normal[0])
+          || !ply_store_f32le(&p, normal[1])
+          || !ply_store_f32le(&p, normal[2])) {
+        st->w.result = AK_ERR;
+        return;
+      }
+    }
 
-  if (st->hasColors) {
-    ply_vertex_color(st, pc, vertexIndex, direct, color);
-    ply_write_u8(&st->w, color[0]);
-    ply_write_u8(&st->w, color[1]);
-    ply_write_u8(&st->w, color[2]);
-    if (st->hasAlpha)
-      ply_write_u8(&st->w, color[3]);
+    if (st->hasUV) {
+      ply_vertex_texcoord(pc, vertexIndex, direct, uv);
+      if (!ply_store_f32le(&p, uv[0])
+          || !ply_store_f32le(&p, uv[1])) {
+        st->w.result = AK_ERR;
+        return;
+      }
+    }
+
+    if (st->hasColors) {
+      ply_vertex_color(st, pc, vertexIndex, direct, color);
+      *p++ = color[0];
+      *p++ = color[1];
+      *p++ = color[2];
+      if (st->hasAlpha)
+        *p++ = color[3];
+    }
+
+    ply_w_raw_small(&st->w, out, (size_t)(p - out));
   }
 }
 
@@ -675,9 +700,19 @@ ply_write_face_ref(PLYExpState * __restrict st, uint32_t count) {
     }
     ply_w_ch(&st->w, '\n');
   } else {
-    ply_write_u8(&st->w, (uint8_t)count);
-    for (i = 0; i < count; i++)
-      ply_write_u32le(&st->w, st->vertexCursor + i);
+    if (count == 3u) {
+      unsigned char out[1u + 3u * sizeof(uint32_t)];
+
+      out[0] = 3u;
+      io_store_u32le(out + 1u, st->vertexCursor);
+      io_store_u32le(out + 5u, st->vertexCursor + 1u);
+      io_store_u32le(out + 9u, st->vertexCursor + 2u);
+      ply_w_raw_small(&st->w, out, sizeof(out));
+    } else {
+      ply_write_u8(&st->w, (uint8_t)count);
+      for (i = 0; i < count; i++)
+        ply_write_u32le(&st->w, st->vertexCursor + i);
+    }
   }
 
   st->vertexCursor += count;
@@ -715,14 +750,41 @@ ply_write_reused_face_ref(PLYExpState    * __restrict st,
     }
     ply_w_ch(&st->w, '\n');
   } else {
-    ply_write_u8(&st->w, (uint8_t)count);
-    for (i = 0; i < count; i++) {
-      uint32_t tupleIndex;
-      uint32_t refIndex;
+    if (count == 3u) {
+      unsigned char out[1u + 3u * sizeof(uint32_t)];
+      uint32_t      tuple0;
+      uint32_t      tuple1;
+      uint32_t      tuple2;
 
-      ply_ordered_index(indices, count, i, pc->mirrored, &tupleIndex);
-      refIndex = ply_reused_ref_index(pc, tupleIndex);
-      ply_write_u32le(&st->w, st->vertexCursor + refIndex);
+      out[0] = 3u;
+      if (pc->mirrored) {
+        tuple0 = indices[2];
+        tuple1 = indices[1];
+        tuple2 = indices[0];
+      } else {
+        tuple0 = indices[0];
+        tuple1 = indices[1];
+        tuple2 = indices[2];
+      }
+
+      io_store_u32le(out + 1u,
+                     st->vertexCursor + ply_reused_ref_index(pc, tuple0));
+      io_store_u32le(out + 5u,
+                     st->vertexCursor + ply_reused_ref_index(pc, tuple1));
+      io_store_u32le(out + 9u,
+                     st->vertexCursor + ply_reused_ref_index(pc, tuple2));
+
+      ply_w_raw_small(&st->w, out, sizeof(out));
+    } else {
+      ply_write_u8(&st->w, (uint8_t)count);
+      for (i = 0; i < count; i++) {
+        uint32_t tupleIndex;
+        uint32_t refIndex;
+
+        ply_ordered_index(indices, count, i, pc->mirrored, &tupleIndex);
+        refIndex = ply_reused_ref_index(pc, tupleIndex);
+        ply_write_u32le(&st->w, st->vertexCursor + refIndex);
+      }
     }
   }
 }

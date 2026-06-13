@@ -38,12 +38,11 @@ void
 wobj_prepareMissingDefaults(WOState * __restrict wst);
 
 AK_INLINE
-void*
-wobj_data_append_slot(AkDataContext * __restrict dctx);
-
-AK_INLINE
 char*
 wobj_skip_inline_space(char * __restrict p);
+
+#define wobj_data_append_slot  ak_data_append_slot
+#define wobj_data_append_slots ak_data_append_slots
 
 #define WOBJ_KW_MTLL AK_STR_PACK4_CHARS('m', 't', 'l', 'l')
 #define WOBJ_KW_USEM AK_STR_PACK4_CHARS('u', 's', 'e', 'm')
@@ -138,74 +137,6 @@ wobj_prepareMissingDefaults(WOState * __restrict wst) {
       }
     }
   }
-}
-
-AK_INLINE
-void*
-wobj_data_append_slot(AkDataContext * __restrict dctx) {
-  AkDataChunk *chunk;
-  size_t       size;
-
-  size = dctx->itemsize;
-  if (dctx->usedsize + size > dctx->size) {
-    chunk = ak_heap_alloc(dctx->heap,
-                          dctx,
-                          sizeof(*chunk) + dctx->nodesize);
-    chunk->usedsize = 0;
-    chunk->next     = NULL;
-
-    if (dctx->last)
-      dctx->last->next = chunk;
-
-    dctx->last  = chunk;
-    dctx->size += dctx->nodesize;
-
-    if (!dctx->data)
-      dctx->data = chunk;
-  } else {
-    chunk = dctx->last;
-  }
-
-  dctx->usedsize += size;
-  dctx->itemcount++;
-  chunk->usedsize += size;
-
-  return chunk->data + chunk->usedsize - size;
-}
-
-AK_INLINE
-void*
-wobj_data_append_slots(AkDataContext * __restrict dctx, uint32_t count) {
-  AkDataChunk *chunk;
-  size_t       size, totalSize;
-
-  size      = dctx->itemsize;
-  totalSize = size * (size_t)count;
-
-  if (dctx->usedsize + totalSize > dctx->size) {
-    chunk = ak_heap_alloc(dctx->heap,
-                          dctx,
-                          sizeof(*chunk) + dctx->nodesize);
-    chunk->usedsize = 0;
-    chunk->next     = NULL;
-
-    if (dctx->last)
-      dctx->last->next = chunk;
-
-    dctx->last  = chunk;
-    dctx->size += dctx->nodesize;
-
-    if (!dctx->data)
-      dctx->data = chunk;
-  } else {
-    chunk = dctx->last;
-  }
-
-  dctx->usedsize += totalSize;
-  dctx->itemcount += count;
-  chunk->usedsize += totalSize;
-
-  return chunk->data + chunk->usedsize - totalSize;
 }
 
 typedef struct WODataMark {

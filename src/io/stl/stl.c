@@ -36,6 +36,7 @@
    better on dense shared-edge triangle soups; allocate it as one scratch block
    in the caller so small-stack platforms do not pay a 1MB frame. */
 #define STL_POSITION_CACHE_SIZE 65536u
+#define stl_data_append_slot ak_data_append_slot
 
 AK_INLINE
 uint16_t
@@ -180,39 +181,6 @@ stl_header_color(const char * __restrict header, vec4 color) {
   }
 
   return false;
-}
-
-AK_INLINE
-void*
-stl_data_append_slot(AkDataContext * __restrict dctx) {
-  AkDataChunk *chunk;
-  size_t       size;
-
-  size = dctx->itemsize;
-  if (dctx->usedsize + size > dctx->size) {
-    chunk = ak_heap_alloc(dctx->heap,
-                          dctx,
-                          sizeof(*chunk) + dctx->nodesize);
-    chunk->usedsize = 0;
-    chunk->next     = NULL;
-
-    if (dctx->last)
-      dctx->last->next = chunk;
-
-    dctx->last  = chunk;
-    dctx->size += dctx->nodesize;
-
-    if (!dctx->data)
-      dctx->data = chunk;
-  } else {
-    chunk = dctx->last;
-  }
-
-  dctx->usedsize += size;
-  dctx->itemcount++;
-  chunk->usedsize += size;
-
-  return chunk->data + chunk->usedsize - size;
 }
 
 typedef struct STLDedup {

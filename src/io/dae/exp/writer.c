@@ -90,7 +90,11 @@ dae_w_uint(DAEExpWriter * __restrict w, size_t val) {
     val /= 10u;
   } while (val > 0 && i > 0);
 
-  dae_w_raw(w, buf + i, sizeof(buf) - i);
+  if (DAE_EXP_WRITER_CAP - w->len < sizeof(buf) - i)
+    dae_w_flush(w);
+
+  memcpy(w->buffer + w->len, buf + i, sizeof(buf) - i);
+  w->len += sizeof(buf) - i;
 }
 
 AK_HIDE
@@ -104,7 +108,11 @@ dae_w_float(DAEExpWriter * __restrict w, float val) {
     return;
   }
 
-  dae_w_raw(w, buf, outLen);
+  if (DAE_EXP_WRITER_CAP - w->len < outLen)
+    dae_w_flush(w);
+
+  memcpy(w->buffer + w->len, buf, outLen);
+  w->len += outLen;
 }
 
 AK_HIDE

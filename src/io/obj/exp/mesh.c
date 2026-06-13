@@ -460,8 +460,7 @@ wobj_write_index_accessor_triangles_fast(WOBJExpState    * __restrict st,
   for (uint32_t i = 0; i + 2u < vertexCount; i += 3u) {
     uint32_t index;
 
-    wobj_w_ch(&st->w, 'f');
-    wobj_w_ch(&st->w, ' ');
+    wobj_w_ch2(&st->w, 'f', ' ');
     index = io_index_rows_get_unchecked(&indexRows, i);
     wobj_write_shared_accessor_ref(st,
                                    index,
@@ -522,8 +521,7 @@ wobj_write_triangle_list_fast(WOBJExpState    * __restrict st,
   hasNormal   = normInput && vnCount > 0;
 
   for (uint32_t i = 0; i + 2u < vertexCount; i += 3u) {
-    wobj_w_ch(&st->w, 'f');
-    wobj_w_ch(&st->w, ' ');
+    wobj_w_ch2(&st->w, 'f', ' ');
     wobj_write_tuple_ref_fast(st,
                               prim,
                               posInput,

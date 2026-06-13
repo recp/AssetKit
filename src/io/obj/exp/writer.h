@@ -40,6 +40,16 @@ wobj_w_ch(WOBJExpWriter * __restrict w, char ch) {
 
 AK_INLINE
 void
+wobj_w_ch2(WOBJExpWriter * __restrict w, char a, char b) {
+  if (sizeof(w->buffer) - w->len < 2u)
+    wobj_w_flush(w);
+
+  w->buffer[w->len++] = (unsigned char)a;
+  w->buffer[w->len++] = (unsigned char)b;
+}
+
+AK_INLINE
+void
 wobj_w_lit(WOBJExpWriter * __restrict w,
            const char    * __restrict lit) {
   wobj_w_raw(w, lit, strlen(lit));

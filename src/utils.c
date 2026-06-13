@@ -22,7 +22,6 @@
 #include <time.h>
 #include <sys/stat.h>
 #include <assert.h>
-#include <errno.h>
 #include "../include/ak/options.h"
 
 #include "mem/common.h"
@@ -47,10 +46,8 @@ ak_readfile(const char * __restrict file,
   int         infile_no;
   
   infile = fopen(file, "rb");
-  if (!infile) {
-    fprintf(stderr, "errno: %d: %s", errno, strerror(errno));
+  if (!infile)
     goto err;
-  }
 
   infile_no = fileno(infile);
 
