@@ -74,7 +74,7 @@ wobj_w_name(WOBJExpWriter * __restrict w,
   const char *span;
 
   if (!name || !*name) {
-    wobj_w_lit(w, "unnamed");
+    WOBJ_W_LIT(w, "unnamed");
     return;
   }
 

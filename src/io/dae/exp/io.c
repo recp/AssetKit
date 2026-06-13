@@ -24,29 +24,6 @@
 #include <string.h>
 
 AK_HIDE
-const char*
-dae_uri_file_path(const char * __restrict uri) {
-  const char *path;
-
-  if (!uri)
-    return NULL;
-
-  if (io_uri_has_prefix(uri, _s_dae_file_uri, _s_dae_file_uri_len)) {
-    path = uri + _s_dae_file_uri_len;
-#ifdef _WIN32
-    if (path[0] == '/'
-        && (((path[1] >= 'A' && path[1] <= 'Z')
-             || (path[1] >= 'a' && path[1] <= 'z'))
-            && path[2] == ':'))
-      path++;
-#endif
-    return path;
-  }
-
-  return io_path_is_abs_drive_colon(uri) ? uri : NULL;
-}
-
-AK_HIDE
 bool
 dae_uri_rel_safe(const char * __restrict uri) {
   const char *seg;

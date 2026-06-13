@@ -36,13 +36,7 @@
 
 AkImageSource*
 gltf_image_source(AkImage * __restrict image) {
-  if (!image)
-    return NULL;
-
-  if (image->source)
-    return image->source;
-
-  return image->image ? image->image->source : NULL;
+  return ak_imageSource(image);
 }
 
 bool
@@ -65,29 +59,6 @@ gltf_image_source_supported(AkImageSource * __restrict source) {
   return false;
 }
 
-static
-const char*
-gltf_image_uri_file_path(const char * __restrict uri) {
-  const char *path;
-
-  if (!uri)
-    return NULL;
-
-  if (io_uri_has_prefix(uri, _s_gltf_file_uri, _s_gltf_file_uri_len)) {
-    path = uri + 7u;
-#ifdef _WIN32
-    if (path[0] == '/'
-        && (((path[1] >= 'A' && path[1] <= 'Z')
-             || (path[1] >= 'a' && path[1] <= 'z'))
-            && path[2] == ':'))
-      path++;
-#endif
-    return path;
-  }
-
-  return io_path_is_abs_drive_colon(uri) ? uri : NULL;
-}
-
 const char*
 gltf_image_source_path(GLTFExpState  * __restrict st,
                        AkImageSource * __restrict source,
@@ -103,7 +74,9 @@ gltf_image_source_path(GLTFExpState  * __restrict st,
   if (source->resolvedPath)
     return source->resolvedPath;
 
-  filePath = gltf_image_uri_file_path(source->uri);
+  filePath = io_uri_file_path(source->uri,
+                              _s_gltf_file_uri,
+                              _s_gltf_file_uri_len);
   if (filePath) {
     if (strchr(filePath, '%')) {
       if (!io_uri_decode_path(filePath, pathbuf, PATH_MAX))

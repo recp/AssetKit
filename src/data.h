@@ -47,11 +47,11 @@ typedef struct AkDataContext {
 
 AK_INLINE
 void*
-ak_data_append_slot(AkDataContext * __restrict dctx) {
+ak_data_append_bytes(AkDataContext * __restrict dctx,
+                     size_t                    size,
+                     size_t                    count) {
   AkDataChunk *chunk;
-  size_t       size;
 
-  size = dctx->itemsize;
   if (dctx->usedsize + size > dctx->size) {
     chunk = ak_heap_alloc(dctx->heap,
                           dctx,
@@ -72,7 +72,7 @@ ak_data_append_slot(AkDataContext * __restrict dctx) {
   }
 
   dctx->usedsize += size;
-  dctx->itemcount++;
+  dctx->itemcount += count;
   chunk->usedsize += size;
 
   return chunk->data + chunk->usedsize - size;
@@ -80,37 +80,16 @@ ak_data_append_slot(AkDataContext * __restrict dctx) {
 
 AK_INLINE
 void*
+ak_data_append_slot(AkDataContext * __restrict dctx) {
+  return ak_data_append_bytes(dctx, dctx->itemsize, 1u);
+}
+
+AK_INLINE
+void*
 ak_data_append_slots(AkDataContext * __restrict dctx, uint32_t count) {
-  AkDataChunk *chunk;
-  size_t       size, totalSize;
-
-  size      = dctx->itemsize;
-  totalSize = size * (size_t)count;
-
-  if (dctx->usedsize + totalSize > dctx->size) {
-    chunk = ak_heap_alloc(dctx->heap,
-                          dctx,
-                          sizeof(*chunk) + dctx->nodesize);
-    chunk->usedsize = 0;
-    chunk->next     = NULL;
-
-    if (dctx->last)
-      dctx->last->next = chunk;
-
-    dctx->last  = chunk;
-    dctx->size += dctx->nodesize;
-
-    if (!dctx->data)
-      dctx->data = chunk;
-  } else {
-    chunk = dctx->last;
-  }
-
-  dctx->usedsize += totalSize;
-  dctx->itemcount += count;
-  chunk->usedsize += totalSize;
-
-  return chunk->data + chunk->usedsize - totalSize;
+  return ak_data_append_bytes(dctx,
+                              dctx->itemsize * (size_t)count,
+                              count);
 }
 
 AkDataContext*

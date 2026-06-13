@@ -15,6 +15,7 @@
  */
 
 #include "3mf.h"
+#include "../common/buffer.h"
 #include "../common/primitive.h"
 #include "../common/text_number.h"
 #include "../common/zip.h"
@@ -33,12 +34,7 @@ typedef IOFloatRows AK3MFRows;
 #define ak_3mf_rows_get     io_float_rows_get
 #define ak_3mf_row_component io_float_row_component
 
-typedef struct AK3MFBuffer {
-  char    *data;
-  size_t   len;
-  size_t   cap;
-  AkResult result;
-} AK3MFBuffer;
+typedef IOBuffer AK3MFBuffer;
 
 typedef struct AK3MFExportState {
   AkDoc           *doc;
@@ -66,66 +62,18 @@ typedef struct AK3MFDisplacementWrite {
   uint32_t                           remaining;
 } AK3MFDisplacementWrite;
 
-static
-bool
-ak_3mf_buf_reserve(AK3MFBuffer * __restrict buf, size_t extra) {
-  char  *data;
-  size_t newCap;
-
-  if (buf->result != AK_OK)
-    return false;
-  if (extra <= buf->cap - buf->len)
-    return true;
-
-  newCap = buf->cap ? buf->cap * 2u : 4096u;
-  while (extra > newCap - buf->len) {
-    if (newCap > SIZE_MAX / 2u) {
-      buf->result = AK_ERR;
-      return false;
-    }
-    newCap *= 2u;
-  }
-
-  data = realloc(buf->data, newCap);
-  if (!data) {
-    buf->result = AK_ERR;
-    return false;
-  }
-
-  buf->data = data;
-  buf->cap  = newCap;
-  return true;
-}
-
-static
-void
-ak_3mf_buf_raw(AK3MFBuffer * __restrict buf,
-               const void  * __restrict data,
-               size_t                   len) {
-  if (!ak_3mf_buf_reserve(buf, len))
-    return;
-
-  memcpy(buf->data + buf->len, data, len);
-  buf->len += len;
-}
-
-#define AK_3MF_BUF_LIT(BUF, LIT) ak_3mf_buf_raw((BUF), (LIT), sizeof(LIT) - 1u)
-
-static
-void
-ak_3mf_buf_lit(AK3MFBuffer * __restrict buf,
-               const char  * __restrict lit) {
-  ak_3mf_buf_raw(buf, lit, strlen(lit));
-}
-
-static
-void
-ak_3mf_buf_ch(AK3MFBuffer * __restrict buf, char ch) {
-  if (!ak_3mf_buf_reserve(buf, 1u))
-    return;
-
-  buf->data[buf->len++] = ch;
-}
+#define AK_3MF_BUF_INITIAL_CAP 4096u
+#define ak_3mf_buf_reserve(BUF, EXTRA)                                        \
+  io_buffer_reserve((BUF), (EXTRA), AK_3MF_BUF_INITIAL_CAP)
+#define ak_3mf_buf_raw(BUF, DATA, LEN)                                        \
+  io_buffer_raw((BUF), (DATA), (LEN), AK_3MF_BUF_INITIAL_CAP)
+#define AK_3MF_BUF_LIT(BUF, LIT)                                              \
+  IO_BUFFER_LIT((BUF), LIT, AK_3MF_BUF_INITIAL_CAP)
+#define ak_3mf_buf_lit(BUF, LIT)                                              \
+  io_buffer_cstr((BUF), (LIT), AK_3MF_BUF_INITIAL_CAP)
+#define ak_3mf_buf_ch(BUF, CH)                                                \
+  io_buffer_ch((BUF), (CH), AK_3MF_BUF_INITIAL_CAP)
+#define ak_3mf_buf_free(BUF) io_buffer_free((BUF))
 
 static
 void
@@ -548,13 +496,6 @@ ak_3mf_volumetric_mesh_for_export(AK3MFExportState * __restrict st,
   }
 
   return NULL;
-}
-
-static
-void
-ak_3mf_buf_free(AK3MFBuffer * __restrict buf) {
-  free(buf->data);
-  memset(buf, 0, sizeof(*buf));
 }
 
 static
@@ -1003,7 +944,7 @@ ak_3mf_write_beam_lattice(AK3MFExportState         * __restrict st,
     AK_3MF_BUF_LIT(buf, "\" b2:ballradius=\"");
     ak_3mf_buf_float(buf, lattice->ballRadius);
   }
-  ak_3mf_buf_lit(buf, "\">\n"
+  AK_3MF_BUF_LIT(buf, "\">\n"
                       "            <b:beams>\n");
 
   for (i = 0u; i < lattice->beamCount && beam; i++, beam = beam->next)
@@ -1218,12 +1159,9 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
   hasColorRows = colorInput && ak_3mf_rows_init(&colorRows, colorInput->accessor);
   propertyId   = hasColorRows ? st->nextObjectId++ : 0u;
 
-  memset(&vertices, 0, sizeof(vertices));
-  memset(&colors, 0, sizeof(colors));
-  memset(&triangles, 0, sizeof(triangles));
-  vertices.result  = AK_OK;
-  colors.result    = AK_OK;
-  triangles.result = AK_OK;
+  io_buffer_init(&vertices);
+  io_buffer_init(&colors);
+  io_buffer_init(&triangles);
   vertexCount      = 0;
   triangleCount    = 0;
   beamLattice      = ak_3mf_beam_lattice_for_export(st, st->nextObjectId);
@@ -1400,7 +1338,7 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
   ak_3mf_append_slice_object_attrs(&st->resources, sliceObject);
   AK_3MF_BUF_LIT(&st->resources, "\" type=\"model\">\n");
   if (displacementMesh) {
-    ak_3mf_buf_lit(&st->resources, "        <d:displacementmesh>\n"
+    AK_3MF_BUF_LIT(&st->resources, "        <d:displacementmesh>\n"
                                   "          <d:vertices>\n");
   } else {
     AK_3MF_BUF_LIT(&st->resources, "        <mesh");
@@ -1410,7 +1348,7 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
       ak_3mf_buf_u32(&st->resources, volumetricMesh->volumeId);
       ak_3mf_buf_ch(&st->resources, '"');
     }
-    ak_3mf_buf_lit(&st->resources, ">\n"
+    AK_3MF_BUF_LIT(&st->resources, ">\n"
                                   "          <vertices>\n");
   }
   ak_3mf_buf_raw(&st->resources, vertices.data, vertices.len);
@@ -1875,7 +1813,7 @@ ak_3mf_write_image3d(AK3MFExportState      * __restrict st,
     ak_3mf_buf_attr(&st->resources, image->name);
     ak_3mf_buf_ch(&st->resources, '"');
   }
-  ak_3mf_buf_lit(&st->resources, ">\n"
+  AK_3MF_BUF_LIT(&st->resources, ">\n"
                                 "        <v:imagestack rowcount=\"");
   ak_3mf_buf_u32(&st->resources, image->rowCount);
   AK_3MF_BUF_LIT(&st->resources, "\" columncount=\"");
@@ -1890,7 +1828,7 @@ ak_3mf_write_image3d(AK3MFExportState      * __restrict st,
     AK_3MF_BUF_LIT(&st->resources, "\"/>\n");
   }
 
-  ak_3mf_buf_lit(&st->resources, "        </v:imagestack>\n"
+  AK_3MF_BUF_LIT(&st->resources, "        </v:imagestack>\n"
                                 "      </v:image3d>\n");
 }
 
@@ -2140,7 +2078,7 @@ ak_3mf_write_level_sets(AK3MFExportState * __restrict st) {
     ak_3mf_buf_u32(&st->resources, objectId);
     productionObject = ak_3mf_production_object_for_export(st, objectId);
     ak_3mf_append_production_object_open_attrs(&st->resources, productionObject);
-    ak_3mf_buf_lit(&st->resources, "\" type=\"model\">\n"
+    AK_3MF_BUF_LIT(&st->resources, "\" type=\"model\">\n"
                                   "        <v:levelset functionid=\"");
     ak_3mf_buf_u32(&st->resources, levelSet->functionId);
     ak_3mf_buf_ch(&st->resources, '"');
@@ -2239,7 +2177,7 @@ ak_3mf_write_boolean_shapes(AK3MFExportState * __restrict st) {
     ak_3mf_buf_u32(&st->resources, objectId);
     productionObject = ak_3mf_production_object_for_export(st, objectId);
     ak_3mf_append_production_object_open_attrs(&st->resources, productionObject);
-    ak_3mf_buf_lit(&st->resources, "\" type=\"model\">\n"
+    AK_3MF_BUF_LIT(&st->resources, "\" type=\"model\">\n"
                                   "        <bo:booleanshape objectid=\"");
     ak_3mf_buf_u32(&st->resources, shape->baseObjectId);
     AK_3MF_BUF_LIT(&st->resources, "\" operation=\"");
@@ -2372,53 +2310,52 @@ ak_3mf_build_model_xml(AK3MFExportState * __restrict st,
                        AK3MFBuffer      * __restrict model) {
   const char *unitName;
 
-  memset(model, 0, sizeof(*model));
-  model->result = AK_OK;
-  unitName      = ak_3mf_export_unit_name(st->doc);
+  io_buffer_init(model);
+  unitName = ak_3mf_export_unit_name(st->doc);
 
-  ak_3mf_buf_lit(model, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+  AK_3MF_BUF_LIT(model, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                         "<model unit=\"");
   ak_3mf_buf_lit(model, unitName);
-  ak_3mf_buf_lit(model, "\" xml:lang=\"en-US\" "
+  AK_3MF_BUF_LIT(model, "\" xml:lang=\"en-US\" "
                         "xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\"");
   if (st->usesMaterialExtension) {
-    ak_3mf_buf_lit(model,
+    AK_3MF_BUF_LIT(model,
                    " xmlns:m=\"http://schemas.microsoft.com/3dmanufacturing/material/2015/02\"");
   }
   if (st->usesProductionExtension) {
-    ak_3mf_buf_lit(model,
+    AK_3MF_BUF_LIT(model,
                    " xmlns:p=\"http://schemas.microsoft.com/3dmanufacturing/production/2015/06\"");
   }
   if (st->usesProductionAlternativeExtension) {
-    ak_3mf_buf_lit(model,
+    AK_3MF_BUF_LIT(model,
                    " xmlns:pa=\"http://schemas.microsoft.com/3dmanufacturing/production/alternatives/2021/04\"");
   }
   if (st->usesSliceExtension) {
-    ak_3mf_buf_lit(model,
+    AK_3MF_BUF_LIT(model,
                    " xmlns:s=\"http://schemas.microsoft.com/3dmanufacturing/slice/2015/07\"");
   }
   if (st->usesBeamLatticeExtension) {
-    ak_3mf_buf_lit(model,
+    AK_3MF_BUF_LIT(model,
                    " xmlns:b=\"http://schemas.microsoft.com/3dmanufacturing/beamlattice/2017/02\"");
   }
   if (st->usesBeamBallExtension) {
-    ak_3mf_buf_lit(model,
+    AK_3MF_BUF_LIT(model,
                    " xmlns:b2=\"http://schemas.microsoft.com/3dmanufacturing/beamlattice/balls/2020/07\"");
   }
   if (st->usesBooleanExtension) {
-    ak_3mf_buf_lit(model,
+    AK_3MF_BUF_LIT(model,
                    " xmlns:bo=\"http://schemas.3mf.io/3dmanufacturing/booleanoperations/2023/07\"");
   }
   if (st->usesDisplacementExtension) {
-    ak_3mf_buf_lit(model,
+    AK_3MF_BUF_LIT(model,
                    " xmlns:d=\"http://schemas.3mf.io/3dmanufacturing/displacement/2023/10\"");
   }
   if (st->usesVolumetricExtension) {
-    ak_3mf_buf_lit(model,
+    AK_3MF_BUF_LIT(model,
                    " xmlns:v=\"http://schemas.3mf.io/3dmanufacturing/volumetric/2022/01\"");
   }
   if (st->usesImplicitExtension) {
-    ak_3mf_buf_lit(model,
+    AK_3MF_BUF_LIT(model,
                    " xmlns:i=\"http://schemas.3mf.io/3dmanufacturing/implicit/2023/12\"");
   }
   if (st->usesMaterialExtension
@@ -2494,10 +2431,10 @@ ak_3mf_build_model_xml(AK3MFExportState * __restrict st,
     }
     ak_3mf_buf_ch(model, '"');
   }
-  ak_3mf_buf_lit(model, ">\n"
+  AK_3MF_BUF_LIT(model, ">\n"
                         "  <resources>\n");
   ak_3mf_buf_raw(model, st->resources.data, st->resources.len);
-  ak_3mf_buf_lit(model, "  </resources>\n"
+  AK_3MF_BUF_LIT(model, "  </resources>\n"
                         "  <build");
   if (st->usesProductionExtension) {
     ak_3mf_append_production_attrs(model,
@@ -2507,7 +2444,7 @@ ak_3mf_build_model_xml(AK3MFExportState * __restrict st,
   }
   AK_3MF_BUF_LIT(model, ">\n");
   ak_3mf_buf_raw(model, st->build.data, st->build.len);
-  ak_3mf_buf_lit(model, "  </build>\n"
+  AK_3MF_BUF_LIT(model, "  </build>\n"
                         "</model>\n");
 
   return model->result == AK_OK;
@@ -2563,10 +2500,9 @@ ak_3mf_build_content_types_xml(const AkPrintDocument * __restrict print,
                                AK3MFBuffer           * __restrict contentTypes) {
   const AkPrintPackagePart *part;
 
-  memset(contentTypes, 0, sizeof(*contentTypes));
-  contentTypes->result = AK_OK;
+  io_buffer_init(contentTypes);
 
-  ak_3mf_buf_lit(contentTypes,
+  AK_3MF_BUF_LIT(contentTypes,
                  "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                  "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">\n"
                  "  <Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>\n"
@@ -2597,11 +2533,10 @@ ak_3mf_build_rels_xml(const AkPrintDocument * __restrict print,
   const AkPrintPackagePart *part;
   uint32_t                  relId;
 
-  memset(rels, 0, sizeof(*rels));
-  rels->result = AK_OK;
-  relId        = 1u;
+  io_buffer_init(rels);
+  relId = 1u;
 
-  ak_3mf_buf_lit(rels,
+  AK_3MF_BUF_LIT(rels,
                  "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                  "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">\n"
                  "  <Relationship Target=\"/3D/3dmodel.model\" Id=\"rel0\" Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\"/>\n");
@@ -2655,12 +2590,12 @@ ak_3mf_export(AkDoc * __restrict doc, const char * __restrict filepath) {
     return AK_ERR;
 
   memset(&st, 0, sizeof(st));
-  st.doc              = doc;
-  st.print            = ak_printDocument(doc);
-  st.result           = AK_OK;
-  st.resources.result = AK_OK;
-  st.build.result     = AK_OK;
-  st.nextObjectId     = 1u;
+  io_buffer_init(&st.resources);
+  io_buffer_init(&st.build);
+  st.doc          = doc;
+  st.print        = ak_printDocument(doc);
+  st.result       = AK_OK;
+  st.nextObjectId = 1u;
   st.usesProductionExtension = st.print && st.print->productionItemCount > 0u;
   st.usesProductionAlternativeExtension =
     ak_3mf_uses_production_alternative_extension(st.print);

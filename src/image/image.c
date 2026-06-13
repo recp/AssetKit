@@ -16,6 +16,7 @@
 
 #include "../common.h"
 #include "export.h"
+#include "../io/common/uri.h"
 #include "../../include/ak/bbox.h"
 #include "../../include/ak/path.h"
 #include <limits.h>
@@ -33,73 +34,6 @@ typedef struct AkImageConf {
 } AkImageConf;
 
 static AkImageConf ak__img_conf = {0};
-
-static
-AkImageSource*
-ak__image_source(AkImage * __restrict image) {
-  if (!image)
-    return NULL;
-
-  if (image->source)
-    return image->source;
-
-  return image->image ? image->image->source : NULL;
-}
-
-static
-int
-ak__image_uri_hex(unsigned char c) {
-  if (c >= '0' && c <= '9')
-    return (int)(c - '0');
-  if (c >= 'A' && c <= 'F')
-    return (int)(c - 'A') + 10;
-  if (c >= 'a' && c <= 'f')
-    return (int)(c - 'a') + 10;
-  return -1;
-}
-
-static
-const char*
-ak__image_uri_decode_path(const char * __restrict uri,
-                          char       * __restrict dst,
-                          size_t                  dstCap) {
-  size_t i;
-  size_t j;
-
-  if (!uri || !strchr(uri, '%'))
-    return uri;
-  if (!dst || dstCap == 0)
-    return NULL;
-
-  i = 0;
-  j = 0;
-  while (uri[i]) {
-    unsigned char c;
-
-    if (j + 1u >= dstCap)
-      return NULL;
-
-    c = (unsigned char)uri[i];
-    if (c == '%' && uri[i + 1] && uri[i + 2]) {
-      int hi;
-      int lo;
-
-      hi = ak__image_uri_hex((unsigned char)uri[i + 1]);
-      lo = ak__image_uri_hex((unsigned char)uri[i + 2]);
-      if (hi >= 0 && lo >= 0) {
-        dst[j++] = (char)((hi << 4) | lo);
-        i += 3u;
-        continue;
-      }
-    }
-
-    dst[j++] = (char)c;
-    i++;
-  }
-
-  dst[j] = '\0';
-  return dst;
-}
 
 AK_EXPORT
 void
@@ -119,7 +53,7 @@ ak_imageCanLoad(AkImage * __restrict image) {
   if (image->data)
     return true;
 
-  source = ak__image_source(image);
+  source = ak_imageSource(image);
   if (!source)
     return false;
 
@@ -157,7 +91,7 @@ ak_imageLoad(AkImage * __restrict image) {
     flipImage = ak_opt_get(AK_OPT_IMAGE_LOAD_FLIP_VERTICALLY);
   }
 
-  source = ak__image_source(image);
+  source = ak_imageSource(image);
   if (source) {
     switch (source->type) {
     case AK_IMAGE_SOURCE_URI: {
@@ -169,10 +103,12 @@ ak_imageLoad(AkImage * __restrict image) {
       if (!source->uri || !ak__img_conf.loadFromFile)
         return;
 
-      if (!(uriPath = ak__image_uri_decode_path(source->uri,
-                                                uribuf,
-                                                sizeof(uribuf))))
-        return;
+      uriPath = source->uri;
+      if (strchr(source->uri, '%')) {
+        if (!io_uri_decode_path(source->uri, uribuf, sizeof(uribuf)))
+          return;
+        uriPath = uribuf;
+      }
 
       path = doc && doc->inf && doc->inf->dir
              ? ak_fullpath(doc, uriPath, pathbuf)

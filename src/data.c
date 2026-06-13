@@ -38,38 +38,12 @@ ak_data_new(void   *memparent,
 
 int
 ak_data_append(AkDataContext *dctx, void *item) {
-  AkDataChunk *chunk;
   void        *mem;
-  size_t       size;
 
-  size = dctx->itemsize;
-  assert(dctx->nodesize > size);
+  assert(dctx->nodesize > dctx->itemsize);
 
-  if (dctx->usedsize + size > dctx->size) {
-    chunk = ak_heap_alloc(dctx->heap,
-                          dctx,
-                          sizeof(*chunk) + dctx->nodesize);
-    chunk->usedsize = 0;
-    chunk->next     = NULL;
-
-    if (dctx->last)
-      dctx->last->next = chunk;
-
-    dctx->last  = chunk;
-    dctx->size += dctx->nodesize;
-
-    if (!dctx->data)
-      dctx->data = chunk;
-  } else {
-    chunk = dctx->last;
-  }
-
-  mem = chunk->data + chunk->usedsize;
-  memcpy(mem, item, size);
-
-  chunk->usedsize += size;
-  dctx->usedsize  += size;
-  dctx->itemcount++;
+  mem = ak_data_append_slot(dctx);
+  memcpy(mem, item, dctx->itemsize);
 
   return (int)dctx->itemcount - 1;
 }

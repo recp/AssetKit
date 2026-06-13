@@ -15,6 +15,7 @@
  */
 
 #include "export.h"
+#include "../io/common/uri.h"
 #include "../miniz/miniz.h"
 
 #include <ak/path.h>
@@ -103,61 +104,6 @@ ak_imageExportReadU32LE(const unsigned char * __restrict src) {
 }
 
 static
-bool
-ak_imageExportUriDecodePath(const char * __restrict uri,
-                            char       * __restrict dst,
-                            size_t                  dstCap) {
-  size_t i;
-  size_t j;
-
-  if (!uri || !dst || dstCap == 0)
-    return false;
-
-  i = 0;
-  j = 0;
-  while (uri[i]) {
-    unsigned char c;
-
-    if (j + 1u >= dstCap)
-      return false;
-
-    c = (unsigned char)uri[i];
-    if (c == '%' && uri[i + 1] && uri[i + 2]) {
-      unsigned char hi;
-      unsigned char lo;
-
-      hi = (unsigned char)uri[i + 1];
-      lo = (unsigned char)uri[i + 2];
-      hi = hi >= '0' && hi <= '9'
-           ? (unsigned char)(hi - '0')
-           : hi >= 'A' && hi <= 'F'
-             ? (unsigned char)(hi - 'A' + 10)
-             : hi >= 'a' && hi <= 'f'
-               ? (unsigned char)(hi - 'a' + 10)
-               : 255u;
-      lo = lo >= '0' && lo <= '9'
-           ? (unsigned char)(lo - '0')
-           : lo >= 'A' && lo <= 'F'
-             ? (unsigned char)(lo - 'A' + 10)
-             : lo >= 'a' && lo <= 'f'
-               ? (unsigned char)(lo - 'a' + 10)
-               : 255u;
-      if (hi != 255u && lo != 255u) {
-        dst[j++] = (char)((hi << 4) | lo);
-        i += 3u;
-        continue;
-      }
-    }
-
-    dst[j++] = (char)c;
-    i++;
-  }
-
-  dst[j] = '\0';
-  return true;
-}
-
-static
 const char*
 ak_imageExportSourcePath(AkImageExportRequest * __restrict req,
                          char                 * __restrict pathbuf,
@@ -169,9 +115,7 @@ ak_imageExportSourcePath(AkImageExportRequest * __restrict req,
   if (!req || !req->image)
     return NULL;
 
-  source = req->image->source
-           ? req->image->source
-           : req->image->image ? req->image->image->source : NULL;
+  source = ak_imageSource(req->image);
   if (!source || source->type != AK_IMAGE_SOURCE_URI || !source->uri)
     return NULL;
 
@@ -179,10 +123,10 @@ ak_imageExportSourcePath(AkImageExportRequest * __restrict req,
     return source->resolvedPath;
 
   uri = source->uri;
-  if (strncmp(uri, "file://", 7u) == 0)
-    uri += 7u;
+  if (io_uri_has_prefix(uri, IO_URI_FILE_PREFIX, IO_URI_FILE_PREFIX_LEN))
+    uri += IO_URI_FILE_PREFIX_LEN;
 
-  if (!ak_imageExportUriDecodePath(uri, uribuf, PATH_MAX))
+  if (!io_uri_decode_path(uri, uribuf, PATH_MAX))
     return NULL;
 
   path = uribuf;

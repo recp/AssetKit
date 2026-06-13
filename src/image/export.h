@@ -35,6 +35,18 @@ AK_HIDE
 bool
 ak_imageCanLoad(AkImage * __restrict image);
 
+AK_INLINE
+AkImageSource*
+ak_imageSource(AkImage * __restrict image) {
+  if (!image)
+    return NULL;
+
+  if (image->source)
+    return image->source;
+
+  return image->image ? image->image->source : NULL;
+}
+
 AK_HIDE
 bool
 ak_imageExportPNG(AkImageExportRequest * __restrict req,

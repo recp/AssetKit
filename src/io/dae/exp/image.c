@@ -16,6 +16,7 @@
 
 #include "image.h"
 #include "io.h"
+#include "../../../image/export.h"
 #include "../strpool.h"
 #include "../../common/path.h"
 #include "../../common/string.h"
@@ -146,28 +147,16 @@ dae_image_unique_buffer_uri(RBTree        * __restrict uriMap,
 }
 
 static
-AkImageSource*
-dae_image_source(AkImage * __restrict image) {
-  if (!image)
-    return NULL;
-
-  if (image->source)
-    return image->source;
-
-  return image->image ? image->image->source : NULL;
-}
-
-static
 const char*
 dae_image_uri(AkImage * __restrict image) {
   AkImageSource *source;
 
-  for (source = dae_image_source(image); source; source = source->next) {
+  for (source = ak_imageSource(image); source; source = source->next) {
     if (source->type == AK_IMAGE_SOURCE_URI && source->uri)
       return source->uri;
   }
 
-  source = dae_image_source(image);
+  source = ak_imageSource(image);
   if (source) {
     if (source->uri)
       return source->uri;
@@ -192,7 +181,9 @@ dae_image_source_path(DAEExpState  * __restrict st,
   if (source->resolvedPath)
     return source->resolvedPath;
 
-  filePath = dae_uri_file_path(source->uri);
+  filePath = io_uri_file_path(source->uri,
+                              _s_dae_file_uri,
+                              _s_dae_file_uri_len);
   if (filePath) {
     if (strchr(filePath, '%')) {
       if (!io_uri_decode_path(filePath, pathbuf, pathbufCap))
@@ -478,7 +469,7 @@ dae_prepare_image_export_uris(DAEExpState * __restrict st) {
       AkImageSource *source;
 
       image  = objRef->object;
-      source = dae_image_source(image);
+      source = ak_imageSource(image);
       if (!dae_image_uri_is_copy_source(source)
           || !dae_uri_rel_safe(source->uri)
           || dae_uri_is_data_scheme(source->uri)
@@ -495,7 +486,7 @@ dae_prepare_image_export_uris(DAEExpState * __restrict st) {
     for (image = st->doc->lib.images.first; image; image = image->next, idx++) {
       AkImageSource *source;
 
-      source = dae_image_source(image);
+      source = ak_imageSource(image);
       if (!dae_image_uri_is_copy_source(source)
           || !dae_uri_rel_safe(source->uri)
           || dae_uri_is_data_scheme(source->uri)
@@ -519,7 +510,7 @@ dae_prepare_image_export_uris(DAEExpState * __restrict st) {
         continue;
 
       image  = objRef->object;
-      source = dae_image_source(image);
+      source = ak_imageSource(image);
       if (!source)
         continue;
 
@@ -556,7 +547,7 @@ dae_prepare_image_export_uris(DAEExpState * __restrict st) {
     if (st->imageExportUris[idx])
       continue;
 
-    source = dae_image_source(image);
+    source = ak_imageSource(image);
     if (!source)
       continue;
 
@@ -599,7 +590,7 @@ dae_write_image(DAEExpState * __restrict st,
   bool           preparedUri;
 
   w      = &st->w;
-  source = dae_image_source(image);
+  source = ak_imageSource(image);
   uri    = dae_image_uri(image);
   preparedUri = st->imageExportUris
                 && imageIdx < st->imageCount

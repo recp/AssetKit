@@ -118,7 +118,7 @@ wobj_write_positions(WOBJExpState * __restrict st,
     in[2] = wobj_row_component(row, rows->componentCount, 2, 0.0f);
     glm_mat4_mulv3(world, in, 1.0f, out);
 
-    wobj_w_lit(&st->w, "v ");
+    WOBJ_W_LIT(&st->w, "v ");
     wobj_w_float(&st->w, out[0]);
     wobj_w_ch(&st->w, ' ');
     wobj_w_float(&st->w, out[1]);
@@ -161,7 +161,7 @@ wobj_write_texcoords(WOBJExpState * __restrict st,
     const float *row;
 
     row = wobj_rows_get(rows, i);
-    wobj_w_lit(&st->w, "vt ");
+    WOBJ_W_LIT(&st->w, "vt ");
     wobj_w_float(&st->w, wobj_row_component(row, rows->componentCount, 0, 0.0f));
     wobj_w_ch(&st->w, ' ');
     wobj_w_float(&st->w, wobj_row_component(row, rows->componentCount, 1, 0.0f));
@@ -200,7 +200,7 @@ wobj_write_normals(WOBJExpState * __restrict st,
     in[2] = wobj_row_component(row, rows->componentCount, 2, 1.0f);
     glm_mat4_mulv3(normalMatrix, in, 0.0f, out);
     glm_vec3_normalize(out);
-    wobj_w_lit(&st->w, "vn ");
+    WOBJ_W_LIT(&st->w, "vn ");
     wobj_w_float(&st->w, out[0]);
     wobj_w_ch(&st->w, ' ');
     wobj_w_float(&st->w, out[1]);
@@ -593,7 +593,7 @@ wobj_write_face_vertices(WOBJExpState    * __restrict st,
                          uint32_t                     vnCount) {
   uint32_t i;
 
-  wobj_w_lit(&st->w, "f");
+  WOBJ_W_LIT(&st->w, "f");
   for (i = 0; i < vertexCount; i++) {
     wobj_w_ch(&st->w, ' ');
     wobj_write_tuple(st,
@@ -624,7 +624,10 @@ wobj_write_smooth_state(WOBJExpState    * __restrict st,
 
   st->hasSmoothState = true;
   st->smoothState    = smooth;
-  wobj_w_lit(&st->w, smooth ? "s on\n" : "s off\n");
+  if (smooth)
+    WOBJ_W_LIT(&st->w, "s on\n");
+  else
+    WOBJ_W_LIT(&st->w, "s off\n");
 }
 
 static
@@ -718,7 +721,7 @@ wobj_write_lines(WOBJExpState    * __restrict st,
     mode = AK_LINES;
 
   if (mode == AK_LINE_STRIP || mode == AK_LINE_LOOP) {
-    wobj_w_lit(&st->w, "l");
+    WOBJ_W_LIT(&st->w, "l");
     for (i = 0; i < vertexCount; i++) {
       wobj_w_ch(&st->w, ' ');
       wobj_w_uint(&st->w,
@@ -734,7 +737,7 @@ wobj_write_lines(WOBJExpState    * __restrict st,
   }
 
   for (i = 0; i + 1u < vertexCount; i += 2u) {
-    wobj_w_lit(&st->w, "l ");
+    WOBJ_W_LIT(&st->w, "l ");
     wobj_w_uint(&st->w,
                 wobj_input_obj_index(prim, posInput, i, vBase, vCount));
     wobj_w_ch(&st->w, ' ');
@@ -758,7 +761,7 @@ wobj_write_points(WOBJExpState    * __restrict st,
   if (vertexCount == 0)
     return;
 
-  wobj_w_lit(&st->w, "p");
+  WOBJ_W_LIT(&st->w, "p");
   for (i = 0; i < vertexCount; i++) {
     wobj_w_ch(&st->w, ' ');
     wobj_w_uint(&st->w,
@@ -966,11 +969,11 @@ wobj_write_object_name(WOBJExpState      * __restrict st,
   else if (mesh && mesh->name)
     name = mesh->name;
 
-  wobj_w_lit(&st->w, "o ");
+  WOBJ_W_LIT(&st->w, "o ");
   if (name && *name) {
     wobj_w_name(&st->w, name);
   } else {
-    wobj_w_lit(&st->w, "object_");
+    WOBJ_W_LIT(&st->w, "object_");
     wobj_w_uint(&st->w, st->objectCount);
   }
   wobj_w_ch(&st->w, '\n');

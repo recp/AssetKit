@@ -24,6 +24,8 @@
 
 #define IO_URI_DATA_PREFIX     "data:"
 #define IO_URI_DATA_PREFIX_LEN 5u
+#define IO_URI_FILE_PREFIX     "file://"
+#define IO_URI_FILE_PREFIX_LEN 7u
 
 AK_HIDE
 bool
@@ -38,6 +40,31 @@ io_uri_has_scheme(const char * __restrict uri);
 AK_HIDE
 bool
 io_path_is_abs_drive_colon(const char * __restrict path);
+
+AK_INLINE
+const char*
+io_uri_file_path(const char * __restrict uri,
+                 const char * __restrict filePrefix,
+                 size_t                  filePrefixLen) {
+  const char *path;
+
+  if (!uri)
+    return NULL;
+
+  if (io_uri_has_prefix(uri, filePrefix, filePrefixLen)) {
+    path = uri + filePrefixLen;
+#ifdef _WIN32
+    if (path[0] == '/'
+        && (((path[1] >= 'A' && path[1] <= 'Z')
+             || (path[1] >= 'a' && path[1] <= 'z'))
+            && path[2] == ':'))
+      path++;
+#endif
+    return path;
+  }
+
+  return io_path_is_abs_drive_colon(uri) ? uri : NULL;
+}
 
 AK_HIDE
 bool

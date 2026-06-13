@@ -23,10 +23,6 @@
 #include <stddef.h>
 
 AK_HIDE
-const char*
-dae_uri_file_path(const char * __restrict uri);
-
-AK_HIDE
 bool
 dae_uri_rel_safe(const char * __restrict uri);
 

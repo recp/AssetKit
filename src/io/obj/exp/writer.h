@@ -29,6 +29,8 @@ wobj_w_raw(WOBJExpWriter * __restrict w,
            const void    * __restrict data,
            size_t                     len);
 
+#define WOBJ_W_LIT(W, LIT) wobj_w_raw((W), "" LIT, sizeof("" LIT) - 1u)
+
 AK_INLINE
 void
 wobj_w_ch(WOBJExpWriter * __restrict w, char ch) {
