@@ -591,6 +591,13 @@ void
 ak_printSetUnsupportedFeature(AkPrintDocument   * __restrict print,
                               AkPrintFeatureFlags             features);
 
+/* Validate core mesh printability and update AkPrintDocument.validationFlags.
+   Passing AK_PRINT_VALIDATION_NONE runs all implemented mesh checks. */
+AK_EXPORT
+AkPrintValidationFlags
+ak_printValidate(struct AkDoc        * __restrict doc,
+                 AkPrintValidationFlags          checks);
+
 AK_EXPORT
 AkPrintPackagePart*
 ak_printAddPackagePart(struct AkDoc           * __restrict doc,

@@ -15,8 +15,31 @@
  */
 
 #include "../common.h"
+#include "../io/common/primitive.h"
 
+#include <math.h>
+#include <stdlib.h>
 #include <string.h>
+
+typedef struct AkPrintPositionRows {
+  AkAccessor *accessor;
+  float      *scratch;
+  uint32_t    componentCount;
+  bool        direct;
+} AkPrintPositionRows;
+
+typedef struct AkPrintEdge {
+  uint32_t a;
+  uint32_t b;
+} AkPrintEdge;
+
+typedef struct AkPrintMeshValidation {
+  AkPrintValidationFlags checks;
+  AkPrintValidationFlags found;
+  AkPrintEdge           *edges;
+  size_t                 edgeCount;
+  size_t                 edgeCapacity;
+} AkPrintMeshValidation;
 
 static
 const char*
@@ -104,6 +127,437 @@ ak_printSetUnsupportedFeature(AkPrintDocument   * __restrict print,
 
   print->unsupportedFeatures |= features;
   print->validationFlags     |= AK_PRINT_VALIDATION_UNSUPPORTED_FEATURE;
+}
+
+static
+bool
+ak_print_validate_rows_init(AkPrintPositionRows * __restrict rows,
+                            AkAccessor          * __restrict acc) {
+  size_t floatCount;
+
+  memset(rows, 0, sizeof(*rows));
+  if (!acc
+      || !acc->buffer
+      || !acc->buffer->data
+      || acc->count == 0
+      || acc->componentCount < 3u)
+    return false;
+
+  rows->accessor       = acc;
+  rows->componentCount = acc->componentCount;
+  rows->direct         = io_accessor_float_direct(acc);
+  if (rows->direct)
+    return true;
+
+  if ((size_t)acc->count > (size_t)-1 / acc->componentCount)
+    return false;
+
+  floatCount    = (size_t)acc->count * acc->componentCount;
+  rows->scratch = malloc(sizeof(float) * floatCount);
+  if (!rows->scratch)
+    return false;
+
+  if (ak_accessorAsFloat(acc, rows->scratch, floatCount) != floatCount) {
+    free(rows->scratch);
+    rows->scratch = NULL;
+    return false;
+  }
+
+  return true;
+}
+
+static
+void
+ak_print_validate_rows_destroy(AkPrintPositionRows * __restrict rows) {
+  free(rows->scratch);
+  memset(rows, 0, sizeof(*rows));
+}
+
+static
+bool
+ak_print_validate_position(AkPrintPositionRows * __restrict rows,
+                           uint32_t                         index,
+                           float                            out[3]) {
+  const float *row;
+
+  if (!rows || !rows->accessor || index >= rows->accessor->count)
+    return false;
+
+  row = rows->direct
+        ? io_accessor_float_row(rows->accessor, index)
+        : rows->scratch + (size_t)index * rows->componentCount;
+
+  out[0] = row[0];
+  out[1] = row[1];
+  out[2] = row[2];
+
+  return isfinite(out[0]) && isfinite(out[1]) && isfinite(out[2]);
+}
+
+static
+AkInput*
+ak_print_validate_position_input(AkMeshPrimitive * __restrict prim) {
+  AkInput *input;
+
+  if (!prim)
+    return NULL;
+  if (prim->pos)
+    return prim->pos;
+
+  for (input = prim->input; input; input = input->next) {
+    if (input->semantic == AK_INPUT_POSITION)
+      return input;
+  }
+
+  return NULL;
+}
+
+static
+uint32_t
+ak_print_validate_triangle_count(AkMeshPrimitive * __restrict prim) {
+  uint32_t vertexCount;
+
+  if (!prim)
+    return 0;
+
+  vertexCount = io_primitive_vertex_count(prim);
+  if (prim->type == AK_PRIMITIVE_TRIANGLES) {
+    AkTriangleMode mode;
+
+    mode = ((AkTriangles *)prim)->mode;
+    if (mode == 0)
+      mode = AK_TRIANGLES;
+    if (vertexCount < 3u)
+      return 0;
+    if (mode == AK_TRIANGLE_STRIP || mode == AK_TRIANGLE_FAN)
+      return vertexCount - 2u;
+    return vertexCount / 3u;
+  }
+
+  if (prim->type == AK_PRIMITIVE_POLYGONS) {
+    AkPolygon *poly;
+    size_t     i;
+    uint32_t   count;
+
+    poly  = (AkPolygon *)prim;
+    count = 0u;
+    if (!poly->vcount)
+      return 0;
+    for (i = 0; i < poly->vcount->count; i++) {
+      uint32_t vc;
+
+      vc = poly->vcount->items[i];
+      if (vc >= 3u)
+        count += vc - 2u;
+    }
+    return count;
+  }
+
+  return 0;
+}
+
+static
+bool
+ak_print_validate_prepare_edges(AkPrintMeshValidation * __restrict v,
+                                AkMeshPrimitive       * __restrict prim) {
+  uint32_t triCount;
+
+  if ((v->checks & (AK_PRINT_VALIDATION_OPEN_BOUNDARY
+                    | AK_PRINT_VALIDATION_NON_MANIFOLD)) == 0u)
+    return true;
+
+  triCount = ak_print_validate_triangle_count(prim);
+  if (triCount == 0u)
+    return true;
+  if ((size_t)triCount > (SIZE_MAX / 3u) / sizeof(*v->edges))
+    return false;
+
+  v->edgeCapacity = (size_t)triCount * 3u;
+  v->edges        = malloc(sizeof(*v->edges) * v->edgeCapacity);
+  return v->edges != NULL;
+}
+
+static
+void
+ak_print_validate_edge(AkPrintMeshValidation * __restrict v,
+                       uint32_t                           a,
+                       uint32_t                           b) {
+  AkPrintEdge *edge;
+
+  if (!v->edges || v->edgeCount >= v->edgeCapacity)
+    return;
+
+  edge = &v->edges[v->edgeCount++];
+  if (a < b) {
+    edge->a = a;
+    edge->b = b;
+  } else {
+    edge->a = b;
+    edge->b = a;
+  }
+}
+
+static
+int
+ak_print_edge_cmp(const void * __restrict lhs,
+                  const void * __restrict rhs) {
+  const AkPrintEdge *a;
+  const AkPrintEdge *b;
+
+  a = lhs;
+  b = rhs;
+  if (a->a < b->a) return -1;
+  if (a->a > b->a) return 1;
+  if (a->b < b->b) return -1;
+  if (a->b > b->b) return 1;
+  return 0;
+}
+
+static
+bool
+ak_print_validate_degenerate(const float a[3],
+                             const float b[3],
+                             const float c[3]) {
+  double abx, aby, abz;
+  double acx, acy, acz;
+  double cx, cy, cz;
+  double area2;
+
+  abx = (double)b[0] - (double)a[0];
+  aby = (double)b[1] - (double)a[1];
+  abz = (double)b[2] - (double)a[2];
+  acx = (double)c[0] - (double)a[0];
+  acy = (double)c[1] - (double)a[1];
+  acz = (double)c[2] - (double)a[2];
+
+  cx = aby * acz - abz * acy;
+  cy = abz * acx - abx * acz;
+  cz = abx * acy - aby * acx;
+  area2 = cx * cx + cy * cy + cz * cz;
+
+  return area2 == 0.0;
+}
+
+static
+void
+ak_print_validate_triangle(AkPrintMeshValidation * __restrict v,
+                           AkPrintPositionRows   * __restrict rows,
+                           AkMeshPrimitive       * __restrict prim,
+                           AkInput               * __restrict posInput,
+                           uint32_t                           v0,
+                           uint32_t                           v1,
+                           uint32_t                           v2) {
+  AkUInt idx0;
+  AkUInt idx1;
+  AkUInt idx2;
+  float  p0[3];
+  float  p1[3];
+  float  p2[3];
+  bool   degenerate;
+
+  idx0 = io_primitive_input_index(prim, posInput, v0);
+  idx1 = io_primitive_input_index(prim, posInput, v1);
+  idx2 = io_primitive_input_index(prim, posInput, v2);
+
+  degenerate = idx0 == idx1
+               || idx1 == idx2
+               || idx2 == idx0
+               || idx0 > UINT32_MAX
+               || idx1 > UINT32_MAX
+               || idx2 > UINT32_MAX
+               || !ak_print_validate_position(rows, (uint32_t)idx0, p0)
+               || !ak_print_validate_position(rows, (uint32_t)idx1, p1)
+               || !ak_print_validate_position(rows, (uint32_t)idx2, p2)
+               || ak_print_validate_degenerate(p0, p1, p2);
+
+  if (degenerate) {
+    v->found |= AK_PRINT_VALIDATION_DEGENERATE_TRIANGLES;
+    return;
+  }
+
+  ak_print_validate_edge(v, (uint32_t)idx0, (uint32_t)idx1);
+  ak_print_validate_edge(v, (uint32_t)idx1, (uint32_t)idx2);
+  ak_print_validate_edge(v, (uint32_t)idx2, (uint32_t)idx0);
+}
+
+static
+void
+ak_print_validate_triangle_primitive(AkPrintMeshValidation * __restrict v,
+                                     AkPrintPositionRows   * __restrict rows,
+                                     AkMeshPrimitive       * __restrict prim,
+                                     AkInput               * __restrict posInput) {
+  AkTriangleMode mode;
+  uint32_t       count;
+  uint32_t       i;
+
+  count = io_primitive_vertex_count(prim);
+  mode  = ((AkTriangles *)prim)->mode;
+  if (mode == 0)
+    mode = AK_TRIANGLES;
+
+  if (mode == AK_TRIANGLE_STRIP) {
+    for (i = 0u; i + 2u < count; i++) {
+      if (i & 1u)
+        ak_print_validate_triangle(v, rows, prim, posInput, i + 1u, i, i + 2u);
+      else
+        ak_print_validate_triangle(v, rows, prim, posInput, i, i + 1u, i + 2u);
+    }
+    return;
+  }
+
+  if (mode == AK_TRIANGLE_FAN) {
+    for (i = 1u; i + 1u < count; i++)
+      ak_print_validate_triangle(v, rows, prim, posInput, 0u, i, i + 1u);
+    return;
+  }
+
+  for (i = 0u; i + 2u < count; i += 3u)
+    ak_print_validate_triangle(v, rows, prim, posInput, i, i + 1u, i + 2u);
+}
+
+static
+void
+ak_print_validate_polygon_primitive(AkPrintMeshValidation * __restrict v,
+                                    AkPrintPositionRows   * __restrict rows,
+                                    AkMeshPrimitive       * __restrict prim,
+                                    AkInput               * __restrict posInput) {
+  AkPolygon *poly;
+  size_t     cursor;
+  size_t     i;
+
+  poly = (AkPolygon *)prim;
+  if (!poly->vcount)
+    return;
+
+  cursor = 0u;
+  for (i = 0u; i < poly->vcount->count; i++) {
+    uint32_t vc;
+    uint32_t j;
+
+    vc = poly->vcount->items[i];
+    if (vc < 3u) {
+      cursor += vc;
+      continue;
+    }
+
+    for (j = 1u; j + 1u < vc; j++)
+      ak_print_validate_triangle(v,
+                                 rows,
+                                 prim,
+                                 posInput,
+                                 (uint32_t)cursor,
+                                 (uint32_t)(cursor + j),
+                                 (uint32_t)(cursor + j + 1u));
+    cursor += vc;
+  }
+}
+
+static
+void
+ak_print_validate_finalize_edges(AkPrintMeshValidation * __restrict v) {
+  size_t i;
+
+  if (!v->edges || v->edgeCount == 0u)
+    return;
+
+  qsort(v->edges, v->edgeCount, sizeof(*v->edges), ak_print_edge_cmp);
+
+  i = 0u;
+  while (i < v->edgeCount) {
+    size_t j;
+    size_t count;
+
+    j = i + 1u;
+    while (j < v->edgeCount
+           && v->edges[j].a == v->edges[i].a
+           && v->edges[j].b == v->edges[i].b)
+      j++;
+
+    count = j - i;
+    if (count == 1u)
+      v->found |= AK_PRINT_VALIDATION_OPEN_BOUNDARY;
+    else if (count > 2u)
+      v->found |= AK_PRINT_VALIDATION_NON_MANIFOLD;
+
+    i = j;
+  }
+}
+
+static
+AkPrintValidationFlags
+ak_print_validate_primitive(AkMeshPrimitive      * __restrict prim,
+                            AkPrintValidationFlags           checks) {
+  AkPrintMeshValidation v;
+  AkPrintPositionRows   rows;
+  AkInput              *posInput;
+
+  if (!prim
+      || (prim->type != AK_PRIMITIVE_TRIANGLES
+          && prim->type != AK_PRIMITIVE_POLYGONS))
+    return AK_PRINT_VALIDATION_NONE;
+
+  posInput = ak_print_validate_position_input(prim);
+  if (!posInput || !posInput->accessor)
+    return AK_PRINT_VALIDATION_NONE;
+  if (!ak_print_validate_rows_init(&rows, posInput->accessor))
+    return AK_PRINT_VALIDATION_NONE;
+
+  memset(&v, 0, sizeof(v));
+  v.checks = checks;
+  if (ak_print_validate_prepare_edges(&v, prim)) {
+    if (prim->type == AK_PRIMITIVE_TRIANGLES)
+      ak_print_validate_triangle_primitive(&v, &rows, prim, posInput);
+    else
+      ak_print_validate_polygon_primitive(&v, &rows, prim, posInput);
+    ak_print_validate_finalize_edges(&v);
+  }
+
+  free(v.edges);
+  ak_print_validate_rows_destroy(&rows);
+
+  return v.found & checks;
+}
+
+AK_EXPORT
+AkPrintValidationFlags
+ak_printValidate(AkDoc                 * __restrict doc,
+                 AkPrintValidationFlags             checks) {
+  static const AkPrintValidationFlags implemented =
+    AK_PRINT_VALIDATION_NON_MANIFOLD
+    | AK_PRINT_VALIDATION_DEGENERATE_TRIANGLES
+    | AK_PRINT_VALIDATION_OPEN_BOUNDARY;
+  AkPrintDocument      *print;
+  AkPrintValidationFlags found;
+  AkGeometry           *geom;
+
+  if (!doc)
+    return AK_PRINT_VALIDATION_NONE;
+  if (checks == AK_PRINT_VALIDATION_NONE)
+    checks = implemented;
+  else
+    checks &= implemented;
+
+  print = ak_printDocumentEnsure(doc);
+  if (!print)
+    return AK_PRINT_VALIDATION_NONE;
+
+  found = AK_PRINT_VALIDATION_NONE;
+  for (geom = doc->lib.geometries.first; geom; geom = geom->next) {
+    AkMesh          *mesh;
+    AkMeshPrimitive *prim;
+
+    if (!geom->gdata || geom->gdata->type != AK_GEOMETRY_MESH)
+      continue;
+
+    mesh = ak_objGet(geom->gdata);
+    for (prim = mesh ? mesh->primitive : NULL; prim; prim = prim->next)
+      found |= ak_print_validate_primitive(prim, checks);
+  }
+
+  print->validationFlags &= ~checks;
+  print->validationFlags |= found;
+
+  return found;
 }
 
 AK_EXPORT

@@ -739,6 +739,33 @@ ak_test_make_3mf_package_triangle_doc(void) {
   return doc;
 }
 
+static AkDoc *
+ak_test_make_3mf_geometry_doc(const float *positions,
+                              uint32_t     positionCount,
+                              AkGeometry **outGeom) {
+  AkHeap     *heap;
+  AkDoc      *doc;
+  AkGeometry *geom;
+
+  heap = ak_heap_new(NULL, NULL, NULL);
+  doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
+  if (!heap || !doc)
+    return NULL;
+  ak_heap_setdata(heap, doc);
+
+  geom = ak_test_make_geom_with_positions(heap, doc, positions, positionCount);
+  if (!geom)
+    return NULL;
+
+  doc->lib.geometries.first = geom;
+  doc->lib.geometries.last  = geom;
+  doc->lib.geometries.count = 1;
+  if (outGeom)
+    *outGeom = geom;
+
+  return doc;
+}
+
 TEST_IMPL(three_mf_export_triangle_roundtrip) {
   AkDoc          *doc;
   AkDoc          *roundTrip;
@@ -792,6 +819,79 @@ TEST_IMPL(three_mf_export_triangle_roundtrip) {
   ASSERT(ak_indexArrayGet(prim->indices, 2) == 2);
 
   ak_test_export_cleanup(outDir);
+  TEST_SUCCESS
+}
+
+TEST_IMPL(three_mf_print_validate_mesh_flags) {
+  const float degeneratePositions[9] = {
+    0.0f, 0.0f, 0.0f,
+    1.0f, 0.0f, 0.0f,
+    2.0f, 0.0f, 0.0f
+  };
+  const float nonManifoldPositions[15] = {
+    0.0f,  0.0f, 0.0f,
+    1.0f,  0.0f, 0.0f,
+    0.0f,  1.0f, 0.0f,
+    0.0f, -1.0f, 0.0f,
+    0.0f,  0.0f, 1.0f
+  };
+  const uint32_t nonManifoldIndices[9] = {
+    0u, 1u, 2u,
+    1u, 0u, 3u,
+    0u, 1u, 4u
+  };
+  AkDoc                 *openDoc;
+  AkDoc                 *degenerateDoc;
+  AkDoc                 *nonManifoldDoc;
+  AkGeometry            *geom;
+  AkMesh                *mesh;
+  AkMeshPrimitive       *prim;
+  AkPrintDocument       *print;
+  AkPrintValidationFlags flags;
+  AkHeap                *heap;
+  uint32_t               i;
+
+  openDoc = ak_test_make_3mf_triangle_doc();
+  ASSERT(openDoc != NULL);
+  flags = ak_printValidate(openDoc, AK_PRINT_VALIDATION_NONE);
+  ASSERT((flags & AK_PRINT_VALIDATION_OPEN_BOUNDARY) != 0u);
+  ASSERT((flags & AK_PRINT_VALIDATION_DEGENERATE_TRIANGLES) == 0u);
+  ASSERT((flags & AK_PRINT_VALIDATION_NON_MANIFOLD) == 0u);
+  print = ak_printDocument(openDoc);
+  ASSERT(print != NULL);
+  ASSERT((print->validationFlags & AK_PRINT_VALIDATION_OPEN_BOUNDARY) != 0u);
+
+  degenerateDoc = ak_test_make_3mf_geometry_doc(degeneratePositions, 3u, NULL);
+  ASSERT(degenerateDoc != NULL);
+  flags = ak_printValidate(degenerateDoc, AK_PRINT_VALIDATION_NONE);
+  ASSERT((flags & AK_PRINT_VALIDATION_DEGENERATE_TRIANGLES) != 0u);
+  ASSERT((flags & AK_PRINT_VALIDATION_OPEN_BOUNDARY) == 0u);
+  print = ak_printDocument(degenerateDoc);
+  ASSERT(print != NULL);
+  ASSERT((print->validationFlags & AK_PRINT_VALIDATION_DEGENERATE_TRIANGLES)
+         != 0u);
+
+  geom = NULL;
+  nonManifoldDoc = ak_test_make_3mf_geometry_doc(nonManifoldPositions,
+                                                 5u,
+                                                 &geom);
+  ASSERT(nonManifoldDoc != NULL);
+  ASSERT(geom != NULL);
+  mesh = geom->gdata ? ak_objGet(geom->gdata) : NULL;
+  ASSERT(mesh != NULL);
+  prim = mesh->primitive;
+  ASSERT(prim != NULL);
+  heap = ak_heap_getheap(nonManifoldDoc);
+  ASSERT(heap != NULL);
+  prim->indices = ak_indexArrayAlloc(heap, prim, 9u, AKT_UINT);
+  ASSERT(prim->indices != NULL);
+  for (i = 0u; i < 9u; i++)
+    ASSERT(ak_indexArraySet(heap, prim, &prim->indices, i, nonManifoldIndices[i]));
+  flags = ak_printValidate(nonManifoldDoc, AK_PRINT_VALIDATION_NONE);
+  ASSERT((flags & AK_PRINT_VALIDATION_NON_MANIFOLD) != 0u);
+  ASSERT((flags & AK_PRINT_VALIDATION_OPEN_BOUNDARY) != 0u);
+  ASSERT((flags & AK_PRINT_VALIDATION_DEGENERATE_TRIANGLES) == 0u);
+
   TEST_SUCCESS
 }
 
@@ -1138,6 +1238,8 @@ TEST_IMPL(three_mf_import_slice_child_model_path) {
   AkPrintSlice         *slice;
   AkPrintSliceObject   *sliceObject;
   AkPrintPackagePart   *slicePart;
+  AkPrintPackagePart   *modelRelsPart;
+  AkPrintPackagePart   *roundTripModelRelsPart;
   AkPrintSliceStack    *rootStack;
   AkPrintSliceStack    *childStack;
   AkPrintSlice         *childSlice;
@@ -1167,23 +1269,35 @@ TEST_IMPL(three_mf_import_slice_child_model_path) {
   ASSERT(print->sliceCount == 1);
   ASSERT(print->sliceObjectCount == 1);
 
-  slicePart       = NULL;
-  rootStack       = NULL;
-  childStack      = NULL;
-  childSlice      = NULL;
-  rootSliceObject = NULL;
+  slicePart              = NULL;
+  modelRelsPart          = NULL;
+  roundTripModelRelsPart = NULL;
+  rootStack              = NULL;
+  childStack             = NULL;
+  childSlice             = NULL;
+  rootSliceObject        = NULL;
 
   for (part = print->parts; part; part = part->next) {
     if (part->type == AK_PRINT_PACKAGE_PART_SLICE
         && part->name
         && strcmp(part->name, "2D/slices.model") == 0) {
       slicePart = part;
-      break;
+    } else if (part->type == AK_PRINT_PACKAGE_PART_RELATIONSHIPS
+               && part->name
+               && strcmp(part->name, "3D/_rels/3dmodel.model.rels") == 0) {
+      modelRelsPart = part;
     }
   }
   ASSERT(slicePart != NULL);
   ASSERT(slicePart->data != NULL);
   ASSERT(slicePart->size > 0);
+  ASSERT(modelRelsPart != NULL);
+  ASSERT(modelRelsPart->contentType != NULL);
+  ASSERT(strcmp(modelRelsPart->contentType,
+                "application/vnd.openxmlformats-package.relationships+xml")
+         == 0);
+  ASSERT(modelRelsPart->data != NULL);
+  ASSERT(modelRelsPart->size > 0);
 
   for (stack = print->sliceStacks; stack; stack = stack->next) {
     if (stack->id == 10u)
@@ -1246,6 +1360,22 @@ TEST_IMPL(three_mf_import_slice_child_model_path) {
   ASSERT(roundTripPrint->sliceRefCount == 1);
   ASSERT(roundTripPrint->sliceCount == 1);
   ASSERT(roundTripPrint->sliceObjectCount == 1);
+
+  for (part = roundTripPrint->parts; part; part = part->next) {
+    if (part->type == AK_PRINT_PACKAGE_PART_RELATIONSHIPS
+        && part->name
+        && strcmp(part->name, "3D/_rels/3dmodel.model.rels") == 0) {
+      roundTripModelRelsPart = part;
+      break;
+    }
+  }
+  ASSERT(roundTripModelRelsPart != NULL);
+  ASSERT(roundTripModelRelsPart->contentType != NULL);
+  ASSERT(strcmp(roundTripModelRelsPart->contentType,
+                "application/vnd.openxmlformats-package.relationships+xml")
+         == 0);
+  ASSERT(roundTripModelRelsPart->data != NULL);
+  ASSERT(roundTripModelRelsPart->size == modelRelsPart->size);
 
   ak_test_export_cleanup(outDir);
   ak_test_export_cleanup(roundTripDir);
