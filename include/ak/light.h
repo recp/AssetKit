@@ -69,6 +69,25 @@ typedef struct AkLight {
   struct AkLight *next;
 } AkLight;
 
+typedef enum AkLightResolveMode {
+  AK_LIGHT_RESOLVE_RAW     = 0,
+  AK_LIGHT_RESOLVE_PREVIEW = 1
+} AkLightResolveMode;
+
+typedef struct AkResolvedLight {
+  AkLightType        type;
+  uint32_t           ctype;
+  AkColor            color;
+  AkFloat3           direction;
+  float              intensity;
+  float              range;
+  AkLightAttenuation attenuation;
+  float              attenuationFalloffExponent;
+  float              innerConeAngle;
+  float              outerConeAngle;
+  float              coneFalloffExponent;
+} AkResolvedLight;
+
 AK_EXPORT
 AkLight*
 ak_defaultLight(void * __restrict memparent);
@@ -96,6 +115,26 @@ AkLight *
 ak_lightMake(AkDoc * __restrict doc,
              void  * __restrict memparent,
              AkLightType type);
+
+/*!
+ * @brief Resolve an authored light into values suitable for a consumer.
+ *
+ * RAW returns the imported/exportable authored values. PREVIEW keeps those
+ * source values untouched but adapts legacy lighting profiles for modern
+ * render backends. In particular, COLLADA commonly stores color/intensity in
+ * unit-scale legacy terms and uses constant/linear/quadratic attenuation,
+ * while SceneKit/Blender/glTF-style viewers tend to expect physically scaled
+ * intensity plus one backend falloff shape. Consumers that only want to show
+ * the asset should use PREVIEW instead of carrying per-format light hacks.
+ *
+ * @return true when resolved, false when light/data/out is missing.
+ */
+AK_EXPORT
+bool
+ak_lightResolve(const AkDoc          * __restrict doc,
+                const AkLight        * __restrict light,
+                AkLightResolveMode                 mode,
+                AkResolvedLight      * __restrict out);
 
 #ifdef __cplusplus
 }

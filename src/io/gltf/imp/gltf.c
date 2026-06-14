@@ -160,7 +160,7 @@ gltf_parse(AkDoc     ** __restrict dest,
   
   doc->inf            = ak_heap_calloc(heap, doc, sizeof(*doc->inf));
   doc->inf->dir       = ak_path_dir(heap, doc, filepath);
-  doc->inf->name      = filepath;
+  doc->inf->name      = ak_heap_strdup(heap, doc->inf, filepath);
   doc->inf->flipImage = false;
   doc->inf->ftype     = AK_FILE_TYPE_GLTF;
   

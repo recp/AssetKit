@@ -18,6 +18,28 @@
 #include "../default/light.h"
 #include <cglm/cglm.h>
 
+#define AK_LIGHT_EPSILON                  1e-6f
+#define AK_DAE_PREVIEW_LIGHT_SCALE        1000.0f
+
+static
+float
+ak_lightFinite(float value, float fallback) {
+  return isfinite(value) ? value : fallback;
+}
+
+static
+float
+ak_lightPreviewFalloff(const AkLightAttenuation * __restrict attn) {
+  if (!attn)
+    return 2.0f;
+
+  if (attn->quadratic > AK_LIGHT_EPSILON)
+    return 2.0f;
+  if (attn->linear > AK_LIGHT_EPSILON)
+    return 1.0f;
+  return 0.0f;
+}
+
 /* this duplicates default light to new light,
    because we want to keep default not modified,
    users may want to modify imported light,
@@ -87,6 +109,60 @@ ak_lightMake(AkDoc * __restrict doc,
 
   ak_libAddLight(doc, light);
   return light;
+}
+
+AK_EXPORT
+bool
+ak_lightResolve(const AkDoc          * __restrict doc,
+                const AkLight        * __restrict light,
+                AkLightResolveMode                 mode,
+                AkResolvedLight      * __restrict out) {
+  const AkLightBase *base;
+  bool               isCollada;
+
+  if (!light || !light->data || !out)
+    return false;
+
+  base             = light->data;
+  out->type        = base->type;
+  out->ctype       = base->ctype;
+  out->color       = base->color;
+  out->direction[0] = base->direction[0];
+  out->direction[1] = base->direction[1];
+  out->direction[2] = base->direction[2];
+  out->intensity   = ak_lightFinite(base->intensity, 1.0f);
+  out->range       = ak_lightFinite(base->range, 0.0f);
+  out->attenuation.constant  = 1.0f;
+  out->attenuation.linear    = 0.0f;
+  out->attenuation.quadratic = 0.0f;
+  out->attenuationFalloffExponent = 2.0f;
+  out->innerConeAngle        = 0.0f;
+  out->outerConeAngle        = GLM_PI_4f;
+  out->coneFalloffExponent   = 1.0f;
+
+  if (base->type == AK_LIGHT_TYPE_POINT) {
+    const AkPointLight *point = (const AkPointLight *)base;
+    out->attenuation = point->attenuation;
+    out->attenuationFalloffExponent = ak_lightPreviewFalloff(&point->attenuation);
+  } else if (base->type == AK_LIGHT_TYPE_SPOT) {
+    const AkSpotLight *spot = (const AkSpotLight *)base;
+    out->attenuation = spot->attenuation;
+    out->attenuationFalloffExponent = ak_lightPreviewFalloff(&spot->attenuation);
+    out->innerConeAngle      = ak_lightFinite(spot->innerConeAngle, 0.0f);
+    out->outerConeAngle      = ak_lightFinite(spot->outerConeAngle, GLM_PI_4f);
+    out->coneFalloffExponent = ak_lightFinite(spot->coneFalloffExponent, 1.0f);
+  }
+
+  if (mode != AK_LIGHT_RESOLVE_PREVIEW)
+    return true;
+
+  isCollada = doc && doc->inf && doc->inf->ftype == AK_FILE_TYPE_COLLADA;
+  if (isCollada && out->intensity > 0.0f && out->intensity <= 16.0f) {
+    /* DAE legacy unit-scale lights need display scaling in physical viewers. */
+    out->intensity *= AK_DAE_PREVIEW_LIGHT_SCALE;
+  }
+
+  return true;
 }
 
 AK_EXPORT

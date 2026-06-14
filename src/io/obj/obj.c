@@ -852,7 +852,7 @@ wobj_obj(AkDoc     ** __restrict dest,
   doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
 
   doc->inf                = ak_heap_calloc(heap, doc, sizeof(*doc->inf));
-  doc->inf->name          = filepath;
+  doc->inf->name          = ak_heap_strdup(heap, doc->inf, filepath);
   doc->inf->dir           = ak_path_dir(heap, doc, filepath);
   doc->inf->flipImage     = true;
   doc->inf->ftype         = AK_FILE_TYPE_WAVEFRONT;
