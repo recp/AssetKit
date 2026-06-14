@@ -1,6 +1,12 @@
-target_sources(${PROJECT_NAME} 
+set(AK_IMAGE_SOURCES
+    export.h
+    image.c)
+
+if(AK_WITH_IMAGE_EXPORTER)
+  list(APPEND AK_IMAGE_SOURCES export.c)
+endif()
+
+target_sources(${PROJECT_NAME}
   PRIVATE
-  export.c
-  export.h
-  image.c
+  ${AK_IMAGE_SOURCES}
 )

@@ -23,14 +23,56 @@
 
 #define TARGET_NAME "AssetKit"
 
+#ifndef AK_BUILD_EXPORTERS
+#  define AK_BUILD_EXPORTERS 1
+#endif
+#ifndef AK_BUILD_DAE_EXPORTER
+#  define AK_BUILD_DAE_EXPORTER AK_BUILD_EXPORTERS
+#endif
+#ifndef AK_BUILD_GLTF_EXPORTER
+#  define AK_BUILD_GLTF_EXPORTER AK_BUILD_EXPORTERS
+#endif
+#ifndef AK_BUILD_OBJ_EXPORTER
+#  define AK_BUILD_OBJ_EXPORTER AK_BUILD_EXPORTERS
+#endif
+#ifndef AK_BUILD_STL_EXPORTER
+#  define AK_BUILD_STL_EXPORTER AK_BUILD_EXPORTERS
+#endif
+#ifndef AK_BUILD_PLY_EXPORTER
+#  define AK_BUILD_PLY_EXPORTER AK_BUILD_EXPORTERS
+#endif
+#ifndef AK_BUILD_3MF_EXPORTER
+#  define AK_BUILD_3MF_EXPORTER AK_BUILD_EXPORTERS
+#endif
+
+#if AK_BUILD_DAE_EXPORTER && AK_BUILD_GLTF_EXPORTER && AK_BUILD_OBJ_EXPORTER \
+    && AK_BUILD_STL_EXPORTER && AK_BUILD_PLY_EXPORTER && AK_BUILD_3MF_EXPORTER
+#  define AK_TEST_ALL_EXPORTERS 1
+#else
+#  define AK_TEST_ALL_EXPORTERS 0
+#endif
+
+#if !AK_TEST_ALL_EXPORTERS
+static int
+test_requires_export(const char *name) {
+  return strstr(name, "export") != NULL
+         || strncmp(name, "three_mf_import_", 16) == 0
+         || strncmp(name, "dae14_", 6) == 0
+         || (strncmp(name, "dae_", 4) == 0
+             && strcmp(name, "dae_instance_node_is_instance_node") != 0
+             && strcmp(name, "dae_camera_light_extra_preserve_opt") != 0
+             && strcmp(name, "dae_load_folder") != 0);
+}
+#endif
+
 int
 main(int argc, const char * argv[]) {
   test_entry_t *entry;
   test_status_t st;
-  int32_t       i, count, passed, failed, maxlen;
+  int32_t       i, count, passed, failed, skipped, maxlen;
   double        start, end, elapsed, total;
 
-  passed = failed = maxlen  = 0;
+  passed = failed = skipped = maxlen = 0;
   total  = 0.0;
   count  = sizeof(tests) / sizeof(tests[0]);
 
@@ -54,6 +96,17 @@ main(int argc, const char * argv[]) {
 
   for (i = 0; i < count; i++) {
     entry   = tests + i;
+
+#if !AK_TEST_ALL_EXPORTERS
+    if (test_requires_export(entry->name)) {
+      fprintf(stderr, YELLOW  "  skip: %-*s  export support disabled\n" RESET,
+              maxlen,
+              entry->name);
+      skipped++;
+      continue;
+    }
+#endif
+
     start   = clock();
     st      = entry->entry();
     end     = clock();
@@ -96,14 +149,16 @@ main(int argc, const char * argv[]) {
 
           MAGENTA "%d" RESET " tests are runned, "
           GREEN   "%d" RESET " %s passed, "
-          RED     "%d" RESET " %s failed\n\n" RESET,
+          RED     "%d" RESET " %s failed, "
+          YELLOW  "%d" RESET " skipped\n\n" RESET,
           TARGET_NAME,
           total,
           count,
           passed,
           passed > 1 ? "are" : "is",
           failed,
-          failed > 1 ? "are" : "is");
+          failed > 1 ? "are" : "is",
+          skipped);
 
   return failed;
 }

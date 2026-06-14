@@ -134,11 +134,28 @@ builds.
 option(AK_SHARED "Shared build" ON)
 option(AK_STATIC "Static build" OFF)
 option(AK_USE_TEST "Enable Tests" OFF)
+option(AK_BUILD_EXPORTERS "Build asset export support" ON)
+option(AK_BUILD_DAE_EXPORTER "Build COLLADA/DAE exporter" ON)
+option(AK_BUILD_GLTF_EXPORTER "Build glTF/GLB exporter" ON)
+option(AK_BUILD_OBJ_EXPORTER "Build Wavefront OBJ exporter" ON)
+option(AK_BUILD_STL_EXPORTER "Build STL exporter" ON)
+option(AK_BUILD_PLY_EXPORTER "Build PLY exporter" ON)
+option(AK_BUILD_3MF_EXPORTER "Build 3MF exporter" ON)
+option(AK_BUILD_DECODER_SHIMS "Build optional decoder shim libraries" ON)
 option(AK_BUILD_GLTF_DRACO_DECODER "Build optional glTF Draco decoder shim" ON)
 option(AK_BUILD_GLTF_MESHOPT_DECODER "Build optional glTF meshoptimizer decoder shim" ON)
+option(AK_BUILD_GLTF_SPZ_DECODER "Build optional glTF Gaussian splatting (SPZ) decoder shim" ON)
+option(AK_BUILD_GLTF_KTX2_DECODER "Build optional glTF KHR_texture_basisu (KTX2/BasisU) decoder shim" ON)
 option(AK_FETCH_DEPS "Fetch optional decoder dependencies into AK_DEPS_ROOT when missing" ON)
 option(AK_ENABLE_LTO "Enable link-time optimization for release builds" OFF)
 ```
+
+Use `-DAK_BUILD_EXPORTERS=OFF` for import-only builds, such as game engines
+that load assets but do not write DAE/glTF/OBJ/STL/PLY/3MF files. The public
+`ak_export()` symbol remains available and returns an error, but exporter
+implementation files are not compiled into `libassetkit`. Keep
+`AK_BUILD_EXPORTERS=ON` and disable individual `AK_BUILD_*_EXPORTER` options
+for format-specific export builds.
 
 Optional glTF compression decoders are side libraries. They are built next to
 the main C library by default, but not linked into `libassetkit`. CMake fetches
@@ -153,7 +170,8 @@ $ cmake --build build
 
 Use `-DAK_FETCH_DEPS=OFF` with `AK_DRACO_ROOT` / `AK_MESHOPT_ROOT` for
 offline or packaged builds. Use `-DAK_BUILD_GLTF_DRACO_DECODER=OFF` or
-`-DAK_BUILD_GLTF_MESHOPT_DECODER=OFF` to skip these side libraries.
+`-DAK_BUILD_GLTF_MESHOPT_DECODER=OFF` to skip individual side libraries, or
+`-DAK_BUILD_DECODER_SHIMS=OFF` to skip all optional decoder shim targets.
 
 ### Embedded in another CMake project
 
@@ -176,8 +194,8 @@ configuring your parent project, pass:
 
 ```cmake
 set(AK_FETCH_DEPS OFF CACHE BOOL "" FORCE)
-set(AK_BUILD_GLTF_DRACO_DECODER OFF CACHE BOOL "" FORCE)
-set(AK_BUILD_GLTF_MESHOPT_DECODER OFF CACHE BOOL "" FORCE)
+set(AK_BUILD_DECODER_SHIMS OFF CACHE BOOL "" FORCE)
+set(AK_BUILD_EXPORTERS OFF CACHE BOOL "" FORCE)
 add_subdirectory(external/assetkit)
 ```
 

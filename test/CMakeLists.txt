@@ -32,6 +32,8 @@ target_include_directories(assetkit_tests PRIVATE
   ${PROJECT_SOURCE_DIR}/deps/ds/include
 )
 
+ak_target_exporter_definitions(assetkit_tests PRIVATE)
+
 target_link_libraries(assetkit_tests PRIVATE ${PROJECT_NAME})
 
 add_test(NAME assetkit_tests COMMAND assetkit_tests)

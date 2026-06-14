@@ -40,6 +40,14 @@ option(AK_SHARED "Shared build" ON)
 option(AK_STATIC "Static build" OFF)
 option(AK_USE_C99 "" OFF)
 option(AK_USE_TEST "Enable Tests" OFF)
+option(AK_BUILD_EXPORTERS "Build asset export support" ON)
+option(AK_BUILD_DAE_EXPORTER "Build COLLADA/DAE exporter" ON)
+option(AK_BUILD_GLTF_EXPORTER "Build glTF/GLB exporter" ON)
+option(AK_BUILD_OBJ_EXPORTER "Build Wavefront OBJ exporter" ON)
+option(AK_BUILD_STL_EXPORTER "Build STL exporter" ON)
+option(AK_BUILD_PLY_EXPORTER "Build PLY exporter" ON)
+option(AK_BUILD_3MF_EXPORTER "Build 3MF exporter" ON)
+option(AK_BUILD_DECODER_SHIMS "Build optional decoder shim libraries" ON)
 option(AK_BUILD_GLTF_DRACO_DECODER "Build optional glTF Draco decoder shim" ON)
 option(AK_BUILD_GLTF_MESHOPT_DECODER "Build optional glTF meshoptimizer decoder shim" ON)
 option(AK_BUILD_GLTF_SPZ_DECODER "Build optional glTF Gaussian splatting (SPZ) decoder shim" ON)
@@ -54,6 +62,37 @@ set(AK_MESHOPT_ROOT "" CACHE PATH "Optional meshoptimizer source root")
 set(AK_SPZ_ROOT "" CACHE PATH "Optional SPZ install/source root")
 set(AK_KTX2_ROOT "" CACHE PATH "Optional KTX-Software install/source root")
 set(AK_DEPS_ROOT "${PROJECT_SOURCE_DIR}/deps" CACHE PATH "AssetKit dependency checkout root")
+
+set(AK_WITH_DAE_EXPORTER OFF)
+set(AK_WITH_GLTF_EXPORTER OFF)
+set(AK_WITH_OBJ_EXPORTER OFF)
+set(AK_WITH_STL_EXPORTER OFF)
+set(AK_WITH_PLY_EXPORTER OFF)
+set(AK_WITH_3MF_EXPORTER OFF)
+set(AK_WITH_IMAGE_EXPORTER OFF)
+if(AK_BUILD_EXPORTERS)
+  if(AK_BUILD_DAE_EXPORTER)
+    set(AK_WITH_DAE_EXPORTER ON)
+    set(AK_WITH_IMAGE_EXPORTER ON)
+  endif()
+  if(AK_BUILD_GLTF_EXPORTER)
+    set(AK_WITH_GLTF_EXPORTER ON)
+    set(AK_WITH_IMAGE_EXPORTER ON)
+  endif()
+  if(AK_BUILD_OBJ_EXPORTER)
+    set(AK_WITH_OBJ_EXPORTER ON)
+    set(AK_WITH_IMAGE_EXPORTER ON)
+  endif()
+  if(AK_BUILD_STL_EXPORTER)
+    set(AK_WITH_STL_EXPORTER ON)
+  endif()
+  if(AK_BUILD_PLY_EXPORTER)
+    set(AK_WITH_PLY_EXPORTER ON)
+  endif()
+  if(AK_BUILD_3MF_EXPORTER)
+    set(AK_WITH_3MF_EXPORTER ON)
+  endif()
+endif()
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
@@ -138,6 +177,18 @@ function(ak_target_link_options target)
   endif()
 endfunction()
 
+function(ak_target_exporter_definitions target scope)
+  target_compile_definitions(${target}
+      ${scope}
+          AK_BUILD_EXPORTERS=$<IF:$<BOOL:${AK_BUILD_EXPORTERS}>,1,0>
+          AK_BUILD_DAE_EXPORTER=$<IF:$<BOOL:${AK_WITH_DAE_EXPORTER}>,1,0>
+          AK_BUILD_GLTF_EXPORTER=$<IF:$<BOOL:${AK_WITH_GLTF_EXPORTER}>,1,0>
+          AK_BUILD_OBJ_EXPORTER=$<IF:$<BOOL:${AK_WITH_OBJ_EXPORTER}>,1,0>
+          AK_BUILD_STL_EXPORTER=$<IF:$<BOOL:${AK_WITH_STL_EXPORTER}>,1,0>
+          AK_BUILD_PLY_EXPORTER=$<IF:$<BOOL:${AK_WITH_PLY_EXPORTER}>,1,0>
+          AK_BUILD_3MF_EXPORTER=$<IF:$<BOOL:${AK_WITH_3MF_EXPORTER}>,1,0>)
+endfunction()
+
 function(ak_target_c_options target)
   ak_target_common_options(${target})
   if(MSVC)
@@ -164,6 +215,7 @@ add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 ak_target_c_options(${PROJECT_NAME})
 ak_target_link_options(${PROJECT_NAME})
 target_compile_definitions(${PROJECT_NAME} PRIVATE AK_INTERNAL_BUILD)
+ak_target_exporter_definitions(${PROJECT_NAME} PRIVATE)
 
 if(APPLE)
   set(AK_INSTALL_RPATH "@loader_path")
@@ -238,12 +290,13 @@ target_include_directories(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME} PRIVATE ds ${CMAKE_DL_LIBS})
 
-if(AK_BUILD_GLTF_DRACO_DECODER OR AK_BUILD_GLTF_MESHOPT_DECODER
-   OR AK_BUILD_GLTF_SPZ_DECODER OR AK_BUILD_GLTF_KTX2_DECODER)
+if(AK_BUILD_DECODER_SHIMS
+   AND (AK_BUILD_GLTF_DRACO_DECODER OR AK_BUILD_GLTF_MESHOPT_DECODER
+        OR AK_BUILD_GLTF_SPZ_DECODER OR AK_BUILD_GLTF_KTX2_DECODER))
   enable_language(CXX)
 endif()
 
-if(AK_BUILD_GLTF_DRACO_DECODER)
+if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_DRACO_DECODER)
   find_path(AK_DRACO_INCLUDE_DIR
             NAMES draco/compression/decode.h
             HINTS ${AK_DRACO_ROOT}
@@ -358,7 +411,7 @@ if(AK_BUILD_GLTF_DRACO_DECODER)
           RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 
-if(AK_BUILD_GLTF_MESHOPT_DECODER)
+if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_MESHOPT_DECODER)
   find_path(AK_MESHOPT_INCLUDE_DIR
             NAMES meshoptimizer.h
             HINTS ${AK_MESHOPT_ROOT}
@@ -428,7 +481,7 @@ endif()
 # compression sub-extension support. Niantic Spatial's libspz handles the
 # format; we link statically and expose the AssetKit decoder API.
 # ---------------------------------------------------------------------------
-if(AK_BUILD_GLTF_SPZ_DECODER)
+if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_SPZ_DECODER)
   find_path(AK_SPZ_INCLUDE_DIR
             NAMES spz/spz.h
             HINTS ${AK_SPZ_ROOT}
@@ -548,7 +601,7 @@ endif()
 # decodes a KTX2 buffer into an RGBA8 AkImage so the renderer can consume
 # it like any other Core Graphics-decoded texture.
 # ---------------------------------------------------------------------------
-if(AK_BUILD_GLTF_KTX2_DECODER)
+if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_KTX2_DECODER)
   find_path(AK_KTX2_INCLUDE_DIR
             NAMES ktx.h
             HINTS ${AK_KTX2_ROOT}

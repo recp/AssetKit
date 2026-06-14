@@ -1,5 +1,11 @@
-file(GLOB CSources CONFIGURE_DEPENDS *.h *.c)
-target_sources(${PROJECT_NAME} 
+set(CSources
+    3mf.h)
+
+if(AK_WITH_3MF_EXPORTER)
+  list(APPEND CSources export.c)
+endif()
+
+target_sources(${PROJECT_NAME}
   PRIVATE
   ${CSources}
 )

@@ -18,14 +18,50 @@
 
 #include "utils.h"
 #include "io/dae/dae.h"
-#include "io/dae/exp/dae.h"
 #include "io/gltf/imp/gltf.h"
-#include "io/gltf/exp/gltf.h"
 #include "io/obj/obj.h"
-#include "io/obj/exp/obj.h"
 #include "io/stl/stl.h"
 #include "io/ply/ply.h"
 #include "io/3mf/3mf.h"
+
+#ifndef AK_BUILD_EXPORTERS
+#  define AK_BUILD_EXPORTERS 1
+#endif
+#ifndef AK_BUILD_DAE_EXPORTER
+#  define AK_BUILD_DAE_EXPORTER AK_BUILD_EXPORTERS
+#endif
+#ifndef AK_BUILD_GLTF_EXPORTER
+#  define AK_BUILD_GLTF_EXPORTER AK_BUILD_EXPORTERS
+#endif
+#ifndef AK_BUILD_OBJ_EXPORTER
+#  define AK_BUILD_OBJ_EXPORTER AK_BUILD_EXPORTERS
+#endif
+#ifndef AK_BUILD_STL_EXPORTER
+#  define AK_BUILD_STL_EXPORTER AK_BUILD_EXPORTERS
+#endif
+#ifndef AK_BUILD_PLY_EXPORTER
+#  define AK_BUILD_PLY_EXPORTER AK_BUILD_EXPORTERS
+#endif
+#ifndef AK_BUILD_3MF_EXPORTER
+#  define AK_BUILD_3MF_EXPORTER AK_BUILD_EXPORTERS
+#endif
+
+#if AK_BUILD_DAE_EXPORTER
+#  include "io/dae/exp/dae.h"
+#endif
+#if AK_BUILD_GLTF_EXPORTER
+#  include "io/gltf/exp/gltf.h"
+#endif
+#if AK_BUILD_OBJ_EXPORTER
+#  include "io/obj/exp/obj.h"
+#endif
+
+#if AK_BUILD_DAE_EXPORTER || AK_BUILD_GLTF_EXPORTER || AK_BUILD_OBJ_EXPORTER \
+    || AK_BUILD_STL_EXPORTER || AK_BUILD_PLY_EXPORTER || AK_BUILD_3MF_EXPORTER
+#  define AK_BUILD_ANY_EXPORTER 1
+#else
+#  define AK_BUILD_ANY_EXPORTER 0
+#endif
 
 #include <errno.h>
 #include <stdlib.h>
@@ -42,6 +78,32 @@ typedef struct {
   AkResult (*floader_fn)(AkDoc ** __restrict, const char * __restrict);
 } floader_t;
 
+static
+bool
+ak_ascii_streq_ci(const char * __restrict a, const char * __restrict b) {
+  unsigned char ca;
+  unsigned char cb;
+
+  if (!a || !b)
+    return false;
+
+  while (*a && *b) {
+    ca = (unsigned char)*a++;
+    cb = (unsigned char)*b++;
+
+    if (ca >= 'A' && ca <= 'Z')
+      ca = (unsigned char)(ca + ('a' - 'A'));
+    if (cb >= 'A' && cb <= 'Z')
+      cb = (unsigned char)(cb + ('a' - 'A'));
+
+    if (ca != cb)
+      return false;
+  }
+
+  return *a == '\0' && *b == '\0';
+}
+
+#if AK_BUILD_ANY_EXPORTER
 typedef struct {
   AkResult (*fexporter_fn)(AkDoc * __restrict, const char * __restrict);
   const char * fileExt;
@@ -149,31 +211,6 @@ ak_export_filename_char_ok(unsigned char ch) {
          && ch != '<'
          && ch != '>'
          && ch != '|';
-}
-
-static
-bool
-ak_ascii_streq_ci(const char * __restrict a, const char * __restrict b) {
-  unsigned char ca;
-  unsigned char cb;
-
-  if (!a || !b)
-    return false;
-
-  while (*a && *b) {
-    ca = (unsigned char)*a++;
-    cb = (unsigned char)*b++;
-
-    if (ca >= 'A' && ca <= 'Z')
-      ca = (unsigned char)(ca + ('a' - 'A'));
-    if (cb >= 'A' && cb <= 'Z')
-      cb = (unsigned char)(cb + ('a' - 'A'));
-
-    if (ca != cb)
-      return false;
-  }
-
-  return *a == '\0' && *b == '\0';
 }
 
 static
@@ -323,6 +360,7 @@ ak_export_output_path(const char * __restrict dir,
 
   return path;
 }
+#endif
 
 AK_EXPORT
 AkResult
@@ -418,10 +456,11 @@ AK_EXPORT
 AkResult
 ak_export(AkDoc * __restrict doc, const char * __restrict outDir,
           AkFileType fileType) {
-  fexporter_t *fexporter;
-  char        *fileName;
-  char        *outPath;
-  AkResult     result;
+#if AK_BUILD_ANY_EXPORTER
+  fexporter_t fexporter;
+  char       *fileName;
+  char       *outPath;
+  AkResult    result;
 
   if (!doc || !outDir)
     return AK_ERR;
@@ -429,52 +468,80 @@ ak_export(AkDoc * __restrict doc, const char * __restrict outDir,
   if (!ak_export_prepare_dir(outDir))
     return AK_EBADF;
 
-  fexporter_t fexporters[] = {
-    {dae_export,      "dae"},
-    {gltf_export,     "gltf"},
-    {gltf_export_glb, "glb"},
-    {wobj_export,     "obj"},
-    {stl_export,      "stl"},
-    {ply_export,      "ply"},
-    {ak_3mf_export,   "3mf"},
-  };
-
-  fexporter = NULL;
+  fexporter.fexporter_fn = NULL;
+  fexporter.fileExt      = NULL;
 
   if (fileType == AK_FILE_TYPE_AUTO) {
-    fexporter = &fexporters[1];
+#if AK_BUILD_GLTF_EXPORTER
+    fexporter.fexporter_fn = gltf_export;
+    fexporter.fileExt      = "gltf";
+#elif AK_BUILD_DAE_EXPORTER
+    fexporter.fexporter_fn = dae_export;
+    fexporter.fileExt      = "dae";
+#elif AK_BUILD_OBJ_EXPORTER
+    fexporter.fexporter_fn = wobj_export;
+    fexporter.fileExt      = "obj";
+#elif AK_BUILD_3MF_EXPORTER
+    fexporter.fexporter_fn = ak_3mf_export;
+    fexporter.fileExt      = "3mf";
+#elif AK_BUILD_STL_EXPORTER
+    fexporter.fexporter_fn = stl_export;
+    fexporter.fileExt      = "stl";
+#elif AK_BUILD_PLY_EXPORTER
+    fexporter.fexporter_fn = ply_export;
+    fexporter.fileExt      = "ply";
+#endif
   } else {
     switch (fileType) {
+#if AK_BUILD_DAE_EXPORTER
       case AK_FILE_TYPE_COLLADA:
-        fexporter = &fexporters[0];
+        fexporter.fexporter_fn = dae_export;
+        fexporter.fileExt      = "dae";
         break;
+#endif
+#if AK_BUILD_GLTF_EXPORTER
       case AK_FILE_TYPE_GLTF:
-        fexporter = &fexporters[1];
+        fexporter.fexporter_fn = gltf_export;
+        fexporter.fileExt      = "gltf";
         break;
       case AK_FILE_TYPE_GLB:
-        fexporter = &fexporters[2];
+        fexporter.fexporter_fn = gltf_export_glb;
+        fexporter.fileExt      = "glb";
         break;
+#endif
+#if AK_BUILD_OBJ_EXPORTER
       case AK_FILE_TYPE_WAVEFRONT:
-        fexporter = &fexporters[3];
+        fexporter.fexporter_fn = wobj_export;
+        fexporter.fileExt      = "obj";
         break;
+#endif
+#if AK_BUILD_STL_EXPORTER
       case AK_FILE_TYPE_STL:
-        fexporter = &fexporters[4];
+        fexporter.fexporter_fn = stl_export;
+        fexporter.fileExt      = "stl";
         break;
+#endif
+#if AK_BUILD_PLY_EXPORTER
       case AK_FILE_TYPE_PLY:
-        fexporter = &fexporters[5];
+        fexporter.fexporter_fn = ply_export;
+        fexporter.fileExt      = "ply";
         break;
+#endif
+#if AK_BUILD_3MF_EXPORTER
       case AK_FILE_TYPE_3MF:
-        fexporter = &fexporters[6];
+        fexporter.fexporter_fn = ak_3mf_export;
+        fexporter.fileExt      = "3mf";
         break;
+#endif
       default:
         break;
     }
   }
 
-  if (!fexporter)
+  if (!fexporter.fexporter_fn)
     return AK_ERR;
 
-  fileName = ak_export_output_file_name(doc, fexporter->fileExt);
+  fileName = ak_export_output_file_name(doc, fexporter.fileExt);
   if (!fileName)
     return AK_ERR;
 
@@ -483,8 +550,15 @@ ak_export(AkDoc * __restrict doc, const char * __restrict outDir,
   if (!outPath)
     return AK_ERR;
 
-  result = fexporter->fexporter_fn(doc, outPath);
+  result = fexporter.fexporter_fn(doc, outPath);
   free(outPath);
 
   return result;
+#else
+  (void)doc;
+  (void)outDir;
+  (void)fileType;
+
+  return AK_ERR;
+#endif
 }

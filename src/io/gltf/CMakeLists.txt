@@ -5,4 +5,6 @@ target_sources(${PROJECT_NAME}
 )
 
 add_subdirectory(imp)
-add_subdirectory(exp)
+if(AK_WITH_GLTF_EXPORTER)
+  add_subdirectory(exp)
+endif()
