@@ -26,16 +26,16 @@
 #  define PATH_MAX 4096
 #endif
 
-extern AkHeapAllocator ak__allocator;
-
 TEST_IMPL(heap) {
   AkHeap  *heap, *other, staticHeap;
+  AkHeapAllocator *defaultAllocator;
   AkHeapStats stats;
   uint32_t heapid, data;
 
+  defaultAllocator = ak_heap_allocator(ak_heap_default());
   heap = ak_heap_new(NULL, NULL, NULL);
-  ASSERT(heap->allocator == &ak__allocator);
-  ASSERT(ak_heap_allocator(heap) == &ak__allocator);
+  ASSERT(heap->allocator == defaultAllocator);
+  ASSERT(ak_heap_allocator(heap) == defaultAllocator);
   ak_heap_getStats(heap, &stats);
   ASSERT(stats.allocCalls == 0);
   ASSERT(stats.peakNodes == 0);

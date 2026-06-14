@@ -26,8 +26,6 @@
 #  define PATH_MAX 4096
 #endif
 
-extern AkHeapAllocator ak__allocator;
-
 typedef struct AkTestIndexStats {
   uint32_t primitiveCount;
   uint32_t ownedCount;

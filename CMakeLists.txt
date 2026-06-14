@@ -18,9 +18,21 @@ set(CMAKE_C_FLAGS_DEBUG "-g")
 if(MSVC)
   set(CMAKE_C_FLAGS_RELEASE "/Ox /DNDEBUG")
   set(CMAKE_CXX_FLAGS_RELEASE "/Ox /DNDEBUG")
+  set(CMAKE_C_FLAGS_MINSIZEREL "/O1 /Ob2 /DNDEBUG")
+  set(CMAKE_CXX_FLAGS_MINSIZEREL "/O1 /Ob2 /DNDEBUG")
 else()
   set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG")
   set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+  if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+    set(CMAKE_C_FLAGS_MINSIZEREL "-Oz -DNDEBUG")
+  else()
+    set(CMAKE_C_FLAGS_MINSIZEREL "-Os -DNDEBUG")
+  endif()
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(CMAKE_CXX_FLAGS_MINSIZEREL "-Oz -DNDEBUG")
+  else()
+    set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -DNDEBUG")
+  endif()
 endif()
 
 set(AK_BUILD)
@@ -35,6 +47,7 @@ option(AK_BUILD_GLTF_KTX2_DECODER "Build optional glTF KHR_texture_basisu (KTX2/
 option(AK_FETCH_DEPS "Fetch optional decoder dependencies into AK_DEPS_ROOT when missing" ON)
 option(AK_ENABLE_LTO "Enable link-time optimization for release builds" OFF)
 option(AK_ENABLE_FAST_MATH "Enable unsafe fast-math optimizations for release builds" OFF)
+option(AK_ENABLE_SECTION_GC "Enable function/data sections and linker dead-code stripping for optimized builds" ON)
 option(AK_BUILD_TOOLS "Build manual AssetKit importer benchmark tools" OFF)
 set(AK_DRACO_ROOT "" CACHE PATH "Optional Draco install/source root")
 set(AK_MESHOPT_ROOT "" CACHE PATH "Optional meshoptimizer source root")
@@ -89,9 +102,9 @@ function(ak_target_common_options target)
     target_compile_options(${target}
         PRIVATE
             /W3
-            $<$<CONFIG:Release>:/Gy>
+            $<$<AND:$<BOOL:${AK_ENABLE_SECTION_GC}>,$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>,$<CONFIG:MinSizeRel>>>:/Gy>
+            $<$<AND:$<BOOL:${AK_ENABLE_SECTION_GC}>,$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>,$<CONFIG:MinSizeRel>>>:/Gw>
             $<$<CONFIG:Release>:/Oi>
-            $<$<CONFIG:RelWithDebInfo>:/Gy>
             $<$<CONFIG:RelWithDebInfo>:/Oi>
             $<$<AND:$<BOOL:${AK_ENABLE_FAST_MATH}>,$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>>:/fp:fast>)
   else()
@@ -102,7 +115,26 @@ function(ak_target_common_options target)
             -Wstrict-aliasing=2
             -Wno-overlength-strings
             $<$<COMPILE_LANGUAGE:C>:-Wmissing-declarations>
+            $<$<AND:$<BOOL:${AK_ENABLE_SECTION_GC}>,$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>,$<CONFIG:MinSizeRel>>>:-ffunction-sections>
+            $<$<AND:$<BOOL:${AK_ENABLE_SECTION_GC}>,$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>,$<CONFIG:MinSizeRel>>>:-fdata-sections>
             $<$<AND:$<BOOL:${AK_ENABLE_FAST_MATH}>,$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>>:-ffast-math>)
+  endif()
+endfunction()
+
+function(ak_target_link_options target)
+  if(MSVC)
+    target_link_options(${target}
+        PRIVATE
+            $<$<AND:$<BOOL:${AK_ENABLE_SECTION_GC}>,$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>,$<CONFIG:MinSizeRel>>>:/OPT:REF>
+            $<$<AND:$<BOOL:${AK_ENABLE_SECTION_GC}>,$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>,$<CONFIG:MinSizeRel>>>:/OPT:ICF>)
+  elseif(APPLE)
+    target_link_options(${target}
+        PRIVATE
+            $<$<AND:$<BOOL:${AK_ENABLE_SECTION_GC}>,$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>,$<CONFIG:MinSizeRel>>>:LINKER:-dead_strip>)
+  else()
+    target_link_options(${target}
+        PRIVATE
+            $<$<AND:$<BOOL:${AK_ENABLE_SECTION_GC}>,$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>,$<CONFIG:MinSizeRel>>>:LINKER:--gc-sections>)
   endif()
 endfunction()
 
@@ -130,6 +162,7 @@ endif()
 add_library(${PROJECT_NAME} ${AK_BUILD} "")
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 ak_target_c_options(${PROJECT_NAME})
+ak_target_link_options(${PROJECT_NAME})
 target_compile_definitions(${PROJECT_NAME} PRIVATE AK_INTERNAL_BUILD)
 
 if(APPLE)
@@ -152,17 +185,11 @@ else()
 endif()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
-                              VERSION ${PROJECT_VERSION} 
+                              VERSION ${PROJECT_VERSION}
                             SOVERSION ${PROJECT_VERSION_MAJOR})
 if(AK_INSTALL_RPATH)
   set_target_properties(${PROJECT_NAME} PROPERTIES
                         INSTALL_RPATH "${AK_INSTALL_RPATH}")
-endif()
-
-if(APPLE AND AK_SHARED)
-  target_link_options(${PROJECT_NAME}
-      PRIVATE
-          $<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>>:LINKER:-dead_strip>)
 endif()
 
 add_subdirectory(src)
@@ -287,6 +314,7 @@ if(AK_BUILD_GLTF_DRACO_DECODER)
               src/decoders/gltf/draco/assetkit_draco.cc
               src/decoders/gltf/draco/assetkit_draco_bridge.c)
   ak_target_cxx_options(assetkit_draco)
+  ak_target_link_options(assetkit_draco)
   if(TARGET assetkit_draco_dep)
     add_dependencies(assetkit_draco assetkit_draco_dep)
   endif()
@@ -375,6 +403,7 @@ if(AK_BUILD_GLTF_MESHOPT_DECODER)
               src/decoders/gltf/meshopt/assetkit_meshoptimizer.cc
               ${AK_MESHOPT_SOURCES})
   ak_target_cxx_options(assetkit_meshoptimizer)
+  ak_target_link_options(assetkit_meshoptimizer)
   target_include_directories(assetkit_meshoptimizer
       PRIVATE
           ${AK_MESHOPT_INCLUDE_DIR}
@@ -457,6 +486,7 @@ if(AK_BUILD_GLTF_SPZ_DECODER)
     add_library(assetkit_spz SHARED
                 src/decoders/gltf/spz/assetkit_spz.cc)
     ak_target_cxx_options(assetkit_spz)
+    ak_target_link_options(assetkit_spz)
     if(TARGET assetkit_spz_dep)
       add_dependencies(assetkit_spz assetkit_spz_dep)
     endif()
@@ -582,6 +612,7 @@ if(AK_BUILD_GLTF_KTX2_DECODER)
     add_library(assetkit_ktx2 SHARED
                 src/decoders/gltf/ktx2/assetkit_ktx2.cc)
     ak_target_cxx_options(assetkit_ktx2)
+    ak_target_link_options(assetkit_ktx2)
     if(TARGET assetkit_ktx2_dep)
       add_dependencies(assetkit_ktx2 assetkit_ktx2_dep)
     endif()
@@ -626,6 +657,7 @@ endif()
 if(AK_BUILD_TOOLS)
   add_executable(assetkit_import_stats tools/import_stats.c)
   ak_target_c_options(assetkit_import_stats)
+  ak_target_link_options(assetkit_import_stats)
   target_link_libraries(assetkit_import_stats PRIVATE ${PROJECT_NAME})
 endif()
 

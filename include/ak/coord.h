@@ -73,14 +73,14 @@ typedef struct AkCoordSys {
 } AkCoordSys;
 
 /* Right Hand (Default) */
-extern AkCoordSys * AK_ZUP;
-extern AkCoordSys * AK_YUP;
-extern AkCoordSys * AK_XUP;
+AK_EXPORT extern AkCoordSys * AK_ZUP;
+AK_EXPORT extern AkCoordSys * AK_YUP;
+AK_EXPORT extern AkCoordSys * AK_XUP;
 
 /* Left Hand */
-extern AkCoordSys * AK_ZUP_LH;
-extern AkCoordSys * AK_YUP_LH;
-extern AkCoordSys * AK_XUP_LH;
+AK_EXPORT extern AkCoordSys * AK_ZUP_LH;
+AK_EXPORT extern AkCoordSys * AK_YUP_LH;
+AK_EXPORT extern AkCoordSys * AK_XUP_LH;
 
 struct AkTransform;
 
