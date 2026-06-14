@@ -147,6 +147,7 @@ option(AK_BUILD_GLTF_MESHOPT_DECODER "Build optional glTF meshoptimizer decoder 
 option(AK_BUILD_GLTF_SPZ_DECODER "Build optional glTF Gaussian splatting (SPZ) decoder shim" ON)
 option(AK_BUILD_GLTF_KTX2_DECODER "Build optional glTF KHR_texture_basisu (KTX2/BasisU) decoder shim" ON)
 option(AK_FETCH_DEPS "Fetch optional decoder dependencies into AK_DEPS_ROOT when missing" ON)
+option(AK_BUILD_SAMPLES "Build AssetKit sample programs" OFF)
 option(AK_ENABLE_LTO "Enable link-time optimization for release builds" OFF)
 ```
 
@@ -172,6 +173,27 @@ Use `-DAK_FETCH_DEPS=OFF` with `AK_DRACO_ROOT` / `AK_MESHOPT_ROOT` for
 offline or packaged builds. Use `-DAK_BUILD_GLTF_DRACO_DECODER=OFF` or
 `-DAK_BUILD_GLTF_MESHOPT_DECODER=OFF` to skip individual side libraries, or
 `-DAK_BUILD_DECODER_SHIMS=OFF` to skip all optional decoder shim targets.
+
+### Samples
+
+Small copyable C samples live in `samples/` and can be enabled in the main
+build:
+
+```bash
+$ cmake -S . -B build -DAK_BUILD_SAMPLES=ON
+$ cmake --build build --target assetkit_sample_read_meshes
+```
+
+They can also be built as a standalone CMake project against an installed
+AssetKit package:
+
+```bash
+$ cmake -S samples -B samples-build -DCMAKE_PREFIX_PATH=/path/to/assetkit/install
+$ cmake --build samples-build
+```
+
+See [samples/README.md](samples/README.md) for mesh, material, scene, camera,
+light and animation examples.
 
 ### Embedded in another CMake project
 

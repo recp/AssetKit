@@ -1,0 +1,33 @@
+cmake_minimum_required(VERSION 3.16)
+
+if(NOT TARGET assetkit::assetkit)
+  project(assetkit_samples LANGUAGES C)
+  find_package(assetkit CONFIG REQUIRED)
+endif()
+
+if(NOT COMMAND ak_target_c_options)
+  function(ak_target_c_options target)
+    if(MSVC)
+      target_compile_options(${target} PRIVATE /W3)
+    else()
+      target_compile_options(${target} PRIVATE -Wall -Wextra -Wno-overlength-strings)
+    endif()
+  endfunction()
+endif()
+
+if(NOT COMMAND ak_target_link_options)
+  function(ak_target_link_options target)
+  endfunction()
+endif()
+
+function(ak_add_sample name source)
+  add_executable(${name} ${source})
+  ak_target_c_options(${name})
+  ak_target_link_options(${name})
+  set_target_properties(${name} PROPERTIES C_STANDARD 11 C_STANDARD_REQUIRED YES)
+  target_link_libraries(${name} PRIVATE assetkit::assetkit)
+endfunction()
+
+ak_add_sample(assetkit_sample_read_meshes read_meshes.c)
+ak_add_sample(assetkit_sample_inspect_materials inspect_materials.c)
+ak_add_sample(assetkit_sample_inspect_scene inspect_scene.c)

@@ -57,6 +57,7 @@ option(AK_ENABLE_LTO "Enable link-time optimization for release builds" OFF)
 option(AK_ENABLE_FAST_MATH "Enable unsafe fast-math optimizations for release builds" OFF)
 option(AK_ENABLE_SECTION_GC "Enable function/data sections and linker dead-code stripping for optimized builds" ON)
 option(AK_BUILD_TOOLS "Build manual AssetKit importer benchmark tools" OFF)
+option(AK_BUILD_SAMPLES "Build AssetKit sample programs" OFF)
 set(AK_DRACO_ROOT "" CACHE PATH "Optional Draco install/source root")
 set(AK_MESHOPT_ROOT "" CACHE PATH "Optional meshoptimizer source root")
 set(AK_SPZ_ROOT "" CACHE PATH "Optional SPZ install/source root")
@@ -712,6 +713,10 @@ if(AK_BUILD_TOOLS)
   ak_target_c_options(assetkit_import_stats)
   ak_target_link_options(assetkit_import_stats)
   target_link_libraries(assetkit_import_stats PRIVATE ${PROJECT_NAME})
+endif()
+
+if(AK_BUILD_SAMPLES)
+  add_subdirectory(samples)
 endif()
 
 # Install 
