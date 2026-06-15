@@ -3,10 +3,10 @@
  *
  * Build:
  *   cmake -S . -B build -DAK_BUILD_SAMPLES=ON
- *   cmake --build build --target assetkit_sample_read_meshes
+ *   cmake --build build --target sample_read_meshes
  *
  * Run:
- *   ./build/assetkit_sample_read_meshes path/to/model.gltf
+ *   ./build/sample_read_meshes path/to/model.gltf
  */
 
 #include "sample_common.h"

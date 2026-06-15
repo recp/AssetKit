@@ -2,8 +2,8 @@
  * Small helpers shared by the sample programs.
  */
 
-#ifndef assetkit_sample_common_h
-#define assetkit_sample_common_h
+#ifndef sample_common_h
+#define sample_common_h
 
 #include <ak/assetkit.h>
 #include <ak/instance.h>
@@ -216,6 +216,38 @@ sample_texture_color_space_name(AkTextureColorSpace colorSpace) {
 }
 
 static inline const char *
+sample_image_source_type_name(AkImageSourceType type) {
+  switch (type) {
+    case AK_IMAGE_SOURCE_NONE:
+      return "none";
+    case AK_IMAGE_SOURCE_URI:
+      return "uri";
+    case AK_IMAGE_SOURCE_BUFFER:
+      return "buffer";
+    case AK_IMAGE_SOURCE_HEX:
+      return "hex";
+    default:
+      return "unknown";
+  }
+}
+
+static inline const char *
+sample_image_type_name(AkImageType type) {
+  switch (type) {
+    case AK_IMAGE_TYPE_1D:
+      return "1d";
+    case AK_IMAGE_TYPE_2D:
+      return "2d";
+    case AK_IMAGE_TYPE_3D:
+      return "3d";
+    case AK_IMAGE_TYPE_CUBE:
+      return "cube";
+    default:
+      return "unknown";
+  }
+}
+
+static inline const char *
 sample_projection_type_name(AkProjectionType type) {
   switch (type) {
     case AK_PROJECTION_PERSPECTIVE:
@@ -311,6 +343,33 @@ sample_interpolation_name(AkInterpolationType type) {
   }
 }
 
+static inline const char *
+sample_morph_method_name(AkMorphMethod method) {
+  switch (method) {
+    case AK_MORPH_METHOD_NORMALIZED:
+      return "normalized";
+    case AK_MORPH_METHOD_RELATIVE:
+      return "relative/additive";
+    case AK_MORPH_METHOD_ABSOLUTE:
+      return "absolute";
+    default:
+      return "unknown";
+  }
+}
+
+static inline const char *
+sample_morph_layout_name(AkMorphInterleaveLayout layout) {
+  switch (layout) {
+    case AK_MORPH_P1P2N1N2:
+      return "grouped-by-target";
+    case AK_MORPH_NATURAL:
+      return "natural";
+    case AK_MORPH_UNKNOWN:
+    default:
+      return "unknown";
+  }
+}
+
 static inline int
 sample_load_doc(AkDoc **doc, const char *path) {
   AkResult result;
@@ -325,4 +384,4 @@ sample_load_doc(AkDoc **doc, const char *path) {
   return 1;
 }
 
-#endif /* assetkit_sample_common_h */
+#endif /* sample_common_h */
