@@ -99,7 +99,11 @@ typedef enum AkTypeId {
 
   AKT_MATERIAL,
   AKT_CAMERA,
-  AKT_LIGHT
+  AKT_LIGHT,
+
+  /* 16-bit IEEE 754 binary16 payload. Appended to preserve existing public
+     enum values. */
+  AKT_HALF = 69
 } AkTypeId;
 
 typedef struct AkTypeDesc {

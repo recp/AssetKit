@@ -311,6 +311,7 @@ const char _s_gltf_pool_1[] =
 "multiscatterColorFactor\0"
 "scatterAnisotropy\0"
 "2.0\0"
+"2.1\0"
 "AssetKit\0"
 ;
 

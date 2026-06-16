@@ -693,9 +693,16 @@ gltf_component_type_size(AkTypeId type) {
     case AKT_SHORT:
     case AKT_USHORT:
       return 2;
+    case AKT_INT:
     case AKT_UINT:
     case AKT_FLOAT:
       return 4;
+    case AKT_DOUBLE:
+    case AKT_INT64:
+    case AKT_UINT64:
+      return 8;
+    case AKT_HALF:
+      return 2;
     default:
       break;
   }

@@ -788,6 +788,14 @@ gltf_input_set_kind(AkInput * __restrict input) {
 
   return 0;
 }
+
+static inline
+bool
+gltf_export_nonsequential_attribute_sets(void) {
+  return (AkGltfExportVersion)ak_opt_get(AK_OPT_GLTF_EXPORT_VERSION)
+         == AK_GLTF_EXPORT_VERSION_2_1;
+}
+
 bool
 gltf_input_has_source_set_before(AkMeshPrimitive * __restrict prim,
                                  AkInput         * __restrict first,
@@ -825,6 +833,9 @@ gltf_input_export_set(AkMeshPrimitive * __restrict prim,
     return 0;
 
   sourceSet = gltf_input_source_set(input);
+  if (gltf_export_nonsequential_attribute_sets())
+    return sourceSet;
+
   exportSet = 0;
   posInput  = gltf_primitive_position_input(prim);
 

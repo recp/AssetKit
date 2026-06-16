@@ -692,22 +692,40 @@ gltf_write_root_extensions(GLTFExpWriter * __restrict w,
 }
 
 static
+const char*
+gltf_asset_version(size_t * __restrict len) {
+  switch ((AkGltfExportVersion)ak_opt_get(AK_OPT_GLTF_EXPORT_VERSION)) {
+    case AK_GLTF_EXPORT_VERSION_2_1:
+      *len = _s_gltf_version21_len;
+      return _s_gltf_version21;
+    case AK_GLTF_EXPORT_VERSION_AUTO:
+    case AK_GLTF_EXPORT_VERSION_2_0:
+    default:
+      *len = _s_gltf_version2_len;
+      return _s_gltf_version2;
+  }
+}
+
+static
 void
 gltf_write_json_payload(GLTFExpState  * __restrict st,
                         GLTFExpWriter * __restrict w) {
   uint32_t materialExtensions;
   uint32_t textureExtensions;
   const char *generator;
+  const char *version;
+  size_t   versionLen;
   bool     comma;
 
   materialExtensions = gltf_material_extensions_mask(st);
   textureExtensions  = gltf_texture_extensions_mask(st);
+  version            = gltf_asset_version(&versionLen);
   gltf_w_ch(w, '{');
 
   gltf_w_key(w, _s_gltf_asset, _s_gltf_asset_len);
   gltf_w_ch(w, '{');
   gltf_w_key(w, _s_gltf_version, _s_gltf_version_len);
-  gltf_w_qstr_len(w, _s_gltf_version2, _s_gltf_version2_len);
+  gltf_w_qstr_len(w, version, versionLen);
   gltf_w_ch(w, ',');
   gltf_w_key(w, _s_gltf_generator, _s_gltf_generator_len);
   generator = (const char *)ak_opt_get(AK_OPT_EXPORT_AUTHORING_TOOL);

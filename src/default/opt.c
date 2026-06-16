@@ -75,7 +75,8 @@ uintptr_t AK_OPTIONS[] =
   false,                           /* 41: _PLY_EXPORT_NORMALS          */
   true,                            /* 42: _PLY_EXPORT_UV               */
   AK_PLY_EXPORT_COLOR_SRGB,        /* 43: _PLY_EXPORT_COLOR_MODE       */
-  false                            /* 44: _PLY_EXPORT_TRIANGULATED     */
+  false,                           /* 44: _PLY_EXPORT_TRIANGULATED     */
+  AK_GLTF_EXPORT_VERSION_AUTO      /* 45: _GLTF_EXPORT_VERSION         */
 };
 
 AK_EXPORT

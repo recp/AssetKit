@@ -20,6 +20,41 @@
 #include <stdint.h>
 #include <string.h>
 
+static
+float
+ak_halfToFloat(uint16_t half) {
+  uint32_t sign;
+  uint32_t exp;
+  uint32_t mant;
+  uint32_t bits;
+  float    out;
+
+  sign = ((uint32_t)half & 0x8000u) << 16;
+  exp  = ((uint32_t)half >> 10) & 0x1fu;
+  mant = (uint32_t)half & 0x03ffu;
+
+  if (exp == 0) {
+    if (mant == 0) {
+      bits = sign;
+    } else {
+      exp = 127u - 15u + 1u;
+      while ((mant & 0x0400u) == 0) {
+        mant <<= 1;
+        exp--;
+      }
+      mant &= 0x03ffu;
+      bits = sign | (exp << 23) | (mant << 13);
+    }
+  } else if (exp == 31u) {
+    bits = sign | 0x7f800000u | (mant << 13);
+  } else {
+    bits = sign | ((exp + (127u - 15u)) << 23) | (mant << 13);
+  }
+
+  memcpy(&out, &bits, sizeof(out));
+  return out;
+}
+
 AkAccessor*
 ak_accessor_dup(AkAccessor *oldacc) {
   AkHeap      *heap;
@@ -46,6 +81,16 @@ ak_accessor_componentToFloat(const void * __restrict src,
   switch (componentType) {
     case AKT_FLOAT:
       return *(const float *)src;
+    case AKT_HALF: {
+      uint16_t val;
+      memcpy(&val, src, sizeof(val));
+      return ak_halfToFloat(val);
+    }
+    case AKT_DOUBLE: {
+      double val;
+      memcpy(&val, src, sizeof(val));
+      return (float)val;
+    }
     case AKT_BYTE: {
       float f = (float)(*(const int8_t *)src);
       if (normalized) {
@@ -76,6 +121,16 @@ ak_accessor_componentToFloat(const void * __restrict src,
       return (float)(*(const int32_t *)src);
     case AKT_UINT:
       return (float)(*(const uint32_t *)src);
+    case AKT_INT64: {
+      int64_t val;
+      memcpy(&val, src, sizeof(val));
+      return (float)val;
+    }
+    case AKT_UINT64: {
+      uint64_t val;
+      memcpy(&val, src, sizeof(val));
+      return (float)val;
+    }
     default:
       return 0.0f;
   }

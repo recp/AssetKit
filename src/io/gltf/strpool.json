@@ -285,5 +285,6 @@
   "multiscatterColorFactor": "multiscatterColorFactor",
   "scatterAnisotropy": "scatterAnisotropy",
   "version2": "2.0",
+  "version21": "2.1",
   "generatorAssetKit": "AssetKit"
 }

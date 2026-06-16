@@ -115,6 +115,10 @@ gltf_componentTypeInfo(int type, int * __restrict componentLen) {
       outType = AKT_USHORT;
       len     = 2;
       break;
+    case 5124:
+      outType = AKT_INT;
+      len     = 4;
+      break;
     case 5125:
       outType = AKT_UINT;
       len     = 4;
@@ -122,6 +126,22 @@ gltf_componentTypeInfo(int type, int * __restrict componentLen) {
     case 5126:
       outType = AKT_FLOAT;
       len     = 4;
+      break;
+    case 5130:
+      outType = AKT_DOUBLE;
+      len     = 8;
+      break;
+    case 5131:
+      outType = AKT_HALF;
+      len     = 2;
+      break;
+    case 5134:
+      outType = AKT_INT64;
+      len     = 8;
+      break;
+    case 5135:
+      outType = AKT_UINT64;
+      len     = 8;
       break;
     default:   break;
   }

@@ -148,6 +148,112 @@ TEST_IMPL(gltf_export_glb_triangle_smoke) {
   TEST_SUCCESS
 }
 
+TEST_IMPL(gltf_export_version_option) {
+  AkHeap     *heap;
+  AkDoc      *doc;
+  AkScene    *scene;
+  AkNode     *root, *node;
+  AkGeometry *geom;
+  uintptr_t   savedVersion;
+  AK_TEST_EXPORT_GLTF_PATHS("assetkit_export_gltf_version");
+  const float positions[9] = {
+    0.0f, 0.0f, 0.0f,
+    1.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f
+  };
+
+  ak_test_export_cleanup(outDir);
+
+  heap = ak_heap_new(NULL, NULL, NULL);
+  doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
+  ak_heap_setdata(heap, doc);
+
+  scene       = ak_heap_calloc(heap, doc, sizeof(*scene));
+  root        = ak_heap_calloc(heap, scene, sizeof(*root));
+  node        = ak_heap_calloc(heap, doc, sizeof(*node));
+  scene->node = root;
+  doc->scene  = scene;
+
+  geom = ak_test_make_triangle_geom(heap, doc, positions);
+  ak_addSubNode(root, node, false);
+  ASSERT(ak_nodeAttachGeometry(node, geom) != NULL);
+
+  savedVersion = ak_opt_get(AK_OPT_GLTF_EXPORT_VERSION);
+  ak_opt_set(AK_OPT_GLTF_EXPORT_VERSION, AK_GLTF_EXPORT_VERSION_2_1);
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_GLTF) == AK_OK);
+  ak_opt_set(AK_OPT_GLTF_EXPORT_VERSION, savedVersion);
+
+  ASSERT(ak_test_file_contains(gltfPath, "\"version\":\"2.1\""));
+
+  ak_test_export_cleanup(outDir);
+  ak_opt_set(AK_OPT_GLTF_EXPORT_VERSION, AK_GLTF_EXPORT_VERSION_AUTO);
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_GLTF) == AK_OK);
+  ASSERT(ak_test_file_contains(gltfPath, "\"version\":\"2.0\""));
+  ASSERT(!ak_test_file_contains(gltfPath, "\"version\":\"2.1\""));
+  ak_opt_set(AK_OPT_GLTF_EXPORT_VERSION, savedVersion);
+
+  ak_heap_destroy(heap);
+  ak_test_export_cleanup(outDir);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(gltf_export_21_nonsequential_attribute_sets) {
+  AkHeap          *heap;
+  AkDoc           *doc;
+  AkScene         *scene;
+  AkNode          *root, *node;
+  AkGeometry      *geom;
+  AkMesh          *mesh;
+  AkMeshPrimitive *prim;
+  uintptr_t        savedVersion;
+  AK_TEST_EXPORT_GLTF_PATHS("assetkit_export_gltf21_nonseq_attrs");
+  const float positions[9] = {
+    0.0f, 0.0f, 0.0f,
+    1.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f
+  };
+
+  ak_test_export_cleanup(outDir);
+
+  heap = ak_heap_new(NULL, NULL, NULL);
+  doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
+  ak_heap_setdata(heap, doc);
+
+  scene       = ak_heap_calloc(heap, doc, sizeof(*scene));
+  root        = ak_heap_calloc(heap, scene, sizeof(*root));
+  node        = ak_heap_calloc(heap, doc, sizeof(*node));
+  scene->node = root;
+  doc->scene  = scene;
+
+  geom = ak_test_make_triangle_geom(heap, doc, positions);
+  mesh = ak_objGet(geom->gdata);
+  prim = mesh->primitive;
+  ASSERT(ak_test_add_texcoord_input(heap, prim, 3) != NULL);
+
+  ak_addSubNode(root, node, false);
+  ASSERT(ak_nodeAttachGeometry(node, geom) != NULL);
+
+  savedVersion = ak_opt_get(AK_OPT_GLTF_EXPORT_VERSION);
+  ak_opt_set(AK_OPT_GLTF_EXPORT_VERSION, AK_GLTF_EXPORT_VERSION_2_0);
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_GLTF) == AK_OK);
+  ASSERT(ak_test_file_contains(gltfPath, "\"TEXCOORD_0\""));
+  ASSERT(!ak_test_file_contains(gltfPath, "\"TEXCOORD_3\""));
+
+  ak_test_export_cleanup(outDir);
+  ak_opt_set(AK_OPT_GLTF_EXPORT_VERSION, AK_GLTF_EXPORT_VERSION_2_1);
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_GLTF) == AK_OK);
+  ASSERT(ak_test_file_contains(gltfPath, "\"version\":\"2.1\""));
+  ASSERT(ak_test_file_contains(gltfPath, "\"TEXCOORD_3\""));
+  ASSERT(!ak_test_file_contains(gltfPath, "\"TEXCOORD_0\""));
+  ak_opt_set(AK_OPT_GLTF_EXPORT_VERSION, savedVersion);
+
+  ak_heap_destroy(heap);
+  ak_test_export_cleanup(outDir);
+
+  TEST_SUCCESS
+}
+
 TEST_IMPL(gltf_export_zero_triangle_mode_defaults_to_list) {
   AkHeap          *heap;
   AkDoc           *doc;

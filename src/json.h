@@ -152,6 +152,36 @@ ak_json_float(const json_t * __restrict object, float defaultValue) {
 #define json_float ak_json_float
 
 AK_INLINE
+AkHalf
+ak_json_float_to_half(float value) {
+  uint32_t bits;
+  uint32_t sign;
+  int32_t  exp;
+  uint32_t mant;
+
+  memcpy(&bits, &value, sizeof(bits));
+
+  sign = (bits >> 16) & 0x8000u;
+  exp  = (int32_t)((bits >> 23) & 0xffu) - 127 + 15;
+  mant = bits & 0x007fffffu;
+
+  if (exp <= 0) {
+    if (exp < -10)
+      return (AkHalf)sign;
+    mant = (mant | 0x00800000u) >> (uint32_t)(1 - exp);
+    return (AkHalf)(sign | ((mant + 0x00001000u) >> 13));
+  }
+
+  if (exp >= 31) {
+    if (mant != 0)
+      return (AkHalf)(sign | 0x7c00u | (mant >> 13));
+    return (AkHalf)(sign | 0x7c00u);
+  }
+
+  return (AkHalf)(sign | ((uint32_t)exp << 10) | ((mant + 0x00001000u) >> 13));
+}
+
+AK_INLINE
 void
 ak_json_array_float(float        * __restrict dest,
                     const json_t * __restrict object,
@@ -231,11 +261,23 @@ json_array_set(void         * __restrict p,
     case AKT_FLOAT:
       ((float *)p)[index] = json_float(json, 0.0f);
       break;
+    case AKT_HALF:
+      ((AkHalf *)p)[index] = ak_json_float_to_half(json_float(json, 0.0f));
+      break;
+    case AKT_DOUBLE:
+      ((double *)p)[index] = (double)json_float(json, 0.0f);
+      break;
     case AKT_INT:
       ((int32_t *)p)[index] = json_int32(json, 0);
       break;
     case AKT_UINT:
-      ((int32_t *)p)[index] = json_uint32(json, 0);
+      ((uint32_t *)p)[index] = json_uint32(json, 0);
+      break;
+    case AKT_INT64:
+      ((int64_t *)p)[index] = json_int64(json, 0);
+      break;
+    case AKT_UINT64:
+      ((uint64_t *)p)[index] = json_uint64(json, 0);
       break;
     case AKT_SHORT:
       ((int16_t *)p)[index] = json_int32(json, 0);

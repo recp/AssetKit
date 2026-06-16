@@ -90,6 +90,15 @@ gltf_accessorProps(const json_t       * __restrict jacc,
   }
 }
 
+static inline
+bool
+gltf_accessor_widen_integer_type(AkTypeId type) {
+  return type == AKT_BYTE
+         || type == AKT_UBYTE
+         || type == AKT_SHORT
+         || type == AKT_USHORT;
+}
+
 AK_HIDE
 void
 gltf_accessors(json_t * __restrict json,
@@ -375,6 +384,7 @@ gltf_accessors(json_t * __restrict json,
     if (acc->normalized
         && acc->buffer && acc->buffer->data
         && acc->componentType != AKT_FLOAT
+        && gltf_accessor_widen_integer_type(acc->componentType)
         && acc->fillByteSize > 0
         && acc->count > 0
         && !ak_opt_get(AK_OPT_PRESERVE_QUANTIZED_ATTRS)) {
@@ -445,6 +455,7 @@ gltf_accessors(json_t * __restrict json,
         && acc->buffer && acc->buffer->data
         && acc->componentType != AKT_FLOAT
         && acc->componentType != AKT_UINT
+        && gltf_accessor_widen_integer_type(acc->componentType)
         && (acc->componentCount == 2 || acc->componentCount == 3)
         && acc->fillByteSize > 0
         && acc->count > 0

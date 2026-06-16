@@ -29,6 +29,7 @@ typedef int32_t               AkInt;
 typedef uint32_t              AkUInt;
 typedef int64_t               AkInt64;
 typedef uint64_t              AkUInt64;
+typedef uint16_t              AkHalf;
 typedef float                 AkFloat;
 typedef double                AkDouble;
 
@@ -120,6 +121,7 @@ ak_linear_sRGB(AkColor * __restrict color) {
 AK__DEF_ARRAY(AkBool);
 AK__DEF_ARRAY(AkUInt8);
 AK__DEF_ARRAY(AkUInt16);
+AK__DEF_ARRAY(AkHalf);
 AK__DEF_ARRAY(AkInt);
 AK__DEF_ARRAY(AkUInt);
 AK__DEF_ARRAY(AkFloat);

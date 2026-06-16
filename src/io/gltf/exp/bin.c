@@ -93,6 +93,41 @@ gltf_write_zeroes(FILE * __restrict file, size_t count) {
 
 static
 double
+gltf_half_to_double(uint16_t half) {
+  uint32_t sign;
+  uint32_t exp;
+  uint32_t mant;
+  uint32_t bits;
+  float    out;
+
+  sign = ((uint32_t)half & 0x8000u) << 16;
+  exp  = ((uint32_t)half >> 10) & 0x1fu;
+  mant = (uint32_t)half & 0x03ffu;
+
+  if (exp == 0) {
+    if (mant == 0) {
+      bits = sign;
+    } else {
+      exp = 127u - 15u + 1u;
+      while ((mant & 0x0400u) == 0) {
+        mant <<= 1;
+        exp--;
+      }
+      mant &= 0x03ffu;
+      bits = sign | (exp << 23) | (mant << 13);
+    }
+  } else if (exp == 31u) {
+    bits = sign | 0x7f800000u | (mant << 13);
+  } else {
+    bits = sign | ((exp + (127u - 15u)) << 23) | (mant << 13);
+  }
+
+  memcpy(&out, &bits, sizeof(out));
+  return (double)out;
+}
+
+static
+double
 gltf_component_value(const unsigned char * __restrict src, AkTypeId type) {
   switch (type) {
     case AKT_BYTE: {
@@ -115,6 +150,11 @@ gltf_component_value(const unsigned char * __restrict src, AkTypeId type) {
       memcpy(&val, src, sizeof(val));
       return val;
     }
+    case AKT_INT: {
+      int32_t val;
+      memcpy(&val, src, sizeof(val));
+      return val;
+    }
     case AKT_UINT: {
       uint32_t val;
       memcpy(&val, src, sizeof(val));
@@ -124,6 +164,26 @@ gltf_component_value(const unsigned char * __restrict src, AkTypeId type) {
       float val;
       memcpy(&val, src, sizeof(val));
       return val;
+    }
+    case AKT_DOUBLE: {
+      double val;
+      memcpy(&val, src, sizeof(val));
+      return val;
+    }
+    case AKT_HALF: {
+      uint16_t val;
+      memcpy(&val, src, sizeof(val));
+      return gltf_half_to_double(val);
+    }
+    case AKT_INT64: {
+      int64_t val;
+      memcpy(&val, src, sizeof(val));
+      return (double)val;
+    }
+    case AKT_UINT64: {
+      uint64_t val;
+      memcpy(&val, src, sizeof(val));
+      return (double)val;
     }
     default: break;
   }

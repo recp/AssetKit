@@ -48,6 +48,19 @@ typedef enum AkDaeExportVersion {
   AK_DAE_EXPORT_VERSION_1_5  = 2
 } AkDaeExportVersion;
 
+typedef enum AkGltfExportVersion {
+  /* Use AssetKit's stable glTF writer profile. Currently resolves to 2.0
+     until the glTF 2.1 specification syntax is finalized. */
+  AK_GLTF_EXPORT_VERSION_AUTO = 0,
+
+  /* Force asset.version = "2.0". */
+  AK_GLTF_EXPORT_VERSION_2_0  = 1,
+
+  /* Force asset.version = "2.1". GLB files still use the compatible v2
+     binary container unless a future feature requires GLB v3. */
+  AK_GLTF_EXPORT_VERSION_2_1  = 2
+} AkGltfExportVersion;
+
 typedef enum AkStlExportFormat {
   AK_STL_EXPORT_BINARY = 0,
   AK_STL_EXPORT_ASCII  = 1
@@ -139,6 +152,10 @@ typedef enum AkOption {
   AK_OPT_PLY_EXPORT_UV                = 42, /* true     */
   AK_OPT_PLY_EXPORT_COLOR_MODE        = 43, /* SRGB     */
   AK_OPT_PLY_EXPORT_TRIANGULATED      = 44, /* false    */
+
+  /* AkGltfExportVersion. Default AUTO writes glTF 2.0 for maximum
+     compatibility; callers may opt into the draft 2.1 asset version. */
+  AK_OPT_GLTF_EXPORT_VERSION           = 45, /* AUTO     */
 } AkOption;
 
 AK_EXPORT

@@ -40,6 +40,7 @@ AkTypeDesc ak_def_type_descs[] = {
 
   /* for glTF  */
   {"uint",      AKT_UINT,      sizeof(AkUInt),             0},
+  {"half",      AKT_HALF,      sizeof(AkHalf),             0},
   {"byte",      AKT_BYTE,      sizeof(char),               0},
   {"ubyte",     AKT_UBYTE,     sizeof(unsigned char),      0},
   {"short",     AKT_SHORT,     sizeof(short),              0},
@@ -60,8 +61,11 @@ AkTypeDesc ak_def_type_descs[] = {
   {"uint16",    AKT_USHORT,    sizeof(AkUInt16),           0},
   {"int32",     AKT_INT,       sizeof(AkInt),              0},
   {"uint32",    AKT_UINT,      sizeof(AkUInt),             0},
+  {"float16",   AKT_HALF,      sizeof(AkHalf),             0},
   {"float32",   AKT_FLOAT,     sizeof(AkFloat),            0},
   {"float64",   AKT_DOUBLE,    sizeof(AkDouble),           0},
+  {"int64",     AKT_INT64,     sizeof(AkInt64),            0},
+  {"uint64",    AKT_UINT64,    sizeof(AkUInt64),           0},
 
   {NULL,        0,             0,                          0}
 };

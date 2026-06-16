@@ -918,7 +918,13 @@ _AK_EXTERN const char _s_gltf_pool_1[];
 #define _s_gltf_version2_u32_exact 0x00302e32u
 #define _s_gltf_version2_u64 0x0000000000302e32ull
 #define _s_gltf_version2_u64_exact 0x0000000000302e32ull
-#define _s_gltf_generatorAssetKit _s_gltf_1(1792)
+#define _s_gltf_version21 _s_gltf_1(1792)
+#define _s_gltf_version21_len 3
+#define _s_gltf_version21_u32 0x00312e32u
+#define _s_gltf_version21_u32_exact 0x00312e32u
+#define _s_gltf_version21_u64 0x0000000000312e32ull
+#define _s_gltf_version21_u64_exact 0x0000000000312e32ull
+#define _s_gltf_generatorAssetKit _s_gltf_1(1796)
 #define _s_gltf_generatorAssetKit_len 8
 #define _s_gltf_generatorAssetKit_u64 0x74696b7465737361ull
 #define _s_gltf_generatorAssetKit_u64_exact 0x74694b7465737341ull

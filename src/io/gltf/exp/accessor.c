@@ -27,8 +27,13 @@ gltf_component_type(AkTypeId type) {
     case AKT_UBYTE:  return 5121;
     case AKT_SHORT:  return 5122;
     case AKT_USHORT: return 5123;
+    case AKT_INT:    return 5124;
     case AKT_UINT:   return 5125;
     case AKT_FLOAT:  return 5126;
+    case AKT_DOUBLE: return 5130;
+    case AKT_HALF:   return 5131;
+    case AKT_INT64:  return 5134;
+    case AKT_UINT64: return 5135;
     default: break;
   }
 
