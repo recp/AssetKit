@@ -484,14 +484,16 @@ endif()
 # ---------------------------------------------------------------------------
 if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_SPZ_DECODER)
   find_path(AK_SPZ_INCLUDE_DIR
-            NAMES spz/spz.h
+            NAMES spz/load-spz.h load-spz.h
             HINTS ${AK_SPZ_ROOT}
                   ${AK_SPZ_ROOT}/install
                   ${AK_SPZ_ROOT}/include
+                  ${AK_SPZ_ROOT}/src/cc
                   ${AK_DEPS_ROOT}/spz/install
                   ${AK_DEPS_ROOT}/spz
                   ${AK_DEPS_ROOT}/spz/include
-            PATH_SUFFIXES include
+                  ${AK_DEPS_ROOT}/spz/src/cc
+            PATH_SUFFIXES include src/cc
             NO_DEFAULT_PATH)
   find_library(AK_SPZ_LIBRARY
                NAMES spz
@@ -508,7 +510,7 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_SPZ_DECODER)
     include(ExternalProject)
 
     set(AK_SPZ_INSTALL_DIR "${AK_DEPS_ROOT}/spz/install")
-    set(AK_SPZ_INCLUDE_DIR "${AK_SPZ_INSTALL_DIR}/include")
+    set(AK_SPZ_INCLUDE_DIR "${AK_DEPS_ROOT}/spz/src/cc")
     if(WIN32)
       set(AK_SPZ_LIBRARY "${AK_SPZ_INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/spz.lib")
     else()
@@ -527,7 +529,10 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_SPZ_DECODER)
             -Wno-dev
             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
             -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+            -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=<INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}
+            -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE=<INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+            -DSPZ_BUILD_TOOLS=OFF
             -DBUILD_SHARED_LIBS=OFF)
   endif()
 
