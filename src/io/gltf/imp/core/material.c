@@ -251,7 +251,7 @@ gltf_materialInitSurface(AkGLTFState       * __restrict gst,
                       AK_TEXTURE_CHANNEL_G);
 }
 
-AK_HIDE
+static
 AkMaterial*
 gltf_default_mat(AkGLTFState *gst) {
   AkMaterial        *mat;

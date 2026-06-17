@@ -170,7 +170,7 @@ topofix_prim_needs(AkMeshPrimitive * __restrict prim,
 /* create indices to fix topology,
    an alternative way could be work with each input,
    this can be provided by an option maybe in the future. */
-AK_HIDE
+static
 void
 topofix_noind(AkHeap          * __restrict heap,
               AkMeshPrimitive * __restrict prim,
@@ -322,7 +322,7 @@ topofix_noind(AkHeap          * __restrict heap,
   }
 }
 
-AK_HIDE
+static
 void
 topofix_ind(AkHeap          * __restrict heap,
             AkMeshPrimitive * __restrict prim,

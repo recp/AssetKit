@@ -61,20 +61,20 @@ typedef union AkColor {
 AK_INLINE
 bool
 ak_colorLessThanOne(AkColor color) {
-  return color.rgba.R < 0.999
-      || color.rgba.G < 0.999
-      || color.rgba.B < 0.999
-      || color.rgba.A < 0.999
+  return color.rgba.R < 0.999f
+      || color.rgba.G < 0.999f
+      || color.rgba.B < 0.999f
+      || color.rgba.A < 0.999f
   ;
 }
 
 AK_INLINE
 float
 ak_sRGB_linearf(float channel) {
-  if (channel <= 0.04045) {
-    return channel / 12.92;
+  if (channel <= 0.04045f) {
+    return channel / 12.92f;
   } else {
-    return powf((channel + 0.055) / 1.055, 2.4);
+    return powf((channel + 0.055f) / 1.055f, 2.4f);
   }
 }
 

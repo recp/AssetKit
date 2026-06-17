@@ -892,6 +892,7 @@ gltf_align4_checked(size_t len, size_t * __restrict aligned) {
   return true;
 }
 
+static
 bool
 gltf_write_padding(FILE * __restrict file, unsigned char pad, size_t count) {
   unsigned char bytes[4] = {0, 0, 0, 0};

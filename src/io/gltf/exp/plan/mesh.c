@@ -185,8 +185,10 @@ gltf_plan_position_vec2(GLTFExpState    * __restrict st,
     return false;
 
   acc = input->accessor;
-  if ((size_t)acc->count > (size_t)-1 / (sizeof(float) * 3u))
+#if SIZE_MAX <= UINT32_MAX
+  if ((size_t)acc->count > SIZE_MAX / (sizeof(float) * 3u))
     return false;
+#endif
 
   count      = acc->count;
   byteLength = (size_t)count * sizeof(float) * 3u;
@@ -253,8 +255,10 @@ gltf_plan_baked_position(GLTFExpState            * __restrict st,
       || !gltf_accessor_float_vec_supported(acc, componentCount))
     return false;
 
-  if ((size_t)acc->count > (size_t)-1 / (sizeof(float) * 3u))
+#if SIZE_MAX <= UINT32_MAX
+  if ((size_t)acc->count > SIZE_MAX / (sizeof(float) * 3u))
     return false;
+#endif
 
   count      = acc->count;
   byteLength = (size_t)count * sizeof(float) * 3u;
@@ -322,8 +326,10 @@ gltf_plan_baked_normal(GLTFExpState            * __restrict st,
       || (attr->vertexCount > 0 && acc->count != attr->vertexCount))
     return true;
 
-  if ((size_t)acc->count > (size_t)-1 / (sizeof(float) * 3u))
+#if SIZE_MAX <= UINT32_MAX
+  if ((size_t)acc->count > SIZE_MAX / (sizeof(float) * 3u))
     return false;
+#endif
 
   count      = acc->count;
   byteLength = (size_t)count * sizeof(float) * 3u;

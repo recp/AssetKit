@@ -229,8 +229,10 @@ ak_print_validate_prepare_edges(AkPrintMeshValidation * __restrict v,
   triCount = ak_print_validate_triangle_count(prim);
   if (triCount == 0u)
     return true;
+#if SIZE_MAX <= UINT32_MAX
   if ((size_t)triCount > (SIZE_MAX / 3u) / sizeof(*v->edges))
     return false;
+#endif
 
   v->edgeCapacity = (size_t)triCount * 3u;
   v->edges        = malloc(sizeof(*v->edges) * v->edgeCapacity);

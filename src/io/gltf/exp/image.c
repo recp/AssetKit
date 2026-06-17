@@ -431,6 +431,7 @@ gltf_image_indexed_basename(const char * __restrict base,
   return uri;
 }
 
+static
 AkImageSource*
 gltf_image_external_uri_source(GLTFExpState * __restrict st,
                                GLTFExpIndex              imageIndex) {

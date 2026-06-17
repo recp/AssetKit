@@ -5,6 +5,7 @@
  */
 
 #include "decoder.h"
+#include "../core/ext.h"
 #include "../../../../platform/dylib.h"
 #include "../../../../../include/ak/gsplat.h"
 

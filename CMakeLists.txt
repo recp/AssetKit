@@ -7,6 +7,9 @@ endif()
 if(POLICY CMP0169)
   cmake_policy(SET CMP0169 OLD)
 endif()
+if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 NEW)
+endif()
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED YES)
@@ -142,19 +145,24 @@ function(ak_target_common_options target)
     target_compile_options(${target}
         PRIVATE
             /W3
+            /wd4200
             $<$<AND:$<BOOL:${AK_ENABLE_SECTION_GC}>,$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>,$<CONFIG:MinSizeRel>>>:/Gy>
             $<$<AND:$<BOOL:${AK_ENABLE_SECTION_GC}>,$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>,$<CONFIG:MinSizeRel>>>:/Gw>
             $<$<CONFIG:Release>:/Oi>
             $<$<CONFIG:RelWithDebInfo>:/Oi>
             $<$<AND:$<BOOL:${AK_ENABLE_FAST_MATH}>,$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>>:/fp:fast>)
+    target_compile_definitions(${target}
+        PRIVATE
+            _CRT_SECURE_NO_WARNINGS)
   else()
     target_compile_options(${target}
         PRIVATE
             -Wall
             -Wextra
-            -Wstrict-aliasing=2
             -Wno-overlength-strings
-            $<$<COMPILE_LANGUAGE:C>:-Wmissing-declarations>
+            $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-restrict>
+            $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-uninitialized>
+            $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-maybe-uninitialized>
             $<$<AND:$<BOOL:${AK_ENABLE_SECTION_GC}>,$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>,$<CONFIG:MinSizeRel>>>:-ffunction-sections>
             $<$<AND:$<BOOL:${AK_ENABLE_SECTION_GC}>,$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>,$<CONFIG:MinSizeRel>>>:-fdata-sections>
             $<$<AND:$<BOOL:${AK_ENABLE_FAST_MATH}>,$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>>:-ffast-math>)
@@ -202,13 +210,6 @@ function(ak_target_cxx_options target)
 endfunction()
 
 include(GNUInstallDirs)
-
-set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-
-if(NOT CPack_CMake_INCLUDED)
-  include(CPack)
-endif()
 
 # Target Start
 add_library(${PROJECT_NAME} ${AK_BUILD} "")
@@ -324,6 +325,26 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_DRACO_DECODER)
 
     set(AK_DRACO_INSTALL_DIR "${AK_DEPS_ROOT}/draco/install")
     set(AK_DRACO_INCLUDE_DIR "${AK_DRACO_INSTALL_DIR}/include")
+    set(AK_DRACO_CMAKE_ARGS
+        -Wno-dev
+        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+        -DDRACO_ANIMATION_ENCODING=OFF
+        -DDRACO_BUILD_EXECUTABLES=OFF
+        -DDRACO_GLTF_BITSTREAM=ON
+        -DDRACO_INSTALL=ON
+        -DDRACO_JS_GLUE=OFF
+        -DDRACO_MAYA_PLUGIN=OFF
+        -DDRACO_TESTS=OFF
+        -DDRACO_TRANSCODER_SUPPORTED=OFF
+        -DDRACO_UNITY_PLUGIN=OFF
+        -DDRACO_WASM=OFF
+        -DBUILD_SHARED_LIBS=OFF)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+      list(APPEND AK_DRACO_CMAKE_ARGS
+           -DCMAKE_CXX_FLAGS=-Wno-implicit-const-int-float-conversion)
+    endif()
     if(WIN32)
       set(AK_DRACO_LIBRARY "${AK_DRACO_INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/draco.lib")
     else()
@@ -339,22 +360,7 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_DRACO_DECODER)
         BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/assetkit_draco-build"
         INSTALL_DIR "${AK_DRACO_INSTALL_DIR}"
         BUILD_BYPRODUCTS "${AK_DRACO_LIBRARY}"
-        CMAKE_ARGS
-            -Wno-dev
-            -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-            -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-            -DDRACO_ANIMATION_ENCODING=OFF
-            -DDRACO_BUILD_EXECUTABLES=OFF
-            -DDRACO_GLTF_BITSTREAM=ON
-            -DDRACO_INSTALL=ON
-            -DDRACO_JS_GLUE=OFF
-            -DDRACO_MAYA_PLUGIN=OFF
-            -DDRACO_TESTS=OFF
-            -DDRACO_TRANSCODER_SUPPORTED=OFF
-            -DDRACO_UNITY_PLUGIN=OFF
-            -DDRACO_WASM=OFF
-            -DBUILD_SHARED_LIBS=OFF)
+        CMAKE_ARGS ${AK_DRACO_CMAKE_ARGS})
   endif()
 
   if(NOT AK_DRACO_INCLUDE_DIR OR NOT AK_DRACO_LIBRARY)
@@ -517,6 +523,9 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_SPZ_DECODER)
     set(SPZ_BUILD_TOOLS OFF CACHE BOOL "Build SPZ command-line tools" FORCE)
     set(SPZ_BUILD_PYTHON_BINDINGS OFF CACHE BOOL "Build SPZ Python bindings" FORCE)
     set(SPZ_BUILD_EXTENSIONS OFF CACHE BOOL "Build SPZ extensions support" FORCE)
+    set(CMAKE_POLICY_DEFAULT_CMP0135 NEW)
+    set(AK_SAVED_CMAKE_WARN_DEPRECATED "${CMAKE_WARN_DEPRECATED}")
+    set(CMAKE_WARN_DEPRECATED OFF)
 
     FetchContent_Declare(assetkit_spz_dep
         GIT_REPOSITORY https://github.com/nianticlabs/spz.git
@@ -529,6 +538,13 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_SPZ_DECODER)
       add_subdirectory("${assetkit_spz_dep_SOURCE_DIR}"
                        "${assetkit_spz_dep_BINARY_DIR}"
                        EXCLUDE_FROM_ALL)
+    endif()
+    set(CMAKE_WARN_DEPRECATED "${AK_SAVED_CMAKE_WARN_DEPRECATED}")
+    if(TARGET libzstd_static)
+      target_compile_options(libzstd_static
+          PRIVATE
+              $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-uninitialized>
+              $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-maybe-uninitialized>)
     endif()
     set(AK_SPZ_INCLUDE_DIR "${assetkit_spz_dep_SOURCE_DIR}/src/cc")
     set(AK_SPZ_TARGET spz::spz)
@@ -637,6 +653,22 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_KTX2_DECODER)
 
     set(AK_KTX2_INSTALL_DIR "${AK_DEPS_ROOT}/ktx/install")
     set(AK_KTX2_INCLUDE_DIR "${AK_KTX2_INSTALL_DIR}/include")
+    set(AK_KTX2_CMAKE_ARGS
+        -Wno-dev
+        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+        -DKTX_FEATURE_TESTS=OFF
+        -DKTX_FEATURE_TOOLS=OFF
+        -DKTX_FEATURE_DOC=OFF
+        -DKTX_FEATURE_LOADTEST_APPS=OFF
+        -DBASISU_SSE=ON
+        -DBUILD_SHARED_LIBS=OFF)
+    if(MSVC)
+      list(APPEND AK_KTX2_CMAKE_ARGS
+           -DCMAKE_SHARED_LINKER_FLAGS=/ignore:4006
+           -DCMAKE_MODULE_LINKER_FLAGS=/ignore:4006)
+    endif()
     if(WIN32)
       set(AK_KTX2_LIBRARY "${AK_KTX2_INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/ktx.lib")
     else()
@@ -646,23 +678,11 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_KTX2_DECODER)
     ExternalProject_Add(assetkit_ktx2_dep
         GIT_REPOSITORY https://github.com/KhronosGroup/KTX-Software.git
         GIT_TAG main
-        GIT_SHALLOW TRUE
         SOURCE_DIR "${AK_DEPS_ROOT}/ktx"
         BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/assetkit_ktx2-build"
         INSTALL_DIR "${AK_KTX2_INSTALL_DIR}"
         BUILD_BYPRODUCTS "${AK_KTX2_LIBRARY}"
-        CMAKE_ARGS
-            -Wno-dev
-            -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-            -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-            -DKTX_FEATURE_TESTS=OFF
-            -DKTX_FEATURE_TOOLS=OFF
-            -DKTX_FEATURE_DOC=OFF
-            -DKTX_FEATURE_LOADTEST_APPS=OFF
-            -DKTX_FEATURE_STATIC_LIBRARY=ON
-            -DBASISU_SUPPORT_SSE=ON
-            -DBUILD_SHARED_LIBS=OFF)
+        CMAKE_ARGS ${AK_KTX2_CMAKE_ARGS})
   endif()
 
   if(NOT AK_KTX2_INCLUDE_DIR OR NOT AK_KTX2_LIBRARY)
@@ -710,6 +730,13 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_KTX2_DECODER)
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
             RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
   endif()
+endif()
+
+set(CPACK_PROJECT_NAME ${PROJECT_NAME})
+set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
+
+if(NOT CPack_CMake_INCLUDED)
+  include(CPack)
 endif()
 
 # Test Configuration

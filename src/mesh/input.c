@@ -98,13 +98,8 @@ ak_inputNameIndexed(AkInput * __restrict input,
 
   len = strlen(input->semanticRaw);
   memcpy(buf, input->semanticRaw, len);
-  p = buf + len;
-  if (input->index < 0) {
-    *p++ = '-';
-    value = (uint32_t)(-(input->index + 1)) + 1u;
-  } else {
-    value = (uint32_t)input->index;
-  }
+  p     = buf + len;
+  value = input->index;
   p = ak_io_text_format_uint64(p, value);
   *p = '\0';
 }

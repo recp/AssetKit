@@ -237,6 +237,7 @@ wobj_image_index(WOBJExpState * __restrict st,
   return UINT32_MAX;
 }
 
+static
 bool
 wobj_texture_cacheable(WOBJExpState * __restrict st, uint32_t imageIdx) {
   return st && imageIdx != UINT32_MAX && imageIdx < st->imageUriCount;

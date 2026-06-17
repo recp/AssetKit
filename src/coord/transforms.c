@@ -17,6 +17,7 @@
 #include "../common.h"
 #include "common.h"
 #include <cglm/cglm.h>
+#include <string.h>
 
 AK_EXPORT
 void
@@ -41,11 +42,14 @@ ak_coordCvtNodeTransforms(AkDoc  * __restrict doc,
     switch (transform->type) {
       case AKT_MATRIX: {
         AkMatrix *matrix;
+        AkFloat4x4 val;
         matrix = ak_objGet(transform);
 
+        memcpy(val, matrix->val, sizeof(val));
         ak_coordCvtTransform(oldCoordSys,
-                             matrix->val,
+                             val,
                              newCoordsys);
+        memcpy(matrix->val, val, sizeof(val));
         break;
       }
       case AKT_LOOKAT: {
@@ -94,9 +98,6 @@ ak_coordCvtNodeTransforms(AkDoc  * __restrict doc,
         break;
       }
       case AKT_SKEW: {
-        AkSkew *skew;
-        skew = ak_objGet(transform);
-
         /* TODO: */
         break;
       }

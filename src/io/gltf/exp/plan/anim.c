@@ -149,8 +149,10 @@ gltf_anim_sampler_packed_cubic(AkAnimSampler * __restrict sampler,
   if (sampler->inTangentInput || sampler->outTangentInput)
     return false;
 
+#if SIZE_MAX <= UINT32_MAX
   if ((size_t)inputAccessor->count > SIZE_MAX / 3u)
     return false;
+#endif
 
   expectedCount = (size_t)inputAccessor->count * 3u;
   if (targetValueCount > 0 && expectedCount > SIZE_MAX / targetValueCount)

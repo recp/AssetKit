@@ -141,7 +141,7 @@ dae_clear_accessor_type_buffer(RBTree *tree, RBNode *rbnode) {
   ak_heap_ext_rm(heap, ak__alignof(buff), AK_HEAP_NODE_FLAGS_USR);
 }
 
-AK_HIDE
+static
 void
 dae_spread_vert(DAEState * __restrict dst) {
   AkHeap               *heap;

@@ -117,7 +117,7 @@ base64_encode(AkHeap              * __restrict heap,
  *
  * Caller is responsible for freeing the returned buffer.
  */
-AK_HIDE
+static
 unsigned char*
 base64_decode_slow(AkHeap              * __restrict heap,
                    void                * __restrict memparent,
