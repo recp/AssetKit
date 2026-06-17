@@ -25,6 +25,14 @@
 #include <errno.h>
 #include <math.h>
 
+#if defined(_MSC_VER)
+#  include <malloc.h>
+#  define AK_ALLOCA _alloca
+#else
+#  include <alloca.h>
+#  define AK_ALLOCA alloca
+#endif
+
 #ifdef DEBUG
 #  include <assert.h>
 #  include <stdio.h>
@@ -111,7 +119,7 @@ typedef struct AkTwoWayIterBase {
     dirLength     = strlen(DOC->inf->dir);                                    \
     newPathLength = dirLength + strlen(FILE_NAME) + 1;                        \
                                                                               \
-    DEST = alloca(newPathLength + 1);                                         \
+    DEST = AK_ALLOCA(newPathLength + 1);                                      \
     strcpy(DEST, DOC->inf->dir);                                              \
     if (DOC->inf->dir[dirLength - 1] != '/' && FILE_NAME[0] != '/') {         \
       strcat(DEST, "/");                                                      \

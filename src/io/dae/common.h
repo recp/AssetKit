@@ -39,6 +39,9 @@
 #  ifndef PATH_MAX
 #    define PATH_MAX 260
 #  endif
+#  define DAE_URL_HELPER static AK_NOINLINE
+#else
+#  define DAE_URL_HELPER AK_INLINE
 #endif
 
 #define DAE_XML_TAG_EQ8(XML, NAME)                                           \
@@ -531,7 +534,9 @@ external_url:
 
     if (!hasScheme) {
       char       pathbuf[PATH_MAX];
+#ifndef _WIN32
       char       realbuf[PATH_MAX];
+#endif
       char      *rel;
       char      *dststr;
       const char *frag;
@@ -598,7 +603,7 @@ external_url:
   ak_url_init(memp, urlstr, url);
 }
 
-AK_INLINE
+DAE_URL_HELPER
 void
 url_set_sz(DAEState   * __restrict dst,
            xml_t      * __restrict xml,
@@ -667,7 +672,7 @@ dae_vertmap_add(DAEState     * __restrict dst,
   flist_sp_insert(&dst->vertMap, item);
 }
 
-AK_INLINE
+DAE_URL_HELPER
 AkURL*
 url_from_sz(DAEState   * __restrict dst,
             xml_t      * __restrict xml,

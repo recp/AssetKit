@@ -33,9 +33,6 @@ typedef struct PLYTriSeen {
   size_t          cap;
 } PLYTriSeen;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
-
 #define ply_val(p, typeDesc, leEndian, T, DEST, DEFAULT)                      \
   do {                                                                        \
     uint64_t buf;                                                             \
@@ -56,21 +53,69 @@ typedef struct PLYTriSeen {
     }                                                                         \
                                                                               \
     switch (typeDesc->typeId) {                                               \
-      case AKT_FLOAT:  DEST = (T)(*(float    *)(void *)&buf);     break;      \
-      case AKT_INT:    DEST = (T)(*(int32_t  *)(void *)&buf);     break;      \
-      case AKT_UINT:   DEST = (T)(*(uint32_t *)(void *)&buf);     break;      \
-      case AKT_DOUBLE: DEST = (T)(*(double   *)(void *)&buf);     break;      \
-      case AKT_INT64:  DEST = (T)(*(int64_t  *)(void *)&buf);     break;      \
-      case AKT_UINT64: DEST = (T)(*(uint64_t *)(void *)&buf);     break;      \
-      case AKT_SHORT:  DEST = (T)(*(int16_t  *)(void *)&buf);     break;      \
-      case AKT_USHORT: DEST = (T)(*(uint16_t *)(void *)&buf);     break;      \
-      case AKT_BYTE:   DEST = (T)(*(int8_t   *)(void *)&buf);     break;      \
-      case AKT_UBYTE:  DEST = (T)(*(uint8_t  *)(void *)&buf);     break;      \
-      default:         DEST = DEFAULT;                    break;              \
+      case AKT_FLOAT: {                                                       \
+        float value;                                                          \
+        memcpy(&value, &buf, sizeof(value));                                  \
+        DEST = (T)value;                                                      \
+        break;                                                               \
+      }                                                                       \
+      case AKT_INT: {                                                         \
+        int32_t value;                                                        \
+        memcpy(&value, &buf, sizeof(value));                                  \
+        DEST = (T)value;                                                      \
+        break;                                                               \
+      }                                                                       \
+      case AKT_UINT: {                                                        \
+        uint32_t value;                                                       \
+        memcpy(&value, &buf, sizeof(value));                                  \
+        DEST = (T)value;                                                      \
+        break;                                                               \
+      }                                                                       \
+      case AKT_DOUBLE: {                                                      \
+        double value;                                                         \
+        memcpy(&value, &buf, sizeof(value));                                  \
+        DEST = (T)value;                                                      \
+        break;                                                               \
+      }                                                                       \
+      case AKT_INT64: {                                                       \
+        int64_t value;                                                        \
+        memcpy(&value, &buf, sizeof(value));                                  \
+        DEST = (T)value;                                                      \
+        break;                                                               \
+      }                                                                       \
+      case AKT_UINT64: {                                                      \
+        uint64_t value;                                                       \
+        memcpy(&value, &buf, sizeof(value));                                  \
+        DEST = (T)value;                                                      \
+        break;                                                               \
+      }                                                                       \
+      case AKT_SHORT: {                                                       \
+        int16_t value;                                                        \
+        memcpy(&value, &buf, sizeof(value));                                  \
+        DEST = (T)value;                                                      \
+        break;                                                               \
+      }                                                                       \
+      case AKT_USHORT: {                                                      \
+        uint16_t value;                                                       \
+        memcpy(&value, &buf, sizeof(value));                                  \
+        DEST = (T)value;                                                      \
+        break;                                                               \
+      }                                                                       \
+      case AKT_BYTE: {                                                        \
+        int8_t value;                                                         \
+        memcpy(&value, &buf, sizeof(value));                                  \
+        DEST = (T)value;                                                      \
+        break;                                                               \
+      }                                                                       \
+      case AKT_UBYTE: {                                                       \
+        uint8_t value;                                                        \
+        memcpy(&value, &buf, sizeof(value));                                  \
+        DEST = (T)value;                                                      \
+        break;                                                               \
+      }                                                                       \
+      default: DEST = DEFAULT; break;                                         \
     }                                                                         \
   } while (0)
-
-#pragma GCC diagnostic pop
 
 static inline
 AkDataContext*

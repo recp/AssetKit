@@ -396,8 +396,8 @@ ak_skinInterleave(AkSkin          * __restrict skin,
   if (!out)
     return 0;
 
-  idxScratch = alloca(sizeof(uint16_t) * maxJoint);
-  wgtScratch = alloca(sizeof(float)    * maxJoint);
+  idxScratch = AK_ALLOCA(sizeof(uint16_t) * maxJoint);
+  wgtScratch = AK_ALLOCA(sizeof(float)    * maxJoint);
 
   for (v = 0; v < vCount; v++) {
     memset(idxScratch, 0, sizeof(uint16_t) * maxJoint);

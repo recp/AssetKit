@@ -18,13 +18,7 @@
 #define dae_bugfix_url_h
 
 #include <string.h>
-#ifdef _MSC_VER
-#  include <malloc.h>
-#  define dae_alloca _alloca
-#else
-#  include <alloca.h>
-#  define dae_alloca alloca
-#endif
+#define dae_alloca AK_ALLOCA
 
 /*
  * Industry bug: many DAE exporters (Blender, Maya, some glTF→DAE

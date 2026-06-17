@@ -63,6 +63,8 @@ gltf_plan_image_buffer_views(GLTFExpState * __restrict st) {
 
   if (st->images.count == 0)
     return true;
+  if (st->images.count >= GLTF_EXP_INDEX_NONE)
+    return false;
 
   items = gltf_realloc_array(st->imageBufferViews,
                              st->images.count,
@@ -105,7 +107,7 @@ gltf_plan_image_buffer_views(GLTFExpState * __restrict st) {
     st->imageMimeTypes[i] = mimeType;
 
     if (!gltf_image_source_supported(source) || !mimeType) {
-      if (!gltf_plan_image_payload(st, image, i))
+      if (!gltf_plan_image_payload(st, image, (GLTFExpIndex)i))
         return false;
       continue;
     }
@@ -131,7 +133,7 @@ gltf_plan_image_buffer_views(GLTFExpState * __restrict st) {
 
       path = gltf_image_source_path(st, source, pathbuf);
       if (!path) {
-        if (image->data && !gltf_plan_image_payload(st, image, i))
+        if (image->data && !gltf_plan_image_payload(st, image, (GLTFExpIndex)i))
           return false;
         continue;
       }

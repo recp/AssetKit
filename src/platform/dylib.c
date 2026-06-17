@@ -51,7 +51,9 @@ ak_dylib_openSibling(const char * __restrict file) {
   char  *sep2;
   size_t dirlen;
   size_t filelen;
+#ifndef AK_WINAPI
   int    len;
+#endif
 
   if (!file)
     return NULL;

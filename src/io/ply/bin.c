@@ -243,12 +243,7 @@ ply_bin_skip_property(char        ** __restrict src,
   if (p + prop->listCountTypeDesc->size > end)
     return false;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
-
   ply_val(p, prop->listCountTypeDesc, le, AkUInt, count, 0);
-
-#pragma GCC diagnostic pop
 
   itemSize = prop->typeDesc->size;
   if ((uint64_t)count * itemSize > (uint64_t)(end - p))
@@ -297,12 +292,7 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
               if (!prop->typeDesc || p + prop->typeDesc->size > e)
                 goto fns;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
-
               ply_val(p, prop->typeDesc, le, float, b[prop->slot], 0.0f);
-            
-#pragma GCC diagnostic pop
 
             } else if (!ply_bin_skip_property(&p, e, prop, le)) {
               goto fns;
@@ -335,12 +325,7 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
             if ((p + prop->listCountTypeDesc->size) > e)
               goto fns;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
-            
             ply_val(p, prop->listCountTypeDesc, le, AkUInt, fc, 0);
-            
-#pragma GCC diagnostic pop
 
             if (fc == 3) {
               AkUInt f0, f1, f2;
@@ -348,20 +333,15 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
               if ((p + prop->typeDesc->size * 3) > e)
                 goto fns;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
-
               ply_val(p, prop->typeDesc, le, uint32_t, f0, 0);
               ply_val(p, prop->typeDesc, le, uint32_t, f1, 0);
               ply_val(p, prop->typeDesc, le, uint32_t, f2, 0);
-
-#pragma GCC diagnostic pop
 
               if (f0 < vertcount && f1 < vertcount && f2 < vertcount)
                 PLY_INDEX_APPEND_TRI(pst, f0, f1, f2, count);
             } else if (fc > 3) {
               if (!f || fc > last_fc)
-                f = alloca(sizeof(*f) * fc);
+                f = AK_ALLOCA(sizeof(*f) * fc);
 
               valid = 0;
 
@@ -370,12 +350,7 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
                 if ((p + prop->typeDesc->size) > e)
                   goto fns;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
-                
                 ply_val(p, prop->typeDesc, le, uint32_t, f[j], 0);
-                
-#pragma GCC diagnostic pop
 
                 valid += f[j] < vertcount;
               }
@@ -423,12 +398,7 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
             if ((p + prop->listCountTypeDesc->size) > e)
               goto fns;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
-
             ply_val(p, prop->listCountTypeDesc, le, AkUInt, fc, 0);
-
-#pragma GCC diagnostic pop
 
             itemSize = prop->typeDesc->size;
             if ((uint64_t)fc * itemSize > (uint64_t)(e - p))
@@ -445,12 +415,7 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
               AkInt value;
               AkUInt index;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
-
               ply_val(p, prop->typeDesc, le, AkInt, value, -1);
-
-#pragma GCC diagnostic pop
 
               if (value < 0 || (AkUInt)value >= vertcount) {
                 stripLen = 0;
@@ -511,12 +476,7 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
             if (!prop->typeDesc || p + prop->typeDesc->size > e)
               goto fns;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
-
             ply_val(p, prop->typeDesc, le, AkUInt, value, UINT32_MAX);
-
-#pragma GCC diagnostic pop
 
             if (prop->semantic == PLY_PROP_VERTEX1) {
               v0 = value;

@@ -154,7 +154,7 @@ ak_animationsCompatibleSetFromDoc(AkContext     * __restrict ctx,
     return 0;
   }
 
-  candidates = alloca(sizeof(*candidates) * count);
+  candidates = AK_ALLOCA(sizeof(*candidates) * count);
   i = 0;
   for (anim = doc->lib.animations.first; anim; anim = anim->next)
     candidates[i++] = anim;

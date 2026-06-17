@@ -196,7 +196,7 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
                 PLY_INDEX_APPEND_TRI(pst, f0, f1, f2, count);
             } else if (fc > 3) {
               if (!f || last_fc < fc)
-                f = alloca(sizeof(AkUInt) * fc);
+                f = AK_ALLOCA(sizeof(AkUInt) * fc);
 
               valid = 0;
               for (j = 0; j < fc; j++)

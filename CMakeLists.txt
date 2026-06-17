@@ -153,7 +153,8 @@ function(ak_target_common_options target)
             $<$<AND:$<BOOL:${AK_ENABLE_FAST_MATH}>,$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>>:/fp:fast>)
     target_compile_definitions(${target}
         PRIVATE
-            _CRT_SECURE_NO_WARNINGS)
+            _CRT_SECURE_NO_WARNINGS
+            _CRT_NONSTDC_NO_WARNINGS)
   else()
     target_compile_options(${target}
         PRIVATE
@@ -525,7 +526,12 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_SPZ_DECODER)
     set(SPZ_BUILD_EXTENSIONS OFF CACHE BOOL "Build SPZ extensions support" FORCE)
     set(CMAKE_POLICY_DEFAULT_CMP0135 NEW)
     set(AK_SAVED_CMAKE_WARN_DEPRECATED "${CMAKE_WARN_DEPRECATED}")
-    set(CMAKE_WARN_DEPRECATED OFF)
+    set(AK_SAVED_CMAKE_SUPPRESS_DEVELOPER_WARNINGS "${CMAKE_SUPPRESS_DEVELOPER_WARNINGS}")
+    if(POLICY CMP0194)
+      set(CMAKE_POLICY_DEFAULT_CMP0194 NEW)
+    endif()
+    set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "Suppress third-party deprecation warnings" FORCE)
+    set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS ON CACHE BOOL "Suppress third-party developer warnings" FORCE)
 
     FetchContent_Declare(assetkit_spz_dep
         GIT_REPOSITORY https://github.com/nianticlabs/spz.git
@@ -539,7 +545,8 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_SPZ_DECODER)
                        "${assetkit_spz_dep_BINARY_DIR}"
                        EXCLUDE_FROM_ALL)
     endif()
-    set(CMAKE_WARN_DEPRECATED "${AK_SAVED_CMAKE_WARN_DEPRECATED}")
+    set(CMAKE_WARN_DEPRECATED "${AK_SAVED_CMAKE_WARN_DEPRECATED}" CACHE BOOL "Suppress deprecated CMake warnings" FORCE)
+    set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS "${AK_SAVED_CMAKE_SUPPRESS_DEVELOPER_WARNINGS}" CACHE BOOL "Suppress developer warnings" FORCE)
     if(TARGET libzstd_static)
       target_compile_options(libzstd_static
           PRIVATE
@@ -667,7 +674,9 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_KTX2_DECODER)
     if(MSVC)
       list(APPEND AK_KTX2_CMAKE_ARGS
            -DCMAKE_SHARED_LINKER_FLAGS=/ignore:4006
-           -DCMAKE_MODULE_LINKER_FLAGS=/ignore:4006)
+           -DCMAKE_MODULE_LINKER_FLAGS=/ignore:4006
+           -DCMAKE_STATIC_LINKER_FLAGS=/ignore:4006
+           -DCMAKE_EXE_LINKER_FLAGS=/ignore:4006)
     endif()
     if(WIN32)
       set(AK_KTX2_LIBRARY "${AK_KTX2_INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/ktx.lib")

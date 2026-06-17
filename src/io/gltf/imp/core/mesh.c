@@ -814,7 +814,7 @@ gltf_polyCount(AkMeshPrimitive *prim, uint32_t mode) {
     case 0:
     case 2: return n;
     /* 1: lines */
-    case 1: return n * 0.5;
+    case 1: return n / 2u;
     /* 3: line strip */
     case 3: return n - 1;
     /* 4: triangles */
