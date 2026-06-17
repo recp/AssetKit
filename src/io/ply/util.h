@@ -118,6 +118,180 @@ typedef struct PLYTriSeen {
   } while (0)
 
 static inline
+AkInt
+ply_val_akint(char ** __restrict p,
+              AkTypeDesc * __restrict typeDesc,
+              bool leEndian,
+              AkInt defaultValue) {
+  uint64_t buf;
+  char    *it;
+
+  buf = 0;
+  it  = *p;
+  switch (typeDesc->typeId) {
+    case AKT_FLOAT: {
+      float value;
+      memcpy_endian32(leEndian, buf, it);
+      memcpy(&value, &buf, sizeof(value));
+      *p = it;
+      return (AkInt)value;
+    }
+    case AKT_INT: {
+      int32_t value;
+      memcpy_endian32(leEndian, buf, it);
+      memcpy(&value, &buf, sizeof(value));
+      *p = it;
+      return (AkInt)value;
+    }
+    case AKT_UINT: {
+      uint32_t value;
+      memcpy_endian32(leEndian, buf, it);
+      memcpy(&value, &buf, sizeof(value));
+      *p = it;
+      return (AkInt)value;
+    }
+    case AKT_DOUBLE: {
+      double value;
+      memcpy_endian64(leEndian, buf, it);
+      memcpy(&value, &buf, sizeof(value));
+      *p = it;
+      return (AkInt)value;
+    }
+    case AKT_INT64: {
+      int64_t value;
+      memcpy_endian64(leEndian, buf, it);
+      memcpy(&value, &buf, sizeof(value));
+      *p = it;
+      return (AkInt)value;
+    }
+    case AKT_UINT64: {
+      uint64_t value;
+      memcpy_endian64(leEndian, buf, it);
+      memcpy(&value, &buf, sizeof(value));
+      *p = it;
+      return (AkInt)value;
+    }
+    case AKT_SHORT: {
+      int16_t value;
+      memcpy_endian16(leEndian, buf, it);
+      memcpy(&value, &buf, sizeof(value));
+      *p = it;
+      return (AkInt)value;
+    }
+    case AKT_USHORT: {
+      uint16_t value;
+      memcpy_endian16(leEndian, buf, it);
+      memcpy(&value, &buf, sizeof(value));
+      *p = it;
+      return (AkInt)value;
+    }
+    case AKT_BYTE: {
+      int8_t value;
+      memcpy(&buf, it++, 1);
+      memcpy(&value, &buf, sizeof(value));
+      *p = it;
+      return (AkInt)value;
+    }
+    case AKT_UBYTE: {
+      uint8_t value;
+      memcpy(&buf, it++, 1);
+      memcpy(&value, &buf, sizeof(value));
+      *p = it;
+      return (AkInt)value;
+    }
+    default:
+      return defaultValue;
+  }
+}
+
+static inline
+AkUInt
+ply_val_akuint(char ** __restrict p,
+               AkTypeDesc * __restrict typeDesc,
+               bool leEndian,
+               AkUInt defaultValue) {
+  uint64_t buf;
+  char    *it;
+
+  buf = 0;
+  it  = *p;
+  switch (typeDesc->typeId) {
+    case AKT_FLOAT: {
+      float value;
+      memcpy_endian32(leEndian, buf, it);
+      memcpy(&value, &buf, sizeof(value));
+      *p = it;
+      return (AkUInt)value;
+    }
+    case AKT_INT: {
+      int32_t value;
+      memcpy_endian32(leEndian, buf, it);
+      memcpy(&value, &buf, sizeof(value));
+      *p = it;
+      return (AkUInt)value;
+    }
+    case AKT_UINT: {
+      uint32_t value;
+      memcpy_endian32(leEndian, buf, it);
+      memcpy(&value, &buf, sizeof(value));
+      *p = it;
+      return (AkUInt)value;
+    }
+    case AKT_DOUBLE: {
+      double value;
+      memcpy_endian64(leEndian, buf, it);
+      memcpy(&value, &buf, sizeof(value));
+      *p = it;
+      return (AkUInt)value;
+    }
+    case AKT_INT64: {
+      int64_t value;
+      memcpy_endian64(leEndian, buf, it);
+      memcpy(&value, &buf, sizeof(value));
+      *p = it;
+      return (AkUInt)value;
+    }
+    case AKT_UINT64: {
+      uint64_t value;
+      memcpy_endian64(leEndian, buf, it);
+      memcpy(&value, &buf, sizeof(value));
+      *p = it;
+      return (AkUInt)value;
+    }
+    case AKT_SHORT: {
+      int16_t value;
+      memcpy_endian16(leEndian, buf, it);
+      memcpy(&value, &buf, sizeof(value));
+      *p = it;
+      return (AkUInt)value;
+    }
+    case AKT_USHORT: {
+      uint16_t value;
+      memcpy_endian16(leEndian, buf, it);
+      memcpy(&value, &buf, sizeof(value));
+      *p = it;
+      return (AkUInt)value;
+    }
+    case AKT_BYTE: {
+      int8_t value;
+      memcpy(&buf, it++, 1);
+      memcpy(&value, &buf, sizeof(value));
+      *p = it;
+      return (AkUInt)value;
+    }
+    case AKT_UBYTE: {
+      uint8_t value;
+      memcpy(&buf, it++, 1);
+      memcpy(&value, &buf, sizeof(value));
+      *p = it;
+      return (AkUInt)value;
+    }
+    default:
+      return defaultValue;
+  }
+}
+
+static inline
 AkDataContext*
 ply_index_data_new_for_estimated(PLYState * __restrict pst,
                                  AkTypeId * __restrict componentType,

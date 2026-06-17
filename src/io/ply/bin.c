@@ -415,7 +415,7 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
               AkInt value;
               AkUInt index;
 
-              ply_val(p, prop->typeDesc, le, AkInt, value, -1);
+              value = ply_val_akint(&p, prop->typeDesc, le, -1);
 
               if (value < 0 || (AkUInt)value >= vertcount) {
                 stripLen = 0;
@@ -476,7 +476,7 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
             if (!prop->typeDesc || p + prop->typeDesc->size > e)
               goto fns;
 
-            ply_val(p, prop->typeDesc, le, AkUInt, value, UINT32_MAX);
+            value = ply_val_akuint(&p, prop->typeDesc, le, UINT32_MAX);
 
             if (prop->semantic == PLY_PROP_VERTEX1) {
               v0 = value;
