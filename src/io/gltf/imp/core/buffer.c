@@ -19,6 +19,8 @@
 #include "../../../../utils.h"
 #include "../../../../base64.h"
 
+#include <string.h>
+
 typedef struct AkGLTFBufferViewProps {
   const json_t *buffer;
   const json_t *byteLength;
@@ -105,7 +107,7 @@ gltf_bufferViews(json_t * __restrict jbuffView,
   jbuffView = jbuffers->base.value;
   while (jbuffView) {
     buffView = ak_heap_calloc(gst->heap, gst->tmpParent, sizeof(*buffView));
-    props    = (AkGLTFBufferViewProps){0};
+    memset(&props, 0, sizeof(props));
 
     gltf_bufferViewProps(jbuffView, &props);
 

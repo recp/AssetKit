@@ -546,7 +546,8 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_SPZ_DECODER)
     endif()
     target_include_directories(assetkit_spz
         SYSTEM PRIVATE
-            ${AK_SPZ_INCLUDE_DIR})
+            ${AK_SPZ_INCLUDE_DIR}
+            ${AK_DEPS_ROOT}/spz/src/cc)
     target_include_directories(assetkit_spz
         PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/include

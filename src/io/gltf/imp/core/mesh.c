@@ -433,10 +433,9 @@ gltf_meshes(json_t * __restrict jmesh,
         jprim = jmeshVal->value;
         while (jprim) {
           AkMeshPrimitive *prim;
-          AkGLTFPrimProps  primProps;
+          AkGLTFPrimProps  primProps = {0};
           json_t          *jprimVal;
 
-          primProps = (AkGLTFPrimProps){0};
           gltf_primProps(jprim, &primProps);
 
           mode = json_int32(primProps.mode, 4);

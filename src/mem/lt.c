@@ -95,10 +95,8 @@ ak_heap_lt_init(AkHeap * __restrict initialHeap) {
 
   assert(ak__heap_bucket.heapEntry && "malloc failed");
 
-  ak__heap_bucket.heapEntry[0] = (AkHeapBucketEntry){
-    .heap   = initialHeap,
-    .heapid = 0
-  };
+  ak__heap_bucket.heapEntry[0].heap   = initialHeap;
+  ak__heap_bucket.heapEntry[0].heapid = 0;
 
   ak__heap_lt.lastUsedEntry = ak__heap_lt.rootBucket->heapEntry;
 }

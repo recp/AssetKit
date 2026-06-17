@@ -40,13 +40,22 @@ typedef struct DAEExpName {
   size_t      len;
 } DAEExpName;
 
-#define DAE_EXP_NAME(NAME) ((DAEExpName){_s_dae_##NAME, _s_dae_##NAME##_len})
-#define DAE_EXP_NAME_LIT(LIT) ((DAEExpName){LIT, sizeof(LIT) - 1u})
+static inline
+DAEExpName
+dae_exp_name_make(const char * __restrict ptr, size_t len) {
+  DAEExpName name;
+  name.ptr = ptr;
+  name.len = len;
+  return name;
+}
+
+#define DAE_EXP_NAME(NAME) dae_exp_name_make(_s_dae_##NAME, _s_dae_##NAME##_len)
+#define DAE_EXP_NAME_LIT(LIT) dae_exp_name_make((LIT), sizeof(LIT) - 1u)
 
 static inline
 DAEExpName
 dae_exp_name_cstr(const char * __restrict str) {
-  return (DAEExpName){str, str ? strlen(str) : 0u};
+  return dae_exp_name_make(str, str ? strlen(str) : 0u);
 }
 
 #define DAE_EXP_NAME_CSTR(STR) dae_exp_name_cstr((STR))

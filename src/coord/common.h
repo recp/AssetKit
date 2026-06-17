@@ -27,8 +27,6 @@
 #define AK__Y_LH {AK_AXIS_POSITIVE_X, AK_AXIS_POSITIVE_Y, AK_AXIS_POSITIVE_Z}
 #define AK__X_LH {AK_AXIS_NEGATIVE_Y, AK_AXIS_POSITIVE_X, AK_AXIS_POSITIVE_Z}
 
-#define AK_COORD(P0, P1, P2) &(AkCoordSys){P0, P1, P2}
-
 #define AK_CVT_VEC_TO(X0, X1)                                                 \
   X1[a1.up]    = X0[a0.up]    * a0.s_up    * a1.s_up;                         \
   X1[a1.right] = X0[a0.right] * a0.s_right * a1.s_right;                      \

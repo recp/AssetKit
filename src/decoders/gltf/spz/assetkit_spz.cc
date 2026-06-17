@@ -39,7 +39,17 @@
  * the dispatcher hands it as opaque — it just needs the bufferView index.
  */
 
-#include <spz/load-spz.h>
+#if defined(__has_include)
+#  if __has_include(<spz/load-spz.h>)
+#    include <spz/load-spz.h>
+#  elif __has_include(<load-spz.h>)
+#    include <load-spz.h>
+#  else
+#    error "SPZ load-spz.h header was not found"
+#  endif
+#else
+#  include <spz/load-spz.h>
+#endif
 
 #include <ak/assetkit.h>
 

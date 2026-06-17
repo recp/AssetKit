@@ -19,6 +19,8 @@
 #include "buffer.h"
 #include "../../../../accessor.h"
 
+#include <string.h>
+
 typedef struct AkGLTFAccessorProps {
   const json_t *bufferView;
   const json_t *byteOffset;
@@ -133,7 +135,7 @@ gltf_accessors(json_t * __restrict json,
 
     ak_setypeid(acc, AKT_ACCESSOR);
 
-    accProps = (AkGLTFAccessorProps){0};
+    memset(&accProps, 0, sizeof(accProps));
     gltf_accessorProps(json, &accProps);
   
     if ((it = accProps.name)) {

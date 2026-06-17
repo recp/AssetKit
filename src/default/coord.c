@@ -19,13 +19,18 @@
 
 /* Right Hand (Default) */
 AkCoordSys AK__Y_RH_VAL =         {AK__Y_RH, AK_AXIS_ROT_DIR_RH, AK__Y_RH};
-AkCoordSys *AK_YUP      = &AK__Y_RH_VAL;
-AkCoordSys *AK_ZUP      = AK_COORD(AK__Z_RH, AK_AXIS_ROT_DIR_RH, AK__Y_RH);
-AkCoordSys *AK_XUP      = AK_COORD(AK__X_RH, AK_AXIS_ROT_DIR_RH, AK__Y_RH);
+static AkCoordSys AK__Z_RH_VAL =  {AK__Z_RH, AK_AXIS_ROT_DIR_RH, AK__Y_RH};
+static AkCoordSys AK__X_RH_VAL =  {AK__X_RH, AK_AXIS_ROT_DIR_RH, AK__Y_RH};
+AkCoordSys *AK_YUP              = &AK__Y_RH_VAL;
+AkCoordSys *AK_ZUP              = &AK__Z_RH_VAL;
+AkCoordSys *AK_XUP              = &AK__X_RH_VAL;
 
 /* Left Hand */
-AkCoordSys *AK_ZUP_LH   = AK_COORD(AK__Z_LH, AK_AXIS_ROT_DIR_LH, AK__Y_LH);
-AkCoordSys *AK_YUP_LH   = AK_COORD(AK__Y_LH, AK_AXIS_ROT_DIR_LH, AK__Y_LH);
-AkCoordSys *AK_XUP_LH   = AK_COORD(AK__X_LH, AK_AXIS_ROT_DIR_LH, AK__Y_LH);
+static AkCoordSys AK__Z_LH_VAL =  {AK__Z_LH, AK_AXIS_ROT_DIR_LH, AK__Y_LH};
+static AkCoordSys AK__Y_LH_VAL =  {AK__Y_LH, AK_AXIS_ROT_DIR_LH, AK__Y_LH};
+static AkCoordSys AK__X_LH_VAL =  {AK__X_LH, AK_AXIS_ROT_DIR_LH, AK__Y_LH};
+AkCoordSys *AK_ZUP_LH           = &AK__Z_LH_VAL;
+AkCoordSys *AK_YUP_LH           = &AK__Y_LH_VAL;
+AkCoordSys *AK_XUP_LH           = &AK__X_LH_VAL;
 
 AkCoordSys *AK_DEFAULT_COORD = &AK__Y_RH_VAL;

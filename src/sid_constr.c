@@ -31,20 +31,24 @@ AkTypeId ak__sidConstrChldParam[] = {
   AKT_SETPARAM
 };
 
+static AkSidConstrItem ak__sidConstrEffectLeaf = {
+  .constr     = AKT_EFFECT,
+  .chldCound  = 3,
+  .constrChld = ak__sidConstrChldParam
+};
+
+static AkSidConstrItem ak__sidConstrEffectProfile = {
+  .constr     = AKT_PROFILE,
+  .chldCound  = 3,
+  .constrChld = ak__sidConstrChldParam,
+  .next       = &ak__sidConstrEffectLeaf
+};
+
 AkSidConstrItem ak__sidConstrEffect = {
-    .constr     = AKT_TECHNIQUE_FX,
-    .chldCound  = 3,
-    .constrChld = ak__sidConstrChldParam,
-  .next = &(AkSidConstrItem){
-    .constr     = AKT_PROFILE,
-    .chldCound  = 3,
-    .constrChld = ak__sidConstrChldParam,
-  .next = &(AkSidConstrItem){
-    .constr     = AKT_EFFECT,
-    .chldCound  = 3,
-    .constrChld = ak__sidConstrChldParam,
-    }
-  }
+  .constr     = AKT_TECHNIQUE_FX,
+  .chldCound  = 3,
+  .constrChld = ak__sidConstrChldParam,
+  .next       = &ak__sidConstrEffectProfile
 };
 
 AkSidConstr*

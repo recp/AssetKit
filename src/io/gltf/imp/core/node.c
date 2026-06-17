@@ -209,7 +209,7 @@ gltf_node(AkGLTFState * __restrict gst,
   AkNode             *node;
   AkGeometry         *geomIter;
   AkInstanceGeometry *instGeom;
-  AkGLTFNodeProps     props;
+  AkGLTFNodeProps     props = {0};
   void               *it;
   AkMorph            *morph;
   int32_t             i32val;
@@ -217,8 +217,6 @@ gltf_node(AkGLTFState * __restrict gst,
   heap     = gst->heap;
   geomIter = NULL;
   instGeom = NULL;
-  props    = (AkGLTFNodeProps){0};
-
   node = ak_heap_calloc(heap, memParent, sizeof(*node));
   ak_setypeid(node, AKT_NODE);
   node->visible = true;
