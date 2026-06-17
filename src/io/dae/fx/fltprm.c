@@ -33,7 +33,7 @@ dae_float(DAEState * __restrict dst,
   xml  = xml->val;
   while (xml) {
     if (DAE_XML_TAG_EQ8(xml, float) && (sval = xmls(xml))) {
-      sid_seta(xml, heap, memp, memp + off);
+      sid_seta(xml, heap, memp, ((char *)memp) + off);
       flt = xml_float(xml, defaultVal);
     }
 
