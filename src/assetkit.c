@@ -124,7 +124,14 @@ bool
 ak_export_is_dir(const char * __restrict dir) {
   struct stat st;
 
-  return dir && stat(dir, &st) == 0 && S_ISDIR(st.st_mode);
+  if (!dir || stat(dir, &st) != 0)
+    return false;
+
+#ifdef _WIN32
+  return (st.st_mode & _S_IFDIR) != 0;
+#else
+  return S_ISDIR(st.st_mode);
+#endif
 }
 
 static
