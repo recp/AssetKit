@@ -537,6 +537,7 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_SPZ_DECODER)
         GIT_REPOSITORY https://github.com/nianticlabs/spz.git
         GIT_TAG main
         GIT_SHALLOW TRUE
+        GIT_SUBMODULES ""
         SOURCE_DIR "${AK_SPZ_SOURCE_DIR}")
     FetchContent_GetProperties(assetkit_spz_dep)
     if(NOT assetkit_spz_dep_POPULATED)
