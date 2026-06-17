@@ -83,12 +83,12 @@ dae14_surface(DAEState * __restrict dst,
     } else if (DAE_XML_TAG_EQ(xml, viewport_ratio) && (sval = xmls(xml))) {
       xml_strtof_fast(sval, surf->viewportRatio, 2);
     } else if (DAE_XML_TAG_EQ(xml, mip_levels) && (sval = xmls(xml))) {
-      surf->mipLevels = (int)xml__parse_int64(sval->val,
-                                               sval->val + sval->valsize,
+      surf->mipLevels = (int)xml__parse_int64(xml__value_begin(sval),
+                                               xml__value_end(sval),
                                                0);
     } else if (DAE_XML_TAG_EQ(xml, mipmap_generate) && (sval = xmls(xml))) {
-      surf->mipmapGenerate = (bool)xml__parse_int64(sval->val,
-                                                    sval->val + sval->valsize,
+      surf->mipmapGenerate = (bool)xml__parse_int64(xml__value_begin(sval),
+                                                    xml__value_end(sval),
                                                     0);
     } else if (DAE_XML_TAG_EQ8(xml, extra)) {
       surf->extra = tree_fromxml(heap, surf, xml);
