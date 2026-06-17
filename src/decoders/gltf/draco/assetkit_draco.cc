@@ -17,7 +17,6 @@
 #include <draco/compression/decode.h>
 
 #include "assetkit_draco_bridge.h"
-#include "io/gltf/strpool.h"
 
 #include <memory>
 #include <stdint.h>
@@ -29,6 +28,10 @@
 #else
 #  define AK_DRACO_EXPORT __attribute__((visibility("default")))
 #endif
+
+static const char AK_DRACO_KEY_ATTRIBUTES[] = "attributes";
+static const char AK_DRACO_KEY_BUFFER_VIEW[] = "bufferView";
+static const char AK_DRACO_KEY_INDICES[]    = "indices";
 
 static
 size_t
@@ -259,7 +262,7 @@ ak_draco_fill_primitive(struct AkGLTFState * __restrict gst,
   if (!gst || !prim || !jprim || !jdraco || !mesh)
     return false;
 
-  jidx = ak_draco_json_get(jprim, _s_gltf_indices);
+  jidx = ak_draco_json_get(jprim, AK_DRACO_KEY_INDICES);
   if (jidx) {
     accIdx = ak_draco_json_int32(jidx, -1);
     acc    = ak_draco_gltf_accessor_at(gst, accIdx);
@@ -267,8 +270,8 @@ ak_draco_fill_primitive(struct AkGLTFState * __restrict gst,
       return false;
   }
 
-  jattrs  = ak_draco_json_get(jprim,   _s_gltf_attributes);
-  jdattrs = ak_draco_json_get(jdraco,  _s_gltf_attributes);
+  jattrs  = ak_draco_json_get(jprim,   AK_DRACO_KEY_ATTRIBUTES);
+  jdattrs = ak_draco_json_get(jdraco,  AK_DRACO_KEY_ATTRIBUTES);
   if (!jattrs || !jdattrs)
     return false;
 
@@ -319,7 +322,7 @@ ak_draco_decode_gltf_primitive(struct AkGLTFState *gst,
   if (!gst || !prim || !jprim || !jdraco)
     return -1;
 
-  it    = ak_draco_json_get(jdraco, _s_gltf_bufferView);
+  it    = ak_draco_json_get(jdraco, AK_DRACO_KEY_BUFFER_VIEW);
   bvIdx = it ? ak_draco_json_int32(it, -1) : -1;
   if (bvIdx < 0)
     return -1;

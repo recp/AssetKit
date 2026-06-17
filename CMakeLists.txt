@@ -483,6 +483,7 @@ endif()
 # format; we link statically and expose the AssetKit decoder API.
 # ---------------------------------------------------------------------------
 if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_SPZ_DECODER)
+  set(AK_SPZ_TARGET "")
   find_path(AK_SPZ_INCLUDE_DIR
             NAMES spz/load-spz.h load-spz.h
             HINTS ${AK_SPZ_ROOT}
@@ -507,36 +508,33 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_SPZ_DECODER)
                NO_DEFAULT_PATH)
 
   if((NOT AK_SPZ_INCLUDE_DIR OR NOT AK_SPZ_LIBRARY) AND AK_FETCH_DEPS)
-    include(ExternalProject)
+    include(FetchContent)
 
-    set(AK_SPZ_INSTALL_DIR "${AK_DEPS_ROOT}/spz/install")
-    set(AK_SPZ_INCLUDE_DIR "${AK_DEPS_ROOT}/spz/src/cc")
-    if(WIN32)
-      set(AK_SPZ_LIBRARY "${AK_SPZ_INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/spz.lib")
-    else()
-      set(AK_SPZ_LIBRARY "${AK_SPZ_INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/libspz.a")
+    set(AK_SPZ_SOURCE_DIR "${AK_DEPS_ROOT}/spz")
+    if(EXISTS "${AK_SPZ_SOURCE_DIR}" AND NOT EXISTS "${AK_SPZ_SOURCE_DIR}/CMakeLists.txt")
+      set(AK_SPZ_SOURCE_DIR "${AK_DEPS_ROOT}/spz-src")
     endif()
+    set(SPZ_BUILD_TOOLS OFF CACHE BOOL "Build SPZ command-line tools" FORCE)
+    set(SPZ_BUILD_PYTHON_BINDINGS OFF CACHE BOOL "Build SPZ Python bindings" FORCE)
+    set(SPZ_BUILD_EXTENSIONS OFF CACHE BOOL "Build SPZ extensions support" FORCE)
 
-    ExternalProject_Add(assetkit_spz_dep
+    FetchContent_Declare(assetkit_spz_dep
         GIT_REPOSITORY https://github.com/nianticlabs/spz.git
         GIT_TAG main
         GIT_SHALLOW TRUE
-        SOURCE_DIR "${AK_DEPS_ROOT}/spz"
-        BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/assetkit_spz-build"
-        INSTALL_DIR "${AK_SPZ_INSTALL_DIR}"
-        BUILD_BYPRODUCTS "${AK_SPZ_LIBRARY}"
-        CMAKE_ARGS
-            -Wno-dev
-            -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-            -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-            -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=<INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}
-            -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE=<INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}
-            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-            -DSPZ_BUILD_TOOLS=OFF
-            -DBUILD_SHARED_LIBS=OFF)
+        SOURCE_DIR "${AK_SPZ_SOURCE_DIR}")
+    FetchContent_GetProperties(assetkit_spz_dep)
+    if(NOT assetkit_spz_dep_POPULATED)
+      FetchContent_Populate(assetkit_spz_dep)
+      add_subdirectory("${assetkit_spz_dep_SOURCE_DIR}"
+                       "${assetkit_spz_dep_BINARY_DIR}"
+                       EXCLUDE_FROM_ALL)
+    endif()
+    set(AK_SPZ_INCLUDE_DIR "${assetkit_spz_dep_SOURCE_DIR}/src/cc")
+    set(AK_SPZ_TARGET spz::spz)
   endif()
 
-  if(NOT AK_SPZ_INCLUDE_DIR OR NOT AK_SPZ_LIBRARY)
+  if(NOT AK_SPZ_INCLUDE_DIR OR (NOT AK_SPZ_LIBRARY AND NOT AK_SPZ_TARGET))
     message(WARNING
             "SPZ Gaussian-splat decoder requested but libspz was not found. "
             "Set AK_SPZ_ROOT, enable AK_FETCH_DEPS, or disable "
@@ -560,30 +558,34 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_SPZ_DECODER)
             ${PROJECT_SOURCE_DIR}/deps/cglm/include
             ${PROJECT_SOURCE_DIR}/deps/ds/include
             ${PROJECT_SOURCE_DIR}/deps/json/include)
-    # SPZ depends on zstd + zlib (for ngsp/zstd-compressed streams + the gzip
-     # codec). On macOS both ship with the SDK; elsewhere we expect system
-     # packages. find_package handles missing libraries gracefully.
-    find_package(ZLIB)
-    find_library(AK_SPZ_ZSTD_LIB
-                 NAMES zstd
-                 HINTS /opt/homebrew/lib /usr/local/lib /usr/lib)
-
     target_link_libraries(assetkit_spz
         PRIVATE
             ${PROJECT_NAME}
-            ds
-            ${AK_SPZ_LIBRARY})
+            ds)
 
-    if(ZLIB_FOUND)
-      target_link_libraries(assetkit_spz PRIVATE ZLIB::ZLIB)
-    endif()
-    if(AK_SPZ_ZSTD_LIB)
-      target_link_libraries(assetkit_spz PRIVATE ${AK_SPZ_ZSTD_LIB})
+    if(AK_SPZ_TARGET)
+      target_link_libraries(assetkit_spz PRIVATE ${AK_SPZ_TARGET})
     else()
-      message(WARNING
-              "libzstd not found — SPZ ngsp/zstd-compressed splat streams "
-              "will fail at runtime. Install via 'brew install zstd' on "
-              "macOS or your distro's package manager.")
+      # SPZ depends on zstd + zlib (for ngsp/zstd-compressed streams + the gzip
+      # codec). find_package handles missing libraries gracefully when using a
+      # prebuilt SPZ library.
+      find_package(ZLIB)
+      find_library(AK_SPZ_ZSTD_LIB
+                   NAMES zstd
+                   HINTS /opt/homebrew/lib /usr/local/lib /usr/lib)
+
+      target_link_libraries(assetkit_spz PRIVATE ${AK_SPZ_LIBRARY})
+      if(ZLIB_FOUND)
+        target_link_libraries(assetkit_spz PRIVATE ZLIB::ZLIB)
+      endif()
+      if(AK_SPZ_ZSTD_LIB)
+        target_link_libraries(assetkit_spz PRIVATE ${AK_SPZ_ZSTD_LIB})
+      else()
+        message(WARNING
+                "libzstd not found — SPZ ngsp/zstd-compressed splat streams "
+                "will fail at runtime. Install via 'brew install zstd' on "
+                "macOS or your distro's package manager.")
+      endif()
     endif()
     set_target_properties(assetkit_spz PROPERTIES
                           CXX_STANDARD 17
@@ -686,6 +688,9 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_KTX2_DECODER)
             ${PROJECT_SOURCE_DIR}/deps/cglm/include
             ${PROJECT_SOURCE_DIR}/deps/ds/include
             ${PROJECT_SOURCE_DIR}/deps/json/include)
+    target_compile_definitions(assetkit_ktx2
+        PRIVATE
+            KHRONOS_STATIC)
     target_link_libraries(assetkit_ktx2
         PRIVATE
             ${PROJECT_NAME}
