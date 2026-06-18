@@ -533,6 +533,11 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_SPZ_DECODER)
     set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "Suppress third-party deprecation warnings" FORCE)
     set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS ON CACHE BOOL "Suppress third-party developer warnings" FORCE)
 
+    # SPZ declares zlib through FetchContent with zlib.net as the only URL.
+    # Declare it first so CI can use the stable GitHub release mirror instead.
+    FetchContent_Declare(zlib
+        URL https://github.com/madler/zlib/releases/download/v1.3.2/zlib-1.3.2.tar.gz
+        URL_HASH SHA256=bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16)
     FetchContent_Declare(assetkit_spz_dep
         GIT_REPOSITORY https://github.com/nianticlabs/spz.git
         GIT_TAG main
