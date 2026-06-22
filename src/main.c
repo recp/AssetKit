@@ -23,6 +23,8 @@
 #include "type.h"
 #include "resc/resource.h"
 
+static bool ak__initialized = false;
+
 void
 AK_CONSTRUCTOR
 ak__init(void);
@@ -34,6 +36,11 @@ ak__cleanup(void);
 void
 AK_CONSTRUCTOR
 ak__init(void) {
+  if (ak__initialized)
+    return;
+
+  ak__initialized = true;
+
   ak_mem_init();
   ak_trash_init();
   ak_resc_init();
@@ -45,10 +52,15 @@ ak__init(void) {
 void
 AK_DESTRUCTOR
 ak__cleanup(void) {
+  if (!ak__initialized)
+    return;
+
   ak_profile_deinit();
   ak_sid_deinit();
   ak_type_deinit();
   ak_resc_deinit();
   ak_trash_deinit();
   ak_mem_deinit();
+
+  ak__initialized = false;
 }
