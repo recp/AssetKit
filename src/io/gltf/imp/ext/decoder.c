@@ -49,6 +49,32 @@ struct AkGLTFKTX2Lib {
   bool           tried;
 };
 
+static inline
+bool
+gltf_ext_meshoptReady(const AkGLTFMeshoptLib * __restrict mo) {
+  return mo && mo->decodeBuffer != NULL;
+}
+
+static inline
+bool
+gltf_ext_dracoReady(const AkGLTFDracoLib * __restrict dr) {
+  return dr && dr->decodePrimitive != NULL;
+}
+
+static inline
+bool
+gltf_ext_spzReady(const AkGLTFSPZLib * __restrict sp) {
+  return sp
+         && (sp->decoder.decodeBytes != NULL
+             || sp->decoder.decodePrimitive != NULL);
+}
+
+static inline
+bool
+gltf_ext_ktx2Ready(const AkGLTFKTX2Lib * __restrict kx) {
+  return kx && kx->decode != NULL;
+}
+
 static
 void*
 gltf_ext_openLib(AkOption      opt,
@@ -73,7 +99,7 @@ gltf_ext_meshopt(AkGLTFState * __restrict gst) {
   void             *lib;
 
   if (gst->meshopt)
-    return gst->meshopt->lib != NULL;
+    return gltf_ext_meshoptReady(gst->meshopt);
 
   mo = ak_calloc(NULL, sizeof(*mo));
   mo->tried = true;
@@ -104,7 +130,7 @@ gltf_ext_spz(AkGLTFState * __restrict gst) {
   void                            *lib;
 
   if (gst->spz)
-    return gst->spz->lib != NULL;
+    return gltf_ext_spzReady(gst->spz);
 
   sp        = ak_calloc(NULL, sizeof(*sp));
   sp->tried = true;
@@ -118,7 +144,7 @@ gltf_ext_spz(AkGLTFState * __restrict gst) {
   createFn = (AkGaussianSplatDecoderCreateFn)
               ak_dylib_sym(lib, "assetkit_gsplat_create");
   if (!createFn || createFn(&sp->decoder) != 0
-      || (!sp->decoder.decodeBytes && !sp->decoder.decodePrimitive)) {
+      || !gltf_ext_spzReady(sp)) {
     ak_dylib_close(lib);
     return false;
   }
@@ -134,7 +160,7 @@ gltf_ext_ktx2(AkGLTFState * __restrict gst) {
   void          *lib;
 
   if (gst->ktx2)
-    return gst->ktx2->lib != NULL;
+    return gltf_ext_ktx2Ready(gst->ktx2);
 
   kx        = ak_calloc(NULL, sizeof(*kx));
   kx->tried = true;
@@ -162,7 +188,7 @@ gltf_ext_draco(AkGLTFState * __restrict gst) {
   void           *lib;
 
   if (gst->draco)
-    return gst->draco->lib != NULL;
+    return gltf_ext_dracoReady(gst->draco);
 
   dr = ak_calloc(NULL, sizeof(*dr));
   dr->tried = true;

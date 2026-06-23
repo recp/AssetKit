@@ -415,6 +415,23 @@ ak_export(AkDoc      * __restrict doc,
           const char * __restrict outDir,
           AkFileType              fileType);
 
+/* xxport to an exact output file path. Parent directories are created when
+   needed. Use ak_export() when the caller wants AssetKit to derive the file
+   name from document metadata. */
+AK_EXPORT
+AkResult
+ak_exportFile(AkDoc      * __restrict doc,
+              const char * __restrict outPath,
+              AkFileType              fileType);
+
+/* convenience load -> exact export helper. outputType may be AUTO to infer
+   the target format from outputPath. */
+AK_EXPORT
+AkResult
+ak_convert(const char * __restrict inputPath,
+           const char * __restrict outputPath,
+           AkFileType              outputType);
+
 AK_EXPORT
 void *
 ak_getId(void * __restrict objptr);

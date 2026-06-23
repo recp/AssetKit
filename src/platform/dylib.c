@@ -109,6 +109,9 @@ AK_HIDE
 void*
 ak_dylib_openName(const char * __restrict name) {
   char path[256];
+#if defined(__APPLE__)
+  char rpath[256];
+#endif
   void *lib;
   int  len;
 
@@ -128,6 +131,13 @@ ak_dylib_openName(const char * __restrict name) {
 
   if ((lib = ak_dylib_openSibling(path)))
     return lib;
+
+#if defined(__APPLE__)
+  len = snprintf(rpath, sizeof(rpath), "@rpath/lib%s.dylib", name);
+  if (len > 0 && (size_t)len < sizeof(rpath)
+      && (lib = ak_dylib_open(rpath)))
+    return lib;
+#endif
 
   return ak_dylib_open(path);
 }

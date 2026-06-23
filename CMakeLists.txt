@@ -60,6 +60,8 @@ option(AK_STATIC_INTERNAL_DEPS "Build internal AssetKit dependencies as static l
 option(AK_ENABLE_LTO "Enable link-time optimization for release builds" OFF)
 option(AK_ENABLE_FAST_MATH "Enable unsafe fast-math optimizations for release builds" OFF)
 option(AK_ENABLE_SECTION_GC "Enable function/data sections and linker dead-code stripping for optimized builds" ON)
+option(AK_BUILD_CLI "Build AssetKit command line tool" ON)
+option(AK_BUILD_CLI_STATIC "Link the AssetKit CLI against a static AssetKit core" OFF)
 option(AK_BUILD_TOOLS "Build manual AssetKit importer benchmark tools" OFF)
 option(AK_BUILD_SAMPLES "Build AssetKit sample programs" OFF)
 set(AK_DRACO_ROOT "" CACHE PATH "Optional Draco install/source root")
@@ -103,10 +105,16 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 
+if(AK_BUILD_CLI AND AK_BUILD_CLI_STATIC)
+  set(AK_STATIC_INTERNAL_DEPS ON CACHE BOOL "Build internal AssetKit dependencies as static libraries" FORCE)
+endif()
+
 if(NOT AK_STATIC AND AK_SHARED)
   set(AK_BUILD SHARED)
+  set(AK_IS_SHARED_TARGET ON)
 else(AK_STATIC)
   set(AK_BUILD STATIC)
+  set(AK_IS_SHARED_TARGET OFF)
 endif()
 
 if(AK_USE_C99)
@@ -203,7 +211,7 @@ endfunction()
 function(ak_target_c_options target)
   ak_target_common_options(${target})
   if(MSVC)
-    target_compile_options(${target} PRIVATE /TC)
+    target_compile_options(${target} PRIVATE $<$<COMPILE_LANGUAGE:C>:/TC>)
   endif()
 endfunction()
 
@@ -216,6 +224,7 @@ include(GNUInstallDirs)
 # Target Start
 add_library(${PROJECT_NAME} ${AK_BUILD} "")
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+set(AK_CORE_TARGETS ${PROJECT_NAME})
 ak_target_c_options(${PROJECT_NAME})
 ak_target_link_options(${PROJECT_NAME})
 target_compile_definitions(${PROJECT_NAME} PRIVATE AK_INTERNAL_BUILD)
@@ -223,11 +232,13 @@ ak_target_exporter_definitions(${PROJECT_NAME} PRIVATE)
 
 if(APPLE)
   set(AK_INSTALL_RPATH "@loader_path")
+  set(AK_EXECUTABLE_INSTALL_RPATH "@loader_path/../${CMAKE_INSTALL_LIBDIR}")
 elseif(UNIX)
   set(AK_INSTALL_RPATH "\$ORIGIN")
+  set(AK_EXECUTABLE_INSTALL_RPATH "\$ORIGIN/../${CMAKE_INSTALL_LIBDIR}")
 endif()
 
-if(AK_SHARED)
+if(AK_IS_SHARED_TARGET)
   target_compile_definitions(${PROJECT_NAME} PRIVATE AK_EXPORTS)
   if(MSVC)
     target_compile_definitions(${PROJECT_NAME}
@@ -249,6 +260,28 @@ if(AK_INSTALL_RPATH)
 endif()
 
 add_subdirectory(src)
+
+set(AK_CLI_LINK_TARGET ${PROJECT_NAME})
+set(AK_CLI_USES_STATIC_ASSETKIT OFF)
+if(AK_BUILD_CLI AND AK_BUILD_CLI_STATIC)
+  set(AK_CLI_USES_STATIC_ASSETKIT ON)
+  if(AK_IS_SHARED_TARGET)
+    get_target_property(AK_CORE_SOURCES ${PROJECT_NAME} SOURCES)
+    add_library(assetkit_cli_core STATIC ${AK_CORE_SOURCES})
+    list(APPEND AK_CORE_TARGETS assetkit_cli_core)
+    ak_target_c_options(assetkit_cli_core)
+    ak_target_link_options(assetkit_cli_core)
+    target_compile_definitions(assetkit_cli_core
+        PRIVATE
+            AK_INTERNAL_BUILD
+        PUBLIC
+            AK_STATIC)
+    ak_target_exporter_definitions(assetkit_cli_core PRIVATE)
+    set_target_properties(assetkit_cli_core PROPERTIES
+                          POSITION_INDEPENDENT_CODE ON)
+    set(AK_CLI_LINK_TARGET assetkit_cli_core)
+  endif()
+endif()
 
 # Dependencies && Submodules
 
@@ -279,27 +312,31 @@ add_subdirectory(deps/ds)
 if(AK_STATIC_INTERNAL_DEPS)
   set_target_properties(ds PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
-add_dependencies(${PROJECT_NAME} ds)
+foreach(AK_CORE_TARGET IN LISTS AK_CORE_TARGETS)
+  add_dependencies(${AK_CORE_TARGET} ds)
+endforeach()
 
 # set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/deps" ${CMAKE_MODULE_PATH})
 # find_package(ds REQUIRED)
 # target_link_libraries(${PROJECT_NAME} ds::ds)
 
 # Include Dirs
-target_include_directories(${PROJECT_NAME}
-    PUBLIC 
-        $<INSTALL_INTERFACE:include>    
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
+foreach(AK_CORE_TARGET IN LISTS AK_CORE_TARGETS)
+  target_include_directories(${AK_CORE_TARGET}
+      PUBLIC
+          $<INSTALL_INTERFACE:include>
+          $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+      PRIVATE
+          ${CMAKE_CURRENT_SOURCE_DIR}/src
 
-        ${PROJECT_SOURCE_DIR}/deps/cglm/include
-        ${PROJECT_SOURCE_DIR}/deps/ds/include
-        ${PROJECT_SOURCE_DIR}/deps/json/include
-        ${PROJECT_SOURCE_DIR}/deps/xml/include
-)
+          ${PROJECT_SOURCE_DIR}/deps/cglm/include
+          ${PROJECT_SOURCE_DIR}/deps/ds/include
+          ${PROJECT_SOURCE_DIR}/deps/json/include
+          ${PROJECT_SOURCE_DIR}/deps/xml/include
+  )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE ds ${CMAKE_DL_LIBS})
+  target_link_libraries(${AK_CORE_TARGET} PRIVATE ds ${CMAKE_DL_LIBS})
+endforeach()
 
 if(AK_BUILD_DECODER_SHIMS
    AND (AK_BUILD_GLTF_DRACO_DECODER OR AK_BUILD_GLTF_MESHOPT_DECODER
@@ -781,6 +818,26 @@ if(AK_BUILD_TOOLS)
   ak_target_c_options(assetkit_import_stats)
   ak_target_link_options(assetkit_import_stats)
   target_link_libraries(assetkit_import_stats PRIVATE ${PROJECT_NAME})
+endif()
+
+if(AK_BUILD_CLI)
+  add_executable(assetkit_cli cli/main.c)
+  ak_target_c_options(assetkit_cli)
+  ak_target_link_options(assetkit_cli)
+  ak_target_exporter_definitions(assetkit_cli PRIVATE)
+  if(AK_CLI_USES_STATIC_ASSETKIT)
+    target_compile_definitions(assetkit_cli PRIVATE AK_CLI_STATIC_ASSETKIT=1 AK_STATIC)
+  else()
+    target_compile_definitions(assetkit_cli PRIVATE AK_CLI_STATIC_ASSETKIT=0)
+  endif()
+  target_link_libraries(assetkit_cli PRIVATE ${AK_CLI_LINK_TARGET})
+  set_target_properties(assetkit_cli PROPERTIES OUTPUT_NAME assetkit)
+  if(AK_EXECUTABLE_INSTALL_RPATH)
+    set_target_properties(assetkit_cli PROPERTIES
+                          INSTALL_RPATH "${AK_EXECUTABLE_INSTALL_RPATH}")
+  endif()
+  install(TARGETS assetkit_cli
+          RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 
 if(AK_BUILD_SAMPLES)

@@ -110,6 +110,130 @@ typedef struct {
 } fexporter_t;
 
 static
+AkFileType
+ak_export_file_type_from_path(const char * __restrict path) {
+  const char *base;
+  const char *slash;
+  const char *backslash;
+  const char *ext;
+
+  if (!path)
+    return AK_FILE_TYPE_AUTO;
+
+  slash     = strrchr(path, '/');
+  backslash = strrchr(path, '\\');
+  if (slash && backslash)
+    base = slash > backslash ? slash + 1 : backslash + 1;
+  else if (slash)
+    base = slash + 1;
+  else if (backslash)
+    base = backslash + 1;
+  else
+    base = path;
+
+  ext = strrchr(base, '.');
+  if (!ext || ext == base || ext[1] == '\0')
+    return AK_FILE_TYPE_AUTO;
+  ext++;
+
+  if (ak_ascii_streq_ci(ext, "dae") || ak_ascii_streq_ci(ext, "collada"))
+    return AK_FILE_TYPE_DAE;
+  if (ak_ascii_streq_ci(ext, "gltf"))
+    return AK_FILE_TYPE_GLTF;
+  if (ak_ascii_streq_ci(ext, "glb"))
+    return AK_FILE_TYPE_GLB;
+  if (ak_ascii_streq_ci(ext, "obj"))
+    return AK_FILE_TYPE_OBJ;
+  if (ak_ascii_streq_ci(ext, "stl"))
+    return AK_FILE_TYPE_STL;
+  if (ak_ascii_streq_ci(ext, "ply"))
+    return AK_FILE_TYPE_PLY;
+  if (ak_ascii_streq_ci(ext, "3mf"))
+    return AK_FILE_TYPE_3MF;
+
+  return AK_FILE_TYPE_AUTO;
+}
+
+static
+fexporter_t
+ak_exporter_for_type(AkFileType fileType) {
+  fexporter_t fexporter;
+
+  fexporter.fexporter_fn = NULL;
+  fexporter.fileExt      = NULL;
+
+  if (fileType == AK_FILE_TYPE_AUTO) {
+#if AK_BUILD_GLTF_EXPORTER
+    fexporter.fexporter_fn = gltf_export;
+    fexporter.fileExt      = "gltf";
+#elif AK_BUILD_DAE_EXPORTER
+    fexporter.fexporter_fn = dae_export;
+    fexporter.fileExt      = "dae";
+#elif AK_BUILD_OBJ_EXPORTER
+    fexporter.fexporter_fn = wobj_export;
+    fexporter.fileExt      = "obj";
+#elif AK_BUILD_3MF_EXPORTER
+    fexporter.fexporter_fn = ak_3mf_export;
+    fexporter.fileExt      = "3mf";
+#elif AK_BUILD_STL_EXPORTER
+    fexporter.fexporter_fn = stl_export;
+    fexporter.fileExt      = "stl";
+#elif AK_BUILD_PLY_EXPORTER
+    fexporter.fexporter_fn = ply_export;
+    fexporter.fileExt      = "ply";
+#endif
+    return fexporter;
+  }
+
+  switch (fileType) {
+#if AK_BUILD_DAE_EXPORTER
+    case AK_FILE_TYPE_COLLADA:
+      fexporter.fexporter_fn = dae_export;
+      fexporter.fileExt      = "dae";
+      break;
+#endif
+#if AK_BUILD_GLTF_EXPORTER
+    case AK_FILE_TYPE_GLTF:
+      fexporter.fexporter_fn = gltf_export;
+      fexporter.fileExt      = "gltf";
+      break;
+    case AK_FILE_TYPE_GLB:
+      fexporter.fexporter_fn = gltf_export_glb;
+      fexporter.fileExt      = "glb";
+      break;
+#endif
+#if AK_BUILD_OBJ_EXPORTER
+    case AK_FILE_TYPE_WAVEFRONT:
+      fexporter.fexporter_fn = wobj_export;
+      fexporter.fileExt      = "obj";
+      break;
+#endif
+#if AK_BUILD_STL_EXPORTER
+    case AK_FILE_TYPE_STL:
+      fexporter.fexporter_fn = stl_export;
+      fexporter.fileExt      = "stl";
+      break;
+#endif
+#if AK_BUILD_PLY_EXPORTER
+    case AK_FILE_TYPE_PLY:
+      fexporter.fexporter_fn = ply_export;
+      fexporter.fileExt      = "ply";
+      break;
+#endif
+#if AK_BUILD_3MF_EXPORTER
+    case AK_FILE_TYPE_3MF:
+      fexporter.fexporter_fn = ak_3mf_export;
+      fexporter.fileExt      = "3mf";
+      break;
+#endif
+    default:
+      break;
+  }
+
+  return fexporter;
+}
+
+static
 int
 ak_export_mkdir(const char * __restrict path) {
 #ifdef _WIN32
@@ -367,6 +491,49 @@ ak_export_output_path(const char * __restrict dir,
 
   return path;
 }
+
+static
+bool
+ak_export_prepare_file_dir(const char * __restrict outPath) {
+  const char *slash;
+  const char *backslash;
+  const char *sep;
+  char       *dir;
+  size_t      len;
+  bool        ok;
+
+  if (!outPath || !*outPath)
+    return false;
+
+  slash     = strrchr(outPath, '/');
+  backslash = strrchr(outPath, '\\');
+  if (slash && backslash)
+    sep = slash > backslash ? slash : backslash;
+  else
+    sep = slash ? slash : backslash;
+
+  if (!sep)
+    return true;
+
+  len = (size_t)(sep - outPath);
+  if (len == 0)
+    len = 1u;
+#ifdef _WIN32
+  if (len == 2u && outPath[1] == ':')
+    len = 3u;
+#endif
+
+  dir = malloc(len + 1u);
+  if (!dir)
+    return false;
+
+  memcpy(dir, outPath, len);
+  dir[len] = '\0';
+  ok = ak_export_prepare_dir(dir);
+  free(dir);
+
+  return ok;
+}
 #endif
 
 AK_EXPORT
@@ -475,76 +642,7 @@ ak_export(AkDoc * __restrict doc, const char * __restrict outDir,
   if (!ak_export_prepare_dir(outDir))
     return AK_EBADF;
 
-  fexporter.fexporter_fn = NULL;
-  fexporter.fileExt      = NULL;
-
-  if (fileType == AK_FILE_TYPE_AUTO) {
-#if AK_BUILD_GLTF_EXPORTER
-    fexporter.fexporter_fn = gltf_export;
-    fexporter.fileExt      = "gltf";
-#elif AK_BUILD_DAE_EXPORTER
-    fexporter.fexporter_fn = dae_export;
-    fexporter.fileExt      = "dae";
-#elif AK_BUILD_OBJ_EXPORTER
-    fexporter.fexporter_fn = wobj_export;
-    fexporter.fileExt      = "obj";
-#elif AK_BUILD_3MF_EXPORTER
-    fexporter.fexporter_fn = ak_3mf_export;
-    fexporter.fileExt      = "3mf";
-#elif AK_BUILD_STL_EXPORTER
-    fexporter.fexporter_fn = stl_export;
-    fexporter.fileExt      = "stl";
-#elif AK_BUILD_PLY_EXPORTER
-    fexporter.fexporter_fn = ply_export;
-    fexporter.fileExt      = "ply";
-#endif
-  } else {
-    switch (fileType) {
-#if AK_BUILD_DAE_EXPORTER
-      case AK_FILE_TYPE_COLLADA:
-        fexporter.fexporter_fn = dae_export;
-        fexporter.fileExt      = "dae";
-        break;
-#endif
-#if AK_BUILD_GLTF_EXPORTER
-      case AK_FILE_TYPE_GLTF:
-        fexporter.fexporter_fn = gltf_export;
-        fexporter.fileExt      = "gltf";
-        break;
-      case AK_FILE_TYPE_GLB:
-        fexporter.fexporter_fn = gltf_export_glb;
-        fexporter.fileExt      = "glb";
-        break;
-#endif
-#if AK_BUILD_OBJ_EXPORTER
-      case AK_FILE_TYPE_WAVEFRONT:
-        fexporter.fexporter_fn = wobj_export;
-        fexporter.fileExt      = "obj";
-        break;
-#endif
-#if AK_BUILD_STL_EXPORTER
-      case AK_FILE_TYPE_STL:
-        fexporter.fexporter_fn = stl_export;
-        fexporter.fileExt      = "stl";
-        break;
-#endif
-#if AK_BUILD_PLY_EXPORTER
-      case AK_FILE_TYPE_PLY:
-        fexporter.fexporter_fn = ply_export;
-        fexporter.fileExt      = "ply";
-        break;
-#endif
-#if AK_BUILD_3MF_EXPORTER
-      case AK_FILE_TYPE_3MF:
-        fexporter.fexporter_fn = ak_3mf_export;
-        fexporter.fileExt      = "3mf";
-        break;
-#endif
-      default:
-        break;
-    }
-  }
-
+  fexporter = ak_exporter_for_type(fileType);
   if (!fexporter.fexporter_fn)
     return AK_ERR;
 
@@ -568,4 +666,56 @@ ak_export(AkDoc * __restrict doc, const char * __restrict outDir,
 
   return AK_ERR;
 #endif
+}
+
+AK_EXPORT
+AkResult
+ak_exportFile(AkDoc * __restrict doc, const char * __restrict outPath,
+              AkFileType fileType) {
+#if AK_BUILD_ANY_EXPORTER
+  fexporter_t fexporter;
+
+  if (!doc || !outPath || !*outPath)
+    return AK_ERR;
+
+  if (fileType == AK_FILE_TYPE_AUTO)
+    fileType = ak_export_file_type_from_path(outPath);
+
+  fexporter = ak_exporter_for_type(fileType);
+  if (!fexporter.fexporter_fn)
+    return AK_ERR;
+
+  if (!ak_export_prepare_file_dir(outPath))
+    return AK_EBADF;
+
+  return fexporter.fexporter_fn(doc, outPath);
+#else
+  (void)doc;
+  (void)outPath;
+  (void)fileType;
+
+  return AK_ERR;
+#endif
+}
+
+AK_EXPORT
+AkResult
+ak_convert(const char * __restrict inputPath,
+           const char * __restrict outputPath,
+           AkFileType              outputType) {
+  AkDoc   *doc;
+  AkResult result;
+
+  if (!inputPath || !outputPath)
+    return AK_ERR;
+
+  doc = NULL;
+  result = ak_load(&doc, inputPath, AK_FILE_TYPE_AUTO);
+  if (result != AK_OK || !doc)
+    return result == AK_OK ? AK_ERR : result;
+
+  result = ak_exportFile(doc, outputPath, outputType);
+  ak_free(doc);
+
+  return result;
 }
