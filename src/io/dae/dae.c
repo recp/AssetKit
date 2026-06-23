@@ -80,7 +80,7 @@ dae_doc(AkDoc     ** __restrict dest,
         const char * __restrict filepath) {
   AkHeap            *heap;
   AkDoc             *doc;
-  const xml_doc_t   *xdoc;
+  xml_doc_t         *xdoc;
   xml_t             *xml, *assetEl;
   AkAssetInf        *inf;
   xml_attr_t        *versionAttr;
@@ -118,7 +118,7 @@ dae_doc(AkDoc     ** __restrict dest,
   xdoc = xml_parse(xmlInput, XML_PREFIXES | XML_READONLY);
   if (!xdoc || !(xml = xdoc->root)) {
     if (xdoc)
-      free((void *)xdoc);
+      xml_free(xdoc);
     if (xmlUtf8)
       free(xmlUtf8);
     ak_releasefile(xmlString, xmlSize);
@@ -292,7 +292,7 @@ dae_doc(AkDoc     ** __restrict dest,
   rb_destroy(dstVal.meshTargets);
 
   if (xdoc)
-    free((void *)xdoc);
+    xml_free(xdoc);
   
   if (xmlString)
     ak_releasefile(xmlString, xmlSize);
