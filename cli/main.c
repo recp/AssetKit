@@ -141,9 +141,9 @@ ak_cli_print_usage(FILE *out) {
 static void
 ak_cli_print_version(FILE *out) {
   fprintf(out,
-          " AssetKit %s\n\n"
-          " Home:   " AK_CLI_HOME "\n"
-          " Issues: " AK_CLI_ISSUES "\n",
+          "AssetKit %s\n\n"
+          "Home:   " AK_CLI_HOME "\n"
+          "Issues: " AK_CLI_ISSUES "\n",
           AK_VERSION_STRING);
 }
 
