@@ -169,6 +169,7 @@ ak_heap_allocator(AkHeap * __restrict heap) {
 AK_EXPORT
 AkHeap *
 ak_heap_default(void) {
+  ak__init();
   return &ak__heap;
 }
 
@@ -202,6 +203,8 @@ ak_heap_new(AkHeapAllocator  *allocator,
             AkHeapSrchPrintFn print) {
   AkHeapAllocator *alc;
   AkHeap          *heap;
+
+  ak__init();
 
   alc = allocator ? allocator : &ak__allocator;
 

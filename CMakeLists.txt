@@ -354,6 +354,9 @@ foreach(AK_CORE_TARGET IN LISTS AK_CORE_TARGETS)
   )
 
   target_link_libraries(${AK_CORE_TARGET} PRIVATE ds ${CMAKE_DL_LIBS})
+  if(UNIX AND NOT APPLE)
+    target_link_libraries(${AK_CORE_TARGET} PUBLIC m)
+  endif()
 endforeach()
 
 if(AK_BUILD_DECODER_SHIMS

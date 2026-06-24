@@ -17,14 +17,6 @@
 #include "../config.h"
 #include "../mem/common.h"
 
-void
-AK_CONSTRUCTOR
-ak__init();
-
-void
-AK_DESTRUCTOR
-ak__cleanup();
-
 BOOL APIENTRY DllMain(HMODULE hModule,
                       DWORD   ul_reason_for_call,
                       LPVOID  lpReserved);

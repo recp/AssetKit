@@ -25,14 +25,7 @@
 
 static bool ak__initialized = false;
 
-void
-AK_CONSTRUCTOR
-ak__init(void);
-
-void
-AK_DESTRUCTOR
-ak__cleanup(void);
-
+AK_HIDE
 void
 AK_CONSTRUCTOR
 ak__init(void) {
@@ -49,6 +42,7 @@ ak__init(void) {
   ak_profile_init();
 }
 
+AK_HIDE
 void
 AK_DESTRUCTOR
 ak__cleanup(void) {
