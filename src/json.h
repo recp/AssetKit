@@ -144,9 +144,11 @@ ak_json_parse_float(const char * __restrict p,
 AK_INLINE
 float
 ak_json_float(const json_t * __restrict object, float defaultValue) {
+  const char *begin;
   const char *end;
 
-  return ak_json_parse_float(json__num_begin(object, &end), end, defaultValue);
+  begin = json__num_begin(object, &end);
+  return ak_json_parse_float(begin, end, defaultValue);
 }
 
 #define json_float ak_json_float
