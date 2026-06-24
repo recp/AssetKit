@@ -56,6 +56,7 @@ option(AK_BUILD_GLTF_MESHOPT_DECODER "Build optional glTF meshoptimizer decoder 
 option(AK_BUILD_GLTF_SPZ_DECODER "Build optional glTF Gaussian splatting (SPZ) decoder shim" ON)
 option(AK_BUILD_GLTF_KTX2_DECODER "Build optional glTF KHR_texture_basisu (KTX2/BasisU) decoder shim" ON)
 option(AK_FETCH_DEPS "Fetch optional decoder dependencies into AK_DEPS_ROOT when missing" ON)
+option(AK_USE_SYSTEM_CGLM "Use system cglm instead of bundled deps/cglm" OFF)
 option(AK_STATIC_INTERNAL_DEPS "Build internal AssetKit dependencies as static libraries" OFF)
 option(AK_ENABLE_LTO "Enable link-time optimization for release builds" OFF)
 option(AK_ENABLE_FAST_MATH "Enable unsafe fast-math optimizations for release builds" OFF)
@@ -68,6 +69,7 @@ set(AK_DRACO_ROOT "" CACHE PATH "Optional Draco install/source root")
 set(AK_MESHOPT_ROOT "" CACHE PATH "Optional meshoptimizer source root")
 set(AK_SPZ_ROOT "" CACHE PATH "Optional SPZ install/source root")
 set(AK_KTX2_ROOT "" CACHE PATH "Optional KTX-Software install/source root")
+set(AK_CGLM_ROOT "" CACHE PATH "Optional cglm install root")
 set(AK_DEPS_ROOT "${PROJECT_SOURCE_DIR}/deps" CACHE PATH "AssetKit dependency checkout root")
 
 set(AK_WITH_DAE_EXPORTER OFF)
@@ -300,7 +302,23 @@ if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
     endif()
 endif()
 
-if(NOT EXISTS "${PROJECT_SOURCE_DIR}/deps/cglm/CMakeLists.txt")
+if(AK_USE_SYSTEM_CGLM)
+  find_path(AK_CGLM_INCLUDE_DIR
+            NAMES cglm/cglm.h
+            HINTS ${AK_CGLM_ROOT}
+                  ${AK_CGLM_ROOT}/include
+            PATH_SUFFIXES include)
+  if(NOT AK_CGLM_INCLUDE_DIR)
+    message(FATAL_ERROR
+            "System cglm requested but cglm/cglm.h was not found. "
+            "Set AK_CGLM_ROOT or disable AK_USE_SYSTEM_CGLM.")
+  endif()
+else()
+  set(AK_CGLM_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/deps/cglm/include")
+endif()
+
+if(NOT AK_USE_SYSTEM_CGLM
+   AND NOT EXISTS "${PROJECT_SOURCE_DIR}/deps/cglm/CMakeLists.txt")
     message(FATAL_ERROR "The submodules were not downloaded! GIT_SUBMODULE was turned off or failed. Please update submodules and try again.")
 endif()
 
@@ -329,10 +347,10 @@ foreach(AK_CORE_TARGET IN LISTS AK_CORE_TARGETS)
       PRIVATE
           ${CMAKE_CURRENT_SOURCE_DIR}/src
 
-          ${PROJECT_SOURCE_DIR}/deps/cglm/include
           ${PROJECT_SOURCE_DIR}/deps/ds/include
           ${PROJECT_SOURCE_DIR}/deps/json/include
           ${PROJECT_SOURCE_DIR}/deps/xml/include
+          ${AK_CGLM_INCLUDE_DIR}
   )
 
   target_link_libraries(${AK_CORE_TARGET} PRIVATE ds ${CMAKE_DL_LIBS})
@@ -432,10 +450,10 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_DRACO_DECODER)
       PRIVATE
           ${CMAKE_CURRENT_SOURCE_DIR}/include
           ${CMAKE_CURRENT_SOURCE_DIR}/src
-          ${PROJECT_SOURCE_DIR}/deps/cglm/include
           ${PROJECT_SOURCE_DIR}/deps/ds/include
           ${PROJECT_SOURCE_DIR}/deps/json/include
-          ${PROJECT_SOURCE_DIR}/deps/xml/include)
+          ${PROJECT_SOURCE_DIR}/deps/xml/include
+          ${AK_CGLM_INCLUDE_DIR})
   target_link_libraries(assetkit_draco
       PRIVATE
           ${PROJECT_NAME}
@@ -559,7 +577,7 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_SPZ_DECODER)
                PATH_SUFFIXES lib
                NO_DEFAULT_PATH)
 
-  if(AK_STATIC_INTERNAL_DEPS)
+  if(AK_STATIC_INTERNAL_DEPS AND NOT AK_SPZ_ROOT)
     set(AK_SPZ_LIBRARY "")
   endif()
 
@@ -636,9 +654,9 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_SPZ_DECODER)
         PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/include
             ${CMAKE_CURRENT_SOURCE_DIR}/src
-            ${PROJECT_SOURCE_DIR}/deps/cglm/include
             ${PROJECT_SOURCE_DIR}/deps/ds/include
-            ${PROJECT_SOURCE_DIR}/deps/json/include)
+            ${PROJECT_SOURCE_DIR}/deps/json/include
+            ${AK_CGLM_INCLUDE_DIR})
     target_link_libraries(assetkit_spz
         PRIVATE
             ${PROJECT_NAME}
@@ -772,9 +790,9 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_KTX2_DECODER)
         PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/include
             ${CMAKE_CURRENT_SOURCE_DIR}/src
-            ${PROJECT_SOURCE_DIR}/deps/cglm/include
             ${PROJECT_SOURCE_DIR}/deps/ds/include
-            ${PROJECT_SOURCE_DIR}/deps/json/include)
+            ${PROJECT_SOURCE_DIR}/deps/json/include
+            ${AK_CGLM_INCLUDE_DIR})
     target_compile_definitions(assetkit_ktx2
         PRIVATE
             KHRONOS_STATIC)
