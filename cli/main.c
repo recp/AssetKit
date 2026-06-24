@@ -32,6 +32,9 @@
 #  define AK_CLI_STATIC_ASSETKIT 0
 #endif
 
+#define AK_CLI_HOME   "https://github.com/recp/assetkit"
+#define AK_CLI_ISSUES "https://github.com/recp/assetkit/issues"
+
 #if AK_CLI_STATIC_ASSETKIT
 void ak__init(void);
 void ak__cleanup(void);
@@ -104,7 +107,13 @@ ak_cli_arg_value(const char *arg, const char *name) {
 static void
 ak_cli_print_usage(FILE *out) {
   fprintf(out,
-          "assetkit %s\n"
+          "AssetKit %s\n"
+          "\n"
+          "Fast 3D asset inspection and conversion tool.\n"
+          "Reads and writes scene, mesh, material, animation and print formats.\n"
+          "\n"
+          "Home:   " AK_CLI_HOME "\n"
+          "Issues: " AK_CLI_ISSUES "\n"
           "\n"
           "Usage:\n"
           "  assetkit --convert <input> <output> [options]\n"
@@ -131,7 +140,11 @@ ak_cli_print_usage(FILE *out) {
 
 static void
 ak_cli_print_version(FILE *out) {
-  fprintf(out, "assetkit %s\n", AK_VERSION_STRING);
+  fprintf(out,
+          " AssetKit %s\n\n"
+          " Home:   " AK_CLI_HOME "\n"
+          " Issues: " AK_CLI_ISSUES "\n",
+          AK_VERSION_STRING);
 }
 
 static const char*
