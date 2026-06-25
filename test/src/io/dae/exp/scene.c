@@ -16,6 +16,8 @@
 
 #include "../../../test_export_common.h"
 
+#include <ak/version.h>
+
 TEST_IMPL(dae_export_instance_node_reuse_smoke) {
   AkHeap         *heap;
   AkDoc          *doc;
@@ -416,7 +418,7 @@ TEST_IMPL(dae_export_asset_metadata_smoke) {
 
   ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_DAE) == AK_OK);
   ASSERT(ak_test_file_contains(daePath,
-                               "<authoring_tool>AssetKit v0.6.1</authoring_tool>"));
+                               "<authoring_tool>" AK_AUTHORING_TOOL "</authoring_tool>"));
   ASSERT(ak_test_file_contains(daePath,
                                "<unit name=\"centimeter\" meter=\"0.01\"/>"));
   ASSERT(ak_test_file_contains(daePath, "<up_axis>Z_UP</up_axis>"));
