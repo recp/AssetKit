@@ -34,16 +34,16 @@ TEST_IMPL(dae_export_animation_roundtrip) {
   if (!tmpBase || !tmpBase[0])
     tmpBase = "/tmp";
 
-  snprintf(dirTemplate,
-           sizeof(dirTemplate),
-           "%s/assetkit-dae-animation-XXXXXX",
-           tmpBase);
+  ASSERT(ak_test_path_join(dirTemplate,
+                           sizeof(dirTemplate),
+                           tmpBase,
+                           "assetkit-dae-animation-XXXXXX"));
   tmpdir = mkdtemp(dirTemplate);
   ASSERT(tmpdir != NULL);
 
-  snprintf(daePath, sizeof(daePath), "%s/anim.dae", tmpdir);
-  snprintf(outDir, sizeof(outDir), "%s/out", tmpdir);
-  snprintf(outDae, sizeof(outDae), "%s/anim.dae", outDir);
+  ASSERT(ak_test_path_join(daePath, sizeof(daePath), tmpdir, "anim.dae"));
+  ASSERT(ak_test_path_join(outDir, sizeof(outDir), tmpdir, "out"));
+  ASSERT(ak_test_path_join(outDae, sizeof(outDae), outDir, "anim.dae"));
 
   ASSERT(ak_test_write_dae_animation_minimal(daePath));
   ASSERT(ak_load(&doc, daePath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
@@ -92,16 +92,16 @@ TEST_IMPL(dae_export_animation_vec3_interpolation_roundtrip) {
   if (!tmpBase || !tmpBase[0])
     tmpBase = "/tmp";
 
-  snprintf(dirTemplate,
-           sizeof(dirTemplate),
-           "%s/assetkit-dae-animation-vec3-XXXXXX",
-           tmpBase);
+  ASSERT(ak_test_path_join(dirTemplate,
+                           sizeof(dirTemplate),
+                           tmpBase,
+                           "assetkit-dae-animation-vec3-XXXXXX"));
   tmpdir = mkdtemp(dirTemplate);
   ASSERT(tmpdir != NULL);
 
-  snprintf(daePath, sizeof(daePath), "%s/anim.dae", tmpdir);
-  snprintf(outDir, sizeof(outDir), "%s/out", tmpdir);
-  snprintf(outDae, sizeof(outDae), "%s/anim.dae", outDir);
+  ASSERT(ak_test_path_join(daePath, sizeof(daePath), tmpdir, "anim.dae"));
+  ASSERT(ak_test_path_join(outDir, sizeof(outDir), tmpdir, "out"));
+  ASSERT(ak_test_path_join(outDae, sizeof(outDae), outDir, "anim.dae"));
 
   ASSERT(ak_test_write_dae_animation_vec3_interp(daePath));
   ASSERT(ak_load(&doc, daePath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
@@ -407,16 +407,16 @@ TEST_IMPL(dae_export_skin_controller_roundtrip) {
   if (!tmpBase || !tmpBase[0])
     tmpBase = "/tmp";
 
-  snprintf(dirTemplate,
-           sizeof(dirTemplate),
-           "%s/assetkit-dae-skin-XXXXXX",
-           tmpBase);
+  ASSERT(ak_test_path_join(dirTemplate,
+                           sizeof(dirTemplate),
+                           tmpBase,
+                           "assetkit-dae-skin-XXXXXX"));
   tmpdir = mkdtemp(dirTemplate);
   ASSERT(tmpdir != NULL);
 
-  snprintf(daePath, sizeof(daePath), "%s/skin.dae", tmpdir);
-  snprintf(outDir, sizeof(outDir), "%s/out", tmpdir);
-  snprintf(outDae, sizeof(outDae), "%s/skin.dae", outDir);
+  ASSERT(ak_test_path_join(daePath, sizeof(daePath), tmpdir, "skin.dae"));
+  ASSERT(ak_test_path_join(outDir, sizeof(outDir), tmpdir, "out"));
+  ASSERT(ak_test_path_join(outDae, sizeof(outDae), outDir, "skin.dae"));
 
   ASSERT(ak_test_write_dae_skin_minimal(daePath));
   ASSERT(ak_load(&doc, daePath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
@@ -457,16 +457,16 @@ TEST_IMPL(dae_export_multi_primitive_skin_roundtrip) {
   if (!tmpBase || !tmpBase[0])
     tmpBase = "/tmp";
 
-  snprintf(dirTemplate,
-           sizeof(dirTemplate),
-           "%s/assetkit-dae-skin-multi-XXXXXX",
-           tmpBase);
+  ASSERT(ak_test_path_join(dirTemplate,
+                           sizeof(dirTemplate),
+                           tmpBase,
+                           "assetkit-dae-skin-multi-XXXXXX"));
   tmpdir = mkdtemp(dirTemplate);
   ASSERT(tmpdir != NULL);
 
-  snprintf(daePath, sizeof(daePath), "%s/skin.dae", tmpdir);
-  snprintf(outDir, sizeof(outDir), "%s/out", tmpdir);
-  snprintf(outDae, sizeof(outDae), "%s/skin.dae", outDir);
+  ASSERT(ak_test_path_join(daePath, sizeof(daePath), tmpdir, "skin.dae"));
+  ASSERT(ak_test_path_join(outDir, sizeof(outDir), tmpdir, "out"));
+  ASSERT(ak_test_path_join(outDae, sizeof(outDae), outDir, "skin.dae"));
 
   ASSERT(ak_test_write_dae_skin_multi_primitive(daePath));
   ASSERT(ak_load(&doc, daePath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
@@ -510,16 +510,16 @@ TEST_IMPL(dae_export_morph_controller_roundtrip) {
   if (!tmpBase || !tmpBase[0])
     tmpBase = "/tmp";
 
-  snprintf(dirTemplate,
-           sizeof(dirTemplate),
-           "%s/assetkit-dae-morph-XXXXXX",
-           tmpBase);
+  ASSERT(ak_test_path_join(dirTemplate,
+                           sizeof(dirTemplate),
+                           tmpBase,
+                           "assetkit-dae-morph-XXXXXX"));
   tmpdir = mkdtemp(dirTemplate);
   ASSERT(tmpdir != NULL);
 
-  snprintf(daePath, sizeof(daePath), "%s/morph.dae", tmpdir);
-  snprintf(outDir, sizeof(outDir), "%s/out", tmpdir);
-  snprintf(outDae, sizeof(outDae), "%s/morph.dae", outDir);
+  ASSERT(ak_test_path_join(daePath, sizeof(daePath), tmpdir, "morph.dae"));
+  ASSERT(ak_test_path_join(outDir, sizeof(outDir), tmpdir, "out"));
+  ASSERT(ak_test_path_join(outDae, sizeof(outDae), outDir, "morph.dae"));
 
   ASSERT(ak_test_write_dae_morph_minimal(daePath));
   ASSERT(ak_load(&doc, daePath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
@@ -585,16 +585,16 @@ TEST_IMPL(dae_export_morph_weight_vector_animation_split) {
   if (!tmpBase || !tmpBase[0])
     tmpBase = "/tmp";
 
-  snprintf(dirTemplate,
-           sizeof(dirTemplate),
-           "%s/assetkit-dae-morph-vector-XXXXXX",
-           tmpBase);
+  ASSERT(ak_test_path_join(dirTemplate,
+                           sizeof(dirTemplate),
+                           tmpBase,
+                           "assetkit-dae-morph-vector-XXXXXX"));
   tmpdir = mkdtemp(dirTemplate);
   ASSERT(tmpdir != NULL);
 
-  snprintf(daePath, sizeof(daePath), "%s/morph.dae", tmpdir);
-  snprintf(outDir, sizeof(outDir), "%s/out", tmpdir);
-  snprintf(outDae, sizeof(outDae), "%s/morph.dae", outDir);
+  ASSERT(ak_test_path_join(daePath, sizeof(daePath), tmpdir, "morph.dae"));
+  ASSERT(ak_test_path_join(outDir, sizeof(outDir), tmpdir, "out"));
+  ASSERT(ak_test_path_join(outDae, sizeof(outDae), outDir, "morph.dae"));
 
   ASSERT(ak_test_write_dae_morph_minimal(daePath));
   ASSERT(ak_load(&doc, daePath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
@@ -676,16 +676,16 @@ TEST_IMPL(dae_export_morph_weight_flat_animation_split) {
   if (!tmpBase || !tmpBase[0])
     tmpBase = "/tmp";
 
-  snprintf(dirTemplate,
-           sizeof(dirTemplate),
-           "%s/assetkit-dae-morph-flat-XXXXXX",
-           tmpBase);
+  ASSERT(ak_test_path_join(dirTemplate,
+                           sizeof(dirTemplate),
+                           tmpBase,
+                           "assetkit-dae-morph-flat-XXXXXX"));
   tmpdir = mkdtemp(dirTemplate);
   ASSERT(tmpdir != NULL);
 
-  snprintf(daePath, sizeof(daePath), "%s/morph.dae", tmpdir);
-  snprintf(outDir, sizeof(outDir), "%s/out", tmpdir);
-  snprintf(outDae, sizeof(outDae), "%s/morph.dae", outDir);
+  ASSERT(ak_test_path_join(daePath, sizeof(daePath), tmpdir, "morph.dae"));
+  ASSERT(ak_test_path_join(outDir, sizeof(outDir), tmpdir, "out"));
+  ASSERT(ak_test_path_join(outDae, sizeof(outDae), outDir, "morph.dae"));
 
   ASSERT(ak_test_write_dae_morph_minimal(daePath));
   ASSERT(ak_load(&doc, daePath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
@@ -757,16 +757,22 @@ TEST_IMPL(dae_load_invalid_morph_target_skips_morph_channel) {
   if (!tmpBase || !tmpBase[0])
     tmpBase = "/tmp";
 
-  snprintf(dirTemplate,
-           sizeof(dirTemplate),
-           "%s/assetkit-dae-invalid-morph-XXXXXX",
-           tmpBase);
+  ASSERT(ak_test_path_join(dirTemplate,
+                           sizeof(dirTemplate),
+                           tmpBase,
+                           "assetkit-dae-invalid-morph-XXXXXX"));
   tmpdir = mkdtemp(dirTemplate);
   ASSERT(tmpdir != NULL);
 
-  snprintf(daePath, sizeof(daePath), "%s/invalid_morph.dae", tmpdir);
-  snprintf(outDir, sizeof(outDir), "%s/out", tmpdir);
-  snprintf(outDae, sizeof(outDae), "%s/invalid_morph.dae", outDir);
+  ASSERT(ak_test_path_join(daePath,
+                           sizeof(daePath),
+                           tmpdir,
+                           "invalid_morph.dae"));
+  ASSERT(ak_test_path_join(outDir, sizeof(outDir), tmpdir, "out"));
+  ASSERT(ak_test_path_join(outDae,
+                           sizeof(outDae),
+                           outDir,
+                           "invalid_morph.dae"));
 
   ASSERT(ak_test_write_dae_invalid_morph_target(daePath));
   ASSERT(ak_load(&doc, daePath, AK_FILE_TYPE_AUTO) == AK_OK && doc);

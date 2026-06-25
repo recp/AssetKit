@@ -42,6 +42,30 @@
 
 static inline
 bool
+ak_test_path_join(char       *dst,
+                  size_t      dstCap,
+                  const char *dir,
+                  const char *leaf) {
+  size_t dirLen;
+  size_t leafLen;
+
+  if (!dst || dstCap < 2u || !dir || !leaf)
+    return false;
+
+  dirLen  = strlen(dir);
+  leafLen = strlen(leaf);
+  if (dirLen > dstCap - 2u || leafLen > dstCap - dirLen - 2u)
+    return false;
+
+  memcpy(dst, dir, dirLen);
+  dst[dirLen] = '/';
+  memcpy(dst + dirLen + 1u, leaf, leafLen + 1u);
+
+  return true;
+}
+
+static inline
+bool
 ak_test_tree_has_name(AkTree *tree, const char *name) {
   AkTree *child;
 

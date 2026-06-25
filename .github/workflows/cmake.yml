@@ -1,19 +1,28 @@
 name: CMake
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
   pull_request:
     branches: [main]
 
 jobs:
-  build:
-    name: ${{ matrix.os }} / ${{ matrix.config }}
-    runs-on: ${{ matrix.os }}
+  posix:
+    name: ${{ matrix.platform.name }} / ${{ matrix.config }}
+    runs-on: ${{ matrix.platform.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        platform:
+          - name: ubuntu-x64
+            os: ubuntu-24.04
+          - name: ubuntu-arm64
+            os: ubuntu-24.04-arm
+          - name: macos-arm64
+            os: macos-15
+          - name: macos-x64
+            os: macos-15-intel
         config: [shared, static, cli-static]
         include:
           - config: shared
@@ -50,3 +59,55 @@ jobs:
         run: |
           ./build/assetkit --version
           ./build/assetkit --help
+
+  windows:
+    name: ${{ matrix.platform.name }} / ${{ matrix.config }} / build
+    runs-on: ${{ matrix.platform.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - name: windows-x64
+            os: windows-2025
+          - name: windows-arm64
+            os: windows-11-arm
+        config: [shared, static, cli-static]
+        include:
+          - config: shared
+            cmake_args: -DAK_SHARED=ON -DAK_STATIC=OFF
+          - config: static
+            cmake_args: -DAK_SHARED=OFF -DAK_STATIC=ON
+          - config: cli-static
+            cmake_args: -DAK_SHARED=ON -DAK_STATIC=OFF -DAK_BUILD_CLI_STATIC=ON
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Configure
+        run: >
+          cmake -S . -B build
+          -DCMAKE_BUILD_TYPE=Release
+          -DAK_USE_TEST=OFF
+          -DAK_BUILD_CLI=ON
+          -DAK_BUILD_DECODER_SHIMS=OFF
+          -DAK_FETCH_DEPS=OFF
+          ${{ matrix.cmake_args }}
+
+      - name: Build
+        run: cmake --build build --config Release --parallel 2
+
+      - name: CLI smoke
+        shell: pwsh
+        run: |
+          $exe = Join-Path "build" "assetkit.exe"
+          if (!(Test-Path $exe)) {
+            $exe = Join-Path "build" "Release/assetkit.exe"
+          }
+          if (!(Test-Path $exe)) {
+            throw "assetkit executable not found"
+          }
+          & $exe --version
+          & $exe --help
