@@ -40,7 +40,7 @@ jobs:
           ${{ matrix.cmake_args }}
 
       - name: Build
-        run: cmake --build build --config Release --parallel
+        run: cmake --build build --config Release --parallel 2
 
       - name: Test
         run: ctest --test-dir build --build-config Release --output-on-failure
