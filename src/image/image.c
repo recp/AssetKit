@@ -110,9 +110,14 @@ ak_imageLoad(AkImage * __restrict image) {
         uriPath = uribuf;
       }
 
-      path = doc && doc->inf && doc->inf->dir
-             ? ak_fullpath(doc, uriPath, pathbuf)
-             : uriPath;
+      if (doc && doc->inf && doc->inf->dir) {
+        path = ak_fullpathn(doc, uriPath, pathbuf, sizeof(pathbuf));
+        if (!path)
+          return;
+      } else {
+        path = uriPath;
+      }
+
       source->resolvedPath = ak_strdup(source, path);
       image->data          = ak__img_conf.loadFromFile(heap, image, path, flipImage);
       break;

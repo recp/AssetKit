@@ -133,7 +133,7 @@ ak_imageExportSourcePath(AkImageExportRequest * __restrict req,
   if (req->doc && req->doc->inf && req->doc->inf->dir
       && path[0] != '/'
       && !(path[0] && path[1] == ':'))
-    path = ak_fullpath(req->doc, path, pathbuf);
+    path = ak_fullpathn(req->doc, path, pathbuf, PATH_MAX);
 
   return path;
 }

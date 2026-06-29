@@ -1214,6 +1214,30 @@ TEST_IMPL(path_short_ref_does_not_overread) {
   TEST_SUCCESS
 }
 
+TEST_IMPL(path_fullpathn_rejects_too_long_ref) {
+  AkDoc       doc = {0};
+  AkDocInf    inf = {0};
+  char        ref[64];
+  char        pathbuf[17];
+  const char *path;
+
+  inf.dir    = "/tmp";
+  inf.dirlen = strlen(inf.dir);
+  doc.inf    = &inf;
+
+  memset(ref, 'a', sizeof(ref) - 1u);
+  ref[sizeof(ref) - 1u] = '\0';
+  memset(pathbuf, 'x', sizeof(pathbuf));
+  pathbuf[sizeof(pathbuf) - 1u] = 'z';
+
+  path = ak_fullpathn(&doc, ref, pathbuf, sizeof(pathbuf) - 1u);
+  ASSERT(path == NULL);
+  ASSERT(pathbuf[0] == 'x');
+  ASSERT(pathbuf[sizeof(pathbuf) - 1u] == 'z');
+
+  TEST_SUCCESS
+}
+
 TEST_IMPL(gltf_load_short_buffer_uri) {
   AkDoc      *doc;
   char        dirTemplate[PATH_MAX];

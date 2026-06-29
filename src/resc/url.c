@@ -213,7 +213,10 @@ ak_getFileFrom(AkDoc *doc, const char *url) {
   if (!(decodedUrl = ak__url_decode_path(url, urlbuf, sizeof(urlbuf))))
     return NULL;
 
-  path = ak_fullpath(doc, decodedUrl, pathbuf);
+  path = ak_fullpathn(doc, decodedUrl, pathbuf, sizeof(pathbuf));
+  if (!path)
+    return NULL;
+
   return ak_strdup(NULL, path);
 }
 

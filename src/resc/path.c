@@ -315,19 +315,9 @@ ak_path_join(char   *fragments[],
   return 0;
 }
 
-AK_EXPORT
+static
 const char*
-ak_fullpath(AkDoc       * __restrict doc,
-            const char  * __restrict ref,
-            char        * __restrict buf) {
-  size_t      pathlen;
-  const char *ptr;
-  char       *fragments[] = {
-    (char *)doc->inf->dir,
-    "/",
-    (char *)ref,
-    NULL
-  };
+ak_path_file_uri_path(const char * __restrict ref) {
   size_t      prefixLen;
 
   prefixLen = 0;
@@ -344,9 +334,66 @@ ak_fullpath(AkDoc       * __restrict doc,
     ;
   }
 
+  return NULL;
+}
+
+static
+const char*
+ak_fullpath__join(AkDoc       * __restrict doc,
+                  const char  * __restrict ref,
+                  char        * __restrict buf) {
+  size_t      pathlen;
+  const char *ptr;
+  char       *fragments[] = {
+    (char *)doc->inf->dir,
+    "/",
+    (char *)ref,
+    NULL
+  };
+
   ak_path_join(fragments, buf, &pathlen);
 
   ptr = ak_strltrim_fast(buf);
 
   return ptr;
+}
+
+AK_EXPORT
+const char*
+ak_fullpathn(AkDoc       * __restrict doc,
+             const char  * __restrict ref,
+             char        * __restrict buf,
+             size_t                   buflen) {
+  const char *filePath;
+  size_t      dirLen;
+  size_t      refLen;
+
+  if (!ref)
+    return NULL;
+
+  if ((filePath = ak_path_file_uri_path(ref)))
+    return filePath;
+
+  if (!doc || !doc->inf || !doc->inf->dir || !buf || buflen == 0)
+    return NULL;
+
+  dirLen = strlen(doc->inf->dir);
+  refLen = strlen(ref);
+  if (dirLen >= buflen || refLen >= buflen || dirLen + refLen + 4u > buflen)
+    return NULL;
+
+  return ak_fullpath__join(doc, ref, buf);
+}
+
+AK_EXPORT
+const char*
+ak_fullpath(AkDoc       * __restrict doc,
+            const char  * __restrict ref,
+            char        * __restrict buf) {
+  const char *filePath;
+
+  if ((filePath = ak_path_file_uri_path(ref)))
+    return filePath;
+
+  return ak_fullpath__join(doc, ref, buf);
 }

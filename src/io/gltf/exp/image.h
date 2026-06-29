@@ -34,7 +34,8 @@ gltf_image_exportable(GLTFExpState * __restrict st,
 const char*
 gltf_image_source_path(GLTFExpState  * __restrict st,
                        AkImageSource * __restrict source,
-                       char          * __restrict pathbuf);
+                       char          * __restrict pathbuf,
+                       size_t                     pathbuflen);
 
 bool
 gltf_image_mime_supported(const char * __restrict mimeType);

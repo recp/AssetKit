@@ -554,38 +554,40 @@ external_url:
       memcpy(rel, val, pathLen);
       rel[pathLen] = '\0';
 
-      path     = ak_fullpath(dst->doc, rel, pathbuf);
-      resolved = path;
+      path = ak_fullpathn(dst->doc, rel, pathbuf, sizeof(pathbuf));
+      if (path) {
+        resolved = path;
 #ifndef _WIN32
-      if (realpath(path, realbuf))
-        resolved = realbuf;
-      if (fragLen > 0 && dst->doc->inf->name) {
-        char        docRealbuf[PATH_MAX];
-        const char *docPath;
-        char       *localRef;
+        if (realpath(path, realbuf))
+          resolved = realbuf;
+        if (fragLen > 0 && dst->doc->inf->name) {
+          char        docRealbuf[PATH_MAX];
+          const char *docPath;
+          char       *localRef;
 
-        docPath = dst->doc->inf->name;
-        if (realpath(docPath, docRealbuf))
-          docPath = docRealbuf;
+          docPath = dst->doc->inf->name;
+          if (realpath(docPath, docRealbuf))
+            docPath = docRealbuf;
 
-        if (strcmp(resolved, docPath) == 0) {
-          localRef = dae_alloca(fragLen + 1u);
-          memcpy(localRef, frag, fragLen);
-          localRef[fragLen] = '\0';
-          ak_url_init(memp, localRef, url);
-          return;
+          if (strcmp(resolved, docPath) == 0) {
+            localRef = dae_alloca(fragLen + 1u);
+            memcpy(localRef, frag, fragLen);
+            localRef[fragLen] = '\0';
+            ak_url_init(memp, localRef, url);
+            return;
+          }
         }
-      }
 #endif
 
-      resolvedLen = strlen(resolved);
-      dststr      = ak_heap_alloc(heap, memp, resolvedLen + fragLen + 1u);
-      if (dststr) {
-        memcpy(dststr, resolved, resolvedLen);
-        if (fragLen > 0)
-          memcpy(dststr + resolvedLen, frag, fragLen);
-        dststr[resolvedLen + fragLen] = '\0';
-        urlstr = dststr;
+        resolvedLen = strlen(resolved);
+        dststr      = ak_heap_alloc(heap, memp, resolvedLen + fragLen + 1u);
+        if (dststr) {
+          memcpy(dststr, resolved, resolvedLen);
+          if (fragLen > 0)
+            memcpy(dststr + resolvedLen, frag, fragLen);
+          dststr[resolvedLen + fragLen] = '\0';
+          urlstr = dststr;
+        }
       }
     }
   }

@@ -131,7 +131,7 @@ gltf_plan_image_buffer_views(GLTFExpState * __restrict st) {
       const char *path;
       struct stat stFile;
 
-      path = gltf_image_source_path(st, source, pathbuf);
+      path = gltf_image_source_path(st, source, pathbuf, sizeof(pathbuf));
       if (!path) {
         if (image->data && !gltf_plan_image_payload(st, image, (GLTFExpIndex)i))
           return false;

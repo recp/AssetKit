@@ -62,7 +62,8 @@ gltf_image_source_supported(AkImageSource * __restrict source) {
 const char*
 gltf_image_source_path(GLTFExpState  * __restrict st,
                        AkImageSource * __restrict source,
-                       char          * __restrict pathbuf) {
+                       char          * __restrict pathbuf,
+                       size_t                     pathbuflen) {
   const char *filePath;
   char        relbuf[PATH_MAX];
 
@@ -79,7 +80,7 @@ gltf_image_source_path(GLTFExpState  * __restrict st,
                               _s_gltf_file_uri_len);
   if (filePath) {
     if (strchr(filePath, '%')) {
-      if (!io_uri_decode_path(filePath, pathbuf, PATH_MAX))
+      if (!io_uri_decode_path(filePath, pathbuf, pathbuflen))
         return NULL;
       return pathbuf;
     }
@@ -99,7 +100,7 @@ gltf_image_source_path(GLTFExpState  * __restrict st,
       uriPath = relbuf;
     }
 
-    return ak_fullpath(st->doc, uriPath, pathbuf);
+    return ak_fullpathn(st->doc, uriPath, pathbuf, pathbuflen);
   }
 
   return NULL;
@@ -222,7 +223,7 @@ gltf_image_source_file_exists(GLTFExpState  * __restrict st,
   const char *path;
   struct stat stFile;
 
-  path = gltf_image_source_path(st, source, pathbuf);
+  path = gltf_image_source_path(st, source, pathbuf, sizeof(pathbuf));
   if (!path
       && source
       && source->uri
@@ -591,7 +592,7 @@ gltf_image_copy_export_uri(GLTFExpState  * __restrict st,
   if (!st->outDir || !gltf_image_uri_is_copy_source(source))
     return true;
 
-  srcPath = gltf_image_source_path(st, source, pathbuf);
+  srcPath = gltf_image_source_path(st, source, pathbuf, sizeof(pathbuf));
   if (!srcPath
       && source->uri
       && !io_uri_has_scheme(source->uri)

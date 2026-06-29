@@ -63,6 +63,13 @@ ak_path_dir(struct AkHeap * __restrict heap,
 
 AK_EXPORT
 const char*
+ak_fullpathn(struct AkDoc * __restrict doc,
+             const char   * __restrict ref,
+             char         * __restrict buf,
+             size_t                    buflen);
+
+AK_EXPORT
+const char*
 ak_fullpath(struct AkDoc * __restrict doc,
             const char   * __restrict ref,
             char         * __restrict buf);
