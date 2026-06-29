@@ -147,7 +147,8 @@ bake_collectChannels(AkAnimation  * __restrict anim,
                      AkObject    ** __restrict xformObjects,
                      int                       nXform,
                      ChannelBind  * __restrict binds,
-                     int          * __restrict nBinds) {
+                     int          * __restrict nBinds,
+                     bool                      includeRootSiblings) {
   AkAnimation     *stack[BAKE_MAX_ANIM_STACK], *next;
   AkChannel       *ch;
   AkAnimSampler   *samp;
@@ -199,14 +200,16 @@ bake_collectChannels(AkAnimation  * __restrict anim,
     }
 
     if (anim->animation) {
-      next = anim->next;
+      next = includeRootSiblings ? anim->next : NULL;
       if (next && top < BAKE_MAX_ANIM_STACK)
         stack[top++] = next;
       anim = anim->animation;
-    } else if (anim->next) {
+      includeRootSiblings = true;
+    } else if (includeRootSiblings && anim->next) {
       anim = anim->next;
     } else if (top > 0) {
       anim = stack[--top];
+      includeRootSiblings = true;
     } else {
       anim = NULL;
     }
@@ -234,11 +237,11 @@ ak_nodeNeedsBaking(AkNode * __restrict node) {
   return false;
 }
 
-AK_EXPORT
-AkBakedAnimation *
-ak_nodeBakeAnimation(AkDoc  * __restrict doc,
-                     AkNode * __restrict node) {
-  AkAnimation      *animIt;
+static AkBakedAnimation *
+bake_nodeAnimation(AkDoc       * __restrict doc,
+                   AkNode      * __restrict node,
+                   AkAnimation * __restrict animation,
+                   bool                     includeRootSiblings) {
   AkObject         *xformObjects[BAKE_MAX_XFORM_OBJECTS];
   AkObject         *it;
   AkBakedAnimation *out;
@@ -250,7 +253,7 @@ ak_nodeBakeAnimation(AkDoc  * __restrict doc,
   float             t0, t1, gap;
   int               nXform, nBinds, j;
 
-  if (!doc || !node || !node->transform) return NULL;
+  if (!doc || !node || !node->transform || !animation) return NULL;
 
   /* 1. Snapshot the AkObjects that make up the node's transform chain.
         Order in the array doesn't matter for matching, only ak_transformCombine
@@ -278,11 +281,9 @@ ak_nodeBakeAnimation(AkDoc  * __restrict doc,
   actx.doc = doc;
   nBinds   = 0;
 
-  for (animIt = doc->lib.animations.first; animIt; animIt = animIt->next) {
-    bake_collectChannels(animIt, &actx,
-                         xformObjects, nXform, binds, &nBinds);
-    if (nBinds >= BAKE_MAX_CHANNELS) break;
-  }
+  bake_collectChannels(animation, &actx,
+                       xformObjects, nXform, binds, &nBinds,
+                       includeRootSiblings);
 
   if (nBinds == 0) return NULL;
 
@@ -424,4 +425,22 @@ ak_nodeBakeAnimation(AkDoc  * __restrict doc,
 
   ak_free(allTimes);
   return out;
+}
+
+AK_EXPORT
+AkBakedAnimation *
+ak_nodeBakeAnimation(AkDoc  * __restrict doc,
+                     AkNode * __restrict node) {
+  return bake_nodeAnimation(doc,
+                            node,
+                            doc ? doc->lib.animations.first : NULL,
+                            true);
+}
+
+AK_EXPORT
+AkBakedAnimation *
+ak_nodeBakeAnimationForAnimation(AkDoc       * __restrict doc,
+                                 AkNode      * __restrict node,
+                                 AkAnimation * __restrict animation) {
+  return bake_nodeAnimation(doc, node, animation, false);
 }

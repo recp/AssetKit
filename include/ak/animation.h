@@ -313,6 +313,25 @@ AkBakedAnimation*
 ak_nodeBakeAnimation(struct AkDoc  * __restrict doc,
                      struct AkNode * __restrict node);
 
+/*!
+ * @brief Same as ak_nodeBakeAnimation(), but only samples channels
+ *        reachable from `animation` and its child animation tree.
+ *
+ *        This is useful for runtimes that expose independent animation
+ *        clips: a baked multi-rotate joint still needs a matrix track,
+ *        but the track must not be built from every clip in the document.
+ *
+ *        Output AkBakedAnimation is heap-allocated; caller frees with
+ *        ak_free(out). Returns NULL when the node has no transform, the
+ *        animation is NULL, or no channel in that animation targets any
+ *        element of the node's transform chain.
+ */
+AK_EXPORT
+AkBakedAnimation*
+ak_nodeBakeAnimationForAnimation(struct AkDoc       * __restrict doc,
+                                 struct AkNode      * __restrict node,
+                                 struct AkAnimation * __restrict animation);
+
 #ifdef __cplusplus
 }
 #endif
