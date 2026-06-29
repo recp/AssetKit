@@ -93,6 +93,14 @@ TEST_IMPL(gltf_export_native_skin) {
   roundTrip = NULL;
   ASSERT(ak_load(&roundTrip, gltfPath, AK_FILE_TYPE_GLTF) == AK_OK);
   ASSERT(roundTrip != NULL);
+  ASSERT(roundTrip->lib.skins.count == 1);
+  ASSERT(roundTrip->lib.skins.first != NULL);
+  ASSERT(roundTrip->lib.skins.first->nJoints == 2);
+  ASSERT(roundTrip->lib.skins.first->joints != NULL);
+  ASSERT(roundTrip->lib.skins.first->joints[0] != NULL);
+  ASSERT(roundTrip->lib.skins.first->joints[0]->nodeType == AK_NODE_TYPE_JOINT);
+  ASSERT(roundTrip->lib.skins.first->joints[1] != NULL);
+  ASSERT(roundTrip->lib.skins.first->joints[1]->nodeType == AK_NODE_TYPE_JOINT);
   ak_free(roundTrip);
 
   ak_heap_destroy(heap);

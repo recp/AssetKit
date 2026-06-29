@@ -85,6 +85,7 @@ gltf_skin(json_t * __restrict jskin,
 
             if ((nodeIndex = json_int32(jjoint, -1)) > -1) {
               if ((node = gltf_node_at(gst, nodeIndex))) {
+                node->nodeType = AK_NODE_TYPE_JOINT;
                 skin->joints[j] = node;
               } else {
                 skin->joints[j] = NULL;

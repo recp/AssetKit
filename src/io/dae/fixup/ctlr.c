@@ -301,6 +301,8 @@ dae_instance_skin_from_controller(DAEState             * __restrict dst,
                                            sid,
                                            jointsAcc->componentType)
                   : NULL;
+    if (joints[i])
+      joints[i]->nodeType = AK_NODE_TYPE_JOINT;
 
     memcpy(invm[i], matrixBase + i * matrixStride, sizeof(AkFloat) * 16u);
     glm_mat4_transpose(invm[i]);

@@ -19,6 +19,7 @@
 
 #include <cglm/cglm.h>
 
+#include <math.h>
 #include <string.h>
 
 static
@@ -583,6 +584,34 @@ dae_anim_interp_at(AkAccessor * __restrict acc, uint32_t index) {
 
 static
 bool
+dae_anim_quat_axis_angle_deg(const float * __restrict row,
+                             vec3                     axis,
+                             float      * __restrict angleDeg) {
+  AkQuaternion quat;
+
+  quat.val[0] = row[0];
+  quat.val[1] = row[1];
+  quat.val[2] = row[2];
+  quat.val[3] = row[3];
+  dae_quat_axis_angle_deg(&quat, axis, angleDeg);
+
+  return isfinite(*angleDeg) && fabsf(*angleDeg) > 1.0e-5f;
+}
+
+static
+const float*
+dae_anim_float_row(AkAccessor * __restrict acc,
+                   const float * __restrict scratch,
+                   bool                      direct,
+                   uint32_t                  componentCount,
+                   uint32_t                  index) {
+  return direct
+         ? io_accessor_float_row(acc, index)
+         : scratch + (size_t)index * componentCount;
+}
+
+static
+bool
 dae_write_anim_float_source_variant(DAEExpState    * __restrict st,
                                     AkAccessor     * __restrict acc,
                                     uint32_t                    animIdx,
@@ -597,6 +626,9 @@ dae_write_anim_float_source_variant(DAEExpState    * __restrict st,
   uint32_t      c;
   uint32_t      componentCount;
   bool          direct;
+  bool          convertQuatOutput;
+  bool          hasQuatAxisHint;
+  vec3          quatAxisHint;
 
   if (!acc || acc->componentCount == 0)
     return false;
@@ -606,6 +638,13 @@ dae_write_anim_float_source_variant(DAEExpState    * __restrict st,
   componentCount = acc->componentCount;
   direct         = io_accessor_float_direct(acc);
   scratch        = NULL;
+  convertQuatOutput = semantic == AK_INPUT_OUTPUT
+                      && targetType == AK_TARGET_QUAT
+                      && componentCount == 4;
+  hasQuatAxisHint = false;
+  quatAxisHint[0] = 0.0f;
+  quatAxisHint[1] = 0.0f;
+  quatAxisHint[2] = 1.0f;
 
   if (!direct) {
     size_t floatCount;
@@ -618,6 +657,21 @@ dae_write_anim_float_source_variant(DAEExpState    * __restrict st,
       return false;
     if (ak_accessorAsFloat(acc, scratch, floatCount) != floatCount)
       return false;
+  }
+
+  if (convertQuatOutput) {
+    for (i = 0; i < acc->count; i++) {
+      const float *row;
+      vec3         axis;
+      float        angleDeg;
+
+      row = dae_anim_float_row(acc, scratch, direct, componentCount, i);
+      if (dae_anim_quat_axis_angle_deg(row, axis, &angleDeg)) {
+        glm_vec3_copy(axis, quatAxisHint);
+        hasQuatAxisHint = true;
+        break;
+      }
+    }
   }
 
   dae_w_lit(w, "<source id=\"");
@@ -633,22 +687,18 @@ dae_write_anim_float_source_variant(DAEExpState    * __restrict st,
 
     float quatConverted[4];
 
-    row = direct
-          ? io_accessor_float_row(acc, i)
-          : scratch + (size_t)i * componentCount;
+    row = dae_anim_float_row(acc, scratch, direct, componentCount, i);
 
-    if (semantic == AK_INPUT_OUTPUT
-        && targetType == AK_TARGET_QUAT
-        && componentCount == 4) {
-      AkQuaternion quat;
+    if (convertQuatOutput) {
       vec3         axis;
       float        angleDeg;
 
-      quat.val[0] = row[0];
-      quat.val[1] = row[1];
-      quat.val[2] = row[2];
-      quat.val[3] = row[3];
-      dae_quat_axis_angle_deg(&quat, axis, &angleDeg);
+      if (dae_anim_quat_axis_angle_deg(row, axis, &angleDeg)) {
+        glm_vec3_copy(axis, quatAxisHint);
+        hasQuatAxisHint = true;
+      } else if (hasQuatAxisHint) {
+        glm_vec3_copy(quatAxisHint, axis);
+      }
       quatConverted[0] = axis[0];
       quatConverted[1] = axis[1];
       quatConverted[2] = axis[2];

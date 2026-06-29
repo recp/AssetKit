@@ -154,6 +154,8 @@ dae_write_node_start(DAEExpState * __restrict st,
     dae_w_lit(w, "\" name=\"");
     dae_w_xml(w, node->name, true);
   }
+  if (node && node->nodeType == AK_NODE_TYPE_JOINT)
+    dae_w_lit(w, "\" type=\"JOINT");
   dae_w_lit(w, "\">");
 }
 
