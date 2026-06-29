@@ -15,6 +15,7 @@
  */
 
 #include "../common.h"
+#include "common.h"
 
 /* TODO: use mutex */
 
@@ -68,12 +69,7 @@ ak_changeCoordSysMesh(AkMesh * __restrict mesh,
     }
 
     /* TODO: INT, DOUBLE.. */
-    if (acci->componentType == AKT_FLOAT) {
-      ak_coordCvtVectors(doc->coordSys,
-                         buffi->data,
-                         buffi->length / acci->bytesPerComponent,
-                         newCoordSys);
-    }
+    ak_coordCvtAccessorVec3(acci, doc->coordSys, newCoordSys, false);
     mapi = mapi->next;
   }
 

@@ -24,15 +24,25 @@ void
 ak_coordCvtNodeTransforms(AkDoc  * __restrict doc,
                           AkNode * __restrict node) {
   AkCoordSys    *oldCoordSys, *newCoordsys;
+
+  oldCoordSys = doc->coordSys;
+  newCoordsys = (void *)ak_opt_get(AK_OPT_COORD);
+
+  ak_coordCvtNodeTransformsTo(doc, node, oldCoordSys, newCoordsys);
+}
+
+AK_HIDE
+void
+ak_coordCvtNodeTransformsTo(AkDoc      * __restrict doc,
+                            AkNode     * __restrict node,
+                            AkCoordSys * __restrict oldCoordSys,
+                            AkCoordSys * __restrict newCoordsys) {
   AkObject      *transform, *lastTransform;
   vec3           tmp;
   AkAxisAccessor a0, a1;
 
-  if (!node->transform)
+  if (!doc || !node || !node->transform || !oldCoordSys || !newCoordsys)
     return;
-
-  oldCoordSys = doc->coordSys;
-  newCoordsys = (void *)ak_opt_get(AK_OPT_COORD);
 
   ak_coordAxisAccessors(oldCoordSys, newCoordsys, &a0, &a1);
 
@@ -46,9 +56,7 @@ ak_coordCvtNodeTransforms(AkDoc  * __restrict doc,
         matrix = ak_objGet(transform);
 
         memcpy(val, matrix->val, sizeof(val));
-        ak_coordCvtTransform(oldCoordSys,
-                             val,
-                             newCoordsys);
+        ak_coordCvtMatrixTo(oldCoordSys, val, newCoordsys);
         memcpy(matrix->val, val, sizeof(val));
         break;
       }
@@ -80,7 +88,7 @@ ak_coordCvtNodeTransforms(AkDoc  * __restrict doc,
         quat = ak_objGet(transform);
         val  = quat->val;
 
-        AK_CVT_VEC(val);
+        ak_coordCvtQuatTo(oldCoordSys, val, newCoordsys);
         break;
       }
       case AKT_SCALE: {

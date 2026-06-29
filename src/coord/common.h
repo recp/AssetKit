@@ -115,4 +115,30 @@ ak_coordAxisOriAbs(AkCoordSys * __restrict coordSys,
                    AkAxisOrientation       axis,
                    int                     newAxisOri[3]);
 
+AK_HIDE
+bool
+ak_coordCvtAccessorVec3(AkAccessor * __restrict acc,
+                        AkCoordSys * __restrict oldCoordSys,
+                        AkCoordSys * __restrict newCoordSys,
+                        bool                    noSign);
+
+AK_HIDE
+void
+ak_coordCvtMatrixTo(AkCoordSys * __restrict oldCoordSys,
+                    float                   matrix[4][4],
+                    AkCoordSys * __restrict newCoordSys);
+
+AK_HIDE
+void
+ak_coordCvtQuatTo(AkCoordSys * __restrict oldCoordSys,
+                  float      * __restrict quat,
+                  AkCoordSys * __restrict newCoordSys);
+
+AK_HIDE
+void
+ak_coordCvtNodeTransformsTo(AkDoc      * __restrict doc,
+                            AkNode     * __restrict node,
+                            AkCoordSys * __restrict oldCoordSys,
+                            AkCoordSys * __restrict newCoordSys);
+
 #endif /* ak_coord_common_h */

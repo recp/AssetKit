@@ -19,6 +19,71 @@
 #include <cglm/cglm.h>
 #include <float.h>
 
+AK_HIDE
+void
+ak_coordCvtMatrixTo(AkCoordSys * __restrict oldCoordSystem,
+                    float                   matrix[4][4],
+                    AkCoordSys * __restrict newCoordSystem) {
+  mat4 c, cinv, tmp;
+  vec3 basis, converted;
+  int  i;
+
+  if (!oldCoordSystem
+      || !newCoordSystem
+      || oldCoordSystem == newCoordSystem)
+    return;
+
+  glm_mat4_identity(c);
+  for (i = 0; i < 3; i++) {
+    glm_vec3_zero(basis);
+    basis[i] = 1.0f;
+    ak_coordCvtVectorTo(oldCoordSystem, basis, newCoordSystem, converted);
+    c[i][0] = converted[0];
+    c[i][1] = converted[1];
+    c[i][2] = converted[2];
+  }
+
+  glm_mat4_inv(c, cinv);
+  glm_mat4_mul(c, matrix, tmp);
+  glm_mat4_mul(tmp, cinv, matrix);
+}
+
+AK_HIDE
+void
+ak_coordCvtQuatTo(AkCoordSys * __restrict oldCoordSystem,
+                  float      * __restrict quat,
+                  AkCoordSys * __restrict newCoordSystem) {
+  AkAxisAccessor     a0, a1;
+  AkAxisRotDirection rotDirection;
+  float              tmp[3];
+
+  if (!quat
+      || !oldCoordSystem
+      || !newCoordSystem
+      || oldCoordSystem == newCoordSystem)
+    return;
+
+  rotDirection = (oldCoordSystem->rotDirection + 1)
+                   * (newCoordSystem->rotDirection + 1);
+
+  ak_coordAxisAccessors(oldCoordSystem, newCoordSystem, &a0, &a1);
+  AK_CVT_VEC(quat);
+
+  if (rotDirection < 0) {
+    quat[0] = -quat[0];
+    quat[1] = -quat[1];
+    quat[2] = -quat[2];
+  }
+
+  glm_quat_normalize(quat);
+  if (quat[3] < 0.0f) {
+    quat[0] = -quat[0];
+    quat[1] = -quat[1];
+    quat[2] = -quat[2];
+    quat[3] = -quat[3];
+  }
+}
+
 AK_EXPORT
 void
 ak_coordCvtTransform(AkCoordSys *oldCoordSystem,

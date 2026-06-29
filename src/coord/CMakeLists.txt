@@ -1,6 +1,7 @@
 target_sources(${PROJECT_NAME} 
   PRIVATE
   camera.c
+  accessor.c
   common.h
   common.c
   doc.c

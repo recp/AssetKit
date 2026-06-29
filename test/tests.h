@@ -27,6 +27,7 @@
 
 TEST_DECLARE(heap)
 TEST_DECLARE(heap_multiple)
+TEST_DECLARE(coord_change_doc_converts_scene_payloads)
 TEST_DECLARE(mesh_triangulate_polygon_sets_triangle_mode)
 TEST_DECLARE(instance_attach_helpers)
 TEST_DECLARE(node_instance_bbox_traversal)
@@ -229,6 +230,7 @@ TEST_DECLARE(format_edge_cases)
 TEST_LIST {
   TEST_ENTRY(heap)
   TEST_ENTRY(heap_multiple)
+  TEST_ENTRY(coord_change_doc_converts_scene_payloads)
   TEST_ENTRY(mesh_triangulate_polygon_sets_triangle_mode)
   TEST_ENTRY(instance_attach_helpers)
   TEST_ENTRY(node_instance_bbox_traversal)

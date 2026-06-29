@@ -1,6 +1,7 @@
 add_executable(assetkit_tests
   runner.c
   src/core/memory.c
+  src/core/coord.c
   src/core/format_edge.c
   src/io/dae/exp/core.c
   src/io/dae/exp/material.c
