@@ -174,51 +174,6 @@ dae_write_transform_sid_attr(DAEExpWriter * __restrict w,
 
 static
 void
-dae_quat_axis_angle_deg(AkQuaternion * __restrict quat,
-                        vec3                       axis,
-                        float        * __restrict angleDeg) {
-  versor q;
-  float  len2;
-  float  angle;
-
-  if (!quat) {
-    axis[0]   = 0.0f;
-    axis[1]   = 0.0f;
-    axis[2]   = 1.0f;
-    *angleDeg = 0.0f;
-    return;
-  }
-
-  q[0] = quat->val[0];
-  q[1] = quat->val[1];
-  q[2] = quat->val[2];
-  q[3] = quat->val[3];
-  len2 = q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3];
-
-  if (!isfinite(len2) || len2 <= FLT_EPSILON) {
-    axis[0]   = 0.0f;
-    axis[1]   = 0.0f;
-    axis[2]   = 1.0f;
-    *angleDeg = 0.0f;
-    return;
-  }
-
-  glm_quat_normalize(q);
-  angle = glm_quat_angle(q);
-  if (!isfinite(angle) || fabsf(angle) <= FLT_EPSILON) {
-    axis[0]   = 0.0f;
-    axis[1]   = 0.0f;
-    axis[2]   = 1.0f;
-    *angleDeg = 0.0f;
-    return;
-  }
-
-  glm_quat_axis(q, axis);
-  *angleDeg = glm_deg(angle);
-}
-
-static
-void
 dae_write_transform_item(DAEExpState * __restrict st,
                          AkObject    * __restrict obj) {
   DAEExpWriter *w;

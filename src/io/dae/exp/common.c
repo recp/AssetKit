@@ -16,6 +16,10 @@
 
 #include "common.h"
 
+#include <cglm/cglm.h>
+
+#include <float.h>
+#include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -196,6 +200,54 @@ AK_HIDE
 void
 dae_w_geom_id(DAEExpWriter * __restrict w, uint32_t geomIdx) {
   dae_w_id(w, DAE_EXP_NAME_LIT("geom"), geomIdx);
+}
+
+AK_HIDE
+void
+dae_quat_axis_angle_deg(AkQuaternion * __restrict quat,
+                        float                      axis[3],
+                        float        * __restrict angleDeg) {
+  versor q;
+  float  len2;
+  float  angle;
+
+  if (!quat) {
+    axis[0]   = 0.0f;
+    axis[1]   = 0.0f;
+    axis[2]   = 1.0f;
+    *angleDeg = 0.0f;
+    return;
+  }
+
+  q[0] = quat->val[0];
+  q[1] = quat->val[1];
+  q[2] = quat->val[2];
+  q[3] = quat->val[3];
+  len2 = q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3];
+
+  if (!isfinite(len2) || len2 <= FLT_EPSILON) {
+    axis[0]   = 0.0f;
+    axis[1]   = 0.0f;
+    axis[2]   = 1.0f;
+    *angleDeg = 0.0f;
+    return;
+  }
+
+  glm_quat_normalize(q);
+  if (q[3] < 0.0f)
+    glm_vec4_negate(q);
+
+  angle = glm_quat_angle(q);
+  if (!isfinite(angle) || fabsf(angle) <= FLT_EPSILON) {
+    axis[0]   = 0.0f;
+    axis[1]   = 0.0f;
+    axis[2]   = 1.0f;
+    *angleDeg = 0.0f;
+    return;
+  }
+
+  glm_quat_axis(q, axis);
+  *angleDeg = glm_deg(angle);
 }
 
 AK_HIDE

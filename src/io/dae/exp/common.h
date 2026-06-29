@@ -23,6 +23,7 @@
 #include "../../../../include/ak/controller.h"
 #include "../../../../include/ak/instance.h"
 #include "../../../../include/ak/options.h"
+#include "../../../../include/ak/transform.h"
 
 #include <ds/rb.h>
 
@@ -182,6 +183,12 @@ AK_HIDE
 void
 dae_w_matrix4x4_dae(DAEExpWriter * __restrict w,
                     const AkFloat             matrix[4][4]);
+
+AK_HIDE
+void
+dae_quat_axis_angle_deg(AkQuaternion * __restrict quat,
+                        float                      axis[3],
+                        float        * __restrict angleDeg);
 
 AK_HIDE
 void

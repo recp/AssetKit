@@ -235,6 +235,121 @@ TEST_IMPL(dae_export_resolved_transform_animation_roundtrip) {
   TEST_SUCCESS
 }
 
+TEST_IMPL(dae_export_quaternion_axis_angle_shortest_path) {
+  AkHeap          *heap;
+  AkDoc           *doc;
+  AkScene         *scene;
+  AkNode          *root;
+  AkNode          *node;
+  AkAnimation     *anim;
+  AkAnimSampler   *sampler;
+  AkChannel       *channel;
+  AkInput         *timeInput;
+  AkInput         *valueInput;
+  AkResolvedTarget *target;
+  AkObject        *rotateObj;
+  AkQuaternion    *rotate;
+  const char      *outDir  = "./assetkit_export_dae_quat_short";
+  const char      *daePath = "./assetkit_export_dae_quat_short/model.dae";
+  const float      times[2] = {0.0f, 1.0f};
+  const float      values[8] = {
+     0.0f, 0.0f,  0.0f,       -1.0f,
+     0.0f, 0.0f, -0.5f, -0.8660254f
+  };
+
+  ak_test_export_cleanup(outDir);
+
+  heap = ak_heap_new(NULL, NULL, NULL);
+  doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
+  ak_heap_setdata(heap, doc);
+
+  scene       = ak_heap_calloc(heap, doc, sizeof(*scene));
+  root        = ak_heap_calloc(heap, scene, sizeof(*root));
+  node        = ak_heap_calloc(heap, doc, sizeof(*node));
+  scene->node = root;
+  doc->scene  = scene;
+  ASSERT(scene != NULL);
+  ASSERT(root != NULL);
+  ASSERT(node != NULL);
+  ASSERT(ak_setId(node, "rotating") == AK_OK);
+  ak_addSubNode(root, node, false);
+
+  node->transform = ak_heap_calloc(heap, node, sizeof(*node->transform));
+  ASSERT(node->transform != NULL);
+  rotateObj = ak_getTransformTRS(node, AKT_QUATERNION);
+  ASSERT(rotateObj != NULL);
+  rotate = ak_objGet(rotateObj);
+  ASSERT(rotate != NULL);
+  rotate->val[0] = 0.0f;
+  rotate->val[1] = 0.0f;
+  rotate->val[2] = 0.0f;
+  rotate->val[3] = -1.0f;
+
+  anim       = ak_heap_calloc(heap, doc, sizeof(*anim));
+  sampler    = ak_heap_calloc(heap, anim, sizeof(*sampler));
+  channel    = ak_heap_calloc(heap, anim, sizeof(*channel));
+  timeInput  = ak_heap_calloc(heap, sampler, sizeof(*timeInput));
+  valueInput = ak_heap_calloc(heap, sampler, sizeof(*valueInput));
+  target     = ak_heap_calloc(heap, channel, sizeof(*target));
+  ASSERT(anim != NULL);
+  ASSERT(sampler != NULL);
+  ASSERT(channel != NULL);
+  ASSERT(timeInput != NULL);
+  ASSERT(valueInput != NULL);
+  ASSERT(target != NULL);
+
+  timeInput->semantic = AK_INPUT_INPUT;
+  timeInput->accessor = ak_test_make_float_accessor(heap,
+                                                    timeInput,
+                                                    times,
+                                                    1,
+                                                    2);
+  valueInput->semantic = AK_INPUT_OUTPUT;
+  valueInput->accessor = ak_test_make_float_accessor(heap,
+                                                     valueInput,
+                                                     values,
+                                                     4,
+                                                     2);
+  ASSERT(timeInput->accessor != NULL);
+  ASSERT(valueInput->accessor != NULL);
+
+  timeInput->next = valueInput;
+  sampler->input  = timeInput;
+  sampler->inputInput  = timeInput;
+  sampler->outputInput = valueInput;
+  sampler->uniInterpolation = AK_INTERPOLATION_LINEAR;
+
+  target->target    = rotateObj;
+  target->off       = 0;
+  target->isPartial = false;
+
+  channel->source.ptr     = sampler;
+  channel->resolvedTarget = target;
+  channel->targetType     = AK_TARGET_QUAT;
+  anim->sampler           = sampler;
+  anim->channel           = channel;
+
+  doc->lib.animations.first = anim;
+  doc->lib.animations.last  = anim;
+  doc->lib.animations.count = 1;
+
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_DAE) == AK_OK);
+  ASSERT(ak_test_file_contains(daePath,
+                               "<rotate sid=\"rotation\">0 0 1 0</rotate>"));
+  ASSERT(ak_test_file_contains(daePath,
+                               "<channel source=\"#animation_0_sampler_0\" "
+                               "target=\"rotating/rotation\"/>"));
+  ASSERT(!ak_test_file_contains(daePath, ">300"));
+  ASSERT(!ak_test_file_contains(daePath, ">360"));
+  ASSERT(!ak_test_file_contains(daePath, " 300"));
+  ASSERT(!ak_test_file_contains(daePath, " 360"));
+
+  ak_heap_destroy(heap);
+  ak_test_export_cleanup(outDir);
+
+  TEST_SUCCESS
+}
+
 TEST_IMPL(dae_export_skips_unsupported_animation) {
   AkHeap      *heap;
   AkDoc       *doc;
