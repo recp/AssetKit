@@ -394,6 +394,70 @@ TEST_IMPL(dae_export_material_scalar_channels_smoke) {
   TEST_SUCCESS
 }
 
+TEST_IMPL(dae_export_material_pbr_matte_uses_lambert) {
+  AkHeap            *heap;
+  AkDoc             *doc;
+  AkMaterial        *mat;
+  AkMaterialSurface *surface;
+  AkMaterialInput   *baseColor;
+  AkMaterialInput   *metallic;
+  AkMaterialInput   *roughness;
+  const char        *outDir  = "./assetkit_export_dae_material_pbr_matte";
+  const char        *daePath = "./assetkit_export_dae_material_pbr_matte/model.dae";
+
+  ak_test_export_cleanup(outDir);
+
+  heap = ak_heap_new(NULL, NULL, NULL);
+  doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
+  ak_heap_setdata(heap, doc);
+
+  mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
+  surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
+  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
+  metallic  = ak_heap_calloc(heap, surface, sizeof(*metallic));
+  roughness = ak_heap_calloc(heap, surface, sizeof(*roughness));
+  ASSERT(mat != NULL);
+  ASSERT(surface != NULL);
+  ASSERT(baseColor != NULL);
+  ASSERT(metallic != NULL);
+  ASSERT(roughness != NULL);
+
+  baseColor->source       = AK_MATERIAL_INPUT_CONSTANT;
+  baseColor->valueType    = AK_MATERIAL_VALUE_COLOR;
+  baseColor->color.rgba.R = 0.8f;
+  baseColor->color.rgba.G = 0.4f;
+  baseColor->color.rgba.B = 0.7f;
+  baseColor->color.rgba.A = 1.0f;
+
+  metallic->source      = AK_MATERIAL_INPUT_CONSTANT;
+  metallic->valueType   = AK_MATERIAL_VALUE_FLOAT;
+  metallic->value[0]    = 0.0f;
+  roughness->source     = AK_MATERIAL_INPUT_CONSTANT;
+  roughness->valueType  = AK_MATERIAL_VALUE_FLOAT;
+  roughness->value[0]   = 1.0f;
+
+  surface->type      = AK_MATERIAL_TYPE_PBR_METALLIC_ROUGHNESS;
+  surface->baseColor = baseColor;
+  surface->metallic  = metallic;
+  surface->roughness = roughness;
+  mat->name          = "matte_pbr";
+  mat->surface       = surface;
+
+  doc->lib.materials.first = mat;
+  doc->lib.materials.last  = mat;
+  doc->lib.materials.count = 1;
+
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_DAE) == AK_OK);
+  ASSERT(ak_test_file_contains(daePath, "<lambert><diffuse><color>"));
+  ASSERT(!ak_test_file_contains(daePath, "<specular>"));
+  ASSERT(!ak_test_file_contains(daePath, "<shininess>"));
+
+  ak_heap_destroy(heap);
+  ak_test_export_cleanup(outDir);
+
+  TEST_SUCCESS
+}
+
 TEST_IMPL(dae_export_material_technique_types) {
   AkHeap            *heap;
   AkDoc             *doc;

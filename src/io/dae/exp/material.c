@@ -255,6 +255,27 @@ dae_material_metallic_approx(AkMaterialSurface * __restrict surface) {
 
 static
 bool
+dae_material_pbr_matte_lambert(AkMaterialSurface * __restrict surface) {
+  if (!dae_material_pbr_like(surface))
+    return false;
+
+  if (surface->type == AK_MATERIAL_TYPE_PBR_SPECULAR_GLOSSINESS)
+    return false;
+
+  if (ak_materialInputTexture(surface->metallic)
+      || ak_materialInputTexture(surface->roughness))
+    return false;
+
+  if (ak_materialFeature(surface, AK_MATERIAL_FEATURE_SPECULAR)
+      || ak_materialFeature(surface, AK_MATERIAL_FEATURE_SPECULAR_GLOSSINESS))
+    return false;
+
+  return dae_material_metallic_approx(surface) <= 0.001f
+         && dae_material_roughness_approx(surface) >= 0.999f;
+}
+
+static
+bool
 dae_material_pbr_specular_color(AkMaterialSurface * __restrict surface,
                                 AkColor           * __restrict color) {
   AkMaterialSpecularFeature *specular;
@@ -583,6 +604,9 @@ dae_material_technique_tag(AkMaterialSurface * __restrict surface) {
   if (!surface)
     return DAE_EXP_NAME(phong);
 
+  if (dae_material_pbr_matte_lambert(surface))
+    return DAE_EXP_NAME(lambert);
+
   switch (surface->type) {
     case AK_MATERIAL_TYPE_CONSTANT: return DAE_EXP_NAME(constant);
     case AK_MATERIAL_TYPE_LAMBERT:  return DAE_EXP_NAME(lambert);
@@ -610,6 +634,7 @@ dae_write_effect(DAEExpState * __restrict st,
   float              opacity;
   float              ior;
   bool               useConstant;
+  bool               useLambert;
   bool               useSpecular;
   bool               wroteSpecular;
 
@@ -646,9 +671,11 @@ dae_write_effect(DAEExpState * __restrict st,
 
   techniqueTag = dae_material_technique_tag(surface);
   useConstant  = surface && surface->type == AK_MATERIAL_TYPE_CONSTANT;
+  useLambert   = surface && (surface->type == AK_MATERIAL_TYPE_LAMBERT
+                             || dae_material_pbr_matte_lambert(surface));
   useSpecular  = !surface
                  || (surface->type != AK_MATERIAL_TYPE_CONSTANT
-                     && surface->type != AK_MATERIAL_TYPE_LAMBERT);
+                     && !useLambert);
   dae_w_lit(w, "<technique sid=\"common\"><");
   dae_w_name(w, techniqueTag);
   dae_w_ch(w, '>');
