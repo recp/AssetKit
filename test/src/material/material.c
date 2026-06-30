@@ -45,7 +45,7 @@ test_write_material_dae(const char *path) {
         "<transparency><float>0.5</float></transparency>"
         "</lambert></technique></profile_COMMON></effect>\n"
         "<effect id=\"effect_rgb_one\"><profile_COMMON><technique sid=\"common\"><lambert>"
-        "<diffuse><color>1 1 1 1</color></diffuse>"
+        "<diffuse><color>0.2 0.3 0.4 1</color></diffuse>"
         "<transparent opaque=\"RGB_ONE\"><color>0.2 0.3 0.4 1</color></transparent>"
         "<transparency><float>1</float></transparency>"
         "</lambert></technique></profile_COMMON></effect>\n"
@@ -576,10 +576,17 @@ TEST_IMPL(material_dae_adapter) {
   ASSERT(test_material_opacity(aZero, AK_TEXTURE_CHANNEL_A, 0.874f, 0.876f, false, false));
 
   rgbOne = test_material_by_name(doc, "rgb_one");
-  ASSERT(test_material_opacity(rgbOne, AK_TEXTURE_CHANNEL_RGB, 0.068f, 0.070f, false, false));
+  ASSERT(rgbOne && rgbOne->surface && rgbOne->surface->baseColor);
+  ASSERT(rgbOne->surface->baseColor->color.rgba.R > 0.199f);
+  ASSERT(rgbOne->surface->baseColor->color.rgba.R < 0.201f);
+  ASSERT(rgbOne->surface->baseColor->color.rgba.G > 0.299f);
+  ASSERT(rgbOne->surface->baseColor->color.rgba.G < 0.301f);
+  ASSERT(rgbOne->surface->baseColor->color.rgba.B > 0.399f);
+  ASSERT(rgbOne->surface->baseColor->color.rgba.B < 0.401f);
+  ASSERT(test_material_opacity(rgbOne, AK_TEXTURE_CHANNEL_RGB, 0.285f, 0.287f, false, false));
 
   rgbZero = test_material_by_name(doc, "rgb_zero");
-  ASSERT(test_material_opacity(rgbZero, AK_TEXTURE_CHANNEL_RGB, 0.930f, 0.932f, false, false));
+  ASSERT(test_material_opacity(rgbZero, AK_TEXTURE_CHANNEL_RGB, 0.713f, 0.715f, false, false));
 
   texAOne = test_material_by_name(doc, "tex_a_one");
   ASSERT(test_material_opacity(texAOne, AK_TEXTURE_CHANNEL_A, 0.499f, 0.501f, true, false));

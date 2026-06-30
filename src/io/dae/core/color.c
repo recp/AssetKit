@@ -51,5 +51,4 @@ dae_color(xml_t   * __restrict xml,
     dest->vec[3] = 1.0f - dest->vec[3];
   }
 
-  ak_sRGB_linear(dest);
 }
