@@ -23,6 +23,70 @@ typedef struct DAEMatrixAnimFix {
 } DAEMatrixAnimFix;
 
 static
+AkTargetPropertyType
+dae_transformTargetType(AkObject * __restrict obj) {
+  if (!obj || ak_typeid(obj) != AKT_OBJECT)
+    return AK_TARGET_UNKNOWN;
+
+  switch ((AkTypeId)obj->type) {
+    case AKT_MATRIX:     return AK_TARGET_FLOAT;
+    case AKT_ROTATE:     return AK_TARGET_ROTATE;
+    case AKT_QUATERNION: return AK_TARGET_QUAT;
+    case AKT_SCALE:      return AK_TARGET_SCALE;
+    case AKT_TRANSLATE:  return AK_TARGET_POSITION;
+    default:             return AK_TARGET_UNKNOWN;
+  }
+}
+
+static
+bool
+dae_resolveTransformTarget(AkContext            * __restrict ctx,
+                           AkChannel            * __restrict ch,
+                           AkResolvedTarget     * __restrict rt,
+                           AkTargetPropertyType * __restrict targetType) {
+  const char *attr;
+  AkObject   *obj;
+  uint32_t    off;
+
+  if (!ctx || !ch || !ch->target || !rt || !targetType)
+    return false;
+
+  attr = NULL;
+  obj  = ak_sid_resolve(ctx, ch->target, &attr);
+  if (!obj)
+    return false;
+
+  *targetType = dae_transformTargetType(obj);
+  if (*targetType == AK_TARGET_UNKNOWN)
+    goto err;
+
+  off = 0;
+  if (attr) {
+    off = ak_sid_attr_offset(attr);
+    if (off == UINT32_MAX)
+      goto err;
+
+    /* Partial transform channels animate one scalar slot, e.g.
+       "translate.X" or "rotate.ANGLE". Keep the sampler shape scalar for
+       DAE roundtrip/export; the base transform object remains in rt->target. */
+    *targetType = AK_TARGET_FLOAT;
+  }
+
+  rt->target    = obj;
+  rt->off       = off;
+  rt->isPartial = attr != NULL;
+  if (attr)
+    ak_free((void *)attr);
+
+  return true;
+
+err:
+  if (attr)
+    ak_free((void *)attr);
+  return false;
+}
+
+static
 bool
 dae_parse_u32_between(const char * __restrict begin,
                       const char * __restrict end,
@@ -432,6 +496,8 @@ dae_fixup_channel_walk(DAEState          * __restrict dst,
 
       skipMatrixFixup = false;
       if (!ch->resolvedTarget) {
+        AkTargetPropertyType targetType;
+
         memset(&mrt, 0, sizeof(mrt));
         if (dae_parseChannelTargetIndexed(ch->target,
                                           &idStart,
@@ -457,6 +523,15 @@ dae_fixup_channel_walk(DAEState          * __restrict dst,
           *rt                = mrt;
           ch->resolvedTarget = rt;
           ch->targetType     = AK_TARGET_FLOAT;
+        }
+
+        if (!ch->resolvedTarget
+            && !skipMatrixFixup
+            && dae_resolveTransformTarget(ctx, ch, &mrt, &targetType)) {
+          rt                 = ak_heap_calloc(dst->heap, ch, sizeof(*rt));
+          *rt                = mrt;
+          ch->resolvedTarget = rt;
+          ch->targetType     = targetType;
         }
       }
 

@@ -16,6 +16,57 @@
 
 #include "../../../test_export_common.h"
 
+static
+AkAnimation*
+ak_test_find_animation_with_channel(AkAnimation *anim,
+                                    const char  *target,
+                                    AkChannel  **outChannel) {
+  AkAnimation *found;
+  AkChannel   *channel;
+
+  for (; anim; anim = anim->next) {
+    for (channel = anim->channel; channel; channel = channel->next) {
+      if (channel->target && strcmp(channel->target, target) == 0) {
+        if (outChannel)
+          *outChannel = channel;
+        return anim;
+      }
+    }
+
+    found = ak_test_find_animation_with_channel(anim->animation,
+                                                target,
+                                                outChannel);
+    if (found)
+      return found;
+  }
+
+  return NULL;
+}
+
+static
+AkAnimSampler*
+ak_test_channel_sampler(AkChannel *channel) {
+  return channel ? ak_getObjectByUrl(&channel->source) : NULL;
+}
+
+static
+const float*
+ak_test_input_floats(AkInput *input) {
+  AkAccessor *acc;
+
+  acc = input ? input->accessor : NULL;
+  if (!acc || !acc->buffer || !acc->buffer->data)
+    return NULL;
+
+  return (const float *)((const char *)acc->buffer->data + acc->byteOffset);
+}
+
+static
+bool
+ak_test_float_near(float a, float b) {
+  return fabsf(a - b) < 0.0001f;
+}
+
 TEST_IMPL(dae_export_animation_roundtrip) {
   AkHeap      *heap;
   AkDoc       *doc;
@@ -227,6 +278,244 @@ TEST_IMPL(dae_export_resolved_transform_animation_roundtrip) {
                                "target=\"moving/translation\"/>"));
   ASSERT(ak_load(&roundTrip, daePath, AK_FILE_TYPE_DAE) == AK_OK && roundTrip);
   ASSERT(roundTrip->lib.animations.count == 1);
+  channel = NULL;
+  anim = ak_test_find_animation_with_channel(roundTrip->lib.animations.first,
+                                             "moving/translation",
+                                             &channel);
+  ASSERT(anim != NULL);
+  ASSERT(channel != NULL);
+  ASSERT(channel->targetType == AK_TARGET_POSITION);
+  ASSERT(channel->resolvedTarget != NULL);
+  ASSERT(channel->resolvedTarget->target != NULL);
+  ASSERT(!channel->resolvedTarget->isPartial);
+  sampler = ak_test_channel_sampler(channel);
+  ASSERT(sampler != NULL);
+  ASSERT(sampler->inputInput != NULL);
+  ASSERT(sampler->inputInput->accessor != NULL);
+  ASSERT(sampler->inputInput->accessor->count == 2);
+  ASSERT(ak_test_input_floats(sampler->inputInput) != NULL);
+  ASSERT(ak_test_float_near(ak_test_input_floats(sampler->inputInput)[0],
+                            0.0f));
+  ASSERT(ak_test_float_near(ak_test_input_floats(sampler->inputInput)[1],
+                            1.0f));
+
+  ak_free(roundTrip);
+  ak_heap_destroy(heap);
+  ak_test_export_cleanup(outDir);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(dae_export_parent_translate_child_rotate_roundtrip) {
+  AkHeap           *heap;
+  AkDoc            *doc;
+  AkDoc            *roundTrip;
+  AkScene          *scene;
+  AkNode           *root;
+  AkNode           *parent;
+  AkNode           *child;
+  AkAnimation      *anim;
+  AkAnimation      *loadedAnim;
+  AkAnimSampler    *moveSampler;
+  AkAnimSampler    *rotSampler;
+  AkAnimSampler    *loadedSampler;
+  AkChannel        *moveChannel;
+  AkChannel        *rotChannel;
+  AkChannel        *loadedChannel;
+  AkInput          *moveTimeInput;
+  AkInput          *moveValueInput;
+  AkInput          *rotTimeInput;
+  AkInput          *rotValueInput;
+  AkResolvedTarget *moveTarget;
+  AkResolvedTarget *rotTarget;
+  AkObject         *translate;
+  AkObject         *rotateObj;
+  AkQuaternion     *rotate;
+  const float      *loadedTimes;
+  const char       *outDir  = "./assetkit_export_dae_box_anim";
+  const char       *daePath = "./assetkit_export_dae_box_anim/model.dae";
+  const float       moveTimes[4] = {
+    0.0f, 1.25f, 2.5f, 3.708329916f
+  };
+  const float       moveValues[12] = {
+    0.0f, 0.0f, 0.0f,
+    0.0f, 2.52f, 0.0f,
+    0.0f, 2.52f, 0.0f,
+    0.0f, 0.0f, 0.0f
+  };
+  const float       rotTimes[2] = {
+    1.25f, 2.5f
+  };
+  const float       rotValues[8] = {
+    0.0f, 0.0f, 0.0f, -1.0f,
+    1.0f, 0.0f, 0.0f,  0.0f
+  };
+
+  ak_test_export_cleanup(outDir);
+
+  heap = ak_heap_new(NULL, NULL, NULL);
+  doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
+  ak_heap_setdata(heap, doc);
+
+  scene        = ak_heap_calloc(heap, doc, sizeof(*scene));
+  root         = ak_heap_calloc(heap, scene, sizeof(*root));
+  parent       = ak_heap_calloc(heap, doc, sizeof(*parent));
+  child        = ak_heap_calloc(heap, doc, sizeof(*child));
+  scene->node  = root;
+  doc->scene   = scene;
+  ASSERT(scene != NULL);
+  ASSERT(root != NULL);
+  ASSERT(parent != NULL);
+  ASSERT(child != NULL);
+  ASSERT(ak_setId(parent, "node0") == AK_OK);
+  ASSERT(ak_setId(child, "node2") == AK_OK);
+  ak_addSubNode(root, parent, false);
+  ak_addSubNode(parent, child, false);
+
+  parent->transform = ak_heap_calloc(heap, parent, sizeof(*parent->transform));
+  child->transform  = ak_heap_calloc(heap, child, sizeof(*child->transform));
+  ASSERT(parent->transform != NULL);
+  ASSERT(child->transform != NULL);
+  translate = ak_getTransformTRS(parent, AKT_TRANSLATE);
+  rotateObj = ak_getTransformTRS(child, AKT_QUATERNION);
+  ASSERT(translate != NULL);
+  ASSERT(rotateObj != NULL);
+  rotate = ak_objGet(rotateObj);
+  ASSERT(rotate != NULL);
+  rotate->val[3] = -1.0f;
+
+  anim           = ak_heap_calloc(heap, doc, sizeof(*anim));
+  moveSampler    = ak_heap_calloc(heap, anim, sizeof(*moveSampler));
+  rotSampler     = ak_heap_calloc(heap, anim, sizeof(*rotSampler));
+  moveChannel    = ak_heap_calloc(heap, anim, sizeof(*moveChannel));
+  rotChannel     = ak_heap_calloc(heap, anim, sizeof(*rotChannel));
+  moveTimeInput  = ak_heap_calloc(heap, moveSampler, sizeof(*moveTimeInput));
+  moveValueInput = ak_heap_calloc(heap, moveSampler, sizeof(*moveValueInput));
+  rotTimeInput   = ak_heap_calloc(heap, rotSampler, sizeof(*rotTimeInput));
+  rotValueInput  = ak_heap_calloc(heap, rotSampler, sizeof(*rotValueInput));
+  moveTarget     = ak_heap_calloc(heap, moveChannel, sizeof(*moveTarget));
+  rotTarget      = ak_heap_calloc(heap, rotChannel, sizeof(*rotTarget));
+  ASSERT(anim != NULL);
+  ASSERT(moveSampler != NULL);
+  ASSERT(rotSampler != NULL);
+  ASSERT(moveChannel != NULL);
+  ASSERT(rotChannel != NULL);
+  ASSERT(moveTimeInput != NULL);
+  ASSERT(moveValueInput != NULL);
+  ASSERT(rotTimeInput != NULL);
+  ASSERT(rotValueInput != NULL);
+  ASSERT(moveTarget != NULL);
+  ASSERT(rotTarget != NULL);
+
+  moveTimeInput->semantic = AK_INPUT_INPUT;
+  moveTimeInput->accessor = ak_test_make_float_accessor(heap,
+                                                        moveTimeInput,
+                                                        moveTimes,
+                                                        1,
+                                                        4);
+  moveValueInput->semantic = AK_INPUT_OUTPUT;
+  moveValueInput->accessor = ak_test_make_float_accessor(heap,
+                                                         moveValueInput,
+                                                         moveValues,
+                                                         3,
+                                                         4);
+  rotTimeInput->semantic = AK_INPUT_INPUT;
+  rotTimeInput->accessor = ak_test_make_float_accessor(heap,
+                                                       rotTimeInput,
+                                                       rotTimes,
+                                                       1,
+                                                       2);
+  rotValueInput->semantic = AK_INPUT_OUTPUT;
+  rotValueInput->accessor = ak_test_make_float_accessor(heap,
+                                                        rotValueInput,
+                                                        rotValues,
+                                                        4,
+                                                        2);
+  ASSERT(moveTimeInput->accessor != NULL);
+  ASSERT(moveValueInput->accessor != NULL);
+  ASSERT(rotTimeInput->accessor != NULL);
+  ASSERT(rotValueInput->accessor != NULL);
+
+  moveTimeInput->next = moveValueInput;
+  moveSampler->input = moveTimeInput;
+  moveSampler->inputInput = moveTimeInput;
+  moveSampler->outputInput = moveValueInput;
+  moveSampler->uniInterpolation = AK_INTERPOLATION_LINEAR;
+
+  rotTimeInput->next = rotValueInput;
+  rotSampler->input = rotTimeInput;
+  rotSampler->inputInput = rotTimeInput;
+  rotSampler->outputInput = rotValueInput;
+  rotSampler->uniInterpolation = AK_INTERPOLATION_LINEAR;
+
+  moveTarget->target = translate;
+  moveTarget->off = 0;
+  moveTarget->isPartial = false;
+  moveChannel->source.ptr = moveSampler;
+  moveChannel->resolvedTarget = moveTarget;
+  moveChannel->targetType = AK_TARGET_POSITION;
+
+  rotTarget->target = rotateObj;
+  rotTarget->off = 0;
+  rotTarget->isPartial = false;
+  rotChannel->source.ptr = rotSampler;
+  rotChannel->resolvedTarget = rotTarget;
+  rotChannel->targetType = AK_TARGET_QUAT;
+
+  moveSampler->base.next = &rotSampler->base;
+  moveChannel->next = rotChannel;
+  anim->sampler = moveSampler;
+  anim->channel = moveChannel;
+  doc->lib.animations.first = anim;
+  doc->lib.animations.last = anim;
+  doc->lib.animations.count = 1;
+
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_DAE) == AK_OK);
+  ASSERT(ak_test_file_contains(daePath,
+                               "target=\"node0/translation\""));
+  ASSERT(ak_test_file_contains(daePath,
+                               "target=\"node2/rotation\""));
+  ASSERT(ak_load(&roundTrip, daePath, AK_FILE_TYPE_DAE) == AK_OK && roundTrip);
+
+  loadedChannel = NULL;
+  loadedAnim = ak_test_find_animation_with_channel(roundTrip->lib.animations.first,
+                                                   "node0/translation",
+                                                   &loadedChannel);
+  ASSERT(loadedAnim != NULL);
+  ASSERT(loadedChannel != NULL);
+  ASSERT(loadedChannel->targetType == AK_TARGET_POSITION);
+  ASSERT(loadedChannel->resolvedTarget != NULL);
+  ASSERT(loadedChannel->resolvedTarget->target != NULL);
+  ASSERT(!loadedChannel->resolvedTarget->isPartial);
+  loadedSampler = ak_test_channel_sampler(loadedChannel);
+  ASSERT(loadedSampler != NULL);
+  ASSERT(loadedSampler->inputInput != NULL);
+  ASSERT(loadedSampler->inputInput->accessor != NULL);
+  ASSERT(loadedSampler->inputInput->accessor->count == 4);
+  loadedTimes = ak_test_input_floats(loadedSampler->inputInput);
+  ASSERT(loadedTimes != NULL);
+  ASSERT(ak_test_float_near(loadedTimes[0], 0.0f));
+  ASSERT(ak_test_float_near(loadedTimes[3], 3.70833f));
+
+  loadedChannel = NULL;
+  loadedAnim = ak_test_find_animation_with_channel(roundTrip->lib.animations.first,
+                                                   "node2/rotation",
+                                                   &loadedChannel);
+  ASSERT(loadedAnim != NULL);
+  ASSERT(loadedChannel != NULL);
+  ASSERT(loadedChannel->targetType == AK_TARGET_ROTATE);
+  ASSERT(loadedChannel->resolvedTarget != NULL);
+  ASSERT(loadedChannel->resolvedTarget->target != NULL);
+  ASSERT(!loadedChannel->resolvedTarget->isPartial);
+  loadedSampler = ak_test_channel_sampler(loadedChannel);
+  ASSERT(loadedSampler != NULL);
+  ASSERT(loadedSampler->inputInput != NULL);
+  ASSERT(loadedSampler->inputInput->accessor != NULL);
+  ASSERT(loadedSampler->inputInput->accessor->count == 2);
+  loadedTimes = ak_test_input_floats(loadedSampler->inputInput);
+  ASSERT(loadedTimes != NULL);
+  ASSERT(ak_test_float_near(loadedTimes[0], 1.25f));
+  ASSERT(ak_test_float_near(loadedTimes[1], 2.5f));
 
   ak_free(roundTrip);
   ak_heap_destroy(heap);

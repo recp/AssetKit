@@ -28,12 +28,16 @@
  *   - row-major MAT4 OUTPUT arrays targeting <matrix> transforms; static
  *     DAE matrices are normalized to AssetKit column-major during node
  *     parse, so animation matrices are normalized here to match.
+ *   - ordinary SID transform targets, e.g. <channel target="node/translate">
+ *     and <channel target="node/translate.X">, so downstream exporters and
+ *     coordinate conversion can use resolvedTarget/targetType without
+ *     reparsing target strings.
  *
  * For matched morph patterns this builds an AkResolvedTarget pointing at
  * the AkInstanceMorph (target), the index inside the parentheses (off),
  * and isPartial=true; ak_channelTarget then returns it directly. Channels
- * with conventional "node/transform.attr" SID syntax stay on the normal
- * resolver path.
+ * with conventional "node/transform.attr" SID syntax are also resolved once
+ * here because DAE import knows all node transform SID scopes by this point.
  *
  * Must run AFTER dae_fixup_instctlr so AkInstanceMorph instances exist.
  */

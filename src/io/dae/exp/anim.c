@@ -118,6 +118,12 @@ AkTargetPropertyType
 dae_anim_channel_target_type(AkChannel * __restrict channel) {
   AkObject *target;
 
+  if (channel
+      && channel->resolvedTarget
+      && channel->resolvedTarget->isPartial
+      && channel->targetType != AK_TARGET_UNKNOWN)
+    return channel->targetType;
+
   target = dae_anim_transform_target(channel);
   if (target)
     return dae_anim_transform_target_type(target);
