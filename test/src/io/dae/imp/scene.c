@@ -137,6 +137,58 @@ TEST_IMPL(dae_same_file_external_refs_are_internal) {
   TEST_SUCCESS
 }
 
+TEST_IMPL(dae_skin_idref_joints_populate_default_joints) {
+  AkDoc              *doc;
+  AkSkin             *skin;
+  AkNode             *meshNode;
+  AkInstanceGeometry *geomInst;
+  char                dirTemplate[PATH_MAX];
+  char               *tmpdir;
+  char                daePath[PATH_MAX];
+  const char         *tmpBase;
+
+  doc = NULL;
+  tmpBase = getenv("TMPDIR");
+  if (!tmpBase || !tmpBase[0])
+    tmpBase = "/tmp";
+
+  ASSERT(ak_test_path_join(dirTemplate,
+                           sizeof(dirTemplate),
+                           tmpBase,
+                           "assetkit-dae-skin-joints-XXXXXX"));
+  tmpdir = mkdtemp(dirTemplate);
+  ASSERT(tmpdir != NULL);
+
+  ASSERT(ak_test_path_join(daePath, sizeof(daePath), tmpdir, "skin.dae"));
+  ASSERT(ak_test_write_dae_skin_minimal(daePath));
+  ASSERT(ak_load(&doc, daePath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+  ASSERT(doc->lib.skins.count == 1);
+
+  skin = doc->lib.skins.first;
+  ASSERT(skin != NULL);
+  ASSERT(skin->nJoints == 2);
+  ASSERT(skin->joints != NULL);
+  ASSERT(skin->joints[0] != NULL);
+  ASSERT(skin->joints[1] != NULL);
+  ASSERT(strcmp((const char *)ak_getId(skin->joints[0]), "joint0") == 0);
+  ASSERT(strcmp((const char *)ak_getId(skin->joints[1]), "joint1") == 0);
+
+  meshNode = ak_getObjectById(doc, "meshNode");
+  ASSERT(meshNode != NULL);
+  geomInst = meshNode->geometry;
+  ASSERT(geomInst != NULL);
+  ASSERT(geomInst->skinner != NULL);
+  ASSERT(geomInst->skinner->overrideJoints != NULL);
+  ASSERT(geomInst->skinner->overrideJoints[0] == skin->joints[0]);
+  ASSERT(geomInst->skinner->overrideJoints[1] == skin->joints[1]);
+
+  ak_free(doc);
+  unlink(daePath);
+  rmdir(tmpdir);
+
+  TEST_SUCCESS
+}
+
 TEST_IMPL(dae_load_utf16le) {
   AkDoc       *doc;
   char         dirTemplate[PATH_MAX];

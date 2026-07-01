@@ -310,6 +310,8 @@ dae_instance_skin_from_controller(DAEState             * __restrict dst,
 
   skin->nJoints      = count;
   skin->invBindPoses = invm;
+  if (!skin->joints)
+    skin->joints = joints;
 
   /* DAE persists skeleton root as <skeleton> URL on each
      <instance_controller>; the same skin can be re-used with different
