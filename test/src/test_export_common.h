@@ -902,6 +902,65 @@ ak_test_write_dae_skin_multi_primitive(const char *path) {
 
 static inline
 bool
+ak_test_write_dae_skin_multi_source_primitives(const char *path) {
+  FILE *file;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  fputs("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+        "<COLLADA xmlns=\"http://www.collada.org/2005/11/COLLADASchema\" version=\"1.4.1\">\n"
+        "<asset><unit name=\"meter\" meter=\"1\"/><up_axis>Y_UP</up_axis></asset>\n"
+        "<library_geometries><geometry id=\"geom\" name=\"Geom\"><mesh>"
+        "<source id=\"geom-p0-pos\"><float_array id=\"geom-p0-pos-array\" count=\"9\">"
+        "0 0 0 1 0 0 0 1 0"
+        "</float_array><technique_common><accessor source=\"#geom-p0-pos-array\" count=\"3\" stride=\"3\">"
+        "<param name=\"X\" type=\"float\"/><param name=\"Y\" type=\"float\"/><param name=\"Z\" type=\"float\"/>"
+        "</accessor></technique_common></source>"
+        "<source id=\"geom-p1-pos\"><float_array id=\"geom-p1-pos-array\" count=\"9\">"
+        "2 0 0 3 0 0 2 1 0"
+        "</float_array><technique_common><accessor source=\"#geom-p1-pos-array\" count=\"3\" stride=\"3\">"
+        "<param name=\"X\" type=\"float\"/><param name=\"Y\" type=\"float\"/><param name=\"Z\" type=\"float\"/>"
+        "</accessor></technique_common></source>"
+        "<vertices id=\"geom-p0-verts\"><input semantic=\"POSITION\" source=\"#geom-p0-pos\"/></vertices>"
+        "<vertices id=\"geom-p1-verts\"><input semantic=\"POSITION\" source=\"#geom-p1-pos\"/></vertices>"
+        "<triangles count=\"1\"><input semantic=\"VERTEX\" source=\"#geom-p0-verts\" offset=\"0\"/><p>0 1 2</p></triangles>"
+        "<triangles count=\"1\"><input semantic=\"VERTEX\" source=\"#geom-p1-verts\" offset=\"0\"/><p>0 1 2</p></triangles>"
+        "</mesh></geometry></library_geometries>\n"
+        "<library_controllers><controller id=\"skin\"><skin source=\"#geom\">"
+        "<bind_shape_matrix>1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1</bind_shape_matrix>"
+        "<source id=\"skin-joints\"><IDREF_array id=\"skin-joints-array\" count=\"2\">joint0 joint1</IDREF_array>"
+        "<technique_common><accessor source=\"#skin-joints-array\" count=\"2\" stride=\"1\">"
+        "<param name=\"JOINT\" type=\"IDREF\"/></accessor></technique_common></source>"
+        "<source id=\"skin-bind\"><float_array id=\"skin-bind-array\" count=\"32\">"
+        "1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 "
+        "1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1"
+        "</float_array><technique_common><accessor source=\"#skin-bind-array\" count=\"2\" stride=\"16\">"
+        "<param name=\"TRANSFORM\" type=\"float4x4\"/></accessor></technique_common></source>"
+        "<source id=\"skin-weights\"><float_array id=\"skin-weights-array\" count=\"6\">1 1 1 1 1 1</float_array>"
+        "<technique_common><accessor source=\"#skin-weights-array\" count=\"6\" stride=\"1\">"
+        "<param name=\"WEIGHT\" type=\"float\"/></accessor></technique_common></source>"
+        "<joints><input semantic=\"JOINT\" source=\"#skin-joints\"/>"
+        "<input semantic=\"INV_BIND_MATRIX\" source=\"#skin-bind\"/></joints>"
+        "<vertex_weights count=\"6\"><input semantic=\"JOINT\" source=\"#skin-joints\" offset=\"0\"/>"
+        "<input semantic=\"WEIGHT\" source=\"#skin-weights\" offset=\"1\"/>"
+        "<vcount>1 1 1 1 1 1</vcount>"
+        "<v>0 0 0 1 0 2 1 3 1 4 1 5</v>"
+        "</vertex_weights></skin></controller></library_controllers>\n"
+        "<library_visual_scenes><visual_scene id=\"Scene\">"
+        "<node id=\"joint0\" name=\"Joint0\"><node id=\"joint1\" name=\"Joint1\"/></node>"
+        "<node id=\"meshNode\" name=\"Mesh\"><instance_controller url=\"#skin\"><skeleton>#joint0</skeleton></instance_controller></node>"
+        "</visual_scene></library_visual_scenes>\n"
+        "<scene><instance_visual_scene url=\"#Scene\"/></scene>\n"
+        "</COLLADA>\n",
+        file);
+
+  return fclose(file) == 0;
+}
+
+static inline
+bool
 ak_test_write_dae_morph_minimal(const char *path) {
   FILE *file;
 

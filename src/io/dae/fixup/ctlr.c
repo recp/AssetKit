@@ -36,6 +36,7 @@ static
 AkResult
 ak_fixBoneWeights(AkHeap        *heap,
                   size_t         nMeshVertex,
+                  size_t         baseVertexOffset,
                   AkSkin        *skin,
                   AkDuplicator  *duplicator,
                   AkBoneWeights *intrWeights,
@@ -94,6 +95,47 @@ ak_daeReadSkinWeight(AkAccessor * __restrict acc,
   memcpy(&val, base + (size_t)idx * stride, sizeof(val));
 
   return val;
+}
+
+static
+size_t
+dae_skin_weight_vertex_offset(AkMesh          * __restrict mesh,
+                              AkMeshPrimitive * __restrict target) {
+  AkMeshPrimitive *prim;
+  AkMeshPrimitive *scan;
+  AkAccessor      *targetAcc;
+  size_t           offset;
+
+  if (!mesh || !target || !target->pos || !target->pos->accessor)
+    return 0;
+
+  targetAcc = target->pos->accessor;
+  offset    = 0;
+
+  for (prim = mesh->primitive; prim && prim != target; prim = prim->next) {
+    AkAccessor *acc;
+    bool        seen;
+
+    if (!prim->pos || !(acc = prim->pos->accessor))
+      continue;
+
+    seen = false;
+    for (scan = mesh->primitive; scan && scan != prim; scan = scan->next) {
+      if (scan->pos && scan->pos->accessor == acc) {
+        seen = true;
+        break;
+      }
+    }
+    if (seen)
+      continue;
+
+    if (acc == targetAcc)
+      return offset;
+
+    offset += acc->count;
+  }
+
+  return offset;
 }
 
 static
@@ -357,12 +399,10 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
         switch (geom->gdata->type) {
           case AK_GEOMETRY_MESH: {
             AkMesh          *mesh;
-            AkDaeMeshInfo   *meshInfo;
             AkMeshPrimitive *prim;
             AkBoneWeights   *intrWeights; /* interleaved */
             AkInput         *jointswInp,  *weightsInp;
             AkAccessor      *weightsAcc;
-            size_t           nMeshVertex;
             uint32_t         primIndex;
 
             mesh          = ak_objGet(geom->gdata);
@@ -372,7 +412,6 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
               goto nxt_ctlr;
 
             primIndex     = 0;
-            meshInfo      = rb_find(dst->meshInfo, mesh);
 
             jointswInp  = skindae->weights.joints;
             weightsInp  = skindae->weights.weights;
@@ -384,8 +423,6 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
                                            sizeof(void *)
                                            * mesh->primitiveCount);
 
-            nMeshVertex = meshInfo ? meshInfo->nVertex : intrWeights->nVertex;
-
             flist_sp_insert(&mesh->skins, skin);
 
             while (prim) {
@@ -393,6 +430,7 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
               AkBoneWeights *weights; /* per-primitive weights */
               AkDuplicator  *dupl;
               size_t         count;
+              size_t         baseVertexOffset;
 
               if (!prim->pos || !(posAcc = prim->pos->accessor)) {
                 primIndex++;
@@ -417,9 +455,18 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
                                                 count * sizeof(size_t));
 
               weights->nVertex = count;
+              if (dupl
+                  && dupl->range
+                  && dupl->range->dupc
+                  && (dupl->range->dupc->count / 3u) >= intrWeights->nVertex) {
+                baseVertexOffset = 0;
+              } else {
+                baseVertexOffset = dae_skin_weight_vertex_offset(mesh, prim);
+              }
 
               ak_fixBoneWeights(dst->heap,
-                                nMeshVertex,
+                                posAcc->count,
+                                baseVertexOffset,
                                 skin,
                                 dupl,
                                 intrWeights,
@@ -744,6 +791,7 @@ static
 AkResult
 ak_fixBoneWeights(AkHeap        *heap,
                   size_t         nMeshVertex,
+                  size_t         baseVertexOffset,
                   AkSkin        *skin,
                   AkDuplicator  *duplicator,
                   AkBoneWeights *intrWeights,
@@ -793,11 +841,11 @@ ak_fixBoneWeights(AkHeap        *heap,
       || weightsOffset >= viStride)
     return AK_ERR;
 
-  vc = nMeshVertex;
-  if (intrWeights->nVertex < vc)
-    vc = intrWeights->nVertex;
-  if (useDupl && (dupc->count / 3) < vc)
-    vc = dupc->count / 3;
+  vc = useDupl ? dupc->count / 3 : nMeshVertex;
+  if (baseVertexOffset >= intrWeights->nVertex)
+    vc = 0;
+  else if (intrWeights->nVertex - baseVertexOffset < vc)
+    vc = intrWeights->nVertex - baseVertexOffset;
   if (!useDupl && weights->nVertex < vc)
     vc = weights->nVertex;
 
@@ -849,7 +897,8 @@ ak_fixBoneWeights(AkHeap        *heap,
         continue;                                                            \
                                                                              \
       s      = sumItems_[pno];                                               \
-      vcount = ak_daeSafeWeightCount(intrWeights, v, viStride, poo - 1);     \
+      vcount = ak_daeSafeWeightCount(intrWeights, v, viStride,               \
+                                     baseVertexOffset + poo - 1);            \
                                                                              \
       for (j = 0; j <= d; j++) {                                             \
         newidx = pno + j + s;                                                \
@@ -878,8 +927,9 @@ ak_fixBoneWeights(AkHeap        *heap,
         continue;                                                            \
                                                                              \
       s      = sumItems_[pno];                                               \
-      vcount = ak_daeSafeWeightCount(intrWeights, v, viStride, poo - 1);     \
-      old    = &pv[pOldCountSum[poo - 1] * viStride];                        \
+      vcount = ak_daeSafeWeightCount(intrWeights, v, viStride,               \
+                                     baseVertexOffset + poo - 1);            \
+      old    = &pv[pOldCountSum[baseVertexOffset + poo - 1] * viStride];     \
                                                                              \
       for (j = 0; j <= d; j++) {                                             \
         tmp = pno + j + s;                                                   \
@@ -905,7 +955,10 @@ ak_fixBoneWeights(AkHeap        *heap,
     AK_CTLR_FIX_DISPATCH(AK_CTLR_FIX_COUNT_PASS);
   } else {
     for (i = 0; i < vc; i++) {
-      vcount = ak_daeSafeWeightCount(intrWeights, v, viStride, i);
+      vcount = ak_daeSafeWeightCount(intrWeights,
+                                     v,
+                                     viStride,
+                                     baseVertexOffset + i);
       wi[i]  = vcount;
       nj[i]  = vcount;
       nwsum += vcount;
@@ -927,8 +980,11 @@ ak_fixBoneWeights(AkHeap        *heap,
     AK_CTLR_FIX_DISPATCH(AK_CTLR_FIX_COPY_PASS);
   } else {
     for (i = 0; i < vc; i++) {
-      vcount = ak_daeSafeWeightCount(intrWeights, v, viStride, i);
-      old    = &pv[pOldCountSum[i] * viStride];
+      vcount = ak_daeSafeWeightCount(intrWeights,
+                                     v,
+                                     viStride,
+                                     baseVertexOffset + i);
+      old    = &pv[pOldCountSum[baseVertexOffset + i] * viStride];
       newidx = wi[i];
 
       for (k = 0; k < vcount; k++) {

@@ -189,6 +189,58 @@ TEST_IMPL(dae_skin_idref_joints_populate_default_joints) {
   TEST_SUCCESS
 }
 
+TEST_IMPL(dae_skin_multi_source_primitives_keep_weight_offsets) {
+  AkDoc         *doc;
+  AkSkin        *skin;
+  AkBoneWeights *weights0;
+  AkBoneWeights *weights1;
+  char           dirTemplate[PATH_MAX];
+  char          *tmpdir;
+  char           daePath[PATH_MAX];
+  const char    *tmpBase;
+
+  doc = NULL;
+  tmpBase = getenv("TMPDIR");
+  if (!tmpBase || !tmpBase[0])
+    tmpBase = "/tmp";
+
+  ASSERT(ak_test_path_join(dirTemplate,
+                           sizeof(dirTemplate),
+                           tmpBase,
+                           "assetkit-dae-skin-offsets-XXXXXX"));
+  tmpdir = mkdtemp(dirTemplate);
+  ASSERT(tmpdir != NULL);
+
+  ASSERT(ak_test_path_join(daePath, sizeof(daePath), tmpdir, "skin.dae"));
+  ASSERT(ak_test_write_dae_skin_multi_source_primitives(daePath));
+  ASSERT(ak_load(&doc, daePath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+
+  ASSERT(doc->lib.skins.count == 1);
+  skin = doc->lib.skins.first;
+  ASSERT(skin != NULL);
+  ASSERT(skin->nPrims == 2);
+  ASSERT(skin->weights != NULL);
+
+  weights0 = skin->weights[0];
+  weights1 = skin->weights[1];
+  ASSERT(weights0 != NULL);
+  ASSERT(weights1 != NULL);
+  ASSERT(weights0->nVertex == 3);
+  ASSERT(weights1->nVertex == 3);
+  ASSERT(weights0->counts[0] == 1);
+  ASSERT(weights1->counts[0] == 1);
+  ASSERT(weights0->weights[weights0->indexes[0]].joint == 0);
+  ASSERT(weights1->weights[weights1->indexes[0]].joint == 1);
+  ASSERT(weights0->weights[weights0->indexes[0]].weight == 1.0f);
+  ASSERT(weights1->weights[weights1->indexes[0]].weight == 1.0f);
+
+  ak_free(doc);
+  unlink(daePath);
+  rmdir(tmpdir);
+
+  TEST_SUCCESS
+}
+
 TEST_IMPL(dae_load_utf16le) {
   AkDoc       *doc;
   char         dirTemplate[PATH_MAX];
