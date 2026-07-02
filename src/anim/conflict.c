@@ -48,6 +48,37 @@
 
 #include "../common.h"
 
+static bool
+ak_animationSamplerTimeRange(AkAnimSampler * __restrict sampler,
+                             float         * __restrict outStart,
+                             float         * __restrict outEnd) {
+  AkInput    *inp;
+  AkAccessor *acc;
+  AkBuffer   *buff;
+  const float *times;
+  uint32_t    count;
+
+  if (!sampler) return false;
+
+  for (inp = sampler->input; inp; inp = inp->next) {
+    if (inp->semantic != AK_INPUT_INPUT)
+      continue;
+
+    acc  = inp->accessor;
+    buff = acc ? acc->buffer : NULL;
+    if (!buff || !buff->data || acc->count == 0)
+      continue;
+
+    times    = (const float *)((const char *)buff->data + acc->byteOffset);
+    count    = acc->count;
+    *outStart = times[0];
+    *outEnd   = times[count - 1];
+    return true;
+  }
+
+  return false;
+}
+
 AK_EXPORT
 bool
 ak_animationsConflict(AkContext   * __restrict ctx,
@@ -127,6 +158,62 @@ ak_animationsCount(AkDoc * __restrict doc) {
     count++;
 
   return count;
+}
+
+AK_EXPORT
+bool
+ak_animationTimeRange(AkAnimation * __restrict anim,
+                      float       * __restrict outStart,
+                      float       * __restrict outEnd) {
+  AkAnimation *stack[256], *next;
+  AkChannel   *ch;
+  AkAnimSampler *sampler;
+  float        start, end, minTime, maxTime;
+  int          top;
+  bool         found, includeSiblings;
+
+  if (!anim || !outStart || !outEnd)
+    return false;
+
+  top             = 0;
+  found           = false;
+  includeSiblings = false;
+  minTime         = 0.0f;
+  maxTime         = 0.0f;
+
+  while (anim) {
+    for (ch = anim->channel; ch; ch = ch->next) {
+      sampler = ak_getObjectByUrl(&ch->source);
+      if (!ak_animationSamplerTimeRange(sampler, &start, &end))
+        continue;
+
+      if (!found || start < minTime) minTime = start;
+      if (!found || end   > maxTime) maxTime = end;
+      found = true;
+    }
+
+    if (anim->animation) {
+      next = includeSiblings ? anim->next : NULL;
+      if (next && top < (int)(sizeof(stack) / sizeof(stack[0])))
+        stack[top++] = next;
+      anim = anim->animation;
+      includeSiblings = true;
+    } else if (includeSiblings && anim->next) {
+      anim = anim->next;
+    } else if (top > 0) {
+      anim = stack[--top];
+      includeSiblings = true;
+    } else {
+      anim = NULL;
+    }
+  }
+
+  if (!found)
+    return false;
+
+  *outStart = minTime;
+  *outEnd   = maxTime;
+  return true;
 }
 
 AK_EXPORT

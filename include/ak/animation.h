@@ -245,6 +245,20 @@ size_t
 ak_animationsCount(struct AkDoc * __restrict doc);
 
 /*!
+ * @brief Compute the authored time range covered by an animation and its
+ *        child animation tree.
+ *
+ *        The function scans INPUT sampler accessors only; it does not allocate
+ *        and it does not resolve channel targets. Returns false when no valid
+ *        key time accessor is reachable.
+ */
+AK_EXPORT
+bool
+ak_animationTimeRange(AkAnimation * __restrict anim,
+                      float       * __restrict outStart,
+                      float       * __restrict outEnd);
+
+/*!
  * @brief Convenience over `ak_animationsCompatibleSet` that walks the
  *        document's animation libraries itself — so callers don't have to
  *        materialise a `candidates[]` array.
