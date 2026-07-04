@@ -4,13 +4,9 @@
 <br>
 
 <p align="center">
-    <a href="https://github.com/recp/AssetKit/actions/workflows/c-cpp.yml">
-        <img src="https://github.com/recp/AssetKit/actions/workflows/c-cpp.yml/badge.svg"
-             alt="C/C++ CI">
-    </a>
     <a href="https://github.com/recp/AssetKit/actions/workflows/cmake.yml">
-        <img src="https://github.com/recp/AssetKit/actions/workflows/cmake.yml/badge.svg"
-             alt="CMake">
+        <img src="https://github.com/recp/AssetKit/actions/workflows/cmake.yml/badge.svg?branch=main"
+             alt="github actions">
     </a>
     <a href="https://www.codacy.com/app/recp/assetkit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=recp/assetkit&amp;utm_campaign=Badge_Grade">
         <img src="https://api.codacy.com/project/badge/Grade/6edde2ba446148759437eb0148c799b6"
