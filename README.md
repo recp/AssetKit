@@ -8,10 +8,6 @@
         <img src="https://github.com/recp/AssetKit/actions/workflows/cmake.yml/badge.svg?branch=main"
              alt="github actions">
     </a>
-    <a href="https://www.codacy.com/app/recp/assetkit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=recp/assetkit&amp;utm_campaign=Badge_Grade">
-        <img src="https://api.codacy.com/project/badge/Grade/6edde2ba446148759437eb0148c799b6"
-             alt="Codacy Badge"/>
-    </a>
     <a href="https://coveralls.io/github/recp/assetkit?branch=master">
         <img src="https://coveralls.io/repos/github/recp/assetkit/badge.svg?branch=master"
              alt="Coverage Status"/>
@@ -40,8 +36,6 @@ Brand-new modern 3D asset importer, exporter library. This library will include 
 
 This library will try to full support COLLADA specs and glTF specs, plus well-known other 3D formats e.g .obj, .stl, .ply... 
 
-📌 There is also an optional renderer library called [Graphics Kernel (Realtime Rendering)](https://github.com/recp/libgk) and [rays (Path/Ray Tracer)](https://github.com/recp/rays) which can render **AssetKit** contents. You can see how to load **AssetKit** to [Graphics Kernel](https://github.com/recp/libgk) in [AssetKit-GL](https://github.com/recp/assetkit-gl) repo. Both renderers and documentation with samples will be updated regularly...  
-
 </p>
 
 #### 📚 Documentation (In Progress)
@@ -63,14 +57,14 @@ Runtime metadata and extension notes:
 * [x] Wavefront Obj (.obj + .mtl)
 * [x] STL (ASCII, Binary)
 * [x] PLY (ASCII, Binary)
-* [ ] 3MF (in progress)
+* [x] 3MF
 * [ ] FBX (License?, probably need to download FBX SDK externally)
 * [ ] USD and friends (License?)
 * [ ] Alembic (License?)
-* [ ] Draco
+* [x] Draco
 * [ ] X3D
 * [x] in progress for next...
-* [ ] Exporter
+* [x] Exporter
 
 ## 🚀 Features
 
