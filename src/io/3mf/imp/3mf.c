@@ -65,17 +65,21 @@ static const char AK_3MF_CT_RELS[]            = "application/vnd.openxmlformats-
 static const char AK_3MF_CT_MODEL[]           = "application/vnd.ms-package.3dmanufacturing-3dmodel+xml";
 
 typedef struct AK3MFPackageInflateJob {
+  AK3MFFastPreparedModel *preparedModel;
+  const char             *path;
   void     *data;
   size_t    capacity;
   size_t    expectedSize;
   size_t    writtenSize;
   size_t    entryIndex;
   AkResult  result;
+  bool      prepareModel;
 } AK3MFPackageInflateJob;
 
 typedef struct AK3MFPackageImportState {
   AkDoc                   *doc;
   AkPrintDocument         *print;
+  AK3MFImportState        *importState;
   AkZipArchive            *package;
   AK3MFPackageInflateJob  *jobs;
   const char              *filepath;
@@ -84,6 +88,7 @@ typedef struct AK3MFPackageImportState {
   xml_t                   *rootRelsRoot;
   size_t                   jobCount;
   size_t                   jobCapacity;
+  size_t                   modelJobCount;
   size_t                   totalInflateBytes;
   AkResult                 result;
 } AK3MFPackageImportState;
@@ -1312,6 +1317,7 @@ ak_3mf_mark_package_part_features(AkPrintDocument       * __restrict print,
 #define AK_3MF_PACKAGE_INFLATE_PARALLEL_MIN_JOBS  2u
 #define AK_3MF_PACKAGE_INFLATE_PARALLEL_MIN_BYTES (8u * 1024u * 1024u)
 #define AK_3MF_PACKAGE_INFLATE_MAX_THREADS        8u
+#define AK_3MF_PACKAGE_PREPARE_MIN_MODEL_JOBS     4u
 
 typedef struct AK3MFPackageInflateWorker {
   AkZipArchive           *package;
@@ -1326,8 +1332,10 @@ static
 bool
 ak_3mf_package_add_inflate_job(AK3MFPackageImportState * __restrict st,
                                size_t                               entryIndex,
+                               const char             * __restrict path,
                                void                   * __restrict data,
-                               size_t                              expectedSize) {
+                               size_t                              expectedSize,
+                               bool                                prepareModel) {
   AK3MFPackageInflateJob *jobs;
   AK3MFPackageInflateJob *job;
   size_t                  newCapacity;
@@ -1349,12 +1357,17 @@ ak_3mf_package_add_inflate_job(AK3MFPackageImportState * __restrict st,
   }
 
   job               = &st->jobs[st->jobCount++];
+  job->preparedModel = NULL;
+  job->path         = path;
   job->data         = data;
   job->capacity     = expectedSize + 1u;
   job->expectedSize = expectedSize;
   job->writtenSize  = 0u;
   job->entryIndex   = entryIndex;
   job->result       = AK_OK;
+  job->prepareModel = prepareModel;
+  if (prepareModel)
+    st->modelJobCount++;
   st->totalInflateBytes += expectedSize;
   return true;
 }
@@ -1385,6 +1398,10 @@ ak_3mf_package_inflate_jobs_serial(AkZipArchive           * __restrict package,
       return result;
     if (job->writtenSize != job->expectedSize)
       return AK_EBADF;
+    if (job->prepareModel)
+      job->preparedModel =
+        ak_3mf_fast_prepare_model_part((const char *)job->data,
+                                       job->writtenSize);
   }
 
   return AK_OK;
@@ -1431,6 +1448,10 @@ ak_3mf_package_inflate_worker(void *userdata) {
       worker->result = AK_EBADF;
       break;
     }
+    if (job->prepareModel)
+      job->preparedModel =
+        ak_3mf_fast_prepare_model_part((const char *)job->data,
+                                       job->writtenSize);
   }
 
   ak_zip_decompressor_free(decompressor);
@@ -1463,9 +1484,8 @@ static
 AkResult
 ak_3mf_package_inflate_jobs(AK3MFPackageImportState * __restrict st) {
   AK3MFPackageInflateWorker *workers;
-  AkThread                  *threads;
+  AkThreadTask              *tasks;
   uint32_t                   threadCount;
-  uint32_t                   startedCount;
   uint32_t                   i;
   AkResult                   result;
 
@@ -1473,6 +1493,13 @@ ak_3mf_package_inflate_jobs(AK3MFPackageImportState * __restrict st) {
     return AK_ERR;
   if (st->jobCount == 0u)
     return AK_OK;
+
+  if (st->modelJobCount < AK_3MF_PACKAGE_PREPARE_MIN_MODEL_JOBS) {
+    size_t jobIndex;
+
+    for (jobIndex = 0u; jobIndex < st->jobCount; jobIndex++)
+      st->jobs[jobIndex].prepareModel = false;
+  }
 
   threadCount = ak_3mf_package_inflate_thread_count(st->jobCount,
                                                     st->totalInflateBytes);
@@ -1482,9 +1509,8 @@ ak_3mf_package_inflate_jobs(AK3MFPackageImportState * __restrict st) {
                                              st->jobCount);
 
   workers = AK_ALLOCA(sizeof(*workers) * threadCount);
-  threads = AK_ALLOCA(sizeof(*threads) * threadCount);
+  tasks   = AK_ALLOCA(sizeof(*tasks) * threadCount);
   memset(workers, 0, sizeof(*workers) * threadCount);
-  memset(threads, 0, sizeof(*threads) * threadCount);
 
   for (i = 0u; i < threadCount; i++) {
     workers[i].package    = st->package;
@@ -1493,28 +1519,14 @@ ak_3mf_package_inflate_jobs(AK3MFPackageImportState * __restrict st) {
     workers[i].startIndex = i;
     workers[i].stride     = threadCount;
     workers[i].result     = AK_OK;
+    tasks[i].func         = ak_3mf_package_inflate_worker;
+    tasks[i].userdata     = &workers[i];
   }
 
-  startedCount = 0u;
-  for (i = 1u; i < threadCount; i++) {
-    if (!ak_thread_start(&threads[i],
-                         ak_3mf_package_inflate_worker,
-                         &workers[i])) {
-      uint32_t j;
-
-      for (j = 1u; j <= startedCount; j++)
-        ak_thread_join(&threads[j]);
-      return ak_3mf_package_inflate_jobs_serial(st->package,
-                                               st->jobs,
-                                               st->jobCount);
-    }
-    startedCount++;
-  }
-
-  ak_3mf_package_inflate_worker(&workers[0]);
-
-  for (i = 1u; i < threadCount; i++)
-    ak_thread_join(&threads[i]);
+  if (!ak_thread_run_tasks(tasks, threadCount))
+    return ak_3mf_package_inflate_jobs_serial(st->package,
+                                             st->jobs,
+                                             st->jobCount);
 
   result = workers[0].result;
   for (i = 1u; i < threadCount; i++) {
@@ -1525,6 +1537,102 @@ ak_3mf_package_inflate_jobs(AK3MFPackageImportState * __restrict st) {
   }
 
   return result;
+}
+
+static
+bool
+ak_3mf_reserve_prepared_models(AK3MFImportState * __restrict st,
+                               size_t                         extra) {
+  AK3MFPreparedModelEntry *entries;
+  size_t                   needed;
+  size_t                   newCapacity;
+
+  if (!st)
+    return false;
+  if (extra == 0u)
+    return true;
+  if (st->preparedModelCount > SIZE_MAX - extra)
+    return false;
+
+  needed = st->preparedModelCount + extra;
+  if (needed <= st->preparedModelCapacity)
+    return true;
+
+  newCapacity = st->preparedModelCapacity ? st->preparedModelCapacity * 2u : 8u;
+  while (newCapacity < needed) {
+    if (newCapacity > SIZE_MAX / 2u)
+      return false;
+    newCapacity *= 2u;
+  }
+
+  entries = realloc(st->preparedModels, sizeof(*entries) * newCapacity);
+  if (!entries)
+    return false;
+
+  st->preparedModels        = entries;
+  st->preparedModelCapacity = newCapacity;
+  return true;
+}
+
+static
+bool
+ak_3mf_add_prepared_model(AK3MFImportState       * __restrict st,
+                          const char             * __restrict path,
+                          AK3MFFastPreparedModel * __restrict prepared) {
+  AK3MFPreparedModelEntry *entry;
+
+  if (!st || !path || !prepared)
+    return false;
+  if (!ak_3mf_reserve_prepared_models(st, 1u))
+    return false;
+
+  entry        = &st->preparedModels[st->preparedModelCount++];
+  entry->path  = path;
+  entry->model = prepared;
+  return true;
+}
+
+static
+AK3MFFastPreparedModel*
+ak_3mf_find_prepared_model(AK3MFImportState * __restrict st,
+                           const char       * __restrict modelPath) {
+  size_t i;
+
+  if (!st || !modelPath)
+    return NULL;
+
+  for (i = 0u; i < st->preparedModelCount; i++) {
+    if (ak_3mf_model_path_eq(st->preparedModels[i].path, modelPath))
+      return st->preparedModels[i].model;
+  }
+
+  return NULL;
+}
+
+static
+void
+ak_3mf_package_store_prepared_models(AK3MFPackageImportState * __restrict st) {
+  size_t i;
+
+  if (!st || !st->jobs)
+    return;
+
+  for (i = 0u; i < st->jobCount; i++) {
+    AK3MFPackageInflateJob *job;
+
+    job = &st->jobs[i];
+    if (!job->preparedModel)
+      continue;
+    if (st->importState
+        && ak_3mf_add_prepared_model(st->importState,
+                                     job->path,
+                                     job->preparedModel)) {
+      job->preparedModel = NULL;
+      continue;
+    }
+    ak_3mf_fast_prepared_model_free(job->preparedModel);
+    job->preparedModel = NULL;
+  }
 }
 
 static
@@ -1596,8 +1704,10 @@ ak_3mf_import_package_part_visitor(const AkZipEntryInfo * __restrict info,
     part->size = entrySize;
     result = ak_3mf_package_add_inflate_job(st,
                                             info->index,
+                                            part->name,
                                             entryData,
-                                            entrySize)
+                                            entrySize,
+                                            type == AK_PRINT_PACKAGE_PART_MODEL)
              ? AK_OK
              : AK_ERR;
   } else {
@@ -1652,7 +1762,8 @@ ak_3mf_import_package_part_visitor(const AkZipEntryInfo * __restrict info,
 
 static
 AkResult
-ak_3mf_import_package_parts(AkDoc            * __restrict doc,
+ak_3mf_import_package_parts(AK3MFImportState * __restrict importState,
+                            AkDoc            * __restrict doc,
                             AkPrintDocument  * __restrict print,
                             AkZipArchive     * __restrict package,
                             const char       * __restrict filepath,
@@ -1665,6 +1776,7 @@ ak_3mf_import_package_parts(AkDoc            * __restrict doc,
   memset(&st, 0, sizeof(st));
   st.doc              = doc;
   st.print            = print;
+  st.importState      = importState;
   st.package          = package;
   st.filepath         = filepath;
   st.modelPath        = modelPath;
@@ -1683,6 +1795,16 @@ ak_3mf_import_package_parts(AkDoc            * __restrict doc,
   }
   if (st.result == AK_OK && package)
     st.result = ak_3mf_package_inflate_jobs(&st);
+  if (st.result == AK_OK)
+    ak_3mf_package_store_prepared_models(&st);
+  else {
+    size_t i;
+
+    for (i = 0u; i < st.jobCount; i++) {
+      if (st.jobs[i].preparedModel)
+        ak_3mf_fast_prepared_model_free(st.jobs[i].preparedModel);
+    }
+  }
   free(st.jobs);
   return st.result;
 }
@@ -3849,6 +3971,7 @@ ak_3mf_load_model_part(AK3MFImportState * __restrict st,
   const char  *savedModelPath;
   const char  *storedModelPath;
   const void  *cachedModelData;
+  AK3MFFastPreparedModel *preparedModel;
   size_t       added;
   AkResult     result;
   AK3MFFastLoadResult fastResult;
@@ -3884,10 +4007,18 @@ ak_3mf_load_model_part(AK3MFImportState * __restrict st,
       return false;
   }
 
-  fastResult = ak_3mf_fast_load_mesh_model_part(st,
-                                                modelPath,
-                                                modelData,
-                                                modelSize);
+  preparedModel = ak_3mf_find_prepared_model(st, modelPath);
+  fastResult = preparedModel
+               ? ak_3mf_fast_commit_prepared_model_part(st,
+                                                        modelPath,
+                                                        preparedModel)
+               : AK_3MF_FAST_LOAD_UNSUPPORTED;
+  if (fastResult == AK_3MF_FAST_LOAD_UNSUPPORTED) {
+    fastResult = ak_3mf_fast_load_mesh_model_part(st,
+                                                  modelPath,
+                                                  modelData,
+                                                  modelSize);
+  }
   if (fastResult != AK_3MF_FAST_LOAD_UNSUPPORTED) {
     if (!borrowedModelData)
       free(modelData);
@@ -4293,7 +4424,8 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
       modelPath,
       "application/vnd.ms-package.3dmanufacturing-3dmodel+xml",
       "http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel");
-    result = ak_3mf_import_package_parts(doc,
+    result = ak_3mf_import_package_parts(&st,
+                                         doc,
                                          st.print,
                                          package,
                                          filepath,
@@ -4342,6 +4474,11 @@ cleanup:
   free(st.properties);
   free(st.objects);
   free(st.loadedModelPaths);
+  if (st.preparedModels) {
+    for (i = 0; i < st.preparedModelCount; i++)
+      ak_3mf_fast_prepared_model_free(st.preparedModels[i].model);
+  }
+  free(st.preparedModels);
   free(st.bambuParts);
   free(st.bambuColors);
   free(st.bambuMaterials);

@@ -19,6 +19,7 @@
 #include "../../../common/util.h"
 #include "../../../../string_fast.h"
 #include "../../../../strpool.h"
+#include "../../../../thread.h"
 
 #include <stdlib.h>
 #include <stddef.h>
@@ -29,15 +30,41 @@ typedef struct AK3MFFastSlice {
   const char *end;
 } AK3MFFastSlice;
 
+enum {
+  AK_3MF_PAINT_BUCKET_COUNT = 64u,
+  AK_3MF_PAINT_STACK_NODES  = 128u,
+  AK_3MF_PAINT_STACK_LOCAL  = 64u,
+  AK_3MF_PAINT_STATE_SEGMENTED = 255u,
+  AK_3MF_FAST_PARALLEL_MIN_TAGS = 4096u,
+  AK_3MF_FAST_PARALLEL_MAX_THREADS = 8u,
+  AK_3MF_FAST_CHUNK_COLLECT_MIN_BYTES = 1024u * 1024u
+};
+
+typedef struct AK3MFFastTagChunk {
+  const char *begin;
+  const char *end;
+  size_t      firstIndex;
+  size_t      count;
+} AK3MFFastTagChunk;
+
 typedef struct AK3MFFastMeshSlices {
   AK3MFFastSlice objectTag;
   AK3MFFastSlice vertices;
   AK3MFFastSlice triangles;
+  AK3MFFastTagChunk vertexChunks[AK_3MF_FAST_PARALLEL_MAX_THREADS];
+  AK3MFFastTagChunk triangleChunks[AK_3MF_FAST_PARALLEL_MAX_THREADS];
   uint32_t        objectId;
+  uint32_t        vertexChunkCount;
+  uint32_t        triangleChunkCount;
   size_t          vertexCount;
   size_t          triangleCount;
   bool            hasPaint;
 } AK3MFFastMeshSlices;
+
+struct AK3MFFastPreparedModel {
+  AK3MFFastMeshSlices *slices;
+  size_t               sliceCount;
+};
 
 typedef struct AK3MFFastTag {
   AK3MFFastSlice full;
@@ -58,12 +85,18 @@ typedef enum AK3MFTriangleInspectMode {
   AK_3MF_TRIANGLE_INSPECT_MATERIAL_QUICK
 } AK3MFTriangleInspectMode;
 
-enum {
-  AK_3MF_PAINT_BUCKET_COUNT = 64u,
-  AK_3MF_PAINT_STACK_NODES  = 128u,
-  AK_3MF_PAINT_STACK_LOCAL  = 64u,
-  AK_3MF_PAINT_STATE_SEGMENTED = 255u
-};
+typedef struct AK3MFFastPositionFillWorker {
+  AK3MFFastTagChunk chunk;
+  float            *positions;
+  bool              ok;
+} AK3MFFastPositionFillWorker;
+
+typedef struct AK3MFFastIndexFillWorker {
+  AK3MFFastTagChunk chunk;
+  AkIndexArray     *indices;
+  uint32_t          vertexCount;
+  bool              ok;
+} AK3MFFastIndexFillWorker;
 
 typedef struct AK3MFPaintNode {
   uint32_t children[4];
@@ -700,6 +733,131 @@ ak_3mf_fast_next_named_tag(const char ** __restrict cursor,
   return false;
 }
 
+static
+uint32_t
+ak_3mf_fast_parallel_thread_count(size_t tagCount) {
+  uint32_t cpuCount;
+  size_t   workLimited;
+
+  if (tagCount < AK_3MF_FAST_PARALLEL_MIN_TAGS * 2u)
+    return 1u;
+
+  cpuCount = ak_thread_cpu_count();
+  if (cpuCount > AK_3MF_FAST_PARALLEL_MAX_THREADS)
+    cpuCount = AK_3MF_FAST_PARALLEL_MAX_THREADS;
+  if (cpuCount < 2u)
+    return 1u;
+
+  workLimited = tagCount / AK_3MF_FAST_PARALLEL_MIN_TAGS;
+  if (workLimited < 2u)
+    return 1u;
+  if (workLimited < cpuCount)
+    cpuCount = (uint32_t)workLimited;
+
+  return cpuCount;
+}
+
+static
+void
+ak_3mf_fast_merge_tag_chunks(AK3MFFastTagChunk * __restrict chunks,
+                             uint32_t          * __restrict chunkCount) {
+  uint32_t src;
+  uint32_t dst;
+  uint32_t count;
+
+  if (!chunks || !chunkCount)
+    return;
+
+  count = *chunkCount;
+  src   = 0u;
+  dst   = 0u;
+  while (src < count) {
+    if (src + 1u < count) {
+      chunks[dst].begin      = chunks[src].begin;
+      chunks[dst].end        = chunks[src + 1u].end;
+      chunks[dst].firstIndex = chunks[src].firstIndex;
+      chunks[dst].count      = chunks[src].count + chunks[src + 1u].count;
+      src += 2u;
+    } else {
+      chunks[dst] = chunks[src];
+      src++;
+    }
+    dst++;
+  }
+
+  *chunkCount = dst;
+}
+
+static
+bool
+ak_3mf_fast_build_tag_chunks(const AK3MFFastSlice * __restrict slice,
+                             uint64_t                          tagPacked,
+                             size_t                            tagLen,
+                             size_t                            totalCount,
+                             uint32_t                          threadCount,
+                             AK3MFFastTagChunk    * __restrict chunks,
+                             uint32_t             * __restrict chunkCountOut) {
+  const char *cursor;
+  const char *tagBegin;
+  const char *tagEnd;
+  const char *chunkBegin;
+  size_t      target;
+  size_t      firstIndex;
+  size_t      chunkCount;
+  size_t      seenCount;
+  uint32_t    outCount;
+
+  if (!slice || !chunks || !chunkCountOut || threadCount == 0u)
+    return false;
+
+  cursor      = slice->begin;
+  chunkBegin  = slice->begin;
+  target      = (totalCount + threadCount - 1u) / threadCount;
+  firstIndex  = 0u;
+  chunkCount  = 0u;
+  seenCount   = 0u;
+  outCount    = 0u;
+
+  if (target == 0u)
+    return false;
+
+  while (ak_3mf_fast_next_named_tag(&cursor,
+                                    slice->end,
+                                    tagPacked,
+                                    tagLen,
+                                    &tagBegin,
+                                    &tagEnd)) {
+    (void)tagBegin;
+    (void)tagEnd;
+    seenCount++;
+    chunkCount++;
+
+    if (chunkCount >= target && outCount + 1u < threadCount) {
+      chunks[outCount].begin      = chunkBegin;
+      chunks[outCount].end        = cursor;
+      chunks[outCount].firstIndex = firstIndex;
+      chunks[outCount].count      = chunkCount;
+      outCount++;
+
+      chunkBegin = cursor;
+      firstIndex = seenCount;
+      chunkCount = 0u;
+    }
+  }
+
+  if (seenCount != totalCount || chunkCount == 0u)
+    return false;
+
+  chunks[outCount].begin      = chunkBegin;
+  chunks[outCount].end        = slice->end;
+  chunks[outCount].firstIndex = firstIndex;
+  chunks[outCount].count      = chunkCount;
+  outCount++;
+
+  *chunkCountOut = outCount;
+  return outCount > 1u;
+}
+
 AK_INLINE
 bool
 ak_3mf_fast_find_closing_tag(const char ** __restrict cursor,
@@ -787,15 +945,35 @@ ak_3mf_fast_count_tags_packed(const char * __restrict p,
                               size_t                   tagLen,
                               AK3MFTriangleInspectMode inspectMode,
                               bool      * __restrict   hasPaintAttrs,
-                              size_t    * __restrict count) {
-  size_t n;
+                              size_t    * __restrict count,
+                              AK3MFFastTagChunk * __restrict chunks,
+                              uint32_t          * __restrict chunkCountOut) {
+  const char *chunkBegin;
+  size_t      target;
+  size_t      chunkFirstIndex;
+  size_t      chunkTagCount;
+  size_t      n;
+  uint32_t    chunkCount;
+  bool        collectChunks;
 
   if (!count)
     return false;
 
-  n = 0u;
+  n               = 0u;
+  chunkBegin      = p;
+  target          = AK_3MF_FAST_PARALLEL_MIN_TAGS;
+  chunkFirstIndex = 0u;
+  chunkTagCount   = 0u;
+  chunkCount      = 0u;
+  collectChunks   = chunks
+                    && chunkCountOut
+                    && (size_t)(end - p) >= AK_3MF_FAST_CHUNK_COLLECT_MIN_BYTES;
+  if (collectChunks)
+    *chunkCountOut = 0u;
+
   while (p < end) {
     const char *tagEnd;
+    const char *next;
 
     p = memchr(p, '<', (size_t)(end - p));
     if (!p)
@@ -806,14 +984,45 @@ ak_3mf_fast_count_tags_packed(const char * __restrict p,
     }
 
     if (inspectMode == AK_3MF_TRIANGLE_INSPECT_NONE) {
+      if (collectChunks) {
+        tagEnd = ak_3mf_fast_tag_end(p, end);
+        if (!tagEnd)
+          return false;
+        next = tagEnd + 1u;
+      } else {
+        next = p + 1u;
+      }
       n++;
-      p++;
+      p = next;
+      if (!collectChunks)
+        continue;
+
+      chunkTagCount++;
+      if (chunkTagCount >= target) {
+        if (chunkCount == AK_3MF_FAST_PARALLEL_MAX_THREADS) {
+          ak_3mf_fast_merge_tag_chunks(chunks, &chunkCount);
+          if (target <= SIZE_MAX / 2u)
+            target *= 2u;
+        }
+        if (chunkTagCount >= target
+            && chunkCount < AK_3MF_FAST_PARALLEL_MAX_THREADS) {
+          chunks[chunkCount].begin      = chunkBegin;
+          chunks[chunkCount].end        = next;
+          chunks[chunkCount].firstIndex = chunkFirstIndex;
+          chunks[chunkCount].count      = chunkTagCount;
+          chunkCount++;
+          chunkBegin      = next;
+          chunkFirstIndex = n;
+          chunkTagCount   = 0u;
+        }
+      }
       continue;
     }
 
     tagEnd = ak_3mf_fast_tag_end(p, end);
     if (!tagEnd)
       return false;
+    next = tagEnd + 1u;
 
     if (inspectMode == AK_3MF_TRIANGLE_INSPECT_MATERIAL_QUICK) {
       if (ak_3mf_fast_triangle_inspect_attrs_quick(p,
@@ -830,10 +1039,45 @@ ak_3mf_fast_count_tags_packed(const char * __restrict p,
     }
 
     n++;
-    p = tagEnd + 1u;
+    p = next;
+    if (!collectChunks)
+      continue;
+
+    chunkTagCount++;
+    if (chunkTagCount >= target) {
+      if (chunkCount == AK_3MF_FAST_PARALLEL_MAX_THREADS) {
+        ak_3mf_fast_merge_tag_chunks(chunks, &chunkCount);
+        if (target <= SIZE_MAX / 2u)
+          target *= 2u;
+      }
+      if (chunkTagCount >= target
+          && chunkCount < AK_3MF_FAST_PARALLEL_MAX_THREADS) {
+        chunks[chunkCount].begin      = chunkBegin;
+        chunks[chunkCount].end        = next;
+        chunks[chunkCount].firstIndex = chunkFirstIndex;
+        chunks[chunkCount].count      = chunkTagCount;
+        chunkCount++;
+        chunkBegin      = next;
+        chunkFirstIndex = n;
+        chunkTagCount   = 0u;
+      }
+    }
+  }
+
+  if (collectChunks && chunkTagCount > 0u) {
+    while (chunkCount == AK_3MF_FAST_PARALLEL_MAX_THREADS)
+      ak_3mf_fast_merge_tag_chunks(chunks, &chunkCount);
+
+    chunks[chunkCount].begin      = chunkBegin;
+    chunks[chunkCount].end        = end;
+    chunks[chunkCount].firstIndex = chunkFirstIndex;
+    chunks[chunkCount].count      = chunkTagCount;
+    chunkCount++;
   }
 
   *count = n;
+  if (collectChunks)
+    *chunkCountOut = chunkCount;
   return true;
 }
 
@@ -886,19 +1130,19 @@ ak_3mf_fast_next_object(const char       ** __restrict cursor,
 
 static
 bool
-ak_3mf_fast_read_object_slices(AK3MFImportState      * __restrict st,
-                               const AK3MFFastSlice * __restrict objectTag,
-                               const AK3MFFastSlice * __restrict objectBody,
-                               AK3MFFastMeshSlices  * __restrict slices) {
+ak_3mf_fast_read_object_slices_mode(AK3MFImportState      * __restrict st,
+                                    const AK3MFFastSlice * __restrict objectTag,
+                                    const AK3MFFastSlice * __restrict objectBody,
+                                    AK3MFFastMeshSlices  * __restrict slices,
+                                    AK3MFTriangleInspectMode           inspectMode) {
   AK3MFFastSlice mesh;
   const char     *meshCursor;
   const char     *meshTagBegin;
   const char     *meshTagEnd;
-  bool            preferVendorPaint;
 
   memset(slices, 0, sizeof(*slices));
   slices->objectTag = *objectTag;
-  preferVendorPaint = st && st->bambuColorCount > 0u;
+  (void)st;
 
   if (!ak_3mf_fast_attr_u32_local(objectTag->begin,
                                   objectTag->end,
@@ -938,22 +1182,73 @@ ak_3mf_fast_read_object_slices(AK3MFImportState      * __restrict st,
                                      _s_ak_vertex_len,
                                      AK_3MF_TRIANGLE_INSPECT_NONE,
                                      NULL,
-                                     &slices->vertexCount)
+                                     &slices->vertexCount,
+                                     slices->vertexChunks,
+                                     &slices->vertexChunkCount)
       || !ak_3mf_fast_count_tags_packed(slices->triangles.begin,
                                         slices->triangles.end,
                                         _s_ak_triangle_u64_exact,
                                         _s_ak_triangle_len,
-                                        preferVendorPaint
-                                          ? AK_3MF_TRIANGLE_INSPECT_MATERIAL_QUICK
-                                          : AK_3MF_TRIANGLE_INSPECT_MATERIAL_AND_PAINT,
+                                        inspectMode,
                                         &slices->hasPaint,
-                                        &slices->triangleCount))
+                                        &slices->triangleCount,
+                                        slices->triangleChunks,
+                                        &slices->triangleChunkCount))
     return false;
 
   return slices->vertexCount > 0u
          && slices->triangleCount > 0u
          && slices->vertexCount <= UINT32_MAX
          && slices->triangleCount <= UINT32_MAX / 3u;
+}
+
+static
+bool
+ak_3mf_fast_read_object_slices(AK3MFImportState      * __restrict st,
+                               const AK3MFFastSlice * __restrict objectTag,
+                               const AK3MFFastSlice * __restrict objectBody,
+                               AK3MFFastMeshSlices  * __restrict slices) {
+  bool preferVendorPaint;
+
+  preferVendorPaint = st && st->bambuColorCount > 0u;
+  return ak_3mf_fast_read_object_slices_mode(
+           st,
+           objectTag,
+           objectBody,
+           slices,
+           preferVendorPaint
+             ? AK_3MF_TRIANGLE_INSPECT_MATERIAL_QUICK
+             : AK_3MF_TRIANGLE_INSPECT_MATERIAL_AND_PAINT);
+}
+
+static
+bool
+ak_3mf_fast_finalize_prepared_slices(AK3MFImportState     * __restrict st,
+                                     AK3MFFastMeshSlices  * __restrict slices) {
+  bool   preferVendorPaint;
+  size_t triangleCount;
+
+  if (!slices)
+    return false;
+
+  preferVendorPaint = st && st->bambuColorCount > 0u;
+  slices->hasPaint  = false;
+  triangleCount     = 0u;
+  if (!ak_3mf_fast_count_tags_packed(
+        slices->triangles.begin,
+        slices->triangles.end,
+        _s_ak_triangle_u64_exact,
+        _s_ak_triangle_len,
+        preferVendorPaint
+          ? AK_3MF_TRIANGLE_INSPECT_MATERIAL_QUICK
+          : AK_3MF_TRIANGLE_INSPECT_MATERIAL_AND_PAINT,
+        &slices->hasPaint,
+        &triangleCount,
+        slices->triangleChunks,
+        &slices->triangleChunkCount))
+    return false;
+
+  return triangleCount == slices->triangleCount;
 }
 
 static
@@ -1017,6 +1312,32 @@ ak_3mf_fast_dup_model_path(AK3MFImportState * __restrict st,
   }
 
   return ak_heap_strndup(heap, st->doc, src, len);
+}
+
+static
+bool
+ak_3mf_fast_mark_model_part_loaded(AK3MFImportState * __restrict st,
+                                   const char       * __restrict modelPath) {
+  const char **paths;
+  size_t       newCapacity;
+
+  if (!st || !modelPath)
+    return false;
+  if (st->loadedModelCount == st->loadedModelCapacity) {
+    newCapacity = st->loadedModelCapacity ? st->loadedModelCapacity * 2u : 8u;
+    if (newCapacity <= st->loadedModelCapacity)
+      return false;
+
+    paths = realloc(st->loadedModelPaths, sizeof(*paths) * newCapacity);
+    if (!paths)
+      return false;
+
+    st->loadedModelPaths    = paths;
+    st->loadedModelCapacity = newCapacity;
+  }
+
+  st->loadedModelPaths[st->loadedModelCount++] = modelPath;
+  return true;
 }
 
 static
@@ -1122,14 +1443,114 @@ ak_3mf_fast_parse_vertex_tag(const char *p,
 }
 
 static
+void
+ak_3mf_fast_fill_positions_worker(void *userdata) {
+  AK3MFFastPositionFillWorker *worker;
+  const char                  *cursor;
+  const char                  *tagBegin;
+  const char                  *tagEnd;
+  size_t                       i;
+  size_t                       parsedCount;
+
+  worker      = userdata;
+  cursor      = worker->chunk.begin;
+  i           = worker->chunk.firstIndex;
+  parsedCount = 0u;
+
+  while (ak_3mf_fast_next_named_tag(&cursor,
+                                    worker->chunk.end,
+                                    _s_ak_vertex_u64_exact,
+                                    _s_ak_vertex_len,
+                                    &tagBegin,
+                                    &tagEnd)) {
+    if (parsedCount >= worker->chunk.count
+        || !ak_3mf_fast_parse_vertex_tag(tagBegin,
+                                         tagEnd,
+                                         worker->positions + i * 3u)) {
+      worker->ok = false;
+      return;
+    }
+
+    parsedCount++;
+    i++;
+  }
+
+  worker->ok = parsedCount == worker->chunk.count;
+}
+
+static
+bool
+ak_3mf_fast_fill_positions_parallel(const AK3MFFastSlice * __restrict vertices,
+                                    float                * __restrict positions,
+                                    size_t                            vertexCount,
+                                    const AK3MFFastTagChunk * __restrict prebuiltChunks,
+                                    uint32_t                          prebuiltChunkCount) {
+  AK3MFFastTagChunk           chunks[AK_3MF_FAST_PARALLEL_MAX_THREADS];
+  AK3MFFastPositionFillWorker workers[AK_3MF_FAST_PARALLEL_MAX_THREADS];
+  AkThreadTask                tasks[AK_3MF_FAST_PARALLEL_MAX_THREADS];
+  uint32_t                    threadCount;
+  uint32_t                    chunkCount;
+  uint32_t                    i;
+
+  threadCount = ak_3mf_fast_parallel_thread_count(vertexCount);
+  if (threadCount <= 1u)
+    return false;
+
+  if (prebuiltChunks && prebuiltChunkCount > 1u) {
+    chunkCount = prebuiltChunkCount;
+    if (chunkCount > AK_3MF_FAST_PARALLEL_MAX_THREADS)
+      return false;
+    memcpy(chunks, prebuiltChunks, sizeof(*chunks) * chunkCount);
+    while (chunkCount > threadCount)
+      ak_3mf_fast_merge_tag_chunks(chunks, &chunkCount);
+  } else {
+    if (!ak_3mf_fast_build_tag_chunks(vertices,
+                                      _s_ak_vertex_u64_exact,
+                                      _s_ak_vertex_len,
+                                      vertexCount,
+                                      threadCount,
+                                      chunks,
+                                      &chunkCount))
+      return false;
+  }
+
+  for (i = 0u; i < chunkCount; i++) {
+    workers[i].chunk     = chunks[i];
+    workers[i].positions = positions;
+    workers[i].ok        = false;
+    tasks[i].func        = ak_3mf_fast_fill_positions_worker;
+    tasks[i].userdata    = &workers[i];
+  }
+
+  if (!ak_thread_run_tasks(tasks, chunkCount))
+    return false;
+
+  for (i = 0u; i < chunkCount; i++) {
+    if (!workers[i].ok)
+      return false;
+  }
+
+  return true;
+}
+
+static
 bool
 ak_3mf_fast_fill_positions(const AK3MFFastSlice * __restrict vertices,
                            float                * __restrict positions,
-                           size_t                            vertexCount) {
+                           size_t                            vertexCount,
+                           const AK3MFFastTagChunk * __restrict chunks,
+                           uint32_t                          chunkCount) {
   const char *cursor;
   const char *tagBegin;
   const char *tagEnd;
   size_t      i;
+
+  if (ak_3mf_fast_fill_positions_parallel(vertices,
+                                          positions,
+                                          vertexCount,
+                                          chunks,
+                                          chunkCount))
+    return true;
 
   cursor = vertices->begin;
   i      = 0u;
@@ -1825,15 +2246,191 @@ ak_3mf_fast_paint_analyze(AK3MFPaintPlan       * __restrict plan,
 }
 
 static
+void
+ak_3mf_fast_fill_indices_worker(void *userdata) {
+  AK3MFFastIndexFillWorker *worker;
+  const char               *cursor;
+  const char               *tagBegin;
+  const char               *tagEnd;
+  size_t                    dstIndex;
+  size_t                    parsedCount;
+
+  worker      = userdata;
+  cursor      = worker->chunk.begin;
+  dstIndex    = worker->chunk.firstIndex * 3u;
+  parsedCount = 0u;
+
+  switch (worker->indices->componentType) {
+    case AKT_UBYTE: {
+      uint8_t *dst;
+
+      dst = (uint8_t *)worker->indices->items;
+      while (ak_3mf_fast_next_named_tag(&cursor,
+                                        worker->chunk.end,
+                                        _s_ak_triangle_u64_exact,
+                                        _s_ak_triangle_len,
+                                        &tagBegin,
+                                        &tagEnd)) {
+        uint32_t v[3];
+
+        if (parsedCount >= worker->chunk.count
+            || !ak_3mf_fast_parse_triangle(tagBegin,
+                                           tagEnd,
+                                           worker->vertexCount,
+                                           v)) {
+          worker->ok = false;
+          return;
+        }
+
+        dst[dstIndex++] = (uint8_t)v[0];
+        dst[dstIndex++] = (uint8_t)v[1];
+        dst[dstIndex++] = (uint8_t)v[2];
+        parsedCount++;
+      }
+      break;
+    }
+    case AKT_USHORT: {
+      uint16_t *dst;
+
+      dst = (uint16_t *)worker->indices->items;
+      while (ak_3mf_fast_next_named_tag(&cursor,
+                                        worker->chunk.end,
+                                        _s_ak_triangle_u64_exact,
+                                        _s_ak_triangle_len,
+                                        &tagBegin,
+                                        &tagEnd)) {
+        uint32_t v[3];
+
+        if (parsedCount >= worker->chunk.count
+            || !ak_3mf_fast_parse_triangle(tagBegin,
+                                           tagEnd,
+                                           worker->vertexCount,
+                                           v)) {
+          worker->ok = false;
+          return;
+        }
+
+        dst[dstIndex++] = (uint16_t)v[0];
+        dst[dstIndex++] = (uint16_t)v[1];
+        dst[dstIndex++] = (uint16_t)v[2];
+        parsedCount++;
+      }
+      break;
+    }
+    case AKT_UINT: {
+      uint32_t *dst;
+
+      dst = (uint32_t *)worker->indices->items;
+      while (ak_3mf_fast_next_named_tag(&cursor,
+                                        worker->chunk.end,
+                                        _s_ak_triangle_u64_exact,
+                                        _s_ak_triangle_len,
+                                        &tagBegin,
+                                        &tagEnd)) {
+        uint32_t v[3];
+
+        if (parsedCount >= worker->chunk.count
+            || !ak_3mf_fast_parse_triangle(tagBegin,
+                                           tagEnd,
+                                           worker->vertexCount,
+                                           v)) {
+          worker->ok = false;
+          return;
+        }
+
+        dst[dstIndex++] = v[0];
+        dst[dstIndex++] = v[1];
+        dst[dstIndex++] = v[2];
+        parsedCount++;
+      }
+      break;
+    }
+    default:
+      worker->ok = false;
+      return;
+  }
+
+  worker->ok = parsedCount == worker->chunk.count;
+}
+
+static
+bool
+ak_3mf_fast_fill_indices_parallel(const AK3MFFastSlice * __restrict triangles,
+                                  AkIndexArray         * __restrict indices,
+                                  uint32_t                          vertexCount,
+                                  size_t                            triangleCount,
+                                  const AK3MFFastTagChunk * __restrict prebuiltChunks,
+                                  uint32_t                          prebuiltChunkCount) {
+  AK3MFFastTagChunk         chunks[AK_3MF_FAST_PARALLEL_MAX_THREADS];
+  AK3MFFastIndexFillWorker  workers[AK_3MF_FAST_PARALLEL_MAX_THREADS];
+  AkThreadTask              tasks[AK_3MF_FAST_PARALLEL_MAX_THREADS];
+  uint32_t                  threadCount;
+  uint32_t                  chunkCount;
+  uint32_t                  i;
+
+  threadCount = ak_3mf_fast_parallel_thread_count(triangleCount);
+  if (threadCount <= 1u)
+    return false;
+
+  if (prebuiltChunks && prebuiltChunkCount > 1u) {
+    chunkCount = prebuiltChunkCount;
+    if (chunkCount > AK_3MF_FAST_PARALLEL_MAX_THREADS)
+      return false;
+    memcpy(chunks, prebuiltChunks, sizeof(*chunks) * chunkCount);
+    while (chunkCount > threadCount)
+      ak_3mf_fast_merge_tag_chunks(chunks, &chunkCount);
+  } else {
+    if (!ak_3mf_fast_build_tag_chunks(triangles,
+                                      _s_ak_triangle_u64_exact,
+                                      _s_ak_triangle_len,
+                                      triangleCount,
+                                      threadCount,
+                                      chunks,
+                                      &chunkCount))
+      return false;
+  }
+
+  for (i = 0u; i < chunkCount; i++) {
+    workers[i].chunk       = chunks[i];
+    workers[i].indices     = indices;
+    workers[i].vertexCount = vertexCount;
+    workers[i].ok          = false;
+    tasks[i].func          = ak_3mf_fast_fill_indices_worker;
+    tasks[i].userdata      = &workers[i];
+  }
+
+  if (!ak_thread_run_tasks(tasks, chunkCount))
+    return false;
+
+  for (i = 0u; i < chunkCount; i++) {
+    if (!workers[i].ok)
+      return false;
+  }
+
+  indices->max = vertexCount > 0u ? vertexCount - 1u : 0u;
+  return true;
+}
+
+static
 bool
 ak_3mf_fast_fill_indices(const AK3MFFastSlice * __restrict triangles,
                          AkIndexArray         * __restrict indices,
                          uint32_t                          vertexCount,
-                         size_t                            triangleCount) {
+                         size_t                            triangleCount,
+                         const AK3MFFastTagChunk * __restrict chunks,
+                         uint32_t                          chunkCount) {
   const char *cursor;
   const char *tagBegin;
   const char *tagEnd;
   size_t      i;
+
+  if (ak_3mf_fast_fill_indices_parallel(triangles,
+                                        indices,
+                                        vertexCount,
+                                        triangleCount,
+                                        chunks,
+                                        chunkCount))
+    return true;
 
   cursor = triangles->begin;
   i      = 0u;
@@ -2165,7 +2762,9 @@ ak_3mf_fast_create_painted_mesh(AK3MFImportState             * __restrict st,
 
   if (!ak_3mf_fast_fill_positions(&slices->vertices,
                                   positions,
-                                  slices->vertexCount))
+                                  slices->vertexCount,
+                                  slices->vertexChunks,
+                                  slices->vertexChunkCount))
     goto cleanup;
 
   AK_LIB_PREPEND(doc->lib.buffers, posBuff, next);
@@ -2261,7 +2860,9 @@ ak_3mf_fast_create_mesh(AK3MFImportState             * __restrict st,
 
   if (!ak_3mf_fast_fill_positions(&slices->vertices,
                                   positions,
-                                  slices->vertexCount))
+                                  slices->vertexCount,
+                                  slices->vertexChunks,
+                                  slices->vertexChunkCount))
     return NULL;
 
   AK_LIB_PREPEND(doc->lib.buffers, posBuff, next);
@@ -2307,7 +2908,9 @@ ak_3mf_fast_create_mesh(AK3MFImportState             * __restrict st,
   if (!ak_3mf_fast_fill_indices(&slices->triangles,
                                 indices,
                                 (uint32_t)slices->vertexCount,
-                                slices->triangleCount))
+                                slices->triangleCount,
+                                slices->triangleChunks,
+                                slices->triangleChunkCount))
     return NULL;
 
   prim->indices  = indices;
@@ -2315,6 +2918,191 @@ ak_3mf_fast_create_mesh(AK3MFImportState             * __restrict st,
 
   AK_LIB_PREPEND(doc->lib.geometries, geom, next);
   return geom;
+}
+
+static
+AK3MFFastLoadResult
+ak_3mf_fast_commit_mesh_slices(AK3MFImportState     * __restrict st,
+                               const char           * __restrict modelPath,
+                               AK3MFFastMeshSlices  * __restrict slices,
+                               size_t                            sliceCount,
+                               bool                              finalizePrepared) {
+  const char *savedModelPath;
+  const char *storedModelPath;
+  size_t      i;
+
+  if (!st || !modelPath || !slices || sliceCount == 0u)
+    return AK_3MF_FAST_LOAD_UNSUPPORTED;
+
+  if (finalizePrepared) {
+    for (i = 0u; i < sliceCount; i++) {
+      if (!ak_3mf_fast_finalize_prepared_slices(st, &slices[i]))
+        return AK_3MF_FAST_LOAD_UNSUPPORTED;
+    }
+  }
+
+  if (!ak_3mf_fast_reserve_objects(st, sliceCount))
+    return AK_3MF_FAST_LOAD_ERROR;
+
+  storedModelPath = ak_3mf_fast_dup_model_path(st, modelPath);
+  if (!storedModelPath)
+    return AK_3MF_FAST_LOAD_ERROR;
+
+  savedModelPath       = st->currentModelPath;
+  st->currentModelPath = storedModelPath;
+  if (!ak_3mf_fast_mark_model_part_loaded(st, storedModelPath)) {
+    st->currentModelPath = savedModelPath;
+    return AK_3MF_FAST_LOAD_ERROR;
+  }
+
+  for (i = 0u; i < sliceCount; i++) {
+    AK3MFFastMeshSlices *slice;
+    AK3MFObject         *object;
+
+    slice        = &slices[i];
+    object       = &st->objects[st->objectCount];
+    object->path = storedModelPath;
+    object->id   = slice->objectId;
+    object->kind = AK_3MF_OBJECT_MESH;
+    object->geom = ak_3mf_fast_create_mesh(st, slice);
+    if (!object->geom
+        || !ak_3mf_fast_add_production_object(st,
+                                              &slice->objectTag,
+                                              object->id)) {
+      st->currentModelPath = savedModelPath;
+      return AK_3MF_FAST_LOAD_ERROR;
+    }
+
+    if (st->print)
+      st->print->meshObjectCount++;
+    st->objectCount++;
+  }
+
+  if (st->print)
+    st->print->objectCount = (uint32_t)st->objectCount;
+
+  st->currentModelPath = savedModelPath;
+  return AK_3MF_FAST_LOAD_LOADED;
+}
+
+AK_HIDE
+AK3MFFastPreparedModel*
+ak_3mf_fast_prepare_model_part(const char * __restrict modelData,
+                               size_t                  modelSize) {
+  AK3MFFastMeshSlices stackSlices[8];
+  AK3MFFastMeshSlices *slices;
+  AK3MFFastPreparedModel *prepared;
+  const char          *p;
+  const char          *end;
+  size_t               sliceCount;
+  size_t               sliceCapacity;
+
+  if (!modelData || modelSize == 0u)
+    return NULL;
+
+  p             = modelData;
+  end           = modelData + modelSize;
+  slices        = stackSlices;
+  sliceCount    = 0u;
+  sliceCapacity = AK_ARRAY_LEN(stackSlices);
+
+  for (;;) {
+    AK3MFFastSlice objectTag;
+    AK3MFFastSlice objectBody;
+    AK3MFFastMeshSlices nextSlice;
+
+    if (!ak_3mf_fast_next_object(&p, end, &objectTag, &objectBody))
+      break;
+
+    if (!ak_3mf_fast_read_object_slices_mode(NULL,
+                                             &objectTag,
+                                             &objectBody,
+                                             &nextSlice,
+                                             AK_3MF_TRIANGLE_INSPECT_NONE)) {
+      if (slices != stackSlices)
+        free(slices);
+      return NULL;
+    }
+
+    if (sliceCount == sliceCapacity) {
+      AK3MFFastMeshSlices *newSlices;
+      size_t               newCapacity;
+
+      if (sliceCapacity > SIZE_MAX / 2u) {
+        if (slices != stackSlices)
+          free(slices);
+        return NULL;
+      }
+
+      newCapacity = sliceCapacity * 2u;
+      if (slices == stackSlices) {
+        newSlices = malloc(sizeof(*newSlices) * newCapacity);
+        if (!newSlices)
+          return NULL;
+        memcpy(newSlices, stackSlices, sizeof(stackSlices));
+      } else {
+        newSlices = realloc(slices, sizeof(*newSlices) * newCapacity);
+        if (!newSlices) {
+          free(slices);
+          return NULL;
+        }
+      }
+
+      slices        = newSlices;
+      sliceCapacity = newCapacity;
+    }
+
+    slices[sliceCount++] = nextSlice;
+  }
+
+  if (sliceCount == 0u) {
+    if (slices != stackSlices)
+      free(slices);
+    return NULL;
+  }
+
+  prepared = malloc(sizeof(*prepared));
+  if (!prepared) {
+    if (slices != stackSlices)
+      free(slices);
+    return NULL;
+  }
+
+  if (slices == stackSlices) {
+    prepared->slices = malloc(sizeof(*prepared->slices) * sliceCount);
+    if (!prepared->slices) {
+      free(prepared);
+      return NULL;
+    }
+    memcpy(prepared->slices, stackSlices, sizeof(*prepared->slices) * sliceCount);
+  } else {
+    prepared->slices = slices;
+  }
+  prepared->sliceCount = sliceCount;
+  return prepared;
+}
+
+AK_HIDE
+void
+ak_3mf_fast_prepared_model_free(AK3MFFastPreparedModel * __restrict prepared) {
+  if (!prepared)
+    return;
+  free(prepared->slices);
+  free(prepared);
+}
+
+AK_HIDE
+AK3MFFastLoadResult
+ak_3mf_fast_commit_prepared_model_part(AK3MFImportState        * __restrict st,
+                                       const char              * __restrict modelPath,
+                                       AK3MFFastPreparedModel  * __restrict prepared) {
+  if (!prepared)
+    return AK_3MF_FAST_LOAD_UNSUPPORTED;
+  return ak_3mf_fast_commit_mesh_slices(st,
+                                        modelPath,
+                                        prepared->slices,
+                                        prepared->sliceCount,
+                                        true);
 }
 
 AK_HIDE
@@ -2327,11 +3115,9 @@ ak_3mf_fast_load_mesh_model_part(AK3MFImportState * __restrict st,
   AK3MFFastMeshSlices *slices;
   const char          *p;
   const char          *end;
-  const char          *savedModelPath;
-  const char          *storedModelPath;
   size_t               sliceCount;
   size_t               sliceCapacity;
-  size_t               i;
+  AK3MFFastLoadResult  result;
 
   if (!st || !st->doc || !modelPath || !modelData || modelSize == 0u)
     return AK_3MF_FAST_LOAD_UNSUPPORTED;
@@ -2390,52 +3176,12 @@ ak_3mf_fast_load_mesh_model_part(AK3MFImportState * __restrict st,
   if (sliceCount == 0u)
     return AK_3MF_FAST_LOAD_UNSUPPORTED;
 
-  if (!ak_3mf_fast_reserve_objects(st, sliceCount)) {
-    if (slices != stackSlices)
-      free(slices);
-    return AK_3MF_FAST_LOAD_ERROR;
-  }
-
-  storedModelPath = ak_3mf_fast_dup_model_path(st, modelPath);
-  if (!storedModelPath) {
-    if (slices != stackSlices)
-      free(slices);
-    return AK_3MF_FAST_LOAD_ERROR;
-  }
-
-  savedModelPath       = st->currentModelPath;
-  st->currentModelPath = storedModelPath;
-
-  for (i = 0u; i < sliceCount; i++) {
-    AK3MFFastMeshSlices *slice;
-    AK3MFObject         *object;
-
-    slice        = &slices[i];
-    object       = &st->objects[st->objectCount];
-    object->path = storedModelPath;
-    object->id   = slice->objectId;
-    object->kind = AK_3MF_OBJECT_MESH;
-    object->geom = ak_3mf_fast_create_mesh(st, slice);
-    if (!object->geom
-        || !ak_3mf_fast_add_production_object(st,
-                                              &slice->objectTag,
-                                              object->id)) {
-      st->currentModelPath = savedModelPath;
-      if (slices != stackSlices)
-        free(slices);
-      return AK_3MF_FAST_LOAD_ERROR;
-    }
-
-    if (st->print)
-      st->print->meshObjectCount++;
-    st->objectCount++;
-  }
-
-  if (st->print)
-    st->print->objectCount = (uint32_t)st->objectCount;
-
-  st->currentModelPath = savedModelPath;
+  result = ak_3mf_fast_commit_mesh_slices(st,
+                                          modelPath,
+                                          slices,
+                                          sliceCount,
+                                          false);
   if (slices != stackSlices)
     free(slices);
-  return AK_3MF_FAST_LOAD_LOADED;
+  return result;
 }

@@ -27,6 +27,11 @@
 
 typedef void (*AkThreadFunc)(void *userdata);
 
+typedef struct AkThreadTask {
+  AkThreadFunc func;
+  void        *userdata;
+} AkThreadTask;
+
 typedef struct AkThread {
   AkThreadFunc func;
   void        *userdata;
@@ -51,5 +56,10 @@ ak_thread_join(AkThread * __restrict thread);
 AK_HIDE
 uint32_t
 ak_thread_cpu_count(void);
+
+AK_HIDE
+bool
+ak_thread_run_tasks(const AkThreadTask * __restrict tasks,
+                    uint32_t                         taskCount);
 
 #endif /* ak_src_thread_h */

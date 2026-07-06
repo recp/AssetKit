@@ -20,6 +20,12 @@
 #include "common.h"
 
 typedef struct AkZipArchive AkZipArchive;
+typedef struct AK3MFFastPreparedModel AK3MFFastPreparedModel;
+
+typedef struct AK3MFPreparedModelEntry {
+  const char              *path;
+  AK3MFFastPreparedModel  *model;
+} AK3MFPreparedModelEntry;
 
 typedef enum AK3MFObjectKind {
   AK_3MF_OBJECT_EMPTY        = 0,
@@ -70,6 +76,7 @@ typedef struct AK3MFImportState {
   AK3MFBambuPartMaterial *bambuParts;
   AkMaterial            **bambuMaterials;
   uint8_t               (*bambuColors)[4];
+  AK3MFPreparedModelEntry *preparedModels;
   AkZipArchive           *package;
   const char             *packagePath;
   const char             *rootModelPath;
@@ -84,6 +91,8 @@ typedef struct AK3MFImportState {
   size_t                  bambuPartCount;
   size_t                  bambuPartCapacity;
   size_t                  bambuColorCount;
+  size_t                  preparedModelCount;
+  size_t                  preparedModelCapacity;
 } AK3MFImportState;
 
 typedef enum AK3MFFastLoadResult {
@@ -117,5 +126,20 @@ ak_3mf_fast_load_mesh_model_part(AK3MFImportState * __restrict st,
                                  const char       * __restrict modelPath,
                                  const char       * __restrict modelData,
                                  size_t                         modelSize);
+
+AK_HIDE
+AK3MFFastPreparedModel*
+ak_3mf_fast_prepare_model_part(const char * __restrict modelData,
+                               size_t                  modelSize);
+
+AK_HIDE
+void
+ak_3mf_fast_prepared_model_free(AK3MFFastPreparedModel * __restrict prepared);
+
+AK_HIDE
+AK3MFFastLoadResult
+ak_3mf_fast_commit_prepared_model_part(AK3MFImportState        * __restrict st,
+                                       const char              * __restrict modelPath,
+                                       AK3MFFastPreparedModel  * __restrict prepared);
 
 #endif /* ak_3mf_imp_internal_h */
