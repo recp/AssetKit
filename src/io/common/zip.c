@@ -54,6 +54,18 @@ typedef struct AkZipStoredEntry {
   uint16_t nameLen;
 } AkZipStoredEntry;
 
+struct AkZipDecompressor {
+  struct libdeflate_decompressor *impl;
+};
+
+struct AkZipArchive {
+  void                         *fileData;
+  size_t                        fileSize;
+  AkZipCentralEntry            *entries;
+  uint16_t                      entryCount;
+  AkZipDecompressor            *decompressor;
+};
+
 static
 bool
 ak_zip_entry_name_eq(const unsigned char * __restrict name,
@@ -69,6 +81,20 @@ ak_zip_entry_name_eq(const unsigned char * __restrict name,
 
   wantLen = strlen(want);
   return wantLen == nameLen && memcmp(name, want, nameLen) == 0;
+}
+
+static
+void*
+ak_zip_default_alloc(void * __restrict userdata, size_t size) {
+  (void)userdata;
+  return malloc(size);
+}
+
+static
+void
+ak_zip_default_free(void * __restrict userdata, void * __restrict data) {
+  (void)userdata;
+  free(data);
 }
 
 static
@@ -139,11 +165,13 @@ ak_zip_read_central_entry(const unsigned char * __restrict data,
 
 static
 AkResult
-ak_zip_extract_entry(const unsigned char       * __restrict zipData,
-                     size_t                                 zipSize,
-                     const AkZipCentralEntry   * __restrict entry,
-                     void                     ** __restrict outData,
-                     size_t                    * __restrict outSize) {
+ak_zip_extract_entry_to(const unsigned char     * __restrict zipData,
+                        size_t                               zipSize,
+                        const AkZipCentralEntry * __restrict entry,
+                        AkZipDecompressor       * __restrict decompressor,
+                        void                    * __restrict outData,
+                        size_t                               outCapacity,
+                        size_t                  * __restrict outSize) {
   const unsigned char *local;
   const unsigned char *src;
   unsigned char       *dst;
@@ -173,64 +201,91 @@ ak_zip_extract_entry(const unsigned char       * __restrict zipData,
 
   if (srcOffset > zipSize || srcSize > zipSize - srcOffset)
     return AK_EBADF;
-
-  dst = malloc(dstSize + 1u);
-  if (!dst)
+  if (outCapacity <= dstSize)
     return AK_ERR;
 
+  dst = outData;
   src = zipData + srcOffset;
   if (entry->method == AK_ZIP_METHOD_STORED) {
-    if (srcSize != dstSize) {
-      free(dst);
+    if (srcSize != dstSize)
       return AK_EBADF;
-    }
     memcpy(dst, src, dstSize);
   } else if (entry->method == AK_ZIP_METHOD_DEFLATED) {
-    struct libdeflate_decompressor *decompressor;
     enum libdeflate_result          decompResult;
     size_t written;
 
-    decompressor = libdeflate_alloc_decompressor();
-    if (!decompressor) {
-      free(dst);
+    if (!decompressor || !decompressor->impl)
       return AK_ERR;
-    }
 
     written      = 0u;
-    decompResult = libdeflate_deflate_decompress(decompressor,
+    decompResult = libdeflate_deflate_decompress(decompressor->impl,
                                                  src,
                                                  srcSize,
                                                  dst,
                                                  dstSize,
                                                  &written);
-    libdeflate_free_decompressor(decompressor);
-    if (decompResult != LIBDEFLATE_SUCCESS || written != dstSize) {
-      free(dst);
+    if (decompResult != LIBDEFLATE_SUCCESS || written != dstSize)
       return AK_EBADF;
-    }
   } else {
-    free(dst);
     return AK_EBADF;
   }
 
-  if (libdeflate_crc32(0u, dst, dstSize) != entry->crc32) {
-    free(dst);
+  if (libdeflate_crc32(0u, dst, dstSize) != entry->crc32)
     return AK_EBADF;
-  }
 
   dst[dstSize] = '\0';
-  *outData     = dst;
   *outSize     = dstSize;
+  return AK_OK;
+}
+
+static
+AkResult
+ak_zip_extract_entry(const unsigned char     * __restrict zipData,
+                     size_t                               zipSize,
+                     const AkZipCentralEntry * __restrict entry,
+                     AkZipDecompressor       * __restrict decompressor,
+                     AkZipAllocFn                         allocFn,
+                     AkZipFreeFn                          freeFn,
+                     void                    * __restrict allocUserdata,
+                     void                   ** __restrict outData,
+                     size_t                  * __restrict outSize) {
+  void     *dst;
+  size_t    dstSize;
+  AkResult  result;
+
+  if (!zipData || !entry || !outData || !outSize)
+    return AK_ERR;
+  if (!allocFn)
+    allocFn = ak_zip_default_alloc;
+  if (!freeFn)
+    freeFn = ak_zip_default_free;
+
+  dstSize = entry->uncompressedSize;
+  dst     = allocFn(allocUserdata, dstSize + 1u);
+  if (!dst)
+    return AK_ERR;
+
+  result = ak_zip_extract_entry_to(zipData,
+                                   zipSize,
+                                   entry,
+                                   decompressor,
+                                   dst,
+                                   dstSize + 1u,
+                                   outSize);
+  if (result != AK_OK) {
+    freeFn(allocUserdata, dst);
+    return result;
+  }
+
+  *outData = dst;
   return AK_OK;
 }
 
 AK_HIDE
 AkResult
-ak_zip_visit_entries(const char        * __restrict zipPath,
-                     AkZipEntryVisitor              visitor,
-                     void             * __restrict userdata) {
-  void                *fileData;
-  size_t               fileSize;
+ak_zip_open(const char      * __restrict zipPath,
+            AkZipArchive   ** __restrict archive) {
+  AkZipArchive       *zip;
   const unsigned char *data;
   const unsigned char *eocd;
   uint16_t             entryCount;
@@ -240,52 +295,243 @@ ak_zip_visit_entries(const char        * __restrict zipPath,
   size_t               i;
   AkResult             result;
 
-  if (!zipPath || !visitor)
+  if (!zipPath || !archive)
     return AK_ERR;
 
-  result = ak_readfile(zipPath, NULL, &fileData, &fileSize);
-  if (result != AK_OK)
-    return result;
+  *archive = NULL;
+  zip = calloc(1u, sizeof(*zip));
+  if (!zip)
+    return AK_ERR;
 
-  data = fileData;
-  eocd = ak_zip_find_eocd(data, fileSize);
+  result = ak_readfile(zipPath, NULL, &zip->fileData, &zip->fileSize);
+  if (result != AK_OK)
+    goto fail;
+
+  data = zip->fileData;
+  eocd = ak_zip_find_eocd(data, zip->fileSize);
   if (!eocd) {
-    ak_releasefile(fileData, fileSize);
-    return AK_EBADF;
+    result = AK_EBADF;
+    goto fail;
   }
 
   entryCount    = io_load_u16le(eocd + 10);
   centralSize   = io_load_u32le(eocd + 12);
   centralOffset = io_load_u32le(eocd + 16);
 
-  if ((size_t)centralOffset > fileSize
-      || (size_t)centralSize > fileSize - (size_t)centralOffset) {
-    ak_releasefile(fileData, fileSize);
-    return AK_EBADF;
+  if ((size_t)centralOffset > zip->fileSize
+      || (size_t)centralSize > zip->fileSize - (size_t)centralOffset) {
+    result = AK_EBADF;
+    goto fail;
+  }
+
+  if (entryCount > 0u) {
+    zip->entries = calloc(entryCount, sizeof(*zip->entries));
+    if (!zip->entries) {
+      result = AK_ERR;
+      goto fail;
+    }
   }
 
   cursor = centralOffset;
-  result = AK_OK;
   for (i = 0; i < entryCount; i++) {
-    AkZipCentralEntry entry;
+    if (!ak_zip_read_central_entry(data, zip->fileSize, &cursor, &zip->entries[i])) {
+      result = AK_EBADF;
+      goto fail;
+    }
+  }
+
+  zip->decompressor = ak_zip_decompressor_new();
+  if (!zip->decompressor) {
+    result = AK_ERR;
+    goto fail;
+  }
+
+  zip->entryCount = entryCount;
+  *archive        = zip;
+  return AK_OK;
+
+fail:
+  ak_zip_close(zip);
+  return result;
+}
+
+AK_HIDE
+void
+ak_zip_close(AkZipArchive * __restrict archive) {
+  if (!archive)
+    return;
+
+  if (archive->decompressor)
+    ak_zip_decompressor_free(archive->decompressor);
+  free(archive->entries);
+  if (archive->fileData)
+    ak_releasefile(archive->fileData, archive->fileSize);
+  free(archive);
+}
+
+AK_HIDE
+AkZipDecompressor*
+ak_zip_decompressor_new(void) {
+  AkZipDecompressor *decompressor;
+
+  decompressor = calloc(1u, sizeof(*decompressor));
+  if (!decompressor)
+    return NULL;
+
+  decompressor->impl = libdeflate_alloc_decompressor();
+  if (!decompressor->impl) {
+    free(decompressor);
+    return NULL;
+  }
+
+  return decompressor;
+}
+
+AK_HIDE
+void
+ak_zip_decompressor_free(AkZipDecompressor * __restrict decompressor) {
+  if (!decompressor)
+    return;
+
+  if (decompressor->impl)
+    libdeflate_free_decompressor(decompressor->impl);
+  free(decompressor);
+}
+
+static
+const AkZipCentralEntry*
+ak_zip_archive_find_entry(AkZipArchive * __restrict archive,
+                          const char   * __restrict entryName) {
+  size_t i;
+
+  if (!archive || !entryName)
+    return NULL;
+
+  for (i = 0u; i < archive->entryCount; i++) {
+    const AkZipCentralEntry *entry;
+
+    entry = &archive->entries[i];
+    if (ak_zip_entry_name_eq(entry->name, entry->nameLen, entryName))
+      return entry;
+  }
+
+  return NULL;
+}
+
+AK_HIDE
+AkResult
+ak_zip_archive_visit_entries(AkZipArchive      * __restrict archive,
+                             AkZipEntryVisitor              visitor,
+                             void             * __restrict userdata) {
+  size_t i;
+
+  if (!archive || !visitor)
+    return AK_ERR;
+
+  for (i = 0u; i < archive->entryCount; i++) {
+    const AkZipCentralEntry *entry;
     AkZipEntryInfo    info;
 
-    if (!ak_zip_read_central_entry(data, fileSize, &cursor, &entry)) {
-      result = AK_EBADF;
-      break;
-    }
-
-    info.name             = (const char *)entry.name;
-    info.nameLen          = entry.nameLen;
-    info.compressedSize   = entry.compressedSize;
-    info.uncompressedSize = entry.uncompressedSize;
-    info.method           = entry.method;
-    info.flags            = entry.flags;
+    entry                 = &archive->entries[i];
+    info.name             = (const char *)entry->name;
+    info.index            = i;
+    info.nameLen          = entry->nameLen;
+    info.compressedSize   = entry->compressedSize;
+    info.uncompressedSize = entry->uncompressedSize;
+    info.method           = entry->method;
+    info.flags            = entry->flags;
     if (!visitor(&info, userdata))
       break;
   }
 
-  ak_releasefile(fileData, fileSize);
+  return AK_OK;
+}
+
+AK_HIDE
+AkResult
+ak_zip_archive_extract_file(AkZipArchive * __restrict archive,
+                            const char   * __restrict entryName,
+                            void        ** __restrict outData,
+                            size_t       * __restrict outSize) {
+  return ak_zip_archive_extract_file_alloc(archive,
+                                           entryName,
+                                           NULL,
+                                           NULL,
+                                           NULL,
+                                           outData,
+                                           outSize);
+}
+
+AK_HIDE
+AkResult
+ak_zip_archive_extract_file_alloc(AkZipArchive * __restrict archive,
+                                  const char   * __restrict entryName,
+                                  AkZipAllocFn               allocFn,
+                                  AkZipFreeFn                freeFn,
+                                  void        * __restrict allocUserdata,
+                                  void       ** __restrict outData,
+                                  size_t      * __restrict outSize) {
+  const AkZipCentralEntry *entry;
+
+  if (!archive || !entryName || !outData || !outSize)
+    return AK_ERR;
+
+  *outData = NULL;
+  *outSize = 0u;
+  entry = ak_zip_archive_find_entry(archive, entryName);
+  if (!entry)
+    return AK_EBADF;
+
+  return ak_zip_extract_entry(archive->fileData,
+                              archive->fileSize,
+                              entry,
+                              archive->decompressor,
+                              allocFn,
+                              freeFn,
+                              allocUserdata,
+                              outData,
+                              outSize);
+}
+
+AK_HIDE
+AkResult
+ak_zip_archive_extract_index_to(AkZipArchive       * __restrict archive,
+                                size_t                          entryIndex,
+                                AkZipDecompressor * __restrict decompressor,
+                                void              * __restrict outData,
+                                size_t                         outCapacity,
+                                size_t            * __restrict outSize) {
+  if (!archive || !outData || !outSize)
+    return AK_ERR;
+  if (entryIndex >= archive->entryCount)
+    return AK_EBADF;
+
+  *outSize = 0u;
+  return ak_zip_extract_entry_to(archive->fileData,
+                                 archive->fileSize,
+                                 &archive->entries[entryIndex],
+                                 decompressor ? decompressor : archive->decompressor,
+                                 outData,
+                                 outCapacity,
+                                 outSize);
+}
+
+AK_HIDE
+AkResult
+ak_zip_visit_entries(const char        * __restrict zipPath,
+                     AkZipEntryVisitor              visitor,
+                     void             * __restrict userdata) {
+  AkZipArchive *archive;
+  AkResult      result;
+
+  if (!zipPath || !visitor)
+    return AK_ERR;
+
+  archive = NULL;
+  result  = ak_zip_open(zipPath, &archive);
+  if (result == AK_OK)
+    result = ak_zip_archive_visit_entries(archive, visitor, userdata);
+  ak_zip_close(archive);
   return result;
 }
 
@@ -295,16 +541,8 @@ ak_zip_extract_file(const char * __restrict zipPath,
                     const char * __restrict entryName,
                     void      ** __restrict outData,
                     size_t     * __restrict outSize) {
-  void                *fileData;
-  size_t               fileSize;
-  const unsigned char *data;
-  const unsigned char *eocd;
-  uint16_t             entryCount;
-  uint32_t             centralOffset;
-  uint32_t             centralSize;
-  size_t               cursor;
-  size_t               i;
-  AkResult             result;
+  AkZipArchive *archive;
+  AkResult      result;
 
   if (!zipPath || !entryName || !outData || !outSize)
     return AK_ERR;
@@ -312,45 +550,11 @@ ak_zip_extract_file(const char * __restrict zipPath,
   *outData = NULL;
   *outSize = 0;
 
-  result = ak_readfile(zipPath, NULL, &fileData, &fileSize);
-  if (result != AK_OK)
-    return result;
-
-  data = fileData;
-  eocd = ak_zip_find_eocd(data, fileSize);
-  if (!eocd) {
-    ak_releasefile(fileData, fileSize);
-    return AK_EBADF;
-  }
-
-  entryCount   = io_load_u16le(eocd + 10);
-  centralSize  = io_load_u32le(eocd + 12);
-  centralOffset = io_load_u32le(eocd + 16);
-
-  if ((size_t)centralOffset > fileSize
-      || (size_t)centralSize > fileSize - (size_t)centralOffset) {
-    ak_releasefile(fileData, fileSize);
-    return AK_EBADF;
-  }
-
-  cursor = centralOffset;
-  result = AK_EBADF;
-  for (i = 0; i < entryCount; i++) {
-    AkZipCentralEntry entry;
-
-    if (!ak_zip_read_central_entry(data, fileSize, &cursor, &entry)) {
-      result = AK_EBADF;
-      break;
-    }
-
-    if (!ak_zip_entry_name_eq(entry.name, entry.nameLen, entryName))
-      continue;
-
-    result = ak_zip_extract_entry(data, fileSize, &entry, outData, outSize);
-    break;
-  }
-
-  ak_releasefile(fileData, fileSize);
+  archive = NULL;
+  result  = ak_zip_open(zipPath, &archive);
+  if (result == AK_OK)
+    result = ak_zip_archive_extract_file(archive, entryName, outData, outSize);
+  ak_zip_close(archive);
   return result;
 }
 

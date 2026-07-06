@@ -205,10 +205,15 @@ ak_3mf_bambu_orca_parse_project_settings(AK3MFImportState * __restrict st) {
 
   data = NULL;
   size = 0u;
-  if (ak_zip_extract_file(st->packagePath,
-                          AK_3MF_BAMBU_PROJECT_SETTINGS_PART,
-                          &data,
-                          &size) != AK_OK)
+  if ((st->package
+       ? ak_zip_archive_extract_file(st->package,
+                                     AK_3MF_BAMBU_PROJECT_SETTINGS_PART,
+                                     &data,
+                                     &size)
+       : ak_zip_extract_file(st->packagePath,
+                             AK_3MF_BAMBU_PROJECT_SETTINGS_PART,
+                             &data,
+                             &size)) != AK_OK)
     return;
 
   jdoc = json_parse_len(data, size, false);
@@ -264,10 +269,15 @@ ak_3mf_bambu_orca_parse_model_settings(AK3MFImportState * __restrict st) {
 
   data = NULL;
   size = 0u;
-  if (ak_zip_extract_file(st->packagePath,
-                          AK_3MF_BAMBU_MODEL_SETTINGS_PART,
-                          &data,
-                          &size) != AK_OK)
+  if ((st->package
+       ? ak_zip_archive_extract_file(st->package,
+                                     AK_3MF_BAMBU_MODEL_SETTINGS_PART,
+                                     &data,
+                                     &size)
+       : ak_zip_extract_file(st->packagePath,
+                             AK_3MF_BAMBU_MODEL_SETTINGS_PART,
+                             &data,
+                             &size)) != AK_OK)
     return;
 
   xdoc = xml_parse(data, XML_PREFIXES | XML_READONLY);

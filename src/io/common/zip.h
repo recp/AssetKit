@@ -30,6 +30,7 @@ typedef struct AkZipWriteEntry {
 
 typedef struct AkZipEntryInfo {
   const char    *name;
+  size_t         index;
   size_t         nameLen;
   uint32_t       compressedSize;
   uint32_t       uncompressedSize;
@@ -37,8 +38,62 @@ typedef struct AkZipEntryInfo {
   uint16_t       flags;
 } AkZipEntryInfo;
 
+typedef struct AkZipArchive AkZipArchive;
+typedef struct AkZipDecompressor AkZipDecompressor;
+
 typedef bool (*AkZipEntryVisitor)(const AkZipEntryInfo * __restrict info,
                                   void                 * __restrict userdata);
+typedef void *(*AkZipAllocFn)(void * __restrict userdata, size_t size);
+typedef void (*AkZipFreeFn)(void * __restrict userdata, void * __restrict data);
+
+AK_HIDE
+AkResult
+ak_zip_open(const char      * __restrict zipPath,
+            AkZipArchive   ** __restrict archive);
+
+AK_HIDE
+void
+ak_zip_close(AkZipArchive * __restrict archive);
+
+AK_HIDE
+AkZipDecompressor*
+ak_zip_decompressor_new(void);
+
+AK_HIDE
+void
+ak_zip_decompressor_free(AkZipDecompressor * __restrict decompressor);
+
+AK_HIDE
+AkResult
+ak_zip_archive_visit_entries(AkZipArchive      * __restrict archive,
+                             AkZipEntryVisitor              visitor,
+                             void             * __restrict userdata);
+
+AK_HIDE
+AkResult
+ak_zip_archive_extract_file(AkZipArchive * __restrict archive,
+                            const char   * __restrict entryName,
+                            void        ** __restrict outData,
+                            size_t       * __restrict outSize);
+
+AK_HIDE
+AkResult
+ak_zip_archive_extract_file_alloc(AkZipArchive * __restrict archive,
+                                  const char   * __restrict entryName,
+                                  AkZipAllocFn               allocFn,
+                                  AkZipFreeFn                freeFn,
+                                  void        * __restrict allocUserdata,
+                                  void       ** __restrict outData,
+                                  size_t      * __restrict outSize);
+
+AK_HIDE
+AkResult
+ak_zip_archive_extract_index_to(AkZipArchive       * __restrict archive,
+                                size_t                          entryIndex,
+                                AkZipDecompressor * __restrict decompressor,
+                                void              * __restrict outData,
+                                size_t                         outCapacity,
+                                size_t            * __restrict outSize);
 
 AK_HIDE
 AkResult

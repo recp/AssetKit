@@ -222,6 +222,7 @@ function(ak_target_cxx_options target)
 endfunction()
 
 include(GNUInstallDirs)
+find_package(Threads REQUIRED)
 
 # Target Start
 add_library(${PROJECT_NAME} ${AK_BUILD} "")
@@ -377,7 +378,9 @@ foreach(AK_CORE_TARGET IN LISTS AK_CORE_TARGETS)
       PRIVATE
           ds
           libdeflate::libdeflate_static
-          ${CMAKE_DL_LIBS})
+          ${CMAKE_DL_LIBS}
+      PUBLIC
+          Threads::Threads)
   if(UNIX AND NOT APPLE)
     target_link_libraries(${AK_CORE_TARGET} PUBLIC m)
   endif()

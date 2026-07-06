@@ -52,6 +52,12 @@ typedef enum AK3MFPaintKind {
   AK_3MF_PAINT_SEGMENTATION
 } AK3MFPaintKind;
 
+typedef enum AK3MFTriangleInspectMode {
+  AK_3MF_TRIANGLE_INSPECT_NONE = 0,
+  AK_3MF_TRIANGLE_INSPECT_MATERIAL_AND_PAINT,
+  AK_3MF_TRIANGLE_INSPECT_MATERIAL_QUICK
+} AK3MFTriangleInspectMode;
+
 enum {
   AK_3MF_PAINT_BUCKET_COUNT = 64u,
   AK_3MF_PAINT_STACK_NODES  = 128u,
@@ -121,7 +127,7 @@ typedef struct AK3MFPaintSubdivider {
   bool                ok;
 } AK3MFPaintSubdivider;
 
-static
+AK_INLINE
 bool
 ak_3mf_fast_parse_u32_slice(const AK3MFFastSlice * __restrict slice,
                             uint32_t             * __restrict out) {
@@ -149,14 +155,14 @@ ak_3mf_fast_parse_u32_slice(const AK3MFFastSlice * __restrict slice,
   return true;
 }
 
-static
+AK_INLINE
 const char*
 ak_3mf_fast_tag_end(const char * __restrict p,
                     const char * __restrict end) {
   return p && end ? memchr(p, '>', (size_t)(end - p)) : NULL;
 }
 
-static
+AK_INLINE
 const char*
 ak_3mf_fast_skip_space(const char *p, const char *end) {
   while (p < end && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r'))
@@ -164,7 +170,7 @@ ak_3mf_fast_skip_space(const char *p, const char *end) {
   return p;
 }
 
-static
+AK_INLINE
 const char*
 ak_3mf_fast_skip_tag_name(const char *p, const char *end) {
   while (p < end && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r'
@@ -173,7 +179,7 @@ ak_3mf_fast_skip_tag_name(const char *p, const char *end) {
   return p;
 }
 
-static
+AK_INLINE
 bool
 ak_3mf_fast_slice_eq_packed(const AK3MFFastSlice * __restrict slice,
                             uint64_t                          packed,
@@ -192,7 +198,7 @@ ak_3mf_fast_slice_eq_packed(const AK3MFFastSlice * __restrict slice,
   return ak_str_eq_packed_fast(slice->begin, sliceLen, packed, len);
 }
 
-static
+AK_INLINE
 bool
 ak_3mf_fast_slice_eq_paint_color(const AK3MFFastSlice * __restrict slice) {
   size_t sliceLen;
@@ -208,7 +214,7 @@ ak_3mf_fast_slice_eq_paint_color(const AK3MFFastSlice * __restrict slice) {
          && slice->begin[10] == 'r';
 }
 
-static
+AK_INLINE
 bool
 ak_3mf_fast_slice_eq_mmu_segmentation(const AK3MFFastSlice * __restrict slice) {
   size_t sliceLen;
@@ -229,7 +235,7 @@ ak_3mf_fast_slice_eq_mmu_segmentation(const AK3MFFastSlice * __restrict slice) {
          && slice->begin[15] == 'n';
 }
 
-static
+AK_INLINE
 bool
 ak_3mf_fast_next_tag(const char       ** __restrict cursor,
                      const char        * __restrict end,
@@ -294,7 +300,7 @@ ak_3mf_fast_next_tag(const char       ** __restrict cursor,
   return true;
 }
 
-static
+AK_INLINE
 bool
 ak_3mf_fast_next_attr(const char      ** __restrict cursor,
                       const char       * __restrict tagEnd,
@@ -408,53 +414,7 @@ ak_3mf_fast_attr_u32_local(const char * __restrict tagBegin,
   return ak_3mf_fast_parse_u32_slice(&slice, out);
 }
 
-static
-bool
-ak_3mf_fast_find_child_content(const char       * __restrict p,
-                               const char       * __restrict end,
-                               uint64_t                       tagPacked,
-                               size_t                         tagLen,
-                               AK3MFFastSlice    * __restrict out) {
-  const char *cursor;
-  AK3MFFastTag tag;
-
-  cursor = p;
-  while (ak_3mf_fast_next_tag(&cursor, end, &tag)) {
-    const char *innerCursor;
-    uint32_t    depth;
-
-    if (tag.closing
-        || !ak_3mf_fast_slice_eq_packed(&tag.localName, tagPacked, tagLen))
-      continue;
-
-    if (tag.selfClosing)
-      return false;
-
-    out->begin  = tag.full.end + 1u;
-    innerCursor = out->begin;
-    depth       = 1u;
-    while (ak_3mf_fast_next_tag(&innerCursor, end, &tag)) {
-      if (!ak_3mf_fast_slice_eq_packed(&tag.localName, tagPacked, tagLen))
-        continue;
-
-      if (tag.closing) {
-        depth--;
-        if (depth == 0u) {
-          out->end = tag.full.begin;
-          return true;
-        }
-      } else if (!tag.selfClosing) {
-        depth++;
-      }
-    }
-
-    return false;
-  }
-
-  return false;
-}
-
-static
+AK_INLINE
 bool
 ak_3mf_fast_attr_is_triangle_material(const AK3MFFastSlice * __restrict attrName) {
   size_t len;
@@ -475,7 +435,7 @@ ak_3mf_fast_attr_is_triangle_material(const AK3MFFastSlice * __restrict attrName
          && attrName->begin[2] == 'd';
 }
 
-static
+AK_INLINE
 bool
 ak_3mf_fast_attr_paint_kind(const AK3MFFastSlice * __restrict attrName,
                             AK3MFPaintKind       * __restrict kind) {
@@ -524,32 +484,353 @@ ak_3mf_fast_triangle_inspect_attrs(const AK3MFFastTag * __restrict tag,
   return false;
 }
 
+AK_INLINE
+bool
+ak_3mf_fast_attr_name_boundary(char c) {
+  return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == ':';
+}
+
+AK_INLINE
+bool
+ak_3mf_fast_attr_name_end(char c) {
+  return c == '=' || c == ' ' || c == '\t' || c == '\n' || c == '\r';
+}
+
+static
+bool
+ak_3mf_fast_triangle_inspect_attrs_quick(const char * __restrict tagBegin,
+                                         const char * __restrict tagEnd,
+                                         bool       * __restrict hasPaint) {
+  const char *p;
+
+  if (!tagBegin || !tagEnd || tagEnd <= tagBegin)
+    return false;
+
+  p = tagBegin;
+  while (p < tagEnd) {
+    const char *paintOrMaterial;
+    const char *segmentation;
+
+    paintOrMaterial = memchr(p, 'p', (size_t)(tagEnd - p));
+    segmentation    = memchr(p, 'm', (size_t)(tagEnd - p));
+    if (!paintOrMaterial && !segmentation)
+      return false;
+    if (!paintOrMaterial
+        || (segmentation && segmentation < paintOrMaterial))
+      p = segmentation;
+    else
+      p = paintOrMaterial;
+
+    if (p > tagBegin && ak_3mf_fast_attr_name_boundary(p[-1])) {
+      if (*p == 'p') {
+        if (p + 2u < tagEnd
+            && (p[1] == '1' || p[1] == '2' || p[1] == '3')
+            && ak_3mf_fast_attr_name_end(p[2]))
+          return true;
+        if (p + 3u < tagEnd
+            && p[1] == 'i'
+            && p[2] == 'd'
+            && ak_3mf_fast_attr_name_end(p[3]))
+          return true;
+        if (hasPaint
+            && p + _s_ak_paint_color_len < tagEnd
+            && ak_str_load8_fast(p) == _s_ak_paint_color_u64_prefix
+            && p[8] == 'l'
+            && p[9] == 'o'
+            && p[10] == 'r'
+            && ak_3mf_fast_attr_name_end(p[_s_ak_paint_color_len]))
+          *hasPaint = true;
+      } else if (hasPaint
+                 && p + _s_ak_mmu_segmentation_len < tagEnd
+                 && ak_str_load8_fast(p) == _s_ak_mmu_segmentation_u64_prefix
+                 && p[8] == 'e'
+                 && p[9] == 'n'
+                 && p[10] == 't'
+                 && p[11] == 'a'
+                 && p[12] == 't'
+                 && p[13] == 'i'
+                 && p[14] == 'o'
+                 && p[15] == 'n'
+                 && ak_3mf_fast_attr_name_end(p[_s_ak_mmu_segmentation_len])) {
+        *hasPaint = true;
+      }
+    }
+
+    p++;
+  }
+
+  return false;
+}
+
+AK_INLINE
+bool
+ak_3mf_fast_name_eq_packed(const char * __restrict name,
+                           size_t                   nameLen,
+                           uint64_t                 packed,
+                           size_t                   tagLen) {
+  if (!name)
+    return false;
+
+  if (tagLen == _s_ak_triangles_len)
+    return nameLen == _s_ak_triangles_len
+           && ak_str_load8_fast(name) == packed
+           && name[8] == _s_ak_triangles_last;
+
+  return ak_str_eq_packed_fast(name, nameLen, packed, tagLen);
+}
+
+AK_INLINE
+bool
+ak_3mf_fast_tag_name_at(const char * __restrict tagBegin,
+                        const char * __restrict end,
+                        uint64_t                 tagPacked,
+                        size_t                   tagLen) {
+  const char *name;
+  const char *nameEnd;
+  const char *localName;
+
+  if (!tagBegin || tagBegin + 1u >= end || *tagBegin != '<')
+    return false;
+
+  name = tagBegin + 1u;
+  if (*name == '/' || *name == '!' || *name == '?')
+    return false;
+
+  if ((size_t)(end - name) > tagLen
+      && ak_3mf_fast_name_eq_packed(name, tagLen, tagPacked, tagLen)) {
+    char next;
+
+    next = name[tagLen];
+    if (next == ' ' || next == '\t' || next == '\n' || next == '\r'
+        || next == '/' || next == '>')
+      return true;
+  }
+
+  nameEnd   = name;
+  localName = name;
+  while (nameEnd < end
+         && *nameEnd != ' ' && *nameEnd != '\t'
+         && *nameEnd != '\n' && *nameEnd != '\r'
+         && *nameEnd != '/' && *nameEnd != '>') {
+    if (*nameEnd == ':')
+      localName = nameEnd + 1u;
+    nameEnd++;
+  }
+
+  return localName < nameEnd
+         && (size_t)(nameEnd - localName) == tagLen
+         && ak_3mf_fast_name_eq_packed(localName, tagLen, tagPacked, tagLen);
+}
+
+AK_INLINE
+bool
+ak_3mf_fast_closing_tag_name_at(const char * __restrict tagBegin,
+                                const char * __restrict end,
+                                uint64_t                 tagPacked,
+                                size_t                   tagLen) {
+  const char *name;
+  const char *nameEnd;
+  const char *localName;
+
+  if (!tagBegin || tagBegin + 2u >= end || tagBegin[0] != '<' || tagBegin[1] != '/')
+    return false;
+
+  name = tagBegin + 2u;
+  if ((size_t)(end - name) > tagLen
+      && ak_3mf_fast_name_eq_packed(name, tagLen, tagPacked, tagLen)) {
+    char next;
+
+    next = name[tagLen];
+    if (next == ' ' || next == '\t' || next == '\n' || next == '\r'
+        || next == '>')
+      return true;
+  }
+
+  nameEnd   = name;
+  localName = name;
+  while (nameEnd < end
+         && *nameEnd != ' ' && *nameEnd != '\t'
+         && *nameEnd != '\n' && *nameEnd != '\r'
+         && *nameEnd != '>') {
+    if (*nameEnd == ':')
+      localName = nameEnd + 1u;
+    nameEnd++;
+  }
+
+  return localName < nameEnd
+         && (size_t)(nameEnd - localName) == tagLen
+         && ak_3mf_fast_name_eq_packed(localName, tagLen, tagPacked, tagLen);
+}
+
+AK_INLINE
+bool
+ak_3mf_fast_next_named_tag(const char ** __restrict cursor,
+                           const char  * __restrict end,
+                           uint64_t                  tagPacked,
+                           size_t                    tagLen,
+                           const char ** __restrict tagBeginOut,
+                           const char ** __restrict tagEndOut) {
+  const char *p;
+  const char *tagEnd;
+
+  if (!cursor || !*cursor || !end || !tagBeginOut || !tagEndOut)
+    return false;
+
+  p = *cursor;
+  while (p < end) {
+    p = memchr(p, '<', (size_t)(end - p));
+    if (!p)
+      return false;
+
+    if (!ak_3mf_fast_tag_name_at(p, end, tagPacked, tagLen)) {
+      p++;
+      continue;
+    }
+
+    tagEnd = ak_3mf_fast_tag_end(p, end);
+    if (!tagEnd)
+      return false;
+
+    *tagBeginOut = p;
+    *tagEndOut   = tagEnd;
+    *cursor      = tagEnd + 1u;
+    return true;
+  }
+
+  return false;
+}
+
+AK_INLINE
+bool
+ak_3mf_fast_find_closing_tag(const char ** __restrict cursor,
+                             const char  * __restrict end,
+                             uint64_t                  tagPacked,
+                             size_t                    tagLen,
+                             const char ** __restrict tagBeginOut,
+                             const char ** __restrict tagEndOut) {
+  const char *p;
+  const char *tagEnd;
+
+  if (!cursor || !*cursor || !end || !tagBeginOut || !tagEndOut)
+    return false;
+
+  p = *cursor;
+  while (p < end) {
+    p = memchr(p, '<', (size_t)(end - p));
+    if (!p)
+      return false;
+
+    if (!ak_3mf_fast_closing_tag_name_at(p, end, tagPacked, tagLen)) {
+      p++;
+      continue;
+    }
+
+    tagEnd = ak_3mf_fast_tag_end(p, end);
+    if (!tagEnd)
+      return false;
+
+    *tagBeginOut = p;
+    *tagEndOut   = tagEnd;
+    *cursor      = tagEnd + 1u;
+    return true;
+  }
+
+  return false;
+}
+
+static
+bool
+ak_3mf_fast_find_child_content_flat(const char       * __restrict p,
+                                    const char       * __restrict end,
+                                    uint64_t                       tagPacked,
+                                    size_t                         tagLen,
+                                    AK3MFFastSlice    * __restrict out) {
+  const char *cursor;
+  const char *tagBegin;
+  const char *tagEnd;
+  const char *closeBegin;
+  const char *closeEnd;
+
+  if (!out)
+    return false;
+
+  cursor = p;
+  if (!ak_3mf_fast_next_named_tag(&cursor,
+                                  end,
+                                  tagPacked,
+                                  tagLen,
+                                  &tagBegin,
+                                  &tagEnd)
+      || (tagEnd > tagBegin && tagEnd[-1] == '/'))
+    return false;
+
+  out->begin = tagEnd + 1u;
+  cursor = out->begin;
+  if (!ak_3mf_fast_find_closing_tag(&cursor,
+                                    end,
+                                    tagPacked,
+                                    tagLen,
+                                    &closeBegin,
+                                    &closeEnd))
+    return false;
+
+  (void)closeEnd;
+  out->end = closeBegin;
+  return true;
+}
+
 static
 bool
 ak_3mf_fast_count_tags_packed(const char * __restrict p,
                               const char * __restrict end,
                               uint64_t                 tagPacked,
                               size_t                   tagLen,
-                              bool                     rejectTriangleMaterialAttrs,
+                              AK3MFTriangleInspectMode inspectMode,
                               bool      * __restrict   hasPaintAttrs,
                               size_t    * __restrict count) {
-  const char  *cursor;
-  AK3MFFastTag tag;
-  size_t       n;
+  size_t n;
 
   if (!count)
     return false;
 
-  cursor = p;
-  n      = 0u;
-  while (ak_3mf_fast_next_tag(&cursor, end, &tag)) {
-    if (!tag.closing
-        && ak_3mf_fast_slice_eq_packed(&tag.localName, tagPacked, tagLen)) {
-      if (rejectTriangleMaterialAttrs
-          && ak_3mf_fast_triangle_inspect_attrs(&tag, hasPaintAttrs))
-        return false;
-      n++;
+  n = 0u;
+  while (p < end) {
+    const char *tagEnd;
+
+    p = memchr(p, '<', (size_t)(end - p));
+    if (!p)
+      break;
+    if (!ak_3mf_fast_tag_name_at(p, end, tagPacked, tagLen)) {
+      p++;
+      continue;
     }
+
+    if (inspectMode == AK_3MF_TRIANGLE_INSPECT_NONE) {
+      n++;
+      p++;
+      continue;
+    }
+
+    tagEnd = ak_3mf_fast_tag_end(p, end);
+    if (!tagEnd)
+      return false;
+
+    if (inspectMode == AK_3MF_TRIANGLE_INSPECT_MATERIAL_QUICK) {
+      if (ak_3mf_fast_triangle_inspect_attrs_quick(p,
+                                                   tagEnd,
+                                                   hasPaintAttrs))
+        return false;
+    } else {
+      AK3MFFastTag tag;
+
+      tag.full.begin = p;
+      tag.full.end   = tagEnd;
+      if (ak_3mf_fast_triangle_inspect_attrs(&tag, hasPaintAttrs))
+        return false;
+    }
+
+    n++;
+    p = tagEnd + 1u;
   }
 
   *count = n;
@@ -570,6 +851,7 @@ ak_3mf_fast_next_object(const char       ** __restrict cursor,
 
   while (ak_3mf_fast_next_tag(cursor, end, &tag)) {
     const char *innerCursor;
+    const char *closeEnd;
 
     if (tag.closing
         || !ak_3mf_fast_slice_eq_packed(&tag.localName,
@@ -582,19 +864,17 @@ ak_3mf_fast_next_object(const char       ** __restrict cursor,
     objectBegin = tag.full.begin;
     tagEnd      = tag.full.end;
     innerCursor = tagEnd + 1u;
-    while (ak_3mf_fast_next_tag(&innerCursor, end, &tag)) {
-      if (!tag.closing
-          || !ak_3mf_fast_slice_eq_packed(&tag.localName,
-                                          _s_ak_object_u64_exact,
-                                          _s_ak_object_len))
-        continue;
-
-      objectClose       = tag.full.begin;
+    if (ak_3mf_fast_find_closing_tag(&innerCursor,
+                                     end,
+                                     _s_ak_object_u64_exact,
+                                     _s_ak_object_len,
+                                     &objectClose,
+                                     &closeEnd)) {
       objectTag->begin  = objectBegin;
       objectTag->end    = tagEnd;
       objectBody->begin = tagEnd + 1u;
       objectBody->end   = objectClose;
-      *cursor           = tag.full.end + 1u;
+      *cursor           = closeEnd + 1u;
       return true;
     }
 
@@ -606,13 +886,19 @@ ak_3mf_fast_next_object(const char       ** __restrict cursor,
 
 static
 bool
-ak_3mf_fast_read_object_slices(const AK3MFFastSlice * __restrict objectTag,
+ak_3mf_fast_read_object_slices(AK3MFImportState      * __restrict st,
+                               const AK3MFFastSlice * __restrict objectTag,
                                const AK3MFFastSlice * __restrict objectBody,
                                AK3MFFastMeshSlices  * __restrict slices) {
   AK3MFFastSlice mesh;
+  const char     *meshCursor;
+  const char     *meshTagBegin;
+  const char     *meshTagEnd;
+  bool            preferVendorPaint;
 
   memset(slices, 0, sizeof(*slices));
   slices->objectTag = *objectTag;
+  preferVendorPaint = st && st->bambuColorCount > 0u;
 
   if (!ak_3mf_fast_attr_u32_local(objectTag->begin,
                                   objectTag->end,
@@ -622,37 +908,44 @@ ak_3mf_fast_read_object_slices(const AK3MFFastSlice * __restrict objectTag,
       || slices->objectId == 0u)
     return false;
 
-  if (!ak_3mf_fast_find_child_content(objectBody->begin,
-                                      objectBody->end,
-                                      _s_ak_mesh_u64_exact,
-                                      _s_ak_mesh_len,
-                                      &mesh))
+  meshCursor = objectBody->begin;
+  if (!ak_3mf_fast_next_named_tag(&meshCursor,
+                                  objectBody->end,
+                                  _s_ak_mesh_u64_exact,
+                                  _s_ak_mesh_len,
+                                  &meshTagBegin,
+                                  &meshTagEnd)
+      || (meshTagEnd > meshTagBegin && meshTagEnd[-1] == '/'))
     return false;
+  mesh.begin = meshTagEnd + 1u;
+  mesh.end   = objectBody->end;
 
-  if (!ak_3mf_fast_find_child_content(mesh.begin,
-                                      mesh.end,
-                                      _s_ak_vertices_u64_exact,
-                                      _s_ak_vertices_len,
-                                      &slices->vertices)
-      || !ak_3mf_fast_find_child_content(mesh.begin,
-                                         mesh.end,
-                                         _s_ak_triangles_u64_prefix,
-                                         _s_ak_triangles_len,
-                                         &slices->triangles))
+  if (!ak_3mf_fast_find_child_content_flat(mesh.begin,
+                                           mesh.end,
+                                           _s_ak_vertices_u64_exact,
+                                           _s_ak_vertices_len,
+                                           &slices->vertices)
+      || !ak_3mf_fast_find_child_content_flat(slices->vertices.end,
+                                              mesh.end,
+                                              _s_ak_triangles_u64_prefix,
+                                              _s_ak_triangles_len,
+                                              &slices->triangles))
     return false;
 
   if (!ak_3mf_fast_count_tags_packed(slices->vertices.begin,
                                      slices->vertices.end,
                                      _s_ak_vertex_u64_exact,
                                      _s_ak_vertex_len,
-                                     false,
+                                     AK_3MF_TRIANGLE_INSPECT_NONE,
                                      NULL,
                                      &slices->vertexCount)
       || !ak_3mf_fast_count_tags_packed(slices->triangles.begin,
                                         slices->triangles.end,
                                         _s_ak_triangle_u64_exact,
                                         _s_ak_triangle_len,
-                                        true,
+                                        preferVendorPaint
+                                          ? AK_3MF_TRIANGLE_INSPECT_MATERIAL_QUICK
+                                          : AK_3MF_TRIANGLE_INSPECT_MATERIAL_AND_PAINT,
                                         &slices->hasPaint,
                                         &slices->triangleCount))
     return false;
@@ -778,7 +1071,7 @@ ak_3mf_fast_add_production_object(AK3MFImportState       * __restrict st,
   return true;
 }
 
-static
+AK_INLINE
 bool
 ak_3mf_fast_parse_vertex_tag(const char *p,
                              const char * __restrict tagEnd,
@@ -803,15 +1096,21 @@ ak_3mf_fast_parse_vertex_tag(const char *p,
 
     switch (*attrName.begin) {
       case 'x':
-        out[0] = (float)xml__parse_double(attrValue.begin, attrValue.end, 0.0);
+        (void)ak_str_parse_float_end_fast((char *)attrValue.begin,
+                                          (char *)attrValue.end,
+                                          &out[0]);
         hasX = true;
         break;
       case 'y':
-        out[1] = (float)xml__parse_double(attrValue.begin, attrValue.end, 0.0);
+        (void)ak_str_parse_float_end_fast((char *)attrValue.begin,
+                                          (char *)attrValue.end,
+                                          &out[1]);
         hasY = true;
         break;
       case 'z':
-        out[2] = (float)xml__parse_double(attrValue.begin, attrValue.end, 0.0);
+        (void)ak_str_parse_float_end_fast((char *)attrValue.begin,
+                                          (char *)attrValue.end,
+                                          &out[2]);
         hasZ = true;
         break;
       default:
@@ -827,22 +1126,23 @@ bool
 ak_3mf_fast_fill_positions(const AK3MFFastSlice * __restrict vertices,
                            float                * __restrict positions,
                            size_t                            vertexCount) {
-  const char  *cursor;
-  AK3MFFastTag tag;
-  size_t       i;
+  const char *cursor;
+  const char *tagBegin;
+  const char *tagEnd;
+  size_t      i;
 
   cursor = vertices->begin;
   i      = 0u;
-  while (ak_3mf_fast_next_tag(&cursor, vertices->end, &tag)) {
-    if (tag.closing
-        || !ak_3mf_fast_slice_eq_packed(&tag.localName,
-                                        _s_ak_vertex_u64_exact,
-                                        _s_ak_vertex_len))
-      continue;
+  while (ak_3mf_fast_next_named_tag(&cursor,
+                                    vertices->end,
+                                    _s_ak_vertex_u64_exact,
+                                    _s_ak_vertex_len,
+                                    &tagBegin,
+                                    &tagEnd)) {
     if (i >= vertexCount)
       return false;
-    if (!ak_3mf_fast_parse_vertex_tag(tag.full.begin,
-                                      tag.full.end,
+    if (!ak_3mf_fast_parse_vertex_tag(tagBegin,
+                                      tagEnd,
                                       positions + i * 3u))
       return false;
     i++;
@@ -851,7 +1151,7 @@ ak_3mf_fast_fill_positions(const AK3MFFastSlice * __restrict vertices,
   return i == vertexCount;
 }
 
-static
+AK_INLINE
 bool
 ak_3mf_fast_parse_triangle(const char *p,
                            const char * __restrict tagEnd,
@@ -904,7 +1204,7 @@ ak_3mf_fast_parse_triangle(const char *p,
          && v[2] < vertexCount;
 }
 
-static
+AK_INLINE
 bool
 ak_3mf_fast_parse_triangle_paint(const char       *p,
                                  const char       * __restrict tagEnd,
@@ -930,6 +1230,29 @@ ak_3mf_fast_parse_triangle_paint(const char       *p,
     AK3MFPaintKind attrPaintKind;
     size_t         len;
 
+    len = (size_t)(attrName.end - attrName.begin);
+    if (len == 2u && attrName.begin[0] == 'v') {
+      switch (attrName.begin[1]) {
+        case '1':
+          if (!ak_3mf_fast_parse_u32_slice(&attrValue, &v[0]))
+            return false;
+          hasV1 = true;
+          continue;
+        case '2':
+          if (!ak_3mf_fast_parse_u32_slice(&attrValue, &v[1]))
+            return false;
+          hasV2 = true;
+          continue;
+        case '3':
+          if (!ak_3mf_fast_parse_u32_slice(&attrValue, &v[2]))
+            return false;
+          hasV3 = true;
+          continue;
+        default:
+          break;
+      }
+    }
+
     if (ak_3mf_fast_attr_is_triangle_material(&attrName))
       return false;
 
@@ -940,31 +1263,6 @@ ak_3mf_fast_parse_triangle_paint(const char       *p,
         *paint     = attrValue;
         *paintKind = attrPaintKind;
       }
-      continue;
-    }
-
-    len = (size_t)(attrName.end - attrName.begin);
-    if (len != 2u || attrName.begin[0] != 'v')
-      continue;
-
-    switch (attrName.begin[1]) {
-      case '1':
-        if (!ak_3mf_fast_parse_u32_slice(&attrValue, &v[0]))
-          return false;
-        hasV1 = true;
-        break;
-      case '2':
-        if (!ak_3mf_fast_parse_u32_slice(&attrValue, &v[1]))
-          return false;
-        hasV2 = true;
-        break;
-      case '3':
-        if (!ak_3mf_fast_parse_u32_slice(&attrValue, &v[2]))
-          return false;
-        hasV3 = true;
-        break;
-      default:
-        break;
     }
   }
 
@@ -976,7 +1274,7 @@ ak_3mf_fast_parse_triangle_paint(const char       *p,
          && v[2] < vertexCount;
 }
 
-static
+AK_INLINE
 bool
 ak_3mf_fast_hex_nibble(char c, uint8_t * __restrict out) {
   if (c >= '0' && c <= '9') {
@@ -993,7 +1291,7 @@ ak_3mf_fast_hex_nibble(char c, uint8_t * __restrict out) {
   return false;
 }
 
-static
+AK_INLINE
 bool
 ak_3mf_fast_orca_paint_state(const AK3MFFastSlice * __restrict paint,
                              uint32_t             * __restrict state) {
@@ -1038,7 +1336,7 @@ ak_3mf_fast_orca_paint_state(const AK3MFFastSlice * __restrict paint,
   return *state < AK_3MF_PAINT_BUCKET_COUNT;
 }
 
-static
+AK_INLINE
 uint32_t
 ak_3mf_fast_paint_bucket(const AK3MFPaintPlan * __restrict plan,
                          uint32_t                           state) {
@@ -1048,7 +1346,7 @@ ak_3mf_fast_paint_bucket(const AK3MFPaintPlan * __restrict plan,
   return extruder < AK_3MF_PAINT_BUCKET_COUNT ? extruder : 0u;
 }
 
-static
+AK_INLINE
 bool
 ak_3mf_fast_paint_emit_global(AK3MFPaintBucketFill * __restrict fill,
                               uint32_t                           bucket,
@@ -1091,7 +1389,7 @@ ak_3mf_fast_paint_emit_global(AK3MFPaintBucketFill * __restrict fill,
   return true;
 }
 
-static
+AK_INLINE
 bool
 ak_3mf_fast_paint_emit_state(AK3MFPaintPlan       * __restrict plan,
                              AK3MFPaintBucketFill * __restrict fill,
@@ -1532,9 +1830,10 @@ ak_3mf_fast_fill_indices(const AK3MFFastSlice * __restrict triangles,
                          AkIndexArray         * __restrict indices,
                          uint32_t                          vertexCount,
                          size_t                            triangleCount) {
-  const char  *cursor;
-  AK3MFFastTag tag;
-  size_t       i;
+  const char *cursor;
+  const char *tagBegin;
+  const char *tagEnd;
+  size_t      i;
 
   cursor = triangles->begin;
   i      = 0u;
@@ -1544,18 +1843,18 @@ ak_3mf_fast_fill_indices(const AK3MFFastSlice * __restrict triangles,
       uint8_t *dst;
 
       dst = (uint8_t *)indices->items;
-      while (ak_3mf_fast_next_tag(&cursor, triangles->end, &tag)) {
+      while (ak_3mf_fast_next_named_tag(&cursor,
+                                        triangles->end,
+                                        _s_ak_triangle_u64_exact,
+                                        _s_ak_triangle_len,
+                                        &tagBegin,
+                                        &tagEnd)) {
         uint32_t v[3];
 
-        if (tag.closing
-            || !ak_3mf_fast_slice_eq_packed(&tag.localName,
-                                            _s_ak_triangle_u64_exact,
-                                            _s_ak_triangle_len))
-          continue;
         if (i >= triangleCount * 3u)
           return false;
-        if (!ak_3mf_fast_parse_triangle(tag.full.begin,
-                                        tag.full.end,
+        if (!ak_3mf_fast_parse_triangle(tagBegin,
+                                        tagEnd,
                                         vertexCount,
                                         v))
           return false;
@@ -1569,18 +1868,18 @@ ak_3mf_fast_fill_indices(const AK3MFFastSlice * __restrict triangles,
       uint16_t *dst;
 
       dst = (uint16_t *)indices->items;
-      while (ak_3mf_fast_next_tag(&cursor, triangles->end, &tag)) {
+      while (ak_3mf_fast_next_named_tag(&cursor,
+                                        triangles->end,
+                                        _s_ak_triangle_u64_exact,
+                                        _s_ak_triangle_len,
+                                        &tagBegin,
+                                        &tagEnd)) {
         uint32_t v[3];
 
-        if (tag.closing
-            || !ak_3mf_fast_slice_eq_packed(&tag.localName,
-                                            _s_ak_triangle_u64_exact,
-                                            _s_ak_triangle_len))
-          continue;
         if (i >= triangleCount * 3u)
           return false;
-        if (!ak_3mf_fast_parse_triangle(tag.full.begin,
-                                        tag.full.end,
+        if (!ak_3mf_fast_parse_triangle(tagBegin,
+                                        tagEnd,
                                         vertexCount,
                                         v))
           return false;
@@ -1594,18 +1893,18 @@ ak_3mf_fast_fill_indices(const AK3MFFastSlice * __restrict triangles,
       uint32_t *dst;
 
       dst = (uint32_t *)indices->items;
-      while (ak_3mf_fast_next_tag(&cursor, triangles->end, &tag)) {
+      while (ak_3mf_fast_next_named_tag(&cursor,
+                                        triangles->end,
+                                        _s_ak_triangle_u64_exact,
+                                        _s_ak_triangle_len,
+                                        &tagBegin,
+                                        &tagEnd)) {
         uint32_t v[3];
 
-        if (tag.closing
-            || !ak_3mf_fast_slice_eq_packed(&tag.localName,
-                                            _s_ak_triangle_u64_exact,
-                                            _s_ak_triangle_len))
-          continue;
         if (i >= triangleCount * 3u)
           return false;
-        if (!ak_3mf_fast_parse_triangle(tag.full.begin,
-                                        tag.full.end,
+        if (!ak_3mf_fast_parse_triangle(tagBegin,
+                                        tagEnd,
                                         vertexCount,
                                         v))
           return false;
@@ -1628,9 +1927,10 @@ bool
 ak_3mf_fast_analyze_paint(AK3MFImportState          * __restrict st,
                           const AK3MFFastMeshSlices * __restrict slices,
                           AK3MFPaintPlan            * __restrict plan) {
-  const char  *cursor;
-  AK3MFFastTag tag;
-  size_t       triangleIndex;
+  const char *cursor;
+  const char *tagBegin;
+  const char *tagEnd;
+  size_t      triangleIndex;
 
   memset(plan, 0, sizeof(*plan));
   plan->defaultExtruder = ak_3mf_bambu_orca_extruder_for_object(st, slices->objectId);
@@ -1640,23 +1940,23 @@ ak_3mf_fast_analyze_paint(AK3MFImportState          * __restrict st,
 
   cursor = slices->triangles.begin;
   triangleIndex = 0u;
-  while (ak_3mf_fast_next_tag(&cursor, slices->triangles.end, &tag)) {
+  while (ak_3mf_fast_next_named_tag(&cursor,
+                                    slices->triangles.end,
+                                    _s_ak_triangle_u64_exact,
+                                    _s_ak_triangle_len,
+                                    &tagBegin,
+                                    &tagEnd)) {
     AK3MFFastSlice paint;
     AK3MFPaintKind paintKind;
     AK3MFPaintTriangle *cached;
     uint32_t       v[3];
     uint8_t        state;
 
-    if (tag.closing
-        || !ak_3mf_fast_slice_eq_packed(&tag.localName,
-                                        _s_ak_triangle_u64_exact,
-                                        _s_ak_triangle_len))
-      continue;
     if (triangleIndex >= slices->triangleCount)
       return false;
 
-    if (!ak_3mf_fast_parse_triangle_paint(tag.full.begin,
-                                          tag.full.end,
+    if (!ak_3mf_fast_parse_triangle_paint(tagBegin,
+                                          tagEnd,
                                           (uint32_t)slices->vertexCount,
                                           v,
                                           &paint,
@@ -2050,7 +2350,7 @@ ak_3mf_fast_load_mesh_model_part(AK3MFImportState * __restrict st,
     if (!ak_3mf_fast_next_object(&p, end, &objectTag, &objectBody))
       break;
 
-    if (!ak_3mf_fast_read_object_slices(&objectTag, &objectBody, &nextSlice)) {
+    if (!ak_3mf_fast_read_object_slices(st, &objectTag, &objectBody, &nextSlice)) {
       if (slices != stackSlices)
         free(slices);
       return AK_3MF_FAST_LOAD_UNSUPPORTED;

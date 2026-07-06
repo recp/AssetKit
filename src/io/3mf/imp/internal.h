@@ -19,6 +19,8 @@
 
 #include "common.h"
 
+typedef struct AkZipArchive AkZipArchive;
+
 typedef enum AK3MFObjectKind {
   AK_3MF_OBJECT_EMPTY        = 0,
   AK_3MF_OBJECT_MESH         = 1,
@@ -68,6 +70,7 @@ typedef struct AK3MFImportState {
   AK3MFBambuPartMaterial *bambuParts;
   AkMaterial            **bambuMaterials;
   uint8_t               (*bambuColors)[4];
+  AkZipArchive           *package;
   const char             *packagePath;
   const char             *rootModelPath;
   const char             *currentModelPath;

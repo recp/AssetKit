@@ -21,9 +21,11 @@
 #include "../../common/text_number.h"
 #include "../../common/util.h"
 #include "../../common/zip.h"
+#include "../../../mem/common.h"
 #include "../../../mat/internal.h"
 #include "../../../string_fast.h"
 #include "../../../strpool.h"
+#include "../../../thread.h"
 #include "../../../id.h"
 #include "../../../../include/ak/path.h"
 
@@ -62,14 +64,28 @@ static const char AK_3MF_ROOT_RELS_PART[]     = "_rels/.rels";
 static const char AK_3MF_CT_RELS[]            = "application/vnd.openxmlformats-package.relationships+xml";
 static const char AK_3MF_CT_MODEL[]           = "application/vnd.ms-package.3dmanufacturing-3dmodel+xml";
 
+typedef struct AK3MFPackageInflateJob {
+  void     *data;
+  size_t    capacity;
+  size_t    expectedSize;
+  size_t    writtenSize;
+  size_t    entryIndex;
+  AkResult  result;
+} AK3MFPackageInflateJob;
+
 typedef struct AK3MFPackageImportState {
-  AkDoc           *doc;
-  AkPrintDocument *print;
-  const char      *filepath;
-  const char      *modelPath;
-  xml_t           *contentTypesRoot;
-  xml_t           *rootRelsRoot;
-  AkResult         result;
+  AkDoc                   *doc;
+  AkPrintDocument         *print;
+  AkZipArchive            *package;
+  AK3MFPackageInflateJob  *jobs;
+  const char              *filepath;
+  const char              *modelPath;
+  xml_t                   *contentTypesRoot;
+  xml_t                   *rootRelsRoot;
+  size_t                   jobCount;
+  size_t                   jobCapacity;
+  size_t                   totalInflateBytes;
+  AkResult                 result;
 } AK3MFPackageImportState;
 
 typedef IOBuffer AK3MFXMLBuffer;
@@ -991,7 +1007,8 @@ ak_3mf_strdup_attr_path(const xml_attr_t * __restrict attr) {
 
 static
 char*
-ak_3mf_model_path_from_rels(const char * __restrict filepath) {
+ak_3mf_model_path_from_rels(AkZipArchive * __restrict package,
+                            const char   * __restrict filepath) {
   static const char defaultPath[] = "3D/3dmodel.model";
   void            *relsData;
   size_t           relsSize;
@@ -1003,8 +1020,18 @@ ak_3mf_model_path_from_rels(const char * __restrict filepath) {
   target   = NULL;
   relsData = NULL;
   relsSize = 0;
-  if (ak_zip_extract_file(filepath, "_rels/.rels", &relsData, &relsSize) != AK_OK)
+  if (package) {
+    if (ak_zip_archive_extract_file(package,
+                                    AK_3MF_ROOT_RELS_PART,
+                                    &relsData,
+                                    &relsSize) != AK_OK)
+      goto fallback;
+  } else if (ak_zip_extract_file(filepath,
+                                 AK_3MF_ROOT_RELS_PART,
+                                 &relsData,
+                                 &relsSize) != AK_OK) {
     goto fallback;
+  }
 
   xdoc = xml_parse(relsData, XML_PREFIXES | XML_READONLY);
   if (!xdoc || !xdoc->root) {
@@ -1282,6 +1309,224 @@ ak_3mf_mark_package_part_features(AkPrintDocument       * __restrict print,
   print->features |= features;
 }
 
+#define AK_3MF_PACKAGE_INFLATE_PARALLEL_MIN_JOBS  2u
+#define AK_3MF_PACKAGE_INFLATE_PARALLEL_MIN_BYTES (8u * 1024u * 1024u)
+#define AK_3MF_PACKAGE_INFLATE_MAX_THREADS        8u
+
+typedef struct AK3MFPackageInflateWorker {
+  AkZipArchive           *package;
+  AK3MFPackageInflateJob *jobs;
+  size_t                  jobCount;
+  size_t                  startIndex;
+  size_t                  stride;
+  AkResult                result;
+} AK3MFPackageInflateWorker;
+
+static
+bool
+ak_3mf_package_add_inflate_job(AK3MFPackageImportState * __restrict st,
+                               size_t                               entryIndex,
+                               void                   * __restrict data,
+                               size_t                              expectedSize) {
+  AK3MFPackageInflateJob *jobs;
+  AK3MFPackageInflateJob *job;
+  size_t                  newCapacity;
+
+  if (!st || !data)
+    return false;
+
+  if (st->jobCount == st->jobCapacity) {
+    newCapacity = st->jobCapacity ? st->jobCapacity << 1u : 16u;
+    if (newCapacity <= st->jobCapacity)
+      return false;
+
+    jobs = realloc(st->jobs, sizeof(*jobs) * newCapacity);
+    if (!jobs)
+      return false;
+
+    st->jobs        = jobs;
+    st->jobCapacity = newCapacity;
+  }
+
+  job               = &st->jobs[st->jobCount++];
+  job->data         = data;
+  job->capacity     = expectedSize + 1u;
+  job->expectedSize = expectedSize;
+  job->writtenSize  = 0u;
+  job->entryIndex   = entryIndex;
+  job->result       = AK_OK;
+  st->totalInflateBytes += expectedSize;
+  return true;
+}
+
+static
+AkResult
+ak_3mf_package_inflate_jobs_serial(AkZipArchive           * __restrict package,
+                                   AK3MFPackageInflateJob * __restrict jobs,
+                                   size_t                              jobCount) {
+  size_t i;
+
+  if (!package || (!jobs && jobCount > 0u))
+    return AK_ERR;
+
+  for (i = 0u; i < jobCount; i++) {
+    AK3MFPackageInflateJob *job;
+    AkResult                result;
+
+    job = &jobs[i];
+    result = ak_zip_archive_extract_index_to(package,
+                                             job->entryIndex,
+                                             NULL,
+                                             job->data,
+                                             job->capacity,
+                                             &job->writtenSize);
+    job->result = result;
+    if (result != AK_OK)
+      return result;
+    if (job->writtenSize != job->expectedSize)
+      return AK_EBADF;
+  }
+
+  return AK_OK;
+}
+
+static
+void
+ak_3mf_package_inflate_worker(void *userdata) {
+  AK3MFPackageInflateWorker *worker;
+  AkZipDecompressor         *decompressor;
+  size_t                     i;
+
+  worker = userdata;
+  if (!worker || !worker->package || !worker->jobs || worker->stride == 0u) {
+    if (worker)
+      worker->result = AK_ERR;
+    return;
+  }
+
+  decompressor = ak_zip_decompressor_new();
+  if (!decompressor) {
+    worker->result = AK_ERR;
+    return;
+  }
+
+  worker->result = AK_OK;
+  for (i = worker->startIndex; i < worker->jobCount; i += worker->stride) {
+    AK3MFPackageInflateJob *job;
+    AkResult                result;
+
+    job = &worker->jobs[i];
+    result = ak_zip_archive_extract_index_to(worker->package,
+                                             job->entryIndex,
+                                             decompressor,
+                                             job->data,
+                                             job->capacity,
+                                             &job->writtenSize);
+    job->result = result;
+    if (result != AK_OK) {
+      worker->result = result;
+      break;
+    }
+    if (job->writtenSize != job->expectedSize) {
+      worker->result = AK_EBADF;
+      break;
+    }
+  }
+
+  ak_zip_decompressor_free(decompressor);
+}
+
+static
+uint32_t
+ak_3mf_package_inflate_thread_count(size_t jobCount, size_t totalBytes) {
+  uint32_t cpuCount;
+  uint32_t threadCount;
+
+  if (jobCount < AK_3MF_PACKAGE_INFLATE_PARALLEL_MIN_JOBS
+      || totalBytes < AK_3MF_PACKAGE_INFLATE_PARALLEL_MIN_BYTES)
+    return 1u;
+
+  cpuCount = ak_thread_cpu_count();
+  if (cpuCount < 2u)
+    return 1u;
+
+  threadCount = cpuCount;
+  if (threadCount > AK_3MF_PACKAGE_INFLATE_MAX_THREADS)
+    threadCount = AK_3MF_PACKAGE_INFLATE_MAX_THREADS;
+  if ((size_t)threadCount > jobCount)
+    threadCount = (uint32_t)jobCount;
+
+  return threadCount > 1u ? threadCount : 1u;
+}
+
+static
+AkResult
+ak_3mf_package_inflate_jobs(AK3MFPackageImportState * __restrict st) {
+  AK3MFPackageInflateWorker *workers;
+  AkThread                  *threads;
+  uint32_t                   threadCount;
+  uint32_t                   startedCount;
+  uint32_t                   i;
+  AkResult                   result;
+
+  if (!st || !st->package)
+    return AK_ERR;
+  if (st->jobCount == 0u)
+    return AK_OK;
+
+  threadCount = ak_3mf_package_inflate_thread_count(st->jobCount,
+                                                    st->totalInflateBytes);
+  if (threadCount <= 1u)
+    return ak_3mf_package_inflate_jobs_serial(st->package,
+                                             st->jobs,
+                                             st->jobCount);
+
+  workers = AK_ALLOCA(sizeof(*workers) * threadCount);
+  threads = AK_ALLOCA(sizeof(*threads) * threadCount);
+  memset(workers, 0, sizeof(*workers) * threadCount);
+  memset(threads, 0, sizeof(*threads) * threadCount);
+
+  for (i = 0u; i < threadCount; i++) {
+    workers[i].package    = st->package;
+    workers[i].jobs       = st->jobs;
+    workers[i].jobCount   = st->jobCount;
+    workers[i].startIndex = i;
+    workers[i].stride     = threadCount;
+    workers[i].result     = AK_OK;
+  }
+
+  startedCount = 0u;
+  for (i = 1u; i < threadCount; i++) {
+    if (!ak_thread_start(&threads[i],
+                         ak_3mf_package_inflate_worker,
+                         &workers[i])) {
+      uint32_t j;
+
+      for (j = 1u; j <= startedCount; j++)
+        ak_thread_join(&threads[j]);
+      return ak_3mf_package_inflate_jobs_serial(st->package,
+                                               st->jobs,
+                                               st->jobCount);
+    }
+    startedCount++;
+  }
+
+  ak_3mf_package_inflate_worker(&workers[0]);
+
+  for (i = 1u; i < threadCount; i++)
+    ak_thread_join(&threads[i]);
+
+  result = workers[0].result;
+  for (i = 1u; i < threadCount; i++) {
+    if (workers[i].result != AK_OK) {
+      result = workers[i].result;
+      break;
+    }
+  }
+
+  return result;
+}
+
 static
 bool
 ak_3mf_import_package_part_visitor(const AkZipEntryInfo * __restrict info,
@@ -1325,25 +1570,54 @@ ak_3mf_import_package_part_visitor(const AkZipEntryInfo * __restrict info,
 
   entryData = NULL;
   entrySize = 0u;
-  result = ak_zip_extract_file(st->filepath, entryName, &entryData, &entrySize);
+  part = ak_printAddPackagePart(st->doc,
+                                type,
+                                entryName,
+                                contentType,
+                                relationshipType);
+  if (!part) {
+    free(entryName);
+    st->result = AK_ERR;
+    return false;
+  }
+
+  if (st->package) {
+    AkHeap *heap;
+
+    heap      = ak_heap_getheap(st->doc);
+    entrySize = info->uncompressedSize;
+    entryData = heap ? ak_heap_alloc(heap, part, entrySize + 1u) : NULL;
+    if (!entryData) {
+      free(entryName);
+      st->result = AK_ERR;
+      return false;
+    }
+    part->data = entryData;
+    part->size = entrySize;
+    result = ak_3mf_package_add_inflate_job(st,
+                                            info->index,
+                                            entryData,
+                                            entrySize)
+             ? AK_OK
+             : AK_ERR;
+  } else {
+    result = ak_zip_extract_file(st->filepath, entryName, &entryData, &entrySize);
+  }
   if (result != AK_OK) {
     free(entryName);
     st->result = result;
     return false;
   }
 
-  part = ak_printAddPackagePartData(st->doc,
-                                    type,
-                                    entryName,
-                                    contentType,
-                                    relationshipType,
-                                    entryData,
-                                    entrySize);
-  if (!part) {
+  if (!st->package) {
+    if (!ak_printSetPackagePartData(st->doc, part, entryData, entrySize)) {
+      free(entryData);
+      free(entryName);
+      st->result = AK_ERR;
+      return false;
+    }
     free(entryData);
-    free(entryName);
-    st->result = AK_ERR;
-    return false;
+    entryData = NULL;
   }
   relationshipId = relationship
                    ? ak_3mf_attr_dup_cstr(AK_3MF_XMLA(relationship, Id))
@@ -1359,7 +1633,8 @@ ak_3mf_import_package_part_visitor(const AkZipEntryInfo * __restrict info,
                                             relationshipTargetMode)) {
       free(relationshipTargetMode);
       free(relationshipId);
-      free(entryData);
+      if (!st->package)
+        free(entryData);
       free(entryName);
       st->result = AK_ERR;
       return false;
@@ -1369,7 +1644,8 @@ ak_3mf_import_package_part_visitor(const AkZipEntryInfo * __restrict info,
   free(relationshipId);
   ak_3mf_mark_package_part_features(st->print, type, entryName, contentType, relationshipType);
 
-  free(entryData);
+  if (!st->package)
+    free(entryData);
   free(entryName);
   return true;
 }
@@ -1378,6 +1654,7 @@ static
 AkResult
 ak_3mf_import_package_parts(AkDoc            * __restrict doc,
                             AkPrintDocument  * __restrict print,
+                            AkZipArchive     * __restrict package,
                             const char       * __restrict filepath,
                             const char       * __restrict modelPath,
                             xml_t            * __restrict contentTypesRoot,
@@ -1388,16 +1665,51 @@ ak_3mf_import_package_parts(AkDoc            * __restrict doc,
   memset(&st, 0, sizeof(st));
   st.doc              = doc;
   st.print            = print;
+  st.package          = package;
   st.filepath         = filepath;
   st.modelPath        = modelPath;
   st.contentTypesRoot = contentTypesRoot;
   st.rootRelsRoot     = rootRelsRoot;
   st.result           = AK_OK;
 
-  result = ak_zip_visit_entries(filepath, ak_3mf_import_package_part_visitor, &st);
-  if (result != AK_OK)
+  result = package
+           ? ak_zip_archive_visit_entries(package,
+                                          ak_3mf_import_package_part_visitor,
+                                          &st)
+           : ak_zip_visit_entries(filepath, ak_3mf_import_package_part_visitor, &st);
+  if (result != AK_OK) {
+    free(st.jobs);
     return result;
+  }
+  if (st.result == AK_OK && package)
+    st.result = ak_3mf_package_inflate_jobs(&st);
+  free(st.jobs);
   return st.result;
+}
+
+static
+bool
+ak_3mf_cached_package_part_data(AK3MFImportState * __restrict st,
+                                const char       * __restrict modelPath,
+                                const void      ** __restrict data,
+                                size_t           * __restrict size) {
+  AkPrintPackagePart *part;
+
+  if (!st || !st->print || !modelPath || !data || !size)
+    return false;
+
+  for (part = st->print->parts; part; part = part->next) {
+    if (!part->name || !part->data || part->size == 0u)
+      continue;
+    if (!ak_3mf_model_path_eq(part->name, modelPath))
+      continue;
+
+    *data = part->data;
+    *size = part->size;
+    return true;
+  }
+
+  return false;
 }
 
 static
@@ -3536,9 +3848,11 @@ ak_3mf_load_model_part(AK3MFImportState * __restrict st,
   xml_t       *resourcesXml;
   const char  *savedModelPath;
   const char  *storedModelPath;
+  const void  *cachedModelData;
   size_t       added;
   AkResult     result;
   AK3MFFastLoadResult fastResult;
+  bool         borrowedModelData;
 
   if (!st || !st->packagePath || !modelPath)
     return false;
@@ -3549,17 +3863,52 @@ ak_3mf_load_model_part(AK3MFImportState * __restrict st,
   modelData = NULL;
   modelSize = 0u;
   xdoc      = NULL;
-  result    = ak_zip_extract_file(st->packagePath, modelPath, &modelData, &modelSize);
-  if (result != AK_OK)
-    return false;
+  cachedModelData = NULL;
+  borrowedModelData = ak_3mf_cached_package_part_data(st,
+                                                      modelPath,
+                                                      &cachedModelData,
+                                                      &modelSize);
+  if (borrowedModelData)
+    modelData = (void *)cachedModelData;
+  if (!borrowedModelData) {
+    result = st->package
+             ? ak_zip_archive_extract_file(st->package,
+                                           modelPath,
+                                           &modelData,
+                                           &modelSize)
+             : ak_zip_extract_file(st->packagePath,
+                                   modelPath,
+                                   &modelData,
+                                   &modelSize);
+    if (result != AK_OK)
+      return false;
+  }
 
   fastResult = ak_3mf_fast_load_mesh_model_part(st,
                                                 modelPath,
                                                 modelData,
                                                 modelSize);
   if (fastResult != AK_3MF_FAST_LOAD_UNSUPPORTED) {
-    free(modelData);
+    if (!borrowedModelData)
+      free(modelData);
     return fastResult == AK_3MF_FAST_LOAD_LOADED;
+  }
+
+  if (borrowedModelData) {
+    modelData = NULL;
+    modelSize = 0u;
+    result = st->package
+             ? ak_zip_archive_extract_file(st->package,
+                                           modelPath,
+                                           &modelData,
+                                           &modelSize)
+             : ak_zip_extract_file(st->packagePath,
+                                   modelPath,
+                                   &modelData,
+                                   &modelSize);
+    if (result != AK_OK)
+      return false;
+    borrowedModelData = false;
   }
 
   xdoc = xml_parse(modelData, XML_PREFIXES | XML_READONLY);
@@ -3863,6 +4212,7 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
   xml_t       *buildXml;
   AkDoc       *doc;
   AkScene     *scene;
+  AkZipArchive *package;
   AK3MFImportState st;
   AkResult     result;
   size_t       i;
@@ -3871,6 +4221,7 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
     return AK_ERR;
 
   *dest     = NULL;
+  modelPath = NULL;
   modelData = NULL;
   contentTypesData = NULL;
   rootRelsData = NULL;
@@ -3881,26 +4232,31 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
   contentTypesDoc = NULL;
   rootRelsDoc = NULL;
   doc       = NULL;
+  package   = NULL;
   memset(&st, 0, sizeof(st));
 
-  modelPath = ak_3mf_model_path_from_rels(filepath);
-  if (!modelPath)
-    return AK_ERR;
-
-  result = ak_zip_extract_file(filepath, modelPath, &modelData, &modelSize);
+  result = ak_zip_open(filepath, &package);
   if (result != AK_OK)
     goto cleanup;
 
-  if (ak_zip_extract_file(filepath,
-                          AK_3MF_CONTENT_TYPES_PART,
-                          &contentTypesData,
-                          &contentTypesSize) == AK_OK) {
+  modelPath = ak_3mf_model_path_from_rels(package, filepath);
+  if (!modelPath)
+    goto cleanup_err;
+
+  result = ak_zip_archive_extract_file(package, modelPath, &modelData, &modelSize);
+  if (result != AK_OK)
+    goto cleanup;
+
+  if (ak_zip_archive_extract_file(package,
+                                  AK_3MF_CONTENT_TYPES_PART,
+                                  &contentTypesData,
+                                  &contentTypesSize) == AK_OK) {
     contentTypesDoc = xml_parse(contentTypesData, XML_PREFIXES | XML_READONLY);
   }
-  if (ak_zip_extract_file(filepath,
-                          AK_3MF_ROOT_RELS_PART,
-                          &rootRelsData,
-                          &rootRelsSize) == AK_OK) {
+  if (ak_zip_archive_extract_file(package,
+                                  AK_3MF_ROOT_RELS_PART,
+                                  &rootRelsData,
+                                  &rootRelsSize) == AK_OK) {
     rootRelsDoc = xml_parse(rootRelsData, XML_PREFIXES | XML_READONLY);
   }
 
@@ -3922,6 +4278,7 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
     goto cleanup;
   }
   st.doc = doc;
+  st.package          = package;
   st.packagePath      = filepath;
   st.rootModelPath    = modelPath;
   st.currentModelPath = modelPath;
@@ -3938,6 +4295,7 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
       "http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel");
     result = ak_3mf_import_package_parts(doc,
                                          st.print,
+                                         package,
                                          filepath,
                                          modelPath,
                                          contentTypesDoc ? contentTypesDoc->root : NULL,
@@ -3997,5 +4355,10 @@ cleanup:
   free(contentTypesData);
   free(rootRelsData);
   free(modelPath);
+  ak_zip_close(package);
   return result;
+
+cleanup_err:
+  result = AK_ERR;
+  goto cleanup;
 }
