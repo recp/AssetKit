@@ -59,4 +59,10 @@ ak_zip_write_stored(const char            * __restrict zipPath,
                     const AkZipWriteEntry * __restrict entries,
                     size_t                             entryCount);
 
+AK_HIDE
+AkResult
+ak_zip_write_deflated(const char            * __restrict zipPath,
+                      const AkZipWriteEntry * __restrict entries,
+                      size_t                             entryCount);
+
 #endif /* assetkit_io_common_zip_h */

@@ -2856,7 +2856,7 @@ ak_3mf_export(AkDoc * __restrict doc, const char * __restrict filepath) {
     entryIndex++;
   }
 
-  result = ak_zip_write_stored(filepath, entries, entryCount);
+  result = ak_zip_write_deflated(filepath, entries, entryCount);
 
   free(entries);
   ak_3mf_buf_free(&contentTypes);

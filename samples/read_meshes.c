@@ -253,7 +253,6 @@ sample_print_scene_node_meshes(const AkNode *node,
                                uint64_t *primitiveCount) {
   const AkInstanceBase *base;
   const AkInstanceNode *nodeRef;
-  const AkNode *child;
 
   if (depth > 32u) {
     sample_print_indent(depth);
@@ -292,8 +291,8 @@ sample_print_scene_node_meshes(const AkNode *node,
         sample_print_mesh_details(mesh, depth + 1u, primitiveCount);
     }
 
-    for (child = node->chld; child; child = child->next)
-      sample_print_scene_node_meshes(child, depth + 1u, instanceCount, primitiveCount);
+    if (node->chld)
+      sample_print_scene_node_meshes(node->chld, depth + 1u, instanceCount, primitiveCount);
 
     for (nodeRef = node->node; nodeRef; nodeRef = nodeRef->next) {
       AkNode *target;

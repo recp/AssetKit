@@ -269,6 +269,288 @@ ak_test_write_3mf_production_child_model(const char *path) {
 }
 
 static bool
+ak_test_write_3mf_bambu_component_materials_model(const char *path) {
+  static const char contentTypes[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">"
+    "<Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>"
+    "<Override PartName=\"/3D/3dmodel.model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\"/>"
+    "<Override PartName=\"/3D/Objects/object_40.model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\"/>"
+    "<Override PartName=\"/3D/Objects/object_72.model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\"/>"
+    "</Types>";
+  static const char rels[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">"
+    "<Relationship Id=\"rel0\" "
+    "Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\" "
+    "Target=\"/3D/3dmodel.model\"/>"
+    "</Relationships>";
+  static const char rootModel[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<model unit=\"millimeter\" requiredextensions=\"p\" "
+    "xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" "
+    "xmlns:p=\"http://schemas.microsoft.com/3dmanufacturing/production/2015/06\">"
+    "<resources>"
+    "<object id=\"2\" type=\"model\" name=\"Ribbon\">"
+    "<components>"
+    "<component objectid=\"1\" p:path=\"/3D/Objects/object_40.model\" "
+    "transform=\"1 0 0 0 1 0 0 0 1 10 0 0\"/>"
+    "</components>"
+    "</object>"
+    "<object id=\"5\" type=\"model\" name=\"Hat\">"
+    "<components>"
+    "<component objectid=\"3\" p:path=\"/3D/Objects/object_72.model\" "
+    "transform=\"1 0 0 0 1 0 0 0 1 0 20 0\"/>"
+    "<component objectid=\"4\" p:path=\"/3D/Objects/object_72.model\" "
+    "transform=\"1 0 0 0 1 0 0 0 1 0 0 30\"/>"
+    "</components>"
+    "</object>"
+    "</resources>"
+    "<build><item objectid=\"5\"/><item objectid=\"2\"/></build>"
+    "</model>";
+  static const char object40Model[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<model unit=\"millimeter\" "
+    "xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\">"
+    "<resources>"
+    "<object id=\"1\" type=\"model\" name=\"Ribbon Mesh\">"
+    "<mesh>"
+    "<vertices>"
+    "<vertex x=\"0\" y=\"0\" z=\"0\"/>"
+    "<vertex x=\"1\" y=\"0\" z=\"0\"/>"
+    "<vertex x=\"0\" y=\"1\" z=\"0\"/>"
+    "</vertices>"
+    "<triangles><triangle v1=\"0\" v2=\"1\" v3=\"2\"/></triangles>"
+    "</mesh>"
+    "</object>"
+    "</resources>"
+    "<build/>"
+    "</model>";
+  static const char object72Model[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<model unit=\"millimeter\" "
+    "xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\">"
+    "<resources>"
+    "<object id=\"3\" type=\"model\" name=\"Hat Shell\">"
+    "<mesh>"
+    "<vertices>"
+    "<vertex x=\"0\" y=\"0\" z=\"0\"/>"
+    "<vertex x=\"2\" y=\"0\" z=\"0\"/>"
+    "<vertex x=\"0\" y=\"2\" z=\"0\"/>"
+    "</vertices>"
+    "<triangles><triangle v1=\"0\" v2=\"1\" v3=\"2\"/></triangles>"
+    "</mesh>"
+    "</object>"
+    "<object id=\"4\" type=\"model\" name=\"Hat Brim\">"
+    "<mesh>"
+    "<vertices>"
+    "<vertex x=\"0\" y=\"0\" z=\"0\"/>"
+    "<vertex x=\"3\" y=\"0\" z=\"0\"/>"
+    "<vertex x=\"0\" y=\"3\" z=\"0\"/>"
+    "</vertices>"
+    "<triangles><triangle v1=\"0\" v2=\"1\" v3=\"2\"/></triangles>"
+    "</mesh>"
+    "</object>"
+    "</resources>"
+    "<build/>"
+    "</model>";
+  static const char projectSettings[] =
+    "{\"filament_colour\":[\"#F4A925\",\"#C52C18\"]}";
+  static const char modelSettings[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<config>"
+    "<object id=\"2\">"
+    "<metadata key=\"extruder\" value=\"2\"/>"
+    "<part id=\"1\"/>"
+    "</object>"
+    "<object id=\"5\">"
+    "<metadata key=\"extruder\" value=\"1\"/>"
+    "<part id=\"3\"/>"
+    "<part id=\"4\"><metadata key=\"extruder\" value=\"1\"/></part>"
+    "</object>"
+    "</config>";
+  AkTest3MFZipEntry entries[7];
+
+  entries[0].name = "[Content_Types].xml";
+  entries[0].data = contentTypes;
+  entries[0].size = sizeof(contentTypes) - 1u;
+  entries[1].name = "_rels/.rels";
+  entries[1].data = rels;
+  entries[1].size = sizeof(rels) - 1u;
+  entries[2].name = "3D/3dmodel.model";
+  entries[2].data = rootModel;
+  entries[2].size = sizeof(rootModel) - 1u;
+  entries[3].name = "3D/Objects/object_40.model";
+  entries[3].data = object40Model;
+  entries[3].size = sizeof(object40Model) - 1u;
+  entries[4].name = "3D/Objects/object_72.model";
+  entries[4].data = object72Model;
+  entries[4].size = sizeof(object72Model) - 1u;
+  entries[5].name = "Metadata/project_settings.config";
+  entries[5].data = projectSettings;
+  entries[5].size = sizeof(projectSettings) - 1u;
+  entries[6].name = "Metadata/model_settings.config";
+  entries[6].data = modelSettings;
+  entries[6].size = sizeof(modelSettings) - 1u;
+
+  return ak_test_3mf_zip_write_stored(path, entries, AK_ARRAY_LEN(entries));
+}
+
+static bool
+ak_test_write_3mf_bambu_paint_materials_model(const char *path) {
+  static const char contentTypes[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">"
+    "<Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>"
+    "<Override PartName=\"/3D/3dmodel.model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\"/>"
+    "<Override PartName=\"/3D/Objects/object_1.model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\"/>"
+    "</Types>";
+  static const char rels[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">"
+    "<Relationship Id=\"rel0\" "
+    "Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\" "
+    "Target=\"/3D/3dmodel.model\"/>"
+    "</Relationships>";
+  static const char rootModel[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<model unit=\"millimeter\" requiredextensions=\"p\" "
+    "xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" "
+    "xmlns:p=\"http://schemas.microsoft.com/3dmanufacturing/production/2015/06\">"
+    "<resources>"
+    "<object id=\"2\" type=\"model\" name=\"Painted Assembly\">"
+    "<components>"
+    "<component objectid=\"1\" p:path=\"/3D/Objects/object_1.model\"/>"
+    "</components>"
+    "</object>"
+    "</resources>"
+    "<build><item objectid=\"2\"/></build>"
+    "</model>";
+  static const char objectModel[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<model unit=\"millimeter\" "
+    "xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\">"
+    "<resources>"
+    "<object id=\"1\" type=\"model\" name=\"Painted Mesh\">"
+    "<mesh>"
+    "<vertices>"
+    "<vertex x=\"0\" y=\"0\" z=\"0\"/>"
+    "<vertex x=\"1\" y=\"0\" z=\"0\"/>"
+    "<vertex x=\"0\" y=\"1\" z=\"0\"/>"
+    "<vertex x=\"1\" y=\"1\" z=\"0\"/>"
+    "</vertices>"
+    "<triangles>"
+    "<triangle v1=\"0\" v2=\"1\" v3=\"2\" paint_color=\"4\"/>"
+    "<triangle v1=\"0\" v2=\"2\" v3=\"3\" paint_color=\"2C\"/>"
+    "<triangle v1=\"1\" v2=\"3\" v3=\"2\"/>"
+    "</triangles>"
+    "</mesh>"
+    "</object>"
+    "</resources>"
+    "<build/>"
+    "</model>";
+  static const char projectSettings[] =
+    "{\"filament_colour\":[\"#111111\",\"#222222\",\"#333333\",\"#444444\",\"#555555\"]}";
+  static const char modelSettings[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<config>"
+    "<object id=\"2\">"
+    "<metadata key=\"extruder\" value=\"3\"/>"
+    "<part id=\"1\"/>"
+    "</object>"
+    "</config>";
+  AkTest3MFZipEntry entries[6];
+
+  entries[0].name = "[Content_Types].xml";
+  entries[0].data = contentTypes;
+  entries[0].size = sizeof(contentTypes) - 1u;
+  entries[1].name = "_rels/.rels";
+  entries[1].data = rels;
+  entries[1].size = sizeof(rels) - 1u;
+  entries[2].name = "3D/3dmodel.model";
+  entries[2].data = rootModel;
+  entries[2].size = sizeof(rootModel) - 1u;
+  entries[3].name = "3D/Objects/object_1.model";
+  entries[3].data = objectModel;
+  entries[3].size = sizeof(objectModel) - 1u;
+  entries[4].name = "Metadata/project_settings.config";
+  entries[4].data = projectSettings;
+  entries[4].size = sizeof(projectSettings) - 1u;
+  entries[5].name = "Metadata/model_settings.config";
+  entries[5].data = modelSettings;
+  entries[5].size = sizeof(modelSettings) - 1u;
+
+  return ak_test_3mf_zip_write_stored(path, entries, AK_ARRAY_LEN(entries));
+}
+
+static bool
+ak_test_write_3mf_component_transform_model(const char *path) {
+  static const char contentTypes[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">"
+    "<Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>"
+    "<Override PartName=\"/3D/3dmodel.model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\"/>"
+    "<Override PartName=\"/3D/Objects/object_1.model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\"/>"
+    "</Types>";
+  static const char rels[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">"
+    "<Relationship Id=\"rel0\" "
+    "Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\" "
+    "Target=\"/3D/3dmodel.model\"/>"
+    "</Relationships>";
+  static const char rootModel[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<model unit=\"millimeter\" requiredextensions=\"p\" "
+    "xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" "
+    "xmlns:p=\"http://schemas.microsoft.com/3dmanufacturing/production/2015/06\">"
+    "<resources>"
+    "<object id=\"2\" type=\"model\" name=\"Assembly\">"
+    "<components>"
+    "<component objectid=\"1\" p:path=\"/3D/Objects/object_1.model\" "
+    "transform=\"1 2 3 4 5 6 7 8 9 10 11 12\"/>"
+    "</components>"
+    "</object>"
+    "</resources>"
+    "<build><item objectid=\"2\"/></build>"
+    "</model>";
+  static const char objectModel[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<model unit=\"millimeter\" "
+    "xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\">"
+    "<resources>"
+    "<object id=\"1\" type=\"model\" name=\"Part\">"
+    "<mesh>"
+    "<vertices>"
+    "<vertex x=\"0\" y=\"0\" z=\"0\"/>"
+    "<vertex x=\"1\" y=\"0\" z=\"0\"/>"
+    "<vertex x=\"0\" y=\"1\" z=\"0\"/>"
+    "</vertices>"
+    "<triangles><triangle v1=\"0\" v2=\"1\" v3=\"2\"/></triangles>"
+    "</mesh>"
+    "</object>"
+    "</resources>"
+    "<build/>"
+    "</model>";
+  AkTest3MFZipEntry entries[4];
+
+  entries[0].name = "[Content_Types].xml";
+  entries[0].data = contentTypes;
+  entries[0].size = sizeof(contentTypes) - 1u;
+  entries[1].name = "_rels/.rels";
+  entries[1].data = rels;
+  entries[1].size = sizeof(rels) - 1u;
+  entries[2].name = "3D/3dmodel.model";
+  entries[2].data = rootModel;
+  entries[2].size = sizeof(rootModel) - 1u;
+  entries[3].name = "3D/Objects/object_1.model";
+  entries[3].data = objectModel;
+  entries[3].size = sizeof(objectModel) - 1u;
+
+  return ak_test_3mf_zip_write_stored(path, entries, AK_ARRAY_LEN(entries));
+}
+
+static bool
 ak_test_write_3mf_production_alternatives_model(const char *path) {
   static const char contentTypes[] =
     "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
@@ -766,6 +1048,94 @@ ak_test_make_3mf_geometry_doc(const float *positions,
   return doc;
 }
 
+static uint32_t
+ak_test_3mf_count_node_tree(const AkNode *node) {
+  uint32_t count;
+
+  count = 0u;
+  for (; node; node = node->next) {
+    count++;
+    if (node->chld)
+      count += ak_test_3mf_count_node_tree(node->chld);
+  }
+
+  return count;
+}
+
+static uint32_t
+ak_test_3mf_count_geometry_nodes(const AkNode *node) {
+  uint32_t count;
+
+  count = 0u;
+  for (; node; node = node->next) {
+    if (node->geometry)
+      count++;
+    if (node->chld)
+      count += ak_test_3mf_count_geometry_nodes(node->chld);
+  }
+
+  return count;
+}
+
+static AkMaterial*
+ak_test_3mf_find_material(AkDoc *doc, const char *name) {
+  AkMaterial *material;
+
+  if (!doc || !name)
+    return NULL;
+
+  for (material = doc->lib.materials.first; material; material = material->next) {
+    if (material->name && strcmp(material->name, name) == 0)
+      return material;
+  }
+
+  return NULL;
+}
+
+static bool
+ak_test_3mf_material_color_near(AkMaterial *material,
+                                float       r,
+                                float       g,
+                                float       b) {
+  AkMaterialInput *baseColor;
+
+  if (!material || !material->surface)
+    return false;
+
+  baseColor = material->surface->baseColor;
+  if (!baseColor || baseColor->source != AK_MATERIAL_INPUT_CONSTANT)
+    return false;
+
+  return fabs(baseColor->color.rgba.R - r) < 0.001f
+         && fabs(baseColor->color.rgba.G - g) < 0.001f
+         && fabs(baseColor->color.rgba.B - b) < 0.001f
+         && fabs(baseColor->color.rgba.A - 1.0f) < 0.001f;
+}
+
+static uint32_t
+ak_test_3mf_count_primitives_with_material(AkDoc *doc,
+                                           AkMaterial *material) {
+  AkGeometry *geom;
+  uint32_t    count;
+
+  count = 0u;
+  if (!doc || !material)
+    return 0u;
+
+  for (geom = doc->lib.geometries.first; geom; geom = geom->next) {
+    AkMesh *mesh;
+    AkMeshPrimitive *prim;
+
+    mesh = geom->gdata ? ak_objGet(geom->gdata) : NULL;
+    for (prim = mesh ? mesh->primitive : NULL; prim; prim = prim->next) {
+      if (prim->material == material)
+        count++;
+    }
+  }
+
+  return count;
+}
+
 TEST_IMPL(three_mf_export_triangle_roundtrip) {
   AkDoc          *doc;
   AkDoc          *roundTrip;
@@ -1158,6 +1528,146 @@ TEST_IMPL(three_mf_import_production_child_model_path) {
 
   ak_test_export_cleanup(outDir);
   ak_test_export_cleanup(roundTripDir);
+  TEST_SUCCESS
+}
+
+TEST_IMPL(three_mf_import_bambu_component_materials) {
+  AkDoc           *doc;
+  AkMaterial      *hatMaterial;
+  AkMaterial      *ribbonMaterial;
+  AkPrintDocument *print;
+  const char      *outDir = "./assetkit_import_3mf_bambu_components";
+  const char      *mfPath = "./assetkit_import_3mf_bambu_components/model.3mf";
+
+  ak_test_export_cleanup(outDir);
+  ASSERT(mkdir(outDir, 0777) == 0);
+  ASSERT(ak_test_write_3mf_bambu_component_materials_model(mfPath));
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, mfPath, AK_FILE_TYPE_3MF) == AK_OK);
+  ASSERT(doc != NULL);
+  ASSERT(doc->lib.geometries.count == 3);
+  ASSERT(doc->lib.materials.count == 2);
+  ASSERT(doc->lib.nodes.count == 5);
+  ASSERT(doc->scene != NULL);
+  ASSERT(doc->scene->node != NULL);
+  ASSERT(ak_test_3mf_count_node_tree(doc->scene->node->chld) == 5);
+  ASSERT(ak_test_3mf_count_geometry_nodes(doc->scene->node->chld) == 3);
+
+  print = ak_printDocument(doc);
+  ASSERT(print != NULL);
+  ASSERT(print->objectCount == 5);
+  ASSERT(print->meshObjectCount == 3);
+  ASSERT(print->componentObjectCount == 2);
+  ASSERT(print->buildItemCount == 2);
+
+  hatMaterial = ak_test_3mf_find_material(doc, "Bambu/Orca Filament 1");
+  ASSERT(hatMaterial != NULL);
+  ASSERT(ak_test_3mf_material_color_near(hatMaterial,
+                                         244.0f / 255.0f,
+                                         169.0f / 255.0f,
+                                         37.0f / 255.0f));
+  ASSERT(ak_test_3mf_count_primitives_with_material(doc, hatMaterial) == 2);
+
+  ribbonMaterial = ak_test_3mf_find_material(doc, "Bambu/Orca Filament 2");
+  ASSERT(ribbonMaterial != NULL);
+  ASSERT(ak_test_3mf_material_color_near(ribbonMaterial,
+                                         197.0f / 255.0f,
+                                         44.0f / 255.0f,
+                                         24.0f / 255.0f));
+  ASSERT(ak_test_3mf_count_primitives_with_material(doc, ribbonMaterial) == 1);
+
+  ak_test_export_cleanup(outDir);
+  TEST_SUCCESS
+}
+
+TEST_IMPL(three_mf_import_bambu_paint_materials) {
+  AkDoc      *doc;
+  AkMaterial *defaultMaterial;
+  AkMaterial *firstMaterial;
+  AkMaterial *fifthMaterial;
+  const char *outDir = "./assetkit_import_3mf_bambu_paint";
+  const char *mfPath = "./assetkit_import_3mf_bambu_paint/model.3mf";
+
+  ak_test_export_cleanup(outDir);
+  ASSERT(mkdir(outDir, 0777) == 0);
+  ASSERT(ak_test_write_3mf_bambu_paint_materials_model(mfPath));
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, mfPath, AK_FILE_TYPE_3MF) == AK_OK);
+  ASSERT(doc != NULL);
+  ASSERT(doc->lib.geometries.count == 1);
+  ASSERT(doc->lib.materials.count == 3);
+
+  firstMaterial = ak_test_3mf_find_material(doc, "Bambu/Orca Filament 1");
+  ASSERT(firstMaterial != NULL);
+  ASSERT(ak_test_3mf_material_color_near(firstMaterial,
+                                         17.0f / 255.0f,
+                                         17.0f / 255.0f,
+                                         17.0f / 255.0f));
+  ASSERT(ak_test_3mf_count_primitives_with_material(doc, firstMaterial) == 1);
+
+  defaultMaterial = ak_test_3mf_find_material(doc, "Bambu/Orca Filament 3");
+  ASSERT(defaultMaterial != NULL);
+  ASSERT(ak_test_3mf_material_color_near(defaultMaterial,
+                                         51.0f / 255.0f,
+                                         51.0f / 255.0f,
+                                         51.0f / 255.0f));
+  ASSERT(ak_test_3mf_count_primitives_with_material(doc, defaultMaterial) == 1);
+
+  fifthMaterial = ak_test_3mf_find_material(doc, "Bambu/Orca Filament 5");
+  ASSERT(fifthMaterial != NULL);
+  ASSERT(ak_test_3mf_material_color_near(fifthMaterial,
+                                         85.0f / 255.0f,
+                                         85.0f / 255.0f,
+                                         85.0f / 255.0f));
+  ASSERT(ak_test_3mf_count_primitives_with_material(doc, fifthMaterial) == 1);
+
+  ak_test_export_cleanup(outDir);
+  TEST_SUCCESS
+}
+
+TEST_IMPL(three_mf_import_component_transform_matrix_order) {
+  AkDoc      *doc;
+  AkNode     *assembly;
+  AkNode     *part;
+  AkMatrix    matrix;
+  const char *outDir = "./assetkit_import_3mf_component_transform";
+  const char *mfPath = "./assetkit_import_3mf_component_transform/model.3mf";
+
+  ak_test_export_cleanup(outDir);
+  ASSERT(mkdir(outDir, 0777) == 0);
+  ASSERT(ak_test_write_3mf_component_transform_model(mfPath));
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, mfPath, AK_FILE_TYPE_3MF) == AK_OK);
+  ASSERT(doc != NULL);
+  ASSERT(doc->scene != NULL);
+  ASSERT(doc->scene->node != NULL);
+  ASSERT(doc->scene->node->chld != NULL);
+
+  assembly = doc->scene->node->chld;
+  ASSERT(assembly->chld != NULL);
+  part = assembly->chld;
+  ASSERT(part->geometry != NULL);
+  ASSERT(part->transform != NULL);
+
+  ak_transformCombine(part->transform, matrix.val[0]);
+  ASSERT(fabs(matrix.val[0][0] - 1.0f) < 0.000001f);
+  ASSERT(fabs(matrix.val[0][1] - 2.0f) < 0.000001f);
+  ASSERT(fabs(matrix.val[0][2] - 3.0f) < 0.000001f);
+  ASSERT(fabs(matrix.val[1][0] - 4.0f) < 0.000001f);
+  ASSERT(fabs(matrix.val[1][1] - 5.0f) < 0.000001f);
+  ASSERT(fabs(matrix.val[1][2] - 6.0f) < 0.000001f);
+  ASSERT(fabs(matrix.val[2][0] - 7.0f) < 0.000001f);
+  ASSERT(fabs(matrix.val[2][1] - 8.0f) < 0.000001f);
+  ASSERT(fabs(matrix.val[2][2] - 9.0f) < 0.000001f);
+  ASSERT(fabs(matrix.val[3][0] - 10.0f) < 0.000001f);
+  ASSERT(fabs(matrix.val[3][1] - 11.0f) < 0.000001f);
+  ASSERT(fabs(matrix.val[3][2] - 12.0f) < 0.000001f);
+  ASSERT(fabs(matrix.val[3][3] - 1.0f) < 0.000001f);
+
+  ak_test_export_cleanup(outDir);
   TEST_SUCCESS
 }
 

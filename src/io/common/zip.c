@@ -16,8 +16,9 @@
 
 #include "zip.h"
 #include "binary.h"
-#include "../../miniz/miniz.h"
 #include "../../utils.h"
+
+#include <libdeflate.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,8 +46,11 @@ typedef struct AkZipCentralEntry {
 } AkZipCentralEntry;
 
 typedef struct AkZipStoredEntry {
+  uint32_t compressedSize;
+  uint32_t uncompressedSize;
   uint32_t crc32;
   uint32_t localOffset;
+  uint16_t method;
   uint16_t nameLen;
 } AkZipStoredEntry;
 
@@ -182,10 +186,25 @@ ak_zip_extract_entry(const unsigned char       * __restrict zipData,
     }
     memcpy(dst, src, dstSize);
   } else if (entry->method == AK_ZIP_METHOD_DEFLATED) {
+    struct libdeflate_decompressor *decompressor;
+    enum libdeflate_result          decompResult;
     size_t written;
 
-    written = tinfl_decompress_mem_to_mem(dst, dstSize, src, srcSize, 0);
-    if (written != dstSize) {
+    decompressor = libdeflate_alloc_decompressor();
+    if (!decompressor) {
+      free(dst);
+      return AK_ERR;
+    }
+
+    written      = 0u;
+    decompResult = libdeflate_deflate_decompress(decompressor,
+                                                 src,
+                                                 srcSize,
+                                                 dst,
+                                                 dstSize,
+                                                 &written);
+    libdeflate_free_decompressor(decompressor);
+    if (decompResult != LIBDEFLATE_SUCCESS || written != dstSize) {
       free(dst);
       return AK_EBADF;
     }
@@ -194,7 +213,7 @@ ak_zip_extract_entry(const unsigned char       * __restrict zipData,
     return AK_EBADF;
   }
 
-  if (mz_crc32(MZ_CRC32_INIT, dst, dstSize) != entry->crc32) {
+  if (libdeflate_crc32(0u, dst, dstSize) != entry->crc32) {
     free(dst);
     return AK_EBADF;
   }
@@ -339,19 +358,21 @@ static
 bool
 ak_zip_write_local_header(FILE     * __restrict file,
                           uint16_t              nameLen,
+                          uint16_t              method,
                           uint32_t              crc32,
-                          uint32_t              size) {
+                          uint32_t              compressedSize,
+                          uint32_t              uncompressedSize) {
   unsigned char out[30];
 
   io_store_u32le(out + 0, AK_ZIP_LOCAL_FILE_HEADER);
   io_store_u16le(out + 4, 20u);
   io_store_u16le(out + 6, 0u);
-  io_store_u16le(out + 8, AK_ZIP_METHOD_STORED);
+  io_store_u16le(out + 8, method);
   io_store_u16le(out + 10, 0u);
   io_store_u16le(out + 12, 0u);
   io_store_u32le(out + 14, crc32);
-  io_store_u32le(out + 18, size);
-  io_store_u32le(out + 22, size);
+  io_store_u32le(out + 18, compressedSize);
+  io_store_u32le(out + 22, uncompressedSize);
   io_store_u16le(out + 26, nameLen);
   io_store_u16le(out + 28, 0u);
 
@@ -362,8 +383,10 @@ static
 bool
 ak_zip_write_central_header(FILE     * __restrict file,
                             uint16_t              nameLen,
+                            uint16_t              method,
                             uint32_t              crc32,
-                            uint32_t              size,
+                            uint32_t              compressedSize,
+                            uint32_t              uncompressedSize,
                             uint32_t              localOffset) {
   unsigned char out[46];
 
@@ -371,12 +394,12 @@ ak_zip_write_central_header(FILE     * __restrict file,
   io_store_u16le(out + 4, 20u);
   io_store_u16le(out + 6, 20u);
   io_store_u16le(out + 8, 0u);
-  io_store_u16le(out + 10, AK_ZIP_METHOD_STORED);
+  io_store_u16le(out + 10, method);
   io_store_u16le(out + 12, 0u);
   io_store_u16le(out + 14, 0u);
   io_store_u32le(out + 16, crc32);
-  io_store_u32le(out + 20, size);
-  io_store_u32le(out + 24, size);
+  io_store_u32le(out + 20, compressedSize);
+  io_store_u32le(out + 24, uncompressedSize);
   io_store_u16le(out + 28, nameLen);
   io_store_u16le(out + 30, 0u);
   io_store_u16le(out + 32, 0u);
@@ -410,11 +433,37 @@ ak_zip_write_eocd(FILE     * __restrict file,
 
 static
 bool
-ak_zip_write_local_file(FILE                   * __restrict file,
-                        const AkZipWriteEntry * __restrict entry,
-                        AkZipStoredEntry      * __restrict stored) {
-  long nameLen;
-  long offset;
+ak_zip_reserve_scratch(unsigned char ** __restrict scratch,
+                       size_t         * __restrict scratchCapacity,
+                       size_t                      needed) {
+  unsigned char *newScratch;
+
+  if (needed == 0u || *scratchCapacity >= needed)
+    return true;
+
+  newScratch = realloc(*scratch, needed);
+  if (!newScratch)
+    return false;
+
+  *scratch         = newScratch;
+  *scratchCapacity = needed;
+  return true;
+}
+
+static
+bool
+ak_zip_write_local_file(FILE                          * __restrict file,
+                        const AkZipWriteEntry        * __restrict entry,
+                        AkZipStoredEntry             * __restrict stored,
+                        struct libdeflate_compressor * __restrict compressor,
+                        unsigned char               ** __restrict scratch,
+                        size_t                       * __restrict scratchCapacity) {
+  const void *payload;
+  size_t      payloadSize;
+  size_t      compressedSize;
+  size_t      maxCompressedSize;
+  long        nameLen;
+  long        offset;
 
   if (!file || !entry || !entry->name || (!entry->data && entry->size > 0u))
     return false;
@@ -429,45 +478,76 @@ ak_zip_write_local_file(FILE                   * __restrict file,
   if (offset < 0 || offset > UINT32_MAX)
     return false;
 
-  stored->crc32       = mz_crc32(MZ_CRC32_INIT, entry->data, entry->size);
-  stored->localOffset = (uint32_t)offset;
-  stored->nameLen     = (uint16_t)nameLen;
+  stored->crc32            = libdeflate_crc32(0u, entry->data, entry->size);
+  stored->localOffset      = (uint32_t)offset;
+  stored->nameLen          = (uint16_t)nameLen;
+  stored->method           = AK_ZIP_METHOD_STORED;
+  stored->compressedSize   = (uint32_t)entry->size;
+  stored->uncompressedSize = (uint32_t)entry->size;
+  payload                  = entry->data;
+  payloadSize              = entry->size;
+
+  if (compressor && entry->size > 1u) {
+    maxCompressedSize = entry->size - 1u;
+    if (!ak_zip_reserve_scratch(scratch, scratchCapacity, maxCompressedSize))
+      return false;
+
+    compressedSize = libdeflate_deflate_compress(compressor,
+                                                 entry->data,
+                                                 entry->size,
+                                                 *scratch,
+                                                 maxCompressedSize);
+    if (compressedSize > 0u) {
+      stored->method         = AK_ZIP_METHOD_DEFLATED;
+      stored->compressedSize = (uint32_t)compressedSize;
+      payload                = *scratch;
+      payloadSize            = compressedSize;
+    }
+  }
 
   return ak_zip_write_local_header(file,
                                    stored->nameLen,
+                                   stored->method,
                                    stored->crc32,
-                                   (uint32_t)entry->size)
+                                   stored->compressedSize,
+                                   stored->uncompressedSize)
          && fwrite(entry->name, 1, (size_t)nameLen, file) == (size_t)nameLen
-         && fwrite(entry->data, 1, entry->size, file) == entry->size;
+         && fwrite(payload, 1, payloadSize, file) == payloadSize;
 }
 
 static
 bool
-ak_zip_write_central_file(FILE                   * __restrict file,
-                          const AkZipWriteEntry * __restrict entry,
+ak_zip_write_central_file(FILE                    * __restrict file,
+                          const AkZipWriteEntry  * __restrict entry,
                           const AkZipStoredEntry * __restrict stored) {
   if (stored->nameLen == 0u || entry->size > UINT32_MAX)
     return false;
 
   return ak_zip_write_central_header(file,
                                      stored->nameLen,
+                                     stored->method,
                                      stored->crc32,
-                                     (uint32_t)entry->size,
+                                     stored->compressedSize,
+                                     stored->uncompressedSize,
                                      stored->localOffset)
          && fwrite(entry->name, 1, stored->nameLen, file) == stored->nameLen;
 }
 
-AK_HIDE
+static
 AkResult
-ak_zip_write_stored(const char            * __restrict zipPath,
-                    const AkZipWriteEntry * __restrict entries,
-                    size_t                             entryCount) {
-  AkZipStoredEntry *stored;
-  FILE             *file;
-  long              centralOffset;
-  long              centralEnd;
-  size_t            i;
-  AkResult          result;
+ak_zip_write_entries(const char            * __restrict zipPath,
+                     const AkZipWriteEntry * __restrict entries,
+                     size_t                             entryCount,
+                     bool                               deflateEntries) {
+  AkZipStoredEntry             *stored;
+  struct libdeflate_compressor *compressor;
+  unsigned char                *scratch;
+  FILE                         *file;
+  long                          centralOffset;
+  long                          centralEnd;
+  size_t                        i;
+  size_t                        scratchCapacity;
+  AkResult                      result;
 
   if (!zipPath || !entries || entryCount == 0 || entryCount > UINT16_MAX)
     return AK_ERR;
@@ -476,15 +556,32 @@ ak_zip_write_stored(const char            * __restrict zipPath,
   if (!stored)
     return AK_ERR;
 
+  compressor      = NULL;
+  scratch         = NULL;
+  scratchCapacity = 0u;
+  if (deflateEntries) {
+    compressor = libdeflate_alloc_compressor(1);
+    if (!compressor) {
+      free(stored);
+      return AK_ERR;
+    }
+  }
+
   file = fopen(zipPath, "wb");
   if (!file) {
+    libdeflate_free_compressor(compressor);
     free(stored);
     return AK_EBADF;
   }
 
   result = AK_OK;
   for (i = 0; i < entryCount; i++) {
-    if (!ak_zip_write_local_file(file, &entries[i], &stored[i])) {
+    if (!ak_zip_write_local_file(file,
+                                 &entries[i],
+                                 &stored[i],
+                                 compressor,
+                                 &scratch,
+                                 &scratchCapacity)) {
       result = AK_ERR;
       break;
     }
@@ -520,9 +617,27 @@ ak_zip_write_stored(const char            * __restrict zipPath,
   if (fclose(file) != 0 && result == AK_OK)
     result = AK_ERR;
 
+  libdeflate_free_compressor(compressor);
+  free(scratch);
   free(stored);
   if (result != AK_OK)
     remove(zipPath);
 
   return result;
+}
+
+AK_HIDE
+AkResult
+ak_zip_write_stored(const char            * __restrict zipPath,
+                    const AkZipWriteEntry * __restrict entries,
+                    size_t                             entryCount) {
+  return ak_zip_write_entries(zipPath, entries, entryCount, false);
+}
+
+AK_HIDE
+AkResult
+ak_zip_write_deflated(const char            * __restrict zipPath,
+                      const AkZipWriteEntry * __restrict entries,
+                      size_t                             entryCount) {
+  return ak_zip_write_entries(zipPath, entries, entryCount, true);
 }

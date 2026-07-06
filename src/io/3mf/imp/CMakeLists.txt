@@ -3,3 +3,6 @@ target_sources(${PROJECT_NAME}
   PRIVATE
   ${CSources}
 )
+
+add_subdirectory(mesh)
+add_subdirectory(vendor/bambu)

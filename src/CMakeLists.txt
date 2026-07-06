@@ -27,7 +27,6 @@ add_subdirectory(resc)
 add_subdirectory(skin)
 add_subdirectory(topo)
 add_subdirectory(transform)
-add_subdirectory(miniz)
 
 if(MSVC OR MSYS OR MINGW)
   add_subdirectory(win32)

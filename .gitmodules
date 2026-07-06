@@ -10,3 +10,6 @@
 [submodule "deps/ds"]
 	path = deps/ds
 	url = https://github.com/recp/ds.git
+[submodule "deps/libdeflate"]
+	path = deps/libdeflate
+	url = https://github.com/ebiggers/libdeflate

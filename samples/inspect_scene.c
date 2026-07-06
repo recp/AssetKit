@@ -40,7 +40,6 @@ sample_print_indent(unsigned depth) {
 
 static void
 sample_print_node_tree(AkNode *node, unsigned depth) {
-  AkNode *child;
   AkInstanceGeometry *geom;
   AkInstanceBase *base;
   AkInstanceNode *nodeRef;
@@ -113,8 +112,8 @@ sample_print_node_tree(AkNode *node, unsigned depth) {
              lightData ? sample_light_type_name(lightData->type) : "none");
     }
 
-    for (child = node->chld; child; child = child->next)
-      sample_print_node_tree(child, depth + 1u);
+    if (node->chld)
+      sample_print_node_tree(node->chld, depth + 1u);
 
     for (nodeRef = node->node; nodeRef; nodeRef = nodeRef->next) {
       AkNode *target;

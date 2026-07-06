@@ -322,6 +322,22 @@ if(NOT AK_USE_SYSTEM_CGLM
     message(FATAL_ERROR "The submodules were not downloaded! GIT_SUBMODULE was turned off or failed. Please update submodules and try again.")
 endif()
 
+if(NOT EXISTS "${AK_DEPS_ROOT}/libdeflate/CMakeLists.txt")
+  message(FATAL_ERROR
+          "libdeflate submodule was not found at deps/libdeflate. "
+          "Run: git submodule update --init deps/libdeflate")
+endif()
+set(LIBDEFLATE_BUILD_STATIC_LIB ON CACHE BOOL "Build libdeflate static library" FORCE)
+set(LIBDEFLATE_BUILD_SHARED_LIB OFF CACHE BOOL "Build libdeflate shared library" FORCE)
+set(LIBDEFLATE_COMPRESSION_SUPPORT ON CACHE BOOL "Build libdeflate compression support" FORCE)
+set(LIBDEFLATE_DECOMPRESSION_SUPPORT ON CACHE BOOL "Build libdeflate decompression support" FORCE)
+set(LIBDEFLATE_ZLIB_SUPPORT OFF CACHE BOOL "Build libdeflate zlib wrapper support" FORCE)
+set(LIBDEFLATE_GZIP_SUPPORT ON CACHE BOOL "Build libdeflate gzip/CRC support" FORCE)
+set(LIBDEFLATE_BUILD_GZIP OFF CACHE BOOL "Build libdeflate gzip program" FORCE)
+set(LIBDEFLATE_BUILD_TESTS OFF CACHE BOOL "Build libdeflate tests" FORCE)
+add_subdirectory(deps/libdeflate EXCLUDE_FROM_ALL)
+set_target_properties(libdeflate_static PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 if(AK_STATIC_INTERNAL_DEPS)
   set(DS_SHARED OFF CACHE BOOL "Shared build" FORCE)
   set(DS_STATIC ON CACHE BOOL "Static build" FORCE)
@@ -357,7 +373,11 @@ foreach(AK_CORE_TARGET IN LISTS AK_CORE_TARGETS)
           ${AK_CGLM_INCLUDE_DIR}
   )
 
-  target_link_libraries(${AK_CORE_TARGET} PRIVATE ds ${CMAKE_DL_LIBS})
+  target_link_libraries(${AK_CORE_TARGET}
+      PRIVATE
+          ds
+          libdeflate::libdeflate_static
+          ${CMAKE_DL_LIBS})
   if(UNIX AND NOT APPLE)
     target_link_libraries(${AK_CORE_TARGET} PUBLIC m)
   endif()

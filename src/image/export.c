@@ -16,9 +16,9 @@
 
 #include "export.h"
 #include "../io/common/uri.h"
-#include "../miniz/miniz.h"
 
 #include <ak/path.h>
+#include <libdeflate.h>
 
 #include <limits.h>
 #include <stdio.h>
@@ -75,15 +75,15 @@ ak_imageExportWritePNGChunk(unsigned char       * __restrict dst,
                             const char          * __restrict type,
                             const unsigned char * __restrict data,
                             uint32_t                         len) {
-  mz_ulong crc;
+  uint32_t crc;
 
   ak_imageExportWriteU32BE(dst, len);
   memcpy(dst + 4, type, 4);
   if (len > 0)
     memcpy(dst + 8, data, len);
 
-  crc = mz_crc32(MZ_CRC32_INIT, dst + 4, (size_t)len + 4u);
-  ak_imageExportWriteU32BE(dst + 8u + len, (uint32_t)crc);
+  crc = libdeflate_crc32(0u, dst + 4, (size_t)len + 4u);
+  ak_imageExportWriteU32BE(dst + 8u + len, crc);
 
   return dst + 12u + len;
 }
