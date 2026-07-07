@@ -1700,6 +1700,94 @@ ak_3mf_fast_expected_paint_attr(const char      ** __restrict cursor,
 
 AK_INLINE
 bool
+ak_3mf_fast_expected_float_attr_parse(const char ** __restrict cursor,
+                                      const char  * __restrict tagEnd,
+                                      char                      name,
+                                      float       * __restrict out) {
+  const char *p;
+  float       value;
+  float       fracMul;
+  int         exp;
+  char        quote;
+  bool        neg;
+  bool        found;
+
+  if (!cursor || !*cursor || !tagEnd || !out)
+    return false;
+
+  p = ak_3mf_fast_skip_space(*cursor, tagEnd);
+  if (p + 2u >= tagEnd || p[0] != name || p[1] != '=')
+    return false;
+  p += 2u;
+
+  quote = *p++;
+  if (quote != '"' && quote != '\'')
+    return false;
+
+  neg = false;
+  if (p < tagEnd && (*p == '-' || *p == '+'))
+    neg = *p++ == '-';
+
+  value = 0.0f;
+  found = false;
+  while (p < tagEnd && *p >= '0' && *p <= '9') {
+    value = value * 10.0f + (float)(*p++ - '0');
+    found = true;
+  }
+
+  if (p < tagEnd && *p == '.') {
+    p++;
+    fracMul = 0.1f;
+    while (p < tagEnd && *p >= '0' && *p <= '9') {
+      value  += (float)(*p++ - '0') * fracMul;
+      fracMul *= 0.1f;
+      found = true;
+    }
+  }
+
+  if (!found)
+    return false;
+
+  if (p < tagEnd && (*p == 'e' || *p == 'E')) {
+    const char *expBegin;
+    bool        expNeg;
+    bool        expFound;
+
+    p++;
+    expBegin = p;
+    expNeg   = false;
+    if (p < tagEnd && (*p == '-' || *p == '+'))
+      expNeg = *p++ == '-';
+
+    exp = 0;
+    expFound = false;
+    while (p < tagEnd && *p >= '0' && *p <= '9') {
+      if (exp < 10000)
+        exp = exp * 10 + (*p - '0');
+      p++;
+      expFound = true;
+    }
+
+    if (expFound)
+      value *= ak_str_pow10if_fast(expNeg ? -exp : exp);
+    else
+      p = expBegin;
+  }
+
+  if (p >= tagEnd || *p != quote)
+    return false;
+
+  p++;
+  while (p < tagEnd && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r'))
+    p++;
+
+  *out    = neg ? -value : value;
+  *cursor = p;
+  return true;
+}
+
+AK_INLINE
+bool
 ak_3mf_fast_parse_vertex_tag(const char *p,
                              const char * __restrict tagEnd,
                              float      * __restrict out) {
@@ -1713,6 +1801,16 @@ ak_3mf_fast_parse_vertex_tag(const char *p,
   hasX = false;
   hasY = false;
   hasZ = false;
+
+  {
+    const char *q;
+
+    q = p;
+    if (ak_3mf_fast_expected_float_attr_parse(&q, tagEnd, 'x', &out[0])
+        && ak_3mf_fast_expected_float_attr_parse(&q, tagEnd, 'y', &out[1])
+        && ak_3mf_fast_expected_float_attr_parse(&q, tagEnd, 'z', &out[2]))
+      return true;
+  }
 
   while (ak_3mf_fast_next_attr_id(&p, tagEnd, &attrId, &attrValue)) {
     switch (attrId) {
