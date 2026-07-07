@@ -14,108 +14,7 @@
  * limitations under the License.
  */
 
-#include "3mf.h"
-#include "../common/buffer.h"
-#include "../common/primitive.h"
-#include "../common/text_number.h"
-#include "../common/zip.h"
-
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#define AK_3MF_MAX_NODE_DEPTH 512u
-
-typedef IOFloatRows AK3MFRows;
-
-#define ak_3mf_rows_init    io_float_rows_init
-#define ak_3mf_rows_destroy io_float_rows_destroy
-#define ak_3mf_rows_get     io_float_rows_get
-#define ak_3mf_row_component io_float_row_component
-
-typedef IOBuffer AK3MFBuffer;
-
-typedef struct AK3MFExportState {
-  AkDoc           *doc;
-  AkPrintDocument *print;
-  AK3MFBuffer      resources;
-  AK3MFBuffer      build;
-  uint32_t         objectCount;
-  uint32_t         nextObjectId;
-  AkResult         result;
-  bool             usesMaterialExtension;
-  bool             usesProductionExtension;
-  bool             usesProductionAlternativeExtension;
-  bool             usesSliceExtension;
-  bool             usesBeamLatticeExtension;
-  bool             usesBeamBallExtension;
-  bool             usesBooleanExtension;
-  bool             usesDisplacementExtension;
-  bool             usesVolumetricExtension;
-  bool             usesImplicitExtension;
-  bool             suppressBuildItems;
-} AK3MFExportState;
-
-typedef struct AK3MFDisplacementWrite {
-  const AkPrintDisplacementTriangle *triangle;
-  uint32_t                           remaining;
-} AK3MFDisplacementWrite;
-
-#define AK_3MF_BUF_INITIAL_CAP 4096u
-#define ak_3mf_buf_reserve(BUF, EXTRA)                                        \
-  io_buffer_reserve((BUF), (EXTRA), AK_3MF_BUF_INITIAL_CAP)
-#define ak_3mf_buf_raw(BUF, DATA, LEN)                                        \
-  io_buffer_raw((BUF), (DATA), (LEN), AK_3MF_BUF_INITIAL_CAP)
-#define AK_3MF_BUF_LIT(BUF, LIT)                                              \
-  IO_BUFFER_LIT((BUF), LIT, AK_3MF_BUF_INITIAL_CAP)
-#define ak_3mf_buf_lit(BUF, LIT)                                              \
-  io_buffer_cstr((BUF), (LIT), AK_3MF_BUF_INITIAL_CAP)
-#define ak_3mf_buf_ch(BUF, CH)                                                \
-  io_buffer_ch((BUF), (CH), AK_3MF_BUF_INITIAL_CAP)
-#define ak_3mf_buf_free(BUF) io_buffer_free((BUF))
-
-static
-void
-ak_3mf_buf_attr(AK3MFBuffer * __restrict buf,
-                const char  * __restrict value) {
-  const unsigned char *it;
-
-  if (!value)
-    return;
-
-  for (it = (const unsigned char *)value; *it; it++) {
-    switch (*it) {
-      case '&':
-        AK_3MF_BUF_LIT(buf, "&amp;");
-        break;
-      case '<':
-        AK_3MF_BUF_LIT(buf, "&lt;");
-        break;
-      case '"':
-        AK_3MF_BUF_LIT(buf, "&quot;");
-        break;
-      case '\'':
-        AK_3MF_BUF_LIT(buf, "&apos;");
-        break;
-      default:
-        ak_3mf_buf_ch(buf, (char)*it);
-        break;
-    }
-  }
-}
-
-static
-void
-ak_3mf_buf_3mf_path_attr(AK3MFBuffer * __restrict buf,
-                         const char  * __restrict path) {
-  if (!path)
-    return;
-
-  if (*path != '/' && *path != '\\')
-    ak_3mf_buf_ch(buf, '/');
-  ak_3mf_buf_attr(buf, path);
-}
+#include "common.h"
 
 static
 void
@@ -169,30 +68,6 @@ ak_3mf_append_production_attrs(AK3MFBuffer                 * __restrict buf,
 }
 
 static
-void
-ak_3mf_buf_u32(AK3MFBuffer * __restrict buf, uint32_t value) {
-  char  tmp[24];
-  char *end;
-
-  end = ak_io_text_format_uint64(tmp, value);
-  ak_3mf_buf_raw(buf, tmp, (size_t)(end - tmp));
-}
-
-static
-void
-ak_3mf_buf_float(AK3MFBuffer * __restrict buf, float value) {
-  char   tmp[48];
-  size_t outLen;
-
-  if (!ak_io_text_format_float6(tmp, sizeof(tmp), value, &outLen)) {
-    buf->result = AK_ERR;
-    return;
-  }
-
-  ak_3mf_buf_raw(buf, tmp, outLen);
-}
-
-static
 bool
 ak_3mf_path_is_root_model(const char * __restrict path) {
   if (!path)
@@ -217,7 +92,7 @@ ak_3mf_first_production_item(const AkPrintDocument      * __restrict print,
   return NULL;
 }
 
-static
+AK_HIDE
 bool
 ak_3mf_uses_production_alternative_extension(
                                       const AkPrintDocument * __restrict print) {
@@ -359,7 +234,7 @@ ak_3mf_first_beam_lattice(const AkPrintDocument * __restrict print) {
   return print ? print->beamLattices : NULL;
 }
 
-static
+AK_HIDE
 bool
 ak_3mf_uses_beam_ball_extension(const AkPrintDocument * __restrict print) {
   const AkPrintBeamLattice *lattice;
@@ -654,14 +529,61 @@ static
 void
 ak_3mf_append_color(AK3MFBuffer * __restrict colors, uint8_t rgba[4]) {
   static const char hex[] = "0123456789ABCDEF";
+  char              tmp[48];
+  char             *p;
   uint32_t          i;
 
-  AK_3MF_BUF_LIT(colors, "        <m:color color=\"#");
+  p = tmp;
+  memcpy(p,
+         "        <m:color color=\"#",
+         sizeof("        <m:color color=\"#") - 1u);
+  p += sizeof("        <m:color color=\"#") - 1u;
   for (i = 0; i < 4u; i++) {
-    ak_3mf_buf_ch(colors, hex[rgba[i] >> 4u]);
-    ak_3mf_buf_ch(colors, hex[rgba[i] & 0x0fu]);
+    *p++ = hex[rgba[i] >> 4u];
+    *p++ = hex[rgba[i] & 0x0fu];
   }
-  AK_3MF_BUF_LIT(colors, "\"/>\n");
+  memcpy(p, "\"/>\n", sizeof("\"/>\n") - 1u);
+  p += sizeof("\"/>\n") - 1u;
+
+  ak_3mf_buf_raw(colors, tmp, (size_t)(p - tmp));
+}
+
+static
+void
+ak_3mf_reserve_mesh_buffers(AK3MFBuffer     * __restrict vertices,
+                            AK3MFBuffer     * __restrict colors,
+                            AK3MFBuffer     * __restrict triangles,
+                            AkMeshPrimitive * __restrict prim,
+                            AkInput         * __restrict posInput,
+                            bool                         hasColorRows,
+                            bool                         displacementMesh) {
+  size_t triangleRows;
+  size_t vertexRows;
+
+  if (!vertices || !triangles || !prim || !posInput || !posInput->accessor)
+    return;
+
+  triangleRows = prim->nPolygons;
+  if (triangleRows == 0u)
+    return;
+
+  if (prim->type == AK_PRIMITIVE_TRIANGLES
+      && !hasColorRows
+      && !displacementMesh) {
+    vertexRows = posInput->accessor->count;
+  } else if (prim->type == AK_PRIMITIVE_TRIANGLES
+             && triangleRows <= SIZE_MAX / 3u) {
+    vertexRows = triangleRows * 3u;
+  } else {
+    return;
+  }
+
+  if (vertexRows <= SIZE_MAX / 80u)
+    (void)ak_3mf_buf_reserve(vertices, vertexRows * 80u);
+  if (triangleRows <= SIZE_MAX / 112u)
+    (void)ak_3mf_buf_reserve(triangles, triangleRows * 112u);
+  if (hasColorRows && colors && vertexRows <= SIZE_MAX / 40u)
+    (void)ak_3mf_buf_reserve(colors, vertexRows * 40u);
 }
 
 static
@@ -1206,26 +1128,6 @@ ak_3mf_emit_polygon_primitive(AK3MFRows       * __restrict rows,
 
   return true;
 }
-
-static
-void
-ak_3mf_append_transform(AK3MFBuffer * __restrict buf, mat4 world) {
-  const float values[12] = {
-    world[0][0], world[1][0], world[2][0],
-    world[0][1], world[1][1], world[2][1],
-    world[0][2], world[1][2], world[2][2],
-    world[3][0], world[3][1], world[3][2]
-  };
-  uint32_t i;
-
-  for (i = 0; i < 12u; i++) {
-    if (i > 0)
-      ak_3mf_buf_ch(buf, ' ');
-    ak_3mf_buf_float(buf, values[i]);
-  }
-}
-
-static AK_NOINLINE
 void
 ak_3mf_write_build_item_open(AK3MFBuffer                 * __restrict buf,
                              uint32_t                                 objectId,
@@ -1275,6 +1177,18 @@ ak_3mf_write_plain_indexed_primitive(AK3MFExportState * __restrict st,
     return true;
 
   objectId = st->nextObjectId++;
+  {
+    size_t vertexRows;
+    size_t triangleRows;
+
+    vertexRows   = vertexCount;
+    triangleRows = prim->nPolygons;
+    if (vertexRows <= (SIZE_MAX - 256u) / 80u
+        && triangleRows <= (SIZE_MAX - 256u - vertexRows * 80u) / 112u) {
+      (void)ak_3mf_buf_reserve(&st->resources,
+                               256u + vertexRows * 80u + triangleRows * 112u);
+    }
+  }
   AK_3MF_BUF_LIT(&st->resources, "      <object id=\"");
   ak_3mf_buf_u32(&st->resources, objectId);
   AK_3MF_BUF_LIT(&st->resources, "\" type=\"model\">\n"
@@ -1394,6 +1308,13 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
                                                                               displacementMesh);
     displacementWrite.remaining = displacementMesh->triangleCount;
   }
+  ak_3mf_reserve_mesh_buffers(&vertices,
+                              &colors,
+                              &triangles,
+                              prim,
+                              posInput,
+                              hasColorRows,
+                              displacementMesh != NULL);
 
   if (!displacementMesh
       && !hasColorRows
@@ -1669,7 +1590,7 @@ ak_3mf_write_node(AK3MFExportState * __restrict st,
   return true;
 }
 
-static
+AK_HIDE
 bool
 ak_3mf_write_scene(AK3MFExportState * __restrict st) {
   mat4 identity;
@@ -1681,7 +1602,7 @@ ak_3mf_write_scene(AK3MFExportState * __restrict st) {
   return true;
 }
 
-static
+AK_HIDE
 bool
 ak_3mf_write_library_fallback(AK3MFExportState * __restrict st) {
   AkGeometry *geom;
@@ -1848,7 +1769,7 @@ ak_3mf_write_disp2d_group(AK3MFExportState         * __restrict st,
   AK_3MF_BUF_LIT(&st->resources, "      </d:disp2dgroup>\n");
 }
 
-static
+AK_HIDE
 bool
 ak_3mf_write_displacement_resources(AK3MFExportState * __restrict st) {
   const AkPrintDisplacement2D *displacement;
@@ -1906,36 +1827,6 @@ ak_3mf_boolean_operation_name(AkPrintBooleanOperation operation) {
     default:
       return "union";
   }
-}
-
-static
-void
-ak_3mf_append_flat_transform(AK3MFBuffer         * __restrict buf,
-                             const float          matrix[16]) {
-  const float values[12] = {
-    matrix[0], matrix[4], matrix[8],
-    matrix[1], matrix[5], matrix[9],
-    matrix[2], matrix[6], matrix[10],
-    matrix[12], matrix[13], matrix[14]
-  };
-  uint32_t i;
-
-  for (i = 0; i < 12u; i++) {
-    if (i > 0)
-      ak_3mf_buf_ch(buf, ' ');
-    ak_3mf_buf_float(buf, values[i]);
-  }
-}
-
-static
-void
-ak_3mf_append_optional_3mf_path(AK3MFBuffer * __restrict buf,
-                                const char  * __restrict path) {
-  if (!path)
-    return;
-
-  AK_3MF_BUF_LIT(buf, "\" path=\"/");
-  ak_3mf_buf_attr(buf, path);
 }
 
 static
@@ -2211,7 +2102,7 @@ ak_3mf_write_volume_data(AK3MFExportState        * __restrict st,
   AK_3MF_BUF_LIT(&st->resources, "      </v:volumedata>\n");
 }
 
-static
+AK_HIDE
 bool
 ak_3mf_write_volumetric_resources(AK3MFExportState * __restrict st) {
   const AkPrintImage3D             *image;
@@ -2236,7 +2127,7 @@ ak_3mf_write_volumetric_resources(AK3MFExportState * __restrict st) {
   return st->resources.result == AK_OK;
 }
 
-static
+AK_HIDE
 bool
 ak_3mf_write_level_sets(AK3MFExportState * __restrict st) {
   const AkPrintLevelSet *levelSet;
@@ -2328,7 +2219,7 @@ ak_3mf_write_boolean_operand(AK3MFBuffer                 * __restrict buf,
   AK_3MF_BUF_LIT(buf, "\"/>\n");
 }
 
-static
+AK_HIDE
 bool
 ak_3mf_write_boolean_shapes(AK3MFExportState * __restrict st) {
   const AkPrintBooleanShape *shape;
@@ -2415,7 +2306,7 @@ ak_3mf_write_empty_slice(AK3MFBuffer         * __restrict buf,
   AK_3MF_BUF_LIT(buf, "\"/>\n");
 }
 
-static
+AK_HIDE
 bool
 ak_3mf_write_slice_stacks(AK3MFExportState * __restrict st) {
   const AkPrintSliceStack *stack;
@@ -2482,7 +2373,7 @@ ak_3mf_export_unit_name(AkDoc * __restrict doc) {
   return "millimeter";
 }
 
-static
+AK_HIDE
 bool
 ak_3mf_build_model_xml(AK3MFExportState * __restrict st,
                        AK3MFBuffer      * __restrict model) {
@@ -2626,244 +2517,4 @@ ak_3mf_build_model_xml(AK3MFExportState * __restrict st,
                         "</model>\n");
 
   return model->result == AK_OK;
-}
-
-static
-const char*
-ak_3mf_zip_part_name(const char * __restrict name) {
-  if (!name)
-    return NULL;
-  while (*name == '/' || *name == '\\')
-    name++;
-  return *name ? name : NULL;
-}
-
-static
-bool
-ak_3mf_extra_part_exportable(const AkPrintPackagePart * __restrict part) {
-  const char *name;
-
-  if (!part || !part->name || (!part->data && part->size > 0u))
-    return false;
-
-  name = ak_3mf_zip_part_name(part->name);
-  if (!name)
-    return false;
-  if (strcmp(name, "[Content_Types].xml") == 0
-      || strcmp(name, "_rels/.rels") == 0
-      || strcmp(name, "3D/3dmodel.model") == 0)
-    return false;
-
-  return true;
-}
-
-static
-size_t
-ak_3mf_count_extra_parts(const AkPrintDocument * __restrict print) {
-  const AkPrintPackagePart *part;
-  size_t                    count;
-
-  count = 0u;
-  for (part = print ? print->parts : NULL; part; part = part->next) {
-    if (ak_3mf_extra_part_exportable(part))
-      count++;
-  }
-
-  return count;
-}
-
-static
-bool
-ak_3mf_build_content_types_xml(const AkPrintDocument * __restrict print,
-                               AK3MFBuffer           * __restrict contentTypes) {
-  const AkPrintPackagePart *part;
-
-  io_buffer_init(contentTypes);
-
-  AK_3MF_BUF_LIT(contentTypes,
-                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-                 "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">\n"
-                 "  <Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>\n"
-                 "  <Default Extension=\"model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\"/>\n");
-
-  for (part = print ? print->parts : NULL; part; part = part->next) {
-    const char *name;
-
-    if (!ak_3mf_extra_part_exportable(part) || !part->contentType)
-      continue;
-
-    name = ak_3mf_zip_part_name(part->name);
-    AK_3MF_BUF_LIT(contentTypes, "  <Override PartName=\"/");
-    ak_3mf_buf_attr(contentTypes, name);
-    AK_3MF_BUF_LIT(contentTypes, "\" ContentType=\"");
-    ak_3mf_buf_attr(contentTypes, part->contentType);
-    AK_3MF_BUF_LIT(contentTypes, "\"/>\n");
-  }
-
-  AK_3MF_BUF_LIT(contentTypes, "</Types>\n");
-  return contentTypes->result == AK_OK;
-}
-
-static
-bool
-ak_3mf_build_rels_xml(const AkPrintDocument * __restrict print,
-                      AK3MFBuffer           * __restrict rels) {
-  const AkPrintPackagePart *part;
-  uint32_t                  relId;
-
-  io_buffer_init(rels);
-  relId = 1u;
-
-  AK_3MF_BUF_LIT(rels,
-                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-                 "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">\n"
-                 "  <Relationship Target=\"/3D/3dmodel.model\" Id=\"rel0\" Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\"/>\n");
-
-  for (part = print ? print->parts : NULL; part; part = part->next) {
-    const char *name;
-
-    if (!ak_3mf_extra_part_exportable(part) || !part->relationshipType)
-      continue;
-
-    name = ak_3mf_zip_part_name(part->name);
-    AK_3MF_BUF_LIT(rels, "  <Relationship Target=\"/");
-    ak_3mf_buf_attr(rels, name);
-    if (part->relationshipId) {
-      AK_3MF_BUF_LIT(rels, "\" Id=\"");
-      ak_3mf_buf_attr(rels, part->relationshipId);
-      relId++;
-    } else {
-      AK_3MF_BUF_LIT(rels, "\" Id=\"rel");
-      ak_3mf_buf_u32(rels, relId++);
-    }
-    AK_3MF_BUF_LIT(rels, "\" Type=\"");
-    ak_3mf_buf_attr(rels, part->relationshipType);
-    if (part->relationshipTargetMode) {
-      AK_3MF_BUF_LIT(rels, "\" TargetMode=\"");
-      ak_3mf_buf_attr(rels, part->relationshipTargetMode);
-    }
-    AK_3MF_BUF_LIT(rels, "\"/>\n");
-  }
-
-  AK_3MF_BUF_LIT(rels, "</Relationships>\n");
-  return rels->result == AK_OK;
-}
-
-AK_HIDE
-AkResult
-ak_3mf_export(AkDoc * __restrict doc, const char * __restrict filepath) {
-  AK3MFExportState st;
-  AK3MFBuffer      model;
-  AK3MFBuffer      contentTypes;
-  AK3MFBuffer      rels;
-  AkZipWriteEntry *entries;
-  AkPrintDocument *print;
-  AkPrintPackagePart *part;
-  size_t           extraPartCount;
-  size_t           entryCount;
-  size_t           entryIndex;
-  AkResult         result;
-
-  if (!doc || !filepath)
-    return AK_ERR;
-
-  memset(&st, 0, sizeof(st));
-  io_buffer_init(&st.resources);
-  io_buffer_init(&st.build);
-  st.doc          = doc;
-  st.print        = ak_printDocument(doc);
-  st.result       = AK_OK;
-  st.nextObjectId = 1u;
-  st.usesProductionExtension = st.print && st.print->productionItemCount > 0u;
-  st.usesProductionAlternativeExtension =
-    ak_3mf_uses_production_alternative_extension(st.print);
-  st.usesSliceExtension = st.print
-                          && (st.print->sliceStackCount > 0u
-                              || st.print->sliceObjectCount > 0u);
-  st.usesBeamLatticeExtension = st.print && st.print->beamLatticeCount > 0u;
-  st.usesBeamBallExtension    = ak_3mf_uses_beam_ball_extension(st.print);
-  st.usesBooleanExtension     = st.print && st.print->booleanShapeCount > 0u;
-  st.usesDisplacementExtension = st.print
-                                 && (st.print->displacement2DCount > 0u
-                                     || st.print->normVectorGroupCount > 0u
-                                     || st.print->disp2DGroupCount > 0u
-                                     || st.print->displacementMeshCount > 0u);
-  st.usesImplicitExtension = st.print && st.print->implicitFunctionCount > 0u;
-  st.usesVolumetricExtension = st.print
-                               && (st.print->image3DCount > 0u
-                                   || st.print->imageSheetCount > 0u
-                                   || st.print->functionFromImage3DCount > 0u
-                                   || st.print->implicitFunctionCount > 0u
-                                   || st.print->volumeDataCount > 0u
-                                   || st.print->volumetricElementCount > 0u
-                                   || st.print->volumetricMeshCount > 0u
-                                   || st.print->levelSetCount > 0u);
-
-  if (!ak_3mf_write_slice_stacks(&st)
-      || !ak_3mf_write_displacement_resources(&st)
-      || !ak_3mf_write_volumetric_resources(&st)
-      || !ak_3mf_write_scene(&st)
-      || !ak_3mf_write_library_fallback(&st)
-      || !ak_3mf_write_level_sets(&st)
-      || !ak_3mf_write_boolean_shapes(&st)
-      || st.resources.result != AK_OK
-      || st.build.result != AK_OK
-      || !ak_3mf_build_model_xml(&st, &model)) {
-    ak_3mf_buf_free(&st.resources);
-    ak_3mf_buf_free(&st.build);
-    return AK_ERR;
-  }
-
-  print          = st.print;
-  extraPartCount = ak_3mf_count_extra_parts(print);
-  entryCount     = 3u + extraPartCount;
-  entries        = calloc(entryCount, sizeof(*entries));
-  if (!entries) {
-    ak_3mf_buf_free(&model);
-    ak_3mf_buf_free(&st.resources);
-    ak_3mf_buf_free(&st.build);
-    return AK_ERR;
-  }
-
-  if (!ak_3mf_build_content_types_xml(print, &contentTypes)
-      || !ak_3mf_build_rels_xml(print, &rels)) {
-    free(entries);
-    ak_3mf_buf_free(&contentTypes);
-    ak_3mf_buf_free(&rels);
-    ak_3mf_buf_free(&model);
-    ak_3mf_buf_free(&st.resources);
-    ak_3mf_buf_free(&st.build);
-    return AK_ERR;
-  }
-
-  entries[0].name = "[Content_Types].xml";
-  entries[0].data = contentTypes.data;
-  entries[0].size = contentTypes.len;
-  entries[1].name = "_rels/.rels";
-  entries[1].data = rels.data;
-  entries[1].size = rels.len;
-  entries[2].name = "3D/3dmodel.model";
-  entries[2].data = model.data;
-  entries[2].size = model.len;
-
-  entryIndex = 3u;
-  for (part = print ? print->parts : NULL; part; part = part->next) {
-    if (!ak_3mf_extra_part_exportable(part))
-      continue;
-    entries[entryIndex].name = ak_3mf_zip_part_name(part->name);
-    entries[entryIndex].data = part->data;
-    entries[entryIndex].size = part->size;
-    entryIndex++;
-  }
-
-  result = ak_zip_write_deflated(filepath, entries, entryCount);
-
-  free(entries);
-  ak_3mf_buf_free(&contentTypes);
-  ak_3mf_buf_free(&rels);
-  ak_3mf_buf_free(&model);
-  ak_3mf_buf_free(&st.resources);
-  ak_3mf_buf_free(&st.build);
-
-  return result;
 }
