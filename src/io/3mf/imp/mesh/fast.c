@@ -687,7 +687,9 @@ ak_3mf_fast_triangle_inspect_attrs_quick(const char * __restrict tagBegin,
     const char *segmentation;
 
     paintOrMaterial = memchr(p, 'p', (size_t)(tagEnd - p));
-    segmentation    = memchr(p, 'm', (size_t)(tagEnd - p));
+    segmentation    = hasPaint && *hasPaint
+                      ? NULL
+                      : memchr(p, 'm', (size_t)(tagEnd - p));
     if (!paintOrMaterial && !segmentation)
       return false;
     if (!paintOrMaterial
