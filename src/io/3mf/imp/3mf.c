@@ -2368,51 +2368,33 @@ ak_3mf_property_has_texcoord(AK3MFImportState * __restrict st,
 }
 
 static
-size_t
-ak_3mf_attr_u32_list_count(const xml_attr_t * __restrict attr) {
+bool
+ak_3mf_attr_u32_list_collect(const xml_attr_t * __restrict attr,
+                             uint32_t         * __restrict stack,
+                             size_t                         stackCap,
+                             uint32_t        ** __restrict outItems,
+                             size_t           * __restrict outCount) {
   const char *it;
   const char *end;
+  uint32_t   *items;
+  size_t      capacity;
   size_t      count;
+
+  if (!outItems || !outCount)
+    return false;
+
+  items     = stack;
+  capacity  = stackCap;
+  count     = 0u;
+  *outItems = stack;
+  *outCount = 0u;
 
   if (!attr || !attr->val || attr->valsize == 0u)
-    return 0u;
+    return true;
 
   it    = attr->val;
   end   = attr->val + attr->valsize;
-  count = 0u;
   while (it < end) {
-    const char *tok;
-
-    while (it < end && ak_3mf_space(*it))
-      it++;
-    tok = it;
-    while (it < end && *it >= '0' && *it <= '9')
-      it++;
-    if (it > tok)
-      count++;
-    while (it < end && !(*it >= '0' && *it <= '9'))
-      it++;
-  }
-
-  return count;
-}
-
-static
-size_t
-ak_3mf_attr_u32_list(const xml_attr_t * __restrict attr,
-                     uint32_t         * __restrict out,
-                     size_t                         cap) {
-  const char *it;
-  const char *end;
-  size_t      count;
-
-  if (!attr || !attr->val || !out || cap == 0u)
-    return 0u;
-
-  it    = attr->val;
-  end   = attr->val + attr->valsize;
-  count = 0u;
-  while (it < end && count < cap) {
     const char *tok;
 
     while (it < end && ak_3mf_space(*it))
@@ -2421,78 +2403,129 @@ ak_3mf_attr_u32_list(const xml_attr_t * __restrict attr,
     while (it < end && *it >= '0' && *it <= '9')
       it++;
     if (it > tok) {
-      if (!ak_str_parse_u32_slice_fast(tok, it, out + count))
-        out[count] = 0u;
-      count++;
+      uint32_t value;
+
+      if (count == capacity) {
+        uint32_t *newItems;
+        size_t    newCapacity;
+
+        newCapacity = capacity ? capacity * 2u : 8u;
+        if (newCapacity < capacity || newCapacity > SIZE_MAX / sizeof(*items))
+          goto fail;
+
+        if (items == stack) {
+          newItems = malloc(sizeof(*items) * newCapacity);
+          if (!newItems)
+            goto fail;
+          if (count > 0u)
+            memcpy(newItems, stack, sizeof(*items) * count);
+        } else {
+          newItems = realloc(items, sizeof(*items) * newCapacity);
+          if (!newItems)
+            goto fail;
+        }
+
+        items    = newItems;
+        capacity = newCapacity;
+      }
+
+      if (!ak_str_parse_u32_slice_fast(tok, it, &value))
+        value = 0u;
+      items[count++] = value;
     }
     while (it < end && !(*it >= '0' && *it <= '9'))
       it++;
   }
 
-  return count;
+  *outItems = items;
+  *outCount = count;
+  return true;
+
+fail:
+  if (items && items != stack)
+    free(items);
+  *outItems = NULL;
+  *outCount = 0u;
+  return false;
 }
 
 static
-size_t
-ak_3mf_attr_float_list_count(const xml_attr_t * __restrict attr) {
+bool
+ak_3mf_attr_float_list_collect(const xml_attr_t * __restrict attr,
+                               float            * __restrict stack,
+                               size_t                         stackCap,
+                               float           ** __restrict outItems,
+                               size_t           * __restrict outCount) {
   const char *it;
   const char *end;
+  float      *items;
+  size_t      capacity;
   size_t      count;
+
+  if (!outItems || !outCount)
+    return false;
+
+  items     = stack;
+  capacity  = stackCap;
+  count     = 0u;
+  *outItems = stack;
+  *outCount = 0u;
 
   if (!attr || !attr->val || attr->valsize == 0u)
-    return 0u;
+    return true;
 
-  it    = attr->val;
-  end   = attr->val + attr->valsize;
-  count = 0u;
+  it  = attr->val;
+  end = attr->val + attr->valsize;
   while (it < end) {
     const char *next;
-    float       ignored;
+    float       value;
 
     while (it < end && ak_3mf_space(*it))
       it++;
-    if (!ak_str_parse_float_token_fast(it, end, &ignored, &next))
+    if (!ak_str_parse_float_token_fast(it, end, &value, &next))
       break;
-    count++;
+
+    if (count == capacity) {
+      float *newItems;
+      size_t newCapacity;
+
+      newCapacity = capacity ? capacity * 2u : 8u;
+      if (newCapacity < capacity || newCapacity > SIZE_MAX / sizeof(*items))
+        goto fail;
+
+      if (items == stack) {
+        newItems = malloc(sizeof(*items) * newCapacity);
+        if (!newItems)
+          goto fail;
+        if (count > 0u)
+          memcpy(newItems, stack, sizeof(*items) * count);
+      } else {
+        newItems = realloc(items, sizeof(*items) * newCapacity);
+        if (!newItems)
+          goto fail;
+      }
+
+      items    = newItems;
+      capacity = newCapacity;
+    }
+
+    items[count++] = value;
     it = next;
     while (it < end && !((*it >= '0' && *it <= '9') || *it == '-' || *it == '+'
                          || *it == '.'))
       it++;
   }
 
-  return count;
-}
+  *outItems = items;
+  *outCount = count;
+  return true;
 
-static
-size_t
-ak_3mf_attr_float_list(const xml_attr_t * __restrict attr,
-                       float            * __restrict out,
-                       size_t                         cap) {
-  const char *it;
-  const char *end;
-  size_t      count;
-
-  if (!attr || !attr->val || !out || cap == 0u)
-    return 0u;
-
-  it    = attr->val;
-  end   = attr->val + attr->valsize;
-  count = 0u;
-  while (it < end && count < cap) {
-    const char *next;
-
-    while (it < end && ak_3mf_space(*it))
-      it++;
-    if (!ak_str_parse_float_token_fast(it, end, out + count, &next))
-      break;
-    count++;
-    it = next;
-    while (it < end && !((*it >= '0' && *it <= '9') || *it == '-' || *it == '+'
-                         || *it == '.'))
-      it++;
-  }
-
-  return count;
+fail:
+  if (items && items != stack)
+    free(items);
+  *outItems = NULL;
+  *outCount = 0u;
+  return false;
 }
 
 static
@@ -2746,10 +2779,9 @@ ak_3mf_parse_property_groups(AK3MFImportState * __restrict st,
     xml_t              *child;
     size_t              propertyCount;
     size_t              i;
+    uint32_t            stackIndices[16];
     uint32_t           *indices;
-    float              *values;
     size_t              indexCount;
-    size_t              valueCount;
     AK3MFPropertyGroup *baseGroup;
     xml_attr_t         *blendMethodsAttr;
     AK3MFBlendMethods   blendMethods;
@@ -2802,9 +2834,7 @@ ak_3mf_parse_property_groups(AK3MFImportState * __restrict st,
     }
 
     indices          = NULL;
-    values           = NULL;
     indexCount       = 0u;
-    valueCount       = 0u;
     baseGroup        = NULL;
     blendMethodsAttr = NULL;
     ak_3mf_blend_methods_init(&blendMethods);
@@ -2813,28 +2843,31 @@ ak_3mf_parse_property_groups(AK3MFImportState * __restrict st,
       xml_attr_t *matIndicesAttr;
 
       matIndicesAttr = AK_3MF_XMLA(xml, matindices);
-      indexCount     = ak_3mf_attr_u32_list_count(matIndicesAttr);
-      if (indexCount > 0u) {
-        indices = malloc(sizeof(*indices) * indexCount);
-        if (indices)
-          indexCount = ak_3mf_attr_u32_list(matIndicesAttr, indices, indexCount);
-      }
+      if (!ak_3mf_attr_u32_list_collect(matIndicesAttr,
+                                        stackIndices,
+                                        AK_ARRAY_LEN(stackIndices),
+                                        &indices,
+                                        &indexCount))
+        indices = NULL;
       baseGroup = ak_3mf_find_property_group(st,
                                              st->currentModelPath,
                                              xmla_u32(AK_3MF_XMLA(xml, matid), 0u));
-      group->hasColors = baseGroup && baseGroup->hasColors && baseGroup->colors && indices;
+      group->hasColors = baseGroup
+                         && baseGroup->hasColors
+                         && baseGroup->colors
+                         && indexCount > 0u;
     } else if (kind == AK_3MF_PROPERTY_GROUP_MULTI) {
       xml_attr_t *pidsAttr;
 
       pidsAttr         = AK_3MF_XMLA(xml, pids);
-      indexCount       = ak_3mf_attr_u32_list_count(pidsAttr);
       blendMethodsAttr = AK_3MF_XMLA(xml, blendmethods);
-      if (indexCount > 0u) {
-        indices = malloc(sizeof(*indices) * indexCount);
-        if (indices)
-          indexCount = ak_3mf_attr_u32_list(pidsAttr, indices, indexCount);
-      }
-      group->hasColors = indices != NULL && indexCount > 0u;
+      if (!ak_3mf_attr_u32_list_collect(pidsAttr,
+                                        stackIndices,
+                                        AK_ARRAY_LEN(stackIndices),
+                                        &indices,
+                                        &indexCount))
+        indices = NULL;
+      group->hasColors = indexCount > 0u;
       (void)ak_3mf_blend_methods_prepare(blendMethodsAttr,
                                          indexCount > 0u ? indexCount - 1u : 0u,
                                          &blendMethods);
@@ -2904,16 +2937,19 @@ ak_3mf_parse_property_groups(AK3MFImportState * __restrict st,
         }
       } else if (kind == AK_3MF_PROPERTY_GROUP_COMPOSITE) {
         xml_attr_t *valuesAttr;
+        float       stackValues[16];
+        float      *values;
+        size_t      valueCount;
 
         valuesAttr = AK_3MF_XMLA(child, values);
-        valueCount = ak_3mf_attr_float_list_count(valuesAttr);
-        free(values);
-        values = NULL;
-        if (valueCount > 0u) {
-          values = malloc(sizeof(*values) * valueCount);
-          if (values)
-            valueCount = ak_3mf_attr_float_list(valuesAttr, values, valueCount);
-        }
+        values     = stackValues;
+        valueCount = 0u;
+        if (!ak_3mf_attr_float_list_collect(valuesAttr,
+                                            stackValues,
+                                            AK_ARRAY_LEN(stackValues),
+                                            &values,
+                                            &valueCount))
+          values = NULL;
         ak_3mf_mix_property_colors(baseGroup,
                                    indices,
                                    indexCount,
@@ -2921,22 +2957,24 @@ ak_3mf_parse_property_groups(AK3MFImportState * __restrict st,
                                    valueCount,
                                    rgba,
                                    &previewColor);
+        if (values && values != stackValues)
+          free(values);
       } else if (kind == AK_3MF_PROPERTY_GROUP_MULTI) {
         xml_attr_t *pindicesAttr;
-        uint32_t   stackIndices[16];
+        uint32_t   stackPIndices[16];
         uint32_t  *pindices;
         size_t     pindexCount;
         size_t     layer;
         bool       firstLayer;
 
         pindicesAttr = AK_3MF_XMLA(child, pindices);
-        pindexCount  = ak_3mf_attr_u32_list_count(pindicesAttr);
-        pindices     = stackIndices;
-        if (pindexCount > AK_ARRAY_LEN(stackIndices))
-          pindices = malloc(sizeof(*pindices) * pindexCount);
-        if (pindices && pindexCount > 0u)
-          pindexCount = ak_3mf_attr_u32_list(pindicesAttr, pindices, pindexCount);
-        else if (!pindices)
+        pindices     = stackPIndices;
+        pindexCount  = 0u;
+        if (!ak_3mf_attr_u32_list_collect(pindicesAttr,
+                                          stackPIndices,
+                                          AK_ARRAY_LEN(stackPIndices),
+                                          &pindices,
+                                          &pindexCount))
           pindexCount = 0u;
 
         firstLayer = true;
@@ -2970,7 +3008,7 @@ ak_3mf_parse_property_groups(AK3MFImportState * __restrict st,
           previewColor = true;
         }
 
-        if (pindices != stackIndices)
+        if (pindices != stackPIndices)
           free(pindices);
       }
 
@@ -2989,8 +3027,8 @@ ak_3mf_parse_property_groups(AK3MFImportState * __restrict st,
         prop->name = xmla_strdup(AK_3MF_XMLA(child, name), heap, set);
       i++;
     }
-    free(indices);
-    free(values);
+    if (indices && indices != stackIndices)
+      free(indices);
     ak_3mf_blend_methods_free(&blendMethods);
     group->hasColors = groupHasColor;
     st->propertyCount++;
