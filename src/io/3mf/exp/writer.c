@@ -61,11 +61,13 @@ ak_3mf_buf_3mf_path_attr(AK3MFBuffer * __restrict buf,
 AK_HIDE
 void
 ak_3mf_buf_u32(AK3MFBuffer * __restrict buf, uint32_t value) {
-  char  tmp[24];
   char *end;
 
-  end = ak_io_text_format_uint64(tmp, value);
-  ak_3mf_buf_raw(buf, tmp, (size_t)(end - tmp));
+  if (!ak_3mf_buf_reserve(buf, 16u))
+    return;
+
+  end = ak_io_text_format_uint32(buf->data + buf->len, value);
+  buf->len = (size_t)(end - buf->data);
 }
 
 AK_HIDE

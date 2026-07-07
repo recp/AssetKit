@@ -475,7 +475,6 @@ ak_3mf_append_vertex(AK3MFBuffer * __restrict vertices,
                      float                    z,
                      bool                     displacement) {
   const char *prefix;
-  char        tmp[192];
   char       *p;
   size_t      outLen;
   size_t      prefixLen;
@@ -488,11 +487,14 @@ ak_3mf_append_vertex(AK3MFBuffer * __restrict vertices,
     prefixLen = sizeof("          <vertex x=\"") - 1u;
   }
 
-  p = tmp;
+  if (!ak_3mf_buf_reserve(vertices, 192u))
+    return;
+
+  p = vertices->data + vertices->len;
   memcpy(p, prefix, prefixLen);
   p += prefixLen;
   if (!ak_io_text_format_float6(p,
-                                 sizeof(tmp) - (size_t)(p - tmp),
+                                 vertices->cap - (size_t)(p - vertices->data),
                                  x,
                                  &outLen)) {
     vertices->result = AK_ERR;
@@ -502,7 +504,7 @@ ak_3mf_append_vertex(AK3MFBuffer * __restrict vertices,
   memcpy(p, "\" y=\"", sizeof("\" y=\"") - 1u);
   p += sizeof("\" y=\"") - 1u;
   if (!ak_io_text_format_float6(p,
-                                 sizeof(tmp) - (size_t)(p - tmp),
+                                 vertices->cap - (size_t)(p - vertices->data),
                                  y,
                                  &outLen)) {
     vertices->result = AK_ERR;
@@ -512,7 +514,7 @@ ak_3mf_append_vertex(AK3MFBuffer * __restrict vertices,
   memcpy(p, "\" z=\"", sizeof("\" z=\"") - 1u);
   p += sizeof("\" z=\"") - 1u;
   if (!ak_io_text_format_float6(p,
-                                 sizeof(tmp) - (size_t)(p - tmp),
+                                 vertices->cap - (size_t)(p - vertices->data),
                                  z,
                                  &outLen)) {
     vertices->result = AK_ERR;
@@ -522,18 +524,20 @@ ak_3mf_append_vertex(AK3MFBuffer * __restrict vertices,
   memcpy(p, "\"/>\n", sizeof("\"/>\n") - 1u);
   p += sizeof("\"/>\n") - 1u;
 
-  ak_3mf_buf_raw(vertices, tmp, (size_t)(p - tmp));
+  vertices->len = (size_t)(p - vertices->data);
 }
 
 static
 void
 ak_3mf_append_color(AK3MFBuffer * __restrict colors, uint8_t rgba[4]) {
   static const char hex[] = "0123456789ABCDEF";
-  char              tmp[48];
   char             *p;
   uint32_t          i;
 
-  p = tmp;
+  if (!ak_3mf_buf_reserve(colors, 48u))
+    return;
+
+  p = colors->data + colors->len;
   memcpy(p,
          "        <m:color color=\"#",
          sizeof("        <m:color color=\"#") - 1u);
@@ -545,7 +549,7 @@ ak_3mf_append_color(AK3MFBuffer * __restrict colors, uint8_t rgba[4]) {
   memcpy(p, "\"/>\n", sizeof("\"/>\n") - 1u);
   p += sizeof("\"/>\n") - 1u;
 
-  ak_3mf_buf_raw(colors, tmp, (size_t)(p - tmp));
+  colors->len = (size_t)(p - colors->data);
 }
 
 static
@@ -636,7 +640,6 @@ ak_3mf_append_triangle(AK3MFBuffer * __restrict triangles,
                        bool                     displacementMesh,
                        const AkPrintDisplacementTriangle * __restrict displacement) {
   const char *prefix;
-  char        tmp[128];
   char       *p;
   size_t      prefixLen;
 
@@ -648,20 +651,37 @@ ak_3mf_append_triangle(AK3MFBuffer * __restrict triangles,
     prefixLen = sizeof("          <triangle v1=\"") - 1u;
   }
 
-  if (propertyId == 0u && !displacement) {
-    p = tmp;
+  if (!displacement) {
+    if (!ak_3mf_buf_reserve(triangles, 192u))
+      return;
+
+    p = triangles->data + triangles->len;
     memcpy(p, prefix, prefixLen);
     p += prefixLen;
-    p = ak_io_text_format_uint64(p, i0);
+    p = ak_io_text_format_uint32(p, i0);
     memcpy(p, "\" v2=\"", sizeof("\" v2=\"") - 1u);
     p += sizeof("\" v2=\"") - 1u;
-    p = ak_io_text_format_uint64(p, i1);
+    p = ak_io_text_format_uint32(p, i1);
     memcpy(p, "\" v3=\"", sizeof("\" v3=\"") - 1u);
     p += sizeof("\" v3=\"") - 1u;
-    p = ak_io_text_format_uint64(p, i2);
+    p = ak_io_text_format_uint32(p, i2);
+    if (propertyId != 0u) {
+      memcpy(p, "\" pid=\"", sizeof("\" pid=\"") - 1u);
+      p += sizeof("\" pid=\"") - 1u;
+      p = ak_io_text_format_uint32(p, propertyId);
+      memcpy(p, "\" p1=\"", sizeof("\" p1=\"") - 1u);
+      p += sizeof("\" p1=\"") - 1u;
+      p = ak_io_text_format_uint32(p, i0);
+      memcpy(p, "\" p2=\"", sizeof("\" p2=\"") - 1u);
+      p += sizeof("\" p2=\"") - 1u;
+      p = ak_io_text_format_uint32(p, i1);
+      memcpy(p, "\" p3=\"", sizeof("\" p3=\"") - 1u);
+      p += sizeof("\" p3=\"") - 1u;
+      p = ak_io_text_format_uint32(p, i2);
+    }
     memcpy(p, "\"/>\n", sizeof("\"/>\n") - 1u);
     p += sizeof("\"/>\n") - 1u;
-    ak_3mf_buf_raw(triangles, tmp, (size_t)(p - tmp));
+    triangles->len = (size_t)(p - triangles->data);
     return;
   }
 

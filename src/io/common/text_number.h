@@ -46,6 +46,50 @@ ak_io_text_format_uint64(char * __restrict p, uint64_t val) {
 }
 
 static inline
+char*
+ak_io_text_format_uint32(char * __restrict p, uint32_t val) {
+  static const char digits[201] =
+    "00010203040506070809"
+    "10111213141516171819"
+    "20212223242526272829"
+    "30313233343536373839"
+    "40414243444546474849"
+    "50515253545556575859"
+    "60616263646566676869"
+    "70717273747576777879"
+    "80818283848586878889"
+    "90919293949596979899";
+  char tmp[16];
+  char *out;
+  size_t len;
+
+  out = tmp + sizeof(tmp);
+  while (val >= 100u) {
+    uint32_t next;
+    uint32_t rem;
+
+    next = val / 100u;
+    rem  = val - next * 100u;
+    out -= 2u;
+    memcpy(out, digits + rem * 2u, 2u);
+    val = next;
+  }
+
+  if (val < 10u) {
+    *--out = (char)('0' + val);
+  } else {
+    out -= 2u;
+    memcpy(out, digits + val * 2u, 2u);
+  }
+
+  len = (size_t)((tmp + sizeof(tmp)) - out);
+  memcpy(p, out, len);
+  p += len;
+
+  return p;
+}
+
+static inline
 bool
 ak_io_text_normalize_number(char * __restrict buf, size_t * __restrict len) {
   size_t i;

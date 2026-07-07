@@ -278,24 +278,6 @@ wobj_index_array_get_unchecked(const AkIndexArray * __restrict indices,
 }
 
 static inline
-unsigned char*
-wobj_write_uint_inline(unsigned char * __restrict dst, uint32_t val) {
-  char     buf[16];
-  uint32_t i;
-  uint32_t n;
-
-  i = sizeof(buf);
-  do {
-    buf[--i] = (char)('0' + (val % 10u));
-    val /= 10u;
-  } while (val);
-
-  n = (uint32_t)(sizeof(buf) - i);
-  memcpy(dst, buf + i, n);
-  return dst + n;
-}
-
-static inline
 uint32_t
 wobj_pos_obj_index(uint32_t index, uint32_t base, uint32_t count) {
   if (index >= count)
@@ -320,11 +302,11 @@ wobj_write_pos_face3_direct(WOBJExpState * __restrict st,
   p    = w->buffer + w->len;
   *p++ = 'f';
   *p++ = ' ';
-  p    = wobj_write_uint_inline(p, a);
+  p    = (unsigned char *)ak_io_text_format_uint32((char *)p, a);
   *p++ = ' ';
-  p    = wobj_write_uint_inline(p, b);
+  p    = (unsigned char *)ak_io_text_format_uint32((char *)p, b);
   *p++ = ' ';
-  p    = wobj_write_uint_inline(p, c);
+  p    = (unsigned char *)ak_io_text_format_uint32((char *)p, c);
   *p++ = '\n';
 
   w->len = (size_t)(p - w->buffer);
