@@ -2160,6 +2160,15 @@ ak_3mf_fast_orca_paint_state(const AK3MFFastSlice * __restrict paint,
     return false;
   }
 
+  if (len == 2u && (paint->begin[1] | 0x20) == 'c') {
+    uint8_t first;
+
+    if (!ak_3mf_fast_hex_nibble(paint->begin[0], &first) || first > 14u)
+      return false;
+    *state = 3u + (uint32_t)first;
+    return *state < AK_3MF_PAINT_BUCKET_COUNT;
+  }
+
   if (len < 2u || len > 5u)
     return false;
   if ((paint->begin[len - 1u] | 0x20) != 'c')
@@ -2938,7 +2947,7 @@ ak_3mf_fast_fill_indices(const AK3MFFastSlice * __restrict triangles,
   return i == triangleCount * 3u;
 }
 
-static
+AK_INLINE
 bool
 ak_3mf_fast_orca_paint_state_chars(const char * __restrict begin,
                                    const char * __restrict end,
@@ -2965,6 +2974,25 @@ ak_3mf_fast_orca_paint_state_chars(const char * __restrict begin,
       *stateOut = 2u;
       return true;
     }
+    return false;
+  }
+
+  if (len == 2u && (begin[1] | 0x20) == 'c') {
+    if (begin[0] >= '0' && begin[0] <= '9') {
+      *stateOut = (uint8_t)(3u + (uint8_t)(begin[0] - '0'));
+      return true;
+    }
+
+    {
+      char c;
+
+      c = (char)(begin[0] | 0x20);
+      if (c >= 'a' && c <= 'e') {
+        *stateOut = (uint8_t)(13u + (uint8_t)(c - 'a'));
+        return true;
+      }
+    }
+
     return false;
   }
 
