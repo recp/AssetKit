@@ -29,6 +29,7 @@ typedef IOFloatRows WOBJExpRows;
 #define wobj_rows_get     io_float_rows_get
 #define wobj_row_component io_float_row_component
 #define WOBJ_INDEX_ACCESSOR_FAST_MIN_VERTICES 65536u
+#define WOBJ_POS_FACE3_MAX_LEN 36u
 
 static
 AkInput*
@@ -247,6 +248,59 @@ wobj_index_array_get_unchecked(const AkIndexArray * __restrict indices,
   }
 }
 
+static inline
+unsigned char*
+wobj_write_uint_inline(unsigned char * __restrict dst, uint32_t val) {
+  char     buf[16];
+  uint32_t i;
+  uint32_t n;
+
+  i = sizeof(buf);
+  do {
+    buf[--i] = (char)('0' + (val % 10u));
+    val /= 10u;
+  } while (val);
+
+  n = (uint32_t)(sizeof(buf) - i);
+  memcpy(dst, buf + i, n);
+  return dst + n;
+}
+
+static inline
+uint32_t
+wobj_pos_obj_index(uint32_t index, uint32_t base, uint32_t count) {
+  if (index >= count)
+    index = 0u;
+
+  return base + index + 1u;
+}
+
+static inline
+void
+wobj_write_pos_face3_direct(WOBJExpState * __restrict st,
+                            uint32_t                  a,
+                            uint32_t                  b,
+                            uint32_t                  c) {
+  WOBJExpWriter *w;
+  unsigned char *p;
+
+  w = &st->w;
+  if (sizeof(w->buffer) - w->len < WOBJ_POS_FACE3_MAX_LEN)
+    wobj_w_flush(w);
+
+  p    = w->buffer + w->len;
+  *p++ = 'f';
+  *p++ = ' ';
+  p    = wobj_write_uint_inline(p, a);
+  *p++ = ' ';
+  p    = wobj_write_uint_inline(p, b);
+  *p++ = ' ';
+  p    = wobj_write_uint_inline(p, c);
+  *p++ = '\n';
+
+  w->len = (size_t)(p - w->buffer);
+}
+
 static
 uint32_t
 wobj_tuple_obj_index_fast(AkMeshPrimitive       * __restrict prim,
@@ -277,6 +331,91 @@ wobj_tuple_obj_index_fast(AkMeshPrimitive       * __restrict prim,
     index = 0;
 
   return base + index + 1u;
+}
+
+static
+bool
+wobj_write_position_only_triangle_list_fast(WOBJExpState    * __restrict st,
+                                            AkMeshPrimitive * __restrict prim,
+                                            AkInput         * __restrict posInput,
+                                            uint32_t                     vBase,
+                                            uint32_t                     vCount,
+                                            uint32_t                     vertexCount) {
+  const AkIndexArray *indices;
+  uint32_t            stride;
+  uint32_t            offset;
+
+  if (vCount == 0)
+    return false;
+
+  indices = prim->indices;
+  if (!indices) {
+    for (uint32_t i = 0; i + 2u < vertexCount; i += 3u) {
+      wobj_write_pos_face3_direct(st,
+                                  wobj_pos_obj_index(i, vBase, vCount),
+                                  wobj_pos_obj_index(i + 1u, vBase, vCount),
+                                  wobj_pos_obj_index(i + 2u, vBase, vCount));
+    }
+    return true;
+  }
+
+  stride = prim->indexStride ? prim->indexStride : 1u;
+  offset = posInput ? posInput->indexOffset : 0u;
+  if (offset >= stride)
+    offset = 0u;
+
+  switch (indices->componentType) {
+    case AKT_UBYTE: {
+      const uint8_t *src;
+
+      src = (const uint8_t *)indices->items;
+      for (uint32_t i = 0; i + 2u < vertexCount; i += 3u) {
+        size_t slot;
+
+        slot = (size_t)i * stride + offset;
+        wobj_write_pos_face3_direct(
+          st,
+          wobj_pos_obj_index(src[slot], vBase, vCount),
+          wobj_pos_obj_index(src[slot + stride], vBase, vCount),
+          wobj_pos_obj_index(src[slot + stride + stride], vBase, vCount));
+      }
+      return true;
+    }
+    case AKT_USHORT: {
+      const uint16_t *src;
+
+      src = (const uint16_t *)indices->items;
+      for (uint32_t i = 0; i + 2u < vertexCount; i += 3u) {
+        size_t slot;
+
+        slot = (size_t)i * stride + offset;
+        wobj_write_pos_face3_direct(
+          st,
+          wobj_pos_obj_index(src[slot], vBase, vCount),
+          wobj_pos_obj_index(src[slot + stride], vBase, vCount),
+          wobj_pos_obj_index(src[slot + stride + stride], vBase, vCount));
+      }
+      return true;
+    }
+    case AKT_UINT: {
+      const uint32_t *src;
+
+      src = (const uint32_t *)indices->items;
+      for (uint32_t i = 0; i + 2u < vertexCount; i += 3u) {
+        size_t slot;
+
+        slot = (size_t)i * stride + offset;
+        wobj_write_pos_face3_direct(
+          st,
+          wobj_pos_obj_index(src[slot], vBase, vCount),
+          wobj_pos_obj_index(src[slot + stride], vBase, vCount),
+          wobj_pos_obj_index(src[slot + stride + stride], vBase, vCount));
+      }
+      return true;
+    }
+    default:
+      return false;
+  }
 }
 
 static
@@ -460,6 +599,21 @@ wobj_write_index_accessor_triangles_fast(WOBJExpState    * __restrict st,
   for (uint32_t i = 0; i + 2u < vertexCount; i += 3u) {
     uint32_t index;
 
+    if (!hasTexcoord && !hasNormal) {
+      wobj_write_pos_face3_direct(
+        st,
+        wobj_pos_obj_index(io_index_rows_get_unchecked(&indexRows, i),
+                           vBase,
+                           vCount),
+        wobj_pos_obj_index(io_index_rows_get_unchecked(&indexRows, i + 1u),
+                           vBase,
+                           vCount),
+        wobj_pos_obj_index(io_index_rows_get_unchecked(&indexRows, i + 2u),
+                           vBase,
+                           vCount));
+      continue;
+    }
+
     wobj_w_ch2(&st->w, 'f', ' ');
     index = io_index_rows_get_unchecked(&indexRows, i);
     wobj_write_shared_accessor_ref(st,
@@ -519,6 +673,16 @@ wobj_write_triangle_list_fast(WOBJExpState    * __restrict st,
   stride      = prim->indexStride ? prim->indexStride : 1u;
   hasTexcoord = texInput && vtCount > 0;
   hasNormal   = normInput && vnCount > 0;
+
+  if (!hasTexcoord
+      && !hasNormal
+      && wobj_write_position_only_triangle_list_fast(st,
+                                                     prim,
+                                                     posInput,
+                                                     vBase,
+                                                     vCount,
+                                                     vertexCount))
+    return;
 
   for (uint32_t i = 0; i + 2u < vertexCount; i += 3u) {
     wobj_w_ch2(&st->w, 'f', ' ');
