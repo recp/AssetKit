@@ -17,6 +17,7 @@
 #include "common.h"
 #include "../package_source.h"
 #include "../../../../include/ak/path.h"
+#include "../../../../include/ak/options.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -176,6 +177,8 @@ ak_3mf_export(AkDoc * __restrict doc, const char * __restrict filepath) {
   size_t           extraPartCount;
   size_t           entryCount;
   size_t           entryIndex;
+  uintptr_t        compressionLevelOpt;
+  unsigned         compressionLevel;
   AkResult         result;
 
   if (!doc || !filepath)
@@ -273,7 +276,12 @@ ak_3mf_export(AkDoc * __restrict doc, const char * __restrict filepath) {
     entryIndex++;
   }
 
-  result = ak_zip_write_deflated(filepath, entries, entryCount);
+  compressionLevelOpt = ak_opt_get(AK_OPT_ZIP_EXPORT_COMPRESSION_LEVEL);
+  compressionLevel    = compressionLevelOpt > 12u ? 12u : (unsigned)compressionLevelOpt;
+  result              = ak_zip_write_deflated_level(filepath,
+                                                    entries,
+                                                    entryCount,
+                                                    compressionLevel);
 
   free(entries);
   ak_3mf_buf_free(&contentTypes);

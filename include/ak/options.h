@@ -156,6 +156,10 @@ typedef enum AkOption {
   /* AkGltfExportVersion. Default AUTO writes glTF 2.0 for maximum
      compatibility; callers may opt into the draft 2.1 asset version. */
   AK_OPT_GLTF_EXPORT_VERSION           = 45, /* AUTO     */
+
+  /* ZIP container export compression level. 0 stores entries, 1 is fastest
+     deflate, 12 is maximum libdeflate compression. Currently used by 3MF. */
+  AK_OPT_ZIP_EXPORT_COMPRESSION_LEVEL  = 46, /* 1        */
 } AkOption;
 
 AK_EXPORT

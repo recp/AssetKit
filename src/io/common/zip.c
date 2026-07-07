@@ -742,7 +742,7 @@ AkResult
 ak_zip_write_entries(const char            * __restrict zipPath,
                      const AkZipWriteEntry * __restrict entries,
                      size_t                             entryCount,
-                     bool                               deflateEntries) {
+                     unsigned                           compressionLevel) {
   AkZipStoredEntry             *stored;
   struct libdeflate_compressor *compressor;
   unsigned char                *scratch;
@@ -763,8 +763,11 @@ ak_zip_write_entries(const char            * __restrict zipPath,
   compressor      = NULL;
   scratch         = NULL;
   scratchCapacity = 0u;
-  if (deflateEntries) {
-    compressor = libdeflate_alloc_compressor(1);
+  if (compressionLevel > 12u)
+    compressionLevel = 12u;
+
+  if (compressionLevel > 0u) {
+    compressor = libdeflate_alloc_compressor((int)compressionLevel);
     if (!compressor) {
       free(stored);
       return AK_ERR;
@@ -835,7 +838,7 @@ AkResult
 ak_zip_write_stored(const char            * __restrict zipPath,
                     const AkZipWriteEntry * __restrict entries,
                     size_t                             entryCount) {
-  return ak_zip_write_entries(zipPath, entries, entryCount, false);
+  return ak_zip_write_entries(zipPath, entries, entryCount, 0u);
 }
 
 AK_HIDE
@@ -843,5 +846,14 @@ AkResult
 ak_zip_write_deflated(const char            * __restrict zipPath,
                       const AkZipWriteEntry * __restrict entries,
                       size_t                             entryCount) {
-  return ak_zip_write_entries(zipPath, entries, entryCount, true);
+  return ak_zip_write_entries(zipPath, entries, entryCount, 1u);
+}
+
+AK_HIDE
+AkResult
+ak_zip_write_deflated_level(const char            * __restrict zipPath,
+                            const AkZipWriteEntry * __restrict entries,
+                            size_t                             entryCount,
+                            unsigned                           compressionLevel) {
+  return ak_zip_write_entries(zipPath, entries, entryCount, compressionLevel);
 }

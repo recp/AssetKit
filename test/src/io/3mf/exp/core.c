@@ -29,6 +29,43 @@ typedef struct AkTest3MFZipStored {
 
 static const char AK_TEST_3MF_GCODE_PART[] = "G1 X0 Y0 E0\n";
 
+static uint16_t
+ak_test_3mf_load_u16le(const unsigned char *bytes) {
+  return (uint16_t)bytes[0] | ((uint16_t)bytes[1] << 8u);
+}
+
+static uint32_t
+ak_test_3mf_load_u32le(const unsigned char *bytes) {
+  return (uint32_t)bytes[0]
+         | ((uint32_t)bytes[1] << 8u)
+         | ((uint32_t)bytes[2] << 16u)
+         | ((uint32_t)bytes[3] << 24u);
+}
+
+static bool
+ak_test_3mf_zip_first_method(const char *path, uint16_t *method) {
+  unsigned char header[10];
+  FILE         *file;
+  bool          ok;
+
+  if (!path || !method)
+    return false;
+
+  file = fopen(path, "rb");
+  if (!file)
+    return false;
+
+  ok = fread(header, 1, sizeof(header), file) == sizeof(header)
+       && ak_test_3mf_load_u32le(header) == 0x04034b50u;
+  fclose(file);
+
+  if (!ok)
+    return false;
+
+  *method = ak_test_3mf_load_u16le(header + 8);
+  return true;
+}
+
 static uint32_t
 ak_test_3mf_crc32(const void *data, size_t size) {
   const unsigned char *bytes;
@@ -1284,6 +1321,8 @@ TEST_IMPL(three_mf_export_triangle_roundtrip) {
   AkMeshPrimitive *prim;
   AkPrintDocument *print;
   struct stat      st;
+  uintptr_t        savedCompressionLevel;
+  uint16_t         zipMethod;
   const char      *outDir  = "./assetkit_export_3mf_triangle_roundtrip";
   const char      *mfPath  = "./assetkit_export_3mf_triangle_roundtrip/model.3mf";
 
@@ -1291,9 +1330,14 @@ TEST_IMPL(three_mf_export_triangle_roundtrip) {
   doc = ak_test_make_3mf_triangle_doc();
   ASSERT(doc != NULL);
 
+  savedCompressionLevel = ak_opt_get(AK_OPT_ZIP_EXPORT_COMPRESSION_LEVEL);
+  ak_opt_set(AK_OPT_ZIP_EXPORT_COMPRESSION_LEVEL, 0u);
   ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_3MF) == AK_OK);
+  ak_opt_set(AK_OPT_ZIP_EXPORT_COMPRESSION_LEVEL, savedCompressionLevel);
   ASSERT(stat(mfPath, &st) == 0);
   ASSERT(st.st_size > 0);
+  ASSERT(ak_test_3mf_zip_first_method(mfPath, &zipMethod));
+  ASSERT(zipMethod == 0u);
 
   roundTrip = NULL;
   ASSERT(ak_load(&roundTrip, mfPath, AK_FILE_TYPE_3MF) == AK_OK);
